@@ -52,7 +52,7 @@ struct CProc;
 extern "C" {
 void GcProc_Unlink(GCNODE *pnode);
 void GcPool6_Unlink(GCNODE *pnode);
-int func_00233178(const void *a, const void *b, int cb);   /* memcmp */
+int func_00233178(const void *a, const void *b, int cb) __asm__("memcmp");   /* memcmp */
 }
 
 
@@ -968,3 +968,14 @@ extern "C" void func_00257148(PROCNODE *p, int flags)
     if (flags & 1)
         func_0011CD98(&CSlotPool<0x1C, 0x800>::s_pool.slotheap, p);
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_ref {
+    static int c_002DD2BC __asm__("D_002DD2BC");   /* .sbss 0x4 */
+    static int c_002DD2DC __asm__("D_002DD2DC");   /* .sbss 0x4 */
+};
+int COMMONS_ref::c_002DD2BC;
+int COMMONS_ref::c_002DD2DC;

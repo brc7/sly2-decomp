@@ -137,7 +137,7 @@ struct COLL { void *source; SO *object; };
 struct LSG { qword point; char remainder[0x50]; };
 COLL *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, COLL **, LSG *);
 SO *func_001F7530(SO *, int);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 qword GetXfVelocity(XF *, XF *, qword);
 qword func_001FAA00(SO *, qword);
 qword func_001FAA48(SO *, qword, qword);

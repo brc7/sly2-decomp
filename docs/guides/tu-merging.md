@@ -786,7 +786,7 @@ checked (only named symbols). Our compiler puts a const object with a dynamic in
 has it zero-filled in .rodata: tu_1147D8's and tu_114AE0's palettes `D_0029A7C0` / `D_002A2900` carry
 `__attribute__((section(".rodata")))` for it (see "Resolved decisions" under Data). The vtables are linkonce data at the end of .data (0x2C8940..0x2DD230), not owned
 by any TU, and the end of .bss from about 0x4421A0 is not in TU order (hud, frm, memcard, mpeg, thread mixed, likely
-common symbols): do not define data there by layout.
+common symbols): do not define data there by layout (phase 3 defines them as commons, "Phase 3: address names").
 
 Phase 1 over the merged TUs (branch data/phase-2, 2026-11-05): 96 files, 660 data symbols newly defined (survey kinds:
 192 floats, 109 16-byte vectors, 76 float pairs, 115 int/float tables and records, 105 .bss objects, 25 strings, 20
@@ -801,7 +801,7 @@ directories also declare, so naming waits for the merges (survey phase 5). Refin
   sprbuf) are not in TU order: not defined. Also left: vtables, class rows, engine tables, PMF constants (literal
   phase), records and tables holding function pointers (pointer phase: cheat's CODEs, menu's items, tu_15CD68's label
   tables, draw's pass hooks), the shared constant block 0x2A2D00..0x2A2E10 (identity matrices, unit/zero vectors right
-  after tu_114AE0's palette; owner undecided) and the two zero-filled palettes (placement decision pending).
+  after tu_114AE0's palette; owner undecided) and the two zero-filled palettes (since resolved: section attribute, "Resolved decisions" below).
 - **Ownership by layout beats the survey's first-user guess** where they disagree: frm owns D_002DEA4C (survey: font),
   cd owns D_002BD4C0 (survey: tu_14A008, medium), phasemem owns the RPL buffer D_003B3980 that only other TUs name;
   basic's two int tables lie in crt0_splicewrap's `.rodata` (0x27A108.., generated area) and are not basic's.
@@ -1086,6 +1086,132 @@ Resolved decisions (user, build/rtti-palettes):
 - **tn's zero `.rodata` SWCB** D_002A96E8 is not the same case: it is a null pointer-to-member constant `{0, 0, 0}`
   (its neighbour D_002A96F0 is a non-null one), statically zero, with no initializer writing it; it stays
   extern with the other PMF constants (literal phase). No other section attribute was added.
+
+### Phase 3: address names (branch data/address-names, 2026-11-05)
+
+Goal: no `D_`/`func_` name that no object defines, so tools/linkaliases.py stops binding names to absolute
+addresses (an absolute address pins the data in place: no relocatable link, no mods, no port). Measured on all 932
+objects tools/link.py builds: 917 address names (888 absolute, 29 aliases) before, 469 (467 absolute, 2 aliases)
+after. Per-name classification and the remaining list: /home/claude/ref/reports/address_names/CLASSIFY.md.
+
+| class | before | after | resolution |
+|---|---:|---:|---|
+| c: func_ name of a config function | 29 | 2 | `__asm__("<config name>")` on the declarations (92 sources; _start.c's inline asm calls FlushCache by name) |
+| a: object not defined yet | 134 | 56 | air's `.data` (73 objects, 0x2BF730..0x2BF920) and 2 FLT_MAX `.rodata` words, end-of-file block; 3 virtual PMF constants (bomb, tu_17F090) |
+| a: common symbols (end of `.bss`, `.sbss`) | 65 + 15 SDK | 0 | defined as commons (below) |
+| a: pointer records and PMF constants | 149 + 21 | 36 | 137 defined: 28 PMF constants, hud's 107 widget records, bif's math table (below) |
+| b: field / interior of a defined object | 132 | 3 | base+offset (below); D_002E5270 is `_gp` |
+| a: shared constant blocks, vtables, vtable block | 15 + 251 + 14 | same | owner undecided / decision (below) |
+| d: SDK data and unbuilt SDK functions | 47 | 47 | no owner object for the 989snd/libc/libkernel/libgraph data; 8 `.text` names are defined by the gnu-reorder SDK sources (Mac build) |
+| e: blob addresses (.vutext/.irx), small values, code interiors | 17 + 26 + 2 | same | blob labels need symbols on the blob objects; values 0x0..0x3AB0 are not image addresses (absolute is right) |
+
+Rules found:
+
+- **Commons.** g++ 2.95 emits an uninitialized class static data member or template static data member as COMMON
+  (`C` in nm), and C tentative definitions are commons; GNU ld allocates commons at the end of `.bss` (small ones in
+  `.sbss`). That is why `.bss` from 0x4421A0 mixes hud, prog, frm, memcard, mpeg, thread, xf, 989snd and libkernel,
+  and why the splice pool words 0x2DD280.. / 0x4520xx are not in TU order. Defined as commons with the address name:
+  `struct COMMONS_<tu> { static T c_X __asm__("D_X"); }; T COMMONS_<tu>::c_X;` at the end of one referencing TU (C:
+  `T c_X[n] __asm__("D_X");`), sized by the gap to the next name; a common takes its type's alignment (int/char
+  arrays 8, `qword` 16, `__attribute__((aligned))` is ignored), so 16-aligned starts with a 16-multiple size are
+  `qword` arrays. matchtool checks COMMON placement and size. Open for a byte-matching real link: ld's common order
+  is not the original's (the real names were template/class statics; their mangled names are not known).
+- **Interiors (b).** `#define D_X (*(T *)((char *)base_<OBJ> + 0xOFF))   /* field */` replaces each declaration
+  (arrays: `(*(T (*)[N])(...))`, so `&D_X`, indexing and decay keep working), with `extern "C" char base_<OBJ>[]
+  __asm__("<OBJ>");` after the first includes and an `#undef` where a namespace-local declaration's scope ends (a
+  later declaration with another type must not leak). Comments name the SW field (offsets from sly2/sw.h). The SW
+  type could replace the casts where a file has `SW` in scope (done for most of them in phase 4, below). Codegen: identical in 81 files; in two
+  functions the base form changes code (CSE of the shared base in hud's func_00211298, offset folding in
+  tu_201D78's UpdateReconTargetVisibility), so those three declarations stay extern.
+- **Pointer records.** `namespace ANPTR_<tu> { void p_F() __asm__("F"); extern "C" char d_X[] __asm__("X");
+  extern "C" { extern const unsigned int D_X[n] = {0xFFFF0000, (unsigned int)p_F}; } }` at the end of the TU: words as
+  in the ELF, pointers through asm-labelled declarations, no existing declaration has to agree. A non-virtual PMF
+  constant is 8 bytes {delta 0, index -1, pfn}; hud's widget records are {id, builder, arg, 0}. relverify checks the
+  pointers (the data check masks them).
+- **func_ labels and view inlines.** Labelling `func_00129658` as `__as__4CRefRC4CRef` in splicemap (and
+  `func_00256CE8` as `__8VU_FLOATf` in tu_1553F0) makes g++ emit the file's own inline member with that mangled name
+  (a referenced assembler name forces the deferred inline out): left as address names.
+- **Prototype link.** Resolving through the defining objects exposes the prototype link's existing `.bss` placement
+  differences (memcard, mpeg, sw, tn): `.text` from objects 1,281,279 equal bytes (68 fewer); relverify, which checks
+  every relocation against the ELF, has 0 mismatches.
+
+Left, by reason (467 absolute names): 251 view vtables + 14 rows of the vtable block (decision: emit them as data tables in one file at
+the end of `.data`, or wait for real classes); 56 objects whose owner, extent or type is undecided (game's check
+tables, generated g_aeopid, eopid_linkonce's rows, g_gs, shd's E[], tn/grab CPDs, codegen devices kept extern on
+purpose); 36 pointer records (cheat CODEs, menu items, tu_15CD68 label tables, prize, the palette headers, bsp/font
+rows); 15 shared-block constants; 47 SDK (Mac list: 989snd strings and words at 0x2AA100.. / 0x2C4640..,
+`_ctype_+1` D_002AA6A1, libkernel/libgraph tables; InitThread.c's D_002E5270 is `_gp` but the file only builds on
+the Mac); 45 not source (blob labels, VU/scratchpad values, memcard's X::A/B code interiors).
+
+### Phase 4: interior fields (branch data/interior-fields, 2026-11-05)
+
+Goal: the phase-3 base+offset macros become real typed fields accessed through the real global. 302 macros in 84
+files before, 73 in 35 files after (inventory: scratch fields/inventory.py). All functions and data of every touched
+file and of the includers of the changed headers MATCH (full progress run); no rewrite changed codegen, so nothing
+was reverted for codegen.
+
+| object | before | after | what was done |
+|---|---:|---:|---|
+| g_sw (SW, D_003DD490) | 206 | 45 | sly2/sw.h: the pads split into named fields (below); 161 macros now read `g_sw.<field>` |
+| g_cm (CM, D_002DDF40) | 24 | 8 | existing fields (grfvis, rAspect, mat, rgbaFog, part3a0, cplook, `cplook.rZoomMax`, `cpzoom.rZoomMax`) |
+| g_clock (CLOCK, D_002DDED0) | 18 | 1 | dt, dtCm, tReal, dtReal, tickFrame |
+| g_joy (JOY, D_002DFC00) | 4 | 0 | dtIdle, grfbtn, grfbtnLatched, rumble |
+| memcard D_002E65A0+0x40 | 29 | 0 | not an interior: the save manager D_002E65E0 is its own object (below) |
+| sound manager, class descriptor table | 9 | 7 | sound.cpp's own use (SNDMGRBASE::dlSndDirty), basic.cpp's row (`&D_002BAAE8[29].f0`) |
+| g_game, screen objects, frm's VIFS | 12 | 12 | no header type (below) |
+
+Representation decisions:
+
+- **Globals under their real names.** sw.h, cm.h, clock.h and joy.h declare `extern SW g_sw __asm__("D_003DD490");`
+  (g_cm, g_clock, g_joy alike), the existing pattern for globals whose config name is an address name
+  (`g_heapSw`, `g_pdliFirst`). The defining TU keeps its address-named definition (sw.cpp's `SWG D_003DD490`, which
+  carries the constructor/destructor), and the per-file `extern SW D_003DD490;` declarations are unchanged (follow-up:
+  rename them to g_sw file by file).
+- **View type at the use.** Where a file's view type for the name equals the field's type the use is plain
+  (`g_sw.slotheapJsg`); otherwise it keeps the file's type with a cast at the use, `(*(struct X * *)&g_sw.dlTaskActive)`
+  (a DL read as its head pointer), and where a namespace-local `DL` view shadows the header's, `(DL *)&g_sw.dlSoTree`.
+  These casts are the view-unification list for those files.
+- **SW fields named here** (offset asserts added; `[S]` = from the matched code, "draft" in the comment when the name
+  is ours): dlTaskActive 0x3B00, dlWidgetExclusive 0x3BD0, slWidgetDeferred 0x3BDC, fUnk3e40, agShdLight 0x3E64 /
+  aclrShdLight 0x3E70 / tex2ProjVolume 0x3EA0 (the former _pad_283), dlCid98 0x3FC0, dlTargetrec 0x3FCC, dlCid21
+  0x3FE4, dlCid23 0x3FF0, slotheapUnk40a0, slotheapJsg 0x40D0, slShd 0x4100, slSaa 0x410C, slotheapXfh 0x413C,
+  fUnk4554, dlCid14Free 0x45B0, dlCid14Pending 0x45BC, slotheapLeap 0x4648, slotheapDiract 0x4660, tUnk4758, pepmenu
+  0x4774. Lists use DL when the code calls Append/RemoveDlEntry and SL when it calls func_0011A070 (same layout).
+  Interior array elements are spelled as elements (`g_sw.aslCid[49]`, `g_sw.apstimk[3]`, the stimulus view base
+  `g_sw.aslPxrOid[410]`); act.cpp's view at slotheapAsega+0xC was slotheapAct.cb.
+- **Private views that blocked the header** were replaced by the shared layout where that was the only obstacle
+  (all MATCH): the file-scope `typedef int qword __attribute__((mode(TI)))` (signed) in light, sky, vol, tu_1B9F80,
+  bomb, tu_1BAB50, tu_1FF3B8 gives way to basic.h's unsigned TI qword; busy's `struct DL`; the CLOCK views of cane,
+  hang, prog (`frameT` = tReal), tu_15CD68 (`t` at +0x3C = tReal) and rumble (`a[16]` = dtReal), with the views' own
+  size/alignment asserts.
+- **.bss order (g++ 2.95).** An object with a constructor is emitted at its definition; every other uninitialized
+  object is emitted at the end of the file in the order of its *first declaration* (file scope first, then
+  namespace-scope definitions). The whole `.bss` of an object is one section (`-fdata-sections` does not split it),
+  so this order decides where link.py puts each name. Fixed here, each object's `.bss` now equal to the ELF's:
+  memcard (the save manager D_002E65E0, 0xFDA0 bytes to memory.cpp's .bss at 0x2F6380, defined; the status widget
+  D_002E65A0 is 0x40 bytes, not 0x50; the dialog's words D_002E6590/D_002E6594, which memcard defined as separate
+  objects, are its fields +0x40/+0x44 (`D_002E6550.x44` and `D_002E6594 != 1` were the same test); the three plain
+  buffers get an empty inline constructor so they precede the dialogs), mpeg (CMPEG is 0x248 bytes; D_002F68F8
+  declared before D_002F6900), sw (the words D_003E1C30.. first-declared in address order; the missing
+  D_003E1C34 defined: one absolute address name fewer). This was the cause of the 68-byte `.text` regression of
+  phase 3, and more: `.text` from objects 1,281,264 -> 1,281,448 equal bytes (full-link.md).
+
+Left (73 macros), by reason:
+
+- **Header does not compile in the TU** (SW 45 in 23 files, CM 8 in 7, CLOCK 1): file-scope private views that clash
+  with basic.h/sw.h/cm.h (`struct SW`/`BASIC`/`LO`/`DL`/`VECTOR`/`MATRIX4`/`LM`/`SMP`/`CLOCK`, `class CFrame`,
+  `enum OID`/`CID`/`RUMS`, brace-initialized globals of a view type that has a constructor in the header) in bif,
+  detector, draw, frm, noise, pipe, rail, sensor, shdanim, tu_14A008, tu_171F58, tu_185130, tu_1BC050, tu_1BE398,
+  turret, eval, frame, rumble (sw.h); po (its mat.h breaks sw.h's and cm.h's offset asserts); basic, booty, find,
+  save (sw.h) and frm, pipe_jt, throw, tu_201D78 (cm.h): cc1plus exits 1 with no message (their own file-scope
+  `struct SW`/view classes). Each needs its views unified first.
+- **No header type**: the sound manager SNDMGRG (cd, menu, save: the type lives in sound.cpp), g_game D_002DEB30
+  (game.cpp), the screen objects D_003D9ED0 / D_003DA150 / D_003DA0C0 (screen.cpp's opaque SCRCTOR blobs; cheat,
+  memcard, hud, screen), frm's VIFS D_002DEA28 (tu_1471C0), the class descriptor row 32 (emitter: no CIDDESC in
+  scope).
+- **Other `.bss` laid out differently from the ELF** (same technique, not done here; build/link/conflicts.txt): dl, gs,
+  glob, shd, prog, screen, stepguard, grab, joy, sprbuf, game (tu_1147D8 / tu_114AE0 are the const-array `.rodata`
+  case).
 
 ## Linkage of namespace-scoped declarations
 

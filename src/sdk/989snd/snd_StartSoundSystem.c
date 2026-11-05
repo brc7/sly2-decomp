@@ -15,8 +15,8 @@ extern int D_00448400[];
 extern unsigned int D_00448480;
 extern char D_002AA100[], D_002AA128[];
 void printf(const char *, ...);
-void func_00236A60(int);
-int func_002370A8(void *, int, int);
+void func_00236A60(int) __asm__("sceSifInitRpc");
+int func_002370A8(void *, int, int) __asm__("sceSifBindRpc");
 int snd_SendIOPCommandAndWait__FiiPc(int, int, void *);
 
 /** @sly2-annot addr=0x2319E8
@@ -76,3 +76,19 @@ void snd_StartSoundSystem(int flags)
     D_002C4668[1] = 0xFFC;
     snd_SendIOPCommandAndWait__FiiPc(0, 8, buf);
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+typedef int qword __attribute__((mode(TI)));
+qword c_00443800[4] __asm__("D_00443800");   /* .bss 0x40 */
+qword c_00443B80[122] __asm__("D_00443B80");   /* .bss 0x7A0 */
+qword c_00444B80[256] __asm__("D_00444B80");   /* .bss 0x1000 */
+qword c_00445B80[256] __asm__("D_00445B80");   /* .bss 0x1000 */
+qword c_00446B80[256] __asm__("D_00446B80");   /* .bss 0x1000 */
+qword c_00447B80[68] __asm__("D_00447B80");   /* .bss 0x440 */
+qword c_00447FC0[68] __asm__("D_00447FC0");   /* .bss 0x440 */
+char c_00448400[63] __asm__("D_00448400");   /* .bss 0x3F */
+qword c_00448440[4] __asm__("D_00448440");   /* .bss 0x40 */
+qword c_00448480[4] __asm__("D_00448480");   /* .bss 0x40 */

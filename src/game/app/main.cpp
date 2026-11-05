@@ -88,7 +88,7 @@ extern struct E *D_004E5E38;
 int D_002E2058;     /* main's .bss: skip the IOP reboot */
 extern const char D_002A6A48[] = "ioprp300.img";
 extern "C" {
-void func_00236A60(int n);
+void func_00236A60(int n) __asm__("sceSifInitRpc");
 int sceSifLoadFileReset(void);
 int sceCdInit(int n);
 int sceFsReset(void);
@@ -97,7 +97,7 @@ int sceSifSyncIop(void);
 int sceCdDiskReady_2425F0(int n);
 int sceSifInitIopHeap(void);
 void *sceSifAllocIopHeap(int cb);
-void func_00234CA0(int n);
+void func_00234CA0(int n) __asm__("FlushCache");
 int func_00234DE0(struct DMA *p, int n);
 int sceSifLoadModuleBuffer(void *h, int argumentBytes, const char *arguments);
 int sceSifFreeIopHeap(void *h);

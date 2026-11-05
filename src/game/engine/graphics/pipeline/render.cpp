@@ -40,7 +40,7 @@ extern char D_003B3980[];
 extern char D_003DA0F0[];
 extern DMAS D_002DEA00, D_002DEA28;   /* the two DMA streams flushed after the world is rendered */
 extern "C" {
-void *func_002333B4(void *p, int c, int n);   /* memset */
+void *func_002333B4(void *p, int c, int n) __asm__("memset");   /* memset */
 int CploFindSwObjectsByClass(SW *p, int a, int b, int c, int d, LO **ap);
 void SubmitGlobsetRelight(void *p);
 void PrepareSwLights(SW *p);

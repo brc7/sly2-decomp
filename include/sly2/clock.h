@@ -41,5 +41,9 @@ typedef char assert_CLOCK_tCm[SLY2_CLOCK_OFFSETOF(CLOCK, tCm) == 0x14 ? 1 : -1];
 typedef char assert_CLOCK_art[SLY2_CLOCK_OFFSETOF(CLOCK, art) == 0x18 ? 1 : -1];     /* CONFIRMED runtime */
 typedef char assert_CLOCK_tReal[SLY2_CLOCK_OFFSETOF(CLOCK, tReal) == 0x3C ? 1 : -1]; /* CONFIRMED runtime + match (DxSelectionJoy reads +0x3C) */
 typedef char assert_CLOCK_dtReal[SLY2_CLOCK_OFFSETOF(CLOCK, dtReal) == 0x40 ? 1 : -1]; /* CONFIRMED runtime */
+typedef char assert_CLOCK_tickFrame[SLY2_CLOCK_OFFSETOF(CLOCK, tickFrame) == 0x48 ? 1 : -1]; /* match (hud.cpp reads +0x48) */
+
+/* g_clock: the game clock (clock.cpp defines it under its address name). */
+extern CLOCK g_clock __asm__("D_002DDED0");
 
 #endif

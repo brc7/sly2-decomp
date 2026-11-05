@@ -2262,7 +2262,7 @@ struct AR { int cb; int cbAlign; };
 typedef struct { float m[4][4]; } MATRIX4;
 struct X { char pad[0x60]; MATRIX4 mat; char pad2[0xE0 - 0xA0]; int xE0; int xE4; int xE8; float *ag; float *agF0; void *pvF4; };
 struct X *PloNew__F3CIDP2SO3OIDi(int k, int n, void *pv, int m);
-void func_002333B4(void *p, int b, int cb);
+void func_002333B4(void *p, int b, int cb) __asm__("memset");
 void *func_001AE1D0(struct AR *par);
 /** @sly2-annot addr=0x1E94B0
  * Purpose: Create a SHAPE (cid 0xA) with c samples (times 0..c-1) and empty dist/point arrays
@@ -2760,7 +2760,7 @@ float SMaxShape(struct O *);
 void EvaluateShapeS(struct O *, float, qword *, qword *);
 void *func_001E9F50(qword);
 int func_001BD560(void *, struct O *, float, int, qword *, float *);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int ClsgMergeAlsg(int, struct X *, int, struct X *, int, struct X *, int);
 
 /** @sly2-annot addr=0x1EA000

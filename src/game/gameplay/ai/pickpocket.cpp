@@ -95,7 +95,7 @@ int func_001C2DC8(OWNER *, OBJECT *, int, int);
 void *func_001C2EF0(OWNER *, int);
 int NWorldCur(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 OBJECT *PloFindSwObject__FP2SWi3OIDP2LO(G *, int, int, OWNER *);
 int FTaskComplete(void *);
 float GRandInRange__Fff(float, float);

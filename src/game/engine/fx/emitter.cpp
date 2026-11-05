@@ -17,6 +17,7 @@
 #include "sly2/xfm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
    that func_00159118 (InitEmitb) copies into EMITB+0x10 / +0x50 (Sly 1's InitEmitb builds the same two objects as
@@ -131,7 +132,7 @@ typedef struct B7 { qword aq[7]; } B7;
 extern M4 D_002DE5B0;
 extern B7 D_002DE5F0;
 struct S { int a; int b; int pad[2]; M4 m; B7 b7; char pad2[0x100 - 0xC0]; };
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 /** @sly2-annot addr=0x159118
  * Purpose: Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
  * Info: proposed name InitEmitb (T1); TU emitter
@@ -563,7 +564,7 @@ int func_001A61A0(EMITTER *p);
 qword func_001A62E8(void *p);
 float GRandInRange__Fff(float gMin, float gMax);
 int CPvDl__FP2DL(int *pdl);
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITB *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTER *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
@@ -903,7 +904,7 @@ void SetSndSourceLo(void *p, SO *pso);
 void SetSndRange(void *p, float a, float b);
 void RcPtr_Assign(void *pp, void *p);
 RIP *PripNewRipg(void *p, int k, int x);
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void func_0015BE28(qword pos, qword dir, int n, EMITP emitp, EMITV emitv, E *pe, int x, int y);
 }
 
@@ -1524,7 +1525,7 @@ extern char D_003DD490[];
 PRG *PblipgNew(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITTER *p);
 BLK *PblipNew(void *pv, PRG *pprg);
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int NRandInRange__Fii(int nMin, int nMax);
 float GRandInRange__Fff(float gMin, float gMax);
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTER *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab);
@@ -1836,7 +1837,7 @@ struct X { int a; int b; int c; int pad; M4 m; B7 b7; M4 m2; };
 struct Y { int a; int b; int c; };
 void func_00159118(struct X *px);
 void EmitParticles__FiP5EMITBP5EMITG(void *p, struct X *px, struct Y *py);
-void func_002333B4(void *pv, int b, int cb);
+void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 /** @sly2-annot addr=0x15BE28
  * Purpose: Builds a temporary EMITB (InitEmitb) from explicit position/velocity/matrix/params and calls
  *   EmitParticles
@@ -1959,7 +1960,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
 struct P { int a; int b; float f; float g; qword q; qword r; qword s; };
-void func_002333B4(void *pv, int b, int cb);
+void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 /** @sly2-annot addr=0x15C150
  * Purpose: Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51)
  * Info: proposed name ExplodeExpl (T1); TU emitter
@@ -2267,7 +2268,7 @@ extern char D_002BDEC0[];
 extern float GRandInRange__Fff(float lo, float hi);
 extern float GLimitLm__FP2LMf(void *p, float g);
 typedef union V4 { qword q; float a[4]; } V4;
-extern V4 func_00256CE8(float g);
+extern V4 func_00256CE8(float g) __asm__("__8VU_FLOATf");
 extern V4 __9VU_VECTORRC6VECTOR(qword *pv);
 extern qword __ml__FG8VU_FLOATG9VU_VECTOR(qword a, qword b);
 extern void VECTOR_opAssign(qword *pv, qword a);
@@ -2497,8 +2498,8 @@ typedef struct { char p0[0xE4]; X *px; } SO;
 extern char D_003DD490[];
 extern char D_002CE4A0[];
 void PostLoLoad(SO *p);
-void *func_002333B4(void *p, int c, int n);
-int func_00233178(const void *a, const void *b, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
+int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, SO *p);
 void PemitbEnsureEmitter(SO *p, int f);
 void *func_001AE238(AREQ *preq, void *pv);
@@ -2671,8 +2672,8 @@ typedef struct { char p0[0xE4]; X *px; } SO;
 extern char D_003DD490[];
 extern char D_002CE4B8[];
 void PostLoLoad(SO *p);
-void *func_002333B4(void *p, int c, int n);
-int func_00233178(const void *a, const void *b, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
+int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, SO *p);
 void PemitbEnsureExplo(SO *p, int f);
 void *func_001AE238(AREQ *preq, void *pv);
@@ -2747,7 +2748,8 @@ void func_00259170(SO *p)
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
 extern "C" {
-extern char D_002BAD68[];   /* EXPLO class descriptor */
+#undef D_002BAD68
+#define D_002BAD68 (*(char (*)[])((char *)base_D_002BAAE8 + 0x280))   /* class descriptor table+0x280 (row 32, +0x0) */   /* EXPLO class descriptor */
 }
 /* linkonce copy (0x2599C8). */
 extern "C" void *GetExploClassDesc_linkonce()
@@ -2762,3 +2764,13 @@ extern const float D_002A514C = 3.40282347e+38f;
 extern const float D_002A5150 = 3.40282347e+38f;
 int D_002BDEB0[4] = {75, 77, 78, 76};
 LM D_002BDEC0 = {0.5f, 2.0f};
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_emitter {
+void p_func_00159968() __asm__("func_00159968");
+extern "C" {
+extern const unsigned int D_002A5140[2] = {0xFFFF0000, (unsigned int)p_func_00159968};
+}
+} // namespace ANPTR_emitter

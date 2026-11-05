@@ -46,8 +46,6 @@ struct TASKV { char pad[0x54]; int nState; char pad2[0x10]; int x68; char pad3[0
 struct SVSET;
 struct SVSTORE;
 extern SVSET D_003D4A60;
-extern SVSTORE D_003E0EA8;
-extern JOBV *D_003E0F9C;
 DIFFPARAMS D_002BDC00 = {{0.0f, 1.0f}, 0.1f, -0.2f, 4, 6, 2, 3, 1.0f, 0.5f, {4, 6, 4, 6, 600, 800, 300, 600}};
 extern DIFFICULTY D_002DE578;
 extern SW D_003DD490;
@@ -70,7 +68,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 static inline void Set(SVKEY *pkey, CRef ref) { RefSetGlobalSaveVar(pkey, ref, &D_003D4A60); }
 static inline void SetG(SVKEY *pkey, float g) { CRef ref; ref.m_tagk = 0x16; ref.u.g = g; Set(pkey, ref); }
-static inline CRef Get(SVKEY *pkey) { SVSET *psvset = &D_003D4A60; return RefGetSaveVar(&D_003E0EA8, pkey, psvset); }
+static inline CRef Get(SVKEY *pkey) { SVSET *psvset = &D_003D4A60; return RefGetSaveVar(&(*(SVSTORE *)&g_sw.savevars), pkey, psvset); }
 static inline float GGet(SVKEY *pkey) { CRef ref = RefGetGlobalSaveVar(pkey, &D_003D4A60); return ref.u.g; }
 
 /** @sly2-annot addr=0x154A60
@@ -122,7 +120,7 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *pdifficulty, int msgk, TASKV
         SetG(pdifficulty->pkey10, *ptask->pgA8);
         break;
     case 37:
-        if (D_003E0F9C == ptask->pjob && ptask->nState == 2 && ptask->x68 == 1)
+        if ((*(JOBV * *)&g_sw.ploJobCur) == ptask->pjob && ptask->nState == 2 && ptask->x68 == 1)
             ChangeDifficulty(pdifficulty, pdifficulty->pdp->dgJobDone);
         break;
     case 16:
@@ -142,8 +140,8 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *pdifficulty, int msgk, TASKV
 extern "C" float GGetDifficulty(DIFFICULTY *pdifficulty)
 {
     float g;
-    if (D_003E0F9C)
-        g = *D_003E0F9C->pg;
+    if ((*(JOBV * *)&g_sw.ploJobCur))
+        g = *(*(JOBV * *)&g_sw.ploJobCur)->pg;
     else if (pdifficulty->pkey8 && pdifficulty->pkeyC && pdifficulty->pkey10) {
         float g1 = GGet(pdifficulty->pkey8);
         float g2 = GGet(pdifficulty->pkeyC);

@@ -9,12 +9,12 @@ extern int D_00443840[];
 extern char D_00443800[];
 extern char D_002AA1C8[], D_002AA5E8[], D_002AA610[], D_002AA670[];
 void printf(const char *, ...);
-void *func_0023320C(void *, void *, int);
+void *func_0023320C(void *, void *, int) __asm__("memcpy");
 int snd_FlushSoundCommands(void);
-void func_00234CA0(int);
+void func_00234CA0(int) __asm__("FlushCache");
 void snd_PrepareReturnBuffer(void *, int);
-int func_00237488(void *);
-int func_00237288(void *, int, int, void *, int, void *, int, void *, void *);
+int func_00237488(void *) __asm__("sceSifCheckStatRpc");
+int func_00237288(void *, int, int, void *, int, void *, int, void *, void *) __asm__("sceSifCallRpc");
 void snd_PostMessage__Fv(void);
 
 void snd_SendIOPCommandNoWait__FiiPcPFiUl_vUl(int cmd, int size, unsigned char *buf, void (*fn)(int, long), long arg)

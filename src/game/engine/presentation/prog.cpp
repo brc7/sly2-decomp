@@ -6,13 +6,14 @@
 #include "vifs.h"
 #include "gifs.h"
 #include "sly2/slotheap.h"
+#include "sly2/clock.h"
 
 struct RGBA { unsigned char r, g, b, a; };
 struct TRI { int ai[3]; };
 static inline void SetRgba(RGBA *pc, int r, int g, int b, int a) { pc->r = r; pc->g = g; pc->b = b; pc->a = a; }
 /* One triangle list of the loading-screen logo: count, triangles (vertex indices into D_002C10D0), colour. */
 struct E { int n; TRI *p; RGBA c; };
-extern "C" void *func_002333B4(void *, int, int);
+extern "C" void *func_002333B4(void *, int, int) __asm__("memset");
 extern TRI D_002C1740[], D_002C19C0[], D_002C1AC8[], D_002C1B50[], D_002C1BD8[];
 /* The logo's five triangle lists, filled by a constructor (the static initializer's code walks one element pointer). */
 struct LOGO
@@ -78,19 +79,17 @@ typedef char assert_CProg_rgba3[(uint)&((CProg *)0)->m_rgba3 == 0x60 ? 1 : -1];
 struct M2 {float a[8];M2(){}void Identity();};
 struct V2 { float x, y; };
 struct SEMA {int count,maxCount,initialCount,waitThreads;uint attributes,option;};
-struct CLOCK {float t,dt,ratio,realRatio,realDt,realT;char pad18[0x24];float frameT,frameDt;ulong tick;};
 /* The render frame (frm.cpp FRM) as the loading screen touches it. */
 struct FRM {int n0;void *p4;char pad8[0x1C];void *packet;char pad28[8];int flags;};
 /* Thread creation parameters. */
 struct TP { int status; void *func; void *stack; int stack_size; void *gp_reg; int initial_priority; int pad[6]; };
 struct THREADS { char pad[0x10]; int tid; };
 
-extern float D_002DDF0C;    /* the clock's frame time (D_002DDED0 + 0x3C) as BeginLoadingScreen reads it */
 float *D_002DD314;          /* the loading screen's start time (.sbss in the target) */
 int D_003D3A3C, D_003D3A40, D_003D3A44;   /* start, end request, end done semaphores (prog's .bss after the logo) */
 extern THREADS D_004425D0;
 char D_003D3A50[0x1000];    /* thread stack */
-extern char D_002E5270[];   /* _gp */
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern VIFS D_002DEA28;
 extern GIFS D_002DEA00;
 extern FRM *D_002DEA4C;
@@ -176,12 +175,12 @@ extern "C" {
 void ClearFrameBuffers__Fv(void);
 float GTrunc__Ff(float g);
 void FillScreenRect(RGBA *pc, GIFS *pgs, float x0, float y0, float x1, float y1);
-int func_00234A60(int);
-int func_00234A40(int);
+int func_00234A60(int) __asm__("WaitSema");
+int func_00234A40(int) __asm__("SignalSema");
 int SignalSema(int);
 int WaitSema(int);
 int func_00234820(TP *ptp);
-int func_002355E0(int tid, void *arg);
+int func_002355E0(int tid, void *arg) __asm__("StartThread_2355E0");
 void LoadingScreenThread(void *);
 int ReferSemaStatus(int,SEMA *);
 float sinf(float);
@@ -292,7 +291,7 @@ static inline float *Receiver(float *p)
     return copy;
 }
 /** @sly2-annot addr=0x1C9058
- * Purpose: Store start time (g_clock real time D_002DDF0C) into caller's record, publish it (D_002DD314) and
+ * Purpose: Store start time (g_clock real time g_clock.tReal) into caller's record, publish it (D_002DD314) and
  *   signal the loading-thread start sema
  * Info: proposed name BeginLoadingScreen (T1); TU prog
  * Notes: runtime5b: D_002DD314 = &h of LoadSwFromBrx during load (S56)
@@ -302,7 +301,7 @@ static inline float *Receiver(float *p)
  * @end-sly2-annot */
 extern "C" void BeginLoadingScreen(float *input)
 {
-    float now = D_002DDF0C;
+    float now = g_clock.tReal;
     float *p = Receiver(input);
     int sema = D_003D3A3C;
     *p = now;
@@ -394,7 +393,7 @@ extern "C" void LoadingScreenThread(void *)
             BeginFrame();
             ReferSemaStatus(D_003D3A40,&status);
             if(status.count!=0)break;
-            float t=-*D_002DD314+D_002DDED0.frameT;
+            float t=-*D_002DD314+D_002DDED0.tReal;
             float scale=1.0f+D_002C10B0*sinf(t*D_002C10B4);
             matrix.Identity();
             matrix.a[0]=D_002C10A0*scale;
@@ -448,3 +447,12 @@ extern "C" void func_001C93E0(GIFS *pgs, M2 *pm, float alpha)
         }
     }
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_prog {
+    static int c_004425D0 __asm__("D_004425D0");   /* .bss 0x4 */
+};
+int COMMONS_prog::c_004425D0;

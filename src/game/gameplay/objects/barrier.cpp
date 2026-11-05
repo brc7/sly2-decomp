@@ -195,3 +195,13 @@ void AddBarrierClass(BARRIER *pbarrier, CID cid)
 {
     if ((unsigned int)pbarrier->ccid < 4) pbarrier->acid[pbarrier->ccid++] = cid;
 }
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_barrier {
+void p_SendBarrierImpactMessages() __asm__("SendBarrierImpactMessages");
+extern "C" {
+extern const unsigned int D_002A4790[2] = {0xFFFF0000, (unsigned int)p_SendBarrierImpactMessages};
+}
+} // namespace ANPTR_barrier

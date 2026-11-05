@@ -217,7 +217,7 @@ extern char D_003DD490[];
 extern "C" {
 qword func_001A62E8(SO *);                                       // PosLoWorld
 MATRIX4 *__ml__FRC7MATRIX4T0(MATRIX4 *, MATRIX4 *, MATRIX4 *);
-void *func_002333B4(void *, int, int);                           // memset
+void *func_002333B4(void *, int, int) __asm__("memset");                           // memset
 void LoadIdentityMatrix4(XF *, int, MATRIX4 *, MATRIX4 *, float);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *, int);                                    // FIsBasicDerivedFrom
 void func_0013BC60(SO *, LAUNCH *);

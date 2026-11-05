@@ -1682,8 +1682,6 @@ struct VU_FLOAT { qword q; };
 extern "C" {
 extern CLOCK D_002DDED0;
 extern ACTOR *D_002E1E40;
-extern SOURCE *D_003E13E4;
-extern OBJECT *D_003E1420;
 extern qword D_002A2DD0, D_002A2DC0, D_002A2DA0, D_002BF890;
 extern float D_002BF780[];
 extern float D_002BF730, D_002BF734, D_002BF834, D_002BF838, D_002BF83C, D_002BF840, D_002BF844, D_002BF848;
@@ -1796,7 +1794,7 @@ static inline int FMoving(qword v) { return D_002BF848 < GLengthXY(v); }
 
 /** @sly2-annot addr=0x197F98
  * Purpose: jts 2 per-frame update on +0x2C0: stick combo timers, jump-target intercept search over
- *   D_003E13E4/D_003E1420 (JMT list), goal prediction, heading per mode, basic move
+ *   (*(SOURCE * *)&g_sw.dlCid88)/(*(OBJECT * *)&g_sw.dlCid40) (JMT list), goal prediction, heading per mode, basic move
  * Info: proposed name UpdateJtActiveJump (T1); TU air
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
@@ -1844,7 +1842,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         OBJECT *objBest = 0;
         float scoreBest = 1500.0f;
         float tBest;
-        for (SOURCE *src = D_003E13E4; src; src = src->next) {
+        for (SOURCE *src = (*(SOURCE * *)&g_sw.dlCid88); src; src = src->next) {
             if (src->state != 0)
                 continue;
             qword posSrc = func_001A62E8(src);
@@ -1876,7 +1874,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             tBest = t;
             scoreBest = score;
         }
-        for (OBJECT *obj = D_003E1420; obj; obj = obj->next) {
+        for (OBJECT *obj = (*(OBJECT * *)&g_sw.dlCid40); obj; obj = obj->next) {
             U posObj;
             posObj.q = func_001A62E8(obj);
             if (D_002BF840 * D_002BF840 < GLengthSqXYQ(QwSub(pos.q, posObj.q)))
@@ -3679,10 +3677,6 @@ struct SOLIST { int cpso; void **apso; };                                       
 typedef float (*PFNSCORE)(void *, float);
 
 extern "C" {
-extern SHAPE *D_003E13D8, *D_003E13FC, *D_003E1408;
-extern CURVE *D_003E13CC, *D_003E13C0, *D_003E13F0;
-extern HOOK *D_003E13B4;
-extern MESH *D_003E142C;
 extern STEPPLAYER *D_002F7900;      // the partner
 extern CLOCK D_002DDED0;            // g_clock
 extern qword D_002A2DD0;            // zero vector
@@ -3691,7 +3685,7 @@ extern float D_002BF8E4, D_002BF8E8, D_002BF8EC, D_002BF8F0, D_002BF8F4, D_002BF
 extern float D_002BF90C, D_002BF914, D_002BF918;
 
 qword func_001A62E8(void *plo);                                         // PosLoWorld
-void *func_002333B4(void *pv, int b, uint cb);                         // memset
+void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                         // memset
 qword func_0019A750(JTAIR *pjtair, int nKind);                         // JtPlanLaunchVz
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,
@@ -3744,7 +3738,7 @@ static inline float Length(qword v)
 static inline float GMinOf(float a, float b) { return a < b ? a : b; }
 
 /** @sly2-annot addr=0x19B110
- * Purpose: Choose the jump target/landing among all candidate lists (D_003E13B4..D_003E142C), scoring with
+ * Purpose: Choose the jump target/landing among all candidate lists ((*(HOOK * *)&g_sw.dlTarget)..(*(MESH * *)&g_sw.dlCid9)), scoring with
  *   MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FFindJtObstruction; then
  *   SetJtAirState
  * Info: proposed name JtbsChooseJtLanding (T1); TU air
@@ -3770,7 +3764,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
     float tBest = 0.0f;
 
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pjtair->pstepplayer, 0x35)) {
-        for (SHAPE *pshape = D_003E13D8; pshape; pshape = pshape->pshapeNext) {
+        for (SHAPE *pshape = (*(SHAPE * *)&g_sw.dlCid39); pshape; pshape = pshape->pshapeNext) {
             if (!(pshape->grf & grf))
                 continue;
             pshape->GetPoint(pjtair->pstepplayer, &posTarget, 0, 0.0f);
@@ -3796,7 +3790,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             tBest = t;
         }
 
-        for (CURVE *pcurve = D_003E13CC; pcurve; pcurve = pcurve->pcurveNext) {
+        for (CURVE *pcurve = (*(CURVE * *)&g_sw.dlCid13); pcurve; pcurve = pcurve->pcurveNext) {
             if (!(pcurve->grf & grf))
                 continue;
             if (pcurve != ploForce) {
@@ -3838,7 +3832,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             sBest = SFromShapeU(pcurve, uBest);
         }
 
-        for (HOOK *phook = D_003E13B4; phook; phook = phook->phookNext) {
+        for (HOOK *phook = (*(HOOK * *)&g_sw.dlTarget); phook; phook = phook->phookNext) {
             if (phook != ploForce) {
                 if (ploForce)
                     continue;
@@ -3881,7 +3875,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             tBest = t;
         }
 
-        for (MESH *pmesh = D_003E142C; pmesh; pmesh = pmesh->pmeshNext) {
+        for (MESH *pmesh = (*(MESH * *)&g_sw.dlCid9); pmesh; pmesh = pmesh->pmeshNext) {
             func_00185310(pmesh, pos.q, 0, 0, &posTarget, 0);
             if (pmesh != ploForce) {
                 if (pmesh->sHeight < pos.f[2] - posTarget.f[2])
@@ -3948,7 +3942,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
     }
 LPartnerDone:
 
-    for (CURVE *pcurve = D_003E13C0; pcurve; pcurve = pcurve->pcurveNext) {
+    for (CURVE *pcurve = (*(CURVE * *)&g_sw.dlCid11); pcurve; pcurve = pcurve->pcurveNext) {
         if (!(pcurve->grf & pjtair->pstepplayer->grfTarget))
             continue;
         float sCur;
@@ -3991,7 +3985,7 @@ LPartnerDone:
         sBest = s;
     }
 
-    for (SHAPE *pshape = D_003E13FC; pshape; pshape = pshape->pshapeNext) {
+    for (SHAPE *pshape = (*(SHAPE * *)&g_sw.dlCid34); pshape; pshape = pshape->pshapeNext) {
         if (!(pshape->grf & grf))
             continue;
         qword posShape = func_001A62E8(pshape);
@@ -4032,7 +4026,7 @@ LPartnerDone:
         sBest = u;
     }
 
-    for (CURVE *pcurve = D_003E13F0; pcurve; pcurve = pcurve->pcurveNext) {
+    for (CURVE *pcurve = (*(CURVE * *)&g_sw.dlCid12); pcurve; pcurve = pcurve->pcurveNext) {
         if (!(pcurve->grf & grf))
             continue;
         float sCur;
@@ -4070,7 +4064,7 @@ LPartnerDone:
         sBest = u;
     }
 
-    for (SHAPE *pshape = D_003E1408; pshape; pshape = pshape->pshapeNext) {
+    for (SHAPE *pshape = (*(SHAPE * *)&g_sw.dlCid38); pshape; pshape = pshape->pshapeNext) {
         if (!(pshape->grf & grf))
             continue;
         pshape->GetPoint(pjtair->pstepplayer, &posTarget, 0, 0.0f);
@@ -4424,7 +4418,6 @@ namespace M_func_0019C8D0 { extern "C" {
 struct O { char pad[0x12F0]; int x12f0; };
 struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
 extern int D_002DFBC0;
-extern char D_002DE2E0[];
 int FActiveCplcy__FP5CPLCY(void *);
 /** @sly2-annot addr=0x19C8D0
  * Purpose: Can gadget/action k be used in the current air sub-state
@@ -4446,7 +4439,7 @@ int func_0019C8D0(struct S *p, int k) {
     case 3:
         {
             int r = 0;
-            if (p->x1c == 0x11 && p->p->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY(D_002DE2E0);
+            if (p->x1c == 0x11 && p->p->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0));
             return r;
         }
     case 2: case 5: case 27:
@@ -4518,3 +4511,81 @@ void CloneXfm(struct S *);
  * @end-sly2-annot */
 void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
 } } // namespace M_CloneJmt
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). At the end of the file so no
+// function sees a definition; the namespaced extern "C" declarations above refer to these symbols.
+extern const float D_002A63B0 = 3.40282347e+38f;    /* .rodata, FLT_MAX (before the jump tables) */
+extern const float D_002A656C = 3.40282347e+38f;    /* .rodata, FLT_MAX */
+float D_002BF730 = 515.0f;
+float D_002BF734 = 515.0f;
+float D_002BF738 = 215.0f;
+float D_002BF73C = 315.0f;
+VECTOR4 D_002BF740 = {37.0f, 0.0f, 25.0f, 0.0f};
+float D_002BF750 = 0.75f;
+float D_002BF754 = 100.0f;
+float D_002BF758 = 1.5f;
+float D_002BF75C = 1.2f;
+float D_002BF760 = 1.75f;
+float D_002BF764 = 1.0f;
+float D_002BF768 = 1.0f;
+float D_002BF76C = 1.0f;
+VECTOR4 D_002BF770 = {0.0f, 0.0f, 400.0f, 0.0f};
+float D_002BF780[6] = {0.0f, 1.5707964f, -1.5707964f, 0.0f, 3.1415927f, 0.0f};
+LM D_002BF798 = {-250.0f, -500.0f};
+float D_002BF7A0 = 0.7f;
+SMP D_002BF7A8 = {800.0f, 0.0f, 0.1f};
+SMP D_002BF7B8 = {800.0f, 0.0f, 0.1f};
+SMP D_002BF7C8 = {5000.0f, 0.0f, 0.1f};
+float D_002BF7D4 = 8000.0f;
+VECTOR4 D_002BF7E0 = {0.0f, 2.5f, 0.0f, 0.0f};
+float D_002BF7F0 = 2.5f;
+float D_002BF7F4 = 3.5f;
+float D_002BF7F8 = 2.5f;
+CLQ D_002BF800 = {{{-1.0f, 2.0f, 0.0f, 0.0f}}};
+float D_002BF810 = -750.0f;
+float D_002BF814 = -2.0f;
+float D_002BF818 = 0.15f;
+float D_002BF81C = 0.15f;
+SMP D_002BF820 = {1000.0f, 0.0f, 0.25f};
+float D_002BF82C = 0.5f;
+float D_002BF830 = 3.0f;
+float D_002BF834 = 0.07f;
+float D_002BF838 = 0.3f;
+float D_002BF83C = 100.0f;
+float D_002BF840 = 600.0f;
+float D_002BF844 = 10000.0f;
+float D_002BF848 = 200.0f;
+LM D_002BF850 = {300.0f, 800.0f};
+LM D_002BF858 = {-200.0f, -400.0f};
+SMP D_002BF860 = {300.0f, 0.0f, 0.3f};
+LM D_002BF870 = {5.0f, 12.0f};
+float D_002BF878 = 1.0f;
+float D_002BF87C = 300.0f;
+float D_002BF880 = -100.0f;
+VECTOR4 D_002BF890 = {0.0f, 0.0f, 1250.0f, 0.0f};
+float D_002BF8A0 = 200.0f;
+float D_002BF8A4 = 60.0f;
+int D_002BF8A8 = 0x428C0000;    /* 70.0f as bits */
+CLQ D_002BF8B0 = {{{700.0f, 0.5f, 0.0f, 0.0f}}};
+LM D_002BF8C0 = {-3.40282347e+38f, 700.0f};
+float D_002BF8C8 = 700.0f;
+float D_002BF8CC = 900.0f;
+float D_002BF8D0 = 800.0f;
+float D_002BF8D4 = 1200.0f;
+float D_002BF8D8 = 250.0f;
+float D_002BF8DC = 500.0f;
+float D_002BF8E0 = 2500.0f;
+float D_002BF8E4 = -250.0f;
+float D_002BF8E8 = 0.0f;
+float D_002BF8EC = 0.0f;
+float D_002BF8F0 = 1250.0f;
+float D_002BF8F4 = 500.0f;
+float D_002BF8F8 = 500.0f;
+float D_002BF8FC = -250.0f;
+float D_002BF900 = 1000.0f;
+float D_002BF904 = -500.0f;
+float D_002BF908 = 0.0f;
+float D_002BF90C = 1.25f;
+float D_002BF910 = 2.0f;
+float D_002BF914 = 100.0f;
+float D_002BF918 = 100.0f;

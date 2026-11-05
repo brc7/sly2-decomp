@@ -21,7 +21,7 @@ extern const float D_002A4120 = 3.40282347e+38f;    /* "no upper bound" (FLT_MAX
 extern const float D_002A4124 = -3.40282347e+38f;   /* "no lower bound" (-FLT_MAX) */
 void *func_001AE378(MSG *pmsg);
 void *func_001AE318(MSG *pmsg);
-void *func_002333B4(void *pv, int b, unsigned int cb);     /* memset */
+void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");     /* memset */
 void STACKSCOPE_ctor(FRAME *pframe);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pframe, int n) __asm__("_$_10STACKSCOPE");
 DZG *InitDzg(DZG *pdzg, int cdzMax);

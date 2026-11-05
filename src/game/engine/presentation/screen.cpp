@@ -18,6 +18,7 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_003DA150[] __asm__("D_003DA150");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The global screens, as views of their bytes (their classes' constructors and virtuals have C names). */
 extern "C" {
@@ -114,7 +115,8 @@ extern char D_002DEA00[], D_002DEA28[];   /* the two HUD packet streams (DMAS) *
 extern LO *D_002E1E40, *D_002DD5BC, *D_002F7900;    /* the three heroes */
 extern JOBSEL *D_003DA4D0;
 extern const char D_002A7AA8[], D_002A7AB8[];   /* a glyph suffix; "%d%%" */
-extern char D_003E0EA8[], D_003D4A60[];
+extern char D_003D4A60[];
+
 void PostHudMeterLoad(void *pscreen);
 void func_001AE928(void *pmenu);
 void func_001A3020(void *pletterbox);
@@ -1434,7 +1436,7 @@ typedef struct CRef { int tagk; int tag; } CRef;
 extern char D_002A79A0[], D_002A79A8[], D_002A79B8[];
 void sprintf(char *pch, char *fmt, int n);
 void RefGetSaveVarV(CRef *pref, char *a, char *b, char *c, int d);
-void func_00129658(CRef *pref, CRef *prefSrc);
+void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1DAEA8
  * Purpose: Save var powerUps.mppukfAcquired[n] (has the power-up been bought)
@@ -2219,7 +2221,7 @@ extern int D_003DA570;
 extern float D_002C35B0;
 extern int D_002C3588[];
 extern REC D_002BCD00[];
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int func_001DBBA0(OBJ *);
 void SetWidgetAnimXf(SUB *, int, M2 *);
 void SwitchWidgetAnim(SUB *, int, int *);
@@ -2664,7 +2666,8 @@ void func_001DC9C0(char *pch, int i) {
 } } // namespace M_func_001DC9C0
 
 namespace M_func_001DCA30 { extern "C" {
-extern int D_003DA180;
+#undef D_003DA180
+#define D_003DA180 (*(int *)((char *)base_D_003DA150 + 0x30))   /* screen's object+0x30 */
 extern struct G D_003DD490;
 void *PchzFindSwLangstr__FP2SWi(struct G *g, int n);
 void strcpy(char *p, void *q);
@@ -2685,6 +2688,7 @@ void func_001DCA30(char *pch) {
     strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, id));
 }
 } } // namespace M_func_001DCA30
+#undef D_003DA180
 
 namespace M_BuildThiefnetInfoText { extern "C" {
 typedef struct { int x0,x4,cost,xC,x10,ids1,ids2,x1C; } REC;
@@ -2949,7 +2953,7 @@ struct OBJ {
 };
 extern "C" {
 void StopWidgetAnim(void *, int);
-void func_002333B4(void *, int, unsigned int);
+void func_002333B4(void *, int, unsigned int) __asm__("memset");
 void SortTasksTopologically(int *, SO ***);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 int func_00165C28(const void *, const void *);
@@ -3117,7 +3121,6 @@ typedef struct OBJ {
 } OBJ;
 extern struct CLOCK { float a[16]; } D_002DDED0;
 extern char D_003DD490[];
-extern int D_003E0F9C;
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
@@ -3175,7 +3178,7 @@ void SetJobListPage(OBJ *p, int s)
         if (i >= 0 && i < p->x48)
             p->x110 = p->a4C[i].x0;
         else
-            p->x110 = D_003E0F9C;
+            p->x110 = (*(int *)&g_sw.ploJobCur);
         p->x114 = (old == 0);
         p->x10C = 4;
         p->x24->x70 = 0x4E6;
@@ -3489,7 +3492,7 @@ void StartNewGame(OBJ *);
 int CLanguagesRegion(void);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 void GetRegionLanguages(int *, int **);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_001AF4D8(void *, int, ITEM *, void *, void *);
 /** @sly2-annot addr=0x1DD920
  * Purpose: Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts
@@ -3555,7 +3558,8 @@ public:
 };
 struct G;
 extern "C" { extern G D_003D4A60; }
-extern "C" { extern void *D_003E0FAC; }
+extern "C" { 
+ }
 extern "C" { extern void *D_002E1E40; }
 extern "C" { extern void *D_002DD5BC; }
 extern "C" { extern void *D_002F7900; }
@@ -3568,7 +3572,7 @@ void func_00165E38(G *);
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, &D_003D4A60); }
 /** @sly2-annot addr=0x1DDB08
- * Purpose: Clear the save flag at D_003E0FAC, bind hp/power of the three heroes, PlayGameFromGs(g_gs)
+ * Purpose: Clear the save flag at (*(void * *)&g_sw.psvpDt), bind hp/power of the three heroes, PlayGameFromGs(g_gs)
  * Info: proposed name StartNewGame (T1); TU screen
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
@@ -3577,7 +3581,7 @@ extern "C" void StartNewGame(void)
 {
     {
         CRef ref(0x16, 0);
-        SetPv(D_003E0FAC, ref, &D_003D4A60);
+        SetPv((*(void * *)&g_sw.psvpDt), ref, &D_003D4A60);
     }
     if (D_002E1E40)
         BindStepplayerHpMp(D_002E1E40, 1);
@@ -3618,7 +3622,9 @@ struct H { char pad[0x100C]; int x100C; int x1010; };
 struct I { char pad[0xFD54]; void *xFD54; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern H D_002DFC00; }
-extern "C" { extern I D_002E65E0; }
+extern "C" { 
+extern I D_002E65E0;
+ }
 extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
@@ -3780,7 +3786,7 @@ extern "C" void func_001DDF60(char *pch)
  * @end-sly2-annot */
 extern "C" void BuildTitleCompletionText(char *pch)
 {
-    sprintf(pch, D_002A7AB8, NCompletionPercentGs(D_003E0EA8, D_003D4A60));
+    sprintf(pch, D_002A7AB8, NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60));
 }
 
 
@@ -3795,7 +3801,7 @@ void GcBinding_Unlink(void *);
 void GcSidebag_Unlink(void *);
 void func_0011CD98(void *, void *);
 void func_00257078(void *, int) __asm__("_$_6CFrame");
-void func_001AE520(void *);
+void func_001AE520(void *) __asm__("__builtin_delete");
 
 static inline void Release1(R1 *r)
 {

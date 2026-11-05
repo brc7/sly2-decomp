@@ -423,7 +423,7 @@ extern "C" { extern SW D_003DD490; }
 extern "C" { extern VT D_002D9768; }
 extern "C" {
 S *PvAllocSlotheapClear(void *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void AppendDlEntry__FP2DLPv(void *, S *);
 void FramePtr_Assign(S *, int);
 int FSmaRetracted(S *);
@@ -634,12 +634,11 @@ struct VT { struct VTE a[4]; };
 struct Q { char pad[0x68]; char dl[1]; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0x24 - 0x10]; struct Q *pq; char pad3[0x30 - 0x28]; void *p30; };
 struct DL;
-extern struct DL D_003E126C;
 int FSmaRetracted(struct P *);
 void func_00130B18(void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 /** @sly2-annot addr=0x1F0598
- * Purpose: If live: drop the current ASEGA, unlink from the SM list and the live list D_003E126C, send
+ * Purpose: If live: drop the current ASEGA, unlink from the SM list and the live list g_sw.dlSma, send
  *   message 3, Decref
  * Info: proposed name RetractSma (T1); TU sm
  * Notes: names_v2 v1 proposed SetSmaGoal__FP3SMA3OID (0.185)
@@ -656,7 +655,7 @@ void func_001F0598(struct P *p)
             func_00130B18(pv);
         }
         RemoveDlEntry__FP2DLPv(p->pq->dl, p);
-        RemoveDlEntry__FP2DLPv(&D_003E126C, p);
+        RemoveDlEntry__FP2DLPv(&g_sw.dlSma, p);
         ((void (*)(void *, int, int, int, int, int))p->pvt->a[3].pfn)((char *)p + p->pvt->a[3].d, 3, 0, 0, 0, 0);
         ((void (*)(void *))p->pvt->a[2].pfn)((char *)p + p->pvt->a[2].d);
     }

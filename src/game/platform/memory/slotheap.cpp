@@ -14,7 +14,7 @@ struct SLOT
 
 extern "C" {
 void *func_001AE1D0(ALLOCREQ *preq);                        /* world heap allocator (PvAllocSwImpl) */
-void *func_002333B4(void *pv, int b, unsigned int cb);      /* memset; a prototype named memset becomes a builtin */
+void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");      /* memset; a prototype named memset becomes a builtin */
 }
 
 /** @sly2-annot addr=0x11CCA8

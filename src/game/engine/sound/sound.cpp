@@ -15,6 +15,7 @@
 
 #include "sly2/basic.h"
 #include "sly2/slotheap.h"
+#include "sly2/cm.h"
 
 /* g_sndmgr's static construction and destruction. */
 struct VTESND { short d; short pad; void (*pfn)(void *); };
@@ -32,7 +33,9 @@ void func_00258348(void *pv, int grfDelete);   /* ~BASIC */
 }
 struct SNDMGRBASE
 {
-    char ab[0x200];
+    char ab[0x4C];
+    DL dlSndDirty;          /* +0x4C [S] draft name: the sounds RemoveSndFromDirtyList takes out (was the address name D_003DD08C) */
+    char ab58[0x200 - 0x58];
     ~SNDMGRBASE() { func_00258348(this, 2); }
 };
 struct SNDMGRG : public SNDMGRBASE
@@ -432,7 +435,6 @@ namespace M_RemoveSndFromDirtyList { extern "C" {
 struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
 struct X { char pad[0xC]; struct VT *pvt; };
 struct DL;
-extern struct DL D_003DD08C;
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 /** @sly2-annot addr=0x1FB710
@@ -443,8 +445,8 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
  * @end-sly2-annot */
 void RemoveSndFromDirtyList(struct X *px)
 {
-    if (FFindDlEntry__FP2DLPv(&D_003DD08C, px)) {
-        RemoveDlEntry__FP2DLPv(&D_003DD08C, px);
+    if (FFindDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, px)) {
+        RemoveDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, px);
         px->pvt->pfn((char *)px + px->pvt->d);
     }
 }
@@ -458,7 +460,6 @@ struct M3 {qword r[3];};
 struct CAMERA {char pad[0x90];qword position;};
 extern char D_003DD490[],D_002BBB60[];
 extern struct CAMERA D_002DDF40;
-extern struct M3 D_002DDFA0;
 void *PpoCur(void*);
 qword func_001A62E8(void*);
 qword func_001A7348(const struct M3*,const struct M3*,qword);
@@ -502,7 +503,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
    if(value>0.0f){
      qword direction;
      float angle;
-     direction=func_001A7348(0,&D_002DDFA0,Bits(difference));
+     direction=func_001A7348(0,&(*(struct M3 *)&g_cm.mat),Bits(difference));
      angle=atan2f(-Y(direction),X(direction));
      if(limits->high<limits->low)angle+=3.1415927f;
      Rounded(outAngle,angle*57.295776f);return;
@@ -660,7 +661,7 @@ struct S *PsndFromSfxid(struct G *, int);
 short IsndFromPsnd(struct G *, struct S *);
 void SetSndFlags(struct P *, int, int);
 void RemoveSndFromDirtyList(struct P *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_001FBAF8(void);
 void func_00232320(struct M *, void (*)(void), struct P *);
 void func_002322F0(struct M *);
@@ -1702,7 +1703,7 @@ struct SNDMGR
 extern "C" { extern int D_002E1E54; }
 extern "C" void snd_UnloadBank(void *);
 extern "C" int snd_FlushSoundCommands(void);
-extern "C" void *func_002333B4(void *, int, uint);
+extern "C" void *func_002333B4(void *, int, uint) __asm__("memset");
 extern "C" STREAMSND *PstreamsndNew(FILEREC *, int);
 extern "C" void func_00259B48(void *, STREAMSND *);
 inline int FSameFileId(FILEREC *prec, FILEREC *precOther)
@@ -1870,7 +1871,7 @@ void snd_StopAllStreams(void);
 void func_00233048(int, int, int, int, int, int, int);
 int snd_FlushSoundCommands(void);
 void func_00156BE0(int, qword, int, void *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_00227788(void *);
 void func_00259B48(void *, void *);
 void ResetSlotheap(void *);
@@ -2067,7 +2068,6 @@ struct COEF {float a,b,c;};
 struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
 struct P {char pad5C[0x5C];int modeA,modeB,selected;char pad68[0xA0];float weights[3];struct COEF coefficients[3];char pad138[0xCC];int count;struct REF *refs[8];};
 extern char D_003DD490[];
-extern float D_002DDF10;
 struct PLAYER *PpoCur(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 float GSmooth__FfffP3SMPPf(float,float,float,struct COEF *,float *);
@@ -2106,7 +2106,7 @@ void func_001FDC08(struct P *input)
     p->weights[p->selected]=1.0f;
     goto norm;
 smooth:
-    p->weights[p->selected]=GSmooth__FfffP3SMPPf(p->weights[p->selected],1.0f,D_002DDF10,&p->coefficients[p->selected],0);
+    p->weights[p->selected]=GSmooth__FfffP3SMPPf(p->weights[p->selected],1.0f,g_clock.dtReal,&p->coefficients[p->selected],0);
 norm:
     sum=0.0f;selectedSquare=p->weights[p->selected]*p->weights[p->selected];
     for(i=0;i<3;i++)if(i!=p->selected)sum+=p->weights[i]*p->weights[i];
@@ -2140,7 +2140,6 @@ struct X { char pad[0x40]; int n40; char pad2[0x4E - 0x44]; short n4E; unsigned 
 struct Ent { short h0; short pad; int n4; };
 struct S { char pad[0x50]; float f50; int n54; struct Ent *a58; };
 struct P { char pad[0x200]; struct X *r200; char pad2[0x244 - 0x204]; int n244; float f248; float f24C; };
-extern float D_002DDF10;
 void StopDialog(struct P *);
 void func_001FE0E8(struct P *, struct Ent *);
 /** @sly2-annot addr=0x1FDEC8
@@ -2163,7 +2162,7 @@ void func_001FDEC8(struct P *p)
     x = p->r200;
     if (x->n4E > 0) return;
     ps = x->ps;
-    p->f24C += D_002DDF10;
+    p->f24C += g_clock.dtReal;
     f = 0;
     if (!x->n40) {
         f = x->n52 || (x->f50 & 1);
@@ -2454,7 +2453,7 @@ void func_001FE0E8(struct P *, struct A *);
 void SetSmaGoal(void *, int);
 void StopSnd(struct Y *, float);
 void func_00259B48(struct Ref *, void *);
-void func_002333B4(void *, int, int);
+void func_002333B4(void *, int, int) __asm__("memset");
 static inline void Stop(struct Ref *pr)
 {
     if (pr && pr->px) {
@@ -2607,7 +2606,7 @@ struct LM {float low,high;};
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern PMF D_002A8298,D_002A82A0; }
 extern "C" float GLimitLm__FP2LMf(LM *,float);
-extern "C" void *func_002333B4(void *,int,unsigned int);
+extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 extern "C" void snd_SetMasterVolume(int,int);
 static inline X *ReadReceiver(X **pp)
 {
@@ -2739,7 +2738,7 @@ namespace M_func_001FEED0 { extern "C" {
 struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
 struct P { char pad[0x64]; int n64; char pad2[0xE8 - 0x68]; int nE8; char pad3[0x138 - 0xEC]; int n138; };
 int NRandInRange__Fii(int, int);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void *PsndFromSfxid(struct P *, int);
 short IsndFromPsnd(struct P *, void *);
 void func_002322F0(struct M *);
@@ -2824,3 +2823,15 @@ extern const SMP D_002A8288 = {2.0f, 0.0f, 0.2f};   /* copied whole as three wor
 extern const LM D_002A83B8 = {500.0f, 3000.0f};
 extern const LM D_002A83C0 = {500.0f, 1000.0f};
 int D_002C3C40[6] = {1548, 1549, 1550, -1, 1551, 1552};
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_sound {
+void p_PauseSnd() __asm__("PauseSnd");
+void p_ResumeSnd() __asm__("ResumeSnd");
+extern "C" {
+extern const unsigned int D_002A8298[2] = {0xFFFF0000, (unsigned int)p_PauseSnd};
+extern const unsigned int D_002A82A0[2] = {0xFFFF0000, (unsigned int)p_ResumeSnd};
+}
+} // namespace ANPTR_sound

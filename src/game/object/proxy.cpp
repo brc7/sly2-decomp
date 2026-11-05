@@ -696,7 +696,7 @@ void *func_001AE2A0(struct A *pa);
 qword func_001A62E8(struct LO *p);
 struct MAT3 *func_001A6318(struct LO *p);
 void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
 /** @sly2-annot addr=0x1CA500
  * Purpose: After load: turn every unused copy of each proxy source into a spare (rest pose array aposRest,
@@ -1385,7 +1385,6 @@ struct F { int v; char pad[0x4C]; };
 struct E { int pad[3]; int iFirst; char p2[0x68 - 0x10]; struct F *af; };
 struct A { int id; int pad[8]; int f24; };
 struct S { char pad[0x3C]; struct A *pa; };
-extern struct E *D_003E1398;
 int IsrcFromIdProxy__Fi(int id);
 int IcopyFromIdProxy(int id);
 /** @sly2-annot addr=0x1CB658
@@ -1403,7 +1402,7 @@ int func_001CB658(struct S *p)
     if (!pa || !pa->f24) return 0;
     i = IsrcFromIdProxy__Fi(pa->id);
     j = IcopyFromIdProxy(p->pa->id);
-    pe = &D_003E1398[i];
+    pe = &(*(struct E * *)&g_sw.aproxysrc)[i];
     pf = &pe->af[j - pe->iFirst];
     return pf->v;
 }
@@ -1416,12 +1415,11 @@ struct LO { char pad[0xC]; struct VTE *vt; };
 struct H { struct LO *plo; };
 struct S { char pad[0x14]; struct H *ph; char pad2[0xE8 - 0x18]; void *pE8; };
 struct SL;
-extern struct SL D_003DD4BC;
 void ReleasePspare__FP5PROXYP10PROXYSPARE(struct S *p, void *q);
 int FFindDlEntry__FP2DLPv(struct SL *pl, void *pv);
 void RemoveDlEntry__FP2DLPv(struct SL *pl, void *pv);
 /** @sly2-annot addr=0x1CB6D8
- * Purpose: PROXY vt24: release all held spares; unregister from SW list D_003DD4BC and Freeze
+ * Purpose: PROXY vt24: release all held spares; unregister from SW list (*(struct SL *)&g_sw.dlBusy) and Freeze
  * Info: proposed name PROXY_VUnk24 (T2); class PROXY slot24; TU proxy
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
  * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
@@ -1431,10 +1429,10 @@ void func_001CB6D8(struct S *p)
 {
     struct LO *plo;
     while (p->pE8) ReleasePspare__FP5PROXYP10PROXYSPARE(p, p->pE8);
-    if (FFindDlEntry__FP2DLPv(&D_003DD4BC, p->ph)) {
+    if (FFindDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), p->ph)) {
         plo = p->ph->plo;
         ((void (*)(void *))plo->vt[22].pf)((char *)plo + plo->vt[22].d);
-        RemoveDlEntry__FP2DLPv(&D_003DD4BC, p->ph);
+        RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), p->ph);
     }
 }
 } } // namespace M_func_001CB6D8
@@ -1484,3 +1482,13 @@ extern "C" void FramePtr_Assign(CFrame **ppframe, CFrame *pframe)
     }
     *ppframe = pframe;
 }
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_proxy {
+void p_func_001CA8C0() __asm__("func_001CA8C0");
+extern "C" {
+extern const unsigned int D_002A77C0[2] = {0xFFFF0000, (unsigned int)p_func_001CA8C0};
+}
+} // namespace ANPTR_proxy

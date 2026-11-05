@@ -464,7 +464,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { int x0, x4, x8; struct VTE *vt; };
 struct B { char pad[0x148]; unsigned long x148; };
 struct S { struct O *x0; int x4; char pad[0x14]; struct PMF pmf; char pad2[0xC]; struct B *x30; };
-void *func_002333B4(void *p, int c, unsigned int n);
+void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 void ReturnJtToSafePlaceCb(struct S *p);
 void func_00195A00(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1A15D0
@@ -1086,7 +1086,7 @@ struct MSG {int type;char pad4[0x1C];U position;};
 struct CLOCK {float time,dt;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword func_001A62E8(P*);
-extern "C" void*func_002333B4(void*,int,int);
+extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
 extern "C" P*func_001F7598(HIT*);
 extern "C" int func_001A2788(P*,L*,qword*);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
@@ -1292,3 +1292,13 @@ void func_001A28B0(struct P *p,void *o)
 }
 } } // namespace M_func_001A28B0
 
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_hurt {
+void p_func_001A2080() __asm__("func_001A2080");
+extern "C" {
+extern const unsigned int D_002A6790[2] = {0xFFFF0000, (unsigned int)p_func_001A2080};
+}
+} // namespace ANPTR_hurt

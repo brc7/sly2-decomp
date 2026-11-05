@@ -133,7 +133,7 @@ __asm__(
     "syscall 0\n"
     "jal _InitSys\n"
     "nop\n"
-    "jal func_00234CA0\n"
+    "jal FlushCache\n"
     "daddu $4, $0, $0\n"
     "ei\n"
     "lui $2, 0x2E\n"

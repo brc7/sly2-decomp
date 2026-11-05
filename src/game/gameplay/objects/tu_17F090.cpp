@@ -360,7 +360,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void *pfn; };
 struct S { char pad[0xC]; struct VTE *vt; char pad2[0x178]; int n188; int pad3; void *p190; };
 struct F { struct S *p0; int n4; int n8; int nC; int n10; int pad[3]; qword q20; qword q30; qword pad2[2]; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 qword func_001A62E8(void *p);
 void func_001F7598(struct F *pf);
 void func_0015C150(void *p);
@@ -2624,7 +2624,7 @@ struct CTX { struct S *p; int x4; void *pv; int xc; int x10; int pad[3]; qword q
 extern qword D_002A2DD0;
 qword func_001A62E8(void *p);
 struct Q *func_00182810(struct S *p, qword q);
-void func_002333B4(void *pv, int b, int cb);
+void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int func_001F7598(struct CTX *pctx);
 void ExplodeExplParams(void *p, int a, int b, qword q1, qword q2, float g, float h);
 void func_00181EB0(struct S *p, struct Q *q, int n);
@@ -2710,3 +2710,10 @@ float D_002BE8A4 = -2.5f;
 float D_002BE8A8 = 0.25f;
 int D_002BE8AC = 30;
 HACKSHIP *D_002DFB80;   /* the ship singleton */
+
+// ---- Virtual pointer-to-member constants by address name (docs/guides/tu-merging.md "Data"): 8 bytes {delta 0,
+// vtable index, vptr offset 0xC} as the ELF has them; own namespace so no declaration above has to agree.
+namespace ANPTR_tu_17F090 { extern "C" {
+extern const unsigned int D_002A5630[2] = {0x530000, 0xC};
+extern const unsigned int D_002A5638[2] = {0, 0};   /* zero (null) member pointer */
+} } // namespace ANPTR_tu_17F090

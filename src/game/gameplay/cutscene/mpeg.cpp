@@ -61,11 +61,13 @@ struct CMPEG {
     char pad228[0x23C - 0x228];
     int sema;                   /* 0x23C */
     volatile int stage;         /* 0x240: display thread stage */
+    int pad244;                 /* 0x244: the ELF's next object is at +0x248 */
     CMPEG();
 };
 typedef char CMPEG_x104[FIELD_OFFSET(CMPEG,psubt)==0x104?1:-1];
 typedef char CMPEG_x118[FIELD_OFFSET(CMPEG,mpeg)==0x118?1:-1];
 typedef char CMPEG_x240[FIELD_OFFSET(CMPEG,stage)==0x240?1:-1];
+typedef char CMPEG_size[sizeof(CMPEG)==0x248?1:-1];
 
 /* 0x002F66B0: the player. Its constructor (inlined into StaticInit_mpeg) only sets the audio output's vtable; the
    output's virtuals still have C names (CQueueOutputIop_CbWrite, FAsyncDrain__15CQueueOutputIop), so the address is
@@ -89,8 +91,9 @@ struct JOY;
 extern "C" {
 extern CLOCK D_002DDED0;
 extern DMA *D_002DE598;
+int D_002F68F8;            /* first declared before D_002F6900: g++ 2.95 lays plain .bss out in declaration order */
 char D_002F6900[0x1000];   /* the player thread's stack (to murray's .bss at 0x2F7900) */
-extern char D_002E5270[];
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern int D_004425DC;
 extern char D_003DD040[], D_004435F0[];
 extern char D_002D4220[];
@@ -101,26 +104,25 @@ extern const unsigned int D_002A3968[16] = {0xD77E9E24, 0xEF8D7128, 0x90A6F254, 
     0xE5DD4733, 0x9BD55409, 0xDEFE997A, 0x3CCDE869, 0xE79189E6, 0xC3EC6045, 0xD77006A2, 0x90A6FA5C, 0xEFA0B12C};
 extern const unsigned int D_002A39A8[16] = {0x71544345, 0x891CC168, 0x26D34E9B, 0x30120C3B, 0x285ED44F, 0xF6109257, 0xAE965CAD,
     0xC4B8B404, 0x45003150, 0xE477A414, 0xF7052120, 0x48EE9B13, 0xCCED18FA, 0x7141672D, 0x26D34691, 0x8943016C};
-int D_002F68F8;
 int D_002C0268 = 0;   /* mpeg's .data */
 extern int D_002BD4C0;
 extern GSAVE D_002E65E0;
 extern JOY D_002DFC00;
 
-int func_00234A60(int n);
+int func_00234A60(int n) __asm__("WaitSema");
 void SendDmaSyncGsFinish__FP10sceDmaChanP2QW(DMA *, QW *);
 void RestoreGsBuffers__Fv(void);
 int FCheckLm__FP2LMf(const LM *, float);
 void SwapGsBuffers__Fv(void);
 int SemaCreate__Fii(int a, int b);
-void *func_002333B4(void *pv, int c, int cb);
+void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 int func_00234820(ThreadParam *ptp);
-int func_002355E0(int id, void *arg);
+int func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 int snd_InitMovieSound(int a, int b, int c, int d, int e, int f);
 char *func_001AE318(const AREQ &r);
 void *func_001AE378(const AREQ &r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-void func_00234CA0(int n);
+void func_00234CA0(int n) __asm__("FlushCache");
 int func_00234DE0(void *r, int n);
 int func_00234DC0(int h);
 void func_00232FE8(int b, int x);
@@ -160,8 +162,8 @@ void sceMpegCreate(MPEG *p, void *pb, int cb);
 void sceMpegAddStrCallback(MPEG *p, int a, int b, void *fn, CMPEG *s);
 void sceMpegAddCallback(MPEG *p, int a, void *fn, CMPEG *s);
 int sceMpegGetPicture(MPEG *p, void *pb, int c);
-int func_00234A40(int n);
-int func_0024B590(MPEG *p);
+int func_00234A40(int n) __asm__("SignalSema");
+int func_0024B590(MPEG *p) __asm__("sceMpegReset");
 int sceMpegDelete(MPEG *p);
 void Spool__18CBinaryAsyncStream(CBinaryAsyncStream *t);
 int sceMpegDemuxPss(MPEG *p, int pb, int n);
@@ -737,7 +739,7 @@ extern "C" {
 extern CFont *D_002DE760;
 extern TEXT_TABLE D_003E1C20;
 char *func_00210CA8(TEXT_TABLE *p, int k);
-float func_0015FEF8(CRichText *pfont, float dx);
+float func_0015FEF8(CRichText *pfont, float dx) __asm__("FUN_0015e1b0");
 float DxMaxLine__9CRichText(CRichText *pfont);
 void FillScreenRect(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
 void Draw__9CRichTextP8CTextBoxT1P4GIFS(CRichText *pfont, TB *ptb, TB *clip, GIFS *pgifs);
@@ -1017,3 +1019,12 @@ int CbDemuxed__5CMpegi(CMPEG *p, int wait)
 extern "C" int func_001B42C0(CMPEG *p) {
     return p->pstrm != 0;
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_mpeg {
+    static int c_004425DC[5] __asm__("D_004425DC");   /* .bss 0x14 */
+};
+int COMMONS_mpeg::c_004425DC[5];

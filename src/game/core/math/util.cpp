@@ -13,7 +13,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 extern "C" {
 int rand();
 float fmodf(float x, float y);
-float func_00244F18(float g);
+float func_00244F18(float g) __asm__("floorf");
 void ConvertUserRgbToUserHsv(VECTOR *phsv, VECTOR *prgb);
 }
 float GModPositive(float gDividend, float gDivisor);

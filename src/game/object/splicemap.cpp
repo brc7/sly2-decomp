@@ -288,3 +288,16 @@ extern "C" void func_00259A88(FRAMEV *pframe)
     GcFrame_PushFront(pframe, &D_002DD2AC);
     pframe->p1 = 1;
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_splicemap {
+    static int c_002DD2A4 __asm__("D_002DD2A4");   /* .sbss 0x4 */
+    static int c_002DD2AC __asm__("D_002DD2AC");   /* .sbss 0x4 */
+    static int c_004520E8[4] __asm__("D_004520E8");   /* .bss 0x10 */
+};
+int COMMONS_splicemap::c_002DD2A4;
+int COMMONS_splicemap::c_002DD2AC;
+int COMMONS_splicemap::c_004520E8[4];

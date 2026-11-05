@@ -22,7 +22,6 @@ extern CLOCK D_002DDED0;
 extern JOY D_002DFC00;     /* g_joy */
 extern int D_002DFBC0;     /* g_grfjoyt */
 extern int D_002DFBC4;     /* the users' grf */
-extern int D_002E0CBC;   /* g_joy.grfbtnLatched (D_002DFC00 + 0x10BC): a field, not an object */
 extern char D_002DDEC0[];  /* the cheat codes */
 VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
 extern GSTATE D_002DDF40;
@@ -36,7 +35,7 @@ int scePadGetState_243388(int port, int slot);
 int scePadInfoMode(int port, int slot, int term, int offs);
 int scePadSetMainMode(int port, int slot, int offs, int lock);
 int scePadInfoAct(int port, int slot, int term, int offs);
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int scePadSetActAlign(int port, int slot, unsigned char *pb);
 int scePadInfoPressMode(int port, int slot);
 int scePadEnterPressMode(int port, int slot);
@@ -105,7 +104,7 @@ void RemoveGrfusr(int grf)
 
 /** @sly2-annot addr=0x1870D0
  * Purpose: g_grfjoyt (D_002DFBC0) = 5/0/5/4/7 from grfusr bits 0x10/0xC/1/2; if not bit 2 reset
- *   D_002E0CBC=0xFFFF
+ *   (*(int *)&g_joy.grfbtnLatched)=0xFFFF
  * Info: proposed name UpdateGrfjoytFromGrfusr (T1); TU joy
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/main-loop-startup.md#8-key-functions,
@@ -119,7 +118,7 @@ void UpdateGrfjoytFromGrfusr()
     else if (v & 1) D_002DFBC0 = 5;
     else if (v & 2) D_002DFBC0 = 4;
     else D_002DFBC0 = 7;
-    if ((D_002DFBC0 & 2) == 0) D_002E0CBC = 0xFFFF;
+    if ((D_002DFBC0 & 2) == 0) (*(int *)&g_joy.grfbtnLatched) = 0xFFFF;
 }
 
 /** @sly2-annot addr=0x187150

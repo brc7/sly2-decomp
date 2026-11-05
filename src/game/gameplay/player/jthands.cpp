@@ -761,3 +761,13 @@ extern "C" void func_001CD308(JTHANDS *p, SO *po)
     func_001CCAC0(p, 1);
     p->psoHeld = 0;
 }
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_jthands {
+void p_func_001CCA20() __asm__("func_001CCA20");
+extern "C" {
+extern const unsigned int D_002A77C8[2] = {0xFFFF0000, (unsigned int)p_func_001CCA20};
+}
+} // namespace ANPTR_jthands

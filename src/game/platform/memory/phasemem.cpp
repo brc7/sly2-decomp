@@ -18,7 +18,7 @@ char D_00303980[0xB0000];
 char D_003B3980[0x1C000];
 char D_003CF980[0x4000];
 int D_003D3980;                     /* g_phase */
-extern "C" void func_00234CA0(int n);
+extern "C" void func_00234CA0(int n) __asm__("FlushCache");
 /** @sly2-annot addr=0x1C2A78
  * Purpose: if phase != g_phase(D_003D3980): FlushCache, set g_phase and (Sly2) re-point phase memory buffers
  * Info: proposed name SetPhase (T1); TU phasemem

@@ -1110,3 +1110,13 @@ extern "C" void func_00149880(VOLBTN *pvolbtn)
         }
     }
 }
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_button {
+void p_func_00149010() __asm__("func_00149010");
+extern "C" {
+extern const unsigned int D_002A4E80[2] = {0xFFFF0000, (unsigned int)p_func_00149010};
+}
+} // namespace ANPTR_button

@@ -111,7 +111,6 @@ struct CM {
 };
 struct G { char pad[0x3E38]; int x3E38; };
 extern struct CLOCK D_002DDED0;
-extern float D_002DDEE0;
 extern int D_002DFBC0;
 extern char D_002DFC00[];
 extern char D_002E0D00[];
@@ -175,7 +174,7 @@ void UpdateCmLast__FP2CM(struct CM *p)
     }
     p->x300 = 0;
     if (D_003DD490.x3E38)
-        p->g620 = GSmooth__FfffP3SMPPf(p->g620, p->g624, D_002DDEE0, D_002BD810, 0);
+        p->g620 = GSmooth__FfffP3SMPPf(p->g620, p->g624, g_clock.dtCm, D_002BD810, 0);
 }
 } } // namespace M_UpdateCmLast__FP2CM
 
@@ -220,7 +219,7 @@ extern "C" {
 extern float D_002BD81C, D_002BD820, D_002BD824;
 extern qword D_002BD830;
 extern qword D_002BD840;
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void RecalcCmFrustrum__FP2CM(CM *p);
 void func_0014E1A8(CM *p, qword pos, qword tgt, float da, float db);
 void CutCm__FP2CM(CM *p);
@@ -319,7 +318,7 @@ namespace M_func_0014D8F8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float m[4][4]; } M4F;
 typedef struct { qword r[4]; } M4;
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void InvertMatrix4Rigid(M4F *pmOut, M4F *pm);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb);
 /** @sly2-annot addr=0x14D8F8
@@ -1267,7 +1266,6 @@ struct PL { qword pos; qword plane; };
 struct P { char pad[0x48]; float g48; };
 extern float D_002BD8D8;
 extern char D_002BD8E0[];
-extern float D_002DDEE0;
 void *func_002564B8(void *p);
 void GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 static __inline__ float GDistPlane(qword plane, qword pos)
@@ -1307,7 +1305,7 @@ float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
     float r;
     qword plane = pl->plane;
     qword pos = pl->pos;
-    GSmooth__FfffP3SMPPf(GDistPlane(plane, pos), p->g48 - D_002BD8D8, D_002DDEE0, D_002BD8E0, &r);
+    GSmooth__FfffP3SMPPf(GDistPlane(plane, pos), p->g48 - D_002BD8D8, g_clock.dtCm, D_002BD8E0, &r);
     return GDot(&vIn, pl->plane) - r;
 }
 } } // namespace M_SvSquishCmEyeConstraint

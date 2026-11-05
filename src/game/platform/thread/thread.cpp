@@ -25,14 +25,14 @@ struct CRITSECT
 
 extern int D_004425D0[2];
 extern char D_004425F0[];
-extern char D_002E5270[];
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 
 /* libkernel names in the comments are HYPOTHESIS (from the arguments and the neighbouring SignalSema). */
 extern "C" {
-void *func_002333B4(void *p, int c, int n);     /* memset */
-int func_00234A20(SemaParam *sp);               /* CreateSema */
+void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
+int func_00234A20(SemaParam *sp) __asm__("CreateSema");               /* CreateSema */
 int func_00234910(void);                        /* GetThreadId */
-int func_00234A60(int sema);                    /* WaitSema */
+int func_00234A60(int sema) __asm__("WaitSema");                    /* WaitSema */
 int SignalSema(int sema);
 void func_002348B0(int tid, int prio);          /* ChangeThreadPriority */
 int func_00234820(ThreadParam *tp);             /* CreateThread */
@@ -122,3 +122,12 @@ void StartupThread()
     tp.entry = (void *)FrameRenderLoop;
     ptid[1] = func_00234820(&tp);
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_thread {
+    static int c_004425F0[798] __asm__("D_004425F0");   /* .bss 0xC78 */
+};
+int COMMONS_thread::c_004425F0[798];

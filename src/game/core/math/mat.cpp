@@ -41,8 +41,8 @@ extern M3 D_002A2D00;           /* the identity */
 extern qword D_002A2DA0, D_002A2DB0, D_002A2DC0;
 extern VECTOR D_002A2DA0V __asm__("D_002A2DA0");
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
-void *func_0023320C(void *pvDst, const void *pvSrc, int cb);   /* memcpy */
-void *func_002333B4(void *pv, int n, int cb);                  /* memset */
+void *func_0023320C(void *pvDst, const void *pvSrc, int cb) __asm__("memcpy");   /* memcpy */
+void *func_002333B4(void *pv, int n, int cb) __asm__("memset");                  /* memset */
 void *memset(void *pv, int b, unsigned int cb);
 qword GetNormalVector(qword v);
 float GLimitAbs__Fff(float g, float gMax);

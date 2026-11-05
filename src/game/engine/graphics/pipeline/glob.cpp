@@ -20,6 +20,7 @@
 #include "gifs.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/sw.h"
 
 // 0x16EFE0 StaticInit_glob and its _GLOBAL_$I$ stub func_0016F128: g++'s initializer for the cel-border colour
 // (an RGBA word with a constructor, 0x80101010) and the six engine slot pools.
@@ -422,11 +423,12 @@ struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
 struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int f4C; char pad3[0x58 - 0x50]; X *pxFirst; };
 struct G;
 extern "C" { extern G D_003DD490; }
-extern "C" { extern int D_003E11EC; }
+extern "C" { 
+ }
 extern "C" LO *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
-extern "C" void *func_002333B4(void *pv, int n, int cb);
+extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" void func_0022B7A0(LO *plo, X *px);
 /** @sly2-annot addr=0x167B68
  * Purpose: Resolves globset bone references after load: finds each referenced LO by oid, its bone, and
@@ -439,7 +441,7 @@ extern "C" void func_0022B7A0(LO *plo, X *px);
 extern "C" void BindGlobset(S *p)
 {
     if (p->f4C != -1)
-        p->f4C = D_003E11EC;
+        p->f4C = g_sw.nUnk3d5c;
     for (int i = 0; i < p->cgrp; i++) {
         HDR *phdr = &p->ahdr[i];
         GRP *pgrp = &p->agrp[i];
@@ -780,7 +782,7 @@ extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern G D_003DD490; }
 extern "C" {
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
-void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
+void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
 float func_0011CAB0(const M3 *pmat);
 RPL *PrplAllocRpl(void);
@@ -1230,7 +1232,7 @@ extern "C" {
 void SubmitGlobsetRelight(MODEL *pmodel);
 int FUpdatableSaa__FP3SAA(OBJ *pobj);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
-void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
+void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 float func_0011CAB0(const MATRIX4 *pmat);
@@ -1751,8 +1753,8 @@ extern "C" { extern DMA D_002DEA28; }
 extern "C" { extern G D_003DD490; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
-void *func_002333B4(void *pv, int b, uint cb);
-void *func_0023320C(void *pvDst, const void *pvSrc, uint cb);
+void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
+void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void func_001A4AD8(G *pg, int c, void **apv, SHD *pshd);
 int FUpdatableSaa__FP3SAA(OBJ *pobj);
 int func_001BEE10(ALO *palo, int n);
@@ -2768,7 +2770,8 @@ void qsort(void *base, size_t nmemb, size_t size, int (*compar)(const void *, co
 extern "C" void ReadCb12__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
 extern "C" void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
 void FixupRgba(RGBA *prgba) __asm__("ColorCorrectRgba");
-extern "C" { extern int D_003E11EC; }
+extern "C" { 
+ }
 static inline void *PvAllocStackP(int cb)
 {
     SWALLOCC swalloc(cb, 0x10);
@@ -2789,7 +2792,8 @@ extern "C" int func_001EC6D0(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
 extern "C" int func_001ED960(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
 extern "C" { extern int D_003DA790; }
-extern "C" { extern int D_003E12D0; }
+extern "C" { 
+ }
 extern "C" int D_002BE580 = 0;
 extern "C" { int D_002DEB54; }
 extern "C" const float D_002A52A0 = 3.40282347e+38f;
@@ -2888,7 +2892,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     {
         vifsAux.AllocStack(0x800);
         if (FIsBasicDerivedFrom((BASIC *)pglobset->pso, (CID)0x31) && !(psubglob->bUnk02 & 4) && (uchar)(psubglob->bUnk00 - 7) >= 2 &&
-            psubglob->gUnk04 == D_002A52A0 && D_003E12D0 == 0)
+            psubglob->gUnk04 == D_002A52A0 && g_sw.fUnk3e40 == 0)
         {
             QW qwOne;
             qwOne.ag[0] = 1.0f;
@@ -3652,7 +3656,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         }
     }
     if (pclutset != 0)
-        pglobset->nUnk4c = D_003E11EC;
+        pglobset->nUnk4c = g_sw.nUnk3d5c;
     pglob->iUnkEnd = D_003DA790;
     func_001EC740(pglob->iUnkFirst, pglob->iUnkEnd, cqwMain << 4, pbOld, pbNew);
     if (pglob->pwrbg != 0)
@@ -3910,7 +3914,7 @@ void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void*func_001AE318(const REQUEST&);
-void*func_002333B4(void*,int,uint);
+void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 OBJECT*func_001EC8F8(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
@@ -4157,7 +4161,8 @@ namespace M_BeginRpProjVolume {
 extern "C" { extern char D_0025C1C0[]; }
 extern "C" { extern char D_0025E040[]; }
 extern "C" { extern char D_00001AA0[]; }
-extern "C" { extern int D_003E12C8; }
+extern "C" { 
+ }
 extern "C" { extern QW D_002DF800[]; }
 extern "C" { int D_002DEB70[2]; }
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
@@ -4177,7 +4182,7 @@ extern "C" void BeginRpProjVolume(VIFS *pvifs, int n1, int n2)
 {
     EnsureVu1Code__FP4VIFSPvT1(pvifs, D_0025C1C0, D_0025E040);
     pvifs->AddDmaCnt();
-    if (n2 != 7 && D_003E12C8) {
+    if (n2 != 7 && g_sw.fUnk3e38) {
         pvifs->AddVifFlush();
         pvifs->AddDmaCall(D_002DF800);
         pvifs->AddVifBaseOffset(0x32, 0x1E7);
@@ -4232,7 +4237,8 @@ struct COMMAND {short kind,index;};
 struct GAME {char pad[0x3E38];int ready;};
 extern "C" { extern GAME D_003DD490; }
 extern "C" { extern int D_002DEB70[2]; }
-extern "C" { extern ulong D_003E1330; }
+extern "C" { 
+ }
 extern "C" { extern QW*D_002DEA4C; }
 extern "C" { extern QW D_002DEA50[],D_002DF940[],D_002DFA80[]; }
 extern "C" void AddFramePatch(int,GIFS*,COMMAND**);
@@ -4250,7 +4256,7 @@ typedef char GAME_ready_Offset[FIELD_OFFSET(GAME,ready)==15928?1:-1];
 typedef char COMMAND_kind_Offset[FIELD_OFFSET(COMMAND,kind)==0?1:-1];
 typedef char COMMAND_index_Offset[FIELD_OFFSET(COMMAND,index)==2?1:-1];
 /** @sly2-annot addr=0x16DD58
- * Purpose: Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 D_003E1330) with
+ * Purpose: Pass 6/7 end: apply pass reading the framebuffer as an indexed texture (TEX2 g_sw.tex2ProjVolume) with
  *   alpha blend over full-screen strips (MSCAL 0x1C48)
  * Info: proposed name EndRpProjVolume (T1); TU glob
  * Notes: no usable identifier; purpose only
@@ -4302,7 +4308,7 @@ extern "C" void EndRpProjVolume(VIFS*input,int first,int mode){
   AddFramePatch(2,&gifs,&cursor);
   gifs.PackAD(6,0x6A8000000L);
   gifs.PackAD(0x14,1);
-  gifs.PackAD(0x16,D_003E1330);
+  gifs.PackAD(0x16,g_sw.tex2ProjVolume);
   gifs.PackAD(0x3F,0);
   gifs.PackAD(0x47,0x31001);
   gifs.PackAD(1,0x180808080L);
@@ -4345,7 +4351,7 @@ typedef char GAME_Size[sizeof(GAME)==0x3E3C?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpGlob {
-extern "C" void *func_002333B4(void *pv, int n, int cb);
+extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" void EnsureVu1Code__FP4VIFSPvT1(VIFS *pvifs, void *pvStart, void *pvEnd);
 extern "C" { extern char D_0025E680[]; }
 extern "C" { extern char D_00262320[]; }
@@ -4373,7 +4379,7 @@ extern "C" void BeginRpGlob(VIFS *pvifs)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_EndRpGlob {
-extern "C" void *func_002333B4(void *pv, int n, int cb);
+extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 extern "C" { extern char D_00003AB0[]; }
 /** @sly2-annot addr=0x16E228
  * Purpose: Pass 0 end (shared by passes 8-10): zero batch descriptor, MSCAL 0x3AB0 (flush entry), FLUSHA
@@ -4502,7 +4508,7 @@ void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
 void*func_001AE2A0(const REQUEST&);
 void BuildCmFgfn(ENV*,float*,float);
-void*func_002333B4(void*,int,uint);
+void*func_002333B4(void*,int,uint) __asm__("memset");
 void func_001699E8(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
 extern ENV D_002DDF40;
 extern uint D_002DEB50;

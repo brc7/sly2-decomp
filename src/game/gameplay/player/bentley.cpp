@@ -1582,7 +1582,6 @@ struct P { char pad[0x2C0]; char a2C0[0x200]; char a4C0[0xF50 - 0x4C0]; char aF5
     struct A *pa11C0; char pad2[0x12F0 - 0x11C4]; int x12F0; char pad3[0x13D0 - 0x12F4]; int x13D0; char pad4[0x1818 - 0x13D4];
     long x1818; };
 extern int D_002DFBC0;
-extern char D_002DE2E0[];
 int FStepplayerInJtmode();
 int func_0019C8D0(void *pv, int k);
 int func_00194558(void *pv, int k);
@@ -1656,7 +1655,7 @@ int BENTLEY_FCanUseGadget(struct P *p, int k)
         case 3: {
             int r = 0;
             if (p->x12F0 && (D_002DFBC0 & 2))
-                r = FActiveCplcy__FP5CPLCY(D_002DE2E0) == 0;
+                r = FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) == 0;
             return r;
         }
         case 1: case 2: case 8: case 10: case 12: case 14:

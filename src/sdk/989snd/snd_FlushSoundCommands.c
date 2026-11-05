@@ -13,7 +13,7 @@ extern CB D_002C4690;
 extern int D_00443840[];
 extern unsigned int D_00448480;
 int snd_GotReturns__Fv(void);
-void func_00234CA0(int);
+void func_00234CA0(int) __asm__("FlushCache");
 void snd_SendCurrentBatch__Fv(void);
 int snd_StreamSafeCdSync(int);
 
@@ -65,3 +65,10 @@ int snd_FlushSoundCommands(void)
         return 1;
     return 0;
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+typedef int qword __attribute__((mode(TI)));
+qword c_00443840[4] __asm__("D_00443840");   /* .bss 0x40 */

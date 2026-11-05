@@ -40,7 +40,7 @@ extern XF D_002C44F0;
 extern "C" {
 void InitLo(LO *plo);
 void CloneLo(LO *plo, LO *ploBase);
-void *func_002333B4(void *pv, int b, int cb);
+void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void func_00147E88(SW *psw, LOROOT *ploroot);
 qword func_0022FC48(int a, XF *pxf, qword pos);
 void VECTOR_opAssign(void *pv, qword q);

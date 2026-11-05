@@ -19,7 +19,6 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 extern SW D_003DD490;
 extern "C" {
-extern SLOTHEAP D_003E0E1C;     /* LOROOT pool */
 extern qword D_002A2DD0;        /* (0, 0, 0) */
 extern MATRIX4 D_002A2D30;      /* identity */
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
@@ -47,13 +46,12 @@ struct S {
     int x3C;
     int x40;
 };
-extern int D_003E139C;
 void EnsureLoroot(struct S *s);
 void GetLoChildDl(struct S *p, void **a, void ***b);
 void InsertDlEntryBefore__FP2DLPvT1(void *a, void *b, struct S *s);
 /** @sly2-annot addr=0x1A5270
  * Purpose: LO vt7 Init: busy fields (nibble48=0xF, busyk=2, byte40=0xFF, sBusy x38=1e10), inherit
- *   loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21, ppxr x3C from parent else D_003E139C,
+ *   loroot+in-world bit60 from parent or EnsureLoroot, grf x40=0x21, ppxr x3C from parent else (*(int *)&g_sw.ppxrRoot),
  *   prepend to parent child DL (in-world region)
  * Info: proposed name InitLo (T1); class LO slot7; TU lo
  * Notes: runtime: LO +0x28 nibble48/busyk/bit60, +0x38 sBusy 1e10, +0x3C ppxr, +0x40 grf 0x21 confirmed
@@ -78,14 +76,14 @@ void InitLo(struct S *s)
         s->x28.b.f60 = 1;
     }
     s->x40 = 0x21;
-    s->x3C = s->x10 ? s->x10->x3C : D_003E139C;
+    s->x3C = s->x10 ? s->x10->x3C : (*(int *)&g_sw.ppxrRoot);
     GetLoChildDl(s->x10, &a, &b);
     InsertDlEntryBefore__FP2DLPvT1(a, *b, s);
 }
 } } // namespace M_InitLo
 
 /** @sly2-annot addr=0x1A53A0
- * Purpose: If plo->ploroot(x14)==0 alloc a LOROOT from pool g_sw+0x398C (D_003E0E1C) and set root->plo=plo
+ * Purpose: If plo->ploroot(x14)==0 alloc a LOROOT from pool g_sw+0x398C (g_sw.slotheapLoroot) and set root->plo=plo
  * Info: proposed name EnsureLoroot (T1); TU lo
  * Notes: names_v2 v1 proposed SetLightFallOff__FP5LIGHTP2LM (0.012)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4_17F090
@@ -94,7 +92,7 @@ void InitLo(struct S *s)
 extern "C" void EnsureLoroot(LO *plo)
 {
     if (plo->ploroot == 0) {
-        LOROOT *ploroot = (LOROOT *)PvAllocSlotheapClear(&D_003E0E1C);
+        LOROOT *ploroot = (LOROOT *)PvAllocSlotheapClear(&g_sw.slotheapLoroot);
         plo->ploroot = ploroot;
         ploroot->plo = plo;
     }
@@ -128,7 +126,6 @@ void FreeLoroot(struct S *p)
 
 namespace M_GetLoChildDl { extern "C" {
 struct G { int a[4]; };
-extern struct G D_003DD4A0;
 /** @sly2-annot addr=0x1A5448
  * Purpose: (LO *ploParent, DL **ppdl, LO ***pploRemovedFirst): parent? &parent->dlChild(+0x64),&parent+0x70 :
  *   &g_sw dl(+0x10),&g_sw+0x1C
@@ -140,7 +137,7 @@ extern struct G D_003DD4A0;
 void GetLoChildDl(char *p, void **pa, void **pb)
 {
     if (p) { *pa = p + 0x64; *pb = p + 0x70; }
-    else { *pa = &D_003DD4A0; *pb = (char *)&D_003DD4A0 + 0xC; }
+    else { *pa = &(*(struct G *)&g_sw.dlChild); *pb = (char *)&(*(struct G *)&g_sw.dlChild) + 0xC; }
 }
 } } // namespace M_GetLoChildDl
 
@@ -213,7 +210,8 @@ skip:
 namespace M_RemoveLo { extern "C" {
 struct VTE { short d; short pad; void *pfn; };
 struct S { int x0, x4, x8; struct VTE *vt; void *x10; int x14; char pad[0x10]; unsigned long x28; };
-extern char D_003DD4BC[], D_003DD490[];
+extern char D_003DD490[];
+
 int func_001A61A0(struct S *s);
 void RemoveDlEntry__FP2DLPv(void *a, void *b);
 void func_00147E20(void *a, int b);
@@ -243,7 +241,7 @@ void RemoveLo(struct S *s)
         e = &s->vt[0xB0 / 8];
         ((void (*)(void *))e->pfn)((char *)s + e->d);
         if (!s->x10)
-            RemoveDlEntry__FP2DLPv(D_003DD4BC, (void *)s->x14);
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), (void *)s->x14);
     }
     if (!s->x10)
         func_00147E20(D_003DD490, s->x14);
@@ -353,7 +351,6 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 struct ALO { int x0, x4, x8; VTE *vt; ALO *x10; ALO **x14; char pad[0x24 - 0x18]; ALO *x24; union { unsigned long u; struct { unsigned long f0 : 56; unsigned long f56 : 1; unsigned long f57 : 3; unsigned long f60 : 1; unsigned long f61 : 3; } b; } x28; };
 #define VFN(p, n, T) ((T)(p)->vt[n].pfn)
 #define VTHIS(p, n) ((ALO *)((char *)(p) + (p)->vt[n].d))
-extern char D_003DD4BC[];
 extern char D_003DD490[];
 void GetLoChildDl(ALO *p, void **ppdl, ALO ***pppalo);
 void RemoveDlEntry__FP2DLPv(void *pdl, void *p);
@@ -400,7 +397,7 @@ void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
     if (func_001A61A0(palo)) {
         VFN(palo, 22, void (*)(ALO *))(VTHIS(palo, 22));
         if (*palo->x14 == palo)
-            RemoveDlEntry__FP2DLPv(D_003DD4BC, palo->x14);
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), palo->x14);
     }
     paloOld = palo->x10;
     palo->x10 = paloParent;
@@ -859,7 +856,6 @@ extern "C" void OnLoAdd(LO *plo)
 namespace M_func_001A61A0 { extern "C" {
 typedef unsigned long ulong;
 struct DL { void *a, *b; int c; };
-extern struct DL D_003DD4BC;
 int FFindDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 struct S { char pad[0x14]; void *x14; char pad2[0x10]; ulong fl; };
 /** @sly2-annot addr=0x1A61A0
@@ -873,7 +869,7 @@ struct S { char pad[0x14]; void *x14; char pad2[0x10]; ulong fl; };
 int func_001A61A0(struct S *p)
 {
     int r = 0;
-    if ((int)(p->fl >> 60) & 1) r = FFindDlEntry__FP2DLPv(&D_003DD4BC, p->x14) != 0;
+    if ((int)(p->fl >> 60) & 1) r = FFindDlEntry__FP2DLPv((DL *)&g_sw.dlBusy, p->x14) != 0;
     return r;
 }
 } } // namespace M_func_001A61A0
@@ -1364,7 +1360,7 @@ int FFindLoParent(struct O *a, struct O *b)
 namespace M_func_001A6B30 { extern "C" {
 struct M { float a[16]; };
 extern struct M D_002C44F0;
-void func_002333B4(void *p, int c, int n);
+void func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x1A6B30
  * Purpose: LO vt32: optionally write identity into M4 arg, return static D_002C44F0
  * Info: proposed name LO_PxfLocal (T2); class LO slot32; TU lo

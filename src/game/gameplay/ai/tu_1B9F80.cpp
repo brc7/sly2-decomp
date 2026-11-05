@@ -13,7 +13,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
-typedef int qword __attribute__((mode(TI)));
+#include "sly2/sw.h"
 union U{float f[4];qword q;};   /* floats first, so a U global can be initialized */
 struct M3{qword rows[3];};
 struct SPACE;
@@ -97,9 +97,8 @@ void PopBhv(int *p);
 O *func_00205438(NEELA *p, int b);
 void func_00171258(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELA *b);
-void *func_002333B4(void *p, int c, int cb);
+void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(O *p, MODE *pf);
-extern NEELA*D_003E1444;   /* the in-world guard list */
 extern const float D_002A7620 = 3.40282347e+38f;   /* FLT_MAX */
 /* tu_1B9F80's .data (address order): the snip table, then NEELA's target volume: the centre offset and the box around it. */
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
@@ -231,7 +230,7 @@ extern "C" void UpdateNeela(NEELA*p){
   else if(FStepguardHasSgf(p,2)){volume=p->second;p->target=0;}
   else break;
   float nearest=D_002A7620;
-  for(NEELA*node=D_003E1444;node;node=node->next){
+  for(NEELA*node=(*(NEELA * *)&g_sw.dlStepguard);node;node=node->next){
    if(node==p||FStepguardHasSgf(node,7))continue;
    qword origin=Vector(func_001A62E8(p));
    float distance=Square(VuSub(origin,func_001A62E8(node)));

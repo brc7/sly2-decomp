@@ -28,7 +28,7 @@ CRITSECT D_002F6390;               /* the heap lock */
 int D_002F639C;                   /* stack scope depth */
 uint D_002F63A0[50];              /* stack heap tops of the open scopes (to ui/menu's .bss at 0x2F6468) */
 extern "C" {
-void func_002333B4(void *p, int c, int n);
+void func_002333B4(void *p, int c, int n) __asm__("memset");
 void *func_001AE1D0(AREQ *preq);
 void *func_001AE2A0(AREQ *preq);
 void *func_001AE318(AREQ *preq);

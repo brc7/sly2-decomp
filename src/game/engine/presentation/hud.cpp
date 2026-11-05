@@ -14,6 +14,9 @@
 #include "sly2/stackscope.h"
 #include "gifs.h"
 #include "vifs.h"
+#include "sly2/cm.h"
+#include "sly2/sw.h"
+extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
 struct WIDGET : public LO
@@ -47,9 +50,9 @@ struct SPRITEGRP
 
 extern SW D_003DD490;           /* g_sw */
 extern CLOCK D_002DDED0;        /* g_clock */
-extern DL D_003E1060;           /* exclusive widget list */
 extern char D_004435F0[];       /* speaker label (HYPOTHESIS, as letterbox.cpp) */
-extern int D_003DA0D8;          /* ticker text id */
+#undef D_003DA0D8
+#define D_003DA0D8 (*(int *)((char *)base_D_003DA0C0 + 0x18))   /* screen's object+0x18 */   /* ticker text id */
 extern "C" char D_C0[];         /* VU1 microprogram entry at 0xC0 */
 char *PchzFindSwLangstr(SW *psw, int id);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
@@ -140,7 +143,6 @@ void BuildClueCountText(void *f)
 
 // 0x210F80 BuildTimerText
 namespace M_BuildTimerText { extern "C" {
-extern float D_003E1BFC;
 extern struct CLOCK { float t; float dt; } D_002DDED0;
 extern char D_002A8AB0[];
 void fiprintf(void *f, const char *fmt, ...);
@@ -152,7 +154,7 @@ void fiprintf(void *f, const char *fmt, ...);
  * @end-sly2-annot */
 void BuildTimerText(void *f)
 {
-    float t = -D_002DDED0.t + D_003E1BFC; int n; t = (t < 0.0f) ? 0.0f : t;
+    float t = -D_002DDED0.t + g_sw.tHudTimerEnd; int n; t = (t < 0.0f) ? 0.0f : t;
     n = (int)t;
     {
         int q = n / 60;
@@ -165,7 +167,6 @@ void BuildTimerText(void *f)
 namespace M_func_00210FE0 { extern "C" {
 struct X { char pad[0xF20]; int xF20; char padf24[0x18]; float xF3C; };
 extern char D_003DD490[];
-extern float D_002DE3B8, D_002DE514;
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
 struct X *PpoHero(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *, int);
@@ -187,10 +188,10 @@ void func_00210FE0(char *pch)
         return;
     switch (x->xF20) {
     case 0:
-        g = D_002DE3B8 * x->xF3C;
+        g = g_cm.cplook.rZoomMax * x->xF3C;
         break;
     case 1:
-        g = D_002DE514 * x->xF3C;
+        g = g_cm.cpzoom.rZoomMax * x->xF3C;
         break;
     }
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x35)) {
@@ -278,8 +279,10 @@ struct G { char gap[0x4640]; int count; struct RESOURCE *resources; };
 extern struct G D_003DD490;
 struct F { int id; char pad[0x1C]; };
 struct E { int c; struct F *af; char pad[0xC]; int x14; char pad2[4]; };
-extern struct E D_003D9EDC[];
-extern int D_003D9EF4;
+#undef D_003D9EDC
+extern struct E D_003D9EDC[];   /* kept: the base+offset form changes func_00211298 (CSE of the base) */
+#undef D_003D9EF4
+extern int D_003D9EF4;   /* kept: see D_003D9EDC */
 const char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
 char *strcpy(char *dst, const char *src);
 /** @sly2-annot addr=0x211298
@@ -301,6 +304,8 @@ void func_00211298(char *dst, int k)
     }
 }
 } } // namespace M_func_00211298
+#undef D_003D9EDC
+#undef D_003D9EF4
 
 // 0x211348 BuildWidgetArgText
 namespace M_BuildWidgetArgText { extern "C" {
@@ -594,7 +599,6 @@ namespace M_func_00211D38 { extern "C" {
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
 struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int x58; float x5C; char pad60[0xB0]; int x110; int x114; };
 extern struct G { char pad[0x3B0C]; void *x3B0C; } D_003DD490;
-extern float D_002DDF0C;
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int func_002121C8(struct S *p);
@@ -617,7 +621,7 @@ void func_00211D38(struct S *p)
     if (r)
         return;
     UpdateWidget(p);
-    if (p->x58 == 2 && 0.5f < D_002DDF0C - p->x5C && !FScreenShown(D_002E6550)
+    if (p->x58 == 2 && 0.5f < g_clock.tReal - p->x5C && !FScreenShown(D_002E6550)
         && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
         if (p->x114 == 0 && D_003DD490.x3B0C) {
@@ -877,7 +881,8 @@ struct S {
     char pad[0x50]; int x50; int x54; int x58; char pad5c[0x14]; int x70; int x74; int x78; int x7C;
     char pad80[0x10]; float x90; int x94; int x98; char pad9c[0x20]; int xBC; struct O *xC0; void *xC4;
 };
-extern char D_003E1C70[], D_003E1C80[], D_003E106C[];
+extern char D_003E1C70[], D_003E1C80[];
+
 void LoadLoFromBrx(struct S *p, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
@@ -919,7 +924,7 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
         p->xC0 = func_001AE2A0(&req);
         p->xC0->x40 = p;
         CBinaryInputStream_ReadCb64(pbis, p->xC0);
-        func_0011A070(D_003E106C, p->xC0);
+        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
     } else {
         p->x58 = 1;
         p->xC4 = D_003E1C80;
@@ -1003,7 +1008,8 @@ extern "C" int strncmp(const void *,const void *,unsigned int);
 extern "C" void SetWidgetState(S *,int);
 extern "C" void LoadSpriteTable(S *,BIS *,S *,int *,void **);
 extern "C" void LoadSpriteGroups(S *,BIS *,S *);
-extern "C" { extern N *D_003E106C; }
+extern "C" { 
+ }
 extern "C" { extern POOL D_003E1C70; }
 extern "C" { extern int D_002BE538; }
 extern "C" { extern char D_002A8AE8[]; }
@@ -1035,13 +1041,13 @@ extern "C" void LoadWidgetSprites(S *p) {
     N *n;
     S *owner;
     int version;
-    for(n=D_003E106C;n;n=n->next) {
+    for(n=(*(N * *)&g_sw.slWidgetDeferred);n;n=n->next) {
         owner=n->owner;
         if(owner->state==0)continue;
         if(owner->state==1 && D_002BE538-owner->tick>=2)continue;
         priority=Max(priority,n->last);
     }
-    for(n=D_003E106C;n;n=n->next) {
+    for(n=(*(N * *)&g_sw.slWidgetDeferred);n;n=n->next) {
         owner=n->owner;
         if(n->priority>=priority && owner->state!=0)SetWidgetState(owner,0);
     }
@@ -1106,10 +1112,9 @@ void UnloadWidgetSprites(struct S *p)
 namespace M_func_002127C8 { extern "C" {
 struct Q { char pad[0x58]; int k; int pad2; int a; int b; };
 struct S { char pad[0x40]; struct Q *q; char pad2[8]; struct S *next; };
-extern struct S *D_003E106C;
 extern int D_002BE538;
 /** @sly2-annot addr=0x2127C8
- * Purpose: true when no deferred widget load (list D_003E106C) is younger than 2 frames
+ * Purpose: true when no deferred widget load (list (*(struct S * *)&g_sw.slWidgetDeferred)) is younger than 2 frames
  * Info: proposed name FWidgetLoadsIdle (T2); TU hud
  * Notes: names_v2 v1 proposed FUN_001ab600 (0.000)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
@@ -1118,7 +1123,7 @@ extern int D_002BE538;
 int func_002127C8(void)
 {
     struct S *p;
-    for (p = D_003E106C; p; p = p->next) {
+    for (p = (*(struct S * *)&g_sw.slWidgetDeferred); p; p = p->next) {
         struct Q *q = p->q;
         int v;
         if (q->k == 0)
@@ -1330,7 +1335,6 @@ struct S {
 };
 struct Clock { char pad[0x3C]; float time; float dt; };
 extern struct Clock D_002DDED0;
-extern float D_002DDF10;
 void UpdateLo(struct S *);
 int FWidgetAnimPlaying(struct S *,int);
 void SetWidgetRequest(struct S *,int);
@@ -1379,7 +1383,7 @@ void UpdateWidget(struct S *p) {
     }
     SetWidgetState(p,state);
     if(p->selected!=-1) {
-        float dt=D_002DDF10;
+        float dt=g_clock.dtReal;
         p->animtime+=dt;
         func_00218220(p->sprite,dt);
     }
@@ -1602,9 +1606,8 @@ extern "C" void RenderWidget(S *p){
 // 0x2137F0 FWidgetObscured
 namespace M_FWidgetObscured { extern "C" {
 struct S { char pad[0xA4]; int a; char pad2[0xC]; struct S *next; };
-extern struct S *D_003E1060;
 /** @sly2-annot addr=0x2137F0
- * Purpose: some widget in exclusive list D_003E1060 has higher priority (+0x0? field a)
+ * Purpose: some widget in exclusive list (*(struct S * *)&g_sw.dlWidgetExclusive) has higher priority (+0x0? field a)
  * Info: proposed name FWidgetObscured (T1); TU hud
  * Notes: names_v2 v1 proposed FUN_001aca68 (0.000)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7c_hud+verdicts_followups
@@ -1614,7 +1617,7 @@ int FWidgetObscured(struct S *p)
 {
     struct S *q;
     int unused[4];
-    for (q = D_003E1060; q; q = q->next) {
+    for (q = (*(struct S * *)&g_sw.dlWidgetExclusive); q; q = q->next) {
         if (p->a < q->a)
             return 1;
     }
@@ -2061,24 +2064,24 @@ int FSpriteHasAnim(void *pv, struct S *p, int id)
 
 // 0x214300 func_00214300
 /** @sly2-annot addr=0x214300
- * Purpose: flag +0xA8; value 0 = in exclusive list D_003E1060 (suppresses lower-priority widgets)
+ * Purpose: flag +0xA8; value 0 = in exclusive list g_sw.dlWidgetExclusive (suppresses lower-priority widgets)
  * Info: proposed name SetWidgetExclusive (T2); TU hud
  * Notes: names_v2 v1 proposed UpdateAttract__FP7ATTRACT (0.024)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-/* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list D_003E1060. */
+/* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
 extern "C" void func_00214300(WIDGET *pwidget, int f)
 {
     int fOld;
     fOld = pwidget->fA8;
     if (fOld != f) {
-        if ((fOld == 0) && (FFindDlEntry(&D_003E1060, pwidget) != 0)) {
-            RemoveDlEntry(&D_003E1060, pwidget);
+        if ((fOld == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) != 0)) {
+            RemoveDlEntry(&g_sw.dlWidgetExclusive, pwidget);
         }
         pwidget->fA8 = f;
-        if ((f == 0) && (FFindDlEntry(&D_003E1060, pwidget) == 0)) {
-            AppendDlEntry(&D_003E1060, pwidget);
+        if ((f == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) == 0)) {
+            AppendDlEntry(&g_sw.dlWidgetExclusive, pwidget);
         }
     }
 }
@@ -3120,7 +3123,7 @@ void CRichText_GetExtents(struct S *p, float *pa, float *pb)
 // 0x2162D8 func_002162D8
 namespace M_func_002162D8 { extern "C" {
 struct S { char pad[0x64]; float f64; float f68; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x2162D8
  * Purpose: glyph matrix from 2x3 transform (0.8 / 0.4545 pixel scales, GS offset 786432)
  * Info: proposed name BuildRichTextMatrix (T2); TU hud
@@ -3151,7 +3154,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
 struct RT {char pad[0x6C];float offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;};
-extern "C" void *func_002333B4(void *,int,int);
+extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 struct M23 {float a[8];enum INIT {Uninitialized,Zero};M23(INIT init=Uninitialized){if(init==Zero)func_002333B4(this,0,sizeof(*this));}} __attribute__((aligned(16)));
 struct M4 {qword r[4];};
 struct DATA {RGBA color;int mode;float priority;int limit;qword v10,v20;};
@@ -3261,7 +3264,7 @@ struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 extern float D_002C40A8,D_002C40AC,D_002C40B0,D_002C40B4;
-void *func_002333B4(void *,int,int);
+void *func_002333B4(void *,int,int) __asm__("memset");
 void func_00215CA8(struct RT *,char *);
 int func_00215D40(struct RT *);
 float func_00216B80(void *,int);
@@ -3608,7 +3611,7 @@ struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
 struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
-void *func_002333B4(void *,int,int);
+void *func_002333B4(void *,int,int) __asm__("memset");
 struct E *PrplAllocRpl(void);
 static inline int Min(int a,int b){return a<b?a:b;}
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
@@ -3671,7 +3674,7 @@ struct D {int a,mode;float priority;uint limit;char pad10[0x1C];float fade;};
 struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
-void *func_002333B4(void *,int,int);
+void *func_002333B4(void *,int,int) __asm__("memset");
 struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
@@ -3780,7 +3783,6 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct E { char pad[0x14]; int id; };
 struct S { unsigned short c; short pad; E *a; char pad8[8]; unsigned long ul10; float f18; int x1C; int x20; };
-extern "C" unsigned long D_002DDF18;
 extern "C" void func_00217D98(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x217CA8
  * Purpose: start anim k in a reuse slot
@@ -3796,7 +3798,7 @@ extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
         i = p->x20;
         if (i != -1) {
             p->x20 = -1;
-        } else if (p->ul10 == D_002DDF18) {
+        } else if (p->ul10 == (*(unsigned long *)&g_clock.tickFrame)) {
             t = p->f18;
             i = p->x1C;
         } else {
@@ -4180,7 +4182,7 @@ extern "C" void func_00218638(SPRITEGRP *pgrp)
 namespace M_func_00218660 { extern "C" {
 struct E { char pad[8]; short h8; short pad2; float fC; int x10; void *x14; };
 struct S { char pad[8]; struct E *ae; char padc[4]; unsigned long ul10; float f18; int x1C; int x20; };
-extern struct CLOCK { unsigned long ticks; } D_002DDF18;
+struct CLOCK { unsigned long ticks; };
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
 void func_00217F38(struct S *p, int i);
@@ -4204,7 +4206,7 @@ void func_00218660(struct S *p, int i)
         float t=e->fC;
         p->x1C = e->h8;
         p->f18 = t;
-        p->ul10 = D_002DDF18.ticks;
+        p->ul10 = (*(struct CLOCK *)&g_clock.tickFrame).ticks;
         p->x20 = -1;
         e->h8 = -1;
         e->x10 = 0;
@@ -4567,7 +4569,7 @@ struct ROOT { char pad[0x54]; SPRITE *sprites; };
 struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP *group; int id; };
 extern "C" {
 void ClearSle(int *);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void func_00215730(SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
 void func_002158C0(SPRITE *, ITEM *);
@@ -4984,7 +4986,7 @@ namespace M_StaticInit_hud {
 struct LINEAR {void *vtable;int limit;void *buffer;int used;};
 struct HEAP {void *vtable;int field4;};
 struct POOL;
-extern "C" void *func_002333B4(void *,int,unsigned int);
+extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 struct STRINGGEN {
  int id;void (*get)(char *,void *,void *);void *context;
  STRINGGEN(){func_002333B4(this,0,sizeof(*this));}
@@ -5275,3 +5277,215 @@ float D_002C40AC = 788864.0f;
 float D_002C40B0 = 788240.0f;
 float D_002C40B4 = 788720.0f;
 float D_002C40B8 = 0.25f;
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_hud {
+    static int c_002DD2E0 __asm__("D_002DD2E0");   /* .sbss 0x4 */
+    static int c_002DD2E4 __asm__("D_002DD2E4");   /* .sbss 0x4 */
+    static int c_002DD2E8 __asm__("D_002DD2E8");   /* .sbss 0x4 */
+    static int c_002DD2EC __asm__("D_002DD2EC");   /* .sbss 0x4 */
+    static int c_002DD2F0 __asm__("D_002DD2F0");   /* .sbss 0x4 */
+    static int c_002DD2F4 __asm__("D_002DD2F4");   /* .sbss 0x4 */
+    static int c_002DD318 __asm__("D_002DD318");   /* .sbss 0x4 */
+    static qword c_004421A0 __asm__("D_004421A0");   /* .bss 0x10 */
+    static qword c_004421B0[6] __asm__("D_004421B0");   /* .bss 0x60 */
+    static qword c_00442210[3] __asm__("D_00442210");   /* .bss 0x30 */
+    static qword c_00442240[39] __asm__("D_00442240");   /* .bss 0x270 */
+    static qword c_004424B0[2] __asm__("D_004424B0");   /* .bss 0x20 */
+    static qword c_004424D0[2] __asm__("D_004424D0");   /* .bss 0x20 */
+    static qword c_004424F0[3] __asm__("D_004424F0");   /* .bss 0x30 */
+    static qword c_00442520[4] __asm__("D_00442520");   /* .bss 0x40 */
+    static qword c_00442560[4] __asm__("D_00442560");   /* .bss 0x40 */
+    static qword c_004425A0[3] __asm__("D_004425A0");   /* .bss 0x30 */
+    static int c_004435F0 __asm__("D_004435F0");   /* .bss 0x4 */
+    static int c_004435F4[83] __asm__("D_004435F4");   /* .bss 0x14C */
+    static int c_004520D0[6] __asm__("D_004520D0");   /* .bss 0x18 */
+    static int c_004520F8[4] __asm__("D_004520F8");   /* .bss 0x10 */
+    static qword c_00452120 __asm__("D_00452120");   /* .bss 0x10 */
+    static int c_00452148[6] __asm__("D_00452148");   /* .bss 0x18 */
+    static int c_00452170[6] __asm__("D_00452170");   /* .bss 0x18 */
+};
+int COMMONS_hud::c_002DD2E0;
+int COMMONS_hud::c_002DD2E4;
+int COMMONS_hud::c_002DD2E8;
+int COMMONS_hud::c_002DD2EC;
+int COMMONS_hud::c_002DD2F0;
+int COMMONS_hud::c_002DD2F4;
+int COMMONS_hud::c_002DD318;
+qword COMMONS_hud::c_004421A0;
+qword COMMONS_hud::c_004421B0[6];
+qword COMMONS_hud::c_00442210[3];
+qword COMMONS_hud::c_00442240[39];
+qword COMMONS_hud::c_004424B0[2];
+qword COMMONS_hud::c_004424D0[2];
+qword COMMONS_hud::c_004424F0[3];
+qword COMMONS_hud::c_00442520[4];
+qword COMMONS_hud::c_00442560[4];
+qword COMMONS_hud::c_004425A0[3];
+int COMMONS_hud::c_004435F0;
+int COMMONS_hud::c_004435F4[83];
+int COMMONS_hud::c_004520D0[6];
+int COMMONS_hud::c_004520F8[4];
+qword COMMONS_hud::c_00452120;
+int COMMONS_hud::c_00452148[6];
+int COMMONS_hud::c_00452170[6];
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_hud {
+void p_BuildClueCountText() __asm__("BuildClueCountText");
+void p_BuildCoinCountText() __asm__("BuildCoinCountText");
+void p_BuildContextText() __asm__("BuildContextText");
+void p_BuildGadgetMenuInfoText() __asm__("BuildGadgetMenuInfoText");
+void p_BuildJobListRowText() __asm__("BuildJobListRowText");
+void p_BuildJobListTaskRowText() __asm__("BuildJobListTaskRowText");
+void p_BuildJobListWorldText() __asm__("BuildJobListWorldText");
+void p_BuildReconSelectionText() __asm__("BuildReconSelectionText");
+void p_BuildReconTargetText() __asm__("BuildReconTargetText");
+void p_BuildThiefnetInfoText() __asm__("BuildThiefnetInfoText");
+void p_BuildThiefnetLootNameText() __asm__("BuildThiefnetLootNameText");
+void p_BuildThiefnetPowerupNameText() __asm__("BuildThiefnetPowerupNameText");
+void p_BuildTickerText() __asm__("BuildTickerText");
+void p_BuildTimerText() __asm__("BuildTimerText");
+void p_BuildTitleCompletionText() __asm__("BuildTitleCompletionText");
+void p_BuildTitlePromptText() __asm__("BuildTitlePromptText");
+void p_BuildWidgetArgText() __asm__("BuildWidgetArgText");
+void p_FormatEpisodePercent() __asm__("FormatEpisodePercent");
+void p_FormatEpisodePlayTime() __asm__("FormatEpisodePlayTime");
+void p_func_0015DA88() __asm__("func_0015DA88");
+void p_func_001AD7E0() __asm__("func_001AD7E0");
+void p_func_001AD820() __asm__("func_001AD820");
+void p_func_001AD928() __asm__("func_001AD928");
+void p_func_001AD980() __asm__("func_001AD980");
+void p_func_001ADA20() __asm__("func_001ADA20");
+void p_func_001ADBB8() __asm__("func_001ADBB8");
+void p_func_001ADC40() __asm__("func_001ADC40");
+void p_func_001DC820() __asm__("func_001DC820");
+void p_func_001DC9C0() __asm__("func_001DC9C0");
+void p_func_001DCA30() __asm__("func_001DCA30");
+void p_func_001DDE10() __asm__("func_001DDE10");
+void p_func_001DDE58() __asm__("func_001DDE58");
+void p_func_001DDF60() __asm__("func_001DDF60");
+void p_func_00210FE0() __asm__("func_00210FE0");
+void p_func_00211298() __asm__("func_00211298");
+void p_func_00211390() __asm__("func_00211390");
+void p_func_002113B8() __asm__("func_002113B8");
+void p_func_00211420() __asm__("func_00211420");
+void p_func_002155C0() __asm__("func_002155C0");
+extern "C" char d_D_002C3EC0[] __asm__("D_002C3EC0");
+extern "C" char d_D_003DD490[] __asm__("D_003DD490");
+extern "C" {
+extern const unsigned int D_002A8B08[2] = {0xFFFF0000, (unsigned int)p_func_002155C0};
+extern const unsigned int D_002A8B90[4] = {0x2CF, (unsigned int)p_BuildCoinCountText, (unsigned int)(d_D_003DD490 + 0x3B20), 0};
+extern const unsigned int D_002A8BA0[4] = {0x2D0, (unsigned int)p_BuildClueCountText, 0, 0};
+extern const unsigned int D_002A8BB0[4] = {0x2D1, (unsigned int)p_BuildTimerText, 0, 0};
+extern const unsigned int D_002A8BC0[4] = {0x2D2, (unsigned int)p_func_00211298, 0, 0};
+extern const unsigned int D_002A8BD0[4] = {0x2D3, (unsigned int)p_func_00211298, 1, 0};
+extern const unsigned int D_002A8BE0[4] = {0x2D4, (unsigned int)p_func_00211298, 2, 0};
+extern const unsigned int D_002A8BF0[4] = {0x2D5, (unsigned int)p_func_00211298, 3, 0};
+extern const unsigned int D_002A8C00[4] = {0x2D6, (unsigned int)p_func_00211298, 4, 0};
+extern const unsigned int D_002A8C10[4] = {0x2D7, (unsigned int)p_func_00211298, 5, 0};
+extern const unsigned int D_002A8C20[4] = {0x2D8, (unsigned int)p_func_00211298, 6, 0};
+extern const unsigned int D_002A8C30[4] = {0x2D9, (unsigned int)p_func_00211298, 7, 0};
+extern const unsigned int D_002A8C40[4] = {0x2DA, (unsigned int)p_func_00211298, 8, 0};
+extern const unsigned int D_002A8C50[4] = {0x2DB, (unsigned int)p_func_00211298, 9, 0};
+extern const unsigned int D_002A8C60[4] = {0x2DC, (unsigned int)p_func_00210FE0, 0, 0};
+extern const unsigned int D_002A8C70[4] = {0x2DD, (unsigned int)p_BuildReconSelectionText, 0, 0};
+extern const unsigned int D_002A8C80[4] = {0x2DE, (unsigned int)p_BuildReconSelectionText, 1, 0};
+extern const unsigned int D_002A8C90[4] = {0x2DF, (unsigned int)p_BuildReconTargetText, 0, 0};
+extern const unsigned int D_002A8CA0[4] = {0x2E0, (unsigned int)p_BuildReconTargetText, 1, 0};
+extern const unsigned int D_002A8CB0[4] = {0x2E1, (unsigned int)p_BuildReconTargetText, 2, 0};
+extern const unsigned int D_002A8CC0[4] = {0x2E2, (unsigned int)p_BuildReconTargetText, 3, 0};
+extern const unsigned int D_002A8CD0[4] = {0x2E3, (unsigned int)p_BuildReconTargetText, 4, 0};
+extern const unsigned int D_002A8CE0[4] = {0x2E4, (unsigned int)p_BuildReconTargetText, 5, 0};
+extern const unsigned int D_002A8CF0[4] = {0x2E5, (unsigned int)p_BuildWidgetArgText, 0, 0};
+extern const unsigned int D_002A8D00[4] = {0x2E6, (unsigned int)p_BuildWidgetArgText, 1, 0};
+extern const unsigned int D_002A8D10[4] = {0x2E7, (unsigned int)p_BuildWidgetArgText, 2, 0};
+extern const unsigned int D_002A8D20[4] = {0x2E8, (unsigned int)p_BuildWidgetArgText, 3, 0};
+extern const unsigned int D_002A8D30[4] = {0x2E9, (unsigned int)p_BuildWidgetArgText, 4, 0};
+extern const unsigned int D_002A8D40[4] = {0x2EA, (unsigned int)p_BuildWidgetArgText, 5, 0};
+extern const unsigned int D_002A8D50[4] = {0x2EB, (unsigned int)p_BuildWidgetArgText, 6, 0};
+extern const unsigned int D_002A8D60[4] = {0x2EC, (unsigned int)p_BuildWidgetArgText, 7, 0};
+extern const unsigned int D_002A8D70[4] = {0x2ED, (unsigned int)p_BuildWidgetArgText, 8, 0};
+extern const unsigned int D_002A8D80[4] = {0x2EE, (unsigned int)p_BuildWidgetArgText, 9, 0};
+extern const unsigned int D_002A8D90[4] = {0x2FF, (unsigned int)p_BuildContextText, (unsigned int)d_D_002C3EC0, 0};
+extern const unsigned int D_002A8DA0[4] = {0x300, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x30), 0};
+extern const unsigned int D_002A8DB0[4] = {0x301, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x60), 0};
+extern const unsigned int D_002A8DC0[4] = {0x302, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x90), 0};
+extern const unsigned int D_002A8DD0[4] = {0x303, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0xC0), 0};
+extern const unsigned int D_002A8DE0[4] = {0x304, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0xF0), 0};
+extern const unsigned int D_002A8DF0[4] = {0x305, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x120), 0};
+extern const unsigned int D_002A8E00[4] = {0x306, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x150), 0};
+extern const unsigned int D_002A8E10[4] = {0x307, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x180), 0};
+extern const unsigned int D_002A8E20[4] = {0x308, (unsigned int)p_BuildContextText, (unsigned int)(d_D_002C3EC0 + 0x1B0), 0};
+extern const unsigned int D_002A8E30[4] = {0x2EF, (unsigned int)p_func_00211390, 0, 0};
+extern const unsigned int D_002A8E40[4] = {0x2F0, (unsigned int)p_func_002113B8, 0, 0};
+extern const unsigned int D_002A8E50[4] = {0x37B, (unsigned int)p_BuildGadgetMenuInfoText, 0, 0};
+extern const unsigned int D_002A8E60[4] = {0x37A, (unsigned int)p_BuildGadgetMenuInfoText, 0, 0};
+extern const unsigned int D_002A8E70[4] = {0x43C, (unsigned int)p_BuildThiefnetPowerupNameText, 0, 0};
+extern const unsigned int D_002A8E80[4] = {0x43D, (unsigned int)p_BuildThiefnetPowerupNameText, 1, 0};
+extern const unsigned int D_002A8E90[4] = {0x43E, (unsigned int)p_BuildThiefnetPowerupNameText, 2, 0};
+extern const unsigned int D_002A8EA0[4] = {0x43F, (unsigned int)p_BuildThiefnetPowerupNameText, 3, 0};
+extern const unsigned int D_002A8EB0[4] = {0x440, (unsigned int)p_BuildThiefnetPowerupNameText, 4, 0};
+extern const unsigned int D_002A8EC0[4] = {0x441, (unsigned int)p_BuildThiefnetPowerupNameText, 5, 0};
+extern const unsigned int D_002A8ED0[4] = {0x442, (unsigned int)p_func_001DC820, 0, 0};
+extern const unsigned int D_002A8EE0[4] = {0x443, (unsigned int)p_func_001DC820, 1, 0};
+extern const unsigned int D_002A8EF0[4] = {0x444, (unsigned int)p_func_001DC820, 2, 0};
+extern const unsigned int D_002A8F00[4] = {0x445, (unsigned int)p_func_001DC820, 3, 0};
+extern const unsigned int D_002A8F10[4] = {0x446, (unsigned int)p_func_001DC820, 4, 0};
+extern const unsigned int D_002A8F20[4] = {0x447, (unsigned int)p_func_001DC820, 5, 0};
+extern const unsigned int D_002A8F30[4] = {0x436, (unsigned int)p_func_001DCA30, 0, 0};
+extern const unsigned int D_002A8F40[4] = {0x435, (unsigned int)p_BuildThiefnetInfoText, 0, 0};
+extern const unsigned int D_002A8F50[4] = {0x448, (unsigned int)p_BuildThiefnetLootNameText, 0, 0};
+extern const unsigned int D_002A8F60[4] = {0x449, (unsigned int)p_BuildThiefnetLootNameText, 1, 0};
+extern const unsigned int D_002A8F70[4] = {0x44A, (unsigned int)p_BuildThiefnetLootNameText, 2, 0};
+extern const unsigned int D_002A8F80[4] = {0x44B, (unsigned int)p_BuildThiefnetLootNameText, 3, 0};
+extern const unsigned int D_002A8F90[4] = {0x44C, (unsigned int)p_BuildThiefnetLootNameText, 4, 0};
+extern const unsigned int D_002A8FA0[4] = {0x44D, (unsigned int)p_BuildThiefnetLootNameText, 5, 0};
+extern const unsigned int D_002A8FB0[4] = {0x44E, (unsigned int)p_func_001DC9C0, 0, 0};
+extern const unsigned int D_002A8FC0[4] = {0x44F, (unsigned int)p_func_001DC9C0, 1, 0};
+extern const unsigned int D_002A8FD0[4] = {0x450, (unsigned int)p_func_001DC9C0, 2, 0};
+extern const unsigned int D_002A8FE0[4] = {0x451, (unsigned int)p_func_001DC9C0, 3, 0};
+extern const unsigned int D_002A8FF0[4] = {0x452, (unsigned int)p_func_001DC9C0, 4, 0};
+extern const unsigned int D_002A9000[4] = {0x453, (unsigned int)p_func_001DC9C0, 5, 0};
+extern const unsigned int D_002A9010[4] = {0x2F1, (unsigned int)p_BuildTickerText, 0, 0};
+extern const unsigned int D_002A9020[4] = {0x51B, (unsigned int)p_BuildJobListWorldText, 0, 0};
+extern const unsigned int D_002A9030[4] = {0x51C, (unsigned int)p_func_001DDE58, 0, 0};
+extern const unsigned int D_002A9040[4] = {0x51D, (unsigned int)p_func_001DDE10, 0, 0};
+extern const unsigned int D_002A9050[4] = {0x51E, (unsigned int)p_BuildJobListRowText, 0, 0};
+extern const unsigned int D_002A9060[4] = {0x51F, (unsigned int)p_BuildJobListRowText, 1, 0};
+extern const unsigned int D_002A9070[4] = {0x520, (unsigned int)p_BuildJobListRowText, 2, 0};
+extern const unsigned int D_002A9080[4] = {0x521, (unsigned int)p_BuildJobListRowText, 3, 0};
+extern const unsigned int D_002A9090[4] = {0x522, (unsigned int)p_BuildJobListRowText, 4, 0};
+extern const unsigned int D_002A90A0[4] = {0x523, (unsigned int)p_BuildJobListRowText, 5, 0};
+extern const unsigned int D_002A90B0[4] = {0x524, (unsigned int)p_BuildJobListRowText, 6, 0};
+extern const unsigned int D_002A90C0[4] = {0x525, (unsigned int)p_BuildJobListRowText, 7, 0};
+extern const unsigned int D_002A90D0[4] = {0x526, (unsigned int)p_BuildJobListRowText, 8, 0};
+extern const unsigned int D_002A90E0[4] = {0x527, (unsigned int)p_BuildJobListRowText, 9, 0};
+extern const unsigned int D_002A90F0[4] = {0x528, (unsigned int)p_BuildJobListTaskRowText, 0, 0};
+extern const unsigned int D_002A9100[4] = {0x529, (unsigned int)p_BuildJobListTaskRowText, 1, 0};
+extern const unsigned int D_002A9110[4] = {0x52A, (unsigned int)p_BuildJobListTaskRowText, 2, 0};
+extern const unsigned int D_002A9120[4] = {0x52B, (unsigned int)p_BuildJobListTaskRowText, 3, 0};
+extern const unsigned int D_002A9130[4] = {0x2F2, (unsigned int)p_func_001AD7E0, 0, 0};
+extern const unsigned int D_002A9140[4] = {0x2F3, (unsigned int)p_func_001AD820, 0, 0};
+extern const unsigned int D_002A9150[4] = {0x5CB, (unsigned int)p_func_001AD928, 0, 0};
+extern const unsigned int D_002A9160[4] = {0x5CC, (unsigned int)p_func_001AD980, 0, 0};
+extern const unsigned int D_002A9170[4] = {0x5CD, (unsigned int)p_func_001ADA20, 0, 0};
+extern const unsigned int D_002A9180[4] = {0x5CE, (unsigned int)p_func_001ADBB8, 0, 0};
+extern const unsigned int D_002A9190[4] = {0x5CF, (unsigned int)p_func_001ADC40, 0, 0};
+extern const unsigned int D_002A91A0[4] = {0x5D0, (unsigned int)p_func_001ADC40, 1, 0};
+extern const unsigned int D_002A91B0[4] = {0x5D1, (unsigned int)p_func_001ADC40, 2, 0};
+extern const unsigned int D_002A91C0[4] = {0x5D3, (unsigned int)p_BuildTitlePromptText, 0, 0};
+extern const unsigned int D_002A91D0[4] = {0x5D7, (unsigned int)p_func_001DDF60, 0, 0};
+extern const unsigned int D_002A91E0[4] = {0x5D5, (unsigned int)p_BuildTitleCompletionText, 0, 0};
+extern const unsigned int D_002A91F0[4] = {0x52F, (unsigned int)p_FormatEpisodePercent, 0, 0};
+extern const unsigned int D_002A9200[4] = {0x530, (unsigned int)p_FormatEpisodePlayTime, 0, 0};
+extern const unsigned int D_002A9210[4] = {0x2F4, (unsigned int)p_func_00211420, 0, 0};
+extern const unsigned int D_002A9220[4] = {0x5BF, (unsigned int)p_func_0015DA88, 1, 0};
+extern const unsigned int D_002A9230[4] = {0x5C0, (unsigned int)p_func_0015DA88, 0, 0};
+}
+} // namespace ANPTR_hud

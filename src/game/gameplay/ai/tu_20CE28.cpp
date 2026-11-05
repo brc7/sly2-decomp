@@ -45,7 +45,7 @@ int func_0020CFC0(void *pv, FPAIR *p);
 int FStepguardHasSgf(GUARDV *o, int n);
 qword ConvertAloPos(GUARDV *o, int a, qword v);
 int func_00173610(qword *pv, float f, float g, int a, int (*pfn)(void *, FPAIR *));
-void *func_002333B4(void *pv, int c, int cb);
+void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void func_001F7598(WMSG *pmsg);
 qword func_001A62E8(void *p);
 void func_0020D3C0(VOLWATCH *p, int k);

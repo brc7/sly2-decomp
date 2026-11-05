@@ -18,11 +18,21 @@
 #include "sly2/lo.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
+#include "sly2/joy.h"
 
 /* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
    destructor func_00258348 (cm.cpp's g_cm pattern). */
 struct SWG;
+struct LEVELLIST8;
 extern "C" {
+/* sw's plain .bss words, first declared in address order: g++ 2.95 lays the .bss objects without a constructor out
+   in the order of their first declaration (after g_sw and D_003E1C20, which it emits at their definitions). */
+extern int D_003E1C30, D_003E1C34, D_003E1C38, D_003E1C3C;
+extern FILEREC *D_003E1C40;
+extern int *D_003E1C44, *D_003E1C48;
+extern LEVELLIST8 *D_003E1C4C;
+extern FILEREC *D_003E1C50;
+extern int D_003E1C54, D_003E1C58;
 SW *SW_ctor(SW *psw);
 void func_00258348(SWG *psw, int grfDelete);
 extern char D_002C3EB8[], D_003E1C60[];
@@ -58,7 +68,6 @@ extern "C" {
 extern char D_002E1E60[];   /* the letterbox object */
 extern LEVELLIST8 *D_003E1C4C;  /* g_alevellist */
 extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
-extern int D_003E1110;          /* current level index */
 extern const char D_002A8A98[]; /* empty default for func_00210CA8 */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
@@ -196,7 +205,7 @@ extern "C" POOL *func_0011CCA8(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void func_0011A050(DL *,int);
 extern "C" int CbMaxRip(void);
-extern "C" void *func_002333B4(void *,int,unsigned int);
+extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 /** @sly2-annot addr=0x20D9D0
  * Purpose: SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV
  *   (180,255,255), fog/fov defaults
@@ -341,20 +350,20 @@ void RestoreChkmgrFromCheckpoint(CHKMGR *pchkmgr, CHK *pchk)
 } } // namespace M_SetSwTransition
 
 namespace M_func_0020E040 { extern "C" {
-extern int D_003E1080;
 extern int D_00443740;
 /** @sly2-annot addr=0x20E040
- * Purpose: True if D_003E1080!=0 or D_00443740==1 (checkpoint-manager state)
+ * Purpose: True if g_sw.fTransitionPending!=0 or D_00443740==1 (checkpoint-manager state)
  * Info: proposed name FSwTransitionBusy (T2); TU sw
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-int func_0020E040(void) { if (D_003E1080 != 0) return 1; return D_00443740 == 1; }
+int func_0020E040(void) { if (g_sw.fTransitionPending != 0) return 1; return D_00443740 == 1; }
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
 struct S { char pad[0x3B18]; int h3B18; };
-extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[], D_002E0CCC[];
+extern char D_002DEB30[], D_003D9E70[], D_002DDF40[], D_003DD040[];
+
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE570, D_002DFB80, D_002DFBC4;
 extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
 void BroadcastGameEvent(void *p, int a, int b);
@@ -391,7 +400,7 @@ void DeleteSw(struct S *p)
     func_0014D650(D_002DDF40);
     ResetSndmgr(D_003DD040);
     func_001EC7E8();
-    SetRumbleRums__FP6RUMBLE4RUMS(D_002E0CCC, 3);
+    SetRumbleRums__FP6RUMBLE4RUMS((*(char (*)[])&g_joy.rumble), 3);
     D_002E1E40 = 0;
     D_002F7900 = 0;
     D_002DD5BC = 0;
@@ -425,7 +434,7 @@ extern char D_002DEB30[];
 void *func_001AE1D0(struct MSG *pmsg);
 void *func_001AE2A0(struct MSG *pmsg);
 void func_0011A050(void *p, int n);
-void func_001703F8(struct ZPR *pz, int a, int b);
+void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void func_001BE398(void *p, struct ZPR *pz);
 void BroadcastGameEvent(void *p, int a, int b);
 
@@ -778,7 +787,7 @@ void CStreamBis_Refill(STREAM *);
 void DeleteSw(SW *);
 void ResetClock(void *);
 void AddGrfusr__Fi(int);
-void *func_002333B4(void *,int,uint);
+void *func_002333B4(void *,int,uint) __asm__("memset");
 SW *SW_ctor(SW *);
 int CMpeg_ExecuteOids(void *);
 void InitCm__FP2CM(void *);
@@ -1344,7 +1353,7 @@ extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
 struct E { int x; int pad[2]; };
 struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int n4764; int n4768; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
 int CClueCollected(void);
@@ -2238,7 +2247,7 @@ int func_002109D0(struct X *px)
 } } // namespace M_func_002109D0
 
 /** @sly2-annot addr=0x210A88
- * Purpose: Return the current level index D_003E1110
+ * Purpose: Return the current level index g_sw.nLoadFilter
  * Info: proposed name IlevelCur (T1); TU sw
  * Notes: top50_round (0.80): Body. Siblings PlevelFromIlevel/IlevelFromRec,
  *   NEpisodeCur=g_anEpisodeOfLevel[IlevelCur()], NWorldCur=g_anWorldOfLevel[IlevelCur()]. Splice builtin 97
@@ -2250,7 +2259,7 @@ int func_002109D0(struct X *px)
  * @end-sly2-annot */
 int IlevelCur()
 {
-    return D_003E1110;
+    return g_sw.nLoadFilter;
 }
 
 namespace M_NEpisodeCur { extern "C" {
@@ -2371,7 +2380,7 @@ typedef struct { int a[4]; } ALLOC;
 extern struct G { char pad[0x4640]; int f; } D_003DD490;
 extern ALLOC *__11CLinearHeapiPUc(ALLOC *, int, int);
 extern char *PchzFindSwLangstr__FP2SWi(struct G *, char *);
-extern int func_0021ED28(char *);
+extern int func_0021ED28(char *) __asm__("strlen");
 extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
 
 /** @sly2-annot addr=0x210BE0
@@ -2433,6 +2442,7 @@ float D_002C3EA0[3] = {2.0f, -2.0f, 0.0f};
 float D_002C3EB0[2] = {0.0f, 1.0f};
 char D_002C3EB8[8] = {0};   /* zero-filled .data, the address goes into D_003E1C20 */
 int D_003E1C30;
+int D_003E1C34;   /* read by brx_sw.cpp's level loader and serialize.cpp */
 int D_003E1C38;
 int D_003E1C3C;
 FILEREC *D_003E1C40;   /* g_arecLevel */

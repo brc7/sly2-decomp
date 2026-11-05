@@ -166,7 +166,7 @@ typedef struct { VU r[4]; } M4;
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct S { M4 m; char pad[0x94 - 0x40]; int k; };
-void *func_0023320C(void *d, void *s, int n);
+void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 M3 *LoadRotateMatrixEuler(M3 *pm, qword v);
 VU *VECTOR_opAssign(VU *pv, qword q);
 /** @sly2-annot addr=0x22C8C0
@@ -318,7 +318,7 @@ typedef union { qword q; float f[4]; } VU;
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 struct S { char pad[0x94]; int k; };
-void *func_002333B4(void *p, int c, int n);
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x22CC00
  * Purpose: memset then switch on kind
  * Info: TU xf
@@ -364,7 +364,7 @@ static inline void MultiplyPublished(M4 &destination,const M3 &basis,M3 &first,M
  asm("vmulax.xyz ACC,%0,%2x\n\tvmadday.xyz ACC,%4,%2y\n\tvmaddz.xyz %2,%5,%2z\n\tvmulax.xyz ACC,%0,%1x\n\tvmadday.xyz ACC,%4,%1y\n\tvmaddz.xyz %1,%5,%1z\n\tsqc2 %2,32+%3\n\tvmulax.xyz ACC,%0,%6x\n\tvmadday.xyz ACC,%4,%6y\n\tvmaddz.xyz %0,%5,%6z\n\tsqc2 %1,%3\n\tsqc2 %0,16+%3":"+j"(a0),"+j"(b0),"+j"(b2),"=m"(*(M3 *)&destination):"j"(a1),"j"(a2),"j"(b1));
  asm volatile("sqc2 %6,%3\n\tsqc2 %6,%0\n\tsqc2 %7,%4\n\tsqc2 %7,%1\n\tsqc2 %8,%5\n\tsqc2 %8,%2":"=m"(first.r[0]),"=m"(first.r[1]),"=m"(first.r[2]),"=m"(second.r[0]),"=m"(second.r[1]),"=m"(second.r[2]):"j"(b0),"j"(a0),"j"(b2));
 }
-extern "C" void *func_002333B4(void *p, int c, unsigned int n);
+extern "C" void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 static inline M4 *PublishSkew(M4 &m,qword value){
  register M4 *result asm("$2");
  asm("pextuw %0,$zero,%7\n\tmtc1 %7,$f4\n\tmtc1 %0,$f1\n\tprot3w %0,%7\n\tneg.s $f3,$f4\n\tmtc1 %0,$f0\n\tneg.s $f2,$f1\n\tswc1 $f1,%1\n\tswc1 $f0,%2\n\tdaddu %0,%8,$zero\n\tneg.s $f0,$f0\n\tswc1 $f3,%3\n\tswc1 $f2,%4\n\tswc1 $f4,%5\n\tswc1 $f0,%6"
@@ -406,8 +406,8 @@ struct O {
  unsigned short force,damping;qword qB0;MOTIONDATA data;
 };
 extern "C" { extern qword D_002A2DD0; }
-extern "C" void *func_0023320C(void *d, void *s, int n);
-extern "C" void *func_002333B4(void *p, int c, int n);
+extern "C" void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
+extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
 extern "C" M4 *func_0022CCD0(M4 *pm, struct O *pa, const M3 *basis, qword v);
 extern "C" M4 *func_0022CB90(M4 *pr, struct O *pa, const M3 *basis, qword c, qword d);
 extern "C" M4 *func_0022CC00(M4 *pm, struct O *po, qword v);
@@ -536,8 +536,8 @@ typedef struct { qword r[4]; } M4;
 struct O { char pad[0x40]; M4 mat; char pad1[0x98 - 0x80]; short k; char pad2[0xA0 - 0x9A]; struct O *pParent; };
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
-void *func_0023320C(void *d, void *s, int n);
-void *func_002333B4(void *p, int c, int n);
+void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
+void *func_002333B4(void *p, int c, int n) __asm__("memset");
 M4 *func_0022CDC0(M4 *pr, struct O *po);
 static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
 {
@@ -801,7 +801,7 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(void *,V *);
 void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,M4 *);
 void *func_001AE2A0(REQ *);
 void *func_0012E1F0(int);
-void *func_002333B4(void *,int,int);
+void *func_002333B4(void *,int,int) __asm__("memset");
 qword func_0022CA18(E *,E *);
 void func_0022C818(S *,E *);
 void AddXfAct(S *,E *,JOB *);
@@ -2018,7 +2018,7 @@ typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct O { char pad[0x40]; M3 mat; };
 extern "C" M3 InvertMatrix3Cofactor(const M3 *pm);
-extern "C" void *func_0023320C(void *d, const void *s, int n);
+extern "C" void *func_0023320C(void *d, const void *s, int n) __asm__("memcpy");
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
     qword a0 = a.r[0], a1 = a.r[1], a2 = a.r[2];
@@ -2065,7 +2065,7 @@ typedef struct { qword r[4]; } M4;
 struct O { char pad[0x40]; M4 mat; };
 void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
-void *func_0023320C(void *d, void *s, int n);
+void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 /** @sly2-annot addr=0x22FF40
  * Purpose: relative M4 between two XFs (inverse)
  * Info: proposed name ConvertXfMatrix4 (T2); TU xf
@@ -2445,7 +2445,7 @@ M4 *func_0022CCD0(M4 *pm, O *pa, const M4 *basis, qword v);
 M3 *func_0011B570(M3 *, qword);
 qword func_0022CA18(O *pa, const M4 *matrix);
 qword *VECTOR_opAssign(qword *, qword);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_00230710(O *po, M4 *pm, M4 *pm2, float g);
 }
 struct VUF { qword q; VUF(float g) { float f = g; __asm__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
@@ -2547,7 +2547,7 @@ void func_00230710(O *po, M4 *pm, M4 *pm2, float g)
 namespace M_LoadIdentityMatrix4 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
-void *func_002333B4(void *, int, int); void func_00230A98(void *, void *, float, float *, float *);
+void *func_002333B4(void *, int, int) __asm__("memset"); void func_00230A98(void *, void *, float, float *, float *);
 void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
 {
     if (m) {
@@ -2564,7 +2564,7 @@ namespace M_func_00230A98 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 typedef struct P { char pad[0xA0]; struct P *xA0; } P;
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 void func_00230710(P *, M4 *, M4 *, float);
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
@@ -2756,3 +2756,14 @@ qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 char D_002C44E0[4] = {0};   /* an empty buffer the queue pointers start at */
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_xf {
+    static int c_004437A0[2] __asm__("D_004437A0");   /* .bss 0x8 */
+    static int c_004437A8[22] __asm__("D_004437A8");   /* .bss 0x58 */
+};
+int COMMONS_xf::c_004437A0[2];
+int COMMONS_xf::c_004437A8[22];

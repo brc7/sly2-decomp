@@ -37,7 +37,7 @@ typedef char *va_list;
 #define va_start(ap, last) (ap = ((char *)__builtin_next_arg(last) - (__builtin_args_info(2) >= 8 ? 0 : (8 - __builtin_args_info(2)) * 8)))
 
 extern "C" {
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 extern unsigned char D_002AA6A1[];   /* character class table: 1 upper, 2 lower */
 extern const char D_002A9370[] = "(null)";
 char D_002C40C8[] = "0123456789abcdef";   /* digits (text's .data, not const) */

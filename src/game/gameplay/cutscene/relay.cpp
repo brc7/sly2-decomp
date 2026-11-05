@@ -1213,7 +1213,6 @@ struct SGG
 };
 
 extern SW D_003DD490;           /* g_sw */
-extern SLOTHEAP D_003E1560;     /* JSG slot heap */
 int FFindDlEntry(DL *pdl, void *pv);
 extern "C" {
 LO *PpoHero(SW *psw);
@@ -1751,7 +1750,7 @@ struct CMD; struct Q;
 struct CMD { int kind; int b; char pad[0x48]; };
 struct Q { char pad[0x50]; int c; struct CMD *a; int cMax; };
 extern struct CMD D_003DA740;
-void func_002333B4(void *p, int b, int cb);
+void func_002333B4(void *p, int b, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1E01F8
  * Purpose: Append a zeroed 0x50-byte RELAYCMD {relayck, fAsync} to the relay (limit crelaycmdMax or 0x200);
  *   on overflow return a scratch command D_003DA740
@@ -3358,7 +3357,7 @@ extern "C" void AddJsgRef(JSG *pjsg)
 
 // 0x1E1B68 ReleaseJsg
 /** @sly2-annot addr=0x1E1B68
- * Purpose: --cref; at 0 release sound ref, destruct and free to the JSG slot heap D_003E1560
+ * Purpose: --cref; at 0 release sound ref, destruct and free to the JSG slot heap g_sw.slotheapJsg
  * Info: proposed name ReleaseJsg (T1); class JSG; TU relay
  * Notes: agent qualifier: (DecrefJsg)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6b_rest
@@ -3375,7 +3374,7 @@ extern "C" void ReleaseJsg(JSG *pjsg)
         FramePtr_Assign(&pjsg->pframe, 0);
         func_002580A8(&pjsg->psidebag, 0);
         UnsubscribeLoAll(pjsg);
-        func_0011CD98(&D_003E1560, pjsg);
+        func_0011CD98(&g_sw.slotheapJsg, pjsg);
     }
 }
 
@@ -6295,7 +6294,6 @@ extern qword D_002A2DD0;
 extern float D_002A8124;
 extern struct { float t; float dt; } D_002DDED0;
 extern struct G D_002DDF40;
-extern struct G2 D_002DDFA0;
 int FFloatsNear__Ffff(float, float, float);
 float RadNormalize__Ff(float);
 qword func_0011BFF0(void *);
@@ -6348,9 +6346,9 @@ void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
         for (j = 0; j < 2; j++, ppt++) {
             struct T *pt = *ppt;
             if (FNear(pt->v0, *zero))
-                pt->v0 = D_002DDFA0.v30;
+                pt->v0 = (*(struct G2 *)&g_cm.mat).v30;
             if (FNear(pt->v10, *zero))
-                pt->v10 = func_0011BFF0(&D_002DDFA0);
+                pt->v10 = func_0011BFF0(&(*(struct G2 *)&g_cm.mat));
             if (pt->f20 == 0.0f)
                 pt->f20 = D_002DDF40.f20;
         }
@@ -6391,15 +6389,14 @@ struct E { int k; char pad[0x4C]; };
 struct A { char pad[0x50]; int c; struct E *ae; char pad2[4]; char dl[1]; };
 struct C { char pad[0x18]; int x18; };
 struct S { int x0; int x4; int pad8; struct VTE *pvt; int pad10; struct A *pa; int x18; int x1C; int pad20[2]; struct E *pe28; struct E *pe2C; char pad30[0xEC - 0x30]; int xEC; };
-extern char D_003E1560[];
 extern char D_003DD490[];
 extern struct VTE D_002D8C08[];
 struct S *PvAllocSlotheapClear(void *);
-void *func_002333B4(void *, int, int);
+void *func_002333B4(void *, int, int) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, int);
 void PrependDlEntry__FP2DLPv(void *, void *);
 /** @sly2-annot addr=0x1E5AE0
- * Purpose: Allocate a JSG (0xF0) from slot heap D_003E1560, vtable 0x2D8C08, bind to relay and block (find
+ * Purpose: Allocate a JSG (0xF0) from slot heap (*(char (*)[])&g_sw.slotheapJsg), vtable 0x2D8C08, bind to relay and block (find
  *   matching BlockEnd by nesting depth), resolve block object, add to relay dlJsg, AddRef
  * Info: proposed name PjsgNew (T1); TU relay
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6b_rest
@@ -6407,7 +6404,7 @@ void PrependDlEntry__FP2DLPv(void *, void *);
  * @end-sly2-annot */
 struct S *PjsgNew(struct A *pa, struct E *pe, struct C *pc)
 {
-    struct S *p = PvAllocSlotheapClear(D_003E1560);
+    struct S *p = PvAllocSlotheapClear((*(char (*)[])&g_sw.slotheapJsg));
     struct E *peLast, *pe2;
     int depth;
     func_002333B4(p, 0, 0xF0);

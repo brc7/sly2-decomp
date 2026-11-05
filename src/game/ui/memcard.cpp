@@ -18,6 +18,7 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+extern "C" char base_D_003D9ED0[] __asm__("D_003D9ED0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The two dialog widgets (views of their bytes; constructed and destroyed by C-named functions). */
 struct MCDLGG;
@@ -29,12 +30,34 @@ void func_00258348(MCDLGG *pv, int grfDelete);
 }
 struct MCDLGG
 {
-    char ab[0x50];
-    MCDLGG(int f) { if (f) CMemcardDialog_ctor((MCDLG *)this); else func_001ADDF0(this); }
+    char ab[0x40];
+    int idUnk40;            /* +0x40 draft: a langstr id (func_001AD8F8 prints it); was the address name D_002E6590 */
+    int nUnk44;             /* +0x44 draft: the dialog's state (1, 3 tested; SetMcDialogState); was D_002E6594 */
+    char ab48[8];
+    MCDLGG() { CMemcardDialog_ctor((MCDLG *)this); }
     ~MCDLGG() { func_00258348(this, 2); }
 };
-MCDLGG D_002E6550(1);   /* the memory card dialog (CMemcardDialog) */
-MCDLGG D_002E65A0(0);   /* the card status widget (CMcStatus) */
+struct MCSTATUSG
+{
+    char ab[0x40];
+    MCSTATUSG() { func_001ADDF0(this); }
+    ~MCSTATUSG() { func_00258348((MCDLGG *)this, 2); }
+};
+/* memcard's .bss, in the ELF's order: the thread stack, the sceMcGetDir table, the directory path, the dialog (0x50),
+   the status widget (0x40), the save manager. g++ 2.95 emits an object with a constructor at its definition and
+   every other uninitialized object at the end of the file, so the three plain buffers get an empty inline
+   constructor (no code) to keep them ahead of the dialogs. Asm labels: the view declarations need not agree. */
+namespace BSS_memcard {
+template <int N> struct BUF { char ab[N]; BUF() {} };
+BUF<0x4000> d_002E2080 __asm__("D_002E2080");   /* the memcard thread's stack (stackSize 0x4000) */
+BUF<0x480> d_002E6080 __asm__("D_002E6080");    /* sceMcGetDir table (ENTs), cleared as 0x480 bytes */
+BUF<0x50> d_002E6500 __asm__("D_002E6500");     /* directory path */
+}
+MCDLGG D_002E6550;      /* the memory card dialog (CMemcardDialog) */
+MCSTATUSG D_002E65A0;   /* the card status widget (CMcStatus) */
+/* The save manager (SAVE, 0xFDA0 bytes up to memory.cpp's .bss at 0x2F6380; its MEMCARD worker D_002F633C at
+   +0xFD5C). */
+namespace BSS_memcard { BUF<0xFDA0> d_002E65E0 __asm__("D_002E65E0"); }
 
 // 0x1ADF98 StaticInit_memcard (the two widgets, then the six slot pools; their destruction) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
@@ -113,10 +136,8 @@ struct FILEKEY { int an[2]; int n8; char bC; };
 extern SW D_003DD490;
 extern "C" {
 extern char D_002DEB30[];       /* the game */
-extern SAVE D_002E65E0;         /* the save manager */
+extern SAVE D_002E65E0;   /* the save manager */
 extern int D_004425D8;
-extern int D_003E0EA8;
-extern int D_002E6590;          /* a langstr id */
 extern char D_003D9ED0[];       /* the pause menu */
 extern MEMCARD D_002F633C;      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
 extern CLOCK D_002DDED0;
@@ -411,10 +432,10 @@ struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { int x0; int x4; struct PMF pmf; int x10; };
 extern char D_002E65E0[];
 extern int D_004425D8[];
-void func_00234A60(int);
-void func_00234A40(int);
+void func_00234A60(int) __asm__("WaitSema");
+void func_00234A40(int) __asm__("SignalSema");
 void ExitDeleteThread(void);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 /** @sly2-annot addr=0x1AAF18
  * Purpose: Memcard worker thread body: WaitSema, call the queued SAVE member-function job on g_save, clear
  *   job, signal, ExitThread
@@ -435,18 +456,20 @@ void MemcardThreadMain(struct S *s)
     ExitDeleteThread();
 }
 } } // namespace M_MemcardThreadMain
+extern SAVE D_002E65E0;
 
 namespace M_CreateMemcardThread { extern "C" {
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { int x0; int x4; struct PMF pmf; int x10; };
 struct ThreadParam { int attr; void *entry; void *stack; int stackSize; void *gpReg; int initPriority; int currentPriority; unsigned int attr2; int option; int waitType; int waitId; int wakeupCount; };
-extern char D_002E5270[], D_002E2080[];
+extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
+extern char D_002E2080[];
 extern int D_004425D8[];
 void MemcardThreadMain(struct S *s);
 void SetMemcardThreadHighPrio__FP7MEMCARD(struct S *s);
-void *func_002333B4(void *p, int c, unsigned int n);
+void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 int func_00234820(struct ThreadParam *tp);
-void func_002355E0(int id, void *arg);
+void func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 /** @sly2-annot addr=0x1AAF90
  * Purpose: Wait for previous job, store pointer-to-member job {0xFFFF0000,pfn}, _iDisableIntc+_iEnableDmac
  * Info: proposed name CreateMemcardThread (T1); TU memcard
@@ -503,9 +526,9 @@ int FMemcardThreadValid(MEMCARD *pmemcard)
 }
 
 namespace M_McSyncResult { extern "C" {
-int func_001AAB48(void *p);
-int func_00244450(int n, int *a, int *b);
-int func_001AAB68(int n);
+int func_001AAB48(void *p) __asm__("FUN_0018b910__Fi");
+int func_00244450(int n, int *a, int *b) __asm__("sceMcSync");
+int func_001AAB68(int n) __asm__("FUN_0018b930__Fi");
 int MsgFromMcError(void *p, int n);
 /** @sly2-annot addr=0x1AB098
  * Purpose: Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError
@@ -575,7 +598,6 @@ struct S { int x0, x4; int x8; int xC; float x10; float x14; char pad[0xFD5C - 0
 extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
-extern float D_002DDF0C;
 extern const struct LONGU D_002A6BA0;
 int func_0020E040(void *g);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
@@ -604,7 +626,7 @@ void UpdateSave__FP4SAVE(struct S *s)
     if (FMemcardThreadValid__FP7MEMCARD(s->xFD5C))
         return;
     if (s->x8 == s->xC) {
-        if (s->x14 <= D_002DDF0C)
+        if (s->x14 <= g_clock.tReal)
             CreateMemcardThread(s->xFD5C, D_002A6BA0.l);
         else
             func_001AB630(s);
@@ -617,7 +639,7 @@ void UpdateSave__FP4SAVE(struct S *s)
         return;
     if (D_002E6550.x44 != 1)
         return;
-    if (0.3f <= D_002DDF0C - s->x10) {
+    if (0.3f <= g_clock.tReal - s->x10) {
     if (func_001B01E8(D_003D9ED0)) {
         if (s->x8 != 6)
             SetMcDialogState(&D_002E6550, 0x2E);
@@ -764,18 +786,18 @@ void SetSaveState(MC *p, int state)
 } // namespace M_SetSaveState
 
 /** @sly2-annot addr=0x1AB630
- * Purpose: If state 5 and D_003E0EA8: wait for thread, re-init all 3 slots (stride 0x5464, 0x1AC570), go to
+ * Purpose: If state 5 and (*(int *)&g_sw.savevars): wait for thread, re-init all 3 slots (stride 0x5464, 0x1AC570), go to
  *   state 6
  * Info: proposed name ReloadSaveSlots (T2); TU memcard
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
-/* Reloads the three slots once the worker is idle (state 5 and D_003E0EA8 set). */
+/* Reloads the three slots once the worker is idle (state 5 and (*(int *)&g_sw.savevars) set). */
 extern "C" void func_001AB630(SAVE *psave)
 {
     int i;
     char *pslot;
-    if (psave->nState == 5 && D_003E0EA8 != 0) {
+    if (psave->nState == 5 && (*(int *)&g_sw.savevars) != 0) {
         pslot = psave->aslot[0];
         i = 2;
         SetMemcardThreadHighPrio(&psave->memcard);
@@ -1053,7 +1075,6 @@ namespace M_func_001ABCE8 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C88;
-extern char D_003E0EA8[];
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void func_001D84B0(void *p, int n);
@@ -1067,7 +1088,7 @@ void CreateMemcardThread(void *p, long k);
 void func_001ABCE8(struct S *p)
 {
     ResetRumbleSaveVar(p);
-    func_001D84B0(D_003E0EA8, p->xfd50);
+    func_001D84B0((*(char (*)[])&g_sw.savevars), p->xfd50);
     CreateMemcardThread(p->xfd5c, D_002A6C88.l);
 }
 } } // namespace M_func_001ABCE8
@@ -1076,7 +1097,6 @@ namespace M_func_001ABD40 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct K { int a, b; };
 extern const struct LONGU D_002A6C90;
-extern char D_003E0EA8[];
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
 void func_001D84B0(void *p, int n);
@@ -1090,7 +1110,7 @@ void CreateMemcardThread(void *p, long k);
 void func_001ABD40(struct S *p)
 {
     ResetRumbleSaveVar(p);
-    func_001D84B0(D_003E0EA8, p->xfd50);
+    func_001D84B0((*(char (*)[])&g_sw.savevars), p->xfd50);
     CreateMemcardThread(p->xfd5c, D_002A6C90.l);
 }
 } } // namespace M_func_001ABD40
@@ -1152,9 +1172,9 @@ typedef struct { char a[0x40]; } ENT;
 typedef struct { char a[0x5C]; } OUT;
 extern char D_002E6500[];
 extern ENT D_002E6080[];
-unsigned int func_0021ED28(const char *);
+unsigned int func_0021ED28(const char *) __asm__("strlen");
 char *strcpy(char *, const char *);
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 int sceMcGetDir(int, int, char *, int, int, ENT *);
 int McSyncResult(void *, int, int, int *);
 void FillMcDirInfo(ENT *, OUT *);
@@ -1235,7 +1255,7 @@ typedef struct {
     unsigned char FnameDel[64];
     unsigned char Reserve3[512];
 } ICONSYS;
-void *func_002333B4(void *, int, unsigned int);
+void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void ConvertPchzToSjis(char *, unsigned char *);
 int McWriteFile(void *s, char *name, void *b, int n);
 
@@ -1492,7 +1512,7 @@ int WriteSaveSlotFileReset(void *s, struct B *b)
 
 namespace M_func_001AC4C8 { extern "C" {
 struct B { char pad[0x5408]; char x5408[0x44]; int x544C; int x5450; };
-void func_002333B4(void *p, int c, int n);
+void func_002333B4(void *p, int c, int n) __asm__("memset");
 void BuildSaveFilePath(void *s, void *b, char *name);
 int ReadMcDirWrapper(void *s, char *name, void *p);
 int McReadFile(void *s, char *name, void *b, int n);
@@ -1530,13 +1550,12 @@ int func_001AC4C8(void *s, struct B *b)
  * @end-sly2-annot */
 extern "C" int func_001AC570(SAVE *psave, void *pslot)
 {
-    ResetGsIfSchemaChanged(&D_003E0EA8);
+    ResetGsIfSchemaChanged(&(*(int *)&g_sw.savevars));
     return 0;
 }
 
 namespace M_McJobGetInfo { extern "C" {
 struct S { int x0; int x4; int x8; int xC; int x10; float x14; int x18; int x1C; int x20; char pad2[0xFD5C - 0x24]; char xFD5C[1]; };
-extern float D_002DDF0C;
 int sceMcGetInfo(int a, int b, int *c, int *d, int *e);
 int McSyncResult(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1AC598
@@ -1575,7 +1594,7 @@ int McJobGetInfo(struct S *s)
             s->xC = 1;
         }
     }
-    s->x14 = D_002DDF0C + 0.3f;
+    s->x14 = g_clock.tReal + 0.3f;
     return r;
 }
 } } // namespace M_McJobGetInfo
@@ -1879,6 +1898,7 @@ void func_001ACC38(struct S *p, int n)
     p->x48 = D_002DDED0.t3c;
 }
 } } // namespace M_func_001ACC38
+extern SAVE D_002E65E0;
 
 namespace M_func_001ACC80 { extern "C" {
 struct S { char pad[0x40]; int x40; };
@@ -2033,6 +2053,7 @@ void CMemcardDialog_Update(struct S *s)
     }
 }
 } } // namespace M_CMemcardDialog_Update
+extern SAVE D_002E65E0;
 
 namespace M_func_001ACFE0 {
 // Game-state transition handler: switch on the new state id (x40) and run the menu/HUD hooks for it.
@@ -2056,8 +2077,9 @@ public:
 class O;
 struct S { char pad[0x40]; int x40; int x44; float x48; int x4C; };   // x40 = state id, x4C = counter
 extern "C" {
-extern char D_003DA530[], D_003D9ED0[], D_003D4A60[], D_002E65E0[];
-extern O *D_003E0FE4;
+extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
+extern char D_002E65E0[];
+
 int FScreenShown(void *p);
 int func_001B0160(void *p);
 void ClearMcDialogState(S *s);
@@ -2105,7 +2127,7 @@ void func_001ACFE0(S *s)
         break;
     case 34:
         {
-            O *po = D_003E0FE4;
+            O *po = (*(O * *)&g_sw.psvpAutosaveWarned);
             CRef ref(true);
             SetPv(po, ref, D_003D4A60);
         }
@@ -2119,6 +2141,7 @@ void func_001ACFE0(S *s)
     }
 }
 } // namespace M_func_001ACFE0
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD168 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
@@ -2163,7 +2186,6 @@ struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
-extern int D_003E0FAC;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2182,7 +2204,7 @@ void func_001AD250(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
     f = ref.m_tag;
     Decref__4CRef(&ref);
     if (f == 0.0f) {
@@ -2196,6 +2218,7 @@ void func_001AD250(struct S *s)
     }
 }
 } } // namespace M_func_001AD250
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD320 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
@@ -2203,7 +2226,6 @@ struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
-extern int D_003E0FAC;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void func_001D8D80(struct B *b, int n);
@@ -2219,7 +2241,7 @@ void func_001AD320(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
     f = ref.m_tag;
     Decref__4CRef(&ref);
     D_002E65E0.xFD50 = p;
@@ -2233,6 +2255,7 @@ void func_001AD320(struct S *s)
     }
 }
 } } // namespace M_func_001AD320
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD3E0 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
@@ -2240,7 +2263,6 @@ struct G { char pad[0xFD50]; int xFD50; int xFD54; int xFD58; };
 struct H { char pad[0x4C]; int x4C; };
 extern struct G D_002E65E0;
 extern struct H D_002E6550;
-extern int D_003E0FE4;
 extern char D_003D4A60[];
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
@@ -2260,7 +2282,7 @@ void func_001AD3E0(void)
     int t;
     g->xFD50 = g->xFD58;
     h->x4C = 2;
-    RefGetGlobalSaveVar(&ref, D_003E0FE4, D_003D4A60);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
     t = ref.m_tag;
     Decref__4CRef(&ref);
     if (!t) {
@@ -2271,6 +2293,7 @@ void func_001AD3E0(void)
     }
 }
 } } // namespace M_func_001AD3E0
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD480 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
@@ -2280,7 +2303,6 @@ struct H { char pad[0x4C]; int x4C; };
 struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
 extern struct H D_002E6550;
-extern int D_003E0FAC;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
@@ -2296,7 +2318,7 @@ void func_001AD480(struct S *s)
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
     float f;
-    RefGetGlobalSaveVar(&ref, D_003E0FAC, p);
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
     f = ref.m_tag;
     Decref__4CRef(&ref);
     D_002E65E0.xFD58 = p;
@@ -2308,6 +2330,7 @@ void func_001AD480(struct S *s)
         s->x1C |= 2;
 }
 } } // namespace M_func_001AD480
+extern SAVE D_002E65E0;
 
 namespace M_func_001AD538 {
 struct CRef;
@@ -2324,7 +2347,8 @@ extern struct B D_002E6604[];
 extern char D_002E6550[];
 extern struct GD D_003DD490;
 extern struct H D_003D9ED0;
-extern struct E D_003D9EDC[];
+#undef D_003D9EDC
+#define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 void func_001ACC38(void *p, int n);
 int IdPauseTopPage(void *g);
 }
@@ -2381,13 +2405,15 @@ extern "C" void func_001AD538(void)
     }
 }
 } // namespace M_func_001AD538
+extern SAVE D_002E65E0;
+#undef D_003D9EDC
 
 namespace M_func_001AD740 { extern "C" {
 struct E { int x0, x4; void *x8; int xc, x10; char *x14; int x18; };
 struct G { int pad[9]; int x24; };
-extern struct E D_003D9EDC[];
+#undef D_003D9EDC
+#define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct G D_003D9ED0;
-extern int D_002E6594;
 struct S { int x0, x4; char *x8; };
 void func_001AF608(struct G *g);
 int func_001B0108(struct G *g);
@@ -2401,7 +2427,7 @@ void PlayWidgetAnim(void *a, char *b);
 void func_001AD740(struct S *s)
 {
     struct E *e;
-    if (D_002E6594 != 1) {
+    if (::D_002E6550.nUnk44 != 1) {
         func_001AF608(&D_003D9ED0);
         return;
     }
@@ -2414,6 +2440,7 @@ void func_001AD740(struct S *s)
         PlayWidgetAnim(e->x8, s->x8 + 0x5C5);
 }
 } } // namespace M_func_001AD740
+#undef D_003D9EDC
 
 /** @sly2-annot addr=0x1AD7E0
  * Purpose: Dynamic text provider (langstr 0x2F2): strcpy name lookup
@@ -2424,7 +2451,7 @@ void func_001AD740(struct S *s)
 /* Dynamic text: the card name. */
 extern "C" void func_001AD7E0(char *pch)
 {
-    strcpy(pch, PchzFindSwLangstr(&D_003DD490, D_002E6590));
+    strcpy(pch, PchzFindSwLangstr(&D_003DD490, ::D_002E6550.idUnk40));
 }
 
 namespace M_func_001AD820 { extern "C" {
@@ -2504,7 +2531,8 @@ struct G { int pad[9]; int x24; };
 struct GD { char pad[0x3B1C]; int x3B1C; };
 struct B { char data[0x5464]; };
 extern struct G D_003D9ED0;
-extern struct E D_003D9EDC[];
+#undef D_003D9EDC
+#define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct GD D_003DD490;
 extern struct B D_002E6604[];
 int func_001B0108(struct G *g);
@@ -2558,6 +2586,7 @@ void func_001ADA20(char *buf)
     }
 }
 } } // namespace M_func_001ADA20
+#undef D_003D9EDC
 
 namespace M_func_001ADBB8 { extern "C" {
 extern char D_003D9ED0[], D_003DD490[], D_002A6EB8[];
@@ -2766,8 +2795,32 @@ extern const char D_002A6CB8[] = "%s/%s";
 extern const char D_002A6EB8[] = " : &2T&.";
 extern const char D_002A6EC8[] = "%s : %d%%";
 extern const char D_002A6EE0[] = "episodeBest";
-char D_002E2080[0x4000];   /* the memcard thread's stack (stackSize 0x4000) */
-namespace M_ReadMcDir { extern "C" { ENT D_002E6080[0x480 / sizeof(ENT)]; } }   /* sceMcGetDir table, cleared as 0x480 bytes */
-char D_002E6500[0x50];   /* directory path */
-int D_002E6590;
-int D_002E6594;
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_memcard {
+    static int c_004425D8 __asm__("D_004425D8");   /* .bss 0x4 */
+};
+int COMMONS_memcard::c_004425D8;
+
+// ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
+// them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
+// {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
+namespace ANPTR_memcard {
+void p_McJobCreateSave() __asm__("McJobCreateSave");
+void p_McJobFormat() __asm__("McJobFormat");
+void p_McJobGetInfo() __asm__("McJobGetInfo");
+void p_McJobSaveSlot() __asm__("McJobSaveSlot");
+void p_func_001ABBE0() __asm__("func_001ABBE0");
+void p_func_001ABC68() __asm__("func_001ABC68");
+extern "C" {
+extern const unsigned int D_002A6BA0[2] = {0xFFFF0000, (unsigned int)p_McJobGetInfo};
+extern const unsigned int D_002A6C88[2] = {0xFFFF0000, (unsigned int)p_func_001ABBE0};
+extern const unsigned int D_002A6C90[2] = {0xFFFF0000, (unsigned int)p_McJobSaveSlot};
+extern const unsigned int D_002A6D88[2] = {0xFFFF0000, (unsigned int)p_McJobCreateSave};
+extern const unsigned int D_002A6E88[2] = {0xFFFF0000, (unsigned int)p_McJobFormat};
+extern const unsigned int D_002A6E90[2] = {0xFFFF0000, (unsigned int)p_func_001ABC68};
+}
+} // namespace ANPTR_memcard
