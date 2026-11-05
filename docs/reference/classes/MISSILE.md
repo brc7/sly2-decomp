@@ -11,10 +11,10 @@
 | Children | [ACCMISS](ACCMISS.md), [CID82](CID82.md) |
 | Instance size (`cb`) | 0x270 (624 bytes), +0x60 over BOMB |
 | Descriptor | `D_002BB128` (record 80 of D_002BAAE8; cid range 80..83) |
-| Factory (`pfnNew`) | [`NewMissile`](../../../src/game/app/class_registry/NewMissile.cpp) `0x111E98` |
+| Factory (`pfnNew`) | [`NewMissile`](../../../src/game/app/class_registry.cpp) `0x111E98` |
 | Descriptor getter (slot 6) | `GetMissileClassDesc` `0x113F10` |
 | vtable | `D_002D3FA0`, 79 entries (slots 0..78; slot 0 null), 1 new, 6 overridden |
-| vtable stored by | [`NewMissile`](../../../src/game/app/class_registry/NewMissile.cpp) (vptr +0xC) |
+| vtable stored by | [`NewMissile`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

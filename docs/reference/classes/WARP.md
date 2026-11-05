@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x180 (384 bytes), +0xA0 over XFM |
 | Descriptor | `D_002BAE30` (record 42 of D_002BAAE8; cid range 42..43) |
-| Factory (`pfnNew`) | [`NewWarp`](../../../src/game/app/class_registry/NewWarp.c) `0x111438` |
+| Factory (`pfnNew`) | [`NewWarp`](../../../src/game/app/class_registry.cpp) `0x111438` |
 | Descriptor getter (slot 6) | `GetWarpClassDesc` `0x113CB0` |
 | vtable | `D_002DC550`, 51 entries (slots 0..50; slot 0 null), 0 new, 2 overridden |
-| vtable stored by | [`NewWarp`](../../../src/game/app/class_registry/NewWarp.c) (vptr +0xC) |
+| vtable stored by | [`NewWarp`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 282 objects in 42 of 43 world files |
 
 ## Virtual table

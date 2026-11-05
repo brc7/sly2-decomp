@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x70 (112 bytes), +0x20 over SAA |
 | Descriptor | `D_002BB5C4` (record 139 of D_002BAAE8; cid range 139..140) |
-| Factory (`pfnNew`) | [`NewLoop`](../../../src/game/app/class_registry/NewLoop.c) `0x112E08` |
+| Factory (`pfnNew`) | [`NewLoop`](../../../src/game/app/class_registry.cpp) `0x112E08` |
 | Descriptor getter (slot 6) | `GetLoopClassDesc` `0x1142C0` |
 | vtable | `D_002D93C0`, 11 entries (slots 0..10; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewLoop`](../../../src/game/app/class_registry/NewLoop.c) (vptr +0xC) |
+| vtable stored by | [`NewLoop`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

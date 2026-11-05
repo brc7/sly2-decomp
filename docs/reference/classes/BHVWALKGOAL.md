@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xE0 (224 bytes), +0x20 over BHVPATH |
 | Descriptor | `D_002BB808` (record 168 of D_002BAAE8; cid range 168..169) |
-| Factory (`pfnNew`) | [`NewBhvwalkgoal`](../../../src/game/app/class_registry/NewBhvwalkgoal.c) `0x113318` |
+| Factory (`pfnNew`) | [`NewBhvwalkgoal`](../../../src/game/app/class_registry.cpp) `0x113318` |
 | Descriptor getter (slot 6) | `GetBhvwalkgoalClassDesc` `0x114490` |
 | vtable | `D_002CC4C0`, 16 entries (slots 0..15; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvwalkgoal`](../../../src/game/app/class_registry/NewBhvwalkgoal.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvwalkgoal`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV168`, proposed `?FOLLOW` (confidence (other TU)), guard flag `-`. player-side follow leader (Lilly pctlLeader)

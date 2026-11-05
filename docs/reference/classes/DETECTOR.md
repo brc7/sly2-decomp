@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x180 (384 bytes), +0xA0 over XFM |
 | Descriptor | `D_002BAC28` (record 16 of D_002BAAE8; cid range 16..17) |
-| Factory (`pfnNew`) | [`NewDetector`](../../../src/game/app/class_registry/NewDetector.c) `0x110E18` |
+| Factory (`pfnNew`) | [`NewDetector`](../../../src/game/app/class_registry.cpp) `0x110E18` |
 | Descriptor getter (slot 6) | `GetDetectorClassDesc` `0x113B10` |
 | vtable | `D_002CDBA0`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewDetector`](../../../src/game/app/class_registry/NewDetector.c) (vptr +0xC) |
+| vtable stored by | [`NewDetector`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 22 objects in 13 of 43 world files |
 
 ## Virtual table

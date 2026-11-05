@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x410 (1040 bytes), +0x150 over STEP |
 | Descriptor | `D_002BB038` (record 68 of D_002BAAE8; cid range 68..69) |
-| Factory (`pfnNew`) | [`NewDancer`](../../../src/game/app/class_registry/NewDancer.cpp) `0x111A68` |
+| Factory (`pfnNew`) | [`NewDancer`](../../../src/game/app/class_registry.cpp) `0x111A68` |
 | Descriptor getter (slot 6) | `GetDancerClassDesc` `0x113E50` |
 | vtable | `D_002CD748`, 88 entries (slots 0..87; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewDancer`](../../../src/game/app/class_registry/NewDancer.cpp) (vptr +0xC) |
+| vtable stored by | [`NewDancer`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 1 objects in 1 of 43 world files |
 
 ## Virtual table

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x250 (592 bytes), +0x90 over HACK |
 | Descriptor | `D_002BB0C4` (record 75 of D_002BAAE8; cid range 75..76) |
-| Factory (`pfnNew`) | [`NewHacklock`](../../../src/game/app/class_registry/NewHacklock.cpp) `0x111CD8` |
+| Factory (`pfnNew`) | [`NewHacklock`](../../../src/game/app/class_registry.cpp) `0x111CD8` |
 | Descriptor getter (slot 6) | `GetHacklockClassDesc` `0x113EC0` |
 | vtable | `D_002D0DD8`, 84 entries (slots 0..83; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewHacklock`](../../../src/game/app/class_registry/NewHacklock.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHacklock`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 5 objects in 5 of 43 world files |
 
 ## Virtual table

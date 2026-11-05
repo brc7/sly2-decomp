@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xE0 (224 bytes), +0x20 over ASEG |
 | Descriptor | `D_002BB380` (record 110 of D_002BAAE8; cid range 110..111) |
-| Factory (`pfnNew`) | [`NewAsegbl`](../../../src/game/app/class_registry/NewAsegbl.c) `0x112820` |
+| Factory (`pfnNew`) | [`NewAsegbl`](../../../src/game/app/class_registry.cpp) `0x112820` |
 | Descriptor getter (slot 6) | `GetAsegblClassDesc` `0x1140F0` |
 | vtable | `D_002CA300`, 49 entries (slots 0..48; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewAsegbl`](../../../src/game/app/class_registry/NewAsegbl.c) (vptr +0xC) |
+| vtable stored by | [`NewAsegbl`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

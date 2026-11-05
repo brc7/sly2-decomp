@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1B00 (6912 bytes), +0x7E0 over STEPPLAYER |
 | Descriptor | `D_002BAF20` (record 54 of D_002BAAE8; cid range 54..55) |
-| Factory (`pfnNew`) | [`NewMurray`](../../../src/game/app/class_registry/NewMurray.c) `0x111700` |
+| Factory (`pfnNew`) | [`NewMurray`](../../../src/game/app/class_registry.cpp) `0x111700` |
 | Descriptor getter (slot 6) | `GetMurrayClassDesc` `0x113D70` |
 | vtable | `D_002D44C8`, 106 entries (slots 0..105; slot 0 null), 0 new, 24 overridden |
 | vtable stored by | [`MURRAY_ctor?`](../../../src/game/app/class_registry/MURRAY_ctor.c) (vptr +0xC) |

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x40 over BASIC |
 | Descriptor | `D_002BB588` (record 136 of D_002BAAE8; cid range 136..137) |
-| Factory (`pfnNew`) | [`NewSma`](../../../src/game/app/class_registry/NewSma.c) `0x112DD0` |
+| Factory (`pfnNew`) | [`NewSma`](../../../src/game/app/class_registry.cpp) `0x112DD0` |
 | Descriptor getter (slot 6) | `GetSmaClassDesc` `0x114290` |
 | vtable | `D_002D9768`, 7 entries (slots 0..6; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`ApplySmCore`](../../../src/game/engine/anim/sm.cpp), [`NewSma`](../../../src/game/app/class_registry/NewSma.c) (vptr +0xC) |
+| vtable stored by | [`ApplySmCore`](../../../src/game/engine/anim/sm.cpp), [`NewSma`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

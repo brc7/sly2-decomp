@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x220 (544 bytes), +0x110 over WIDGET |
 | Descriptor | `D_002BB4FC` (record 129 of D_002BAAE8; cid range 129..130) |
-| Factory (`pfnNew`) | [`NewWidget129`](../../../src/game/app/class_registry/NewWidget129.c) `0x112C90` |
+| Factory (`pfnNew`) | [`NewWidget129`](../../../src/game/app/class_registry.cpp) `0x112C90` |
 | Descriptor getter (slot 6) | `GetWidget129ClassDesc` `0x114220` |
 | vtable | `D_002DAD90`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewWidget129`](../../../src/game/app/class_registry/NewWidget129.c) (vptr +0xC) |
+| vtable stored by | [`NewWidget129`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 212 objects in 41 of 43 world files |
 
 ## Virtual table

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAFFC` (record 65 of D_002BAAE8; cid range 65..66) |
-| Factory (`pfnNew`) | [`NewArpeggio`](../../../src/game/app/class_registry/NewArpeggio.c) `0x1119A8` |
+| Factory (`pfnNew`) | [`NewArpeggio`](../../../src/game/app/class_registry.cpp) `0x1119A8` |
 | Descriptor getter (slot 6) | `GetArpeggioClassDesc` `0x113E20` |
 | vtable | `D_002C8EF0`, 90 entries (slots 0..89; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewArpeggio`](../../../src/game/app/class_registry/NewArpeggio.c) (vptr +0xC) |
+| vtable stored by | [`NewArpeggio`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 2 objects in 2 of 43 world files |
 
 ## Virtual table

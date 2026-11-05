@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x280 (640 bytes), +0x10 over MISSILE |
 | Descriptor | `D_002BB13C` (record 81 of D_002BAAE8; cid range 81..82) |
-| Factory (`pfnNew`) | [`NewAccmiss`](../../../src/game/app/class_registry/NewAccmiss.cpp) `0x111EF0` |
+| Factory (`pfnNew`) | [`NewAccmiss`](../../../src/game/app/class_registry.cpp) `0x111EF0` |
 | Descriptor getter (slot 6) | `GetAccmissClassDesc` `0x113F20` |
 | vtable | `D_002D3D20`, 79 entries (slots 0..78; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewAccmiss`](../../../src/game/app/class_registry/NewAccmiss.cpp) (vptr +0xC) |
+| vtable stored by | [`NewAccmiss`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 132 objects in 42 of 43 world files |
 
 ## Virtual table

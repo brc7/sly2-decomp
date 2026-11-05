@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1020 (4128 bytes), +0x10 over STEPGUARD |
 | Descriptor | `D_002BAFAC` (record 61 of D_002BAAE8; cid range 61..62) |
-| Factory (`pfnNew`) | [`NewRajan`](../../../src/game/app/class_registry/NewRajan.c) `0x1118A8` |
+| Factory (`pfnNew`) | [`NewRajan`](../../../src/game/app/class_registry.cpp) `0x1118A8` |
 | Descriptor getter (slot 6) | `GetRajanClassDesc` `0x113DE0` |
 | vtable | `D_002D7188`, 91 entries (slots 0..90; slot 0 null), 1 new, 3 overridden |
-| vtable stored by | [`NewRajan`](../../../src/game/app/class_registry/NewRajan.c) (vptr +0xC) |
+| vtable stored by | [`NewRajan`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 3 objects in 3 of 43 world files |
 
 ## Virtual table

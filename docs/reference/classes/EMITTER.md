@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x160 (352 bytes), +0x80 over XFM |
 | Descriptor | `D_002BAD2C` (record 29 of D_002BAAE8; cid range 29..30) |
-| Factory (`pfnNew`) | [`NewEmitter`](../../../src/game/app/class_registry/NewEmitter.c) `0x111138` |
+| Factory (`pfnNew`) | [`NewEmitter`](../../../src/game/app/class_registry.cpp) `0x111138` |
 | Descriptor getter (slot 6) | `GetEmitterClassDesc` `0x113BE0` |
 | vtables | 2 tables report this class: `D_002CEB78` (51), `D_002CED18` (51) (see [hidden types B1](../hidden-types.md#b1-registered-getters-returned-by-more-than-one-vtable)). Slot table below: canonical 0x2CEB78 (the table whose slot 6 is the registered getter; the others use a duplicate getter copy) |
 | Level instances | 6230 objects in 42 of 43 world files |

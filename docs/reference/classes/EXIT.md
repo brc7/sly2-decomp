@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0x60 over VOL |
 | Descriptor | `D_002BACF0` (record 26 of D_002BAAE8; cid range 26..27) |
-| Factory (`pfnNew`) | [`NewExit`](../../../src/game/app/class_registry/NewExit.c) `0x111058` |
+| Factory (`pfnNew`) | [`NewExit`](../../../src/game/app/class_registry.cpp) `0x111058` |
 | Descriptor getter (slot 6) | `GetExitClassDesc` `0x113BB0` |
 | vtable | `D_002DC6F0`, 51 entries (slots 0..50; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewExit`](../../../src/game/app/class_registry/NewExit.c) (vptr +0xC) |
+| vtable stored by | [`NewExit`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 370 objects in 43 of 43 world files |
 
 ## Virtual table

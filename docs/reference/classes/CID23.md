@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x140 (320 bytes), +0x10 over VOL |
 | Descriptor | `D_002BACB4` (record 23 of D_002BAAE8; cid range 23..24) |
-| Factory (`pfnNew`) | [`NewCid23`](../../../src/game/app/class_registry/NewCid23.c) `0x110FB0` |
+| Factory (`pfnNew`) | [`NewCid23`](../../../src/game/app/class_registry.cpp) `0x110FB0` |
 | Descriptor getter (slot 6) | `GetCid23ClassDesc` `0x113B80` |
 | vtable | `D_002DC210`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewCid23`](../../../src/game/app/class_registry/NewCid23.c) (vptr +0xC) |
+| vtable stored by | [`NewCid23`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 42 objects in 42 of 43 world files |
 
 ## Virtual table

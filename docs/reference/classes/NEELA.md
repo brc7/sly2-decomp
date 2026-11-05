@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x10A0 (4256 bytes), +0x90 over STEPGUARD |
 | Descriptor | `D_002BAF98` (record 60 of D_002BAAE8; cid range 60..61) |
-| Factory (`pfnNew`) | [`NewNeela`](../../../src/game/app/class_registry/NewNeela.c) `0x111868` |
+| Factory (`pfnNew`) | [`NewNeela`](../../../src/game/app/class_registry.cpp) `0x111868` |
 | Descriptor getter (slot 6) | `GetNeelaClassDesc` `0x113DD0` |
 | vtable | `D_002D4820`, 90 entries (slots 0..89; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewNeela`](../../../src/game/app/class_registry/NewNeela.c) (vptr +0xC) |
+| vtable stored by | [`NewNeela`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 9 objects in 9 of 43 world files |
 
 ## Virtual table

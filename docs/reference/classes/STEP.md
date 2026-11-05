@@ -12,10 +12,10 @@
 | Descendants | 17 classes (CID 52..68) |
 | Instance size (`cb`) | 0x2C0 (704 bytes), +0x140 over PO |
 | Descriptor | `D_002BAEE4` (record 51 of D_002BAAE8; cid range 51..69) |
-| Factory (`pfnNew`) | [`NewStep`](../../../src/game/app/class_registry/NewStep.cpp) `0x111680` |
+| Factory (`pfnNew`) | [`NewStep`](../../../src/game/app/class_registry.cpp) `0x111680` |
 | Descriptor getter (slot 6) | `GetStepClassDesc` `0x113D40` |
 | vtable | `D_002DA110`, 88 entries (slots 0..87; slot 0 null), 6 new, 17 overridden |
-| vtable stored by | [`NewStep`](../../../src/game/app/class_registry/NewStep.cpp) (vptr +0xC) |
+| vtable stored by | [`NewStep`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

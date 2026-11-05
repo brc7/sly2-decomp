@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x4790 (18320 bytes), +0x4780 over BASIC |
 | Descriptor | `D_002BAAFC` (record 1 of D_002BAAE8; cid range 1..2) |
-| Factory (`pfnNew`) | [`NewSw`](../../../src/game/app/class_registry/NewSw.c) `0x110AB0` |
+| Factory (`pfnNew`) | [`NewSw`](../../../src/game/app/class_registry.cpp) `0x110AB0` |
 | Descriptor getter (slot 6) | `GetSwClassDesc` `0x113A20` |
 | vtable | `D_002DC018`, 10 entries (slots 0..9; slot 0 null), 3 new, 1 overridden |
 | vtable stored by | [`SW_ctor`](../../../src/game/world/scene/sw/SW_ctor.cpp) |

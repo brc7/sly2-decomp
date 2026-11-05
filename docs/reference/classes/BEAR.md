@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BB010` (record 66 of D_002BAAE8; cid range 66..67) |
-| Factory (`pfnNew`) | [`NewBear`](../../../src/game/app/class_registry/NewBear.c) `0x1119E8` |
+| Factory (`pfnNew`) | [`NewBear`](../../../src/game/app/class_registry.cpp) `0x1119E8` |
 | Descriptor getter (slot 6) | `GetBearClassDesc` `0x113E30` |
 | vtable | `D_002C8C18`, 90 entries (slots 0..89; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewBear`](../../../src/game/app/class_registry/NewBear.c) (vptr +0xC) |
+| vtable stored by | [`NewBear`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 3 objects in 3 of 43 world files |
 
 ## Virtual table

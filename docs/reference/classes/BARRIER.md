@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x180 (384 bytes), +0x30 over SO |
 | Descriptor | `D_002BB1A0` (record 86 of D_002BAAE8; cid range 86..87) |
-| Factory (`pfnNew`) | [`NewBarrier`](../../../src/game/app/class_registry/NewBarrier.cpp) `0x112050` |
+| Factory (`pfnNew`) | [`NewBarrier`](../../../src/game/app/class_registry.cpp) `0x112050` |
 | Descriptor getter (slot 6) | `GetBarrierClassDesc` `0x113F70` |
 | vtable | `D_002CAF88`, 76 entries (slots 0..75; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBarrier`](../../../src/game/app/class_registry/NewBarrier.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBarrier`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 109 objects in 23 of 43 world files |
 
 ## Virtual table

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x140 (320 bytes), +0x40 over TARGET |
 | Descriptor | `D_002BAC64` (record 19 of D_002BAAE8; cid range 19..20) |
-| Factory (`pfnNew`) | [`NewHnd`](../../../src/game/app/class_registry/NewHnd.cpp) `0x110EC0` |
+| Factory (`pfnNew`) | [`NewHnd`](../../../src/game/app/class_registry.cpp) `0x110EC0` |
 | Descriptor getter (slot 6) | `GetHndClassDesc` `0x113B40` |
 | vtable | `D_002D2978`, 51 entries (slots 0..50; slot 0 null), 0 new, 2 overridden |
-| vtable stored by | [`NewHnd`](../../../src/game/app/class_registry/NewHnd.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHnd`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 74 objects in 12 of 43 world files |
 
 ## Virtual table

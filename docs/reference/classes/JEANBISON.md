@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAFC0` (record 62 of D_002BAAE8; cid range 62..63) |
-| Factory (`pfnNew`) | [`NewJeanbison`](../../../src/game/app/class_registry/NewJeanbison.c) `0x1118E8` |
+| Factory (`pfnNew`) | [`NewJeanbison`](../../../src/game/app/class_registry.cpp) `0x1118E8` |
 | Descriptor getter (slot 6) | `GetJeanbisonClassDesc` `0x113DF0` |
 | vtable | `D_002C91C8`, 90 entries (slots 0..89; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewJeanbison`](../../../src/game/app/class_registry/NewJeanbison.c) (vptr +0xC) |
+| vtable stored by | [`NewJeanbison`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 6 objects in 6 of 43 world files |
 
 ## Virtual table

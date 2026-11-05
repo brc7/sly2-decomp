@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1B0 (432 bytes), +0x60 over SO |
 | Descriptor | `D_002BB1B4` (record 87 of D_002BAAE8; cid range 87..88) |
-| Factory (`pfnNew`) | [`NewRipg`](../../../src/game/app/class_registry/NewRipg.cpp) `0x1120A8` |
+| Factory (`pfnNew`) | [`NewRipg`](../../../src/game/app/class_registry.cpp) `0x1120A8` |
 | Descriptor getter (slot 6) | `GetRipgClassDesc` `0x113F80` |
 | vtable | `D_002D77D8`, 76 entries (slots 0..75; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewRipg`](../../../src/game/app/class_registry/NewRipg.cpp) (vptr +0xC), [`PripgNew?`](../../../src/game/engine/fx/rip/PripgNew.c) (vptr +0xC) |
+| vtable stored by | [`NewRipg`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PripgNew?`](../../../src/game/engine/fx/rip/PripgNew.c) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

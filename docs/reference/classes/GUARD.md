@@ -11,10 +11,10 @@
 | Children | [DIMITRI](DIMITRI.md) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAF70` (record 58 of D_002BAAE8; cid range 58..60) |
-| Factory (`pfnNew`) | [`NewGuard`](../../../src/game/app/class_registry/NewGuard.c) `0x1117E8` |
+| Factory (`pfnNew`) | [`NewGuard`](../../../src/game/app/class_registry.cpp) `0x1117E8` |
 | Descriptor getter (slot 6) | `GetGuardClassDesc` `0x113DB0` |
 | vtable | `D_002C9DC0`, 90 entries (slots 0..89; slot 0 null), 0 new, 1 overridden |
-| vtable stored by | [`NewGuard`](../../../src/game/app/class_registry/NewGuard.c) (vptr +0xC) |
+| vtable stored by | [`NewGuard`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 28 objects in 28 of 43 world files |
 
 ## Virtual table

@@ -57,14 +57,14 @@ Slot 6 identifies the class a vtable belongs to (a slot-6 function outside the g
 
 | vtable | Entries | Slots differing from the consensus (slot=impl) | Stored by (vptr offset) |
 |---|---|---|---|
-| `0x2CEB78` (canonical) | 51 |  | [`NewEmitter`](../../src/game/app/class_registry/NewEmitter.c) (+0xC) |
+| `0x2CEB78` (canonical) | 51 |  | [`NewEmitter`](../../src/game/app/class_registry.cpp) (+0xC) |
 | `0x2CED18` | 51 | slot 6 = duplicate getter `EMITTER_PvOptionDefaults?` 0x258F30 returning the same record, 5=`HandleBasicMessage`, 7=`InitXfm`, 15=`BindEmitter?`, 16=`UpdateLo` | (no lui/addiu reference: never stored by code) |
 
 #### [EXPLO](classes/EXPLO.md) (CID 32): 2 vtables
 
 | vtable | Entries | Slots differing from the consensus (slot=impl) | Stored by (vptr offset) |
 |---|---|---|---|
-| `0x2CA098` (canonical) | 52 |  | [`NewExplo`](../../src/game/app/class_registry/NewExplo.c) (+0xC) |
+| `0x2CA098` (canonical) | 52 |  | [`NewExplo`](../../src/game/app/class_registry.cpp) (+0xC) |
 | `0x2CE680` | 52 | slot 6 = duplicate getter `EXPLO_PvOptionDefaults?` 0x2599C8 returning the same record | (no lui/addiu reference: never stored by code) |
 
 #### [CID151](classes/CID151.md) (CID 151): 3 vtables

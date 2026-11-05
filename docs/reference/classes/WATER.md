@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0x40 over SO |
 | Descriptor | `D_002BB1DC` (record 89 of D_002BAAE8; cid range 89..90) |
-| Factory (`pfnNew`) | [`NewWater`](../../../src/game/app/class_registry/NewWater.cpp) `0x112160` |
+| Factory (`pfnNew`) | [`NewWater`](../../../src/game/app/class_registry.cpp) `0x112160` |
 | Descriptor getter (slot 6) | `GetWaterClassDesc` `0x113FA0` |
 | vtable | `D_002DCA30`, 76 entries (slots 0..75; slot 0 null), 0 new, 10 overridden |
-| vtable stored by | [`NewWater`](../../../src/game/app/class_registry/NewWater.cpp) (vptr +0xC) |
+| vtable stored by | [`NewWater`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 58 objects in 17 of 43 world files |
 
 ## Virtual table

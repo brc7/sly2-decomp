@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x230 (560 bytes), +0xB0 over PO |
 | Descriptor | `D_002BB100` (record 78 of D_002BAAE8; cid range 78..79) |
-| Factory (`pfnNew`) | [`NewVault`](../../../src/game/app/class_registry/NewVault.cpp) `0x111DE8` |
+| Factory (`pfnNew`) | [`NewVault`](../../../src/game/app/class_registry.cpp) `0x111DE8` |
 | Descriptor getter (slot 6) | `GetVaultClassDesc` `0x113EF0` |
 | vtable | `D_002D5B30`, 82 entries (slots 0..81; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewVault`](../../../src/game/app/class_registry/NewVault.cpp) (vptr +0xC) |
+| vtable stored by | [`NewVault`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 8 objects in 8 of 43 world files |
 
 ## Virtual table

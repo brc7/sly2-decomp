@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xB0 (176 bytes), +0x60 over LO |
 | Descriptor | `D_002BB3D0` (record 114 of D_002BAAE8; cid range 114..115) |
-| Factory (`pfnNew`) | [`NewRelay`](../../../src/game/app/class_registry/NewRelay.c) `0x112900` |
+| Factory (`pfnNew`) | [`NewRelay`](../../../src/game/app/class_registry.cpp) `0x112900` |
 | Descriptor getter (slot 6) | `GetRelayClassDesc` `0x114130` |
 | vtable | `D_002D8C48`, 49 entries (slots 0..48; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewRelay`](../../../src/game/app/class_registry/NewRelay.c) (vptr +0xC) |
+| vtable stored by | [`NewRelay`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 3871 objects in 42 of 43 world files |
 
 ## Virtual table

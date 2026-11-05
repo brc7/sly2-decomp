@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x70 (112 bytes), +0x40 over BHV |
 | Descriptor | `D_002BB8BC` (record 177 of D_002BAAE8; cid range 177..178) |
-| Factory (`pfnNew`) | [`NewBhvjuggled`](../../../src/game/app/class_registry/NewBhvjuggled.c) `0x113510` |
+| Factory (`pfnNew`) | [`NewBhvjuggled`](../../../src/game/app/class_registry.cpp) `0x113510` |
 | Descriptor getter (slot 6) | `GetBhvjuggledClassDesc` `0x114520` |
 | vtable | `D_002D03A0`, 15 entries (slots 0..14; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewBhvjuggled`](../../../src/game/app/class_registry/NewBhvjuggled.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvjuggled`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175, BHVJUGGLED (medium, 1 exclusive identical slots) — [hidden-types A2](../hidden-types.md#a2)

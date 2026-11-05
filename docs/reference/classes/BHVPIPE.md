@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x40 (64 bytes), +0x10 over BHV |
 | Descriptor | `D_002BB95C` (record 185 of D_002BAAE8; cid range 185..186) |
-| Factory (`pfnNew`) | [`NewBhvpipe`](../../../src/game/app/class_registry/NewBhvpipe.c) `0x1136D0` |
+| Factory (`pfnNew`) | [`NewBhvpipe`](../../../src/game/app/class_registry.cpp) `0x1136D0` |
 | Descriptor getter (slot 6) | `GetBhvpipeClassDesc` `0x1145A0` |
 | vtable | `D_002CFFA0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpipe`](../../../src/game/app/class_registry/NewBhvpipe.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvpipe`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV185`, proposed `BHVPIPE` (confidence 0.6), guard flag `0x27`. shimmy along an attached PIPE to an end

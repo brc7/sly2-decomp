@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x2A0 (672 bytes), +0xE0 over HACK |
 | Descriptor | `D_002BB0D8` (record 76 of D_002BAAE8; cid range 76..77) |
-| Factory (`pfnNew`) | [`NewHackwall`](../../../src/game/app/class_registry/NewHackwall.cpp) `0x111D30` |
+| Factory (`pfnNew`) | [`NewHackwall`](../../../src/game/app/class_registry.cpp) `0x111D30` |
 | Descriptor getter (slot 6) | `GetHackwallClassDesc` `0x113ED0` |
 | vtable | `D_002D0B30`, 84 entries (slots 0..83; slot 0 null), 0 new, 12 overridden |
-| vtable stored by | [`NewHackwall`](../../../src/game/app/class_registry/NewHackwall.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHackwall`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 22 objects in 5 of 43 world files |
 
 ## Virtual table

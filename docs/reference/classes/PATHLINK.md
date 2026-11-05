@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x160 (352 bytes), +0x110 over LO |
 | Descriptor | `D_002BB498` (record 124 of D_002BAAE8; cid range 124..125) |
-| Factory (`pfnNew`) | [`NewPathlink`](../../../src/game/app/class_registry/NewPathlink.c) `0x112B30` |
+| Factory (`pfnNew`) | [`NewPathlink`](../../../src/game/app/class_registry.cpp) `0x112B30` |
 | Descriptor getter (slot 6) | `GetPathlinkClassDesc` `0x1141D0` |
 | vtable | `D_002D5120`, 49 entries (slots 0..48; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewPathlink`](../../../src/game/app/class_registry/NewPathlink.c) (vptr +0xC) |
+| vtable stored by | [`NewPathlink`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 2429 objects in 33 of 43 world files |
 
 ## Virtual table

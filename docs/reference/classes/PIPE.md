@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1E0 (480 bytes), +0x50 over SHAPE |
 | Descriptor | `D_002BABC4` (record 11 of D_002BAAE8; cid range 11..12) |
-| Factory (`pfnNew`) | [`NewPipe`](../../../src/game/app/class_registry/NewPipe.cpp) `0x110CD0` |
+| Factory (`pfnNew`) | [`NewPipe`](../../../src/game/app/class_registry.cpp) `0x110CD0` |
 | Descriptor getter (slot 6) | `GetPipeClassDesc` `0x113AC0` |
 | vtable | `D_002D56F8`, 51 entries (slots 0..50; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewPipe`](../../../src/game/app/class_registry/NewPipe.cpp) (vptr +0xC) |
+| vtable stored by | [`NewPipe`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 246 objects in 26 of 43 world files |
 
 ## Virtual table

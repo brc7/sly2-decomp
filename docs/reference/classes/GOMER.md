@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAF5C` (record 57 of D_002BAAE8; cid range 57..58) |
-| Factory (`pfnNew`) | [`NewGomer`](../../../src/game/app/class_registry/NewGomer.c) `0x1117A8` |
+| Factory (`pfnNew`) | [`NewGomer`](../../../src/game/app/class_registry.cpp) `0x1117A8` |
 | Descriptor getter (slot 6) | `GetGomerClassDesc` `0x113DA0` |
 | vtable | `D_002CF520`, 90 entries (slots 0..89; slot 0 null), 0 new, 2 overridden |
-| vtable stored by | [`NewGomer`](../../../src/game/app/class_registry/NewGomer.c) (vptr +0xC) |
+| vtable stored by | [`NewGomer`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 66 objects in 34 of 43 world files |
 
 ## Virtual table

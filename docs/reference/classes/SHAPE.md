@@ -11,10 +11,10 @@
 | Children | [PIPE](PIPE.md), [CID12](CID12.md), [RAIL](RAIL.md), [CID14](CID14.md) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0xB0 over XFM |
 | Descriptor | `D_002BABB0` (record 10 of D_002BAAE8; cid range 10..15) |
-| Factory (`pfnNew`) | [`NewShape`](../../../src/game/app/class_registry/NewShape.c) `0x110C98` |
+| Factory (`pfnNew`) | [`NewShape`](../../../src/game/app/class_registry.cpp) `0x110C98` |
 | Descriptor getter (slot 6) | `GetShapeClassDesc` `0x113AB0` |
 | vtable | `D_002D9040`, 51 entries (slots 0..50; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewShape`](../../../src/game/app/class_registry/NewShape.c) (vptr +0xC) |
+| vtable stored by | [`NewShape`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 3140 objects in 42 of 43 world files |
 
 ## Virtual table

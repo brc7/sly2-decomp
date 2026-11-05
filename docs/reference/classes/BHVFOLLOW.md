@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0xA0 (160 bytes), +0x70 over BHV |
 | Descriptor | `D_002BBA10` (record 194 of D_002BAAE8; cid range 194..195) |
-| Factory (`pfnNew`) | [`NewBhvfollow`](../../../src/game/app/class_registry/NewBhvfollow.c) `0x1138F8` |
+| Factory (`pfnNew`) | [`NewBhvfollow`](../../../src/game/app/class_registry.cpp) `0x1138F8` |
 | Descriptor getter (slot 6) | `GetBhvfollowClassDesc` `0x114630` |
 | vtable | `D_002CC3C0`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvfollow`](../../../src/game/app/class_registry/NewBhvfollow.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvfollow`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1880 (6272 bytes), +0x560 over STEPPLAYER |
 | Descriptor | `D_002BAF34` (record 55 of D_002BAAE8; cid range 55..56) |
-| Factory (`pfnNew`) | [`NewBentley`](../../../src/game/app/class_registry/NewBentley.cpp) `0x111728` |
+| Factory (`pfnNew`) | [`NewBentley`](../../../src/game/app/class_registry.cpp) `0x111728` |
 | Descriptor getter (slot 6) | `GetBentleyClassDesc` `0x113D80` |
 | vtable | `D_002CB230`, 106 entries (slots 0..105; slot 0 null), 0 new, 22 overridden |
-| vtable stored by | [`NewBentley`](../../../src/game/app/class_registry/NewBentley.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBentley`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 42 objects in 42 of 43 world files |
 
 ## Virtual table

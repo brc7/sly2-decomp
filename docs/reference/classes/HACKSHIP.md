@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x2B0 (688 bytes), +0xF0 over HACK |
 | Descriptor | `D_002BB088` (record 72 of D_002BAAE8; cid range 72..73) |
-| Factory (`pfnNew`) | [`NewHackship`](../../../src/game/app/class_registry/NewHackship.cpp) `0x111BC8` |
+| Factory (`pfnNew`) | [`NewHackship`](../../../src/game/app/class_registry.cpp) `0x111BC8` |
 | Descriptor getter (slot 6) | `GetHackshipClassDesc` `0x113E90` |
 | vtable | `D_002D15D0`, 84 entries (slots 0..83; slot 0 null), 0 new, 9 overridden |
-| vtable stored by | [`NewHackship`](../../../src/game/app/class_registry/NewHackship.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHackship`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 5 objects in 5 of 43 world files |
 
 ## Virtual table

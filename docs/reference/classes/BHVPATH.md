@@ -11,10 +11,10 @@
 | Children | [BHVWALKPATH](BHVWALKPATH.md), [BHVWALKGOAL](BHVWALKGOAL.md) |
 | Instance size (`cb`) | 0xC0 (192 bytes), +0x90 over BHV |
 | Descriptor | `D_002BB7E0` (record 166 of D_002BAAE8; cid range 166..169) |
-| Factory (`pfnNew`) | [`NewBhvpath`](../../../src/game/app/class_registry/NewBhvpath.c) `0x1132A8` |
+| Factory (`pfnNew`) | [`NewBhvpath`](../../../src/game/app/class_registry.cpp) `0x1132A8` |
 | Descriptor getter (slot 6) | `GetBhvpathClassDesc` `0x114470` |
 | vtable | `D_002D0728`, 16 entries (slots 0..15; slot 0 null), 1 new, 4 overridden |
-| vtable stored by | [`NewBhvpath`](../../../src/game/app/class_registry/NewBhvpath.c) (vptr +0xC) |
+| vtable stored by | [`NewBhvpath`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV166`, proposed `BHVPATH` (confidence 0.7), guard flag `-`. follow a SHAPE path (Lilly SetBhv166Path)

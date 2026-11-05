@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x190 (400 bytes), +0x40 over SO |
 | Descriptor | `D_002BB344` (record 107 of D_002BAAE8; cid range 107..108) |
-| Factory (`pfnNew`) | [`NewWaypt`](../../../src/game/app/class_registry/NewWaypt.cpp) `0x112738` |
+| Factory (`pfnNew`) | [`NewWaypt`](../../../src/game/app/class_registry.cpp) `0x112738` |
 | Descriptor getter (slot 6) | `GetWayptClassDesc` `0x1140C0` |
 | vtable | `D_002DCC98`, 76 entries (slots 0..75; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewWaypt`](../../../src/game/app/class_registry/NewWaypt.cpp) (vptr +0xC) |
+| vtable stored by | [`NewWaypt`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 55 objects in 14 of 43 world files |
 
 ## Virtual table

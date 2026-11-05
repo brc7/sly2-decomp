@@ -11,10 +11,10 @@
 | Children | [ASEGBL](ASEGBL.md) |
 | Instance size (`cb`) | 0xC0 (192 bytes), +0x70 over LO |
 | Descriptor | `D_002BB36C` (record 109 of D_002BAAE8; cid range 109..111) |
-| Factory (`pfnNew`) | [`NewAseg`](../../../src/game/app/class_registry/NewAseg.c) `0x1127E8` |
+| Factory (`pfnNew`) | [`NewAseg`](../../../src/game/app/class_registry.cpp) `0x1127E8` |
 | Descriptor getter (slot 6) | `GetAsegClassDesc` `0x1140E0` |
 | vtable | `D_002CAD78`, 49 entries (slots 0..48; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewAseg`](../../../src/game/app/class_registry/NewAseg.c) (vptr +0xC) |
+| vtable stored by | [`NewAseg`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 38560 objects in 42 of 43 world files |
 
 ## Virtual table

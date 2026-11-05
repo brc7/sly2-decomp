@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1E0 (480 bytes), +0x20 over HACK |
 | Descriptor | `D_002BB0B0` (record 74 of D_002BAAE8; cid range 74..75) |
-| Factory (`pfnNew`) | [`NewHackbullet`](../../../src/game/app/class_registry/NewHackbullet.cpp) `0x111C80` |
+| Factory (`pfnNew`) | [`NewHackbullet`](../../../src/game/app/class_registry.cpp) `0x111C80` |
 | Descriptor getter (slot 6) | `GetHackbulletClassDesc` `0x113EB0` |
 | vtable | `D_002D1328`, 84 entries (slots 0..83; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewHackbullet`](../../../src/game/app/class_registry/NewHackbullet.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHackbullet`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 7 objects in 5 of 43 world files |
 
 ## Virtual table

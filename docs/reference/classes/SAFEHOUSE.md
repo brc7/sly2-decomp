@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x240 (576 bytes), +0xC0 over PO |
 | Descriptor | `D_002BB060` (record 70 of D_002BAAE8; cid range 70..71) |
-| Factory (`pfnNew`) | [`NewSafehouse`](../../../src/game/app/class_registry/NewSafehouse.cpp) `0x111B18` |
+| Factory (`pfnNew`) | [`NewSafehouse`](../../../src/game/app/class_registry.cpp) `0x111B18` |
 | Descriptor getter (slot 6) | `GetSafehouseClassDesc` `0x113E70` |
 | vtable | `D_002D80D0`, 82 entries (slots 0..81; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewSafehouse`](../../../src/game/app/class_registry/NewSafehouse.cpp) (vptr +0xC) |
+| vtable stored by | [`NewSafehouse`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 8 objects in 8 of 43 world files |
 
 ## Virtual table

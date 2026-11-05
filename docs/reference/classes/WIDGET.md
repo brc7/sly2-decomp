@@ -11,7 +11,7 @@
 | Children | [WIDGET127](WIDGET127.md), [WIDGET128](WIDGET128.md), [WIDGET129](WIDGET129.md), [WIDGET130](WIDGET130.md), [WIDGET131](WIDGET131.md) |
 | Instance size (`cb`) | 0x110 (272 bytes), +0xC0 over LO |
 | Descriptor | `D_002BB4C0` (record 126 of D_002BAAE8; cid range 126..132) |
-| Factory (`pfnNew`) | [`NewWidget`](../../../src/game/app/class_registry/NewWidget.c) `0x112BE8` |
+| Factory (`pfnNew`) | [`NewWidget`](../../../src/game/app/class_registry.cpp) `0x112BE8` |
 | Descriptor getter (slot 6) | `GetWidgetClassDesc` `0x1141F0` |
 | vtable | `D_002DAF30`, 51 entries (slots 0..50; slot 0 null), 2 new, 5 overridden |
 | vtable stored by | [`WIDGET_ctor?`](../../../src/game/engine/presentation/hud/WIDGET_ctor.c) (vptr +0xC) |

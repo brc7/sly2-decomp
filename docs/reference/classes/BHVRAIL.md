@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x40 (64 bytes), +0x10 over BHV |
 | Descriptor | `D_002BB948` (record 184 of D_002BAAE8; cid range 184..185) |
-| Factory (`pfnNew`) | [`NewBhvrail`](../../../src/game/app/class_registry/NewBhvrail.c) `0x113698` |
+| Factory (`pfnNew`) | [`NewBhvrail`](../../../src/game/app/class_registry.cpp) `0x113698` |
 | Descriptor getter (slot 6) | `GetBhvrailClassDesc` `0x114590` |
 | vtable | `D_002D0020`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvrail`](../../../src/game/app/class_registry/NewBhvrail.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvrail`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV184`, proposed `BHVRAIL` (confidence 0.6), guard flag `0x1B`. walk along an attached RAIL to an end

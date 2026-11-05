@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0x0 over STEPGUARD |
 | Descriptor | `D_002BAFE8` (record 64 of D_002BAAE8; cid range 64..65) |
-| Factory (`pfnNew`) | [`NewContessa`](../../../src/game/app/class_registry/NewContessa.c) `0x111968` |
+| Factory (`pfnNew`) | [`NewContessa`](../../../src/game/app/class_registry.cpp) `0x111968` |
 | Descriptor getter (slot 6) | `GetContessaClassDesc` `0x113E10` |
 | vtable | `D_002CD0A0`, 90 entries (slots 0..89; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewContessa`](../../../src/game/app/class_registry/NewContessa.c) (vptr +0xC) |
+| vtable stored by | [`NewContessa`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 6 objects in 6 of 43 world files |
 
 ## Virtual table

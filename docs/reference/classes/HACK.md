@@ -11,10 +11,10 @@
 | Children | [HACKSHIP](HACKSHIP.md), [HACKENEMY](HACKENEMY.md), [HACKBULLET](HACKBULLET.md), [HACKLOCK](HACKLOCK.md), [HACKWALL](HACKWALL.md) |
 | Instance size (`cb`) | 0x1C0 (448 bytes), +0x40 over PO |
 | Descriptor | `D_002BB074` (record 71 of D_002BAAE8; cid range 71..77) |
-| Factory (`pfnNew`) | [`NewHack`](../../../src/game/app/class_registry/NewHack.cpp) `0x111B70` |
+| Factory (`pfnNew`) | [`NewHack`](../../../src/game/app/class_registry.cpp) `0x111B70` |
 | Descriptor getter (slot 6) | `GetHackClassDesc` `0x113E80` |
 | vtable | `D_002D1878`, 84 entries (slots 0..83; slot 0 null), 2 new, 7 overridden |
-| vtable stored by | [`NewHack`](../../../src/game/app/class_registry/NewHack.cpp) (vptr +0xC) |
+| vtable stored by | [`NewHack`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

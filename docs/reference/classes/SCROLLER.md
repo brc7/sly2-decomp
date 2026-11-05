@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x70 (112 bytes), +0x20 over SAA |
 | Descriptor | `D_002BB614` (record 143 of D_002BAAE8; cid range 143..144) |
-| Factory (`pfnNew`) | [`NewScroller`](../../../src/game/app/class_registry/NewScroller.c) `0x112EE8` |
+| Factory (`pfnNew`) | [`NewScroller`](../../../src/game/app/class_registry.cpp) `0x112EE8` |
 | Descriptor getter (slot 6) | `GetScrollerClassDesc` `0x114300` |
 | vtable | `D_002D9240`, 11 entries (slots 0..10; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewScroller`](../../../src/game/app/class_registry/NewScroller.c) (vptr +0xC) |
+| vtable stored by | [`NewScroller`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

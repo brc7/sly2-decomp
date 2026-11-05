@@ -12,10 +12,10 @@
 | Descendants | 6 classes (CID 158..163) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x20 over BHV |
 | Descriptor | `D_002BB72C` (record 157 of D_002BAAE8; cid range 157..164) |
-| Factory (`pfnNew`) | [`NewBhvanim`](../../../src/game/app/class_registry/NewBhvanim.c) `0x1130B0` |
+| Factory (`pfnNew`) | [`NewBhvanim`](../../../src/game/app/class_registry.cpp) `0x1130B0` |
 | Descriptor getter (slot 6) | `GetBhvanimClassDesc` `0x1143E0` |
 | vtable | `D_002D0AB0`, 15 entries (slots 0..14; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewBhvanim`](../../../src/game/app/class_registry/NewBhvanim.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvanim`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 - **Hidden-type note (HYPOTHESIS):** candidate unregistered intermediate under BHV shared by BHVANIM, BHVLEAP, BHV175 (medium, 2 exclusive identical slots) — [hidden-types A1](../hidden-types.md#a1)

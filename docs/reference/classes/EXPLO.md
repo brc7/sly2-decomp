@@ -11,7 +11,7 @@
 | Children | [EXPLS](EXPLS.md) |
 | Instance size (`cb`) | 0xF0 (240 bytes), +0x10 over EXPL |
 | Descriptor | `D_002BAD68` (record 32 of D_002BAAE8; cid range 32..34) |
-| Factory (`pfnNew`) | [`NewExplo`](../../../src/game/app/class_registry/NewExplo.c) `0x1111A8` |
+| Factory (`pfnNew`) | [`NewExplo`](../../../src/game/app/class_registry.cpp) `0x1111A8` |
 | Descriptor getter (slot 6) | `GetExploClassDesc` `0x113C10` |
 | vtables | 2 tables report this class: `D_002CA098` (52), `D_002CE680` (52) (see [hidden types B1](../hidden-types.md#b1-registered-getters-returned-by-more-than-one-vtable)). Slot table below: canonical 0x2CA098 (the table whose slot 6 is the registered getter; the others use a duplicate getter copy) |
 | Level instances | 52 objects in 42 of 43 world files |

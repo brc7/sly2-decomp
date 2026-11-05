@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x630 (1584 bytes), +0x620 over BASIC |
 | Descriptor | `D_002BB574` (record 135 of D_002BAAE8; cid range 135..136) |
-| Factory (`pfnNew`) | [`NewCm`](../../../src/game/app/class_registry/NewCm.c) `0x112DA8` |
+| Factory (`pfnNew`) | [`NewCm`](../../../src/game/app/class_registry.cpp) `0x112DA8` |
 | Descriptor getter (slot 6) | `GetCmClassDesc` `0x114280` |
 | vtable | `D_002CA4D0`, 7 entries (slots 0..6; slot 0 null), 0 new, 1 overridden |
 | vtable stored by | [`CM_ctor?`](../../../src/game/engine/camera/cm/CM_ctor.c) (vptr +0xC) |

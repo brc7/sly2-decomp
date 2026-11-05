@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1020 (4128 bytes), +0x10 over STEPGUARD |
 | Descriptor | `D_002BAFD4` (record 63 of D_002BAAE8; cid range 63..64) |
-| Factory (`pfnNew`) | [`NewCarmelita`](../../../src/game/app/class_registry/NewCarmelita.c) `0x111928` |
+| Factory (`pfnNew`) | [`NewCarmelita`](../../../src/game/app/class_registry.cpp) `0x111928` |
 | Descriptor getter (slot 6) | `GetCarmelitaClassDesc` `0x113E00` |
 | vtable | `D_002CCBB8`, 90 entries (slots 0..89; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewCarmelita`](../../../src/game/app/class_registry/NewCarmelita.c) (vptr +0xC) |
+| vtable stored by | [`NewCarmelita`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 7 objects in 7 of 43 world files |
 
 ## Virtual table

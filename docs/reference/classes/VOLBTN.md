@@ -11,10 +11,10 @@
 | Children | [CID25](CID25.md) |
 | Instance size (`cb`) | 0x2D0 (720 bytes), +0x1A0 over VOL |
 | Descriptor | `D_002BACC8` (record 24 of D_002BAAE8; cid range 24..26) |
-| Factory (`pfnNew`) | [`NewVolbtn`](../../../src/game/app/class_registry/NewVolbtn.c) `0x110FE8` |
+| Factory (`pfnNew`) | [`NewVolbtn`](../../../src/game/app/class_registry.cpp) `0x110FE8` |
 | Descriptor getter (slot 6) | `GetVolbtnClassDesc` `0x113B90` |
 | vtable | `D_002CC7B0`, 51 entries (slots 0..50; slot 0 null), 0 new, 7 overridden |
-| vtable stored by | [`NewVolbtn`](../../../src/game/app/class_registry/NewVolbtn.c) (vptr +0xC) |
+| vtable stored by | [`NewVolbtn`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 482 objects in 39 of 43 world files |
 
 ## Virtual table

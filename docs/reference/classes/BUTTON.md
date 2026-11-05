@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x300 (768 bytes), +0x1B0 over SO |
 | Descriptor | `D_002BB164` (record 83 of D_002BAAE8; cid range 83..84) |
-| Factory (`pfnNew`) | [`NewButton`](../../../src/game/app/class_registry/NewButton.cpp) `0x111FA0` |
+| Factory (`pfnNew`) | [`NewButton`](../../../src/game/app/class_registry.cpp) `0x111FA0` |
 | Descriptor getter (slot 6) | `GetButtonClassDesc` `0x113F40` |
 | vtable | `D_002CC950`, 76 entries (slots 0..75; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewButton`](../../../src/game/app/class_registry/NewButton.cpp) (vptr +0xC) |
+| vtable stored by | [`NewButton`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 92 objects in 30 of 43 world files |
 
 ## Virtual table

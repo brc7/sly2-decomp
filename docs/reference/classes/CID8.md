@@ -11,10 +11,10 @@
 | Children | [CID9](CID9.md) |
 | Instance size (`cb`) | 0x100 (256 bytes), +0x20 over XFM |
 | Descriptor | `D_002BAB88` (record 8 of D_002BAAE8; cid range 8..10) |
-| Factory (`pfnNew`) | [`NewCid8`](../../../src/game/app/class_registry/NewCid8.c) `0x110C28` |
+| Factory (`pfnNew`) | [`NewCid8`](../../../src/game/app/class_registry.cpp) `0x110C28` |
 | Descriptor getter (slot 6) | `GetCid8ClassDesc` `0x113A90` |
 | vtable | `D_002D2CB8`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewCid8`](../../../src/game/app/class_registry/NewCid8.c) (vptr +0xC) |
+| vtable stored by | [`NewCid8`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

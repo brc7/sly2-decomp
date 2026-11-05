@@ -12,7 +12,7 @@
 | Descendants | 11 classes (CID 57..67) |
 | Instance size (`cb`) | 0x1010 (4112 bytes), +0xD50 over STEP |
 | Descriptor | `D_002BAF48` (record 56 of D_002BAAE8; cid range 56..68) |
-| Factory (`pfnNew`) | [`NewStepguard`](../../../src/game/app/class_registry/NewStepguard.c) `0x111780` |
+| Factory (`pfnNew`) | [`NewStepguard`](../../../src/game/app/class_registry.cpp) `0x111780` |
 | Descriptor getter (slot 6) | `GetStepguardClassDesc` `0x113D90` |
 | vtable | `D_002DA568`, 90 entries (slots 0..89; slot 0 null), 2 new, 20 overridden |
 | vtable stored by | [`STEPGUARD_ctor?`](../../../src/game/app/class_registry/STEPGUARD_ctor.c) (vptr +0xC) |

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1C0 (448 bytes), +0xE0 over XFM |
 | Descriptor | `D_002BAC14` (record 15 of D_002BAAE8; cid range 15..16) |
-| Factory (`pfnNew`) | [`NewTn`](../../../src/game/app/class_registry/NewTn.c) `0x110DE0` |
+| Factory (`pfnNew`) | [`NewTn`](../../../src/game/app/class_registry.cpp) `0x110DE0` |
 | Descriptor getter (slot 6) | `GetTnClassDesc` `0x113B00` |
 | vtable | `D_002DB6B8`, 51 entries (slots 0..50; slot 0 null), 0 new, 8 overridden |
-| vtable stored by | [`NewTn`](../../../src/game/app/class_registry/NewTn.c) (vptr +0xC) |
+| vtable stored by | [`NewTn`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 619 objects in 42 of 43 world files |
 
 ## Virtual table

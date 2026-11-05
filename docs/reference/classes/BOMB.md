@@ -12,10 +12,10 @@
 | Descendants | 3 classes (CID 80..82) |
 | Instance size (`cb`) | 0x210 (528 bytes), +0xC0 over SO |
 | Descriptor | `D_002BB114` (record 79 of D_002BAAE8; cid range 79..83) |
-| Factory (`pfnNew`) | [`NewBomb`](../../../src/game/app/class_registry/NewBomb.cpp) `0x111E40` |
+| Factory (`pfnNew`) | [`NewBomb`](../../../src/game/app/class_registry.cpp) `0x111E40` |
 | Descriptor getter (slot 6) | `GetBombClassDesc` `0x113F00` |
 | vtable | `D_002CB780`, 78 entries (slots 0..77; slot 0 null), 2 new, 10 overridden |
-| vtable stored by | [`NewBomb`](../../../src/game/app/class_registry/NewBomb.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBomb`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 100 objects in 34 of 43 world files |
 
 ## Virtual table

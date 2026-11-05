@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x130 (304 bytes), +0x50 over XFM |
 | Descriptor | `D_002BAC3C` (record 17 of D_002BAAE8; cid range 17..18) |
-| Factory (`pfnNew`) | [`NewPathzone`](../../../src/game/app/class_registry/NewPathzone.c) `0x110E50` |
+| Factory (`pfnNew`) | [`NewPathzone`](../../../src/game/app/class_registry.cpp) `0x110E50` |
 | Descriptor getter (slot 6) | `GetPathzoneClassDesc` `0x113B20` |
 | vtable | `D_002D52B0`, 51 entries (slots 0..50; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewPathzone`](../../../src/game/app/class_registry/NewPathzone.c) (vptr +0xC) |
+| vtable stored by | [`NewPathzone`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 986 objects in 40 of 43 world files |
 
 ## Virtual table

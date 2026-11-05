@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1A0 (416 bytes), +0x50 over SO |
 | Descriptor | `D_002BB1C8` (record 88 of D_002BAAE8; cid range 88..89) |
-| Factory (`pfnNew`) | [`NewBarrel`](../../../src/game/app/class_registry/NewBarrel.cpp) `0x112100` |
+| Factory (`pfnNew`) | [`NewBarrel`](../../../src/game/app/class_registry.cpp) `0x112100` |
 | Descriptor getter (slot 6) | `GetBarrelClassDesc` `0x113F90` |
 | vtable | `D_002D20D0`, 76 entries (slots 0..75; slot 0 null), 0 new, 9 overridden |
-| vtable stored by | [`NewBarrel`](../../../src/game/app/class_registry/NewBarrel.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBarrel`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 8 objects in 8 of 43 world files |
 
 ## Virtual table

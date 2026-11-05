@@ -11,7 +11,7 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x2060 (8288 bytes), +0xD40 over STEPPLAYER |
 | Descriptor | `D_002BAF0C` (record 53 of D_002BAAE8; cid range 53..54) |
-| Factory (`pfnNew`) | [`NewJt`](../../../src/game/app/class_registry/NewJt.c) `0x1116D8` |
+| Factory (`pfnNew`) | [`NewJt`](../../../src/game/app/class_registry.cpp) `0x1116D8` |
 | Descriptor getter (slot 6) | `GetJtClassDesc` `0x113D60` |
 | vtable | `D_002D2E98`, 108 entries (slots 0..107; slot 0 null), 2 new, 31 overridden |
 | vtable stored by | [`JT_ctor?`](../../../src/game/app/class_registry/JT_ctor.c) (vptr +0xC) |

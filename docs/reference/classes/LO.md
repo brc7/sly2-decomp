@@ -12,10 +12,10 @@
 | Descendants | 131 classes (CID 3..133) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x40 over BASIC |
 | Descriptor | `D_002BAB10` (record 2 of D_002BAAE8; cid range 2..134) |
-| Factory (`pfnNew`) | [`NewLo`](../../../src/game/app/class_registry/NewLo.c) `0x110AD8` |
+| Factory (`pfnNew`) | [`NewLo`](../../../src/game/app/class_registry.cpp) `0x110AD8` |
 | Descriptor getter (slot 6) | `GetLoClassDesc` `0x113A30` |
 | vtable | `D_002D3540`, 49 entries (slots 0..48; slot 0 null), 42 new, 2 overridden |
-| vtable stored by | [`NewLo`](../../../src/game/app/class_registry/NewLo.c) (vptr +0xC) |
+| vtable stored by | [`NewLo`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 178 objects in 42 of 43 world files |
 
 ## Virtual table

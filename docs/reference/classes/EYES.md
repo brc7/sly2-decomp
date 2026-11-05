@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x80 (128 bytes), +0x30 over SAA |
 | Descriptor | `D_002BB600` (record 142 of D_002BAAE8; cid range 142..143) |
-| Factory (`pfnNew`) | [`NewEyes`](../../../src/game/app/class_registry/NewEyes.c) `0x112EB0` |
+| Factory (`pfnNew`) | [`NewEyes`](../../../src/game/app/class_registry.cpp) `0x112EB0` |
 | Descriptor getter (slot 6) | `GetEyesClassDesc` `0x1142F0` |
 | vtable | `D_002D92A0`, 11 entries (slots 0..10; slot 0 null), 0 new, 4 overridden |
-| vtable stored by | [`NewEyes`](../../../src/game/app/class_registry/NewEyes.c) (vptr +0xC) |
+| vtable stored by | [`NewEyes`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x160 (352 bytes), +0x10 over SO |
 | Descriptor | `D_002BB27C` (record 97 of D_002BAAE8; cid range 97..98) |
-| Factory (`pfnNew`) | [`NewSky`](../../../src/game/app/class_registry/NewSky.cpp) `0x1123C8` |
+| Factory (`pfnNew`) | [`NewSky`](../../../src/game/app/class_registry.cpp) `0x1123C8` |
 | Descriptor getter (slot 6) | `GetSkyClassDesc` `0x114020` |
 | vtable | `D_002D9500`, 76 entries (slots 0..75; slot 0 null), 0 new, 3 overridden |
-| vtable stored by | [`NewSky`](../../../src/game/app/class_registry/NewSky.cpp) (vptr +0xC) |
+| vtable stored by | [`NewSky`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 19 objects in 18 of 43 world files |
 
 ## Virtual table

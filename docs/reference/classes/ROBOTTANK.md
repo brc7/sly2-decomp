@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x5D0 (1488 bytes), +0x450 over PO |
 | Descriptor | `D_002BB0EC` (record 77 of D_002BAAE8; cid range 77..78) |
-| Factory (`pfnNew`) | [`NewRobottank`](../../../src/game/app/class_registry/NewRobottank.cpp) `0x111D88` |
+| Factory (`pfnNew`) | [`NewRobottank`](../../../src/game/app/class_registry.cpp) `0x111D88` |
 | Descriptor getter (slot 6) | `GetRobottankClassDesc` `0x113EE0` |
 | vtable | `D_002D7CA8`, 82 entries (slots 0..81; slot 0 null), 0 new, 14 overridden |
-| vtable stored by | [`NewRobottank`](../../../src/game/app/class_registry/NewRobottank.cpp) (vptr +0xC) |
+| vtable stored by | [`NewRobottank`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 1 objects in 1 of 43 world files |
 
 ## Virtual table

@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x20 over BHV |
 | Descriptor | `D_002BB830` (record 170 of D_002BAAE8; cid range 170..171) |
-| Factory (`pfnNew`) | [`NewBhvpatrol`](../../../src/game/app/class_registry/NewBhvpatrol.c) `0x113388` |
+| Factory (`pfnNew`) | [`NewBhvpatrol`](../../../src/game/app/class_registry.cpp) `0x113388` |
 | Descriptor getter (slot 6) | `GetBhvpatrolClassDesc` `0x1144B0` |
 | vtable | `D_002D0520`, 15 entries (slots 0..14; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewBhvpatrol`](../../../src/game/app/class_registry/NewBhvpatrol.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvpatrol`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV170`, proposed `BHVPATROL` (confidence 0.75), guard flag `0x1E`. patrol: walk the guard route script (BHV169) / pause idle for random times

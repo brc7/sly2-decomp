@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x1E0 (480 bytes), +0x60 over PO |
 | Descriptor | `D_002BB04C` (record 69 of D_002BAAE8; cid range 69..70) |
-| Factory (`pfnNew`) | [`NewTurret`](../../../src/game/app/class_registry/NewTurret.cpp) `0x111AC0` |
+| Factory (`pfnNew`) | [`NewTurret`](../../../src/game/app/class_registry.cpp) `0x111AC0` |
 | Descriptor getter (slot 6) | `GetTurretClassDesc` `0x113E60` |
 | vtable | `D_002DBD80`, 82 entries (slots 0..81; slot 0 null), 0 new, 7 overridden |
-| vtable stored by | [`NewTurret`](../../../src/game/app/class_registry/NewTurret.cpp) (vptr +0xC) |
+| vtable stored by | [`NewTurret`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 6 objects in 6 of 43 world files |
 
 ## Virtual table

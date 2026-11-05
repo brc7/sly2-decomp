@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x50 (80 bytes), +0x20 over BHV |
 | Descriptor | `D_002BB7B8` (record 164 of D_002BAAE8; cid range 164..165) |
-| Factory (`pfnNew`) | [`NewBhvattack`](../../../src/game/app/class_registry/NewBhvattack.c) `0x113238` |
+| Factory (`pfnNew`) | [`NewBhvattack`](../../../src/game/app/class_registry.cpp) `0x113238` |
 | Descriptor getter (slot 6) | `GetBhvattackClassDesc` `0x114450` |
 | vtable | `D_002D0620`, 15 entries (slots 0..14; slot 0 null), 0 new, 6 overridden |
-| vtable stored by | [`NewBhvattack`](../../../src/game/app/class_registry/NewBhvattack.c) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
+| vtable stored by | [`NewBhvattack`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PbhvNew`](../../../src/game/gameplay/ai/bhvstk.cpp) |
 | Level instances | none (not a world-file object class) |
 
 **Behaviour map (r9):** placeholder `BHV164`, proposed `BHVATTACK` (confidence 0.6), guard flag `0x18`. perform one chosen attack: strike then follow-through on confirmed hit (msg 0xB)

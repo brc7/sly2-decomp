@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x460 (1120 bytes), +0x380 over XFM |
 | Descriptor | `D_002BAD18` (record 28 of D_002BAAE8; cid range 28..29) |
-| Factory (`pfnNew`) | [`NewBlipg`](../../../src/game/app/class_registry/NewBlipg.cpp) `0x1110D8` |
+| Factory (`pfnNew`) | [`NewBlipg`](../../../src/game/app/class_registry.cpp) `0x1110D8` |
 | Descriptor getter (slot 6) | `GetBlipgClassDesc` `0x113BD0` |
 | vtable | `D_002CB5D8`, 52 entries (slots 0..51; slot 0 null), 1 new, 7 overridden |
-| vtable stored by | [`NewBlipg`](../../../src/game/app/class_registry/NewBlipg.cpp) (vptr +0xC), [`PblipgNew`](../../../src/game/engine/fx/blip.cpp) (vptr +0xC) |
+| vtable stored by | [`NewBlipg`](../../../src/game/app/class_registry.cpp) (vptr +0xC), [`PblipgNew`](../../../src/game/engine/fx/blip.cpp) (vptr +0xC) |
 | Level instances | none (not a world-file object class) |
 
 ## Virtual table

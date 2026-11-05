@@ -11,10 +11,10 @@
 | Children | (none) |
 | Instance size (`cb`) | 0x250 (592 bytes), +0x20 over DPRIZE |
 | Descriptor | `D_002BB240` (record 94 of D_002BAAE8; cid range 94..95) |
-| Factory (`pfnNew`) | [`NewLoot`](../../../src/game/app/class_registry/NewLoot.cpp) `0x1122C0` |
+| Factory (`pfnNew`) | [`NewLoot`](../../../src/game/app/class_registry.cpp) `0x1122C0` |
 | Descriptor getter (slot 6) | `GetLootClassDesc` `0x113FF0` |
 | vtable | `D_002D61D8`, 77 entries (slots 0..76; slot 0 null), 0 new, 5 overridden |
-| vtable stored by | [`NewLoot`](../../../src/game/app/class_registry/NewLoot.cpp) (vptr +0xC) |
+| vtable stored by | [`NewLoot`](../../../src/game/app/class_registry.cpp) (vptr +0xC) |
 | Level instances | 38 objects in 38 of 43 world files |
 
 ## Virtual table
