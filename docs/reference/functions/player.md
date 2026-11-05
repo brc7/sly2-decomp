@@ -318,53 +318,53 @@ Totals on this page: EXISTING 5, T1 264, T2 372.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x188488](../../../src/game/gameplay/player/jt/InitJt.c) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD4 = ids 0x1A/0x25/0x26/0x29, sets g_pjt D_002E1E40=pjt | 0.90 | T1 | runtime, verified |
-| [0x1885B8](../../../src/game/gameplay/player/jt/LoadJtFromBrx.c) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |
-| [0x188608](../../../src/game/gameplay/player/jt/PostJtLoad.c) | `PostJtLoad` | JT vt15 PostLoad: base 0x1400B8, BindLoOidTable, look up ~10 named child ALOs/actuators (0x1F4C58 by id+kind) into x10B8/x19C0..x19E0, sub-object postloads (0x1A0300, 0x18F908), build blend/aseg tables, SM applies | 0.80 | T1 |  |
-| [0x188960](../../../src/game/gameplay/player/jt/func_00188960.cpp) | `PresetJtAccel` | JT vt70: base accel (SO 0x1F9B20 for jts 3/8 else STEP 0x204108), then per-jts sub-handler: 3->0x1903B8, 8->0x19DF70(+0xF50), 2 jump->0x196DF8(+0x2C0), 4->0x1A1148(+0xDF0), 7->0x194170(+0x4C0), 6->0x137248(+0x1FF0), 14/2 | 0.40 | T2 |  |
-| [0x188CC8](../../../src/game/gameplay/player/jt/func_00188CC8.c) | `AdjustJtXp` | JT vt55 (p, XP-like pa, pv): base STEP 0x204250, jts 8 -> 0x19E9C8, jts 7 friction-like scale g94 = clamp(\|v.xy\|/g88+0.5, 0.5,1.5) | 0.30 | T2 |  |
-| [0x188E78](../../../src/game/gameplay/player/jt/func_00188E78.c) | `AdjustJtXpVelocity` | JT vt57 (p, entries, i): base STEP 0x2044B0; if entry's object is self, v30 -= angvel x (pos - PosLoWorld) | 0.35 | T2 |  |
-| [0x188F20](../../../src/game/gameplay/player/jt/HandleJtMessage.c) | `HandleJtMessage` | JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...) | 0.85 | T1 | verified |
-| [0x189458](../../../src/game/gameplay/player/jt/JT_FFaceTarget.c) | `JT_FFaceTarget` | JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1 | 0.60 | T1 | verified |
-| [0x189488](../../../src/game/gameplay/player/jt/func_00189488.c) | `JT_vt98` | JT vt98: base 0x1409B8; if -1, return 1 for jts 1/5/6/9 else -1 | 0.25 | T2 |  |
-| [0x1894F8](../../../src/game/gameplay/player/jt/func_001894F8.c) | `JT_vt94` | JT vt94 (pure virtual in STEPPLAYER): 1 for jts 0,1,5,10,12,24 | 0.25 | T2 |  |
-| [0x189530](../../../src/game/gameplay/player/jt/func_00189530.c) | `SetJtPlayable` | JT vt87 (p,f): base STEP 0x205D10, then vt21(!f) on three attached sub-objects | 0.30 | T2 | verified |
-| [0x189618](../../../src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp) | `UpdateJtLean` | Body lean actuators x19E4/E8/EC from velocity of the floor object / curve he stands on; last step of UpdateJt | 0.70 | T1 |  |
-| [0x189C40](../../../src/game/gameplay/player/jt/RebuildJtXmg.cpp) | `RebuildJtXmg` | Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical probe line) | 0.85 | T1 | verified |
-| [0x189EC8](../../../src/game/gameplay/player/jt/FMatchJtXmg.cpp) | `FMatchJtXmg` | Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target | 0.70 | T1 |  |
-| [0x18A0C8](../../../src/game/gameplay/player/jt/UpdateJtStand.c) | `UpdateJtStand` | Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620), FMatchJtXmg | 0.70 | T1 |  |
-| [0x18A238](../../../src/game/gameplay/player/jt/RenderJtSelf.c) | `RenderJtSelf` | JT vt19: if jts==3 render extra (0x190D10) then STEPPLAYER render 0x1425B0 | 0.50 | T1 |  |
-| [0x18A278](../../../src/game/gameplay/player/jt/func_0018A278.c) | `JT_vt17` | JT vt17: cache PosLoWorld of x19A4 child, call SO vt17 0x1F3980, record self/child positions when x18D8==0 | 0.30 | T2 |  |
-| [0x18A2E0](../../../src/game/gameplay/player/jt/func_0018A2E0.c) | `JT_vt49` | JT vt49: SO 0x1F50E0 then 0x1F5480(pjt, q[i], g) for each extra entry | 0.30 | T2 |  |
-| [0x18A350](../../../src/game/gameplay/player/jt/func_0018A350.c) | `GetJtCameraTarget` | JT vt97 (p, out): target pos; jts 3 -> z of x18C4 obj -175, jts 0x16 -> -100, jts 0x15 own pos; default STEPPLAYER 0x141588 | 0.30 | T2 |  |
-| [0x18A428](../../../src/game/gameplay/player/jt/func_0018A428.c) | `JT_vt50` | JT vt50 (p, int *pgrf): stamp x? with g_clock.t while moving, base 0x141640, jts 8 sub, jts 3/5/6 -> *pgrf\|=1 | 0.30 | T2 |  |
-| [0x18A8C8](../../../src/game/gameplay/player/jt/JtChooseGroundState.cpp) | `JtChooseGroundState` | Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor | 0.65 | T1 | runtime |
-| [0x18B2C0](../../../src/game/gameplay/player/jt/func_0018B2C0.c) | `UpdateJtModeInput` | If player can act (0x1443D8) and POCTL button 0x410/0x4F0 pressed toggle JTMODE at x0F00 (0x19CCE8), then update it (0x19D330) | 0.40 | T2 |  |
-| [0x18B348](../../../src/game/gameplay/player/jt/func_0018B348.c) | `CacheJtRestPose` | From clip label 0x167 sample positions of 3 child XFs into x1BE0..x1C20 | 0.30 | T2 | verified |
-| [0x18B460](../../../src/game/gameplay/player/jt/func_0018B460.c) | `UpdateJtAttachCorrection` | jts 11 handler: attachment correction, decays inactive responses | 0.30 | T2 |  |
-| [0x18B7E8](../../../src/game/gameplay/player/jt/UpdateJtPre.c) | `UpdateJtPre` | Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input, JtChooseGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files | 0.55 | T1 |  |
-| [0x18BCE0](../../../src/game/gameplay/player/jt/UpdateJt.c) | `UpdateJt` | JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand, feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLean last | 0.80 | T1 |  |
-| [0x18C060](../../../src/game/gameplay/player/jt/func_0018C060.c) | `JT_vt90` | JT vt90 (pure virtual in STEPPLAYER): get state-specific array from jts 7/4/2 sub-objects and pass to 0x203D00 | 0.30 | T2 |  |
-| [0x18C120](../../../src/game/gameplay/player/jt/func_0018C120.c) | `EnableJtLeanActs` | (pjt,f): enable/disable 5 actuators x19E4..x19F4 (0x12CFE0/0x12D020) | 0.35 | T2 |  |
-| [0x18C250](../../../src/game/gameplay/player/jt/SetJtJts__FP2JT3JTS4JTBS.cpp) | `SetJtJts` | Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state | 0.95 | T1 | runtime, verified |
-| [0x18D500](../../../src/game/gameplay/player/jt/func_0018D500.c) | `JT_vt106` | JT vt106: 0 if jts==1 or 0x14FD50(D_002DE2E0) else 1 | 0.25 | T2 |  |
-| [0x18D548](../../../src/game/gameplay/player/jt/func_0018D548.c) | `JT_vt91` | JT vt91: calls 0x18E540(pjt,-1) (first fn of next TU) | 0.30 | T2 |  |
-| [0x18D568](../../../src/game/gameplay/player/jt/SetJtPlayerState.c) | `SetJtPlayerState` | JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8) | 0.55 | T1 |  |
-| [0x18D620](../../../src/game/gameplay/player/jt/GetJtPlayerState.c) | `GetJtPlayerState` | JT vt89: inverse map jts -> generic state 0..8 or -1 | 0.55 | T1 |  |
-| [0x18D698](../../../src/game/gameplay/player/jt/func_0018D698.c) | `SetGadgetRecObject` | (owner, rec, obj): release rec->obj (0x133448), store new and register (0x1333C0) | 0.35 | T2 |  |
-| [0x18D6F8](../../../src/game/gameplay/player/jt/PgadrecFromJtGadget.c) | `PgadrecFromJtGadget` | Return JT gadget record for gadget id 0x1A/0x25/0x26/0x29 (x1FB0/x1FBC/x1FC8/x1FD4) | 0.50 | T1 |  |
-| [0x18D760](../../../src/game/gameplay/player/jt/FCanUseGadget__2JTi.cpp) | `JT_FCanUseGadget` | Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket item) | 0.90 | T1 | verified |
-| [0x18DA48](../../../src/game/gameplay/player/jt/UseJtGadget.c) | `UseJtGadget` | JT vt100 (gadget id): per-gadget action: slow-motion (clock rate via 0x14D1D0 + sound 0x67/0x66), states via SetJtJts (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records | 0.55 | T1 |  |
-| [0x18DD78](../../../src/game/gameplay/player/jt/func_0018DD78.c) | `EndJtGadget` | JT vt102: for gadget 0x1D/0x2A restore clock rate 1.0, stop sound x2044; else base 0x141E28 | 0.45 | T2 |  |
-| [0x18DE08](../../../src/game/gameplay/player/jt/func_0018DE08.c) | `JT_vt103` | JT vt103: return static descriptor &D_002A5EF0 | 0.30 | T2 |  |
-| [0x18DE18](../../../src/game/gameplay/player/jt/func_0018DE18.c) | `SetJtGrabObject` | (pjt,obj): obj -> x9C0=1 and set grab sub-state kind 6 on x4C0 (0x1928F8); null -> release if kind 6 | 0.25 | T2 |  |
-| [0x18DE80](../../../src/game/gameplay/player/jt/func_0018DE80.c) | `JT_vt96` | JT vt96 (p,int*pf): base 0x143220 then *pf=1 for jts 0,1,5,10,12 | 0.25 | T2 |  |
-| [0x18DEE0](../../../src/game/gameplay/player/jt/func_0018DEE0.c) | `JT_vt85` | JT vt85: 0 if x204 or jts 3/8/21/22; 1 for 13/14; 0xF for 24; else base 0x143C78 | 0.25 | T2 |  |
-| [0x18DF50](../../../src/game/gameplay/player/jt/func_0018DF50.c) | `SetJtX1D30` | Store int at x1D30 | 0.35 | T2 |  |
-| [0x18DF58](../../../src/game/gameplay/player/jt/func_0018DF58.c) | `SetJtX1FA0` | Store vector at x1FA0 | 0.40 | T2 |  |
-| [0x18DF60](../../../src/game/gameplay/player/jt/func_0018DF60.cpp) | `UpdateJtSmoothing` | Smooth Sly's matrix/position (SmoothMatrix, PosSmooth) and update directional anim weights | 0.30 | T2 |  |
-| [0x18E1E0](../../../src/game/gameplay/player/jt/func_0018E1E0.c) | `UpdateJtFaceTarget` | Turn Sly toward object x10DC with GSmooth | 0.30 | T2 |  |
-| [0x18E3A0](../../../src/game/gameplay/player/jt/func_0018E3A0.c) | `OnJtActive` | JT vt78: base 0x144480 then 0x149AB8(g_sw, pjt, D_002A5F98, 0) | 0.35 | T2 |  |
+| [0x188488](../../../src/game/gameplay/player/jt.cpp) | `InitJt` | JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD4 = ids 0x1A/0x25/0x26/0x29, sets g_pjt D_002E1E40=pjt | 0.90 | T1 | runtime, verified |
+| [0x1885B8](../../../src/game/gameplay/player/jt.cpp) | `LoadJtFromBrx` | JT vt14: STEP LoadFromBrx 0x2039C0, set x240 vector=(0,0,-75), BindLoOidTable(pjt,0xAD,table) | 0.90 | T1 | runtime, parse |
+| [0x188608](../../../src/game/gameplay/player/jt.cpp) | `PostJtLoad` | JT vt15 PostLoad: base 0x1400B8, BindLoOidTable, look up ~10 named child ALOs/actuators (0x1F4C58 by id+kind) into x10B8/x19C0..x19E0, sub-object postloads (0x1A0300, 0x18F908), build blend/aseg tables, SM applies | 0.80 | T1 |  |
+| [0x188960](../../../src/game/gameplay/player/jt.cpp) | `PresetJtAccel` | JT vt70: base accel (SO 0x1F9B20 for jts 3/8 else STEP 0x204108), then per-jts sub-handler: 3->0x1903B8, 8->0x19DF70(+0xF50), 2 jump->0x196DF8(+0x2C0), 4->0x1A1148(+0xDF0), 7->0x194170(+0x4C0), 6->0x137248(+0x1FF0), 14/2 | 0.40 | T2 |  |
+| [0x188CC8](../../../src/game/gameplay/player/jt.cpp) | `AdjustJtXp` | JT vt55 (p, XP-like pa, pv): base STEP 0x204250, jts 8 -> 0x19E9C8, jts 7 friction-like scale g94 = clamp(\|v.xy\|/g88+0.5, 0.5,1.5) | 0.30 | T2 |  |
+| [0x188E78](../../../src/game/gameplay/player/jt.cpp) | `AdjustJtXpVelocity` | JT vt57 (p, entries, i): base STEP 0x2044B0; if entry's object is self, v30 -= angvel x (pos - PosLoWorld) | 0.35 | T2 |  |
+| [0x188F20](../../../src/game/gameplay/player/jt.cpp) | `HandleJtMessage` | JT vt5 message handler: base STEPPLAYER 0x140F90 then switch msg (3 = SMA/ASEGA finished for x18E0/x1030 -> SetJtJts or 0x18E540; 9, ...) | 0.85 | T1 | verified |
+| [0x189458](../../../src/game/gameplay/player/jt.cpp) | `JT_FFaceTarget` | JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1 | 0.60 | T1 | verified |
+| [0x189488](../../../src/game/gameplay/player/jt.cpp) | `JT_vt98` | JT vt98: base 0x1409B8; if -1, return 1 for jts 1/5/6/9 else -1 | 0.25 | T2 |  |
+| [0x1894F8](../../../src/game/gameplay/player/jt.cpp) | `JT_vt94` | JT vt94 (pure virtual in STEPPLAYER): 1 for jts 0,1,5,10,12,24 | 0.25 | T2 |  |
+| [0x189530](../../../src/game/gameplay/player/jt.cpp) | `SetJtPlayable` | JT vt87 (p,f): base STEP 0x205D10, then vt21(!f) on three attached sub-objects | 0.30 | T2 | verified |
+| [0x189618](../../../src/game/gameplay/player/jt.cpp) | `UpdateJtLean` | Body lean actuators x19E4/E8/EC from velocity of the floor object / curve he stands on; last step of UpdateJt | 0.70 | T1 |  |
+| [0x189C40](../../../src/game/gameplay/player/jt.cpp) | `RebuildJtXmg` | Foot placement for one foot: when foot clip changes rebuild XMG (sphere reachable by leg, vertical probe line) | 0.85 | T1 | verified |
+| [0x189EC8](../../../src/game/gameplay/player/jt.cpp) | `FMatchJtXmg` | Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target | 0.70 | T1 |  |
+| [0x18A0C8](../../../src/game/gameplay/player/jt.cpp) | `UpdateJtStand` | Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620), FMatchJtXmg | 0.70 | T1 |  |
+| [0x18A238](../../../src/game/gameplay/player/jt.cpp) | `RenderJtSelf` | JT vt19: if jts==3 render extra (0x190D10) then STEPPLAYER render 0x1425B0 | 0.50 | T1 |  |
+| [0x18A278](../../../src/game/gameplay/player/jt.cpp) | `JT_vt17` | JT vt17: cache PosLoWorld of x19A4 child, call SO vt17 0x1F3980, record self/child positions when x18D8==0 | 0.30 | T2 |  |
+| [0x18A2E0](../../../src/game/gameplay/player/jt.cpp) | `JT_vt49` | JT vt49: SO 0x1F50E0 then 0x1F5480(pjt, q[i], g) for each extra entry | 0.30 | T2 |  |
+| [0x18A350](../../../src/game/gameplay/player/jt.cpp) | `GetJtCameraTarget` | JT vt97 (p, out): target pos; jts 3 -> z of x18C4 obj -175, jts 0x16 -> -100, jts 0x15 own pos; default STEPPLAYER 0x141588 | 0.30 | T2 |  |
+| [0x18A428](../../../src/game/gameplay/player/jt.cpp) | `JT_vt50` | JT vt50 (p, int *pgrf): stamp x? with g_clock.t while moving, base 0x141640, jts 8 sub, jts 3/5/6 -> *pgrf\|=1 | 0.30 | T2 |  |
+| [0x18A8C8](../../../src/game/gameplay/player/jt.cpp) | `JtChooseGroundState` | Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor | 0.65 | T1 | runtime |
+| [0x18B2C0](../../../src/game/gameplay/player/jt.cpp) | `UpdateJtModeInput` | If player can act (0x1443D8) and POCTL button 0x410/0x4F0 pressed toggle JTMODE at x0F00 (0x19CCE8), then update it (0x19D330) | 0.40 | T2 |  |
+| [0x18B348](../../../src/game/gameplay/player/jt.cpp) | `CacheJtRestPose` | From clip label 0x167 sample positions of 3 child XFs into x1BE0..x1C20 | 0.30 | T2 | verified |
+| [0x18B460](../../../src/game/gameplay/player/jt.cpp) | `UpdateJtAttachCorrection` | jts 11 handler: attachment correction, decays inactive responses | 0.30 | T2 |  |
+| [0x18B7E8](../../../src/game/gameplay/player/jt.cpp) | `UpdateJtPre` | Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input, JtChooseGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files | 0.55 | T1 |  |
+| [0x18BCE0](../../../src/game/gameplay/player/jt.cpp) | `UpdateJt` | JT vt16 Update: STEPPLAYER Update 0x1403D0, UpdateJtPre, actuator/aseg updates, UpdateJtStand, feet, rope/curve checks (SetJtJts 0x16/3/8), UpdateJtLean last | 0.80 | T1 |  |
+| [0x18C060](../../../src/game/gameplay/player/jt.cpp) | `JT_vt90` | JT vt90 (pure virtual in STEPPLAYER): get state-specific array from jts 7/4/2 sub-objects and pass to 0x203D00 | 0.30 | T2 |  |
+| [0x18C120](../../../src/game/gameplay/player/jt.cpp) | `EnableJtLeanActs` | (pjt,f): enable/disable 5 actuators x19E4..x19F4 (0x12CFE0/0x12D020) | 0.35 | T2 |  |
+| [0x18C250](../../../src/game/gameplay/player/jt.cpp) | `SetJtJts` | Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state | 0.95 | T1 | runtime, verified |
+| [0x18D500](../../../src/game/gameplay/player/jt.cpp) | `JT_vt106` | JT vt106: 0 if jts==1 or 0x14FD50(D_002DE2E0) else 1 | 0.25 | T2 |  |
+| [0x18D548](../../../src/game/gameplay/player/jt.cpp) | `JT_vt91` | JT vt91: calls 0x18E540(pjt,-1) (first fn of next TU) | 0.30 | T2 |  |
+| [0x18D568](../../../src/game/gameplay/player/jt.cpp) | `SetJtPlayerState` | JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8) | 0.55 | T1 |  |
+| [0x18D620](../../../src/game/gameplay/player/jt.cpp) | `GetJtPlayerState` | JT vt89: inverse map jts -> generic state 0..8 or -1 | 0.55 | T1 |  |
+| [0x18D698](../../../src/game/gameplay/player/jt.cpp) | `SetGadgetRecObject` | (owner, rec, obj): release rec->obj (0x133448), store new and register (0x1333C0) | 0.35 | T2 |  |
+| [0x18D6F8](../../../src/game/gameplay/player/jt.cpp) | `PgadrecFromJtGadget` | Return JT gadget record for gadget id 0x1A/0x25/0x26/0x29 (x1FB0/x1FBC/x1FC8/x1FD4) | 0.50 | T1 |  |
+| [0x18D760](../../../src/game/gameplay/player/jt.cpp) | `JT_FCanUseGadget` | Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket item) | 0.90 | T1 | verified |
+| [0x18DA48](../../../src/game/gameplay/player/jt.cpp) | `UseJtGadget` | JT vt100 (gadget id): per-gadget action: slow-motion (clock rate via 0x14D1D0 + sound 0x67/0x66), states via SetJtJts (9,0x17,6,0x18/0xC,5/9), jump kinds 9/0xE, gadget records | 0.55 | T1 |  |
+| [0x18DD78](../../../src/game/gameplay/player/jt.cpp) | `EndJtGadget` | JT vt102: for gadget 0x1D/0x2A restore clock rate 1.0, stop sound x2044; else base 0x141E28 | 0.45 | T2 |  |
+| [0x18DE08](../../../src/game/gameplay/player/jt.cpp) | `JT_vt103` | JT vt103: return static descriptor &D_002A5EF0 | 0.30 | T2 |  |
+| [0x18DE18](../../../src/game/gameplay/player/jt.cpp) | `SetJtGrabObject` | (pjt,obj): obj -> x9C0=1 and set grab sub-state kind 6 on x4C0 (0x1928F8); null -> release if kind 6 | 0.25 | T2 |  |
+| [0x18DE80](../../../src/game/gameplay/player/jt.cpp) | `JT_vt96` | JT vt96 (p,int*pf): base 0x143220 then *pf=1 for jts 0,1,5,10,12 | 0.25 | T2 |  |
+| [0x18DEE0](../../../src/game/gameplay/player/jt.cpp) | `JT_vt85` | JT vt85: 0 if x204 or jts 3/8/21/22; 1 for 13/14; 0xF for 24; else base 0x143C78 | 0.25 | T2 |  |
+| [0x18DF50](../../../src/game/gameplay/player/jt.cpp) | `SetJtX1D30` | Store int at x1D30 | 0.35 | T2 |  |
+| [0x18DF58](../../../src/game/gameplay/player/jt.cpp) | `SetJtX1FA0` | Store vector at x1FA0 | 0.40 | T2 |  |
+| [0x18DF60](../../../src/game/gameplay/player/jt.cpp) | `UpdateJtSmoothing` | Smooth Sly's matrix/position (SmoothMatrix, PosSmooth) and update directional anim weights | 0.30 | T2 |  |
+| [0x18E1E0](../../../src/game/gameplay/player/jt.cpp) | `UpdateJtFaceTarget` | Turn Sly toward object x10DC with GSmooth | 0.30 | T2 |  |
+| [0x18E3A0](../../../src/game/gameplay/player/jt.cpp) | `OnJtActive` | JT vt78: base 0x144480 then 0x149AB8(g_sw, pjt, D_002A5F98, 0) | 0.35 | T2 |  |
 
 ## cane (0x18E540-0x18F908)
 

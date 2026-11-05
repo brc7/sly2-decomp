@@ -27,21 +27,21 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 2 | Decref-style hook | inherited (BASIC) | `BASIC_VUnk01?` | `0x132B08` | VUnk01 |
 | 3 | HandleSpliceEvent | inherited (LO) | `HandleLoSpliceEvent` | `0x1A61E0` | HandleSpliceEvent |
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` | SendMessage |
-| 5 | HandleMessage | **override** | [`HandleJtMessage`](../../../src/game/gameplay/player/jt/HandleJtMessage.c) | `0x188F20` | HandleMessage |
+| 5 | HandleMessage | **override** | [`HandleJtMessage`](../../../src/game/gameplay/player/jt.cpp) | `0x188F20` | HandleMessage |
 | 6 | Pclassinfo | **override** | [`GetJtClassDesc`](../../../src/game/app/class_registry/GetJtClassDesc.c) | `0x113D60` | Pclassinfo |
-| 7 | Init | **override** | [`InitJt`](../../../src/game/gameplay/player/jt/InitJt.c) | `0x188488` | Init |
+| 7 | Init | **override** | [`InitJt`](../../../src/game/gameplay/player/jt.cpp) | `0x188488` | Init |
 | 8 | Add | inherited (LO) | `AddLo` | `0x1A5478` | Add |
 | 9 | Remove | inherited (LO) | `RemoveLo` | `0x1A5630` | Remove |
 | 10 | SetParent | inherited (SO) | `SetSoParent` | `0x1F21B8` | SetParent |
 | 11 | AddHierarchy | inherited (SO) | `AddSoHierarchy` | `0x1F2C30` | AddHierarchy |
 | 12 | RemoveHierarchy | inherited (STEPPLAYER) | `RemoveHierarchyStepplayer?` | `0x141928` | RemoveHierarchy |
 | 13 | UpdateLoroot | inherited (SO) | `UpdateSoLoroot` | `0x1F2E78` | UpdateLoroot |
-| 14 | LoadFromBrx | **override** | [`LoadJtFromBrx`](../../../src/game/gameplay/player/jt/LoadJtFromBrx.c) | `0x1885B8` | LoadFromBrx |
-| 15 | PostLoad | **override** | [`PostJtLoad`](../../../src/game/gameplay/player/jt/PostJtLoad.c) | `0x188608` | VUnk14 |
-| 16 | Update | **override** | [`UpdateJt`](../../../src/game/gameplay/player/jt/UpdateJt.c) | `0x18BCE0` | VUnk15 |
-| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`JT_vt17?`](../../../src/game/gameplay/player/jt/func_0018A278.c) | `0x18A278` | VUnk16 |
+| 14 | LoadFromBrx | **override** | [`LoadJtFromBrx`](../../../src/game/gameplay/player/jt.cpp) | `0x1885B8` | LoadFromBrx |
+| 15 | PostLoad | **override** | [`PostJtLoad`](../../../src/game/gameplay/player/jt.cpp) | `0x188608` | VUnk14 |
+| 16 | Update | **override** | [`UpdateJt`](../../../src/game/gameplay/player/jt.cpp) | `0x18BCE0` | VUnk15 |
+| 17 | (Sly 1: ProjectTransform; LO: inherit flag 4) | **override** | [`JT_vt17?`](../../../src/game/gameplay/player/jt.cpp) | `0x18A278` | VUnk16 |
 | 18 | UpdateLoXfWorldHierarchy | inherited (SO) | `UpdateSoXfWorldHierarchy` | `0x22FBE0` | UpdateXfWorldHierarchy |
-| 19 | RenderSelf | **override** | [`RenderJtSelf`](../../../src/game/gameplay/player/jt/RenderJtSelf.c) | `0x18A238` | RenderSelf |
+| 19 | RenderSelf | **override** | [`RenderJtSelf`](../../../src/game/gameplay/player/jt.cpp) | `0x18A238` | RenderSelf |
 | 20 | RenderLoAll | inherited (SO) | `RenderSoAll?` | `0x1F3CC8` | VUnk19 |
 | 21 | SetLoFlag8 | inherited (SO) | `SetSoFlag8?` | `0x1F3B28` | VUnk20 |
 | 22 | OnRemove | inherited (SO) | `OnSoRemove` | `0x1F3E00` | Freeze |
@@ -71,15 +71,15 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 46 | SetVisMask | inherited (SO) | `SetSoVisMask` | `0x1A6DC8` | SetVisMask |
 | 47 | SetGrf | inherited (SO) | `SetSoGrf` | `0x1F2FE0` | VUnk46 |
 | 48 | ClearLoGrf | inherited (SO) | `ClearSoGrf` | `0x1F3078` | VUnk47 |
-| 49 | UpdateSoTreeBounds | **override** | [`JT_vt49?`](../../../src/game/gameplay/player/jt/func_0018A2E0.c) | `0x18A2E0` | VUnk48 |
-| 50 | GetSoCpdefi | **override** | [`JT_vt50?`](../../../src/game/gameplay/player/jt/func_0018A428.c) | `0x18A428` | GetCpdefi |
+| 49 | UpdateSoTreeBounds | **override** | [`JT_vt49?`](../../../src/game/gameplay/player/jt.cpp) | `0x18A2E0` | VUnk48 |
+| 50 | GetSoCpdefi | **override** | [`JT_vt50?`](../../../src/game/gameplay/player/jt.cpp) | `0x18A428` | GetCpdefi |
 | 51 | SO_PxfFromId | inherited (SO) | `SO_PxfFromId?` | `0x22D778` | PxfFromIxf |
 | 52 | CloneXfRef | inherited (SO) | `CloneXfRef?` | `0x1F4CA0` | CloneXfRef |
 | 53 | SO_PtreeNew | inherited (SO) | `SO_PtreeNew?` | `0x1F56F8` | VUnk52 |
 | 54 | SO_vt54_Nop | inherited (STEP) | `OnStepSoContactFreed` | `0x204C60` | VUnk53 |
-| 55 | SO_vt55_Nop | **override** | [`AdjustJtXp?`](../../../src/game/gameplay/player/jt/func_00188CC8.c) | `0x188CC8` | AdjustNewXp |
+| 55 | SO_vt55_Nop | **override** | [`AdjustJtXp?`](../../../src/game/gameplay/player/jt.cpp) | `0x188CC8` | AdjustNewXp |
 | 56 | SO_vt56_Nop | inherited (SO) | `SO_vt56_Nop?` | `0x1F4FB8` | VUnk55 |
-| 57 | SO_vt57_Nop | **override** | [`AdjustJtXpVelocity?`](../../../src/game/gameplay/player/jt/func_00188E78.c) | `0x188E78` | VUnk56 |
+| 57 | SO_vt57_Nop | **override** | [`AdjustJtXpVelocity?`](../../../src/game/gameplay/player/jt.cpp) | `0x188E78` | VUnk56 |
 | 58 | ScheduleSoTouchEvents | inherited (STEPPLAYER) | `STEPPLAYER_VUnk57?` | `0x140D70` | VUnk57 |
 | 59 | SO_vt59_Nop | inherited (STEPPLAYER) | `STEPPLAYER_VUnk58?` | `0x140D00` | VUnk58 |
 | 60 | SO_vt60_Nop | inherited (STEP) | `AddStepCustomXps` | `0x204AC8` | VUnk59 |
@@ -92,7 +92,7 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 67 | ApplySoQueuedMotion | inherited (SO) | `ApplySoQueuedMotion?` | `0x1FA528` | VUnk66 |
 | 68 | ApplySoContactImpulse | inherited (STEPPLAYER) | `STEPPLAYER_VUnk67?` | `0x140DB0` | VUnk67 |
 | 69 | GetSoVelocityAtPos | inherited (SO) | `GetSoVelocityAtPos?` | `0x1FADD0` | VUnk68 |
-| 70 | ApplySoPendingVelocity | **override** | [`PresetJtAccel?`](../../../src/game/gameplay/player/jt/func_00188960.cpp) | `0x188960` | VUnk69 |
+| 70 | ApplySoPendingVelocity | **override** | [`PresetJtAccel?`](../../../src/game/gameplay/player/jt.cpp) | `0x188960` | VUnk69 |
 | 71 | AddSoExternalAccelerations | inherited (SO) | `AddSoExternalAccelerations?` | `0x2297F0` | VUnk70 |
 | 72 |  | inherited (STEPPLAYER) | `ResolveStepplayerXaContact?` | `0x1A28B0` | VUnk71 |
 | 73 | FPosInSo | inherited (SO) | `FPosInSo?` | `0x1F72F8` | VUnk72 |
@@ -100,40 +100,40 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 75 | FZprHasField44 | inherited (STEPPLAYER) | `STEPPLAYER_FTakeDamage` | `0x140F50` | FTakeDamage |
 | 76 | FInvulnerablePo | **override** | [`JT_FIgnoreZap?`](../../../src/game/gameplay/player/hurt.cpp) | `0x1A21A0` | FInvulnerable |
 | 77 | JthsCurrentPo | inherited (STEPPLAYER) | `JthsCurrent__10STEPPLAYER` | `0x140F70` | JthsCurrent |
-| 78 | OnPoActive | **override** | [`OnJtActive?`](../../../src/game/gameplay/player/jt/func_0018E3A0.c) | `0x18E3A0` | OnActive |
+| 78 | OnPoActive | **override** | [`OnJtActive?`](../../../src/game/gameplay/player/jt.cpp) | `0x18E3A0` | OnActive |
 | 79 | SetPoCtlState | inherited (STEPPLAYER) | `SetStepplayerCtlState` | `0x1406E8` | SetCtlState |
 | 80 | FCanPoBeHealed | inherited (STEPPLAYER) | `FCanBeHealed__10STEPPLAYER` | `0x144090` | FCanBeHealed |
 | 81 | AddPoHpMp | inherited (STEPPLAYER) | `AddStepplayerHpMp` | `0x144268` | AddHpMp |
 | 82 | AddStepAxisXps | inherited (STEPPLAYER) | `STEPPLAYER_VUnk81?` | `0x140C30` | VUnk81 |
 | 83 | AddStepDialogSmRefs | inherited (STEPPLAYER) | `STEPPLAYER_VUnk82?` | `0x1442D0` | VUnk82 |
 | 84 | RemoveStepDialogSmRefs | inherited (STEPPLAYER) | `STEPPLAYER_VUnk83?` | `0x144338` | VUnk83 |
-| 85 | GrfStepGroundProbe | **override** | [`JT_vt85?`](../../../src/game/gameplay/player/jt/func_0018DEE0.c) | `0x18DEE0` | VUnk84 |
+| 85 | GrfStepGroundProbe | **override** | [`JT_vt85?`](../../../src/game/gameplay/player/jt.cpp) | `0x18DEE0` | VUnk84 |
 | 86 | FStepVt86 | inherited (STEPPLAYER) | `STEPPLAYER_VUnk85?` | `0x144418` | VUnk85 |
-| 87 | StepVt87Nop | **override** | [`SetJtPlayable?`](../../../src/game/gameplay/player/jt/func_00189530.c) | `0x189530` | VUnk86 |
-| 88 | SetJtPlayerState (pure in STEPPLAYER) | **override** | [`SetJtPlayerState`](../../../src/game/gameplay/player/jt/SetJtPlayerState.c) | `0x18D568` | VUnk87 |
-| 89 | GetJtPlayerState (pure in STEPPLAYER) | **override** | [`GetJtPlayerState`](../../../src/game/gameplay/player/jt/GetJtPlayerState.c) | `0x18D620` | VUnk88 |
-| 90 | JT_vt90 (pure in STEPPLAYER) | **override** | [`JT_vt90?`](../../../src/game/gameplay/player/jt/func_0018C060.c) | `0x18C060` | VUnk89 |
-| 91 | JT_vt91 (pure in STEPPLAYER) | **override** | [`JT_vt91?`](../../../src/game/gameplay/player/jt/func_0018D548.c) | `0x18D548` | VUnk90 |
-| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **override** | [`JT_FFaceTarget`](../../../src/game/gameplay/player/jt/JT_FFaceTarget.c) | `0x189458` | VUnk91 |
+| 87 | StepVt87Nop | **override** | [`SetJtPlayable?`](../../../src/game/gameplay/player/jt.cpp) | `0x189530` | VUnk86 |
+| 88 | SetJtPlayerState (pure in STEPPLAYER) | **override** | [`SetJtPlayerState`](../../../src/game/gameplay/player/jt.cpp) | `0x18D568` | VUnk87 |
+| 89 | GetJtPlayerState (pure in STEPPLAYER) | **override** | [`GetJtPlayerState`](../../../src/game/gameplay/player/jt.cpp) | `0x18D620` | VUnk88 |
+| 90 | JT_vt90 (pure in STEPPLAYER) | **override** | [`JT_vt90?`](../../../src/game/gameplay/player/jt.cpp) | `0x18C060` | VUnk89 |
+| 91 | JT_vt91 (pure in STEPPLAYER) | **override** | [`JT_vt91?`](../../../src/game/gameplay/player/jt.cpp) | `0x18D548` | VUnk90 |
+| 92 | JT_FFaceTarget (pure in STEPPLAYER) | **override** | [`JT_FFaceTarget`](../../../src/game/gameplay/player/jt.cpp) | `0x189458` | VUnk91 |
 | 93 | OnStepplayerHeroDied | **override** | [`OnJtDeath?`](../../../src/game/gameplay/player/hurt.cpp) | `0x1A2388` | OnHeroDied |
-| 94 | JT_vt94 (pure in STEPPLAYER) | **override** | [`JT_vt94?`](../../../src/game/gameplay/player/jt/func_001894F8.c) | `0x1894F8` | VUnk93 |
+| 94 | JT_vt94 (pure in STEPPLAYER) | **override** | [`JT_vt94?`](../../../src/game/gameplay/player/jt.cpp) | `0x1894F8` | VUnk93 |
 | 95 | SetStepplayerPlayerInteractMode | inherited (STEPPLAYER) | `SetStepplayerPlayerInteractMode` | `0x140678` | SetPlayerInteractMode |
-| 96 | GetStepplayerStunHold | **override** | [`JT_vt96?`](../../../src/game/gameplay/player/jt/func_0018DE80.c) | `0x18DE80` | GetStunHold |
-| 97 | GetStepplayerCmFocusPos | **override** | [`GetJtCameraTarget?`](../../../src/game/gameplay/player/jt/func_0018A350.c) | `0x18A350` | GetCmFocusPos |
-| 98 | STEPPLAYER_VUnk97 | **override** | [`JT_vt98?`](../../../src/game/gameplay/player/jt/func_00189488.c) | `0x189488` | VUnk97 |
-| 99 | FCanUseGadget__10STEPPLAYERi | **override** | [`FCanUseGadget__2JTi`](../../../src/game/gameplay/player/jt/FCanUseGadget__2JTi.cpp) | `0x18D760` | FCanUseGadget |
-| 100 | StartStepplayerGadget | **override** | [`UseJtGadget`](../../../src/game/gameplay/player/jt/UseJtGadget.c) | `0x18DA48` | StartGadget |
+| 96 | GetStepplayerStunHold | **override** | [`JT_vt96?`](../../../src/game/gameplay/player/jt.cpp) | `0x18DE80` | GetStunHold |
+| 97 | GetStepplayerCmFocusPos | **override** | [`GetJtCameraTarget?`](../../../src/game/gameplay/player/jt.cpp) | `0x18A350` | GetCmFocusPos |
+| 98 | STEPPLAYER_VUnk97 | **override** | [`JT_vt98?`](../../../src/game/gameplay/player/jt.cpp) | `0x189488` | VUnk97 |
+| 99 | FCanUseGadget__10STEPPLAYERi | **override** | [`FCanUseGadget__2JTi`](../../../src/game/gameplay/player/jt.cpp) | `0x18D760` | FCanUseGadget |
+| 100 | StartStepplayerGadget | **override** | [`UseJtGadget`](../../../src/game/gameplay/player/jt.cpp) | `0x18DA48` | StartGadget |
 | 101 | UpdateStepplayerGadget | inherited (STEPPLAYER) | `UpdateStepplayerGadget` | `0x141DD0` | VSlot101 |
-| 102 | StopStepplayerGadget | **override** | [`EndJtGadget?`](../../../src/game/gameplay/player/jt/func_0018DD78.c) | `0x18DD78` | VSlot102 |
-| 103 | JT_vt103 (pure in STEPPLAYER) | **override** | [`JT_vt103?`](../../../src/game/gameplay/player/jt/func_0018DE08.c) | `0x18DE08` | VSlot103 |
+| 102 | StopStepplayerGadget | **override** | [`EndJtGadget?`](../../../src/game/gameplay/player/jt.cpp) | `0x18DD78` | VSlot102 |
+| 103 | JT_vt103 (pure in STEPPLAYER) | **override** | [`JT_vt103?`](../../../src/game/gameplay/player/jt.cpp) | `0x18DE08` | VSlot103 |
 | 104 | STEPPLAYER_VUnk104 | inherited (STEPPLAYER) | `STEPPLAYER_VUnk104?` | `0x141E30` | VSlot104 |
 | 105 | OnStepplayerGadgetsChanged | inherited (STEPPLAYER) | `OnStepplayerGadgetsChanged?` | `0x141E70` | VSlot105 |
-| 106 | JT_vt106 | **new** | [`JT_vt106?`](../../../src/game/gameplay/player/jt/func_0018D500.c) | `0x18D500` | VSlot106 |
+| 106 | JT_vt106 | **new** | [`JT_vt106?`](../../../src/game/gameplay/player/jt.cpp) | `0x18D500` | VSlot106 |
 | 107 | AddJtExternalAccelerations | **new** | [`AddJtExternalAccelerations`](../../../src/game/gameplay/player/hang.cpp) | `0x1904E0` | VSlot107 |
 
 ## Fields
 
-From `include/sly2/jt.h` (`struct JT : STEPPLAYER`). JT: from src/game/gameplay/player/jt/UpdateJtLean__FP2JT.cpp (10 copies in Lilly ports)
+From `include/sly2/jt.h` (`struct JT : STEPPLAYER`). JT: from src/game/gameplay/player/jt.cpp (10 copies in Lilly ports)
 
 Offsets computed by clang from the header (EE ABI: 32-bit pointers, 64-bit long, 16-byte qword); 7 header asserts agree, 0 disagree. Size from header: 0x2060.
 

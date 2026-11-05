@@ -15,7 +15,7 @@
 | [`hang.cpp`](hang.cpp) | 1 |
 | [`hnd.cpp`](hnd.cpp) | 1 |
 | [`hurt.cpp`](hurt.cpp) | 1 |
-| [`jt/`](jt/) | 51 |
+| [`jt.cpp`](jt.cpp) | 1 |
 | [`jtgoal.cpp`](jtgoal.cpp) | 1 |
 | [`jthands.cpp`](jthands.cpp) | 1 |
 | [`mode.cpp`](mode.cpp) | 1 |
