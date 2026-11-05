@@ -600,3 +600,26 @@ extern "C" void func_00257C18()
 }
 
 #undef GC_SWEEP_POOL
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_gc {
+    static int c_002DD298 __asm__("D_002DD298");   /* .sbss 0x4 */
+    static int c_002DD2B8 __asm__("D_002DD2B8");   /* .sbss 0x4 */
+    static int c_002DD2C0 __asm__("D_002DD2C0");   /* .sbss 0x4 */
+    static int c_002DD2C8 __asm__("D_002DD2C8");   /* .sbss 0x4 */
+    static int c_002DD2D8 __asm__("D_002DD2D8");   /* .sbss 0x4 */
+    static int c_004520B8[2] __asm__("D_004520B8");   /* .bss 0x8 */
+    static int c_00452108[2] __asm__("D_00452108");   /* .bss 0x8 */
+    static int c_00452130[2] __asm__("D_00452130");   /* .bss 0x8 */
+};
+int COMMONS_gc::c_002DD298;
+int COMMONS_gc::c_002DD2B8;
+int COMMONS_gc::c_002DD2C0;
+int COMMONS_gc::c_002DD2C8;
+int COMMONS_gc::c_002DD2D8;
+int COMMONS_gc::c_004520B8[2];
+int COMMONS_gc::c_00452108[2];
+int COMMONS_gc::c_00452130[2];

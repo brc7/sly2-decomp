@@ -301,3 +301,12 @@ extern "C" void func_00257E68(GCHDR **pp, GCHDR *p)
         p->cref += 1;
     *pp = p;
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_sidebag {
+    static int c_002DD29C __asm__("D_002DD29C");   /* .sbss 0x4 */
+};
+int COMMONS_sidebag::c_002DD29C;

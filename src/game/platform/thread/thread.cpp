@@ -122,3 +122,12 @@ void StartupThread()
     tp.entry = (void *)FrameRenderLoop;
     ptid[1] = func_00234820(&tp);
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_thread {
+    static int c_004425F0[798] __asm__("D_004425F0");   /* .bss 0xC78 */
+};
+int COMMONS_thread::c_004425F0[798];

@@ -384,3 +384,17 @@ void CVarbPtr::operator=(CVarb *pvarb)
         delete pvarbOld;
     p = pvarb;
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+typedef int qword __attribute__((mode(TI)));
+struct COMMONS_frame {
+    static int c_002DD290 __asm__("D_002DD290");   /* .sbss 0x4 */
+    static int c_002DD294 __asm__("D_002DD294");   /* .sbss 0x4 */
+    static qword c_004520C0 __asm__("D_004520C0");   /* .bss 0x10 */
+};
+int COMMONS_frame::c_002DD290;
+int COMMONS_frame::c_002DD294;
+qword COMMONS_frame::c_004520C0;

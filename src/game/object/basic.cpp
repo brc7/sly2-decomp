@@ -611,3 +611,16 @@ int func_00258178(SIDEBAG *p) {
 extern "C" int *GetEmitterClassDesc_linkonce(void) {
     return &D_002BAD2C;
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_basic {
+    static int c_002DD2C4 __asm__("D_002DD2C4");   /* .sbss 0x4 */
+    static int c_002DD2CC __asm__("D_002DD2CC");   /* .sbss 0x4 */
+    static int c_00452138[4] __asm__("D_00452138");   /* .bss 0x10 */
+};
+int COMMONS_basic::c_002DD2C4;
+int COMMONS_basic::c_002DD2CC;
+int COMMONS_basic::c_00452138[4];

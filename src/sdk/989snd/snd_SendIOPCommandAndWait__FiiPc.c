@@ -56,3 +56,10 @@ int snd_SendIOPCommandAndWait__FiiPc(int cmd, int size, unsigned char *buf)
         snd_SendCurrentBatch__Fv();
     return ret;
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+int c_00443880[3] __asm__("D_00443880");   /* .bss 0xC */
+int c_0044388C[189] __asm__("D_0044388C");   /* .bss 0x2F4 */

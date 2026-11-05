@@ -46,3 +46,10 @@ int snd_BankLoadByLoc(int a, int b)
         func_00234CA0(0);
     return D_00448480[0];
 }
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+typedef int qword __attribute__((mode(TI)));
+qword c_004484C0[4] __asm__("D_004484C0");   /* .bss 0x40 */

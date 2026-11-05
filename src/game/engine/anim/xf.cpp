@@ -2756,3 +2756,14 @@ qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 char D_002C44E0[4] = {0};   /* an empty buffer the queue pointers start at */
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_xf {
+    static int c_004437A0[2] __asm__("D_004437A0");   /* .bss 0x8 */
+    static int c_004437A8[22] __asm__("D_004437A8");   /* .bss 0x58 */
+};
+int COMMONS_xf::c_004437A0[2];
+int COMMONS_xf::c_004437A8[22];

@@ -5314,3 +5314,58 @@ float D_002C40AC = 788864.0f;
 float D_002C40B0 = 788240.0f;
 float D_002C40B4 = 788720.0f;
 float D_002C40B8 = 0.25f;
+
+// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
+// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
+// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
+// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+struct COMMONS_hud {
+    static int c_002DD2E0 __asm__("D_002DD2E0");   /* .sbss 0x4 */
+    static int c_002DD2E4 __asm__("D_002DD2E4");   /* .sbss 0x4 */
+    static int c_002DD2E8 __asm__("D_002DD2E8");   /* .sbss 0x4 */
+    static int c_002DD2EC __asm__("D_002DD2EC");   /* .sbss 0x4 */
+    static int c_002DD2F0 __asm__("D_002DD2F0");   /* .sbss 0x4 */
+    static int c_002DD2F4 __asm__("D_002DD2F4");   /* .sbss 0x4 */
+    static int c_002DD318 __asm__("D_002DD318");   /* .sbss 0x4 */
+    static qword c_004421A0 __asm__("D_004421A0");   /* .bss 0x10 */
+    static qword c_004421B0[6] __asm__("D_004421B0");   /* .bss 0x60 */
+    static qword c_00442210[3] __asm__("D_00442210");   /* .bss 0x30 */
+    static qword c_00442240[39] __asm__("D_00442240");   /* .bss 0x270 */
+    static qword c_004424B0[2] __asm__("D_004424B0");   /* .bss 0x20 */
+    static qword c_004424D0[2] __asm__("D_004424D0");   /* .bss 0x20 */
+    static qword c_004424F0[3] __asm__("D_004424F0");   /* .bss 0x30 */
+    static qword c_00442520[4] __asm__("D_00442520");   /* .bss 0x40 */
+    static qword c_00442560[4] __asm__("D_00442560");   /* .bss 0x40 */
+    static qword c_004425A0[3] __asm__("D_004425A0");   /* .bss 0x30 */
+    static int c_004435F0 __asm__("D_004435F0");   /* .bss 0x4 */
+    static int c_004435F4[83] __asm__("D_004435F4");   /* .bss 0x14C */
+    static int c_004520D0[6] __asm__("D_004520D0");   /* .bss 0x18 */
+    static int c_004520F8[4] __asm__("D_004520F8");   /* .bss 0x10 */
+    static qword c_00452120 __asm__("D_00452120");   /* .bss 0x10 */
+    static int c_00452148[6] __asm__("D_00452148");   /* .bss 0x18 */
+    static int c_00452170[6] __asm__("D_00452170");   /* .bss 0x18 */
+};
+int COMMONS_hud::c_002DD2E0;
+int COMMONS_hud::c_002DD2E4;
+int COMMONS_hud::c_002DD2E8;
+int COMMONS_hud::c_002DD2EC;
+int COMMONS_hud::c_002DD2F0;
+int COMMONS_hud::c_002DD2F4;
+int COMMONS_hud::c_002DD318;
+qword COMMONS_hud::c_004421A0;
+qword COMMONS_hud::c_004421B0[6];
+qword COMMONS_hud::c_00442210[3];
+qword COMMONS_hud::c_00442240[39];
+qword COMMONS_hud::c_004424B0[2];
+qword COMMONS_hud::c_004424D0[2];
+qword COMMONS_hud::c_004424F0[3];
+qword COMMONS_hud::c_00442520[4];
+qword COMMONS_hud::c_00442560[4];
+qword COMMONS_hud::c_004425A0[3];
+int COMMONS_hud::c_004435F0;
+int COMMONS_hud::c_004435F4[83];
+int COMMONS_hud::c_004520D0[6];
+int COMMONS_hud::c_004520F8[4];
+qword COMMONS_hud::c_00452120;
+int COMMONS_hud::c_00452148[6];
+int COMMONS_hud::c_00452170[6];
