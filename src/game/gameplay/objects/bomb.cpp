@@ -393,10 +393,10 @@ static inline qword NormalizeSafe(qword v, qword def)
         return def;
     return DivQ(v, len);
 }
+// D_002A4B10: a virtual pointer-to-member constant, 8 bytes {delta 0, vtable index, vptr offset 0xC} (tu-merging.md "Data").
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
-// D_002A4B10: a virtual pointer-to-member constant, 8 bytes {delta 0, vtable index, vptr offset 0xC} (tu-merging.md "Data").
 namespace RO_ORDER { extern const unsigned int r_D_002A4B10[2] __asm__("D_002A4B10") = {0x4E0000, 0xC}; }
 namespace RO_ORDER { extern const float r_D_002A4B18 __asm__("D_002A4B18") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x13AEB0

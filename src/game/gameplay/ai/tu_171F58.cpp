@@ -72,10 +72,10 @@ typedef struct LM{float low,high;}LM;
 struct GOAL { qword a; qword v; };
 
 extern CLOCK D_002DDED0;
-extern const float D_002A5398 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A5398;   /* defined below where the ELF has it (.rodata order) */
 float D_002BE5A0 = 2.0f;   /* tu_171F58's .data starts here (address order) */
-extern const float D_002A53D4 = 3.40282347e+38f;   /* FLT_MAX: no next look */
-extern const LM D_002A53C0 = {200.0f, 1200.0f}, D_002A53C8 = {-0.785398185f, 0.785398185f};   /* distance, +-pi/4 */
+extern const float D_002A53D4;   /* defined below where the ELF has it (.rodata order) */
+extern const LM D_002A53C0, D_002A53C8;   /* distance, +-pi/4; defined below where the ELF has them (.rodata order) */
 #undef D_003E13FC
 #define D_003E13FC (*(NODE * *)((char *)base_D_003DD490 + 0x3F6C))   /* g_sw+0x3F6C: SW::dlCid34 */
 #undef D_003E13F0
@@ -96,7 +96,7 @@ extern const LM D_002A53C0 = {200.0f, 1200.0f}, D_002A53C8 = {-0.785398185f, 0.7
 #define D_003E1450 (*(NODE * *)((char *)base_D_003DD490 + 0x3FC0))   /* g_sw+0x3FC0: SW::_pad_310 */
 extern char D_003DD490;
 extern qword D_002A2DA0,D_002A2DC0;
-extern const float D_002A53D0 = -3.40282347e+38f;  /* -FLT_MAX */
+extern const float D_002A53D0;   /* defined below where the ELF has it (.rodata order) */
 LM D_002BE5A8 = {-0.7f, -0.5f}, D_002BE5B0 = {300.0f, 400.0f};
 extern "C" {
 void InitBhv(BHV171 *pbhv);
@@ -276,6 +276,10 @@ extern "C" void func_00172018(BHV171 *p) {
     }
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A5398 __asm__("D_002A5398") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x172320
  * Purpose: Enters a search state, starting the matching sub-behaviour (BHV157 anim 0xC/0xE/1, BHV186 goto,
  *   BHV158 look) and timers
@@ -476,6 +480,9 @@ static inline qword VuFloatVolatile(float g){qword v;
 // vsub r = t - b. Allocation-only constraints: "=j"(t)/"1"(t) marks the copy t as consumed by the vsub, and "0"(b) puts r in b's register (as in the target)
 #define QW_SUB_T(r,t,b) __asm__("vsub.xyzw %0, %1, %2":"=j"(r),"=j"(t):"0"(b),"1"(t))
 
+namespace RO_ORDER { extern const LM r_D_002A53C0 __asm__("D_002A53C0") = {200.0f, 1200.0f}; }
+namespace RO_ORDER { extern const LM r_D_002A53C8 __asm__("D_002A53C8") = {-0.785398185f, 0.785398185f}; }
+namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.40282347e+38f; }
 /** @sly2-annot addr=0x1728B0
  * Purpose: Gathers candidate hiding places (several global object lists, cids 0x23/0x67/0x1B), sorts by
  *   heading, keeps up to 4 spread points, fills the rest randomly behind the guard
@@ -552,6 +559,7 @@ extern "C" void func_001728B0(BHV171*p){
  p->ipair=0;p->tNext=D_002A53D0;
 }
 
+namespace RO_ORDER { extern const float r_D_002A53D4 __asm__("D_002A53D4") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x172F10
  * Purpose: Every ~1 s after arriving, moves BHV186 to the next of the 4 search points
  * Info: proposed name StepBhv171SearchPoint (T2); TU tu_171F58

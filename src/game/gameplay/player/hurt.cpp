@@ -61,6 +61,10 @@ extern "C" void InitJtHurt(JTHURT *pjthurt, STEPPLAYER *pstepplayer)
     pjthurt->nHpMax = 0x28;
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A6720 __asm__("D_002A6720") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtHurtState {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
@@ -89,7 +93,7 @@ extern "C"{
  extern "C" U D_002BFA00={{0.0f,0.0f,-750.0f,0.0f}},D_002BFA10={{0.0f,0.0f,500.0f,0.0f}};
  extern "C" POLY D_002BFA20={-1.0f,0.004f,0.0f};
  extern LIMIT D_002BBB60;
- extern "C" const float D_002A6720=3.40282347e+38f;   // FLT_MAX
+extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rodata order) */
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  float atan2f(float,float);
  float RadNormalize__Ff(float);
@@ -898,9 +902,6 @@ extern "C" void func_001A2080(JTHURT *pjthurt)
  * @end-sly2-annot */
 /* The friction and elasticity of a contact by hurt state (D_002BFB20/D_002BFB24; no bounce in states 4 and 12, the
    contact's own values in 0, 6 and 7). */
-// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
-// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
-// has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_func_001A2080() __asm__("func_001A2080");
 extern const unsigned int r_D_002A6790[2] __asm__("D_002A6790") = {0xFFFF0000, (unsigned int)p_func_001A2080};
