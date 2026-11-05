@@ -6,7 +6,7 @@
 #                                 file-scope name stands for different functions in different objects
 # Not listed here (derived by tools/linkaliases.py instead): D_XXXXXXXX / func_XXXXXXXX address names.
 
-# vtables of namespace-scoped view classes -> the real vtable (214 lines, 214 references)
+# vtables of namespace-scoped view classes -> the real vtable (212 lines, 212 references; CID36/CID37 now name CID35's GRABSPOT vtable)
 _vt$Q23REG10BHVJUGGLED = D_002D03A0;   # app/class_registry.cpp
 _vt$Q23REG10HACKBULLET = D_002D1328;   # app/class_registry.cpp
 _vt$Q23REG11BHVPATHLINK = D_002CFCA0;   # app/class_registry.cpp
@@ -70,9 +70,7 @@ _vt$Q23REG5CID34$Q23REG8GRABSPOT = D_002D2518;   # app/class_registry.cpp
 _vt$Q23REG5CID35 = D_002D1EE8;   # app/class_registry.cpp
 _vt$Q23REG5CID35$Q23REG8GRABSPOT = D_002D1EA8;   # app/class_registry.cpp
 _vt$Q23REG5CID36 = D_002D1D00;   # app/class_registry.cpp
-_vt$Q23REG5CID36$Q23REG8GRABSPOT = D_002D1EA8;   # app/class_registry.cpp
 _vt$Q23REG5CID37 = D_002CB9F8;   # app/class_registry.cpp
-_vt$Q23REG5CID37$Q23REG8GRABSPOT = D_002D1EA8;   # app/class_registry.cpp
 _vt$Q23REG5CID38 = D_002D2378;   # app/class_registry.cpp
 _vt$Q23REG5CID38$Q23REG8GRABSPOT = D_002D2338;   # app/class_registry.cpp
 _vt$Q23REG5CID39 = D_002D9DD0;   # app/class_registry.cpp

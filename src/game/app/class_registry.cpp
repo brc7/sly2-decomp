@@ -975,11 +975,22 @@ struct SHAPE : XFM
 typedef char assert_SHAPE_size[sizeof(SHAPE) == 0x190 ? 1 : -1];
 
 /* The grab-spot mix-in (second base of the grab-spot classes): GRABSPOTDATA (0x20 bytes, object/proxy.cpp) and
-   its own vptr at +0x20 (vtable 0x2D28D8, 6 slots; hidden-types.md B2.12). */
+   its own vptr at +0x20 (vtable 0x2D28D8, 6 slots; hidden-types.md B2.12). Slot names from gameplay/player/grabspot.cpp;
+   only FGetGrabRange's signature is modelled.
+   Every grab-spot class below overrides slot 6 (an 8-byte function at 0x2599E8.., delta != 0 in its secondary vtable),
+   so its GRABSPOT-in-X vtable is its own: the view declares that override (VtF), because with -fno-rtti g++ reuses
+   the base's vtable (_vt$GRABSPOT) for a secondary base whose virtuals the class does not override, which changes the
+   constructor's vptr stores. CID36/CID37 override nothing of GRABSPOT and reuse CID35's (D_002D1EA8 in the ELF for
+   all three, link_aliases.txt). */
 struct GRABSPOT
 {
     char abData[0x20];
-    virtual int FGetGrabRange();
+    virtual int FGetGrabRange();          /* slot 1: 0x182CC0 */
+    virtual void GetClosestParam();       /* slot 2: 0x182CC8 */
+    virtual void GetGrabPos();            /* slot 3: 0x182CD0 */
+    virtual void AdjustScore();           /* slot 4: 0x182D70 */
+    virtual void GetSparklePos();         /* slot 5: 0x182D78 */
+    virtual void VtF();                   /* slot 6: 0x182E78 GRABSPOT_vtF */
 };
 
 /* 11 PIPE (0x1E0): lamp posts; JTPIPE */
@@ -987,6 +998,7 @@ struct PIPE : SHAPE, GRABSPOT
 {
     char pad1B4[0x1E0 - 0x1B4];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetPipeClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
 
@@ -995,6 +1007,7 @@ struct CID12 : SHAPE, GRABSPOT
 {
     char pad1B4[0x1C0 - 0x1B4];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetCid12ClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
 
@@ -1003,6 +1016,7 @@ struct RAIL : SHAPE, GRABSPOT
 {
     char pad1B4[0x1D0 - 0x1B4];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetRailClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];
 
@@ -1051,6 +1065,7 @@ struct HND : TARGET, GRABSPOT
 {
     char pad124[0x140 - 0x124];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetHndClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_HND_size[sizeof(HND) == 0x140 ? 1 : -1];
 
@@ -1114,6 +1129,7 @@ struct CID27 : VOL, GRABSPOT
 {
     char pad154[0x160 - 0x154];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetCid27ClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_CID27_size[sizeof(CID27) == 0x160 ? 1 : -1];
 
@@ -1176,6 +1192,7 @@ struct CID34 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetCid34ClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
 
@@ -1184,6 +1201,7 @@ struct CID35 : XFM, GRABSPOT
 {
     char pad104[0x180 - 0x104];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetCid35ClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_CID35_size[sizeof(CID35) == 0x180 ? 1 : -1];
 
@@ -1208,6 +1226,7 @@ struct CID38 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetCid38ClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_CID38_size[sizeof(CID38) == 0x110 ? 1 : -1];
 
@@ -1216,6 +1235,7 @@ struct CID39 : XFM, GRABSPOT
 {
     char pad104[0x110 - 0x104];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetCid39ClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
 
@@ -1649,6 +1669,7 @@ struct BARREL : SO, GRABSPOT
 {
     char pad174[0x1A0 - 0x174];
     virtual CLASSINFO *Pclassinfo();      /* slot 6: GetBarrelClassDesc below */
+    virtual void VtF();                   /* GRABSPOT slot 6 override */
 };
 typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
 
