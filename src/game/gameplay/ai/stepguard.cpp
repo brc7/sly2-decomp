@@ -1,5 +1,5 @@
 // stepguard.cpp -- STEPGUARD (CID 0x38), the guard step object: load, update, hp, targets, animation bindings, the
-// mover and target records. TU 0x205B00..0x20B820 (158 functions, address order).
+// mover and target records. TU 0x205E70..0x20B840 (158 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepguard
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0020B820
 // The per-function files keep their views in namespaces named after the function (docs/guides/tu-merging.md
