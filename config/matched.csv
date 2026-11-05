@@ -6278,8 +6278,8 @@ sceCdDiskReady_2425F0,0x2425F0,136,match,src/sdk/libcdvd/sceCdDiskReady_2425F0.c
 sceCdGetReadPos,0x242810,12,match,src/sdk/libcdvd/sceCdGetReadPos.c
 sceCdRead,0x242840,120,match,src/sdk/libcdvd/sceCdRead.c
 sceCdGetDiskType2,0x242A20,38,match,src/sdk/libcdvd/sceCdGetDiskType2.c
-sceCdGetDiskType_242AB8,0x242AB8,9,match,src/sdk/libcdvd/sceCdGetDiskType_242AB8.c
-sceCdGetDiskType,0x242AE0,38,match,src/sdk/libcdvd/sceCdGetDiskType.c
+sceCdGetDiskType,0x242AB8,9,match,src/sdk/libcdvd/sceCdGetDiskType.c
+sceCdGetError,0x242AE0,38,match,src/sdk/libcdvd/sceCdGetError.c
 sceCdBreak,0x242B78,46,match,src/sdk/libcdvd/sceCdBreak.c
 sceCdMmode,0x242C30,52,match,src/sdk/libcdvd/sceCdMmode.c
 scePadInit,0x242D08,80,match,src/sdk/libpad/scePadInit.c

@@ -50,7 +50,7 @@ int sceRead(int fd, void *pv, int cb);
 int sceClose(int fd);
 int sceCdBreak(void);
 int sceCdGetReadPos(void);
-int sceCdGetDiskType(void);
+int sceCdGetError(void);
 int func_00241E88(int);
 void ReadCdDirect(uint isector, uint csector, void *pv, int mode);
 void InitGeom__FP4GEOM(CBinaryInputStream *p);  /* the call target's current (wrong) name; the base Close */
@@ -130,7 +130,7 @@ extern "C" void func_001849A0(CBinaryInputStream *p)
             if (p->cbReadDone < t) {
                 p->cbReadDone = t;
             } else if (func_00241E88(1) == 0) {
-                if (sceCdGetDiskType() == 0) {
+                if (sceCdGetError() == 0) {
                     int c = p->cbReadReq;
                     p->cbReadDone = c;
                     p->isector += c / 0x800;

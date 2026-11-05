@@ -434,9 +434,9 @@ Totals on this page: EXISTING 376, T1 219, T2 16.
 | [0x2425F0](../../../src/sdk/libcdvd/sceCdDiskReady_2425F0.c) | `sceCdDiskReady_2425F0` |  |  | existing |  |
 | [0x242810](../../../src/sdk/libcdvd/sceCdGetReadPos.c) | `sceCdGetReadPos` |  |  | existing |  |
 | [0x242840](../../../src/sdk/libcdvd/sceCdRead.c) | `sceCdRead` |  |  | existing |  |
-| [0x242A20](../../../src/sdk/libcdvd/sceCdGetDiskType2.c) | `sceCdGetError` |  |  | existing |  |
-| [0x242AB8](../../../src/sdk/libcdvd/sceCdGetDiskType_242AB8.c) | `sceCdGetDiskType_242AB8` |  |  | existing |  |
-| [0x242AE0](../../../src/sdk/libcdvd/sceCdGetDiskType.c) | `sceCdGetDiskType` |  |  | existing |  |
+| [0x242A20](../../../src/sdk/libcdvd/sceCdGetDiskType2.c) | `sceCdGetDiskType2` |  |  | existing |  |
+| [0x242AB8](../../../src/sdk/libcdvd/sceCdGetDiskType.c) | `sceCdGetDiskType` |  |  | existing |  |
+| [0x242AE0](../../../src/sdk/libcdvd/sceCdGetError.c) | `sceCdGetError` |  |  | existing |  |
 | [0x242B78](../../../src/sdk/libcdvd/sceCdBreak.c) | `sceCdBreak` |  |  | existing |  |
 | [0x242C30](../../../src/sdk/libcdvd/sceCdMmode.c) | `sceCdMmode` |  |  | existing |  |
 | [0x242D08](../../../src/sdk/libpad/scePadInit.c) | `scePadInit` |  |  | existing |  |

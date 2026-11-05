@@ -53,9 +53,11 @@ plus the anonymous literals of every object), .sbss 3 / 0xC, .bss 140 / 0xE5BF4 
 - Two objects define different functions under the same file-scope destructor name (`_$_3SPM`, `_$_3OBJ`): per-object
   `objcopy --redefine-syms` files from `tools/linkaliases.py --redefine DIR`.
 - 25,768 relocations agree with the ELF (field minus addend = the symbol's config address, through the alias table);
-  2 do not because config/functions.csv and config/symbol_addrs.txt disagree on the libcdvd names at 0x242A20,
-  0x242AB8 and 0x242AE0. A link resolves `sceCdGetError` / `sceCdGetDiskType` by whichever object defines them, so
-  this has to be settled before the link.
+  the 2 that did not (config/functions.csv and config/symbol_addrs.txt disagreed on the libcdvd names at 0x242A20,
+  0x242AB8 and 0x242AE0) are settled: 0x242A20 sceCdGetDiskType2 (S-command 3, raw), 0x242AB8 sceCdGetDiskType
+  (its -1 -> 0 wrapper, called by FValidCdMmode), 0x242AE0 sceCdGetError (S-command 4, called by bas.cpp, ReadCdDirect
+  and tu_1848A8's func_001849A0, the last two now spelled so in source); see docs/guides/tu-merging.md, "Linkage of
+  namespace-scoped declarations".
 - Duplicate strong definitions among the 209 objects (and among the 449 per-function and generated objects): 0.
 
 ## Two ways to link

@@ -1003,10 +1003,17 @@ wrapped, the FRAME view's constructor labelled `STACKSCOPE_ctor`, its destructor
 and 21 file-scope declarations (9 renamed to their config names, e.g. `GetHeroMp` -> `MpStepplayerCur`, 12
 labelled). Afterwards: no unresolved reference outside the alias table, 544 relocations checked OK, 44/44 MATCH.
 
-The 2 relocation mismatches are a config inconsistency, not source: config/functions.csv names 0x242AB8
-sceCdGetDiskType and 0x242AE0 sceCdGetError (as bas.cpp and cd.cpp call them), config/symbol_addrs.txt names
-0x242A20 sceCdGetError, 0x242AB8 sceCdGetDiskType_242AB8 and 0x242AE0 sceCdGetDiskType (as the libcdvd sources define
-them). Left for a config decision.
+The 2 relocation mismatches were a config inconsistency, not source: config/functions.csv named 0x242AB8
+sceCdGetDiskType and 0x242AE0 sceCdGetError (as bas.cpp and cd.cpp call them), config/symbol_addrs.txt named
+0x242A20 sceCdGetError, 0x242AB8 sceCdGetDiskType_242AB8 and 0x242AE0 sceCdGetDiskType (as the libcdvd sources defined
+them). Settled for functions.csv's names (both files and the SDK sources now agree): 0x242A20 and 0x242AE0 are
+S-command RPCs on the client bound to 0x80000593 (in _sceCd_scmd_prechk); cdvdfsv dispatches S-command 3 to
+sceCdGetDiskType and 4 to sceCdGetError, and 0x242A20 sends 3, 0x242AE0 sends 4. 0x242AB8 calls 0x242A20 and maps
+-1 to 0 (SCECdNODISC); the game calls it where it wants the disk type (FValidCdMmode compares with 0x14, PS2DVD)
+and calls 0x242AE0 to read the error after a read (bas.cpp; ReadCdDirect's retry loop; tu_1848A8's func_001849A0,
+which tests it for 0, SCECdErNO). The last two were spelled `sceCdGetDiskType()` in source, and were round 3's two
+mismatches; they now call sceCdGetError (relocations of the four touched objects: 94 OK, 0 mismatched). So 0x242AB8 is sceCdGetDiskType, 0x242AE0 sceCdGetError, and 0x242A20 keeps
+functions.csv's placeholder sceCdGetDiskType2 (Sony's name for the raw call is not known).
 
 ## Merged TUs
 
