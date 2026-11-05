@@ -273,22 +273,22 @@ names that the early drafts put in this TU are gone (e.g. 0x178E98 = `InitBhvwal
 | [0x204C60](../../src/game/actor/step.cpp) | `OnStepSoContactFreed` | STEP vt54: base no-op then drop the cached ground contact +0x208 if it is the freed one | 0.85 | T1 | verified |
 | [0x204D48](../../src/game/actor/step.cpp) | `SetStepSpinRatio` | smpSpin = default D_002C3CB8 with svFast/svSlow *r and dtFast /sqrt(r); store r at +0x1F0 | 0.85 | T1 | verified |
 | [0x2052E0](../../src/game/actor/step.cpp) | `MatchStepXf` | STEP vt38: copy pose of another object (vt31 matrix) incl. offset -+0x240 (TranslateToPos/RotateToMat), reset velocities; else SO::MatchXf | 0.85 | T1 | verified |
-| [0x206518](../../src/game/gameplay/ai/stepguard/ResetStepguardToHome.c) | `ResetStepguardToHome` | STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and flags, re-cache home pos/heading (+0x300/+0x310), capab | 0.85 | T1 | verified |
-| [0x206748](../../src/game/gameplay/ai/stepguard/ClearStepguardState.c) | `ClearStepguardState` | STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state -1, pickpocket state -1 | 0.85 | T1 | verified |
-| [0x206900](../../src/game/gameplay/ai/stepguard/UpdateStepguardDetectTargets.cpp) | `UpdateStepguardDetectTargets` | Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by distance, re-add them as detector targets keeping pre | 0.55 | T1 |  |
-| [0x207030](../../src/game/gameplay/ai/stepguard/SetStepguardSpecial.c) | `SetStepguardSpecial` | Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage | 0.50 | T1 |  |
-| [0x2079A0](../../src/game/gameplay/ai/stepguard/OnStepguardRemove.c) | `OnStepguardRemove` | STEPGUARD vt22: base (0x1F3E00), unlink from global guard list D_003E1444, stamp +0xFF8 | 0.85 | T1 | arbitration |
-| [0x2079E0](../../src/game/gameplay/ai/stepguard/OnStepguardAdd.c) | `OnStepguardAdd` | STEPGUARD vt23: base (0x1F3EA8), append to guard list D_003E1444, +0xFF8 = FLT_MAX | 0.85 | T1 | arbitration |
-| [0x207A20](../../src/game/gameplay/ai/stepguard/GrfFromSgf.c) | `GrfFromSgf` | Bit mask of guard flag n (1<<n, 0 for -1) | 0.85 | T1 | runtime |
-| [0x2080A0](../../src/game/gameplay/ai/stepguard/ResolveZapReactions.c) | `ResolveZapReactions` | Resolve all 26 entries of a table (0x209130) | 0.85 | T1 | verified |
-| [0x208E70](../../src/game/gameplay/ai/stepguard/GuardEvalInteractMode.c) | `GuardEvalInteractMode` | Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM | 0.55 | T1 |  |
-| [0x2090D0](../../src/game/gameplay/ai/stepguard/ReleaseAnimBinding.c) | `ReleaseAnimBinding` | Free kind-2/3 payload objects (0x20C030/0x20CA20) and mark binding empty (-1) | 0.85 | T1 | verified |
-| [0x2097C8](../../src/game/gameplay/ai/stepguard/LockStepguardMover.c) | `LockStepguardMover` | mover[1] = 1 (heading locked) | 0.85 | T1 | verified |
-| [0x209818](../../src/game/gameplay/ai/stepguard/SetStepguardMoverRadTarget.c) | `SetStepguardMoverRadTarget` | unless locked, SetStepRadTarget(owner, rad) | 0.85 | T1 | verified |
-| [0x209890](../../src/game/gameplay/ai/stepguard/AddStepguardSgf.c) | `AddStepguardSgf` | Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98 (3->0x14, 0xC->0x16) | 0.85 | T1 | runtime |
-| [0x209970](../../src/game/gameplay/ai/stepguard/RemoveStepguardSgf.cpp) | `RemoveStepguardSgf` | Clear guard flag n, message 7 (-1,n) | 0.85 | T1 | runtime |
-| [0x20A730](../../src/game/gameplay/ai/stepguard/AddTargetRecordGuard.c) | `AddTargetRecordGuard` | Append guard to record (stamp time and reset state on first) | 0.85 | T1 | verified |
-| [0x20A818](../../src/game/gameplay/ai/stepguard/func_0020A818.cpp) | `FTargetRecordAllowsGuard` | Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires guard ready or inside camera frustum within heading tole | 0.40 | T2 |  |
+| [0x206518](../../src/game/gameplay/ai/stepguard.cpp) | `ResetStepguardToHome` | STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and flags, re-cache home pos/heading (+0x300/+0x310), capab | 0.85 | T1 | verified |
+| [0x206748](../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardState` | STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state -1, pickpocket state -1 | 0.85 | T1 | verified |
+| [0x206900](../../src/game/gameplay/ai/stepguard.cpp) | `UpdateStepguardDetectTargets` | Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by distance, re-add them as detector targets keeping pre | 0.55 | T1 |  |
+| [0x207030](../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardSpecial` | Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage | 0.50 | T1 |  |
+| [0x2079A0](../../src/game/gameplay/ai/stepguard.cpp) | `OnStepguardRemove` | STEPGUARD vt22: base (0x1F3E00), unlink from global guard list D_003E1444, stamp +0xFF8 | 0.85 | T1 | arbitration |
+| [0x2079E0](../../src/game/gameplay/ai/stepguard.cpp) | `OnStepguardAdd` | STEPGUARD vt23: base (0x1F3EA8), append to guard list D_003E1444, +0xFF8 = FLT_MAX | 0.85 | T1 | arbitration |
+| [0x207A20](../../src/game/gameplay/ai/stepguard.cpp) | `GrfFromSgf` | Bit mask of guard flag n (1<<n, 0 for -1) | 0.85 | T1 | runtime |
+| [0x2080A0](../../src/game/gameplay/ai/stepguard.cpp) | `ResolveZapReactions` | Resolve all 26 entries of a table (0x209130) | 0.85 | T1 | verified |
+| [0x208E70](../../src/game/gameplay/ai/stepguard.cpp) | `GuardEvalInteractMode` | Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM | 0.55 | T1 |  |
+| [0x2090D0](../../src/game/gameplay/ai/stepguard.cpp) | `ReleaseAnimBinding` | Free kind-2/3 payload objects (0x20C030/0x20CA20) and mark binding empty (-1) | 0.85 | T1 | verified |
+| [0x2097C8](../../src/game/gameplay/ai/stepguard.cpp) | `LockStepguardMover` | mover[1] = 1 (heading locked) | 0.85 | T1 | verified |
+| [0x209818](../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardMoverRadTarget` | unless locked, SetStepRadTarget(owner, rad) | 0.85 | T1 | verified |
+| [0x209890](../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardSgf` | Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98 (3->0x14, 0xC->0x16) | 0.85 | T1 | runtime |
+| [0x209970](../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardSgf` | Clear guard flag n, message 7 (-1,n) | 0.85 | T1 | runtime |
+| [0x20A730](../../src/game/gameplay/ai/stepguard.cpp) | `AddTargetRecordGuard` | Append guard to record (stamp time and reset state on first) | 0.85 | T1 | verified |
+| [0x20A818](../../src/game/gameplay/ai/stepguard.cpp) | `FTargetRecordAllowsGuard` | Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires guard ready or inside camera frustum within heading tole | 0.40 | T2 |  |
 | [0x20D1A0](../../src/game/gameplay/ai/tu_20CE28.cpp) | `EnableStuckWatch` | enabled = 1 | 0.85 | T1 | verified |
 
 Selected 70 of 590 named functions (T1 with confidence >= 0.7, or runtime/verified/parse/arbitration evidence, or cited in the text). Full list: [reference/functions/guards-ai.md](../reference/functions/guards-ai.md).

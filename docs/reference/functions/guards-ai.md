@@ -515,162 +515,162 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x205E70](../../../src/game/gameplay/ai/stepguard/EnsureStepguardManager.c) | `EnsureStepguardManager` | Create the global guard-manager singleton (cid 0x7D, oid 0x656) into D_003DD48C once | 0.55 | T1 |  |
-| [0x205EB8](../../../src/game/gameplay/ai/stepguard/InitStepguard.c) | `InitStepguard` | STEPGUARD vt7 Init: InitStep, ensure guard manager, create the vision detector (PloNew cid 0x10 oid 0x288 -> +0xF64), default ranges/angles (+-45deg, +-75deg, 300/800/1200/3000...), HP 0x338.., masks, release anim/zap ta | 0.85 | T1 |  |
-| [0x206100](../../../src/game/gameplay/ai/stepguard/CloneStepguard.c) | `CloneStepguard` | STEPGUARD vt41: CloneStep keeping own detector, re-own mover, copy detector state through its vt (slot 41), deep-copy bindings (0x208250) | 0.80 | T1 |  |
-| [0x206170](../../../src/game/gameplay/ai/stepguard/func_00206170.cpp) | `StepguardResetOptionFn` | vt26(0) then send message 0xE (arg 0) to self: script-callable 'reset to home' action | 0.25 | T2 |  |
-| [0x2061D8](../../../src/game/gameplay/ai/stepguard/PostStepguardLoad.c) | `PostStepguardLoad` | STEPGUARD vt15: PostStepLoad, bind oid table, SetStepGravityRatio(+0x260), attach children, resolve anim bindings (0x2080F0) and attack oids (0x20AAA8), create the two helper components +0x498/+0x49C (next TU 0x20CE28/0x | 0.80 | T1 |  |
-| [0x206378](../../../src/game/gameplay/ai/stepguard/PdetectorGetStepguard.c) | `PdetectorGetStepguard` | Return the guard's vision detector (+0xF64) | 0.50 | T1 |  |
-| [0x206380](../../../src/game/gameplay/ai/stepguard/FIgnoreStepguardIntersection.c) | `FIgnoreStepguardIntersection` | STEPGUARD vt61: base test, plus ignore non-fixed objects while flag 7 (dead), or BHV177 (stunned/carried, cid 0xB1) states 0/4/5 vs its holder group | 0.60 | T1 |  |
-| [0x206458](../../../src/game/gameplay/ai/stepguard/func_00206458.c) | `GetStepguardHitPoints` | Splice getter: (+0x338 - 1)/10 clamped >= 0 (max hit count) | 0.40 | T2 | runtime-corrected |
-| [0x206488](../../../src/game/gameplay/ai/stepguard/func_00206488.c) | `SetStepguardHitPoints` | Splice setter: +0x338 = (n+1)*10 | 0.40 | T2 |  |
-| [0x2064A0](../../../src/game/gameplay/ai/stepguard/func_002064A0.c) | `GetStepguardHitPoints2` | Splice getter for +0x33C: max(v-1,0)+1 | 0.30 | T2 |  |
-| [0x2064C0](../../../src/game/gameplay/ai/stepguard/SetStepguardHpLevel.c) | `SetStepguardHpLevel` | Splice setter: +0x33C = (n+1)*10 | 0.60 | T1 | runtime |
-| [0x2064D8](../../../src/game/gameplay/ai/stepguard/RemoveStepguardHierarchy.c) | `RemoveStepguardHierarchy` | STEPGUARD vt12: base, clear target (0x208540(0)), clear BHV stack, retract held ASEGA +0x34C | 0.60 | T1 |  |
-| [0x206518](../../../src/game/gameplay/ai/stepguard/ResetStepguardToHome.c) | `ResetStepguardToHome` | STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and flags, re-cache home pos/heading (+0x300/+0x310), capability bits +0xFE8 from anim bindings for flags 9/8/0xF/0x11, add the 4 | 0.85 | T1 | verified |
-| [0x206748](../../../src/game/gameplay/ai/stepguard/ClearStepguardState.c) | `ClearStepguardState` | STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state -1, pickpocket state -1 | 0.85 | T1 | verified |
-| [0x206820](../../../src/game/gameplay/ai/stepguard/func_00206820.c) | `RestartStepguard` | vt27(0), message 0xF, vt26(0), message 0xE | 0.25 | T2 |  |
-| [0x2068D8](../../../src/game/gameplay/ai/stepguard/NCmpGuardCandidateDist.c) | `NCmpGuardCandidateDist` | qsort comparator on a leading float (-1 if a<b else 1) | 0.55 | existing | verified, arbitration; replaces existing FUN_00148910__FPfT0 |
-| [0x206900](../../../src/game/gameplay/ai/stepguard/UpdateStepguardDetectTargets.cpp) | `UpdateStepguardDetectTargets` | Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by distance, re-add them as detector targets keeping previous state; UpdateDetectorTargets; update shared target record from d | 0.55 | T1 |  |
-| [0x206D48](../../../src/game/gameplay/ai/stepguard/func_00206D48.c) | `FIsStepguardRageImmune` | True if the guard derives from any of cids D_002C3D10 = {0x3B,0x40,0x3D,0x3E,0x41} | 0.40 | T2 |  |
-| [0x206DB0](../../../src/game/gameplay/ai/stepguard/func_00206DB0.c) | `AddStepguardRageIgnoreClasses` | Add those 5 guard cids (when present in the world) to the ignore-class list +0x3A8 | 0.35 | T2 |  |
-| [0x206E50](../../../src/game/gameplay/ai/stepguard/func_00206E50.c) | `RemoveStepguardRageIgnoreClasses` | Remove the 5 guard cids from +0x3A8 | 0.35 | T2 |  |
-| [0x206EB0](../../../src/game/gameplay/ai/stepguard/func_00206EB0.c) | `FCanSetStepguardSpecial` | Whether special state k is allowed: -1 always; never while dead (flag 7) or BHV169 busy; 8/0xD/0xE yes; 0x15 not for cids 0x3E/0x42/0x43; 0x22/0x25 not for rage-immune; 0xB only for plain guards | 0.45 | T2 |  |
-| [0x207030](../../../src/game/gameplay/ai/stepguard/SetStepguardSpecial.c) | `SetStepguardSpecial` | Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage (target other guards: prefer cid 0x38, ignore 5 cids), 0x15 (BHV156 s | 0.50 | T1 |  |
-| [0x207288](../../../src/game/gameplay/ai/stepguard/UpdateStepguardSpecial.c) | `UpdateStepguardSpecial` | End the special state after D_002C3D40 = 10 s (8/0xD), 30 s (0x22/0x25), 5 s (0x15) | 0.50 | T1 |  |
-| [0x207350](../../../src/game/gameplay/ai/stepguard/UpdateStepguard.c) | `UpdateStepguard` | STEPGUARD vt16: UpdateStep; if in world and not time-frozen: special timeouts, detect targets, finish attack anim, aim, pickpocket, update components, BHV stack (0x1EED10), mover, release finished ASEGA, track base posit | 0.85 | T1 |  |
-| [0x207468](../../../src/game/gameplay/ai/stepguard/FTakeStepguardDamage.c) | `FTakeStepguardDamage` | STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid 0x4F), or base says no; then forward the zap to the BHV stack (message 0xC) | 0.50 | T1 |  |
-| [0x207530](../../../src/game/gameplay/ai/stepguard/func_00207530.c) | `FLethalStepguardZap` | STEPGUARD vt86: true if zap damage >= +0x338 and zap kind not in {0,1,0x80000,0x100000} | 0.40 | T2 |  |
-| [0x207598](../../../src/game/gameplay/ai/stepguard/FInvulnerableStepguard.c) | `FInvulnerableStepguard` | STEPGUARD vt76: +0x32C or +0x298 set, or flag 0x2A | 0.55 | T1 |  |
-| [0x2075D0](../../../src/game/gameplay/ai/stepguard/HandleStepguardMessage.c) | `HandleStepguardMessage` | STEPGUARD vt5: HandlePoMessage; msgs 4/5 attach/detach an object on component +0x49C; forward every message to the BHV stack (0x1EED78) | 0.75 | T1 |  |
-| [0x207690](../../../src/game/gameplay/ai/stepguard/RenderStepguardSelf.cpp) | `RenderStepguardSelf` | STEPGUARD vt19: draw the globset; when the camera policy is active, apply a 0.85 s squash/stretch pulse after +0x360 (pivot +0x240) and distance-based scale | 0.75 | T1 |  |
-| [0x2079A0](../../../src/game/gameplay/ai/stepguard/OnStepguardRemove.c) | `OnStepguardRemove` | STEPGUARD vt22: base (0x1F3E00), unlink from global guard list D_003E1444, stamp +0xFF8 | 0.85 | T1 | arbitration |
-| [0x2079E0](../../../src/game/gameplay/ai/stepguard/OnStepguardAdd.c) | `OnStepguardAdd` | STEPGUARD vt23: base (0x1F3EA8), append to guard list D_003E1444, +0xFF8 = FLT_MAX | 0.85 | T1 | arbitration |
-| [0x207A20](../../../src/game/gameplay/ai/stepguard/GrfFromSgf.c) | `GrfFromSgf` | Bit mask of guard flag n (1<<n, 0 for -1) | 0.85 | T1 | runtime |
-| [0x207A40](../../../src/game/gameplay/ai/stepguard/GrfFromSgfArray.c) | `GrfFromSgfArray` | OR of GrfFromSgf over an array | 0.50 | T1 |  |
-| [0x207AA0](../../../src/game/gameplay/ai/stepguard/CsgfFromGrf.c) | `CsgfFromGrf` | List the set flag numbers (46..0) of a mask into an array, return count | 0.50 | T1 |  |
-| [0x207B10](../../../src/game/gameplay/ai/stepguard/func_00207B10.c) | `GrfFromSpliceSgfList` | Convert a Splice list argument of guard-flag enums (type 0x1010) to a mask | 0.45 | T2 |  |
-| [0x207B70](../../../src/game/gameplay/ai/stepguard/func_00207B70.c) | `SetStepguardAnimBinding` | Splice: ensure the anim binding for a flag set and set its oid/arg (+4/+0xC) | 0.40 | T2 |  |
-| [0x207BC8](../../../src/game/gameplay/ai/stepguard/func_00207BC8.c) | `SetStepguardAnimBindingResolve` | Same as 0x207B70 then resolve it (0x209130) | 0.40 | T2 |  |
-| [0x207C48](../../../src/game/gameplay/ai/stepguard/func_00207C48.c) | `SetStepguardAnimBindingK3` | Splice: binding of kind 3 (new 0xD0 object 0x20CA00 with 4 params), n=8 | 0.35 | T2 |  |
-| [0x207CF8](../../../src/game/gameplay/ai/stepguard/func_00207CF8.c) | `SetStepguardAnimBindingK3Resolve` | 0x207C48 then resolve | 0.35 | T2 |  |
-| [0x207D98](../../../src/game/gameplay/ai/stepguard/func_00207D98.c) | `SetStepguardAnimBindingK2` | Splice: binding of kind 2 (new 0x40 object 0x20C010 with one param) | 0.35 | T2 |  |
-| [0x207E08](../../../src/game/gameplay/ai/stepguard/func_00207E08.c) | `SetStepguardAnimBindingK2Resolve` | 0x207D98 then resolve | 0.35 | T2 |  |
-| [0x207EB8](../../../src/game/gameplay/ai/stepguard/func_00207EB8.c) | `SetZapReactionBindings` | For each of 26 zap-kind bits in mask: release entry, set oid/arg | 0.40 | T2 |  |
-| [0x207F50](../../../src/game/gameplay/ai/stepguard/func_00207F50.c) | `SetZapReactionBindingsResolve` | Same and resolve each | 0.40 | T2 |  |
-| [0x207FF8](../../../src/game/gameplay/ai/stepguard/func_00207FF8.c) | `SetStepguardZapReactionsC10` | 0x207EB8 on table +0xC10 | 0.30 | T2 |  |
-| [0x208018](../../../src/game/gameplay/ai/stepguard/func_00208018.c) | `SetStepguardZapReactionsC10Resolve` | 0x207F50 on table +0xC10 | 0.30 | T2 |  |
-| [0x208038](../../../src/game/gameplay/ai/stepguard/func_00208038.c) | `SetStepguardZapReactionsA70` | 0x207EB8 on table +0xA70 | 0.30 | T2 |  |
-| [0x208058](../../../src/game/gameplay/ai/stepguard/func_00208058.c) | `SetStepguardZapReactionsA70Resolve` | 0x207F50 on table +0xA70 | 0.30 | T2 |  |
-| [0x208078](../../../src/game/gameplay/ai/stepguard/func_00208078.c) | `SetStepguardZapReactions8D0` | 0x207EB8 on table +0x8D0 | 0.30 | T2 | verified |
-| [0x2080A0](../../../src/game/gameplay/ai/stepguard/ResolveZapReactions.c) | `ResolveZapReactions` | Resolve all 26 entries of a table (0x209130) | 0.85 | T1 | verified |
-| [0x2080F0](../../../src/game/gameplay/ai/stepguard/ResolveStepguardAnimBindings.c) | `ResolveStepguardAnimBindings` | Resolve all anim bindings (+0x4C0 count, +0x4D0 entries) and the 3 zap tables | 0.50 | T1 |  |
-| [0x208178](../../../src/game/gameplay/ai/stepguard/func_00208178.c) | `ReleaseZapReactions` | Release all 26 entries of a table (0x2090D0) | 0.45 | T2 |  |
-| [0x2081C8](../../../src/game/gameplay/ai/stepguard/func_002081C8.c) | `ReleaseStepguardZapReactions` | Release the 3 zap tables | 0.45 | T2 |  |
-| [0x208208](../../../src/game/gameplay/ai/stepguard/func_00208208.c) | `CloneZapReactions` | Deep-copy all 26 entries (0x209590) | 0.45 | T2 |  |
-| [0x208250](../../../src/game/gameplay/ai/stepguard/CloneStepguardAnimBindings.c) | `CloneStepguardAnimBindings` | Deep-copy anim bindings and zap tables after a clone | 0.50 | T1 |  |
-| [0x2082D0](../../../src/game/gameplay/ai/stepguard/PloChooseStepguardTarget.cpp) | `PloChooseStepguardTarget` | STEPGUARD vt88: keep forced target +0x390 if in world; else among detector entries pick: forced classes (+0x3C0) first, skip ignored classes (+0x3A8), prefer classes +0x394, hysteresis for current target (+0x38C, CLQ -40 | 0.50 | T1 |  |
-| [0x208538](../../../src/game/gameplay/ai/stepguard/func_00208538.c) | `SetStepguardForcedTarget` | Splice setter: +0x390 = plo (option getter reads +0x38C) | 0.45 | T2 | verified |
-| [0x208540](../../../src/game/gameplay/ai/stepguard/SetStepguardTarget.c) | `SetStepguardTarget` | Change current target +0x38C: leave the old target's shared engagement record +0x3CC, join the new one's (EnsureGlobalById 0x1F8278 / 0x20A730) | 0.55 | T1 |  |
-| [0x2085B0](../../../src/game/gameplay/ai/stepguard/func_002085B0.c) | `FAddStepguardDetectTargetBack` | 0x2085D0(this,plo,0) | 0.30 | T2 |  |
-| [0x2085D0](../../../src/game/gameplay/ai/stepguard/FAddStepguardDetectTarget.cpp) | `FAddStepguardDetectTarget` | Insert plo into the detector target list (8 max): fFront appends; else inserts before the generated tail (+0x3A4), evicting the oldest generated entry when full | 0.50 | T1 |  |
-| [0x208700](../../../src/game/gameplay/ai/stepguard/func_00208700.c) | `AddStepguardPreferClass` | Append cid to +0x394 list (max 3) | 0.40 | T2 |  |
-| [0x208728](../../../src/game/gameplay/ai/stepguard/func_00208728.c) | `RemoveStepguardPreferClass` | Remove cid from +0x394 list | 0.40 | T2 |  |
-| [0x2087C8](../../../src/game/gameplay/ai/stepguard/func_002087C8.c) | `ClearStepguardGeneratedTargets` | Drop generated detector entries and clear prefer list | 0.30 | T2 |  |
-| [0x2087E8](../../../src/game/gameplay/ai/stepguard/func_002087E8.c) | `FStepguardPreferClass` | plo derives from a cid in +0x394 | 0.40 | T2 |  |
-| [0x208860](../../../src/game/gameplay/ai/stepguard/func_00208860.c) | `RemoveStepguardDetectTarget` | Remove a non-generated detector entry (compact) | 0.30 | T2 |  |
-| [0x2088E0](../../../src/game/gameplay/ai/stepguard/func_002088E0.c) | `ClearStepguardTargetLists` | Detector count=0, clear +0x394/+0x3A4/+0x3A8/+0x3C0 | 0.40 | T2 |  |
-| [0x208920](../../../src/game/gameplay/ai/stepguard/func_00208920.c) | `AddStepguardIgnoreClass` | Append cid to +0x3A8 list (max 5) | 0.40 | T2 |  |
-| [0x208948](../../../src/game/gameplay/ai/stepguard/func_00208948.c) | `RemoveStepguardIgnoreClass` | Remove cid from +0x3A8 | 0.40 | T2 |  |
-| [0x2089E8](../../../src/game/gameplay/ai/stepguard/func_002089E8.c) | `ClearStepguardIgnoreClasses` | +0x3A8 count = 0 | 0.40 | T2 |  |
-| [0x2089F0](../../../src/game/gameplay/ai/stepguard/func_002089F0.c) | `FStepguardIgnoreClass` | plo derives from a cid in +0x3A8 | 0.40 | T2 |  |
-| [0x208A68](../../../src/game/gameplay/ai/stepguard/func_00208A68.c) | `AddStepguardForceClass` | Append cid to +0x3C0 list (max 2) | 0.35 | T2 |  |
-| [0x208A90](../../../src/game/gameplay/ai/stepguard/func_00208A90.c) | `RemoveStepguardForceClass` | Remove cid from +0x3C0 | 0.35 | T2 |  |
-| [0x208B30](../../../src/game/gameplay/ai/stepguard/func_00208B30.c) | `ClearStepguardForceClasses` | +0x3C0 count = 0 | 0.35 | T2 |  |
-| [0x208B38](../../../src/game/gameplay/ai/stepguard/func_00208B38.c) | `FStepguardForceClass` | plo derives from a cid in +0x3C0 | 0.35 | T2 |  |
-| [0x208BB0](../../../src/game/gameplay/ai/stepguard/func_00208BB0.c) | `GRandStepguardDelay` | GRandInRange(5,7) | 0.30 | T2 |  |
-| [0x208BE0](../../../src/game/gameplay/ai/stepguard/FStepguardSenseStimulus.cpp) | `FStepguardSenseStimulus` | STEPGUARD vt89: can this guard perceive stimulus o (noise TU objects): senses enabled, level >= +0xE68, not own; kind 0 radius test (0x156918), kind 1 inner volume of detector + clear line (PsoHitTestLineObjects) | 0.50 | T1 |  |
-| [0x208D70](../../../src/game/gameplay/ai/stepguard/FStepguardSensesEnabled.c) | `FStepguardSensesEnabled` | +0xE64 unless any of flags {0xB,0x1D,7,5,6,0x10,1,0x16,0x2A} is set | 0.50 | T1 |  |
-| [0x208E70](../../../src/game/gameplay/ai/stepguard/GuardEvalInteractMode.c) | `GuardEvalInteractMode` | Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM +0x370/+0x368), 1 in range (d<=+0x388, dz in LM +0x380), 0 | 0.55 | T1 |  |
-| [0x209098](../../../src/game/gameplay/ai/stepguard/func_00209098.c) | `FStepguardHandsOff` | +0xFC8 or FSwInputLock(g_sw) | 0.35 | T2 |  |
-| [0x2090D0](../../../src/game/gameplay/ai/stepguard/ReleaseAnimBinding.c) | `ReleaseAnimBinding` | Free kind-2/3 payload objects (0x20C030/0x20CA20) and mark binding empty (-1) | 0.85 | T1 | verified |
-| [0x209130](../../../src/game/gameplay/ai/stepguard/ResolveAnimBinding.c) | `ResolveAnimBinding` | Resolve oid -> ASEG (cid 0x6D; kind 2 wrapper if it has label 0x22) or SM (cid 0x6F, kind 1); else -1 | 0.50 | T1 |  |
-| [0x209278](../../../src/game/gameplay/ai/stepguard/StartAnimBinding.c) | `StartAnimBinding` | Start the bound animation: ASEG apply (ApplyAsegOvr 0x12F9B8), SM -> SMA (0x1F0198), kind 2 at +0xDB0, kind 3 at +0xE20 | 0.50 | T1 |  |
-| [0x209360](../../../src/game/gameplay/ai/stepguard/StopAnimBinding.c) | `StopAnimBinding` | Stop/release the running instance per kind (RetractAsega, RetractSma, ...) and Decref | 0.50 | T1 |  |
-| [0x209430](../../../src/game/gameplay/ai/stepguard/FAnimBindingDone.c) | `FAnimBindingDone` | True if the running instance finished/retracted (or none) | 0.50 | T1 |  |
-| [0x209518](../../../src/game/gameplay/ai/stepguard/func_00209518.c) | `PasegaFromAnimBinding` | Return the animation instance pointer for a binding kind | 0.35 | T2 |  |
-| [0x209590](../../../src/game/gameplay/ai/stepguard/func_00209590.c) | `CloneAnimBinding` | Deep-copy kind-2 (0x40) / kind-3 (0xD0) payloads | 0.45 | T2 |  |
-| [0x209618](../../../src/game/gameplay/ai/stepguard/func_00209618.c) | `DriveStepguardFromAnim` | Set desired velocity +0x190 (= -translation*scale) and angular +0x1E0 from the binding's ASEG/object (VecStepAsegaTranslation/Rotation) | 0.40 | T2 |  |
-| [0x209768](../../../src/game/gameplay/ai/stepguard/func_00209768.c) | `InitStepguardMover` | mover(+0xFD0)->owner(+0xC) = guard | 0.40 | T2 |  |
-| [0x209770](../../../src/game/gameplay/ai/stepguard/func_00209770.c) | `CloneStepguardMover` | mover->owner = guard | 0.40 | T2 |  |
-| [0x209778](../../../src/game/gameplay/ai/stepguard/func_00209778.c) | `ClearStepguardMover` | zero mover words 0..2 | 0.35 | T2 |  |
-| [0x209788](../../../src/game/gameplay/ai/stepguard/func_00209788.c) | `SetStepguardMoverDriver` | mover[0] = driver object | 0.35 | T2 |  |
-| [0x209790](../../../src/game/gameplay/ai/stepguard/func_00209790.c) | `ResetStepguardMover` | clear driver/lock, zero owner's desired velocity +0x190, 0x1F5078 | 0.35 | T2 |  |
-| [0x2097C8](../../../src/game/gameplay/ai/stepguard/LockStepguardMover.c) | `LockStepguardMover` | mover[1] = 1 (heading locked) | 0.85 | T1 | verified |
-| [0x2097D8](../../../src/game/gameplay/ai/stepguard/func_002097D8.c) | `UnlockStepguardMover` | mover[1] = 0 | 0.35 | T2 |  |
-| [0x2097E0](../../../src/game/gameplay/ai/stepguard/func_002097E0.c) | `UpdateStepguardMover` | call driver vt11 | 0.35 | T2 |  |
-| [0x209818](../../../src/game/gameplay/ai/stepguard/SetStepguardMoverRadTarget.c) | `SetStepguardMoverRadTarget` | unless locked, SetStepRadTarget(owner, rad) | 0.85 | T1 | verified |
-| [0x209840](../../../src/game/gameplay/ai/stepguard/func_00209840.c) | `SetStepguardMoverMatTarget` | unless locked, copy a 3x3 into owner's matTarget +0x1B0 | 0.40 | T2 |  |
-| [0x209870](../../../src/game/gameplay/ai/stepguard/SetStepguardGrfsgf.c) | `SetStepguardGrfsgf` | Store flag word +0x2C0 and re-evaluate pickpocket state (0x1F1900) | 0.50 | T1 |  |
-| [0x209890](../../../src/game/gameplay/ai/stepguard/AddStepguardSgf.c) | `AddStepguardSgf` | Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98 (3->0x14, 0xC->0x16) | 0.85 | T1 | runtime |
-| [0x209970](../../../src/game/gameplay/ai/stepguard/RemoveStepguardSgf.cpp) | `RemoveStepguardSgf` | Clear guard flag n, message 7 (-1,n) | 0.85 | T1 | runtime |
-| [0x2099F0](../../../src/game/gameplay/ai/stepguard/FGrfHasSgf.c) | `FGrfHasSgf` | (grf & bit n) != 0 | 0.50 | T1 |  |
-| [0x209A28](../../../src/game/gameplay/ai/stepguard/func_00209A28.c) | `CsgfMatch` | popcount(a) if a is a subset of b, else 0 | 0.45 | T2 |  |
-| [0x209A68](../../../src/game/gameplay/ai/stepguard/FStepguardHasSgf.c) | `FStepguardHasSgf` | flag n set in +0x2C0 | 0.60 | T1 |  |
-| [0x209A88](../../../src/game/gameplay/ai/stepguard/func_00209A88.c) | `RefGetStepguardSgfs` | Splice getter: list of set flags | 0.45 | T2 |  |
-| [0x209AD0](../../../src/game/gameplay/ai/stepguard/PanimbindBest.c) | `PanimbindBest` | Binding whose flag set is the largest subset of mask and contains its lowest flag | 0.50 | T1 |  |
-| [0x209BC0](../../../src/game/gameplay/ai/stepguard/func_00209BC0.c) | `PanimbindCur` | PanimbindBest for the current flags | 0.45 | T2 |  |
-| [0x209BE0](../../../src/game/gameplay/ai/stepguard/func_00209BE0.c) | `PanimbindFind` | Binding with exactly this flag set | 0.45 | T2 |  |
-| [0x209C18](../../../src/game/gameplay/ai/stepguard/func_00209C18.c) | `PanimbindEnsure` | Find or append binding for a flag set, released | 0.45 | T2 |  |
-| [0x209C88](../../../src/game/gameplay/ai/stepguard/func_00209C88.c) | `AddStepguardAttachXps` | STEPGUARD vt59: when attached (+0xF80 0..3) add constraint contacts via vt82 against the attach object (rail/pipe closest point 0x1E6F10, target pos, fixed axis) | 0.45 | T2 |  |
-| [0x209E28](../../../src/game/gameplay/ai/stepguard/func_00209E28.c) | `SendStepguardRootBhv6` | Send record {k=6, a[4]=n} to root behaviour BHV156 (0x176750) | 0.30 | T2 |  |
-| [0x209E88](../../../src/game/gameplay/ai/stepguard/func_00209E88.c) | `StunStepguardBhv176A` | If flag 0x16 or 0x12: BHV176 (cid 0xB0) op 1 | 0.25 | T2 |  |
-| [0x209EE0](../../../src/game/gameplay/ai/stepguard/func_00209EE0.c) | `StunStepguardBhv176B` | Flags 0x12/0x13: BHV176 op 2; else stunned (0x17): BHV177 op 2; then scale velocity (0x11E9F8, 800) | 0.25 | T2 |  |
-| [0x209FB8](../../../src/game/gameplay/ai/stepguard/func_00209FB8.c) | `StunStepguardBhv176C` | Flag 0x16 or 0x13: BHV176 op 3 | 0.25 | T2 |  |
-| [0x20A010](../../../src/game/gameplay/ai/stepguard/func_0020A010.c) | `GetStepguardStunField` | BHV177 +0x58 while stunned (flag 0x17), else 0 | 0.25 | T2 |  |
-| [0x20A058](../../../src/game/gameplay/ai/stepguard/func_0020A058.c) | `SetStepguardCRefPair` | Splice: fetch two typed CRefs (0x2002) into +0xF94/+0xF98 and +0xFA8/+0xFAC | 0.20 | T2 |  |
-| [0x20A100](../../../src/game/gameplay/ai/stepguard/func_0020A100.c) | `SetStepguardRootBhvPoint` | Store (+0xF68,+0xF70) and pass to BHV156 when it is in sub-state 0x10 | 0.25 | T2 |  |
-| [0x20A168](../../../src/game/gameplay/ai/stepguard/func_0020A168.c) | `IcmpStepguardStimulus` | Compare stimuli: template priority, level, time, then distance | 0.40 | T2 |  |
-| [0x20A298](../../../src/game/gameplay/ai/stepguard/func_0020A298.c) | `FStepguardTargetValid` | Target check with MURRAY special case, detector entry age D_002C3DAC and mask | 0.30 | T2 |  |
-| [0x20A378](../../../src/game/gameplay/ai/stepguard/func_0020A378.c) | `FStepguardTargetValid2` | 0x20A298 with extra MURRAY/cid 0x3A/0x3D case | 0.30 | T2 | verified |
-| [0x20A408](../../../src/game/gameplay/ai/stepguard/func_0020A408.c) | `PstimChooseStepguard` | Best perceivable stimulus (vt89) from list D_003E0000 by IcmpStepguardStimulus; a stimulus of kind 4 already tracked just re-marks the detector entry lost and returns the default | 0.45 | T2 |  |
-| [0x20A518](../../../src/game/gameplay/ai/stepguard/func_0020A518.c) | `AddStepguardClassE94` | Append cid to +0xE94 list (max 8) | 0.25 | T2 |  |
-| [0x20A540](../../../src/game/gameplay/ai/stepguard/func_0020A540.c) | `SetStepguardMode2E8` | Set +0x2E8; restart BHV156 when it is in sub-state 1 | 0.25 | T2 |  |
-| [0x20A5F8](../../../src/game/gameplay/ai/stepguard/func_0020A5F8.c) | `InitTargetRecord` | Init a shared per-target engagement record (0xAC): target +0xC, 1.0, 2.0, -1s, append to D_003E145C | 0.45 | T2 |  |
-| [0x20A658](../../../src/game/gameplay/ai/stepguard/func_0020A658.c) | `IguardFindTargetRecord` | Index of guard in the record's guard list (+0x28 count, +0x2C) | 0.35 | T2 |  |
-| [0x20A690](../../../src/game/gameplay/ai/stepguard/func_0020A690.c) | `RadTargetRecordFacing` | Heading reference: camera (kind 0) or target facing (kind 1) | 0.35 | T2 |  |
-| [0x20A730](../../../src/game/gameplay/ai/stepguard/AddTargetRecordGuard.c) | `AddTargetRecordGuard` | Append guard to record (stamp time and reset state on first) | 0.85 | T1 | verified |
-| [0x20A790](../../../src/game/gameplay/ai/stepguard/func_0020A790.c) | `RemoveTargetRecordGuard` | Remove guard from record | 0.40 | T2 |  |
-| [0x20A7E0](../../../src/game/gameplay/ai/stepguard/func_0020A7E0.c) | `FTargetRecordStale` | time since record stamp > D_002C3DB4 | 0.30 | T2 |  |
-| [0x20A818](../../../src/game/gameplay/ai/stepguard/func_0020A818.cpp) | `FTargetRecordAllowsGuard` | Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires guard ready or inside camera frustum within heading tolerance of the camera | 0.40 | T2 |  |
-| [0x20A9A8](../../../src/game/gameplay/ai/stepguard/func_0020A9A8.c) | `SetTargetRecordState` | record state + time | 0.40 | T2 |  |
-| [0x20A9C0](../../../src/game/gameplay/ai/stepguard/func_0020A9C0.c) | `PattackDefaultStepguard` | Return first attack object; if none create default cid 0x78 (oid 0x2CC) | 0.35 | T2 |  |
-| [0x20AA40](../../../src/game/gameplay/ai/stepguard/func_0020AA40.c) | `AddStepguardAttackOid` | Append attack oid (max 8) to +0xEB8 | 0.35 | T2 |  |
-| [0x20AA78](../../../src/game/gameplay/ai/stepguard/func_0020AA78.c) | `AddStepguardAttackOidResolve` | 0x20AA40 then 0x20AAA8 | 0.30 | T2 |  |
-| [0x20AAA8](../../../src/game/gameplay/ai/stepguard/func_0020AAA8.c) | `ResolveStepguardAttacks` | Resolve attack oids into objects +0xEDC | 0.40 | T2 |  |
-| [0x20AB58](../../../src/game/gameplay/ai/stepguard/func_0020AB58.c) | `ClearStepguardAttacks` | clear both attack lists | 0.30 | T2 |  |
-| [0x20AB68](../../../src/game/gameplay/ai/stepguard/func_0020AB68.c) | `SetStepguardAttack` | Switch current attack +0xF00: stop old anim, cooldown +0xF04 = now+GRandInRange(lm), start new anim, then aim (0x20AC28) | 0.45 | T2 |  |
-| [0x20AC28](../../../src/game/gameplay/ai/stepguard/func_0020AC28.c) | `SetStepguardAimAct` | Release/create an aim act (PactNewVector) for the attack | 0.35 | T2 |  |
-| [0x20ACC0](../../../src/game/gameplay/ai/stepguard/func_0020ACC0.c) | `UpdateStepguardAim` | Aim rotation toward predicted point (0x22FC48) as Euler | 0.30 | T2 |  |
-| [0x20AD38](../../../src/game/gameplay/ai/stepguard/func_0020AD38.c) | `InitCid120Attack` | cid 0x78 vt7: InitLo, range LM [0,300], height LM [-5000,5000], cooldown LM [0.2,0.5], angle 10deg, 3 oids -1, release binding | 0.45 | T2 |  |
-| [0x20ADE8](../../../src/game/gameplay/ai/stepguard/func_0020ADE8.c) | `CloneCid120Attack` | cid 0x78 vt41: CloneLo + clone binding | 0.45 | T2 |  |
-| [0x20AE18](../../../src/game/gameplay/ai/stepguard/func_0020AE18.c) | `PostCid120AttackLoad` | cid 0x78 vt15: PostLoLoad, find owning STEPGUARD up parent chain, resolve binding, precompute ASEG effect (0x1300B8) | 0.40 | T2 |  |
-| [0x20AF08](../../../src/game/gameplay/ai/stepguard/func_0020AF08.c) | `SetDegAngle68` | +0x68 = deg*pi/180 | 0.30 | T2 |  |
-| [0x20AF28](../../../src/game/gameplay/ai/stepguard/func_0020AF28.c) | `SetCid120AttackOids` | +0x7C/+0x80/+0x84 | 0.30 | T2 |  |
-| [0x20AF38](../../../src/game/gameplay/ai/stepguard/func_0020AF38.c) | `SetCid120AttackBinding` | release binding then set oid/arg | 0.30 | T2 |  |
-| [0x20AF88](../../../src/game/gameplay/ai/stepguard/func_0020AF88.c) | `SetCid120AttackBindingResolve` | same then resolve | 0.30 | T2 |  |
-| [0x20AFF0](../../../src/game/gameplay/ai/stepguard/func_0020AFF0.c) | `SetCid120AttackBindingK2` | binding kind 2 (0x40 payload) | 0.30 | T2 |  |
-| [0x20B060](../../../src/game/gameplay/ai/stepguard/func_0020B060.c) | `SetCid120AttackBindingK2Resolve` | same then resolve | 0.30 | T2 |  |
-| [0x20B090](../../../src/game/gameplay/ai/stepguard/func_0020B090.c) | `GrfStepguardGroundProbe` | STEPGUARD vt85: 1 if flag 0x14; 0 if flags 0x12/0x13/0x16; else mover driver vt12 or STEP base | 0.40 | T2 |  |
-| [0x20B140](../../../src/game/gameplay/ai/stepguard/func_0020B140.c) | `EmitStepguardStimulus` | Emit a stimulus (NewNoise 0x156548 from template +0xE60 or world default) at the guard, aimed at q (kind 4), +0xF44 = now + D_002C3DB8 | 0.35 | T2 |  |
-| [0x20B210](../../../src/game/gameplay/ai/stepguard/func_0020B210.c) | `DetachStepguard` | Unlink attachment (LinkStepAttachment f=0) and clear +0xF80/+0xF84 | 0.40 | T2 |  |
-| [0x20B2A8](../../../src/game/gameplay/ai/stepguard/func_0020B2A8.c) | `AttachStepguard` | Attach to object by class: CID11 pipe?, CID13 rail?, CID19 (k124==3), CID39 -> +0xF80 kind 0..3 | 0.40 | T2 |  |
-| [0x20B3D0](../../../src/game/gameplay/ai/stepguard/JthsCurrentStepguard.c) | `JthsCurrentStepguard` | STEPGUARD vt77: 2 (dead) if flag 7, 1 (damaged) if flags 5/6, else 0 | 0.50 | T1 |  |
-| [0x20B438](../../../src/game/gameplay/ai/stepguard/func_0020B438.c) | `IncrementStepguardBusy` | ++ +0xFFC; first makes it busy (SetLoBusyk 1) | 0.35 | T2 |  |
-| [0x20B478](../../../src/game/gameplay/ai/stepguard/func_0020B478.c) | `DecrementStepguardBusy` | -- +0xFFC; at 0 SetLoBusyk 0 | 0.35 | T2 |  |
-| [0x20B4A8](../../../src/game/gameplay/ai/stepguard/func_0020B4A8.c) | `InitCid125GuardMgr` | cid 0x7D vt7: InitLo, flag 2, register for update | 0.50 | T2 |  |
-| [0x20B500](../../../src/game/gameplay/ai/stepguard/func_0020B500.c) | `PostCid125GuardMgrLoad` | cid 0x7D vt15: list all STEPGUARD objects (cid 0x38) | 0.50 | T2 | verified |
-| [0x20B590](../../../src/game/gameplay/ai/stepguard/func_0020B590.c) | `UpdateCid125GuardMgr` | cid 0x7D vt16: guards out of the list for > 0.25 s (+0xFF8): mode +0x1000 1 = RemoveLo, 2 = restart BHV156 and reset detector | 0.45 | T2 |  |
+| [0x205E70](../../../src/game/gameplay/ai/stepguard.cpp) | `EnsureStepguardManager` | Create the global guard-manager singleton (cid 0x7D, oid 0x656) into D_003DD48C once | 0.55 | T1 |  |
+| [0x205EB8](../../../src/game/gameplay/ai/stepguard.cpp) | `InitStepguard` | STEPGUARD vt7 Init: InitStep, ensure guard manager, create the vision detector (PloNew cid 0x10 oid 0x288 -> +0xF64), default ranges/angles (+-45deg, +-75deg, 300/800/1200/3000...), HP 0x338.., masks, release anim/zap ta | 0.85 | T1 |  |
+| [0x206100](../../../src/game/gameplay/ai/stepguard.cpp) | `CloneStepguard` | STEPGUARD vt41: CloneStep keeping own detector, re-own mover, copy detector state through its vt (slot 41), deep-copy bindings (0x208250) | 0.80 | T1 |  |
+| [0x206170](../../../src/game/gameplay/ai/stepguard.cpp) | `StepguardResetOptionFn` | vt26(0) then send message 0xE (arg 0) to self: script-callable 'reset to home' action | 0.25 | T2 |  |
+| [0x2061D8](../../../src/game/gameplay/ai/stepguard.cpp) | `PostStepguardLoad` | STEPGUARD vt15: PostStepLoad, bind oid table, SetStepGravityRatio(+0x260), attach children, resolve anim bindings (0x2080F0) and attack oids (0x20AAA8), create the two helper components +0x498/+0x49C (next TU 0x20CE28/0x | 0.80 | T1 |  |
+| [0x206378](../../../src/game/gameplay/ai/stepguard.cpp) | `PdetectorGetStepguard` | Return the guard's vision detector (+0xF64) | 0.50 | T1 |  |
+| [0x206380](../../../src/game/gameplay/ai/stepguard.cpp) | `FIgnoreStepguardIntersection` | STEPGUARD vt61: base test, plus ignore non-fixed objects while flag 7 (dead), or BHV177 (stunned/carried, cid 0xB1) states 0/4/5 vs its holder group | 0.60 | T1 |  |
+| [0x206458](../../../src/game/gameplay/ai/stepguard.cpp) | `GetStepguardHitPoints` | Splice getter: (+0x338 - 1)/10 clamped >= 0 (max hit count) | 0.40 | T2 | runtime-corrected |
+| [0x206488](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardHitPoints` | Splice setter: +0x338 = (n+1)*10 | 0.40 | T2 |  |
+| [0x2064A0](../../../src/game/gameplay/ai/stepguard.cpp) | `GetStepguardHitPoints2` | Splice getter for +0x33C: max(v-1,0)+1 | 0.30 | T2 |  |
+| [0x2064C0](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardHpLevel` | Splice setter: +0x33C = (n+1)*10 | 0.60 | T1 | runtime |
+| [0x2064D8](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardHierarchy` | STEPGUARD vt12: base, clear target (0x208540(0)), clear BHV stack, retract held ASEGA +0x34C | 0.60 | T1 |  |
+| [0x206518](../../../src/game/gameplay/ai/stepguard.cpp) | `ResetStepguardToHome` | STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and flags, re-cache home pos/heading (+0x300/+0x310), capability bits +0xFE8 from anim bindings for flags 9/8/0xF/0x11, add the 4 | 0.85 | T1 | verified |
+| [0x206748](../../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardState` | STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state -1, pickpocket state -1 | 0.85 | T1 | verified |
+| [0x206820](../../../src/game/gameplay/ai/stepguard.cpp) | `RestartStepguard` | vt27(0), message 0xF, vt26(0), message 0xE | 0.25 | T2 |  |
+| [0x2068D8](../../../src/game/gameplay/ai/stepguard.cpp) | `NCmpGuardCandidateDist` | qsort comparator on a leading float (-1 if a<b else 1) | 0.55 | existing | verified, arbitration; replaces existing FUN_00148910__FPfT0 |
+| [0x206900](../../../src/game/gameplay/ai/stepguard.cpp) | `UpdateStepguardDetectTargets` | Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by distance, re-add them as detector targets keeping previous state; UpdateDetectorTargets; update shared target record from d | 0.55 | T1 |  |
+| [0x206D48](../../../src/game/gameplay/ai/stepguard.cpp) | `FIsStepguardRageImmune` | True if the guard derives from any of cids D_002C3D10 = {0x3B,0x40,0x3D,0x3E,0x41} | 0.40 | T2 |  |
+| [0x206DB0](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardRageIgnoreClasses` | Add those 5 guard cids (when present in the world) to the ignore-class list +0x3A8 | 0.35 | T2 |  |
+| [0x206E50](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardRageIgnoreClasses` | Remove the 5 guard cids from +0x3A8 | 0.35 | T2 |  |
+| [0x206EB0](../../../src/game/gameplay/ai/stepguard.cpp) | `FCanSetStepguardSpecial` | Whether special state k is allowed: -1 always; never while dead (flag 7) or BHV169 busy; 8/0xD/0xE yes; 0x15 not for cids 0x3E/0x42/0x43; 0x22/0x25 not for rage-immune; 0xB only for plain guards | 0.45 | T2 |  |
+| [0x207030](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardSpecial` | Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage (target other guards: prefer cid 0x38, ignore 5 cids), 0x15 (BHV156 s | 0.50 | T1 |  |
+| [0x207288](../../../src/game/gameplay/ai/stepguard.cpp) | `UpdateStepguardSpecial` | End the special state after D_002C3D40 = 10 s (8/0xD), 30 s (0x22/0x25), 5 s (0x15) | 0.50 | T1 |  |
+| [0x207350](../../../src/game/gameplay/ai/stepguard.cpp) | `UpdateStepguard` | STEPGUARD vt16: UpdateStep; if in world and not time-frozen: special timeouts, detect targets, finish attack anim, aim, pickpocket, update components, BHV stack (0x1EED10), mover, release finished ASEGA, track base posit | 0.85 | T1 |  |
+| [0x207468](../../../src/game/gameplay/ai/stepguard.cpp) | `FTakeStepguardDamage` | STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid 0x4F), or base says no; then forward the zap to the BHV stack (message 0xC) | 0.50 | T1 |  |
+| [0x207530](../../../src/game/gameplay/ai/stepguard.cpp) | `FLethalStepguardZap` | STEPGUARD vt86: true if zap damage >= +0x338 and zap kind not in {0,1,0x80000,0x100000} | 0.40 | T2 |  |
+| [0x207598](../../../src/game/gameplay/ai/stepguard.cpp) | `FInvulnerableStepguard` | STEPGUARD vt76: +0x32C or +0x298 set, or flag 0x2A | 0.55 | T1 |  |
+| [0x2075D0](../../../src/game/gameplay/ai/stepguard.cpp) | `HandleStepguardMessage` | STEPGUARD vt5: HandlePoMessage; msgs 4/5 attach/detach an object on component +0x49C; forward every message to the BHV stack (0x1EED78) | 0.75 | T1 |  |
+| [0x207690](../../../src/game/gameplay/ai/stepguard.cpp) | `RenderStepguardSelf` | STEPGUARD vt19: draw the globset; when the camera policy is active, apply a 0.85 s squash/stretch pulse after +0x360 (pivot +0x240) and distance-based scale | 0.75 | T1 |  |
+| [0x2079A0](../../../src/game/gameplay/ai/stepguard.cpp) | `OnStepguardRemove` | STEPGUARD vt22: base (0x1F3E00), unlink from global guard list D_003E1444, stamp +0xFF8 | 0.85 | T1 | arbitration |
+| [0x2079E0](../../../src/game/gameplay/ai/stepguard.cpp) | `OnStepguardAdd` | STEPGUARD vt23: base (0x1F3EA8), append to guard list D_003E1444, +0xFF8 = FLT_MAX | 0.85 | T1 | arbitration |
+| [0x207A20](../../../src/game/gameplay/ai/stepguard.cpp) | `GrfFromSgf` | Bit mask of guard flag n (1<<n, 0 for -1) | 0.85 | T1 | runtime |
+| [0x207A40](../../../src/game/gameplay/ai/stepguard.cpp) | `GrfFromSgfArray` | OR of GrfFromSgf over an array | 0.50 | T1 |  |
+| [0x207AA0](../../../src/game/gameplay/ai/stepguard.cpp) | `CsgfFromGrf` | List the set flag numbers (46..0) of a mask into an array, return count | 0.50 | T1 |  |
+| [0x207B10](../../../src/game/gameplay/ai/stepguard.cpp) | `GrfFromSpliceSgfList` | Convert a Splice list argument of guard-flag enums (type 0x1010) to a mask | 0.45 | T2 |  |
+| [0x207B70](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAnimBinding` | Splice: ensure the anim binding for a flag set and set its oid/arg (+4/+0xC) | 0.40 | T2 |  |
+| [0x207BC8](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAnimBindingResolve` | Same as 0x207B70 then resolve it (0x209130) | 0.40 | T2 |  |
+| [0x207C48](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAnimBindingK3` | Splice: binding of kind 3 (new 0xD0 object 0x20CA00 with 4 params), n=8 | 0.35 | T2 |  |
+| [0x207CF8](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAnimBindingK3Resolve` | 0x207C48 then resolve | 0.35 | T2 |  |
+| [0x207D98](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAnimBindingK2` | Splice: binding of kind 2 (new 0x40 object 0x20C010 with one param) | 0.35 | T2 |  |
+| [0x207E08](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAnimBindingK2Resolve` | 0x207D98 then resolve | 0.35 | T2 |  |
+| [0x207EB8](../../../src/game/gameplay/ai/stepguard.cpp) | `SetZapReactionBindings` | For each of 26 zap-kind bits in mask: release entry, set oid/arg | 0.40 | T2 |  |
+| [0x207F50](../../../src/game/gameplay/ai/stepguard.cpp) | `SetZapReactionBindingsResolve` | Same and resolve each | 0.40 | T2 |  |
+| [0x207FF8](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardZapReactionsC10` | 0x207EB8 on table +0xC10 | 0.30 | T2 |  |
+| [0x208018](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardZapReactionsC10Resolve` | 0x207F50 on table +0xC10 | 0.30 | T2 |  |
+| [0x208038](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardZapReactionsA70` | 0x207EB8 on table +0xA70 | 0.30 | T2 |  |
+| [0x208058](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardZapReactionsA70Resolve` | 0x207F50 on table +0xA70 | 0.30 | T2 |  |
+| [0x208078](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardZapReactions8D0` | 0x207EB8 on table +0x8D0 | 0.30 | T2 | verified |
+| [0x2080A0](../../../src/game/gameplay/ai/stepguard.cpp) | `ResolveZapReactions` | Resolve all 26 entries of a table (0x209130) | 0.85 | T1 | verified |
+| [0x2080F0](../../../src/game/gameplay/ai/stepguard.cpp) | `ResolveStepguardAnimBindings` | Resolve all anim bindings (+0x4C0 count, +0x4D0 entries) and the 3 zap tables | 0.50 | T1 |  |
+| [0x208178](../../../src/game/gameplay/ai/stepguard.cpp) | `ReleaseZapReactions` | Release all 26 entries of a table (0x2090D0) | 0.45 | T2 |  |
+| [0x2081C8](../../../src/game/gameplay/ai/stepguard.cpp) | `ReleaseStepguardZapReactions` | Release the 3 zap tables | 0.45 | T2 |  |
+| [0x208208](../../../src/game/gameplay/ai/stepguard.cpp) | `CloneZapReactions` | Deep-copy all 26 entries (0x209590) | 0.45 | T2 |  |
+| [0x208250](../../../src/game/gameplay/ai/stepguard.cpp) | `CloneStepguardAnimBindings` | Deep-copy anim bindings and zap tables after a clone | 0.50 | T1 |  |
+| [0x2082D0](../../../src/game/gameplay/ai/stepguard.cpp) | `PloChooseStepguardTarget` | STEPGUARD vt88: keep forced target +0x390 if in world; else among detector entries pick: forced classes (+0x3C0) first, skip ignored classes (+0x3A8), prefer classes +0x394, hysteresis for current target (+0x38C, CLQ -40 | 0.50 | T1 |  |
+| [0x208538](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardForcedTarget` | Splice setter: +0x390 = plo (option getter reads +0x38C) | 0.45 | T2 | verified |
+| [0x208540](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardTarget` | Change current target +0x38C: leave the old target's shared engagement record +0x3CC, join the new one's (EnsureGlobalById 0x1F8278 / 0x20A730) | 0.55 | T1 |  |
+| [0x2085B0](../../../src/game/gameplay/ai/stepguard.cpp) | `FAddStepguardDetectTargetBack` | 0x2085D0(this,plo,0) | 0.30 | T2 |  |
+| [0x2085D0](../../../src/game/gameplay/ai/stepguard.cpp) | `FAddStepguardDetectTarget` | Insert plo into the detector target list (8 max): fFront appends; else inserts before the generated tail (+0x3A4), evicting the oldest generated entry when full | 0.50 | T1 |  |
+| [0x208700](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardPreferClass` | Append cid to +0x394 list (max 3) | 0.40 | T2 |  |
+| [0x208728](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardPreferClass` | Remove cid from +0x394 list | 0.40 | T2 |  |
+| [0x2087C8](../../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardGeneratedTargets` | Drop generated detector entries and clear prefer list | 0.30 | T2 |  |
+| [0x2087E8](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardPreferClass` | plo derives from a cid in +0x394 | 0.40 | T2 |  |
+| [0x208860](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardDetectTarget` | Remove a non-generated detector entry (compact) | 0.30 | T2 |  |
+| [0x2088E0](../../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardTargetLists` | Detector count=0, clear +0x394/+0x3A4/+0x3A8/+0x3C0 | 0.40 | T2 |  |
+| [0x208920](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardIgnoreClass` | Append cid to +0x3A8 list (max 5) | 0.40 | T2 |  |
+| [0x208948](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardIgnoreClass` | Remove cid from +0x3A8 | 0.40 | T2 |  |
+| [0x2089E8](../../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardIgnoreClasses` | +0x3A8 count = 0 | 0.40 | T2 |  |
+| [0x2089F0](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardIgnoreClass` | plo derives from a cid in +0x3A8 | 0.40 | T2 |  |
+| [0x208A68](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardForceClass` | Append cid to +0x3C0 list (max 2) | 0.35 | T2 |  |
+| [0x208A90](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardForceClass` | Remove cid from +0x3C0 | 0.35 | T2 |  |
+| [0x208B30](../../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardForceClasses` | +0x3C0 count = 0 | 0.35 | T2 |  |
+| [0x208B38](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardForceClass` | plo derives from a cid in +0x3C0 | 0.35 | T2 |  |
+| [0x208BB0](../../../src/game/gameplay/ai/stepguard.cpp) | `GRandStepguardDelay` | GRandInRange(5,7) | 0.30 | T2 |  |
+| [0x208BE0](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardSenseStimulus` | STEPGUARD vt89: can this guard perceive stimulus o (noise TU objects): senses enabled, level >= +0xE68, not own; kind 0 radius test (0x156918), kind 1 inner volume of detector + clear line (PsoHitTestLineObjects) | 0.50 | T1 |  |
+| [0x208D70](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardSensesEnabled` | +0xE64 unless any of flags {0xB,0x1D,7,5,6,0x10,1,0x16,0x2A} is set | 0.50 | T1 |  |
+| [0x208E70](../../../src/game/gameplay/ai/stepguard.cpp) | `GuardEvalInteractMode` | Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM +0x370/+0x368), 1 in range (d<=+0x388, dz in LM +0x380), 0 | 0.55 | T1 |  |
+| [0x209098](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardHandsOff` | +0xFC8 or FSwInputLock(g_sw) | 0.35 | T2 |  |
+| [0x2090D0](../../../src/game/gameplay/ai/stepguard.cpp) | `ReleaseAnimBinding` | Free kind-2/3 payload objects (0x20C030/0x20CA20) and mark binding empty (-1) | 0.85 | T1 | verified |
+| [0x209130](../../../src/game/gameplay/ai/stepguard.cpp) | `ResolveAnimBinding` | Resolve oid -> ASEG (cid 0x6D; kind 2 wrapper if it has label 0x22) or SM (cid 0x6F, kind 1); else -1 | 0.50 | T1 |  |
+| [0x209278](../../../src/game/gameplay/ai/stepguard.cpp) | `StartAnimBinding` | Start the bound animation: ASEG apply (ApplyAsegOvr 0x12F9B8), SM -> SMA (0x1F0198), kind 2 at +0xDB0, kind 3 at +0xE20 | 0.50 | T1 |  |
+| [0x209360](../../../src/game/gameplay/ai/stepguard.cpp) | `StopAnimBinding` | Stop/release the running instance per kind (RetractAsega, RetractSma, ...) and Decref | 0.50 | T1 |  |
+| [0x209430](../../../src/game/gameplay/ai/stepguard.cpp) | `FAnimBindingDone` | True if the running instance finished/retracted (or none) | 0.50 | T1 |  |
+| [0x209518](../../../src/game/gameplay/ai/stepguard.cpp) | `PasegaFromAnimBinding` | Return the animation instance pointer for a binding kind | 0.35 | T2 |  |
+| [0x209590](../../../src/game/gameplay/ai/stepguard.cpp) | `CloneAnimBinding` | Deep-copy kind-2 (0x40) / kind-3 (0xD0) payloads | 0.45 | T2 |  |
+| [0x209618](../../../src/game/gameplay/ai/stepguard.cpp) | `DriveStepguardFromAnim` | Set desired velocity +0x190 (= -translation*scale) and angular +0x1E0 from the binding's ASEG/object (VecStepAsegaTranslation/Rotation) | 0.40 | T2 |  |
+| [0x209768](../../../src/game/gameplay/ai/stepguard.cpp) | `InitStepguardMover` | mover(+0xFD0)->owner(+0xC) = guard | 0.40 | T2 |  |
+| [0x209770](../../../src/game/gameplay/ai/stepguard.cpp) | `CloneStepguardMover` | mover->owner = guard | 0.40 | T2 |  |
+| [0x209778](../../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardMover` | zero mover words 0..2 | 0.35 | T2 |  |
+| [0x209788](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardMoverDriver` | mover[0] = driver object | 0.35 | T2 |  |
+| [0x209790](../../../src/game/gameplay/ai/stepguard.cpp) | `ResetStepguardMover` | clear driver/lock, zero owner's desired velocity +0x190, 0x1F5078 | 0.35 | T2 |  |
+| [0x2097C8](../../../src/game/gameplay/ai/stepguard.cpp) | `LockStepguardMover` | mover[1] = 1 (heading locked) | 0.85 | T1 | verified |
+| [0x2097D8](../../../src/game/gameplay/ai/stepguard.cpp) | `UnlockStepguardMover` | mover[1] = 0 | 0.35 | T2 |  |
+| [0x2097E0](../../../src/game/gameplay/ai/stepguard.cpp) | `UpdateStepguardMover` | call driver vt11 | 0.35 | T2 |  |
+| [0x209818](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardMoverRadTarget` | unless locked, SetStepRadTarget(owner, rad) | 0.85 | T1 | verified |
+| [0x209840](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardMoverMatTarget` | unless locked, copy a 3x3 into owner's matTarget +0x1B0 | 0.40 | T2 |  |
+| [0x209870](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardGrfsgf` | Store flag word +0x2C0 and re-evaluate pickpocket state (0x1F1900) | 0.50 | T1 |  |
+| [0x209890](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardSgf` | Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98 (3->0x14, 0xC->0x16) | 0.85 | T1 | runtime |
+| [0x209970](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveStepguardSgf` | Clear guard flag n, message 7 (-1,n) | 0.85 | T1 | runtime |
+| [0x2099F0](../../../src/game/gameplay/ai/stepguard.cpp) | `FGrfHasSgf` | (grf & bit n) != 0 | 0.50 | T1 |  |
+| [0x209A28](../../../src/game/gameplay/ai/stepguard.cpp) | `CsgfMatch` | popcount(a) if a is a subset of b, else 0 | 0.45 | T2 |  |
+| [0x209A68](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardHasSgf` | flag n set in +0x2C0 | 0.60 | T1 |  |
+| [0x209A88](../../../src/game/gameplay/ai/stepguard.cpp) | `RefGetStepguardSgfs` | Splice getter: list of set flags | 0.45 | T2 |  |
+| [0x209AD0](../../../src/game/gameplay/ai/stepguard.cpp) | `PanimbindBest` | Binding whose flag set is the largest subset of mask and contains its lowest flag | 0.50 | T1 |  |
+| [0x209BC0](../../../src/game/gameplay/ai/stepguard.cpp) | `PanimbindCur` | PanimbindBest for the current flags | 0.45 | T2 |  |
+| [0x209BE0](../../../src/game/gameplay/ai/stepguard.cpp) | `PanimbindFind` | Binding with exactly this flag set | 0.45 | T2 |  |
+| [0x209C18](../../../src/game/gameplay/ai/stepguard.cpp) | `PanimbindEnsure` | Find or append binding for a flag set, released | 0.45 | T2 |  |
+| [0x209C88](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardAttachXps` | STEPGUARD vt59: when attached (+0xF80 0..3) add constraint contacts via vt82 against the attach object (rail/pipe closest point 0x1E6F10, target pos, fixed axis) | 0.45 | T2 |  |
+| [0x209E28](../../../src/game/gameplay/ai/stepguard.cpp) | `SendStepguardRootBhv6` | Send record {k=6, a[4]=n} to root behaviour BHV156 (0x176750) | 0.30 | T2 |  |
+| [0x209E88](../../../src/game/gameplay/ai/stepguard.cpp) | `StunStepguardBhv176A` | If flag 0x16 or 0x12: BHV176 (cid 0xB0) op 1 | 0.25 | T2 |  |
+| [0x209EE0](../../../src/game/gameplay/ai/stepguard.cpp) | `StunStepguardBhv176B` | Flags 0x12/0x13: BHV176 op 2; else stunned (0x17): BHV177 op 2; then scale velocity (0x11E9F8, 800) | 0.25 | T2 |  |
+| [0x209FB8](../../../src/game/gameplay/ai/stepguard.cpp) | `StunStepguardBhv176C` | Flag 0x16 or 0x13: BHV176 op 3 | 0.25 | T2 |  |
+| [0x20A010](../../../src/game/gameplay/ai/stepguard.cpp) | `GetStepguardStunField` | BHV177 +0x58 while stunned (flag 0x17), else 0 | 0.25 | T2 |  |
+| [0x20A058](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardCRefPair` | Splice: fetch two typed CRefs (0x2002) into +0xF94/+0xF98 and +0xFA8/+0xFAC | 0.20 | T2 |  |
+| [0x20A100](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardRootBhvPoint` | Store (+0xF68,+0xF70) and pass to BHV156 when it is in sub-state 0x10 | 0.25 | T2 |  |
+| [0x20A168](../../../src/game/gameplay/ai/stepguard.cpp) | `IcmpStepguardStimulus` | Compare stimuli: template priority, level, time, then distance | 0.40 | T2 |  |
+| [0x20A298](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardTargetValid` | Target check with MURRAY special case, detector entry age D_002C3DAC and mask | 0.30 | T2 |  |
+| [0x20A378](../../../src/game/gameplay/ai/stepguard.cpp) | `FStepguardTargetValid2` | 0x20A298 with extra MURRAY/cid 0x3A/0x3D case | 0.30 | T2 | verified |
+| [0x20A408](../../../src/game/gameplay/ai/stepguard.cpp) | `PstimChooseStepguard` | Best perceivable stimulus (vt89) from list D_003E0000 by IcmpStepguardStimulus; a stimulus of kind 4 already tracked just re-marks the detector entry lost and returns the default | 0.45 | T2 |  |
+| [0x20A518](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardClassE94` | Append cid to +0xE94 list (max 8) | 0.25 | T2 |  |
+| [0x20A540](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardMode2E8` | Set +0x2E8; restart BHV156 when it is in sub-state 1 | 0.25 | T2 |  |
+| [0x20A5F8](../../../src/game/gameplay/ai/stepguard.cpp) | `InitTargetRecord` | Init a shared per-target engagement record (0xAC): target +0xC, 1.0, 2.0, -1s, append to D_003E145C | 0.45 | T2 |  |
+| [0x20A658](../../../src/game/gameplay/ai/stepguard.cpp) | `IguardFindTargetRecord` | Index of guard in the record's guard list (+0x28 count, +0x2C) | 0.35 | T2 |  |
+| [0x20A690](../../../src/game/gameplay/ai/stepguard.cpp) | `RadTargetRecordFacing` | Heading reference: camera (kind 0) or target facing (kind 1) | 0.35 | T2 |  |
+| [0x20A730](../../../src/game/gameplay/ai/stepguard.cpp) | `AddTargetRecordGuard` | Append guard to record (stamp time and reset state on first) | 0.85 | T1 | verified |
+| [0x20A790](../../../src/game/gameplay/ai/stepguard.cpp) | `RemoveTargetRecordGuard` | Remove guard from record | 0.40 | T2 |  |
+| [0x20A7E0](../../../src/game/gameplay/ai/stepguard.cpp) | `FTargetRecordStale` | time since record stamp > D_002C3DB4 | 0.30 | T2 |  |
+| [0x20A818](../../../src/game/gameplay/ai/stepguard.cpp) | `FTargetRecordAllowsGuard` | Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires guard ready or inside camera frustum within heading tolerance of the camera | 0.40 | T2 |  |
+| [0x20A9A8](../../../src/game/gameplay/ai/stepguard.cpp) | `SetTargetRecordState` | record state + time | 0.40 | T2 |  |
+| [0x20A9C0](../../../src/game/gameplay/ai/stepguard.cpp) | `PattackDefaultStepguard` | Return first attack object; if none create default cid 0x78 (oid 0x2CC) | 0.35 | T2 |  |
+| [0x20AA40](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardAttackOid` | Append attack oid (max 8) to +0xEB8 | 0.35 | T2 |  |
+| [0x20AA78](../../../src/game/gameplay/ai/stepguard.cpp) | `AddStepguardAttackOidResolve` | 0x20AA40 then 0x20AAA8 | 0.30 | T2 |  |
+| [0x20AAA8](../../../src/game/gameplay/ai/stepguard.cpp) | `ResolveStepguardAttacks` | Resolve attack oids into objects +0xEDC | 0.40 | T2 |  |
+| [0x20AB58](../../../src/game/gameplay/ai/stepguard.cpp) | `ClearStepguardAttacks` | clear both attack lists | 0.30 | T2 |  |
+| [0x20AB68](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAttack` | Switch current attack +0xF00: stop old anim, cooldown +0xF04 = now+GRandInRange(lm), start new anim, then aim (0x20AC28) | 0.45 | T2 |  |
+| [0x20AC28](../../../src/game/gameplay/ai/stepguard.cpp) | `SetStepguardAimAct` | Release/create an aim act (PactNewVector) for the attack | 0.35 | T2 |  |
+| [0x20ACC0](../../../src/game/gameplay/ai/stepguard.cpp) | `UpdateStepguardAim` | Aim rotation toward predicted point (0x22FC48) as Euler | 0.30 | T2 |  |
+| [0x20AD38](../../../src/game/gameplay/ai/stepguard.cpp) | `InitCid120Attack` | cid 0x78 vt7: InitLo, range LM [0,300], height LM [-5000,5000], cooldown LM [0.2,0.5], angle 10deg, 3 oids -1, release binding | 0.45 | T2 |  |
+| [0x20ADE8](../../../src/game/gameplay/ai/stepguard.cpp) | `CloneCid120Attack` | cid 0x78 vt41: CloneLo + clone binding | 0.45 | T2 |  |
+| [0x20AE18](../../../src/game/gameplay/ai/stepguard.cpp) | `PostCid120AttackLoad` | cid 0x78 vt15: PostLoLoad, find owning STEPGUARD up parent chain, resolve binding, precompute ASEG effect (0x1300B8) | 0.40 | T2 |  |
+| [0x20AF08](../../../src/game/gameplay/ai/stepguard.cpp) | `SetDegAngle68` | +0x68 = deg*pi/180 | 0.30 | T2 |  |
+| [0x20AF28](../../../src/game/gameplay/ai/stepguard.cpp) | `SetCid120AttackOids` | +0x7C/+0x80/+0x84 | 0.30 | T2 |  |
+| [0x20AF38](../../../src/game/gameplay/ai/stepguard.cpp) | `SetCid120AttackBinding` | release binding then set oid/arg | 0.30 | T2 |  |
+| [0x20AF88](../../../src/game/gameplay/ai/stepguard.cpp) | `SetCid120AttackBindingResolve` | same then resolve | 0.30 | T2 |  |
+| [0x20AFF0](../../../src/game/gameplay/ai/stepguard.cpp) | `SetCid120AttackBindingK2` | binding kind 2 (0x40 payload) | 0.30 | T2 |  |
+| [0x20B060](../../../src/game/gameplay/ai/stepguard.cpp) | `SetCid120AttackBindingK2Resolve` | same then resolve | 0.30 | T2 |  |
+| [0x20B090](../../../src/game/gameplay/ai/stepguard.cpp) | `GrfStepguardGroundProbe` | STEPGUARD vt85: 1 if flag 0x14; 0 if flags 0x12/0x13/0x16; else mover driver vt12 or STEP base | 0.40 | T2 |  |
+| [0x20B140](../../../src/game/gameplay/ai/stepguard.cpp) | `EmitStepguardStimulus` | Emit a stimulus (NewNoise 0x156548 from template +0xE60 or world default) at the guard, aimed at q (kind 4), +0xF44 = now + D_002C3DB8 | 0.35 | T2 |  |
+| [0x20B210](../../../src/game/gameplay/ai/stepguard.cpp) | `DetachStepguard` | Unlink attachment (LinkStepAttachment f=0) and clear +0xF80/+0xF84 | 0.40 | T2 |  |
+| [0x20B2A8](../../../src/game/gameplay/ai/stepguard.cpp) | `AttachStepguard` | Attach to object by class: CID11 pipe?, CID13 rail?, CID19 (k124==3), CID39 -> +0xF80 kind 0..3 | 0.40 | T2 |  |
+| [0x20B3D0](../../../src/game/gameplay/ai/stepguard.cpp) | `JthsCurrentStepguard` | STEPGUARD vt77: 2 (dead) if flag 7, 1 (damaged) if flags 5/6, else 0 | 0.50 | T1 |  |
+| [0x20B438](../../../src/game/gameplay/ai/stepguard.cpp) | `IncrementStepguardBusy` | ++ +0xFFC; first makes it busy (SetLoBusyk 1) | 0.35 | T2 |  |
+| [0x20B478](../../../src/game/gameplay/ai/stepguard.cpp) | `DecrementStepguardBusy` | -- +0xFFC; at 0 SetLoBusyk 0 | 0.35 | T2 |  |
+| [0x20B4A8](../../../src/game/gameplay/ai/stepguard.cpp) | `InitCid125GuardMgr` | cid 0x7D vt7: InitLo, flag 2, register for update | 0.50 | T2 |  |
+| [0x20B500](../../../src/game/gameplay/ai/stepguard.cpp) | `PostCid125GuardMgrLoad` | cid 0x7D vt15: list all STEPGUARD objects (cid 0x38) | 0.50 | T2 | verified |
+| [0x20B590](../../../src/game/gameplay/ai/stepguard.cpp) | `UpdateCid125GuardMgr` | cid 0x7D vt16: guards out of the list for > 0.25 s (+0xFF8): mode +0x1000 1 = RemoveLo, 2 = restart BHV156 and reset detector | 0.45 | T2 |  |
 
 ## tu_20CE28 (0x20CE28-0x20D5D0)
 
