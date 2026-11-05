@@ -155,10 +155,10 @@ struct OPT;
 struct H{char pad[0x9C];float start,end,elapsed;};
 struct G{char pad[0x3B0C];H*object;char pad10[0xC];OPT*primary;char pad20[0x38];OPT*options[9];};
 struct CLOCK{float time,dt;};
-extern G D_003DD490;
-extern CLOCK D_002DDED0;
-extern int D_002E0C20;
-extern char D_003D4A60[],D_002DE578[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern int D_002E0C20; }
+extern "C" { extern char D_003D4A60[],D_002DE578[]; }
 extern "C" CRef RefGetGlobalSaveVar(OPT*,void*);
 extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRefData&,void*);
 extern "C" int NWorldCur();
@@ -241,7 +241,7 @@ public:
 };
 struct X { char pad[0x54]; int n; char pad2[0xA0 - 0x58]; int fA0; };
 struct G { char pad[0x3AFC]; int c; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" void *func_001AE378(ALLOCREQ *preq);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
@@ -321,11 +321,11 @@ public:
 
 };
 struct O;
-extern char D_003D4A60[];
+extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef RefSetGlobalSaveVar(O *, const CRef &, void *);
 static inline void SetPv(O *pv,const CRef&r,void*){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(pv,arg,D_003D4A60);}
 struct G { char pad[0x3B20]; O *f3b20; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" void func_00161868(G *pg);
 /** @sly2-annot addr=0x1617E0
  * Purpose: Writes int n into save var g_sw+0x3B20 and refreshes its HUD widget (ShowGameWidget3BAC)
@@ -733,7 +733,7 @@ public:
     virtual void V9();
 };
 struct G;
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" int GrfFromState(int n);
 extern "C" int GrfFromStates(int c, int *ai);
 extern "C" int IlevelCur__Fv();
@@ -1181,8 +1181,8 @@ public:
     int ff0;
 };
 struct G;
-extern G D_003DD490;
-extern char D_002DEB30[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_002DEB30[]; }
 extern "C" void SetSwJobCur(G *pg, O *p);
 extern "C" int FJobLive(O *p);
 extern "C" void UpdateJobSaveVars(O *p);
@@ -1230,8 +1230,8 @@ public:
 };
 struct W { int a, b, f8; char pad[0x38 - 0xC]; int f38; };
 struct G { char pad[0x3B14]; O *f3b14; char pad2[0x3C88 - 0x3B18]; int f3c88; int f3c8c; };
-extern G D_003DD490;
-extern char D_002DEB30[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_002DEB30[]; }
 extern "C" void SetSwJobCur(G *pg, O *p);
 extern "C" void SetSwTaskPending(G *pg, O *p);
 extern "C" W *func_00210B70();
@@ -1293,7 +1293,7 @@ public:
     int *a60;
 };
 struct G;
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" int FJobLive(O *p);
 extern "C" int func_0020E040(G *pg);
 extern "C" void func_00162DD0(O *p);
@@ -1734,7 +1734,7 @@ struct CRef{
 };
 struct OPT{int kind,value;};
 struct S{char pad[0x7C];int n;char pad80[0x24];float g;char padA8[0x28];OPT a,b,c;};
-extern char D_003D4A60[];
+extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int FJobComplete(S*);
 static inline void SetPv(OPT*p,const CRef&r,void*context=0){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,D_003D4A60);}
@@ -2121,7 +2121,7 @@ public:
     }
 };
 struct G { char pad[0x3B10]; X *f3b10; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" int FIsCurrentTask(X *px);
 extern "C" void DeactivateTask(X *px);
 extern "C" void BeginTask(X *px);
@@ -2180,9 +2180,9 @@ public:
     int ff4;
 };
 struct G;
-extern G D_003DD490;
-extern char D_002DEB30[];
-extern char D_003DA0C0[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_002DEB30[]; }
+extern "C" { extern char D_003DA0C0[]; }
 extern "C" void SetSwTaskCur(G *pg, O *p);
 extern "C" void SetSwTaskPending(G *pg, O *p);
 extern "C" int FIsCurrentJob(O *p);
@@ -2245,7 +2245,7 @@ public:
     O *f7c;
 };
 struct Q { int f0, f4, f8; };
-extern Q D_002DEB30;
+extern "C" { extern Q D_002DEB30; }
 extern "C" int FTaskLive(O *p);
 extern "C" int FJobLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
@@ -2288,9 +2288,9 @@ public:
     int ff4;
 };
 struct G;
-extern G D_003DD490;
-extern char D_002DEB30[];
-extern char D_003DA0C0[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_002DEB30[]; }
+extern "C" { extern char D_003DA0C0[]; }
 extern "C" void SetSwTaskCur(G *pg, O *p);
 extern "C" int FTaskLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
@@ -2518,7 +2518,7 @@ struct CRef {
 };
 struct OPT{int kind,value;};
 struct S{char pad[0x54];int state;char pad58[0xC];int a,b;char pad6C[0x10];void*next;char pad80[0x48];OPT c,d,e,f,h;int fF0,fF4;};
-extern char D_003D4A60[];
+extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int FTaskComplete(S*);
 extern "C" void UpdateJobSaveVars(void*);
@@ -3254,8 +3254,8 @@ public:
 };
 struct G { char pad[0x3BF4]; int f3bf4; char pad2[0x3C38 - 0x3BF8]; int f3c38; int f3c3c; };
 struct SS { int pad[4]; int f10; int f14; int oid; };
-extern G D_003DD490;
-extern char D_002A5238[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_002A5238[]; }
 extern "C" void SortTasksTopologically(int *pc, X ***papx);
 extern "C" void RestoreTaskState(X *p);
 extern "C" X *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *owner);
@@ -3363,8 +3363,8 @@ inline CSave::~CSave()
 }
 struct CRef { int m_tagk; int m_tag; };
 struct G { char pad[0x3B0C]; X *f3b0c; char pad2[0x3E38 - 0x3B10]; int f3e38; };
-extern G D_003DD490;
-extern char D_002A5238[];
+extern "C" { extern G D_003DD490; }
+extern "C" { extern char D_002A5238[]; }
 extern "C" void AbortJob(X *p);
 extern "C" void SetCurrentJob(X *p);
 extern "C" void SetTaskStateCascade(X *p, int n);
@@ -3456,10 +3456,10 @@ public:
 };
 struct DL { void *pvFirst; void *pvLast; int ibDle; };
 struct CLOCK { float t; };
-extern CLOCK D_002DDED0;
-extern DL D_003E0F90;
-extern char D_002DEB30[];
-extern int D_002DEB44;
+extern "C" { extern CLOCK D_002DDED0; }
+extern "C" { extern DL D_003E0F90; }
+extern "C" { extern char D_002DEB30[]; }
+extern "C" { extern int D_002DEB44; }
 extern "C" int FTaskLive(O *p);
 extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 extern "C" void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
@@ -3669,7 +3669,7 @@ public:
 };
 struct X { char pad[0x94]; int f94; char pad2[0xFC - 0x98]; int fFC; };
 struct G { char pad[0x3AFC]; int c; };
-extern G D_003DD490;
+extern "C" { extern G D_003DD490; }
 extern "C" void *func_001AE378(ALLOCREQ *preq);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void VisitTaskTopo(X *px, int *pc, void *pv, int a, int b);

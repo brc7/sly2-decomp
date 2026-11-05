@@ -190,8 +190,8 @@ struct SW {
     float f4750;
     float f4754;
 };
-extern char D_002DC018[];
-extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C;
+extern "C" { extern char D_002DC018[]; }
+extern "C" { extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C; }
 extern "C" POOL *func_0011CCA8(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void func_0011A050(DL *,int);
@@ -760,10 +760,10 @@ struct SW {char pad0[0x3BF0];int pending;REQUEST request;HEADER current;int unus
 struct FRAME;
 struct STREAM;
 struct REF;
-extern char D_002DDED0[],D_002DDF40[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[];
-extern char D_002A8A88[];
-extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900;
-extern SW D_003DD490;
+extern "C" { extern char D_002DDED0[],D_002DDF40[],D_002DEB30[],D_002F7980[],D_002F66B0[],D_00443740[],D_002E1E88[]; }
+extern "C" { extern char D_002A8A88[]; }
+extern "C" { extern ACTOR *D_002E1E40,*D_002DD5BC,*D_002F7900; }
+extern "C" { extern SW D_003DD490; }
 extern "C" {
 void FlushFrames__Fi(int);
 FRAME *STACKSCOPE_ctor(FRAME *);
@@ -1225,13 +1225,13 @@ struct LEVELLIST
       int c;
       short *a;
 };
-extern int D_003E1C38;
-extern int D_003E1C3C;
-extern FILEREC *D_003E1C40;
-extern int *D_003E1C44;
-extern int *D_003E1C48;
-extern LEVELLIST *D_003E1C4C;
-extern FILEREC *D_003E1C50;
+extern "C" { extern int D_003E1C38; }
+extern "C" { extern int D_003E1C3C; }
+extern "C" { extern FILEREC *D_003E1C40; }
+extern "C" { extern int *D_003E1C44; }
+extern "C" { extern int *D_003E1C48; }
+extern "C" { extern LEVELLIST *D_003E1C4C; }
+extern "C" { extern FILEREC *D_003E1C50; }
 extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis) __asm__("LoadLevelTableFromBrx");
 /** @sly2-annot addr=0x20F318
  * Purpose: Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills
