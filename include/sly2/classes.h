@@ -11,8 +11,8 @@
  * grab-spot classes override GRABSPOT's slots as their secondary vtables show (delta = -offset of GRABSPOT).
  * The classes the other headers define (BASIC, LO, XFM, PROXY, SHAPE, TN, TARGET, VOL, DETECTOR, EMITTER, EXPL,
  * EXPLO, SO, CID148, CID150, PO, POCTL, STEP, LEAP, CID146, BHV, STEPPLAYER, JT, MURRAY, BENTLEY, STEPGUARD, ASEG,
- * ASEGBL, SM, ASEGA, SMA, JOB, TASK, CM) carry the same in their headers; SW (sly2/sw.h) is still a view in
- * class_registry.cpp. Generated from the ELF and class_registry's construction views (types/views-2); see
+ * ASEGBL, SM, ASEGA, SMA, JOB, TASK, CM) and SW (sly2/sw.h, types/views-3) carry the same in their headers.
+ * Generated from the ELF and class_registry's construction views (types/views-2); see
  * docs/guides/tu-merging.md, "Views unified". */
 #ifndef SLY2_CLASSES_H
 #define SLY2_CLASSES_H

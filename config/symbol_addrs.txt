@@ -4178,6 +4178,7 @@ _vt$2TN = 0x2DB6B8; // type:data size:0x1A0
 _vt$6CID102 = 0x2DB8A0; // type:data size:0x270
 _vt$6CID100 = 0x2DBB10; // type:data size:0x270
 _vt$6TURRET = 0x2DBD80; // type:data size:0x298
+_vt$2SW = 0x2DC018; // type:data size:0x58
 _vt$4CID5 = 0x2DC070; // type:data size:0x1A0
 _vt$5CID23 = 0x2DC210; // type:data size:0x1A0
 _vt$3VOL = 0x2DC3B0; // type:data size:0x1A0

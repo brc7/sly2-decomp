@@ -199,7 +199,7 @@ struct SW {
     float f4750;
     float f4754;
 };
-extern "C" { extern char D_002DC018[]; }
+extern "C" { extern char D_002DC018[] __asm__("_vt$2SW"); }   /* SW's vtable (sly2/sw.h) */
 extern "C" { extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C; }
 extern "C" POOL *func_0011CCA8(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);

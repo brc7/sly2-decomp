@@ -262,9 +262,15 @@ struct SW : public BASIC
       int cpemitTracked;
       struct EMITTER *apemitTracked[4];
       uint32_t   _pad_360    [ 1 ] ;
-    virtual void VSlot7();   /* slot 7: not yet identified */
-    virtual void VSlot8();   /* slot 8: not yet identified */
-    virtual void VSlot9();   /* slot 9: not yet identified */
+    /* Construction: out of line (SW_ctor, world/scene/sw.cpp; the factory NewSw in app/class_registry.cpp). */
+    SW() __asm__("SW_ctor");
+    /* Virtual layout of the ELF vtable _vt$2SW (0x2DC018, 9 slots): slots 1-5 BASIC's, then the overrides and
+       additions, each labelled with the function the vtable holds (types/views-3). Pclassinfo is the first virtual
+       SW declares, so it is the key function: no TU emits _vt$2SW (GetSwClassDesc is a C definition). */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSwClassDesc");   /* slot 6 */
+    virtual void Update() __asm__("UpdateSw");                   /* slot 7: the per-frame world update (update.cpp) */
+    virtual void Render() __asm__("RenderSw");                   /* slot 8 (render.cpp) */
+    virtual void Draw() __asm__("DrawSw");                       /* slot 9 (draw.cpp) */
 };
 typedef char assert_SW_size[sizeof(SW) == 0x4790 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_SW_dlChild[SLY2_OFFSETOF(SW, dlChild) == 0x10 ? 1 : -1];   /* root DL ibDle 0x24 (CONFIRMED runtime; Lilly name dlChild) */
