@@ -817,8 +817,8 @@ void *func_001A6318(LO *plo);
 void RenderSoSelf(LO *plo);
 void RenderDprizeSelf(LO *p);
 }
-M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec);
-void func_001A5EE8(LO *plo, M4 m, float a, float b);
+extern "C" { M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec); }
+extern "C" { void func_001A5EE8(LO *plo, M4 m, float a, float b); }
 /** @sly2-annot addr=0x1C5FA0
  * Purpose: DPRIZE vt19 RenderSelf (bob/spin then SO render)
  * Info: proposed name RenderDprizeSelf (T1); class DPRIZE slot19; TU prize
@@ -1600,13 +1600,13 @@ struct LO : BASIC {
     virtual void V73(); virtual void V74(); virtual void V75();
     virtual void SetState(int state);                  // 76
 };
-extern char D_003DD490[];
-extern qword D_002A2DA0, D_002A2DC0, D_002A2DE0, D_002C0D60;
-extern float D_002A775C, D_002A7760, D_002C0D70;
-extern float D_002C0E80, D_002C0E84, D_002C0E88, D_002C0E8C, D_002C0E90, D_002C0E94;
-extern CLQ D_002C0EA0;
-extern LM D_002C0EB0;
-extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4;
+extern "C" { extern char D_003DD490[]; }
+extern "C" { extern qword D_002A2DA0, D_002A2DC0, D_002A2DE0, D_002C0D60; }
+extern "C" { extern float D_002A775C, D_002A7760, D_002C0D70; }
+extern "C" { extern float D_002C0E80, D_002C0E84, D_002C0E88, D_002C0E8C, D_002C0E90, D_002C0E94; }
+extern "C" { extern CLQ D_002C0EA0; }
+extern "C" { extern LM D_002C0EB0; }
+extern "C" { extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4; }
 extern "C" {
 int func_001C6DE8(float, float, float, qword, int, CANDIDATE **, qword *);
 LO *PpoHero(void *);
@@ -1877,11 +1877,11 @@ struct S {
     char p3[0x244 - 0x23C]; ALS *x244;
 };
 struct M { int n; S *p; int pad[14]; };
-extern char D_002A7768[];
-extern char D_002A7770[];
-extern char D_002A7778[];
-CRef RefGetSaveVarV(char *a, char *b, char *c, int n);
-CRef RefSetSaveVarV(const CRef &r, char *a, char *b, char *c, int n);
+extern "C" { extern char D_002A7768[]; }
+extern "C" { extern char D_002A7770[]; }
+extern "C" { extern char D_002A7778[]; }
+extern "C" { CRef RefGetSaveVarV(char *a, char *b, char *c, int n); }
+extern "C" { CRef RefSetSaveVarV(const CRef &r, char *a, char *b, char *c, int n); }
 extern "C" void SetLootDprizes(S *p, int n);
 /** @sly2-annot addr=0x1C77E8
  * Purpose: CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15)
@@ -2088,7 +2088,7 @@ void *FClueCollected(void *p);
 }
 class FRAME { int a[4]; public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct CRef { int m_tagk; int m_tag; };
-extern char D_003D4A60[];
+extern "C" { extern char D_003D4A60[]; }
 extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
 static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int func_001C7BB8(void *p);
@@ -2125,8 +2125,8 @@ struct CRef {
     CRef(const CRef &r) { func_001291A8(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
-extern char D_003D4A60[];
-extern int D_003E1BF4;
+extern "C" { extern char D_003D4A60[]; }
+extern "C" { extern int D_003E1BF4; }
 extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 /* Copy the reference into the setter's value argument. */
 static inline void SetPv(void *pv, const CRef &r, void *)
@@ -2353,7 +2353,7 @@ void func_001C8030(struct O *p)
 namespace M_FVaultOpened {
 struct X { int c; short *ps; };
 struct B { int a, b; int c; short Find(char *s) ; };
-extern B D_003E0EA8;
+extern "C" { extern B D_003E0EA8; }
 extern "C" {
 int IlevelCur__Fv(void);
 void *func_002109B8(int n);
@@ -2390,7 +2390,7 @@ void *FVaultOpened(void);
 }
 class FRAME { int a[4]; public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct CRef { int m_tagk; int m_tag; };
-extern char D_003D4A60[];
+extern "C" { extern char D_003D4A60[]; }
 extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
 static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int func_001C8110(void);
@@ -2426,8 +2426,8 @@ struct CRef {
     CRef(const CRef &r) { func_001291A8(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
-extern char D_003D4A60[];
-extern char D_002E65E0[];
+extern "C" { extern char D_003D4A60[]; }
+extern "C" { extern char D_002E65E0[]; }
 
 extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
 struct RAW { int m_tagk; int m_tag; };
@@ -2554,9 +2554,9 @@ struct POINT {char pad[0x10];float x,y;};
 struct TIMER {char pad[0xA8];float end;};
 struct SGG;struct ALARM;
 struct S {char pad[0x150];struct POINT*input;char pad154[0x188-0x154];int state;int pad18C,pad190;int index,step;SGG*alarms;void*pending;char pad1A4[0x1F0-0x1A4];int target;char pad1F4[0x204-0x1F4];struct TIMER*timer;};
-extern float D_002C0FE8,D_002A7798;
-extern qword D_002C0FF0[9];
-extern struct CLOCK {float t,dt;} D_002DDED0;
+extern "C" { extern float D_002C0FE8,D_002A7798; }
+extern "C" { extern qword D_002C0FF0[9]; }
+extern "C" { extern struct CLOCK {float t,dt;} D_002DDED0; }
 extern "C" int GrfConsumePressed__5POCTLUif(void*,int,float);
 extern "C" void func_001E0020(SGG*,ALARM*);
 extern "C" void func_001C8918(struct S*,int);
