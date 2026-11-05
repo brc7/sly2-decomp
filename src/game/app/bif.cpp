@@ -69,13 +69,13 @@ struct MATRIX4 { float m[4][4]; };
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(int n);
-    CRef &operator=(float g);
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
     CRef &operator=(const VECTOR &v) __asm__("CRef_SetVector");
     CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
@@ -161,13 +161,13 @@ struct MATRIX4 { float m[4][4]; };
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(int n);
-    CRef &operator=(float g);
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
     CRef &operator=(const VECTOR &v) __asm__("CRef_SetVector");
     CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
@@ -272,21 +272,21 @@ struct VU_FLOAT_F {
     qword q;
     VU_FLOAT_F(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); }
 };
-struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f); };
-struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v); };
-qword operator*(VU_FLOAT_X f, VU_VECTOR v);
+struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f) __asm__("__8VU_FLOATf"); };
+struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v) __asm__("__9VU_VECTORRC6VECTOR"); };
+qword operator*(VU_FLOAT_X f, VU_VECTOR v) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
 extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
 extern "C" { MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b); }
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
-    CRef &operator=(int n);
-    CRef &operator=(float g);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
     CRef &operator=(qword v) __asm__("CRef_SetVector_VU_VECTOR");
     CRef &operator=(const MATRIX4 &m) __asm__("CRef_SetMatrix");
 };
@@ -492,20 +492,20 @@ struct VU_FLOAT {
     VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
     float F() const { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 };
-struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f); };
-struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v); };
-qword operator*(VU_FLOAT_X f, VU_VECTOR v);
+struct VU_FLOAT_X { qword q; VU_FLOAT_X(float f) __asm__("__8VU_FLOATf"); };
+struct VU_VECTOR { qword q; VU_VECTOR(const VECTOR &v) __asm__("__9VU_VECTORRC6VECTOR"); };
+qword operator*(VU_FLOAT_X f, VU_VECTOR v) __asm__("__ml__FG8VU_FLOATG9VU_VECTOR");
 extern "C" qword *VECTOR_opAssign(VECTOR *p, qword v);
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
-    CRef &operator=(int n);
-    CRef &operator=(float g);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" { CRef CRef_CloneTo(CRef *pref, void *a, void *b); }
@@ -857,9 +857,9 @@ struct CRef {
     CRef(int n, int tagk) { u.n = n; m_tagk = tagk; }
     CRef(NODE *p) __asm__("CRef_ctor_CPair");                  /* 0x129480 */
     CRef(const CRef &r);            /* 0x1291A8 */
-    void Decref();                  /* 0x129EC8 */
+    void Decref() __asm__("Decref__4CRef");                  /* 0x129EC8 */
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r); /* 0x129658 */
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef"); /* 0x129658 */
 };
 struct NODE { int cref; int n4; CRef ref; NODE *pnext; };
 struct W { int cref; int n4; int n8; CRef ref; int n14; NODE *pnext; };
@@ -1335,10 +1335,10 @@ struct CRef {
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 struct NODE;
@@ -1554,11 +1554,11 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(bool f) { m_tagk = 0x17; u.n = f; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 struct NODE { int x0, x4; CRef ref; NODE *pnext; };
 extern "C" {
@@ -1619,10 +1619,10 @@ struct CRef {
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     CRef(NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
@@ -1733,10 +1733,10 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; NODE *pnode; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     CRef(NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(NODE *p) __asm__("CRef_SetPair");
@@ -1798,8 +1798,8 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(NODE *pn) __asm__("CRef_SetPair");
@@ -1873,12 +1873,12 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
     CRef &operator=(NODE *p) __asm__("CRef_SetPair");
 };
@@ -1935,12 +1935,12 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; NODE *pnode; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     CRef(NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(NODE *p) __asm__("CRef_SetPair");
 };
 extern "C" { extern char D_004520A8[]; }
@@ -2014,10 +2014,10 @@ struct CRef {
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     CRef(struct NODE *p);
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 struct NODE;
@@ -2084,10 +2084,10 @@ struct CRef {
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     CRef(struct NODE *p);
-    void Decref();
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 struct NODE;
@@ -2140,9 +2140,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -2206,9 +2206,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
@@ -2438,13 +2438,13 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(float g);
-    CRef &operator=(int n);
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
 };
 extern "C" {
 CRef CRef_RefCoerceF32(CRef *pref);
@@ -2751,12 +2751,12 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(float g);
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
 };
 struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DD0; }
@@ -2809,12 +2809,12 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(float g);
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
 };
 struct W { char pad[0xC]; qword *pv; };
 extern "C" { extern qword D_002A2DD0; }
@@ -2854,8 +2854,8 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; qword *pq; } u;
     CRef() { m_tagk = -1; }
     CRef(const qword *pq) __asm__("CRef_ctor_VECTOR");
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
@@ -2983,9 +2983,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -3034,11 +3034,11 @@ struct CRef {
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(float g);
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 struct NODE;
@@ -3163,9 +3163,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
 };
 extern "C" {
@@ -3276,11 +3276,11 @@ struct CRef {
     CRef(int tagk) { InitTag(tagk); }
     CRef(const CRef &r);
     CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
-    CRef &operator=(float g);
+    CRef &operator=(float g) __asm__("SetF32__4CReff");
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
 };
 struct NODE;
@@ -3340,9 +3340,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
@@ -3394,9 +3394,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
 };
@@ -3502,9 +3502,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -3711,11 +3711,11 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
@@ -3766,11 +3766,11 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 struct NODE { int cref; int x4; CRef ref; NODE *pnext; };
@@ -4001,13 +4001,13 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; NODE *pnode; } u;
     CRef() { m_tagk = -1; }
     CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }
-    CRef(const CRef &r);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     CRef(NODE *p);
-    void Decref();
-    void InitTag(int tagk);
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
-    CRef &operator=(int n);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
     CRef &operator=(NODE *p) __asm__("CRef_SetPair");
     CRef &operator=(OBJ *p) __asm__("CRef_SetProc");
     void SetTag(int tagk) { Decref(); InitTag(tagk); }
@@ -4112,11 +4112,11 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 extern "C" {
@@ -4240,9 +4240,9 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
-    void InitTag(int tagk);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
+    void InitTag(int tagk) __asm__("SetTag__4CRef4TAGK");
     ~CRef() { Decref(); }
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
@@ -4330,11 +4330,11 @@ struct CRef; struct Q; struct W; struct G;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 struct Q { char pad[0x3C]; void *pv; };
 struct W { char pad[0xC]; Q *pq; };
@@ -4382,12 +4382,12 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     CRef(struct NODE *p) __asm__("CRef_ctor_CPair");
-    void Decref();
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
     CRef &operator=(NODE *p) __asm__("CRef_SetPair");
     CRef &operator=(struct LO *p) __asm__("CRef_SetBasic");
@@ -4492,11 +4492,11 @@ struct CRef; struct Q; struct W; struct G;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 struct Q { char pad[0x3C]; void *pv; };
 struct W { char pad[0xC]; Q *pq; };
@@ -4625,10 +4625,10 @@ struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 extern "C" { extern char D_003DD490[]; }
 extern "C" {
@@ -4661,11 +4661,11 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
@@ -4705,11 +4705,11 @@ struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(float g);
 };
 struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
@@ -4757,10 +4757,10 @@ struct LO;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; NODE *pnode; qword *pq; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
     CRef &operator=(NODE *pn) __asm__("CRef_SetPair");
     CRef &operator=(LO *plo) __asm__("CRef_SetBasic");
     CRef &operator=(qword *pv) __asm__("CRef_SetVector");
@@ -4882,10 +4882,10 @@ struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 extern "C" {
 CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
@@ -4913,10 +4913,10 @@ struct CRef;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 extern "C" {
 CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int k, void *a, void *b, void *c);
@@ -5176,11 +5176,11 @@ struct CRef; struct OBJ; struct X;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
 struct X { int a[4]; };
@@ -5220,11 +5220,11 @@ struct CRef; struct OBJ; struct X;
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
     CRef() { m_tagk = -1; }
-    CRef(const CRef &r);
-    void Decref();
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
     void InitTag(int tagk);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &r);
+    CRef &operator=(const CRef &r) __asm__("__as__4CRefRC4CRef");
 };
 struct OBJ { int a[4]; OBJ() __asm__("STACKSCOPE_ctor"); ~OBJ(); };
 struct X { int a[4]; };
@@ -5262,7 +5262,7 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(int tagk) { InitTag(tagk); }
     CRef(int n, int tagk) { m_tagk = tagk; u.n = n; }
-    CRef(const CRef &r);
+    CRef(const CRef &r) __asm__("__4CRefRC4CRef");
     void Decref();
     void InitTag(int tagk);
     ~CRef() { Decref(); }
@@ -5270,7 +5270,7 @@ struct CRef {
     CRef &operator=(float g);
 };
 struct O { int pad[2]; int k; O *pparent; int pad2[5]; int f; };
-class CFrame { public: CRef *PrefFindBinding(unsigned int sym, int fRecurse); };
+class CFrame { public: CRef *PrefFindBinding(unsigned int sym, int fRecurse) __asm__("PrefFindBinding__6CFrameUii"); };
 extern "C" CRef RefOpFindBindingOrNoop(void *pbasic, CRef *aref, O *po);
 /** @sly2-annot addr=0x125510
  * Purpose: Looks up a symbol in the calling object frame chain (CFrame::PrefFindBinding(sym,1)); if unbound
