@@ -93,16 +93,18 @@ extern CLOCK D_002DDED0;
 extern SW D_003DD490;
 extern char D_003DD040[];
 extern char D_002DDF40[];
-extern void *D_002DD648;
+void *D_002DD648;   /* the registered guard (tu_14A008's .bss; medium: by layout, just before cd's .bss) */
 extern qword D_002A2DD0;
-extern LM D_002BD480, D_002BD488, D_002BD490, D_002BD498, D_002BD4A0;
-extern float D_002A4EE8;
-extern float D_002BD4B0[3];
+extern const float D_002A4EE8 = 3.40282347e+38f;   /* FLT_MAX */
 extern "C" {
 extern SO *D_003E1450;
-extern float D_002BD460;
-extern float D_002BD468[2];
-extern float D_002BD470, D_002BD474, D_002BD478, D_002BD47C;
+/* tu_14A008's .data (address order). */
+float D_002BD460 = 100.0f;
+float D_002BD468[2] = {4.0f, 6.0f};
+float D_002BD470 = 200.0f, D_002BD474 = -75.0f, D_002BD478 = 600.0f, D_002BD47C = 10.0f;
+LM D_002BD480 = {900.0f, 1400.0f}, D_002BD488 = {1400.0f, 4000.0f}, D_002BD490 = {600.0f, 1000.0f}, D_002BD498 = {1000.0f, 4000.0f},
+    D_002BD4A0 = {0.0f, 10.0f};
+float D_002BD4B0[3] = {-400.0f, 0.8f, 0.0f};
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n);
 RTE *func_001AE378(ALLOCREQ *preq);

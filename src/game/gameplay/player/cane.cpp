@@ -11,7 +11,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qword __attribute__((mode(TI)));
-union U {qword q;float f[4];int bits[4];};
+union U {float f[4];qword q;int bits[4];};   // floats first, so U globals can be initialized
 struct VE{short delta,pad;void*fn;};
 struct ASEG{char pad0[0x74];float duration;};
 struct ASEGA{char pad0[0x1C];float localTime;char pad20[0x40-0x20];float elapsed;char pad44[4];float rate;};
@@ -95,8 +95,12 @@ struct JT{
  ASEG * clip23;
 };
 extern "C"{
-extern CLOCK D_002DDED0;extern int D_002BF448[];extern float D_002BF430,D_002BF434,D_002BF438,D_002BF43C,D_002BF440;
-extern void*D_002E1E44;extern void*D_002E1E48;
+extern CLOCK D_002DDED0;
+// cane's .data (address order): the attack delays, the clip transition table (state -> compatible clip, -1 none) and,
+// below, the takedown distance, limits and the target-search offsets. The float after the table (0x2BF4A8) is named by no code.
+float D_002BF430=0.0666666716f,D_002BF434=0.166666672f,D_002BF438=0.116666675f,D_002BF43C=0.0666666716f,D_002BF440=0.13333334f;
+int D_002BF448[24]={-1,-1,-1,-1,6,7,4,5,-1,-1,-1,-1,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+void*D_002E1E44;void*D_002E1E48;   // cane's .bss
 void HideSoPart(JT*,ACTION*);void func_001F4BF8(JT*);void func_001CCAC0(void*,int);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
 qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
@@ -130,9 +134,11 @@ void func_001384C0(ASEG *);
 void SetStepRadTargetVec(JT *, qword);
 void FixStepAngularVelocity(JT *);
 void func_00204660(JT *, float);
-extern float D_002BF4AC;
-extern char D_002BF4B0[];
-extern U D_002BF4C0, D_002BF4D0, D_002BF4E0;
+float D_002BF4AC = 400.0f;
+float D_002BF4B0[2] = {250.0f, 1000.0f};   /* an LM {min, max}: the takedown target's z window */
+extern "C" float D_002BF4B8;
+float D_002BF4B8 = -250.0f;   /* the bonus-target distance bias (declared again before ChooseJtAttackTarget) */
+U D_002BF4C0 = {{175.0f, 0.0f, 0.0f, 0.0f}}, D_002BF4D0 = {{250.0f, 0.0f, 125.0f, 0.0f}}, D_002BF4E0 = {{125.0f, 0.0f, 0.0f, 0.0f}};
 }
 
 /** @sly2-annot addr=0x18E540

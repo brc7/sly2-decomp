@@ -100,17 +100,18 @@ extern CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern qword D_002A2DD0;
 extern qword D_002A2DC0;
-extern float D_002BE5CC,D_002BE5D0,D_002BE5D4,D_002BE5D8;
-extern float D_002BE5DC;
-extern float D_002BE5E0;
+/* tu_173158's .data (address order). */
+float D_002BE5B8=0.8f,D_002BE5BC=500.0f,D_002BE5C0=1.7f,D_002BE5C4=1.25f,D_002BE5C8=100.0f;
+float D_002BE5CC=10.0f,D_002BE5D0=1.0f,D_002BE5D4=300.0f,D_002BE5D8=2.5f;
+float D_002BE5DC=3500.0f;
+float D_002BE5E0=4.0f;
+float D_002BE5E4=1500.0f;
+float D_002BE5E8=200.0f;
+float D_002BE5F0[2]={-350.0f,100.0f};
 extern "C" {
 extern CM D_002DDF40;
-extern float D_002BE5B8,D_002BE5BC,D_002BE5C0,D_002BE5C4,D_002BE5C8;
-extern float D_002A53E0;
-extern float D_002BE5E4;
-extern float D_002BE5E8;
+extern const float D_002A53E0=3.40282347e+38f;   /* FLT_MAX */
 extern LM D_002BBB60;
-extern float D_002BE5F0[2];
 void InitLo(CID119 *p);
 void LoadLoFromBrx(CID119 *p, void *pbis);
 void PostLoLoad(CID119 *p);
