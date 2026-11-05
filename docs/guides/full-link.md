@@ -44,7 +44,8 @@ of the data survey's ~1,740 with the six vtables (tu-merging.md, "Data"). Before
 
 ## Symbols (state after link round 3 and data phase 2)
 
-- 531 undefined references not in config remain in the 209 objects: 289 are listed in config/link_aliases.txt
+- 531 undefined references not in config remain in the 209 objects (507 since build/rtti-palettes: the 22 typeinfo
+  references and two alias-table vtables are gone, see "-fno-rtti and the palettes" below): 289 are listed in config/link_aliases.txt
   (vtables and destructors of namespace-scoped views, a few declarations source cannot bind) and 242 are referenced
   only from key-TU extras that the ELF does not have (unreferenced linkonce vtables and typeinfo functions). The extras
   must not be resolved but dropped: `--gc-sections`, or a `/DISCARD/` for those `.gnu.linkonce.*` sections. Data
@@ -153,7 +154,27 @@ addresses, ...); 2 sections overlap and go to `.unplaced` (class_registry .rodat
 bytes: key-TU vtables/typeinfo of JT, ACCMISS, SM, CMPART2, eopid_linkonce's `g_eopidref_*` pointers, grab.cpp's local
 class destructor, 100 bytes of snd_SendCurrentBatch .data).
 
-### Remaining mismatch classes (default mode, 2,068 bytes)
+### -fno-rtti and the palettes (build/rtti-palettes, integrate/round4 bd60d4cd sources)
+
+C++ now compiles with `-fno-rtti` and the two palettes carry `__attribute__((section(".rodata")))` (tu-merging.md,
+"Data", resolved decisions). Same script, default mode; before = bd60d4cd without the change (identical to the
+round-3 numbers above), after = this branch:
+
+| section | bytes | equal before | equal after | match after | from objects before | from objects after | equal before | equal after | match after |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| .text | 1,416,688 | 1,415,991 | 1,416,000 | 99.95% | 1,282,044 | 1,282,044 | 1,281,347 | 1,281,356 | 99.95% |
+| .rodata | 304,356 | 303,004 | 303,026 | 99.56% | 21,552 | 21,688 | 20,200 | 20,358 | 93.87% |
+| .data | 199,088 | 199,069 | 199,086 | 99.999% | 33,505 | 33,505 | 33,486 | 33,503 | 99.99% |
+
+Differing bytes 2,068 -> 2,020: the 17 typeinfo-slot `.data` bytes (class 2) are gone, and so are the palettes'
+8 `.rodata` bytes plus the 9 `.text` bytes of the two initializers' %hi/%lo (each TU's `.bss` had been placed at
+the palette address, the CLUT/BMP objects with it); tn's `.rodata` layout bytes went from 21 to 7 as a side effect
+of the placement (not investigated). Config names at their config address: 7,024 of 7,074 (wrong: .bss 48, .sbss 2; before 7,022 of
+7,075 with .rodata 1, .bss 50). Placed object sections 7,697 (7,703), unplaced 69 / 2,432 bytes (83 / 3,072): the
+`__tf*` sections of the key TUs are no longer emitted. No `__tf*`/`__ti*`/`__rtti_*` symbol is defined or referenced
+by any object. ld.lld: 0 errors.
+
+### Remaining mismatch classes (default mode, 2,068 bytes before build/rtti-palettes, 2,020 after)
 
 1. **Object sections whose internal layout differs from the ELF** (1,296 .rodata bytes, plus 697 .text bytes of
    %hi/%lo referencing them). Anonymous literal pools (18 objects; 15 of them interleave with the object's named
@@ -161,14 +182,15 @@ class destructor, 100 bytes of snd_SendCurrentBatch .data).
    issue: memcard, guardbhv, text, screen, air, stepplayer, jt, prize ...) and file-level .bss whose order differs
    from the ELF (`-fdata-sections` does not split .bss in g++ 2.95): gs, joy, dl, shd, screen, mpeg, memcard, game,
    sprbuf (build/link/conflicts.txt lists the competing addresses).
-2. **Typeinfo slots in vtables** (17 .data bytes): our vtables point at `__tf*` typeinfo functions, the ELF's slot is 0.
-   With `-fno-rtti` the vtables match and the typeinfo extras (and `__rtti_si`/`__rtti_user`) disappear; heap, gifs,
-   bq, bis, dmas, vifs and jt compiled with it still MATCH all functions. matchtool's data check masks relocated
-   words, which is why this never showed. Decision for you: add `-fno-rtti` to the default CFLAGS (needs a full
-   progress run).
+2. **Typeinfo slots in vtables** (17 .data bytes): our vtables pointed at `__tf*` typeinfo functions, the ELF's slot
+   is 0. Resolved (build/rtti-palettes): `-fno-rtti` is in the C++ flags, the vtables match and the typeinfo extras
+   (and `__rtti_si`/`__rtti_user`) are gone. matchtool's data check masks relocated words, which is why this never
+   showed there; the slot is now an unrelocated 0 and compared. The flag changed 12 class_registry factories (a
+   secondary vtable shared with the base's), fixed in the views; a full progress run stays 6,662/6,662.
 3. **Bytes differ with no relocation** (53 .rodata + 2 .data): stepguard .rodata 24, bentley 7, aseg, hud, act,
-   tu_1BAB50, relay; and two zero-initialized arrays that are const in the ELF (tu_1147D8 D_0029A7C0, tu_114AE0
-   D_002A2900: `.bss` in ours, `.rodata` in the ELF; matchtool check reports the same).
+   tu_1BAB50, relay, xf 2. The two zero-filled const arrays with a dynamic initializer (tu_1147D8 D_0029A7C0,
+   tu_114AE0 D_002A2900: `.bss` in ours, `.rodata` in the ELF; 8 + 9 bytes counted under class 1) are resolved with a
+   section attribute (build/rtti-palettes); matchtool's data check reports both MATCH.
 4. **Code order for a TU-section link** (no bytes here, since every function is placed alone): 893 objects' code is
    one contiguous run in source order; 38 are split by other objects' code: class_registry (24 runs, interleaved
    with splice_thunks/splicewrap in the crt0 block) and the TUs that keep a linkonce-area copy as a plain function
@@ -176,7 +198,7 @@ class destructor, 100 bytes of snd_SendCurrentBatch .data).
 
 ## What is left, in order
 
-1. Decide `-fno-rtti` (class 2) and re-run the match check.
+1. ~~Decide `-fno-rtti` (class 2)~~: done (build/rtti-palettes).
 2. Data order from source, TU by TU, measured with `--tu-data` (conflicts.txt, mismatch.txt); the `D_` names nobody
    defines stay the work list for the real link.
 3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area
