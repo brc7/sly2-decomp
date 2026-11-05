@@ -2710,3 +2710,10 @@ float D_002BE8A4 = -2.5f;
 float D_002BE8A8 = 0.25f;
 int D_002BE8AC = 30;
 HACKSHIP *D_002DFB80;   /* the ship singleton */
+
+// ---- Virtual pointer-to-member constants by address name (docs/guides/tu-merging.md "Data"): 8 bytes {delta 0,
+// vtable index, vptr offset 0xC} as the ELF has them; own namespace so no declaration above has to agree.
+namespace ANPTR_tu_17F090 { extern "C" {
+extern const unsigned int D_002A5630[2] = {0x530000, 0xC};
+extern const unsigned int D_002A5638[2] = {0, 0};   /* zero (null) member pointer */
+} } // namespace ANPTR_tu_17F090

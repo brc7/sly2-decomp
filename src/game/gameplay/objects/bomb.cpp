@@ -879,3 +879,9 @@ extern "C" void func_0013BC60(BOMB *p, BOMB *pbombOwner)
         RecalcSwOxfFilterForObject(&D_003DD490, p);
     }
 }
+
+// ---- Virtual pointer-to-member constants by address name (docs/guides/tu-merging.md "Data"): 8 bytes {delta 0,
+// vtable index, vptr offset 0xC} as the ELF has them; own namespace so no declaration above has to agree.
+namespace ANPTR_bomb { extern "C" {
+extern const unsigned int D_002A4B10[2] = {0x4E0000, 0xC};
+} } // namespace ANPTR_bomb
