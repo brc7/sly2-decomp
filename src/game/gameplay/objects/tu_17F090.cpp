@@ -2689,3 +2689,33 @@ void func_00182AB8(struct S *p, int a, int b, int c, float g)
     }
 }
 } } // namespace M_func_00182AB8
+
+// ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
+// so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
+extern const unsigned long D_002A5630 = 0xC00530000;
+extern const unsigned long D_002A5638 = 0;
+VECTOR4 D_002BE7D0 = {300.0f, 50.0f, 0.0f, 0.0f};
+LM D_002BE7E0 = {0.0f, 800.0f};
+float D_002BE7E8 = 1000.0f;
+SMPA D_002BE7F0 = {1.0f, 0.0f, 0.5f, 0.0f};
+SMPA D_002BE800 = {25.0f, 0.0f, 0.25f, 0.0f};
+CLQ D_002BE810 = {{{0.0f, 5.0f, 0.0f, 0.0f}}};
+float D_002BE820 = 100.0f;
+float D_002BE824 = 5.0f;
+float D_002BE828 = 200.0f;
+CLQ D_002BE830 = {{{1.0f, -0.5f, 0.0f, 0.0f}}};
+CLQ D_002BE840 = {{{1500.0f, -5.0f, 0.0f, 0.0f}}};
+LM D_002BE850 = {0.0f, 1000.0f};
+CLQ D_002BE860 = {{{0.0f, -1.0f, 0.0f, 0.0f}}};
+float D_002BE870[3] = {25.0f, 0.0f, 0.25f};
+float D_002BE87C = 5.0f;
+float D_002BE880 = 50.0f;
+float D_002BE884 = 0.15f;
+SMPA D_002BE888 = {1500.0f, 0.0f, 0.5f, 4500.0f};
+float D_002BE898 = -100.0f;
+float D_002BE89C = -10.0f;
+float D_002BE8A0 = -15.0f;
+float D_002BE8A4 = -2.5f;
+float D_002BE8A8 = 0.25f;
+int D_002BE8AC = 30;
+HACKSHIP *D_002DFB80;   /* the ship singleton */
