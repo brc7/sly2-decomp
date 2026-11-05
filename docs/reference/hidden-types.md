@@ -16,8 +16,8 @@ HYPOTHESIS: an unregistered class `BHV → ? → {BHVANIM, BHVLEAP, BHV175}`. 2 
 
 | Slot | Role | Shared implementation | Parent has | Exclusive |
 |---|---|---|---|---|
-| 12 | GrfGroundProbe | [`BHVANIM_GrfGroundProbe`](../../src/game/gameplay/ai/guardbhv/BHVANIM_GrfGroundProbe.c) `0x174EA0` | `BHV_GrfGroundProbe?` | yes |
-| 13 | FHandleMessage | [`BHVANIM_FHandleMessage`](../../src/game/gameplay/ai/guardbhv/BHVANIM_FHandleMessage.c) `0x174BD0` | `BHV_FHandleMessage` | yes |
+| 12 | GrfGroundProbe | [`BHVANIM_GrfGroundProbe`](../../src/game/gameplay/ai/guardbhv.cpp) `0x174EA0` | `BHV_GrfGroundProbe?` | yes |
+| 13 | FHandleMessage | [`BHVANIM_FHandleMessage`](../../src/game/gameplay/ai/guardbhv.cpp) `0x174BD0` | `BHV_FHandleMessage` | yes |
 
 <a id="a2"></a>
 ### A2. Under [BHV](classes/BHV.md): {[BHVANIM](classes/BHVANIM.md), [BHVLEAP](classes/BHVLEAP.md), [BHV175](classes/BHV175.md), [BHVJUGGLED](classes/BHVJUGGLED.md)} — medium
@@ -27,7 +27,7 @@ HYPOTHESIS: an unregistered class `BHV → ? → {BHVANIM, BHVLEAP, BHV175, BHVJ
 
 | Slot | Role | Shared implementation | Parent has | Exclusive |
 |---|---|---|---|---|
-| 11 | UpdateMotion | [`UpdateBhvanimMotion`](../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) `0x174F08` | `UpdateBhvMotion` | yes |
+| 11 | UpdateMotion | [`UpdateBhvanimMotion`](../../src/game/gameplay/ai/guardbhv.cpp) `0x174F08` | `UpdateBhvMotion` | yes |
 
 ## B. Vtables and descriptor-like tables not claimed by a registered class
 

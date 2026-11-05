@@ -31,10 +31,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvcombatClassDesc`](../../../src/game/app/class_registry/GetBhvcombatClassDesc.c) | `0x114460` |
-| 7 | Init | **override** | [`InitBhvcombat`](../../../src/game/gameplay/ai/guardbhv/InitBhvcombat.c) | `0x175758` |
-| 8 | Start | **override** | [`StartBhvcombat`](../../../src/game/gameplay/ai/guardbhv/StartBhvcombat.c) | `0x175790` |
-| 9 | Close | **override** | [`CloseBhvcombat`](../../../src/game/gameplay/ai/guardbhv/CloseBhvcombat.c) | `0x1757D0` |
-| 10 | Update | **override** | [`UpdateBhvcombat`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvcombat.c) | `0x176098` |
+| 7 | Init | **override** | [`InitBhvcombat`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x175758` |
+| 8 | Start | **override** | [`StartBhvcombat`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x175790` |
+| 9 | Close | **override** | [`CloseBhvcombat`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x1757D0` |
+| 10 | Update | **override** | [`UpdateBhvcombat`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x176098` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |

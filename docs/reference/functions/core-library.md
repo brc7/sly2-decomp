@@ -437,7 +437,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x256278](../../../src/game/engine/camera/cm/func_00256278.c) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../include/sly2/cm.h) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A0](../../../include/sly2/cm.h) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x2562A8](../../../src/game/gameplay/ai/guardbhv/func_002562A8.c) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
+| [0x2562A8](../../../src/game/gameplay/ai/guardbhv.cpp) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
 | [0x2562B8](../../../include/sly2/so.h) | `SetSoOptF08` | set (p->x24)->f8 then MarkSoTreeDirty(p->x20) [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2562E0](../../../include/sly2/so.h) | `GetSoOptF08` | return (p->x24)->f8 [game linkonce (inline/template)] | 0.25 | T2 |  |
 | [0x2562F0](../../../include/sly2/so.h) | `SetSoOptS14` | set (p->x24)->s16@0x14 then MarkSoTreeDirty [game linkonce (inline/template)] | 0.25 | T2 |  |

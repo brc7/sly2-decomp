@@ -35,13 +35,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvanimClassDesc`](../../../src/game/app/class_registry/GetBhvanimClassDesc.c) | `0x1143E0` |
-| 7 | Init | **override** | [`InitBhvanim`](../../../src/game/gameplay/ai/guardbhv/InitBhvanim.c) | `0x174920` |
-| 8 | Start | **override** | [`StartBhvanim`](../../../src/game/gameplay/ai/guardbhv/StartBhvanim.c) | `0x174950` |
-| 9 | Close | **override** | [`CloseBhvanim`](../../../src/game/gameplay/ai/guardbhv/CloseBhvanim.c) | `0x174B28` |
-| 10 | Update | **override** | [`UpdateBhvanim`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanim.c) | `0x174B68` |
-| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) | `0x174F08` |
-| 12 | GrfGroundProbe | **override** | [`BHVANIM_GrfGroundProbe`](../../../src/game/gameplay/ai/guardbhv/BHVANIM_GrfGroundProbe.c) | `0x174EA0` |
-| 13 | FHandleMessage | **override** | [`BHVANIM_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVANIM_FHandleMessage.c) | `0x174BD0` |
+| 7 | Init | **override** | [`InitBhvanim`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174920` |
+| 8 | Start | **override** | [`StartBhvanim`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174950` |
+| 9 | Close | **override** | [`CloseBhvanim`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174B28` |
+| 10 | Update | **override** | [`UpdateBhvanim`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174B68` |
+| 11 | UpdateMotion | **override** | [`UpdateBhvanimMotion`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174F08` |
+| 12 | GrfGroundProbe | **override** | [`BHVANIM_GrfGroundProbe`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174EA0` |
+| 13 | FHandleMessage | **override** | [`BHVANIM_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174BD0` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields

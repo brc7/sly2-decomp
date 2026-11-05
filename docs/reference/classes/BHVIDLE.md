@@ -31,13 +31,13 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvidleClassDesc`](../../../src/game/app/class_registry/GetBhvidleClassDesc.c) | `0x1143F0` |
-| 7 | Init | **override** | [`InitBhvidle`](../../../src/game/gameplay/ai/guardbhv/InitBhvidle.c) | `0x174FC8` |
-| 8 | Start | **override** | [`StartBhvidle`](../../../src/game/gameplay/ai/guardbhv/StartBhvidle.c) | `0x174FF8` |
-| 9 | Close | **override** | [`CloseBhvidle`](../../../src/game/gameplay/ai/guardbhv/CloseBhvidle.c) | `0x175090` |
+| 7 | Init | **override** | [`InitBhvidle`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174FC8` |
+| 8 | Start | **override** | [`StartBhvidle`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x174FF8` |
+| 9 | Close | **override** | [`CloseBhvidle`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x175090` |
 | 10 | Update | inherited (BHVANIM) | `UpdateBhvanim` | `0x174B68` |
 | 11 | UpdateMotion | inherited (BHVANIM) | `UpdateBhvanimMotion` | `0x174F08` |
 | 12 | GrfGroundProbe | inherited (BHVANIM) | `BHVANIM_GrfGroundProbe` | `0x174EA0` |
-| 13 | FHandleMessage | **override** | [`BHVIDLE_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv/BHVIDLE_FHandleMessage.c) | `0x1750E0` |
+| 13 | FHandleMessage | **override** | [`BHVIDLE_FHandleMessage`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x1750E0` |
 | 14 | UpdateInput | inherited (BHV) | `UpdateBhvInput?` | `0x1EF0C0` |
 
 ## Fields

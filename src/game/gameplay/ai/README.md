@@ -7,7 +7,7 @@
 | [`bhvstk.cpp`](bhvstk.cpp) | 1 |
 | [`detector.cpp`](detector.cpp) | 1 |
 | [`gomer.cpp`](gomer.cpp) | 1 |
-| [`guardbhv/`](guardbhv/) | 190 |
+| [`guardbhv.cpp`](guardbhv.cpp) | 1 |
 | [`noise.cpp`](noise.cpp) | 1 |
 | [`pickpocket.cpp`](pickpocket.cpp) | 1 |
 | [`stepguard.cpp`](stepguard.cpp) | 1 |

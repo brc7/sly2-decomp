@@ -32,9 +32,9 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvhitClassDesc`](../../../src/game/app/class_registry/GetBhvhitClassDesc.c) | `0x114410` |
 | 7 | Init | inherited (BHVANIM) | `InitBhvanim` | `0x174920` |
-| 8 | Start | **override** | [`StartBhvhit`](../../../src/game/gameplay/ai/guardbhv/StartBhvhit.c) | `0x179328` |
-| 9 | Close | **override** | [`CloseBhvhit`](../../../src/game/gameplay/ai/guardbhv/CloseBhvhit.c) | `0x179598` |
-| 10 | Update | **override** | [`UpdateBhvhit`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvhit.c) | `0x1795E8` |
+| 8 | Start | **override** | [`StartBhvhit`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x179328` |
+| 9 | Close | **override** | [`CloseBhvhit`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x179598` |
+| 10 | Update | **override** | [`UpdateBhvhit`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x1795E8` |
 | 11 | UpdateMotion | inherited (BHVANIM) | `UpdateBhvanimMotion` | `0x174F08` |
 | 12 | GrfGroundProbe | inherited (BHVANIM) | `BHVANIM_GrfGroundProbe` | `0x174EA0` |
 | 13 | FHandleMessage | inherited (BHVANIM) | `BHVANIM_FHandleMessage` | `0x174BD0` |

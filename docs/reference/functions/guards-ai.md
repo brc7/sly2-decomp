@@ -209,193 +209,193 @@ Totals on this page: EXISTING 3, T1 240, T2 347.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x174898](../../../src/game/gameplay/ai/guardbhv/PstepguardFromLo.c) | `PstepguardFromLo` | Return the STEPGUARD that owns an object: the object's LOROOT if it is a STEPGUARD, else (for cid 0x4F children) the root of its +0x200 owner; NULL otherwise | 0.60 | T1 |  |
-| [0x174920](../../../src/game/gameplay/ai/guardbhv/InitBhvanim.c) | `InitBhvanim` | BHVANIM Init: base Init, state=-1, flag(+0x3C)=0 (shared by BHV160) | 0.80 | T1 | runtime |
-| [0x174950](../../../src/game/gameplay/ai/guardbhv/StartBhvanim.c) | `StartBhvanim` | BHVANIM Start: raise guard flag +0x3C (AddStepguardSgf), pick anim binding for the current flags (PanimbindCur), enter state 0 (playing) or 1 (none -> done) | 0.80 | T1 | runtime |
-| [0x1749C0](../../../src/game/gameplay/ai/guardbhv/SetBhvanimState.c) | `SetBhvanimState` | BHVANIM state switch: 0 = become mover driver and StartAnimBinding (phase-continue walk cycle when flag 9), 1 = ClearBhvBusy, save walk phase, StopAnimBinding, release mover | 0.75 | T1 | runtime |
-| [0x174B28](../../../src/game/gameplay/ai/guardbhv/CloseBhvanim.c) | `CloseBhvanim` | BHVANIM Close: base Close, state 1 (stop anim), lower flag +0x3C | 0.80 | T1 | runtime |
-| [0x174B68](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanim.c) | `UpdateBhvanim` | BHVANIM Update: finish (state 1) when the anim binding is done | 0.80 | T1 | runtime |
-| [0x174BD0](../../../src/game/gameplay/ai/guardbhv/BHVANIM_FHandleMessage.c) | `BHVANIM_FHandleMessage` | BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation, 0x25/0x26 lock/unlock mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, 0x2F/0x34/0x35 rumble/camera jolt on hit | 0.80 | T1 | runtime |
-| [0x174EA0](../../../src/game/gameplay/ai/guardbhv/BHVANIM_GrfGroundProbe.c) | `BHVANIM_GrfGroundProbe` | BHVANIM ground-probe flags: when the binding drives a kind-2 payload use its mode (7 for modes 0/3/4 else 1), else base | 0.60 | T1 | runtime |
-| [0x174F08](../../../src/game/gameplay/ai/guardbhv/UpdateBhvanimMotion.c) | `UpdateBhvanimMotion` | BHVANIM motion: drive guard velocity from the anim root motion (DriveStepguardFromAnim) while playing, else zero; face +0x38 look-at object | 0.75 | T1 | runtime |
-| [0x174FB8](../../../src/game/gameplay/ai/guardbhv/FBhvanimDone.c) | `FBhvanimDone` | BHVANIM state == 1 (animation finished) | 0.80 | T1 | runtime |
-| [0x174FC8](../../../src/game/gameplay/ai/guardbhv/InitBhvidle.c) | `InitBhvidle` | BHVIDLE Init: BHVANIM Init with default flag 2 (stand/idle) | 0.70 | T1 | runtime |
-| [0x174FF8](../../../src/game/gameplay/ai/guardbhv/StartBhvidle.c) | `StartBhvidle` | BHVIDLE Start: BHVANIM Start; if flag 1 (hands-off) also cancel attack and reset detector targets; set XF roles | 0.65 | T1 | runtime |
-| [0x175090](../../../src/game/gameplay/ai/guardbhv/CloseBhvidle.c) | `CloseBhvidle` | BHVIDLE Close: BHVANIM Close and restore XF roles | 0.65 | T1 | runtime |
-| [0x1750E0](../../../src/game/gameplay/ai/guardbhv/BHVIDLE_FHandleMessage.c) | `BHVIDLE_FHandleMessage` | BHVIDLE message handler: ASEG events 0x29/0x2A toggle ground flag and XF role, else BHVANIM handler | 0.65 | T1 | runtime |
-| [0x1751C0](../../../src/game/gameplay/ai/guardbhv/InitBhvstrike.c) | `InitBhvstrike` | BHVSTRIKE Init: BHVANIM Init with flag 3 (attacking; flag 3 broadcasts game event 0x14) | 0.90 | T1 | runtime, verified |
-| [0x1751F0](../../../src/game/gameplay/ai/guardbhv/StartBhvstrike.c) | `StartBhvstrike` | BHVSTRIKE Start: mark guard engaged-busy (+0xF3C=1), BHVANIM Start; enable leap payload when the binding is kind 2 | 0.55 | T1 | runtime |
-| [0x175258](../../../src/game/gameplay/ai/guardbhv/UpdateBhvstrike.c) | `UpdateBhvstrike` | BHVSTRIKE Update: BHVANIM update; while leap enabled keep the leap target on the victim | 0.55 | T1 | runtime |
-| [0x1752C0](../../../src/game/gameplay/ai/guardbhv/CloseBhvstrike.c) | `CloseBhvstrike` | BHVSTRIKE Close: BHVANIM Close and clear engaged-busy +0xF3C | 0.55 | T1 | runtime |
-| [0x1752F0](../../../src/game/gameplay/ai/guardbhv/BHVSTRIKE_FHandleMessage.c) | `BHVSTRIKE_FHandleMessage` | BHVSTRIKE message handler: ASEG events 0x2D/0x2E open/close the hit window (+0xF3C), 0x30 releases the leap; else BHVANIM | 0.55 | T1 | runtime |
-| [0x1753D8](../../../src/game/gameplay/ai/guardbhv/InitBhvattack.c) | `InitBhvattack` | BHVATTACK Init: raise flag 0x18 (attack in progress), state -1 | 0.65 | T1 | runtime |
-| [0x175410](../../../src/game/gameplay/ai/guardbhv/StartBhvattack.c) | `StartBhvattack` | BHVATTACK Start: state 0 (strike) and set busy | 0.65 | T1 | runtime |
-| [0x175448](../../../src/game/gameplay/ai/guardbhv/CloseBhvattack.c) | `CloseBhvattack` | BHVATTACK Close: end strike, lower flag 0x18 | 0.65 | T1 | runtime |
-| [0x175488](../../../src/game/gameplay/ai/guardbhv/SetBhvattackState.c) | `SetBhvattackState` | BHVATTACK state switch: 0 = subscribe to victim, push BHVSTRIKE with the chosen attack entry and aim; 1 = push BHVANIM flag 4 (follow-through after a confirmed hit); -1 = clear busy | 0.65 | T1 | runtime |
-| [0x175600](../../../src/game/gameplay/ai/guardbhv/UpdateBhvattack.c) | `UpdateBhvattack` | BHVATTACK Update: after the strike, go to follow-through if the victim confirmed the hit (+0x40), else finish | 0.65 | T1 | runtime |
-| [0x1756C0](../../../src/game/gameplay/ai/guardbhv/BHVATTACK_FHandleMessage.c) | `BHVATTACK_FHandleMessage` | BHVATTACK message handler: msg 0xB from the victim naming this guard = hit landed (+0x40=1) | 0.65 | T1 | runtime |
-| [0x175748](../../../src/game/gameplay/ai/guardbhv/FBhvattackDone.c) | `FBhvattackDone` | BHVATTACK state == -1 | 0.70 | T1 | runtime |
-| [0x175758](../../../src/game/gameplay/ai/guardbhv/InitBhvcombat.c) | `InitBhvcombat` | BHVCOMBAT Init: raise flag 0x1D (engaged/alerted), state -1 | 0.70 | T1 | runtime |
-| [0x175790](../../../src/game/gameplay/ai/guardbhv/StartBhvcombat.c) | `StartBhvcombat` | BHVCOMBAT Start: state 3 (pursue) and SetStepguardTarget(target +0x30) | 0.70 | T1 | runtime |
-| [0x1757D0](../../../src/game/gameplay/ai/guardbhv/CloseBhvcombat.c) | `CloseBhvcombat` | BHVCOMBAT Close: state -1, lower flag 0x1D | 0.70 | T1 | runtime |
-| [0x175810](../../../src/game/gameplay/ai/guardbhv/FBhvcombatDone.c) | `FBhvcombatDone` | BHVCOMBAT state == -1 (target lost/given up) | 0.70 | T1 | runtime |
-| [0x175820](../../../src/game/gameplay/ai/guardbhv/func_00175820.c) | `FAttackLosIgnoreSo` | Line-of-sight filter for attack checks: ignore flagged SOs, cid 0x62 objects (when entry asks) and any STEP | 0.45 | T2 |  |
-| [0x1758A0](../../../src/game/gameplay/ai/guardbhv/PentryChooseStepguardAttack.cpp) | `PentryChooseStepguardAttack` | Pick the first enabled attack entry whose range/height/angle/LOS accept the target, confirm via Splice event 0x18, then start it (SetStepguardAttack) and mark the target record attacking | 0.85 | T1 | verified |
-| [0x175D00](../../../src/game/gameplay/ai/guardbhv/FBhvcombatCanShoot.c) | `FBhvcombatCanShoot` | Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging, on pipe, special JT sta | 0.50 | T1 | runtime |
-| [0x175FF0](../../../src/game/gameplay/ai/guardbhv/FBhvcombatChooseAttack.c) | `FBhvcombatChooseAttack` | Try PentryChooseStepguardAttack for the target; on failure push the attack cooldown +0xF04 forward | 0.60 | T1 | runtime |
-| [0x176060](../../../src/game/gameplay/ai/guardbhv/FBhvcombatLostTarget.c) | `FBhvcombatLostTarget` | Target lost: not hit-confirmed and the shared target record is stale (FTargetRecordStale) | 0.55 | T1 | runtime |
-| [0x176098](../../../src/game/gameplay/ai/guardbhv/UpdateBhvcombat.c) | `UpdateBhvcombat` | BHVCOMBAT Update: state machine 0 close/3 pursue -> 1 melee attack / 2 ranged / 4 give up / 5 hands-off; re-goals the pursuit when the target moves >threshold or changes path zone; emits a stimulus to alert other guards | 0.70 | T1 | runtime |
-| [0x176458](../../../src/game/gameplay/ai/guardbhv/SetBhvcombatState.c) | `SetBhvcombatState` | BHVCOMBAT state switch: 0 push BHVCIRCLE, 1 push BHVATTACK with entry, 2 push BHVSHOOT, 3 push BHVGOTO toward target with run flag 0x1C, 4 push BHVANIM flag 0xD (lost him) and drop target, 5 push BHVIDLE flag 1; leaving  | 0.65 | T1 | runtime |
-| [0x1766D8](../../../src/game/gameplay/ai/guardbhv/InitBhvguard.c) | `InitBhvguard` | BHVGUARD Init: state kind -1 | 0.75 | T1 | runtime |
-| [0x176708](../../../src/game/gameplay/ai/guardbhv/StartBhvguard.c) | `StartBhvguard` | BHVGUARD Start: enter mode 0 (immediately becomes patrol) | 0.75 | T1 | runtime |
-| [0x176750](../../../src/game/gameplay/ai/guardbhv/SetBhvguardMode.c) | `SetBhvguardMode` | BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the mode: 1 patrol, 2 search(stimulus), 3 alert anim(0xB), 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, 9/10/11 hurt/knockd | 0.75 | T1 | runtime |
-| [0x176B80](../../../src/game/gameplay/ai/guardbhv/InflictBhvguardZap.c) | `InflictBhvguardZap` | Inflict a zap of kind 0x40000 and amount a on the guard from source b | 0.50 | T1 | runtime |
-| [0x176BE8](../../../src/game/gameplay/ai/guardbhv/BHVGUARD_FHandleMessage.cpp) | `BHVGUARD_FHandleMessage` | BHVGUARD message handler: msg 12 (zap/damage) -> choose hurt/knockdown/KO by zap kind, reaction tables +0x8D0/+0xA70/+0xC10 and hit points; special zaps 0x80000 sleep, 0x200000 grab (held), 0x1000000/0x2000000 shrink/rag | 0.90 | T1 | runtime-corrected, runtime, verified |
-| [0x177618](../../../src/game/gameplay/ai/guardbhv/UpdateBhvguard.cpp) | `UpdateBhvguard` | BHVGUARD Update: top-level guard AI: patrol -> (stimulus) search -> (target) alert anim -> combat; returns to patrol when the child finishes; script/escort/target-list modes | 0.75 | T1 | runtime |
-| [0x177BA0](../../../src/game/gameplay/ai/guardbhv/ResumeBhvguard.c) | `ResumeBhvguard` | Pick the mode to resume after an interrupting mode ends: flee (cid 0x3B), stalk hero (special 0x15), target list, BHV174, combat/stalk on current target, investigate own position after being hit, else patrol | 0.60 | T1 | runtime |
-| [0x177D20](../../../src/game/gameplay/ai/guardbhv/FBhvguardHasTargetList.c) | `FBhvguardHasTargetList` | Guard has designated targets (+0xF94 or +0xFA8 count nonzero) | 0.50 | T1 | runtime |
-| [0x177D48](../../../src/game/gameplay/ai/guardbhv/FBhvguardEscortActive.c) | `FBhvguardEscortActive` | Escort object at guard +0xF68 exists and is in the world (bit 60) | 0.50 | T1 | runtime |
-| [0x177D70](../../../src/game/gameplay/ai/guardbhv/func_00177D70.c) | `FBhvguardUseNeelaBhv` | Guard is cid 0x3C and +0x108C is set | 0.45 | T2 | runtime, whole-game |
-| [0x177DC0](../../../src/game/gameplay/ai/guardbhv/FBhvguardModeSame.c) | `FBhvguardModeSame` | Compare two mode records (kind plus the kind's key field) | 0.90 | T1 | runtime, verified |
-| [0x177E80](../../../src/game/gameplay/ai/guardbhv/InitBhvpath.c) | `InitBhvpath` | BHVPATH Init: no path, default speeds/radii, state -1 | 0.70 | T1 |  |
-| [0x177EF0](../../../src/game/gameplay/ai/guardbhv/StartBhvpath.c) | `StartBhvpath` | BHVPATH Start: remember start pos, clamp radii from speed, SetState(0) | 0.70 | T1 |  |
-| [0x177F78](../../../src/game/gameplay/ai/guardbhv/StepBhvpathAlongShape.cpp) | `StepBhvpathAlongShape` | Curve follower step: closest point on the path SHAPE, steer toward the next point, avoid other bodies, integrate and clamp to collision | 0.55 | T1 |  |
-| [0x1789F8](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpath.c) | `UpdateBhvpath` | BHVPATH Update: follow the path; detect blockers on the shape (FindShapeFreePoint) and switch move/wait/end states (3 = end reached) | 0.70 | T1 |  |
-| [0x178CD8](../../../src/game/gameplay/ai/guardbhv/SetBhvpathState.c) | `SetBhvpathState` | BHVPATH SetState(n): store state +0x4C and time | 0.70 | T1 |  |
-| [0x178D00](../../../src/game/gameplay/ai/guardbhv/FBhvpathAtEnd.c) | `FBhvpathAtEnd` | Path end is defined (+0x3C) and the guard is within +0x64 of the end point +0xB0 | 0.55 | T1 |  |
-| [0x178D80](../../../src/game/gameplay/ai/guardbhv/FBhvpathFinished.c) | `FBhvpathFinished` | BHVPATH state == 3 | 0.60 | T1 |  |
-| [0x178D90](../../../src/game/gameplay/ai/guardbhv/SetBhvpathShape.c) | `SetBhvpathShape` | Set the SHAPE to follow and direction: find the start parameter (closest point) and, for open shapes, the end point | 0.85 | T1 | verified |
-| [0x178E98](../../../src/game/gameplay/ai/guardbhv/InitBhvwalkpath.c) | `InitBhvwalkpath` | BHVWALKPATH Init: BHVPATH Init, anim flag 9 (walk), rate 1 | 0.65 | T1 | runtime |
-| [0x178EE0](../../../src/game/gameplay/ai/guardbhv/UpdateBhvwalkpath.cpp) | `UpdateBhvwalkpath` | BHVWALKPATH Update: BHVPATH update, then set walk-anim speed and mover heading toward the target point; stuck timer when not moving | 0.90 | T1 | runtime, verified |
-| [0x1791C8](../../../src/game/gameplay/ai/guardbhv/SetBhvwalkpathState.c) | `SetBhvwalkpathState` | BHVWALKPATH SetState: moving states push BHVANIM with walk flag (+0xC0, 8 = with object), stopped states push BHVIDLE | 0.65 | T1 | runtime |
-| [0x1792E8](../../../src/game/gameplay/ai/guardbhv/FBhvwalkpathStuck.c) | `FBhvwalkpathStuck` | Walking and the stuck timer +0xE0 ran out | 0.55 | T1 | runtime |
-| [0x179328](../../../src/game/gameplay/ai/guardbhv/StartBhvhit.c) | `StartBhvhit` | BHVHIT Start: BHVANIM Start, face away from the hit, knock-back leap, cancel attack, hold a pain noise, rumble/zap-mode timers | 0.60 | T1 |  |
-| [0x179598](../../../src/game/gameplay/ai/guardbhv/CloseBhvhit.c) | `CloseBhvhit` | BHVHIT Close: BHVANIM Close, release the held noise | 0.60 | T1 |  |
-| [0x1795E8](../../../src/game/gameplay/ai/guardbhv/UpdateBhvhit.c) | `UpdateBhvhit` | BHVHIT Update: BHVANIM update, move held noise with guard, fire delayed camera jolt and zap-mode change | 0.60 | T1 | verified |
-| [0x1796A0](../../../src/game/gameplay/ai/guardbhv/func_001796A0.c) | `InitBhv161` | BHVHURT Init: BHVHIT Init with flag 5 (damaged) | 0.50 | T2 |  |
-| [0x1796D0](../../../src/game/gameplay/ai/guardbhv/func_001796D0.c) | `StartBhv161` | BHVHURT Start: reaction entry from table +0xA70 by zap kind, BHVHIT Start, broadcast game event 0x15, mark detector target | 0.50 | T2 |  |
-| [0x179750](../../../src/game/gameplay/ai/guardbhv/func_00179750.c) | `InitBhv162` | BHVKNOCKDOWN Init: BHVHIT Init with flag 6 | 0.45 | T2 |  |
-| [0x179780](../../../src/game/gameplay/ai/guardbhv/func_00179780.c) | `StartBhv162` | BHVKNOCKDOWN Start: entry from table +0x8D0, BHVHIT Start, event 0x15, start helper +0xFEC | 0.45 | T2 | verified |
-| [0x179820](../../../src/game/gameplay/ai/guardbhv/func_00179820.c) | `CloseBhv162` | BHVKNOCKDOWN Close: BHVHIT Close and close helper +0xFEC | 0.45 | T2 |  |
-| [0x179868](../../../src/game/gameplay/ai/guardbhv/InitBhvko.c) | `InitBhvko` | BHVKO Init: BHVHIT Init with flag 7 (dead/KO) | 0.70 | T1 | runtime |
-| [0x179898](../../../src/game/gameplay/ai/guardbhv/StartBhvko.c) | `StartBhvko` | BHVKO Start: entry from table +0xC10, BHVHIT Start; first time: mark KO (+0x330), broadcast 0x18 (by hero) or 0x17, drop coins from the loot list, reset detector | 0.70 | T1 | runtime |
-| [0x179A20](../../../src/game/gameplay/ai/guardbhv/CloseBhvko.c) | `CloseBhvko` | BHVKO Close: BHVHIT Close and refresh world filter | 0.70 | T1 | runtime |
-| [0x179A58](../../../src/game/gameplay/ai/guardbhv/InitBhvpatrol.c) | `InitBhvpatrol` | BHVPATROL Init: raise flag 0x1E (patrolling), timers off | 0.80 | T1 | runtime |
-| [0x179AA0](../../../src/game/gameplay/ai/guardbhv/StartBhvpatrol.c) | `StartBhvpatrol` | BHVPATROL Start: take the patrol script (+0x2E8, or +0x2EC with capability 2); resume at nearest script point; walk (0) or stand (2) or hands-off (3) | 0.80 | T1 | runtime |
-| [0x179B60](../../../src/game/gameplay/ai/guardbhv/CloseBhvpatrol.c) | `CloseBhvpatrol` | BHVPATROL Close: stop, lower flag 0x1E | 0.80 | T1 | runtime |
-| [0x179BA0](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpatrol.c) | `UpdateBhvpatrol` | BHVPATROL Update: alternate walking the script for a random time and standing idle for a random time; stand forever when the script ends; hands-off pause | 0.80 | T1 | runtime |
-| [0x179D30](../../../src/game/gameplay/ai/guardbhv/SetBhvpatrolState.c) | `SetBhvpatrolState` | BHVPATROL state switch: 0 push BHV169 script runner on the route (saves resume point), 1/2 push BHVIDLE, 3 push BHVIDLE flag 1 | 0.75 | T1 | runtime |
-| [0x179E80](../../../src/game/gameplay/ai/guardbhv/ArmBhvpatrolWalkTimer.c) | `ArmBhvpatrolWalkTimer` | Arm the walk-duration timer from the guard range +0x2CC..+0x2D0 (FLT_MAX = forever) | 0.65 | T1 | runtime |
-| [0x179EF8](../../../src/game/gameplay/ai/guardbhv/ArmBhvpatrolPauseTimer.c) | `ArmBhvpatrolPauseTimer` | Arm the pause timer from +0x2D4..+0x2D8 | 0.65 | T1 | runtime |
-| [0x179F70](../../../src/game/gameplay/ai/guardbhv/InitBhvleap.c) | `InitBhvleap` | BHVLEAP Init: BHVANIM Init with flag 0xF (leaping) | 0.70 | T1 | runtime |
-| [0x179FA0](../../../src/game/gameplay/ai/guardbhv/StartBhvleap.cpp) | `StartBhvleap` | BHVLEAP Start: aim at point/object +0x50/+0x58; if it is a rail/pipe/CID39/CID19 (kind 3) set attach flag 0x1B/0x27/0x29/0x28 for anim choice and build attach basis; start leap anim and SetLeapTarget; busy | 0.70 | T1 | runtime |
-| [0x17A3D0](../../../src/game/gameplay/ai/guardbhv/CloseBhvleap.c) | `CloseBhvleap` | BHVLEAP Close: BHVANIM Close, clear busy | 0.70 | T1 | runtime |
-| [0x17A400](../../../src/game/gameplay/ai/guardbhv/UpdateBhvleap.c) | `UpdateBhvleap` | BHVLEAP Update: BHVANIM update; after the jump phase lock heading to the attach basis | 0.70 | T1 | runtime |
-| [0x17A468](../../../src/game/gameplay/ai/guardbhv/func_0017A468.c) | `AdjustBhvleapAttachPoint` | Offset the leap landing point by the guard's attach-point offset in the attach basis | 0.45 | T2 | runtime |
-| [0x17A4B0](../../../src/game/gameplay/ai/guardbhv/func_0017A4B0.c) | `InitBhv175` | BHVSLEEP Init: BHVANIM Init with flag 0x10, sub-state -1 | 0.40 | T2 |  |
-| [0x17A4E8](../../../src/game/gameplay/ai/guardbhv/func_0017A4E8.c) | `StartBhv175` | BHVSLEEP Start: BHVANIM Start, sub-state 0 (SM goal 0x44, random duration +0xE7C..E80), reset detector, hold a noise | 0.40 | T2 |  |
-| [0x17A558](../../../src/game/gameplay/ai/guardbhv/func_0017A558.c) | `CloseBhv175` | BHVSLEEP Close: BHVANIM Close, release held noise | 0.40 | T2 |  |
-| [0x17A5B0](../../../src/game/gameplay/ai/guardbhv/func_0017A5B0.c) | `SetBhv175State` | BHVSLEEP sub-state: 0 = SM goal 0x44 and arm wake timer, 1 = SM goal 0x43 (wake up) | 0.45 | T2 | verified |
-| [0x17A670](../../../src/game/gameplay/ai/guardbhv/func_0017A670.c) | `UpdateBhv175` | BHVSLEEP Update: wake (state 1) when timer expires; keep held noise at the guard | 0.40 | T2 |  |
-| [0x17A6F8](../../../src/game/gameplay/ai/guardbhv/func_0017A6F8.c) | `InitBhv176` | BHVTHROWN Init: raise flag 0x16 (thrown), state -1 | 0.45 | T2 |  |
-| [0x17A730](../../../src/game/gameplay/ai/guardbhv/func_0017A730.c) | `StartBhv176` | BHVTHROWN Start: state 0, detach, cancel attack, free contacts, busy, reset detector, mark thrower | 0.45 | T2 |  |
-| [0x17A7B8](../../../src/game/gameplay/ai/guardbhv/func_0017A7B8.c) | `CloseBhv176` | BHVTHROWN Close: state -1, lower flag 0x16 | 0.45 | T2 |  |
-| [0x17A7F8](../../../src/game/gameplay/ai/guardbhv/func_0017A7F8.c) | `UpdateBhv176` | BHVTHROWN Update: end when landed (+0x208) in states 2/3; emit yelling noise periodically while airborne | 0.45 | T2 |  |
-| [0x17A8C8](../../../src/game/gameplay/ai/guardbhv/func_0017A8C8.c) | `SetBhv176State` | BHV176 (thrown/stunned guard) state switch: push BHVANIM (cid 0x9D) with anim flag 18/19/20/21/19 for states 0-4, airborne flag step+0x32C for states 0-1; -1 clears busy | 0.45 | T2 | top50 |
-| [0x17A9C0](../../../src/game/gameplay/ai/guardbhv/func_0017A9C0.c) | `FBhv176Done` | state == -1 | 0.50 | T2 |  |
-| [0x17A9D0](../../../src/game/gameplay/ai/guardbhv/InitBhvjuggled.c) | `InitBhvjuggled` | BHVHELD Init: BHVANIM Init with flag 0x17 (carriable/held) | 0.55 | T1 | runtime |
-| [0x17AA08](../../../src/game/gameplay/ai/guardbhv/StartBhvjuggled.c) | `StartBhvjuggled` | BHVHELD Start: BHVANIM Start, cancel attack, detach, state 0 (attached to the holder's hold point), busy | 0.55 | T1 | runtime |
-| [0x17AA78](../../../src/game/gameplay/ai/guardbhv/func_0017AA78.c) | `CalcBhvjuggledHoldPoint` | Compute hold point and direction from the holder's request (vt96) relative to the guard | 0.45 | T2 | runtime |
-| [0x17ABC8](../../../src/game/gameplay/ai/guardbhv/func_0017ABC8.c) | `UpdateBhvjuggledHoldAct` | Re-query the holder and update the attach ACT target | 0.45 | T2 | runtime |
-| [0x17AC90](../../../src/game/gameplay/ai/guardbhv/UpdateBhvjuggled.c) | `UpdateBhvjuggled` | BHVHELD Update: held/carried states 0-1, released/fall states 2-3 (landed via +0x208), prediction states 4-5 | 0.55 | T1 | runtime |
-| [0x17AF30](../../../src/game/gameplay/ai/guardbhv/BHVJUGGLED_FHandleMessage.c) | `BHVJUGGLED_FHandleMessage` | BHVHELD message handler: BHVANIM events; ASEG 0x3D resets hit count; zap 0x200000 while held = extra hit (seek labels, spawn effect, raise hit value +0x33C, noise) | 0.55 | T1 | runtime |
-| [0x17B178](../../../src/game/gameplay/ai/guardbhv/CloseBhvjuggled.c) | `CloseBhvjuggled` | BHVHELD Close: state -1 (restore mass), BHVANIM Close | 0.55 | T1 | runtime |
-| [0x17B1A8](../../../src/game/gameplay/ai/guardbhv/SetBhvjuggledState.cpp) | `SetBhvjuggledState` | BHVHELD state switch: attach ACT to holder (PactNewE), release ACT/XF roles, mass change, anim label seeks 0x3C/0x173 | 0.50 | T1 | runtime |
-| [0x17B578](../../../src/game/gameplay/ai/guardbhv/BHVJUGGLED_GrfGroundProbe.c) | `BHVJUGGLED_GrfGroundProbe` | BHVHELD ground-probe flags: 7 when landed (state 3) else 1 | 0.55 | T1 | runtime |
-| [0x17B590](../../../src/game/gameplay/ai/guardbhv/InitBhvshoot.c) | `InitBhv173` | BHVSHOOT Init: state -1 | 0.40 | T2 |  |
-| [0x17B5C0](../../../src/game/gameplay/ai/guardbhv/StartBhvshoot.c) | `StartBhv173` | BHVSHOOT Start: state 0 | 0.40 | T2 | verified |
-| [0x17B5F0](../../../src/game/gameplay/ai/guardbhv/CloseBhvshoot.c) | `CloseBhv173` | BHVSHOOT Close: state -1 | 0.40 | T2 |  |
-| [0x17B620](../../../src/game/gameplay/ai/guardbhv/UpdateBhvshoot.c) | `UpdateBhv173` | BHVSHOOT Update: finish when the anim child is done | 0.40 | T2 |  |
-| [0x17B690](../../../src/game/gameplay/ai/guardbhv/BHVSHOOT_FHandleMessage.c) | `BHV173_FHandleMessage` | BHVSHOOT message handler: ASEG events 0x31/0x32 open/close the firing window (+0xF60) | 0.40 | T2 |  |
-| [0x17B750](../../../src/game/gameplay/ai/guardbhv/SetBhvshootState.c) | `SetBhv173State` | BHVSHOOT state: 0 = push BHVANIM flag 0x11 aimed at target and set +0xF60 | 0.45 | T2 |  |
-| [0x17B7F8](../../../src/game/gameplay/ai/guardbhv/FBhvshootDone.c) | `FBhv173Done` | state == -1 | 0.50 | T2 |  |
-| [0x17B808](../../../src/game/gameplay/ai/guardbhv/func_0017B808.c) | `InitBhv178` | BHVTARGETS Init: raise flag 0x20, state -1 | 0.35 | T2 |  |
-| [0x17B840](../../../src/game/gameplay/ai/guardbhv/func_0017B840.c) | `StartBhv178` | BHVTARGETS Start: state 0 | 0.35 | T2 | verified |
-| [0x17B870](../../../src/game/gameplay/ai/guardbhv/func_0017B870.c) | `CloseBhv178` | BHVTARGETS Close: state -1, lower flag 0x20 | 0.35 | T2 |  |
-| [0x17B8B0](../../../src/game/gameplay/ai/guardbhv/func_0017B8B0.c) | `SetBhv178State` | BHVTARGETS state: 0 idle and no target, 1 push BHVCOMBAT on the chosen target, 2 idle hands-off | 0.40 | T2 |  |
-| [0x17B9C0](../../../src/game/gameplay/ai/guardbhv/func_0017B9C0.cpp) | `ChooseBhv178Target` | Every random interval pick the cheapest designated target (+0xF98[], cost = distance, preferred bonus, penalty near avoid objects +0xFAC[]) or a nearer avoid object within 800 | 0.40 | T2 |  |
-| [0x17BD78](../../../src/game/gameplay/ai/guardbhv/func_0017BD78.c) | `UpdateBhv178` | BHVTARGETS Update: re-choose and (re)engage designated targets; hands-off pause | 0.35 | T2 |  |
-| [0x17BED0](../../../src/game/gameplay/ai/guardbhv/func_0017BED0.c) | `InitBhv179` | BHVCIRCLE Init: raise flag 0x19, state -1 | 0.85 | T2 | verified |
-| [0x17BF08](../../../src/game/gameplay/ai/guardbhv/func_0017BF08.c) | `StartBhv179` | BHVCIRCLE Start: with path-zone capability (bit 2) walk to a spacing point, else stand facing | 0.45 | T2 |  |
-| [0x17BFB8](../../../src/game/gameplay/ai/guardbhv/func_0017BFB8.c) | `CloseBhv179` | BHVCIRCLE Close: state -1, lower flag 0x19 | 0.45 | T2 |  |
-| [0x17BFF8](../../../src/game/gameplay/ai/guardbhv/func_0017BFF8.cpp) | `PosBhv179Choose` | Choose a free path-zone point near the target within the guard's close/far distance bands (+0x31C/+0x324) and angle limits (narrow/wide), sampling 10/10/15 directions | 0.45 | T2 |  |
-| [0x17C3E8](../../../src/game/gameplay/ai/guardbhv/func_0017C3E8.c) | `UpdateBhv179` | BHVCIRCLE Update: when out of the distance band or off-heading relative to the target, re-path to a new spacing point | 0.45 | T2 |  |
-| [0x17C550](../../../src/game/gameplay/ai/guardbhv/func_0017C550.c) | `SetBhv179State` | BHVCIRCLE state: 0 push BHVIDLE facing target, 1 push BHVWALKPATH on the guard path shape | 0.45 | T2 |  |
-| [0x17C638](../../../src/game/gameplay/ai/guardbhv/func_0017C638.c) | `InitBhv183` | BHVESCORT Init: raise flag 0x26, state -1 | 0.50 | T2 |  |
-| [0x17C670](../../../src/game/gameplay/ai/guardbhv/func_0017C670.c) | `CloseBhv183` | BHVESCORT Close: lower flag 0x26 | 0.50 | T2 |  |
-| [0x17C6A0](../../../src/game/gameplay/ai/guardbhv/func_0017C6A0.c) | `StartBhv183` | BHVESCORT Start: state 0 | 0.50 | T2 |  |
-| [0x17C6D0](../../../src/game/gameplay/ai/guardbhv/func_0017C6D0.c) | `UpdateBhv183` | BHVESCORT Update: follow object +0x30 at local offset +0x40: walk when <700, run (state 1) when >1000, re-goal after the object moves 250 | 0.50 | T2 |  |
-| [0x17C928](../../../src/game/gameplay/ai/guardbhv/func_0017C928.c) | `SetBhv183State` | BHVESCORT state: 0 push BHVGOTO to the offset point, 1 push BHVGOTO with run flag 0x1C to the object, 2 idle hands-off | 0.85 | T2 | verified |
-| [0x17CAC8](../../../src/game/gameplay/ai/guardbhv/InitBhvrail.c) | `InitBhvrail` | BHVRAIL Init: raise flag 0x1B (on rail), state -1 | 0.60 | T1 |  |
-| [0x17CB10](../../../src/game/gameplay/ai/guardbhv/StartBhvrail.c) | `StartBhvrail` | BHVRAIL Start: state 0 | 0.60 | T1 |  |
-| [0x17CB40](../../../src/game/gameplay/ai/guardbhv/CloseBhvrail.c) | `CloseBhvrail` | BHVRAIL Close: state -1, lower flag 0x1B | 0.60 | T1 |  |
-| [0x17CB80](../../../src/game/gameplay/ai/guardbhv/UpdateBhvrail.c) | `UpdateBhvrail` | BHVRAIL Update: walk along the attached rail shape (+0xF84, param +0xF88) toward the goal parameter; stand on arrival | 0.60 | T1 |  |
-| [0x17CD00](../../../src/game/gameplay/ai/guardbhv/SetBhvrailState.c) | `SetBhvrailState` | BHVRAIL state: 0 push BHVANIM flag 9 (walk), 1 flag 2 (stand) | 0.55 | T1 |  |
-| [0x17CDB8](../../../src/game/gameplay/ai/guardbhv/SetBhvrailGoal.c) | `SetBhvrailGoal` | Goal = rail max or min parameter; set direction and walk | 0.50 | T1 |  |
-| [0x17CE30](../../../src/game/gameplay/ai/guardbhv/FBhvrailArrived.c) | `FBhvrailArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
-| [0x17CE68](../../../src/game/gameplay/ai/guardbhv/InitBhvpipe.c) | `InitBhvpipe` | BHVPIPE Init: raise flag 0x27 (on pipe), state -1 | 0.60 | T1 |  |
-| [0x17CEA0](../../../src/game/gameplay/ai/guardbhv/StartBhvpipe.c) | `StartBhvpipe` | BHVPIPE Start: state 0 | 0.60 | T1 |  |
-| [0x17CED0](../../../src/game/gameplay/ai/guardbhv/CloseBhvpipe.c) | `CloseBhvpipe` | BHVPIPE Close: state -1, lower flag 0x27 | 0.60 | T1 |  |
-| [0x17CF10](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpipe.c) | `UpdateBhvpipe` | BHVPIPE Update: shimmy along the pipe toward the goal with smoothed speed; keep the pipe goal matrix | 0.60 | T1 |  |
-| [0x17D058](../../../src/game/gameplay/ai/guardbhv/SetBhvpipeState.c) | `SetBhvpipeState` | BHVPIPE state: 0 BHVANIM flag 9, 1 flag 2 | 0.55 | T1 |  |
-| [0x17D110](../../../src/game/gameplay/ai/guardbhv/SetBhvpipeGoal.c) | `SetBhvpipeGoal` | Goal = pipe max or min parameter | 0.50 | T1 |  |
-| [0x17D188](../../../src/game/gameplay/ai/guardbhv/FBhvpipeArrived.c) | `FBhvpipeArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
-| [0x17D1C0](../../../src/game/gameplay/ai/guardbhv/func_0017D1C0.c) | `InitBhv187` | BHVATTACH19 Init: raise flag 0x28 | 0.40 | T2 |  |
-| [0x17D1F0](../../../src/game/gameplay/ai/guardbhv/func_0017D1F0.c) | `StartBhv187` | BHVATTACH19 Start: push BHVANIM flag 2 and align to the attach object's frame | 0.40 | T2 |  |
-| [0x17D280](../../../src/game/gameplay/ai/guardbhv/func_0017D280.c) | `CloseBhv187` | BHVATTACH19 Close: lower flag 0x28 | 0.40 | T2 |  |
-| [0x17D2B0](../../../src/game/gameplay/ai/guardbhv/func_0017D2B0.c) | `InitBhv188` | BHVATTACH39 Init: raise flag 0x29 | 0.40 | T2 |  |
-| [0x17D2E0](../../../src/game/gameplay/ai/guardbhv/func_0017D2E0.c) | `StartBhv188` | BHVATTACH39 Start: push BHVANIM flag 2 | 0.40 | T2 |  |
-| [0x17D330](../../../src/game/gameplay/ai/guardbhv/func_0017D330.c) | `CloseBhv188` | BHVATTACH39 Close: lower flag 0x29 | 0.40 | T2 |  |
-| [0x17D360](../../../src/game/gameplay/ai/guardbhv/InitBhvgoto.c) | `InitBhvgoto` | BHVGOTO Init: flag param +0x38=-1, state -1, path-graph version stamp | 0.80 | T1 | runtime |
-| [0x17D3B0](../../../src/game/gameplay/ai/guardbhv/StartBhvgoto.c) | `StartBhvgoto` | BHVGOTO Start: raise the caller-chosen flag (e.g. 0x1C run), stand, plan the route | 0.80 | T1 | runtime |
-| [0x17D408](../../../src/game/gameplay/ai/guardbhv/CloseBhvgoto.c) | `CloseBhvgoto` | BHVGOTO Close: state -1, lower its flag | 0.80 | T1 | runtime |
-| [0x17D450](../../../src/game/gameplay/ai/guardbhv/SetBhvgotoState.c) | `SetBhvgotoState` | BHVGOTO state: 4 stand (BHVIDLE), 1/2 walk path (BHVWALKPATH, run anim 8 when allowed), 3 traverse pathlink (BHVPATHLINK), 5 relocate (BHVRELOCATE) | 0.70 | T1 | runtime |
-| [0x17D608](../../../src/game/gameplay/ai/guardbhv/FSnapPosToSurfaceAbove.cpp) | `FSnapPosToSurfaceAbove` | Cast a line 5000 up; on hit move the position to the hit and return 1 | 0.70 | T1 |  |
-| [0x17D6C8](../../../src/game/gameplay/ai/guardbhv/UpdateBhvgoto.c) | `UpdateBhvgoto` | BHVGOTO Update: re-plan when stale or the path graph changed; at a pathlink start traverse it; stuck -> relocate | 0.80 | T1 | runtime |
-| [0x17D8A8](../../../src/game/gameplay/ai/guardbhv/FindBhvgotoRoute.c) | `FindBhvgotoRoute` | Route the goal through path zones: same zone direct, else FindPathlinkRoute (optionally allowing partial routes) else stop at closest reachable point | 0.65 | T1 | runtime |
-| [0x17DA28](../../../src/game/gameplay/ai/guardbhv/PlanBhvgoto.c) | `PlanBhvgoto` | Plan: route, build the path curve to the next waypoint/pathlink (or a straight 2-point shape) and pick the state | 0.65 | T1 | runtime |
-| [0x17DCB8](../../../src/game/gameplay/ai/guardbhv/FBhvgotoArrived.c) | `FBhvgotoArrived` | Walking direct (state 1) and at the path end | 0.65 | T1 | runtime |
-| [0x17DCF8](../../../src/game/gameplay/ai/guardbhv/FBhvgotoPathFinished.c) | `FBhvgotoPathFinished` | Walking (states 1-2) and the walk path finished | 0.55 | T1 | runtime |
-| [0x17DD38](../../../src/game/gameplay/ai/guardbhv/SetBhvgotoGoal.c) | `SetBhvgotoGoal` | Set the goal (16-byte header + position) and re-plan | 0.70 | T1 | runtime |
-| [0x17DD70](../../../src/game/gameplay/ai/guardbhv/func_0017DD70.c) | `InitBhv189` | BHVSTALK Init: raise flag 0x2B, state -1 | 0.85 | T2 | verified |
-| [0x17DDA8](../../../src/game/gameplay/ai/guardbhv/func_0017DDA8.c) | `StartBhv189` | BHVSTALK Start: state 0 (alert anim at target) and set target | 0.35 | T2 |  |
-| [0x17DDE8](../../../src/game/gameplay/ai/guardbhv/func_0017DDE8.c) | `CloseBhv189` | BHVSTALK Close: state -1, reset detector, clear target, lower flag 0x2B | 0.35 | T2 |  |
-| [0x17DE40](../../../src/game/gameplay/ai/guardbhv/func_0017DE40.c) | `FBhv189Done` | state == -1 | 0.50 | T2 |  |
-| [0x17DE50](../../../src/game/gameplay/ai/guardbhv/func_0017DE50.c) | `UpdateBhv189` | BHVSTALK Update: after the alert anim run near the forced-class target and keep re-positioning; leave when the delay expires and the target is no longer forced | 0.35 | T2 |  |
-| [0x17E0E0](../../../src/game/gameplay/ai/guardbhv/func_0017E0E0.cpp) | `RegoalBhv189` | Pick the farthest free point among 16 directions around the target and send BHVGOTO there | 0.40 | T2 |  |
-| [0x17E278](../../../src/game/gameplay/ai/guardbhv/func_0017E278.c) | `SetBhv189State` | BHVSTALK state: 0 BHVANIM flag 0xB at target, 1 BHVGOTO with run flag 0x1C, 2 idle hands-off | 0.45 | T2 |  |
-| [0x17E3A0](../../../src/game/gameplay/ai/guardbhv/InitBhvpathlink.c) | `InitBhvpathlink` | BHVPATHLINK Init: raise flag 0x2C, state -1 | 0.75 | T1 | runtime |
-| [0x17E3D8](../../../src/game/gameplay/ai/guardbhv/StartBhvpathlink.c) | `StartBhvpathlink` | BHVPATHLINK Start: busy, begin the first link segment | 0.75 | T1 | runtime |
-| [0x17E410](../../../src/game/gameplay/ai/guardbhv/CloseBhvpathlink.c) | `CloseBhvpathlink` | BHVPATHLINK Close: stop, clear busy, lower flag 0x2C | 0.75 | T1 | runtime |
-| [0x17E458](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpathlink.c) | `UpdateBhvpathlink` | BHVPATHLINK Update: per segment: kind 0 walk (timeout), kind 1 leap; advance when at the segment end; final relocation step | 0.75 | T1 | runtime |
-| [0x17E570](../../../src/game/gameplay/ai/guardbhv/FBhvpathlinkDone.c) | `FBhvpathlinkDone` | state == -1 | 0.60 | T1 | runtime |
-| [0x17E580](../../../src/game/gameplay/ai/guardbhv/AdvanceBhvpathlink.c) | `AdvanceBhvpathlink` | Next segment of the pathlink (+0x34 < count +0x50) or finish and clear busy | 0.60 | T1 | runtime |
-| [0x17E5F0](../../../src/game/gameplay/ai/guardbhv/FBhvpathlinkAtSegmentEnd.c) | `FBhvpathlinkAtSegmentEnd` | Within 25 of the current segment endpoint | 0.55 | T1 | runtime |
-| [0x17E628](../../../src/game/gameplay/ai/guardbhv/PushBhvpathlinkLeap.c) | `PushBhvpathlinkLeap` | Push BHVLEAP to the current segment endpoint | 0.60 | T1 | runtime |
-| [0x17E6B0](../../../src/game/gameplay/ai/guardbhv/SetBhvpathlinkState.c) | `SetBhvpathlinkState` | BHVPATHLINK state: 0 walk segment (2-point shape, BHVWALKPATH, timeout) or leap, 1 relocate (BHVRELOCATE) | 0.60 | T1 | runtime |
-| [0x17E888](../../../src/game/gameplay/ai/guardbhv/func_0017E888.c) | `InitBhv191` | BHVRELOCATE Init: raise flag 0x2D | 0.85 | T2 | verified |
-| [0x17E8B8](../../../src/game/gameplay/ai/guardbhv/func_0017E8B8.c) | `StartBhv191` | BHVRELOCATE Start: go to the point | 0.50 | T2 |  |
-| [0x17E8E8](../../../src/game/gameplay/ai/guardbhv/func_0017E8E8.c) | `CloseBhv191` | BHVRELOCATE Close: lower flag 0x2D | 0.50 | T2 |  |
-| [0x17E918](../../../src/game/gameplay/ai/guardbhv/func_0017E918.c) | `UpdateBhv191` | BHVRELOCATE Update: retry until within 25 of the point | 0.50 | T2 |  |
-| [0x17E9B0](../../../src/game/gameplay/ai/guardbhv/func_0017E9B0.c) | `GoBhv191` | Snap the point to ground (or the surface above); leap there (capability bit 0) or teleport (detach, set position, zero velocities) | 0.50 | T2 |  |
-| [0x17EAE8](../../../src/game/gameplay/ai/guardbhv/func_0017EAE8.c) | `FBhv191Done` | Leap finished (if leaping) and within 25 of the point | 0.55 | T2 |  |
-| [0x17EB48](../../../src/game/gameplay/ai/guardbhv/InitBhvpatrolpath.c) | `InitBhvpatrolpath` | BHVPATROLPATH Init: raise flag 0x2E, param -1 | 0.90 | T1 | runtime, verified |
-| [0x17EB88](../../../src/game/gameplay/ai/guardbhv/StartBhvpatrolpath.c) | `StartBhvpatrolpath` | BHVPATROLPATH Start: closest parameter on the path shape, push BHVGOTO, first goal | 0.65 | T1 | runtime |
-| [0x17EC80](../../../src/game/gameplay/ai/guardbhv/CloseBhvpatrolpath.c) | `CloseBhvpatrolpath` | BHVPATROLPATH Close: lower flag 0x2E | 0.65 | T1 | runtime |
-| [0x17ECB0](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpatrolpath.c) | `UpdateBhvpatrolpath` | BHVPATROLPATH Update: on arrival advance the goal along the shape | 0.65 | T1 | runtime |
-| [0x17ECF0](../../../src/game/gameplay/ai/guardbhv/AdvanceBhvpatrolpathGoal.c) | `AdvanceBhvpatrolpathGoal` | Step the shape parameter by a class-dependent distance in the travel direction (clamp/wrap, skip invalid ranges) and send it to BHVGOTO | 0.55 | T1 | runtime |
-| [0x17EE78](../../../src/game/gameplay/ai/guardbhv/FBhvpatrolpathDone.c) | `FBhvpatrolpathDone` | At the end of an open shape and arrived | 0.55 | T1 | runtime |
-| [0x17EEB8](../../../src/game/gameplay/ai/guardbhv/FBhvpatrolpathAtEnd.c) | `FBhvpatrolpathAtEnd` | Open shape and parameter within tolerance of its end | 0.55 | T1 | runtime |
+| [0x174898](../../../src/game/gameplay/ai/guardbhv.cpp) | `PstepguardFromLo` | Return the STEPGUARD that owns an object: the object's LOROOT if it is a STEPGUARD, else (for cid 0x4F children) the root of its +0x200 owner; NULL otherwise | 0.60 | T1 |  |
+| [0x174920](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvanim` | BHVANIM Init: base Init, state=-1, flag(+0x3C)=0 (shared by BHV160) | 0.80 | T1 | runtime |
+| [0x174950](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvanim` | BHVANIM Start: raise guard flag +0x3C (AddStepguardSgf), pick anim binding for the current flags (PanimbindCur), enter state 0 (playing) or 1 (none -> done) | 0.80 | T1 | runtime |
+| [0x1749C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvanimState` | BHVANIM state switch: 0 = become mover driver and StartAnimBinding (phase-continue walk cycle when flag 9), 1 = ClearBhvBusy, save walk phase, StopAnimBinding, release mover | 0.75 | T1 | runtime |
+| [0x174B28](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvanim` | BHVANIM Close: base Close, state 1 (stop anim), lower flag +0x3C | 0.80 | T1 | runtime |
+| [0x174B68](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvanim` | BHVANIM Update: finish (state 1) when the anim binding is done | 0.80 | T1 | runtime |
+| [0x174BD0](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVANIM_FHandleMessage` | BHVANIM message handler: msg 9 = ASEG event of the playing binding: 0x15E root-motion translation, 0x25/0x26 lock/unlock mover, 0x27/0x28 set/clear busy, 0x29/0x2A ground flag, 0x2F/0x34/0x35 rumble/camera jolt on hit | 0.80 | T1 | runtime |
+| [0x174EA0](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVANIM_GrfGroundProbe` | BHVANIM ground-probe flags: when the binding drives a kind-2 payload use its mode (7 for modes 0/3/4 else 1), else base | 0.60 | T1 | runtime |
+| [0x174F08](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvanimMotion` | BHVANIM motion: drive guard velocity from the anim root motion (DriveStepguardFromAnim) while playing, else zero; face +0x38 look-at object | 0.75 | T1 | runtime |
+| [0x174FB8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvanimDone` | BHVANIM state == 1 (animation finished) | 0.80 | T1 | runtime |
+| [0x174FC8](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvidle` | BHVIDLE Init: BHVANIM Init with default flag 2 (stand/idle) | 0.70 | T1 | runtime |
+| [0x174FF8](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvidle` | BHVIDLE Start: BHVANIM Start; if flag 1 (hands-off) also cancel attack and reset detector targets; set XF roles | 0.65 | T1 | runtime |
+| [0x175090](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvidle` | BHVIDLE Close: BHVANIM Close and restore XF roles | 0.65 | T1 | runtime |
+| [0x1750E0](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVIDLE_FHandleMessage` | BHVIDLE message handler: ASEG events 0x29/0x2A toggle ground flag and XF role, else BHVANIM handler | 0.65 | T1 | runtime |
+| [0x1751C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvstrike` | BHVSTRIKE Init: BHVANIM Init with flag 3 (attacking; flag 3 broadcasts game event 0x14) | 0.90 | T1 | runtime, verified |
+| [0x1751F0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvstrike` | BHVSTRIKE Start: mark guard engaged-busy (+0xF3C=1), BHVANIM Start; enable leap payload when the binding is kind 2 | 0.55 | T1 | runtime |
+| [0x175258](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvstrike` | BHVSTRIKE Update: BHVANIM update; while leap enabled keep the leap target on the victim | 0.55 | T1 | runtime |
+| [0x1752C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvstrike` | BHVSTRIKE Close: BHVANIM Close and clear engaged-busy +0xF3C | 0.55 | T1 | runtime |
+| [0x1752F0](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVSTRIKE_FHandleMessage` | BHVSTRIKE message handler: ASEG events 0x2D/0x2E open/close the hit window (+0xF3C), 0x30 releases the leap; else BHVANIM | 0.55 | T1 | runtime |
+| [0x1753D8](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvattack` | BHVATTACK Init: raise flag 0x18 (attack in progress), state -1 | 0.65 | T1 | runtime |
+| [0x175410](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvattack` | BHVATTACK Start: state 0 (strike) and set busy | 0.65 | T1 | runtime |
+| [0x175448](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvattack` | BHVATTACK Close: end strike, lower flag 0x18 | 0.65 | T1 | runtime |
+| [0x175488](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvattackState` | BHVATTACK state switch: 0 = subscribe to victim, push BHVSTRIKE with the chosen attack entry and aim; 1 = push BHVANIM flag 4 (follow-through after a confirmed hit); -1 = clear busy | 0.65 | T1 | runtime |
+| [0x175600](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvattack` | BHVATTACK Update: after the strike, go to follow-through if the victim confirmed the hit (+0x40), else finish | 0.65 | T1 | runtime |
+| [0x1756C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVATTACK_FHandleMessage` | BHVATTACK message handler: msg 0xB from the victim naming this guard = hit landed (+0x40=1) | 0.65 | T1 | runtime |
+| [0x175748](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvattackDone` | BHVATTACK state == -1 | 0.70 | T1 | runtime |
+| [0x175758](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvcombat` | BHVCOMBAT Init: raise flag 0x1D (engaged/alerted), state -1 | 0.70 | T1 | runtime |
+| [0x175790](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvcombat` | BHVCOMBAT Start: state 3 (pursue) and SetStepguardTarget(target +0x30) | 0.70 | T1 | runtime |
+| [0x1757D0](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvcombat` | BHVCOMBAT Close: state -1, lower flag 0x1D | 0.70 | T1 | runtime |
+| [0x175810](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvcombatDone` | BHVCOMBAT state == -1 (target lost/given up) | 0.70 | T1 | runtime |
+| [0x175820](../../../src/game/gameplay/ai/guardbhv.cpp) | `FAttackLosIgnoreSo` | Line-of-sight filter for attack checks: ignore flagged SOs, cid 0x62 objects (when entry asks) and any STEP | 0.45 | T2 |  |
+| [0x1758A0](../../../src/game/gameplay/ai/guardbhv.cpp) | `PentryChooseStepguardAttack` | Pick the first enabled attack entry whose range/height/angle/LOS accept the target, confirm via Splice event 0x18, then start it (SetStepguardAttack) and mark the target record attacking | 0.85 | T1 | verified |
+| [0x175D00](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvcombatCanShoot` | Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging, on pipe, special JT sta | 0.50 | T1 | runtime |
+| [0x175FF0](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvcombatChooseAttack` | Try PentryChooseStepguardAttack for the target; on failure push the attack cooldown +0xF04 forward | 0.60 | T1 | runtime |
+| [0x176060](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvcombatLostTarget` | Target lost: not hit-confirmed and the shared target record is stale (FTargetRecordStale) | 0.55 | T1 | runtime |
+| [0x176098](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvcombat` | BHVCOMBAT Update: state machine 0 close/3 pursue -> 1 melee attack / 2 ranged / 4 give up / 5 hands-off; re-goals the pursuit when the target moves >threshold or changes path zone; emits a stimulus to alert other guards | 0.70 | T1 | runtime |
+| [0x176458](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvcombatState` | BHVCOMBAT state switch: 0 push BHVCIRCLE, 1 push BHVATTACK with entry, 2 push BHVSHOOT, 3 push BHVGOTO toward target with run flag 0x1C, 4 push BHVANIM flag 0xD (lost him) and drop target, 5 push BHVIDLE flag 1; leaving  | 0.65 | T1 | runtime |
+| [0x1766D8](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvguard` | BHVGUARD Init: state kind -1 | 0.75 | T1 | runtime |
+| [0x176708](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvguard` | BHVGUARD Start: enter mode 0 (immediately becomes patrol) | 0.75 | T1 | runtime |
+| [0x176750](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvguardMode` | BHVGUARD mode switch (record {kind, object, ...}): pops the child and pushes the behaviour for the mode: 1 patrol, 2 search(stimulus), 3 alert anim(0xB), 4 combat, 5 script, 6 thrown, 7 held, 8 sleep, 9/10/11 hurt/knockd | 0.75 | T1 | runtime |
+| [0x176B80](../../../src/game/gameplay/ai/guardbhv.cpp) | `InflictBhvguardZap` | Inflict a zap of kind 0x40000 and amount a on the guard from source b | 0.50 | T1 | runtime |
+| [0x176BE8](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVGUARD_FHandleMessage` | BHVGUARD message handler: msg 12 (zap/damage) -> choose hurt/knockdown/KO by zap kind, reaction tables +0x8D0/+0xA70/+0xC10 and hit points; special zaps 0x80000 sleep, 0x200000 grab (held), 0x1000000/0x2000000 shrink/rag | 0.90 | T1 | runtime-corrected, runtime, verified |
+| [0x177618](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvguard` | BHVGUARD Update: top-level guard AI: patrol -> (stimulus) search -> (target) alert anim -> combat; returns to patrol when the child finishes; script/escort/target-list modes | 0.75 | T1 | runtime |
+| [0x177BA0](../../../src/game/gameplay/ai/guardbhv.cpp) | `ResumeBhvguard` | Pick the mode to resume after an interrupting mode ends: flee (cid 0x3B), stalk hero (special 0x15), target list, BHV174, combat/stalk on current target, investigate own position after being hit, else patrol | 0.60 | T1 | runtime |
+| [0x177D20](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvguardHasTargetList` | Guard has designated targets (+0xF94 or +0xFA8 count nonzero) | 0.50 | T1 | runtime |
+| [0x177D48](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvguardEscortActive` | Escort object at guard +0xF68 exists and is in the world (bit 60) | 0.50 | T1 | runtime |
+| [0x177D70](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvguardUseNeelaBhv` | Guard is cid 0x3C and +0x108C is set | 0.45 | T2 | runtime, whole-game |
+| [0x177DC0](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvguardModeSame` | Compare two mode records (kind plus the kind's key field) | 0.90 | T1 | runtime, verified |
+| [0x177E80](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvpath` | BHVPATH Init: no path, default speeds/radii, state -1 | 0.70 | T1 |  |
+| [0x177EF0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvpath` | BHVPATH Start: remember start pos, clamp radii from speed, SetState(0) | 0.70 | T1 |  |
+| [0x177F78](../../../src/game/gameplay/ai/guardbhv.cpp) | `StepBhvpathAlongShape` | Curve follower step: closest point on the path SHAPE, steer toward the next point, avoid other bodies, integrate and clamp to collision | 0.55 | T1 |  |
+| [0x1789F8](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvpath` | BHVPATH Update: follow the path; detect blockers on the shape (FindShapeFreePoint) and switch move/wait/end states (3 = end reached) | 0.70 | T1 |  |
+| [0x178CD8](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvpathState` | BHVPATH SetState(n): store state +0x4C and time | 0.70 | T1 |  |
+| [0x178D00](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvpathAtEnd` | Path end is defined (+0x3C) and the guard is within +0x64 of the end point +0xB0 | 0.55 | T1 |  |
+| [0x178D80](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvpathFinished` | BHVPATH state == 3 | 0.60 | T1 |  |
+| [0x178D90](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvpathShape` | Set the SHAPE to follow and direction: find the start parameter (closest point) and, for open shapes, the end point | 0.85 | T1 | verified |
+| [0x178E98](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvwalkpath` | BHVWALKPATH Init: BHVPATH Init, anim flag 9 (walk), rate 1 | 0.65 | T1 | runtime |
+| [0x178EE0](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvwalkpath` | BHVWALKPATH Update: BHVPATH update, then set walk-anim speed and mover heading toward the target point; stuck timer when not moving | 0.90 | T1 | runtime, verified |
+| [0x1791C8](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvwalkpathState` | BHVWALKPATH SetState: moving states push BHVANIM with walk flag (+0xC0, 8 = with object), stopped states push BHVIDLE | 0.65 | T1 | runtime |
+| [0x1792E8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvwalkpathStuck` | Walking and the stuck timer +0xE0 ran out | 0.55 | T1 | runtime |
+| [0x179328](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvhit` | BHVHIT Start: BHVANIM Start, face away from the hit, knock-back leap, cancel attack, hold a pain noise, rumble/zap-mode timers | 0.60 | T1 |  |
+| [0x179598](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvhit` | BHVHIT Close: BHVANIM Close, release the held noise | 0.60 | T1 |  |
+| [0x1795E8](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvhit` | BHVHIT Update: BHVANIM update, move held noise with guard, fire delayed camera jolt and zap-mode change | 0.60 | T1 | verified |
+| [0x1796A0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv161` | BHVHURT Init: BHVHIT Init with flag 5 (damaged) | 0.50 | T2 |  |
+| [0x1796D0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv161` | BHVHURT Start: reaction entry from table +0xA70 by zap kind, BHVHIT Start, broadcast game event 0x15, mark detector target | 0.50 | T2 |  |
+| [0x179750](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv162` | BHVKNOCKDOWN Init: BHVHIT Init with flag 6 | 0.45 | T2 |  |
+| [0x179780](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv162` | BHVKNOCKDOWN Start: entry from table +0x8D0, BHVHIT Start, event 0x15, start helper +0xFEC | 0.45 | T2 | verified |
+| [0x179820](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv162` | BHVKNOCKDOWN Close: BHVHIT Close and close helper +0xFEC | 0.45 | T2 |  |
+| [0x179868](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvko` | BHVKO Init: BHVHIT Init with flag 7 (dead/KO) | 0.70 | T1 | runtime |
+| [0x179898](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvko` | BHVKO Start: entry from table +0xC10, BHVHIT Start; first time: mark KO (+0x330), broadcast 0x18 (by hero) or 0x17, drop coins from the loot list, reset detector | 0.70 | T1 | runtime |
+| [0x179A20](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvko` | BHVKO Close: BHVHIT Close and refresh world filter | 0.70 | T1 | runtime |
+| [0x179A58](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvpatrol` | BHVPATROL Init: raise flag 0x1E (patrolling), timers off | 0.80 | T1 | runtime |
+| [0x179AA0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvpatrol` | BHVPATROL Start: take the patrol script (+0x2E8, or +0x2EC with capability 2); resume at nearest script point; walk (0) or stand (2) or hands-off (3) | 0.80 | T1 | runtime |
+| [0x179B60](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvpatrol` | BHVPATROL Close: stop, lower flag 0x1E | 0.80 | T1 | runtime |
+| [0x179BA0](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvpatrol` | BHVPATROL Update: alternate walking the script for a random time and standing idle for a random time; stand forever when the script ends; hands-off pause | 0.80 | T1 | runtime |
+| [0x179D30](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvpatrolState` | BHVPATROL state switch: 0 push BHV169 script runner on the route (saves resume point), 1/2 push BHVIDLE, 3 push BHVIDLE flag 1 | 0.75 | T1 | runtime |
+| [0x179E80](../../../src/game/gameplay/ai/guardbhv.cpp) | `ArmBhvpatrolWalkTimer` | Arm the walk-duration timer from the guard range +0x2CC..+0x2D0 (FLT_MAX = forever) | 0.65 | T1 | runtime |
+| [0x179EF8](../../../src/game/gameplay/ai/guardbhv.cpp) | `ArmBhvpatrolPauseTimer` | Arm the pause timer from +0x2D4..+0x2D8 | 0.65 | T1 | runtime |
+| [0x179F70](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvleap` | BHVLEAP Init: BHVANIM Init with flag 0xF (leaping) | 0.70 | T1 | runtime |
+| [0x179FA0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvleap` | BHVLEAP Start: aim at point/object +0x50/+0x58; if it is a rail/pipe/CID39/CID19 (kind 3) set attach flag 0x1B/0x27/0x29/0x28 for anim choice and build attach basis; start leap anim and SetLeapTarget; busy | 0.70 | T1 | runtime |
+| [0x17A3D0](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvleap` | BHVLEAP Close: BHVANIM Close, clear busy | 0.70 | T1 | runtime |
+| [0x17A400](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvleap` | BHVLEAP Update: BHVANIM update; after the jump phase lock heading to the attach basis | 0.70 | T1 | runtime |
+| [0x17A468](../../../src/game/gameplay/ai/guardbhv.cpp) | `AdjustBhvleapAttachPoint` | Offset the leap landing point by the guard's attach-point offset in the attach basis | 0.45 | T2 | runtime |
+| [0x17A4B0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv175` | BHVSLEEP Init: BHVANIM Init with flag 0x10, sub-state -1 | 0.40 | T2 |  |
+| [0x17A4E8](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv175` | BHVSLEEP Start: BHVANIM Start, sub-state 0 (SM goal 0x44, random duration +0xE7C..E80), reset detector, hold a noise | 0.40 | T2 |  |
+| [0x17A558](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv175` | BHVSLEEP Close: BHVANIM Close, release held noise | 0.40 | T2 |  |
+| [0x17A5B0](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhv175State` | BHVSLEEP sub-state: 0 = SM goal 0x44 and arm wake timer, 1 = SM goal 0x43 (wake up) | 0.45 | T2 | verified |
+| [0x17A670](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv175` | BHVSLEEP Update: wake (state 1) when timer expires; keep held noise at the guard | 0.40 | T2 |  |
+| [0x17A6F8](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv176` | BHVTHROWN Init: raise flag 0x16 (thrown), state -1 | 0.45 | T2 |  |
+| [0x17A730](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv176` | BHVTHROWN Start: state 0, detach, cancel attack, free contacts, busy, reset detector, mark thrower | 0.45 | T2 |  |
+| [0x17A7B8](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv176` | BHVTHROWN Close: state -1, lower flag 0x16 | 0.45 | T2 |  |
+| [0x17A7F8](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv176` | BHVTHROWN Update: end when landed (+0x208) in states 2/3; emit yelling noise periodically while airborne | 0.45 | T2 |  |
+| [0x17A8C8](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhv176State` | BHV176 (thrown/stunned guard) state switch: push BHVANIM (cid 0x9D) with anim flag 18/19/20/21/19 for states 0-4, airborne flag step+0x32C for states 0-1; -1 clears busy | 0.45 | T2 | top50 |
+| [0x17A9C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhv176Done` | state == -1 | 0.50 | T2 |  |
+| [0x17A9D0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvjuggled` | BHVHELD Init: BHVANIM Init with flag 0x17 (carriable/held) | 0.55 | T1 | runtime |
+| [0x17AA08](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvjuggled` | BHVHELD Start: BHVANIM Start, cancel attack, detach, state 0 (attached to the holder's hold point), busy | 0.55 | T1 | runtime |
+| [0x17AA78](../../../src/game/gameplay/ai/guardbhv.cpp) | `CalcBhvjuggledHoldPoint` | Compute hold point and direction from the holder's request (vt96) relative to the guard | 0.45 | T2 | runtime |
+| [0x17ABC8](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvjuggledHoldAct` | Re-query the holder and update the attach ACT target | 0.45 | T2 | runtime |
+| [0x17AC90](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvjuggled` | BHVHELD Update: held/carried states 0-1, released/fall states 2-3 (landed via +0x208), prediction states 4-5 | 0.55 | T1 | runtime |
+| [0x17AF30](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVJUGGLED_FHandleMessage` | BHVHELD message handler: BHVANIM events; ASEG 0x3D resets hit count; zap 0x200000 while held = extra hit (seek labels, spawn effect, raise hit value +0x33C, noise) | 0.55 | T1 | runtime |
+| [0x17B178](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvjuggled` | BHVHELD Close: state -1 (restore mass), BHVANIM Close | 0.55 | T1 | runtime |
+| [0x17B1A8](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvjuggledState` | BHVHELD state switch: attach ACT to holder (PactNewE), release ACT/XF roles, mass change, anim label seeks 0x3C/0x173 | 0.50 | T1 | runtime |
+| [0x17B578](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHVJUGGLED_GrfGroundProbe` | BHVHELD ground-probe flags: 7 when landed (state 3) else 1 | 0.55 | T1 | runtime |
+| [0x17B590](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv173` | BHVSHOOT Init: state -1 | 0.40 | T2 |  |
+| [0x17B5C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv173` | BHVSHOOT Start: state 0 | 0.40 | T2 | verified |
+| [0x17B5F0](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv173` | BHVSHOOT Close: state -1 | 0.40 | T2 |  |
+| [0x17B620](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv173` | BHVSHOOT Update: finish when the anim child is done | 0.40 | T2 |  |
+| [0x17B690](../../../src/game/gameplay/ai/guardbhv.cpp) | `BHV173_FHandleMessage` | BHVSHOOT message handler: ASEG events 0x31/0x32 open/close the firing window (+0xF60) | 0.40 | T2 |  |
+| [0x17B750](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhv173State` | BHVSHOOT state: 0 = push BHVANIM flag 0x11 aimed at target and set +0xF60 | 0.45 | T2 |  |
+| [0x17B7F8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhv173Done` | state == -1 | 0.50 | T2 |  |
+| [0x17B808](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv178` | BHVTARGETS Init: raise flag 0x20, state -1 | 0.35 | T2 |  |
+| [0x17B840](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv178` | BHVTARGETS Start: state 0 | 0.35 | T2 | verified |
+| [0x17B870](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv178` | BHVTARGETS Close: state -1, lower flag 0x20 | 0.35 | T2 |  |
+| [0x17B8B0](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhv178State` | BHVTARGETS state: 0 idle and no target, 1 push BHVCOMBAT on the chosen target, 2 idle hands-off | 0.40 | T2 |  |
+| [0x17B9C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `ChooseBhv178Target` | Every random interval pick the cheapest designated target (+0xF98[], cost = distance, preferred bonus, penalty near avoid objects +0xFAC[]) or a nearer avoid object within 800 | 0.40 | T2 |  |
+| [0x17BD78](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv178` | BHVTARGETS Update: re-choose and (re)engage designated targets; hands-off pause | 0.35 | T2 |  |
+| [0x17BED0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv179` | BHVCIRCLE Init: raise flag 0x19, state -1 | 0.85 | T2 | verified |
+| [0x17BF08](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv179` | BHVCIRCLE Start: with path-zone capability (bit 2) walk to a spacing point, else stand facing | 0.45 | T2 |  |
+| [0x17BFB8](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv179` | BHVCIRCLE Close: state -1, lower flag 0x19 | 0.45 | T2 |  |
+| [0x17BFF8](../../../src/game/gameplay/ai/guardbhv.cpp) | `PosBhv179Choose` | Choose a free path-zone point near the target within the guard's close/far distance bands (+0x31C/+0x324) and angle limits (narrow/wide), sampling 10/10/15 directions | 0.45 | T2 |  |
+| [0x17C3E8](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv179` | BHVCIRCLE Update: when out of the distance band or off-heading relative to the target, re-path to a new spacing point | 0.45 | T2 |  |
+| [0x17C550](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhv179State` | BHVCIRCLE state: 0 push BHVIDLE facing target, 1 push BHVWALKPATH on the guard path shape | 0.45 | T2 |  |
+| [0x17C638](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv183` | BHVESCORT Init: raise flag 0x26, state -1 | 0.50 | T2 |  |
+| [0x17C670](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv183` | BHVESCORT Close: lower flag 0x26 | 0.50 | T2 |  |
+| [0x17C6A0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv183` | BHVESCORT Start: state 0 | 0.50 | T2 |  |
+| [0x17C6D0](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv183` | BHVESCORT Update: follow object +0x30 at local offset +0x40: walk when <700, run (state 1) when >1000, re-goal after the object moves 250 | 0.50 | T2 |  |
+| [0x17C928](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhv183State` | BHVESCORT state: 0 push BHVGOTO to the offset point, 1 push BHVGOTO with run flag 0x1C to the object, 2 idle hands-off | 0.85 | T2 | verified |
+| [0x17CAC8](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvrail` | BHVRAIL Init: raise flag 0x1B (on rail), state -1 | 0.60 | T1 |  |
+| [0x17CB10](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvrail` | BHVRAIL Start: state 0 | 0.60 | T1 |  |
+| [0x17CB40](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvrail` | BHVRAIL Close: state -1, lower flag 0x1B | 0.60 | T1 |  |
+| [0x17CB80](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvrail` | BHVRAIL Update: walk along the attached rail shape (+0xF84, param +0xF88) toward the goal parameter; stand on arrival | 0.60 | T1 |  |
+| [0x17CD00](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvrailState` | BHVRAIL state: 0 push BHVANIM flag 9 (walk), 1 flag 2 (stand) | 0.55 | T1 |  |
+| [0x17CDB8](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvrailGoal` | Goal = rail max or min parameter; set direction and walk | 0.50 | T1 |  |
+| [0x17CE30](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvrailArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
+| [0x17CE68](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvpipe` | BHVPIPE Init: raise flag 0x27 (on pipe), state -1 | 0.60 | T1 |  |
+| [0x17CEA0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvpipe` | BHVPIPE Start: state 0 | 0.60 | T1 |  |
+| [0x17CED0](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvpipe` | BHVPIPE Close: state -1, lower flag 0x27 | 0.60 | T1 |  |
+| [0x17CF10](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvpipe` | BHVPIPE Update: shimmy along the pipe toward the goal with smoothed speed; keep the pipe goal matrix | 0.60 | T1 |  |
+| [0x17D058](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvpipeState` | BHVPIPE state: 0 BHVANIM flag 9, 1 flag 2 | 0.55 | T1 |  |
+| [0x17D110](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvpipeGoal` | Goal = pipe max or min parameter | 0.50 | T1 |  |
+| [0x17D188](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvpipeArrived` | \|param - goal\| < 50 | 0.50 | T1 |  |
+| [0x17D1C0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv187` | BHVATTACH19 Init: raise flag 0x28 | 0.40 | T2 |  |
+| [0x17D1F0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv187` | BHVATTACH19 Start: push BHVANIM flag 2 and align to the attach object's frame | 0.40 | T2 |  |
+| [0x17D280](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv187` | BHVATTACH19 Close: lower flag 0x28 | 0.40 | T2 |  |
+| [0x17D2B0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv188` | BHVATTACH39 Init: raise flag 0x29 | 0.40 | T2 |  |
+| [0x17D2E0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv188` | BHVATTACH39 Start: push BHVANIM flag 2 | 0.40 | T2 |  |
+| [0x17D330](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv188` | BHVATTACH39 Close: lower flag 0x29 | 0.40 | T2 |  |
+| [0x17D360](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvgoto` | BHVGOTO Init: flag param +0x38=-1, state -1, path-graph version stamp | 0.80 | T1 | runtime |
+| [0x17D3B0](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvgoto` | BHVGOTO Start: raise the caller-chosen flag (e.g. 0x1C run), stand, plan the route | 0.80 | T1 | runtime |
+| [0x17D408](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvgoto` | BHVGOTO Close: state -1, lower its flag | 0.80 | T1 | runtime |
+| [0x17D450](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvgotoState` | BHVGOTO state: 4 stand (BHVIDLE), 1/2 walk path (BHVWALKPATH, run anim 8 when allowed), 3 traverse pathlink (BHVPATHLINK), 5 relocate (BHVRELOCATE) | 0.70 | T1 | runtime |
+| [0x17D608](../../../src/game/gameplay/ai/guardbhv.cpp) | `FSnapPosToSurfaceAbove` | Cast a line 5000 up; on hit move the position to the hit and return 1 | 0.70 | T1 |  |
+| [0x17D6C8](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvgoto` | BHVGOTO Update: re-plan when stale or the path graph changed; at a pathlink start traverse it; stuck -> relocate | 0.80 | T1 | runtime |
+| [0x17D8A8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FindBhvgotoRoute` | Route the goal through path zones: same zone direct, else FindPathlinkRoute (optionally allowing partial routes) else stop at closest reachable point | 0.65 | T1 | runtime |
+| [0x17DA28](../../../src/game/gameplay/ai/guardbhv.cpp) | `PlanBhvgoto` | Plan: route, build the path curve to the next waypoint/pathlink (or a straight 2-point shape) and pick the state | 0.65 | T1 | runtime |
+| [0x17DCB8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvgotoArrived` | Walking direct (state 1) and at the path end | 0.65 | T1 | runtime |
+| [0x17DCF8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvgotoPathFinished` | Walking (states 1-2) and the walk path finished | 0.55 | T1 | runtime |
+| [0x17DD38](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvgotoGoal` | Set the goal (16-byte header + position) and re-plan | 0.70 | T1 | runtime |
+| [0x17DD70](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv189` | BHVSTALK Init: raise flag 0x2B, state -1 | 0.85 | T2 | verified |
+| [0x17DDA8](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv189` | BHVSTALK Start: state 0 (alert anim at target) and set target | 0.35 | T2 |  |
+| [0x17DDE8](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv189` | BHVSTALK Close: state -1, reset detector, clear target, lower flag 0x2B | 0.35 | T2 |  |
+| [0x17DE40](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhv189Done` | state == -1 | 0.50 | T2 |  |
+| [0x17DE50](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv189` | BHVSTALK Update: after the alert anim run near the forced-class target and keep re-positioning; leave when the delay expires and the target is no longer forced | 0.35 | T2 |  |
+| [0x17E0E0](../../../src/game/gameplay/ai/guardbhv.cpp) | `RegoalBhv189` | Pick the farthest free point among 16 directions around the target and send BHVGOTO there | 0.40 | T2 |  |
+| [0x17E278](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhv189State` | BHVSTALK state: 0 BHVANIM flag 0xB at target, 1 BHVGOTO with run flag 0x1C, 2 idle hands-off | 0.45 | T2 |  |
+| [0x17E3A0](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvpathlink` | BHVPATHLINK Init: raise flag 0x2C, state -1 | 0.75 | T1 | runtime |
+| [0x17E3D8](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvpathlink` | BHVPATHLINK Start: busy, begin the first link segment | 0.75 | T1 | runtime |
+| [0x17E410](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvpathlink` | BHVPATHLINK Close: stop, clear busy, lower flag 0x2C | 0.75 | T1 | runtime |
+| [0x17E458](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvpathlink` | BHVPATHLINK Update: per segment: kind 0 walk (timeout), kind 1 leap; advance when at the segment end; final relocation step | 0.75 | T1 | runtime |
+| [0x17E570](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvpathlinkDone` | state == -1 | 0.60 | T1 | runtime |
+| [0x17E580](../../../src/game/gameplay/ai/guardbhv.cpp) | `AdvanceBhvpathlink` | Next segment of the pathlink (+0x34 < count +0x50) or finish and clear busy | 0.60 | T1 | runtime |
+| [0x17E5F0](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvpathlinkAtSegmentEnd` | Within 25 of the current segment endpoint | 0.55 | T1 | runtime |
+| [0x17E628](../../../src/game/gameplay/ai/guardbhv.cpp) | `PushBhvpathlinkLeap` | Push BHVLEAP to the current segment endpoint | 0.60 | T1 | runtime |
+| [0x17E6B0](../../../src/game/gameplay/ai/guardbhv.cpp) | `SetBhvpathlinkState` | BHVPATHLINK state: 0 walk segment (2-point shape, BHVWALKPATH, timeout) or leap, 1 relocate (BHVRELOCATE) | 0.60 | T1 | runtime |
+| [0x17E888](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhv191` | BHVRELOCATE Init: raise flag 0x2D | 0.85 | T2 | verified |
+| [0x17E8B8](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhv191` | BHVRELOCATE Start: go to the point | 0.50 | T2 |  |
+| [0x17E8E8](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhv191` | BHVRELOCATE Close: lower flag 0x2D | 0.50 | T2 |  |
+| [0x17E918](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhv191` | BHVRELOCATE Update: retry until within 25 of the point | 0.50 | T2 |  |
+| [0x17E9B0](../../../src/game/gameplay/ai/guardbhv.cpp) | `GoBhv191` | Snap the point to ground (or the surface above); leap there (capability bit 0) or teleport (detach, set position, zero velocities) | 0.50 | T2 |  |
+| [0x17EAE8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhv191Done` | Leap finished (if leaping) and within 25 of the point | 0.55 | T2 |  |
+| [0x17EB48](../../../src/game/gameplay/ai/guardbhv.cpp) | `InitBhvpatrolpath` | BHVPATROLPATH Init: raise flag 0x2E, param -1 | 0.90 | T1 | runtime, verified |
+| [0x17EB88](../../../src/game/gameplay/ai/guardbhv.cpp) | `StartBhvpatrolpath` | BHVPATROLPATH Start: closest parameter on the path shape, push BHVGOTO, first goal | 0.65 | T1 | runtime |
+| [0x17EC80](../../../src/game/gameplay/ai/guardbhv.cpp) | `CloseBhvpatrolpath` | BHVPATROLPATH Close: lower flag 0x2E | 0.65 | T1 | runtime |
+| [0x17ECB0](../../../src/game/gameplay/ai/guardbhv.cpp) | `UpdateBhvpatrolpath` | BHVPATROLPATH Update: on arrival advance the goal along the shape | 0.65 | T1 | runtime |
+| [0x17ECF0](../../../src/game/gameplay/ai/guardbhv.cpp) | `AdvanceBhvpatrolpathGoal` | Step the shape parameter by a class-dependent distance in the travel direction (clamp/wrap, skip invalid ranges) and send it to BHVGOTO | 0.55 | T1 | runtime |
+| [0x17EE78](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvpatrolpathDone` | At the end of an open shape and arrived | 0.55 | T1 | runtime |
+| [0x17EEB8](../../../src/game/gameplay/ai/guardbhv.cpp) | `FBhvpatrolpathAtEnd` | Open shape and parameter within tolerance of its end | 0.55 | T1 | runtime |
 
 ## tu_1B9F80 (0x1B9F80-0x1BAB50)
 

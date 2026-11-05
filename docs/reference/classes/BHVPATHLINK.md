@@ -31,10 +31,10 @@ Status: **new** = slot first appears in this class; **override** = differs from 
 | 4 | SendMessage | inherited (BASIC) | `SendLoMessage` | `0x133508` |
 | 5 | HandleMessage | inherited (BASIC) | `HandleBasicMessage` | `0x133590` |
 | 6 | Pclassinfo | **override** | [`GetBhvpathlinkClassDesc`](../../../src/game/app/class_registry/GetBhvpathlinkClassDesc.c) | `0x1145F0` |
-| 7 | Init | **override** | [`InitBhvpathlink`](../../../src/game/gameplay/ai/guardbhv/InitBhvpathlink.c) | `0x17E3A0` |
-| 8 | Start | **override** | [`StartBhvpathlink`](../../../src/game/gameplay/ai/guardbhv/StartBhvpathlink.c) | `0x17E3D8` |
-| 9 | Close | **override** | [`CloseBhvpathlink`](../../../src/game/gameplay/ai/guardbhv/CloseBhvpathlink.c) | `0x17E410` |
-| 10 | Update | **override** | [`UpdateBhvpathlink`](../../../src/game/gameplay/ai/guardbhv/UpdateBhvpathlink.c) | `0x17E458` |
+| 7 | Init | **override** | [`InitBhvpathlink`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17E3A0` |
+| 8 | Start | **override** | [`StartBhvpathlink`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17E3D8` |
+| 9 | Close | **override** | [`CloseBhvpathlink`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17E410` |
+| 10 | Update | **override** | [`UpdateBhvpathlink`](../../../src/game/gameplay/ai/guardbhv.cpp) | `0x17E458` |
 | 11 | UpdateMotion | inherited (BHV) | `UpdateBhvMotion` | `0x1EEFB8` |
 | 12 | GrfGroundProbe | inherited (BHV) | `BHV_GrfGroundProbe?` | `0x1EEFA0` |
 | 13 | FHandleMessage | inherited (BHV) | `BHV_FHandleMessage` | `0x1EF0B8` |
