@@ -1177,13 +1177,17 @@ out:
 }
 } } // namespace M_func_001C0A40
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A76DC __asm__("D_002A76DC") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C0B50 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct HIT {qword pos[2];char pad[0x40];};
 struct S {char pad[0xE0];char bsp[8];int count;int padEC;int padF0;qword*vertices;};
-extern const float D_002A76DC = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A76DC;   /* defined below where the ELF has it (.rodata order) */
 void *PcgtPointInCbspQuick(void*,qword,int);
 qword ClosestPointOnCgt(void*,qword);
 int func_001C1700(struct S*,void*,qword,qword,int,void**);
@@ -1805,13 +1809,15 @@ void func_001C1BA0(struct S *p, struct O *po)
 }
 } } // namespace M_func_001C1BA0
 
+namespace RO_ORDER { extern const float r_D_002A76E0 __asm__("D_002A76E0") = -3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A76E4 __asm__("D_002A76E4") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001C1D20 { extern "C" {
 struct E { float t; unsigned short k; unsigned short bit; };
 struct S { char pad[0xFC]; int xFC; int x100; struct E *x104; struct E *x108; void **x10C; };
 struct A { int cb; int align; };
-extern const float D_002A76E0 = -3.40282347e+38f;  /* -FLT_MAX */
-extern const float D_002A76E4 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A76E0;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A76E4;   /* defined below where the ELF has it (.rodata order) */
 void *func_001AE1D0(struct A *pa);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");

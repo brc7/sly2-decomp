@@ -402,6 +402,10 @@ extern "C" void CloseBhvfollow(BHVB *pbhv)
     SetBhvfollowState(pbhv, -1);
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A4E30 __asm__("D_002A4E30") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001450E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
@@ -411,7 +415,7 @@ struct SO { char pad[0x2C0]; ulong grf; };
 struct LIST { char pad[0x28]; int c; struct SO *a[1]; };
 struct PO { char pad[0x1088]; struct LIST *plist; };
 struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; void *p30; char pad3[0x90 - 0x34]; struct SO *p90; };
-extern const float D_002A4E30 = 3.40282347e+38f;
+extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata order) */
 struct CLQ D_002BD300 = {-200.0f, 0.8f, 0.0f, 0.0f};
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
@@ -497,6 +501,7 @@ struct SO *func_001450E0(struct P *p)
 }
 } } // namespace M_func_001450E0
 
+namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBhvfollow { extern "C" {
 // UpdateBhvfollow: camera/AI state update. Keys: `f = func_001459C0(p) != 0; if (f)` (stops loop.c hoisting constant 1), inline GClamp.
@@ -511,7 +516,7 @@ struct P {
     char pad[0x10]; struct PO *p10; char pad1[4]; struct X *p18; char pad2[0x30 - 0x1C]; void *p30; char pad3[0x50 - 0x34];
     qword q50; int x60; char pad4[0x6C - 0x64]; float g6C; float g70; float g74; float g78; char pad5[0x90 - 0x7C]; struct SO *p90;
 };
-extern const float D_002A4E34 = 3.40282347e+38f;
+extern const float D_002A4E34;   /* defined below where the ELF has it (.rodata order) */
 struct LM D_002BD330 = {0.0f, 600.0f};
 struct LM D_002BD338 = {0.0f, 1200.0f};
 float D_002BD340 = 200.0f;

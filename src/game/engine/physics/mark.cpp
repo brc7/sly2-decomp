@@ -530,6 +530,10 @@ done:
     return c;
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A6AD0 __asm__("D_002A6AD0") = -3.40282347e+38f; }
 // Hand-tuned (gcse table size, register pins, struct copies): keeps the per-function views and helpers it was
 // matched with, in a namespace of its own (see the file header).
 namespace M_func_001A87F0 {
@@ -570,7 +574,7 @@ struct SURFACE { qword plane; char pad10[8]; int flags; };
 struct EDGE { unsigned short ends[2]; };
 struct NODE { char pad[0x10]; qword point; char pad20[0x50 - 0x20]; SURFACE *surface; EDGE *edge; int reverse; NODE *next; };
 extern "C" {
-extern const float D_002A6AD0 = -3.40282347e+38f;   /* -FLT_MAX */
+extern const float D_002A6AD0;   /* defined below where the ELF has it (.rodata order) */
 void PxpAdd(W *, A *, B *, qword, float, qword, int, int, int, XP **);
 }
 

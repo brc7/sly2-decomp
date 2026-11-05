@@ -1367,6 +1367,10 @@ extern "C" void func_0012D4D8(ACT *pact, qword *ppos, qword *pv)
     }
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A45A8 __asm__("D_002A45A8") = 3.40282347e+38f; }
 namespace M_func_0012D508 {
 // func_0012D508 (Claude agent, 2026-10-23): MATCH. From hand_wip v5; the virtual at vtable slot 5 takes a float 4th
 // argument, and the caller passes p->g20 (that is why the target loads g20 into $f12 for the 0 < g20 test).
@@ -2104,5 +2108,4 @@ extern "C" void ReleaseAct(ACT **ppact)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A45A8 = 3.40282347e+38f;
 VECTOR4 D_002BC380 = {0.0f, 0.0f, 1750.0f, 0.0f};

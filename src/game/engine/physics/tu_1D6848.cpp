@@ -123,10 +123,14 @@ extern "C" qword func_001D69F0(qword a, qword b, qword acc, float dt)
 }
 
 /* ---- 0x1D6A90: launcher init ---- */
-extern const float D_002A7874 = 3.40282347e+38f;  /* FLT_MAX */
+extern const float D_002A7874;   /* defined below where the ELF has it (.rodata order) */
 struct V { float x, y, z; };
 struct S { char p0[0x70]; struct V v70; int pad; int n80; float g84; char p1[8]; struct V v90; int pad2; int nA0; float gA4; char p2[8]; float gB0; };
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A7874 __asm__("D_002A7874") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1D6A90
  * Purpose: LO-subclass Init: InitLo then offset (0,0,0), up (0,1,0), coeffs 0.5 and D_002A7874
  * Info: proposed name InitLauncher (T2); class CID112 slot7; TU tu_1D6848

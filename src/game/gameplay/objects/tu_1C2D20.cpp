@@ -49,7 +49,7 @@ extern qword D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis,
 LM D_002C0CE0 = {0.75f, 1.2f};                     // flight time
 float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime step
 LM D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
-extern const float D_002A76E8 = 3.40282347e+38f;   /* FLT_MAX */
+extern const float D_002A76E8;   /* defined below where the ELF has it (.rodata order) */
 void *PpoHero(GAME *);
 qword func_001A62E8(void *);
 float GRandInRange__Fff(float, float);
@@ -177,6 +177,10 @@ static inline void Reset(SO *p) { VTE *v = p->vt; ((void (*)(void *))v[8].fn)((c
 static inline void SetParent(SO *p, SO *parent) { VTE *v = p->vt; ((void (*)(void *, SO *))v[39].fn)((char *)p + v[39].delta, parent); }
 static inline void SetVelocity(SO *p, qword velocity) { VTE *v = p->vt; ((void (*)(void *, qword))v[35].fn)((char *)p + v[35].delta, velocity); }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A76E8 __asm__("D_002A76E8") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1C2EF0
  * Purpose: Launch count loot objects (first held, rest from proxy pool) toward random points around the
  *   player (VecToReachPosInDt); prizes via 0x1C6BD0 with staggered delay
