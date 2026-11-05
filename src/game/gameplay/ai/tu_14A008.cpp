@@ -165,7 +165,7 @@ void func_0014AE38(BHVRT *p, int n);
 }
 float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
-int FCheckLm(LMV *plm, float g);
+int FCheckLm(LMV *plm, float g) __asm__("FCheckLm__FP2LMf");   /* LMV: this file's view of LM */
 LOV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
 
 static inline void InitS(ALLOCREQ *ps, int a, int b)

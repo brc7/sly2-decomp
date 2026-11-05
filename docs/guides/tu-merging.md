@@ -1230,7 +1230,9 @@ clock.h where needed); a private view that clashes with a shared type by name on
 (`LMV`, `SLV`, `DLV`, `VECTORV`, `VECTORQ`, `MATRIX4V`, `SMPV`, `CLOCKV`: they keep their own layout and are the
 view-unification list for those files), the private signed TI qword gives way to basic.h's unsigned one, rumble's
 RUMS/RUMK enumerators moved into basic.h's empty placeholders. Checked: every function and data symbol MATCH, and each
-object's global symbol set (nm) is unchanged, which is what keeps a `V` rename safe: it must not touch a mangled name.
+object's global symbol set (nm) is unchanged, which is what keeps a `V` rename safe: it must not touch a mangled name
+(where a renamed view appears in a C++ callee's parameters, the declaration carries the original name as an asm label:
+`FCheckLm(LMV *, float) __asm__("FCheckLm__FP2LMf")`, tu_185130's GSmooth and DL calls).
 The types/views-2 registry classes did not change the picture: the clashes are the files' own views, not registry
 classes. 47 macros remain in 23 files, by reason:
 

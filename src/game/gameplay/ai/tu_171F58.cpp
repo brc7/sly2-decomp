@@ -115,7 +115,7 @@ void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
 qword SetVectorCylind(float,float,float);
 }
 float GRandInRange(float gMin, float gMax);
-int FCheckLm(LMV *plm, float g);
+int FCheckLm(LMV *plm, float g) __asm__("FCheckLm__FP2LMf");   /* LMV: this file's view of LM */
 float RadNormalize(float rad);
 int FIsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 

@@ -93,9 +93,9 @@ void func_001856C0(MESH *mesh, LIST *out, int count, qword *points, SMPV *params
 qword func_00185A80(void *unused, LIST *p, qword v);
 }
 void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);
-float GSmooth(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNext);
-void AppendDlEntry(DLV *pdl, void *pv);
-void RemoveDlEntry(DLV *pdl, void *pv);
+float GSmooth(float gCur, float gTarget, float dt, SMPV *psmp, float *pdgNext) __asm__("GSmooth__FfffP3SMPPf");   /* SMPV: this file's view of SMP */
+void AppendDlEntry(DLV *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
+void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
 
 /** @sly2-annot addr=0x185130
  * Purpose: CID 0x8 vt7: InitXfm
