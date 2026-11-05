@@ -283,7 +283,7 @@ void *PvAllocSwClearImpl(SWALLOC *pswalloc);
 extern "C" float atan2f(float y, float x);
 void DecomposeSphere(qword v, float *prad, float *pradTilt, float *psLen);
 extern "C" qword VuvecSphere(float radPan, float radTilt, float s);
-extern float D_002C41DC;
+float D_002C41DC = 10.0f;
 extern VECTOR D_002A2DC0;
 extern qword D_002A2DC0q __asm__("D_002A2DC0");
 extern qword D_002A2DD0;
@@ -356,27 +356,27 @@ qword ClipCmEye(CM *pcm, qword posFrom, qword posTo);
 void FreeCamClip(CMPART2 *pcmpart, qword posFocus, qword posEye, qword *pposOut);
 void UpdateCmLineOfSight(CMPART2 *pcmpart);
 extern qword D_002A2DA0;
-extern int D_002C4118;
-extern float D_002C41D8;
-extern float D_002C41E0;
+int D_002C4118 = 0;
+float D_002C41D8 = 0.75f;
+float D_002C41E0 = 2.5f;
 extern CLQ D_002C41F0;
-extern LM D_002C4200;
+LM D_002C4200 = {1.0f, 2.0f};
 extern SMP D_002C4208;
 extern CLQ D_002C4220;
 extern SMP D_002C4230;
 extern SMPA D_002C4240;
 extern SMPA D_002C4250;
 extern SMP D_002C4260;
-extern float D_002C426C;
-extern float D_002C4270;
-extern float D_002C4274;
-extern float D_002C4278;
-extern float D_002C427C;
-extern float D_002C4280;
-extern LM D_002C41B0;
-extern float D_002C41E4;
-extern float D_002C41E8;
-extern float D_002C41EC;
+float D_002C426C = -8.0f;
+float D_002C4270 = 15.0f;
+float D_002C4274 = -10.0f;
+float D_002C4278 = -5.0f;
+float D_002C427C = -10.0f;
+float D_002C4280 = -5.0f;
+LM D_002C41B0 = {-0.5f, 1.5550884f};
+float D_002C41E4 = 2.5f;
+float D_002C41E8 = 1.0f;
+float D_002C41EC = 15.0f;
 static inline qword QwToVu(qword qw)
 {
     qword qwOut;
@@ -416,16 +416,16 @@ struct STACKSCOPE {
 };
 extern SW D_003DD490;
 extern "C" {
-extern float D_002A96E0, D_002A96E4, D_002A96F8, D_002A96FC, D_002A9700;
+extern const float D_002A96E0 = -3.40282347e+38f, D_002A96E4 = 3.40282347e+38f, D_002A96F8 = -3.40282347e+38f, D_002A96FC = 3.40282347e+38f, D_002A9700 = 3.40282347e+38f;
 extern qword D_002C41C0;
-extern LM D_002C41D0;
-extern LM D_002C41A8;
+LM D_002C41D0 = {0.0f, 3.40282347e+38f};
+LM D_002C41A8 = {-3.40282347e+38f, 3.40282347e+38f};
 extern const SWCB D_002A96E8, D_002A96F0;
 extern CPD D_002C4120;              /* the default CPD */
 extern void *D_002DB858[];          /* CPTN's vtable */
-extern int D_002DE240;
+int D_002DE240;
 extern int D_002DFBC4;
-extern float D_002C4110, D_002C4114;
+float D_002C4110 = 0.5f, D_002C4114 = 2.0f;
 extern qword D_002C4290[5];
 
 void *func_002333B4(void *p, int c, int n);
