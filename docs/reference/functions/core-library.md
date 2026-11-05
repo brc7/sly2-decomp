@@ -506,8 +506,8 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2580A8](../../../src/game/engine/anim/asega.cpp) | `SidebagPtr_Assign` | refptr assign for CSidebag (release frees its binding list, GcSidebag_Unlink) [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x258178](../../../src/game/object/basic.cpp) | `GcSidebag_MakeRoot` | move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x2581B8](../../../src/game/engine/anim/blend.cpp) | `GetKind5` | virtual returning constant 5 [game linkonce (inline/template)] | 0.15 | T2 |  |
-| [0x2581C0](../../../src/game/world/state/game/RefGetGlobalSaveVar.c) | `RefGetGlobalSaveVar` | Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer) | 0.60 | T1 | top50 |
-| [0x258200](../../../src/game/world/state/game/RefSetGlobalSaveVar.c) | `RefSetGlobalSaveVar` | Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref) | 0.60 | T1 | top50 |
+| [0x2581C0](../../../src/game/world/state/game.cpp) | `RefGetGlobalSaveVar` | Inline wrapper: return RefGetSaveVar(&g_gsCur D_003E0EA8, pkey, pv) as a CRef (hidden return pointer) | 0.60 | T1 | top50 |
+| [0x258200](../../../src/game/world/state/game.cpp) | `RefSetGlobalSaveVar` | Inline wrapper: RefSetSaveVar(ret, D_003E0EA8, pkey, pv, ref) | 0.60 | T1 | top50 |
 | [0x258248](../../../src/game/ui/memcard.cpp) | `InitFileKey` | memset(p,0,8); p->x8=-1; p->xC=0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258280](../../../include/sly2/stepplayer.h) | `GetPtrE00Value` | return *(p->xE00) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x258290](../../../src/game/engine/camera/cm.cpp) | `CM_dtor` | release 4 ref-counted members (vt) then base dtor 0x258348 [game linkonce (inline/template)] | 0.35 | T2 |  |
