@@ -921,29 +921,86 @@ directories also declare, so naming waits for the merges (survey phase 5). Refin
 ## Linkage of namespace-scoped declarations
 
 A declaration inside a per-function namespace gets the namespace in its symbol unless it has C linkage or an asm
-label. Relocations are masked, so the match never shows a wrong callee or global symbol; a native link does. Rules
-(integrate/round2, 2026-11-05):
+label; a file-scope declaration under a draft name or signature gets a symbol nobody defines. Relocations are masked,
+so the match never shows a wrong callee or global symbol; a native link does. Rules (integrate/round2 and
+link/round3, 2026-11-05):
 
 - A global (`D_...`, `g_...`) or a C-named function declared in a namespace: wrap the declaration in `extern "C" { }`
   inside the namespace (the name stays namespace-scoped for lookup, so the view's types still apply). If the same
   function is also declared `extern "C"` at file scope with identical parameter types, drop the namespace copy instead
   (the relay "ambiguous" row above).
 - A callee declared under a view or Sly 1 name (`PosLoWorld`, `PvAllocSwImpl`, a view's `FRAME()`, `CRef(NODE *)`,
-  `SPM::operator=`): the jal target in the ELF names the real function; bind the declaration to it with an asm label
-  (`qword PosLoWorld(LO *plo) __asm__("func_001A62E8");`, `FRAME() __asm__("STACKSCOPE_ctor");`). This works for free
-  functions, constructors and members, and does not change code.
+  `SPM::operator=`, a per-function `CRef::Decref()`): the jal target in the ELF names the real function; bind the
+  declaration to it with an asm label, whether the target is a C name or a mangled C++ name
+  (`qword PosLoWorld(LO *plo) __asm__("func_001A62E8");`, `FRAME() __asm__("STACKSCOPE_ctor");`,
+  `void Decref() __asm__("Decref__4CRef");`). Works for free functions, constructors, members and operators, also
+  inside an `extern "C" { }` block, and does not change code.
+- File scope, target with a placeholder name (`func_`/`D_`): asm label; the source name stays (it is the better
+  name: grep `__asm__("func_` for the candidates). Target with a real config name and the declaration is a free
+  function or global: rename the identifier in the file to the config name, adding or dropping `extern "C"` to match
+  the target's linkage (57 renames in round 3, e.g. `MakeSnd` -> `PsndStartSound`, `InsertNodeBySlot` -> `AddXfAct`).
+  Members, constructors, operators, declarations in shared headers (sly2/cref.h, cm.h, po.h, basic.h, lo.h,
+  stepplayer.h, dmas.h) and config names that only disambiguate (`SetLoParent_1A58D0`, `STACKSCOPE_ctor_1AE4A0`,
+  `strcpy1`): asm label. A header label is checked against every includer.
 - Not for destructors: an asm label on a destructor declaration makes g++ 2.95 drop the destructor call (3 instructions
-  per scope). The 41 view destructors that stand for `STACKSCOPE_ctor_1AE4A0(this, 2)` and `PairPtr_Release` stay
-  namespace-mangled; a native link needs a linker-script alias for them, or the shared class in a header.
-- Still open (C++-named targets, out of this pass): members, constructors and free functions of namespace views whose
-  real symbol is mangled (`Decref__4CRef`, `__4CRefRC4CRef`, `AddDmaCnt__4DMAS`, 227 references), the vtables of
-  namespaced view classes (`_vt$Q23REG...`, 214, mostly class_registry's construction views) and 600-odd file-scope
-  declarations whose name or signature differs from the config symbol. The full list with the recovered targets is in
-  the integration report (LINKCHECK.md, not in the repo).
+  per scope). Not for template members either: g++ 2.95 ignores an asm label on an explicit specialization
+  (`template <> void CRefPtr<CMethod>::Attach(CMethod *) __asm__(...)` still references the mangled name).
+- The symbol name can be codegen: `extern FR *g_pfrmOpen __asm__("D_002DEA4C")` (and the rename to `D_002DEA4C`)
+  changes DrawSw's register allocation (8 instructions), like the path-hash quirk above. Such a declaration keeps its
+  name; the link resolves it through the alias table.
+- What source cannot bind goes to config/link_aliases.txt, `symbol = target;` with the target recovered from the
+  ELF: the 214 vtables of namespace-scoped view classes (`_vt$Q23REG2SO = D_002D9978;`, class_registry's
+  construction views and other views with virtuals), the 41 view destructors and 28 file-scope destructor references
+  (`STACKSCOPE_ctor_1AE4A0`, `PairPtr_Release`), g_pfrmOpen, `__builtin_new` (the game's operator new,
+  func_001AE4F8), three template members and `D_C0`. Two file-scope destructor names stand for different functions in
+  different objects (`_$_3SPM`: PairPtr_Release in eval/pair/ref/serialize/callback, func_00257250 in
+  frame/sidebag/varb; `_$_3OBJ`), so they are per-object entries (`[source] symbol = target;`, for
+  `objcopy --redefine-syms`). `python3 tools/linkaliases.py [objects...]` prints the table as linker-script lines
+  (quoting names with `$`) and, given the objects, derives every `D_XXXXXXXX` / `func_XXXXXXXX` name that no object
+  defines: the config name at that address when there is one (`func_002333B4 = memset;`), else the absolute address,
+  which is only right in a link that keeps the original data image at its original addresses (docs/guides/full-link.md).
+  Not used by any build yet.
+- Check the whole relocation, not only the symbol: for every relocation in a function or data object with a known
+  address, the relocated field in the ELF (jal target, %hi/%lo pair, R_MIPS_32) minus the object's addend must be the
+  address config gives the symbol. This found two source bugs the match masks (round 3): mpeg called
+  `GIFS::EndDmaCnt` where the ELF calls `AddDmaEnd`, and two hud widget timers read `g_clock.t` (+0) where the ELF
+  reads `tReal` (+0x3C); the offset of a field sits in the %lo relocation field, so a wrong field matches.
 
 Verification: compile each merged object, list its undefined symbols, and check each against config/symbol_addrs.txt,
 config/functions.csv and the globals the other merged objects define; recover the intended target of an unresolved
-symbol from the relocated field in the ELF (jal target, %hi/%lo pair, R_MIPS_32). Scratch scripts, not in the repo.
+symbol from the relocated field in the ELF; then check every relocation as above. Scratch scripts, not in the repo
+(symcheck.py, targets.py, relverify.py; nslabel2.py and fixdecl.py did the round-3 edits). Every touched file was
+re-checked with matchtool (functions and data MATCH); header changes were checked in all includers.
+
+Numbers (209 merged game objects, link/round3 head):
+
+| | integrate/round2 | link/round3 |
+|---|---:|---:|
+| unresolved undefined references | 1,114 | 531 |
+| of them covered by config/link_aliases.txt | - | 289 |
+| of them referenced only from unmatched key-TU extras (see below) | - | 242 |
+| other | - | 0 |
+| address-name references (`D_`/`func_` not in config; derived by linkaliases.py) | 1,858 | 1,860 (1,133 names) |
+| relocations checked against the ELF | - | 25,768 OK, 2 mismatched (below) |
+| strong globals defined by more than one object | 0 | 0 |
+| namespace-mangled global definitions | 0 | 0 |
+
+Round 3 fixed 583 references in source: 227 namespace references with a C++ target (asm labels, 14 files) and 356
+file-scope references (57 renames, 299 asm labels, in 45 sources and 7 headers). Of the 632 file-scope references at
+the start, 181 had a placeholder target, 169 another real name and 11 the same name with another signature or
+linkage (all fixed but 5, which went to the alias table), 28 were destructors (alias table), and 243 had no
+relocation site in matched code (242 extras, below, and `D_C0`).
+
+The 242 extras-only references: key-TU extras that g++ emits and the ELF does not have (unreferenced linkonce vtables
+`_vt$2JT`, `_vt$2SM`, `_vt$7ACCMISS`, `_vt$7CMPART2`, which reference LO/SO/BASIC virtuals no object defines: 218;
+typeinfo functions `__tf*` calling `__rtti_si`/`__rtti_user` and base-class `__ti*`/`__tf*`: 22; the
+`gcc2_compiled.` markers of eopid_linkonce: 2). Nothing matched references them; a link drops them with
+`--gc-sections` (or a `/DISCARD/` of those linkonce sections) rather than resolving them.
+
+The 2 relocation mismatches are a config inconsistency, not source: config/functions.csv names 0x242AB8
+sceCdGetDiskType and 0x242AE0 sceCdGetError (as bas.cpp and cd.cpp call them), config/symbol_addrs.txt names
+0x242A20 sceCdGetError, 0x242AB8 sceCdGetDiskType_242AB8 and 0x242AE0 sceCdGetDiskType (as the libcdvd sources define
+them). Left for a config decision.
 
 ## Merged TUs
 
