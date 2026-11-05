@@ -3794,7 +3794,7 @@ void Decref__4CRef(void *);
 void GcBinding_Unlink(void *);
 void GcSidebag_Unlink(void *);
 void func_0011CD98(void *, void *);
-void func_00257078(void *, int);
+void func_00257078(void *, int) __asm__("_$_6CFrame");
 void func_001AE520(void *);
 
 static inline void Release1(R1 *r)

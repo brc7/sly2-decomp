@@ -925,7 +925,7 @@ struct PROCNODE { int x0; int x4; FRAMENODE *pframe; int cargMin; int fRest; PAI
 extern "C" {
 void PairPtr_Release(void *psp, int flags) __asm__("_$_8CPairPtr");
 void Decref__4CRef(void *pref);
-void func_00257078(void *pframe, int flags);
+void func_00257078(void *pframe, int flags) __asm__("_$_6CFrame");
 }
 
 static inline void ReleasePair(PAIRNODE *p)
@@ -951,6 +951,7 @@ static inline void ReleasePair(PAIRNODE *p)
  * @end-sly2-annot */
 /* The proc destructor (in-charge flags as g++ 2.95 passes them): release the body and parameter lists and the
    closing frame, unlink from the GC list, and free into the proc pool when deleting. */
+extern "C" void func_00257148(PROCNODE *p, int flags) __asm__("_$_5CProc");   /* the destructor's real symbol */
 extern "C" void func_00257148(PROCNODE *p, int flags)
 {
     ReleasePair(p->pbody);

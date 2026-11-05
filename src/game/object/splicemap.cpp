@@ -47,7 +47,7 @@ extern "C" {
 void PairPtr_Release(void *pv, int n) __asm__("_$_8CPairPtr");
 void GcPair_Unlink(PAIRV *ppair);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
-void func_00257078(FRAMEV *pframe, int n);
+void func_00257078(FRAMEV *pframe, int n) __asm__("_$_6CFrame");
 }
 
 /* Counted pointers returned by value from the serializer / frame allocator. */

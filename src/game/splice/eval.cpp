@@ -906,6 +906,7 @@ struct BINDING
  * @end-sly2-annot */
 /* The frame destructor (in-charge flags as g++ 2.95 passes them): release the first binding, the four parent links,
    unlink from the GC list, and free into the frame pool when deleting. */
+extern "C" void func_00257078(CFrame *p, int flags) __asm__("_$_6CFrame");   /* the destructor's real symbol */
 extern "C" void func_00257078(CFrame *p, int flags)
 {
     BINDING *pb = (BINDING *)p->pbindingFirst;

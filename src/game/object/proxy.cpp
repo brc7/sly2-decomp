@@ -31,7 +31,7 @@ void *func_001CADE0(PROXY *pproxy, int nMin);
 LO *func_001CB2E0(PROXY *pproxy);
 PROXYSPARE *func_001CB410(PROXY *pproxy, LO *plo);
 LO *PloAcquireProxy(PROXY *pproxy, int fForce);
-void func_00257078(CFrame *pframe, int grf);   /* ~CFrame */
+void func_00257078(CFrame *pframe, int grf) __asm__("_$_6CFrame");   /* ~CFrame */
 PROXYSPARE *PspareAcquire(PROXY *pproxy, int cspareMin);
 PROXYSPARE *PspareFromIcopy(PROXY *pproxy, int icopy);
 short IcopyFromIdProxy(int id);
@@ -767,7 +767,7 @@ struct SP { struct RC *p; };
 void CloneXfm(struct S *p, struct S *q);
 struct E *func_001AE238(struct AL *pal, struct E *pv);
 void CFrame_CloneTo(struct SP *pret, struct RC *p, struct S *ps);
-void func_00257078(struct RC *p, int n);
+void func_00257078(struct RC *p, int n) __asm__("_$_6CFrame");
 void func_00259A88(struct RC *p);
 /** @sly2-annot addr=0x1CA7B8
  * Purpose: PROXY::Clone (vt41): clone XFM base and copy init records

@@ -6545,8 +6545,8 @@ FramePtr_Assign,0x256EE0,proxy
 PvNewProc,0x256F48,eval
 func_00257038,0x257038,proc
 func_00257058,0x257058,frame
-func_00257078,0x257078,eval
-func_00257148,0x257148,ref
+_$_6CFrame,0x257078,eval
+_$_5CProc,0x257148,ref
 _$_8CVarbPtr,0x257250,sidebag
 func_002572E0,0x2572E0,eval
 PvNewBinding,0x257340,frame

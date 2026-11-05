@@ -33,7 +33,7 @@ extern "C" {
 
 
 struct CFrame { int cref; };
-extern "C" void func_00257078(CFrame *pframe, int flags);   /* ~CFrame (linkonce, splice/eval.cpp) */
+extern "C" void func_00257078(CFrame *pframe, int flags) __asm__("_$_6CFrame");   /* ~CFrame (linkonce, splice/eval.cpp) */
 struct SPF
 {
     CFrame *p;

@@ -1263,7 +1263,7 @@ void Decref__4CRef(void*);
 void GcBinding_Unlink(void*);
 void GcSidebag_Unlink(void*);
 void func_0011CD98(void*,void*);
-void func_00257078(ROOT*,int);
+void func_00257078(ROOT*,int) __asm__("_$_6CFrame");
 void func_002580A8(FIELD**,FIELD*);
 void FramePtr_Assign(ROOT**,ROOT*);
 int func_00258178(FIELD*);
