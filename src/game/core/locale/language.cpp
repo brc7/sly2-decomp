@@ -14,9 +14,19 @@ struct REGIONLANGS
     int *a;
 };
 
-extern int D_002E1E54;              /* current language */
-extern unsigned int D_002E1E58;     /* current region, 0..6 */
-extern REGIONLANGS D_002BFBD0[];
+/* language's .data (address order): each region's language list (8-byte aligned arrays), then the region table. */
+int D_002BFB60[1] = {0};
+int D_002BFB68[1] = {0};
+int D_002BFB70[5] = {0, 1, 3, 4, 2};
+int D_002BFB88[11] = {0, 1, 3, 4, 2, 5, 6, 7, 8, 9, 10};
+int D_002BFBB8[1] = {11};
+int D_002BFBC0[1] = {12};
+int D_002BFBC8[1] = {13};
+REGIONLANGS D_002BFBD0[7] = {{1, D_002BFB60}, {1, D_002BFB68}, {5, D_002BFB70}, {11, D_002BFB88}, {1, D_002BFBB8}, {1, D_002BFBC0},
+    {1, D_002BFBC8}};
+/* language's .bss. */
+int D_002E1E54;                     /* current language */
+unsigned int D_002E1E58;            /* current region, 0..6 */
 
 extern "C" void GetRegionLanguages(int *pc, int **pa);
 
