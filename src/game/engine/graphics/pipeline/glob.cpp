@@ -182,17 +182,17 @@ void* memset(void* ptr, int value, size_t num);
 
 
 
-void LoadPoseSetsFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis);
+void LoadPoseSetsFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("func_00167870");
 
-int FIsLoadFilterMatch(int cfilter, short *afilter);
+int FIsLoadFilterMatch(int cfilter, short *afilter) __asm__("FMatchLoadFilter__FiPs");
 
-void *PvAllocSwClearImpl(SWALLOC *pswalloc);
-extern "C" SAA *PsaaLoadFromBrx(void *pvOwner, CBinaryInputStream *pbis);
-void LoadSubglobCelFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
-void LoadSubglobCelNoShdFromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
-void LoadSubglobType3FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
+extern "C" SAA *PsaaLoadFromBrx(void *pvOwner, CBinaryInputStream *pbis) __asm__("func_001ED7A8");
+extern "C" void LoadSubglobType2FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
+extern "C" void LoadSubglobType1FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
+void LoadSubglobType3FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("func_0016CF78");
 extern "C" {
-void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
+void LoadSubglobType0FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis) __asm__("func_0016A000");
 }
 static inline void *PvAllocSwClear(int cb)
 {
@@ -302,10 +302,10 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
             LoadSubglobType0FromBrx(pglobset, psubglob, pglob, &sgl, psubglobx, cSubExtra, pbis);
             break;
         case 1:
-            LoadSubglobCelNoShdFromBrx(pglobset, psubglob, pglob, &sgl, psubglobx, cSubExtra, pbis);
+            LoadSubglobType1FromBrx(pglobset, psubglob, pglob, &sgl, psubglobx, cSubExtra, pbis);
             break;
         case 2:
-            LoadSubglobCelFromBrx(pglobset, psubglob, pglob, &sgl, psubglobx, cSubExtra, pbis);
+            LoadSubglobType2FromBrx(pglobset, psubglob, pglob, &sgl, psubglobx, cSubExtra, pbis);
             break;
         case 3:
             LoadSubglobType3FromBrx(pglobset, psubglob, pglob, &sgl, psubglobx, cSubExtra, pbis);
@@ -2789,7 +2789,7 @@ static inline void *PvAllocSwClearP(int cb)
     SWALLOCC swalloc(cb, 0x10);
     return PvAllocSwClearImpl(&swalloc);
 }
-extern "C" SHD *PshdFromOid(int oid);
+extern "C" SHD *PshdFindShader(int oid);
 extern "C" int func_001EC6D0(SHD *pshd, int ishdp, int iqw, VIFS *pvifs);
 extern "C" int func_001ED960(SAA *psaa, int iqw, VIFS *pvifs);
 extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *pvNew);
@@ -3224,7 +3224,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                     {
                         int ioid = pglobset->cnUnk2c;
                         while (--ioid >= 0)
-                            iqw += func_001EC6D0(PshdFromOid(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
+                            iqw += func_001EC6D0(PshdFindShader(pglobset->anUnk30[ioid]), ishdp, iqw, &vifs);
                     }
                     ppart->aiqwShdp[ishdp] = iqw;
                     iqw += AddVifUnpackShdp(pbatch->pshd, ishdp, iqw, &vifs);
