@@ -2794,7 +2794,7 @@ extern "C" void func_001EC740(int iFirst, int iEnd, int cb, void *pvOld, void *p
 extern "C" { extern int D_003DA790; }
 extern "C" { 
  }
-extern "C" int D_002BE580 = 0;
+extern "C" int D_002BE580;
 extern "C" { extern int D_002DEB54; }
 extern "C" const float D_002A52A0;   /* defined below where the ELF has it (.rodata order) */
 extern "C" { extern char D_00003628[]; }
@@ -4873,9 +4873,9 @@ extern "C" float func_002599E8(VECTOR *pvec)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-uint D_002BE540[5] = {0, 0x54545454, 0x50505050, 0x40404040, 0};   /* STMASK per weight count */
-int D_002BE558[5] = {-1, 2, 6, 10, 14};   /* UNPACK format per weight count */
-VECTOR4 D_002BE570 = {0.0f, 0.0f, 1.5f, 0.0f};
+   /* STMASK per weight count */
+   /* UNPACK format per weight count */
+
 // .bss after D_002DEB50 (which has a constructor and is emitted where it is defined). Plain objects are emitted at
 // the end of the file, file scope first and then namespace by namespace (the latest-opened namespace first), so
 // these are defined here at file scope, in address order, instead of inside their functions' namespaces.
@@ -4883,4 +4883,12 @@ extern "C" {
 int D_002DEB54;
 QW D_002DEB60;
 int D_002DEB70[2];
+}
+
+// ---- glob's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+uint D_002BE540[5] = {0, 0x54545454, 0x50505050, 0x40404040, 0};
+int D_002BE558[5] = {-1, 2, 6, 10, 14};
+VECTOR4 D_002BE570 = {0.0f, 0.0f, 1.5f, 0.0f};
+namespace M_func_0016A000 {
+extern "C" int D_002BE580 = 0;
 }

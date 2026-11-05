@@ -307,8 +307,8 @@ struct CLK {float time,dt;};
 extern struct CLK D_002DDED0;
 /* step's .data starts here: the contact side signs (medium: tu_223F70 and murray read them too) and the point
  * smoothing SMP; the rest is defined in the per-function namespaces below, in address order. */
-float D_002C3C60[2] = {1.0f, -1.0f};
-float D_002C3C68[3] = {300.0f, 0.0f, 0.25f};
+extern float D_002C3C60[2];
+extern float D_002C3C68[3];
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 float GSmooth__FfffP3SMPPf(float,float,float,float *,float *);
@@ -430,7 +430,7 @@ struct S {
 struct VE { short d; short pad; float *(*pf)(void *); };
 struct VT { struct VE e[32]; };
 extern struct { float t; float dt; } D_002DDED0;
-float D_002C3C80[3] = {1.5f, -1.0f, 0.0f};   /* turn-rate speed factor polynomial */
+extern float D_002C3C80[3];   /* turn-rate speed factor polynomial */
 extern float D_002BBB60[2];
 void UpdateSo(struct S *p);
 void UpdateStepPhys(struct S *p);
@@ -609,7 +609,7 @@ struct P { char padE8[0xE8]; struct STATE *state; char padEC[0x258 - 0xEC]; void
 extern char D_003DD490[];
 extern qword D_002A2DA0;
 extern float D_002C3C60[];
-float D_002C3C90 = 1.5f;   /* base contact friction */
+extern float D_002C3C90;   /* base contact friction */
 void func_001F4FB0(void);
 void PxpAdd(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
 
@@ -770,8 +770,8 @@ struct CLOCK
 };
 
 extern "C" { extern struct CLOCK D_002DDED0; }
-extern "C" float D_002C3C98[3] = {3000.0f, 0.0f, 0.35f};   /* the two closing-speed SMPs */
-extern "C" float D_002C3CA8[3] = {3000.0f, 0.0f, 0.5f};
+extern "C" float D_002C3C98[3];   /* the two closing-speed SMPs */
+extern "C" float D_002C3CA8[3];
 
 extern "C" { void func_001F4FC0(struct STEP *pstep, struct XP *pxp, int ixpd); }
 extern "C" { float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext); }
@@ -1187,7 +1187,7 @@ void FixStepAngularVelocity(struct S *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204D48 { extern "C" {
 typedef struct VECTOR { float x, y, z; } VECTOR;
-VECTOR D_002C3CB8 = {25.0f, 0.0f, 0.25f};   /* the default spin smoothing */
+extern VECTOR D_002C3CB8;   /* the default spin smoothing */
 static __inline__ float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
 struct S { char pad[0x1F0]; float g; VECTOR v; };
 /** @sly2-annot addr=0x204D48
@@ -1675,7 +1675,7 @@ struct S { char pad[0x218]; qword *origin; int pad21C; float radius; };
 extern "C" {
 M3 *func_001A6318(S *p);
 qword func_001A62E8(S *p);
-int D_002C3CC8[2][3] = {{0, 1, 3}, {0, 2, 4}};
+extern int D_002C3CC8[2][3];
 }
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -1750,9 +1750,9 @@ struct GAME;
 extern "C" { extern GAME D_003DD490; }
 extern "C" { extern qword D_002A2DC0; }
 extern "C" const float D_002A85F8;   /* defined below where the ELF has it (.rodata order) */
-extern "C" float D_002C3CE0 = -24.0f;   /* the probe drop along the up row */
-extern "C" int D_002C3CE4 = 2;
-extern "C" float D_002C3CE8 = 0.6f;    /* the angle limit */
+extern "C" float D_002C3CE0;   /* the probe drop along the up row */
+extern "C" int D_002C3CE4;
+extern "C" float D_002C3CE8;    /* the angle limit */
 extern "C" {
 MATRIX3 func_0011B500(qword,float);
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("func_0011B500");
@@ -1905,3 +1905,29 @@ extern "C" void func_00259D18(STEP *pstep, float rad)
     func_00204660(pstep, rad);
 }
 
+// ---- step's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+namespace M_UpdateStepPhys { extern "C" {
+float D_002C3C60[2] = {1.0f, -1.0f};
+float D_002C3C68[3] = {300.0f, 0.0f, 0.25f};
+} } // namespace M_UpdateStepPhys extern "C"
+namespace M_UpdateStep { extern "C" {
+float D_002C3C80[3] __attribute__((aligned(16))) = {1.5f, -1.0f, 0.0f};
+} } // namespace M_UpdateStep extern "C"
+namespace M_AdjustStepNewXp { extern "C" {
+float D_002C3C90 __attribute__((aligned(16))) = 1.5f;
+} } // namespace M_AdjustStepNewXp extern "C"
+namespace M_AdjustStepXpVelocity {
+extern "C" float D_002C3C98[3] = {3000.0f, 0.0f, 0.35f};
+extern "C" float D_002C3CA8[3] = {3000.0f, 0.0f, 0.5f};
+} // namespace M_AdjustStepXpVelocity
+namespace M_func_00204D48 { extern "C" {
+VECTOR D_002C3CB8 = {25.0f, 0.0f, 0.25f};
+} } // namespace M_func_00204D48 extern "C"
+namespace M_func_002057E8 { extern "C" {
+int D_002C3CC8[2][3] = {{0, 1, 3}, {0, 2, 4}};
+} } // namespace M_func_002057E8 extern "C"
+namespace M_func_00205910 {
+extern "C" float D_002C3CE0 = -24.0f;
+extern "C" int D_002C3CE4 = 2;
+extern "C" float D_002C3CE8 = 0.6f;
+}

@@ -299,7 +299,7 @@ struct GIFS {
 struct O { char pad[0x3EA0]; ulong tex0; };
 extern "C" {
 struct SRC { float ag[3]; float aclr[3][4]; };
-int D_002C3680[3] = {8, -16, 8};   /* shd's .data starts here (the zero word after it is alignment) */
+extern int D_002C3680[3];   /* shd's .data starts here (the zero word after it is alignment) */
 extern int D_002DE598;
 void ConvertUserHsvToUserRgb__FP6VECTORT0(const float *, VEC3 *);
 int IgsAllocGsb__FP3GSBi(void *, int);
@@ -1617,7 +1617,9 @@ namespace M_func_001ED2D8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) VEC;
 struct G3 { float x, y, z; };
-float D_002C3690 = 60.0f, D_002C3694 = 0.0f, D_002C3698 = 0.6f;
+extern float D_002C3690;
+extern float D_002C3694;
+extern float D_002C3698;
 extern char D_002BBB60[];
 float powf(float, float);
 float GLimitLm__FP2LMf(void *, float);
@@ -1847,3 +1849,12 @@ loop:
 }
 } } // namespace M_func_001ED5D0
 
+// ---- shd's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+namespace M_func_001EA9F0 { extern "C" {
+int D_002C3680[3] = {8, -16, 8};
+} } // namespace M_func_001EA9F0 extern "C"
+namespace M_func_001ED2D8 { extern "C" {
+float D_002C3690 __attribute__((aligned(16))) = 60.0f;
+float D_002C3694 = 0.0f;
+float D_002C3698 = 0.6f;
+} }

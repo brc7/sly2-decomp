@@ -101,12 +101,18 @@ extern "C" {
 #undef D_003E1450
 #define D_003E1450 (*(SO * *)((char *)base_D_003DD490 + 0x3FC0))   /* g_sw+0x3FC0: SW::_pad_310 */
 /* tu_14A008's .data (address order). */
-float D_002BD460 = 100.0f;
-float D_002BD468[2] = {4.0f, 6.0f};
-float D_002BD470 = 200.0f, D_002BD474 = -75.0f, D_002BD478 = 600.0f, D_002BD47C = 10.0f;
-LM D_002BD480 = {900.0f, 1400.0f}, D_002BD488 = {1400.0f, 4000.0f}, D_002BD490 = {600.0f, 1000.0f}, D_002BD498 = {1000.0f, 4000.0f},
-    D_002BD4A0 = {0.0f, 10.0f};
-float D_002BD4B0[3] = {-400.0f, 0.8f, 0.0f};
+extern float D_002BD460;
+extern float D_002BD468[2];
+extern float D_002BD470;
+extern float D_002BD474;
+extern float D_002BD478;
+extern float D_002BD47C;
+extern LM D_002BD480;
+extern LM D_002BD488;
+extern LM D_002BD490;
+extern LM D_002BD498;
+extern LM D_002BD4A0;
+extern float D_002BD4B0[3];
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
 RTE *func_001AE378(ALLOCREQ *preq);
@@ -861,4 +867,20 @@ extern "C" void func_0014B468(GUARDV *p, int val)
         m.kind = 1;
         SetBhvguardMode(o, &m);
     }
+}
+
+// ---- tu_14A008's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+extern "C" {
+float D_002BD460 = 100.0f;
+float D_002BD468[2] = {4.0f, 6.0f};
+float D_002BD470 = 200.0f;
+float D_002BD474 = -75.0f;
+float D_002BD478 = 600.0f;
+float D_002BD47C = 10.0f;
+LM D_002BD480 = {900.0f, 1400.0f};
+LM D_002BD488 = {1400.0f, 4000.0f};
+LM D_002BD490 = {600.0f, 1000.0f};
+LM D_002BD498 = {1000.0f, 4000.0f};
+LM D_002BD4A0 = {0.0f, 10.0f};
+float D_002BD4B0[3] __attribute__((aligned(16))) = {-400.0f, 0.8f, 0.0f};
 }

@@ -131,7 +131,7 @@ static __inline__ float Dot(qword a, qword b)
 typedef struct { char b[12]; } LEAF;
 typedef union { qword q; struct { char pad[0xC]; unsigned short a[2]; } s; } NODE;
 struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
-float D_002C0C00 = 0.01f;   /* path's .data starts here: the plane-side epsilon */
+extern float D_002C0C00;   /* path's .data starts here: the plane-side epsilon */
 /** @sly2-annot addr=0x1BF1F8
  * Purpose: Tolerant BSP walk returning nearest triangle
  * Info: proposed name PcgtPointInCbspSafe (T1); TU path
@@ -968,13 +968,8 @@ struct G { char pad[0x3D70]; int x3D70; };
 extern struct G D_003DD490;
 /* The default navigation graph (path's .data): four corner vertices of a 200000-unit square, each with its
  * neighbour indices (-1: unused), and its two triangles. */
-struct VS D_002C0C10[4] = {
-    {{{-100000.0f, -100000.0f, 0.0f, 0.0f}}, 3, {1, 2, 3}},
-    {{{100000.0f, -100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
-    {{{100000.0f, 100000.0f, 0.0f, 0.0f}}, 3, {0, 1, 3}},
-    {{{-100000.0f, 100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
-};
-struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
+extern struct VS D_002C0C10[4];
+extern struct FS D_002C0C90[2];
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 void *func_001AE2A0(struct A *pa);
 void *func_001AE1D0(struct A *pa);
@@ -2290,3 +2285,16 @@ int func_001C26E0(void *p, struct LO *plo, struct G *g)
 }
 } } // namespace M_func_001C26E0
 
+// ---- path's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+namespace M_PcgtPointInCbspSafe { extern "C" {
+float D_002C0C00 = 0.01f;
+} } // namespace M_PcgtPointInCbspSafe extern "C"
+namespace M_InitDefaultPathzoneCg { extern "C" {
+struct VS D_002C0C10[4] = {
+    {{{-100000.0f, -100000.0f, 0.0f, 0.0f}}, 3, {1, 2, 3}},
+    {{{100000.0f, -100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
+    {{{100000.0f, 100000.0f, 0.0f, 0.0f}}, 3, {0, 1, 3}},
+    {{{-100000.0f, 100000.0f, 0.0f, 0.0f}}, 2, {0, 2, -1}},
+};
+struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
+} }

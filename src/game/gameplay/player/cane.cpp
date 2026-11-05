@@ -97,8 +97,12 @@ extern "C"{
 extern CLOCK D_002DDED0;
 // cane's .data (address order): the attack delays, the clip transition table (state -> compatible clip, -1 none) and,
 // below, the takedown distance, limits and the target-search offsets. The float after the table (0x2BF4A8) is named by no code.
-float D_002BF430=0.0666666716f,D_002BF434=0.166666672f,D_002BF438=0.116666675f,D_002BF43C=0.0666666716f,D_002BF440=0.13333334f;
-int D_002BF448[24]={-1,-1,-1,-1,6,7,4,5,-1,-1,-1,-1,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+extern float D_002BF430;
+extern float D_002BF434;
+extern float D_002BF438;
+extern float D_002BF43C;
+extern float D_002BF440;
+extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
 void HideSoPart(JT*,ACTION*);void func_001F4BF8(JT*);void func_001CCAC0(void*,int);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
@@ -133,11 +137,13 @@ void func_001384C0(ASEG *);
 void SetStepRadTargetVec(JT *, qword);
 void FixStepAngularVelocity(JT *);
 void func_00204660(JT *, float);
-float D_002BF4AC = 400.0f;
-float D_002BF4B0[2] = {250.0f, 1000.0f};   /* an LM {min, max}: the takedown target's z window */
+extern float D_002BF4AC;
+extern float D_002BF4B0[2];   /* an LM {min, max}: the takedown target's z window */
 extern "C" float D_002BF4B8;
-float D_002BF4B8 = -250.0f;   /* the bonus-target distance bias (declared again before ChooseJtAttackTarget) */
-U D_002BF4C0 = {{175.0f, 0.0f, 0.0f, 0.0f}}, D_002BF4D0 = {{250.0f, 0.0f, 125.0f, 0.0f}}, D_002BF4E0 = {{125.0f, 0.0f, 0.0f, 0.0f}};
+extern float D_002BF4B8;   /* the bonus-target distance bias (declared again before ChooseJtAttackTarget) */
+extern U D_002BF4C0;
+extern U D_002BF4D0;
+extern U D_002BF4E0;
 }
 
 /** @sly2-annot addr=0x18E540
@@ -714,4 +720,21 @@ extern "C" void ChooseJtSmashTarget__FP2JT(JT *p)
         SetStepRadTargetVec(p, v.q);
         FixStepAngularVelocity(p);
     }
+}
+
+// ---- cane's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+extern "C" {
+float D_002BF430=0.0666666716f;
+float D_002BF434=0.166666672f;
+float D_002BF438=0.116666675f;
+float D_002BF43C=0.0666666716f;
+float D_002BF440=0.13333334f;
+int D_002BF448[24]={-1,-1,-1,-1,6,7,4,5,-1,-1,-1,-1,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1};
+float D_002BF4A8 = 0.15f;   /* gap word: no code reads it by this address */
+float D_002BF4AC = 400.0f;
+float D_002BF4B0[2] = {250.0f, 1000.0f};
+float D_002BF4B8 = -250.0f;
+U D_002BF4C0 = {{175.0f, 0.0f, 0.0f, 0.0f}};
+U D_002BF4D0 = {{250.0f, 0.0f, 125.0f, 0.0f}};
+U D_002BF4E0 = {{125.0f, 0.0f, 0.0f, 0.0f}};
 }

@@ -118,6 +118,7 @@ struct FRM;
 extern "C" {
 extern FD *D_002BE320[];
 unsigned char D_002BE328[2] = {'0', '2'};   /* the font-escape characters of the two fonts (font's .data) */
+int D_002BE32C = -8, D_002BE330 = -8;   /* gap words before the glyph-key table: no code reads them by these addresses */
 /* Character code to glyph key (font's .data): identity for 0..0x7F, Windows-1252 to Unicode for 0x80..0xFF (65533 =
  * U+FFFD for the unassigned codes). */
 #define I16(n) n, n + 1, n + 2, n + 3, n + 4, n + 5, n + 6, n + 7, n + 8, n + 9, n + 10, n + 11, n + 12, n + 13, n + 14, n + 15

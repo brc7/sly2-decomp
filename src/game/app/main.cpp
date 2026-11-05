@@ -256,11 +256,14 @@ void StartupVU1()
    on a byte view, as the per-function file did (modelling CProg as a class is a separate step). */
 struct B { char data[0x70]; };
 struct C { int c; } __attribute__((aligned(16)));
-/* The start-up banner (.rodata) and its two arguments, the region and the build number (.data, address order; the
- * build date between them, 0x2C46C8, is named by no code here). */
+/* The start-up banner (.rodata) and its two arguments, the region and the build number, with the build date between
+ * them (.data, address order; the date is named by no code). The ELF has the three strings far from main's other
+ * data, after xf's .data (a build-stamp TU later in the link order, presumably), so they get a section of their own
+ * (.data.buildinfo; tu-merging.md "Phase 6: one link mode"). */
 extern const char D_002A6A58[] = "Sly 2: Band of Thieves \xa9 2004\n  Sony Computer Entertainment America &\n  Sucker Punch Productions\nP3: %s %s\nprops: %d\n\n";
-char D_002C46C0[] = "america";
-char D_002C46D8[] = "0813.0032";
+char D_002C46C0[] __attribute__((section(".data.buildinfo"))) = "america";
+char D_002C46C8[] __attribute__((section(".data.buildinfo"))) = "08/13/04 00:32";
+char D_002C46D8[] __attribute__((section(".data.buildinfo"))) = "0813.0032";
 extern void (*D_002BFCE0[])(void);      /* the 19 startup stages */
 extern "C" {
 struct B *__5CProgP4RGBAN31(struct B *b, struct C *c0, struct C *c1, struct C *c2, struct C *c3);

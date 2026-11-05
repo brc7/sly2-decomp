@@ -2427,16 +2427,16 @@ extern "C" void *func_00210CA8(KVT *pkvt, int key)
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 // The strings at 0x2A8A78 ("episodeBest"), 0x2A8A88 ("oidPoCurrent") and 0x2A8A98 ("") are the functions' own
 // literals, pooled per TU (spelled as literals where they are used: tu-merging.md "Phase 6").
-float D_002C3E60 = 4000.0f;
-float D_002C3E64 = 1500.0f;
-float D_002C3E68 = 1.5f;
-float D_002C3E6C = 1.0f;
-int D_002C3E70[4] = {881, 877, 878, 879};
-float D_002C3E80 = 65.0f;
-SMPA D_002C3E88 = {500.0f, 0.0f, 0.25f, 2500.0f};
-float D_002C3EA0[3] = {2.0f, -2.0f, 0.0f};
-float D_002C3EB0[2] = {0.0f, 1.0f};
-char D_002C3EB8[8] = {0};   /* zero-filled .data, the address goes into D_003E1C20 */
+
+
+
+
+
+
+
+
+
+   /* zero-filled .data, the address goes into D_003E1C20 */
 int D_003E1C30;
 int D_003E1C34;   /* read by brx_sw.cpp's level loader and serialize.cpp */
 int D_003E1C38;
@@ -2449,3 +2449,15 @@ FILEREC *D_003E1C50;   /* g_aWorldEntryRecord */
 int D_003E1C54;
 int D_003E1C58;
 char D_003E1C60[0x10];   /* its address goes into D_003E1C20 */
+
+// ---- sw's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+float D_002C3E60 = 4000.0f;
+float D_002C3E64 = 1500.0f;
+float D_002C3E68 = 1.5f;
+float D_002C3E6C = 1.0f;
+int D_002C3E70[4] = {881, 877, 878, 879};
+float D_002C3E80 = 65.0f;
+SMPA D_002C3E88 = {500.0f, 0.0f, 0.25f, 2500.0f};
+float D_002C3EA0[3] __attribute__((aligned(16))) = {2.0f, -2.0f, 0.0f};
+float D_002C3EB0[2] = {0.0f, 1.0f};
+char D_002C3EB8[8] = {0};

@@ -1285,7 +1285,7 @@ namespace RO_ORDER { extern const char r_D_002A8AC0[] __asm__("D_002A8AC0") = "x
 namespace RO_ORDER { extern const char r_D_002A8AC8[] __asm__("D_002A8AC8") = "Far"; }
 namespace RO_ORDER { extern const char r_D_002A8AD0[] __asm__("D_002A8AD0") = "Near"; }
 namespace RO_ORDER { extern const char r_D_002A8AD8[] __asm__("D_002A8AD8") = "YIKES"; }
-namespace RO_ORDER { extern const char r_D_002A8AE0[] __asm__("D_002A8AE0") = "&2S&."; }   /* a literal no code in the ELF references */
+namespace RO_ORDER { extern const char r_D_002A8AE0[] __asm__("D_002A8AE0") = "&2S&."; }   /* the string D_002C40A0 points at (emitted with its definition in the original) */
 namespace RO_ORDER { extern const char r_D_002A8AE8[] __asm__("D_002A8AE8") = "ZRB."; }
 // 0x212A70 SetWidgetState
 namespace M_SetWidgetState { extern "C" {
@@ -5277,14 +5277,13 @@ extern "C" void func_0021BB68(void)
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 extern const char D_002A8B80[] = "Unknown";
 extern const char D_002A8B88[] = "     ";
-char D_002C3EC0[10][0x30] = {"Widget Item 0", "Widget Item 1", "Widget Item 2", "Widget Item 3", "Widget Item 4",
-    "Widget Item 5", "Widget Item 6", "Widget Item 7", "Widget Item 8", "Widget Item 9"};
-int D_002C40A4 = 0;
-float D_002C40A8 = 788096.0f;
-float D_002C40AC = 788864.0f;
-float D_002C40B0 = 788240.0f;
-float D_002C40B4 = 788720.0f;
-float D_002C40B8 = 0.25f;
+
+
+
+
+
+
+
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
@@ -5496,3 +5495,14 @@ extern const unsigned int D_002A9220[4] = {0x5BF, (unsigned int)p_func_0015DA88,
 extern const unsigned int D_002A9230[4] = {0x5C0, (unsigned int)p_func_0015DA88, 0, 0};
 }
 } // namespace ANPTR_hud
+
+// ---- hud's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
+char D_002C3EC0[10][0x30] = {"Widget Item 0", "Widget Item 1", "Widget Item 2", "Widget Item 3", "Widget Item 4",
+    "Widget Item 5", "Widget Item 6", "Widget Item 7", "Widget Item 8", "Widget Item 9"};
+extern "C" { void *D_002C40A0 = (void *)RO_ORDER::r_D_002A8AE0; }   /* the string StaticInit_hud reads (0x2A8AE0) */
+int D_002C40A4 = 0;
+float D_002C40A8 __attribute__((aligned(8))) = 788096.0f;
+float D_002C40AC = 788864.0f;
+float D_002C40B0 = 788240.0f;
+float D_002C40B4 = 788720.0f;
+float D_002C40B8 = 0.25f;
