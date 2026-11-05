@@ -31,14 +31,14 @@ typedef char assert_SPRBUF_size[sizeof(SPRBUF) == 0x50 ? 1 : -1];
 
 struct DMAC { int chcr; int pad[31]; int sadr; };
 extern "C" {
-extern int D_002C3C5C;          /* index of the current buffer */
+int D_002C3C5C = 0;          /* index of the current buffer */
 extern DMAC *D_002DE59C;        /* fromSPR channel */
 extern DMAC *D_002DE5A0;        /* toSPR channel */
 void sceDmaSync(DMAC *pch, int a, int b);
 void sceDmaSend(DMAC *pch, int a);
 void sceDmaRecv(DMAC *pch);
 }
-extern char D_003DD380[], D_003DD400[];   /* the two tag lists */
+extern ulong D_003DD380[16], D_003DD400[16];   /* the two tag lists, defined after D_003DD2C0 (address order) */
 
 static inline SPRBUF MakeFirst() { SPRBUF b; b.pv = (char *)0x70000000; b.aqw = (ulong *)((int)D_003DD380 | 0x20000000); return b; }
 static inline SPRBUF MakeSecond() { SPRBUF b; b.aqw = (ulong *)((int)D_003DD400 | 0x20000000); b.pv = (char *)0x70002000; return b; }
@@ -46,6 +46,7 @@ static inline SPRBUF MakeSecond() { SPRBUF b; b.aqw = (ulong *)((int)D_003DD400 
 // 0x2019F0 func_002019F0 (StaticInit_sprbuf, 218 instructions) and its _GLOBAL_$I$ stub func_00201D58: generated
 // by g++ for the SPRBUF pair below, then the six engine slot pools.
 SPRBUF D_003DD2C0[2] = { MakeFirst(), MakeSecond() };
+ulong D_003DD380[16], D_003DD400[16];   /* the two tag lists (0x80 bytes each, up to stepguard's .bss) */
 
 SLY2_INSTANTIATE_SLOT_POOLS()
 

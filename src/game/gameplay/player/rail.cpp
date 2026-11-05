@@ -34,7 +34,11 @@ struct P { char pad[0x240]; VECTOR v; };
 
 struct DL;
 extern DL D_003E13CC;       /* the list of rails */
-extern float D_002C1EC0;
+/* rail's .data (address order). */
+float D_002C1EC0 = 1250.0f;     /* added to the shape's length at load */
+float D_002C1EC4 = 150.0f;      /* random point: range along the shape */
+float D_002C1EC8 = 1.8f;        /* random direction: radial scale */
+float D_002C1ECC = 25.0f;
 extern "C" {
 void InitShape(RAIL *p);
 void InitGrabspot(void *pgrabspot);
@@ -171,7 +175,6 @@ extern "C" void func_001CBB58(RAIL *a, float g, P *p, VECTOR *pv)
 }
 
 union U {qword q;float f;};
-extern float D_002C1ECC;
 struct BOUND_PAGE {unsigned char unknown_0000[0x1ECC];float bound;};
 struct START {qword q;START(const U&source,float zero,float*lowOut,float*highOut){
  register BOUND_PAGE*page __asm__("$2");
@@ -180,7 +183,6 @@ struct START {qword q;START(const U&source,float zero,float*lowOut,float*highOut
  __asm__("mov.s %1,%3\n\tlwc1 %2,%%lo(%4)(%6)\n\tlq %0,%5":"=r"(point),"=f"(low),"=f"(high):"f"(zero),"i"(&D_002C1ECC),"m"(source.q),"r"(page),"m"(page->bound));
  q=point;*lowOut=low;*highOut=high;
 }};struct M3 {qword a,b,c;};
-extern float D_002C1EC4,D_002C1EC8;
 extern qword D_002A2DC0,D_002A2DA0;
 extern "C" {
 float SRandomShapeRange(RAIL*,float,float);

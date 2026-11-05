@@ -39,8 +39,9 @@ extern V3 D_002C1F00, D_002C1F10;
 extern char D_003E12B8[];
 extern RPL D_003B3980[];
 extern RPL *D_003D4A50;
-extern int D_002DE5A4;
-extern int D_002BDD20[];
+int D_002DE5A4;   /* draw's .bss */
+/* The render pass of each draw kind (26 kinds), index into the pass hook table D_002BDD88 (draw's .data). */
+int D_002BDD20[26] = {4, 3, 0, 0, 11, 0, 11, 6, 7, 1, 0, 0, 2, 0, 0, 8, 0, 1, 9, 0, 1, 5, 10, 0, 1, 0};
 /* Pass table: begin and end hook per pass. Declared as an array of pairs, not of a {pfnBegin, pfnEnd} struct:
    g++ folds a struct member's +4 into the hoisted table base, the C original materialised D_002BDD88+4 apart. */
 extern PFNRP D_002BDD88[][2];
