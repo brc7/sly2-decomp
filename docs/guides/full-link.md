@@ -26,9 +26,9 @@ measurements (marked "superseded"); the integrate/round5 values before data/bss-
 | .data equal | 199,086 / 199,088 (99.999%) [same]; from objects 33,991 / 33,993 (99.99%) | `tools/link.py` |
 | differing bytes | 1,620 [1,910]: .rodata layout 1,263 (the `-fdata-sections` artifact, below), .text %hi/%lo to those 299 [589], .rodata no relocation 53 (+3 R_MIPS_32), .data 2 | `tools/link.py` |
 | config names at their config address | 7,282 / 7,282 [7,242 / 7,273; wrong .bss 29, .sbss 2] | `tools/link.py` (list: build/link/wrongaddr.txt) |
-| `--tu-data` (real-link data layout): .text / .rodata / .data equal | 1,415,191 (99.89%) [1,413,936] / 301,629 (99.10%) [298,405] / 198,222 (99.57%) [197,806]; from objects .rodata 20,837 / 23,564 (88.43%) [12,157 / 18,108], .data 29,066 / 29,932 (97.11%) [28,634 / 29,916] | `tools/link.py --tu-data` |
-| `--tu-data` differing bytes | 5,090 [9,985] | `tools/link.py --tu-data` |
-| `--tu-data` config names at their config address | 6,931 / 7,288 (wrong .rodata 54, .data 303) [6,847 / 7,334; wrong .rodata 143, .bss 29, .data 313, .sbss 2] | `tools/link.py --tu-data` |
+| `--tu-data` (real-link data layout): .text / .rodata / .data equal | 1,415,300 (99.90%) [1,413,936] / 301,625 (99.10%) [298,405] / 198,222 (99.57%) [197,806]; from objects .rodata 21,217 / 23,948 (88.60%) [12,157 / 18,108], .data 29,066 / 29,932 (97.11%) [28,634 / 29,916] | `tools/link.py --tu-data` |
+| `--tu-data` differing bytes | 4,985 [9,985] | `tools/link.py --tu-data` |
+| `--tu-data` config names at their config address | 6,933 / 7,282 (wrong .rodata 46, .data 303) [6,847 / 7,334; wrong .rodata 143, .bss 29, .data 313, .sbss 2] | `tools/link.py --tu-data` |
 | docs links | 0 broken | `tools/docs/linkcheck.py` |
 
 No source change was needed under `-fno-rtti`: the two data branches' code matches with the flag as it did without.
@@ -234,7 +234,7 @@ by any object. ld.lld: 0 errors.
    emits objects with a constructor at their definition and the rest in first-declaration order, tu-merging.md
    "Phase 4: interior fields"). **data/bss-order**: every `.bss` now as the ELF (dl, gs, glob, shd, prog, screen,
    game, stepguard, joy, grab, sprbuf); in `--tu-data` mode the `.rodata` of text, guardbhv, game, stepguard,
-   screen, air, stepplayer, jt, prize, murray, sound, relay and tu_17F090 is byte-identical. The default mode's
+   screen, air, stepplayer, jt, prize, murray, sound, relay, tu_17F090 and booty is byte-identical. The default mode's
    `.rodata` bytes cannot improve by source order: `-fdata-sections` takes the named constants out of the object's
    `.rodata` and leaves its literals and jump tables together, while the ELF interleaves them; tu-merging.md "Phase
    5: data order" has the emission rules, the decision to keep the flag for now, and the remaining list.
@@ -256,7 +256,7 @@ by any object. ld.lld: 0 errors.
 
 1. ~~Decide `-fno-rtti` (class 2)~~: done (build/rtti-palettes).
 2. Data order from source, TU by TU, measured with `--tu-data` (conflicts.txt, mismatch.txt, wrongaddr.txt); `.bss`
-   done and 13 objects' `.rodata` on data/bss-order (tu-merging.md "Phase 5: data order", with what is left: `.data`
+   done and 14 objects' `.rodata` on data/bss-order (tu-merging.md "Phase 5: data order", with what is left: `.data`
    address order in the per-function-view files, shared literals, a few `.rodata` objects); then drop
    `-fdata-sections` from the default mode. The `D_` names nobody defines stay the work list for the real link.
 3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area

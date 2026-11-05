@@ -1217,8 +1217,8 @@ Left (73 macros), by reason:
 
 Goal: each object's `.bss`, `.data` and `.rodata` laid out as the ELF's, so a real link (no `-fdata-sections`,
 `tools/link.py --tu-data`) puts every byte where the game has it. Measured with tools/link.py in both modes
-(full-link.md, Status): config names at the wrong address 31 -> 0 (default mode) and 487 -> 357 (`--tu-data`: `.bss`
-29 -> 0, `.sbss` 2 -> 0, `.rodata` 143 -> 54, `.data` 313 -> 303). Every touched file keeps all functions and data
+(full-link.md, Status): config names at the wrong address 31 -> 0 (default mode) and 487 -> 349 (`--tu-data`: `.bss`
+29 -> 0, `.sbss` 2 -> 0, `.rodata` 143 -> 46, `.data` 313 -> 303). Every touched file keeps all functions and data
 symbols MATCH; no reorder changed codegen in its final form (one first attempt did, below).
 
 **Emission order (g++ 2.95, checked on these objects).** It decides where each object lands inside its object's
@@ -1254,7 +1254,8 @@ word `D_003DD008` defined), prog (`D_002DD314` is a `.sbss` common), screen (the
 (g_game defined at file scope as `char[0x1C]`, `D_002DEB28` declared first), stepguard, joy, grab, sprbuf.
 `.rodata` (in `--tu-data` mode now byte-identical to the ELF, relocated words aside): text, guardbhv, game,
 stepguard, screen (with its `D_002C3268` string table and the three strings, which also closes the gap in its
-`.data`), air, stepplayer, jt, prize, murray, sound, relay, tu_17F090; hud from 84 to 9 differing bytes.
+`.data`), air, stepplayer, jt, prize, murray, sound, relay, tu_17F090, booty; hud from 84 to 9 differing bytes, hurt to 4 (its
+shared literal).
 
 **`-fdata-sections` (the default mode of tools/link.py).** It gives each named object its own section but leaves
 every object's anonymous literals and jump tables in one `.rodata` section, so where the ELF interleaves named
@@ -1262,7 +1263,7 @@ constants with the functions' literals (most objects with both) that section can
 whatever the source order: the 1,263 `.rodata` layout bytes of the default mode are this artifact and did not
 change here. Decision (stylistic, keeps both measures): `-fdata-sections` stays in the default mode for now (it
 isolates code from data-order problems: dropping it today would turn the default numbers into the `--tu-data` ones,
-.rodata from objects 94.4% -> 88.4%), and `--tu-data` is the measure for data order. Once `--tu-data` is at least as
+.rodata from objects 94.4% -> 88.6%), and `--tu-data` is the measure for data order. Once `--tu-data` is at least as
 good, drop the flag (make `--tu-data` the default).
 
 **Left (`--tu-data`), by kind:**
@@ -1277,8 +1278,8 @@ good, drop the flag (make `--tu-data` the default).
   Fix: the function reads the named symbol instead of spelling the literal (or the reverse); the relocated words
   are masked, so the match shows whether the code is unchanged.
 - *`.rodata` with unnamed data missing or misplaced jump tables*: memcard (with the strings above), menu, bentley,
-  sw, xf, cd, tu_1BAB50, tu_223F70, booty, tn, hurt, bomb, rhythm (the last five: named constants to move as above,
-  not done in the timebox).
+  sw, xf, cd, tu_1BAB50, tu_223F70, tn, bomb, rhythm (the last three: named constants to move as above, not done in
+  the timebox).
 
 ## Linkage of namespace-scoped declarations
 
