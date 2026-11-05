@@ -76,13 +76,21 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x4c4[3];
       ANIMBINDINGREC abindingrec[32];   /* +0x4D0 [S] */
       ANIMBINDING aabindingZap[3][26];  /* +0x8D0 [S] three zap-reaction binding sets (ResolveZapReactions) */
-      undefined4 unk_0xdb0[(0xf60 - 0xdb0) / 4];
+      undefined4 unk_0xdb0[(0xf04 - 0xdb0) / 4];
+      float tAttackNext;    /* +0xF04 [S] earliest time of the next attack choice (guardbhv FBhvcombatChooseAttack) */
+      undefined4 unk_0xf08[(0xf3c - 0xf08) / 4];
+      int fUnkF3C;          /* +0xF3C [S] set by StartBhvstrike */
+      undefined4 unk_0xf40[(0xf60 - 0xf40) / 4];
       int nFiringWindow;    /* +0xF60 [R] firing window (shooting guards) */
       DETECTOR *pdetector;  /* +0xF64 [R] vision detector (CID 0x10; its +0xE0 owner == this guard) */
       int nUnkF68;          /* +0xF68 [S] copied with qwUnkF70 into the root behaviour's sub-behaviour in mode 0x10 */
       undefined4 unk_0xf6c;
       qword qwUnkF70;       /* +0xF70 [S] */
-      undefined4 unk_0xf80[(0xfe0 - 0xf80) / 4];
+      undefined4 unk_0xf80[(0xf94 - 0xf80) / 4];
+      int cUnkF94;          /* +0xF94 [S] FBhvguardHasTargetList: non-zero with cUnkFA8 means a target list */
+      undefined4 unk_0xf98[(0xfa8 - 0xf98) / 4];
+      int cUnkFA8;          /* +0xFA8 [S] */
+      undefined4 unk_0xfac[(0xfe0 - 0xfac) / 4];
       DLE dleGuard;         /* +0xFE0 [R] link in the in-world guard list (DL at 0x3E1444, ibDle 0xFE0) */
       uint grfCapability;   /* +0xFE8 [R] capability bits (bit 3 = may shoot) */
       undefined4 unk_0xfec[(0xffc - 0xfec) / 4];
@@ -99,6 +107,8 @@ typedef char assert_STEPGUARD_aloot[SLY2_OFFSETOF(STEPGUARD, aloot) == 0x404 ? 1
 typedef char assert_STEPGUARD_cloot[SLY2_OFFSETOF(STEPGUARD, cloot) == 0x484 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_abindingrec[SLY2_OFFSETOF(STEPGUARD, abindingrec) == 0x4D0 ? 1 : -1];   /* stepguard.cpp */
 typedef char assert_STEPGUARD_aabindingZap[SLY2_OFFSETOF(STEPGUARD, aabindingZap) == 0x8D0 ? 1 : -1];   /* stepguard.cpp */
+typedef char assert_STEPGUARD_tAttackNext[SLY2_OFFSETOF(STEPGUARD, tAttackNext) == 0xF04 ? 1 : -1];   /* guardbhv.cpp */
+typedef char assert_STEPGUARD_cUnkFA8[SLY2_OFFSETOF(STEPGUARD, cUnkFA8) == 0xFA8 ? 1 : -1];   /* guardbhv.cpp */
 typedef char assert_STEPGUARD_qwUnkF70[SLY2_OFFSETOF(STEPGUARD, qwUnkF70) == 0xF70 ? 1 : -1];   /* stepguard.cpp */
 typedef char assert_STEPGUARD_pdetector[SLY2_OFFSETOF(STEPGUARD, pdetector) == 0xF64 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_STEPGUARD_dleGuard[SLY2_OFFSETOF(STEPGUARD, dleGuard) == 0xFE0 ? 1 : -1];   /* CONFIRMED runtime */
