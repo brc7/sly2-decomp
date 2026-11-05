@@ -1467,8 +1467,8 @@ struct CRef {
     CRef(bool f) { m_tagk = 0x17; m_tag = f; }
     CRef(const CRef &);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &);
-    void Decref();
+    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
 };
 struct G { char pad[0xC]; int n; };
 extern "C" { extern G D_002DEB30; }
@@ -1918,8 +1918,8 @@ struct CRef {
     CRef(int n) { m_tagk = 0x15; m_tag = n; }
     CRef(const CRef &);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &);
-    void Decref();
+    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
 };
 struct REC { int a, b, x8; int pad[5]; };
 struct REC12 { int x0, x4, x8; };
@@ -2119,8 +2119,8 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(const CRef &);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &);
-    void Decref();
+    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
 };
 struct ENT { int n; int a; };
 struct OBJ {
@@ -2586,8 +2586,8 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(const CRef &);
     ~CRef() { Decref(); }
-    CRef &operator=(const CRef &);
-    void Decref();
+    CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
+    void Decref() __asm__("Decref__4CRef");
 };
 struct ENT { int n; int a; };
 struct TBL {
@@ -3615,7 +3615,7 @@ struct CRef {
     CRef() { m_tagk = -1; }
     CRef(const CRef &);
     ~CRef() { Decref(); }
-    void Decref();
+    void Decref() __asm__("Decref__4CRef");
 };
 struct G { char pad[0x3B1C]; void *x3B1C; };
 struct H { char pad[0x100C]; int x100C; int x1010; };

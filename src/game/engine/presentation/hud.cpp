@@ -4625,7 +4625,7 @@ struct LM {
     LM(Uninitialized) {}
     LM() {}
 };
-float GLimitLm(LM *, float);
+float GLimitLm(LM *, float) __asm__("GLimitLm__FP2LMf");
 
 /** @sly2-annot addr=0x219400
  * Purpose: apply one animation key poses to items
