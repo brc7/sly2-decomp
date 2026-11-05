@@ -150,13 +150,13 @@ struct EMITDV;
 struct CLQ;
 
 extern "C" {
-extern QW D_002DD5C0[4];
-extern QW D_002DD600[4];
+QW D_002DD5C0[4];       /* the two blip GIF packets (blip's .bss) */
+QW D_002DD600[4];
 extern DL D_002DEAF0;
 extern DL D_002DEB00;
 extern VTE D_002CB5D8[];
 extern qword D_002A2DD0;
-extern int D_002BC9C0;
+int D_002BC9C0 = 0;     /* blip's .data: force the CPU projection */
 extern int D_002C3C5C;
 extern void *D_002DE59C;
 extern M3 D_002A2D00;

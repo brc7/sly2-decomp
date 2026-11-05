@@ -83,9 +83,9 @@ extern CLOCK D_002DDED0;
 extern U D_002A2DD0, D_002A2DA0, D_002A2DC0;
 extern SW D_003DD490;
 extern char D_002DE578[];
-extern int D_002C0230[6];
-extern float D_002A70E0;
-extern VECTOR3 D_002C0248;
+int D_002C0230[6] = {8, 8, -1, 0, 8, -1};   /* tu_1B0B78's .data, address order */
+extern const float D_002A70E0 = 3.40282347e+38f;   /* FLT_MAX */
+VECTOR3 D_002C0248 = {25.0f, 0.0f, 0.25f};
 
 void InitSo(CID96 *p);
 void RemoveSoHierarchy(CID96 *p);

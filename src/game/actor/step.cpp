@@ -158,7 +158,7 @@ struct S {
     char pad3[0x210 - 0xE8]; float f210; int n214; char *p218; char *p21C; char pad4[0x240 - 0x220]; qword q240;
     char pad5[0x258 - 0x250]; struct Q *pq;
 };
-extern float D_002A85F0;
+extern const float D_002A85F0 = 3.40282347e+38f;   /* FLT_MAX */
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
 void RemoveSoParts(struct S *p);
@@ -301,7 +301,10 @@ struct M {struct X *px;char pad4[0xC];struct B *pb;char pad14[8];int count;char 
 struct S {char pad258[0x258];struct M *pm0,*pm1;};
 struct CLK {float time,dt;};
 extern struct CLK D_002DDED0;
-extern float D_002C3C68[];
+/* step's .data starts here: the contact side signs (medium: tu_223F70 and murray read them too) and the point
+ * smoothing SMP; the rest is defined in the per-function namespaces below, in address order. */
+float D_002C3C60[2] = {1.0f, -1.0f};
+float D_002C3C68[3] = {300.0f, 0.0f, 0.25f};
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 float GSmooth__FfffP3SMPPf(float,float,float,float *,float *);
@@ -423,7 +426,7 @@ struct S {
 struct VE { short d; short pad; float *(*pf)(void *); };
 struct VT { struct VE e[32]; };
 extern struct { float t; float dt; } D_002DDED0;
-extern float D_002C3C80[3];
+float D_002C3C80[3] = {1.5f, -1.0f, 0.0f};   /* turn-rate speed factor polynomial */
 extern float D_002BBB60[2];
 void UpdateSo(struct S *p);
 void UpdateStepPhys(struct S *p);
@@ -601,7 +604,8 @@ struct STATE { char pad[0xD0]; float mass; };
 struct P { char padE8[0xE8]; struct STATE *state; char padEC[0x258 - 0xEC]; void *mesh; };
 extern char D_003DD490[];
 extern qword D_002A2DA0;
-extern float D_002C3C60[], D_002C3C90;
+extern float D_002C3C60[];
+float D_002C3C90 = 1.5f;   /* base contact friction */
 void func_001F4FB0(void);
 void PxpAdd(void *pw, void *a, void *b, qword pos, qword dir, int k, int x, int y, struct XP **out, float g);
 
@@ -762,8 +766,8 @@ struct CLOCK
 };
 
 extern struct CLOCK D_002DDED0;
-extern float D_002C3C98[];
-extern float D_002C3CA8[];
+extern "C" float D_002C3C98[3] = {3000.0f, 0.0f, 0.35f};   /* the two closing-speed SMPs */
+extern "C" float D_002C3CA8[3] = {3000.0f, 0.0f, 0.5f};
 
 void func_001F4FC0(struct STEP *pstep, struct XP *pxp, int ixpd);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, float *psmp, float *pdgNext);
@@ -952,7 +956,8 @@ struct N { struct Endpoint e[2]; qword q80; float value; char pad94[8]; int kind
 struct L { struct N *first; struct L *next; struct N **back; };
 struct G { char pad[0x64]; struct L *groups; struct N *def; };
 struct P { char pad[0xEC]; struct G *g; char padF0[0x118]; struct N *best; float t; char pad210[0x20]; qword position; };
-extern float D_002A85F4,D_002DDED0;
+extern const float D_002A85F4 = 3.40282347e+38f;   /* FLT_MAX */
+extern float D_002DDED0;
 struct SW;
 extern struct SW D_003DD490;
 void func_001F4F10(struct P *);
@@ -1177,7 +1182,7 @@ void FixStepAngularVelocity(struct S *p)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00204D48 { extern "C" {
 typedef struct VECTOR { float x, y, z; } VECTOR;
-extern VECTOR D_002C3CB8;
+VECTOR D_002C3CB8 = {25.0f, 0.0f, 0.25f};   /* the default spin smoothing */
 static __inline__ float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
 struct S { char pad[0x1F0]; float g; VECTOR v; };
 /** @sly2-annot addr=0x204D48
@@ -1665,7 +1670,7 @@ struct S { char pad[0x218]; qword *origin; int pad21C; float radius; };
 extern "C" {
 M3 *func_001A6318(S *p);
 qword func_001A62E8(S *p);
-extern int D_002C3CC8[2][3];
+int D_002C3CC8[2][3] = {{0, 1, 3}, {0, 2, 4}};
 }
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -1738,10 +1743,10 @@ struct HEIGHT {float min,max;};
 struct GAME;
 extern GAME D_003DD490;
 extern qword D_002A2DC0;
-extern const float D_002A85F8;
-extern float D_002C3CE0;
-extern float D_002C3CE8;
-extern int D_002C3CE4;
+extern "C" const float D_002A85F8 = -3.40282347e+38f;   /* -FLT_MAX */
+extern "C" float D_002C3CE0 = -24.0f;   /* the probe drop along the up row */
+extern "C" int D_002C3CE4 = 2;
+extern "C" float D_002C3CE8 = 0.6f;    /* the angle limit */
 extern "C" {
 MATRIX3 func_0011B500(qword,float);
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("func_0011B500");

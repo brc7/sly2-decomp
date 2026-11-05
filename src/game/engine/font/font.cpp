@@ -116,12 +116,27 @@ struct GSB { char ab[0x630]; };
 struct FRM;
 
 extern "C" {
-extern CFontBrx *D_002DE9F0[];
-extern CFontBrx *D_002DE760;
-extern CFontBrx D_002DE770[];
 extern FD *D_002BE320[];
-extern unsigned char D_002BE328[];
-extern unsigned short D_002BE338[];
+unsigned char D_002BE328[2] = {'0', '2'};   /* the font-escape characters of the two fonts (font's .data) */
+/* Character code to glyph key (font's .data): identity for 0..0x7F, Windows-1252 to Unicode for 0x80..0xFF (65533 =
+ * U+FFFD for the unassigned codes). */
+#define I16(n) n, n + 1, n + 2, n + 3, n + 4, n + 5, n + 6, n + 7, n + 8, n + 9, n + 10, n + 11, n + 12, n + 13, n + 14, n + 15
+unsigned short D_002BE338[256] = {
+    I16(0x00), I16(0x10), I16(0x20), I16(0x30), I16(0x40), I16(0x50), I16(0x60), I16(0x70),
+    8364, 65533, 8218, 402, 8222, 8230, 8224, 8225, 710, 8240, 352, 8249, 338, 65533, 381, 65533,
+    65533, 8216, 8217, 8220, 8221, 8226, 8211, 8212, 732, 8482, 353, 8250, 339, 65533, 382, 376,
+    160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175,
+    176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191,
+    192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207,
+    208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223,
+    224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239,
+    240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255,
+};
+#undef I16
+/* font's .bss (address order): the current font, the two game fonts and the font table. */
+CFontBrx *D_002DE760;
+CFontBrx D_002DE770[2];
+CFontBrx *D_002DE9F0[4];
 extern const unsigned char D_002AA6A1[];
 extern GIFS D_002DEA00;
 extern FRM *D_002DEA4C;

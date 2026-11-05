@@ -59,7 +59,7 @@ struct TRACK { struct { short d; short pad; void (*pfn)(void *, float, float, VE
 struct TRACKREF { int x0; TRACK *x4; };
 struct PIPE;
 extern "C"{
-extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;extern SMP D_002BF928;extern JT*D_002E1E40;
+extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;SMP D_002BF928={1500.0f,0.0f,0.5f};extern JT*D_002E1E40;
 extern int D_002DFBC0;
 extern char D_002DE2E0[];
 TRACKREF *func_0012FF10(ASEG *o, JT *a, int b, int c);

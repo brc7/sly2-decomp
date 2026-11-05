@@ -728,6 +728,196 @@ unchanged by the run (the commits had already set the new names and sources); th
 progress.py caches results by source mtime only, so it does not rebuild the includers of a changed header: after a
 header change, rebuild every includer with matchtool (pass 1 did, for all 163 `sly2/` includers).
 
+## Data
+
+`matchtool.py check` also verifies every data symbol a file DEFINES whose address is known (a `D_XXXXXXXX` name, or a
+`name = 0xADDR; // type:data size:0xN` line in config/symbol_addrs.txt): initialized data byte for byte against the
+ELF with relocated words masked, .bss by placement (and size, when symbol_addrs.txt gives one). It prints one line per
+data symbol after the functions: `D_002C0D00 @0x2C0D00 [.data 0x4]: MATCH`, or the differing words
+(`!! <addr>  <target bytes> | <ours>`), or a placement problem (`ours is zero-initialized (bss), target is in .rodata`).
+Extern declarations are not checked; a symbol with no known address (template statics, `g_eopidref_*`) is skipped.
+
+Defining a TU's data (pilot, 2026-11-04: pipe, water, hnd, sensor, memory):
+
+1. Find what the TU owns: the survey (/home/claude/ref/reports/data_survey/globals.csv, columns `owner_guess`,
+   `owner_confidence`) lists every D_ with its section, estimated size and users. Data is linked in TU order like
+   code, so the TU's .data/.bss is the range between the previous and the next TU's data; a word inside that range
+   that no code names (pipe's D_002C0D04) is the TU's too.
+2. Replace the TU's `extern` declarations by definitions with the values read from the ELF, in address order (g++
+   emits .data and .bss in definition order; memory's object reproduced the target's .bss offsets exactly). Use the
+   type the code reads and the layout shows: a 16-byte stride of three floats is a CLQ (water), the gap to the next
+   TU's data sizes an array (memory's `D_002F63A0[50]`). Keep the constness the section shows (.data = non-const;
+   .rodata = const or a literal). Do not claim padding-looking zeros up to the next TU's data (hnd, sensor).
+3. Leave `extern` declarations in other TUs' files as they are (memcard still declares memory's globals).
+4. `python3 tools/matchtool.py check <tu>.cpp`: every function still MATCH (defining a global in the TU that uses it
+   can change code generation) and every data symbol MATCH. Commit per TU: `data: define <tu>'s ... in <tu>.cpp`;
+   config/matched.csv does not change.
+
+Known limits: the ELF has no symbol table, so a definition that is too short passes unless symbol_addrs.txt gives
+`size:`; relocated words are masked, so a wrong pointer in a table still passes; unnamed literals and strings are not
+checked (only named symbols). Our compiler puts a const object with a dynamic initializer in .bss, where the original
+has it zero-filled in .rodata: tu_1147D8's and tu_114AE0's palettes `D_0029A7C0` / `D_002A2900` report that placement
+difference (their functions match). The vtables are linkonce data at the end of .data (0x2C8940..0x2DD230), not owned
+by any TU, and the end of .bss from about 0x4421A0 is not in TU order (hud, frm, memcard, mpeg, thread mixed, likely
+common symbols): do not define data there by layout.
+
+Phase 1 over the merged TUs (branch data/phase-2, 2026-11-05): 96 files, 660 data symbols newly defined (survey kinds:
+192 floats, 109 16-byte vectors, 76 float pairs, 115 int/float tables and records, 105 .bss objects, 25 strings, 20
+zero-filled rows, 9 tables with pointers, 9 unnamed rows given a D_ name by address), all functions and data symbols
+MATCH, linkcheck 0. One rename (missile's `s_asnipMissile`, the Sly 1 name, with tools/rename.py, which handles data:
+it adds the symbol_addrs.txt line; add `size:` by hand). Most other clear names belong to globals that unmerged TU
+directories also declare, so naming waits for the merges (survey phase 5). Refinements of the steps above:
+
+- **What to leave out.** `.bss` addresses inside g_sw (0x3DD490..0x3E1C20) are SW fields, not objects (ms's "first
+  glob owner", the slot heaps of tu_1709A8/tu_20B840/noise/frm, light's lists). End of `.bss` from 0x4421A0, the
+  splice pool words in `.sbss`/0x4520xx and the `.bss` around 0x3DD0E4..0x3DD190 (cd, menu entries between sound and
+  sprbuf) are not in TU order: not defined. Also left: vtables, class rows, engine tables, PMF constants (literal
+  phase), records and tables holding function pointers (pointer phase: cheat's CODEs, menu's items, tu_15CD68's label
+  tables, draw's pass hooks), the shared constant block 0x2A2D00..0x2A2E10 (identity matrices, unit/zero vectors right
+  after tu_114AE0's palette; owner undecided) and the two zero-filled palettes (placement decision pending).
+- **Ownership by layout beats the survey's first-user guess** where they disagree: frm owns D_002DEA4C (survey: font),
+  cd owns D_002BD4C0 (survey: tu_14A008, medium), phasemem owns the RPL buffer D_003B3980 that only other TUs name;
+  basic's two int tables lie in crt0_splicewrap's `.rodata` (0x27A108.., generated area) and are not basic's.
+- **Spelling.** `.data`: a plain definition. `.rodata`: `extern const T x = v;` (`extern` keeps the symbol, `const`
+  puts it in `.rodata`); strings as `extern const char x[] = "...";`. Where a callee or return wants `char *`, change a
+  plain-C-symbol callee's parameter to `const` (check the declaration is inside `extern "C"`) or cast; never change a
+  mangled callee's parameter types (FCheckLm__FP2LMf, CdPath__FPcT0i: the symbol would change). A zero-filled `.rodata`
+  row that the code uses as a string is `""` (tu_11AFE0, tu_1BAB50, brx). `= 0` keeps a zero word in `.data`.
+- **Sizes.** Arrays are 8-byte aligned on the EE, so zero words before an 8-aligned next object are padding: size an
+  array by the count the code uses (loot tables 9, logo triangles 53/22/11/11/62, snip tables by the BindLoOidTable
+  count), not by the gap. Two names into one array (tu_1471C0's D_002BD398/D_002BD39C) stay extern; so do records whose
+  view type overlaps the next datum (gs' 0xF0-byte DRAWENV view).
+- **16-byte vectors read as qwords** cannot be initialized through a qword-first type: use a TU-local
+  `union VQ { float af[4]; qword q; };` and `.q` at the reads, or list the floats first in an existing union U (no layout
+  change; cane, hurt, grab, tu_1B9F80).
+- **When a visible value changes code.** A const definition lets g++ fold the value: cd's UpdateCd stopped matching.
+  Declare the objects `extern const` above and define them at the END of the file (gcc 2.95 compiles function by
+  function, so a later definition is not seen). If the const qualification alone changes the code (tu_185130's
+  D_002A5688), leave the extern. `extern const` declarations of `.data` words that comments describe as code-generation
+  devices (path D_002C0C04, tu_185130 D_002BE918) stay extern too.
+- **Namespace-mangled externs.** In files with per-function namespaces, an `extern` inside a namespace without
+  `extern "C"` refers to `_<n>M_<view>$D_...`, which no native link resolves (relocations are masked, so the match never
+  showed it). A definition there must carry `extern "C"` (`extern "C" T x = v;`, `extern "C" { T x; }` for `.bss`); the
+  data check silently skips mangled names, so list the object's data symbols after each TU. Fixed for the data defined
+  here (step, hurt, grab, jt, tu_1D1370, glob); 118 mangled references to other data remain in 10 merged files (glob 50,
+  tu_1D1370 24, jt 17, xf 7, grab 7, step 5, shd 3, sm 2, path 2, tu_1709A8 1).
+- **Order.** Definitions go in address order where the declarations allow; in the big per-function-view files (tn,
+  jt, tu_1D1370, glob) they sit at their first declaration, so the object's data order follows the declarations (each
+  symbol still MATCHes; the layout is not reproduced).
+- **Values** come from the ELF: floats as the shortest literal that round-trips (FLT_MAX as `3.40282347e+38f`), words
+  that the code reads as float bits stay ints with a comment.
+
+| TU | defined | kinds | notes |
+|---|---:|---|---|
+| pipe, water, hnd, sensor, memory | 16 | pilot (see above) | |
+| tu_1D57A8 | 1 | float (.rodata) | FLT_MAX literal |
+| tu_1D6848 | 1 | float (.rodata) | FLT_MAX literal |
+| vol | 1 | float (.rodata) | -FLT_MAX |
+| blend | 1 | float (.rodata) | -FLT_MAX |
+| stream | 1 | string |  |
+| brx_sw | 1 | string | callee takes const void * |
+| tu_14B660 | 1 | string | cast on return |
+| tu_11AFE0 | 1 | string | "" (zero-filled .rodata row = empty string) |
+| missile | 1 | struct | s_asnipMissile (SNIP[1], Sly 1 name, high); size: in symbol_addrs |
+| dzg | 1 | float |  |
+| tu_19F0A8 | 1 | float |  |
+| dirblend | 1 | float |  |
+| tu_1FF3B8 | 1 | float |  |
+| target | 1 | float |  |
+| mode | 1 | int |  |
+| spliceutils | 1 | bss |  |
+| dzgcore | 2 | float (.rodata) |  |
+| tu_1709A8 | 1 | float (.rodata) | D_003E1548 = SW+0x40B8 skipped |
+| tu_1BAB50 | 2 | string |  |
+| tu_1D7238 | 1 | string | D_003D4A54 inside prog's .bss range: skipped |
+| tu_14FAC8 | 2 | vector array, pair | VECTOR4[3] + HEIGHT |
+| tu_201D78 | 1 | float (.rodata) | D_002DE390 extent unclear: skipped |
+| trail | 2 | float (.rodata) |  |
+| busy | 1 | float | D_003E0E70 SW interior skipped |
+| rumble | 2 | table, int | RUMPAT[11] from ELF |
+| dl | 2 | bss(.sbss) | g_psliFirst/g_pdliFirst |
+| sjis | 2 | table | GM[34], GM[4] |
+| tu_2275B8 | 3 | string,table |  |
+| mark | 3 | float,float (.rodata) |  |
+| tu_1B0B78 | 3 | int[6],vector,float (.rodata) |  |
+| pipe_jt | 1 | SMP | .rodata ones already literals |
+| tu_1BE398 | 3 | pointer table + 2 int rows | rows unnamed before (D_ by address); RT[2] = SW interior skipped |
+| jtgoal | 3 | float |  |
+| frame,splicemap,spliceobj,sidebag | 0 | - | splice pool bookkeeping in .sbss and end-of-.bss (0x4520xx): skipped (not TU order; likely template statics) |
+| pickpocket | 3 | int[4], TABLE[9] x2 |  |
+| language | 10 | int arrays x7 (new D_), REGIONLANGS[7], bss x2 |  |
+| save | 4 | int[11], int[9], strings |  |
+| draw | 2 | int[26], bss | D_002BDD88 fn table skipped; SW interior |
+| joy | 2 | VEC2[4], bss | D_002E0D00/D_002E1E00 low skipped |
+| rail | 4 | float |  |
+| render | 4 | float, LM, int |  |
+| sprbuf | 3 | int, ulong[16] x2 |  |
+| difficulty | 5 | DIFFPARAMS, strings |  |
+| tu_1B9F80 | 5 | SNIP[3], 3 vectors (U floats-first), float (.rodata) |  |
+| tu_20CE28 | 5 | VQ[5], floats |  |
+| light | 3 | BLOCK, floats | SW interior x2 |
+| dmas | 5 | bss pointers |  |
+| phasemem | 5 | bss buffers | D_003B3980 RPL buffer defined by layout |
+| tu_1A4E08 | 4 | FILEREC x2  (.rodata), FILEREF zero, STEPE bss |  |
+| basic | 0 | - | its 2 .rodata int tables lie in crt0_splicewrap's .rodata (0x27A108.., before tu_1147D8): generated area, skipped; pool .sbss skipped |
+| places | 6 | floats, VQ[8], CLQ, LM, float (.rodata) |  |
+| turret | 5 | LM, float arrays, SMP (.rodata) | D_002DDF7C inside cm's bss skipped |
+| xf | 1 | float (.rodata) | identity M4 shared block, jump table, end-of-bss stack skipped |
+| booty | 4 | VQ (.rodata), float[3] (.rodata), strings | 2 PMF skipped |
+| path | 6 | float, VS[4], FS[2], float (.rodata)x3 | D_002C0C04 const-device kept extern |
+| bomb | 6 | float, int[4], int(bits), float (.rodata)x3 | PMF skipped |
+| tu_1C2D20 | 7 | SNIP[4], LM x3, floats, float (.rodata) |  |
+| eval | 1 | string | builtin table, pool skipped |
+| jthands | 4 | int, VQ, floats | PMF + 2 low skipped |
+| text | 4 | strings (3 ro, 1 .data) |  |
+| blip | 3 | int, QW[4] bss x2 |  |
+| eopid_linkonce,ref | 0 | - | eopid_linkonce is not a TU (emitter defaults: owner undecided); ref = pool bookkeeping |
+| tu_171F58 | 8 | floats (.rodata), LM (.rodata)x2, float, LM x2 |  |
+| tu_185130 | 6 | float (.rodata)x3, SMP x3 | D_002A5688 const breaks func_001856C0; D_002BE918 const device |
+| throw | 8 | floats, CLQ, F32, float (.rodata) |  |
+| tu_1471C0 | 4 | SNIP[2], VECTOR4F[4], float[8], M4F | D_002BD398/39C one array two names |
+| font | 5 | uchar[2], ushort[256], bss x3 | pointer table left |
+| mpeg | 5 | FILEREC (.rodata)x2, int, bss int, stack | vtables, end-of-bss skipped |
+| tu_1BC050 | 8 | floats, float (.rodata)x2 | 24 unnamed ints not claimed; SW interior |
+| waypoint | 9 | int(bits), floats, CLQ x3, LM |  |
+| gc | 0 | - | pool .sbss + end-of-bss skipped |
+| main | 7 | strings (ro x2, .data x2), bss x3 | startup table skipped |
+| po | 3 | float (.rodata), zero char[16], PO**[3] pointer table | vtable, shared vector, pool skipped |
+| tu_1553F0 | 11 | float (.rodata)x4, int, VECTOR x2, floats |  |
+| tu_20B840 | 7 | OID[2]x2, int[2]x2, floats, float (.rodata) | vtable, SW interior skipped |
+| cd | 10 | ro: char[4]x2,int,uint,uint[256] (defined at end of file), int x2, bss x3 | define-after-use trick for folded consts |
+| rhythm | 10 | floats, KEY[4], VQ x2, float[3], SZ (.rodata) | PMF, singleton skipped |
+| noise | 11 | floats, LM, float[3] | vtable, SW interior skipped |
+| tu_15CD68 | 8 | ints, int tables x3, void*[9], strings | 4 pointer tables left |
+| cane | 14 | floats, int[24], float[2], U x3, bss x2 | U reordered floats-first |
+| tu_14A008 | 14 | floats, LM x5, float[3], float (.rodata), bss |  |
+| tu_173158 | 15 | floats, float[2], float (.rodata) |  |
+| frm | 11 | bss: FRM*, FRM[2], DL x2, ints | D_002DEA4C (font's guess) moved to frm |
+| step | 14 | floats, float[3]x4, VECTOR, int[2][3], float (.rodata)x3 | fixed 6 namespace-mangled extern decls (now extern "C") |
+| tu_223F70 | 17 | floats, int tables, float[4]x4, POLY, float[11], float (.rodata) |  |
+| tu_144B28 | 20 | floats, float[3], CLQ x3, LM x2, pairs x2, float (.rodata)x2 | |
+| bentley | 19 | SNIP[0x76], VQ x3, POLY x2, SMP, floats, string, bss ptr |  |
+| hurt | 20 | U/F/POLY/float arrays/records/int[14]/float (.rodata) | U floats-first; 4 namespace-mangled decls fixed |
+| prog | 17 | ints, floats, V2[206], TRI[] x5, bss x5 |  |
+| menu | 11 | META, floats, int[8]x3, FILEREC (.rodata), bss floats+ITEM[] x2 | item tables w/ fn pointers left |
+| hang | 24 | CLQ x2, LM, SMPA, SMP x2, float[3] x2, floats |  |
+| shd | 21 | bss block (ints/pointers/char[0x40]), int[3], floats | D_003DA798 view-local type skipped |
+| grab | 24 | floats, HEIGHT, U[3]x2, SMP x2, bss x2 | 2 mangled decls fixed |
+| detector | 1 | qword zero |  |
+| brx | 1 | string "" | g_aeopid, vtables skipped |
+| ms,sm,proxy,tu_1709A8(bss) | 0 | - | SW interiors |
+| clip,solve | 0 | - | already literals in code |
+| mat,vec | 0 | - | shared constant block 0x2A2D00..0x2A2E10 (after tu_114AE0's palette): owner undecided |
+| barrier,button,aseg,proxy (.rodata) | 0 | - | PMF constants (literal phase) |
+| bsp | 0 | - | data pointers (pointer phase); D_002BBB60 low |
+| cheat | 0 | - | CODE records with fn pointers + interleaved button arrays (pointer phase) |
+| thread | 0 | - | end-of-.bss stack (not TU order) |
+| gs | 29 | ints, DISPENV[2], QW[] x14, bss ints | DRAWENV pairs + CRITSECT left |
+| tn | 25 | floats, LM x4, int, bss int, float (.rodata)x5 | declaration order (not address order); vectors/tables left |
+| jt | 39 | floats, SMP x3, int(bits) x2 | declaration order; 18 mangled decls fixed; vectors/tables left |
+| tu_1D1370 | 37 | POLY, LIMITS, floats, float[2]/[3], S8(bits) x3, float (.rodata)x2 | declaration order; 29 mangled decls fixed; vectors left |
+| glob | 5 | int, float (.rodata), bss x3 | records/vector left |
+
 ## Merged TUs
 
 | TU | file | functions | notes |

@@ -48,14 +48,14 @@ struct SVSTORE;
 extern SVSET D_003D4A60;
 extern SVSTORE D_003E0EA8;
 extern JOBV *D_003E0F9C;
-extern DIFFPARAMS D_002BDC00;
+DIFFPARAMS D_002BDC00 = {{0.0f, 1.0f}, 0.1f, -0.2f, 4, 6, 2, 3, 1.0f, 0.5f, {4, 6, 4, 6, 600, 800, 300, 600}};
 extern DIFFICULTY D_002DE578;
 extern SW D_003DD490;
-extern char D_002A5060[], D_002A5070[], D_002A5080[], D_002A5090[];
+extern const char D_002A5060[] = "suck_history", D_002A5070[] = "mission_0", D_002A5080[] = "mission_1", D_002A5090[] = "mission_2";
 
 extern "C" {
 void *memset(void *pv, int c, unsigned int cb);
-SVKEY *PkeyNewSaveKey(void *p, ...);
+SVKEY *PkeyNewSaveKey(const void *p, ...);
 CRef RefGetGlobalSaveVar(SVKEY *pkey, SVSET *psvset);
 CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
 CRef RefSetGlobalSaveVar(SVKEY *pkey, const CRef &ref, SVSET *psvset);

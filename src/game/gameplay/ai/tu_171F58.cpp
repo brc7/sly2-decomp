@@ -71,15 +71,15 @@ typedef struct LM{float low,high;}LM;
 struct GOAL { qword a; qword v; };
 
 extern CLOCK D_002DDED0;
-extern float D_002A5398;
-extern float D_002BE5A0;
-extern float D_002A53D4;
-extern LM D_002A53C0, D_002A53C8;
+extern const float D_002A5398 = 3.40282347e+38f;   /* FLT_MAX */
+float D_002BE5A0 = 2.0f;   /* tu_171F58's .data starts here (address order) */
+extern const float D_002A53D4 = 3.40282347e+38f;   /* FLT_MAX: no next look */
+extern const LM D_002A53C0 = {200.0f, 1200.0f}, D_002A53C8 = {-0.785398185f, 0.785398185f};   /* distance, +-pi/4 */
 extern NODE*D_003E13FC,*D_003E13F0,*D_003E1408,*D_003E13E4,*D_003E13C0,*D_003E13D8,*D_003E13CC,*D_003E13B4,*D_003E1450;
 extern char D_003DD490;
 extern qword D_002A2DA0,D_002A2DC0;
-extern const float D_002A53D0;
-extern LM D_002BE5A8,D_002BE5B0;
+extern const float D_002A53D0 = -3.40282347e+38f;  /* -FLT_MAX */
+LM D_002BE5A8 = {-0.7f, -0.5f}, D_002BE5B0 = {300.0f, 400.0f};
 extern "C" {
 void InitBhv(BHV171 *pbhv);
 void StartBhv(BHV171 *pbhv);
@@ -409,8 +409,8 @@ extern "C" int func_00172798(QUERY *p) {
     float f;
     d = VuSub(p->candidate.q, p->point.q);
     GetVectorSphere(d, &a, &b, &c);
-    if (!FCheckLm(&D_002A53C0, c)) return 0;
-    if (!FCheckLm(&D_002A53C8, b)) return 0;
+    if (!FCheckLm((LM *)&D_002A53C0, c)) return 0;
+    if (!FCheckLm((LM *)&D_002A53C8, b)) return 0;
     if (p->count >= 0x40) return 0;
     pe = &p->row[p->count++];
     pe->point.q = p->candidate.q;

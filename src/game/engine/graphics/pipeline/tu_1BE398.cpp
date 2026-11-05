@@ -79,7 +79,10 @@ enum CID { };
 struct POV { char pad[0xF40]; POV *xF40; };
 
 extern RT D_003E1A78[];
-extern int *D_002C0BF8[];
+/* The two render targets' lookup rows (26 ints each, -1: none), indexed by func_001BEE10 (tu_1BE398's .data). */
+int D_002C0B28[26] = {-1, -1, -1, 15, 15, 16, 16, -1, -1, 17, -1, -1, -1, -1, -1, 15, 16, 17, 15, 16, 17, -1, 15, 16, 17, -1};
+int D_002C0B90[26] = {-1, -1, -1, 18, 18, 19, 19, -1, -1, 20, -1, -1, -1, -1, -1, 18, 19, 20, 18, 19, 20, -1, 18, 19, 20, -1};
+int *D_002C0BF8[2] = {D_002C0B28, D_002C0B90};
 extern char D_003DD4BC[];
 extern SW D_003DD490;
 extern "C" {

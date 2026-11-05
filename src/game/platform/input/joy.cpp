@@ -22,9 +22,9 @@ extern CLOCK D_002DDED0;
 extern JOY D_002DFC00;     /* g_joy */
 extern int D_002DFBC0;     /* g_grfjoyt */
 extern int D_002DFBC4;     /* the users' grf */
-extern int D_002E0CBC;
+int D_002E0CBC;   /* joy's .bss */
 extern char D_002DDEC0[];  /* the cheat codes */
-extern VEC2 D_002BE950[4];
+VEC2 D_002BE950[4] = {{1.0f, 0.0f}, {0.0f, 1.0f}, {0.7f, 0.7f}, {0.7f, -0.7f}};   /* the four stick axes (joy's .data) */
 extern GSTATE D_002DDF40;
 extern SNDV D_002DEB30;
 extern char D_003DD490[];

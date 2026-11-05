@@ -27,7 +27,7 @@ struct P { char pad[0x240]; qword pos; };
 
 struct DL;
 extern DL D_003E13D8;       /* the list of grab spots */
-extern float D_002C3C58;
+float D_002C3C58 = 1250.0f;   /* the default radius */
 extern "C" {
 void InitXfm(GRABXFM *p);
 void InitGrabspot(void *pgrabspot);

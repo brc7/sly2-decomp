@@ -19,13 +19,14 @@ struct CRITSECT { int a[3]; };
 struct STACKSCOPE { int a[4]; };
 
 extern char D_0047220F;           /* the last byte of the program image */
-extern uint D_002F6380;           /* SW heap base */
-extern uint D_002F6384;           /* SW heap top (grows up) */
-extern uint D_002F6388;           /* stack heap top (grows down) */
-extern uint D_002F638C;           /* stack heap base (32 MB) */
-extern CRITSECT D_002F6390;
-extern int D_002F639C;            /* stack scope depth */
-extern uint D_002F63A0[];         /* stack heap tops of the open scopes */
+/* memory's .bss (0x2F6380..0x2F6468), defined in address order; ui/memcard also declares a few. */
+uint D_002F6380;                  /* SW heap base */
+uint D_002F6384;                  /* SW heap top (grows up) */
+uint D_002F6388;                  /* stack heap top (grows down) */
+uint D_002F638C;                  /* stack heap base (32 MB) */
+CRITSECT D_002F6390;               /* the heap lock */
+int D_002F639C;                   /* stack scope depth */
+uint D_002F63A0[50];              /* stack heap tops of the open scopes (to ui/menu's .bss at 0x2F6468) */
 extern "C" {
 void func_002333B4(void *p, int c, int n);
 void *func_001AE1D0(AREQ *preq);

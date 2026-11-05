@@ -8,6 +8,8 @@ A function is identified by its symbol name in the compiled object (mangled C++ 
 and is looked up in config/symbol_addrs.txt + config/functions.csv for its address/size.
 Comparison masks only the fields that the object's relocations will fill in at link time
 (jal targets, %hi/%lo of globals, %gp_rel), so a MATCH here means byte-identical after linking.
+`check` also compares every data symbol the object defines whose address is known (D_XXXXXXXX names, or
+`// type:data` lines in config/symbol_addrs.txt) against the ELF: see obj_data/compare_data.
 """
 import os, re, struct, subprocess, sys, csv, tempfile
 # Extra Python search paths (e.g. a local rabbitizer checkout), os.pathsep-separated.
@@ -64,7 +66,7 @@ def read_obj(path):
     secs = []
     for i in range(shnum):
         name, typ, flags, addr, off, size, link, info, align, entsize = struct.unpack_from('<10I', d, shoff + i * shentsize)
-        secs.append(dict(name=name, type=typ, off=off, size=size, link=link, info=info, entsize=entsize))
+        secs.append(dict(name=name, type=typ, flags=flags, off=off, size=size, link=link, info=info, entsize=entsize))
     shstr = secs[shstrndx]
     for s in secs:
         s['name'] = d[shstr['off'] + s['name']:d.index(b'\0', shstr['off'] + s['name'])].decode()
@@ -94,6 +96,103 @@ def obj_functions(path):
             rel = {(o - s['value']) // 4: t for o, t in relocs.get(s['shndx'], {}).items() if s['value'] <= o < s['value'] + s['size']}
             out[s['name']] = (words, rel)
     return out
+
+# ---- data symbols ----
+# A data symbol is checked when the object DEFINES it (in .data/.rodata/.bss/.sdata/... or as COMMON) and its address
+# is known: a `name = 0xADDR; // type:data size:0xN` line in config/symbol_addrs.txt (size optional) or the
+# D_XXXXXXXX naming convention. Initialized data is compared byte for byte with the ELF, words covered by a
+# relocation masked as in code (R_MIPS_32 fills the whole word); .bss/COMMON has no bytes, so only its placement and
+# size are checked. The ELF has no symbol table, so a symbol's true extent is known only from a size: in
+# symbol_addrs.txt; without one, a definition that is too SHORT cannot be detected.
+_D_NAME = re.compile(r'D_([0-9A-F]{8})$')
+
+def load_data_addrs():
+    out = {}
+    for line in open(os.path.join(ROOT, 'config', 'symbol_addrs.txt')):
+        m = re.match(r'(\S+)\s*=\s*0x([0-9A-Fa-f]+);.*type:data', line)
+        if m:
+            sz = re.search(r'size:0x([0-9A-Fa-f]+)', line)
+            out[m.group(1)] = (int(m.group(2), 16), int(sz.group(1), 16) if sz else None)
+    return out
+
+def data_addr(name, known):
+    if name in known: return known[name]
+    m = _D_NAME.match(name)
+    return (int(m.group(1), 16), None) if m else None
+
+def elf_sections():
+    """(name, va, size, nobits) of the ELF's allocated sections."""
+    d = open(ELF, 'rb').read()
+    shoff, = struct.unpack_from('<I', d, 0x20); shentsize, shnum, shstrndx = struct.unpack_from('<HHH', d, 0x2E)
+    hdr = [struct.unpack_from('<10I', d, shoff + i * shentsize) for i in range(shnum)]
+    stro = hdr[shstrndx][4]
+    return [(d[stro + h[0]:d.index(b'\0', stro + h[0])].decode(), h[3], h[5], h[1] == 8)
+            for h in hdr if h[2] & 2 and h[3]]   # SHF_ALLOC with an address
+
+def obj_data(path):
+    """name -> (bytes or None for .bss/COMMON, size, {byte offset: reloc type}, section name) for every data symbol
+    the object defines."""
+    d, secs, syms, relocs = read_obj(path)
+    out = {}
+    starts = {}   # section -> sorted symbol offsets, for the size of a file-local .bss object (.lcomm has no size)
+    for s in syms:
+        if s['name'] and s['type'] in (0, 1) and s['shndx'] < len(secs): starts.setdefault(s['shndx'], set()).add(s['value'])
+    for s in syms:
+        if s['type'] not in (0, 1) or not s['name'] or s['name'] in ('gcc2_compiled.', '__gnu_compiled_cplusplus'): continue
+        if s['size'] == 0 and s['shndx'] < len(secs) and secs[s['shndx']]['type'] == 8:
+            s = dict(s, size=min([v for v in starts[s['shndx']] if v > s['value']] + [secs[s['shndx']]['size']]) - s['value'])
+        if s['size'] == 0: continue
+        if s['shndx'] == 0xFFF2:   # SHN_COMMON
+            out[s['name']] = (None, s['size'], {}, 'COMMON'); continue
+        if s['shndx'] == 0 or s['shndx'] >= len(secs): continue
+        sec = secs[s['shndx']]
+        if not sec['flags'] & 2 or sec['flags'] & 4: continue   # not SHF_ALLOC, or SHF_EXECINSTR
+        if sec['type'] == 8:       # SHT_NOBITS
+            out[s['name']] = (None, s['size'], {}, sec['name']); continue
+        b = d[sec['off'] + s['value']:sec['off'] + s['value'] + s['size']]
+        rel = {o - s['value']: t for o, t in relocs.get(s['shndx'], {}).items() if s['value'] <= o < s['value'] + s['size']}
+        out[s['name']] = (b, s['size'], rel, sec['name'])
+    return out
+
+def compare_data(name, b, size, rel, secname, verbose=True, known=None):
+    """Like compare() for one data symbol. Returns (score, (headline, lines)) or (None, message)."""
+    a = data_addr(name, load_data_addrs() if known is None else known)
+    if a is None:
+        return None, f'{name}: no address known (data)'
+    addr, tsize = a
+    sec = next((s for s in elf_sections() if s[1] <= addr < s[1] + s[2]), None)
+    head = f'{name} @0x{addr:06X} [{secname} 0x{size:X}]: '
+    problems = []
+    if sec is None:
+        return 0.0, (head + 'address is in no section of the ELF', [])
+    if addr + size > sec[1] + sec[2]:
+        problems.append(f'runs 0x{addr + size - sec[1] - sec[2]:X} bytes past the end of {sec[0]}')
+    if tsize is not None and tsize != size:
+        problems.append(f'size 0x{size:X}, symbol_addrs.txt says 0x{tsize:X}')
+    if (b is None) != sec[3]:
+        problems.append(f'ours is {"zero-initialized (bss)" if b is None else "initialized data"}, target is in {sec[0]}')
+    lines = []
+    if b is not None and not sec[3]:
+        elf = open(ELF, 'rb').read()
+        off = addr - TEXT_VA + TEXT_OFF
+        t = elf[off:off + size]
+        masked = set()
+        for o in rel: masked.update(range(o, o + 4))   # every data relocation here fills a whole word (R_MIPS_32)
+        bad = [i for i in range(size) if i not in masked and (i >= len(t) or t[i] != b[i])]
+        if bad:
+            rows = sorted({i // 4 for i in bad})
+            problems.append(f'{len(bad)}/{size} bytes differ')
+            if verbose:
+                for r in rows[:32]:
+                    tw, ow = t[4*r:4*r+4], b[4*r:4*r+4]
+                    lines.append(f'!! {addr + 4*r:08X}  {tw.hex():8s} | {ow.hex()}')
+                if len(rows) > 32: lines.append(f'   ... {len(rows) - 32} more differing words')
+        score = 1.0 - len(bad) / size
+    else:
+        score = 1.0
+    if problems:
+        return (min(score, 0.999) if score == 1.0 else score), (head + '; '.join(problems), lines)
+    return 1.0, (head + 'MATCH' + (' (bss: placement/size only)' if b is None else ''), lines)
 
 def apply_aliases(src, fns):
     """Per-TU symbol aliases for compiler-generated local functions whose object names are not unique or depend on the
@@ -243,10 +342,12 @@ def main():
         for i, w in enumerate(target_words(a, s)): print(f'{a+4*i:08X}  {disasm(w, a+4*i)}')
         return
     obj = compile_src(sys.argv[2]); fns = apply_aliases(sys.argv[2], obj_functions(obj))
-    want = sys.argv[3:] or list(fns)
+    data = obj_data(obj); known = load_data_addrs()
+    want = sys.argv[3:] or list(fns) + [n for n in data if data_addr(n, known)]
     for f in want:
-        if f not in fns: print(f'{f}: not in object'); continue
-        score, res = compare(f, *fns[f])
+        if f in fns: score, res = compare(f, *fns[f])
+        elif f in data: score, res = compare_data(f, *data[f], known=known)
+        else: print(f'{f}: not in object'); continue
         if score is None: print(res); continue
         print(res[0]); [print(l) for l in res[1]]
 

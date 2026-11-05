@@ -123,7 +123,7 @@ extern "C" qword func_001D69F0(qword a, qword b, qword acc, float dt)
 }
 
 /* ---- 0x1D6A90: launcher init ---- */
-extern float D_002A7874;
+extern const float D_002A7874 = 3.40282347e+38f;  /* FLT_MAX */
 struct V { float x, y, z; };
 struct S { char p0[0x70]; struct V v70; int pad; int n80; float g84; char p1[8]; struct V v90; int pad2; int nA0; float gA4; char p2[8]; float gB0; };
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }

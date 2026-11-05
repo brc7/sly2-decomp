@@ -66,8 +66,8 @@ struct VTE { short d; short pad; void (*pfn)(SO *, XP *, int); };
 #define PVT(pso) (*(VTE **)((char *)(pso) + 0xC))
 
 extern "C" {
-extern float D_002BFD30;    /* default contact friction */
-extern float D_002BFD34;    /* default contact elasticity */
+float D_002BFD30 = 0.5f;    /* default contact friction (mark's .data) */
+float D_002BFD34 = 0.5f;    /* default contact elasticity */
 qword func_0022FC48(XF *pxfTo, XF *pxfFrom, qword pos);   /* converts a point between frames (0: world) */
 qword GetXfVelocity(XF *pxf, int n, qword pos);
 void RecalcSwXpMovement(SW *psw, int cxp, XP **apxp);
@@ -569,7 +569,7 @@ struct SURFACE { qword plane; char pad10[8]; int flags; };
 struct EDGE { unsigned short ends[2]; };
 struct NODE { char pad[0x10]; qword point; char pad20[0x50 - 0x20]; SURFACE *surface; EDGE *edge; int reverse; NODE *next; };
 extern "C" {
-extern float D_002A6AD0;
+extern const float D_002A6AD0 = -3.40282347e+38f;   /* -FLT_MAX */
 void PxpAdd(W *, A *, B *, qword, float, qword, int, int, int, XP **);
 }
 

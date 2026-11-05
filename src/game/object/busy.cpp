@@ -37,7 +37,7 @@ struct SWBUSY
 typedef char assert_SWBUSY_q39C0[(unsigned int)&((SWBUSY *)0)->q39C0 == 0x39C0 ? 1 : -1];
 
 extern CM D_002DDF40;
-extern float D_002BD450;
+float D_002BD450 = 500.0f;   /* busy's .data (the next 12 bytes are 0: alignment) */
 extern int D_003E0E70;
 extern DLI *D_002DD2FC;     /* g_pdliFirst */
 extern "C" {

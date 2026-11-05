@@ -31,7 +31,9 @@ typedef char assert_SPRAYER_ismaCur[(unsigned int)&((SPRAYER *)0)->ismaCur == 0x
 struct LM { float gMin, gMax; };
 struct GAME { int dummy; };
 
-extern char D_002C0CB0[];
+/* tu_1C2D20's .data (address order): the sprayer's snip table (Sly 1 SNIP {grfsnip, oid, ib}), then its random ranges. */
+struct SNIP { int grfsnip; int oid; int ib; };
+SNIP D_002C0CB0[4] = {{0x300, 0x2B2, 0x168}, {0x302, 0x2B3, 0x15C}, {0x302, 0x2B4, 0x160}, {0x300, 0x2B5, 0x164}};
 extern "C" {
 void PostSoLoad(SPRAYER *p);
 void BindLoOidTable(SPRAYER *p, int n, void *q);
@@ -44,8 +46,10 @@ void func_001C7A58(SO *plo, int id);
 SO *PxfFindSo(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
 extern qword D_002A2DC0, D_002A2DA0, D_002C0D60;    // up axis, fallback X axis, launch acceleration
-extern LM D_002C0CF0, D_002C0CF8, D_002C0CE0;       // random ranges: two offset angles, flight time
-extern float D_002C0CE8, D_002C0CEC, D_002A76E8;
+LM D_002C0CE0 = {0.75f, 1.2f};                     // flight time
+float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime step
+LM D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
+extern const float D_002A76E8 = 3.40282347e+38f;   /* FLT_MAX */
 void *PpoHero(GAME *);
 qword func_001A62E8(void *);
 float GRandInRange__Fff(float, float);

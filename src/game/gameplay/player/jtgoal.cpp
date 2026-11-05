@@ -37,9 +37,9 @@ typedef char assert_JTGOAL_f28[(unsigned int)&((JTGOAL *)0)->f28 == 0x28 ? 1 : -
 
 struct CLOCK { float t; };
 extern CLOCK D_002DDED0;
-extern float D_002BD2D0;
-extern float D_002BD2D4;
-extern float D_002BD2D8;
+float D_002BD2D0 = 1.0f;    /* jtgoal's .data (address order): anti-stuck check period (s) */
+float D_002BD2D4 = 30.0f;
+float D_002BD2D8 = 10.0f;   /* already-near distance (the next word is 0: alignment) */
 extern char D_003DD490[];
 extern char D_002DEB30[];
 extern "C" {

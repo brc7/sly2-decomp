@@ -42,7 +42,7 @@ struct XPLISTV { int pad0[2]; XP *pxpFirst; };
 
 extern CLOCK D_002DDED0;
 extern "C" {
-extern float D_002A7834;
+extern const float D_002A7834 = -3.40282347e+38f;
 void OnPoActive(ROBOTTANK *ptank, int fActive);
 void SetRobottankState(ROBOTTANK *ptank, int nState);
 void UpdateRobottankHealthMeter(ROBOTTANK *ptank);
@@ -450,9 +450,9 @@ struct P {char pad0[0xC];VENTRY *vt;char pad10[0x50];FRAME *space;char pad64[0x1
 struct CLOCK {float time,dt;};
 extern CLOCK D_002DDED0;
 extern const qword D_002A2DC0;
-extern POLY D_002C2040,D_002C2060,D_002C2080;
-extern LIMITS D_002C2050,D_002C2070,D_002C2090;
-extern float D_002C2030,D_002C20A4;
+extern "C" POLY D_002C2040 = {0.0f, 0.8f, 0.0f}, D_002C2060 = {1.5f, -0.5f, 0.0f}, D_002C2080 = {-0.5f, 1.0f, 0.0f};
+extern "C" LIMITS D_002C2050 = {-0.5f, 0.5f}, D_002C2070 = {0.3f, 1.0f}, D_002C2090 = {1.0f, 2.5f};
+extern "C" float D_002C2030 = 500.0f, D_002C20A4 = 400.0f;
 extern char D_002C2098[],D_002C20A8[];
 extern "C" {
 void UpdateSo(P *);
@@ -836,8 +836,8 @@ typedef struct {
     SO *x5B8;
 } OBJ;
 extern char D_003DD490[];
-extern float D_002A7810;
-extern float D_002C20C0[3];
+extern const float D_002A7810 = 3.40282347e+38f;
+float D_002C20C0[3] = {-200.0f, 0.8f, 0.0f};
 qword func_001A62E8(void *);
 int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
 /** @sly2-annot addr=0x1D22D0
@@ -918,8 +918,8 @@ typedef struct {
     void *path;
     float cursor;
 } OBJ;
-extern float D_002C20D0[3];
-extern float D_002C20E0[2];
+float D_002C20D0[3] = {150.0f, -1.0f, 0.0f};
+float D_002C20E0[2] = {0.0f, 150.0f};
 qword func_001A62E8(void *);
 void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,float *,float);
 float atan2f(float, float);
@@ -1042,7 +1042,7 @@ struct P {
 };
 extern CLOCK D_002DDED0;
 extern const qword D_002A2DA0, D_002A2DC0;
-extern float D_002C20E8, D_002C20EC, D_002C20F0, D_002C20F4, D_002C20F8;
+extern "C" float D_002C20E8 = 1.25f, D_002C20EC = 0.3f, D_002C20F0 = 0.3f, D_002C20F4 = 0.3f, D_002C20F8 = 0.3f;
 extern "C" {
 qword func_001A62E8(P *);
 ATTACH *func_001D2240(P *);
@@ -1336,8 +1336,8 @@ struct CLOCK { float time, dt; };
 union PHASE { M3 rotation; struct { U acceleration, world, limited; } impulse; };
 extern CLOCK D_002DDED0;
 extern const qword D_002A2DC0, D_002A2DD0;
-extern POLY D_002C2100, D_002C2120, D_002C2130;
-extern float D_002C2110, D_002C2114, D_002C2140, D_002C2144, D_002C2148;
+extern "C" POLY D_002C2100 = {0.0f, 15.0f, 1.0f}, D_002C2120 = {0.0f, 0.25f, 0.75f}, D_002C2130 = {0.0f, 0.0f, 1.0f};
+extern "C" float D_002C2110 = 15.0f, D_002C2114 = 90.0f, D_002C2140 = 11250.0f, D_002C2144 = 0.5f, D_002C2148 = 0.25f;
 extern "C" {
 void func_001F9B20(P *);
 M3 *func_001A6318(P *);
@@ -2041,7 +2041,7 @@ extern CLOCK D_002DDED0;
 extern G D_003DD490;
 extern qword D_002A2DC0,D_002A2DB0;
 extern char D_002C21A0[],D_002C21B0[],D_002C21C0[];
-extern float D_002C21CC;
+extern "C" float D_002C21CC = 0.25f;
 extern "C" {
 qword ConvertAloVec(P*,P*,qword);
 qword func_0022FC48(P*,NODE*,qword);
@@ -2143,7 +2143,7 @@ struct VENTRY { short delta, pad; void *fn; };
 struct P { char pad0[0xC]; VENTRY *vt; char pad10[0x550]; int remaining; };
 struct EVENT { P *sender; char pad4[8]; int kind, change; };
 extern qword D_002A2DA0, D_002A2DC0;
-extern float D_002C21D0[2], D_002C21D8[2], D_002C21E0[2], D_002C21E8[2], D_002C21F0[2], D_002C21F8[2], D_002C2200[2];
+extern "C" float D_002C21D0[2] = {50.0f, 100.0f}, D_002C21D8[2] = {300.0f, 400.0f}, D_002C21E0[2] = {2.0f, 5.0f}, D_002C21E8[2] = {50.0f, 100.0f}, D_002C21F0[2] = {50.0f, 75.0f}, D_002C21F8[2] = {2.5f, 3.0f}, D_002C2200[2] = {-0.5f, 0.5f};
 extern "C" {
 int func_001F7588(P *, EVENT *);
 void UpdateRobottankHealthMeter(P *);
@@ -2581,7 +2581,8 @@ typedef struct {
     float x98;
     float x9C;
 } OBJ;
-extern S8 D_002C2218, D_002C2220, D_002C2240;
+// float pairs read as their bits: {-1.57f, 1.57f}, {250.0f, 2500.0f}, {0.5f, 1.5f}
+S8 D_002C2218 = {(int)0xBFC8F5C3, 0x3FC8F5C3}, D_002C2220 = {0x437A0000, 0x451C4000}, D_002C2240 = {0x3F000000, 0x3FC00000};
 extern qword D_002C2230;
 /** @sly2-annot addr=0x1D4D30
  * Purpose: Weapon record defaults (owner, default vectors D_002C2218..)

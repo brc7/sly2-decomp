@@ -47,7 +47,7 @@ extern char D_003DA150[];
 extern char D_002DE2E0[];
 extern int D_002DFBC0;
 extern char D_002DFC00[], D_002E0D00[];
-extern char D_002A7878[];
+extern const char D_002A7878[] = "oidPoCurrent";
 
 extern "C" {
 void InitPo(SAFEHOUSE *ppo);

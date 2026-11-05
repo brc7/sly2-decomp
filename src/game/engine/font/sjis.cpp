@@ -9,8 +9,15 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* WSjisFromCh matched as C with register-pinned asm helpers (addu/sll spelled out to force the original's register
    choice and operand order); they are kept verbatim. */
 struct GM { unsigned short a; unsigned short b; };
-extern struct GM D_002C36A0[];
-extern struct GM D_002C3728[];
+/* sjis' .data: {Shift-JIS code, ASCII char} for the ASCII punctuation (zero-terminated), then the bases of the
+ * digit, upper-case and lower-case runs ({0x824F, '0'}: '0'..'9' map to 0x824F..). */
+struct GM D_002C36A0[34] = {
+    {0x8140, ' '}, {0x8149, '!'}, {0x8168, '"'}, {0x8194, '#'}, {0x8190, '$'}, {0x8193, '%'}, {0x8195, '&'}, {0x8166, '\''}, {0x8169, '('},
+    {0x816A, ')'}, {0x8196, '*'}, {0x817B, '+'}, {0x8143, ','}, {0x817C, '-'}, {0x8144, '.'}, {0x815E, '/'}, {0x8146, ':'}, {0x8147, ';'},
+    {0x8171, '<'}, {0x8181, '='}, {0x8172, '>'}, {0x8148, '?'}, {0x8197, '@'}, {0x816D, '['}, {0x818F, '\\'}, {0x816E, ']'}, {0x814F, '^'},
+    {0x8151, '_'}, {0x8165, '`'}, {0x816F, '{'}, {0x8162, '|'}, {0x8170, '}'}, {0x8150, '~'}, {0x0000, 0},
+};
+struct GM D_002C3728[4] = {{0x824F, '0'}, {0x8260, 'A'}, {0x8281, 'a'}, {0x0000, 0}};
 static inline void Addresses(struct GM*base,unsigned int offset,struct GM**first,struct GM**second){
  register struct GM*a __asm__("$5"),*b __asm__("$3");register unsigned int scaled __asm__("$4")=offset;register struct GM*origin __asm__("$3")=base;
  __asm__("addu %0,%2,%3\n\taddu %1,%3,%2":"=&r"(a),"=r"(b):"r"(scaled),"r"(origin));*first=a;*second=b;

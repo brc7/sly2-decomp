@@ -472,7 +472,7 @@ extern SW D_003DD490;                                   // the world
 extern CLOCK D_002DDED0;                                // g_clock
 extern uint D_002DFBC4;
 extern qword D_002A2DC0;                                // (0, 0, 1)
-extern float D_002BF5B0, D_002BF5B4, D_002BF5B8;
+float D_002BF5B0 = 200.0f, D_002BF5B4 = 25.0f, D_002BF5B8 = 0.35f;
 int GrfConsumePressed__5POCTLUif(JOY *, uint, float);
 int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
 void ClearPoctlJoyPressed(JOY *, uint);
@@ -735,7 +735,7 @@ namespace M_UpdateJtActiveHide {
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 
-union U { qword q; float f[4]; int i[4]; };
+union U { float f[4]; qword q; int i[4]; };   // floats first, so U globals can be initialized
 struct M3 { U r[3]; };
 struct VTE { short delta, pad; void *fn; };
 struct JOY { char pad0[0x10]; float x, y, heading, amount; };
@@ -768,9 +768,10 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern ACTOR *D_002E1E40;
 extern qword D_002A2DA0;                    // (1, 0, 0, 0)
-extern float D_002BF5BC, D_002BF5C0, D_002BF5C4, D_002BF5C8, D_002BF5CC;
-extern HEIGHT D_002BF630;
-extern U D_002BF5D0[3], D_002BF600[3];
+float D_002BF5BC = 1.5f, D_002BF5C0 = 3.0f, D_002BF5C4 = 0.75f, D_002BF5C8 = 0.2f, D_002BF5CC = 55.0f;
+U D_002BF5D0[3] = {{{0.0f, 0.0f, -50.0f, 0.0f}}, {{45.0f, -40.0f, -50.0f, 0.0f}}, {{45.0f, 40.0f, -50.0f, 0.0f}}};   // probe points (hang)
+U D_002BF600[3] = {{{0.0f, 0.0f, -15.0f, 0.0f}}, {{45.0f, -40.0f, -15.0f, 0.0f}}, {{45.0f, 40.0f, -15.0f, 0.0f}}};   // probe points (low)
+HEIGHT D_002BF630 = {-50.0f, 0.0f};
 qword func_001A62E8(ACTOR *);
 void func_00182CD8(void *, ACTOR *, float *, U *, float *);
 qword PosSmooth(qword, qword, float, SMP *, U *);
@@ -1254,7 +1255,7 @@ void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
 void func_00154568(void);
 extern char D_003DD490[];
-extern float D_002BF638;
+float D_002BF638 = 1500.0f;
 }
 class FRAME { public: FRAME() { STACKSCOPE_ctor(this); } ~FRAME() { STACKSCOPE_ctor_1AE4A0(this, 2); } };
 struct E { int x0; int x4; };
@@ -1370,7 +1371,7 @@ extern ACTOR *D_002E1E40;         // the player
 extern ACTOR *D_002F7900;
 extern MANAGER D_002DDF40;
 extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002BF650;
-extern float D_002BF63C, D_002BF640;
+float D_002BF63C = -0.2f, D_002BF640 = 0.5f;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword func_001A62E8(void *);
 M3 *func_001A6318(void *);
@@ -1838,7 +1839,7 @@ struct O { char pad[0x10C]; int x10c; };
 struct E { struct O *x0; int x4; float x8; int pad[9]; };
 struct G { char pad[0x4678]; int c; int pad2; struct E ae[1]; };
 extern struct G D_003DD490;
-extern float D_002BF660;
+float D_002BF660 = 250.0f, D_002BF664 = 1000.0f;
 extern int D_002E1E40;
 struct P { int x0; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
@@ -1899,7 +1900,7 @@ struct CURVE;
 struct SMP {float g0,g1,g2;};
 struct CLOCK {float t,dt;};
 extern struct CLOCK D_002DDED0;
-extern float D_002BF668;
+float D_002BF668 = 0.2f;
 extern qword D_002A2DC0,D_002A2DD0;
 void EvaluateShapeU(struct CURVE*,float,qword*,qword*);
 qword SetVectorCylind(float,float,float);
@@ -2203,7 +2204,7 @@ struct P { struct O *x0; int x4; int x8; int pad[2]; struct S *x14; int x18; flo
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct SMP { float a,b,c; };
-extern struct SMP D_002BF700;
+struct SMP D_002BF700 = {2500.0f, 0.0f, 1.0f};
 void EvaluateShapeU(struct S *s, U *position, U *direction, float g);
 float GSmooth__FfffP3SMPPf(float a, float b, float dt, struct SMP *p, float *pg);
 void AddSoAcceleration(struct O *o, qword q);
@@ -2546,7 +2547,7 @@ static inline qword QwDot(qword a, qword b)
 }
 extern "C" void *memmove(void *pvDst, const void *pvSrc, size_t cb);
 extern JT *D_002E1E40;
-extern int D_002E1E4C;
+extern "C" { int D_002E1E4C; }   // C symbol: this view has no extern "C" block
 extern float D_002BF664;
 static inline int FBeyondBusy(LO *plo, qword qwPos)
 {
@@ -2745,7 +2746,7 @@ void ClearIfSlotId(HINTBOX *phintbox, int idText);
 }
 extern float D_002BF660;
 extern float D_002BF664;
-extern float D_002BF70C;
+extern "C" float D_002BF70C = 1.0f;   // C symbol: this view has no extern "C" block
 extern HINTBOX D_003DA0C0;
 void AddJtGrabCandidate(SW *psw, STEPPLAYER *pstepplayer, qword qwPosJt, LO *plo, GRABSPOT *pspot, int ccandMax, JTGRABCAND *ajtgrabcand);
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__("GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi");
@@ -2916,9 +2917,9 @@ struct CLOCK { float t; float dt; };
 
 extern "C" {
 extern CLOCK D_002DDED0;
-extern int D_002E1E50;
-extern float D_002BF710, D_002BF714;
-extern SMP D_002BF718;
+int D_002E1E50;
+float D_002BF710 = 15.0f, D_002BF714 = 5.0f;
+SMP D_002BF718 = {1500.0f, 0.0f, 2.0f};
 extern char D_002DEB30[];
 int CompareJtGrabCand(const void *, const void *);   // JTGRABCAND compare for qsort
 void qsort(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *));   // qsort

@@ -52,16 +52,19 @@ extern char D_002F66B0[];
 struct CLOCK { char pad[0x3C]; float t; };   /* +0x3C: D_002DDED0.t */
 extern CLOCK D_002DDED0;
 extern int D_002BE248[];
-extern int D_002BE26C;
-extern int D_002BE270;
+/* tu_15CD68's .data after its pointer tables (address order; the per-episode tables have 9 entries, the zero word
+ * after each is alignment). The four pointer tables D_002BE080/D_002BE1B8/D_002BE200/D_002BE248 stay extern. */
+int D_002BE26C = 0;
+int D_002BE270 = -1;
+int D_002BE278[11] = {1, 2, -1, 2, 3, 2, 5, 8, -1, 2, -1};
+int D_002BE2A8[9] = {-1, 0x531, 0x532, 0x533, 0x534, 0x535, 0x536, 0x537, 0x538};   /* exit oid per episode */
+int D_002BE2D0[9] = {-1, 2, 4, 6, 8, 10, 12, 14, 16};
+void *D_002BE2F8[9] = {(void *)-1, (void *)0x21, (void *)0x22, (void *)0x23, (void *)0x24, (void *)0x25, (void *)0x26, (void *)0x27,
+    (void *)0x28};   /* power-up per episode */
 extern int D_002BE200[];
-extern int D_002BE278[];
-extern int D_002BE2A8[];
-extern int D_002BE2D0[];
 extern int *D_002BE1B8[];
 extern int *D_002BE080[];
-extern void *D_002BE2F8[];
-extern char D_002A5160[], D_002A5168[];
+extern const char D_002A5160[] = "%d%%", D_002A5168[] = "%01d:%02d";
 
 extern "C" {
 CRef RefGetGlobalSaveVar(void *pkey, void *psvset);

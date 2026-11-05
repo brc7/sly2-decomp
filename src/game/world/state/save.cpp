@@ -106,10 +106,11 @@ extern SW D_003DD490;           /* g_sw */
 extern SVSET D_003D4A60;        /* g_gs */
 extern SVSTORE D_003E0EA8;      /* g_svstore */
 extern char D_002DD590[];       /* the level heap */
-extern int D_002C2D90[];        /* bytes per element, by kind */
-extern int D_002C2DC0[];        /* completion weight per world */
-extern char D_002A78F0[];
-extern char D_002A78F8[];
+/* save's .data: bytes per element by kind, and the completion weight of each world's progress variable. */
+int D_002C2D90[11] = {4, 4, 4, 4, 4, 16, 16, 8, 12, 4, 4};
+int D_002C2DC0[9] = {13, 86, 97, 147, 141, 160, 106, 182, 166};
+extern const char D_002A78F0[] = "fVault";
+extern const char D_002A78F8[] = "from_memcard";
 extern unsigned char D_002AA6A1[];  /* ctype table */
 extern char D_003DD040[];       /* g_sndmgr */
 extern int D_003DD050;

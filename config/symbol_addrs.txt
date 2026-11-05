@@ -3984,3 +3984,4 @@ func_00259D38__FP9STEPGUARDP3VOL = 0x259D38; // type:func
 func_00259D48__FP9STEPGUARDP3VOL = 0x259D48; // type:func
 func_00259D60__FP9STEPGUARD = 0x259D60; // type:func
 func_00259D70__FP9STEPGUARD = 0x259D70; // type:func
+s_asnipMissile = 0x2C0258; // type:data size:0xC

@@ -137,13 +137,14 @@ extern CLOCK1 D_002DDED0;
 extern GAME D_003DD490;
 extern SW D_003DD490SW __asm__("D_003DD490");
 extern qword D_002A2DD0;
-extern OID D_002C3DC0[2];
-extern OID D_002C3DC8[2];
-extern int D_002C3DD0[2];
-extern int D_002C3DD8[2];
-extern float D_002C3DE0;
-extern float D_002C3DE4;
-extern const float D_002A8904;
+/* tu_20B840's .data (address order): the gait's blend animation oids and blend parameters, and two tunables. */
+OID D_002C3DC0[2] = {(OID)0x17D, (OID)0x17E};
+OID D_002C3DC8[2] = {(OID)0x17F, (OID)0x180};
+int D_002C3DD0[2] = {2, 2};
+int D_002C3DD8[2] = {0x20, 0x30};
+float D_002C3DE0 = 5.0f;
+float D_002C3DE4 = 1.1f;
+extern const float D_002A8904 = -3.40282347e+38f;   /* -FLT_MAX */
 extern void *D_002DAA10[];
 extern void *D_002DA9D0[];
 extern SLOTHEAP D_003E1AD8;     /* the LEAP heap */

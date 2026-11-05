@@ -587,10 +587,15 @@ struct TB {
 struct SZ { char a[6]; };
 struct KEY { int id; unsigned char ch; float dx, dy; };
 extern "C" {
-extern float D_002BDB50, D_002BDB54, D_002BDB58, D_002BDB5C, D_002BDBB0;
-extern KEY D_002BDB70[4];
-extern const SZ D_002A5018;
-extern qword D_002BDBC0, D_002BDBD0;
+/* rhythm's .data (address order): text scales, the four button keys {mask, glyph, dx, dy}, the cue lead time, two
+ * vectors (VQ: initializable, read as qwords) and the score polynomial (declared above). */
+union VQ { float af[4]; qword q; };
+float D_002BDB50 = 0.55f, D_002BDB54 = 0.35f, D_002BDB58 = 1.2f, D_002BDB5C = 0.6f;
+KEY D_002BDB70[4] = {{0x10, 'T', -0.5f, -3.0f}, {0x20, 'O', 0.5f, -2.0f}, {0x40, 'X', -0.5f, -1.0f}, {0x80, 'S', -1.5f, -2.0f}};
+float D_002BDBB0 = 0.4f;
+VQ D_002BDBC0 = {{100.0f, -1000.0f, 0.0f, 0.0f}}, D_002BDBD0 = {{100.0f, 1000.0f, 0.0f, 0.0f}};
+float D_002BDBE0[3] = {1.2f, -0.6f, 0.0f};
+extern const SZ D_002A5018 = {"&2T&."};
 void RenderLoSelf(RHYTHMMGR *p);
 FONT *CRichText_ctor(FONT *pf, const char *sz, float scale);
 float CRichText_Dx(FONT *pf);
@@ -671,7 +676,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
             switch (p->stateHint) {
             case 0:
                 if (pe->t - t < D_002BDBB0) {
-                    p->vel = D_002BDBC0;
+                    p->vel = D_002BDBC0.q;
                     p->stateHint = 1;
                 }
                 break;
@@ -683,7 +688,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
                 break;
             }
             if (p->stateHint == 1) {
-                EvaluateBezierPos(GMaxR(pe->t - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->pos, p->vel, pe->pos, D_002BDBD0, &p->pos, &p->vel, 0);
+                EvaluateBezierPos(GMaxR(pe->t - t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->pos, p->vel, pe->pos, D_002BDBD0.q, &p->pos, &p->vel, 0);
             }
         }
         tb.x = ((float *)&p->pos)[0] - dxB * 0.5f;

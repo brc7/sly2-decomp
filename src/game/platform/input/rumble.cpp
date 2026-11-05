@@ -31,8 +31,21 @@ struct RUMBLE
 struct CLOCK { float a[20]; };
 extern CLOCK D_002DDED0;
 extern float D_002DDF10;
-extern RUMPAT D_002C2260[];
-extern int D_002C2D8C;          /* rumble mode: 0 off, 1 from the save variable, 2 on, 3 off */
+/* The predefined rumble patterns, indexed by RUMK (rumble's .data, then the rumble mode). */
+RUMPAT D_002C2260[11] = {
+    {1, {{1, 0, 0.05f}}},
+    {2, {{0, 150, 0.05f}, {0, 0, 0.05f}}},
+    {2, {{0, 210, 0.05f}, {0, 0, 0.1f}}},
+    {2, {{0, 255, 0.1f}, {0, 0, 0.1f}}},
+    {7, {{0, 210, 0.1f}, {0, 190, 0.01f}, {0, 170, 0.01f}, {0, 150, 0.01f}, {0, 130, 0.01f}, {0, 110, 0.01f}, {0, 0, 0.25f}}},
+    {2, {{1, 255, 0.1f}, {1, 0, 0.05f}}},
+    {2, {{0, 170, 0.05f}, {0, 0, 0.1f}}},
+    {2, {{0, 170, 0.05f}, {0, 0, 0.1f}}},
+    {2, {{0, 170, 0.05f}, {0, 0, 0.1f}}},
+    {3, {{0, 160, 0.15f}, {0, 0, 0.1f}, {0, 90, 0.05f}}},
+    {5, {{0, 255, 0.2f}, {0, 0, 0.08f}, {0, 200, 0.13f}, {0, 0, 0.06f}, {0, 150, 0.11f}}},
+};
+int D_002C2D8C = 0;              /* rumble mode: 0 off, 1 from the save variable, 2 on, 3 off */
 extern void *D_003E0FD8;        /* the rumble save variable key */
 extern char D_003D4A60[];
 

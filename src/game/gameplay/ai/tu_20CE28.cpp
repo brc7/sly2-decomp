@@ -27,11 +27,15 @@ struct FPAIR { int a; void *o; char pad[8]; long fl; };
 struct CLOCK { float t; float dt; };
 
 extern CLOCK D_002DDED0;
-extern float D_002C3DF0;
-extern float D_002C3E58;
-extern qword D_002C3E00[5];
-extern float D_002C3E50;
-extern float D_002C3E54;
+/* tu_20CE28's .data (address order): the blocked-time limit, the five probe offsets around the guard (16-byte
+ * vectors; VQ lets them be initialized), the probe's line test range and the hazard time limit. */
+union VQ { float af[4]; qword q; };
+float D_002C3DF0 = 0.1f;
+VQ D_002C3E00[5] = {{{0.0f, 0.0f, 0.0f, 0.0f}}, {{100.0f, 0.0f, 0.0f, 0.0f}}, {{-100.0f, 0.0f, 0.0f, 0.0f}}, {{0.0f, 100.0f, 0.0f, 0.0f}},
+    {{0.0f, -100.0f, 0.0f, 0.0f}}};
+float D_002C3E50 = 100.0f;
+float D_002C3E54 = -600.0f;
+float D_002C3E58 = 0.0f;
 extern "C" {
 int func_0020D020(STUCKWATCH *p);
 void func_0020D108(STUCKWATCH *p, int n);
@@ -120,7 +124,7 @@ extern "C" int func_0020D020(STUCKWATCH *p)
         return 0;
     i = 0;
     do {
-        qword v = ConvertAloPos(p->po, 0, D_002C3E00[i]);
+        qword v = ConvertAloPos(p->po, 0, D_002C3E00[i].q);
         if (func_00173610(&v, D_002C3E50, D_002C3E54, 1, func_0020CFC0))
             break;
         i++;

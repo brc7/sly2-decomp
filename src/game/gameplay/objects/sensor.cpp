@@ -249,7 +249,7 @@ struct CLOCK { float t; float dt; };
 extern CLOCK D_002DDED0;
 extern char D_003E11C4[];   /* dirty SOTREE list */
 extern qword D_002A2DF0, D_002A2E00;   /* initial bounding-box min / max (not const: see BuildLasenBeams) */
-extern float D_002C3610;   /* ramp length of the mode-16 profile */
+float D_002C3610 = 100.0f; /* sensor's .data (0x2C3610; the next 12 bytes are 0): ramp length of the mode-16 profile */
 extern qword D_002A2DC0;   /* up vector for the beam basis (not const: see RenderLasenSelf) */
 struct CAMERA { char pad0[0x90]; U position; };
 extern CAMERA D_002DDF40;
