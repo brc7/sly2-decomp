@@ -84,7 +84,7 @@ struct SVFIND
 struct STACKSCOPE
 {
     int a[4];
-    STACKSCOPE();
+    STACKSCOPE() __asm__("STACKSCOPE_ctor");
     ~STACKSCOPE();
 };
 
