@@ -148,7 +148,7 @@ struct LANGSTR
 
 extern CLSNEW D_002BAAE8[];
 extern EOPID D_002AC880[];   /* g_aeopid */
-extern char D_002A4BE0[];    /* "" */
+extern const char D_002A4BE0[] = "";   /* the empty string (a zero-filled .rodata row) */
 extern VE D_002CBE38[];      /* CLoadCollectorProxy vtable */
 extern VE D_002CBE50[];      /* CLoadCollectorArray vtable */
 extern "C" {
@@ -202,12 +202,12 @@ static inline int Max(int a, int b) { return a < b ? b : a; }
 char *PchzFindSwLangstr(SW *psw, int id)
 {
     int i;
-    if (id == -1) return D_002A4BE0;
+    if (id == -1) return (char *)D_002A4BE0;
     for (i = 0; i < psw->clangstr; i++)
     {
         if (psw->alangstr[i].id == id) return psw->alangstr[i].pchz;
     }
-    return D_002A4BE0;
+    return (char *)D_002A4BE0;
 }
 
 /** @sly2-annot addr=0x13E3C8

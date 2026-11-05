@@ -78,7 +78,7 @@ extern qword D_002A2DC0;
 extern char D_003DD490[];
 extern WVOL *D_003E1480;
 extern "C" {
-extern qword D_002BDBF0[];
+qword D_002BDBF0[1] = {0};   /* detector's .data: the zero position (16 bytes) */
 void InitXfm(DETECTOR *p);
 void SetLoBusyk(DETECTOR *p, int n);
 void UpdateLo(DETECTOR *p);
