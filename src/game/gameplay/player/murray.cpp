@@ -3742,6 +3742,10 @@ extern "C" char *MURRAY_PchName()
     return (char *)D_002A75E0;
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const char r_D_002A75E0[] __asm__("D_002A75E0") = "murray"; }
 namespace M_func_001B9B70 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { int n; float g; int pad[2]; qword q10; qword q20; };
@@ -3891,7 +3895,6 @@ void func_001B9DB8(struct S *p, int x)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const char D_002A75E0[] = "murray";
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
 SNIP D_002C0270[0x89] = {{0x300, 0x1A0, 0x1334}, {0x300, 0x19E, 0x1374}, {0x300, 0x1A2, 0x1028},
     {0x300, 0x24E, 0x3E0}, {0x300, 0x1A1, 0x13E0}, {0x300, 0x1A8, 0x17FC}, {0x300, 0x1A9, 0x1800},

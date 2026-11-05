@@ -2734,6 +2734,18 @@ extern "C" void func_001FEEC0(SNDMGRV *psndmgr)
     psndmgr->c60--;
 }
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const SMP r_D_002A8288 __asm__("D_002A8288") = {2.0f, 0.0f, 0.2f}; }
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_PauseSnd() __asm__("PauseSnd");
+extern const unsigned int r_D_002A8298[2] __asm__("D_002A8298") = {0xFFFF0000, (unsigned int)p_PauseSnd};
+}
+namespace RO_ORDER {   /* pointers through asm-labelled declarations */
+void p_ResumeSnd() __asm__("ResumeSnd");
+extern const unsigned int r_D_002A82A0[2] __asm__("D_002A82A0") = {0xFFFF0000, (unsigned int)p_ResumeSnd};
+}
 namespace M_func_001FEED0 { extern "C" {
 struct M { int n0; int pad4; int n8; int nC; short h10; short pad12; int pad14[3]; short h20; short pad22; int pad24; int n28; int pad2C; };
 struct P { char pad[0x64]; int n64; char pad2[0xE8 - 0x68]; int nE8; char pad3[0x138 - 0xEC]; int n138; };
@@ -2819,7 +2831,6 @@ void func_00259BB0(O **pp, O *o) { if (o) o->vt->f((char *)o + o->vt->d); *pp = 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const SMP D_002A8288 = {2.0f, 0.0f, 0.2f};   /* copied whole as three words */
 extern const LM D_002A83B8 = {500.0f, 3000.0f};
 extern const LM D_002A83C0 = {500.0f, 1000.0f};
 int D_002C3C40[6] = {1548, 1549, 1550, -1, 1551, 1552};
@@ -2831,7 +2842,5 @@ namespace ANPTR_sound {
 void p_PauseSnd() __asm__("PauseSnd");
 void p_ResumeSnd() __asm__("ResumeSnd");
 extern "C" {
-extern const unsigned int D_002A8298[2] = {0xFFFF0000, (unsigned int)p_PauseSnd};
-extern const unsigned int D_002A82A0[2] = {0xFFFF0000, (unsigned int)p_ResumeSnd};
 }
 } // namespace ANPTR_sound

@@ -707,6 +707,10 @@ int func_001C5DF0(struct O *p, struct Q *q)
 }
 } } // namespace M_func_001C5DF0
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const float r_D_002A7710 __asm__("D_002A7710") = 3.40282347e+38f; }
 namespace M_UpdateDprize {
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
@@ -850,6 +854,7 @@ void RenderDprizeSelf(LO *p)
 }
 } // namespace M_RenderDprizeSelf
 
+namespace RO_ORDER { extern const float r_D_002A773C __asm__("D_002A773C") = 3.40282347e+38f; }
 namespace M_SetDprizeDprizes { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
@@ -2339,6 +2344,13 @@ void func_001C8030(struct O *p)
 }
 } } // namespace M_func_001C8030
 
+namespace RO_ORDER { extern const float r_D_002A7758 __asm__("D_002A7758") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A775C __asm__("D_002A775C") = -3.40282347e+38f; }
+namespace RO_ORDER { extern const float r_D_002A7760 __asm__("D_002A7760") = 3.40282347e+38f; }
+namespace RO_ORDER { extern const char r_D_002A7768[] __asm__("D_002A7768") = "%d"; }
+namespace RO_ORDER { extern const char r_D_002A7770[] __asm__("D_002A7770") = "loot"; }
+namespace RO_ORDER { extern const char r_D_002A7778[] __asm__("D_002A7778") = "mplootkc"; }
+namespace RO_ORDER { extern const char r_D_002A7788[] __asm__("D_002A7788") = "afClue"; }
 namespace M_FVaultOpened {
 struct X { int c; short *ps; };
 struct B { int a, b; int c; short Find(char *s) ; };
@@ -2610,6 +2622,7 @@ typedef char selection_layout[(sizeof(qword)==16 && sizeof(U)==16 && sizeof(floa
 } // namespace M_func_001C84D8
 #undef OFF
 
+namespace RO_ORDER { extern const float r_D_002A7798 __asm__("D_002A7798") = 3.40282347e+38f; }
 namespace M_func_001C8730 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
@@ -2798,16 +2811,6 @@ void func_001C8AF0(struct S *p, int n)
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-extern const float D_002A7710 = 3.40282347e+38f;
-extern const float D_002A773C = 3.40282347e+38f;
-extern const float D_002A7758 = 3.40282347e+38f;
-extern const float D_002A775C = -3.40282347e+38f;
-extern const float D_002A7760 = 3.40282347e+38f;
-extern const char D_002A7768[] = "%d";
-extern const char D_002A7770[] = "loot";
-extern const char D_002A7778[] = "mplootkc";
-extern const char D_002A7788[] = "afClue";
-extern const float D_002A7798 = 3.40282347e+38f;
 struct OIDT { int grfsnip; int oid; int ib; };   /* SNIP record (Sly 1 SnipLoObjects) */
 OIDT D_002C0D40[1] = {{0x200, 0x182, 0x164}};
 float D_002C0D4C = -5.0f;

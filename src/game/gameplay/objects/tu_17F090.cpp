@@ -519,6 +519,11 @@ void func_0017FD08(struct S *p, int f);
 void func_0017F8C8(struct S *p, int f) { OnPoActive(p, f); if (f) func_0017FD08(p, 1); else if ((int)(p->fl >> 60) & 1) func_0017FD08(p, 0); }
 } } // namespace M_func_0017F8C8
 
+// .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
+// defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
+// has it among the functions, under an asm label (no function sees a definition under the name it reads).
+namespace RO_ORDER { extern const unsigned int r_D_002A5630[2] __asm__("D_002A5630") = {0x530000, 0xC}; }
+namespace RO_ORDER { extern const unsigned int r_D_002A5638[2] __asm__("D_002A5638") = {0, 0}; }
 namespace M_func_0017F930 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern struct CLOCK D_002DDED0;
@@ -2714,6 +2719,4 @@ HACKSHIP *D_002DFB80;   /* the ship singleton */
 // ---- Virtual pointer-to-member constants by address name (docs/guides/tu-merging.md "Data"): 8 bytes {delta 0,
 // vtable index, vptr offset 0xC} as the ELF has them; own namespace so no declaration above has to agree.
 namespace ANPTR_tu_17F090 { extern "C" {
-extern const unsigned int D_002A5630[2] = {0x530000, 0xC};
-extern const unsigned int D_002A5638[2] = {0, 0};   /* zero (null) member pointer */
 } } // namespace ANPTR_tu_17F090
