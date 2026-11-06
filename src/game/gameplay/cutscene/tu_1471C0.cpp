@@ -20,44 +20,54 @@ typedef unsigned long ulong;
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct LOV { char pad[0xC]; VTE *vt; };
-struct X14 { LOV *plo; };
+struct LOROOTV { LOV *plo; };   /* the object's root link (+0x14) */
 struct ASEGA;
 /* View of the object (an SO). */
-struct P
+struct CAPTUREV
 {
     char pad0[0xC];
     VTE *vt;            /* +0x00C */
     char pad10[4];
-    X14 *px14;          /* +0x014 */
+    LOROOTV *root;      /* +0x014 */
     char pad18[0x28];
-    unsigned int nTagged; /* +0x040 a pointer to flags when bit 0 is clear, else the flags themselves */
+    unsigned int taggedFlags; /* +0x040 a pointer to flags when bit 0 is clear, else the flags themselves */
     char pad44[0x1C];
-    void *p60;          /* +0x060 */
+    void *unknown60;    /* +0x060 passed to func_0022FF40 with each placer's matrix (inferred: the camera/world frame) */
     char pad64[0xEC];
-    int state;          /* +0x150 -1 idle, 0..3 */
-    float tState;       /* +0x154 */
-    char *ap158[2];     /* +0x158 the two objects whose matrices (+0x40) place the sprite */
-    ASEGA *pasega;      /* +0x160 */
+    int state;          /* +0x150 CAPTURE_STATE */
+    float stateTime;    /* +0x154 */
+    char *placers[2];   /* +0x158 the two objects whose matrices (+0x40) place the quads */
+    ASEGA *segmentAnim; /* +0x160 the transition animation */
     int drawQuad0;      /* +0x164 per-quad draw flags, toggled by animation events */
     int drawQuad1;      /* +0x168 */
     int drawQuad2;      /* +0x16C */
-    int unknown170;     /* +0x170 */
+    int soundCue;       /* +0x170 sound-manager cue the closing phase waits for (-1: none; inferred) */
 };
-typedef char assert_P_n170[(unsigned int)&((P *)0)->unknown170 == 0x170 ? 1 : -1];
-struct MSG { void *pvSrc; int b; int k; };   /* kind 9: an animation event from pvSrc */
-struct CLOCKV { char pad[0x3C]; float t3C; };
+typedef char assert_CAPTURE_soundCue[(unsigned int)&((CAPTUREV *)0)->soundCue == 0x170 ? 1 : -1];
+/* Capture states (inferred from the update, draw and message code). */
+enum CAPTURE_STATE
+{
+    CAPTURE_IDLE = -1,
+    CAPTURE_STARTED = 0,    /* StartFrameCapture ran; the next update requests the grab */
+    CAPTURE_GRAB = 1,       /* the next draw copies the frame buffer */
+    CAPTURE_SHOWING = 2,    /* the animation plays the transition */
+    CAPTURE_HOLDING = 3     /* animation paused until the sound cue is ready */
+};
+struct MSG { void *source; int unknown4; int eventKind; };   /* kind 9: an animation event from source */
+enum { MESSAGE_SEGMENT_EVENT = 9 };
+struct CLOCKV { char pad[0x3C]; float t; };
 struct VECTOR4F { float x, y, z, w; };
 struct M4 { qwordV r[4]; };
 struct GIFS { int a[16]; };
-struct TEX { ulong ul0; ulong pad; ulong ul10; };
-struct X { char pad[0x24]; void *x24; char pad2[0x30 - 0x28]; int x30; };
+struct TEX { ulong unknown0; ulong pad; ulong unknown10; };   /* GS words of the capture texture (buffer base/width bits) */
+struct X { char pad[0x24]; void *unknown24; char pad2[0x30 - 0x28]; int unknown30; };   /* the open frame (g_pfrmOpen) */
 
 /* tu_1471C0's .data: defined after the functions, in address order (the UV offsets D_002BD398/D_002BD39C are one
  * float[6] read through two names; D_002BD398 defined). */
 struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
 extern SNIP D_002BD380[2];
 extern CLOCKV D_002DDED0;
-extern P *D_002DD644;
+extern CAPTUREV *D_002DD644;
 extern char D_003DD040[];
 extern char D_003DD490[];
 extern "C" {
@@ -75,25 +85,25 @@ extern VECTOR4F D_002BD3B0[4];   /* quad corners */
 extern float D_002BD3F0[8];   /* corner UVs */
 union M4F { float af[16]; M4 m; };   /* floats first, so the matrix can be initialized */
 extern M4F D_002BD410;
-void InitSo(P *p);
-void SetLoBusyk(P *p, int n);
-void PostSoLoad(P *p);
-void BindLoOidTable(P *p, int n, void *q);
+void InitSo(CAPTUREV *p);
+void SetLoBusyk(CAPTUREV *p, int n);
+void PostSoLoad(CAPTUREV *p);
+void BindLoOidTable(CAPTUREV *p, int n, void *q);
 void func_001306A8(ASEGA **ppasega);
 int FAsegaRetracted(ASEGA *pasega);
 int func_001FE848(void *p, int n);
-void HandleBasicMessage(P *p, int kind, MSG *pmsg);
+void HandleBasicMessage(CAPTUREV *p, int kind, MSG *message);
 void func_001FE5B8(void *p, int a, int b);
 void func_0014D1D0(CLOCKV *p, int a, float g);
 void IncrementSwHandsOff(void *p, int a);
 void DecrementSwHandsOff(void *p, int a);
-int func_001A61A0(P *p);
-void AppendDlEntry__FP2DLPv(void *p, X14 *px);
+int func_001A61A0(CAPTUREV *p);
+void AppendDlEntry__FP2DLPv(void *p, LOROOTV *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *aseg, void *alo, float t, float s, int n, ASEGA **pp);
-void CaptureFramebufferToTexture(P *p);
-void SetFrameCaptureState(P *p, int n);
+void CaptureFramebufferToTexture(CAPTUREV *p);
+void SetFrameCaptureState(CAPTUREV *p, int n);
 void EndDmaCnt__4DMAS(GIFS *pgifs);
 void AddDmaRefs__4DMASiP2QW(GIFS *pgifs, int n, void *pv);
 void AddDmaCnt__4DMAS(GIFS *pgifs);
@@ -108,121 +118,136 @@ void PackUV__4GIFSii(GIFS *pgifs, int a, int b);
 void PackXYZ__4GIFSiii(GIFS *pgifs, int x, int y, int z);
 }
 
-// CID104 vtable slot 7 (Init): SO defaults, idle state (-1) and update flags.
-extern "C" void InitFrameCapture(P *capture)
+// Sets bits of an LO flag word that is stored inline or (low bit clear) behind a pointer.
+static inline void SetTaggedFlags(unsigned int *taggedFlags, int bits)
 {
-    unsigned int v;
+    unsigned int flags = *taggedFlags;
+    if ((flags ^ 1) & 1) *(int *)flags |= bits;
+    else *taggedFlags = flags | bits;
+}
+
+// CID104 vtable slot 7 (Init): SO defaults, idle state, busy, LO flags 0x102.
+extern "C" void InitFrameCapture(CAPTUREV *capture)
+{
     InitSo(capture);
-    capture->state = -1;
+    capture->state = CAPTURE_IDLE;
     SetLoBusyk(capture, 1);
-    v = capture->nTagged;
-    if ((v ^ 1) & 1) *(int *)v |= 0x102;
-    else capture->nTagged = v | 0x102;
+    SetTaggedFlags(&capture->taggedFlags, 0x102);
 }
 
 // CID104 vtable slot 15 (PostLoad): finishes the SO load, binds its snip table (the two placing objects), goes idle
 // and removes itself from the world until started.
 void CID104::VUnk14()
 {
-    P *capture = (P *)this;
-    VTE *e;
+    CAPTUREV *capture = (CAPTUREV *)this;
+    VTE *entry;
     PostSoLoad(capture);
     BindLoOidTable(capture, 2, D_002BD380);
-    e = &capture->vt[9];
-    capture->state = -1;
-    e->pfn((char *)capture + e->d);
+    entry = &capture->vt[9];   /* Remove */
+    capture->state = CAPTURE_IDLE;
+    entry->pfn((char *)capture + entry->d);
 }
 
-// CID104 vtable slot 16 (Update): state 0 (just captured) moves to 1 (showing); state 3 waits until the sound
-// stream is ready, then moves to 2. (inferred)
-extern "C" void UpdateFrameCapture(P *capture)
+// CID104 vtable slot 16 (Update): a started capture asks for the grab; a holding one resumes once the sound cue is
+// ready (func_001FE848 answers 0); a showing one goes idle when its animation has finished. (inferred)
+extern "C" void UpdateFrameCapture(CAPTUREV *capture)
 {
     switch (capture->state) {
-    case 0:
-        SetFrameCaptureState(capture, 1);
+    case CAPTURE_STARTED:
+        SetFrameCaptureState(capture, CAPTURE_GRAB);
         return;
-    case 3:
-        if (func_001FE848(D_003DD040, capture->unknown170) == 0) {
-            SetFrameCaptureState(capture, 2);
+    case CAPTURE_HOLDING:
+        if (func_001FE848(D_003DD040, capture->soundCue) == 0) {
+            SetFrameCaptureState(capture, CAPTURE_SHOWING);
             return;
         }
         return;
-    case 2:
-        ASEGA *pasega = capture->pasega;
-        if (pasega == 0 || FAsegaRetracted(pasega) != 0) {
-            func_001306A8(&capture->pasega);
-            SetFrameCaptureState(capture, -1);
+    case CAPTURE_SHOWING:
+        ASEGA *anim = capture->segmentAnim;
+        if (anim == 0 || FAsegaRetracted(anim) != 0) {
+            func_001306A8(&capture->segmentAnim);
+            SetFrameCaptureState(capture, CAPTURE_IDLE);
         }
         break;
     }
 }
 
-// CID104 vtable slot 5 (HandleMessage): animation events (message 9) 0x5FB..0x601 switch the three per-quad draw
-// flags on/off or start the closing phase (state 3). (inferred)
-extern "C" void HandleFrameCaptureMessage(P *capture, int kind, MSG *pmsg)
+/* Animation events of the transition (their oids). */
+enum
 {
-    HandleBasicMessage(capture, kind, pmsg);
-    if (kind != 9) return;
-    if (pmsg->pvSrc != capture->pasega) return;
-    switch (pmsg->k) {
-    case 0x5FB: capture->drawQuad0 = 1; break;
-    case 0x5FC: capture->drawQuad0 = 0; break;
-    case 0x5FD: capture->drawQuad1 = 1; break;
-    case 0x5FE: capture->drawQuad1 = 0; break;
-    case 0x5FF: capture->drawQuad2 = 0; break;
-    case 0x600: capture->drawQuad2 = 1; break;
-    case 0x601:
-        if (capture->unknown170 != -1) SetFrameCaptureState(capture, 3);
+    EVENT_SHOW_QUAD0 = 0x5FB, EVENT_HIDE_QUAD0 = 0x5FC,
+    EVENT_SHOW_QUAD1 = 0x5FD, EVENT_HIDE_QUAD1 = 0x5FE,
+    EVENT_CLEAR_QUAD2 = 0x5FF, EVENT_SET_QUAD2 = 0x600,
+    EVENT_WAIT_FOR_SOUND = 0x601
+};
+// CID104 vtable slot 5 (HandleMessage): events of its own animation switch the per-quad draw flags or, when a sound
+// cue is set, pause the animation until the cue is ready (CAPTURE_HOLDING). (inferred)
+extern "C" void HandleFrameCaptureMessage(CAPTUREV *capture, int kind, MSG *message)
+{
+    HandleBasicMessage(capture, kind, message);
+    if (kind != MESSAGE_SEGMENT_EVENT) return;
+    if (message->source != capture->segmentAnim) return;
+    switch (message->eventKind) {
+    case EVENT_SHOW_QUAD0: capture->drawQuad0 = 1; break;
+    case EVENT_HIDE_QUAD0: capture->drawQuad0 = 0; break;
+    case EVENT_SHOW_QUAD1: capture->drawQuad1 = 1; break;
+    case EVENT_HIDE_QUAD1: capture->drawQuad1 = 0; break;
+    case EVENT_CLEAR_QUAD2: capture->drawQuad2 = 0; break;
+    case EVENT_SET_QUAD2: capture->drawQuad2 = 1; break;
+    case EVENT_WAIT_FOR_SOUND:
+        if (capture->soundCue != -1) SetFrameCaptureState(capture, CAPTURE_HOLDING);
         break;
     }
 }
 
-// State change. Leaving idle (-1) makes this the running capture (D_002DD644), starts the sound stream, slows the game
-// clock, takes the player's hands off and adds the object to the world; returning to idle undoes all of it. (inferred)
-extern "C" void SetFrameCaptureState(P *capture, int state)
+// State change. Leaving idle makes this the running capture (D_002DD644), pauses sound group 2 (inferred), stops the
+// game clock (rate 0 on clock channel 8), takes the player's hands off and adds the object to the world (and its root
+// to the world's display list, vtable slot 23, if not yet there); returning to idle undoes all of it. Holding pauses
+// the animation (master speed 0) and leaving it resumes it.
+extern "C" void SetFrameCaptureState(CAPTUREV *capture, int state)
 {
     if (state == capture->state) return;
     switch (capture->state) {
-    case -1:
+    case CAPTURE_IDLE:
         D_002DD644 = capture;
         func_001FE5B8(D_003DD040, 2, 0);
         func_0014D1D0(&D_002DDED0, 8, 0.0f);
         IncrementSwHandsOff(D_003DD490, 0);
         capture->vt[8].pfn((char *)capture + capture->vt[8].d);
         if (!func_001A61A0(capture)) {
-            LOV *plo;
-            AppendDlEntry__FP2DLPv(D_003DD490 + 0x2C, capture->px14);
-            plo = capture->px14->plo;
-            plo->vt[23].pfn((char *)plo + plo->vt[23].d);
+            LOV *rootObject;
+            AppendDlEntry__FP2DLPv(D_003DD490 + 0x2C, capture->root);
+            rootObject = capture->root->plo;
+            rootObject->vt[23].pfn((char *)rootObject + rootObject->vt[23].d);
         }
         break;
-    case 3:
-        if (capture->pasega) SetAsegaMasterSpeed(capture->pasega, 1.0f);
+    case CAPTURE_HOLDING:
+        if (capture->segmentAnim) SetAsegaMasterSpeed(capture->segmentAnim, 1.0f);
         break;
     }
     capture->state = state;
-    capture->tState = D_002DDED0.t3C;
+    capture->stateTime = D_002DDED0.t;
     switch (state) {
-    case -1:
+    case CAPTURE_IDLE:
         D_002DD644 = 0;
         func_0014D1D0(&D_002DDED0, 8, 1.0f);
         func_001FE5B8(D_003DD040, 2, 1);
         DecrementSwHandsOff(D_003DD490, 0);
         capture->vt[9].pfn((char *)capture + capture->vt[9].d);
         break;
-    case 3:
-        if (capture->pasega) SetAsegaMasterSpeed(capture->pasega, 0.0f);
+    case CAPTURE_HOLDING:
+        if (capture->segmentAnim) SetAsegaMasterSpeed(capture->segmentAnim, 0.0f);
         break;
     }
 }
 
 // Builds and sends the GIF/DMA packet that copies the frame buffer into the capture texture (D_002DECD0).
-extern "C" void CaptureFramebufferToTexture(P *capture)
+extern "C" void CaptureFramebufferToTexture(CAPTUREV *capture)
 {
     GIFS *g = &D_002DEA00;
-    TEX *pg = &D_002DECD0;
+    TEX *texture = &D_002DECD0;
     AddPrimPack__4GIFSiiUl(g, 0, 1, 0xE);
-    PackAD__4GIFSll(g, 0x4D, (pg->ul10 & 0x1FF) | (pg->ul0 & 0x3F0000));
+    PackAD__4GIFSll(g, 0x4D, (texture->unknown10 & 0x1FF) | (texture->unknown0 & 0x3F0000));
     PackAD__4GIFSll(g, 0x48, 0x31001);
     EndDmaCnt__4DMAS(g);
     AddDmaRefs__4DMASiP2QW(g, 2, D_002DFB00);
@@ -250,11 +275,11 @@ extern "C" void CaptureFramebufferToTexture(P *capture)
 
 // True unless the capture is in its closing states (2 or 3); the main loop uses it to decide whether to draw
 // normally. (inferred)
-extern "C" int IsFrameCaptureInactive(P *capture)
+extern "C" int IsFrameCaptureInactive(CAPTUREV *capture)
 {
     switch (capture->state) {
-    case 2:
-    case 3:
+    case CAPTURE_SHOWING:
+    case CAPTURE_HOLDING:
         return 0;
     }
     return 1;
@@ -265,15 +290,13 @@ union VECTOR4V;
 struct VU_VECTOR { qwordV q; VU_VECTOR() {} VU_VECTOR(qwordV a) { q = a; } VU_VECTOR(const VECTOR4V &v); };
 struct VU_VECTOR4 { qwordV q; VU_VECTOR4() {} VU_VECTOR4(qwordV a) { q = a; } VU_VECTOR4(const VECTOR4F &v) { q = *(qwordV *)&v; } };
 struct VU_FLOAT { qwordV q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
-// Inline helper VU_VECTOR: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
-// and instruction choice matches the original; its name says what it computes.
+// Loads a vector from its union view.
 inline VU_VECTOR::VU_VECTOR(const VECTOR4V &v) { q = v.q; }
 VU_VECTOR4 operator*(const M4 &m, VU_VECTOR4 v) __asm__("__ml__FRC7MATRIX4G10VU_VECTOR4");
 static inline qwordV operator*(VU_FLOAT f, VU_VECTOR v)
 { qwordV r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(f.q), "j"(v.q)); return r; }
-// Inline helpers SetStq, SetRgba, SetXyz, IFix, Screen: small vector/scalar wrappers (a few VU0/EE instructions in asm,
-// or accessors) written so the compiler's register and instruction choice matches the original; the names say what they
-// compute.
+// GIF packing wrappers taking references (as the original's inline members did), the 12.4 fixed-point screen
+// coordinate with its offset, and the clip-to-screen scale ((g + 0.5) * size + 0.5).
 static inline void SetStq(GIFS *pgifs, const float &s, const float &t, const float &q) { PackSTQ__4GIFSfff(pgifs, s, t, q); }
 static inline void SetRgba(GIFS *pgifs, const int &rgba) { PackRGBA__4GIFSUi(pgifs, rgba); }
 static inline void SetXyz(GIFS *pgifs, const int &x, const int &y, const int &z) { PackXYZ__4GIFSiii(pgifs, x, y, z); }
@@ -282,113 +305,111 @@ static inline float Screen(const float &g, const float &s) { return (g + 0.5f) *
 
 // Called from the main loop: draws the captured frame as textured quads (one per enabled draw flag), each placed by
 // the world matrix of one of the two child objects (the split/flip transition). (inferred)
-// Matching notes: unsigned loop counters (the target uses sltiu); the loop-1 counter is reused for t (i = state & 1);
+// The three quads: 0 (placer 0) needs drawQuad0 and drawQuad2, 1 (placer 1) drawQuad1, 2 (placer 0, other UVs)
+// drawQuad0 without drawQuad2.
+// Matching notes: unsigned loop counters (the target uses sltiu); the loop-1 counter is reused for the placer (i = quad & 1);
 // the `GIFS *pgifs = &D_002DEA00;` local at the top of the j-loop body orders the address set-ups like the target.
-extern "C" void DrawFrameCaptureScreen(P *capture)
+extern "C" void DrawFrameCaptureScreen(CAPTUREV *capture)
 {
-    M4 am[2];
-    float rw;
+    M4 placerMatrices[2];
+    float invW;
     unsigned int i;
-    int state, stateNext;
+    int quad, nextQuad;
     switch (capture->state) {
-    case 1:
+    case CAPTURE_GRAB:
         CaptureFramebufferToTexture(capture);
-        SetFrameCaptureState(capture, 2);
+        SetFrameCaptureState(capture, CAPTURE_SHOWING);
         break;
-    case 2:
-    case 3:
+    case CAPTURE_SHOWING:
+    case CAPTURE_HOLDING:
         break;
     default:
         return;
     }
-    D_002DEA4C->x30 &= ~1;
-    if (!D_002DEA4C->x24)
-        D_002DEA4C->x24 = D_002DEA34;
-    TEX *ptex = &D_002DECD0;
+    D_002DEA4C->unknown30 &= ~1;
+    if (!D_002DEA4C->unknown24)
+        D_002DEA4C->unknown24 = D_002DEA34;
+    TEX *texture = &D_002DECD0;
     EndDmaCnt__4DMAS(&D_002DEA00);
     AddDmaRefs__4DMASiP2QW(&D_002DEA00, 0x25, D_002DF4B0);
     AddDmaCnt__4DMAS(&D_002DEA00);
     AddPrimPack__4GIFSiiUl(&D_002DEA00, 0, 1, 0xE);
     PackAD__4GIFSll(&D_002DEA00, 0x47, 0x31001);
-    PackAD__4GIFSll(&D_002DEA00, 6, ((ptex->ul10 & 0x1FF) << 5) | (((ptex->ul0 >> 16) & 0x3F) << 14) | 0x6A8000000UL);
+    PackAD__4GIFSll(&D_002DEA00, 6, ((texture->unknown10 & 0x1FF) << 5) | (((texture->unknown0 >> 16) & 0x3F) << 14) | 0x6A8000000UL);
     PackAD__4GIFSll(&D_002DEA00, 0x14, 0x61);
     PackAD__4GIFSll(&D_002DEA00, 0x3F, 0);
     PackAD__4GIFSll(&D_002DEA00, 8, 0x3800080000AUL);
     for (i = 0; i < 2; i++) {
-        M4 m;
-        func_0022FF40(&m, 0, capture->p60, capture->ap158[i] + 0x40);
-        am[i] = m;
+        M4 matrix;
+        func_0022FF40(&matrix, 0, capture->unknown60, capture->placers[i] + 0x40);
+        placerMatrices[i] = matrix;
     }
-    state = 0;
-    do {
-        switch (state) {
+    for (quad = 0; quad < 3; quad = nextQuad) {
+        switch (quad) {
         case 0:
-            stateNext = 1;
+            nextQuad = 1;
             if (!capture->drawQuad0 || !capture->drawQuad2)
-                goto next;
+                continue;
             break;
         case 1:
-            stateNext = 2;
+            nextQuad = 2;
             if (!capture->drawQuad1)
-                goto next;
+                continue;
             break;
         case 2:
-            stateNext = 3;
+            nextQuad = 3;
             if (!capture->drawQuad0 || capture->drawQuad2)
-                goto next;
+                continue;
             break;
         }
         {
-            i = state & 1;
+            i = quad & 1;
             unsigned int j;
             AddPrimPack__4GIFSiiUl(&D_002DEA00, 0x14, 3, 0x512);
-            stateNext = state + 1;
+            nextQuad = quad + 1;
             for (j = 0; j < 4; j++) {
-                VECTOR4V u;
+                VECTOR4V vertex;
                 GIFS *pgifs = &D_002DEA00; // one GIF packet pointer for the three per-vertex calls
-                VU_VECTOR4 pos = am[i] * VU_VECTOR4(D_002BD3B0[j]);
+                VU_VECTOR4 pos = placerMatrices[i] * VU_VECTOR4(D_002BD3B0[j]);
                 VU_VECTOR4 posClip = D_002BD410.m * pos;
-                u.q = posClip.q;
-                Force__FPv(&u);
-                rw = 1.0f / u.f[3];
-                u.q = VU_FLOAT(rw) * VU_VECTOR(u);
-                Force__FPv(&rw);
-                Force__FPv(&u);
-                u.f[0] = Screen(u.f[0], 512.0f);
-                u.f[1] = Screen(u.f[1], 224.0f);
-                Force__FPv(&u);
-                SetStq(pgifs, rw * (D_002BD3F0[j * 2] + D_002BD398[i * 2]),
-                       rw * (D_002BD3F0[j * 2 + 1] + D_002BD39C[i * 2]), rw);
+                vertex.q = posClip.q;
+                Force__FPv(&vertex);
+                invW = 1.0f / vertex.f[3];
+                vertex.q = VU_FLOAT(invW) * VU_VECTOR(vertex);
+                Force__FPv(&invW);
+                Force__FPv(&vertex);
+                vertex.f[0] = Screen(vertex.f[0], 512.0f);
+                vertex.f[1] = Screen(vertex.f[1], 224.0f);
+                Force__FPv(&vertex);
+                SetStq(pgifs, invW * (D_002BD3F0[j * 2] + D_002BD398[i * 2]),
+                       invW * (D_002BD3F0[j * 2 + 1] + D_002BD39C[i * 2]), invW);
                 SetRgba(pgifs, 0x80808080);
-                SetXyz(pgifs, IFix(u.f[0], 0x700), IFix(u.f[1], 0x790), 0);
+                SetXyz(pgifs, IFix(vertex.f[0], 0x700), IFix(vertex.f[1], 0x790), 0);
             }
         }
-    next:
-        state = stateNext;
-    } while (state < 3);
+    }
 }
 
-// Splice entry: sets the capture's parameters and looks up the animation (by oid) it plays while showing. (inferred)
-extern "C" void StartFrameCapture(P *capture, int oid, int n)
+// Splice entry: starts the transition with the animation segment oid (found from the capture; it runs on real time,
+// LO flag 0x100) and the sound cue to wait for (-1: none); all quads drawn. Nothing happens if the segment is missing.
+extern "C" void StartFrameCapture(CAPTUREV *capture, int oid, int soundCue)
 {
-    char *aseg;
-    capture->unknown170 = n;
+    CAPTUREV *segment;
+    capture->soundCue = soundCue;
     capture->drawQuad2 = 1;
     capture->drawQuad1 = 1;
     capture->drawQuad0 = 1;
-    aseg = (char *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
-    if (aseg) {
-        unsigned int v = *(unsigned int *)(aseg + 0x40);
-        if ((v ^ 1) & 1) *(int *)v |= 0x100;
-        else *(unsigned int *)(aseg + 0x40) = v | 0x100;
-        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(aseg, capture, 0.0f, 1.0f, 4, &capture->pasega);
-        SetFrameCaptureState(capture, 0);
+    segment = (CAPTUREV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, oid, capture);
+    if (segment) {
+        SetTaggedFlags(&segment->taggedFlags, 0x100);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(segment, capture, 0.0f, 1.0f, 4, &capture->segmentAnim);
+        SetFrameCaptureState(capture, CAPTURE_STARTED);
     }
 }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
-P *D_002DD644;
+CAPTUREV *D_002DD644;
 
 // ---- tu_1471C0's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 SNIP D_002BD380[2] = {{0x10, 0x5F9, 0x158}, {0x10, 0x5FA, 0x15C}};
