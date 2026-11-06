@@ -76,7 +76,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(SO *pso, int cid);
 CID17 *PpathzoneFromPos(qword pos, int n);
 qword func_001A62E8(SO *pso);
 void SetMurrayState(MURRAY *pmurray, int nState);
-void func_001B8D30(MURRAY *pmurray, int n);
+void SetMurrayPowerSubstate(MURRAY *pmurray, int n);
 }
 
 /** @sly2-annot addr=0x144B28
@@ -1708,7 +1708,7 @@ void BHV198::Start()
     StartBhv(pbhv);
     ((MURRAY *)pbhv->pstepguard)->unk_0x1ac0 = 1;
     SetMurrayState((MURRAY *)pbhv->pstepguard, 0xC);
-    func_001B8D30((MURRAY *)pbhv->pstepguard, 0);
+    SetMurrayPowerSubstate((MURRAY *)pbhv->pstepguard, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

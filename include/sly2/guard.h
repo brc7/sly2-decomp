@@ -34,7 +34,7 @@ typedef char assert_DETECTOR_cUnkFC[SLY2_OFFSETOF(DETECTOR, cUnkFC) == 0xFC ? 1 
 typedef char assert_DETECTOR_pvolNear[SLY2_OFFSETOF(DETECTOR, pvolNear) == 0xE8 ? 1 : -1];
 
 /* An animation binding of a guard (16 bytes; stepguard.cpp ResolveAnimBinding/ReleaseAnimBinding): its kind (2 and 3
-   hold a handle released by func_0020C030 / func_0020CA20; -1 none), the handle, and two words. [S] */
+   hold a handle released by FreeLeap / FreeDirAnim; -1 none), the handle, and two words. [S] */
 struct ANIMBINDING
 {
       int kind;             /* +0x0 [S] */
@@ -93,7 +93,7 @@ struct STEPGUARD : public STEP
       undefined4 unk_0x4c4[3];
       ANIMBINDINGREC abindingrec[32];   /* +0x4D0 [S] */
       ANIMBINDING aabindingZap[3][26];  /* +0x8D0 [S] three zap-reaction binding sets (ResolveZapReactions) */
-      LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (LEAP_ctor) */
+      LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (ConstructLeap) */
       CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
       undefined4 unk_0xe60[(0xf04 - 0xe60) / 4];
       float tAttackNext;    /* +0xF04 [S] earliest time of the next attack choice (guardbhv FBhvcombatChooseAttack) */

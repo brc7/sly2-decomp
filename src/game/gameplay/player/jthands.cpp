@@ -111,7 +111,7 @@ float func_0012F990(ASEG *paseg, int n);
 void func_001300B8(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
 qword *VECTOR_opAssign(qword *pdst, qword src);
 void SetLoParent_1A58D0(LO *plo, int a, int b);
-float func_00196928(qword dpos, qword vel, float a, float b, float c, float d);
+float ComputeMaxBallisticTime(qword dpos, qword vel, float a, float b, float c, float d);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *pasega, float svt);
 void func_001F6860(LO *plo, int n);
 void SetLoXfFromMat(LO *plo, M4 *pmat);
@@ -550,7 +550,7 @@ extern "C" void SetJtHandsTarget(JTHANDS *p, int nMode)
 }
 
 /* StartJtHandsCarry (StartJtHandsCarry): create the position and orientation acts that carry the object along the
-   predicted clip path to the hand, timed ballistically (func_00196928), parented to the world (SetLoParent). The body
+   predicted clip path to the hand, timed ballistically (ComputeMaxBallisticTime), parented to the world (SetLoParent). The body
    is a transcription of the target's schedule into register-pinned asm blocks (a matching island: this form exists
    to reproduce the original codegen); its data is the header JTHANDS and SO, the JTV/XFACT views and the work area
    below. */
@@ -647,7 +647,7 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other){
  float limit;qword initialSpeed;DeltaForDuration(work,func_001A62E8(initialOwner),limit,initialSpeed);
  register float negativeLimit __asm__("$f13"),minimum __asm__("$f15"),maximum __asm__("$f14");
  __asm__("neg.s %0,%3\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%1\n\t.set at\n\tmov.s %2,%4":"=f"(negativeLimit),"=f"(minimum),"=f"(maximum):"f"(limit),"f"(unit):"$1");
- float duration=Max(phase,func_00196928(work.delta,initialSpeed,limit,negativeLimit,maximum,minimum));
+ float duration=Max(phase,ComputeMaxBallisticTime(work.delta,initialSpeed,limit,negativeLimit,maximum,minimum));
  float speed=phase/duration;phase=duration;
  SetAsegaSpeed__FP5ASEGAf(anim,speed);
  {

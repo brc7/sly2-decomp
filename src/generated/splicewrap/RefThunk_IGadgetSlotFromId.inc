@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void SetS32__4CRefi(void *, s32);                 /* extern */
-s32 IGadgetSlotFromId(s32, s32);                        /* extern */
+s32 GetGadgetSlotFromId(s32, s32);                        /* extern */
 
 CRef *RefThunk_IGadgetSlotFromId(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
@@ -9,7 +9,7 @@ CRef *RefThunk_IGadgetSlotFromId(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 0x1049;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    SetS32__4CRefi(&ref, IGadgetSlotFromId(pbasic, arg0_v));
+    SetS32__4CRefi(&ref, GetGadgetSlotFromId(pbasic, arg0_v));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

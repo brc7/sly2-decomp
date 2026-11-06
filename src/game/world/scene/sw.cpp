@@ -712,7 +712,7 @@ void func_001569B8(struct S *p);
 void EnsureSwDefaultLight(struct S *p);
 void PostLoadSwPathzones(struct S *p);
 void func_00210940(struct S *p);
-void func_001957C0(struct S *p);
+void PostLoadGrabMarker(struct S *p);
 void func_001D9520(void *p);
 void ProcessSwCallbacks(struct S *p);
 void func_001C1260(void *p);
@@ -744,7 +744,7 @@ void PostSwLoad(struct S *p)
     EnsureSwDefaultLight(p);
     PostLoadSwPathzones(p);
     func_00210940(p);
-    func_001957C0(p);
+    PostLoadGrabMarker(p);
     func_001D9520(D_003D9E70);
     while (ProcessSwCallbacks(p), p->ppoLast != p->ppoFirst) {
         for (ppo = p->ppoFirst; ppo < p->ppoLast; ppo++)

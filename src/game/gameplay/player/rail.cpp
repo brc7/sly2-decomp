@@ -141,7 +141,7 @@ extern "C" void CloneRail(RAILV *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" int GetRailGrabRange(RAILV *p, float *pg)
+extern "C" int GetRailWrapRange(RAILV *p, float *pg)
 {
     if (p->fE4) { pg[0] = SMinShape(p); pg[1] = SMaxShape(p); return 1; } return 0;
 }
@@ -152,7 +152,7 @@ extern "C" int GetRailGrabRange(RAILV *p, float *pg)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" void ClampRailGrabDistance(RAILV *p, T *q, float *pf)
+extern "C" void GetRailClosestParam(RAILV *p, T *q, float *pf)
 {
     qword buf;
     float g, v;
@@ -198,7 +198,7 @@ extern qword D_002A2DC0,D_002A2DA0;
 extern "C" {
 float SRandomShapeRange(RAILV*,float,float);
 float GRandInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
-void GetRailGrabMatrix(RAILV*,qword*,qword*,float);
+void GetRailSparklePosition(RAILV*,qword*,qword*,float);
 }
 static inline qword CrossKeepSecond(qword a,const qword *pb){qword b;__asm__("lqc2 %0,%1":"=j"(b):"m"(*pb));qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"0"(b));return r;}
 static inline qword Dir(const M3 &m,qword a){__asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m.a),"j"(m.b),"j"(m.c));return a;}
@@ -235,7 +235,7 @@ static inline qword DisplacementValue(const qword&start,const qword&direction,fl
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-void GetRailGrabMatrix(RAILV*p,qword*posOut,qword*dirOut,float g){
+void GetRailSparklePosition(RAILV*p,qword*posOut,qword*dirOut,float g){
  U pos;
  M3 basis;
  U scalar,moved,out;

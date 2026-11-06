@@ -89,7 +89,7 @@ qword func_001A62E8(JTV*);M4*func_001A6318(JTV*);
 M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*VECTOR_opAssign(qword*,qword);
 void SmoothMatrix(M4*,M3*,SMPV*,M3*,qword*,float);
 void PosSmooth(qword,qword,SMPV*,qword*,float);
-void SetJtJts__FP2JT3JTS4JTBS(JTV*,int,int);void UpdateDirectionalBlend(JTV*,AXIS*,REQUEST*);
+void SetJtState__FP2JT3JTS4JTBS(JTV*,int,int);void UpdateDirectionalBlend(JTV*,AXIS*,REQUEST*);
 void func_00185130(MESH *pmesh);
 void func_00185310(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal);
 void func_001856B8(MESH *pmesh, LIST *plist);
@@ -674,7 +674,7 @@ extern "C" void func_00185E40(JTV*p){
  if(GXOfQw(VuDot(p->acceleration.q,p->acceleration.q))>1.0f)active=1;
  else if(p->control->speed!=0.0f)active=1;
  if(active){
-  SetJtJts__FP2JT3JTS4JTBS(p,21,11);UpdateDirectionalBlend(p,p->axes,p->request);
+  SetJtState__FP2JT3JTS4JTBS(p,21,11);UpdateDirectionalBlend(p,p->axes,p->request);
   SetVec(p,35,QwAdd(linear.q,QwRotateVec(&p->basis,QwScaleX(p->acceleration.q,VuFloatC1(-1.0f)))));
- }else{SetJtJts__FP2JT3JTS4JTBS(p,21,10);SetVec(p,35,linear.q);}
+ }else{SetJtState__FP2JT3JTS4JTBS(p,21,10);SetVec(p,35,linear.q);}
 }

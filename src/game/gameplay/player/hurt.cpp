@@ -35,9 +35,9 @@ void RunJtHurtCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlaceCallback(JTHURT *pjthurt);
 void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, int n);
 void SetJtHurtState(JTHURT *pjthurt, int nState);
-void func_00195A00(JTAIR *pjtair, int nState, int n2, int n3);   /* HYPOTHESIS: sets the air state */
-int func_00194640(JTGRAB *pjtgrab, int zpk);
-int STEPPLAYER_FInvulnerable(STEPPLAYER *pstepplayer, int zpk);
+void SetJtAirJump(JTAIR *pjtair, int nState, int n2, int n3);   /* HYPOTHESIS: sets the air state */
+int IsJtGrabBusy(JTGRAB *pjtgrab, int zpk);
+int IsStepplayerInvulnerable(STEPPLAYER *pstepplayer, int zpk);
 void func_001F80D0(STEPPLAYER *pstepplayer, float g);
 void OnStepplayerHeroDied(STEPPLAYER *pstepplayer);
 extern int D_002E1E00;
@@ -401,7 +401,7 @@ float cosf(float g);
 float atan2f(float y, float x);
 float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 void func_00204660(struct LO *po, float g);
-int FCheckJtStuck(struct LO *po, int n, float g);
+int IsJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
 static inline float GClamp(float g, float lo, float hi)
 {
@@ -412,7 +412,7 @@ static inline float GClamp(float g, float lo, float hi)
     return r;
 }
 /** @sly2-annot addr=0x1A1358
- * Purpose: jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, FCheckJtStuck
+ * Purpose: jts 4 per-frame update: smooth heading (RadSmooth), timers, run pending callback, IsJtStuck
  *   escape
  * Info: proposed name UpdateJtActiveZap (T1); TU hurt
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
@@ -454,7 +454,7 @@ done:
         func_00204660(s->po, RadSmooth__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
         if (0.25f < D_002DDED0.t - s->x8 && s->po->x208)
             RunJtHurtCallback(s);
-        else if (FCheckJtStuck(s->po, 0, s->x8))
+        else if (IsJtStuck(s->po, 0, s->x8))
             RunJtHurtCallback(s);
         break;
     }
@@ -485,7 +485,7 @@ struct B { char pad[0x148]; unsigned long x148; };
 struct S { struct O *x0; int x4; char pad[0x14]; struct PMF pmf; char pad2[0xC]; struct B *x30; };
 void *func_002333B4(void *p, int c, unsigned int n) __asm__("memset");
 void ReturnJtToSafePlaceCallback(struct S *p);
-void func_00195A00(void *p, int a, int b, int c);
+void SetJtAirJump(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1A15D0
  * Purpose: Take and clear the pending pmf callback and call it; with none, death states 8..12 return to a
  *   safe place, others SetJtAirJump
@@ -508,7 +508,7 @@ void RunJtHurtCallback(struct S *s)
     } else if (s->x30 && (s->x30->x148 & 0x200000000UL)) {
         ReturnJtToSafePlaceCallback(s);
     } else {
-        func_00195A00((char *)s->x0 + 0x2C0, 11, 0, 0);
+        SetJtAirJump((char *)s->x0 + 0x2C0, 11, 0, 0);
     }
 }
 } } // namespace M_RunJtHurtCallback
@@ -701,7 +701,7 @@ extern "C"{
  int func_00155228(void*,int);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
- void func_00143380(P*);
+ void DropStepplayerBooty(P*);
  void BroadcastGameEvent(void*,int,P*);
  void SetJtHurtCallback(C*,ACTION);
  void StartJtKnockback(C*);
@@ -805,7 +805,7 @@ notify:
  {
   Notify(p->actor,3);
   W*widget=p->actor->widget;
-  if(widget&&(widget->count->c||Add32(*p->counter,delta)<=0))func_00143380(p->actor);
+  if(widget&&(widget->count->c||Add32(*p->counter,delta)<=0))DropStepplayerBooty(p->actor);
   BroadcastGameEvent(D_002DEB30,0xF,input->object);
   p->record=*input;p->record.delta=delta;SetJtHurtCallback(p,0);
   int n=Add32(*p->counter,p->record.delta);*p->counter=n>=0?n:0;
@@ -875,7 +875,7 @@ extern "C" void JtHurtFallCallback(JTHURT *pjthurt)
         if (pjthurt->zpr.ploSource && ((SO *)pjthurt->zpr.ploSource)->fHurtRespawns)
             ReturnJtToSafePlaceCallback(pjthurt);
         else
-            func_00195A00(&pjthurt->pstepplayer->jtair, 11, 0, 0);
+            SetJtAirJump(&pjthurt->pstepplayer->jtair, 11, 0, 0);
     } else {
         SetJtHurtState(pjthurt, 8);
     }
@@ -918,7 +918,7 @@ extern "C" void JtHurtFallCallback2(JTHURT *pjthurt)
         if (pjthurt->zpr.ploSource && ((SO *)pjthurt->zpr.ploSource)->fHurtRespawns)
             ReturnJtToSafePlaceCallback(pjthurt);
         else
-            func_00195A00(&pjthurt->pstepplayer->jtair, 11, 0, 0);
+            SetJtAirJump(&pjthurt->pstepplayer->jtair, 11, 0, 0);
     } else {
         SetJtHurtState(pjthurt, 8);
     }
@@ -984,7 +984,7 @@ void AddJtHurtCpdefiFlags(struct S *p, struct Q *q)
  * @end-sly2-annot */
 /* Invulnerable to zap kind zpk in some player states (3, 8, 21, 22: kind 0x4000; 7: whatever the grab allows), else
    as any step player. */
-extern "C" int ShouldJtIgnoreZap(JT *pjt, int zpk)
+extern "C" int IsJtInvulnerable(JT *pjt, int zpk)
 {
     switch (pjt->jts) {
     case 3:
@@ -995,11 +995,11 @@ extern "C" int ShouldJtIgnoreZap(JT *pjt, int zpk)
             return 1;
         break;
     case 7:
-        if (func_00194640(&pjt->jtgrab, zpk))
+        if (IsJtGrabBusy(&pjt->jtgrab, zpk))
             return 1;
         break;
     }
-    return STEPPLAYER_FInvulnerable(pjt, zpk);
+    return IsStepplayerInvulnerable(pjt, zpk);
 }
 
 /** @sly2-annot addr=0x1A2230

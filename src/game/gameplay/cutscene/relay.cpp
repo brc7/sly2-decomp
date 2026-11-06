@@ -340,21 +340,21 @@ struct LOREF
 
 void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
+void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");
 
-void StepCmdHoldOn(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_00142140");
+void StepCmdHoldOn(STEPPLAYER *pstepplayer, LO *plo) __asm__("SetStepplayerGrabTarget");
 
-void StepCmdPutDown(STEPPLAYER *pstepplayer, LO *ploObj, LO *ploWhere) __asm__("func_00142278");
+void StepCmdPutDown(STEPPLAYER *pstepplayer, LO *ploObj, LO *ploWhere) __asm__("StartStepplayerThrowAt");
 
-void StepCmdHoldOn9(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_00142340");
+void StepCmdHoldOn9(STEPPLAYER *pstepplayer, LO *plo) __asm__("SetStepplayerGrabState9");
 
-void StepCmdCarry(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_001421A0");
+void StepCmdCarry(STEPPLAYER *pstepplayer, LO *plo) __asm__("SetStepplayerGrabTargetEx");
 
-void StepCmdPlaceHeld(STEPPLAYER *pstepplayer, LO *plo) __asm__("func_001421F8");
+void StepCmdPlaceHeld(STEPPLAYER *pstepplayer, LO *plo) __asm__("SetStepplayerGrabTargetAlt");
 
-void StepCmdGrab0xC(STEPPLAYER *pstepplayer, ASEG *paseg, LO *plo, int n) __asm__("func_001424E0");
+void StepCmdGrab0xC(STEPPLAYER *pstepplayer, ASEG *paseg, LO *plo, int n) __asm__("StartStepplayerGrabStateC");
 
-void PlayStepClip(STEPPLAYER *pstepplayer, OID oid, int grfapl, int nState) __asm__("func_00143EE0");
+void PlayStepClip(STEPPLAYER *pstepplayer, OID oid, int grfapl, int nState) __asm__("PlayStepplayerScriptAnim");
 
 void FindShapeClosestPointAll(SHAPE *pshape, qword posFrom, CONSTR *pconstr, qword *pposClosest, VECTOR4 *pnormTangentClosest, float *pu, float *ps) __asm__("FindShapeClosestPoint");
 
@@ -1048,9 +1048,9 @@ extern "C" void func_001531A8(LO *plo, int n, int cent, void *aent);
 
 extern "C" void func_001532D8(LO *plo, LO *ploActor, int n5, int n6, float g);
 
-extern "C" void func_001B9C00(MURRAY *pmurray, SMA *psma, int n7, int n6, int n8);
+extern "C" void StartMurrayStruggle(MURRAY *pmurray, SMA *psma, int n7, int n6, int n8);
 
-extern "C" void func_001B9880(MURRAY *pmurray);
+extern "C" void EnterMurrayThrowAim(MURRAY *pmurray);
 
 void ReleaseJsgSma(JSGV *pjsg) __asm__("ClearJsgSma");
 
@@ -1060,13 +1060,13 @@ void PutSwHeroAtWarp(WARPV *pwarp) __asm__("func_00228170");
 
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 
-GRABSPOTV *PspotFromLo(LO *plo) __asm__("PgrabspotFromLo");
+GRABSPOTV *PspotFromLo(LO *plo) __asm__("GetGrabspotFromLo");
 
 extern "C" int GuardSpawnerGroundSnap(qword *ppos, int n, void *pfnFilter, float gUp, float gDown) __asm__("func_00173610");
 
 void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtCaneState__FP2JTi");
 
-int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
+int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("TryGrabJtNearestCandidate");
 
 struct JSGENT
 {
@@ -1196,17 +1196,17 @@ int FBhv166NearEnd(BHV166 *pbhv) __asm__("FBhvpathAtEnd");
 
 void GetJtPipeLimits(JTPIPE *pjtpipe, float *pagLimit) __asm__("GetJtPipeDistanceRange");
 
-int FStepHoldArrived(STEPPLAYER *pstepplayer) __asm__("func_001423A0");
+int FStepHoldArrived(STEPPLAYER *pstepplayer) __asm__("IsStepplayerGrabReady");
 
-int FStepPutDownDone(STEPPLAYER *pstepplayer) __asm__("func_001424C0");
+int FStepPutDownDone(STEPPLAYER *pstepplayer) __asm__("IsStepplayerNotThrowing");
 
-int FStepHoldOn9Done(STEPPLAYER *pstepplayer) __asm__("func_001424D0");
+int FStepHoldOn9Done(STEPPLAYER *pstepplayer) __asm__("IsStepplayerNotInGrabState9");
 
-int FStepGrab0xCDone(STEPPLAYER *pstepplayer) __asm__("func_00142530");
+int FStepGrab0xCDone(STEPPLAYER *pstepplayer) __asm__("IsStepplayerNotInGrabStateC");
 
-int FStepClipPlaying(STEPPLAYER *pstepplayer) __asm__("func_00144038");
+int FStepClipPlaying(STEPPLAYER *pstepplayer) __asm__("IsStepplayerInScriptState");
 
-void StopStepClip(STEPPLAYER *pstepplayer) __asm__("func_00143FF8");
+void StopStepClip(STEPPLAYER *pstepplayer) __asm__("StopStepplayerScriptAnim");
 
 void SetJtGoalPos(JTGOAL *pjtgoal, qword qwPos) __asm__("SetJtgoal");
 
@@ -1236,7 +1236,7 @@ void UnsubscribeLoAll(JSGV *pjsg);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
-void func_00143DE8(LO *pjt, JSGV *pjsg);
+void SetStepplayerRide(LO *pjt, JSGV *pjsg);
 }
 
 // 0x1DFAD8 InitRelay
@@ -3610,7 +3610,7 @@ extern "C" void RelayFire(RELAYV *prelay, LO *ploFirer) __asm__("FireRelay");
 extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("func_00205438");
 extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
 extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
-extern "C" void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer) __asm__("func_00141968");
+extern "C" void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer) __asm__("LaunchStepplayer");
 extern "C" void RespawnAtSafeSpot(STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("ReturnJtToSafePlace");
 extern "C" void PlayJtAsegDefault(LO *plo, LO *ploOther, int n) __asm__("ApplyDancerAseg");
 extern "C" int StartDialogueLine(SNDMGR *psndmgr, int idLine, int fWait) __asm__("StartDialog");
@@ -4615,7 +4615,7 @@ void NextJsgCommand(JSGV *pjsg)
                 SMA *psma = PsmaFindOnAlo((ALO *)plo, OID_Nil);
                 if (psma)
                 {
-                    func_001B9C00(pmurray, psma, prelaycmd->unk4F.nUnk7, prelaycmd->unk4F.nUnk6, prelaycmd->unk4F.nUnk8);
+                    StartMurrayStruggle(pmurray, psma, prelaycmd->unk4F.nUnk7, prelaycmd->unk4F.nUnk6, prelaycmd->unk4F.nUnk8);
                 }
             }
         }
@@ -4663,7 +4663,7 @@ void NextJsgCommand(JSGV *pjsg)
         }
         if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
         {
-            func_001B9880((MURRAY *)pjsg->ploActor);
+            EnterMurrayThrowAim((MURRAY *)pjsg->ploActor);
         }
         break;
     case RELAYCK_Unk58:
@@ -5858,7 +5858,7 @@ void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
-/* Sets the script's mode command and the JT it drives, re-linking the JT to the script (func_00143DE8). */
+/* Sets the script's mode command and the JT it drives, re-linking the JT to the script (SetStepplayerRide). */
 extern "C" void func_001E4EB8(JSGV *pjsg, RELAYCMD *prelaycmdJt, LO *pjt)
 {
     LO *pjtOld;
@@ -5868,11 +5868,11 @@ extern "C" void func_001E4EB8(JSGV *pjsg, RELAYCMD *prelaycmdJt, LO *pjt)
     pjtOld = pjsg->pjt;
     if (pjt != pjtOld) {
         if (pjtOld != 0) {
-            func_00143DE8(pjtOld, 0);
+            SetStepplayerRide(pjtOld, 0);
         }
         pjsg->pjt = pjt;
         if (pjt != 0) {
-            func_00143DE8(pjt, pjsg);
+            SetStepplayerRide(pjt, pjsg);
         }
     }
 }
@@ -6064,7 +6064,7 @@ struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x4C]; struct O *po; int n50; void *pv; };
 void func_00130B18(struct O *po);
-void func_00143FF8(void *pv);
+void StopStepplayerScriptAnim(void *pv);
 /** @sly2-annot addr=0x1E5370
  * Purpose: Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8)
  * Info: proposed name ClearJsgAseg (T1); TU relay
@@ -6079,7 +6079,7 @@ void ClearJsgAseg(struct S *p)
         p->po = 0;
     }
     if (p->pv) {
-        func_00143FF8(p->pv);
+        StopStepplayerScriptAnim(p->pv);
         p->pv = 0;
     }
 }

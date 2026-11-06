@@ -676,7 +676,7 @@ struct T { int a, b; void *p8; };
 struct S { char pad[0x38]; void *p38; int pad2; struct T *p40; char pad3[0xC]; int n50; };
 void UpdateBhvanim(struct S *p);
 qword func_001A62E8(void *p);
-void func_0020C6F8(void *p, qword q);
+void SetLeapTarget(void *p, qword q);
 /** @sly2-annot addr=0x175258
  * Purpose: BHVSTRIKE Update: BHVANIM update; while leap enabled keep the leap target on the victim
  * Info: proposed name UpdateBhvstrike (T1); class BHVSTRIKE slot10; TU guardbhv
@@ -685,7 +685,7 @@ void func_0020C6F8(void *p, qword q);
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void UpdateBhvstrike(struct S *p) { UpdateBhvanim(p); if (!p->p40 || !p->p40->p8) p->n50 = 0; if (p->n50) { struct T *t = p->p40; func_0020C6F8(t->p8, func_001A62E8(p->p38)); } }
+void UpdateBhvstrike(struct S *p) { UpdateBhvanim(p); if (!p->p40 || !p->p40->p8) p->n50 = 0; if (p->n50) { struct T *t = p->p40; SetLeapTarget(t->p8, func_001A62E8(p->p38)); } }
 } } // namespace M_UpdateBhvstrike
 
 // 0x1752C0 CloseBhvstrike
@@ -714,7 +714,7 @@ struct P { char pad[8]; int n8; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; struct P *p40; char pad3[0xC]; int n50; };
 int func_00209518(void *p);
 int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm);
-void func_0020C760(int n);
+void ReleaseLeapConstraint(int n);
 /** @sly2-annot addr=0x1752F0
  * Purpose: BHVSTRIKE message handler: ASEG events 0x2D/0x2E open/close the hit window (+0xF3C), 0x30 releases
  *   the leap; else BHVANIM
@@ -729,7 +729,7 @@ int BHVSTRIKE_FHandleMessage(struct S *p, int msg, struct M *pm) {
         switch (pm->n8) {
         case 0x2D: p->pt->nF3C = 1; return 1;
         case 0x2E: p->pt->nF3C = 0; return 1;
-        case 0x30: p->n50 = 0; func_0020C760(p->p40->n8); return 1;
+        case 0x30: p->n50 = 0; ReleaseLeapConstraint(p->p40->n8); return 1;
         }
     }
     return BHVANIM_FHandleMessage(p, msg, pm);
@@ -1099,7 +1099,7 @@ static inline qword QwSub(qword qw0, qword qw1)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
-/* the second "j"(v) is allocation-only (same helper as HeroInteractDistance): it fixes the from/to lqc2 reloads */
+/* the second "j"(v) is allocation-only (same helper as GetHeroInteractDistance): it fixes the from/to lqc2 reloads */
 static inline qword QwLengthXY(qword v)
 {
     qword qw;
@@ -1882,8 +1882,8 @@ void SetBhvguardMode(S*,STATE*);
 qword func_001A62E8(void*);M4*func_001A6318(void*);
 qword ConvertAloVec(void*,void*,qword);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
-void func_001B9DB8(OBJECT*,qword);
-void func_001B9D28(OBJECT*,qword);
+void SpawnMurrayHitEffectUnchecked(OBJECT*,qword);
+void SpawnMurrayHitEffect(OBJECT*,qword);
 OBJECT*func_00156698(void*,qword,OBJECT*);
 void SetStepguardSpecial(OBJECT*,int);
 void func_001F7A68(OBJECT*,int);
@@ -1933,7 +1933,7 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
  MSG*selected=msg;
  if(Accept(p->actor,msg)){
   if(D_002F7900&&msg->data.object==D_002F7900&&msg->data.kind==0x40000&&msg->data.object->notifyEnabled)
-   func_001B9DB8(D_002F7900,func_001A62E8(p->actor));
+   SpawnMurrayHitEffectUnchecked(D_002F7900,func_001A62E8(p->actor));
   if(msg->data.kind==0x40000){void*context=(*(void * *)&g_sw.apstimk[3]);qword position=func_001A62E8(p->actor);(void)func_00156698(context,position,p->actor);}
   Clear(&w.next);w.next.kind=11;w.next.msg=*msg;w.next.msg.data.flags=0x40;
   SetBhvguardMode(p,&w.next);return 1;
@@ -2045,7 +2045,7 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
   p->current.kind=-1;SetBhvguardMode(p,&w.next);
  }
 finish:
- if(D_002F7900&&selected->data.kind==0x20000)func_001B9D28(D_002F7900,func_001A62E8(p->actor));
+ if(D_002F7900&&selected->data.kind==0x20000)SpawnMurrayHitEffect(D_002F7900,func_001A62E8(p->actor));
  return 1;
  }
  return BHV_FHandleMessage(p,event,msg);
@@ -3299,7 +3299,7 @@ MATRIX3 *func_001A6318(ACTOR *);
 void SetAsegaSpeed__FP5ASEGAf(void *, float);
 float atan2f(float, float);
 void SetStepguardMoverRadTarget(void *, float);
-void func_0020CB28(CONTROL *, qword);
+void SelectDirAnim(CONTROL *, qword);
 }
 static inline VU_FLOAT VuFloat(float g)
 {
@@ -3457,7 +3457,7 @@ extern "C" void UpdateBhvwalkpath(P *p)
                 __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
                 __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwDir) : "j"(qwLocal));
             }
-            func_0020CB28(pchoice->control, QwScaleX(qwDir, vuSpeed));
+            SelectDirAnim(pchoice->control, QwScaleX(qwDir, vuSpeed));
             SetAsegaSpeed__FP5ASEGAf(pchoice->control->animation, g);
             break;
         }
@@ -3566,7 +3566,7 @@ void SetStepguardMoverRadTarget(void *p, float f);
 float RadNormalize__Ff(float f);
 qword SetVectorCylind(float a, float b, float c);
 qword func_001A62E8(void *p);
-void func_0020C6F8(void *p, qword v);
+void SetLeapTarget(void *p, qword v);
 void func_0020AB68(struct A *a, int b, int c, qword v);
 void SetBhvBusy(struct S *p);
 void func_00156C80(struct G *g, int n, qword v, struct A *a, void *q);
@@ -3610,7 +3610,7 @@ void StartBhvhit(struct S *p) {
         qword pos = func_001A62E8(p->p10);
         qword s;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(pos), "j"(r));
-        func_0020C6F8(p->p40->p8, s);
+        SetLeapTarget(p->p40->p8, s);
     }
     func_0020AB68(p->p10, 0, 0, D_002A2DD0);
     if (p->n30 == 0) SetBhvBusy(p);
@@ -4186,7 +4186,7 @@ extern "C"{
  void StartBhvanim(C*);
  void SetStepguardMoverRadTarget(CONTROL*,float);
  void func_00209840(CONTROL*,M3*);
- void func_0020C6F8(INFO*,qword);
+ void SetLeapTarget(INFO*,qword);
  void SetBhvBusy(C*);
 }
 static inline CONTROL*Control(P*p){return (CONTROL*)((char*)p+0xFD0);}
@@ -4315,7 +4315,7 @@ extern "C" void StartBhvleap(C*p){
   p->driver->info->extra=p->extra;
   p->driver->info->target=p->target;
   p->driver->info->reverse=p->reverse;
-  func_0020C6F8(p->driver->info,p->point.q);
+  SetLeapTarget(p->driver->info,p->point.q);
  }
  SetBhvBusy(p);
 }

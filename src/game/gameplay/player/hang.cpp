@@ -80,7 +80,7 @@ M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 M3P func_0011B500(qword,float);
 qword func_0011BFF0(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void func_00204660(JT*,float);float atan2f(float,float);
-void SetJtJts__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void func_001F5078(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
+void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void func_001F5078(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
 float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001384C0(ANIMATION*);float GLimitAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
 void VECTOR_opAssign(qword*,qword);
@@ -504,7 +504,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
    bool fast=VuToFloat(magnitude)>limit;if(fast)next=1;}
   break;
  }
- SetJtJts__FP2JT3JTS4JTBS(p,3,next);CalculateJtHangAccel__FP2JT(p);
+ SetJtState__FP2JT3JTS4JTBS(p,3,next);CalculateJtHangAccel__FP2JT(p);
  if(p->link)func_001F5078(p->link->object);
  if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&Can(p,3)){ClearPoctlJoyPressed(p->input,0x400);StartJtMode(p->action,0,0,0);}
  if(p->state==3)return;

@@ -169,11 +169,11 @@ struct LOREF
 
 int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("func_0019C8D0");
 
-int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("func_00194558");
+int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("CanJtUseGadgetInGrab");
 
 int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("CanJtUseGadgetOnPipe");
 
-bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("FStepplayerInJtmode");
+bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("IsStepplayerInJtMode");
 
 struct PROXYSPARE
 {
@@ -275,7 +275,7 @@ extern "C" void UpdateJtThrow(JTTHROW *pjtthrow);
 
 extern "C" void UpdateJtActivePipe(JTPIPE *pjtpipe);
 
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
+void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");
 
 struct XPD
 {
@@ -431,7 +431,7 @@ void SetJtModeState(JTMODE *pjtmode, int nState);
 
 void SetJtPipeState(JTPIPE *pjtpipe, int nState) __asm__("SetJtPipeState");
 
-void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("func_00195FB8");
+void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("SetJtAirState");
 
 struct TRI3
 {
@@ -586,11 +586,11 @@ extern void PostJtLoadSwing(void *p, void *a, void *b);
 extern int func_0012DBB0(void *p, int a, int b);
 extern int func_0012DC18(void *p, int a, int b, int c, int d, qword q);
 extern void func_00230100(void *p, int a, int b);
-extern void func_001426E8(void *p, int a);
-extern void func_0018B348(void *p);
+extern void AttachStepplayerToStartMarker(void *p, int a);
+extern void CacheJtRestPose(void *p);
 extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g);
 extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void SetLoBusyk(void *p, int a);
 extern int func_001F0380(int a, int b, int c, int d);
 extern char D_002BF1B0[];
@@ -635,8 +635,8 @@ void PostJtLoad(char *p)
     n = func_0012DC18(p, F(int, 0x19C0), 5, 5, 2, D_002A2DD0);
     F(int, 0x1A00) = n;
     func_00230100(p, F(int, 0x19C0), n);
-    func_001426E8(p, 0x17);
-    func_0018B348(p);
+    AttachStepplayerToStartMarker(p, 0x17);
+    CacheJtRestPose(p);
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A04), 0, 0, 0, A(0x1A1C));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A20), 0, 0, 0, A(0x1A38));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A3C), 0, 0, 0, A(0x1A54));
@@ -646,7 +646,7 @@ void PostJtLoad(char *p)
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, A(0x2014), 0, 0, 0, A(0x2038));
     F(int, 0x1804) = F(int, 0x19A4);
     InitJtHands__FP7JTHANDSP2SOPP5ASEGA(A(0x17D0), p, A(0x18E0));
-    SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
+    SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
     SetLoBusyk(p, 1);
     if (F(int, 0x1D24))
         F(int, 0x1D28) = func_001F0380(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
@@ -655,7 +655,7 @@ void PostJtLoad(char *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00188960 {
-// func_00188960 (Claude agent, lane G9, 2026-10-24): MATCH, no register pins, VU helper asms only (Lilly style).
+// PresetJtAccel (Claude agent, lane G9, 2026-10-24): MATCH, no register pins, VU helper asms only (Lilly style).
 // Keys: the 0x20 stack slot is the by-value VU_FLOAT temporary (not a WORK field); WORK = {a, b} at 0x0/0x10 shared by cases 14 and 24; Reject = QwProjectOut.
 
 typedef int qword __attribute__((mode(TI)));
@@ -702,7 +702,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_00188960(P*p){
+extern "C" void PresetJtAccel(P*p){
  WORK w;
  switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:PresetStepAccel(p);break;}
  switch(p->mode){
@@ -801,7 +801,7 @@ static __inline__ float GLimLo(float g, float lo, float v)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_00188CC8(struct O *p, struct A *pa, void *pv)
+void AdjustJtXp(struct O *p, struct A *pa, void *pv)
 {
     AdjustStepNewXp(p, pa, pv);
     switch (p->n18C8) {
@@ -865,7 +865,7 @@ static __inline__ qword VCross(qword a, qword b)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_00188E78(void *p, struct E *ae, int i)
+void AdjustJtXpVelocity(void *p, struct E *ae, int i)
 {
     struct E *pe;
     struct PO *po;
@@ -901,19 +901,19 @@ extern char D_002BF2B8[];
 
 extern void HandleStepplayerMessage(void *p, int msg, void *pv);
 extern void SetJtCaneState__FP2JTi(void *p, int n);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00131B10(void *a, void *p, int c);
 extern void func_00131B60(void *a, void *p, int c, void *d);
 extern qword func_001A62E8(void *p);
 extern void *PickpocketStepguard(void *a, qword q);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
-extern void func_001424E0(void *p, int oid, void *pv, int n);
+extern void StartStepplayerGrabStateC(void *p, int oid, void *pv, int n);
 extern void *func_00205458(void *p, int n);
 extern void SetBhvjuggledState(void *p, int n);
 extern void EmitSwNoise(void *p, int a, qword q, void *c);
-extern void func_00195A00(void *p, int a, int b, int c);
-extern void func_0018D698(void *p, E *pe, void *c);
+extern void SetJtAirJump(void *p, int a, int b, int c);
+extern void SetGadgetRecordObject(void *p, E *pe, void *c);
 
 
 static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
@@ -943,7 +943,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
         switch (F(int, 0x18C8)) {
         case 9:
         case 0xB:
-            SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
+            SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
             break;
         case 7:
         case 0x15:
@@ -951,7 +951,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
             break;
         case 5:
 
-            if (F(int, 0x18D0) < 10) { if (F(int, 0x18D0) >= 8) SetJtJts__FP2JT3JTS4JTBS(p, 5, 4); }
+            if (F(int, 0x18D0) < 10) { if (F(int, 0x18D0) >= 8) SetJtState__FP2JT3JTS4JTBS(p, 5, 4); }
 
             break;
         }
@@ -981,10 +981,10 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 if (F(int, 0x18EC)) {
                     switch (F(int, 0x18D8)) {
                     case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
-                        SetJtJts__FP2JT3JTS4JTBS(p, 5, 6);
+                        SetJtState__FP2JT3JTS4JTBS(p, 5, 6);
                         break;
                     case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
-                        SetJtJts__FP2JT3JTS4JTBS(p, 5, 7);
+                        SetJtState__FP2JT3JTS4JTBS(p, 5, 7);
                         break;
                     }
                 }
@@ -995,7 +995,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
                     if (po && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5B) && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5D)) {
                         int oid = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
                         F(void *, 0x1BCC) = po;
-                        func_001424E0(p, oid, po, -1);
+                        StartStepplayerGrabStateC(p, oid, po, -1);
                     }
                 }
                 break;
@@ -1031,17 +1031,17 @@ void HandleJtMessage(char *p, int msg, void *pv)
         case 3:
         case 0x16:
             if (F(void *, 0x18C4) == pv)
-                func_00195A00(A(0x2C0), 0, 0, 0);
+                SetJtAirJump(A(0x2C0), 0, 0, 0);
             break;
         case 7:
             if (F(int, 0x4C8) < 5) { if (F(int, 0x4C8) >= 3 && F(void *, 0x4D4) == pv)
-                func_00195A00(A(0x2C0), 0, 0, 0); }
+                SetJtAirJump(A(0x2C0), 0, 0, 0); }
             break;
         }
         pe = (E *)A(0x1FB0);
         for (i = 0; i < 4; i++, pe++) {
             if (pe->x8 == pv)
-                func_0018D698(p, pe, 0);
+                SetGadgetRecordObject(p, pe, 0);
         }
         break;
     }
@@ -1056,16 +1056,16 @@ void HandleJtMessage(char *p, int msg, void *pv)
         if (k & 2) {
             switch (F(int, 0x18D8)) {
             case 4: case 6: case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
-                SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
+                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
                 SetJtCaneState__FP2JTi(p, 8);
                 break;
             case 5: case 7: case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
-                SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
+                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
                 SetJtCaneState__FP2JTi(p, 9);
                 break;
             }
         } else if (k & 4) {
-            SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
+            SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
             SetJtCaneState__FP2JTi(p, 8);
         }
         break;
@@ -1076,14 +1076,14 @@ void HandleJtMessage(char *p, int msg, void *pv)
 
 /** @sly2-annot addr=0x189458
  * Purpose: JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1
- * Info: proposed name JT_FFaceTarget (T1); class JT slot92; TU jt
+ * Info: proposed name TryFaceJtAttachedObject (T1); class JT slot92; TU jt
  * Notes: verifier PLAUSIBLE: JT::FMatchAttached -> JT::FFaceTarget (vt92) | verifier: purpose partly wrong:
  *   JT slot 92 (MURRAY returns 0, BENTLEY no-op). If ploUnk18c0: 0x2046F0 = atan2 of (target pos - own pos)
  *   -> 0x204660 sets heading angle + Z rotation, i.e. turn t
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" int JT_FFaceTarget(JT *pjt)
+extern "C" int TryFaceJtAttachedObject(JT *pjt)
 {
     LO *plo;
     int f;
@@ -1099,16 +1099,16 @@ extern "C" int JT_FFaceTarget(JT *pjt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189488 { extern "C" {
 struct S { char pad[0x18C8]; int n; };
-int func_001409B8(struct S *p);
+int StepplayerVirtual98(struct S *p);
 /** @sly2-annot addr=0x189488
  * Purpose: JT vt98: base 0x1409B8; if -1, return 1 for jts 1/5/6/9 else -1
  * Info: proposed name JT_vt98 (T2); class JT slot98; TU jt
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_00189488(struct S *p)
+int JtVirtual98(struct S *p)
 {
-    int r = func_001409B8(p);
+    int r = StepplayerVirtual98(p);
     if (r != -1) return r;
     switch (p->n) {
     case 1: case 5: case 6: case 9:
@@ -1127,7 +1127,7 @@ struct S { char pad[0x18C8]; int n; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_001894F8(struct S *p)
+int IsJtFreeMoving(struct S *p)
 {
     switch (p->n) {
     case 0: case 1: case 5: case 10: case 12: case 24:
@@ -1154,7 +1154,7 @@ static __inline__ void Call(struct O *o, int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_00189530(struct S *p, int f)
+void SetJtPlayable(struct S *p, int f)
 {
     func_00205D10(p, f);
     if (f) {
@@ -1508,7 +1508,7 @@ namespace M_RebuildJtXmg {
 // the record's goal XF (the heel's IK handle). posExtrem = the ball lowered by sRadius (5: ball to sole) along g_normalZ; the sphere the foot can reach is centred on posSphere = the
 // hip + (posExtrem - the handle's goal point) with the radius sSphere = both bones of the leg + 10; the vertical line posExtrem + g_normalZ * 50 .. posExtrem - g_normalZ * 50 is clipped to
 // that sphere (0x14C748, ClsgClipEdgeToSphere's Sly 2 form: the first piece goes to posUp / posDown, fValid = it hit) and posSphereLow = the sphere's lowest point (Sly 2 only).
-// UpdateJtStand (every frame, the two feet) and JT::VUnk15 call it; FMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
+// UpdateJtStand (every frame, the two feet) and JT::VUnk15 call it; TryMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
 // Match notes (decomp/learnings.md "T1460"): the two pool constants are `extern int` words read with VuFloatFromMemWord(D) (by-value param); the source order that keeps the game's
 // schedule is "sphere centre store, radius store, then the two constants, then the two QwAddScaled into locals, then the call", and the posExtrem store before the two clip stores.
 inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
@@ -1656,18 +1656,18 @@ void FFilterSoPair();
 extern char D_003DD490[];
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
-int FMatchJtXmg(O *p, M *pm, void *px);
+int TryMatchJtXmg(O *p, M *pm, void *px);
 }
 static inline qword VMin(qword a, qword b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VMax(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x189EC8
  * Purpose: Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target
- * Info: proposed name FMatchJtXmg (T1); TU jt
+ * Info: proposed name TryMatchJtXmg (T1); TU jt
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int FMatchJtXmg(O *p, M *pm, void *px)
+int TryMatchJtXmg(O *p, M *pm, void *px)
 {
     if (pm->x4) {
         HIT hit;
@@ -1712,17 +1712,17 @@ struct S {
     char x1520[0x100]; char x1620[0x3B4]; int x19d4, x19d8, x19dc, x19e0; char p6[0xC]; int x19f0, x19f4;
 };
 extern struct CLOCK D_002DDED0;
-int func_001430C8(struct S *p);
+int GetStepplayerLeanFlags(struct S *p);
 void SetSmaMask(void *p, int n);
 float GLimitAbs__Fff(float g, float h);
 void func_00204660(struct S *p, float g);
 void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
-int FMatchJtXmg(struct S *p, void *pv, int n);
+int TryMatchJtXmg(struct S *p, void *pv, int n);
 int IsmsFindSmOptional__FP2SM3OID(void *p, int n);
 void SnapSma(void *p, int n);
 /** @sly2-annot addr=0x18A0C8
  * Purpose: Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620),
- *   FMatchJtXmg
+ *   TryMatchJtXmg
  * Info: proposed name UpdateJtStand (T1); TU jt
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
@@ -1730,7 +1730,7 @@ void SnapSma(void *p, int n);
 void UpdateJtStand(struct S *p)
 {
     struct VTE *e;
-    SetSmaMask(p->x1034, func_001430C8(p));
+    SetSmaMask(p->x1034, GetStepplayerLeanFlags(p));
     e = &p->vt[92];
     if (!((int (*)(void *))e->pfn)((char *)p + e->d) && p->pt208) {
         struct O *o = p->pt208->po;
@@ -1743,7 +1743,7 @@ void UpdateJtStand(struct S *p)
     if (p->x19f0) {
         RebuildJtXmg(p, p->x19d8, p->x19e0, p->x19f0, 5.0f, p->x1520);
         RebuildJtXmg(p, p->x19d4, p->x19dc, p->x19f4, 5.0f, p->x1620);
-        if ((!FMatchJtXmg(p, p->x1520, p->x19f0) || !FMatchJtXmg(p, p->x1620, p->x19f4)) &&
+        if ((!TryMatchJtXmg(p, p->x1520, p->x19f0) || !TryMatchJtXmg(p, p->x1620, p->x19f4)) &&
             !p->x1514 && p->x1028) {
             if (IsmsFindSmOptional__FP2SM3OID(p->x1028, 0x17C) >= 0) SnapSma(p->x1034, 0x17C);
             p->x1514 = 1;
@@ -1779,7 +1779,7 @@ void func_001F3980(struct S *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A278(struct S *p)
+void UpdateJtWorldTransform(struct S *p)
 {
     p->b = func_001A62E8(p->x19a4);
     p->n = 0;
@@ -1806,7 +1806,7 @@ void ExtendSoTreeBounds(struct S *p, qword q, float g);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A2E0(struct S *p)
+void UpdateJtExtraEntries(struct S *p)
 {
     int i;
     UpdateSoTreeBounds(p);
@@ -1822,7 +1822,7 @@ typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
 struct S { char pad[0x18C4]; void *p18c4; int n; };
 qword func_001A62E8(void *p);
-void GetStepplayerCmFocusPos(struct S *p, UV *pv);
+void GetStepplayerCameraFocusPosition(struct S *p, UV *pv);
 static __inline__ float GetZ(qword q)
 {
     float z;
@@ -1836,22 +1836,22 @@ static __inline__ float GetZ(qword q)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A350(struct S *p, UV *pv)
+void GetJtCameraTarget(struct S *p, UV *pv)
 {
     switch (p->n) {
     case 3:
-        GetStepplayerCmFocusPos(p, pv);
+        GetStepplayerCameraFocusPosition(p, pv);
         pv->v.z = GetZ(func_001A62E8(p->p18c4)) + -175.0f;
         break;
     case 0x16:
-        GetStepplayerCmFocusPos(p, pv);
+        GetStepplayerCameraFocusPosition(p, pv);
         pv->v.z = GetZ(func_001A62E8(p->p18c4)) + -100.0f;
         break;
     case 0x15:
         pv->q = func_001A62E8(p);
         break;
     default:
-        GetStepplayerCmFocusPos(p, pv);
+        GetStepplayerCameraFocusPosition(p, pv);
         break;
     }
 }
@@ -1870,7 +1870,7 @@ void GetJtPipeVelocity(void *p, int *pf);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A428(struct S *p, int *pf)
+void GetJtCpdefi(struct S *p, int *pf)
 {
     if (p->n != 0 && p->n != 0x12 && p->x4cc && p->xf54 != 1)
         p->t = D_002DDED0.t;
@@ -1934,7 +1934,7 @@ static __inline__ qword OffsetSub(const M*m,const VU*scalar,const VU*base){
  * Notes: descriptive only: (JT curve/rail helper) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
  * @end-sly2-annot */
-extern "C" void func_0018A4E8(S *ps, R *pr)
+extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
 {
     float g;register float lift __asm__("$f1"),height __asm__("$f0");
     WORK w;
@@ -2089,10 +2089,10 @@ typedef char SMP_Alignment[__alignof__(SMP)==4?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_JtChooseGroundState {
-// JtChooseGroundState: ported from Lilly's personal Sly 2 decomp (src/P2/jtground.c), reduced to the declarations it needs.
+// ChooseJtGroundState: ported from Lilly's personal Sly 2 decomp (src/P2/jtground.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002BF354 (D_002BF354), D_002BF360 (D_002BF360), D_002BF364 (D_002BF364), D_002BF370 (D_002BF370), D_002DDED0 (g_clock), D_002A2DC0 (g_normalZ)
-// 0x0018A8C8 JtChooseGroundState (curated name)
+// 0x0018A8C8 ChooseJtGroundState (curated name)
 inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
 {
     qword qwResult;
@@ -2166,18 +2166,18 @@ extern "C" {
 void UpdateJtGrabInput(JTGRAB *pjtgrab);
 }
 extern "C" {
-int GetHeroMp(STEPPLAYER *pstepplayer) __asm__("MpStepplayerCur");
+int GetHeroMp(STEPPLAYER *pstepplayer) __asm__("GetStepplayerMp");
 }
 extern "C" {
-uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GrfbtnGadget");
+uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
 }
 extern "C" {
-int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis) __asm__("FStepplayerNearInteractTarget");
+int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis) __asm__("IsStepplayerNearInteractTarget");
 }
 extern "C" {
 qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity) __asm__("func_001D6848");
 }
-int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
+int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("TryGrabJtNearestCandidate");
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 extern "C" float D_002BF354;
 extern "C" float D_002BF360;
@@ -2208,15 +2208,15 @@ static inline qword QwRotateVecAt(MATRIX3 *pmat, qword *pqwVec)
             : "j"(*pqwVec), "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]));
     return qwResult;
 }
-extern "C" void JtChooseGroundState(JT *pjt) __asm__("JtChooseGroundState");
+extern "C" void ChooseJtGroundState(JT *pjt) __asm__("ChooseJtGroundState");
 /** @sly2-annot addr=0x18A8C8
  * Purpose: Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor
- * Info: proposed name JtChooseGroundState (T1); TU jt
+ * Info: proposed name ChooseJtGroundState (T1); TU jt
  * Notes: runtime2: run(1) with grfbtn 0x8 / walk(12) / fight stance(5) choices observed
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void JtChooseGroundState(JT *pjt)
+extern "C" void ChooseJtGroundState(JT *pjt)
 {
     JTS jtsOld;
     JTBS jtbsOld;
@@ -2520,7 +2520,7 @@ extern "C" void JtChooseGroundState(JT *pjt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018B2C0 { extern "C" {
 struct S { char pad[0x150]; void *p150; char p1[0xDAC]; int xf00; int xf04; char p2[0x18]; int xf20; char p3[0xE1C]; int x1d40; };
-int FStepplayerInJtmode(struct S *p);
+int IsStepplayerInJtMode(struct S *p);
 int GrfConsumePressed__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
@@ -2531,9 +2531,9 @@ void UpdateJtMode(void *p);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018B2C0(struct S *p)
+void UpdateJtModeInput(struct S *p)
 {
-    if (FStepplayerInJtmode(p)) {
+    if (IsStepplayerInJtMode(p)) {
         if (p->xf04 == 1 && !p->xf20 &&
             GrfConsumePressed__5POCTLUif(p->p150, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
             EndJtMode(&p->xf00);
@@ -2569,7 +2569,7 @@ static __inline__ qword Mul(MATRIX4 *pm, qword v)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018B348(struct O *p)
+void CacheJtRestPose(struct O *p)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
@@ -2635,7 +2635,7 @@ static inline float CorrectionDistance(struct P*p,qword correction){
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018B460(struct P*p){
+void UpdateJtAttachCorrection(struct P*p){
  struct WORK w;register float ratio __asm__("$f20");{register float height __asm__("$f0")=p->height,base __asm__("$f1")=p->model->base,scale __asm__("$f2")=p->model->scale;height=height-base;__asm__("div.s %0,%1,%2":"=f"(ratio):"f"(height),"f"(scale));}
  if(p->owner&&p->owner->aim){
  float zero=0.0f;
@@ -2819,15 +2819,15 @@ extern float D_002BF3CC;
 extern float D_002BF35C;
 float RadStepHeading(struct P*);float RadNormalize__Ff(float);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void*,struct P*,unsigned int);
-void func_0018B2C0(struct P*);void JtChooseGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
+void UpdateJtModeInput(struct P*);void ChooseJtGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
 struct BINDING*func_0012FF10(void*,struct P*,void*,int);
 void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void func_00137218(void*);
-void UpdateDirectionalAcceleration(struct P*,void*,int,float,float);void func_0018B460(struct P*);
+void UpdateDirectionalAcceleration(struct P*,void*,int,float,float);void UpdateJtAttachCorrection(struct P*);
 void UpdateGaitBlend(void*,float);void FaceStepToward(struct P*,void*);
 qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
-int FPowerupAcquired(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
+int FPowerupAcquired(int);void UpdateJtFaceTarget(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
 void SetAsegaSpeed__FP5ASEGAf(struct MODEL*,float);void func_00204660(struct P*,float);
-void DrainStepplayerMp(struct P*,float);void SetJtJts__FP2JT3JTS4JTBS(struct P*,int,int);
+void DrainStepplayerMp(struct P*,float);void SetJtState__FP2JT3JTS4JTBS(struct P*,int,int);
 float GLimitAbs__Fff(float,float);void func_001384C0(void*);
 void UpdateJtActiveZap(void*);void UpdateJtPlaces(struct P*);int FAsegaRetracted(void*);void func_001306A8(void**);
 static inline void*At(struct P*p,int offset){return(char*)p+offset;}
@@ -2860,7 +2860,7 @@ static inline void PrepareAnimation(struct P*p,U*u,struct MODEL**modelOut,struct
 static inline float Z(qword q){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(q));return r;}
 /** @sly2-annot addr=0x18B7E8
  * Purpose: Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input,
- *   JtChooseGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
+ *   ChooseJtGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
  * Info: proposed name UpdateJtPre (T1); TU jt
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
@@ -2869,7 +2869,7 @@ void UpdateJtPre(struct P*p){
  union PHASE phase;U scalar;float initialHeading;
  initialHeading=RadStepHeading(p);(void)RadNormalize__Ff(p->state->heading-initialHeading);
  GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490,p,0xFFFF);
- func_0018B2C0(p);JtChooseGroundState(p);UpdateJtActiveCane__FP2JT(p);
+ UpdateJtModeInput(p);ChooseJtGroundState(p);UpdateJtActiveCane__FP2JT(p);
  switch(p->mode){
  case 4:case 9:{
   struct MODEL*m=p->model;struct BINDING*b;p->velocity=D_002A2DD0;
@@ -2882,7 +2882,7 @@ void UpdateJtPre(struct P*p){
  case 7:UpdateJtActiveHide(At(p,0x4C0));break;
  case 6:func_00137218(At(p,0x1FF0));break;
  case 10:UpdateDirectionalAcceleration(p,At(p,0x1AC0),p->axesBEnabled,p->state->heading,p->state->amount);break;
- case 11:func_0018B460(p);break;
+ case 11:UpdateJtAttachCorrection(p);break;
  case 12:UpdateGaitBlend(At(p,0x1C30),p->state->amount);func_00204660(p,p->state->heading);break;
  case 5:switch(p->submode){
   case 4:if(p->owner)FaceStepToward(p,p->owner);break;
@@ -2890,7 +2890,7 @@ void UpdateJtPre(struct P*p){
   case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=ConvertAloVec(0,p,phase.direction);break;
  }break;
  case 16:
-  if(FPowerupAcquired(0x1C))func_0018E1E0(p);
+  if(FPowerupAcquired(0x1C))UpdateJtFaceTarget(p);
   else if(p->enabled){struct BINDING*b=func_0012FF10(p->table,p,(void*)1,1);if(b){ReadBinding(b,p->model,&phase.direction);p->velocity=SecondNegative(&phase.direction,&scalar,-1.0f);}}
   break;
  case 19:p->velocity=NegativeModelNative(p,&phase.scalar);break;
@@ -2899,7 +2899,7 @@ void UpdateJtPre(struct P*p){
  case 24:{
   register float one __asm__("$f20");register float weight __asm__("$f1");qword velocity;struct VTE*entry;
   DrainStepplayerMp(p,D_002BF3C4);
-  if(p->submode==12){float angle=RadNormalize__Ff(RadStepHeading(p)-p->heading);if(__builtin_fabsf(angle)<D_002BF3C8)SetJtJts__FP2JT3JTS4JTBS(p,24,13);}
+  if(p->submode==12){float angle=RadNormalize__Ff(RadStepHeading(p)-p->heading);if(__builtin_fabsf(angle)<D_002BF3C8)SetJtState__FP2JT3JTS4JTBS(p,24,13);}
   else func_00204660(p,p->state->heading);
   one=1.0f;entry=&p->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)p+entry->delta);
   weight=D_002BF3CC*GLimitAbs__Fff(Z(velocity)/(p->factor*D_002BF35C),one);
@@ -2975,16 +2975,16 @@ extern void UpdateDirectionalBlend(void *p, void *a, void *animation);
 extern void UpdateJtStand(void *p);
 extern void UpdateJtHangIkGoals__FP2JT(void *p);
 extern void func_00185E40(void *p);
-extern void func_0018DF60(void *p);
+extern void UpdateJtSmoothing(void *p);
 
 extern void RebuildJtXmg(void *p, void *a, float g, void *geometry, void *response, void *d);
 #define C40(p,a,b,c,d,g) RebuildJtXmg(p,a,g,b,c,d)
 
-extern int FMatchJtXmg(void *p, void *a, void *response);
+extern int TryMatchJtXmg(void *p, void *a, void *response);
 extern void UpdateJtCane__FP2JT(void *p);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern void FindShapeClosestPointFromS(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern qword func_001A62E8(void *p);
 extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction);
 extern void UpdateJtLean__FP2JT(void *p);
@@ -3065,14 +3065,14 @@ void UpdateJt(char *p)
         func_00185E40(p);
         break;
     case 0x16:
-        func_0018DF60(p);
+        UpdateJtSmoothing(p);
         break;
     case 0x18:
         if (F(void *, 0x19F0)) {
             C40(p, F(void *, 0x19D8), F(void *, 0x19E0), F(void *, 0x19F0), A(0x1520), D_002BF3DC);
             C40(p, F(void *, 0x19D4), F(void *, 0x19DC), F(void *, 0x19F4), A(0x1620), D_002BF3DC);
-            (void)FMatchJtXmg(p, A(0x1520), F(void *, 0x19F0));
-            (void)FMatchJtXmg(p, A(0x1620), F(void *, 0x19F4));
+            (void)TryMatchJtXmg(p, A(0x1520), F(void *, 0x19F0));
+            (void)TryMatchJtXmg(p, A(0x1620), F(void *, 0x19F4));
         }
         break;
     }
@@ -3084,7 +3084,7 @@ void UpdateJt(char *p)
                 FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, F(float, 0x1858));
             goto loop;
         L16:
-            SetJtJts__FP2JT3JTS4JTBS(p, 0x16, -1);
+            SetJtState__FP2JT3JTS4JTBS(p, 0x16, -1);
             goto end;
         } else {
             qword q;
@@ -3107,11 +3107,11 @@ void UpdateJt(char *p)
                     F(struct X1854 *, 0x18C4) = po;
                     if (po->x124 == 3)
                         goto L16;
-                    SetJtJts__FP2JT3JTS4JTBS(p, 3, 1);
+                    SetJtState__FP2JT3JTS4JTBS(p, 3, 1);
                 } else {
                     F(void *, 0xF5C) = F(void *, 0x1854);
                     F(float, 0xF60) = F(float, 0x1858);
-                    SetJtJts__FP2JT3JTS4JTBS(p, 8, -1);
+                    SetJtState__FP2JT3JTS4JTBS(p, 8, -1);
                 }
                 break;
             }
@@ -3142,7 +3142,7 @@ typedef char layout_TARGET_kind[((unsigned)&((struct X1854*)0)->x124==0x124)?1:-
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018C060 { extern "C" {
 struct S { char pad[0x2C0]; char x2c0[0x200]; char x4c0[0x60]; void *x520; char p1[0x8CC]; char xdf0[0x930]; void *a1720[0x6A]; int n; };
-void *func_001944C8(void *p, int *pn);
+void *GetJtGrabAdjustRecord(void *p, int *pn);
 void *GetJtHurtAdjustRecord(void *p, int *pn);
 void *func_0019C870(void *p, int *pn);
 void SetStepPhys(struct S *p, void *pv, int n);
@@ -3153,12 +3153,12 @@ void SetStepPhys(struct S *p, void *pv, int n);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018C060(struct S *p)
+void ApplyJtStateStepParams(struct S *p)
 {
     int n = 0;
     void *pv;
     switch (p->n) {
-    case 7: pv = func_001944C8(p->x4c0, &n); break;
+    case 7: pv = GetJtGrabAdjustRecord(p->x4c0, &n); break;
     case 4: pv = GetJtHurtAdjustRecord(p->xdf0, &n); break;
     case 2: pv = func_0019C870(p->x2c0, &n); break;
     case 21: case 22: pv = p->x520; break;
@@ -3176,7 +3176,7 @@ void func_0018C060(struct S *p)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 /* Shows (bit set) or hides each of the seven act5s by the bits of grf (bit 0x20 is +0x19FC, 0x40 +0x19F8). */
-extern "C" void func_0018C120(JT *pjt, int grf)
+extern "C" void EnableJtLeanActs(JT *pjt, int grf)
 {
     if (pjt->pact5Unk19e4 != 0) {
         if (grf & 1) func_0012CFE0(pjt->pact5Unk19e4); else func_0012D020(pjt->pact5Unk19e4);
@@ -3195,7 +3195,7 @@ extern "C" void func_0018C120(JT *pjt, int grf)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtJts__FP2JT3JTS4JTBS {
-// SetJtJts__FP2JT3JTS4JTBS: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
+// SetJtState: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0018C250 SetJtJts
@@ -3271,16 +3271,16 @@ extern "C" {
 void SetJtGrabKind(JTGRAB *pjtgrab, int nPhase);
 }
 extern "C" {
-void UpdateJtPounceArc(JT *pjt) __asm__("func_0018E1E0");
+void UpdateJtPounceArc(JT *pjt) __asm__("UpdateJtFaceTarget");
 }
 extern "C" {
 void JtHangFrame(JT *pjt, float *prad) __asm__("GetJtHangHeading__FP2JTPf");
 }
 extern "C" {
-int GrfJtLeanMask(STEPPLAYER *pstepplayer) __asm__("func_001430C8");
+int GrfJtLeanMask(STEPPLAYER *pstepplayer) __asm__("GetStepplayerLeanFlags");
 }
 extern "C" {
-void RollHeroIdleTimer(STEPPLAYER *pstepplayer) __asm__("func_00142880");
+void RollHeroIdleTimer(STEPPLAYER *pstepplayer) __asm__("ScheduleIdleTimer");
 }
 extern "C" {
 int FPowerUpAcquired(int ipowerup) __asm__("FPowerupAcquired");
@@ -3304,13 +3304,13 @@ extern "C" {
 void GuardCapVelocityForPounce(STEPGUARD *pguard) __asm__("func_00209EE0");
 }
 extern "C" {
-void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind) __asm__("func_00142868");
+void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind) __asm__("InitIdleTimer");
 }
 extern "C" {
-void SetJtUnk1d30(JT *pjt, int n) __asm__("func_0018DF50");
+void SetJtUnk1d30(JT *pjt, int n) __asm__("SetJtUnknown1D30");
 }
 extern "C" {
-void ClearGaitFootDown(GAIT *pgait) __asm__("func_0020BD68");
+void ClearGaitFootDown(GAIT *pgait) __asm__("ResetGaitFeet");
 }
 extern "C" {
 void PredictAsegEffect(float t, float svt, ASEG *paseg, ALO *palo, XF *pxfPart, XF *pxfRoot, MATRIX4 *pmat, int n) __asm__("func_001300B8");
@@ -3376,8 +3376,8 @@ static inline qword QwRotateVecV(qword qwVec, MATRIX3 *pmat)
 }
 void ChooseJtRushTarget(JT *pjt) __asm__("ChooseJtRushTarget__FP2JT");
 void ChooseJtSmashTarget(JT *pjt) __asm__("ChooseJtSmashTarget__FP2JT");
-void SetJtChannelMask(JT *pjt, uint grf) __asm__("func_0018C120");
-void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtJts__FP2JT3JTS4JTBS");
+void SetJtChannelMask(JT *pjt, uint grf) __asm__("EnableJtLeanActs");
+void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtState__FP2JT3JTS4JTBS");
 /** @sly2-annot addr=0x18C250
  * Purpose: Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state
  * Info: proposed name SetJtJts (T1); TU jt
@@ -3983,7 +3983,7 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_0018D500(struct S *p)
+int JtVirtual106(struct S *p)
 {
     int r = 1;
     if (p->n == r) return 0;
@@ -4006,7 +4006,7 @@ void JT::VUnk90()
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtPlayerState { extern "C" {
-void SetJtJts__FP2JT3JTS4JTBS(void *p, int n, int m);
+void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m);
 /** @sly2-annot addr=0x18D568
  * Purpose: JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8)
  * Info: proposed name SetJtPlayerState (T1); class JT slot88; TU jt
@@ -4016,15 +4016,15 @@ void SetJtJts__FP2JT3JTS4JTBS(void *p, int n, int m);
 void SetJtPlayerState(void *p, int n)
 {
     switch (n) {
-    case 0: SetJtJts__FP2JT3JTS4JTBS(p, 0, -1); break;
-    case 1: SetJtJts__FP2JT3JTS4JTBS(p, 2, -1); break;
-    case 2: SetJtJts__FP2JT3JTS4JTBS(p, 7, -1); break;
-    case 3: SetJtJts__FP2JT3JTS4JTBS(p, 4, -1); break;
-    case 4: SetJtJts__FP2JT3JTS4JTBS(p, 0x12, -1); break;
-    case 5: SetJtJts__FP2JT3JTS4JTBS(p, 0x13, -1); break;
-    case 6: SetJtJts__FP2JT3JTS4JTBS(p, 0x14, -1); break;
-    case 7: SetJtJts__FP2JT3JTS4JTBS(p, 0x17, -1); break;
-    case 8: SetJtJts__FP2JT3JTS4JTBS(p, 8, -1); break;
+    case 0: SetJtState__FP2JT3JTS4JTBS(p, 0, -1); break;
+    case 1: SetJtState__FP2JT3JTS4JTBS(p, 2, -1); break;
+    case 2: SetJtState__FP2JT3JTS4JTBS(p, 7, -1); break;
+    case 3: SetJtState__FP2JT3JTS4JTBS(p, 4, -1); break;
+    case 4: SetJtState__FP2JT3JTS4JTBS(p, 0x12, -1); break;
+    case 5: SetJtState__FP2JT3JTS4JTBS(p, 0x13, -1); break;
+    case 6: SetJtState__FP2JT3JTS4JTBS(p, 0x14, -1); break;
+    case 7: SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1); break;
+    case 8: SetJtState__FP2JT3JTS4JTBS(p, 8, -1); break;
     }
 }
 } } // namespace M_SetJtPlayerState
@@ -4062,7 +4062,7 @@ int GetJtPlayerState(struct S *p)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 /* Moves a pocket's subscription from its current object (+8) to plo. */
-extern "C" void func_0018D698(JT *pjt, JTPOCKET *ppocket, LO *plo)
+extern "C" void SetGadgetRecordObject(JT *pjt, JTPOCKET *ppocket, LO *plo)
 {
     LO *ploOld;
     ploOld = (LO *)ppocket->pcid100;
@@ -4080,11 +4080,11 @@ extern "C" void func_0018D698(JT *pjt, JTPOCKET *ppocket, LO *plo)
 namespace M_PgadrecFromJtGadget { extern "C" {
 /** @sly2-annot addr=0x18D6F8
  * Purpose: Return JT gadget record for gadget id 0x1A/0x25/0x26/0x29 (x1FB0/x1FBC/x1FC8/x1FD4)
- * Info: proposed name PgadrecFromJtGadget (T1); TU jt
+ * Info: proposed name GetJtGadgetRecord (T1); TU jt
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void *PgadrecFromJtGadget(char *p, int n)
+void *GetJtGadgetRecord(char *p, int n)
 {
     switch (n) {
     case 0x1A: return p + 0x1FB0;
@@ -4128,7 +4128,7 @@ extern CM D_002DDF40;
 extern float D_002BF3EC;
 extern float D_002BF3F0;
 int FPocketItemCarried(CID100 *pcid100) __asm__("func_00224590");
-extern "C" JTPOCKET *PgadrecFromJtGadget(JT *pjt, int idGadget);
+extern "C" JTPOCKET *GetJtGadgetRecord(JT *pjt, int idGadget);
 /** @sly2-annot addr=0x18D760
  * Purpose: Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket
  *   item)
@@ -4202,7 +4202,7 @@ int JT::FCanUseGadget(int idGadget)
         case 0x26:
         case 0x29:
         {
-            JTPOCKET *ppocket = PgadrecFromJtGadget(this, idGadget);
+            JTPOCKET *ppocket = GetJtGadgetRecord(this, idGadget);
             if (ppocket->pcid100)
             {
                 if (FPocketItemCarried(ppocket->pcid100))
@@ -4268,17 +4268,17 @@ extern void func_0014D1D0(void *p, int n, float g);
 extern void *PsndStartSound(int n);
 extern void SetSndSourceLo(void *p, int n);
 extern void RcPtr_Assign(void *p, void *pv);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void func_00195FB8(void *p, int a, int b);
-extern REC *PgadrecFromJtGadget(void *p, int n);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtAirState(void *p, int a, int b);
+extern REC *GetJtGadgetRecord(void *p, int n);
 extern void SetJtThrowState(void *p, int n);
 extern void SetJtGrabState(void *p, int a, int b, int c);
 extern OBJ *PloAcquireProxy(int oid, int n);
 extern int func_00224610(OBJ *p);
-extern void func_0018D698(void *p, REC *prec, OBJ *pobj);
-extern void GrfbtnGadget(void *p, int n);
+extern void SetGadgetRecordObject(void *p, REC *prec, OBJ *pobj);
+extern void GetGadgetButtonMask(void *p, int n);
 extern void func_0015C150(int x);
-extern void func_00195A00(void *p, int a, int b, int c);
+extern void SetJtAirJump(void *p, int a, int b, int c);
 extern void StartStepplayerGadget(void *p, int n);
 
 /** @sly2-annot addr=0x18DA48
@@ -4316,17 +4316,17 @@ void UseJtGadget(char *p, int n)
     }
     case 0x21:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 9, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, 9, -1);
         break;
     case 0x1B:
         ChargeGadgetMp(p, n);
-        func_00195FB8(A(0x2C0), 0x13, 0);
+        SetJtAirState(A(0x2C0), 0x13, 0);
         break;
     case 0x1A:
     case 0x25:
     case 0x26:
     case 0x29: {
-        REC *prec = PgadrecFromJtGadget(p, n);
+        REC *prec = GetJtGadgetRecord(p, n);
         OBJ *pobj;
         if ((unsigned int)(F(int, 0x11B4) - 4) < 3) {
             SetJtThrowState(A(0x11B0), 7);
@@ -4342,11 +4342,11 @@ void UseJtGadget(char *p, int n)
         pobj->x15C = prec->x0;
         if (func_00224610(pobj)) {
             pobj->x16C = p;
-            func_0018D698(p, prec, pobj);
+            SetGadgetRecordObject(p, prec, pobj);
         }
         F(OBJ *, 0x11C0) = pobj;
-        GrfbtnGadget(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 0x17, -1);
+        GetGadgetButtonMask(p, n);
+        SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1);
         SetJtThrowState(A(0x11B0), 4);
         break;
     }
@@ -4361,15 +4361,15 @@ void UseJtGadget(char *p, int n)
         break;
     case 0x18:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 6, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, 6, -1);
         break;
     case 0x19:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 0x18, 0xC);
+        SetJtState__FP2JT3JTS4JTBS(p, 0x18, 0xC);
         break;
     case 0x27:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 5, 9);
+        SetJtState__FP2JT3JTS4JTBS(p, 5, 9);
         break;
     case 0x28:
         ChargeGadgetMp(p, n);
@@ -4379,11 +4379,11 @@ void UseJtGadget(char *p, int n)
         if (F(int, 0x204C))
             func_0015C150(F(int, 0x204C));
         ChargeGadgetMp(p, n);
-        func_00195A00(A(0x2C0), 9, 0, 0);
+        SetJtAirJump(A(0x2C0), 9, 0, 0);
         break;
     case 0x1E:
         ChargeGadgetMp(p, n);
-        func_00195A00(A(0x2C0), 0xE, 0, 0);
+        SetJtAirJump(A(0x2C0), 0xE, 0, 0);
         break;
     default:
         StartStepplayerGadget(p, n);
@@ -4407,7 +4407,7 @@ void StopStepplayerGadget(struct S *p, int n);
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018DD78(struct S *p, int n)
+void EndJtGadget(struct S *p, int n)
 {
     if (n == 0x1D || n == 0x2A) {
         void **pp;
@@ -4430,7 +4430,7 @@ void func_0018DD78(struct S *p, int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" char *func_0018DE08()
+extern "C" char *GetJtSaveVarRoot()
 {
     return (char *)D_002A5EF0;
 }
@@ -4443,7 +4443,7 @@ extern "C" char *func_0018DE08()
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 /* Grabs plo as a carried object (grab state 6), or drops what is carried (STEPPLAYER slot 87 with 0). */
-extern "C" void func_0018DE18(JT *pjt, LO *plo)
+extern "C" void SetJtGrabObject(JT *pjt, LO *plo)
 {
     if (plo != 0) {
         pjt->jtgrab.fUnk500 = 1;
@@ -4468,7 +4468,7 @@ void GetStepplayerStunHold(struct S *p, int *pf);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018DE80(struct S *p, int *pf)
+void GetJtStunHold(struct S *p, int *pf)
 {
     GetStepplayerStunHold(p, pf);
     switch (p->n) {
@@ -4481,14 +4481,14 @@ void func_0018DE80(struct S *p, int *pf)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DEE0 { extern "C" {
 struct S { char pad[0x204]; int x204; char p1[0x16C0]; int n; };
-int func_00143C78(struct S *p);
+int GetStepplayerModeCode(struct S *p);
 /** @sly2-annot addr=0x18DEE0
  * Purpose: JT vt85: 0 if x204 or jts 3/8/21/22; 1 for 13/14; 0xF for 24; else base 0x143C78
  * Info: proposed name JT_vt85 (T2); class JT slot85; TU jt
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_0018DEE0(struct S *p)
+int GetJtModeCode(struct S *p)
 {
     if (p->x204) return 0;
     switch (p->n) {
@@ -4499,7 +4499,7 @@ int func_0018DEE0(struct S *p)
     case 24:
         return 0xF;
     }
-    return func_00143C78(p);
+    return GetStepplayerModeCode(p);
 }
 } } // namespace M_func_0018DEE0
 
@@ -4509,7 +4509,7 @@ int func_0018DEE0(struct S *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0018DF50(JT *pjt, int n)
+extern "C" void SetJtUnknown1D30(JT *pjt, int n)
 {
     pjt->nUnk1d30 = n;
 }
@@ -4520,7 +4520,7 @@ extern "C" void func_0018DF50(JT *pjt, int n)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0018DF58(JT *pjt, qword qw)
+extern "C" void SetJtUnknown1FA0(JT *pjt, qword qw)
 {
     QW1FA0(pjt) = qw;
 }
@@ -4607,7 +4607,7 @@ static inline float SmoothInputs(M4*source,const CLOCK*clock,float factor,unsign
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0018DF60(P*p){
+extern "C" void UpdateJtSmoothing(P*p){
  M4 m=*((M4*(*)(void*))p->object->vt[31].fn)((char*)p->object+p->object->vt[31].delta);
  U direction,position,scratch,negative;
  *(M3*)&p->matrix=*(M3*)&m;
@@ -4729,7 +4729,7 @@ static __inline__ qword VLen(qword c)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018E1E0(struct O *p)
+void UpdateJtFaceTarget(struct O *p)
 {
     VU n;
     M3 ms, m;
@@ -4775,7 +4775,7 @@ void UpdateStepguardPickpocket(void *p);
  * Notes: descriptive only: (JT callback: notify objects) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
  * @end-sly2-annot */
-void func_0018E330(void)
+void UpdateAllGuardsPickpocket(void)
 {
     void *ap[32];
     int c, i;
@@ -4798,7 +4798,7 @@ void EnsureSwCallback(void *, void *, long, int);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018E3A0(void *p)
+void OnJtActive(void *p)
 {
     OnStepplayerActive(p);
     EnsureSwCallback(D_003DD490, p, D_002A5F98.l, 0);
@@ -4826,7 +4826,7 @@ LO *D_002E1E40;   /* g_pjt */
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_jt {
-void p_func_0018E330() __asm__("func_0018E330");
+void p_func_0018E330() __asm__("UpdateAllGuardsPickpocket");
 extern "C" {
 extern const unsigned int D_002A5F98[2] = {0xFFFF0000, (unsigned int)p_func_0018E330};
 }

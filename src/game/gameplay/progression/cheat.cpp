@@ -75,7 +75,7 @@ void WipeToWorldWarp(void *psw, void *prec, int a, int b, void *c, int d);
 void *PrecWorldEntry(void *p);
 int NCompletionPercentGs(void *pgs, void *psvset);
 void SetPowerupAcquired(int n, int f);
-int IGadgetSlotFromId(void *pstepplayer, int id);
+int GetGadgetSlotFromId(void *pstepplayer, int id);
 void SetStepplayerGadget(void *pstepplayer, int islot, int id);
 void RefreshPlayersAfterPowerupChange(void *psw);
 void _ResetCodes(CODES *pcodes);
@@ -249,7 +249,7 @@ extern "C" void func_0014C200(void)
 extern "C" void ClearCheatItems(void)
 {
     if (D_002E1E40) {
-        int islot = IGadgetSlotFromId(D_002E1E40, 0x1F);
+        int islot = GetGadgetSlotFromId(D_002E1E40, 0x1F);
         if (islot != -1)
             SetStepplayerGadget(D_002E1E40, islot, -1);
         SetPowerupAcquired(0x1F, 0);

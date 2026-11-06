@@ -45,7 +45,7 @@ float D_002BD2D8 = 10.0f;   /* already-near distance (the next word is 0: alignm
 extern char D_003DD490[];
 extern char D_002DEB30[];
 extern "C" {
-int func_00144068(PO *);
+int IsStepplayerPushing(PO *);
 int FSwHandsOff(void *);
 R *func_00205458(void *, int);
 void BroadcastGameEvent(void *, int, T *);
@@ -111,7 +111,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
             goal->isHolding = 0;
         return;
     }
-    if (!func_00144068(goal->player))
+    if (!IsStepplayerPushing(goal->player))
         return;
     if (D_002DDED0.t < goal->nextCheckTime)
         return;

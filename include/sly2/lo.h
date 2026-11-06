@@ -13,7 +13,7 @@ struct LORUN
       LORUN *plorunNext;
 };
 
-/* LOROOT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (28 copies in Lilly ports) */
+/* LOROOT: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct LOROOT
 {
       LO *plo;

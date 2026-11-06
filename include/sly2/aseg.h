@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 
-/* EA: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* EA: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct EA
 {
       float tLocal;
@@ -28,7 +28,7 @@ struct EA
     };
 };
 
-/* ASEGSTART: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* ASEGSTART: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGSTART
 {
       float tLocal;
@@ -36,7 +36,7 @@ struct ASEGSTART
       GRFAPL grfapl;
 };
 
-/* ASEG: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* ASEG: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEG : public LO
 {
       DL dlAsega;
@@ -66,7 +66,7 @@ struct ASEG : public LO
 };
 typedef char assert_ASEG_size[sizeof(ASEG) == 0xC0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
-/* ASEGBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* ASEGBL: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGBL : public ASEG
 {
       int cbBl;

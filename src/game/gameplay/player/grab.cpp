@@ -8,7 +8,7 @@
 // virtuals, the other declared only the first). Functions on named header fields are written against them; the
 // others keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp, mark.cpp
 // and hurt.cpp do): the hand-tuned ones and the ones that read bytes the headers leave unnamed (JT +0x1854, the TN
-// fields of func_00194118...). SetJtHfdk keeps its Sly 1 symbol (JT *) as a C-linkage definition on the JTGRAB.
+// fields of ResetJtGrabTnParams...). SetJtHfdk keeps its Sly 1 symbol (JT *) as a C-linkage definition on the JTGRAB.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_grab
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00195930
 #include "sly2/basic.h"
@@ -46,10 +46,10 @@ extern char D_002A2D00[];   /* identity matrix */
 LO *PloAcquireProxy(LO *plo, int n);
 void SetLoParent_1A58D0(LO *plo, int n1, int n2);
 void FadeSoIn(LO *plo, float dt);
-LO *PloAcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand);
+LO *AcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand);
 LO *PloNew__F3CIDP2SO3OIDi(CID cid, SO *psoParent, OID oid, int n);
 void SetTnTnsOverride(TN *ptn, int n);
-void func_00194118(JTGRAB *pjtgrab);
+void ResetJtGrabTnParams(JTGRAB *pjtgrab);
 void InitDirectionalBlend(STEPPLAYER *pstepplayer, BLDIR *abldir, ASEGBL **ppasegbl);
 void PostJtLoadGait(GAIT *pgait);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *pstepplayer, int n1, int n2, void *abl, int n4, int n5, int n6, ASEGBL **ppasegbl);
@@ -411,7 +411,7 @@ extern "C" void PostLoadJtGrab(JTGRAB *pjtgrab)
 {
     pjtgrab->ptn = (TN *)PloNew__F3CIDP2SO3OIDi((CID)0xF, 0, (OID)0x148, -1);
     SetTnTnsOverride(pjtgrab->ptn, 0);
-    func_00194118(pjtgrab);
+    ResetJtGrabTnParams(pjtgrab);
     InitDirectionalBlend(pjtgrab->pstepplayer, pjtgrab->abldirA, &pjtgrab->pasegblA);
     InitDirectionalBlend(pjtgrab->pstepplayer, pjtgrab->abldirB, &pjtgrab->pasegblB);
     PostJtLoadGait(&pjtgrab->gaitA);
@@ -479,7 +479,7 @@ extern float D_002BF5B8;
 int GrfConsumePressed__5POCTLUif(JOY *, uint, float);
 int GrfPressedWithin__5POCTLUif(JOY *, uint, float);
 void ClearPoctlJoyPressed(JOY *, uint);
-void func_00195A00(void *, int, int, ACTOR *);
+void SetJtAirJump(void *, int, int, ACTOR *);
 void StartJtMode(void *, int, int, int);
 int FAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
@@ -496,9 +496,9 @@ int func_00118A88(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP t
 void MarkSoContactsBspBsp(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
 void AttachJtHandsObject(ATTACH *, ACTOR *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
-int func_001423A0(ACTOR *);
-int MpStepplayerCur(ACTOR *);
-uint GrfbtnGadget(ACTOR *, int);
+int IsStepplayerGrabReady(ACTOR *);
+int GetStepplayerMp(ACTOR *);
+uint GetGadgetButtonMask(ACTOR *, int);
 }
 void FreeSwXpList(SW *, XP *) __asm__("FreeSwXpList__FP2SWP2XP");
 
@@ -605,7 +605,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
         switch (p->action) {
         case 1:
             if (0.15f < D_002DDED0.t - p->tHold && GrfConsumePressed__5POCTLUif(pjoy, 0x40, 0.25f)) {
-                func_00195A00((char *)p->pactor + 0x2C0, 7, 0, p->pactorFocus);
+                SetJtAirJump((char *)p->pactor + 0x2C0, 7, 0, p->pactorFocus);
                 break;
             }
             if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
@@ -616,7 +616,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
         case 3:
         case 4:
             if (GrfConsumePressed__5POCTLUif(pjoy, 0x40, 0.1f)) {
-                func_00195A00((char *)p->pactor + 0x2C0, 1, 0, 0);
+                SetJtAirJump((char *)p->pactor + 0x2C0, 1, 0, 0);
                 break;
             }
             if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3)) {
@@ -667,14 +667,14 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
                 SetControl(p->pactor, 0);
             break;
         case 5:
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactorFocus, 11) && func_001423A0(p->pactor)) {
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactorFocus, 11) && IsStepplayerGrabReady(p->pactor)) {
                 p->pactor->ptarget = p->pactorFocus;
                 p->pactor->gTarget = p->gParam;
                 SetControl(p->pactor, 8);
             }
             break;
         case 2:
-            if (MpStepplayerCur(p->pactor) <= 0) {
+            if (GetStepplayerMp(p->pactor) <= 0) {
                 SetControl(p->pactor, 0);
                 break;
             }
@@ -684,13 +684,13 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             }
             if (D_002DFBC4 & 1)
                 break;
-            if (pjoy->grfbtn & GrfbtnGadget(p->pactor, 0x28))
+            if (pjoy->grfbtn & GetGadgetButtonMask(p->pactor, 0x28))
                 break;
             SetControl(p->pactor, 0);
             break;
         default:
             if (GrfConsumePressed__5POCTLUif(pjoy, 0x40, 0.1f)) {
-                func_00195A00((char *)p->pactor + 0x2C0, 1, 0, 0);
+                SetJtAirJump((char *)p->pactor + 0x2C0, 1, 0, 0);
                 break;
             }
             if (GrfPressedWithin__5POCTLUif(pjoy, 0x400, 0.15f) && CanAct(p->pactor, 3) && (p->action == 0 || p->action == 13)) {
@@ -780,7 +780,7 @@ extern U D_002BF5D0[3];   // probe points (hang)
 extern U D_002BF600[3];   // probe points (low)
 extern HEIGHT D_002BF630;
 qword func_001A62E8(ACTOR *);
-void func_00182CD8(void *, ACTOR *, float *, U *, float *);
+void GetGrabspotPositionNear(void *, ACTOR *, float *, U *, float *);
 qword PosSmooth(qword, qword, float, SMP *, U *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword SetVectorCylind(float, float, float);
@@ -789,7 +789,7 @@ float SMaxShape(FOCUS *);
 float UMinShape(FOCUS *);
 float UMaxShape(FOCUS *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
-void func_001940B0(CONTEXT *, int) __asm__("SetJtHfdk__FP2JT4HFDK");
+void SetJtHideFacingKind__FP2JT4HFDK(CONTEXT *, int) __asm__("SetJtHideFacingKind__FP2JT4HFDK");
 void func_00204660(ACTOR *, float);
 float RadStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
@@ -798,7 +798,7 @@ void UpdateGaitBlend(PROGRAM *, float);
 void UpdateGaitFootsteps(PROGRAM *);
 void DrainStepplayerMp(ACTOR *, float);
 void FindShapeClosestPointFromU(FOCUS *, qword, void *, U *, U *, float *, float *, float);
-void func_00195A00(void *, int, int, int);
+void SetJtAirJump(void *, int, int, int);
 float atan2f(float, float);
 void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void UpdateJtHands(void *);
@@ -808,7 +808,7 @@ BINDING *func_0012FF10(void *, ACTOR *, int, int);
 void FaceStepToward(ACTOR *, FOCUS *);
 void FixStepAngularVelocity(ACTOR *);
 void RebuildJtXmg(ACTOR *, void *, void *, void *, float, void *);
-void func_00193C98(ACTOR *, void *, void *);
+void ClampJtGrabCurveParam(ACTOR *, void *, void *);
 }
 
 static inline qword GetVelocity(ACTOR *p) { VTE &v = p->vt[33]; return ((qword (*)(void *))v.fn)((char *)p + v.delta); }
@@ -895,7 +895,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
     case 13: {
         U goal;
         float heading;
-        func_00182CD8(ctx->setting, ctx->actor, &ctx->value, &goal, &heading);
+        GetGrabspotPositionNear(ctx->setting, ctx->actor, &ctx->value, &goal, &heading);
         float speedMax;
         if (ctx->actor->role == 1)
             speedMax = GLength(ctx->axes[2].direction.q) * ctx->actor->anim->rate;
@@ -948,17 +948,17 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             step = 1;
             if (ctx->action == 0) {
                 if (45.0f < GLength(vel.q)) {
-                    func_001940B0(ctx, 0);
+                    SetJtHideFacingKind__FP2JT4HFDK(ctx, 0);
                 } else if (20.0f < ctx->actor->velocity.f[1]) {
                     if (ctx->actor->role == 1)
-                        func_001940B0(ctx, 1);
+                        SetJtHideFacingKind__FP2JT4HFDK(ctx, 1);
                     else
-                        func_001940B0(ctx, 2);
+                        SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
                 } else if (ctx->actor->velocity.f[1] < -20.0f) {
                     if (ctx->actor->role == 1)
-                        func_001940B0(ctx, 2);
+                        SetJtHideFacingKind__FP2JT4HFDK(ctx, 2);
                     else
-                        func_001940B0(ctx, 1);
+                        SetJtHideFacingKind__FP2JT4HFDK(ctx, 1);
                 }
             }
         } else {
@@ -972,7 +972,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 }
             }
             if (ctx->action == 0)
-                func_001940B0(ctx, 3);
+                SetJtHideFacingKind__FP2JT4HFDK(ctx, 3);
         }
         func_00204660(ctx->actor, heading);
         if (ctx->step == 5 && 0.25f < __builtin_fabsf(RadNormalize__Ff(RadStepHeading(ctx->actor) - heading)))
@@ -1009,7 +1009,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         FindShapeClosestPointFromU(focus, *ctx->actor->ppos, 0, &point, &tangent, &ctx->parameter, &ctx->value, ctx->parameter);
         if (focus->flags && !focus->cyclic &&
             (ctx->parameter < UMinShape(focus) + 0.01f || UMaxShape(focus) - 0.01f < ctx->parameter)) {
-            func_00195A00(ctx->actor->control, 0, 0, 0);
+            SetJtAirJump(ctx->actor->control, 0, 0, 0);
             break;
         }
         tangent.f[2] = 0.0f;
@@ -1169,8 +1169,8 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             ACTOR *actor = ctx->actor;
             RebuildJtXmg(actor, actor->x19D8, actor->x19E0, actor->x19F0, 5.0f, actor->x1520);
             RebuildJtXmg(actor, actor->x19D4, actor->x19DC, actor->x19F4, 5.0f, actor->x1620);
-            func_00193C98(actor, actor->x1520, actor->x19F0);
-            func_00193C98(actor, actor->x1620, actor->x19F4);
+            ClampJtGrabCurveParam(actor, actor->x1520, actor->x19F0);
+            ClampJtGrabCurveParam(actor, actor->x1620, actor->x19F4);
         }
         break;
     }
@@ -1191,7 +1191,7 @@ void SetJtGrabKind(struct P *p, int n);
 void SetJtCaneState__FP2JTi(struct O *o, int n);
 void UpdateJtCane__FP2JT(struct O *o);
 void SetJtHandsTarget(void *p, int n);
-void func_00192A28(struct P *p);
+void ClearJtDetectionOutOfSight(struct P *p);
 /** @sly2-annot addr=0x1928F8
  * Purpose: Start a grab action: SetJtGrabKind(-1), store nState/tEnter/plo/pspot, owner vt88
  *   SetPlayerState(2) (=jts 7), then map nState to initial kind (6 = Sly cane reach:
@@ -1231,11 +1231,11 @@ void SetJtGrabState(struct P *p, int n, int a, int b)
         break;
     case 8:
         n = 7;
-        func_00192A28(p);
+        ClearJtDetectionOutOfSight(p);
         break;
     case 1:
         n = 0;
-        func_00192A28(p);
+        ClearJtDetectionOutOfSight(p);
         break;
     case 11: case 12:
         n = 0;
@@ -1266,11 +1266,11 @@ struct E { int x0; int x4; };
 struct F { char pad[0xF8]; int xf8; };
 struct O { char pad[0xF64]; F *xf64; char pad2[0xFE0 - 0xF68]; O *xfe0; };
 struct P { void *x0; };
-// The frame's scope and the two sector indices IntersectSwBoundingBox returns, laid out as func_00192A28's frame
+// The frame's scope and the two sector indices IntersectSwBoundingBox returns, laid out as ClearJtDetectionOutOfSight's frame
 // has them. At namespace scope, not local to the function: g++ 2.95 emits a local class's implicit constructor and
 // destructor out of line even when every use is inlined, and the ELF has no such functions.
 struct SCOPEDIJ { char c; STACKSCOPE frame; int i, j; };
-extern "C" void func_00192A28(P *p);
+extern "C" void ClearJtDetectionOutOfSight(P *p);
 /** @sly2-annot addr=0x192A28
  * Purpose: For each detector-owning object in list (*(O * *)&g_sw.dlStepguard) that currently tracks the player: if farther
  *   than D_002BF638 or line of sight blocked (IntersectSwBoundingBox + PsoHitTestLineObjects) reset its
@@ -1279,7 +1279,7 @@ extern "C" void func_00192A28(P *p);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
-void func_00192A28(P *p)
+void ClearJtDetectionOutOfSight(P *p)
 {
     O *o;
     for (o = (*(O * *)&g_sw.dlStepguard); o; o = o->xfe0) {
@@ -1384,7 +1384,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword func_001A62E8(void *);
 M3 *func_001A6318(void *);
 void FindShapeClosestPoint(SOURCE *, qword, void *, void *, void *, float *, float *);
-void func_00183B80(SOURCE *, int);
+void SetBarrelState(SOURCE *, int);
 void SubscribeLoObject(SOURCE *, ACTOR *);
 void UnsubscribeLoObject(SOURCE *, ACTOR *);
 void func_00204F78(ACTOR *, SOURCE *, int);
@@ -1402,14 +1402,14 @@ void SetJtHandsTarget(ATTACH *, int);
 void ReleaseJtHandsActs(void *);
 void StopSnd(EFFECT *, float);
 void SetStepplayerTnOverride(ACTOR *, void *);
-void func_00194118(CONTEXT *);
+void ResetJtGrabTnParams(CONTEXT *);
 qword ConvertAloPos(void *, void *, qword);
-void func_0020BD68(PROGRAM_ITEM *);
+void ResetGaitFeet(PROGRAM_ITEM *);
 void ReleaseAsega(ANIMATION **);
 void ReleaseSma(COMPONENT *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP *, ACTOR *, float, float, int, ANIMATION **);
 void ReplaceSma(PROGRAM *, ACTOR *, int, int, COMPONENT *);
-void func_0018C120(ACTOR *, int);
+void EnableJtLeanActs(ACTOR *, int);
 }
 
 static inline void SourceState(SOURCE *p, int state)
@@ -1434,7 +1434,7 @@ static inline void AddFlags(uint *pflags, uint bits)
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in UpdateJtGrabInput).
 static inline VU_FLOAT VuFloat(const float &g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j,j"(v.q) : "r,V"(*(const int *)&g)); return v; }
 
-static inline bool Less(int n, int limit) { return n < limit; }   // as in func_00195FB8: keeps the two range tests apart
+static inline bool Less(int n, int limit) { return n < limit; }   // as in SetJtAirState: keeps the two range tests apart
 static inline float X(qword q) { float f; __asm__("mtc1 %1,%0" : "=f"(f) : "r"(q)); return f; }
 // The vector is moved to a GPR once (gcc's own qmfc2 for the "r" inputs) and its x word is stored straight from there:
 // no C construct gives a 32-bit store of the low word of a TImode GPR (unions go through the stack, casts sign-extend).
@@ -1517,7 +1517,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         case 1: {
             SOURCE *source = p->focus;
             source->actor = p->pactor;
-            func_00183B80(source, 2);
+            SetBarrelState(source, 2);
             if (p->pactor == D_002E1E40)
                 Notify(p->pactor->first, 9);
             break;
@@ -1598,7 +1598,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         p->fInhibit = 0;
         switch (p->action) {
         case 1:
-            func_00183B80(p->focus, 0);
+            SetBarrelState(p->focus, 0);
             if (p->pactor == D_002E1E40)
                 Notify(p->pactor->first, 8);
             break;
@@ -1730,7 +1730,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
                     if (source->actor)
                         SetStepplayerTnOverride(p->pactor, source->actor);
                     else {
-                        func_00194118(p);
+                        ResetJtGrabTnParams(p);
                         p->aux->target = source;
                         SetStepplayerTnOverride(p->pactor, p->aux);
                     }
@@ -1739,7 +1739,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
                     if (source->owner)
                         SetStepplayerTnOverride(p->pactor, source->owner);
                     else {
-                        func_00194118(p);
+                        ResetJtGrabTnParams(p);
                         p->aux->enabled = 1;
                         AUX *aux = p->aux;
                         aux->position = ConvertAloPos(0, p->aux, func_001A62E8(source));
@@ -1751,7 +1751,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
                     if (source->owner)
                         SetStepplayerTnOverride(p->pactor, source->owner);
                     else {
-                        func_00194118(p);
+                        ResetJtGrabTnParams(p);
                         qword v = Transform(*func_001A6318(source), D_002BF650);
                         SetX(&p->aux->data->x, v);
                         p->aux->data->y = GetY(v);
@@ -1771,15 +1771,15 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         switch (p->action) {
         case 3:
             clip = p->program240.clip;
-            func_0020BD68(&p->program240);
+            ResetGaitFeet(&p->program240);
             break;
         case 1:
             clip = p->program180.clip;
-            func_0020BD68(&p->program180);
+            ResetGaitFeet(&p->program180);
             break;
         case 2:
             clip = p->pactor->program.clip;
-            func_0020BD68(&p->pactor->program);
+            ResetGaitFeet(&p->pactor->program);
             break;
         }
 
@@ -1836,7 +1836,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         ReplaceSma(script, p->pactor, -1, flags, &p->pactor->component);
         Notify(p->pactor, 90);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pactor, 53))
-            func_0018C120(p->pactor, special);
+            EnableJtLeanActs(p->pactor, special);
     }
 }
 } // namespace M_SetJtGrabKind
@@ -1857,14 +1857,14 @@ void SetJtGrabState(struct P *p, int n, struct O *o, int a);
  * Purpose: Walk the sorted g_sw grab-candidate array (dist < D_002BF660); map class to grab state (HND
  *   0x13/PIPE? 0xB -> 6 for Sly g_pjt else 5; CID27 0x1B -> 8; CID12/CID34 -> 0; CID38 -> its field; CID35 ->
  *   7) and SetJtGrabState on the first match; return 1 if grabbed
- * Info: proposed name FJtGrabNearestCandidate (T1); TU grab
+ * Info: proposed name TryGrabJtNearestCandidate (T1); TU grab
  * Notes: names_v2 B proposed MatchJtXmgRail__FP2JTP3XMGP6ACTADJ (0.919) | runtime2: CID27->8, CID12/34->0,
  *   rail->3
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); static naming pass; sources:
  *   r4b_rest+runtime
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
-int FJtGrabNearestCandidate(struct P *p)
+int TryGrabJtNearestCandidate(struct P *p)
 {
     struct G *g = &D_003DD490;
     int n = g->c;
@@ -1974,7 +1974,7 @@ static __inline__ float GClamp(float g, float lo, float hi)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
-void func_00193C98(struct P *p, struct Q *q, void *r)
+void ClampJtGrabCurveParam(struct P *p, struct Q *q, void *r)
 {
     struct O *o;
     float g, lo, hi, t;
@@ -2152,7 +2152,7 @@ typedef char alignment_5[__alignof__(struct S)==4?1:-1];
 /* Sets the grab's hand/foot kind (stamping the time) and from it the focus kind: 1 for kind 3, for kinds 1 and 2 2
    when the player's current TN is the grab's, else 0. The Sly 1 symbol says JT *; Sly 2's takes the JTGRAB, so it
    keeps the symbol as a C-linkage definition. */
-extern "C" void SetJtHfdk__FP2JT4HFDK(JTGRAB *pjtgrab, HFDK hfdk)
+extern "C" void SetJtHideFacingKind__FP2JT4HFDK(JTGRAB *pjtgrab, HFDK hfdk)
 {
     if (hfdk == pjtgrab->hfdk) return;
     pjtgrab->hfdk = hfdk;
@@ -2181,7 +2181,7 @@ extern char D_002BF670[];
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
-void func_00194118(O *o)
+void ResetJtGrabTnParams(O *o)
 {
     T *t = o->t;
     t->x100 = 0;
@@ -2334,7 +2334,7 @@ float atan2f(float y, float x);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
-void func_001942F0(struct P *p)
+void RecordJtGrabPlace(struct P *p)
 {
     float g, s;
     switch (p->x8) {
@@ -2403,7 +2403,7 @@ void func_001942F0(struct P *p)
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
 /* The grab's record for its state and kind (precUnk54/58/60/64); *pfFlip set in state 8 for kinds 9 and 10. */
-extern "C" void *func_001944C8(JTGRAB *pjtgrab, int *pfFlip)
+extern "C" void *GetJtGrabAdjustRecord(JTGRAB *pjtgrab, int *pfFlip)
 {
     int fFlip = 0;
     void *prec;
@@ -2448,7 +2448,7 @@ static inline int FGrabCameraFree(JTGRAB *pjtgrab)
 }
 /* Whether input n is allowed in the current grab state (n 3: only in states 0, 1, 3, 4 and 13 with the camera
    free; states 3 and 4 allow only 1, 2 and 0x1F; states 1, 8, 11 and 12 none). */
-extern "C" int func_00194558(JTGRAB *pjtgrab, int n)
+extern "C" int CanJtUseGadgetInGrab(JTGRAB *pjtgrab, int n)
 {
     if (n == 3) {
         switch (pjtgrab->nState) {
@@ -2477,7 +2477,7 @@ extern "C" int func_00194558(JTGRAB *pjtgrab, int n)
  * @end-sly2-annot */
 /* Whether the grab makes the player immune to zaps (state 12; state 8 with kinds 9 and 10). */
 static inline int FGrabFlipping(JTGRAB *pjtgrab) { return pjtgrab->nKind == 9 || pjtgrab->nKind == 10; }
-extern "C" int func_00194640(JTGRAB *pjtgrab)
+extern "C" int IsJtGrabBusy(JTGRAB *pjtgrab)
 {
     switch (pjtgrab->nState) {
     case 8: if (FGrabFlipping(pjtgrab)) goto one; break; case 0xC: one: return 1;
@@ -2874,12 +2874,12 @@ void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf)
 
 /** @sly2-annot addr=0x194F48
  * Purpose: qsort comparator: -1 if a->g < b->g else 1
- * Info: proposed name CompareJtGrabCand (T1); TU grab
+ * Info: proposed name CompareJtGrabCandidates (T1); TU grab
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
 /* qsort order of grab candidates: nearer first. */
-extern "C" int CompareJtGrabCand(JTGRABCAND *pcand0, JTGRABCAND *pcand1) { if (pcand0->sDist < pcand1->sDist) return -1; return 1; }
+extern "C" int CompareJtGrabCandidates(JTGRABCAND *pcand0, JTGRABCAND *pcand1) { if (pcand0->sDist < pcand1->sDist) return -1; return 1; }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND {
@@ -2931,13 +2931,13 @@ extern float D_002BF710;
 extern float D_002BF714;
 extern SMP D_002BF718;
 extern char D_002DEB30[];
-int CompareJtGrabCand(const void *, const void *);   // JTGRABCAND compare for qsort
+int CompareJtGrabCandidates(const void *, const void *);   // JTGRABCAND compare for qsort
 void qsort(void *base, uint c, uint cb, int (*pfnCmp)(const void *, const void *));   // qsort
 void *memmove(void *dst, const void *src, uint cb);   // memmove
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);   // GSmooth
 void FadeSoOut(LO *plo, float g);
 void BroadcastGameEvent(void *pv, int msg, LO *plo);
-LO *PloAcquireJtGrabMarker(SW *psw, int id, JTGRABCAND *pcand);
+LO *AcquireJtGrabMarker(SW *psw, int id, JTGRABCAND *pcand);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYER *pstepplayer, int ccand, JTGRABCAND *ajtgrabcand);
 }
 
@@ -2954,7 +2954,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
     int i, j;
     JTGRABCAND *pcandOld, *pcand;
     if (ccand > 0) {
-        qsort(ajtgrabcand, ccand, sizeof(JTGRABCAND), CompareJtGrabCand);
+        qsort(ajtgrabcand, ccand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
         if (ajtgrabcand->pspot->nUnk14 != -1)
             ajtgrabcand->nPriority = 1;
     }
@@ -3030,7 +3030,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
         pcand = &ajtgrabcand[j];
         if (pstepplayer->idUnk9C4 && pcand->nPriority == 1) {
             register LO *plo asm("$6"); // the one register pin: the original keeps the link result in a2, global-alloc would pick v0
-            plo = PloAcquireJtGrabMarker(psw, pstepplayer->idUnk9C4, pcand);
+            plo = AcquireJtGrabMarker(psw, pstepplayer->idUnk9C4, pcand);
             if (!plo)
                 break;
             pcand->ploUnk10 = plo;
@@ -3038,7 +3038,7 @@ void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SW *psw, STEPPLAYE
         psw->ajtgrabcand[psw->cjtgrabcand++] = *pcand;
         BroadcastGameEvent(D_002DEB30, 0x3D, pcand->plo);
     }
-    qsort(ajtgrabcandOld, psw->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCand);
+    qsort(ajtgrabcandOld, psw->cjtgrabcand, sizeof(JTGRABCAND), CompareJtGrabCandidates);
 }
 } // namespace M_UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND
 
@@ -3226,7 +3226,7 @@ LEmit:
  * @end-sly2-annot */
 /* Moves the world's grab marker (SW::ploUnk4744) onto the candidate for plo: acquires a new marker there and
    removes the candidate's old one (LO slot 9). */
-extern "C" void func_00195608(SW *psw, LO *plo)
+extern "C" void SetGrabMarkerProxy(SW *psw, LO *plo)
 {
     JTGRABCAND *pcand;
     LO *ploMarker;
@@ -3237,7 +3237,7 @@ extern "C" void func_00195608(SW *psw, LO *plo)
         if (plo == pcandI->plo) { pcand = pcandI; break; }
     }
     if (!pcand) return;
-    ploMarker = PloAcquireJtGrabMarker(psw, psw->ploUnk4744, pcand);
+    ploMarker = AcquireJtGrabMarker(psw, psw->ploUnk4744, pcand);
     if (!ploMarker) return;
     if (pcand->ploUnk10) { LO *ploOld = pcand->ploUnk10; VTE *pvte = &PVT(ploOld)[9]; ((void (*)(LO *))pvte->pfn)((LO *)((char *)ploOld + pvte->d)); }
     pcand->ploUnk10 = ploMarker;
@@ -3246,13 +3246,13 @@ extern "C" void func_00195608(SW *psw, LO *plo)
 /** @sly2-annot addr=0x1956D0
  * Purpose: Acquire proxy id (PloAcquireProxy), unparent, Remove, fade in 0.25 s, place at candidate pos with
  *   identity rotation and zero velocity
- * Info: proposed name PloAcquireJtGrabMarker (T1); TU grab
+ * Info: proposed name AcquireJtGrabMarker (T1); TU grab
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
 /* A grab marker proxy of plo placed at the candidate: unparented, shown (LO slot 9), faded in, moved to the
    candidate's position (slot 29) with matrix D_002A2D00 (slot 30) and zero velocities (slots 35, 36). */
-extern "C" LO *PloAcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand)
+extern "C" LO *AcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand)
 {
     LO *ploMarker;
     if (!plo) return 0;
@@ -3276,7 +3276,7 @@ extern "C" LO *PloAcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand)
  * See: docs/reference/functions/player.md#grab-0x191090-0x195950
  * @end-sly2-annot */
 /* The world's grab marker object (oid 0x624). */
-extern "C" void func_001957C0(SW *psw)
+extern "C" void PostLoadGrabMarker(SW *psw)
 {
     psw->ploUnk4744 = PloFindSwObject(psw, 0x405, (OID)0x624, 0);
 }
@@ -3315,7 +3315,7 @@ float D_002BF664 = 1000.0f;
 namespace M_GetJtRailLanding { extern "C" {
 float D_002BF668 = 0.2f;
 /* A camera-parameter record (CPD layout, as tn's default D_002C4120 with its lmTilt: cid 0x30, offsets, limits,
- * weights) that func_00194118 points a target at (+0x114); 0x90 bytes, 16-aligned. */
+ * weights) that ResetJtGrabTnParams points a target at (+0x114); 0x90 bytes, 16-aligned. */
 namespace GRAB_DATA { struct CPDINIT { int cid; float ag[35]; };
 extern CPDINIT r_D_002BF670 __asm__("D_002BF670") __attribute__((aligned(16))); }
 GRAB_DATA::CPDINIT GRAB_DATA::r_D_002BF670 = {0x30, {0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, -225.0f,

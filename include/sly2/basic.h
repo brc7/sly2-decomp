@@ -164,19 +164,19 @@ struct LM
 	float gMin, gMax;
 };
 
-/* RAW8: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (17 copies in Lilly ports) */
+/* RAW8: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct RAW8
 {
     char ach[8];
 };
 
-/* SLE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (28 copies in Lilly ports) */
+/* SLE: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct SLE
 {
     void *next;
 };
 
-/* DL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (28 copies in Lilly ports) */
+/* DL: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct DL
 {
     void *head;
@@ -184,7 +184,7 @@ struct DL
     int ibDle;
 };
 
-/* DLE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (29 copies in Lilly ports) */
+/* DLE: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (29 copies in Lilly ports) */
 struct DLE
 {
     void *next;

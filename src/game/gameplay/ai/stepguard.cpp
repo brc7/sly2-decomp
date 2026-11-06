@@ -92,8 +92,8 @@ void ResolveAnimBinding(ANIMBINDING *pbinding, STEPGUARD *pstepguard);
 void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *pstepguard);
 void func_00209590(ANIMBINDING *pbinding);
 void func_00208208(STEPGUARD *pstepguard, ANIMBINDING *abinding);
-void func_0020C030(int h);
-void func_0020CA20(int h);
+void FreeLeap(int h);
+void FreeDirAnim(int h);
 void func_0020AA40(STEPGUARD *pstepguard);
 void func_0020AAA8(STEPGUARD *pstepguard);
 void func_0020AFF0(ANIMLO *panimlo);
@@ -1476,8 +1476,8 @@ struct X { int a; char p0[0x2C]; int b; char p1[0x2C]; int c; char p2[0x2C]; int
 struct E { int k; struct X *px; int pad; int n; };
 long func_00207B10(int a);
 struct E *func_00209C18(void *p, long id);
-struct X *func_0020CA00(int cb);
-void func_0020C7D8(struct X *px);
+struct X *AllocDirAnim(int cb);
+void InvalidateDirAnims(struct X *px);
 /** @sly2-annot addr=0x207C48
  * Purpose: Splice: binding of kind 3 (new 0xD0 object 0x20CA00 with 4 params), n=8
  * Info: proposed name SetStepguardAnimBindingK3 (T2); TU stepguard
@@ -1488,8 +1488,8 @@ void func_00207C48(void *p, int id, int a, int b, int c, int d)
 {
     struct E *pe = func_00209C18(p, func_00207B10(id));
     pe->k = 3;
-    pe->px = func_0020CA00(0xD0);
-    func_0020C7D8(pe->px);
+    pe->px = AllocDirAnim(0xD0);
+    InvalidateDirAnims(pe->px);
     pe->px->a = a;
     pe->px->b = b;
     pe->px->c = c;
@@ -1525,8 +1525,8 @@ struct X { int a; };
 struct S { int n; struct X *px; int b; int c; };
 unsigned long func_00207B10(void *p);
 struct S *func_00209C18(void *p, unsigned long m);
-struct X *func_0020C010(int cb);
-void func_0020BD78(struct X *px);
+struct X *AllocLeap(int cb);
+void InitAsegArc(struct X *px);
 /** @sly2-annot addr=0x207D98
  * Purpose: Splice: binding of kind 2 (new 0x40 object 0x20C010 with one param)
  * Info: proposed name SetStepguardAnimBindingK2 (T2); TU stepguard
@@ -1537,8 +1537,8 @@ void func_00207D98(void *p, void *q, int a)
 {
     struct S *s = func_00209C18(p, func_00207B10(q));
     s->n = 2;
-    s->px = func_0020C010(0x40);
-    func_0020BD78(s->px);
+    s->px = AllocLeap(0x40);
+    InitAsegArc(s->px);
     s->px->a = a;
     s->c = 0;
 }
@@ -2398,7 +2398,7 @@ struct S {
 };
 extern float D_002C3D90;
 extern float D_002C3D94;
-void HeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
+void GetHeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
 unsigned long GrfFromSgf(int n);
 int FStepguardHasSgf(struct S *p, int n);
 struct Y *func_00205458(struct S *p, int n);
@@ -2424,7 +2424,7 @@ int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
     void *o;
     struct L *pl;
     void *pv;
-    HeroInteractDistance(x, p, &x->p10DC, &d, &ang);
+    GetHeroInteractDistance(x, p, &x->p10DC, &d, &ang);
     if (pout)
         *pout = d;
     if (!(p->fl2C0 & GrfFromSgf(1))) {
@@ -2496,11 +2496,11 @@ extern "C" void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *pstepguard)
     kind = pbinding->kind;
     if (kind != 2) {
         if (kind == 3) {
-            func_0020CA20(pbinding->h);
+            FreeDirAnim(pbinding->h);
             goto LCleared;
         }
     } else {
-        func_0020C030(pbinding->h);
+        FreeLeap(pbinding->h);
 LCleared:
         pbinding->h = 0;
     }
@@ -2522,13 +2522,13 @@ union PAYLOAD {
 };
 struct E { int kind; union PAYLOAD value; int n8, nC; };
 extern char D_003DD490[];
-void func_0020BD88(struct H *, void *);
-void func_0020C7E0(struct DIRECTION_STATE *, void *);
+void PostAsegArcLoad(struct H *, void *);
+void InitDirAnims(struct DIRECTION_STATE *, void *);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
 int CidBasic(void *);
 struct MARKER *func_0012F938(void *, int);
-struct H *func_0020C010(int);
-void func_0020BD78(struct H *);
+struct H *AllocLeap(int);
+void InitAsegArc(struct H *);
 
 /** @sly2-annot addr=0x209130
  * Purpose: Resolve oid -> ASEG (cid 0x6D; kind 2 wrapper if it has label 0x22) or SM (cid 0x6F, kind 1); else
@@ -2544,11 +2544,11 @@ void ResolveAnimBinding(struct E *e, void *context)
     void *resource;
     if (e->kind != 2) {
         if (e->kind == 3) {
-            func_0020C7E0(e->value.direction, context);
+            InitDirAnims(e->value.direction, context);
             return;
         }
     } else {
-        func_0020BD88(e->value.curvature, context);
+        PostAsegArcLoad(e->value.curvature, context);
         return;
     }
     resource = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, e->value.oid, context);
@@ -2560,10 +2560,10 @@ void ResolveAnimBinding(struct E *e, void *context)
     case 0x6D:
         if (func_0012F938(resource, 0x22)) {
             e->kind = 2;
-            e->value.curvature = func_0020C010(0x40);
-            func_0020BD78(e->value.curvature);
+            e->value.curvature = AllocLeap(0x40);
+            InitAsegArc(e->value.curvature);
             e->value.curvature->table = resource;
-            func_0020BD88(e->value.curvature, context);
+            PostAsegArcLoad(e->value.curvature, context);
             if (e->nC == -1)
                 e->nC = 0;
         } else {
@@ -2595,7 +2595,7 @@ struct E { int k; int h; struct O *po; };
 void func_0012F9B8(int h, char *p, int fl, struct O **ppo, float g, float f);
 void PsmaApplySmOut(int h, char *p, int a, int fl, struct O **ppo);
 void StartLeap(int h, char *p, int fl, struct O *po);
-void func_0020C948(int h, char *p, int fl, struct O *po);
+void StartDirAnim(int h, char *p, int fl, struct O *po);
 #define VC1(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
 /** @sly2-annot addr=0x209278
  * Purpose: Start the bound animation: ASEG apply (ApplyAsegOvr 0x12F9B8), SM -> SMA (0x1F0198), kind 2 at
@@ -2624,7 +2624,7 @@ void StartAnimBinding(struct E *pe, char *p, int fl, float g)
         break;
     case 3:
         pe->po = (struct O *)(p + 0xE20);
-        func_0020C948(pe->h, p, fl, pe->po);
+        StartDirAnim(pe->h, p, fl, pe->po);
         VC1(pe->po);
         break;
     }
@@ -2639,8 +2639,8 @@ struct O { char pad[0xC]; VTE *vt; };
 struct S { int k; int pad; struct O *po; };
 void func_00130B18(struct O *po);
 void func_001F0598(struct O *po);
-void func_0020C080(struct O *po);
-void func_0020CA48(struct O *po);
+void StopLeap(struct O *po);
+void StopDirAnim(struct O *po);
 #define VDEL(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
 /** @sly2-annot addr=0x209360
  * Purpose: Stop/release the running instance per kind (RetractAsega, RetractSma, ...) and Decref
@@ -2669,14 +2669,14 @@ void StopAnimBinding(struct S *p)
         break;
     case 2:
         if (p->po) {
-            func_0020C080(p->po);
+            StopLeap(p->po);
             VDEL(p->po);
             p->po = 0;
         }
         break;
     case 3:
         if (p->po) {
-            func_0020CA48(p->po);
+            StopDirAnim(p->po);
             VDEL(p->po);
             p->po = 0;
         }
@@ -2692,8 +2692,8 @@ struct O { char pad[0x30]; int n30; };
 struct E { int k; int h; struct O *po; };
 int FAsegaRetracted(struct O *po);
 int FSmaRetracted(struct O *po);
-int FLeapDone(struct O *po);
-int func_0020CA98(struct O *po);
+int IsLeapDone(struct O *po);
+int IsDirAnimStopped(struct O *po);
 /** @sly2-annot addr=0x209430
  * Purpose: True if the running instance finished/retracted (or none)
  * Info: proposed name FAnimBindingDone (T1); TU stepguard
@@ -2716,12 +2716,12 @@ int FAnimBindingDone(struct E *pe)
         break;
     case 2:
         f = 0;
-        if (!pe->po || FLeapDone(pe->po))
+        if (!pe->po || IsLeapDone(pe->po))
             f = 1;
         break;
     case 3:
         f = 0;
-        if (!pe->po || func_0020CA98(pe->po))
+        if (!pe->po || IsDirAnimStopped(pe->po))
             f = 1;
         break;
     case -1:
@@ -2769,8 +2769,8 @@ struct ANIMATION *func_00209518(struct S *p)
 namespace M_func_00209590 { extern "C" {
 struct S;
 struct S { int k; void *pv; };
-void *func_0020C010(int cb);
-void *func_0020CA00(int cb);
+void *AllocLeap(int cb);
+void *AllocDirAnim(int cb);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 /** @sly2-annot addr=0x209590
  * Purpose: Deep-copy kind-2 (0x40) / kind-3 (0xD0) payloads
@@ -2783,12 +2783,12 @@ void func_00209590(struct S *p)
     void *pv;
     switch (p->k) {
     case 2:
-        pv = func_0020C010(0x40);
+        pv = AllocLeap(0x40);
         CopyAb__FPvT0Ui(pv, p->pv, 0x40);
         p->pv = pv;
         break;
     case 3:
-        pv = func_0020CA00(0xD0);
+        pv = AllocDirAnim(0xD0);
         CopyAb__FPvT0Ui(pv, p->pv, 0xD0);
         p->pv = pv;
         break;
@@ -4236,8 +4236,8 @@ struct X { int a; };
 struct E { int n; struct X *px; int b; int c; };
 struct S { char pad[0xAC]; int nAC; struct E e; };
 void ReleaseAnimBinding(struct E *pe, int n);
-struct X *func_0020C010(int cb);
-void func_0020BD78(struct X *px);
+struct X *AllocLeap(int cb);
+void InitAsegArc(struct X *px);
 /** @sly2-annot addr=0x20AFF0
  * Purpose: binding kind 2 (0x40 payload)
  * Info: proposed name SetCid120AttackBindingK2 (T2); class CID120; TU stepguard
@@ -4250,8 +4250,8 @@ void func_0020AFF0(struct S *p, int a)
     struct E *pe = &p->e;
     ReleaseAnimBinding(pe, p->nAC);
     p->e.n = 2;
-    pe->px = func_0020C010(0x40);
-    func_0020BD78(pe->px);
+    pe->px = AllocLeap(0x40);
+    InitAsegArc(pe->px);
     pe->px->a = a;
     pe->c = 0;
 }

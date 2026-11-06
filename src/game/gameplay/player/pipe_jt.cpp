@@ -74,7 +74,7 @@ void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, U *pv);
 float SMinShape(PATH *);
 float SMaxShape(PATH*);
 qword PosSmooth(qword,qword,float,SMPV*,U*);
-void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
+void SetJtAirJump(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
 void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
@@ -231,8 +231,8 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  WORK w;float lowSpeed,highSpeed;JT*actor=p->actor;actor->offset.q=PosSmooth(actor->offset.q,D_002A2DD0.q,D_002DDED0.dt,&D_002BF928,0);
  register float amount __asm__("$f4"),dot __asm__("$f3"),zero __asm__("$f2");register int previous __asm__("$5");
  {register INPUT*input __asm__("$18")=p->actor->input;
- if(!Eligible(p->path)){func_00195A00(p->actor->controller,0,0,0);return;}
- if(p->state&&GrfConsumePressed__5POCTLUif(input,0x40,0.25f)){func_00195A00(p->actor->controller,2,0,0);return;}
+ if(!Eligible(p->path)){SetJtAirJump(p->actor->controller,0,0,0);return;}
+ if(p->state&&GrfConsumePressed__5POCTLUif(input,0x40,0.25f)){SetJtAirJump(p->actor->controller,2,0,0);return;}
  if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(p->actor,3)){ClearPoctlJoyPressed(input,0x400);StartJtMode(p->actor->action,0,0,0);}
  int old;do{old=p->state;if((old==0||old==4)&&FAsegaRetracted(p->actor->asega))SetJtPipeState(p,1);}while(p->state!=old);
  if(p->state==0||p->state==4)return;

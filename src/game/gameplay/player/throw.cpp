@@ -109,7 +109,7 @@ void func_001384C0(ASEG *);
 int FAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
-void func_00136530(O *,int);
+void SetBentleyHoverState(O *,int);
 TRACKREF *func_0012FF10(ASEG *,O *,void *,int);
 int FFilterSoPair(void *a, SOPAIR *b);
 qword ConvertAloPos(void *,void *,qword);
@@ -369,7 +369,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s){
      qword speedValue,upValue; qword height=LiftFromUpper(600.0f,w.speed,savedUpper,speedValue,upValue);
      O *launchOwner;int launchFlag;LaunchPublication(LaunchVelocity(direction,speedValue,upValue,height),w.vector,launchOwner,launchFlag);
      w.scratch.vector.q=height;
-     func_00136530(launchOwner,launchFlag);LaunchVectorCall(D_002DD5BC,w.vector);
+     SetBentleyHoverState(launchOwner,launchFlag);LaunchVectorCall(D_002DD5BC,w.vector);
     }
     if(s->effect)EffectCall(s->effect,9);
     return;
@@ -708,7 +708,7 @@ extern "C" void ReleaseJtThrowObject(JTTHROW *p)
     O *po;
     if (p->selected == D_002DD5BC) {
         if (p->selected->mode != 8) goto tail;
-        func_00136530(p->selected, 1);
+        SetBentleyHoverState(p->selected, 1);
     } else {
         SetLoParent_1A58D0(p->selected, 0, 3);
         SetSoCnstrForce(p->selected, 0);
@@ -843,7 +843,7 @@ extern "C" void SetJtThrowState(JTTHROW *s,int state){
     direction=ProjectUnit(direction,up);
     float liftHeight;qword liftUp=LiftInputs(savedUpper,liftHeight),speed;O *receiver;int flag;qword height=LaunchOperands(liftHeight,w.coefficient,speed,receiver,flag);
     qword velocity=Launch(direction,speed,liftUp,height);asm volatile("sqc2 %1,%0":"=m"(w.velocity.q):"j"(velocity));w.scalar.q=height;
-    func_00136530(receiver,flag);
+    SetBentleyHoverState(receiver,flag);
     VectorCall(D_002DD5BC,35,w.velocity.q);
   }
   else if(s->selected->id==s->peer->id){

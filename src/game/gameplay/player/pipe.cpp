@@ -277,7 +277,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *p, float distance, int forward, M3 *out
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
-extern "C" void ClampPipeGrabDistance(PIPEV *p, void *q, float *pf)
+extern "C" void GetPipeClosestParam(PIPEV *p, void *q, float *pf)
 {
     FindShapeClosestPoint(p, func_001A62E8(q), 0, 0, 0, 0, pf);
     if (p->cyclic == 0) {
@@ -299,7 +299,7 @@ static inline int ScaleBits(void) {
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
-extern "C" void GetPipeGrabPositionAndMatrix(PIPEV *p, int unused, qword *pvec, float g)
+extern "C" void GetPipeGrabPosition(PIPEV *p, int unused, qword *pvec, float g)
 {
     qword a[3];
     VECTORV b;
@@ -331,7 +331,7 @@ static inline qword Bc(float g) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
-extern "C" void GetPipeGrabMatrix(PIPEV *p,qword *ppos,qword *pdir,float t)
+extern "C" void GetPipeSparklePosition(PIPEV *p,qword *ppos,qword *pdir,float t)
 {
     union { qword q; float f[4]; } vp;
     M3 m;
@@ -358,7 +358,7 @@ extern "C" void GetPipeGrabMatrix(PIPEV *p,qword *ppos,qword *pdir,float t)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
-extern "C" int GetPipeGrabRange(PIPEV *p, float *pg)
+extern "C" int GetPipeWrapRange(PIPEV *p, float *pg)
 {
     if (p->cyclic) { pg[0] = SMinShape(p); pg[1] = SMaxShape(p); return 1; } return 0;
 }

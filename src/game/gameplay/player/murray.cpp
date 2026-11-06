@@ -41,7 +41,7 @@ struct S{
 extern struct S *D_002F7900;
 void InitStepplayer(struct S *p);
 void InitGait(struct BIND*a,void*owner,int word90);
-void func_0020BD78(struct RESET*a);
+void InitAsegArc(struct RESET*a);
 void InitThrow(struct CONTEXT*a,void*owner);
 static inline void Init(struct SUB *ps, float f, float g) { ps->f2 = g; ps->f1 = f; ps->i = 0; }
 /** @sly2-annot addr=0x1B4728
@@ -72,7 +72,7 @@ void InitMurray(struct S *p)
     InitGait(&p->bind1460, p, 0x15);
     InitGait(&p->bind1630, p, 0x15);
     InitGait(&p->bind1540, p, 0x15);
-    func_0020BD78(&p->reset1850);
+    InitAsegArc(&p->reset1850);
     {
     register float a __asm__("$f6") = -60.0f;
     register float b __asm__("$f4") = -100.0f;
@@ -210,9 +210,9 @@ extern qword D_002A2DE0;
 void PostLoadStepplayer(struct S *p);
 void PostJtLoadGait(void *p);
 void InitDirectionalBlend(struct S *p, void *a, void *b);
-void func_0020BD88(void *p, struct S *s);
+void PostAsegArcLoad(void *p, struct S *s);
 void PostJtThrowLoad(void *p);
-void func_001426E8(struct S *p, int n);
+void AttachStepplayerToStartMarker(struct S *p, int n);
 void *PxfFindSo(struct S *p, int a, int b);
 int func_0012DC18(struct S *p, void *a, int b, int c, int d, qword q);
 void SetMurrayState(struct S *p, int n);
@@ -234,9 +234,9 @@ void PostMurrayLoad(struct S *p)
     PostJtLoadGait(b + 0x1630);
     PostJtLoadGait(b + 0x1540);
     InitDirectionalBlend(p, b + 0x16F0, b + 0x17F0);
-    func_0020BD88(b + 0x1850, p);
+    PostAsegArcLoad(b + 0x1850, p);
     PostJtThrowLoad(b + 0x1910);
-    func_001426E8(p, 0x16);
+    AttachStepplayerToStartMarker(p, 0x16);
     v = PxfFindSo(p, p->x18, 0xC);
     if (v) {
         *(int *)(b + 0x1ACC) = func_0012DC18(p, v, 0, 7, 2, D_002A2DE0);
@@ -284,34 +284,34 @@ typedef char P_kind_Offset[FIELD_OFFSET(P,kind)==6208?1:-1];
 typedef char P_extra_Offset[FIELD_OFFSET(P,extra)==6416?1:-1];
 extern "C" CLOCK D_002DDED0;
 extern "C" float D_002C08DC,D_002C08E0;
-extern "C" void func_00195A00(void*,int,void*,void*);
+extern "C" void SetJtAirJump(void*,int,void*,void*);
 extern "C" void StartJtMode(void*,int,void*,void*);
-extern "C" int FStepplayerNearInteractTarget(P*,int);
+extern "C" int IsStepplayerNearInteractTarget(P*,int);
 extern "C" void SetMurrayState(P*,int);
 extern "C" unsigned GrfConsumePressed__5POCTLUif(PL*,unsigned,float);
 extern "C" unsigned GrfPressedWithin__5POCTLUif(PL*,unsigned,float);
 extern "C" void ClearPoctlJoyPressed(PL*,int);
-extern "C" int FMurrayCanAttack(P*);
+extern "C" int CanMurrayAttack(P*);
 extern "C" void StartMurrayAltAttack(P*);
 extern "C" void StartMurrayPunch(P*);
-extern "C" int FTryMurrayTakedown(P*);
-extern "C" int FJtGrabNearestCandidate(void*,unsigned,int);
+extern "C" int TryMurrayTakedown(P*);
+extern "C" int TryGrabJtNearestCandidate(void*,unsigned,int);
 extern "C" void UpdateJtAirInput(void*);
-extern "C" int func_00143D20(P*,float);
+extern "C" int WillStepplayerLand(P*,float);
 extern "C" void UpdateJtGrabInput(void*);
 extern "C" void UpdateJtHurtInput(void*);
-extern "C" void func_001B6BA8(P*);
+extern "C" void UpdateMurrayFlop(P*);
 extern "C" void UpdateMurrayCarry(P*);
-extern "C" void func_001B5820(P*);
+extern "C" void UpdateMurrayStruggle(P*);
 extern "C" void UpdateMurrayLift(P*);
 extern "C" int FAsegaRetracted(void*);
 extern "C" int FSmaRetracted(void*);
 extern "C" void UpdateMurrayAttack(P*);
-extern "C" void func_001B5990(P*);
-extern "C" void func_001B8EC0(P*);
+extern "C" void UpdateMurrayStrafe(P*);
+extern "C" void UpdateMurrayPower(P*);
 extern "C" void UpdateJtThrow(void*);
 extern "C" void UpdateJtActivePipe(void*);
-extern "C" int GrfbtnGadget(P*,int);
+extern "C" int GetGadgetButtonMask(P*,int);
 static inline PL*CopyPL(PL*source){PL*result;__asm__("daddu %0,%1,$zero":"=r"(result):"r"(source));return result;}
 static inline int Can(P*p,int kind){return ((int(*)(void*,int))p->vt[99].fn)((char*)p+p->vt[99].delta,kind);}
 /** @sly2-annot addr=0x1B4AA0
@@ -336,30 +336,30 @@ extern "C" void UpdateMurrayStateMachine(P*p){
   default:
    if(D_002DDED0.time-p->changed>0.1f){
     switch(p->state){
-    case 5:func_00195A00(&p->control,16,0,0);break;
-    case 12:if(p->kind==3)func_00195A00(&p->control,11,0,0);break;
-    case 13:if(p->gate.mode!=1&&p->gate.mode!=12)func_00195A00(&p->control,0,0,0);break;
-    default:func_00195A00(&p->control,0,0,0);break;
+    case 5:SetJtAirJump(&p->control,16,0,0);break;
+    case 12:if(p->kind==3)SetJtAirJump(&p->control,11,0,0);break;
+    case 13:if(p->gate.mode!=1&&p->gate.mode!=12)SetJtAirJump(&p->control,0,0,0);break;
+    default:SetJtAirJump(&p->control,0,0,0);break;
     }
    }
   }
   int finished;
   switch(p->state){
   case 0:case 1:case 10:{
-   if(!(p->input->flags&8)&&FStepplayerNearInteractTarget(p,0)){SetMurrayState(p,9);break;}
-   if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f)){func_00195A00(&p->control,1,0,0);break;}
+   if(!(p->input->flags&8)&&IsStepplayerNearInteractTarget(p,0)){SetMurrayState(p,9);break;}
+   if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f)){SetJtAirJump(&p->control,1,0,0);break;}
    if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&Can(p,3)){
     ClearPoctlJoyPressed(p->input,0x400);
     StartJtMode(p->altAction,0,0,0);
     break;
    }
-   if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC)){StartMurrayAltAttack(p);break;}
-   if(FTryMurrayTakedown(p))break;
+   if(CanMurrayAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC)){StartMurrayAltAttack(p);break;}
+   if(TryMurrayTakedown(p))break;
    if(GrfConsumePressed__5POCTLUif(p->input,0x20,0.2f)){
-    if(!FJtGrabNearestCandidate(&p->gate,0xF8FA,0)&&p->root){p->flag=0;SetMurrayState(p,4);}
+    if(!TryGrabJtNearestCandidate(&p->gate,0xF8FA,0)&&p->root){p->flag=0;SetMurrayState(p,4);}
     break;
    }
-   if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC)){StartMurrayPunch(p);break;}
+   if(CanMurrayAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC)){StartMurrayPunch(p);break;}
    PL*input=p->input;PL*flagsInput=CopyPL(input);register int current __asm__("$3")=p->state;
    if(current==0){if(input->amount>0.1f)goto moving;}
    else if(input->amount>0.0f)goto moving;
@@ -372,7 +372,7 @@ extern "C" void UpdateMurrayStateMachine(P*p){
    UpdateJtAirInput(&p->control);
    switch(p->control.state){case 0:case 11:case 15:case 16:break;
    default:
-    if(GrfPressedWithin__5POCTLUif(p->input,0x90,D_002C08DC)&&Can(p,2)&&p->control.count<6&&p->control.count>0&&!func_00143D20(p,D_002C08E0)){
+    if(GrfPressedWithin__5POCTLUif(p->input,0x90,D_002C08DC)&&Can(p,2)&&p->control.count<6&&p->control.count>0&&!WillStepplayerLand(p,D_002C08E0)){
      ClearPoctlJoyPressed(p->input,0x90);
      p->pending=0;
      SetMurrayState(p,3);
@@ -381,14 +381,14 @@ extern "C" void UpdateMurrayStateMachine(P*p){
    break;
   case 13:UpdateJtGrabInput(&p->gate);break;
   case 14:UpdateJtHurtInput(p->action);break;
-  case 3:func_001B6BA8(p);break;
+  case 3:UpdateMurrayFlop(p);break;
   case 5:UpdateMurrayCarry(p);break;
-  case 6:func_001B5820(p);break;
+  case 6:UpdateMurrayStruggle(p);break;
   case 4:UpdateMurrayLift(p);break;
   case 7:case 8:finished=FAsegaRetracted(p->animation);goto checkIdle;
   case 11:UpdateMurrayAttack(p);break;
-  case 9:func_001B5990(p);break;
-  case 12:func_001B8EC0(p);break;
+  case 9:UpdateMurrayStrafe(p);break;
+  case 12:UpdateMurrayPower(p);break;
   case 15:UpdateJtThrow(p->extra);break;
   case 20:UpdateJtActivePipe(p->physics);break;
   case 17:
@@ -401,8 +401,8 @@ extern "C" void UpdateMurrayStateMachine(P*p){
    SetMurrayState(p,0);
    break;
   case 21:
-   if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.0f))func_00195A00(&p->control,13,0,0);
-   else if(!(p->input->flags&GrfbtnGadget(p,0x10)))SetMurrayState(p,0);
+   if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.0f))SetJtAirJump(&p->control,13,0,0);
+   else if(!(p->input->flags&GetGadgetButtonMask(p,0x10)))SetMurrayState(p,0);
    break;
   default:break;
   }
@@ -413,7 +413,7 @@ extern "C" void UpdateMurrayStateMachine(P*p){
 
 namespace M_func_001B5038 { extern "C" {
 struct S { char pad[0x150]; void *p150; char pad2[0xF00 - 0x154]; int f00; int f04; char pad3[0xF20 - 0xF08]; int f20; };
-int FStepplayerInJtmode(struct S *p);
+int IsStepplayerInJtMode(struct S *p);
 int GrfConsumePressed__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
@@ -424,9 +424,9 @@ void UpdateJtMode(void *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B5038(struct S *p)
+void UpdateMurrayJtModeInput(struct S *p)
 {
-    if (FStepplayerInJtmode(p)) {
+    if (IsStepplayerInJtMode(p)) {
         if (p->f04 == 1 && !p->f20 && GrfConsumePressed__5POCTLUif(p->p150, 0x4F0, 0.25f)) EndJtMode(&p->f00);
         UpdateJtMode(&p->f00);
     }
@@ -459,9 +459,9 @@ void UpdateStepplayer(struct P *p);
 int FAsegaRetracted(struct O *p);
 void func_001306A8(struct O **pp);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, struct P *p, int n);
-void func_001B5038(struct P *p);
+void UpdateMurrayJtModeInput(struct P *p);
 void UpdateMurrayStateMachine(struct P *p);
-int func_001430C8(struct P *p);
+int GetStepplayerLeanFlags(struct P *p);
 void SetSmaMask(void *p, int n);
 void func_00204660(struct P *p, float g);
 qword func_00204E38(struct P *p, struct ASEGA *pl, float g);
@@ -469,10 +469,10 @@ void UpdateGaitBlend(void *p, float g);
 void UpdateGaitFootsteps(void *p);
 void UpdateJtActiveJump(void *p);
 void UpdateJtActiveHide(void *p);
-void func_001B8B70(struct P *p);
-void func_001B90B8(struct P *p);
+void UpdateMurrayAttackVelocity(struct P *p);
+void UpdateMurrayPowerVelocity(struct P *p);
 void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *p,float g);
-void func_001B82A0(struct P *p);
+void UpdateMurrayPlaces(struct P *p);
 void UpdateJtActiveZap(void *p);
 int func_00133D08(struct G *pg,struct BBOX *a,struct BBOX *b);
 void RecalcSwOxfFilterForObject(struct G *pg, struct P *p);
@@ -559,11 +559,11 @@ void UpdateMurray(struct P *p)
     if (p->x190C && FAsegaRetracted(p->x190C))
         func_001306A8(&p->x190C);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, p, 0xF8FA);
-    func_001B5038(p);
+    UpdateMurrayJtModeInput(p);
     UpdateMurrayStateMachine(p);
     switch (p->x13D0) {
     case 0:
-        SetSmaMask(p->p1034, func_001430C8(p));
+        SetSmaMask(p->p1034, GetStepplayerLeanFlags(p));
         break;
     case 1:
         func_00204660(p, p->pl->g18);
@@ -582,10 +582,10 @@ void UpdateMurray(struct P *p)
         UpdateJtActiveHide(p->x4C0);
         break;
     case 11:
-        func_001B8B70(p);
+        UpdateMurrayAttackVelocity(p);
         break;
     case 12:
-        func_001B90B8(p);
+        UpdateMurrayPowerVelocity(p);
         break;
     case 17:
         Neg(p, func_00204E38(p, p->p1030, p->p1030->time));
@@ -595,7 +595,7 @@ void UpdateMurray(struct P *p)
         func_00204660(p, p->pl->g18);
         break;
     }
-    func_001B82A0(p);
+    UpdateMurrayPlaces(p);
     UpdateJtActiveZap(p->xDF0);
     if (p->p1430 && p->g1434 + 0.1f < D_002DDED0.t) {
         if (!p->p1430->xEC || !func_00133D08(&D_003DD490, p->xEC, p->p1430->xEC))
@@ -632,7 +632,7 @@ int GrfPressedWithin__5POCTLUif(struct PL *pl,unsigned int k,float g);
 int GrfConsumePressed__5POCTLUif(struct PL *pl, int k, float g);
 void ClearPoctlJoyPressed(struct PL *pl, int k);
 int FPowerupAcquired(int n);
-void func_00195A00(void *p, int a, int b, int c);
+void SetJtAirJump(void *p, int a, int b, int c);
 void StartJtMode(void *p, int a, int b, int c);
 void SetMurrayCarrySubstate(struct P *p, int n);
 void func_00204660(struct P *p, float g);
@@ -674,7 +674,7 @@ void UpdateMurrayCarry(struct P *p)
                 SetMurrayState(p, 0);
             } else if (GrfPressedWithin__5POCTLUif(p->pl, 0x40, 0.1f) && FPowerupAcquired(0x12)) {
                 ClearPoctlJoyPressed(p->pl, 0x40);
-                func_00195A00(p->x2C0, 0xF, 0, 0);
+                SetJtAirJump(p->x2C0, 0xF, 0, 0);
             } else if (GrfConsumePressed__5POCTLUif(p->pl, 0xA0, 0.0f)) {
                 SetMurrayState(p, 7);
             } else if (GrfConsumePressed__5POCTLUif(p->pl, 0x10, 0.0f) && p->x1438) {
@@ -767,7 +767,7 @@ typedef char P_x1510_Offset[FIELD_OFFSET(P,x1510)==5392?1:-1];
 typedef char P_x151C_Offset[FIELD_OFFSET(P,x151C)==5404?1:-1];
 extern qword D_002A2DD0;
 void func_002303A0(P *p, void *x, int k);
-void func_0020BD68(void *p);
+void ResetGaitFeet(void *p);
 void ReleaseAsega(A *pa);
 void ReleaseSma(C *pc);
 void ApplyAsegCur(R *pr, P *p, float f, float g, int k, A *pa) __asm__("ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA");
@@ -816,7 +816,7 @@ state0:
 state1:
     pr=p->x1464;
     f=p->x1A0*pr->x74;
-    func_0020BD68(p->x1320);
+    ResetGaitFeet(p->x1320);
     n=9;
     goto done;
 state2:
@@ -853,7 +853,7 @@ void SetSmaGoal(int a, int b);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B5820(struct P *p)
+void UpdateMurrayStruggle(struct P *p)
 {
     int a;
     if (PpoHero(D_003DD490) != p) return;
@@ -898,19 +898,19 @@ struct P{
 };
 extern "C"{
 extern float D_002C08DC;
-int FStepplayerNearInteractTarget(P*,int);
+int IsStepplayerNearInteractTarget(P*,int);
 void SetMurrayState(P*,int);
 int GrfConsumePressed__5POCTLUif(PL*,int,float);
 int GrfPressedWithin__5POCTLUif(PL*,uint,float);
 void ClearPoctlJoyPressed(PL*,int);
-void func_00195A00(void*,int,int,void*);
+void SetJtAirJump(void*,int,int,void*);
 void StartJtMode(void*,int,P*,void*);
-int FTryMurrayTakedown(P*);
-int FJtGrabNearestCandidate(void*,int,int);
-int FMurrayCanAttack(P*);
+int TryMurrayTakedown(P*);
+int TryGrabJtNearestCandidate(void*,int,int);
+int CanMurrayAttack(P*);
 void StartMurrayPunch(P*);
 void StartMurrayAltAttack(P*);
-void func_001B5D30(P*,int);
+void SetMurrayStrafeSubstate(P*,int);
 void FaceStepToward(P*,void*);
 void func_00204660(P*,float);
 void UpdateGaitBlend(void*,float);
@@ -965,23 +965,23 @@ typedef char Axis1Direction_Offset[(FIELD_OFFSET(P,axes)+sizeof(ENTRY)+FIELD_OFF
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" void func_001B5990(P*p){
+extern "C" void UpdateMurrayStrafe(P*p){
  int before;
  for(;;){
   before=p->state;
   switch(before){case 0:case 1:case 2:{
-   if((p->input->flags&8)||!FStepplayerNearInteractTarget(p,1))SetMurrayState(p,0);
-   else if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f))func_00195A00(p->controller,1,0,0);
-   else if(FTryMurrayTakedown(p)){}
+   if((p->input->flags&8)||!IsStepplayerNearInteractTarget(p,1))SetMurrayState(p,0);
+   else if(GrfConsumePressed__5POCTLUif(p->input,0x40,0.1f))SetJtAirJump(p->controller,1,0,0);
+   else if(TryMurrayTakedown(p)){}
    else if(GrfConsumePressed__5POCTLUif(p->input,0x20,0.2f)){
-    if(!FJtGrabNearestCandidate(p->context,0x80,0)&&p->root){p->reset=0;SetMurrayState(p,4);}
+    if(!TryGrabJtNearestCandidate(p->context,0x80,0)&&p->root){p->reset=0;SetMurrayState(p,4);}
    }
-   else if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC))StartMurrayPunch(p);
+   else if(CanMurrayAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x80,D_002C08DC))StartMurrayPunch(p);
    else if(GrfPressedWithin__5POCTLUif(p->input,0x400,0.15f)&&((int(*)(P*,int))p->vt[99].fn)((P*)((char*)p+p->vt[99].delta),3)){
     ClearPoctlJoyPressed(p->input,0x400);StartJtMode(p->requestF00,0,0,0);
    }
-   else if(FMurrayCanAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC))StartMurrayAltAttack(p);
-   else {PL*pl=p->input;float strength=pl->strength;if(p->mainState==0?0.1f<strength:0.0f<strength)func_001B5D30(p,2);else func_001B5D30(p,0);}
+   else if(CanMurrayAttack(p)&&GrfConsumePressed__5POCTLUif(p->input,0x10,D_002C08DC))StartMurrayAltAttack(p);
+   else {PL*pl=p->input;float strength=pl->strength;if(p->mainState==0?0.1f<strength:0.0f<strength)SetMurrayStrafeSubstate(p,2);else SetMurrayStrafeSubstate(p,0);}
   }break;
   }
   if(p->state==before||p->mainState!=9)break;
@@ -1012,7 +1012,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char x1030[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int x17F4; float f17F8; };
 void func_002303A0(struct P *p, int a, int b);
-void func_0020BD68(void *p);
+void ResetGaitFeet(void *p);
 void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct P *p, int n, void *q, float f1, float f2);
@@ -1023,7 +1023,7 @@ void ReplaceSma(int a, struct P *p, int b, int n, void *q);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B5D30(struct P *p, int st)
+void SetMurrayStrafeSubstate(struct P *p, int st)
 {
     void *o;
     int x, n;
@@ -1050,7 +1050,7 @@ void func_001B5D30(struct P *p, int st)
         break;
     case 1:
         o = p->x1634;
-        func_0020BD68(p->x1630);
+        ResetGaitFeet(p->x1630);
         n = 9;
         break;
     }
@@ -1072,7 +1072,7 @@ struct P { char pad[0x1A8]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *p13F0; 
 struct G { char pad[0x13B4]; struct O *pFirst; };
 extern float D_002C0984, D_002C0988;
 qword func_001A62E8(void *p);
-int func_00184380(void *a, struct O *po);
+int ShouldTriggerGrabspotSkipTarget(void *a, struct O *po);
 float atan2f(float y, float x);
 float RadStepHeading(struct P *p);
 float RadNormalize__Ff(float g);
@@ -1106,7 +1106,7 @@ void ChooseMurrayThrowTarget(struct P *p)
         float dist, g;
         if (!(po->xE8 & 0x10000))
             continue;
-        if (func_00184380(p->p13F0, po))
+        if (ShouldTriggerGrabspotSkipTarget(p->p13F0, po))
             continue;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(func_001A62E8(po)), "j"(func_001A62E8(p)));
         dist = LenXY(d);
@@ -1209,24 +1209,24 @@ extern CLOCK D_002DDED0;
 extern U D_002A2DD0;
 extern int D_002DD5BC;
 void func_002303A0(P *, void *, int);
-void func_00142880(P *);
+void ScheduleIdleTimer(P *);
 void SetMurrayFlopSubstate(P *, int);
 void func_0015C150(OBJ *);
-void func_00195FB8(void *, int, int);
+void SetJtAirState(void *, int, int);
 void SetJtGrabKind(void *, int);
 void SetJtHurtState(void *, int);
 void SetMurrayAttack(P *, int);
-void func_001B8D30(P *, int);
+void SetMurrayPowerSubstate(P *, int);
 void SetMurrayLiftSubstate(P *, int);
 void SetMurrayCarrySubstate(P *, int);
-void func_001B5D30(P *, int);
+void SetMurrayStrafeSubstate(P *, int);
 void SetJtThrowState(void *, int);
 void SetSoCnstrForce(P *, int);
 void SetJtPipeState(void *, int);
 int IsmsFindSmOptional__FP2SM3OID(void *, int);
-int func_001430C8(P *);
-void func_00142868(P *, int);
-void func_0020BD68(void *);
+int GetStepplayerLeanFlags(P *);
+void InitIdleTimer(P *, int);
+void ResetGaitFeet(void *);
 void SetJtModeState__FP6JTMODEi(void *, int);
 int FPowerupAcquired(int);
 void ChooseMurrayThrowTarget(P *);
@@ -1259,7 +1259,7 @@ extern "C" void SetMurrayState(P *p, int next)
     // leave the old state
     switch (p->state) {
     case 0:
-        func_002303A0(p, p->first, 2); func_002303A0(p, p->second, 2); func_00142880(p); break;
+        func_002303A0(p, p->first, 2); func_002303A0(p, p->second, 2); ScheduleIdleTimer(p); break;
     case 16: case 17: case 18:
         func_002303A0(p, p->first, 2); func_002303A0(p, p->second, 2); break;
     case 3: SetMurrayFlopSubstate(p, -1); break;
@@ -1276,15 +1276,15 @@ extern "C" void SetMurrayState(P *p, int next)
             }
             if (object) { Call(object, 8); func_0015C150(object); Call(object, 9); }
         }
-        func_00195FB8(Block(p, 0x2C0), -1, 0); break;
+        SetJtAirState(Block(p, 0x2C0), -1, 0); break;
     }
     case 13: SetJtGrabKind(Block(p, 0x4C0), -1); break;
     case 14: SetJtHurtState(Block(p, 0xDF0), -1); break;
     case 11: SetMurrayAttack(p, -1); break;
-    case 12: func_001B8D30(p, -1); break;
+    case 12: SetMurrayPowerSubstate(p, -1); break;
     case 4: SetMurrayLiftSubstate(p, -1); break;
     case 5: SetMurrayCarrySubstate(p, -1); break;
-    case 9: func_001B5D30(p, -1); break;
+    case 9: SetMurrayStrafeSubstate(p, -1); break;
     case 15: Call(p->object15, 9); SetJtThrowState(Block(p, 0x1910), -1); SetSoCnstrForce(p, 0); break;
     case 1: case 10: p->phase = p->asega->time / p->asega->clip->duration; break;
     case 6: p->marker = 0; break;
@@ -1303,7 +1303,7 @@ extern "C" void SetMurrayState(P *p, int next)
         source = p->template0; p->velocity = D_002A2DD0;
         if (old != 2) { id = (old != 10) ? 0x175 : 0x176; } else id = 0x178;
         if (IsmsFindSmOptional__FP2SM3OID(source, id) < 0) id = -1;
-        mode = func_001430C8(p); func_00142868(p, 1); break;
+        mode = GetStepplayerLeanFlags(p); InitIdleTimer(p, 1); break;
     case 1: clip = p->clip1; activation = Block(p, 0x1320); goto activate;
     case 14: SetJtModeState__FP6JTMODEi(Block(p, 0xF00), -1); break;
     case 3: { SetMurrayFlopSubstate(p, 0); ASEG *a = p->extra3; if (a && p->alternate3) clip = a; else clip = p->clip3; break; }
@@ -1323,9 +1323,9 @@ extern "C" void SetMurrayState(P *p, int next)
         SetStepRadTargetVec(p, difference); break;
     }
     case 8: { ASEG *a = p->extra8; if (a && p->alternate8) clip = a; else clip = p->clip8; goto clear_velocity; }
-    case 9: func_001B5D30(p, 0); Call((OBJ *)p, 90); return;
+    case 9: SetMurrayStrafeSubstate(p, 0); Call((OBJ *)p, 90); return;
     case 10: clip = p->clip10; activation = Block(p, 0x1540);
-    activate: flags = 9; func_0020BD68(activation); break;
+    activate: flags = 9; ResetGaitFeet(activation); break;
     case 15:
         Call(p->object15, 8); p->stamp15 = D_002DD5BC; SetJtThrowState(Block(p, 0x1910), 0); SetSoCnstrForce(p, 1); SetVelocity(p, D_002A2DD0.q); return;
     case 16: source = p->template16;
@@ -1387,7 +1387,7 @@ void PresetStepAccel(struct S *p);
 void PresetJtAccelJump(void *p);
 void PresetJtAccelHide(void *p);
 void PresetJtAccelZap(void *p);
-void func_001B6CC0(struct S *p);
+void PresetMurrayFlopAccel(struct S *p);
 void PresetJtAccelPipe(void *p);
 /** @sly2-annot addr=0x1B67F8
  * Purpose: MURRAY vt70: base accel (SO 0x1F9B20 for state 20 else STEP 0x204108), then per-state component
@@ -1405,7 +1405,7 @@ void PresetMurrayAccel(struct S *p)
     case 2: PresetJtAccelJump(b + 0x2C0); break;
     case 13: PresetJtAccelHide(b + 0x4C0); break;
     case 14: PresetJtAccelZap(b + 0xDF0); break;
-    case 3: func_001B6CC0(p); break;
+    case 3: PresetMurrayFlopAccel(p); break;
     case 20: PresetJtAccelPipe(b + 0xF50); break;
     }
 }
@@ -1446,7 +1446,7 @@ void SetMurrayFlopSubstate(P *p, int k);
 qword func_001A62E8(P *p);
 void EmitSwNoise(void *g, int z, qword q, P *p);
 void ThrowMurrayCarried(P *p);
-void func_001B7AE8(P *p);
+void TossMurrayCarried(P *p);
 void ReleaseJtThrowObject(void *p);
 void SetMurrayLiftSubstate(P *p, int k);
 void SetMurrayState(P *p, int s);
@@ -1478,7 +1478,7 @@ void HandleMurrayMessage(P *p, int msg, MSG *pm)
                 ThrowMurrayCarried(p);
                 break;
             case 8:
-                func_001B7AE8(p);
+                TossMurrayCarried(p);
                 break;
             case 15:
                 ReleaseJtThrowObject(p->x1910);
@@ -1541,7 +1541,7 @@ extern float D_002C09A0, D_002BF730;
 int FAsegaRetracted(int n);
 void SetMurrayState(struct P *p, int n);
 void SetMurrayFlopSubstate(struct P *p, int n);
-int FCheckJtStuck(struct P *p, void *q, float f);
+int IsJtStuck(struct P *p, void *q, float f);
 void ReturnJtToSafePlace(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 /** @sly2-annot addr=0x1B6BA8
@@ -1552,7 +1552,7 @@ qword SetVectorCylind(float a, float b, float c);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B6BA8(struct P *p)
+void UpdateMurrayFlop(struct P *p)
 {
     int s;
     for (;;) {
@@ -1560,7 +1560,7 @@ void func_001B6BA8(struct P *p)
         if (!p->x1030 || FAsegaRetracted(p->x1030)) SetMurrayState(p, 0);
         else if (p->x13D8 == 1) {
             if (p->x13E4) SetMurrayFlopSubstate(p, 2);
-            else if (FCheckJtStuck(p, p->x131C, p->f13DC)) ReturnJtToSafePlace(p, 0);
+            else if (IsJtStuck(p, p->x131C, p->f13DC)) ReturnJtToSafePlace(p, 0);
         }
         if (p->x13D8 == s || p->x13D8 == -1) break;
     }
@@ -1622,7 +1622,7 @@ typedef char Factor_Address[FACTOR_ADDRESS==0x002C09A4?1:-1];
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" void func_001B6CC0(struct P *p)
+extern "C" void PresetMurrayFlopAccel(struct P *p)
 {
     switch (p->x13D8) {
     case 0:
@@ -1886,13 +1886,13 @@ static inline qword ToGpr(qword v) { qword r; __asm__("qmfc2.ni %0, %1" : "=r"(r
 /** @sly2-annot addr=0x1B70A0
  * Purpose: If target x10DC is a stunned guard (0x209A68(..,0x17)) within reach and 0xA0 pressed: Circle lifts
  *   the guard (0x17B1A8 + StartMurrayLiftGuard), Square does finishing attack (state 11 kind 4)
- * Info: proposed name FTryMurrayTakedown (T1); TU murray
+ * Info: proposed name TryMurrayTakedown (T1); TU murray
  * Notes: runtime4: needs flag 0x17 guard as x10DC, BHV177 +0x50<3, +0x5C==Murray (S38/S39)
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5b_rest+runtime
  * See: docs/engine/player.md#6-murray-murraycpp-0x1b4728,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-int FTryMurrayTakedown(struct P *p)
+int TryMurrayTakedown(struct P *p)
 {
     union { qword q; float f[4]; } u;
     struct S *ps;
@@ -1934,7 +1934,7 @@ int FTryMurrayTakedown(struct P *p)
 } } // namespace M_FTryMurrayTakedown
 
 namespace M_func_001B72B0 {
-// func_001B72B0: rotation (quaternion) and position of `stop` relative to the owner's two end nodes of p->link.
+// GetMurrayGripFrame: rotation (quaternion) and position of `stop` relative to the owner's two end nodes of p->link.
 //  - No pose: transform the input basis into the right parent's frame (ConvertXfMat) and take its rotation
 //    (func_0011BFF0); transform the input position through the left parent (func_0022FC48).
 //  - With a pose: collect the parent chain from pose->first up to `stop` (at most 16 nodes) and the indices of the
@@ -1982,7 +1982,7 @@ extern "C" M4 __ml__FRC7MATRIX4T0(const M4 &, const M4 &);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" void func_001B72B0(P *const p, NODE *stop, const M4 *input, VU_VECTOR *outRotation, VU_VECTOR *outPosition)
+extern "C" void GetMurrayGripFrame(P *const p, NODE *stop, const M4 *input, VU_VECTOR *outRotation, VU_VECTOR *outPosition)
 {
     if (!p->link->pose) {
         M3 basis;
@@ -2092,7 +2092,7 @@ typedef char P_PrefixSize[sizeof(struct P)==5200?1:-1];
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B7700(struct P*p,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
+void ComputeMurrayLiftLaunch(struct P*p,qword goal,float*animation,float*duration,qword*outStart,qword*outEnd){
  struct P*owner=CaptureActor(p);
  U roots;U u;U start;
  qword end;
@@ -2243,7 +2243,7 @@ void SetStepRadTargetVec(struct P *p, qword q);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B7A78(struct P *p, void *pv)
+void ThrowMurrayCarriedAt(struct P *p, void *pv)
 {
     qword a, b, d;
     SetMurrayState(p, 7);
@@ -2276,7 +2276,7 @@ void func_001F7A68(struct O *p, int n);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B7AE8(struct S *p)
+void TossMurrayCarried(struct S *p)
 {
     struct O *po;
     qword q;
@@ -2459,7 +2459,7 @@ int GetMurrayPlayerState(struct S *p)
 
 namespace M_func_001B8008 { extern "C" {
 struct P { char pad[0x268]; int x268; char pad1[0x13D0 - 0x26C]; int k; char pad2[0x13F0 - 0x13D4]; int x13F0; char pad3[0x1458 - 0x13F4]; int x1458; char pad4[0x1A58 - 0x145C]; int a1A58[0x16]; int a1AB0[3]; int x1ABC; };
-int func_001944C8(void *p, int *pk);
+int GetJtGrabAdjustRecord(void *p, int *pk);
 int GetJtHurtAdjustRecord(void *p, int *pk);
 int func_0019C870(void *p, int *pk);
 void SetStepPhys(struct P *p, int v, int k);
@@ -2470,12 +2470,12 @@ void SetStepPhys(struct P *p, int v, int k);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B8008(struct P *p)
+void ApplyMurrayStateStepParams(struct P *p)
 {
     int k = 0;
     int v;
     switch (p->k) {
-    case 13: v = func_001944C8((char *)p + 0x4C0, &k); break;
+    case 13: v = GetJtGrabAdjustRecord((char *)p + 0x4C0, &k); break;
     case 14: v = GetJtHurtAdjustRecord((char *)p + 0xDF0, &k); break;
     case 2:
         if (p->x13F0) v = p->x1ABC;
@@ -2497,7 +2497,7 @@ void func_001B8008(struct P *p)
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 /* MURRAY slot 91 (empty). */
-extern "C" void func_001B80F0()
+extern "C" void EndMurrayMeleeAttack()
 {
 }
 
@@ -2509,23 +2509,23 @@ extern "C" void func_001B80F0()
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 /* MURRAY slot 92. */
-extern "C" int func_001B80F8()
+extern "C" int TryFaceMurrayAttachedObject()
 {
     return 0;
 }
 
 namespace M_func_001B8100 { extern "C" {
 struct S { char pad[0x13D0]; int n; char pad2[0x17F4 - 0x13D4]; int f17f4; };
-int func_001409B8(struct S *p);
+int StepplayerVirtual98(struct S *p);
 /** @sly2-annot addr=0x1B8100
  * Purpose: MURRAY vt98: base 0x1409B8; if -1 return 1 for states 1/12 or strafe with substate set
  * Info: proposed name MURRAY_vt98 (T2); class MURRAY slot98; TU murray
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-int func_001B8100(struct S *p)
+int MurrayVirtual98(struct S *p)
 {
-    int v = func_001409B8(p);
+    int v = StepplayerVirtual98(p);
     if (v != -1) return v;
     switch (p->n) {
     case 1: case 12:
@@ -2570,7 +2570,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B81B8(struct P *p, int b)
+void SetMurrayPlayable(struct P *p, int b)
 {
     struct O *o;
     func_00205D10(p, b);
@@ -2598,7 +2598,7 @@ struct M { char pad[0x148]; unsigned long f148; };
 struct Q { char pad[0x40]; int x40; char pad2[8]; struct M *pm; char pad3[0x10]; qword q60; char pad4[0x18]; float f88; };
 struct S { char pad[0x208]; struct Q *pq; char pad2[0x108C - 0x20C]; int x108C; char pad3[0x13D0 - 0x1090]; int k; };
 void AddJtPlaceAtPosition(void *p, int a, qword q);
-void func_001942F0(void *p);
+void RecordJtGrabPlace(void *p);
 void RecordJtPipePlace(void *p);
 /** @sly2-annot addr=0x1B82A0
  * Purpose: Per-frame: on flat ground (normal z>0.7, material flag clear) call 0x19FEB0 on +0x9E0; component
@@ -2607,7 +2607,7 @@ void RecordJtPipePlace(void *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B82A0(struct S *p)
+void UpdateMurrayPlaces(struct S *p)
 {
     struct Q *pq;
     switch (p->k) {
@@ -2616,7 +2616,7 @@ void func_001B82A0(struct S *p)
         if (pq && pq->f88 > 0.7f && !(pq->pm->f148 & 0x20000000) && !p->x108C)
             AddJtPlaceAtPosition((char *)p + 0x9E0, pq->x40, pq->q60);
         break;
-    case 13: func_001942F0((char *)p + 0x4C0); break;
+    case 13: RecordJtGrabPlace((char *)p + 0x4C0); break;
     case 20: RecordJtPipePlace((char *)p + 0xF50); break;
     }
 }
@@ -2624,32 +2624,32 @@ void func_001B82A0(struct S *p)
 
 namespace M_func_001B8368 { extern "C" {
 struct S { char pad[0x204]; int f204; char pad2[0x13D0-0x208]; int n; int reserved; int m; };
-int func_00143C78(struct S *p);
+int GetStepplayerModeCode(struct S *p);
 /** @sly2-annot addr=0x1B8368
  * Purpose: MURRAY vt85: 0 if x204 set, mode 1 or state 20, else base 0x143C78
  * Info: proposed name MURRAY_vt85 (T2); class MURRAY slot85; TU murray
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-int func_001B8368(struct S *p)
+int GetMurrayModeCode(struct S *p)
 {
     if (p->f204) return 0;
     if (p->m == 1 || p->n == 20) return 0;
-    return func_00143C78(p);
+    return GetStepplayerModeCode(p);
 }
 } } // namespace M_func_001B8368
 
 namespace M_func_001B83B8 { extern "C" {
 struct P { char pad[0x4C0]; char sub[0x13D0 - 0x4C0]; int n13D0; };
-int func_00194640(void *p, int k);
-int STEPPLAYER_FInvulnerable(struct P *p, int k);
+int IsJtGrabBusy(void *p, int k);
+int IsStepplayerInvulnerable(struct P *p, int k);
 /** @sly2-annot addr=0x1B83B8
  * Purpose: MURRAY vt76(k): true for state 15, state 20 with k==0x4000, component 13 check, else base 0x140ED8
  * Info: proposed name MURRAY_vt76 (T2); class MURRAY slot76; TU murray
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-int func_001B83B8(struct P *p, int k)
+int IsMurrayInvulnerable(struct P *p, int k)
 {
     switch (p->n13D0) {
     case 20:
@@ -2659,11 +2659,11 @@ int func_001B83B8(struct P *p, int k)
     case 15:
         return 1;
     case 13:
-        if (func_00194640(p->sub, k))
+        if (IsJtGrabBusy(p->sub, k))
             return 1;
         break;
     }
-    return STEPPLAYER_FInvulnerable(p, k);
+    return IsStepplayerInvulnerable(p, k);
 }
 } } // namespace M_func_001B83B8
 
@@ -2676,14 +2676,14 @@ int AdjustJtThrowFindFlags(int *pn, void *pv, int n);
 /** @sly2-annot addr=0x1B8450
  * Purpose: MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently
  *   released one x1430, or defers to JTTHROW filter in state 15
- * Info: proposed name MURRAY_FIgnoreIntersection (T1); class MURRAY slot61; TU murray
+ * Info: proposed name ShouldMurrayIgnoreIntersection (T1); class MURRAY slot61; TU murray
  * Notes: superseded: MURRAY_GrfIgnoreIntersection (verdicts_followups) | verifier better_name (CORRECT row):
  *   MURRAY vtable slot 61 (same slot as STEPPLAYER_FIgnoreIntersection, which it chains). If pv is under the
  *   recently released object (+0x1430) result = NMaxIgnore(
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-int MURRAY_FIgnoreIntersection(struct P *p, void *pv)
+int ShouldMurrayIgnoreIntersection(struct P *p, void *pv)
 {
     int n = FIgnoreIntersection__10STEPPLAYERP2SO(p, pv);
     if (p->p1430 && FFindLoParent(pv, p->p1430))
@@ -2697,11 +2697,11 @@ int MURRAY_FIgnoreIntersection(struct P *p, void *pv)
 /** @sly2-annot addr=0x1B84E0
  * Purpose: True if no attack overlay running and no attack substate, else the combo-window flag x1820 (anim
  *   event 0x242)
- * Info: proposed name FMurrayCanAttack (T1); TU murray
+ * Info: proposed name CanMurrayAttack (T1); TU murray
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" int FMurrayCanAttack(MURRAY *pmurray)
+extern "C" int CanMurrayAttack(MURRAY *pmurray)
 {
     if (pmurray->pasegaUnk190c != 0 || pmurray->nUnk1810 != -1) {
         return FCANATTACKBUSY(pmurray);
@@ -2810,7 +2810,7 @@ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float 
 float *func_0012F938(void *q, int n);
 void func_00131A90(struct ANIM *pa, float t);
 struct R *func_0012FF10(struct S14 *p, struct P *pp, int a, int b);
-void func_001431D0(struct P *p);
+void ReleaseInteractTargetMark(struct P *p);
 static inline qword MulM3(qword *m, qword v)
 {
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(v) : "j"(m[0]), "j"(m[1]), "j"(m[2]));
@@ -2875,7 +2875,7 @@ void SetMurrayAttack(struct P *p, int k)
             p->v1830 = func_001A62E8(p);
         }
     }
-    func_001431D0(p);
+    ReleaseInteractTargetMark(p);
 }
 } } // namespace M_SetMurrayAttack
 
@@ -2890,7 +2890,7 @@ void SetMurrayState(struct S *p, int n);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B8938(struct S *p)
+void CancelMurrayAttack(struct S *p)
 {
     func_00131B60(p->p, p, 5, D_002C09F8);
     p->q = p->p;
@@ -2913,11 +2913,11 @@ typedef struct P {
 } P;
 int FAsegaRetracted(void *p);
 void SetMurrayState(P *p, int s);
-int FMurrayCanAttack(P *p);
+int CanMurrayAttack(P *p);
 int GrfConsumePressed__5POCTLUif(T *t, int k, float f);
 void SetMurrayAttack(P *p, int k);
-int FTryMurrayTakedown(P *p);
-void func_001B8938(P *p);
+int TryMurrayTakedown(P *p);
+void CancelMurrayAttack(P *p);
 
 /** @sly2-annot addr=0x1B8988
  * Purpose: State 11 combo: chain Square (0<->1) or 0x10 (2<->3) within combo window; takedown check; movement
@@ -2940,18 +2940,18 @@ void UpdateMurrayAttack(P *p)
             switch (p->x1810) {
             case 0:
             case 1:
-                if (FMurrayCanAttack(p) && GrfConsumePressed__5POCTLUif(p->x150, 0x80, 0.25f)) {
+                if (CanMurrayAttack(p) && GrfConsumePressed__5POCTLUif(p->x150, 0x80, 0.25f)) {
                     SetMurrayAttack(p, p->x1810 == 0);
-                } else if (!FMurrayCanAttack(p) || !FTryMurrayTakedown(p)) {
-                    if (p->x181C && 0.0f < p->x150->x1C) func_001B8938(p);
+                } else if (!CanMurrayAttack(p) || !TryMurrayTakedown(p)) {
+                    if (p->x181C && 0.0f < p->x150->x1C) CancelMurrayAttack(p);
                 }
                 break;
             case 2:
             case 3:
-                if (FMurrayCanAttack(p) && GrfConsumePressed__5POCTLUif(p->x150, 0x10, 0.25f)) {
+                if (CanMurrayAttack(p) && GrfConsumePressed__5POCTLUif(p->x150, 0x10, 0.25f)) {
                     SetMurrayAttack(p, (p->x1810 == 2) ? 3 : 2);
-                } else if (!FMurrayCanAttack(p) || !FTryMurrayTakedown(p)) {
-                    if (p->x181C && 0.0f < p->x150->x1C) func_001B8938(p);
+                } else if (!CanMurrayAttack(p) || !TryMurrayTakedown(p)) {
+                    if (p->x181C && 0.0f < p->x150->x1C) CancelMurrayAttack(p);
                 }
                 break;
             }
@@ -3036,7 +3036,7 @@ static inline qword OrbitVector(struct P*p){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B8B70(struct P*p){
+void UpdateMurrayAttackVelocity(struct P*p){
     U scalar;
     if(p->source){
         qword value=func_00204E38(p,p->source,p->source->time);
@@ -3075,7 +3075,7 @@ static __inline__ void Zero(union V3 *pv) { pv->value.z = 0; pv->value.y = 0; pv
 struct P { char pad[0x190]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANIMATION *x1030; struct COMPONENT x1034;
     char pad2[0x1840 - 0x1038]; int x1840; float f1844; struct CLIP *x1848; struct CLIP *x184C; struct SCRIPT x1850; float f186C;
     char pad3[0x1890 - 0x1870]; struct O x1890; struct O *x1900; struct CLIP *x1904; int x1908; };
-void func_0020C080(struct O *o);
+void StopLeap(struct O *o);
 void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
 qword func_001A62E8(struct P *p);
 struct M3 *func_001A6318(struct P *p);
@@ -3121,13 +3121,13 @@ typedef char V3_Size[sizeof(union V3)==16?1:-1];
  * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B8D30(struct P *p, int st)
+void SetMurrayPowerSubstate(struct P *p, int st)
 {
     struct CLIP *o;
     int n;
     if (st == p->x1840) return;
     if (p->x1840 == 2) {
-        func_0020C080(p->x1900);
+        StopLeap(p->x1900);
         ((void (*)())p->x1900->vt[2].pfn)((char *)p->x1900 + p->x1900->vt[2].d);
         p->x1900 = 0;
     }
@@ -3205,8 +3205,8 @@ extern float D_002C0A30;
 extern float D_002C0A34;
 int FAsegaRetracted(void *p);
 void SetMurrayState(P *p, int s);
-void func_001B8D30(P *p, int s);
-int FLeapDone(void *p);
+void SetMurrayPowerSubstate(P *p, int s);
+int IsLeapDone(void *p);
 void UpdateLeap(void *p);
 
 /** @sly2-annot addr=0x1B8EC0
@@ -3216,27 +3216,27 @@ void UpdateLeap(void *p);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B8EC0(P *p)
+void UpdateMurrayPower(P *p)
 {
     int s;
     for (;;) {
         s = p->x1840;
         switch (s) {
         case 0:
-            if (!p->x1030 || FAsegaRetracted(p->x1030)) func_001B8D30(p, 1);
+            if (!p->x1030 || FAsegaRetracted(p->x1030)) SetMurrayPowerSubstate(p, 1);
             break;
         case 1:
             if (!p->x1030 || FAsegaRetracted(p->x1030)) {
                 SetMurrayState(p, 0);
             } else if (p->x1908) {
-                func_001B8D30(p, 2);
+                SetMurrayPowerSubstate(p, 2);
             } else if (!p->x1AC0 && D_002DDED0 - p->x1844 > D_002C0A30) {
-                func_001B8D30(p, 3);
+                SetMurrayPowerSubstate(p, 3);
             }
             break;
         case 2:
-            if (!p->x1900 || FLeapDone(p->x1900)) {
-                if (p->x1AC0) func_001B8D30(p, 0);
+            if (!p->x1900 || IsLeapDone(p->x1900)) {
+                if (p->x1AC0) SetMurrayPowerSubstate(p, 0);
                 else SetMurrayState(p, 0);
             } else {
                 UpdateLeap(p->x1900);
@@ -3266,7 +3266,7 @@ qword func_00204E38(struct P *p, struct Q *pq, float g);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B90B8(struct P *p)
+void UpdateMurrayPowerVelocity(struct P *p)
 {
     if (p->n == 1 || p->n == 3) {
         qword v = func_00204E38(p, p->pq, p->pq->g);
@@ -3495,11 +3495,11 @@ extern "C" void func_001F6860(OWNER*,int);
 extern "C" EVENT*func_0012F938(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertAloMat4(void*,void*,M4*);
-extern "C" void func_001B72B0(P*,NODE*,const M4*,qword*,qword*);
+extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
 extern "C" void func_00209E28(OWNER*,int);
 extern "C" void func_00209E88(OWNER*);
-extern "C" void func_001B7700(P*,qword,float*,float*,qword*,qword*);
+extern "C" void ComputeMurrayLiftLaunch(P*,qword,float*,float*,qword*,qword*);
 extern "C" MOTION*func_0012DE58(void*,void*,void*,float,qword,qword);
 extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
 extern "C" MOTION*func_0012DC18(void*,void*,void*,int,int,qword);
@@ -3540,9 +3540,9 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   LoadIdentityMatrix4(p->root->node,p->node,&predicted,0,duration);
   M4 work=ConvertAloMat4(p,0,&predicted);
   predicted=work;
-  func_001B72B0(p,0,&predicted,&work.row[0].q,&work.row[1].q);
+  GetMurrayGripFrame(p,0,&predicted,&work.row[0].q,&work.row[1].q);
   if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))func_00209E28(owner,(int)p);
-  func_001B7700(p,work.row[1].q,&event->time,&duration,&work.row[2].q,&work.row[3].q);
+  ComputeMurrayLiftLaunch(p,work.row[1].q,&event->time,&duration,&work.row[2].q,&work.row[3].q);
   p->m13FC=func_0012DE58(owner,owner->left,(void*)5,D_002DDED0.time+duration,work.row[1].q,work.row[3].q);
   VTE*entry=&owner->vt[35];
   void*receiver=(char*)owner+entry->delta;
@@ -3566,7 +3566,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   func_001F6860(owner,1);
   U position,rotation;
   M4 frame;
-  func_001B72B0(p,root->node,&D_002A2D30,&rotation.q,&position.q);
+  GetMurrayGripFrame(p,root->node,&D_002A2D30,&rotation.q,&position.q);
   p->m13F8=func_0012DC18(owner,owner->right,(void*)5,7,2,rotation.q);
   p->m13F4=func_0012DC18(owner,owner->left,(void*)5,7,2,position.q);
   if(p->link->first){
@@ -3606,19 +3606,19 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" void func_001B9880(MURRAY *pmurray, int n, void *pv)
+extern "C" void EnterMurrayThrowAim(MURRAY *pmurray, int n, void *pv)
 {
     SetMurrayState(pmurray, 0xF, pv);
 }
 
 namespace M_FCanUseGadget__6MURRAYi { extern "C" {
-/* FCanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring FStepplayerInJtmode with (p, k): it takes only p (as in FCanUseGadget), and the extra k use raised k's allocation priority. */
+/* FCanUseGadget (Claude agent, 2026-10-17): matched. The p/k s0/s1 swap came from declaring IsStepplayerInJtMode with (p, k): it takes only p (as in FCanUseGadget), and the extra k use raised k's allocation priority. */
 struct O { char pad[0x180]; void *x180; };
 struct P { char pad[0x2C4]; int x2C4; char pad1[0x12F0 - 0x2C8]; int x12F0; char pad2[0x13D0 - 0x12F4]; int x13D0; char pad3[0x13F0 - 0x13D4]; struct O *x13F0; };
 extern int D_002DFBC0;
-int FStepplayerInJtmode(struct P *p);
+int IsStepplayerInJtMode(struct P *p);
 int func_0019C8D0(void *p, int k);
-int func_00194558(void *p, int k);
+int CanJtUseGadgetInGrab(void *p, int k);
 int CanJtUseGadgetOnPipe(void *p, int k);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int FActiveCplcy__FP5CPLCY(void *p);
@@ -3631,7 +3631,7 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * @end-sly2-annot */
 int FCanUseGadget__6MURRAYi(struct P *p, int k)
 {
-    if (FStepplayerInJtmode(p)) return 0;
+    if (IsStepplayerInJtMode(p)) return 0;
     switch (p->x13D0) {
     case 0: case 1: case 9: case 10:
         break;
@@ -3639,7 +3639,7 @@ int FCanUseGadget__6MURRAYi(struct P *p, int k)
         if (!func_0019C8D0((char *)p + 0x2C0, k)) return 0;
         break;
     case 13:
-        if (!func_00194558((char *)p + 0x4C0, k)) return 0;
+        if (!CanJtUseGadgetInGrab((char *)p + 0x4C0, k)) return 0;
         break;
     case 20:
         if (!CanJtUseGadgetOnPipe((char *)p + 0xF50, k)) return 0;
@@ -3681,7 +3681,7 @@ void BroadcastGameEvent(void *p, int a, struct P *b);
 void ChargeGadgetMp(struct P *p, int k);
 void StartStepplayerGadget(struct P *p, int k);
 void SetMurrayState(struct P *p, int n);
-void func_001B8D30(struct P *p, int n);
+void SetMurrayPowerSubstate(struct P *p, int n);
 void SetJtGrabState(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x1B9A08
  * Purpose: MURRAY vt100(k): BroadcastGameEvent(0x3C,k) then per power: 20 power move (state 12), 19 alt toss
@@ -3699,8 +3699,8 @@ void UseMurrayGadget(struct P *p, int k)
     case 20:
         ChargeGadgetMp(p, k);
         SetMurrayState(p, 0xC);
-        func_001B8D30(p, 0);
-        func_001B8D30(p, 1);
+        SetMurrayPowerSubstate(p, 0);
+        SetMurrayPowerSubstate(p, 1);
         break;
     case 15:
         p->x9BC = k;
@@ -3733,11 +3733,11 @@ void UseMurrayGadget(struct P *p, int k)
 
 /** @sly2-annot addr=0x1B9B60
  * Purpose: MURRAY vt103: returns the string \murray\" (D_002A75E0)"
- * Info: proposed name MURRAY_PchName (T1); class MURRAY slot103; TU murray
+ * Info: proposed name GetMurraySaveVarRoot (T1); class MURRAY slot103; TU murray
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" char *MURRAY_PchName()
+extern "C" char *GetMurraySaveVarRoot()
 {
     return (char *)D_002A75E0;
 }
@@ -3759,7 +3759,7 @@ void GetStepplayerStunHold(struct P *p, struct O *po);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B9B70(struct P *p, struct O *po)
+void GetMurrayStunHold(struct P *p, struct O *po)
 {
     GetStepplayerStunHold(p, po);
     switch (p->n13D0) {
@@ -3790,7 +3790,7 @@ void SetSmaGoal(void *p, int n);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B9C00(struct S *p, void *pv, int n, int m, int f)
+void StartMurrayStruggle(struct S *p, void *pv, int n, int m, int f)
 {
     p->p1530 = pv;
     p->n1534 = m;
@@ -3822,7 +3822,7 @@ struct O *func_00205438(struct S *p, int oid);
  * Notes: agent qualifier: splice: Murray SM op
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r5b_rest
  * @end-sly2-annot */
-void func_001B9CA0(struct S *p, int f)
+void ClearMurrayBehaviors(struct S *p, int f)
 {
     ClearBhvstk__FP6BHVSTK(p->x26c);
     if (f) {
@@ -3840,7 +3840,7 @@ void func_001B9CA0(struct S *p, int f)
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 /* Splice-callable: clear the alternate flag and enter state 3. */
-extern "C" void func_001B9D00(MURRAY *pmurray, int n, void *pv)
+extern "C" void StartMurrayFlop(MURRAY *pmurray, int n, void *pv)
 {
     pmurray->nUnk13e8 = 0;
     SetMurrayState(pmurray, 3, pv);
@@ -3859,7 +3859,7 @@ void func_0012F9B8(int n, struct O *po, int a, int b, float g0, float g1);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B9D28(struct P *p, qword q)
+void SpawnMurrayHitEffect(struct P *p, qword q)
 {
     if (FPowerupAcquired(0x11)) {
         struct O *po = p->po;
@@ -3883,7 +3883,7 @@ void func_0012F9B8(void *a, struct O *po, int c, int d, float f, float g);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-void func_001B9DB8(struct S *p, int x)
+void SpawnMurrayHitEffectUnchecked(struct S *p, int x)
 {
     if ((((int)(p->po->fl >> 60) & 1) == 0)) {
         struct VTE *e = &p->po->vt[29];

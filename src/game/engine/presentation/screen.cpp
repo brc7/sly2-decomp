@@ -530,12 +530,12 @@ extern struct G D_003DD490;
 W *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 Q *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(Q *, int);
-int MpStepplayerCur(Q *);
+int GetStepplayerMp(Q *);
 void PlayWidgetAnim(W *, int);
 void SetWidgetAnimPhase(W *, int, float);
 /** @sly2-annot addr=0x1D9968
  * Purpose: Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp
- *   (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim ids (Sly
+ *   (+0xE00/+0xDFC) and power (GetStepplayerMp/+0x1300) fractions, pick per-character anim ids (Sly
  *   0x33D-341, Murray 0x342-346, Bentley 0x347-34B), set gauge phases 0x34F/0x350
  * Info: proposed name PostHudMeterLoad (T1); TU screen
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
@@ -558,7 +558,7 @@ void PostHudMeterLoad(OBJ *p)
         return;
     }
     p->x20 = p->x24 = (float)*p->q->pn / (float)p->q->c;
-    p->x28 = p->x2C = (float)MpStepplayerCur(p->q) / (float)p->q->cMax;
+    p->x28 = p->x2C = (float)GetStepplayerMp(p->q) / (float)p->q->cMax;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->q, 0x37)) {
             p->ids[0] = 0x347;
             p->ids[1] = 0x348;
@@ -736,7 +736,7 @@ extern char D_002C3248[];
 Q *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetHudMeterState(OBJ *, int);
-int MpStepplayerCur(Q *);
+int GetStepplayerMp(Q *);
 int FFloatsNear__Ffff(float, float, float);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
 int FWidgetAnimPlaying(SUB *, int);
@@ -785,14 +785,14 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             p->x3C = 0x342; p->x40 = 0x343; p->x44 = 0x344; p->x48 = 0x345; p->x4C = 0x346;
         }
         p->x20 = p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x28 = p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
+        p->x28 = p->x2C = (float)GetStepplayerMp(p->x34) / (float)p->x34->x1300;
     }
     switch (p->x30) {
     case 1:
     case 6:
     case 7:
         p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)GetStepplayerMp(p->x34) / (float)p->x34->x1300;
         if (*p->x34->xE00 <= 0) {
             SetHudMeterState(p, 0);
         } else if (p->x20 > p->x24) {
@@ -819,7 +819,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
         break;
     case 0:
         p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)GetStepplayerMp(p->x34) / (float)p->x34->x1300;
         if (p->x20 < p->x24) {
             p->x20 = p->x24;
             SetWidgetAnimPhase(p->x38, 0x34F, 1.0f - p->x20);
@@ -839,7 +839,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
             SetHudMeterState(p, 1);
         break;
     case 4:
-        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
+        p->x2C = (float)GetStepplayerMp(p->x34) / (float)p->x34->x1300;
         if (p->x28 < p->x2C)
             p->x28 = p->x2C;
         else
@@ -2558,7 +2558,7 @@ char *strcpy(char *, char *);
 int sprintf(char *, char *, ...);
 OBJ *func_001DAE20(GS *,int);
 void *PpoHero(void *);
-int IGadgetSlotFromId(void *, int);
+int GetGadgetSlotFromId(void *, int);
 /** @sly2-annot addr=0x1DC598
  * Purpose: Text callback for widgets 0x37A/0x37B: popup message, "none", or the selected power-up's name,
  *   slot button and description
@@ -2576,7 +2576,7 @@ void BuildGadgetMenuInfoText(char *out)
         strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xDD));
     } else {
         OBJ *po = func_001DAE20(&D_003DA0F0,D_003DA0F0.x48);
-        int v = IGadgetSlotFromId(PpoHero(D_003DD490), D_003DA0F0.x48);
+        int v = GetGadgetSlotFromId(PpoHero(D_003DD490), D_003DA0F0.x48);
         if ((po->x1C & 1) && v < 0) {
             strcpy(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xE1));
             s = (unsigned char *)D_002A7A10;
@@ -3638,7 +3638,7 @@ CRef RefSetGlobalSaveVar(void *, const CRef &, G *);
 void BindStepplayerHpMp(void *, int);
 void func_00165E38(G *);
 }
-/* The unused third parameter is deliberate: it is the same SetPv form as func_0013D328 / func_00143AF0,
+/* The unused third parameter is deliberate: it is the same SetPv form as func_0013D328 / ClearStepplayerBootySave,
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, &D_003D4A60); }
 /** @sly2-annot addr=0x1DDB08

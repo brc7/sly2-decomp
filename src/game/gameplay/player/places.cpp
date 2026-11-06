@@ -79,13 +79,13 @@ void ReturnJtToSafePlace(JT *, PLACE *);
 void ChooseJtSafePlace(JTPLACES *p, PLACE *e);
 JT *PpoHero(G *g);
 qword GetJtPlacePosition(JT *p, PLACE *e, float g);
-float func_00196928(qword a, qword b, float c, float d, float e, float f);
+float ComputeMaxBallisticTime(qword a, qword b, float c, float d, float e, float f);
 void SetStepRadTargetVec(JT *p, qword q);
 void CutCm__FP2CM(D *d);
-void func_00195A00(void *p, int a, int b, int c);
+void SetJtAirJump(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
 void func_00148300(G *g, LO *a);
-void JtbsChooseJtLanding(void *p, LO *a);
+void ChooseJtLanding(void *p, LO *a);
 void func_0015E1D8(int a);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
@@ -102,7 +102,7 @@ float ScoreJtPlace(JTPLACES *p, PLACE *e, int c, LO2 **apv);
 qword func_001A62E8(void *p);
 void AddJtPlaceAtPosition(JTPLACES *p, PLACESPOT *a, qword q);
 void AddJtPlaceOnCurve(JTPLACES *p, PLACESO *b, float g);
-void func_001942F0(void *p);
+void RecordJtGrabPlace(void *p);
 void RecordJtPipePlace(void *p);
 void *memmove(void *dst, const void *src, unsigned int cb);
 void RemoveJtPlacesOf(JTPLACES *p, LO *a, PLACESPOT *b);
@@ -179,7 +179,7 @@ extern "C" void ReturnJtToPosition(JT *p, qword q) { PLACE f; func_002333B4(&f, 
 
 /** @sly2-annot addr=0x19F590
  * Purpose: Put the player back at a safe place (best recorded place if none given): ballistic launch toward
- *   it (DtBallisticMax, SetJtAirJump, JtbsChooseJtLanding) or teleport with camera cut (CutCm) when he is not
+ *   it (DtBallisticMax, SetJtAirJump, ChooseJtLanding) or teleport with camera cut (CutCm) when he is not
  *   the active player
  * Info: proposed name ReturnJtToSafePlace (T1); TU places
  * Notes: runtime3: places MRU table
@@ -198,7 +198,7 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
         q = &e;
         if (p == PpoHero(&D_003DD490)) {
             qword r = GetJtPlacePosition(p, &e, 0.0f);
-            float g = func_00196928(VuSub(r, p->x58->x70), p->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
+            float g = ComputeMaxBallisticTime(VuSub(r, p->x58->x70), p->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
                 int save = p->places.c;
                 ((void (*)(void *, qword))p->vt[29].pfn)((char *)p + p->vt[29].d, VuSub(r, p->x240));
@@ -206,13 +206,13 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
                 SetStepRadTargetVec(p, D_002DDF40.x60);
                 ((void (*)(void *, void *))p->vt[30].pfn)((char *)p + p->vt[30].d, p->x1b0);
                 CutCm__FP2CM(&D_002DDF40);
-                func_00195A00(p->x2c0, 0xB, 0, 0);
+                SetJtAirJump(p->x2c0, 0xB, 0, 0);
                 if (e.pso) {
                     if (FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xD) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x27) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xC) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x22) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x26)) {
                         func_00148300(&D_003DD490, e.plo);
-                        JtbsChooseJtLanding(p->x2c0, e.plo);
+                        ChooseJtLanding(p->x2c0, e.plo);
                     }
                 }
                 func_0015E1D8(D_003DD490.x3e60);
@@ -222,7 +222,7 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
     }
     p->x490 = *(qword *)q;
     p->x4a0 = q->v.q;
-    func_00195A00(p->x2c0, 0xA, 0, 0);
+    SetJtAirJump(p->x2c0, 0xA, 0, 0);
 }
 
 static inline float GFromClq(CLQ *pclq, float g) { return pclq->g + g * (pclq->gFirst + g * pclq->gSecond); }
@@ -352,7 +352,7 @@ extern "C" void UpdateJtPlaces(JT *p)
         break;
     }
     case 7:
-        func_001942F0(p->x4c0);
+        RecordJtGrabPlace(p->x4c0);
         break;
     case 8:
         RecordJtPipePlace(p->xf50);

@@ -127,12 +127,12 @@ void UpdateJtHands(void *);
 int FCheckLm__FP2LMf(void *, float);
 struct BHV { char pad[0x50]; int n50; char pad54[8]; void *p5C; };
 BHV *PbhvFindBhvstk(void *, int);
-void SetJtJts__FP2JT3JTS4JTBS(JT *, int, int);
+void SetJtState__FP2JT3JTS4JTBS(JT *, int, int);
 int ShouldJtSweepBack(JT *);
 int ChooseJtSweepCaneState(JT *);
 int ChooseJtAttackCaneState(JT *);
 int GrfConsumePressed__5POCTLUif(POCTL *, int, float);
-void func_00195A00(void *, int, int, int);
+void SetJtAirJump(void *, int, int, int);
 void SetJtCaneState__FP2JTi(JT *, int);
 void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
 void func_001384C0(ASEG *);
@@ -473,7 +473,7 @@ extern "C" int ChooseJtAttackCaneState(JT *p)
                 int k = pt->n50;
                 if (k < 2) {
                     if (k >= 0) {
-                        SetJtJts__FP2JT3JTS4JTBS(p, 0x10, -1);
+                        SetJtState__FP2JT3JTS4JTBS(p, 0x10, -1);
                         return -1;
                     }
                 }
@@ -555,7 +555,7 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *p)
     switch (p->mode) {
     case 3: case 21: case 22:
         if (GrfConsumePressed__5POCTLUif(p->pt, 0x80, 0.0f))
-            func_00195A00(p->x2c0, 0, 0, 0);
+            SetJtAirJump(p->x2c0, 0, 0, 0);
         break;
     case 7:
         if (p->x4c8 < 5) f = p->x4c8 >= 3;
@@ -564,8 +564,8 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *p)
         switch (p->jtbs) {
         case 6: case 7:
             if (!(p->pt->fl & 0x80)) {
-                if (p->x18e8) SetJtJts__FP2JT3JTS4JTBS(p, 5, 8);
-                else SetJtJts__FP2JT3JTS4JTBS(p, 5, 4);
+                if (p->x18e8) SetJtState__FP2JT3JTS4JTBS(p, 5, 8);
+                else SetJtState__FP2JT3JTS4JTBS(p, 5, 4);
             }
             break;
         case 8: case 9:

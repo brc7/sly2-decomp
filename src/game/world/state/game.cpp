@@ -85,7 +85,7 @@ void CompleteJob(JOBV *pjob, TASKV *ptask);
 void CompleteJob1(JOBV *pjob) __asm__("CompleteJob");   /* OnJobTaskComplete passes only the job (a1 is left as is) */
 void SetSwTaskPending(SW *psw, LO *plo);
 LO *PpoHero(SW *psw);
-void func_00143380(LO *pstepplayer);
+void DropStepplayerBooty(LO *pstepplayer);
 void SetCurrentJob(JOBV *pjob);
 void GoToTask(TASKV *ptask);
 void SetJobCompletionPhase(JOBV *pjob, int nPhase);
@@ -495,7 +495,7 @@ extern BANK D_002E65E0;
  extern char D_003D4A60[];
  int CploFindSwObjectsByClass(G*,int,int,P*,int,P**);
  int IdBootyCur(void*);
- void*func_00143AF0(P*,int);
+ void*ClearStepplayerBootySave(P*,int);
  void InitGame(P*);
  void func_00166008();
  void func_001AB630(BANK*);
@@ -575,7 +575,7 @@ extern "C" void HandleGameEvent(P*p,int action){
   if(Same(&(*(CHECK *)&g_sw.filerecDest),&D_002A37E8)){
    P*results[3];
    int found=CploFindSwObjectsByClass(&D_003DD490,5,0x34,0,3,results);
-   if(found>0){P**cursor=results;int count=found;do{P*object=*cursor;if(object->widget)(void)func_00143AF0(object,IdBootyCur(object->widget));--count;++cursor;}while(count);}
+   if(found>0){P**cursor=results;int count=found;do{P*object=*cursor;if(object->widget)(void)ClearStepplayerBootySave(object,IdBootyCur(object->widget));--count;++cursor;}while(count);}
   }
   break;
  }
@@ -1368,7 +1368,7 @@ extern "C" void ActivateJob(JOBV *pjob)
         BroadcastGameEvent(D_002DEB30, 0x1C, pjob);
         ploHero = PpoHero(&D_003DD490);
         if (ploHero != 0 && FIsBasicDerivedFrom(ploHero, (CID)0x34) != 0) {
-            func_00143380(ploHero);
+            DropStepplayerBooty(ploHero);
         }
         SetCurrentJob(pjob);
     }

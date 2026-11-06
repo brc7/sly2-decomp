@@ -124,7 +124,7 @@ struct DIROWNER { char pad[0x30]; ASEG *paseg; };
 struct DIRACT { int n0; int n4; int pad8; void *pvt; char pad10[0x10]; ALO *palo; ASEGA *pasega; DIROWNER *powner; ASEG **ppaseg; int grfapl; char pad34[0xC]; };
 typedef char assert_DIRACT_size[sizeof(DIRACT) == 0x40 ? 1 : -1];
 
-/* The three clip markers (0x22..0x24) of func_0020BD88's curve. */
+/* The three clip markers (0x22..0x24) of PostAsegArcLoad's curve. */
 struct V3 { float x, y, z; };
 struct CVE { short d; short pad; void (*pf)(void *, qword *, qword *, float, float); };
 struct CV { CVE *vt; };
@@ -165,7 +165,7 @@ void SubscribeLoObject(ASEGA *, void *);
 qword GetSoDvGravity(ALO *);
 void func_0020B210(ALO *);
 void func_0020D178(void *);
-float func_00196928(qword,qword,float,float,float,float);
+float ComputeMaxBallisticTime(qword,qword,float,float,float,float);
 qword func_0022FC48(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
 ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
@@ -179,13 +179,13 @@ int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
 void ReleaseAct(ACT **);
 void func_002303A0(ALO *o, XF *pxf, int m);
 
-ASEGA *func_0020BB48(GAIT *p);
-qword func_0020BAD8(GAIT *p);
+ASEGA *GetGaitBlendValue(GAIT *p);
+qword GetGaitRootVelocity(GAIT *p);
 void SetLeapState(LEAPV *p, int state);
-LEAPV *LEAP_ctor(LEAPV *p);
-int FLeapDone(LEAPV *p);
-void func_0020C760(LEAPV *p);
-int func_0020CA98(DIRACT *p);
+LEAPV *ConstructLeap(LEAPV *p);
+int IsLeapDone(LEAPV *p);
+void ReleaseLeapConstraint(LEAPV *p);
+int IsDirAnimStopped(DIRACT *p);
 }
 void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega);  /* ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);                                              /* FIsBasicDerivedFrom__FP5BASIC3CID */
@@ -302,7 +302,7 @@ void PostJtLoadGait(GAIT *pgait)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-qword func_0020BAD8(GAIT *p)
+qword GetGaitRootVelocity(GAIT *p)
 {
     MRSGC *pb = p->pasegbl->amrsgc;
     float denominator=pb->amrsg->dt;
@@ -327,7 +327,7 @@ qword func_0020BAD8(GAIT *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-ASEGA *func_0020BB48(GAIT *p) {
+ASEGA *GetGaitBlendValue(GAIT *p) {
     return (ASEGA *)p->pasegbl->dlAsega.head;
 }
 
@@ -366,9 +366,9 @@ extern "C" void UpdateGaitBlend(GAIT *p, float g)
     }
     func_001384C0(p->pasegbl);
     pt = p->pstepplayer;
-    InitScalar(&a,*(int *)&func_0020BB48(p)->svt);
+    InitScalar(&a,*(int *)&GetGaitBlendValue(p)->svt);
     b = a;
-    q = func_0020BAD8(p);
+    q = GetGaitRootVelocity(p);
     r1=Negate(q,&b);
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(a.q), "j"(r1));
     *(qword *)&pt->vUnk190 = r2;
@@ -412,7 +412,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020BD68(GAIT *p) { p->afFootDown[1] = 0; p->afFootDown[0] = 0; }
+extern "C" void ResetGaitFeet(GAIT *p) { p->afFootDown[1] = 0; p->afFootDown[0] = 0; }
 
 /** @sly2-annot addr=0x20BD78
  * Purpose: *p = -1
@@ -422,7 +422,7 @@ extern "C" void func_0020BD68(GAIT *p) { p->afFootDown[1] = 0; p->afFootDown[0] 
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020BD78(OID *p) {
+extern "C" void InitAsegArc(OID *p) {
     *p = (OID)-1;
 }
 
@@ -433,7 +433,7 @@ extern "C" void func_0020BD78(OID *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020BD88(BLCURVE *p, ALO *arg)
+extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
 {
     EA *pa, *pb, *pc;
     CHN *c;
@@ -498,7 +498,7 @@ extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
     if (ptune->animation != 0) {
         memset(p, 0, 0x70);
         memset(p, 0, 0x70);
-        LEAP_ctor(p);
+        ConstructLeap(p);
         p->tuning = ptune;
         p->subject = psubject;
         p->index = index;
@@ -513,7 +513,7 @@ extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" LEAPV *func_0020C010(void) {
+extern "C" LEAPV *AllocLeap(void) {
     return (LEAPV *)PvAllocSlotheapClear(&g_sw.slotheapLeap);
 }
 
@@ -525,17 +525,17 @@ extern "C" LEAPV *func_0020C010(void) {
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" void func_0020C030(LEAPV *p) {
+extern "C" void FreeLeap(LEAPV *p) {
     func_0011CD98(&g_sw.slotheapLeap, p);
 }
 
 /** @sly2-annot addr=0x20C058
  * Purpose: CID 0x91 ctor (vtable 0x2DAA10)
- * Info: proposed name LEAP_ctor (T1); class LEAP; TU tu_20B840
+ * Info: proposed name ConstructLeap (T1); class LEAP; TU tu_20B840
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-LEAPV *LEAP_ctor(LEAPV *p) { p->pvt = D_002DAA10; p->state = -1; p->x0 = 0; p->x4 = 0; return p; }
+LEAPV *ConstructLeap(LEAPV *p) { p->pvt = D_002DAA10; p->state = -1; p->x0 = 0; p->x4 = 0; return p; }
 
 /** @sly2-annot addr=0x20C080
  * Purpose: if not finished: state 4, clear anim job
@@ -543,15 +543,15 @@ LEAPV *LEAP_ctor(LEAPV *p) { p->pvt = D_002DAA10; p->state = -1; p->x0 = 0; p->x
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020C080(LEAPV *p) { if (!FLeapDone(p)) { SetLeapState(p, 4); ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->job); } }
+extern "C" void StopLeap(LEAPV *p) { if (!IsLeapDone(p)) { SetLeapState(p, 4); ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->job); } }
 
 /** @sly2-annot addr=0x20C0D8
  * Purpose: state == 4
- * Info: proposed name FLeapDone (T1); TU tu_20B840
+ * Info: proposed name IsLeapDone (T1); TU tu_20B840
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-int FLeapDone(LEAPV *p) {
+int IsLeapDone(LEAPV *p) {
     return p->state == 4;
 }
 
@@ -653,7 +653,7 @@ void SetLeapState(LEAPV *p,int state)
             }else{
                 low=1250.0f;slopeLow=1.1f;high=-1250.0f;slopeHigh=-1.1f;
             }
-            time=func_00196928(delta.q,acceleration.q,low,high,slopeLow,slopeHigh);
+            time=ComputeMaxBallisticTime(delta.q,acceleration.q,low,high,slopeLow,slopeHigh);
         }else time=motionTuning->flightTime/playbackRate;
         time=MaxR(p->tuning->minimumTime/playbackRate,time);
         ALO *subject=p->subject;
@@ -696,7 +696,7 @@ void SetLeapState(LEAPV *p,int state)
         if(p->related)func_0020B2A8(p->subject,p->related,p->kind);
         break;
     case 4:
-        if(p->ballistic)func_0020C760(p);
+        if(p->ballistic)ReleaseLeapConstraint(p);
         SetSoDvGravity(p->subject,p->previousVelocity.q);
         if(FIsBasicDerivedFrom((BASIC *)p->subject,(CID)0x38))EnableStuckWatch(p->subject->control);
         break;
@@ -710,7 +710,7 @@ struct ACTPOS { char pad[0x20]; qword v; };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020C6F8(LEAPV *p, qword v)
+extern "C" void SetLeapTarget(LEAPV *p, qword v)
 {
     switch (p->state) {
     case 0: p->target.q = v; break;
@@ -726,7 +726,7 @@ extern "C" void func_0020C6F8(LEAPV *p, qword v)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-void func_0020C760(LEAPV *p)
+void ReleaseLeapConstraint(LEAPV *p)
 {
     if (p->ballistic) {
         p->ballistic = 0;
@@ -746,7 +746,7 @@ void func_0020C760(LEAPV *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020C7D8(DIRBL *p) {
+extern "C" void InvalidateDirAnims(DIRBL *p) {
     p->fInit = 0;
 }
 
@@ -757,7 +757,7 @@ extern "C" void func_0020C7D8(DIRBL *p) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020C7E0(DIRBL *p,ALO *arg)
+extern "C" void InitDirAnims(DIRBL *p,ALO *arg)
 {
     DIRE *e; unsigned int i;
     if (p->fInit)
@@ -804,7 +804,7 @@ extern "C" void func_0020C7E0(DIRBL *p,ALO *arg)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020C948(DIROWNER *p, ALO *a, int b, DIRACT *po)
+extern "C" void StartDirAnim(DIROWNER *p, ALO *a, int b, DIRACT *po)
 {
     memset(po, 0, sizeof(*po));
     memset(po, 0, sizeof(*po));
@@ -827,7 +827,7 @@ extern "C" void func_0020C948(DIROWNER *p, ALO *a, int b, DIRACT *po)
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" DIRACT *func_0020CA00(void) {
+extern "C" DIRACT *AllocDirAnim(void) {
     return (DIRACT *)PvAllocSlotheapClear(&g_sw.slotheapDiract);
 }
 
@@ -840,7 +840,7 @@ extern "C" DIRACT *func_0020CA00(void) {
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" void func_0020CA20(DIRACT *p) {
+extern "C" void FreeDirAnim(DIRACT *p) {
     func_0011CD98(&g_sw.slotheapDiract, p);
 }
 
@@ -851,7 +851,7 @@ extern "C" void func_0020CA20(DIRACT *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020CA48(DIRACT *p) { if (!func_0020CA98(p)) ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->pasega); }
+extern "C" void StopDirAnim(DIRACT *p) { if (!IsDirAnimStopped(p)) ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->pasega); }
 
 /** @sly2-annot addr=0x20CA98
  * Purpose: job +0x24 == 0
@@ -860,7 +860,7 @@ extern "C" void func_0020CA48(DIRACT *p) { if (!func_0020CA98(p)) ApplyAsegCur(0
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-int func_0020CA98(DIRACT *p) {
+int IsDirAnimStopped(DIRACT *p) {
     return p->pasega == 0;
 }
 
@@ -912,7 +912,7 @@ namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void func_0020CB28(DIRSEL*p,qword v)
+extern "C" void SelectDirAnim(DIRSEL*p,qword v)
 {
  U scalar,direction;
  register qword finalDirection __asm__("vf3");

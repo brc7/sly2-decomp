@@ -114,7 +114,7 @@ void *func_001AE238(REQ *, void *);
 void LoadSoFromBrx(BOOTYV *, void *);
 void PostSoLoad(BOOTYV *);
 void UpdateSo(BOOTYV *);
-void func_00143380(HERO *);
+void DropStepplayerBooty(HERO *);
 void RenderSoSelf(BOOTYV *);
 qword func_001A62E8(void *);
 void *func_001A6318(void *);
@@ -146,10 +146,10 @@ void FadeSoIn(BOOTYV *p, float g);
 MATCH *PripNewRipg(SW *psw, int n, int m);
 void SubscribeRipObject(MATCH *pe, BOOTYV *p);
 float GRandInRange__Fff(float a, float b);
-void func_00183F08(CID37V *);
-void func_00183F50(CID37V *);
+void InitTriggerGrabspot(CID37V *);
+void PostTriggerGrabspotLoad(CID37V *);
 void func_00183FB8(CID37V *);
-void func_00184130(CID37V *, HERO *);
+void FireTriggerGrabspot(CID37V *, HERO *);
 BOOTYV *PloAcquireProxy(void *, int);
 void PostNotice(void *pv, int n, float g);
 void *PsndStartSound(int n);
@@ -254,7 +254,7 @@ extern "C" void UpdateBooty(BOOTYV *p) {
         return;
     case 4:
         if ((p->pbootyeCur->xC != 0) && (D_002DDED0.t >= g_sw.tHudTimerEnd)) {
-            func_00143380(p->phero);
+            DropStepplayerBooty(p->phero);
         }
         break;
     }
@@ -740,7 +740,7 @@ void SetBootyState(BOOTYV *p, int st)
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
 extern "C" void func_0013CEB8(CID37V *p) {
-    func_00183F08(p);
+    InitTriggerGrabspot(p);
     p->kind = 0x2BC;
     p->n188 = -1;
     p->g18C = 15.0f;
@@ -752,7 +752,7 @@ extern "C" void func_0013CEB8(CID37V *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
  * @end-sly2-annot */
-void CID37::VUnk14() { CID37V *p = (CID37V *)this; func_00183F50(p); p->id = g_sw.cCid37++; }
+void CID37::VUnk14() { CID37V *p = (CID37V *)this; PostTriggerGrabspotLoad(p); p->id = g_sw.cCid37++; }
 
 /** @sly2-annot addr=0x13CF38
  * Purpose: If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the
@@ -831,7 +831,7 @@ extern "C" void func_0013D020(CID37V *p, HERO *q)
         p->pbooty->phero = q;
         SetBootyState(p->pbooty, 2);
     }
-    func_00184130(p, q);
+    FireTriggerGrabspot(p, q);
 }
 
 struct SVKEYS { int c; short *as; };

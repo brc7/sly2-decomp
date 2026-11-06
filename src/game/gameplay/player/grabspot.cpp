@@ -71,8 +71,8 @@ void func_001F7918(SO *pso, int grf, int n);
 void func_001CB518(SO *pso);
 int FIgnoreSoIntersection(SO *pso, LO *plo);
 int func_00134310(int grf, int f);
-void func_00183F50(GRABSPOT35 *p);
-void func_00184130(GRABSPOT35 *p, LO *plo);
+void PostTriggerGrabspotLoad(GRABSPOT35 *p);
+void FireTriggerGrabspot(GRABSPOT35 *p, LO *plo);
 void StartMurrayLiftGrabspot(LO *plo, GRABSPOT36 *p);
 }
 void AppendDlEntry(DL *pdl, void *pv);
@@ -125,7 +125,7 @@ namespace M_func_00182CC8 { extern "C" {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00182CC8(void *p, int a, int *pn)
+void GetGrabspotClosestParam(void *p, int a, int *pn)
 {
     *pn = 0;
 }
@@ -137,7 +137,7 @@ void func_00182CC8(void *p, int a, int *pn)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00182CD0()
+extern "C" void GetGrabspotGrabPosition()
 {
 }
 
@@ -151,7 +151,7 @@ struct S { char pad[0x20]; struct VTE *vt; };
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00182CD8(struct S *p, int a, float *pg, int b, int c)
+void GetGrabspotPositionNear(struct S *p, int a, float *pg, int b, int c)
 {
     float g;
     struct VTE *e;
@@ -169,7 +169,7 @@ void func_00182CD8(struct S *p, int a, float *pg, int b, int c)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00182D70()
+extern "C" void AdjustGrabspotScore()
 {
 }
 
@@ -189,7 +189,7 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00182D78(struct O *p, qword *pv, qword *pdv)
+void GetGrabspotSparklePosition(struct O *p, qword *pv, qword *pdv)
 {
     void *po = p->pvt->a[6].pfn((char *)p + p->pvt->a[6].d);
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
@@ -207,7 +207,7 @@ void func_00182D78(struct O *p, qword *pv, qword *pdv)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" int func_00182E78()
+extern "C" int GrabspotSlotFDefault()
 {
     return 0;
 }
@@ -222,7 +222,7 @@ void InitGrabspot(void *p);
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00182E80(struct S *p)
+void InitWallGrabspot(struct S *p)
 {
     InitShape(p);
     InitGrabspot(p->sub);
@@ -253,7 +253,7 @@ void CID12::Unfreeze()
  * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00182EF0(LO *plo)
+extern "C" void OnWallGrabspotRemove(LO *plo)
 {
     OnLoRemove(plo);
     RemoveDlEntry(&g_sw.dlCid12, plo);
@@ -271,7 +271,7 @@ float func_001E7D90(struct S *p);
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00182F28(struct S *p)
+void PostWallGrabspotLoad(struct S *p)
 {
     PostLoLoad(p);
     if (p->p190) SetTnTnsOverride(p->p190, 0);
@@ -289,7 +289,7 @@ void CloneShape(struct S *p);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00182FA0(struct S *p)
+void CloneWallGrabspot(struct S *p)
 {
     struct K k = p->k;
     CloneShape(p);
@@ -309,7 +309,7 @@ float SMaxShape(struct S *p);
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest+CONFLICTS#15
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-int func_00182FE8(struct S *p, float *pg)
+int GetWallGrabspotWrapRange(struct S *p, float *pg)
 {
     if (p->x) {
         pg[0] = SMinShape(p);
@@ -333,7 +333,7 @@ float SMaxShape(struct S *p);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183040(struct S *p, struct T *t, float *pg)
+void GetWallGrabspotClosestParam(struct S *p, struct T *t, float *pg)
 {
     struct V v;
     FindShapeClosestPoint(p, *t->pq, 0, &v, 0, 0, pg);
@@ -393,7 +393,7 @@ static __inline__ qword VNormalize(qword c, qword k)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001830D8(void *p, float g, struct J *pj, qword *pv, float *pg)
+void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, float *pg)
 {
     VU pos, dir;
     qword n;
@@ -450,7 +450,7 @@ static __inline__ qword VLen(qword c)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183218(void *p, float g, qword *pv, qword *pdv)
+void GetWallGrabspotSparklePosition(void *p, float g, qword *pv, qword *pdv)
 {
     VU pos, dir, u;
     qword n;
@@ -486,7 +486,7 @@ void func_00183218(void *p, float g, qword *pv, qword *pdv)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00183340(XFM *pxfm)
+extern "C" void InitPoleGrabspot(XFM *pxfm)
 {
     InitXfm(pxfm);
     InitGrabspot((char *)pxfm + 0xE0);   /* its GRABSPOT */
@@ -515,7 +515,7 @@ void CID34::Unfreeze()
  * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_001833A8(LO *plo)
+extern "C" void OnPoleGrabspotRemove(LO *plo)
 {
     OnLoRemove(plo);
     RemoveDlEntry(&g_sw.dlCid34, plo);
@@ -532,7 +532,7 @@ void SetTnTnsOverride(void *p, int n);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001833E0(struct S *p)
+void PostPoleGrabspotLoad(struct S *p)
 {
     PostLoLoad(p);
     if (p->pe0) SetTnTnsOverride(p->pe0, 0);
@@ -550,7 +550,7 @@ void CloneXfm(struct S *p);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183450(struct S *p)
+void ClonePoleGrabspot(struct S *p)
 {
     struct K k = p->k;
     CloneXfm(p);
@@ -567,7 +567,7 @@ void func_00183450(struct S *p)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 /* CID 34 grab range: [-pi r, pi r] around the pole. */
-extern "C" int func_00183498(GRABPOLE *ppole, float *ag)
+extern "C" int GetPoleGrabspotWrapRange(GRABPOLE *ppole, float *ag)
 {
     ag[0] = ppole->sRadius * -3.1415927f;
     ag[1] = ppole->sRadius * 3.1415927f;
@@ -588,7 +588,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001834D0(struct P *p, struct Q *q, float *pg)
+void GetPoleGrabspotClosestParam(struct P *p, struct Q *q, float *pg)
 {
     qword a = *q->p218;
     qword b = func_001A62E8(p);
@@ -612,7 +612,7 @@ static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183540(struct O *p, float g, struct J *pj, qword *pv, float *pg)
+void GetPoleGrabspotGrabPosition(struct O *p, float g, struct J *pj, qword *pv, float *pg)
 {
     float gPan = g / p->g10C;
     float gR = p->g10C + pj->g103C;
@@ -642,7 +642,7 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183600(struct O *p, qword *pv, qword *pdv)
+void GetPoleGrabspotSparklePosition(struct O *p, qword *pv, qword *pdv)
 {
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = GRandInRange__Fff(0.0f, D_002BE8C4) + p->g10C;
@@ -657,7 +657,7 @@ void func_00183600(struct O *p, qword *pv, qword *pdv)
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_001836C8(XFM *pxfm)
+extern "C" void InitHoldGrabspot(XFM *pxfm)
 {
     InitXfm(pxfm);
     InitGrabspot((char *)pxfm + 0xE0);   /* its GRABSPOT */
@@ -686,7 +686,7 @@ void CID38::Unfreeze()
  * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00183730(LO *plo)
+extern "C" void OnHoldGrabspotRemove(LO *plo)
 {
     OnLoRemove(plo);
     RemoveDlEntry(&g_sw.dlCid38, plo);
@@ -703,7 +703,7 @@ void SetTnTnsOverride(void *p, int n);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183768(struct S *p)
+void PostHoldGrabspotLoad(struct S *p)
 {
     PostLoLoad(p);
     if (p->pe0) SetTnTnsOverride(p->pe0, 0);
@@ -721,7 +721,7 @@ void CloneXfm(struct S *p);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001837D0(struct S *p)
+void CloneHoldGrabspot(struct S *p)
 {
     struct K k = p->k;
     CloneXfm(p);
@@ -744,7 +744,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183818(struct O *p, struct J *pj, qword *pv, float *pg)
+void GetHoldGrabspotGrabPosition(struct O *p, struct J *pj, qword *pv, float *pg)
 {
     float g = 0.0f;
     qword d;
@@ -798,7 +798,7 @@ extern "C" void InitBarrel(BARRELV *pbarrel)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 /* BARREL slot 26. */
-extern "C" void func_00183970(BARRELV *pbarrel)
+extern "C" void ResetBarrel(BARRELV *pbarrel)
 {
     func_001CB518(pbarrel);
     pbarrel->nState = 0;
@@ -864,7 +864,7 @@ void CloneBarrel(struct S *p)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 /* BARREL slot 61: also ignore a stepplayer that is holding this barrel. */
-extern "C" int func_00183A50(BARRELV *pbarrel, LO *plo)
+extern "C" int ShouldBarrelIgnoreIntersection(BARRELV *pbarrel, LO *plo)
 {
     int grf = FIgnoreSoIntersection(pbarrel, plo);
     if (FIsBasicDerivedFrom(plo, (CID)0x34) != 0) {
@@ -897,7 +897,7 @@ void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b
  *   r4b_rest+class_review(master_names_v2_1)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183B00(struct S *p)
+void PresetBarrelAccel(struct S *p)
 {
     func_001F9B20(p);
     if (p->x18c && !p->x17c) {
@@ -936,7 +936,7 @@ void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
 qword func_0011BFF0(MATRIX3 *pm);
 qword func_0022FC48(void *pv, void *pvA0, qword v);
-void func_00183B80(struct O *p, int n);
+void SetBarrelState(struct O *p, int n);
 }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 static inline qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -950,7 +950,7 @@ static inline qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1,
  *   r4b_rest+class_review(master_names_v2_1)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183B80(struct O *p, int n)
+void SetBarrelState(struct O *p, int n)
 {
 
     if (p->n17C == n)
@@ -1024,7 +1024,7 @@ int func_001F7588(struct S *p, struct Q *q);
 qword func_001A62E8(struct S *p);
 void EmitSwNoise(void *g, int n, qword pos, struct S *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
-void func_00183B80(struct S *p, int n);
+void SetBarrelState(struct S *p, int n);
 /** @sly2-annot addr=0x183E08
  * Purpose: CID88 own vt slot 75: on a zap that qualifies, noise event and drop/state change
  * Info: proposed name HandleBarrelZap (T2); class BARREL slot75; TU grabspot
@@ -1033,7 +1033,7 @@ void func_00183B80(struct S *p, int n);
  *   r4b_rest+class_review(master_names_v2_1)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-int func_00183E08(struct S *p, struct Q *q)
+int HandleBarrelZap(struct S *p, struct Q *q)
 {
     struct M m;
     struct VTE *e;
@@ -1048,7 +1048,7 @@ int func_00183E08(struct S *p, struct Q *q)
         e = &o->vt[88];
         ((void (*)(void *, int))e->pfn)((char *)o + e->d, 0);
     }
-    func_00183B80(p, 3);
+    SetBarrelState(p, 3);
     m.q = q;
     m.pv = q->xc;
     e = &p->vt[3];
@@ -1065,7 +1065,7 @@ int func_00183E08(struct S *p, struct Q *q)
  *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 /* CID 35 Init. */
-extern "C" void func_00183F08(GRABSPOT35 *p)
+extern "C" void InitTriggerGrabspot(GRABSPOT35 *p)
 {
     InitXfm(p);
     InitGrabspot((char *)p + 0xE0);
@@ -1085,7 +1085,7 @@ void PostLoLoad(struct S *p);
  * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558,
  *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00183F50(struct S *p)
+void PostTriggerGrabspotLoad(struct S *p)
 {
     PostLoLoad(p);
     if (!p->nfc) p->nfc = 7;
@@ -1117,7 +1117,7 @@ void CID35::Unfreeze()
  * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00183FF0(LO *plo)
+extern "C" void OnTriggerGrabspotRemove(LO *plo)
 {
     OnLoRemove(plo);
     RemoveDlEntry(&g_sw.dlCid35, plo);
@@ -1129,7 +1129,7 @@ extern "C" void func_00183FF0(LO *plo)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00184028(GRABSPOT35 *p, STEPPLAYER *pstepplayer)
+extern "C" void AddGrabspotPlayerMask(GRABSPOT35 *p, STEPPLAYER *pstepplayer)
 {
     p->grfPlayers |= GRFPLAYER(pstepplayer);
 }
@@ -1142,7 +1142,7 @@ struct S { char pad[0xFC]; int fl; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00184040(struct S *p, int n)
+void SetGrabspotPlayerClass(struct S *p, int n)
 {
     switch (n) {
     case 0x34: p->fl = 7; break;
@@ -1163,7 +1163,7 @@ void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x,
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001840B8(struct S *p, int y, int z, int w)
+void AddTriggerGrabspotRsmg(struct S *p, int y, int z, int w)
 {
     FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &p->b, 4, &p->a, 1, y, z, w);
 }
@@ -1179,7 +1179,7 @@ void func_00161F10(void *g, void *pb, int n, void *pa, int x, int y);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001840F8(struct S *p, int x, int y)
+void AddTriggerGrabspotPair(struct S *p, int x, int y)
 {
     func_00161F10(D_002DEB30, &p->b, 4, &p->a, x, y);
 }
@@ -1201,7 +1201,7 @@ void FireRelay(void *p, int n);
  *   docs/engine/player.md#9-grabbable-world-objects,
  *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00184130(struct S *p, int n)
+void FireTriggerGrabspot(struct S *p, int n)
 {
     struct VTE *e;
     p->x10c = n;
@@ -1221,7 +1221,7 @@ void func_00184130(struct S *p, int n)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" int func_001841F0(GRABSPOT35 *p, STEPPLAYER *pstepplayer)
+extern "C" int CanGrabspotAcceptPlayer(GRABSPOT35 *p, STEPPLAYER *pstepplayer)
 {
     return (p->grfPlayers & GRFPLAYER(pstepplayer)) != 0;
 }
@@ -1235,7 +1235,7 @@ qword func_001A62E8(void *a, void *b);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00184208(void *a, void *b, qword *p)
+void GetTriggerGrabspotGrabPosition(void *a, void *b, qword *p)
 {
     if (p) *p = func_001A62E8(a, b);
 }
@@ -1247,23 +1247,23 @@ void func_00184208(void *a, void *b, qword *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_00184238(GRABSPOT35 *p, float *pgScore)
+extern "C" void AdjustTriggerGrabspotScore(GRABSPOT35 *p, float *pgScore)
 {
     *pgScore -= p->sRadius - (D_002BF660 - 150.0f);
 }
 
 namespace M_func_00184268 { extern "C" {
 struct S { char pad[0xF0]; int f0; char p1[8]; int fc; char p2[0x84]; int x184; int p3; int x18c; int p4; int x194; int p5; int x19c; };
-void func_00183F08(struct S *p);
+void InitTriggerGrabspot(struct S *p);
 /** @sly2-annot addr=0x184268
  * Purpose: CID 0x24 (child of CID35) vt7: InitCid35 and four oids -1
  * Info: proposed name InitCid36 (T2); class CID36 slot7; TU grabspot
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00184268(struct S *p)
+void InitCarryGrabspot(struct S *p)
 {
-    func_00183F08(p);
+    InitTriggerGrabspot(p);
 p->x184 = -1;
 p->x18c = -1;
 p->x194 = -1;
@@ -1283,7 +1283,7 @@ p->fc = 4;
 void CID36::VUnk14()
 {
     GRABSPOT36 *p = (GRABSPOT36 *)this;
-    func_00183F50(p);
+    PostTriggerGrabspotLoad(p);
     p->plo1 = PloFindSwObject(&D_003DD490, 4, p->oid1, p);
     p->plo2 = PloFindSwObject(&D_003DD490, 4, p->oid2, p);
     p->plo3 = PloFindSwObject(&D_003DD490, 4, p->oid3, p);
@@ -1297,9 +1297,9 @@ void CID36::VUnk14()
  *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 /* CID 36 slot 51: on grab, start Murray's lift. */
-extern "C" void func_00184330(GRABSPOT36 *p, LO *plo)
+extern "C" void OnTriggerGrabspotGrabbed(GRABSPOT36 *p, LO *plo)
 {
-    func_00184130(p, plo);
+    FireTriggerGrabspot(p, plo);
     if (FIsBasicDerivedFrom(plo, (CID)0x36) != 0) {
         StartMurrayLiftGrabspot(plo, p);
     }
@@ -1319,7 +1319,7 @@ int FFindLoParent(struct T *q, int x);
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r4b_rest+verdicts_followups
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-int func_00184380(struct S *p, struct T *q)
+int ShouldTriggerGrabspotSkipTarget(struct S *p, struct T *q)
 {
     if (q->n != p->n) return 1;
     return FFindLoParent(q, p->x);
@@ -1333,7 +1333,7 @@ int func_00184380(struct S *p, struct T *q)
  * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_001843C0(XFM *pxfm)
+extern "C" void InitTableGrabspot(XFM *pxfm)
 {
     InitXfm(pxfm);
     InitGrabspot((char *)pxfm + 0x130);   /* its GRABSPOT */
@@ -1363,7 +1363,7 @@ static __inline__ float GDist(qword a, qword b)
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001843F0(struct O *p)
+void PostTableGrabspotLoad(struct O *p)
 {
     PostLoLoad(p);
     if (p->g38 == 1e10f) {
@@ -1397,7 +1397,7 @@ void CID27::Unfreeze()
  *   arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" void func_001844D8(LO *plo)
+extern "C" void OnTableGrabspotRemove(LO *plo)
 {
     OnLoRemove(plo);
     RemoveDlEntry(&g_sw.dlCid27, plo);
@@ -1425,7 +1425,7 @@ static __inline__ float GetZ(qword q)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_00184510(struct S *p, int unused, UV *pv)
+void GetTableGrabspotGrabPosition(struct S *p, int unused, UV *pv)
 {
     if (pv) {
         if (D_002DFB84) {
@@ -1454,7 +1454,7 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest+verdicts_B
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void func_001845A0(struct O *p, qword *pv, qword *pdv)
+void GetTableGrabspotSparklePosition(struct O *p, qword *pv, qword *pdv)
 {
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = GRandInRange__Fff(0.0f, D_002BE90C);
@@ -1468,12 +1468,12 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 /** @sly2-annot addr=0x184670
  * Purpose: Return the GRABSPOT sub-object of an object by class (CID88 +0x150, CID27 +0x130, CID34 +0xE0,
  *   CID12 +0x190, ...) or NULL
- * Info: proposed name PgrabspotFromLo (T1); TU grabspot
+ * Info: proposed name GetGrabspotFromLo (T1); TU grabspot
  * Notes: names_v2 C proposed PdartOldestHbskStuck__FP4HBSK (0.638)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-void *PgrabspotFromLo(char *p)
+void *GetGrabspotFromLo(char *p)
 {
     if (!p) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x58)) return p + 0x150;

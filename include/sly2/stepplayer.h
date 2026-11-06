@@ -6,7 +6,7 @@
 #include "sly2/basic.h"
 #include "sly2/step.h"
 
-/* ZPR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* ZPR: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct ZPR
 {
       LO *ploSource;
@@ -25,21 +25,21 @@ struct ZPR
       undefined4 unk_0x58[2];
 };
 
-/* MRSG: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (17 copies in Lilly ports) */
+/* MRSG: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct MRSG
 {
     float t;
     float dt;
 };
 
-/* BL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* BL: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BL
 {
       float gWeight;
       ASEG *paseg;
 };
 
-/* BLGAIT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* BLGAIT: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct BLGAIT : public BL
 {
       char abUnk08[8];
@@ -48,7 +48,7 @@ struct BLGAIT : public BL
       MRSG amrsgFoot1[2];
 };
 
-/* GAIT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* GAIT: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct GAIT
 {
       STEPPLAYER *pstepplayer;
@@ -62,20 +62,20 @@ struct GAIT
       char abUnkA4[0xc];
 };
 
-/* BLDIR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* BLDIR: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLDIR : public BL
 {
       char abUnk08[8];
       qword vRoot;
 };
 
-/* BLLEAN: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* BLLEAN: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BLLEAN : public BL
 {
       char abUnk08[4];
 };
 
-/* JTPLACE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPLACE: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACE
 {
       LO *plo;
@@ -85,7 +85,7 @@ struct JTPLACE
       qword qwPos;
 };
 
-/* JTPLACES: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPLACES: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPLACES
 {
       STEPPLAYER *pstepplayer;
@@ -108,7 +108,7 @@ struct JTMODEHUD
     void SetWidgetCur(struct WIDGET *pwidget) __asm__("SetJtModeHudOverride");
 };
 
-/* JTMODE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTMODE: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTMODE
 {
       STEPPLAYER *pstepplayer;
@@ -126,7 +126,7 @@ struct JTMODE
       undefined4 unk_0x48[2];
 };
 
-/* JTHANDBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* JTHANDBL: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDBL
 {
       float uWeight;
@@ -136,7 +136,7 @@ struct JTHANDBL
       struct SHAPE *pshapeB;
 };
 
-/* JTHANDS: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+/* JTHANDS: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct JTHANDS
 {
       SO *pso;
@@ -161,7 +161,7 @@ struct JTHANDS
       undefined4 unk_0xac;
 };
 
-/* JTGRAB: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTGRAB: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGRAB
 {
       STEPPLAYER *pstepplayer;
@@ -212,7 +212,7 @@ struct JTGRAB
       undefined4 unk_0x510[(0x520 - 0x510) / 4];
 };
 
-/* JTPIPEBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPIPEBL: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPEBL
 {
       float gWeight;
@@ -221,7 +221,7 @@ struct JTPIPEBL
       float gSpeed;
 };
 
-/* JTPIPE: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTPIPE: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTPIPE
 {
       struct STEPPLAYER *pstepplayer;
@@ -243,7 +243,7 @@ struct JTPIPE
       struct ASEG *pasegTurn;
 };
 
-/* JTAIRBL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTAIRBL: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIRBL
 {
       float gWeight;
@@ -251,7 +251,7 @@ struct JTAIRBL
       undefined4 unk_0x08;
 };
 
-/* JTAIR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTAIR: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTAIR
 {
       STEPPLAYER *pstepplayer;
@@ -321,12 +321,12 @@ struct JTAIR
       undefined4 unk_0x1f4[(0x200 - 0x1f4) / 4];
 };
 
-/* HURTEND: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* HURTEND: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct HURTEND
 {
 };
 
-/* JTHURT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTHURT: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTHURT
 {
       struct STEPPLAYER *pstepplayer;
@@ -345,7 +345,7 @@ struct JTHURT
       struct ASEGA *pasegaUnk10c;
 };
 
-/* GADGETSLOT: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* GADGETSLOT: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct GADGETSLOT
 {
       int idGadget;
@@ -353,7 +353,7 @@ struct GADGETSLOT
       float tState;
 };
 
-/* JTGOAL: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTGOAL: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTGOAL
 {
       STEPPLAYER *pstepplayer;
@@ -365,7 +365,7 @@ struct JTGOAL
       undefined4 unk_0x2c;
 };
 
-/* JTTHROW: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+/* JTTHROW: from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct JTTHROW
 {
       struct STEPPLAYER *pstepplayer;
@@ -451,7 +451,7 @@ struct STEPPLAYER : public STEP
       float gUnk10d8;
       LO *ploInteract;      /* +0x10DC [R] interaction target (guard to pickpocket, etc.; GuardEvalInteractMode); was ploUnk10dc */
       int grfUnk10e0;
-      int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in JtChooseGroundState). Not
+      int nUnk10e4;         /* +0x10E4 [R] interaction kind (ram_inspector "interact mode"; 3 tested in ChooseJtGroundState). Not
                                renamed: STEPPLAYER already has an nInteractMode member further down */
 
 
@@ -486,15 +486,15 @@ struct STEPPLAYER : public STEP
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepplayerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepplayerMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepplayer");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("func_00141928");   /* slot 12 */
+    virtual void RemoveHierarchy() __asm__("RemoveStepplayerHierarchy");   /* slot 12 */
     virtual void VUnk14() __asm__("PostLoadStepplayer");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateStepplayer");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderStepplayerSelf");   /* slot 19 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateStepplayerToPos");   /* slot 29 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetStepplayerCpdefi");   /* slot 50 */
-    virtual void VUnk58() __asm__("func_00140D00");   /* slot 59 */
+    virtual void VUnk58() __asm__("StepplayerVirtual59");   /* slot 59 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
-    virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("func_00140DB0");   /* slot 68 */
+    virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("HandleStepplayerContactImpulse");   /* slot 68 */
     virtual void VUnk71() __asm__("ResolveStepplayerWaterContact");   /* slot 72 */
     virtual void VUnk87(int n) __asm__("__pure_virtual");
     virtual int VUnk88() __asm__("__pure_virtual");
@@ -505,27 +505,27 @@ struct STEPPLAYER : public STEP
     virtual int VUnk93() __asm__("__pure_virtual");
       virtual void SetPlayerInteractMode(int nKind, LO *ploTarget, int nMode, LO *ploFight) __asm__("SetStepplayerPlayerInteractMode");
       virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetStepplayerStunHold");
-      virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetStepplayerCmFocusPos");
-    virtual int VUnk97() __asm__("func_001409B8");
+      virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetStepplayerCameraFocusPosition");
+    virtual int VUnk97() __asm__("StepplayerVirtual98");
       virtual int FCanUseGadget(int idGadget) __asm__("FCanUseGadget__10STEPPLAYERi");
       virtual void StartGadget(int idGadget) __asm__("StartStepplayerGadget");
-    virtual void SetCtlState(int nState) __asm__("SetStepplayerCtlState");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void OnActive(int fActive) __asm__("OnStepplayerActive");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("STEPPLAYER_FTakeDamage");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int FInvulnerable(ZPK zpk) __asm__("STEPPLAYER_FInvulnerable");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int JthsCurrent() __asm__("JthsCurrent__10STEPPLAYER");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("func_00140C30");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk82(uint grf, int fCount) __asm__("func_001442D0");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void VUnk83(uint grf, int fCount) __asm__("func_00144338");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int VUnk84() __asm__("func_00143C78");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int FCanBeHealed() __asm__("FCanBeHealed__10STEPPLAYER");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
-    virtual int VUnk85(ZPR *pzpr) __asm__("func_00144418");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
+    virtual void SetCtlState(int nState) __asm__("SetStepplayerCtlState");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void OnActive(int fActive) __asm__("OnStepplayerActive");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("TakeStepplayerDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int FInvulnerable(ZPK zpk) __asm__("IsStepplayerInvulnerable");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int JthsCurrent() __asm__("JthsCurrent__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("StepplayerVirtual82");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk82(uint grf, int fCount) __asm__("StepplayerVirtual83");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void VUnk83(uint grf, int fCount) __asm__("StepplayerVirtual84");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int VUnk84() __asm__("GetStepplayerModeCode");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int FCanBeHealed() __asm__("FCanBeHealed__10STEPPLAYER");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual void AddHpMp(int dhp, int dmp) __asm__("AddStepplayerHpMp");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
+    virtual int VUnk85(ZPR *pzpr) __asm__("ShouldStepplayerVetoDamage");   /* override declared in SetJtState__FP2JT3JTS4JTBS.cpp */
     virtual void VSlot101() __asm__("UpdateStepplayerGadget");   /* slot 101: not yet identified */
     virtual void VSlot102() __asm__("StopStepplayerGadget");   /* slot 102: not yet identified */
     virtual void VSlot103() __asm__("__pure_virtual");   /* slot 103: not yet identified */
-    virtual void VSlot104() __asm__("func_00141E30");   /* slot 104: not yet identified */
-    virtual void VSlot105() __asm__("func_00141E70");   /* slot 105: not yet identified */
+    virtual void VSlot104() __asm__("SendStepplayerPowerupEvent");   /* slot 104: not yet identified */
+    virtual void VSlot105() __asm__("OnStepplayerGadgetsChanged");   /* slot 105: not yet identified */
 };
 typedef char assert_STEPPLAYER_size[sizeof(STEPPLAYER) == 0x1320 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEPPLAYER_jthurt_nHpMax[SLY2_OFFSETOF(STEPPLAYER, jthurt.nHpMax) == 0xDFC ? 1 : -1];   /* JT+0xDFC = 40 = max health (CONFIRMED runtime) */
