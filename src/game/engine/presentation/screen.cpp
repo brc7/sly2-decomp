@@ -1994,8 +1994,8 @@ extern char D_002A79A0[], D_002A79D0[], D_002A79D8[];
 void func_001DA808(OBJ *);
 int GrfHandleJoyBtn(void *, int);
 void SetThiefnetTab(OBJ *, int);
-int GetCollectibleCount(void *);
-void SetCollectibleCount(void *, int);
+int GetCoinCount(void *);
+void SetCoinCount(void *, int);
 void func_001DA950(OBJ *, int, int);
 void SetPowerupAcquired(int, int);
 void RefreshThiefnetItems(OBJ *);
@@ -2034,10 +2034,10 @@ extern "C" void UpdateThiefnet(OBJ *p)
         if (GrfHandleJoyBtn(p->x10, 0x40)) {
             if (p->x254 != -1) {
                 int cost = D_002BCD00[p->x254].x8;
-                int have = GetCollectibleCount(D_002DEB30);
+                int have = GetCoinCount(D_002DEB30);
                 if (!p->x30) {
                     func_001DA950(p, -1, -1);
-                    SetCollectibleCount(D_002DEB30, have - cost);
+                    SetCoinCount(D_002DEB30, have - cost);
                     SetPowerupAcquired(p->x254, 1);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
@@ -2063,7 +2063,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
                 r = RefGetSaveVarV(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.m_tag > 0) {
                     RefSetSaveVarV(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
-                    SetCollectibleCount(D_002DEB30, GetCollectibleCount(D_002DEB30) + D_002C3288[p->x258].x0);
+                    SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + D_002C3288[p->x258].x0);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
                 }
@@ -2768,7 +2768,7 @@ extern REC2 D_002C3288[];
 extern struct G D_003DD490;
 extern char D_002DEB30[],D_002A7A38[];
 char *PchzFindSwLangstr__FP2SWi(struct G *,int);
-int GetCollectibleCount(void *);
+int GetCoinCount(void *);
 int sprintf(char *,const char *,...);
 char *strcpy(char *,const char *);
 static inline void CopyId(char *p,int id)
@@ -2796,7 +2796,7 @@ void BuildThiefnetInfoText(char *pch)
             if(i<0x2B) {
                 if(D_002BCD00[i].ids2!=pt->x30) {
                     int *pc=&D_002BCD00[i].cost;
-                    int count=GetCollectibleCount(D_002DEB30);
+                    int count=GetCoinCount(D_002DEB30);
                     int idsT=count<*pc?0xD9:0xDA;
                     struct G *pg=&D_003DD490;
                     char *fmt=D_002A7A38;

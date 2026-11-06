@@ -1411,8 +1411,8 @@ void SO_Slot27(LO *p, int n);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
-// SO's vtable slot 27: LO's default, then calls 0x1F37C8(this, 0) when a flag of its +0xE8 record is set, and the same
-// slot on every child. (inferred: the slot's meaning is not known.)
+// SO's vtable slot 27: LO's default, then clears the physics region (SetSoPhysRegion(this, 0)) when a flag of its +0xE8
+// record is set, and the same slot on every child. (inferred: the slot's meaning is not known.)
 void SO_Slot27(LO *p, int n)
 {
     LO *pc;

@@ -1070,8 +1070,8 @@ extern "C" void OpenPauseCharacterPage(ITEM *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
-// Item callback: game event 0x2B, then opens the map screen (0x1DD300). (inferred)
-extern "C" void OnPauseItemMap(void)
+// Item callback: game event 0x2B, then opens the job list screen (SetJobListPage, 0x1DD300).
+extern "C" void OnPauseItemJobList(void)
 {
     BroadcastGameEvent(D_002DEB30, 0x2B, 0);
     SetJobListPage(&D_003DA3C0, (*(void * *)&g_sw.ploJobCur) != 0);
@@ -1174,7 +1174,7 @@ void f_1B0688(ITEM *) __asm__("OnPauseItemPushPage");
 void f_1B06D8(ITEM *) __asm__("OnPauseItemReplacePage");
 void f_1B0720(ITEM *) __asm__("OnPauseItemState11");
 void f_1B0740(ITEM *) __asm__("OpenPauseCharacterPage");
-void f_1B0808(ITEM *) __asm__("OnPauseItemMap");
+void f_1B0808(ITEM *) __asm__("OnPauseItemJobList");
 void f_1B0848(ITEM *) __asm__("GetPauseQuitItemText");
 void f_1B0878(ITEM *) __asm__("OnPauseItemSaveAndQuit");
 void f_1B0970(ITEM *) __asm__("OnPauseItemRestartJob");

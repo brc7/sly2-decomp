@@ -470,9 +470,9 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-// Sends Splice event 5 to the object (vtable slot 3, not posted). BASIC option 12; exits and warps send the same event
-// when they trigger. (inferred: the event's name is not known.)
-extern "C" void SendSpliceEvent5(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
+// Sends the Splice trigger event (5) to the object (vtable slot 3, not posted). BASIC option 12. Buttons, exits, warps
+// and camera volumes send event 5 when triggered and 6 when untriggered.
+extern "C" void SendTriggerEvent(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x133380
  * Purpose: vt3 HandleSpliceEvent(6) on the object
@@ -481,8 +481,8 @@ extern "C" void SendSpliceEvent5(BASICV *p) { VTE *vt = p->vtable; ((void (*)(vo
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-// Sends Splice event 6 to the object (vtable slot 3, not posted). BASIC option 13. (inferred)
-extern "C" void SendSpliceEvent6(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
+// Sends the Splice untrigger event (6) to the object (vtable slot 3, not posted). BASIC option 13.
+extern "C" void SendUntriggerEvent(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x1333C0
  * Purpose: Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted

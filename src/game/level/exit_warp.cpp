@@ -220,7 +220,7 @@ void CID41::LoadFromBrx(CBinaryInputStream *stream)
  * See: docs/reference/class-tree.md#class-tree-all-199-cids,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
-// Moves the hero onto this warp point (the hero's vtable slot 38) and sends the warp's Splice event 5. A Splice-callable
+// Moves the hero onto this warp point (the hero's vtable slot 38) and sends the warp's Splice trigger event (5). A Splice-callable
 // method; cutscene relays call it too.
 extern "C" void PutHeroAtWarp(WARPV *warp)
 {
@@ -355,7 +355,7 @@ extern "C" void SetExitExits(EXITV *exitVolume, int newState)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Takes an armed exit: a redirecting exit hands over to the default exit; otherwise applies the exit's task states,
-// revokes two camera policies, switches to the warping state, schedules the wipe and sends Splice event 5.
+// revokes two camera policies, switches to the warping state, schedules the wipe and sends the Splice trigger event (5).
 extern "C" void TakeExit(EXITV *exitVolume)
 {
     if (exitVolume->state != 3)
@@ -500,7 +500,7 @@ void WARP::LoadFromBrx(CBinaryInputStream *stream)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Triggers a warp on arrival: moves each paired object to its target, triggers the warp's rsmgs, applies its task
-// states, re-arms every exit that is not off, cuts the camera and sends Splice event 5. (Sly 1: TriggerWarp.)
+// states, re-arms every exit that is not off, cuts the camera and sends the Splice trigger event (5). (Sly 1: TriggerWarp.)
 extern "C" void TriggerWarp(WARPV *warp)
 {
     EXITV *exitList[32];

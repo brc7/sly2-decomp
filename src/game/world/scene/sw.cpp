@@ -537,9 +537,9 @@ extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Creates the world's class-0x74 object (parameters 0.1 and 0.25, flags 0x80200000), adds it and stores it at
-// SW+0x3E60. (inferred: the class is not identified)
-extern "C" void CreateSwClass74Object(S *p)
+// Creates the world's screen tint/fill object (class 0x74, CID116 in docs/reference/class-tree.md; parameters 0.1 and
+// 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
+extern "C" void CreateSwScreenTint(S *p)
 {
     p->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
     p->o->g60 = 0.1f;
@@ -719,7 +719,7 @@ struct S {
 };
 extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
 void func_0011CDD8(void *p);
-void CreateSwClass74Object(struct S *p);
+void CreateSwScreenTint(struct S *p);
 void SelectSwMainMs(struct S *p);
 void ClearSwSpliceTable(struct S *p);
 void InitSwProxySpares(struct S *p);
@@ -727,7 +727,7 @@ void BindSwTimerHud(struct S *p);
 void func_001569B8(struct S *p);
 void EnsureSwDefaultLight(struct S *p);
 void PostLoadSwPathzones(struct S *p);
-void BindSwObject620(struct S *p);
+void BindSwBootyProxy(struct S *p);
 void func_001957C0(struct S *p);
 void func_001D9520(void *p);
 void ProcessSwCallbacks(struct S *p);
@@ -753,7 +753,7 @@ void PostSwLoad(struct S *p)
     func_0011CDD8(p->a4054);
     func_0011CDD8(p->a4070);
     func_0011CDD8(p->a4088);
-    CreateSwClass74Object(p);
+    CreateSwScreenTint(p);
     SelectSwMainMs(p);
     ClearSwSpliceTable(p);
     InitSwProxySpares(p);
@@ -761,7 +761,7 @@ void PostSwLoad(struct S *p)
     func_001569B8(p);
     EnsureSwDefaultLight(p);
     PostLoadSwPathzones(p);
-    BindSwObject620(p);
+    BindSwBootyProxy(p);
     func_001957C0(p);
     func_001D9520(D_003D9E70);
     while (ProcessSwCallbacks(p), p->ppoLast != p->ppoFirst) {
@@ -818,7 +818,7 @@ void InitSwLoadBuffers(SW *);
 void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *);
 void CStreamBis_Close(STREAM *);
 void PostSwLoad(SW *);
-void ShowHudWidget3Timed(SW *,float);
+void ShowCountdownHud(SW *,float);
 void ClearCheatItems(void);
 CONTEXT *FindWarpByOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
@@ -905,7 +905,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     InitSwLoadBuffers(p);
     if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(p,reader);CStreamBis_Close(reader);}
     PostSwLoad(p);
-    if(resume>0.0f)ShowHudWidget3Timed(p,resume);
+    if(resume>0.0f)ShowCountdownHud(p,resume);
     if(changed||(p->request.flags&0x40))ClearCheatItems();
     CONTEXT *context=FindWarpByOid(p,p->request.objectId,p->request.objectKey);
     if(context){TriggerWarp(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
@@ -2034,13 +2034,13 @@ void ShowSoGlobsById(void *p, void *q);
 void HideSoGlobsById(void *p, void *q);
 /** @sly2-annot addr=0x210408
  * Purpose: ASEG event 13/14: on SO target call 0x1F6978 or 0x1F69F8 (enable/disable pair)
- * Info: proposed name HandleSwAsegEvent13 (T2); TU sw
+ * Info: proposed name ShowSwAsegGlobs (T2); TU sw
  * Notes: names_v2 v1 proposed IposFindButtonClosest__FP6BUTTONPf (0.068)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Animation event 13/14: enables or disables a feature of the target SO (0x1F6978 / 0x1F69F8). (inferred)
-void HandleSwAsegEvent13(void *pv, int f, int id, void *q, void *pdef, void *ctx)
+// Animation event 13/14: shows or hides the target SO's globs with the given id (ShowSoGlobsById / HideSoGlobsById).
+void ShowSwAsegGlobs(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
     if (id == -1)
@@ -2063,12 +2063,12 @@ void ShowSoPartsById(void *p, void *q);
 void func_001F6B48(void *p, void *q);
 /** @sly2-annot addr=0x2104A0
  * Purpose: ASEG event 15/16: on SO call 0x1F6AC8 or 0x1F6B48
- * Info: proposed name HandleSwAsegEvent15 (T2); TU sw
+ * Info: proposed name ShowSwAsegParts (T2); TU sw
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Animation event 15/16: enables or disables a second feature of the target SO (0x1F6AC8 / 0x1F6B48). (inferred)
-void HandleSwAsegEvent15(void *pv, int f, int id, void *q, void *pdef, void *ctx)
+// Animation event 15/16: shows or hides the target SO's parts with the given id (ShowSoPartsById / 0x1F6B48).
+void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
     if (id == -1)
@@ -2141,13 +2141,14 @@ void func_001F80D0(void *p, float f);
 void SetEyesClosed(void *p, float f);
 /** @sly2-annot addr=0x210678
  * Purpose: ASEG event 20: SO -> 0x1F80D0(f); EYES (0x8E) found by 0x1EC918 -> 0x1EE3B0(f)
- * Info: proposed name HandleSwAsegEvent20 (T2); TU sw
+ * Info: proposed name SetSwAsegEyesClosed (T2); TU sw
  * Notes: names_v2 v1 proposed PresetButtonAccel__FP6BUTTONf (0.010)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Animation event 20: passes a value to the target SO (0x1F80D0) or to an EYES object (0x1EE3B0). (inferred)
-void HandleSwAsegEvent20(void *pv, int id1, int id2, float f)
+// Animation event 20: sets how closed the eyes are, on the target SO's EYES children (SetSoEyesClosed) or on an EYES
+// object (SetEyesClosed).
+void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
 {
     void *p1 = 0;
     void *p2 = 0;
@@ -2251,12 +2252,13 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 
 /** @sly2-annot addr=0x210940
  * Purpose: SW+0x4638 = PloFindSwObject(psw,5,oid 0x620,0)
- * Info: proposed name BindSwObject620 (T2); TU sw
+ * Info: proposed name BindSwBootyProxy (T2); TU sw
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Stores the object with oid 0x620 at SW+0x4638. (inferred: its role is not identified)
-extern "C" void BindSwObject620(SW *world)
+// Finds the proxy object with oid 0x620 and stores it at SW+0x4638: the proxy source booties are acquired from and
+// locked on (booty.cpp).
+extern "C" void BindSwBootyProxy(SW *world)
 {
     world->ploUnk4638 = PloFindSwObject(world, 5, (OID)0x620, 0);
 }

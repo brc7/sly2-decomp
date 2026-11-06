@@ -312,8 +312,8 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
-// Returns the collectible counter kept in the save variable at g_sw+0x3B20. (inferred: which collectible is not known)
-int GetCollectibleCount(void)
+// Returns the coin count (save variable loot.ccoin, through g_sw+0x3B20).
+int GetCoinCount(void)
 {
     CRef ref;
     int n;
@@ -349,8 +349,8 @@ extern "C" void RestartHudWidget1(G *pg);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
-// Sets the collectible counter save variable and refreshes its HUD widget. (inferred)
-extern "C" void SetCollectibleCount(void *pv, int n)
+// Sets the coin count (loot.ccoin) and restarts its HUD widget (ahudstack[1], RestartHudWidget1).
+extern "C" void SetCoinCount(void *pv, int n)
 {
     G *pg = &D_003DD490;
     {
@@ -416,8 +416,9 @@ extern struct CLOCK D_002DDED0;
  * See: docs/engine/game-progression.md#8-key-functions,
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-// Shows the HUD widget of ahudstack[3] and hides it again after dt seconds (g_sw+0x476C).
-void ShowHudWidget3Timed(struct S *p, float dt)
+// Shows the HUD widget of ahudstack[3] and hides it again after dt seconds (g_sw+0x476C); UpdateSwTimerHud plays the
+// tick/tock sounds while that countdown runs, so this is the countdown display. (inferred)
+void ShowCountdownHud(struct S *p, float dt)
 {
     struct O *po = p->po;
     if (po) {
@@ -442,7 +443,7 @@ struct S { char pad[0x3BC4]; struct O *po; char pad2[0x476C - 0x3BC8]; int n; };
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Hides the HUD widget of ahudstack[3] and clears its hide time.
-void HideHudWidget3(struct S *p)
+void HideCountdownHud(struct S *p)
 {
     struct O *po = p->po;
     if (po) {

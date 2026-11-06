@@ -958,8 +958,8 @@ typedef char Int_Size[sizeof(int)==4?1:-1];
  * See: docs/engine/game-progression.md#2-the-game-event-bus,
  *   docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions
  * @end-sly2-annot */
-// LO's Splice event handler (vtable slot 3): the BASIC handling, then messages 5 and 6 are also reported to the game
-// progress object (as events 0x1A/0x1B).
+// LO's Splice event handler (vtable slot 3): the BASIC handling, then the trigger (5) and untrigger (6) events are also
+// reported to the game progress object (as game events 0x1A/0x1B).
 void HandleLoSpliceEvent(void *p, int n, int deferred, int argumentCount,
                    void *const *arguments, struct CRef *output)
 {

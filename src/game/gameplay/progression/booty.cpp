@@ -133,10 +133,10 @@ void ShowSoGlobsById(BOOTYV *p, int n);
 void HideSoPart(BOOTYV *p, void *pv);
 void ShowSoPartsById(BOOTYV *p, int n);
 void func_001F6B48(BOOTYV *p, int n);
-void ShowHudWidget3Timed(SW *psw, float g);
+void ShowCountdownHud(SW *psw, float g);
 void func_00156C80(SW *psw, int n, qword v, CID37V *pq, void *pv);
 void BroadcastGameEvent(void *pv, int n, void *p);
-void HideHudWidget3(SW *psw);
+void HideCountdownHud(SW *psw);
 void SetSoCnstrForce(BOOTYV *p, int n);
 void SetSoCnstrTorque(BOOTYV *p, int n);
 void SetSoDvGravity(BOOTYV *p, qword v);
@@ -601,7 +601,7 @@ void SetBootyState(BOOTYV *p, int st)
         break;
     case 1:
         if (p->pbootyeCur->xC)
-            ShowHudWidget3Timed(&g_sw, p->pcont->g18C + 0.99f);
+            ShowCountdownHud(&g_sw, p->pcont->g18C + 0.99f);
         func_00156C80(&g_sw, 1, GetLoWorldPos(p->pcont), p->pcont, (char *)p->pcont + 0x198);
         if (st == 2)
             BroadcastGameEvent(D_002DEB30, 0x2F, p);
@@ -625,7 +625,7 @@ void SetBootyState(BOOTYV *p, int st)
         if (p->pbootyeCur->x18 != -1)
             ShowSoPartsById(p, p->pbootyeCur->x18);
         if (p->pbootyeCur->xC)
-            HideHudWidget3(&g_sw);
+            HideCountdownHud(&g_sw);
         break;
     case 5: {
         RLO *pr = p->plo164;

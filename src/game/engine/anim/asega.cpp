@@ -89,11 +89,11 @@ int GetBasicCid(LO *);
 void FireRelay(LO *, int);
 void ShowSwAsegObject(SW *, int, void *, LO *, ASEG *, float);
 void SendSwAsegMessage(SW *, int, int, int, LO *, ASEG *, float);
-void HandleSwAsegEvent13(SW *, int, void *, int, ALO *, LO *, ASEG *);
-void HandleSwAsegEvent15(SW *, int, void *, int, ALO *, LO *, ASEG *);
-void ShowHudWidget3Timed(SW *, float);
-void HideHudWidget3(SW *);
-void HandleSwAsegEvent20(SW *, int, int, LO *, ASEG *, float);
+void ShowSwAsegGlobs(SW *, int, void *, int, ALO *, LO *, ASEG *);
+void ShowSwAsegParts(SW *, int, void *, int, ALO *, LO *, ASEG *);
+void ShowCountdownHud(SW *, float);
+void HideCountdownHud(SW *);
+void SetSwAsegEyesClosed(SW *, int, int, LO *, ASEG *, float);
 void func_001F81E0(ALO *, int);
 void func_00143090(ALO *, char *, char *, char *);
 float fmodf(float a, float b);
@@ -500,25 +500,25 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
     case 14: {
         int fT = (pev->eak == 13);
         fT ^= f;
-        HandleSwAsegEvent13(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, func_00131270(p), pq);
+        ShowSwAsegGlobs(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, func_00131270(p), pq);
         break;
     }
     case 15:
     case 16: {
         int fT = (pev->eak == 15);
         fT ^= f;
-        HandleSwAsegEvent15(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, func_00131270(p), pq);
+        ShowSwAsegParts(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, func_00131270(p), pq);
         break;
     }
     case 18:
-        ShowHudWidget3Timed(&D_003DD490, p->tLocal);
+        ShowCountdownHud(&D_003DD490, p->tLocal);
         break;
     case 19:
-        HideHudWidget3(&D_003DD490);
+        HideCountdownHud(&D_003DD490);
         break;
     case 20: {
         EA20 *pa = pev->pea20;
-        HandleSwAsegEvent20(&D_003DD490, pa->x0, pa->x4, func_00131270(p), pq, pa->g8);
+        SetSwAsegEyesClosed(&D_003DD490, pa->x0, pa->x4, func_00131270(p), pq, pa->g8);
         break;
     }
     case 21:

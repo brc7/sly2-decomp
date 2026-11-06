@@ -963,13 +963,13 @@ void StopAsegSoundEvent(SW *psw, int sfxid, ASEG *paseg, CRefPtr<SND> *ppsnd) __
 
 LO *FadeAsegObjectEvent(SW *psw, int fIn, OID oid, float dtFade, LO *ploRoot, ASEG *paseg) __asm__("ShowSwAsegObject");
 
-void SetAsegPartFlagEvent(SW *psw, int fClear, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("HandleSwAsegEvent13");
+void SetAsegPartFlagEvent(SW *psw, int fClear, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("ShowSwAsegGlobs");
 
-void ShowAsegPartEvent(SW *psw, int fShow, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("HandleSwAsegEvent15");
+void ShowAsegPartEvent(SW *psw, int fShow, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("ShowSwAsegParts");
 
 void ExplodeAsegEvent(SW *psw, OID oidExpl, OID oidRef, OID oidUnk30, LO *ploRoot, ASEG *paseg, float gScale) __asm__("SendSwAsegMessage");
 
-void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g) __asm__("HandleSwAsegEvent20");
+void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g) __asm__("SetSwAsegEyesClosed");
 
 struct WIDGETV : public LO
 {

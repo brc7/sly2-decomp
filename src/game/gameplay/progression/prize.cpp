@@ -63,8 +63,8 @@ void PostSoLoad(SO *pso);
 void *func_001F7B98(SO *pso);
 void func_002303A0(SO *pso, XF *pxf, int n);
 void BindLoOidTable(LO *plo, int coid, OIDT *aoidt);
-int GetCollectibleCount(void *pv);
-void SetCollectibleCount(void *pv, int n);
+int GetCoinCount(void *pv);
+void SetCoinCount(void *pv, int n);
 void func_001C7A08(LOOTV *ploot);
 void InitDprize(DPRIZEV *pdprize);
 XF *PxfFindSo(SO *pso, int oid, int n);
@@ -1175,7 +1175,7 @@ void func_001C65F8(struct S *p, int n)
  * @end-sly2-annot */
 extern "C" void func_001C67A0()
 {
-    SetCollectibleCount(D_002DEB30, GetCollectibleCount(D_002DEB30) + 1);
+    SetCoinCount(D_002DEB30, GetCoinCount(D_002DEB30) + 1);
 }
 
 namespace M_func_001C67D8 { extern "C" {
