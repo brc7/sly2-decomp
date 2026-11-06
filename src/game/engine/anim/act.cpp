@@ -202,6 +202,8 @@ typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
 KEY *func_001AE2A0(AREQ *preq);
+
+} } // namespace M_LoadAcVecAFromBrx
 /** @sly2-annot addr=0x12B5E0
  * Purpose: Reads U16 key count and VECTOR keys (with tangents) into a heap array
  * Info: proposed name LoadAcVecAFromBrx (T1); class AcVecA; TU act
@@ -211,8 +213,16 @@ KEY *func_001AE2A0(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void LoadAcVecAFromBrx(T *t, void *pbis)
+void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
 {
+    using namespace M_LoadAcVecAFromBrx;
+    using M_LoadAcVecAFromBrx::AREQ;
+    using M_LoadAcVecAFromBrx::KEY;
+    using M_LoadAcVecAFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
+    using M_LoadAcVecAFromBrx::U16Read__18CBinaryInputStream;
+    using M_LoadAcVecAFromBrx::func_001AE2A0;
+    T *t = (T *)this;
+    void *pbis = pbisM;
     int i;
     int c = U16Read__18CBinaryInputStream(pbis);
     AREQ req;
@@ -228,7 +238,6 @@ void LoadAcVecAFromBrx(T *t, void *pbis)
         ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos2);
     }
 }
-} } // namespace M_LoadAcVecAFromBrx
 
 namespace M_func_0012B6D8 { extern "C" {
 typedef struct KEY { int pad[3]; float t; int pad2[8]; } KEY;
@@ -334,6 +343,8 @@ typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
 KEY *func_001AE2A0(AREQ *preq);
+
+} } // namespace M_LoadAcVecBFromBrx
 /** @sly2-annot addr=0x12BA98
  * Purpose: Second vector-keyed curve class: load
  * Info: proposed name LoadAcVecBFromBrx (T1); class AcVecB; TU act
@@ -343,8 +354,16 @@ KEY *func_001AE2A0(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void LoadAcVecBFromBrx(T *t, void *pbis)
+void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
 {
+    using namespace M_LoadAcVecBFromBrx;
+    using M_LoadAcVecBFromBrx::AREQ;
+    using M_LoadAcVecBFromBrx::KEY;
+    using M_LoadAcVecBFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
+    using M_LoadAcVecBFromBrx::U16Read__18CBinaryInputStream;
+    using M_LoadAcVecBFromBrx::func_001AE2A0;
+    T *t = (T *)this;
+    void *pbis = pbisM;
     int i;
     int c = U16Read__18CBinaryInputStream(pbis);
     AREQ req;
@@ -359,7 +378,6 @@ void LoadAcVecBFromBrx(T *t, void *pbis)
         ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos);
     }
 }
-} } // namespace M_LoadAcVecBFromBrx
 
 namespace M_func_0012BB70 { extern "C" {
 typedef struct KEY { int pad[3]; float t; int pad2[4]; } KEY;
@@ -463,6 +481,8 @@ int U16Read__18CBinaryInputStream(void *pbis);
 int U8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 void *func_001AE1D0(AREQ *preq);
+
+} } // namespace M_LoadAcFloatAFromBrx
 /** @sly2-annot addr=0x12BF30
  * Purpose: Scalar-keyed curve: U16 count, U8 flags, F32 keys and vectors
  * Info: proposed name LoadAcFloatAFromBrx (T1); class AcFloatA; TU act
@@ -472,8 +492,18 @@ void *func_001AE1D0(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void LoadAcFloatAFromBrx(T *t, void *pbis)
+void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
 {
+    using namespace M_LoadAcFloatAFromBrx;
+    using M_LoadAcFloatAFromBrx::AREQ;
+    using M_LoadAcFloatAFromBrx::F32Read__18CBinaryInputStream;
+    using M_LoadAcFloatAFromBrx::KEY;
+    using M_LoadAcFloatAFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
+    using M_LoadAcFloatAFromBrx::U16Read__18CBinaryInputStream;
+    using M_LoadAcFloatAFromBrx::U8Read__18CBinaryInputStream;
+    using M_LoadAcFloatAFromBrx::func_001AE1D0;
+    T *t = (T *)this;
+    void *pbis = pbisM;
     AREQ req;
     int i, j, mask, grf;
     int c;
@@ -501,7 +531,6 @@ void LoadAcFloatAFromBrx(T *t, void *pbis)
         }
     }
 }
-} } // namespace M_LoadAcFloatAFromBrx
 
 namespace M_func_0012C0E0 { extern "C" {
 typedef struct T { int pad; int c; float *a; } T;
@@ -645,6 +674,8 @@ int U16Read__18CBinaryInputStream(void *pbis);
 int U8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 void *func_001AE1D0(AREQ *preq);
+
+} } // namespace M_LoadAcFloatBFromBrx
 /** @sly2-annot addr=0x12C570
  * Purpose: Second scalar curve class: load
  * Info: proposed name LoadAcFloatBFromBrx (T1); class AcFloatB; TU act
@@ -654,8 +685,18 @@ void *func_001AE1D0(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void LoadAcFloatBFromBrx(T *t, void *pbis)
+void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
 {
+    using namespace M_LoadAcFloatBFromBrx;
+    using M_LoadAcFloatBFromBrx::AREQ;
+    using M_LoadAcFloatBFromBrx::F32Read__18CBinaryInputStream;
+    using M_LoadAcFloatBFromBrx::KEY;
+    using M_LoadAcFloatBFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
+    using M_LoadAcFloatBFromBrx::U16Read__18CBinaryInputStream;
+    using M_LoadAcFloatBFromBrx::U8Read__18CBinaryInputStream;
+    using M_LoadAcFloatBFromBrx::func_001AE1D0;
+    T *t = (T *)this;
+    void *pbis = pbisM;
     AREQ req;
     int i, j, mask, grf;
     int c;
@@ -682,7 +723,6 @@ void LoadAcFloatBFromBrx(T *t, void *pbis)
         }
     }
 }
-} } // namespace M_LoadAcFloatBFromBrx
 
 namespace M_func_0012C708 { extern "C" {
 typedef struct T { int pad; int c; float *a; } T;
@@ -897,6 +937,8 @@ typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 KEY *func_001AE2A0(AREQ *preq);
+
+} } // namespace M_LoadAcFloatKeysFromBrx
 /** @sly2-annot addr=0x12CCB8
  * Purpose: U16 count + F32 keys
  * Info: proposed name LoadAcFloatKeysFromBrx (T1); class AcFloatKeys; TU act
@@ -907,8 +949,16 @@ KEY *func_001AE2A0(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void LoadAcFloatKeysFromBrx(T *t, void *pbis)
+void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
 {
+    using namespace M_LoadAcFloatKeysFromBrx;
+    using M_LoadAcFloatKeysFromBrx::AREQ;
+    using M_LoadAcFloatKeysFromBrx::F32Read__18CBinaryInputStream;
+    using M_LoadAcFloatKeysFromBrx::KEY;
+    using M_LoadAcFloatKeysFromBrx::U16Read__18CBinaryInputStream;
+    using M_LoadAcFloatKeysFromBrx::func_001AE2A0;
+    T *t = (T *)this;
+    void *pbis = pbisM;
     int i;
     int c = U16Read__18CBinaryInputStream(pbis);
     AREQ req;
@@ -924,7 +974,6 @@ void LoadAcFloatKeysFromBrx(T *t, void *pbis)
         pkey->dgOut = F32Read__18CBinaryInputStream(pbis);
     }
 }
-} } // namespace M_LoadAcFloatKeysFromBrx
 
 namespace M_func_0012CDA0 { extern "C" {
 typedef struct KEY { float t; float g; float dgIn; float dgOut; } KEY;
@@ -1453,14 +1502,35 @@ static inline void Fin(P *p, M3 &mT, M3 m)
     p->px8->s9A = 5;
 }
 
+
+} // namespace M_func_0012D508
 /** @sly2-annot addr=0x12D508
  * Purpose: Path-following act: EvaluateBezierPos + BuildOrthonormalMatrixZ
  * Info: proposed name UpdateActPath (T2); class ActPath; TU act
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-extern "C" void func_0012D508(P *p)
+void ACT4::Update()
 {
+    using namespace M_func_0012D508;
+    using M_func_0012D508::AddScaledDiff;
+    using M_func_0012D508::BuildOrthonormalMatrixZ;
+    using M_func_0012D508::D_002A2DC0;
+    using M_func_0012D508::D_002A2DD0;
+    using M_func_0012D508::D_002BC380;
+    using M_func_0012D508::EvaluateBezierPos;
+    using M_func_0012D508::Fin;
+    using M_func_0012D508::GetX;
+    using M_func_0012D508::M3;
+    using M_func_0012D508::MulM3;
+    using M_func_0012D508::O;
+    using M_func_0012D508::VLen;
+    using M_func_0012D508::VTE;
+    using M_func_0012D508::VU_FLOAT;
+    using M_func_0012D508::X;
+    using M_func_0012D508::func_0022DD00;
+    using M_func_0012D508::qword;
+    P *p = (P *)this;
     X *py;
     union { qword q; } vT;
     M3 mT;
@@ -1525,26 +1595,29 @@ extern "C" void func_0012D508(P *p)
         Fin(p, mT, BuildOrthonormalMatrixZ(v, u));
     }
 }
-} // namespace M_func_0012D508
 
 namespace M_func_0012D858 { extern "C" {
 typedef struct VT { short d; short pad; void (*fn)(void *); } VT;
 typedef struct O { int pad[6]; VT *vt; } O;
 typedef struct T { int pad[4]; O *p; int pad2[2]; O *q; } T;
+
+} } // namespace M_func_0012D858
 /** @sly2-annot addr=0x12D858
  * Purpose: vtable 0x2CA758 slot 1
  * Info: proposed name ActUnk_2CA758_1 (T2); TU act
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012D858(T *t)
+void ACT5::VSlot1()
 {
+    using namespace M_func_0012D858;
+    using M_func_0012D858::O;
+    T *t = (T *)this;
     O *p = t->p;
     t->q = p;
     if (p)
         p->vt[1].fn((char *)p + p->vt[1].d);
 }
-} } // namespace M_func_0012D858
 
 namespace M_func_0012D890 { extern "C" {
 typedef struct VT { short d; short pad; void (*fn)(void *); } VT;
@@ -1975,14 +2048,23 @@ static __inline__ qword Normalize1(qword *pv, qword *pdef)
     }
     return l;
 }
+
+} } // namespace M_func_0012E120
 /** @sly2-annot addr=0x12E120
  * Purpose: vtable 0x2CA6A0 slot 1 (calls ACT::Retract)
  * Info: proposed name ActUnk_2CA6A0_1 (T2); TU act
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012E120(X *x)
+void ACT9::VSlot1()
 {
+    using namespace M_func_0012E120;
+    using M_func_0012E120::D_002A2DA0;
+    using M_func_0012E120::Normalize1;
+    using M_func_0012E120::Y;
+    using M_func_0012E120::func_0012CE98;
+    using M_func_0012E120::qword;
+    X *x = (X *)this;
     qword l;
     func_0012CE98(x);
     x->py->vB0 = x->v20;
@@ -1995,7 +2077,6 @@ void func_0012E120(X *x)
     }
     { register Y *py __asm__("$3") = x->py; py->nE0 = 0; }
 }
-} } // namespace M_func_0012E120
 
 /** @sly2-annot addr=0x12E1F0
  * Purpose: Pool alloc of a second act-record type
