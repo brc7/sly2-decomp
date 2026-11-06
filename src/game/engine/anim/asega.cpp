@@ -1,6 +1,8 @@
 // asega.cpp -- ASEGA, a playing animation segment: reference counting, time advance and wrapping, the start/frame/end
 // event lists, speed and priority, and the ACTSEG channel actions. TU 0x1308A8..0x131F70 (26 functions, address
 // order) plus the linkonce sidebag-pointer assignment at 0x2580A8.
+// Entry points: UpdateAsega (per frame, from the world's live ASEGA list), RetractAsega, SeekAsega, the speed /
+// priority / hands-off setters, and the ACTSEG channel-action slots (attach, detach, update, goal).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_asega
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00131F50
 #include "sly2/slotheap.h"
@@ -127,6 +129,7 @@ float GModPositive(float a, float b);                   /* GModPositive__Fff */
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
+// Adds a reference to the player (slot 1).
 void ASEGA::VUnk00()   /* key function: ASEGA's vtable comes out here */
 {
     ASEGA *p = this;
@@ -140,6 +143,7 @@ void ASEGA::VUnk00()   /* key function: ASEGA's vtable comes out here */
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Drops a reference; at zero the player is destroyed and returned to the ASEGA pool.
 extern "C" void DecrefAsega(ASEGA *p)
 {
     int cref;
@@ -163,6 +167,8 @@ static __inline__ void End(G *pg) { ASEGA *po = pg->p; ((void (*)(void *))PVT(po
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/functions/world-sw.md#update-0x226550-0x226ab8
  * @end-sly2-annot */
+// Per-frame update of a playing segment: advances local time by speed, wraps or clamps it at the end, dispatches the
+// events crossed this frame, and retracts the player when a non-looping segment finished.
 extern "C" void UpdateAsega(ASEGA *p)
 {
     if (__builtin_fabsf(p->svt) < 1e-4f)
@@ -210,6 +216,8 @@ extern "C" void UpdateAsega(ASEGA *p)
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
+// Stops a player: unlinks it from the live lists, releases its hands-off hold, retracts its channel actions and
+// overrides, notifies its owner and drops the list's reference.
 void RetractAsega(ASEGA *p)
 {
     if (FAsegaRetracted(p))
@@ -262,6 +270,7 @@ struct R80 { char pad[0x80]; float gMin; float gMax; float *pg; };
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Seeks a player (SEEK kind: absolute, relative or label) to time t with speed svt, then resynchronizes its event cursor.
 void SeekAsega(ASEGA *p, int k, float g, float s)
 {
     float t;
@@ -303,6 +312,7 @@ void SeekAsega(ASEGA *p, int k, float g, float s)
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Resynchronizes the player's event cursor to the first event at or after its current local time.
 void UpdateAsegaIeaCur(ASEGA *pasega)
 {
     ASEG *paseg = pasega->paseg;
@@ -334,6 +344,7 @@ struct GV { ASEGA *p; GV(ASEGA *pp) : p(pp) { p->VUnk00(); } ~GV() { p->VUnk01()
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Dispatches every event between the player's previous and current time this frame (HandleAsegaEvent).
 void HandleAsegaEvents(ASEGA *p)
 {
     if (p->paseg->ceaFrame) {
@@ -370,6 +381,8 @@ void HandleAsegaEvents(ASEGA *p)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Fast-forward dispatch used when a segment starts at t > 0: replays the events up to the start time that must take
+// effect (state-changing ones) without their transient effects.
 void HandleAsegaEventsFF(ASEGA *p)
 {
     if (p->paseg->ceaFrame) {
@@ -405,6 +418,7 @@ void HandleAsegaEventsFF(ASEGA *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// The object events of this player act on: its root object if bound, otherwise the segment itself.
 LO *GetAsegaEventTarget(ASEGA *p) { if (p->paloRoot) return (LO *)p->paloRoot; return p->paseg; }
 
 struct MSG { ASEGA *p; float g; int n; };
@@ -417,6 +431,8 @@ struct MSG { ASEGA *p; float g; int n; };
  * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
  *   docs/engine/animation.md#7-key-functions, docs/engine/animation.md#open-questions
  * @end-sly2-annot */
+// Executes one segment event: sounds, rumble, hands-off, applying / seeking / retracting other segments, splice script
+// calls, emitters, messages and the like.
 void HandleAsegaEvent(ASEGA *p, EA *pev)
 {
     GV g(p);
@@ -546,6 +562,8 @@ struct GVOL { ASEGA *po; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// The player's message handler (slot 4): holds a reference while it forwards the message to its root object and to the
+// LO base handler.
 extern "C" void SendAsegaMessage(ASEGA *p, int a, ASEGA *b) {
     GVOL volatile g;
     g.po = p;
@@ -573,6 +591,8 @@ static __inline__ void PingPong(ASEGA *p, float *pt, float *pdt, float tMax, flo
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Wraps (loop) or reflects (ping-pong) a player's time at the end of its segment; returns whether it wrapped and updates
+// the time delta.
 int FWrapAsegaTime(ASEGA *p, float *pt, float *pdt)
 {
     float tMax = p->paseg->tMax;
@@ -615,6 +635,7 @@ int FWrapAsegaTime(ASEGA *p, float *pt, float *pdt)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// True when the player is no longer on the world's live player list.
 int FAsegaRetracted(ASEGA *p)
 {
     return FFindDlEntry(&g_sw.dlAsega, p) == 0;
@@ -628,6 +649,7 @@ int FAsegaRetracted(ASEGA *p)
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Turns the player's hands-off hold on or off (while on, the world's hands-off count keeps player control disabled).
 void SetAsegaHandsOff(ASEGA *p, int f)
 {
     if ((FAsegaRetracted(p) == 0) && (f != p->nWorldHold)) {
@@ -645,6 +667,7 @@ void SetAsegaHandsOff(ASEGA *p, int f)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Sets the player's own speed; its effective speed is speed x master speed.
 void SetAsegaSpeed(ASEGA *p, float svt)
 {
     p->svtRate = svt;
@@ -658,6 +681,7 @@ void SetAsegaSpeed(ASEGA *p, float svt)
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Sets the player's master speed (from its segment); recomputes the effective speed.
 extern "C" void SetAsegaMasterSpeed(ASEGA *p, float svt)
 {
     p->svtMaster = svt;
@@ -670,6 +694,8 @@ extern "C" void SetAsegaMasterSpeed(ASEGA *p, float svt)
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Sets the priority of all the player's channel actions, so it can override (or yield to) other animations on the same
+// transforms.
 void SetAsegaPriority(ASEGA *p, int n)
 {
     ACTSEGV *pactseg;
@@ -691,6 +717,8 @@ void SetAsegaPriority(ASEGA *p, int n)
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// For the player's live channels on role-7 transforms: switches the transform to blend mode 9 and sets its blend weight
+// (inferred).
 extern "C" void SetAsegaChannelWeight(ASEGA *p, float g) {
     ACTSEGV *pn;
     for (pn = (ACTSEGV *)p->pactsegFirst; pn; pn = pn->pactsegNext) {
@@ -707,6 +735,7 @@ extern "C" void SetAsegaChannelWeight(ASEGA *p, float g) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform.
 void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
     ACTV *pn = pxf->pactFirst;
     for (;;) {
@@ -724,6 +753,7 @@ struct OIDXFK { int oid; int xfk; };
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// For each transform of an SO matching any (OID, component) filter pair (-1 = any), detaches the action with the given id.
 extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
     int i, j;
     for (i = 0; i < p->cxf; i++) {
@@ -745,6 +775,8 @@ extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
 /* ACTSEG's slot 1, its key function (sly2/act.h). */
+// Attaches a segment channel action (slot 1): a rotation-curve channel binds its curve and the player's local time into
+// the transform's reference record; other channels use the base attach.
 void ACTSEG::VSlot1() {
     ACTSEGV *p = (ACTSEGV *)this;
     ACV *pac;
@@ -763,6 +795,7 @@ void ACTSEG::VSlot1() {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach.
 extern "C" void DetachActseg(ACTSEGV *p) {
     if (p->pacRot != 0) {
         p->pxf->pxfRef->nD0 = 0;
@@ -778,6 +811,8 @@ extern "C" void DetachActseg(ACTSEGV *p) {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Per-frame channel update (slot 4): a curve channel points the transform at the player's time and speed and lets the
+// curve drive it; a channel without a curve resets the transform's phase and refreshes it.
 extern "C" void UpdateActseg(ACTSEGV *p) {
     if (p->pac) {
         ACV *pc;
@@ -802,6 +837,8 @@ extern "C" void UpdateActseg(ACTSEGV *p) {
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
+// Returns the channel's goal position and velocity at the player's (wrapped) time (slot 5), for code that predicts where
+// the animation is heading.
 extern "C" void GetActsegGoal(ACTSEGV *p, qword *pq1, qword *pq2, float g) {
     if (p->pac) {
         ASEGA *po = p->pasega;
@@ -853,6 +890,8 @@ static inline void Release4(R4 *r)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// Counted-pointer assignment for sidebags (inline template copy): takes a reference to the new sidebag, releases the
+// old one (freeing it at zero).
 inline void AssignSidebagRef(R4 **pp, R4 *p)
 {
     if (p)
