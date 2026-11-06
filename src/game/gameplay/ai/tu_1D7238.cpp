@@ -93,10 +93,10 @@ void SAFEHOUSE::Init()
 // 0x1D7268: SAFEHOUSE post-load: SO post-load, then calls its vtable slot 79 with 0.
 extern "C" void PostSafehouseLoad(SAFEHOUSEV *safehouse)
 {
-    VTE *e;
+    VTE *entry;
     PostSoLoad(safehouse);
-    e = &safehouse->vt[79];
-    ((void (*)(void *, int))e->pfn)((char *)safehouse + e->d, 0);
+    entry = &safehouse->vt[79];
+    ((void (*)(void *, int))entry->pfn)((char *)safehouse + entry->d, 0);
 }
 
 // 0x1D72A8: SAFEHOUSE update: SO update; while selecting (state 1), reads the joystick selection, steps the
