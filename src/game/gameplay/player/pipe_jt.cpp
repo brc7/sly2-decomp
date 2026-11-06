@@ -100,12 +100,12 @@ int FActiveCplcy__FP5CPLCY(void *);
  * @end-sly2-annot */
 // Initializes the player's pipe-climbing context (STEPPLAYER+0xF50): owner, state -1 (not on a pipe) and the default
 // climb tuning (45 / 40 ...).
-extern "C" void InitJtPipe(JTPIPE *p, JT *actor)
+extern "C" void InitJtPipe(JTPIPE *pipe, JT *actor)
 {
-    U *poffset = &p->offset;
-    p->actor = actor;
-    p->state = -1;
-    U *poffset2 = &p->offset2;
+    U *poffset = &pipe->offset;
+    pipe->actor = actor;
+    pipe->state = -1;
+    U *poffset2 = &pipe->offset2;
     poffset->f[0] = 45.0f;
     poffset->f[2] = 40.0f;
     poffset->i[1] = 0;
@@ -124,15 +124,15 @@ extern "C" void InitJtPipe(JTPIPE *p, JT *actor)
  * @end-sly2-annot */
 // Post-load: measures the per-cycle climb speed of the two climb clips (root displacement over a cycle) and builds
 // the dynamic blend between them.
-extern "C" void PostJtLoadPipe(JTPIPE *p)
+extern "C" void PostJtLoadPipe(JTPIPE *pipe)
 {
     int i;
     PIPEBL *e;
     VECTORA v0, v1;
-    for (i = 0, e = (PIPEBL *)&p->weight0; i < 2; i++, e++) {
+    for (i = 0, e = (PIPEBL *)&pipe->weight0; i < 2; i++, e++) {
         ASEGV *o = e->paseg;
         if (o) {
-            TRACKREF *r = func_0012FF10(o, p->actor, 1, 1);
+            TRACKREF *r = func_0012FF10(o, pipe->actor, 1, 1);
             if (r) {
                 r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, 0.0f, 1.0f, &v0, 0);
                 r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, o->duration, 1.0f, &v1, 0);
@@ -140,7 +140,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *p)
             }
         }
     }
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->actor, 0x10, 2, &p->weight0, 0, 0, 0, &p->animation);
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(pipe->actor, 0x10, 2, &pipe->weight0, 0, 0, 0, &pipe->animation);
 }
 
 static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");qword r;s = VuFromFloat<qword>(g);u.q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(u.q));return r;}
@@ -153,28 +153,28 @@ static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");q
  * @end-sly2-annot */
 // Physics preset while on a pipe: in the mount and climb states (0, 4) accelerates Sly toward the pipe's climbing
 // frame (GetPipeGoalMatrix) at the current distance.
-extern "C" void PresetJtAccelPipe(JTPIPE *p)
+extern "C" void PresetJtAccelPipe(JTPIPE *pipe)
 {
     M3 m, m2, m4;
     U vec;
     float f;
     M3 *pm;
-    GetPipeGoalMatrix(p->path, p->distance, p->descending == 0, &m);
-    if (p->state == 0 || p->state == 4) {
-        JT *o = p->actor;
+    GetPipeGoalMatrix(pipe->path, pipe->distance, pipe->descending == 0, &m);
+    if (pipe->state == 0 || pipe->state == 4) {
+        JT *o = pipe->actor;
         float dt = D_002DDED0.dt;
         float g = o->asega->paseg->duration - o->asega->t;
         M3 *pa;
         g = g > dt ? g : dt;
         pa = func_001A6318(o);
-        EvaluateBezierMat(pa, g, dt, 1.0f, ((qword (*)(void *))p->actor->vt[34].fn)((char *)p->actor + p->actor->vt[34].delta), &m, D_002A2DD0.q, &m2, 0);
+        EvaluateBezierMat(pa, g, dt, 1.0f, ((qword (*)(void *))pipe->actor->vt[34].fn)((char *)pipe->actor + pipe->actor->vt[34].delta), &m, D_002A2DD0.q, &m2, 0);
     } else {
         m2 = m;
     }
     pm = &m2;
-    m4 = MulMatrix3Matrix3(func_001A6318(p->actor), pm);
+    m4 = MulMatrix3Matrix3(func_001A6318(pipe->actor), pm);
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&m4, &f, &vec);
-    {JT *o=p->actor;VE *vt=o->vt;void (*call)(void *,qword)=(void(*)(void*,qword))vt[36].fn;void *thisp=(char*)o+vt[36].delta;call(thisp,Scale(vec.q,f/D_002DDED0.dt));}
+    {JT *o=pipe->actor;VE *vt=o->vt;void (*call)(void *,qword)=(void(*)(void*,qword))vt[36].fn;void *thisp=(char*)o+vt[36].delta;call(thisp,Scale(vec.q,f/D_002DDED0.dt));}
 }
 
 /** @sly2-annot addr=0x19E110
@@ -185,21 +185,21 @@ extern "C" void PresetJtAccelPipe(JTPIPE *p)
  * @end-sly2-annot */
 // The distance range the player may climb on the current pipe: unbounded on a closed pipe, else from the bottom
 // (+35, or +100 depending on the pipe) to 100 below the top.
-extern "C" void GetJtPipeDistanceRange(JTPIPE *p, LMV *ag) {
-    if (p->path->cyclic) {
+extern "C" void GetJtPipeDistanceRange(JTPIPE *pipe, LMV *ag) {
+    if (pipe->path->cyclic) {
         ag->low = -3.40282346638528859812e+38f;
         ag->high = 3.40282346638528859812e+38f;
-    } else if (p->descending) {
-        ag->low = SMinShape(p->path) + 35.0f;
-        ag->high = SMaxShape(p->path) - 100.0f;
+    } else if (pipe->descending) {
+        ag->low = SMinShape(pipe->path) + 35.0f;
+        ag->high = SMaxShape(pipe->path) - 100.0f;
     } else {
-        ag->low = SMinShape(p->path) + 100.0f;
-        ag->high = SMaxShape(p->path) - 35.0f;
+        ag->low = SMinShape(pipe->path) + 100.0f;
+        ag->high = SMaxShape(pipe->path) - 35.0f;
     }
 }
 
 static inline ulong Eligible(PATH*p){return (p->flags>>60)&1;}
-static inline int CanAct(JT*p,int kind){VE&v=p->vt[99];return ((int(*)(void*,int))v.fn)((char*)p+v.delta,kind);}
+static inline int CanAct(JT*jt,int kind){VE&v=jt->vt[99];return ((int(*)(void*,int))v.fn)((char*)jt+v.delta,kind);}
 static inline qword Direction(U*a,U*b,U*&axis){
  register qword direction __asm__("vf3");register U*address __asm__("$2");
  __asm__("lqc2 $vf2,%2\n\tlui %0,%%hi(%4)\n\tlqc2 $vf1,%3\n\taddiu %0,%0,%%lo(%4)\n\tvsub.xyzw %1,$vf2,$vf1":"=&r"(address),"=j"(direction):"m"(a->q),"m"(b->q),"i"(&D_002A2DC0):"vf1","vf2");
@@ -227,71 +227,71 @@ static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(
 // Per-frame pipe climbing: smooths the hand offset, X jumps off (SetJtAirJump kind 2), the mode button enters
 // binocucom/recon mode, and stick input climbs up/down or spins around the pipe within GetJtPipeDistanceRange,
 // with climb sounds.
-extern "C" void UpdateJtActivePipe(JTPIPE*p){
- WORK w;float lowSpeed,highSpeed;JT*actor=p->actor;actor->offset.q=PosSmooth(actor->offset.q,D_002A2DD0.q,D_002DDED0.dt,&D_002BF928,0);
+extern "C" void UpdateJtActivePipe(JTPIPE*pipe){
+ WORK w;float lowSpeed,highSpeed;JT*actor=pipe->actor;actor->offset.q=PosSmooth(actor->offset.q,D_002A2DD0.q,D_002DDED0.dt,&D_002BF928,0);
  register float amount __asm__("$f4"),dot __asm__("$f3"),zero __asm__("$f2");register int previous __asm__("$5");
- {register INPUT*input __asm__("$18")=p->actor->input;
- if(!Eligible(p->path)){SetJtAirJump(p->actor->controller,0,0,0);return;}
- if(p->state&&GrfConsumePressed__5POCTLUif(input,0x40,0.25f)){SetJtAirJump(p->actor->controller,2,0,0);return;}
- if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(p->actor,3)){ClearPoctlJoyPressed(input,0x400);StartJtMode(p->actor->action,0,0,0);}
- int old;do{old=p->state;if((old==0||old==4)&&FAsegaRetracted(p->actor->asega))SetJtPipeState(p,1);}while(p->state!=old);
- if(p->state==0||p->state==4)return;
- EvaluateShapeS(p->path,SClampShape(p->path,p->distance+50.0f),&w.ahead,0);
- EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
+ {register INPUT*input __asm__("$18")=pipe->actor->input;
+ if(!Eligible(pipe->path)){SetJtAirJump(pipe->actor->controller,0,0,0);return;}
+ if(pipe->state&&GrfConsumePressed__5POCTLUif(input,0x40,0.25f)){SetJtAirJump(pipe->actor->controller,2,0,0);return;}
+ if(GrfPressedWithin__5POCTLUif(input,0x400,0.15f)&&CanAct(pipe->actor,3)){ClearPoctlJoyPressed(input,0x400);StartJtMode(pipe->actor->action,0,0,0);}
+ int old;do{old=pipe->state;if((old==0||old==4)&&FAsegaRetracted(pipe->actor->asega))SetJtPipeState(pipe,1);}while(pipe->state!=old);
+ if(pipe->state==0||pipe->state==4)return;
+ EvaluateShapeS(pipe->path,SClampShape(pipe->path,pipe->distance+50.0f),&w.ahead,0);
+ EvaluateShapeS(pipe->path,SClampShape(pipe->path,pipe->distance-50.0f),&w.behind,0);
  U*axis;qword direction=Direction(&w.ahead,&w.behind,axis);qword normalized=Normal(direction,axis);float z=Z(normalized);
  if(fabsf(z)>0.5f){
-  if(z>0.0f){if(!p->descending)goto checkMemory;goto turn;}
-  if(!p->descending)goto turn;
+  if(z>0.0f){if(!pipe->descending)goto checkMemory;goto turn;}
+  if(!pipe->descending)goto turn;
  }
  checkMemory:
- if(p->reset>0.4f&&p->descending&&Z(normalized)>-0.3f)goto turn;
- if(p->reset<-0.4f&&!p->descending&&Z(normalized)<0.3f)goto turn;
+ if(pipe->reset>0.4f&&pipe->descending&&Z(normalized)>-0.3f)goto turn;
+ if(pipe->reset<-0.4f&&!pipe->descending&&Z(normalized)<0.3f)goto turn;
  goto proceed;
- turn:SetJtPipeState(p,4);return;
+ turn:SetJtPipeState(pipe,4);return;
  proceed:;
  register qword tangent __asm__("$2")=func_001C4768(input,VuSub(w.ahead.q,w.behind.q));
- __asm__("lwc1 $f1,0x10(%6)\n\tqmtc2.ni %5,$vf4\n\tlwc1 $f0,0x14(%6)\n\tmtc1 $zero,%2\n\tmfc1 $3,$f1\n\tmfc1 $4,$f0\n\tpextlw $3,$4,$3\n\tmfc1 $4,%2\n\tpcpyld $3,$4,$3\n\tlwc1 %0,0x1c(%6)\n\tqmtc2.ni $3,$vf3\n\tlw %1,0x20(%7)\n\tvmul.xyz $vf1,$vf4,$vf3\n\tvaddw.x $vf2,$vf0,$vf0w\n\tvadday.x ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,$vf2,$vf1z\n\tsq $3,%3\n\tqmfc2.ni $2,$vf1\n\tmtc1 $2,%4":"=f"(amount),"=r"(previous),"=f"(zero),"=m"(w.reuse.input.q),"=f"(dot):"r"(tangent),"r"(input),"r"(p):"$2","$3","$4","$f0","$f1","vf1","vf2","vf3","vf4","memory");
+ __asm__("lwc1 $f1,0x10(%6)\n\tqmtc2.ni %5,$vf4\n\tlwc1 $f0,0x14(%6)\n\tmtc1 $zero,%2\n\tmfc1 $3,$f1\n\tmfc1 $4,$f0\n\tpextlw $3,$4,$3\n\tmfc1 $4,%2\n\tpcpyld $3,$4,$3\n\tlwc1 %0,0x1c(%6)\n\tqmtc2.ni $3,$vf3\n\tlw %1,0x20(%7)\n\tvmul.xyz $vf1,$vf4,$vf3\n\tvaddw.x $vf2,$vf0,$vf0w\n\tvadday.x ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,$vf2,$vf1z\n\tsq $3,%3\n\tqmfc2.ni $2,$vf1\n\tmtc1 $2,%4":"=f"(amount),"=r"(previous),"=f"(zero),"=m"(w.reuse.input.q),"=f"(dot):"r"(tangent),"r"(input),"r"(pipe):"$2","$3","$4","$f0","$f1","vf1","vf2","vf3","vf4","memory");
  }
- switch(previous){case 0:if(amount<0.25f)p->previous=-1;else if(dot<-0.7f)p->previous=1;break;
- case 1:if(amount<0.25f)p->previous=-1;else if(dot>0.7f)p->previous=0;break;
- case -1:if(amount>0.35f){if(zero<=dot)p->previous=0;else p->previous=1;}break;}
+ switch(previous){case 0:if(amount<0.25f)pipe->previous=-1;else if(dot<-0.7f)pipe->previous=1;break;
+ case 1:if(amount<0.25f)pipe->previous=-1;else if(dot>0.7f)pipe->previous=0;break;
+ case -1:if(amount>0.35f){if(zero<=dot)pipe->previous=0;else pipe->previous=1;}break;}
  int mode=-1;register float blend __asm__("$f3")=dot;
- register int selected __asm__("$3")=p->previous;
- switch(selected){case 0:mode=p->descending?3:2;blend=amount;break;case 1:mode=p->descending?2:3;blend=amount;break;case -1:mode=1;blend=0.0f;break;}
+ register int selected __asm__("$3")=pipe->previous;
+ switch(selected){case 0:mode=pipe->descending?3:2;blend=amount;break;case 1:mode=pipe->descending?2:3;blend=amount;break;case -1:mode=1;blend=0.0f;break;}
 
  float speed;register float maximumInput __asm__("$f1");
  if(blend>0.01f){
   register float initialPart __asm__("$f0")=1.0f;
-  maximumInput=p->speed1;
+  maximumInput=pipe->speed1;
   initialPart-=blend;
-  register float low __asm__("$f2")=p->speed0;
+  register float low __asm__("$f2")=pipe->speed0;
   blend*=maximumInput;
   initialPart*=low;
   speed=initialPart+blend;if(mode==3)speed=-speed;
  }
- else{speed=0.0f;mode=1;maximumInput=p->speed1;}
- if(p->descending)speed=-speed;
+ else{speed=0.0f;mode=1;maximumInput=pipe->speed1;}
+ if(pipe->descending)speed=-speed;
  register CLOCK*clock __asm__("$19")=&D_002DDED0;
  register float nextMemory __asm__("$f0");register PATH*path __asm__("$3");
- __asm__("abs.s $f5,%2\n\tlwc1 $f2,4(%7)\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%2\n\t.set at\n\tneg.s %0,$f2\n\tlwc1 $f4,0x1c(%8)\n\tsub.s %2,%2,$f2\n\t.set noat\n\tlui $1,0x3e4c\n\tori $1,$1,0xcccd\n\tmtc1 $1,$f3\n\t.set at\n\tswc1 $f5,%3\n\tmul.s %0,%0,%6\n\tswc1 $f3,%4\n\tmul.s %2,%2,$f4\n\tsw $zero,%5\n\tdiv.s %0,%0,$f5\n\tlw %1,0xc(%8)\n\tadd.s %0,%0,%2":"=f"(nextMemory),"=r"(path),"+f"(maximumInput),"=m"(w.reuse.smooth.maximum),"=m"(w.reuse.smooth.duration),"=m"(w.reuse.smooth.minimum):"f"(speed),"r"(clock),"r"(p):"$1","$f2","$f3","$f4","$f5","memory");
- p->reset=nextMemory;
- if(!path->cyclic){GetJtPipeDistanceRange(p,&w.limit);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)GSmooth__FfffP3SMPPf(p->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
+ __asm__("abs.s $f5,%2\n\tlwc1 $f2,4(%7)\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%2\n\t.set at\n\tneg.s %0,$f2\n\tlwc1 $f4,0x1c(%8)\n\tsub.s %2,%2,$f2\n\t.set noat\n\tlui $1,0x3e4c\n\tori $1,$1,0xcccd\n\tmtc1 $1,$f3\n\t.set at\n\tswc1 $f5,%3\n\tmul.s %0,%0,%6\n\tswc1 $f3,%4\n\tmul.s %2,%2,$f4\n\tsw $zero,%5\n\tdiv.s %0,%0,$f5\n\tlw %1,0xc(%8)\n\tadd.s %0,%0,%2":"=f"(nextMemory),"=r"(path),"+f"(maximumInput),"=m"(w.reuse.smooth.maximum),"=m"(w.reuse.smooth.duration),"=m"(w.reuse.smooth.minimum):"f"(speed),"r"(clock),"r"(pipe):"$1","$f2","$f3","$f4","$f5","memory");
+ pipe->reset=nextMemory;
+ if(!path->cyclic){GetJtPipeDistanceRange(pipe,&w.limit);(void)GSmooth__FfffP3SMPPf(pipe->distance,w.limit.low,clock->dt,&w.reuse.smooth,&lowSpeed);(void)GSmooth__FfffP3SMPPf(pipe->distance,w.limit.high,clock->dt,&w.reuse.smooth,&highSpeed);float low=-highSpeed,high=-lowSpeed;if(speed<low)speed=low;else if(high<speed)speed=high;}
  register float stopped __asm__("$f21")=0.0f;
- p->speed=-speed;
- if(speed!=stopped){p->distance+=p->speed*D_002DDED0.dt;func_001F4BF8(p->actor);}
- if(p->path->cyclic)p->distance=GModPositive__Fff(p->distance,SMaxShape(p->path));
+ pipe->speed=-speed;
+ if(speed!=stopped){pipe->distance+=pipe->speed*D_002DDED0.dt;func_001F4BF8(pipe->actor);}
+ if(pipe->path->cyclic)pipe->distance=GModPositive__Fff(pipe->distance,SMaxShape(pipe->path));
  register float magnitude __asm__("$f2")=fabsf(speed);
  if(magnitude<0.01f)mode=1;
  else{
-  register float initial __asm__("$f0")=p->speed0,one __asm__("$f4"),weight __asm__("$f3");
-  __asm__("lwc1 $f1,%4\n\tabs.s %0,%0\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%1\n\t.set at\n\tabs.s $f1,$f1\n\tsub.s %2,%2,%0\n\tsub.s $f1,$f1,%0\n\tdiv.s %3,%2,$f1":"+f"(initial),"=f"(one),"+f"(magnitude),"=f"(weight):"m"(p->speed1):"$1","$f1");
+  register float initial __asm__("$f0")=pipe->speed0,one __asm__("$f4"),weight __asm__("$f3");
+  __asm__("lwc1 $f1,%4\n\tabs.s %0,%0\n\t.set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%1\n\t.set at\n\tabs.s $f1,$f1\n\tsub.s %2,%2,%0\n\tsub.s $f1,$f1,%0\n\tdiv.s %3,%2,$f1":"+f"(initial),"=f"(one),"+f"(magnitude),"=f"(weight):"m"(pipe->speed1):"$1","$f1");
   if(weight<stopped)weight=stopped;else if(one<weight)weight=one;
   register ASEGV*animation __asm__("$4");register float complement __asm__("$f0");
-  __asm__(".set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%0\n\t.set at\n\tlw %1,0x70(%3)\n\tsub.s %0,%0,%4\n\tswc1 %4,%2":"=f"(complement),"=r"(animation),"=m"(p->weight1):"r"(p),"f"(weight):"$1","memory");
-  p->weight0=complement;
+  __asm__(".set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%0\n\t.set at\n\tlw %1,0x70(%3)\n\tsub.s %0,%0,%4\n\tswc1 %4,%2":"=f"(complement),"=r"(animation),"=m"(pipe->weight1):"r"(pipe),"f"(weight):"$1","memory");
+  pipe->weight0=complement;
   func_001384C0(animation);
  }
- SetJtPipeState(p,mode);
+ SetJtPipeState(pipe,mode);
 }
 
 /** @sly2-annot addr=0x19E950
@@ -304,11 +304,11 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  * @end-sly2-annot */
 // Adds the pipe contact constraint for the physics step: the curve point and tangent at the current distance,
 // passed to the owner's constraint slot (vt82, kind 7).
-extern "C" void UpdateJtInternalXpsPipe(JTPIPE *p) {
+extern "C" void UpdateJtInternalXpsPipe(JTPIPE *pipe) {
     U a, b, u;
-    EvaluateShapeS(p->path, p->distance, &a, &b);
-    u.q = ConvertAloPos(p->actor, 0, p->offset.q);
-    { JT *o = p->actor; VE *e = &o->vt[82]; ((void (*)(void *, int, PATH *, qword, qword, qword))e->fn)((char *)o + e->delta, 7, p->path, a.q, b.q, u.q); }
+    EvaluateShapeS(pipe->path, pipe->distance, &a, &b);
+    u.q = ConvertAloPos(pipe->actor, 0, pipe->offset.q);
+    { JT *o = pipe->actor; VE *e = &o->vt[82]; ((void (*)(void *, int, PATH *, qword, qword, qword))e->fn)((char *)o + e->delta, 7, pipe->path, a.q, b.q, u.q); }
 }
 
 /** @sly2-annot addr=0x19E9C8
@@ -329,7 +329,7 @@ extern "C" void ResetJtPipeAdjust(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
 // Writes the pipe curve's point at the player's current distance.
-extern "C" void GetJtPipePosition(JTPIPE *s, U *ppos) { EvaluateShapeS(s->path, s->distance, ppos, 0); }
+extern "C" void GetJtPipePosition(JTPIPE *s, U *posOut) { EvaluateShapeS(s->path, s->distance, posOut, 0); }
 
 struct Q { char pad[0x20]; qword v20; char pad2[4]; int n34; };
 /** @sly2-annot addr=0x19EA00
@@ -340,15 +340,15 @@ struct Q { char pad[0x20]; qword v20; char pad2[4]; int n34; };
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
 // Writes the player's velocity along the pipe: the curve tangent at the current distance scaled by the climb speed.
-extern "C" void GetJtPipeVelocity(JTPIPE *p, Q *q)
+extern "C" void GetJtPipeVelocity(JTPIPE *pipe, Q *q)
 {
     U v;
     U s;
     qword r;
-    EvaluateShapeS(p->path, p->distance, 0, &v);
-    p = (JTPIPE *)*(int *)&p->speed;
+    EvaluateShapeS(pipe->path, pipe->distance, 0, &v);
+    pipe = (JTPIPE *)*(int *)&pipe->speed;
     qword sq;
-    sq = VuFromFloat<qword>(p);   /* C++: asm output into a scalar, then stored (see the mismatch table) */
+    sq = VuFromFloat<qword>(pipe);   /* C++: asm output into a scalar, then stored (see the mismatch table) */
     s.q = sq;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q));
     q->v20 = r;
@@ -363,11 +363,11 @@ extern "C" void GetJtPipeVelocity(JTPIPE *p, Q *q)
  * @end-sly2-annot */
 // If the pipe allows it, records the current pipe and distance in the player's safe-place table (AddJtPlaceOnCurve)
 // so a fall can return the player here.
-extern "C" void RecordJtPipePlace(JTPIPE *p)
+extern "C" void RecordJtPipePlace(JTPIPE *pipe)
 {
-    PATH *ppath = p->path;
+    PATH *ppath = pipe->path;
     if (ppath->x19c == 0)
-        AddJtPlaceOnCurve(p->actor->places, ppath ? (char *)ppath + 0x190 : 0, p->distance);
+        AddJtPlaceOnCurve(pipe->actor->places, ppath ? (char *)ppath + 0x190 : 0, pipe->distance);
 }
 
 /** @sly2-annot addr=0x19EAA0
@@ -402,9 +402,9 @@ static inline qword GoalInputs(U*target,qword position,void*&focus){
  __asm__("lqc2 %0,%3\n\tdaddu %2,$zero,$zero\n\tqmtc2.ni %4,%1":"=j"(a),"=j"(b),"=&r"(nullFocus):"m"(target->q),"r"(position));
  focus=nullFocus;r = VuSub(a, b);return r;
 }
-static inline qword WorldInputs(JTPIPE*p,U*point,U*world,qword offset,JT*&owner){
+static inline qword WorldInputs(JTPIPE*pipe,U*point,U*world,qword offset,JT*&owner){
  register JT*actor __asm__("$2");register qword value __asm__("vf1");
- __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tsqc2 %5,%2":"=&r"(actor),"=&j"(value),"=m"(world->q):"m"(p->actor),"m"(point->q),"j"(offset));
+ __asm__("lw %0,%3\n\tlqc2 %1,%4\n\tsqc2 %5,%2":"=&r"(actor),"=&j"(value),"=m"(world->q):"m"(pipe->actor),"m"(point->q),"j"(offset));
  owner=actor;return value;
 }
 static inline void Clear(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
@@ -418,53 +418,53 @@ static inline void Clear(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
  * @end-sly2-annot */
 // Pipe sub-state switch: from -1 mounts the pipe (subscribe, register, find the curve distance within +-50 of the
 // grab point); each state picks its clips and sounds; reaching uses the cane state (SetJtCaneState).
-extern "C" void SetJtPipeState(JTPIPE*p,int next){
- int old=p->state;if(next==old)return;
+extern "C" void SetJtPipeState(JTPIPE*pipe,int next){
+ int old=pipe->state;if(next==old)return;
  WORKB w;
  switch(old){
  case -1:{
-  PathState(p->path,5);SubscribeLoObject(p->path,p->actor);func_00204F78(p->actor,p->path,1);
-  p->previous=old;
-  EvaluateShapeS(p->path,SClampShape(p->path,p->distance+50.0f),&w.ahead,0);
-  EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
+  PathState(pipe->path,5);SubscribeLoObject(pipe->path,pipe->actor);func_00204F78(pipe->actor,pipe->path,1);
+  pipe->previous=old;
+  EvaluateShapeS(pipe->path,SClampShape(pipe->path,pipe->distance+50.0f),&w.ahead,0);
+  EvaluateShapeS(pipe->path,SClampShape(pipe->path,pipe->distance-50.0f),&w.behind,0);
   U*axis; qword direction=DirectionB(&w.ahead,&w.behind,axis);
-  p->descending=Z(NormalB(direction,axis))<-0.5f;
-  GetJtPipeDistanceRange(p,&w.limit);p->distance=GLimitLm__FP2LMf(&w.limit,p->distance);
-  EvaluateShapeS(p->path,p->distance,&w.point,0);
-  qword offset=Vector(ConvertAloPos(p->actor,0,p->offset.q));JT*owner;
-  qword point=WorldInputs(p,&w.point,&w.world,offset,owner);
+  pipe->descending=Z(NormalB(direction,axis))<-0.5f;
+  GetJtPipeDistanceRange(pipe,&w.limit);pipe->distance=GLimitLm__FP2LMf(&w.limit,pipe->distance);
+  EvaluateShapeS(pipe->path,pipe->distance,&w.point,0);
+  qword offset=Vector(ConvertAloPos(pipe->actor,0,pipe->offset.q));JT*owner;
+  qword point=WorldInputs(pipe,&w.point,&w.world,offset,owner);
   owner->offset.q=VuSub(point,offset);
-  p->actor->motion.q=VuSub(p->actor->goal.q,w.point.q);
-  p->actor->motion.i[2]=0;
-  SetStepplayerTnOverride(p->actor,p->path->focus);
-  if(p->path->attachEffectId){EFFECT*e=PsndStartSound(p->path->attachEffectId);SetSndSourceLo(e,0);SetSndSourcePos(e,w.point.q);}
+  pipe->actor->motion.q=VuSub(pipe->actor->goal.q,w.point.q);
+  pipe->actor->motion.i[2]=0;
+  SetStepplayerTnOverride(pipe->actor,pipe->path->focus);
+  if(pipe->path->attachEffectId){EFFECT*e=PsndStartSound(pipe->path->attachEffectId);SetSndSourceLo(e,0);SetSndSourcePos(e,w.point.q);}
   break;
  }
- case 0:if(p->actor==D_002E1E40)SetJtCaneState__FP2JTi(p->actor,p->actor->alternate?10:2);break;
+ case 0:if(pipe->actor==D_002E1E40)SetJtCaneState__FP2JTi(pipe->actor,pipe->actor->alternate?10:2);break;
  }
- p->state=next;p->time=D_002DDED0.t;
+ pipe->state=next;pipe->time=D_002DDED0.t;
  ASEGV*clip=0;float position=0.0f,speed=1.0f;int flags=1;
  switch(next){
  case -1:{
-  PathState(p->path,6);UnsubscribeLoObject(p->path,p->actor);func_00204F78(p->actor,p->path,0);
-  JT*actor=p->actor;w.target=actor->goal;
+  PathState(pipe->path,6);UnsubscribeLoObject(pipe->path,pipe->actor);func_00204F78(pipe->actor,pipe->path,0);
+  JT*actor=pipe->actor;w.target=actor->goal;
   void*focus;actor->motion.q=GoalInputs(&w.target,func_001A62E8(actor),focus);
-  p->actor->motion.i[2]=0;SetStepplayerTnOverride(p->actor,focus);
-  if(p->path->releaseEffectId){EFFECT*e=PsndStartSound(p->path->releaseEffectId);SetSndSourceLo(e,0);SetSndSourcePos(e,func_001A62E8(p->actor));}
-  p->path=0;return;
+  pipe->actor->motion.i[2]=0;SetStepplayerTnOverride(pipe->actor,focus);
+  if(pipe->path->releaseEffectId){EFFECT*e=PsndStartSound(pipe->path->releaseEffectId);SetSndSourceLo(e,0);SetSndSourcePos(e,func_001A62E8(pipe->actor));}
+  pipe->path=0;return;
  }
  case 0:
-  clip=p->clip0;
-  if(!clip){clip=p->fallback;register float half __asm__("$f0")=0.5f;position=clip->duration*half;speed=half;}
-  p->reset=0;break;
- case 1:clip=p->clip1;flags=9;break;
- case 2:clip=p->animation;flags=9;break;
- case 3:clip=p->animation;speed=-1.0f;flags=9;break;
- case 4:p->descending=!p->descending;clip=p->fallback;break;
+  clip=pipe->clip0;
+  if(!clip){clip=pipe->fallback;register float half __asm__("$f0")=0.5f;position=clip->duration*half;speed=half;}
+  pipe->reset=0;break;
+ case 1:clip=pipe->clip1;flags=9;break;
+ case 2:clip=pipe->animation;flags=9;break;
+ case 3:clip=pipe->animation;speed=-1.0f;flags=9;break;
+ case 4:pipe->descending=!pipe->descending;clip=pipe->fallback;break;
  }
- ReleaseSma(&p->actor->component);
- ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,p->actor,position,speed,flags,&p->actor->asega);
- Clear(&p->actor->velocity);
+ ReleaseSma(&pipe->actor->component);
+ ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,pipe->actor,position,speed,flags,&pipe->actor->asega);
+ Clear(&pipe->actor->velocity);
 }
 
 /** @sly2-annot addr=0x19EEF0
@@ -476,10 +476,10 @@ extern "C" void SetJtPipeState(JTPIPE*p,int next){
  * @end-sly2-annot */
 // Gadget check while on a pipe: only gadget kind 3 is considered, allowed when the owner's gadget flag (x12F0) and the
 // global flag are set and no camera policy is active.
-extern "C" int CanJtUseGadgetOnPipe(JTPIPE *p, int k) {
+extern "C" int CanJtUseGadgetOnPipe(JTPIPE *pipe, int k) {
     if (k == 3) {
         int r = 0;
-        if (p->actor->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY(&g_cm.part3a0);
+        if (pipe->actor->x12f0 && (D_002DFBC0 & 2)) r = !FActiveCplcy__FP5CPLCY(&g_cm.part3a0);
         return r;
     }
     return 0;
