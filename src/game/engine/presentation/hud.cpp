@@ -100,6 +100,9 @@ int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot
 void StaticInit_hud(int fInitialize, int nPriority);
 }
 
+/* Sprite item descriptor kinds. */
+enum { SPRITE_KIND_NESTED = 4 };   /* the item shows another sprite group */
+
 /* Class ids tested by the text getters (docs/reference/class-tree.md). */
 enum HUD_CID
 {
@@ -2009,15 +2012,15 @@ void PlayWidgetAnim(void *p, int k);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Stops the animation in *pk, plays the new one and stores its id.
-void SwitchWidgetAnim(void *p, int k, int *pk)
+void SwitchWidgetAnim(void *widget, int animId, int *currentAnimId)
 {
-    if (k == *pk)
+    if (animId == *currentAnimId)
         return;
-    if (*pk != -1)
-        StopWidgetAnim(p, *pk);
-    *pk = k;
-    if (k != -1)
-        PlayWidgetAnim(p, k);
+    if (*currentAnimId != -1)
+        StopWidgetAnim(widget, *currentAnimId);
+    *currentAnimId = animId;
+    if (animId != -1)
+        PlayWidgetAnim(widget, animId);
 }
 } } // namespace M_SwitchWidgetAnim
 
@@ -2026,11 +2029,11 @@ namespace M_func_00213E20 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned char r, g, b, a; };
 struct QQ { qword a, b; };
-struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { struct RGBA c0; struct RGBA c1; char pad8[8]; struct QQ q; struct Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
-struct H { int c; struct Y *ay; char pad8[0x10]; };
-struct A { unsigned short c; unsigned short c2; void *ae; struct H *ah; char padc[0x24]; };
-struct S { char pad[0x84]; struct A *aa; };
+struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
+struct Y { struct RGBA color0; struct RGBA color1; char pad8[8]; struct QQ matrix; struct Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
+struct H { int numItems; struct Y *items; char pad8[0x10]; };
+struct A { unsigned short numAnims; unsigned short numReuse; void *anims; struct H *reuse; char padc[0x24]; };
+struct S { char pad[0x84]; struct A *spriteGroups; };
 /** @sly2-annot addr=0x213E20
  * Purpose: recursive search of nested sprite k: return its M23 and colours
  * Info: proposed name FFindSpriteItemPose (T2); TU hud
@@ -2039,28 +2042,28 @@ struct S { char pad[0x84]; struct A *aa; };
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Recursively finds nested sprite k and returns its 2D transform and colours. (inferred)
-int FindSpriteItemPose(struct S *p, int k, struct QQ *pq, struct RGBA *pc0, struct RGBA *pc1, int c, struct Y *ay)
+int FindSpriteItemPose(struct S *widget, int groupIndex, struct QQ *matrix, struct RGBA *color0, struct RGBA *color1, int numItems, struct Y *items)
 {
     int i;
-    struct Y *y;
-    if (!ay) {
-        struct H *h = p->aa->ah;
-        c = h->c;
-        ay = h->ay;
+    struct Y *item;
+    if (!items) {
+        struct H *reuse = widget->spriteGroups->reuse;
+        numItems = reuse->numItems;
+        items = reuse->items;
     }
-    for (i = 0; i < c; i++) {
-        struct Z *z;
-        y = &ay[i];
-        z = y->pz;
-        if (!z || z->k != 4)
+    for (i = 0; i < numItems; i++) {
+        struct Z *descriptor;
+        item = &items[i];
+        descriptor = item->descriptor;
+        if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
-        if (k == z->id) {
-            *pq = y->q;
-            *pc0 = y->c0;
-            *pc1 = y->c1;
+        if (groupIndex == descriptor->groupIndex) {
+            *matrix = item->matrix;
+            *color0 = item->color0;
+            *color1 = item->color1;
             return 1;
         }
-        if (FindSpriteItemPose(p, k, pq, pc0, pc1, p->aa[z->id].ah[y->spriteSlot].c, p->aa[z->id].ah[y->spriteSlot].ay))
+        if (FindSpriteItemPose(widget, groupIndex, matrix, color0, color1, widget->spriteGroups[descriptor->groupIndex].reuse[item->spriteSlot].numItems, widget->spriteGroups[descriptor->groupIndex].reuse[item->spriteSlot].items))
             return 1;
     }
     return 0;
@@ -2072,11 +2075,11 @@ namespace M_func_00213F70 {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
-struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[0xC]; int x68; int x6C; };
-struct H { int c; Y *ay; char pad8[0x10]; };
-struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
-struct S { char pad[0x84]; A *aa; };
+struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
+struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0xC]; int link; int unknown6C; };
+struct H { int numItems; Y *items; char pad8[0x10]; };
+struct A { unsigned short numAnims; unsigned short numReuse; void *anims; H *reuse; char padc[0x24]; };
+struct S { char pad[0x84]; A *spriteGroups; };
 extern "C" void StopSpriteSlot(A *pa, int i);
 extern "C" void ClearSle(int *p);
 extern "C" int IFreeSpriteSlot(A *pa);
@@ -2089,32 +2092,33 @@ extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const R
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Recursively finds nested sprite item k and restarts it on animation z. (inferred)
-extern "C" int RestartNestedSprite(S *p, int k, int z, int c, Y *ay)
+extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int numItems, Y *items)
 {
     int i;
-    Y *y;
-    if (!ay) {
-        H *h = p->aa->ah;
-        c = h->c;
-        ay = h->ay;
+    Y *item;
+    if (!items) {
+        H *reuse = widget->spriteGroups->reuse;
+        numItems = reuse->numItems;
+        items = reuse->items;
     }
-    for (i = 0; i < c; i++) {
-        Z *pz;
-        y = &ay[i];
-        pz = y->pz;
-        if (!pz || pz->k != 4)
+    for (i = 0; i < numItems; i++) {
+        Z *descriptor;
+        item = &items[i];
+        descriptor = item->descriptor;
+        if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
-        int oldframe=y->spriteSlot;
-        if (pz->id == k) {
-            StopSpriteSlot(&p->aa[k], oldframe);
-            ClearSle(&y->x68);
-            y->spriteSlot = IFreeSpriteSlot(&p->aa[k]);
-            StartSpriteAnimAt(&p->aa[k], z, y->spriteSlot, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+        int oldSlot=item->spriteSlot;
+        if (descriptor->groupIndex == groupIndex) {
+            StopSpriteSlot(&widget->spriteGroups[groupIndex], oldSlot);
+            ClearSle(&item->link);
+            item->spriteSlot = IFreeSpriteSlot(&widget->spriteGroups[groupIndex]);
+            StartSpriteAnimAt(&widget->spriteGroups[groupIndex], animIndex, item->spriteSlot, &item->matrix, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
-            H *h = (H *)(oldframe * sizeof(H) + (int)p->aa[pz->id].ah);
-            if (RestartNestedSprite(p, k, z, h->c, h->ay))
+            /* &spriteGroups[...].reuse[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
+            H *reuse = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].reuse);
+            if (RestartNestedSprite(widget, groupIndex, animIndex, reuse->numItems, reuse->items))
                 return 1;
         }
     }
@@ -2127,11 +2131,11 @@ namespace M_func_00214100 {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
-struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[8]; int x64; int x68; int x6C; };
-struct H { int c; Y *ay; char pad8[0x10]; };
-struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
-struct S { char pad[0x84]; A *aa; };
+struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
+struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[8]; int arg; int link; int unknown6C; };
+struct H { int numItems; Y *items; char pad8[0x10]; };
+struct A { unsigned short numAnims; unsigned short numReuse; void *anims; H *reuse; char padc[0x24]; };
+struct S { char pad[0x84]; A *spriteGroups; };
 extern "C" void StopSpriteSlot(A *pa, int i);
 extern "C" void ClearSle(int *p);
 extern "C" int IFreeSpriteSlot(A *pa);
@@ -2144,33 +2148,35 @@ extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const R
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // RestartNestedSprite with an extra argument. (inferred)
-extern "C" int RestartNestedSpriteWithArg(S *p, int k, int z, int x, int c, Y *ay)
+extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animIndex, int arg, int numItems, Y *items)
 {
     int i;
-    Y *y;
-    if (!ay) {
-        H *h = p->aa->ah;
-        c = h->c;
-        ay = h->ay;
+    Y *item;
+    if (!items) {
+        H *reuse = widget->spriteGroups->reuse;
+        numItems = reuse->numItems;
+        items = reuse->items;
     }
-    for (i = 0; i < c; i++) {
-        Z *pz;
-        y = &ay[i];
-        pz = y->pz;
-        if (!pz || pz->k != 4)
+    for (i = 0; i < numItems; i++) {
+        Z *descriptor;
+        item = &items[i];
+        descriptor = item->descriptor;
+        if (!descriptor || descriptor->kind != SPRITE_KIND_NESTED)
             continue;
-        int oldframe=y->spriteSlot;
-        if (pz->id == k) {
-            if(x != y->x64) continue;
-            StopSpriteSlot(&p->aa[k], oldframe);
-            ClearSle(&y->x68);
-            y->spriteSlot = IFreeSpriteSlot(&p->aa[k]);
-            StartSpriteAnimAt(&p->aa[k], z, y->spriteSlot, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+        int oldSlot=item->spriteSlot;
+        if (descriptor->groupIndex == groupIndex) {
+            if (arg != item->arg)
+                continue;
+            StopSpriteSlot(&widget->spriteGroups[groupIndex], oldSlot);
+            ClearSle(&item->link);
+            item->spriteSlot = IFreeSpriteSlot(&widget->spriteGroups[groupIndex]);
+            StartSpriteAnimAt(&widget->spriteGroups[groupIndex], animIndex, item->spriteSlot, &item->matrix, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
-            H *h = (H *)(oldframe * sizeof(H) + (int)p->aa[pz->id].ah);
-            if (RestartNestedSpriteWithArg(p, k, z, x, h->c, h->ay))
+            /* &spriteGroups[...].reuse[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
+            H *reuse = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].reuse);
+            if (RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, reuse->numItems, reuse->items))
                 return 1;
         }
     }
@@ -2181,7 +2187,7 @@ extern "C" int RestartNestedSpriteWithArg(S *p, int k, int z, int x, int c, Y *a
 // 0x2142B0 FSpriteHasAnim
 namespace M_FSpriteHasAnim { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct S { unsigned short c; short pad; struct E *ae; };
+struct S { unsigned short numAnims; short pad; struct E *anims; };   /* a sprite group */
 /** @sly2-annot addr=0x2142B0
  * Purpose: id in sprite anim list
  * Info: proposed name FSpriteHasAnim (T1); TU hud
@@ -2190,13 +2196,13 @@ struct S { unsigned short c; short pad; struct E *ae; };
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // True when the sprite's animation list contains the id.
-int FSpriteHasAnim(void *pv, struct S *p, int id)
+int FSpriteHasAnim(void *pv, struct S *group, int id)
 {
     int i;
     if (id == -1)
         return 0;
-    for (i = 0; i < p->c; i++) {
-        if (id == p->ae[i].id)
+    for (i = 0; i < group->numAnims; i++) {
+        if (id == group->anims[i].id)
             return 1;
     }
     return 0;
@@ -2213,24 +2219,21 @@ int FSpriteHasAnim(void *pv, struct S *p, int id)
  * @end-sly2-annot */
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
 // Sets whether the widget is exclusive (an exclusive widget hides lower-priority widgets while shown). (inferred)
-extern "C" void SetWidgetExclusive(WIDGETV *widget, int f)
+extern "C" void SetWidgetExclusive(WIDGETV *widget, int isNonExclusive)
 {
-    int fOld;
-    fOld = widget->isNonExclusive;
-    if (fOld != f) {
-        if ((fOld == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, widget) != 0)) {
-            RemoveDlEntry(&g_sw.dlWidgetExclusive, widget);
-        }
-        widget->isNonExclusive = f;
-        if ((f == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, widget) == 0)) {
-            AppendDlEntry(&g_sw.dlWidgetExclusive, widget);
-        }
-    }
+    int wasNonExclusive = widget->isNonExclusive;
+    if (wasNonExclusive == isNonExclusive)
+        return;
+    if (!wasNonExclusive && FFindDlEntry(&g_sw.dlWidgetExclusive, widget))
+        RemoveDlEntry(&g_sw.dlWidgetExclusive, widget);
+    widget->isNonExclusive = isNonExclusive;
+    if (!isNonExclusive && !FFindDlEntry(&g_sw.dlWidgetExclusive, widget))
+        AppendDlEntry(&g_sw.dlWidgetExclusive, widget);
 }
 
 // 0x214398 LoadSpriteTable
 namespace M_LoadSpriteTable { extern "C" {
-struct S { char pad[0xC4]; void *xC4; };
+struct S { char pad[0xC4]; void *spriteHeap; };
 extern int D_002C40A4;
 int U16Read__18CBinaryInputStream(void *a);
 int PvAllocClear__FP4HEAPii(void *heap, int cb, int k);
@@ -2250,7 +2253,7 @@ void LoadSpriteTable(struct S *p, void *a, void *b, int *pn, int *pm)
 {
     int i;
     *pn = U16Read__18CBinaryInputStream(a);
-    *pm = PvAllocClear__FP4HEAPii(p->xC4, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
+    *pm = PvAllocClear__FP4HEAPii(p->spriteHeap, (*pn + 1) << 6, D_002C40A4 ? 0x13 : 0x11);
     for (i = 1; i <= *pn; i++)
         LoadSpriteDescriptor(p, a, b, *pn, *pm);
 }
