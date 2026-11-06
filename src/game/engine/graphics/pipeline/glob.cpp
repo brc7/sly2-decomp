@@ -121,15 +121,15 @@ struct SUBGLOBX
 {
       VECTOR posCenter;
       float sRadius;
-      float gUnk10;
-      uint grfUnk14;
+      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
+      uint flags;
 };
 
 struct SUBGLOBLOAD
 {
-    float gUnk00;
-    int nUnk04;
-    int nUnk08;
+    float fogIntensity;     /* BuildCmFgfn's argument (the fog curve uploaded with the geometry) */
+    int numLitQwords;       /* size of the lit-vertex DMA chain (set by the type-0 loader) */
+    int batchMode;          /* 0 / 1 / 2: batch header flag 0x100 / 0x200 / 0x400 */
 };
 
 struct XPLIST
@@ -251,27 +251,27 @@ void LoadGlobsetFromBrx(GLOBSET *pglobset, SO *pso, CBinaryInputStream *pbis)
             psubglob->gUnk04 = 3.4028235e+38f;
         else
             psubglob->gUnk04 = g * fabsf(g);
-        sgl.gUnk00 = pbis->F32Read();
+        sgl.fogIntensity = pbis->F32Read();
         pglob->oid = (OID)pbis->S32Read();
-        sgl.nUnk08 = pbis->S8Read();
+        sgl.batchMode = pbis->S8Read();
         pglob->fHide = pbis->S8Read() & 1;
         if (fCompact == 0)
         {
             pbis->ReadVector(&psubglobx->posCenter);
             psubglobx->sRadius = pbis->F32Read();
-            psubglobx->grfUnk14 = pbis->U32Read();
-            psubglobx->gUnk10 = pbis->F32Read();
-            if (psubglobx->gUnk10 == 3.4028235e+38f)
+            psubglobx->flags = pbis->U32Read();
+            psubglobx->maxRenderDistance = pbis->F32Read();
+            if (psubglobx->maxRenderDistance == 3.4028235e+38f)
             {
                 switch (psubglob->type)
                 {
                 case 0:
                 case 2:
                 case 3:
-                    psubglobx->gUnk10 = 1e10f;
+                    psubglobx->maxRenderDistance = 1e10f;
                     break;
                 case 1:
-                    psubglobx->gUnk10 = 2000.0f;
+                    psubglobx->maxRenderDistance = 2000.0f;
                     break;
                 }
             }
@@ -391,7 +391,7 @@ struct ITEM { int oid; LO *plo; int n8; BONE *pbone; MATRIX4 mat; };
 struct GRP { int a; BONE *pbone; int pad[4]; ITEM *aitem; int pad2[3]; };
 struct HDR { signed char c0; signed char citem; char pad[0x12]; };
 struct X { char pad[8]; int oid; char pad2[0x9C - 0xC]; X *pxNext; };
-struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int f4C; char pad3[0x58 - 0x50]; X *pxFirst; };
+struct S { void *pvOwner; char pad[0x38 - 4]; int cgrp; HDR *ahdr; GRP *agrp; char pad2[0x4C - 0x44]; int unknown4C; char pad3[0x58 - 0x50]; X *pxFirst; };   /* GLOBSET (+0x4C: so.h's nUnk4c) */
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { 
@@ -405,8 +405,8 @@ extern "C" void func_0022B7A0(LO *plo, X *px);
 // bind matrix. (inferred)
 extern "C" void BindGlobset(S *p)
 {
-    if (p->f4C != -1)
-        p->f4C = g_sw.nUnk3d5c;
+    if (p->unknown4C != -1)
+        p->unknown4C = g_sw.nUnk3d5c;
     for (int i = 0; i < p->cgrp; i++) {
         HDR *phdr = &p->ahdr[i];
         GRP *pgrp = &p->agrp[i];
@@ -548,7 +548,7 @@ int VU1_Interrupt(void)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BeginRpRelight {
-struct X { char pad[0x120]; QW amat[3]; int f150[4]; int f160; };
+struct X { char pad[0x120]; QW amat[3]; int pad150[4]; int isDisabled; };   /* a light: 3 qwords of relight data; isDisabled (inferred): skipped */
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_0025E090[]; }
@@ -572,7 +572,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
     int c = CploFindSwObjectsByClass(&D_003DD490, 0x505, 4, 0, 0x180, (void **)apx);
     for (i = 0; i < c; i++) {
         px = apx[i];
-        if (!px->f160)
+        if (!px->isDisabled)
             cActive++;
     }
     if (cActive > 0x100)
@@ -586,7 +586,7 @@ extern "C" void BeginRpRelight(VIFS *pvifs)
     int iEnd = 0;
     for (i = 0; i < c; i++) {
         px = apx[i];
-        if (px->f160)
+        if (px->isDisabled)
             continue;
         if (n >= iEnd) {
             iEnd = n + Min(cActive - n, 32);
@@ -1889,20 +1889,20 @@ extern "C" void BuildModelDrawPackets(MODEL *pmodel, ALO *palo)
 }
 } // namespace M_BuildModelDrawPackets
 
-// Qsort comparator over 4 int keys (>>6 granularity on two) (inferred)
-/* qsort order of the 0x14-byte draw records: by the first pointer (+4, in 0x40 units), the word at +8, the second
-   pointer (+0xC, in 0x40 units), then the word at +0x10. */
-struct SORTREC { int n0; int ib4; int n8; int ibC; int n10; };
+// qsort comparator for the vertex records, grouping vertices by batch.
+/* qsort order of the 0x14-byte vertex records (LoadSubglobType0FromBrx's VERTREC): by the first batch (+4, a pointer
+   compared in 0x40 units), the first vertex, the batch (+0xC, likewise), then the vertex. */
+struct SORTREC { int fileVertex; int firstBatch; int firstVertex; int batch; int vertex; };
 extern "C" int CompareSortRecs(SORTREC *prec0, SORTREC *prec1)
 {
     int d;
-    d = (prec0->ib4 - prec1->ib4) >> 6;
+    d = (prec0->firstBatch - prec1->firstBatch) >> 6;
     if (d == 0) {
-        d = prec0->n8 - prec1->n8;
+        d = prec0->firstVertex - prec1->firstVertex;
         if (d == 0) {
-            d = (prec0->ibC - prec1->ibC) >> 6;
+            d = (prec0->batch - prec1->batch) >> 6;
             if (d == 0) {
-                return prec0->n10 - prec1->n10;
+                return prec0->vertex - prec1->vertex;
             }
         }
     }
@@ -2279,7 +2279,7 @@ struct TEXF
 };
 struct TEX : public TEXF
 {
-    ushort unk_0;
+    ushort unknown06;
     SHD *pshd;
     BMP **apbmp;
     CLUT **apclut;
@@ -2289,8 +2289,8 @@ struct SHDF
       int oid;
       uchar shdk;
       uchar grfshd;
-      uchar unk_6;
-      uchar unk_7;
+      uchar unknown06;
+      uchar unknown07;
       RGBA rgba;
       RGBA rgbaVolume;
       RGBA rgba2;
@@ -2358,21 +2358,21 @@ struct SUBGLOBX
 {
       VECTOR posCenter;
       float sRadius;
-      float gUnk10;
-      uint grfUnk14;
+      float maxRenderDistance;   /* FLT_MAX in the file: 1e10, or 2000 for cel-border edges (type 1) */
+      uint flags;
 };
 struct POSE
 {
       VECTOR pos;
-      float gUnk0c;
-      float gUnk10;
+      float radius;           /* +0x0C (LoadPoseSetsFromBrx: position, radius, then the bitfield word) */
+      float limit;            /* +0x10 */
       long nKind : 4;
-    ulong ucUnk : 8;
-    ulong ibUnk : 6;
+    ulong count : 8;
+    ulong channel : 6;
     ulong fHide : 1;
     long iglob : 13;
-      void *pvUnk18;
-      undefined4 unk_0x1c;
+      void *link;
+      undefined4 pad1C;
 };
 struct POSESET
 {
@@ -2399,9 +2399,9 @@ struct BATCH
 };
 struct SPECPARAMS
 {
-    float agUnk00[3];
+    float unknown00[3];     /* [1] read as /127, [2] as *6.2e-5 */
     float gPad0c;
-    float agUnk10[2];
+    float unknown10[2];
     int iSpec;
     int fMode;
     VECTOR vec;
@@ -2436,9 +2436,9 @@ struct BATCHGRF
 };
 struct BATCHHDR0
 {
-      ushort unk_0x00;
+      ushort unknown00;
       ushort oid;
-      ushort unk_0x04;
+      ushort unknown04;
       ushort iqwShadow;
       BATCHGRF grf;
       ushort iqwBase;
@@ -2471,7 +2471,7 @@ struct BATCHREC
     void *pvUvLink;
     void *pbRgb;
     void *pbNorm;
-    int unk_0x1c;
+    int unknown1C;
 };
 struct BATCHRECS
 {
@@ -2488,7 +2488,7 @@ struct CLUTCOLOR
 };
 struct CLUTPAL
 {
-    int unk_0x00;
+    int unknown00;
     CLUTCOLOR *acolor;
 };
 struct CLUTSET
@@ -2499,9 +2499,9 @@ struct CLUTSET
 };
 struct SUBGLOBLOAD
 {
-    float gUnk00;
-    int nUnk04;
-    int nUnk08;
+    float fogIntensity;     /* BuildCmFgfn's argument (the fog curve uploaded with the geometry) */
+    int numLitQwords;       /* size of the lit-vertex DMA chain (set by the type-0 loader) */
+    int batchMode;          /* 0 / 1 / 2: batch header flag 0x100 / 0x200 / 0x400 */
 };
 struct GLOBSET
 {
@@ -2776,7 +2776,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     }
     float *pgFit;
     vifs.UnpackHelper(UPK_V4_32, 1, 9, 0, (uint **)&pgFit);
-    CalcRecipFitParams(psgl->gUnk00, &D_002DDF40, pgFit);
+    CalcRecipFitParams(psgl->fogIntensity, &D_002DDF40, pgFit);
 
     psubglob->cbnd = pbis->U8Read();
     pglob->abnd = (BND *)PvAllocSwClearP(psubglob->cbnd * sizeof(BND));
@@ -2796,11 +2796,11 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
     spec.iSpec = pbis->S8Read();
     if (spec.iSpec != -1)
     {
-        ReadCb12__18CBinaryInputStreamPv(pbis, &spec.agUnk00);
-        ReadCb8__18CBinaryInputStreamPv(pbis, &spec.agUnk10);
+        ReadCb12__18CBinaryInputStreamPv(pbis, &spec.unknown00);
+        ReadCb8__18CBinaryInputStreamPv(pbis, &spec.unknown10);
         pbis->ReadVector(&spec.vec);
-        spec.agUnk00[1] *= 0.007874016f;
-        spec.agUnk00[2] *= 6.200012e-05f;
+        spec.unknown00[1] *= 0.007874016f;
+        spec.unknown00[2] *= 6.200012e-05f;
         spec.fMode = psubglob->bUnk02 & 1;
     }
     CLUTSET *pclutset = LoadClutSetFromBrx(pglobset, pbis);
@@ -2865,7 +2865,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
         {
             BATCHGRF grf = {1};
             phdr->grf = grf;
-            switch (psgl->nUnk08)
+            switch (psgl->batchMode)
             {
             case 0:
                 phdr->grf.grf |= 0x100;
@@ -3519,7 +3519,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
             vifsLit.EndDmaCnt();
             vifsLit.AddDmaRet();
             int cqwLit = (vifsLit.m_pb - vifsLit.m_ab) / sizeof(QW);
-            psgl->nUnk04 = cqwLit;
+            psgl->numLitQwords = cqwLit;
             psubglob->pvLit = PvAllocSwCopy(cqwLit << 4, vifsLit.m_ab);
         }
     }
@@ -3560,7 +3560,7 @@ void LoadSubglobType0FromBrx(GLOBSET *const pglobset, SUBGLOB *psubglob, GLOB *p
                 pbr->pvUvLink = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pvUvLink);
                 pbr->pbRgb = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pbRgb);
                 pbr->pbNorm = PbReloc(pbOld, cqwMain << 4, pbNew, (char *)pb->pbNorm);
-                pbr->unk_0x1c = 0;
+                pbr->unknown1C = 0;
                 pb++;
                 pbr++;
             }
@@ -4519,9 +4519,9 @@ extern "C" void CloneGlobset(P*p,SO*owner,STREAM*stream){
 namespace M_ResetGlobAttachment { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct V4 { float x, y, z, w; } __attribute__((aligned(16)));   /* attribute on the struct (C++) */
-typedef struct { char pad[0x148]; unsigned long f148; } A;
+typedef struct { char pad[0x148]; unsigned long renderFlags; } A;   /* the attached ALO: its 64-bit flag word at +0x148 */
 typedef struct { float x, y, z, w; int a, b; } E;
-typedef struct { A *pa; int pad[3]; V4 v10; float g20; int pad2[8]; E *ae; } S;
+typedef struct { A *pa; int pad[3]; V4 offset; float radius; int pad2[8]; E *ae; } S;
 extern V4 D_002A2DD0;
 void RemoveLoFromRenderTree(A *pa);
 /* func_002599D8/E0/E8: the file-scope inline readers */
@@ -4536,9 +4536,9 @@ void ResetGlobAttachment(S *p, int i)
     V4 v;
     float x, y, z;
     RemoveLoFromRenderTree(p->pa);
-    p->pa->f148 &= 0xFFFFFFF7FFFFFFFFUL;
-    p->v10 = D_002A2DD0;
-    p->g20 = g;
+    p->pa->renderFlags &= 0xFFFFFFF7FFFFFFFFUL;   /* clear bit 35 */
+    p->offset = D_002A2DD0;
+    p->radius = g;
     pe = &p->ae[i];
     v = D_002A2DD0;
     x = ::func_002599D8((VECTOR *)&v);
