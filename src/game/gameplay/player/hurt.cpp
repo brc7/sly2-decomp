@@ -116,29 +116,43 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
 static inline qword Vector(P*p){VE*v=&p->vt[33];return ((qword(*)(P*))v->fn)((P*)((char*)p+v->delta));}
 static inline void SetVector(P*p,qword q){VE*v=&p->vt[36];((void(*)(P*,qword))v->fn)((P*)((char*)p+v->delta),q);}
 static inline void Invoke(P*p,int slot){VE*v=&p->vt[slot];((void(*)(P*))v->fn)((P*)((char*)p+v->delta));}
-static inline qword Position(){
- register CM*manager __asm__("$2")=&D_002DDF40;
- register qword value __asm__("$2");
- __asm__("lq %0,%1":"=r"(value):"m"(manager->position.q));
- return value;
+static inline qword Position()
+{
+    register CM *manager __asm__("$2") = &D_002DDF40;
+    register qword value __asm__("$2");
+    __asm__("lq %0,%1" : "=r"(value) : "m"(manager->position.q));
+    return value;
 }
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
 static inline float X(qword a){int word;float f;__asm__("qmfc2.ni %0,%1":"=r"(word):"j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(word));return f;}
-static inline qword Difference(U*a,qword b,C*c,P*&actor){
- register qword x __asm__("vf1"),y __asm__("vf2");register P*owner __asm__("$4");
- __asm__("lqc2 %0,%3\n\tqmtc2.ni %4,%1\n\tlw %2,%5\n\tvsub.xyzw %0,%0,%1":"=&j"(x),"=&j"(y),"=r"(owner):"m"(a->q),"r"(b),"m"(c->actor));
- actor=owner;return x;
+static inline qword Difference(U *a, qword b, C *c, P *&actor)
+{
+    register qword x __asm__("vf1"), y __asm__("vf2");
+    register P *owner __asm__("$4");
+    __asm__("lqc2 %0,%3\n\tqmtc2.ni %4,%1\n\tlw %2,%5\n\tvsub.xyzw %0,%0,%1"
+            : "=&j"(x), "=&j"(y), "=r"(owner)
+            : "m"(a->q), "r"(b), "m"(c->actor));
+    actor = owner;
+    return x;
 }
-static inline qword Difference1(U*a,qword b,C*c,P*&actor){
- register qword x __asm__("vf4"),y __asm__("vf1");register P*owner __asm__("$4");
- __asm__("qmtc2.ni %4,%1\n\tlw %2,%5\n\tlqc2 %0,%3\n\tvsub.xyzw %0,%0,%1":"=&j"(x),"=&j"(y),"=r"(owner):"m"(a->q),"r"(b),"m"(c->actor));
- actor=owner;return x;
+static inline qword Difference1(U *a, qword b, C *c, P *&actor)
+{
+    register qword x __asm__("vf4"), y __asm__("vf1");
+    register P *owner __asm__("$4");
+    __asm__("qmtc2.ni %4,%1\n\tlw %2,%5\n\tlqc2 %0,%3\n\tvsub.xyzw %0,%0,%1"
+            : "=&j"(x), "=&j"(y), "=r"(owner)
+            : "m"(a->q), "r"(b), "m"(c->actor));
+    actor = owner;
+    return x;
 }
-static inline float ClampKnownLower(float value,float lo,LIMIT*range){
- register float hi __asm__("$f1")=range->hi;
- if(value<lo)return lo;
- if(hi<value)return hi;
- return value;
+static inline float ClampKnownLower(float value, float lo, LIMIT *range)
+{
+    register float hi __asm__("$f1") = range->hi;
+    if (value < lo)
+        return lo;
+    if (hi < value)
+        return hi;
+    return value;
 }
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char VE_Size[sizeof(VE)==8?1:-1];
@@ -199,80 +213,132 @@ typedef char CM_Prefix_Size[sizeof(CM)==0xA0?1:-1];
  * @end-sly2-annot */
 // Hurt sub-state switch (leave/enter): Sly-specific settings for CID 0x35, facing and launch from the hit direction,
 // retracting/applying hit clips, and the death states 8..12.
-extern "C" void SetJtHurtState(C*hurt,int next){
- U velocity,camera0,camera1;
- if(next==hurt->mode)return;
- switch(hurt->mode){
- case -1:
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor,0x35)){
-   P*actor=hurt->actor;actor->first->inner->value->value=D_002BFA00;
-   actor->second->inner->value->value=D_002BFA00;
-  }
-  Invoke(hurt->actor,91);
-  hurt->actor->zero.Clear();hurt->actor->frozen=0;hurt->changed=D_002A6720;
-  break;
- case 3:case 10:
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor,0x35))hurt->actor->first->inner->value->value.Clear();
-  break;
- }
- ASEG*clip=0;int flags=1;
- switch(next){
- case -1:
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor,0x35)){
-   P*actor=hurt->actor;actor->first->inner->value->value.Clear();actor->second->inner->value->value.Clear();
-  }
-  hurt->actor->frozen=1;hurt->changed=D_002DDED0.time;break;
- case 8:
-  {qword moving=Vector(hurt->actor);P*actor=hurt->actor;
-  register qword mv __asm__("vf4")=From(moving),axis __asm__("vf1"),dot __asm__("vf2"),one __asm__("vf3");float threshold;
-  __asm__("li.s %0,%F2\n\tlqc2 %1,%3":"=&f"(threshold),"=j"(axis):"F"(-250.0f),"m"(actor->forward.q));
-  __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(dot),"=&j"(one):"j"(mv),"j"(axis));
-  if(X(dot)>threshold)next=9;
-  else{
-   register qword v __asm__("vf2")=From(Vector(actor));
-   float fraction,lower;register LIMIT*range __asm__("$2");
-   __asm__("lui $3,%%hi(%5)\n\tvmul.xy $vf1,%4,%4\n\tvaddy.x $vf1,$vf1,$vf1y\n\taddiu %2,$3,%%lo(%5)\n\tvsqrt $Q,$vf1x\n\tvwaitq\n\tvaddq.x $vf1,$vf0,$Q\n\tlwc1 $f1,8(%2)\n\tqmfc2.ni $4,$vf1\n\tlwc1 $f2,4(%2)\n\tmtc1 $4,$f0\n\tlwc1 %0,%%lo(%5)($3)\n\tmul.s $f1,$f0,$f1\n\tlui %2,%%hi(%6)\n\tlwc1 %1,%%lo(%6)(%2)\n\tsqc2 %4,%3\n\taddiu %2,%2,%%lo(%6)\n\tadd.s $f2,$f2,$f1\n\tmul.s $f0,$f0,$f2\n\tadd.s %0,%0,$f0":"=&f"(fraction),"=&f"(lower),"=&r"(range),"=m"(velocity.q):"j"(v),"i"(&D_002BFA20),"i"(&D_002BBB60):"$3","$4","$f0","$f1","$f2","vf1","memory");
-   float blend=ClampKnownLower(fraction,lower,range);
-   float angle=atan2f(velocity.f[1],velocity.f[0])+3.1415927f;
-   angle=RadNormalize__Ff(angle-hurt->actor->yaw);
-   func_00204660(hurt->actor,hurt->actor->yaw+angle*blend);
-   FixStepAngularVelocity(hurt->actor);
-  }}
- case 9:clip=hurt->clips[next];flags=0x21;break;
- case 10:
-  camera0.q=Position();
-  {P*owner;qword direction=Difference(&camera0,func_001A62E8(hurt->actor),hurt,owner);SetStepRadTargetVec(owner,direction);}
-  flags=0x21;
- case 3:
-  clip=hurt->clips[next];
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor,0x35))hurt->actor->first->inner->value->value=D_002BFA10;
-  break;
- case 5:case 11:
-  camera1.q=Position();
-  {P*owner;qword direction=Difference1(&camera1,func_001A62E8(hurt->actor),hurt,owner);SetStepRadTargetVec(owner,direction);}
-  if(next==11)flags=0x21;
-  clip=hurt->clips[next];break;
- case 0:case 6:case 7:clip=hurt->clips[next];break;
- case 4:case 12:
-  SetVector(hurt->actor,D_002A2DD0.q);
-  func_00204660(hurt->actor,RadStepHeading(hurt->actor));
-  hurt->actor->control->yaw=hurt->actor->yaw;
-  if(next==12)flags=0x21;
-  clip=hurt->clips[next];break;
- case 1:case 2:
-  flags=0;
-  func_00204660(hurt->actor,RadStepHeading(hurt->actor));
-  hurt->actor->control->yaw=hurt->actor->yaw;clip=hurt->clips[next];break;
- }
- func_001F4BF8(hurt->actor);
- hurt->mode=next;hurt->time=D_002DDED0.time;
- if(next!=-1){
-  if(!clip)clip=hurt->Default(next);
-  ReleaseAsega(&hurt->actor->asega);ReleaseSma(&hurt->actor->component);
-  ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,hurt->actor,0.0f,1.0f,flags,&hurt->actor->asega);
-  ReplaceSma(0,hurt->actor,-1,0,&hurt->actor->component);
-  Invoke(hurt->actor,90);
- }
+extern "C" void SetJtHurtState(C *hurt, int next)
+{
+    U velocity, camera0, camera1;
+    if (next == hurt->mode)
+        return;
+    switch (hurt->mode) {
+    case -1:
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
+            P *actor = hurt->actor;
+            actor->first->inner->value->value = D_002BFA00;
+            actor->second->inner->value->value = D_002BFA00;
+        }
+        Invoke(hurt->actor, 91);
+        hurt->actor->zero.Clear();
+        hurt->actor->frozen = 0;
+        hurt->changed = D_002A6720;
+        break;
+    case 3:
+    case 10:
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
+            hurt->actor->first->inner->value->value.Clear();
+        break;
+    }
+    ASEG *clip = 0;
+    int flags = 1;
+    switch (next) {
+    case -1:
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35)) {
+            P *actor = hurt->actor;
+            actor->first->inner->value->value.Clear();
+            actor->second->inner->value->value.Clear();
+        }
+        hurt->actor->frozen = 1;
+        hurt->changed = D_002DDED0.time;
+        break;
+    case 8: {
+        qword moving = Vector(hurt->actor);
+        P *actor = hurt->actor;
+        register qword mv __asm__("vf4") = From(moving), axis __asm__("vf1"), dot __asm__("vf2"), one __asm__("vf3");
+        float threshold;
+        __asm__("li.s %0,%F2\n\tlqc2 %1,%3" : "=&f"(threshold), "=j"(axis) : "F"(-250.0f), "m"(actor->forward.q));
+        __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+                : "=&j"(dot), "=&j"(one)
+                : "j"(mv), "j"(axis));
+        if (X(dot) > threshold)
+            next = 9;
+        else {
+            register qword v __asm__("vf2") = From(Vector(actor));
+            float fraction, lower;
+            register LIMIT *range __asm__("$2");
+            __asm__("lui $3,%%hi(%5)\n\tvmul.xy $vf1,%4,%4\n\tvaddy.x $vf1,$vf1,$vf1y\n\taddiu %2,$3,%%lo(%5)\n\tvsqrt "
+                    "$Q,$vf1x\n\tvwaitq\n\tvaddq.x $vf1,$vf0,$Q\n\tlwc1 $f1,8(%2)\n\tqmfc2.ni $4,$vf1\n\tlwc1 "
+                    "$f2,4(%2)\n\tmtc1 $4,$f0\n\tlwc1 %0,%%lo(%5)($3)\n\tmul.s $f1,$f0,$f1\n\tlui %2,%%hi(%6)\n\tlwc1 "
+                    "%1,%%lo(%6)(%2)\n\tsqc2 %4,%3\n\taddiu %2,%2,%%lo(%6)\n\tadd.s $f2,$f2,$f1\n\tmul.s "
+                    "$f0,$f0,$f2\n\tadd.s %0,%0,$f0"
+                    : "=&f"(fraction), "=&f"(lower), "=&r"(range), "=m"(velocity.q)
+                    : "j"(v), "i"(&D_002BFA20), "i"(&D_002BBB60)
+                    : "$3", "$4", "$f0", "$f1", "$f2", "vf1", "memory");
+            float blend = ClampKnownLower(fraction, lower, range);
+            float angle = atan2f(velocity.f[1], velocity.f[0]) + 3.1415927f;
+            angle = RadNormalize__Ff(angle - hurt->actor->yaw);
+            func_00204660(hurt->actor, hurt->actor->yaw + angle * blend);
+            FixStepAngularVelocity(hurt->actor);
+        }
+    }
+    case 9:
+        clip = hurt->clips[next];
+        flags = 0x21;
+        break;
+    case 10:
+        camera0.q = Position();
+        {
+            P *owner;
+            qword direction = Difference(&camera0, func_001A62E8(hurt->actor), hurt, owner);
+            SetStepRadTargetVec(owner, direction);
+        }
+        flags = 0x21;
+    case 3:
+        clip = hurt->clips[next];
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(hurt->actor, 0x35))
+            hurt->actor->first->inner->value->value = D_002BFA10;
+        break;
+    case 5:
+    case 11:
+        camera1.q = Position();
+        {
+            P *owner;
+            qword direction = Difference1(&camera1, func_001A62E8(hurt->actor), hurt, owner);
+            SetStepRadTargetVec(owner, direction);
+        }
+        if (next == 11)
+            flags = 0x21;
+        clip = hurt->clips[next];
+        break;
+    case 0:
+    case 6:
+    case 7: clip = hurt->clips[next]; break;
+    case 4:
+    case 12:
+        SetVector(hurt->actor, D_002A2DD0.q);
+        func_00204660(hurt->actor, RadStepHeading(hurt->actor));
+        hurt->actor->control->yaw = hurt->actor->yaw;
+        if (next == 12)
+            flags = 0x21;
+        clip = hurt->clips[next];
+        break;
+    case 1:
+    case 2:
+        flags = 0;
+        func_00204660(hurt->actor, RadStepHeading(hurt->actor));
+        hurt->actor->control->yaw = hurt->actor->yaw;
+        clip = hurt->clips[next];
+        break;
+    }
+    func_001F4BF8(hurt->actor);
+    hurt->mode = next;
+    hurt->time = D_002DDED0.time;
+    if (next != -1) {
+        if (!clip)
+            clip = hurt->Default(next);
+        ReleaseAsega(&hurt->actor->asega);
+        ReleaseSma(&hurt->actor->component);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, hurt->actor, 0.0f, 1.0f, flags, &hurt->actor->asega);
+        ReplaceSma(0, hurt->actor, -1, 0, &hurt->actor->component);
+        Invoke(hurt->actor, 90);
+    }
 }
 } // namespace M_SetJtHurtState
 
@@ -775,67 +841,127 @@ typedef char G_Prefix_Size[sizeof(G)==0x403C?1:-1];
  * @end-sly2-annot */
 // Applies a damage record to the player: the owner may veto it (vt86), flag filters, damage scaled by difficulty,
 // health counter, game event broadcast, hit clip, sound, knockback and callback. Returns nonzero if taken.
-extern "C" int TakeJtDamage(C*p,RECORD*input){
- RECORD accepted;int delta;
- if(ShouldJtVetoDamage(p,input)){
-  if((unsigned)p->kind-8u<5u)return 0;
-  delta=-32768;goto notify;
- }
- if(Reject(p->actor,input->flags))return 0;
- if(p->actor->mode==1)return Delegate(p->actor->delegate,input);
- if(p->actor->guard)delta=0;
- else if(p->mode==1)delta=0;
- else delta=func_00155228(D_002DE578,input->delta);
- if(input->flags==0x100000){
-  if(Add32(*p->counter,delta)>0){
-   if(p->mode!=1){p->mode=0;p->time=p->changed=D_002DDED0.time;}
-   *p->counter=Add32(*p->counter,delta);
-   if(p->effect)ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->effect,p->actor,0.0f,1.0f,1,&p->output);
-   goto sound;
-  }
-  register RECORD*destination __asm__("$2");__asm__("daddu %0,%1,$zero":"=r"(destination):"r"(&accepted));
-  *destination=*input;input=&accepted;
-  accepted.flags=0x200;
-  __asm__("sw $zero,4(%3)\n\tsw $zero,8(%3)\n\tsw $zero,%2":"=m"(accepted.b),"=m"(accepted.c),"=m"(accepted.a):"r"(&accepted.a));
- }
- if(input->object&&FIsBasicDerivedFrom__FP5BASIC3CID(input->object,0x38)){
-  if(input->object->state==8||input->object->state==13)delta/=2;
- }
-notify:
- {
-  Notify(p->actor,3);
-  W*widget=p->actor->widget;
-  if(widget&&(widget->count->c||Add32(*p->counter,delta)<=0))DropStepplayerBooty(p->actor);
-  BroadcastGameEvent(D_002DEB30,0xF,input->object);
-  p->record=*input;p->record.delta=delta;SetJtHurtCallback(p,0);
-  int n=Add32(*p->counter,p->record.delta);*p->counter=n>=0?n:0;
-  if(*p->counter>0){p->mode=1;p->time=D_002DDED0.time;}
-  switch(input->flags){
-  case 0x100:case 0x200:{
-   StartJtKnockback(p);
-   if(Z(Vector(p->actor,33))>400.0f){
-    int effect=-1;
-    switch(CidBasic(p->actor)){case 0x35:effect=0x69;break;case 0x36:effect=0x84;break;case 0x37:effect=0x83;break;}
-    P*actor=p->actor;void*created=PsndStartSound(effect);SetSndSourceLo(created,actor);
-   }
-   SetJtHurtCallback(p,&C::Reaction);break;
-  }
-  case 0x8000:SetJtHurtState(p,7);SetJtHurtCallback(p,&C::Special);break;
-  case 0x800:case 0x1000:
-   SetVector(p->actor,35,D_002A2DD0);SetVector(p->actor,36,D_002A2DD0);
-   SetJtHurtState(p,input->flags==0x800?1:2);SetJtHurtCallback(p,&C::Stop);break;
-  case 0x2000:if(*p->counter>0){SetJtHurtState(p,3);SetJtHurtCallback(p,&C::Finish);}else SetJtHurtState(p,10);break;
-  case 0x400:SetVector(p->actor,35,D_002BFB10.q);if(*p->counter>0)SetJtHurtState(p,4);else SetJtHurtState(p,12);break;
-  case 0x4000:
-   if(*p->counter>0){SetJtHurtState(p,5);SetJtHurtCallback(p,&C::Finish);}else SetJtHurtState(p,11);break;
-  case 0x40:StartJtKnockback(p);SetJtHurtCallback(p,&C::Reaction);break;
-  }
- }
+extern "C" int TakeJtDamage(C *p, RECORD *input)
+{
+    RECORD accepted;
+    int delta;
+    if (ShouldJtVetoDamage(p, input)) {
+        if ((unsigned)p->kind - 8u < 5u)
+            return 0;
+        delta = -32768;
+        goto notify;
+    }
+    if (Reject(p->actor, input->flags))
+        return 0;
+    if (p->actor->mode == 1)
+        return Delegate(p->actor->delegate, input);
+    if (p->actor->guard)
+        delta = 0;
+    else if (p->mode == 1)
+        delta = 0;
+    else
+        delta = func_00155228(D_002DE578, input->delta);
+    if (input->flags == 0x100000) {
+        if (Add32(*p->counter, delta) > 0) {
+            if (p->mode != 1) {
+                p->mode = 0;
+                p->time = p->changed = D_002DDED0.time;
+            }
+            *p->counter = Add32(*p->counter, delta);
+            if (p->effect)
+                ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->effect, p->actor, 0.0f, 1.0f, 1, &p->output);
+            goto sound;
+        }
+        register RECORD *destination __asm__("$2");
+        __asm__("daddu %0,%1,$zero" : "=r"(destination) : "r"(&accepted));
+        *destination = *input;
+        input = &accepted;
+        accepted.flags = 0x200;
+        __asm__("sw $zero,4(%3)\n\tsw $zero,8(%3)\n\tsw $zero,%2"
+                : "=m"(accepted.b), "=m"(accepted.c), "=m"(accepted.a)
+                : "r"(&accepted.a));
+    }
+    if (input->object && FIsBasicDerivedFrom__FP5BASIC3CID(input->object, 0x38)) {
+        if (input->object->state == 8 || input->object->state == 13)
+            delta /= 2;
+    }
+notify: {
+    Notify(p->actor, 3);
+    W *widget = p->actor->widget;
+    if (widget && (widget->count->c || Add32(*p->counter, delta) <= 0))
+        DropStepplayerBooty(p->actor);
+    BroadcastGameEvent(D_002DEB30, 0xF, input->object);
+    p->record = *input;
+    p->record.delta = delta;
+    SetJtHurtCallback(p, 0);
+    int n = Add32(*p->counter, p->record.delta);
+    *p->counter = n >= 0 ? n : 0;
+    if (*p->counter > 0) {
+        p->mode = 1;
+        p->time = D_002DDED0.time;
+    }
+    switch (input->flags) {
+    case 0x100:
+    case 0x200: {
+        StartJtKnockback(p);
+        if (Z(Vector(p->actor, 33)) > 400.0f) {
+            int effect = -1;
+            switch (CidBasic(p->actor)) {
+            case 0x35: effect = 0x69; break;
+            case 0x36: effect = 0x84; break;
+            case 0x37: effect = 0x83; break;
+            }
+            P *actor = p->actor;
+            void *created = PsndStartSound(effect);
+            SetSndSourceLo(created, actor);
+        }
+        SetJtHurtCallback(p, &C::Reaction);
+        break;
+    }
+    case 0x8000:
+        SetJtHurtState(p, 7);
+        SetJtHurtCallback(p, &C::Special);
+        break;
+    case 0x800:
+    case 0x1000:
+        SetVector(p->actor, 35, D_002A2DD0);
+        SetVector(p->actor, 36, D_002A2DD0);
+        SetJtHurtState(p, input->flags == 0x800 ? 1 : 2);
+        SetJtHurtCallback(p, &C::Stop);
+        break;
+    case 0x2000:
+        if (*p->counter > 0) {
+            SetJtHurtState(p, 3);
+            SetJtHurtCallback(p, &C::Finish);
+        } else
+            SetJtHurtState(p, 10);
+        break;
+    case 0x400:
+        SetVector(p->actor, 35, D_002BFB10.q);
+        if (*p->counter > 0)
+            SetJtHurtState(p, 4);
+        else
+            SetJtHurtState(p, 12);
+        break;
+    case 0x4000:
+        if (*p->counter > 0) {
+            SetJtHurtState(p, 5);
+            SetJtHurtCallback(p, &C::Finish);
+        } else
+            SetJtHurtState(p, 11);
+        break;
+    case 0x40:
+        StartJtKnockback(p);
+        SetJtHurtCallback(p, &C::Reaction);
+        break;
+    }
+}
 sound:
- register G*game __asm__("$16")=&D_003DD490;
- qword point=func_001A62E8(p->actor);int channel=game->channel;
- (void)func_00156698(channel,point,p->actor);
- return 1;
+    register G *game __asm__("$16") = &D_003DD490;
+    qword point = func_001A62E8(p->actor);
+    int channel = game->channel;
+    (void)func_00156698(channel, point, p->actor);
+    return 1;
 }
 } // namespace M_FTakeJtDamage
 
@@ -1029,24 +1155,37 @@ extern "C" int ShouldStepplayerIgnoreZap(JTHURT *hurt, int zpk)
             switch (hurt->pstepplayer->jtgrab.nState) {
             case -1:
                 switch (hurt->pstepplayer->jtair.nState) {
-                case -1:
-                    goto ret0;
-                case 8: case 9: case 10: case 11: case 12: case 13: case 14: case 15: case 16: case 17:
-                    {
-                        register int k __asm__("$3") = 0x4000;
-                        register int result __asm__("$2") = 1;
-                        if (zpk == k) return result;
-                        result = 0;
+                case -1: goto ret0;
+                case 8:
+                case 9:
+                case 10:
+                case 11:
+                case 12:
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                case 17: {
+                    register int k __asm__("$3") = 0x4000;
+                    register int result __asm__("$2") = 1;
+                    if (zpk == k)
                         return result;
-                    }
+                    result = 0;
+                    return result;
+                }
                 }
                 return 0;
-            case 1: case 2: case 5: case 6: case 9:
-                goto ret0;
+            case 1:
+            case 2:
+            case 5:
+            case 6:
+            case 9: goto ret0;
             }
             goto ret1;
-        case 3: case 5: case 10: case 11:
-            goto ret1;
+        case 3:
+        case 5:
+        case 10:
+        case 11: goto ret1;
         }
         goto ret0;
     }
@@ -1157,64 +1296,75 @@ static inline qword Direction(P*p){return ((qword(*)(void*))p->vt[33].fn)((char*
  * @end-sly2-annot */
 // From UpdateStepplayer: if the player's height-adjusted point is inside the linked volume, inflicts the zap/drown
 // damage and probes for the surface (ProbeStepplayerSurface).
-extern "C" void UpdateStepplayerWater(P*player){
- U point;
- int valid;
- if(player->link){
-  point.q=func_001A62E8(player);
-  point.f[2]+=player->height;
-  if(player->mode==3||player->mode==10)point.f[2]-=10.0f;
-  L*link=player->link;
-  valid=((int(*)(void*,qword))link->vt[73].fn)((char*)link+link->vt[73].delta,point.q);
- }else valid=0;
- if(!valid)return;
- if(player->link->kind){
-  int notify=0;
-  if(Z(Direction(player))<0.0f||(player->state==-1&&player->mode!=7))notify=1;
-  if(notify){
-   HIT hit;
-   func_002333B4(&hit,0,sizeof(hit));
-   hit.target=player->link;
-   hit.source=player;
-   hit.tag=player->link->tag;
-   hit.kind=player->link->kind;
-   hit.point.q=func_001A62E8(player);
-   hit.direction.q=Direction(player);
-   (void)func_001F7598(&hit);
-  }
- }
- if(!player->link->effect)return;
- if(!ProbeStepplayerSurface(player,player->link,&point.q))return;
- int i=0;
- if(player->count>0){
- U position;
- M4 predicted,base;
- M4*pbase=&base;
- M4*ppred=&predicted;
- // Preserve the saved register for the predicted position.
- register U*predpos __asm__("$20")=&predicted.r[3];
- for(;i<player->count;i++){
-  ENTRY*entry=&player->entries[i];
-  if(D_002DDED0.time-entry->time<0.05f)continue;
-  P*object=entry->object;
-  position.q=func_001A62E8(object);
-  void*frame=((void*(*)(void*,M4*))object->vt[32].fn)((char*)object+object->vt[32].delta,pbase);
-  LoadIdentityMatrix4(frame,0,ppred,0,D_002DDED0.dt);
-  predicted=__ml__FRC7MATRIX4T0(ppred,pbase);
-  int crossed=0;
-  if(point.f[2]<=position.f[2]){if(predpos->f[2]<=point.f[2])crossed=1;}
-  else if(point.f[2]<=predpos->f[2])crossed=1;
-  if(crossed){
-   MSG msg;
-   msg.position=position;
-   msg.position.f[2]=point.f[2];
-   msg.type=4;
-   EFFECT*effect=player->link->effect;
-   ((void(*)(void*,MSG*))effect->vt[51].fn)((char*)effect+effect->vt[51].delta,&msg);
-   entry->time=D_002DDED0.time;
-  }
- }
-}
+extern "C" void UpdateStepplayerWater(P *player)
+{
+    U point;
+    int valid;
+    if (player->link) {
+        point.q = func_001A62E8(player);
+        point.f[2] += player->height;
+        if (player->mode == 3 || player->mode == 10)
+            point.f[2] -= 10.0f;
+        L *link = player->link;
+        valid = ((int (*)(void *, qword))link->vt[73].fn)((char *)link + link->vt[73].delta, point.q);
+    } else
+        valid = 0;
+    if (!valid)
+        return;
+    if (player->link->kind) {
+        int notify = 0;
+        if (Z(Direction(player)) < 0.0f || (player->state == -1 && player->mode != 7))
+            notify = 1;
+        if (notify) {
+            HIT hit;
+            func_002333B4(&hit, 0, sizeof(hit));
+            hit.target = player->link;
+            hit.source = player;
+            hit.tag = player->link->tag;
+            hit.kind = player->link->kind;
+            hit.point.q = func_001A62E8(player);
+            hit.direction.q = Direction(player);
+            (void)func_001F7598(&hit);
+        }
+    }
+    if (!player->link->effect)
+        return;
+    if (!ProbeStepplayerSurface(player, player->link, &point.q))
+        return;
+    int i = 0;
+    if (player->count > 0) {
+        U position;
+        M4 predicted, base;
+        M4 *pbase = &base;
+        M4 *ppred = &predicted;
+        // Preserve the saved register for the predicted position.
+        register U *predpos __asm__("$20") = &predicted.r[3];
+        for (; i < player->count; i++) {
+            ENTRY *entry = &player->entries[i];
+            if (D_002DDED0.time - entry->time < 0.05f)
+                continue;
+            P *object = entry->object;
+            position.q = func_001A62E8(object);
+            void *frame = ((void *(*)(void *, M4 *))object->vt[32].fn)((char *)object + object->vt[32].delta, pbase);
+            LoadIdentityMatrix4(frame, 0, ppred, 0, D_002DDED0.dt);
+            predicted = __ml__FRC7MATRIX4T0(ppred, pbase);
+            int crossed = 0;
+            if (point.f[2] <= position.f[2]) {
+                if (predpos->f[2] <= point.f[2])
+                    crossed = 1;
+            } else if (point.f[2] <= predpos->f[2])
+                crossed = 1;
+            if (crossed) {
+                MSG msg;
+                msg.position = position;
+                msg.position.f[2] = point.f[2];
+                msg.type = 4;
+                EFFECT *effect = player->link->effect;
+                ((void (*)(void *, MSG *))effect->vt[51].fn)((char *)effect + effect->vt[51].delta, &msg);
+                entry->time = D_002DDED0.time;
+            }
+        }
+    }
 }
 } // namespace M_func_001A2460
 
