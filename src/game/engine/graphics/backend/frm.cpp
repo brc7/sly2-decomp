@@ -17,26 +17,26 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* A render frame (two of them, D_002DEA50). */
 struct FRM {
-    int cqwGifs;     /* 0x00 finished GIF chain */
-    QW *aqwGifs;     /* 0x04 */
-    QW *aqwGifsBuf;  /* 0x08 GIF buffer */
-    int cqwGifsBuf;  /* 0x0c */
-    int cqwVifs;     /* 0x10 finished VIF chain */
-    QW *aqwVifs;     /* 0x14 */
-    QW *aqwVifsBuf;  /* 0x18 VIF buffer */
-    int cqwVifsBuf;  /* 0x1c */
-    int cqw20;       /* 0x20 VIF qwords after aqw24 */
-    QW *aqw24;       /* 0x24 */
-    int n28;         /* 0x28 */
-    int n2C;         /* 0x2c */
-    int n30;         /* 0x30 bit 0: blend the previous frame */
-    DL dl34;         /* 0x34 objects to notify when the frame is done (vtable slot 2) */
-    DL dl40;         /* 0x40 records to free when the frame is done */
-    int n4C;         /* 0x4c */
+    int gifsQwordCount;     /* 0x00 finished GIF chain */
+    QW *gifsChain;     /* 0x04 */
+    QW *gifsBuffer;  /* 0x08 GIF buffer */
+    int gifsBufferQwords;  /* 0x0c */
+    int vifsQwordCount;     /* 0x10 finished VIF chain */
+    QW *vifsChain;     /* 0x14 */
+    QW *vifsBuffer;  /* 0x18 VIF buffer */
+    int vifsBufferQwords;  /* 0x1c */
+    int drawQwordCount;     /* 0x20 VIF qwords from drawChain to the end */
+    QW *drawChain;         /* 0x24 start of the frame VIF chain sent to VIF1 (DrawSw sets it) */
+    int unknown28;         /* 0x28 */
+    int uploadedTextureBits; /* 0x2c per-frame bits of textures already uploaded (fonts) (inferred) */
+    int blendFlags;         /* 0x30 bit 0: blend the previous frame */
+    DL releaseList;         /* 0x34 objects to notify when the frame is done (vtable slot 2) */
+    DL freeList;         /* 0x40 records to free when the frame is done */
+    int cameraVisFlags;     /* 0x4c g_cm.grfvis when the frame was opened */
 };
 typedef char assert_FRM_size[sizeof(FRM) == 0x50 ? 1 : -1];
 struct sceDmaChan;
-/* g++ 2.95 vtable entry, the objects on dl34 and the records on dl40. */
+/* g++ 2.95 vtable entry, the objects on releaseList and the records on freeList. */
 struct VTE { short delta, pad; void (*method)(void *); };
 struct LOV { char pad[12]; VTE *vt; };   /* the vtable word of an LO (sly2/lo.h's LO has it implicitly) */
 struct Y { char pad[0x1088]; void *storage; };
@@ -129,12 +129,12 @@ void OpenFrame()
     if (D_002DEB10 >= 2)
         D_002DEB10 = 0;
     ClearPendingFrame(g_pfrmOpen);
-    g_pfrmOpen->n4C = g_cm.grfvis;
-    g_pfrmOpen->n30 = 1;
-    g_pfrmOpen->n2C = 0;
-    g_pfrmOpen->aqw24 = 0;
-    D_002DEA00.AllocStatic(g_pfrmOpen->cqwGifsBuf, g_pfrmOpen->aqwGifsBuf);
-    D_002DEA28.AllocStatic(g_pfrmOpen->cqwVifsBuf, g_pfrmOpen->aqwVifsBuf);
+    g_pfrmOpen->cameraVisFlags = g_cm.grfvis;
+    g_pfrmOpen->blendFlags = 1;
+    g_pfrmOpen->uploadedTextureBits = 0;
+    g_pfrmOpen->drawChain = 0;
+    D_002DEA00.AllocStatic(g_pfrmOpen->gifsBufferQwords, g_pfrmOpen->gifsBuffer);
+    D_002DEA28.AllocStatic(g_pfrmOpen->vifsBufferQwords, g_pfrmOpen->vifsBuffer);
     D_002DEA00.AddDmaRefs(12, D_002DF740);
     D_002DEA00.AddDmaCnt();
 }
@@ -178,18 +178,18 @@ void FinalizeFrameGifs(GIFS *pgifs, int *pcqw, QW **paqw)
 // frame, clears g_pfrmOpen and signals the render thread.
 void CloseFrame()
 {
-    FinalizeFrameVifs(&D_002DEA28, &g_pfrmOpen->cqwVifs, &g_pfrmOpen->aqwVifs);
-    FinalizeFrameGifs(&D_002DEA00, &g_pfrmOpen->cqwGifs, &g_pfrmOpen->aqwGifs);
-    g_pfrmOpen->cqw20 = g_pfrmOpen->aqwVifs + g_pfrmOpen->cqwVifs - g_pfrmOpen->aqw24;
-    g_pfrmOpen->dl34 = D_002DEAF0;
+    FinalizeFrameVifs(&D_002DEA28, &g_pfrmOpen->vifsQwordCount, &g_pfrmOpen->vifsChain);
+    FinalizeFrameGifs(&D_002DEA00, &g_pfrmOpen->gifsQwordCount, &g_pfrmOpen->gifsChain);
+    g_pfrmOpen->drawQwordCount = g_pfrmOpen->vifsChain + g_pfrmOpen->vifsQwordCount - g_pfrmOpen->drawChain;
+    g_pfrmOpen->releaseList = D_002DEAF0;
     ClearDl__FP2DL(&D_002DEAF0);
-    g_pfrmOpen->dl40 = D_002DEB00;
+    g_pfrmOpen->freeList = D_002DEB00;
     ClearDl__FP2DL(&D_002DEB00);
     g_pfrmOpen = 0;
     func_00234A40(D_002DEB18);
 }
 
-/* register-pinned locals (n in $v1, pfr in $a0) reproduce the madd-into-a0 form */
+/* register-pinned locals (frameIndex in $v1, frame in $a0) reproduce the madd-into-a0 form */
 // Render-thread body: wait for a closed frame, PrepareGsForFrameRender, rebuild frame packets, DMA VIF1 then GIF
 // chains, optional BlendPrevFrame, signal, SwapGsBuffers; forever.
 void FrameRenderLoop(void *pv)
@@ -198,17 +198,17 @@ void FrameRenderLoop(void *pv)
         D_002DEB20 = 1;
         func_00234A60(D_002DEB18);
         D_002DEB20 = 0;
-        register unsigned int n __asm__("$3") = D_002DEB0C;
-        register FRM *pfr __asm__("$4") = &D_002DEA50[n];
-        D_002DEB0C = n + 1;
-        D_002DEB14 = pfr;
+        register unsigned int frameIndex __asm__("$3") = D_002DEB0C;
+        register FRM *frame __asm__("$4") = &D_002DEA50[frameIndex];
+        D_002DEB0C = frameIndex + 1;
+        D_002DEB14 = frame;
         if (D_002DEB0C >= 2) D_002DEB0C = 0;
-        PropagateSais(pfr);
+        PropagateSais(frame);
         RestoreGsBuffers();
         RebuildFrameGifs__Fv();
-        SendDmaSyncGsFinish(D_002DE594, D_002DEB14->aqw24);
-        SendDmaSyncGsFinish(D_002DE598, D_002DEB14->aqwGifs);
-        if (D_002DEB14->n30 & 1)
+        SendDmaSyncGsFinish(D_002DE594, D_002DEB14->drawChain);
+        SendDmaSyncGsFinish(D_002DE598, D_002DEB14->gifsChain);
+        if (D_002DEB14->blendFlags & 1)
             BlendPrevFrame();
         sceDmaSync(D_002DE594, 0, 0);
         func_00234A40(D_002DEB1C);
@@ -219,34 +219,34 @@ void FrameRenderLoop(void *pv)
 
 // Synchronously renders one frame: PrepareGsForFrameRender, rebuild frame packets, send VIF chain, and GIF chain if
 // fRenderGifs.
-void RenderFrame(FRM *p, int f)
+void RenderFrame(FRM *frame, int renderGifs)
 {
-    PropagateSaisF(p, f);
+    PropagateSaisF(frame, renderGifs);
     RebuildFrameGifs__Fv();
-    SendDmaSyncGsFinish(D_002DE594, p->aqw24);
-    if (f)
-        SendDmaSyncGsFinish(D_002DE598, p->aqwGifs);
+    SendDmaSyncGsFinish(D_002DE594, frame->drawChain);
+    if (renderGifs)
+        SendDmaSyncGsFinish(D_002DE598, frame->gifsChain);
 }
 
 // Releases objects whose destruction was deferred until the frame finished: calls vtable slot 2 (Decref) on every LO
-// in frm->dl34 and frees the pool blocks in frm->dl40. (inferred)
+// in frame->releaseList and frees the pool blocks in frame->freeList. (inferred)
 void ClearPendingFrame(FRM *frame){
- if(!FIsDlEmpty__FP2DL(&frame->dl34)){
-  DLI iter(&frame->dl34);
+ if(!FIsDlEmpty__FP2DL(&frame->releaseList)){
+  DLI iter(&frame->releaseList);
   for(LOV*object=(LOV*)iter.Next();object;object=(LOV*)iter.Next()){
-   RemoveDlEntry__FP2DLPv(&frame->dl34,object);
+   RemoveDlEntry__FP2DLPv(&frame->releaseList,object);
    VTE*entry=&object->vt[2];entry->method((char*)object+entry->delta);
   }
-  ClearDl__FP2DL(&frame->dl34);
+  ClearDl__FP2DL(&frame->releaseList);
  }
- if(!FIsDlEmpty__FP2DL(&frame->dl40)){
-  DLI iter(&frame->dl40);
+ if(!FIsDlEmpty__FP2DL(&frame->freeList)){
+  DLI iter(&frame->freeList);
   for(Y*object=(Y*)iter.Next();object;object=(Y*)iter.Next()){
    if(object->storage)func_0011CD98(&g_sw.slotheapUnk40a0,object->storage);
-   RemoveDlEntry__FP2DLPv(&frame->dl40,object);
+   RemoveDlEntry__FP2DLPv(&frame->freeList,object);
    func_0011CD98(&g_sw.slotheapUnk4088,object);
   }
-  ClearDl__FP2DL(&frame->dl40);
+  ClearDl__FP2DL(&frame->freeList);
  }
 }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
@@ -261,13 +261,13 @@ typedef char DLI_Previous[FIELD_OFFSET(DLI,previous)==12?1:-1];
 typedef char VTE_Size[sizeof(VTE)==8?1:-1];
 typedef char LO_VT[FIELD_OFFSET(LOV,vt)==12?1:-1];
 typedef char Y_Storage[FIELD_OFFSET(Y,storage)==0x1088?1:-1];
-typedef char FR_FirstList[FIELD_OFFSET(FRM,dl34)==0x34?1:-1];
-typedef char FR_SecondList[FIELD_OFFSET(FRM,dl40)==0x40?1:-1];
+typedef char FR_FirstList[FIELD_OFFSET(FRM,releaseList)==0x34?1:-1];
+typedef char FR_SecondList[FIELD_OFFSET(FRM,freeList)==0x40?1:-1];
 #undef FIELD_OFFSET
 
 // Drains the render thread (wait/signal sema twice), optionally re-renders the last frame 3 times to both buffers and
 // clears pending frames.
-void FlushFrames(int fReset)
+void FlushFrames(int reset)
 {
     unsigned int i;
     for (i = 0; i < 2; i++)
@@ -276,21 +276,21 @@ void FlushFrames(int fReset)
         func_00234A40(D_002DEB1C);
     while (!D_002DEB20)
         ;
-    if (fReset && D_002DEB14) {
+    if (reset && D_002DEB14) {
         for (int j = 0; j < 3; j++) {
             RenderFrame(D_002DEB14, 1);
-            if (D_002DEB14->n30 & 1)
+            if (D_002DEB14->blendFlags & 1)
                 BlendPrevFrame();
             SwapGsBuffers();
         }
         D_002DEDBC = 3;
     }
-    if (fReset) {
-        FRM *pfr = D_002DEA50;
+    if (reset) {
+        FRM *frame = D_002DEA50;
         do {
-            ClearPendingFrame(pfr);
-            pfr++;
-        } while (pfr < D_002DEA50 + 2);
+            ClearPendingFrame(frame);
+            frame++;
+        } while (frame < D_002DEA50 + 2);
     }
     ClearPhase(3);
     D_002DEB14 = 0;

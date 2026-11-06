@@ -237,7 +237,7 @@ void StartupBlips()
 }
 
 // Allocate a BLIP (+spline block) and append to the blipg list.
-extern "C" BLIPV *PblipNew(SW *psw, BLIPGV *pblipg)
+extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
 {
     SLOTHEAP *pslotheap = &psw->slotheapBlip;
     BLIPV *pblip = (BLIPV *)PvAllocSlotheapClear(pslotheap);
@@ -463,7 +463,7 @@ extern "C" void SubscribeBlipgObject(BLIPGV *p, LOV *plo)
 }
 
 // laneZ2 v4 (Claude agent, 2026-10-30): particle update through VU0 microprogram 0x10.
-// Built from build/hand_wip/CblipeProjectBlipTransformAccel.lilly1.c (Claude agent for Lilly, T1646). The fixed vf21-vf31 registers
+// Built from build/hand_wip/ProjectBlipTransformAccel.lilly1.c (Claude agent for Lilly, T1646). The fixed vf21-vf31 registers
 // of the microprogram are bound only inside the inline VU helper UpdateMs10, which loads them, runs vcallms 0x10
 // per live particle and stores the results after the cfc2.i interlock; the function body has no register pins.
 // Microprogram ABI: vf27 = dt, vf28..vf31 = matrix rows 3..0, vf23/vf24 = the pa/pb entries; it accumulates the
@@ -524,13 +524,13 @@ static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb
     return cDead;
 }
 // VU0 microprogram 0x10 particle step for a run of blips, accumulating bounds. (inferred)
-extern "C" int CblipeProjectBlipTransformAccel(M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k, qwordV *pvMin, qwordV *pvMax)
+extern "C" int ProjectBlipTransformAccel(M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k, qwordV *pvMin, qwordV *pvMax)
 {
     return UpdateMs10(pm, dt, pa, pb, pc, c, k, pvMin, pvMax);
 }
 
 // ProjectBlipgTransformAccel (0x139AB8): DMA-double-buffered VU particle update over the DLI list at p->dl (0x448), accumulating the
-// bounding box of every particle batch in vMin/vMax (CblipeProjectBlipTransformAccel, microprogram), then sets the bounding sphere
+// bounding box of every particle batch in vMin/vMax (ProjectBlipTransformAccel, microprogram), then sets the bounding sphere
 // p->vF0 = centre, p->g100 = radius + p->g120 (or calls virtual slot 9 when p->c444 drops to 0).
 // MATCH (Claude agent for Lilly, T1675, 2026-10-25), built on lilly2 (T1663: arg block) and lilly1 (T1659: sceDmaSync returns int).
 // The prologue (hi $LC0 v0, zero v1, hi $LC1 v0, f0 stores then f1 stores) needs VECTOR = struct with an anonymous union:
@@ -543,7 +543,7 @@ extern "C" SPRBUF D_003DD2C0[2];
 /* The float is passed as a one-qword struct here (the dt word loaded into a GPR by VuFloatDt). */
 struct VU_FLOATM { qwordV qw; };
 extern "C" int CblipeProjectBlipTransformAccelM(M4 *pm, VU_FLOATM dt, char *a, char *b, char *c, int n, int d,
-                                                VECTORV *pvMin, VECTORV *pvMax) __asm__("CblipeProjectBlipTransformAccel");
+                                                VECTORV *pvMin, VECTORV *pvMax) __asm__("ProjectBlipTransformAccel");
 struct VU_FLOATA { qwordV qw; VU_FLOATA(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(f)); } VU_FLOATA() {} };
 static inline VU_FLOATM VuFloatDt()
 {

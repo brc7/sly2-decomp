@@ -1078,14 +1078,14 @@ struct O *func_001EC918(int n)
 namespace M_UpdateShaders { extern "C" {
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30-0x10]; void *pChild; char pad3[0x40-0x34]; struct O *pNext; };
-int FUpdatableSaa__FP3SAA(struct O *p);
+int ShouldUpdateSaa__FP3SAA(struct O *p);
 // For each SAA in (*(struct O * *)&g_sw.slSaa): if FUpdatableSaa call its vt8 (Update) (inferred)
 void UpdateShaders(void)
 {
     int unused[4];
     struct O *p;
     for (p = (*(struct O * *)&g_sw.slSaa); p && !p->pChild; p = p->pNext) {
-        if (FUpdatableSaa__FP3SAA(p)) p->vt[8].pf((char *)p + p->vt[8].d);
+        if (ShouldUpdateSaa__FP3SAA(p)) p->vt[8].pf((char *)p + p->vt[8].d);
     }
 }
 } } // namespace M_UpdateShaders

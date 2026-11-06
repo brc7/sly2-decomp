@@ -153,10 +153,10 @@ void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 
 void PostLoad(CFontBrx *pfont, FD *pfd, GSB *pgsb);
 CFontBrx *GetFontForEscapeChar(unsigned char ch);
-int FEnsureLoaded(CFont *pfont, GIFS *pgifs);
+int EnsureFontLoaded(CFont *pfont, GIFS *pgifs);
 void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs);
 void RegisterFont(CFont *pfont);
-GLYPH *PglyffFromCh(CFont *pfont, unsigned char ch);
+GLYPH *FindGlyphForChar(CFont *pfont, unsigned char ch);
 void CleanupDraw(CFont *pfont, CTextBox *ptbClip, GIFS *pgifs);
 }
 int IgsAllocGsb(GSB *pgsb, int cb);                         /* IgsAllocGsb__FP3GSBi */
@@ -244,7 +244,7 @@ void CFont::PopScaling()
 // font has no glyph for it).
 float CFontBrx::DxFromCh(char ch)
 {
-    GLYPH *pglyph = PglyffFromCh(this, ch);
+    GLYPH *pglyph = FindGlyphForChar(this, ch);
     if (pglyph)
         return (float)(pglyph->dx + 1) * m_rxScale;
     return (float)m_dxSpace * m_rxScale;
@@ -252,7 +252,7 @@ float CFontBrx::DxFromCh(char ch)
 
 // Ensures the font texture is uploaded this frame: tracks a per-frame bit in g_pfrmOpen+0x2C when drawing into g_gifs,
 // emits DMA REFs of the upload chain; returns whether a TEXFLUSH is needed. (inferred)
-int FEnsureLoaded(CFont *pfont, GIFS *pgifs)
+int EnsureFontLoaded(CFont *pfont, GIFS *pgifs)
 {
     int fLoad;
     if (pgifs == &D_002DEA00) {
@@ -276,7 +276,7 @@ int FEnsureLoaded(CFont *pfont, GIFS *pgifs)
     return fLoad;
 }
 
-// CFontBrx::SetupDraw: SCISSOR from the text box rectangle, FEnsureLoaded, TEXFLUSH if needed, then the sprite prim
+// CFontBrx::SetupDraw: SCISSOR from the text box rectangle, EnsureFontLoaded, TEXFLUSH if needed, then the sprite prim
 // list setup. (inferred)
 void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
 {
@@ -290,7 +290,7 @@ void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
         pgifs->AddPrimPack(0, 1, 0xE);
         pgifs->PackAD(0x40, (unsigned long)x0 | ((unsigned long)x1 << 16) | ((unsigned long)y0 << 32) | ((unsigned long)y1 << 48));
     }
-    fFlush = FEnsureLoaded(pfont, pgifs);
+    fFlush = EnsureFontLoaded(pfont, pgifs);
     pgifs->AddPrimPack(6, 1, 0xE);
     if (fFlush)
         pgifs->PackAD(0x3F, 0);
@@ -308,7 +308,7 @@ void SetupDraw(CFont *pfont, float *prc, GIFS *pgifs)
 // DxDrawCh fills per glyph.
 void CFontBrx::SwitchTex0(GIFS *pgifs)
 {
-    int f = FEnsureLoaded(this, pgifs);
+    int f = EnsureFontLoaded(this, pgifs);
     pgifs->AddPrimPack(6, 1, 0xe);
     if (f)
         pgifs->PackAD(0x3f, 0);
@@ -323,7 +323,7 @@ void CFontBrx::SwitchTex0(GIFS *pgifs)
 // and returns its advance width. Alpha is doubled into GS range (0x80 = opaque).
 float CFontBrx::DxDrawCh(char ch, float x, float y, unsigned int rgba, GIFS *pgifs)
 {
-    GLYPH *pglyph = PglyffFromCh(this, ch);
+    GLYPH *pglyph = FindGlyphForChar(this, ch);
     if (pglyph) {
         int dyTex = 1 << m_tex0bits.TH;
         float xRight = x + (float)pglyph->dx * m_rxScale;
@@ -389,7 +389,7 @@ void RegisterFont(CFont *pfont)
 }
 
 // Binary-searches the font glyph table for a character (via remap table D_002BE338)
-GLYPH *PglyffFromCh(CFont *p, unsigned char ch)
+GLYPH *FindGlyphForChar(CFont *p, unsigned char ch)
 {
     int key = D_002BE338[ch];
     int lo = 0;

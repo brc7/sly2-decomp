@@ -411,7 +411,7 @@ union UF { qword q; float f; };
 struct VTE { short d; short pad; int (*pfn)(...); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 struct POX { char pad[0x2DC]; int x2DC; };        /* the current player as UpdateTnCallback reads it */
-struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GDistPlanePos) */
+struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GetPlaneDistance) */
 extern SW D_003DD490;
 extern "C" {
 extern const float D_002A96E0;   /* defined below where the ELF has it (.rodata order) */
@@ -475,7 +475,7 @@ void FindShapeClosestPointFromS(SHAPE *p, qword q, float g, int a, int b, int c,
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 qword SetVectorSphere(float a, float b, float c);
 void CutCm__FP2CM(CM *pcm);
-int FFilterCamera(void *pv, SO *pso);
+int HasCameraBsp(void *pv, SO *pso);
 void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
 qword ConvertCmWorldToScreen(CM *pcm, qword pos);
 qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
@@ -491,7 +491,7 @@ void ProjectPointOntoTnPath(TN *p, qword v, qword *out, qword *normal);
 void SelectTnfnForId(TN *p, int id);
 void ClearTnTnfn(TN *p);
 void UpdateCptnTarget(CMPART2 *p, CPDEFI *b);
-float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n);
+float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n);
 }
 /* Callers' own views (asm labels): their argument order / count is what g++ loads the registers in. */
 struct COEF { float a, b, c, d; };
@@ -819,7 +819,7 @@ extern "C" int GetTnTnfn(TN *p) {
 }
 
 // Returns current TNFN pointer (0x118); base getter for TN splice properties. (inferred)
-extern "C" CPD *PtnfnFromTn(TN *p) {
+extern "C" CPD *GetTnfnOfTn(TN *p) {
     return p->pcpd;
 }
 
@@ -1646,7 +1646,7 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
     STACKSCOPE scope;
     int cpso;
     SOPART **apso;
-    IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], FFilterCamera, 0, &cpso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], HasCameraBsp, 0, &cpso, &apso);
     for (i = 0; i < 5; i++, pqw++)
     {
         aqw[2] = ConvertCmWorldToScreen(&D_002DDF40, *pqw);
@@ -1664,7 +1664,7 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
 }
 
 // Signed distance of pos to a plane. (inferred)
-float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n)
+float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n)
 {
     UF d, one;
     qword plane, td, tone;
@@ -1681,7 +1681,7 @@ float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n)
 }
 
 /* AvoidCptnSegmentObstacles: moves the camera eye off obstacles: the clear position nearest the hero, then the best of a fan of
-   cylindrical offsets around begin -> end, squished against the camera hulls (SquishCmEye with GDistPlanePos).
+   cylindrical offsets around begin -> end, squished against the camera hulls (SquishCmEye with GetPlaneDistance).
    (Claude agent) MATCH: the loop's SetVectorCylind result is a plain qword local; gcc emits the qmtc2 itself and schedules it. */
 struct CAMS {void *object;char pad[0x30];int state;};
 struct SCOPEW {SCOPEW(){(void)STACKSCOPE_ctor((MARK *)this);}~SCOPEW(){STACKSCOPE_ctor_1AE4A0((MARK *)this,2);}};
@@ -1706,7 +1706,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
     float one=1.0f;
     w.minimum.q=Min(begin,Min(end,func_001A62E8(object)));
     w.maximum.q=Max(begin,Max(end,func_001A62E8(object)));
-    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,FFilterCamera,0,&w.count,&w.objects);
+    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,HasCameraBsp,0,&w.count,&w.objects);
     int count=w.count; SOPART **objects=w.objects;
     w.origin.q=FindCmClosestClearPos(count,objects,func_001A62E8(object),500.0f);
     FFindCmClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
@@ -1736,7 +1736,7 @@ extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *o
         }while(angle<3.1415927f);
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
-    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GDistPlanePos,w.candidate.q,w.candidate.q,D_002DDF40.sNearCorner,D_002DDF40.sNearCorner));
+    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,D_002DDF40.sNearCorner,D_002DDF40.sNearCorner));
     FFindCmClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;

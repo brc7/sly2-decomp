@@ -3378,9 +3378,9 @@ int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
  * Purpose: GLYFF* = &glyphs[i] for i = 0x215A50(ch)
  * Info: proposed name CFontBrx_PglyffFromCh (T1); TU hud
  * Notes: names_v2 C proposed ShowTotalsQMARK (0.167) | agent qualifier: pointer form | COLLISION:
- *   PglyffFromCh already used (same name proposed for 0x15F8A8); renamed to PglyffFromCh_216B40 | superseded:
+ *   FindGlyphForChar already used (same name proposed for 0x15F8A8); renamed to PglyffFromCh_216B40 | superseded:
  *   PglyffFromCh_216B40 (arbitration) | arbitration knock-on rename: CONFIRMED static: char arg (andi 0xff),
- *   returns GLYFF* or NULL = Sly1 CFontBrx::PglyffFromCh contract. | arbitration mangling: compile a
+ *   returns GLYFF* or NULL = Sly1 CFontBrx::FindGlyphForChar contract. | arbitration mangling: compile a
  *   declaration in the scratch build and compare before committing
  * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
  *   sources: r7c_hud+arbitration

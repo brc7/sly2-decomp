@@ -198,7 +198,7 @@ UQ *func_002564B8(UQ *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(REQ *);
-int FFilterCamera(void *, O *);
+int HasCameraBsp(void *, O *);
 void IntersectSwBoundingBox(SW *, qwordV, qwordV, int (*)(void *, O *), void *, int *, O ***);
 int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
@@ -360,7 +360,7 @@ extern "C" void func_0022A220(O *po)
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;
     IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
-                  FFilterCamera, 0, &cpso, &apso);
+                  HasCameraBsp, 0, &cpso, &apso);
     qwordV dpos = VuSub(posSrc, posCam);
     int nso = cpso;
     float sMax = ZOfN(dpos, nso) / LenXYFN(dpos, nso);

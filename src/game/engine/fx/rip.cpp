@@ -69,7 +69,7 @@ struct RIP
     virtual void Update(float dt) __asm__("UpdateRip");   /* slot 5 */
     virtual void Render(CM *pcm) __asm__("RenderRip");   /* slot 6 */
     virtual void Touch(int fRemove) __asm__("TouchRip__FP3RIPi");   /* slot 7 */
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceRip");   /* slot 8 */
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("HandleRipBounce");   /* slot 8 */
 };
 typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
 /* The kinds, in the reverse of their emission order (vtables 0x2D7738 .. 0x2D7468; RIP's 0x2D7788 last). DRAFT
@@ -796,7 +796,7 @@ void CalculateWaterCurrent(void*,qw,qw*,qw*);
 qw GetXfVelocity(void*,void*,qw);
 void ForceRipFade__FP3RIPf(RIP*,float);
 void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
-int FBounceRip(RIP*,SHAPE*,qw,qw);
+int HandleRipBounce(RIP*,SHAPE*,qw,qw);
 }
 static inline float Max(float a,float b){return a<b?b:a;}
 static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
@@ -817,7 +817,7 @@ static inline qw PrepareOffsetTorque(qw normal,float amount,WORK&w){register qw 
 }
 static inline SHAPE*CaptureShape(SHAPE*incoming){register SHAPE*saved __asm__("$17");__asm__("daddu %0,%1,$zero":"=r"(saved):"r"(incoming));return saved;}
 // RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade. (inferred)
-int FBounceRip(RIP*p,SHAPE*incomingShape,qw point,qw normal){
+int HandleRipBounce(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  SHAPE*shape=CaptureShape(incomingShape);
  WORK w;float radius,elastic,friction;void*owner;
  {register qw incomingNormal __asm__("vf8");__asm__("qmtc2.ni %1,%0":"=j"(incomingNormal):"r"(normal));
@@ -1302,7 +1302,7 @@ extern "C" void SubscribeRipObject(RIP *prip, LO *plo)
 SLY2_SCRAP("addiu $sp, $sp, 0x40");
 
 // Returns 0x110 (largest RIP subclass size) for the rip pool. (inferred)
-extern "C" int CbMaxRip()
+extern "C" int GetMaxRipSize()
 {
     return 0x110;
 }
@@ -1528,9 +1528,9 @@ struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct A { int x0; struct B *pb; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int FBounceRip(void *p, struct A *pa, qword q0, qword q1);
+int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
 void RemoveRip__FP3RIP(void *p);
-// SHRAPNEL FBounce: FBounceRip then remove on condition. (inferred)
+// SHRAPNEL FBounce: HandleRipBounce then remove on condition. (inferred)
 } } // namespace M_FBounceShrapnel
 int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
@@ -1543,7 +1543,7 @@ int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the nam
         RemoveRip__FP3RIP(p);
         return 1;
     }
-    return FBounceRip(p, pa, q0, q1);
+    return HandleRipBounce(p, pa, q0, q1);
 }
 
 namespace M_RenderShrapnel__FP8SHRAPNELP2CM {

@@ -503,7 +503,7 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
-int FPausedEmitter(EMITTERV *p) __asm__("FPausedEmitter__FP7EMITTER");
+int FPausedEmitter(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
 void PauseEmitter(EMITTERV *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
 void PauseEmitterIndefinite(EMITTERV *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void ModifyEmitterParticles(EMITTERV *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
@@ -670,7 +670,7 @@ extern "C" { extern CLOCK D_002DDED0; }
 struct EMITTERV { char pad[0xF0]; int k; int c; char pad2[0x148 - 0xF8]; float tUnpause; };
 // Returns whether the emitter is paused: before its unpause time, or (count modes 0 and 1) with no particles left to
 // emit.
-extern "C" int FPausedEmitter__FP7EMITTER(EMITTERV *pemitter)
+extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
 {
     if (D_002DDED0.t < pemitter->tUnpause)
         return 1;
@@ -1396,7 +1396,7 @@ extern CM D_002DDF40;
 extern char D_003DD490[];
 PRG *PblipgNew(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
-BLK *PblipNew(void *pv, PRG *pprg);
+BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int NRandInRange__Fii(int nMin, int nMax);
 float GRandInRange__Fff(float gMin, float gMax);
@@ -1434,7 +1434,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c
     }
     BLK *pblk = pprg->pblkFirst;
     int k = 0;
-    while (k < c && (pblk || (pblk = PblipNew(D_003DD490, pprg)))) {
+    while (k < c && (pblk || (pblk = NewBlip(D_003DD490, pprg)))) {
         qword *pq1 = pblk->afr[1].apos;
         for (unsigned int i = pblk->c; i < 43 && k < c; k++, i++) {
             FR *pfr = &pblk->afr[0];

@@ -150,7 +150,7 @@ extern "C" int AddSaaCopyRecord(SAAV *p, void *a1, void *a2)
 
 // Returns 1 the first time it is called in a frame (stamps the animation with the clock time), 0 after: an SAA shared
 // by several shaders is advanced only once per frame.
-int FUpdatableSaa(SAAV *p) __asm__("FUpdatableSaa__FP3SAA");
+int FUpdatableSaa(SAAV *p) __asm__("ShouldUpdateSaa__FP3SAA");
 int FUpdatableSaa(SAAV *p) {
     if (p->tUpdated != D_002DDED0.t) {
         p->tUpdated = D_002DDED0.t;
@@ -164,7 +164,7 @@ extern "C" void UpdateSaa(SAAV *p) {
 }
 
 // Base completion fraction (0..1) of an animation cycle: always 0.
-float UCompleteSaa(SAAV *p) __asm__("UCompleteSaa__FP3SAA");
+float UCompleteSaa(SAAV *p) __asm__("GetSaaCompletion__FP3SAA");
 float UCompleteSaa(SAAV *p) {
     return 0.0f;
 }
@@ -252,7 +252,7 @@ void UpdateLoop(LOOPV *ploop, float dt)
 }
 
 // Completion fraction of a LOOP cycle including its pause: elapsed frame time / (cycle time + pause).
-float UCompleteLoop(LOOPV *p) __asm__("UCompleteLoop__FP4LOOP");
+float UCompleteLoop(LOOPV *p) __asm__("GetLoopCompletion__FP4LOOP");
 float UCompleteLoop(LOOPV *p) {
     float dframe = p->dframe;
     return (p->iframe / dframe) / (((float)p->cframe / dframe) + p->dtPause);
@@ -307,7 +307,7 @@ void UpdatePingpong(PINGPONGV *ppingpong, float dt)
 }
 
 // Completion fraction of a PINGPONG round trip including its pause (the backward half counts from 2*cframe down).
-float UCompletePingpong(PINGPONGV *ppingpong) __asm__("UCompletePingpong__FP8PINGPONG");
+float UCompletePingpong(PINGPONGV *ppingpong) __asm__("GetPingpongCompletion__FP8PINGPONG");
 float UCompletePingpong(PINGPONGV *ppingpong)
 {
     float absDframe = ppingpong->dframe;
@@ -477,7 +477,7 @@ void SCROLLER::VSlot8()
 
 // Completion fraction of a SCROLLER: the average of its u and v offsets as fractions of their wrap ranges (0.5 for an
 // axis that does not move).
-float UCompleteScroller(SCROLLERV *pscroller) __asm__("UCompleteScroller__FP8SCROLLER");
+float UCompleteScroller(SCROLLERV *pscroller) __asm__("GetScrollerCompletion__FP8SCROLLER");
 float UCompleteScroller(SCROLLERV *pscroller)
 {
     float uComp = 0.0f;
@@ -527,7 +527,7 @@ void UpdateCircler(CIRCLERV *pcircler, float dt)
 }
 
 // Completion fraction of a CIRCLER: its angle modulo 2*pi, over 2*pi.
-float UCompleteCircler(CIRCLERV *pcircler) __asm__("UCompleteCircler__FP7CIRCLER");
+float UCompleteCircler(CIRCLERV *pcircler) __asm__("GetCirclerCompletion__FP7CIRCLER");
 float UCompleteCircler(CIRCLERV *pcircler)
 {
     float angle = D_002DDED0.t * pcircler->radsSpeed;

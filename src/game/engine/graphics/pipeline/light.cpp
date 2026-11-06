@@ -147,7 +147,7 @@ void AddLightToSw(SWL *s, LIGHTV *o);
 void RemoveLightFromSw(SWL *p, LIGHTV *q);
 struct RESULT;
 void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results);
-int FSphereHitsSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
+int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
 }
 int FFloatsNear(float a, float b, float eps) __asm__("FFloatsNear__Ffff");
 float cosf(float) __asm__("cosf");
@@ -625,7 +625,7 @@ void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results)
     }
 }
 
-/* FSphereHitsSpheres (Claude agent, wave-3 lane 9): does a sphere (pos, sRadius) touch a chain of spheres? First every sphere of the
+/* DoesSphereHitSpheres (Claude agent, wave-3 lane 9): does a sphere (pos, sRadius) touch a chain of spheres? First every sphere of the
  * chain is tested on its own, then the capsule-like hull between each adjacent pair: the common tangent line of the two circles
  * (normal n = u * s + perp * sqrt(1 - s*s) with u the unit axis, s = (r0 - r1) / |axis|) gives the tangent points A and B; the
  * point touches when its distance to the tangent is below sRadius and its projection onto AB falls inside the segment.
@@ -676,7 +676,7 @@ static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
 }
 static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
 // True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones)
-int FSphereHitsSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
+int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
 {
     int i;
     float sDist;
@@ -873,7 +873,7 @@ extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
             spheres[1].sRadius = p->limit * extent / dist;
             spheres[2].pos = AddScaledQ(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].sRadius = 0;
-            packet.kind = FSphereHitsSpheres(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
+            packet.kind = DoesSphereHitSpheres(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
             {
                 uchar *pb = D_002DEA28.m_pb;
                 p->pbBasis = pb;

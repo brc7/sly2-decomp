@@ -1106,7 +1106,7 @@ qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, q
 
 // Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0) (inferred)
 /* Camera filter callback: accepts objects whose +0x70 word is positive. */
-extern "C" int FFilterCamera(void *pv, LO *plo)
+extern "C" int HasCameraBsp(void *pv, LO *plo)
 {
     return *(int *)((char *)plo + 0x70) > 0;
 }
@@ -1177,7 +1177,7 @@ void *STACKSCOPE_ctor(STACKSCOPE *p);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *p, int n) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 qword SquishCmEye(void *p, int i, int j, void *pfn, qword a, qword v, float g, float h);
-void FFilterCamera(void);
+void HasCameraBsp(void);
 void SvSquishCmEyeConstraint(void);
 qword func_0014F110(void *p, qword pos, qword posTarget);
 }
@@ -1210,7 +1210,7 @@ qword func_0014F110(void *p, qword pos, qword posTarget)
     qword posMin = Add(pos, D_002BD8F0);
     qword posMax = Add(pos, D_002BD900);
     STACKSCOPE frame;
-    IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)FFilterCamera, 0, &ii, &jj);
+    IntersectSwBoundingBox(D_003DD490, posMin, posMax, (void *)HasCameraBsp, 0, &ii, &jj);
     qword w = SquishCmEye(p, ii, jj, (void *)SvSquishCmEyeConstraint, pos, v, D_002BD8D8, Length(v) + D_002BD8DC);
     qword r = AddScaled(pos, w, VU_FLOAT(&pclock->dtPrev));
     return r;

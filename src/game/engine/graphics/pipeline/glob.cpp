@@ -957,7 +957,7 @@ namespace M_RenderSoGlobset {
 //   are VU helper inlines (lw/qmfc2/mtc1 VU_FLOAT-style, as in Lilly's files) or commented empty asms; globals are D_ names only.
 // lilly5 (Claude agent, T1703, 2026-10-26): MATCH (728/728, frame 0x290). NOT in src/hand only because of the team's one-pin rule:
 //   the microprogram 0x1C0 inputs/outputs are register variables bound to vf10..vf19 (20 `register ... __asm__("vfN")`, as in
-//   UnpackSubglobBones.c / CblipeProjectBlipTransformAccel lilly1.c); the orchestrator counts each as a pin. No GPR/FPU pins.
+//   UnpackSubglobBones.c / ProjectBlipTransformAccel lilly1.c); the orchestrator counts each as a pin. No GPR/FPU pins.
 //   From lilly3 (aligned 2), cull 2 (GCullSphereSync) only: (1) qmfc2 straight into a float "=r" (the qmfc2 output becomes a reload
 //   in v0, reload's copy is the mtc1 v0,f0, so the i+1 reload after it gets v1 by round robin); (2) cfc2 outputs only vf19, an empty
 //   `"=j"(qwDpos)` asm declares vf18, and one empty `"+j"(qwDpos)` asm with a dead "$3" clobber: two no-code insns ready right after
@@ -1146,7 +1146,7 @@ extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 extern "C" {
 void SubmitGlobsetRelight(MODEL *pmodel);
-int FUpdatableSaa__FP3SAA(OBJ *pobj);
+int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
@@ -1352,7 +1352,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     for (i = 0; i < pmodel->cobj; i++)
     {
         OBJ *pobj = pmodel->apobj[i];
-        if (FUpdatableSaa__FP3SAA(pobj))
+        if (ShouldUpdateSaa__FP3SAA(pobj))
         {
             VTENT *pvte = &pobj->pvt[8];
             pvte->pfn((char *)pobj + pvte->delta);
@@ -1665,7 +1665,7 @@ extern "C" {
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void BuildLightPackets(G *pg, int c, void **apv, SHD *pshd);
-int FUpdatableSaa__FP3SAA(OBJ *pobj);
+int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
 int GetRenderTargetTexture(ALO *palo, int n);
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
@@ -1767,7 +1767,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
     for (i = 0; i < pmodel->cobj; i++)
     {
         OBJ *pobj = pmodel->apobj[i];
-        if (FUpdatableSaa__FP3SAA(pobj))
+        if (ShouldUpdateSaa__FP3SAA(pobj))
         {
             VTENT *pvte = &pobj->pvt[8];
             pvte->pfn((char *)pobj + pvte->delta);
