@@ -1487,7 +1487,7 @@ Spool__18CBinaryAsyncStream,0x132930,25,match,src/game/core/binstream/bas.cpp
 Skip__18CBinaryAsyncStreami,0x132998,4,match,src/game/core/binstream/bas.cpp
 StaticInit_bas,0x1329A8,77,match,src/game/core/binstream/bas.cpp
 func_00132AE0,0x132AE0,8,match,src/game/core/binstream/bas.cpp
-func_00132B00,0x132B00,2,match,src/game/object/basic.cpp
+BASIC_Slot1Default,0x132B00,2,match,src/game/object/basic.cpp
 BASIC_Slot2Default,0x132B08,2,match,src/game/object/basic.cpp
 FIsBasicDerivedFrom__FP5BASIC3CID,0x132B10,25,match,src/game/object/basic.cpp
 EnsureBasicSidebag__FP5BASIC,0x132B78,20,match,src/game/object/basic.cpp
@@ -2274,7 +2274,7 @@ func_0015C650,0x15C650,15,match,src/game/engine/fx/emitter.cpp
 FireExplsExplso,0x15C690,273,match,src/game/engine/fx/emitter.cpp
 func_0015CAD8,0x15CAD8,155,match,src/game/engine/fx/emitter.cpp
 func_0015CD48,0x15CD48,8,match,src/game/engine/fx/emitter.cpp
-func_0015CD68,0x15CD68,16,match,src/game/ui/tu_15CD68.cpp
+InitEpisodeMenu,0x15CD68,16,match,src/game/ui/tu_15CD68.cpp
 PostEpisodeMenuLoad,0x15CDA8,98,match,src/game/ui/tu_15CD68.cpp
 UpdateEpisodeMenu,0x15CF30,421,match,src/game/ui/tu_15CD68.cpp
 GetEpisodeMenuLabelOid,0x15D5C8,32,match,src/game/ui/tu_15CD68.cpp
@@ -5690,7 +5690,7 @@ StaticInit_vol,0x227E90,77,match,src/game/engine/physics/vol.cpp
 func_00227FC8,0x227FC8,8,match,src/game/engine/physics/vol.cpp
 FindWarpByOid,0x227FE8,58,match,src/game/level/exit_warp.cpp
 FindDefaultExit,0x2280D0,27,match,src/game/level/exit_warp.cpp
-func_00228140,0x228140,11,match,src/game/level/exit_warp.cpp
+LoadTeleportDestinationFromBrx,0x228140,11,match,src/game/level/exit_warp.cpp
 PutHeroAtWarp,0x228170,29,match,src/game/level/exit_warp.cpp
 InitExit,0x2281E8,26,match,src/game/level/exit_warp.cpp
 LoadWarpBlobFromBrx,0x228250,24,match,src/game/level/exit_warp.cpp

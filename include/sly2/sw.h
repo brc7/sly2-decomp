@@ -274,7 +274,7 @@ struct SW : public BASIC
 
       float tHudTimerEnd;
       int csecHudTimerShown;
-      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (func_0015CD68 registers itself, tu_15CD68.cpp); was _pad_357 */
+      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (InitEpisodeMenu registers itself, tu_15CD68.cpp); was _pad_357 */
       int cpemitTracked;
       struct EMITTER *apemitTracked[4];
       uint32_t   _pad_360    [ 1 ] ;

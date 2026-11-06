@@ -250,7 +250,7 @@ struct BASIC
          inline in sly2/classes.h (its definition makes g++ instantiate the CRefPtr destructors, whose pointees are
          incomplete in most includers; only class_registry constructs classes). */
       BASIC();
-      virtual void VUnk00() __asm__("func_00132B00");
+      virtual void VUnk00() __asm__("BASIC_Slot1Default");
       virtual void VUnk01() __asm__("BASIC_Slot2Default");
       virtual void HandleSpliceEvent(uint symidEvent, int fPost, int cargs, void **ppvargs, int nUnk) __asm__("HandleBasicSpliceEvent");
       virtual void SendMessage(MSGID msgid, void *pv) __asm__("SendLoMessage");
