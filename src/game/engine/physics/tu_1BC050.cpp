@@ -75,8 +75,10 @@ struct VU_VECTOR { qword qw; VU_VECTOR(const qword &q) { qw = q; } };
 
 extern "C" {
 extern DLI *D_002DD2FC;
-/* tu_1BC050's .data (address order; the 24 ints after D_002C0AC4 are named by no code and not claimed). */
+/* tu_1BC050's .data (address order; the 24 ints after D_002C0AC4 are named by no code: claimed by layout, the rest
+   of the gap before tu_1BE398's .data: 24 words, rows of 4 by their pattern; type unknown). */
 float D_002C0AB0 = 1.0f, D_002C0AB4 = 1.0f, D_002C0AB8 = 0.2f, D_002C0ABC = 10.0f, D_002C0AC0 = 50.0f, D_002C0AC4 = 200.0f;
+int D_002C0AC8[24] = {1, 1, 2, 1, 4, 2, 8, 4, 2, 2, 2, 2, 4, 2, 8, 4, 4, 4, 4, 4, 4, 4, 8, 4};
 extern const float D_002A76D0;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A76D4;   /* defined below where the ELF has it (.rodata order) */
 extern qword D_002A2DC0, D_002A2DD0;
