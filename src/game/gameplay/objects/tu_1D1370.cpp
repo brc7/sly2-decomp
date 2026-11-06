@@ -1,5 +1,7 @@
 // tu_1D1370.cpp -- the robot tank (RC car, a PO: input, AI, acceleration presets, contacts, health, rendering,
-// states) and the RC pickup. TU 0x1D1370..0x1D5150 (44 functions, address order).
+// states) and the RC pickup (CID108, ammo). Entry points: the ROBOTTANK and CID108 vtables, the Splice setters
+// (AddRobottankWheel/Weapon/Attachment, SetRobottankAmmo, SetRobottankTactic...) and the pickup callback
+// CollectRobottankPickup. TU 0x1D1370..0x1D5150 (44 functions, address order).
 //
 // Types: ROBOTTANK, RCPICKUP and small XP/XPLIST/SMS views are TU-private, written for the 9 m2c bodies (aseg.h SMA
 // and SM for the animation machine); the other functions keep the per-function views they were matched with, each
@@ -46,12 +48,12 @@ struct XPLISTV { int pad0[2]; XP *pxpFirst; };
 extern CLOCK D_002DDED0;
 extern "C" {
 extern const float D_002A7834;   /* defined below where the ELF has it (.rodata order) */
-void OnPoActive(ROBOTTANKV *ptank, int fActive);
-void SetRobottankState(ROBOTTANKV *ptank, int nState);
-void UpdateRobottankHealthMeter(ROBOTTANKV *ptank);
+void OnPoActive(ROBOTTANKV *tank, int fActive);
+void SetRobottankState(ROBOTTANKV *tank, int nState);
+void UpdateRobottankHealthMeter(ROBOTTANKV *tank);
 void SeekSma(SMA *psma, OID oidState);
 void func_001CB518(void *plo);
-void SetRcPickupState(RCPICKUP *ppickup, int nState);
+void SetRcPickupState(RCPICKUP *pickup, int nState);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 }
 
@@ -140,16 +142,16 @@ typedef char native_layout_13[(OFF(OBJ,a)==0x4FC)?1:-1];
 
 // health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0). (inferred)
 /* Full health, the meter updated, the animation machine back to its first state, state 0. */
-extern "C" void ResetRobottankHealth(ROBOTTANKV *ptank)
+extern "C" void ResetRobottankHealth(ROBOTTANKV *tank)
 {
     SMA *psma;
-    ptank->hp = ptank->hpMax;
-    UpdateRobottankHealthMeter(ptank);
-    psma = ptank->psma;
+    tank->hp = tank->hpMax;
+    UpdateRobottankHealthMeter(tank);
+    psma = tank->psma;
     if (psma != 0) {
         SeekSma(psma, psma->psm->asms->oid);
     }
-    SetRobottankState(ptank, 0);
+    SetRobottankState(tank, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -366,21 +368,21 @@ typedef char native_layout_58[(OFF(P,path)==0x5AC)?1:-1];
 } // namespace M_PostRobottankLoad
 
 // CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth. (inferred)
-extern "C" void ResetRobottank(ROBOTTANKV *ptank)
+extern "C" void ResetRobottank(ROBOTTANKV *tank)
 {
-    func_001CB518(ptank);
-    ResetRobottankHealth(ptank);
+    func_001CB518(tank);
+    ResetRobottankHealth(tank);
 }
 
 // CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2.
 void ROBOTTANK::OnActive(int fActive)
 {
-    ROBOTTANKV *ptank = (ROBOTTANKV *)this;
-    OnPoActive(ptank, fActive);
+    ROBOTTANKV *tank = (ROBOTTANKV *)this;
+    OnPoActive(tank, fActive);
     if (fActive != 0) {
-        SetRobottankState(ptank, 2);
-    } else if (ptank->nState == 2) {
-        SetRobottankState(ptank, 0);
+        SetRobottankState(tank, 2);
+    } else if (tank->nState == 2) {
+        SetRobottankState(tank, 0);
     }
 }
 
@@ -444,6 +446,7 @@ static inline float DistanceAndVelocity(qword a,qword velocity,U&home){qword r=a
 static inline float Evaluate(const POLY &p,float t){return p.a+t*(p.b+t*p.c);}
 static inline float Clamp(float v,float low,float high){if(v<low)return low;else if(high<v)return high;else return v;}
 static inline float Abs(float f){return __builtin_fabsf(f);}
+// Zeroes the tank's turn and drive inputs and makes its current heading the goal heading (stop in place).
 static inline void ResetDrive(P *p){
  register float zero __asm__("$f1"),heading __asm__("$f0");
  __asm__("mtc1 $zero,%0\n\t"
@@ -850,6 +853,7 @@ void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,floa
 float atan2f(float, float);
 static inline float GetX(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
+// Distance between two points in the xy plane.
 static inline float Dist2D(qword a, qword b)
 {
     qword d;
@@ -860,12 +864,14 @@ static inline float Dist2D(qword a, qword b)
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
 }
+// Clamps a value to a range.
 static inline float Clamp(float x, float lo, float hi)
 {
     if (x < lo) return lo;
     if (hi < x) return hi;
     return x;
 }
+// base + vec * scale.
 static inline qword AddScaled(qword a, qword b, float f)
 {
     U u;
@@ -876,6 +882,7 @@ static inline qword AddScaled(qword a, qword b, float f)
     __asm__("vadda.xyzw $ACC, %2, $vf0\n\tvmaddx.xyzw %0, %3, %1x" : "=j"(v) : "j"(u.q), "j"(a), "j"(b));
     return v;
 }
+// Unit vector of v, or the fallback for a near-zero vector.
 static inline qword NormalizeOr(qword value,qword fallback)
 {
     register qword length __asm__("vf1");
@@ -991,6 +998,7 @@ static inline VV Add(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j
 static inline float GetX(VV q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float GetY(VV q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float GetZ(VV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
+// Length of the xy part of a vector.
 static inline float Length2D(VV v)
 {
     qword r;
@@ -1000,6 +1008,7 @@ static inline float Length2D(VV v)
     return GetX(r);
 }
 static inline float Dist2D(VV a, VV b) { return Length2D(Sub(a, b)); }
+// Dot product.
 static inline VV Dot(VV a, VV b)
 {
     qword r, one;
@@ -1009,6 +1018,7 @@ static inline VV Dot(VV a, VV b)
 }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
+// Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = Sqrt(Dot(v, v));
@@ -1018,6 +1028,7 @@ static inline VV NormalizeSafe(VV v, VV fallback)
 }
 static inline VU_FLOAT VuFloatFromMemWord(int n) { VU_FLOAT v; __asm__("qmtc2.ni %1, %0" : "=j"(v.q) : "rV"(n)); return v; }
 static inline VV operator*(VU_FLOAT g, VV v) { qword r; __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r) : "j"(g.q), "j"(v)); return r; }
+// Rotates a vector by a 3x3 matrix.
 static inline VV Rotate(const M3 &m, VV v)
 {
     qword r;
@@ -1184,7 +1195,7 @@ extern "C" void UpdateRobottankAi(P *p)
 // Return the contact in an XP list with the largest +0x90 value (deepest). (inferred)
 /* The contact of the list with the largest separation above D_002A7834, or 0. */
 namespace RO_ORDER { extern const float r_D_002A7834 __asm__("D_002A7834") = -3.40282347e+38f; }
-extern "C" XP *FindDeepestRobottankWheelXp(ROBOTTANKV *ptank, XPLISTV *pxplist)
+extern "C" XP *FindDeepestRobottankWheelXp(ROBOTTANKV *tank, XPLISTV *pxplist)
 {
     float g;
     float gMax;
@@ -1278,6 +1289,7 @@ static inline VV AddScaled(qword origin, qword axis, qword amount)
     __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(origin), "j"(axis), "j"(amount));
     return r;
 }
+// Dot product.
 static inline float Dot(VV a, VV b)
 {
     qword r, one;
@@ -1286,6 +1298,7 @@ static inline float Dot(VV a, VV b)
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(r));
     return f;
 }
+// Rotates a vector by a 3x3 matrix.
 static inline VV Rotate(const M3 &m, VV v)
 {
     __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z" : "+j"(v) : "j"(m.rows[0].q), "j"(m.rows[1].q), "j"(m.rows[2].q));
@@ -1464,6 +1477,7 @@ static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swa
 static inline void ClearAb(void *pv, int cb) { func_002333B4(pv, 0, cb); }
 static inline float Sqrt(float f) { float r; __asm__ __volatile__("sqrt.s %0,%1" : "=&f"(r) : "f"(f)); return r; }
 
+// Signed distance of a point from a plane.
 static inline float PlaneDist(qword plane, qword pos)
 {
     SCALAR dot, one;
@@ -1476,6 +1490,7 @@ static inline float PlaneDist(qword plane, qword pos)
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(dot.q), "j"(r));   /* allocation-only "j"(r): edge-loop dot stays in a vf (sqc2 home) */
     return f;
 }
+// Signed distance of a point from a plane (variant returning the VU temporaries).
 static inline float PlaneDistTo(qword plane, qword pos)   /* support pass: no extra ref, so point outranks plane+r (vf1/vf2) */
 {
     SCALAR dot, one;
@@ -1488,6 +1503,7 @@ static inline float PlaneDistTo(qword plane, qword pos)   /* support pass: no ex
     __asm__("mtc1 %1,%0" : "=f"(f) : "r"(dot.q));
     return f;
 }
+// Dot product.
 static inline float Dot(qword a, qword b)
 {
     qword r, one;
@@ -1499,6 +1515,7 @@ static inline float Dot(qword a, qword b)
 /* returning the compare as a value gives the target's li 1 / move 0 setcc in this arm only */
 static inline int FOutsideRadius(qword v, float r) { return r * r < Dot(v, v); }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Weighted sum a*sa + b*sb.
 static inline qword Lerp(qword a, const VU_FLOATQ &sa, qword b, const VU_FLOATQ &sb)
 {
     qword r;
@@ -1517,6 +1534,7 @@ static inline void BuildFrame(M4 *pm, const M4 *src, qword pos)
     pm->r[1].bits[3] = 0;
     pm->r[0].bits[3] = 0;
 }
+// 4x4 matrix times point.
 static inline VU_VECTOR Transform(const M4 &m, VU_VECTOR vv)
 {
     qword r;
@@ -1524,6 +1542,7 @@ static inline VU_VECTOR Transform(const M4 &m, VU_VECTOR vv)
             : "=j"(r) : "j"(m.r[0].q), "j"(m.r[1].q), "j"(m.r[2].q), "j"(m.r[3].q), "j"(vv.q));
     return VU_VECTOR(r);
 }
+// Packs floats into a VU vector.
 static inline qword Pack(float x, float y, float z)
 {
     qword q, t;
@@ -1533,12 +1552,14 @@ static inline qword Pack(float x, float y, float z)
 static inline float Clamp(float v, float low, float high) { if (v < low) return low; else if (high < v) return high; else return v; }
 static inline float Min(float a, float b) { return b < a ? b : a; }
 static inline VU_VECTOR Scale(const qword &a, const VU_FLOAT &s) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(s.q)); return VU_VECTOR(r); }
+// Weighted sum a*sa + b*sb (first use in the wheel loop; the duplicated operand fixes the register order).
 static inline VU_VECTOR BlendStart(const qword &a, const VU_FLOAT &sa, const qword &b, const VU_FLOAT &sb)   /* "j"(sb.q) twice: height qword VU-class -> spilled */
 {
     qword r;
     __asm__("vmulax.xyzw $ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x" : "=j"(r) : "j"(a), "j"(sa.q), "j"(b), "j"(sb.q), "j"(sb.q));   /* 2nd "j"(sb.q): allocation-only */
     return VU_VECTOR(r);
 }
+// Weighted sum a*sa + b*sb (in-loop variant).
 static inline VU_VECTOR Blend(const qword &a, const VU_FLOAT &sa, const qword &b, const VU_FLOAT &sb)   /* in-loop: height copy below radius (vf8/vf7) */
 {
     qword r;
@@ -1907,6 +1928,7 @@ void RenderSoSelf(P*);
 }
 static inline float Abs(float f){float r;__asm__("abs.s %0,%1":"=f"(r):"f"(f));return r;}
 static inline M3 Rotation(qword axis,float angle) return r{func_0011B500(&r,axis,angle);}
+// Matrix product.
 static inline M3 Mul(const M3&a,const M3&b) return r{
  qword x=a.r[0].q,y=a.r[1].q,z=a.r[2].q;
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0].q):"j"(x),"j"(y),"j"(z),"j"(b.r[0].q));
@@ -2008,6 +2030,7 @@ static inline VU_VECTOR4 VecZero() { VU_VECTOR4 v; v.q = Zero(); return v; }
 static inline VV Add(VV a, VV b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Sub(VV a, VV b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline VV Sqrt(VV v) { qword r; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(v)); return r; }
+// Dot product.
 static inline VV Dot(VV a, VV b)
 {
     qword r, one;
@@ -2018,6 +2041,7 @@ static inline VV Dot(VV a, VV b)
 static inline VV Length(VV v) { return Sqrt(Dot(v, v)); }
 static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
 static inline VV DivideQ(VV v, VV l) { qword r; __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r) : "j"(l), "j"(v)); return r; }
+// Unit vector of v, or the fallback for a near-zero vector.
 static inline VV NormalizeSafe(VV v, VV fallback)
 {
     VV len = Length(v);
@@ -2185,11 +2209,11 @@ void SetRobottankState(OBJ *p, int n)
 
 // Set AI tactic x188 with timestamp x18C. (inferred)
 /* Sets the second state (+0x188), stamping the time. */
-extern "C" void SetRobottankTactic(ROBOTTANKV *ptank, int nState)
+extern "C" void SetRobottankTactic(ROBOTTANKV *tank, int nState)
 {
-    if (nState != ptank->nState188) {
-        ptank->nState188 = nState;
-        ptank->tState188 = D_002DDED0.t;
+    if (nState != tank->nState188) {
+        tank->nState188 = nState;
+        tank->tState188 = D_002DDED0.t;
     }
 }
 
@@ -2233,6 +2257,7 @@ struct X : B {
     char pad[0xB0 - 0x3C];
 };
 struct OBJ { char pad[0x4F8]; unsigned int n; X *a[8]; };
+// Allocates a weapon record from the world heap and sets its vtable (D_002C94A0).
 static inline X *CreateItem(OBJ *owner) {
  void *allocated=func_001AE4F8(sizeof(X));
  register X *item __asm__("$16");
@@ -2323,15 +2348,15 @@ void SetRobottankAmmo(struct S *p, int i, float g, int n) {
 } } // namespace M_func_001D4CE0
 
 // Get field +0x574 of 12-byte slot i. (inferred)
-extern "C" int GetRobottankSlotValue(ROBOTTANKV *ptank, int i)
+extern "C" int GetRobottankSlotValue(ROBOTTANKV *tank, int i)
 {
-    return ptank->arec[i].n;
+    return tank->arec[i].n;
 }
 
 // Set field +0x574 of 12-byte slot i. (inferred)
-extern "C" void SetRobottankSlotValue(ROBOTTANKV *ptank, int i, int n)
+extern "C" void SetRobottankSlotValue(ROBOTTANKV *tank, int i, int n)
 {
-    ptank->arec[i].n = n;
+    tank->arec[i].n = n;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -2441,11 +2466,11 @@ void PostRcPickupLoad(struct S *p) {
 } } // namespace M_PostRcPickupLoad
 
 // CID 108 vt26: proxy base then state -1 -> 0 (respawn). (inferred)
-extern "C" void ResetRobottankPickup(RCPICKUP *ppickup)
+extern "C" void ResetRobottankPickup(RCPICKUP *pickup)
 {
-    func_001CB518(ppickup);
-    SetRcPickupState(ppickup, -1);
-    SetRcPickupState(ppickup, 0);
+    func_001CB518(pickup);
+    SetRcPickupState(pickup, -1);
+    SetRcPickupState(pickup, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
