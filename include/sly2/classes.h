@@ -672,8 +672,8 @@ typedef char assert_BHVPATH_size[sizeof(BHVPATH) == 0xC0 ? 1 : -1];
 struct BHVWALKGOAL : BHVPATH
 {
     char padC0[0xE0 - 0xC0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBhvwalkgoalClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvwalkgoal");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBhvwalkgoalClassDesc");   /* slot 6 */
     virtual void Start() __asm__("StartBhvwalkgoal");   /* slot 8 */
     virtual void VSlot10() __asm__("UpdateBhvwalkgoal");   /* slot 10 */
     virtual void VSlot14() __asm__("UpdateBhvwalkgoalPoctl");   /* slot 14 */
@@ -684,8 +684,8 @@ typedef char assert_BHVWALKGOAL_size[sizeof(BHVWALKGOAL) == 0xE0 ? 1 : -1];
 struct BHV193 : BHV
 {
     char pad30[0x50 - 0x30];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv193ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_00144E20");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv193ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("func_00144E68");   /* slot 8 */
 };
 typedef char assert_BHV193_size[sizeof(BHV193) == 0x50 ? 1 : -1];
@@ -694,9 +694,9 @@ typedef char assert_BHV193_size[sizeof(BHV193) == 0x50 ? 1 : -1];
 struct BHVFOLLOW : BHV
 {
     char pad30[0xA0 - 0x30];
+    virtual void Start() __asm__("StartBhvfollow");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhvfollowClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("InitBhvfollow");   /* slot 7 */
-    virtual void Start() __asm__("StartBhvfollow");   /* slot 8 */
     virtual void VSlot9() __asm__("CloseBhvfollow");   /* slot 9 */
     virtual void VSlot10() __asm__("UpdateBhvfollow");   /* slot 10 */
 };
@@ -706,10 +706,10 @@ typedef char assert_BHVFOLLOW_size[sizeof(BHVFOLLOW) == 0xA0 ? 1 : -1];
 struct BHV195 : BHV
 {
     char pad30[0x40 - 0x30];
+    virtual void VSlot9() __asm__("func_00145D68");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv195ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_00145CD0");   /* slot 7 */
     virtual void Start() __asm__("func_00145D00");   /* slot 8 */
-    virtual void VSlot9() __asm__("func_00145D68");   /* slot 9 */
     virtual void VSlot10() __asm__("func_00145DB0");   /* slot 10 */
     virtual void VSlot14() __asm__("func_00146068");   /* slot 14 */
 };
@@ -719,10 +719,10 @@ typedef char assert_BHV195_size[sizeof(BHV195) == 0x40 ? 1 : -1];
 struct BHV196 : BHV
 {
     char pad30[0x40 - 0x30];
+    virtual void VSlot9() __asm__("func_00146260");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv196ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_001461C8");   /* slot 7 */
     virtual void Start() __asm__("func_001461F8");   /* slot 8 */
-    virtual void VSlot9() __asm__("func_00146260");   /* slot 9 */
     virtual void VSlot10() __asm__("func_001462A8");   /* slot 10 */
     virtual void VSlot14() __asm__("func_00146560");   /* slot 14 */
 };
@@ -732,10 +732,10 @@ typedef char assert_BHV196_size[sizeof(BHV196) == 0x40 ? 1 : -1];
 struct BHV197 : BHV
 {
     char pad30[0x40 - 0x30];
+    virtual void VSlot9() __asm__("func_00146758");   /* slot 9 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv197ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_001466C0");   /* slot 7 */
     virtual void Start() __asm__("func_001466F0");   /* slot 8 */
-    virtual void VSlot9() __asm__("func_00146758");   /* slot 9 */
     virtual void VSlot10() __asm__("func_001467A0");   /* slot 10 */
     virtual void VSlot14() __asm__("func_00146B18");   /* slot 14 */
 };
@@ -745,8 +745,8 @@ typedef char assert_BHV197_size[sizeof(BHV197) == 0x40 ? 1 : -1];
 struct BHV198 : BHV
 {
     char pad30[0x40 - 0x30];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv198ClassDesc");   /* slot 6 */
     virtual void Start() __asm__("func_00146E98");   /* slot 8 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBhv198ClassDesc");   /* slot 6 */
     virtual void VSlot9() __asm__("func_00146EE0");   /* slot 9 */
     virtual void VSlot10() __asm__("func_00146F18");   /* slot 10 */
 };
