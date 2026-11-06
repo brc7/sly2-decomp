@@ -1,5 +1,11 @@
-// relay.cpp -- relays (RELAY, scripted command lists) and the scripts that run them (JSG). TU 0x1DFAD8..0x1E5D60
-// (141 functions, address order).
+// relay.cpp -- relays (RELAY): the level scripts' cutscene/sequence lists. A relay is built at load time by its Splice
+// init (the AddRelay* builders append one RELAYCMD each: blocks, waits, alarms, actor moves, camera, sounds, widgets,
+// hands-off...). Firing it starts a script (JSG, here also called a relay script) per block; each frame
+// UpdateRelayScript steps its script through NextJsgCommand until a command is not yet complete
+// (IsJsgCommandComplete). Entry points: the RELAY vtable (InitRelay, LoadRelayFromBrx, CloneRelay, UpdateRelay),
+// FireRelay / FireRelayFromPlayer / StopRelay / ResetRelay / IsRelayFiring (used by other objects), the AddRelay*
+// Splice builders and the JSG vtable (AddJsgRef, ReleaseJsg, HandleJsgMessage).
+// TU 0x1DFAD8..0x1E5D60 (141 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_relay
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001E5D60
 // The two Lilly ports (NextJsgCommand, FIsJsgCommandComplete) share one set of type copies at file scope (identical
@@ -374,7 +380,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs);
 struct JSGV : public BASIC
 {
       int cref;
-      struct RELAYV *prelay;
+      struct RELAYV *relay;
       LO *ploContext;
       LO *ploBlock;
       LO *ploActorDefault;
@@ -420,33 +426,33 @@ struct JSGV : public BASIC
 
 struct JSGREF
 {
-    JSGV *pjsg;
+    JSGV *script;
     JSGREF(JSGV *pjsgHold)
     {
-        pjsg = pjsgHold;
-        pjsg->VUnk00();
+        script = pjsgHold;
+        script->VUnk00();
     }
     ~JSGREF()
     {
-        pjsg->VUnk01();
+        script->VUnk01();
     }
 };
 
-void SetJsgHandsOff(JSGV *pjsg, int fHandsOff, int grfHandsOff) __asm__("SetRelayScriptHandsOff");
+void SetJsgHandsOff(JSGV *script, int fHandsOff, int grfHandsOff) __asm__("SetRelayScriptHandsOff");
 
-void GetJsgLocation(JSGV *pjsg, LO *plo, qword *ppos, float *prad) __asm__("GetJsgTargetPosHeading");
+void GetJsgLocation(JSGV *script, LO *plo, qword *ppos, float *prad) __asm__("GetJsgTargetPosHeading");
 
-void SetJsgJt(JSGV *pjsg, struct RELAYCMD *prelaycmdJt, LO *pjt) __asm__("SetRelayScriptActor");
+void SetJsgJt(JSGV *script, struct RELAYCMD *prelaycmdJt, LO *pjt) __asm__("SetRelayScriptActor");
 
-void EndJsgJtMode(JSGV *pjsg) __asm__("ClearJsgJtMode");
+void EndJsgJtMode(JSGV *script) __asm__("ClearJsgJtMode");
 
-void SetJsgFocus(JSGV *pjsg, LO *plo) __asm__("SetRelayScriptFocus");
+void SetJsgFocus(JSGV *script, LO *plo) __asm__("SetRelayScriptFocus");
 
-void SetJsgTn(JSGV *pjsg, TN *ptn) __asm__("SetJsgTunnel");
+void SetJsgTn(JSGV *script, TN *ptn) __asm__("SetJsgTunnel");
 
-void UpdateJsg(JSGV *pjsg) __asm__("UpdateRelayScript");
+void UpdateJsg(JSGV *script) __asm__("UpdateRelayScript");
 
-LO *PloFindJsgObject(JSGV *pjsg, OID oid) __asm__("FindJsgObject");
+LO *PloFindJsgObject(JSGV *script, OID oid) __asm__("FindJsgObject");
 
 struct VU_FLOAT
 {
@@ -1022,23 +1028,23 @@ struct PARTLINK
       undefined4 unk_0x10[0xD0 / 4];
 };
 
-JSGV *PjsgStartBlock(RELAYV *prelay, RELAYCMD *prelaycmdBegin, JSGV *pjsgParent) __asm__("NewRelayJsg");
+JSGV *PjsgStartBlock(RELAYV *relay, RELAYCMD *prelaycmdBegin, JSGV *pjsgParent) __asm__("NewRelayJsg");
 
-JSGV *PjsgFindRelayBlock(RELAYV *prelay, OID oidLabel, JSGV *pjsgExcept) __asm__("FindRelayBlockScript");
+JSGV *PjsgFindRelayBlock(RELAYV *relay, OID oidLabel, JSGV *pjsgExcept) __asm__("FindRelayBlockScript");
 
-void EndJsg(JSGV *pjsg) __asm__("RemoveJsg");
+void EndJsg(JSGV *script) __asm__("RemoveJsg");
 
-extern "C" void AddJsgStepHold(JSGV *pjsg, LO *plo, int n5, int n6);
+extern "C" void AddJsgStepHold(JSGV *script, LO *plo, int n5, int n6);
 
-extern "C" void RemoveJsgStepHold(JSGV *pjsg, LO *plo, int n5, int n6);
+extern "C" void RemoveJsgStepHold(JSGV *script, LO *plo, int n5, int n6);
 
-void StartJsgCamBlend(JSGV *pjsg, RELAYCMD *prelaycmdFrom, RELAYCMD *prelaycmdTo, float dt) __asm__("StartRelayScriptCamBlend");
+void StartJsgCamBlend(JSGV *script, RELAYCMD *prelaycmdFrom, RELAYCMD *prelaycmdTo, float dt) __asm__("StartRelayScriptCamBlend");
 
-void PopJsgCamBlend(JSGV *pjsg, int n) __asm__("EndJsgCamBlend");
+void PopJsgCamBlend(JSGV *script, int n) __asm__("EndJsgCamBlend");
 
-float DtJsgCommand(JSGV *pjsg, RELAYCMD *prelaycmd) __asm__("GetJsgCommandDuration");
+float DtJsgCommand(JSGV *script, RELAYCMD *prelaycmd) __asm__("GetJsgCommandDuration");
 
-extern "C" void func_0020FFF0(SW *psw, OID *aoid, LO *ploContext, int grf, JSGV *pjsg, SMA **ppsma);
+extern "C" void func_0020FFF0(SW *psw, OID *aoid, LO *ploContext, int grf, JSGV *script, SMA **ppsma);
 
 extern "C" int func_00210B68();
 
@@ -1052,7 +1058,7 @@ extern "C" void func_001B9C00(MURRAY *pmurray, SMA *psma, int n7, int n6, int n8
 
 extern "C" void func_001B9880(MURRAY *pmurray);
 
-void ReleaseJsgSma(JSGV *pjsg) __asm__("ClearJsgSma");
+void ReleaseJsgSma(JSGV *script) __asm__("ClearJsgSma");
 
 extern "C" void func_00220508(MOVEREC *pmr, LO *plo);
 
@@ -1210,9 +1216,9 @@ void StopStepClip(STEPPLAYER *pstepplayer) __asm__("func_00143FF8");
 
 void SetJtGoalPos(JTGOAL *pjtgoal, qword qwPos) __asm__("SetJtgoal");
 
-void RemoveRelayAlarm(RELAYV *prelay, ALARM *palarm) __asm__("RemoveAlarmFromRelay");
+void RemoveRelayAlarm(RELAYV *relay, ALARM *palarm) __asm__("RemoveAlarmFromRelay");
 
-int FRelayHasAlarm(RELAYV *prelay, ALARM *palarm) __asm__("IsRelayAlarm");
+int FRelayHasAlarm(RELAYV *relay, ALARM *palarm) __asm__("IsRelayAlarm");
 
 int FStepGoalIs(STEP *pstep, SSG *pssg) __asm__("func_00171DA8");
 
@@ -1228,15 +1234,15 @@ extern SW D_003DD490;           /* g_sw */
 int FFindDlEntry(DL *pdl, void *pv);
 extern "C" {
 LO *PpoHero(SW *psw);
-void FireRelay(RELAYV *prelay, LO *ploFirer);
-void StopRelay(RELAYV *prelay);
-RELAYCMD *AddRelayCommand(RELAYV *prelay, int relayck, int fAsync);
+void FireRelay(RELAYV *relay, LO *ploFirer);
+void StopRelay(RELAYV *relay);
+RELAYCMD *AddRelayCommand(RELAYV *relay, int relayck, int fAsync);
 void EndJtMode(JTMODE *pjtmode);
-void UnsubscribeLoAll(JSGV *pjsg);
+void UnsubscribeLoAll(JSGV *script);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
-void func_00143DE8(LO *pjt, JSGV *pjsg);
+void func_00143DE8(LO *pjt, JSGV *script);
 }
 
 // 0x1DFAD8 InitRelay
@@ -1335,6 +1341,7 @@ void UpdateLo(OBJ *);
 void UpdateRelayScript(void *);
 int FIsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
+// Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -1343,6 +1350,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Returns the current element and advances the iterator.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->ppv;
@@ -1445,9 +1453,9 @@ void FireRelay(OBJ *p, int n)
 // 0x1DFE80 FireRelayFromPlayer
 // FireRelay(prelay, PpoCur()). (inferred)
 /* Fires the relay with the hero as the firer. */
-extern "C" void FireRelayFromPlayer(RELAYV *prelay)
+extern "C" void FireRelayFromPlayer(RELAYV *relay)
 {
-    FireRelay(prelay, PpoHero(&D_003DD490));
+    FireRelay(relay, PpoHero(&D_003DD490));
 }
 
 // 0x1DFEB8 StopRelay
@@ -1474,6 +1482,7 @@ struct OBJ {
 void RemoveJsg(void *);
 void ClearRelayAlarms(OBJ *);
 void SetLoBusyk(OBJ *, int);
+// Starts a safe iteration over a DL (pushes the iterator on the global iterator stack).
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
     pdli->pdl = pdl;
@@ -1482,6 +1491,7 @@ static inline void InitDli(DLI *pdli, DL *pdl)
     pdli->pdliNext = D_002DD2FC;
     D_002DD2FC = pdli;
 }
+// Returns the current element and advances the iterator.
 static inline void *PvNextDli(DLI *pdli)
 {
     void *pv = *pdli->ppv;
@@ -1517,9 +1527,9 @@ void StopRelay(OBJ *p)
 
 // 0x1DFFD8 IsRelayFiring
 // return fFiring (+0x74). (inferred)
-extern "C" int IsRelayFiring(RELAYV *prelay)
+extern "C" int IsRelayFiring(RELAYV *relay)
 {
-    return prelay->fFiring;
+    return relay->fFiring;
 }
 
 // 0x1DFFE0 ResetRelay
@@ -1584,34 +1594,34 @@ int IsRelayAlarm(struct ASEG *paseg, int n)
 
 // 0x1E0120 ClearRelayAlarms
 // calarm=0. (inferred)
-extern "C" void ClearRelayAlarms(RELAYV *prelay)
+extern "C" void ClearRelayAlarms(RELAYV *relay)
 {
-    prelay->calarm = 0;
+    relay->calarm = 0;
 }
 
 // 0x1E0128 GetRelaySignalContext
 // If the signal-waiting JSG (+0x68 pjsgSignal) is on a Signal command (kind 9) return its +0x18 (ploContext), else 0.
 // (inferred)
 /* The context object of the relay's signalling script, if it is waiting on a signal command (0 otherwise). */
-extern "C" LO *GetRelaySignalContext(RELAYV *prelay)
+extern "C" LO *GetRelaySignalContext(RELAYV *relay)
 {
-    JSGV *pjsg;
-    pjsg = prelay->pjsgSignal;
-    if ((pjsg == 0) || (pjsg->prelaycmdCur->relayck != RELAYCK_Signal)) {
+    JSGV *script;
+    script = relay->pjsgSignal;
+    if ((script == 0) || (script->prelaycmdCur->relayck != RELAYCK_Signal)) {
         return 0;
     }
-    return pjsg->ploContext;
+    return script->ploContext;
 }
 
 // 0x1E0158 SetRelaySignalContext
 // Setter counterpart of 0x1E0128. (inferred)
 /* Sets the context object of the relay's signalling script, if it is waiting on a signal command. */
-extern "C" void SetRelaySignalContext(RELAYV *prelay, LO *plo)
+extern "C" void SetRelaySignalContext(RELAYV *relay, LO *plo)
 {
-    JSGV *pjsg;
-    pjsg = prelay->pjsgSignal;
-    if ((pjsg != 0) && (pjsg->prelaycmdCur->relayck == RELAYCK_Signal)) {
-        pjsg->ploContext = plo;
+    JSGV *script;
+    script = relay->pjsgSignal;
+    if ((script != 0) && (script->prelaycmdCur->relayck == RELAYCK_Signal)) {
+        script->ploContext = plo;
     }
 }
 
@@ -1675,25 +1685,25 @@ struct CMD *AddRelayCommand(struct Q *pq, int kind, int b)
 // 0x1E0290 AddRelayBlockBegin
 // Splice builtin: append a RELAYCK 0x0 (BlockBegin) command to the relay (AddRelayCommand(prelay,0x0,fAsync)) and
 // fill its args.
-extern "C" void AddRelayBlockBegin(RELAYV *prelay, OID oidLabel)
+extern "C" void AddRelayBlockBegin(RELAYV *relay, OID oidLabel)
 {
-    AddRelayCommand(prelay, RELAYCK_BlockBegin, 1)->blockBegin.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_BlockBegin, 1)->blockBegin.oidLabel = oidLabel;
 }
 
 // 0x1E02C0 AddRelayBlockEnd
 // Splice builtin: append a RELAYCK 0x1 (BlockEnd) command to the relay (AddRelayCommand(prelay,0x1,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayBlockEnd(RELAYV *prelay)
+extern "C" void AddRelayBlockEnd(RELAYV *relay)
 {
-    AddRelayCommand(prelay, RELAYCK_BlockEnd, 1);
+    AddRelayCommand(relay, RELAYCK_BlockEnd, 1);
 }
 
 // 0x1E02E0 AddRelayStopBlock
 // Splice builtin: append a RELAYCK 0x2 (StopBlock) command to the relay (AddRelayCommand(prelay,0x2,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayStopBlock(RELAYV *prelay, OID oidLabel)
+extern "C" void AddRelayStopBlock(RELAYV *relay, OID oidLabel)
 {
-    AddRelayCommand(prelay, RELAYCK_StopBlock, 1)->stopBlock.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_StopBlock, 1)->stopBlock.oidLabel = oidLabel;
 }
 
 // 0x1E0310 AddRelayWaitBlocks
@@ -1728,10 +1738,10 @@ void AddRelayWaitBlocks(void *pq, void *x)
 // 0x1E03A0 AddRelayWaitAlarm
 // Splice builtin: append a RELAYCK 0x4 (WaitAlarm) command to the relay (AddRelayCommand(prelay,0x4,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayWaitAlarm(RELAYV *prelay, int idAlarm, int fForget)
+extern "C" void AddRelayWaitAlarm(RELAYV *relay, int idAlarm, int fForget)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_WaitAlarm, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_WaitAlarm, 0);
     prelaycmd->waitAlarm.idAlarm = idAlarm;
     prelaycmd->waitAlarm.fForget = fForget;
 }
@@ -1739,10 +1749,10 @@ extern "C" void AddRelayWaitAlarm(RELAYV *prelay, int idAlarm, int fForget)
 // 0x1E03E0 AddRelayRaiseAlarm
 // Splice builtin: append a RELAYCK 0x5 (RaiseAlarm) command to the relay (AddRelayCommand(prelay,0x5,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayRaiseAlarm(RELAYV *prelay, int idAlarm, OID oidRelay)
+extern "C" void AddRelayRaiseAlarm(RELAYV *relay, int idAlarm, OID oidRelay)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_RaiseAlarm, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_RaiseAlarm, 1);
     prelaycmd->raiseAlarm.idAlarm = idAlarm;
     prelaycmd->raiseAlarm.oidRelay = oidRelay;
 }
@@ -1750,33 +1760,33 @@ extern "C" void AddRelayRaiseAlarm(RELAYV *prelay, int idAlarm, OID oidRelay)
 // 0x1E0420 AddRelayStopRelay
 // Splice builtin: append a RELAYCK 0x6 (StopRelay) command to the relay (AddRelayCommand(prelay,0x6,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayStopRelay(RELAYV *prelay, OID oidRelay)
+extern "C" void AddRelayStopRelay(RELAYV *relay, OID oidRelay)
 {
-    AddRelayCommand(prelay, RELAYCK_StopRelay, 1)->stopRelay.oidRelay = oidRelay;
+    AddRelayCommand(relay, RELAYCK_StopRelay, 1)->stopRelay.oidRelay = oidRelay;
 }
 
 // 0x1E0450 AddRelaySetCtlState
 // Splice builtin: append a RELAYCK 0x7 (SetCtlState) command to the relay (AddRelayCommand(prelay,0x7,fAsync)) and
 // fill its args.
-extern "C" void AddRelaySetCtlState(RELAYV *prelay, OID oidObj)
+extern "C" void AddRelaySetCtlState(RELAYV *relay, OID oidObj)
 {
-    AddRelayCommand(prelay, RELAYCK_SetCtlState, 1)->setCtlState.oidObj = oidObj;
+    AddRelayCommand(relay, RELAYCK_SetCtlState, 1)->setCtlState.oidObj = oidObj;
 }
 
 // 0x1E0480 AddRelaySetActor
 // Splice builtin: append a RELAYCK 0x8 (SetActor) command to the relay (AddRelayCommand(prelay,0x8,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelaySetActor(RELAYV *prelay, OID oidActor)
+extern "C" void AddRelaySetActor(RELAYV *relay, OID oidActor)
 {
-    AddRelayCommand(prelay, RELAYCK_SetActor, 1)->setActor.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_SetActor, 1)->setActor.oidActor = oidActor;
 }
 
 // 0x1E04B0 AddRelaySignal
 // Splice builtin: append a RELAYCK 0x9 (Signal) command to the relay (AddRelayCommand(prelay,0x9,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelaySignal(RELAYV *prelay, int idSignal)
+extern "C" void AddRelaySignal(RELAYV *relay, int idSignal)
 {
-    AddRelayCommand(prelay, RELAYCK_Signal, 1)->signal.idSignal = idSignal;
+    AddRelayCommand(relay, RELAYCK_Signal, 1)->signal.idSignal = idSignal;
 }
 
 // 0x1E04E0 AddRelayPlayAseg
@@ -1797,10 +1807,10 @@ void AddRelayPlayAseg(void *pq, int a, int b, int c, int d)
 // 0x1E0530 AddRelayFireRelay
 // Splice builtin: append a RELAYCK 0xB (FireRelay) command to the relay (AddRelayCommand(prelay,0xB,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayFireRelay(RELAYV *prelay, OID oidRelay, OID oidFirer, int fAsync)
+extern "C" void AddRelayFireRelay(RELAYV *relay, OID oidRelay, OID oidFirer, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_FireRelay, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_FireRelay, fAsync);
     prelaycmd->fireRelay.oidRelay = oidRelay;
     prelaycmd->fireRelay.oidFirer = oidFirer;
 }
@@ -1808,9 +1818,9 @@ extern "C" void AddRelayFireRelay(RELAYV *prelay, OID oidRelay, OID oidFirer, in
 // 0x1E0570 AddRelaySetContext
 // Splice builtin: append a RELAYCK 0xC (SetContext) command to the relay (AddRelayCommand(prelay,0xC,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelaySetContext(RELAYV *prelay, OID oidContext)
+extern "C" void AddRelaySetContext(RELAYV *relay, OID oidContext)
 {
-    AddRelayCommand(prelay, RELAYCK_SetContext, 1)->setContext.oidContext = oidContext;
+    AddRelayCommand(relay, RELAYCK_SetContext, 1)->setContext.oidContext = oidContext;
 }
 
 // 0x1E05A0 AddRelayApplySm
@@ -1832,10 +1842,10 @@ void AddRelayApplySm(void *pq, int a, int b, int c, int x, int d)
 // 0x1E0610 AddRelayWidgetShow
 // Splice builtin: append a RELAYCK 0xE (WidgetShow) command to the relay (AddRelayCommand(prelay,0xE,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayWidgetShow(RELAYV *prelay, OID oidWidget, int idLabel, int fAsync)
+extern "C" void AddRelayWidgetShow(RELAYV *relay, OID oidWidget, int idLabel, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_WidgetShow, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_WidgetShow, fAsync);
     prelaycmd->widgetShow.oidWidget = oidWidget;
     prelaycmd->widgetShow.idLabel = idLabel;
 }
@@ -1843,26 +1853,26 @@ extern "C" void AddRelayWidgetShow(RELAYV *prelay, OID oidWidget, int idLabel, i
 // 0x1E0650 AddRelayWidgetHide
 // Splice builtin: append a RELAYCK 0xF (WidgetHide) command to the relay (AddRelayCommand(prelay,0xF,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayWidgetHide(RELAYV *prelay, OID oidWidget)
+extern "C" void AddRelayWidgetHide(RELAYV *relay, OID oidWidget)
 {
-    AddRelayCommand(prelay, RELAYCK_WidgetHide, 1)->widgetHide.oidWidget = oidWidget;
+    AddRelayCommand(relay, RELAYCK_WidgetHide, 1)->widgetHide.oidWidget = oidWidget;
 }
 
 // 0x1E0680 AddRelaySetClockRate
 // Splice builtin: append a RELAYCK 0x10 (SetClockRate) command to the relay (AddRelayCommand(prelay,0x10,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelaySetClockRate(RELAYV *prelay, float rate)
+extern "C" void AddRelaySetClockRate(RELAYV *relay, float rate)
 {
-    AddRelayCommand(prelay, RELAYCK_SetClockRate, 1)->setClockRate.rate = rate;
+    AddRelayCommand(relay, RELAYCK_SetClockRate, 1)->setClockRate.rate = rate;
 }
 
 // 0x1E06B0 AddRelaySetTaskState
 // Splice builtin: append a RELAYCK 0x11 (SetTaskState) command to the relay (AddRelayCommand(prelay,0x11,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelaySetTaskState(RELAYV *prelay, OID oidTask, int nState)
+extern "C" void AddRelaySetTaskState(RELAYV *relay, OID oidTask, int nState)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_SetTaskState, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetTaskState, 1);
     prelaycmd->setTaskState.oidTask = oidTask;
     prelaycmd->setTaskState.nState = nState;
 }
@@ -1870,10 +1880,10 @@ extern "C" void AddRelaySetTaskState(RELAYV *prelay, OID oidTask, int nState)
 // 0x1E06F0 AddRelayHandsOff
 // Splice builtin: append a RELAYCK 0x12 (HandsOff) command to the relay (AddRelayCommand(prelay,0x12,fAsync)) and
 // fill its args.
-extern "C" void AddRelayHandsOff(RELAYV *prelay, int fHandsOff, int grfHandsOff)
+extern "C" void AddRelayHandsOff(RELAYV *relay, int fHandsOff, int grfHandsOff)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_HandsOff, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_HandsOff, 1);
     prelaycmd->handsOff.fHandsOff = fHandsOff;
     prelaycmd->handsOff.grfHandsOff = grfHandsOff;
 }
@@ -1881,26 +1891,26 @@ extern "C" void AddRelayHandsOff(RELAYV *prelay, int fHandsOff, int grfHandsOff)
 // 0x1E0730 AddRelayLabel
 // Splice builtin: append a RELAYCK 0x13 (Label) command to the relay (AddRelayCommand(prelay,0x13,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayLabel(RELAYV *prelay, OID oidLabel)
+extern "C" void AddRelayLabel(RELAYV *relay, OID oidLabel)
 {
-    AddRelayCommand(prelay, RELAYCK_Label, 1)->label.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_Label, 1)->label.oidLabel = oidLabel;
 }
 
 // 0x1E0760 AddRelayGotoLabel
 // Splice builtin: append a RELAYCK 0x14 (GotoLabel) command to the relay (AddRelayCommand(prelay,0x14,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayGotoLabel(RELAYV *prelay, OID oidLabel)
+extern "C" void AddRelayGotoLabel(RELAYV *relay, OID oidLabel)
 {
-    AddRelayCommand(prelay, RELAYCK_GotoLabel, 1)->gotoLabel.oidLabel = oidLabel;
+    AddRelayCommand(relay, RELAYCK_GotoLabel, 1)->gotoLabel.oidLabel = oidLabel;
 }
 
 // 0x1E0790 AddRelayGotoLabelIf
 // Splice builtin: append a RELAYCK 0x15 (GotoLabelIf) command to the relay (AddRelayCommand(prelay,0x15,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayGotoLabelIf(RELAYV *prelay, OID oidLabel, int nValue)
+extern "C" void AddRelayGotoLabelIf(RELAYV *relay, OID oidLabel, int nValue)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_GotoLabelIf, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_GotoLabelIf, 1);
     prelaycmd->gotoLabelIf.oidLabel = oidLabel;
     prelaycmd->gotoLabelIf.nValue = nValue;
 }
@@ -1923,18 +1933,18 @@ void AddRelayTeleportTo(void *pq, int a, int b, int c)
 // 0x1E0820 AddRelayCutCamera
 // Splice builtin: append a RELAYCK 0x17 (CutCamera) command to the relay (AddRelayCommand(prelay,0x17,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayCutCamera(RELAYV *prelay)
+extern "C" void AddRelayCutCamera(RELAYV *relay)
 {
-    AddRelayCommand(prelay, RELAYCK_CutCamera, 1);
+    AddRelayCommand(relay, RELAYCK_CutCamera, 1);
 }
 
 // 0x1E0840 AddRelaySetTunnel
 // Splice builtin: append a RELAYCK 0x18 (SetTunnel) command to the relay (AddRelayCommand(prelay,0x18,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelaySetTunnel(RELAYV *prelay, OID oidTunnel, OID oidActor)
+extern "C" void AddRelaySetTunnel(RELAYV *relay, OID oidTunnel, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_SetTunnel, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetTunnel, 1);
     prelaycmd->setTunnel.oidTunnel = oidTunnel;
     prelaycmd->setTunnel.oidActor = oidActor;
 }
@@ -1942,10 +1952,10 @@ extern "C" void AddRelaySetTunnel(RELAYV *prelay, OID oidTunnel, OID oidActor)
 // 0x1E0880 AddRelaySetFocus
 // Splice builtin: append a RELAYCK 0x19 (SetFocus) command to the relay (AddRelayCommand(prelay,0x19,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelaySetFocus(RELAYV *prelay, OID oidFocus, OID oidActor)
+extern "C" void AddRelaySetFocus(RELAYV *relay, OID oidFocus, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_SetFocus, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetFocus, 1);
     prelaycmd->setFocus.oidFocus = oidFocus;
     prelaycmd->setFocus.oidActor = oidActor;
 }
@@ -1968,9 +1978,9 @@ void AddRelayPipeTo(void *pq, int a, int b, int c, float g)
 // 0x1E0910 AddRelayCommand1B
 // Splice builtin: append a RELAYCK 0x1B (Unk1B) command to the relay (AddRelayCommand(prelay,0x1B,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand1B(RELAYV *prelay, OID oidActor)
+extern "C" void AddRelayCommand1B(RELAYV *relay, OID oidActor)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk1B, 0)->unk1B.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk1B, 0)->unk1B.oidActor = oidActor;
 }
 
 // 0x1E0940 AddRelayHeroState
@@ -1991,10 +2001,10 @@ void AddRelayHeroState(void *pq, int a, int b, int c, int d)
 // 0x1E0990 AddRelayStepCmd1D
 // Splice builtin: append a RELAYCK 0x1D (StepCmd1D) command to the relay (AddRelayCommand(prelay,0x1D,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd1D(RELAYV *prelay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepCmd1D(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_StepCmd1D, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1D, 0);
     prelaycmd->stepCmd1D.oidGoal = oidGoal;
     prelaycmd->stepCmd1D.oidActor = oidActor;
 }
@@ -2017,10 +2027,10 @@ void AddRelayStepCmd1E(void *pq, int a, int b, int c)
 // 0x1E0A20 AddRelayStepCmd1F
 // Splice builtin: append a RELAYCK 0x1F (StepCmd1F) command to the relay (AddRelayCommand(prelay,0x1F,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd1F(RELAYV *prelay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepCmd1F(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_StepCmd1F, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd1F, 0);
     prelaycmd->stepCmd1F.oidGoal = oidGoal;
     prelaycmd->stepCmd1F.oidActor = oidActor;
 }
@@ -2028,10 +2038,10 @@ extern "C" void AddRelayStepCmd1F(RELAYV *prelay, OID oidGoal, OID oidActor)
 // 0x1E0A60 AddRelayStepCmd20
 // Splice builtin: append a RELAYCK 0x20 (StepCmd20) command to the relay (AddRelayCommand(prelay,0x20,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd20(RELAYV *prelay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepCmd20(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_StepCmd20, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd20, 0);
     prelaycmd->stepCmd20.oidGoal = oidGoal;
     prelaycmd->stepCmd20.oidActor = oidActor;
 }
@@ -2039,10 +2049,10 @@ extern "C" void AddRelayStepCmd20(RELAYV *prelay, OID oidGoal, OID oidActor)
 // 0x1E0AA0 AddRelayStepCmd21
 // Splice builtin: append a RELAYCK 0x21 (StepCmd21) command to the relay (AddRelayCommand(prelay,0x21,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStepCmd21(RELAYV *prelay, OID oidGoal, OID oidActor)
+extern "C" void AddRelayStepCmd21(RELAYV *relay, OID oidGoal, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_StepCmd21, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_StepCmd21, 0);
     prelaycmd->stepCmd21.oidGoal = oidGoal;
     prelaycmd->stepCmd21.oidActor = oidActor;
 }
@@ -2114,17 +2124,17 @@ void AddRelayGoTo_1E0C08(void *pq, int a, int x, int c, int d, float g, float h)
 // 0x1E0C78 AddRelayRunOn
 // Splice builtin: append a RELAYCK 0x25 (RunOn) command to the relay (AddRelayCommand(prelay,0x25,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayRunOn(RELAYV *prelay)
+extern "C" void AddRelayRunOn(RELAYV *relay)
 {
-    AddRelayCommand(prelay, RELAYCK_RunOn, 1);
+    AddRelayCommand(relay, RELAYCK_RunOn, 1);
 }
 
 // 0x1E0C98 AddRelayRunOff
 // Splice builtin: append a RELAYCK 0x26 (RunOff) command to the relay (AddRelayCommand(prelay,0x26,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayRunOff(RELAYV *prelay)
+extern "C" void AddRelayRunOff(RELAYV *relay)
 {
-    AddRelayCommand(prelay, RELAYCK_RunOff, 1);
+    AddRelayCommand(relay, RELAYCK_RunOff, 1);
 }
 
 // 0x1E0CB8 AddRelayFollowPath
@@ -2213,10 +2223,10 @@ void AddRelayLaunchTo(void *pq, int a, int b, int c, float g, float h)
 // 0x1E0ED8 AddRelayAddObject
 // Splice builtin: append a RELAYCK 0x2C (AddObject) command to the relay (AddRelayCommand(prelay,0x2C,fAsync)) and
 // fill its args.
-extern "C" void AddRelayAddObject(RELAYV *prelay, OID oidObj, int fAsync, float dtFade)
+extern "C" void AddRelayAddObject(RELAYV *relay, OID oidObj, int fAsync, float dtFade)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_AddObject, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_AddObject, fAsync);
     prelaycmd->addObject.oidObj = oidObj;
     prelaycmd->addObject.dtFade = dtFade;
 }
@@ -2224,10 +2234,10 @@ extern "C" void AddRelayAddObject(RELAYV *prelay, OID oidObj, int fAsync, float 
 // 0x1E0F18 AddRelayRemoveObject
 // Splice builtin: append a RELAYCK 0x2D (RemoveObject) command to the relay (AddRelayCommand(prelay,0x2D,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayRemoveObject(RELAYV *prelay, OID oidObj, int fAsync, float dtFade)
+extern "C" void AddRelayRemoveObject(RELAYV *relay, OID oidObj, int fAsync, float dtFade)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_RemoveObject, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_RemoveObject, fAsync);
     prelaycmd->removeObject.oidObj = oidObj;
     prelaycmd->removeObject.dtFade = dtFade;
 }
@@ -2235,10 +2245,10 @@ extern "C" void AddRelayRemoveObject(RELAYV *prelay, OID oidObj, int fAsync, flo
 // 0x1E0F58 AddRelaySetPartFlag
 // Splice builtin: append a RELAYCK 0x2E (SetPartFlag) command to the relay (AddRelayCommand(prelay,0x2E,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelaySetPartFlag(RELAYV *prelay, OID oidAseg, OID oidPart)
+extern "C" void AddRelaySetPartFlag(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_SetPartFlag, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetPartFlag, 1);
     prelaycmd->setPartFlag.oidAseg = oidAseg;
     prelaycmd->setPartFlag.oidPart = oidPart;
 }
@@ -2246,10 +2256,10 @@ extern "C" void AddRelaySetPartFlag(RELAYV *prelay, OID oidAseg, OID oidPart)
 // 0x1E0F98 AddRelayClearPartFlag
 // Splice builtin: append a RELAYCK 0x2F (ClearPartFlag) command to the relay (AddRelayCommand(prelay,0x2F,fAsync))
 // and fill its args. (inferred)
-extern "C" void AddRelayClearPartFlag(RELAYV *prelay, OID oidAseg, OID oidPart)
+extern "C" void AddRelayClearPartFlag(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_ClearPartFlag, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_ClearPartFlag, 1);
     prelaycmd->clearPartFlag.oidAseg = oidAseg;
     prelaycmd->clearPartFlag.oidPart = oidPart;
 }
@@ -2257,10 +2267,10 @@ extern "C" void AddRelayClearPartFlag(RELAYV *prelay, OID oidAseg, OID oidPart)
 // 0x1E0FD8 AddRelayShowPart
 // Splice builtin: append a RELAYCK 0x30 (ShowPart) command to the relay (AddRelayCommand(prelay,0x30,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayShowPart(RELAYV *prelay, OID oidAseg, OID oidPart)
+extern "C" void AddRelayShowPart(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_ShowPart, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_ShowPart, 1);
     prelaycmd->showPart.oidAseg = oidAseg;
     prelaycmd->showPart.oidPart = oidPart;
 }
@@ -2268,10 +2278,10 @@ extern "C" void AddRelayShowPart(RELAYV *prelay, OID oidAseg, OID oidPart)
 // 0x1E1018 AddRelayHidePart
 // Splice builtin: append a RELAYCK 0x31 (HidePart) command to the relay (AddRelayCommand(prelay,0x31,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayHidePart(RELAYV *prelay, OID oidAseg, OID oidPart)
+extern "C" void AddRelayHidePart(RELAYV *relay, OID oidAseg, OID oidPart)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_HidePart, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_HidePart, 1);
     prelaycmd->hidePart.oidAseg = oidAseg;
     prelaycmd->hidePart.oidPart = oidPart;
 }
@@ -2279,18 +2289,18 @@ extern "C" void AddRelayHidePart(RELAYV *prelay, OID oidAseg, OID oidPart)
 // 0x1E1058 AddRelayCommand32
 // Splice builtin: append a RELAYCK 0x32 (Unk32) command to the relay (AddRelayCommand(prelay,0x32,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand32(RELAYV *prelay, int n, int fAsync)
+extern "C" void AddRelayCommand32(RELAYV *relay, int n, int fAsync)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk32, fAsync)->unk32.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_Unk32, fAsync)->unk32.nUnk4 = n;
 }
 
 // 0x1E1088 AddRelayRumble
 // Splice builtin: append a RELAYCK 0x33 (Rumble) command to the relay (AddRelayCommand(prelay,0x33,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayRumble(RELAYV *prelay, int rumk, int fAsync, float dtRumble)
+extern "C" void AddRelayRumble(RELAYV *relay, int rumk, int fAsync, float dtRumble)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_Rumble, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Rumble, fAsync);
     prelaycmd->rumble.dtRumble = dtRumble;
     prelaycmd->rumble.rumk = rumk;
 }
@@ -2344,9 +2354,9 @@ void AddRelaySound(void *pq, int a, int b, int c, int d, float f, float g, float
 // 0x1E1208 AddRelayStopSound
 // Splice builtin: append a RELAYCK 0x37 (StopSound) command to the relay (AddRelayCommand(prelay,0x37,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStopSound(RELAYV *prelay, int idSnd)
+extern "C" void AddRelayStopSound(RELAYV *relay, int idSnd)
 {
-    AddRelayCommand(prelay, RELAYCK_StopSound, 1)->stopSound.idSnd = idSnd;
+    AddRelayCommand(relay, RELAYCK_StopSound, 1)->stopSound.idSnd = idSnd;
 }
 
 // 0x1E1238 AddRelayCamBlendFrom
@@ -2400,9 +2410,9 @@ void AddRelayCamBlendTo(void *pq, qword a, qword v, int m, int n, float f)
 // 0x1E1388 AddRelayCommand3A
 // Splice builtin: append a RELAYCK 0x3A (Unk3A) command to the relay (AddRelayCommand(prelay,0x3A,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayCommand3A(RELAYV *prelay, int n)
+extern "C" void AddRelayCommand3A(RELAYV *relay, int n)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk3A, 1)->unk3A.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_Unk3A, 1)->unk3A.nUnk4 = n;
 }
 
 // 0x1E13B8 AddRelayStartJtMode
@@ -2423,25 +2433,25 @@ void AddRelayStartJtMode(void *pq, int a, int b, int c, int d)
 // 0x1E1408 AddRelayEndJtMode
 // Splice builtin: append a RELAYCK 0x3C (EndJtMode) command to the relay (AddRelayCommand(prelay,0x3C,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayEndJtMode(RELAYV *prelay, int fAsync)
+extern "C" void AddRelayEndJtMode(RELAYV *relay, int fAsync)
 {
-    AddRelayCommand(prelay, RELAYCK_EndJtMode, fAsync);
+    AddRelayCommand(relay, RELAYCK_EndJtMode, fAsync);
 }
 
 // 0x1E1428 AddRelayTweenPosObj
 // Splice builtin: append a RELAYCK 0x3D (TweenPosObj) command to the relay (AddRelayCommand(prelay,0x3D,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayTweenPosObj(RELAYV *prelay, OID oidObj, int fAsync)
+extern "C" void AddRelayTweenPosObj(RELAYV *relay, OID oidObj, int fAsync)
 {
-    AddRelayCommand(prelay, RELAYCK_TweenPosObj, fAsync)->tweenPosObj.oidObj = oidObj;
+    AddRelayCommand(relay, RELAYCK_TweenPosObj, fAsync)->tweenPosObj.oidObj = oidObj;
 }
 
 // 0x1E1458 AddRelayTweenAimObj
 // Splice builtin: append a RELAYCK 0x3E (TweenAimObj) command to the relay (AddRelayCommand(prelay,0x3E,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayTweenAimObj(RELAYV *prelay, OID oidObj, int fAsync)
+extern "C" void AddRelayTweenAimObj(RELAYV *relay, OID oidObj, int fAsync)
 {
-    AddRelayCommand(prelay, RELAYCK_TweenAimObj, fAsync)->tweenAimObj.oidObj = oidObj;
+    AddRelayCommand(relay, RELAYCK_TweenAimObj, fAsync)->tweenAimObj.oidObj = oidObj;
 }
 
 // 0x1E1488 AddRelayTweenTarget
@@ -2469,17 +2479,17 @@ void AddRelayTweenTarget(void *pq, qword a, qword v, float f)
 // 0x1E1510 AddRelayTweenTime
 // Splice builtin: append a RELAYCK 0x40 (TweenTime) command to the relay (AddRelayCommand(prelay,0x40,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayTweenTime(RELAYV *prelay, int fAsync, float g)
+extern "C" void AddRelayTweenTime(RELAYV *relay, int fAsync, float g)
 {
-    AddRelayCommand(prelay, RELAYCK_TweenTime, fAsync)->tweenTime.gUnk4 = g;
+    AddRelayCommand(relay, RELAYCK_TweenTime, fAsync)->tweenTime.gUnk4 = g;
 }
 
 // 0x1E1540 AddRelayTweenStart
 // Splice builtin: append a RELAYCK 0x41 (TweenStart) command to the relay (AddRelayCommand(prelay,0x41,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayTweenStart(RELAYV *prelay)
+extern "C" void AddRelayTweenStart(RELAYV *relay)
 {
-    AddRelayCommand(prelay, RELAYCK_TweenStart, 1);
+    AddRelayCommand(relay, RELAYCK_TweenStart, 1);
 }
 
 // 0x1E1560 AddRelayButtonPrompt
@@ -2501,10 +2511,10 @@ void AddRelayButtonPrompt(void *pq, int a, int b)
 // 0x1E15B0 func_001E15B0
 // Splice builtin: append a RELAYCK 0x43 (Unk43) command to the relay (AddRelayCommand(prelay,0x43,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E15B0(RELAYV *prelay, int n, OID oidActor)
+extern "C" void func_001E15B0(RELAYV *relay, int n, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_Unk43, 0);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk43, 0);
     prelaycmd->unk43.nUnk4 = n;
     prelaycmd->unk43.oidActor = oidActor;
 }
@@ -2512,18 +2522,18 @@ extern "C" void func_001E15B0(RELAYV *prelay, int n, OID oidActor)
 // 0x1E15F0 AddRelayStopLine
 // Splice builtin: append a RELAYCK 0x44 (StopLine) command to the relay (AddRelayCommand(prelay,0x44,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStopLine(RELAYV *prelay)
+extern "C" void AddRelayStopLine(RELAYV *relay)
 {
-    AddRelayCommand(prelay, RELAYCK_StopLine, 0);
+    AddRelayCommand(relay, RELAYCK_StopLine, 0);
 }
 
 // 0x1E1610 AddRelayLine
 // Splice builtin: append a RELAYCK 0x45 (Line) command to the relay (AddRelayCommand(prelay,0x45,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayLine(RELAYV *prelay, int idLine, int fWait, int fAsync)
+extern "C" void AddRelayLine(RELAYV *relay, int idLine, int fWait, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_Line, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Line, fAsync);
     prelaycmd->line.idLine = idLine;
     prelaycmd->line.fWait = fWait;
 }
@@ -2531,9 +2541,9 @@ extern "C" void AddRelayLine(RELAYV *prelay, int idLine, int fWait, int fAsync)
 // 0x1E1650 AddRelayClearSubtitle
 // Splice builtin: append a RELAYCK 0x46 (ClearSubtitle) command to the relay (AddRelayCommand(prelay,0x46,fAsync))
 // and fill its args. (inferred)
-extern "C" void AddRelayClearSubtitle(RELAYV *prelay)
+extern "C" void AddRelayClearSubtitle(RELAYV *relay)
 {
-    AddRelayCommand(prelay, RELAYCK_ClearSubtitle, 1);
+    AddRelayCommand(relay, RELAYCK_ClearSubtitle, 1);
 }
 
 // 0x1E1670 func_001E1670
@@ -2569,9 +2579,9 @@ void func_001E16C0(void *pq, int a, int b, int c)
 // 0x1E1710 func_001E1710
 // Splice builtin: append a RELAYCK 0x49 (Unk49) command to the relay (AddRelayCommand(prelay,0x49,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1710(RELAYV *prelay, int n)
+extern "C" void func_001E1710(RELAYV *relay, int n)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk49, 1)->unk49.nUnk4 = n;
+    AddRelayCommand(relay, RELAYCK_Unk49, 1)->unk49.nUnk4 = n;
 }
 
 // 0x1E1740 func_001E1740
@@ -2592,10 +2602,10 @@ void func_001E1740(void *pq, int a, int b, int c, float g)
 // 0x1E17A0 AddRelayPlayAsegDefault
 // Splice builtin: append a RELAYCK 0x4B (PlayAsegDefault) command to the relay (AddRelayCommand(prelay,0x4B,fAsync))
 // and fill its args. (inferred)
-extern "C" void AddRelayPlayAsegDefault(RELAYV *prelay, OID oidOther, OID oidActor)
+extern "C" void AddRelayPlayAsegDefault(RELAYV *relay, OID oidOther, OID oidActor)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_PlayAsegDefault, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_PlayAsegDefault, 1);
     prelaycmd->playAsegDefault.oidOther = oidOther;
     prelaycmd->playAsegDefault.oidActor = oidActor;
 }
@@ -2603,25 +2613,25 @@ extern "C" void AddRelayPlayAsegDefault(RELAYV *prelay, OID oidOther, OID oidAct
 // 0x1E17E0 AddRelayStartMusic
 // Splice builtin: append a RELAYCK 0x4C (StartMusic) command to the relay (AddRelayCommand(prelay,0x4C,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStartMusic(RELAYV *prelay, int idMusic)
+extern "C" void AddRelayStartMusic(RELAYV *relay, int idMusic)
 {
-    AddRelayCommand(prelay, RELAYCK_StartMusic, 1)->startMusic.idMusic = idMusic;
+    AddRelayCommand(relay, RELAYCK_StartMusic, 1)->startMusic.idMusic = idMusic;
 }
 
 // 0x1E1810 AddRelayStopMusic
 // Splice builtin: append a RELAYCK 0x4D (StopMusic) command to the relay (AddRelayCommand(prelay,0x4D,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayStopMusic(RELAYV *prelay, int idMusic)
+extern "C" void AddRelayStopMusic(RELAYV *relay, int idMusic)
 {
-    AddRelayCommand(prelay, RELAYCK_StopMusic, 1)->stopMusic.idMusic = idMusic;
+    AddRelayCommand(relay, RELAYCK_StopMusic, 1)->stopMusic.idMusic = idMusic;
 }
 
 // 0x1E1840 AddRelayWaitTimer
 // Splice builtin: append a RELAYCK 0x4E (WaitTimer) command to the relay (AddRelayCommand(prelay,0x4E,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayWaitTimer(RELAYV *prelay, float dtWait)
+extern "C" void AddRelayWaitTimer(RELAYV *relay, float dtWait)
 {
-    AddRelayCommand(prelay, RELAYCK_WaitTimer, 0)->waitTimer.dtWait = dtWait;
+    AddRelayCommand(relay, RELAYCK_WaitTimer, 0)->waitTimer.dtWait = dtWait;
 }
 
 // 0x1E1870 func_001E1870
@@ -2646,34 +2656,34 @@ void func_001E1870(void *pq, int a, int b, int c, int d, int e, int x)
 // 0x1E18E0 func_001E18E0
 // Splice builtin: append a RELAYCK 0x50 (Unk50) command to the relay (AddRelayCommand(prelay,0x50,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E18E0(RELAYV *prelay, OID oidActor)
+extern "C" void func_001E18E0(RELAYV *relay, OID oidActor)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk50, 0)->unk50.oidActor = oidActor;
 }
 
 // 0x1E1910 func_001E1910
 // Splice builtin: append a RELAYCK 0x51 (Unk51) command to the relay (AddRelayCommand(prelay,0x51,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1910(RELAYV *prelay, OID oidActor)
+extern "C" void func_001E1910(RELAYV *relay, OID oidActor)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk51, 0)->unk51.oidActor = oidActor;
 }
 
 // 0x1E1940 func_001E1940
 // Splice builtin: append a RELAYCK 0x52 (Unk52) command to the relay (AddRelayCommand(prelay,0x52,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1940(RELAYV *prelay, float dtWait)
+extern "C" void func_001E1940(RELAYV *relay, float dtWait)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
+    AddRelayCommand(relay, RELAYCK_Unk52, 0)->unk52.dtWait = dtWait;
 }
 
 // 0x1E1970 AddRelayHintBox
 // Splice builtin: append a RELAYCK 0x53 (HintBox) command to the relay (AddRelayCommand(prelay,0x53,fAsync)) and fill
 // its args. (inferred)
-extern "C" void AddRelayHintBox(RELAYV *prelay, int idHint, int fAsync, float dtHint)
+extern "C" void AddRelayHintBox(RELAYV *relay, int idHint, int fAsync, float dtHint)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_HintBox, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_HintBox, fAsync);
     prelaycmd->hintBox.idHint = idHint;
     prelaycmd->hintBox.dtHint = dtHint;
 }
@@ -2681,18 +2691,18 @@ extern "C" void AddRelayHintBox(RELAYV *prelay, int idHint, int fAsync, float dt
 // 0x1E19B0 AddRelayClearHintBox
 // Splice builtin: append a RELAYCK 0x54 (ClearHintBox) command to the relay (AddRelayCommand(prelay,0x54,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelayClearHintBox(RELAYV *prelay, int idHint)
+extern "C" void AddRelayClearHintBox(RELAYV *relay, int idHint)
 {
-    AddRelayCommand(prelay, RELAYCK_ClearHintBox, 1)->clearHintBox.idHint = idHint;
+    AddRelayCommand(relay, RELAYCK_ClearHintBox, 1)->clearHintBox.idHint = idHint;
 }
 
 // 0x1E19E0 AddRelaySetSsgGoal
 // Splice builtin: append a RELAYCK 0x55 (SetSsgGoal) command to the relay (AddRelayCommand(prelay,0x55,fAsync)) and
 // fill its args. (inferred)
-extern "C" void AddRelaySetSsgGoal(RELAYV *prelay, OID oidStep, OID oidSsg, int fAsync)
+extern "C" void AddRelaySetSsgGoal(RELAYV *relay, OID oidStep, OID oidSsg, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_SetSsgGoal, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_SetSsgGoal, fAsync);
     prelaycmd->setSsgGoal.oidStep = oidStep;
     prelaycmd->setSsgGoal.oidSsg = oidSsg;
 }
@@ -2700,10 +2710,10 @@ extern "C" void AddRelaySetSsgGoal(RELAYV *prelay, OID oidStep, OID oidSsg, int 
 // 0x1E1A20 AddRelayResetStepGoal
 // Splice builtin: append a RELAYCK 0x56 (ResetStepGoal) command to the relay (AddRelayCommand(prelay,0x56,fAsync))
 // and fill its args. (inferred)
-extern "C" void AddRelayResetStepGoal(RELAYV *prelay, OID oidStep, OID oidUnk5)
+extern "C" void AddRelayResetStepGoal(RELAYV *relay, OID oidStep, OID oidUnk5)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_ResetStepGoal, 1);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_ResetStepGoal, 1);
     prelaycmd->resetStepGoal.oidStep = oidStep;
     prelaycmd->resetStepGoal.oidUnk5 = oidUnk5;
 }
@@ -2711,18 +2721,18 @@ extern "C" void AddRelayResetStepGoal(RELAYV *prelay, OID oidStep, OID oidUnk5)
 // 0x1E1A60 func_001E1A60
 // Splice builtin: append a RELAYCK 0x57 (Unk57) command to the relay (AddRelayCommand(prelay,0x57,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1A60(RELAYV *prelay, OID oidActor)
+extern "C" void func_001E1A60(RELAYV *relay, OID oidActor)
 {
-    AddRelayCommand(prelay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
+    AddRelayCommand(relay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
 }
 
 // 0x1E1A90 func_001E1A90
 // Splice builtin: append a RELAYCK 0x58 (Unk58) command to the relay (AddRelayCommand(prelay,0x58,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1A90(RELAYV *prelay, OID oidShip, OID oidActor, int fAsync)
+extern "C" void func_001E1A90(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_Unk58, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk58, fAsync);
     prelaycmd->unk58.oidShip = oidShip;
     prelaycmd->unk58.oidActor = oidActor;
 }
@@ -2730,10 +2740,10 @@ extern "C" void func_001E1A90(RELAYV *prelay, OID oidShip, OID oidActor, int fAs
 // 0x1E1AD0 func_001E1AD0
 // Splice builtin: append a RELAYCK 0x59 (Unk59) command to the relay (AddRelayCommand(prelay,0x59,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1AD0(RELAYV *prelay, OID oidShip, OID oidActor, int fAsync)
+extern "C" void func_001E1AD0(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_Unk59, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk59, fAsync);
     prelaycmd->unk59.oidShip = oidShip;
     prelaycmd->unk59.oidActor = oidActor;
 }
@@ -2741,10 +2751,10 @@ extern "C" void func_001E1AD0(RELAYV *prelay, OID oidShip, OID oidActor, int fAs
 // 0x1E1B10 func_001E1B10
 // Splice builtin: append a RELAYCK 0x5A (Unk5A) command to the relay (AddRelayCommand(prelay,0x5A,fAsync)) and fill
 // its args. (inferred)
-extern "C" void func_001E1B10(RELAYV *prelay, OID oidShip, OID oidActor, int fAsync)
+extern "C" void func_001E1B10(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
-    prelaycmd = AddRelayCommand(prelay, RELAYCK_Unk5A, fAsync);
+    prelaycmd = AddRelayCommand(relay, RELAYCK_Unk5A, fAsync);
     prelaycmd->unk5A.oidShip = oidShip;
     prelaycmd->unk5A.oidActor = oidActor;
     prelaycmd->unk5A.nUnk6 = 0;
@@ -2754,23 +2764,23 @@ extern "C" void func_001E1B10(RELAYV *prelay, OID oidShip, OID oidActor, int fAs
 // cref++ (+0x10). (inferred)
 void RELAYJSG::VUnk00()   /* key function: RELAYJSG's vtable comes out here */
 {
-    JSGV *pjsg = (JSGV *)this;
-    pjsg->cref = pjsg->cref + 1;
+    JSGV *script = (JSGV *)this;
+    script->cref = script->cref + 1;
 }
 
 // 0x1E1B68 ReleaseJsg
 // --cref; at 0 release sound ref, destruct and free to the JSG slot heap g_sw.slotheapJsg. (inferred)
 /* Drops a reference; the last one clears the splice frame and sidebag, unsubscribes and frees the script. */
-extern "C" void ReleaseJsg(JSGV *pjsg)
+extern "C" void ReleaseJsg(JSGV *script)
 {
     int cref;
-    cref = pjsg->cref - 1;
-    pjsg->cref = cref;
+    cref = script->cref - 1;
+    script->cref = cref;
     if (cref <= 0) {
-        FramePtr_Assign(&pjsg->pframe, 0);
-        func_002580A8(&pjsg->psidebag, 0);
-        UnsubscribeLoAll(pjsg);
-        func_0011CD98(&g_sw.slotheapJsg, pjsg);
+        FramePtr_Assign(&script->pframe, 0);
+        func_002580A8(&script->psidebag, 0);
+        UnsubscribeLoAll(script);
+        func_0011CD98(&g_sw.slotheapJsg, script);
     }
 }
 
@@ -2938,18 +2948,21 @@ extern "C" { extern SW D_003DD490; }
 
 
 
+// Wraps an int-held float bit pattern as a VU_FLOAT.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
+// Vector difference.
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// Vector sum.
 static inline qword QwAdd(qword qw0, qword qw1)
 {
     qword qw;
@@ -2966,7 +2979,7 @@ void PlayAsegSoundEvent(SW *psw, int sfxid, OID oid, int sNear, int sFar, float 
 extern "C" { extern SUBTITLE D_004435F0; }
 
 
-extern "C" void RelayFire(RELAYV *prelay, LO *ploFirer) __asm__("FireRelay");
+extern "C" void RelayFire(RELAYV *relay, LO *ploFirer) __asm__("FireRelay");
 extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("func_00205438");
 extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
 extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
@@ -2985,39 +2998,41 @@ extern "C" { extern LO *D_002DE570; }
 extern "C" { extern float D_002A7AD0; }
 extern "C" { extern qword D_002A2DD0; }
 extern "C" { extern qword D_002A2DC0; }
-static inline LO *PloJsgActorDefault(JSGV *pjsg)
+// The script's default actor: the one set on the script, else its block's object, else the relay's firer.
+static inline LO *PloJsgActorDefault(JSGV *script)
 {
-    if (pjsg->ploActorDefault)
+    if (script->ploActorDefault)
     {
-        return pjsg->ploActorDefault;
+        return script->ploActorDefault;
     }
-    if (pjsg->ploBlock)
+    if (script->ploBlock)
     {
-        return pjsg->ploBlock;
+        return script->ploBlock;
     }
-    return pjsg->prelay->ploFirer;
+    return script->relay->ploFirer;
 }
+// base + vec * scale.x.
 static inline qword QwAddScaledX(qword qw, qword qwDir, VU_FLOAT vuScale)
 {
     qword qwSum;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qwSum) : "j"(qw), "j"(qwDir), "j"(vuScale.qw));
     return qwSum;
 }
-void NextJsgCommand(JSGV *pjsg) __asm__("NextJsgCommand__FP3JSG");
+void NextJsgCommand(JSGV *script) __asm__("NextJsgCommand__FP3JSG");
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7AD0 __asm__("D_002A7AD0") = 3.40282347e+38f; }
 // Advance the script to the next command and execute it by kind.
-void NextJsgCommand(JSGV *pjsg)
+void NextJsgCommand(JSGV *script)
 {
-    pjsg->prelaycmdCur++;
-    if (pjsg->prelaycmdCur > pjsg->prelaycmdLast)
+    script->prelaycmdCur++;
+    if (script->prelaycmdCur > script->prelaycmdLast)
     {
         return;
     }
-    JSGREF jsgref(pjsg);
-    RELAYCMD *prelaycmd = pjsg->prelaycmdCur;
+    JSGREF jsgref(script);
+    RELAYCMD *prelaycmd = script->prelaycmdCur;
     OID oidActor;
     switch (prelaycmd->relayck)
     {
@@ -3070,19 +3085,19 @@ void NextJsgCommand(JSGV *pjsg)
     LO *ploActor;
     if (oidActor == OID_Nil)
     {
-        ploActor = PloJsgActorDefault(pjsg);
+        ploActor = PloJsgActorDefault(script);
     }
     else
     {
-        ploActor = PloFindJsgObject(pjsg, oidActor);
+        ploActor = PloFindJsgObject(script, oidActor);
     }
-    pjsg->ploActor = ploActor;
+    script->ploActor = ploActor;
     switch (prelaycmd->relayck)
     {
     case RELAYCK_BlockBegin:
     {
-        JSGV *pjsgBlock = PjsgStartBlock(pjsg->prelay, prelaycmd, pjsg);
-        pjsg->prelaycmdCur = pjsgBlock->prelaycmdLast;
+        JSGV *pjsgBlock = PjsgStartBlock(script->relay, prelaycmd, script);
+        script->prelaycmdCur = pjsgBlock->prelaycmdLast;
         UpdateJsg(pjsgBlock);
         break;
     }
@@ -3091,11 +3106,11 @@ void NextJsgCommand(JSGV *pjsg)
         JSGV *pjsgStop;
         if (prelaycmd->stopBlock.oidLabel == OID_Nil)
         {
-            pjsgStop = pjsg;
+            pjsgStop = script;
         }
         else
         {
-            pjsgStop = PjsgFindRelayBlock(pjsg->prelay, prelaycmd->stopBlock.oidLabel, 0);
+            pjsgStop = PjsgFindRelayBlock(script->relay, prelaycmd->stopBlock.oidLabel, 0);
         }
         if (pjsgStop)
         {
@@ -3108,11 +3123,11 @@ void NextJsgCommand(JSGV *pjsg)
         RELAYV *prelayAlarm;
         if (prelaycmd->raiseAlarm.oidRelay == OID_Nil)
         {
-            prelayAlarm = pjsg->prelay;
+            prelayAlarm = script->relay;
         }
         else
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->raiseAlarm.oidRelay);
+            LO *plo = PloFindJsgObject(script, prelaycmd->raiseAlarm.oidRelay);
             prelayAlarm = (plo && FIsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
         }
         if (prelayAlarm)
@@ -3126,11 +3141,11 @@ void NextJsgCommand(JSGV *pjsg)
         RELAYV *prelayStop;
         if (prelaycmd->stopRelay.oidRelay == OID_Nil)
         {
-            prelayStop = pjsg->prelay;
+            prelayStop = script->relay;
         }
         else
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->stopRelay.oidRelay);
+            LO *plo = PloFindJsgObject(script, prelaycmd->stopRelay.oidRelay);
             prelayStop = (plo && FIsBasicDerivedFrom(plo, (CID)114)) ? (RELAYV *)plo : 0;
         }
         if (prelayStop)
@@ -3141,7 +3156,7 @@ void NextJsgCommand(JSGV *pjsg)
     }
     case RELAYCK_SetCtlState:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->setCtlState.oidObj);
+        LO *plo = PloFindJsgObject(script, prelaycmd->setCtlState.oidObj);
         if (plo && FIsBasicDerivedFrom(plo, (CID)50))
         {
             ((PO *)plo)->SetCtlState(1);
@@ -3149,20 +3164,20 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     }
     case RELAYCK_SetActor:
-        pjsg->ploActorDefault = PloFindJsgObject(pjsg, prelaycmd->setActor.oidActor);
+        script->ploActorDefault = PloFindJsgObject(script, prelaycmd->setActor.oidActor);
         break;
     case RELAYCK_Signal:
     {
         void *apv[1];
         apv[0] = &prelaycmd->signal.idSignal;
-        pjsg->prelay->pjsgSignal = pjsg;
-        pjsg->prelay->HandleSpliceEvent(4, 0, 1, apv, 0);
-        pjsg->prelay->pjsgSignal = 0;
+        script->relay->pjsgSignal = script;
+        script->relay->HandleSpliceEvent(4, 0, 1, apv, 0);
+        script->relay->pjsgSignal = 0;
         break;
     }
     case RELAYCK_PlayAseg:
     {
-        LO *ploRoot = PloFindJsgObject(pjsg, prelaycmd->playAseg.oidRoot);
+        LO *ploRoot = PloFindJsgObject(script, prelaycmd->playAseg.oidRoot);
         if (ploRoot)
         {
             if (FIsBasicDerivedFrom(ploRoot, (CID)52))
@@ -3170,7 +3185,7 @@ void NextJsgCommand(JSGV *pjsg)
                 PlayStepClip((STEPPLAYER *)ploRoot, prelaycmd->playAseg.oidAseg, prelaycmd->playAseg.grfapl | 1, 5);
                 if (!prelaycmd->fAsync)
                 {
-                    pjsg->pstepAseg = (STEP *)ploRoot;
+                    script->pstepAseg = (STEP *)ploRoot;
                 }
                 break;
             }
@@ -3179,13 +3194,13 @@ void NextJsgCommand(JSGV *pjsg)
                 ploRoot = 0;
             }
         }
-        LO *ploAseg = PloFindJsgObject(pjsg, prelaycmd->playAseg.oidAseg);
+        LO *ploAseg = PloFindJsgObject(script, prelaycmd->playAseg.oidAseg);
         if (ploAseg && FIsBasicDerivedFrom(ploAseg, (CID)109))
         {
             ASEGA *pasega = PasegaApplyAseg((ASEG *)ploAseg, (ALO *)ploRoot, 0.0f, 1.0f, prelaycmd->playAseg.grfapl);
             if (!prelaycmd->fAsync)
             {
-                pjsg->pasegaCur = pasega;
+                script->pasegaCur = pasega;
                 pasega->VUnk00();
             }
         }
@@ -3193,22 +3208,22 @@ void NextJsgCommand(JSGV *pjsg)
     }
     case RELAYCK_FireRelay:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->fireRelay.oidRelay);
+        LO *plo = PloFindJsgObject(script, prelaycmd->fireRelay.oidRelay);
         if (plo && FIsBasicDerivedFrom(plo, (CID)114))
         {
             RelayFire((RELAYV *)plo, ploActor);
             if (!prelaycmd->fAsync)
             {
-                pjsg->prelayWait = (RELAYV *)plo;
+                script->prelayWait = (RELAYV *)plo;
             }
         }
         break;
     }
     case RELAYCK_SetContext:
-        pjsg->ploContext = PloFindJsgObject(pjsg, prelaycmd->setContext.oidContext);
-        if (!pjsg->ploContext)
+        script->ploContext = PloFindJsgObject(script, prelaycmd->setContext.oidContext);
+        if (!script->ploContext)
         {
-            pjsg->ploContext = pjsg->prelay;
+            script->ploContext = script->relay;
         }
         break;
     case RELAYCK_ApplySm:
@@ -3219,14 +3234,14 @@ void NextJsgCommand(JSGV *pjsg)
         aoid[2] = prelaycmd->applySm.oidState;
         aoid[3] = OID_Nil;
         int grfSma = prelaycmd->applySm.fUnk7 ? 3 : 1;
-        func_0020FFF0(&D_003DD490, aoid, pjsg->ploContext, grfSma, pjsg, &pjsg->psmaCur);
+        func_0020FFF0(&D_003DD490, aoid, script->ploContext, grfSma, script, &script->psmaCur);
         if (prelaycmd->fAsync)
         {
-            ReleaseJsgSma(pjsg);
+            ReleaseJsgSma(script);
         }
-        else if (pjsg->psmaCur && !pjsg->fSmaReached && !FIsSmaRetracted(pjsg->psmaCur) && GetSmaCur(pjsg->psmaCur) == prelaycmd->applySm.oidState)
+        else if (script->psmaCur && !script->fSmaReached && !FIsSmaRetracted(script->psmaCur) && GetSmaCur(script->psmaCur) == prelaycmd->applySm.oidState)
         {
-            pjsg->fSmaReached = 1;
+            script->fSmaReached = 1;
         }
         break;
     }
@@ -3241,7 +3256,7 @@ void NextJsgCommand(JSGV *pjsg)
                 ((WIDGETV *)plo)->Show(prelaycmd->widgetShow.idLabel);
                 if (!prelaycmd->fAsync)
                 {
-                    pjsg->ploWidget = plo;
+                    script->ploWidget = plo;
                 }
             }
             else
@@ -3255,36 +3270,36 @@ void NextJsgCommand(JSGV *pjsg)
         SetClockRate(&D_002DDED0, (CRK)6, prelaycmd->setClockRate.rate);
         if (prelaycmd->setClockRate.rate == 0.0f)
         {
-            RELAYV *prelay = pjsg->prelay;
-            int grf = prelay->grfUnk40;
+            RELAYV *relay = script->relay;
+            int grf = relay->grfUnk40;
             if ((grf ^ 1) & 1)
             {
                 *(int *)grf |= 0x100;
             }
             else
             {
-                prelay->grfUnk40 = grf | 0x100;
+                relay->grfUnk40 = grf | 0x100;
             }
         }
         else
         {
-            RELAYV *prelay = pjsg->prelay;
-            int grf = prelay->grfUnk40;
+            RELAYV *relay = script->relay;
+            int grf = relay->grfUnk40;
             if ((grf ^ 1) & 1)
             {
                 *(int *)grf &= ~0x100;
             }
             else
             {
-                prelay->grfUnk40 = grf & ~0x100;
+                relay->grfUnk40 = grf & ~0x100;
             }
         }
         break;
     case RELAYCK_SetTaskState:
-        SetTaskStates(&D_002DEB30, 1, (TASKPAIR *)&prelaycmd->setTaskState, pjsg->ploContext);
+        SetTaskStates(&D_002DEB30, 1, (TASKPAIR *)&prelaycmd->setTaskState, script->ploContext);
         break;
     case RELAYCK_HandsOff:
-        SetJsgHandsOff(pjsg, prelaycmd->handsOff.fHandsOff, prelaycmd->handsOff.grfHandsOff);
+        SetJsgHandsOff(script, prelaycmd->handsOff.fHandsOff, prelaycmd->handsOff.grfHandsOff);
         break;
     case RELAYCK_GotoLabel:
     case RELAYCK_GotoLabelIf:
@@ -3296,7 +3311,7 @@ void NextJsgCommand(JSGV *pjsg)
         RELAYCMD *prelaycmdGoto = prelaycmd;
         RELAYCMD *prelaycmdLabel = 0;
         int cBlock = 0;
-        for (prelaycmd = pjsg->prelaycmdFirst + 1; prelaycmd < pjsg->prelaycmdLast; prelaycmd++)
+        for (prelaycmd = script->prelaycmdFirst + 1; prelaycmd < script->prelaycmdLast; prelaycmd++)
         {
             switch (prelaycmd->relayck)
             {
@@ -3310,69 +3325,69 @@ void NextJsgCommand(JSGV *pjsg)
                 if (cBlock == 0 && prelaycmd->label.oidLabel == prelaycmdGoto->gotoLabel.oidLabel)
                 {
                     prelaycmdLabel = prelaycmd;
-                    prelaycmd = pjsg->prelaycmdLast;
+                    prelaycmd = script->prelaycmdLast;
                 }
                 break;
             }
         }
         if (prelaycmdLabel)
         {
-            pjsg->prelaycmdCur = prelaycmdLabel;
+            script->prelaycmdCur = prelaycmdLabel;
         }
         break;
     }
     case RELAYCK_TeleportTo:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->teleportTo.oidWhere);
+        LO *plo = PloFindJsgObject(script, prelaycmd->teleportTo.oidWhere);
         if (plo && FIsBasicDerivedFrom(plo, (CID)41))
         {
             PutSwHeroAtWarp((WARPV *)plo);
             break;
         }
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
         if (plo && FIsBasicDerivedFrom(plo, (CID)27))
         {
-            if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+            if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
             {
-                STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+                STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
                 EnterJtGrabState(&pstepplayer->jtgrab, 8, plo, 0);
                 SetJtGrabPhase(&pstepplayer->jtgrab, 9);
-                SetJsgJt(pjsg, 0, 0);
+                SetJsgJt(script, 0, 0);
             }
             break;
         }
         VECTOR4 pos;
         MATRIX3 mat;
         float rad;
-        GetJsgLocation(pjsg, plo, (qword *)&pos, &rad);
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)51))
+        GetJsgLocation(script, plo, (qword *)&pos, &rad);
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)51))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             pstep->TranslateToPos(QwSub(*(qword *)&pos, pstep->qwUnk240));
             SetStepRadTarget(pstep, rad);
         }
         else
         {
-            pjsg->ploActor->TranslateToPos(*(qword *)&pos);
+            script->ploActor->TranslateToPos(*(qword *)&pos);
         }
         mat = LoadRotateMatrixRad(rad, D_002A2DC0);
-        pjsg->ploActor->RotateToMat((MATRIX4 *)&mat);
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        script->ploActor->RotateToMat((MATRIX4 *)&mat);
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             pstepplayer->qwUnk1060 = QwAddScaledX(*(qword *)&pos, D_002A2DC0, VuFloatFromMemWord(pstepplayer->nUnk1048));
             if (!prelaycmd->teleportTo.fAir && pstepplayer->cUnk12f4 == 0)
             {
                 SetJtAirJump(&pstepplayer->jtair, 0xB, 0, 0);
                 ClearSoXps(pstepplayer);
             }
-            SetJsgJt(pjsg, 0, 0);
+            SetJsgJt(script, 0, 0);
         }
-        pjsg->ploActor->SetVelocity(D_002A2DD0);
-        pjsg->ploActor->SetAngularVelocity(D_002A2DD0);
+        script->ploActor->SetVelocity(D_002A2DD0);
+        script->ploActor->SetAngularVelocity(D_002A2DD0);
         break;
     }
     case RELAYCK_CutCamera:
@@ -3380,45 +3395,45 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_SetTunnel:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->setTunnel.oidTunnel);
+        LO *plo = PloFindJsgObject(script, prelaycmd->setTunnel.oidTunnel);
         if (plo && FIsBasicDerivedFrom(plo, (CID)15))
         {
-            SetJsgTn(pjsg, (TN *)plo);
+            SetJsgTn(script, (TN *)plo);
         }
         break;
     }
     case RELAYCK_SetFocus:
-        SetJsgFocus(pjsg, PloFindJsgObject(pjsg, prelaycmd->setFocus.oidFocus));
+        SetJsgFocus(script, PloFindJsgObject(script, prelaycmd->setFocus.oidFocus));
         break;
     case RELAYCK_PipeTo:
     {
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtpipe.nState == -1)
             {
                 break;
             }
             VECTOR4 pos;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->pipeTo.oidTarget);
-            GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
-            FindShapeClosestPointAll(pstepplayer->jtpipe.pshape, *(qword *)&pos, 0, 0, 0, 0, &pjsg->sPipe);
-            SetJsgJt(pjsg, prelaycmd, pstepplayer);
+            LO *plo = PloFindJsgObject(script, prelaycmd->pipeTo.oidTarget);
+            GetJsgLocation(script, plo, (qword *)&pos, 0);
+            FindShapeClosestPointAll(pstepplayer->jtpipe.pshape, *(qword *)&pos, 0, 0, 0, 0, &script->sPipe);
+            SetJsgJt(script, prelaycmd, pstepplayer);
         }
         break;
     }
     case RELAYCK_HeroState:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)53))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)53))
         {
-            JT *pjt = (JT *)pjsg->ploActor;
+            JT *pjt = (JT *)script->ploActor;
             switch (prelaycmd->heroState.nState)
             {
             case 2:
@@ -3434,74 +3449,74 @@ void NextJsgCommand(JSGV *pjsg)
         }
         break;
     case RELAYCK_StepCmd1D:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdHoldOn((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd1D.oidGoal));
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdHoldOn((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd1D.oidGoal));
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd1E:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            LO *ploA = PloFindJsgObject(pjsg, prelaycmd->stepCmd1E.oidA);
-            LO *ploB = PloFindJsgObject(pjsg, prelaycmd->stepCmd1E.oidB);
+            STEP *pstep = (STEP *)script->ploActor;
+            LO *ploA = PloFindJsgObject(script, prelaycmd->stepCmd1E.oidA);
+            LO *ploB = PloFindJsgObject(script, prelaycmd->stepCmd1E.oidB);
             StepCmdPutDown((STEPPLAYER *)pstep, ploA, ploB);
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd1F:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdHoldOn9((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd1F.oidGoal));
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdHoldOn9((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd1F.oidGoal));
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd20:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdCarry((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd20.oidGoal));
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdCarry((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd20.oidGoal));
         }
         break;
     case RELAYCK_StepCmd21:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            StepCmdPlaceHeld((STEPPLAYER *)pstep, PloFindJsgObject(pjsg, prelaycmd->stepCmd21.oidGoal));
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            STEP *pstep = (STEP *)script->ploActor;
+            StepCmdPlaceHeld((STEPPLAYER *)pstep, PloFindJsgObject(script, prelaycmd->stepCmd21.oidGoal));
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_StepCmd22:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             LO *ploTarget = PloFindSwObject(&D_003DD490, (GRFFSO)1, prelaycmd->stepCmd22.oidTarget, pstep);
             LO *ploDir;
             if (prelaycmd->stepCmd22.nMode == 3)
@@ -3513,39 +3528,39 @@ void NextJsgCommand(JSGV *pjsg)
             }
             else
             {
-                ploDir = PloFindJsgObject(pjsg, (OID)prelaycmd->stepCmd22.nMode);
+                ploDir = PloFindJsgObject(script, (OID)prelaycmd->stepCmd22.nMode);
             }
             StepCmdGrab0xC((STEPPLAYER *)pstep, (ASEG *)ploTarget, ploDir, prelaycmd->stepCmd22.nUnk6);
-            SetJsgJt(pjsg, prelaycmd, pstep);
+            SetJsgJt(script, prelaycmd, pstep);
         }
         break;
     case RELAYCK_Face:
-        if (!PloFindJsgObject(pjsg, prelaycmd->face.oidFace))
+        if (!PloFindJsgObject(script, prelaycmd->face.oidFace))
         {
             break;
         }
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            SetJsgJt(pjsg, prelaycmd, pjsg->ploActor);
+            SetJsgJt(script, prelaycmd, script->ploActor);
         }
         break;
     case RELAYCK_GoTo:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (prelaycmd->goTo.idClip != -1)
             {
                 PlayStepClip(pstepplayer, (OID)prelaycmd->goTo.idClip, 9, 6);
             }
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->goTo.oidTarget);
+            LO *plo = PloFindJsgObject(script, prelaycmd->goTo.oidTarget);
             if (plo)
             {
                 if (FIsBasicDerivedFrom(plo, (CID)34) || FIsBasicDerivedFrom(plo, (CID)12) || FIsBasicDerivedFrom(plo, (CID)38) ||
@@ -3570,39 +3585,39 @@ void NextJsgCommand(JSGV *pjsg)
                 {
                     VECTOR4 pos;
                     SHAPE *pshape = (SHAPE *)pstepplayer->jtgrab.plo;
-                    GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
-                    FindShapeClosestPointAll(pshape, *(qword *)&pos, 0, 0, 0, &pjsg->sGoTo, 0);
+                    GetJsgLocation(script, plo, (qword *)&pos, 0);
+                    FindShapeClosestPointAll(pshape, *(qword *)&pos, 0, 0, 0, &script->sGoTo, 0);
                 }
             }
-            SetJsgJt(pjsg, prelaycmd, pstepplayer);
+            SetJsgJt(script, prelaycmd, pstepplayer);
         }
         break;
     case RELAYCK_RunOn:
-        pjsg->fRun = 1;
+        script->fRun = 1;
         break;
     case RELAYCK_RunOff:
-        pjsg->fRun = 0;
+        script->fRun = 0;
         break;
     case RELAYCK_FollowPath:
     {
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (!FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             break;
         }
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->followPath.oidPath);
+        LO *plo = PloFindJsgObject(script, prelaycmd->followPath.oidPath);
         if (plo && FIsBasicDerivedFrom(plo, (CID)10))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             if (prelaycmd->followPath.idClip != -1)
             {
                 PlayStepClip((STEPPLAYER *)pstep, (OID)prelaycmd->followPath.idClip, 9, 6);
             }
             BHV168 *pbhv = (BHV168 *)PbhvPushStep(pstep, 0xA8);
-            pbhv->nUnk40 = pjsg->fRun;
+            pbhv->nUnk40 = script->fRun;
             pbhv->nUnkcc = prelaycmd->followPath.nUnk6;
             pbhv->gUnkd0 = prelaycmd->followPath.gUnk7;
             SetBhv166Path(pbhv, plo, prelaycmd->followPath.nPathMode == 0);
@@ -3611,22 +3626,22 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     }
     case RELAYCK_WalkTo:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             VECTOR4 pos;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->walkTo.oidTarget);
-            GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
+            LO *plo = PloFindJsgObject(script, prelaycmd->walkTo.oidTarget);
+            GetJsgLocation(script, plo, (qword *)&pos, 0);
             if (prelaycmd->walkTo.idClip != -1)
             {
                 PlayStepClip((STEPPLAYER *)pstep, (OID)prelaycmd->walkTo.idClip, 9, 6);
             }
             BHV193V *pbhv = (BHV193V *)PbhvPushStep(pstep, 0xC1);
-            pbhv->nUnk30 = pjsg->fRun;
+            pbhv->nUnk30 = script->fRun;
             pbhv->gUnk34 = prelaycmd->walkTo.gUnk5;
             pbhv->nUnk38 = prelaycmd->walkTo.nUnk6;
             pbhv->gUnk3c = prelaycmd->walkTo.gUnk7;
@@ -3635,32 +3650,32 @@ void NextJsgCommand(JSGV *pjsg)
         }
         break;
     case RELAYCK_StepCmd29:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtgrab.nKind != -1)
             {
                 if (pstepplayer->jtgrab.nState != 8)
                 {
                     break;
                 }
-                SetJsgJt(pjsg, prelaycmd, pstepplayer);
+                SetJsgJt(script, prelaycmd, pstepplayer);
             }
         }
         break;
     case RELAYCK_Respawn:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->respawn.oidSpot);
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
+            LO *plo = PloFindJsgObject(script, prelaycmd->respawn.oidSpot);
             JTPLACE place;
             memset(&place, 0, sizeof(JTPLACE));
             if (!plo)
@@ -3682,7 +3697,7 @@ void NextJsgCommand(JSGV *pjsg)
                 }
                 else
                 {
-                    GetJsgLocation(pjsg, plo, &place.qwPos, 0);
+                    GetJsgLocation(script, plo, &place.qwPos, 0);
                     GuardSpawnerGroundSnap(&place.qwPos, 0, 0, 100.0f, -150.0f);
                 }
             }
@@ -3695,43 +3710,43 @@ void NextJsgCommand(JSGV *pjsg)
             {
                 ((JT *)pstepplayer)->janim.nUnk10 = prelaycmd->respawn.nUnk6;
             }
-            SetJsgJt(pjsg, prelaycmd, pstepplayer);
+            SetJsgJt(script, prelaycmd, pstepplayer);
         }
         break;
     case RELAYCK_LaunchTo:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)52))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)52))
         {
             VECTOR4 pos;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->launchTo.oidTarget);
-            STEP *pstep = (STEP *)pjsg->ploActor;
-            GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
+            LO *plo = PloFindJsgObject(script, prelaycmd->launchTo.oidTarget);
+            STEP *pstep = (STEP *)script->ploActor;
+            GetJsgLocation(script, plo, (qword *)&pos, 0);
             LaunchJtToPos(pstep, *(qword *)&pos, prelaycmd->launchTo.gUnk5, prelaycmd->launchTo.gUnk6);
         }
         break;
     case RELAYCK_AddObject:
     case RELAYCK_RemoveObject:
     {
-        LO *plo = FadeAsegObjectEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_AddObject, prelaycmd->addObject.oidObj, prelaycmd->addObject.dtFade, pjsg->ploContext,
-                                      (ASEG *)pjsg->prelay);
+        LO *plo = FadeAsegObjectEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_AddObject, prelaycmd->addObject.oidObj, prelaycmd->addObject.dtFade, script->ploContext,
+                                      (ASEG *)script->relay);
         if (plo && !prelaycmd->fAsync && FIsBasicDerivedFrom(plo, (CID)48))
         {
-            pjsg->ploFade = plo;
+            script->ploFade = plo;
         }
         break;
     }
     case RELAYCK_SetPartFlag:
     case RELAYCK_ClearPartFlag:
-        SetAsegPartFlagEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_SetPartFlag, prelaycmd->setPartFlag.oidAseg, prelaycmd->setPartFlag.oidPart, 0, pjsg->ploContext,
-                             (ASEG *)pjsg->prelay);
+        SetAsegPartFlagEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_SetPartFlag, prelaycmd->setPartFlag.oidAseg, prelaycmd->setPartFlag.oidPart, 0, script->ploContext,
+                             (ASEG *)script->relay);
         break;
     case RELAYCK_ShowPart:
     case RELAYCK_HidePart:
-        ShowAsegPartEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_ShowPart, prelaycmd->showPart.oidAseg, prelaycmd->showPart.oidPart, 0, pjsg->ploContext,
-                          (ASEG *)pjsg->prelay);
+        ShowAsegPartEvent(&D_003DD490, prelaycmd->relayck == RELAYCK_ShowPart, prelaycmd->showPart.oidAseg, prelaycmd->showPart.oidPart, 0, script->ploContext,
+                          (ASEG *)script->relay);
         break;
     case RELAYCK_Unk32:
         JoltCm(&D_002DDF40, prelaycmd->unk32.nUnk4);
@@ -3740,18 +3755,18 @@ void NextJsgCommand(JSGV *pjsg)
         TriggerJoyRumbleRumk(&D_002DFC00, (RUMK)prelaycmd->rumble.rumk, prelaycmd->rumble.dtRumble);
         break;
     case RELAYCK_Explode:
-        ExplodeAsegEvent(&D_003DD490, prelaycmd->explode.oidA, prelaycmd->explode.oidB, prelaycmd->explode.oidC, pjsg->ploContext, (ASEG *)pjsg->prelay,
+        ExplodeAsegEvent(&D_003DD490, prelaycmd->explode.oidA, prelaycmd->explode.oidB, prelaycmd->explode.oidC, script->ploContext, (ASEG *)script->relay,
                          prelaycmd->explode.dtDelay);
         break;
     case RELAYCK_Eyes:
-        SetAsegEyesEvent(&D_003DD490, prelaycmd->eyes.oidA, prelaycmd->eyes.oidB, pjsg->ploContext, (ASEG *)pjsg->prelay, prelaycmd->eyes.dtEyes);
+        SetAsegEyesEvent(&D_003DD490, prelaycmd->eyes.oidA, prelaycmd->eyes.oidB, script->ploContext, (ASEG *)script->relay, prelaycmd->eyes.dtEyes);
         break;
     case RELAYCK_Sound:
         PlayAsegSoundEvent(&D_003DD490, prelaycmd->sound.idSnd, prelaycmd->sound.oidA, prelaycmd->sound.nUnk6, prelaycmd->sound.nUnk7, prelaycmd->sound.gUnk8,
-                           prelaycmd->sound.gUnk9, prelaycmd->sound.gUnk10, 0, pjsg->ploContext, (ASEG *)pjsg->prelay, &pjsg->psnd);
+                           prelaycmd->sound.gUnk9, prelaycmd->sound.gUnk10, 0, script->ploContext, (ASEG *)script->relay, &script->psnd);
         break;
     case RELAYCK_StopSound:
-        StopAsegSoundEvent(&D_003DD490, prelaycmd->stopSound.idSnd, (ASEG *)pjsg->prelay, &pjsg->psnd);
+        StopAsegSoundEvent(&D_003DD490, prelaycmd->stopSound.idSnd, (ASEG *)script->relay, &script->psnd);
         break;
     case RELAYCK_CamBlendFrom:
     {
@@ -3769,7 +3784,7 @@ void NextJsgCommand(JSGV *pjsg)
         }
         RELAYCMD *prelaycmdTo = 0;
         int cBlock = 0;
-        for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < pjsg->prelaycmdLast && !prelaycmdTo; prelaycmdT++)
+        for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < script->prelaycmdLast && !prelaycmdTo; prelaycmdT++)
         {
             switch (prelaycmdT->relayck)
             {
@@ -3788,62 +3803,62 @@ void NextJsgCommand(JSGV *pjsg)
             default:
                 if (cBlock == 0 && fSum)
                 {
-                    dtBlend += DtJsgCommand(pjsg, prelaycmdT);
+                    dtBlend += DtJsgCommand(script, prelaycmdT);
                 }
                 break;
             }
         }
         if (prelaycmdTo)
         {
-            StartJsgCamBlend(pjsg, prelaycmd, prelaycmdTo, dtBlend);
+            StartJsgCamBlend(script, prelaycmd, prelaycmdTo, dtBlend);
         }
         break;
     }
     case RELAYCK_CamBlendTo:
-        if (pjsg->tBlendEnd != D_002A7AD0)
+        if (script->tBlendEnd != D_002A7AD0)
         {
             break;
         }
         if (prelaycmd->camBlendTo.nUnk16 != 0)
         {
-            PopJsgCamBlend(pjsg, prelaycmd->camBlendTo.nUnk17);
+            PopJsgCamBlend(script, prelaycmd->camBlendTo.nUnk17);
         }
         else
         {
-            pjsg->fUnk9c = 0;
+            script->fUnk9c = 0;
         }
         break;
     case RELAYCK_Unk3A:
-        PopJsgCamBlend(pjsg, prelaycmd->unk3A.nUnk4);
+        PopJsgCamBlend(script, prelaycmd->unk3A.nUnk4);
         break;
     case RELAYCK_StartJtMode:
     {
-        LO *ploStep = PloFindJsgObject(pjsg, prelaycmd->startJtMode.oidStep);
+        LO *ploStep = PloFindJsgObject(script, prelaycmd->startJtMode.oidStep);
         if (ploStep)
         {
             FIsBasicDerivedFrom(ploStep, (CID)51);
         }
         LO *ploHud = PloFindSwObject(&D_003DD490, (GRFFSO)0x405, prelaycmd->startJtMode.oidUnk6, 0);
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->startJtMode.oidActor);
+        LO *plo = PloFindJsgObject(script, prelaycmd->startJtMode.oidActor);
         if (plo && FIsBasicDerivedFrom(plo, (CID)52))
         {
-            pjsg->pstepplayerMode = (STEPPLAYER *)plo;
+            script->pstepplayerMode = (STEPPLAYER *)plo;
             StartJtMode(&((STEPPLAYER *)plo)->jtmode, 1, (STEP *)ploStep, ploHud);
         }
         break;
     }
     case RELAYCK_EndJtMode:
-        EndJsgJtMode(pjsg);
+        EndJsgJtMode(script);
         break;
     case RELAYCK_TweenPosObj:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->tweenPosObj.oidObj);
+        LO *plo = PloFindJsgObject(script, prelaycmd->tweenPosObj.oidObj);
         D_002DDF40.cpzoom.SetOwner(plo);
         break;
     }
     case RELAYCK_TweenAimObj:
     {
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->tweenAimObj.oidObj);
+        LO *plo = PloFindJsgObject(script, prelaycmd->tweenAimObj.oidObj);
         D_002DDF40.cpzoom.SetFocus(plo);
         break;
     }
@@ -3864,7 +3879,7 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_Line:
         StartDialogueLine(&D_003DD040, prelaycmd->line.idLine, prelaycmd->line.fWait);
-        pjsg->prelaycmdLine = prelaycmd;
+        script->prelaycmdLine = prelaycmd;
         break;
     case RELAYCK_ClearSubtitle:
         ClearSubtitle(&D_004435F0);
@@ -3872,13 +3887,13 @@ void NextJsgCommand(JSGV *pjsg)
     case RELAYCK_Unk47:
         if (ploActor)
         {
-            AddJsgStepHold(pjsg, ploActor, prelaycmd->unk47.nUnk5, prelaycmd->unk47.nUnk6);
+            AddJsgStepHold(script, ploActor, prelaycmd->unk47.nUnk5, prelaycmd->unk47.nUnk6);
         }
         break;
     case RELAYCK_Unk48:
         if (ploActor)
         {
-            RemoveJsgStepHold(pjsg, ploActor, prelaycmd->unk48.nUnk5, prelaycmd->unk48.nUnk6);
+            RemoveJsgStepHold(script, ploActor, prelaycmd->unk48.nUnk5, prelaycmd->unk48.nUnk6);
         }
         break;
     case RELAYCK_Unk49:
@@ -3887,7 +3902,7 @@ void NextJsgCommand(JSGV *pjsg)
             JSGENT aent[6];
             uint cent = 0;
             int cBlock = 0;
-            for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < pjsg->prelaycmdLast; prelaycmdT++)
+            for (RELAYCMD *prelaycmdT = prelaycmd + 1; prelaycmdT < script->prelaycmdLast; prelaycmdT++)
             {
                 switch (prelaycmdT->relayck)
                 {
@@ -3908,7 +3923,7 @@ void NextJsgCommand(JSGV *pjsg)
                 case RELAYCK_Unk49:
                     if (cBlock == 0)
                     {
-                        prelaycmdT = pjsg->prelaycmdLast;
+                        prelaycmdT = script->prelaycmdLast;
                     }
                     break;
                 }
@@ -3917,26 +3932,26 @@ void NextJsgCommand(JSGV *pjsg)
         }
         break;
     case RELAYCK_Unk4A:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)68))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)68))
         {
             if (D_002DE570)
             {
-                PushRhythmManagerCue(D_002DE570, pjsg->ploActor, prelaycmd->unk4A.nUnk5, prelaycmd->unk4A.nUnk6, prelaycmd->unk4A.gUnk4);
+                PushRhythmManagerCue(D_002DE570, script->ploActor, prelaycmd->unk4A.nUnk5, prelaycmd->unk4A.nUnk6, prelaycmd->unk4A.gUnk4);
             }
         }
         break;
     case RELAYCK_PlayAsegDefault:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)68))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)68))
         {
-            LO *plo = pjsg->ploActor;
+            LO *plo = script->ploActor;
             LO *ploOther;
             if (prelaycmd->playAsegDefault.oidOther == OID_Nil)
             {
@@ -3956,14 +3971,14 @@ void NextJsgCommand(JSGV *pjsg)
         StopMusic(&D_003DD040, prelaycmd->stopMusic.idMusic);
         break;
     case RELAYCK_Unk4F:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
-            MURRAY *pmurray = (MURRAY *)pjsg->ploActor;
-            LO *plo = PloFindJsgObject(pjsg, (OID)prelaycmd->unk4F.nUnk5);
+            MURRAY *pmurray = (MURRAY *)script->ploActor;
+            LO *plo = PloFindJsgObject(script, (OID)prelaycmd->unk4F.nUnk5);
             if (plo)
             {
                 SMA *psma = PsmaFindOnAlo((ALO *)plo, OID_Nil);
@@ -3976,13 +3991,13 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_Unk50:
     case RELAYCK_Unk51:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)55))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)55))
         {
-            SetJsgJt(pjsg, prelaycmd, pjsg->ploActor);
+            SetJsgJt(script, prelaycmd, script->ploActor);
         }
         break;
     case RELAYCK_HintBox:
@@ -3993,67 +4008,67 @@ void NextJsgCommand(JSGV *pjsg)
         break;
     case RELAYCK_SetSsgGoal:
     {
-        STEP *pstep = (STEP *)PloFindJsgObject(pjsg, prelaycmd->setSsgGoal.oidStep);
-        SSG *pssg = (SSG *)PloFindJsgObject(pjsg, prelaycmd->setSsgGoal.oidSsg);
+        STEP *pstep = (STEP *)PloFindJsgObject(script, prelaycmd->setSsgGoal.oidStep);
+        SSG *pssg = (SSG *)PloFindJsgObject(script, prelaycmd->setSsgGoal.oidSsg);
         SetStepSsgGoal(pstep, pssg);
         if (!prelaycmd->fAsync)
         {
-            pjsg->pstepSsgGoal = pstep;
-            pjsg->pssgGoal = pssg;
+            script->pstepSsgGoal = pstep;
+            script->pssgGoal = pssg;
         }
         break;
     }
     case RELAYCK_ResetStepGoal:
     {
-        STEP *pstep = (STEP *)PloFindJsgObject(pjsg, prelaycmd->resetStepGoal.oidStep);
-        LO *plo = PloFindJsgObject(pjsg, prelaycmd->resetStepGoal.oidUnk5);
+        STEP *pstep = (STEP *)PloFindJsgObject(script, prelaycmd->resetStepGoal.oidStep);
+        LO *plo = PloFindJsgObject(script, prelaycmd->resetStepGoal.oidUnk5);
         ResetStepGoal(pstep, (SSG *)plo);
         break;
     }
     case RELAYCK_Unk57:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
-            func_001B9880((MURRAY *)pjsg->ploActor);
+            func_001B9880((MURRAY *)script->ploActor);
         }
         break;
     case RELAYCK_Unk58:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)55))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)55))
         {
-            BENTLEY *pbentley = (BENTLEY *)pjsg->ploActor;
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk58.oidShip);
+            BENTLEY *pbentley = (BENTLEY *)script->ploActor;
+            LO *plo = PloFindJsgObject(script, prelaycmd->unk58.oidShip);
             if (plo && FIsBasicDerivedFrom(plo, (CID)54))
             {
                 SetJtAirJump(&pbentley->jtair, (pbentley->jtair.nState == 0x11) ? 3 : 1, 0, 0);
-                SetJsgJt(pjsg, prelaycmd, pbentley);
+                SetJsgJt(script, prelaycmd, pbentley);
             }
         }
         break;
     case RELAYCK_Unk59:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (!FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             break;
         }
         {
-            MURRAY *pmurray = (MURRAY *)pjsg->ploActor;
+            MURRAY *pmurray = (MURRAY *)script->ploActor;
             if (pmurray->moverec.nState < 7)
             {
                 if (pmurray->moverec.nState < 4)
                 {
                     break;
                 }
-                LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk59.oidShip);
+                LO *plo = PloFindJsgObject(script, prelaycmd->unk59.oidShip);
                 if (plo)
                 {
                     func_00220508(&pmurray->moverec, plo);
@@ -4062,16 +4077,16 @@ void NextJsgCommand(JSGV *pjsg)
         }
         break;
     case RELAYCK_Unk5A:
-        if (!pjsg->ploActor)
+        if (!script->ploActor)
         {
             break;
         }
-        if (!FIsBasicDerivedFrom(pjsg->ploActor, (CID)54))
+        if (!FIsBasicDerivedFrom(script->ploActor, (CID)54))
         {
             break;
         }
         {
-            MURRAY *pmurray = (MURRAY *)pjsg->ploActor;
+            MURRAY *pmurray = (MURRAY *)script->ploActor;
             if (pmurray->moverec.nState < 7)
             {
                 if (pmurray->moverec.nState < 4)
@@ -4079,23 +4094,23 @@ void NextJsgCommand(JSGV *pjsg)
                     break;
                 }
                 prelaycmd->unk5A.nUnk6 = pmurray->moverec.nUnk00;
-                LO *plo = PloFindJsgObject(pjsg, prelaycmd->unk5A.oidShip);
+                LO *plo = PloFindJsgObject(script, prelaycmd->unk5A.oidShip);
                 if (plo)
                 {
                     func_00220508(&pmurray->moverec, plo);
-                    SetJsgJt(pjsg, prelaycmd, pmurray);
+                    SetJsgJt(script, prelaycmd, pmurray);
                 }
             }
         }
         break;
     }
-    if (GrfUpdateLo(pjsg->prelay) & 0x100)
+    if (GrfUpdateLo(script->relay) & 0x100)
     {
-        pjsg->tCommand = D_002DDED0.tReal;
+        script->tCommand = D_002DDED0.tReal;
     }
     else
     {
-        pjsg->tCommand = D_002DDED0.t;
+        script->tCommand = D_002DDED0.t;
     }
 }
 } // namespace M_NextJsgCommand__FP3JSG
@@ -4114,10 +4129,12 @@ namespace M_FIsJsgCommandComplete__FP3JSGP8RELAYCMD {
 // since tCommand; Line / StopLine / Unk52 / WaitTimer / ButtonPrompt wait for the dialogue; the camera ones (CamBlendTo, Tween*) for the camera.
 // The result is one variable (the game's s2) assigned in every arm; a command that has several "done at once" exits writes them as `else fComplete = 1`.
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
+// Whether the object is in the active world (LO::fInWorld).
 inline int FIsLoInWorld(LO *plo)
 {
     return plo->fInWorld != 0;
 }
+// The object's update flags (inline when tagged with bit 0, else read through the pointer).
 inline int GrfUpdateLo(LO *plo)
 {
     int grf = plo->grfUnk40;
@@ -4170,18 +4187,21 @@ extern "C" { extern SW D_003DD490; }
 
 
 
+// Vector difference.
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// Lane x of a VU register as a float.
 static inline float GFromVf(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
+// Length of the xy part, in lane x.
 static inline qword QwLengthXY(qword v)
 {
     qword qw;
@@ -4189,16 +4209,19 @@ static inline qword QwLengthXY(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// Length of the xy part as a float.
 static inline float GLengthXY(qword v)
 {
     return GFromVf(QwLengthXY(v));
 }
+// Lane y of a 128-bit register as a float.
 static inline float GYOfQw(qword qw)
 {
     float y;
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
     return y;
 }
+// Lane z of a 128-bit register as a float.
 static inline float GZOfQw(qword qw)
 {
     float z;
@@ -4211,6 +4234,7 @@ static inline float GZOfQw(qword qw)
 
 extern "C" { extern SUBTITLE D_004435F0; }
 
+// Lane x of a 128-bit register as a float.
 static inline float GXOfQwAct(qword qw)
 {
     float x;
@@ -4222,7 +4246,7 @@ extern "C" { extern char D_003DA530[]; }
 extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
 extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("FMatchesLoName");
 extern "C" int func_002121C8(LO *plo);
-extern "C" void ClearJsgWidget(JSGV *pjsg);
+extern "C" void ClearJsgWidget(JSGV *script);
 extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
 extern "C" int FScreenShown(void *pv);
 extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("func_001FE848");
@@ -4234,17 +4258,18 @@ extern "C" { extern float D_002C3620; }
 extern "C" { extern float D_002C3624; }
 extern "C" { extern float D_002C3628; }
 extern "C" { extern float D_002C362C; }
-static inline float TJsgNow(JSGV *pjsg)
+// Current time for a script: real time when its relay runs unpaused (update flag 0x100), else game time.
+static inline float TJsgNow(JSGV *script)
 {
-    if (GrfUpdateLo(pjsg->prelay) & 0x100)
+    if (GrfUpdateLo(script->relay) & 0x100)
     {
         return D_002DDED0.tReal;
     }
     return D_002DDED0.t;
 }
-int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
+int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd) __asm__("IsJsgCommandComplete__FP3JSGP8RELAYCMD");
 // Whether the given command has finished, by kind.
-int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
+int FIsJsgCommandComplete(JSGV *script, RELAYCMD *prelaycmd)
 {
     int fComplete;
     MURRAY *pmurray;
@@ -4256,7 +4281,7 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         fComplete = 1;
         for (i = 0; i < prelaycmd->waitBlocks.coid; i++)
         {
-            if (PjsgFindRelayBlock(pjsg->prelay, (OID)prelaycmd->waitBlocks.aoid[i], pjsg))
+            if (PjsgFindRelayBlock(script->relay, (OID)prelaycmd->waitBlocks.aoid[i], script))
             {
                 fComplete = 0;
                 break;
@@ -4265,60 +4290,60 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     }
     case RELAYCK_WaitAlarm:
-        fComplete = FRelayHasAlarm(pjsg->prelay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
+        fComplete = FRelayHasAlarm(script->relay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
         if (fComplete && prelaycmd->waitAlarm.fForget)
         {
-            RemoveRelayAlarm(pjsg->prelay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
+            RemoveRelayAlarm(script->relay, (ALARM *)prelaycmd->waitAlarm.idAlarm);
         }
         break;
     case RELAYCK_PlayAseg:
         fComplete = 0;
-        if (pjsg->pstepAseg)
+        if (script->pstepAseg)
         {
-            if (!FStepClipPlaying((STEPPLAYER *)pjsg->pstepAseg))
+            if (!FStepClipPlaying((STEPPLAYER *)script->pstepAseg))
             {
-                pjsg->pstepAseg = 0;
+                script->pstepAseg = 0;
                 fComplete = 1;
             }
         }
         else
         {
-            if (pjsg->pasegaCur && FAsegaStopped(pjsg->pasegaCur))
+            if (script->pasegaCur && FAsegaStopped(script->pasegaCur))
             {
-                pjsg->pasegaCur->VUnk01();
-                pjsg->pasegaCur = 0;
+                script->pasegaCur->VUnk01();
+                script->pasegaCur = 0;
             }
-            fComplete = pjsg->pasegaCur == 0;
+            fComplete = script->pasegaCur == 0;
         }
         break;
     case RELAYCK_FireRelay:
-        if (pjsg->prelayWait && !pjsg->prelayWait->fFiring)
+        if (script->prelayWait && !script->prelayWait->fFiring)
         {
-            pjsg->prelayWait = 0;
+            script->prelayWait = 0;
         }
-        fComplete = pjsg->prelayWait == 0;
+        fComplete = script->prelayWait == 0;
         break;
     case RELAYCK_ApplySm:
-        if (pjsg->psmaCur && (FIsSmaRetracted(pjsg->psmaCur) || pjsg->fSmaReached))
+        if (script->psmaCur && (FIsSmaRetracted(script->psmaCur) || script->fSmaReached))
         {
-            ReleaseJsgSma(pjsg);
+            ReleaseJsgSma(script);
         }
-        fComplete = pjsg->psmaCur == 0;
+        fComplete = script->psmaCur == 0;
         break;
     case RELAYCK_WidgetShow:
-        if (pjsg->ploWidget && func_002121C8(pjsg->ploWidget))
+        if (script->ploWidget && func_002121C8(script->ploWidget))
         {
-            ClearJsgWidget(pjsg);
+            ClearJsgWidget(script);
         }
-        fComplete = pjsg->ploWidget == 0;
+        fComplete = script->ploWidget == 0;
         break;
     case RELAYCK_PipeTo:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
             VECTOR4 vLimits;
-            GetJtPipeLimits(&((STEPPLAYER *)pjsg->pjt)->jtpipe, (float *)&vLimits);
-            float s = GLimitLm((LM *)&vLimits, pjsg->sPipe);
-            fComplete = fabsf(((STEPPLAYER *)pjsg->pjt)->jtpipe.s - s) < prelaycmd->pipeTo.gTolerance;
+            GetJtPipeLimits(&((STEPPLAYER *)script->pjt)->jtpipe, (float *)&vLimits);
+            float s = GLimitLm((LM *)&vLimits, script->sPipe);
+            fComplete = fabsf(((STEPPLAYER *)script->pjt)->jtpipe.s - s) < prelaycmd->pipeTo.gTolerance;
         }
         else
         {
@@ -4326,9 +4351,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk1B:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->ploActor;
+            STEPPLAYER *pstepplayer = (STEPPLAYER *)script->ploActor;
             if (pstepplayer->jtair.nState >= 0xB && pstepplayer->jtair.nState <= 0xD)
             {
                 fComplete = 0;
@@ -4349,9 +4374,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_HeroState:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x35))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x35))
         {
-            JT *pjt = (JT *)pjsg->ploActor;
+            JT *pjt = (JT *)script->ploActor;
             switch (prelaycmd->heroState.nState)
             {
             case 2:
@@ -4375,9 +4400,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_StepCmd1D:
     case RELAYCK_StepCmd21:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepHoldArrived((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepHoldArrived((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -4385,9 +4410,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StepCmd1E:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepPutDownDone((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepPutDownDone((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -4395,9 +4420,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StepCmd1F:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepHoldOn9Done((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepHoldOn9Done((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -4405,9 +4430,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_StepCmd22:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = FStepGrab0xCDone((STEPPLAYER *)pjsg->pjt);
+            fComplete = FStepGrab0xCDone((STEPPLAYER *)script->pjt);
         }
         else
         {
@@ -4415,18 +4440,18 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Face:
-        fComplete = prelaycmd->face.dtWait < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = prelaycmd->face.dtWait < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_GoTo:
     {
-        LO *pjt = pjsg->pjt;
+        LO *pjt = script->pjt;
         if (pjt)
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->goTo.oidTarget);
+            LO *plo = PloFindJsgObject(script, prelaycmd->goTo.oidTarget);
             if (plo)
             {
                 qword pos;
-                GetJsgLocation(pjsg, plo, &pos, 0);
+                GetJsgLocation(script, plo, &pos, 0);
                 fComplete = GLengthXY(QwSub(PosLoWorld(pjt), pos)) < prelaycmd->goTo.gArrive;
                 SetJtGoalPos(&((STEPPLAYER *)pjt)->jtgoal, pos);
             }
@@ -4446,9 +4471,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     }
     case RELAYCK_FollowPath:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             BHV166 *pbhv = (BHV166 *)PbhvFindStep(pstep, 0xA8);
             fComplete = 0;
             if (!pbhv || FBhv166NearEnd(pbhv))
@@ -4470,9 +4495,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_WalkTo:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            STEP *pstep = (STEP *)pjsg->ploActor;
+            STEP *pstep = (STEP *)script->ploActor;
             BHV *pbhv = PbhvFindStep(pstep, 0xC1);
             fComplete = 0;
             if (!pbhv || FBhv193AtGoal((BHV193V *)pbhv))
@@ -4495,14 +4520,14 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_StepCmd29:
     {
-        STEPPLAYER *pstepplayer = (STEPPLAYER *)pjsg->pjt;
+        STEPPLAYER *pstepplayer = (STEPPLAYER *)script->pjt;
         if (pstepplayer && pstepplayer->jtgrab.nKind != -1 && pstepplayer->jtgrab.nState == 8)
         {
-            LO *plo = PloFindJsgObject(pjsg, prelaycmd->stepCmd29.oidTarget);
+            LO *plo = PloFindJsgObject(script, prelaycmd->stepCmd29.oidTarget);
             if (plo)
             {
                 VECTOR4 pos;
-                GetJsgLocation(pjsg, plo, (qword *)&pos, 0);
+                GetJsgLocation(script, plo, (qword *)&pos, 0);
                 fComplete = GLengthXY(QwSub(PosLoWorld(pstepplayer), *(qword *)&pos)) < prelaycmd->stepCmd29.gArrive;
             }
             else
@@ -4517,9 +4542,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     }
     case RELAYCK_Respawn:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            fComplete = ((STEPPLAYER *)pjsg->pjt)->jtair.nState == -1;
+            fComplete = ((STEPPLAYER *)script->pjt)->jtair.nState == -1;
         }
         else
         {
@@ -4527,9 +4552,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_LaunchTo:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
-            fComplete = ((STEPPLAYER *)pjsg->ploActor)->jtair.nState == -1;
+            fComplete = ((STEPPLAYER *)script->ploActor)->jtair.nState == -1;
         }
         else
         {
@@ -4538,46 +4563,46 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_AddObject:
     case RELAYCK_RemoveObject:
-        if (pjsg->ploFade)
+        if (script->ploFade)
         {
             if (prelaycmd->relayck == RELAYCK_AddObject)
             {
-                if (FIsLoInWorld(pjsg->ploFade) && ((SO *)pjsg->ploFade)->uAlpha == 1.0f)
+                if (FIsLoInWorld(script->ploFade) && ((SO *)script->ploFade)->uAlpha == 1.0f)
                 {
-                    pjsg->ploFade = 0;
+                    script->ploFade = 0;
                 }
             }
-            else if (!FIsLoInWorld(pjsg->ploFade))
+            else if (!FIsLoInWorld(script->ploFade))
             {
-                pjsg->ploFade = 0;
+                script->ploFade = 0;
             }
         }
-        fComplete = pjsg->ploFade == 0;
+        fComplete = script->ploFade == 0;
         break;
     case RELAYCK_Unk32:
-        fComplete = D_002BD850 < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = D_002BD850 < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_Rumble:
-        fComplete = prelaycmd->rumble.dtRumble < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = prelaycmd->rumble.dtRumble < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_CamBlendTo:
-        fComplete = pjsg->tBlendEnd <= D_002DDED0.t;
+        fComplete = script->tBlendEnd <= D_002DDED0.t;
         if (fComplete)
         {
             if (prelaycmd->camBlendTo.nUnk16 != 0)
             {
-                PopJsgCamBlend(pjsg, prelaycmd->camBlendTo.nUnk17);
+                PopJsgCamBlend(script, prelaycmd->camBlendTo.nUnk17);
             }
             else
             {
-                pjsg->fUnk9c = 0;
+                script->fUnk9c = 0;
             }
         }
         break;
     case RELAYCK_StartJtMode:
-        if (pjsg->pstepplayerMode)
+        if (script->pstepplayerMode)
         {
-            fComplete = pjsg->pstepplayerMode->jtmode.hud.nState == 1;
+            fComplete = script->pstepplayerMode->jtmode.hud.nState == 1;
         }
         else
         {
@@ -4585,9 +4610,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_EndJtMode:
-        if (pjsg->pstepplayerMode)
+        if (script->pstepplayerMode)
         {
-            fComplete = pjsg->pstepplayerMode->jtmode.hud.nState == -1;
+            fComplete = script->pstepplayerMode->jtmode.hud.nState == -1;
         }
         else
         {
@@ -4634,10 +4659,10 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk43:
-        if (pjsg->ploActor && FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x34))
+        if (script->ploActor && FIsBasicDerivedFrom(script->ploActor, (CID)0x34))
         {
             fComplete = 0;
-            if (((STEPPLAYER *)pjsg->ploActor)->VUnk88() == prelaycmd->unk43.nUnk4)
+            if (((STEPPLAYER *)script->ploActor)->VUnk88() == prelaycmd->unk43.nUnk4)
             {
                 fComplete = 1;
             }
@@ -4656,9 +4681,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
     case RELAYCK_Unk52:
     {
         int idLine = -1;
-        if (pjsg->prelaycmdLine)
+        if (script->prelaycmdLine)
         {
-            idLine = pjsg->prelaycmdLine->line.idLine;
+            idLine = script->prelaycmdLine->line.idLine;
         }
         if (!FCurrentIdMatches(&D_003DD040, idLine))
         {
@@ -4682,9 +4707,9 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk4F:
         fComplete = 0;
-        if (FIsBasicDerivedFrom(pjsg->ploActor, (CID)0x36))
+        if (FIsBasicDerivedFrom(script->ploActor, (CID)0x36))
         {
-            MURRAY *pmurrayActor = (MURRAY *)pjsg->ploActor;
+            MURRAY *pmurrayActor = (MURRAY *)script->ploActor;
             if (pmurrayActor->nState != 6)
             {
                 fComplete = 1;
@@ -4697,34 +4722,34 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk50:
         fComplete = 0;
-        if (!pjsg->pjt || ((BENTLEY *)pjsg->pjt)->nState == 6)
+        if (!script->pjt || ((BENTLEY *)script->pjt)->nState == 6)
         {
             fComplete = 1;
         }
         break;
     case RELAYCK_Unk51:
         fComplete = 0;
-        if (!pjsg->pjt || ((BENTLEY *)pjsg->pjt)->nState != 6)
+        if (!script->pjt || ((BENTLEY *)script->pjt)->nState != 6)
         {
             fComplete = 1;
         }
         break;
     case RELAYCK_HintBox:
-        fComplete = prelaycmd->hintBox.dtHint < TJsgNow(pjsg) - pjsg->tCommand;
+        fComplete = prelaycmd->hintBox.dtHint < TJsgNow(script) - script->tCommand;
         break;
     case RELAYCK_SetSsgGoal:
-        if (pjsg->pssgGoal && !FStepGoalIs(pjsg->pstepSsgGoal, pjsg->pssgGoal))
+        if (script->pssgGoal && !FStepGoalIs(script->pstepSsgGoal, script->pssgGoal))
         {
-            pjsg->pstepSsgGoal = 0;
-            pjsg->pssgGoal = 0;
+            script->pstepSsgGoal = 0;
+            script->pssgGoal = 0;
         }
-        fComplete = pjsg->pssgGoal == 0;
+        fComplete = script->pssgGoal == 0;
         break;
     case RELAYCK_Unk58:
-        if (pjsg->pjt)
+        if (script->pjt)
         {
-            MURRAY *pmurrayShip = (MURRAY *)PloFindJsgObject(pjsg, prelaycmd->unk58.oidShip);
-            if (TJsgNow(pjsg) - pjsg->tCommand > D_002C3620)
+            MURRAY *pmurrayShip = (MURRAY *)PloFindJsgObject(script, prelaycmd->unk58.oidShip);
+            if (TJsgNow(script) - script->tCommand > D_002C3620)
             {
                 fComplete = 1;
             }
@@ -4743,10 +4768,10 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         break;
     case RELAYCK_Unk59:
-        pmurray = (MURRAY *)pjsg->pjt;
+        pmurray = (MURRAY *)script->pjt;
         if (pmurray)
         {
-            if (TJsgNow(pjsg) - pjsg->tCommand > D_002C3624)
+            if (TJsgNow(script) - script->tCommand > D_002C3624)
             {
                 fComplete = 1;
             }
@@ -4766,10 +4791,10 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         break;
     case RELAYCK_Unk5A:
     {
-        pmurray = (MURRAY *)pjsg->pjt;
+        pmurray = (MURRAY *)script->pjt;
         if (pmurray)
         {
-            if (TJsgNow(pjsg) - pjsg->tCommand > D_002C362C)
+            if (TJsgNow(script) - script->tCommand > D_002C362C)
             {
                 fComplete = 1;
             }
@@ -4903,6 +4928,7 @@ static inline float Y(qword a){float r;__asm__("prot3w %0,%1":"=r"(r):"r"(a));re
 static inline float Z(qword a){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(a));return r;}
 static inline qword Root(qword a){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(a));return a;}
 static inline float LengthXY(qword a){qword r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));return X(Root(r));}
+// Normalizes the path tangent in place (fallback for a zero tangent).
 static inline void NormalizeTangent(U &output){
  register qword vector __asm__("vf3");
  register qword length __asm__("vf1");
@@ -4923,6 +4949,7 @@ static inline void NormalizeTangent(U &output){
  else {__asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"+j"(length):"j"(vector));}
  __asm__("sqc2 %1,%0":"=m"(output.q):"j"(length));
 }
+// Displacement from the actor to the captured target position.
 static inline void TargetDisplacement(U &output,const qword &captured,qword actorPosition){
  register qword current __asm__("vf3");
  register qword target __asm__("vf2");
@@ -4932,6 +4959,7 @@ static inline void TargetDisplacement(U &output,const qword &captured,qword acto
  __asm__("vsub.xyzw %0,%1,%2":"=j"(delta):"j"(target),"j"(current));
  __asm__("sqc2 %1,%0":"=m"(output.q):"j"(delta));
 }
+// Unit direction of input; also copies the source speed into speed (register-pinned for the match).
 static inline qword NormalizeDirection(qword input,float &speed,const float &sourceSpeed){
  register qword vector __asm__("vf2");
  register qword length __asm__("vf1");
@@ -4943,6 +4971,7 @@ static inline qword NormalizeDirection(qword input,float &speed,const float &sou
  __asm__("vdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q":"+j"(length):"j"(vector));
  speed=scale;return length;
 }
+// Whether the y lanes of two input vectors are within tolerance.
 static inline int NearYInputs(qword previous,qword current,float tolerance){
  register qword currentWord __asm__("$2"),previousWord __asm__("$3");
  register float currentInput __asm__("$f12"),previousInput __asm__("$f13");
@@ -4952,6 +4981,7 @@ static inline int NearYInputs(qword previous,qword current,float tolerance){
  __asm__("mtc1 %1,%0":"=f"(previousInput):"r"(previousWord));
  return FFloatsNear__Ffff(currentInput,previousInput,tolerance);
 }
+// Whether the z lanes of two input vectors are within tolerance.
 static inline int NearZInputs(qword previous,qword current,float tolerance){
  register qword currentWord __asm__("$2"),previousWord __asm__("$3");
  register float currentInput __asm__("$f12"),previousInput __asm__("$f13");
@@ -5187,20 +5217,20 @@ void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
 // Set prelaycmdJt (+0x40) and the controlled character pjt (+0x44), detaching the old one and attaching the new one
 // via 0x143DE8(pjt, pjsg). (inferred)
 /* Sets the script's mode command and the JT it drives, re-linking the JT to the script (func_00143DE8). */
-extern "C" void SetRelayScriptActor(JSGV *pjsg, RELAYCMD *prelaycmdJt, LO *pjt)
+extern "C" void SetRelayScriptActor(JSGV *script, RELAYCMD *prelaycmdJt, LO *pjt)
 {
     LO *pjtOld;
-    if (prelaycmdJt != pjsg->prelaycmdJt) {
-        pjsg->prelaycmdJt = prelaycmdJt;
+    if (prelaycmdJt != script->prelaycmdJt) {
+        script->prelaycmdJt = prelaycmdJt;
     }
-    pjtOld = pjsg->pjt;
+    pjtOld = script->pjt;
     if (pjt != pjtOld) {
         if (pjtOld != 0) {
             func_00143DE8(pjtOld, 0);
         }
-        pjsg->pjt = pjt;
+        script->pjt = pjt;
         if (pjt != 0) {
-            func_00143DE8(pjt, pjsg);
+            func_00143DE8(pjt, script);
         }
     }
 }
@@ -5382,13 +5412,13 @@ void ClearJsgAseg(struct S *p)
 
 // 0x1E53D8 ClearJsgRelayWait
 // Stop the relay this script fired and is waiting on (+0x50) and clear it. (inferred)
-extern "C" void ClearJsgRelayWait(JSGV *pjsg)
+extern "C" void ClearJsgRelayWait(JSGV *script)
 {
-    RELAYV *prelay;
-    prelay = pjsg->prelayWait;
-    if (prelay != 0) {
-        StopRelay(prelay);
-        pjsg->prelayWait = 0;
+    RELAYV *relay;
+    relay = script->prelayWait;
+    if (relay != 0) {
+        StopRelay(relay);
+        script->prelayWait = 0;
     }
 }
 
@@ -5432,13 +5462,13 @@ void ClearJsgWidget(struct S *p)
 // 0x1E54B0 ClearJsgJtMode
 // End the STEPPLAYER mode started by StartJtMode (+0xA0 pstepplayerMode -> 0x19CCE8(+0xF00)). (inferred)
 /* Ends the JT mode the script started on its player. */
-extern "C" void ClearJsgJtMode(JSGV *pjsg)
+extern "C" void ClearJsgJtMode(JSGV *script)
 {
     STEPPLAYER *pstepplayer;
-    pstepplayer = pjsg->pstepplayerMode;
+    pstepplayer = script->pstepplayerMode;
     if (pstepplayer != 0) {
         EndJtMode((JTMODE *)((char *)pstepplayer + 0xF00));
-        pjsg->pstepplayerMode = 0;
+        script->pstepplayerMode = 0;
     }
 }
 
@@ -5546,9 +5576,9 @@ void RemoveJsg(P *p)
 
 // 0x1E5778 IsJsgRemoved
 // True if the JSG is no longer in its relay's dlJsg. (inferred)
-extern "C" int IsJsgRemoved(JSGV *pjsg)
+extern "C" int IsJsgRemoved(JSGV *script)
 {
-    return FFindDlEntry(&pjsg->prelay->dlJsg, pjsg) == 0;
+    return FFindDlEntry(&script->relay->dlJsg, script) == 0;
 }
 
 // 0x1E57A0 StartRelayScriptCamBlend
@@ -5574,6 +5604,7 @@ void SetCmPolicy(void *, int, void *, int, void *);
 static inline float X(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
 static inline float Y(qword q) { float f; __asm__("prot3w %0, %1" : "=r"(f) : "r"(q)); return f; }
 static inline float Z(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
+// Whether two points are equal within 0.0001 per axis.
 static inline int FNear(qword a, qword b)
 {
     return FFloatsNear__Ffff(X(b), X(a), 0.0001f) && FFloatsNear__Ffff(Y(b), Y(a), 0.0001f) && FFloatsNear__Ffff(Z(b), Z(a), 0.0001f);
