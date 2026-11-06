@@ -69,11 +69,13 @@ struct DIMITRIV
     int hitPointsAtLastEscape;               /* +0x1018 hp when the last escape started */
 };
 typedef char assert_DIMITRI_hitPointsAtLastEscape[(unsigned int)&((DIMITRIV *)0)->hitPointsAtLastEscape == 0x1018 ? 1 : -1];
-/* A sub-behaviour found by PushStepBhv (vtable slot 8 starts it). */
-struct BHVO { int a[3]; VTE *vt; char pad[0x20]; union { void *plo30; int x30; }; int pad34; union { void *p38; int x38; }; int x3C; int x40;
-              char pad44[8]; void *n4C; char pad50[0xC0 - 0x50]; int xC0; int padC4; void *pC8; };
-typedef char assert_BHVO_pC8[(unsigned int)&((BHVO *)0)->pC8 == 0xC8 ? 1 : -1];
-struct BHVY { char pad[0x30]; int x30; };
+/* A sub-behaviour pushed by PushStepBhv (vtable slot 8 starts it); its fields depend on its class: BHV181 (route,
+   target), BHVCOMBAT/BHVATTACK (target, attack entry), BHVANIM/BHVIDLE (guard flag, look-at), BHVWALKPATH. */
+struct BHVO { int a[3]; VTE *vt; char pad[0x20]; void *target; int pad34; union { void *route; void *lookAt; };
+              union { int sgf; int attackEntry; }; union { int combatUnknown40; int walkIgnoresBlockers; };
+              char pad44[8]; void *escapeTarget; char pad50[0xC0 - 0x50]; int walkAnimSgf; int padC4; void *walkLookAt; };
+typedef char assert_BHVO_walkLookAt[(unsigned int)&((BHVO *)0)->walkLookAt == 0xC8 ? 1 : -1];
+struct BHVY { char pad[0x30]; int unknown30; };
 /* An attack entry chosen by ChooseStepguardAttack (+0x60 the hide time range). */
 struct LMV { float gMin, gMax; };
 struct ATKENTRY { char pad[0x60]; LMV cooldown; };
@@ -273,7 +275,7 @@ extern "C" void UpdateBhvDimitriEscape(BHVESC *behavior)
             __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
             dist = VuToFloat(l);
             f = 0;
-            if (dist < 850.0f && __builtin_fabsf(GetZ(d)) < 400.0f && py->x30) f = 1;
+            if (dist < 850.0f && __builtin_fabsf(GetZ(d)) < 400.0f && py->unknown30) f = 1;
             if (f) SetBhvDimitriEscapeState(behavior, 1);
             break;
         }
@@ -297,8 +299,8 @@ extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
     case 0: {
         BHVO *child = PushStepBhv(behavior->guard, CID_BHV181);
         VTE *entry;
-        child->p38 = behavior->route;
-        child->n4C = behavior->target;
+        child->route = behavior->route;
+        child->escapeTarget = behavior->target;
         entry = &child->vt[8];
         ((void (*)(void *))entry->pfn)((char *)child + entry->d);
         behavior->guard->hitPointsAtLastEscape = behavior->guard->hitPoints;
@@ -307,8 +309,8 @@ extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
     case 1: {
         BHVO *child = PushStepBhv(behavior->guard, CID_BHVCOMBAT);
         VTE *entry;
-        child->plo30 = behavior->target;
-        child->x40 = k;
+        child->target = behavior->target;
+        child->combatUnknown40 = k;
         entry = &child->vt[8];
         ((void (*)(void *))entry->pfn)((char *)child + entry->d);
         break;
@@ -454,7 +456,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         qwordV d;
         behavior->goal = ChooseBhvDimitriAttackRouteEnd(behavior);
         child = PushStepBhv(behavior->guard, CID_BHVANIM);
-        child->x3C = 0xB;
+        child->sgf = 0xB;
         d = VuSub(func_001A62E8(behavior->goal), func_001A62E8(behavior->guard));
         {
             float g = atan2f(GetY(d), GetX(d)) + 3.1415927f;
@@ -467,7 +469,7 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
     case 1: {
         BHVO *child;
         child = PushStepBhv(behavior->guard, CID_BHVIDLE);
-        child->p38 = behavior->target;
+        child->lookAt = behavior->target;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
         break;
     }
@@ -487,17 +489,17 @@ extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
         }
         MeasureShape(palo);
         SetBhvpathShape(child, palo, 0);
-        child->xC0 = 8;
-        child->pC8 = behavior->target;
-        child->x40 = 1;
+        child->walkAnimSgf = 8;
+        child->walkLookAt = behavior->target;
+        child->walkIgnoresBlockers = 1;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
         break;
     }
     case 3: {
         BHVO *child;
         child = PushStepBhv(behavior->guard, CID_BHVATTACK);
-        child->x3C = (int)behavior->attack;
-        child->plo30 = behavior->target;
+        child->attackEntry = (int)behavior->attack;
+        child->target = behavior->target;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
         behavior->guard->attackCooldownEnd = D_002A5138;
         behavior->attackCount++;
