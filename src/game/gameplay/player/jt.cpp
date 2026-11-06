@@ -489,7 +489,7 @@ struct S {
     char pad[0x264]; int x264;
     char p0[0xD98]; int x1000; char p1[0x1C]; float x1020;
     char p2[0x74]; float x1098; float x109c; float x10a0; float x10a4; struct LM4 lm;
-    char p3[0x268]; char x1320[0x4B0]; char x17d0[0xF8]; int x18c8; int p4; int x18d0; int p5; int x18d8;
+    char p3[0x268]; char x1320[0x4B0]; char x17d0[0xF8]; int state; int p4; int x18d0; int p5; int caneState;
     char p6[0xD0]; float x19ac; char p7[0x280]; char x1c30[0x380]; int x1fb0; int p8[2]; int x1fbc; int p9[2]; int x1fc8; int p10[2]; int x1fd4; int p11[6]; char x1ff0[4];
 };
 extern struct S *D_002E1E40;
@@ -517,8 +517,8 @@ void InitJt(struct S *jt)
 {
     InitStepplayer(jt);
     jt->x19ac = 15.0f;
-    jt->x18c8 = -1;
-    jt->x18d8 = -1;
+    jt->state = -1;
+    jt->caneState = -1;
     jt->x18d0 = -1;
     InitGait(jt->x1320, jt, 0x6F);
     InitGait(jt->x1c30, jt, 0x6F);
@@ -782,8 +782,8 @@ namespace M_func_00188CC8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct A { char pad[0x80]; float x80, y84, g88; char pad1[0x94 - 0x8C]; float g94; int n98; int n9C; };
 struct B { char pad[0x1BC]; int x1BC; };
-struct O { char pad[0x4C8]; int x4C8; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
-    char aDF0[0xF50 - 0xDF0]; char aF50[0x18C8 - 0xF50]; int n18C8; int x18CC; int n18D0; float g18D4;
+struct O { char pad[0x4C8]; int grabState; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
+    char hurt[0xF50 - 0xDF0]; char pipe[0x18C8 - 0xF50]; int state; int x18CC; int n18D0; float g18D4;
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BF298;
@@ -814,12 +814,12 @@ static __inline__ float GLimLo(float g, float lo, float v)
 void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 {
     AdjustStepNewXp(jt, pa, pv);
-    switch (jt->n18C8) {
+    switch (jt->state) {
     case 8:
-        ResetJtPipeAdjust(jt->aF50, pa, pv);
+        ResetJtPipeAdjust(jt->pipe, pa, pv);
         break;
     case 7:
-        if (pa->n9C == 0xE && jt->x4C8 == 3 && jt->p4D4->x1BC) {
+        if (pa->n9C == 0xE && jt->grabState == 3 && jt->p4D4->x1BC) {
             pa->n98 = 0;
             if (jt->x4CC == 0) {
                 pa->g94 = 0.0f;
@@ -834,7 +834,7 @@ void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
         }
         break;
     case 4:
-        AdjustJtHurtXp(jt->aDF0, pa, pv);
+        AdjustJtHurtXp(jt->hurt, pa, pv);
         break;
     case 6:
         SetBentleyXpFriction(jt->a1FF0, pa, pv);
@@ -1793,7 +1793,7 @@ extern "C" void RenderJtSelf(JT *jt, void *camera)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A278 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int x18d8; char p3[0xC8]; void *x19a4; };
+struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int caneState; char p3[0xC8]; void *hookChild; };
 qword func_001A62E8(void *p);
 void func_001F3980(struct S *p);
 /** @sly2-annot addr=0x18A278
@@ -1807,12 +1807,12 @@ void func_001F3980(struct S *p);
 // (inferred)
 void UpdateJtWorldTransform(struct S *jt)
 {
-    jt->b = func_001A62E8(jt->x19a4);
+    jt->b = func_001A62E8(jt->hookChild);
     jt->n = 0;
     func_001F3980(jt);
-    if (!jt->x18d8) {
+    if (!jt->caneState) {
         jt->a = func_001A62E8(jt);
-        jt->c = func_001A62E8(jt->x19a4);
+        jt->c = func_001A62E8(jt->hookChild);
         jt->n = 3;
     } else {
         jt->n = 0;
@@ -1847,7 +1847,7 @@ namespace M_func_0018A350 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-struct S { char pad[0x18C4]; void *p18c4; int n; };
+struct S { char pad[0x18C4]; void *hangHandle; int n; };
 qword func_001A62E8(void *p);
 void GetStepplayerCameraFocusPosition(struct S *p, UV *pv);
 static __inline__ float GetZ(qword q)
@@ -1869,11 +1869,11 @@ void GetJtCameraTarget(struct S *jt, UV *pv)
     switch (jt->n) {
     case 3:
         GetStepplayerCameraFocusPosition(jt, pv);
-        pv->v.z = GetZ(func_001A62E8(jt->p18c4)) + -175.0f;
+        pv->v.z = GetZ(func_001A62E8(jt->hangHandle)) + -175.0f;
         break;
     case 0x16:
         GetStepplayerCameraFocusPosition(jt, pv);
-        pv->v.z = GetZ(func_001A62E8(jt->p18c4)) + -100.0f;
+        pv->v.z = GetZ(func_001A62E8(jt->hangHandle)) + -100.0f;
         break;
     case 0x15:
         pv->q = func_001A62E8(jt);
@@ -1887,7 +1887,7 @@ void GetJtCameraTarget(struct S *jt, UV *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A428 { extern "C" {
-struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char xf50[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
+struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char pipe[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
 extern struct CLOCK D_002DDED0;
 void GetStepplayerCpdefi(struct S *p, int *pf);
 void GetJtPipeVelocity(void *p, int *pf);
@@ -1906,7 +1906,7 @@ void GetJtCpdefi(struct S *jt, int *pf)
     GetStepplayerCpdefi(jt, pf);
     switch (jt->n) {
     case 8:
-        GetJtPipeVelocity(jt->xf50, pf);
+        GetJtPipeVelocity(jt->pipe, pf);
         break;
     case 3: case 5: case 6:
         *pf |= 1;
@@ -2550,7 +2550,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018B2C0 { extern "C" {
-struct S { char pad[0x150]; void *p150; char p1[0xDAC]; int xf00; int xf04; char p2[0x18]; int xf20; char p3[0xE1C]; int x1d40; };
+struct S { char pad[0x150]; void *controller; char p1[0xDAC]; int xf00; int jtModeState; char p2[0x18]; int jtModeKind; char p3[0xE1C]; int x1d40; };
 int IsStepplayerInJtMode(struct S *p);
 int GrfConsumePressed__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
@@ -2566,8 +2566,8 @@ void UpdateJtMode(void *p);
 void UpdateJtModeInput(struct S *p)
 {
     if (IsStepplayerInJtMode(p)) {
-        if (p->xf04 == 1 && !p->xf20 &&
-            GrfConsumePressed__5POCTLUif(p->p150, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        if (p->jtModeState == 1 && !p->jtModeKind &&
+            GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
             EndJtMode(&p->xf00);
         UpdateJtMode(&p->xf00);
     }
@@ -2578,7 +2578,7 @@ void UpdateJtModeInput(struct S *p)
 namespace M_func_0018B348 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } MATRIX4;
-struct O { char pad[0x60]; void *p60; char pad1[0x19A4 - 0x64]; struct X *p19A4; char pad2[0x19C0 - 0x19A8]; void *p19C0;
+struct O { char pad[0x60]; void *p60; char pad1[0x19A4 - 0x64]; struct X *hookChild; char pad2[0x19C0 - 0x19A8]; void *p19C0;
     char pad3[0x19CC - 0x19C4]; void *p19CC; char pad4[0x1BC8 - 0x19D0]; void *p1BC8; char pad5[0x1BD8 - 0x1BCC]; float g1BD8;
     char pad6[0x1BE0 - 0x1BDC]; qword v1BE0; qword v1BF0; qword v1C00; qword v1C10; qword v1C20; };
 struct X { char pad[0x60]; void *p60; };
@@ -2609,7 +2609,7 @@ void CacheJtRestPose(struct O *jt)
     if (jt->p1BC8) {
         z = 0.0f;
         jt->g1BD8 = func_0012F990(jt->p1BC8, 0x167);
-        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19A4->p60, jt->p60, &m0, 0);
+        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
         jt->v1BE0 = m0.r[3];
         func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
         jt->v1BF0 = m1.r[3];
@@ -3178,7 +3178,7 @@ typedef char layout_TARGET_kind[((unsigned)&((struct X1854*)0)->x124==0x124)?1:-
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018C060 { extern "C" {
-struct S { char pad[0x2C0]; char x2c0[0x200]; char x4c0[0x60]; void *x520; char p1[0x8CC]; char xdf0[0x930]; void *a1720[0x6A]; int n; };
+struct S { char pad[0x2C0]; char air[0x200]; char grab[0x60]; void *x520; char p1[0x8CC]; char hurt[0x930]; void *a1720[0x6A]; int n; };
 void *GetJtGrabAdjustRecord(void *p, int *pn);
 void *GetJtHurtAdjustRecord(void *p, int *pn);
 void *GetJtAirAdjustRecord(void *p, int *pn);
@@ -3196,9 +3196,9 @@ void ApplyJtStateStepParams(struct S *jt)
     int n = 0;
     void *pv;
     switch (jt->n) {
-    case 7: pv = GetJtGrabAdjustRecord(jt->x4c0, &n); break;
-    case 4: pv = GetJtHurtAdjustRecord(jt->xdf0, &n); break;
-    case 2: pv = GetJtAirAdjustRecord(jt->x2c0, &n); break;
+    case 7: pv = GetJtGrabAdjustRecord(jt->grab, &n); break;
+    case 4: pv = GetJtHurtAdjustRecord(jt->hurt, &n); break;
+    case 2: pv = GetJtAirAdjustRecord(jt->air, &n); break;
     case 21: case 22: pv = jt->x520; break;
     default: pv = jt->a1720[jt->n]; break;
     }
@@ -4763,7 +4763,7 @@ namespace M_func_0018E1E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 typedef struct { qword r[3]; } M3;
-struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *p10DC; };
+struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *interactTarget; };
 extern qword func_001A62E8(void *p);
 extern void SetStepRadTargetVec(struct O *p, qword v);
 extern float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
@@ -4797,7 +4797,7 @@ void UpdateJtFaceTarget(struct O *jt)
     qword d, l, s, r;
     float gl, gLen;
     qword *pk;
-    d = VSub(func_001A62E8(jt->p10DC), func_001A62E8(jt));
+    d = VSub(func_001A62E8(jt->interactTarget), func_001A62E8(jt));
     pk = &D_002A2DA0;
     l = VLen(d);
     n.q = d;
