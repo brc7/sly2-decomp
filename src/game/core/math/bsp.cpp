@@ -2,6 +2,11 @@
 // a polygon, point queries, cloning a tree, and planes (from three points, from normal and point, transformed). VU0
 // asm. TU 0x118668..0x1195E0 (12 functions, address order) and the inline functions behind two linkonce copies
 // (0x2564A8, 0x2564B8), defined at the end.
+// A BSP node holds a plane and two children; null children are outside / inside leaves. Collision code clips edges
+// against these volumes, the culling and query code locates points, and level loading clones trees between
+// geometries. Entry points: ClsgClipEdgeToBsp, PruneBspBySphere, CollectBspSurfacesTouchingPolygon,
+// PbspPointInBspQuick, FindBspLeafContainingPoint, CloneBspc, InitPlaneFromPositions / InitPlaneFromNormalPos,
+// TransformPlane.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bsp
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001195C0
 #include "sly2/slotheap.h"
@@ -133,6 +138,8 @@ int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int
  * See: docs/engine/camera.md#5-key-functions, docs/engine/core-library.md#6-source-files,
  *   docs/engine/core-library.md#7-key-functions
  * @end-sly2-annot */
+// Clips the edge pos1-pos2 against a BSP volume and writes the pieces inside it to alsg (at most clsgMax);
+// returns their count. See the long comment above for the algorithm.
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg)
 {
     CEB ceb;
@@ -260,11 +267,15 @@ static inline BSP *PnodeCheck(BSP *p, BSP *pnodeMax)
  *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int PruneBspBySphere(BSP *pnode, BSP *pnodeMax, qword pos, float eps, int *pcnode, BSP **ppnode)
+// Builds a reduced copy of a BSP for queries near pos: planes farther than eps from pos are skipped (the walk
+// follows the side pos is on), and only the planes within eps are copied as new nodes into *outNodes (capacity
+// *capacity, both advanced). Returns 0 or 1 when the result is a plain leaf (the two leaf kinds), 2 when a subtree
+// was emitted (its root is the last node written). Used as a broad-phase simplification (inferred).
+extern "C" int PruneBspBySphere(BSP *node, BSP *nodeLimit, qword pos, float eps, int *capacity, BSP **outNodes)
 {
     float g;
-    while (pnode) {
-        qword plane = *pnode->pplane;
+    while (node) {
+        qword plane = *node->pplane;
         VUF d;
         VUF one;
         qword dq, oq;
@@ -275,41 +286,41 @@ extern "C" int PruneBspBySphere(BSP *pnode, BSP *pnodeMax, qword pos, float eps,
         one.q = oq;
         d.q = dq;
         if (g > eps) {
-            pnode = PnodeCheck(pnode->pbspPos, pnodeMax);
+            node = PnodeCheck(node->pbspPos, nodeLimit);
         } else if (g < -eps) {
-            pnode = PnodeCheck(pnode->pbspNeg, pnodeMax);
+            node = PnodeCheck(node->pbspNeg, nodeLimit);
         } else {
-            int nl, nr;
-            BSP *pl = PnodeCheck(pnode->pbspNeg, pnodeMax);
-            if (pl) {
-                nl = PruneBspBySphere(pl, pnodeMax, pos, eps, pcnode, ppnode);
-                pl = *ppnode - 1;
+            int negResult, posResult;
+            BSP *negChild = PnodeCheck(node->pbspNeg, nodeLimit);
+            if (negChild) {
+                negResult = PruneBspBySphere(negChild, nodeLimit, pos, eps, capacity, outNodes);
+                negChild = *outNodes - 1;
             } else {
-                nl = 0;
+                negResult = 0;
             }
-            BSP *pr = PnodeCheck(pnode->pbspPos, pnodeMax);
-            if (pr) {
-                nr = PruneBspBySphere(pr, pnodeMax, pos, eps, pcnode, ppnode);
-                pr = *ppnode - 1;
+            BSP *posChild = PnodeCheck(node->pbspPos, nodeLimit);
+            if (posChild) {
+                posResult = PruneBspBySphere(posChild, nodeLimit, pos, eps, capacity, outNodes);
+                posChild = *outNodes - 1;
             } else {
-                nr = 1;
+                posResult = 1;
             }
-            if (nl == nr && nr != 2)
-                return nr;
-            if (*pcnode <= 0)
+            if (negResult == posResult && posResult != 2)
+                return posResult;
+            if (*capacity <= 0)
                 return 1;
-            BSP *pn = (*ppnode)++;
-            (*pcnode)--;
-            pn->pplane = pnode->pplane;
-            switch (nl) {
-            case 0: pn->pbspNeg = 0; break;
-            case 1: pn->pbspNeg = &D_002BBB10; break;
-            case 2: pn->pbspNeg = pl; break;
+            BSP *newNode = (*outNodes)++;
+            (*capacity)--;
+            newNode->pplane = node->pplane;
+            switch (negResult) {
+            case 0: newNode->pbspNeg = 0; break;
+            case 1: newNode->pbspNeg = &D_002BBB10; break;
+            case 2: newNode->pbspNeg = negChild; break;
             }
-            switch (nr) {
-            case 0: pn->pbspPos = &D_002BBB20; break;
-            case 1: pn->pbspPos = 0; break;
-            case 2: pn->pbspPos = pr; break;
+            switch (posResult) {
+            case 0: newNode->pbspPos = &D_002BBB20; break;
+            case 1: newNode->pbspPos = 0; break;
+            case 2: newNode->pbspPos = posChild; break;
             }
             return 2;
         }
@@ -327,15 +338,17 @@ static inline float GMin(float a, float b) { return b < a ? b : a; }
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" int CollectBspSurfacesTouchingPolygon(BSP *pnode, BSP *pnodeMax, int cpos, qword *apos, int *pcsurf, SURF ***pppsurf)
+// Walks a BSP with a polygon (pointCount points): uses the min/max plane distance over the points to descend into
+// the children it straddles, collecting the surfaces of the nodes it touches into (*outCount, *outSurfaces).
+extern "C" int CollectBspSurfacesTouchingPolygon(BSP *node, BSP *nodeLimit, int pointCount, qword *points, int *outCount, SURF ***outSurfaces)
 {
-    if (cpos == 0)
+    if (pointCount == 0)
         return 1;
-    while (pnode) {
+    while (node) {
         float gMax, gMin;
         {
-            qword plane = pnode->psurf->plane;
-            qword pos = apos[0];
+            qword plane = node->psurf->plane;
+            qword pos = points[0];
             VUF d;
             VUF one;
             qword dq, oq;
@@ -347,9 +360,9 @@ extern "C" int CollectBspSurfacesTouchingPolygon(BSP *pnode, BSP *pnodeMax, int 
             d.q = dq;
             gMin = gMax;
         }
-        for (int i = 1; i < cpos; i++) {
-            qword plane = pnode->psurf->plane;
-            qword pos = apos[i];
+        for (int i = 1; i < pointCount; i++) {
+            qword plane = node->psurf->plane;
+            qword pos = points[i];
             VUF d;
             VUF one;
             qword dq, oq;
@@ -364,32 +377,32 @@ extern "C" int CollectBspSurfacesTouchingPolygon(BSP *pnode, BSP *pnodeMax, int 
             d.q = dq;
         }
         if (gMin > 1.0e-4f) {
-            pnode = PnodeCheck(pnode->pbspPos, pnodeMax);
-            if (!pnode)
+            node = PnodeCheck(node->pbspPos, nodeLimit);
+            if (!node)
                 return 1;
         } else if (gMax < -1.0e-4f) {
-            pnode = PnodeCheck(pnode->pbspNeg, pnodeMax);
-            if (!pnode)
+            node = PnodeCheck(node->pbspNeg, nodeLimit);
+            if (!node)
                 return 0;
         } else {
             int nl, nr;
-            BSP *pl = PnodeCheck(pnode->pbspNeg, pnodeMax);
+            BSP *pl = PnodeCheck(node->pbspNeg, nodeLimit);
             if (pl)
-                nl = CollectBspSurfacesTouchingPolygon(pl, pnodeMax, cpos, apos, pcsurf, pppsurf);
+                nl = CollectBspSurfacesTouchingPolygon(pl, nodeLimit, pointCount, points, outCount, outSurfaces);
             else
                 nl = 0;
-            BSP *pr = PnodeCheck(pnode->pbspPos, pnodeMax);
+            BSP *pr = PnodeCheck(node->pbspPos, nodeLimit);
             if (pr)
-                nr = CollectBspSurfacesTouchingPolygon(pr, pnodeMax, cpos, apos, pcsurf, pppsurf);
+                nr = CollectBspSurfacesTouchingPolygon(pr, nodeLimit, pointCount, points, outCount, outSurfaces);
             else
                 nr = 1;
             if (nl == nr && nl != 2)
                 return nl;
-            if (*pcsurf <= 0)
+            if (*outCount <= 0)
                 return 1;
-            SURF *psurf = pnode->psurf;
+            SURF *psurf = node->psurf;
             if (!(psurf->grf & 0x4000)) {
-                SURF **pp = (*pppsurf)++;
+                SURF **pp = (*outSurfaces)++;
                 *pp = psurf;
                 psurf->grf |= 0x4000;
             }
@@ -412,18 +425,19 @@ SLY2_SCRAP("nop");
  * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70,
  *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" BSP *PbspPointInBspQuick(BSP *pnode, BSP *pnodeMax, qword pos)
+// Returns the BSP leaf containing pos; points within 1e-4 of a plane go to the negative child (fast version).
+extern "C" BSP *PbspPointInBspQuick(BSP *node, BSP *nodeLimit, qword pos)
 {
     BSP *p;
     VUFU d;
     VUFU one;
-    if (!pnode)
+    if (!node)
         return 0;
     VUFU *pone = &one;
 loop:
     {
         qword plane;
-        __asm__("lqc2 %0, %1" : "=j"(plane) : "m"(*pnode->pplane));
+        __asm__("lqc2 %0, %1" : "=j"(plane) : "m"(*node->pplane));
         qword dq;
         register qword oq __asm__("vf2"); /* pin: the target allocates the one-vector to vf2 (the dot result then gets vf1) */
         float g;
@@ -435,20 +449,20 @@ loop:
         one.q = oq;
         d.q = dq;
         if (g < 1.0e-4f) {
-            p = pnode->pbspNeg;
-            {BSP *q = 0; if (p < pnodeMax) q = p;
+            p = node->pbspNeg;
+            {BSP *q = 0; if (p < nodeLimit) q = p;
             if (!q)
-                return pnode;
-            pnode = q;}
+                return node;
+            node = q;}
             goto loop;
         } else {
-            p = pnode->pbspPos;
-            pnode = 0;
-            if (p < pnodeMax)
-                pnode = p;
+            p = node->pbspPos;
+            node = 0;
+            if (p < nodeLimit)
+                node = p;
         }
     }
-    if (pnode) goto loop;
+    if (node) goto loop;
     return 0;
 }
 
@@ -460,10 +474,11 @@ loop:
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" BSP *FindBspLeafContainingPoint(BSP *pnode, BSP *pnodeMax, qword pos)
+// Returns the BSP leaf containing pos; a point within 1e-4 of a plane tries both children (positive first).
+extern "C" BSP *FindBspLeafContainingPoint(BSP *node, BSP *nodeLimit, qword pos)
 {
-    while (pnode) {
-        qword plane = *pnode->pplane;
+    while (node) {
+        qword plane = *node->pplane;
         VUF d;
         VUF one;
         qword dq, oq;
@@ -475,26 +490,26 @@ extern "C" BSP *FindBspLeafContainingPoint(BSP *pnode, BSP *pnodeMax, qword pos)
         one.q = oq;
         d.q = dq;
         if (g < -1.0e-4f) {
-            BSP *p = PnodeCheck(pnode->pbspNeg, pnodeMax);
+            BSP *p = PnodeCheck(node->pbspNeg, nodeLimit);
             if (!p)
-                return pnode;
-            pnode = p;
+                return node;
+            node = p;
         } else if (g > 1.0e-4f) {
-            BSP *p = PnodeCheck(pnode->pbspPos, pnodeMax);
+            BSP *p = PnodeCheck(node->pbspPos, nodeLimit);
             if (!p)
                 return 0;
-            pnode = p;
+            node = p;
         } else {
-            BSP *p = PnodeCheck(pnode->pbspPos, pnodeMax);
+            BSP *p = PnodeCheck(node->pbspPos, nodeLimit);
             if (p) {
-                p = FindBspLeafContainingPoint(p, pnodeMax, pos);
+                p = FindBspLeafContainingPoint(p, nodeLimit, pos);
                 if (p)
                     return p;
             }
-            p = PnodeCheck(pnode->pbspNeg, pnodeMax);
+            p = PnodeCheck(node->pbspNeg, nodeLimit);
             if (!p)
-                return pnode;
-            pnode = p;
+                return node;
+            node = p;
         }
     }
     return 0;
@@ -513,25 +528,27 @@ extern char D_002BBAF0[];
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" void CloneBspc(TREE *ptreeSrc, OWNER *pownerSrc, TREE *ptreeDst, OWNER *pownerDst)
+// Copies a BSP collection from one geometry to another, rebasing every internal node and plane pointer from the
+// source owner's storage to the destination's.
+extern "C" void CloneBspc(TREE *srcTree, OWNER *srcOwner, TREE *dstTree, OWNER *dstOwner)
 {
     int i;
     MSG msg;
-    ptreeDst->cnode = ptreeSrc->cnode;
-    ptreeDst->n4 = ptreeSrc->n4;
-    msg.cb = ptreeSrc->cnode * sizeof(BSP);
+    dstTree->cnode = srcTree->cnode;
+    dstTree->n4 = srcTree->n4;
+    msg.cb = srcTree->cnode * sizeof(BSP);
     msg.nKind = 0x10;
-    ptreeDst->anode = (BSP *)AllocFromWorldHeap(&msg);
-    for (i = 0; i < ptreeDst->cnode; i++) {
-        BSP *pnodeSrc = &ptreeSrc->anode[i];
-        BSP *pnodeDst = &ptreeDst->anode[i];
+    dstTree->anode = (BSP *)AllocFromWorldHeap(&msg);
+    for (i = 0; i < dstTree->cnode; i++) {
+        BSP *pnodeSrc = &srcTree->anode[i];
+        BSP *pnodeDst = &dstTree->anode[i];
         if (pnodeSrc->pv == D_002BBAF0) {
             pnodeDst->pv = pnodeSrc->pv;
         } else {
-            pnodeDst->pv = REBASE(pnodeSrc->pv, pownerSrc->aitem, pownerDst->aitem);
+            pnodeDst->pv = REBASE(pnodeSrc->pv, srcOwner->aitem, dstOwner->aitem);
         }
-        pnodeDst->pbspNeg = pnodeSrc->pbspNeg ? (BSP *)REBASE(pnodeSrc->pbspNeg, ptreeSrc->anode, ptreeDst->anode) : 0;
-        pnodeDst->pbspPos = pnodeSrc->pbspPos ? (BSP *)REBASE(pnodeSrc->pbspPos, ptreeSrc->anode, ptreeDst->anode) : 0;
+        pnodeDst->pbspNeg = pnodeSrc->pbspNeg ? (BSP *)REBASE(pnodeSrc->pbspNeg, srcTree->anode, dstTree->anode) : 0;
+        pnodeDst->pbspPos = pnodeSrc->pbspPos ? (BSP *)REBASE(pnodeSrc->pbspPos, srcTree->anode, dstTree->anode) : 0;
     }
 }
 #undef REBASE
@@ -560,15 +577,16 @@ static inline qword Normalize(qword v)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" void InitPlaneFromPositions(PLANE *pplane, qword a, qword b, qword c)
+// Initialises a plane through three points: normal = normalize((b - a) x (c - a)), distance = normal . a.
+extern "C" void InitPlaneFromPositions(PLANE *outPlane, qword a, qword b, qword c)
 {
     UV u;
     qword d;
     int n;
     u.q = Normalize(Cross(VuSub(b, a), VuSub(c, a)));
     d = VuDot(u.q, a);
-    __asm__("qmfc2.ni %0, %2\n\tsw %0, %1" : "=r"(n), "=m"(pplane->d) : "j"(d));
-    { float tx = u.v.x, ty = u.v.y, tz = u.v.z; pplane->y = ty; pplane->z = tz; pplane->x = tx; }
+    __asm__("qmfc2.ni %0, %2\n\tsw %0, %1" : "=r"(n), "=m"(outPlane->d) : "j"(d));
+    { float tx = u.v.x, ty = u.v.y, tz = u.v.z; outPlane->y = ty; outPlane->z = tz; outPlane->x = tx; }
 }
 
 /** @sly2-annot addr=0x119390
@@ -577,7 +595,8 @@ extern "C" void InitPlaneFromPositions(PLANE *pplane, qword a, qword b, qword c)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" void InitPlaneFromNormalPos(PLANE *pplane, qword vecNormal, qword vecPos)
+// Initialises a plane from a unit normal and a point on it (distance = normal . point).
+extern "C" void InitPlaneFromNormalPos(PLANE *outPlane, qword normal, qword point)
 {
     __asm__ __volatile__(
         "qmtc2.ni %1, $vf1\n"
@@ -589,7 +608,7 @@ extern "C" void InitPlaneFromNormalPos(PLANE *pplane, qword vecNormal, qword vec
         "sqc2 $vf1, 0x0(%0)\n"
         "qmfc2.ni $2, $vf2\n"
         "sw $2, 0xC(%0)\n"
-        : : "r"(pplane), "r"(vecNormal), "r"(vecPos) : "$2", "memory");
+        : : "r"(outPlane), "r"(normal), "r"(point) : "$2", "memory");
 }
 
 /** @sly2-annot addr=0x1193C0
@@ -599,10 +618,11 @@ extern "C" void InitPlaneFromNormalPos(PLANE *pplane, qword vecNormal, qword vec
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" void SetPlane(PLANE *pplane, qword normal, float d)
+// Sets a plane from a normal and its distance.
+extern "C" void SetPlane(PLANE *outPlane, qword normal, float distance)
 {
-    *(qword *)pplane = normal;
-    pplane->d = d;
+    *(qword *)outPlane = normal;
+    outPlane->d = distance;
 }
 
 // 0x1193D0: dead-code scrap (sly2/scrap.h)
@@ -622,14 +642,16 @@ struct MAT { qword r[4]; };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" qword TransformPlane(MAT *pm, qword plane)
+// Returns `plane` transformed by a matrix: the normal rotated, a point on the plane moved, and the distance
+// recomputed.
+extern "C" qword TransformPlane(MAT *matrix, qword plane)
 {
     union { qword q; float f[4]; } u;
     qword n, t;
     VECTORQ v;
     v.q = plane;
-    n = VuMulMatrix3(pm->r[0], pm->r[1], pm->r[2], v.q);
-    t = pm->r[3];
+    n = VuMulMatrix3(matrix->r[0], matrix->r[1], matrix->r[2], v.q);
+    t = matrix->r[3];
     func_002564A8(&u.q, plane);
     float d = u.f[3];
     qword pos, p2;
@@ -654,6 +676,8 @@ extern "C" qword TransformPlane(MAT *pm, qword plane)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// Stores a quadword through a pointer and returns the pointer (an inline assignment kept out of line in the
+// linkonce area).
 inline qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
 
 /** @sly2-annot addr=0x2564B8
@@ -664,6 +688,7 @@ inline qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
  * Confidence: low (draft) [T2 0.15] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// The empty constructor of the VU temporaries VUF / VU_QWORD: returns its argument (an out-of-line inline copy).
 extern "C" inline void *InitVuTemp(void *p)
 {
     return p;
