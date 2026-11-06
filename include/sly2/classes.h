@@ -391,10 +391,10 @@ typedef char assert_CONTESSA_size[sizeof(CONTESSA) == 0x1010 ? 1 : -1];
 struct DANCER : STEP
 {
     char pad2C0[0x410 - 0x2C0];
+    virtual void VUnk14() __asm__("func_00152100");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetDancerClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00152250");   /* slot 5 */
     virtual void RemoveHierarchy() __asm__("func_001520C8");   /* slot 12 */
-    virtual void VUnk14() __asm__("func_00152100");   /* slot 15 */
     virtual void VUnk15() __asm__("func_00152148");   /* slot 16 */
     virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetDancerCpdefi");   /* slot 50 */
 };
@@ -404,9 +404,9 @@ typedef char assert_DANCER_size[sizeof(DANCER) == 0x410 ? 1 : -1];
 struct CID121 : LO
 {
     char pad50[0x10B0 - 0x50];
+    virtual void VUnk14() __asm__("func_001527C8");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid121ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRhythmMgr");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_001527C8");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateRhythmMgr");   /* slot 16 */
     virtual void RenderSelf() __asm__("DrawRhythmMgr");   /* slot 19 */
 };
