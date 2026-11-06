@@ -309,14 +309,17 @@ extern "C" void GetPipeGrabPosition(PIPEV *pipe, int unused, qword *pvec, float 
 {
     qword a[3];
     VECTORV b;
-    union { qword q; float f; } s;
+    union {
+        qword q;
+        float f;
+    } s;
     register qword r __asm__("vf2");
     register qword scale __asm__("vf3"), axis __asm__("vf1"), position __asm__("vf2");
     GetPipeGoalMatrix(pipe, g, 1, (M3 *)a);
     EvaluateShapeS(pipe, g, (qword *)&b, 0);
     if (pvec) {
-        __asm__("lqc2 %0,%1":"=j"(position):"m"(b));
-        __asm__("qmtc2.ni %2,%0\n\tlqc2 %1,%3":"=j"(scale),"=j"(axis):"r"(ScaleBits()),"m"(a[0]));
+        __asm__("lqc2 %0,%1" : "=j"(position) : "m"(b));
+        __asm__("qmtc2.ni %2,%0\n\tlqc2 %1,%3" : "=j"(scale), "=j"(axis) : "r"(ScaleBits()), "m"(a[0]));
         s.q = scale;
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(position), "j"(axis), "j"(s.q));
         *pvec = r;
@@ -339,25 +342,30 @@ static inline qword Bc(float g) {
  * @end-sly2-annot */
 // GRABSPOT interface: a random point near the pipe around `distance` and a random outward direction, used to place the
 // grab-hint sparkle effect.
-extern "C" void GetPipeSparklePosition(PIPEV *pipe,qword *posOut,qword *dirOut,float t)
+extern "C" void GetPipeSparklePosition(PIPEV *pipe, qword *posOut, qword *dirOut, float t)
 {
-    union { qword q; float f[4]; } vp;
+    union {
+        qword q;
+        float f[4];
+    } vp;
     M3 m;
-    qword dir,s,r,pos2;
-    float n,mag;
-    t=SRandomShapeRange(pipe,t,D_002C0D10);
-    GetPipeGoalMatrix(pipe,t,1,&m);
-    EvaluateShapeS(pipe,t,&vp.q,0);
-    n=GRandInRange__Fff(-1.0f,1.0f);
-    mag=__builtin_fabsf(n);
-    dir=SetVectorCylind((n*mag)*D_002C0D08,-1.0f,0.0f);
-    __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "+j"(dir) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
-    pos2=vp.q;
-    mag=mag*GRandInRange__Fff(0.0f,D_002C0D0C);
-    s=Bc(mag);
+    qword dir, s, r, pos2;
+    float n, mag;
+    t = SRandomShapeRange(pipe, t, D_002C0D10);
+    GetPipeGoalMatrix(pipe, t, 1, &m);
+    EvaluateShapeS(pipe, t, &vp.q, 0);
+    n = GRandInRange__Fff(-1.0f, 1.0f);
+    mag = __builtin_fabsf(n);
+    dir = SetVectorCylind((n * mag) * D_002C0D08, -1.0f, 0.0f);
+    __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z"
+            : "+j"(dir)
+            : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+    pos2 = vp.q;
+    mag = mag * GRandInRange__Fff(0.0f, D_002C0D0C);
+    s = Bc(mag);
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos2), "j"(dir), "j"(s));
-    *posOut=r;
-    *dirOut=dir;
+    *posOut = r;
+    *dirOut = dir;
 }
 
 /** @sly2-annot addr=0x1C3BB0
@@ -370,7 +378,12 @@ extern "C" void GetPipeSparklePosition(PIPEV *pipe,qword *posOut,qword *dirOut,f
 // around; open pipes return 0.
 extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
 {
-    if (pipe->isCyclic) { pg[0] = SMinShape(pipe); pg[1] = SMaxShape(pipe); return 1; } return 0;
+    if (pipe->isCyclic) {
+        pg[0] = SMinShape(pipe);
+        pg[1] = SMaxShape(pipe);
+        return 1;
+    }
+    return 0;
 }
 
 /** @sly2-annot addr=0x1C3C08
