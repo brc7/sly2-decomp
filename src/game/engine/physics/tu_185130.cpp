@@ -1,9 +1,9 @@
-// tu_185130.cpp -- a mesh surface Sly can stick to (an XFM with its own triangle mesh: vertices, triangles and edge
-// neighbours; DLV g_sw.dlCid9 holds the live ones) and the player code that keeps him attached to it: closest point on
-// the mesh, boundary-edge planes, a small inequality solve that projects the movement, and the per-frame attach
-// update (func_00185E40). VU0 macro-mode asm; FindMeshClosestPoint, CollectMeshContacts, SolveMeshConstraints, PredictMeshContact and
-// func_00185E40 are hand-tuned (register pins, allocation-only operands; see the notes above each).
-// TU 0x185130..0x186610 (16 functions, address order).
+// tu_185130.cpp -- sticky meshes: CID 8/9, an XFM carrying its own triangle mesh (vertices, triangles, edge
+// neighbours) that the player can attach to and move along (the live ones are in g_sw.dlCid9), and the player
+// (JT) code that keeps him attached: closest point on the mesh, boundary-edge contact planes, a small inequality
+// solve that projects the movement onto the allowed region, and the per-frame attach update.
+// Entry points: LoadCid8FromBrx, FindMeshClosestPoint, CollectMeshContacts, SolveMeshConstraints,
+// PredictMeshContact, SetJtMeshProbePoints, func_00185E40 (per-frame update).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_185130
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001865F0
 #include "sly2/slotheap.h"
@@ -108,6 +108,7 @@ void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
  * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
+// CID 8 slot 7 (Init): InitXfm.
 void CID8::Init()
 {
     MESH *pmesh = (MESH *)this;
@@ -129,6 +130,8 @@ static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind =
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// CID 8/9 slot 14 (LoadFromBrx): the XFM, then the vertex count and positions and the triangles (with edge
+// neighbours) into world-heap memory, then the object's options.
 extern "C" void LoadCid8FromBrx(MESH *p, CBinaryInputStream *pbis)
 {
     MSG msg;
@@ -168,6 +171,8 @@ namespace RO_ORDER { extern const float r_D_002A5684 __asm__("D_002A5684") = 3.4
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// Finds the point of the mesh closest to a world position: returns the point, the surface normal and the triangle
+// (vertex positions transformed by the object's world matrix, slot 31).
 extern "C" void FindMeshClosestPoint(MESH*mesh,qword point,void*inputReference,TRIREF*outReference,qword*outPoint,qword*outNormal){
  WORK w;register int i __asm__("$16")=0;register unsigned word __asm__("$2");qword bestPoint;register float bestDistance __asm__("$f22");
  VTE*entry=&mesh->vt[31];
@@ -248,6 +253,7 @@ namespace RO_ORDER { extern const float r_D_002A5688 __asm__("D_002A5688") = 3.4
  * Notes: descriptive only: (stub: *pn = 0) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * @end-sly2-annot */
+// Empties a contact-plane list.
 extern "C" void ClearMeshContactList(MESH *pmesh, LIST *plist)
 {
     plist->count = 0;
@@ -312,6 +318,8 @@ static inline void Append(LIST *l, const qword &q) { qword *p = &l->planes[l->co
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// Gathers the contact planes of mesh edges and triangles within radius of a set of points into a list, for the
+// inequality solve.
 extern "C" void CollectMeshContacts(MESH *mesh, LIST *out, int count, qword *points, SMPV *params, float radius)
 {
     M4 mat;
@@ -412,6 +420,7 @@ namespace RO_ORDER { extern const float r_D_002A568C __asm__("D_002A568C") = 3.4
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// Projects a movement vector onto the region allowed by the collected contact planes (SolveInequalities).
 extern "C" qword SolveMeshConstraints(void *unused, LIST *p, qword v)
 {
     int matrix[36];
@@ -455,6 +464,7 @@ namespace RO_ORDER { extern const float r_D_002A5690 __asm__("D_002A5690") = 3.4
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// CID 9 slot 7 (Init): the CID 8 init plus the default attach radius.
 void CID9::Init()
 {
     MESH *p = (MESH *)this;
@@ -468,6 +478,7 @@ void CID9::Init()
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// CID 9 slot 11: AddLoHierarchy and append to the world's sticky-mesh list g_sw.dlCid9.
 extern "C" void AddCid9Hierarchy(MESH *pmesh)
 {
     AddLoHierarchy(pmesh);
@@ -480,6 +491,7 @@ extern "C" void AddCid9Hierarchy(MESH *pmesh)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// CID 9 slot 12: RemoveLoHierarchy and remove from g_sw.dlCid9.
 extern "C" void RemoveCid9Hierarchy(MESH *pmesh)
 {
     RemoveLoHierarchy(pmesh);
@@ -493,6 +505,7 @@ extern "C" void RemoveCid9Hierarchy(MESH *pmesh)
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// CID 9 slot 41 (Clone): CloneXfm, keeping the clone's own mesh pointer.
 extern "C" void CloneCid9(MESH *p)
 {
     K k = p->k;
@@ -507,6 +520,7 @@ extern "C" void CloneCid9(MESH *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// CID 9 slot 15 (PostLoad): PostLoLoad, then binds its tunnel (SetTnTns).
 extern "C" void PostCid9Load(MESH *pmesh)
 {
     PostLoLoad(pmesh);
@@ -551,6 +565,8 @@ static inline qword AddScaled2H(qword a, qword b, VUFQ sb, qword c, VUFQ sc, voi
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// Projects a ballistic point (pos + v t + a t^2 / 2) onto the mesh: returns the landing point (offset along the
+// normal) and the velocity there. Used to predict where a jump meets the mesh.
 extern "C" int PredictMeshContact(MESH *p, qword pos, qword vel, qword acc, TRIREF *ptr, qword *ppos, qword *pvel, float offset, float t)
 {
     TRIREF tr;
@@ -570,6 +586,7 @@ extern "C" int PredictMeshContact(MESH *p, qword pos, qword vel, qword acc, TRIR
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_185130-0x185130-0x186610
  * @end-sly2-annot */
+// Stores the player's three mesh probe points (splice option 754 on JT, inferred).
 extern "C" void SetJtMeshProbePoints(JTV *p, qword a, qword b, qword c)
 {
     p->points[0].q = a;
@@ -627,6 +644,10 @@ static inline qword QwRotateVecRJ(const M3*m,qword v){qword r;__asm__("vmulax.xy
 static inline void MulM3(M3*r,const M3*a,const M3*b){qword c0=QwRotateVecR(a,b->r[0].q),c1=QwRotateVecR(a,b->r[1].q),c2=QwRotateVecR(a,b->r[2].q);r->r[0].q=c0;r->r[1].q=c1;r->r[2].q=c2;}
 static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}
 static inline void SetVec(JTV*p,int slot,qword q){VTE*e=&p->vt[slot];((void(*)(void*,qword))e->fn)((char*)p+e->delta,q);}
+// Per-frame update of the player (JT) attached to a sticky mesh: finds the closest mesh point, orients the body to
+// the surface under the three probe points (smoothed), turns the stick into a camera-relative acceleration along
+// the surface and projects it against the mesh boundary planes (CollectMeshContacts / SolveMeshConstraints).
+// Called from jt.cpp while attached (inferred).
 extern "C" void func_00185E40(JTV*p){
  U closest,normal;
  qword position=func_001A62E8(p);
