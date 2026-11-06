@@ -513,15 +513,15 @@ static __inline__ void InitLm(struct LM4 *range, float g8, float gc) { range->g8
  * @end-sly2-annot */
 // JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
 // records, helpers).
-void InitJt(struct S *p)
+void InitJt(struct S *jt)
 {
-    InitStepplayer(p);
-    p->x19ac = 15.0f;
-    p->x18c8 = -1;
-    p->x18d8 = -1;
-    p->x18d0 = -1;
-    InitGait(p->x1320, p, 0x6F);
-    InitGait(p->x1c30, p, 0x6F);
+    InitStepplayer(jt);
+    jt->x19ac = 15.0f;
+    jt->x18c8 = -1;
+    jt->x18d8 = -1;
+    jt->x18d0 = -1;
+    InitGait(jt->x1320, jt, 0x6F);
+    InitGait(jt->x1c30, jt, 0x6F);
     {
     register float a __asm__("$f5")=-100.0f;
     register float b __asm__("$f1")=100.0f;
@@ -530,19 +530,19 @@ void InitJt(struct S *p)
     register float e __asm__("$f4")=250.0f;
     register float f __asm__("$f6")=1.0f;
     register float g __asm__("$f0")=4500.0f;
-    p->x1098=a; p->x109c=b; p->x10a0=c; p->x10a4=d; p->lm.g0=e; InitLm(&p->lm,f,g);
+    jt->x1098=a; jt->x109c=b; jt->x10a0=c; jt->x10a4=d; jt->lm.g0=e; InitLm(&jt->lm,f,g);
     }
-    func_00204D48(p, 1.6f);
-    p->x1fb0 = 0x1A;
-    p->x1fbc = 0x25;
-    p->x1fc8 = 0x26;
-    p->x1fd4 = 0x29;
-    InitBentleyHelper(p->x1ff0, p);
-    p->x1000 = 1;
-    p->x1020 = 200.0f;
-    p->x264 = 0xC7;
-    ResetJtHands(p->x17d0);
-    D_002E1E40 = p;
+    func_00204D48(jt, 1.6f);
+    jt->x1fb0 = 0x1A;
+    jt->x1fbc = 0x25;
+    jt->x1fc8 = 0x26;
+    jt->x1fd4 = 0x29;
+    InitBentleyHelper(jt->x1ff0, jt);
+    jt->x1000 = 1;
+    jt->x1020 = 200.0f;
+    jt->x264 = 0xC7;
+    ResetJtHands(jt->x17d0);
+    D_002E1E40 = jt;
 }
 } } // namespace M_InitJt
 
@@ -564,15 +564,15 @@ void BindLoOidTable(struct S *p, int n, void *pv);
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) offset and binds his object table (0xAD entries).
-void LoadJtFromBrx(struct S *p)
+void LoadJtFromBrx(struct S *jt)
 {
     VEC3 *pv;
-    LoadStepFromBrx(p);
-    pv = &p->v;
+    LoadStepFromBrx(jt);
+    pv = &jt->v;
     pv->x = 0.0f;
     pv->y = 0.0f;
     pv->z = -75.0f;
-    BindLoOidTable(p, 0xAD, D_002BE990);
+    BindLoOidTable(jt, 0xAD, D_002BE990);
 }
 } } // namespace M_LoadJtFromBrx
 
@@ -711,33 +711,33 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
  * @end-sly2-annot */
 // JT physics preset (slot 70): the base preset (SO for states 3/8, else STEP), then the per-state handler (air, grab,
 // hang, pipe, hurt ...).
-extern "C" void PresetJtAccel(P*p){
+extern "C" void PresetJtAccel(P*jt){
  WORK w;
- switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:PresetStepAccel(p);break;}
- switch(p->mode){
- case 3:PresetJtAccelHang__FP2JT(p);break;
- case 8:PresetJtAccelPipe((char*)p+0xF50);break;
- case 2:PresetJtAccelJump((char*)p+0x2C0);break;
- case 4:PresetJtAccelZap((char*)p+0xDF0);break;
- case 7:PresetJtAccelHide((char*)p+0x4C0);break;
- case 6:CorrectBentleyRideVelocity((char*)p+0x1FF0);break;
+ switch(jt->mode){case 3:case 8:func_001F9B20(jt);break;case 21:case 22:break;default:PresetStepAccel(jt);break;}
+ switch(jt->mode){
+ case 3:PresetJtAccelHang__FP2JT(jt);break;
+ case 8:PresetJtAccelPipe((char*)jt+0xF50);break;
+ case 2:PresetJtAccelJump((char*)jt+0x2C0);break;
+ case 4:PresetJtAccelZap((char*)jt+0xDF0);break;
+ case 7:PresetJtAccelHide((char*)jt+0x4C0);break;
+ case 6:CorrectBentleyRideVelocity((char*)jt+0x1FF0);break;
  case 14:{
-  VTE*e=&p->vt[33];
-  w.a.q=((qword(*)(void*))e->fn)((char*)p+e->delta);
-  w.b.q=func_00204E38(p,p->model,p->model->base);
-  float cap=func_0012F990(p->lookup,0x16D);
-  if(p->model->base<cap){
-   qword resp=p->actor->response;
-   AddSoAcceleration(p,QwScaleX(resp,VuFloat(-1.0f)));
+  VTE*e=&jt->vt[33];
+  w.a.q=((qword(*)(void*))e->fn)((char*)jt+e->delta);
+  w.b.q=func_00204E38(jt,jt->model,jt->model->base);
+  float cap=func_0012F990(jt->lookup,0x16D);
+  if(jt->model->base<cap){
+   qword resp=jt->actor->response;
+   AddSoAcceleration(jt,QwScaleX(resp,VuFloat(-1.0f)));
   }else w.b.f[2]=w.a.f[2];
-  AddSoAcceleration(p,LimitVectorLength(QwDivide(QwSub(w.b.q,w.a.q),VuFloatFromMemWord(*(int*)&D_002DDED0.dt)),D_002BF288));
+  AddSoAcceleration(jt,LimitVectorLength(QwDivide(QwSub(w.b.q,w.a.q),VuFloatFromMemWord(*(int*)&D_002DDED0.dt)),D_002BF288));
   break;
  }
  case 24:
-  if(p->submode==13){
-   VTE*e=&p->vt[33];qword position=((qword(*)(void*))e->fn)((char*)p+e->delta);
-   e=&p->vt[34];qword direction=((qword(*)(void*))e->fn)((char*)p+e->delta);
-   M4*m=func_001A6318(p);M3 basis;basis.r[0]=m->r[0];basis.r[1]=m->r[1];basis.r[2]=m->r[2];
+  if(jt->submode==13){
+   VTE*e=&jt->vt[33];qword position=((qword(*)(void*))e->fn)((char*)jt+e->delta);
+   e=&jt->vt[34];qword direction=((qword(*)(void*))e->fn)((char*)jt+e->delta);
+   M4*m=func_001A6318(jt);M3 basis;basis.r[0]=m->r[0];basis.r[1]=m->r[1];basis.r[2]=m->r[2];
    float projection=func_0011E290(position,basis.r[0].q,&w.a.q,&w.b.q);
    float dt=D_002DDED0.dt;
    float gAlong=projection-D_002BF290*dt;
@@ -750,7 +750,7 @@ extern "C" void PresetJtAccel(P*p){
    qword sum=QwAdd(w.a.q,w.b.q);
    qword moved=QwSub(QwRotateVecAt(&rotation,&sum),position);
    qword velocity=QwDivide(moved,VuFloatFromMemWord(*(int*)&D_002DDED0.dt));
-   AddSoAcceleration(p,LimitVectorLength(QwProjectOut(velocity,D_002A2DC0),D_002BF28C));
+   AddSoAcceleration(jt,LimitVectorLength(QwProjectOut(velocity,D_002A2DC0),D_002BF28C));
   }
   break;
  }
@@ -811,17 +811,17 @@ static __inline__ float GLimLo(float g, float lo, float v)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT contact adjust (slot 55): STEP base, then per state (pipe 8 -> ResetJtPipeAdjust, grab 7 friction-like scale ...).
-void AdjustJtXp(struct O *p, struct A *pa, void *pv)
+void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 {
-    AdjustStepNewXp(p, pa, pv);
-    switch (p->n18C8) {
+    AdjustStepNewXp(jt, pa, pv);
+    switch (jt->n18C8) {
     case 8:
-        ResetJtPipeAdjust(p->aF50, pa, pv);
+        ResetJtPipeAdjust(jt->aF50, pa, pv);
         break;
     case 7:
-        if (pa->n9C == 0xE && p->x4C8 == 3 && p->p4D4->x1BC) {
+        if (pa->n9C == 0xE && jt->x4C8 == 3 && jt->p4D4->x1BC) {
             pa->n98 = 0;
-            if (p->x4CC == 0) {
+            if (jt->x4CC == 0) {
                 pa->g94 = 0.0f;
             } else {
                 qword l;
@@ -834,18 +834,18 @@ void AdjustJtXp(struct O *p, struct A *pa, void *pv)
         }
         break;
     case 4:
-        AdjustJtHurtXp(p->aDF0, pa, pv);
+        AdjustJtHurtXp(jt->aDF0, pa, pv);
         break;
     case 6:
-        SetBentleyXpFriction(p->a1FF0, pa, pv);
+        SetBentleyXpFriction(jt->a1FF0, pa, pv);
         break;
     case 24:
         pa->g94 = 0.0f;
         pa->n98 = 0;
         break;
     case 5:
-        if ((unsigned int)(p->n18D0 - 8) < 2) {
-            register float g __asm__("$f0") = D_002DDED0.t - p->g18D4;
+        if ((unsigned int)(jt->n18D0 - 8) < 2) {
+            register float g __asm__("$f0") = D_002DDED0.t - jt->g18D4;
             if (g < D_002BF298) { g=D_002BF29C; pa->g94=g; }
         }
         break;
@@ -1122,11 +1122,11 @@ int StepplayerVirtual98(struct S *p);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 98: the STEPPLAYER base result; when 0, 1 for states 1/5/6/9 and -1 otherwise (meaning not identified).
-int JtVirtual98(struct S *p)
+int JtVirtual98(struct S *jt)
 {
-    int r = StepplayerVirtual98(p);
+    int r = StepplayerVirtual98(jt);
     if (r != -1) return r;
-    switch (p->n) {
+    switch (jt->n) {
     case 1: case 5: case 6: case 9:
         return 1;
     }
@@ -1144,9 +1144,9 @@ struct S { char pad[0x18C8]; int n; };
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 94: 1 for the free-movement states 0, 1, 5, 10, 12, 24. (inferred)
-int IsJtFreeMoving(struct S *p)
+int IsJtFreeMoving(struct S *jt)
 {
-    switch (p->n) {
+    switch (jt->n) {
     case 0: case 1: case 5: case 10: case 12: case 24:
         return 1;
     }
@@ -1172,17 +1172,17 @@ static __inline__ void Call(struct O *o, int n)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 87 (playable flag): STEP base, then the flag on three attached sub-objects.
-void SetJtPlayable(struct S *p, int f)
+void SetJtPlayable(struct S *jt, int f)
 {
-    func_00205D10(p, f);
+    func_00205D10(jt, f);
     if (f) {
-        Call(p->a, 0);
-        Call(p->b, 0);
-        Call(p->c, 0);
+        Call(jt->a, 0);
+        Call(jt->b, 0);
+        Call(jt->c, 0);
     } else {
-        Call(p->a, 1);
-        Call(p->b, 1);
-        Call(p->c, 1);
+        Call(jt->a, 1);
+        Call(jt->b, 1);
+        Call(jt->c, 1);
     }
 }
 } } // namespace M_func_00189530
@@ -1689,7 +1689,7 @@ static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1,
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Probes the ground along the foot geometry's lines (normal z > 0.7) and sets the foot target; nonzero on a match.
-int TryMatchJtXmg(O *p, M *pm, void *px)
+int TryMatchJtXmg(O *jt, M *pm, void *px)
 {
     if (pm->x4) {
         HIT hit;
@@ -1697,21 +1697,21 @@ int TryMatchJtXmg(O *p, M *pm, void *px)
         union { qword q; } u;
         int n0, n1;
         qword a, b, c;
-        a = ConvertAloPos(p, 0, pm->v30);
-        b = ConvertAloPos(p, 0, pm->v40);
-        c = ConvertAloPos(p, 0, pm->v50);
-        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)FFilterSoPair, p->xEC, &n0, &n1);
+        a = ConvertAloPos(jt, 0, pm->v30);
+        b = ConvertAloPos(jt, 0, pm->v40);
+        c = ConvertAloPos(jt, 0, pm->v50);
+        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)FFilterSoPair, jt->xEC, &n0, &n1);
         if ((PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, n0, n1, &hit) || PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
             hit.v0 = VSub(hit.v0, D_002A2DC0);
-            w = ConvertAloPos(0, p, hit.v0);
+            w = ConvertAloPos(0, jt, hit.v0);
             u.q = w;
             func_0012DA30(px, VSub(w, pm->v10));
             return 1;
         } else {
             func_0012DA30(px, D_002A2DD0);
-            if (p->x208 && ((float *)&pm->v40)[2] < -85.0f)
+            if (jt->x208 && ((float *)&pm->v40)[2] < -85.0f)
                 return 0;
             return 1;
         }
@@ -1750,26 +1750,26 @@ void SnapSma(void *p, int n);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Standing: state-machine mask from the lean flags, riding platform rotation, foot placement for both feet.
-void UpdateJtStand(struct S *p)
+void UpdateJtStand(struct S *jt)
 {
     struct VTE *e;
-    SetSmaMask(p->x1034, GetStepplayerLeanFlags(p));
-    e = &p->vt[92];
-    if (!((int (*)(void *))e->pfn)((char *)p + e->d) && p->pt208) {
-        struct O *o = p->pt208->po;
+    SetSmaMask(jt->x1034, GetStepplayerLeanFlags(jt));
+    e = &jt->vt[92];
+    if (!((int (*)(void *))e->pfn)((char *)jt + e->d) && jt->pt208) {
+        struct O *o = jt->pt208->po;
         UV u;
         e = &o->vt[34];
         u.q = ((qword (*)(void *))e->pfn)((char *)o + e->d);
         u.v.z = GLimitAbs__Fff(u.v.z, 10.0f);
-        func_00204660(p, p->g1a8 + u.v.z * D_002DDED0.dt);
+        func_00204660(jt, jt->g1a8 + u.v.z * D_002DDED0.dt);
     }
-    if (p->x19f0) {
-        RebuildJtXmg(p, p->x19d8, p->x19e0, p->x19f0, 5.0f, p->x1520);
-        RebuildJtXmg(p, p->x19d4, p->x19dc, p->x19f4, 5.0f, p->x1620);
-        if ((!TryMatchJtXmg(p, p->x1520, p->x19f0) || !TryMatchJtXmg(p, p->x1620, p->x19f4)) &&
-            !p->x1514 && p->x1028) {
-            if (IsmsFindSmOptional__FP2SM3OID(p->x1028, 0x17C) >= 0) SnapSma(p->x1034, 0x17C);
-            p->x1514 = 1;
+    if (jt->x19f0) {
+        RebuildJtXmg(jt, jt->x19d8, jt->x19e0, jt->x19f0, 5.0f, jt->x1520);
+        RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
+        if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
+            !jt->x1514 && jt->x1028) {
+            if (IsmsFindSmOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
+            jt->x1514 = 1;
         }
     }
 }
@@ -1805,17 +1805,17 @@ void func_001F3980(struct S *p);
  * @end-sly2-annot */
 // JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
 // (inferred)
-void UpdateJtWorldTransform(struct S *p)
+void UpdateJtWorldTransform(struct S *jt)
 {
-    p->b = func_001A62E8(p->x19a4);
-    p->n = 0;
-    func_001F3980(p);
-    if (!p->x18d8) {
-        p->a = func_001A62E8(p);
-        p->c = func_001A62E8(p->x19a4);
-        p->n = 3;
+    jt->b = func_001A62E8(jt->x19a4);
+    jt->n = 0;
+    func_001F3980(jt);
+    if (!jt->x18d8) {
+        jt->a = func_001A62E8(jt);
+        jt->c = func_001A62E8(jt->x19a4);
+        jt->n = 3;
     } else {
-        p->n = 0;
+        jt->n = 0;
     }
 }
 } } // namespace M_func_0018A278
@@ -1833,12 +1833,12 @@ void ExtendSoTreeBounds(struct S *p, qword q, float g);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 49: SO base, then the same update for each extra entry. (inferred)
-void UpdateJtExtraEntries(struct S *p)
+void UpdateJtExtraEntries(struct S *jt)
 {
     int i;
-    UpdateSoTreeBounds(p);
-    for (i = 0; i < p->n; i++)
-        ExtendSoTreeBounds(p, p->aq[i], p->g);
+    UpdateSoTreeBounds(jt);
+    for (i = 0; i < jt->n; i++)
+        ExtendSoTreeBounds(jt, jt->aq[i], jt->g);
 }
 } } // namespace M_func_0018A2E0
 
@@ -1864,22 +1864,22 @@ static __inline__ float GetZ(qword q)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 97: the camera target position (hanging: hook z - 175; state 0x16: -100; ...).
-void GetJtCameraTarget(struct S *p, UV *pv)
+void GetJtCameraTarget(struct S *jt, UV *pv)
 {
-    switch (p->n) {
+    switch (jt->n) {
     case 3:
-        GetStepplayerCameraFocusPosition(p, pv);
-        pv->v.z = GetZ(func_001A62E8(p->p18c4)) + -175.0f;
+        GetStepplayerCameraFocusPosition(jt, pv);
+        pv->v.z = GetZ(func_001A62E8(jt->p18c4)) + -175.0f;
         break;
     case 0x16:
-        GetStepplayerCameraFocusPosition(p, pv);
-        pv->v.z = GetZ(func_001A62E8(p->p18c4)) + -100.0f;
+        GetStepplayerCameraFocusPosition(jt, pv);
+        pv->v.z = GetZ(func_001A62E8(jt->p18c4)) + -100.0f;
         break;
     case 0x15:
-        pv->q = func_001A62E8(p);
+        pv->q = func_001A62E8(jt);
         break;
     default:
-        GetStepplayerCameraFocusPosition(p, pv);
+        GetStepplayerCameraFocusPosition(jt, pv);
         break;
     }
 }
@@ -1899,14 +1899,14 @@ void GetJtPipeVelocity(void *p, int *pf);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
-void GetJtCpdefi(struct S *p, int *pf)
+void GetJtCpdefi(struct S *jt, int *pf)
 {
-    if (p->n != 0 && p->n != 0x12 && p->x4cc && p->xf54 != 1)
-        p->t = D_002DDED0.t;
-    GetStepplayerCpdefi(p, pf);
-    switch (p->n) {
+    if (jt->n != 0 && jt->n != 0x12 && jt->x4cc && jt->xf54 != 1)
+        jt->t = D_002DDED0.t;
+    GetStepplayerCpdefi(jt, pf);
+    switch (jt->n) {
     case 8:
-        GetJtPipeVelocity(p->xf50, pf);
+        GetJtPipeVelocity(jt->xf50, pf);
         break;
     case 3: case 5: case 6:
         *pf |= 1;
@@ -2602,22 +2602,22 @@ static __inline__ qword Mul(MATRIX4 *pm, qword v)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // From clip label 0x167 samples the positions of three child transforms into x1BE0..x1C20.
-void CacheJtRestPose(struct O *p)
+void CacheJtRestPose(struct O *jt)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
-    if (p->p1BC8) {
+    if (jt->p1BC8) {
         z = 0.0f;
-        p->g1BD8 = func_0012F990(p->p1BC8, 0x167);
-        func_001300B8(p->p1BC8, p->g1BD8, p, z, p->p19A4->p60, p->p60, &m0, 0);
-        p->v1BE0 = m0.r[3];
-        func_001300B8(p->p1BC8, p->g1BD8, p, z, p->p19CC, p->p60, &m1, 0);
-        p->v1BF0 = m1.r[3];
-        func_001300B8(p->p1BC8, p->g1BD8, p, z, p->p19C0, p->p60, &m2, 0);
-        p->v1C00 = m2.r[3];
-        p->v1C10 = func_0011BFF0(&m2);
+        jt->g1BD8 = func_0012F990(jt->p1BC8, 0x167);
+        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19A4->p60, jt->p60, &m0, 0);
+        jt->v1BE0 = m0.r[3];
+        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
+        jt->v1BF0 = m1.r[3];
+        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
+        jt->v1C00 = m2.r[3];
+        jt->v1C10 = func_0011BFF0(&m2);
         InvertMatrix4Rigid(&mi, &m2);
-        p->v1C20 = Mul(&mi, p->v1BE0);
+        jt->v1C20 = Mul(&mi, jt->v1BE0);
     }
 }
 } } // namespace M_func_0018B348
@@ -2669,14 +2669,14 @@ static inline float CorrectionDistance(struct P*p,qword correction){
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // State 11 handler: corrects the attachment and decays inactive responses. (inferred)
-void UpdateJtAttachCorrection(struct P*p){
- struct WORK w;register float ratio __asm__("$f20");{register float height __asm__("$f0")=p->height,base __asm__("$f1")=p->model->base,scale __asm__("$f2")=p->model->scale;height=height-base;__asm__("div.s %0,%1,%2":"=f"(ratio):"f"(height),"f"(scale));}
- if(p->owner&&p->owner->aim){
+void UpdateJtAttachCorrection(struct P*jt){
+ struct WORK w;register float ratio __asm__("$f20");{register float height __asm__("$f0")=jt->height,base __asm__("$f1")=jt->model->base,scale __asm__("$f2")=jt->model->scale;height=height-base;__asm__("div.s %0,%1,%2":"=f"(ratio):"f"(height),"f"(scale));}
+ if(jt->owner&&jt->owner->aim){
  float zero=0.0f;
  if(zero<ratio){
   register qword mapped __asm__("$17");qword tilt,axis,residual;register float limit __asm__("$f1");struct SPACE*space;register struct SPACE*relativeDestination __asm__("$5");struct M4*frame;float heading;
-  FaceStepToward(p,p->owner->aim);
-  {register struct OWNER*predictionOwner __asm__("$2")=p->owner;
+  FaceStepToward(jt,jt->owner->aim);
+  {register struct OWNER*predictionOwner __asm__("$2")=jt->owner;
    register float capped __asm__("$f12");register struct M4*request __asm__("$6"),*optionalOutput __asm__("$7");
    register struct AIM*aim __asm__("$3");register struct SPACE*sourceSpace __asm__("$5");const int nullValue=0;
    __asm__("lwc1 %0,%6\n\tdaddu %1,%7,$zero\n\tlw %2,%8\n\tdaddu %3,%z9,$zero\n\tmin.s %0,%5,%0\n\tdaddu %4,%z9,$zero"
@@ -2685,15 +2685,15 @@ void UpdateJtAttachCorrection(struct P*p){
    LoadIdentityMatrix4(aim->frame,sourceSpace,request,optionalOutput,capped);
   }
   {struct SPACE*sourceSpace;qword predictedPoint=Point(&w.phase.predicted,&D_002BF390,&sourceSpace);register unsigned page __asm__("$3");
-   __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(func_0022FC48(sourceSpace,p->space,predictedPoint)),"i"(&D_002BF3A0));
+   __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(func_0022FC48(sourceSpace,jt->space,predictedPoint)),"i"(&D_002BF3A0));
    {register int zBits __asm__("$2");register float z __asm__("$f12"),x __asm__("$f13"),coefficient __asm__("$f0");
     __asm__("pextuw %0,$zero,%4\n\tlwc1 %3,%%lo(%6)(%5)\n\tmtc1 %0,%1\n\tmtc1 %4,%2":"=&r"(zBits),"=f"(z),"=f"(x),"=f"(coefficient):"r"(mapped),"r"(page),"i"(&D_002BF3A0):"memory");
     heading=atan2f(-z,coefficient*x);}}
   heading=GLimitLm__FP2LMf(&D_002BF3A8,heading);
   tilt=Pack(zero,heading,zero);w.axis.q=tilt;
-  LoadRotateMatrixEuler(&w.rotation,Add(p->euler,w.axis.q));
+  LoadRotateMatrixEuler(&w.rotation,Add(jt->euler,w.axis.q));
   frame=&w.transform;
-  VECTOR_opAssign(&frame->r[3].q,p->position);
+  VECTOR_opAssign(&frame->r[3].q,jt->position);
   {
    register qword row0 __asm__("$3"),row1 __asm__("$2"),mappedVector __asm__("vf6");
    __asm__("lq %2,%5\n\tqmtc2.ni %8,%4\n\tlq %3,%6\n\tsq %2,%0\n\tsq %3,0x10(%7)"
@@ -2701,7 +2701,7 @@ void UpdateJtAttachCorrection(struct P*p){
    :"m"(w.rotation.r[0].q),"m"(w.rotation.r[1].q),"r"(frame),"r"(mapped));
    {
     register float one __asm__("$f0")=1.0f;register qword row2 __asm__("$2");register struct FOCUS*focus __asm__("$3");register struct GROUP*group __asm__("$2");
-    __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(row2),"=r"(focus):"m"(w.rotation.r[2].q),"m"(p->focus));
+    __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(row2),"=r"(focus):"m"(w.rotation.r[2].q),"m"(jt->focus));
     __asm__("sq %1,0x20(%2)":"=m"(w.transform.r[2].q):"r"(row2),"r"(frame));
     __asm__("swc1 %5,%0\n\tswc1 %5,%1\n\tswc1 %5,%2\n\tswc1 %6,0x3c(%7)\n\tlw %4,0x58(%8)"
     :"=m"(w.transform.r[2].f[3]),"=m"(w.transform.r[1].f[3]),"=m"(w.transform.r[0].f[3]),"=m"(w.transform.r[3].f[3]),"=r"(group)
@@ -2710,50 +2710,50 @@ void UpdateJtAttachCorrection(struct P*p){
      register qword point __asm__("vf4"),axis2 __asm__("vf2"),axis0 __asm__("vf5"),axis1 __asm__("vf3"),origin __asm__("vf1");
      __asm__("lqc2 %0,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\tlqc2 %3,%8\n\tlqc2 %4,%9"
      :"=j"(point),"=j"(axis2),"=j"(axis0),"=j"(axis1),"=j"(origin)
-     :"m"(p->localPoint),"m"(w.transform.r[2].q),"m"(w.transform.r[0].q),"m"(w.transform.r[1].q),"m"(w.transform.r[3].q));
+     :"m"(jt->localPoint),"m"(w.transform.r[2].q),"m"(w.transform.r[0].q),"m"(w.transform.r[1].q),"m"(w.transform.r[3].q));
      __asm__("vmulax.xyz ACC,%2,%5x\n\tvmadday.xyz ACC,%3,%5y\n\tvmaddaz.xyz ACC,%4,%5z\n\tvmaddw.xyz %0,%0,$vf0w\n\tlw %1,%6":"+j"(origin),"=r"(space):"j"(axis0),"j"(axis1),"j"(axis2),"j"(point),"m"(group->space));
      __asm__("vsub.xyzw %0,%0,%1":"+j"(mappedVector):"j"(origin));
      __asm__("sqc2 %2,%0\n\tdaddu %1,%3,$zero":"=m"(w.relative.q),"=r"(relativeDestination):"j"(mappedVector),"r"(space));
     }
    }
   }
-  heading=X(ConvertXfVec(p->space,relativeDestination,w.relative.q));heading=GLimitLm__FP2LMf(&D_002BF3B0,heading);
+  heading=X(ConvertXfVec(jt->space,relativeDestination,w.relative.q));heading=GLimitLm__FP2LMf(&D_002BF3B0,heading);
   axis=Pack(heading,zero,zero);w.axis.q=axis;
   {
-   register qword returned __asm__("vf2")=ConvertXfVec(space,p->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");
+   register qword returned __asm__("vf2")=ConvertXfVec(space,jt->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");
    __asm__("lqc2 %0,%2\n\tlui %1,%%hi(%3)":"=j"(relative),"=r"(page):"m"(w.relative.q),"i"(&D_002BF3B8));
    __asm__("vsub.xyzw %0,%1,%0":"+j"(returned):"j"(relative));
    __asm__("lwc1 %0,%%lo(%4)(%2)\n\tsqc2 %3,%1":"=f"(limit),"=m"(w.residual.q):"r"(page),"j"(returned),"i"(&D_002BF3B8):"memory");
    residual=returned;
   }
-  {register int near __asm__("$2")=1;float distance=CorrectionDistance(p,residual);if(distance<limit){}else near=0;if(near){
-   func_0012DA30(p->dvYaw,tilt);func_0012DA30(p->dvResidual,w.residual.q);func_0012DA30(p->dvX,axis);
-   p->valid=1;p->time=D_002DDED0.time;return;
+  {register int near __asm__("$2")=1;float distance=CorrectionDistance(jt,residual);if(distance<limit){}else near=0;if(near){
+   func_0012DA30(jt->dvYaw,tilt);func_0012DA30(jt->dvResidual,w.residual.q);func_0012DA30(jt->dvX,axis);
+   jt->valid=1;jt->time=D_002DDED0.time;return;
   }}
  }}
- {register float remaining __asm__("$f0")=p->time,after __asm__("$f2"),gain __asm__("$f3");
+ {register float remaining __asm__("$f0")=jt->time,after __asm__("$f2"),gain __asm__("$f3");
   {register float life __asm__("$f1")=D_002BF3BC,now __asm__("$f3")=D_002DDED0.time;remaining=remaining+life;after=D_002DDED0.dt;remaining=remaining-now;after=remaining-after;}
   {register float zero __asm__("$f1")=0.0f;if(zero<after)gain=after/remaining;else gain=zero;}
   {register qword bits __asm__("$2");__asm__("mfc1 %0,%2\n\tsq %0,%1":"=&r"(bits),"=m"(w.gain.q):"f"(gain));}
   {
    register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
-   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(source),"=r"(raw):"m"(p->dvYaw),"m"(w.gain.q));
+   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(source),"=r"(raw):"m"(jt->dvYaw),"m"(w.gain.q));
    __asm__("daddu %0,%3,$zero\n\tsq %4,%1\n\tqmtc2.ni %4,%2":"=&r"(receiver),"=m"(w.phase.scalar.q),"=j"(scalar):"r"(source),"r"(raw));
    __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));func_0012DA30(receiver,scalar);
   }
   {
    register qword raw __asm__("$2"),scalar __asm__("vf2");register struct DV*receiver __asm__("$4");
    __asm__("lq %0,%1":"=r"(raw):"m"(w.gain.q));
-   __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"m"(p->dvResidual));
+   __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"m"(jt->dvResidual));
    __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(receiver->value));func_0012DA30(receiver,scalar);
   }
   {
    register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
-   __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(raw),"=r"(source):"m"(w.gain.q),"m"(p->dvX));
+   __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(raw),"=r"(source):"m"(w.gain.q),"m"(jt->dvX));
    __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tdaddu %2,%4,$zero":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"r"(source));
    __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));func_0012DA30(receiver,scalar);
   }
-  p->valid=0;
+  jt->valid=0;
  }
 }
 
@@ -2901,51 +2901,51 @@ static inline float Z(qword q){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(
  * @end-sly2-annot */
 // Per-frame active movement before the base update: grab candidates, mode input, ChooseJtGroundState, component
 // input.
-void UpdateJtPre(struct P*p){
+void UpdateJtPre(struct P*jt){
  union PHASE phase;U scalar;float initialHeading;
- initialHeading=RadStepHeading(p);(void)RadNormalize__Ff(p->state->heading-initialHeading);
- GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490,p,0xFFFF);
- UpdateJtModeInput(p);ChooseJtGroundState(p);UpdateJtActiveCane__FP2JT(p);
- switch(p->mode){
+ initialHeading=RadStepHeading(jt);(void)RadNormalize__Ff(jt->state->heading-initialHeading);
+ GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490,jt,0xFFFF);
+ UpdateJtModeInput(jt);ChooseJtGroundState(jt);UpdateJtActiveCane__FP2JT(jt);
+ switch(jt->mode){
  case 4:case 9:{
-  struct MODEL*m=p->model;struct BINDING*b;p->velocity=D_002A2DD0;
-  if(m){b=func_0012FF10(m->table,p,(void*)1,1);
-   if(b){ReadBinding(b,m,&phase.direction);p->velocity=FirstNegative(&phase.direction,&scalar,-1.0f);}
+  struct MODEL*m=jt->model;struct BINDING*b;jt->velocity=D_002A2DD0;
+  if(m){b=func_0012FF10(m->table,jt,(void*)1,1);
+   if(b){ReadBinding(b,m,&phase.direction);jt->velocity=FirstNegative(&phase.direction,&scalar,-1.0f);}
   }break;
  }
- case 3:UpdateJtActiveHang__FP2JT(p);break;
- case 2:UpdateJtActiveJump(At(p,0x2C0));break;
- case 7:UpdateJtActiveHide(At(p,0x4C0));break;
- case 6:FaceBentleyInteractTarget(At(p,0x1FF0));break;
- case 10:UpdateDirectionalAcceleration(p,At(p,0x1AC0),p->axesBEnabled,p->state->heading,p->state->amount);break;
- case 11:UpdateJtAttachCorrection(p);break;
- case 12:UpdateGaitBlend(At(p,0x1C30),p->state->amount);func_00204660(p,p->state->heading);break;
- case 5:switch(p->submode){
-  case 4:if(p->owner)FaceStepToward(p,p->owner);break;
-  case 5:UpdateDirectionalAcceleration(p,At(p,0x13D0),p->axesAEnabled,p->state->heading,p->state->amount);break;
-  case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=ConvertAloVec(0,p,phase.direction);break;
+ case 3:UpdateJtActiveHang__FP2JT(jt);break;
+ case 2:UpdateJtActiveJump(At(jt,0x2C0));break;
+ case 7:UpdateJtActiveHide(At(jt,0x4C0));break;
+ case 6:FaceBentleyInteractTarget(At(jt,0x1FF0));break;
+ case 10:UpdateDirectionalAcceleration(jt,At(jt,0x1AC0),jt->axesBEnabled,jt->state->heading,jt->state->amount);break;
+ case 11:UpdateJtAttachCorrection(jt);break;
+ case 12:UpdateGaitBlend(At(jt,0x1C30),jt->state->amount);func_00204660(jt,jt->state->heading);break;
+ case 5:switch(jt->submode){
+  case 4:if(jt->owner)FaceStepToward(jt,jt->owner);break;
+  case 5:UpdateDirectionalAcceleration(jt,At(jt,0x13D0),jt->axesAEnabled,jt->state->heading,jt->state->amount);break;
+  case 8:case 9:phase.direction=SetVectorCylind(jt->state->heading+3.14159265f,jt->state->amount*D_002BF3C0,0.0f);jt->velocity=ConvertAloVec(0,jt,phase.direction);break;
  }break;
  case 16:
-  if(FPowerupAcquired(0x1C))UpdateJtFaceTarget(p);
-  else if(p->enabled){struct BINDING*b=func_0012FF10(p->table,p,(void*)1,1);if(b){ReadBinding(b,p->model,&phase.direction);p->velocity=SecondNegative(&phase.direction,&scalar,-1.0f);}}
+  if(FPowerupAcquired(0x1C))UpdateJtFaceTarget(jt);
+  else if(jt->enabled){struct BINDING*b=func_0012FF10(jt->table,jt,(void*)1,1);if(b){ReadBinding(b,jt->model,&phase.direction);jt->velocity=SecondNegative(&phase.direction,&scalar,-1.0f);}}
   break;
- case 19:p->velocity=NegativeModelNative(p,&phase.scalar);break;
- case 20:{struct MODEL*model;struct STATE*state;PrepareAnimation(p,&phase.scalar,&model,&state);SetAsegaSpeed__FP5ASEGAf(model,state->amount);func_00204660(p,p->state->heading);break;}
- case 17:{struct STATE*state;float zero;p->velocity=NegativeWithState(p,&phase.scalar,&state,&zero);if(zero<state->amount)func_00204660(p,state->heading);break;}
+ case 19:jt->velocity=NegativeModelNative(jt,&phase.scalar);break;
+ case 20:{struct MODEL*model;struct STATE*state;PrepareAnimation(jt,&phase.scalar,&model,&state);SetAsegaSpeed__FP5ASEGAf(model,state->amount);func_00204660(jt,jt->state->heading);break;}
+ case 17:{struct STATE*state;float zero;jt->velocity=NegativeWithState(jt,&phase.scalar,&state,&zero);if(zero<state->amount)func_00204660(jt,state->heading);break;}
  case 24:{
   register float one __asm__("$f20");register float weight __asm__("$f1");qword velocity;struct VTE*entry;
-  DrainStepplayerMp(p,D_002BF3C4);
-  if(p->submode==12){float angle=RadNormalize__Ff(RadStepHeading(p)-p->heading);if(__builtin_fabsf(angle)<D_002BF3C8)SetJtState__FP2JT3JTS4JTBS(p,24,13);}
-  else func_00204660(p,p->state->heading);
-  one=1.0f;entry=&p->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)p+entry->delta);
-  weight=D_002BF3CC*GLimitAbs__Fff(Z(velocity)/(p->factor*D_002BF35C),one);
-  {register float zero __asm__("$f2")=0.0f;register float magnitude __asm__("$f3");register float left __asm__("$f0");__asm__("abs.s %0,%2\n\tmax.s %1,%3,%2\n\tneg.s %2,%2":"=f"(magnitude),"=f"(left),"+f"(weight):"f"(zero));__asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3":"=m"(p->left),"+f"(one),"+f"(zero),"=m"(p->right):"f"(left),"f"(magnitude),"f"(weight));p->middle=one;}
-  func_001384C0(p->blend);break;
+  DrainStepplayerMp(jt,D_002BF3C4);
+  if(jt->submode==12){float angle=RadNormalize__Ff(RadStepHeading(jt)-jt->heading);if(__builtin_fabsf(angle)<D_002BF3C8)SetJtState__FP2JT3JTS4JTBS(jt,24,13);}
+  else func_00204660(jt,jt->state->heading);
+  one=1.0f;entry=&jt->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)jt+entry->delta);
+  weight=D_002BF3CC*GLimitAbs__Fff(Z(velocity)/(jt->factor*D_002BF35C),one);
+  {register float zero __asm__("$f2")=0.0f;register float magnitude __asm__("$f3");register float left __asm__("$f0");__asm__("abs.s %0,%2\n\tmax.s %1,%3,%2\n\tneg.s %2,%2":"=f"(magnitude),"=f"(left),"+f"(weight):"f"(zero));__asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3":"=m"(jt->left),"+f"(one),"+f"(zero),"=m"(jt->right):"f"(left),"f"(magnitude),"f"(weight));jt->middle=one;}
+  func_001384C0(jt->blend);break;
  }
  case 0:case 1:break;
  }
- UpdateJtActiveZap(At(p,0xDF0));UpdateJtPlaces(p);
- if(p->animation&&FAsegaRetracted(p->animation)){func_001306A8(&p->animation);p->animationKind=-1;}
+ UpdateJtActiveZap(At(jt,0xDF0));UpdateJtPlaces(jt);
+ if(jt->animation&&FAsegaRetracted(jt->animation)){func_001306A8(&jt->animation);jt->animationKind=-1;}
 }
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
@@ -3191,19 +3191,19 @@ void SetStepPhys(struct S *p, void *pv, int n);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 90: takes the per-state STEP parameter array from the grab/hurt/air components and applies it.
-void ApplyJtStateStepParams(struct S *p)
+void ApplyJtStateStepParams(struct S *jt)
 {
     int n = 0;
     void *pv;
-    switch (p->n) {
-    case 7: pv = GetJtGrabAdjustRecord(p->x4c0, &n); break;
-    case 4: pv = GetJtHurtAdjustRecord(p->xdf0, &n); break;
-    case 2: pv = GetJtAirAdjustRecord(p->x2c0, &n); break;
-    case 21: case 22: pv = p->x520; break;
-    default: pv = p->a1720[p->n]; break;
+    switch (jt->n) {
+    case 7: pv = GetJtGrabAdjustRecord(jt->x4c0, &n); break;
+    case 4: pv = GetJtHurtAdjustRecord(jt->xdf0, &n); break;
+    case 2: pv = GetJtAirAdjustRecord(jt->x2c0, &n); break;
+    case 21: case 22: pv = jt->x520; break;
+    default: pv = jt->a1720[jt->n]; break;
     }
-    if (!pv) pv = p->a1720[0];
-    SetStepPhys(p, pv, n);
+    if (!pv) pv = jt->a1720[0];
+    SetStepPhys(jt, pv, n);
 }
 } } // namespace M_func_0018C060
 
@@ -4025,10 +4025,10 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 106: 0 if in state 1 or the camera check says so, else 1 (meaning not identified).
-int JtVirtual106(struct S *p)
+int JtVirtual106(struct S *jt)
 {
     int r = 1;
-    if (p->n == r) return 0;
+    if (jt->n == r) return 0;
     if (FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0))) r = 0;
     return r;
 }
@@ -4083,9 +4083,9 @@ struct S { char pad[0x18C8]; int n; };
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 89: the inverse map, jts -> generic state 0..8 or -1.
-int GetJtPlayerState(struct S *p)
+int GetJtPlayerState(struct S *jt)
 {
-    switch (p->n) {
+    switch (jt->n) {
     case 0: return 0;
     case 2: return 1;
     case 7: return 2;
@@ -4458,19 +4458,19 @@ void StopStepplayerGadget(struct S *p, int n);
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 102: for gadgets 0x1D/0x2A restores the clock rate 1.0 and stops the sound, else the STEPPLAYER base.
-void EndJtGadget(struct S *p, int n)
+void EndJtGadget(struct S *jt, int n)
 {
     if (n == 0x1D || n == 0x2A) {
         void **pp;
         func_0014D1D0(&D_002DDED0, 1, 1.0f);
-        pp = &p->p2044;
+        pp = &jt->p2044;
         if (*pp) {
             StopSnd(*pp, 0.0f);
             RcPtr_Assign(pp, 0);
         }
         (*(int *)&g_sw.gUnk475c) = 0;
     } else {
-        StopStepplayerGadget(p, n);
+        StopStepplayerGadget(jt, n);
     }
 }
 } } // namespace M_func_0018DD78
@@ -4522,10 +4522,10 @@ void GetStepplayerStunHold(struct S *p, int *pf);
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // JT slot 96: base, then sets the flag for states 0, 1, 5, 10, 12.
-void GetJtStunHold(struct S *p, int *pf)
+void GetJtStunHold(struct S *jt, int *pf)
 {
-    GetStepplayerStunHold(p, pf);
-    switch (p->n) {
+    GetStepplayerStunHold(jt, pf);
+    switch (jt->n) {
     case 0: case 1: case 5: case 10: case 12:
         *pf = 1;
     }
@@ -4665,30 +4665,30 @@ static inline float SmoothInputs(M4*source,const CLOCK*clock,float factor,unsign
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Smooths Sly's matrix and position and updates the directional animation weight.
-extern "C" void UpdateJtSmoothing(P*p){
- M4 m=*((M4*(*)(void*))p->object->vt[31].fn)((char*)p->object+p->object->vt[31].delta);
+extern "C" void UpdateJtSmoothing(P*jt){
+ M4 m=*((M4*(*)(void*))jt->object->vt[31].fn)((char*)jt->object+jt->object->vt[31].delta);
  U direction,position,scratch,negative;
- *(M3*)&p->matrix=*(M3*)&m;
- M4*current=func_001A6318(p);
+ *(M3*)&jt->matrix=*(M3*)&m;
+ M4*current=func_001A6318(jt);
  CLOCK*clock=&D_002DDED0;
  float factor=0.5f;
  unsigned samplePage=SmoothSamplePage();M3*receiver,*optional;SMP*sample;float smoothDt=SmoothInputs(current,clock,factor,samplePage,receiver,optional,sample);
- SmoothMatrix(receiver,&p->matrix,sample,optional,&direction.q,smoothDt);
- ((void(*)(void*,qword))p->vt[36].fn)((char*)p+p->vt[36].delta,direction.q);
- U target;P*owner=NegativeTarget(m,p->offset,&negative,&scratch,&target,p);
+ SmoothMatrix(receiver,&jt->matrix,sample,optional,&direction.q,smoothDt);
+ ((void(*)(void*,qword))jt->vt[36].fn)((char*)jt+jt->vt[36].delta,direction.q);
+ U target;P*owner=NegativeTarget(m,jt->offset,&negative,&scratch,&target,jt);
  (void)PosSmooth(func_001A62E8(owner),target.q,&D_002BF408,&position.q,clock->dt*factor);
- ((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,position.q);
+ ((void(*)(void*,qword))jt->vt[35].fn)((char*)jt+jt->vt[35].delta,position.q);
  qword relative;
  {
   register PARAM*params __asm__("$3");register M3*camera __asm__("$2");register float zero __asm__("$f2");
-  __asm__("lw %0,%3\n\tlui %1,%%hi(%4)\n\tmtc1 $zero,%2\n\taddiu %1,%1,%%lo(%4)":"=&r"(params),"=r"(camera),"=f"(zero):"m"(p->params),"i"(&(*(M3 *)&g_cm.mat)));
+  __asm__("lw %0,%3\n\tlui %1,%%hi(%4)\n\tmtc1 $zero,%2\n\taddiu %1,%1,%%lo(%4)":"=&r"(params),"=r"(camera),"=f"(zero):"m"(jt->params),"i"(&(*(M3 *)&g_cm.mat)));
   register float y __asm__("$f0"),z __asm__("$f1");register O*root __asm__("$4");register qword axis2 __asm__("vf3");
   __asm__("lwc1 %0,%4\n\tdaddu %1,$zero,$zero\n\tlwc1 %2,%5\n\tneg.s %0,%0\n\tlqc2 %3,%6":"=f"(y),"=&r"(root),"=f"(z),"=j"(axis2):"m"(params->y),"m"(params->z),"m"(camera->r[2]));
   qword local=Make(zero,y,z);
   register qword axis0 __asm__("vf2"),axis1 __asm__("vf1"),rotated __asm__("vf4");
   __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %5,%2":"=j"(axis0),"=j"(axis1),"=j"(rotated):"m"(camera->r[0]),"m"(camera->r[1]),"r"(local));
   register O*object __asm__("$5");
-  __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2":"+j"(rotated),"=&r"(object),"=m"(scratch.q):"j"(axis0),"j"(axis1),"j"(axis2),"m"(p->object),"r"(local));
+  __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2":"+j"(rotated),"=&r"(object),"=m"(scratch.q):"j"(axis0),"j"(axis1),"j"(axis2),"m"(jt->object),"r"(local));
   relative=ConvertAloVec(root,object,rotated);
  }
  qword normalized=Normalize(relative,&negative,&scratch);
@@ -4698,11 +4698,11 @@ extern "C" void UpdateJtSmoothing(P*p){
  register float right __asm__("$f4")=Max(amount,zero);
  register float left __asm__("$f1")=-amount;
  register float middle __asm__("$f3");register PARAM*params __asm__("$2");
- __asm__("sub.s %3,%7,%8\n\tlw %0,%4\n\tswc1 %5,%1\n\tmax.s %2,%2,%6":"=&r"(params),"=m"(p->amount),"+f"(left),"=&f"(middle):"m"(p->params),"f"(amount),"f"(zero),"f"(one),"f"(right));
+ __asm__("sub.s %3,%7,%8\n\tlw %0,%4\n\tswc1 %5,%1\n\tmax.s %2,%2,%6":"=&r"(params),"=m"(jt->amount),"+f"(left),"=&f"(middle):"m"(jt->params),"f"(amount),"f"(zero),"f"(one),"f"(right));
  register ANIM*animation __asm__("$4");register float weight __asm__("$f0");
- __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4":"=&r"(animation),"+&f"(middle),"=f"(weight),"+f"(left),"=m"(p->weight):"m"(p->anim),"m"(params->weight));
- __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3":"+&f"(one),"+&f"(right),"+&f"(middle),"=m"(p->left):"f"(weight),"f"(left));
- p->right=right;p->middle=middle;p->base=one;
+ __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4":"=&r"(animation),"+&f"(middle),"=f"(weight),"+f"(left),"=m"(jt->weight):"m"(jt->anim),"m"(params->weight));
+ __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3":"+&f"(one),"+&f"(right),"+&f"(middle),"=m"(jt->left):"f"(weight),"f"(left));
+ jt->right=right;jt->middle=middle;jt->base=one;
  func_001384C0(animation);
 }
 
@@ -4788,7 +4788,7 @@ static __inline__ qword VLen(qword c)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Turns Sly toward the interact target (x10DC) with smoothing.
-void UpdateJtFaceTarget(struct O *p)
+void UpdateJtFaceTarget(struct O *jt)
 {
     VU n;
     M3 ms, m;
@@ -4797,7 +4797,7 @@ void UpdateJtFaceTarget(struct O *p)
     qword d, l, s, r;
     float gl, gLen;
     qword *pk;
-    d = VSub(func_001A62E8(p->p10DC), func_001A62E8(p));
+    d = VSub(func_001A62E8(jt->p10DC), func_001A62E8(jt));
     pk = &D_002A2DA0;
     l = VLen(d);
     n.q = d;
@@ -4809,9 +4809,9 @@ void UpdateJtFaceTarget(struct O *p)
         n.q = r;
     }
     __asm__("qmfc2.ni %0, %1" : "=r"(gLen) : "j"(l));
-    SetStepRadTargetVec(p, n.q);
+    SetStepRadTargetVec(jt, n.q);
     GSmooth__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.dt * 0.5f, D_002BF418, &g);
-    InvertMatrix3Cofactor(&m, &p->m1B0);
+    InvertMatrix3Cofactor(&m, &jt->m1B0);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&g));
     u.q = s;
     { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(m.r[0]), "j"(s)); ms.r[0] = r; }
@@ -4819,7 +4819,7 @@ void UpdateJtFaceTarget(struct O *p)
     { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(m.r[2]), "j"(s)); ms.r[2] = r; }
     __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
         : "=j"(r) : "j"(ms.r[0]), "j"(ms.r[1]), "j"(ms.r[2]), "j"(n.q));
-    p->v190 = r;
+    jt->v190 = r;
 }
 } } // namespace M_func_0018E1E0
 
