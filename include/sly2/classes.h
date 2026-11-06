@@ -1620,6 +1620,7 @@ struct ROBOTTANK : PO
     int nUnk598;
     char pad59C[0x5D0 - 0x59C];
     ROBOTTANK();
+    virtual void OnActive(int fActive) __asm__("OnRobottankActive");   /* slot 78 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRobottankClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRobottank");   /* slot 7 */
     virtual void VUnk14() __asm__("PostRobottankLoad");   /* slot 15 */
@@ -1633,7 +1634,6 @@ struct ROBOTTANK : PO
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddRobottankCustomXps");   /* slot 60 */
     virtual void VUnk69() __asm__("PresetRobottankAccel");   /* slot 70 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("func_001D4568");   /* slot 75 */
-    virtual void OnActive(int fActive) __asm__("OnRobottankActive");   /* slot 78 */
 };
 typedef char assert_ROBOTTANK_size[sizeof(ROBOTTANK) == 0x5D0 ? 1 : -1];
 /* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
@@ -1647,10 +1647,10 @@ inline ROBOTTANK::ROBOTTANK() { nUnk598 = 0; }
 struct CID108 : SO
 {
     char pad150[0x170 - 0x150];
+    virtual void VUnk15() __asm__("UpdateRcPickup");   /* slot 16 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid108ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRcPickup");   /* slot 7 */
     virtual void VUnk14() __asm__("PostRcPickupLoad");   /* slot 15 */
-    virtual void VUnk15() __asm__("UpdateRcPickup");   /* slot 16 */
     virtual void VUnk25(LO *plo) __asm__("func_001D4F10");   /* slot 26 */
 };
 typedef char assert_CID108_size[sizeof(CID108) == 0x170 ? 1 : -1];
