@@ -198,16 +198,17 @@ struct ACT7 : ACT
     virtual void Clone() __asm__("func_00186610");   /* slot 6 */
 };
 
-/* AC5 (0x20; vtable 0x2CB5A8, blend.cpp's): blend-channel curve; a new slot 4 */
+/* AC5 (0x20; vtable 0x2CB5A8, emitted by blend.cpp, which declares AC/AC5/ACG/ACG2 itself with its own parameter
+   types: its local typedefs clash with sly2/basic.h): blend-channel curve; a new slot 4 (inline, `return 5`) */
 struct AC5 : AC
 {
     int an[7];
     virtual void VSlot2(void *pv) __asm__("func_00138660");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateBlendChnPosVel");   /* slot 3 */
-    virtual void VSlot4() __asm__("func_002581B8");   /* slot 4 */
+    virtual int VSlot4() __asm__("func_002581B8");   /* slot 4 */
 };
 
-/* ACG2 (0x14; vtable 0x2CB588, blend.cpp's): blend-channel float curve */
+/* ACG2 (0x14; vtable 0x2CB588, emitted by blend.cpp): blend-channel float curve */
 struct ACG2 : ACG
 {
     int an[4];

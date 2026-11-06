@@ -84,7 +84,7 @@ struct VTE { short d; short pad; void *pfn; };
 struct CHNO { VTE *vt; };
 /* A blended channel: its blend, timing tables and per-element channel objects; then the default value. */
 struct BLCHNQ { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; qword q; };
-struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; };
+struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("func_0012B4F0"); virtual void VSlot2(CHN *pq) __asm__("func_0023C820"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("func_0023C820"); }; struct AC5 : AC { int an[7]; virtual void VSlot2(CHN *pq) __asm__("func_00138660"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int VSlot4() __asm__("func_002581B8"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("func_0012CC60"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("func_0023C820"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("func_00138BA0"); };
 
 extern const float D_002A4AF0;   /* defined below where the ELF has it (.rodata order) */
 extern char D_002C44E0[];
@@ -449,8 +449,8 @@ static __inline__ qword MaddN(qword a, qword v, qword s)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-extern "C" void func_00138660(BLCHNQ *p, CHN *pq)
-{
+void AC5::VSlot2(CHN *pq)
+{ BLCHNQ *p = (BLCHNQ *)this;
     VU c, d;
     CHN q;
     VU w;
@@ -578,8 +578,8 @@ static __inline__ qword Madd(qword a, qword v, qword s)
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-extern "C" void EvaluateBlendChnPosVel(BLCHNQ *p, qword *ppos, qword *prot, float t, float rate)
-{
+void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
+{ BLCHNQ *p = (BLCHNQ *)this;
     float u;
     int iSeg;
     MRSG *pseg;
@@ -667,8 +667,8 @@ done:
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-extern "C" void func_00138BA0(BLCHNF *p, float t, float r, float *pa, float *pb)
-{
+void ACG2::Evaluate(float t, float r, float *pa, float *pb)
+{ BLCHNF *p = (BLCHNF *)this;
     float g0;
     float g4;
     float g8;
@@ -721,19 +721,16 @@ extern "C" void func_00138BA0(BLCHNF *p, float t, float r, float *pa, float *pb)
         *pb = sb;
 }
 
-// The kind-5 animation channel's vtable 0x2CB5A8 (slots: 0x138660 and EvaluateBlendChnPosVel above, slot 4 the
-// function below; act.cpp constructs the class, M_PacNewKind2::C5) sits right before blip's _vt$5BLIPG in .data, so
-// this is the class's key TU and the vtable's emitter, and its inline virtuals come out of line here. That vtable is
-// not emitted yet (act.cpp's curve classes are views; tu-merging.md "Vtables emitted"), so the address reference
-// below stands in for its slot and makes g++ emit the function weak in .gnu.linkonce.t.func_002581B8. It is a
-// non-const file-scope pointer (4 bytes of .data that tools/link.py leaves unplaced): a const one is discarded before
-// it references the function, and then the copy is not emitted. C linkage keeps the config name (HYPOTHESIS: in the
-// original an in-class `virtual int Kind() { return 5; }` of that class).
+// AC5's vtable 0x2CB5A8 and ACG2's 0x2CB588 (sly2/act.h; act.cpp's PacNewKind/PacNewKind2 construct them) sit
+// right before blip's _vt$5BLIPG in .data: this is their key TU (AC5::VSlot2 = func_00138660 and ACG2::Evaluate =
+// func_00138BA0 above are the key functions), so g++ emits both vtables here, and AC5's inline slot 4 below comes
+// out of line with them, weak in .gnu.linkonce.t.func_002581B8. The asm label keeps the config name (HYPOTHESIS:
+// in the original an in-class `virtual int Kind() { return 5; }`). The classes are declared on the BLCHNF line
+// near the top of the file, so that the functions above keep their line numbers.
 /** @sly2-annot addr=0x2581B8
  * Purpose: virtual returning constant 5 [game linkonce (inline/template)]
  * Info: proposed name GetKind5 (T2); TU game_linkonce
  * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" inline int func_002581B8(void) { return 5; }
-static int (*s_pfnKind5)(void) = &func_002581B8;
+inline int AC5::VSlot4() { return 5; }
