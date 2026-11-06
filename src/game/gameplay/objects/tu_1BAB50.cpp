@@ -1,8 +1,10 @@
-// tu_1BAB50.cpp -- a scripted trigger SO (CID 0x62?): a list of trigger classes (0x154) whose contact fires it, and a sequence of
-// events (0x164, entry -1 = the always-run entry), each a list of actions (show / hide objects, globs and parts, messages,
-// camera, rumble, noise, splice events, task states). Firing (ReactBreakable, through a world callback) runs the current
-// event's actions and steps to the next; SetBreakableStage replays or rewinds the events up to a given one. TU 0x1BAB50..0x1BC050
-// (34 functions, address order).
+// tu_1BAB50.cpp -- CID98, breakable props (chairs, barrels, crates; classes.h): a scripted trigger SO with a list of
+// trigger classes (0x154) whose contact or zap fires it, and a sequence of
+// stages (0x164, stage -1 = the always-run stage), each a list of actions (show / hide objects, globs and parts,
+// messages, camera, rumble, noise, splice events, task states). Firing (ReactBreakable, through a world callback) runs
+// the current stage's actions and steps to the next; SetBreakableStage replays or rewinds the stages up to a given one.
+// Entry points: the CID98 vtable and the Splice builders AddBreakable* (stages, trigger classes, actions).
+// TU 0x1BAB50..0x1BC050 (34 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1BAB50
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001BC030
 #include "sly2/slotheap.h"
@@ -112,10 +114,10 @@ E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318M(pmsg); }
 
 // CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0). (inferred)
-extern "C" void InitBreakable(TRIG *p) {
-    InitSo(p);
-    func_001F7918(p, 0x03FFFFFF, 8);
-    func_001F7918(p, 0x80001, 0);
+extern "C" void InitBreakable(TRIG *breakable) {
+    InitSo(breakable);
+    func_001F7918(breakable, 0x03FFFFFF, 8);
+    func_001F7918(breakable, 0x80001, 0);
 }
 
 static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
@@ -123,19 +125,19 @@ static inline void *AllocB(int cb) { return func_001AE378(AREQV(cb, 0x10)); }
 static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQV(cb, 0x10), pv); }
 // CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to
 // counts. (inferred)
-extern "C" void LoadBreakableFromBrx(TRIG *p, void *a)
+extern "C" void LoadBreakableFromBrx(TRIG *breakable, void *a)
 {
     STACKSCOPE ctx;
     int i, j;
-    p->a154 = (I *)Alloc(0x40);
-    p->ae = (E *)AllocB(0x200) + 1;
-    LoadSoFromBrx(p, a);
-    p->i = 0;
-    p->a154 = (I *)Realloc(p->a154, p->c150 << 3);
-    if (p->c) {
-        p->ae = (E *)Realloc(p->ae - 1, (p->c << 4) + 0x10) + 1;
-        for (i = -1; i < p->c; i++) {
-            E *pe = &p->ae[i];
+    breakable->a154 = (I *)Alloc(0x40);
+    breakable->ae = (E *)AllocB(0x200) + 1;
+    LoadSoFromBrx(breakable, a);
+    breakable->i = 0;
+    breakable->a154 = (I *)Realloc(breakable->a154, breakable->c150 << 3);
+    if (breakable->c) {
+        breakable->ae = (E *)Realloc(breakable->ae - 1, (breakable->c << 4) + 0x10) + 1;
+        for (i = -1; i < breakable->c; i++) {
+            E *pe = &breakable->ae[i];
             pe->a = (I *)Realloc(pe->a, pe->c << 3);
             for (j = 0; j < pe->c; j++) {
                 I *pi = &pe->a[j];
@@ -145,79 +147,79 @@ extern "C" void LoadBreakableFromBrx(TRIG *p, void *a)
             }
         }
     } else {
-        p->ae = 0;
+        breakable->ae = 0;
     }
 }
 
 // CID 98 vt22: FreezeSo then RemoveDlEntry from class list (*(char (*)[])&g_sw.dlCid98). (inferred)
-extern "C" void OnBreakableRemove(TRIG *p) {
-    OnSoRemove(p);
-    RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), p);
+extern "C" void OnBreakableRemove(TRIG *breakable) {
+    OnSoRemove(breakable);
+    RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), breakable);
 }
 
 // CID 98 vt23: UnfreezeSo then AppendDlEntry to (*(char (*)[])&g_sw.dlCid98). (inferred)
-extern "C" void OnBreakableAdd(TRIG *p) {
-    OnSoAdd(p);
-    AppendDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), p);
+extern "C" void OnBreakableAdd(TRIG *breakable) {
+    OnSoAdd(breakable);
+    AppendDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), breakable);
 }
 
 /* A contact record: the other object and its flags word at +0x40. */
 struct XPC { TRIG *x0; int x4; int x8; int xC; char pad[0x30]; union { unsigned long l; struct { int lo; int hi; } w; } x40; };
 // Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8). (inferred)
-extern "C" int AcceptBreakableZap(TRIG *p, XPC *e)
+extern "C" int AcceptBreakableZap(TRIG *breakable, XPC *e)
 {
     int i;
-    if (func_001BBE48X(p, e)) return 0;
+    if (func_001BBE48X(breakable, e)) return 0;
     if (!e->x40.w.hi) return 0;
     if ((e->x40.l & 0xC00000000UL) != 0x800000000UL) return 1;
-    if (p->c150 != 0 && e->x0 != p) {
-        for (i = 0; i < p->c150; i++)
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(e->x0, p->a154[i].a)) break;
-        if (i >= p->c150) return 0;
+    if (breakable->c150 != 0 && e->x0 != breakable) {
+        for (i = 0; i < breakable->c150; i++)
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(e->x0, breakable->a154[i].a)) break;
+        if (i >= breakable->c150) return 0;
     }
-    ScheduleBreakableReaction(p, e->x0, e->xC);
+    ScheduleBreakableReaction(breakable, e->x0, e->xC);
     return 1;
 }
 
 // Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React). (inferred)
-void ScheduleBreakableReaction(TRIG *p, void *a, int b)
+void ScheduleBreakableReaction(TRIG *breakable, void *a, int b)
 {
-    p->x170 = b;
-    p->x16C = a;
-    EnsureSwCallback(&D_003DD490, p, &TRIG::Action, 0);
+    breakable->x170 = b;
+    breakable->x16C = a;
+    EnsureSwCallback(&D_003DD490, breakable, &TRIG::Action, 0);
 }
 
 enum { EVENT_SHIFT = 4 };
 // Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and target stage.
 // (inferred)
-void SetBreakableStage(TRIG *p, int id)
+void SetBreakableStage(TRIG *breakable, int id)
 {
-    int iTarget = p->i;
+    int iTarget = breakable->i;
     int cur, j, k;
     if (id == 0x609) {
         iTarget = 0;
     } else if (id == 0x60A) {
-        iTarget = p->c;
+        iTarget = breakable->c;
     } else if (id != -1) {
-        for (j = 0; j < p->c; j++) {
-            if (p->ae[j].id == id) {
+        for (j = 0; j < breakable->c; j++) {
+            if (breakable->ae[j].id == id) {
                 iTarget = j;
                 break;
             }
         }
     }
-    cur = p->i;
-    if (p->i == iTarget) return;
-    if (p->i < iTarget) {
+    cur = breakable->i;
+    if (breakable->i == iTarget) return;
+    if (breakable->i < iTarget) {
         do {
             E *pe;
-            p->i = cur + 1;
-            pe = &p->ae[cur];
+            breakable->i = cur + 1;
+            pe = &breakable->ae[cur];
             for (k = 0; k < pe->c; k++) {
                 I *pi = &pe->a[k];
                 SOX *ps = 0;
                 if ((0xC3 >> pi->a) & 1) {
-                    ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, p);
+                    ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
                     if (!ps) continue;
                 }
                 switch ((unsigned int)pi->a) {
@@ -228,38 +230,38 @@ void SetBreakableStage(TRIG *p, int id)
                     ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
                     break;
                 case 2:
-                    ShowSoGlobsById(p, pi->b);
+                    ShowSoGlobsById(breakable, pi->b);
                     break;
                 case 3:
-                    HideSoGlobsById(p, pi->b);
+                    HideSoGlobsById(breakable, pi->b);
                     break;
                 case 4:
-                    ShowSoPartsById(p, pi->b);
+                    ShowSoPartsById(breakable, pi->b);
                     break;
                 case 5:
-                    func_001F6B48(p, pi->b);
+                    func_001F6B48(breakable, pi->b);
                     break;
                 }
             }
-            cur = p->i;
+            cur = breakable->i;
         } while (cur < iTarget);
-        p->x158 = 0;
-    } else if (iTarget < p->i) {
-        register int rewind __asm__("$6") = p->i;
+        breakable->x158 = 0;
+    } else if (iTarget < breakable->i) {
+        register int rewind __asm__("$6") = breakable->i;
         int fresh;
         do {
             E *pe;
             register int previous __asm__("$2") = rewind - 1;
             register int offset __asm__("$3");
             __asm__("sll %0,%2,%3\n\tsw %2,%1"
-                    : "=&r"(offset), "=m"(p->i) : "r"(previous), "i"(EVENT_SHIFT));
-            pe = (E *)((char *)p->ae + offset);
+                    : "=&r"(offset), "=m"(breakable->i) : "r"(previous), "i"(EVENT_SHIFT));
+            pe = (E *)((char *)breakable->ae + offset);
             k = pe->c;
             while (k-- > 0) {
                 I *pi = &pe->a[k];
                 SOX *ps = 0;
                 if ((0xC3 >> pi->a) & 1) {
-                    ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, p);
+                    ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
                     if (!ps) continue;
                 }
                 switch ((unsigned int)pi->a) {
@@ -270,25 +272,25 @@ void SetBreakableStage(TRIG *p, int id)
                     ((void (*)(void *))ps->vt[8].pfn)((char *)ps + ps->vt[8].d);
                     break;
                 case 2:
-                    HideSoGlobsById(p, pi->b);
+                    HideSoGlobsById(breakable, pi->b);
                     break;
                 case 3:
-                    ShowSoGlobsById(p, pi->b);
+                    ShowSoGlobsById(breakable, pi->b);
                     break;
                 case 4:
-                    func_001F6B48(p, pi->b);
+                    func_001F6B48(breakable, pi->b);
                     break;
                 case 5:
-                    ShowSoPartsById(p, pi->b);
+                    ShowSoPartsById(breakable, pi->b);
                     break;
                 }
             }
-            fresh = p->i;
+            fresh = breakable->i;
             __asm__("daddu %0,%1,$zero" : "=r"(rewind) : "r"(fresh));
         } while (iTarget < fresh);
-        p->x158 = 0;
+        breakable->x158 = 0;
     } else {
-        p->x158 = 0;
+        breakable->x158 = 0;
     }
 }
 typedef char event_shift[sizeof(E)==(1<<EVENT_SHIFT)?1:-1];
@@ -300,30 +302,30 @@ struct XPO { char pad[0x64]; L *pl; };
 // objects. (inferred)
 void CID98::VUnk57()
 {
-    TRIG *p = (TRIG *)this;
+    TRIG *breakable = (TRIG *)this;
     L *pl;
     int i, j;
-    func_001F4F10(p);
-    if (IsBreakableDone(p)) return;
-    for (pl = p->pxEC->pl; pl; pl = pl->next) {
+    func_001F4F10(breakable);
+    if (IsBreakableDone(breakable)) return;
+    for (pl = breakable->pxEC->pl; pl; pl = pl->next) {
         if (*pl->px8 == 0) continue;
-        for (i = 0; i < p->c150; i++) {
-            I *pe = &p->a154[i];
+        for (i = 0; i < breakable->c150; i++) {
+            I *pe = &breakable->a154[i];
             if (!pe->b) continue;
             if (!FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, pe->a)) continue;
-            if (!(p->x148 & 0x3000000)) ScheduleBreakableReaction(p, pl->po, 0);
+            if (!(breakable->x148 & 0x3000000)) ScheduleBreakableReaction(breakable, pl->po, 0);
             if (FIsBasicDerivedFrom__FP5BASIC3CID(pl->po, 0x62)) {
                 TRIG *q = pl->po;
                 for (j = 0; j < q->c150; j++) {
                     I *pe2 = &q->a154[j];
                     if (!pe2->b) continue;
-                    if (!FIsBasicDerivedFrom__FP5BASIC3CID(p, pe2->a)) continue;
-                    ScheduleBreakableReaction(q, p, 0);
+                    if (!FIsBasicDerivedFrom__FP5BASIC3CID(breakable, pe2->a)) continue;
+                    ScheduleBreakableReaction(q, breakable, 0);
                     break;
                 }
             }
-            ((void (*)(void *, TRIG *))p->vt[54].pfn)((char *)p + p->vt[54].d, pl->po);
-            ((void (*)(void *, TRIG *))pl->po->vt[54].pfn)((char *)pl->po + pl->po->vt[54].d, p);
+            ((void (*)(void *, TRIG *))breakable->vt[54].pfn)((char *)breakable + breakable->vt[54].d, pl->po);
+            ((void (*)(void *, TRIG *))pl->po->vt[54].pfn)((char *)pl->po + pl->po->vt[54].d, breakable);
             FreeSwXpList__FP2SWP2XP(&D_003DD490, pl->x0);
             *pl->px8 = 0;
             pl->x0 = 0;
@@ -379,17 +381,17 @@ void TRIG::Action()
 typedef struct MSGS { int a; SOX *ps; char pad[0x38]; } MSGS;
 // Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10,
 // spawn 0x161F48. (inferred)
-void RunBreakableStageActions(TRIG *p, E *pe)
+void RunBreakableStageActions(TRIG *breakable, E *pe)
 {
     int i;
     SOX *psPrev = 0;
     for (i = 0; i < pe->c; i++) {
         I *pi = &pe->a[i];
         SOX *ps;
-        if ((p->x158 > 0 || pe->n <= 0) && ((0x3F >> pi->a) & 1)) continue;
+        if ((breakable->x158 > 0 || pe->n <= 0) && ((0x3F >> pi->a) & 1)) continue;
         ps = 0;
         if ((0xC3 >> pi->a) & 1) {
-            ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, p);
+            ps = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 1, pi->b, breakable);
             if (!ps) continue;
         }
         switch ((unsigned int)pi->a) {
@@ -403,16 +405,16 @@ void RunBreakableStageActions(TRIG *p, E *pe)
             ((void (*)(void *))ps->vt[9].pfn)((char *)ps + ps->vt[9].d);
             break;
         case 2:
-            ShowSoGlobsById(p, pi->b);
+            ShowSoGlobsById(breakable, pi->b);
             break;
         case 3:
-            HideSoGlobsById(p, pi->b);
+            HideSoGlobsById(breakable, pi->b);
             break;
         case 4:
-            ShowSoPartsById(p, pi->b);
+            ShowSoPartsById(breakable, pi->b);
             break;
         case 5:
-            func_001F6B48(p, pi->b);
+            func_001F6B48(breakable, pi->b);
             break;
         case 7:
             if (FIsBasicDerivedFrom__FP5BASIC3CID(ps, 0x1E)) {
@@ -423,40 +425,40 @@ void RunBreakableStageActions(TRIG *p, E *pe)
             }
             break;
         case 8:
-            if (p->x168 & 2) func_0014F750(D_002DDF40, pi->b);
+            if (breakable->x168 & 2) func_0014F750(D_002DDF40, pi->b);
             break;
         case 9:
-            if (p->x168 & 4) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pi->b, 0.3f);
+            if (breakable->x168 & 4) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pi->b, 0.3f);
             break;
         case 10:
-            if (p->x168 & 8) {
+            if (breakable->x168 & 8) {
                 qword q;
                 if (psPrev) q = func_001A62E8(psPrev);
-                else q = func_001A62E8(p);
-                func_00154E10(D_002DE578, q, pi->b, -100, p);
+                else q = func_001A62E8(breakable);
+                func_00154E10(D_002DE578, q, pi->b, -100, breakable);
             }
             break;
         case 11: {
             int *apv[1];
             apv[0] = &pi->b;
-            ((void (*)(void *, int, int, int, int **, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 4, 0, 1, apv, 0);
+            ((void (*)(void *, int, int, int, int **, int))breakable->vt[3].pfn)((char *)breakable + breakable->vt[3].d, 4, 0, 1, apv, 0);
             break;
         }
         case 12:
-            ApplyTaskStates(D_002DEB30, 1, pi->b, p);
+            ApplyTaskStates(D_002DEB30, 1, pi->b, breakable);
             break;
         }
     }
 }
 
 // Append (class, flag) to trigger list (max 8). (inferred)
-extern "C" int AddBreakableTriggerClass(TRIG *p, int a, int b) {
-    int c = p->c150;
+extern "C" int AddBreakableTriggerClass(TRIG *breakable, int a, int b) {
+    int c = breakable->c150;
     int r = c < 8;
     if (r != 0) {
-        I *pi = (I *)((char *)p->a154 + c * 8);
+        I *pi = (I *)((char *)breakable->a154 + c * 8);
         r = (int)pi;
-        p->c150 = c + 1;
+        breakable->c150 = c + 1;
         pi->b = b;
         pi->a = a;
     }
@@ -464,13 +466,13 @@ extern "C" int AddBreakableTriggerClass(TRIG *p, int a, int b) {
 }
 
 // Append stage id with action buffer (max 32). (inferred)
-extern "C" void AddBreakableStage(TRIG *p, int id)
+extern "C" void AddBreakableStage(TRIG *breakable, int id)
 {
     MSG msg;
-    if (p->c < 0x20) {
+    if (breakable->c < 0x20) {
         E *pe;
-        p->i = p->c++;
-        pe = &p->ae[p->i];
+        breakable->i = breakable->c++;
+        pe = &breakable->ae[breakable->i];
         pe->id = id;
         pe->n = 1;
         pe->a = (I *)PvAllocMsg(&msg, 0x200, 0x10);
@@ -478,120 +480,120 @@ extern "C" void AddBreakableStage(TRIG *p, int id)
 }
 
 // Init stage -1 with action buffer. (inferred)
-extern "C" void InitBreakablePreStage(TRIG *p)
+extern "C" void InitBreakablePreStage(TRIG *breakable)
 {
     E *pe;
     MSG msg;
-    p->i = -1;
-    pe = &p->ae[-1];
+    breakable->i = -1;
+    pe = &breakable->ae[-1];
     pe->id = -1;
     pe->n = 1;
     if (!pe->a) pe->a = (I *)PvAllocMsg(&msg, 0x200, 0x10);
 }
 
 // Set a field of the current stage record (D_002A76B8 key). (inferred)
-extern "C" void SetBreakableStageParam(TRIG *p, int x)
+extern "C" void SetBreakableStageParam(TRIG *breakable, int x)
 {
-    if (p->i != -1) {
-        E *r = func_001BBE68K(p, D_002A76B8);
+    if (breakable->i != -1) {
+        E *r = func_001BBE68K(breakable, D_002A76B8);
         if (r && x) r->n = x;
     }
 }
 
 // Record action kind 6 with arg. (inferred)
-extern "C" void AddBreakableAction6(TRIG *p, int v) {
-    AddBreakableAction(p, 6)->b = v;
+extern "C" void AddBreakableAction6(TRIG *breakable, int v) {
+    AddBreakableAction(breakable, 6)->b = v;
 }
 
 // Record action kind 7. (inferred)
-extern "C" void AddBreakableAction7(TRIG *p, int v) {
-    AddBreakableAction(p, 7)->b = v;
+extern "C" void AddBreakableAction7(TRIG *breakable, int v) {
+    AddBreakableAction(breakable, 7)->b = v;
 }
 
 // Record action kind 8. (inferred)
-extern "C" void AddBreakableAction8(TRIG *p, int v) {
-    AddBreakableAction(p, 8)->b = v;
+extern "C" void AddBreakableAction8(TRIG *breakable, int v) {
+    AddBreakableAction(breakable, 8)->b = v;
 }
 
 // Record action kind 9. (inferred)
-extern "C" void AddBreakableAction9(TRIG *p, int v) {
-    AddBreakableAction(p, 9)->b = v;
+extern "C" void AddBreakableAction9(TRIG *breakable, int v) {
+    AddBreakableAction(breakable, 9)->b = v;
 }
 
 // Record action kind 10. (inferred)
-extern "C" void AddBreakableAction10(TRIG *p, int v) {
-    AddBreakableAction(p, 0xA)->b = v;
+extern "C" void AddBreakableAction10(TRIG *breakable, int v) {
+    AddBreakableAction(breakable, 0xA)->b = v;
 }
 
 // Record action kind 11. (inferred)
-extern "C" void AddBreakableAction11(TRIG *p, int v) {
-    AddBreakableAction(p, 0xB)->b = v;
+extern "C" void AddBreakableAction11(TRIG *breakable, int v) {
+    AddBreakableAction(breakable, 0xB)->b = v;
 }
 
 // Record action kind 0. (inferred)
-extern "C" void AddBreakableAction0(TRIG *p, int v) {
-    AddBreakableAction(p, 0)->b = v;
+extern "C" void AddBreakableAction0(TRIG *breakable, int v) {
+    AddBreakableAction(breakable, 0)->b = v;
 }
 
 // Outside stage recording: ShowSoGlobsById now; else record action 2. (inferred)
-extern "C" void AddBreakableShowGlobs(TRIG *p, int v) {
-    if (IsBreakableStageValid(p) == 0) {
-        ShowSoGlobsById(p, v);
+extern "C" void AddBreakableShowGlobs(TRIG *breakable, int v) {
+    if (IsBreakableStageValid(breakable) == 0) {
+        ShowSoGlobsById(breakable, v);
         return;
     }
-    AddBreakableAction(p, 2)->b = v;
+    AddBreakableAction(breakable, 2)->b = v;
 }
 
 // Same for ShowSoPartsById (action 4). (inferred)
-extern "C" void AddBreakableShowParts(TRIG *p, int v) {
-    if (IsBreakableStageValid(p) == 0) {
-        ShowSoPartsById(p, v);
+extern "C" void AddBreakableShowParts(TRIG *breakable, int v) {
+    if (IsBreakableStageValid(breakable) == 0) {
+        ShowSoPartsById(breakable, v);
         return;
     }
-    AddBreakableAction(p, 4)->b = v;
+    AddBreakableAction(breakable, 4)->b = v;
 }
 
 // Record action 1 (default arg = own id). (inferred)
-extern "C" void AddBreakableAction1(TRIG *p, int v) {
+extern "C" void AddBreakableAction1(TRIG *breakable, int v) {
     int oid = v;
     if (oid == -1) {
-        oid = p->oid;
+        oid = breakable->oid;
     }
-    AddBreakableAction(p, 1)->b = oid;
+    AddBreakableAction(breakable, 1)->b = oid;
 }
 
 // HideSoGlobsById now or record action 3. (inferred)
-extern "C" void AddBreakableHideGlobs(TRIG *p, int v) {
-    if (IsBreakableStageValid(p) == 0) {
-        HideSoGlobsById(p, v);
+extern "C" void AddBreakableHideGlobs(TRIG *breakable, int v) {
+    if (IsBreakableStageValid(breakable) == 0) {
+        HideSoGlobsById(breakable, v);
         return;
     }
-    AddBreakableAction(p, 3)->b = v;
+    AddBreakableAction(breakable, 3)->b = v;
 }
 
 // HideSoPartsById now or record action 5. (inferred)
-extern "C" void AddBreakableHideParts(TRIG *p, int v) {
-    if (IsBreakableStageValid(p) == 0) {
-        func_001F6B48(p, v);
+extern "C" void AddBreakableHideParts(TRIG *breakable, int v) {
+    if (IsBreakableStageValid(breakable) == 0) {
+        func_001F6B48(breakable, v);
         return;
     }
-    AddBreakableAction(p, 5)->b = v;
+    AddBreakableAction(breakable, 5)->b = v;
 }
 
 // Record action 12 with a two-int payload. (inferred)
-extern "C" void AddBreakableAction12(TRIG *p, int a, int b)
+extern "C" void AddBreakableAction12(TRIG *breakable, int a, int b)
 {
     MSG msg;
-    I *pi = AddBreakableAction(p, 0xC);
+    I *pi = AddBreakableAction(breakable, 0xC);
     pi->b = (int)PvAllocMsg(&msg, 8, 0x10);
     ((int *)pi->b)[0] = a;
     ((int *)pi->b)[1] = b;
 }
 
 // Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it. (inferred)
-I *AddBreakableAction(TRIG *p, int x)
+I *AddBreakableAction(TRIG *breakable, int x)
 {
-    E *pe = func_001BBE68K(p, D_002A76C0);
+    E *pe = func_001BBE68K(breakable, D_002A76C0);
     I *pi;
     if (!pe) return 0;
     if (pe->c >= 0x40) return 0;
@@ -601,36 +603,36 @@ I *AddBreakableAction(TRIG *p, int x)
 }
 
 // current stage index valid (0..count-1 or -1). (inferred)
-int IsBreakableStageValid(TRIG *p) {
-    int i = p->i;
+int IsBreakableStageValid(TRIG *breakable) {
+    int i = breakable->i;
     int f = 0;
-    if (((i >= 0) && (i < p->c)) || (i == -1)) {
+    if (((i >= 0) && (i < breakable->c)) || (i == -1)) {
         f = 1;
     }
     return f;
 }
 
 // !FCid98StageValid. (inferred)
-int IsBreakableDone(TRIG *p) {
-    return IsBreakableStageValid(p) == 0;
+int IsBreakableDone(TRIG *breakable) {
+    return IsBreakableStageValid(breakable) == 0;
 }
 
 // Current stage record or NULL. (inferred)
-E *GetCurrentBreakableStage(TRIG *p) {
-    if (IsBreakableStageValid(p) == 0) {
+E *GetCurrentBreakableStage(TRIG *breakable) {
+    if (IsBreakableStageValid(breakable) == 0) {
         return 0;
     }
-    return (E *)((char *)p->ae + p->i * 0x10);
+    return (E *)((char *)breakable->ae + breakable->i * 0x10);
 }
 
 // CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints. (inferred)
-extern "C" void ResetBreakable(TRIG *p)
+extern "C" void ResetBreakable(TRIG *breakable)
 {
-    func_001CB518(p);
-    SetBreakableStage(p, 0x609);
-    if (p->fCnstr) {
-        SetSoCnstrForce(p, 1);
-        SetSoCnstrTorque(p, 1);
+    func_001CB518(breakable);
+    SetBreakableStage(breakable, 0x609);
+    if (breakable->fCnstr) {
+        SetSoCnstrForce(breakable, 1);
+        SetSoCnstrTorque(breakable, 1);
     }
 }
 
