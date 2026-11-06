@@ -162,8 +162,8 @@ extern "C" void ResetNeelaToHome(NEELAV *p)
     ResetStepguardToHome(p);
     po = p->po;
     if (po) {
-        VTE *e = &po->vt[9];
-        ((void (*)(void *))e->pfn)((char *)po + e->d);
+        VTE *entry = &po->vt[9];
+        ((void (*)(void *))entry->pfn)((char *)po + entry->d);
     }
 }
 
@@ -320,14 +320,14 @@ extern "C" void UpdateBhvNeelaChase(NBHV *p)
         s = p->state;
         switch (s) {
         case 0: {
-            DETECTORV *ps = p->po->pdetector;
-            if (!FCheckVolPoint(ps->pvolFar, func_001A62E8(D_002E1E40)))
+            DETECTORV *detector = p->po->pdetector;
+            if (!FCheckVolPoint(detector->pvolFar, func_001A62E8(D_002E1E40)))
                 SetBhvNeelaChaseState(p, 1);
             break;
         }
         case 1: {
-            DETECTORV *ps = p->po->pdetector;
-            if (FCheckVolPoint(ps->pvolNear, func_001A62E8(D_002E1E40)))
+            DETECTORV *detector = p->po->pdetector;
+            if (FCheckVolPoint(detector->pvolNear, func_001A62E8(D_002E1E40)))
                 SetBhvNeelaChaseState(p, 0);
             else if (p->po->poly.dt < D_002DDED0.t - p->changed)
                 SetBhvNeelaChaseState(p, 2);
