@@ -623,11 +623,20 @@ class Engine:
     def plan_cxx(self, r):
         """Find the base-name edits of a 'cxx' rename (r.sites) and check the new base name. Returns a refusal reason."""
         R = self.repo; x = r.cxx; ob, nb = x['old_base'], x['new_base']
+        x['label_names'] = sorted(self.label_names(r.old) | (self.label_names(r.symbol) if r.symbol != r.old else set()))
         if ob == nb: return None
         owners = R.base_owners(nb) - {r.addr}
         if owners:
             return f'base name {nb} already names 0x{min(owners):06X} in config (C++ overloads are not created by renames)'
         cls_last = x['cls'].split('::')[-1] if x['cls'] else None
+        if x['member'] and self.is_virtual(ob):
+            # a virtual member's C++ name is the vtable slot shared by the whole hierarchy: renaming it for one class
+            # would break overriding. When an asm label fixes the symbol, only the label (the symbol) changes.
+            if not x['label_names']:
+                return (f'{ob} is a virtual member and {r.old} is not fixed by an __asm__ label: renaming one class\'s '
+                        'override would break overriding. Rename the slot across the hierarchy by hand')
+            x['label_only'] = True
+            return None
         if x['ambiguous'] and not x['member']:
             return (f'base name {ob} is shared with ' + ', '.join(x['same_base_addrs'][:3]) + ' (overloads or a C function '
                     'of the same name); call sites cannot be told apart by name. Rename by hand')
@@ -638,12 +647,26 @@ class Engine:
                 r.existing_uses.append(dict(path=p, kind='base name already used (accepted by --allow-existing-uses)'))
             if ob not in text: continue
             code = blank_non_code(text)
-            if x['member'] and re.search(r'(?<![%s])virtual\b[^;{}]*(?<![%s])%s\s*\(' % (IDC, IDC, re.escape(ob)), code):
-                return (f'{ob} is declared virtual ({p}): every override shares the vtable slot name; renaming one class\'s '
-                        'member would break overriding. Rename the whole hierarchy by hand')
             sites = self.base_sites(text, code, ob, nb, cls_last if x['ambiguous'] else None)
             if sites: r.sites[p] = sites; r.files.setdefault(p, {})
         return None
+
+    def label_names(self, sym):
+        """C++ names declared with __asm__("sym") (local aliases and header members whose symbol the label fixes)."""
+        out = set()
+        pat = re.compile(r'(?<![%s])([A-Za-z_]\w*)\s*\([^;{}]*\)\s*(?:const\s*)?(?:__asm__|__asm|asm)\s*\(\s*"%s"\s*\)'
+                         % (IDC, re.escape(sym)))
+        for t in self.repo.files.values():
+            if sym in t: out |= {m.group(1) for m in pat.finditer(t)}
+        return out
+
+    def is_virtual(self, name):
+        if not hasattr(self, '_virt'):
+            self._virt = set()
+            for t in self.repo.files.values():
+                if 'virtual' in t:
+                    self._virt |= set(re.findall(r'(?<![%s])virtual\b[^;{}()]*?([A-Za-z_]\w*)\s*\(' % IDC, blank_non_code(t)))
+        return name in self._virt
 
     def base_sites(self, text, code, ob, nb, cls):
         """(start, end, nb) for each occurrence of the base name `ob` to rename. cls=None: every code/comment token (the
@@ -683,13 +706,13 @@ class Engine:
     def _defines_cxx(self, text, r):
         """A natural C++ definition of the function: `[C::]base(...) {` at file scope (namespaces allowed), qualified by
         the class for members; or a member defined inside its class body."""
-        x = r.cxx; ob = x['old_base']
-        if ob not in text: return False
+        x = r.cxx; names = [x['old_base']] + x.get('label_names', [])
+        if not any(n in text for n in names): return False
         code = blank_non_code(text); depth = _depths(code)
         nsd = _transparent_depth(text, code)
         cls = x['cls'].split('::')[-1] if x['cls'] else None
-        pat = (r'(?<![%s])%s\s*::\s*%s\s*\(' % (IDC, re.escape(cls), re.escape(ob)) if cls else
-               r'(?<![%s:])(?<!::)%s\s*\(' % (IDC, re.escape(ob)))
+        pat = (r'(?<![%s])%s\s*::\s*(?:%s)\s*\(' % (IDC, re.escape(cls), _alts(names)) if cls else
+               r'(?<![%s:])(?:%s)\s*\(' % (IDC, _alts(names)))
         for m in re.finditer(pat, code):
             if depth[m.start()] - nsd[m.start()] != 0: continue
             i = m.end(); n = 1
