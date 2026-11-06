@@ -2483,7 +2483,7 @@ ListXYZF__4GIFSiiii,0x1670B8,gifs
 AddImage__4GIFSi,0x167150,gifs
 StaticInit_gifs,0x1671B8,gifs
 _GLOBAL_$I$g_dro,0x1672F0,gifs
-__4CRef,0x167310,glob
+__7GLOBSET,0x167310,glob
 LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream,0x167320,glob
 func_00167870,0x167870,glob
 BindGlobset,0x167B68,glob

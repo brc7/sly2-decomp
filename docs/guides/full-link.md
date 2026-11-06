@@ -8,7 +8,7 @@ tools/link.py links the image (since link/real-link a real link: one section per
 the ELF the way the original build did is "End state" at the end. The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (integrate/round8, 2026-11-06)
+## Status (link/eopid-real-refs on integrate/round8, 2026-11-06)
 
 Authoritative numbers for integrate/round8: main f674c97e + link/real-link (with link/crt0-block: the crt0_splicewrap
 TU as one object, the real-link mode as tools/link.py's default) + link/junk-padding (the junk.csv scraps as
@@ -16,14 +16,17 @@ TU as one object, the real-link mode as tools/link.py's default) + link/junk-pad
 `CGcObj<T>`/`CRefPtr<T>` instances, "Linkonce pools") + link/linkonce-misc (51 more linkonce copies: emitter.h
 templates, inline accessors emitted by eopid_linkonce.cpp, inline functions after their callers, "Linkonce copies
 moved") + data/crt0-tables (g_aeopid and the class option tables as source, class_registry_options.inc) +
-data/vtables (174 registry vtables emitted by 81 key TUs, tu-merging.md "Vtables emitted (data/vtables)"). Fixes the
+data/vtables (174 registry vtables emitted by 81 key TUs, tu-merging.md "Vtables emitted (data/vtables)") +
+link/eopid-real-refs (no asm label with a trailing space left: g_aeopid takes the addresses of the 63 inline accessors
+and emitter.h template instances by their C++ names, so class_registry emits their linkonce copies and
+eopid_linkonce.cpp is gone; the grab-spot VtF labels name the owner getters exactly, so the key TUs emit them; 0x167310
+renamed `__7GLOBSET`, GLOBSET's constructor; tu-merging.md "Representation decisions"). Fixes the
 merges needed: the scraps the linkonce branches uncovered, emitted with `SLY2_SCRAP` as junk-padding does (ref
 0x129D50, splicemap 0x1FFA68, cm 0x14E320/0x14F3C0, emitter 0x15BF38, memcard 0x1AB748/0x1ABFF8 (2)/0x1AC848, bsp
 0x1193D0, and the nop units bsp 0x118FA8 and guardbhv 0x178CF8: two new junk.csv rows, 80 rows emitted by sources);
 g_aeopid's labels for the four symbols linkonce-misc renamed (PemitbEnsure's two instances, cm's and step's
-accessors), with the trailing space of the accessors eopid_linkonce.cpp emits; the ten grab-spot VtF labels in
-classes.h with the same trailing space, so the vtables' key TUs do not emit second copies of linkonce-misc's owner
-getters; emitter.h's C helpers bound by label (PvAllocLevelHeapUncleared/Copy, BisU8/U16/U32Read,
+accessors) and the ten grab-spot VtF labels in classes.h (the trailing spaces these had are gone since
+link/eopid-real-refs); emitter.h's C helpers bound by label (PvAllocLevelHeapUncleared/Copy, BisU8/U16/U32Read,
 PloFindSwObjectE), since classes.h now brings emitter.h into files with their own C declarations of them. Values of
 `python3 tools/link.py` (real link) from freshly built objects (build/link/obj and obj-tu deleted first);
 link/real-link's values in brackets where different.
@@ -31,16 +34,16 @@ link/real-link's values in brackets where different.
 | measure | value | tool |
 |---|---|---|
 | functions matching | 6,662 / 6,662 (100%; 857 sources, 329 SDK sources carried over, verified on the Mac; config/matched.csv unchanged by the run) | `tools/progress.py`, cache deleted first |
-| all game sources (211; every one includes a header some branch touched) | functions 6,017 / 6,017, data symbols 1,932 / 1,932 MATCH | `tools/matchtool.py check` |
-| nm symbol sets (the 211 objects; the 31 splice_thunks objects of the f674c97e-based trees included) | every object's global symbols (defined and undefined) are what the six branches made of them, each against its own base (f674c97e; crt0-tables and vtables against link/real-link), except the references renamed by the fixes above: class_registry's four g_aeopid targets and the vtables' grab-spot slot-6 targets in grabspot, pipe, rail, hnd and tu_1FF3B8 now name linkonce-misc's mangled getters | scratch nmP.py |
+| all game sources (210, eopid_linkonce.cpp gone; every one includes a header some branch touched) | functions 6,017 / 6,017, data symbols 1,932 / 1,932 MATCH | `tools/matchtool.py check` |
+| nm symbol sets (the 211 objects; the 31 splice_thunks objects of the f674c97e-based trees included) | every object's global symbols (defined and undefined) are what the six branches made of them, each against its own base (f674c97e; crt0-tables and vtables against link/real-link), except the references renamed by the fixes above: class_registry's four g_aeopid targets and the vtables' grab-spot slot-6 targets in grabspot, pipe, rail, hnd and tu_1FF3B8 now name linkonce-misc's mangled getters. link/eopid-real-refs against integrate/round8 0bd0ca5f: only U -> W for the 73 linkonce copies (63 in class_registry, which also takes over eopid_linkonce's undefined references; 10 in the five key TUs) and `__4CRef` -> `__7GLOBSET` (glob, rip, class_registry) | scratch nmP.py, nmcmp.py |
 | definitions per symbol | every global or weak function symbol is defined by exactly one object (cplcy's RcPtr_Assign 0x258040 and asega's func_002580A8 stay single definitions next to gc.cpp's CRefPtr<T> instances) | nm over the 211 objects |
-| undefined references not in config (210 merged objects) | 41 [35] (link/linkonce-pools' value: the 9 view-destructor references bound by alias lines added, the 3 template members of proxy/spliceobj resolved) | scratch symcheck.py |
+| undefined references not in config (209 merged objects) | 39 [35] (eopid_linkonce's two `gcc2_compiled.` markers gone) (link/linkonce-pools' value: the 9 view-destructor references bound by alias lines added, the 3 template members of proxy/spliceobj resolved) | scratch symcheck.py |
 | duplicate strong definitions | 0 | scratch symcheck.py |
 | relocations checked against the ELF | 50,740 [29,603] OK, 0 mismatched (the option tables' and vtables' data relocations added) | scratch relverify.py with config/link_aliases.txt |
-| link objects | 528: 522 whole (one section each), 6 in per-function fallback [452 / 76] | `tools/link.py` |
+| link objects | 527: 521 whole (one section each), 6 in per-function fallback [452 / 76] | `tools/link.py` |
 | fallback, by reason (build/link/tutext.txt) | linkonce copies kept as plain functions: 6 objects, 18 functions: tu_119BC8 11, class_registry's 3 constructors (STEPGUARD_ctor, JT_ctor, MURRAY_ctor), bis 0x2566B0, blend 0x2581B8, bif's `operator*` and tu_1553F0's VecCombo (tu-merging.md "Linkonce copies by family"); none for junk scraps, padding or grab [76: linkonce 38, scraps 33, scraps and padding 3, padding 1, grab 1] | `tools/link.py` |
 | vtables from objects | 182 `.gnu.linkonce.d._vt$*` sections (174 from data/vtables, 8 before); 17 registry vtables still not emitted (data/vtables' list) | `readelf` over build/link/obj-tu |
-| ld.lld | 0 errors; 2,194 [4,673] sections placed, 4 unplaced (464 bytes: eopid_linkonce's `.data` 292 and an SDK object's 100, bq's `__17CQueueInputMemoryPUci` and tn's `_vt$7CMPART2` linkonce copies) [6, 544], 2 `.bss` overlapping another bound to their address (tn, cplcy: 4 bytes each) | `tools/link.py` |
+| ld.lld | 0 errors; 2,194 [4,673] sections placed, 3 unplaced (172 bytes: an SDK object's `.data` 100, bq's `__17CQueueInputMemoryPUci` and tn's `_vt$7CMPART2` linkonce copies; eopid_linkonce's 292 bytes gone) [6, 544], 2 `.bss` overlapping another bound to their address (tn, cplcy: 4 bytes each) | `tools/link.py` |
 | address assignments in the script | 20, all in `.bss`/`.sbss`: gaps no object defines, 487,824 bytes | `tools/link.py` |
 | differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; from objects .text 1,295,772 [1,294,948], .rodata 126,184 [28,184], .data 160,936 [37,936] | `tools/link.py` |
 | blob bytes | 845,256 [1,067,080]: IOP modules 474,176; data no object defines 216,056 [437,056] (crt0-tables 155,960 and vtables 65,040 fewer); text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,620 [2,124] (the rows at TU boundaries, in the SDK and inside the 6 fallback objects); padding / not in config 1,064 [1,384]; `func_00100000` 4 | `tools/link.py` |
