@@ -31,8 +31,8 @@ struct CBinaryInputStream
 struct ACTV
 {
     int n0;
-    ALO *palo;              /* +0x04 */
-    XF *pxf;                /* +0x08 */
+    ALO *object;              /* +0x04 */
+    XF *xf;                /* +0x08 */
     char padC[0x14 - 0xC];
     int n14;                /* +0x14 */
     char pad18[0x1C - 0x18];
@@ -62,15 +62,15 @@ extern "C" {
 extern qword D_002A2DD0;    /* (0, 0, 0) */
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* frees into the pool */
-void SetXfRole(ALO *palo, XF *pxf, int n);
-void WakeXfOwner(ALO *palo, XF *pxf);
-qword GetXfValueFromMatrix(XF *pxf, XF *pxf2);
-int IsActAttached(ACTV *pact);
-void AddXfAct(ALO *palo, XF *pxf, ACTV *pact);
-void RemoveXfAct(ALO *palo, XF *pxf, ACTV *pact);
-void ResetXfValueRef(ALO *palo, XF *pxf);
+void SetXfRole(ALO *object, XF *xf, int n);
+void WakeXfOwner(ALO *object, XF *xf);
+qword GetXfValueFromMatrix(XF *xf, XF *pxf2);
+int IsActAttached(ACTV *act);
+void AddXfAct(ALO *object, XF *xf, ACTV *act);
+void RemoveXfAct(ALO *object, XF *xf, ACTV *act);
+void ResetXfValueRef(ALO *object, XF *xf);
 ACOBJ *InitActOfKind(int n);
-void DetachAct(ACTV *pact);
+void DetachAct(ACTV *act);
 void FreeAct(void *pv);   /* frees an act record into its pool */
 }
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
@@ -137,10 +137,10 @@ void AC::LoadFromBrx(CBinaryInputStream *)
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Loads a constant vector curve: its three floats.
-void AC0::LoadFromBrx(CBinaryInputStream *pbis)
+void AC0::LoadFromBrx(CBinaryInputStream *stream)
 {
-    ACVEC *pac = (ACVEC *)this;
-    pbis->Read(0xC, &pac->vec);
+    ACVEC *curve = (ACVEC *)this;
+    stream->Read(0xC, &curve->vec);
 }
 
 namespace M_func_0012B520 { extern "C" {
@@ -192,10 +192,10 @@ void PrepareConstCurveSegment(S *s, T *t)
  * @end-sly2-annot */
 /* Evaluates a constant vector curve: the value, and a zero derivative. */
 // Evaluates a constant vector curve (slot 3): the constant, and a zero derivative.
-extern "C" void EvaluateConstCurve(ACVEC *pac, VECTOR *pvec, VECTOR *pdvec)
+extern "C" void EvaluateConstCurve(ACVEC *curve, VECTOR *pvec, VECTOR *pdvec)
 {
     if (pvec != 0) {
-        CopyAb(pvec, &pac->vec, 0xC);
+        CopyAb(pvec, &curve->vec, 0xC);
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -207,8 +207,8 @@ typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef struct KEY { VECTOR3 pos; float t; VECTOR3 dpos; int pad; VECTOR3 dpos2; int pad2; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *pbis);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR3 *pv);
 KEY *func_001AE2A0(AREQ *preq);
 
 } } // namespace M_LoadAcVecAFromBrx
@@ -222,7 +222,7 @@ KEY *func_001AE2A0(AREQ *preq);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Loads a keyed vector curve: the key count, then each key's time, value and in / out tangents.
-void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
+void AC1::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcVecAFromBrx;
     using M_LoadAcVecAFromBrx::AREQ;
@@ -231,9 +231,9 @@ void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcVecAFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcVecAFromBrx::func_001AE2A0;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     int i;
-    int c = U16Read__18CBinaryInputStream(pbis);
+    int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c * sizeof(KEY);
     req.cbAlign = 0x10;
@@ -241,10 +241,10 @@ void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
     t->a = func_001AE2A0(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
-        pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->pos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos2);
+        pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->pos);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos2);
     }
 }
 
@@ -353,8 +353,8 @@ typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef struct KEY { VECTOR3 pos; float t; VECTOR3 dpos; int pad; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *pbis);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR3 *pv);
 KEY *func_001AE2A0(AREQ *preq);
 
 } } // namespace M_LoadAcVecBFromBrx
@@ -368,7 +368,7 @@ KEY *func_001AE2A0(AREQ *preq);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Loads the second keyed vector curve kind (keys with a different tangent layout).
-void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
+void AC2::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcVecBFromBrx;
     using M_LoadAcVecBFromBrx::AREQ;
@@ -377,9 +377,9 @@ void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcVecBFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcVecBFromBrx::func_001AE2A0;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     int i;
-    int c = U16Read__18CBinaryInputStream(pbis);
+    int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c << 5;
     req.cbAlign = 0x10;
@@ -387,9 +387,9 @@ void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
     t->a = func_001AE2A0(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
-        pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->pos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos);
+        pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->pos);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos);
     }
 }
 
@@ -493,10 +493,10 @@ namespace M_LoadAcFloatAFromBrx { extern "C" {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct KEY { float a, b, c; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; int v[4]; } T;
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
-int U16Read__18CBinaryInputStream(void *pbis);
-int U8Read__18CBinaryInputStream(void *pbis);
-float F32Read__18CBinaryInputStream(void *pbis);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+int U8Read__18CBinaryInputStream(void *stream);
+float F32Read__18CBinaryInputStream(void *stream);
 void *func_001AE1D0(AREQ *preq);
 
 } } // namespace M_LoadAcFloatAFromBrx
@@ -510,7 +510,7 @@ void *func_001AE1D0(AREQ *preq);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Loads a per-component curve: the key count, flags saying which components are animated, and float keys.
-void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
+void AC3::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatAFromBrx;
     using M_LoadAcFloatAFromBrx::AREQ;
@@ -521,19 +521,19 @@ void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatAFromBrx::U8Read__18CBinaryInputStream;
     using M_LoadAcFloatAFromBrx::func_001AE1D0;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     AREQ req;
     int i, j, mask, grf;
     int c;
-    ReadVector__18CBinaryInputStreamP6VECTOR(pbis, t->v);
-    c = U16Read__18CBinaryInputStream(pbis);
+    ReadVector__18CBinaryInputStreamP6VECTOR(stream, t->v);
+    c = U16Read__18CBinaryInputStream(stream);
     req.cb = c * 4;
     req.cbAlign = 0x10;
     t->c = c;
     t->at = (__typeof__(t->at))func_001AE1D0(&req);
     for (i = 0; i < t->c; i++)
-        t->at[i] = U16Read__18CBinaryInputStream(pbis) * 0.016666668f;
-    grf = U8Read__18CBinaryInputStream(pbis);
+        t->at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
+    grf = U8Read__18CBinaryInputStream(stream);
     for (j = 0, mask = 1; j < 3; j++, mask <<= 1) {
         if (mask & grf) {
             KEY *ak;
@@ -542,9 +542,9 @@ void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
             ak = (__typeof__(ak))func_001AE1D0(&req);
             t->ak[j] = ak;
             for (i = 0; i < t->c; i++) {
-                ak[i].a = F32Read__18CBinaryInputStream(pbis);
-                ak[i].b = F32Read__18CBinaryInputStream(pbis);
-                ak[i].c = F32Read__18CBinaryInputStream(pbis);
+                ak[i].a = F32Read__18CBinaryInputStream(stream);
+                ak[i].b = F32Read__18CBinaryInputStream(stream);
+                ak[i].c = F32Read__18CBinaryInputStream(stream);
             }
         }
     }
@@ -690,10 +690,10 @@ namespace M_LoadAcFloatBFromBrx { extern "C" {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct KEY { float a, b; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; int v[4]; } T;
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
-int U16Read__18CBinaryInputStream(void *pbis);
-int U8Read__18CBinaryInputStream(void *pbis);
-float F32Read__18CBinaryInputStream(void *pbis);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+int U8Read__18CBinaryInputStream(void *stream);
+float F32Read__18CBinaryInputStream(void *stream);
 void *func_001AE1D0(AREQ *preq);
 
 } } // namespace M_LoadAcFloatBFromBrx
@@ -707,7 +707,7 @@ void *func_001AE1D0(AREQ *preq);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Loads the second per-component curve kind.
-void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
+void AC4::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatBFromBrx;
     using M_LoadAcFloatBFromBrx::AREQ;
@@ -718,19 +718,19 @@ void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatBFromBrx::U8Read__18CBinaryInputStream;
     using M_LoadAcFloatBFromBrx::func_001AE1D0;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     AREQ req;
     int i, j, mask, grf;
     int c;
-    ReadVector__18CBinaryInputStreamP6VECTOR(pbis, t->v);
-    c = U16Read__18CBinaryInputStream(pbis);
+    ReadVector__18CBinaryInputStreamP6VECTOR(stream, t->v);
+    c = U16Read__18CBinaryInputStream(stream);
     req.cb = c * 4;
     req.cbAlign = 0x10;
     t->c = c;
     t->at = (__typeof__(t->at))func_001AE1D0(&req);
     for (i = 0; i < t->c; i++)
-        t->at[i] = U16Read__18CBinaryInputStream(pbis) * 0.016666668f;
-    grf = U8Read__18CBinaryInputStream(pbis);
+        t->at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
+    grf = U8Read__18CBinaryInputStream(stream);
     for (j = 0, mask = 1; j < 3; j++, mask <<= 1) {
         if (mask & grf) {
             KEY *ak;
@@ -739,8 +739,8 @@ void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
             ak = (__typeof__(ak))func_001AE1D0(&req);
             t->ak[j] = ak;
             for (i = 0; i < t->c; i++) {
-                ak[i].a = F32Read__18CBinaryInputStream(pbis);
-                ak[i].b = F32Read__18CBinaryInputStream(pbis);
+                ak[i].a = F32Read__18CBinaryInputStream(stream);
+                ak[i].b = F32Read__18CBinaryInputStream(stream);
             }
         }
     }
@@ -934,10 +934,10 @@ void ACG::LoadFromBrx(CBinaryInputStream *)
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Loads a constant float curve: one float.
-void ACG0::LoadFromBrx(CBinaryInputStream *pbis)
+void ACG0::LoadFromBrx(CBinaryInputStream *stream)
 {
-    ACFLOAT *pac = (ACFLOAT *)this;
-    pac->g = pbis->F32Read();
+    ACFLOAT *curve = (ACFLOAT *)this;
+    curve->g = stream->F32Read();
 }
 
 /** @sly2-annot addr=0x12CC98
@@ -949,10 +949,10 @@ void ACG0::LoadFromBrx(CBinaryInputStream *pbis)
  * @end-sly2-annot */
 /* Evaluates a constant float curve: the value, and a zero derivative. */
 // Evaluates a constant float curve: the value, and a zero derivative.
-extern "C" void EvaluateConstFloatCurve(ACFLOAT *pac, float *pg, int *pdg)
+extern "C" void EvaluateConstFloatCurve(ACFLOAT *curve, float *pg, int *pdg)
 {
     if (pg != 0) {
-        *pg = pac->g;
+        *pg = curve->g;
     }
     if (pdg != 0) {
         *pdg = 0;
@@ -963,8 +963,8 @@ namespace M_LoadAcFloatKeysFromBrx { extern "C" {
 typedef struct KEY { float t; float g; float dgIn; float dgOut; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *pbis);
-float F32Read__18CBinaryInputStream(void *pbis);
+int U16Read__18CBinaryInputStream(void *stream);
+float F32Read__18CBinaryInputStream(void *stream);
 KEY *func_001AE2A0(AREQ *preq);
 
 } } // namespace M_LoadAcFloatKeysFromBrx
@@ -979,7 +979,7 @@ KEY *func_001AE2A0(AREQ *preq);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Loads a keyed float curve: the key count and the float keys.
-void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
+void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatKeysFromBrx;
     using M_LoadAcFloatKeysFromBrx::AREQ;
@@ -988,9 +988,9 @@ void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatKeysFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcFloatKeysFromBrx::func_001AE2A0;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     int i;
-    int c = U16Read__18CBinaryInputStream(pbis);
+    int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c << 4;
     req.cbAlign = 0x10;
@@ -998,10 +998,10 @@ void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
     t->a = func_001AE2A0(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
-        pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
-        pkey->g = F32Read__18CBinaryInputStream(pbis);
-        pkey->dgIn = F32Read__18CBinaryInputStream(pbis);
-        pkey->dgOut = F32Read__18CBinaryInputStream(pbis);
+        pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
+        pkey->g = F32Read__18CBinaryInputStream(stream);
+        pkey->dgIn = F32Read__18CBinaryInputStream(stream);
+        pkey->dgOut = F32Read__18CBinaryInputStream(stream);
     }
 }
 
@@ -1066,9 +1066,9 @@ extern "C" void FreeOvra(void *pv)
 // Base act attach (slot 1): sets the driven transform's role and wakes its owner so the act takes effect.
 void ACT::VSlot1()
 {
-    ACTV *pact = (ACTV *)this;
-    SetXfRole(pact->palo, pact->pxf, pact->n14);
-    WakeXfOwner(pact->palo, pact->pxf);
+    ACTV *act = (ACTV *)this;
+    SetXfRole(act->object, act->xf, act->n14);
+    WakeXfOwner(act->object, act->xf);
 }
 
 /** @sly2-annot addr=0x12CED8
@@ -1136,11 +1136,11 @@ extern "C" void UpdateActDefault()
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Base act goal (slot 5): the transform's current value, and zero velocity.
-extern "C" void GetActGoalDefault(ACTV *pact, qword *ppos, VECTOR *pdvec)
+extern "C" void GetActGoalDefault(ACTV *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
-        XF *pxf = pact->pxf;
-        *ppos = GetXfValueFromMatrix(pxf, pxf);
+        XF *xf = act->xf;
+        *ppos = GetXfValueFromMatrix(xf, xf);
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1177,10 +1177,10 @@ void CloneAct(T *t, T *src, int b, int c)
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Inserts the act into its transform's action list unless it is already there.
-extern "C" void AttachAct(ACTV *pact)
+extern "C" void AttachAct(ACTV *act)
 {
-    if (IsActAttached(pact) == 0) {
-        AddXfAct(pact->palo, pact->pxf, pact);
+    if (IsActAttached(act) == 0) {
+        AddXfAct(act->object, act->xf, act);
     }
 }
 
@@ -1192,10 +1192,10 @@ extern "C" void AttachAct(ACTV *pact)
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Removes the act from its transform's action list if it is there.
-extern "C" void DetachAct(ACTV *pact)
+extern "C" void DetachAct(ACTV *act)
 {
-    if (IsActAttached(pact) != 0) {
-        RemoveXfAct(pact->palo, pact->pxf, pact);
+    if (IsActAttached(act) != 0) {
+        RemoveXfAct(act->object, act->xf, act);
     }
 }
 
@@ -1232,11 +1232,11 @@ int IsActAttached(T *p)
 // Position act update (slot 4).
 void ACT1::Update()
 {
-    ACTPHASE *pact = (ACTPHASE *)this;
-    pact->pxf->qwRest = pact->pos;
-    pact->pxf->qwUnkD0 = D_002A2DD0;
-    pact->pxf->nPhase = pact->nPhase;
-    ResetXfValueRef(pact->palo, pact->pxf);
+    ACTPHASE *act = (ACTPHASE *)this;
+    act->xf->qwRest = act->pos;
+    act->xf->qwUnkD0 = D_002A2DD0;
+    act->xf->nPhase = act->nPhase;
+    ResetXfValueRef(act->object, act->xf);
 }
 
 /** @sly2-annot addr=0x12D0D8
@@ -1247,10 +1247,10 @@ void ACT1::Update()
  * @end-sly2-annot */
 /* vtable 0x2CA830 slot 5. */
 // Position act goal (slot 5): its stored position, and zero velocity.
-extern "C" void GetPhaseActGoal(ACTPHASE *pact, qword *ppos, VECTOR *pdvec)
+extern "C" void GetPhaseActGoal(ACTPHASE *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
-        *ppos = pact->pos;
+        *ppos = act->pos;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1455,13 +1455,13 @@ void UpdateActLookAt(struct P *p)
 // Look-at act goal (slot 5).
 void ACT2::GetGoal(qword *ppos, VECTOR *pdvec)
 {
-    ACTV *pact = (ACTV *)this;
+    ACTV *act = (ACTV *)this;
     qword *pv = (qword *)pdvec;
     if (ppos != 0) {
-        *ppos = pact->pxf->qwRest;
+        *ppos = act->xf->qwRest;
     }
     if (pv != 0) {
-        *pv = pact->pxf->qwUnkD0;
+        *pv = act->xf->qwUnkD0;
     }
 }
 
@@ -2018,9 +2018,9 @@ void UpdateMatrixAct(XX *x) { MATRIX4 m; if (x->py->pA0) m = __ml__FRC7MATRIX4T0
 // Matrix act goal (slot 5).
 void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 {
-    ACTV *pact = (ACTV *)this;
+    ACTV *act = (ACTV *)this;
     if (ppos != 0) {
-        *ppos = pact->pxf->qwRest;
+        *ppos = act->xf->qwRest;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -2037,12 +2037,12 @@ void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 // Bezier act update (slot 4).
 void ACT8::Update()
 {
-    ACTREST *pact = (ACTREST *)this;
-    *(float *)&pact->pxf->pxfRef = pact->g1C;   /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
-    pact->pxf->qwRest = pact->pos;
-    pact->pxf->qwUnkD0 = pact->v;
-    pact->pxf->nPhase = 2;
-    ResetXfValueRef(pact->palo, pact->pxf);
+    ACTREST *act = (ACTREST *)this;
+    *(float *)&act->xf->pxfRef = act->g1C;   /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
+    act->xf->qwRest = act->pos;
+    act->xf->qwUnkD0 = act->v;
+    act->xf->nPhase = 2;
+    ResetXfValueRef(act->object, act->xf);
 }
 
 namespace M_func_0012E060 { extern "C" {
@@ -2079,14 +2079,14 @@ void GetBezierActGoal(P *p, qword *pa, qword *pb, float t)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 // Sets a rest act's pose and velocity; if it is in effect, also the transform's rest values.
-extern "C" void SetRestActPose(ACTREST *pact, qword pos, qword v)
+extern "C" void SetRestActPose(ACTREST *act, qword pos, qword v)
 {
-    XF *pxf = pact->pxf;
-    pact->pos = pos;
-    pact->v = v;
-    if (pact == (ACTREST *)pxf->pactFirst) {
-        pxf->qwRest = pos;
-        pact->pxf->qwUnkD0 = v;
+    XF *xf = act->xf;
+    act->pos = pos;
+    act->v = v;
+    if (act == (ACTREST *)xf->pactFirst) {
+        xf->qwRest = pos;
+        act->xf->qwUnkD0 = v;
     }
 }
 
@@ -2195,22 +2195,22 @@ ACT *InitActOfKind(int k)
 {
     ACT *p;
     switch (k) {
-    case 0: { ACTSEG *pact = SLY2_NEW_ACT(ACTSEG); pact->ack = 0; p = pact; break; }
-    case 1: { ACT1 *pact = SLY2_NEW_ACT(ACT1); pact->ack = 1; pact->nPhase = 2; p = pact; break; }
-    case 2: { ACT2 *pact = SLY2_NEW_ACT(ACT2); pact->ack = 2; p = pact; break; }
-    case 3: { ACT3 *pact = SLY2_NEW_ACT(ACT3); pact->ack = 3; p = pact; break; }
-    case 4: { ACT4 *pact = SLY2_NEW_ACT(ACT4); pact->ack = 4; p = pact; break; }
-    case 5: { ACT5 *pact = SLY2_NEW_ACT(ACT5); pact->ack = 5; p = pact; break; }
+    case 0: { ACTSEG *act = SLY2_NEW_ACT(ACTSEG); act->ack = 0; p = act; break; }
+    case 1: { ACT1 *act = SLY2_NEW_ACT(ACT1); act->ack = 1; act->nPhase = 2; p = act; break; }
+    case 2: { ACT2 *act = SLY2_NEW_ACT(ACT2); act->ack = 2; p = act; break; }
+    case 3: { ACT3 *act = SLY2_NEW_ACT(ACT3); act->ack = 3; p = act; break; }
+    case 4: { ACT4 *act = SLY2_NEW_ACT(ACT4); act->ack = 4; p = act; break; }
+    case 5: { ACT5 *act = SLY2_NEW_ACT(ACT5); act->ack = 5; p = act; break; }
     case 6: {
-        ACT6 *pact = SLY2_NEW_ACT(ACT6); pact->ack = 6;
-        MATRIX4 *pm = (MATRIX4 *)pact->mat;
+        ACT6 *act = SLY2_NEW_ACT(ACT6); act->ack = 6;
+        MATRIX4 *pm = (MATRIX4 *)act->mat;
         func_002333B4(pm, 0, sizeof(*pm));
         pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
-        p = pact; break;
+        p = act; break;
     }
-    case 7: { ACT7 *pact = SLY2_NEW_ACT(ACT7); pact->ack = 7; p = pact; break; }
-    case 8: { ACT8 *pact = SLY2_NEW_ACT(ACT8); pact->ack = 8; p = pact; break; }
-    case 9: { ACT9 *pact = SLY2_NEW_ACT(ACT9); pact->ack = 9; pact->nRole = 0x14; p = pact; break; }
+    case 7: { ACT7 *act = SLY2_NEW_ACT(ACT7); act->ack = 7; p = act; break; }
+    case 8: { ACT8 *act = SLY2_NEW_ACT(ACT8); act->ack = 8; p = act; break; }
+    case 9: { ACT9 *act = SLY2_NEW_ACT(ACT9); act->ack = 9; act->nRole = 0x14; p = act; break; }
     default: p = 0; break;
     }
     return p;
@@ -2230,10 +2230,10 @@ ACT *InitActOfKind(int k)
 // Creates an act of the kind given by a parameter record and lets it read the record (slot 6); no direct callers.
 extern "C" ACOBJ *NewActFromParams(int *pn, int n1, int n2)
 {
-    ACOBJ *pac = InitActOfKind(*pn);
-    VTEAC *pvt = pac->pvt;
-    pvt[6].pfn((char *)pac + pvt[6].d, pn, n1, n2);
-    return pac;
+    ACOBJ *curve = InitActOfKind(*pn);
+    VTEAC *pvt = curve->pvt;
+    pvt[6].pfn((char *)curve + pvt[6].d, pn, n1, n2);
+    return curve;
 }
 
 /** @sly2-annot addr=0x12E460
@@ -2251,10 +2251,10 @@ extern "C" ACOBJ *NewActFromParams(int *pn, int n1, int n2)
 // Detaches and frees the act in a slot, and clears the slot.
 extern "C" void ReleaseAct(ACTV **ppact)
 {
-    ACTV *pact = *ppact;
-    if (pact != 0) {
-        DetachAct(pact);
-        FreeAct(pact);
+    ACTV *act = *ppact;
+    if (act != 0) {
+        DetachAct(act);
+        FreeAct(act);
         *ppact = 0;
     }
 }
