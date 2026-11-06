@@ -659,7 +659,7 @@ namespace M_func_001CA370 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
 struct Z { struct VTE *vt; };
-struct R { int n; struct LO **ap; int x8; int c; int x10; int x14; void **ap18; char pad[0x6C - 0x1C]; };
+struct R { int n; struct LO **ap; int numCopies; int c; int unknown10; int spareTag; void **ap18; char pad[0x6C - 0x1C]; };   /* a proxy source (as below) */
 struct G { char pad[0x3F08]; struct R *ar; };
 void *IdProxy__Fii(int i, int c);
 /** @sly2-annot addr=0x1CA370
@@ -1428,7 +1428,7 @@ void SO_Slot27(LO *object, int n)
 namespace M_func_001CB658 { extern "C" {
 struct F { int v; char pad[0x4C]; };
 struct E { int pad[3]; int iFirst; char p2[0x68 - 0x10]; struct F *af; };
-struct A { int id; int pad[8]; int f24; };
+struct A { int id; int pad[8]; int isCopy; };   /* the proxy id record; isCopy (inferred) */
 struct S { char pad[0x3C]; struct A *pa; };
 int IsrcFromIdProxy__Fi(int id);
 int GetCopyIndexFromProxyId(int id);
@@ -1446,7 +1446,7 @@ int GetProxyCopyValue(struct S *proxy)
     int i, j;
     struct E *pe;
     struct F *pf;
-    if (!pa || !pa->f24) return 0;
+    if (!pa || !pa->isCopy) return 0;
     i = IsrcFromIdProxy__Fi(pa->id);
     j = GetCopyIndexFromProxyId(proxy->pa->id);
     pe = &(*(struct E * *)&g_sw.aproxysrc)[i];
@@ -1460,7 +1460,7 @@ namespace M_func_001CB6D8 { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
 struct H { struct LO *plo; };
-struct S { char pad[0x14]; struct H *ph; char pad2[0xE8 - 0x18]; void *pE8; };
+struct S { char pad[0x14]; struct H *root; char pad2[0xE8 - 0x18]; void *firstSpare; };
 struct SL;
 void ReleasePspare__FP5PROXYP10PROXYSPARE(struct S *p, void *q);
 int FFindDlEntry__FP2DLPv(struct SL *pl, void *pv);
@@ -1477,11 +1477,11 @@ void RemoveDlEntry__FP2DLPv(struct SL *pl, void *pv);
 void PROXY_ReleaseSpares(struct S *proxy)
 {
     struct LO *plo;
-    while (proxy->pE8) ReleasePspare__FP5PROXYP10PROXYSPARE(proxy, proxy->pE8);
-    if (FFindDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->ph)) {
-        plo = proxy->ph->plo;
+    while (proxy->firstSpare) ReleasePspare__FP5PROXYP10PROXYSPARE(proxy, proxy->firstSpare);
+    if (FFindDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->root)) {
+        plo = proxy->root->plo;
         ((void (*)(void *))plo->vt[22].pf)((char *)plo + plo->vt[22].d);
-        RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->ph);
+        RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->root);
     }
 }
 } } // namespace M_func_001CB6D8

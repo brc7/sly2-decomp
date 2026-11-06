@@ -44,7 +44,7 @@ typedef char assert_DIFFICULTY_size[sizeof(DIFFICULTY) == 0x18 ? 1 : -1];
 
 /* A job (or task) seen through the fields this TU reads: JOB::pgDifficulty at +0xA8 (HYPOTHESIS: per-job override). */
 struct JOBV { char pad[0xA8]; float *difficulty; };
-struct TASKV { char pad[0x54]; int state; char pad2[0x10]; int unknown68; char pad3[0x10]; JOBV *job; char pad4[0x28]; float *rating; };
+struct TASKV { char pad[0x54]; int state; char pad2[0x10]; int completionCount; char pad3[0x10]; JOBV *job; char pad4[0x28]; float *rating; };
 
 struct SVSET;
 struct SVSTORE;
@@ -127,7 +127,7 @@ extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TAS
         SetG(difficulty->historyKey2, *task->rating);
         break;
     case 37:
-        if ((*(JOBV * *)&g_sw.ploJobCur) == task->job && task->state == 2 && task->unknown68 == 1)
+        if ((*(JOBV * *)&g_sw.ploJobCur) == task->job && task->state == 2 && task->completionCount == 1)
             ChangeDifficulty(difficulty, difficulty->params->jobDoneDelta);
         break;
     case 16:
