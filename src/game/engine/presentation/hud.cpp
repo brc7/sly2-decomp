@@ -568,7 +568,7 @@ extern "C" void EndRpHud(VIFS *pvifs)
     pvifs->EndDmaCnt();
 }
 
-// 0x211C58 func_00211C58
+// 0x211C58 ConstructWidget130
 /* WIDGET130's constructor (sly2/classes.h): WIDGET_ctor, the vptr (_vt$9WIDGET130, class_registry's), the fields. */
 // Constructor of widget class 0x82: base widget, then four ids and one more field set to -1 (unused).
 WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; anUnk110[3] = -1; nUnk120 = -1; }
@@ -600,7 +600,7 @@ void ShowModalBoxWidget(struct S *p, int k)
 }
 } } // namespace M_func_00211CA8
 
-// 0x211D08 func_00211D08
+// 0x211D08 InitModalBoxWidget
 namespace M_func_00211D08 { extern "C" {
 struct S { char pad[0xB0]; int f; };
 void InitLo(struct S *p);
@@ -663,7 +663,7 @@ void UpdateModalBoxWidget(struct S *p)
 }
 } } // namespace M_func_00211D38
 
-// 0x211E40 func_00211E40
+// 0x211E40 InitWidget128
 namespace M_func_00211E40 { extern "C" {
 struct S { char pad[0xB0]; int f; };
 void InitLo(struct S *p);
@@ -728,7 +728,7 @@ void AddItemCounterOidB(struct S *p, int v)
 }
 } } // namespace M_func_00211E98
 
-// 0x211EC0 func_00211EC0
+// 0x211EC0 PostLoadItemCounterWidget
 namespace M_func_00211EC0 { extern "C" {
 struct G;
 extern struct G D_003DD490;
@@ -5477,7 +5477,7 @@ void p_func_001DC9C0() __asm__("BuildThiefnetLootPriceText");
 void p_func_001DCA30() __asm__("BuildThiefnetPromptText");
 void p_func_001DDE10() __asm__("BuildJobDescriptionText");
 void p_func_001DDE58() __asm__("BuildJobNameText");
-void p_func_001DDF60() __asm__("func_001DDF60");
+void p_func_001DDF60() __asm__("BuildTitleScreenButtonText");
 void p_func_00210FE0() __asm__("BuildBinocularReadoutText");
 void p_func_00211298() __asm__("BuildMenuCarouselText");
 void p_func_00211390() __asm__("BuildSubtitleText");

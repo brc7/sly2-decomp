@@ -164,7 +164,7 @@ extern char D_003D4A60[];
 void PostHudMeterLoad(void *pscreen);
 void func_001AE928(void *pmenu);
 void InitLetterbox(void *pletterbox);
-void func_001DA770(SCREENV *pscreen);
+void PostLoadScreen(SCREENV *pscreen);
 void PostNoticeLoad(SCREENV *pscreen);
 void PostJobListLoad(SCREENV *pscreen);
 void func_001ACAE8(void *pdlg);
@@ -292,14 +292,14 @@ extern "C" void PostLoadScreens()
     PostHudMeterLoad(&D_003D9E80);
     func_001AE928(&D_003D9ED0);
     InitLetterbox(D_002E1E60);
-    func_001DA770((SCREENV *)&D_003DA0F0);
-    func_001DA770((SCREENV *)&D_003DA150);
+    PostLoadScreen((SCREENV *)&D_003DA0F0);
+    PostLoadScreen((SCREENV *)&D_003DA150);
     PostNoticeLoad((SCREENV *)&D_003DA0C0);
     PostJobListLoad((SCREENV *)&D_003DA3C0);
     func_001ACAE8(D_002E6550);
-    func_001DA770((SCREENV *)D_002E65A0);
+    PostLoadScreen((SCREENV *)D_002E65A0);
     PostLoadScreen52D((SCREENV *)&D_003DA4F0);
-    func_001DA770((SCREENV *)&D_003DA530);
+    PostLoadScreen((SCREENV *)&D_003DA530);
 }
 
 namespace M_func_001D95B8 { extern "C" {
@@ -1185,7 +1185,7 @@ extern "C" void ResetScreenMode(SCREENV *pscreen)
 namespace M_func_001DA808 { extern "C" {
 extern struct CLOCK { float a[16]; } D_002DDED0;
 struct S { char p0[0x34]; float g34; };
-void func_001D9870(struct S *p);
+void UpdateScreenDefault(struct S *p);
 void SetScreenMode(struct S *p, int a, int b);
 /** @sly2-annot addr=0x1DA808
  * Purpose: Base update then close when the mode timer (+0x34) expires
@@ -1196,7 +1196,7 @@ void SetScreenMode(struct S *p, int a, int b);
  * @end-sly2-annot */
 // Screen update that closes the screen when its mode timer expires.
 void UpdateTimedScreen(struct S *p) {
-    func_001D9870(p);
+    UpdateScreenDefault(p);
     if (p->g34 <= D_002DDED0.a[15]) SetScreenMode(p, -1, -1);
 }
 } } // namespace M_func_001DA808
@@ -2933,7 +2933,7 @@ struct S *ConstructScreen4E0(struct S *p) {
 void JOBLIST::PostLoad()   /* key function */
 {
     SCREENV *pscreen = (SCREENV *)this;
-    func_001DA770(pscreen);
+    PostLoadScreen(pscreen);
     if (pscreen->pchild != 0) {
         pscreen->pchild->fB0 = 1;
     }
@@ -3444,7 +3444,7 @@ struct S *ConstructScreen52D(struct S *p) {
 void SCRN52D::PostLoad()   /* key function */
 {
     SCREENV *pscreen = (SCREENV *)this;
-    func_001DA770(pscreen);
+    PostLoadScreen(pscreen);
     if (pscreen->pchild != 0) {
         pscreen->pchild->fB0 = 1;
     }
@@ -3954,7 +3954,7 @@ void BuildJobListTaskRowText(void *p, int i) {
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Text callback: a title-screen string followed by a button glyph.
-extern "C" void func_001DDF60(char *pch)
+extern "C" void BuildTitleScreenButtonText(char *pch)
 {
     StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, 0x40));
     strcpy1(pch, D_002A7AA8);

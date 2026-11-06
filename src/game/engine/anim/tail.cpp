@@ -21,7 +21,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct ACTCHAINV { int ack; void *pso; char *pxf; int nPriority; void *pactNext; int nRole; void *vt; void *plink; };
 extern "C" {
 void CloneAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf);
-void func_0012CE98(ACTCHAINV *pact);
+void AttachActBase(ACTCHAINV *pact);
 }
 
 /** @sly2-annot addr=0x21C820
@@ -55,7 +55,7 @@ extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
 void ACT3::VSlot1()
 {
     ACTCHAINV *pact = (ACTCHAINV *)this;
-    func_0012CE98(pact);
+    AttachActBase(pact);
     *(void **)(pact->pxf + 0xA8) = pact->plink;
 }
 

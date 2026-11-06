@@ -80,7 +80,7 @@ void DecrementSwHandsOff(SW *, int);
 void SortXfActs(SO *pso, XF *pxf);
 void SetXfRole(LO *plo, XF *pxf, int n);
 void ResetXfValueRef(LO *plo, XF *pxf);
-void func_0012CE98(ACTSEGV *pactseg, ACTSEGV *p);
+void AttachActBase(ACTSEGV *pactseg, ACTSEGV *p);
 void DetachActBase(ACTSEGV *pactseg);
 void GetActGoalDefault(ACTSEGV *pactseg, qword *pq1, qword *pq2);
 void StartSwAsegSound(SW *, int, int, int, int, ALO *, LO *, ASEG *, CRefPtr<SND> *, float, float, float);
@@ -786,7 +786,7 @@ void ACTSEG::VSlot1() {
         p->pxf->pxfRef->pgD4 = &p->pasega->tLocal;
         return;
     }
-    func_0012CE98(p, p);
+    AttachActBase(p, p);
 }
 
 /** @sly2-annot addr=0x131C90

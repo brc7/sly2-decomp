@@ -317,7 +317,7 @@ extern "C" qword ConvertEulerRatesToAngularVelocity(qword,qword);
 extern "C" M4 BuildRotationDerivativeMatrix(void *,void *,V);
 // The time derivative of an Euler-rotation slot's matrix: converts the angle rates to an angular velocity and builds
 // the rotation-derivative matrix from it (inferred).
-extern "C" M4 func_0022CB90(void *a,void *b,qword c,qword d) return m {
+extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return m {
     V v;v.q=ConvertEulerRatesToAngularVelocity(c,d);
     m=BuildRotationDerivativeMatrix(a,b,v);
 }
@@ -424,7 +424,7 @@ extern "C" { extern qword D_002A2DD0; }
 extern "C" void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
 extern "C" M4 *BuildRotationDerivativeMatrix(M4 *pm, struct O *pa, const M3 *basis, qword v);
-extern "C" M4 *func_0022CB90(M4 *pr, struct O *pa, const M3 *basis, qword c, qword d);
+extern "C" M4 *BuildEulerDerivativeMatrix(M4 *pr, struct O *pa, const M3 *basis, qword c, qword d);
 extern "C" M4 *BuildXfValueDerivativeMatrix(M4 *pm, struct O *po, qword v);
 extern "C" qword GetXfValueFromMatrix(struct O *pa, const M4 *matrix);
 extern "C" qword func_0011BFF0(const M3 *rotation);
@@ -505,7 +505,7 @@ extern "C" M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po)
                         t = D_002A2DD0;
                         break;
                     }
-                    func_0022CB90(&m, po, &po->local.basis, q, t);
+                    BuildEulerDerivativeMatrix(&m, po, &po->local.basis, q, t);
                     func_0023320C(pr, &m, 0x40);
                 }
                 break;
@@ -2502,7 +2502,7 @@ struct O {
 extern "C" {
 int IsXfRoleMoving(int);
 M4 *BuildXfValueMatrix(M4 *pm, O *po, qword v);
-M4 *func_0022CB90(M4 *pr, O *pa, const M4 *basis, qword c, qword d);
+M4 *BuildEulerDerivativeMatrix(M4 *pr, O *pa, const M4 *basis, qword c, qword d);
 void BuildXfValueDerivativeMatrix(M4 *pm, O *po, qword v);
 M4 *BuildRotationDerivativeMatrix(M4 *pm, O *pa, const M4 *basis, qword v);
 M3 *func_0011B570(M3 *, qword);
@@ -2573,7 +2573,7 @@ void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g)
         *pm = t;
         switch (po->k94) {
         case 6: case 7:
-            func_0022CB90(&t, po, pm, q[0], q[1]);
+            BuildEulerDerivativeMatrix(&t, po, pm, q[0], q[1]);
             *pm2 = t;
             break;
         default:

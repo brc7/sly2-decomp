@@ -96,7 +96,7 @@ void HandleAsegaEventsFF(ASEGA *);
 void UpdateAsegaIeaCur__FP5ASEGA(ASEGA *);
 M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
 M4 BuildXfValueMatrix(XFV *pxf, qword q);
-M4 func_0022CB90(XFV *pxf, M4 *pm, qword q1, qword q2);
+M4 BuildEulerDerivativeMatrix(XFV *pxf, M4 *pm, qword q1, qword q2);
 M4 BuildXfValueDerivativeMatrix(XFV *pxf, qword q);
 void RetractAsega(ASEGA *pasega);
 void SeekAsega(ASEGA *pasega, SEEK seek, float t, float svt);          /* SeekAsega */
@@ -547,7 +547,7 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
                 mA = BuildXfValueMatrix(py, aq[0]);
                 switch (py->x94) {
                 case 6: case 7:
-                    mB = func_0022CB90(py, &mA, aq[0], aq[1]);
+                    mB = BuildEulerDerivativeMatrix(py, &mA, aq[0], aq[1]);
                     break;
                 default:
                     mB = BuildXfValueDerivativeMatrix(py, aq[1]);

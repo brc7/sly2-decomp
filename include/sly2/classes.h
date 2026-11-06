@@ -201,7 +201,7 @@ typedef char assert_CID44_size[sizeof(CID44) == 0x140 ? 1 : -1];
 struct CID43 : XFM
 {
     char padE0[0x100 - 0xE0];
-    virtual void Init() __asm__("func_0012EB48");   /* slot 7 */
+    virtual void Init() __asm__("InitAmb");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid43ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAmbFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostAmbLoad");   /* slot 15 */
@@ -1828,7 +1828,7 @@ typedef char assert_CID125_size[sizeof(CID125) == 0x60 ? 1 : -1];
 struct WIDGET129 : WIDGET
 {
     char pad110[0x220 - 0x110];
-    virtual void VUnk14() __asm__("func_00211EC0");   /* slot 15 */
+    virtual void VUnk14() __asm__("PostLoadItemCounterWidget");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget129ClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("UpdateItemCounterWidget");   /* slot 16 */
 };
@@ -1838,7 +1838,7 @@ typedef char assert_WIDGET129_size[sizeof(WIDGET129) == 0x220 ? 1 : -1];
 struct WIDGET127 : WIDGET
 {
     char pad110[0x120 - 0x110];
-    virtual void Init() __asm__("func_00211D08");   /* slot 7 */
+    virtual void Init() __asm__("InitModalBoxWidget");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget127ClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("UpdateModalBoxWidget");   /* slot 16 */
     virtual void VSlot49() __asm__("ShowModalBoxWidget");   /* slot 49 */
@@ -1848,7 +1848,7 @@ typedef char assert_WIDGET127_size[sizeof(WIDGET127) == 0x120 ? 1 : -1];
 /* 128 WIDGET128 (0x110): WIDGET: job completion banner (pauses clock slot 7); vtable 0x2DAA50, 50 slots */
 struct WIDGET128 : WIDGET
 {
-    virtual void Init() __asm__("func_00211E40");   /* slot 7 */
+    virtual void Init() __asm__("InitWidget128");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget128ClassDesc");   /* slot 6 */
 };
 typedef char assert_WIDGET128_size[sizeof(WIDGET128) == 0x110 ? 1 : -1];
@@ -1912,7 +1912,7 @@ struct WIDGET130 : WIDGET
     int anUnk110[4];                          /* +0x110 set to -1 by the constructor */
     int nUnk120;                              /* +0x120 set to -1 by the constructor */
     char pad124[0x130 - 0x124];
-    WIDGET130() __asm__("func_00211C58");     /* out of line: engine/presentation/hud.cpp */
+    WIDGET130() __asm__("ConstructWidget130");     /* out of line: engine/presentation/hud.cpp */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget130ClassDesc");   /* slot 6 */
 };
 typedef char assert_WIDGET130_size[sizeof(WIDGET130) == 0x130 ? 1 : -1];

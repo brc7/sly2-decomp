@@ -46,7 +46,7 @@ struct ACTIKV { int ack; void *pso; char *pxf; int nPriority; void *pactNext; in
 struct MSG { int cb; int nKind; };
 extern "C" {
 void CloneAct(ACTIKV *pact, void *a1, void *a2, void *a3);
-void func_0012CE98(ACTIKV *pact);
+void AttachActBase(ACTIKV *pact);
 int U8Read__18CBinaryInputStream(void *pbis);
 int S16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
@@ -84,7 +84,7 @@ extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
 void ACT7::VSlot1()
 {
     ACTIKV *pact = (ACTIKV *)this;
-    func_0012CE98(pact);
+    AttachActBase(pact);
     *(void **)(pact->pxf + 0xA8) = pact->pikrec;
 }
 

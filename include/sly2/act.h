@@ -18,7 +18,7 @@
 /* AC (vtable 0x2CA9C8, 3 slots): an animation curve; vptr at +0x0. Allocated from the level heap (act.cpp's PacNewKind). */
 struct AC
 {
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_0012B4F0");   /* slot 1 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadCurveFromBrxDefault");   /* slot 1 */
     virtual void VSlot2(void *pv) __asm__("__pure_virtual");   /* slot 2 (pure) */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("__pure_virtual");   /* slot 3 (pure) */
 };
@@ -71,7 +71,7 @@ struct AC4 : AC
 /* ACG (vtable 0x2CA8E0, 2 slots): a float curve; vptr at +0x0. */
 struct ACG
 {
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_0012CC60");   /* slot 1 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadFloatCurveFromBrxDefault");   /* slot 1 */
     virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("__pure_virtual");   /* slot 2 (pure) */
 };
 
@@ -101,7 +101,7 @@ struct ACT
     int nPriority;          /* +0x0C */
     ACT *pactNext;          /* +0x10 */
     int nRole;              /* +0x14 */
-    virtual void VSlot1() __asm__("func_0012CE98");   /* slot 1 */
+    virtual void VSlot1() __asm__("AttachActBase");   /* slot 1 */
     virtual void VSlot2() __asm__("DetachActBase");   /* slot 2 */
     virtual void VSlot3() __asm__("ActSlot3Default");   /* slot 3 */
     virtual void Update() __asm__("UpdateActDefault");   /* slot 4 */
@@ -114,7 +114,7 @@ struct ACT1 : ACT
 {
     int nPhase;             /* +0x1C (2 at construction) */
     char pad20[0x30 - 0x20];
-    virtual void Update() __asm__("func_0012D088");   /* slot 4 */
+    virtual void Update() __asm__("UpdatePositionAct");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetPhaseActGoal");   /* slot 5 */
 };
 
@@ -122,7 +122,7 @@ struct ACT1 : ACT
 struct ACT2 : ACT
 {
     char pad1C[0x80 - 0x1C];
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("func_0012D4D8");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetLookAtActGoal");   /* slot 5 */
     virtual void VSlot2() __asm__("DetachLookAtAct");   /* slot 2 */
     virtual void Update() __asm__("UpdateActLookAt");   /* slot 4 */
 };
@@ -131,14 +131,14 @@ struct ACT2 : ACT
 struct ACT4 : ACT
 {
     char pad1C[0x28 - 0x1C];
-    virtual void Update() __asm__("func_0012D508");   /* slot 4 */
+    virtual void Update() __asm__("UpdatePathAct");   /* slot 4 */
 };
 
 /* ACT5 (0x30; vtable 0x2CA760): an act over another act and an offset (jt.cpp's ACT5 view) */
 struct ACT5 : ACT
 {
     char pad1C[0x30 - 0x1C];
-    virtual void VSlot1() __asm__("func_0012D858");   /* slot 1 */
+    virtual void VSlot1() __asm__("AttachOffsetAct");   /* slot 1 */
     virtual void VSlot2() __asm__("DetachOffsetAct");   /* slot 2 */
     virtual void VSlot3() __asm__("SwitchOffsetActTarget");   /* slot 3 */
     virtual void Update() __asm__("UpdateOffsetAct");   /* slot 4 */
@@ -150,7 +150,7 @@ struct ACT6 : ACT
 {
     int n1C;
     float mat[4][4];        /* +0x20 */
-    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("func_0012DFE0");   /* slot 5 */
+    virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetMatrixActGoal");   /* slot 5 */
     virtual void Update() __asm__("UpdateMatrixAct");   /* slot 4 */
 };
 
@@ -158,7 +158,7 @@ struct ACT6 : ACT
 struct ACT8 : ACT
 {
     char pad1C[0x40 - 0x1C];
-    virtual void Update() __asm__("func_0012E010");   /* slot 4 */
+    virtual void Update() __asm__("UpdateBezierAct");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetBezierActGoal");   /* slot 5 */
 };
 
@@ -166,7 +166,7 @@ struct ACT8 : ACT
 struct ACT9 : ACT
 {
     char pad1C[0x30 - 0x1C];
-    virtual void VSlot1() __asm__("func_0012E120");   /* slot 1 */
+    virtual void VSlot1() __asm__("AttachKind9Act");   /* slot 1 */
 };
 
 /* The classes whose slot functions other TUs define (their vtables lie in those TUs' part of the linkonce area;
@@ -176,7 +176,7 @@ struct ACT9 : ACT
 struct ACTSEG : ACT
 {
     char pad1C[0x2C - 0x1C];
-    virtual void VSlot1() __asm__("func_00131C40");   /* slot 1 */
+    virtual void VSlot1() __asm__("AttachActseg");   /* slot 1 */
     virtual void VSlot2() __asm__("DetachActseg");   /* slot 2 */
     virtual void Update() __asm__("UpdateActseg");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActsegGoal");   /* slot 5 */
@@ -186,7 +186,7 @@ struct ACTSEG : ACT
 struct ACT3 : ACT
 {
     int n1C;
-    virtual void VSlot1() __asm__("func_0021C858");   /* slot 1 */
+    virtual void VSlot1() __asm__("AttachChainAct");   /* slot 1 */
     virtual void Clone() __asm__("CloneChainAct");   /* slot 6 */
 };
 
@@ -194,7 +194,7 @@ struct ACT3 : ACT
 struct ACT7 : ACT
 {
     int n1C;
-    virtual void VSlot1() __asm__("func_00186640");   /* slot 1 */
+    virtual void VSlot1() __asm__("AttachIkAct");   /* slot 1 */
     virtual void Clone() __asm__("CloneIkAct");   /* slot 6 */
 };
 

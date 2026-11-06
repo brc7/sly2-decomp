@@ -177,7 +177,7 @@ void load_file_from_disc(int n0, int n1, char *pchzFile, char *pchzCard);
 void ResetGsIfSchemaChanged(int *pn);
 MCDLG *ConstructScreen(MCDLG *pdlg);   /* the widget base constructor (returns the widget) */
 int ResetScreenMode(MCDLG *pdlg);
-void func_001DA770(MCDLG *pdlg);
+void PostLoadScreen(MCDLG *pdlg);
 void ResetScreen(MCDLG *pdlg);
 void UpdateTimedScreen(MCDLG *pdlg);
 int IdPauseTopPage(void *pmenu);
@@ -1825,7 +1825,7 @@ void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes
 {
     MCDLG *pdlg = (MCDLG *)this;
     MCCHILD *pchild;
-    func_001DA770(pdlg);
+    PostLoadScreen(pdlg);
     pchild = pdlg->pchild;
     if (pchild != 0) {
         pchild->fB0 = 1;

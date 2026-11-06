@@ -136,7 +136,7 @@ void BroadcastGameEvent(void *p, int n, int m);
 void HideScreen(PMENU *p);
 void PlayWidgetAnim(POOL *, int);
 void SetWidgetAnimPhase(POOL *, int, float);
-void func_001D9870();
+void UpdateScreenDefault();
 int FWidgetAnimPlaying(POOL *, int);
 int DySelectionJoy(JOY *);
 int DxSelectionJoy(JOY *);
@@ -371,7 +371,7 @@ static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((c
  * @end-sly2-annot */
 extern "C" void UpdatePauseMenu(PMENU*p){
  int direction;
- func_001D9870();
+ UpdateScreenDefault();
  if(p->depth<=0)return;
  PAGE*group=(PAGE*)((char*)p+0xC+p->depth*sizeof(PAGE));
  int i=0;if(group->count>0){

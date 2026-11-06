@@ -1470,7 +1470,7 @@ void ACT2::GetGoal(qword *ppos, VECTOR *pdvec)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A45A8 __asm__("D_002A45A8") = 3.40282347e+38f; }
 namespace M_func_0012D508 {
-// func_0012D508 (Claude agent, 2026-10-23): MATCH. From hand_wip v5; the virtual at vtable slot 5 takes a float 4th
+// UpdatePathAct (Claude agent, 2026-10-23): MATCH. From hand_wip v5; the virtual at vtable slot 5 takes a float 4th
 // argument, and the caller passes p->g20 (that is why the target loads g20 into $f12 for the 0 < g20 test).
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
@@ -2096,7 +2096,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct Y { char pad[0xB0]; qword vB0; qword vC0; int nD0; char pad2[0xE0 - 0xD4]; int nE0; } Y;
 typedef struct X { char pad[8]; Y *py; char pad2[0x20 - 0xC]; qword v20; } X;
 extern qword D_002A2DA0;
-void func_0012CE98(X *x);
+void AttachActBase(X *x);
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -2136,11 +2136,11 @@ void ACT9::VSlot1()
     using M_func_0012E120::D_002A2DA0;
     using M_func_0012E120::Normalize1;
     using M_func_0012E120::Y;
-    using M_func_0012E120::func_0012CE98;
+    using M_func_0012E120::AttachActBase;
     using M_func_0012E120::qword;
     X *x = (X *)this;
     qword l;
-    func_0012CE98(x);
+    AttachActBase(x);
     x->py->vB0 = x->v20;
     x->py->vC0 = x->v20;
     l = Normalize1(&x->py->vC0, &D_002A2DA0);
