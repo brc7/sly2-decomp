@@ -196,7 +196,7 @@ void InitStepguard(struct S *guard)
     guard->detector = PloNew__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
     SetLoBusyk(guard->detector, 2);
     v = guard->detector->u40;
-    if ((v ^ 1) & 1)
+    if (!(v & 1))
         *(int *)v &= -3;
     else
         guard->detector->u40 = v & -3;
@@ -679,52 +679,53 @@ void UpdateStepguardDetectTargets(struct P *guard)
 {
     struct CANDIDATE candidates[64];
     struct P *objects[256];
-    qword anchorPosition,ownerPosition;
-    if(!D_003DD488){
-        ulong a=GetSgfMask(5);
-        ulong b=GetSgfMask(6);
-        ulong c=GetSgfMask(23);
-        ulong d=GetSgfMask(7);
-        ulong e=GetSgfMask(16);
-        ulong f=GetSgfMask(1);
-        ulong g=GetSgfMask(22);
-        ulong h=GetSgfMask(42);
-        D_003DD488=1;
-        D_003DD480=a|b|c|d|e|f|g|h;
+    qword anchorPosition, ownerPosition;
+    if (!D_003DD488) {
+        ulong a = GetSgfMask(5);
+        ulong b = GetSgfMask(6);
+        ulong c = GetSgfMask(23);
+        ulong d = GetSgfMask(7);
+        ulong e = GetSgfMask(16);
+        ulong f = GetSgfMask(1);
+        ulong g = GetSgfMask(22);
+        ulong h = GetSgfMask(42);
+        D_003DD488 = 1;
+        D_003DD480 = a | b | c | d | e | f | g | h;
     }
-    if(guard->flags&D_003DD480)return;
-    if(guard->kindCount){
-        int candidateCount=0;
+    if (guard->flags & D_003DD480)
+        return;
+    if (guard->kindCount) {
+        int candidateCount = 0;
         int kind;
-        for(kind=0;kind<guard->kindCount;kind++){
-            int *source=&guard->kinds[kind];
-            int objectCount=CploFindSwObjectsByClass(&D_003DD490,0x505,*source,0,256,objects);
-            int i=0;
-            if(objectCount>0){
-                float initialStamp=D_002A8614;
-                do{
-                    struct P *object=objects[i];
-                    if(object!=guard){
+        for (kind = 0; kind < guard->kindCount; kind++) {
+            int *source = &guard->kinds[kind];
+            int objectCount = CploFindSwObjectsByClass(&D_003DD490, 0x505, *source, 0, 256, objects);
+            int i = 0;
+            if (objectCount > 0) {
+                float initialStamp = D_002A8614;
+                do {
+                    struct P *object = objects[i];
+                    if (object != guard) {
                         qword otherPosition;
                         float distance;
-                        ownerPosition=func_001A62E8(guard);
-                        otherPosition=func_001A62E8(object);
-                        distance=LengthXY(Subtract(ownerPosition,otherPosition));
-                        if(distance<D_002C3D04 && (unsigned int)candidateCount<64){
+                        ownerPosition = func_001A62E8(guard);
+                        otherPosition = func_001A62E8(object);
+                        distance = LengthXY(Subtract(ownerPosition, otherPosition));
+                        if (distance < D_002C3D04 && (unsigned int)candidateCount < 64) {
                             struct CANDIDATE *record;
                             int old;
-                            record=&candidates[candidateCount];
-                            record->distance=distance;
-                            record->mode=-1;
-                            record->source=source;
-                            record->object=object;
-                            record->stamp=initialStamp;
+                            record = &candidates[candidateCount];
+                            record->distance = distance;
+                            record->mode = -1;
+                            record->source = source;
+                            record->object = object;
+                            record->stamp = initialStamp;
                             candidateCount++;
-                            for(old=guard->manager->count-guard->generated;old<guard->manager->count;old++){
-                                struct ENTRY *entry=&guard->manager->entries[old];
-                                if(entry->object==record->object){
-                                    record->mode=entry->mode;
-                                    record->stamp=entry->stamp;
+                            for (old = guard->manager->count - guard->generated; old < guard->manager->count; old++) {
+                                struct ENTRY *entry = &guard->manager->entries[old];
+                                if (entry->object == record->object) {
+                                    record->mode = entry->mode;
+                                    record->stamp = entry->stamp;
                                     break;
                                 }
                             }
@@ -732,40 +733,44 @@ void UpdateStepguardDetectTargets(struct P *guard)
                         OPAQUE_COUNT(candidateCount);
                         LOOP_SIZE_PAD
                     }
-                }while(++i<objectCount);
+                } while (++i < objectCount);
             }
         }
-        qsort(candidates,candidateCount,sizeof(struct CANDIDATE),CompareGuardCandidateDistance);
-        guard->manager->count-=guard->generated;
-        guard->generated=0;
-        if(candidateCount>0){
-            int absentMode=-1;
-            struct CANDIDATE *record=candidates;
-            do{
-                if(TryAddStepguardDetectTarget(guard,record->object,(int)record->source)){
+        qsort(candidates, candidateCount, sizeof(struct CANDIDATE), CompareGuardCandidateDistance);
+        guard->manager->count -= guard->generated;
+        guard->generated = 0;
+        if (candidateCount > 0) {
+            int absentMode = -1;
+            struct CANDIDATE *record = candidates;
+            do {
+                if (TryAddStepguardDetectTarget(guard, record->object, (int)record->source)) {
                     guard->generated++;
-                    if(record->mode!=absentMode){
-                        struct ENTRY *entry=&guard->manager->entries[guard->manager->count-1];
-                        entry->mode=record->mode;
-                        entry->stamp=record->stamp;
+                    if (record->mode != absentMode) {
+                        struct ENTRY *entry = &guard->manager->entries[guard->manager->count - 1];
+                        entry->mode = record->mode;
+                        entry->stamp = record->stamp;
                     }
                 }
                 record++;
-            }while(--candidateCount);
+            } while (--candidateCount);
         }
     }
     UpdateDetectorTargets(guard->manager);
-    if(guard->anchor){
-        struct ENTRY *entry=FindDetectorTarget(guard->manager,guard->anchor->object);
-        if(entry){
-            switch(entry->mode){case 1:SetTargetRecordState(guard->anchor,1);break;
-            case 2:{
-                qword ownPosition,difference;
-                anchorPosition=func_001A62E8(guard->anchor->object);
-                ownPosition=func_001A62E8(guard);
-                difference=Subtract(anchorPosition,ownPosition);
-                if(Near(difference))SetTargetRecordState(guard->anchor,2);
-            }break;
+    if (guard->anchor) {
+        struct ENTRY *entry = FindDetectorTarget(guard->manager, guard->anchor->object);
+        if (entry) {
+            switch (entry->mode) {
+            case 1:
+                SetTargetRecordState(guard->anchor, 1);
+                break;
+            case 2: {
+                qword ownPosition, difference;
+                anchorPosition = func_001A62E8(guard->anchor->object);
+                ownPosition = func_001A62E8(guard);
+                difference = Subtract(anchorPosition, ownPosition);
+                if (Near(difference))
+                    SetTargetRecordState(guard->anchor, 2);
+            } break;
             }
         }
     }
@@ -1666,19 +1671,22 @@ extern "C" int IsStepguardIgnoreClass(P *,O *);
 extern "C" int IsStepguardForceClass(P *,O *);
 extern "C" int IsStepguardPreferClass(P *,O *);
 // VU0 helper: vector difference.
-static inline qword Sub(const qword&a,qword b){
-    qword d,bv,av;
-    __asm__("lqc2 %2,%4\n\tqmtc2.ni %3,%1\n\tvsub.xyzw %0,%2,%1":"=&j"(d),"=&j"(bv),"=&j"(av):"r"(b),"m"(a));
+static inline qword Sub(const qword &a, qword b)
+{
+    qword d, bv, av;
+    __asm__("lqc2 %2,%4\n\tqmtc2.ni %3,%1\n\tvsub.xyzw %0,%2,%1" : "=&j"(d), "=&j"(bv), "=&j"(av) : "r"(b), "m"(a));
     return d;
 }
 // VU0 helper: length of a vector.
-static inline float Length(qword d){
-    qword one;float f;
-    __asm__ __volatile__("vmul.xyz %0,%0,%0":"+j"(d));
-    __asm__ __volatile__("vaddw.x %0,$vf0,$vf0w":"=j"(one));
-    __asm__("vadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d):"j"(one));
-    __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(d));
-    __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
+static inline float Length(qword d)
+{
+    qword one;
+    float f;
+    __asm__ __volatile__("vmul.xyz %0,%0,%0" : "+j"(d));
+    __asm__ __volatile__("vaddw.x %0,$vf0,$vf0w" : "=j"(one));
+    __asm__("vadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "+j"(d) : "j"(one));
+    __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(d));
+    __asm__("mtc1 %1,%0" : "=f"(f) : "r"(d));
     return f;
 }
 // Quadratic weight k0 + d (k1 + d k2).
@@ -1686,31 +1694,54 @@ static inline float Weight(float distance,const float *k){return k[0]+distance*(
 // 0x2082D0: STEPGUARD vtable slot 88 (choose target): keeps the forced target while it is in the world; else picks
 // among the detector's targets, forced classes first, skipping ignored classes, preferring preferred classes, with
 // hysteresis for the current target.
-extern "C" O *ChooseStepguardTarget(P*guard)
+extern "C" O *ChooseStepguardTarget(P *guard)
 {
-    O *best=0;
-    if(guard->current&&(((unsigned int)(guard->current->flags>>60))&1)){best=guard->current;goto done;}
+    O *best = 0;
+    if (guard->current && (((unsigned int)(guard->current->flags >> 60)) & 1)) {
+        best = guard->current;
+        goto done;
+    }
     {
-        float bestDistance=D_002A886C;
-        U origin;origin.q=func_001A62E8(guard);
-        for(int i=0;i<guard->group->count;i++){
-            ENTRY *entry=&guard->group->entries[i];
-            O *candidate=entry->object;
-            if(!candidate)continue;
-            if(!entry->available&&(!(guard->mode==0x22||guard->mode==0x25)||!FIsBasicDerivedFrom__FP5BASIC3CID(candidate,CID_STEPGUARD)))continue;
-            if(IsStepguardIgnoreClass(guard,candidate))continue;
-            if(IsStepguardForceClass(guard,candidate))return candidate;
-            qword delta=Sub(origin.q,func_001A62E8(candidate));O *previous=guard->previous;
-            float distance=Length(delta);
-            if(candidate==previous)distance=Weight(distance,D_002C3D70);
-            if((guard->mode==0x22||guard->mode==0x25)&&FIsBasicDerivedFrom__FP5BASIC3CID(candidate,CID_STEPGUARD))distance=Weight(distance,D_002C3D80);
-            if(IsStepguardPreferClass(guard,candidate)){
-                if(best&&!IsStepguardPreferClass(guard,best)){bestDistance=distance;goto take;}
-            }else if(best&&IsStepguardPreferClass(guard,best))continue;
-            if(distance<bestDistance){bestDistance=distance;take:best=candidate;}
+        float bestDistance = D_002A886C;
+        U origin;
+        origin.q = func_001A62E8(guard);
+        for (int i = 0; i < guard->group->count; i++) {
+            ENTRY *entry = &guard->group->entries[i];
+            O *candidate = entry->object;
+            if (!candidate)
+                continue;
+            if (!entry->available
+                && (!(guard->mode == 0x22 || guard->mode == 0x25)
+                    || !FIsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD)))
+                continue;
+            if (IsStepguardIgnoreClass(guard, candidate))
+                continue;
+            if (IsStepguardForceClass(guard, candidate))
+                return candidate;
+            qword delta = Sub(origin.q, func_001A62E8(candidate));
+            O *previous = guard->previous;
+            float distance = Length(delta);
+            if (candidate == previous)
+                distance = Weight(distance, D_002C3D70);
+            if ((guard->mode == 0x22 || guard->mode == 0x25)
+                && FIsBasicDerivedFrom__FP5BASIC3CID(candidate, CID_STEPGUARD))
+                distance = Weight(distance, D_002C3D80);
+            if (IsStepguardPreferClass(guard, candidate)) {
+                if (best && !IsStepguardPreferClass(guard, best)) {
+                    bestDistance = distance;
+                    goto take;
+                }
+            } else if (best && IsStepguardPreferClass(guard, best))
+                continue;
+            if (distance < bestDistance) {
+                bestDistance = distance;
+take:
+                best = candidate;
+            }
         }
     }
-    done:return best;
+done:
+    return best;
 }
 } // namespace M_PloChooseStepguardTarget
 
@@ -3036,6 +3067,7 @@ struct X *FindDetectorTarget(void *p, void *q);
 int IsStepguardTargetValid(struct S *guard, void *q, long mask)
 {
     struct X *x;
+    // (Shared return labels: direct returns reorder the blocks and do not match.)
     if (guard->n3D0)
         goto ret0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(q, CID_MURRAY) && !FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD) && !(guard->fl & GetSgfMask(6)))
@@ -3288,39 +3320,53 @@ static inline qword Load(const qword *p){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j"(b),"0"(a));return a;}
 // 0x20A818: Engagement token: true if this guard may attack the record's target now (not disabled, no other engaged
 // guard busy; kind 0 also requires the guard ready or in view of the camera).
-extern "C" int DoesTargetRecordAllowGuard(P*guard,Actor*a)
+extern "C" int DoesTargetRecordAllowGuard(P *guard, Actor *a)
 {
     U scalar;
     float angle[2];
-    U position0,position1;
-    if(guard->disabled)goto fail;
-    if(!a->blocked){
-        int i,n=guard->count;
-        for(i=0;i<n;i++)if(guard->actors[i]->busy)goto fail;
+    U position0, position1;
+    if (guard->disabled)
+        goto fail;
+    if (!a->blocked) {
+        int i, n = guard->count;
+        for (i = 0; i < n; i++)
+            if (guard->actors[i]->busy)
+                goto fail;
     }
-    switch(guard->kind){
-    case 0:{
-        if(a->ready)return 1;
-        qword returned;returned=func_001A62E8(a);
+    switch (guard->kind) {
+    case 0: {
+        if (a->ready)
+            return 1;
+        qword returned;
+        returned = func_001A62E8(a);
         register Camera *camera __asm__("$4");
-        __asm__("sq %2,%0\n\tla %1,%3":"=m"(position0.q),"=r"(camera):"r"(returned),"i"(&D_002DDF40));
-        qword threshold,point;
-        PlaneArguments(&threshold,&point,&scalar,0.0f,&camera->position,&position0.q);
-        if(!FInsideCmFrustum(camera,point,threshold))goto fail;
-        qword other;other=func_001A62E8(guard->target);
-        GetVectorCylind(Sub(position0.q,other),&angle[0],0,0);
-        if(guard->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[0]-GetTargetRecordFacing(guard)))){fail:return 0;}
+        __asm__("sq %2,%0\n\tla %1,%3" : "=m"(position0.q), "=r"(camera) : "r"(returned), "i"(&D_002DDF40));
+        qword threshold, point;
+        PlaneArguments(&threshold, &point, &scalar, 0.0f, &camera->position, &position0.q);
+        if (!FInsideCmFrustum(camera, point, threshold))
+            goto fail;
+        qword other;
+        other = func_001A62E8(guard->target);
+        GetVectorCylind(Sub(position0.q, other), &angle[0], 0, 0);
+        if (guard->tolerance < __builtin_fabsf(RadNormalize__Ff(angle[0] - GetTargetRecordFacing(guard)))) {
+fail:
+            return 0;
+        }
         return 1;
     }
-    case 1:{
-        position1.q=func_001A62E8(a);
-        qword other;other=func_001A62E8(guard->target);
-        GetVectorCylind(Sub(position1.q,other),&angle[1],0,0);
-        if(guard->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[1]-GetTargetRecordFacing(guard))))return 0;
+    case 1: {
+        position1.q = func_001A62E8(a);
+        qword other;
+        other = func_001A62E8(guard->target);
+        GetVectorCylind(Sub(position1.q, other), &angle[1], 0, 0);
+        if (guard->tolerance < __builtin_fabsf(RadNormalize__Ff(angle[1] - GetTargetRecordFacing(guard))))
+            return 0;
         return 1;
     }
-    case -1:break;
-    default:break;
+    case -1:
+        break;
+    default:
+        break;
     }
     return 1;
 }
@@ -3800,7 +3846,10 @@ void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *p = (
     int v;
     InitLo(p);
     v = p->fl;
-    if ((v ^ 1) & 1) *(int *)v |= 2; else p->fl = v | 2;
+    if (!(v & 1))
+        *(int *)v |= 2;   // (bit 0 clear: the word points at the real flags)
+    else
+        p->fl = v | 2;
     SetLoBusyk(p, 1);
 }
 
