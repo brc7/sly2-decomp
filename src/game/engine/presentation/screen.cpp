@@ -91,7 +91,7 @@ struct SCREENV
     int mode;              /* +0x28 */
     float modeTime;            /* +0x2C */
     char pad30[0x38 - 0x30];
-    int n38;                /* +0x38 */
+    int hudMeterWidget;     /* +0x38: the HUD meter's widget (ResetHudMeter) */
 };
 /* The notice screen keeps an object at +0x28 instead of a mode. */
 #define PLONOTICE(screen) (*(LO **)&(screen)->mode)
@@ -523,26 +523,33 @@ extern "C" void HideScreen(SCREENV *screen)
     }
 }
 
+/* HUD meter states (SetHudMeterState / HUDMETER::Update): hidden, steady, damage flash, health refilling toward the
+   target, power changing, switching hero; 6 and 7 are alternate steady states (hero +0x10C8 set / hero +0x10EC == 4). */
+enum HudMeterState { HUDMETER_HIDDEN, HUDMETER_STEADY, HUDMETER_DAMAGE, HUDMETER_HEALTH_FILL, HUDMETER_POWER_CHANGE,
+    HUDMETER_SWITCH_HERO, HUDMETER_STATE6, HUDMETER_STATE7 };
+/* Notice banner states (SetNoticeState): hidden, appearing, shown, hiding, swapping to the queued text. */
+enum NoticeState { NOTICE_HIDDEN, NOTICE_APPEARING, NOTICE_SHOWN, NOTICE_HIDING, NOTICE_SWAPPING };
+
 namespace M_PostHudMeterLoad { extern "C" {
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *, int); } a[64]; } VT;
 typedef struct { char pad[0xC]; VT *vt; } W;
 typedef struct {
     char pad[0xDFC];
-    int c;
-    int *pn;
+    int maxHealth;
+    int *healthPtr;
     char padE04[0x1300 - 0xE04];
-    int cMax;
+    int maxPower;
 } Q;
 typedef struct {
     char pad[0x20];
-    float x20;
-    float x24;
-    float x28;
-    float x2C;
-    int x30;
-    Q *q;
-    W *pw;
-    int ids[5];
+    float shownHealth;
+    float health;
+    float shownPower;
+    float power;
+    int state;
+    Q *hero;
+    W *widget;
+    int anims[5];
 } OBJ;
 extern struct G D_003DD490;
 W *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
@@ -553,7 +560,7 @@ void PlayWidgetAnim(W *, int);
 void SetWidgetAnimPhase(W *, int, float);
 /** @sly2-annot addr=0x1D9968
  * Purpose: Health/gadget-power meter (global D_003D9E80): find widget 0x36B (class 0x405), take hero hp
- *   (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim ids (Sly
+ *   (+0xE00/+0xDFC) and power (MpStepplayerCur/+0x1300) fractions, pick per-character anim anims (Sly
  *   0x33D-341, Murray 0x342-346, Bentley 0x347-34B), set gauge phases 0x34F/0x350
  * Info: proposed name PostHudMeterLoad (T1); TU screen
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
@@ -564,47 +571,47 @@ void SetWidgetAnimPhase(W *, int, float);
 // the per-character animations.
 void PostHudMeterLoad(OBJ *p)
 {
-    Q *q;
-    W *pw;
-    p->pw = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36B, 0);
-    p->x30 = 0;
-    p->q = 0;
-    q = PpoHero(&D_003DD490);
-    if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
-        p->q = q;
-    if (p->q == 0) {
-        p->x20 = p->x24 = 0.0f;
-        p->x28 = p->x2C = 0.0f;
+    Q *hero;
+    W *widget;
+    p->widget = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x36B, 0);
+    p->state = 0;
+    p->hero = 0;
+    hero = PpoHero(&D_003DD490);
+    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34))
+        p->hero = hero;
+    if (p->hero == 0) {
+        p->shownHealth = p->health = 0.0f;
+        p->shownPower = p->power = 0.0f;
         return;
     }
-    p->x20 = p->x24 = (float)*p->q->pn / (float)p->q->c;
-    p->x28 = p->x2C = (float)MpStepplayerCur(p->q) / (float)p->q->cMax;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->q, 0x37)) {
-            p->ids[0] = 0x347;
-            p->ids[1] = 0x348;
-            p->ids[2] = 0x349;
-            p->ids[3] = 0x34A;
-            p->ids[4] = 0x34B;
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->q, 0x36)) {
-            p->ids[0] = 0x342;
-            p->ids[1] = 0x343;
-            p->ids[2] = 0x344;
-            p->ids[3] = 0x345;
-            p->ids[4] = 0x346;
+    p->shownHealth = p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
+    p->shownPower = p->power = (float)MpStepplayerCur(p->hero) / (float)p->hero->maxPower;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
+            p->anims[0] = 0x347;
+            p->anims[1] = 0x348;
+            p->anims[2] = 0x349;
+            p->anims[3] = 0x34A;
+            p->anims[4] = 0x34B;
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
+            p->anims[0] = 0x342;
+            p->anims[1] = 0x343;
+            p->anims[2] = 0x344;
+            p->anims[3] = 0x345;
+            p->anims[4] = 0x346;
     } else {
-            p->ids[0] = 0x33D;
-            p->ids[1] = 0x33E;
-            p->ids[2] = 0x33F;
-            p->ids[3] = 0x340;
-            p->ids[4] = 0x341;
+            p->anims[0] = 0x33D;
+            p->anims[1] = 0x33E;
+            p->anims[2] = 0x33F;
+            p->anims[3] = 0x340;
+            p->anims[4] = 0x341;
     }
-    pw = p->pw;
-    if (pw) {
-        pw->vt->a[49].pfn((char *)pw + pw->vt->a[49].d, p->ids[0]);
-        PlayWidgetAnim(p->pw, 0x34F);
-        PlayWidgetAnim(p->pw, 0x350);
-        SetWidgetAnimPhase(p->pw, 0x34F, 1.0f - p->x20);
-        SetWidgetAnimPhase(p->pw, 0x350, 1.0f - p->x28);
+    widget = p->widget;
+    if (widget) {
+        widget->vt->a[49].pfn((char *)widget + widget->vt->a[49].d, p->anims[0]);
+        PlayWidgetAnim(p->widget, 0x34F);
+        PlayWidgetAnim(p->widget, 0x350);
+        SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
+        SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
     }
 }
 } } // namespace M_PostHudMeterLoad
@@ -618,29 +625,29 @@ void PostHudMeterLoad(OBJ *p)
 // Resets the meter: state 0, no widget.
 extern "C" void ResetHudMeter(SCREENV *screen)
 {
-    SetHudMeterState(screen, 0);
-    screen->n38 = 0;
+    SetHudMeterState(screen, HUDMETER_HIDDEN);
+    screen->hudMeterWidget = 0;
 }
 
 namespace M_SetHudMeterState { extern "C" {
 typedef struct { short d; short pad; void *pfn; } VTE;
 typedef struct { char pad0[0xC]; VTE *vt; } SUB;
 typedef struct { int key; int pad[7]; } E;
-typedef struct { int a, b, c, xC; int pad[4]; } REC;
+typedef struct { int a, b, c, powerCost; int pad[4]; } REC;
 typedef struct OBJ {
     char pad0[0x20];
-    float x20;
+    float shownHealth;
     char pad24[0x28 - 0x24];
-    float x28;
+    float shownPower;
     char pad2c[0x30 - 0x2C];
-    int x30;
-    void *x34;
-    SUB *x38;
-    int x3C;
-    int x40;
-    int x44;
-    int x48;
-    int x4C;
+    int state;
+    void *hero;
+    SUB *widget;
+    int steadyAnim;
+    int damageAnim;
+    int hideAnim;
+    int state6Anim;
+    int state7Anim;
 } OBJ;
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern REC D_002BCD00[];
@@ -661,34 +668,34 @@ void SetWidgetAnimPhase(SUB *, int, float);
 // owns a power-up that costs power), damage, and the alternate animations.
 void SetHudMeterState(OBJ *p, int s)
 {
-    int old = p->x30;
+    int old = p->state;
     if (old == s)
         return;
-    if (!p->x38)
+    if (!p->widget)
         return;
-    if (old == 2 || old == 6)
-        VCALL1(p->x38, 49, p->x3C);
-    p->x30 = s;
+    if (old == HUDMETER_DAMAGE || old == HUDMETER_STATE6)
+        VCALL1(p->widget, 49, p->steadyAnim);
+    p->state = s;
     switch (s) {
-    case 0:
-    case 5:
-        VCALL1(p->x38, 49, p->x44);
+    case HUDMETER_HIDDEN:
+    case HUDMETER_SWITCH_HERO:
+        VCALL1(p->widget, 49, p->hideAnim);
         break;
-    case 1: {
+    case HUDMETER_STEADY: {
         int n = 0;
         E *tbl = 0;
         int found;
         int i;
-        VCALL1(p->x38, 49, p->x3C);
-        PlayWidgetAnim(p->x38, 0x34F);
-        SetWidgetAnimPhase(p->x38, 0x34F, 1.0f - p->x20);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x35)) {
+        VCALL1(p->widget, 49, p->steadyAnim);
+        PlayWidgetAnim(p->widget, 0x34F);
+        SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
             n = 0x12;
             tbl = D_002C2DE8;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x37)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
             n = 9;
             tbl = D_002C3028;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x36)) {
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
             n = 8;
             tbl = D_002C3148;
         }
@@ -697,28 +704,28 @@ void SetHudMeterState(OBJ *p, int s)
             int id = tbl[i].key;
             if (FPowerupAcquired(id)) {
                 REC r = D_002BCD00[id];
-                if (r.xC > 0) {
+                if (r.powerCost > 0) {
                     found = 1;
                     break;
                 }
             }
         }
         if (found) {
-            PlayWidgetAnim(p->x38, 0x350);
-            SetWidgetAnimPhase(p->x38, 0x350, 1.0f - p->x28);
+            PlayWidgetAnim(p->widget, 0x350);
+            SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
         } else {
-            StopWidgetAnim(p->x38, 0x350);
+            StopWidgetAnim(p->widget, 0x350);
         }
         break;
     }
-    case 2:
-        VCALL1(p->x38, 49, p->x40);
+    case HUDMETER_DAMAGE:
+        VCALL1(p->widget, 49, p->damageAnim);
         break;
-    case 6:
-        VCALL1(p->x38, 49, p->x48);
+    case HUDMETER_STATE6:
+        VCALL1(p->widget, 49, p->state6Anim);
         break;
-    case 7:
-        VCALL1(p->x38, 49, p->x4C);
+    case HUDMETER_STATE7:
+        VCALL1(p->widget, 49, p->state7Anim);
         break;
     }
 }
@@ -729,29 +736,29 @@ namespace M_UpdateHudMeter { extern "C" {
 typedef struct { char pad0[0xC]; void *vt; } SUB;
 typedef struct Q {
     char pad0[0xDFC];
-    int xDFC;
-    int *xE00;
+    int maxHealth;
+    int *healthPtr;
     char pad[0x10C8 - 0xE04];
-    int x10C8;
+    int unknown10C8;
     char pad2[0x10EC - 0x10CC];
-    int x10EC;
+    int unknown10EC;
     char pad3[0x1300 - 0x10F0];
-    int x1300;
+    int maxPower;
 } Q;
 typedef struct OBJ {
     char pad0[0x20];
-    float x20;
-    float x24;
-    float x28;
-    float x2C;
-    int x30;
-    Q *x34;
-    SUB *x38;
-    int x3C;
-    int x40;
-    int x44;
-    int x48;
-    int x4C;
+    float shownHealth;
+    float health;
+    float shownPower;
+    float power;
+    int state;
+    Q *hero;
+    SUB *widget;
+    int steadyAnim;
+    int damageAnim;
+    int hideAnim;
+    int state6Anim;
+    int state7Anim;
 } OBJ;
 extern struct G D_003DD490;
 extern struct { float t; float dt; } D_002DDED0;
@@ -783,95 +790,95 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
     OBJ *p = (OBJ *)this;
     Q *old;
     Q *q;
-    if (!p->x38)
+    if (!p->widget)
         return;
-    old = p->x34;
-    p->x34 = 0;
+    old = p->hero;
+    p->hero = 0;
     q = PpoHero(&D_003DD490);
     if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x34))
-        p->x34 = q;
-    if (!p->x34) {
-        p->x20 = p->x24 = 0;
-        p->x28 = p->x2C = 0;
+        p->hero = q;
+    if (!p->hero) {
+        p->shownHealth = p->health = 0;
+        p->shownPower = p->power = 0;
         if (old)
-            SetHudMeterState(p, 0);
+            SetHudMeterState(p, HUDMETER_HIDDEN);
         return;
     }
-    if (old != p->x34) {
+    if (old != p->hero) {
         if (!old)
-            SetHudMeterState(p, 3);
+            SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         else
-            SetHudMeterState(p, 5);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x35)) {
-            p->x3C = 0x33D; p->x40 = 0x33E; p->x44 = 0x33F; p->x48 = 0x340; p->x4C = 0x341;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x37)) {
-            p->x3C = 0x347; p->x40 = 0x348; p->x44 = 0x349; p->x48 = 0x34A; p->x4C = 0x34B;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->x34, 0x36)) {
-            p->x3C = 0x342; p->x40 = 0x343; p->x44 = 0x344; p->x48 = 0x345; p->x4C = 0x346;
+            SetHudMeterState(p, HUDMETER_SWITCH_HERO);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x35)) {
+            p->steadyAnim = 0x33D; p->damageAnim = 0x33E; p->hideAnim = 0x33F; p->state6Anim = 0x340; p->state7Anim = 0x341;
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x37)) {
+            p->steadyAnim = 0x347; p->damageAnim = 0x348; p->hideAnim = 0x349; p->state6Anim = 0x34A; p->state7Anim = 0x34B;
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->hero, 0x36)) {
+            p->steadyAnim = 0x342; p->damageAnim = 0x343; p->hideAnim = 0x344; p->state6Anim = 0x345; p->state7Anim = 0x346;
         }
-        p->x20 = p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x28 = p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
+        p->shownHealth = p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
+        p->shownPower = p->power = (float)MpStepplayerCur(p->hero) / (float)p->hero->maxPower;
     }
-    switch (p->x30) {
-    case 1:
-    case 6:
-    case 7:
-        p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
-        if (*p->x34->xE00 <= 0) {
-            SetHudMeterState(p, 0);
-        } else if (p->x20 > p->x24) {
-            SetHudMeterState(p, 2);
-        } else if (p->x20 < p->x24) {
-            SetHudMeterState(p, 3);
-        } else if (!FFloatsNear__Ffff(p->x28, p->x2C, 0.0001f)) {
-            SetHudMeterState(p, 4);
-        } else if (p->x34->x10EC == 4) {
-            SetHudMeterState(p, 7);
-        } else if (p->x34->x10C8 != -1) {
-            SetHudMeterState(p, 6);
+    switch (p->state) {
+    case HUDMETER_STEADY:
+    case HUDMETER_STATE6:
+    case HUDMETER_STATE7:
+        p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
+        p->power = (float)MpStepplayerCur(p->hero) / (float)p->hero->maxPower;
+        if (*p->hero->healthPtr <= 0) {
+            SetHudMeterState(p, HUDMETER_HIDDEN);
+        } else if (p->shownHealth > p->health) {
+            SetHudMeterState(p, HUDMETER_DAMAGE);
+        } else if (p->shownHealth < p->health) {
+            SetHudMeterState(p, HUDMETER_HEALTH_FILL);
+        } else if (!FFloatsNear__Ffff(p->shownPower, p->power, 0.0001f)) {
+            SetHudMeterState(p, HUDMETER_POWER_CHANGE);
+        } else if (p->hero->unknown10EC == 4) {
+            SetHudMeterState(p, HUDMETER_STATE7);
+        } else if (p->hero->unknown10C8 != -1) {
+            SetHudMeterState(p, HUDMETER_STATE6);
         } else {
-            SetHudMeterState(p, 1);
+            SetHudMeterState(p, HUDMETER_STEADY);
         }
         break;
-    case 2:
-        if (!FWidgetAnimPlaying(p->x38, p->x40))
-            SetHudMeterState(p, 3);
+    case HUDMETER_DAMAGE:
+        if (!FWidgetAnimPlaying(p->widget, p->damageAnim))
+            SetHudMeterState(p, HUDMETER_HEALTH_FILL);
         break;
-    case 5:
-        if (!FWidgetAnimPlaying(p->x38, p->x44))
-            SetHudMeterState(p, 1);
+    case HUDMETER_SWITCH_HERO:
+        if (!FWidgetAnimPlaying(p->widget, p->hideAnim))
+            SetHudMeterState(p, HUDMETER_STEADY);
         break;
-    case 0:
-        p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
-        if (p->x20 < p->x24) {
-            p->x20 = p->x24;
-            SetWidgetAnimPhase(p->x38, 0x34F, 1.0f - p->x20);
-            p->x28 = p->x2C;
-            SetWidgetAnimPhase(p->x38, 0x350, 1.0f - p->x28);
-            SetHudMeterState(p, 1);
+    case HUDMETER_HIDDEN:
+        p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
+        p->power = (float)MpStepplayerCur(p->hero) / (float)p->hero->maxPower;
+        if (p->shownHealth < p->health) {
+            p->shownHealth = p->health;
+            SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
+            p->shownPower = p->power;
+            SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
+            SetHudMeterState(p, HUDMETER_STEADY);
         }
         break;
-    case 3:
-        p->x24 = (float)*p->x34->xE00 / (float)p->x34->xDFC;
-        if (p->x20 < p->x24)
-            p->x20 = p->x24;
+    case HUDMETER_HEALTH_FILL:
+        p->health = (float)*p->hero->healthPtr / (float)p->hero->maxHealth;
+        if (p->shownHealth < p->health)
+            p->shownHealth = p->health;
         else
-            p->x20 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x20, p->x24, D_002DDED0.dt);
-        SetWidgetAnimPhase(p->x38, 0x34F, 1.0f - p->x20);
-        if (FFloatsNear__Ffff(p->x20, p->x24, 0.0001f))
-            SetHudMeterState(p, 1);
+            p->shownHealth = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->shownHealth, p->health, D_002DDED0.dt);
+        SetWidgetAnimPhase(p->widget, 0x34F, 1.0f - p->shownHealth);
+        if (FFloatsNear__Ffff(p->shownHealth, p->health, 0.0001f))
+            SetHudMeterState(p, HUDMETER_STEADY);
         break;
-    case 4:
-        p->x2C = (float)MpStepplayerCur(p->x34) / (float)p->x34->x1300;
-        if (p->x28 < p->x2C)
-            p->x28 = p->x2C;
+    case HUDMETER_POWER_CHANGE:
+        p->power = (float)MpStepplayerCur(p->hero) / (float)p->hero->maxPower;
+        if (p->shownPower < p->power)
+            p->shownPower = p->power;
         else
-            p->x28 = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->x28, p->x2C, D_002DDED0.dt);
-        SetWidgetAnimPhase(p->x38, 0x350, 1.0f - p->x28);
-        if (FFloatsNear__Ffff(p->x28, p->x2C, 0.0001f))
-            SetHudMeterState(p, 1);
+            p->shownPower = GSmooth__FfffP3SMPPf(D_002C3248, 0, p->shownPower, p->power, D_002DDED0.dt);
+        SetWidgetAnimPhase(p->widget, 0x350, 1.0f - p->shownPower);
+        if (FFloatsNear__Ffff(p->shownPower, p->power, 0.0001f))
+            SetHudMeterState(p, HUDMETER_STEADY);
         break;
     }
 }
@@ -900,21 +907,21 @@ extern "C" void ResetNotice(SCREENV *screen)
     screen->textId = -1;
     screen->queuedTextId = -1;
     PLONOTICE(screen) = 0;
-    SetNoticeState(screen, 0);
+    SetNoticeState(screen, NOTICE_HIDDEN);
 }
 
 namespace M_UpdateNotice { extern "C" {
-extern struct CLOCK { float t; float dt; } D_002DDED0;
-typedef struct { char pad[0x58]; int x58; } W;
+extern struct CLOCK { float stateTime; float dt; } D_002DDED0;
+typedef struct { char pad[0x58]; int visibility; } W;
 typedef struct {
     char pad[0x10];
     int state;
-    float t;
-    int x18;
-    float x1C;
-    int x20;
-    float x24;
-    W *pw;
+    float stateTime;
+    int textId;
+    float duration;
+    int queuedTextId;
+    float queuedDuration;
+    W *widget;
 } OBJ;
 void SetNoticeState(OBJ *, int);
 int FWidgetVisible(W *);
@@ -930,36 +937,36 @@ int FWidgetAnimPlaying(W *, int);
 // or swaps to the queued text; hides it at the end.
 void UpdateNotice(OBJ *p)
 {
-    if (p->pw == 0)
+    if (p->widget == 0)
         return;
     switch (p->state) {
-    case 0:
+    case NOTICE_HIDDEN:
         break;
-    case 1:
-        if (p->pw->x58 == 2)
-            SetNoticeState(p, 2);
+    case NOTICE_APPEARING:
+        if (p->widget->visibility == 2)
+            SetNoticeState(p, NOTICE_SHOWN);
         break;
-    case 2:
-        if (p->x20 != -1) {
-            SetNoticeState(p, 4);
-        } else if (p->x1C == 0.0f) {
-            SetNoticeState(p, 3);
-        } else if (0.0f < p->x1C) {
-            if (p->pw && !FWidgetVisible(p->pw))
-                p->t += D_002DDED0.dt;
+    case NOTICE_SHOWN:
+        if (p->queuedTextId != -1) {
+            SetNoticeState(p, NOTICE_SWAPPING);
+        } else if (p->duration == 0.0f) {
+            SetNoticeState(p, NOTICE_HIDING);
+        } else if (0.0f < p->duration) {
+            if (p->widget && !FWidgetVisible(p->widget))
+                p->stateTime += D_002DDED0.dt;
         }
         break;
-    case 3:
-        if (p->pw->x58 < 2)
-            SetNoticeState(p, 0);
+    case NOTICE_HIDING:
+        if (p->widget->visibility < 2)
+            SetNoticeState(p, NOTICE_HIDDEN);
         break;
-    case 4:
-        if (FWidgetAnimPlaying(p->pw, 0x312))
+    case NOTICE_SWAPPING:
+        if (FWidgetAnimPlaying(p->widget, 0x312))
             break;
-        if (p->x20 == -1)
-            SetNoticeState(p, 0);
+        if (p->queuedTextId == -1)
+            SetNoticeState(p, NOTICE_HIDDEN);
         else
-            SetNoticeState(p, 2);
+            SetNoticeState(p, NOTICE_SHOWN);
         break;
     }
 }
@@ -968,12 +975,12 @@ void UpdateNotice(OBJ *p)
 namespace M_PostNotice { extern "C" {
 typedef struct {
     char pad[0x10];
-    int x10;
+    int state;
     int pad14;
-    int x18;
-    float x1C;
-    int x20;
-    float x24;
+    int textId;
+    float duration;
+    int queuedTextId;
+    float queuedDuration;
 } OBJ;
 void CancelNotice(OBJ *, int);
 void SetNoticeState(OBJ *, int);
@@ -985,36 +992,38 @@ void SetNoticeState(OBJ *, int);
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 // Requests a notice text for a duration, queued behind the current one; -1 cancels.
-void PostNotice(OBJ *p, int n, float g)
+void PostNotice(OBJ *p, int textId, float duration)
 {
-    if (n == -1) {
+    if (textId == -1) {
         CancelNotice(p, -1);
         return;
     }
-    switch (p->x10) {
-    case 1:
-        SetNoticeState(p, -1);
-    case 0:
-    case 3:
-        p->x18 = n;
-        p->x1C = g;
-        SetNoticeState(p, 1);
+    switch (p->state) {
+    case NOTICE_APPEARING:
+        SetNoticeState(p, -1);   /* forces the re-show below (state -1 is no state) */
+        /* fall through */
+    case NOTICE_HIDDEN:
+    case NOTICE_HIDING:
+        p->textId = textId;
+        p->duration = duration;
+        SetNoticeState(p, NOTICE_APPEARING);
         break;
-    case 2:
-        if (p->x18 == n) {
-            p->x1C = g;
+    case NOTICE_SHOWN:
+        if (p->textId == textId) {
+            p->duration = duration;
             break;
         }
-    case 4:
-        p->x20 = n;
-        p->x24 = g;
+        /* fall through */
+    case NOTICE_SWAPPING:
+        p->queuedTextId = textId;
+        p->queuedDuration = duration;
         break;
     }
 }
 } } // namespace M_PostNotice
 
 namespace M_CancelNotice { extern "C" {
-struct S { char pad[0x18]; int n18; int n1C; int n20; };
+struct S { char pad[0x18]; int textId; int duration; int queuedTextId; };
 /** @sly2-annot addr=0x1DA578
  * Purpose: Cancel notice n (current -> timeout 0, or drop the queued one); -1 cancels the queue
  * Info: proposed name CancelNotice (T1); TU screen
@@ -1024,12 +1033,12 @@ struct S { char pad[0x18]; int n18; int n1C; int n20; };
 // Cancels a notice text: the current one times out now, or the queued one is dropped; -1 cancels the queue.
 void CancelNotice(struct S *p, int n) {
     if (n == -1) {
-        p->n20 = -1;
-        p->n1C = 0;
-    } else if (n == p->n18) {
-        p->n1C = 0;
-    } else if (n == p->n20) {
-        p->n20 = -1;
+        p->queuedTextId = -1;
+        p->duration = 0;
+    } else if (n == p->textId) {
+        p->duration = 0;
+    } else if (n == p->queuedTextId) {
+        p->queuedTextId = -1;
     }
 }
 } } // namespace M_CancelNotice
@@ -1052,18 +1061,18 @@ extern "C" int GetCurrentNoticeTextId(SCREENV *screen)
 }
 
 namespace M_SetNoticeState { extern "C" {
-extern struct CLOCK { float t; float dt; } D_002DDED0;
+extern struct CLOCK { float stateTime; float dt; } D_002DDED0;
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[64]; } VT;
 typedef struct { char pad[0xC]; VT *vt; } LO;
 typedef struct {
     char pad[0x10];
     int state;
-    float t;
-    int x18;
-    float x1C;
-    int x20;
-    float x24;
-    LO *x28;
+    float stateTime;
+    int textId;
+    float duration;
+    int queuedTextId;
+    float queuedDuration;
+    LO *widget;
 } OBJ;
 void StartWidgetMainAnim(LO *, int);
 void ShowWidgetArgs(LO *, int, int *);
@@ -1082,37 +1091,37 @@ void SetNoticeState(OBJ *p, int n)
     if (n == p->state)
         return;
     switch (p->state) {
-    case 3:
-        if (n == 1 && p->t == D_002DDED0.t)
+    case NOTICE_HIDING:
+        if (n == NOTICE_APPEARING && p->stateTime == D_002DDED0.stateTime)
             n = 2;
         break;
-    case 4:
-        p->x18 = p->x20;
-        p->x1C = p->x24;
-        p->x20 = -1;
-        p->x24 = -1.0f;
+    case NOTICE_SWAPPING:
+        p->textId = p->queuedTextId;
+        p->duration = p->queuedDuration;
+        p->queuedTextId = -1;
+        p->queuedDuration = -1.0f;
         break;
     }
-    if (n == 0)
-        p->x18 = -1;
-    plo = p->x28;
+    if (n == NOTICE_HIDDEN)
+        p->textId = -1;
+    plo = p->widget;
     if (plo) {
-        if (p->state == 4 && n == 2)
+        if (p->state == NOTICE_SWAPPING && n == NOTICE_SHOWN)
             StartWidgetMainAnim(plo, 0x310);
         switch (n) {
-        case 4:
-            StartWidgetMainAnim(p->x28, 0x312);
+        case NOTICE_SWAPPING:
+            StartWidgetMainAnim(p->widget, 0x312);
             break;
-        case 3:
-            p->x28->vt->a[50].pfn((char *)p->x28 + p->x28->vt->a[50].d);
+        case NOTICE_HIDING:
+            p->widget->vt->a[50].pfn((char *)p->widget + p->widget->vt->a[50].d);
             break;
-        case 1:
-            ShowWidgetArgs(p->x28, 1, &p->x18);
+        case NOTICE_APPEARING:
+            ShowWidgetArgs(p->widget, 1, &p->textId);
             break;
         }
     }
     p->state = n;
-    p->t = D_002DDED0.t;
+    p->stateTime = D_002DDED0.stateTime;
 }
 } } // namespace M_SetNoticeState
 
