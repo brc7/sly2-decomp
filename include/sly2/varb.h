@@ -6,8 +6,8 @@
  * the binding's own link in turn.
  *
  * CVarbPtr is a view of sly2/basic.h's CRefPtr<CVarb>, the binding-list twin of sly2/pair.h's CPairPtr: splice/gc.cpp
- * emits both functions as CRefPtr<CVarb>'s instances (linkonce); the destructor's references (_$_8CVarbPtr) are bound
- * by config/link_aliases.txt (see pair.h). Owners that release a binding inline (the "SPW" views of CVarb_CloneTo
+ * emits both functions as CRefPtr<CVarb>'s instances (linkonce); the view is an explicit specialization of the template,
+ * so its includers' calls name those instances (see pair.h). Owners that release a binding inline (the "SPW" views of CVarb_CloneTo
  * and CSidebag) keep their own views.
  * See docs/guides/tu-merging.md, "Linkonce copies by family" and "Views unified". */
 #ifndef SLY2_VARB_H
@@ -19,13 +19,19 @@ extern "C" void Unlink__t6CGcObj1Z5CVarb(void *pv);
 
 struct CVarb;
 
-/* counted link to a binding (out-of-line destructor and assignment) */
-struct CVarbPtr
+/* counted link to a binding: the includers' view of CRefPtr<CVarb> (sly2/basic.h), an explicit specialization
+   with only what they use, so that its out-of-line destructor and assignment are the template's instances by their
+   own symbols (_$_t7CRefPtr1Z5CVarb, __as__t7CRefPtr1Z5CVarbP5CVarb: splice/gc.cpp emits them from the real template, which it does not see
+   specialized). */
+template <class T> class CRefPtr;
+template <> class CRefPtr<CVarb>
 {
+public:
       CVarb *p;
-      ~CVarbPtr();
-      void operator=(CVarb *pvarb) __asm__("__as__t7CRefPtr1Z5CVarbP5CVarb");
+      ~CRefPtr();
+      void operator=(CVarb *pvarb);
 };
+typedef CRefPtr<CVarb> CVarbPtr;
 
 struct CVarb
 {

@@ -4,10 +4,9 @@
 usage: python3 tools/linkaliases.py [--redefine DIR] [obj.o ...] > aliases.ld
 
 Two sources of aliases:
-  1. config/link_aliases.txt, a checked-in table of `symbol = target;` lines (vtables and destructors of
-     namespace-scoped view classes, and a few declarations that cannot be bound in source without changing code).
-     `[source] symbol = target;` lines apply to one object only: they are not printed as linker-script lines but
-     written, with --redefine DIR, to DIR/<source with / as __>.redefine for `objcopy --redefine-syms=<file>`.
+  1. config/link_aliases.txt, a table of `symbol = target;` lines (`[source] symbol = target;`: one object only, written
+     with --redefine DIR for objcopy). Empty and deleted since data/vtables-2 (every name is bound in source or
+     config); read if it exists.
   2. Address names: every undefined D_XXXXXXXX / func_XXXXXXXX (also as an alias target) that no given object
      defines becomes `name = <config symbol at that address>;` when config/symbol_addrs.txt or
      config/functions.csv names the address, else `name = 0xXXXXXXXX;`. The absolute form is only valid in a link
@@ -58,7 +57,10 @@ def config_names():
 
 def read_table():
     glob, scoped = {}, {}
-    for line in open(os.path.join(ROOT, 'config', 'link_aliases.txt')):
+    path = os.path.join(ROOT, 'config', 'link_aliases.txt')
+    if not os.path.exists(path):                # the table is gone (data/vtables-2): address names only
+        return glob, scoped
+    for line in open(path):
         line = line.split('#', 1)[0].strip()
         if not line:
             continue
