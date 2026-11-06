@@ -138,7 +138,12 @@ struct MCDLG
 /* A file key (linkonce InitFileKey). */
 struct FILEKEY { int an[2]; int n8; char bC; };
 
-enum { SAVE_MEMCARD_OFFSET = 0xFD5C };   /* SAVE::memcard */
+enum
+{
+    SAVE_MEMCARD_OFFSET = 0xFD5C,   /* SAVE::memcard */
+    SAVE_SLOT_SIZE = 0x5464,        /* one slot in SAVE::aslot */
+    SAVE_SLOT_FILE_SIZE = 0x5408,   /* the part of a slot written to the card (its SAVEINFO follows) */
+};
 
 extern SW D_003DD490;
 extern "C" {
@@ -1253,13 +1258,13 @@ void AutosaveGame(struct S *saveManager, int force)
 } } // namespace M_func_001ABD98
 
 namespace M_ReadMcDir { extern "C" {
-typedef struct { char a[0x40]; } ENT;
-typedef struct { char a[0x5C]; } OUT;
+typedef struct { char a[0x40]; } ENT;   /* sceMcTblGetDir */
+typedef struct { char a[0x5C]; } OUT;   /* SAVEINFO */
 extern char D_002E6500[];
 extern ENT D_002E6080[];
-unsigned int func_0021ED28(const char *) __asm__("strlen");
+unsigned int strlen(const char *);
 char *strcpy(char *, const char *);
-void *func_002333B4(void *, int, unsigned int) __asm__("memset");
+void *memset_(void *, int, unsigned int) __asm__("memset");
 int sceMcGetDir(int, int, char *, int, int, ENT *);
 int McSyncResult(void *, int, int, int *);
 void FillMcDirInfo(ENT *, OUT *);
@@ -1276,34 +1281,34 @@ void FillMcDirInfo(ENT *, OUT *);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Reads a card directory listing (sceMcGetDir) into an array of records (FillMcDirInfo).
-int ReadMcDir(int *p, char *path, int c, OUT *aout, int *pc)
+int ReadMcDir(int *saveManager, char *path, int maxEntries, OUT *records, int *numRecords)
 {
-    int f;
+    int continueListing;   /* sceMcGetDir mode: 0 new listing, 1 continue the previous one */
     int r;
     int i;
-    if (c > 0x12)
+    if (maxEntries > 0x12)
         return 0x25;
     if (path) {
-        if (func_0021ED28(path) > 0x40)
+        if (strlen(path) > 0x40)
             return 0xD;
         strcpy(D_002E6500, path);
-        f = 0;
+        continueListing = 0;
     } else {
-        f = 1;
+        continueListing = 1;
         path = D_002E6500;
     }
-    func_002333B4(D_002E6080, 0, 0x480);
-    r = McSyncResult((char *)p + 0xFD5C, sceMcGetDir(p[0], p[1], path, f, c, D_002E6080), 0xD, pc);
+    memset_(D_002E6080, 0, 0x480);
+    r = McSyncResult((char *)saveManager + SAVE_MEMCARD_OFFSET, sceMcGetDir(saveManager[0], saveManager[1], path, continueListing, maxEntries, D_002E6080), 0xD, numRecords);
     if (r)
         return r;
-    for (i = 0; i < *pc; i++)
-        FillMcDirInfo(&D_002E6080[i], &aout[i]);
+    for (i = 0; i < *numRecords; i++)
+        FillMcDirInfo(&D_002E6080[i], &records[i]);
     return 0;
 }
 } } // namespace M_ReadMcDir
 
 namespace M_ReadMcDirWrapper { extern "C" {
-int ReadMcDir(int a, int b, int c, int d, int *pn);
+int ReadMcDir(int saveManager, int path, int maxEntries, int records, int *numRecords);
 /** @sly2-annot addr=0x1ABFC0
  * Purpose: wrapper of 0x1ABE78
  * Info: proposed name ReadMcDirWrapper (EXISTING); TU memcard
@@ -1316,12 +1321,12 @@ int ReadMcDir(int a, int b, int c, int d, int *pn);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Wrapper of ReadMcDir.
-int ReadMcDirWrapper(int a, int b, int c)
+int ReadMcDirWrapper(int saveManager, int path, int record)
 {
-    int n;
-    int r = ReadMcDir(a, b, 1, c, &n);
+    int numRecords;
+    int r = ReadMcDir(saveManager, path, 1, record, &numRecords);
     if (r) return r;
-    return n == 1 ? 0 : 0xE;
+    return numRecords == 1 ? 0 : 0xE;
 }
 } } // namespace M_ReadMcDirWrapper
 
@@ -1356,9 +1361,9 @@ typedef struct {
     unsigned char FnameDel[64];
     unsigned char Reserve3[512];
 } ICONSYS;
-void *func_002333B4(void *, int, unsigned int) __asm__("memset");
+void *memset_(void *, int, unsigned int) __asm__("memset");
 void ConvertPchzToSjis(char *, unsigned char *);
-int McWriteFile(void *s, char *name, void *b, int n);
+int McWriteFile(void *saveManager, char *path, void *data, int size);
 
 /** @sly2-annot addr=0x1AC008
  * Purpose: Build PS2 icon.sys (memset, title 'Sly 2', sprintf) and write it
@@ -1371,11 +1376,11 @@ int McWriteFile(void *s, char *name, void *b, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Builds the PS2 icon.sys for the save (title "Sly 2") and writes it into the save directory.
-int WriteIconSys(void *p, char *dir, char *title)
+int WriteIconSys(void *saveManager, char *dir, char *title)
 {
     ICONSYS icon;
-    char name[0x50];
-    func_002333B4(&icon, 0, sizeof(icon));
+    char path[0x50];
+    memset_(&icon, 0, sizeof(icon));
     strcpy(icon.Head, "PS2D");
     icon.OffsLF = 0x20;
     icon.TransRate = 0x60;
@@ -1416,8 +1421,8 @@ int WriteIconSys(void *p, char *dir, char *title)
     strcpy((char *)icon.FnameView, "memcard_icon.ico");
     strcpy((char *)icon.FnameCopy, "memcard_icon.ico");
     strcpy((char *)icon.FnameDel, "memcard_icon.ico");
-    sprintf(name, "%s/%s", dir, "icon.sys");
-    return McWriteFile(p, name, &icon, sizeof(icon));
+    sprintf(path, "%s/%s", dir, "icon.sys");
+    return McWriteFile(saveManager, path, &icon, sizeof(icon));
 }
 } } // namespace M_WriteIconSys
 
@@ -1441,44 +1446,44 @@ extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE
 struct REQUEST {uint bytes,alignment;};
 struct X;
 extern "C" void InitFileKey(X *px);
-struct X { uint x0; uint x4; int x8; char pad[0x110 - 0xC]; X() { x8 = 2; InitFileKey(this); } };
+struct X { uint sector; uint size; int mode; char pad[0x110 - 0xC]; X() { mode = 2; InitFileKey(this); } };   /* a disc file location (FILEKEY) */
 struct Y;extern "C" void func_00184950(Y*,int) __asm__("_$_10CStreamBis");
 struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("func_001848A8");~Y(){func_00184950(this,2);}};
-struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
+struct K {uint sectorKey,sizeKey;char pad[0x34-8];uint sectorXor;int pad2;uint sizeXor;};   /* a disc file entry: obfuscated sector / size */
 extern "C" {
 int sprintf(char *buf, const char *fmt, ...);
-int McOpen(void *p, char *name, int mode, int *ph);
+int McOpen(void *saveManager, char *path, int mode, int *fd);
 void *PvAllocSlot__FP8ALLOCREQ(REQUEST *pmsg);
 int func_00184D60(Y *py, X *px);
-int McWrite(void *p, int h, char *buf, int n, int *pn);
+int McWrite(void *saveManager, int fd, char *buf, int size, int *written);
 int CbRead__18CBinaryInputStreamiPv(Y *py, int cb, char *buf);
 void CStreamBis_Close(Y *py);
-int McClose(void *p, int h);
-int load_file_from_disc(void *p, const char *a, K *k, const char *b);
+int McClose(void *saveManager, int fd);
+int load_file_from_disc(void *saveManager, const char *dir, K *entry, const char *name);
 }
-static inline int SetKey(X *px, K *k)
+static inline int SetKey(X *location, K *entry)
 {
-    if (!k)
+    if (!entry)
         return 0;
-    uint v;
-    uint k34 = k->x34;
-    uint k3C = k->x3C;
-    px->x8 = 2;
-    px->x0 = (k->x0 ^ k34) + 0xCA0;
-    v = k->x4 ^ k3C;
-    px->x4 = v;
-    return v != 0;
+    uint size;
+    uint sectorXor = entry->sectorXor;
+    uint sizeXor = entry->sizeXor;
+    location->mode = 2;
+    location->sector = (entry->sectorKey ^ sectorXor) + 0xCA0;
+    size = entry->sizeKey ^ sizeXor;
+    location->size = size;
+    return size != 0;
 }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char REQUEST_bytes_Offset[FIELD_OFFSET(REQUEST,bytes)==0?1:-1];
 typedef char REQUEST_alignment_Offset[FIELD_OFFSET(REQUEST,alignment)==4?1:-1];
-typedef char X_x0_Offset[FIELD_OFFSET(X,x0)==0?1:-1];
-typedef char X_x4_Offset[FIELD_OFFSET(X,x4)==4?1:-1];
-typedef char X_x8_Offset[FIELD_OFFSET(X,x8)==8?1:-1];
-typedef char K_x0_Offset[FIELD_OFFSET(K,x0)==0?1:-1];
-typedef char K_x4_Offset[FIELD_OFFSET(K,x4)==4?1:-1];
-typedef char K_x34_Offset[FIELD_OFFSET(K,x34)==52?1:-1];
-typedef char K_x3C_Offset[FIELD_OFFSET(K,x3C)==60?1:-1];
+typedef char X_sector_Offset[FIELD_OFFSET(X,sector)==0?1:-1];
+typedef char X_size_Offset[FIELD_OFFSET(X,size)==4?1:-1];
+typedef char X_mode_Offset[FIELD_OFFSET(X,mode)==8?1:-1];
+typedef char K_sectorKey_Offset[FIELD_OFFSET(K,sectorKey)==0?1:-1];
+typedef char K_sizeKey_Offset[FIELD_OFFSET(K,sizeKey)==4?1:-1];
+typedef char K_sectorXor_Offset[FIELD_OFFSET(K,sectorXor)==52?1:-1];
+typedef char K_sizeXor_Offset[FIELD_OFFSET(K,sizeXor)==60?1:-1];
 typedef char Y_flags_Offset[FIELD_OFFSET(Y,flags)==0?1:-1];
 typedef char Y_cursor_Offset[FIELD_OFFSET(Y,cursor)==4?1:-1];
 typedef char Y_left_Offset[FIELD_OFFSET(Y,left)==8?1:-1];
@@ -1521,33 +1526,33 @@ typedef char Size_7[sizeof(void*)==4?1:-1];
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Reads the disc file "<dir>/<name>" into memory and writes it to the card (sceMcOpen/Write/Close).
-int load_file_from_disc(void *p, const char *a, K *k, const char *b)
+int load_file_from_disc(void *saveManager, const char *dir, K *entry, const char *fileName)
 {
     STACKSCOPE frame;
-    char name[0x50];
+    char path[0x50];
     int ret;
-    sprintf(name, "%s/%s", a, b);
-    int h = -1;
-    ret = McOpen(p, name, 0x202, &h);
+    sprintf(path, "%s/%s", dir, fileName);
+    int fd = -1;
+    ret = McOpen(saveManager, path, 0x202, &fd);
     if (ret == 0) {
-        X x;
-        REQUEST msg;
-        REQUEST *pmsg = &msg;
-        pmsg->bytes = 0x403F;
-        pmsg->alignment = 0x10;
-        void *pv = PvAllocSlot__FP8ALLOCREQ(pmsg);
-        Y y(0x403F, pv, 0);
-        if (!SetKey(&x, k) || !func_00184D60(&y, &x))
+        X location;
+        REQUEST request;
+        REQUEST *prequest = &request;
+        prequest->bytes = 0x403F;
+        prequest->alignment = 0x10;
+        void *streamBuffer = PvAllocSlot__FP8ALLOCREQ(prequest);
+        Y stream(0x403F, streamBuffer, 0);
+        if (!SetKey(&location, entry) || !func_00184D60(&stream, &location))
             ret = 0x27;
         else {
             char buf[0x1000];
-            int n;
-            int out;
-            while ((n = CbRead__18CBinaryInputStreamiPv(&y, 0x1000, buf)) != 0) {
-                ret = McWrite(p, h, buf, n, &out);
+            int numRead;
+            int numWritten;
+            while ((numRead = CbRead__18CBinaryInputStreamiPv(&stream, 0x1000, buf)) != 0) {
+                ret = McWrite(saveManager, fd, buf, numRead, &numWritten);
                 if (ret)
                     goto done;
-                if (out != n) {
+                if (numWritten != numRead) {
                     ret = 7;
                     goto done;
                 }
@@ -1555,10 +1560,10 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
             ret = 0;
         }
     done:
-        CStreamBis_Close(&y);
-        int r2 = McClose(p, h);
+        CStreamBis_Close(&stream);
+        int closeResult = McClose(saveManager, fd);
         if (!ret)
-            ret = r2;
+            ret = closeResult;
     }
     return ret;
 }
@@ -1566,9 +1571,9 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
 #undef FIELD_OFFSET
 
 namespace M_WriteSaveSlotFile { extern "C" {
-struct B { int a[20]; };
-void BuildSaveFilePath(void *a, void *b, struct B *pb);
-void McWriteFile(void *a, struct B *pb, void *b, int n);
+struct B { int a[20]; };   /* the file path buffer (0x50 bytes) */
+void BuildSaveFilePath(void *saveManager, void *slot, struct B *path);
+void McWriteFile(void *saveManager, struct B *path, void *data, int size);
 /** @sly2-annot addr=0x1AC420
  * Purpose: BuildSaveFilePath + McWriteFile
  * Info: proposed name WriteSaveSlotFile (EXISTING); TU memcard
@@ -1581,19 +1586,19 @@ void McWriteFile(void *a, struct B *pb, void *b, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Writes one slot's file (BuildSaveFilePath + McWriteFile).
-void WriteSaveSlotFile(void *a, void *b)
+void WriteSaveSlotFile(void *saveManager, void *slot)
 {
-    struct B buf;
-    BuildSaveFilePath(a, b, &buf);
-    McWriteFile(a, &buf, b, 0x5408);
+    struct B path;
+    BuildSaveFilePath(saveManager, slot, &path);
+    McWriteFile(saveManager, &path, slot, SAVE_SLOT_FILE_SIZE);
 }
 } } // namespace M_WriteSaveSlotFile
 
 namespace M_WriteSaveSlotFileReset { extern "C" {
-struct B { char pad[0x5408]; char x5408[0x44]; int x544C; int x5450; };
+struct B { char pad[0x5408]; char infoName[0x44]; int infoSize; int infoAttributes; };   /* a slot; its SAVEINFO at +0x5408 */
 void ResetSaveGs(struct B *p, int n);
-void BuildSaveFilePath(void *s, void *b, char *name);
-int McWriteFile(void *s, char *name, void *b, int n);
+void BuildSaveFilePath(void *saveManager, void *slot, char *path);
+int McWriteFile(void *saveManager, char *path, void *data, int size);
 /** @sly2-annot addr=0x1AC468
  * Purpose: ResetGs then BuildSaveFilePath + McWriteFile
  * Info: proposed name WriteSaveSlotFileReset (EXISTING); TU memcard
@@ -1606,21 +1611,21 @@ int McWriteFile(void *s, char *name, void *b, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Resets the GS state, then writes one slot's file.
-int WriteSaveSlotFileReset(void *s, struct B *b)
+int WriteSaveSlotFileReset(void *saveManager, struct B *slot)
 {
-    char name[0x50];
-    ResetSaveGs(b, 0);
-    BuildSaveFilePath(s, b, name);
-    return McWriteFile(s, name, b, 0x5408);
+    char path[0x50];
+    ResetSaveGs(slot, 0);
+    BuildSaveFilePath(saveManager, slot, path);
+    return McWriteFile(saveManager, path, slot, SAVE_SLOT_FILE_SIZE);
 }
 } } // namespace M_WriteSaveSlotFileReset
 
 namespace M_func_001AC4C8 { extern "C" {
-struct B { char pad[0x5408]; char x5408[0x44]; int x544C; int x5450; };
-void func_002333B4(void *p, int c, int n) __asm__("memset");
-void BuildSaveFilePath(void *s, void *b, char *name);
-int ReadMcDirWrapper(void *s, char *name, void *p);
-int McReadFile(void *s, char *name, void *b, int n);
+struct B { char pad[0x5408]; char infoName[0x44]; int infoSize; int infoAttributes; };   /* a slot; its SAVEINFO at +0x5408 */
+void memset_(void *p, int c, int n) __asm__("memset");
+void BuildSaveFilePath(void *saveManager, void *slot, char *path);
+int ReadMcDirWrapper(void *saveManager, char *path, void *record);
+int McReadFile(void *saveManager, char *path, void *data, int size);
 /** @sly2-annot addr=0x1AC4C8
  * Purpose: For each slot: BuildSaveFilePath, read dir entry, McReadFile
  * Info: proposed name ReadSaveSlotHeaders (T2); TU memcard
@@ -1630,20 +1635,20 @@ int McReadFile(void *s, char *name, void *b, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Reads each slot's directory entry and file header from the card.
-int ReadSaveSlotHeaders(void *s, struct B *b)
+int ReadSaveSlotHeaders(void *saveManager, struct B *slot)
 {
-    char name[0x50];
+    char path[0x50];
     int r;
-    func_002333B4(b, 0, 0x5464);
-    BuildSaveFilePath(s, b, name);
-    r = ReadMcDirWrapper(s, name, b->x5408);
+    memset_(slot, 0, SAVE_SLOT_SIZE);
+    BuildSaveFilePath(saveManager, slot, path);
+    r = ReadMcDirWrapper(saveManager, path, slot->infoName);
     if (r)
         return r;
-    if ((b->x5450 & 0xD4) != 4)
+    if ((slot->infoAttributes & 0xD4) != 4)     /* a plain readable file (FillMcDirInfo bits) */
         return 0x14;
-    if (b->x544C != 0x5408)
+    if (slot->infoSize != SAVE_SLOT_FILE_SIZE)
         return 0x1C;
-    return McReadFile(s, name, b, 0x5408);
+    return McReadFile(saveManager, path, slot, SAVE_SLOT_FILE_SIZE);
 }
 } } // namespace M_func_001AC4C8
 
