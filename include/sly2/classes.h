@@ -1808,8 +1808,8 @@ typedef char assert_CID46_size[sizeof(CID46) == 0x120 ? 1 : -1];
 struct CID120 : LO
 {
     char pad50[0xD0 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0020AD38");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_0020AE18");   /* slot 15 */
     virtual void Clone(LO *ploBase) __asm__("func_0020ADE8");   /* slot 41 */
 };
@@ -1819,8 +1819,8 @@ typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
 struct CID125 : LO
 {
     char pad50[0x60 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid125ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0020B4A8");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid125ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_0020B500");   /* slot 15 */
     virtual void VUnk15() __asm__("func_0020B590");   /* slot 16 */
 };

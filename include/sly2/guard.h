@@ -103,10 +103,10 @@ struct STEPGUARD : public STEP
       int cBusy;            /* +0xFFC [R] busy count */
       undefined4 unk_0x1000[4];
     STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
+    virtual void RemoveHierarchy() __asm__("RemoveStepguardHierarchy");   /* slot 12 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepguardMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepguard");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("RemoveStepguardHierarchy");   /* slot 12 */
     virtual void VUnk14() __asm__("PostStepguardLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateStepguard");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderStepguardSelf");   /* slot 19 */
