@@ -4068,23 +4068,23 @@ static inline float Len(qword v)
 // Callback: speed-limited path length and time to a target along a Bezier path; returns min(1e6, (v0 + v1) * t / 2).
 float MeasureJumpAlongPath(struct P *p, float t)
 {
- U a,b,c,d,e;
- qword pos,vel;
- struct O *o;
- void *pv;
- float g,h;
- pv=p->p4;
- o=p->a->p;
- pos=func_001A62E8(o);
- vel=p->v10;
- func_00185D18(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
- EvaluateBezierPos(t,0.0f,1.0f,pos,vel,b.q,c.q,0,0,&d.q);
- g=Len(d.q);
- EvaluateBezierPos(t,t,1.0f,pos,vel,b.q,c.q,0,0,&e.q);
- g += Len(e.q);
- h = t*0.5f;
- g *= h;
- return g<1000000.0f?g:1000000.0f;
+    U a, b, c, d, e;
+    qword pos, vel;
+    struct O *o;
+    void *pv;
+    float g, h;
+    pv = p->p4;
+    o = p->a->p;
+    pos = func_001A62E8(o);
+    vel = p->v10;
+    func_00185D18(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
+    EvaluateBezierPos(t, 0.0f, 1.0f, pos, vel, b.q, c.q, 0, 0, &d.q);
+    g = Len(d.q);
+    EvaluateBezierPos(t, t, 1.0f, pos, vel, b.q, c.q, 0, 0, &e.q);
+    g += Len(e.q);
+    h = t * 0.5f;
+    g *= h;
+    return g < 1000000.0f ? g : 1000000.0f;
 }
 } } // namespace M_func_0019AC88
 
