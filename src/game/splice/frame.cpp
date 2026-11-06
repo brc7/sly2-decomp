@@ -19,8 +19,8 @@ struct CFrame;
 extern "C" {
 CVarb *PtNew__t6CGcObj1Z5CVarb();
 CFrame *PtNew__t6CGcObj1Z6CFrame();
-void FramePtr_Assign(void *pspframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");   /* the parent-pointer store (out of line, 0x256EE0) */
-void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
+void FramePtr_Assign(void *parentSlot, CFrame *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");   /* the parent-pointer store (out of line, 0x256EE0) */
+void CopyAb__FPvT0Ui(void *dst, void *source, unsigned int size);
 }
 
 
@@ -29,7 +29,7 @@ struct SPZ
 {
     CFrame *p;
     ~SPZ();
-    void operator=(CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+    void operator=(CFrame *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
 
 
@@ -37,16 +37,16 @@ struct SPZ
 struct SPW
 {
     CVarb *p;
-    void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
+    void Set(CVarb *binding) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
     SPW() {}
-    SPW(CVarb *pvarb) { Set(pvarb); }
+    SPW(CVarb *binding) { Set(binding); }
     SPW(const SPW &);
-    ~SPW() { CVarb *pvarb = p; if (pvarb && --pvarb->cref == 0) delete pvarb; }
+    ~SPW() { CVarb *binding = p; if (binding && --binding->cref == 0) delete binding; }
     CVarb *operator->() { return p; }
     operator CVarb *() { return p; }
 };
 
-extern "C" SPW CVarb_CloneTo(CVarb *src, void *a, void *b);
+extern "C" SPW CVarb_CloneTo(CVarb *source, void *a, void *b);
 
 class CFrame
 {
@@ -60,29 +60,29 @@ public:
 
     ~CFrame();
     CRef RefSetBinding(unsigned int sym, CRef *pref);
-    int FFindBinding(unsigned int sym, int fRecurse, CRef *pref);
-    CRef *PrefFindBinding(unsigned int sym, int fRecurse);
-    void SetPbinding(CVarb *pvarb) { pbindingFirst = pvarb; }
+    int FFindBinding(unsigned int sym, int recurse, CRef *pref);
+    CRef *PrefFindBinding(unsigned int sym, int recurse);
+    void SetPbinding(CVarb *binding) { pbindingFirst = binding; }
 };
 
 /* Owning pointer to a frame (inline release). */
 struct SPO
 {
     CFrame *p;
-    void Set(CFrame *pframe) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
+    void Set(CFrame *frame) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
     SPO() {}
-    SPO(CFrame *pframe) { Set(pframe); }
+    SPO(CFrame *frame) { Set(frame); }
     SPO(const SPO &);
-    ~SPO() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
+    ~SPO() { CFrame *frame = p; if (frame && --frame->cref == 0) delete frame; }
     CFrame *operator->() { return p; }
 };
 
 extern "C" {
-void CFrame_SetSingleParent(CFrame *pframe, CFrame *pframeParent);
-void CFrame_AddParent(CFrame *pframe, CFrame *pframeParent);
-void CFrame_RemoveParent(CFrame *pframe, CFrame *pframeParent);
-CRef CFrame_RefAddBinding(CFrame *pframe, int sym, CRef *pref);
-SPO CFrame_CloneTo(CFrame *src, void *a);
+void CFrame_SetSingleParent(CFrame *frame, CFrame *parentFrame);
+void CFrame_AddParent(CFrame *frame, CFrame *parentFrame);
+void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame);
+CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref);
+SPO CFrame_CloneTo(CFrame *source, void *a);
 }
 
 /** @sly2-annot addr=0x127B18
@@ -94,10 +94,10 @@ SPO CFrame_CloneTo(CFrame *src, void *a);
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
-void CFrame_SetSingleParent(CFrame *pframe, CFrame *pframeParent)
+void CFrame_SetSingleParent(CFrame *frame, CFrame *parentFrame)
 {
-    pframe->cframe = 1;
-    pframe->apframe[0] = pframeParent;
+    frame->cframe = 1;
+    frame->apframe[0] = parentFrame;
 }
 
 /** @sly2-annot addr=0x127B40
@@ -106,13 +106,13 @@ void CFrame_SetSingleParent(CFrame *pframe, CFrame *pframeParent)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
-void CFrame_AddParent(CFrame *pframe, CFrame *pframeParent)
+void CFrame_AddParent(CFrame *frame, CFrame *parentFrame)
 {
     /* Spelled as (index*4 + frame) + 0xC: `apframe[cframe++] = ...` computes (frame + 0xC) + index*4 (12 of 13
        instructions differ), and the same holds in CFrame_CloneTo. HYPOTHESIS: an inline accessor of the original. */
-    int c = pframe->cframe;
-    pframe->cframe = c + 1;
-    *(SPZ *)((int)(c * 4) + (int)pframe + 0xC) = pframeParent;
+    int c = frame->cframe;
+    frame->cframe = c + 1;
+    *(SPZ *)((int)(c * 4) + (int)frame + 0xC) = parentFrame;
 }
 
 /** @sly2-annot addr=0x127B70
@@ -122,16 +122,16 @@ void CFrame_AddParent(CFrame *pframe, CFrame *pframeParent)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
-void CFrame_RemoveParent(CFrame *pframe, CFrame *pframeParent)
+void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame)
 {
     int i;
-    for (i = 0; i < pframe->cframe; i++)
+    for (i = 0; i < frame->cframe; i++)
     {
-        if (pframe->apframe[i].p == pframeParent)
+        if (frame->apframe[i].p == parentFrame)
         {
-            pframe->apframe[i] = 0;
-            pframe->cframe--;
-            CopyAb__FPvT0Ui(pframe->apframe[i].p, pframe->apframe[i + 1].p, (pframe->cframe - i) * 4);
+            frame->apframe[i] = 0;
+            frame->cframe--;
+            CopyAb__FPvT0Ui(frame->apframe[i].p, frame->apframe[i + 1].p, (frame->cframe - i) * 4);
             return;
         }
     }
@@ -144,9 +144,9 @@ void CFrame_RemoveParent(CFrame *pframe, CFrame *pframeParent)
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
-CRef CFrame_RefAddBinding(CFrame *pframe, int sym, CRef *pref)
+CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref)
 {
-    CVarbPtr *ppbFirst = &pframe->pbindingFirst;
+    CVarbPtr *ppbFirst = &frame->pbindingFirst;
     SPW sp;
     sp.Set(PtNew__t6CGcObj1Z5CVarb());
     sp->sym = sym;
@@ -185,9 +185,9 @@ CRef CFrame::RefSetBinding(unsigned int sym, CRef *pref)
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
-int CFrame::FFindBinding(unsigned int sym, int fRecurse, CRef *pref)
+int CFrame::FFindBinding(unsigned int sym, int recurse, CRef *pref)
 {
-    CRef *prefFound = PrefFindBinding(sym, fRecurse);
+    CRef *prefFound = PrefFindBinding(sym, recurse);
     if (prefFound)
     {
         if (pref)
@@ -202,28 +202,28 @@ int CFrame::FFindBinding(unsigned int sym, int fRecurse, CRef *pref)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
-CRef *CFrame::PrefFindBinding(unsigned int sym, int fRecurse)
+CRef *CFrame::PrefFindBinding(unsigned int sym, int recurse)
 {
     CRef *pref = 0;
-    CVarb *pvarb;
+    CVarb *binding;
     int i;
     fBusy = 1;
-    for (pvarb = pbindingFirst.p; pvarb; pvarb = pvarb->pnext.p)
+    for (binding = pbindingFirst.p; binding; binding = binding->pnext.p)
     {
-        if ((unsigned int)pvarb->sym == sym)
+        if ((unsigned int)binding->sym == sym)
         {
-            pref = &pvarb->ref;
+            pref = &binding->ref;
             goto done;
         }
     }
-    if (!fRecurse)
+    if (!recurse)
         goto done;
     for (i = 0; i < cframe; i++)
     {
-        CFrame *pframe = apframe[i].p;
-        if (!pframe->fBusy)
+        CFrame *frame = apframe[i].p;
+        if (!frame->fBusy)
         {
-            pref = pframe->PrefFindBinding(sym, fRecurse);
+            pref = frame->PrefFindBinding(sym, recurse);
             if (pref)
                 goto done;
         }
@@ -240,16 +240,16 @@ done:
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
-SPO CFrame_CloneTo(CFrame *src, void *a)
+SPO CFrame_CloneTo(CFrame *source, void *a)
 {
     SPO sp;
     int i;
     sp.Set(PtNew__t6CGcObj1Z6CFrame());
-    sp->cframe = src->cframe;
-    for (i = 0; i < src->cframe; i++)
-        (*(SPZ *)((int)(i * 4) + (int)sp.p + 0xC)) = src->apframe[i].p;
-    if (src->pbindingFirst.p)
-        sp->SetPbinding(CVarb_CloneTo(src->pbindingFirst.p, sp.p, a).p);
+    sp->cframe = source->cframe;
+    for (i = 0; i < source->cframe; i++)
+        (*(SPZ *)((int)(i * 4) + (int)sp.p + 0xC)) = source->apframe[i].p;
+    if (source->pbindingFirst.p)
+        sp->SetPbinding(CVarb_CloneTo(source->pbindingFirst.p, sp.p, a).p);
     return SPO(sp.p);
 }
 

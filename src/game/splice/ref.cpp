@@ -98,17 +98,17 @@ struct SPW
 {
     CPair *p;
     SPW(const SPW &);
-    ~SPW() { CPair *ppair = p; if (ppair && --ppair->cref == 0) delete ppair; }
+    ~SPW() { CPair *pair = p; if (pair && --pair->cref == 0) delete pair; }
 };
 struct SPO
 {
     CProc *p;
     SPO(const SPO &);
-    ~SPO() { CProc *pproc = p; if (pproc && --pproc->m_cref == 0) delete pproc; }
+    ~SPO() { CProc *proc = p; if (proc && --proc->m_cref == 0) delete proc; }
 };
 extern "C" {
-SPW CPair_CloneTo(CPair *ppair, void *a, void *b);
-SPO CProc_CloneTo(CProc *pproc, void *a);
+SPW CPair_CloneTo(CPair *pair, void *a, void *b);
+SPO CProc_CloneTo(CProc *proc, void *a);
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
 
@@ -120,10 +120,10 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b);
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
 /* The copy constructor (CRef(const CRef &)). */
-extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *prefSrc)
+extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *source)
 {
-    pref->m_tagk = prefSrc->m_tagk;
-    pref->u.n = prefSrc->u.n;
+    pref->m_tagk = source->m_tagk;
+    pref->u.n = source->u.n;
     pref->Incref();
     return pref;
 }
@@ -137,7 +137,7 @@ extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *prefSrc)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *pvec)
+extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *vector)
 {
     VALVECTOR *p;
     pref->m_tagk = 0x1A;
@@ -145,7 +145,7 @@ extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *pvec)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALVECTOR *)pref->u.pv)->vec = *pvec;
+    ((VALVECTOR *)pref->u.pv)->vec = *vector;
     return pref;
 }
 
@@ -177,7 +177,7 @@ extern "C" CRef *CRef_ctor(CRef *pref, qword vec)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *pmat)
+extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *matrix)
 {
     VALMATRIX *p;
     pref->m_tagk = 0x1B;
@@ -185,7 +185,7 @@ extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *pmat)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALMATRIX *)pref->u.pv)->mat = *pmat;
+    ((VALMATRIX *)pref->u.pv)->mat = *matrix;
     return pref;
 }
 
@@ -197,7 +197,7 @@ extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *pmat)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *pclq)
+extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *clq)
 {
     VALCLQ *p;
     pref->m_tagk = 0x1C;
@@ -205,7 +205,7 @@ extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *pclq)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALCLQ *)pref->u.pv)->clq = *pclq;
+    ((VALCLQ *)pref->u.pv)->clq = *clq;
     return pref;
 }
 
@@ -217,7 +217,7 @@ extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *pclq)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *plm)
+extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *lm)
 {
     VALLM *p;
     pref->m_tagk = 0x1D;
@@ -225,7 +225,7 @@ extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *plm)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALLM *)pref->u.pv)->lm = *plm;
+    ((VALLM *)pref->u.pv)->lm = *lm;
     return pref;
 }
 
@@ -237,7 +237,7 @@ extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *plm)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *psmp)
+extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *smp)
 {
     VALSMP *p;
     pref->m_tagk = 0x1E;
@@ -245,7 +245,7 @@ extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *psmp)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALSMP *)pref->u.pv)->smp = *psmp;
+    ((VALSMP *)pref->u.pv)->smp = *smp;
     return pref;
 }
 
@@ -257,11 +257,11 @@ extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *psmp)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_CPair(CRef *pref, CPair *ppair)
+extern "C" CRef *CRef_ctor_CPair(CRef *pref, CPair *pair)
 {
-    pref->u.pv = ppair;
+    pref->u.pv = pair;
     pref->m_tagk = 0x1F;
-    ppair->cref++;
+    pair->cref++;
     return pref;
 }
 
@@ -273,11 +273,11 @@ extern "C" CRef *CRef_ctor_CPair(CRef *pref, CPair *ppair)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *pproc)
+extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *proc)
 {
-    pref->u.pv = pproc;
+    pref->u.pv = proc;
     pref->m_tagk = 0x20;
-    pproc->m_cref++;
+    proc->m_cref++;
     return pref;
 }
 
@@ -289,11 +289,11 @@ extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *pproc)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *pbasic)
+extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *object)
 {
-    if (pbasic)
-        pbasic->vt[1].pfn((char *)pbasic + pbasic->vt[1].d);
-    pref->u.pv = pbasic;
+    if (object)
+        object->vt[1].pfn((char *)object + object->vt[1].d);
+    pref->u.pv = object;
     pref->m_tagk = 0x21;
     return pref;
 }
@@ -396,7 +396,7 @@ CRef &CRef::operator=(const CRef &r)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetVector(CRef *pref, const qword *pvec)
+extern "C" CRef *CRef_SetVector(CRef *pref, const qword *vector)
 {
     VALVECTOR *p;
     pref->Decref();
@@ -405,7 +405,7 @@ extern "C" CRef *CRef_SetVector(CRef *pref, const qword *pvec)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALVECTOR *)pref->u.pv)->vec = *pvec;
+    ((VALVECTOR *)pref->u.pv)->vec = *vector;
     return pref;
 }
 
@@ -436,7 +436,7 @@ extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *pmat)
+extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
 {
     VALMATRIX *p;
     pref->Decref();
@@ -445,7 +445,7 @@ extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *pmat)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALMATRIX *)pref->u.pv)->mat = *pmat;
+    ((VALMATRIX *)pref->u.pv)->mat = *matrix;
     return pref;
 }
 
@@ -456,7 +456,7 @@ extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *pmat)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetClq(CRef *pref, const qword *pclq)
+extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
 {
     VALCLQ *p;
     pref->Decref();
@@ -465,7 +465,7 @@ extern "C" CRef *CRef_SetClq(CRef *pref, const qword *pclq)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALCLQ *)pref->u.pv)->clq = *pclq;
+    ((VALCLQ *)pref->u.pv)->clq = *clq;
     return pref;
 }
 
@@ -475,7 +475,7 @@ extern "C" CRef *CRef_SetClq(CRef *pref, const qword *pclq)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *plm)
+extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
 {
     VALLM *p;
     pref->Decref();
@@ -484,7 +484,7 @@ extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *plm)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALLM *)pref->u.pv)->lm = *plm;
+    ((VALLM *)pref->u.pv)->lm = *lm;
     return pref;
 }
 
@@ -494,7 +494,7 @@ extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *plm)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *psmp)
+extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
 {
     VALSMP *p;
     pref->Decref();
@@ -503,7 +503,7 @@ extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *psmp)
     p->cref = 0;
     pref->u.pv = p;
     p->cref++;
-    ((VALSMP *)pref->u.pv)->smp = *psmp;
+    ((VALSMP *)pref->u.pv)->smp = *smp;
     return pref;
 }
 
@@ -514,11 +514,11 @@ extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *psmp)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetPair(CRef *pref, CPair *ppair)
+extern "C" CRef *CRef_SetPair(CRef *pref, CPair *pair)
 {
-    ppair->cref++;
+    pair->cref++;
     pref->Decref();
-    pref->u.pv = ppair;
+    pref->u.pv = pair;
     pref->m_tagk = 0x1F;
     return pref;
 }
@@ -530,11 +530,11 @@ extern "C" CRef *CRef_SetPair(CRef *pref, CPair *ppair)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetProc(CRef *pref, CProc *pproc)
+extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
 {
-    pproc->m_cref++;
+    proc->m_cref++;
     pref->Decref();
-    pref->u.pv = pproc;
+    pref->u.pv = proc;
     pref->m_tagk = 0x20;
     return pref;
 }
@@ -545,12 +545,12 @@ extern "C" CRef *CRef_SetProc(CRef *pref, CProc *pproc)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *pbasic)
+extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *object)
 {
-    if (pbasic)
-        pbasic->vt[1].pfn((char *)pbasic + pbasic->vt[1].d);
+    if (object)
+        object->vt[1].pfn((char *)object + object->vt[1].d);
     pref->Decref();
-    pref->u.pv = pbasic;
+    pref->u.pv = object;
     pref->m_tagk = 0x21;
     return pref;
 }
@@ -562,11 +562,11 @@ extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *pbasic)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_SetMethod(CRef *pref, CMethod *pmethod)
+extern "C" CRef *CRef_SetMethod(CRef *pref, CMethod *method)
 {
-    pmethod->cref++;
+    method->cref++;
     pref->Decref();
-    pref->u.pv = pmethod;
+    pref->u.pv = method;
     pref->m_tagk = 0x22;
     return pref;
 }
@@ -637,15 +637,15 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *prefSrc)
+extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *source)
 {
-    if (prefSrc->m_tagk == 0x15)
+    if (source->m_tagk == 0x15)
     {
-        __4CRefRC4CRef(pref, prefSrc);
+        __4CRefRC4CRef(pref, source);
     }
     else
     {
-        float g = prefSrc->u.g;
+        float g = source->u.g;
         pref->m_tagk = 0x15;
         pref->u.n = (int)g;
     }
@@ -658,15 +658,15 @@ extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *prefSrc)
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-extern "C" CRef *CRef_RefCoerceF32(CRef *pref, CRef *prefSrc)
+extern "C" CRef *CRef_RefCoerceF32(CRef *pref, CRef *source)
 {
-    if (prefSrc->m_tagk == 0x16)
+    if (source->m_tagk == 0x16)
     {
-        __4CRefRC4CRef(pref, prefSrc);
+        __4CRefRC4CRef(pref, source);
     }
     else
     {
-        pref->u.g = (float)prefSrc->u.n;
+        pref->u.g = (float)source->u.n;
         pref->m_tagk = 0x16;
     }
     return pref;
@@ -698,9 +698,9 @@ void CRef::Incref()
         break;
     case 0x21:
     {
-        BASICOBJ *pbasic = (BASICOBJ *)u.pv;
-        if (pbasic)
-            pbasic->vt[1].pfn((char *)pbasic + pbasic->vt[1].d);
+        BASICOBJ *object = (BASICOBJ *)u.pv;
+        if (object)
+            object->vt[1].pfn((char *)object + object->vt[1].d);
         break;
     }
     case 0x1F:

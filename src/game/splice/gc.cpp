@@ -126,7 +126,7 @@ extern "C" {
 void STACKSCOPE_ctor(STACKSCOPE *pss);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pss, int grf) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
-void func_001285D8(CGc *pgc, CRef *pref);
+void CGc_MarkRootRef(CGc *pgc, CRef *pref);
 void CGc_UpdateRecyclable();
 }
 
@@ -266,7 +266,7 @@ void CGc::MarkLiveObjects()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
  * @end-sly2-annot */
-extern "C" void func_001285D8(CGc *pgc, CRef *pref)
+extern "C" void CGc_MarkRootRef(CGc *pgc, CRef *pref)
 {
     switch (pref->m_tagk)
     {
@@ -358,7 +358,7 @@ void CGc::Collect()
         for (pb = penv->pbFirst; pb; pb = pb->pbNext)
         {
             pb->m_fMark = g_gc.fMark;
-            func_001285D8(this, &pb->ref);
+            CGc_MarkRootRef(this, &pb->ref);
         }
         {
             CSidebag *penvNext = CGcObj<CSidebag>::PtFromHandle(penv->m_iNext, penv->m_ipageNext);

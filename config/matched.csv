@@ -1226,7 +1226,7 @@ RefEvalSymbol__FP5CPairP6CFrame,0x126438,21,match,src/game/splice/eval.cpp
 RefEvalSet__FP5CPairP6CFrame,0x126490,44,match,src/game/splice/eval.cpp
 RefEvalDefine__FP5CPairP6CFrame,0x126540,44,match,src/game/splice/eval.cpp
 RefEvalAssert__FP5CPairP6CFrame,0x1265F0,54,match,src/game/splice/eval.cpp
-func_001266C8,0x1266C8,36,match,src/game/splice/eval.cpp
+EvalSpecialForm6,0x1266C8,36,match,src/game/splice/eval.cpp
 RefEvalIf__FP5CPairP6CFrame,0x126758,58,match,src/game/splice/eval.cpp
 RefEvalOr__FP5CPairP6CFrame,0x126840,57,match,src/game/splice/eval.cpp
 RefEvalAnd__FP5CPairP6CFrame,0x126928,59,match,src/game/splice/eval.cpp
@@ -1254,7 +1254,7 @@ _GLOBAL_$I$g_gc,0x128118,8,match,src/game/splice/frame.cpp
 CGc_ctor,0x128138,3,match,src/game/splice/gc.cpp
 CGc_UpdateRecyclable,0x128148,25,match,src/game/splice/gc.cpp
 MarkLiveObjects__3CGc,0x1281B0,266,match,src/game/splice/gc.cpp
-func_001285D8,0x1285D8,66,match,src/game/splice/gc.cpp
+CGc_MarkRootRef,0x1285D8,66,match,src/game/splice/gc.cpp
 Collect__3CGc,0x1286E0,200,match,src/game/splice/gc.cpp
 StaticInit_gc,0x128A00,80,match,src/game/splice/gc.cpp
 func_00128B40,0x128B40,8,match,src/game/splice/gc.cpp
