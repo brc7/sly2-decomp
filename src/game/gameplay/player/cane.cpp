@@ -113,7 +113,7 @@ void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int IsmsFindSmOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void func_00131A90(ASEGA*,float);
 }
-static __inline__ void Emit(JT*p,int id){if(id!=-1){EFFECT*effect=PsndStartSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,func_001A62E8(p));}}
+static __inline__ void Emit(JT*jt,int id){if(id!=-1){EFFECT*effect=PsndStartSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,func_001A62E8(jt));}}
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static __inline__ void Link(NODE*p,NODE*other){VE&v=p->vt[38];((void(*)(void*,NODE*))v.fn)((char*)p+v.delta,other);}
 static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((char*)p+v.delta);}
@@ -160,37 +160,37 @@ extern U D_002BF4E0;
 // Sets Sly's cane state (JT+0x18D8, jtcs): leaves the old one (removes the sweep effect unless continuing, stops the
 // reach tracker), resolves the generic sweep state 3 to a fore/back sweep (4/5 or 6/7), and enters the new one
 // (blend clip, contact deadline, sounds). -1 ends any cane action.
-extern "C" void SetJtCaneState__FP2JTi(JT*p,int state){
- if(p->state==state)return;
+extern "C" void SetJtCaneState__FP2JTi(JT*jt,int state){
+ if(jt->state==state)return;
  int compatible=0;
- if(state!=-1&&p->state!=-1)compatible=state==D_002BF448[p->state];
- if(!compatible)HideSoPart(p,p->action);
+ if(state!=-1&&jt->state!=-1)compatible=state==D_002BF448[jt->state];
+ if(!compatible)HideSoPart(jt,jt->action);
  int exitEffect=-1;
- switch(p->state){case 1:exitEffect=p->target->exitEffect;func_001F4BF8(p);break;case 2:func_001F4BF8(p);break;case 0:SetJtHandsTarget(p->track,-1);break;case -1:break;}
- Emit(p,exitEffect);
+ switch(jt->state){case 1:exitEffect=jt->target->exitEffect;func_001F4BF8(jt);break;case 2:func_001F4BF8(jt);break;case 0:SetJtHandsTarget(jt->track,-1);break;case -1:break;}
+ Emit(jt,exitEffect);
  register float start __asm__("$f22")=0.0f;
  ASEG*clip=0;
  register float rate __asm__("$f21")=1.0f,stopDelay __asm__("$f20")=0.0f;
  int enterEffect=-1;register float sharedDeadline __asm__("$f0"),sharedDelay __asm__("$f1");register int sharedMode __asm__("$2");register char*clockHigh __asm__("$3");
  switch(state){
- case -1:p->surface=0;break;
- case 1:case 2:func_001F4BF8(p);break;
- case 10:func_001F4BF8(p);clip=p->alternate10;break;
- case 11:func_001F4BF8(p);clip=p->alternate11;break;
- case 0:{SetJtHandsTarget(p->track,0);clip=p->idle;rate=0.0f;
+ case -1:jt->surface=0;break;
+ case 1:case 2:func_001F4BF8(jt);break;
+ case 10:func_001F4BF8(jt);clip=jt->alternate10;break;
+ case 11:func_001F4BF8(jt);clip=jt->alternate11;break;
+ case 0:{SetJtHandsTarget(jt->track,0);clip=jt->idle;rate=0.0f;
   register JT*receiver __asm__("$4");register float half __asm__("$f1"),duration __asm__("$f0");
-  __asm__("daddu %0,%3,$zero\n\t.set noat\n\tlui $1,0x3f00\n\tmtc1 $1,%1\n\t.set at\n\taddiu %2,$zero,15":"=r"(receiver),"=f"(half),"=r"(enterEffect):"r"(p):"$1");
+  __asm__("daddu %0,%3,$zero\n\t.set noat\n\tlui $1,0x3f00\n\tmtc1 $1,%1\n\t.set at\n\taddiu %2,$zero,15":"=r"(receiver),"=f"(half),"=r"(enterEffect):"r"(jt):"$1");
   __asm__("lwc1 %0,%1":"=f"(duration):"m"(clip->duration));start=duration*half;
   func_001F4BF8(receiver);sharedDelay=0.1f;sharedDeadline=D_002DDED0.t;goto deadline_add;}
 
  case 3:{
   WORK work;
-  register qword first __asm__("$2")=ConvertAloPos(0,p,func_001A62E8(p->pointObject));
+  register qword first __asm__("$2")=ConvertAloPos(0,jt,func_001A62E8(jt->pointObject));
   register POINT*point __asm__("$3");register void*world __asm__("$4");register JT*receiver __asm__("$5");
-  __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero":"=r"(point),"=r"(world),"=r"(receiver),"=m"(work.first.q):"m"(p->point),"r"(first),"r"(p));
+  __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero":"=r"(point),"=r"(world),"=r"(receiver),"=m"(work.first.q):"m"(jt->point),"r"(first),"r"(jt));
   register qword second __asm__("$2")=ConvertAloPos(world,receiver,point->position.q);
   register qword average __asm__("vf2");register int mode __asm__("$3");
-  __asm__(".set noat\n\tlui $1,0x3f00\n\tmtc1 $1,$f0\n\t.set at\n\tqmtc2.ni %3,$vf4\n\tlqc2 $vf3,%4\n\tmfc1 $3,$f0\n\tqmtc2.ni $3,$vf1\n\tlw %1,%5\n\tvmulax.xyzw ACC,$vf3,$vf1x\n\tvmaddx.xyzw %0,$vf4,$vf1x\n\tsqc2 $vf1,%2":"=j"(average),"=r"(mode),"=m"(work.half.q):"r"(second),"m"(work.first.q),"m"(p->mode):"$1","$f0","vf1","vf3","vf4");
+  __asm__(".set noat\n\tlui $1,0x3f00\n\tmtc1 $1,$f0\n\t.set at\n\tqmtc2.ni %3,$vf4\n\tlqc2 $vf3,%4\n\tmfc1 $3,$f0\n\tqmtc2.ni $3,$vf1\n\tlw %1,%5\n\tvmulax.xyzw ACC,$vf3,$vf1x\n\tvmaddx.xyzw %0,$vf4,$vf1x\n\tsqc2 $vf1,%2":"=j"(average),"=r"(mode),"=m"(work.half.q):"r"(second),"m"(work.first.q),"m"(jt->mode):"$1","$f0","vf1","vf3","vf4");
   work.average.q=average;
   if(!mode){
    if(D_002E1E44){state=6;goto enter6;}
@@ -203,132 +203,132 @@ extern "C" void SetJtCaneState__FP2JTi(JT*p,int state){
   if(work.average.f[1]<0.0f){state=4;goto enter4;}
   state=5;goto enter5;
  }
- case 4:enter4:{ChooseJtSweepTarget(p,&p->blend4,p->blend4.clip);enterEffect=11;
+ case 4:enter4:{ChooseJtSweepTarget(jt,&jt->blend4,jt->blend4.clip);enterEffect=11;
   register float deadline __asm__("$f0"),delay __asm__("$f1");
   __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 %0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay):"i"(&D_002BF434),"i"(&D_002DDED0),"i"(&D_002BF430):"$2","$3","$4","memory");
-  __asm__("add.s %0,%0,%2\n\tlw %1,%3":"+f"(deadline),"=r"(clip):"f"(delay),"m"(p->blend4.clip));
-  p->deadline=deadline;break;}
- case 5:enter5:{ChooseJtSweepTarget(p,&p->blend5,p->blend5.clip);enterEffect=11;
+  __asm__("add.s %0,%0,%2\n\tlw %1,%3":"+f"(deadline),"=r"(clip):"f"(delay),"m"(jt->blend4.clip));
+  jt->deadline=deadline;break;}
+ case 5:enter5:{ChooseJtSweepTarget(jt,&jt->blend5,jt->blend5.clip);enterEffect=11;
   register float deadline __asm__("$f0"),delay __asm__("$f1");
   __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 %0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay):"i"(&D_002BF438),"i"(&D_002DDED0),"i"(&D_002BF430):"$2","$3","$4","memory");
-  __asm__("add.s %0,%0,%2\n\tlw %1,%3":"+f"(deadline),"=r"(clip):"f"(delay),"m"(p->blend5.clip));
-  p->deadline=deadline;break;}
- case 6:enter6:{ChooseJtSweepTarget(p,&p->blend6,p->blend6.clip);enterEffect=11;stopDelay=D_002BF430;clip=p->blend6.clip;
-  int found=IsmsFindSmOptional__FP2SM3OID(p->sm,0x17B);
+  __asm__("add.s %0,%0,%2\n\tlw %1,%3":"+f"(deadline),"=r"(clip):"f"(delay),"m"(jt->blend5.clip));
+  jt->deadline=deadline;break;}
+ case 6:enter6:{ChooseJtSweepTarget(jt,&jt->blend6,jt->blend6.clip);enterEffect=11;stopDelay=D_002BF430;clip=jt->blend6.clip;
+  int found=IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B);
   /* Native V1 is rebuilt after the cancellation callback. */
   clockHigh=(char*)0x002e0000;
-  if(found>=0){SnapSma(p->component,0x17B);clockHigh=(char*)0x002e0000;}
+  if(found>=0){SnapSma(jt->component,0x17B);clockHigh=(char*)0x002e0000;}
   sharedDelay=D_002BF434;
   goto deadline_clock_read;
  }
- case 7:enter7:{ChooseJtSweepTarget(p,&p->blend7,p->blend7.clip);enterEffect=11;stopDelay=D_002BF430;clip=p->blend7.clip;
-  int found=IsmsFindSmOptional__FP2SM3OID(p->sm,0x17B);
+ case 7:enter7:{ChooseJtSweepTarget(jt,&jt->blend7,jt->blend7.clip);enterEffect=11;stopDelay=D_002BF430;clip=jt->blend7.clip;
+  int found=IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B);
   /* Native V1 is rebuilt after the cancellation callback. */
   clockHigh=(char*)0x002e0000;
-  if(found>=0){SnapSma(p->component,0x17B);clockHigh=(char*)0x002e0000;}
+  if(found>=0){SnapSma(jt->component,0x17B);clockHigh=(char*)0x002e0000;}
   sharedDelay=D_002BF438;
  }
  deadline_clock_read:
  __asm__ __volatile__("lwc1 %0,%%lo(%2)(%1)":"=f"(sharedDeadline):"r"(clockHigh),"i"(&D_002DDED0):"memory");
- deadline_add:p->deadline=sharedDeadline+sharedDelay;break;
- case 8:clip=p->clip8;break;
- case 9:clip=p->clip9;break;
+ deadline_add:jt->deadline=sharedDeadline+sharedDelay;break;
+ case 8:clip=jt->clip8;break;
+ case 9:clip=jt->clip9;break;
  case 12:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$5");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$2","$3","$4","memory");
   sharedDeadline=deadline;
-  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2":"+f"(sharedDeadline),"=r"(sharedMode),"=m"(p->attack):"f"(delay),"m"(p->mode),"r"(attack):"memory");
-  clip=p->clip12;
+  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2":"+f"(sharedDeadline),"=r"(sharedMode),"=m"(jt->attack):"f"(delay),"m"(jt->mode),"r"(attack):"memory");
+  clip=jt->clip12;
   goto attack_ready;
  }
  case 13:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$5");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$2","$3","$4","memory");
   sharedDeadline=deadline;
-  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2":"+f"(sharedDeadline),"=r"(sharedMode),"=m"(p->attack):"f"(delay),"m"(p->mode),"r"(attack):"memory");
-  clip=p->clip13;
+  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2":"+f"(sharedDeadline),"=r"(sharedMode),"=m"(jt->attack):"f"(delay),"m"(jt->mode),"r"(attack):"memory");
+  clip=jt->clip13;
  }
- attack_ready:p->deadline=sharedDeadline;
- if(!sharedMode&&IsmsFindSmOptional__FP2SM3OID(p->sm,0x17B)>=0)SnapSma(p->component,0x17B);break;
+ attack_ready:jt->deadline=sharedDeadline;
+ if(!sharedMode&&IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B)>=0)SnapSma(jt->component,0x17B);break;
  case 14:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip14):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip14):"memory");
+  jt->deadline=deadline;
   break;}
  case 15:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip15):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip15):"memory");
+  jt->deadline=deadline;
   break;}
  case 16:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip16):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip16):"memory");
+  jt->deadline=deadline;
   break;}
  case 17:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip17):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip17):"memory");
+  jt->deadline=deadline;
   break;}
  case 18:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip18):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip18):"memory");
+  jt->deadline=deadline;
   break;}
  case 19:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip19):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip19):"memory");
+  jt->deadline=deadline;
   break;}
  case 20:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip20):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip20):"memory");
+  jt->deadline=deadline;
   break;}
  case 21:{
   register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
   __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(p->attack):"f"(delay),"r"(attack),"m"(p->clip21):"memory");
-  p->deadline=deadline;
+  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip21):"memory");
+  jt->deadline=deadline;
   break;}
- case 22:case 23:{clip=state==22?p->clip22:p->clip23;
+ case 22:case 23:{clip=state==22?jt->clip22:jt->clip23;
   register float deadline __asm__("$f0"),delay __asm__("$f1");
   __asm__ __volatile__("lui $2,%%hi(%3)\n\tlui $4,%%hi(%4)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 %0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$2","$3","$4","memory");
   register int mode __asm__("$2");
-  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw $zero,%2":"+f"(deadline),"=r"(mode),"=m"(p->attack):"f"(delay),"m"(p->mode):"memory");
-  p->deadline=deadline;
-  if(!mode&&IsmsFindSmOptional__FP2SM3OID(p->sm,0x17B)>=0)SnapSma(p->component,0x17B);
+  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw $zero,%2":"+f"(deadline),"=r"(mode),"=m"(jt->attack):"f"(delay),"m"(jt->mode):"memory");
+  jt->deadline=deadline;
+  if(!mode&&IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B)>=0)SnapSma(jt->component,0x17B);
   break;}
  }
- if(compatible){register ASEGA*current __asm__("$2")=p->current;enterEffect=-1;
+ if(compatible){register ASEGA*current __asm__("$2")=jt->current;enterEffect=-1;
   __asm__("lwc1 $f1,%2\n\tlwc1 $f2,%3\n\tlwc1 $f0,%4\n\tlwc1 %0,%5\n\tdiv.s %0,%0,$f2\n\tmin.s %1,$f0,$f1":"=f"(rate),"=f"(start):"m"(clip->duration),"m"(current->rate),"m"(current->localTime),"m"(current->elapsed):"$f0","$f1","$f2");
  }
- else p->finished=0;
+ else jt->finished=0;
  register int previousState __asm__("$3");
- __asm__("lw %0,%1":"=r"(previousState):"m"(p->state));
+ __asm__("lw %0,%1":"=r"(previousState):"m"(jt->state));
  int wasAlternate=previousState==11||previousState==2;
  int nowAlternate=state==11||state==2;
  if(wasAlternate!=nowAlternate){
-  if(state==11||state==2){Active(p->alternateNode);Link(p->alternateNode,p->normalNode);Inactive(p->normalNode);}
-  else{Active(p->normalNode);Link(p->normalNode,p->alternateNode);Inactive(p->alternateNode);}
+  if(state==11||state==2){Active(jt->alternateNode);Link(jt->alternateNode,jt->normalNode);Inactive(jt->normalNode);}
+  else{Active(jt->normalNode);Link(jt->normalNode,jt->alternateNode);Inactive(jt->alternateNode);}
  }
- p->state=state;
+ jt->state=state;
  register ASEG*clipArgument __asm__("$4");register float startArgument __asm__("$f12"),rateArgument __asm__("$f13"),now __asm__("$f0");
  __asm__ __volatile__("lui $2,%%hi(%4)\n\tdaddu %0,%5,$zero\n\tmov.s %1,%6\n\tlwc1 %3,%%lo(%4)($2)\n\tmov.s %2,%7":"=r"(clipArgument),"=f"(startArgument),"=f"(rateArgument),"=f"(now):"i"(&D_002DDED0),"r"(clip),"f"(start),"f"(rate):"$2","memory");
- p->reset=0;p->stateTime=now;
- ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clipArgument,p,startArgument,rateArgument,1,&p->current);
+ jt->reset=0;jt->stateTime=now;
+ ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clipArgument,jt,startArgument,rateArgument,1,&jt->current);
  if(stopDelay!=0.0f){register ASEGA*current __asm__("$4");register float stopTime __asm__("$f12");
-  __asm__ __volatile__("lui $3,%%hi(%2)\n\tlw %0,%3\n\tlwc1 %1,%%lo(%2)($3)":"=r"(current),"=f"(stopTime):"i"(&D_002DDED0),"m"(p->current):"$3","memory");
+  __asm__ __volatile__("lui $3,%%hi(%2)\n\tlw %0,%3\n\tlwc1 %1,%%lo(%2)($3)":"=r"(current),"=f"(stopTime):"i"(&D_002DDED0),"m"(jt->current):"$3","memory");
   func_00131A90(current,stopTime+stopDelay);
  }
- Emit(p,enterEffect);
+ Emit(jt,enterEffect);
 }
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
@@ -407,10 +407,10 @@ typedef char layout_WORK_first[((unsigned long)&((WORK*)0)->first==0x20)?1:-1];
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
 // In the reach cane state (0) runs the hand reach tracker (UpdateJtHands on JT+0x17D0).
-extern "C" void UpdateJtCane__FP2JT(JT *p)
+extern "C" void UpdateJtCane__FP2JT(JT *jt)
 {
-    if (p->state == 0)
-        UpdateJtHands(p->track);
+    if (jt->state == 0)
+        UpdateJtHands(jt->track);
 }
 
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
@@ -424,14 +424,14 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
  * @end-sly2-annot */
 // True if the target lies behind Sly: the midpoint of the hook child and the right-hand transform has y > 0 in Sly's
 // local frame, so a back sweep is used.
-extern "C" int ShouldJtSweepBack(JT *p)
+extern "C" int ShouldJtSweepBack(JT *jt)
 {
     union { qword q; float f[4]; } u;
     qword a, b, s, d;
     float t;
     int f;
-    a = ConvertAloPos(0, p, func_001A62E8(p->pointObject));
-    b = ConvertAloPos(0, p, p->point->position.q);
+    a = ConvertAloPos(0, jt, func_001A62E8(jt->pointObject));
+    b = ConvertAloPos(0, jt, jt->point->position.q);
     t = 0.5f;
     s = VuFromFloat<qword>(t);
     u.q = s;
@@ -453,14 +453,14 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "
  * @end-sly2-annot */
 // Picks the cane attack state: takedown (jts 0x10) if a nearby target (within D_002BF4AC) has its takedown behaviour
 // (0xB1) pointing at Sly; from a sidestep, 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE, or 0xC on the ground.
-extern "C" int ChooseJtAttackCaneState(JT *p)
+extern "C" int ChooseJtAttackCaneState(JT *jt)
 {
     int n;
-    if (p->p10dc) {
+    if (jt->p10dc) {
         qword d, l;
         float g;
         int f;
-        d = VuSub(func_001A62E8(p->p10dc), func_001A62E8(p));
+        d = VuSub(func_001A62E8(jt->p10dc), func_001A62E8(jt));
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(l) : "j"(d));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
         g = VuToFloat(l);
@@ -468,22 +468,22 @@ extern "C" int ChooseJtAttackCaneState(JT *p)
         if (g < D_002BF4AC)
             f = FCheckLm__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
         if (f) {
-            BHV *pt = PbhvFindBhvstk(p->p10dc + 0x26C, 0xB1);
-            if (pt && pt->p5C == p) {
+            BHV *pt = PbhvFindBhvstk(jt->p10dc + 0x26C, 0xB1);
+            if (pt && pt->p5C == jt) {
                 int k = pt->n50;
                 if (k < 2) {
                     if (k >= 0) {
-                        SetJtState__FP2JT3JTS4JTBS(p, 0x10, -1);
+                        SetJtState__FP2JT3JTS4JTBS(jt, 0x10, -1);
                         return -1;
                     }
                 }
             }
         }
     }
-    if (p->jtbs == 5) {
-        float *pa = ((float *(*)(void *))p->vt[31].fn)((char *)p + p->vt[31].delta);
-        float *pb = ((float *(*)(void *))p->vt[31].fn)((char *)p + p->vt[31].delta);
-        float d = RadNormalize__Ff(p->pt->g18 - atan2f(pa[1], pb[0]));
+    if (jt->jtbs == 5) {
+        float *pa = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
+        float *pb = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
+        float d = RadNormalize__Ff(jt->pt->g18 - atan2f(pa[1], pb[0]));
         float ad = __builtin_fabsf(d);
         if (ad < 0.7853982f)
             n = 0xE;
@@ -495,17 +495,17 @@ extern "C" int ChooseJtAttackCaneState(JT *p)
             n = 0x14;
     } else {
         n = 0xE;
-        if (p->mode == 0)
+        if (jt->mode == 0)
             n = 0xC;
     }
-    switch (p->state) {
+    switch (jt->state) {
     case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
         n++;
         break;
     case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
         break;
     default:
-        if (ShouldJtSweepBack(p))
+        if (ShouldJtSweepBack(jt))
             n++;
         break;
     }
@@ -519,14 +519,14 @@ extern "C" int ChooseJtAttackCaneState(JT *p)
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
 // The next sweep cane state: alternates 0x16 and 0x17, otherwise 0x17 for a back sweep (ShouldJtSweepBack) or 0x16.
-extern "C" int ChooseJtSweepCaneState(JT *p)
+extern "C" int ChooseJtSweepCaneState(JT *jt)
 {
     int r;
-    switch (p->state) {
+    switch (jt->state) {
     case 0x16: r = 0x17; break;
     case 0x17: r = 0x16; break;
     default:
-        r = ShouldJtSweepBack(p) ? 0x17 : 0x16;
+        r = ShouldJtSweepBack(jt) ? 0x17 : 0x16;
         break;
     }
     return r;
@@ -543,29 +543,29 @@ extern "C" int ChooseJtSweepCaneState(JT *p)
  * @end-sly2-annot */
 // Per-frame cane input: per-state allow lists (in hang states square (0x80) launches a jump through SetJtAirJump;
 // sidestep sub-cases), then a buffered attack button (0x10/0x80) within 0.35 s restarts the swing.
-extern "C" void UpdateJtActiveCane__FP2JT(JT *p)
+extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
 {
     int f;
-    switch (p->state) {
+    switch (jt->state) {
     case 12 ... 21:
-        if (!(p->pt->fl & 0x80)) p->attack = 0;
+        if (!(jt->pt->fl & 0x80)) jt->attack = 0;
         break;
     }
     f = 0;
-    switch (p->mode) {
+    switch (jt->mode) {
     case 3: case 21: case 22:
-        if (GrfConsumePressed__5POCTLUif(p->pt, 0x80, 0.0f))
-            SetJtAirJump(p->x2c0, 0, 0, 0);
+        if (GrfConsumePressed__5POCTLUif(jt->pt, 0x80, 0.0f))
+            SetJtAirJump(jt->x2c0, 0, 0, 0);
         break;
     case 7:
-        if (p->x4c8 < 5) f = p->x4c8 >= 3;
+        if (jt->x4c8 < 5) f = jt->x4c8 >= 3;
         break;
     case 5:
-        switch (p->jtbs) {
+        switch (jt->jtbs) {
         case 6: case 7:
-            if (!(p->pt->fl & 0x80)) {
-                if (p->x18e8) SetJtState__FP2JT3JTS4JTBS(p, 5, 8);
-                else SetJtState__FP2JT3JTS4JTBS(p, 5, 4);
+            if (!(jt->pt->fl & 0x80)) {
+                if (jt->x18e8) SetJtState__FP2JT3JTS4JTBS(jt, 5, 8);
+                else SetJtState__FP2JT3JTS4JTBS(jt, 5, 4);
             }
             break;
         case 8: case 9:
@@ -580,16 +580,16 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *p)
         break;
     }
     if (!f) return;
-    switch (p->state) {
+    switch (jt->state) {
     case 12 ... 23:
-        if (!p->finished) return;
+        if (!jt->finished) return;
     case -1:
-        if (GrfConsumePressed__5POCTLUif(p->pt, 0x10, 0.35f)) {
-            SetJtCaneState__FP2JTi(p, -1);
-            SetJtCaneState__FP2JTi(p, ChooseJtSweepCaneState(p));
-        } else if (GrfConsumePressed__5POCTLUif(p->pt, 0x80, 0.35f)) {
-            SetJtCaneState__FP2JTi(p, -1);
-            SetJtCaneState__FP2JTi(p, ChooseJtAttackCaneState(p));
+        if (GrfConsumePressed__5POCTLUif(jt->pt, 0x10, 0.35f)) {
+            SetJtCaneState__FP2JTi(jt, -1);
+            SetJtCaneState__FP2JTi(jt, ChooseJtSweepCaneState(jt));
+        } else if (GrfConsumePressed__5POCTLUif(jt->pt, 0x80, 0.35f)) {
+            SetJtCaneState__FP2JTi(jt, -1);
+            SetJtCaneState__FP2JTi(jt, ChooseJtAttackCaneState(jt));
         }
         break;
     }
@@ -678,23 +678,23 @@ extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtI
  * @end-sly2-annot */
 // Finds a sweep target (flags 2, dt 0.15, cone 3.15 rad when standing else 1.6), blends the two sweep clips by the
 // target's height ((z + 50) / 110, clamped) and faces the target when standing.
-extern "C" void ChooseJtSweepTarget(JT *p, BLEND *pblend, ASEG *paseg)
+extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
 {
     U v;
-    ALO *palo;
+    ALO *alo;
     float t;
     float k = 1.6f;
-    if (p->mode == 0) k = 3.15f;
-    ChooseJtAttackTarget((ALO *)p, p->heading, 2, 0.15f, &D_002BF4C0, &palo, &v.q, k);
-    if (palo) t = GClamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
+    if (jt->mode == 0) k = 3.15f;
+    ChooseJtAttackTarget((ALO *)jt, jt->heading, 2, 0.15f, &D_002BF4C0, &alo, &v.q, k);
+    if (alo) t = GClamp((v.f[2] - -50.0f) * (1.0f / 110.0f), 0.0f, 1.0f);
     else t = 1.0f;
-    pblend->outgoing = t;
-    pblend->incoming = 1.0f - t;
-    func_001384C0(paseg);
-    p->surface = palo;
-    if (palo && p->mode == 0) {
-        SetStepRadTargetVec(p, v.q);
-        FixStepAngularVelocity(p);
+    blend->outgoing = t;
+    blend->incoming = 1.0f - t;
+    func_001384C0(aseg);
+    jt->surface = alo;
+    if (alo && jt->mode == 0) {
+        SetStepRadTargetVec(jt, v.q);
+        FixStepAngularVelocity(jt);
     }
 }
 
@@ -706,19 +706,19 @@ extern "C" void ChooseJtSweepTarget(JT *p, BLEND *pblend, ASEG *paseg)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
 // Finds a rush target (flags 8, dt 0.25, cone 1.0 rad) and turns Sly toward it.
-extern "C" void ChooseJtRushTarget__FP2JT(JT *p)
+extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
 {
     U v;
-    ALO *palo;
+    ALO *alo;
     float g;
-    if (p->pt && 0.5f < p->pt->g1c) g = p->pt->g18;
-    else g = p->heading;
-    ChooseJtAttackTarget((ALO *)p, g, 8, 0.25f, &D_002BF4D0, &palo, &v.q, 1.0f);
-    p->surface = palo;
-    if (palo)
+    if (jt->pt && 0.5f < jt->pt->g1c) g = jt->pt->g18;
+    else g = jt->heading;
+    ChooseJtAttackTarget((ALO *)jt, g, 8, 0.25f, &D_002BF4D0, &alo, &v.q, 1.0f);
+    jt->surface = alo;
+    if (alo)
         g = atan2f(v.f[1], v.f[0]);
-    func_00204660(p, g);
-    FixStepAngularVelocity(p);
+    func_00204660(jt, g);
+    FixStepAngularVelocity(jt);
 }
 
 /** @sly2-annot addr=0x18F740
@@ -729,15 +729,15 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *p)
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
 // Finds a smash target (flags 4, dt 0.25, cone 3.15 rad) and faces it.
-extern "C" void ChooseJtSmashTarget__FP2JT(JT *p)
+extern "C" void ChooseJtSmashTarget__FP2JT(JT *jt)
 {
     U v;
-    ALO *palo;
-    ChooseJtAttackTarget((ALO *)p, p->heading, 4, 0.25f, &D_002BF4E0, &palo, &v.q, 3.15f);
-    p->surface = palo;
-    if (palo) {
-        SetStepRadTargetVec(p, v.q);
-        FixStepAngularVelocity(p);
+    ALO *alo;
+    ChooseJtAttackTarget((ALO *)jt, jt->heading, 4, 0.25f, &D_002BF4E0, &alo, &v.q, 3.15f);
+    jt->surface = alo;
+    if (alo) {
+        SetStepRadTargetVec(jt, v.q);
+        FixStepAngularVelocity(jt);
     }
 }
 
