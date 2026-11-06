@@ -2,6 +2,7 @@
 // matrices, applied to the vertices of its warp groups (WRBG); the per-vertex state vectors and weights
 // (UpdateWrStateVectors, a Lilly port), the per-frame warp matrices (UpdateWrMatrixes), the 1D noise (UNoise, ONZ) and
 // the option setters. VU0 asm; UpdateWrStateVectors and UpdateWrMatrixes are hand-tuned.
+// Entry points: WR::Init, UpdateWrMatrixes (per frame), AddWrWarpGroup (glob loading), the Add*/Set* option setters.
 // TU 0x22B720..0x22C818 (20 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_wr
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0022C7F8
@@ -105,7 +106,7 @@ struct WRBG
     SO *pso;
     GLOBV *pglob;
     int unk08;
-    WRV *pwr;           /* +0xC (func_0022B7A0) */
+    WRV *pwr;           /* +0xC (AddWrWarpGroup) */
     int unk10[8];
     WEKI weki;
     SLV slBatch;
@@ -195,6 +196,8 @@ void AddOnzOnze(ONZ *ponz, float uAmpl, float gFreq, float gPhase, float uRandom
  * See: docs/engine/animation.md#6-source-files, docs/engine/world-sw.md#9-source-files,
  *   docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Initializes a space warp: base LO init, no free warp matrix and no current entry yet, forces a state-vector update on
+// the first frame (tUpdate = -1), empties the warp-group list and marks the object busy (it needs per-frame updates).
 void WR::Init()
 {
     WRV *p = (WRV *)this;
@@ -217,7 +220,9 @@ void WR::Init()
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
-extern "C" void func_0022B7A0(WRV *pwr, WRBG *pwrbg)
+// Attaches a warp group (WRBG: a set of mesh vertices) to a space warp: appends it to the warp's group list and points
+// the group back at the warp. Called while loading glob meshes (glob.cpp).
+extern "C" void AddWrWarpGroup(WRV *pwr, WRBG *pwrbg)
 {
     func_0011A070(&pwr->pwrbgFirst, pwrbg);
     pwrbg->pwr = pwr;
@@ -338,6 +343,9 @@ static inline float GFromVu(VU_FLOAT g)
  *   r8_21BB88+verdicts_A2+names_v2-signature(verified)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Recomputes, for every warp group, each vertex's weight (the warp envelope: linear in the distance along the warp axis,
+// clamped) and the per-vertex state vector of every warp entry (circle: cos/sin of the wave phase at the vertex; bend:
+// the vertex offset from the bend centre). Runs when the warp's parameters changed. Port of Sly 1's function.
 void UpdateWrStateVectors(WRV *pwr)
 {
     MATRIX4V dmat;
@@ -489,6 +497,8 @@ SLY2_SCRAP("addiu $sp, $sp, 0xe0");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Integer hash noise: maps an integer lattice point to a pseudo-random value in [0, 1). Used as the sample source for
+// the smooth 1D noise below.
 float UNoise(int n)
 {
     int x = (n << 13) ^ n;
@@ -517,6 +527,9 @@ static inline float Product(float a,float b)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Smooth 1D noise over time: samples the hash noise at the two lattice points around (frequency * 2 * time + phase) and
+// blends them with smoothstep; uRandom (0..1) scales how far alternate samples may stray from 0/1, i.e. the noise's
+// randomness. Returns a value in [0, 1].
 float UNoise(float gFreq, float gPhase, float u1)
 {
     float uRandom = u1;
@@ -539,6 +552,7 @@ float UNoise(float gFreq, float gPhase, float u1)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Schlick-style bias curve: remaps u in [0, 1] so that u = 0.5 maps to uBias, keeping 0 and 1 fixed.
 float UBias(float u, float uBias)
 {
     return u / ((((1.0f / uBias) - 2.0f) * (1.0f - u)) + 1.0f);
@@ -549,6 +563,8 @@ float UBias(float u, float uBias)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Evaluates a noise channel (ONZ): the amplitude-weighted average of its up to four noise octaves (ONZE), biased with
+// the channel's bias and mapped into [gMin, gMax]. Drives the bend and swivel angles of bend warps.
 float GFromOnz(ONZ *ponz)
 {
     float gAmpl;
@@ -582,6 +598,9 @@ static inline qwordV Rotate(const M3 &m,qwordV v){v = VuMulMatrix3(*(const qword
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
 void UpdateWrMatrixes(WRV *p) __asm__("UpdateWrMatrixes__FP2WR");
+// Per-frame update of a space warp: refreshes the state vectors if parameters changed, then builds each warp entry's warp
+// matrix and UV matrix for the current time (circle: a rotating wave phase; bend: noise-driven bend and swivel
+// rotations). Skipped when already updated this frame.
 void UpdateWrMatrixes(WRV *p){
  UpdateLo(p);
  if(D_002DDED0.t==p->tUpdate)return;
@@ -633,6 +652,8 @@ void UpdateWrMatrixes(WRV *p){
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
 void AddWrCircleWarp(WRV *pwr) __asm__("AddWrCircleWarp__FP2WR");
+// Adds a circle (travelling wave) warp entry and makes it current; two circle entries share one warp matrix (columns 0-1
+// and 2-3), so the second one takes the free half left by the first.
 void AddWrCircleWarp(WRV *pwr)
 {
     WRE *pwre = &pwr->awre[pwr->cwre++];
@@ -656,6 +677,8 @@ void AddWrCircleWarp(WRV *pwr)
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
 void AddWrBendWarp(WRV *pwr) __asm__("AddWrBendWarp__FP2WR");
+// Adds a bend warp entry with default axis and up vectors and neutral (0.5) bias on its bend and swivel noise channels,
+// makes it current and gives it its own warp matrix.
 void AddWrBendWarp(WRV *pwr)
 {
     WRE *pwre = &pwr->awre[pwr->cwre++];
@@ -673,6 +696,8 @@ void AddWrBendWarp(WRV *pwr)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Returns the warp's current entry (0 if it has none) for an option setter; a "set" access (ensk == 1) also marks the
+// warp's values changed so state vectors are rebuilt. The kind argument is not checked.
 WRE *PwreGetWrCur(WRV *pwr, ENSK ensk, WREK wrek)
 {
     if (pwr->cwre == 0) {
@@ -689,6 +714,7 @@ WRE *PwreGetWrCur(WRV *pwr, ENSK ensk, WREK wrek)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Returns the current warp entry for a circle-warp option (see PwreGetWrCur).
 WRE *PwreGetWrCircle(WRV *pwr, ENSK ensk)
 {
     return PwreGetWrCur(pwr, ensk, WREK_Circle);
@@ -699,6 +725,7 @@ WRE *PwreGetWrCircle(WRV *pwr, ENSK ensk)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Returns the current warp entry for a bend-warp option (see PwreGetWrCur).
 WRE *PwreGetWrBend(WRV *pwr, ENSK ensk)
 {
     return PwreGetWrCur(pwr, ensk, WREK_Bend);
@@ -710,6 +737,7 @@ WRE *PwreGetWrBend(WRV *pwr, ENSK ensk)
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
 void SetWrWavelength(WRV *pwr, float sWavelength) __asm__("SetWrWavelength__FP2WRf");
+// Option setter: the current circle warp's wavelength, stored as its spatial frequency (0 means no spatial variation).
 void SetWrWavelength(WRV *pwr, float sWavelength)
 {
     WRE *pwre = PwreGetWrCircle(pwr, ENSK_Set);
@@ -725,6 +753,7 @@ void SetWrWavelength(WRV *pwr, float sWavelength)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8+verdicts_A2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Option getter: the current circle warp's wavelength (inverse of its spatial frequency, 0 when that is 0).
 extern "C" float GetWrWavelength(WRV *pwr)
 {
     WRE *pwre = PwreGetWrCircle(pwr, ENSK_Set);
@@ -737,6 +766,7 @@ extern "C" float GetWrWavelength(WRV *pwr)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
+// Adds one noise octave (amplitude, frequency, phase, randomness) to a noise channel; at most four, extras are ignored.
 void AddOnzOnze(ONZ *ponz, float uAmpl, float gFreq, float gPhase, float uRandom)
 {
     unsigned int c = ponz->connze;
@@ -757,6 +787,7 @@ void AddOnzOnze(ONZ *ponz, float uAmpl, float gFreq, float gPhase, float uRandom
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
 void AddWrBendNoise(WRV *pwr, float uAmpl, float gFreq, float gPhase, float uRandom) __asm__("AddWrBendNoise__FP2WRffff");
+// Option setter: adds a noise octave to the current bend warp's bend-angle channel.
 void AddWrBendNoise(WRV *pwr, float uAmpl, float gFreq, float gPhase, float uRandom)
 {
     WRE *pwre = PwreGetWrBend(pwr, ENSK_Set);
@@ -769,6 +800,7 @@ void AddWrBendNoise(WRV *pwr, float uAmpl, float gFreq, float gPhase, float uRan
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
 void AddWrSwivelNoise(WRV *pwr, float uAmpl, float gFreq, float gPhase, float uRandom) __asm__("AddWrSwivelNoise__FP2WRffff");
+// Option setter: adds a noise octave to the current bend warp's swivel-angle channel.
 void AddWrSwivelNoise(WRV *pwr, float uAmpl, float gFreq, float gPhase, float uRandom)
 {
     WRE *pwre = PwreGetWrBend(pwr, ENSK_Set);

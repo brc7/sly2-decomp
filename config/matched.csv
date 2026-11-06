@@ -5748,7 +5748,7 @@ WipeToWorldWarp,0x22B490,76,match,src/game/level/wipe.cpp
 StaticInit_wipe,0x22B5C0,80,match,src/game/level/wipe.cpp
 func_0022B700,0x22B700,8,match,src/game/level/wipe.cpp
 InitWr,0x22B720,31,match,src/game/engine/anim/wr.cpp
-func_0022B7A0,0x22B7A0,14,match,src/game/engine/anim/wr.cpp
+AddWrWarpGroup,0x22B7A0,14,match,src/game/engine/anim/wr.cpp
 UpdateWrStateVectors__FP2WR,0x22B7D8,393,match,src/game/engine/anim/wr.cpp
 UNoise__Fi,0x22BE08,22,match,src/game/engine/anim/wr.cpp
 UNoise__Ffff,0x22BE60,55,match,src/game/engine/anim/wr.cpp

@@ -3280,6 +3280,7 @@ UpdateWipe = 0x22B198; // type:func
 WipeToWorldWarp = 0x22B490; // type:func
 StaticInit_wipe = 0x22B5C0; // type:func
 InitWr = 0x22B720; // type:func
+AddWrWarpGroup = 0x22B7A0; // type:func
 UpdateWrStateVectors__FP2WR = 0x22B7D8; // type:func
 UNoise__Fi = 0x22BE08; // type:func
 UNoise__Ffff = 0x22BE60; // type:func
