@@ -314,7 +314,10 @@ extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
 static inline qwordV Dot(qwordV v)
 {
     qwordV d, one;
-    __asm__ __volatile__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(v));
+    __asm__ __volatile__(
+        "vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
+        : "=j"(d), "=&j"(one)
+        : "j"(v));
     return d;
 }
 // Square root.
