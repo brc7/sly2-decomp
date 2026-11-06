@@ -1968,9 +1968,9 @@ typedef char assert_CID102_size[sizeof(CID102) == 0x1D0 ? 1 : -1];
 struct TURRET : PO
 {
     char pad180[0x1E0 - 0x180];
+    virtual void VUnk14() __asm__("PostTurretLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetTurretClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTurret");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostTurretLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateTurret");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneTurret");   /* slot 41 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("func_00226310");   /* slot 61 */
