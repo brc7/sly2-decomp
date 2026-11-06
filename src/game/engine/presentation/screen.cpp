@@ -78,7 +78,7 @@ SCRCTOR<0x40> D_003DA530(ConstructTitleScreen);
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* A screen as the m2c bodies read it. */
-struct SCRCHILD { char pad0[0xB0]; int fB0; };
+struct SCRCHILD { char pad0[0xB0]; int unknownB0; };
 struct SCREENV
 {
     char pad0[0xC];
@@ -341,7 +341,7 @@ void UpdateScreenFocus(struct S *p) {
 
 namespace M_func_001D9648 { extern "C" {
 extern struct CLOCK { float t; float dt; float g; } D_002DDED0;
-typedef struct { char pad[0x100C]; int x100C; } PAD;
+typedef struct { char pad[0x100C]; int unknown100C; } PAD;
 extern int D_002DFBC0;
 extern int D_002DFBC4;
 extern PAD D_002DFC00;
@@ -391,7 +391,7 @@ void UpdateScreens(void *pdl)
     } else if (D_002DFBC0 & 2) {
         int r = FIsDlEmpty__FP2DL(pdl);
         int f = 0;
-        if (pad->x100C == 1 && 5.0f <= D_002DDED0.t)
+        if (pad->unknown100C == 1 && 5.0f <= D_002DDED0.t)
             f = 1;
         if (r && f)
             func_001B0290(0);
@@ -1976,7 +1976,7 @@ void SetGadgetMenuState(OBJ *p, int s)
 
 namespace M_func_001DB7A8 { extern "C" {
 extern char D_002D84E8[] __asm__("_vt$8THIEFNET");
-struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
+struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
 struct S *ConstructScreen(struct S *p);
 void ClearThiefnet(struct S *p);
 /** @sly2-annot addr=0x1DB7A8
@@ -1989,7 +1989,7 @@ void ClearThiefnet(struct S *p);
 struct S *ConstructScreen378(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D84E8;
-    p->n20 = 0x378;
+    p->widgetOid = 0x378;
     ClearThiefnet(p);
     return p;
 }
@@ -2949,7 +2949,7 @@ void JOBLIST::PostLoad()   /* key function */
     SCREENV *screen = (SCREENV *)this;
     PostLoadScreen(screen);
     if (screen->widget != 0) {
-        screen->widget->fB0 = 1;
+        screen->widget->unknownB0 = 1;
     }
 }
 
@@ -3429,7 +3429,7 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
 
 namespace M_func_001DD648 { extern "C" {
 extern char D_002D83E8[] __asm__("_vt$7SCRN52D");
-struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
+struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
 struct S *ConstructScreen(struct S *p);
 void ResetScreenMode(struct S *p);
 /** @sly2-annot addr=0x1DD648
@@ -3442,7 +3442,7 @@ void ResetScreenMode(struct S *p);
 struct S *ConstructScreen52D(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D83E8;
-    p->n20 = 0x52D;
+    p->widgetOid = 0x52D;
     ResetScreenMode(p);
     return p;
 }
@@ -3460,7 +3460,7 @@ void SCRN52D::PostLoad()   /* key function */
     SCREENV *screen = (SCREENV *)this;
     PostLoadScreen(screen);
     if (screen->widget != 0) {
-        screen->widget->fB0 = 1;
+        screen->widget->unknownB0 = 1;
     }
 }
 
@@ -3517,7 +3517,7 @@ void HideScreen52D(struct S *p) {
 } } // namespace M_func_001DD728
 
 namespace M_func_001DD780 { extern "C" {
-struct O { char pad[0x58]; int n58; char p1[8]; int n64; };
+struct O { char pad[0x58]; int visibility; char p1[8]; int requestedVisibility; };   /* widget: +0x58 shown state (2 = fully shown), +0x64 requested (inferred) */
 struct S { char pad[0x24]; struct O *po; };
 /** @sly2-annot addr=0x1DD780
  * Purpose: Widget fully shown (+0x58==2 and +0x64==2)
@@ -3531,8 +3531,8 @@ struct S { char pad[0x24]; struct O *po; };
 int IsScreen52DShown(struct S *p) {
     struct O *po = p->po;
     if (!po) return 0;
-    if (po->n58 != 2) return 0;
-    return po->n64 == 2;
+    if (po->visibility != 2) return 0;
+    return po->requestedVisibility == 2;
 }
 } } // namespace M_func_001DD780
 
@@ -3554,7 +3554,7 @@ extern "C" void SetScreenState(SCREENV *screen, int mode)
 
 namespace M_func_001DD7D8 { extern "C" {
 extern char D_002D8368[] __asm__("_vt$5TITLE");
-struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
+struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
 struct S *ConstructScreen(struct S *p);
 void ResetScreenMode(struct S *p);
 /** @sly2-annot addr=0x1DD7D8
@@ -3567,7 +3567,7 @@ void ResetScreenMode(struct S *p);
 struct S *ConstructTitleScreen(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D8368;
-    p->n20 = 0x5D2;
+    p->widgetOid = 0x5D2;
     ResetScreenMode(p);
     return p;
 }
@@ -3654,7 +3654,7 @@ typedef struct {
     void *x24;
 } OBJ;
 typedef struct { int ids; void (*pfn)(void); int k; int pad[5]; } ITEM;
-typedef struct { char pad[0xFD50]; void *xFD50; void *xFD54; } BIG;
+typedef struct { char pad[0xFD50]; void *saveToLoad; void *foundSave; } BIG;
 extern BIG D_002E65E0;
 extern char D_002E6550[];
 extern struct G D_003DD490;
@@ -3697,9 +3697,9 @@ void UpdateTitleScreen(OBJ *p)
     if (p->pad10 == 0)
         return;
     if (GrfHandleJoyBtn(p->pad10, 0x800)) {
-        if ((D_002E65E0.xFD50 = D_002E65E0.xFD54) != 0) {
+        if ((D_002E65E0.saveToLoad = D_002E65E0.foundSave) != 0) {
             func_001ACC38(D_002E6550, 1);
-            func_00165E38(D_002E65E0.xFD50);
+            func_00165E38(D_002E65E0.saveToLoad);
         } else {
             StartNewGame(p);
         }
@@ -3804,9 +3804,9 @@ struct CRef {
     ~CRef() { Decref(); }
     void Decref() __asm__("Decref__4CRef");
 };
-struct G { char pad[0x3B1C]; void *x3B1C; };
-struct H { char pad[0x100C]; int x100C; int x1010; };
-struct I { char pad[0xFD54]; void *xFD54; };
+struct G { char pad[0x3B1C]; void *unknown3B1C; };
+struct H { char pad[0x100C]; int unknown100C; int unknown1010; };
+struct I { char pad[0xFD54]; void *foundSave; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern H D_002DFC00; }
 extern "C" { 
@@ -3830,14 +3830,14 @@ extern "C" void BuildTitlePromptText(char *pch)
 {
     float g;
     void *pv;
-    if (D_002DFC00.x100C == 1 && D_002DFC00.x1010 == 0) {
+    if (D_002DFC00.unknown100C == 1 && D_002DFC00.unknown1010 == 0) {
         strcpy(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 9));
         return;
     }
     g = 0.0f;
-    pv = D_002E65E0.xFD54;
+    pv = D_002E65E0.foundSave;
     if (pv) {
-        CRef ref = RefGetGlobalSaveVar(D_003DD490.x3B1C, pv);
+        CRef ref = RefGetGlobalSaveVar(D_003DD490.unknown3B1C, pv);
         g = ref.m_g;
     }
     {
@@ -3988,7 +3988,7 @@ extern "C" void BuildTitleCompletionText(char *pch)
 
 
 namespace M_func_00258348 { extern "C" {
-typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
+typedef struct R1 { int cref; int unknown4; int unknown8; int ref[2]; int varbRef[1]; } R1;
 typedef struct R2 { int cref; } R2;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
 extern char D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"), D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
@@ -4004,8 +4004,8 @@ static inline void Release1(R1 *r)
 {
     if (r) {
         if (--r->cref == 0) {
-            func_00257250(r->x14, 2);
-            Decref__4CRef(r->xC);
+            func_00257250(r->varbRef, 2);
+            Decref__4CRef(r->ref);
             Unlink__t6CGcObj1Z5CVarb(r);
             func_0011CD98(D_004520D0, r);
         }
