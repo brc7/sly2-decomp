@@ -33,14 +33,14 @@ struct PL{char pad0[0x18];float angle,amount;};
 struct CURVE{char pad0[0x1C];float value;char pad20[0x20];float slope;};
 struct ANIMATION{char pad0[0x74];float gain;};
 /* An IK joint record (+0x19C0, +0x19C4, +0x19CC): position, world matrix, owner frame, stamp, chain. */
-struct IKJ { char pad[0x30]; qword x30; M4 m40; char pad80[0x20]; char *xa0; int xa4; int xa8; };
+struct IKJ { char pad[0x30]; qword localPos; M4 worldMatrix; char pad80[0x20]; char *parent; int stamp; int ikData; };
 struct CLQ{float g0,g1,g2;};
 struct LM{float gMin,gMax;};
 struct SMP{float values[3];};
 struct SMPA{float a,b,duration,limit;};
 struct STATE{U direction,position,velocity;M3 rotation;};
 struct WORK{U reference,direction,local;M3 matrix,returned;float heading;U target;};
-struct G { char pad[0x3D58]; int x3d58; };
+struct G { char pad[0x3D58]; int xfStamp; };
 /* View of the player (JT) as the hang code reads it. */
 struct JT{
  char pad0[0xC];VTE*vt;                 /* +0x00C */
@@ -53,15 +53,15 @@ struct JT{
  char pad18C8[8];int state;float changed;      /* +0x18D0 hang state, time it changed */
  char pad18D8[0x1C];float farTime;int previous,flipped;LINK*link;   /* +0x18F4 */
  char pad1904[0xC];DELTA response[2];   /* +0x1910 the accelerations for the JT and the anchor's owner */
- char pad1950[0x10];qword x1960;        /* +0x1960 IK offset */
+ char pad1950[0x10];qword handIkOffset;  /* +0x1960 IK offset */
  float combined;char pad1974[8];float activeOnly;char pad1980[8];float idle;char pad198C[8];   /* +0x1970 blend weights */
  ANIMATION*animation;float speedBlend,activeBlend;   /* +0x1994 */
- char pad19A0[4];void*x19a4;            /* +0x19A4 */
- char pad19A8[0x18];IKJ*x19c0;IKJ*x19c4;int x19c8;IKJ*x19cc;   /* +0x19C0 */
- char pad19D0[0x30];void*x1a00;         /* +0x1A00 hand act */
+ char pad19A0[4];void*hookChild;        /* +0x19A4 */
+ char pad19A8[0x18];IKJ*wristXf;IKJ*handChildXf;int unknown19C8;IKJ*handXf;   /* +0x19C0 */
+ char pad19D0[0x30];void*handAct;       /* +0x1A00 hand act */
 };
 typedef char assert_JT_response[(uint)&((JT *)0)->response == 0x1910 ? 1 : -1];
-typedef char assert_JT_x1a00[(uint)&((JT *)0)->x1a00 == 0x1A00 ? 1 : -1];
+typedef char assert_JT_handAct[(uint)&((JT *)0)->handAct == 0x1A00 ? 1 : -1];
 
 extern "C"{
 qword func_001A62E8(void*);
@@ -566,10 +566,10 @@ extern "C" void GetJtHangHeading__FP2JTPf(JT *jt, float *pg) {
 }
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-typedef char IKJ_m40_r3_Offset[FIELD_OFFSET(IKJ,m40.r[3])==112?1:-1];
+typedef char IKJ_worldMatrix_r3_Offset[FIELD_OFFSET(IKJ,worldMatrix.r[3])==112?1:-1];
 typedef char NODE_property_Offset[FIELD_OFFSET(NODE,propertyBits)==308?1:-1];
 typedef char JT_target_Offset[FIELD_OFFSET(JT,target)==6340?1:-1];
-typedef char JT_x19cc_Offset[FIELD_OFFSET(JT,x19cc)==6604?1:-1];
+typedef char JT_handXf_Offset[FIELD_OFFSET(JT,handXf)==6604?1:-1];
 typedef char Size_0[sizeof(qword)==16?1:-1];
 typedef char Size_1[sizeof(UF)==16?1:-1];
 typedef char LengthBits_Size[sizeof(int)==4?1:-1];
@@ -592,7 +592,7 @@ extern "C" qword GetJtHangHandlePosition(JT *jt)
     UF s;
     float g;
     q = func_001A62E8(jt->target);
-    d = VuSub(q, jt->x19cc->m40.r[3].q);
+    d = VuSub(q, jt->handXf->worldMatrix.r[3].q);
     {
         register const qword *address __asm__("$2") = &D_002A2DC0.q;
         __asm__("lq %0,%1" : "=r"(fallback) : "m"(*address));
@@ -633,21 +633,21 @@ extern "C" void RenderJtHangIk(JT *jt)
     M4 m;
     int n;
 
-    a = VuAdd(GetJtHangHandlePosition(jt), jt->x1960);
-    b = func_001A62E8(jt->x19a4);
+    a = VuAdd(GetJtHangHandlePosition(jt), jt->handIkOffset);
+    b = func_001A62E8(jt->hookChild);
     d = VuSub(a, b);
-    a = ConvertXfVec(0, jt->x19c4->xa0, d);
-    t = jt->x19c4;
-    VECTOR_opAssign(&t->x30, VuAdd(t->x30, a));
-    ((float *)&t->x30)[3] = 1.0f;
-    n = ++D_003DD490.x3d58;
-    jt->x19c4->xa4 = n;
+    a = ConvertXfVec(0, jt->handChildXf->parent, d);
+    t = jt->handChildXf;
+    VECTOR_opAssign(&t->localPos, VuAdd(t->localPos, a));
+    ((float *)&t->localPos)[3] = 1.0f;
+    n = ++D_003DD490.xfStamp;
+    jt->handChildXf->stamp = n;
     {
-        IKJ *t2 = jt->x19c4;
-        __ml__FRC7MATRIX4T0(&m, t2->xa0 + 0x40, t2);
-        t2->m40 = m;
+        IKJ *t2 = jt->handChildXf;
+        __ml__FRC7MATRIX4T0(&m, t2->parent + 0x40, t2);
+        t2->worldMatrix = m;
     }
-    SolveIk(jt, jt->x19cc->xa8);
+    SolveIk(jt, jt->handXf->ikData);
     ((void (*)(void *))jt->vt[18].fn)((char *)jt + jt->vt[18].delta);
 }
 
@@ -664,11 +664,11 @@ extern "C" void RenderJtHangIk(JT *jt)
 extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
 {
     M3P m;
-    qword d = VuSub(func_001A62E8(jt->target), jt->x19cc->m40.r[3].q);
-    qword q = ConvertXfVec(0, jt->x19c0->xa0, d);
+    qword d = VuSub(func_001A62E8(jt->target), jt->handXf->worldMatrix.r[3].q);
+    qword q = ConvertXfVec(0, jt->wristXf->parent, d);
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), func_0011B500(D_002A2DA0.q, D_002BF594));
-    SetActPositionGoal(jt->x1a00, func_0011BFF0(&m));
-    jt->x1960 = PosSmooth(jt->x1960, D_002A2DD0.q, g_clock.dt, D_002BF598, 0);
+    SetActPositionGoal(jt->handAct, func_0011BFF0(&m));
+    jt->handIkOffset = PosSmooth(jt->handIkOffset, D_002A2DD0.q, g_clock.dt, D_002BF598, 0);
 }
 
 // ---- hang's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
