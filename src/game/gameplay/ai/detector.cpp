@@ -393,6 +393,7 @@ extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
     return !isClear;
 }
 
+// VU0 helper: dot product.
 static inline float Dot(qword a, const VECTORQ &b)
 {
     float g;

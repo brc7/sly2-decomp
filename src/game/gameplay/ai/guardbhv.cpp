@@ -877,6 +877,7 @@ int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, void 
 void SetStepguardAttack(P *, ENTRY *, void *, qword);
 void SetTargetRecordState(void *, int);
 }
+// VU0 helper: vector difference.
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
@@ -891,6 +892,7 @@ static inline qword QwLengthXY(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// VU0 helper: length of a vector (in x).
 static inline qword QwLength(qword v)
 {
     qword qw;
@@ -900,32 +902,38 @@ static inline qword QwLength(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// VU0 helper: the x component of a VU register as a float.
 static inline float GFromVf(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline float GLengthXY(qword v)
 {
     return GFromVf(QwLengthXY(v));
 }
+// VU0 helper: length of a vector.
 static inline float GLength(qword v)
 {
     return GFromVf(QwLength(v));
 }
+// VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
+// VU0 helper: y component of a quadword vector.
 static inline float GYOfQw(qword qw)
 {
     float y;
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
     return y;
 }
+// VU0 helper: z component of a quadword vector.
 static inline float GZOfQw(qword qw)
 {
     float z;
@@ -933,6 +941,7 @@ static inline float GZOfQw(qword qw)
     return z;
 }
 
+// True if the line test hit something nearer than `limit` to the line start.
 static inline int Blocked(LOS *line, float limit)
 {
     return GLength(QwSub(line->start.q, line->hit.point.q)) < limit;
@@ -1210,6 +1219,7 @@ void EmitStepguardStimulus(P*,P*);
 static inline void StorePoint(U*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
 static inline float XFloat(qword q){register float f __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
 static inline qword Root(qword q){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));return q;}
+// Matching helper (register-pinned asm): horizontal distance from `pos` to a point; also returns the actor and its mode.
 static inline float DistanceXY(C*p,U*point,qword pos,P**actor,int*mode){
  register qword a __asm__("vf2"),b __asm__("vf3"),d __asm__("vf1");P*o;register int n __asm__("$5");float f;
  b=pos;o=p->actor;a=point->q;
@@ -1219,6 +1229,7 @@ static inline float DistanceXY(C*p,U*point,qword pos,P**actor,int*mode){
  __asm__("qmfc2.ni %0,%1":"=r"(n):"j"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(n));*actor=o;return f;
 }
 static inline void*ActorRegion(P*actor){OWNER*owner=actor->tuning?actor->tuning->owner:0;return owner?owner->region:0;}
+// Matching helper (register-pinned asm): true if the actor moved farther than a .data threshold from `point`.
 static inline int Moved(C*p,U*point){
  register qword a __asm__("vf2"),d __asm__("vf1");qword one;
  register char*high __asm__("$2");
@@ -1610,6 +1621,7 @@ static __inline__ SLOT*Slot(OBJECT*p,unsigned kind,int offset){int index=func_00
 static __inline__ float Max(float a,float b){register float right __asm__("$f1")=b;__asm__("max.s %0,%0,%1":"+f"(a):"f"(right));return a;}
 static __inline__ qword Raw(float value){register qword bits __asm__("$10");__asm__("mfc1 %0,%1":"=r"(bits):"f"(value));return bits;}
 static __inline__ qword Scalar(float value){int bits;qword result;__asm__("mfc1 %0,%1":"=r"(bits):"f"(value));__asm__("qmtc2.ni %1,%0":"=j"(result):"r"(bits));return result;}
+// VU0 helper: normalized vector.
 static __inline__ qword Normalize(qword input){
  qword norm,one,result;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tvsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=&j"(norm),"=&j"(one):"j"(input));
@@ -1859,6 +1871,7 @@ extern "C"{
 static inline P*Target(P*p){VE*v=&p->vt[88];return ((P*(*)(P*))v->fn)((P*)((char*)p+v->delta));}
 static inline int Mode(P*p){VE*v=&p->vt[77];return ((int(*)(P*))v->fn)((P*)((char*)p+v->delta));}
 static inline void Clear(STATE*s){func_002333B4(s,0,sizeof(*s));}
+// Fills a mode record to engage `object`: a timed forced-class attack (kind 18, random delay) for forced classes, else plain combat (kind 3).
 static inline void Attack(C*p,STATE*s,P*object){
  if(IsStepguardForceClass(p->actor,object)){s->kind=18;s->payload.s.object=object;s->payload.s.amount=GetRandomStepguardDelay(p->actor);}
  else{s->kind=3;s->payload.s.object=object;}
@@ -2274,18 +2287,21 @@ struct VU_FLOAT
     VU_FLOAT(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(*(const int *)pg)); }
 
 };
+// VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
+// VU0 helper: x component of a quadword vector (VU register operand variant for the match).
 static inline float GXOfQwJ(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw), "j"(qw)); /* allocation-only "j"(qw): the vector stays in a VF register */
     return x;
 }
+// VU0 helper: x component of a quadword vector (operand order variant for the match).
 static inline float GXOfQwA0A1(qword qw)
 {
     float x;
@@ -2297,12 +2313,14 @@ struct VUF
     qword qw;
     VUF(const float *pg) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "rV"(*(const int *)pg)); }
 };
+// VU0 helper: vector difference.
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// VU0 helper: dot product (in x).
 static inline qword QwDot(const qword &a, const qword &b)
 {
     qword qw;
@@ -2311,6 +2329,7 @@ static inline qword QwDot(const qword &a, const qword &b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
+// VU0 helper: v minus its projection on n.
 static inline qword QwProjectOut(qword v, qword n)
 {
     qword d = QwDot(v, n);
@@ -2319,6 +2338,7 @@ static inline qword QwProjectOut(qword v, qword n)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
     return ac;
 }
+// VU0 helper: length of a vector (in x).
 static inline qword QwLength(qword v)
 {
     qword qw;
@@ -2337,6 +2357,7 @@ static inline qword QwLength(qword v)
                 : "=j"(qwSq_), "=j"(vfOne_), "=j"(copy) : "2"(v), "r"(v), "r"(v)); \
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(len) : "j"(qwSq_)); \
     }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline qword QwLengthXY(qword v)
 {
     qword qw;
@@ -2344,6 +2365,7 @@ static inline qword QwLengthXY(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// VU0 helper: v divided by a given length.
 static inline qword QwDivLength(qword v, qword qwLen)
 {
     qword qw;
@@ -2357,6 +2379,7 @@ struct VV
     VV(const qword &v) { q = v; }
     operator qword() const { return q; }
 };
+// VU0 helper: normalized v, or `fallback` for a zero vector.
 static inline VV NormalizeSafeN(VV v, VV fallback)
 {
     qword len = QwLength(v);
@@ -2364,24 +2387,28 @@ static inline VV NormalizeSafeN(VV v, VV fallback)
         return fallback;
     return QwDivLength(v, len);
 }
+// VU0 helper: v / len, or `fallback` when the length is zero.
 static inline VV DivSafe(VV v, VV len, VV fallback)
 {
     if (GXOfQw(len) < 0.0001f)
         return fallback;
     return QwDivLength(v, len);
 }
+// VU0 helper: vector scaled by the x of a VU float.
 static inline qword QwScaleX(qword v, const VU_FLOAT &g)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(v), "j"(g.qw));
     return qw;
 }
+// VU0 helper: base + vector * scale.
 static inline qword QwAddScaled(qword a, qword b, const VU_FLOAT &g)
 {
     qword qw;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(a), "j"(b), "j"(g.qw));
     return qw;
 }
+// VU0 helper: one integration step pos + v * g1 + a * g2.
 static inline qword QwIntegrate(qword pos, qword v, const VU_FLOAT &g1, qword a, const VU_FLOAT &g2)
 {
     qword qw;
@@ -2389,18 +2416,21 @@ static inline qword QwIntegrate(qword pos, qword v, const VU_FLOAT &g1, qword a,
             : "=j"(qw) : "j"(pos), "j"(v), "j"(g1.qw), "j"(a), "j"(g2.qw));
     return qw;
 }
+// VU0 helper: cross product.
 static inline qword QwCross(qword a, qword b)
 {
     qword qw;
     __asm__("vopmula.xyz $ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(qw) : "j"(a), "j"(b));
     return qw;
 }
+// VU0 helper: z component of a quadword vector.
 static inline float GZOfQw(qword qw)
 {
     float z;
     __asm__("pextuw %0, $zero, %1" : "=r"(z) : "r"(qw));
     return z;
 }
+// Evaluates a CLQ curve at x clamped to an LM range.
 static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -2412,6 +2442,7 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
         g = gMax;
     return g;
 }
+// Clamps g to [gMin, gMax].
 static inline float GClamp(float g, float gMin, float gMax)
 {
     if (g < gMin)
@@ -2420,11 +2451,13 @@ static inline float GClamp(float g, float gMin, float gMax)
         return gMax;
     return g;
 }
+// The larger of two floats.
 static inline float GMax(float a, float b)
 {
     return a < b ? b : a;
 
 }
+// Returns an object's velocity through its vtable.
 static inline qword QwVelocity(void *pv)
 {
     OBJECT *pobj = (OBJECT *)pv;
@@ -2438,6 +2471,7 @@ static inline VV VProjectOut(VV v, VV n) { return QwProjectOut(v, n); }
 static inline VV VCross(VV a, VV b) { return QwCross(a, b); }
 static inline VV VDot(VV a, VV b) { return QwDot(a.q, b.q); }
 static inline VV VLength(VV v) { return QwLength(v); }
+// VU0 helper: length of a vector (second instruction pattern for the match).
 static inline qword QwLength2(qword v)
 {
     qword qw;
@@ -2454,6 +2488,7 @@ struct VU_VECTOR
     qword q;
     VU_VECTOR(const qword &v) { q = v; }
 };
+// VU0 helper: weighted sum v1 * f1 + v2 * f2.
 static inline qword VecCombo(VUF f1, VU_VECTOR v1, VUF f2, VU_VECTOR v2)
 {
     qword r;
@@ -2685,6 +2720,7 @@ qword func_001A62E8(struct A *a);
 int func_001BD718(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
 void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 float func_001E7B38(struct T *p, float a, float b);
+// VU0 helper: distance between two points.
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -2694,6 +2730,7 @@ static inline float Dist(qword a, qword b) {
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
+// Calls the behaviour's SetState (vtable slot 15).
 static inline void Set(struct S *p, int n) {
     struct VTE *e = &p->vt[15];
     ((void (*)(void *, int))e->pfn)((char *)p + e->d, n);
@@ -2791,6 +2828,7 @@ struct O {
     qword vB0;
 };
 qword func_001A62E8(void *);
+// VU0 helper: distance between two points.
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -2896,36 +2934,42 @@ float atan2f(float, float);
 void SetStepguardMoverRadTarget(void *, float);
 void func_0020CB28(CONTROL *, qword);
 }
+// VU0 helper: a float in a VU register.
 static inline VU_FLOAT VuFloat(float g)
 {
     VU_FLOAT v;
     __asm__("qmtc2 %1, %0" : "=j"(v.qw) : "r"(g));
     return v;
 }
+// VU0 helper: the x component of a VU register as a float.
 static inline float GFromVf(qword qw)
 {
     float g;
     __asm__("qmfc2 %0, %1" : "=r"(g) : "j"(qw));
     return g;
 }
+// VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qword qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
+// VU0 helper: y component of a quadword vector.
 static inline float GYOfQw(qword qw)
 {
     float y;
     __asm__("prot3w %0, %1" : "=r"(y) : "r"(qw));
     return y;
 }
+// VU0 helper: vector difference.
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// VU0 helper: dot product (in x).
 static inline qword QwDot(qword a, qword b)
 {
     qword qw;
@@ -2934,6 +2978,7 @@ static inline qword QwDot(qword a, qword b)
             : "=j"(qw), "=j"(vfOne) : "j"(a), "j"(b));
     return qw;
 }
+// VU0 helper: v minus its projection on n.
 static inline qword QwProjectOut(qword v, qword n)
 {
     qword d = QwDot(v, n);
@@ -2942,6 +2987,7 @@ static inline qword QwProjectOut(qword v, qword n)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(ac) : "j"(v), "j"(al));
     return ac;
 }
+// VU0 helper: length of a vector (in x).
 static inline qword QwLength(qword v)
 {
     qword qw;
@@ -2951,6 +2997,7 @@ static inline qword QwLength(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline qword QwLengthXY(qword v)
 {
     qword qw;
@@ -2958,6 +3005,7 @@ static inline qword QwLengthXY(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// VU0 helper: length of a vector (operands not tied, for the match).
 static inline qword QwLengthUntied(qword v)
 {
     qword qwSq;
@@ -2968,6 +3016,7 @@ static inline qword QwLengthUntied(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qwSq));
     return qwLen;
 }
+// VU0 helper: length via a dot product.
 static inline qword QwLengthDot(qword v)
 {
     qword qw = QwDot(v, v);
@@ -2976,12 +3025,14 @@ static inline qword QwLengthDot(qword v)
 }
 static inline float GLength(qword v) { return GFromVf(QwLength(v)); }
 static inline float GLengthXY(qword v) { return GFromVf(QwLengthXY(v)); }
+// VU0 helper: vector scaled by the x of a VU float.
 static inline qword QwScaleX(qword qwVec, VU_FLOAT g)
 {
     qword qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
     return qw;
 }
+// VU0 helper: dot products of a vector with the rows of a 3x3 matrix.
 static inline qword QwDotRowsMatP(MATRIX3 *pmat, qword qwV)
 {
     qword qwLocal;
@@ -2991,6 +3042,7 @@ static inline qword QwDotRowsMatP(MATRIX3 *pmat, qword qwV)
             : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(qwV));
     return qwLocal;
 }
+// Evaluates a CLQ curve at x clamped to an LM range.
 static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
 {
     float g = pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -3002,6 +3054,7 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
         return gMax;
     return g;
 }
+// True if a position moved measurably since the last one.
 static inline int FMoved(qword qwPos, qword qwPosLast)
 {
     return D_002BE6B0 < GLength(QwSub(qwPos, qwPosLast));
@@ -3345,6 +3398,7 @@ qword ConvertAloPos(struct A *source, void *target, qword v);
 void func_00154E10(void *a, qword v, int n, int m, struct A *p);
 void RecalcSwOxfFilterForObject(struct G *g, struct A *p);
 void ResetDetectorTargets(void *p);
+// Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
 static inline int Count(struct A *a) {
     int n, i;
     if (a->n3D8 >= 0) {
@@ -3633,11 +3687,13 @@ extern "C"{
 }
 static inline CONTROL*Control(P*p){return (CONTROL*)((char*)p+0xFD0);}
 static inline float Angle(qword delta){qword x;int y;float fx,fy;__asm__("qmfc2.ni %0,%1":"=r"(x):"j"(delta));__asm__("prot3w %0,%1":"=r"(y):"r"(x));__asm__("mtc1 %1,%0":"=f"(fx):"r"(x));__asm__("mtc1 %1,%0":"=f"(fy):"r"(y));return atan2f(fy,fx);}
+// Matching helper (register-pinned asm): returns current - home and the actor, in the operand order the target uses.
 static inline qword HeadingInputs(C*p,U*home,qword current,P**actor){
  register qword a __asm__("vf1"),b __asm__("vf2");P*o;
  __asm__("qmtc2.ni %3,%1\n\tlw %2,%4\n\tlqc2 %0,%5":"=j"(a),"=j"(b),"=&r"(o):"r"(current),"m"(p->actor),"m"(home->q));
  __asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));*actor=o;return a;
 }
+// Matching helper (register-pinned asm): returns home - current and the actor, in the operand order the target uses.
 static inline qword BasisInputs(C*p,U*home,qword current,P**actor){
  register qword a __asm__("vf1"),b __asm__("vf2");P*o;
  __asm__("lqc2 %0,%5\n\tqmtc2.ni %3,%1\n\tlw %2,%4":"=j"(a),"=j"(b),"=&r"(o):"r"(current),"m"(p->actor),"m"(home->q));
@@ -4424,6 +4480,7 @@ extern "C"{
  ENTRY*func_0012F938(void*,int);
 }
 static inline void Request(P*p,REQUEST*r,float duration){VE*v=&p->vt[96];((void(*)(P*,REQUEST*,float))v->fn)((P*)((char*)p+v->delta),r,duration);}
+// Matching helper (register-pinned asm): blends the guard toward a desired vector with a gain from .data; kept as asm for the match.
 static inline void BlendSet(C*p,qword current,U*desired,U*scale,U*scratch){
  register P*actor __asm__("$7");register VE*vt __asm__("$6");register int word __asm__("$4");
  register qword a __asm__("vf1"),b __asm__("vf2"),d __asm__("vf3"),lift __asm__("vf2"),axis __asm__("vf1"),k __asm__("vf4");
@@ -5779,6 +5836,7 @@ struct VU_FLOAT
 {
     qword qw;
 };
+// VU0 helper: loads a float constant from a .data word into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
@@ -5794,6 +5852,7 @@ void func_001B44D8(int *pcpso, SOPART ***papso);
 extern "C" {
 SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG");
 }
+// VU0 helper: base + vector * scale.
 static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {
     qword qw;
@@ -6155,6 +6214,7 @@ float GetRandomStepguardDelay(struct A *a);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(struct X *s, qword v);
 void RegoalBhvStalk(struct S *p);
+// VU0 helper: distance between two points.
 static __inline__ float Dist(qword a, qword b) {
     qword d;
     float f;

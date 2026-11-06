@@ -1548,11 +1548,13 @@ extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 extern "C" int IsStepguardIgnoreClass(P *,O *);
 extern "C" int IsStepguardForceClass(P *,O *);
 extern "C" int IsStepguardPreferClass(P *,O *);
+// VU0 helper: vector difference.
 static inline qword Sub(const qword&a,qword b){
     qword d,bv,av;
     __asm__("lqc2 %2,%4\n\tqmtc2.ni %3,%1\n\tvsub.xyzw %0,%2,%1":"=&j"(d),"=&j"(bv),"=&j"(av):"r"(b),"m"(a));
     return d;
 }
+// VU0 helper: length of a vector.
 static inline float Length(qword d){
     qword one;float f;
     __asm__ __volatile__("vmul.xyz %0,%0,%0":"+j"(d));
@@ -2847,6 +2849,7 @@ struct E { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char
 struct E2 { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; char pad4[4]; int n54; char pad5[0x60 - 0x58]; };
 qword func_001A62E8(void *p);
 
+// VU0 helper: squared distance from an object's position to a point.
 static inline float DistSq(void *p, qword *pq)
 {
     qword a = func_001A62E8(p), d, r, t;
@@ -3123,6 +3126,7 @@ void GetVectorCylind(qword,float *,float *,float *);
 float GetTargetRecordFacing(P *);
 float RadNormalize__Ff(float);
 }
+// Matching helper (register-pinned asm): prepares the plane-test operands (threshold bits, camera-relative point).
 static inline void PlaneArguments(qword *threshold,qword *point,U *scalar,float f,const qword *camera,const qword *position){
  register qword view asm("vf1"),bits asm("$2"),local asm("vf2"),value asm("$6");
  __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tlqc2 %2,%5":"=j"(view),"=&r"(bits),"=j"(local):"m"(*camera),"f"(f),"m"(*position));
@@ -3186,6 +3190,7 @@ namespace M_func_0020A9C0 { extern "C" {
 struct S;
 struct S { char pad[0xEB8]; int aEB8[8]; int cED8; int aEDC[8]; int cEFC; };
 int PloNew__F3CIDP2SO3OIDi(int a, struct S *p, int b, int c);
+// Appends an attack (oid and resolved object) to the guard's two attack lists.
 static __inline__ void Push(struct S *p, int id, int v)
 {
     p->aEDC[p->cEFC++] = v;

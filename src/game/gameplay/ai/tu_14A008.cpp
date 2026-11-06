@@ -340,6 +340,7 @@ extern "C" int IsBhvRouteOffGround(BHVRT *p)
 static inline int FLess(float a, float b) { return a < b; }
 static inline qword SubX(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b), "j"(b)); /* extra operand: allocation only */ return r; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// VU0 helper: length of a vector.
 static inline float Len(qword a)
 {
     qword d; float g;
@@ -348,6 +349,7 @@ static inline float Len(qword a)
     g = VuToFloat(d);
     return g;
 }
+// VU0 helper: squared length of a vector.
 static inline float LenSq(qword a)
 {
     qword d; float g;
@@ -355,6 +357,7 @@ static inline float LenSq(qword a)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
 }
+// VU0 helper: length of a vector (second instruction pattern for the match).
 static inline float Len2(qword a)
 {
     qword d; float g;
@@ -366,6 +369,7 @@ static inline float Len2(qword a)
 static inline float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static inline float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
+// VU0 helper: a plus the normalized direction of v scaled by s.
 static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 {
     qword d, r;
@@ -464,6 +468,7 @@ done:
     SetStepguardTarget(p->pguard, p->pguard->ploMarker);
 }
 
+// Remaps g through an LM range (inferred: clamped linear mapping).
 static inline float GRemap(LMV *pr, float g)
 {
     if (pr->gMin == pr->gMax)
@@ -673,6 +678,7 @@ extern "C" void HandleCarmelitaMessage(GUARDV *p, int msgid, void **ppv)
     }
 }
 
+// VU0 helper: distance between two points.
 static __inline__ float GDist(qword a, qword b)
 {
     qword d;

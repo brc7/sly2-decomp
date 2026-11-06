@@ -158,6 +158,7 @@ extern "C" void HandleBhvstkMessage(BHVSTKV *stack, int messageId, int payload)
     }
 }
 
+// Matching helper: reads a count word with an explicit load (keeps the target's instruction order).
 static inline int Count(const int*p){
     register int value __asm__("$2");
     __asm__("lw %0,%1":"=r"(value):"m"(*p));

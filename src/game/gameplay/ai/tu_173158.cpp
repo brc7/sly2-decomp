@@ -282,6 +282,7 @@ extern "C" int IsInScreenRect(qwordV v, float r) {
     return f;
 }
 
+// VU0 helper: p + up * s.
 static __inline__ qwordV MAdd(qwordV p, qwordV up, float s) {
     U u;
     qwordV uq;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
@@ -485,6 +486,7 @@ extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *plo) {
     return peBest;
 }
 
+// VU0 helper: loads a float constant from a .data word into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
@@ -492,30 +494,35 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__ __volatile__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
+// VU0 helper: vector difference qw0 - qw1.
 static inline qwordV QwSubFrom(const qwordV &qw0, qwordV qw1)
 {
     qwordV qw;
     qw = VuSub(qw0, qw1);
     return qw;
 }
+// VU0 helper: vector sum.
 static inline qwordV QwAdd(qwordV qw0, qwordV qw1)
 {
     qwordV qw;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qwordV qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
+// VU0 helper: vector scaled by the x of a VU float.
 static inline qwordV QwScaleX(qwordV qwVec, const VU_FLOAT &g)
 {
     qwordV qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
     return qw;
 }
+// VU0 helper: rotates a vector by a 3x3 matrix.
 static inline qwordV QwRotateVecAt(M3 *pmat, qwordV *pqwVec)
 {
     qwordV qwResult;
@@ -524,6 +531,7 @@ static inline qwordV QwRotateVecAt(M3 *pmat, qwordV *pqwVec)
             : "j"(*pqwVec), "j"(pmat->row[0]), "j"(pmat->row[1]), "j"(pmat->row[2]));
     return qwResult;
 }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline float SLengthXY(qwordV qw)
 {
     qwordV qwT;

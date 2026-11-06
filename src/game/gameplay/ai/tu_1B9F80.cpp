@@ -296,6 +296,7 @@ extern "C" void CloseBhvNeelaChase(NBHV *p)
     RemoveStepguardSgf(p->po, 0x25);
 }
 
+// VU0 helper: distance between two points.
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;

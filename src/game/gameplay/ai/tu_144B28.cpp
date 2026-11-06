@@ -126,6 +126,7 @@ void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
+// VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LenXY(qword d)
 {
     float g;
@@ -136,6 +137,7 @@ static __inline__ float LenXY(qword d)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// VU0 helper: horizontal (xy) length of a vector (second instruction pattern for the match).
 static __inline__ float LenXY2(qword d)
 {
     float g;
@@ -346,6 +348,7 @@ ulong GetSgfMask(int n);
 int StepguardHasSgf(struct SO *p, int n);
 struct LIST *func_001F8240(void *p);
 
+// VU0 helper: distance between two points.
 static __inline__ float GDist(qword a, qword b)
 {
     qword d, t;
@@ -449,6 +452,7 @@ int IsBhvInteract3Idle(struct X *px);
 void UpdateBhvfollowPosition(struct P *p);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
 
+// VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LenXY(qword d)
 {
     float g;
@@ -459,6 +463,7 @@ static __inline__ float LenXY(qword d)
     return g;
 }
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+// VU0 helper: length of a vector.
 static __inline__ float Len(qword d)
 {
     qword t;
@@ -593,6 +598,7 @@ struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(flo
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 struct VU_FLOATM { qword q; VU_FLOATM(const float &f) { __asm__("lw %0, %1" : "=r"(q) : "m"(f)); } };
 
+// VU0 helper: a + b scaled by a VU float (multiply-add).
 static inline qword AddScaled(VU_VECTOR a, VU_FLOATM s, VU_VECTOR b)
 {
     qword r;
@@ -600,6 +606,7 @@ static inline qword AddScaled(VU_VECTOR a, VU_FLOATM s, VU_VECTOR b)
     return r;
 }
 
+// VU0 helper: a + b scaled by a VU float (multiply-add).
 static inline qword AddScaled(VU_VECTOR a, VU_FLOAT s, VU_VECTOR b)
 {
     qword r;
@@ -607,6 +614,7 @@ static inline qword AddScaled(VU_VECTOR a, VU_FLOAT s, VU_VECTOR b)
     return r;
 }
 
+// VU0 helper: 3x3 matrix times vector.
 static inline qword MulM3(const M3 &m, qword v)
 {
     qword r;
@@ -615,6 +623,7 @@ static inline qword MulM3(const M3 &m, qword v)
     return r;
 }
 
+// VU0 helper: vector sum a + b.
 static inline qword Add(qword a, qword b)
 {
     qword r;
@@ -737,6 +746,7 @@ float GRandInRange__Fff(float a, float b);
 void UpdateBhvfollowPosition(struct P *p);
 void func_0019F540(void *p, qword v);
 int CidBasic(void *p);
+// Matching helper: pushes the behaviour of class `oid` on the owner, hands it the goal at +0x90 and starts it (vtable slot 8).
 static __inline__ void Activate(struct P *p, int oid)
 {
     struct O *po = func_00205438(p->p10, oid);
@@ -1215,6 +1225,7 @@ struct M3 *func_001A6318(void *p);
 void SetBhvInteract3State(struct P *p, int n);
 float GRandInRange__Fff(float gMin, float gMax);
 
+// VU0 helper: dot product.
 static __inline__ float Dot(qword a, qword b)
 {
     qword r, t;
@@ -1225,6 +1236,7 @@ static __inline__ float Dot(qword a, qword b)
     return g;
 }
 
+// VU0 helper: normalizes *pv in place (or uses the default for a zero vector) and returns the length.
 static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
 {
     register qword v __asm__("vf3") = *pv;
@@ -1331,6 +1343,7 @@ float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+// VU0 helper: square root through the Q register.
 static __inline__ float SqrtQ(qword t)
 {
     float g;
@@ -1339,6 +1352,7 @@ static __inline__ float SqrtQ(qword t)
     return g;
 }
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
+// Clamps g to an LM range.
 static __inline__ float GLimitLm(struct LM *plm, float g)
 {
     float gMin = plm->gMin, gMax = plm->gMax;

@@ -446,6 +446,7 @@ extern "C" void UpdateListener(LISTENER *listener)
     }
 }
 
+// VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float DistXY(qword d)
 {
     qword l;

@@ -298,6 +298,7 @@ extern "C" void SetBhvDimitriRootState(BHVESC *p, int k)
     }
 }
 
+// VU0 helper: dot product.
 static inline qwordV Dot(qwordV v)
 {
     qwordV d, one;
@@ -383,12 +384,14 @@ extern "C" void *ChooseBhvFleeRouteEnd(BHVATK *p)
     return p->pesc->ploA;
 }
 
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qwordV q)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q));
     return x;
 }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qwordV q)
 {
     float y;
@@ -522,6 +525,7 @@ extern "C" void UpdateBhvFlee(BHVATK *p)
     }
 }
 
+// VU0 helper: a + b scaled by a VU float (multiply-add).
 static inline qwordV AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT s)
 {
     qwordV r;
@@ -532,6 +536,7 @@ static inline qwordV Scale(VU_VECTOR v, VU_FLOAT s) { qwordV r; __asm__("vmulx.x
 static inline qwordV ScaleR(VU_VECTOR v, const VUV &s) { qwordV r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q), "j"(v.q)); return r; }
 static inline qwordV Sub2(qwordV a, qwordV b) { qwordV d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b) : "vf4"); /* clobber of dead vf4 */ return d; }
 static inline qwordV Add(qwordV a, qwordV b) { qwordV d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b), "j"(a)); /* extra operand: allocation only */ return d; }
+// VU0 helper: length of a vector.
 static inline float Len(qwordV a)
 {
     qwordV d;

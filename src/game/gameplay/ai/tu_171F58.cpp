@@ -321,6 +321,7 @@ extern "C" void SetBhvSearchWatched(BHV171V *p, WATCH *o) {
     p->fReplan = 1;
 }
 
+// VU0 helper: distance between two points.
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
