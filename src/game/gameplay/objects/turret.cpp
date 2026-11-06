@@ -205,8 +205,9 @@ extern "C" void UpdateTurretAim(TURRETV *turret){
     if(turret->isActRunning){V v;v.q=Make(0.0f,-turret->yaw,turret->pitch);SetActPositionGoal(turret->rotationAct,v.q);}
 }
 
-// Zoom: framed on the target's bounds when following one, else driven by the controller's zoom input.
-static inline qword LoadVF(const qword &proxySource){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(proxySource));return r;}
+// VU helpers of UpdateTurretZoom: load/move into a VU register, difference, length (as float or as raw bits),
+// transpose-rotate by a 3x3 matrix, and the position of a value inside an LM range (Fraction) and back (Blend).
+static inline qword LoadVF(const qword &value){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(value));return r;}
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2,%1":"=j"(r):"j"(b),"j"(a));return r;}
 static inline float Length(qword d){qword r;float f;
@@ -221,6 +222,7 @@ static inline qword InverseRotate(const M3 &m,qword v){qword r=m.r[0],one,a,b,c;
     __asm__("vmul.xyzw %2,%0,%7\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%5,%7\n\tvmul.xyzw %4,%6,%7\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"+j"(r),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
 static inline float Fraction(LMV *range,float f){if(range->lo==range->hi)return 0.0f;return (f-range->lo)/(range->hi-range->lo);}
 static inline float Blend(LMV *range,float u){return (1.0f-u)*range->lo+u*range->hi;}
+// Zoom: framed on the target's bounds when following one, else driven by the controller's zoom input.
 extern "C" void UpdateTurretZoom(TURRETV *turret){
     if(turret->target && turret->follow){
         M4 m;
