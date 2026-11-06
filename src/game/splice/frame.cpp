@@ -252,16 +252,3 @@ SPO CFrame_CloneTo(CFrame *src, void *a)
         sp->SetPbinding(CVarb_CloneTo(src->pbindingFirst.p, sp.p, a).p);
     return SPO(sp.p);
 }
-
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_frame {
-    static int c_002DD290 __asm__("_t6CGcObj1Z5CVarb$s_ptFirst");   /* .sbss 0x4 */
-    static int c_002DD294 __asm__("_t6CGcObj1Z5CVarb$s_cpage");   /* .sbss 0x4 */
-    static qword c_004520C0 __asm__("_t6CGcObj1Z5CVarb$s_aptPage");   /* .bss 0x10 */
-};
-int COMMONS_frame::c_002DD290;
-int COMMONS_frame::c_002DD294;
-qword COMMONS_frame::c_004520C0;

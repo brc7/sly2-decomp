@@ -410,20 +410,3 @@ template void CRefPtr<CFrame>::Attach(CFrame *);       /* 0x257058 */
 template void CRefPtr<CVarb>::Attach(CVarb *);         /* 0x257430 */
 template void CRefPtr<CSidebag>::Attach(CSidebag *);   /* 0x257E68 */
 template void CGcObj<CFrame>::MakeRoot();     /* 0x259A88 */
-
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_gc {
-    static int c_002DD298 __asm__("_t6CGcObj1Z5CVarb$s_ptRecycle");   /* .sbss 0x4 */
-    static int c_002DD2B8 __asm__("_t6CGcObj1Z5CProc$s_ptRecycle");   /* .sbss 0x4 */
-    static int c_002DD2C0 __asm__("_t6CGcObj1Z8CSidebag$s_ptFirst");   /* .sbss 0x4 */
-    static int c_002DD2C8 __asm__("_t6CGcObj1Z8CSidebag$s_ptRecycle");   /* .sbss 0x4 */
-    static int c_002DD2D8 __asm__("_t6CGcObj1Z7CMethod$s_ptRecycle");   /* .sbss 0x4 */
-};
-int COMMONS_gc::c_002DD298;
-int COMMONS_gc::c_002DD2B8;
-int COMMONS_gc::c_002DD2C0;
-int COMMONS_gc::c_002DD2C8;
-int COMMONS_gc::c_002DD2D8;

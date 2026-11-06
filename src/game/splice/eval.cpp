@@ -671,20 +671,3 @@ CRef RefEval(CPair *ppair, CFrame *pframe)
 
 /* The frame and proc pools' GC members are CGcObj<CFrame>'s and CGcObj<CProc>'s (sly2/gc.h), the frame destructor
    (0x257078) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by splice/gc.cpp. */
-
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_eval {
-    static int c_002DD2A0 __asm__("_t6CGcObj1Z6CFrame$s_ptFirst");   /* .sbss 0x4 */
-    static int c_002DD2A8 __asm__("_t6CGcObj1Z6CFrame$s_ptRecycle");   /* .sbss 0x4 */
-    static int c_002DD2B0 __asm__("_t6CGcObj1Z5CProc$s_ptFirst");   /* .sbss 0x4 */
-    static int c_002DD2B4 __asm__("_t6CGcObj1Z5CProc$s_cpage");   /* .sbss 0x4 */
-    static qword c_00452110 __asm__("_t6CGcObj1Z5CProc$s_aptPage");   /* .bss 0x10 */
-};
-int COMMONS_eval::c_002DD2A0;
-int COMMONS_eval::c_002DD2A8;
-int COMMONS_eval::c_002DD2B0;
-int COMMONS_eval::c_002DD2B4;
-qword COMMONS_eval::c_00452110;
