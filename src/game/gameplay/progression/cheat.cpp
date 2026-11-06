@@ -64,9 +64,9 @@ extern CODE D_002BD4E0, D_002BD518, D_002BD550, D_002BD588, D_002BD5C0, D_002BD5
     D_002BD6A0, D_002BD6D8, D_002BD710, D_002BD748, D_002BD780, D_002BD7B8, D_002BD7F0;
 
 extern "C" {
-int FFindSlEntry(CODES *pcodes, CODE *pcode);
-void func_0011A070(CODES *pcodes, CODE *pcode);     /* append to the SL */
-void func_0011A050(CODES *pcodes, int ibSle);       /* init the SL */
+int IsEntryInSl(CODES *pcodes, CODE *pcode);
+void AppendSlEntry(CODES *pcodes, CODE *pcode);     /* append to the SL */
+void InitSl(CODES *pcodes, int ibSle);       /* init the SL */
 void RemoveSlEntry(CODES *pcodes, CODE *pcode);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, int n);
@@ -93,9 +93,9 @@ int AddCode(CODES *pcodes, CODE *pcode);
  * @end-sly2-annot */
 extern "C" int AddCode(CODES *pcodes, CODE *pcode)
 {
-    int r = FFindSlEntry(pcodes, pcode);
+    int r = IsEntryInSl(pcodes, pcode);
     if (r) return r;
-    func_0011A070(pcodes, pcode);
+    AppendSlEntry(pcodes, pcode);
     if (*pcode->abtn == (*(int *)&g_joy.grfbtn)) pcode->ibtn = 1;
     else pcode->ibtn = 0;
 }
@@ -281,7 +281,7 @@ extern "C" void CheatGiveGadget(int id)
  * @end-sly2-annot */
 extern "C" void StartupCodes(CODES *pcodes)
 {
-    func_0011A050(pcodes, 0x18);
+    InitSl(pcodes, 0x18);
     AddCode(pcodes, &D_002BD4E0);
     AddCode(pcodes, &D_002BD518);
     AddCode(pcodes, &D_002BD550);

@@ -24,7 +24,7 @@
 struct CBinaryInputStream;
 
 extern "C" {
-void ArrayV_ListAppend(void *pdl, void *pv) __asm__("func_0011A070");          /* append pv to the list at pdl */
+void ArrayV_ListAppend(void *pdl, void *pv) __asm__("AppendSlEntry");          /* append pv to the list at pdl */
 void ArrayV_DynArrayAppend(void *pary, int cb, int c) __asm__("CDynArray_Append");
 unsigned int ArrayV_HashPchz(int pchz) __asm__("HashPchzCaseless");
 void *ArrayV_Memset(void *pv, int b, int cb) __asm__("memset");

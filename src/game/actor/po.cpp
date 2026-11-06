@@ -112,7 +112,7 @@ void SetTnTnsOverride(void *p, int f);
 void SetCmPolicy(CMV *pg, int n, void *pv, void *p, int m);
 void RevokeCmPolicy(CMV *pg, int a, int b, void *c, void *d, int e);
 void SetLoParent_1A58D0(void *p, int n, int m);
-void func_0011A070(SL *psl, void *pv);
+void AppendSlEntry(SL *psl, void *pv);
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
@@ -416,7 +416,7 @@ POCTLV *POCTL_ctor(POCTLV *p, POV *q)
     ResetPoctl(p);
     p->p7C = q;
     p->n80 = -1;
-    func_0011A070(&g_sw.slPoctl, p);
+    AppendSlEntry(&g_sw.slPoctl, p);
     return p;
 }
 

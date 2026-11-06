@@ -1272,7 +1272,7 @@ RR CFrame_CloneTo(ROOT*,P*);
 void*func_001AE238(REQUEST*,void*);
 void ClearSle(int*);
 void ClearSl(void*);
-void func_0011A070(void*,NODE*);
+void AppendSlEntry(void*,NODE*);
 void*PdlFromSwPxrOid(G*,int);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
@@ -1318,9 +1318,9 @@ extern "C" void CloneLo(P*p,const P*source){
             ClearSle(&copy->chain);
             ClearSle(&copy->link);
             ClearSl(copy->list);
-            func_0011A070(copy->next->list,copy);
+            AppendSlEntry(copy->next->list,copy);
             void*list=PdlFromSwPxrOid(&D_003DD490,copy->key);
-            func_0011A070(list,copy);
+            AppendSlEntry(list,copy);
         }
     }
     CopyAb__FPvT0Ui(dst,src,Type(p)->bytes-0x50);

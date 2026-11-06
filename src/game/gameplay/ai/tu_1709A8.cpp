@@ -65,8 +65,8 @@ extern SW D_003DD490;
 extern "C" {
 void InitLo(SSG *pssg);
 void PostLoLoad(SSG *pssg);
-void func_0011A050(DL *pdl, int ibDle);       /* InitDl */
-void func_0011A070(DL *pdl, void *pv);        /* AppendDlEntry */
+void InitSl(DL *pdl, int ibDle);       /* InitDl */
+void AppendSlEntry(DL *pdl, void *pv);        /* AppendDlEntry */
 void func_00170A58(SSG *pssg);
 SSGE *PssgeAppend(SSG *pssg, int kind, int id) __asm__("func_00170E00");
 void func_00171CF8(LO *plo, SSG *pssg);
@@ -107,7 +107,7 @@ int func_001709A8(void *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) retu
 extern "C" void func_001709F8(SSG *pssg)
 {
     InitLo(pssg);
-    func_0011A050(&pssg->dlSsge, 0x18);
+    InitSl(&pssg->dlSsge, 0x18);
 }
 
 /** @sly2-annot addr=0x170A28
@@ -386,7 +386,7 @@ extern "C" SSGE *func_00170E00(SSG *pssg, int kind, int id)
     pssge = (SSGE *)PvAllocSlotheapClear(&D_003DD490.slotheapSsge);
     pssge->kind = kind;
     pssge->id = id;
-    func_0011A070(&pssg->dlSsge, pssge);
+    AppendSlEntry(&pssg->dlSsge, pssge);
     return pssge;
 }
 

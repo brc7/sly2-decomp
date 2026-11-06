@@ -203,7 +203,7 @@ extern "C" { extern char D_002DC018[] __asm__("_vt$2SW"); }   /* SW's vtable (sl
 extern "C" { extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C; }
 extern "C" POOL *func_0011CCA8(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);
-extern "C" void func_0011A050(DL *,int);
+extern "C" void InitSl(DL *,int);
 extern "C" int CbMaxRip(void);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 /* The world names (g_apchzWorld, the save-variable key of each world's progress), defined first: the strings are
@@ -260,8 +260,8 @@ extern "C" SW *SW_ctor(SW *p)
     InitDl__FP2DLi(&p->list3D28,0x50);
     InitDl__FP2DLi(&p->list3D34,0x58);
     InitDl__FP2DLi(&p->list3D88,0x24);
-    func_0011A050(&p->list39F0,0x10);
-    func_0011A050(&p->list3CA8,0x10);
+    InitSl(&p->list39F0,0x10);
+    InitSl(&p->list3CA8,0x10);
     InitDl__FP2DLi(&p->list3F24,0xE0);
     InitDl__FP2DLi(&p->list3F30,0x1B4);
     InitDl__FP2DLi(&p->list3F3C,0x1B4);
@@ -278,9 +278,9 @@ extern "C" SW *SW_ctor(SW *p)
     InitDl__FP2DLi(&p->list3FFC,0x58);
     InitDl__FP2DLi(&p->list3FB4,0xFE0);
     InitDl__FP2DLi(&p->list3FC0,0x174);
-    func_0011A050(&p->list3EAC,0x84);
-    func_0011A050(&p->list4100,0x18);
-    func_0011A050(&p->list410C,0x40);
+    InitSl(&p->list3EAC,0x84);
+    InitSl(&p->list4100,0x18);
+    InitSl(&p->list410C,0x40);
     InitDl__FP2DLi(&p->list4130,0x50);
     InitDl__FP2DLi(&p->list3FCC,0x20);
     InitDl__FP2DLi(&p->list3FD8,0x104);
@@ -290,17 +290,17 @@ extern "C" SW *SW_ctor(SW *p)
     InitDl__FP2DLi(&p->list3FE4,0xE0);
     InitDl__FP2DLi(&p->list3FF0,0x130);
     InitDl__FP2DLi(&p->list3BD0,0xB4);
-    func_0011A050(&p->list3BDC,0x4C);
+    InitSl(&p->list3BDC,0x4C);
     unsigned int i=0;
-    for(;i<512;i++)func_0011A050(&p->first[i],0x1C);
+    for(;i<512;i++)InitSl(&p->first[i],0x1C);
     F3 *triple=&p->triple;
     F2 *range=&p->range;
     F3 *coefficients=&p->coefficients;
     char *tags=p->tags;
     DL *list=p->second;
-    for(int n=198;n>=0;n--,list++)func_0011A050(list,0x20);
+    for(int n=198;n>=0;n--,list++)InitSl(list,0x20);
     i=0;
-    for(;i<512;i++)func_0011A050(&p->third[i],12);
+    for(;i<512;i++)InitSl(&p->third[i],12);
     float upper=D_002C3E6C;
     float lower=D_002C3E68;
     float end=D_002C3E64,start=D_002C3E60;
@@ -439,7 +439,7 @@ struct ZPR { char ab[0x630]; };
 extern char D_002DEB30[];
 void *func_001AE1D0(struct MSG *pmsg);
 void *func_001AE2A0(struct MSG *pmsg);
-void func_0011A050(void *p, int n);
+void InitSl(void *p, int n);
 void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void func_001BE398(void *p, struct ZPR *pz);
 void BroadcastGameEvent(void *p, int a, int b);
@@ -471,7 +471,7 @@ void func_0020E180(struct S *p)
     p->ph = (__typeof__(p->ph))func_001AE2A0(&msg);
     p->ph->a = -1;
     p->ph->c = -1;
-    func_0011A050(p->ph->dl, 0x14);
+    InitSl(p->ph->dl, 0x14);
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
         func_001BE398(p->a45E8[j], &zpr);

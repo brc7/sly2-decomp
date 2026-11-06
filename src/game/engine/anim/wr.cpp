@@ -172,8 +172,8 @@ void CalculateSinCos__FfPfT1(float rad, float *pgSin, float *pgCos);           /
 MATRIX4V InvertMatrix4Rigid(const MATRIX4V *pmat);                          // the inverse of a 4x4 matrix
 MATRIX4V __ml__FRC7MATRIX4T0(const MATRIX4V &matL, const MATRIX4V &matR);     // MATRIX4 operator*
 void InitLo(WRV *pwr);
-void func_0011A050(void *pdl, int ibDle);
-void func_0011A070(void *pdl, void *pv);
+void InitSl(void *pdl, int ibDle);
+void AppendSlEntry(void *pdl, void *pv);
 void SetLoBusyk(WRV *pwr, int busyk);
 void UpdateLo(WRV *pwr);
 M3 func_0011B500(qwordV,float);
@@ -203,7 +203,7 @@ void WR::Init()
     p->imatFree = -1;
     p->iwreCur = -1;
     p->tUpdate = -1.0f;
-    func_0011A050(&p->pwrbgFirst, 0xA0);
+    InitSl(&p->pwrbgFirst, 0xA0);
     SetLoBusyk(p, 1);
     f = p->grfUnk40;
     if (FIsPtr(f)) *(int *)f |= 2;
@@ -219,7 +219,7 @@ void WR::Init()
  * @end-sly2-annot */
 extern "C" void func_0022B7A0(WRV *pwr, WRBG *pwrbg)
 {
-    func_0011A070(&pwr->pwrbgFirst, pwrbg);
+    AppendSlEntry(&pwr->pwrbgFirst, pwrbg);
     pwrbg->pwr = pwr;
 }
 

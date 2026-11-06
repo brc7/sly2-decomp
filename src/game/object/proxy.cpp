@@ -270,10 +270,10 @@ struct N { int id; struct N *pnParent; int x8; int xC; int x10; struct N *pnNext
 struct AL { int cb; int cbAlign; };
 extern char D_003DD490[];
 void *func_001AE2A0(const struct AL *pal);
-void func_0011A050(struct DL *pdl, int ib);
+void InitSl(struct DL *pdl, int ib);
 int OidFromIdProxy(int id);
 struct DL *PdlFromSwPxrOid(void *p, int id);
-void func_0011A070(struct DL *pl, void *pv);
+void AppendSlEntry(struct DL *pl, void *pv);
 /** @sly2-annot addr=0x1C99D8
  * Purpose: Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR
  * Info: proposed name FindPxr (T1); TU proxy
@@ -302,12 +302,12 @@ again:
     pnParent = p;
     for (i = 0; i < c; i++) {
         pn = &pnNew[i];
-        func_0011A050(&pn->dl, 0x14);
+        InitSl(&pn->dl, 0x14);
         pn->id = aid[i];
         pn->x8 = OidFromIdProxy(pn->id);
-        func_0011A070(PdlFromSwPxrOid(D_003DD490, pn->x8), pn);
+        AppendSlEntry(PdlFromSwPxrOid(D_003DD490, pn->x8), pn);
         pn->pnParent = pnParent;
-        func_0011A070(&pnParent->dl, pn);
+        AppendSlEntry(&pnParent->dl, pn);
         pnParent = pn;
     }
     return pn;

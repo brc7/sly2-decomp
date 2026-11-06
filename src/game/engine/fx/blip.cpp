@@ -170,7 +170,7 @@ extern char D_0025AF90[];
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");              /* memset */
 DLV *PdlFromSwCid(SW *psw, CIDV cid);
-void func_0011A070(DLV *pdl, void *pv);
+void AppendSlEntry(DLV *pdl, void *pv);
 void RemoveSlEntry(DLV *pdl, void *pv);
 void InitXfm(BLIPGV *p);
 void SetLoBusyk(BLIPGV *p, int busyk);
@@ -303,7 +303,7 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     i = 31;
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
                                  `while (--i != -1) ;` loads 30 as C++ */
-    func_0011A070(PdlFromSwCid(psw, CID_1C), p);
+    AppendSlEntry(PdlFromSwCid(psw, CID_1C), p);
     p->pvt[7].pfn((char *)p + p->pvt[7].d);
     p->pvt[11].pfn((char *)p + p->pvt[11].d);
     p->pvt[15].pfn((char *)p + p->pvt[15].d);

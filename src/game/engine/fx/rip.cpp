@@ -164,7 +164,7 @@ void *PvAllocSlotheapClear(void *pool);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
 void *PdlFromSwCid(struct G *p, int n);
-void func_0011A070(void *pl, void *pv);
+void AppendSlEntry(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
 /** @sly2-annot addr=0x1CDCD0
  * Purpose: Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool
@@ -187,7 +187,7 @@ struct O *PripgNew(struct G *p, int a)
     ConstructGlobset(po->x80);
     po->x150 = a;
     po->vt = D_002D77D8;
-    func_0011A070(PdlFromSwCid(p, 0x57), po);
+    AppendSlEntry(PdlFromSwCid(p, 0x57), po);
     VCALL0(po, 7);
     VCALL0(po, 11);
     VCALL0(po, 15);

@@ -821,7 +821,7 @@ void LoadSwSharedDataFromBrx(void *, void *);
 void *UploadPermShaders(int, int);
 void func_001EB960(void);
 void func_001EB678(struct E *, void *);
-void func_0011A070(void *, void *);
+void AppendSlEntry(void *, void *);
 /** @sly2-annot addr=0x1EB748
  * Purpose: Load color tables, bitmaps, shaders and shader animations (PsaaLoadFromBrx 0x1ED7A8); upload
  *   permanent textures (0x1ECE58); build shader packets
@@ -866,7 +866,7 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
             msg.nKind = 0x10;
             q = (__typeof__(q))func_001AE2A0(&msg);
             func_001EB678(pe, q);
-            func_0011A070((*(char (*)[])&g_sw.slShd), q);
+            AppendSlEntry((*(char (*)[])&g_sw.slShd), q);
         }
     }
 }

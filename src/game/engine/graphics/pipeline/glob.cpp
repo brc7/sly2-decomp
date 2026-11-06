@@ -2346,8 +2346,8 @@ struct SL
     void *tail;
     int ibSle;
 };
-void InitSl(SL *psl, int ibSle) __asm__("func_0011A050");
-void AppendSlEntry(SL *psl, void *pv) __asm__("func_0011A070");
+void InitSl(SL *psl, int ibSle) __asm__("InitSl");
+void AppendSlEntry(SL *psl, void *pv) __asm__("AppendSlEntry");
 struct BASIC;
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 struct XF;

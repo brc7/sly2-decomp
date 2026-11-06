@@ -67,9 +67,9 @@ struct SW
 };
 
 extern "C" {
-void func_0011A070(SL *psl, CALLBACK *pcb);
+void AppendSlEntry(SL *psl, CALLBACK *pcb);
 void ClearSl(SL *psl);
-int FIsSlEmpty(SL *psl);
+int IsSlEmpty(SL *psl);
 void RemoveSlEntry(SL *psl, void *pv);
 int PtNew__t6CGcObj1Z6CFrame();
 SPF Attach__t7CRefPtr1Z6CFrameP6CFrame(int pv);
@@ -92,7 +92,7 @@ extern "C" void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
     pcb->pobj = pobj;
     pcb->pmf = pmf;
     pcb->arg = arg;
-    func_0011A070(&psw->slCb, pcb);
+    AppendSlEntry(&psw->slCb, pcb);
 }
 
 /** @sly2-annot addr=0x149AB8
@@ -155,7 +155,7 @@ extern "C" void ClearSwCallbacks(SW *psw, unsigned int grf, CObj *pobj, PMFCB pm
  * @end-sly2-annot */
 extern "C" void ProcessSwCallbacks(SW *psw)
 {
-    while (!FIsSlEmpty(&psw->slCb))
+    while (!IsSlEmpty(&psw->slCb))
     {
         CALLBACK *pcb = (CALLBACK *)psw->slCb.pvFirst;
         ClearSl(&psw->slCb);

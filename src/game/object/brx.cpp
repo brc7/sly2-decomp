@@ -152,7 +152,7 @@ void FramePtr_Assign(void *pspframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CF
 void *func_001FFA40(SW *psw, int isplice, LO *plo);
 DL *PdlFromSwOid(SW *psw, OID oid);
 DL *PdlFromSwCid(SW *psw, CID cid);
-void func_0011A070(DL *pdl, LO *plo);
+void AppendSlEntry(DL *pdl, LO *plo);
 int func_001A61A0(LO *plo);
 void CRef_ctor_CLQ(CRef *pref, float *ag);
 void CRef_ctor_LM(CRef *pref, float *ag);
@@ -226,8 +226,8 @@ LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice)
     plo->oid = oid;
     psw = &D_003DD490;
     FramePtr_Assign(plo, func_001FFA40(psw, isplice, plo));
-    func_0011A070(PdlFromSwOid(psw, oid), plo);
-    func_0011A070(PdlFromSwCid(psw, cid), plo);
+    AppendSlEntry(PdlFromSwOid(psw, oid), plo);
+    AppendSlEntry(PdlFromSwCid(psw, cid), plo);
     plo->Init();
     if ((uchar)plo->fInWorld)   /* (uchar): extract the bit as the target does ((int) adds a sign extension) */
         plo->AddHierarchy();

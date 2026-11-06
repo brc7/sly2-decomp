@@ -74,7 +74,7 @@ void func_001A4E08(void *pq);
 void func_00154A80(void *pdifficulty);
 void func_00212A30(WIDGETV *pwidget);
 void InitLo(LO *plo);
-void func_0011A050(DL *pdl, int ibDle);
+void InitSl(DL *pdl, int ibDle);
 void EndCurrentJob(JOBV *pjob);
 void BeginJob(JOBV *pjob);
 int FIsCurrentJob(JOBV *pjob);
@@ -864,7 +864,7 @@ void JOB::Init()
     pjob->nAC = -1;
     pjob->nB0 = -1;
     pjob->nB4 = -1;
-    func_0011A050(&pjob->dl, 0x84);
+    InitSl(&pjob->dl, 0x84);
 }
 
 namespace M_LoadJobFromBrx {
@@ -1927,7 +1927,7 @@ struct S {
 extern char D_003D4A60[];
 extern char D_003DD490[];
 void PostLoLoad(struct S *p);
-void func_0011A070(struct SL *psl, struct S *p);
+void AppendSlEntry(struct SL *psl, struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
 int FIsCurrentTask(struct S *p);
 int FTaskLive(struct S *p);
@@ -1956,7 +1956,7 @@ void PostTaskLoad(struct S *p)
     int *pnD0;
     PostLoLoad(p);
     if (p->f7c)
-        func_0011A070(&p->f7c->children, p);
+        AppendSlEntry(&p->f7c->children, p);
     i = 0;
     j = 0;
     pnC8 = &p->fc8;

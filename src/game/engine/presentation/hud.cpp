@@ -799,7 +799,7 @@ void func_00211F90(struct S *p)
 namespace M_WIDGET_ctor { extern "C" {
 struct S { int x0; int x4; char pad[4]; void *vt; char pad2[0x6C]; int x7c; char pad3[0x4C]; int a[10]; char pad4[8]; char xfc[4]; };
 extern char D_002DAF30[] __asm__("_vt$6WIDGET");
-void func_0011A050(void *p, int n);
+void InitSl(void *p, int n);
 /** @sly2-annot addr=0x212158
  * Purpose: WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68)
  * Info: proposed name WIDGET_ctor (T1); class WIDGET; TU hud
@@ -815,7 +815,7 @@ struct S *WIDGET_ctor(struct S *p)
     p->x4 = 0;
     for (i = 0; i < 10; i++)
         p->a[i] = -1;
-    func_0011A050(p->xfc, 0x68);
+    InitSl(p->xfc, 0x68);
     return p;
 }
 } } // namespace M_WIDGET_ctor
@@ -889,7 +889,7 @@ float F32Read__18CBinaryInputStream(void *pbis);
 int U32Read__18CBinaryInputStream(void *pbis);
 struct O *func_001AE2A0(AREQ *preq);
 void CBinaryInputStream_ReadCb64(void *pbis, struct O *po);
-void func_0011A070(void *, struct O *po);
+void AppendSlEntry(void *, struct O *po);
 void LoadSpriteTable(struct S *p, void *pbis, struct S *p2, int *pa, int *pb);
 void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
 /** @sly2-annot addr=0x212298
@@ -924,7 +924,7 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
         p->xC0 = func_001AE2A0(&req);
         p->xC0->x40 = p;
         CBinaryInputStream_ReadCb64(pbis, p->xC0);
-        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
+        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
     } else {
         p->x58 = 1;
         p->xC4 = D_003E1C80;

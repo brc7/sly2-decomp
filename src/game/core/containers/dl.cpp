@@ -23,7 +23,7 @@ DLI *D_002DD2FC;    /* g_pdliFirst (sly2/dli.h), likewise */
 
 extern "C" {
 void PrependSlEntry(SL *psl, void *pv);
-void func_0011A070(SL *psl, void *pv);
+void AppendSlEntry(SL *psl, void *pv);
 }
 
 /** @sly2-annot addr=0x11A050
@@ -33,7 +33,7 @@ void func_0011A070(SL *psl, void *pv);
  * See: docs/engine/core-library.md#2-containers, docs/engine/core-library.md#6-source-files,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void func_0011A050(SL *psl, int ibSle)
+extern "C" void InitSl(SL *psl, int ibSle)
 {
     psl->ibSle = ibSle;
 }
@@ -65,7 +65,7 @@ extern "C" void ClearSl(SL *psl) { psl->tail = 0; psl->head = 0; }
  * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void func_0011A070(SL *psl, void *pv)
+extern "C" void AppendSlEntry(SL *psl, void *pv)
 {
     if (psl->tail == 0) {
         psl->tail = pv;
@@ -105,7 +105,7 @@ extern "C" void InsertSlEntryAfter(SL *psl, void *pvPrev, void *pv)
     if (pvPrev == 0) {
         PrependSlEntry(psl, pv);
     } else if (pvPrev == psl->tail) {
-        func_0011A070(psl, pv);
+        AppendSlEntry(psl, pv);
     } else {
         void **ppvPrev = PPVNEXT(psl, pvPrev);
         *PPVNEXT(psl, pv) = *ppvPrev;
@@ -143,12 +143,12 @@ extern "C" void RemoveSlEntry(SL *psl, void *pv)
 
 /** @sly2-annot addr=0x11A1B8
  * Purpose: True if entry is linked (next != NULL or it is the tail)
- * Info: proposed name FFindSlEntry (T1); TU dl
+ * Info: proposed name IsEntryInSl (T1); TU dl
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" int FFindSlEntry(SL *psl, void *pv)
+extern "C" int IsEntryInSl(SL *psl, void *pv)
 {
     int f = 0;
     if (*PPVNEXT(psl, pv) != 0 || psl->tail == pv) {
@@ -159,12 +159,12 @@ extern "C" int FFindSlEntry(SL *psl, void *pv)
 
 /** @sly2-annot addr=0x11A1E8
  * Purpose: pvFirst == NULL
- * Info: proposed name FIsSlEmpty (T1); TU dl
+ * Info: proposed name IsSlEmpty (T1); TU dl
  * Notes: names_v2 v1 proposed InitDl__FP2DLi (0.008)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" int FIsSlEmpty(SL *psl)
+extern "C" int IsSlEmpty(SL *psl)
 {
     return psl->head == 0;
 }
