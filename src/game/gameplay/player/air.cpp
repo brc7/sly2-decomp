@@ -1753,8 +1753,8 @@ static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" :
 static inline VU_FLOAT VuFloatMemBits(const float &g) { VU_FLOAT v; __asm__("lw %0,%1" : "=r"(v.q) : "m"(g)); return v; }
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword QwAddScaled(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(g.q)); return r; }
-static inline qword QwAddScaled2(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0
-\tvmaddx.xyzw %0,%3,%2x" : "=j"(r) : "j"(a), "j"(g.q), "j"(b), "j"(g.q)); return r; }
+static inline qword QwAddScaled2(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0\n"
+"\tvmaddx.xyzw %0,%3,%2x" : "=j"(r) : "j"(a), "j"(g.q), "j"(b), "j"(g.q)); return r; }
 static inline qword QwScale2(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g.q), "j"(a), "j"(g.q)); return r; }
 static inline qword QwScale(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 static inline float GFromVf(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
@@ -1762,8 +1762,8 @@ static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z)
 static inline float GLengthSqXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromVf(r); }
 static inline float FloatUse(float g, void *a) { __asm__("" : "+f"(g) : "r"(a)); return g; }
 static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
-static inline float GLengthSqXYQ(qword v) { qword r; __asm__("vmul.xy %0,%1,%1
-\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromQw(r); }
+static inline float GLengthSqXYQ(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n"
+"\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromQw(r); }
 static inline qword QwSqrt(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
 static inline float GLengthXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromVf(QwSqrt(r)); }
 static inline qword QwDot(qword a, qword b) { qword r, one; __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(r), "=j"(one) : "j"(a), "j"(b)); return r; }
