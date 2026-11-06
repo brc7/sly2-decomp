@@ -59,7 +59,7 @@ extern G D_003DD490;
 extern XFV D_002C44F0;
 
 extern "C" {
-void *func_001AE2A0(ALLOCREQ *preq);
+void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 void func_002303A0(LOBase *p, XFV *plo, int n);
 M4 InvertMatrix4Rigid(const M4 *m);
 M3 InvertMatrix3Cofactor(const M3 *m);
@@ -83,7 +83,7 @@ extern "C" void LoadXfmConstraintsFromBrx(LOBase *p, CBinaryInputStream *pbis)
         ALLOCREQ req;
         req.cb = 0x10;
         req.nKind = 0x10;
-        XFMCONSTR *pe = (XFMCONSTR *)func_001AE2A0(&req);
+        XFMCONSTR *pe = (XFMCONSTR *)AllocClearedFromWorldHeap(&req);
         pe->source = p->PloFind(pbis->S16Read());
         if (!pe->source)
             pe->source = &D_002C44F0;

@@ -128,8 +128,8 @@ typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
    find the leaf containing a point. A pbspLimit of 0x7FFFFFFF means no limit. */
 extern "C" {
 int ClsgClipEdgeToBsp(BSP *pbspRoot, BSP *pbspLimit, qword pos1, qword pos2, int clsgMax, LSG *alsg) __asm__("func_00118668");
-PRUNE PruneBsp(BSP *pbsp, BSP *pbspLimit, float sRadius, qword pos, int *pcbspLeft, BSP **ppbspNext) __asm__("func_00118A88");
-BSP *PbspPointInBsp(BSP *pbsp, BSP *pbspLimit, qword pos) __asm__("func_00119090");
+PRUNE PruneBsp(BSP *pbsp, BSP *pbspLimit, float sRadius, qword pos, int *pcbspLeft, BSP **ppbspNext) __asm__("PruneBspBySphere");
+BSP *PbspPointInBsp(BSP *pbsp, BSP *pbspLimit, qword pos) __asm__("FindBspLeafContainingPoint");
 }
 /* A contact of a sphere with a part's hull (CsbiIntersectSphereBsp's output). */
 struct CMCONTACT
@@ -547,7 +547,7 @@ namespace M_func_001A87F0 {
 // SURFACE.flags bit 8 marks surfaces already ranked (set while scanning, cleared again before the contacts are emitted).
 //
 // How the match was found (w2lane8 v4 + wave-3 lane 4; all natural C++, VU asm only):
-//  - SCALAR/VECTOR have default constructors that call func_002564B8 / func_002564C0 (the engine's 16-byte vector initialisers); PlaneDist's two SCALAR
+//  - SCALAR/VECTOR have default constructors that call InitVuTemp / func_002564C0 (the engine's 16-byte vector initialisers); PlaneDist's two SCALAR
 //    locals therefore become the ctor calls + the dead dot/one stores at sp+0x10.. of every inlined expansion.
 //  - `float d` and `NODE *m` live at function scope and are shared by the edge loop and the emit loop: cse1 canonicalises the `if (n)` loop guard to the
 //    lowest-numbered pseudo of its equivalence class, so loops over `n` (declared after `head`) test `head` and loops over `m` test `m`.
@@ -561,9 +561,9 @@ namespace M_func_001A87F0 {
 typedef int qword __attribute__((mode(TI)));
 struct SCALAR;
 struct VECTOR;
-extern "C" SCALAR *func_002564B8(SCALAR *);
+extern "C" SCALAR *InitVuTemp(SCALAR *);
 extern "C" inline VECTOR *func_002564C0(VECTOR *);   /* defined after its callers (end of file) */
-struct SCALAR { qword q; SCALAR() { (void)func_002564B8(this); } };
+struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 struct VECTOR { qword q; VECTOR() { (void)func_002564C0(this); } };
 struct VU_VECTOR4 { qword q; VU_VECTOR4(qword a) { q = a; } };
 struct W;
@@ -667,8 +667,8 @@ typedef int qword __attribute__((mode(TI)));
 union U { qword q; float f[4]; };
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
 struct SCALAR;
-extern "C" SCALAR *func_002564B8(SCALAR *);
-struct SCALAR { qword q; SCALAR() { (void)func_002564B8(this); } };
+extern "C" SCALAR *InitVuTemp(SCALAR *);
+struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 struct SCENE;
 struct CONTACT;
 struct SPACE { char pad0[0x70]; U position; };
@@ -839,7 +839,7 @@ struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;U position,
 extern "C" FRAME*STACKSCOPE_ctor(FRAME*);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
 extern "C" void*PvAllocSlot__FP8ALLOCREQ(REQ*);
-extern "C" int func_00118A88(ENTRY*,int,qword,float,int*,ENTRY**);
+extern "C" int PruneBspBySphere(ENTRY*,int,qword,float,int*,ENTRY**);
 extern "C" int func_00118668(ENTRY*,int,qword,qword,int,HIT*);
 extern "C" void InitPlaneFromNormalPos(qword*,qword,qword);
 static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
@@ -863,7 +863,7 @@ extern "C" void func_001A9108(ENTRY*tree,int mask,void*geometry,qword pos,OUT*ou
  int limit=0x1555;
  if(radius<52000.0f)do {
   work.end=first;work.count=limit;
-  int status=func_00118A88(tree,mask,work.position.q,radius,&work.count,&work.end);
+  int status=PruneBspBySphere(tree,mask,work.position.q,radius,&work.count,&work.end);
   if(status<0)goto more;
   if(status<2)goto more;
   if(status!=2)goto more;
@@ -1321,9 +1321,9 @@ struct S { struct S0 *x0; struct LO *x4; float x8; };
 union DETAIL {void*pointer;int word;};
 struct E {qword x0,x10;int x20;DETAIL detail;};
 extern "C" int CsbiIntersectSphereBsp(qword pos, struct S*b,int c,int d,struct NODE*e,int n, struct E *buf, float f);
-extern "C" U*func_002564B8(U*p);
+extern "C" U*InitVuTemp(U*p);
 extern "C" void PxpAdd(void *a, struct S*s,struct S*b,qword p, qword q, int x20, void*z, void*x24,struct CONTACT**g,float f);
-inline U::U() { (void)func_002564B8(this); }
+inline U::U() { (void)InitVuTemp(this); }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
 typedef char Offset_0[FIELD_OFFSET(U,q)==0?1:-1];
 typedef char Offset_1[FIELD_OFFSET(U,f)==0?1:-1];
@@ -1609,7 +1609,7 @@ extern BSP D_002BBB20;      /* the "outside" leaf (bsp.cpp) */
 #define GRF_SOTREE(ptree) (*(ulong *)((char *)(ptree) + 0x70))
 extern "C" {
 void *PvAllocSlot__FP8ALLOCREQ(const ALLOCREQ &req);
-int PruneBspP(BSP *pbsp, BSP *pbspLimit, qword pos, float sRadius, int *pcbspLeft, BSP **ppbspNext) __asm__("func_00118A88");   /* AddSoXps's view: position first */
+int PruneBspP(BSP *pbsp, BSP *pbspLimit, qword pos, float sRadius, int *pcbspLeft, BSP **ppbspNext) __asm__("PruneBspBySphere");   /* AddSoXps's view: position first */
 void func_001A9D38(SW *psw, SOPART *ppart, SOPART *ppartOther, XP **ppxp);
 void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp);
 void MarkSoContactsBspBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, BSP *pbspLast, XP **ppxp);

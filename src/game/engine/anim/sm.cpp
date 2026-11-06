@@ -177,10 +177,10 @@ void InitDl(DL *pdl, int ibDle);
 int IsmsFindSmRequired(SM *psm, OID oid) __asm__("func_001F0438");
 
 
-void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("func_001AE238");
+void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 
-void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
-void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("func_001AE378");
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
+void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
 
 void LoadOptionsFromBrx(void *pvStruct, CBinaryInputStream *pbis);
 
@@ -382,7 +382,7 @@ namespace M_SetSmPendingApply { extern "C" {
 struct T { int a, b, c; };
 struct P { char pad[0x74]; struct T *pt; };
 struct CB { int cb; int n; };
-struct T *func_001AE1D0(struct CB *);
+struct T *AllocFromWorldHeap(struct CB *);
 /** @sly2-annot addr=0x1F0128
  * Purpose: Allocates the 12-byte {oid, a, b} record at +0x74 consumed by PostSmLoad
  * Info: proposed name SetSmPendingApply (T1); TU sm
@@ -394,7 +394,7 @@ void SetSmPendingApply(struct P *p, int a, int b, int c)
     struct CB cb;
     struct T *pt;
     cb.cb = 0xC; cb.n = 0x10;
-    pt = func_001AE1D0(&cb);
+    pt = AllocFromWorldHeap(&cb);
     p->pt = pt;
     pt->a = a; pt->b = b; pt->c = c;
 }

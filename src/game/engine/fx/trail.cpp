@@ -55,7 +55,7 @@ void InitSo(TRAIL *);
 void AddSoHierarchy(TRAIL *p);
 void ResetTrailHistory(TRAIL *p);
 void PostSoLoad(TRAIL *);
-void *func_001AE2A0(ALLOC *);
+void *AllocClearedFromWorldHeap(ALLOC *);
 void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
 void func_0016EF00(MODEL *,int);
 void UpdateLo(TRAIL *p, float dt);
@@ -147,7 +147,7 @@ static inline void RecordOperands(TRAIL *owner,N *node,int &bytes,unsigned &divi
 static inline int Product(int value,unsigned scale){int result;asm("mult %0,%1,%2":"=r"(result):"r"(value),"r"(scale):"hi","lo");return result;}
 static inline REQUEST *AllocationInput(REQUEST *request){REQUEST *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(request));return value;}
 static inline qwordV *BufferStart(qwordV *buffer){qwordV *value;__asm__("la %0,%a1":"=r"(value):"p"(buffer));return value;}
-static inline Sample *AllocateSamples(REQUEST *request,int count){request->alloc.bytes=count*sizeof(Sample);request->alloc.align=16;return (Sample *)func_001AE2A0(&AllocationInput(request)->alloc);}
+static inline Sample *AllocateSamples(REQUEST *request,int count){request->alloc.bytes=count*sizeof(Sample);request->alloc.align=16;return (Sample *)AllocClearedFromWorldHeap(&AllocationInput(request)->alloc);}
 static inline void SampleInputs(qwordV *buffer,float maximum,float minimum,qwordV *&cursor,float &range,float &one){
  register qwordV *v asm("$6");register float span asm("$f3"),unit asm("$f4");
  asm("sub.s %0,%3,%4\n\tli.s %1,1.0\n\tdaddu %2,%5,$zero":"=&f"(span),"=&f"(unit),"=r"(v):"f"(maximum),"f"(minimum),"r"(buffer));
@@ -177,7 +177,7 @@ extern "C" void PostTrailLoad(TRAIL *p){
         REQUEST req;
         qwordV buffer[128];
         req.alloc.bytes=p->count*sizeof(Ring);req.alloc.align=16;
-        p->ring=(Ring *)func_001AE2A0(&req.alloc);
+        p->ring=(Ring *)AllocClearedFromWorldHeap(&req.alloc);
         minimum=D_002A9240;maximum=D_002A9244;
         for(node=p->model.nodes;node;node=node->next){
             for(int i=0;i<node->count;i++){

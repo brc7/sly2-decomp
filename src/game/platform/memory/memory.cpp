@@ -29,8 +29,8 @@ int D_002F639C;                   /* stack scope depth */
 uint D_002F63A0[50];              /* stack heap tops of the open scopes (to ui/menu's .bss at 0x2F6468) */
 extern "C" {
 void func_002333B4(void *p, int c, int n) __asm__("memset");
-void *func_001AE1D0(AREQ *preq);
-void *func_001AE2A0(AREQ *preq);
+void *AllocFromWorldHeap(AREQ *preq);
+void *AllocClearedFromWorldHeap(AREQ *preq);
 void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
 }
 void InitCritSect(CRITSECT *pcritsect);
@@ -91,7 +91,7 @@ void CheckForOutOfMemory()
  *   docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-extern "C" void *func_001AE1D0(AREQ *p)
+extern "C" void *AllocFromWorldHeap(AREQ *p)
 {
     unsigned int pv;
     if (!p->cb)
@@ -109,10 +109,10 @@ extern "C" void *func_001AE1D0(AREQ *p)
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void *func_001AE238(AREQ *preq, void *pvSrc)
+extern "C" void *AllocCopyFromWorldHeap(AREQ *preq, void *pvSrc)
 {
     AREQ m = *preq;
-    void *p = func_001AE1D0(&m);
+    void *p = AllocFromWorldHeap(&m);
     if (p) CopyAb(p, pvSrc, preq->cb);
     return p;
 }
@@ -126,10 +126,10 @@ extern "C" void *func_001AE238(AREQ *preq, void *pvSrc)
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-extern "C" void *func_001AE2A0(AREQ *preq)
+extern "C" void *AllocClearedFromWorldHeap(AREQ *preq)
 {
     AREQ m = *preq;
-    void *p = func_001AE1D0(&m);
+    void *p = AllocFromWorldHeap(&m);
     if (p) func_002333B4(p, 0, preq->cb);
     return p;
 }
@@ -175,7 +175,7 @@ extern "C" void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq)
  * Confidence: high [T1 0.92] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-extern "C" void *func_001AE378(AREQ *preq)
+extern "C" void *AllocClearedFromStack(AREQ *preq)
 {
     AREQ m = *preq;
     void *p = PvAllocSlot__FP8ALLOCREQ(&m);
@@ -263,7 +263,7 @@ extern "C" void free(void *pv)
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
 /* ::operator new (g++ 2.95's symbol for it is __builtin_new). */
-void *operator new(unsigned int cb) { AREQ m; m.cb = cb; m.cbAlign = 0x10; return func_001AE2A0(&m); }
+void *operator new(unsigned int cb) { AREQ m; m.cb = cb; m.cbAlign = 0x10; return AllocClearedFromWorldHeap(&m); }
 
 /* ::operator delete (g++ 2.95's symbol for it is __builtin_delete): nothing to free. */
 /** @sly2-annot addr=0x1AE520

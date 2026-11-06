@@ -70,7 +70,7 @@ void SetRegion(int n);
 void SetLanguageFromSystem(int nLang);
 int sceScfGetLanguage();
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
-void func_001A4E08(void *pq);
+void BeginStartupSequence(void *pq);
 void func_00154A80(void *pdifficulty);
 void func_00212A30(WIDGETV *pwidget);
 void InitLo(LO *plo);
@@ -110,7 +110,7 @@ extern "C" void StartupGame()
     SetRegion(0);
     SetLanguageFromSystem(sceScfGetLanguage());
     BroadcastGameEvent(D_002DEB30, 0, 0);
-    func_001A4E08(D_002E1E88);
+    BeginStartupSequence(D_002E1E88);
 }
 
 namespace M_InitGame { extern "C" {
@@ -247,13 +247,13 @@ struct ALLOCREQ { int cb; int nKind; };
 struct X { char pad[0x54]; int n; char pad2[0xA0 - 0x58]; int fA0; };
 struct G { char pad[0x3AFC]; int c; };
 extern "C" { extern G D_003DD490; }
-extern "C" void *func_001AE378(ALLOCREQ *preq);
+extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return func_001AE378(preq);
+    return AllocClearedFromStack(preq);
 }
 static inline int Min(int a, int b) { return a > b ? b : a; }
 /** @sly2-annot addr=0x161660
@@ -872,7 +872,7 @@ struct ALLOCREQ { int cb; int nKind; };
 class CBinaryInputStream;
 struct S { char pad[0x54]; int c54; void *a58; int c5C; void *a60; char pad2[0x8C - 0x64]; int c8C; void *a90; int c94; void *a98; };
 extern "C" void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *preq);
-extern "C" void *func_001AE238(ALLOCREQ *preq, void *pv);
+extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *pbis);
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
@@ -885,7 +885,7 @@ static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return func_001AE238(preq, pv);
+    return AllocCopyFromWorldHeap(preq, pv);
 }
 /** @sly2-annot addr=0x1624A8
  * Purpose: JOB LoadFromBrx: preallocates 4 record arrays (visibility, RSMG, two event-id lists), LO load,
@@ -1500,8 +1500,8 @@ namespace M_func_00162FD0 { extern "C" {
 struct LO { char pad[0x40]; int fl; };
 struct S { char pad[0xC0]; void *pc0; char pad2[0xCC - 0xC4]; struct LO *pcc; };
 extern char D_002E1E88[];
-int func_001A4E70(void *p);
-void func_001A4E80(void *p);
+int HasPendingStartupSteps(void *p);
+void RunNextStartupStep(void *p);
 void RequestTaskState(void *p, int n, struct S *ps);
 void func_002283D0(struct LO *plo);
 /** @sly2-annot addr=0x162FD0
@@ -1514,8 +1514,8 @@ void func_002283D0(struct LO *plo);
 void func_00162FD0(struct S *p)
 {
     char *pv = D_002E1E88;
-    if (func_001A4E70(pv)) {
-        func_001A4E80(pv);
+    if (HasPendingStartupSteps(pv)) {
+        RunNextStartupStep(pv);
     } else if (p->pc0) {
         RequestTaskState(p->pc0, 4, p);
     } else if (p->pcc) {
@@ -1788,9 +1788,9 @@ public:
 };
 struct S { char pad[0x90]; int *a90; int c94; void *a98; int *a9C; int cA0; void *aA4; int cA8; void *aAC; int cB0; void *aB4; };
 extern "C" void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *preq);
-extern "C" void *func_001AE238(ALLOCREQ *preq, void *pv);
-extern "C" void *func_001AE2A0(ALLOCREQ *preq);
-extern "C" void *func_001AE1D0(ALLOCREQ *preq);
+extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
+extern "C" void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
+extern "C" void *AllocFromWorldHeap(ALLOCREQ *preq);
 extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *pbis);
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
@@ -1803,19 +1803,19 @@ static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return func_001AE238(preq, pv);
+    return AllocCopyFromWorldHeap(preq, pv);
 }
 static inline void *PvAllocA(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return func_001AE2A0(preq);
+    return AllocClearedFromWorldHeap(preq);
 }
 static inline void *PvAllocB(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return func_001AE1D0(preq);
+    return AllocFromWorldHeap(preq);
 }
 /** @sly2-annot addr=0x1635F8
  * Purpose: TASK LoadFromBrx: visibility/RSMG arrays, then u8-counted oid lists of prerequisites (+0x90) and
@@ -3029,7 +3029,7 @@ extern char D_002E65E0[];
 
 extern G D_003DD490;
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
-void*func_001AE378(const REQUEST&);
+void*AllocClearedFromStack(const REQUEST&);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 void CollectTaskCascade(P*,int,int*,P**);
 void SetTaskStatePropagate(P*,int);
@@ -3041,7 +3041,7 @@ void func_001ABD98(void*,int);
 CRef*__4CRefRC4CRef(CRef*,const CRef*);
 void Decref__4CRef(CRef*);
 }
-static inline void*Allocate(int n){return func_001AE378(REQUEST(n,16));}
+static inline void*Allocate(int n){return AllocClearedFromStack(REQUEST(n,16));}
 struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
     OVERRIDE(P*p,int x,int y):context(0),object(p){if(object){oldX=object->x;object->x=x;oldY=object->y;object->y=y;}}
     ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}
@@ -3656,7 +3656,7 @@ struct ALLOCREQ { int cb; int nKind; };
 struct X { char pad[0x94]; int f94; char pad2[0xFC - 0x98]; int fFC; };
 struct G { char pad[0x3AFC]; int c; };
 extern "C" { extern G D_003DD490; }
-extern "C" void *func_001AE378(ALLOCREQ *preq);
+extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
 extern "C" int CploFindSwObjectsByClass(G *pg, int kind, int n, int m, int c, void **apv);
 extern "C" void VisitTaskTopo(X *px, int *pc, void *pv, int a, int b);
 /** @sly2-annot addr=0x165C98
@@ -3672,11 +3672,11 @@ extern "C" void SortTasksTopologically(int *pc, void **ppv)
     *pc = 0;
     req.cb = pg->c * 4;
     req.nKind = 0x10;
-    *ppv = func_001AE378(&req);
+    *ppv = AllocClearedFromStack(&req);
     STACKSCOPE fr;
     req.cb = pg->c * 4;
     req.nKind = 0x10;
-    X **apx = (X **)func_001AE378(&req);
+    X **apx = (X **)AllocClearedFromStack(&req);
     int c = CploFindSwObjectsByClass(pg, 5, 0x85, 0, pg->c, (void **)apx);
     int i;
     for (i = 0; i < c; i++)
@@ -3842,7 +3842,7 @@ void func_00166008(void)
  * @end-sly2-annot */
 extern "C" void func_001660F8()
 {
-    func_001A4E08(D_002E1E88);
+    BeginStartupSequence(D_002E1E88);
 }
 
 namespace M_RefGetGlobalSaveVar { extern "C" {

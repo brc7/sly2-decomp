@@ -15,7 +15,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The four stick axes the deflection is measured against. */
 struct VEC2 { float x; float y; };
-/* The game state block at D_002DDF40 (a menu/script check of func_00187998), and the event timer at D_002DEB30. */
+/* The game state block at D_002DDF40 (a menu/script check of ReadJoy), and the event timer at D_002DEB30. */
 struct GSTATE { char pad[0x30C]; int x30c; int x310; void *x314; char pad318[0x3A0 - 0x318]; int x3a0; };
 struct SNDV { float t; };
 
@@ -46,7 +46,7 @@ int scePadRead(int port, int slot, unsigned char *pb);
 void _MatchCodes(void *p, JOY *pjoy, int grfbtn);
 int PpoHero(void *p);
 void BroadcastGameEvent(SNDV *p, int n, int a);
-int func_00187998(JOY *pjoy);
+int ReadJoy(JOY *pjoy);
 int GrfJoyPressed(JOY *pjoy, int grf);
 void SetJoyBtnHandled(JOY *pjoy, int grf);
 int GrfHandleJoyBtn(JOY *pjoy, int grf);
@@ -276,7 +276,7 @@ void UpdateJoy(JOY *pjoy)
         }
         break;
     case 3:
-        if (func_00187998(pjoy)) {
+        if (ReadJoy(pjoy)) {
             if (pjoy->fRumbleEnabled && pjoy->joyk >= 3)
                 UpdateRumble((RUMBLE *)&pjoy->rumble);
         } else {
@@ -394,7 +394,7 @@ static __inline__ float sqrtf(float g) { float r; __asm__ __volatile__("sqrt.s %
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" int func_00187998(JOY *p)
+extern "C" int ReadJoy(JOY *p)
 {
     unsigned char ab[0x40];
     int fRet = 1;
@@ -523,7 +523,7 @@ extern "C" void SetJoyBtnHandled(JOY *pjoy, int grf)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" void func_00187E08(JOY *pjoy, int grf)
+extern "C" void ClearJoyButtons(JOY *pjoy, int grf)
 {
     int grfKeep = ~grf;
     pjoy->grfbtn &= grfKeep;

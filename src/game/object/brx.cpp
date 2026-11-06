@@ -20,7 +20,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* Declarations from LoadOptionFromBrx's per-function file (Lilly port): a private CBinaryInputStream view (S8Read and
    Skip added for LoadSwObjectsFromBrx). EOPID is sly2/eopid.h's, CRef sly2/cref.h's. Callees keep the names that file
    gave them. */
-MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
+MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
 extern "C" LORUN *PdcbAddLo(LO *plo);
 class CBinaryStreamBase
 {
@@ -69,8 +69,8 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
-void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("func_001AE378");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
+void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
 CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv) __asm__("func_00200DA0");
 struct OIDFIELD
 {

@@ -117,8 +117,8 @@ void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pv, float *pa, float *pb);
-EMB *func_001AE238(MSG *, EMB *);
-void *func_001AE2A0(MSG *pmsg);
+EMB *AllocCopyFromWorldHeap(MSG *, EMB *);
+void *AllocClearedFromWorldHeap(MSG *pmsg);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(struct CRef *p);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SWP *p, int a, int b, int c);
@@ -678,7 +678,7 @@ extern "C" void func_001C4848(SWP *p, EMITX *q)
             MSG msg;
             msg.cb = 0x14;
             msg.nKind = 0x10;
-            pv->pn = (int *)func_001AE2A0(&msg);
+            pv->pn = (int *)AllocClearedFromWorldHeap(&msg);
         }
     }
 }

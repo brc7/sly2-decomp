@@ -341,7 +341,7 @@ extern char D_003D9ED0[], D_003DA150[], D_003DA0F0[], D_002DDEC0[], D_00443740[]
 extern char D_003DA0C0[], D_003DA3C0[], D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
 void RemoveGrfusr__Fi(int);
 int GrfHandleJoyBtn(PAD *, int);
-void func_00187E08(PAD *, int);
+void ClearJoyButtons(PAD *, int);
 int func_001B0290(int);
 int FIsDlEmpty__FP2DL(void *);
 void UpdatePauseMenu(void *);
@@ -377,7 +377,7 @@ void func_001D9648(void *pdl)
         pad = &D_002E0D00;
     if (GrfHandleJoyBtn(pad, 0x800)) {
         if (!func_001B0290(0))
-            func_00187E08(pad, 0x800);
+            ClearJoyButtons(pad, 0x800);
     } else if (D_002DFBC0 & 2) {
         int r = FIsDlEmpty__FP2DL(pdl);
         int f = 0;
@@ -1812,7 +1812,7 @@ extern struct CLOCK { float a[16]; } D_002DDED0;
 extern char D_003DD490[];
 extern E D_002C2DE8[], D_002C3028[], D_002C3148[];
 extern float D_002A79CC;
-void func_0014D1D0(struct CLOCK *, float, int);
+void SetClockRate(struct CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SelectGadgetMenuItem(OBJ *, int);
@@ -1833,7 +1833,7 @@ void SetGadgetMenuState(OBJ *p, int s)
     if (s == p->x40)
         return;
     if (p->x40 == -1) {
-        func_0014D1D0(&D_002DDED0, 0.0f, 0);
+        SetClockRate(&D_002DDED0, 0.0f, 0);
         IncrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 10);
     }
@@ -1849,7 +1849,7 @@ void SetGadgetMenuState(OBJ *p, int s)
             p->ae[i].cur = -1;
         p->n = 0;
         p->ae = 0;
-        func_0014D1D0(&D_002DDED0, 1.0f, 0);
+        SetClockRate(&D_002DDED0, 1.0f, 0);
         DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
         func_001DA950(p, -1, -1);
@@ -2389,7 +2389,7 @@ typedef struct OBJ {
 } OBJ;
 extern struct CLOCK { float a[16]; } D_002DDED0;
 extern char D_003DD490[];
-void func_0014D1D0(struct CLOCK *, float, int);
+void SetClockRate(struct CLOCK *, float, int);
 void IncrementSwHandsOff(void *, int);
 void DecrementSwHandsOff(void *, int);
 void SetWidgetState(SUB *, int);
@@ -2416,7 +2416,7 @@ void SetThiefnetTab(OBJ *p, int s)
     if (s == p->x40)
         return;
     if (p->x40 == -1) {
-        func_0014D1D0(&D_002DDED0, 0.0f, 0);
+        SetClockRate(&D_002DDED0, 0.0f, 0);
         IncrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 10);
         SetWidgetState(p->x24, 1);
@@ -2427,7 +2427,7 @@ void SetThiefnetTab(OBJ *p, int s)
     switch (s) {
     case -1:
         VCALL(p->x24, 50);
-        func_0014D1D0(&D_002DDED0, 1.0f, 0);
+        SetClockRate(&D_002DDED0, 1.0f, 0);
         DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
         if (p->x24->x58 > 0)

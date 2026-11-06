@@ -111,7 +111,7 @@ void AppendDlEntry(DL *pdl, void *pv);
 
 namespace M_NewSfx { extern "C" {
 typedef struct MSG { int cb; int nKind; } MSG;
-void *func_001AE2A0(MSG *pmsg);
+void *AllocClearedFromWorldHeap(MSG *pmsg);
 struct E { int n; float a; float b; float c; int d; };
 /** @sly2-annot addr=0x1FAF70
  * Purpose: Allocate an SFX descriptor from SW heap: sfxid=-1, sFull=300, sStart=3000, uVol=1
@@ -126,7 +126,7 @@ struct E *NewSfx(void)
     struct E *pe;
     msg.cb = sizeof(struct E);
     msg.nKind = 0x10;
-    pe = (__typeof__(pe))func_001AE2A0(&msg);
+    pe = (__typeof__(pe))AllocClearedFromWorldHeap(&msg);
     pe->n = -1;
     pe->a = 300.0f;
     pe->b = 3000.0f;
@@ -1650,8 +1650,8 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
-void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 inline void *PvAllocSwLoad(int cb, int cbAlign)
 {
     SWALLOC swalloc;

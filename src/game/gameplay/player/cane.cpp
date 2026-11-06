@@ -592,7 +592,7 @@ struct G;
 extern "C" const qword D_002A2DC0;
 extern "C" G D_003DD490;
 extern "C" float D_002BF4B8;
-extern "C" M3 func_0011B500(qword,float);
+extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,float,M4*);
 extern "C" void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 extern "C" int PloFindSwObjectByClass__FP2SWi3CIDP2LO(G*,int,int,ALO*);
@@ -625,7 +625,7 @@ extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtI
  float nearest=300.0f;
  qword position;
  qword early=QwFromF(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
- rotation=func_0011B500(D_002A2DC0,headingInput);
+ rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,headingInput);
  position=func_001A62E8(p);
  VU_FLOAT scalar=VuFloatBits(dt);
  origin.q=AddScaled(position,GetVelocity(p),scalar);

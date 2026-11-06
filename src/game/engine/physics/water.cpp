@@ -130,7 +130,7 @@ void func_001F68A8(SOW *p, int a);
 qwordV ConvertAloPos(int a, SOW *p, qwordV q);
 V *VECTOR_opAssign(V *pv, qwordV q);
 void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
-qwordV func_0011BFB8(M4 *pm);
+qwordV DecomposeRotationMatrixToVector(M4 *pm);
 MARK *STACKSCOPE_ctor(MARK *);
 void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
@@ -251,7 +251,7 @@ extern "C" void CalculateWaterCurrent(SOW *p, qwordV v, qwordV *ppos, qwordV *pr
         m2.r[3].f[2] = p->posCurrent.z;
         func_00230CD0(p->motion, 0, pm, pm2);
         if (ppos) *ppos = m2.r[3].q;
-        if (prot) *prot = func_0011BFB8(pm2);
+        if (prot) *prot = DecomposeRotationMatrixToVector(pm2);
     }
 }
 

@@ -121,10 +121,10 @@ void RemoveLoHierarchy(CID119V *p);
 void SetLoBusyk(CID119V *p, int n);
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
-void *func_001AE378(AI *pa);
+void *AllocClearedFromStack(AI *pa);
 void *PvAllocSlot__FP8ALLOCREQ(AI *pa);
-void *func_001AE238(AI *pa, void *pv);
-void *func_001AE2A0(AI *pa);
+void *AllocCopyFromWorldHeap(AI *pa, void *pv);
+void *AllocClearedFromWorldHeap(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void func_00170C50(SCRIPTV *o, int a, int b, int c);
 int func_0020FA50(void);
@@ -143,7 +143,7 @@ float SMaxShape(LOV *);
 int func_001EA3B0(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
-M3 func_0011B500(float, qwordV);
+M3 BuildAxisAngleRotationMatrix(float, qwordV);
 GUARDV *PloAcquireProxy(void *p, int n);
 void *func_00205458(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
@@ -189,13 +189,13 @@ extern "C" void func_001731B8(CID119V *p, void *pv) {
     SCOPE mk;
     AI ai;
     STACKSCOPE_ctor(&mk);
-    p->asel = (SEL *)func_001AE378(SetAi(&ai, 0xE00, 0x10));
+    p->asel = (SEL *)AllocClearedFromStack(SetAi(&ai, 0xE00, 0x10));
     p->apos = (qwordV *)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x100, 0x10));
     p->atmpl = (LOV **)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x20, 0x10));
     func_001733C8(p, D_002A2DD0);
     LoadLoFromBrx(p, pv);
-    p->asel = (SEL *)func_001AE238(SetAi(&ai, p->csel * 0x1C, 0x10), p->asel);
-    { void *pv9C = func_001AE238(SetAi(&ai, p->cpos << 4, 0x10), p->apos); void *pv94 = p->atmpl; p->apos = (qwordV *)pv9C; p->atmpl = (LOV **)func_001AE238(SetAi(&ai, 0x20, 0x10), pv94); }
+    p->asel = (SEL *)AllocCopyFromWorldHeap(SetAi(&ai, p->csel * 0x1C, 0x10), p->asel);
+    { void *pv9C = AllocCopyFromWorldHeap(SetAi(&ai, p->cpos << 4, 0x10), p->apos); void *pv94 = p->atmpl; p->apos = (qwordV *)pv9C; p->atmpl = (LOV **)AllocCopyFromWorldHeap(SetAi(&ai, 0x20, 0x10), pv94); }
     STACKSCOPE_ctor_1AE4A0(&mk, 2);
 }
 
@@ -312,7 +312,7 @@ extern "C" void func_001733F8(CID119V *p) {
     }
     al.cb = p->centMax * 0x30;
     al.align = 0x10;
-    p->aent = (ENTRY *)func_001AE2A0(&al);
+    p->aent = (ENTRY *)AllocClearedFromWorldHeap(&al);
     SetLoBusyk(p, 1);
     f = p->grfUnk40;
     if ((f ^ 1) & 1) *(int *)f |= 2;
@@ -743,7 +743,7 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
                             VU_FLOAT gNeg = VuFloatFromMemWord(0xBF800000);
                             dirCurve.q = QwScaleX(dirCurve.q, gNeg);
                         }
-                        M3 matCurve = func_0011B500(atan2f(dirCurve.v.y, dirCurve.v.x), D_002A2DC0);
+                        M3 matCurve = BuildAxisAngleRotationMatrix(atan2f(dirCurve.v.y, dirCurve.v.x), D_002A2DC0);
                         int j;
                         for (j = 0; j < pset->cpos; j++)
                         {

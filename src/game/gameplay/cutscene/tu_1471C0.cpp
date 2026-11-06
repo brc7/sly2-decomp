@@ -80,7 +80,7 @@ int FAsegaRetracted(ASEGA *pasega);
 int func_001FE848(void *p, int n);
 void HandleBasicMessage(P *p, int kind, MSG *pmsg);
 void func_001FE5B8(void *p, int a, int b);
-void func_0014D1D0(CLOCKV *p, int a, float g);
+void SetClockRate(CLOCKV *p, int a, float g);
 void IncrementSwHandsOff(void *p, int a);
 void DecrementSwHandsOff(void *p, int a);
 int func_001A61A0(P *p);
@@ -212,7 +212,7 @@ extern "C" void func_00147410(P *p, int state)
     case -1:
         D_002DD644 = p;
         func_001FE5B8(D_003DD040, 2, 0);
-        func_0014D1D0(&D_002DDED0, 8, 0.0f);
+        SetClockRate(&D_002DDED0, 8, 0.0f);
         IncrementSwHandsOff(D_003DD490, 0);
         p->vt[8].pfn((char *)p + p->vt[8].d);
         if (!func_001A61A0(p)) {
@@ -231,7 +231,7 @@ extern "C" void func_00147410(P *p, int state)
     switch (state) {
     case -1:
         D_002DD644 = 0;
-        func_0014D1D0(&D_002DDED0, 8, 1.0f);
+        SetClockRate(&D_002DDED0, 8, 1.0f);
         func_001FE5B8(D_003DD040, 2, 1);
         DecrementSwHandsOff(D_003DD490, 0);
         p->vt[9].pfn((char *)p + p->vt[9].d);

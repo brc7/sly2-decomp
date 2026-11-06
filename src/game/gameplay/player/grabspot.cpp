@@ -934,7 +934,7 @@ void UpdateSwBusyList(void *p);
 void *func_001A6318(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
-qword func_0011BFF0(MATRIX3 *pm);
+qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
 qword func_0022FC48(void *pv, void *pvA0, qword v);
 void func_00183B80(struct O *p, int n);
 }
@@ -985,7 +985,7 @@ void func_00183B80(struct O *p, int n)
             TiltMatUpright(func_001A6318(p), 0, &m);
             m = ConvertXfMat(0, p->p5C->pA0, &m);
 
-            q = func_0011BFF0(&m);
+            q = DecomposeRotationMatrixToEuler(&m);
             func_002303A0(p, p->p5C, 7);
             {
 

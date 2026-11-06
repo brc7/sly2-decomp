@@ -168,7 +168,7 @@ void PostLoLoad(VOLBTNV *pvolbtn);
 void CloneXfm(VOLBTNV *pvolbtn, VOLBTNV *pvolbtnBase);
 void UpdateLo(VOLBTNV *pvolbtn, float dt);
 void RemoveLoHierarchy(VOLBTNV *pvolbtn);
-int func_001AE1D0(int *pn);
+int AllocFromWorldHeap(int *pn);
 void STACKSCOPE_ctor(int *pctx);
 void STACKSCOPE_ctor_1AE4A0(int *pctx, int n) __asm__("_$_10STACKSCOPE");
 int CploFindSwObjectsByClass(SW *psw, int grffso, CIDV cid, int x, int cploMax, LOV **aplo);
@@ -856,7 +856,7 @@ extern "C" void PostVolbtnLoad(VOLBTNV *pvolbtn)
         int an[2];
         an[0] = 0x100;
         an[1] = 0x10;
-        pvolbtn->aploInside = (LOV **)func_001AE1D0(an);
+        pvolbtn->aploInside = (LOV **)AllocFromWorldHeap(an);
     }
 }
 

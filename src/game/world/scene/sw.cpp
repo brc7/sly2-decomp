@@ -437,8 +437,8 @@ struct S {
 };
 struct ZPR { char ab[0x630]; };
 extern char D_002DEB30[];
-void *func_001AE1D0(struct MSG *pmsg);
-void *func_001AE2A0(struct MSG *pmsg);
+void *AllocFromWorldHeap(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void InitSl(void *p, int n);
 void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void func_001BE398(void *p, struct ZPR *pz);
@@ -461,14 +461,14 @@ void func_0020E180(struct S *p)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        p->a3CD4[i] = func_001AE1D0(&msg);
+        p->a3CD4[i] = AllocFromWorldHeap(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    p->p3F20 = func_001AE2A0(&msg);
+    p->p3F20 = AllocClearedFromWorldHeap(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    p->ph = (__typeof__(p->ph))func_001AE2A0(&msg);
+    p->ph = (__typeof__(p->ph))AllocClearedFromWorldHeap(&msg);
     p->ph->a = -1;
     p->ph->c = -1;
     InitSl(p->ph->dl, 0x14);
@@ -784,8 +784,8 @@ FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void SetPhase__F5PHASE(int);
 void func_00258248(KEY *);
-STREAM *func_001848A8(STREAM *,int,void *,int);
-int func_00184D60(STREAM *,KEY *);
+STREAM *CStreamBis_ctor(STREAM *,int,void *,int);
+int OpenStreamFromFileKey(STREAM *,KEY *);
 void func_00184950(STREAM *,int) __asm__("_$_10CStreamBis");
 void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *);
 void CStreamBis_Refill(STREAM *);
@@ -817,7 +817,7 @@ void CutCm__FP2CM(void *);
 void BroadcastGameEvent(void *,int,void *);
 void ClearPhase(int);
 void func_0022B420(void *);
-void func_001A4E80(void *);
+void RunNextStartupStep(void *);
 }
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
@@ -867,8 +867,8 @@ extern "C" void ExecuteSwTransition(SW *p)
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
     __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));
-    func_001848A8(argument,0xD8000,D_002F7980,0);
-    if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
+    CStreamBis_ctor(argument,0xD8000,D_002F7980,0);
+    if(hasFile&&!OpenStreamFromFileKey(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
     DeleteSw(p);
@@ -919,7 +919,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     BroadcastGameEvent(D_002DEB30,5,0);
     ClearPhase(2);
     func_0022B420(D_00443740);
-    if(!hasFile)func_001A4E80(D_002E1E88);
+    if(!hasFile)RunNextStartupStep(D_002E1E88);
     func_00184950(reader,2);
     STACKSCOPE_ctor_1AE4A0(scope,2);
 }
@@ -951,7 +951,7 @@ struct S { char pad[0x3D78]; int n; };
 struct G;
 extern struct G D_002DFC00;
 void RemoveGrfusr__Fi(int n);
-void func_00187E08(struct G *pg, int n);
+void ClearJoyButtons(struct G *pg, int n);
 void ReleaseSwLetterbox(struct S *p);
 void func_0020F1A8(struct S *p);
 /** @sly2-annot addr=0x20F030
@@ -967,7 +967,7 @@ void DecrementSwHandsOff(struct S *p, int grf)
 {
     if (--p->n == 0) {
         RemoveGrfusr__Fi(2);
-        func_00187E08(&D_002DFC00, 8);
+        ClearJoyButtons(&D_002DFC00, 8);
     }
     if (grf & 1) ReleaseSwLetterbox(p);
     if (grf & 2) func_0020F1A8(p);
@@ -1222,8 +1222,8 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
-void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 inline void *PvAllocSwLoad(int cb, int cbAlign)
 {
     SWALLOC swalloc;

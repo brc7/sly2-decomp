@@ -18,13 +18,13 @@ struct VU_FLOAT {
     VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
 };
 extern "C" {
-void func_0011B570(M3 *pm, qword v);
+void BuildRotationMatrixFromVector(M3 *pm, qword v);
 M3 *MulMatrix3Matrix3(M3 *pr, M3 *pa, M3 *pb);
-qword func_0011BFB8(M3 *pm);
+qword DecomposeRotationMatrixToVector(M3 *pm);
 }
 static inline M3 Rot(qword v) return m
 {
-    func_0011B570(&m, v);
+    BuildRotationMatrixFromVector(&m, v);
 }
 static inline qword VF(float g)
 {
@@ -183,15 +183,15 @@ extern "C" void EvaluateBezierMat(float dt, float t, float gScale, M3 *pmat0, qw
         float u3 = u2 * u;
         M3 a, b, rel, rot;
         qword w;
-        func_0011B570(&rot, Scale(w0, VF(u * v * v * dt)));
+        BuildRotationMatrixFromVector(&rot, Scale(w0, VF(u * v * v * dt)));
         MulP(&rel, rot, pmat0);
         a = rel;
-        func_0011B570(&rot, Scale(w1, VF(-h2 * dt)));
+        BuildRotationMatrixFromVector(&rot, Scale(w1, VF(-h2 * dt)));
         MulP(&rel, rot, pmat1);
         b = rel;
         MulMatrix3Matrix3(&rel, &a, &b);
-        w = func_0011BFB8(&rel);
-        func_0011B570(&rot, Scale(w, VF(h2 * (3.0f - dt) + u3)));
+        w = DecomposeRotationMatrixToVector(&rel);
+        BuildRotationMatrixFromVector(&rot, Scale(w, VF(h2 * (3.0f - dt) + u3)));
         MulP(&rel, rot, &a);
         *pmatOut = rel;
     }
@@ -201,7 +201,7 @@ extern "C" void EvaluateBezierMat(float dt, float t, float gScale, M3 *pmat0, qw
         {
             M3 rel;
             MulMatrix3Matrix3(&rel, pmat0, pmat1);
-            w = func_0011BFB8(&rel);
+            w = DecomposeRotationMatrixToVector(&rel);
         }
         float h = u * 3.0f;
         M3 us;

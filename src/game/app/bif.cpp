@@ -48,7 +48,7 @@ CREFV *CRef_ctor_CPair(CREFV *pref, PAIRV *ppair);
 CREFV *CRef_ctor_VECTOR(CREFV *pref, VECTORQ *pvec);
 CREFV *CRef_ctor_MATRIX4(CREFV *pref, MATRIX4 *pmat);
 CREFV *CRef_ctor_BASIC(CREFV *pref, BASIC *pbasic);
-void func_0011C2F0(MATRIX4 *pmat, MATRIX4 *pmatInverse);
+void InvertMatrix4(MATRIX4 *pmat, MATRIX4 *pmatInverse);
 void CalculateDmat4(MATRIX4 *pmat1, MATRIX4 *pmat2, MATRIX4 *pmatResult);
 int NEpisodeCur();
 int NWorldCur();
@@ -2909,7 +2909,7 @@ extern "C" CREFV *RefOpMatrixInvert__FiP4CRefP6CFrame(CREFV *pref, int cref, CRE
 {
     CREFV ref;
     SetTag(&ref, 0x1B);
-    func_0011C2F0(aref->u.pmat, ref.u.pmat);
+    InvertMatrix4(aref->u.pmat, ref.u.pmat);
     __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
@@ -2953,7 +2953,7 @@ struct CRef {
 extern "C" {
 M3 MulMatrix3Matrix3(M3 *pa, M3 *pb);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pmat, float *prad, qword *pvec);
-M3 func_0011B500(float rad, qword axis);
+M3 BuildAxisAngleRotationMatrix(float rad, qword axis);
 void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
 }
 static inline M3 MulM3(const M3 &a, M3 *pb) return m
@@ -2987,7 +2987,7 @@ CRef RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame(void *pv, CRef *aref)
     MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
     func_002333B4(pm, 0, 0x40);
     pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
-    *(M3 *)ref.u.pv = MulM3(func_0011B500(rad * aref[2].u.g, normal.q), (M3 *)aref[0].u.pv);
+    *(M3 *)ref.u.pv = MulM3(BuildAxisAngleRotationMatrix(rad * aref[2].u.g, normal.q), (M3 *)aref[0].u.pv);
     return ref;
 }
 } // namespace M_RefOpMatrixInterpolateRotate__FiP4CRefP6CFrame
@@ -3032,7 +3032,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void Decref__4CRef(CRef *pref);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void CRef_ctor(CRef *pref, TI vec);
-TI func_0011BFF0(int n);
+TI DecomposeRotationMatrixToEuler(int n);
 /** @sly2-annot addr=0x1230C8
  * Purpose: Splice builtin "matrix-decompose-to-euler": 0x11BFF0 euler
  * Info: proposed name RefOpMatrixDecomposeToEuler (T1); TU bif
@@ -3042,7 +3042,7 @@ TI func_0011BFF0(int n);
 CRef *RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
 {
     CRef ref;
-    CRef_ctor(&ref, func_0011BFF0(aref->m_tag));
+    CRef_ctor(&ref, DecomposeRotationMatrixToEuler(aref->m_tag));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
@@ -3730,7 +3730,7 @@ extern "C" CREFV *RefOpGetDifficulty(CREFV *pref)
     return pref;
 }
 
-// 0x123BA0 func_00123BA0
+// 0x123BA0 RefOpGetDevFlag
 /** @sly2-annot addr=0x123BA0
  * Purpose: S32 = 0x210B68() which always returns 0
  * Info: proposed name RefOpIsDemo (T2); TU bif
@@ -3741,7 +3741,7 @@ extern "C" CREFV *RefOpGetDifficulty(CREFV *pref)
  *   builtin 104)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" CREFV *func_00123BA0(CREFV *pref)
+extern "C" CREFV *RefOpGetDevFlag(CREFV *pref)
 {
     pref->u.n = func_00210B68();
     pref->m_tagk = 0x15;
@@ -5048,7 +5048,7 @@ extern "C" CREFV *RefOpBitOr(CREFV *pref, int cref, CREFV *aref)
     return pref;
 }
 
-// 0x125690 func_00125690
+// 0x125690 RefOpFindHintboxObject
 namespace M_func_00125690 { extern "C" {
 struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
@@ -5066,7 +5066,7 @@ extern char D_003DA0C0[];
  *   r1_116918+top50_round(splice builtin 137)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-CRef *func_00125690(CRef *ret)
+CRef *RefOpFindHintboxObject(CRef *ret)
 {
     CRef ref;
     ref.m_tagk = -1;
@@ -5285,7 +5285,7 @@ void RefOpFindCurrentJob() __asm__("RefOpFindCurrentJob");
 void RefOpFindCurrentTask() __asm__("RefOpFindCurrentTask");
 void RefOpFindPendingTask() __asm__("RefOpFindPendingTask");
 void RefOpGetDifficulty() __asm__("RefOpGetDifficulty");
-void func_00123BA0() __asm__("func_00123BA0");
+void RefOpGetDevFlag() __asm__("RefOpGetDevFlag");
 void RefOpScheduleCallback() __asm__("RefOpScheduleCallback__FiP4CRefP6CFrame");
 void RefOpCancelCallback() __asm__("RefOpCancelCallback");
 void RefOpDeferObjectUpdate() __asm__("RefOpDeferObjectUpdate__FiP4CRefP6CFrame");
@@ -5318,38 +5318,38 @@ void RefOpFindBindingOrNoop() __asm__("RefOpFindBindingOrNoop");
 void RefOpNoop() __asm__("RefOpNoop");
 void RefOpBitAnd() __asm__("RefOpBitAnd");
 void RefOpBitOr() __asm__("RefOpBitOr");
-void func_00125690() __asm__("func_00125690");
+void RefOpFindHintboxObject() __asm__("RefOpFindHintboxObject");
 void RefOpIsPowerUpAcquired() __asm__("RefOpIsPowerUpAcquired");
 void RefOpSetPowerUpAcquired() __asm__("RefOpSetPowerUpAcquired");
-void func_001258F0() __asm__("func_001258F0");
-void func_00125930() __asm__("func_00125930");
-void func_00125970() __asm__("func_00125970");
-void func_001259B0() __asm__("func_001259B0");
-void func_001259F0() __asm__("func_001259F0");
-void func_00125A30() __asm__("func_00125A30");
-void func_00125A70() __asm__("func_00125A70");
-void func_00125AB0() __asm__("func_00125AB0");
-void func_00125AF0() __asm__("func_00125AF0");
-void func_00125B30() __asm__("func_00125B30");
-void func_00125B70() __asm__("func_00125B70");
-void func_00125BB0() __asm__("func_00125BB0");
-void func_00125BF0() __asm__("func_00125BF0");
-void func_00125C30() __asm__("func_00125C30");
-void func_00125C70() __asm__("func_00125C70");
-void func_00125CB0() __asm__("func_00125CB0");
-void func_00125CF0() __asm__("func_00125CF0");
-void func_00125D30() __asm__("func_00125D30");
-void func_00125D70() __asm__("func_00125D70");
-void func_00125DB0() __asm__("func_00125DB0");
-void func_00125DF0() __asm__("func_00125DF0");
-void func_00125E30() __asm__("func_00125E30");
-void func_00125E70() __asm__("func_00125E70");
-void func_00125EB0() __asm__("func_00125EB0");
-void func_00125EF0() __asm__("func_00125EF0");
-void func_00125F30() __asm__("func_00125F30");
-void func_00125F70() __asm__("func_00125F70");
-void func_00125FB0() __asm__("func_00125FB0");
-void func_00125FF0() __asm__("func_00125FF0");
+void RefOpStub140() __asm__("RefOpStub140");
+void RefOpStub141() __asm__("RefOpStub141");
+void RefOpStub142() __asm__("RefOpStub142");
+void RefOpStub143() __asm__("RefOpStub143");
+void RefOpStub144() __asm__("RefOpStub144");
+void RefOpStub145() __asm__("RefOpStub145");
+void RefOpStub146() __asm__("RefOpStub146");
+void RefOpStub147() __asm__("RefOpStub147");
+void RefOpStub148() __asm__("RefOpStub148");
+void RefOpStub149() __asm__("RefOpStub149");
+void RefOpStub150() __asm__("RefOpStub150");
+void RefOpStub151() __asm__("RefOpStub151");
+void RefOpStub152() __asm__("RefOpStub152");
+void RefOpStub153() __asm__("RefOpStub153");
+void RefOpStub154() __asm__("RefOpStub154");
+void RefOpStub155() __asm__("RefOpStub155");
+void RefOpStub156() __asm__("RefOpStub156");
+void RefOpStub157() __asm__("RefOpStub157");
+void RefOpStub158() __asm__("RefOpStub158");
+void RefOpStub159() __asm__("RefOpStub159");
+void RefOpStub160() __asm__("RefOpStub160");
+void RefOpStub161() __asm__("RefOpStub161");
+void RefOpStub162() __asm__("RefOpStub162");
+void RefOpStub163() __asm__("RefOpStub163");
+void RefOpStub164() __asm__("RefOpStub164");
+void RefOpStub165() __asm__("RefOpStub165");
+void RefOpStub166() __asm__("RefOpStub166");
+void RefOpStub167() __asm__("RefOpStub167");
+void RefOpStub168() __asm__("RefOpStub168");
 // ---- (Defined before D_002BBB90: the ELF has D_002BBB70 first.) Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
@@ -5392,7 +5392,7 @@ extern "C" { BIF D_002BBB90[169] = {
     {RefOpLmCheck, 2, 0}, {RefOpFloor, 1, 0}, {RefOpCeiling, 1, 0}, {RefOpRound, 1, 0}, {RefOpTruncate, 1, 0},
     {RefOpAbs, 1, 0}, {RefOpMaximum, 1, 1}, {RefOpMinimum, 1, 1}, {RefOpModulo, 2, 0}, {RefOpCurrentTime, 0, 0},
     {RefOpCurrentLevel, 0, 0}, {RefOpCurrentEpisode, 0, 0}, {RefOpCurrentWorld, 0, 0}, {RefOpFindCurrentJob, 0, 0},
-    {RefOpFindCurrentTask, 0, 0}, {RefOpFindPendingTask, 0, 0}, {RefOpGetDifficulty, 0, 0}, {func_00123BA0, 0, 0},
+    {RefOpFindCurrentTask, 0, 0}, {RefOpFindPendingTask, 0, 0}, {RefOpGetDifficulty, 0, 0}, {RefOpGetDevFlag, 0, 0},
     {RefOpScheduleCallback, 2, 1}, {RefOpCancelCallback, 1, 0}, {RefOpDeferObjectUpdate, 2, 0}, {RefOpAddO, 3, 0},
     {RefOpEnsureO, 3, 0}, {RefOpSetO, 3, 0}, {RefOpGetO, 2, 0}, {RefOpFindObject, 2, 1}, {RefOpFindObjects, 2, 1},
     {RefOpFindObjectsFromOids, 2, 1}, {RefOpFindNearestObject, 2, 1}, {RefOpFindNearestObjects, 2, 1},
@@ -5402,14 +5402,14 @@ extern "C" { BIF D_002BBB90[169] = {
     {RefOpConvertObjectVector, 3, 0}, {RefOpConvertObjectMatrix, 3, 0}, {RefOpNearClipCenter, 0, 0},
     {RefOpStartSound, 2, 0}, {RefOpStartRumble, 2, 0}, {RefOpGetSaveVar, 1, 0}, {RefOpSetSaveVar, 2, 0},
     {RefOpFindBindingOrNoop, 1, 0}, {RefOpNoop, 0, 1}, {RefOpBitAnd, 0, 1}, {RefOpBitOr, 0, 1},
-    {func_00125690, 0, 0}, {RefOpIsPowerUpAcquired, 1, 0}, {RefOpSetPowerUpAcquired, 2, 0}, {func_001258F0, 0, 0},
-    {func_00125930, 0, 0}, {func_00125970, 0, 0}, {func_001259B0, 0, 0}, {func_001259F0, 0, 0},
-    {func_00125A30, 0, 0}, {func_00125A70, 0, 0}, {func_00125AB0, 0, 0}, {func_00125AF0, 0, 0},
-    {func_00125B30, 0, 0}, {func_00125B70, 0, 0}, {func_00125BB0, 1, 0}, {func_00125BF0, 1, 0},
-    {func_00125C30, 1, 0}, {func_00125C70, 0, 0}, {func_00125CB0, 0, 0}, {func_00125CF0, 3, 0},
-    {func_00125D30, 1, 0}, {func_00125D70, 0, 0}, {func_00125DB0, 1, 0}, {func_00125DF0, 0, 0},
-    {func_00125E30, 0, 0}, {func_00125E70, 3, 0}, {func_00125EB0, 2, 0}, {func_00125EF0, 1, 0},
-    {func_00125F30, 0, 0}, {func_00125F70, 2, 0}, {func_00125FB0, 0, 0}, {func_00125FF0, 0, 0}
+    {RefOpFindHintboxObject, 0, 0}, {RefOpIsPowerUpAcquired, 1, 0}, {RefOpSetPowerUpAcquired, 2, 0}, {RefOpStub140, 0, 0},
+    {RefOpStub141, 0, 0}, {RefOpStub142, 0, 0}, {RefOpStub143, 0, 0}, {RefOpStub144, 0, 0},
+    {RefOpStub145, 0, 0}, {RefOpStub146, 0, 0}, {RefOpStub147, 0, 0}, {RefOpStub148, 0, 0},
+    {RefOpStub149, 0, 0}, {RefOpStub150, 0, 0}, {RefOpStub151, 1, 0}, {RefOpStub152, 1, 0},
+    {RefOpStub153, 1, 0}, {RefOpStub154, 0, 0}, {RefOpStub155, 0, 0}, {RefOpStub156, 3, 0},
+    {RefOpStub157, 1, 0}, {RefOpStub158, 0, 0}, {RefOpStub159, 1, 0}, {RefOpStub160, 0, 0},
+    {RefOpStub161, 0, 0}, {RefOpStub162, 3, 0}, {RefOpStub163, 2, 0}, {RefOpStub164, 1, 0},
+    {RefOpStub165, 0, 0}, {RefOpStub166, 2, 0}, {RefOpStub167, 0, 0}, {RefOpStub168, 0, 0}
 }; }
 }
 

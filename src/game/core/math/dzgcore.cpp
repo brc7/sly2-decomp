@@ -19,7 +19,7 @@ extern DLI *g_pdliFirst __asm__("D_002DD2FC");
 extern "C" {
 extern const float D_002A4120;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A4124;   /* defined below where the ELF has it (.rodata order) */
-void *func_001AE378(MSG *pmsg);
+void *AllocClearedFromStack(MSG *pmsg);
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");     /* memset */
 void STACKSCOPE_ctor(FRAME *pframe);
@@ -56,7 +56,7 @@ extern "C" DZG *InitDzg(DZG *pdzg, int cpsoMax)
     pdzg->cdz = 0;
     msg.cb = cpsoMax * 0x28;
     msg.nKind = 0x10;
-    pdzg->adz = (DZ *)func_001AE378(&msg);
+    pdzg->adz = (DZ *)AllocClearedFromStack(&msg);
     func_002333B4(&pdzg->dlA, 0, sizeof(DL));
     func_002333B4(&pdzg->dlB, 0, sizeof(DL));
     func_002333B4(&pdzg->dlC, 0, sizeof(DL));

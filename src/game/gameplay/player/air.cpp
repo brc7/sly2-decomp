@@ -991,7 +991,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
+qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*BuildRotationMatrixFromVector(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -1074,7 +1074,7 @@ extern "C" void PresetJtAccelJump(CONTEXT*p){WORK w;
   register unsigned clockWord __asm__("$16");register float updatedX __asm__("$f0"),updatedY __asm__("$f0");register M3*rotationOutput __asm__("$4");register qword rotation __asm__("vf2");
   __asm__("lui %0,%%hi(%6)\n\taddiu %0,%0,%%lo(%6)\n\tli.s $f1,0.5\n\tlw $3,%4\n\taddiu %1,%5,0x50\n\tlwc1 $f0,4(%0)\n\tlw $2,0x5C($3)\n\tmfc1 $3,$f0\n\tmul.s $f0,$f0,$f1\n\tqmtc2.ni $3,$vf5\n\tlqc2 $vf2,0xB0($2)\n\tsqc2 $vf5,%3\n\tmfc1 $3,$f0\n\tqmtc2.ni $3,$vf4\n\tlqc2 $vf3,0xF0($2)\n\tsqc2 $vf4,%3\n\tvadda.xyzw $ACC,$vf2,$vf0\n\tvmaddx.xyzw $vf2,$vf3,$vf5x\n\tlqc2 $vf1,0xB0($2)\n\tvadd.xyzw $vf1,$vf1,$vf2\n\tvmulx.xyzw %2,$vf1,$vf4x"
    :"=&r"(clockWord),"=r"(rotationOutput),"=j"(rotation),"=m"(w.turn.scalar.q):"m"(p->actor),"p"(&w),"i"(&D_002DDED0):"$2","$3","$f0","$f1","vf1","vf3","vf4","vf5","at","memory");
-  (void)func_0011B570(rotationOutput,rotation);
+  (void)BuildRotationMatrixFromVector(rotationOutput,rotation);
   {
    register M4*matrix __asm__("$2")=func_001A6318(p->actor);
    register qword first __asm__("vf3"),second __asm__("vf2"),r0 __asm__("vf4"),r1 __asm__("vf6"),r2 __asm__("vf5");
@@ -1714,7 +1714,7 @@ void func_00204660(ACTOR *, float);
 void DrainStepplayerMp(ACTOR *, float);
 qword SetVectorCylind(float, float, float);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
-M3 func_0011B500(qword, float);
+M3 BuildAxisAngleRotationMatrix(qword, float);
 float atan2f(float, float);
 float cosf(float);
 float func_0011E290(qword, qword, qword *, qword *);
@@ -2065,7 +2065,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         basis = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0, QwCombine(D_002BF890, a, half, b, halfNeg));
 
         ACTOR *actor = p->actor;
-        actor->local = MulM3(basis, func_0011B500(D_002A2DC0, actor->heading));
+        actor->local = MulM3(basis, BuildAxisAngleRotationMatrix(D_002A2DC0, actor->heading));
         break;
     }
     case 17: case 19:
@@ -2352,7 +2352,7 @@ struct M3 {U r[3]; M3(){} M3(const M3&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];} M
 struct M4 {U r[4];};
 struct P {char pad[0x108];float ax,ay,az,bx,by,bz;};
 extern "C" { extern qword D_002A2DC0; }
-extern "C" M3 func_0011B500(qword,float);
+extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 static inline qword Pack(float x,float y,float z){U u;qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));u.q=q;return q;}
 static inline qword Rot(const M3&m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r):"j"(m.r[0].q),"j"(m.r[1].q),"j"(m.r[2].q),"j"(v));return r;}
 static inline qword Transform(const M4*m,qword v){qword r;__asm__("vmulax.xyz ACC,%1,%5x\n\tvmadday.xyz ACC,%2,%5y\n\tvmaddaz.xyz ACC,%3,%5z\n\tvmaddw.xyz %0,%4,$vf0w":"=j"(r):"j"(m->r[0].q),"j"(m->r[1].q),"j"(m->r[2].q),"j"(m->r[3].q),"j"(v));return r;}
@@ -2367,7 +2367,7 @@ extern "C" void func_001995D8(P*p,const M4*world,int count,U*out){
  M3 m;U *cursor=out,*v;
  Set(cursor++,p->bx,p->bz);Set(cursor++,p->bx,p->by);Set(cursor++,p->ax,p->az);v=cursor++;Set(v,p->bx,p->bz);
  float x=p->ax,y=v->f[1];qword a=Pack(x,y,p->az),b=Pack(x,y,p->ay);
- int i;for(i=8;i>=0;i--){m=func_0011B500(D_002A2DC0,(i-4)*0.261799395084381103515625f);U*v0=cursor++;U*v1=cursor++;v0->q=Rot(m,a);v1->q=Rot(m,b);}
+ int i;for(i=8;i>=0;i--){m=BuildAxisAngleRotationMatrix(D_002A2DC0,(i-4)*0.261799395084381103515625f);U*v0=cursor++;U*v1=cursor++;v0->q=Rot(m,a);v1->q=Rot(m,b);}
  cursor=out;i=count;while(--i>=0){cursor->q=Transform(world,cursor->q);cursor++;}
 }
 } // namespace M_func_001995D8

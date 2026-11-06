@@ -449,11 +449,11 @@ struct G { int c; };
 struct NODE { V *pv; float f; float g; NODE *parent; int depth; NODE *next; };
 extern "C" {
 void *PvAllocSlot__FP8ALLOCREQ(const AREQ &r);
-void *func_001AE378(const AREQ &r);
+void *AllocClearedFromStack(const AREQ &r);
 int IcgvFromPcgv__FP2CGP3CGV(G *p, V *pv);
 }
 static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQ(cb, 0x10)); }
-static inline void *AllocB(int cb) { return func_001AE378(AREQ(cb, 0x10)); }
+static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQ(cb, 0x10)); }
 static inline float Dist2(const qword &a, const qword &b)
 {
     qword d;
@@ -895,8 +895,8 @@ int U16Read__18CBinaryInputStream(void *pbis);
 int U8Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, struct V *pv);
 float F32Read__18CBinaryInputStream(void *pbis);
-void *func_001AE2A0(struct A *pa);
-void *func_001AE1D0(struct A *pa);
+void *AllocClearedFromWorldHeap(struct A *pa);
+void *AllocFromWorldHeap(struct A *pa);
 void HookupCg(int *p);
 /** @sly2-annot addr=0x1C03C0
  * Purpose: CID 17 vt14: LoadXfmFromBrx, read vertices (pos + edge list), triangles, BSP nodes; HookupCg
@@ -915,18 +915,18 @@ void LoadPathzoneFromBrx(struct S *p, void *pbis)
     p->cE0 = U16Read__18CBinaryInputStream(pbis);
     a.cb = p->cE0 * 32;
     a.align = 0x10;
-    p->aE4 = (__typeof__(p->aE4))func_001AE2A0(&a);
+    p->aE4 = (__typeof__(p->aE4))AllocClearedFromWorldHeap(&a);
     p->cE8 = U16Read__18CBinaryInputStream(pbis);
     a.cb = p->cE8 * 12;
     a.align = 0x10;
-    p->aEC = (__typeof__(p->aEC))func_001AE2A0(&a);
+    p->aEC = (__typeof__(p->aEC))AllocClearedFromWorldHeap(&a);
     for (i = 0; i < p->cE0; i++) {
         struct V *pd = &p->aE4[i];
         ReadVector__18CBinaryInputStreamP6VECTOR(pbis, pd);
         pd->c = U8Read__18CBinaryInputStream(pbis);
         a.cb = pd->c * 8 + 8;
         a.align = 0x10;
-        pd->ae = (__typeof__(pd->ae))func_001AE1D0(&a);
+        pd->ae = (__typeof__(pd->ae))AllocFromWorldHeap(&a);
         for (j = 0; j < pd->c; j++) {
             struct E8 *pe = &pd->ae[j];
             pe->pv = &p->aE4[U16Read__18CBinaryInputStream(pbis)];
@@ -940,7 +940,7 @@ void LoadPathzoneFromBrx(struct S *p, void *pbis)
     p->cF0 = U16Read__18CBinaryInputStream(pbis);
     a.cb = p->cF0 * 16;
     a.align = 0x10;
-    p->aF4 = (__typeof__(p->aF4))func_001AE2A0(&a);
+    p->aF4 = (__typeof__(p->aF4))AllocClearedFromWorldHeap(&a);
     for (i = 0; i < p->cF0; i++) {
         struct P *pp = &p->aF4[i];
         pp->x = F32Read__18CBinaryInputStream(pbis);
@@ -979,8 +979,8 @@ struct VS D_002C0C10[4] = {
 };
 struct FS D_002C0C90[2] = {{{0, 1, 2}}, {{0, 2, 3}}};
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
-void *func_001AE2A0(struct A *pa);
-void *func_001AE1D0(struct A *pa);
+void *AllocClearedFromWorldHeap(struct A *pa);
+void *AllocFromWorldHeap(struct A *pa);
 void HookupCg(int *p);
 /** @sly2-annot addr=0x1C0648
  * Purpose: Build a trivial pathzone graph (4 vertices, 2 triangles, 1 diagonal BSP node from tables
@@ -999,7 +999,7 @@ void InitDefaultPathzoneCg(struct S *p)
     p->cE0 = 4;
     a.cb = 0x80;
     a.align = 0x10;
-    p->aE4 = (__typeof__(p->aE4))func_001AE2A0(&a);
+    p->aE4 = (__typeof__(p->aE4))AllocClearedFromWorldHeap(&a);
     for (i = 0; i < p->cE0; i++) {
         struct VS *ps = &D_002C0C10[i];
         struct V *pd = &p->aE4[i];
@@ -1007,14 +1007,14 @@ void InitDefaultPathzoneCg(struct S *p)
         pd->c = ps->c;
         a.cb = pd->c * 8 + 8;
         a.align = 0x10;
-        pd->ae = (__typeof__(pd->ae))func_001AE1D0(&a);
+        pd->ae = (__typeof__(pd->ae))AllocFromWorldHeap(&a);
         for (j = 0; j < pd->c; j++)
             { struct E8 *pe = &pd->ae[j]; pe->pv = &p->aE4[ps->ai[j]]; }
     }
     p->cE8 = 2;
     a.cb = 0x18;
     a.align = 0x10;
-    p->aEC = (__typeof__(p->aEC))func_001AE2A0(&a);
+    p->aEC = (__typeof__(p->aEC))AllocClearedFromWorldHeap(&a);
     for (k = 0; k < p->cE8; k++) {
         struct V **ppv = p->aEC[k].apv;
         int *pi = D_002C0C90[k].ai;
@@ -1024,7 +1024,7 @@ void InitDefaultPathzoneCg(struct S *p)
     p->cF0 = 1;
     a.cb = 0x10;
     a.align = 0x10;
-    pp = (__typeof__(pp))func_001AE2A0(&a);
+    pp = (__typeof__(pp))AllocClearedFromWorldHeap(&a);
     p->aF4 = pp;
     g = sqrtf_(2.0f) * 0.5f;
     pp->c = 0xC001;
@@ -1257,15 +1257,15 @@ struct N { qword *pplane; unsigned short ach[2]; };
 struct B { int c; struct N *an; int x8, xc; int x10; int x14; void **al; };
 struct G { char pad[0x45C8]; void *x45C8; struct B *pbsp; };
 extern struct G D_003DD490;
-void func_002564B8(void *p);
+void InitVuTemp(void *p);
 static __inline__ int ISide(qword plane, qword pos)
 {
     U d, one;
     qword td, tone;
     float dist;
     int i;
-    func_002564B8(&d);
-    func_002564B8(&one);
+    InitVuTemp(&d);
+    InitVuTemp(&one);
     i = 1;
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddaz.x $ACC, %1, %0z\n\tvmsubw.x %0, %1, %2w" : "=j"(td), "=&j"(tone) : "j"(plane), "j"(pos));
     __asm__("mtc1 %1, %0" : "=f"(dist) : "r"(td));
@@ -1316,7 +1316,7 @@ namespace M_LoadSwZoneBspFromBrx { extern "C" {
 struct MSG { int cb; int nKind; };
 struct G { char pad[0x45CC]; void *p45cc; };
 int U32Read__18CBinaryInputStream(void *pbis);
-void *func_001AE2A0(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void LoadZoneBspFromBrx(void *p, int n, void *pbis);
 /** @sly2-annot addr=0x1C0EC0
  * Purpose: Read world zone BSP (if count) into SW+0x45CC
@@ -1334,7 +1334,7 @@ void LoadSwZoneBspFromBrx(struct G *p, void *pbis)
         struct MSG msg;
         msg.cb = 0x30;
         msg.nKind = 0x10;
-        p->p45cc = func_001AE2A0(&msg);
+        p->p45cc = AllocClearedFromWorldHeap(&msg);
         LoadZoneBspFromBrx(p->p45cc, n, pbis);
     }
 }
@@ -1350,8 +1350,8 @@ int U32Read__18CBinaryInputStream(void *pbis);
 int U16Read__18CBinaryInputStream(void *pbis);
 void ReadVector4__18CBinaryInputStreamP7VECTOR4(void *pbis, VECTOR *pv);
 int S32Read__18CBinaryInputStream(void *pbis);
-void *func_001AE1D0(struct A *pa);
-void *func_001AE2A0(struct A *pa);
+void *AllocFromWorldHeap(struct A *pa);
+void *AllocClearedFromWorldHeap(struct A *pa);
 /** @sly2-annot addr=0x1C0F30
  * Purpose: Read zone BSP nodes (plane index + 2 children), planes, leaf zone ids
  * Info: proposed name LoadZoneBspFromBrx (T1); TU path
@@ -1370,16 +1370,16 @@ void LoadZoneBspFromBrx(struct S *p, int c, void *pbis)
     p->c10 = U32Read__18CBinaryInputStream(pbis);
     a.cb = p->c0 * 8;
     a.align = 0x10;
-    p->ae = (__typeof__(p->ae))func_001AE1D0(&a);
+    p->ae = (__typeof__(p->ae))AllocFromWorldHeap(&a);
     a.cb = p->c8 * 16;
     a.align = 0x10;
-    p->av = (__typeof__(p->av))func_001AE1D0(&a);
+    p->av = (__typeof__(p->av))AllocFromWorldHeap(&a);
     a.cb = p->c10 * 4;
     a.align = 0x10;
-    p->x18 = func_001AE2A0(&a);
+    p->x18 = AllocClearedFromWorldHeap(&a);
     a.cb = p->c10 * 4;
     a.align = 0x10;
-    p->a14 = (__typeof__(p->a14))func_001AE1D0(&a);
+    p->a14 = (__typeof__(p->a14))AllocFromWorldHeap(&a);
     for (i = 0; i < p->c0; i++) {
         struct E *pe = &p->ae[i];
         pe->pv = &p->av[U16Read__18CBinaryInputStream(pbis)];
@@ -1399,7 +1399,7 @@ struct MSG { int cb; int nKind; };
 struct G { char pad[0x45C8]; void *p45c8; void *p45cc; };
 void *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void InitDefaultPathzoneCg(void *p);
-void *func_001AE2A0(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void func_001C1138(void *p);
 /** @sly2-annot addr=0x1C10C8
  * Purpose: If no zone BSP: create default pathzone (PloNew cid 17 oid 0x2CA) + InitDefaultPathzoneCg; then
@@ -1416,7 +1416,7 @@ void PostLoadSwPathzones(struct G *p)
         InitDefaultPathzoneCg(p->p45c8);
         msg.cb = 0x30;
         msg.nKind = 0x10;
-        p->p45cc = func_001AE2A0(&msg);
+        p->p45cc = AllocClearedFromWorldHeap(&msg);
     }
     func_001C1138(p->p45cc);
 }
@@ -1430,7 +1430,7 @@ struct S { char pad[0x10]; int c; int *aid; struct LO **aplo; int x1C; int c2; s
 extern char D_003DD490[];
 struct LO *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, void *scope);
 int CploFindSwObjectsByClass(void *p, int a, int b, void *scope, int d, struct LO **ap);
-void *func_001AE238(const struct AL *pal, const void *pv);
+void *AllocCopyFromWorldHeap(const struct AL *pal, const void *pv);
 static __inline__ void*QueryScope(void){register void*value __asm__("$7");__asm__("daddu %0,$zero,$zero":"=r"(value));return value;}
 static __inline__ const struct AL*PrepareRequest(struct AL*request,struct S*owner,int count,int alignment){register int requiredAlignment __asm__("$7")=alignment;register const struct AL*result __asm__("$4");register unsigned bytes __asm__("$2");__asm__("sll %1,%5,2\n\tdaddu %0,%4,$zero\n\tsw %1,%2\n\tsw %6,4(%4)":"=&r"(result),"=&r"(bytes),"=m"(request->cb),"=m"(request->cbAlign):"r"(request),"r"(count),"r"(requiredAlignment));owner->c2=count;return result;}
 static __inline__ char*WorldPage(void){register char*page __asm__("$19");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_003DD490));return page;}
@@ -1457,7 +1457,7 @@ void func_001C1138(struct S *p)
     {register int alignment __asm__("$7")=0x10;
     c = 0x400;
     if (n < 0x400) c = n;
-    p->aplo2=(struct LO**)func_001AE238(PrepareRequest(&al,p,c,alignment),ap);}
+    p->aplo2=(struct LO**)AllocCopyFromWorldHeap(PrepareRequest(&al,p,c,alignment),ap);}
     {
         int j;
         for (j = 0; j < p->c2; j++) p->aplo2[j]->x150 = j;
@@ -1479,10 +1479,10 @@ struct B { int c; int *p; };
 struct S { char pad[0x10]; int c10; int p14[2]; struct B *x1C; int c20; struct Q **a24; };
 int STACKSCOPE_ctor(struct H *p);
 void STACKSCOPE_ctor_1AE4A0(struct H *p, int n) __asm__("_$_10STACKSCOPE");
-int *func_001AE378(struct A *pa);
-void *func_001AE1D0(struct A *pa);
-static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return func_001AE378(pa); }
-static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return func_001AE1D0(pa); }
+int *AllocClearedFromStack(struct A *pa);
+void *AllocFromWorldHeap(struct A *pa);
+static inline int *Alloc1(struct A *pa) { pa->align = 0x10; return AllocClearedFromStack(pa); }
+static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return AllocFromWorldHeap(pa); }
 /** @sly2-annot addr=0x1C1260
  * Purpose: Bucket path links by the zone of their first endpoint
  * Info: proposed name BuildPathzoneLinkLists (T2); TU path
@@ -1821,7 +1821,7 @@ struct S { char pad[0xFC]; int xFC; int x100; struct E *x104; struct E *x108; vo
 struct A { int cb; int align; };
 extern const float D_002A76E0;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A76E4;   /* defined below where the ELF has it (.rodata order) */
-void *func_001AE1D0(struct A *pa);
+void *AllocFromWorldHeap(struct A *pa);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1C1D20
@@ -1846,13 +1846,13 @@ void func_001C1D20(struct S *p)
     cb = n * 16 + 16;
     a.cb = cb;
     a.align = 0x10;
-    ae1 = (__typeof__(ae1))func_001AE1D0(&a);
+    ae1 = (__typeof__(ae1))AllocFromWorldHeap(&a);
     a.cb = cb;
     a.align = 0x10;
-    ae2 = (__typeof__(ae2))func_001AE1D0(&a);
+    ae2 = (__typeof__(ae2))AllocFromWorldHeap(&a);
     a.cb = n * 4;
     a.align = 0x10;
-    apv = (__typeof__(apv))func_001AE1D0(&a);
+    apv = (__typeof__(apv))AllocFromWorldHeap(&a);
     CopyAb__FPvT0Ui(ae1, p->x104, p->x100 * 8);
     CopyAb__FPvT0Ui(ae2, p->x108, p->x100 * 8);
     CopyAb__FPvT0Ui(apv, p->x10C, p->xFC * 4);
@@ -2106,7 +2106,7 @@ struct NODE { NAV *pnav; EDGE *pedge; NODE *pnodeParent; float gCost; float gEst
 extern "C" {
 void *STACKSCOPE_ctor(void *pframe);
 void STACKSCOPE_ctor_1AE4A0(void *pframe, int n) __asm__("_$_10STACKSCOPE");
-void *func_001AE378(MSG *pmsg);
+void *AllocClearedFromStack(MSG *pmsg);
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 qword func_001A62E8(void *pv);
@@ -2121,7 +2121,7 @@ int func_001C26E0(GRAPH *pgraph, EDGE *pedge, void *pvActor);
 int FPosInPathzone(NAV *pnav, qword pos, int f);
 }
 
-static inline void *PvAllocClear(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return func_001AE378(&msg); }
+static inline void *PvAllocClear(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocClearedFromStack(&msg); }
 static inline void *PvAlloc(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return PvAllocSlot__FP8ALLOCREQ(&msg); }
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword QwLength(qword v)

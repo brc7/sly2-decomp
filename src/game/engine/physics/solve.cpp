@@ -121,7 +121,7 @@ void SlotUnsettle(SO *pso, XF *pxf);
 qword ConvertXfVec(XF *pxf, XF *pxfParent, qword v);
 void func_001F4BF8(SO *pso);
 qword *VECTOR_opAssign(qword *, qword);
-M3C *func_0011B570(M3C *, qword);
+M3C *BuildRotationMatrixFromVector(M3C *, qword);
 void NormalizeRotateMatrix3__FP7MATRIX3(M3C *);
 void UpdateSoPartMatrices(SO *);
 void UpdateSoPartGeom(NODE *);
@@ -490,7 +490,7 @@ extern "C" void func_001F9B20(SO *p)
     if (p->n138) func_00229798(p);
 }
 
-static inline M3C BuildRotation(qword vector) return matrix {func_0011B570(&matrix,vector);}
+static inline M3C BuildRotation(qword vector) return matrix {BuildRotationMatrixFromVector(&matrix,vector);}
 static inline qword Scalar(float f,U *out){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));out->q=q;return out->q;}
 static inline qword AddScaledE(qword p,qword v,qword k){qword r;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=&j"(r):"j"(p),"j"(v),"j"(k));return r;}
 static inline qword ScaleE(qword v,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(k));return r;}
@@ -678,7 +678,7 @@ extern "C" void func_001FA328(SO *p)
 }
 
 // Apply queued translation and rotation, then refresh changed objects.
-extern "C" M3 func_0011B570R(qword) __asm__("func_0011B570");
+extern "C" M3 func_0011B570R(qword) __asm__("BuildRotationMatrixFromVector");
 static inline void NearR(int*out,qword a,qword b){if(FFloatsNear__Ffff(X(a),X(b),0.0001f))if(FFloatsNear__Ffff(Y(a),Y(b),0.0001f))*out=FFloatsNear__Ffff(Z(a),Z(b),0.0001f)!=0;}
 static inline qword AddR(qword a,qword b){__asm__("vadd.xyzw %0,%1,%0":"+j"(b):"j"(a));return b;}
 static inline M3 Mul(const M3&a,const M3&b) return r {

@@ -55,12 +55,12 @@ void CMpeg_QueueMovie(MPEGV *pmpeg, void *pv);
 void WipeToWorldWarp(void *psw, void *pfilerec, int a, int b, int grf, int oid);
 void func_001651D8(void *pv, int a, int b);
 void func_001ACC38(HV *ph, int n);
-int func_001A4E70(STEPQ *pq);
-void func_001A4E80(STEPQ *pq);
-STEPE *func_001A4FB0(STEPQ *pq, int k);
-void func_001A5020(STEPQ *pq, FILEREF *pfileref);
-void func_001A5078(STEPQ *pq, FILEREF *pfileref, int oid, int grf);
-void func_001A50F8(STEPQ *pq);
+int HasPendingStartupSteps(STEPQ *pq);
+void RunNextStartupStep(STEPQ *pq);
+STEPE *AddStartupStep(STEPQ *pq, int k);
+void AddStartupMovieStep(STEPQ *pq, FILEREF *pfileref);
+void AddStartupWarpStep(STEPQ *pq, FILEREF *pfileref, int oid, int grf);
+void AddStartupMemcardStep(STEPQ *pq);
 }
 
 static inline int FFilerefSet(FILEREF *pfileref)
@@ -78,14 +78,14 @@ static inline int FFilerefSet(FILEREF *pfileref)
  *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
-extern "C" void func_001A4E08(STEPQ *pq)
+extern "C" void BeginStartupSequence(STEPQ *pq)
 {
     pq->c = 0;
     pq->iNext = 0;
-    func_001A5020(pq, (FILEREF *)D_002A3868);
-    func_001A50F8(pq);
-    func_001A5078(pq, (FILEREF *)D_002A38A8, 0x189, 1);
-    func_001A4E80(pq);
+    AddStartupMovieStep(pq, (FILEREF *)D_002A3868);
+    AddStartupMemcardStep(pq);
+    AddStartupWarpStep(pq, (FILEREF *)D_002A38A8, 0x189, 1);
+    RunNextStartupStep(pq);
 }
 
 // 0x1A4E68: dead-code scrap (sly2/scrap.h)
@@ -97,7 +97,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" int func_001A4E70(STEPQ *pq)
+extern "C" int HasPendingStartupSteps(STEPQ *pq)
 {
     return pq->iNext < pq->c;
 }
@@ -110,11 +110,11 @@ extern "C" int func_001A4E70(STEPQ *pq)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A4E80(STEPQ *pq)
+extern "C" void RunNextStartupStep(STEPQ *pq)
 {
     STEPE *pe;
     MPEGV *pmpeg;
-    if (!func_001A4E70(pq))
+    if (!HasPendingStartupSteps(pq))
         return;
     pe = &pq->ae[pq->iNext++];
     switch (pe->k) {
@@ -137,12 +137,12 @@ extern "C" void func_001A4E80(STEPQ *pq)
     case 5:
         if (!D_002E6550.x44)
             func_001ACC38(&D_002E6550, 1);
-        func_001A4E80(pq);
+        RunNextStartupStep(pq);
         break;
     }
 }
 
-/* c is signed in func_001A4E70 (slt) and compared unsigned here (sltiu). */
+/* c is signed in HasPendingStartupSteps (slt) and compared unsigned here (sltiu). */
 /** @sly2-annot addr=0x1A4FB0
  * Purpose: Append a zeroed step of kind k to the 16-entry queue (overflow returns dummy D_002E1E68)
  * Info: proposed name PbootstepAdd (T2); TU tu_1A4E08
@@ -150,7 +150,7 @@ extern "C" void func_001A4E80(STEPQ *pq)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" STEPE *func_001A4FB0(STEPQ *pq, int k)
+extern "C" STEPE *AddStartupStep(STEPQ *pq, int k)
 {
     STEPE *pe;
     if ((unsigned int)pq->c >= 16)
@@ -167,9 +167,9 @@ extern "C" STEPE *func_001A4FB0(STEPQ *pq, int k)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A5020(STEPQ *pq, FILEREF *pfileref)
+extern "C" void AddStartupMovieStep(STEPQ *pq, FILEREF *pfileref)
 {
-    if (FFilerefSet(pfileref)) func_001A4FB0(pq, 0)->pv = pfileref;
+    if (FFilerefSet(pfileref)) AddStartupStep(pq, 0)->pv = pfileref;
 }
 
 // 0x1A5070: dead-code scrap (sly2/scrap.h)
@@ -182,10 +182,10 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A5078(STEPQ *pq, FILEREF *pfileref, int oid, int grf)
+extern "C" void AddStartupWarpStep(STEPQ *pq, FILEREF *pfileref, int oid, int grf)
 {
     if (FFilerefSet(pfileref)) {
-        STEPE *pe = func_001A4FB0(pq, 2);
+        STEPE *pe = AddStartupStep(pq, 2);
         pe->pfileref = pfileref;
         pe->oid = oid;
         pe->grf = grf;
@@ -203,9 +203,9 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A50F8(STEPQ *pq)
+extern "C" void AddStartupMemcardStep(STEPQ *pq)
 {
-    func_001A4FB0(pq, 5);
+    AddStartupStep(pq, 5);
 }
 
 // ---- .bss (tu-merging.md "Data": .bss gaps): the step queue itself (STEPQ, 0x1C8 bytes from 0x2E1E88 up to main's

@@ -57,7 +57,7 @@ void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 int FInvertMatrix__FiPfT1(int c, int n, float *pgSrc, float *pgDst);
 void TransposeMatrix(int cStride, int c, float *agSrc, float *agDst);
 M3 LoadRotateMatrixSinCos(qword s, qword c, qword axis);
-M3 *func_0011B500(M3 *pm, float g, qword axis);
+M3 *BuildAxisAngleRotationMatrix(M3 *pm, float g, qword axis);
 M3 *BuildOrthonormalMatrixZ(M3 *pm, qword x, qword y);
 M3 *BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *pm, qword a, qword b);
 M3 *MulMatrix3Matrix3(M3 *pm, M3 *pa, M3 *pb);
@@ -66,8 +66,8 @@ M4 InvertMatrix4Rigid(M4 *pm);
 }
 /* Callers' views (asm labels): these callers see a struct-returning function or other argument types. */
 M3 LoadRotateMatrixSinCosV(VU_FLOAT s, VU_FLOAT c, qword axis) __asm__("LoadRotateMatrixSinCos");
-M3 func_0011B500R(float rad, qword axis) __asm__("func_0011B500");
-void func_0011B500V(M3 *pm, float g, qword axis) __asm__("func_0011B500");
+M3 func_0011B500R(float rad, qword axis) __asm__("BuildAxisAngleRotationMatrix");
+void func_0011B500V(M3 *pm, float g, qword axis) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 BuildOrthonormalMatrixZR(qword vecX, qword vecY) __asm__("BuildOrthonormalMatrixZ");
 M3 BuildRotateVectorsMatrixR(qword a, qword b) __asm__("BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3");
 M3 MulMatrix3Matrix3R(M3 *pa, M3 *pb) __asm__("MulMatrix3Matrix3");
@@ -223,7 +223,7 @@ static inline qword QwFromN(int n) { UN u; qword q; __asm__("" : "=r"(q) : "0"(n
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-M3 *func_0011B500(M3 *pm, float g, qword axis)
+M3 *BuildAxisAngleRotationMatrix(M3 *pm, float g, qword axis)
 {
     int s, c;
     M3 m;
@@ -248,7 +248,7 @@ M3 *func_0011B500(M3 *pm, float g, qword axis)
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
-extern "C" M3 *func_0011B570(M3 *pm, qword v)
+extern "C" M3 *BuildRotationMatrixFromVector(M3 *pm, qword v)
 {
     qword d, one, l;
     float g;
@@ -264,7 +264,7 @@ extern "C" M3 *func_0011B570(M3 *pm, qword v)
         __asm__("qmtc2.ni %1, %0" : "=j"(ts) : "r"(g));
         s.q = ts;
         __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(n) : "j"(s.q), "j"(v));
-        func_0011B500(&m, g, n);
+        BuildAxisAngleRotationMatrix(&m, g, n);
         func_0023320C(pm, &m, sizeof(M3));
     }
     return pm;
@@ -664,7 +664,7 @@ void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" qword func_0011BFB8(void *pmat)
+extern "C" qword DecomposeRotationMatrixToVector(void *pmat)
 {
     UG v;
     UG s;
@@ -693,7 +693,7 @@ static __inline__ qword Make(float x, float y, float z)
  * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" qword func_0011BFF0(MATRIX3 *pmat)
+extern "C" qword DecomposeRotationMatrixToEuler(MATRIX3 *pmat)
 {
     U4 r;
     qword q;
@@ -867,7 +867,7 @@ extern "C" M4F *LoadMatrixFromPosRotScalar(M4F *pm, qword pos, M3 *pmat, float g
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" void func_0011C2F0(float *pgSrc, float *pgDst) {
+extern "C" void InvertMatrix4(float *pgSrc, float *pgDst) {
     FInvertMatrix__FiPfT1(4, 4, pgSrc, pgDst);
 }
 
@@ -1119,7 +1119,7 @@ static inline float DotSq(qword v)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
-extern "C" float func_0011CAB0(M3 *pm)
+extern "C" float GetMaxRowLengthMatrix3(M3 *pm)
 {
     float d0 = DotSq(pm->r[0]);
     float d1 = DotSq(pm->r[1]);

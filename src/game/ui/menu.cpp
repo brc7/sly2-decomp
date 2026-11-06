@@ -129,7 +129,7 @@ POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *psw, int a, int b, int c);
 void func_001D98A8(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void func_001D98B0(void);
-void func_0014D1D0(void *p, int n, float g);
+void SetClockRate(void *p, int n, float g);
 void IncrementSwHandsOff(SWM *p, int n);
 void DecrementSwHandsOff(SWM *p, int n);
 void BroadcastGameEvent(void *p, int n, int m);
@@ -227,7 +227,7 @@ extern "C" void func_001AE9A8(PMENU *p, int f) {
 void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here */
 {
     func_001D98B0();
-    func_0014D1D0(D_002DDED0, 0, 0.0f);
+    SetClockRate(D_002DDED0, 0, 0.0f);
     IncrementSwHandsOff(&D_003DD490, 0);
     BroadcastGameEvent(D_002DEB30, 0x28, 0);
 }
@@ -242,7 +242,7 @@ extern "C" void HidePausemenu(PMENU *p)
 {
     func_001D9910(p);
     p->depth = 0;
-    func_0014D1D0(D_002DDED0, 0, 1.0f);
+    SetClockRate(D_002DDED0, 0, 1.0f);
     DecrementSwHandsOff(&D_003DD490, 0);
     BroadcastGameEvent(D_002DEB30, 0x2C, 0);
 }

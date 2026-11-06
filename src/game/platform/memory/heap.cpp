@@ -16,7 +16,7 @@ struct MSG
 };
 
 extern "C" {
-void *func_001AE1D0(MSG *pmsg);   /* SW bump allocator */
+void *AllocFromWorldHeap(MSG *pmsg);   /* SW bump allocator */
 }
 
 /* 0x002DD590: the level heap object, constructed first in StaticInit_heap. Its constructor belongs to this
@@ -79,7 +79,7 @@ void *CSwHeap::PvAlloc(int cb, int n)   /* key function: CSwHeap's vtable comes 
     MSG msg;
     msg.cb = cb;
     msg.nKind = 0x10;
-    return func_001AE1D0(&msg);
+    return AllocFromWorldHeap(&msg);
 }
 
 /** @sly2-annot addr=0x116A58

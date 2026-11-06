@@ -25,8 +25,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 extern "C" {
 struct BIS;
 struct AREQ { int cb; int cbAlign; };
-void *func_001AE1D0(AREQ *preq);
-void *func_001AE2A0(AREQ *preq);
+void *AllocFromWorldHeap(AREQ *preq);
+void *AllocClearedFromWorldHeap(AREQ *preq);
 void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
@@ -60,8 +60,8 @@ void func_001ED3A8(void);
 void func_001ED448(void);
 void func_001EA9F0(void *psw, void *pzpr);
 void func_00258248(void *p);
-void *func_0014B690(void *p);
-void func_001848A8(void *p, int k, void *pv, int n);
+void *GetFileIdName(void *p);
+void CStreamBis_ctor(void *p, int k, void *pv, int n);
 void func_00184950(void *p, int n);
 void LoadSwSharedHeaderFromBrx(int n, BIS *pbis);
 void LoadSwSpliceFromBrx(void *psw, int n, BIS *pbis);
@@ -93,10 +93,10 @@ struct SW {
 };
 struct ZPR { char ab[0x630]; };
 struct ODD { ODD() { ab[2] = 2; } int ab[0x110 / 4]; };
-class CStreamBis { public: CStreamBis(int k, void *pv, int n) __asm__("func_001848A8"); ~CStreamBis(); char ab[0x70]; };
+class CStreamBis { public: CStreamBis(int k, void *pv, int n) __asm__("CStreamBis_ctor"); ~CStreamBis(); char ab[0x70]; };
 
-static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE2A0(preq); }
-static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE1D0(preq); }
+static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocClearedFromWorldHeap(preq); }
+static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocFromWorldHeap(preq); }
 static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return PvAllocSlot__FP8ALLOCREQ(preq); }
 
 /** @sly2-annot addr=0x13DA18
@@ -181,7 +181,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         ODD odd;
         char ab[0x4040];
         func_00258248(&odd);
-        func_001C9090(&h, func_0014B690(pwe->ab1C));
+        func_001C9090(&h, GetFileIdName(pwe->ab1C));
         psw->iwe = pwe->x5C ? -1 : i;
         CStreamBis obj(0x403F, ab, 0);
         LoadSwSharedHeaderFromBrx(1, pbis);
@@ -197,7 +197,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
             CLoadCollectorArray_ctor((LOL *)&u.lol);
             LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(0, pbis, (LOL *)&u.lol);
             Align__18CBinaryInputStreami(pbis, 0x10);
-            func_0014B690(pwe->ab1C);
+            GetFileIdName(pwe->ab1C);
             ResetShaders();
             psw->x39E8 = 0;
             pwe->c0 = u.lol.c;
@@ -257,7 +257,7 @@ extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS
     p->c = S16Read__18CBinaryInputStream(pbs);
     req.cbAlign = 0x10;
     req.cb = p->c * sizeof(LANGSTR);
-    p->ae = (LANGSTR *)func_001AE1D0(&req);
+    p->ae = (LANGSTR *)AllocFromWorldHeap(&req);
     for (; i < p->c; i++) {
         LANGSTR *pe = &p->ae[i];
         int j;
@@ -292,7 +292,7 @@ extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *p
     req.cbAlign = 0x10;
     req.cb = c * sizeof(CELL);
     p->c = c;
-    p->ae = (CELL *)func_001AE2A0(&req);
+    p->ae = (CELL *)AllocClearedFromWorldHeap(&req);
     p->n = 0;
     for (i = 0; i < p->c; i++) {
         CELL *pe = &p->ae[i];
@@ -311,6 +311,6 @@ extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *p
     }
     req.cbAlign = 0x10;
     req.cb = p->n * sizeof(CELL);
-    p->p4564 = func_001AE2A0(&req);
+    p->p4564 = AllocClearedFromWorldHeap(&req);
 }
 

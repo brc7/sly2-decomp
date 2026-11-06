@@ -887,7 +887,7 @@ void LoadLoFromBrx(struct S *p, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 int U32Read__18CBinaryInputStream(void *pbis);
-struct O *func_001AE2A0(AREQ *preq);
+struct O *AllocClearedFromWorldHeap(AREQ *preq);
 void CBinaryInputStream_ReadCb64(void *pbis, struct O *po);
 void AppendSlEntry(void *, struct O *po);
 void LoadSpriteTable(struct S *p, void *pbis, struct S *p2, int *pa, int *pb);
@@ -921,7 +921,7 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
         req.cb = 0x50;
         req.cbAlign = 0x10;
         p->xC4 = D_003E1C70;
-        p->xC0 = func_001AE2A0(&req);
+        p->xC0 = AllocClearedFromWorldHeap(&req);
         p->xC0->x40 = p;
         CBinaryInputStream_ReadCb64(pbis, p->xC0);
         AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
@@ -996,11 +996,11 @@ struct S {char pad[0x50];int count;void *data;int state;char pad5c[4];int tick;c
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
-extern "C" BIS *func_001848A8(BIS *,int,void *,int);
+extern "C" BIS *CStreamBis_ctor(BIS *,int,void *,int);
 extern "C" void func_00184950(BIS *,int) __asm__("_$_10CStreamBis");
 extern "C" void func_00258248(KEY *);
 extern "C" void *PvAllocSlot__FP8ALLOCREQ(MSG *);
-extern "C" int func_00184D60(BIS *,KEY *);
+extern "C" int OpenStreamFromFileKey(BIS *,KEY *);
 extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
 extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
 extern "C" unsigned short U16Read__18CBinaryInputStream(BIS *);
@@ -1057,10 +1057,10 @@ extern "C" void LoadWidgetSprites(S *p) {
     MSG *msg=&work.tmp.msg;
 
     msg->cb=0x10000;msg->alignment=0x40;
-    func_001848A8(bs,0x10000,PvAllocSlot__FP8ALLOCREQ(msg),0);
+    CStreamBis_ctor(bs,0x10000,PvAllocSlot__FP8ALLOCREQ(msg),0);
     pk->kind=2;
     func_00258248(pk);
-    if(!SetKey(&work.key,p->file)||!func_00184D60(bs,pk))goto fail;
+    if(!SetKey(&work.key,p->file)||!OpenStreamFromFileKey(bs,pk))goto fail;
     SetDecompress__18CBinaryInputStreamiPUc(bs,0x4000,(void *)0x70000000);
     work.tmp.magic[0]=U8Read__18CBinaryInputStream(bs);
     work.tmp.magic[1]=U8Read__18CBinaryInputStream(bs);
@@ -1300,7 +1300,7 @@ extern struct G D_003DD490;
 extern struct Clock D_002DDED0;
 extern int D_002DD318;
 extern int D_002BE538;
-void func_0014D1D0(struct Clock *,int,float);
+void SetClockRate(struct Clock *,int,float);
 void LoadWidgetSprites(struct S *);
 void UnloadWidgetSprites(struct S *);
 void StopWidgetMainAnim(struct S *);
@@ -1320,9 +1320,9 @@ void SetWidgetState(struct S *p,int state) {
     }
     if(p->pauses) {
         if(p->state<2 && state>=2) {
-            if(++D_002DD318==1) func_0014D1D0(&D_002DDED0,7,0.0f);
+            if(++D_002DD318==1) SetClockRate(&D_002DDED0,7,0.0f);
         } else if(state<2 && p->state>=2) {
-            if(--D_002DD318==0) func_0014D1D0(&D_002DDED0,7,1.0f);
+            if(--D_002DD318==0) SetClockRate(&D_002DDED0,7,1.0f);
         }
     }
     if(p->state==0) LoadWidgetSprites(p);
@@ -2303,7 +2303,7 @@ float F32Read__18CBinaryInputStream(BIS *);
 void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
 void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
 void *PvAllocClear__FP4HEAPii(HEAP *,int,int);
-void *func_001AE378(ALLOCREQ *);
+void *AllocClearedFromStack(ALLOCREQ *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
 }
@@ -2312,7 +2312,7 @@ extern "C" { extern PMF D_002A8B08; }
 extern "C" { extern WORLD D_003DD490; }
 extern "C" { extern QW D_002A2E10; }
 extern "C" { extern char D_00000650[],D_00000140[]; }
-static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return func_001AE378(request);}
+static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
 static inline void CopyXY(M23 &dst,const M3 &src){
  const float *a=(const float *)&src.r[0],*b=(const float *)&src.r[1],*c=(const float *)&src.r[2];
  dst.a[0]=a[0];dst.a[1]=a[1];dst.a[2]=b[0];dst.a[3]=b[1];dst.a[4]=c[0];dst.a[5]=c[1];

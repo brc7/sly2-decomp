@@ -178,10 +178,10 @@ void func_001D57B8(STACK *pstack, BLOCK *pblock);
 BLOCK *func_001D57E0(STACK *pstack);
 M4 __ml__FRC7MATRIX4T0(const M4 &matA, const M4 &matB);
 M4 InvertMatrix4Rigid(const M4 &matSrc);
-float func_0011CAB0(M4 *pmat);
+float GetMaxRowLengthMatrix3(M4 *pmat);
 RENDER *func_001D6508(G *pg, qword pos, float sRadius, float sFar, int grfChannels);
 BLOCK *func_001D6480(G *pg);
-void *func_001AE2A0(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 }
 extern const float D_002A7870;   /* defined below where the ELF has it (.rodata order) */
 
@@ -641,7 +641,7 @@ extern "C" void func_001D6378(OBJ *pobj)
     RENDER *prender;
     v = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, pobj->posLocal);
     {
-        float r = func_0011CAB0(&m) * pobj->sRadius;
+        float r = GetMaxRowLengthMatrix3(&m) * pobj->sRadius;
         prender = func_001D6508(&D_003DD490, v, r, pobj->sFar, pobj->grfChannels);
     }
     pobj->prender = prender;
@@ -657,7 +657,7 @@ extern "C" void func_001D6378(OBJ *pobj)
 }
 
 struct MSG { int cb; int nKind; };
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 
 /** @sly2-annot addr=0x1D6480
  * Purpose: Allocate 0x80-byte node of 4 sphere entries (kinds = -1)

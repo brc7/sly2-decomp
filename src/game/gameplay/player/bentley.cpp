@@ -1441,7 +1441,7 @@ void FixStepAngularVelocity(struct P *);
 void SetJtthrowState(void *, int);
 M4 func_0022FF40(void *, void *, M4 *);
 void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
-qword func_0011BFF0(M4 *pm);
+qword DecomposeRotationMatrixToEuler(M4 *pm);
 void ReleaseSma(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
 
@@ -1500,7 +1500,7 @@ void func_00136530(struct P *p, int k)
         ((void (*)(void *, qword))p->vt[35].f)((char *)p + p->vt[35].d, D_002A2DD0);
         ((void (*)(void *, qword))p->vt[36].f)((char *)p + p->vt[36].d, D_002A2DD0);
         p->pv1810 = func_0012DC18(p, p->p58, 1, 7, 2, m.pos);
-        p->pv1814 = func_0012DC18(p, p->p5C, 1, 7, 2, func_0011BFF0(&m));
+        p->pv1814 = func_0012DC18(p, p->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
         break;
     }
     case 1:
@@ -2135,7 +2135,7 @@ extern qword D_002A2DC0, D_002A2DA0;
 qword func_001A62E8(P *p);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 float GLimitAbs__Fff(float g, float gMax);
-M3 func_0011B500(qword axis, float g);
+M3 BuildAxisAngleRotationMatrix(qword axis, float g);
 qword LimitVectorLength(qword v, float g);
 void AddSoAcceleration(P *p, qword v);
 }
@@ -2171,7 +2171,7 @@ extern "C" void func_00137248(S *s)
     float g = GLimitAbs__Fff(dgNext - dot, D_002BC9A0 * D_002DDED0.dt);
     qword t = AddScaled(dv, n.q, VU_FLOAT(g));
     M3 mc;
-    M3 m = func_0011B500(D_002A2DC0, w * D_002DDED0.dt);
+    M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, w * D_002DDED0.dt);
     mc = m;
     qword r = DivF(Sub(MulM3(mc, t), dv), VU_FLOATM(D_002DDED0.dt));
     AddSoAcceleration(s->p, LimitVectorLength(r, gMax));

@@ -252,9 +252,9 @@ void InitSo(SOV *pso);
 int FMatchesLoName(SOV *pso, OID oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pbasic, CID cid);
 int func_00134310(int n, int nMax);   /* NMaxIgnore */
-void *func_001AE378(ALLOCREQ *preq);
-void *func_001AE238(ALLOCREQ *preq, void *pv);
-void *func_001AE2A0(ALLOCREQ *preq);
+void *AllocClearedFromStack(ALLOCREQ *preq);
+void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
+void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 void LoadSoFromBrx(SOV *pso, CBinaryInputStream *pbis);
 void CloneSo(SOV *pso);
 void PostSoLoad(SOV *pso);
@@ -376,8 +376,8 @@ extern "C" void func_001DE400(LASENV *plasen)
     else plasen->grfDirty = v | 8;
 }
 
-static inline void *PvAllocMsg(ALLOCREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE378(preq); }
-static inline void *PvReallocMsg(ALLOCREQ *preq, int cb, int cbAlign, void *pv) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE238(preq, pv); }
+static inline void *PvAllocMsg(ALLOCREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocClearedFromStack(preq); }
+static inline void *PvReallocMsg(ALLOCREQ *preq, int cb, int cbAlign, void *pv) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocCopyFromWorldHeap(preq, pv); }
 
 /** @sly2-annot addr=0x1DE478
  * Purpose: LASEN::LoadFromBrx (vt14): temp-allocate 0x5400 (64 beams x 0x150), LoadSoFromBrx (Splice adds
@@ -643,7 +643,7 @@ extern "C" void func_001DE5D8(LASENV *p)
         p->cpart = 1;
         request.cb = sizeof(SOPARTV);
         request.cbAlign = 16;
-        SOPARTV *part = (SOPARTV *)func_001AE2A0(&request);
+        SOPARTV *part = (SOPARTV *)AllocClearedFromWorldHeap(&request);
         p->apart = part;
         part->pxf = p->pxfRoot;
         part->pso = p;
@@ -652,7 +652,7 @@ extern "C" void func_001DE5D8(LASENV *p)
         part->geomLocal.cpos = 2;
         request.cbAlign = 16;
         request.cb = 2 * sizeof(qword);
-        part->geomLocal.apos = (U *)func_001AE2A0(&request);
+        part->geomLocal.apos = (U *)AllocClearedFromWorldHeap(&request);
         CloneGeom__FP4GEOMP7MATRIX4T0(&part->geomLocal, 0, &part->geomWorld);
         part->geomWorld.apos[0].q = minimum;
         part->geomWorld.apos[1].q = maximum;

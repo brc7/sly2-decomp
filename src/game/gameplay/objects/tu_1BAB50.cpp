@@ -66,8 +66,8 @@ extern char D_002DE578[];
 extern const char D_002A76B8[];   /* defined below where the ELF has it (.rodata order) */
 extern const char D_002A76C0[];   /* defined below where the ELF has it (.rodata order) */
 void *PvAllocSlot__FP8ALLOCREQ(const AREQV &r);
-void *func_001AE378(const AREQV &r);
-void *func_001AE238(const AREQV &r, void *pv);
+void *AllocClearedFromStack(const AREQV &r);
+void *AllocCopyFromWorldHeap(const AREQV &r, void *pv);
 void InitSo(TRIG *p);
 void func_001F7918(TRIG *p, int a, int b);
 void LoadSoFromBrx(TRIG *p, void *a);
@@ -125,8 +125,8 @@ extern "C" void func_001BAB50(TRIG *p) {
 }
 
 static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
-static inline void *AllocB(int cb) { return func_001AE378(AREQV(cb, 0x10)); }
-static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQV(cb, 0x10), pv); }
+static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQV(cb, 0x10)); }
+static inline void *Realloc(void *pv, int cb) { return AllocCopyFromWorldHeap(AREQV(cb, 0x10), pv); }
 /** @sly2-annot addr=0x1BABA0
  * Purpose: CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim
  *   allocations to counts

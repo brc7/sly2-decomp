@@ -109,8 +109,8 @@ extern char D_003D4A60[];
 void InitSo(BOOTYV *);
 STACKSCOPEC *STACKSCOPE_ctor(STACKSCOPEC *);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPEC *, int) __asm__("_$_10STACKSCOPE");
-void *func_001AE378(REQ *);
-void *func_001AE238(REQ *, void *);
+void *AllocClearedFromStack(REQ *);
+void *AllocCopyFromWorldHeap(REQ *, void *);
 void LoadSoFromBrx(BOOTYV *, void *);
 void PostSoLoad(BOOTYV *);
 void UpdateSo(BOOTYV *);
@@ -204,10 +204,10 @@ extern "C" void LoadBootyFromBrx(BOOTYV *p, void *a) {
     STACKSCOPEC ctx;
     REQ req;
     STACKSCOPE_ctor(&ctx);
-    p->abootye = (BOOTYE *)func_001AE378(SetReq(&req, 0x580, 0x10));
+    p->abootye = (BOOTYE *)AllocClearedFromStack(SetReq(&req, 0x580, 0x10));
     LoadSoFromBrx(p, a);
     func_0013C440(p);
-    p->abootye = (BOOTYE *)func_001AE238(SetReq(&req, p->cbootye * 0x2c, 0x10), p->abootye);
+    p->abootye = (BOOTYE *)AllocCopyFromWorldHeap(SetReq(&req, p->cbootye * 0x2c, 0x10), p->abootye);
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
 

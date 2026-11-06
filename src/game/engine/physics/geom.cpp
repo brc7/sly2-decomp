@@ -48,14 +48,14 @@ struct GEOMTREE { int pad, count; void *pad8; void *tree; };
 struct REQ { int cb, kind; REQ() {} REQ(int cb_, int kind_) : cb(cb_), kind(kind_) {} };
 struct FRAME { int pad[4]; };
 extern "C" {
-void *func_001AE238(REQ *r, void *src);
+void *AllocCopyFromWorldHeap(REQ *r, void *src);
 void InitPlaneFromNormalPos(PLANE *n, qword v, qword p);
 void TransformPointsVu0(const MATRIX4 *, unsigned int, const qword *, qword *);
 M3 InvertMatrix3Cofactor(const M3 *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(REQ *);
-int func_00118A88(void *, int, qword, int *, Entry **, float);
+int PruneBspBySphere(void *, int, qword, int *, Entry **, float);
 }
 
 static inline qword Transform(const MATRIX4 *m,qword p) {
@@ -91,10 +91,10 @@ void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
  int i,j;
  dest->cpos=src->cpos;
  req.cb=src->cpos*16;req.kind=16;
- dest->apos=(qword *)func_001AE238(&req,src->apos);
+ dest->apos=(qword *)AllocCopyFromWorldHeap(&req,src->apos);
  dest->csurf=src->csurf;
  req.cb=src->csurf*32;req.kind=16;
- dest->asurf=(PLANE *)func_001AE238(&req,src->asurf);
+ dest->asurf=(PLANE *)AllocCopyFromWorldHeap(&req,src->asurf);
  dest->x10=src->x10;dest->x14=src->x14;
  if(transform) {
   m=*transform;
@@ -236,7 +236,7 @@ extern "C" int func_001665F0(GEOM*p,GEOMTREE*g,int index,int max,EDGE**out){
  STACKSCOPE_ctor(&frame);
  capacity=NMin(g->count,0x1555);limit=capacity;REQ req(capacity*12,16);
  end=first=(Entry*)PvAllocSlot__FP8ALLOCREQ(&req);
- if(func_00118A88(g->tree,0x7FFFFFFF,p->apos[index],&limit,&end,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&frame,2);return 0;}
+ if(PruneBspBySphere(g->tree,0x7FFFFFFF,p->apos[index],&limit,&end,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&frame,2);return 0;}
  int ne=end-first;
  count=0;
  for(i=0;i<ne;i++){

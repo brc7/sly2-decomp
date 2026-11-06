@@ -52,7 +52,7 @@ void StartupGs();
  * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
  *   docs/engine/main-loop-startup.md#7-source-files, docs/engine/main-loop-startup.md#8-key-functions
  * @end-sly2-annot */
-extern "C" void func_001A7518(int a, int b)
+extern "C" void GameMain(int a, int b)
 {
     __main();
     D_002E2050 = a;
@@ -327,7 +327,7 @@ void StartupSif() __asm__("StartupSif__Fv");
 void StartupGs() __asm__("StartupGs__Fv");
 void StartupMemMgr() __asm__("StartupMemMgr__Fv");
 void StartupCd() __asm__("StartupCd__Fv");
-void func_0014B660() __asm__("func_0014B660");
+void SetCdPollStateIdle() __asm__("SetCdPollStateIdle");
 void StartupFont() __asm__("StartupFont__Fv");
 void StartupJoy() __asm__("StartupJoy__Fv");
 void StartupFrame() __asm__("StartupFrame__Fv");
@@ -341,7 +341,7 @@ void func_00211528() __asm__("func_00211528");
 void StartupMemcard() __asm__("StartupMemcard__Fv");
 void StartupMpeg() __asm__("StartupMpeg__Fv");
 extern "C" { void (*D_002BFCE0[20])(void) = {
-    StartupDma, StartupThread, StartupSif, StartupGs, StartupMemMgr, StartupCd, func_0014B660, StartupFont,
+    StartupDma, StartupThread, StartupSif, StartupGs, StartupMemMgr, StartupCd, SetCdPollStateIdle, StartupFont,
     StartupJoy, StartupFrame, StartupLoadingScreen, StartupClock, StartupVU0, StartupVU1, StartupSound, StartupBlips,
     func_00211528, StartupMemcard, StartupMpeg, 0
 }; }

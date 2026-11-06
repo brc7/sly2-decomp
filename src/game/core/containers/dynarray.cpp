@@ -22,7 +22,7 @@ void *func_0023320C(void *pvDst, const void *pvSrc, unsigned int cb) __asm__("me
  * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
  *   docs/engine/core-library.md#open-questions
  * @end-sly2-annot */
-extern "C" int func_00116CA0(const void *pv1, const void *pv2)
+extern "C" int CompareKeys4(const void *pv1, const void *pv2)
 {
     return memcmp(pv1, pv2, 4);
 }
@@ -33,7 +33,7 @@ extern "C" int func_00116CA0(const void *pv1, const void *pv2)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-extern "C" int func_00116CC0(const void *pv1, const void *pv2)
+extern "C" int CompareKeys8(const void *pv1, const void *pv2)
 {
     return memcmp(pv1, pv2, 8);
 }
@@ -44,7 +44,7 @@ extern "C" int func_00116CC0(const void *pv1, const void *pv2)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-extern "C" int func_00116CE0(const void *pv1, const void *pv2)
+extern "C" int CompareKeys12(const void *pv1, const void *pv2)
 {
     return memcmp(pv1, pv2, 0xC);
 }
@@ -55,7 +55,7 @@ extern "C" int func_00116CE0(const void *pv1, const void *pv2)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dynarray-0x116ca0-0x117030
  * @end-sly2-annot */
-extern "C" int func_00116D00(const void *pv1, const void *pv2)
+extern "C" int CompareKeys16(const void *pv1, const void *pv2)
 {
     return memcmp(pv1, pv2, 0x10);
 }

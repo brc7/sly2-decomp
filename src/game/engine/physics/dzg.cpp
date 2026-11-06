@@ -50,7 +50,7 @@ extern "C" {
 extern "C" {
 extern CLOCK D_002DDED0;
 float D_002BDDE8 = 1500.0f;   /* dzg's .data (the next word is 0: alignment) */
-void *func_001AE378(AL *pal);
+void *AllocClearedFromStack(AL *pal);
 void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
 DZG *InitDzg(DZG *pdzg, int cdzMax);
 qword LimitVectorLength(qword v, float g);
@@ -97,7 +97,7 @@ extern "C" DZGXP *InitDzgXp(DZGXP *pdzgxp, int cpxp, XP **apxp, int cpso, SO **a
     pdzgxp->apso = apso;
     al.cbAlign = 0x10;
     al.cb = sizeof(DZX) * pdzgxp->cdzMax;
-    pdzgxp->adzx = (DZX *)func_001AE378(&al);
+    pdzgxp->adzx = (DZX *)AllocClearedFromStack(&al);
     return pdzgxp;
 }
 

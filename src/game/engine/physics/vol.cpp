@@ -41,7 +41,7 @@ int PbspPointInBspQuick(int a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
-int func_00118A88(void *p, int n, qword v, int *pc, void **ppv, float g);
+int PruneBspBySphere(void *p, int n, qword v, int *pc, void **ppv, float g);
 void OnLoAdd(VOLV *p);
 void OnLoRemove(VOLV *p);
 int FCheckVolPoint(VOLV *p, qword q);
@@ -139,7 +139,7 @@ extern "C" int func_00227D20(VOLV *p, qword v, float g)
             pv = PvAllocSlot__FP8ALLOCREQ(pm);
         }
         {
-            int r = func_00118A88((void *)p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, v), &c, &pv, g);
+            int r = PruneBspBySphere((void *)p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, v), &c, &pv, g);
             if (r == 0 || r == 2) f = 1;
         }
         STACKSCOPE_ctor_1AE4A0(&mark, 2);

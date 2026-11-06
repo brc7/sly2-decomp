@@ -20,7 +20,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_001258F0()
+extern "C" CRef RefOpStub140()
 {
     CRef ref;
     return ref;
@@ -32,7 +32,7 @@ extern "C" CRef func_001258F0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125930()
+extern "C" CRef RefOpStub141()
 {
     CRef ref;
     return ref;
@@ -44,7 +44,7 @@ extern "C" CRef func_00125930()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125970()
+extern "C" CRef RefOpStub142()
 {
     CRef ref;
     return ref;
@@ -56,7 +56,7 @@ extern "C" CRef func_00125970()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_001259B0()
+extern "C" CRef RefOpStub143()
 {
     CRef ref;
     return ref;
@@ -68,7 +68,7 @@ extern "C" CRef func_001259B0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_001259F0()
+extern "C" CRef RefOpStub144()
 {
     CRef ref;
     return ref;
@@ -80,7 +80,7 @@ extern "C" CRef func_001259F0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125A30()
+extern "C" CRef RefOpStub145()
 {
     CRef ref;
     return ref;
@@ -92,7 +92,7 @@ extern "C" CRef func_00125A30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125A70()
+extern "C" CRef RefOpStub146()
 {
     CRef ref;
     return ref;
@@ -104,7 +104,7 @@ extern "C" CRef func_00125A70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125AB0()
+extern "C" CRef RefOpStub147()
 {
     CRef ref;
     return ref;
@@ -116,7 +116,7 @@ extern "C" CRef func_00125AB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125AF0()
+extern "C" CRef RefOpStub148()
 {
     CRef ref;
     return ref;
@@ -128,7 +128,7 @@ extern "C" CRef func_00125AF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125B30()
+extern "C" CRef RefOpStub149()
 {
     CRef ref;
     return ref;
@@ -140,7 +140,7 @@ extern "C" CRef func_00125B30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125B70()
+extern "C" CRef RefOpStub150()
 {
     CRef ref;
     return ref;
@@ -152,7 +152,7 @@ extern "C" CRef func_00125B70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125BB0()
+extern "C" CRef RefOpStub151()
 {
     CRef ref;
     return ref;
@@ -164,7 +164,7 @@ extern "C" CRef func_00125BB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125BF0()
+extern "C" CRef RefOpStub152()
 {
     CRef ref;
     return ref;
@@ -176,7 +176,7 @@ extern "C" CRef func_00125BF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125C30()
+extern "C" CRef RefOpStub153()
 {
     CRef ref;
     return ref;
@@ -188,7 +188,7 @@ extern "C" CRef func_00125C30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125C70()
+extern "C" CRef RefOpStub154()
 {
     CRef ref;
     return ref;
@@ -200,7 +200,7 @@ extern "C" CRef func_00125C70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125CB0()
+extern "C" CRef RefOpStub155()
 {
     CRef ref;
     return ref;
@@ -212,7 +212,7 @@ extern "C" CRef func_00125CB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125CF0()
+extern "C" CRef RefOpStub156()
 {
     CRef ref;
     return ref;
@@ -224,7 +224,7 @@ extern "C" CRef func_00125CF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125D30()
+extern "C" CRef RefOpStub157()
 {
     CRef ref;
     return ref;
@@ -236,7 +236,7 @@ extern "C" CRef func_00125D30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125D70()
+extern "C" CRef RefOpStub158()
 {
     CRef ref;
     return ref;
@@ -248,7 +248,7 @@ extern "C" CRef func_00125D70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125DB0()
+extern "C" CRef RefOpStub159()
 {
     CRef ref;
     return ref;
@@ -260,7 +260,7 @@ extern "C" CRef func_00125DB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125DF0()
+extern "C" CRef RefOpStub160()
 {
     CRef ref;
     return ref;
@@ -272,7 +272,7 @@ extern "C" CRef func_00125DF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125E30()
+extern "C" CRef RefOpStub161()
 {
     CRef ref;
     return ref;
@@ -284,7 +284,7 @@ extern "C" CRef func_00125E30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125E70()
+extern "C" CRef RefOpStub162()
 {
     CRef ref;
     return ref;
@@ -296,7 +296,7 @@ extern "C" CRef func_00125E70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125EB0()
+extern "C" CRef RefOpStub163()
 {
     CRef ref;
     return ref;
@@ -308,7 +308,7 @@ extern "C" CRef func_00125EB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125EF0()
+extern "C" CRef RefOpStub164()
 {
     CRef ref;
     return ref;
@@ -320,7 +320,7 @@ extern "C" CRef func_00125EF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125F30()
+extern "C" CRef RefOpStub165()
 {
     CRef ref;
     return ref;
@@ -332,7 +332,7 @@ extern "C" CRef func_00125F30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125F70()
+extern "C" CRef RefOpStub166()
 {
     CRef ref;
     return ref;
@@ -344,7 +344,7 @@ extern "C" CRef func_00125F70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125FB0()
+extern "C" CRef RefOpStub167()
 {
     CRef ref;
     return ref;
@@ -356,7 +356,7 @@ extern "C" CRef func_00125FB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125FF0()
+extern "C" CRef RefOpStub168()
 {
     CRef ref;
     return ref;

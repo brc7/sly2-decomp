@@ -12,7 +12,7 @@ typedef unsigned char byte;
 typedef unsigned int uint;
 enum BASK { BASK_Nil = -1, BASK_Host = 0, BASK_Cd = 1 };
 
-/* A CD file record as func_00132600 reads it. */
+/* A CD file record as OpenBasFromFileKey reads it. */
 struct CDFILE { uint isector; int cb; int k; };
 
 class CBinaryAsyncStream {
@@ -89,7 +89,7 @@ CBinaryAsyncStream::~CBinaryAsyncStream() { Close(); }
  * See: docs/formats/disc-records.md#2-the-read-path,
  *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
-extern "C" int func_00132600(CBinaryAsyncStream *pbas, CDFILE *pcdfile)
+extern "C" int OpenBasFromFileKey(CBinaryAsyncStream *pbas, CDFILE *pcdfile)
 {
     int f = 0;
     if (pcdfile->k == 2)

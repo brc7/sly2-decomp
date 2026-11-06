@@ -443,7 +443,7 @@ void CBinaryInputStream_ReadBspc(CBinaryInputStream *pbis, GEOM *pgeom, BSPC *pb
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(MSGA *pmsg);
-void *func_001AE238(MSGA *pmsg, void *pv);
+void *AllocCopyFromWorldHeap(MSGA *pmsg, void *pv);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(TN *p, CBinaryInputStream *pbis);
 void CLoadCollectorArray_ctor(MSGA *pmsg);
 void LoadXfmChildObjectsFromBrx(TN *p, CBinaryInputStream *pbis, MSGA *pmsg);
@@ -482,7 +482,7 @@ qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
 int FFindCmClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
 qword FindCmClosestClearPos(int, SOPART **, qword, float);
 qword SquishCmEye(CM *, int, SOPART **, float (*)(void *, qword, qword, PLANEREC *), qword, qword, float, float);
-void func_002564B8(void *p);
+void InitVuTemp(void *p);
 
 void func_00220D40(CPD *p);
 void func_00220DD8(CPD *p, CPDEFI *pa, qword *ppos, TN *ps);
@@ -633,7 +633,7 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
         MSGA *pm = &msg;
         pm->cb = p->ccpd * 0x90;
         pm->nKind = 0x10;
-        pv = func_001AE238(pm, p->acpd);
+        pv = AllocCopyFromWorldHeap(pm, p->acpd);
     }
     p->fCpdsLoaded = 1;
     p->acpd = (CPD *)pv;
@@ -1824,8 +1824,8 @@ float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n)
     qword plane, td, tone;
     float dist;
     plane = n->plane;
-    func_002564B8(&d);
-    func_002564B8(&one);
+    InitVuTemp(&d);
+    InitVuTemp(&one);
     __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddaz.x $ACC, %0, %1z\n\tvmsubw.x %1, %0, %2w"
             : "=&j"(tone), "=&j"(td) : "j"(plane), "j"(pos));
     one.q = tone;

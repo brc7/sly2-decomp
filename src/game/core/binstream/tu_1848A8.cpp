@@ -39,7 +39,7 @@ public:
 };
 typedef char assert_CBinaryInputStream_ibufFill[(uint)&((CBinaryInputStream *)0)->ibufFill == 0x60 ? 1 : -1];
 
-/* 0x10-byte sector key passed to func_00184D60 (KEY in engine/presentation/hud). */
+/* 0x10-byte sector key passed to OpenStreamFromFileKey (KEY in engine/presentation/hud). */
 struct SECTORKEY { uint isector; uint cb; int kind; };
 
 /* CStreamBis (DRAFT class name) is a CBinaryInputStream subclass (bis.h) with Fill and Close of its own, vtable 0x2D2918,
@@ -64,8 +64,8 @@ int func_00241E88(int) __asm__("sceCdSync");
 void ReadCdDirect(uint isector, uint csector, void *pv, int mode);
 void CBinaryInputStream_Close(CBinaryInputStream *p) __asm__("Close__18CBinaryInputStream");  /* the base Close (bis.cpp) */
 void CStreamBis_Close(CBinaryInputStream *p);
-void func_00184C60(CBinaryInputStream *p);
-void func_001849A0(CBinaryInputStream *p);
+void RefillStreamFromFile(CBinaryInputStream *p);
+void RefillStreamFromCd(CBinaryInputStream *p);
 }
 
 
@@ -79,7 +79,7 @@ void func_001849A0(CBinaryInputStream *p);
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
  *   docs/engine/player.md#10-source-files
  * @end-sly2-annot */
-extern "C" CBinaryInputStream *func_001848A8(CBinaryInputStream *p, int cb, char *pv, int grf)
+extern "C" CBinaryInputStream *CStreamBis_ctor(CBinaryInputStream *p, int cb, char *pv, int grf)
 {
     char *ab;
     __18CBinaryInputStream(p);
@@ -119,7 +119,7 @@ extern "C" void func_00184950(CBinaryInputStream *p, int grf)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" void func_001849A0(CBinaryInputStream *p)
+extern "C" void RefillStreamFromCd(CBinaryInputStream *p)
 {
     int cbuf;
     int n;
@@ -188,7 +188,7 @@ extern "C" void func_001849A0(CBinaryInputStream *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" void func_00184C60(CBinaryInputStream *p)
+extern "C" void RefillStreamFromFile(CBinaryInputStream *p)
 {
     char *ab = p->abSpool;
     p->pbRaw = ab;
@@ -204,8 +204,8 @@ extern "C" void func_00184C60(CBinaryInputStream *p)
 void CStreamBis::Fill()   /* key function: CStreamBis's vtable comes out here */
 {
     CBinaryInputStream *p = (CBinaryInputStream *)this;
-    if (p->fd >= 0) func_00184C60(p);
-    else if (p->isector >= 0) func_001849A0(p);
+    if (p->fd >= 0) RefillStreamFromFile(p);
+    else if (p->isector >= 0) RefillStreamFromCd(p);
     else {
         p->pbRaw = 0;
         p->cbRaw = 0;
@@ -240,7 +240,7 @@ extern "C" void CStreamBis_Close(CBinaryInputStream *p)
  * See: docs/formats/disc-records.md#2-the-read-path,
  *   docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" int func_00184D60(CBinaryInputStream *p, SECTORKEY *pkey)
+extern "C" int OpenStreamFromFileKey(CBinaryInputStream *p, SECTORKEY *pkey)
 {
     int f = 0;
     if (pkey->kind == 2)

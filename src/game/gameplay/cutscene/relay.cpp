@@ -96,7 +96,7 @@ struct TASKPAIR
 
 void SetTaskStates(GAME *pgame, int ctaskpair, TASKPAIR *ataskpair, LO *ploContext) __asm__("ApplyTaskStates");
 
-void SetClockRate(CLOCK *pclock, CRK crk, float rt) __asm__("func_0014D1D0");
+void SetClockRate(CLOCK *pclock, CRK crk, float rt) __asm__("SetClockRate");
 
 struct EDGE
 {
@@ -1058,7 +1058,7 @@ extern "C" void func_00220508(MOVEREC *pmr, LO *plo);
 
 void PutSwHeroAtWarp(WARPV *pwarp) __asm__("func_00228170");
 
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 
 GRABSPOTV *PspotFromLo(LO *plo) __asm__("PgrabspotFromLo");
 
@@ -1275,7 +1275,7 @@ struct OBJ {
     int f7C;
 };
 extern "C" { void *PvAllocSlot__FP8ALLOCREQ(MSG *); }
-extern "C" { void *func_001AE1D0(MSG *); }
+extern "C" { void *AllocFromWorldHeap(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
@@ -1308,7 +1308,7 @@ extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
         p->cMax = Max(p->c, p->cMax) + 1;
         pmsg->cb = p->cMax * sizeof(ENT);
         pmsg->nKind = 0x10;
-        p->ae = (ENT *)func_001AE1D0(pmsg);
+        p->ae = (ENT *)AllocFromWorldHeap(pmsg);
         CopyAb__FPvT0Ui(p->ae, aeOld, p->c * sizeof(ENT));
     }
 }
@@ -1320,8 +1320,8 @@ struct MSG; struct S;
 struct MSG { int cb; int nKind; };
 struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
-void *func_001AE238(struct MSG *pmsg, void *pv);
-static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
+void *AllocCopyFromWorldHeap(struct MSG *pmsg, void *pv);
+static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 /** @sly2-annot addr=0x1DFBF8
  * Purpose: RELAY::Clone (vt41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own
  *   copy of the command array
@@ -6239,7 +6239,7 @@ void func_001E5468(P *p);
 void func_001E54B0(P *p);
 void ClearJsgStepHolds(P *p);
 void func_001E5570(P *p);
-void func_0014D1D0(CLOCK *pclock, int n, float g);
+void SetClockRate(CLOCK *pclock, int n, float g);
 void func_001E4EB8(P *p, int a, int b);
 void SetJsgTunnel(P *p, void *po);
 void func_001E5000(P *p, int a);
@@ -6271,7 +6271,7 @@ void RemoveJsg(P *p)
     func_001E54B0(p);
     ClearJsgStepHolds(p);
     func_001E5570(p);
-    func_0014D1D0(&D_002DDED0, 6, 1.0f);
+    SetClockRate(&D_002DDED0, 6, 1.0f);
     func_001E4EB8(p, 0, 0);
     SetJsgTunnel(p, 0);
     func_001E5000(p, 0);
@@ -6313,7 +6313,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern struct G D_002DDF40;
 int FFloatsNear__Ffff(float, float, float);
 float RadNormalize__Ff(float);
-qword func_0011BFF0(void *);
+qword DecomposeRotationMatrixToEuler(void *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
@@ -6365,7 +6365,7 @@ void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
             if (FNear(pt->v0, *zero))
                 pt->v0 = (*(struct G2 *)&g_cm.mat).v30;
             if (FNear(pt->v10, *zero))
-                pt->v10 = func_0011BFF0(&(*(struct G2 *)&g_cm.mat));
+                pt->v10 = DecomposeRotationMatrixToEuler(&(*(struct G2 *)&g_cm.mat));
             if (pt->f20 == 0.0f)
                 pt->f20 = D_002DDF40.f20;
         }

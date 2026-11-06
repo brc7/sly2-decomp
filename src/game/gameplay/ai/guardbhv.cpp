@@ -4178,7 +4178,7 @@ extern "C"{
  void FindShapeClosestPoint(P*,qword,void*,qword*,qword*,float*,float*);
  float atan2f(float,float);
  float RadNormalize__Ff(float);
- void func_0011B500(M3*,float,qword);
+ void BuildAxisAngleRotationMatrix(M3*,float,qword);
  M3*BuildOrthonormalMatrixZ(M3*,qword,qword);
  void GetPipeGoalMat(P*,int,M3*,float);
  void func_0017A468(C*);
@@ -4266,7 +4266,7 @@ extern "C" void StartBhvleap(C*p){
    active|=GrfFromSgf(0x1B);
    if(!p->reverse)heading=RadNormalize__Ff(heading+3.1415927410125732421875f);
    p->basisValid=1;
-   func_0011B500(&work.temp.first.rotation,heading,D_002A2DC0);
+   BuildAxisAngleRotationMatrix(&work.temp.first.rotation,heading,D_002A2DC0);
    p->matrix=work.temp.first.rotation;
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x27)){
    active|=GrfFromSgf(0x29);

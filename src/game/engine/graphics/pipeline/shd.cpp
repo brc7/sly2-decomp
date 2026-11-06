@@ -239,7 +239,7 @@ void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 void Skip__18CBinaryInputStreami(void *pbis, int cb);
 int FMatchLoadFilter__FiPs(int cch, void *pw);
 struct Y *func_001ED5D0(int id);
-void *func_001AE1D0(struct AR *par);
+void *AllocFromWorldHeap(struct AR *par);
 void ColorCorrectRgba(int *p);
 /** @sly2-annot addr=0x1EA8A8
  * Purpose: Read one color table header (0x10) and colors; skip if its name fails the load filter; shared
@@ -277,7 +277,7 @@ void LoadClutFromBrx(void *pbis, struct X *px)
             int *pn;
             u.ar.cb = cb;
             u.ar.cbAlign = 0x10;
-            px->pv = (__typeof__(px->pv))func_001AE1D0(&u.ar);
+            px->pv = (__typeof__(px->pv))AllocFromWorldHeap(&u.ar);
             Read__18CBinaryInputStreamiPv(pbis, cb, px->pv);
             for (pn = px->pv; pn < px->pv + px->c; pn++)
                 ColorCorrectRgba(pn);
@@ -441,7 +441,7 @@ extern int D_003DCFF8;
 extern struct E *D_003DCFFC;
 extern int D_003DCF9C;
 int U16Read__18CBinaryInputStream(void *pbis);
-void *func_001AE378(struct AR *par);
+void *AllocClearedFromStack(struct AR *par);
 void LoadClutFromBrx(void *pbis, struct E *pe);
 /** @sly2-annot addr=0x1EAE40
  * Purpose: Read count, allocate 0x20-byte CLUT array (D_003DCFFC), LoadClutFromBrx each, track shared count
@@ -461,7 +461,7 @@ void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *pbis)
     D_003DCFF8 = U16Read__18CBinaryInputStream(pbis);
     ar.cb = D_003DCFF8 * sizeof(struct E);
     ar.cbAlign = 0x10;
-    D_003DCFFC = (__typeof__(D_003DCFFC))func_001AE378(&ar);
+    D_003DCFFC = (__typeof__(D_003DCFFC))AllocClearedFromStack(&ar);
     D_003DCF9C = 0;
     for (; i < D_003DCFF8; i++) {
         LoadClutFromBrx(pbis, &D_003DCFFC[i]);
@@ -480,7 +480,7 @@ void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 void Skip__18CBinaryInputStreami(void *pbis, int cb);
 int FMatchLoadFilter__FiPs(int cch, void *pw);
 struct Y *func_001ED4E0(int id);
-void *func_001AE1D0(struct AR *par);
+void *AllocFromWorldHeap(struct AR *par);
 /** @sly2-annot addr=0x1EAF50
  * Purpose: Read one bitmap header (0x18) and pixels (filtered by name; shared via PbmpFindHash)
  * Info: proposed name LoadBmpFromBrx (T1); TU shd
@@ -515,7 +515,7 @@ void LoadBmpFromBrx(void *pbis, struct X *px)
         } else {
             u.ar.cb = px->cb;
             u.ar.cbAlign = 0x10;
-            px->pv = (__typeof__(px->pv))func_001AE1D0(&u.ar);
+            px->pv = (__typeof__(px->pv))AllocFromWorldHeap(&u.ar);
             Read__18CBinaryInputStreamiPv(pbis, px->cb, px->pv);
         }
     }
@@ -549,7 +549,7 @@ extern int D_003DCFF0;
 extern struct E *D_003DCFF4;
 extern int D_003DCF98;
 int U16Read__18CBinaryInputStream(void *pbis);
-void *func_001AE378(struct AR *par);
+void *AllocClearedFromStack(struct AR *par);
 void LoadBmpFromBrx(void *pbis, struct E *pe);
 /** @sly2-annot addr=0x1EB098
  * Purpose: Read count, allocate 0x28-byte BMP array (D_003DCFF4), LoadBmpFromBrx each
@@ -569,7 +569,7 @@ void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *pbis)
     D_003DCFF0 = U16Read__18CBinaryInputStream(pbis);
     ar.cb = D_003DCFF0 * sizeof(struct E);
     ar.cbAlign = 0x10;
-    D_003DCFF4 = (__typeof__(D_003DCFF4))func_001AE378(&ar);
+    D_003DCFF4 = (__typeof__(D_003DCFF4))AllocClearedFromStack(&ar);
     D_003DCF98 = 0;
     for (; i < D_003DCFF0; i++) {
         LoadBmpFromBrx(pbis, &D_003DCFF4[i]);
@@ -589,7 +589,7 @@ extern struct E28 *D_003DCFF4;
 extern struct E20 *D_003DCFFC;
 void Read__18CBinaryInputStreamiPv(void *pbis, int cb, void *pv);
 int U16Read__18CBinaryInputStream(void *pbis);
-void *func_001AE1D0(struct AR *par);
+void *AllocFromWorldHeap(struct AR *par);
 /** @sly2-annot addr=0x1EB1A8
  * Purpose: Read a TEX: header then bitmap indices (into D_003DCFF4) and clut indices (0xFFFF = none)
  * Info: proposed name LoadTexFromBrx (T1); TU shd
@@ -605,14 +605,14 @@ void LoadTexFromBrx(void *pbis, struct Z *pz)
     if (pz->c1) {
         ar.cb = pz->c1 * 4;
         ar.cbAlign = 0x10;
-        pz->ap1 = (__typeof__(pz->ap1))func_001AE1D0(&ar);
+        pz->ap1 = (__typeof__(pz->ap1))AllocFromWorldHeap(&ar);
         for (i = 0; i < pz->c1; i++)
             pz->ap1[i] = &D_003DCFF4[U16Read__18CBinaryInputStream(pbis)];
     }
     if (pz->c2) {
         ar.cb = pz->c2 * 4;
         ar.cbAlign = 0x10;
-        pz->ap2 = (__typeof__(pz->ap2))func_001AE1D0(&ar);
+        pz->ap2 = (__typeof__(pz->ap2))AllocFromWorldHeap(&ar);
         for (i = 0; i < pz->c2; i++) {
             int k = U16Read__18CBinaryInputStream(pbis);
             if (k == 0xFFFF) pz->ap2[i] = 0;
@@ -648,14 +648,14 @@ extern void **D_003DD004;
 void Read__18CBinaryInputStreamiPv(void *, int, void *);
 void ColorCorrectRgba(int *);
 int S16Read__18CBinaryInputStream(void *);
-void *func_001AE2A0(struct MSG *);
+void *AllocClearedFromWorldHeap(struct MSG *);
 void LoadTexFromBrx(void *, struct C *);
 static inline void InitEnt(struct ENT *pe, int n, struct MSG *pmsg)
 {
     pe->n = n;
     pmsg->cb = n * 16;
     pmsg->nKind = 0x10;
-    pe->p = (__typeof__(pe->p))func_001AE2A0(pmsg);
+    pe->p = (__typeof__(pe->p))AllocClearedFromWorldHeap(pmsg);
 }
 /** @sly2-annot addr=0x1EB2F0
  * Purpose: Read one shader: header, colors (color-corrected), texture list (LoadTexFromBrx) and per-frame
@@ -683,7 +683,7 @@ void LoadShdFromBrx(void *pbis, struct L *p)
         p->p28 = D_003DD004[i];
     msg.cb = p->b17 * 0x14;
     msg.nKind = 0x10;
-    p->ac = (__typeof__(p->ac))func_001AE2A0(&msg);
+    p->ac = (__typeof__(p->ac))AllocClearedFromWorldHeap(&msg);
     for (j = 0; j < p->b17; j++) {
         struct C *pc = &p->ac[j];
         LoadTexFromBrx(pbis, pc);
@@ -710,7 +710,7 @@ void LoadShdFromBrx(void *pbis, struct L *p)
     }
     msg.cb = p->n1C * 8;
     msg.nKind = 0x10;
-    ae = (__typeof__(ae))func_001AE2A0(&msg);
+    ae = (__typeof__(ae))AllocClearedFromWorldHeap(&msg);
     p->ae = ae;
     switch (p->b4) {
     case 0:
@@ -767,7 +767,7 @@ struct MSG { int cb; int nKind; };
 struct S3 { char pad[6]; unsigned char c6; };
 struct Src { int x0; char pad4; unsigned char b5; unsigned char b6; char pad7; struct B4 b8; char padc[0xC]; struct S3 *p18; };
 struct Dst { int x0; int x4; int x8; struct B4 bc; int c; ulong *a; };
-void *func_001AE2A0(struct MSG *);
+void *AllocClearedFromWorldHeap(struct MSG *);
 ulong Tex0FromTexIframeCtk(struct S3 *, int, int);
 /** @sly2-annot addr=0x1EB678
  * Purpose: Copy shader params and build its TEX0 array (Tex0FromTexIframeCtk per texture)
@@ -791,7 +791,7 @@ void func_001EB678(struct Src *ps, struct Dst *pd)
         msg.cb = c * 8;
     }
     msg.nKind = 0x10;
-    pd->a = (__typeof__(pd->a))func_001AE2A0(&msg);
+    pd->a = (__typeof__(pd->a))AllocClearedFromWorldHeap(&msg);
     for (i = 0; i < pd->c; i++)
     {
         ulong *pe = (ulong *)((i << 3) + (int)pd->a);
@@ -813,8 +813,8 @@ extern void *D_003DCFA8[16];
 void LoadColorTablesFromBrx__FP18CBinaryInputStream(void *);
 void LoadBitmapsFromBrx__FP18CBinaryInputStream(void *);
 int U16Read__18CBinaryInputStream(void *);
-void *func_001AE378(struct MSG *);
-void *func_001AE2A0(struct MSG *);
+void *AllocClearedFromStack(struct MSG *);
+void *AllocClearedFromWorldHeap(struct MSG *);
 void *func_001ED7A8(int, void *);
 void LoadShdFromBrx(void *, struct E *);
 void LoadSwSharedDataFromBrx(void *, void *);
@@ -844,13 +844,13 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
     D_003DD000 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DD000 * 4;
     msg.nKind = 0x10;
-    D_003DD004 = (__typeof__(D_003DD004))func_001AE378(&msg);
+    D_003DD004 = (__typeof__(D_003DD004))AllocClearedFromStack(&msg);
     for (i = 0; i < D_003DD000; i++)
         D_003DD004[i] = func_001ED7A8(0, pbis);
     D_003DCFE8 = U16Read__18CBinaryInputStream(pbis);
     msg.cb = D_003DCFE8 * 0x2C;
     msg.nKind = 0x10;
-    D_003DCFEC = (__typeof__(D_003DCFEC))func_001AE378(&msg);
+    D_003DCFEC = (__typeof__(D_003DCFEC))AllocClearedFromStack(&msg);
     for (j = 0; j < D_003DCFE8; j++)
         LoadShdFromBrx(pbis, &D_003DCFEC[j]);
     LoadSwSharedDataFromBrx(p, pbis);
@@ -864,7 +864,7 @@ void LoadShadersFromBrx(void *p, int k, void *pbis)
             void *q;
             msg.cb = 0x1C;
             msg.nKind = 0x10;
-            q = (__typeof__(q))func_001AE2A0(&msg);
+            q = (__typeof__(q))AllocClearedFromWorldHeap(&msg);
             func_001EB678(pe, q);
             AppendSlEntry((*(char (*)[])&g_sw.slShd), q);
         }
@@ -1593,7 +1593,7 @@ void func_001ED1A8(U *pu)
 namespace M_ColorCorrectRgba { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct VECTOR { float x, y, z, w; } __attribute__((aligned(16)));
-void func_0011DCD8(struct RGBA *prgba, struct VECTOR *pv);
+void ConvertRgbaToFloats(struct RGBA *prgba, struct VECTOR *pv);
 void func_001ED2D8(struct VECTOR *pv);
 void ConvertVectorToRgba(struct VECTOR *pv, int a, struct RGBA *prgba);
 /** @sly2-annot addr=0x1ED278
@@ -1612,7 +1612,7 @@ void ColorCorrectRgba(struct RGBA *prgba)
     struct RGBA rgba;
     if (g_sw.fUnk3e38) {
         rgba = *prgba;
-        func_0011DCD8(&rgba, &v);
+        ConvertRgbaToFloats(&rgba, &v);
         func_001ED2D8(&v);
         ConvertVectorToRgba(&v, prgba->a, prgba);
     }

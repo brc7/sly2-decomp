@@ -152,7 +152,7 @@ void PostLoadJtMode(void *);
 void PostJtthrowLoad(void *);
 void PostJtLoadPipe(void *);
 int CploFindSwObjects_15E650(struct G *, int, int, struct P *, int, void **);
-void *func_001AE2A0(struct AREQ *);
+void *AllocClearedFromWorldHeap(struct AREQ *);
 void LoadStepplayerGadgets(struct P *);
 void BindStepplayerHpMp(struct P *, int);
 int func_001F8278(struct P *);
@@ -192,7 +192,7 @@ void PostLoadStepplayer(struct P *p)
         preq->cb = c * 8;
         p->cpo = c;
         preq->cbAlign = 0x10;
-        p->apo = (__typeof__(p->apo))func_001AE2A0(preq);
+        p->apo = (__typeof__(p->apo))AllocClearedFromWorldHeap(preq);
         for (i = 0; i < c; i++) {
             struct O *po;
             struct VTE *e;
@@ -1936,7 +1936,7 @@ struct X60 { char pad[0x40]; M3 mat; };
 struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F4; char pad3[0x1150 - 0x10F8]; M3 mat; };
 struct SO *PxfFindSo(struct P *p, int x, int n);
 void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
-qword func_0011BFF0(M3 *pm);
+qword DecomposeRotationMatrixToEuler(M3 *pm);
 void *func_0012DC18(struct P *p, struct SO *pso, int a, int b, int c, qword q);
 void func_0012D020(void *pv);
 static __inline__ qword MulV(M3 *pm, qword v)
@@ -1975,7 +1975,7 @@ void func_001426E8(struct P *p, int x)
             m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
             p->mat = t;
         }
-        p->p10F4 = func_0012DC18(p, pso, 3, 7, 2, func_0011BFF0(&p->mat));
+        p->p10F4 = func_0012DC18(p, pso, 3, 7, 2, DecomposeRotationMatrixToEuler(&p->mat));
         func_0012D020(p->p10F4);
     }
 }
@@ -2319,10 +2319,10 @@ qword ConvertAloPos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
 float RadLimitLm(LM *plm, float g);
 M3 LoadRotateMatrixPanTilt(float a, float b);
-M3 func_0011B500(qword v, float g);
+M3 BuildAxisAngleRotationMatrix(qword v, float g);
 M3 ConvertXfMat(void *pvFrom, void *pvTo, M3 *pm);
 M3 InvertMatrix3Cofactor(const M3 *pm);
-qword func_0011BFF0(M3 *pm);
+qword DecomposeRotationMatrixToEuler(M3 *pm);
 void SetActPositionGoal(Q *pq, qword q);
 void func_00142AF8(P *p);
 }
@@ -2444,7 +2444,7 @@ void func_00142AF8(P *p)
         }
     }
     M3 m0, m1;
-    m0 = LoadRotateMatrixPanTilt(pan, tilt) * func_0011B500(D_002A2DA0, g);
+    m0 = LoadRotateMatrixPanTilt(pan, tilt) * BuildAxisAngleRotationMatrix(D_002A2DA0, g);
     m1 = ConvertXfMat(0, p->p60, &p->pq->p8->m40);
     m1 = m1 * InvertMatrix3Cofactor(&p->m1150);
     M3 m2;
@@ -2453,7 +2453,7 @@ void func_00142AF8(P *p)
     else
         m2 = m0 * p->m1150;
     m2 = ConvertXfMat(p->p60, p->pq->p8->pA0, &m2);
-    SetActPositionGoal(p->pq, func_0011BFF0(&m2));
+    SetActPositionGoal(p->pq, DecomposeRotationMatrixToEuler(&m2));
 }
 } // namespace M_func_00142AF8
 

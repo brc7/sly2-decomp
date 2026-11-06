@@ -90,7 +90,7 @@ M4 ConvertAloMat4(LO *ploFrom, LO *ploTo, const M4 *pmat);
 M3 *ConvertXfMat(M3 *pmatOut, XF *pxfFrom, XF *pxfTo, const M3 *pmat);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword vec);
 qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);
-qword func_0011BFF0(const M3 *pmat);
+qword DecomposeRotationMatrixToEuler(const M3 *pmat);
 void SetActPositionGoal(ACT *pact, qword pos);
 void func_00130D30(ASEGA *pasega, int n, float t, float g);
 void func_001384C0(ASEGBL *pasegbl);
@@ -136,7 +136,7 @@ extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, fl
 extern "C" M4 InvertMatrix4RigidP(const M4 *pmat) __asm__("InvertMatrix4Rigid");
 extern "C" M4 InvertMatrix4RigidV(M4 mat) __asm__("InvertMatrix4Rigid");
 extern "C" M3 ConvertXfMatR(XF *pxfFrom, XF *pxfTo, void *pmat) __asm__("ConvertXfMat");
-extern "C" qword func_0011BFF0V(M3 mat) __asm__("func_0011BFF0");
+extern "C" qword func_0011BFF0V(M3 mat) __asm__("DecomposeRotationMatrixToEuler");
 extern "C" void MinimizeRange(float (*pfn)(void *, float), void *pv, float a, float b, float c, float d, float *pu, float *pg) __asm__("MinimizeRange__FPFPvf_fPvffffPfT6");
 
 /** @sly2-annot addr=0x1CC158
@@ -302,7 +302,7 @@ extern "C" void UpdateJtHands(JTHANDS *p)
         func_001CC1F8(p, w.stage.late.context.pos, &w.projection, 0, w.t);
         ConvertXfMat(&w.stage.late.temporary, 0, p->pxf->pxfParent, &w.basis);
         w.stage.late.transformed = w.stage.late.temporary;
-        SetActPositionGoal(p->pact1Euler, func_0011BFF0(&w.stage.late.transformed));
+        SetActPositionGoal(p->pact1Euler, DecomposeRotationMatrixToEuler(&w.stage.late.transformed));
     } else {
         MinimizeRange((float (*)(void *, float))func_001CC288, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
         func_001CC168(p, w.stage.late.context.pos, &w.projection, 0, w.t);
@@ -348,7 +348,7 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("func_001300B8");
@@ -660,7 +660,7 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  }
  ConvertXfMat(&work.views.basis.converted,0,object->pxfUnk5c->pxfParent,(M3*)finalMatrix);
  work.views.basis.angles=work.views.basis.converted;
- qword angles=func_0011BFF0((M3*)workingBase);
+ qword angles=DecomposeRotationMatrixToEuler((M3*)workingBase);
  register XF*orientationChannel __asm__("$5");register SO*orientationOwner __asm__("$4");register qword anglesArgument __asm__("$9");
  __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tpor %2,$zero,%5":"=&r"(orientationChannel),"=&r"(orientationOwner),"=r"(anglesArgument):"m"(object->pxfUnk5c),"r"(object),"r"(angles));
  ACT *job=func_0012DC18(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;

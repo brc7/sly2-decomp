@@ -93,8 +93,8 @@ void *PtNew__t6CGcObj1Z6CFrame(void);
 void FramePtr_Assign(void *ppframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void ShutdownSplice(void);
 int U32Read__18CBinaryInputStream(void *pbis);
-SPLCS *func_001AE2A0(SZ *psz);
-SPLCE *func_001AE1D0(SZ *psz);
+SPLCS *AllocClearedFromWorldHeap(SZ *psz);
+SPLCE *AllocFromWorldHeap(SZ *psz);
 SPPAIR PpairSerializeIn__FP18CBinaryInputStream(void *pbis);
 void CBinaryInputStream_SkipStringSw(void *pbis);
 CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i);
@@ -162,14 +162,14 @@ extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
     if (!c) return;
     {
         SZ sz(0x10, 0x10);
-        psplcs = func_001AE2A0(&sz);
+        psplcs = AllocClearedFromWorldHeap(&sz);
     }
     psplcs->a = a;
     CRef r;
     psplcs->c = c;
     {
         SZ sz(c * 8, 0x10);
-        psplcs->ae = func_001AE1D0(&sz);
+        psplcs->ae = AllocFromWorldHeap(&sz);
     }
     for (i = 0; i < c; i++) {
         SPLCE *pe = &psplcs->ae[i];

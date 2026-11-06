@@ -1793,7 +1793,7 @@ struct AL { int cb; int cbAlign; int pad[2]; };
 struct S { char p0[0x23C]; int x23C; void *x240; };
 struct H *STACKSCOPE_ctor(struct H *ph);
 void *PvAllocSlot__FP8ALLOCREQ(struct AL *pal);
-void *func_001AE238(struct AL *pal, void *pv);
+void *AllocCopyFromWorldHeap(struct AL *pal, void *pv);
 void STACKSCOPE_ctor_1AE4A0(struct H *ph, int n) __asm__("_$_10STACKSCOPE");
 void LoadDprizeFromBrx(struct S *p, void *pv);
 void func_001C7A08(struct S *p);
@@ -1821,7 +1821,7 @@ void LoadLootFromBrx(struct S *p, void *pv)
     func_001C7A08(p);
     pal->cb = p->x23C * 0x2C;
     pal->cbAlign = 0x10;
-    p->x240 = func_001AE238(pal, p->x240);
+    p->x240 = AllocCopyFromWorldHeap(pal, p->x240);
     STACKSCOPE_ctor_1AE4A0(&h, 2);
 }
 } } // namespace M_LoadLootFromBrx

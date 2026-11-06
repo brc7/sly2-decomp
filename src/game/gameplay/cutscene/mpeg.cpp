@@ -131,7 +131,7 @@ int func_00234820(ThreadParam *ptp);
 int func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 int snd_InitMovieSound(int a, int b, int c, int d, int e, int f);
 char *PvAllocSlot__FP8ALLOCREQ(const AREQ &r);
-void *func_001AE378(const AREQ &r);
+void *AllocClearedFromStack(const AREQ &r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void func_00234CA0(int n) __asm__("FlushCache");
 int func_00234DE0(void *r, int n);
@@ -160,7 +160,7 @@ void snd_StartMovieSound(int a, int b, int c, int d, int e);
 void PushScaling__5CFontff(void *pf, float sx, float sy);
 void PopScaling__5CFont(void *pf);
 unsigned int CbFreeMem(int n);
-int func_00132600(CBinaryAsyncStream *ps, void *px);
+int OpenBasFromFileKey(CBinaryAsyncStream *ps, void *px);
 int sceMpegIsEnd(MPEG *p);
 void MarkClockTick(CLOCK *p, int k);
 void UpdateJoy__FP3JOY(JOY *p);
@@ -887,11 +887,11 @@ typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,xFD50)==64848?1:-1];
 void Execute__5CMpegPv(CMPEG *p, K *k)
 {
     STACKSCOPE ctx;
-    p->pb = (char *)func_001AE378(AREQ(0x41FC00, 0x40));
+    p->pb = (char *)AllocClearedFromStack(AREQ(0x41FC00, 0x40));
     CBinaryAsyncStream strm(0x80000, p->pb);
     X x;
     bool ok = x.FSet(k);
-    if (ok && func_00132600(&strm, &x)) {
+    if (ok && OpenBasFromFileKey(&strm, &x)) {
         CMpeg_Start(p, &strm);
         while (!sceMpegIsEnd(&p->mpeg)) {
             int f;

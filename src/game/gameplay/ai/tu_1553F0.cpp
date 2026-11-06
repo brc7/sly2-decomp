@@ -108,7 +108,7 @@ extern const float D_002A5130;   /* defined below where the ELF has it (.rodata 
 extern const float D_002A5134;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5138;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
-void *func_001AE2A0(MSG *pmsg);
+void *AllocClearedFromWorldHeap(MSG *pmsg);
 void LoadStepFromBrx(DIMITRIV *p, void *pbis);
 void PostStepguardLoad(DIMITRIV *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, DIMITRIV *p);
@@ -164,7 +164,7 @@ int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, in
 float GRandInRange(float gMin, float gMax);
 float RadNormalize(float rad);
 
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 /** @sly2-annot addr=0x1553F0
  * Purpose: cid 0x3B (STEPGUARD subclass) LoadFromBrx: allocates 0x480 bytes for route records, STEPGUARD
  *   load, sets +0x1018 = INT_MAX

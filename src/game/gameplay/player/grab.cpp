@@ -492,7 +492,7 @@ void UpdateSoPartGeom(SO *);
 qword VecMinArray(int, qword *);                      // min of points
 qword VecMaxArray(int, qword *);                      // max of points
 void MarkSoContactsSphereBsp(SW *, SO *, SO *, int, BSP *, XP **);
-int func_00118A88(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
+int PruneBspBySphere(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
 void MarkSoContactsBspBsp(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
 void func_001CD098(ATTACH *, ACTOR *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
@@ -571,7 +571,7 @@ static inline void ProbeGround(CONTEXT *p)
         } else {
             int cbspLeft = cbspMax;
             BSP *pbsp = absp;
-            if (func_00118A88(pso->absp, (BSP *)0x7FFFFFFF, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
+            if (PruneBspBySphere(pso->absp, (BSP *)0x7FFFFFFF, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
                 int cbsp = pbsp - absp;
                 pbsp--;
                 MarkSoContactsBspBsp(&D_003DD490, psoSelf, pso, cbsp, pso->absp, pbsp, &pxp);

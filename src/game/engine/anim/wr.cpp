@@ -176,7 +176,7 @@ void InitSl(void *pdl, int ibDle);
 void AppendSlEntry(void *pdl, void *pv);
 void SetLoBusyk(WRV *pwr, int busyk);
 void UpdateLo(WRV *pwr);
-M3 func_0011B500(qwordV,float);
+M3 BuildAxisAngleRotationMatrix(qwordV,float);
 }
 void UpdateWrStateVectors(WRV *pwr) __asm__("UpdateWrStateVectors__FP2WR");
 float UNoise(int n);
@@ -615,9 +615,9 @@ void UpdateWrMatrixes(WRV *p){
    V rotated;
    float bend=GFromOnz(&entry->data.bend.bend);
    float swivel=GFromOnz(&entry->data.bend.swivel);
-   first=func_0011B500(UnitFresh(entry->vectorA.q),swivel);
+   first=BuildAxisAngleRotationMatrix(UnitFresh(entry->vectorA.q),swivel);
    rotated.q=Rotate(first,Unit(entry->axis.q));
-   result=func_0011B500(UnitFresh(rotated.q),bend);
+   result=BuildAxisAngleRotationMatrix(UnitFresh(rotated.q),bend);
 
    matrix->r[0].f[0]=result.f[0][0]-1.0f;matrix->r[0].f[1]=result.f[0][1];matrix->r[0].f[2]=result.f[0][2];matrix->r[1].f[0]=result.f[1][0];matrix->r[1].f[1]=result.f[1][1]-1.0f;matrix->r[1].f[2]=result.f[1][2];matrix->r[2].f[0]=result.f[2][0];matrix->r[2].f[1]=result.f[2][1];matrix->r[2].f[2]=result.f[2][2]-1.0f;
    break;

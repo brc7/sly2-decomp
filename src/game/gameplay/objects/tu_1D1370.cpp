@@ -1066,7 +1066,7 @@ P *func_001D22D0(P *);
 int FCheckLm__FP2LMf(LM *, float);
 void func_001D4B28(P *, int);
 float acosf(float);
-M3 func_0011B500(qword, float);
+M3 BuildAxisAngleRotationMatrix(qword, float);
 int ClsgClipPathzone(void *, qword, qword, int, HIT *, int);
 void MeasureShape(PATH *);
 void func_001D2420(P *);
@@ -1187,12 +1187,12 @@ extern "C" void UpdateRobottankAi(P *p)
             goal = target;
             break;
         case 2: {
-            M3 m = func_0011B500(D_002A2DC0, angle);
+            M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
             goal = Add(target, Rotate(m, offset));
             break;
         }
         case 3: {
-            M3 m = func_0011B500(D_002A2DC0, -angle);
+            M3 m = BuildAxisAngleRotationMatrix(D_002A2DC0, -angle);
             goal = Add(target, Rotate(m, offset));
             break;
         }
@@ -1372,7 +1372,7 @@ void func_001FAB78(P *, qword, qword);
 qword ConvertXfVec(MOTION *, MOTION *, qword);
 float GLimitAbs__Fff(float, float);
 void func_001FAC98(P *, qword);
-M3 *func_0011B500(M3 *, qword, float);
+M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float);
 qword LimitVectorLength(float, qword);
 void AddSoAcceleration(P *, qword);
 }
@@ -1480,7 +1480,7 @@ extern "C" void PresetRobottankAccel(P *p)
     func_001FAC98(p, worldTorque.q);
     float dt = clock->dt;
     float half = dt * 0.5f;
-    func_0011B500(&phase.rotation, D_002A2DC0, (localVelocity.f[2] + torque.f[2] * half) * dt);
+    BuildAxisAngleRotationMatrix(&phase.rotation, D_002A2DC0, (localVelocity.f[2] + torque.f[2] * half) * dt);
     desired.f[0] = p->acceleration * p->drive;
     desired.f[2] = desired.f[1] = 0.0f;
     basis = phase.rotation;
@@ -1528,9 +1528,9 @@ struct VECTOR4 { float x, y, z, w; };   /* BLKmode on purpose: all block locals 
 
 struct SCALAR;
 struct VECTOR;
-extern "C" SCALAR *func_002564B8(SCALAR *);
+extern "C" SCALAR *InitVuTemp(SCALAR *);
 extern "C" VECTOR *func_002564C0(VECTOR *);
-struct SCALAR { qword q; SCALAR() { (void)func_002564B8(this); } };
+struct SCALAR { qword q; SCALAR() { (void)InitVuTemp(this); } };
 struct VECTOR { qword q; VECTOR() { (void)func_002564C0(this); } };
 /* the edge-loop lerp scalars need a VF-class pseudo: qmtc2 conversion */
 struct VU_FLOATQ { qword q; VU_FLOATQ(float g) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(g)); } };
@@ -1569,9 +1569,9 @@ M4 InvertMatrix4Rigid(const M4 *);
 void InitPlaneFromNormalPos(VECTOR4 *, qword, qword);
 void *func_002333B4(void *, int, uint) __asm__("memset");
 void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);
-int func_00118A88(BSP *, BSP *, qword, float, int *, BSP **);
+int PruneBspBySphere(BSP *, BSP *, qword, float, int *, BSP **);
 int func_00118668(BSP *, BSP *, qword, qword, int, LSG *);
-qword func_001193D8(M4 *, qword);
+qword TransformPlane(M4 *, qword);
 void PxpAdd(GAME *, SHAPE *, SOPART *, qword, qword, int, int, int, CONTACT **, float);
 }
 
@@ -1697,7 +1697,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
     BSP *absp;
     absp = pbsp = (BSP *)PvAllocStack(0x1555 * sizeof(BSP));
     cbspLeft = 0x1555;
-    if (func_00118A88(pbspRoot, (BSP *)0x7FFFFFFF, frame.r[3].q, Sqrt(radius * radius + height * height), &cbspLeft, &pbsp) != 2)
+    if (PruneBspBySphere(pbspRoot, (BSP *)0x7FFFFFFF, frame.r[3].q, Sqrt(radius * radius + height * height), &cbspLeft, &pbsp) != 2)
         return;
     int cbsp = pbsp - absp;
     SURF *asurf = ppart->geomWorld.asurf;
@@ -1821,7 +1821,7 @@ extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unu
                 break;
             }
             VECTOR4 local, point;
-            *(qword *)&local = func_001193D8(&inverse, psupport->apsurf[1 - pass]->plane);
+            *(qword *)&local = TransformPlane(&inverse, psupport->apsurf[1 - pass]->plane);
             if (local.z < 0.0f)
                 continue;
             float slope = -local.x / local.z;
@@ -2068,13 +2068,13 @@ qword func_0022FC48(P*,NODE*,qword);
 CONTACT*func_001D2DD0(P*,ENTRY*);
 float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
 float RadNormalize__Ff(float);
-M3*func_0011B500(M3*,qword,float);
+M3*BuildAxisAngleRotationMatrix(M3*,qword,float);
 qword*VECTOR_opAssign(qword*,qword);
 void UpdateSoXfWorldMatrices(P*);
 void RenderSoSelf(P*);
 }
 static inline float Abs(float f){float r;__asm__("abs.s %0,%1":"=f"(r):"f"(f));return r;}
-static inline M3 Rotation(qword axis,float angle) return r{func_0011B500(&r,axis,angle);}
+static inline M3 Rotation(qword axis,float angle) return r{BuildAxisAngleRotationMatrix(&r,axis,angle);}
 static inline M3 Mul(const M3&a,const M3&b) return r{
  qword x=a.r[0].q,y=a.r[1].q,z=a.r[2].q;
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[0].q):"j"(x),"j"(y),"j"(z),"j"(b.r[0].q));

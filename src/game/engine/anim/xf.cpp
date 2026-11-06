@@ -232,7 +232,7 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 struct S { char pad[0x94]; int k; };
-qword func_0011BFF0(float *m);
+qword DecomposeRotationMatrixToEuler(float *m);
 /** @sly2-annot addr=0x22CA18
  * Purpose: Extract an XF component value from a matrix by component kind (+0x94): translation row
  *   (1,4,5,9,10), Euler angles (6,7), shear (11), scale diagonal (12); kinds 0/15 nothing
@@ -255,7 +255,7 @@ qword func_0022CA18(struct S *p, float *m)
     case 1: case 4: case 5: case 9: case 10:
         r.q = Make(m[12], m[13], m[14]); v = r.q; break;
     case 6: case 7:
-        v = func_0011BFF0(m); break;
+        v = DecomposeRotationMatrixToEuler(m); break;
     case 11:
         r.q = Make(m[4], m[8], m[9]); v = r.q; break;
     case 12:
@@ -412,7 +412,7 @@ extern "C" M4 *func_0022CCD0(M4 *pm, struct O *pa, const M3 *basis, qword v);
 extern "C" M4 *func_0022CB90(M4 *pr, struct O *pa, const M3 *basis, qword c, qword d);
 extern "C" M4 *func_0022CC00(M4 *pm, struct O *po, qword v);
 extern "C" qword func_0022CA18(struct O *pa, const M4 *matrix);
-extern "C" qword func_0011BFF0(const M3 *rotation);
+extern "C" qword DecomposeRotationMatrixToEuler(const M3 *rotation);
 extern "C" void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc);
 static __inline__ void Eval(struct O *po, qword *pa, qword *pb, qword *pc)
 {
@@ -470,7 +470,7 @@ extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
                         initial = po->data.r[0];
                         break;
                     case 5:
-                        initial = func_0011BFF0(&po->data.rotation);
+                        initial = DecomposeRotationMatrixToEuler(&po->data.rotation);
                         break;
                     default:
                         initial = DefaultPoint();
@@ -799,7 +799,7 @@ void ReadCb12__18CBinaryInputStreamPv(void *,V *);
 void ReadCb8__18CBinaryInputStreamPv(void *,V2 *);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *,V *);
 void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,M4 *);
-void *func_001AE2A0(REQ *);
+void *AllocClearedFromWorldHeap(REQ *);
 void *func_0012E1F0(int);
 void *func_002333B4(void *,int,int) __asm__("memset");
 qword func_0022CA18(E *,E *);
@@ -831,7 +831,7 @@ extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
  int i=0;
  p->count=S16Read__18CBinaryInputStream(stream);
  REQ request;request.size=p->count*sizeof(E);request.kind=16;
- p->records=(E *)func_001AE2A0(&request);
+ p->records=(E *)AllocClearedFromWorldHeap(&request);
  for(;i<p->count;i++){
   E *e=&p->records[i];
   e->reference=Lookup(p,S16Read__18CBinaryInputStream(stream));
@@ -962,7 +962,7 @@ void func_0022DD00(void *pa, struct S *p)
 //    $v0 loads, the spill `sq v0,0x1C0(sp)` is shared, and the goal reload becomes $vf4; a bare `asm("")` after it keeps the `sq` ahead of the argument moves of the next call.
 //  - the world-matrix tail is written with asm text (loads + vcallms in one output-less asm, the result rows as cfc2.i outputs) and ONE register pin instead of
 //    the personal draft's eight bound vf variables.
-MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
+MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
 
 inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 {
@@ -983,7 +983,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
     *(VU_VECTOR4 *)mat.mat[2] = v2;
 }
 void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pnormal);
-qword DecomposeRotateMatrixEuler(MATRIX3 *pmat) __asm__("func_0011BFF0");
+qword DecomposeRotateMatrixEuler(MATRIX3 *pmat) __asm__("DecomposeRotationMatrixToEuler");
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
 extern "C" MATRIX3 MulMatrix3Matrix3(MATRIX3 *pmat0, MATRIX3 *pmat1);
 float RadNormalize(float rad);
@@ -1266,7 +1266,7 @@ static inline void TurnSlotMat(XF *pxf, MATRIX3 *pmatFrom, qword qwTurn)
     pxf->mat.mat[1][3] = 0.0f;
     pxf->mat.mat[0][3] = 0.0f;
 }
-MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) __asm__("func_0011B500");
+MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) __asm__("BuildAxisAngleRotationMatrix");
 void UpdateSoSlots(SO *pso) __asm__("UpdateSoSlots");
 /** @sly2-annot addr=0x22DE88
  * Purpose: per-frame step of all XF slots of an SO (roles, chase, springs, chains)
@@ -2441,7 +2441,7 @@ namespace M_func_00230710 {
 // (Claude agent, lane E6) fresh17: aligned 3 (fresh16 6). (1) VUF ctor: `float f = g; asm("" : "+f"(f)); qmtc2 "r"(f)`:
 // gcc emits the mfc1 itself (with its latency, so a free insn lands between mfc1 and qmtc2 like the target) and g stays in f20.
 // (2) path 2 uses VUF2, the same ctor with a VOLATILE empty asm (keeps the qB0 lqc2 after the mfc1), through
-// BuildRotationS(const VUF2 &f, qword v) { func_0011B570(&m, Scale(v, f)); }. Left: SetM4 row store order (r1,r2,r0) and path-3 *pm = t store order.
+// BuildRotationS(const VUF2 &f, qword v) { BuildRotationMatrixFromVector(&m, Scale(v, f)); }. Left: SetM4 row store order (r1,r2,r0) and path-3 *pm = t store order.
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword r[4]; float m[4][4]; } M4;
 struct M3 { qword r[3]; };
@@ -2456,7 +2456,7 @@ M4 *func_0022C8C0(M4 *pm, O *po, qword v);
 M4 *func_0022CB90(M4 *pr, O *pa, const M4 *basis, qword c, qword d);
 void func_0022CC00(M4 *pm, O *po, qword v);
 M4 *func_0022CCD0(M4 *pm, O *pa, const M4 *basis, qword v);
-M3 *func_0011B570(M3 *, qword);
+M3 *BuildRotationMatrixFromVector(M3 *, qword);
 qword func_0022CA18(O *pa, const M4 *matrix);
 qword *VECTOR_opAssign(qword *, qword);
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -2464,7 +2464,7 @@ void func_00230710(O *po, M4 *pm, M4 *pm2, float g);
 }
 struct VUF { qword q; VUF(float g) { float f = g; __asm__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct VUF2 { qword q; VUF2(float g) { float f = g; __asm__ __volatile__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } operator const VUF &() const { return *(const VUF *)this; } };
-static inline M3 BuildRotation(qword v) return m { func_0011B570(&m, v); }
+static inline M3 BuildRotation(qword v) return m { BuildRotationMatrixFromVector(&m, v); }
 static inline M3 MulM3(const M3 &a, const M3 &b) return m
 {
     M3 t;
@@ -2498,7 +2498,7 @@ static inline qword Scale(qword v, const VUF &f)
     __asm__("vmulx.xyzw %0, %2, %1x" : "=&j"(r) : "j"(f.q), "j"(v));
     return r;
 }
-static inline M3 BuildRotationS(const VUF2 &f, qword v) return m { func_0011B570(&m, Scale(v, *(const VUF *)&f)); }
+static inline M3 BuildRotationS(const VUF2 &f, qword v) return m { BuildRotationMatrixFromVector(&m, Scale(v, *(const VUF *)&f)); }
 static inline qword AddScale(qword a, qword v, const VUF &f)
 {
     qword r;
@@ -2673,7 +2673,7 @@ int FAsegaRetracted(A *);
 int func_0012CEE0(C *);
 void func_0022DD00(LO *, P *);
 qword func_0022CA18(P *, P *);
-qword func_0011BFF0(qword *);
+qword DecomposeRotationMatrixToEuler(qword *);
 M4 func_0022C8C0(P *, qword);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int);
 
@@ -2729,7 +2729,7 @@ void func_00230CF0(A *a, int flag)
             v = p->xC0[0];
             break;
         case 5:
-            v = func_0011BFF0(p->xC0);
+            v = DecomposeRotationMatrixToEuler(p->xC0);
             break;
         default:
             v = D_002A2DD0;

@@ -4057,7 +4057,7 @@ struct D { char pad[0x20]; qword v; };
 struct S { char pad[0xF08]; struct B *pb; struct D *pd; int nF10; char pad2[0xC]; qword vF20; };
 qword func_0022FC48(int a, int b, qword v);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *pm, qword a, qword b);
-qword func_0011BFF0(MATRIX3 *pm);
+qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
 /** @sly2-annot addr=0x20ACC0
  * Purpose: Aim rotation toward predicted point (0x22FC48) as Euler
  * Info: proposed name UpdateStepguardAim (T2); TU stepguard
@@ -4071,7 +4071,7 @@ void func_0020ACC0(struct S *p)
     v = func_0022FC48(p->nF10, p->pb->pa->nA0, p->vF20);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(p->pb->pa->pos));
     BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, p->pb->v, d);
-    { struct D *pd = p->pd; pd->v = func_0011BFF0(&m); }
+    { struct D *pd = p->pd; pd->v = DecomposeRotationMatrixToEuler(&m); }
 }
 } } // namespace M_func_0020ACC0
 
@@ -4495,7 +4495,7 @@ typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
 struct S { char pad[0x50]; int c; void **apv; };
 void PostLoLoad(struct S *p);
 int CploFindSwObjectsByClass(struct G *pg, int a, int b, int c, int cMax, void **apv);
-void *func_001AE1D0(ALLOCREQ *preq);
+void *AllocFromWorldHeap(ALLOCREQ *preq);
 /** @sly2-annot addr=0x20B500
  * Purpose: cid 0x7D vt15: list all STEPGUARD objects (cid 0x38)
  * Info: proposed name PostCid125GuardMgrLoad (T2); class CID125 slot15; TU stepguard
@@ -4513,7 +4513,7 @@ void func_0020B500(struct S *p)
     p->c = CploFindSwObjectsByClass(&D_003DD490, 0x605, 0x38, 0, 0, 0);
     req.cb = p->c * 4;
     req.nKind = 0x10;
-    p->apv = (__typeof__(p->apv))func_001AE1D0(&req);
+    p->apv = (__typeof__(p->apv))AllocFromWorldHeap(&req);
     CploFindSwObjectsByClass(&D_003DD490, 0x405, 0x38, 0, p->c, p->apv);
 }
 } } // namespace M_func_0020B500

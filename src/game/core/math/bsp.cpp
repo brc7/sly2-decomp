@@ -26,7 +26,7 @@ struct EDGE
     EDGE *pedgeNext;
     EDGE *pedgeOtherNext;
 };
-/* A surface: its plane first (normal, distance in w); grf +0x18 (bit 0x4000: collected by func_00118D08). Sly 1's
+/* A surface: its plane first (normal, distance in w); grf +0x18 (bit 0x4000: collected by CollectBspSurfacesTouchingPolygon). Sly 1's
    SURF (normal, gDot, pedge, pedgeOther, grf) does not fit the +0x18 flag word; only the plane and grf are used here. */
 struct SURF { qword plane; int pad[2]; int grf; };
 /* A BSP node: the negative and positive children (nodes at or after the limit are leaves) and the surface. The
@@ -40,14 +40,14 @@ struct BSP
 typedef char assert_BSP_size[sizeof(BSP) == 12 ? 1 : -1];
 /* A plane (normal, distance). */
 typedef struct PLANE { float x, y, z, d; } __attribute__((aligned(16))) PLANE;
-/* A VU0 temporary with an out-of-line empty constructor (func_002564B8 below). */
+/* A VU0 temporary with an out-of-line empty constructor (InitVuTemp below). */
 class VUF {
 public:
-    VUF() __asm__("func_002564B8");
+    VUF() __asm__("InitVuTemp");
     qword q;
 };
 union VUFU { qword q; float f[4]; };   /* PbspPointInBspQuick calls that constructor by hand */
-extern "C" inline void *func_002564B8(void *p);   /* inline, defined after its callers (end of file) */
+extern "C" inline void *InitVuTemp(void *p);   /* inline, defined after its callers (end of file) */
 
 // func_00118668: ported from Lilly's personal Sly 2 decomp (src/P2/bsp.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
@@ -74,7 +74,7 @@ extern "C" inline void *func_002564B8(void *p);   /* inline, defined after its c
 struct VU_QWORD
 {
     qword qw;
-    VU_QWORD() __asm__("func_002564B8");
+    VU_QWORD() __asm__("InitVuTemp");
 };
 struct LSG
 {
@@ -260,7 +260,7 @@ static inline BSP *PnodeCheck(BSP *p, BSP *pnodeMax)
  *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int func_00118A88(BSP *pnode, BSP *pnodeMax, qword pos, float eps, int *pcnode, BSP **ppnode)
+extern "C" int PruneBspBySphere(BSP *pnode, BSP *pnodeMax, qword pos, float eps, int *pcnode, BSP **ppnode)
 {
     float g;
     while (pnode) {
@@ -282,14 +282,14 @@ extern "C" int func_00118A88(BSP *pnode, BSP *pnodeMax, qword pos, float eps, in
             int nl, nr;
             BSP *pl = PnodeCheck(pnode->pbspNeg, pnodeMax);
             if (pl) {
-                nl = func_00118A88(pl, pnodeMax, pos, eps, pcnode, ppnode);
+                nl = PruneBspBySphere(pl, pnodeMax, pos, eps, pcnode, ppnode);
                 pl = *ppnode - 1;
             } else {
                 nl = 0;
             }
             BSP *pr = PnodeCheck(pnode->pbspPos, pnodeMax);
             if (pr) {
-                nr = func_00118A88(pr, pnodeMax, pos, eps, pcnode, ppnode);
+                nr = PruneBspBySphere(pr, pnodeMax, pos, eps, pcnode, ppnode);
                 pr = *ppnode - 1;
             } else {
                 nr = 1;
@@ -327,7 +327,7 @@ static inline float GMin(float a, float b) { return b < a ? b : a; }
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" int func_00118D08(BSP *pnode, BSP *pnodeMax, int cpos, qword *apos, int *pcsurf, SURF ***pppsurf)
+extern "C" int CollectBspSurfacesTouchingPolygon(BSP *pnode, BSP *pnodeMax, int cpos, qword *apos, int *pcsurf, SURF ***pppsurf)
 {
     if (cpos == 0)
         return 1;
@@ -375,12 +375,12 @@ extern "C" int func_00118D08(BSP *pnode, BSP *pnodeMax, int cpos, qword *apos, i
             int nl, nr;
             BSP *pl = PnodeCheck(pnode->pbspNeg, pnodeMax);
             if (pl)
-                nl = func_00118D08(pl, pnodeMax, cpos, apos, pcsurf, pppsurf);
+                nl = CollectBspSurfacesTouchingPolygon(pl, pnodeMax, cpos, apos, pcsurf, pppsurf);
             else
                 nl = 0;
             BSP *pr = PnodeCheck(pnode->pbspPos, pnodeMax);
             if (pr)
-                nr = func_00118D08(pr, pnodeMax, cpos, apos, pcsurf, pppsurf);
+                nr = CollectBspSurfacesTouchingPolygon(pr, pnodeMax, cpos, apos, pcsurf, pppsurf);
             else
                 nr = 1;
             if (nl == nr && nl != 2)
@@ -427,8 +427,8 @@ loop:
         qword dq;
         register qword oq __asm__("vf2"); /* pin: the target allocates the one-vector to vf2 (the dot result then gets vf1) */
         float g;
-        func_002564B8(&d);
-        func_002564B8(pone);
+        InitVuTemp(&d);
+        InitVuTemp(pone);
         __asm__("vmul.xyz %0, %0, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddaz.x $ACC, %1, %0z\n\tvmsubw.x %0, %1, %0w"
                 : "=j"(dq), "=j"(oq) : "0"(plane), "j"(pos));
         { int t; __asm__("qmfc2.ni %0, %2\n\tmtc1 %0, %1" : "=&r"(t), "=f"(g) : "j"(dq)); }
@@ -460,7 +460,7 @@ loop:
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" BSP *func_00119090(BSP *pnode, BSP *pnodeMax, qword pos)
+extern "C" BSP *FindBspLeafContainingPoint(BSP *pnode, BSP *pnodeMax, qword pos)
 {
     while (pnode) {
         qword plane = *pnode->pplane;
@@ -487,7 +487,7 @@ extern "C" BSP *func_00119090(BSP *pnode, BSP *pnodeMax, qword pos)
         } else {
             BSP *p = PnodeCheck(pnode->pbspPos, pnodeMax);
             if (p) {
-                p = func_00119090(p, pnodeMax, pos);
+                p = FindBspLeafContainingPoint(p, pnodeMax, pos);
                 if (p)
                     return p;
             }
@@ -504,7 +504,7 @@ typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct ITEM { char ab[0x20]; } ITEM;
 typedef struct OWNER { char pad[0xC]; ITEM *aitem; } OWNER;
 typedef struct TREE { int cnode; int n4; int n8; BSP *anode; } TREE;
-extern "C" void *func_001AE1D0(MSG *pmsg);
+extern "C" void *AllocFromWorldHeap(MSG *pmsg);
 extern char D_002BBAF0[];
 #define REBASE(p, baseSrc, baseDst) ((void *)((char *)(baseDst) + ((char *)(p) - (char *)(baseSrc))))
 /** @sly2-annot addr=0x1191E8
@@ -513,7 +513,7 @@ extern char D_002BBAF0[];
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" void func_001191E8(TREE *ptreeSrc, OWNER *pownerSrc, TREE *ptreeDst, OWNER *pownerDst)
+extern "C" void CloneBspc(TREE *ptreeSrc, OWNER *pownerSrc, TREE *ptreeDst, OWNER *pownerDst)
 {
     int i;
     MSG msg;
@@ -521,7 +521,7 @@ extern "C" void func_001191E8(TREE *ptreeSrc, OWNER *pownerSrc, TREE *ptreeDst, 
     ptreeDst->n4 = ptreeSrc->n4;
     msg.cb = ptreeSrc->cnode * sizeof(BSP);
     msg.nKind = 0x10;
-    ptreeDst->anode = (BSP *)func_001AE1D0(&msg);
+    ptreeDst->anode = (BSP *)AllocFromWorldHeap(&msg);
     for (i = 0; i < ptreeDst->cnode; i++) {
         BSP *pnodeSrc = &ptreeSrc->anode[i];
         BSP *pnodeDst = &ptreeDst->anode[i];
@@ -622,7 +622,7 @@ struct MAT { qword r[4]; };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
-extern "C" qword func_001193D8(MAT *pm, qword plane)
+extern "C" qword TransformPlane(MAT *pm, qword plane)
 {
     union { qword q; float f[4]; } u;
     qword n, t;
@@ -664,7 +664,7 @@ inline qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
  * Confidence: low (draft) [T2 0.15] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" inline void *func_002564B8(void *p)
+extern "C" inline void *InitVuTemp(void *p)
 {
     return p;
 }

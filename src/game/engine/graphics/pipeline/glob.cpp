@@ -186,7 +186,7 @@ void LoadPoseSetsFromBrx(GLOBSET *pglobset, CBinaryInputStream *pbis) __asm__("f
 
 int FIsLoadFilterMatch(int cfilter, short *afilter) __asm__("FMatchLoadFilter__FiPs");
 
-void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 extern "C" SAA *PsaaLoadFromBrx(void *pvOwner, CBinaryInputStream *pbis) __asm__("func_001ED7A8");
 extern "C" void LoadSubglobType2FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
 extern "C" void LoadSubglobType1FromBrx(GLOBSET *pglobset, SUBGLOB *psubglob, GLOB *pglob, SUBGLOBLOAD *psgl, SUBGLOBX *psubglobx, int cSubExtra, CBinaryInputStream *pbis);
@@ -337,7 +337,7 @@ struct VECTOR;
 void ReadVector__18CBinaryInputStreamP6VECTOR(struct STREAM*,struct VECTOR*) __asm__("ReadVector__18CBinaryInputStreamP6VECTOR");
 float F32Read__18CBinaryInputStream(struct STREAM*) __asm__("F32Read__18CBinaryInputStream");
 unsigned char U8Read__18CBinaryInputStream(struct STREAM*) __asm__("U8Read__18CBinaryInputStream");
-void*func_001AE2A0(struct REQUEST*);
+void*AllocClearedFromWorldHeap(struct REQUEST*);
 static inline float Min(float a,float b){float r;__asm__("min.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
 /** @sly2-annot addr=0x167870
  * Purpose: Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per
@@ -359,7 +359,7 @@ void func_00167870(struct P*p,struct STREAM*stream){
         struct GROUP*groups;
         int i;
         request.bytes=count*sizeof(struct GROUP);request.alignment=0x10;
-        groups=(struct GROUP*)func_001AE2A0(&request);
+        groups=(struct GROUP*)AllocClearedFromWorldHeap(&request);
         for(i=0;i<count;i++){
             struct GROUP*group=&groups[i];
             uint j;
@@ -782,7 +782,7 @@ extern "C" {
 void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
-float func_0011CAB0(const M3 *pmat);
+float GetMaxRowLengthMatrix3(const M3 *pmat);
 RPL *PrplAllocRpl(void);
 }
 static inline qword QwTransformPos(M4 *pmat, qword qwPos)
@@ -872,7 +872,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
             U center;
             CopyAb__FPvT0Ui(&center, &sphere->sphere.center, sizeof(V3));
             packet.sphere.q = QwTransformPos(&packet.matrix, center.q);
-            packet.sphere.f[3] = func_0011CAB0((const M3 *)&packet.matrix) * sphere->sphere.radius;
+            packet.sphere.f[3] = GetMaxRowLengthMatrix3((const M3 *)&packet.matrix) * sphere->sphere.radius;
         }
         ulong *ptag = (ulong *)D_002DEA28.pb;
         *ptag = 0x10000000;
@@ -1233,7 +1233,7 @@ void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
-float func_0011CAB0(const MATRIX4 *pmat);
+float GetMaxRowLengthMatrix3(const MATRIX4 *pmat);
 qword func_00167DA0(const MATRIX4 *pmat, qword qwPos, float *psRadius);
 int FInsideCmMrd(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
@@ -1426,7 +1426,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
     if (pmatWorld)
     {
         pos = QwXfm(*pmatWorld, pos);
-        sRadius *= func_0011CAB0(pmatWorld);
+        sRadius *= GetMaxRowLengthMatrix3(pmatWorld);
     }
     if ((pmodel->grf & 0x200000000UL) && pshd->pmatClip)
         pos = func_00167DA0(pshd->pmatClip, pos, &sRadius);
@@ -1478,7 +1478,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         }
         CopyAb__FPvT0Ui(&posSph, psph, 12);
         qword posSub = QwXfm(matModel, *(qword *)&posSph);
-        float sRadiusSub = func_0011CAB0(&matModel) * psph->rad;
+        float sRadiusSub = GetMaxRowLengthMatrix3(&matModel) * psph->rad;
         if ((psub->grf & 7) == 2 && pshd->pmatClip)
             posSub = func_00167DA0(pshd->pmatClip, posSub, &sRadiusSub);
         float gVisSub;
@@ -2100,16 +2100,16 @@ uint U32Read__18CBinaryInputStream(STREAM*) __asm__("U32Read__18CBinaryInputStre
 short S16Read__18CBinaryInputStream(STREAM*) __asm__("S16Read__18CBinaryInputStream");
 int S32Read__18CBinaryInputStream(STREAM*) __asm__("S32Read__18CBinaryInputStream");
 void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(STREAM*,M4*);
-void*func_001AE1D0(const REQUEST&);
-void*func_001AE238(const REQUEST&,void*);
+void*AllocFromWorldHeap(const REQUEST&);
+void*AllocCopyFromWorldHeap(const REQUEST&,void*);
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 BINDING*func_0016C8E0(P*,STREAM*);
 M4*__ml__FRC7MATRIX4T0(M4*,const M4*,const M4*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
-static inline void*Allocate(int bytes){return func_001AE1D0(REQUEST(bytes,16));}
-static inline void*Reallocate(int bytes,void*old){return func_001AE238(REQUEST(bytes,16),old);}
+static inline void*Allocate(int bytes){return AllocFromWorldHeap(REQUEST(bytes,16));}
+static inline void*Reallocate(int bytes,void*old){return AllocCopyFromWorldHeap(REQUEST(bytes,16),old);}
 /** @sly2-annot addr=0x169AC8
  * Purpose: Reads one sub-glob instance: transform owner lookup (vtable slot 51), matrix, flags, optional
  *   binding table, relocates packet data
@@ -2177,7 +2177,7 @@ typedef union QW { unsigned int aun[4]; unsigned short aus[8]; } QW;
 typedef struct ALLOCREQ { int cb; int nKind; } ALLOCREQ;
 struct X { int pad[4]; int cqw; };
 struct Y { int pad[4]; QW *aqw; char *pb; };
-QW *func_001AE238(ALLOCREQ *preq, QW *aqw);
+QW *AllocCopyFromWorldHeap(ALLOCREQ *preq, QW *aqw);
 /** @sly2-annot addr=0x169EB8
  * Purpose: Copies a VIF/DMA packet into the SW heap and optionally relocates DMA REF addresses (tag id 4) by
  *   a delta
@@ -2195,7 +2195,7 @@ void CopyRelocateDmaChain(struct X *px, struct Y *py, int cqw, QW *aqwSrc, int f
     req.cb = cqw << 4;
     req.nKind = 0x10;
     px->cqw = cqw;
-    aqw = func_001AE238(&req, aqwSrc);
+    aqw = AllocCopyFromWorldHeap(&req, aqwSrc);
     py->aqw = aqw;
     py->pb += (char *)aqw - (char *)aqwSrc;
     if (fReloc) {
@@ -2687,7 +2687,7 @@ struct XF
       qword qwUnkF0;
 };
 extern "C" { extern CM D_002DDF40; }
-void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("func_001AE238");
+void *PvAllocSwCopyImpl(struct SWALLOCC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 struct SWALLOCC
 {
     int cb;
@@ -2698,9 +2698,9 @@ struct SWALLOCC
         cbAlign = cbAlignArg;
     }
 };
-void *PvAllocSwImpl(SWALLOCC *pswalloc) __asm__("func_001AE1D0");
-void *PvAllocSwClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE2A0");
-void *PvAllocStackClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE378");
+void *PvAllocSwImpl(SWALLOCC *pswalloc) __asm__("AllocFromWorldHeap");
+void *PvAllocSwClearImpl(SWALLOCC *pswalloc) __asm__("AllocClearedFromWorldHeap");
+void *PvAllocStackClearImpl(SWALLOCC *pswalloc) __asm__("AllocClearedFromStack");
 void *PvAllocStackImpl(SWALLOCC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
 extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui"); }
 struct UVF
@@ -3716,13 +3716,13 @@ public:
 struct E6 { short a; short b; char c; char pad; };
 struct E8 { int c; E6 *a; };
 struct T { int c; E8 *a; int *ai; };
-extern "C" void *func_001AE378(ALLOCREQ *preq);
+extern "C" void *AllocClearedFromStack(ALLOCREQ *preq);
 extern "C" void func_001ED1A8(short *ps);
 static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return func_001AE378(preq);
+    return AllocClearedFromStack(preq);
 }
 /** @sly2-annot addr=0x16C8E0
  * Purpose: Reads a u16-counted table of vertex-binding groups (u16/u16/u8 records) and fixes up indices
@@ -3784,7 +3784,7 @@ struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){
 extern "C"{
 void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
-void*func_001AE2A0(const REQUEST&);
+void*AllocClearedFromWorldHeap(const REQUEST&);
 OBJECT*func_001EC8F8(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
 void func_001699E8(OWNER*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
@@ -3795,7 +3795,7 @@ extern UPK D_002BE558[];
 extern char D_00000000[],D_00001910[],D_00001A68[];
 }
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-static inline void*Allocate(int bytes){return func_001AE2A0(REQUEST(bytes,16));}
+static inline void*Allocate(int bytes){return AllocClearedFromWorldHeap(REQUEST(bytes,16));}
 typedef char D_Size[sizeof(D)==20?1:-1];
 typedef char BONE_Size[sizeof(BONE)==80?1:-1];
 typedef char E_Size[sizeof(E)==28?1:-1];
@@ -3914,7 +3914,7 @@ struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){
 extern "C"{
 void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
-void*func_001AE2A0(const REQUEST&);
+void*AllocClearedFromWorldHeap(const REQUEST&);
 void*PvAllocSlot__FP8ALLOCREQ(const REQUEST&);
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
@@ -3932,7 +3932,7 @@ extern char D_00000000[],D_00001910[],D_00001A68[];
 struct MARK{MARK(){STACKSCOPE_ctor(this);}~MARK(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
 inline void*REQUEST::Allocate(){return PvAllocSlot__FP8ALLOCREQ(*this);}
-inline void*REQUEST::AllocateZero(){return func_001AE2A0(*this);}
+inline void*REQUEST::AllocateZero(){return AllocClearedFromWorldHeap(*this);}
 static inline void*Allocate(int bytes){return REQUEST(bytes,16).Allocate();}
 static inline void*AllocateZero(int bytes){return REQUEST(bytes,16).AllocateZero();}
 typedef char U_Size[sizeof(U)==16?1:-1];
@@ -4508,7 +4508,7 @@ struct REQUEST{int bytes,alignment;REQUEST(int cb,int a):bytes(cb),alignment(a){
 extern "C"{
 void*STACKSCOPE_ctor(void*);
 void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
-void*func_001AE2A0(const REQUEST&);
+void*AllocClearedFromWorldHeap(const REQUEST&);
 void BuildCmFgfn(ENV*,float*,float);
 void*func_002333B4(void*,int,uint) __asm__("memset");
 void func_001699E8(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
@@ -4520,7 +4520,7 @@ extern UPK D_002BE558[];
 extern char D_00000000[],D_00000738[],D_000007F0[];
 }
 struct LEASE{~LEASE(){}void Acquire(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
-static inline void*Allocate(int bytes){return func_001AE2A0(REQUEST(bytes,16));}
+static inline void*Allocate(int bytes){return AllocClearedFromWorldHeap(REQUEST(bytes,16));}
 typedef char PARAM_Size[sizeof(PARAM)==12?1:-1];
 typedef char D_Size[sizeof(D)==20?1:-1];
 typedef char BONE_Size[sizeof(BONE)==80?1:-1];
@@ -4721,7 +4721,7 @@ typedef char VE_readTransform_Offset[FIELD_OFFSET(VE,readTransform)==4?1:-1];
 extern "C"{
 extern int D_003DA790;
 extern LINK D_003DA798[];
-void*func_001AE238(REQUEST*,void*);
+void*AllocCopyFromWorldHeap(REQUEST*,void*);
 SO*func_001ED850(SO*);
 void CopyRelocateDmaChain(D*,E*,int,void*,int,void*,void*);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
@@ -4729,7 +4729,7 @@ void ClearSle(int*);
 void PrependSlEntry(void*,LINK*);
 void func_001EC740(int,int,int,uint,uint);
 }
-static inline void*Copy(int bytes,void*source){REQUEST request;request.bytes=bytes;request.alignment=16;return func_001AE238(&request,source);}
+static inline void*Copy(int bytes,void*source){REQUEST request;request.bytes=bytes;request.alignment=16;return AllocCopyFromWorldHeap(&request,source);}
 static inline void ReadTransform(SO*object,STREAM*stream,TRANSFORM**output){VE*method=&object->vt[52];method->readTransform((SO*)((char*)object+method->delta),stream,output);}
 static inline void CopyObjects(P*p){for(int i=0;i<p->objectCount;i++){if(p->objects[i]->flags&4){p->objects=(SO**)Copy(p->objectCount*4,p->objects);return;}}}
 /** @sly2-annot addr=0x16EA80

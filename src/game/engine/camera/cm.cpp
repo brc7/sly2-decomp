@@ -460,9 +460,9 @@ namespace M_UpdateCmMat4__FP2CM {
 #include "sly2/basic.h"
 #include "sly2/aseg.h"
 #include "sly2/cm.h"
-MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
+MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR) __asm__("__ml__FRC7MATRIX4T0");
-bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("func_0011C2F0");
+bool FInvertMatrix4(MATRIX4 *pmatSrc, MATRIX4 *pmatDst) __asm__("InvertMatrix4");
 void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOffset, float sFar, float sNear, MATRIX4 *pmat) __asm__("BuildSimpleProjectionMatrix__FffffffP7MATRIX4");
 extern "C" { extern LM D_002BBB60; }
 extern "C" { extern CLOCK D_002DDED0; }
@@ -1274,15 +1274,15 @@ struct PL { qword pos; qword plane; };
 struct P { char pad[0x48]; float g48; };
 extern float D_002BD8D8;
 extern char D_002BD8E0[];
-void *func_002564B8(void *p);
+void *InitVuTemp(void *p);
 void GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
 static __inline__ float GDistPlane(qword plane, qword pos)
 {
     U d, one;
     qword td, tone;
     float dist;
-    func_002564B8(&d);
-    func_002564B8(&one);
+    InitVuTemp(&d);
+    InitVuTemp(&one);
     __asm__("vmul.xyz %0, %2, %3\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddaz.x $ACC, %1, %0z\n\tvmsubw.x %0, %1, %2w" : "=&j"(td), "=&j"(tone) : "j"(plane), "j"(pos));
     /* "r,j"(td): the j alternative is allocation-only (keeps td a VF reg, so it is stored with sqc2 and moved with
        qmfc2 v0); the unused "i,r"(0) operand makes that alternative always need a reload, so reload picks "r".
@@ -1524,7 +1524,7 @@ static __inline__ qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-qword func_0011BFF0(void *p);
+qword DecomposeRotationMatrixToEuler(void *p);
 /** @sly2-annot addr=0x14F478
  * Purpose: Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees
  * Info: proposed name GetCmRotDeg (T1); TU cm
@@ -1536,7 +1536,7 @@ qword func_0011BFF0(void *p);
 qword GetCmRotDeg(char *p)
 {
     union { qword q; float f; } r;
-    qword v = func_0011BFF0(p + 0x60);
+    qword v = DecomposeRotationMatrixToEuler(p + 0x60);
     r.q = Make(GetX(v) * 57.295776f, GetY(v) * 57.295776f, GetZ(v) * 57.295776f);
     return r.q;
 }

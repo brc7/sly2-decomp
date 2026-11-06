@@ -14,7 +14,7 @@ struct SLOT
 };
 
 extern "C" {
-void *func_001AE1D0(ALLOCREQ *preq);                        /* world heap allocator (PvAllocSwImpl) */
+void *AllocFromWorldHeap(ALLOCREQ *preq);                        /* world heap allocator (PvAllocSwImpl) */
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");      /* memset; a prototype named memset becomes a builtin */
 }
 
@@ -56,7 +56,7 @@ void *PvAllocSlotheapClear(SLOTHEAP *pslotheap)
 
             req.cb = pslotheap->c * pslotheap->cb;
             req.cbAlign = pslotheap->cbAlign;
-            ab = (byte *)func_001AE1D0(&req);
+            ab = (byte *)AllocFromWorldHeap(&req);
             for (i = 1; i < pslotheap->c; i++) {
                   ((SLOT *)(ab + (i - 1) * pslotheap->cb))->pslotNext = (SLOT *)(ab + i * pslotheap->cb);
             }

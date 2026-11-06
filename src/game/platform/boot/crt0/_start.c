@@ -139,7 +139,7 @@ __asm__(
     "lui $2, 0x2E\n"
     "addiu $2, $2, -0x2C80\n"
     "lw $4, 0($2)\n"
-    "jal func_001A7518\n"
+    "jal GameMain\n"
     "addiu $5, $2, 4\n"
     "j exit\n"
     "daddu $4, $2, $0\n"

@@ -18,7 +18,7 @@ void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, ALL
 }
 
 extern "C" {
-int func_00119BC8(int *p);
+int GetElementKey(int *p);
 void func_002564E0(void *pa, void *pb) __asm__("Init__t10CDynArrayV1ZPcPv");                     /* CDynArrayV<char *>::Init */
 void func_00256528(void *pa, void *pb, void *pfnKey) __asm__("Init__t10CHashIndex1ZPcPt10CDynArrayV1ZPcPv");      /* CHashIndex<char *>::Init */
 }
@@ -31,7 +31,7 @@ void func_00256528(void *pa, void *pb, void *pfnKey) __asm__("Init__t10CHashInde
  * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#open-questions,
  *   docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
  * @end-sly2-annot */
-extern "C" int func_00119BC8(int *p) { return *p; }
+extern "C" int GetElementKey(int *p) { return *p; }
 
 /** @sly2-annot addr=0x119BD0
  * Purpose: vtable 0x2CA5E0 slot 1: base init (0x2564E0) then sets up a keyed container at +0x34 with key fn
@@ -49,14 +49,14 @@ class CDynArrayStr : public CDynArrayV<char *>
 public:
     char pad2C[0x34 - 0x2C];
     CHashIndex<char *> m_index;       /* +0x34 (instantiating it here also puts the vtables in the ELF's order) */
-    virtual void Init(void *powner) __asm__("func_00119BD0");   /* slot 1; key function */
-    virtual void ReadElement(char **ppchz, CBinaryInputStream *pbis) __asm__("func_00119C08");   /* slot 4 */
+    virtual void Init(void *powner) __asm__("CDynArrayStr_Init");   /* slot 1; key function */
+    virtual void ReadElement(char **ppchz, CBinaryInputStream *pbis) __asm__("CDynArrayStr_ReadElement");   /* slot 4 */
 };
 void CDynArrayStr::Init(void *pOwner)   /* key function: CDynArrayStr's vtable comes out here */
 {
     void *p = this;
     func_002564E0(p, pOwner);
-    func_00256528((char *)p + 0x34, p, (void *)func_00119BC8);
+    func_00256528((char *)p + 0x34, p, (void *)GetElementKey);
 }
 
 /* The heap holder the string reader allocates from. */
@@ -69,7 +69,7 @@ struct STRREADER { HEAPHOLDER *pheap; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#tu_119bc8-0x119bc8-0x119da0
  * @end-sly2-annot */
-extern "C" void func_00119C08(STRREADER *px, char **ppchz, CBinaryInputStream *pbis)
+extern "C" void CDynArrayStr_ReadElement(STRREADER *px, char **ppchz, CBinaryInputStream *pbis)
 {
     CBinaryInputStream_ReadStringSw(pbis, ppchz, px->pheap->palloc, 7);
 }

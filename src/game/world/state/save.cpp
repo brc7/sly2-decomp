@@ -107,8 +107,8 @@ extern "C" {
 unsigned short U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 void Read__18CBinaryInputStreamiPv(CBinaryInputStream *pbis, int cb, void *pv);
 void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, void *pheap, int n);
-void *func_001AE1D0(MEMREQ *pmemreq);
-void *func_001AE238(MEMREQ *pmemreq, void *pv);
+void *AllocFromWorldHeap(MEMREQ *pmemreq);
+void *AllocCopyFromWorldHeap(MEMREQ *pmemreq, void *pv);
 void *PvAllocSlot__FP8ALLOCREQ(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
@@ -185,7 +185,7 @@ extern "C" void LoadSaveSchemaFromBrx(SVSTORE *psvstore, CBinaryInputStream *pbi
     psvstore->cent = cent;
     memreq.cb = cent * 10;
     memreq.cbAlign = 0x10;
-    psvstore->aent = (SVENT *)func_001AE1D0(&memreq);
+    psvstore->aent = (SVENT *)AllocFromWorldHeap(&memreq);
     Read__18CBinaryInputStreamiPv(pbis, cent * 10, psvstore->aent);
     ResetGsIfSchemaChanged(psvstore, &D_003D4A60);
 }
@@ -520,7 +520,7 @@ extern "C" void InitSaveSymbolTable(SVSYMTAB *psymtab, int csym)
     psymtab->csym = csym;
     memreq.cb = csym << 4;
     memreq.cbAlign = 0x10;
-    psymtab->asym = (SVSYM *)func_001AE1D0(&memreq);
+    psymtab->asym = (SVSYM *)AllocFromWorldHeap(&memreq);
 }
 
 static inline int ChUpper(int ch) { return (D_002AA6A1[ch] & 2) ? ch - 0x20 : ch; }
@@ -636,13 +636,13 @@ extern "C" SVKEY *PkeyNewSaveKey(const char *pchz, ...)
     VA_START(ap, pchz);
     pmemreq->cb = 8;
     pmemreq->cbAlign = 0x10;
-    pkey = (SVKEY *)func_001AE1D0(pmemreq);
+    pkey = (SVKEY *)AllocFromWorldHeap(pmemreq);
     BuildSaveKeyV(pchz, ap, pkey);
     {
         short *ashOld = pkey->ash;
         pmemreq->cb = pkey->c * 2;
         pmemreq->cbAlign = 0x10;
-        pkey->ash = (short *)func_001AE238(pmemreq, ashOld);
+        pkey->ash = (short *)AllocCopyFromWorldHeap(pmemreq, ashOld);
     }
     return pkey;
 }

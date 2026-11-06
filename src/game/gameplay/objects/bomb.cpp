@@ -114,7 +114,7 @@ void InitSo(BOMBV *);
 void CloneSo(BOMBV *, BOMBV *);
 void PostSoLoad(BOMBV *);
 void UpdateSo(BOMBV *p);
-void *func_001AE1D0(AREQV *);
+void *AllocFromWorldHeap(AREQV *);
 void HandleBasicMessage(BOMBV *, int, void *);
 void UpdateSwPox(G *pg, XEC *pa, XEC *pb, int n);
 qword func_001A62E8(void *p);
@@ -204,7 +204,7 @@ extern "C" void func_0013AA70(BOMBV *p, BOMBV *pbombBase)
  * @end-sly2-annot */
 extern "C" void PostBombLoad(BOMBV *p) {
     PostSoLoad(p);
-    if (p->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; p->axp = (CXP *)func_001AE1D0(&k); }
+    if (p->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; p->axp = (CXP *)AllocFromWorldHeap(&k); }
 }
 
 /** @sly2-annot addr=0x13AAE8

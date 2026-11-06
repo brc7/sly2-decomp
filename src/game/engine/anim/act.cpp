@@ -81,12 +81,12 @@ static inline void ZeroVector(VECTOR *pv)
 
 namespace M_PacNewKind {
 struct AREQ { int cb; int cbAlign; };
-extern "C" void *func_001AE2A0(AREQ *preq);
+extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
 } // namespace M_PacNewKind
 /* The factories construct in place: as class members, the allocators and constructors would get out-of-line copies
    in act.cpp, the classes' key TU (g++ 2.95 emits a class's inline members with its vtable). */
 inline void *operator new(unsigned int, void *pv) { return pv; }
-static inline void *PvNewAc(unsigned int cb) { M_PacNewKind::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind::func_001AE2A0(&req); }
+static inline void *PvNewAc(unsigned int cb) { M_PacNewKind::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind {
 extern "C" AC *PacNewKind(int k);
 /** @sly2-annot addr=0x12B3B0
@@ -201,7 +201,7 @@ typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
-KEY *func_001AE2A0(AREQ *preq);
+KEY *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcVecAFromBrx
 /** @sly2-annot addr=0x12B5E0
@@ -220,7 +220,7 @@ void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcVecAFromBrx::KEY;
     using M_LoadAcVecAFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcVecAFromBrx::U16Read__18CBinaryInputStream;
-    using M_LoadAcVecAFromBrx::func_001AE2A0;
+    using M_LoadAcVecAFromBrx::AllocClearedFromWorldHeap;
     T *t = (T *)this;
     void *pbis = pbisM;
     int i;
@@ -229,7 +229,7 @@ void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
     req.cb = c * sizeof(KEY);
     req.cbAlign = 0x10;
     t->c = c;
-    t->a = func_001AE2A0(&req);
+    t->a = AllocClearedFromWorldHeap(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
         pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
@@ -342,7 +342,7 @@ typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
-KEY *func_001AE2A0(AREQ *preq);
+KEY *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcVecBFromBrx
 /** @sly2-annot addr=0x12BA98
@@ -361,7 +361,7 @@ void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcVecBFromBrx::KEY;
     using M_LoadAcVecBFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcVecBFromBrx::U16Read__18CBinaryInputStream;
-    using M_LoadAcVecBFromBrx::func_001AE2A0;
+    using M_LoadAcVecBFromBrx::AllocClearedFromWorldHeap;
     T *t = (T *)this;
     void *pbis = pbisM;
     int i;
@@ -370,7 +370,7 @@ void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
     req.cb = c << 5;
     req.cbAlign = 0x10;
     t->c = c;
-    t->a = func_001AE2A0(&req);
+    t->a = AllocClearedFromWorldHeap(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
         pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
@@ -480,7 +480,7 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
 int U16Read__18CBinaryInputStream(void *pbis);
 int U8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
-void *func_001AE1D0(AREQ *preq);
+void *AllocFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcFloatAFromBrx
 /** @sly2-annot addr=0x12BF30
@@ -501,7 +501,7 @@ void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatAFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcFloatAFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcFloatAFromBrx::U8Read__18CBinaryInputStream;
-    using M_LoadAcFloatAFromBrx::func_001AE1D0;
+    using M_LoadAcFloatAFromBrx::AllocFromWorldHeap;
     T *t = (T *)this;
     void *pbis = pbisM;
     AREQ req;
@@ -512,7 +512,7 @@ void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
     req.cb = c * 4;
     req.cbAlign = 0x10;
     t->c = c;
-    t->at = (__typeof__(t->at))func_001AE1D0(&req);
+    t->at = (__typeof__(t->at))AllocFromWorldHeap(&req);
     for (i = 0; i < t->c; i++)
         t->at[i] = U16Read__18CBinaryInputStream(pbis) * 0.016666668f;
     grf = U8Read__18CBinaryInputStream(pbis);
@@ -521,7 +521,7 @@ void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
             KEY *ak;
             req.cb = t->c * 12;
             req.cbAlign = 0x10;
-            ak = (__typeof__(ak))func_001AE1D0(&req);
+            ak = (__typeof__(ak))AllocFromWorldHeap(&req);
             t->ak[j] = ak;
             for (i = 0; i < t->c; i++) {
                 ak[i].a = F32Read__18CBinaryInputStream(pbis);
@@ -673,7 +673,7 @@ void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
 int U16Read__18CBinaryInputStream(void *pbis);
 int U8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
-void *func_001AE1D0(AREQ *preq);
+void *AllocFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcFloatBFromBrx
 /** @sly2-annot addr=0x12C570
@@ -694,7 +694,7 @@ void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatBFromBrx::ReadVector__18CBinaryInputStreamP6VECTOR;
     using M_LoadAcFloatBFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcFloatBFromBrx::U8Read__18CBinaryInputStream;
-    using M_LoadAcFloatBFromBrx::func_001AE1D0;
+    using M_LoadAcFloatBFromBrx::AllocFromWorldHeap;
     T *t = (T *)this;
     void *pbis = pbisM;
     AREQ req;
@@ -705,7 +705,7 @@ void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
     req.cb = c * 4;
     req.cbAlign = 0x10;
     t->c = c;
-    t->at = (__typeof__(t->at))func_001AE1D0(&req);
+    t->at = (__typeof__(t->at))AllocFromWorldHeap(&req);
     for (i = 0; i < t->c; i++)
         t->at[i] = U16Read__18CBinaryInputStream(pbis) * 0.016666668f;
     grf = U8Read__18CBinaryInputStream(pbis);
@@ -714,7 +714,7 @@ void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
             KEY *ak;
             req.cb = t->c * 8;
             req.cbAlign = 0x10;
-            ak = (__typeof__(ak))func_001AE1D0(&req);
+            ak = (__typeof__(ak))AllocFromWorldHeap(&req);
             t->ak[j] = ak;
             for (i = 0; i < t->c; i++) {
                 ak[i].a = F32Read__18CBinaryInputStream(pbis);
@@ -859,9 +859,9 @@ void func_0012CA68(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 
 namespace M_PacNewKind2 {
 struct AREQ { int cb; int cbAlign; };
-extern "C" void *func_001AE2A0(AREQ *preq);
+extern "C" void *AllocClearedFromWorldHeap(AREQ *preq);
 } // namespace M_PacNewKind2
-static inline void *PvNewAcg(unsigned int cb) { M_PacNewKind2::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind2::func_001AE2A0(&req); }
+static inline void *PvNewAcg(unsigned int cb) { M_PacNewKind2::AREQ req; req.cb = cb; req.cbAlign = 0x10; return M_PacNewKind2::AllocClearedFromWorldHeap(&req); }
 namespace M_PacNewKind2 {
 extern "C" ACG *PacNewKind2(int k);
 /** @sly2-annot addr=0x12CB98
@@ -936,7 +936,7 @@ typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 int U16Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
-KEY *func_001AE2A0(AREQ *preq);
+KEY *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcFloatKeysFromBrx
 /** @sly2-annot addr=0x12CCB8
@@ -956,7 +956,7 @@ void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatKeysFromBrx::F32Read__18CBinaryInputStream;
     using M_LoadAcFloatKeysFromBrx::KEY;
     using M_LoadAcFloatKeysFromBrx::U16Read__18CBinaryInputStream;
-    using M_LoadAcFloatKeysFromBrx::func_001AE2A0;
+    using M_LoadAcFloatKeysFromBrx::AllocClearedFromWorldHeap;
     T *t = (T *)this;
     void *pbis = pbisM;
     int i;
@@ -965,7 +965,7 @@ void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
     req.cb = c << 4;
     req.cbAlign = 0x10;
     t->c = c;
-    t->a = func_001AE2A0(&req);
+    t->a = AllocClearedFromWorldHeap(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
         pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);

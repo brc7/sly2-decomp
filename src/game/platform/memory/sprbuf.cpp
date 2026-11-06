@@ -138,7 +138,7 @@ void SaveSprBuf(void *pv, ...)
  * See: docs/engine/save-memcard.md#3-scratchpad-buffers-sprbufcpp,
  *   docs/reference/functions/core-library.md#sprbuf-0x201620-0x201d78
  * @end-sly2-annot */
-extern "C" void func_00201998(void)
+extern "C" void SwapSprBuffers(void)
 {
     sceDmaSync(D_002DE5A0, 0, 0);
     D_002C3C5C = 1 - D_002C3C5C;

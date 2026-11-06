@@ -103,7 +103,7 @@ extern "C" void MarkClockTick(CLOCK *p, int fPaused)
  * See: docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8,
  *   docs/engine/main-loop-startup.md#8-key-functions, docs/guides/live-pine.md#4-clock-experiment
  * @end-sly2-annot */
-extern "C" void func_0014D1D0(CLOCK *p, int i, float f)
+extern "C" void SetClockRate(CLOCK *p, int i, float f)
 {
     p->art[i] = f;
     RecalcClockRate(p);

@@ -97,9 +97,9 @@ void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
 LO *PpoHero(SW *psw);
 void InitXfm(EXITV *pexit);
 void SetLoBusyk(EXITV *pexit, int busyk);
-void *func_001AE238(MEMREQ *pmemreq, WARPBLOB *pblob);
+void *AllocCopyFromWorldHeap(MEMREQ *pmemreq, WARPBLOB *pblob);
 void LoadVolFromBrx(EXITV *pexit, CBinaryInputStream *pbis);
-void *func_001AE1D0(MEMREQ *pmemreq);
+void *AllocFromWorldHeap(MEMREQ *pmemreq);
 void IncrementSwHandsOff(SW *psw, int n);
 void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, void *plo);
 void RevokeCmPolicy(void *pcm, int a, int b, void *pv, int c, int d);
@@ -274,7 +274,7 @@ extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *pbis, void **ppv)
             pmemreq->cb = 0x40;
             pmemreq->cbAlign = 0x10;
         }
-        *ppv = func_001AE238(&memreq, &blob);
+        *ppv = AllocCopyFromWorldHeap(&memreq, &blob);
     }
     else
         *ppv = 0;
@@ -305,7 +305,7 @@ extern "C" void LoadExitFromBrx(EXITV *pexit, CBinaryInputStream *pbis)
     memreq.cbAlign = 0x10;
     memreq.cb = c * 4;
     pexit->cpvMovie = c;
-    pexit->apvMovie = (void **)func_001AE1D0(&memreq);
+    pexit->apvMovie = (void **)AllocFromWorldHeap(&memreq);
     for (; i < pexit->cpvMovie; i++)
         LoadWarpBlobFromBrx(pbis, &pexit->apvMovie[i]);
 }

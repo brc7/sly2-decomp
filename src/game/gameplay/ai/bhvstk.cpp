@@ -81,7 +81,7 @@ extern char D_002CFC20[] __asm__("_vt$6BHV191");
 extern char D_002CFDA0[] __asm__("_vt$13BHVPATROLPATH");
 extern "C" {
 int CbBhvMax();
-void *func_001AE1D0(AREQV *pmsg);
+void *AllocFromWorldHeap(AREQV *pmsg);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void func_002562A8(REFV *);
 BHVV *PbhvNew(int kind, void *memory);
@@ -130,7 +130,7 @@ extern "C" void PostBhvstkLoad(BHVSTKV *p)
     for (i = 0; i < 8; i++) {
         msg.cb = CbBhvMax();
         msg.nKind = 0x10;
-        p->apbhv[i] = (BHVV *)func_001AE1D0(&msg);
+        p->apbhv[i] = (BHVV *)AllocFromWorldHeap(&msg);
     }
 }
 

@@ -183,7 +183,7 @@ void *func_001EC8D0(void *pv);
 M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
 void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, int);
 void FlushCache(int);
-void func_00201998(void);
+void SwapSprBuffers(void);
 int sceDmaSync(void *pch, int mode, int timeout);
 void STACKSCOPE_ctor(void *pf);
 void STACKSCOPE_ctor_1AE4A0(void *pf, int n) __asm__("_$_10STACKSCOPE");
@@ -683,7 +683,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
     while (pq) {
         BLIPV *pqNext;
         int n, i;
-        func_00201998();
+        SwapSprBuffers();
         pqNext = (BLIPV *)PvNextDli(&dli);
         if (pqNext) Kick(pqNext);
         n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, p->x43C, &vMin, &vMax);
