@@ -73,7 +73,7 @@ extern CAM D_002DDF40;     // g_cm
 extern CLOCK D_002DDED0;   // g_clock
 extern qwordV D_002A2DC0;   // g_normalZ
 extern "C" {
-qwordV func_001A62E8(void *plo);     /* PosLoWorld */
+qwordV GetLoWorldPos(void *plo);     /* PosLoWorld */
 void InitSo(WAYPTV *p);
 void PostSoLoad(WAYPTV *p);
 void UpdateSo(WAYPTV *p);
@@ -154,7 +154,7 @@ extern "C" void UpdateWaypt(WAYPTV *p)
     pj = PpoHero(&D_003DD490);
     if (pj && FIsBasicDerivedFrom__FP5BASIC3CID(pj, p->cidTrigger)) {
         r = p->fActive ? p->sRadiusOn : p->sRadiusOff;
-        f = GDist(func_001A62E8(pj), func_001A62E8(p)) < r;
+        f = GDist(GetLoWorldPos(pj), GetLoWorldPos(p)) < r;
     } else f = 0;
     if ((p->nMode == 0 || p->nMode == 2) && D_003DD490.fUnk3B0C)
         f = 0;
@@ -316,9 +316,9 @@ extern "C" void func_0022A220(O *po)
     O *psrc = po->psrc;
     register qwordV rr asm("$6");   // pin: PosLoWorld result lives in a2 (3rd arg of InitPlaneFromPositions); later uses reload from the 0x190 slot
     if (psrc)
-        rr = func_001A62E8(psrc);
+        rr = GetLoWorldPos(psrc);
     else
-        rr = func_001A62E8(po);
+        rr = GetLoWorldPos(po);
     qwordV posSrc = rr;
     UQ *pplane = &tmp;   // &tmp taken here, not at the call: it (and its gcse copy for preq) then issues before the corner stores
     po->fHit = 0;
@@ -446,13 +446,13 @@ float D_002C44D8 = 300.0f;
 extern "C" {
 void RenderSoSelf(WAYPTV *pwaypt);
 int FPowerupAcquired(int ipuk);
-int FJobComplete(void *pcond);
+int IsJobComplete(void *pcond);
 void func_0022A220(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
-MATRIX4V *func_001A6318(SOV *pso);
+MATRIX4V *GetLoWorldMatrix(SOV *pso);
 VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
-void func_001A5EE8(SOV *pso, MATRIX4V *pmat, float a, float b);
-void func_001A5FB8(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
+void RenderLoAtMatrix(SOV *pso, MATRIX4V *pmat, float a, float b);
+void RenderLoAlongSegment(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
 char *PchzFindSwLangstr__FP2SWi(SW *psw, int id);
 void func_001CD780(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
@@ -533,7 +533,7 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
     case 2:
         if (D_003DD490.cUnk4764 < D_003DD490.cUnk4768 || D_003DD490.fUnk3B0C ||
             (pwaypt->ipukReq != -1 && FPowerupAcquired(pwaypt->ipukReq)) ||
-            (pwaypt->pcond && !FJobComplete(pwaypt->pcond)))
+            (pwaypt->pcond && !IsJobComplete(pwaypt->pcond)))
             uShow = uLabel = 0.0f;
         break;
     case 1:
@@ -546,7 +546,7 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
 
     func_0022A220((O *)pwaypt);
     qwordV posCam = D_002DDF40.pos;
-    qwordV pos = func_001A62E8(pwaypt->ploSource);
+    qwordV pos = GetLoWorldPos(pwaypt->ploSource);
     qwordV posTop = QwAddScaled(pos, D_002A2DC0, VuFloatFromMemWord(*(int *)&pwaypt->sHeight));
     float sDist;
     FindClosestPointOnLineSegment(posCam, pos, posTop, 0, 0, &sDist);
@@ -556,7 +556,7 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
     MATRIX4V mat;
     if (pwaypt->psoMarker)
     {
-        MATRIX3V matScaled = *(MATRIX3V *)func_001A6318(pwaypt->psoMarker) * VuFloat(rScale);
+        MATRIX3V matScaled = *(MATRIX3V *)GetLoWorldMatrix(pwaypt->psoMarker) * VuFloat(rScale);
         MATRIX4V *pmat = &mat;
         VECTOR_opAssign(&mat.pos, posEnd);
         *(MATRIX3V *)pmat = matScaled;
@@ -564,13 +564,13 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
         mat.mat[1].w = 0.0f;
         mat.mat[0].w = 0.0f;
         pmat->pos.w = 1.0f;
-        func_001A5EE8(pwaypt->psoMarker, pmat, uShow, uShow);
+        RenderLoAtMatrix(pwaypt->psoMarker, pmat, uShow, uShow);
     }
     if (pwaypt->psoBeam)
-        func_001A5FB8(pwaypt->psoBeam, pos, posEnd, rScale, uShow);
+        RenderLoAlongSegment(pwaypt->psoBeam, pos, posEnd, rScale, uShow);
     if (pwaypt->psoBase)
     {
-        MATRIX3V matScaled = *(MATRIX3V *)func_001A6318(pwaypt->psoBase) * VuFloat(rScale);
+        MATRIX3V matScaled = *(MATRIX3V *)GetLoWorldMatrix(pwaypt->psoBase) * VuFloat(rScale);
         MATRIX4V *pmat = &mat;
         VECTOR_opAssign(&mat.pos, pos);
         *(MATRIX3V *)pmat = matScaled;
@@ -578,7 +578,7 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
         mat.mat[1].w = 0.0f;
         mat.mat[0].w = 0.0f;
         pmat->pos.w = 1.0f;
-        func_001A5EE8(pwaypt->psoBase, pmat, uShow, uShow);
+        RenderLoAtMatrix(pwaypt->psoBase, pmat, uShow, uShow);
     }
 
     if (0.0f < uLabel && pwaypt->pattach && pwaypt->pattach->ptask && pwaypt->pattach->ptask->idLabelName != -1)

@@ -61,7 +61,7 @@ void EvaluateShapeS(PIPEV *, float, qword *, qword *);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
 qword ConvertAloVec(PIPEV *, PIPEV *, qword);
 qword GetNormalVector(qword);
-qword func_001A62E8(void *q);
+qword GetLoWorldPos(void *q);
 void FindShapeClosestPoint(PIPEV *p, qword q, int a, void *pv, int b, int c, float *pf);
 void GetPipeGoalMat(PIPEV *p, float distance, int forward, M3 *out);
 float SRandomShapeRange(PIPEV *,float,float);
@@ -268,7 +268,7 @@ extern "C" void GetPipeGoalMat(PIPEV *p, float distance, int forward, M3 *out)
  * @end-sly2-annot */
 extern "C" void func_001C3958(PIPEV *p, void *q, float *pf)
 {
-    FindShapeClosestPoint(p, func_001A62E8(q), 0, 0, 0, 0, pf);
+    FindShapeClosestPoint(p, GetLoWorldPos(q), 0, 0, 0, 0, pf);
     if (p->cyclic == 0) {
         *pf = GClamp(*pf, 100.0f, SMaxShape(p) - 35.0f);
     }

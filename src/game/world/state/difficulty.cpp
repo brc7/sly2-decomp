@@ -1,5 +1,8 @@
 // difficulty.cpp -- dynamic difficulty (HYPOTHESIS from the code): a rolling average of the last three jobs' ratings, clamped per world, which
 // scales prize sprays. TU 0x154A60..0x1553F0 (10 functions, address order).
+// Entry points: HandleDifficultyMessage (game events), GetDifficulty, SprayDifficultyPrizes.
+// The save variables it keeps are "suck_history" / mission_0..2: the value is Sucker Punch's "suck" measure of how
+// much the player is struggling (deaths raise it by 0.1, completed jobs lower it by 0.2).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_difficulty
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001553D0
 #include "sly2/sw.h"
@@ -13,16 +16,16 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* Per-world difficulty parameters (D_002BDC00). */
 struct DIFFPARAMS
 {
-    LM lm;              /* +0x0 clamp for the difficulty value */
-    float dgDeath;      /* +0x8 change on death (messages 16, 29) */
-    float dgJobDone;    /* +0xC change when a task of the current job completes (message 37) */
-    int cPrizeMinA;     /* +0x10 prize-count ranges for func_00154E10 */
-    int cPrizeMaxA;     /* +0x14 */
-    int cPrizeMinB;     /* +0x18 */
-    int cPrizeMaxB;     /* +0x1C */
-    float g20;          /* +0x20 func_00155228 scale at difficulty 0 */
-    float g24;          /* +0x24 ... at difficulty 1 */
-    int a28[8];         /* +0x28 countdown ranges (min/max at difficulty 0 and 1) */
+    LM range;              /* +0x0 clamp for the difficulty value */
+    float deathDelta;      /* +0x8 change on death (messages 16, 29) */
+    float jobDoneDelta;    /* +0xC change when a task of the current job completes (message 37) */
+    int prizeMinA;     /* +0x10 prize-count ranges for SprayDifficultyPrizes */
+    int prizeMaxA;     /* +0x14 */
+    int prizeMinB;     /* +0x18 */
+    int prizeMaxB;     /* +0x1C */
+    float scaleAtZero;          /* +0x20 ScaleByDifficulty scale at difficulty 0 */
+    float scaleAtOne;          /* +0x24 ... at difficulty 1 */
+    int countdownRanges[8];         /* +0x28 countdown ranges (min/max at difficulty 0 and 1) */
 };
 
 /* Save-variable keys, an opaque type here. */
@@ -30,18 +33,18 @@ struct SVKEY;
 
 struct DIFFICULTY
 {
-    int cCountdownA;    /* +0x0 */
-    int cCountdownB;    /* +0x4 */
-    SVKEY *pkey8;       /* +0x8 the three last ratings, oldest first */
-    SVKEY *pkeyC;       /* +0xC */
-    SVKEY *pkey10;      /* +0x10 */
-    DIFFPARAMS *pdp;    /* +0x14 */
+    int countdownA;    /* +0x0 */
+    int countdownB;    /* +0x4 */
+    SVKEY *historyKey0;       /* +0x8 the three last ratings, oldest first */
+    SVKEY *historyKey1;       /* +0xC */
+    SVKEY *historyKey2;      /* +0x10 */
+    DIFFPARAMS *params;    /* +0x14 */
 };
 typedef char assert_DIFFICULTY_size[sizeof(DIFFICULTY) == 0x18 ? 1 : -1];
 
 /* A job (or task) seen through the fields this TU reads: JOB::pgDifficulty at +0xA8 (HYPOTHESIS: per-job override). */
-struct JOBV { char pad[0xA8]; float *pg; };
-struct TASKV { char pad[0x54]; int nState; char pad2[0x10]; int x68; char pad3[0x10]; JOBV *pjob; char pad4[0x28]; float *pgA8; };
+struct JOBV { char pad[0xA8]; float *difficulty; };
+struct TASKV { char pad[0x54]; int state; char pad2[0x10]; int unknown68; char pad3[0x10]; JOBV *job; char pad4[0x28]; float *rating; };
 
 struct SVSET;
 struct SVSTORE;
@@ -53,23 +56,23 @@ extern const char D_002A5060[] = "suck_history", D_002A5070[] = "mission_0", D_0
 
 extern "C" {
 void *memset(void *pv, int c, unsigned int cb);
-SVKEY *PkeyNewSaveKey(const void *p, ...);
-CRef RefGetGlobalSaveVar(SVKEY *pkey, SVSET *psvset);
-CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
-CRef RefSetGlobalSaveVar(SVKEY *pkey, const CRef &ref, SVSET *psvset);
-float GGetDifficulty(DIFFICULTY *pdifficulty);
-void SetDifficulty(DIFFICULTY *pdifficulty, float g);
-void ChangeDifficulty(DIFFICULTY *pdifficulty, float dg);
-void SprayDprizes(SW *psw, int cid, qword posMat, void *plo, int c);
+SVKEY *NewSaveKey(const void *p, ...);
+CRef RefGetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
+CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *key, SVSET *saveSet);
+CRef RefSetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
+float GetDifficulty(DIFFICULTY *difficulty);
+void SetDifficulty(DIFFICULTY *difficulty, float g);
+void ChangeDifficulty(DIFFICULTY *difficulty, float delta);
+void SprayDprizes(SW *world, int cid, qword position, void *source, int c);
 }
 float GLimitLm(LM *plm, float g);
 int NRandInRange(int nMin, int nMax);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
-static inline void Set(SVKEY *pkey, CRef ref) { RefSetGlobalSaveVar(pkey, ref, &D_003D4A60); }
-static inline void SetG(SVKEY *pkey, float g) { CRef ref; ref.m_tagk = 0x16; ref.u.g = g; Set(pkey, ref); }
-static inline CRef Get(SVKEY *pkey) { SVSET *psvset = &D_003D4A60; return RefGetSaveVar(&(*(SVSTORE *)&g_sw.savevars), pkey, psvset); }
-static inline float GGet(SVKEY *pkey) { CRef ref = RefGetGlobalSaveVar(pkey, &D_003D4A60); return ref.u.g; }
+static inline void Set(SVKEY *key, CRef ref) { RefSetGlobalSaveVar(key, ref, &D_003D4A60); }
+static inline void SetG(SVKEY *key, float g) { CRef ref; ref.m_tagk = 0x16; ref.u.g = g; Set(key, ref); }
+static inline CRef Get(SVKEY *key) { SVSET *saveSet = &D_003D4A60; return RefGetSaveVar(&(*(SVSTORE *)&g_sw.savevars), key, saveSet); }
+static inline float GGet(SVKEY *key) { CRef ref = RefGetGlobalSaveVar(key, &D_003D4A60); return ref.u.g; }
 
 /** @sly2-annot addr=0x154A60
  * Purpose: Zeroes the 0x18-byte DIFFICULTY object
@@ -78,9 +81,10 @@ static inline float GGet(SVKEY *pkey) { CRef ref = RefGetGlobalSaveVar(pkey, &D_
  * See: docs/engine/game-progression.md#7-source-files, docs/engine/guards-ai.md#8-source-files,
  *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
-extern "C" void InitDifficulty(DIFFICULTY *pdifficulty)
+// Zeroes the difficulty object.
+extern "C" void InitDifficulty(DIFFICULTY *difficulty)
 {
-    memset(pdifficulty, 0, sizeof(DIFFICULTY));
+    memset(difficulty, 0, sizeof(DIFFICULTY));
 }
 
 /** @sly2-annot addr=0x154A80
@@ -89,11 +93,12 @@ extern "C" void InitDifficulty(DIFFICULTY *pdifficulty)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
-extern "C" void func_00154A80(DIFFICULTY *pdifficulty)
+// Clears the three difficulty sample references.
+extern "C" void ClearDifficulty(DIFFICULTY *difficulty)
 {
-    pdifficulty->pkey8 = 0;
-    pdifficulty->pkeyC = 0;
-    pdifficulty->pkey10 = 0;
+    difficulty->historyKey0 = 0;
+    difficulty->historyKey1 = 0;
+    difficulty->historyKey2 = 0;
 }
 
 /** @sly2-annot addr=0x154A90
@@ -105,47 +110,50 @@ extern "C" void func_00154A80(DIFFICULTY *pdifficulty)
  *   docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
-extern "C" void HandleDifficultyMessage(DIFFICULTY *pdifficulty, int msgk, TASKV *ptask)
+// The difficulty's game-event handler: event 3 binds the three saved sample slots, 34 shifts the samples (a rolling
+// window of the last three jobs), 37/16/29 apply the deltas from the D_002BDC00 table.
+extern "C" void HandleDifficultyMessage(DIFFICULTY *difficulty, int message, TASKV *task)
 {
-    switch (msgk) {
+    switch (message) {
     case 3:
-        pdifficulty->pdp = &D_002BDC00;
-        pdifficulty->pkey8 = PkeyNewSaveKey(D_002A5060, D_002A5070, 0);
-        pdifficulty->pkeyC = PkeyNewSaveKey(D_002A5060, D_002A5080, 0);
-        pdifficulty->pkey10 = PkeyNewSaveKey(D_002A5060, D_002A5090, 0);
+        difficulty->params = &D_002BDC00;
+        difficulty->historyKey0 = NewSaveKey(D_002A5060, D_002A5070, 0);
+        difficulty->historyKey1 = NewSaveKey(D_002A5060, D_002A5080, 0);
+        difficulty->historyKey2 = NewSaveKey(D_002A5060, D_002A5090, 0);
         break;
     case 34:
-        Set(pdifficulty->pkey8, Get(pdifficulty->pkeyC));
-        Set(pdifficulty->pkeyC, Get(pdifficulty->pkey10));
-        SetG(pdifficulty->pkey10, *ptask->pgA8);
+        Set(difficulty->historyKey0, Get(difficulty->historyKey1));
+        Set(difficulty->historyKey1, Get(difficulty->historyKey2));
+        SetG(difficulty->historyKey2, *task->rating);
         break;
     case 37:
-        if ((*(JOBV * *)&g_sw.ploJobCur) == ptask->pjob && ptask->nState == 2 && ptask->x68 == 1)
-            ChangeDifficulty(pdifficulty, pdifficulty->pdp->dgJobDone);
+        if ((*(JOBV * *)&g_sw.ploJobCur) == task->job && task->state == 2 && task->unknown68 == 1)
+            ChangeDifficulty(difficulty, difficulty->params->jobDoneDelta);
         break;
     case 16:
     case 29:
-        ChangeDifficulty(pdifficulty, pdifficulty->pdp->dgDeath);
+        ChangeDifficulty(difficulty, difficulty->params->deathDelta);
         break;
     }
 }
 
 /** @sly2-annot addr=0x154C90
  * Purpose: Current difficulty: override value if set, else average of the last three samples
- * Info: proposed name GGetDifficulty (T1); TU difficulty
+ * Info: proposed name GetDifficulty (T1); TU difficulty
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" float GGetDifficulty(DIFFICULTY *pdifficulty)
+// Returns the current difficulty: the override when set, else the average of the last three samples.
+extern "C" float GetDifficulty(DIFFICULTY *difficulty)
 {
     float g;
     if ((*(JOBV * *)&g_sw.ploJobCur))
-        g = *(*(JOBV * *)&g_sw.ploJobCur)->pg;
-    else if (pdifficulty->pkey8 && pdifficulty->pkeyC && pdifficulty->pkey10) {
-        float g1 = GGet(pdifficulty->pkey8);
-        float g2 = GGet(pdifficulty->pkeyC);
-        float g3 = GGet(pdifficulty->pkey10);
+        g = *(*(JOBV * *)&g_sw.ploJobCur)->difficulty;
+    else if (difficulty->historyKey0 && difficulty->historyKey1 && difficulty->historyKey2) {
+        float g1 = GGet(difficulty->historyKey0);
+        float g2 = GGet(difficulty->historyKey1);
+        float g3 = GGet(difficulty->historyKey2);
         g = g1 + g2 + g3;
         g /= 3.0f;
     }
@@ -155,14 +163,15 @@ extern "C" float GGetDifficulty(DIFFICULTY *pdifficulty)
 }
 
 /** @sly2-annot addr=0x154D88
- * Purpose: Adds a delta to the current difficulty (SetDifficulty(GGetDifficulty()+d))
+ * Purpose: Adds a delta to the current difficulty (SetDifficulty(GetDifficulty()+d))
  * Info: proposed name ChangeDifficulty (T1); TU difficulty
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
-extern "C" void ChangeDifficulty(DIFFICULTY *pdifficulty, float dg)
+// Adds a delta to the current difficulty.
+extern "C" void ChangeDifficulty(DIFFICULTY *difficulty, float delta)
 {
-    SetDifficulty(pdifficulty, GGetDifficulty(pdifficulty) + dg);
+    SetDifficulty(difficulty, GetDifficulty(difficulty) + delta);
 }
 
 /** @sly2-annot addr=0x154DC8
@@ -171,48 +180,52 @@ extern "C" void ChangeDifficulty(DIFFICULTY *pdifficulty, float dg)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
-extern "C" void SetDifficulty(DIFFICULTY *pdifficulty, float g)
+// Stores the difficulty, clamped to the object's range, into the current sample.
+extern "C" void SetDifficulty(DIFFICULTY *difficulty, float g)
 {
-    SW *psw = &D_003DD490;
-    if (psw->ploJobCur)
-        *((JOBV *)psw->ploJobCur)->pg = GLimitLm(&pdifficulty->pdp->lm, g);
+    SW *world = &D_003DD490;
+    if (world->ploJobCur)
+        *((JOBV *)world->ploJobCur)->difficulty = GLimitLm(&difficulty->params->range, g);
 }
 
 
 /** @sly2-annot addr=0x154E10
- * Purpose: Difficulty-dependent gameplay helper (uses GGetDifficulty, random 0x11D3F8)
+ * Purpose: Difficulty-dependent gameplay helper (uses GetDifficulty, random 0x11D3F8)
  * Info: TU difficulty
  * Notes: no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_00154E10(DIFFICULTY *pdifficulty, qword posMat, int c, int dn, void *plo)
+// Sprays prizes from a destroyed or searched object with difficulty-scaled counts: two countdowns are refilled with
+// random values interpolated by the difficulty; when one runs out it adds bonus prizes (types 0x5B and 0x5D).
+// (inferred)
+extern "C" void SprayDifficultyPrizes(DIFFICULTY *difficulty, qword position, int c, int dn, void *source)
 {
-    if (pdifficulty->cCountdownA <= 0) {
-        int nMin = NLerp(GGetDifficulty(&D_002DE578), pdifficulty->pdp->a28[0], pdifficulty->pdp->a28[2]);
-        int nMax = NLerp(GGetDifficulty(&D_002DE578), pdifficulty->pdp->a28[1], pdifficulty->pdp->a28[3]);
-        pdifficulty->cCountdownA = NRandInRange(nMin, nMax);
+    if (difficulty->countdownA <= 0) {
+        int nMin = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[0], difficulty->params->countdownRanges[2]);
+        int nMax = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[1], difficulty->params->countdownRanges[3]);
+        difficulty->countdownA = NRandInRange(nMin, nMax);
     }
-    if (pdifficulty->cCountdownB <= 0) {
-        int nMin = NLerp(GGetDifficulty(&D_002DE578), pdifficulty->pdp->a28[4], pdifficulty->pdp->a28[6]);
-        int nMax = NLerp(GGetDifficulty(&D_002DE578), pdifficulty->pdp->a28[5], pdifficulty->pdp->a28[7]);
-        pdifficulty->cCountdownB = NRandInRange(nMin, nMax);
+    if (difficulty->countdownB <= 0) {
+        int nMin = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[4], difficulty->params->countdownRanges[6]);
+        int nMax = NLerp(GetDifficulty(&D_002DE578), difficulty->params->countdownRanges[5], difficulty->params->countdownRanges[7]);
+        difficulty->countdownB = NRandInRange(nMin, nMax);
     }
     {
-        int d = FIsBasicDerivedFrom((BASIC *)plo, (CID)0x38) ? -2 : -1;
-        pdifficulty->cCountdownA += d;
-        pdifficulty->cCountdownB += dn;
+        int d = FIsBasicDerivedFrom((BASIC *)source, (CID)0x38) ? -2 : -1;
+        difficulty->countdownA += d;
+        difficulty->countdownB += dn;
     }
     if (c < 0) {
-        if (pdifficulty->cCountdownA <= 0)
-            c = NRandInRange(pdifficulty->pdp->cPrizeMinA, pdifficulty->pdp->cPrizeMaxA);
+        if (difficulty->countdownA <= 0)
+            c = NRandInRange(difficulty->params->prizeMinA, difficulty->params->prizeMaxA);
         else
-            c = NRandInRange(pdifficulty->pdp->cPrizeMinB, pdifficulty->pdp->cPrizeMaxB);
+            c = NRandInRange(difficulty->params->prizeMinB, difficulty->params->prizeMaxB);
     }
     if (c > 0)
-        SprayDprizes(&D_003DD490, 0x5B, posMat, plo, c);
-    if (pdifficulty->cCountdownB <= 0)
-        SprayDprizes(&D_003DD490, 0x5D, posMat, plo, 1);
+        SprayDprizes(&D_003DD490, 0x5B, position, source, c);
+    if (difficulty->countdownB <= 0)
+        SprayDprizes(&D_003DD490, 0x5D, position, source, 1);
 }
 
 /** @sly2-annot addr=0x155228
@@ -221,10 +234,11 @@ extern "C" void func_00154E10(DIFFICULTY *pdifficulty, qword posMat, int c, int 
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/game-progression.md#difficulty-0x154a60-0x1553f0
  * @end-sly2-annot */
-extern "C" int func_00155228(DIFFICULTY *pdifficulty, int n)
+// Scales n by a factor interpolated between two range ends by the current difficulty.
+extern "C" int ScaleByDifficulty(DIFFICULTY *difficulty, int n)
 {
-    float g = GGetDifficulty(pdifficulty);
-    return (int)(((1.0f - g) * pdifficulty->pdp->g20 + g * pdifficulty->pdp->g24) * (float)n);
+    float g = GetDifficulty(difficulty);
+    return (int)(((1.0f - g) * difficulty->params->scaleAtZero + g * difficulty->params->scaleAtOne) * (float)n);
 }
 
 // ---- difficulty's .bss (tu-merging.md "Data": .bss gaps): the global difficulty object (0x2DE578, after rhythm's

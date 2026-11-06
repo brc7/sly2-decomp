@@ -91,7 +91,7 @@ void InitSo(CID96V *p);
 void RemoveSoHierarchy(CID96V *p);
 void LoadSoFromBrx(CID96V *p, CBinaryInputStream *pbis);
 void PostSoLoad(CID96V *p);
-void func_001CB518(CID96V *p);
+void SO_ResetForProxy(CID96V *p);
 void UpdateSo(CID96V *p);
 void FadeSoOut(CID96V *p, float f);
 void HandleBasicMessage(CID96V *p, int msg, ASEGA *pm);
@@ -104,7 +104,7 @@ void func_0022C840(CID96V *, XFV *);
 void func_0022C818(CID96V *, XFV *);
 float GRandInRange__Fff(float, float);
 void GetVectorSphere(qwordV, float *, float *, float *);
-qwordV func_001A62E8(void *p);
+qwordV GetLoWorldPos(void *p);
 void FindShapeClosestPoint(SHAPE *, qwordV, void *, U *, U *, float *, float *);
 void FindShapeClosestPointFromU(SHAPE *, qwordV, void *, qwordV *, qwordV *, float *, float *, float);
 float DuGetShapeSearchIncrement(SHAPE *);
@@ -118,7 +118,7 @@ EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
 qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
-void func_00154E10(void *, qwordV, int, int, CID96V *);
+void SprayDifficultyPrizes(void *, qwordV, int, int, CID96V *);
 M3 func_0011B500(qwordV v, float g);
 float atan2f(float y, float x);
 E96 *func_0012FF10(LOV *plo, CID96V *p, int a, int b);
@@ -237,7 +237,7 @@ extern "C" void func_001B0D08(CID96V *p)
  * @end-sly2-annot */
 extern "C" void func_001B0D60(CID96V *p)
 {
-    func_001CB518(p);
+    SO_ResetForProxy(p);
     func_001B0D90(p);
 }
 
@@ -428,7 +428,7 @@ void func_001B1160(CID96V *p)
     }
     if (!q)
         return;
-    upos.q = func_001A62E8(p);
+    upos.q = GetLoWorldPos(p);
     FindShapeClosestPointFromU(q,upos.q,0,0,0,&p->u,0,p->u);
     t = UWrapShape(q, p->u + p->du);
     if (t < UMinShape(q) || UMaxShape(q) < t) {
@@ -507,7 +507,7 @@ void func_001B1328(CID96V*p,int next){
   SetZeroVelocity(p);SetStepSpinRatio((STEP*)p,p->ratio+p->ratio);
   func_002303A0(p,p->pxf5C,1);func_0022C840(p,p->pxf5C);break;
  case 4:{
-  w.first.q=func_001A62E8(p);
+  w.first.q=GetLoWorldPos(p);
   if(p->pshapeFlee){
    FindShapeClosestPoint(p->pshapeFlee,w.first.q,0,&w.second,0,&p->u,&w.parameter);
    float phase=DuGetShapeSearchIncrement(p->pshapeFlee);
@@ -519,7 +519,7 @@ void func_001B1328(CID96V*p,int next){
    float end=SMaxShape(p->pshapeFlee);
    p->deadline=D_002DDED0.t+travel+(end-w.parameter)/p->speed.value-p->lead;
   }else{
-   LOV*near=PpoClosestSw(&D_003DD490,w.first.q);w.second=w.first;w.first.q=func_001A62E8(near);p->deadline=D_002DDED0.t+2.0f;
+   LOV*near=PpoClosestSw(&D_003DD490,w.first.q);w.second=w.first;w.first.q=GetLoWorldPos(near);p->deadline=D_002DDED0.t+2.0f;
   }
   qwordV ff=w.first.q;qwordV ss=w.second.q;qwordV gap=VuSub(ss,ff);
   w.direction.q=gap;w.direction.i[2]=0;
@@ -534,8 +534,8 @@ void func_001B1328(CID96V*p,int next){
   w.velocity.q=velocity;SetVelocity(p,velocity);SetMode(p);break;
  }
  case 5:{
-  EFFECT*e=PsndStartSound(0x14);SetSndSourceLo(e,0);SetSndSourcePos(e,func_001A62E8(p));
-  func_00154E10(D_002DE578,ConvertAloPos(p,0,p->damageOffset.q),p->amount,-100,p);Call(p,9);break;
+  EFFECT*e=PsndStartSound(0x14);SetSndSourceLo(e,0);SetSndSourcePos(e,GetLoWorldPos(p));
+  SprayDifficultyPrizes(D_002DE578,ConvertAloPos(p,0,p->damageOffset.q),p->amount,-100,p);Call(p,9);break;
  }
  }
  p->state=next;p->changed=D_002DDED0.t;
@@ -613,14 +613,14 @@ static inline float Length(qwordV v)
 int func_001B1900(CID96V *p)
 {
     int r = p->state;
-    qwordV pos = func_001A62E8(p);
+    qwordV pos = GetLoWorldPos(p);
     LOV *po = PpoClosestSw(&D_003DD490, pos);
     U d;
     float len;
     if (!po)
         return r;
     qwordV d_q;
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d_q) : "j"(func_001A62E8(po)), "j"(pos));   /* via a scalar (C++) */
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d_q) : "j"(GetLoWorldPos(po)), "j"(pos));   /* via a scalar (C++) */
     d.q = d_q;
     len = Length(d.q);
     if (p->g154 < len)

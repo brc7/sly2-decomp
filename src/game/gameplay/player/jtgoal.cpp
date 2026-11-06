@@ -44,11 +44,11 @@ extern char D_003DD490[];
 extern char D_002DEB30[];
 extern "C" {
 int func_00144068(PO *);
-int FSwHandsOff(void *);
+int IsSwHandsOff(void *);
 R *func_00205458(void *, int);
 void BroadcastGameEvent(void *, int, T *);
 void FadeSoOut(T *, float);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int func_00173610(float, float, qword *, int, int);
 int FSnapPosToSurfaceAbove(qword *);
 void func_0019F540(PO *, qword);
@@ -109,7 +109,7 @@ extern "C" void UpdateJtgoal(JTGOAL *p)
     if (D_002DDED0.t < p->t24)
         return;
     p->t24 = D_002DDED0.t + D_002BD2D0;
-    if (FSwHandsOff(D_003DD490)) {
+    if (IsSwHandsOff(D_003DD490)) {
         int fAny = 0;
         LN *pln;
         for (pln = p->p0->xEC->x64; pln; pln = pln->pnext) {
@@ -147,7 +147,7 @@ extern "C" void UpdateJtgoal(JTGOAL *p)
         }
     }
     {
-        qword r = func_001A62E8(p->p0);
+        qword r = GetLoWorldPos(p->p0);
         float g = GDist(r, p->pos);
         if (p->d20 - g < D_002BD2D4 * D_002BD2D0) {
             qword v = p->pos;
@@ -188,7 +188,7 @@ extern "C" void SetJtgoal(JTGOAL *p, qword pos)
         int fNear = GDist(p->pos, pos) < D_002BD2D8;
         if (fNear) return;
         p->pos = pos;
-        r = func_001A62E8(p->p0);
+        r = GetLoWorldPos(p->p0);
         p->d20bits = IDist(r, p->pos);
         p->t24 = D_002DDED0.t + D_002BD2D0;
     }

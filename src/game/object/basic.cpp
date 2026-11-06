@@ -1,8 +1,10 @@
-// basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, CidBasic), the sidebag and its
+// basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, GetBasicCid), the sidebag and its
 // option setters (EnsureLoSidebag*), Splice events and the deferred Splice callbacks, LO subscriptions and messages.
 // TU 0x132B00..0x1336F0 (28 functions, address order). The sidebag pool's GC members (PushFront 0x255C00, MakeRoot
 // 0x258178) are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp); the EMITTER class descriptor getter
 // 0x258F30 is emitter.cpp's (sly2/emitter.h).
+// Entry points: FIsBasicDerivedFrom (class tests everywhere), HandleBasicSpliceEvent (vtable slot 3),
+// SendLoMessage / SubscribeLoObject, ScheduleSwSpliceCallback, the EnsureLoSidebag* option setters.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001336D0
 #include "sly2/slotheap.h"
@@ -22,7 +24,7 @@ struct REFNODE;
 struct CFrame;
 /* A sidebag (pool 4): count, then the GC link word (index/page bit-fields, bit 15 a GC mark). */
 struct SIDEBAG { int cref; int grfGc; };
-struct BASICV { CFrame *pframe; SIDEBAG *psidebag; REFNODE *prefnodeFirst; VTE *pvt; };
+struct BASICV { CFrame *frame; SIDEBAG *psidebag; REFNODE *prefnodeFirst; VTE *vtable; };
 struct LO : BASICV { };
 /* A subscription: the subscriber and its count. */
 struct REFNODE { LO *plo; int cref; REFNODE *pnext; };
@@ -41,7 +43,7 @@ struct CPAIR { int cref; int x4; CREFV ref; SPAIR sp; };
 
 /* A deferred Splice callback (SW::slEvent list +0x39F0, SW::slotheapEvent heap +0x39FC, ids from SW::cEventWorld). */
 struct DLV { struct SWCB *head; struct SWCB *tail; int ibDle; };   /* SW::slEvent as the callback list */
-struct SWCB { float t; BASICV *pbasic; CPAIR *ppair; int id; SWCB *pnext; };
+struct SWCB { float t; BASICV *pbasic; CPAIR *pair; int id; SWCB *pnext; };
 
 extern "C" {
 extern CIDDESC D_002BAAE8[];
@@ -66,16 +68,16 @@ CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
 void CRef_SetSymid(CREFV *pref, int n);
 void CRef_SetBasic(CREFV *pref, BASICV *pbasic);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
-void RefEval__FP5CPairP6CFrame(CREFV *pref, CPAIR *ppair, CFrame *pframe);
+void RefEval__FP5CPairP6CFrame(CREFV *pref, CPAIR *pair, CFrame *frame);
 void __as__4CRefRC4CRef(CREFV *pref, CREFV *prefFrom);
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
 int PrefFindBinding__6CFrameUii(CFrame *p, int k, int n);
-CREFV *func_00200DA0(CREFV *ret, int x, int *pn, int y);
+CREFV *BuildSpliceListFromValues(CREFV *ret, int x, int *pn, int y);
 
-void EvalSpliceEventCallback(BASICV *p, CPAIR *ppair, CFrame *pframe, CREFV *pref);
-SWCB *ScheduleSwSpliceCallback(SW *psw, BASICV *p, CPAIR *ppair, float t);
-SPAIR *func_00132ED8(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
+void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref);
+SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *p, CPAIR *pair, float t);
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
 }
 int FIsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
@@ -87,6 +89,7 @@ void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
  * See: docs/engine/core-library.md#6-source-files, docs/engine/object-model.md#8-source-files,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// BASIC's default for vtable slot 1 (empty); inherited by about 190 classes. Its role is not known.
 void BASIC::VUnk00() {
 }
 
@@ -96,7 +99,8 @@ void BASIC::VUnk00() {
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-extern "C" void func_00132B08(void) {
+// BASIC's default for vtable slot 2 (empty). Its role is not known.
+extern "C" void BASIC_Slot2Default(void) {
 }
 
 /** @sly2-annot addr=0x132B10
@@ -107,8 +111,10 @@ extern "C" void func_00132B08(void) {
  *   docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-int FIsBasicDerivedFrom(BASICV *po, CIDV n) {
-    CLASSINFO *pr = ((CLASSINFO *(*)(void *))po->pvt[6].pfn)((char *)po + po->pvt[6].d);
+// True when the object's class is cid or derives from it: the class ids of a subtree are contiguous, so this is a
+// range test of the object's cid against [cid, cidMax of cid) in the class-descriptor table.
+int FIsBasicDerivedFrom(BASICV *object, CIDV n) {
+    CLASSINFO *pr = ((CLASSINFO *(*)(void *))object->vtable[6].pfn)((char *)object + object->vtable[6].d);
     int x = pr->cid;
     int f = 0;
     if (x >= n) { CIDDESC *pt = &D_002BAAE8[n]; f = x < pt->cidLast; }
@@ -122,9 +128,10 @@ int FIsBasicDerivedFrom(BASICV *po, CIDV n) {
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-void EnsureBasicSidebag(BASICV *p) {
-    SIDEBAG **pf = &p->psidebag;
-    if (p->psidebag == 0) { func_002580A8(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(p->psidebag); }
+// Gives the object a sidebag (its Splice variable bindings) when it has none.
+void EnsureBasicSidebag(BASICV *object) {
+    SIDEBAG **pf = &object->psidebag;
+    if (object->psidebag == 0) { func_002580A8(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(object->psidebag); }
 }
 
 /* EnsureLoSidebag* (Sly 1 names); the C++ original inlined the CRef constructor/setter, ~CRef -> Decref. */
@@ -135,6 +142,7 @@ void EnsureBasicSidebag(BASICV *p) {
  * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#5-objects-and-scripts,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// Sets a boolean sidebag option on the object unless it already has a value (RefEnsureOption).
 void EnsureLoSidebagBool(LO *plo, OPTID optid, int v)
 {
     CREFV ref;
@@ -153,6 +161,7 @@ void EnsureLoSidebagBool(LO *plo, OPTID optid, int v)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// Sets an integer sidebag option unless already set.
 void EnsureLoSidebagInt(LO *plo, OPTID optid, int v)
 {
     CREFV ref;
@@ -171,6 +180,7 @@ void EnsureLoSidebagInt(LO *plo, OPTID optid, int v)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// Sets a float sidebag option unless already set.
 void EnsureLoSidebagFloat(LO *plo, OPTID optid, float g)
 {
     CREFV ref;
@@ -191,6 +201,7 @@ struct CREFFR { CREFV ref; char pad8[8]; CREFV refT; };
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// Sets a CLQ (four-float curve) sidebag option unless already set.
 void EnsureLoSidebagClq(LO *plo, OPTID optid, CLQ *pclq)
 {
     CREFFR fr;
@@ -207,6 +218,7 @@ void EnsureLoSidebagClq(LO *plo, OPTID optid, CLQ *pclq)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// Sets an LM (min/max range) sidebag option unless already set.
 void EnsureLoSidebagLm(LO *plo, OPTID optid, LM *plm)
 {
     CREFFR fr;
@@ -223,6 +235,7 @@ void EnsureLoSidebagLm(LO *plo, OPTID optid, LM *plm)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// Sets an object-id sidebag option (stored as an integer) unless already set.
 void EnsureLoSidebagOid(LO *plo, OPTID optid, OID v)
 {
     CREFV ref;
@@ -241,6 +254,7 @@ void EnsureLoSidebagOid(LO *plo, OPTID optid, OID v)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
+// Sets a vector sidebag option unless already set (vector passed by value).
 extern "C" void EnsureLoSidebagVector(LO *plo, int optid, qword v)
 {
     CREFV ref;
@@ -257,7 +271,8 @@ extern "C" void EnsureLoSidebagVector(LO *plo, int optid, qword v)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-extern "C" void func_00132E40(LO *plo, int optid)
+// Sets an object-reference sidebag option to null unless already set.
+extern "C" void EnsureLoSidebagBasic(LO *plo, int optid)
 {
     CREFFR fr;
     CRef_ctor_BASIC(&fr.ref, 0);
@@ -268,15 +283,16 @@ extern "C" void func_00132E40(LO *plo, int optid)
 
 /** @sly2-annot addr=0x132EA0
  * Purpose: Returns Pclassinfo()->cid (vt6)
- * Info: proposed name CidBasic (T1); TU basic
+ * Info: proposed name GetBasicCid (T1); TU basic
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-extern "C" int CidBasic(BASICV *p)
+// Returns the object's class id (from its class info, vtable slot 6).
+extern "C" int GetBasicCid(BASICV *object)
 {
-    VTE *pvt = p->pvt;
-    short d = pvt[6].d;
-    return ((CLASSINFO *(*)(void *, int))pvt[6].pfn)((char *)p + d, d)->cid;
+    VTE *vtable = object->vtable;
+    short d = vtable[6].d;
+    return ((CLASSINFO *(*)(void *, int))vtable[6].pfn)((char *)object + d, d)->cid;
 }
 
 /** @sly2-annot addr=0x132ED0
@@ -285,7 +301,9 @@ extern "C" int CidBasic(BASICV *p)
  * Notes: descriptive only: (identity thunk) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * @end-sly2-annot */
-extern "C" int func_00132ED0(int n)
+// Getter of BASIC option 2 (object type 0x2000): returns the object itself, so Splice can ask an object for "self".
+// (inferred)
+extern "C" int GetBasicSelf(int n)
 {
     return n;
 }
@@ -296,7 +314,9 @@ extern "C" int func_00132ED0(int n)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-SPAIR *func_00132ED8(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
+// Builds the Splice call expression for an event: (handler-symbol self args...), where args is the event's
+// argument list. Returns an owning pointer to the list.
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 {
     SPAIR sp;
     CPAIR *p;
@@ -334,10 +354,11 @@ SPAIR *func_00132ED8(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-void EvalSpliceEventCallback(BASICV *p, CPAIR *ppair, CFrame *pframe, CREFV *pref)
+// Evaluates a Splice event call in the object's frame and copies the result to *pref when given.
+void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref)
 {
     CREFV ref;
-    RefEval__FP5CPairP6CFrame(&ref, ppair, pframe);
+    RefEval__FP5CPairP6CFrame(&ref, pair, frame);
     if (pref != 0) {
         __as__4CRefRC4CRef(pref, &ref);
     }
@@ -353,16 +374,18 @@ void EvalSpliceEventCallback(BASICV *p, CPAIR *ppair, CFrame *pframe, CREFV *pre
  *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-SWCB *ScheduleSwSpliceCallback(SW *p, BASICV *a, CPAIR *pc, float t) {
+// Schedules a Splice callback: allocates a node from the world's pool with an id (a new one when anonymous) and the
+// time t, and inserts it into the world's time-sorted callback list. Returns the node.
+SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *a, CPAIR *pc, float t) {
     SWCB *pn;
     SWCB *pnPrev;
     SWCB *pnCur;
     pc->cref++;
-    pn = (SWCB *)PvAllocSlotheapClear(&p->slotheapEvent);
+    pn = (SWCB *)PvAllocSlotheapClear(&world->slotheapEvent);
     pn->pbasic = a;
     if (!a) pn->id = ++g_sw.cEventWorld;
     else pn->id = -1;
-    pn->ppair = pc;
+    pn->pair = pc;
     pn->t = t;
     pn->pnext = 0;
     pnPrev = 0;
@@ -382,21 +405,22 @@ SWCB *ScheduleSwSpliceCallback(SW *p, BASICV *a, CPAIR *pc, float t) {
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" void CancelSwSpliceCallback(SW *p, int id) {
+// Cancels the scheduled Splice callback with the given id and frees its node.
+extern "C" void CancelSwSpliceCallback(SW *world, int id) {
     SWCB *pn;
     if (id == -1) return;
-    for (pn = ((DLV *)&p->slEvent)->head; pn; pn = pn->pnext) {
+    for (pn = ((DLV *)&world->slEvent)->head; pn; pn = pn->pnext) {
         if (pn->id == id) {
             CPAIR *pr;
-            RemoveSlEntry((DLV *)&p->slEvent, pn);
-            pr = pn->ppair;
+            RemoveSlEntry((DLV *)&world->slEvent, pn);
+            pr = pn->pair;
             if (--pr->cref == 0 && pr) {
                 PairPtr_Release(&pr->sp, 2);
                 Decref__4CRef(&pr->ref);
                 Unlink__t6CGcObj1Z5CPair(pr);
                 func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pr);
             }
-            func_0011CD98(&p->slotheapEvent, pn);
+            func_0011CD98(&world->slotheapEvent, pn);
             return;
         }
     }
@@ -414,17 +438,19 @@ extern "C" void CancelSwSpliceCallback(SW *p, int id) {
  * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
  *   docs/engine/splice-scripting.md#5-objects-and-scripts
  * @end-sly2-annot */
-extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CREFV *z)
+// BASIC's Splice event handler (vtable slot 3): when the object's frame binds a handler for the event, builds the
+// arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
+extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int y, CREFV *z)
 {
-    if (p->pframe && PrefFindBinding__6CFrameUii(p->pframe, k, 1)) {
+    if (object->frame && PrefFindBinding__6CFrameUii(object->frame, k, 1)) {
         CREFV ref;
         SPAIR sp;
-        func_00200DA0(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
-        func_00132ED8(&sp, p, k, &ref);
+        BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
+        BuildSpliceEventCall(&sp, object, k, &ref);
         if (f)
-            ScheduleSwSpliceCallback(&g_sw, p, sp.p, D_002DDED0.t);
+            ScheduleSwSpliceCallback(&g_sw, object, sp.p, D_002DDED0.t);
         else
-            EvalSpliceEventCallback(p, sp.p, p->pframe, z);
+            EvalSpliceEventCallback(object, sp.p, object->frame, z);
         {
             CPAIR *pt = sp.p;
             if (pt && --pt->cref == 0) {
@@ -444,7 +470,9 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-extern "C" void func_00133340(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
+// Sends the Splice trigger event (5) to the object (vtable slot 3, not posted). BASIC option 12. Buttons, exits, warps
+// and camera volumes send event 5 when triggered and 6 when untriggered.
+extern "C" void SendTriggerEvent(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x133380
  * Purpose: vt3 HandleSpliceEvent(6) on the object
@@ -453,7 +481,8 @@ extern "C" void func_00133340(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, 
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-extern "C" void func_00133380(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
+// Sends the Splice untrigger event (6) to the object (vtable slot 3, not posted). BASIC option 13.
+extern "C" void SendUntriggerEvent(BASICV *p) { VTE *vt = p->vtable; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x1333C0
  * Purpose: Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted
@@ -464,9 +493,11 @@ extern "C" void func_00133380(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, 
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void SubscribeLoObject(LO *p, LO *id) {
+// Subscribes target to the object's messages: adds it to the object's subscriber list (counted, so repeated
+// subscriptions need as many unsubscribes).
+extern "C" void SubscribeLoObject(LO *object, LO *id) {
     REFNODE *pe;
-    for (pe = p->prefnodeFirst; pe; pe = pe->pnext) {
+    for (pe = object->prefnodeFirst; pe; pe = pe->pnext) {
         if (pe->plo == id) { pe->cref++; return; }
     }
     {
@@ -474,8 +505,8 @@ extern "C" void SubscribeLoObject(LO *p, LO *id) {
         __asm__("" : "+r"(peNew));
         peNew->plo = id;
         { register int one __asm__("$2") = 1; __asm__("" : "+r"(one)); peNew->cref = one; }
-        peNew->pnext = p->prefnodeFirst;
-        p->prefnodeFirst = peNew;
+        peNew->pnext = object->prefnodeFirst;
+        object->prefnodeFirst = peNew;
     }
 }
 
@@ -486,10 +517,11 @@ extern "C" void SubscribeLoObject(LO *p, LO *id) {
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void UnsubscribeLoObject(LO *p, LO *id) {
+// Removes one subscription of target from the object's subscriber list.
+extern "C" void UnsubscribeLoObject(LO *object, LO *id) {
     REFNODE **ppe;
     REFNODE *pe;
-    for (ppe = &p->prefnodeFirst; (pe = *ppe) != 0; ppe = &pe->pnext) { if (pe->plo == id) { if (--pe->cref <= 0) { *ppe = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); } break; } }
+    for (ppe = &object->prefnodeFirst; (pe = *ppe) != 0; ppe = &pe->pnext) { if (pe->plo == id) { if (--pe->cref <= 0) { *ppe = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); } break; } }
 }
 
 /** @sly2-annot addr=0x1334A8
@@ -498,10 +530,11 @@ extern "C" void UnsubscribeLoObject(LO *p, LO *id) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
-extern "C" void UnsubscribeLoAll(LO *p) {
-    REFNODE *pe = p->prefnodeFirst;
+// Frees the object's whole subscriber list.
+extern "C" void UnsubscribeLoAll(LO *object) {
+    REFNODE *pe = object->prefnodeFirst;
     while (pe) { REFNODE *pNext = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); pe = pNext; }
-    p->prefnodeFirst = 0;
+    object->prefnodeFirst = 0;
 }
 
 /** @sly2-annot addr=0x133508
@@ -511,13 +544,14 @@ extern "C" void UnsubscribeLoAll(LO *p) {
  * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-extern "C" void SendLoMessage(LO *p, int a, int b) {
+// BASIC's SendMessage (vtable slot 4): the object handles the message itself (slot 5), then every subscriber does.
+extern "C" void SendLoMessage(LO *object, int a, int b) {
     REFNODE *pn;
-    ((void (*)(void *, int, int))p->pvt[5].pfn)((char *)p + p->pvt[5].d, a, b);
-    for (pn = p->prefnodeFirst; pn; ) {
+    ((void (*)(void *, int, int))object->vtable[5].pfn)((char *)object + object->vtable[5].d, a, b);
+    for (pn = object->prefnodeFirst; pn; ) {
         LO *po = pn->plo;
         pn = pn->pnext;
-        ((void (*)(void *, int, int))po->pvt[5].pfn)((char *)po + po->pvt[5].d, a, b);
+        ((void (*)(void *, int, int))po->vtable[5].pfn)((char *)po + po->vtable[5].d, a, b);
     }
 }
 
@@ -528,7 +562,8 @@ extern "C" void SendLoMessage(LO *p, int a, int b) {
  * See: docs/engine/object-model.md#2-the-lo-virtual-interface, docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
-extern "C" void HandleBasicMessage(BASICV *p, int msg, void *pv) {
+// BASIC's HandleMessage (vtable slot 5): ignores the message; derived classes override it and call it as the base.
+extern "C" void HandleBasicMessage(BASICV *object, int msg, void *pv) {
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

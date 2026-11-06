@@ -92,7 +92,7 @@ void RemoveStepguardSgf(GUARDV *pguard, int sgf);
 int FBhvanimDone(void *pbhv);
 int func_00209098(GUARDV *pguard);
 BHVO *func_00205438(GUARDV *pguard, int n);
-qword func_001A62E8(void *plo);
+qword GetLoWorldPos(void *plo);
 void func_002562A8(GOAL *pgoal);
 void SetBhvgotoGoal(void *pbhv, GOAL *pgoal);
 int FBhvgotoArrived(void *pbhv);
@@ -216,7 +216,7 @@ extern "C" void func_00172018(BHV171V *p) {
                 func_00172320(p, 3);
             } else {
                 qword a = func_00172760(p);
-                qword b = func_001A62E8(p->pguard);
+                qword b = GetLoWorldPos(p->pguard);
                 qword d;
                 d = VuSub(a, b);
                 SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
@@ -297,7 +297,7 @@ extern "C" void func_00172320(BHV171V *p, int n) {
     case 2:
         {
             qword a = func_00172760(p);
-            qword b = func_001A62E8(p->pguard);
+            qword b = GetLoWorldPos(p->pguard);
             qword d;
             d = VuSub(a, b);
             SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
@@ -387,8 +387,8 @@ extern "C" int func_00172658(BHV171V *p) {
     if (!(o->grfFE8 & 2) || o->nE78 == 2) return 1;
     t = o->ploTarget;
     if (!t) return 0;
-    d = Dist(func_001A62E8(t), func_001A62E8(p->pguard));
-    if (Dist(func_00172760(p), func_001A62E8(p->pguard)) < d + 50.0f) return 1;
+    d = Dist(GetLoWorldPos(t), GetLoWorldPos(p->pguard));
+    if (Dist(func_00172760(p), GetLoWorldPos(p->pguard)) < d + 50.0f) return 1;
     return 0;
 }
 
@@ -475,10 +475,10 @@ namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.
  * @end-sly2-annot */
 extern "C" void func_001728B0(BHV171V*p){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
- w.query.point.q=func_001A62E8(p->pguard);
+ w.query.point.q=GetLoWorldPos(p->pguard);
  w.query.heading=RadStepHeading(p->pguard);w.query.count=0;
  for(object=(*(NODE * *)&g_sw.dlCid34);object;object=object->next104){
-  qword posObj=func_001A62E8(object);
+  qword posObj=GetLoWorldPos(object);
   qword qwFallback=D_002A2DA0;
   w.query.delta.q=VuSub(w.query.point.q,posObj);
   w.query.delta.i[2]=0;
@@ -491,21 +491,21 @@ extern "C" void func_001728B0(BHV171V*p){
   func_00172798(&w.query);
  }
  for(object=(*(NODE * *)&g_sw.dlCid12);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid38);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid88);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid38);object;object=object->next104){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid88);object;object=object->next174){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
  for(object=(*(NODE * *)&g_sw.dlCid11);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid39);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid39);object;object=object->next104){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
  for(object=(*(NODE * *)&g_sw.dlCid13);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
  for(object=(*(NODE * *)&g_sw.dlTarget);object;object=object->nextE0){
-  if((object->flags&1)&&FIsBasicDerivedFrom(object,0x13)){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+  if((object->flags&1)&&FIsBasicDerivedFrom(object,0x13)){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
  }
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x23,0,0x100,w.result256);
- if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
+ if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);func_00172798(&w.query);}while(remaining);}}
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x67,0,0x20,w.result32);
- if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
+ if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);func_00172798(&w.query);}while(remaining);}}
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
- if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
- for(object=(*(NODE * *)&g_sw.dlCid98);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+ if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);func_00172798(&w.query);}while(remaining);}}
+ for(object=(*(NODE * *)&g_sw.dlCid98);object;object=object->next174){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
  lastAngle=0.0f;
  qsort(w.query.row,w.query.count,sizeof(ROW),func_00172888);
  accepted=0;

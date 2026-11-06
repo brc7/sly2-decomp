@@ -16,8 +16,8 @@ extern "C" {
 CPair *PtNew__t6CGcObj1Z5CPair();
 CFrame *PtNew__t6CGcObj1Z6CFrame();
 CProc *PtNew__t6CGcObj1Z5CProc();
-CRef CFrame_RefAddBinding(CFrame *pframe, int sym, CRef *pref);
-void CFrame_SetSingleParent(CFrame *pframe, CFrame *pframeParent);
+CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref);
+void CFrame_SetSingleParent(CFrame *frame, CFrame *pframeParent);
 void printf(const char *psz);
 }
 extern const char D_002A43B0[] = "Splice assert: ";   /* assert failure message */
@@ -28,7 +28,7 @@ struct SPZ
 {
     CFrame *p;
     ~SPZ();
-    void operator=(CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+    void operator=(CFrame *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
 
 
@@ -38,11 +38,11 @@ class CFrame
 {
 public:
     /* 0x00 */ int cref;
-    /* 0x04 */ int x4;
-    /* 0x08 */ int cframe;
-    /* 0x0C */ SPZ apframe[4];
-    /* 0x1C */ CPair *pbindingFirst;
-    /* 0x20 */ int fBusy;
+    /* 0x04 */ int gcLink;
+    /* 0x08 */ int parentCount;
+    /* 0x0C */ SPZ parents[4];
+    /* 0x1C */ CPair *firstBinding;
+    /* 0x20 */ int isBusy;
 
     ~CFrame();
     CRef RefSetBinding(unsigned int sym, CRef *pref);
@@ -54,11 +54,11 @@ struct CProc
 {
     int cref;
     int x4;
-    SPZ spframe;             /* 0x08 closing frame */
-    int cargMin;             /* 0x0C required parameters */
-    int fRest;               /* 0x10 a rest parameter follows them */
-    CPairPtr sppairParams;        /* 0x14 parameter list */
-    CPairPtr sppairBody;          /* 0x18 body expressions */
+    SPZ closureFrame;             /* 0x08 closing frame */
+    int minArgCount;             /* 0x0C required parameters */
+    int hasRest;               /* 0x10 a rest parameter follows them */
+    CPairPtr params;        /* 0x14 parameter list */
+    CPairPtr body;          /* 0x18 body expressions */
     ~CProc();
 };
 
@@ -67,45 +67,45 @@ struct SPF
 {
     CFrame *p;
     SPF() { p = 0; }
-    ~SPF() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
-    void operator=(CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
+    ~SPF() { CFrame *frame = p; if (frame && --frame->cref == 0) delete frame; }
+    void operator=(CFrame *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
 
 /* Owning pointer to a proc (inline release). */
 struct SPO
 {
     CProc *p;
-    void Set(CProc *pproc) __asm__("Attach__t7CRefPtr1Z5CProcP5CProc");
+    void Set(CProc *proc) __asm__("Attach__t7CRefPtr1Z5CProcP5CProc");
     SPO() {}
-    SPO(CProc *pproc) { Set(pproc); }
+    SPO(CProc *proc) { Set(proc); }
     SPO(const SPO &);
-    ~SPO() { CProc *pproc = p; if (pproc && --pproc->cref == 0) delete pproc; }
+    ~SPO() { CProc *proc = p; if (proc && --proc->cref == 0) delete proc; }
     CProc *operator->() { return p; }
 };
 
 /* Built-in procedure table entry (tag 0x19 indexes it) and native method (tag 0x22). */
 struct BIF
 {
-    CRef (*pfn)(int c, CRef *aref, CFrame *pframe);
-    int cargMin;
-    int fRest;
+    CRef (*function)(int c, CRef *aref, CFrame *frame);
+    int minArgCount;
+    int hasRest;
 };
 struct METHOD
 {
-    int x0, x4;
+    int unknown0, unknown4;
     void *pv;
-    CRef (*pfn)(void *pv, int c, CRef *aref);
-    int cargMin;
+    CRef (*function)(void *pv, int c, CRef *aref);
+    int minArgCount;
 };
 extern BIF D_002BBB90[];
 
-CRef RefEval(CPair *ppair, CFrame *pframe);
-CRef RefEvalLambdaBody(CPair *ppair, CFrame *pframe);
-CRef RefOpPrint(int c, CRef *aref, CFrame *pframe);
-CRef RefOpEqv(int c, CRef *aref, CFrame *pframe);
+CRef RefEval(CPair *expr, CFrame *frame);
+CRef RefEvalLambdaBody(CPair *expr, CFrame *frame);
+CRef RefOpPrint(int c, CRef *aref, CFrame *frame);
+CRef RefOpEqv(int c, CRef *aref, CFrame *frame);
 
 /* The argument list of a special form: the rest of the list after the keyword. */
-static inline CPair *PpairArgs(CPair *ppair) { return ((CPair *)ppair->ref.u.pv)->pnext.p; }
+static inline CPair *PpairArgs(CPair *expr) { return ((CPair *)expr->ref.u.pv)->pnext.p; }
 
 /** @sly2-annot addr=0x126438
  * Purpose: Evaluates a symbol: looks up its binding in the frame chain (0x127D78) and returns it
@@ -115,10 +115,12 @@ static inline CPair *PpairArgs(CPair *ppair) { return ((CPair *)ppair->ref.u.pv)
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalSymbol(CPair *ppair, CFrame *pframe)
+// Evaluates a symbol expression: looks the symbol up in the frame and its parents (CFrame::FFindBinding) and
+// returns the bound value (Nil when unbound).
+CRef RefEvalSymbol(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    pframe->FFindBinding(ppair->ref.u.n, 1, &ref);
+    frame->FFindBinding(expr->ref.u.n, 1, &ref);
     return ref;
 }
 
@@ -129,12 +131,14 @@ CRef RefEvalSymbol(CPair *ppair, CFrame *pframe)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalSet(CPair *ppair, CFrame *pframe)
+// (set! sym expr): evaluates expr and stores it in the existing binding of sym found in the frame chain
+// (CFrame::RefSetBinding); returns Void.
+CRef RefEvalSet(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *pargs = PpairArgs(ppair);
-    ref = RefEval(pargs->pnext.p, pframe);
-    ref = pframe->RefSetBinding(pargs->ref.u.n, &ref);
+    CPair *args = PpairArgs(expr);
+    ref = RefEval(args->pnext.p, frame);
+    ref = frame->RefSetBinding(args->ref.u.n, &ref);
     return ref;
 }
 
@@ -144,12 +148,13 @@ CRef RefEvalSet(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalDefine(CPair *ppair, CFrame *pframe)
+// (define sym expr): evaluates expr and adds a new binding for sym to this frame (CFrame_RefAddBinding).
+CRef RefEvalDefine(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *pargs = PpairArgs(ppair);
-    ref = RefEval(pargs->pnext.p, pframe);
-    ref = CFrame_RefAddBinding(pframe, pargs->ref.u.n, &ref);
+    CPair *args = PpairArgs(expr);
+    ref = RefEval(args->pnext.p, frame);
+    ref = CFrame_RefAddBinding(frame, args->ref.u.n, &ref);
     return ref;
 }
 
@@ -159,17 +164,19 @@ CRef RefEvalDefine(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalAssert(CPair *ppair, CFrame *pframe)
+// (assert expr ...): evaluates each operand and prints "Splice assert: " plus the failing expression when one is false;
+// returns Void. A debug aid for level scripts.
+CRef RefEvalAssert(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *pargs = PpairArgs(ppair);
-    CPair *pmsg = pargs->pnext.p;
-    ref = RefEval(pargs, pframe);
+    CPair *args = PpairArgs(expr);
+    CPair *pmsg = args->pnext.p;
+    ref = RefEval(args, frame);
     if (ref.u.n == 0)
     {
         CPair *pargsMsg = PpairArgs(pmsg);
         printf(D_002A43B0);
-        RefOpPrint(1, &pargsMsg->ref, pframe);
+        RefOpPrint(1, &pargsMsg->ref, frame);
     }
     ref.Decref();
     ref.InitTag(0x24);
@@ -183,12 +190,14 @@ CRef RefEvalAssert(CPair *ppair, CFrame *pframe)
  * See: docs/engine/splice-scripting.md#open-questions,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-extern "C" CRef func_001266C8(CPair *ppair, CFrame *pframe)
+// Special form 6 (keyword unknown, new in Sly 2): evaluates its first operand and returns that value, or Void when the
+// form has no operand. (inferred: the keyword name is not known; docs/engine/splice-scripting.md lists candidates.)
+extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *pargs = ((CPair *)ppair->ref.u.pv)->pnext.p;
-    if (pargs)
-        ref = RefEval(pargs, pframe);
+    CPair *args = ((CPair *)expr->ref.u.pv)->pnext.p;
+    if (args)
+        ref = RefEval(args, frame);
     else
     {
         ref.Decref();
@@ -204,17 +213,18 @@ extern "C" CRef func_001266C8(CPair *ppair, CFrame *pframe)
  * See: docs/engine/splice-scripting.md#3-the-evaluator,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalIf(CPair *ppair, CFrame *pframe)
+// (if test then [else]): evaluates test; evaluates and returns then when it is not #f, else the optional else branch.
+CRef RefEvalIf(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *ppairCond = PpairArgs(ppair);
+    CPair *ppairCond = PpairArgs(expr);
     CPair *ppairThen = ppairCond->pnext.p;
     CPair *ppairElse = ppairThen->pnext.p;
-    ref = RefEval(ppairCond, pframe);
+    ref = RefEval(ppairCond, frame);
     if (ref.u.n == 1)
-        ref = RefEval(ppairThen, pframe);
+        ref = RefEval(ppairThen, frame);
     else if (ppairElse)
-        ref = RefEval(ppairElse, pframe);
+        ref = RefEval(ppairElse, frame);
     else
     {
         ref.Decref();
@@ -229,13 +239,14 @@ CRef RefEvalIf(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalOr(CPair *ppair, CFrame *pframe)
+// (or expr ...): returns the first operand value that is not #f, or #f when all are false.
+CRef RefEvalOr(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *pq;
-    for (pq = PpairArgs(ppair); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(expr); pq; pq = pq->pnext.p)
     {
-        ref = RefEval(pq, pframe);
+        ref = RefEval(pq, frame);
         if (ref.m_tagk != 0x17 || ref.u.n != 0)
             return ref;
     }
@@ -249,14 +260,15 @@ CRef RefEvalOr(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalAnd(CPair *ppair, CFrame *pframe)
+// (and expr ...): stops at the first #f operand and returns it; otherwise returns the last value.
+CRef RefEvalAnd(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *pq;
     ref = true;
-    for (pq = PpairArgs(ppair); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(expr); pq; pq = pq->pnext.p)
     {
-        ref = RefEval(pq, pframe);
+        ref = RefEval(pq, frame);
         if (ref.m_tagk == 0x17 && ref.u.n == 0)
             return ref;
     }
@@ -269,14 +281,15 @@ CRef RefEvalAnd(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalCond(CPair *ppair, CFrame *pframe)
+// (cond (test body...) ... [else body...]): evaluates the body of the first clause whose test is true (else = tag 0xB).
+CRef RefEvalCond(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CRef test;
     CPair *pcl;
     ref.Decref();
     ref.InitTag(0x24);
-    pcl = PpairArgs(ppair);
+    pcl = PpairArgs(expr);
     while (pcl)
     {
         CPair *pc = (CPair *)pcl->ref.u.pv;
@@ -287,7 +300,7 @@ CRef RefEvalCond(CPair *ppair, CFrame *pframe)
         }
         else
         {
-            test = RefEval(pc, pframe);
+            test = RefEval(pc, frame);
             f = 0;
             if (test.m_tagk != 0x17 || test.u.n)
                 f = 1;
@@ -297,7 +310,7 @@ CRef RefEvalCond(CPair *ppair, CFrame *pframe)
         if (f)
         {
             for (pc = pc->pnext.p; pc; pc = pc->pnext.p)
-                ref = RefEval(pc, pframe);
+                ref = RefEval(pc, frame);
             pcl = 0;
         }
         else
@@ -314,7 +327,9 @@ CRef RefEvalCond(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalCase(CPair *ppair, CFrame *pframe)
+// (case key ((datum...) body...) ... [else ...]): evaluates key and runs the first clause holding an eqv? datum
+// (RefOpEqv), or the else clause.
+CRef RefEvalCase(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CRef arefT[2];
@@ -323,8 +338,8 @@ CRef RefEvalCase(CPair *ppair, CFrame *pframe)
     CPair *pcl;
     ref.Decref();
     ref.InitTag(0x24);
-    pkey = PpairArgs(ppair);
-    arefT[0] = RefEval(pkey, pframe);
+    pkey = PpairArgs(expr);
+    arefT[0] = RefEval(pkey, frame);
     pcl = pkey->pnext.p;
     while (pcl)
     {
@@ -342,7 +357,7 @@ CRef RefEvalCase(CPair *ppair, CFrame *pframe)
             while (pk)
             {
                 arefT[1] = pk->ref;
-                test = RefOpEqv(2, arefT, pframe);
+                test = RefOpEqv(2, arefT, frame);
                 if (test.m_tagk == 0x17 && test.u.n)
                 {
                     f = 1;
@@ -357,7 +372,7 @@ CRef RefEvalCase(CPair *ppair, CFrame *pframe)
         if (f)
         {
             for (pc = pc->pnext.p; pc; pc = pc->pnext.p)
-                ref = RefEval(pc, pframe);
+                ref = RefEval(pc, frame);
             pcl = 0;
         }
         else
@@ -374,32 +389,34 @@ CRef RefEvalCase(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalLet(CPair *ppair, CFrame *pframe)
+// (let ((sym val) ...) body...): evaluates each value in the outer frame, binds them in a new child frame and evaluates
+// the body there.
+CRef RefEvalLet(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CRef refVal;
     CRef refT;
     SPF spf;
-    CPair *pargs = PpairArgs(ppair);
+    CPair *args = PpairArgs(expr);
     CPair *pn;
-    if (pargs->ref.m_tagk == 0x1F)
+    if (args->ref.m_tagk == 0x1F)
     {
         CFrame *pframeNew = PtNew__t6CGcObj1Z6CFrame();
         spf = pframeNew;
-        for (pn = (CPair *)pargs->ref.u.pv; pn; pn = pn->pnext.p)
+        for (pn = (CPair *)args->ref.u.pv; pn; pn = pn->pnext.p)
         {
             CPair *pb = (CPair *)pn->ref.u.pv;
-            refVal = RefEval(pb->pnext.p, pframe);
+            refVal = RefEval(pb->pnext.p, frame);
             refT = CFrame_RefAddBinding(spf.p, pb->ref.u.n, &refVal);
         }
-        CFrame_SetSingleParent(spf.p, pframe);
+        CFrame_SetSingleParent(spf.p, frame);
     }
     else
     {
-        spf = pframe;
+        spf = frame;
     }
     CPair *pq;
-    for (pq = pargs->pnext.p; pq; pq = pq->pnext.p)
+    for (pq = args->pnext.p; pq; pq = pq->pnext.p)
         ref = RefEval(pq, spf.p);
     return ref;
 }
@@ -411,17 +428,18 @@ CRef RefEvalLet(CPair *ppair, CFrame *pframe)
  * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalWhile(CPair *ppair, CFrame *pframe)
+// (while test body...): re-evaluates the body while test is true; returns the last body value.
+CRef RefEvalWhile(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *ppairCond = PpairArgs(ppair);
+    CPair *ppairCond = PpairArgs(expr);
     CPair *ppairBody = ppairCond->pnext.p;
     for (;;)
     {
-        ref = RefEval(ppairCond, pframe);
+        ref = RefEval(ppairCond, frame);
         if (ref.m_tagk == 0x17 && ref.u.n == 0)
             break;
-        ref = RefEval(ppairBody, pframe);
+        ref = RefEval(ppairBody, frame);
     }
     ref.Decref();
     ref.InitTag(0x24);
@@ -435,21 +453,23 @@ CRef RefEvalWhile(CPair *ppair, CFrame *pframe)
  * See: docs/engine/splice-scripting.md#3-the-evaluator,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalLambda(CPair *ppair, CFrame *pframe)
+// (lambda (params... [. rest]) body...): builds a CProc closure over the current frame, recording the required
+// parameter count, whether a rest parameter follows, the parameter list and the body.
+CRef RefEvalLambda(CPair *expr, CFrame *frame)
 {
-    CPair *pargs = PpairArgs(ppair);
-    CPair *ppairBody = pargs->pnext.p;
+    CPair *args = PpairArgs(expr);
+    CPair *ppairBody = args->pnext.p;
     SPO sp(PtNew__t6CGcObj1Z5CProc());
-    sp->spframe = pframe;
-    if (pargs->ref.m_tagk == 0)
-        sp->sppairParams = 0;
+    sp->closureFrame = frame;
+    if (args->ref.m_tagk == 0)
+        sp->params = 0;
     else
-        sp->sppairParams = (CPair *)pargs->ref.u.pv;
-    sp->sppairBody = ppairBody;
+        sp->params = (CPair *)args->ref.u.pv;
+    sp->body = ppairBody;
     int f = 0;
     int c = 0;
     CPair *pparam;
-    for (pparam = sp->sppairParams.p; pparam;)
+    for (pparam = sp->params.p; pparam;)
     {
         if (pparam->ref.m_tagk == 0x14)
         {
@@ -462,8 +482,8 @@ CRef RefEvalLambda(CPair *ppair, CFrame *pframe)
             c++;
         }
     }
-    sp->cargMin = c;
-    sp->fRest = f;
+    sp->minArgCount = c;
+    sp->hasRest = f;
     return CRef(sp.p);
 }
 
@@ -473,14 +493,15 @@ CRef RefEvalLambda(CPair *ppair, CFrame *pframe)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// Runs a closure's body in its call frame: evaluates each body expression in order and returns the last value.
 /* The symbol says CPair *, but the argument is the CProc being applied (RefEvalApply passes it). */
-CRef RefEvalLambdaBody(CPair *ppair, CFrame *pframe)
+CRef RefEvalLambdaBody(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *pbody = ((CProc *)ppair)->sppairBody.p;
+    CPair *pbody = ((CProc *)expr)->body.p;
     do
     {
-        ref = RefEval(pbody, pframe);
+        ref = RefEval(pbody, frame);
         pbody = pbody->pnext.p;
     } while (pbody);
     return ref;
@@ -492,14 +513,15 @@ CRef RefEvalLambdaBody(CPair *ppair, CFrame *pframe)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
-CRef RefEvalBegin(CPair *ppair, CFrame *pframe)
+// (begin expr ...): evaluates the operands in order and returns the last value (Void when empty).
+CRef RefEvalBegin(CPair *expr, CFrame *frame)
 {
     CRef ref;
     CPair *pq;
     ref.Decref();
     ref.InitTag(0x24);
-    for (pq = PpairArgs(ppair); pq; pq = pq->pnext.p)
-        ref = RefEval(pq, pframe);
+    for (pq = PpairArgs(expr); pq; pq = pq->pnext.p)
+        ref = RefEval(pq, frame);
     return ref;
 }
 
@@ -509,21 +531,21 @@ struct SPPAIR
 {
     CPair *p;
     int pad;
-    void Set(CPair *ppair) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
+    void Set(CPair *expr) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPPAIR() { p = 0; }
-    SPPAIR(CPair *ppair) { Set(ppair); }
-    ~SPPAIR() { CPair *ppair = p; if (ppair && --ppair->cref == 0) delete ppair; }
-    void Assign(CPair *ppair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
-    SPPAIR &operator=(CPair *ppair) { Assign(ppair); return *this; }
+    SPPAIR(CPair *expr) { Set(expr); }
+    ~SPPAIR() { CPair *expr = p; if (expr && --expr->cref == 0) delete expr; }
+    void Assign(CPair *expr) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+    SPPAIR &operator=(CPair *expr) { Assign(expr); return *this; }
     CPair *operator->() { return p; }
 };
 struct SPFRAME
 {
     CFrame *p;
     int pad;
-    void Set(CFrame *pframe) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
-    SPFRAME(CFrame *pframe) { Set(pframe); }
-    ~SPFRAME() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
+    void Set(CFrame *frame) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
+    SPFRAME(CFrame *frame) { Set(frame); }
+    ~SPFRAME() { CFrame *frame = p; if (frame && --frame->cref == 0) delete frame; }
 };
 
 /** @sly2-annot addr=0x1272E0
@@ -534,32 +556,35 @@ struct SPFRAME
  * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/formats/splice-scripts.md#3-names
  * @end-sly2-annot */
-CRef RefEvalApply(CPair *ppair, CFrame *pframe)
+// Function application: evaluates the operator and the operands, then calls a built-in (tag 0x19, the
+// D_002BBB90 table of {function, minimum arguments, rest flag}), a native object method (tag 0x22), or a lambda (new
+// frame binding the parameters, extra arguments collected into the rest list), checking the argument count.
+CRef RefEvalApply(CPair *expr, CFrame *frame)
 {
     CRef ref;
     BIF *pbif = 0;
-    CProc *pproc = 0;
+    CProc *proc = 0;
     METHOD *pmeth = 0;
-    CPair *ppairFn = (CPair *)ppair->ref.u.pv;
-    CRef refOp = RefEval(ppairFn, pframe);
+    CPair *ppairFn = (CPair *)expr->ref.u.pv;
+    CRef refOp = RefEval(ppairFn, frame);
     int cargMin, fRest;
     if (refOp.m_tagk == 0x19)
     {
         pbif = &D_002BBB90[refOp.u.n];
-        cargMin = pbif->cargMin;
-        fRest = pbif->fRest;
+        cargMin = pbif->minArgCount;
+        fRest = pbif->hasRest;
     }
     else if (refOp.m_tagk == 0x22)
     {
         pmeth = (METHOD *)refOp.u.pv;
         fRest = 0;
-        cargMin = pmeth->cargMin;
+        cargMin = pmeth->minArgCount;
     }
     else
     {
-        pproc = (CProc *)refOp.u.pv;
-        cargMin = pproc->cargMin;
-        fRest = pproc->fRest;
+        proc = (CProc *)refOp.u.pv;
+        cargMin = proc->minArgCount;
+        fRest = proc->hasRest;
     }
     int carg = cargMin + (fRest != 0);
     CRef aref[32];
@@ -568,7 +593,7 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
     int i;
     for (i = 0; i < c; i++)
     {
-        ref = RefEval(pn, pframe);
+        ref = RefEval(pn, frame);
         aref[i] = ref;
         pn = pn->pnext.p;
     }
@@ -580,7 +605,7 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
         while (spCur.p)
         {
             SPPAIR spNew(PtNew__t6CGcObj1Z5CPair());
-            spNew->ref = RefEval(spCur.p, pframe);
+            spNew->ref = RefEval(spCur.p, frame);
             if (spLast.p)
             {
                 spLast->pnext = spNew.p;
@@ -602,14 +627,14 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
     switch (refOp.m_tagk)
     {
     case 0x19:
-        ref = pbif->pfn(c, aref, pframe);
+        ref = pbif->function(c, aref, frame);
         break;
     case 0x20:
     {
         SPFRAME spf(PtNew__t6CGcObj1Z6CFrame());
         int dummy[2];   /* sizes the frame like the original (0x240) */
-        CFrame_SetSingleParent(spf.p, pproc->spframe.p);
-        CPair *pparam = pproc->sppairParams.p;
+        CFrame_SetSingleParent(spf.p, proc->closureFrame.p);
+        CPair *pparam = proc->params.p;
         for (i = 0; i < carg; i++)
         {
             if (pparam->ref.m_tagk == 0x14)
@@ -617,11 +642,11 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
             CRef r = CFrame_RefAddBinding(spf.p, pparam->ref.u.n, &aref[i]);
             pparam = pparam->pnext.p;
         }
-        ref = RefEvalLambdaBody((CPair *)pproc, spf.p);
+        ref = RefEvalLambdaBody((CPair *)proc, spf.p);
         break;
     }
     case 0x22:
-        ref = pmeth->pfn(pmeth->pv, c, aref);
+        ref = pmeth->function(pmeth->pv, c, aref);
         break;
     }
     return ref;
@@ -635,36 +660,39 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
  * See: docs/engine/overview.md#6-subsystem-map, docs/engine/splice-scripting.md#3-the-evaluator,
  *   docs/engine/splice-scripting.md#7-key-functions
  * @end-sly2-annot */
-CRef RefEval(CPair *ppair, CFrame *pframe)
+// The Splice evaluator's entry point: atoms evaluate to themselves, symbols are looked up, and a list is dispatched on
+// its head tag to the special-form evaluators (1 set!, 2 define, 5 assert, 6 form 6, 7 if, 8 or, 9 and, 10 cond,
+// 12 case, 13 let, 14 while, 15 lambda, 16 begin, 17 import -> Nil, 18 quote -> datum); any other list is a call.
+CRef RefEval(CPair *expr, CFrame *frame)
 {
-    switch (ppair->ref.m_tagk)
+    switch (expr->ref.m_tagk)
     {
     default:
-        return ppair->ref;
+        return expr->ref;
     case 0x18:
-        return RefEvalSymbol(ppair, pframe);
+        return RefEvalSymbol(expr, frame);
     case 0x1F:
     {
-        CPair *pn = (CPair *)ppair->ref.u.pv;
+        CPair *pn = (CPair *)expr->ref.u.pv;
         switch (pn->ref.m_tagk)
         {
-        case 1: return RefEvalSet(ppair, pframe);
-        case 2: return RefEvalDefine(ppair, pframe);
-        case 5: return RefEvalAssert(ppair, pframe);
-        case 6: return func_001266C8(ppair, pframe);
-        case 7: return RefEvalIf(ppair, pframe);
-        case 8: return RefEvalOr(ppair, pframe);
-        case 9: return RefEvalAnd(ppair, pframe);
-        case 10: return RefEvalCond(ppair, pframe);
-        case 12: return RefEvalCase(ppair, pframe);
-        case 13: return RefEvalLet(ppair, pframe);
-        case 14: return RefEvalWhile(ppair, pframe);
-        case 16: return RefEvalBegin(ppair, pframe);
-        case 15: return RefEvalLambda(ppair, pframe);
+        case 1: return RefEvalSet(expr, frame);
+        case 2: return RefEvalDefine(expr, frame);
+        case 5: return RefEvalAssert(expr, frame);
+        case 6: return EvalSpecialForm6(expr, frame);
+        case 7: return RefEvalIf(expr, frame);
+        case 8: return RefEvalOr(expr, frame);
+        case 9: return RefEvalAnd(expr, frame);
+        case 10: return RefEvalCond(expr, frame);
+        case 12: return RefEvalCase(expr, frame);
+        case 13: return RefEvalLet(expr, frame);
+        case 14: return RefEvalWhile(expr, frame);
+        case 16: return RefEvalBegin(expr, frame);
+        case 15: return RefEvalLambda(expr, frame);
         case 18: return pn->pnext.p->ref;
         case 17: return CRef(-1);
         }
-        return RefEvalApply(ppair, pframe);
+        return RefEvalApply(expr, frame);
     }
     }
 }

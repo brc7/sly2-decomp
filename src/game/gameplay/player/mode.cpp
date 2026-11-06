@@ -83,8 +83,8 @@ void CutCm(CM *pcm);
 extern "C" void SetCmPolicy(CM *pcm, int nPriority, void *pvMode, int nUnk, int nUnk2);
 extern "C" void RevokeCmPolicy(CM *pcm, int grf, int nPriority, void *pvMode, void *pvHero, void *pvOwner);
 extern SW D_003DD490;
-void IncrementSwNoPause(SW *psw) __asm__("func_0020F0C0");
-void DecrementSwNoPause(SW *psw) __asm__("func_0020F0F0");
+void IncrementSwNoPause(SW *psw) __asm__("IncrementSwNoPause");
+void DecrementSwNoPause(SW *psw) __asm__("DecrementSwNoPause");
 void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("func_00204660");
 struct SWALLOC
 {
@@ -167,10 +167,10 @@ struct LOREF
 void SetAsegaSpeed(ASEGA *pasega, float svt);
 extern "C" void SetSndmgrChannelVolume(SNDMGR *psndmgr, int iBus, float gVolume, int iSlot);
 extern "C" {
-void func_0020F198(SW *psw);
+void IncrementSwInputLock(SW *psw);
 }
 extern "C" {
-void func_0020F1A8(SW *psw);
+void DecrementSwInputLock(SW *psw);
 }
 extern "C" {
 void SetSoCnstrForce(SO *pso, int fOn);
@@ -338,7 +338,7 @@ void SetJtModeState(JTMODE *pjtmode, int nState)
         {
             if (pjtmode->nKind == 1)
             {
-                func_0020F198(&D_003DD490);
+                IncrementSwInputLock(&D_003DD490);
                 IncrementSwNoPause(&D_003DD490);
             }
             STEPPLAYER *pstepplayer = pjtmode->pstepplayer;
@@ -418,7 +418,7 @@ void SetJtModeState(JTMODE *pjtmode, int nState)
                     break;
                 case 1:
                     pjtmode->hud.SetState(-1);
-                    func_0020F1A8(&D_003DD490);
+                    DecrementSwInputLock(&D_003DD490);
                     DecrementSwNoPause(&D_003DD490);
                     break;
             }
@@ -594,8 +594,8 @@ struct X {char pad0[0x5C];int x5C;char pad1[0x6C-0x60];int x6C;char pad2[0x7C-0x
 struct GTASK {char pad[0x3B0C];X*x;};
 extern "C" void SortTasksTopologically(int*,X***);
 extern "C" void qsort(void*,unsigned,unsigned,int(*)(const void*,const void*));
-extern "C" int func_00165C28(const void*,const void*);
-extern "C" int FTaskComplete(X*);
+extern "C" int CompareTasks(const void*,const void*);
+extern "C" int IsTaskComplete(X*);
 struct LOCAL_LAYOUT{STACKSCOPE frame;int count;X**array;};
 static inline GTASK*CopyGame(GTASK*source){register GTASK*input __asm__("$16")=source;register GTASK*result __asm__("$20");__asm__("daddu %0,%1,$zero":"=r"(result):"r"(input));return result;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
@@ -638,10 +638,10 @@ extern "C" void func_0019D948(JTMODEHUD*p){
  int c;
  X**ap;
  SortTasksTopologically(&c,&ap);
- qsort(ap,c,4,func_00165C28);
+ qsort(ap,c,4,CompareTasks);
  for(;i<c;i++){
   X*x=ap[i];
-  if(pgLoop->x==x->x7C && x->x5C!=-1 && !FTaskComplete(x)){
+  if(pgLoop->x==x->x7C && x->x5C!=-1 && !IsTaskComplete(x)){
    p->pwidgetHud->tags[n++]=x->x5C;
    break;
   }

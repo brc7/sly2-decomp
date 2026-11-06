@@ -10,6 +10,8 @@
 // g_sw is defined here with an inline constructor (SW_ctor) and destructor (func_00258348 with g++'s in-charge flag
 // 2), and D_003E1C20 with an inline constructor: g++ generates the 96-instruction construct-and-destruct
 // StaticInit_sw and the _GLOBAL_$D$ stub func_00210E90 next to the _GLOBAL_$I$ one (as cm.cpp does for g_cm).
+// Entry points: SW_ctor (g_sw), ExecuteSwTransition (per frame: level loads), PostSwLoad, DeleteSw,
+// the hands-off / letterbox counters, the level and world table queries (NWorldCur, PrecWorldEntry...).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00210E70
 // SLY2_ALIAS: _GLOBAL_$D$*=func_00210E90
@@ -34,8 +36,8 @@ extern int *D_003E1C44, *D_003E1C48;
 extern LEVELLIST8 *D_003E1C4C;
 extern FILEREC *D_003E1C50;
 extern int D_003E1C54, D_003E1C58;
-SW *SW_ctor(SW *psw);
-void func_00258348(SWG *psw, int grfDelete);
+SW *SW_ctor(SW *world);
+void func_00258348(SWG *world, int grfDelete);
 extern char D_002C3EB8[], D_003E1C60[];
 }
 struct SWG
@@ -59,8 +61,8 @@ O1C20 D_003E1C20;
 // 0x210CF0 StaticInit_sw (g_sw and D_003E1C20, then the six slot pools; g_sw's destruction) and its stubs.
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-/* An SW word sw.h leaves unnamed (+0x3EA8, in the padding before slPoctl): set by func_00210978. */
-#define F3EA8(psw) (*(int *)((char *)(psw) + 0x3EA8))
+/* An SW word sw.h leaves unnamed (+0x3EA8, in the padding before slPoctl): set by SetSwUnknown3EA8. */
+#define F3EA8(world) (*(int *)((char *)(world) + 0x3EA8))
 /* A level-list entry (8 bytes) and a {key, value} table. */
 struct LEVELLIST8 { int n0; int n4; };
 struct KVE { int key; void *pv; };
@@ -71,13 +73,13 @@ extern LEVELLIST8 *D_003E1C4C;  /* g_alevellist */
 extern FILEREC *D_003E1C50;     /* g_aWorldEntryRecord */
 void ShowLetterbox(void *pletterbox);
 void HideLetterbox(void *pletterbox);
-void UpdateSwIllum(SW *psw);
+void UpdateSwIllum(SW *world);
 int NWorldCur();
 FILEREC *PrecWorldEntry(int nWorld);
 }
 void AddGrfusr(int grf);
 void RemoveGrfusr(int grf);
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *plo);
+LO *PloFindSwObject(SW *world, int grffso, OID oid, LO *plo);
 
 namespace M_SW_ctor {
 struct DL {void *first,*last;int offset;};
@@ -221,6 +223,8 @@ namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39
  * See: docs/engine/core-library.md#6-source-files, docs/engine/overview.md#3-world--level-lifecycle,
  *   docs/engine/world-sw.md#1-sw-the-world-singleton
  * @end-sly2-annot */
+// SW constructor (the global g_sw): vtable, about 30 slot-heap pools, about 60 lists, the oid/class/proxy hash buckets,
+// the default illumination (HSV 180/255/255), fog and field-of-view defaults.
 extern "C" SW *SW_ctor(SW *p)
 {
     p->a=0;p->b=0;p->vt=D_002DC018;
@@ -348,6 +352,7 @@ void RestoreChkmgrFromCheckpoint(CHKMGR *pchkmgr, CHK *pchk) __asm__("SetSwTrans
  * See: docs/engine/world-sw.md#world-sw-level-loading-transitions-hands-off-callbacks,
  *   docs/engine/world-sw.md#2-loading-a-level, docs/engine/world-sw.md#7-checkpoints-refuted
  * @end-sly2-annot */
+// Restores the checkpoint manager from a checkpoint record and marks it restored.
 void RestoreChkmgrFromCheckpoint(CHKMGR *pchkmgr, CHK *pchk)
 {
     pchkmgr->fRestored = 1;
@@ -363,7 +368,8 @@ extern int D_00443740;
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-int func_0020E040(void) { if (g_sw.fTransitionPending != 0) return 1; return D_00443740 == 1; }
+// True while a level transition is pending or the wipe is wiping out (D_00443740 state 1).
+int IsSwTransitionBusy(void) { if (g_sw.fTransitionPending != 0) return 1; return D_00443740 == 1; }
 } } // namespace M_func_0020E040
 
 namespace M_DeleteSw { extern "C" {
@@ -375,8 +381,8 @@ extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48
 void BroadcastGameEvent(void *p, int a, int b);
 void AbortJob(int h);
 void func_001D9408(void *p);
-void func_001FF830(struct S *p);
-void func_00161458(void *p);
+void DeleteSwSplice(struct S *p);
+void ClearGameDifficulty(void *p);
 void func_0014D650(void *p);
 void ResetSndmgr(void *p);
 void func_001EC7E8(void);
@@ -392,17 +398,19 @@ void FreeSw__Fv(void);
  * See: docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-void DeleteSw(struct S *p)
+// Tears down the current world before a load: game callback 1, frees the view and joystick state, resets the sound
+// manager, clears about 15 global object pointers and frees the world's memory.
+void DeleteSw(struct S *world)
 {
     void *pv = D_002DEB30;
     BroadcastGameEvent(pv, 1, 0);
-    if (p->h3B18) {
-        AbortJob(p->h3B18);
-        p->h3B18 = 0;
+    if (world->h3B18) {
+        AbortJob(world->h3B18);
+        world->h3B18 = 0;
     }
     func_001D9408(D_003D9E70);
-    func_001FF830(p);
-    func_00161458(pv);
+    DeleteSwSplice(world);
+    ClearGameDifficulty(pv);
     func_0014D650(D_002DDF40);
     ResetSndmgr(D_003DD040);
     func_001EC7E8();
@@ -452,7 +460,9 @@ void BroadcastGameEvent(void *p, int a, int b);
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_0020E180(struct S *p)
+// Sets up a fresh world for loading: the work buffers (3 x 0x4800 and 0x8000 bytes), a list header, two ZPR inits,
+// game callback 2.
+void InitSwLoadBuffers(struct S *world)
 {
     struct MSG msg;
     struct ZPR zpr;
@@ -461,22 +471,22 @@ void func_0020E180(struct S *p)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        p->a3CD4[i] = func_001AE1D0(&msg);
+        world->a3CD4[i] = func_001AE1D0(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    p->p3F20 = func_001AE2A0(&msg);
+    world->p3F20 = func_001AE2A0(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    p->ph = (__typeof__(p->ph))func_001AE2A0(&msg);
-    p->ph->a = -1;
-    p->ph->c = -1;
-    func_0011A050(p->ph->dl, 0x14);
+    world->ph = (__typeof__(world->ph))func_001AE2A0(&msg);
+    world->ph->a = -1;
+    world->ph->c = -1;
+    func_0011A050(world->ph->dl, 0x14);
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        func_001BE398(p->a45E8[j], &zpr);
-    if (p->fl3BF4 & 0x20)
-        p->n3E38 = 1;
+        func_001BE398(world->a45E8[j], &zpr);
+    if (world->fl3BF4 & 0x20)
+        world->n3E38 = 1;
     BroadcastGameEvent(D_002DEB30, 2, 0);
 }
 } } // namespace M_func_0020E180
@@ -485,7 +495,7 @@ namespace M_func_0020E2B0 { extern "C" {
 struct O { char pad[0xB8]; int nB8; char p2[0xC]; int nC8; };
 struct S { char pad[0x3E5C]; int n; };
 int CploFindSwObjectsByClass(struct S *p, int a, int b, int c, int cMax, struct O **apo);
-void func_001A6D28(struct O *o, int n);
+void SetLoVisMask(struct O *o, int n);
 /** @sly2-annot addr=0x20E2B0
  * Purpose: Find up to 16 objects of class MS (0x31); keep the one with largest +0xB8, store its +0xC8 and
  *   call 0x1A6D28(po,0xFF)
@@ -493,10 +503,12 @@ void func_001A6D28(struct O *o, int n);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_0020E2B0(struct S *p)
+// Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its +0xC8 and makes
+// it visible to every camera mask. (inferred)
+void SelectSwMainMs(struct S *world)
 {
     struct O *apo[16];
-    int c = CploFindSwObjectsByClass(p, 5, 0x31, 0, 16, apo);
+    int c = CploFindSwObjectsByClass(world, 5, 0x31, 0, 16, apo);
     int nMax = 0;
     struct O *poBest = 0;
     int i;
@@ -507,8 +519,8 @@ void func_0020E2B0(struct S *p)
         }
     }
     if (poBest) {
-        p->n = poBest->nC8;
-        func_001A6D28(poBest, 0xFF);
+        world->n = poBest->nC8;
+        SetLoVisMask(poBest, 0xFF);
     }
 }
 } } // namespace M_func_0020E2B0
@@ -525,14 +537,16 @@ extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_0020E338(S *p)
+// Creates the world's screen tint/fill object (class 0x74, CID116 in docs/reference/class-tree.md; parameters 0.1 and
+// 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
+extern "C" void CreateSwScreenTint(S *world)
 {
-    p->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
-    p->o->g60 = 0.1f;
-    p->o->g64 = 0.25f;
-    p->o->x54 = 0x80200000;
-    p->o->n6C = 1;
-    p->o->V9();
+    world->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
+    world->o->g60 = 0.1f;
+    world->o->g64 = 0.25f;
+    world->o->x54 = 0x80200000;
+    world->o->n6C = 1;
+    world->o->V9();
 }
 } // namespace M_func_0020E338
 
@@ -641,8 +655,8 @@ public:
 extern int D_002E1E54;
 extern SAVEDATA D_003D4A60;
 extern const char *D_002A39E8[9];
-extern "C" SVPATH *PkeyNewSaveKey(const char *pchz, ...);
-extern "C" CRef RefSetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *psave);
+extern "C" SVPATH *NewSaveKey(const char *pchz, ...);
+extern "C" CRef RefSetGlobalSaveVar(SVPATH *psvp, const CRef &ref, SAVEDATA *saveManager);
 inline void SetSaveVarRef(SVPATH *psvp, CRef ref) { RefSetGlobalSaveVar(psvp, ref, &D_003D4A60); }
 inline void SetSaveVarInt(SVPATH *psvp, int n)
 {
@@ -652,7 +666,7 @@ inline void SetSaveVarInt(SVPATH *psvp, int n)
 extern "C" CRef RefSetSaveVarV(const CRef &ref, const char *pchz, ...);
 extern "C" int NWorldCur();
 extern "C" int NEpisodeBest();
-void ResolveSwSaveVars(SW *psw) __asm__("ResolveSwSaveVars__FP2SW");
+void ResolveSwSaveVars(SW *world) __asm__("ResolveSwSaveVars__FP2SW");
 /** @sly2-annot addr=0x20E3C0
  * Purpose: Look up save-variable paths the game reads (language, sound flags, job/world, per-world
  *   dt/percent_complete), store current language/job/world, raise episodeBest, notify game (event 3)
@@ -663,31 +677,33 @@ void ResolveSwSaveVars(SW *psw) __asm__("ResolveSwSaveVars__FP2SW");
  *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-void ResolveSwSaveVars(SW *psw)
+// Looks up the save variables the game reads (language, sound flags, job and world, per-world play time and percent
+// complete), stores the current language, job and world, raises episodeBest and notifies the game (event 3).
+void ResolveSwSaveVars(SW *world)
 {
-    psw->psvpDt = PkeyNewSaveKey("dt", 0);
-    psw->psvpWidCurrent = PkeyNewSaveKey("widCurrent", 0);
-    psw->psvpEpisodeCurrent = PkeyNewSaveKey("episodeCurrent", 0);
-    psw->psvpCcoin = PkeyNewSaveKey("loot", "ccoin", 0);
-    psw->psvpLang = PkeyNewSaveKey("flags", "lang", 0);
-    psw->psvpMixerMode = PkeyNewSaveKey("flags", "nMixerMode", 0);
-    psw->psvpMusicVolume = PkeyNewSaveKey("flags", "uMusicVolume", 0);
-    psw->psvpEffectsVolume = PkeyNewSaveKey("flags", "uEffectsVolume", 0);
-    psw->psvpUseHeadset = PkeyNewSaveKey("flags", "fUseHeadset", 0);
-    psw->psvpScreenCenterX = PkeyNewSaveKey("flags", "dxScreenCenter", 0);
-    psw->psvpScreenCenterY = PkeyNewSaveKey("flags", "dyScreenCenter", 0);
-    psw->psvpNoVibration = PkeyNewSaveKey("flags", "fNoVibration", 0);
-    psw->psvpReverseLookAround = PkeyNewSaveKey("flags", "fReverseLookAround", 0);
-    psw->psvpReverseAim = PkeyNewSaveKey("flags", "fReverseAim", 0);
-    psw->psvpAutosaveWarned = PkeyNewSaveKey("flags", "fAutosaveWarned", 0);
+    world->psvpDt = NewSaveKey("dt", 0);
+    world->psvpWidCurrent = NewSaveKey("widCurrent", 0);
+    world->psvpEpisodeCurrent = NewSaveKey("episodeCurrent", 0);
+    world->psvpCcoin = NewSaveKey("loot", "ccoin", 0);
+    world->psvpLang = NewSaveKey("flags", "lang", 0);
+    world->psvpMixerMode = NewSaveKey("flags", "nMixerMode", 0);
+    world->psvpMusicVolume = NewSaveKey("flags", "uMusicVolume", 0);
+    world->psvpEffectsVolume = NewSaveKey("flags", "uEffectsVolume", 0);
+    world->psvpUseHeadset = NewSaveKey("flags", "fUseHeadset", 0);
+    world->psvpScreenCenterX = NewSaveKey("flags", "dxScreenCenter", 0);
+    world->psvpScreenCenterY = NewSaveKey("flags", "dyScreenCenter", 0);
+    world->psvpNoVibration = NewSaveKey("flags", "fNoVibration", 0);
+    world->psvpReverseLookAround = NewSaveKey("flags", "fReverseLookAround", 0);
+    world->psvpReverseAim = NewSaveKey("flags", "fReverseAim", 0);
+    world->psvpAutosaveWarned = NewSaveKey("flags", "fAutosaveWarned", 0);
     for (int iworld = 0; iworld < 9; iworld++)
     {
-        psw->apsvpEpisodeDt[iworld] = PkeyNewSaveKey("episode", D_002A39E8[iworld], "dt", 0);
-        psw->apsvpEpisodePercent[iworld] = PkeyNewSaveKey("episode", D_002A39E8[iworld], "percent_complete", 0);
+        world->apsvpEpisodeDt[iworld] = NewSaveKey("episode", D_002A39E8[iworld], "dt", 0);
+        world->apsvpEpisodePercent[iworld] = NewSaveKey("episode", D_002A39E8[iworld], "percent_complete", 0);
     }
-    SetSaveVarInt(psw->psvpLang, D_002E1E54);
-    SetSaveVarInt(psw->psvpWidCurrent, IlevelCur());
-    SetSaveVarInt(psw->psvpEpisodeCurrent, NWorldCur());
+    SetSaveVarInt(world->psvpLang, D_002E1E54);
+    SetSaveVarInt(world->psvpWidCurrent, IlevelCur());
+    SetSaveVarInt(world->psvpEpisodeCurrent, NWorldCur());
     if (NWorldCur() > NEpisodeBest())
         RefSetSaveVarV(CRef((TAGK)0x15, NWorldCur()), "episodeBest", 0);
     BroadcastGameEvent(&D_002DEB30, 3, 0);
@@ -703,15 +719,15 @@ struct S {
 };
 extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
 void func_0011CDD8(void *p);
-void func_0020E338(struct S *p);
-void func_0020E2B0(struct S *p);
-void func_001FF828(struct S *p);
+void CreateSwScreenTint(struct S *p);
+void SelectSwMainMs(struct S *p);
+void ClearSwSpliceTable(struct S *p);
 void InitSwProxySpares(struct S *p);
-void func_0020F710(struct S *p);
+void BindSwTimerHud(struct S *p);
 void func_001569B8(struct S *p);
 void EnsureSwDefaultLight(struct S *p);
 void PostLoadSwPathzones(struct S *p);
-void func_00210940(struct S *p);
+void BindSwBootyProxy(struct S *p);
 void func_001957C0(struct S *p);
 void func_001D9520(void *p);
 void ProcessSwCallbacks(struct S *p);
@@ -728,34 +744,36 @@ void BroadcastGameEvent(void *p, int a, int b);
  * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level
  * @end-sly2-annot */
-void PostSwLoad(struct S *p)
+// After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
+// until the queue is empty, resets the camera and runs game callback 4.
+void PostSwLoad(struct S *world)
 {
     struct O **ppo;
-    func_0011CDD8(p->a403C);
-    func_0011CDD8(p->a4054);
-    func_0011CDD8(p->a4070);
-    func_0011CDD8(p->a4088);
-    func_0020E338(p);
-    func_0020E2B0(p);
-    func_001FF828(p);
-    InitSwProxySpares(p);
-    func_0020F710(p);
-    func_001569B8(p);
-    EnsureSwDefaultLight(p);
-    PostLoadSwPathzones(p);
-    func_00210940(p);
-    func_001957C0(p);
+    func_0011CDD8(world->a403C);
+    func_0011CDD8(world->a4054);
+    func_0011CDD8(world->a4070);
+    func_0011CDD8(world->a4088);
+    CreateSwScreenTint(world);
+    SelectSwMainMs(world);
+    ClearSwSpliceTable(world);
+    InitSwProxySpares(world);
+    BindSwTimerHud(world);
+    func_001569B8(world);
+    EnsureSwDefaultLight(world);
+    PostLoadSwPathzones(world);
+    BindSwBootyProxy(world);
+    func_001957C0(world);
     func_001D9520(D_003D9E70);
-    while (ProcessSwCallbacks(p), p->ppoLast != p->ppoFirst) {
-        for (ppo = p->ppoFirst; ppo < p->ppoLast; ppo++)
+    while (ProcessSwCallbacks(world), world->ppoLast != world->ppoFirst) {
+        for (ppo = world->ppoFirst; ppo < world->ppoLast; ppo++)
             (*ppo)->vt[15].pf((char *)*ppo + (*ppo)->vt[15].d);
-        p->ppoLast = p->ppoFirst;
+        world->ppoLast = world->ppoFirst;
     }
-    p->ppoLast = 0;
-    p->ppoFirst = 0;
-    p->n39D8 = 0;
-    p->n39D0 = 0;
-    func_001C1260(p->p45CC);
+    world->ppoLast = 0;
+    world->ppoFirst = 0;
+    world->n39D8 = 0;
+    world->n39D0 = 0;
+    func_001C1260(world->p45CC);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -783,7 +801,7 @@ void FlushFrames__Fi(int);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void SetPhase__F5PHASE(int);
-void func_00258248(KEY *);
+void InitFileKey(KEY *);
 STREAM *func_001848A8(STREAM *,int,void *,int);
 int func_00184D60(STREAM *,KEY *);
 void func_00184950(STREAM *,int) __asm__("_$_10CStreamBis");
@@ -796,13 +814,13 @@ void *func_002333B4(void *,int,uint) __asm__("memset");
 SW *SW_ctor(SW *);
 int CMpeg_ExecuteOids(void *);
 void InitCm__FP2CM(void *);
-void func_0020E180(SW *);
+void InitSwLoadBuffers(SW *);
 void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *,STREAM *);
 void CStreamBis_Close(STREAM *);
 void PostSwLoad(SW *);
-void func_001618F8(SW *,float);
+void ShowCountdownHud(SW *,float);
 void ClearCheatItems(void);
-CONTEXT *PwarpFromOid(SW *,int,int);
+CONTEXT *FindWarpByOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
 ACTOR *PpoHero(SW *);
 ACTOR *PpoCur(SW *);
@@ -816,7 +834,7 @@ void UpdateCmLast__FP2CM(void *);
 void CutCm__FP2CM(void *);
 void BroadcastGameEvent(void *,int,void *);
 void ClearPhase(int);
-void func_0022B420(void *);
+void ResumeWipeAfterLoad(void *);
 void func_001A4E80(void *);
 }
 struct FRAME {FRAME(){}~FRAME(){}};
@@ -842,16 +860,19 @@ static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("
  * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#3-world--level-lifecycle, docs/engine/overview.md#6-subsystem-map
  * @end-sly2-annot */
-extern "C" void ExecuteSwTransition(SW *p)
+// Runs a pending level transition: opens the level file, deletes the old world, constructs a new g_sw, loads it from
+// the BRX (LoadSwFromBrx, PostSwLoad), restores the checkpoint and the current actor, sets up the camera and runs game
+// callback 5. Called once per frame by the main loop.
+extern "C" void ExecuteSwTransition(SW *world)
 {
-    if(!p->pending)return;
+    if(!world->pending)return;
     FlushFrames__Fi(1);
-    REQUEST request=p->request;
-    REQUEST *destination=&p->request;
-    p->pending=0;
+    REQUEST request=world->request;
+    REQUEST *destination=&world->request;
+    world->pending=0;
     float resume;
     if(request.flags&0xCD)resume=0.0f;
-    else{float remaining=p->resumeTime-Time();resume=remaining>0.0f?remaining:0.0f;}
+    else{float remaining=world->resumeTime-Time();resume=remaining>0.0f?remaining:0.0f;}
     FRAME frame;
     FRAME *scope=&frame;
     STACKSCOPE_ctor(scope);
@@ -859,10 +880,10 @@ extern "C" void ExecuteSwTransition(SW *p)
     KEY key;
     KEY *keyPointer=&key;
     keyPointer->kind=2;
-    func_00258248(keyPointer);
+    InitFileKey(keyPointer);
     int hasFile=NonZero(request.header.words[1]^request.header.words[15]);
     if(hasFile&&!SetKey(&key,&request.header)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
-    HEADER *current=&p->current; const HEADER *requested=&request.header; int changed=!Same(requested,current);
+    HEADER *current=&world->current; const HEADER *requested=&request.header; int changed=!Same(requested,current);
     STREAM stream;
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
@@ -871,7 +892,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
-    DeleteSw(p);
+    DeleteSw(world);
     ResetClock(D_002DDED0);
     AddGrfusr__Fi(8);
     func_002333B4(&D_003DD490,0,0x4790);
@@ -879,20 +900,20 @@ extern "C" void ExecuteSwTransition(SW *p)
     SW_ctor(&D_003DD490);
     if(CMpeg_ExecuteOids(D_002F66B0))changed=1;
     InitCm__FP2CM(D_002DDF40);
-    p->current=request.header;
+    world->current=request.header;
     *destination=request;
-    func_0020E180(p);
-    if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(p,reader);CStreamBis_Close(reader);}
-    PostSwLoad(p);
-    if(resume>0.0f)func_001618F8(p,resume);
-    if(changed||(p->request.flags&0x40))ClearCheatItems();
-    CONTEXT *context=PwarpFromOid(p,p->request.objectId,p->request.objectKey);
-    if(context){TriggerWarp(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
-    if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
+    InitSwLoadBuffers(world);
+    if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(world,reader);CStreamBis_Close(reader);}
+    PostSwLoad(world);
+    if(resume>0.0f)ShowCountdownHud(world,resume);
+    if(changed||(world->request.flags&0x40))ClearCheatItems();
+    CONTEXT *context=FindWarpByOid(world,world->request.objectId,world->request.objectKey);
+    if(context){TriggerWarp(context);world->objectId=world->request.objectId;world->objectKey=world->request.objectKey;}
+    if(!PpoHero(world)&&!PpoCur(world)&&world->actorCount>0){
         ACTOR *selected=0;
         int actorId;
         {REF value=RefGetSaveVarV("oidPoCurrent",0);actorId=value.value;}
-        if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(p,5,actorId,0);
+        if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(world,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
         if(!selected)selected=D_002F7900;
@@ -904,21 +925,21 @@ extern "C" void ExecuteSwTransition(SW *p)
                 for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->tag)break;
                 if(i>=context->count)Attach(selected,context);
             }
-            for(int i=0;i<p->actorCount;i++){
-                ACTOR *actor=p->actors[i];
+            for(int i=0;i<world->actorCount;i++){
+                ACTOR *actor=world->actors[i];
                 if(actor!=selected&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&!GetPoCtlState(actor))Hide(actor);
             }
         }
     }
     if(!NWorldCur()){
-        ACTOR *actor=PpoHero(p);
+        ACTOR *actor=PpoHero(world);
         if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
     UpdateCmLast__FP2CM(D_002DDF40);
     CutCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30,5,0);
     ClearPhase(2);
-    func_0022B420(D_00443740);
+    ResumeWipeAfterLoad(D_00443740);
     if(!hasFile)func_001A4E80(D_002E1E88);
     func_00184950(reader,2);
     STACKSCOPE_ctor_1AE4A0(scope,2);
@@ -929,7 +950,7 @@ namespace M_IncrementSwHandsOff { extern "C" {
 struct S { char pad[0x3D78]; int c; };
 void AddGrfusr__Fi(int n);
 void AcquireSwLetterbox(struct S *p);
-void func_0020F198(struct S *p);
+void IncrementSwInputLock(struct S *p);
 /** @sly2-annot addr=0x20EFC0
  * Purpose: ++SW+0x3D78 (first -> AddGrfusr(2)); grf&1 AcquireSwLetterbox, grf&2 ++count 0x3D84
  * Info: proposed name IncrementSwHandsOff (T1); TU sw
@@ -938,11 +959,13 @@ void func_0020F198(struct S *p);
  * See: docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
-void IncrementSwHandsOff(struct S *p, int fl)
+// Takes control away from the player (counted): the first call disables input; flag 1 also shows the letterbox,
+// flag 2 also locks input.
+void IncrementSwHandsOff(struct S *world, int fl)
 {
-    if (++p->c == 1) AddGrfusr__Fi(2);
-    if (fl & 1) AcquireSwLetterbox(p);
-    if (fl & 2) func_0020F198(p);
+    if (++world->c == 1) AddGrfusr__Fi(2);
+    if (fl & 1) AcquireSwLetterbox(world);
+    if (fl & 2) IncrementSwInputLock(world);
 }
 } } // namespace M_IncrementSwHandsOff
 
@@ -953,7 +976,7 @@ extern struct G D_002DFC00;
 void RemoveGrfusr__Fi(int n);
 void func_00187E08(struct G *pg, int n);
 void ReleaseSwLetterbox(struct S *p);
-void func_0020F1A8(struct S *p);
+void DecrementSwInputLock(struct S *p);
 /** @sly2-annot addr=0x20F030
  * Purpose: --SW+0x3D78 (last -> RemoveGrfusr(2), SetJoyBtnHandled); grf&1 ReleaseSwLetterbox, grf&2 --0x3D84
  * Info: proposed name DecrementSwHandsOff (T1); TU sw
@@ -963,28 +986,30 @@ void func_0020F1A8(struct S *p);
  * See: docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
-void DecrementSwHandsOff(struct S *p, int grf)
+// Gives control back (counted): the last call re-enables input; flags as for IncrementSwHandsOff.
+void DecrementSwHandsOff(struct S *world, int grf)
 {
-    if (--p->n == 0) {
+    if (--world->n == 0) {
         RemoveGrfusr__Fi(2);
         func_00187E08(&D_002DFC00, 8);
     }
-    if (grf & 1) ReleaseSwLetterbox(p);
-    if (grf & 2) func_0020F1A8(p);
+    if (grf & 1) ReleaseSwLetterbox(world);
+    if (grf & 2) DecrementSwInputLock(world);
 }
 } } // namespace M_DecrementSwHandsOff
 
 /** @sly2-annot addr=0x20F0B0
  * Purpose: SW+0x3D78 > 0
- * Info: proposed name FSwHandsOff (T1); TU sw
+ * Info: proposed name IsSwHandsOff (T1); TU sw
  * Notes: names_v2 C proposed GetSwPlayerSuck__FP2SWPf (0.200)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" int FSwHandsOff(SW *psw)
+// True while the player has no control (hands-off count > 0).
+extern "C" int IsSwHandsOff(SW *world)
 {
-    return psw->cHandsOff > 0;
+    return world->cHandsOff > 0;
 }
 
 /** @sly2-annot addr=0x20F0C0
@@ -998,9 +1023,10 @@ extern "C" int FSwHandsOff(SW *psw)
  * See: docs/engine/cutscenes.md#1-relay-and-jsg-the-sequence-engine-tu-0x1dfad8-0x1e5d80-file-name-unknown-lilly-jsgc,
  *   docs/engine/world-sw.md#5-hands-off-and-locks, docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-extern "C" void func_0020F0C0(SW *psw)
+// Disables pausing (counted; used by cutscene hands-off and the recon mode).
+extern "C" void IncrementSwNoPause(SW *world)
 {
-    if (++psw->cNoPause == 1) {
+    if (++world->cNoPause == 1) {
         AddGrfusr(4);
     }
 }
@@ -1016,9 +1042,10 @@ extern "C" void func_0020F0C0(SW *psw)
  *   docs/guides/naming-workflow.md#1-where-things-stand-master_names_v2,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
-extern "C" void func_0020F0F0(SW *psw)
+// Re-enables pausing (counted).
+extern "C" void DecrementSwNoPause(SW *world)
 {
-    if (--psw->cNoPause == 0) {
+    if (--world->cNoPause == 0) {
         RemoveGrfusr(4);
     }
 }
@@ -1033,9 +1060,10 @@ SLY2_SCRAP("slt $2, $zero, $2");
  * See: docs/engine/world-sw.md#5-hands-off-and-locks,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void AcquireSwLetterbox(SW *psw)
+// Shows the letterbox bars (counted; the first call hides the subtitles and shows the letterbox object).
+extern "C" void AcquireSwLetterbox(SW *world)
 {
-    if (++psw->cUnk3d80 == 1) {
+    if (++world->cUnk3d80 == 1) {
         ShowLetterbox(D_002E1E60);
     }
 }
@@ -1047,9 +1075,10 @@ extern "C" void AcquireSwLetterbox(SW *psw)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void ReleaseSwLetterbox(SW *psw)
+// Hides the letterbox bars when the last user releases them.
+extern "C" void ReleaseSwLetterbox(SW *world)
 {
-    if (--psw->cUnk3d80 == 0) {
+    if (--world->cUnk3d80 == 0) {
         HideLetterbox(D_002E1E60);
     }
 }
@@ -1063,9 +1092,10 @@ SLY2_SCRAP("slt $2, $zero, $2");
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_0020F198(SW *psw)
+// Locks player input (counted). (inferred)
+extern "C" void IncrementSwInputLock(SW *world)
 {
-    psw->cUnk3d84++;
+    world->cUnk3d84++;
 }
 
 /** @sly2-annot addr=0x20F1A8
@@ -1074,9 +1104,10 @@ extern "C" void func_0020F198(SW *psw)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_0020F1A8(SW *psw)
+// Unlocks player input (counted). (inferred)
+extern "C" void DecrementSwInputLock(SW *world)
 {
-    psw->cUnk3d84--;
+    world->cUnk3d84--;
 }
 
 /** @sly2-annot addr=0x20F1B8
@@ -1085,9 +1116,10 @@ extern "C" void func_0020F1A8(SW *psw)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" int func_0020F1B8(SW *psw)
+// True while player input is locked. (inferred)
+extern "C" int IsSwInputLocked(SW *world)
 {
-    return psw->cUnk3d84 > 0;
+    return world->cUnk3d84 > 0;
 }
 
 namespace M_UpdateSwIllum { extern "C" {
@@ -1108,30 +1140,32 @@ float GLimitLm__FP2LMf(void *p, float g);
  * See: docs/engine/rendering.md#3-drawsw-sort-prologue-and-pass-dispatch-srchandfunc_00157fa0c-cstatic,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void UpdateSwIllum(struct S *p)
+// Recomputes the ambient light colour from the world's HSV colour scaled by the midtone and shadow levels and bumps
+// the illumination change counter.
+void UpdateSwIllum(struct S *world)
 {
     float k = 1.0f / 255.0f;
     V3 c;
     UV out;
     U u;
     qword r;
-    c.x = p->hsv.x;
-    c.y = p->hsv.y * k;
-    c.z = p->hsv.z * k;
+    c.x = world->hsv.x;
+    c.y = world->hsv.y * k;
+    c.z = world->hsv.z * k;
     ConvertUserRgbToUserHsv(&c, &out);
     {
         qword qwuqOut;
-        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(p->f3E20 * k));
+        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(world->f3E20 * k));
         u.q = qwuqOut;
     }
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;
     func_001ED2D8(&out);
-    p->rgb = out.v;
-    p->f3E34 = p->f3E24 * k;
-    if (p->f3E38)
-        p->f3E34 = GLimitLm__FP2LMf(D_002BBB60, p->f3E34 + 0.3f);
-    p->n3D5C++;
+    world->rgb = out.v;
+    world->f3E34 = world->f3E24 * k;
+    if (world->f3E38)
+        world->f3E34 = GLimitLm__FP2LMf(D_002BBB60, world->f3E34 + 0.3f);
+    world->n3D5C++;
 }
 } } // namespace M_UpdateSwIllum
 
@@ -1141,10 +1175,11 @@ void UpdateSwIllum(struct S *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_0020F2B8(SW *psw, qword hsv)
+// Sets the world's illumination HSV colour and recomputes the ambient light.
+extern "C" void SetSwIllumHsv(SW *world, qword hsv)
 {
-    *(qword *)&psw->hsvLight = hsv;
-    UpdateSwIllum(psw);
+    *(qword *)&world->hsvLight = hsv;
+    UpdateSwIllum(world);
 }
 
 /** @sly2-annot addr=0x20F2D8
@@ -1154,10 +1189,11 @@ extern "C" void func_0020F2B8(SW *psw, qword hsv)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void SetSwIllumShadow(SW *psw, float g)
+// Sets the illumination shadow level and recomputes the ambient light.
+extern "C" void SetSwIllumShadow(SW *world, float g)
 {
-    psw->gMidtone = g;
-    UpdateSwIllum(psw);
+    world->gMidtone = g;
+    UpdateSwIllum(world);
 }
 
 /** @sly2-annot addr=0x20F2F8
@@ -1167,10 +1203,11 @@ extern "C" void SetSwIllumShadow(SW *psw, float g)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8+verify_side
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void SetSwIllum(SW *psw, float g)
+// Sets the illumination midtone (default 90) and recomputes the ambient light.
+extern "C" void SetSwIllum(SW *world, float g)
 {
-    psw->gLightScale = g;
-    UpdateSwIllum(psw);
+    world->gLightScale = g;
+    UpdateSwIllum(world);
 }
 
 namespace M_LoadLevelTableFromBrx {
@@ -1252,7 +1289,7 @@ extern "C" { extern int *D_003E1C44; }
 extern "C" { extern int *D_003E1C48; }
 extern "C" { extern LEVELLIST *D_003E1C4C; }
 extern "C" { extern FILEREC *D_003E1C50; }
-extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis) __asm__("LoadLevelTableFromBrx");
+extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream) __asm__("LoadLevelTableFromBrx");
 /** @sly2-annot addr=0x20F318
  * Purpose: Read level table: clevel x {file record, world, episode, fEntry, n level numbers}; fills
  *   g_alevellist/g_anWorldOfLevel/g_anEpisodeOfLevel/world entry records
@@ -1261,10 +1298,12 @@ extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis) __asm__
  * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#3-level-table-and-world-identity, docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis)
+// Reads the level table: per level its file record, world, episode, entry flag and level numbers (fills the level
+// list, the world and episode of each level and the world entry records).
+extern "C" void LoadLevelTableFromBrx(SW *world, CBinaryInputStream *stream)
 {
-    D_003E1C38 = pbis->U32Read();
-    D_003E1C3C = pbis->U32Read();
+    D_003E1C38 = stream->U32Read();
+    D_003E1C3C = stream->U32Read();
     D_003E1C40 = (FILEREC *)PvAllocSwLoad(D_003E1C38 * sizeof(FILEREC), 0x10);
     D_003E1C44 = (int *)PvAllocSwLoad(D_003E1C38 * sizeof(int), 0x10);
     D_003E1C48 = (int *)PvAllocSwLoad(D_003E1C38 * sizeof(int), 0x10);
@@ -1272,16 +1311,16 @@ extern "C" void LoadLevelTableFromBrx(SW *psw, CBinaryInputStream *pbis)
     D_003E1C50 = (FILEREC *)PvAllocSwClearLoad(9 * sizeof(FILEREC), 0x10);
     for (int ilevel = 0; ilevel < D_003E1C38; ilevel++)
     {
-        pbis->ReadFileRecord(&D_003E1C40[ilevel]);
-        D_003E1C44[ilevel] = pbis->U8Read();
-        D_003E1C48[ilevel] = pbis->U8Read();
-        if (pbis->U8Read())
+        stream->ReadFileRecord(&D_003E1C40[ilevel]);
+        D_003E1C44[ilevel] = stream->U8Read();
+        D_003E1C48[ilevel] = stream->U8Read();
+        if (stream->U8Read())
             D_003E1C50[D_003E1C44[ilevel]] = D_003E1C40[ilevel];
         LEVELLIST *plevellist = &D_003E1C4C[ilevel];
-        plevellist->c = pbis->U8Read();
+        plevellist->c = stream->U8Read();
         plevellist->a = (short *)PvAllocSwLoad(plevellist->c * sizeof(short), 0x10);
         for (int i = 0; i < plevellist->c; i++)
-            plevellist->a[i] = pbis->U16Read();
+            plevellist->a[i] = stream->U16Read();
     }
 }
 } // namespace M_LoadLevelTableFromBrx
@@ -1290,7 +1329,7 @@ namespace M_LoadSwSharedHeaderFromBrx { extern "C" {
 extern int D_003E1C30;
 extern int D_003E1C54;
 extern int D_003E1C58;
-int S32Read__18CBinaryInputStream(void *pbis);
+int S32Read__18CBinaryInputStream(void *stream);
 /** @sly2-annot addr=0x20F5D0
  * Purpose: Read (cb, id) of a cross-level shared data block; flag reload if id changed or forced
  * Info: proposed name LoadSwSharedHeaderFromBrx (T1); TU sw
@@ -1300,10 +1339,12 @@ int S32Read__18CBinaryInputStream(void *pbis);
  *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void LoadSwSharedHeaderFromBrx(int a, void *pbis)
+// Reads the header (size, id) of the data block shared across levels and flags a reload when the id changed or when
+// forced.
+void LoadSwSharedHeaderFromBrx(int a, void *stream)
 {
-    int x = S32Read__18CBinaryInputStream(pbis);
-    int y = S32Read__18CBinaryInputStream(pbis);
+    int x = S32Read__18CBinaryInputStream(stream);
+    int y = S32Read__18CBinaryInputStream(stream);
     D_003E1C30 = x;
     if (y != D_003E1C58) a = 1;
     D_003E1C54 = a;
@@ -1335,7 +1376,8 @@ void func_00170828(void *p);
  *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx,
  *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
  * @end-sly2-annot */
-void LoadSwSharedDataFromBrx(void *p, void *q)
+// Reads the shared data block when it changed (and rebuilds from it), otherwise skips it and reuses the loaded copy.
+void LoadSwSharedDataFromBrx(void *world, void *q)
 {
     Align__18CBinaryInputStreami(q, 0x10);
     if (D_003E1C54) {
@@ -1349,11 +1391,11 @@ void LoadSwSharedDataFromBrx(void *p, void *q)
         x = PvAllocSlot__FP8ALLOCREQ(pm); }
         Read__18CBinaryInputStreamiPv(q, D_003E1C30, x);
         RelocateSharedColorTables(x);
-        UploadBitmaps__FP3GSB(p);
+        UploadBitmaps__FP3GSB(world);
         STACKSCOPE_ctor_1AE4A0(&l, 2);
     } else {
         Skip__18CBinaryInputStreami(q, D_003E1C30);
-        func_00170828(p);
+        func_00170828(world);
     }
 }
 } } // namespace M_LoadSwSharedDataFromBrx
@@ -1376,7 +1418,9 @@ int func_001C7D00(void);
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_0020F710(struct S *p)
+// Finds the four timer HUD objects (oids 0x371, 0x36D, 0x36E, 0x36F), initializes them and records two counters.
+// (inferred)
+void BindSwTimerHud(struct S *world)
 {
     struct L l;
     int i;
@@ -1388,11 +1432,11 @@ void func_0020F710(struct S *p)
         int x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
         if (x) {
             SetWidgetXf(x, &l);
-            p->ae[i].x = x;
+            world->ae[i].x = x;
         }
     }
-    p->n4764 = CClueCollected();
-    p->n4768 = func_001C7D00();
+    world->n4764 = CClueCollected();
+    world->n4768 = func_001C7D00();
 }
 } } // namespace M_func_0020F710
 
@@ -1418,14 +1462,16 @@ void SetSndSourceLo(void *p, void *source);
  *   docs/engine/overview.md#5-per-frame-update-and-render,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_0020F7E0(struct S *p)
+// Per-frame timer HUD update: smooths the four elements and, while a countdown runs, plays the tick/tock sounds
+// (0x30/0x31) once a second. (inferred)
+void UpdateSwTimerHud(struct S *world)
 {
     float z;
     float t = 0.0f;
     int i;
     z = t;
     for (i = 0; i < 4; i++) {
-        struct E *e = &p->ae[i];
+        struct E *e = &world->ae[i];
         struct O *o = e->po;
         if (!o || !FWidgetVisible(o)) {
             e->f = 1;
@@ -1440,13 +1486,13 @@ void func_0020F7E0(struct S *p)
         }
         t += D_002C3E80;
         if (i == 3) {
-            float d = -D_002DDED0.t + p->t476C;
+            float d = -D_002DDED0.t + world->t476C;
             int n;
             d = (0.0f > d) ? 0.0f : d;
             n = (int)d;
-            if (n != p->n4770) {
+            if (n != world->n4770) {
                 SetSndSourceLo(PsndStartSound((n & 1) ? 0x30 : 0x31), 0);
-                p->n4770 = n;
+                world->n4770 = n;
             }
         }
     }
@@ -1463,22 +1509,24 @@ int func_00134310(int a, int b);
 #define VC61(o, a) ((int (*)(void *, struct O *))(o)->vt[61].pfn)((char *)(o) + (o)->vt[61].d, a)
 /** @sly2-annot addr=0x20F948
  * Purpose: Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3
- * Info: proposed name FFilterSoPair (T1); TU sw
+ * Info: proposed name ShouldKeepSoPair (T1); TU sw
  * Notes: names_v2 v1 proposed PostBtnLoad__FP3BTN (0.007)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/player.md#throw-0x21f2e0-0x220d40,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-int FFilterSoPair(struct S *p, struct E *e)
+// Intersection filter: rejects the object itself and flagged objects, and pairs whose relationship (0x134310) is 1
+// or 3.
+int ShouldKeepSoPair(struct S *object, struct E *e)
 {
     struct S *ps = e->pb->ps;
     int a, b, r;
     if (!(e->fl & (1L << 48)) && (ps->fl & 4))
         return 0;
-    if ((e->fl & (1L << 48)) || ps == p)
+    if ((e->fl & (1L << 48)) || ps == object)
         return 0;
-    a = VC61(p->po, ps->po);
-    b = VC61(ps->po, p->po);
+    a = VC61(object->po, ps->po);
+    b = VC61(ps->po, object->po);
     r = func_00134310(a, b);
     return r != 1 && r != 3;
 }
@@ -1495,11 +1543,12 @@ struct S { int a; struct P *pp; char pad[8]; long fl; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-int func_0020FA10(struct O *po, struct S *p) {
+// Intersection filter: keeps objects that are not the context object and do not have flag 4.
+int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
     int r = 0;
     if (!(p->fl & 0x1000000000000L)) {
         struct O *o = p->pp->po;
-        if (!(o->fl & 4)) r = o != po;
+        if (!(o->fl & 4)) r = o != object;
     }
     return r;
 }
@@ -1509,14 +1558,15 @@ namespace M_func_0020FA50 { extern "C" {
 struct VTE { short d; short pad; int (*pfn)(void *); };
 struct O { int a, b, c; struct VTE *vt; };
 struct S { int a; struct O *po; };
-int func_0020FA10(void *pv, struct S *p);
+int ShouldKeepSoNotSelf(void *pv, struct S *p);
 /** @sly2-annot addr=0x20FA50
  * Purpose: FFilterSoNotSelf && object vt62 predicate
  * Info: proposed name FFilterSoNotSelfVt62 (T2); TU sw
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-int func_0020FA50(void *pv, struct S *p) { struct O *o; struct VTE *e; if (!func_0020FA10(pv, p)) return 0; o = p->po; e = &o->vt[62]; return e->pfn((char *)o + e->d); }
+// Intersection filter: ShouldKeepSoNotSelf and the object's vtable slot 62 predicate.
+int ShouldKeepSoNotSelfSlot62(void *pv, struct S *p) { struct O *o; struct VTE *e; if (!ShouldKeepSoNotSelf(pv, p)) return 0; o = p->po; e = &o->vt[62]; return e->pfn((char *)o + e->d); }
 } } // namespace M_func_0020FA50
 
 namespace M_IntersectSwBoundingBox { extern "C" {
@@ -1538,6 +1588,8 @@ void UpdateSwAaox(struct S *p);
  * See: docs/engine/game-progression.md#8-key-functions, docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
+// Collects up to 256 SOs whose bounding groups overlap the box spanned by two points, with an optional filter; the
+// result is a slot-allocated array.
 void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     U mn, mx;
@@ -1599,6 +1651,7 @@ void UpdateSwAaox(struct S *p);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Collects up to 256 SOs whose bounding groups overlap a sphere, with an optional filter.
 void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void *, struct O *), void *ctx, int *pc, struct O ***pap)
 {
     struct MSG msg;
@@ -1647,7 +1700,8 @@ void *PvAllocSlot__FP8ALLOCREQ(struct M *pm);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_0020FDC8(int n, struct A **apa, int *pc, struct O ***pppo)
+// Builds the list of distinct SOs referenced by an array of entries (marking them while collecting).
+void BuildUniqueSoList(int n, struct A **apa, int *pc, struct O ***pppo)
 {
     struct M m;
     struct O **apo;
@@ -1683,6 +1737,7 @@ int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID
  *   r7_1F8DD8+verdicts_tu_r7r8+arbitration
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Adds or updates a rsmg record ((root, state machine) -> goal on trigger or untrigger) in a bounded array.
 int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID oidRoot, OID oidSM, OID oid)
 {
     int i;
@@ -1714,18 +1769,19 @@ int FAddRsmg(void *pv, RSMG *arsmg, int crsmgMax, int *pcrsmg, int fTrigger, OID
 
 namespace M_TriggerRsmg { extern "C" {
 typedef struct QW { int a[4]; } QW;
-void func_0020FFF0(void *p, QW *pq, int a, int b, int c, int d);
+void TriggerOneRsmg(void *p, QW *pq, int a, int b, int c, int d);
 /** @sly2-annot addr=0x20FF70
  * Purpose: Apply every RSMG record in an array (calls 0x20FFF0 each)
  * Info: proposed name TriggerRsmg (T1); TU sw
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Applies every rsmg record of an array (TriggerOneRsmg on each).
 void TriggerRsmg(void *p, int c, QW *pq, int a, int b)
 {
     int i;
     for (i = 0; i < c; i++) {
-        func_0020FFF0(p, &pq[i], a, b, 0, 0);
+        TriggerOneRsmg(p, &pq[i], a, b, 0, 0);
 
     }
 }
@@ -1735,7 +1791,7 @@ namespace M_func_0020FFF0 { extern "C" {
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct Y { char pad[0xC]; VTE *vt; };
 struct D { int a; int b; int c; int d; };
-int CploFindSwObjects_15E650(void *p, int k, int a, int b, int c, void **ppo);
+int FindSwObjects(void *p, int k, int a, int b, int c, void **ppo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 struct Y *func_001F67E0(void *o, int b);
 void SubscribeLoObject(struct Y *y, int x);
@@ -1749,14 +1805,16 @@ void SetSmaGoal(struct Y *y, int id);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
+// Applies one rsmg record: finds the root object and its state machine by oid, then seeks or sets the trigger or
+// untrigger goal; optionally returns the state machine.
+void TriggerOneRsmg(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
 {
     void *o;
     struct Y *y;
     int id;
     if (ppy)
         *ppy = 0;
-    if (CploFindSwObjects_15E650(p, 0x204, pd->a, b, 1, &o) != 1)
+    if (FindSwObjects(p, 0x204, pd->a, b, 1, &o) != 1)
         return;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x30))
         return;
@@ -1787,12 +1845,13 @@ void func_0020FFF0(void *p, struct D *pd, int b, int fl, int x, struct Y **ppy)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the next free 12-byte record of the world's deferred-callback array (AddLoDeferredCallback uses it).
 /* The next 12-byte record of the array at +0x39D0. */
-extern "C" void *func_00210100(SW *psw)
+extern "C" void *AllocSwLoCallbackRecord(SW *world)
 {
-    int i = psw->cUnk39d4;
-    psw->cUnk39d4 = i + 1;
-    return (char *)psw->aUnk39d0 + i * 0xC;
+    int i = world->cUnk39d4;
+    world->cUnk39d4 = i + 1;
+    return (char *)world->aUnk39d0 + i * 0xC;
 }
 
 /** @sly2-annot addr=0x210120
@@ -1801,12 +1860,13 @@ extern "C" void *func_00210100(SW *psw)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the next free 12-byte record of the world's post-load queue (drained by PostSwLoad).
 /* The next 12-byte record of the array at +0x39D8. */
-extern "C" void *func_00210120(SW *psw)
+extern "C" void *AllocSwPostLoadRecord(SW *world)
 {
-    int i = psw->cUnk39dc;
-    psw->cUnk39dc = i + 1;
-    return (char *)psw->aUnk39d8 + i * 0xC;
+    int i = world->cUnk39dc;
+    world->cUnk39dc = i + 1;
+    return (char *)world->aUnk39d8 + i * 0xC;
 }
 
 namespace M_func_00210140 { extern "C" {
@@ -1823,7 +1883,9 @@ struct G { char pad[0x3F14]; int count; int dead; int *index; struct E *array; }
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_00210140(struct G *g, struct O *o)
+// Adds an object to the world's per-object update array (back-pointer kept in its +0x40 word), compacting the array
+// when it is full or more than 10% holes.
+void AddLoToSwUpdateList(struct G *g, struct O *o)
 {
     struct E *e;
     if ((unsigned int)o->e & 0x40)
@@ -1867,8 +1929,9 @@ void func_00210140(struct G *g, struct O *o)
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Takes an object off the update array: restores its +0x40 word, clears the entry and counts the hole.
 /* Takes an object off the update list: restores its +0x40 word, clears the entry, counts the hole. */
-extern "C" void func_00210268(SW *psw, LO *plo)
+extern "C" void RemoveLoFromSwUpdateList(SW *world, LO *plo)
 {
     int n = plo->grfUnk40;
     if (((n ^ 1) & 1) != 0) {
@@ -1876,7 +1939,7 @@ extern "C" void func_00210268(SW *psw, LO *plo)
         plo->grfUnk40 = ploupd->grf;
         ploupd->grf = 0;
         ploupd->plo = 0;
-        psw->cloupdHole++;
+        world->cloupdHole++;
     }
 }
 
@@ -1901,12 +1964,14 @@ extern "C" void func_001C4A60(S *p, int k);
  *   r7_1F8DD8+runtime-corrected
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_002102A0(S *p)
+// Calls vtable slot 24 on every object of the 199 class lists, after 0x1C4A60(world, 0). (inferred: the slot's
+// meaning is not known; PROXY uses it to release its spares)
+extern "C" void CallSlot24OnSwObjects(S *world)
 {
     int i;
-    func_001C4A60(p, 0);
+    func_001C4A60(world, 0);
     for (i = 0; i < 199; i++) {
-        X *x = ((struct B *)((char *)p + 0x3038))[i].first;
+        X *x = ((struct B *)((char *)world + 0x3038))[i].first;
         for (; x; x = x->next)
             x->v24();
     }
@@ -1919,7 +1984,8 @@ extern "C" void func_002102A0(S *p)
  * Notes: junk/padding (not a function)
  * Confidence: mid (draft) [T1 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * @end-sly2-annot */
-extern "C" void func_00210330()
+// LO's default for vtable slot 24: empty.
+extern "C" void LO_Slot24Default()
 {
 }
 
@@ -1939,6 +2005,8 @@ extern "C" void FadeSoOut(X *p, float f);
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 7/8: shows or hides an object, fading SOs in or out over dt when dt is non-zero, else adding or
+// removing it.
 extern "C" X *ShowSwAsegObject(void *pv, int fOn, int id, float g)
 {
     X *p = PloFindSwObject__FP2SWi3OIDP2LO(pv, 4, id);
@@ -1966,12 +2034,13 @@ void ShowSoGlobsById(void *p, void *q);
 void HideSoGlobsById(void *p, void *q);
 /** @sly2-annot addr=0x210408
  * Purpose: ASEG event 13/14: on SO target call 0x1F6978 or 0x1F69F8 (enable/disable pair)
- * Info: proposed name HandleSwAsegEvent13 (T2); TU sw
+ * Info: proposed name ShowSwAsegGlobs (T2); TU sw
  * Notes: names_v2 v1 proposed IposFindButtonClosest__FP6BUTTONPf (0.068)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_00210408(void *pv, int f, int id, void *q, void *pdef, void *ctx)
+// Animation event 13/14: shows or hides the target SO's globs with the given id (ShowSoGlobsById / HideSoGlobsById).
+void ShowSwAsegGlobs(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
     if (id == -1)
@@ -1994,11 +2063,12 @@ void ShowSoPartsById(void *p, void *q);
 void func_001F6B48(void *p, void *q);
 /** @sly2-annot addr=0x2104A0
  * Purpose: ASEG event 15/16: on SO call 0x1F6AC8 or 0x1F6B48
- * Info: proposed name HandleSwAsegEvent15 (T2); TU sw
+ * Info: proposed name ShowSwAsegParts (T2); TU sw
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_002104A0(void *pv, int f, int id, void *q, void *pdef, void *ctx)
+// Animation event 15/16: shows or hides the target SO's parts with the given id (ShowSoPartsById / 0x1F6B48).
+void ShowSwAsegParts(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 {
     void *p;
     if (id == -1)
@@ -2016,7 +2086,7 @@ void func_002104A0(void *pv, int f, int id, void *q, void *pdef, void *ctx)
 
 namespace M_func_00210538 { extern "C" {
 struct VT { char pad[0x198]; short d; short pd; void (*pf)(void *, void *); };
-struct X { char pad[0xC]; struct VT *pvt; };
+struct X { char pad[0xC]; struct VT *vtable; };
 struct MSG { unsigned int grf; struct X *p4; float g8; char padc[0x24]; struct X *p30; char pad34[0xC]; };
 struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
 /** @sly2-annot addr=0x210538
@@ -2026,15 +2096,16 @@ struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_00210538(void *pg, int oid, int oid1, int oid2, float g, void *ctx)
+// Animation event 17: finds the object and up to two others and sends them a message.
+void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *ctx)
 {
-    struct X *x = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid, ctx);
+    struct X *x = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid, ctx);
     struct MSG msg;
     if (!x)
         return;
     msg.grf = 0;
     if (oid1 != -1) {
-        struct X *y = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid1, ctx);
+        struct X *y = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid1, ctx);
         if (y) {
             msg.p4 = y;
             msg.grf |= 1;
@@ -2048,7 +2119,7 @@ void func_00210538(void *pg, int oid, int oid1, int oid2, float g, void *ctx)
         }
     }
     if (oid2 != -1) {
-        struct X *z = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid2, ctx);
+        struct X *z = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid2, ctx);
         if (z) {
             msg.p30 = z;
             msg.grf |= 0x20;
@@ -2058,7 +2129,7 @@ void func_00210538(void *pg, int oid, int oid1, int oid2, float g, void *ctx)
         msg.g8 = g;
         msg.grf |= 0x18;
     }
-    x->pvt->pf((char *)x + x->pvt->d, &msg);
+    x->vtable->pf((char *)x + x->vtable->d, &msg);
 }
 } } // namespace M_func_00210538
 
@@ -2070,12 +2141,14 @@ void func_001F80D0(void *p, float f);
 void SetEyesClosed(void *p, float f);
 /** @sly2-annot addr=0x210678
  * Purpose: ASEG event 20: SO -> 0x1F80D0(f); EYES (0x8E) found by 0x1EC918 -> 0x1EE3B0(f)
- * Info: proposed name HandleSwAsegEvent20 (T2); TU sw
+ * Info: proposed name SetSwAsegEyesClosed (T2); TU sw
  * Notes: names_v2 v1 proposed PresetButtonAccel__FP6BUTTONf (0.010)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_00210678(void *pv, int id1, int id2, float f)
+// Animation event 20: sets how closed the eyes are, on the target SO's EYES children (SetSoEyesClosed) or on an EYES
+// object (SetEyesClosed).
+void SetSwAsegEyesClosed(void *pv, int id1, int id2, float f)
 {
     void *p1 = 0;
     void *p2 = 0;
@@ -2124,6 +2197,8 @@ static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("dadd
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 0: starts a sound at the source object (optionally found by oid) with range, volume and pitch;
+// looping sounds are kept in the animation's reference so StopSwAsegSound can stop them.
 void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id, int oid, int x, int y, struct O *fallback, void *owner, void *unused, struct M **out)
 {
     struct O *o;
@@ -2162,6 +2237,7 @@ void RcPtr_Assign(struct O **pp, int a);
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verdicts_tu_r7r8+verify_side
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Animation event 1: stops the stored looping sound (optionally only with a matching id) and releases it.
 void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 {
     struct O *p = *pp;
@@ -2176,13 +2252,15 @@ void StopSwAsegSound(void *a, int id, void *b, struct O **pp)
 
 /** @sly2-annot addr=0x210940
  * Purpose: SW+0x4638 = PloFindSwObject(psw,5,oid 0x620,0)
- * Info: proposed name BindSwObject620 (T2); TU sw
+ * Info: proposed name BindSwBootyProxy (T2); TU sw
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_00210940(SW *psw)
+// Finds the proxy object with oid 0x620 and stores it at SW+0x4638: the proxy source booties are acquired from and
+// locked on (booty.cpp).
+extern "C" void BindSwBootyProxy(SW *world)
 {
-    psw->ploUnk4638 = PloFindSwObject(psw, 5, (OID)0x620, 0);
+    world->ploUnk4638 = PloFindSwObject(world, 5, (OID)0x620, 0);
 }
 
 /** @sly2-annot addr=0x210978
@@ -2191,12 +2269,13 @@ extern "C" void func_00210940(SW *psw)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" SW *func_00210978(SW *psw, int n)
+// Stores n in the world's unnamed word +0x3EA8 when n is 1; returns the world. (inferred)
+extern "C" SW *SetSwUnknown3EA8(SW *world, int n)
 {
     if (n == 1) {
-        F3EA8(psw) = n;
+        F3EA8(world) = n;
     }
-    return psw;
+    return world;
 }
 
 namespace M_func_00210990 { extern "C" {
@@ -2208,7 +2287,8 @@ extern struct E *D_003E1C40;
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-struct E *func_00210990(int i)
+// Returns the file record of level index levelIndex, or null for -1.
+struct E *GetLevelFileRecord(int i)
 {
     if (i == -1)
         return 0;
@@ -2222,7 +2302,8 @@ struct E *func_00210990(int i)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" LEVELLIST8 *func_002109B8(int ilevel)
+// Returns the level-list entry of level index levelIndex.
+extern "C" LEVELLIST8 *GetLevelListEntry(int ilevel)
 {
     return &D_003E1C4C[ilevel];
 }
@@ -2230,7 +2311,7 @@ extern "C" LEVELLIST8 *func_002109B8(int ilevel)
 namespace M_func_002109D0 { extern "C" {
 struct X { char pad[8]; int x8; char padc[0x2C]; int x38; };
 extern int D_003E1C38;
-struct X *func_00210990(int i);
+struct X *GetLevelFileRecord(int i);
 static inline int FEqual(struct X *a, struct X *b)
 {
     if (a == b)
@@ -2246,11 +2327,12 @@ static inline int FEqual(struct X *a, struct X *b)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-int func_002109D0(struct X *px)
+// Returns the index of the level whose file record equals the given one, or -1.
+int FindLevelIndexByFileRecord(struct X *px)
 {
     int i;
     for (i = 0; i < D_003E1C38; i++) {
-        if (FEqual(px, func_00210990(i)))
+        if (FEqual(px, GetLevelFileRecord(i)))
             return i;
     }
     return -1;
@@ -2268,6 +2350,7 @@ int func_002109D0(struct X *px)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the current level index.
 int IlevelCur()
 {
     return g_sw.nLoadFilter;
@@ -2283,6 +2366,7 @@ int IlevelCur__Fv(void);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the episode of the current level, or -1.
 int NEpisodeCur(void)
 {
     int i = IlevelCur__Fv();
@@ -2303,6 +2387,7 @@ int IlevelCur__Fv(void);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the world of the current level, or -1.
 int NWorldCur(void)
 {
     int i = IlevelCur__Fv();
@@ -2324,6 +2409,7 @@ void Decref__4CRef(struct CRef *r);
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the best episode reached (save variable "episodeBest").
 int NEpisodeBest(void)
 {
     struct CRef r;
@@ -2342,7 +2428,8 @@ int NEpisodeBest(void)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" int func_00210B68()
+// Always returns 0 (a stub). (inferred)
+extern "C" int SwStubFalse()
 {
     return 0;
 }
@@ -2354,7 +2441,8 @@ extern "C" int func_00210B68()
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_00210B70()
+// Returns the entry record of the current world (PrecWorldEntry(NWorldCur())).
+extern "C" void GetCurrentWorldEntry()
 {
     PrecWorldEntry(NWorldCur());
 }
@@ -2367,6 +2455,7 @@ extern "C" void func_00210B70()
  *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns a world's entry record, or null when there is none (or it is empty).
 /* The world's entry record, or 0 when there is none (or it is empty: its words 1 and 15 equal). */
 extern "C" FILEREC *PrecWorldEntry(int nWorld)
 {
@@ -2399,15 +2488,16 @@ extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-void func_00210BE0(TBL *p)
+// Replaces each entry of a string table by its localized string (FindSwLangstr), copied into a linear heap.
+void LocalizeSwStringTable(TBL *table)
 {
     ALLOC al;
     int i;
     if (D_003DD490.f == 0)
         return;
-    __11CLinearHeapiPUc(&al, p->x8, p->xC);
-    for (i = 0; i < p->c; i++) {
-        ENT *e = &p->a[i];
+    __11CLinearHeapiPUc(&al, table->x8, table->xC);
+    for (i = 0; i < table->c; i++) {
+        ENT *e = &table->a[i];
         e->pchOut = PchzFindSwLangstr__FP2SWi(&D_003DD490, e->pch);
         if (func_0021ED28(e->pchOut))
             e->pchOut = PchzAllocCopy__FP4HEAPPci(&al, e->pchOut, 4);
@@ -2423,8 +2513,9 @@ void func_00210BE0(TBL *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
+// Returns the value stored under key in a {key, value} table, or "" when absent.
 /* The value stored under key in a {key, value} table, or the empty default. */
-extern "C" void *func_00210CA8(KVT *pkvt, int key)
+extern "C" void *FindKeyedTableValue(KVT *pkvt, int key)
 {
     int i;
     for (i = 0; i < pkvt->c; i++) {

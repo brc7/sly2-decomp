@@ -608,7 +608,7 @@ void UpdateWidget(struct S *p);
 int FScreenShown(void *);
 int GrfHandleJoyBtn(void *, int);
 void DecrementSwHandsOff(struct G *, int);
-void func_00162DF8(void *);
+void RestartJob(void *);
 /** @sly2-annot addr=0x211D38
  * Purpose: CID 0x7F Update: modal box; after 0.5 s visible and button mask 0xF0 pressed ->
  *   DecrementSwHandsOff, optional resume via SW+0x3B0C, HideWidget
@@ -628,7 +628,7 @@ void func_00211D38(struct S *p)
         DecrementSwHandsOff(&D_003DD490, 0);
         if (p->x114 == 0 && D_003DD490.x3B0C) {
             D_002DD318++;
-            func_00162DF8(D_003DD490.x3B0C);
+            RestartJob(D_003DD490.x3B0C);
         }
         p->pvt->pf((char *)p + p->pvt->d);
     }
@@ -745,7 +745,7 @@ struct S {
 extern char D_002C3EC0[0x90];
 extern char D_002A8AA0[];
 void UpdateWidget(struct S *);
-int FTaskComplete(struct O *);
+int IsTaskComplete(struct O *);
 int FWidgetAnimPlaying(struct S *,int);
 int sprintf(char *,char *,...);
 /** @sly2-annot addr=0x211F90
@@ -769,7 +769,7 @@ void func_00211F90(struct S *p)
         struct O *o=p->b[i].o;
         if(o) {
             if(o->state==1)loading++;
-            else if(FTaskComplete(o)) {
+            else if(IsTaskComplete(o)) {
                 ready++;
                 readyB++;
             }
@@ -779,7 +779,7 @@ void func_00211F90(struct S *p)
         struct O *o=p->a[i].o;
         if(o) {
             if(o->state==1)loading++;
-            else if(FTaskComplete(o)) ready++;
+            else if(IsTaskComplete(o)) ready++;
         }
     }
     if(FWidgetAnimPlaying(p,0x314)) {
@@ -998,7 +998,7 @@ extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern "C" BIS *func_001848A8(BIS *,int,void *,int);
 extern "C" void func_00184950(BIS *,int) __asm__("_$_10CStreamBis");
-extern "C" void func_00258248(KEY *);
+extern "C" void InitFileKey(KEY *);
 extern "C" void *PvAllocSlot__FP8ALLOCREQ(MSG *);
 extern "C" int func_00184D60(BIS *,KEY *);
 extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
@@ -1059,7 +1059,7 @@ extern "C" void LoadWidgetSprites(S *p) {
     msg->cb=0x10000;msg->alignment=0x40;
     func_001848A8(bs,0x10000,PvAllocSlot__FP8ALLOCREQ(msg),0);
     pk->kind=2;
-    func_00258248(pk);
+    InitFileKey(pk);
     if(!SetKey(&work.key,p->file)||!func_00184D60(bs,pk))goto fail;
     SetDecompress__18CBinaryInputStreamiPUc(bs,0x4000,(void *)0x70000000);
     work.tmp.magic[0]=U8Read__18CBinaryInputStream(bs);
@@ -1145,7 +1145,7 @@ struct CRef { int tagk; int tag; };
 struct VE { short d; short pad; void (*pf)(void *, int); };
 struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; char xcc[4]; };
 struct L { int a[4]; };
-void func_002013D8(struct CRef *r, void *a, int b, int c, struct L *pl, void *d);
+void SetValuesFromSpliceList(struct CRef *r, void *a, int b, int c, struct L *pl, void *d);
 void Decref__4CRef(struct CRef *r);
 /** @sly2-annot addr=0x212828
  * Purpose: copy Splice list into +0xCC ids (max 10) then ShowWidget(-1)
@@ -1157,7 +1157,7 @@ void ShowWidgetArgsFromSplice(struct S *p, void *a)
 {
     struct CRef r;
     struct L l;
-    func_002013D8(&r, a, 0x10, 0xA, &l, p->xcc);
+    SetValuesFromSpliceList(&r, a, 0x10, 0xA, &l, p->xcc);
     Decref__4CRef(&r);
     p->vt[49].pf((char *)p + p->vt[49].d, -1);
 }
@@ -4068,7 +4068,7 @@ struct S {char pad[0x24]; O *owner; int enabled;};
 extern "C" M23 D_002A3A10;
 struct G;
 extern "C" G D_002DDF40;
-extern "C" qword func_001A62E8(void *);
+extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
 extern "C" void func_002183E8(S *,int,M23 *,float,const RGBA &,const RGBA &);
 static inline float GetX(qword q) {float f; __asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
@@ -4095,7 +4095,7 @@ extern "C" void func_00218220(S *p,float dt) {
     if(p->enabled) {
         M23 m=D_002A3A10;
         if(p->owner->follow) {
-            qword pos=func_001A62E8(p->owner->follow); qword q=ConvertCmWorldToScreen(&D_002DDF40,pos);
+            qword pos=GetLoWorldPos(p->owner->follow); qword q=ConvertCmWorldToScreen(&D_002DDF40,pos);
             m.a[4] = GetX(q)*320.0f+320.0f;
             m.a[5] = GetY(q)*-246.40001f+246.40001f;
         }
@@ -5330,14 +5330,14 @@ void p_BuildTitlePromptText() __asm__("BuildTitlePromptText");
 void p_BuildWidgetArgText() __asm__("BuildWidgetArgText");
 void p_FormatEpisodePercent() __asm__("FormatEpisodePercent");
 void p_FormatEpisodePlayTime() __asm__("FormatEpisodePlayTime");
-void p_func_0015DA88() __asm__("func_0015DA88");
-void p_func_001AD7E0() __asm__("func_001AD7E0");
-void p_func_001AD820() __asm__("func_001AD820");
-void p_func_001AD928() __asm__("func_001AD928");
-void p_func_001AD980() __asm__("func_001AD980");
-void p_func_001ADA20() __asm__("func_001ADA20");
-void p_func_001ADBB8() __asm__("func_001ADBB8");
-void p_func_001ADC40() __asm__("func_001ADC40");
+void p_func_0015DA88() __asm__("FormatEpisodeMenuPageText");
+void p_func_001AD7E0() __asm__("FormatMcCardNameText");
+void p_func_001AD820() __asm__("FormatMcDialogText");
+void p_func_001AD928() __asm__("FormatSavePageTextA");
+void p_func_001AD980() __asm__("FormatSaveCompletionText");
+void p_func_001ADA20() __asm__("FormatSavePageTextB");
+void p_func_001ADBB8() __asm__("FormatSaveTimeText");
+void p_func_001ADC40() __asm__("FormatSaveSlotSummaryText");
 void p_func_001DC820() __asm__("func_001DC820");
 void p_func_001DC9C0() __asm__("func_001DC9C0");
 void p_func_001DCA30() __asm__("func_001DCA30");

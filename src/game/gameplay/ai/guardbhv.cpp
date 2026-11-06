@@ -340,7 +340,7 @@ void ClearBhvBusy(struct S *p);
 struct O *func_00205458(struct A *a, int n);
 void *PpoHero(struct G *g);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
-int FFindLoParent(void *n, void *o);
+int IsLoSelfOrDescendantOf(void *n, void *o);
 void func_0014F750(void *p, int n);
 void func_001F7A68(struct A *a, int n);
 /** @sly2-annot addr=0x174BD0
@@ -409,7 +409,7 @@ int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
         {
             void *g = PpoHero(&D_003DD490);
             struct O *o = func_00205458(p->p10, 0xA0);
-            if (o && FFindLoParent(o->parent, g) && g == D_002F7900) {
+            if (o && IsLoSelfOrDescendantOf(o->parent, g) && g == D_002F7900) {
                 switch (pm->n8) {
                 case 0x35: func_0014F750(D_002DDF40, 0); break;
                 case 0x34: TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f); break;
@@ -481,7 +481,7 @@ struct S { char pad[0x10]; struct A *p10; char pad2[0x30 - 0x14]; int n30; int p
 extern qword D_002A2DD0;
 void UpdateBhvMotion(struct S *p);
 void func_00209618(void *a, struct A *b);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -506,8 +506,8 @@ void UpdateBhvanimMotion(struct S *p)
     else
         p->p10->q190 = D_002A2DD0;
     if (p->p38) {
-        qword a = func_001A62E8(p->p38);
-        qword b = func_001A62E8(p->p10);
+        qword a = GetLoWorldPos(p->p38);
+        qword b = GetLoWorldPos(p->p10);
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         SetStepguardMoverRadTarget(p->p10->aFD0, atan2f(GetY(d), GetX(d)));
@@ -675,7 +675,7 @@ typedef int qword __attribute__((mode(TI)));
 struct T { int a, b; void *p8; };
 struct S { char pad[0x38]; void *p38; int pad2; struct T *p40; char pad3[0xC]; int n50; };
 void UpdateBhvanim(struct S *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_0020C6F8(void *p, qword q);
 /** @sly2-annot addr=0x175258
  * Purpose: BHVSTRIKE Update: BHVANIM update; while leap enabled keep the leap target on the victim
@@ -685,7 +685,7 @@ void func_0020C6F8(void *p, qword q);
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void UpdateBhvstrike(struct S *p) { UpdateBhvanim(p); if (!p->p40 || !p->p40->p8) p->n50 = 0; if (p->n50) { struct T *t = p->p40; func_0020C6F8(t->p8, func_001A62E8(p->p38)); } }
+void UpdateBhvstrike(struct S *p) { UpdateBhvanim(p); if (!p->p40 || !p->p40->p8) p->n50 = 0; if (p->n50) { struct T *t = p->p40; func_0020C6F8(t->p8, GetLoWorldPos(p->p38)); } }
 } } // namespace M_UpdateBhvstrike
 
 // 0x1752C0 CloseBhvstrike
@@ -1082,7 +1082,7 @@ extern LM D_002BBB60;
 extern char D_003DD490[];
 int FIsBasicDerivedFrom__FP5BASIC3CID(P *, int);
 int func_0020A818(void *, P *);
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 unsigned IsrcFromIdProxy__Fi(unsigned);
 int FCheckLm__FP2LMf(LM *, float);
 qword ConvertAloPos(P *, P *, qword);
@@ -1186,8 +1186,8 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
     }
     if (gate && !func_0020A818(gate, p))
         return 0;
-    from = func_001A62E8(p);
-    to = func_001A62E8(target);
+    from = GetLoWorldPos(p);
+    to = GetLoWorldPos(target);
     {
         qword d = QwSub(to, from);
         distance = GLengthXY(d);
@@ -1279,16 +1279,16 @@ struct R1 { char pad[0x14]; struct R2 *p14; };
 struct R { int pad; struct R1 *p4; };
 union V { qword q; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float RadStepHeading(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
 int FCheckLm__FP2LMf(void *p, float f);
 float RadNormalize__Ff(float f);
-qword *func_001A6318(struct A *a);
+qword *GetLoWorldMatrix(struct A *a);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
 void STACKSCOPE_ctor(struct X *x);
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
-int func_0020FA10(void);
+int ShouldKeepSoNotSelf(void);
 void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
 struct R *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, int d, struct Y *y);
 /** @sly2-annot addr=0x175D00
@@ -1337,8 +1337,8 @@ int FBhvcombatCanShoot(struct S *p) {
             }
         }
     }
-    pa = func_001A62E8(p->p10);
-    pb = func_001A62E8(p->p30);
+    pa = GetLoWorldPos(p->p10);
+    pb = GetLoWorldPos(p->p30);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pb), "j"(pa));
     g = RadStepHeading(p->p10);
     GetVectorSphere(d, &f[0], &f[1], &f[2]);
@@ -1347,7 +1347,7 @@ int FBhvcombatCanShoot(struct S *p) {
         float h = RadNormalize__Ff(f[0] - g);
         if (!FCheckLm__FP2LMf(p->p10->aF50, h)) return 0;
     }
-    CalculateVectorPanTilt(*func_001A6318(p->p10), 0, &f[3]);
+    CalculateVectorPanTilt(*GetLoWorldMatrix(p->p10), 0, &f[3]);
     {
         float h = RadNormalize__Ff(f[1] - f[3]);
         if (!FCheckLm__FP2LMf(p->p10->aF58, h)) return 0;
@@ -1362,7 +1362,7 @@ int FBhvcombatCanShoot(struct S *p) {
     {
         struct R *r;
         STACKSCOPE_ctor(&x);
-        IntersectSwBoundingBox(&D_003DD490, pa, pb, func_0020FA10, p->p10->nEC, &na, &nb);
+        IntersectSwBoundingBox(&D_003DD490, pa, pb, ShouldKeepSoNotSelf, p->p10->nEC, &na, &nb);
         r = PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pa, pb, na, nb, &y);
         if (r && r->p4->p14->p0 != p->p30) {
             STACKSCOPE_ctor_1AE4A0(&x, 2);
@@ -1443,7 +1443,7 @@ int FBhvcombatLostTarget(C*);
 int FBhvcombatChooseAttack(C*);
 int FBhvcombatCanShoot(C*);
 void SetBhvcombatState(C*,int);
-qword func_001A62E8(P*);
+qword GetLoWorldPos(P*);
 void*PpathzoneFromPos(qword,int);
 void func_002562A8(X*);
 void SetBhvgotoGoal(void*,X*);
@@ -1528,8 +1528,8 @@ void UpdateBhvcombat(C*p){
    if(FBhvcombatLostTarget(p)){SetBhvcombatState(p,4);break;}
    if(FBhvcombatChooseAttack(p)){SetBhvcombatState(p,1);break;}
    if(FBhvcombatCanShoot(p)){SetBhvcombatState(p,2);break;}
-   StorePoint(&work.point,func_001A62E8(p->target));
-   current=func_001A62E8(p->actor);
+   StorePoint(&work.point,GetLoWorldPos(p->target));
+   current=GetLoWorldPos(p->actor);
    distance=DistanceXY(p,&work.point,current,&actor,&mode);
    if(mode==8 ||mode==13){SCALE*scale=actor->scale;if(scale)distance/=scale->value;}
    region=PpathzoneFromPos(work.point.q,1);
@@ -1596,7 +1596,7 @@ void PopBhv(void *p);
 float GRandInRange__Fff(float a, float b);
 struct O *func_00205438(void *p, int n);
 void func_0020A9A8(void *p, int n);
-qword func_001A62E8(int p);
+qword GetLoWorldPos(int p);
 void func_002562A8(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 int PpathzoneFromPos(qword v, int n);
@@ -1650,8 +1650,8 @@ void SetBhvcombatState(struct S *p, int n) {
             struct VTE *e;
             o->nC0 = 1;
             o->n38 = 0x1C;
-            v1 = func_001A62E8(p->n30);
-            v2 = func_001A62E8(p->n30);
+            v1 = GetLoWorldPos(p->n30);
+            v2 = GetLoWorldPos(p->n30);
             func_002562A8(&x);
             x.v = v2;
             SetBhvgotoGoal(o, &x);
@@ -1879,7 +1879,7 @@ extern void*D_003E14B8;struct GAMESTATE{char pad[0x4028];void*context;};extern G
 extern CLOCK D_002DDED0;extern float D_002BE620;
 void*func_002333B4(void*,int,unsigned) __asm__("memset");
 void SetBhvguardMode(S*,STATE*);
-qword func_001A62E8(void*);M4*func_001A6318(void*);
+qword GetLoWorldPos(void*);M4*GetLoWorldMatrix(void*);
 qword ConvertAloVec(void*,void*,qword);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void*,int);
 void func_001B9DB8(OBJECT*,qword);
@@ -1933,8 +1933,8 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
  MSG*selected=msg;
  if(Accept(p->actor,msg)){
   if(D_002F7900&&msg->data.object==D_002F7900&&msg->data.kind==0x40000&&msg->data.object->notifyEnabled)
-   func_001B9DB8(D_002F7900,func_001A62E8(p->actor));
-  if(msg->data.kind==0x40000){void*context=(*(void * *)&g_sw.apstimk[3]);qword position=func_001A62E8(p->actor);(void)func_00156698(context,position,p->actor);}
+   func_001B9DB8(D_002F7900,GetLoWorldPos(p->actor));
+  if(msg->data.kind==0x40000){void*context=(*(void * *)&g_sw.apstimk[3]);qword position=GetLoWorldPos(p->actor);(void)func_00156698(context,position,p->actor);}
   Clear(&w.next);w.next.kind=11;w.next.msg=*msg;w.next.msg.data.flags=0x40;
   SetBhvguardMode(p,&w.next);return 1;
  }
@@ -1968,7 +1968,7 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
  if(msg->data.kind==0x200000&&(msg->data.flags&8)){
   if(func_0020A378(p->actor,msg->data.object,GrfFromSgf(6))){
    {int reserve=p->actor->reserve+msg->data.amount;int limited=4<reserve?reserve:5;p->actor->reserve=limited;}
-   (void)func_00156698(D_003DD490.context,func_001A62E8(p->actor),p->actor);
+   (void)func_00156698(D_003DD490.context,GetLoWorldPos(p->actor),p->actor);
    Clear(&w.next);w.next.kind=7;w.next.msg.data.object=msg->data.object;SetBhvguardMode(p,&w.next);goto finish;
   }
  }
@@ -1986,7 +1986,7 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
  Clear(&w.next);
  {
   void*context=msg->data.kind==0x40000?(*(void * *)&g_sw.apstimk[3]):(*(void * *)&g_sw.apstimk[0]);
-  qword position=func_001A62E8(p->actor);(void)func_00156698(context,position,p->actor);
+  qword position=GetLoWorldPos(p->actor);(void)func_00156698(context,position,p->actor);
  }
  if(Below(p->current.kind,11)&&!Below(p->current.kind,8)&&FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object,0x65)&&(originalFlags&0xB0))flags=originalFlags|0x40;
  if(func_0020A298(p->actor,msg->data.object,GrfFromSgf(0x17)))flags|=0x80;
@@ -2017,9 +2017,9 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
  if(flags&0x40){w.next.kind=11;w.next.msg=*selected;selected=&w.next.msg;}
  if(flags&0xE0){
   if(FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object,0x34)){
-   qword own=func_001A62E8(p->actor);OBJECT*otherObject=selected->data.object;w.own.q=own;w.other.q=func_001A62E8(otherObject);
+   qword own=GetLoWorldPos(p->actor);OBJECT*otherObject=selected->data.object;w.own.q=own;w.other.q=GetLoWorldPos(otherObject);
    qword scalar=Raw(-150.0f);w.copy.q=scalar;OBJECT*frameObject=selected->data.object;w.scalar.q=scalar;
-   M4*frame=func_001A6318(frameObject);
+   M4*frame=GetLoWorldMatrix(frameObject);
    int special;
    {
     register qword axis __asm__("vf1"),origin __asm__("vf2"),delta __asm__("vf3");
@@ -2045,7 +2045,7 @@ extern "C" int BHVGUARD_FHandleMessage(S*p,int event,MSG*msg){
   p->current.kind=-1;SetBhvguardMode(p,&w.next);
  }
 finish:
- if(D_002F7900&&selected->data.kind==0x20000)func_001B9D28(D_002F7900,func_001A62E8(p->actor));
+ if(D_002F7900&&selected->data.kind==0x20000)func_001B9D28(D_002F7900,GetLoWorldPos(p->actor));
  return 1;
  }
  return BHV_FHandleMessage(p,event,msg);
@@ -2152,7 +2152,7 @@ extern "C"{
  int func_00171458(H*);
  int FBhvcombatDone(H*);
  P*PstepguardFromLo(void*);
- qword func_001A62E8(P*);
+ qword GetLoWorldPos(P*);
  P*EmitSwNoise(void*,int,qword,P*);
  void func_00156780(P*);
  void InflictBhvguardZap(C*,int,P*);
@@ -2268,7 +2268,7 @@ extern "C" void UpdateBhvguard(C*p){
   case 0:{STATE next;Clear(&next);next.kind=1;SetBhvguardMode(p,&next);break;}
   case 8:{
    if(FBhvanimDone(p->helper)){
-    P*object=EmitSwNoise(D_003DD490,0,func_001A62E8(p->actor),p->actor);
+    P*object=EmitSwNoise(D_003DD490,0,GetLoWorldPos(p->actor),p->actor);
     STATE next;Clear(&next);next.kind=2;next.payload.s.object=object;SetBhvguardMode(p,&next);func_00156780(object);
    }
    break;
@@ -2310,7 +2310,7 @@ int FBhvguardHasTargetList(struct S *p);
 int func_00177D70(struct S *p);
 int func_00208B38(struct A *p, void *q);
 float func_00208BB0(struct A *p);
-qword func_001A62E8(struct A *p);
+qword GetLoWorldPos(struct A *p);
 void *EmitSwNoise(struct G *g, int n, qword v, struct A *p);
 void SetBhvguardMode(struct S *p, struct F *f);
 /** @sly2-annot addr=0x177BA0
@@ -2354,7 +2354,7 @@ void ResumeBhvguard(struct S *p) {
             if (n < 11) {
                 if (n >= 6) {
                     f.a = 2;
-                    f.p10 = EmitSwNoise(&D_003DD490, 0, func_001A62E8(p->p10), p->p10);
+                    f.p10 = EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(p->p10), p->p10);
                 } else {
                     f.a = 1;
                 }
@@ -2480,7 +2480,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct S { char pad[0xC]; struct VTE *vt; void *p10; char pad2[0x50]; float g64; float g68; float g6C; char pad3[0x10]; qword q80; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
 void StartBhv(struct S *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 static inline float Max(float a, float b) { return a > b ? a : b; }
 static inline float Min(float a, float b) { return a < b ? a : b; }
 /** @sly2-annot addr=0x177EF0
@@ -2493,7 +2493,7 @@ void StartBhvpath(struct S *p) {
     struct VTE *e;
     float g;
     StartBhv(p);
-    p->q80 = func_001A62E8(p->p10);
+    p->q80 = GetLoWorldPos(p->p10);
     g = Max(p->g64, D_002BE62C);
     p->g64 = g; p->g68 = Min(g * 0.25f, D_002BE624); p->g6C = Min(g, D_002BE628);
     e = &p->vt[0xF];
@@ -2617,7 +2617,7 @@ extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0;
 extern float D_002BE630, D_002BE634, D_002BE658, D_002BE65C, D_002BE660, D_002BE664, D_002BE668, D_002BE66C, D_002BE670, D_002BE674, D_002BE690;
 extern CLQ D_002BE640, D_002BE680;
 extern LM D_002BE650, D_002BBB60;
-qword func_001A62E8(void *pobj);
+qword GetLoWorldPos(void *pobj);
 float SWrapShape(CURVE *pcrv, float s);
 float SMaxShape(CURVE *pcrv);
 void FindShapeClosestPointFromS(CURVE *pcrv, qword pos, float s, void *pv, VEC *ppos, VEC *pdir, float *pg, float *ps);
@@ -2830,7 +2830,7 @@ extern "C" void StepBhvpathAlongShape(S *p)
 {
     VEC point, dir, next, nextDir;
     const qword *pqwZero;
-    qword posActor = func_001A62E8(p->pactor);
+    qword posActor = GetLoWorldPos(p->pactor);
     register qword qwActor asm("$18") = posActor; /* the one register pin: the target reloads the spilled posActor into s2 (lq in a delay slot) */
 
     BODY *pbody = 0;
@@ -2940,7 +2940,7 @@ extern "C" void StepBhvpathAlongShape(S *p)
                 continue;
             VEC posOther;
             VEC vecUnused;
-            posOther.qw = func_001A62E8(pobj);
+            posOther.qw = GetLoWorldPos(pobj);
             posOther.f[2] += pbodyOther->dz;
             qword dpos = QwSub(posActor, posOther.qw);
             if (__builtin_fabsf(GZOfQw(dpos)) > D_002BE660)
@@ -3045,7 +3045,7 @@ struct S {
 };
 void UpdateBhv(struct S *p);
 void StepBhvpathAlongShape(struct S *p);
-qword func_001A62E8(struct A *a);
+qword GetLoWorldPos(struct A *a);
 int func_001BD718(qword q, void *a1, void *a2, void *obj, int dir, struct T **pp, float *pf, float g);
 void FindShapeClosestPoint(struct T *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 float func_001E7B38(struct T *p, float a, float b);
@@ -3076,7 +3076,7 @@ void UpdateBhvpath(struct S *p) {
     int s;
     UpdateBhv(p);
     StepBhvpathAlongShape(p);
-    pos = func_001A62E8(p->p10);
+    pos = GetLoWorldPos(p->p10);
     do {
         s = p->n4C;
         switch (s) {
@@ -3165,7 +3165,7 @@ struct O {
     char pad4[0xB0 - 0x68];
     qword vB0;
 };
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -3186,7 +3186,7 @@ int FBhvpathAtEnd(struct O *p)
 {
     if (!p->f3C)
         return 0;
-    return Dist(func_001A62E8(p->p10), p->vB0) <= p->f64;
+    return Dist(GetLoWorldPos(p->p10), p->vB0) <= p->f64;
 }
 } } // namespace M_FBhvpathAtEnd
 
@@ -3210,7 +3210,7 @@ struct G;
 extern struct G D_003DD020;
 struct O { char pad[0xE4]; int nE4; };
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; struct O *po; float g34; int n38; int n3C; int pad3; float g44; float g48; char pad4[0xB0 - 0x4C]; char aB0[0x10]; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void FindShapeClosestPointFromS(struct O *po, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 void FindShapeClosestPoint(struct O *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 float SMinShape(struct O *po);
@@ -3231,10 +3231,10 @@ void SetBhvpathShape(struct S *p, struct O *po, int n) {
     p->n38 = n;
     p->po = po;
     if (p->g48 >= 0.0f) {
-        FindShapeClosestPointFromS(po, p->g48, func_001A62E8(p->p10), &D_003DD020, 0, 0, 0, &p->g34);
+        FindShapeClosestPointFromS(po, p->g48, GetLoWorldPos(p->p10), &D_003DD020, 0, 0, 0, &p->g34);
         p->g48 = -1.0f;
     } else {
-        FindShapeClosestPoint(po, func_001A62E8(p->p10), &D_003DD020, 0, 0, 0, &p->g34);
+        FindShapeClosestPoint(po, GetLoWorldPos(p->p10), &D_003DD020, 0, 0, 0, &p->g34);
     }
     if (po->nE4) {
         p->n3C = 0;
@@ -3294,8 +3294,8 @@ extern float D_002BE694, D_002BE6B0;
 extern CLOCK D_002DDED0;
 extern qword D_002A2DC0, D_002A2DD0;
 void UpdateBhvpath(P *);
-qword func_001A62E8(ACTOR *);
-MATRIX3 *func_001A6318(ACTOR *);
+qword GetLoWorldPos(ACTOR *);
+MATRIX3 *GetLoWorldMatrix(ACTOR *);
 void SetAsegaSpeed__FP5ASEGAf(void *, float);
 float atan2f(float, float);
 void SetStepguardMoverRadTarget(void *, float);
@@ -3429,7 +3429,7 @@ extern "C" void UpdateBhvwalkpath(P *p)
     UpdateBhvpath(p);
     if (p->mode < 2)
     {
-        qword pos = func_001A62E8(p->actor);
+        qword pos = GetLoWorldPos(p->actor);
         qword dpos = QwProjectOut(QwSub(p->target, pos), D_002A2DC0);
         float g = GEvaluateClqLm(&D_002BE6A0, &D_002BBB60, GXOfQw(QwLengthXY(dpos)));
         CHOICE *pchoice = p->driver->choice;
@@ -3441,7 +3441,7 @@ extern "C" void UpdateBhvwalkpath(P *p)
             break;
         case 3:
         {
-            qword qwLocal = QwDotRowsMatP(func_001A6318(p->actor), dpos);
+            qword qwLocal = QwDotRowsMatP(GetLoWorldMatrix(p->actor), dpos);
             qword qwFallback = D_002A2DD0;
             float gSpeed = p->rate * g;
             gSpeed *= GXOfQw(QwLengthXY(pchoice->model->velocity));
@@ -3486,7 +3486,7 @@ struct S { char pad[0x10]; void *p10; int pad2; char a18[0x34]; int n4C; char pa
 void SetBhvpathState(struct S *p, int n);
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x1791C8
  * Purpose: BHVWALKPATH SetState: moving states push BHVANIM with walk flag (+0xC0, 8 = with object), stopped
  *   states push BHVIDLE
@@ -3511,7 +3511,7 @@ void SetBhvwalkpathState(struct S *p, int n) {
             if (p->nC0 == 8) o->n38 = p->nC8;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
         }
-        p->qD0 = func_001A62E8(p->p10);
+        p->qD0 = GetLoWorldPos(p->p10);
         p->gE0 = D_002BE694;
         break;
     case 2: case 3: case 4:
@@ -3561,17 +3561,17 @@ struct A { char pad[0x1A8]; float f1A8; char pad2[0x334 - 0x1AC]; int n334; char
 struct S { char pad[0x10]; struct A *p10; char pad2[0x1C]; int n30; char pad3[0xC]; struct E *p40; char pad4[0xC]; int n50; char pad5[8]; int n5C; char pad6[0x20]; union { qword v; float f[4]; } v80; char pad7[0x20]; float fB0; float fB4; };
 void StartBhvanim(struct S *p);
 float atan2f(float y, float x);
-float *func_001A6318(struct A *a);
+float *GetLoWorldMatrix(struct A *a);
 void SetStepguardMoverRadTarget(void *p, float f);
 float RadNormalize__Ff(float f);
 qword SetVectorCylind(float a, float b, float c);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_0020C6F8(void *p, qword v);
 void func_0020AB68(struct A *a, int b, int c, qword v);
 void SetBhvBusy(struct S *p);
 void func_00156C80(struct G *g, int n, qword v, struct A *a, void *q);
 void *PpoHero(struct G *g);
-int FFindLoParent(int n, void *o);
+int IsLoSelfOrDescendantOf(int n, void *o);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 /** @sly2-annot addr=0x179328
  * Purpose: BHVHIT Start: BHVANIM Start, face away from the hit, knock-back leap, cancel attack, hold a pain
@@ -3600,26 +3600,26 @@ void StartBhvhit(struct S *p) {
     if (f) {
         a = atan2f(-p->v80.f[1], -p->v80.f[0]);
     } else {
-        float *m = func_001A6318(p->p10);
-        a = atan2f(m[1], func_001A6318(p->p10)[0]);
+        float *m = GetLoWorldMatrix(p->p10);
+        a = atan2f(m[1], GetLoWorldMatrix(p->p10)[0]);
     }
     SetStepguardMoverRadTarget(p->p10->aFD0, a);
     e = p->p40;
     if (e && e->n0 == 2) {
         qword r = SetVectorCylind(RadNormalize__Ff(p->p10->f1A8 + 3.14159274101257324219e+00f), p->p40->p4->f1C, 0.0f);
-        qword pos = func_001A62E8(p->p10);
+        qword pos = GetLoWorldPos(p->p10);
         qword s;
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(s) : "j"(pos), "j"(r));
         func_0020C6F8(p->p40->p8, s);
     }
     func_0020AB68(p->p10, 0, 0, D_002A2DD0);
     if (p->n30 == 0) SetBhvBusy(p);
-    func_00156C80(&D_003DD490, 1, func_001A62E8(p->p10), p->p10, p->p10->a35C);
+    func_00156C80(&D_003DD490, 1, GetLoWorldPos(p->p10), p->p10, p->p10->a35C);
     p->fB0 = p->fB4 = D_002A5584;
     p->p10->nF04 = 0;
     if (p->p10->n334) {
         void *o = PpoHero(&D_003DD490);
-        if (o && FFindLoParent(p->n50, o) && (o == D_002F7900 || (p->n5C & 0x40000))) {
+        if (o && IsLoSelfOrDescendantOf(p->n50, o) && (o == D_002F7900 || (p->n5C & 0x40000))) {
             TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f);
             p->fB0 = D_002DDED0.t + 5.00000044703483581543e-02f;
         }
@@ -3659,7 +3659,7 @@ struct V { char pad[0x20]; qword q20; };
 struct T { char pad[0x35C]; struct V *p35C; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x9C]; float gB0; float gB4; };
 void UpdateBhvanim(struct S *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_0014F750(void *p, int n);
 void func_001F7A68(struct T *t, int n);
 /** @sly2-annot addr=0x1795E8
@@ -3674,7 +3674,7 @@ void func_001F7A68(struct T *t, int n);
 void UpdateBhvhit(struct S *p) {
     float t;
     UpdateBhvanim(p);
-    { struct T *pt = p->pt; struct V *v = pt->p35C; v->q20 = func_001A62E8(pt); }
+    { struct T *pt = p->pt; struct V *v = pt->p35C; v->q20 = GetLoWorldPos(pt); }
     t = D_002DDED0.t + 0.0001f;
     if (p->gB0 < t) { p->gB0 = 3.40282346638528859812e+38f; func_0014F750(D_002DDF40, 0); }
     if (p->gB4 < t) { p->gB4 = 3.40282346638528859812e+38f; func_001F7A68(p->pt, 2); }
@@ -3828,7 +3828,7 @@ void StartBhvhit(struct S *p);
 void *PpoHero(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
 qword ConvertAloPos(struct A *source, void *target, qword v);
-void func_00154E10(void *a, qword v, int n, int m, struct A *p);
+void SprayDifficultyPrizes(void *a, qword v, int n, int m, struct A *p);
 void RecalcSwOxfFilterForObject(struct G *g, struct A *p);
 void func_00153FF8(void *p);
 static inline int Count(struct A *a) {
@@ -3875,7 +3875,7 @@ void StartBhvko(struct S *p) {
             /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
             __asm__ __volatile__("" : : : "memory");
             v = ConvertAloPos(p->p10, 0, q);
-            func_00154E10(D_002DE578, v, n, p->p10->n3F0, p->p10);
+            SprayDifficultyPrizes(D_002DE578, v, n, p->p10->n3F0, p->p10);
         }
         RecalcSwOxfFilterForObject(&D_003DD490, p->p10);
         func_00153FF8(p->p10->pF64);
@@ -3948,7 +3948,7 @@ struct T { char pad[0x2DC]; int n2DC; char pad2[8]; int n2E8; int n2EC; char pad
 struct S { char pad[0x10]; struct T *pt; char pad2[0x2C]; int n40; };
 void StartBhv(struct S *p);
 void SetBhvpatrolState(struct S *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_00170E90(int n, qword q, void *pv);
 int func_00209098(struct T *t);
 /** @sly2-annot addr=0x179AA0
@@ -3967,7 +3967,7 @@ void StartBhvpatrol(struct S *p) {
     if (t->n2E8) p->n40 = t->n2E8;
     else if (t->nFE8 & 2) p->n40 = t->n2EC;
     else { p->n40 = 0; SetBhvpatrolState(p, 2); return; }
-    if (p->pt->n2DC) func_00170E90(p->n40, func_001A62E8(p->pt), &p->pt->n2DC);
+    if (p->pt->n2DC) func_00170E90(p->n40, GetLoWorldPos(p->pt), &p->pt->n2DC);
     if (func_00209098(p->pt)) SetBhvpatrolState(p, 3); else SetBhvpatrolState(p, 0);
 }
 } } // namespace M_StartBhvpatrol
@@ -4173,8 +4173,8 @@ extern "C"{
  extern LIMIT D_002BE6B8;
  unsigned long GrfFromSgf(int);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
- qword func_001A62E8(P*);
- M3*func_001A6318(P*);
+ qword GetLoWorldPos(P*);
+ M3*GetLoWorldMatrix(P*);
  void FindShapeClosestPoint(P*,qword,void*,qword*,qword*,float*,float*);
  float atan2f(float,float);
  float RadNormalize__Ff(float);
@@ -4253,13 +4253,13 @@ extern "C" void StartBhvleap(C*p){
   float heading;
   if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,10)){
    P*target=p->target;
-   qword position=func_001A62E8(p->actor);
+   qword position=GetLoWorldPos(p->actor);
    FindShapeClosestPoint(target,position,0,&p->point.q,&work.temp.first.direction.q,0,&work.curve);
    heading=atan2f(work.temp.first.direction.f[1],work.temp.first.direction.f[0]);
   }else{
-   p->point.q=func_001A62E8(p->target);
-   M3*a=func_001A6318(p->target);
-   M3*b=func_001A6318(p->target);
+   p->point.q=GetLoWorldPos(p->target);
+   M3*a=GetLoWorldMatrix(p->target);
+   M3*b=GetLoWorldMatrix(p->target);
    heading=atan2f(((U*)a->r)->f[1],((U*)b->r)->f[0]);
   }
   if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,13)){
@@ -4278,7 +4278,7 @@ extern "C" void StartBhvleap(C*p){
   }else if(FIsBasicDerivedFrom__FP5BASIC3CID(p->target,0x13)&&p->target->kind==3){
    active|=GrfFromSgf(0x28);
    p->basisValid=1;
-   M3*m=func_001A6318(p->target);
+   M3*m=GetLoWorldMatrix(p->target);
    (void)BuildOrthonormalMatrixZ(&work.temp.basis,m->r[0],D_002A2DC0);
    p->matrix=work.temp.basis;
    func_0017A468(p);
@@ -4295,7 +4295,7 @@ extern "C" void StartBhvleap(C*p){
   switch(p->actor->mode){
   case -1:case 0:case 3:{
    point=p->point;
-   qword current=func_001A62E8(p->actor);
+   qword current=GetLoWorldPos(p->actor);
    P*actor; qword delta=HeadingInputs(p,&point,current,&actor);
    CONTROL*control=Control(actor);
    float angle=Angle(delta);
@@ -4304,9 +4304,9 @@ extern "C" void StartBhvleap(C*p){
   }
   case 2:{
    otherPoint=p->point;
-   qword current=func_001A62E8(p->actor);
+   qword current=GetLoWorldPos(p->actor);
    P*actor;direction.q=BasisInputs(p,&otherPoint,current,&actor);
-   M3*m=func_001A6318(actor->linked);
+   M3*m=GetLoWorldMatrix(actor->linked);
    (void)BuildOrthonormalMatrixZ(&work.temp.basis,m->r[0],direction.q);
    func_00209840(Control(p->actor),&work.temp.basis);
    break;
@@ -4421,7 +4421,7 @@ struct S { char pad[0x10]; struct T *pt; };
 void StartBhvanim(struct S *p);
 void func_0017A5B0(struct S *p, int n);
 void func_00153FF8(void *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_00156C80(struct G *g, int a, qword q, void *b, void *pv);
 /** @sly2-annot addr=0x17A4E8
  * Purpose: BHVSLEEP Start: BHVANIM Start, sub-state 0 (SM goal 0x44, random duration +0xE7C..E80), reset
@@ -4431,7 +4431,7 @@ void func_00156C80(struct G *g, int a, qword q, void *b, void *pv);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017A4E8(struct S *p) { StartBhvanim(p); func_0017A5B0(p, 0); func_00153FF8(p->pt->pF64); func_00156C80(&D_003DD490, 1, func_001A62E8(p->pt), p->pt, (char *)p->pt + 0x35C); }
+void func_0017A4E8(struct S *p) { StartBhvanim(p); func_0017A5B0(p, 0); func_00153FF8(p->pt->pF64); func_00156C80(&D_003DD490, 1, GetLoWorldPos(p->pt), p->pt, (char *)p->pt + 0x35C); }
 } } // namespace M_func_0017A4E8
 
 // 0x17A558 func_0017A558
@@ -4500,7 +4500,7 @@ struct T { char pad[0x35C]; struct V *p35C; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x3C]; int n50; int pad3; float g58; };
 void UpdateBhvanim(struct S *p);
 void func_0017A5B0(struct S *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x17A670
  * Purpose: BHVSLEEP Update: wake (state 1) when timer expires; keep held noise at the guard
  * Info: proposed name UpdateBhv175 (T2); class BHV175 slot10; TU guardbhv
@@ -4518,7 +4518,7 @@ void func_0017A670(struct S *p) {
         s = p->n50;
         if (s == 0 && D_002DDED0.t > p->g58) func_0017A5B0(p, 1);
     } while (p->n50 != s);
-    { struct T *t = p->pt; struct V *v = t->p35C; v->q20 = func_001A62E8(t); }
+    { struct T *t = p->pt; struct V *v = t->p35C; v->q20 = GetLoWorldPos(t); }
 }
 } } // namespace M_func_0017A670
 
@@ -4597,7 +4597,7 @@ struct T { char pad[0x208]; int n208; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x1C]; int n30; int pad3; float g38; };
 void UpdateBhv(struct S *p);
 void func_0017A8C8(struct S *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 struct R *func_00156698(void *p, qword q, struct T *t);
 /** @sly2-annot addr=0x17A7F8
  * Purpose: BHVTHROWN Update: end when landed (+0x208) in states 2/3; emit yelling noise periodically while
@@ -4618,7 +4618,7 @@ void func_0017A7F8(struct S *p) {
         if (D_002DDED0.t - p->g38 > D_002BE6C0) {
             struct G *g = &D_003DD490;
             p->g38 = D_002DDED0.t;
-            func_00156698(g->p4020, func_001A62E8(p->pt), p->pt)->n54 = 3;
+            func_00156698(g->p4020, GetLoWorldPos(p->pt), p->pt)->n54 = 3;
         }
     }
 }
@@ -4734,7 +4734,7 @@ struct P{char pad0[0x10];void*actor;char pad14[0x5C-0x14];void*target;};
 struct REQUEST{int flag;float along,up;int padC;qword point,direction;};
 extern qword D_002A2DC0,D_002A2DA0;
 extern float D_002BE6C4;
-qword func_001A62E8(void*);
+qword GetLoWorldPos(void*);
 static inline qword ToVU(qword word){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(word));return r;}
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));return Sub(a,d);}
@@ -4755,8 +4755,8 @@ static inline void PublishPoint(U*home,qword scalar,qword*out,qword point){__asm
  * @end-sly2-annot */
 void func_0017AA78(struct P*p,struct REQUEST*request,qword*outPoint,qword*outDirection){
 
- qword first=ToVU(func_001A62E8(p->actor));
- qword direction=Normal(Reject(Sub(first,func_001A62E8(p->target)),D_002A2DC0),D_002A2DA0);
+ qword first=ToVU(GetLoWorldPos(p->actor));
+ qword direction=Normal(Reject(Sub(first,GetLoWorldPos(p->target)),D_002A2DC0),D_002A2DA0);
  {U scalar;
  register unsigned int addressWord __asm__("$2")=(unsigned int)&D_002A2DC0;
  register qword along __asm__("vf4"),up __asm__("vf5"),point __asm__("vf2"),height __asm__("vf6");
@@ -4859,7 +4859,7 @@ struct OUT { char pad[0x30]; qword v; };
 void UpdateBhvanim(struct S *p);
 void SetBhvjuggledState(struct S *p, int n);
 void func_0017ABC8(struct S *p);
-qword func_001A62E8(struct A *a);
+qword GetLoWorldPos(struct A *a);
 void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
 static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->p19A4;return y->p60;}
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
@@ -4912,7 +4912,7 @@ void UpdateBhvjuggled(struct S *p) {
             register void*nullOutput __asm__("$7");
             register struct X*frameLink __asm__("$3");
             struct CLOCK *clock=&D_002DDED0;
-            a.q = func_001A62E8(p->p10);
+            a.q = GetLoWorldPos(p->p10);
             {
                 struct A *pa = p->p10;
                 struct VTE *e = &pa->vt[33];
@@ -4925,7 +4925,7 @@ void UpdateBhvjuggled(struct S *p) {
             t.q = out.v;
             t.f[2] += D_002BE6C8;
             tq = t.q;
-            c = func_001A62E8(p->p10);
+            c = GetLoWorldPos(p->p10);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(tq), "j"(c));
             clock=(struct CLOCK*)*(int*)&clock->dt;
             { qword ud_q; __asm__("qmtc2.ni %1, %0" : "=j"(ud_q) : "r"(clock)); ud.q = ud_q; }
@@ -5009,7 +5009,7 @@ void func_00130D30(void *p, float a, float b, int n);
 void SetBhvjuggledState(struct S *p, int n);
 struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-qword func_001A62E8(struct A *a);
+qword GetLoWorldPos(struct A *a);
 void func_00156698(void *p, qword v, struct A *a);
 /** @sly2-annot addr=0x17AF30
  * Purpose: BHVHELD message handler: BHVANIM events; ASEG 0x3D resets hit count; zap 0x200000 while held =
@@ -5059,7 +5059,7 @@ int BHVJUGGLED_FHandleMessage(struct S *p, int msg, struct M *pm) {
                 struct VTE *e;
                 func_002333B4(&x, 0, sizeof x);
                 x.a = 5;
-                x.v = func_001A62E8(p->p10);
+                x.v = GetLoWorldPos(p->p10);
                 e = &o->vt[0x33];
                 ((void (*)(void *, struct X *))e->pfn)((char *)o + e->d, &x);
             }
@@ -5068,7 +5068,7 @@ int BHVJUGGLED_FHandleMessage(struct S *p, int msg, struct M *pm) {
                 int m = a->n33C + pm->n10;
                 a->n33C = m < 5 ? 5 : m;
             }
-            func_00156698(D_003DD490.p4028, func_001A62E8(p->p10), p->p10);
+            func_00156698(D_003DD490.p4028, GetLoWorldPos(p->p10), p->p10);
             return 1;
         }
     }
@@ -5127,7 +5127,7 @@ extern "C"{
  void func_001F4E28(P*);
  void SetBhvanimState(C*,int);
  void func_0017AA78(C*,REQUEST*,U*,U*);
- qword func_001A62E8(P*);
+ qword GetLoWorldPos(P*);
  qword func_0022FC48(void*,void*,qword);
  qword ConvertXfVec(void*,void*,qword);
  DELTA*func_0012DE58(P*,GROUP*,void*,float,qword,qword);
@@ -5265,7 +5265,7 @@ extern "C" void SetBhvjuggledState(C*p,int next){
    :"=&r"(scalar),"=&r"(beforeActor),"+f"(factor),"=m"(cached.q)
    :"m"(point.q),"m"(p->actor),"f"(duration));
   scratch.q=scalar;scale=scratch;
-  qword current=func_001A62E8(beforeActor);
+  qword current=GetLoWorldPos(beforeActor);
   BlendSet(p,current,&cached,&scale,&scratch);
   GROUP*first=p->actor->first;
   if(!p->delta){
@@ -5567,7 +5567,7 @@ extern "C"{
  extern RANGE D_002BE740;
  extern POLY D_002BE720,D_002BE730;
  float GRandInRange__Fff(float,float);
- qword func_001A62E8(P*);
+ qword GetLoWorldPos(P*);
  void FindClosestPointOnLine(qword,qword,qword,qword*,float*,float*);
 }
 static inline unsigned long Eligible(unsigned long flags){return (flags>>60)&1;}
@@ -5632,7 +5632,7 @@ extern "C" void func_0017B9C0(C*p){
    :"=m"(work.bestPoint.q),"=f"(lower),"=&r"(best),"+r"(randomAddress)
    :"j"(zero),"J"(0),"m"(*(float*)(randomAddress-0x18f0)));
  p->time=now+GRandInRange__Fff(lower,((RANGE*)randomAddress)->hi);
- work.origin.q=func_001A62E8(p->actor);
+ work.origin.q=GetLoWorldPos(p->actor);
  // D_002A55FC supplies the initial selection cost.
  int i;P*actor;unsigned int limitHigh;
  {register int firstIndex __asm__("$5");register P*firstActor __asm__("$4");register unsigned int high __asm__("$3");
@@ -5644,11 +5644,11 @@ extern "C" void func_0017B9C0(C*p){
  if(actor->count>0)do{
   P*choice=actor->Choice(i);
   if(Eligible(choice->flags)){
-  qword candidate=From(func_001A62E8(choice));
+  qword candidate=From(GetLoWorldPos(choice));
   float cost=Distance(&work.origin,candidate);
   if(choice==p->preferred)cost=D_002BE720.a+cost*(D_002BE720.b+cost*D_002BE720.c);
   for(int j=0;j<p->actor->nearCount;j++){
-   qword position=func_001A62E8(p->actor->near[j]);
+   qword position=GetLoWorldPos(p->actor->near[j]);
    FindClosestPointOnLine(position,work.origin.q,To(candidate),0,&work.t,&work.d);
    if(work.t<0.0f)continue;
    if(work.t>1.0f)continue;
@@ -5663,7 +5663,7 @@ extern "C" void func_0017B9C0(C*p){
  P*nearest=0;float distance=800.0f;
  for(int k=0;k<p->actor->nearCount;k++){
   P*choice=p->actor->near[k];
-  qword position=From(func_001A62E8(choice));
+  qword position=From(GetLoWorldPos(choice));
   float f=DistanceFrom(position,&work.origin);
   if(f>distance)continue;
   if(best){
@@ -5763,7 +5763,7 @@ struct B { char pad[0xDC]; struct C *pDC; };
 struct T { char pad[0xE8]; struct B *pE8; char pad2[0x294 - 0xEC]; int n294; char pad3[0xFE8 - 0x298]; int nFE8; };
 struct S { char pad[0x10]; struct T *pt; };
 void StartBhv(struct S *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_001C02D0(void *p, qword a, qword b, int n);
 void func_0017C550(struct S *p, int n);
 /** @sly2-annot addr=0x17BF08
@@ -5778,8 +5778,8 @@ void func_0017BF08(struct S *p) {
     if (p->pt->nFE8 & 4) {
         struct C *c = p->pt->pE8 ? p->pt->pE8->pDC : 0;
         void *pv = c ? c->p10 : 0;
-        qword q = func_001A62E8(p->pt);
-        func_001C02D0(pv, q, func_001A62E8(p->pt), p->pt->n294);
+        qword q = GetLoWorldPos(p->pt);
+        func_001C02D0(pv, q, GetLoWorldPos(p->pt), p->pt->n294);
         func_0017C550(p, 1);
     } else {
         func_0017C550(p, 0);
@@ -5823,7 +5823,7 @@ struct FLOW{float polarAngle,polarLength,candidateAngle,candidateLength,distance
 struct SEGMENT{qword a,b;char data[0x40];};
 extern "C"{
 extern float D_002A5600;
-qword func_001A62E8(ACTOR*);
+qword GetLoWorldPos(ACTOR*);
 void GetVectorCylind(qword,float*,float*,float*);
 float RadNormalize__Ff(float);float GLimitAbs__Fff(float,float);float GLimitLm__FP2LMf(LM*,float);
 qword SetVectorCylind(float,float,float);int FCheckLm__FP2LMf(LM*,float);
@@ -5857,7 +5857,7 @@ extern "C" qword func_0017BFF8(P*p,void*region,qword origin,float heading){
   if(scale){float factor=scale->value;first.low*=factor;first.high*=factor;second.low*=factor;second.high*=factor;}
  }
  tuning=p->actor->tuning;
- GetVectorCylind(QwSub(func_001A62E8(p->actor),origin),&flow.polarAngle,&flow.polarLength,0);
+ GetVectorCylind(QwSub(GetLoWorldPos(p->actor),origin),&flow.polarAngle,&flow.polarLength,0);
  float angle=heading+GLimitAbs__Fff(RadNormalize__Ff(flow.polarAngle-heading),tuning->narrow);
  float length=GLimitLm__FP2LMf(&first,flow.polarLength);
  if(func_001C0B50(region,QwAdd(origin,SetVectorCylind(angle,length,0.0f)),&closest.q)){
@@ -5910,7 +5910,7 @@ struct T { char pad[0x70]; float f70; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; };
 void UpdateBhv(struct S *p);
 float func_0020A690(struct K *k);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void GetVectorCylind(qword v, float *a, float *b, int n);
 float RadNormalize__Ff(float f);
 int FCheckLm__FP2LMf(void *p, float f);
@@ -5948,7 +5948,7 @@ void func_0017C3E8(struct S *p) {
     k = a->p3CC;
     o = k->pC;
     g = func_0020A690(k);
-    pos = func_001A62E8(o);
+    pos = GetLoWorldPos(o);
     t = p->p18;
     if (t->f70 > D_002BE748) goto doit;
     {
@@ -5960,7 +5960,7 @@ void func_0017C3E8(struct S *p) {
     if (FCheckLm__FP2LMf(p->p10->a324, out[1])) return;
 doit:
     {
-        qword v = func_001A62E8(p->p10);
+        qword v = GetLoWorldPos(p->p10);
         func_001C02D0(q, v, func_0017BFF8(p, q, g, pos), b);
     }
     SetBhvpathShape(t, b, 0);
@@ -6055,7 +6055,7 @@ struct X {qword header,v;};
 struct P {char pad10[0x10];void*p10;int pad14;void*p18;char pad1C[4];int pending;char pad24[12];void*p30;char pad34[0x40-0x34];qword v40;int state;float time;int pad58[2];qword v60;};
 void UpdateBhv(struct P*);
 int FBhvBusyAbove(struct P*);
-qword func_001A62E8(void*);
+qword GetLoWorldPos(void*);
 qword ConvertAloPos(void*,void*,qword);
 int func_00209098(void*);
 void func_0017C928(struct P*,int);
@@ -6075,8 +6075,8 @@ static inline float LenXY(qword v){float r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x 
 void func_0017C6D0(struct P*p){
  struct X x;qword pos;float dist;int state;float lim=250.0f;
  UpdateBhv(p);
- pos=func_001A62E8(p->p30);
- dist=LenXY(Sub(pos,func_001A62E8(p->p10)));
+ pos=GetLoWorldPos(p->p30);
+ dist=LenXY(Sub(pos,GetLoWorldPos(p->p10)));
  goto test;
  top:{
   state=p->state;
@@ -6134,7 +6134,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; cha
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; void *p30; char pad3[0xC]; qword v40; int n50; float f54; char pad4[8]; qword v60; };
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword ConvertAloPos(void *p, int n, qword v);
 void func_002562A8(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
@@ -6157,7 +6157,7 @@ void func_0017C928(struct S *p, int n) {
     case 1:
         {
             struct O *o = func_00205438(p->p10, 0xBA);
-            qword v = func_001A62E8(p->p30);
+            qword v = GetLoWorldPos(p->p30);
             struct VTE *e;
             p->v60 = v;
             o->nC0 = 1; o->pA8 = p->p30; o->nAC = 1;
@@ -6182,7 +6182,7 @@ void func_0017C928(struct S *p, int n) {
             struct O *o = func_00205438(p->p10, 0xBA);
             qword v;
             struct VTE *e;
-            p->v60 = func_001A62E8(p->p30);
+            p->v60 = GetLoWorldPos(p->p30);
             v = ConvertAloPos(p->p30, 0, p->v40);
             o->nC0 = 1;
             func_002562A8(&x);
@@ -6251,7 +6251,7 @@ struct A { char pad[0xF84]; void *pF84; float fF88; int nF8C; char pad2[0xFD0 - 
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x14]; int n30; int pad4; float f38; float f3C; };
 union V { qword q; float f[4]; };
 void UpdateBhv(struct S *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float SWrapShape(void *p, float f);
 void FindShapeClosestPointFromS(void *p, float f, qword v, int a, int b, union V *pv, int c, float *pt);
 int FBhvrailArrived(struct S *p);
@@ -6278,7 +6278,7 @@ void UpdateBhvrail(struct S *p) {
             qword pos;
             union V v;
             a->nF8C = t < p->f3C;
-            pos = func_001A62E8(p->p10);
+            pos = GetLoWorldPos(p->p10);
             FindShapeClosestPointFromS(q, SWrapShape(q, p->p10->nF8C ? t + D_002BE74C : t - D_002BE74C), pos, 0, 0, &v, 0, &t);
             p->p10->fF88 = t;
             if (FBhvrailArrived(p)) {
@@ -6565,7 +6565,7 @@ struct S { char pad[0x10]; struct T *pt; };
 extern qword D_002A2DC0;
 void StartBhv(struct S *p);
 struct O *func_00205438(void *p, int n);
-qword *func_001A6318(void *p);
+qword *GetLoWorldMatrix(void *p);
 struct M3 BuildOrthonormalMatrixZ(qword a, qword b);
 /** @sly2-annot addr=0x17D1F0
  * Purpose: BHVATTACH19 Start: push BHVANIM flag 2 and align to the attach object's frame
@@ -6579,7 +6579,7 @@ void func_0017D1F0(struct S *p) {
     StartBhv(p);
     o = func_00205438(p->pt, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d);
     t = p->pt;
-    t->m1B0 = BuildOrthonormalMatrixZ(*func_001A6318(t->pF84), D_002A2DC0);
+    t->m1B0 = BuildOrthonormalMatrixZ(*GetLoWorldMatrix(t->pF84), D_002A2DC0);
 }
 } } // namespace M_func_0017D1F0
 
@@ -6956,7 +6956,7 @@ struct S {
     union { struct V2 v60; struct { int n60; int n64; char pad[8]; qword v70; } s; } u;
     char pad3[0xB4 - 0x80]; int nB4; struct I *aB8[1]; int nBC; int nC0;
 };
-qword func_001A62E8(struct A *p);
+qword GetLoWorldPos(struct A *p);
 qword func_001C1EC0(struct V2 *p, qword v);
 void *PpathzoneFromPos(qword v, int n);
 int FindPathlinkRoute(void *a, struct A *b, qword v, int c, int d, struct I **pp);
@@ -6974,7 +6974,7 @@ void FindBhvgotoRoute(struct S *p) {
     p->nB4 = 0;
     p->u.v60 = p->v40;
     if (p->nBC == 0) {
-        qword pos = func_001A62E8(p->p10);
+        qword pos = GetLoWorldPos(p->p10);
         qword v = func_001C1EC0(&p->v40, pos);
         struct C *c = p->p10->pE8;
         struct D *d = c ? c->pDC : 0;
@@ -7043,7 +7043,7 @@ int FBhvBusyAbove(struct S *p);
 void SetBhvgotoState(struct S *p, int n);
 void FindBhvgotoRoute(struct S *p);
 void func_002562A8(struct X *x);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword func_001C1EC0(struct X *s, qword v);
 void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
 void MeasureShape(struct B *b);
@@ -7077,7 +7077,7 @@ void PlanBhvgoto(struct S *p) {
         if (q->n120 == 0) {
             union { qword q; float f[4]; } c;
             float t;
-            qword pos = func_001A62E8(p->p10);
+            qword pos = GetLoWorldPos(p->p10);
             qword a = func_001C1EC0(&q->x60, pos);
             qword b = func_001C1EC0(&q->x80, pos);
             int f;
@@ -7099,7 +7099,7 @@ void PlanBhvgoto(struct S *p) {
     }
     if (k > 0) if (k < 3) {
         struct B *b = p->p10->p294;
-        qword pos = func_001A62E8(p->p10);
+        qword pos = GetLoWorldPos(p->p10);
         qword q = func_001C1EC0(&x, pos);
         if (p->nBC) {
             b->nE8 = 2;
@@ -7275,7 +7275,7 @@ int func_00209098(void *p);
 void func_0017E278(struct S *p, int n);
 int func_00208B38(struct A *a, void *o);
 float func_00208BB0(struct A *a);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword func_001C1EC0(struct X *s, qword v);
 void func_0017E0E0(struct S *p);
 static __inline__ float Dist(qword a, qword b) {
@@ -7330,12 +7330,12 @@ void func_0017DE50(struct S *p) {
         struct T *t = p->p18;
         if (D_002DDED0.t - p->f3C > D_002BE760) {
         struct X *x = &t->x40;
-        qword pos = func_001A62E8(p->p10);
+        qword pos = GetLoWorldPos(p->p10);
         int f = 0;
         qword q = func_001C1EC0(x, pos);
-        if (Dist(func_001A62E8(p->p10), q) < D_002BE764) {
+        if (Dist(GetLoWorldPos(p->p10), q) < D_002BE764) {
             f = 1;
-        } else if (Dist(func_001A62E8(p->p10), func_001A62E8(p->p38)) < D_002BE768) {
+        } else if (Dist(GetLoWorldPos(p->p10), GetLoWorldPos(p->p38)) < D_002BE768) {
             f = 1;
         }
         if (f) func_0017E0E0(p);
@@ -7360,7 +7360,7 @@ struct D { char pad[0x10]; void *p10; };
 struct C { char pad[0xDC]; struct D *pDC; };
 struct A { char pad[0xE8]; struct C *pE8; };
 struct S { char pad[0x10]; struct A *p10; int pad2; struct T *p18; char pad3[0x1C]; void *p38; float f3C; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 qword func_001C1EC0(struct X *s, qword v);
 qword SetVectorCylind(float a, float b, float c);
@@ -7391,8 +7391,8 @@ extern "C" void func_0017E0E0(struct S *p) {
     unsigned int i;
     p->f3C = D_002DDED0.t;
     t = p->p18;
-    a = func_001A62E8(p->p38);
-    b = func_001A62E8(p->p10);
+    a = GetLoWorldPos(p->p38);
+    b = GetLoWorldPos(p->p10);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(b), "j"(a));
     c = p->p10->pE8;
     dd = c ? c->pDC : 0;
@@ -7634,7 +7634,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword q50; char pad3[8]; int n68; };
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; char *p30; int n34; };
 struct O *func_00205438(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword func_001C1EC0(void *pe, qword q);
 /** @sly2-annot addr=0x17E628
  * Purpose: Push BHVLEAP to the current segment endpoint
@@ -7649,7 +7649,7 @@ void PushBhvpathlinkLeap(struct S *p) {
     struct O *o = func_00205438(p->p10, 0xAC);
     struct VTE *e;
     o->n68 = 1;
-    o->q50 = func_001C1EC0(p->p30 + 0x60 + p->n34 * 32, func_001A62E8(p->p10));
+    o->q50 = func_001C1EC0(p->p30 + 0x60 + p->n34 * 32, GetLoWorldPos(p->p10));
     e = &o->vt[8];
     e->pfn((char *)o + e->d);
 }
@@ -7671,7 +7671,7 @@ struct P { char pad[0x60]; struct SEG a60[(0x120 - 0x60) / 32]; int n120; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; struct P *p30; int n34; int n38; float f3C; float f40; };
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword func_001C1EC0(struct SEG *s, qword v);
 void MeasureShape(struct B *b);
 void SetBhvpathShape(struct O *o, struct B *b, int n);
@@ -7697,7 +7697,7 @@ void SetBhvpathlinkState(struct S *p, int n) {
             {
                 struct O *o = func_00205438(p->p10, 0xA7);
                 struct B *b = p->p10->p294;
-                qword pos = func_001A62E8(p->p10);
+                qword pos = GetLoWorldPos(p->p10);
                 qword q = func_001C1EC0(&p->p30->a60[p->n34], pos);
                 qword d;
                 float len;
@@ -7818,7 +7818,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword q50; char pad3[8]; int n68; char pad4[0x240 - 0x6C]; qword pos; char pad5[0xFE8 - 0x250]; int nFE8; };
 struct S { char pad[0x10]; struct O *p10; int pad2; char a18[0x18]; char a30[0x10]; };
 void PopBhv(void *p);
-qword func_001A62E8(struct O *p);
+qword GetLoWorldPos(struct O *p);
 qword func_001C1EC0(void *p, qword q);
 int func_00173610(qword *pq, float a, float b, int n, void *pfn);
 void FSnapPosToSurfaceAbove(qword *pq);
@@ -7835,7 +7835,7 @@ void func_0020B210(struct O *p);
 void func_0017E9B0(struct S *p) {
     union { qword q; float a[4]; } u;
     PopBhv(p->a18);
-    u.q = func_001C1EC0(p->a30, func_001A62E8(p->p10));
+    u.q = func_001C1EC0(p->a30, GetLoWorldPos(p->p10));
     if (!func_00173610(&u.q, 150.0f, -250.0f, 1, 0)) FSnapPosToSurfaceAbove(&u.q);
     if (p->p10->nFE8 & 1) {
         struct O *o = func_00205438(p->p10, 0xAC);
@@ -7901,7 +7901,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0xA8 - 0x10]; int nA8; int nAC; char pad3[0xC]; int nBC; };
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; int n30; int pad3; float g38; int pad4; char a40[0x10]; int n50; int n54; int n58; };
 void StartBhv(struct S *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void FindShapeClosestPointFromS(int a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 void FindShapeClosestPoint(int a, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 struct O *func_00205438(void *p, int n);
@@ -7919,9 +7919,9 @@ void StartBhvpatrolpath(struct S *p) {
     struct O *o;
     StartBhv(p);
     if (p->g38 >= 0.0f)
-        FindShapeClosestPointFromS(p->n30, p->g38, func_001A62E8(p->p10), &D_003DD020, p->a40, 0, 0, &p->g38);
+        FindShapeClosestPointFromS(p->n30, p->g38, GetLoWorldPos(p->p10), &D_003DD020, p->a40, 0, 0, &p->g38);
     else
-        FindShapeClosestPoint(p->n30, func_001A62E8(p->p10), &D_003DD020, p->a40, 0, 0, &p->g38);
+        FindShapeClosestPoint(p->n30, GetLoWorldPos(p->p10), &D_003DD020, p->a40, 0, 0, &p->g38);
     o = func_00205438(p->p10, 0xBA);
     o->nA8 = p->n50;
     o->nAC = p->n54;

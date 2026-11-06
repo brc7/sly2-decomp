@@ -265,7 +265,7 @@ struct LO {
 extern "C" {
 void func_002333B4(void *, int, int) __asm__("memset");
 void __ml__FRC7MATRIX4T0(struct MAT *, struct ALO *, struct MAT *);
-void func_001A5900(struct LO *, struct LO *, struct LO *, int);
+void LO_SetParent(struct LO *, struct LO *, struct LO *, int);
 void UpdateSoXfWorldMatrices(struct LO *);
 void ReleaseSoBoundsHierarchy(struct LO *);
 void EnsureSoBoundsHierarchy(struct LO *);
@@ -319,7 +319,7 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int gr
         int d = pe->pe - aeBase;
         if (d >= 0 && d < c) pe->pe = pv;
     }
-    func_001A5900(plo, pa, pb, grf);
+    LO_SetParent(plo, pa, pb, grf);
     UpdateSoXfWorldMatrices(plo);
     if (grf & 1) VCALL(plo, 29, void (*)(void *, qword)), *(qword *)mat.m[3]);
     if (grf & 2) VCALL(plo, 30, void (*)(void *, struct MAT *)), &mat);
@@ -377,7 +377,7 @@ struct Node {
  char pad140[8];ulong state;
 };
 struct Stats *PvAllocSlotheapClear(void *);
-qword func_001A62E8(struct Node *);
+qword GetLoWorldPos(struct Node *);
 static inline float Distance(qword a,qword b) {
  qword d,one;
  float result;
@@ -435,7 +435,7 @@ count:
 position:
 
  {
-   qword position=func_001A62E8(p);
+   qword position=GetLoWorldPos(p);
    float radius=p->radius+Distance(position,*p->stats->origin);
    if(p->flags&(1UL<<32)) {
      if(p->stats->low<radius) p->stats->low=radius;
@@ -790,7 +790,7 @@ extern const struct S8 D_002A8270;
 void AddLoHierarchy(struct L *);
 void UpdateSoXfWorldMatrices(struct L *);
 void AddSoParts(struct L *);
-qword func_001A62E8(struct L *);
+qword GetLoWorldPos(struct L *);
 void *PpathzoneFromPos(qword, int);
 void func_001F37C8(struct L *, void *);
 void PostSwCallback(struct G *, struct L *, long, int);
@@ -817,7 +817,7 @@ void AddSoHierarchy(struct L *p)
     pv = p->pe ? p->pe->pDC : 0;
     if (pv) {
         if (D_003DD490.ph && D_003DD490.ph->n2C)
-            func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+            func_001F37C8(p, PpathzoneFromPos(GetLoWorldPos(p), 1));
         else
             PostSwCallback(&D_003DD490, p, D_002A8270.l, 0);
     }
@@ -896,7 +896,7 @@ struct VTE; struct O;
 typedef unsigned long ulong;
 struct VTE { short d; short pad; void (*pfn)(void *, void *, void *); };
 struct O { char pad[0xC]; struct VTE *pvt; struct O *p10; char pad2[0x24 - 0x14]; struct O *pNext; ulong fl; char pad3[0x64 - 0x30]; struct O *pFirst; char pad4[0xE0 - 0x68]; int nE0; };
-void func_001A5B80(struct O *, struct O *, struct O *);
+void UpdateLoLoroot(struct O *, struct O *, struct O *);
 void RemoveSoParts(struct O *);
 void AddSoParts(struct O *);
 static inline struct O *Find(struct O *x)
@@ -916,7 +916,7 @@ void UpdateSoLoroot(struct O *p, struct O *pNew, struct O *pOld)
 {
     struct O *po;
     int unused[4];
-    func_001A5B80(p, pNew, pOld);
+    UpdateLoLoroot(p, pNew, pOld);
     for (po = p->pFirst; po; po = po->pNext)
         po->pvt[13].pfn((char *)po + po->pvt[13].d, pNew, pOld);
     if (!p->nE0) return;
@@ -994,7 +994,7 @@ struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" void func_001D6310(L *);
 extern "C" void func_001D6378(L *);
-extern "C" void func_00147E88(G *, int);
+extern "C" void ResortSwBusyEntry(G *, int);
 /** @sly2-annot addr=0x1F3118
  * Purpose: SO vt42: store busy distance +0x38, refresh +0x140 registration (0x1D6310/0x1D6378), re-sort root
  *   in g_sw (0x147E88), push smaller value to children
@@ -1014,7 +1014,7 @@ extern "C" void func_001F3118(L *p, float t)
     }
     if (!p->parent) {
         bool f = p->b60;
-        if (f) func_00147E88(&D_003DD490, p->n14);
+        if (f) ResortSwBusyEntry(&D_003DD490, p->n14);
     }
     for (q = p->first; q; q = q->next) {
         if (t < q->g38) q->pvt->a[42].pfn((char *)q + q->pvt->a[42].d, t);
@@ -1059,7 +1059,7 @@ void AdjustSoMomint(P *,float);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(P *,void *);
 void EnsureSoBounds(P *);
 void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(P *,void *,void *);
-void func_001A6D28(P *,int);
+void SetLoVisMask(P *,int);
 }
 static inline int Extra(P *p){VE *v=&p->vt[63];return ((int (*)(P *))v->fn)((P *)((char *)p+v->delta));}
 static inline void *Lookup(P *p,int id){VE *v=&p->vt[51];return ((void *(*)(P *,int))v->fn)((P *)((char *)p+v->delta),id);}
@@ -1121,7 +1121,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
     if(p->data.guard)SetActive(p);
     EnsureSoBounds(p);
     LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(p,stream,0);
-    func_001A6D28(p,metadata);
+    SetLoVisMask(p,metadata);
 }
 } // namespace M_LoadSoFromBrx
 
@@ -1235,7 +1235,7 @@ struct E { char pad[0xDC]; void *pDC; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0xE8 - 0x10]; struct E *pe; char pad3[0x12C - 0xEC]; float g12C; float g130; };
 extern struct CLOCK D_002DDED0;
 void UpdateLo(struct P *);
-qword func_001A62E8(struct P *);
+qword GetLoWorldPos(struct P *);
 void *PpathzoneFromPos(qword, int);
 void func_001F37C8(struct P *, void *);
 /** @sly2-annot addr=0x1F36E0
@@ -1253,7 +1253,7 @@ void UpdateSo(struct P *p)
     float d;
     UpdateLo(p);
     q = p->pe ? p->pe->pDC : 0;
-    if (q) func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+    if (q) func_001F37C8(p, PpathzoneFromPos(GetLoWorldPos(p), 1));
     d = p->g130;
     if (d != 0.0f) {
         float v = p->g12C + D_002DDED0.dt * d;
@@ -1308,7 +1308,7 @@ void func_001F37C8(struct P *p, struct Q *q)
 // 0x1F3868 func_001F3868
 namespace M_func_001F3868 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 int PpathzoneFromPos(qword, int);
 void func_001F37C8(void *, int);
 /** @sly2-annot addr=0x1F3868
@@ -1317,7 +1317,7 @@ void func_001F37C8(void *, int);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-void func_001F3868(void *p) { func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1)); }
+void func_001F3868(void *p) { func_001F37C8(p, PpathzoneFromPos(GetLoWorldPos(p), 1)); }
 } } // namespace M_func_001F3868
 
 // 0x1F38A8 UpdateSoPartGeom
@@ -1440,7 +1440,7 @@ struct P {
     ulong fl;
 };
 
-int func_001A61A0(struct P *);
+int IsLoInWorld(struct P *);
 void func_001D6378(struct P *);
 void func_001D6310(struct P *);
 
@@ -1478,7 +1478,7 @@ void func_001F3B28(struct P *p, int enabled)
                     __asm__("sw %1,%0" : "=m"(p->v40) : "r"(value));
                 }
             }
-            if ((p->fl & (1L << 35)) && func_001A61A0(p))
+            if ((p->fl & (1L << 35)) && IsLoInWorld(p))
                 func_001D6378(p);
         } else {
             if (!has8)
@@ -1750,7 +1750,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void func_001F4E28(struct P *);
 void SlotUnsettle(struct P *, struct LO *);
 void UpdateSoPartMatrices(struct P *);
-qword func_001A62E8(struct P *);
+qword GetLoWorldPos(struct P *);
 struct REGION *PpathzoneFromPos(qword, int);
 void func_001F37C8(struct P *, struct REGION *);
 /** @sly2-annot addr=0x1F40A0
@@ -1809,7 +1809,7 @@ void TranslateSoToPos(struct P *p, qword v)
     {
         struct REGION_LINK *link = 0;
         if (p->pe) link = p->pe->regionLink;
-        if (link) func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+        if (link) func_001F37C8(p, PpathzoneFromPos(GetLoWorldPos(p), 1));
     }
 }
 
@@ -2203,7 +2203,7 @@ public:
     char pad[0xE8 - 0x10];
     void *pE8;
 };
-extern "C" void func_001A6B88(X *, X *);
+extern "C" void MoveLoToObject(X *, X *);
 /** @sly2-annot addr=0x1F49C8
  * Purpose: SO vt38: LO::MatchLoXf then copy velocities via vt33..36 when SO has physics
  * Info: proposed name MatchSoXf (T2); class SO slot38; TU so
@@ -2212,7 +2212,7 @@ extern "C" void func_001A6B88(X *, X *);
  * @end-sly2-annot */
 extern "C" void func_001F49C8(X *p, X *q)
 {
-    func_001A6B88(p, q);
+    MoveLoToObject(p, q);
     if (p->pE8) {
         p->Set35(q->Get33());
         p->Set36(q->Get34());
@@ -2229,7 +2229,7 @@ struct M4 {U r[4];M4(){} M4(const M4&m){r[0]=m.r[0];r[1]=m.r[1];r[2]=m.r[2];r[3]
 struct VTE { short d; short pad; void (*pfn)(); };
 struct A { char pad[0x70]; qword pos; };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE8 - 0x10]; void *pe; };
-extern "C" void func_001A6BC8(struct P *p, struct A *pa);
+extern "C" void SetLoTransformFromXf(struct P *p, struct A *pa);
 extern "C" M4 *func_0022D148(M4 *,A *,A *);
 static inline M4 BuildVelocity(A *owner) return result { func_0022D148(&result,owner,0); }
 static __inline__ qword Make(float x, float y, float z)
@@ -2256,7 +2256,7 @@ extern "C" void func_001F4A80(struct P *p, struct A *pa)
 {
     M4 m;
     qword q;
-    func_001A6BC8(p, pa);
+    SetLoTransformFromXf(p, pa);
     if (!p->pe) return;
     { M4 t = BuildVelocity(pa); m = t; }
     VTE *vt=p->pvt;
@@ -3349,7 +3349,7 @@ struct OWNER {char pad[0xA0];void *parent;char padA4[0x4C];qword force;};
 struct S {char pad[0xC];struct VE *vt;char pad10[0x48];struct OWNER *owner;};
 struct CLOCK {float time,dt;};
 extern struct CLOCK D_002DDED0;
-qword func_001A62E8(struct S*);
+qword GetLoWorldPos(struct S*);
 qword ConvertXfVec(void*,void*,qword);
 static inline qword Sub(qword x,qword y){register qword a __asm__("vf1")=x,b __asm__("vf2")=y,r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float Length(qword value){register qword a __asm__("vf3")=value,r __asm__("vf1"),one __asm__("vf2");float f;
@@ -3375,7 +3375,7 @@ void AccelSoTowardPosSpring(struct S*input,qword position,struct COEF*positionCo
  register struct OWNER *owner __asm__("$19");
  point.q=position;owner=p->owner;speed.q=velocity;
  if(c){
-   qword difference=Sub(point.q,func_001A62E8(p));
+   qword difference=Sub(point.q,GetLoWorldPos(p));
    float distance=Length(difference);
    if(1.0e-4f<distance){
      float inverse=c->a/distance;
@@ -4308,7 +4308,7 @@ struct M { struct O *po; int n; struct K *pk; };
 struct M2 { struct O **ppo; int *pn; };
 struct M3 { struct K *pk; };
 extern float D_002DDED0;
-struct O *PsoFromLo(void *);
+struct O *GetSoFromLo(void *);
 int GrfzpdFromSoGrfzpk(struct O *, int);
 struct K *PvAllocSlotheapClear(void *);
 void ClearDle__FP3DLE(void *);
@@ -4335,7 +4335,7 @@ struct O *func_001F7598(struct K *pk)
     struct M m;
     struct M2 m2;
     struct O *po;
-    for (po = PsoFromLo(pk->p8); po; po = po->pNext) {
+    for (po = GetSoFromLo(pk->p8); po; po = po->pNext) {
         struct N *pn;
         for (pn = (*(struct N * *)&g_sw.dlZprHit); pn; pn = pn->pNext) {
             if (pn->n0 == (int)pk->p0 && pn->n4 == pk->n4 && pn->nC == pk->nC && pn->p48 == po) return 0;
@@ -4488,7 +4488,7 @@ struct G2 { void *p; };
 extern struct G2 D_002F7900;
 void func_001F7A68(struct P *, int);
 void func_002333B4(void *, int, int) __asm__("memset");
-qword func_001A62E8(struct P *);
+qword GetLoWorldPos(struct P *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void func_001F7598(struct M *);
 /** @sly2-annot addr=0x1F7950
@@ -4510,7 +4510,7 @@ void func_001F7950(struct P *p)
     func_001F7A68(p, 0);
     func_002333B4(&m, 0, 0x60);
     m.p8 = p;
-    m.q20 = func_001A62E8(p);
+    m.q20 = GetLoWorldPos(p);
     m.q30 = ((qword (*)(void *))p->pvt->a[33].pfn)((char *)p + p->pvt->a[33].d);
     if (k == 3 && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x38)) {
         m.nC = 0x40000; m.n10 = -50; m.p0 = D_002F7900.p;

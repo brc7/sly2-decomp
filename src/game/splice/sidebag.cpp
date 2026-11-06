@@ -2,6 +2,8 @@
 // sidebag pool's GC members are CGcObj<CSidebag>'s (sly2/gc.h) and its counted-pointer copies CRefPtr<T>'s
 // (sly2/basic.h), all emitted by splice/gc.cpp.
 // TU 0x12A980..0x12AE18 (6 functions, address order).
+// Entry points: CSidebag_RefAddBinding / RefSetBinding / FFindBinding (object options outside the
+// built-in table), CSidebag_CloneTo.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sidebag
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012ADF8
 #include "sly2/cref.h"
@@ -44,9 +46,9 @@ struct SPW
     CVarb *p;
     SPW() {}
     SPW(const SPW &);
-    void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
-    ~SPW() { CVarb *pvarb = p; if (pvarb && --pvarb->cref == 0) delete pvarb; }
-    void operator=(CVarb *pvarb) __asm__("__as__t7CRefPtr1Z5CVarbP5CVarb");
+    void Set(CVarb *binding) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
+    ~SPW() { CVarb *binding = p; if (binding && --binding->cref == 0) delete binding; }
+    void operator=(CVarb *binding) __asm__("__as__t7CRefPtr1Z5CVarbP5CVarb");
     CVarb *operator->() { return p; }
     operator CVarb *() { return p; }
 };
@@ -55,12 +57,12 @@ class CSidebag
 {
 public:
     /* 0x00 */ int cref;
-    /* 0x04 */ int x4;              /* GC link word (GCHDR) */
-    /* 0x08 */ SPW pbindingFirst;   /* inline release: deleting a bag releases its bindings inline */
+    /* 0x04 */ int gcLink;              /* GC link word (GCHDR) */
+    /* 0x08 */ SPW firstBinding;   /* inline release: deleting a bag releases its bindings inline */
 
     CRef RefSetBinding(int sym, CRef *pref);
     int FFindBinding(int sym, CRef *pref);
-    void SetBinding(CVarb *pvarb) { pbindingFirst = pvarb; }
+    void SetBinding(CVarb *binding) { firstBinding = binding; }
     /* Sidebags live in the fifth engine slot pool (slot size 0xC == sizeof(CSidebag)). */
     void operator delete(void *pv) { Unlink__t6CGcObj1Z8CSidebag((GCHDR *)pv); func_0011CD98(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
 };
@@ -70,18 +72,18 @@ typedef char assert_CSidebag_size[sizeof(CSidebag) == 0xC ? 1 : -1];
 struct SPS
 {
     CSidebag *p;
-    void Set(CSidebag *psb) __asm__("Attach__t7CRefPtr1Z8CSidebagP8CSidebag");
+    void Set(CSidebag *sidebag) __asm__("Attach__t7CRefPtr1Z8CSidebagP8CSidebag");
     SPS() {}
-    SPS(CSidebag *psb) { Set(psb); }
+    SPS(CSidebag *sidebag) { Set(sidebag); }
     SPS(const SPS &);
-    ~SPS() { CSidebag *psb = p; if (psb && --psb->cref == 0) delete psb; }
+    ~SPS() { CSidebag *sidebag = p; if (sidebag && --sidebag->cref == 0) delete sidebag; }
     CSidebag *operator->() { return p; }
 };
 
 extern "C" {
-SPW CVarb_CloneTo(CVarb *pvarb, void *p, void *q);
-CRef CSidebag_RefAddBinding(CSidebag *psb, int sym, CRef *pref);
-SPS CSidebag_CloneTo(CSidebag *psbSrc, void *q);
+SPW CVarb_CloneTo(CVarb *binding, void *p, void *q);
+CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref);
+SPS CSidebag_CloneTo(CSidebag *source, void *q);
 }
 
 /** @sly2-annot addr=0x12A980
@@ -92,15 +94,16 @@ SPS CSidebag_CloneTo(CSidebag *psbSrc, void *q);
  *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-extern "C" CRef CSidebag_RefAddBinding(CSidebag *psb, int sym, CRef *pref)
+// Adds a binding {sym, value} at the head of the object's sidebag; returns Void.
+extern "C" CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref)
 {
-    SPW *ppbFirst = &psb->pbindingFirst;
+    SPW *firstSlot = &sidebag->firstBinding;
     SPW sp;
     sp.Set(PtNew__t6CGcObj1Z5CVarb());
     sp->sym = sym;
     sp->ref = *pref;
-    sp->pnext = ppbFirst->p;
-    *ppbFirst = (CVarb *)sp;
+    sp->pnext = firstSlot->p;
+    *firstSlot = (CVarb *)sp;
     return CRef(0x24);
 }
 
@@ -109,10 +112,11 @@ extern "C" CRef CSidebag_RefAddBinding(CSidebag *psb, int sym, CRef *pref)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
+// Assigns a new value to the sidebag's existing binding of sym (nothing happens when unbound); returns Void.
 CRef CSidebag::RefSetBinding(int sym, CRef *pref)
 {
     CVarb *pb;
-    for (pb = pbindingFirst.p; pb; pb = pb->pnext.p) {
+    for (pb = firstBinding.p; pb; pb = pb->pnext.p) {
         if (pb->sym == sym) {
             CRef ref;
             pb->ref = *pref;
@@ -134,9 +138,10 @@ CRef CSidebag::RefSetBinding(int sym, CRef *pref)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
+// Looks sym up in the sidebag and copies its value into *pref when pref is non-null; returns whether it was found.
 int CSidebag::FFindBinding(int sym, CRef *pref)
 {
-    for (CVarb *p = pbindingFirst.p; p; p = p->pnext.p) {
+    for (CVarb *p = firstBinding.p; p; p = p->pnext.p) {
         if (p->sym == sym) {
             if (pref)
                 func_00129658(pref, &p->ref);
@@ -153,12 +158,13 @@ int CSidebag::FFindBinding(int sym, CRef *pref)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
-extern "C" SPS CSidebag_CloneTo(CSidebag *psbSrc, void *q)
+// Clones a sidebag: a new sidebag holding a deep copy of the binding list.
+extern "C" SPS CSidebag_CloneTo(CSidebag *source, void *q)
 {
     SPS sp;
     sp.Set(PtNew__t6CGcObj1Z8CSidebag());
-    if (psbSrc->pbindingFirst.p)
-        sp->SetBinding(CVarb_CloneTo(psbSrc->pbindingFirst.p, 0, q).p);
+    if (source->firstBinding.p)
+        sp->SetBinding(CVarb_CloneTo(source->firstBinding.p, 0, q).p);
     return SPS(sp.p);
 }
 

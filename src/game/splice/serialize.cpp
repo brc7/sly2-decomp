@@ -1,5 +1,6 @@
 // serialize.cpp -- reads a compiled Splice expression tree (pair list) from the level stream.
 // TU 0x12A3D8..0x12A980 (3 functions, address order).
+// Entry point: PpairSerializeIn (from the level's Splice section loader).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_serialize
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012A960
 #include "sly2/slotheap.h"
@@ -78,6 +79,9 @@ extern "C" SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis);
  * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
  *   docs/engine/splice-scripting.md#6-source-files, docs/engine/splice-scripting.md#7-key-functions
  * @end-sly2-annot */
+// Reads one compiled Splice expression (a pair list) from the level stream: per node a U8 tag byte (bit 7 = another
+// node follows, low 7 bits = TAGK) and its payload (S32, F32, U32 or float arrays; tag 31 is a nested list read
+// recursively). Debug builds' extra line info (D_003E1C34) is skipped. Returns the list head.
 SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Read__18CBinaryInputStream(pbis);
  if (b == 0xFF) return SPN(0);
  SPN sp; NODE *pnNew = PtNew__t6CGcObj1Z5CPair(); sp.Set(pnNew);

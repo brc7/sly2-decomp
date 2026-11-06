@@ -41,14 +41,14 @@ extern "C" {
 int func_0020D020(STUCKWATCH *p);
 void func_0020D108(STUCKWATCH *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-int func_0020FA50(void *pv, FPAIR *p);
+int ShouldKeepSoNotSelfSlot62(void *pv, FPAIR *p);
 int func_0020CFC0(void *pv, FPAIR *p);
 int FStepguardHasSgf(GUARDV *o, int n);
 qword ConvertAloPos(GUARDV *o, int a, qword v);
 int func_00173610(qword *pv, float f, float g, int a, int (*pfn)(void *, FPAIR *));
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void func_001F7598(WMSG *pmsg);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_0020D3C0(VOLWATCH *p, int k);
 }
 
@@ -109,7 +109,7 @@ extern "C" void func_0020CE70(STUCKWATCH *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" int func_0020CFC0(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(p->o, 0x59)) return 1; return func_0020FA50(pv, p); }
+extern "C" int func_0020CFC0(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(p->o, 0x59)) return 1; return ShouldKeepSoNotSelfSlot62(pv, p); }
 
 /** @sly2-annot addr=0x20D020
  * Purpose: 5 probe offsets D_002C3E00 around guard all blocked
@@ -219,7 +219,7 @@ extern "C" void func_0020D1F8(VOLWATCH *p)
             f = 0;
             pe = &x->vt[73];
             pthis = (char *)x + pe->d;
-            if (((int (*)(void *, qword))pe->pf)(pthis, func_001A62E8(p->po))) {
+            if (((int (*)(void *, qword))pe->pf)(pthis, GetLoWorldPos(p->po))) {
                 qword v = ((qword (*)(void *))p->po->vt[33].pf)((char *)p->po + p->po->vt[33].d);
                 float z;
                 __asm__("pextuw %0, $zero, %1" : "=r"(z) : "r"(v));
@@ -263,7 +263,7 @@ extern "C" void func_0020D3C0(VOLWATCH *p, int state)
             l.po = p->po;
             l.nC = p->pvol->n188;
             l.n10 = p->pvol->n184;
-            l.v20 = func_001A62E8(p->po);
+            l.v20 = GetLoWorldPos(p->po);
             l.v30 = ((qword (*)(void *))p->po->vt[33].pf)((char *)p->po + p->po->vt[33].d);
             func_001F7598(&l);
         }

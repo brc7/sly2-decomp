@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_001626C0(s32, s32, s32, s32, s32);          /* extern */
+void AddJobStateVisibility(s32, s32, s32, s32, s32);          /* extern */
 CRef *func_0010EC00(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[4] = { 6, 4176, 6, 15 };
@@ -11,7 +11,7 @@ CRef *func_0010EC00(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 4, aref, aotyp, &arg0_v, &arg1_v, &arg2_v, &arg3_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_001626C0(pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
+    AddJobStateVisibility(pbasic, arg0_v, arg1_v, arg2_v, arg3_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

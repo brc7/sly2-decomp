@@ -88,7 +88,7 @@ extern CLOCK D_002DDED0;        /* g_clock */
 extern float D_002BE870[3], D_002BE87C, D_002BE884;
 extern char D_002DEB30[];       /* the game (event broadcaster) */
 void RemoveSoHierarchy(SO *pso);
-void func_001CB518(SO *pso, int n);
+void SO_ResetForProxy(SO *pso, int n);
 void func_001F4FB0(SO *pso, XP *pxp);
 void func_0017F090(HACKV *phack);
 void func_0017F3E0(HACKV *phack, int c, HACKE *ahacke);
@@ -185,7 +185,7 @@ void func_0017F138(struct S *p) { struct VTE *e; PostSoLoad(p); e = &p->vt[0x53]
 extern "C" int func_0017F170(HACKV *phack, int n)
 {
     int c;
-    func_001CB518(phack, n);
+    SO_ResetForProxy(phack, n);
     c = phack->cHealthMax;
     phack->cHealth = c;
     return c;
@@ -222,7 +222,7 @@ struct Q {char pad[0xB0];struct SPS s;};
 struct P {char pad[0xC];struct VT *vt;char pad10[0x58-0x10];struct O *x58;char pad5C[0xE8-0x5C];struct Q*xE8;char padEC[0x184-0xEC];int n184;char pad188[0x1A0-0x188];float g0,g1,g2,g3,gMin,gMax;};
 struct MSG {char pad[0x10];int delta;char pad14[0x20-0x14];qword pos;char pad30[0x44-0x30];int flags;};
 extern qword D_002A2DC0,D_002A2DA0;
-qword func_001A62E8(struct P*);
+qword GetLoWorldPos(struct P*);
 qword LimitVectorLength(qword,float);
 qword ApplyConstr(struct SPS*,struct O*,qword);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -248,7 +248,7 @@ int func_0017F1D0(struct P*p,struct MSG*m){
  p->n184+=m->delta;
  if(p->n184<=0){struct VT*vt=p->vt;((void(*)(struct P*,int))vt[82].fn)((struct P*)((char*)p+vt[82].d),0);return 1;}
  if(!p->xE8 || p->xE8->s.kind==3)return 1;
- dir=Normal(Reject(Sub(func_001A62E8(p),m->pos),D_002A2DC0),D_002A2DA0);
+ dir=Normal(Reject(Sub(GetLoWorldPos(p),m->pos),D_002A2DC0),D_002A2DA0);
  {float *a=&p->g0;t=-m->delta;g=Clamp(p->g0+t*(a[1]+t*a[2]),p->gMin,p->gMax);}
  {struct VT*vt=p->vt;v=((qword(*)(struct P*))vt[33].fn)((struct P*)((char*)p+vt[33].d));}
  v=LimitVectorLength(AddScaled(v,dir,g),p->gMax);
@@ -365,7 +365,7 @@ struct VTE { short d; short pad; void *pfn; };
 struct S { char pad[0xC]; struct VTE *vt; char pad2[0x178]; int n188; int pad3; void *p190; };
 struct F { struct S *p0; int n4; int n8; int nC; int n10; int pad[3]; qword q20; qword q30; qword pad2[2]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_001F7598(struct F *pf);
 void func_0015C150(void *p);
 /** @sly2-annot addr=0x17F5F8
@@ -387,7 +387,7 @@ void func_0017F5F8(struct S *p, int n) {
         func_002333B4(&f, 0, sizeof(f));
         f.n8 = n;
         f.p0 = p;
-        f.q20 = func_001A62E8(p);
+        f.q20 = GetLoWorldPos(p);
         e = &p->vt[0x21];
         f.q30 = ((qword (*)(void *))e->pfn)((char *)p + e->d);
         f.nC = 0x100;
@@ -646,7 +646,7 @@ extern struct G D_003DD490;
 extern int D_002E1E00;
 extern char D_002DEB30[];
 struct S { char pad[0x184]; int n184; char pad2[0x38]; int n1C0; };
-int FSwHandsOff(struct G *g);
+int IsSwHandsOff(struct G *g);
 int func_0017F1D0(struct S *p, int *pn);
 void UpdateHackshipHealthBar(struct S *p);
 void BroadcastGameEvent(void *g, int n, int m);
@@ -663,7 +663,7 @@ void func_0017FD08(struct S *p, int n);
  * @end-sly2-annot */
 int HACKSHIP_TakeDamage(struct S *p, int *pn) {
     if (p->n1C0 < 5) { if (p->n1C0 >= 2) return 0; }
-    if (FSwHandsOff(&D_003DD490)) return 0;
+    if (IsSwHandsOff(&D_003DD490)) return 0;
     if (D_002E1E00 & 1) return 0;
     if (!func_0017F1D0(p, pn)) return 0;
     UpdateHackshipHealthBar(p);
@@ -719,7 +719,7 @@ void RcPtr_Assign(void **pp, void *q);
 void PauseSnd(void *p);
 void ReleaseAct(int *p);
 void func_002303A0(struct S *p, struct N *n, int k);
-void SetLoParent_1A58D0(struct S *p, int a, int b);
+void SetLoParent(struct S *p, int a, int b);
 void SetSoCnstrForce(struct S *p, int n);
 void SetSoCnstrTorque(struct S *p, int n);
 void func_001F68A8(struct S *p, int n);
@@ -766,7 +766,7 @@ void func_0017FD08(struct S *p, int n) {
         ReleaseAct(&p->n29C);
         func_002303A0(p, p->p58, 2);
         func_002303A0(p, p->p5C, 2);
-        SetLoParent_1A58D0(p, 0, 0xF);
+        SetLoParent(p, 0, 0xF);
         SetSoCnstrForce(p, 5);
         SetSoCnstrTorque(p, 4);
         func_001F68A8(p, 0);
@@ -925,7 +925,7 @@ struct CLOCK{float time,dt;};
 extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
 extern "C" void UpdateSo(P*);
-extern "C" qword func_001A62E8(P*);
+extern "C" qword GetLoWorldPos(P*);
 extern "C" float atan2f(float,float);
 extern "C" float RadNormalize__Ff(float);
 extern "C" float GLimitAbs__Fff(float,float);
@@ -957,8 +957,8 @@ extern "C" void func_001801B8(P*p){
  if(!p->target||p->turnRate==0.0f)return;
  M3 rotation,matrix;
  qword position;
- position=func_001A62E8(p->target);
- qword displacement=Sub(position,func_001A62E8(p));
+ position=GetLoWorldPos(p->target);
+ qword displacement=Sub(position,GetLoWorldPos(p));
  float desired=atan2f(Y(displacement),X(displacement));
  qword direction=((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);
  float current=atan2f(Y(direction),X(direction));
@@ -1155,7 +1155,7 @@ extern char D_002DE578[],D_003DD490[];
 void UpdateSo(P*);
 int func_0017F550(P*);
 void func_00181268(P*,int);
-qword func_001A62E8(void*);
+qword GetLoWorldPos(void*);
 qword ConvertAloVec(void*,void*,qword);
 qword ConvertXfVec(void*,void*,qword);
 float atan2f(float,float);
@@ -1164,7 +1164,7 @@ int FCheckLm__FP2LMf(LM*,float);
 void func_001C02D0(void*,qword,qword,void*);
 void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
 float SMaxShape(void*);
-float GGetDifficulty(void*);
+float GetDifficulty(void*);
 int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
 }
@@ -1224,8 +1224,8 @@ extern "C" void func_00180668(P*p){
  if(p->state!=0&&p->state!=4){if(!p->target||!Alive(p->target))func_00181268(p,0);}
  if(!p->active&&p->target&&Alive(p->target)){
   RULE*rule=&p->rules[p->state];
-  qword target=func_001A62E8(p->target);
-  qword delta=QwSub(target,func_001A62E8(p));
+  qword target=GetLoWorldPos(p->target);
+  qword delta=QwSub(target,GetLoWorldPos(p));
   float distance=Length(delta);
   float heading=RadNormalize__Ff(Heading(ConvertAloVec(0,p,delta)));
   int accept;
@@ -1252,15 +1252,15 @@ dispatch:
  case 1:case 2:{
   if(p->cooldown)break;
   FRAME*frame=p->node.frame;
-  qword target=func_001A62E8(p->target);
-  qword self=func_001A62E8(p);
+  qword target=GetLoWorldPos(p->target);
+  qword self=GetLoWorldPos(p);
   float heading=RadNormalize__Ff(Heading(ConvertXfVec(0,frame->space,QwSub(target,self))));
   p->heading=Clamp(Evaluate(&p->simpleAngle,heading),&p->simpleClamp);
   break;
  }
  case 3:{
-  qword target=func_001A62E8(p->target);
-  qword self=func_001A62E8(p);
+  qword target=GetLoWorldPos(p->target);
+  qword self=GetLoWorldPos(p);
   VTE*vte=&p->node.vt[33];
   vte->fn((char*)p+vte->delta);
   int refresh=0;
@@ -1282,7 +1282,7 @@ dispatch:
   }
   float remaining=SMaxShape(p->curve)-p->progress;
   float turn=Heading(ConvertAloVec(0,p,unit.q));
-  float response=GGetDifficulty(D_002DE578);
+  float response=GetDifficulty(D_002DE578);
   float speed=Limit(Evaluate(&p->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&p->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*p->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   NODE*objects[64];
@@ -1291,7 +1291,7 @@ dispatch:
    NODE*object=objects[i];
    if(object!=&p->node&&object->group!=p->node.group){
     U scalar;
-    scalar.q=RSub(self,func_001A62E8(object));
+    scalar.q=RSub(self,GetLoWorldPos(object));
     scalar.f[2]=0.0f;
     qword len=NormalizeInPlace(&scalar,&D_002A2DA0,p);
     float weight=Limit(REvaluate(D_002BE840,RGXOfVf(len)),&D_002BE850);
@@ -1666,7 +1666,7 @@ namespace M_func_00181478 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x1C0]; int n1C0; int x1C4; void *p1C8; void *p1CC; };
 extern void UpdateSo(struct O *p);
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern int func_0017F550(struct O *p);
 extern void func_001815E8(struct O *p, int n);
 extern void *D_002DFB80;
@@ -1707,7 +1707,7 @@ void func_00181478(struct O *p)
         switch (s) {
         case 0:
             if (D_002DFB80) {
-                if (FClose(GDist(func_001A62E8(D_002DFB80), func_001A62E8(p->p1CC)))) {
+                if (FClose(GDist(GetLoWorldPos(D_002DFB80), GetLoWorldPos(p->p1CC)))) {
                     p->p1C8 = D_002DFB80;
                     func_001815E8(p, 1);
                 }
@@ -2179,7 +2179,7 @@ extern char D_002BE888[];
 extern float D_002BE898, D_002BE89C, D_002BE8A0, D_002BE8A4;
 void UpdateSo(struct S *p);
 float SMaxShape(int oid);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void FindShapeClosestPoint(int oid, qword q, int a, int b, struct V *pv, int c, float *pg);
 void FindShapeClosestPointFromS(int oid, qword q, int a, int b, struct V *pv, int c, float *pg, float g);
 float GRandInRange__Fff(float lo, float hi);
@@ -2224,11 +2224,11 @@ void func_00181F60(struct S *p)
         SMaxShape(oid);
         if (!(D_002DDED0.t <= pe->g2c)) {
             float t;
-            FindShapeClosestPoint(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->g28);
+            FindShapeClosestPoint(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->g28);
             t = D_002DDED0.t;
             pe->g2c = t + GRandInRange__Fff(0.5f, 0.75f);
         } else {
-            FindShapeClosestPointFromS(oid, func_001A62E8(D_002DFB80), 0, 0, &v, 0, &pe->g28, pe->g28);
+            FindShapeClosestPointFromS(oid, GetLoWorldPos(D_002DFB80), 0, 0, &v, 0, &pe->g28, pe->g28);
         }
         func_00181CB0(p, pe);
         for (q = pe->pqFirst; q; q = q->next) {
@@ -2262,7 +2262,7 @@ extern "C" void RenderSoSelf(P*);
 extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
-extern "C" void func_001A5EE8(void*,M4*,float,float);
+extern "C" void RenderLoAtMatrix(void*,M4*,float,float);
 static inline qword Load(const qword*p){return *p;}
 static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz ACC,%0,%1\n\tvopmsub.xyz %0,%1,%0":"+j"(up):"j"(dir));return up;}
 static inline qword AddLateral(qword a,N*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
@@ -2304,7 +2304,7 @@ extern "C" void func_001821C0(P*p){
    pm->r[0].q=m.r[0];pm->r[1].q=m.r[1];pm->r[2].q=m.r[2];
    mm.r[0].i[3]=mm.r[1].i[3]=mm.r[2].i[3]=0;
    pm->r[3].f[3]=1.0f;
-   func_001A5EE8(p->model,pm,1.0f,1.0f);
+   RenderLoAtMatrix(p->model,pm,1.0f,1.0f);
    n=n->next;
   }
  }
@@ -2641,7 +2641,7 @@ struct Q { qword pos; };
 struct S { char pad[0x188]; int x188; int x18c; void *x190; };
 struct CTX { struct S *p; int x4; void *pv; int xc; int x10; int pad[3]; qword q; char rest[0x30]; };
 extern qword D_002A2DD0;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 struct Q *func_00182810(struct S *p, qword q);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int func_001F7598(struct CTX *pctx);
@@ -2661,7 +2661,7 @@ void func_001829D8(struct S *p, void *pv)
     struct Q *q;
     struct CTX ctx;
     if (!pv || !p->x188) return;
-    q = func_00182810(p, func_001A62E8(pv));
+    q = func_00182810(p, GetLoWorldPos(pv));
     func_002333B4(&ctx, 0, 0x60);
     ctx.pv = pv;
     ctx.p = p;

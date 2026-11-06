@@ -2529,7 +2529,7 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkJobSET_SM_GOAL (was src/game/app/splice_thunks/RefThunkJobSET_SM_GOAL.cpp) ----
 namespace T_RefThunkJobSET_SM_GOAL {
-extern "C" { void func_00162728(void *p, int, int, int, int, int); CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref); }
+extern "C" { void AddJobStateRsmg(void *p, int, int, int, int, int); CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x10ECC8
  * Purpose: Splice option thunk: optid 526 on JOB (g_aeopid[1256] thunkUser, returns Void, crefReq 5); unpacks
  *   5 args (0x1050, Oid, Oid, Oid, 0xF) -> Void via RefSetArgsFromSplice then calls AddJobStateRsmg
@@ -2550,7 +2550,7 @@ CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00162728(p, v0, v1, v2, v3, v4);
+    AddJobStateRsmg(p, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunkJobSET_SM_GOAL
@@ -2568,7 +2568,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010EFB0)
 #include "../../generated/splicewrap/func_0010EFB0.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_00163838(void *p, int, void *, int, int);
+extern "C" void AddTaskStateVisibility(void *p, int, void *, int, int);
 /** @sly2-annot addr=0x10F030
  * Purpose: Splice option thunk: optid 1108 on TASK (g_aeopid[1287] thunkUser, returns Void, crefReq 4);
  *   unpacks 4 args (Oid, 0x9050, Oid, 0xF) -> Void via RefSetArgsFromSplice then calls AddTaskStateLo
@@ -2589,7 +2589,7 @@ extern "C" CRef func_0010F030(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, aref, ak, &v0, &v1, &v2, &v3);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00163838(p, v0, &v1, v2, v3);
+    AddTaskStateVisibility(p, v0, &v1, v2, v3);
     return ref;
 }
 

@@ -66,10 +66,10 @@ float *func_0012F938(void *p, int n);
 void func_001300B8(void *p, NEELAV *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
 void SetSoMass(NEELAV *p, float g);
 void ResetStepguardToHome(NEELAV *p);
-int CidBasic(void *pv);
+int GetBasicCid(void *pv);
 void UpdateStepguard(NEELAV*);
 int FStepguardHasSgf(NEELAV*,int);
-qword func_001A62E8(void*);
+qword GetLoWorldPos(void*);
 qword ConvertAloPos(NEELAV*,void*,qword);
 int FCheckVolPoint(VOLUME*,qword);
 void func_001BA408(NEELAV*,int);
@@ -193,7 +193,7 @@ extern "C" void func_001BA0B8(NEELAV *p)
  * @end-sly2-annot */
 extern "C" int func_001BA100(void *pv, ROW *prow)
 {
-    return CidBasic(prow->object) == 0x62;
+    return GetBasicCid(prow->object) == 0x62;
 }
 
 static inline qword Vector(qword r){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(r));return v;}
@@ -238,10 +238,10 @@ extern "C" void UpdateNeela(NEELAV*p){
   float nearest=D_002A7620;
   for(NEELAV*node=(*(NEELAV * *)&g_sw.dlStepguard);node;node=node->next){
    if(node==p||FStepguardHasSgf(node,7))continue;
-   qword origin=Vector(func_001A62E8(p));
-   float distance=Square(VuSub(origin,func_001A62E8(node)));
+   qword origin=Vector(GetLoWorldPos(p));
+   float distance=Square(VuSub(origin,GetLoWorldPos(node)));
    if(nearest<distance)continue;
-   if(FCheckVolPoint(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
+   if(FCheckVolPoint(volume,GetLoWorldPos(node))){p->target=node;nearest=distance;}
   }
   if(!p->target&&!FStepguardHasSgf(p,2)){
    qword position=Vector(ConvertAloPos(p,0,D_002C0A80.q));
@@ -252,7 +252,7 @@ extern "C" void UpdateNeela(NEELAV*p){
    IntersectSwBoundingBox(&D_003DD490,low,high,func_001BA100,0,&count,&rows);
    for(int i=0;i<count;i++){
     ROW*row=rows[i];
-    if(FCheckVolPoint(volume,func_001A62E8(row->object))){p->target=row->object;break;}
+    if(FCheckVolPoint(volume,GetLoWorldPos(row->object))){p->target=row->object;break;}
    }
   }
   if(p->target)func_001BA408(p,1);
@@ -261,7 +261,7 @@ extern "C" void UpdateNeela(NEELAV*p){
  case 1:{
   if(FAsegaRetracted(p->animation)){func_001BA408(p,0);break;}
   NODE*node=p->node;
-  qword position=func_001A62E8(p->target);
+  qword position=GetLoWorldPos(p->target);
   qword local=func_0022FC48(0,node->space,position);
   qword direction=VuSub(local,p->node->position);
   M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,p->axis,direction);
@@ -373,13 +373,13 @@ extern "C" void func_001BA608(NBHV *p)
         switch (s) {
         case 0: {
             DETECTORV *ps = p->po->pdetector;
-            if (!FCheckVolPoint(ps->pvolFar, func_001A62E8(D_002E1E40)))
+            if (!FCheckVolPoint(ps->pvolFar, GetLoWorldPos(D_002E1E40)))
                 func_001BA828(p, 1);
             break;
         }
         case 1: {
             DETECTORV *ps = p->po->pdetector;
-            if (FCheckVolPoint(ps->pvolNear, func_001A62E8(D_002E1E40)))
+            if (FCheckVolPoint(ps->pvolNear, GetLoWorldPos(D_002E1E40)))
                 func_001BA828(p, 0);
             else if (p->po->poly.dt < D_002DDED0.t - p->changed)
                 func_001BA828(p, 2);
@@ -392,7 +392,7 @@ extern "C" void func_001BA608(NBHV *p)
             break;
     }
     if (p->state == 0 && FStepguardHasSgf(p->po, 9)) {
-        float d = Dist(func_001A62E8(p->po), func_001A62E8(D_002E1E40));
+        float d = Dist(GetLoWorldPos(p->po), GetLoWorldPos(D_002E1E40));
         NEELAV *po = p->po;
         float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);
         Q1 *q1 = (Q1 *)func_00205458(p->po, 0xA7);

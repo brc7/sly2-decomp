@@ -184,9 +184,9 @@ struct PROXYSPARE
       MATRIX4 mat;
 };
 
-PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("func_001CADE0");
+PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("ChooseProxySpare");
 
-int FCanAcquireProxy(PROXY *pproxy) __asm__("func_001CB2C0");
+int FCanAcquireProxy(PROXY *pproxy) __asm__("CanAcquireProxy");
 
 struct CID100 : public SO
 {
@@ -677,7 +677,7 @@ void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAcc
 void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void func_00137248(void*);
 qword func_00204E38(P*,MODEL*,float);float func_0012F990(void*,int);
 void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
-M4*func_001A6318(P*);float func_0011E290(qword,qword,qword*,qword*);
+M4*GetLoWorldMatrix(P*);float func_0011E290(qword,qword,qword*,qword*);
 M3 func_0011B500(qword,float);
 }
 struct VU_FLOAT{qword qw;};
@@ -728,7 +728,7 @@ extern "C" void func_00188960(P*p){
   if(p->submode==13){
    VTE*e=&p->vt[33];qword position=((qword(*)(void*))e->fn)((char*)p+e->delta);
    e=&p->vt[34];qword direction=((qword(*)(void*))e->fn)((char*)p+e->delta);
-   M4*m=func_001A6318(p);M3 basis;basis.r[0]=m->r[0];basis.r[1]=m->r[1];basis.r[2]=m->r[2];
+   M4*m=GetLoWorldMatrix(p);M3 basis;basis.r[0]=m->r[0];basis.r[1]=m->r[1];basis.r[2]=m->r[2];
    float projection=func_0011E290(position,basis.r[0].q,&w.a.q,&w.b.q);
    float dt=D_002DDED0.dt;
    float gAlong=projection-D_002BF290*dt;
@@ -850,7 +850,7 @@ struct VT { struct { short d; short pad; qword (*pfn)(void *); } a[40]; };
 struct PO { char pad[0xC]; struct VT *pvt; };
 struct E { char pad[0xC]; struct PO *po; qword v10; qword v20; qword v30; };
 extern void AdjustStepXpVelocity(void *p, struct E *ae, int i);
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VCross(qword a, qword b)
 {
@@ -876,7 +876,7 @@ void func_00188E78(void *p, struct E *ae, int i)
         qword v = pe->v30;
         qword w = po->pvt->a[34].pfn((char *)po + po->pvt->a[34].d);
         qword x = pe->v10;
-        pe->v30 = VSub(v, VCross(w, VSub(x, func_001A62E8(po))));
+        pe->v30 = VSub(v, VCross(w, VSub(x, GetLoWorldPos(po))));
     }
 }
 } } // namespace M_func_00188E78
@@ -904,7 +904,7 @@ extern void SetJtJtcs__FP2JTi(void *p, int n);
 extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00131B10(void *a, void *p, int c);
 extern void func_00131B60(void *a, void *p, int c, void *d);
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern void *PickpocketStepguard(void *a, qword q);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
@@ -991,7 +991,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 break;
             case 0x167:
                 if (F(void *, 0x10DC) && F(int, 0x1BD4)) {
-                    void *po = PickpocketStepguard(F(void *, 0x10DC), func_001A62E8(p));
+                    void *po = PickpocketStepguard(F(void *, 0x10DC), GetLoWorldPos(p));
                     if (po && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5B) && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5D)) {
                         int oid = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
                         F(void *, 0x1BCC) = po;
@@ -1018,7 +1018,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 break;
             }
             case 0x16D:
-                EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
+                EmitSwNoise(D_003DD490, 0, GetLoWorldPos(p), p);
                 break;
             }
         }
@@ -1185,7 +1185,7 @@ namespace M_UpdateJtLean__FP2JT {
 //  - holding a SHAPE the curve also bends under him: his speed along the curve's tangent (ahead = the tangent 0.1 s later) gives a sideways acceleration; the part of it across the
 //    tangent and the vertical (SProjectVector) drives the three-clip lean blend of the grab record (ablC, weights +0x7B0 / +0x7BC / +0x7C8, pasegblC +0x7D4), smoothed with GSmoothA
 //    (+0x7D8 the value, +0x7DC its rate), flipped when the record's flip (+0x4E4) is set.
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -1652,7 +1652,7 @@ qword ConvertAloPos(void *p, void *q, qword v);
 void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, int n, int *pn0, int *pn1);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int n0, int n1, HIT *phit);
 void func_0012DA30(void *p, qword v);
-void FFilterSoPair();
+void ShouldKeepSoPair();
 extern char D_003DD490[];
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
@@ -1678,7 +1678,7 @@ int FMatchJtXmg(O *p, M *pm, void *px)
         a = ConvertAloPos(p, 0, pm->v30);
         b = ConvertAloPos(p, 0, pm->v40);
         c = ConvertAloPos(p, 0, pm->v50);
-        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)FFilterSoPair, p->xEC, &n0, &n1);
+        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, p->xEC, &n0, &n1);
         if ((PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, n0, n1, &hit) || PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
@@ -1770,7 +1770,7 @@ extern "C" void RenderJtSelf(JT *pjt, void *pcm)
 namespace M_func_0018A278 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int x18d8; char p3[0xC8]; void *x19a4; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_001F3980(struct S *p);
 /** @sly2-annot addr=0x18A278
  * Purpose: JT vt17: cache PosLoWorld of x19A4 child, call SO vt17 0x1F3980, record self/child positions when
@@ -1781,12 +1781,12 @@ void func_001F3980(struct S *p);
  * @end-sly2-annot */
 void func_0018A278(struct S *p)
 {
-    p->b = func_001A62E8(p->x19a4);
+    p->b = GetLoWorldPos(p->x19a4);
     p->n = 0;
     func_001F3980(p);
     if (!p->x18d8) {
-        p->a = func_001A62E8(p);
-        p->c = func_001A62E8(p->x19a4);
+        p->a = GetLoWorldPos(p);
+        p->c = GetLoWorldPos(p->x19a4);
         p->n = 3;
     } else {
         p->n = 0;
@@ -1821,7 +1821,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
 struct S { char pad[0x18C4]; void *p18c4; int n; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void GetStepplayerCmFocusPos(struct S *p, UV *pv);
 static __inline__ float GetZ(qword q)
 {
@@ -1841,14 +1841,14 @@ void func_0018A350(struct S *p, UV *pv)
     switch (p->n) {
     case 3:
         GetStepplayerCmFocusPos(p, pv);
-        pv->v.z = GetZ(func_001A62E8(p->p18c4)) + -175.0f;
+        pv->v.z = GetZ(GetLoWorldPos(p->p18c4)) + -175.0f;
         break;
     case 0x16:
         GetStepplayerCmFocusPos(p, pv);
-        pv->v.z = GetZ(func_001A62E8(p->p18c4)) + -100.0f;
+        pv->v.z = GetZ(GetLoWorldPos(p->p18c4)) + -100.0f;
         break;
     case 0x15:
-        pv->q = func_001A62E8(p);
+        pv->q = GetLoWorldPos(p);
         break;
     default:
         GetStepplayerCmFocusPos(p, pv);
@@ -1913,8 +1913,8 @@ extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(B *p, int n);
 extern "C" float SMaxShape(B *p);
 extern "C" float SMinShape(B *p);
 extern "C" void EvaluateShapeS(B *p, qword *pv, qword *direction, float g);
-extern "C" qword func_001A62E8(A *p);
-extern "C" M *func_001A6318(A *p);
+extern "C" qword GetLoWorldPos(A *p);
+extern "C" M *GetLoWorldMatrix(A *p);
 extern "C" float GSmooth__FfffP3SMPPf(SMP *p, float a, float b, float c, float *output);
 
 static __inline__ float GMin(float a,float b){return a<b?a:b;}
@@ -1973,19 +1973,19 @@ extern "C" void func_0018A4E8(S *ps, R *pr)
             EvaluateShapeS(pb, &ps->v40, 0, g);
             lift=125.0f;height=((float*)&ps->v40)[2];goto liftValue;
         } else if (ps->x2C == 1) {
-            {register qword position __asm__("$2")=func_001A62E8(ps->p0),scalar __asm__("vf1");register A*receiver __asm__("$4");
+            {register qword position __asm__("$2")=GetLoWorldPos(ps->p0),scalar __asm__("vf1");register A*receiver __asm__("$4");
              __asm__("lwc1 $f1,%5\n\tli.s $f0,125.0\n\tsq %0,%2\n\tmul.s $f0,$f1,$f0\n\tlw %3,%6\n\tmul.s $f1,$f1,$f0\n\tmfc1 %0,$f1\n\tqmtc2.ni %0,%1\n\tsqc2 %1,%4"
               :"+r"(position),"=j"(scalar),"=m"(w.forward.q),"=r"(receiver),"=m"(w.scalar.q):"m"(ps->g50),"m"(ps->p0):"$f0","$f1");
              w.kept.q=scalar;
-             ps->v40=OffsetAdd(func_001A6318(receiver),&w.kept,&w.forward);
+             ps->v40=OffsetAdd(GetLoWorldMatrix(receiver),&w.kept,&w.forward);
             }
             goto lift50;
         } else {
-            {register qword position __asm__("$2")=func_001A62E8(ps->p0),scalar __asm__("vf1");register A*receiver __asm__("$4");
+            {register qword position __asm__("$2")=GetLoWorldPos(ps->p0),scalar __asm__("vf1");register A*receiver __asm__("$4");
              __asm__("lwc1 $f1,%5\n\tli.s $f0,125.0\n\tsq %0,%2\n\tmul.s $f0,$f1,$f0\n\tlw %3,%6\n\tmul.s $f1,$f1,$f0\n\tmfc1 %0,$f1\n\tqmtc2.ni %0,%1\n\tsqc2 %1,%4"
               :"+r"(position),"=j"(scalar),"=m"(w.reverse.q),"=r"(receiver),"=m"(w.scalar.q):"m"(ps->g50),"m"(ps->p0):"$f0","$f1");
              w.kept.q=scalar;
-             ps->v40=OffsetSub(func_001A6318(receiver),&w.kept,&w.reverse);
+             ps->v40=OffsetSub(GetLoWorldMatrix(receiver),&w.kept,&w.reverse);
             }
             goto lift50;
         }
@@ -1994,7 +1994,7 @@ extern "C" void func_0018A4E8(S *ps, R *pr)
 lift50:
         lift=50.0f;height=((float*)&ps->v40)[2];goto liftValue;
 c0:
-        ps->v40=func_001A62E8(ps->p0);
+        ps->v40=GetLoWorldPos(ps->p0);
         lift=50.0f;__asm__("lwc1 %0,%1":"=f"(height):"m"(((float*)&ps->v40)[2]));
         liftValue:((float*)&ps->v40)[2]=height+lift;
 tail:
@@ -2103,9 +2103,9 @@ inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
     return qwResult;
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 qword ConvertLoPos(LO *ploFrom, LO *ploTo, qword qwPos) __asm__("ConvertAloPos");
-MATRIX4 *PmatLoWorld(LO *plo) __asm__("func_001A6318");
+MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
 
 
@@ -2985,7 +2985,7 @@ extern void UpdateJtCane__FP2JT(void *p);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern void FindShapeClosestPointFromS(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
 extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction);
 extern void UpdateJtLean__FP2JT(void *p);
 
@@ -3090,7 +3090,7 @@ void UpdateJt(char *p)
             qword q;
             if (!FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0x13))
                 goto end;
-            q = func_001A62E8(F(void *, 0x1854));
+            q = GetLoWorldPos(F(void *, 0x1854));
             av[2] = q;
             av[1] = q;
             av[0] = q;
@@ -3201,7 +3201,7 @@ namespace M_SetJtJts__FP2JT3JTS4JTBS {
 // 0x0018C250 SetJtJts
 extern "C" { extern GAME D_002DEB30; }
 extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("PsmaApplySmEx");
 int IsmsFindSmOptional(SM *psm, OID oid) __asm__("IsmsFindSmOptional__FP2SM3OID");
 void RetractSma(SMA *psma) __asm__("func_001F0598");
@@ -4273,7 +4273,7 @@ extern void func_00195FB8(void *p, int a, int b);
 extern REC *PgadrecFromJtGadget(void *p, int n);
 extern void SetJtthrowState(void *p, int n);
 extern void SetJtGrabState(void *p, int a, int b, int c);
-extern OBJ *PloAcquireProxy(int oid, int n);
+extern OBJ *AcquireProxyObject(int oid, int n);
 extern int func_00224610(OBJ *p);
 extern void func_0018D698(void *p, REC *prec, OBJ *pobj);
 extern void GrfbtnGadget(void *p, int n);
@@ -4336,7 +4336,7 @@ void UseJtGadget(char *p, int n)
             SetJtGrabState(A(0x4C0), 0xB, prec->x8, 0);
             break;
         }
-        pobj = PloAcquireProxy(prec->x4, 0);
+        pobj = AcquireProxyObject(prec->x4, 0);
         if (!pobj)
             break;
         pobj->x15C = prec->x0;
@@ -4543,8 +4543,8 @@ extern "C" CLOCK D_002DDED0;
 extern "C" qword D_002A2DC0;
 extern "C" SMP D_002BF3F8;
 extern "C" SMP D_002BF408;
-extern "C" M4*func_001A6318(P*);
-extern "C" qword func_001A62E8(P*);
+extern "C" M4*GetLoWorldMatrix(P*);
+extern "C" qword GetLoWorldPos(P*);
 extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
 extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
 extern "C" qword ConvertAloVec(O*,O*,qword);
@@ -4611,14 +4611,14 @@ extern "C" void func_0018DF60(P*p){
  M4 m=*((M4*(*)(void*))p->object->vt[31].fn)((char*)p->object+p->object->vt[31].delta);
  U direction,position,scratch,negative;
  *(M3*)&p->matrix=*(M3*)&m;
- M4*current=func_001A6318(p);
+ M4*current=GetLoWorldMatrix(p);
  CLOCK*clock=&D_002DDED0;
  float factor=0.5f;
  unsigned samplePage=SmoothSamplePage();M3*receiver,*optional;SMP*sample;float smoothDt=SmoothInputs(current,clock,factor,samplePage,receiver,optional,sample);
  SmoothMatrix(receiver,&p->matrix,sample,optional,&direction.q,smoothDt);
  ((void(*)(void*,qword))p->vt[36].fn)((char*)p+p->vt[36].delta,direction.q);
  U target;P*owner=NegativeTarget(m,p->offset,&negative,&scratch,&target,p);
- (void)PosSmooth(func_001A62E8(owner),target.q,&D_002BF408,&position.q,clock->dt*factor);
+ (void)PosSmooth(GetLoWorldPos(owner),target.q,&D_002BF408,&position.q,clock->dt*factor);
  ((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,position.q);
  qword relative;
  {
@@ -4706,7 +4706,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 typedef struct { qword r[3]; } M3;
 struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *p10DC; };
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern void SetStepRadTargetVec(struct O *p, qword v);
 extern float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
 extern M3 *InvertMatrix3Cofactor(M3 *pmOut, M3 *pm);
@@ -4738,7 +4738,7 @@ void func_0018E1E0(struct O *p)
     qword d, l, s, r;
     float gl, gLen;
     qword *pk;
-    d = VSub(func_001A62E8(p->p10DC), func_001A62E8(p));
+    d = VSub(GetLoWorldPos(p->p10DC), GetLoWorldPos(p));
     pk = &D_002A2DA0;
     l = VLen(d);
     n.q = d;

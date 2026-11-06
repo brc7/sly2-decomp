@@ -52,8 +52,8 @@ void func_0011C2F0(MATRIX4 *pmat, MATRIX4 *pmatInverse);
 void CalculateDmat4(MATRIX4 *pmat1, MATRIX4 *pmat2, MATRIX4 *pmatResult);
 int NEpisodeCur();
 int NWorldCur();
-int func_00210B68();
-float GGetDifficulty(char *pdifficulty);
+int SwStubFalse();
+float GetDifficulty(char *pdifficulty);
 void CancelSwSpliceCallback(char *psw, int n);
 }
 
@@ -3666,7 +3666,7 @@ extern "C" CREFV *RefOpCurrentWorld(CREFV *pref)
  * Purpose: CRef(BASIC*) of g_sw slot D_003E0F9C
  * Info: proposed name RefOpFindCurrentJob (T1); TU bif
  * Notes: v3: superseded RefOpFindPlayerObject0 | splice builtin 100 find-player-object-0~ ->
- *   find-current-job~ (0.80): Body CRef(BASIC*) of g_sw+0x3B0C, documented current JOB slot (FIsCurrentJob
+ *   find-current-job~ (0.80): Body CRef(BASIC*) of g_sw+0x3B0C, documented current JOB slot (IsCurrentJob
  *   0x1633E8 tests the same slot; NULL in free roam at runtime). Scripts call job metho
  * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); semantic review; sources:
  *   r1_116918+top50_round(splice builtin 100)
@@ -3683,7 +3683,7 @@ extern "C" CREFV *RefOpFindCurrentJob(CREFV *pref)
  * Purpose: CRef(BASIC*) of D_003E0FA0
  * Info: proposed name RefOpFindCurrentTask (T1); TU bif
  * Notes: v3: superseded RefOpFindPlayerObject1 | splice builtin 101 find-player-object-1~ ->
- *   find-current-task~ (0.80): Body CRef of g_sw+0x3B10 (current TASK, FIsCurrentTask 0x164018). Scripts:
+ *   find-current-task~ (0.80): Body CRef of g_sw+0x3B10 (current TASK, IsCurrentTask 0x164018). Scripts:
  *   ((geto (find-player-object-1~) 'RequestTaskState:1104) 2 self), (eqv? (find-player-ob
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round(splice builtin 101)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
@@ -3716,7 +3716,7 @@ extern "C" CREFV *RefOpFindPendingTask(CREFV *pref)
  * Purpose: F32 = 0x154C90(&D_002DE578): D_003E0F9C->pg value or average of 3 Splice values
  * Info: proposed name RefOpGetDifficulty (T1); TU bif
  * Notes: names_v2 C proposed RefOpCurrentTime__FiP4CRefP6CFrame (0.638) | v3: superseded RefOpGetFloat103 |
- *   splice builtin 103 get-float-103~ -> difficulty~ (0.70): Body Float(GGetDifficulty(&D_002DE578)). Scripts
+ *   splice builtin 103 get-float-103~ -> difficulty~ (0.70): Body Float(GetDifficulty(&D_002DE578)). Scripts
  *   scale numbers with it: (+ 10 (* (get-float-103~) 5)), (clq-evaluate #clq(1.0 -0.3 0.0) (get-float-103~))
  *   - dyna
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; static naming pass; sources:
@@ -3725,7 +3725,7 @@ extern "C" CREFV *RefOpFindPendingTask(CREFV *pref)
  * @end-sly2-annot */
 extern "C" CREFV *RefOpGetDifficulty(CREFV *pref)
 {
-    pref->u.g = GGetDifficulty(D_002DE578);
+    pref->u.g = GetDifficulty(D_002DE578);
     pref->m_tagk = 0x16;
     return pref;
 }
@@ -3743,7 +3743,7 @@ extern "C" CREFV *RefOpGetDifficulty(CREFV *pref)
  * @end-sly2-annot */
 extern "C" CREFV *func_00123BA0(CREFV *pref)
 {
-    pref->u.n = func_00210B68();
+    pref->u.n = SwStubFalse();
     pref->m_tagk = 0x15;
     return pref;
 }
@@ -4016,7 +4016,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
 typedef struct G { char pad[0x3F0C]; void *pv; } G;
 extern G D_003DD490;
-void *PloFindSwObject_15E958(G *pg, int k, int a, LO *b, void *c);
+void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
@@ -4043,7 +4043,7 @@ CRef *RefOpFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         G *pg = &D_003DD490;
         int k = b ? 1 : 5;
         int a = aref[0].m_tag;
-        CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, k, a, b, plo ? plo->pv : pg->pv));
+        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, k, a, b, plo ? plo->pv : pg->pv));
     }
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
@@ -4068,7 +4068,7 @@ struct W { char pad[0xC]; Q *pq; };
 struct G { char pad[0x3F0C]; void *pv; };
 extern "C" { extern G D_003DD490; }
 extern "C" {
-int func_0015E678(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
+int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
 CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -4096,7 +4096,7 @@ CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
         pv = pqT->pv;
     else
         pv = pg->pv;
-    int c = func_0015E678(pg, k, p0, pq, pv, 0x40, ap);
+    int c = FindSwObjectsInProxyScope(pg, k, p0, pq, pv, 0x40, ap);
     ref = RefPairFromAplo__FiPP2LO(c, ap);
     return ref;
 }
@@ -4124,7 +4124,7 @@ struct SW { char pad[0x3C]; int n3C; };
 struct OW { char pad[0xC]; SW *psw; };
 struct G { char pad[0x3F0C]; int n3F0C; };
 extern "C" { extern G D_003DD490; }
-extern "C" LO *PloFindSwObject_15E958(G *pg, int kind, int n, void *pv, int n2);
+extern "C" LO *FindSwObjectInProxyScope(G *pg, int kind, int n, void *pv, int n2);
 extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref);
 /** @sly2-annot addr=0x1242B8
  * Purpose: Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as
@@ -4141,7 +4141,7 @@ CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref) { CRef res; if (aref[0].
  void *pv = aref[1].u.pv; SW *psw; if (aref[2].m_tagk != 0) psw = ((OW *)aref[2].u.pv)->psw; else psw = (SW *)pv;
  SPN spRes; CPair *pnR = PtNew__t6CGcObj1Z5CPair(); spRes.Set(pnR);
  CPair *pTail; CPair *pn = (CPair *)aref[0].u.pv; while (pn) { SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
-   int n = pn->ref.u.n; spNew->ref.SetBasic((BASIC *)PloFindSwObject_15E958(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C));
+   int n = pn->ref.u.n; spNew->ref.SetBasic((BASIC *)FindSwObjectInProxyScope(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C));
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } int unused[4]; res = CRef((CPair *)spRes->ref.u.pv); return res; }
 } // namespace M_RefOpFindObjectsFromOids
@@ -4153,7 +4153,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
 typedef struct G { char pad[0x3F0C]; void *pv; } G;
 extern G D_003DD490;
-void *PloFindSwObject_15E958(G *pg, int k, int a, LO *b, void *c);
+void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
@@ -4179,7 +4179,7 @@ CRef *RefOpFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *ar
     {
         G *pg = &D_003DD490;
         int a = aref[0].m_tag;
-        CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, 4, a, b, plo ? plo->pv : pg->pv));
+        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, 4, a, b, plo ? plo->pv : pg->pv));
     }
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
@@ -4204,7 +4204,7 @@ struct W { char pad[0xC]; Q *pq; };
 struct G { char pad[0x3F0C]; void *pv; };
 extern "C" { extern G D_003DD490; }
 extern "C" {
-int func_0015E678(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
+int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
 CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -4232,7 +4232,7 @@ CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
         pv = pqT->pv;
     else
         pv = pg->pv;
-    int c = func_0015E678(pg, 4, p0, pq, pv, 0x40, ap);
+    int c = FindSwObjectsInProxyScope(pg, 4, p0, pq, pv, 0x40, ap);
     ref = RefPairFromAplo__FiPP2LO(c, ap);
     return ref;
 }
@@ -4372,7 +4372,7 @@ struct CRef {
 extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingBox(void *pg, qword a, qword b, void *p3, void *p4, int *pc, void **pap);
-void func_0020FDC8(int c, void *ap, int *pc, void **pap);
+void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
 CRef RefPairFromAplo__FiPP2LO(int c, void *ap);
 CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -4391,7 +4391,7 @@ CRef RefOpFindObjectsInBoundingBox__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
     int c1;
     void *ap1;
     IntersectSwBoundingBox(D_003DD490, *(qword *)aref[0].u.pv, *(qword *)aref[1].u.pv, 0, 0, &c0, &ap0);
-    func_0020FDC8(c0, ap0, &c1, &ap1);
+    BuildUniqueSoList(c0, ap0, &c1, &ap1);
     ref = RefPairFromAplo__FiPP2LO(c1, ap1);
     return ref;
 }
@@ -4415,7 +4415,7 @@ struct CRef {
 extern "C" { extern char D_003DD490[]; }
 extern "C" {
 void IntersectSwBoundingSphere(void *pg, qword a, void *p3, void *p4, float g, int *pc, void **pap);
-void func_0020FDC8(int c, void *ap, int *pc, void **pap);
+void BuildUniqueSoList(int c, void *ap, int *pc, void **pap);
 CRef RefPairFromAplo__FiPP2LO(int c, void *ap);
 CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -4439,7 +4439,7 @@ CRef RefOpFindObjectsInBoundingSphere__FiP4CRefP6CFrame(void *pbasic, CRef *aref
     int c1;
     void *ap1;
     IntersectSwBoundingSphere(D_003DD490, *(qword *)aref[0].u.pv, 0, 0, g, &c0, &ap0);
-    func_0020FDC8(c0, ap0, &c1, &ap1);
+    BuildUniqueSoList(c0, ap0, &c1, &ap1);
     ref = RefPairFromAplo__FiPP2LO(c1, ap1);
     return ref;
 }

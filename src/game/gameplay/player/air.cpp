@@ -318,7 +318,7 @@ namespace M_func_00195A00 {
 // per-kind ratios.
 extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 extern "C" { extern CLOCK D_002DDED0; }
 
 
@@ -583,7 +583,7 @@ struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
 void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
-qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -759,7 +759,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
    actor=owner;delta=value;}
   register ACTOR*pointOwner __asm__("$4");
   __asm__ volatile("daddu %0,%2,$zero\n\tsqc2 %3,%1":"=r"(pointOwner),"=m"(w.temp.q):"r"(actor),"j"(delta));
-  {qword point=func_001A62E8(pointOwner);register qword position __asm__("vf1");
+  {qword point=GetLoWorldPos(pointOwner);register qword position __asm__("vf1");
    __asm__("qmtc2.ni %1,%0":"=j"(position):"r"(point));
    __asm__("vsub.xyzw %0,%0,%1":"+j"(delta):"j"(position));actor->offset.q=delta;}
   ClearVelocity(p->actor);p->flags28=0;clip=p->special154;
@@ -991,7 +991,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*func_001A6318(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
+qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -1076,7 +1076,7 @@ extern "C" void PresetJtAccelJump(CONTEXT*p){WORK w;
    :"=&r"(clockWord),"=r"(rotationOutput),"=j"(rotation),"=m"(w.turn.scalar.q):"m"(p->actor),"p"(&w),"i"(&D_002DDED0):"$2","$3","$f0","$f1","vf1","vf3","vf4","vf5","at","memory");
   (void)func_0011B570(rotationOutput,rotation);
   {
-   register M4*matrix __asm__("$2")=func_001A6318(p->actor);
+   register M4*matrix __asm__("$2")=GetLoWorldMatrix(p->actor);
    register qword first __asm__("vf3"),second __asm__("vf2"),r0 __asm__("vf4"),r1 __asm__("vf6"),r2 __asm__("vf5");
    register SMP*parameters __asm__("$4");register float*empty __asm__("$5");
    register float current __asm__("$f12"),target __asm__("$f13"),step __asm__("$f14");
@@ -1270,7 +1270,7 @@ namespace M_UpdateJtAirInput {
 // Globals: D_002BF818 (D_002BF818), D_002BF81C (D_002BF81C), D_002BF820 (D_002BF820), D_002BF82C (D_002BF82C), D_002F7900 (g_SheetGangMurray), D_002E1E40 (g_SheetGangSly), D_002BF830 (g_SheetMovementMiscHoverPackDuration), D_002DDED0 (g_clock), D_002A2DD0 (g_qwZero)
 // 0x00197500 UpdateJtAirInput (our name; KB FUN_00197500)
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 extern "C" { qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, VECTOR *pv); }
 
 
@@ -1693,7 +1693,7 @@ extern float D_002BF730, D_002BF734, D_002BF834, D_002BF838, D_002BF83C, D_002BF
 extern float D_002BF878, D_002BF87C, D_002BF880, D_002BF8A0;
 extern LM D_002BF798, D_002BF850, D_002BF858, D_002BF870;
 extern SMP D_002BF860;
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 void MeasureJtJumpToTarget(CONTEXT *, qword, void *, qword, qword, float *, float *, qword *, qword *);
 void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
 qword GetXfVelocity(SPACE *, SPACE *, qword);
@@ -1830,7 +1830,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
     }
 
     U pos;
-    pos.q = func_001A62E8(p->actor);
+    pos.q = GetLoWorldPos(p->actor);
     U vel;
     vel.q = GetVelocity(p->actor);
     U point;
@@ -1850,7 +1850,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         for (SOURCE *src = (*(SOURCE * *)&g_sw.dlCid88); src; src = src->next) {
             if (src->state != 0)
                 continue;
-            qword posSrc = func_001A62E8(src);
+            qword posSrc = GetLoWorldPos(src);
             if (360000.0f < GLengthSqXY(QwSub(posSrc, pos.q)))
                 continue;
             if (GetZ(posSrc) + src->height < pos.f[2])
@@ -1881,7 +1881,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         }
         for (OBJECT *obj = (*(OBJECT * *)&g_sw.dlCid40); obj; obj = obj->next) {
             U posObj;
-            posObj.q = func_001A62E8(obj);
+            posObj.q = GetLoWorldPos(obj);
             if (D_002BF840 * D_002BF840 < GLengthSqXYQ(QwSub(pos.q, posObj.q)))
                 continue;
             MeasureJtJumpToTarget(p, vel.q, obj, QwSub(posObj.q, p->actor->offset.q), D_002A2DD0, &t, &score, &point.q, &velHit.q);
@@ -1932,7 +1932,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
 
     switch (p->mode) {
     case 6: case 8:
-        point.q = QwSub(func_001A62E8(p->source), p->actor->offset.q);
+        point.q = QwSub(GetLoWorldPos(p->source), p->actor->offset.q);
     predict: {
         BODY *body = p->actor->body;
         float dt = body->deadline - D_002DDED0.t;
@@ -1964,7 +1964,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         psampler = (PATH *)p->source;
         goto sample;
     case 18:
-        point.q = func_001A62E8(p->source);
+        point.q = GetLoWorldPos(p->source);
         goto predict;
     }
 
@@ -2039,7 +2039,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         if (p->mode == 15)
             EvaluateShapeU(p->source, p->parameter, &target.q, 0);
         else
-            target.q = func_001A62E8(p->source);
+            target.q = GetLoWorldPos(p->source);
         if (p->actor != D_002E1E40)
             UpdateJtHands((char *)p->actor + 0x900);
         SetStepRadTargetVec(p->actor, QwSub(target.q, pos.q));
@@ -2151,7 +2151,7 @@ struct P {
 };
 extern qword D_002A2DB0;
 extern qword D_002A2DC0;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword func_0022FC48(int n, int m, qword q);
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 /** @sly2-annot addr=0x1991A0
@@ -2169,7 +2169,7 @@ void func_001991A0(struct P *p)
         M3 m;
         U s;
         qword neg, v;
-        q.q = func_001A62E8(p->x0);
+        q.q = GetLoWorldPos(p->x0);
         r.q = func_0022FC48(p->xc8->x0, 0, p->xd0);
         qword sq;
         __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
@@ -2934,7 +2934,7 @@ struct S { struct B *pb; };
 struct SPACE;
 typedef struct { short d; short pad; struct SPACE *(*pfn)(void *, void *); } VTE;
 struct O { char pad[0xC]; VTE *vt; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword GetXfVelocity(struct SPACE *p, struct SPACE *stop, qword q);
 int FTimeJtJumpToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
@@ -2974,7 +2974,7 @@ void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput,
     __asm__("por %0,$zero,%1":"=r"(b):"r"(bInput));
     __asm__("por %0,$zero,%1":"=r"(a):"r"(aInput));
     w.incoming=c;
-    __asm__("por %0,$zero,%1":"=r"(pos):"r"(func_001A62E8(p->pb)));
+    __asm__("por %0,$zero,%1":"=r"(pos):"r"(GetLoWorldPos(p->pb)));
     x=o->vt[32].pfn((char*)o+o->vt[32].d,0);
     { register qword got __asm__("$2")=GetXfVelocity(x, 0, b);
       register struct S*receiver __asm__("$4");
@@ -3091,7 +3091,7 @@ namespace M_func_0019A750 {
 //               apex 215 with the speed that climbs 100 more) and gets the vz that does it from the current height; still rising: the vz that reaches 315
 //   0, 5, 8, 0xA - 0xC, 0x10, 0x11: nothing (z stays)
 // Returns the velocity (the callers SetVelocity it).
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -3421,7 +3421,7 @@ struct X { char pad[0x80]; qword v80; };
 struct O { char pad[0xE8]; struct X *xE8; char pad2[0x1F30-0xEC]; float f1F30; };
 struct A { struct O *p; };
 struct P { struct A *a; void *p4; int pad[2]; qword v10; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int func_00185D18(void *a, qword p, qword v, qword x, float f, float t, qword *r0, qword *r1, qword *r2);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, int m, int n, qword *r);
 static inline float Len(qword v) {
@@ -3447,7 +3447,7 @@ float func_0019AC88(struct P *p, float t)
  float g,h;
  pv=p->p4;
  o=p->a->p;
- pos=func_001A62E8(o);
+ pos=GetLoWorldPos(o);
  vel=p->v10;
  func_00185D18(pv, pos, vel, o->xE8->v80, o->f1F30, t, &a.q, &b.q, &c.q);
  EvaluateBezierPos(t,0.0f,1.0f,pos,vel,b.q,c.q,0,0,&d.q);
@@ -3690,7 +3690,7 @@ extern float D_002BF8E0;            // score limit
 extern float D_002BF8E4, D_002BF8E8, D_002BF8EC, D_002BF8F0, D_002BF8F4, D_002BF8F8, D_002BF8FC, D_002BF904, D_002BF908;
 extern float D_002BF90C, D_002BF914, D_002BF918;
 
-qword func_001A62E8(void *plo);                                         // PosLoWorld
+qword GetLoWorldPos(void *plo);                                         // PosLoWorld
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                         // memset
 qword func_0019A750(JTAIR *pjtair, int nKind);                         // JtPlanLaunchVz
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
@@ -3699,7 +3699,7 @@ void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos,
 float GAdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
 int FFindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
                   VECTOR *ppos);
-void FFilterSoPair();
+void ShouldKeepSoPair();
 void func_0019B0A8();
 void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
 void func_001E7410(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
@@ -3761,7 +3761,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
     VECTOR vLaunch, posTarget;
     float t, g;
 
-    pos.q = func_001A62E8(pjtair->pstepplayer);
+    pos.q = GetLoWorldPos(pjtair->pstepplayer);
     v.q = pjtair->pstepplayer->GetVelocity();
     uint grf = pjtair->pstepplayer->grfTarget;
     func_002333B4(&tri, 0, sizeof(tri));
@@ -3784,7 +3784,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
                 g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8E4);
                 if (gBest <= g)
                     continue;
-                if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                                   posHit.q, vHit.q, 0))
                     continue;
             }
@@ -3825,7 +3825,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             MeasureJtJumpToTarget(pjtair, vLaunch, pcurve, posTarget, dpos, &t, 0, &posHit, &vHit);
             vHit.f[2] = vLaunch.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
             if (pcurve != ploForce &&
-                FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                               posHit.q, vHit.q, 0))
                 continue;
             ploBest = pcurve;
@@ -3849,7 +3849,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             }
             if (!(phook->grf & grf))
                 continue;
-            qword posHook = func_001A62E8(phook);
+            qword posHook = GetLoWorldPos(phook);
             posTarget.q = posHook;
             if (phook != ploForce) {
                 if (phook->sHeight < pos.f[2] - posTarget.f[2])
@@ -3869,7 +3869,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
                 g = GAdjustJtLandingScore(pjtair, phook, g, D_002BF8EC);
                 if (gBest <= g)
                     continue;
-                if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
+                if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
                                   posHit.q, vHit.q, &posTarget))
                     continue;
             }
@@ -3906,7 +3906,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             func_00185D18(pmesh, pos.q, vLaunch.q, pjtair->pstepplayer->psophys->dvGravity.q, pjtair->pstepplayer->sRadius,
                           t, &triHit, &posHit, &vHit);
             if (pmesh != ploForce &&
-                FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+                FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
             nKind = 16;
@@ -3921,7 +3921,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
 
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pjtair->pstepplayer, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
         !D_002F7900->fPartnerBusy) {
-        posTarget.q = func_001A62E8(D_002F7900->ploPartnerTarget);
+        posTarget.q = GetLoWorldPos(D_002F7900->ploPartnerTarget);
         MeasureJtJumpToTarget(pjtair, vLaunch, D_002F7900->ploPartnerTarget, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
         vHit.f[2] = vLaunch.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
         if (D_002F7900->ploPartnerTarget != ploForce) {
@@ -3979,7 +3979,7 @@ LPartnerDone:
         MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
         if (pcurve != ploForce &&
-            FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, &posTarget))
             continue;
         nKind = 15;
@@ -3994,7 +3994,7 @@ LPartnerDone:
     for (SHAPE *pshape = (*(SHAPE * *)&g_sw.dlCid34); pshape; pshape = pshape->pshapeNext) {
         if (!(pshape->grf & grf))
             continue;
-        qword posShape = func_001A62E8(pshape);
+        qword posShape = GetLoWorldPos(pshape);
         posTarget.q = posShape;
         if (pshape->sHeight < pos.f[2] - posTarget.f[2])
             continue;
@@ -4020,7 +4020,7 @@ LPartnerDone:
         MeasureJtJumpToTarget(pjtair, v, pshape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
         if (pshape != ploForce &&
-            FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         nKind = 12;
@@ -4058,7 +4058,7 @@ LPartnerDone:
         MeasureJtJumpToTarget(pjtair, v, pcurve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
         if (pcurve != ploForce &&
-            FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         nKind = 11;
@@ -4084,7 +4084,7 @@ LPartnerDone:
             g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8FC);
             if (gBest <= g)
                 continue;
-            if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
         }
@@ -4124,7 +4124,7 @@ struct OBJECT {
 struct CONTEXT { OBJECT *owner; };
 struct SPACE;
 extern "C" {
-    qword func_001A62E8(OBJECT *);
+    qword GetLoWorldPos(OBJECT *);
     void LoadIdentityMatrix4(SPACE *,SPACE *,M4 *,M4 *,float);
     M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
     extern qword D_002A2DD0;
@@ -4184,7 +4184,7 @@ extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context,OBJECT *target,qwor
     V scalar;
     M4 product;
     V future,position,oldVelocity,comparison,prediction;
-    position.q=func_001A62E8(context->owner);
+    position.q=GetLoWorldPos(context->owner);
     OBJECT *owner=context->owner;
     VTE *vt=owner->vt;
     oldVelocity.q=((VECTOR_GETTER)vt[33].fn)((OBJECT*)((char*)owner+vt[33].delta));

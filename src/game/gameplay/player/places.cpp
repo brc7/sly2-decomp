@@ -82,12 +82,12 @@ void SetStepRadTargetVec(JT *p, qword q);
 void CutCm__FP2CM(D *d);
 void func_00195A00(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
-void func_00148300(G *g, LO *a);
+void UpdateSoBusy(G *g, LO *a);
 void JtbsChooseJtLanding(void *p, LO *a);
 void func_0015E1D8(int a);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
-void FFilterSoPair(void);
+void ShouldKeepSoPair(void);
 /* VQ: a 16-byte vector that can be initialized (floats first), read as a qword (.q). */
 union VQ { float af[4]; qword q; };
 float D_002BF944 = 500.0f;          /* the nearby-objects sphere radius */
@@ -97,7 +97,7 @@ CLQ D_002BF9D0 = {400.0f, -1.0f, 0.0f};
 LM D_002BF9E0 = {0.0f, 1000.0f};
 int CploFindSwObjectsByClass(G *g, int k, int n, int m, int c, LO2 **apv);
 float func_0019F7D0(JTPLACES *p, PLACE *e, int c, LO2 **apv);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_0019FEB0(JTPLACES *p, PLACESPOT *a, qword q);
 void func_0019FD30(JTPLACES *p, PLACESO *b, float g);
 void func_001942F0(void *p);
@@ -201,7 +201,7 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
                     if (FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xD) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x27) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xC) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x22) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x26)) {
-                        func_00148300(&D_003DD490, e.plo);
+                        UpdateSoBusy(&D_003DD490, e.plo);
                         JtbsChooseJtLanding(p->x2c0, e.plo);
                     }
                 }
@@ -231,7 +231,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
         U a, b;
         HIT hit;
         int i0, i1;
-        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)FFilterSoPair, p->pjt->pvFilter, &i0, &i1, D_002BF944);
+        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)ShouldKeepSoPair, p->pjt->pvFilter, &i0, &i1, D_002BF944);
         a.q = pos;
         b.q = pos;
         a.f[2] += 125.0f;
@@ -305,7 +305,7 @@ extern "C" void func_0019FAF8(JTPLACES *p, PLACE *pe)
     if (best == D_002A66A0) {
         qword r;
         func_002333B4(pe, 0, 0x20);
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(p->pjt)), "j"(p->pjt->x240));
+        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(GetLoWorldPos(p->pjt)), "j"(p->pjt->x240));
         pe->v.q = r;
     }
 }

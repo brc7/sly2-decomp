@@ -749,7 +749,7 @@ struct TEXT_TABLE { int count; TEXT_ENTRY *entries; };
 extern "C" {
 extern CFont *D_002DE760;
 extern TEXT_TABLE D_003E1C20;
-char *func_00210CA8(TEXT_TABLE *p, int k);
+char *FindKeyedTableValue(TEXT_TABLE *p, int k);
 float func_0015FEF8(CRichText *pfont, float dx) __asm__("FUN_0015e1b0");
 float DxMaxLine__9CRichText(CRichText *pfont);
 void FillScreenRect(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
@@ -790,7 +790,7 @@ void func_001B3700(CMPEG *p)
         gifs.AllocStatic(0x200, (QW *)(p->pb + 0x41DC00));
         gifs.AddDmaCnt();
         PushScaling__5CFontff(D_002DE760, 0.8f, 0.8f);
-        CRichText font(func_00210CA8(&D_003E1C20, p->psubt->idText), D_002DE760);
+        CRichText font(FindKeyedTableValue(&D_003E1C20, p->psubt->idText), D_002DE760);
         float dy = func_0015FEF8(&font, 320.0f);
         float dx = DxMaxLine__9CRichText(&font);
         TB tb(320.0f - dx * 0.5f, 476.8000183f - dy, dx, dy);
@@ -849,7 +849,7 @@ extern "C" int CMpeg_ExecuteOids(CMPEG *p)
 struct X {
     uint x0; uint x4; int x8; char opaqueC[0x110 - 0xC];
     X() { x8 = 2; Init(); }
-    void Init() __asm__("func_00258248");
+    void Init() __asm__("InitFileKey");
     bool FSet(K *k);
 };
 struct CBinaryAsyncStream { char pad[0x1C]; int x1C; int x20; int x24; int x28; char pad2C[0x30 - 0x2C];

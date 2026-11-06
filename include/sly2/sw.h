@@ -132,7 +132,7 @@ struct SW : public BASIC
       SVPATH *psvpReverseAim;   /* save var: invert aiming */
       SVPATH *psvpAutosaveWarned;   /* save var: the autosave warning was shown */
       SVPATH *apsvpEpisodeDt[9];   /* save vars: play time per episode (inferred) */
-      SVPATH *apsvpEpisodePercent[9];   /* +0x3B7C summed by NCompletionPercentGs (save.cpp) */
+      SVPATH *apsvpEpisodePercent[9];   /* +0x3B7C summed by GetCompletionPercent (save.cpp) */
       HUDSTACK ahudstack[4];   /* the HUD widget stacks */
       DL dlWidgetExclusive; /* +0x3BD0 [S] draft name: widgets on the exclusive list (FWidgetObscured, hud.cpp); was _pad_228 */
       SL slWidgetDeferred;  /* +0x3BDC [S] draft name: deferred widget loads (LoadWidgetFromBrx appends, LoadWidgetSprites walks) */
@@ -287,7 +287,7 @@ struct SW : public BASIC
 
       float tHudTimerEnd;   /* game time the HUD countdown ends */
       int csecHudTimerShown;   /* seconds currently shown on the HUD timer */
-      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (func_0015CD68 registers itself, tu_15CD68.cpp); was _pad_357 */
+      struct EPMENU *pepmenu; /* +0x4774 [S] the EPMENU singleton (InitEpisodeMenu registers itself, tu_15CD68.cpp); was _pad_357 */
       int cpemitTracked;   /* number of tracked emitters */
       struct EMITTER *apemitTracked[4];   /* the tracked emitters */
       uint32_t   _pad_360    [ 1 ] ;

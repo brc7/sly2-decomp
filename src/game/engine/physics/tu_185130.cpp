@@ -85,7 +85,7 @@ void SetTnTns(void *ptn, int tns);
 void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
 void SetPlane(qword *, qword, float);
 void SolveInequalities(int n, float *matrix, float *rhs, float *weights, float eps);
-qword func_001A62E8(JTV*);M4*func_001A6318(JTV*);
+qword GetLoWorldPos(JTV*);M4*GetLoWorldMatrix(JTV*);
 M3 BuildOrthonormalMatrixZ(qword,qword);M3 InvertMatrix3Cofactor(M3*);qword*VECTOR_opAssign(qword*,qword);
 void SmoothMatrix(M4*,M3*,SMPV*,M3*,qword*,float);
 void PosSmooth(qword,qword,SMPV*,qword*,float);
@@ -629,7 +629,7 @@ static inline qword QwRotateVecV(qword v,M3 m){return QwRotateVec(&m,v);}
 static inline void SetVec(JTV*p,int slot,qword q){VTE*e=&p->vt[slot];((void(*)(void*,qword))e->fn)((char*)p+e->delta,q);}
 extern "C" void func_00185E40(JTV*p){
  U closest,normal;
- qword position=func_001A62E8(p);
+ qword position=GetLoWorldPos(p);
  func_00185310(p->mesh,position,&p->triangle,&p->triangle,&closest.q,&normal.q);
  M4 frame;U contacts[3];
  qword difference=VuSub(closest.q,position);
@@ -644,7 +644,7 @@ extern "C" void func_00185E40(JTV*p){
  qword unit=QwDivide(surface,QwSqrt(VuDot(surface,surface)));
  {M3 m=BuildOrthonormalMatrixZ(unit,D_002A2DC0.q);p->basis.r[0]=m.r[0];p->basis.r[1]=m.r[1];p->basis.r[2]=m.r[2];}
  U angular,linear;
- SmoothMatrix(func_001A6318(p),&p->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
+ SmoothMatrix(GetLoWorldMatrix(p),&p->basis,&D_002BE920,0,&angular.q,D_002DDED0.dt*0.5f);
  SetVec(p,36,angular.q);
  PosSmooth(position,target,&D_002BE930,&linear.q,D_002DDED0.dt*0.5f);
  LIST planes;U samples[3];

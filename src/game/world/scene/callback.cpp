@@ -1,6 +1,7 @@
 // callback.cpp -- SW callbacks: (object, member function, argument) records queued on the world and run once by
 // ProcessSwCallbacks, which also fires the due Splice event callbacks. TU 0x149A50..0x14A008 (6 functions, address
 // order).
+// Entry points: PostSwCallback / EnsureSwCallback (queue), ProcessSwCallbacks (once per frame).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_callback
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00149FE8
 #include "sly2/pair.h"
@@ -22,10 +23,10 @@ typedef void (CObj::*PMFCB)(int);
 
 struct CALLBACK
 {
-    CObj *pobj;
-    PMFCB pmf;
-    int arg;
-    CALLBACK *pcbNext;
+    CObj *object;
+    PMFCB method;
+    int argument;
+    CALLBACK *next;
 };
 typedef char assert_CALLBACK_size[sizeof(CALLBACK) == 0x14 ? 1 : -1];
 
@@ -38,7 +39,7 @@ extern "C" void func_00257078(CFrame *pframe, int flags) __asm__("_$_6CFrame"); 
 struct SPF
 {
     CFrame *p;
-    SPF(const SPF &spf);
+    SPF(const SPF &frame);
     ~SPF() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) func_00257078(pframe, 3); }
 };
 struct SPFV { CFrame *p; };
@@ -46,35 +47,35 @@ struct SPFV { CFrame *p; };
 /* A due Splice event callback. */
 struct EVCB
 {
-    float t;
-    SPFV *pspframe;
-    CPair *ppair;
-    int c;
+    float time;
+    SPFV *frameSlot;
+    CPair *call;
+    int id;
 };
 
-struct SL { void *pvFirst; void *pvLast; int ib; };
+struct SL { void *first; void *last; int linkOffset; };
 extern CLOCK D_002DDED0;
 
 /* SW view: the event callback list and pool, the callback pool and list. */
 struct SW
 {
     char pad[0x39F0];
-    SL slEvcb;                  /* +0x39F0 */
-    SLOTHEAP slotheapEvcb;      /* +0x39FC */
+    SL spliceCallbacks;                  /* +0x39F0 */
+    SLOTHEAP spliceCallbackPool;      /* +0x39FC */
     char pad3A14[0x3C90 - 0x3A14];
-    SLOTHEAP slotheapCb;        /* +0x3C90 */
-    SL slCb;                    /* +0x3CA8 */
+    SLOTHEAP callbackPool;        /* +0x3C90 */
+    SL callbacks;                    /* +0x3CA8 */
 };
 
 extern "C" {
-void func_0011A070(SL *psl, CALLBACK *pcb);
-void ClearSl(SL *psl);
-int FIsSlEmpty(SL *psl);
-void RemoveSlEntry(SL *psl, void *pv);
+void func_0011A070(SL *list, CALLBACK *callback);
+void ClearSl(SL *list);
+int FIsSlEmpty(SL *list);
+void RemoveSlEntry(SL *list, void *pv);
 int PtNew__t6CGcObj1Z6CFrame();
 SPF Attach__t7CRefPtr1Z6CFrameP6CFrame(int pv);
 void EvalSpliceEventCallback(void *pv, CPair *ppair, CFrame *pframe, int n);
-void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg);
+void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg);
 }
 
 /** @sly2-annot addr=0x149A50
@@ -86,13 +87,15 @@ void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg);
  *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
  *   docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
-extern "C" void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
+// Queues a deferred callback {object, member function, argument} on the world (node from the world's pool); it runs
+// once in ProcessSwCallbacks.
+extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 {
-    CALLBACK *pcb = (CALLBACK *)PvAllocSlotheapClear(&psw->slotheapCb);
-    pcb->pobj = pobj;
-    pcb->pmf = pmf;
-    pcb->arg = arg;
-    func_0011A070(&psw->slCb, pcb);
+    CALLBACK *callback = (CALLBACK *)PvAllocSlotheapClear(&world->callbackPool);
+    callback->object = object;
+    callback->method = method;
+    callback->argument = arg;
+    func_0011A070(&world->callbacks, callback);
 }
 
 /** @sly2-annot addr=0x149AB8
@@ -103,15 +106,16 @@ extern "C" void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
  *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-extern "C" void EnsureSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
+// Queues the callback unless an identical {object, member function, argument} is already queued.
+extern "C" void EnsureSwCallback(SW *world, CObj *object, PMFCB method, int arg)
 {
-    CALLBACK *pcb;
-    for (pcb = (CALLBACK *)psw->slCb.pvFirst; pcb; pcb = pcb->pcbNext)
+    CALLBACK *callback;
+    for (callback = (CALLBACK *)world->callbacks.first; callback; callback = callback->next)
     {
-        if (pcb->pobj == pobj && pcb->pmf == pmf && pcb->arg == arg)
+        if (callback->object == object && callback->method == method && callback->argument == arg)
             return;
     }
-    PostSwCallback(psw, pobj, pmf, arg);
+    PostSwCallback(world, object, method, arg);
 }
 
 /** @sly2-annot addr=0x149B58
@@ -121,26 +125,27 @@ extern "C" void EnsureSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg)
  * See: docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
  * @end-sly2-annot */
-extern "C" void ClearSwCallbacks(SW *psw, unsigned int grf, CObj *pobj, PMFCB pmf, int arg)
+// Removes the queued callbacks that match the selected fields (flag 1 object, 2 member function, 4 argument).
+extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *object, PMFCB method, int arg)
 {
-    CALLBACK **ppcb = (CALLBACK **)&psw->slCb.pvFirst;
-    CALLBACK *pcb;
-    while ((pcb = *ppcb) != 0)
+    CALLBACK **link = (CALLBACK **)&world->callbacks.first;
+    CALLBACK *callback;
+    while ((callback = *link) != 0)
     {
-        if ((grf & 1) && pobj != pcb->pobj)
+        if ((matchFlags & 1) && object != callback->object)
             goto next;
-        if ((grf & 2) && !(pmf == pcb->pmf))
+        if ((matchFlags & 2) && !(method == callback->method))
             goto next;
-        if ((grf & 4) && arg != pcb->arg)
+        if ((matchFlags & 4) && arg != callback->argument)
             goto next;
-        *ppcb = pcb->pcbNext;
-        func_0011CD98(&psw->slotheapCb, pcb);
+        *link = callback->next;
+        func_0011CD98(&world->callbackPool, callback);
         continue;
     next:
-        ppcb = &pcb->pcbNext;
+        link = &callback->next;
     }
-    if (!psw->slCb.pvFirst)
-        psw->slCb.pvLast = 0;
+    if (!world->callbacks.first)
+        world->callbacks.last = 0;
 }
 
 /** @sly2-annot addr=0x149C80
@@ -153,43 +158,45 @@ extern "C" void ClearSwCallbacks(SW *psw, unsigned int grf, CObj *pobj, PMFCB pm
  *   docs/engine/overview.md#5-per-frame-update-and-render,
  *   docs/engine/world-sw.md#6-deferred-callbacks-and-the-splice-schedule
  * @end-sly2-annot */
-extern "C" void ProcessSwCallbacks(SW *psw)
+// Runs the queued callbacks (again while running them queues new ones), then every scheduled Splice callback whose time
+// has come (EvalSpliceEventCallback), freeing each. Called once per frame by the world update.
+extern "C" void ProcessSwCallbacks(SW *world)
 {
-    while (!FIsSlEmpty(&psw->slCb))
+    while (!FIsSlEmpty(&world->callbacks))
     {
-        CALLBACK *pcb = (CALLBACK *)psw->slCb.pvFirst;
-        ClearSl(&psw->slCb);
-        while (pcb)
+        CALLBACK *callback = (CALLBACK *)world->callbacks.first;
+        ClearSl(&world->callbacks);
+        while (callback)
         {
-            PMFCB pmf = pcb->pmf;
-            (pcb->pobj->*pmf)(pcb->arg);
-            CALLBACK *pcbNext = pcb->pcbNext;
-            func_0011CD98(&psw->slotheapCb, pcb);
-            pcb = pcbNext;
+            PMFCB method = callback->method;
+            (callback->object->*method)(callback->argument);
+            CALLBACK *next = callback->next;
+            func_0011CD98(&world->callbackPool, callback);
+            callback = next;
         }
     }
 
-    EVCB *pevcb;
-    while ((pevcb = (EVCB *)psw->slEvcb.pvFirst) != 0)
+    EVCB *spliceCallback;
+    while ((spliceCallback = (EVCB *)world->spliceCallbacks.first) != 0)
     {
-        if (D_002DDED0.t < pevcb->t)
+        if (D_002DDED0.t < spliceCallback->time)
             break;
-        pevcb->c = -1;
-        SPFV *pspframe = pevcb->pspframe;
-        if (pspframe)
+        spliceCallback->id = -1;
+        SPFV *frameSlot = spliceCallback->frameSlot;
+        if (frameSlot)
         {
-            EvalSpliceEventCallback(pspframe, pevcb->ppair, pspframe->p, 0);
+            EvalSpliceEventCallback(frameSlot, spliceCallback->call, frameSlot->p, 0);
         }
         else
         {
             int pv = PtNew__t6CGcObj1Z6CFrame();
-            SPF spf = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
-            EvalSpliceEventCallback(psw, pevcb->ppair, spf.p, 0);
+            SPF frame = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
+            EvalSpliceEventCallback(world, spliceCallback->call, frame.p, 0);
         }
-        RemoveSlEntry(&psw->slEvcb, pevcb);
-        CPair *ppair = pevcb->ppair;
+        RemoveSlEntry(&world->spliceCallbacks, spliceCallback);
+        CPair *ppair = spliceCallback->call;
         if (--ppair->cref == 0)
             delete ppair;
-        func_0011CD98(&psw->slotheapEvcb, pevcb);
+        func_0011CD98(&world->spliceCallbackPool, spliceCallback);
     }
 }

@@ -50,7 +50,7 @@ void OnPoActive(ROBOTTANKV *ptank, int fActive);
 void SetRobottankState(ROBOTTANKV *ptank, int nState);
 void UpdateRobottankHealthMeter(ROBOTTANKV *ptank);
 void SeekSma(SMA *psma, OID oidState);
-void func_001CB518(void *plo);
+void SO_ResetForProxy(void *plo);
 void SetRcPickupState(RCPICKUP *ppickup, int nState);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 }
@@ -409,7 +409,7 @@ typedef char native_layout_58[(OFF(P,path)==0x5AC)?1:-1];
  * @end-sly2-annot */
 extern "C" void func_001D1910(ROBOTTANKV *ptank)
 {
-    func_001CB518(ptank);
+    SO_ResetForProxy(ptank);
     ResetRobottankHealth(ptank);
 }
 
@@ -476,7 +476,7 @@ qword ConvertXfVec(FRAME *,FRAME *,qword);
 float GLimitLm__FP2LMf(const LIMITS *,float);
 void SetActPositionGoal(void *,qword);
 float RadSmooth__FfffP3SMPPf(float,float,float,void *,float *);
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 int FFloatsNear__Ffff(float,float,float);
 float GSmooth__FfffP3SMPPf(float,float,float,void *,float *);
 void func_001FB1F8(SOUND *,float);
@@ -583,9 +583,9 @@ extern "C" void UpdateRobottank(P *p)
         entry->tilt=RadSmooth__FfffP3SMPPf(entry->tilt,desired,D_002DDED0.dt,D_002C2098,0);
     }
     i=0;
-    qword currentPosition=func_001A62E8(p);
+    qword currentPosition=GetLoWorldPos(p);
     asm("sq %1,%0":"=m"(position.q):"r"(currentPosition):"memory");
-    targetPosition.q=func_001A62E8(p->target);
+    targetPosition.q=GetLoWorldPos(p->target);
     qword returnedSpeed=GetVelocity(p->target);
     register qword targetSpeed __asm__("$3");int attachmentCount;
     {register int loadedCount __asm__("$2");
@@ -608,7 +608,7 @@ extern "C" void UpdateRobottank(P *p)
             }else{
                 float time=Clamp(Evaluate(attach->flightTime,distance),attach->flightLimits.low,attach->flightLimits.high);
                 register qword origin __asm__("vf1");
-                if(attach->anchor)origin=func_001A62E8(attach->anchor);else origin=attach->mesh->position.q;
+                if(attach->anchor)origin=GetLoWorldPos(attach->anchor);else origin=attach->mesh->position.q;
                 register float half __asm__("$f2")=-0.5f,inverse __asm__("$f1")=1.0f,gravity __asm__("$f0");
                 register qword target __asm__("vf2"),axis __asm__("vf3"),delta __asm__("vf5"),velocity __asm__("vf4");
                 asm("mul.s %0,%4,%0\n\tlwc1 %2,%5\n\tdiv.s %1,%1,%4\n\tlqc2 %3,%6"
@@ -851,7 +851,7 @@ typedef struct {
 extern char D_003DD490[];
 extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
 extern float D_002C20C0[3];
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
 /** @sly2-annot addr=0x1D22D0
  * Purpose: Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass
@@ -864,7 +864,7 @@ SO *func_001D22D0(OBJ *p)
 {
     SO *best = 0;
     SO *aso[16];
-    qword pos = func_001A62E8(p);
+    qword pos = GetLoWorldPos(p);
     int n = CploFindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
     float fMin = D_002A7810;
     int i;
@@ -872,7 +872,7 @@ SO *func_001D22D0(OBJ *p)
         SO *so = aso[i];
         qword d;
         float f;
-        qword q = func_001A62E8(so);
+        qword q = GetLoWorldPos(so);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(pos));
         __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
@@ -895,7 +895,7 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "
 struct E { float x, y, z, w; };
 struct O { char pad[0xE8]; int c; int a, b; struct E *ae; };
 struct S { char pad[0x5AC]; struct O *po; int n5B0; };
-qword func_001A62E8(struct S *p);
+qword GetLoWorldPos(struct S *p);
 /** @sly2-annot addr=0x1D2420
  * Purpose: Clear x5B0 and set every wheel record's z to the car's height
  * Info: proposed name ResetRobottankWheelHeights (T2); TU tu_1D1370
@@ -908,7 +908,7 @@ void func_001D2420(struct S *p) {
     qword q;
     int i;
     p->n5B0 = 0;
-    q = func_001A62E8(p);
+    q = GetLoWorldPos(p);
     for (i = 0; i < p->po->c; i++) {
         p->po->ae[i].z = GetZ(q);
     }
@@ -933,7 +933,7 @@ typedef struct {
 } OBJ;
 extern float D_002C20D0[3];
 extern float D_002C20E0[2];
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 void FindShapeClosestPointFromS(void *,qword,void *,qword *,qword *,float *,float *,float);
 float atan2f(float, float);
 static inline float GetX(qword q) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(q)); return f; }
@@ -999,7 +999,7 @@ void func_001D2490(OBJ *p)
     register qword w __asm__("vf4");
     register qword fallback __asm__("vf5");
     float f;
-    pos = func_001A62E8(p);
+    pos = GetLoWorldPos(p);
     FindShapeClosestPointFromS(p->path,pos,0,(qword *)&va,(qword *)&vb,0,&p->cursor,p->cursor);
     {
         float dist = Dist2D(pos, *(qword *)&va);
@@ -1060,7 +1060,7 @@ extern "C" float D_002C20F0;
 extern "C" float D_002C20F4;
 extern "C" float D_002C20F8;
 extern "C" {
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 ATTACH *func_001D2240(P *);
 P *func_001D22D0(P *);
 int FCheckLm__FP2LMf(LM *, float);
@@ -1072,7 +1072,7 @@ void MeasureShape(PATH *);
 void func_001D2420(P *);
 void func_001C02D0(void *, qword, qword, PATH *);
 float atan2f(float, float);
-M3 *func_001A6318(P *);
+M3 *GetLoWorldMatrix(P *);
 qword func_0022CA18(void *, void *);
 float RadNormalize__Ff(float);
 void SetSmaGoal(void *, int);
@@ -1136,8 +1136,8 @@ static inline float Abs(float f) { return __builtin_fabsf(f); }
  * @end-sly2-annot */
 extern "C" void UpdateRobottankAi(P *p)
 {
-    VV position = func_001A62E8(p);
-    VV target = func_001A62E8(p->target);
+    VV position = GetLoWorldPos(p);
+    VV target = GetLoWorldPos(p->target);
     VV delta = Sub(target, position);
     float distance = Length2D(delta);
     p->selectedAttach = func_001D2240(p);
@@ -1225,7 +1225,7 @@ extern "C" void UpdateRobottankAi(P *p)
             ATTACH *attach = func_001D2240(p);
             if (attach) {
                 if (attach->mesh) {
-                    M3 m = *func_001A6318(attach->anchor);
+                    M3 m = *GetLoWorldMatrix(attach->anchor);
                     float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                     qword packed = func_0022CA18(attach->mesh, attach->mesh);
                     float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
@@ -1243,7 +1243,7 @@ extern "C" void UpdateRobottankAi(P *p)
         break;
     }
     case 2: {
-        VV object = func_001A62E8(p->selectedObject);
+        VV object = GetLoWorldPos(p->selectedObject);
         if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, object)) {
             func_001C02D0(p->navigator, position, object, p->path);
             func_001D2420(p);
@@ -1269,7 +1269,7 @@ extern "C" void UpdateRobottankAi(P *p)
             if (0.0f < attach->enterRange.max && p->state != 1)
                 continue;
             if (attach->mesh) {
-                M3 m = *func_001A6318(attach->anchor);
+                M3 m = *GetLoWorldMatrix(attach->anchor);
                 float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                 qword packed = func_0022CA18(attach->mesh, attach->mesh);
                 float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
@@ -1363,7 +1363,7 @@ extern "C" float D_002C2144;
 extern "C" float D_002C2148;
 extern "C" {
 void func_001F9B20(P *);
-M3 *func_001A6318(P *);
+M3 *GetLoWorldMatrix(P *);
 void TiltMatUpright(const M3 *, M3 *, M3 *);
 void AccelSoTowardMatSpring(P *, const M3 *, const POLY *, qword, const POLY *);
 CONTACT *func_001D2DD0(P *, ENTRY *);
@@ -1431,7 +1431,7 @@ extern "C" void PresetRobottankAccel(P *p)
     func_001F9B20(p);
     if (D_002DDED0.time - p->lastCorrection > 3.0f) {
         M3 reset;
-        TiltMatUpright(func_001A6318(p), 0, &reset);
+        TiltMatUpright(GetLoWorldMatrix(p), 0, &reset);
         AccelSoTowardMatSpring(p, &reset, &D_002C2100, D_002A2DD0, 0);
     }
     U scalar, velocity, localVelocity, torque, worldTorque;
@@ -1447,7 +1447,7 @@ extern "C" void PresetRobottankAccel(P *p)
             CONTACT *hit = func_001D2DD0(p, entry);
             if (hit) {
                 qword point = hit->point.q;
-                VV normal = func_001A6318(p)->rows[2].q;
+                VV normal = GetLoWorldMatrix(p)->rows[2].q;
                 qword previous = GetXfVelocity(p->space, 0, point);
                 VV other = GetXfVelocity(hit->motion, 0, point);
                 float ratio = hit->depth / (entry->maximum - entry->minimum);
@@ -2176,7 +2176,7 @@ void UpdateRobottankHealthMeter(P *);
 void SetRobottankState(P *, int);
 float GRandInRange__Fff(float, float);
 qword SetVectorCylind(float, float, float);
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 int func_001D4568(P *, EVENT *);
 }
 static inline VV Zero() { qword r; __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(r)); return r; }
@@ -2262,8 +2262,8 @@ int func_001D4568(P *p, EVENT *event)
     }
     case 0x1000:
     {
-        VV position = func_001A62E8(p);
-        VV delta = Sub(position, func_001A62E8(event->sender));
+        VV position = GetLoWorldPos(p);
+        VV delta = Sub(position, GetLoWorldPos(event->sender));
         VU_VECTOR4 direction;
         direction.q = NormalizeSafe(Sub(delta, ScaleV(Dot(delta, D_002A2DC0), D_002A2DC0)), D_002A2DA0);
         VU_FLOAT first(Random(D_002C21E8));
@@ -2746,7 +2746,7 @@ void PostRcPickupLoad(struct S *p) {
  * @end-sly2-annot */
 extern "C" void func_001D4F10(RCPICKUP *ppickup)
 {
-    func_001CB518(ppickup);
+    SO_ResetForProxy(ppickup);
     SetRcPickupState(ppickup, -1);
     SetRcPickupState(ppickup, 0);
 }

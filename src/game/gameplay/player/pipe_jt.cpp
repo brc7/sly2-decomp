@@ -65,7 +65,7 @@ extern int D_002DFBC0;
 TRACKREF *func_0012FF10(ASEGV *o, JT *a, int b, int c);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(JT *a, int b, int c, void *d, int e, int f, int g, void *h);
 void GetPipeGoalMat(PATH *a, float g, int b, M3 *pm);
-M3 *func_001A6318(JT *o);
+M3 *GetLoWorldMatrix(JT *o);
 void EvaluateBezierMat(M3 *a, float g, float dt, float one, qword v, M3 *pm, qword z, M3 *pm2, qword *derivative);
 M3 MulMatrix3Matrix3(M3 *a, M3 *b);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, U *pv);
@@ -77,7 +77,7 @@ void func_0019CC50(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void func
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
 void func_0019E110(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
 float fabsf(float);
-qword ConvertAloPos(void*,void*,qword);qword func_001A62E8(void*);
+qword ConvertAloPos(void*,void*,qword);qword GetLoWorldPos(void*);
 void func_0019FD30(void *pplaces, void *pso, float g);
 void SubscribeLoObject(PATH*,JT*);void UnsubscribeLoObject(PATH*,JT*);
 void func_00204F78(JT*,PATH*,int);
@@ -158,13 +158,13 @@ extern "C" void PresetJtAccelPipe(JTPIPE *p)
         float g = o->asega->paseg->duration - o->asega->t;
         M3 *pa;
         g = g > dt ? g : dt;
-        pa = func_001A6318(o);
+        pa = GetLoWorldMatrix(o);
         EvaluateBezierMat(pa, g, dt, 1.0f, ((qword (*)(void *))p->actor->vt[34].fn)((char *)p->actor + p->actor->vt[34].delta), &m, D_002A2DD0.q, &m2, 0);
     } else {
         m2 = m;
     }
     pm = &m2;
-    m4 = MulMatrix3Matrix3(func_001A6318(p->actor), pm);
+    m4 = MulMatrix3Matrix3(GetLoWorldMatrix(p->actor), pm);
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&m4, &f, &vec);
     {JT *o=p->actor;VE *vt=o->vt;void (*call)(void *,qword)=(void(*)(void*,qword))vt[36].fn;void *thisp=(char*)o+vt[36].delta;call(thisp,Scale(vec.q,f/D_002DDED0.dt));}
 }
@@ -425,9 +425,9 @@ extern "C" void func_0019EAB0(JTPIPE*p,int next){
  case -1:{
   PathState(p->path,6);UnsubscribeLoObject(p->path,p->actor);func_00204F78(p->actor,p->path,0);
   JT*actor=p->actor;w.target=actor->goal;
-  void*focus;actor->motion.q=GoalInputs(&w.target,func_001A62E8(actor),focus);
+  void*focus;actor->motion.q=GoalInputs(&w.target,GetLoWorldPos(actor),focus);
   p->actor->motion.i[2]=0;SetStepplayerTnOverride(p->actor,focus);
-  if(p->path->releaseEffectId){EFFECT*e=PsndStartSound(p->path->releaseEffectId);SetSndSourceLo(e,0);SetSndSourcePos(e,func_001A62E8(p->actor));}
+  if(p->path->releaseEffectId){EFFECT*e=PsndStartSound(p->path->releaseEffectId);SetSndSourceLo(e,0);SetSndSourcePos(e,GetLoWorldPos(p->actor));}
   p->path=0;return;
  }
  case 0:

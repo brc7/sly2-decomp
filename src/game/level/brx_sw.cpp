@@ -1,4 +1,5 @@
-// brx_sw.cpp -- loading a level body (SW) from the BRX world file. TU 0x13DA18..0x13E368 (5 functions, address order).
+// brx_sw.cpp -- loading a level body (SW) from the BRX world file. Entry point: LoadSwFromBrx (called by the level
+// load); it reads the localized strings (LoadSwLangstrsFromBrx) and the cell BSP (LoadSwCellsFromBrx). TU 0x13DA18..0x13E368 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_brx_sw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013E348
 #include "sly2/slotheap.h"
@@ -31,46 +32,46 @@ void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void StartupSplice(void);
-int S16Read__18CBinaryInputStream(BIS *pbis);
-int S32Read__18CBinaryInputStream(BIS *pbis);
-void Read__18CBinaryInputStreamiPv(BIS *pbis, int cb, void *pv);
-void Align__18CBinaryInputStreami(BIS *pbis, int cb);
-int U8Read__18CBinaryInputStream(BIS *pbis);
-int U16Read__18CBinaryInputStream(BIS *pbis);
-void ReadVector4__18CBinaryInputStreamP7VECTOR4(BIS *pbis, void *pvec);
-void CBinaryInputStream_ReadStringSw(BIS *pbis, int *pn, void *pv, int n);
-void CBinaryInputStream_SkipStringSw(BIS *pbis);
-void func_00210BE0(void *pv);
+int S16Read__18CBinaryInputStream(BIS *stream);
+int S32Read__18CBinaryInputStream(BIS *stream);
+void Read__18CBinaryInputStreamiPv(BIS *stream, int cb, void *pv);
+void Align__18CBinaryInputStreami(BIS *stream, int cb);
+int U8Read__18CBinaryInputStream(BIS *stream);
+int U16Read__18CBinaryInputStream(BIS *stream);
+void ReadVector4__18CBinaryInputStreamP7VECTOR4(BIS *stream, void *pvec);
+void CBinaryInputStream_ReadStringSw(BIS *stream, int *pn, void *pv, int n);
+void CBinaryInputStream_SkipStringSw(BIS *stream);
+void LocalizeSwStringTable(void *pv);
 void BeginLoadingScreen(void *p);
 void func_001C9090(void *p, const void *pv);
 void EndLoadingScreen(void *p);
-void LoadSoundSectionFromBrx(void *p, BIS *pbis);
+void LoadSoundSectionFromBrx(void *p, BIS *stream);
 void PostSoundLoad(void *p);
-void LoadSaveSchemaFromBrx(void *p, BIS *pbis);
-void LoadLevelTableFromBrx(void *psw, BIS *pbis);
-void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbis);
-void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbis);
-void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *p, BIS *pbis);
-void func_001FF7E8(void *psw);
-void ResolveSwSaveVars__FP2SW(void *psw);
-void UpdateSwIllum(void *psw);
+void LoadSaveSchemaFromBrx(void *p, BIS *stream);
+void LoadLevelTableFromBrx(void *world, BIS *stream);
+void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *stream);
+void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *stream);
+void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *p, BIS *stream);
+void InitSwSpliceFrame(void *world);
+void ResolveSwSaveVars__FP2SW(void *world);
+void UpdateSwIllum(void *world);
 void BuildClearGifs__FP2QWG4RGBAi(void *p, void *pv, int c);
 void func_001703F8(void *pzpr, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void func_001ED3A8(void);
 void func_001ED448(void);
-void func_001EA9F0(void *psw, void *pzpr);
-void func_00258248(void *p);
+void func_001EA9F0(void *world, void *pzpr);
+void InitFileKey(void *p);
 void *func_0014B690(void *p);
 void func_001848A8(void *p, int k, void *pv, int n);
 void func_00184950(void *p, int n);
-void LoadSwSharedHeaderFromBrx(int n, BIS *pbis);
-void LoadSwSpliceFromBrx(void *psw, int n, BIS *pbis);
-void LoadShadersFromBrx(void *pa, void *pb, BIS *pbis);
-void LoadSwZoneBspFromBrx(void *psw, BIS *pbis);
+void LoadSwSharedHeaderFromBrx(int n, BIS *stream);
+void LoadSwSpliceFromBrx(void *world, int n, BIS *stream);
+void LoadShadersFromBrx(void *pa, void *pb, BIS *stream);
+void LoadSwZoneBspFromBrx(void *world, BIS *stream);
 struct LO;
-struct LOL { void *pvt; int x4; int c; LO **apo; };
+struct LOL { void *vtable; int x4; int c; LO **apo; };
 LOL *CLoadCollectorArray_ctor(LOL *p);
-void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(int n, BIS *pbis, LOL *p);
+void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(int n, BIS *stream, LOL *p);
 void ResetShaders(void);
 LO *PloCloneLo__FP2LOP2SO(LO *po, int n);
 extern const char D_002A4BD0[] = "spaprops.dbp";
@@ -81,7 +82,7 @@ extern char D_002DEDC0[];
 extern int D_003E1C34;
 }
 struct VTE { short d; short pad; void (*pfn)(); };
-struct LO { int pad[3]; VTE *pvt; };
+struct LO { int pad[3]; VTE *vtable; };
 struct WE {
     int c0; LO **apo; int c8; int cC; int x10; int x14; void *pv18; char ab1C[0x40]; int x5C; int x60; int pad64[2];
 };
@@ -110,96 +111,99 @@ static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; pre
  * See: docs/engine/core-library.md#6-source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#3-world--level-lifecycle
  * @end-sly2-annot */
-extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
+// Loads a level body from the BRX world file: the proxy-source table, sound banks, save variables, the level table,
+// the localized strings, the cell BSP and the world/camera options, then for each proxy source its references,
+// shader/texture blob and object list (cloned count-1 times). The top-level level loader, called by the level load.
+extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *world, BIS *stream)
 {
     union { AREQ req; RGBAPOD rgba; struct { int pad[2]; int c; LO **apo; } lol; } u;
     int i;
     int fNever = 0;
     StartupSplice();
-    psw->cwe = S16Read__18CBinaryInputStream(pbis);
-    psw->awe = (WE *)AllocZ(&u.req, psw->cwe * 0x6C, 0x10);
+    world->cwe = S16Read__18CBinaryInputStream(stream);
+    world->awe = (WE *)AllocZ(&u.req, world->cwe * 0x6C, 0x10);
     int h;
     BeginLoadingScreen(&h);
     func_001C9090(&h, D_002A4BD0);
-    for (i = 0; i < psw->cwe; i++) {
-        WE *pwe = &psw->awe[i];
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, pwe->ab1C);
-        pwe->x5C = S32Read__18CBinaryInputStream(pbis);
-        pwe->x60 = S32Read__18CBinaryInputStream(pbis);
-        pwe->x10 = S32Read__18CBinaryInputStream(pbis);
-        pwe->x14 = S32Read__18CBinaryInputStream(pbis);
-        pwe->c8 = S32Read__18CBinaryInputStream(pbis);
+    for (i = 0; i < world->cwe; i++) {
+        WE *pwe = &world->awe[i];
+        Read__18CBinaryInputStreamiPv(stream, 0x40, pwe->ab1C);
+        pwe->x5C = S32Read__18CBinaryInputStream(stream);
+        pwe->x60 = S32Read__18CBinaryInputStream(stream);
+        pwe->x10 = S32Read__18CBinaryInputStream(stream);
+        pwe->x14 = S32Read__18CBinaryInputStream(stream);
+        pwe->c8 = S32Read__18CBinaryInputStream(stream);
         pwe->pv18 = Alloc(&u.req, pwe->c8 * 4, 0x10);
         func_002333B4(pwe->pv18, -1, pwe->c8 * 4);
     }
     if (fNever) { // STAND-IN, see the header
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
-        Read__18CBinaryInputStreamiPv(pbis, 0x40, psw);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
+        Read__18CBinaryInputStreamiPv(stream, 0x40, world);
     }
-    LoadSoundSectionFromBrx(D_003DD040, pbis);
-    LoadSaveSchemaFromBrx((char *)psw + 0x3A18, pbis);
-    LoadLevelTableFromBrx(psw, pbis);
-    LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(psw, pbis);
-    LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(psw, pbis);
-    LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_003DD490, pbis);
-    LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_002DDF40, pbis);
-    Align__18CBinaryInputStreami(pbis, 0x10);
-    func_001FF7E8(psw);
-    ResolveSwSaveVars__FP2SW(psw);
-    UpdateSwIllum(psw);
-    if (psw->x3E38)
-        *(unsigned int *)&psw->rgba = 0x80000000;
-    u.rgba = psw->rgba;
+    LoadSoundSectionFromBrx(D_003DD040, stream);
+    LoadSaveSchemaFromBrx((char *)world + 0x3A18, stream);
+    LoadLevelTableFromBrx(world, stream);
+    LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(world, stream);
+    LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(world, stream);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_003DD490, stream);
+    LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_002DDF40, stream);
+    Align__18CBinaryInputStreami(stream, 0x10);
+    InitSwSpliceFrame(world);
+    ResolveSwSaveVars__FP2SW(world);
+    UpdateSwIllum(world);
+    if (world->x3E38)
+        *(unsigned int *)&world->rgba = 0x80000000;
+    u.rgba = world->rgba;
     BuildClearGifs__FP2QWG4RGBAi(D_002DEDC0, &u.rgba, 3);
-    psw->p39E4 = psw->p39E0 = AllocS(&u.req, 0x10000, 0x10);
-    psw->p39D0 = AllocS(&u.req, 0x6000, 0x10);
-    psw->x39D4 = 0;
-    psw->p39D8 = AllocS(&u.req, 0x3000, 0x10);
-    psw->x39DC = 0;
+    world->p39E4 = world->p39E0 = AllocS(&u.req, 0x10000, 0x10);
+    world->p39D0 = AllocS(&u.req, 0x6000, 0x10);
+    world->x39D4 = 0;
+    world->p39D8 = AllocS(&u.req, 0x3000, 0x10);
+    world->x39DC = 0;
     STACKSCOPE frame;
     ZPR zpr0;
     ZPR zpr1;
     func_001703F8(&zpr0, 0x1800, 0x4000);
     func_001ED3A8();
     func_001703F8(&zpr1, 0x1000, 0x1800);
-    func_001EA9F0(psw, &zpr0);
-    for (i = 0; i < psw->cwe; ) {
-        WE *pwe = &psw->awe[i];
+    func_001EA9F0(world, &zpr0);
+    for (i = 0; i < world->cwe; ) {
+        WE *pwe = &world->awe[i];
         int iNext = i + 1;
         ODD odd;
         char ab[0x4040];
-        func_00258248(&odd);
+        InitFileKey(&odd);
         func_001C9090(&h, func_0014B690(pwe->ab1C));
-        psw->iwe = pwe->x5C ? -1 : i;
+        world->iwe = pwe->x5C ? -1 : i;
         CStreamBis obj(0x403F, ab, 0);
-        LoadSwSharedHeaderFromBrx(1, pbis);
-        D_003E1C34 = S32Read__18CBinaryInputStream(pbis);
-        LoadSwSpliceFromBrx(psw, pwe->x10, pbis);
-        LoadShadersFromBrx(&zpr0, &zpr1, pbis);
-        LoadSwZoneBspFromBrx(psw, pbis);
+        LoadSwSharedHeaderFromBrx(1, stream);
+        D_003E1C34 = S32Read__18CBinaryInputStream(stream);
+        LoadSwSpliceFromBrx(world, pwe->x10, stream);
+        LoadShadersFromBrx(&zpr0, &zpr1, stream);
+        LoadSwZoneBspFromBrx(world, stream);
         {
             STACKSCOPE frameT;
             int j, k;
             LO **ppo;
             AREQ req2;
             CLoadCollectorArray_ctor((LOL *)&u.lol);
-            LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(0, pbis, (LOL *)&u.lol);
-            Align__18CBinaryInputStreami(pbis, 0x10);
+            LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(0, stream, (LOL *)&u.lol);
+            Align__18CBinaryInputStreami(stream, 0x10);
             func_0014B690(pwe->ab1C);
             ResetShaders();
-            psw->x39E8 = 0;
+            world->x39E8 = 0;
             pwe->c0 = u.lol.c;
             pwe->apo = (LO **)AllocZ(&req2, pwe->c0 * pwe->c8 * 4, 0x10);
             CopyAb__FPvT0Ui(pwe->apo, u.lol.apo, pwe->c0 * 4);
@@ -212,14 +216,14 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
             } else {
                 for (k = 0; k < pwe->c8 * pwe->c0; k++) {
                     LO *po = pwe->apo[k];
-                    ((void (*)(LO *))po->pvt[9].pfn)((LO *)((char *)po + po->pvt[9].d));
+                    ((void (*)(LO *))po->vtable[9].pfn)((LO *)((char *)po + po->vtable[9].d));
                 }
             }
         }
         i = iNext;
     }
     func_001ED448();
-    psw->iwe = -2;
+    world->iwe = -2;
     PostSoundLoad(D_003DD040);
     func_001C9090(&h, 0);
     EndLoadingScreen(&h);
@@ -239,9 +243,11 @@ extern char D_003E1C20[];
  * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
  * @end-sly2-annot */
-extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbs)
+// Reads the localized string table (U8 language count and ids, then per string an S16 id and one string per language)
+// and keeps only the current language's strings (g_nLang) in the world's string array.
+extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
 {
-    SWLANG *p = (SWLANG *)psw;
+    SWLANG *p = (SWLANG *)world;
     AREQ req;
     int i;
     int iMatch = 0;
@@ -269,7 +275,7 @@ extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS
                 CBinaryInputStream_SkipStringSw(pbs);
         }
     }
-    func_00210BE0(D_003E1C20);
+    LocalizeSwStringTable(D_003E1C20);
 }
 
 /* Cells as LoadSwCellsFromBrx sees the SW (offsets only). */
@@ -283,9 +289,11 @@ struct SWCELLS { char pad[0x4558]; int c; CELL *ae; int n; void *p4564; };
  * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
  * @end-sly2-annot */
-extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbs)
+// Reads the cell BSP: per node a plane (VECTOR4) and front/back children (a negative child starts a new leaf).
+// Allocates the world's cell and leaf arrays (0x20 bytes each).
+extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *world, BIS *pbs)
 {
-    SWCELLS *p = (SWCELLS *)psw;
+    SWCELLS *p = (SWCELLS *)world;
     AREQ req;
     int i;
     int c = U16Read__18CBinaryInputStream(pbs);

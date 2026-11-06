@@ -116,31 +116,31 @@ void PostSoLoad(BOOTYV *);
 void UpdateSo(BOOTYV *);
 void func_00143380(HERO *);
 void RenderSoSelf(BOOTYV *);
-qword func_001A62E8(void *);
-void *func_001A6318(void *);
+qword GetLoWorldPos(void *);
+void *GetLoWorldMatrix(void *);
 M4 LoadMatrixFromPosRotScale(qword, void *, VU *);
-void func_001A5EE8(BOOTYV *, M4 *, float, float);
+void RenderLoAtMatrix(BOOTYV *, M4 *, float, float);
 void HandleBasicMessage(BOOTYV *, int, MATCH *);
 int FIgnoreSoIntersection(BOOTYV *, struct XPM *);
 void func_001F4FB0(BOOTYV *, struct XPE *, int);
 void EnsureSwCallback(SW *, void *, long, int);
 int func_001F7588(BOOTYV *, void *);
-int func_001A61A0(CID37V *);
-void UnlockProxyPlo(void *pv, BOOTYV *p);
-void LockProxyPlo(void *pv, BOOTYV *p);
+int IsLoInWorld(CID37V *);
+void UnlockProxyObject(void *pv, BOOTYV *p);
+void LockProxyObject(void *pv, BOOTYV *p);
 void func_001F6A68(BOOTYV *p);
 void ShowSoGlobsById(BOOTYV *p, int n);
 void HideSoPart(BOOTYV *p, void *pv);
 void ShowSoPartsById(BOOTYV *p, int n);
 void func_001F6B48(BOOTYV *p, int n);
-void func_001618F8(SW *psw, float g);
+void ShowCountdownHud(SW *psw, float g);
 void func_00156C80(SW *psw, int n, qword v, CID37V *pq, void *pv);
 void BroadcastGameEvent(void *pv, int n, void *p);
-void func_00161958(SW *psw);
+void HideCountdownHud(SW *psw);
 void SetSoCnstrForce(BOOTYV *p, int n);
 void SetSoCnstrTorque(BOOTYV *p, int n);
 void SetSoDvGravity(BOOTYV *p, qword v);
-void SetLoParent_1A58D0(BOOTYV *p, void *pv, int n);
+void SetLoParent(BOOTYV *p, void *pv, int n);
 void SetLoXfFromMat(BOOTYV *p, void *pv);
 void FadeSoIn(BOOTYV *p, float g);
 MATCH *PripNewRipg(SW *psw, int n, int m);
@@ -150,15 +150,15 @@ void func_00183F08(CID37V *);
 void func_00183F50(CID37V *);
 void func_00183FB8(CID37V *);
 void func_00184130(CID37V *, HERO *);
-BOOTYV *PloAcquireProxy(void *, int);
+BOOTYV *AcquireProxyObject(void *, int);
 void PostNotice(void *pv, int n, float g);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *pv, int n);
 void UpdateStepplayerBootySave(HERO *q, int n, CID37V *p);
-short NFindSaveSymbol(void *, const char *);
-void *func_002109B8(int);
+short FindSaveSymbol(void *, const char *);
+void *GetLevelListEntry(int);
 struct SVKEYS;
-void PkeyConcatSaveKeys(void *, SVKEYS *);
+void ConcatSaveKeys(void *, SVKEYS *);
 
 void SetBootyState(BOOTYV *p, int st);
 void func_0013C440(BOOTYV *p);
@@ -166,7 +166,7 @@ void func_0013C4E0(BOOTYV *p, int);
 void SelectBootyEntry(BOOTYV *p, int id);
 void func_0013CF38(CID37V *p, int);
 void func_0013D1A8(CID37V *p);
-/* func_0013D1A8 leaves PkeyConcatSaveKeys's result (the save key) in v0 (the call is its tail); its callers read it. */
+/* func_0013D1A8 leaves ConcatSaveKeys's result (the save key) in v0 (the call is its tail); its callers read it. */
 void *PvContSaveKey(CID37V *p) __asm__("func_0013D1A8");
 int NBootyContainerKind(CID37V *p);
 }
@@ -295,9 +295,9 @@ extern "C" void RenderBootySelf(BOOTYV *p)
             for (i = 0; i < 3; i++)
                 v.f[i] = (1.0f - g) + g * p->vScale.f[i];
         }
-        M4 mT = LoadMatrixFromPosRotScale(func_001A62E8(p), func_001A6318(p), &v);   /* initialised, not assigned: g++ builds an assigned call result in a temporary first (the C file had no copy) */
+        M4 mT = LoadMatrixFromPosRotScale(GetLoWorldPos(p), GetLoWorldMatrix(p), &v);   /* initialised, not assigned: g++ builds an assigned call result in a temporary first (the C file had no copy) */
         m = mT;
-        func_001A5EE8(p, &m, 1.0f, 1.0f);
+        RenderLoAtMatrix(p, &m, 1.0f, 1.0f);
         break;
     }
     case 1:
@@ -481,7 +481,7 @@ void func_0013C4E0(BOOTYV *p, int) {
         p->pcont = 0;
         pe = p->pbootyeCur;
         SetBootyState(p, 0);
-        if ((pcont != 0) && (func_001A61A0(pcont) != 0)) {
+        if ((pcont != 0) && (IsLoInWorld(pcont) != 0)) {
             p->pcont = pcont;
             p->pbootyeCur = pe;
             SetBootyState(p, 1);
@@ -529,9 +529,9 @@ static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 #define LINKE(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
-    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, func_001A62E8(PA), 0, 1.0f); \
+    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
     SubscribeRipObject(p->pmatch, p); \
-    g = Dist(func_001A62E8(PA), func_001A62E8(PB)); \
+    g = Dist(GetLoWorldPos(PA), GetLoWorldPos(PB)); \
     p->pmatch->p1C = (PB); \
     p->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
     { SA0 *ps = &p->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
@@ -542,9 +542,9 @@ static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 #define LINKE3(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
-    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, func_001A62E8(PA), 0, 1.0f); \
+    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
     SubscribeRipObject(p->pmatch, p); \
-    g = Dist3(func_001A62E8(PA), func_001A62E8(PB), 250.0f); \
+    g = Dist3(GetLoWorldPos(PA), GetLoWorldPos(PB), 250.0f); \
     p->pmatch->p1C = (PB); \
     p->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
     { SA0 *ps = &p->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
@@ -580,9 +580,9 @@ void SetBootyState(BOOTYV *p, int st)
         int fNew = st >= 2;
         if (fOld) {
             if (!fNew)
-                UnlockProxyPlo(g_sw.ploUnk4638, p);
+                UnlockProxyObject(g_sw.ploUnk4638, p);
         } else if (fNew) {
-            LockProxyPlo(g_sw.ploUnk4638, p);
+            LockProxyObject(g_sw.ploUnk4638, p);
         }
     }
     stOld = p->st;
@@ -601,8 +601,8 @@ void SetBootyState(BOOTYV *p, int st)
         break;
     case 1:
         if (p->pbootyeCur->xC)
-            func_001618F8(&g_sw, p->pcont->g18C + 0.99f);
-        func_00156C80(&g_sw, 1, func_001A62E8(p->pcont), p->pcont, (char *)p->pcont + 0x198);
+            ShowCountdownHud(&g_sw, p->pcont->g18C + 0.99f);
+        func_00156C80(&g_sw, 1, GetLoWorldPos(p->pcont), p->pcont, (char *)p->pcont + 0x198);
         if (st == 2)
             BroadcastGameEvent(D_002DEB30, 0x2F, p);
         p->pcont->pbooty = 0;
@@ -625,7 +625,7 @@ void SetBootyState(BOOTYV *p, int st)
         if (p->pbootyeCur->x18 != -1)
             ShowSoPartsById(p, p->pbootyeCur->x18);
         if (p->pbootyeCur->xC)
-            func_00161958(&g_sw);
+            HideCountdownHud(&g_sw);
         break;
     case 5: {
         RLO *pr = p->plo164;
@@ -647,13 +647,13 @@ void SetBootyState(BOOTYV *p, int st)
     switch (st) {
     case 0:
         p->pbootyeCur = 0;
-        SetLoParent_1A58D0(p, 0, 0);
+        SetLoParent(p, 0, 0);
         VCALL(p, 9, PFNV));
         break;
     case 1:
         func_00156C80(&g_sw, -1, D_002A2DD0, 0, (char *)p->pcont + 0x198);
         SetLoXfFromMat(p, VCALL(p->pcont, 31, PFNP)));
-        SetLoParent_1A58D0(p, (void *)p->pcont->x10, 3);
+        SetLoParent(p, (void *)p->pcont->x10, 3);
         p->pcont->pbooty = p;
         if (stOld != 3) {
             VCALL(p, 9, PFNV));
@@ -677,13 +677,13 @@ void SetBootyState(BOOTYV *p, int st)
                 LINKE(pe, p, p->phero->pr);
         }
         SetLoXfFromMat(p, VCALL(p->phero->pr, 31, PFNP)));
-        SetLoParent_1A58D0(p, p->phero->pr, 3);
+        SetLoParent(p, p->phero->pr, 3);
         if (!p->pmatch)
             SetBootyState(p, 4);
         break;
     case 3: {
         SetLoXfFromMat(p, VCALL(p->pcont, 31, PFNP)));
-        SetLoParent_1A58D0(p, (void *)p->pcont->x10, 3);
+        SetLoParent(p, (void *)p->pcont->x10, 3);
         p->pmatch = PripNewRipg(&g_sw, 6, 0);
         if (p->pmatch)
             LINKE3(p->pmatch, pot->pr, p);
@@ -704,7 +704,7 @@ void SetBootyState(BOOTYV *p, int st)
         float a, b, c;
         float lo = -6.2831855f, hi = 6.2831855f;
         (void)&w;
-        SetLoParent_1A58D0(p, 0, 3);
+        SetLoParent(p, 0, 3);
         SetSoCnstrForce(p, 0);
         SetSoCnstrTorque(p, 0);
         {
@@ -770,7 +770,7 @@ void func_0013CF38(CID37V *p, int) {
     if (!pg->ploUnk4638) return;
     i = NBootyContainerKind(p);
     if (i == -1) return;
-    pa = PloAcquireProxy(pg->ploUnk4638, 0);
+    pa = AcquireProxyObject(pg->ploUnk4638, 0);
     p->pbooty = pa;
     if (pa) {
         SelectBootyEntry(pa, i);
@@ -852,8 +852,8 @@ void func_0013D1A8(CID37V *p) {
     i = v;
     char *pv = (char *)&g_sw.savevars;
     pv += 8;
-    as[0] = NFindSaveSymbol(pv, D_002A4BB8);
-    short r = NFindSaveSymbol(pv, D_002A4BC0);
+    as[0] = FindSaveSymbol(pv, D_002A4BB8);
+    short r = FindSaveSymbol(pv, D_002A4BC0);
     register int t __asm__("$3") = p->idShort;
     register int c __asm__("$5") = 3;
     par.c = c;
@@ -861,7 +861,7 @@ void func_0013D1A8(CID37V *p) {
     as[1] = r;
     as[2] = t;
     par.as = as;
-    PkeyConcatSaveKeys(func_002109B8(i), &par);
+    ConcatSaveKeys(GetLevelListEntry(i), &par);
 }
 
 /* The Splice value of a save variable (the per-function files' own CRef: inline two-word constructor, out-of-line

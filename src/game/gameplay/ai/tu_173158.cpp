@@ -127,13 +127,13 @@ void *func_001AE238(AI *pa, void *pv);
 void *func_001AE2A0(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void func_00170C50(SCRIPTV *o, int a, int b, int c);
-int func_0020FA50(void);
+int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CMV*,qwordV);
 LOV *PpoHero(void *g);
-qwordV func_001A62E8(void *p);
-M4 *func_001A6318(void *p);
+qwordV GetLoWorldPos(void *p);
+M4 *GetLoWorldMatrix(void *p);
 EVENT *func_001F8240(LOV *plo);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
@@ -144,7 +144,7 @@ int func_001EA3B0(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 func_0011B500(float, qwordV);
-GUARDV *PloAcquireProxy(void *p, int n);
+GUARDV *AcquireProxyObject(void *p, int n);
 void *func_00205458(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
 void func_001733C8(CID119V *p, qwordV q);
@@ -369,7 +369,7 @@ extern "C" int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void
     STACKSCOPE_ctor(&x);
     va = MAdd(*pv, D_002A2DC0, a);
     vb = MAdd(*pv, D_002A2DC0, b);
-    if (!fn) fn = func_0020FA50;
+    if (!fn) fn = ShouldKeepSoNotSelfSlot62;
     {
     HITY y;
     IntersectSwBoundingBox(&D_003DD490, va, vb, fn, 0, &na, &nb);
@@ -454,7 +454,7 @@ extern "C" void func_00173928(CID119V *p, ENTRY *pe, int k, int f) {
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return func_001A62E8(PpoHero(g)); return D_002DDF40.mat.r[3]; }
+extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return GetLoWorldPos(PpoHero(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
@@ -697,14 +697,14 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
             switch (psel->kind)
             {
             case 0:
-                posObj = func_001A62E8(psel->plo);
-                mat = *(M3 *)func_001A6318(psel->plo);
+                posObj = GetLoWorldPos(psel->plo);
+                mat = *(M3 *)GetLoWorldMatrix(psel->plo);
                 sRadius = psel->plo->sRadius;
                 break;
             case 2:
                 sRadius = sRadiusMin;
-                posObj = func_001A62E8(psel->plo);
-                mat = *(M3 *)func_001A6318(psel->plo);
+                posObj = GetLoWorldPos(psel->plo);
+                mat = *(M3 *)GetLoWorldMatrix(psel->plo);
                 break;
             }
             float sDist = SLengthXY(QwSubFrom(pos, posObj));
@@ -789,7 +789,7 @@ extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int f
     int k;
     switch (m->kind) {
     case 0:
-        r = PloAcquireProxy(m->plo, 0);
+        r = AcquireProxyObject(m->plo, 0);
         break;
     case 1:
     case 2:
@@ -807,7 +807,7 @@ extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int f
             LOV *o = p->atmpl[idx[i]];
             { VTE *e = &o->vt[0x1D]; ((void (*)(void *, qwordV))e->pfn)((char *)o + e->d, *pv); }
             { VTE *e = &o->vt[0x1E]; ((void (*)(void *, M3 *))e->pfn)((char *)o + e->d, pmat); }
-            r = PloAcquireProxy(o, 0);
+            r = AcquireProxyObject(o, 0);
             if (r) break;
         }
       }

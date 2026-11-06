@@ -81,7 +81,7 @@ extern const LONGU D_002A77C8;   /* PMF of func_001CCA20 */
 extern SW D_003DD490;
 void EvaluateShapeU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
 void FindClosestPointOnLineSegment(qword q, qword a, qword b, qword *ppos, float *pu, float *ps);
-qword func_001A62E8(LO *plo);
+qword GetLoWorldPos(LO *plo);
 void FindShapeClosestPointFromS(void *pshape, qword pos, void *p, qword *ppos, qword *pdir, float *pu, float *ps, float s);
 void FindShapeClosestPoint(LO *pshape, qword pos, int a, int b, int c, int d, float *ps);
 M4 InvertMatrix4Rigid(const MATRIX4 *pmat);
@@ -97,7 +97,7 @@ void func_001384C0(ASEGBL *pasegbl);
 void SetStepRadTargetVec(LO *plo, qword vec);
 void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
-SO *PsoFromLo(LO *plo);
+SO *GetSoFromLo(LO *plo);
 int func_00134310(int grf, int n);   /* NMaxIgnore */
 int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
@@ -108,7 +108,7 @@ void EnsureSwCallback(SW *psw, SO *pso, long pmf, JTHANDS *phands);
 float func_0012F990(ASEG *paseg, int n);
 void func_001300B8(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
 qword *VECTOR_opAssign(qword *pdst, qword src);
-void SetLoParent_1A58D0(LO *plo, int a, int b);
+void SetLoParent(LO *plo, int a, int b);
 float func_00196928(qword dpos, qword vel, float a, float b, float c, float d);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *pasega, float svt);
 void func_001F6860(LO *plo, int n);
@@ -116,7 +116,7 @@ void SetLoXfFromMat(LO *plo, M4 *pmat);
 void SetSoCnstrForce(SO *pso, int n);
 void SetSoCnstrTorque(SO *pso, int n);
 void FadeSoIn(SO *pso, float t);
-void *func_001A6318(LO *plo);
+void *GetLoWorldMatrix(LO *plo);
 
 void func_001CC168(JTHANDS *phands, qword pos, float *pu, float *ps, float u);
 void func_001CC1F8(JTHANDS *phands, qword pos, float *pu, float *ps, float u);
@@ -264,12 +264,12 @@ extern "C" void UpdateJtHands(JTHANDS *p)
         break;
     case 0: {
         cursor = p->ploTarget;
-        FindShapeClosestPointFromS(cursor, func_001A62E8(p->pso), 0, &w.position.q, 0, 0, &p->sParam, p->sParam);
+        FindShapeClosestPointFromS(cursor, GetLoWorldPos(p->pso), 0, &w.position.q, 0, 0, &p->sParam, p->sParam);
         cursor = &w.stage.late.context;
         break;
     }
     case 1: {
-        qword found = func_001A62E8(p->ploRef);
+        qword found = GetLoWorldPos(p->ploRef);
         __asm__("sq %1,%0" : "=m"(w.position.q) : "r"(found));
         cursor = &w.stage.late.context;
         break;
@@ -313,7 +313,7 @@ extern "C" void UpdateJtHands(JTHANDS *p)
     func_001384C0(p->pasegbl);
     w.saved.q = w.position.q;
     SO *receiver;
-    qword delta = DifferenceFromSaved(&w.saved, func_001A62E8(p->pso), p, receiver);
+    qword delta = DifferenceFromSaved(&w.saved, GetLoWorldPos(p->pso), p, receiver);
     SetStepRadTargetVec(receiver, delta);
     FixStepAngularVelocity(p->pso);
 }
@@ -446,7 +446,7 @@ void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega)
 extern "C" int func_001CC9A8(JTHANDS *phands, SO *pso, int grf)
 {
     if (phands->nMode == 1) {
-        SO *psoTarget = PsoFromLo(phands->ploTarget);
+        SO *psoTarget = GetSoFromLo(phands->ploTarget);
         if (psoTarget && psoTarget->ptree && pso->ptree == psoTarget->ptree)
             grf = func_00134310(grf, 3);
     }
@@ -506,7 +506,7 @@ extern "C" void func_001CCAC0(JTHANDS *p, int nMode)
         p->nKind = 1;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->ploTarget, 10)) {
             LO *pshape = p->ploTarget;
-            FindShapeClosestPoint(pshape, func_001A62E8(p->pso), 0, 0, 0, 0, &p->sParam);
+            FindShapeClosestPoint(pshape, GetLoWorldPos(p->pso), 0, 0, 0, 0, &p->sParam);
             p->nKind = 0;
         } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->ploTarget, 0x14) && (((CID20 *)p->ploTarget)->grfHand & ((JTV *)p->pso)->grfHandTarget)) {
             p->nKind = 2;
@@ -578,7 +578,7 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  func_001300B8(motion,time,zero,p->pso,space,p->pso->pxfRoot,SampleOutput(workingBase),0);
  JTV *owner=(JTV *)p->pso;
  M4 *start=&work.start;M3 *basis=&owner->matRot;register M4*product __asm__("$21");
- qword location=func_001A62E8(owner);
+ qword location=GetLoWorldPos(owner);
  VECTOR_opAssign(TranslationSlot(work),location);
  {
  register qword firstRow __asm__("$2");register M4*intermediate __asm__("$16");register float homogeneous __asm__("$f0");
@@ -622,11 +622,11 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
    :"=&r"(row0),"=&r"(row1),"=&r"(row2),"=&r"(row3),"=m"(work.final):"m"(work.views.matrices.product.r[0]),"m"(work.views.matrices.product.r[1]),"m"(work.views.matrices.product.r[2]),"m"(work.views.matrices.product.r[3]));
   }
  }
- SetLoParent_1A58D0(object,0,15);
+ SetLoParent(object,0,15);
  const qword*velocityAddress=object->psophys?(const qword *)&object->psophys->dvGravity:&D_002C1EE0.q;register float unit __asm__("$f20");register SO*initialOwner __asm__("$4");{register qword initialVelocity __asm__("$2");
  __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\t.set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%2\n\t.set at\n\tsq %0,%3":"=r"(initialVelocity),"=r"(initialOwner),"=f"(unit),"=m"(work.velocity):"m"(*velocityAddress),"r"(object):"$1");}
  {register qword destination __asm__("$2");__asm__("lq %0,%1":"=r"(destination):"m"(work.final.r[3]));work.destination=destination;}
- float limit;qword initialSpeed;DeltaForDuration(work,func_001A62E8(initialOwner),limit,initialSpeed);
+ float limit;qword initialSpeed;DeltaForDuration(work,GetLoWorldPos(initialOwner),limit,initialSpeed);
  register float negativeLimit __asm__("$f13"),minimum __asm__("$f15"),maximum __asm__("$f14");
  __asm__("neg.s %0,%3\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%1\n\t.set at\n\tmov.s %2,%4":"=f"(negativeLimit),"=f"(minimum),"=f"(maximum):"f"(limit),"f"(unit):"$1");
  float duration=Max(phase,func_00196928(work.delta,initialSpeed,limit,negativeLimit,maximum,minimum));
@@ -750,12 +750,12 @@ extern "C" void func_001CD308(JTHANDS *p, SO *po)
         XF *pxf = po->PxfLocal((MATRIX4 *)&mat);
         p->psoHeld->SetParent(po->psoParent, pxf, 0xF);
     } else {
-        SetLoParent_1A58D0(p->psoHeld, 0, 0xF);
+        SetLoParent(p->psoHeld, 0, 0xF);
     }
     XF *pxfAct = p->psoHeld->pxfUnk58;
-    p->pactPos = func_0012DE58Q(p->psoHeld, pxfAct, 5, func_0022FC48(0, pxfAct->pxfParent, func_001A62E8(po)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
+    p->pactPos = func_0012DE58Q(p->psoHeld, pxfAct, 5, func_0022FC48(0, pxfAct->pxfParent, GetLoWorldPos(po)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
     pxfAct = p->psoHeld->pxfUnk5c;
-    mat = ConvertXfMatR(0, pxfAct->pxfParent, func_001A6318(po));
+    mat = ConvertXfMatR(0, pxfAct->pxfParent, GetLoWorldMatrix(po));
     p->pactTurn = func_0012DC18(p->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
     p->ploTarget = p->psoHeld;
     func_001CCAC0(p, 1);

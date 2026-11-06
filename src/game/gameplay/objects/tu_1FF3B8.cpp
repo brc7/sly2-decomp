@@ -35,7 +35,7 @@ void PostLoLoad(GRABXFM *p);
 void OnLoAdd(GRABXFM *p);
 void OnLoRemove(GRABXFM *p);
 void CloneXfm(GRABXFM *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
@@ -116,7 +116,7 @@ extern "C" void func_001FF4F0(void *a, P *p, qword *pv)
 {
     qword a0, r;
     if (pv) {
-        a0 = func_001A62E8(a);
+        a0 = GetLoWorldPos(a);
         r = VuSub(a0, p->pos);
         *pv = r;
     }

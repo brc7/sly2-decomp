@@ -2,6 +2,8 @@
 // typed slot at an offset of the save blob), lookup by key (a list of symbol ids built from strings), typed get/set
 // as CRef values, the completion percentage, schema resets and applying the settings variables.
 // TU 0x1D7B88..0x1D93D8 (24 functions, address order).
+// Entry points: LoadSaveSchemaFromBrx (level load), RefGetSaveVarV / RefSetSaveVarV / GetSaveVarAddressV
+// (named access from game code), GetCompletionPercent, ApplyGsSettings.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_save
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D93B8
 #include "sly2/cref.h"
@@ -104,17 +106,17 @@ extern GSREGS D_002DEB80;
 
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
 extern "C" {
-unsigned short U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-void Read__18CBinaryInputStreamiPv(CBinaryInputStream *pbis, int cb, void *pv);
-void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, void *pheap, int n);
+unsigned short U16Read__18CBinaryInputStream(CBinaryInputStream *stream);
+void Read__18CBinaryInputStreamiPv(CBinaryInputStream *stream, int cb, void *pv);
+void CBinaryInputStream_ReadStringSw(CBinaryInputStream *stream, char **ppchz, void *pheap, int n);
 void *func_001AE1D0(MEMREQ *pmemreq);
 void *func_001AE238(MEMREQ *pmemreq, void *pv);
 void *PvAllocSlot__FP8ALLOCREQ(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
 int atoi(const char *pchz);
-CRef RefGetGlobalSaveVar(SVKEY *pkey, SVSET *psvset);
-CRef RefSetGlobalSaveVar(SVKEY *pkey, const CRef &ref, SVSET *psvset);
+CRef RefGetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
+CRef RefSetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
 void ResetRumbleSaveVar();
 int CLanguagesRegion();
 void SetLanguage(int lang);
@@ -128,17 +130,17 @@ CRef *CRef_SetClq(CRef *pref, const qword *pclq);
 CRef *CRef_SetLm(CRef *pref, const void *plm);
 CRef *CRef_SetSmp(CRef *pref, const void *psmp);
 
-void ResetGsIfSchemaChanged(SVSTORE *psvstore, SVSET *psvset);
-int FGsMatchesSchema(SVSTORE *psvstore, SVSET *psvset);
-int FFindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind);
-void *PvFromSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
-CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
-CRef RefSetSaveVar(SVSTORE *psvstore, SVKEY *pkey, const CRef &ref, SVSET *psvset);
-void InitSaveSymbolTable(SVSYMTAB *psymtab, int csym);
-unsigned int UHashPchzCi(const char *pchz);
-void AddSaveSymbol(SVSYMTAB *psymtab, char *pchz, int symid);
-int NFindSaveSymbol(SVSYMTAB *psymtab, const char *pchz);
-void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey);
+void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet);
+int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet);
+int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result);
+void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
+CRef RefGetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
+CRef RefSetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &ref, SVSET *saveSet);
+void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym);
+unsigned int HashStringCaseInsensitive(const char *pchz);
+void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid);
+int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz);
+void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key);
 }
 
 /* Sum of the schema bytes (its checksum). */
@@ -153,7 +155,7 @@ static inline int SumAb(unsigned char *pb, unsigned int cb)
     return sum;
 }
 
-static inline int NFindSymbol(SVSTORE *psvstore, const char *pchz) { return NFindSaveSymbol(&psvstore->symtab, pchz); }
+static inline int NFindSymbol(SVSTORE *schema, const char *pchz) { return FindSaveSymbol(&schema->symtab, pchz); }
 
 /** @sly2-annot addr=0x1D7B88
  * Purpose: Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry
@@ -166,28 +168,30 @@ static inline int NFindSymbol(SVSTORE *psvstore, const char *pchz) { return NFin
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/engine/save-memcard.md#4-source-files, docs/engine/save-memcard.md#5-key-functions
  * @end-sly2-annot */
-extern "C" void LoadSaveSchemaFromBrx(SVSTORE *psvstore, CBinaryInputStream *pbis)
+// Loads the save-variable schema from the BRX: the symbol names into a hash table, then the trie of entries; resets
+// the save blob when the schema changed.
+extern "C" void LoadSaveSchemaFromBrx(SVSTORE *schema, CBinaryInputStream *stream)
 {
     MEMREQ memreq;
     char *pchz;
     int i;
     int csym;
     int cent;
-    csym = U16Read__18CBinaryInputStream(pbis);
-    InitSaveSymbolTable(&psvstore->symtab, csym);
+    csym = U16Read__18CBinaryInputStream(stream);
+    InitSaveSymbolTable(&schema->symtab, csym);
     for (i = 0; i < csym; i++)
     {
-        int symid = U16Read__18CBinaryInputStream(pbis);
-        CBinaryInputStream_ReadStringSw(pbis, &pchz, D_002DD590, 0x2D);
-        AddSaveSymbol(&psvstore->symtab, pchz, symid);
+        int symid = U16Read__18CBinaryInputStream(stream);
+        CBinaryInputStream_ReadStringSw(stream, &pchz, D_002DD590, 0x2D);
+        AddSaveSymbol(&schema->symtab, pchz, symid);
     }
-    cent = U16Read__18CBinaryInputStream(pbis);
-    psvstore->cent = cent;
+    cent = U16Read__18CBinaryInputStream(stream);
+    schema->cent = cent;
     memreq.cb = cent * 10;
     memreq.cbAlign = 0x10;
-    psvstore->aent = (SVENT *)func_001AE1D0(&memreq);
-    Read__18CBinaryInputStreamiPv(pbis, cent * 10, psvstore->aent);
-    ResetGsIfSchemaChanged(psvstore, &D_003D4A60);
+    schema->aent = (SVENT *)func_001AE1D0(&memreq);
+    Read__18CBinaryInputStreamiPv(stream, cent * 10, schema->aent);
+    ResetGsIfSchemaChanged(schema, &D_003D4A60);
 }
 
 /** @sly2-annot addr=0x1D7C80
@@ -198,92 +202,98 @@ extern "C" void LoadSaveSchemaFromBrx(SVSTORE *psvstore, CBinaryInputStream *pbi
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/engine/save-memcard.md#5-key-functions, docs/engine/save-memcard.md#open-questions
  * @end-sly2-annot */
-extern "C" void ResetGsIfSchemaChanged(SVSTORE *psvstore, SVSET *psvset)
+// Resets the save blob when its stored schema version or checksum differs from the loaded schema, and stores the new
+// ones.
+extern "C" void ResetGsIfSchemaChanged(SVSTORE *schema, SVSET *saveSet)
 {
-    int sum = SumAb((unsigned char *)psvstore->aent, psvstore->cent * 10);
-    int nSchema = *(unsigned short *)((unsigned char *)psvstore->aent + psvstore->cent * 10 - 6);
-    if (nSchema == psvset->nSchema && sum == psvset->nSchemaSum)
+    int sum = SumAb((unsigned char *)schema->aent, schema->cent * 10);
+    int nSchema = *(unsigned short *)((unsigned char *)schema->aent + schema->cent * 10 - 6);
+    if (nSchema == saveSet->nSchema && sum == saveSet->nSchemaSum)
         return;
-    memset(psvset, 0, 0x5400);
-    psvset->nSchema = nSchema;
-    psvset->nSchemaSum = sum;
+    memset(saveSet, 0, 0x5400);
+    saveSet->nSchema = nSchema;
+    saveSet->nSchemaSum = sum;
 }
 
 /** @sly2-annot addr=0x1D7D30
  * Purpose: True if GS stored version/checksum (+0x5400/+0x5404) equal schema's
- * Info: proposed name FGsMatchesSchema (T1); TU save
+ * Info: proposed name DoesGsMatchSchema (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" int FGsMatchesSchema(SVSTORE *psvstore, SVSET *psvset)
+// True when the save blob's stored schema version and checksum match the loaded schema.
+extern "C" int DoesGsMatchSchema(SVSTORE *schema, SVSET *saveSet)
 {
-    int sum = SumAb((unsigned char *)psvstore->aent, psvstore->cent * 10);
-    return *(unsigned short *)((unsigned char *)psvstore->aent + psvstore->cent * 10 - 6) == psvset->nSchema &&
-           sum == psvset->nSchemaSum;
+    int sum = SumAb((unsigned char *)schema->aent, schema->cent * 10);
+    return *(unsigned short *)((unsigned char *)schema->aent + schema->cent * 10 - 6) == saveSet->nSchema &&
+           sum == saveSet->nSchemaSum;
 }
 
 /** @sly2-annot addr=0x1D7DA0
  * Purpose: Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling})
  *   along a key of symbol ids; outputs entry + array index
- * Info: proposed name FFindSaveVar (T1); TU save
+ * Info: proposed name FindSaveVar (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" int FFindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind)
+// Walks the schema trie along a key (symbol ids, numbers as array indices) and returns the entry and array index;
+// false when the key does not name a variable.
+extern "C" int FindSaveVar(SVSTORE *schema, SVKEY *key, SVFIND *result)
 {
-    SVENT *aent = psvstore->aent;
+    SVENT *aent = schema->aent;
     SVENT *pent;
     int i;
     if (aent->ientChild == 0)
         return 0;
     pent = &aent[aent->ientChild];
-    pfind->i = 0;
+    result->i = 0;
     i = 0;
     for (;;)
     {
-        if (pent->symid == (unsigned short)pkey->ash[i])
+        if (pent->symid == (unsigned short)key->ash[i])
         {
             i++;
-            if (i == pkey->c)
+            if (i == key->c)
             {
-                pfind->pent = pent;
+                result->pent = pent;
                 return 1;
             }
             if (pent->fIndexed)
             {
-                pfind->pent = pent;
-                pfind->i = (unsigned short)pkey->ash[i++];
-                return i == pkey->c;
+                result->pent = pent;
+                result->i = (unsigned short)key->ash[i++];
+                return i == key->c;
             }
             if (pent->kind != -1)
                 return 0;
             if (!pent->ientChild)
                 return 0;
-            pent = &psvstore->aent[pent->ientChild];
+            pent = &schema->aent[pent->ientChild];
         }
         else
         {
             if (!pent->ientSibling)
                 return 0;
-            pent = &psvstore->aent[pent->ientSibling];
+            pent = &schema->aent[pent->ientSibling];
         }
     }
 }
 
 /** @sly2-annot addr=0x1D7E80
  * Purpose: Address of a save var in a GS blob: pb + ib + index*size[kind]
- * Info: proposed name PvFromSaveVar (T1); TU save
+ * Info: proposed name GetSaveVarAddress (T1); TU save
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void *PvFromSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
+// Returns the address of a save variable in a save blob (blob + offset + index * size of its kind).
+extern "C" void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 {
     SVFIND find;
-    FFindSaveVar(psvstore, pkey, &find);
-    return (char *)psvset + (find.pent->ib + find.i * D_002C2D90[find.pent->kind]);
+    FindSaveVar(schema, key, &find);
+    return (char *)saveSet + (find.pent->ib + find.i * D_002C2D90[find.pent->kind]);
 }
 
 struct LMV { int a[2]; };
@@ -296,15 +306,16 @@ struct SMPV { int a[3]; };
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
+// Reads a save variable as a Splice value, by kind (int, float, bool or packed bit, vectors...).
+CRef RefGetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet)
 {
     CRef ref;
     SVFIND find;
     SVENT *pent;
-    if (!FFindSaveVar(psvstore, pkey, &find) || (pent = find.pent)->kind == -1)
+    if (!FindSaveVar(schema, key, &find) || (pent = find.pent)->kind == -1)
         return ref;
     {
-        unsigned char *pv = (unsigned char *)psvset + pent->ib;
+        unsigned char *pv = (unsigned char *)saveSet + pent->ib;
         switch (pent->kind)
         {
         case 0:
@@ -358,15 +369,16 @@ CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-CRef RefSetSaveVar(SVSTORE *psvstore, SVKEY *pkey, const CRef &refVal, SVSET *psvset)
+// Writes a Splice value into a save variable, by kind (packed bools set or clear their bit).
+CRef RefSetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &refVal, SVSET *saveSet)
 {
     CRef ref(0x24);
     SVFIND find;
     SVENT *pent;
-    if (!FFindSaveVar(psvstore, pkey, &find) || (pent = find.pent)->kind == -1)
+    if (!FindSaveVar(schema, key, &find) || (pent = find.pent)->kind == -1)
         return ref;
     {
-        unsigned char *pv = (unsigned char *)psvset + pent->ib;
+        unsigned char *pv = (unsigned char *)saveSet + pent->ib;
         switch (pent->kind)
         {
         case 0:
@@ -411,9 +423,9 @@ CRef RefSetSaveVar(SVSTORE *psvstore, SVKEY *pkey, const CRef &refVal, SVSET *ps
     return ref;
 }
 
-static inline int NGetSaveVar(SVKEY *pkey, SVSET *psvset)
+static inline int NGetSaveVar(SVKEY *key, SVSET *saveSet)
 {
-    CRef ref = RefGetGlobalSaveVar(pkey, psvset);
+    CRef ref = RefGetGlobalSaveVar(key, saveSet);
     return ref.u.n;
 }
 
@@ -429,13 +441,15 @@ static inline int NClamp(int n, int nMin, int nMax)
 /** @sly2-annot addr=0x1D82B8
  * Purpose: Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set
  *   'fVault' bool/bit; returns 0 / 100 / clamp(1..99)
- * Info: proposed name NCompletionPercentGs (T1); TU save
+ * Info: proposed name GetCompletionPercent (T1); TU save
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
+// The game completion percentage: a weighted sum of nine progress variables plus a bonus per vault flag; 0, 100 or
+// clamped to 1..99.
+extern "C" int GetCompletionPercent(SVSTORE *schema, SVSET *saveSet)
 {
     int sum = 0;
     int total = 0;
@@ -443,20 +457,20 @@ extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
     int symid;
     for (i = 0; i < 9; i++)
     {
-        SVKEY *pkey = (SVKEY *)g_sw.apsvpEpisodePercent[i];
+        SVKEY *key = (SVKEY *)g_sw.apsvpEpisodePercent[i];
         int w = D_002C2DC0[i];
         total += w * 100;
-        if (pkey)
-            sum += NGetSaveVar(pkey, psvset) * w;
+        if (key)
+            sum += NGetSaveVar(key, saveSet) * w;
     }
-    symid = NFindSaveSymbol(&psvstore->symtab, D_002A78F0);
+    symid = FindSaveSymbol(&schema->symtab, D_002A78F0);
     total += 0xD0;
-    for (int ient = 0; ient < psvstore->cent; ient++)
+    for (int ient = 0; ient < schema->cent; ient++)
     {
-        SVENT *pent = &psvstore->aent[ient];
+        SVENT *pent = &schema->aent[ient];
         if (pent->kind == 4 && pent->symid == symid)
         {
-            unsigned char *pv = (unsigned char *)psvset + pent->ib;
+            unsigned char *pv = (unsigned char *)saveSet + pent->ib;
             if (pent->fIndexed)
             {
                 int c = pent->fIndexed;
@@ -492,19 +506,21 @@ extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
  * See: docs/engine/save-memcard.md#2-memory-card-memcardcpp-0x1aa978-0x1ae130,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void func_001D84B0(SVSTORE *psvstore, SVSET *psvset)
+// Builds the memory card mask: copies the save blob into a buffer, then flags the bytes of every entry tagged
+// "from_memcard". (inferred)
+extern "C" void BuildMemcardGsMask(SVSTORE *schema, SVSET *saveSet)
 {
     int symid;
     int i;
-    *psvset = D_003D4A60;
-    symid = NFindSymbol(psvstore, D_002A78F8);
+    *saveSet = D_003D4A60;
+    symid = NFindSymbol(schema, D_002A78F8);
     if (symid == -1)
         return;
-    for (i = 0; i < psvstore->cent; i++)
+    for (i = 0; i < schema->cent; i++)
     {
-        SVENT *pent = &psvstore->aent[i];
+        SVENT *pent = &schema->aent[i];
         if (pent->symid == symid)
-            ((char *)psvset)[pent->ib] = 1;
+            ((char *)saveSet)[pent->ib] = 1;
     }
 }
 
@@ -514,25 +530,27 @@ extern "C" void func_001D84B0(SVSTORE *psvstore, SVSET *psvset)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void InitSaveSymbolTable(SVSYMTAB *psymtab, int csym)
+// Allocates the save symbol table's entries.
+extern "C" void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym)
 {
     MEMREQ memreq;
-    psymtab->csym = csym;
+    symbolTable->csym = csym;
     memreq.cb = csym << 4;
     memreq.cbAlign = 0x10;
-    psymtab->asym = (SVSYM *)func_001AE1D0(&memreq);
+    symbolTable->asym = (SVSYM *)func_001AE1D0(&memreq);
 }
 
 static inline int ChUpper(int ch) { return (D_002AA6A1[ch] & 2) ? ch - 0x20 : ch; }
 
 /** @sly2-annot addr=0x1D8640
  * Purpose: Case-insensitive string hash h=h*33+toupper(c)
- * Info: proposed name UHashPchzCi (T1); TU save
+ * Info: proposed name HashStringCaseInsensitive (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" unsigned int UHashPchzCi(const char *pchz)
+// Case-insensitive string hash (h = h * 33 + toupper(c)).
+extern "C" unsigned int HashStringCaseInsensitive(const char *pchz)
 {
     const unsigned char *pch = (const unsigned char *)pchz;
     int hash = 0;
@@ -552,31 +570,33 @@ extern "C" unsigned int UHashPchzCi(const char *pchz)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void AddSaveSymbol(SVSYMTAB *psymtab, char *pchz, int symid)
+// Adds a (name, symbol id) pair to the 53-bucket save symbol hash table.
+extern "C" void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid)
 {
-    unsigned int hash = UHashPchzCi(pchz);
+    unsigned int hash = HashStringCaseInsensitive(pchz);
     unsigned int ihash = hash % 0x35;
-    SVSYM *psym = &psymtab->asym[psymtab->csym - 1];
-    psymtab->csym--;
+    SVSYM *psym = &symbolTable->asym[symbolTable->csym - 1];
+    symbolTable->csym--;
     psym->pchz = pchz;
     psym->symid = symid;
     psym->hash = hash;
-    psym->psymNext = psymtab->apsym[ihash];
-    psymtab->apsym[ihash] = psym;
+    psym->psymNext = symbolTable->apsym[ihash];
+    symbolTable->apsym[ihash] = psym;
 }
 
 /** @sly2-annot addr=0x1D8720
  * Purpose: Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent
- * Info: proposed name NFindSaveSymbol (T1); TU save
+ * Info: proposed name FindSaveSymbol (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" int NFindSaveSymbol(SVSYMTAB *psymtab, const char *pchz)
+// Returns the symbol id of a name in the save symbol table, or -1.
+extern "C" int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz)
 {
-    unsigned int hash = UHashPchzCi(pchz);
+    unsigned int hash = HashStringCaseInsensitive(pchz);
     SVSYM *psym;
-    for (psym = psymtab->apsym[hash % 0x35]; psym; psym = psym->psymNext)
+    for (psym = symbolTable->apsym[hash % 0x35]; psym; psym = psym->psymNext)
     {
         if (psym->hash == hash && strcasecmp(psym->pchz, pchz) == 0)
             return psym->symid;
@@ -592,29 +612,30 @@ extern "C" int NFindSaveSymbol(SVSYMTAB *psymtab, const char *pchz)
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey)
+// Turns a null-terminated list of strings into a key: symbol names become their ids, numbers become array indices.
+extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key)
 {
     VA_LIST apSave = ap;
     const char *pchzT;
     int i;
-    pkey->c = 0;
-    pkey->ash = 0;
+    key->c = 0;
+    key->ash = 0;
     for (pchzT = pchz; pchzT; pchzT = VA_ARG_PCH(ap))
-        pkey->c++;
-    if (pkey->c)
+        key->c++;
+    if (key->c)
     {
         MEMREQ memreq;
-        memreq.cb = pkey->c * 2;
+        memreq.cb = key->c * 2;
         memreq.cbAlign = 0x10;
-        pkey->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+        key->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
         ap = apSave;
         for (pchzT = pchz, i = 0; pchzT; pchzT = VA_ARG_PCH(ap), i++)
         {
             int symid = NFindSymbol((SVSTORE *)&g_sw.savevars, pchzT);
             if (symid == -1)
-                pkey->ash[i] = atoi(pchzT);
+                key->ash[i] = atoi(pchzT);
             else
-                pkey->ash[i] = symid;
+                key->ash[i] = symid;
         }
     }
 }
@@ -622,55 +643,57 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey)
 /** @sly2-annot addr=0x1D88D0
  * Purpose: Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238
  *   (realloc-like)
- * Info: proposed name PkeyNewSaveKey (T1); TU save
+ * Info: proposed name NewSaveKey (T1); TU save
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" SVKEY *PkeyNewSaveKey(const char *pchz, ...)
+// Builds a key from a varargs list of strings on the heap.
+extern "C" SVKEY *NewSaveKey(const char *pchz, ...)
 {
     STACKSCOPE stackscope;
     MEMREQ memreq;
     MEMREQ *pmemreq = &memreq;
     VA_LIST ap;
-    SVKEY *pkey;
+    SVKEY *key;
     VA_START(ap, pchz);
     pmemreq->cb = 8;
     pmemreq->cbAlign = 0x10;
-    pkey = (SVKEY *)func_001AE1D0(pmemreq);
-    BuildSaveKeyV(pchz, ap, pkey);
+    key = (SVKEY *)func_001AE1D0(pmemreq);
+    BuildSaveKeyV(pchz, ap, key);
     {
-        short *ashOld = pkey->ash;
-        pmemreq->cb = pkey->c * 2;
+        short *ashOld = key->ash;
+        pmemreq->cb = key->c * 2;
         pmemreq->cbAlign = 0x10;
-        pkey->ash = (short *)func_001AE238(pmemreq, ashOld);
+        key->ash = (short *)func_001AE238(pmemreq, ashOld);
     }
-    return pkey;
+    return key;
 }
 
 /** @sly2-annot addr=0x1D89A8
  * Purpose: Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV
- * Info: proposed name PkeyAllocSaveKey (T1); TU save
+ * Info: proposed name AllocSaveKey (T1); TU save
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" SVKEY *PkeyAllocSaveKey(const char *pchz, ...)
+// Builds a key from a varargs list of strings in a slot-heap allocation.
+extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 {
     MEMREQ memreq;
     VA_LIST ap;
-    SVKEY *pkey;
+    SVKEY *key;
     VA_START(ap, pchz);
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    pkey = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
-    BuildSaveKeyV(pchz, ap, pkey);
-    return pkey;
+    key = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    BuildSaveKeyV(pchz, ap, key);
+    return key;
 }
 
 /* Lookups in the global schema; spelled as inline wrappers (the temporaries of a direct call differ). */
-static inline CRef RefGetSaveVarGlobal(SVKEY *pkey, SVSET *psvset) { return RefGetSaveVar((SVSTORE *)&g_sw.savevars, pkey, psvset); }
-static inline CRef RefSetSaveVarGlobal(SVKEY *pkey, const CRef &ref, SVSET *psvset)
+static inline CRef RefGetSaveVarGlobal(SVKEY *key, SVSET *saveSet) { return RefGetSaveVar((SVSTORE *)&g_sw.savevars, key, saveSet); }
+static inline CRef RefSetSaveVarGlobal(SVKEY *key, const CRef &ref, SVSET *saveSet)
 {
-    return RefSetSaveVar((SVSTORE *)&g_sw.savevars, pkey, ref, psvset);
+    return RefSetSaveVar((SVSTORE *)&g_sw.savevars, key, ref, saveSet);
 }
 
 /** @sly2-annot addr=0x1D8A38
@@ -683,6 +706,7 @@ static inline CRef RefSetSaveVarGlobal(SVKEY *pkey, const CRef &ref, SVSET *psvs
  *   docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Reads the named save variable (varargs path) from the global save blob as a Splice value.
 extern "C" CRef RefGetSaveVarV(const char *pchz, ...)
 {
     CRef ref;
@@ -703,6 +727,7 @@ extern "C" CRef RefGetSaveVarV(const char *pchz, ...)
  *   docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Writes a Splice value into the named save variable (varargs path) of the global save blob.
 extern "C" CRef RefSetSaveVarV(const CRef &refVal, const char *pchz, ...)
 {
     CRef ref;
@@ -717,12 +742,13 @@ extern "C" CRef RefSetSaveVarV(const CRef &refVal, const char *pchz, ...)
 
 /** @sly2-annot addr=0x1D8C10
  * Purpose: Varargs: address of a named save var inside g_gs
- * Info: proposed name PvSaveVarV (T1); TU save
+ * Info: proposed name GetSaveVarAddressV (T1); TU save
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void *PvSaveVarV(const char *pchz, ...)
+// Returns the address of the named save variable (varargs path) in the global save blob.
+extern "C" void *GetSaveVarAddressV(const char *pchz, ...)
 {
     CRef ref;
     STACKSCOPE stackscope;
@@ -730,34 +756,35 @@ extern "C" void *PvSaveVarV(const char *pchz, ...)
     VA_LIST ap;
     VA_START(ap, pchz);
     BuildSaveKeyV(pchz, ap, &key.key);
-    return PvFromSaveVar((SVSTORE *)&g_sw.savevars, &key.key, &D_003D4A60);
+    return GetSaveVarAddress((SVSTORE *)&g_sw.savevars, &key.key, &D_003D4A60);
 }
 
 /** @sly2-annot addr=0x1D8CC8
  * Purpose: Allocate a new key = concatenation of two keys' id arrays
- * Info: proposed name PkeyConcatSaveKeys (T1); TU save
+ * Info: proposed name ConcatSaveKeys (T1); TU save
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" SVKEY *PkeyConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
+// Returns a new key: the concatenation of two keys.
+extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
 {
     MEMREQ memreq;
-    SVKEY *pkey;
+    SVKEY *key;
     int c;
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    pkey = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    key = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
     c = pkey1->c + pkey2->c;
-    pkey->c = c;
+    key->c = c;
     memreq.cb = c * 2;
     memreq.cbAlign = 0x10;
-    pkey->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
-    CopyAb(pkey->ash, pkey1->ash, pkey1->c * 2);
-    CopyAb(pkey->ash + pkey1->c, pkey2->ash, pkey2->c * 2);
-    return pkey;
+    key->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    CopyAb(key->ash, pkey1->ash, pkey1->c * 2);
+    CopyAb(key->ash + pkey1->c, pkey2->ash, pkey2->c * 2);
+    return key;
 }
 
-static inline CRef RefSetGlobal(SVKEY *pkey, CRef *pref, SVSET *psvset) { return RefSetGlobalSaveVar(pkey, *pref, psvset); }
+static inline CRef RefSetGlobal(SVKEY *key, CRef *pref, SVSET *saveSet) { return RefSetGlobalSaveVar(key, *pref, saveSet); }
 
 /** @sly2-annot addr=0x1D8D80
  * Purpose: Clear GS blob (0x5400) and reset rumble var; if f and schema matches, preserve 11 settings vars
@@ -769,8 +796,10 @@ static inline CRef RefSetGlobal(SVKEY *pkey, CRef *pref, SVSET *psvset) { return
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
+// Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
+// settings variables survive the clear.
 /* Reset the save blob, keeping the settings variables when the blob matches the schema. */
-extern "C" void func_001D8D80(SVSET *psvset, int fKeepSettings)
+extern "C" void ResetSaveGs(SVSET *saveSet, int fKeepSettings)
 {
     STACKSCOPE stackscope;
     SVKEY *apkey[11] = { (SVKEY *)g_sw.psvpLang, (SVKEY *)g_sw.psvpNoVibration, (SVKEY *)g_sw.psvpAutosaveWarned,
@@ -779,27 +808,27 @@ extern "C" void func_001D8D80(SVSET *psvset, int fKeepSettings)
                          (SVKEY *)g_sw.psvpScreenCenterX, (SVKEY *)g_sw.psvpScreenCenterY };
     CRef aref[11];
     unsigned int i;
-    if (fKeepSettings && !FGsMatchesSchema((SVSTORE *)&g_sw.savevars, psvset))
+    if (fKeepSettings && !DoesGsMatchSchema((SVSTORE *)&g_sw.savevars, saveSet))
         fKeepSettings = 0;
     if (fKeepSettings)
     {
         for (i = 0; i < 11; i++)
-            aref[i] = RefGetSaveVarGlobal(apkey[i], psvset);
+            aref[i] = RefGetSaveVarGlobal(apkey[i], saveSet);
     }
-    memset(psvset, 0, 0x5400);
+    memset(saveSet, 0, 0x5400);
     ResetRumbleSaveVar();
     if (fKeepSettings)
     {
         for (i = 0; i < 11; i++)
         {
             CRef ref(aref[i]);
-            const CRef &refT = RefSetGlobal(apkey[i], &ref, psvset);
+            const CRef &refT = RefSetGlobal(apkey[i], &ref, saveSet);
         }
     }
 }
 
-static inline int NGetGlobal(SVKEY *pkey, SVSET *psvset) { return RefGetGlobalSaveVar(pkey, psvset).u.n; }
-static inline float GGetGlobal(SVKEY *pkey, SVSET *psvset) { return RefGetGlobalSaveVar(pkey, psvset).u.g; }
+static inline int NGetGlobal(SVKEY *key, SVSET *saveSet) { return RefGetGlobalSaveVar(key, saveSet).u.n; }
+static inline float GGetGlobal(SVKEY *key, SVSET *saveSet) { return RefGetGlobalSaveVar(key, saveSet).u.g; }
 
 /** @sly2-annot addr=0x1D8FF8
  * Purpose: Apply option vars from GS: vibration(?), sound playback mode, music/sfx volumes (1-g), a flag at
@@ -810,30 +839,31 @@ static inline float GGetGlobal(SVKEY *pkey, SVSET *psvset) { return RefGetGlobal
  *   docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void ApplyGsSettings(SVSET *psvset)
+// Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.
+extern "C" void ApplyGsSettings(SVSET *saveSet)
 {
     if ((SVKEY *)g_sw.psvpLang && CLanguagesRegion() >= 2)
-        SetLanguage(NGetGlobal((SVKEY *)g_sw.psvpLang, psvset));
+        SetLanguage(NGetGlobal((SVKEY *)g_sw.psvpLang, saveSet));
     if ((SVKEY *)g_sw.psvpMixerMode)
-        SetSndmgrPlaybackMode(D_003DD040, NGetGlobal((SVKEY *)g_sw.psvpMixerMode, psvset));
+        SetSndmgrPlaybackMode(D_003DD040, NGetGlobal((SVKEY *)g_sw.psvpMixerMode, saveSet));
     if ((SVKEY *)g_sw.psvpMusicVolume)
-        SetSndmgrChannelVolume(D_003DD040, 1, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpMusicVolume, psvset));
+        SetSndmgrChannelVolume(D_003DD040, 1, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpMusicVolume, saveSet));
     if ((SVKEY *)g_sw.psvpEffectsVolume)
     {
-        SetSndmgrChannelVolume(D_003DD040, 0, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpEffectsVolume, psvset));
-        SetSndmgrChannelVolume(D_003DD040, 3, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpEffectsVolume, psvset));
+        SetSndmgrChannelVolume(D_003DD040, 0, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpEffectsVolume, saveSet));
+        SetSndmgrChannelVolume(D_003DD040, 3, 1, 1.0f - GGetGlobal((SVKEY *)g_sw.psvpEffectsVolume, saveSet));
     }
     if ((SVKEY *)g_sw.psvpUseHeadset)
-        D_003DD050 = NGetGlobal((SVKEY *)g_sw.psvpUseHeadset, psvset);
+        D_003DD050 = NGetGlobal((SVKEY *)g_sw.psvpUseHeadset, saveSet);
     if ((SVKEY *)g_sw.psvpScreenCenterX)
     {
-        float g = GGetGlobal((SVKEY *)g_sw.psvpScreenCenterX, psvset);
+        float g = GGetGlobal((SVKEY *)g_sw.psvpScreenCenterX, saveSet);
         GSREGS *p = &D_002DEB80;
         p->d1.dx = p->d2.dx = fptoui(g + 636.0f);
     }
     if ((SVKEY *)g_sw.psvpScreenCenterY)
     {
-        float g = GGetGlobal((SVKEY *)g_sw.psvpScreenCenterY, psvset);
+        float g = GGetGlobal((SVKEY *)g_sw.psvpScreenCenterY, saveSet);
         GSREGS *p = &D_002DEB80;
         p->d1.dy = p->d2.dy = fptoui(g + 50.0f) & ~1;
     }

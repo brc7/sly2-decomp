@@ -80,7 +80,7 @@ void InitLo(ASEG *paseg);
 void PostLoLoad(ASEG *paseg);
 void PostSwCallback(SW *psw, ASEG *paseg, long pmf, ASEGSTART *pasegstart);
 void *func_002333B4(void *, int, int) __asm__("memset");
-float GGetDifficulty(void *);
+float GetDifficulty(void *);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float);
 void FramePtr_Assign(ASEGA *, CFrame *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_001F8668(LO *plo, long);
@@ -314,7 +314,7 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     p->grfapl = grf;
     p->svtMaster = pt->svtMaster;
     {
-        p->svtSuck = GClampA(GEval(&pt->clqMasterSuck, GGetDifficulty(D_002DE578)), pt->lmMasterSuck.gMin, pt->lmMasterSuck.gMax);
+        p->svtSuck = GClampA(GEval(&pt->clqMasterSuck, GetDifficulty(D_002DE578)), pt->lmMasterSuck.gMin, pt->lmMasterSuck.gMax);
     }
     SetAsegaSpeed__FP5ASEGAf(p, g1);
     AppendDlEntry((DL *)(*(char (*)[])&g_sw.dlAsega), p);
@@ -427,7 +427,7 @@ void func_0012FE58(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
  *   and XF component kind; optional check of the entry flag bit30; skips bit31 entries
  * Info: proposed name PchnFindAseg (T1); TU aseg
  * Notes: v3: superseded PeFindAsegKeyForObject | top50_round (0.60): Sly 1 aseg.cpp PchnFindAseg(paseg,palo)
- *   loops achn and matches FMatchesLoName(palo,pchn->oid). Sly 2 entry = {oid:20, ixf:10, f30, f31}; it also
+ *   loops achn and matches HasLoOid(palo,pchn->oid). Sly 2 entry = {oid:20, ixf:10, f30, f31}; it also
  *   requires po->vt51(ixf) (SO::PxfFromId) ->+0x94 (component kind) == kind. Ve
  * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; semantic review; sources:
  *   r1_116918+top50_round

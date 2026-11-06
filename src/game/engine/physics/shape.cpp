@@ -311,7 +311,7 @@ struct Q { char pad[0x4C]; int st; };
 struct S { char pad[0x17C]; struct Q *pq; };
 void func_001E8378(struct Q *q);
 void func_001E9090(struct Q *q);
-void func_001A5E80(struct S *p);
+void InheritLoFlag4(struct S *p);
 /** @sly2-annot addr=0x1E6340
  * Purpose: SHAPE vt17: if a chain is attached step its simulation (mode 0/3 -> 0x1E8378, 1/2 -> 0x1E9090)
  *   else LO vt17
@@ -335,7 +335,7 @@ void func_001E6340(struct S *p)
             break;
         }
     } else {
-        func_001A5E80(p);
+        InheritLoFlag4(p);
     }
 }
 } } // namespace M_func_001E6340
@@ -2427,7 +2427,7 @@ extern "C" { extern char D_002C44F0; }
 
 extern "C" {
 void PostSoLoad(S *);
-M3 *func_001A6318(S *);
+M3 *GetLoWorldMatrix(S *);
 void func_0016EF00(CONFIG *, int);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);   /* memcpy */
 void *func_001AE1D0(AL *);                            /* allocate (size, align) */
@@ -2486,7 +2486,7 @@ void func_001E9858(S *p)
     WORK w;
     PostSoLoad(p);
     if (!p->path || !p->head) return;
-    qword axis = func_001A6318(p)->c.q;
+    qword axis = GetLoWorldMatrix(p)->c.q;
     NODE *head = p->head;
     for (NODE *node = head; node; node = node->next) {
         int index = node->mesh - p->config.meshes;
@@ -2544,7 +2544,7 @@ struct S { char pad[0xDC]; NODE *head; char padE0[0x150-0xE0]; void *path; };
 extern "C" {
 void RenderSoSelf(S*);
 float UMaxShape(void*);
-M3 *func_001A6318(S*);
+M3 *GetLoWorldMatrix(S*);
 void EvaluateShapeU(void*,float,qword*,qword*);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 void func_001E9AC0(S*);
@@ -2570,7 +2570,7 @@ void CID106::RenderSelf()
  S *p = (S *)this;
  RenderSoSelf(p);
  float end=UMaxShape(p->path);
- qword axis=func_001A6318(p)->c;
+ qword axis=GetLoWorldMatrix(p)->c;
  NODE *node;
  for(node=p->head;node;node=node->next) {
   int j;

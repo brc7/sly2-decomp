@@ -1,5 +1,6 @@
 // update.cpp -- the per-frame world update (UpdateSw and its object pass). TU 0x226550..0x2269B8 (4 functions,
 // address order).
+// Entry points: SW::Update (once per game frame, from the main loop) and UpdateSwObjects.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_update
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00226A98
 #include "sly2/slotheap.h"
@@ -53,7 +54,7 @@ void UpdateShaders(void);
 void UpdateSave__FP4SAVE(void *pv);
 void UpdateSndmgr(void *pv);
 void UpdateCmLast__FP2CM(void *pv);
-void func_0020F7E0(SWVIEW *p);
+void UpdateSwTimerHud(SWVIEW *p);
 void CGc_UpdateRecyclable(void *pv);
 }
 
@@ -66,6 +67,8 @@ static __inline__ unsigned int GrfQ(ASEGQ *pq) { unsigned int x = pq->x40; retur
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#5-per-frame-update-and-render
  * @end-sly2-annot */
+// The per-frame world update (SW vtable slot 7): runs callbacks, updates the objects (UpdateSwObjects), lights, sound
+// and the camera. Called once per game frame by the main loop.
 void SW::Update()
 {
     SWVIEW *p = (SWVIEW *)this;
@@ -108,7 +111,7 @@ void SW::Update()
     UpdateSndmgr(D_003DD040);
     if (0.0f < D_002DDED0.dtCm)
         UpdateCmLast__FP2CM(D_002DDF40);
-    func_0020F7E0(p);
+    UpdateSwTimerHud(p);
     CGc_UpdateRecyclable(g_gc);
 }
 
@@ -119,6 +122,7 @@ void SW::Update()
  * See: docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#update-0x226550-0x226ab8
  * @end-sly2-annot */
+// Walks the world's list of objects that want updates and calls each one's update (and its animation segments).
 extern "C" void UpdateSwObjects(SWVIEW *p)
 {
     DLI dli;

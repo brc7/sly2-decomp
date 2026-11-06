@@ -152,7 +152,7 @@ void SetSndSourceLo(void *psnd, LOV *plo);
 void TriggerRsmg(SW *psw, int crsmg, RSMG *arsmg, LOV *plo, int fOn);
 void FireRelay(void *prelay, void *pv);
 void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, LOV *plo);
-void func_00161F10(void *p, TASKSTATE *ataskstate, int cMax, int *pc, int d, int e);
+void AppendBoundedPair(void *p, TASKSTATE *ataskstate, int cMax, int *pc, int d, int e);
 void InitSo(BUTTONV *pbutton);
 void LoadSoFromBrx(BUTTONV *pbutton, void *pbis);
 void PostSoLoad(BUTTONV *pbutton);
@@ -172,11 +172,11 @@ int func_001AE1D0(int *pn);
 void STACKSCOPE_ctor(int *pctx);
 void STACKSCOPE_ctor_1AE4A0(int *pctx, int n) __asm__("_$_10STACKSCOPE");
 int CploFindSwObjectsByClass(SW *psw, int grffso, CIDV cid, int x, int cploMax, LOV **aplo);
-int func_001A61A0(LOV *plo);
-qwordV func_001A62E8(LOV *plo);
+int IsLoInWorld(LOV *plo);
+qwordV GetLoWorldPos(LOV *plo);
 int FCheckVolPoint(VOLBTNV *pvolbtn, qwordV pos);
 void qsort(void *pv, int c, int cb, int (*pfncmp)(const void *, const void *));
-CRef func_00200F58(int c, int otyp, LOV **aplo);
+CRef BuildSpliceListFromUniformValues(int c, int otyp, LOV **aplo);
 
 int FAddAshOid(ASH *pash, OID oid, int x);
 void InitBtn(BTN *pbtn);
@@ -435,7 +435,7 @@ extern "C" void SetBtnRsmg(BTN *pbtn, int d, OID e, OID f, OID g)
  * @end-sly2-annot */
 extern "C" void func_00148B78(BTN *pbtn, int d, int e)
 {
-    func_00161F10(D_002DEB30, pbtn->ataskstate, 4, &pbtn->ctaskstate, d, e);
+    AppendBoundedPair(D_002DEB30, pbtn->ataskstate, 4, &pbtn->ctaskstate, d, e);
 }
 
 /** @sly2-annot addr=0x148BB0
@@ -928,7 +928,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
         if (j < c) do
         {
             LOV *plo = aplo[j];
-            if (plo && func_001A61A0(plo) && FCheckVolPoint(pvolbtn, func_001A62E8(plo)))
+            if (plo && IsLoInWorld(plo) && FCheckVolPoint(pvolbtn, GetLoWorldPos(plo)))
             {
                 fFound = 1;
                 if (!pvolbtn->btn.pvRelay)
@@ -1096,7 +1096,7 @@ extern "C" void func_00149828(VOLBTNV *pvolbtn, int d, int e)
 /* The objects inside as a Splice list (otyp 0x2002). */
 extern "C" CRef func_00149848(VOLBTNV *pvolbtn)
 {
-    return func_00200F58(pvolbtn->cploInside, 0x2002, pvolbtn->aploInside);
+    return BuildSpliceListFromUniformValues(pvolbtn->cploInside, 0x2002, pvolbtn->aploInside);
 }
 
 /** @sly2-annot addr=0x149880

@@ -74,7 +74,7 @@ void SetJtgoal(JTGOAL *pjtgoal, qword pos);
 void SetBhvfollowState(BHVB *pbhv, int nState);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *pso, int cid);
 CID17 *PpathzoneFromPos(qword pos, int n);
-qword func_001A62E8(SO *pso);
+qword GetLoWorldPos(SO *pso);
 void SetMurrayState(MURRAY *pmurray, int nState);
 void func_001B8D30(MURRAY *pmurray, int n);
 }
@@ -147,7 +147,7 @@ float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
 extern float D_002BBB60[2];
 float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
 void func_001EF0C0(struct P *p, struct Q *q);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int k);
 void UpdatePoctlPressed(struct Q *q);
@@ -206,7 +206,7 @@ void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
         qword d, v, t, axis;
         float g, s;
         __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(p->q80));
-        v = func_001A62E8(p->p10);
+        v = GetLoWorldPos(p->p10);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(v));
         axis = D_002A2DC0;
         v = Perp(d, axis);
@@ -222,8 +222,8 @@ void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
             int f = 1;
             struct O *po = p->xC0->x7C;
             qword a, b;
-            __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(func_001A62E8(p->p10)));
-            __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(func_001A62E8(po)));
+            __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(GetLoWorldPos(p->p10)));
+            __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(GetLoWorldPos(po)));
             if (FFar(a, b))
                 q->x30 |= 8;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34))
@@ -315,7 +315,7 @@ struct C { char pad[0xDC]; struct D *pd; };
 struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
 struct A { char pad[0xE8]; struct C *pc; char pad2[0x294 - 0xEC]; struct B *pb; };
 struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *p18; char pad2[0x30 - 0x1C]; int f30; char pad3[0x40 - 0x34]; qword v; };
-qword func_001A62E8(struct A *pa);
+qword GetLoWorldPos(struct A *pa);
 void func_001C02D0(struct E *pe, qword r, qword v, struct B *pb);
 void MeasureShape(struct B *pb);
 void SetBhvpathShape(void *p, struct B *pb, int n);
@@ -336,7 +336,7 @@ void func_00144F48(struct P *p, qword v)
         struct B *pb = pa->pb;
         struct D *pd = pa->pc ? pa->pc->pd : 0;
         struct E *pe = pd ? pd->pe : 0;
-        qword r = func_001A62E8(pa);
+        qword r = GetLoWorldPos(pa);
         if (!pe || p->f30) {
             pb->k = 2;
             pb->pq[0] = r;
@@ -427,7 +427,7 @@ extern const float D_002A4E30;   /* defined below where the ELF has it (.rodata 
 struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f};
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 ulong GrfFromSgf(int n);
 int FStepguardHasSgf(struct SO *p, int n);
 struct LIST *func_001F8240(void *p);
@@ -466,8 +466,8 @@ struct SO *func_001450E0(struct P *p)
     ulong grf;
     struct LIST *plist;
     int i;
-    func_001A62E8(p->p10);
-    pos = func_001A62E8(p->p30);
+    GetLoWorldPos(p->p10);
+    pos = GetLoWorldPos(p->p30);
     grf = GrfFromSgf(7) | GrfFromSgf(0x10) | GrfFromSgf(0x16) | GrfFromSgf(0x17) |
           GrfFromSgf(0x2A) | GrfFromSgf(0x2B);
     plist = p->p10->plist;
@@ -476,7 +476,7 @@ struct SO *func_001450E0(struct P *p)
         float g;
         if (grf & pso->grf)
             continue;
-        g = GDist(pos, func_001A62E8(pso));
+        g = GDist(pos, GetLoWorldPos(pso));
         if (pso == p->p90)
             g = GFromClq(g, &D_002BD300);
         if (FStepguardHasSgf(pso, 3))
@@ -493,7 +493,7 @@ struct SO *func_001450E0(struct P *p)
             float g;
             if (grf & pso->grf)
                 continue;
-            g = GDist(pos, func_001A62E8(pso));
+            g = GDist(pos, GetLoWorldPos(pso));
             g = GFromClq(g, &D_002BD310);
             if (pso == p->p90)
                 g = GFromClq(g, &D_002BD300);
@@ -530,12 +530,12 @@ struct LM D_002BD338 = {0.0f, 1200.0f};
 float D_002BD340 = 200.0f;
 void UpdateBhv(struct P *p);
 int FBhvBusyAbove(struct P *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 struct SO *func_001450E0(struct P *p);
 int func_001459C0(struct P *p);
 int FCheckLm__FP2LMf(struct LM *plm, float g);
 void SetBhvfollowState(struct P *p, int n);
-int CidBasic(void *p);
+int GetBasicCid(void *p);
 int func_00145DA0(struct X *px);
 int func_00146298(struct X *px);
 int func_00146790(struct X *px);
@@ -584,12 +584,12 @@ void UpdateBhvfollow(struct P *p)
     UpdateBhv(p);
     po = p->p10;
     pv30 = p->p30;
-    a = func_001A62E8(po);
-    b = func_001A62E8(pv30);
+    a = GetLoWorldPos(po);
+    b = GetLoWorldPos(pv30);
     gXY = LenXY(Sub(a, b));
     pso = func_001450E0(p);
     if (pso) {
-        qword c = func_001A62E8(pso);
+        qword c = GetLoWorldPos(pso);
         float dA = Len(Sub(c, a));
         float dB = Len(Sub(c, b));
         g = dA < dB ? dA : dB;
@@ -620,7 +620,7 @@ void UpdateBhvfollow(struct P *p)
             else if (!FCheckLm__FP2LMf(&D_002BD338, g))
                 SetBhvfollowState(p, 0);
             else {
-                switch (CidBasic(p->p10)) {
+                switch (GetBasicCid(p->p10)) {
                 case 0x36:
                     if (func_00145DA0(p->p18))
                         SetBhvfollowState(p, 0);
@@ -680,8 +680,8 @@ struct P {
 };
 extern "C" {
 extern qword D_002A2DC0;
-qword func_001A62E8(void *p);
-M3 *func_001A6318(void *p);
+qword GetLoWorldPos(void *p);
+M3 *GetLoWorldMatrix(void *p);
 M3 func_0011B500(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 E *func_00145AA8(P *p);
@@ -735,14 +735,14 @@ static inline qword Add(qword a, qword b)
 void func_001457A8(P *p)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
-    p->q50 = func_001A62E8(p->po);
+    p->q50 = GetLoWorldPos(p->po);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x33)) {
         O *po = p->po;
         u.s.m = func_0011B500(D_002A2DC0, po->g1A8);
         u.s.pos = AddScaled(p->q50, VU_FLOAT(-p->g68), MulM3(u.s.m, po->q190));
     } else {
         O *po;
-        u.s.m = *func_001A6318(p->po);
+        u.s.m = *GetLoWorldMatrix(p->po);
         po = p->po;
         u.s.pos = AddScaled(p->q50, VU_FLOATM(p->g68), po->pvt->pfn((O *)((char *)po + po->pvt->d)));
     }
@@ -752,7 +752,7 @@ void func_001457A8(P *p)
         B *pb = pa->pb;
         D *pd = pa->pc ? pa->pc->pd : 0;
         E *pe = pd ? pd->pe : 0;
-        qword r = func_001A62E8(pa);
+        qword r = GetLoWorldPos(pa);
         if (!pe) {
             pb->k = 2;
             pb->pq[0] = r;
@@ -780,7 +780,7 @@ struct X30 { char pad[0x2DC]; int x2DC; };
 struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *p30; char pad3[0x80 - 0x34]; qword pos; };
 struct SO *func_00145AA8(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int func_001C09A0(struct SO *pso, qword pos, int n);
 int func_00173610(qword *ppos, float a, float b, int c, int d);
 /** @sly2-annot addr=0x1459C0
@@ -804,7 +804,7 @@ int func_001459C0(struct P *p)
     if ((struct E *)pso == pe) return 0;
     if (pso->k == 0x2CA) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x34) && p->p30->x2DC != -1) return 0;
-    pos = func_001A62E8(p->p30);
+    pos = GetLoWorldPos(p->p30);
     if (!func_001C09A0(pso, pos, 0)) return 0;
     if (!func_00173610(&pos, 100.0f, -150.0f, 0, 0)) return 0;
     p->pos = pos;
@@ -840,7 +840,7 @@ extern "C" CID17 *func_00145AA8(BHVFOLLOWV *pbhv)
         }
         return pcid17;
     }
-    pcid17 = PpathzoneFromPos(func_001A62E8(pbhv->pso), 1);
+    pcid17 = PpathzoneFromPos(GetLoWorldPos(pbhv->pso), 1);
     return pcid17;
 }
 
@@ -861,7 +861,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 void func_001457A8(struct P *p);
 void func_0019F540(void *p, qword v);
-int CidBasic(void *p);
+int GetBasicCid(void *p);
 static __inline__ void Activate(struct P *p, int oid)
 {
     struct O *po = func_00205438(p->p10, oid);
@@ -900,7 +900,7 @@ void SetBhvfollowState(struct P *p, int state)
         func_0019F540(p->p10, p->v80);
         break;
     case 2:
-        switch (CidBasic(p->p10)) {
+        switch (GetBasicCid(p->p10)) {
         case 0x36: Activate(p, 0xC3); break;
         case 0x37: Activate(p, 0xC4); break;
         case 0x35: Activate(p, 0xC5); break;
@@ -992,9 +992,9 @@ struct Q { char pad[0x330]; int x330; };
 struct R { char pad[0xDF4]; int xDF4; char pad2[0x1810 - 0xDF8]; int x1810; };
 struct P { char pad[0x10]; struct R *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct Q *p38; };
 void UpdateBhv(struct P *);
-int func_001A61A0(struct Q *);
-qword func_001A62E8(void *);
-qword *func_001A6318(void *);
+int IsLoInWorld(struct Q *);
+qword GetLoWorldPos(void *);
+qword *GetLoWorldMatrix(void *);
 void func_00146158(struct P *, int);
 
 /** @sly2-annot addr=0x145DB0
@@ -1011,12 +1011,12 @@ void func_00145DB0(struct P *p)
     UpdateBhv(p);
     if (p->x30 == -1)
         return;
-    if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {
+    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
         func_00146158(p, -1);
         return;
     }
-    a = func_001A62E8(p->p38);
-    b = func_001A62E8(p->p10);
+    a = GetLoWorldPos(p->p38);
+    b = GetLoWorldPos(p->p10);
     { qword *pk = &D_002A2DA0;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
     d.q = c;
@@ -1044,7 +1044,7 @@ void func_00145DB0(struct P *p)
         switch (state) {
         case 0:
             if (g < D_002BD344) {
-                qword *pm = func_001A6318(p->p10);
+                qword *pm = GetLoWorldMatrix(p->p10);
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
@@ -1081,7 +1081,7 @@ struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30
 struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
 extern struct CLOCK D_002DDED0;
 void func_001EF0C0(struct P *p, struct Q *q);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -1098,8 +1098,8 @@ void func_00146068(struct P *p, struct Q *q)
     if (p->x30 < 3) if (p->x30 >= 0) {
         qword a, b, d;
         float g;
-        a = func_001A62E8(p->p38);
-        b = func_001A62E8(p->p10);
+        a = GetLoWorldPos(p->p38);
+        b = GetLoWorldPos(p->p10);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         g = 1.0f;
         if (p->x30 == 0) g = 0.1f;
@@ -1218,9 +1218,9 @@ struct Q { char pad[0x330]; int x330; };
 struct R { char pad[0xDF4]; int xDF4; char pad2[0x1714 - 0xDF8]; int x1714; };
 struct P { char pad[0x10]; struct R *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct Q *p38; };
 void UpdateBhv(struct P *);
-int func_001A61A0(struct Q *);
-qword func_001A62E8(void *);
-qword *func_001A6318(void *);
+int IsLoInWorld(struct Q *);
+qword GetLoWorldPos(void *);
+qword *GetLoWorldMatrix(void *);
 void func_00146650(struct P *, int);
 
 /** @sly2-annot addr=0x1462A8
@@ -1237,12 +1237,12 @@ void func_001462A8(struct P *p)
     UpdateBhv(p);
     if (p->x30 == -1)
         return;
-    if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {
+    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
         func_00146650(p, -1);
         return;
     }
-    a = func_001A62E8(p->p38);
-    b = func_001A62E8(p->p10);
+    a = GetLoWorldPos(p->p38);
+    b = GetLoWorldPos(p->p10);
     { qword *pk = &D_002A2DA0;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
     d.q = c;
@@ -1270,7 +1270,7 @@ void func_001462A8(struct P *p)
         switch (state) {
         case 0:
             if (g < D_002BD350) {
-                qword *pm = func_001A6318(p->p10);
+                qword *pm = GetLoWorldMatrix(p->p10);
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
@@ -1307,7 +1307,7 @@ struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30
 struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
 extern struct CLOCK D_002DDED0;
 void func_001EF0C0(struct P *p, struct Q *q);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -1324,8 +1324,8 @@ void func_00146560(struct P *p, struct Q *q)
     if (p->x30 < 3) if (p->x30 >= 0) {
         qword a, b, d;
         float g;
-        a = func_001A62E8(p->p38);
-        b = func_001A62E8(p->p10);
+        a = GetLoWorldPos(p->p38);
+        b = GetLoWorldPos(p->p10);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         g = 1.0f;
         if (p->x30 == 0) g = 0.1f;
@@ -1446,9 +1446,9 @@ float D_002BD368 __attribute__((aligned(8))) = 400.0f;
 float D_002BD36C = 550.0f;
 float D_002BD370 = 0.2f;
 void UpdateBhv(struct P *p);
-int func_001A61A0(struct T *p);
-qword func_001A62E8(void *p);
-struct M3 *func_001A6318(void *p);
+int IsLoInWorld(struct T *p);
+qword GetLoWorldPos(void *p);
+struct M3 *GetLoWorldMatrix(void *p);
 void func_00146E18(struct P *p, int n);
 float GRandInRange__Fff(float gMin, float gMax);
 
@@ -1497,13 +1497,13 @@ void func_001467A0(struct P *p)
     UpdateBhv(p);
     if (p->x30 == -1)
         return;
-    if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {
+    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
         func_00146E18(p, -1);
         return;
     }
     {
-        qword a = func_001A62E8(p->p38);
-        qword b = func_001A62E8(p->p10);
+        qword a = GetLoWorldPos(p->p38);
+        qword b = GetLoWorldPos(p->p10);
         qword dq;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(b));
         d.q = dq;
@@ -1515,7 +1515,7 @@ void func_001467A0(struct P *p)
         switch (state) {
         case 0:
             if (g < D_002BD360) {
-                struct M3 *pm = func_001A6318(p->p10);
+                struct M3 *pm = GetLoWorldMatrix(p->p10);
                 if (0.8f < Dot(pm->r[0], d.q)) {
                     if (GRandInRange__Fff(0.0f, 1.0f) < 0.3f)
                         func_00146E18(p, 3);
@@ -1568,7 +1568,7 @@ struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
 struct LM { float gMin, gMax; };
 extern struct CLOCK D_002DDED0;
 void func_001EF0C0(struct P *p, struct Q *q);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -1613,13 +1613,13 @@ void func_00146B18(struct P *p, struct Q *q)
     func_001EF0C0(p, q);
     switch (p->x30) {
     case 1: {
-        qword d = Sub(func_001A62E8(p->p38), func_001A62E8(p->p10));
+        qword d = Sub(GetLoWorldPos(p->p38), GetLoWorldPos(p->p10));
         q->x1C = 1.0f;
         q->x18 = GAtanR(d);
         break;
     }
     case 2: {
-        qword d = Sub(func_001A62E8(p->p38), func_001A62E8(p->p10));
+        qword d = Sub(GetLoWorldPos(p->p38), GetLoWorldPos(p->p10));
         q->x1C = 1.0f;
         q->x18 = GAtanR(d);
         if (D_002DDED0.t - p->x34 < 0.1f) {
@@ -1629,8 +1629,8 @@ void func_00146B18(struct P *p, struct Q *q)
         break;
     }
     case 3: {
-        qword a = func_001A62E8(p->p38);
-        qword b = func_001A62E8(p->p10);
+        qword a = GetLoWorldPos(p->p38);
+        qword b = GetLoWorldPos(p->p10);
         struct CLQ clq = {-0.25f, 0.00156249990686774f};
         qword d;
         float s;
@@ -1653,7 +1653,7 @@ void func_00146B18(struct P *p, struct Q *q)
         break;
     }
     case 4: {
-        qword d = Sub(func_001A62E8(p->p38), func_001A62E8(p->p10));
+        qword d = Sub(GetLoWorldPos(p->p38), GetLoWorldPos(p->p10));
         q->x1C = 1.0f;
         q->x18 = GAtanR(d);
         if (D_002DDED0.t - p->x34 < 0.1f) {
@@ -1739,7 +1739,7 @@ extern struct CLOCK D_002DDED0;
 extern void *D_002E1E40;
 float D_002BD374 = 0.5f, D_002BD378 = 15.0f;
 void UpdateBhv(struct P *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void SetStepRadTargetVec(struct X *px, qword v);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
@@ -1762,8 +1762,8 @@ void func_00146F18(struct P *p)
     case 0:
         if (D_002E1E40) {
             qword a, b, d;
-            a = func_001A62E8(D_002E1E40);
-            b = func_001A62E8(p->px);
+            a = GetLoWorldPos(D_002E1E40);
+            b = GetLoWorldPos(p->px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
             SetStepRadTargetVec(p->px, d);
         }
@@ -1773,8 +1773,8 @@ void func_00146F18(struct P *p)
         if (D_002E1E40) {
             qword a, b, d;
             float g, gCur;
-            a = func_001A62E8(D_002E1E40);
-            b = func_001A62E8(p->px);
+            a = GetLoWorldPos(D_002E1E40);
+            b = GetLoWorldPos(p->px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
             g = atan2f(GetY(d), GetX(d));
             if (__builtin_fabsf(RadNormalize__Ff(g - p->g30)) < D_002BD374) {

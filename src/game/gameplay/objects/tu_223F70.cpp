@@ -123,10 +123,10 @@ void ReplaceSma(SM *psm, CID100V *p, int a, int b, SMA **ppsma);
 void RemoveSoHierarchy(CID100V *p);
 void ReleaseSma(SMA **ppsma);
 void UpdateSo(CID100V *p);
-qwordV func_001A62E8(void *p);
-M4 *func_001A6318(void *p);
+qwordV GetLoWorldPos(void *p);
+M4 *GetLoWorldMatrix(void *p);
 void HandleBasicMessage(CID100V *p, int k, struct MSG100 *q);
-void SetLoParent_1A58D0(CID100V *p, void *q, int a);
+void SetLoParent(CID100V *p, void *q, int a);
 int FIgnoreSoIntersection(CID100V *p, BASIC *q);
 int func_00134310(int v, int a);
 void func_001F4FB0(CID100V *p, XP *pxp, int i);
@@ -146,7 +146,7 @@ qwordV func_001FAA48(SOV *, qwordV, qwordV);
 struct STACKSCOPEMK { int a[4]; };
 STACKSCOPEMK *STACKSCOPE_ctor(STACKSCOPEMK *pm);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n) __asm__("_$_10STACKSCOPE");
-void func_0020FA10();
+void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(SW *pg, qwordV pos, void (*pfn)(), void *pv, float r, int *pc, COLL ***papa);
 qwordV SetVectorSphere(float a, float b, float c);
 qwordV LimitVectorLength(qwordV v, float r);
@@ -276,8 +276,8 @@ void func_002240B0(CID100V *p)
     if (p->state == 1 && p->sentinel != -1)
         func_00224258(p, p->pneighbor);
     if (p->ptarget) {
-        qwordV a = func_001A62E8(p);
-        qwordV b = func_001A62E8(p->ptarget);
+        qwordV a = GetLoWorldPos(p);
+        qwordV b = GetLoWorldPos(p->ptarget);
         qwordV d, t, l;
         float g;
         int f;
@@ -331,7 +331,7 @@ void func_00224258(CID100V *p, SOV *q)
     int k = p->kind;
     if (k == 0x1A || k == 0x29) VCALL(p, 76), 3);
     else {
-        SetLoParent_1A58D0(p, q->oid == 1 ? 0 : q, 3);
+        SetLoParent(p, q->oid == 1 ? 0 : q, 3);
         VCALL(p, 76), 2);
     }
 }
@@ -532,8 +532,8 @@ extern "C" void func_00224698(CID100V *p) {
     func_001F9B20(p);
     if(p->kind!=0x1A && p->kind!=0x29)return;
     if(p->nearest) {
-        qwordV a=ToVF(func_001A62E8(p->nearest));
-        qwordV b=func_001A62E8(p);
+        qwordV a=ToVF(GetLoWorldPos(p->nearest));
+        qwordV b=GetLoWorldPos(p);
         qwordV d=Flatten(Sub(a,b),Read(D_002A2DC0));
         register qwordV fallback __asm__("a1")=D_002A2DA0;
         qwordV len=Sqrt(DotSelf(d));
@@ -542,7 +542,7 @@ extern "C" void func_00224698(CID100V *p) {
         else n=ScaleQ(d,len);
         m=BuildOrthonormalMatrixZ(n,D_002A2DC0);
     } else {
-        TiltMatUpright(&func_001A6318(p)->basis,0,&m);
+        TiltMatUpright(&GetLoWorldMatrix(p)->basis,0,&m);
     }
     AccelSoTowardMatSpring(p,&m,D_002C4300,D_002A2DD0,D_002C4310);
 }
@@ -652,7 +652,7 @@ void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
     int cx;
     int i, j, k, m;
     STACKSCOPE_ctor(&mark);
-    IntersectSwBoundingSphere(&D_003DD490, pos, func_0020FA10, p->ptree, r, &c, &apa);
+    IntersectSwBoundingSphere(&D_003DD490, pos, ShouldKeepSoNotSelf, p->ptree, r, &c, &apa);
     cx = 0;
     for (i = 0; i < sizeof(D_002C4368) / sizeof(D_002C4368[0]); i++) {
         for (j = 0; j < D_002C4368[i]; j++) {
@@ -678,8 +678,8 @@ void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
  * @end-sly2-annot */
 extern "C" void func_00224E70(CID100V *p, float f)
 {
-    SetLoParent_1A58D0(p, 0, 1);
-    func_00224BF8(p, p->n174, p->n178, func_001A62E8(p), f);
+    SetLoParent(p, 0, 1);
+    func_00224BF8(p, p->n174, p->n178, GetLoWorldPos(p), f);
 }
 
 // Transition actor controller state.
@@ -698,8 +698,8 @@ static inline void Zero(float *v){v[0]=v[1]=v[2]=0.0f;}static inline void ZeroVe
 static inline SOV *FindNearest(CID100V *p,int count,SOV **objects,SOV *nearest,float best){
   for(int i=0;i<count;i++){
    SOV *object=objects[i];
-   qwordV position=ToVFN(func_001A62E8(object));
-   qwordV origin=func_001A62E8(p);
+   qwordV position=ToVFN(GetLoWorldPos(object));
+   qwordV origin=GetLoWorldPos(p);
    V delta;
    delta.q=SubT(position,origin);
    delta.f[2]+=delta.f[2];
@@ -760,7 +760,7 @@ void func_00224EC8(CID100V *p,int state){
   break;
  }
  case 1:{
-  SetLoParent_1A58D0(p,0,15);SetSoCnstrForce(p,0);
+  SetLoParent(p,0,15);SetSoCnstrForce(p,0);
   if(p->kind!=0x29){SetSoCnstrTorque(p,0);break;}
   SetSoCnstrTorque(p,1);
   SOV *objects[32];
@@ -831,12 +831,12 @@ extern "C" void func_00225300(CID100V *p) {
             } else if(!(r=func_00205458(p->actor,0xB0)) || func_0017A9C0(r)) {
                 VCALL(p, 76),2);
             } else {
-                M3 m((p->source?func_001A6318(p->source):func_001A6318(p))->basis);
+                M3 m((p->source?GetLoWorldMatrix(p->source):GetLoWorldMatrix(p))->basis);
                 func_00209840(&p->actor->basis,&m);
                 if(r->state!=4) {
-                    qwordV pos=p->source?func_001A62E8(p->source):func_001A62E8(p);
+                    qwordV pos=p->source?GetLoWorldPos(p->source):GetLoWorldPos(p);
                     qwordV other;
-                    other=func_001A62E8(p->actor);
+                    other=GetLoWorldPos(p->actor);
                     if(LengthL(Sub(pos,other))<100.0f)func_0017A8C8(r,4);
                 }
                 if(p->actor->color) {
@@ -846,7 +846,7 @@ extern "C" void func_00225300(CID100V *p) {
                     SetActPositionGoal(p->actor->color,Splat(g));
                 }
                 if(D_002C43B0<D_002DDED0.t-p->time) {
-                    SprayDprizes(&D_003DD490,0x5D,func_001A62E8(p->source),p,1);
+                    SprayDprizes(&D_003DD490,0x5D,GetLoWorldPos(p->source),p,1);
                     VCALL(p->actor, 9));
                     // PIN: &D_002DEB30 straight into $a0 keeps %hi(D_002DEB30) inside the loop (see the header).
                     register GAME *pgame asm("$4")=&D_002DEB30;
@@ -876,12 +876,12 @@ extern "C" void func_002255C8(CID100V *p, MSGO *q)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(o->psophys->v80), "j"(s));
     u.q = s;
     AddSoAcceleration(o, r);
-    if (p->source) v = func_001A62E8(p->source); else v = func_001A62E8(p);
+    if (p->source) v = GetLoWorldPos(p->source); else v = GetLoWorldPos(p);
     AccelSoTowardPosSpring(o, v, D_002C43D0, D_002A2DD0, D_002C43E0);
 }
 
 // Change selection state and prepare the nearest eligible actor.
-extern "C" qwordV SourcePosition(void * source) __asm__("func_001A62E8");
+extern "C" qwordV SourcePosition(void * source) __asm__("GetLoWorldPos");
 static __inline__ float GDist(qwordV a, qwordV b)
 {
     qwordV d, t;
@@ -934,14 +934,14 @@ extern "C" void func_00225660(CID100V *p, int k)
         int c, i;
         float gBest;
         ACTOR *poBest;
-        Vec pos(p->source?SourcePosition(p->source):func_001A62E8(p));
+        Vec pos(p->source?SourcePosition(p->source):GetLoWorldPos(p));
         c = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x38, 0, 0x20, (SOV **)apo);
         gBest = 400.0f;
         poBest = 0;
         for (i = 0; i < c; i++) {
             ACTOR *po = apo[i];
             if (func_00206EB0(po, 0xB)) {
-                float g = GDist(func_001A62E8(po), pos);
+                float g = GDist(GetLoWorldPos(po), pos);
                 if (g < gBest) {
                     gBest = g;
                     poBest = po;

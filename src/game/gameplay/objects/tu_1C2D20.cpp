@@ -22,7 +22,7 @@ struct SPRAYER
 {
     char pad0[0x150];
     SOV *pxf;            /* +0x150 the frame prizes start from (PxfFindSo) */
-    SOV *psoProto;       /* +0x154 prototype the copies come from (PloAcquireProxy) */
+    SOV *psoProto;       /* +0x154 prototype the copies come from (AcquireProxyObject) */
     SOV *psoFirst;       /* +0x158 the sprayer's own prize */
     char pad15C[0xC];
     void *psma;         /* +0x168 */
@@ -40,9 +40,9 @@ void PostSoLoad(SPRAYER *p);
 void BindLoOidTable(SPRAYER *p, int n, void *q);
 void ReplaceSma(void *a, SPRAYER *p, int b, int c, int *pn);
 void RenderSoSelf(SPRAYER *p);
-void func_001A5EE8(void *p, void *q, float a, float b);
+void RenderLoAtMatrix(void *p, void *q, float a, float b);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOV *plo, int n);
-SOV *PloAcquireProxy(void *plo, int n);
+SOV *AcquireProxyObject(void *plo, int n);
 void func_001C7A58(SOV *plo, int id);
 SOV *PxfFindSo(SPRAYER *p, void *pv, int n);
 extern GAME D_003DD490;
@@ -52,7 +52,7 @@ float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime s
 LMV D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
 extern const float D_002A76E8;   /* defined below where the ELF has it (.rodata order) */
 void *PpoHero(GAME *);
-qwordV func_001A62E8(void *);
+qwordV GetLoWorldPos(void *);
 float GRandInRange__Fff(float, float);
 qwordV SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
@@ -85,7 +85,7 @@ void CID99::VUnk14()
 extern "C" void func_001C2D70(SPRAYER *p)
 {
     RenderSoSelf(p);
-    if (p->psoFirst) func_001A5EE8(p->psoFirst, (char *)p->pxf + 0x40, 1.0f, 1.0f);
+    if (p->psoFirst) RenderLoAtMatrix(p->psoFirst, (char *)p->pxf + 0x40, 1.0f, 1.0f);
 }
 
 /** @sly2-annot addr=0x1C2DB8
@@ -98,7 +98,7 @@ extern "C" void func_001C2D70(SPRAYER *p)
 extern "C" void func_001C2DB8(SPRAYER *p) { p->psoFirst = 0; p->psoProto = 0; p->pxf = 0; }
 
 /** @sly2-annot addr=0x1C2DC8
- * Purpose: Attach loot: from a PROXY (class 6, PloAcquireProxy) or an SO; clue (0x5E) gets id, prize (0x5A)
+ * Purpose: Attach loot: from a PROXY (class 6, AcquireProxyObject) or an SO; clue (0x5E) gets id, prize (0x5A)
  *   state 2 else vt9; find attach XF; returns status 0-3
  * Info: proposed name StageCid99Loot (T2); class CID99; TU tu_1C2D20
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
@@ -112,7 +112,7 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
     p->psoProto = 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 6)) {
         p->psoProto = plo;
-        p->psoFirst = PloAcquireProxy(plo, 0);
+        p->psoFirst = AcquireProxyObject(plo, 0);
         if (!p->psoFirst) {
             p->psoProto = 0;
             return 1;
@@ -132,7 +132,7 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
 }
 
 // func_001C2EF0 (w3lane8, wave 3): launches `count` objects from an owner's source object towards the player.
-// The first object is the owner's existing one (+0x158), the others come from its factory (PloAcquireProxy); new
+// The first object is the owner's existing one (+0x158), the others come from its factory (AcquireProxyObject); new
 // objects of class 0x5A are put into state 2.  Each launch aims at a random point around the target: a random
 // offset (SetVectorCylind from two random angles and -75) is expressed in a basis built (BuildOrthonormalMatrixZ) from the
 // horizontal part of the start->target direction and the up axis, and func_001D69F0 computes the launch velocity.
@@ -201,7 +201,7 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
         if (i == 0)
             node = p->psoFirst;
         else {
-            node = PloAcquireProxy(p->psoProto, 0);
+            node = AcquireProxyObject(p->psoProto, 0);
             if (node && FIsBasicDerivedFrom__FP5BASIC3CID(node, 0x5A))
                 SetState(node, 2);
         }
@@ -210,7 +210,7 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
         if (!first)
             first = node;
         qwordV start = p->pxf->position;
-        qwordV target = func_001A62E8(PpoHero(game));
+        qwordV target = GetLoWorldPos(PpoHero(game));
         float pan = Rand(D_002C0CF0);
         qwordV offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
         qwordV delta = VuSub(target, start);

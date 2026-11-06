@@ -97,11 +97,11 @@ int NWorldCur(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void *func_002333B4(void *, int, int) __asm__("memset");
 OBJECT *PloFindSwObject__FP2SWi3OIDP2LO(G *, int, int, OWNER *);
-int FTaskComplete(void *);
+int IsTaskComplete(void *);
 float GRandInRange__Fff(float, float);
 int NRandInRange__Fii(int, int);
 void BroadcastGameEvent(G *, int, P *);
-void func_00200F58(void *, int, int, int *);
+void BuildSpliceListFromUniformValues(void *, int, int, int *);
 void func_00205D10(P *, int);
 void SetStepguardPickpocketState(P *p, int k);
 void UpdateStepguardPickpocket(P *p);
@@ -217,7 +217,7 @@ extern "C" void GenerateStepguardLoot(P *p)
     func_002333B4(&reward,0,sizeof(reward));
     if(p->count>0){
         OBJECT *object=PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490,4,p->items[0].kind,p->owner);
-        if(object && FIsBasicDerivedFrom__FP5BASIC3CID(object,0x5C) && object->state && FTaskComplete(object->state))p->count=0;
+        if(object && FIsBasicDerivedFrom__FP5BASIC3CID(object,0x5C) && object->state && IsTaskComplete(object->state))p->count=0;
         if(p->count>0){reward=p->items[0];}
         else goto choose_reward;
     }else{
@@ -325,7 +325,7 @@ extern "C" void *func_001F1EB8(void *r, P *p)
     int n = 0;
     int i;
     for (i = p->iitem; i < p->count; i++) buf[n++] = p->items[i].kind;
-    func_00200F58(r, n, 6, buf);
+    BuildSpliceListFromUniformValues(r, n, 6, buf);
     return r;
 }
 

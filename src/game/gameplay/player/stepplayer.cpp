@@ -38,7 +38,7 @@ extern "C" {
 extern char D_002DEB30[];       /* the game */
 extern CLOCK D_002DDED0;
 extern const float D_002A4D60;
-int FSwHandsOff(SW *psw);
+int IsSwHandsOff(SW *psw);
 STEPPLAYER *PpoHero(SW *psw);
 void SetTnTnsOverride(TN *ptn, int f);
 void func_00204768(STEPPLAYER *pstepplayer);
@@ -151,14 +151,14 @@ void func_001A1098(void *);
 void PostLoadJtMode(void *);
 void PostJtthrowLoad(void *);
 void PostJtLoadPipe(void *);
-int CploFindSwObjects_15E650(struct G *, int, int, struct P *, int, void **);
+int FindSwObjects(struct G *, int, int, struct P *, int, void **);
 void *func_001AE2A0(struct AREQ *);
 void LoadStepplayerGadgets(struct P *);
 void BindStepplayerHpMp(struct P *, int);
 int func_001F8278(struct P *);
 void SetSoMass(struct P *, float);
-qword func_001A62E8(struct P *);
-struct M3 *func_001A6318(struct P *);
+qword GetLoWorldPos(struct P *);
+struct M3 *GetLoWorldMatrix(struct P *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void PostSwCallback(struct G *, struct P *, long, int);
 
@@ -185,7 +185,7 @@ void PostLoadStepplayer(struct P *p)
     PostLoadJtMode((char *)p + 0xF00);
     PostJtthrowLoad((char *)p + 0x11B0);
     PostJtLoadPipe((char *)p + 0xF50);
-    c = CploFindSwObjects_15E650(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
+    c = FindSwObjects(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
     if (c) {
         struct AREQ req;
         struct AREQ *preq = &req;
@@ -215,8 +215,8 @@ void PostLoadStepplayer(struct P *p)
     p->x1088 = func_001F8278(p);
     SetSoMass(p, 0.25f);
     if (p->pso->x94 == 0) {
-        qword q = func_001A62E8(p);
-        struct M3 m = *func_001A6318(p);
+        qword q = GetLoWorldPos(p);
+        struct M3 m = *GetLoWorldMatrix(p);
         struct SO *pso = p->pso;
         func_002333B4(pso, 0, 0x40);
         pso->m[0] = pso->m[5] = pso->m[10] = pso->m[15] = 1.0f;
@@ -245,9 +245,9 @@ extern char D_003DD490[];
 struct G { char pad[0x4A4]; int n4A4; };
 extern struct G D_002DDF40;
 int NWorldCur(void);
-void func_00161868(void *p);
+void RestartHudWidget1(void *p);
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
-void func_001618B0(void *p);
+void RestartHudWidget2(void *p);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x140338
@@ -260,8 +260,8 @@ void SetSndSourceLo(void *p, int n);
 void func_00140338(void)
 {
     if (NWorldCur()) {
-        func_00161868(D_003DD490);
-        if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) func_001618B0(D_003DD490);
+        RestartHudWidget1(D_003DD490);
+        if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
         SetSndSourceLo(PsndStartSound(0x32), 0);
         *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
         D_002DDF40.n4A4++;
@@ -447,7 +447,7 @@ struct P {
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002BCC6C, D_002BCC70, D_002BCC74, D_002BCC78;
 int func_001409E8(struct P *p);
-qword func_001A62E8(struct P *p);
+qword GetLoWorldPos(struct P *p);
 void func_00156548(void *a, qword pos, struct P *p, int n);
 
 static inline float GClamp(float g, float lo, float hi)
@@ -502,12 +502,12 @@ void func_00140750(struct P *p)
         { float dt = D_002DDED0.dt; p->x10D0 = GClamp(p->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
-    if (p->x10D0 == 1.0f) func_00156548(p->p10C4, func_001A62E8(p), p, 0);
+    if (p->x10D0 == 1.0f) func_00156548(p->p10C4, GetLoWorldPos(p), p, 0);
 }
 } } // namespace M_func_00140750
 
 /** @sly2-annot addr=0x1409B8
- * Purpose: vt98: returns 0 normally, -1 while the world is hands-off (FSwHandsOff g_sw)
+ * Purpose: vt98: returns 0 normally, -1 while the world is hands-off (IsSwHandsOff g_sw)
  * Info: proposed name STEPPLAYER_VUnk97 (T2); class STEPPLAYER slot98; TU stepplayer
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
@@ -516,7 +516,7 @@ void func_00140750(struct P *p)
  * @end-sly2-annot */
 extern "C" int func_001409B8()
 {
-    return (FSwHandsOff(&D_003DD490) != 0) ? 0 : -1;
+    return (IsSwHandsOff(&D_003DD490) != 0) ? 0 : -1;
 }
 
 namespace M_func_001409E8 { extern "C" {
@@ -526,7 +526,7 @@ struct SO { char pad[0xC]; struct VTE *vt; char pad2[0xFE0 - 0x10]; struct SO *p
 struct X { char pad[0x104]; struct X *pxNext; };
 struct P { char pad[0x10C4]; void *p10C4; };
 int FStepplayerInJtmode(struct P *p);
-qword func_001A62E8(struct P *p);
+qword GetLoWorldPos(struct P *p);
 void *func_00156698(void *a, qword pos, struct P *p);
 int FStepguardHasSgf(struct SO *pso, int n);
 int func_00156FE8(struct X *px, void *q);
@@ -547,7 +547,7 @@ int func_001409E8(struct P *p)
     struct X *px;
     if (FStepplayerInJtmode(p)) return 2;
     q = 0;
-    if (p->p10C4) q = func_00156698(p->p10C4, func_001A62E8(p), p);
+    if (p->p10C4) q = func_00156698(p->p10C4, GetLoWorldPos(p), p);
     if (!q) return 2;
     r = 0;
     pso = (*(struct SO * *)&g_sw.dlStepguard);
@@ -572,7 +572,7 @@ typedef union { qword q; float f[4]; } U;
 struct P { char pad[0x10E4]; int x10E4; void *p10E8; int x10EC; };
 extern float D_002BCC7C, D_002BCC80, D_002BCC84, D_002BCC88, D_002BCC8C, D_002BCC90;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x140AF8
  * Purpose: True when interact mode (+0x10EC)==4 and kind!=3 and the target (+0x10E8) is within an xy distance
  *   (larger if target has class 0x3A) and a z window, widened when fX
@@ -598,8 +598,8 @@ int FStepplayerNearInteractTarget(struct P *p, int fX)
         gMin -= D_002BCC90;
         gMax += D_002BCC90;
     }
-    a = func_001A62E8(p->p10E8);
-    b = func_001A62E8(p);
+    a = GetLoWorldPos(p->p10E8);
+    b = GetLoWorldPos(p);
     f = 0;
     {
         qword qwdqOut;
@@ -839,7 +839,7 @@ extern float D_002BCC94;
 void RunJtHurtCallback(void *p);
 void SetJtthrowState(void *p, int n);
 qword func_00204E38(void *p, struct SO *pso, float g);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_002205A8(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int func_00224590(void *p);
@@ -849,8 +849,8 @@ void ChargeGadgetMp(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
 void func_0019F170(void *p, int n);
 void func_0019F220(void *p, int n);
-void *PloAcquireProxy(void *p, int n);
-void SetLoParent_1A58D0(void *p, int a, int b);
+void *AcquireProxyObject(void *p, int n);
+void SetLoParent(void *p, int a, int b);
 void func_00156780(void *p);
 void func_001CCC88(void *p, void *q);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
@@ -946,7 +946,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
         case 0x162: {
             qword v = F(qword, p, 0x1060);
             F(int, p, 0x1044) = 0;
-            F(qword, p, 0x1070) = VecSub(v, func_001A62E8(p));
+            F(qword, p, 0x1070) = VecSub(v, GetLoWorldPos(p));
             F(int, p, 0x1078) = 0;
             break;
         }
@@ -986,9 +986,9 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                     case 0x17: {
                         DLI dli;
                         void *po2;
-                        void *pa = PloAcquireProxy(D_002E1E40->p2010, 0);
+                        void *pa = AcquireProxyObject(D_002E1E40->p2010, 0);
                         if (pa)
-                            SetLoParent_1A58D0(pa, 0, 3);
+                            SetLoParent(pa, 0, 3);
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
                         while ((po2 = PvNextDli(&dli)) != 0) {
                             if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == p)
@@ -1069,7 +1069,7 @@ struct G { char pad[0x260]; void *p260; char pad2[0x300 - 0x264]; int n300; };
 extern struct G D_002DDF40;
 struct V { float x, y, z; } __attribute__((aligned(16)));
 void func_0019E9D8(void *p, struct V *v);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x141588
  * Purpose: vt97: camera focus point = pipe hand pos if on pipe, else world pos with z from jump start/ground
  *   height + 0x1048 offset (or smoothed +0x104C when the camera follows this player)
@@ -1085,7 +1085,7 @@ void GetStepplayerCmFocusPos(char *p, struct V *v)
         func_0019E9D8(p + 0xF50, v);
         return;
     }
-    *(qword *)v = func_001A62E8(p);
+    *(qword *)v = GetLoWorldPos(p);
     if (*(int *)(p + 0x208)) {
         z = *(float *)(p + 0x238) + *(float *)(p + 0x1048);
     } else if (*(int *)(p + 0x2DC) == 0x14 || D_002DDF40.n300 != 0 || D_002DDF40.p260 != p) {
@@ -1119,7 +1119,7 @@ extern struct { float a, b, c; } D_002BCCF0;
 extern struct { float lo, hi; } D_002BBB60;
 extern qword D_002A2DD0;
 void GetSoCpdefi(struct JT *, struct XP *);
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 qword PosSmooth(qword a, qword b, float dt, void *pv, int n);
 void func_0019C8B0(void *, struct XP *);
@@ -1158,7 +1158,7 @@ void GetStepplayerCpdefi(struct JT *pjt, struct XP *pxp)
         VU v;
         float z, lo, hi, g;
         struct VTE *e;
-        { qword q = func_001A62E8(pjt); __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); }
+        { qword q = GetLoWorldPos(pjt); __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); }
         e = &pjt->vt[97];
         ((void (*)(void *, VU *))e->pfn)((char *)pjt + e->d, &v);
         if (pjt->x434) {
@@ -1239,7 +1239,7 @@ struct P {
     float g2F4; char pad5[0x300 - 0x2F8]; int k300; char pad6[0x360 - 0x304]; UQ v360;
     char pad7[0xDF4 - 0x370]; int xDF4;
 };
-qword func_001A62E8(struct P *p);
+qword GetLoWorldPos(struct P *p);
 qword func_001D6848(qword a, qword b, float g, qword c);
 void func_00195A00(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x141968
@@ -1254,7 +1254,7 @@ void func_00141968(struct P *p, qword v, float g, float h)
 {
     UQ pos;
     UQ r;
-    pos.q = func_001A62E8(p);
+    pos.q = GetLoWorldPos(p);
     pos.f[2] += p->dz;
     r.q = func_001D6848(pos.q, v, g, p->pE8->q);
     p->vt[35].pfn((char *)p + p->vt[35].d, r.q);
@@ -1674,7 +1674,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct P { char pad[0xC]; struct VTE *vt; char pad2[0x11B0 - 0x10]; char sub[0x10]; void *p11C0; char pad3[0x1290 - 0x11C4]; qword q1290; };
 void FadeSoIn(void *p, float f);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void UpdateJtThrowArc(void *p, int n);
 void SetJtthrowState(void *p, int n);
 /** @sly2-annot addr=0x142278
@@ -1689,7 +1689,7 @@ void func_00142278(struct P *p, void *a, void *b)
     struct VTE *e;
     FadeSoIn(a, 0.25f);
     p->p11C0 = a;
-    p->q1290 = func_001A62E8(b);
+    p->q1290 = GetLoWorldPos(b);
     UpdateJtThrowArc(p->sub, 0);
     e = &p->vt[88];
     ((void (*)(void *, int))e->pfn)((char *)p + e->d, 7);
@@ -1756,7 +1756,7 @@ struct P {
 };
 extern struct CLOCK D_002DDED0;
 void LoadIdentityMatrix4(void *a, int b, M4 *pm, int c, float g);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 static __inline__ qword Mul(M4 *pm, qword v)
 {
     qword o;
@@ -1794,7 +1794,7 @@ int func_001423A0(struct P *p)
     if (p->x4C8 != 5 || !p->x4D4) return 1;
     LoadIdentityMatrix4(p->po->vt[32].pfn((char *)p->po + p->po->vt[32].d, &buf), 0, &m, 0, 0.0f);
     v = Mul(&m, buf.pos);
-    if (5.0f < GDist(func_001A62E8(p->po), v)) return 0;
+    if (5.0f < GDist(GetLoWorldPos(p->po), v)) return 0;
     if (p->x9A4 != 1) return 1;
     if (D_002DDED0.t < p->p994->t) return 0;
     return 1;
@@ -2096,7 +2096,7 @@ struct VU_VECTOR4
 {
     qword qw;
 };
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
     return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
@@ -2314,7 +2314,7 @@ void HeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
 int FCheckLm__FP2LMf(void *p, float g);
 void func_0012CFE0(Q *pq);
 void func_0012D020(Q *pq);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword ConvertAloPos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
 float RadLimitLm(LM *plm, float g);
@@ -2430,7 +2430,7 @@ void func_00142AF8(P *p)
             return;
         }
         func_0012CFE0(p->pq);
-        CalculateVectorPanTilt(ConvertAloPos(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
+        CalculateVectorPanTilt(ConvertAloPos(0, p, GetLoWorldPos(p->p10F8)), &pan, &tilt);
         pan = RadLimitLm(&p->lmPan, pan);
         tilt = RadLimitLm(&p->lmTilt, tilt);
         {
@@ -2480,7 +2480,7 @@ typedef int qword __attribute__((mode(TI)));
 struct P { char pad[0x10F8]; void *p10F8; int x10FC; };
 extern float D_002BD2C0;
 extern float D_002BD2C4;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword ConvertAloPos(void *pm, struct P *p, qword v);
 float atan2f(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
@@ -2499,7 +2499,7 @@ int func_001430C8(struct P *p)
     int n;
     int r;
     if (p->p10F8) {
-        qword v = ConvertAloPos(0, p, func_001A62E8(p->p10F8));
+        qword v = ConvertAloPos(0, p, GetLoWorldPos(p->p10F8));
         float g = atan2f(GetY(v), GetX(v));
         float a = __builtin_fabsf(g);
         if (a < D_002BD2C0) n = 0;
@@ -2544,7 +2544,7 @@ struct VTE { short d; short pad; qword (*pfn)(void *); };
 struct O { int pad[3]; struct VTE *vt; };
 struct S { int k; float g4; float g8; int pad; qword pos; qword dir; };
 extern qword D_002A2DC0;
-qword func_001A62E8(struct O *p);
+qword GetLoWorldPos(struct O *p);
 /** @sly2-annot addr=0x143220
  * Purpose: vt96: velocity minus vertical part -> dir; pos = pos + dir*dt; radii 150/75
  * Info: proposed name GetStepplayerStunHold (T1); class STEPPLAYER slot96; TU stepplayer
@@ -2565,7 +2565,7 @@ void GetStepplayerStunHold(struct O *p, struct S *ps, float g)
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(up), "j"(d));
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(h) : "j"(v), "j"(d));
     }
-    pos = func_001A62E8(p);
+    pos = GetLoWorldPos(p);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
     __asm__("vadda.xyzw ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos), "j"(h), "j"(s));
     ps->dir = h;
@@ -2580,7 +2580,7 @@ void GetStepplayerStunHold(struct O *p, struct S *ps, float g)
 namespace M_func_001432E0 { extern "C" {
 int IdBootyCur(void *p);
 void func_00143380(void *p);
-void *PloAcquireProxy(void *p, int n);
+void *AcquireProxyObject(void *p, int n);
 void SelectBootyEntry(void *p, int n);
 void SetBootyState(void *p, int n);
 /** @sly2-annot addr=0x1432E0
@@ -2598,7 +2598,7 @@ void func_001432E0(char *p, int n)
     func_00143380(p);
     if (n == -1) return;
     if (!(*(void * *)&g_sw.ploUnk4638)) return;
-    o = (__typeof__(o))PloAcquireProxy((*(void * *)&g_sw.ploUnk4638), 1);
+    o = (__typeof__(o))AcquireProxyObject((*(void * *)&g_sw.ploUnk4638), 1);
     SelectBootyEntry(o, n);
     *(void **)(o + 0x160) = p;
     SetBootyState(o, 6);
@@ -2666,8 +2666,8 @@ extern char D_002A4D88[];
 extern char D_002A4D90[];
 extern char D_002A4D98[];
 extern char D_002A4DA0[];
-short NFindSaveSymbol(void *, char *);
-int FFindSaveVar(TRIE *, KEY *, OUT *);
+short FindSaveSymbol(void *, char *);
+int FindSaveVar(TRIE *, KEY *, OUT *);
 CRef RefGetSaveVar(TRIE *p, KEY *key, char *pb);
 void *PvAllocSlot__FP8ALLOCREQ(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
@@ -2694,18 +2694,18 @@ extern "C" KEY *PkeyFindBootySaveVar(int id)
     TRIE *pt = &D_003DD490.trie;
     key.c = 0;
     key.a = as;
-    as[0] = NFindSaveSymbol(pt->x8, D_002A4D88);
-    as[2] = NFindSaveSymbol(pt->x8, D_002A4D90);
-    as[4] = NFindSaveSymbol(pt->x8, D_002A4D98);
-    as[5] = NFindSaveSymbol(pt->x8, D_002A4DA0);
+    as[0] = FindSaveSymbol(pt->x8, D_002A4D88);
+    as[2] = FindSaveSymbol(pt->x8, D_002A4D90);
+    as[4] = FindSaveSymbol(pt->x8, D_002A4D98);
+    as[5] = FindSaveSymbol(pt->x8, D_002A4DA0);
     key.c = 1;
-    FFindSaveVar(pt, &key, &out);
+    FindSaveVar(pt, &key, &out);
     ENT *pe1;
     for (int n = out.pe->iChild; n != 0; n = pe1->iSibling) {
         pe1 = &D_003DD490.trie.ae[n];
         key.c = 3;
         as[1] = pe1->ch;
-        if (FFindSaveVar(&D_003DD490.trie, &key, &out2)) {
+        if (FindSaveVar(&D_003DD490.trie, &key, &out2)) {
             ENT *pe2;
             for (int n2 = out2.pe->iChild; n2 != 0; n2 = pe2->iSibling) {
                 pe2 = &D_003DD490.trie.ae[n2];
@@ -2764,7 +2764,7 @@ int IdBootyCur(void *p);
 void *func_0013D1A8(Q *p);
 S *func_00143AF0(LO *p, int n);
 int IlevelCur__Fv(void);
-BL *func_002109B8(int);
+BL *GetLevelListEntry(int);
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
@@ -2833,7 +2833,7 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
         S *ps = func_00143AF0(p, IdBootyCur(p->p11A8));
         int i = IlevelCur__Fv();
         if (ps && i != -1) {
-            BL *pb = func_002109B8(i);
+            BL *pb = GetLevelListEntry(i);
             int f = 0;
             if (pb->c >= 4 && func_00233178(ps->pk, pb->pv, 8) == 0) f = 1;
             if (f) {
@@ -2998,7 +2998,7 @@ struct SO;
 typedef struct { short d; short pad; qword (*pfn)(struct SO *); } VT;
 struct G { char pad[0x88]; float g; };
 struct SO { int x0, x4, x8; VT *vt; char pad[0xE8 - 0x10]; struct G *pg; char pad2[0x248 - 0xEC]; float z; };
-qword func_001A62E8(struct SO *p);
+qword GetLoWorldPos(struct SO *p);
 int func_00173610(qword *ppos, int a, int b, float f, float g);
 /** @sly2-annot addr=0x143D20
  * Purpose: Predict height after dt under gravity; if <=0 test ground 0x173610 at pos
@@ -3014,7 +3014,7 @@ int func_00143D20(struct SO *p, float dt)
     h += 0.5f * dt * dt * p->pg->g;
     if (h > 0.0f)
         return 0;
-    pos.q = func_001A62E8(p);
+    pos.q = GetLoWorldPos(p);
     return func_00173610(&pos.q, 0, 0, 0.0f, h);
 }
 } } // namespace M_func_00143D20
@@ -3158,7 +3158,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct P { char pad[0xC]; struct VTE *vt; char pad2[0xDFC - 0x10]; int nDFC; int *pnE00; char pad3[0x12FC - 0xE04]; int *pn12FC; int n1300; int pad4; int n1308; };
 extern char D_002A4E18[];
 extern char D_002A4E20[];
-int *PvSaveVarV(void *p, char *name, int n);
+int *GetSaveVarAddressV(void *p, char *name, int n);
 void SetStepplayerHp(struct P *p, int n);
 void SetStepplayerMp(struct P *p, int n);
 /** @sly2-annot addr=0x1440D0
@@ -3173,10 +3173,10 @@ void SetStepplayerMp(struct P *p, int n);
 void BindStepplayerHpMp(struct P *p, int f)
 {
     struct VTE *e = &p->vt[103];
-    p->pnE00 = PvSaveVarV(((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4E18, 0);
+    p->pnE00 = GetSaveVarAddressV(((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4E18, 0);
     {
         struct VTE *e2 = &p->vt[103];
-        p->pn12FC = PvSaveVarV(((void *(*)(void *))e2->pfn)((char *)p + e2->d), D_002A4E20, 0);
+        p->pn12FC = GetSaveVarAddressV(((void *(*)(void *))e2->pfn)((char *)p + e2->d), D_002A4E20, 0);
     }
     if (*p->pnE00 == 0 || f) {
         SetStepplayerHp(p, p->nDFC);

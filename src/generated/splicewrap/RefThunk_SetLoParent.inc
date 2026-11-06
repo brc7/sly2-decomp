@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void SetLoParent_1A58D0(s32, s32, s32);               /* extern */
+void SetLoParent(s32, s32, s32);               /* extern */
 CRef *RefThunk_SetLoParent(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 8240, 4119 };
@@ -9,7 +9,7 @@ CRef *RefThunk_SetLoParent(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    SetLoParent_1A58D0(pbasic, arg0_v, arg1_v);
+    SetLoParent(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

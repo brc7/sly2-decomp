@@ -46,7 +46,7 @@ struct TURRETV
     LMV pitchRange;      /* +0x1A4 */
     LMV range;           /* +0x1AC zoom range */
     float blend, velocity, strength;  /* +0x1B4 */
-    PROXYSRC *pproxy;   /* +0x1C0 what it fires (PloAcquireProxy) */
+    PROXYSRC *pproxy;   /* +0x1C0 what it fires (AcquireProxyObject) */
     void *plauncher;    /* +0x1C4 */
     void *plaunched;    /* +0x1C8 last object fired */
     int output;         /* +0x1CC the rotation act is running */
@@ -77,8 +77,8 @@ void UpdateTurretAim(TURRETV *p);
 void func_00225E98(TURRETV *p);
 void func_00226250(TURRETV *p);
 void func_00226370(TURRETV *p, int k);
-qword func_001A62E8(void *);
-M3 *func_001A6318(void *);
+qword GetLoWorldPos(void *);
+M3 *GetLoWorldMatrix(void *);
 M3 LoadLookAtMatrix(qword);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(const M3 *,float *,float *);
 float GLimitAbs__Fff(float,float);
@@ -90,7 +90,7 @@ CRef RefGetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
 int POCTL_FConsumePressed(CONTROL *x, int a);
-void *PloAcquireProxy(PROXYSRC *y, int a);
+void *AcquireProxyObject(PROXYSRC *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
 void *FIgnoreSoIntersection(TURRETV *p);
 void *func_00134310(void *v, int a);
@@ -199,7 +199,7 @@ extern "C" void UpdateTurretAim(TURRETV *p){
         M3 m;
         float pitch,yaw;
         qword target;
-        m=LoadLookAtMatrix((target=func_001A62E8(p->target),VuSub(target,func_001A62E8(p))));
+        m=LoadLookAtMatrix((target=GetLoWorldPos(p->target),VuSub(target,GetLoWorldPos(p))));
         DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&m,&pitch,&yaw);
         float dp=pitch-p->pitch;
         float dy=yaw-p->yaw;
@@ -268,18 +268,18 @@ extern "C" void func_00225E98(TURRETV *p){
         V saved;
         V scratch;
         float radius=p->target->shape?p->target->shape->radius:0.0f;
-        scratch.q=ToVF(func_001A62E8(p));
-        float angle=atanf(radius/(Length(VuSub(scratch.q,func_001A62E8(p->target)))*0.5f));
+        scratch.q=ToVF(GetLoWorldPos(p));
+        float angle=atanf(radius/(Length(VuSub(scratch.q,GetLoWorldPos(p->target)))*0.5f));
         angle=angle+angle;
         CLOCK *clock=&D_002DDED0;
         angle=GMax(angle,p->range.lo);
         LoadIdentityMatrix4(p->target->component,0,&m,0,clock->dt);
         scratch.q=LoadVF(m.r[3]);future.q=scratch.q;
-        offset.q=VuSub(scratch.q,func_001A62E8(p->target));
+        offset.q=VuSub(scratch.q,GetLoWorldPos(p->target));
         float extent=radius+OffsetLength(offset.q);
         saved.q=future.q;
-        local.q=Difference(func_001A62E8(p),saved.q);
-        local.q=InverseRotate(*func_001A6318(p),local.q);
+        local.q=Difference(GetLoWorldPos(p),saved.q);
+        local.q=InverseRotate(*GetLoWorldMatrix(p),local.q);
         swapped.f[0]=-local.f[1];swapped.f[1]=local.f[2];swapped.f[2]=local.f[0];
         float desired;
         if(local.f[0]>0.0001f){
@@ -317,7 +317,7 @@ extern "C" void func_00226250(TURRETV *p)
 {
     if (p->control && POCTL_FConsumePressed(p->control, 0xFF)) {
         if (p->pproxy) {
-            void *v = PloAcquireProxy(p->pproxy, 0);
+            void *v = AcquireProxyObject(p->pproxy, 0);
             if (!v) return;
             p->plaunched = v;
             if (p->plauncher) LaunchSoFromLauncher(p->plauncher, v);
