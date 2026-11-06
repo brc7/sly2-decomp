@@ -830,12 +830,12 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
 // Frees the three hand acts that are active.
 extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 {
-    if (hands->psoHeld != 0) {
-        ReleaseAct(&hands->pactPos);
-        ReleaseAct(&hands->pactHold);
-        ReleaseAct(&hands->pactTurn);
-        hands->psoHeld = 0;
-    }
+    if (hands->psoHeld == 0)
+        return;
+    ReleaseAct(&hands->pactPos);
+    ReleaseAct(&hands->pactHold);
+    ReleaseAct(&hands->pactTurn);
+    hands->psoHeld = 0;
 }
 
 /* Release the held object onto po (its parent, or the world) and move it there with acts; then target po. */
