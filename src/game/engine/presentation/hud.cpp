@@ -2541,8 +2541,8 @@ struct S { int x0; int k; L *pl; int xc; int i; void *x14; };
 struct T { char pad[0x30]; S *x30; char pad34[0x24]; int x58; };
 extern "C" int IFreeSpriteSlot(void *p);
 extern "C" void func_00217CA8(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
-extern "C" void *func_001BEED8(int);
-extern "C" void *func_001BEB28(void *);
+extern "C" void *FindObjectForRenderTarget(int);
+extern "C" void *AcquireRenderTarget(void *);
 /** @sly2-annot addr=0x215730
  * Purpose: bind item to payload by kind (4 nested sprite: start anim 0x314)
  * Info: proposed name SetSpriteItemSource (T2); TU hud
@@ -2560,9 +2560,9 @@ extern "C" void func_00215730(S *p, T *t, void *q, RGBA c0, RGBA c1)
         break;
     case 6:
         if (p->i != -1) {
-            void *pv = func_001BEED8(p->i);
+            void *pv = FindObjectForRenderTarget(p->i);
             if (pv)
-                p->x14 = func_001BEB28(pv);
+                p->x14 = AcquireRenderTarget(pv);
         }
         break;
     }
@@ -2602,7 +2602,7 @@ struct Q { char pad[0x20]; void *x20; };
 struct S { int x0; int k; struct L *pl; int xc; int i; struct Q *x14; };
 struct T { char pad[0x58]; int x58; };
 void func_00218660(void *p, int a);
-void func_001BED18(void *p);
+void ReleaseRenderTarget(void *p);
 void InitSpriteItem(struct T *t);
 /** @sly2-annot addr=0x2158C0
  * Purpose: release item payload (stop nested slot / texture ref) and reinit
@@ -2619,7 +2619,7 @@ void func_002158C0(struct S *p, struct T *t)
     case 6:
         if (p->x14) {
             if (p->x14->x20)
-                func_001BED18(p->x14->x20);
+                ReleaseRenderTarget(p->x14->x20);
             p->x14 = 0;
         }
         break;

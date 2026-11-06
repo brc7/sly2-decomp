@@ -750,7 +750,7 @@ extern "C" {
 extern CFont *D_002DE760;
 extern TEXT_TABLE D_003E1C20;
 char *func_00210CA8(TEXT_TABLE *p, int k);
-float func_0015FEF8(CRichText *pfont, float dx) __asm__("FUN_0015e1b0");
+float GetRichTextWrappedHeight(CRichText *pfont, float dx) __asm__("GetRichTextWrappedHeight");
 float DxMaxLine__9CRichText(CRichText *pfont);
 void FillScreenRect(RGBA rgba, GIFS *pgifs, float x0, float y0, float x1, float y1);
 void Draw__9CRichTextP8CTextBoxT1P4GIFS(CRichText *pfont, TB *ptb, TB *clip, GIFS *pgifs);
@@ -791,7 +791,7 @@ void func_001B3700(CMPEG *p)
         gifs.AddDmaCnt();
         PushScaling__5CFontff(D_002DE760, 0.8f, 0.8f);
         CRichText font(func_00210CA8(&D_003E1C20, p->psubt->idText), D_002DE760);
-        float dy = func_0015FEF8(&font, 320.0f);
+        float dy = GetRichTextWrappedHeight(&font, 320.0f);
         float dx = DxMaxLine__9CRichText(&font);
         TB tb(320.0f - dx * 0.5f, 476.8000183f - dy, dx, dy);
         RGBA rgba;

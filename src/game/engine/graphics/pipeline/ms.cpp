@@ -41,7 +41,7 @@ struct GLOBOWNER
 
 extern "C" {
 void InitSo(SO *pso);
-void func_001D57A8(INTSTACK *pis);                                     /* InitIntStack (HYPOTHESIS) */
+void InitIntStack(INTSTACK *pis);                                     /* InitIntStack (HYPOTHESIS) */
 void CullSceneRenderList(INTSTACK *pis, GLOBSET *pglobset);
 void RenderSoGlobset(GLOBSET *pglobset, int a, int b, float f, float g);
 }
@@ -61,7 +61,7 @@ extern "C" void RenderMsGlobset(MSV *mesh)
       if (mesh->globset.aposeset) {
             // posed (skinned) globs go through the scene render list
             INTSTACK scratch;
-            func_001D57A8(&scratch);
+            InitIntStack(&scratch);
             CullSceneRenderList(&scratch, &mesh->globset);
       } else {
             RenderSoGlobset(&mesh->globset, 0, 0, 1.0f, 1.0f);

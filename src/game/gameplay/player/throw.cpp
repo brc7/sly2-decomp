@@ -119,7 +119,7 @@ SO *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int,qword,qword,int,SO **,HIT
 int CSolveQuadratic__FfffPf(float,float,float,float *);
 M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
 V *VECTOR_opAssign(V *,qword);
-void func_0021C5F8(EFFECT *,qword);
+void SetTrailMeshPositions(EFFECT *,qword);
 int func_00134310(int, int);
 void func_001CD098(CTRLSEL *,O *);
 void func_001CD2C0(CTRLSEL *);
@@ -553,7 +553,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
    pframe->s=0.0f;
    pframe->mat=mat;
   }
-  func_0021C5F8(pjtthrow->effect,posLaunch);
+  SetTrailMeshPositions(pjtthrow->effect,posLaunch);
  }
  qword posAim=pjtthrow->targetWorld.q;
  qword posHeroNow=func_001A62E8(pjtthrow->owner);

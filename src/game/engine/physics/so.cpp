@@ -992,8 +992,8 @@ struct VT { VTE a[43]; };
 struct L { char pad[0xC]; VT *pvt; struct L *parent; int n14; char pad1[0x24 - 0x18]; struct L *next; ulong lo : 60; ulong b60 : 1; ulong hi : 3; float g30, g34, g38; char pad2[0x64 - 0x3C]; struct L *first; char pad3[0x140 - 0x68]; int n140; };
 struct G;
 extern "C" { extern G D_003DD490; }
-extern "C" void func_001D6310(L *);
-extern "C" void func_001D6378(L *);
+extern "C" void RemoveLoFromSphereTree(L *);
+extern "C" void AddLoToSphereTree(L *);
 extern "C" void func_00147E88(G *, int);
 /** @sly2-annot addr=0x1F3118
  * Purpose: SO vt42: store busy distance +0x38, refresh +0x140 registration (0x1D6310/0x1D6378), re-sort root
@@ -1009,8 +1009,8 @@ extern "C" void func_001F3118(L *p, float t)
     int unused[4];
     p->g38 = t;
     if (p->n140 != -1) {
-        func_001D6310(p);
-        func_001D6378(p);
+        RemoveLoFromSphereTree(p);
+        AddLoToSphereTree(p);
     }
     if (!p->parent) {
         bool f = p->b60;
@@ -1441,8 +1441,8 @@ struct P {
 };
 
 int func_001A61A0(struct P *);
-void func_001D6378(struct P *);
-void func_001D6310(struct P *);
+void AddLoToSphereTree(struct P *);
+void RemoveLoFromSphereTree(struct P *);
 
 /** @sly2-annot addr=0x1F3B28
  * Purpose: SO vt21: set/clear grf bit 8; when enabling and +0x148 bit35 and in world -> register (0x1D6378);
@@ -1479,7 +1479,7 @@ void func_001F3B28(struct P *p, int enabled)
                 }
             }
             if ((p->fl & (1L << 35)) && func_001A61A0(p))
-                func_001D6378(p);
+                AddLoToSphereTree(p);
         } else {
             if (!has8)
                 return;
@@ -1496,7 +1496,7 @@ void func_001F3B28(struct P *p, int enabled)
                     __asm__("sw %1,%0" : "=m"(p->v40) : "r"(value));
                 }
             }
-            func_001D6310(p);
+            RemoveLoFromSphereTree(p);
         }
     }
 }
@@ -1509,7 +1509,7 @@ struct G { char pad[0x3D60]; int n; };
 extern struct G D_003DD490;
 struct Q { char pad[0xC]; int n; };
 struct A { char pad[0x134]; struct Q *pq; };
-void func_001A4478(struct G *pg, int n, struct Q *pq);
+void BuildSoLightPackets(struct G *pg, int n, struct Q *pq);
 /** @sly2-annot addr=0x1F3C10
  * Purpose: If bounds record (+0x134) stamp != g_sw+0x3D60, recompute via 0x1A4478 and store stamp
  * Info: proposed name RefreshSoBoundsLighting (T2); TU so
@@ -1522,7 +1522,7 @@ void func_001F3C10(struct A *p)
 {
     struct Q *pq = p->pq;
     if (pq && pq->n != D_003DD490.n) {
-        func_001A4478(&D_003DD490, 0, pq);
+        BuildSoLightPackets(&D_003DD490, 0, pq);
         p->pq->n = D_003DD490.n;
     }
 }
@@ -1557,7 +1557,7 @@ struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x24 - 0x10]; struct O *pNe
 struct P { char pad[0x64]; struct O *pFirst; char pad2[0x70 - 0x68]; struct O *pEnd; char pad3[0x80 - 0x74]; char x80[0x134 - 0x80]; struct B *pb; };
 struct G;
 extern struct G D_003DD490;
-void func_001A4478(struct G *, int, struct B *);
+void BuildSoLightPackets(struct G *, int, struct B *);
 void RenderSoGlobset(void *, int, float, float, struct B *);
 /** @sly2-annot addr=0x1F3CC8
  * Purpose: SO vt20: draw globset with explicit params and recurse vt20 to children
@@ -1574,7 +1574,7 @@ void func_001F3CC8(struct P *p, int a, struct B *pb, float f1, float f2)
     if (!pb && p->pb) {
         b = *p->pb;
         pb = &b;
-        func_001A4478(&D_003DD490, a, &b);
+        BuildSoLightPackets(&D_003DD490, a, &b);
     }
     RenderSoGlobset(p->x80, a, f1, f2, pb);
     for (po = p->pFirst; po != p->pEnd; po = po->pNext)
@@ -1592,7 +1592,7 @@ struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next
 struct E { char pad[0x60]; struct L *p60; };
 struct DL;
 void OnLoRemove(struct L *);
-void func_001D6310(struct L *);
+void RemoveLoFromSphereTree(struct L *);
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
 /** @sly2-annot addr=0x1F3E00
@@ -1611,7 +1611,7 @@ void OnSoRemove(struct L *p)
     struct L *q;
     int unused[4];
     OnLoRemove(p);
-    func_001D6310(p);
+    RemoveLoFromSphereTree(p);
     for (q = p->first; q != p->end; q = q->next) VF(q, 22);
     if (p->pe && p->pe->p60 == p) {
         VF(p, 49);
@@ -1631,7 +1631,7 @@ struct L { char pad[0xC]; struct VT *pvt; char pad1[0x24 - 0x10]; struct L *next
 struct E { char pad[0x60]; struct L *p60; };
 struct DL;
 void OnLoAdd(struct L *);
-void func_001D6378(struct L *);
+void AddLoToSphereTree(struct L *);
 int FFindDlEntry__FP2DLPv(struct DL *, void *);
 void AppendDlEntry__FP2DLPv(struct DL *, void *);
 #define VF(q, n) (q)->pvt->a[n].pfn((char *)(q) + (q)->pvt->a[n].d)
@@ -1652,7 +1652,7 @@ void OnSoAdd(struct L *p)
     if (p->fl & (1L << 35)) {
         int v = p->v40;
         if ((v ^ 1) & 1) v = *(int *)v;
-        if (v & 8) func_001D6378(p);
+        if (v & 8) AddLoToSphereTree(p);
     }
     for (q = p->first; q != p->end; q = q->next) VF(q, 23);
     if (p->pe && p->pe->p60 == p) {
@@ -5268,8 +5268,8 @@ typedef unsigned long ulong;
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x148 - 0x68]; ulong lo : 35; ulong b35 : 1; ulong hi : 28; };
 struct G { char pad[0x3E5C]; int f; };
 extern struct G D_003DD490;
-void func_001D6378(struct L *);
-void func_001D6310(struct L *);
+void AddLoToSphereTree(struct L *);
+void RemoveLoFromSphereTree(struct L *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 /** @sly2-annot addr=0x1F8668
  * Purpose: Set +0x148 bit35 recursively; when g_sw+0x3E5C and enabling register (0x1D6378)
@@ -5284,8 +5284,8 @@ void func_001F8668(struct L *p, long f)
     if (f != p->b35) {
         p->b35 = f;
         if (D_003DD490.f) {
-            if (f) func_001D6378(p);
-            else func_001D6310(p);
+            if (f) AddLoToSphereTree(p);
+            else RemoveLoFromSphereTree(p);
         }
         for (q = p->first; q; q = q->next)
             if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x30)) func_001F8668(q, f);

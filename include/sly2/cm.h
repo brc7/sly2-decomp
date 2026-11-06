@@ -40,7 +40,7 @@ struct CPLCY : public CPLCYDATA
     virtual void Set() __asm__("SetCplcy");
     virtual void Revoke() __asm__("CPLCY_Revoke");
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplcy");
-    virtual void VSlot7() __asm__("func_0014FD48");
+    virtual void VSlot7() __asm__("ResetCplcy");
     int FIsTop() __asm__("FActiveCplcy__FP5CPLCY");   /* from FCanUseGadget__2JTi.cpp */
 };
 
@@ -152,8 +152,8 @@ struct CPTURRET : public CPLCY
 struct CPCAMERA : public CPLCY
 {
     virtual void Activate(void *pvHero, void *pv) __asm__("func_0012E798");   /* key function (tu_12E600) */
-    virtual void Deactivate(void *pvHero, void *pv) __asm__("func_0012E7F0");
-    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("func_0012E858");
+    virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpcamera");
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpcamera");
       CID44 *pcamera;
 };
 
@@ -210,7 +210,7 @@ struct CMPART2 : public CPLCY
       float dradTiltLook;
       uint32_t   _pad_510    [ 3 ] ;
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCptn");
-    virtual void Init() __asm__("func_002219C8");
+    virtual void Init() __asm__("InitCptn");
     virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCptn");
     virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCptn");
 };

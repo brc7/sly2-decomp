@@ -1,12 +1,12 @@
 #include "splicewrap.h"
-void func_00221940(s32);                         /* extern */
+void ClearTnTnfn(s32);                         /* extern */
 CRef *func_001027E0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     CRef ref;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_00221940(pbasic);
+    ClearTnTnfn(pbasic);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

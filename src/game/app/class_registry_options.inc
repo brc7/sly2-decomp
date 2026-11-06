@@ -568,7 +568,7 @@ void func_00149248() __asm__("func_00149248");
 void func_001497E0() __asm__("func_001497E0");
 void func_00149848() __asm__("func_00149848");
 void func_00156870() __asm__("func_00156870");
-void func_0015C650() __asm__("func_0015C650");
+void EnsureExplsSfx() __asm__("EnsureExplsSfx");
 void func_001628B0() __asm__("func_001628B0");
 void func_001732E0() __asm__("func_001732E0");
 void func_00173318() __asm__("func_00173318");
@@ -579,12 +579,12 @@ void func_001813C0() __asm__("func_001813C0");
 void func_001813F0() __asm__("func_001813F0");
 void func_00184028() __asm__("func_00184028");
 void func_00184040() __asm__("func_00184040");
-void func_001A35F0() __asm__("func_001A35F0");
-void func_001A3610() __asm__("func_001A3610");
-void func_001A3630() __asm__("func_001A3630");
-void func_001A3650() __asm__("func_001A3650");
-void func_001A3680() __asm__("func_001A3680");
-void func_001A36D8() __asm__("func_001A36D8");
+void SetLightHighlightColor() __asm__("SetLightHighlightColor");
+void SetLightMidtoneStrength() __asm__("SetLightMidtoneStrength");
+void SetLightMidtoneAngle() __asm__("SetLightMidtoneAngle");
+void SetLightFalloff() __asm__("SetLightFalloff");
+void SetLightStatic() __asm__("SetLightStatic");
+void SetLightDynamic() __asm__("SetLightDynamic");
 void func_001A62E8() __asm__("func_001A62E8");
 void func_001A6318() __asm__("func_001A6318");
 void func_001A6340() __asm__("func_001A6340");
@@ -597,8 +597,8 @@ void func_001BBA60() __asm__("func_001BBA60");
 void func_001BBA90() __asm__("func_001BBA90");
 void func_001BBB50() __asm__("func_001BBB50");
 void func_001BBB80() __asm__("func_001BBB80");
-void func_001BEAA8() __asm__("func_001BEAA8");
-void func_001BEAD0() __asm__("func_001BEAD0");
+void AddRtcamObject() __asm__("AddRtcamObject");
+void AddRtcamObjectShown() __asm__("AddRtcamObjectShown");
 void func_001C20E8() __asm__("func_001C20E8");
 void func_001C2148() __asm__("func_001C2148");
 void func_001C3C08() __asm__("func_001C3C08");
@@ -677,8 +677,8 @@ void func_0020A9C0() __asm__("func_0020A9C0");
 void func_0020AF08() __asm__("func_0020AF08");
 void func_0020F2B8() __asm__("func_0020F2B8");
 void func_00210978() __asm__("func_00210978");
-void func_00221818() __asm__("func_00221818");
-void func_00221948() __asm__("func_00221948");
+void SelectTnfnForId() __asm__("SelectTnfnForId");
+void GetTnTnfn() __asm__("GetTnTnfn");
 void func_00224610() __asm__("func_00224610");
 void func_00224638() __asm__("func_00224638");
 void func_00226370() __asm__("func_00226370");
@@ -882,13 +882,13 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrMasterVolume), EOPID_INT(1), EOPID_NONE}, /* [149] opt 276, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSndmgrChannelVolume), EOPID_INT(2), EOPID_NONE}, /* [150] opt 277, CID152 */
     {0x1007, 0x122, EOPID_INT(0xE0), EOPID_PMF(SetLightKind), EOPID_PMF(SetLightKind), EOPID_NONE}, /* [151] opt 278, LIGHT */
-    {2, 0xA2, EOPID_INT(0xF0), EOPID_PMF(func_001A35F0), EOPID_INT(0xF0), EOPID_NONE}, /* [152] opt 279, LIGHT */
-    {1, 0xA2, EOPID_INT(0x150), EOPID_PMF(func_001A3610), EOPID_INT(0x150), EOPID_NONE}, /* [153] opt 280, LIGHT */
-    {1, 0xA2, EOPID_INT(0x154), EOPID_PMF(func_001A3630), EOPID_INT(0x154), EOPID_NONE}, /* [154] opt 281, LIGHT */
-    {0xA, 0xA2, EOPID_INT(0x164), EOPID_PMF(func_001A3650), EOPID_INT(0x164), EOPID_NONE}, /* [155] opt 282, LIGHT */
+    {2, 0xA2, EOPID_INT(0xF0), EOPID_PMF(SetLightHighlightColor), EOPID_INT(0xF0), EOPID_NONE}, /* [152] opt 279, LIGHT */
+    {1, 0xA2, EOPID_INT(0x150), EOPID_PMF(SetLightMidtoneStrength), EOPID_INT(0x150), EOPID_NONE}, /* [153] opt 280, LIGHT */
+    {1, 0xA2, EOPID_INT(0x154), EOPID_PMF(SetLightMidtoneAngle), EOPID_INT(0x154), EOPID_NONE}, /* [154] opt 281, LIGHT */
+    {0xA, 0xA2, EOPID_INT(0x164), EOPID_PMF(SetLightFalloff), EOPID_INT(0x164), EOPID_NONE}, /* [155] opt 282, LIGHT */
     {0, 0x92, EOPID_INT(0x158), EOPID_INT(0x158), EOPID_INT(0x158), EOPID_NONE}, /* [156] opt 283, LIGHT */
-    {0, 0xA2, EOPID_INT(0x15C), EOPID_PMF(func_001A3680), EOPID_INT(0x15C), EOPID_NONE}, /* [157] opt 290, LIGHT */
-    {0, 0xA2, EOPID_INT(0x160), EOPID_PMF(func_001A36D8), EOPID_INT(0x160), EOPID_NONE}, /* [158] opt 291, LIGHT */
+    {0, 0xA2, EOPID_INT(0x15C), EOPID_PMF(SetLightStatic), EOPID_INT(0x15C), EOPID_NONE}, /* [157] opt 290, LIGHT */
+    {0, 0xA2, EOPID_INT(0x160), EOPID_PMF(SetLightDynamic), EOPID_INT(0x160), EOPID_NONE}, /* [158] opt 291, LIGHT */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkCmJOLT), EOPID_INT(1), EOPID_NONE}, /* [159] opt 233, CM */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkCmCUT), EOPID_NONE, EOPID_NONE}, /* [160] opt 292, CM */
     {1, 0x122, EOPID_INT(0x20), EOPID_PMF(SetCmFov__FP2CMf), EOPID_PMF(SetCmFov__FP2CMf), EOPID_NONE}, /* [161] opt 293, CM */
@@ -906,7 +906,7 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x24, EOPID_PMF(GetCmRotDeg), EOPID_PMF(SetCmRotDeg), EOPID_NONE, EOPID_NONE}, /* [173] opt 36, CM */
     {1, 0x92, EOPID_INT(0x620), EOPID_INT(0x624), EOPID_INT(0x624), EOPID_NONE}, /* [174] opt 303, CM */
     {5, 0x92, EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_NONE}, /* [175] opt 220, CID5 */
-    {7, 0x124, EOPID_PMF(func_00221948), EOPID_PMF(func_00221818), EOPID_PMF(func_00221818), EOPID_NONE}, /* [176] opt 307, TN */
+    {7, 0x124, EOPID_PMF(GetTnTnfn), EOPID_PMF(SelectTnfnForId), EOPID_PMF(SelectTnfnForId), EOPID_NONE}, /* [176] opt 307, TN */
     {0x12, 0x400, EOPID_FN(func_001027E0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [177] opt 308, TN */
     {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(PtnfnFromTn)}, /* [178] opt 309, TN */
     {9, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(PtnfnFromTn)}, /* [179] opt 310, TN */
@@ -1319,11 +1319,11 @@ EOPIDROW D_002AC880[1449] = {
     {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFT(func_00258E60, EXPLO)}, /* [586] opt 613, EXPLS */
     {0xA, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFT(func_00258E60, EXPLO)}, /* [587] opt 614, EXPLS */
     {1, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFT(func_00258EC8, EXPLO)}, /* [588] opt 615, EXPLS */
-    {0xE, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_0015C650)}, /* [589] opt 209, EXPLS */
-    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMF(func_0015C650)}, /* [590] opt 618, EXPLS */
-    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(func_0015C650)}, /* [591] opt 619, EXPLS */
-    {1, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMF(func_0015C650)}, /* [592] opt 620, EXPLS */
-    {1, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(func_0015C650)}, /* [593] opt 621, EXPLS */
+    {0xE, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(EnsureExplsSfx)}, /* [589] opt 209, EXPLS */
+    {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMF(EnsureExplsSfx)}, /* [590] opt 618, EXPLS */
+    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(EnsureExplsSfx)}, /* [591] opt 619, EXPLS */
+    {1, 0x2092, EOPID_INT(0xC), EOPID_INT(0xC), EOPID_INT(0xC), EOPID_PMF(EnsureExplsSfx)}, /* [592] opt 620, EXPLS */
+    {1, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(EnsureExplsSfx)}, /* [593] opt 621, EXPLS */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00105CD0), EOPID_INT(1), EOPID_NONE}, /* [594] opt 214, CID113 */
     {0x12, 0x401, EOPID_FN(func_00105D58), EOPID_FN(func_00105D58), EOPID_INT(1), EOPID_NONE}, /* [595] opt 622, CID113 */
     {0x12, 0x401, EOPID_FN(func_00105DE0), EOPID_FN(func_00105DE0), EOPID_INT(1), EOPID_NONE}, /* [596] opt 623, CID113 */
@@ -1794,8 +1794,8 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x82, EOPID_INT(0x120), EOPID_NONE, EOPID_INT(0x120), EOPID_NONE}, /* [1061] opt 296, CID45 */
     {1, 0x82, EOPID_INT(0x124), EOPID_NONE, EOPID_INT(0x124), EOPID_NONE}, /* [1062] opt 297, CID45 */
     {0x2002, 0x92, EOPID_INT(0x118), EOPID_INT(0x118), EOPID_INT(0x118), EOPID_NONE}, /* [1063] opt 946, CID45 */
-    {0x2030, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001BEAA8), EOPID_NONE}, /* [1064] opt 238, CID45 */
-    {0x2004, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001BEAD0), EOPID_NONE}, /* [1065] opt 947, CID45 */
+    {0x2030, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddRtcamObject), EOPID_NONE}, /* [1064] opt 238, CID45 */
+    {0x2004, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddRtcamObjectShown), EOPID_NONE}, /* [1065] opt 947, CID45 */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(func_0010D4E0), EOPID_NONE, EOPID_NONE}, /* [1066] opt 214, CID45 */
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(func_0010D558), EOPID_NONE, EOPID_NONE}, /* [1067] opt 237, CID45 */
     {0x2002, 0x92, EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_NONE}, /* [1068] opt 534, CID35 (+2) */

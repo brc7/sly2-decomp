@@ -119,7 +119,7 @@ void PlayWidgetAnim(WIDGETV *, int);
 void func_00214300(WIDGETV *, int);
 void func_0014D1D0(void *, int, float);
 void func_001FE5B8(void *, int, int);
-void func_0014FE28(void *);
+void ResetCplookZoom(void *);
 void *StartDialog(void *, int, int);
 void func_00147C20(void *, int, int);
 void BroadcastGameEvent(void *, int, void *);
@@ -564,7 +564,7 @@ void SetReconSelState(RECONSEL *p,int nextState)
         StopWidgetAnim(p->primary,0x358);
         break;
     case 9:
-        func_0014FE28(&g_cm.cplook);
+        ResetCplookZoom(&g_cm.cplook);
         func_00214300(p->primary,-1);
         Post(p->primary,0x310);
         if(p->resource){

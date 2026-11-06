@@ -167,7 +167,7 @@ struct SAA : BASIC
     virtual CLASSINFO *Pclassinfo() __asm__("GetSaaClassDesc");   /* slot 6 */
     virtual void VSlot8() __asm__("UpdateSaa");   /* slot 8 */
     virtual void VSlot9() __asm__("UCompleteSaa__FP3SAA");   /* slot 9 */
-    virtual void VSlot10() __asm__("func_001EDB80");   /* slot 10 */
+    virtual void VSlot10() __asm__("DoesSaaMatchOid");   /* slot 10 */
 };
 typedef char assert_SAA_size[sizeof(SAA) == 0x50 ? 1 : -1];
 
@@ -188,12 +188,12 @@ struct CID44 : XFM
     char padE0[0x140 - 0xE0];
     virtual void Init() __asm__("func_0012E600");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid44ClassDesc");   /* slot 6 */
-    virtual void AddHierarchy() __asm__("func_0012E6A0");   /* slot 11 */
-    virtual void RemoveHierarchy() __asm__("func_0012E6E8");   /* slot 12 */
-    virtual void VUnk14() __asm__("func_0012E648");   /* slot 15 */
-    virtual void *VUnk42(int id) __asm__("func_0012E738");   /* slot 43 */
-    virtual void VUnk43(int id) __asm__("func_0012E740");   /* slot 44 */
-    virtual void VUnk44(int id) __asm__("func_0012E750");   /* slot 45 */
+    virtual void AddHierarchy() __asm__("AddCameraHierarchy");   /* slot 11 */
+    virtual void RemoveHierarchy() __asm__("RemoveCameraHierarchy");   /* slot 12 */
+    virtual void VUnk14() __asm__("PostCameraLoad");   /* slot 15 */
+    virtual void *VUnk42(int id) __asm__("GetCameraFocalLengthField");   /* slot 43 */
+    virtual void VUnk43(int id) __asm__("IncrementCameraFovRequests");   /* slot 44 */
+    virtual void VUnk44(int id) __asm__("DecrementCameraFovRequests");   /* slot 45 */
 };
 typedef char assert_CID44_size[sizeof(CID44) == 0x140 ? 1 : -1];
 
@@ -1303,7 +1303,7 @@ struct LIGHT : XFM
     virtual void AddHierarchy() __asm__("AddLightHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveLightHierarchy");   /* slot 12 */
     virtual void VUnk14() __asm__("PostLightLoad");   /* slot 15 */
-    virtual void VUnk16() __asm__("func_001A3460");   /* slot 17 */
+    virtual void VUnk16() __asm__("ProjectLightTransform");   /* slot 17 */
     virtual void Freeze() __asm__("OnLightRemove");   /* slot 22 */
     virtual void Unfreeze() __asm__("OnLightAdd");   /* slot 23 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateLightToPos");   /* slot 29 */
@@ -1433,8 +1433,8 @@ struct CID45 : XFM
     char padE0[0x130 - 0xE0];
     virtual void Init() __asm__("func_001BEA40");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid45ClassDesc");   /* slot 6 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001BEA88");   /* slot 14 */
-    virtual void RenderSelf() __asm__("func_001BEE60");   /* slot 19 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRtcamFromBrx");   /* slot 14 */
+    virtual void RenderSelf() __asm__("RenderRtcam");   /* slot 19 */
 };
 typedef char assert_CID45_size[sizeof(CID45) == 0x130 ? 1 : -1];
 
@@ -1750,7 +1750,7 @@ struct EYES : SAA
     virtual void VSlot8() __asm__("UpdateEyes");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetEyesClassDesc");   /* slot 6 */
     virtual void VSlot7(SAAF *psaaf) __asm__("InitEyes");   /* slot 7 */
-    virtual void VSlot10() __asm__("func_001EE420");   /* slot 10 */
+    virtual void VSlot10() __asm__("DoesEyesMatchOid");   /* slot 10 */
 };
 typedef char assert_EYES_size[sizeof(EYES) == 0x80 ? 1 : -1];
 
@@ -1863,7 +1863,7 @@ struct CID105 : SO
     virtual void VUnk14() __asm__("PostTrailLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateTrail");   /* slot 16 */
     virtual void VUnk16() __asm__("func_0021C1C8");   /* slot 17 */
-    virtual void RenderSelf() __asm__("func_0021C340");   /* slot 19 */
+    virtual void RenderSelf() __asm__("RenderTrail");   /* slot 19 */
 };
 typedef char assert_CID105_size[sizeof(CID105) == 0x1A0 ? 1 : -1];
 

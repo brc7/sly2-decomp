@@ -54,7 +54,7 @@ struct HUDSTACK
 
 /* RENDERTGT: one of the two render targets (SW::artgt; types/views-3, from tu_1BE398.cpp's RT view, which reads the
    texture register through GS TEX0 bit-fields and keeps its own view): size, TEX0, the clearing and the as-texture
-   GIF packets func_001BE398 builds, and the camera object that claimed it (0 when free). */
+   GIF packets InitRenderTargets builds, and the camera object that claimed it (0 when free). */
 struct RENDERTGT
 {
       int dx, dy;
@@ -238,7 +238,7 @@ struct SW : public BASIC
       DL dlZprHit;
       SLOTHEAP slotheapXfh; /* +0x413C [S] XFH slot heap; was _pad_328[263] */
       uint32_t   _pad_328    [ 256 ] ;
-      int fUnk4554;         /* +0x4554 [S] draft: set to 1 by func_001A3B38 for some lights (light.cpp) */
+      int fUnk4554;         /* +0x4554 [S] draft: set to 1 by InvalidateLight for some lights (light.cpp) */
       int ccell;
       CELL *acell;
       int cleaf;
