@@ -705,12 +705,12 @@ void UpdateMurray(struct P *murray)
         if (!murray->p1430)
             RecalcSwOxfFilterForObject(&D_003DD490, murray);
     }
-    if (murray->x1ACC) {
-        if (D_002DDED0.t - murray->g1AC8 < D_002C08E4)
-            SetActPositionGoal(murray->x1ACC, D_002C08F0);
-        else
-            SetActPositionGoal(murray->x1ACC, D_002A2DE0);
-    }
+    if (!murray->x1ACC)
+        return;
+    if (D_002DDED0.t - murray->g1AC8 < D_002C08E4)
+        SetActPositionGoal(murray->x1ACC, D_002C08F0);
+    else
+        SetActPositionGoal(murray->x1ACC, D_002A2DE0);
 }
 } } // namespace M_UpdateMurray
 #undef FIELD_OFFSET
@@ -1273,13 +1273,13 @@ void ChooseMurrayThrowTarget(struct P *murray)
         maxValue = dist;
         murray->throwGoal = func_001A62E8(poBest);
     }
-    if (!poBest) {
-        qword a, b, r;
-        a = func_001A62E8(murray);
-        b = SetVectorCylind(murray->g1A8, murray->g1410, 0.0f);
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
-        murray->throwGoal = r;
-    }
+    if (poBest)
+        return;
+    qword a, b, r;
+    a = func_001A62E8(murray);
+    b = SetVectorCylind(murray->g1A8, murray->g1410, 0.0f);
+    __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
+    murray->throwGoal = r;
 }
 } } // namespace M_ChooseMurrayThrowTarget
 
@@ -2101,12 +2101,12 @@ void FaceStepToward(struct S *p, int n);
 // If lifting is allowed (x13EC): the grab spot becomes the carried target, lift clip 0, state 4, face it.
 void StartMurrayLiftGrabspot(struct S *murray, struct T *pt)
 {
-    if (murray->f) {
-        murray->pt = pt;
-        murray->g = 0;
-        SetMurrayState(murray, MURRAY_LIFT);
-        FaceStepToward(murray, murray->pt->n);
-    }
+    if (!murray->f)
+        return;
+    murray->pt = pt;
+    murray->g = 0;
+    SetMurrayState(murray, MURRAY_LIFT);
+    FaceStepToward(murray, murray->pt->n);
 }
 } } // namespace M_StartMurrayLiftGrabspot
 
@@ -2126,12 +2126,12 @@ void FaceStepToward(struct S *p, int n);
 // Same as StartMurrayLiftGrabspot with lift clip 1 (the guard-lift clip x1444).
 void StartMurrayLiftGuard(struct S *murray, struct T *pt)
 {
-    if (murray->f) {
-        murray->pt = pt;
-        murray->g = 1;
-        SetMurrayState(murray, MURRAY_LIFT);
-        FaceStepToward(murray, murray->pt->n);
-    }
+    if (!murray->f)
+        return;
+    murray->pt = pt;
+    murray->g = 1;
+    SetMurrayState(murray, MURRAY_LIFT);
+    FaceStepToward(murray, murray->pt->n);
 }
 } } // namespace M_StartMurrayLiftGuard
 
@@ -2535,13 +2535,13 @@ void ThrowMurrayCarriedAt(struct P *murray, void *pv)
 {
     qword a, b, d;
     SetMurrayState(murray, MURRAY_THROW);
-    if (pv) {
-        a = func_001A62E8(pv);
-        murray->q1420 = a;
-        b = func_001A62E8(murray);
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        SetStepRadTargetVec(murray, d);
-    }
+    if (!pv)
+        return;
+    a = func_001A62E8(pv);
+    murray->q1420 = a;
+    b = func_001A62E8(murray);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+    SetStepRadTargetVec(murray, d);
 }
 } } // namespace M_func_001B7A78
 
@@ -3585,19 +3585,19 @@ qword func_00204E38(struct P *p, struct Q *pq, float g);
 // State 12 sub-states 1/3: velocity from the animation root motion.
 void UpdateMurrayPowerVelocity(struct P *murray)
 {
-    if (murray->n == 1 || murray->n == 3) {
-        qword v = func_00204E38(murray, murray->pq, murray->pq->g);
-        qword r;
-        union { qword q; float f; } s;
-        {
-            qword qwsqOut;
-            __asm__("qmtc2.ni %1, %0" : "=j"(qwsqOut) : "r"(-1.0f));
-            s.q = qwsqOut;
-        }
-        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
-        murray->q190 = r;
-        murray->f180 = 1.0f;
+    if (!(murray->n == 1 || murray->n == 3))
+        return;
+    qword v = func_00204E38(murray, murray->pq, murray->pq->g);
+    qword r;
+    union { qword q; float f; } s;
+    {
+        qword qwsqOut;
+        __asm__("qmtc2.ni %1, %0" : "=j"(qwsqOut) : "r"(-1.0f));
+        s.q = qwsqOut;
     }
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
+    murray->q190 = r;
+    murray->f180 = 1.0f;
 }
 } } // namespace M_func_001B90B8
 
@@ -4177,11 +4177,11 @@ struct O *func_00205438(struct S *p, int oid);
 void ClearMurrayBehaviors(struct S *murray, int f)
 {
     ClearBhvstk__FP6BHVSTK(murray->x26c);
-    if (f) {
-        struct O *object = func_00205438(murray, 0xC6);
-        struct VTE *e = &object->vt[8];
-        ((void (*)(void *))e->pfn)((char *)object + e->d);
-    }
+    if (!f)
+        return;
+    struct O *object = func_00205438(murray, 0xC6);
+    struct VTE *e = &object->vt[8];
+    ((void (*)(void *))e->pfn)((char *)object + e->d);
 }
 } } // namespace M_func_001B9CA0
 
@@ -4215,14 +4215,14 @@ void func_0012F9B8(int n, struct O *po, int a, int b, float g0, float g1);
 // If power-up 0x11 is owned: places the hit effect object at the point and plays its animation.
 void SpawnMurrayHitEffect(struct P *murray, qword q)
 {
-    if (FPowerupAcquired(0x11)) {
-        struct O *object = murray->po;
-        if ((((object->f28 >> 60) & 1) == 0)) {
-            struct VTE *e = &object->vt[29];
-            ((void (*)(void *, qword))e->pfn)((char *)object + e->d, q);
-            func_0012F9B8(murray->n1AD4, murray->po, 0, 0, 0.0f, 1.0f);
-        }
-    }
+    if (!FPowerupAcquired(0x11))
+        return;
+    struct O *object = murray->po;
+    if (!((((object->f28 >> 60) & 1) == 0)))
+        return;
+    struct VTE *e = &object->vt[29];
+    ((void (*)(void *, qword))e->pfn)((char *)object + e->d, q);
+    func_0012F9B8(murray->n1AD4, murray->po, 0, 0, 0.0f, 1.0f);
 }
 } } // namespace M_func_001B9D28
 
@@ -4240,11 +4240,11 @@ void func_0012F9B8(void *a, struct O *po, int c, int d, float f, float g);
 // Same as SpawnMurrayHitEffect without the power-up check (event 0x40000 from Murray).
 void SpawnMurrayHitEffectUnchecked(struct S *murray, int x)
 {
-    if ((((int)(murray->po->fl >> 60) & 1) == 0)) {
-        struct VTE *e = &murray->po->vt[29];
-        ((void (*)(void *, int))e->pfn)((char *)murray->po + e->d, x);
-        func_0012F9B8(murray->pv, murray->po, 0, 0, 0.0f, 1.0f);
-    }
+    if (!((((int)(murray->po->fl >> 60) & 1) == 0)))
+        return;
+    struct VTE *e = &murray->po->vt[29];
+    ((void (*)(void *, int))e->pfn)((char *)murray->po + e->d, x);
+    func_0012F9B8(murray->pv, murray->po, 0, 0, 0.0f, 1.0f);
 }
 } } // namespace M_func_001B9DB8
 
