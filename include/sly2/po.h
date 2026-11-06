@@ -53,10 +53,10 @@ struct PO : public SO
       undefined4 unk_0x178;
       int nUnk17c;
     PO();   /* sets pvUnk174 = 0; defined inline in sly2/classes.h (as BASIC's constructor) */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPoFromBrx");   /* slot 14 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetPoClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandlePoMessage");   /* slot 5 */
     virtual void Init() __asm__("InitPo");   /* slot 7 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPoFromBrx");   /* slot 14 */
     virtual void Clone(LO *ploBase) __asm__("ClonePo");   /* slot 41 */
       virtual int FInvulnerable(ZPK zpk) __asm__("FInvulnerablePo");
       virtual int JthsCurrent() __asm__("JthsCurrentPo");
