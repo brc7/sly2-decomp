@@ -20,8 +20,8 @@ different.
 
 | measure | value | tool |
 |---|---|---|
-| functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac); config/matched.csv content unchanged by the run | `JOBS=3 tools/progress.py`, cache deleted, run alone |
-| all game sources (210) | functions 6,017 / 6,017, data symbols 2,187 / 2,187 [2,118] MATCH | `tools/matchtool.py check` |
+| functions matching | 6,662 / 6,662 (100%; 857 sources (commons.cpp has no functions), 329 SDK sources carried over, verified on the Mac); config/matched.csv content unchanged by the run (the first run after deleting the cache lost 4 sources to compile timeouts on the shared machine; the rerun built them) | `JOBS=3 tools/progress.py`, cache deleted, run alone |
+| all game sources (211 with commons.cpp) | functions 6,017 / 6,017, data symbols 4,725 / 4,725 MATCH (now including the COMMON copies of the 22 pool/heap/sentry names config gives addresses: 2,538 in 211 objects) | `tools/matchtool.py check` (here: its comparison on the link objects) |
 | vtables from objects | 284 `.gnu.linkonce.d._vt$*` sections, each MATCH against the ELF and emitted in ascending ELF order per object; 2 left in the linkonce data area (EMITTER's/EXPLO's template-instance tables 0x2CE680, 0x2CED18: tu-merging.md) | `tools/matchtool.py check`, llvm-readelf |
 | absolute symbols | 220 [274]: SDK functions the SDK objects define (Mac) 109, SDK data and SDK-only references 53, SDK name mismatches 8, commons 15 [69] (the SDK sources' 989snd/libkernel buffers), VU-memory/scratchpad offsets 26, game objects not defined 9; plus 17 labels on the `.vutext`/`.irx` blobs | `tools/link.py` (build/link/absolute.txt) |
 | undefined references not in config (209 merged objects and commons.cpp), duplicate strong definitions | 4: the four `_gp` (plus commons.cpp's `gcc2_compiled.` and `__gnu_compiled_cplusplus`: local markers g++ leaves without a section in a file with no `.text`, not references); 0 | scratch symcheck.py |
