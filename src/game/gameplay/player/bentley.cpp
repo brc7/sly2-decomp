@@ -951,7 +951,7 @@ void AddSoAcceleration(struct P *p, qword v);
 // applies drag.
 void PresetBentleyAccel(struct P *bentley)
 {
-    if (bentley->k == 13)
+    if (bentley->k == BENTLEY_PIPE)
         func_001F9B20(bentley);
     else
         PresetStepAccel(bentley);
