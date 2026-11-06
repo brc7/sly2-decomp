@@ -11,7 +11,6 @@
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
 # destructors of view classes -> the C function they stand for (an asm label would drop the call) (3 lines)
-[src/game/level/brx_sw.cpp] _$_3OBJ = func_00184950;
 _$_8CPairPtr = _$_t7CRefPtr1Z5CPair;   # sly2/pair.h's CPairPtr: the CRefPtr<CPair> view whose destructor its includers call
 _$_8CVarbPtr = _$_t7CRefPtr1Z5CVarb;   # sly2/varb.h's CVarbPtr: the CRefPtr<CVarb> view
 

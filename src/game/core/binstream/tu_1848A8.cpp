@@ -93,6 +93,8 @@ extern "C" CBinaryInputStream *func_001848A8(CBinaryInputStream *p, int cb, char
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
+/* CStreamBis's destructor (in-charge flag grf; DRAFT class name), config symbol _$_10CStreamBis. */
+extern "C" void func_00184950(CBinaryInputStream *p, int grf) __asm__("_$_10CStreamBis");
 extern "C" void func_00184950(CBinaryInputStream *p, int grf)
 {
     p->vt = D_002D2918;

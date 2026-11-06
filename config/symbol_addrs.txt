@@ -1838,6 +1838,7 @@ OnBarrelRemove = 0x1839D0; // type:func
 CloneBarrel = 0x183A08; // type:func
 PgrabspotFromLo = 0x184670; // type:func
 StaticInit_grabspot = 0x184750; // type:func
+_$_10CStreamBis = 0x184950; // type:func
 CStreamBis_Refill = 0x184CA0; // type:func
 CStreamBis_Close = 0x184CF0; // type:func
 FOpenSector__18CBinaryInputStreamUiUi = 0x184D98; // type:func

@@ -93,7 +93,7 @@ struct SW {
 };
 struct ZPR { char ab[0x630]; };
 struct ODD { ODD() { ab[2] = 2; } int ab[0x110 / 4]; };
-class OBJ { public: OBJ(int k, void *pv, int n) __asm__("func_001848A8"); ~OBJ(); char ab[0x70]; };
+class CStreamBis { public: CStreamBis(int k, void *pv, int n) __asm__("func_001848A8"); ~CStreamBis(); char ab[0x70]; };
 
 static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE2A0(preq); }
 static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return func_001AE1D0(preq); }
@@ -183,7 +183,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         func_00258248(&odd);
         func_001C9090(&h, func_0014B690(pwe->ab1C));
         psw->iwe = pwe->x5C ? -1 : i;
-        OBJ obj(0x403F, ab, 0);
+        CStreamBis obj(0x403F, ab, 0);
         LoadSwSharedHeaderFromBrx(1, pbis);
         D_003E1C34 = S32Read__18CBinaryInputStream(pbis);
         LoadSwSpliceFromBrx(psw, pwe->x10, pbis);

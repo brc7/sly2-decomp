@@ -2951,7 +2951,7 @@ PgrabspotFromLo,0x184670,55,match,src/game/gameplay/player/grabspot.cpp
 StaticInit_grabspot,0x184750,77,match,src/game/gameplay/player/grabspot.cpp
 func_00184888,0x184888,8,match,src/game/gameplay/player/grabspot.cpp
 func_001848A8,0x1848A8,42,match,src/game/core/binstream/tu_1848A8.cpp
-func_00184950,0x184950,20,match,src/game/core/binstream/tu_1848A8.cpp
+_$_10CStreamBis,0x184950,20,match,src/game/core/binstream/tu_1848A8.cpp
 func_001849A0,0x1849A0,176,match,src/game/core/binstream/tu_1848A8.cpp
 func_00184C60,0x184C60,15,match,src/game/core/binstream/tu_1848A8.cpp
 CStreamBis_Refill,0x184CA0,19,match,src/game/core/binstream/tu_1848A8.cpp
