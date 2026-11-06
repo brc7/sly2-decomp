@@ -909,10 +909,8 @@ extern "C" void GetBentleyCpdefi(BENTLEY *bentley, CPDEFI *pcpdefi)
 {
     int state;
     state = bentley->nState;
-    if (state != 0) {
-        if ((state != 9) && (bentley->jtgrab.nKind != 0)) {
-            *(float *)&bentley->unk_0x1080 = D_002DDED0.t;
-        }
+    if (state != 0 && (state != 9) && (bentley->jtgrab.nKind != 0)) {
+        *(float *)&bentley->unk_0x1080 = D_002DDED0.t;
     }
     GetStepplayerCpdefi(bentley, pcpdefi);
     switch (bentley->nState) {
@@ -1912,14 +1910,13 @@ void UpdateBentleyCrosshair(struct P *bentley, int k)
         SetBentleyCrosshairState(bentley, -1);
     if (k != bentley->x4 && bentley->x4 != -1)
         SetBentleyCrosshairState(bentley, k);
-    if (k != -1 && (bentley->x4 == -1 || bentley->xC)) {
-        if (GrfPressedWithin__5POCTLUif(bentley->po->pa, BUTTON_ATTACK, 0.1f)) {
-            struct O *object = bentley->po;
-            if (((int (*)(void *, int))object->pvt[99].pfn)((char *)object + object->pvt[99].d, 2)) {
-                ClearPoctlJoyPressed(bentley->po->pa, BUTTON_ATTACK);
-                SetBentleyCrosshairState(bentley, -1);
-                SetBentleyCrosshairState(bentley, k);
-            }
+    if (k != -1 && (bentley->x4 == -1 || bentley->xC) &&
+        GrfPressedWithin__5POCTLUif(bentley->po->pa, BUTTON_ATTACK, 0.1f)) {
+        struct O *object = bentley->po;
+        if (((int (*)(void *, int))object->pvt[99].pfn)((char *)object + object->pvt[99].d, 2)) {
+            ClearPoctlJoyPressed(bentley->po->pa, BUTTON_ATTACK);
+            SetBentleyCrosshairState(bentley, -1);
+            SetBentleyCrosshairState(bentley, k);
         }
     }
     if (!(bentley->po->pa->x30 & BUTTON_ATTACK))
