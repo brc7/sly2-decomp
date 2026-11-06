@@ -26,39 +26,39 @@ struct NODE{char pad[0x30];qword position;char pad40[0x60];SPACE*space;};
 struct MOTION{char pad[0x20];qword angles;};
 struct VOLUME;
 struct ASEGA;
-struct L { char pad[0x30]; qword q30; };
+struct L { char pad[0x30]; qword unknown30; };
 /* g++ 2.95 vtable entry and a behaviour/part object called through it. */
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; VTE *vt; char pad1[0x38 - 0x10]; void *ptarget; char pad3C[4]; void *pv40; };
+struct O { char pad[0xC]; VTE *vt; char pad1[0x38 - 0x10]; void *target; char pad3C[4]; void *unknown40; };
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 /* The guard's vision detector: near and far volumes. */
-struct DETECTORV { char pad[0xE8]; VOLUME *pvolNear; VOLUME *pvolFar; char padF0[8]; int nF8; };
+struct DETECTORV { char pad[0xE8]; VOLUME *nearVolume; VOLUME *farVolume; char padF0[8]; int options; };
 /* Distance curve of the guard (clamped quadratic) and the behaviour's timeout. */
 struct POLY { float c0, c1, c2; float pad; float gMin, gMax; float dt; };
 /* View of the guard (a STEPGUARD, sly2/guard.h; the fields from +0x1010 on are NEELA's). */
 struct NEELAV{
- char pad0[0x364];int n364;             /* +0x364 */
- char pad368[0x13C];int n4A4;           /* +0x4A4 */
- char pad4A8[0x9BC];int nE64;           /* +0xE64 */
- char padE68[0xFC];DETECTORV*pdetector;  /* +0xF64 STEPGUARD::pdetector */
+ char pad0[0x364];int unknown364;             /* +0x364 */
+ char pad368[0x13C];int unknown4A4;           /* +0x4A4 */
+ char pad4A8[0x9BC];int sensesEnabled;           /* +0xE64 */
+ char padE68[0xFC];DETECTORV*detector;  /* +0xF64 STEPGUARD::pdetector */
  char padF68[0x78];NEELAV*next;          /* +0xFE0 STEPGUARD::dleGuard */
  char padFE4[0x2C];VOLUME*first,*second;/* +0x1010 */
- int state;float changed;               /* +0x1018 */
+ int state;float stateTime;               /* +0x1018 */
  void*id;ASEGA*animation;NEELAV*target;MOTION*motion;   /* +0x1020 */
- void*pv1030;NODE*node;                 /* +0x1030 */
+ void*unknown1030;NODE*node;                 /* +0x1030 */
  char pad1038[8];qword axis;            /* +0x1040 */
- O*po;                                  /* +0x1050 */
- char pad1054[0xC];int n1060;int pad1064[2];int n106C;   /* +0x1060 */
+ O*prop;                                  /* +0x1050 */
+ char pad1054[0xC];int unknown1060;int pad1064[2];int unknown106C;   /* +0x1060 */
  POLY poly;                             /* +0x1070 */
- int n108C;char ab[0xC];                /* +0x108C */
+ int useChaseBehavior;char resumeState[0xC];                /* +0x108C */
 };
-typedef char NEELA_ab_Offset[FIELD_OFFSET(NEELAV,ab)==0x1090?1:-1];
+typedef char NEELA_resumeState_Offset[FIELD_OFFSET(NEELAV,resumeState)==0x1090?1:-1];
 /* NEELA's behaviour (a BHV): the guard, the behaviour stack link, state and time, a mode. */
-struct NBHV { char pad[0x10]; NEELAV *po; char pad14[4]; int x18; char pad1C[0x14]; int state; float changed; void *pv38; };
+struct NBHV { char pad[0x10]; NEELAV *guard; char pad14[4]; int childSlot; char pad1C[0x14]; int state; float stateTime; void *script; };
 struct ROW{int key;NEELAV*object;};
 struct GAME;
-struct Q1 { char pad[0xC4]; float gC4; };
-struct Q2 { char pad[0x38]; float g38; };
+struct Q1 { char pad[0xC4]; float unknownC4; };
+struct Q2 { char pad[0x38]; float unknown38; };
 struct MODE { int a[0x1C]; };
 extern "C"{
 void InitStepguard(NEELAV *p);
@@ -119,48 +119,48 @@ extern char D_002DEB30[];
 // 0x1B9F80: NEELA vtable slot 7 (Init): STEPGUARD Init plus her movement tuning constants and flags.
 void NEELA::Init()
 {
-    NEELAV *p = (NEELAV *)this;
-    InitStepguard(p);
-    POLY *ppoly = &p->poly;
+    NEELAV *neela = (NEELAV *)this;
+    InitStepguard(neela);
+    POLY *ppoly = &neela->poly;
     ppoly->c0 = 1.35f;
     ppoly->c1 = -0.0003f;
     ppoly->c2 = 0.0f;
-    p->poly.gMin = 0.9f;
-    p->poly.gMax = 1.2f;
-    p->poly.dt = 7.0f;
-    p->n364 = 0;
-    p->nE64 = 0;
-    p->pdetector->nF8 = 3;
-    p->n4A4 = 1;
+    neela->poly.gMin = 0.9f;
+    neela->poly.gMax = 1.2f;
+    neela->poly.dt = 7.0f;
+    neela->unknown364 = 0;
+    neela->sensesEnabled = 0;
+    neela->detector->options = 3;
+    neela->unknown4A4 = 1;
 }
 
 // 0x1BA018: NEELA vtable slot 15 (PostLoad): STEPGUARD post-load, binds her oid table, precomputes the prop
 // animation's effect offset (label 0x5DB) and sets her mass to 0.25.
-extern "C" void PostNeelaLoad(NEELAV *p)
+extern "C" void PostNeelaLoad(NEELAV *neela)
 {
     L l;
     qword a, b, d;
     float *pg;
-    PostStepguardLoad(p);
-    BindLoOidTable(p, 3, D_002C0A50);
-    pg = func_0012F938(p->id, 0x5DB);
-    func_001300B8(p->id, p, p->pv1030, p->node->space, &l, 0, *pg, 1.0f);
-    a = l.q30;
-    b = p->node->position;
+    PostStepguardLoad(neela);
+    BindLoOidTable(neela, 3, D_002C0A50);
+    pg = func_0012F938(neela->id, 0x5DB);
+    func_001300B8(neela->id, neela, neela->unknown1030, neela->node->space, &l, 0, *pg, 1.0f);
+    a = l.unknown30;
+    b = neela->node->position;
     d = VuSub(a, b);
-    p->n1060 = 0;
-    p->axis = d;
-    p->n106C = 1;
-    SetSoMass(p, 0.25f);
+    neela->unknown1060 = 0;
+    neela->axis = d;
+    neela->unknown106C = 1;
+    SetSoMass(neela, 0.25f);
 }
 
 // 0x1BA0B8: NEELA vtable slot 26 (reset to home): ResetStepguardToHome, then hides her attached prop (its vtable
 // slot 9).
-extern "C" void ResetNeelaToHome(NEELAV *p)
+extern "C" void ResetNeelaToHome(NEELAV *neela)
 {
     O *po;
-    ResetStepguardToHome(p);
-    po = p->po;
+    ResetStepguardToHome(neela);
+    po = neela->prop;
     if (po) {
         VTE *entry = &po->vt[9];
         ((void (*)(void *))entry->pfn)((char *)po + entry->d);
@@ -200,25 +200,25 @@ namespace RO_ORDER { extern const float r_D_002A7620 __asm__("D_002A7620") = 3.4
 // 0x1BA128: NEELA vtable slot 16 (Update): STEPGUARD update; state 0: with flag 0x25 in modes 9/2, looks for the
 // nearest other guard in a volume or a cid 0x62 object in a box and goes to state 1; state 1: aims her prop at the
 // target until its animation ends.
-extern "C" void UpdateNeela(NEELAV*p){
- UpdateStepguard(p);
- switch(p->state){
+extern "C" void UpdateNeela(NEELAV*neela){
+ UpdateStepguard(neela);
+ switch(neela->state){
  case 0:{
-  if(!StepguardHasSgf(p,0x25))break;
+  if(!StepguardHasSgf(neela,0x25))break;
   VOLUME*volume;
-  if(StepguardHasSgf(p,9)){volume=p->first;p->target=0;}
-  else if(StepguardHasSgf(p,2)){volume=p->second;p->target=0;}
+  if(StepguardHasSgf(neela,9)){volume=neela->first;neela->target=0;}
+  else if(StepguardHasSgf(neela,2)){volume=neela->second;neela->target=0;}
   else break;
   float nearest=D_002A7620;
   for(NEELAV*node=(*(NEELAV * *)&g_sw.dlStepguard);node;node=node->next){
-   if(node==p||StepguardHasSgf(node,7))continue;
-   qword origin=Vector(func_001A62E8(p));
+   if(node==neela||StepguardHasSgf(node,7))continue;
+   qword origin=Vector(func_001A62E8(neela));
    float distance=Square(VuSub(origin,func_001A62E8(node)));
    if(nearest<distance)continue;
-   if(FCheckVolPoint(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
+   if(FCheckVolPoint(volume,func_001A62E8(node))){neela->target=node;nearest=distance;}
   }
-  if(!p->target&&!StepguardHasSgf(p,2)){
-   qword position=Vector(ConvertAloPos(p,0,D_002C0A80.q));
+  if(!neela->target&&!StepguardHasSgf(neela,2)){
+   qword position=Vector(ConvertAloPos(neela,0,D_002C0A80.q));
    qword low=VuAdd(position,D_002C0A90.q);
    qword high=VuAdd(position,D_002C0AA0.q);
    STACKSCOPE arena;
@@ -226,20 +226,20 @@ extern "C" void UpdateNeela(NEELAV*p){
    IntersectSwBoundingBox(&D_003DD490,low,high,FilterCid98,0,&count,&rows);
    for(int i=0;i<count;i++){
     ROW*row=rows[i];
-    if(FCheckVolPoint(volume,func_001A62E8(row->object))){p->target=row->object;break;}
+    if(FCheckVolPoint(volume,func_001A62E8(row->object))){neela->target=row->object;break;}
    }
   }
-  if(p->target)SetNeelaState(p,1);
+  if(neela->target)SetNeelaState(neela,1);
   break;
  }
  case 1:{
-  if(FAsegaRetracted(p->animation)){SetNeelaState(p,0);break;}
-  NODE*node=p->node;
-  qword position=func_001A62E8(p->target);
+  if(FAsegaRetracted(neela->animation)){SetNeelaState(neela,0);break;}
+  NODE*node=neela->node;
+  qword position=func_001A62E8(neela->target);
   qword local=func_0022FC48(0,node->space,position);
-  qword direction=VuSub(local,p->node->position);
-  M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,p->axis,direction);
-  MOTION*motion=p->motion;
+  qword direction=VuSub(local,neela->node->position);
+  M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,neela->axis,direction);
+  MOTION*motion=neela->motion;
   motion->angles=func_0011BFF0(&matrix);
   break;
  }
@@ -249,53 +249,53 @@ extern "C" void UpdateNeela(NEELAV*p){
 
 // 0x1BA408: Neela state change: state 1 starts the prop animation, constrains it toward the target, points her
 // chase behaviour at it and speeds it up 4x; leaving state 1 restores them.
-extern "C" void SetNeelaState(NEELAV *p, int st)
+extern "C" void SetNeelaState(NEELAV *neela, int st)
 {
-    if (st == p->state) return;
-    if (p->state == 1) {
-        func_00130B18(p->animation);
-        VCALL0((O *)p->animation, 2);
-        p->animation = 0;
-        ReleaseAct(&p->motion);
-        p->motion = 0;
-        p->target = 0;
-        if (StepguardHasSgf(p, 2)) func_00205458(p, 0x9E)->ptarget = D_002E1E40;
-        func_00204D48(p, 1.0f);
+    if (st == neela->state) return;
+    if (neela->state == 1) {
+        func_00130B18(neela->animation);
+        VCALL0((O *)neela->animation, 2);
+        neela->animation = 0;
+        ReleaseAct(&neela->motion);
+        neela->motion = 0;
+        neela->target = 0;
+        if (StepguardHasSgf(neela, 2)) func_00205458(neela, 0x9E)->target = D_002E1E40;
+        func_00204D48(neela, 1.0f);
     }
-    p->state = st;
-    p->changed = D_002DDED0.t;
+    neela->state = st;
+    neela->stateTime = D_002DDED0.t;
     if (st != 1) return;
-    func_0012F9B8(p->id, p, 1, &p->animation, 0.0f, 1.0f);
-    VCALL0((O *)p->animation, 1);
-    p->motion = func_0012DC18(p, p->node, 5, 8, 3, D_002A2DD0);
-    if (StepguardHasSgf(p, 2)) {
-        func_00205458(p, 0x9E)->ptarget = p->target;
-        func_00204D48(p, 4.0f);
+    func_0012F9B8(neela->id, neela, 1, &neela->animation, 0.0f, 1.0f);
+    VCALL0((O *)neela->animation, 1);
+    neela->motion = func_0012DC18(neela, neela->node, 5, 8, 3, D_002A2DD0);
+    if (StepguardHasSgf(neela, 2)) {
+        func_00205458(neela, 0x9E)->target = neela->target;
+        func_00204D48(neela, 4.0f);
     }
 }
 
 // 0x1BA560: Neela chase behaviour (BHV174) vtable slot 7 (OnPush): base, state -1, raises guard flag 0x25.
-extern "C" void InitBhvNeelaChase(NBHV *p)
+extern "C" void InitBhvNeelaChase(NBHV *behavior)
 {
-    InitBhv(p);
-    p->state = -1;
-    AddStepguardSgf(p->po, 0x25);
+    InitBhv(behavior);
+    behavior->state = -1;
+    AddStepguardSgf(behavior->guard, 0x25);
 }
 
 // 0x1BA598: Neela chase behaviour vtable slot 8 (Start): base, then state 0.
 void BHV174::Start()
 {
-    NBHV *p = (NBHV *)this;
-    StartBhv(p);
-    SetBhvNeelaChaseState(p, 0);
+    NBHV *behavior = (NBHV *)this;
+    StartBhv(behavior);
+    SetBhvNeelaChaseState(behavior, 0);
 }
 
 // 0x1BA5C8: Neela chase behaviour vtable slot 9 (Close): state -1, base, lowers flag 0x25.
-extern "C" void CloseBhvNeelaChase(NBHV *p)
+extern "C" void CloseBhvNeelaChase(NBHV *behavior)
 {
-    SetBhvNeelaChaseState(p, -1);
-    CloseBhv(p);
-    RemoveStepguardSgf(p->po, 0x25);
+    SetBhvNeelaChaseState(behavior, -1);
+    CloseBhv(behavior);
+    RemoveStepguardSgf(behavior->guard, 0x25);
 }
 
 // VU0 helper: distance between two points.
@@ -313,90 +313,90 @@ static inline float GEval(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x *
 // 0x1BA608: Neela chase behaviour vtable slot 10 (Update): state 0 while the player is inside the outer volume, 1
 // once outside, back to 0 inside the inner volume, 2 after a timeout; scales a child parameter by the distance to
 // the player.
-extern "C" void UpdateBhvNeelaChase(NBHV *p)
+extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
 {
     int s;
-    UpdateBhv(p);
+    UpdateBhv(behavior);
     for (;;) {
-        if (IsBhvBusyAbove(p))
+        if (IsBhvBusyAbove(behavior))
             break;
-        s = p->state;
+        s = behavior->state;
         switch (s) {
         case 0: {
-            DETECTORV *detector = p->po->pdetector;
-            if (!FCheckVolPoint(detector->pvolFar, func_001A62E8(D_002E1E40)))
-                SetBhvNeelaChaseState(p, 1);
+            DETECTORV *detector = behavior->guard->detector;
+            if (!FCheckVolPoint(detector->farVolume, func_001A62E8(D_002E1E40)))
+                SetBhvNeelaChaseState(behavior, 1);
             break;
         }
         case 1: {
-            DETECTORV *detector = p->po->pdetector;
-            if (FCheckVolPoint(detector->pvolNear, func_001A62E8(D_002E1E40)))
-                SetBhvNeelaChaseState(p, 0);
-            else if (p->po->poly.dt < D_002DDED0.t - p->changed)
-                SetBhvNeelaChaseState(p, 2);
+            DETECTORV *detector = behavior->guard->detector;
+            if (FCheckVolPoint(detector->nearVolume, func_001A62E8(D_002E1E40)))
+                SetBhvNeelaChaseState(behavior, 0);
+            else if (behavior->guard->poly.dt < D_002DDED0.t - behavior->stateTime)
+                SetBhvNeelaChaseState(behavior, 2);
             break;
         }
         case 2:
             break;
         }
-        if (s == p->state)
+        if (s == behavior->state)
             break;
     }
-    if (p->state == 0 && StepguardHasSgf(p->po, 9)) {
-        float d = Dist(func_001A62E8(p->po), func_001A62E8(D_002E1E40));
-        NEELAV *po = p->po;
+    if (behavior->state == 0 && StepguardHasSgf(behavior->guard, 9)) {
+        float d = Dist(func_001A62E8(behavior->guard), func_001A62E8(D_002E1E40));
+        NEELAV *po = behavior->guard;
         float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);
-        Q1 *q1 = (Q1 *)func_00205458(p->po, 0xA7);
-        Q2 *q2 = (Q2 *)func_00205458(p->po, 0xB8);
+        Q1 *q1 = (Q1 *)func_00205458(behavior->guard, 0xA7);
+        Q2 *q2 = (Q2 *)func_00205458(behavior->guard, 0xB8);
         if (q1)
-            q1->gC4 = r;
+            q1->unknownC4 = r;
         else if (q2)
-            q2->g38 = r;
+            q2->unknown38 = r;
     }
 }
 
 // 0x1BA828: Neela chase state change: 0 resumes the patrol script (BHV169), 1 chases the player (cid 0x9E), 2 plays
 // an animation (cid 0x9D) and broadcasts game event 0x33.
-extern "C" void SetBhvNeelaChaseState(NBHV *p, int st)
+extern "C" void SetBhvNeelaChaseState(NBHV *behavior, int st)
 {
-    if (st == p->state) return;
-    if (p->state == 0) SaveBhvScriptResumeState(p->x18, p->po->ab);
-    PopBhv(&p->x18);
-    p->state = st;
-    p->changed = D_002DDED0.t;
+    if (st == behavior->state) return;
+    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->childSlot, behavior->guard->resumeState);
+    PopBhv(&behavior->childSlot);
+    behavior->state = st;
+    behavior->stateTime = D_002DDED0.t;
     switch (st) {
     case 0: {
-        O *o = func_00205438(p->po, 0xA9);
-        SetBhvScriptScript(o, p->pv38, 0, p->po->ab);
+        O *o = func_00205438(behavior->guard, 0xA9);
+        SetBhvScriptScript(o, behavior->script, 0, behavior->guard->resumeState);
         VCALL0(o, 8);
         break;
     }
     case 1: {
-        O *o = func_00205438(p->po, 0x9E);
-        o->ptarget = D_002E1E40;
+        O *o = func_00205438(behavior->guard, 0x9E);
+        o->target = D_002E1E40;
         VCALL0(o, 8);
         break;
     }
     case 2: {
-        O *o = func_00205438(p->po, 0x9D);
-        o->pv40 = &p->po->n1060;
+        O *o = func_00205438(behavior->guard, 0x9D);
+        o->unknown40 = &behavior->guard->unknown1060;
         VCALL0(o, 8);
-        BroadcastGameEvent(D_002DEB30, 0x33, p->po);
+        BroadcastGameEvent(D_002DEB30, 0x33, behavior->guard);
         break;
     }
     }
 }
 
 // 0x1BA980: Sends mode record 0xF with `value` to the guard's root behaviour (BHVGUARD, cid 0x9C).
-extern "C" void SendRootBhvMode15(NEELAV *p, int n)
+extern "C" void SendRootBhvMode15(NEELAV *neela, int n)
 {
     MODE f;
     O *po;
-    func_002333B4(p->ab, 0, 0xC);
-    p->n108C = n;
+    func_002333B4(neela->resumeState, 0, 0xC);
+    neela->useChaseBehavior = n;
     func_002333B4(&f, 0, sizeof(f));
     f.a[0] = 0xF;
-    po = func_00205458(p, 0x9C);
+    po = func_00205458(neela, 0x9C);
     if (po) SetBhvguardMode(po, &f);
 }
 #undef FIELD_OFFSET
