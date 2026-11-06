@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-extern M2C_UNK (*D_002C60BC)();
+extern M2C_UNK (*D_002C60BC)() __asm__("get_eh_context");
 
 /** @sly2-annot addr=0x23E398
  * Purpose: return (*get_eh_context)() [libgcc exception]

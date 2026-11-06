@@ -2,7 +2,7 @@
 // SLY2_CFLAGS: -O2 -G0
 struct _atexit { struct _atexit *_next; int _ind; void (*_fns[32])(void); };
 struct _reent { char pad[0x3C]; void (*__cleanup)(struct _reent *); char pad2[0x148 - 0x40]; struct _atexit *_atexit; };
-extern struct _reent *D_002C49D4;
+extern struct _reent *D_002C49D4 __asm__("_impure_ptr");
 void func_00100218(int) __attribute__((noreturn));
 
 void exit(int code)

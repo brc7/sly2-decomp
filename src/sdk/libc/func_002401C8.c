@@ -1,5 +1,5 @@
 #include "m2c_prelude.h"
-extern s32 D_002C49D4;
+extern s32 D_002C49D4 __asm__("_impure_ptr");
 
 /** @sly2-annot addr=0x2401C8
  * Purpose: newlib __errno: returns &_impure_ptr->_errno (_errno at +0) [libc errno.o]
