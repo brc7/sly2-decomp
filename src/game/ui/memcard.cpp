@@ -122,7 +122,7 @@ struct SAVE
     char aslot[3][0x5464];  /* +0x24 */
     int currentSlot;        /* +0xFD50 the slot in use (0: none) */
     void *newestSlot;       /* +0xFD54 the most recently modified slot (SetSaveState) */
-    int resetSlot;          /* +0xFD58 (inferred) the slot McJobSaveSlotResetGs rewrites */
+    int selectedSlot;          /* +0xFD58 the slot picked on the save page (SelectSaveSlotToSave) */
     MEMCARD memcard;        /* +0xFD5C */
 };
 /* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
@@ -765,7 +765,7 @@ struct THR;
 struct MC {
     int port; int slot; int state; int nextState; float tStateChanged; char pad[0x24 - 0x14];
     SLOT aslot[3];
-    int currentSlot; SLOT *newestSlot; int resetSlot; THR *thr[1];
+    int currentSlot; SLOT *newestSlot; int selectedSlot; THR *thr[1];
 };
 struct G { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw: id of the slot-in-use save variable */
 struct CLOCK { char pad[0x3C]; float tReal; };
@@ -1135,7 +1135,7 @@ extern "C" int McJobAutosave(SAVE *saveManager)
 }
 
 namespace M_func_001ABC68 { extern "C" {
-struct S { char pad[0xFD58]; void *resetSlot; };   /* (inferred) the slot rewritten from a fresh game state */
+struct S { char pad[0xFD58]; void *selectedSlot; };   /* the slot picked on the save page */
 extern char D_002E6550[];
 void *McJobGetInfo(struct S *s);
 void *CreateSaveDir(struct S *s);
@@ -1154,7 +1154,7 @@ void *McJobSaveSlotResetGs(struct S *saveManager)
 {
     void *error = McJobGetInfo(saveManager);
     if (!error) error = CreateSaveDir(saveManager);
-    if (!error) error = WriteSaveSlotFileReset(saveManager, saveManager->resetSlot);
+    if (!error) error = WriteSaveSlotFileReset(saveManager, saveManager->selectedSlot);
     if (error) SetMcDialogPhase(D_002E6550, 3);
     return error;
 }
@@ -2067,7 +2067,7 @@ struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct pas
 struct PMF { short delta; short index; void (*pfn)(void *); };
 struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int unknown64; };   /* the dialog's child widget (2: fully shown) */
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
-struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int resetSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
+struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int selectedSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
 struct CLOCK { char pad[0x3C]; float tReal; };
 extern struct MC D_002E65E0;
 extern struct CLOCK D_002DDED0;
@@ -2187,7 +2187,7 @@ void CMemcardDialog_Update(struct S *dialog)
     case 0x21:
         if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
-        D_002E65E0.resetSlot = 0;
+        D_002E65E0.selectedSlot = 0;
         if (!D_002E65E0.jobResult) {
             ClearMcDialogState(dialog);
             return;
@@ -2200,7 +2200,7 @@ void CMemcardDialog_Update(struct S *dialog)
 extern SAVE D_002E65E0;
 
 namespace M_func_001ACFE0 {
-// Game-state transition handler: switch on the new state id (x40) and run the menu/HUD hooks for it.
+// Game-state transition handler: switch on the new state id (state) and run the menu/HUD hooks for it.
 // State 34 sends an option message (CRef true) to the global option object D_003E0FE4.
 //
 // Match notes: the three-argument call to RefSetGlobalSaveVar uses the same idiom as func_0013D328 / ResetRumbleSaveVar:
@@ -2219,7 +2219,7 @@ public:
     ~CRef() { Decref__4CRef(this); }
 };
 class O;
-struct S { char pad[0x40]; int x40; int x44; float x48; int x4C; };   // x40 = state id, x4C = counter
+struct S { char pad[0x40]; int state; int phase; float tPhase; int followUpAction; };   // the memcard dialog
 extern "C" {
 extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
 extern char D_002E65E0[];
@@ -2248,15 +2248,15 @@ static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef
 // Runs the follow-up of the dialog state the player answered (UI hooks, save jobs).
 void OnMcDialogChoice(S *dialog)
 {
-    switch (dialog->x40) {
+    switch (dialog->state) {
     case 17: case 18: case 21: case 24:
         {
-            void *g = D_003DA530;
-            if (FScreenShown(g) && IsPauseMenuOnLoadPageA(D_003D9ED0)) {
+            void *titleScreen = D_003DA530;
+            if (FScreenShown(titleScreen) && IsPauseMenuOnLoadPageA(D_003D9ED0)) {
                 ClearMcDialogState(dialog);
                 SetMcDialogPhase(dialog, 2);
                 PopPauseMenuToRoot(D_003D9ED0);
-                StartNewGame(g);
+                StartNewGame(titleScreen);
                 break;
             }
         }
@@ -2276,8 +2276,8 @@ void OnMcDialogChoice(S *dialog)
             CRef ref(true);
             SetPv(po, ref, D_003D4A60);
         }
-        if (dialog->x4C < 4) {
-            if (dialog->x4C > 0) {
+        if (dialog->followUpAction < 4) {
+            if (dialog->followUpAction > 0) {
                 SetMcDialogState(dialog, 0x1A);
                 StartSaveSlotJob(D_002E65E0);
             }
@@ -2291,7 +2291,7 @@ extern SAVE D_002E65E0;
 namespace M_func_001AD168 { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short pad; int (*pfn)(void *); };
-struct S { char pad[0x40]; int x40; };
+struct S { char pad[0x40]; int state; };
 extern const struct LONGU D_002A6E88, D_002A6D88, D_002A6E90;
 extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 void SaveToCurrentSlot(void);
@@ -2306,7 +2306,7 @@ void SetMcDialogState(struct S *s, int n);
 // Confirm path of the dialog: saves to the current slot or queues the pending job.
 void ConfirmMcDialog(struct S *dialog)
 {
-    switch (dialog->x40) {
+    switch (dialog->state) {
     case 0x1C:
         SaveToCurrentSlot();
         break;
@@ -2329,8 +2329,8 @@ void ConfirmMcDialog(struct S *dialog)
 namespace M_func_001AD250 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
-struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
-struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
+struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; int newestSlot; struct B *selectedSlot; };
+struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
 extern struct G D_002E65E0;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
@@ -2347,22 +2347,22 @@ void SetSndSourceLo(void *p, int n);
  * @end-sly2-annot */
 // Menu action for slot i on the new-game page: when the slot is empty, makes it current and starts a new game;
 // otherwise plays the error sound.
-void StartNewGameInSlot(struct S *s)
+void StartNewGameInSlot(struct S *item)
 {
     struct CRef ref;
-    struct B *p = &D_002E65E0.a[s->x8];
-    float f;
-    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
-    f = ref.m_tag;
+    struct B *slot = &D_002E65E0.slots[item->slotIndex];
+    float dt;
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), slot);
+    dt = ref.m_tag;
     Decref__4CRef(&ref);
-    if (f == 0.0f) {
-        D_002E65E0.xFD50 = p;
-        ResetSaveGs(p, 1);
-        StartGameFromSave(D_002E65E0.xFD50);
+    if (dt == 0.0f) {
+        D_002E65E0.currentSlot = slot;
+        ResetSaveGs(slot, 1);
+        StartGameFromSave(D_002E65E0.currentSlot);
     } else {
         SetSndSourceLo(PsndStartSound(0x36), 0);
-        if (s)
-            s->x1C |= 2;
+        if (item)
+            item->flags |= 2;
     }
 }
 } } // namespace M_func_001AD250
@@ -2371,8 +2371,8 @@ extern SAVE D_002E65E0;
 namespace M_func_001AD320 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
-struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; int xFD54; struct B *xFD58; };
-struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
+struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; int newestSlot; struct B *selectedSlot; };
+struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
 extern struct G D_002E65E0;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
@@ -2385,22 +2385,22 @@ void StartGameFromSave(struct B *b);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Menu action for slot i on the load page: makes it current, resets the GS state and starts the game from it.
-void LoadGameFromSlot(struct S *s)
+void LoadGameFromSlot(struct S *item)
 {
     struct CRef ref;
-    struct B *p = &D_002E65E0.a[s->x8];
-    float f;
-    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
-    f = ref.m_tag;
+    struct B *slot = &D_002E65E0.slots[item->slotIndex];
+    float dt;
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), slot);
+    dt = ref.m_tag;
     Decref__4CRef(&ref);
-    D_002E65E0.xFD50 = p;
-    if (f == 0.0f) {
-        ResetSaveGs(p, 1);
-        StartGameFromSave(D_002E65E0.xFD50);
+    D_002E65E0.currentSlot = slot;
+    if (dt == 0.0f) {
+        ResetSaveGs(slot, 1);
+        StartGameFromSave(D_002E65E0.currentSlot);
     } else {
-        StartGameFromSave(p);
-        if (s)
-            s->x1C |= 2;
+        StartGameFromSave(slot);
+        if (item)
+            item->flags |= 2;
     }
 }
 } } // namespace M_func_001AD320
@@ -2408,8 +2408,8 @@ extern SAVE D_002E65E0;
 
 namespace M_func_001AD3E0 { extern "C" {
 struct CRef { int m_tagk; int m_tag; };
-struct G { char pad[0xFD50]; int xFD50; int xFD54; int xFD58; };
-struct H { char pad[0x4C]; int x4C; };
+struct G { char pad[0xFD50]; int currentSlot; int newestSlot; int selectedSlot; };
+struct H { char pad[0x4C]; int followUpAction; };
 extern struct G D_002E65E0;
 extern struct H D_002E6550;
 extern char D_003D4A60[];
@@ -2426,20 +2426,20 @@ void StartSaveSlotJob(struct G *g);
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
 void SaveToCurrentSlot(void)
 {
-    struct G *g = &D_002E65E0;
-    struct H *h = &D_002E6550;
+    struct G *saveManager = &D_002E65E0;
+    struct H *dialog = &D_002E6550;
     struct CRef ref;
-    int t;
-    g->xFD50 = g->xFD58;
-    h->x4C = 2;
+    int isWarned;
+    saveManager->currentSlot = saveManager->selectedSlot;
+    dialog->followUpAction = 2;
     RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
-    t = ref.m_tag;
+    isWarned = ref.m_tag;
     Decref__4CRef(&ref);
-    if (!t) {
-        SetMcDialogState(h, 0x22);
+    if (!isWarned) {
+        SetMcDialogState(dialog, 0x22);
     } else {
-        SetMcDialogState(h, 0x1A);
-        StartSaveSlotJob(g);
+        SetMcDialogState(dialog, 0x1A);
+        StartSaveSlotJob(saveManager);
     }
 }
 } } // namespace M_func_001AD3E0
@@ -2448,9 +2448,9 @@ extern SAVE D_002E65E0;
 namespace M_func_001AD480 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
 struct B { char data[0x5464]; };
-struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD58 - 0x24 - 3 * 0x5464]; struct B *xFD58; };
-struct H { char pad[0x4C]; int x4C; };
-struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
+struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD58 - 0x24 - 3 * 0x5464]; struct B *selectedSlot; };
+struct H { char pad[0x4C]; int followUpAction; };
+struct S { int x0, x4, slotIndex; char pad[0x10]; int flags; };   /* the menu item (flags bit 1: handled, inferred) */
 extern struct G D_002E65E0;
 extern struct H D_002E6550;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
@@ -2464,21 +2464,21 @@ void SaveToCurrentSlot(void);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Menu action for slot i on the save page: asks to confirm an overwrite, or saves directly to an empty slot.
-void SelectSaveSlotToSave(struct S *s)
+void SelectSaveSlotToSave(struct S *item)
 {
     struct CRef ref;
-    struct B *p = &D_002E65E0.a[s->x8];
-    float f;
-    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), p);
-    f = ref.m_tag;
+    struct B *slot = &D_002E65E0.slots[item->slotIndex];
+    float dt;
+    RefGetGlobalSaveVar(&ref, (*(int *)&g_sw.psvpDt), slot);
+    dt = ref.m_tag;
     Decref__4CRef(&ref);
-    D_002E65E0.xFD58 = p;
-    if (f == 0.0f)
+    D_002E65E0.selectedSlot = slot;
+    if (dt == 0.0f)
         SaveToCurrentSlot();
     else
         SetMcDialogState(&D_002E6550, 0x1C);
-    if (s)
-        s->x1C |= 2;
+    if (item)
+        item->flags |= 2;
 }
 } } // namespace M_func_001AD480
 extern SAVE D_002E65E0;
@@ -2488,10 +2488,10 @@ struct CRef;
 extern "C" void Decref__4CRef(CRef *);
 struct CRef { int m_tagk; float m_tag; CRef(const CRef &) __asm__("__4CRefRC4CRef"); ~CRef() { Decref__4CRef(this); } };
 struct B { char data[0x5464]; };
-struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; };
-struct GD { char pad[0x3B1C]; int x3B1C; };
-struct E { char pad[0x14]; int x14; int pad2[1]; };
-struct H { char pad[0x24]; int x24; };
+struct G { char pad[0x24]; struct B slots[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *currentSlot; };
+struct GD { char pad[0x3B1C]; int saveVarIsUsed; };   /* g_sw */
+struct E { char pad[0x14]; int selectedIndex; int pad2[1]; };   /* a pause menu page */
+struct H { char pad[0x24]; int topPage; };   /* the pause menu: index of the top page */
 extern "C" {
 extern struct G D_002E65E0;
 extern struct B D_002E6604[] __asm__("D_002E65E0+0x24");
@@ -2504,7 +2504,7 @@ void SetMcDialogPhase(void *p, int n);
 int GetPauseMenuTopPageId(void *g);
 }
 CRef Eval(int a, void *b) __asm__("RefGetGlobalSaveVar");
-static inline float F(int x, void *pb) { return Eval(x, pb).m_tag; }
+static inline float EvalSaveVar(int saveVar, void *slot) { return Eval(saveVar, slot).m_tag; }
 /** @sly2-annot addr=0x1AD538
  * Purpose: Menu hook: eval 3 slots' Splice values and update entries
  * Info: proposed name UpdateSaveMenuSlots (T2); TU memcard
@@ -2514,17 +2514,17 @@ static inline float F(int x, void *pb) { return Eval(x, pb).m_tag; }
 // Menu hook: re-evaluates the three slots' Splice values and updates their entries.
 extern "C" void UpdateSaveMenuSlots(void)
 {
-    float a[3];
-    struct E *pe;
+    float isUsed[3];
+    struct E *page;
     int i;
     SetMcDialogPhase(D_002E6550, 1);
-    if (D_003D9ED0.x24 <= 0)
+    if (D_003D9ED0.topPage <= 0)
         return;
-    pe = &D_003D9EDC[D_003D9ED0.x24];
+    page = &D_003D9EDC[D_003D9ED0.topPage];
     {
-        struct B *pb = D_002E6604;
-        for (i = 0; i < 3; i++, pb++) {
-            a[i] = F(D_003DD490.x3B1C, pb);
+        struct B *slot = D_002E6604;
+        for (i = 0; i < 3; i++, slot++) {
+            isUsed[i] = EvalSaveVar(D_003DD490.saveVarIsUsed, slot);
         }
     }
     switch (GetPauseMenuTopPageId(&D_003D9ED0)) {
@@ -2532,8 +2532,8 @@ extern "C" void UpdateSaveMenuSlots(void)
         {
             int j;
             for (j = 0; j < 3; j++) {
-                if (a[j] == 0.0f) {
-                    pe->x14 = j;
+                if (isUsed[j] == 0.0f) {
+                    page->selectedIndex = j;
                     break;
                 }
             }
@@ -2543,16 +2543,16 @@ extern "C" void UpdateSaveMenuSlots(void)
         {
             int j;
             for (j = 0; j < 3; j++) {
-                if (a[j] != 0.0f) {
-                    pe->x14 = j;
+                if (isUsed[j] != 0.0f) {
+                    page->selectedIndex = j;
                     break;
                 }
             }
         }
         break;
     case 0x19:
-        if (D_002E65E0.xFD50)
-            pe->x14 = D_002E65E0.xFD50 - D_002E65E0.a;
+        if (D_002E65E0.currentSlot)
+            page->selectedIndex = D_002E65E0.currentSlot - D_002E65E0.slots;
         break;
     }
 }
@@ -2561,12 +2561,12 @@ extern SAVE D_002E65E0;
 #undef D_003D9EDC
 
 namespace M_func_001AD740 { extern "C" {
-struct E { int x0, x4; void *x8; int xc, x10; char *x14; int x18; };
-struct G { int pad[9]; int x24; };
+struct E { int x0, x4; void *widget; int xc, x10; char *selectedIndex; int x18; };   /* a pause menu page */
+struct G { int pad[9]; int topPage; };
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct G D_003D9ED0;
-struct S { int x0, x4; char *x8; };
+struct S { int x0, x4; char *slotIndex; };   /* the menu item */
 void PopPauseMenuPage(struct G *g);
 int IsPauseMenuOnSavePage(struct G *g);
 void PlayWidgetAnim(void *a, char *b);
@@ -2577,20 +2577,20 @@ void PlayWidgetAnim(void *a, char *b);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Menu hook: sets slot i's label text (0x5C8+i for a used slot, 0x5C5+i for an empty one).
-void SetSaveSlotLabel(struct S *s)
+void SetSaveSlotLabel(struct S *item)
 {
-    struct E *e;
+    struct E *page;
     if (::D_002E6550.phase != 1) {
         PopPauseMenuPage(&D_003D9ED0);
         return;
     }
     if (!IsPauseMenuOnSavePage(&D_003D9ED0))
         return;
-    e = &D_003D9EDC[D_003D9ED0.x24];
-    if (e->x14 == s->x8)
-        PlayWidgetAnim(e->x8, s->x8 + 0x5C8);
+    page = &D_003D9EDC[D_003D9ED0.topPage];
+    if (page->selectedIndex == item->slotIndex)
+        PlayWidgetAnim(page->widget, item->slotIndex + 0x5C8);
     else
-        PlayWidgetAnim(e->x8, s->x8 + 0x5C5);
+        PlayWidgetAnim(page->widget, item->slotIndex + 0x5C5);
 }
 } } // namespace M_func_001AD740
 #undef D_003D9EDC
