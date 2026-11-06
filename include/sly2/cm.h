@@ -32,13 +32,32 @@ struct CPLCYDATA
 /* CPLCY: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPLCY : public CPLCYDATA
 {
-    virtual void Init();
+    /* The seven slots of the policy vtables (0x2CD378..0x2CD5B8 and tn's 0x2DB858; cplcy.cpp, the key TU, defines
+     * Init). Member names are Sly 1's where the C names say so (Init/Activate/Deactivate/Update), VSlot7 is DRAFT. */
+    virtual void Init() __asm__("InitCplcy");
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplcy");
+    virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplcy");
+    virtual void Set() __asm__("SetCplcy");
+    virtual void Revoke() __asm__("CPLCY_Revoke");
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplcy");
+    virtual void VSlot7() __asm__("func_0014FD48");
     int FIsTop() __asm__("FActiveCplcy__FP5CPLCY");   /* from FCanUseGadget__2JTi.cpp */
+};
+
+/* CMPART1: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
+struct CMPART1 : public CPLCY
+{
+    virtual void Init() __asm__("InitCmpart1");   /* key function (cplcy.cpp) */
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCmpart1");
 };
 
 /* CPLOOK: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPLOOK : public CPLCY
 {
+    virtual void VSlot7() __asm__("func_001505D8");   /* key function (cplcy.cpp) */
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCplook");
+    virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCplook");
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCplook");
       float radPan;
       float radTilt;
       float swPan;
@@ -60,6 +79,10 @@ struct CPLOOK : public CPLCY
 /* CPZOOM: from src/game/gameplay/cutscene/relay/NextJsgCommand__FP3JSG.cpp (6 copies in Lilly ports) */
 struct CPZOOM : public CPLCY
 {
+    virtual void VSlot7() __asm__("func_00150DE8");   /* key function (cplcy.cpp) */
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpzoom");
+    virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpzoom");
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpzoom");
       LO *ploOwner;
       LO *ploFocus;
       float uZoomTarget;
@@ -95,9 +118,34 @@ struct CPZOOM : public CPLCY
     int FAtTargetZoom() __asm__("func_001510D8");   /* from FIsJsgCommandComplete__FP3JSGP8RELAYCMD.cpp */
 };
 
+/* CPHANG: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
+struct CPHANG : public CPLCY
+{
+    virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCphang");   /* key function (cplcy.cpp) */
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCphang");
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCphang");
+      XF *pxfCam;
+      ACT1 *pact1;
+      float tNext;
+      uint32_t   _pad_434    [ 1 ] ;
+      VECTOR4 posSway;
+      VECTOR4 vecVel;
+};
+
+/* CPCAMBLEND: from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) */
+struct CPCAMBLEND : public CPLCY
+{
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpcamblend");   /* key function (cplcy.cpp) */
+    virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCpcamblend");
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpcamblend");
+      CAMMOVE *pcammove;
+};
+
 /* CPTURRET: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPTURRET : public CPLCY
 {
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCpturret");   /* key function (cplcy.cpp) */
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCpturret");
 };
 
 /* CPCAMERA: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
@@ -109,26 +157,10 @@ struct CPCAMERA : public CPLCY
 /* CPTWOSHOT: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
 struct CPTWOSHOT : public CPLCY
 {
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCptwoshot");   /* key function (cplcy.cpp) */
+    virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCptwoshot");
       LO *ploOwner;
       LO *ploHero;
-};
-
-/* CPCAMBLEND: from src/game/gameplay/player/mode/SetJtModeState__FP6JTMODEi.cpp (6 copies in Lilly ports) */
-struct CPCAMBLEND : public CPLCY
-{
-      CAMMOVE *pcammove;
-    virtual void Enter(void *pvHero, void *pvOwner);
-};
-
-/* CPHANG: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
-struct CPHANG : public CPLCY
-{
-      XF *pxfCam;
-      ACT1 *pact1;
-      float tNext;
-      uint32_t   _pad_434    [ 1 ] ;
-      VECTOR4 posSway;
-      VECTOR4 vecVel;
 };
 
 /* CPR: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
@@ -138,11 +170,6 @@ struct CPR
     CPLCY *pcplcy;
     SO *psoFocus;
     void *pv;
-};
-
-/* CMPART1: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */
-struct CMPART1 : public CPLCY
-{
 };
 
 /* CMPART2: from src/game/engine/camera/tn/UpdateCptn.cpp (6 copies in Lilly ports) */
@@ -180,6 +207,9 @@ struct CMPART2 : public CPLCY
       float dradTiltLook;
       uint32_t   _pad_510    [ 3 ] ;
     virtual void Update(CPDEFI *pcpdefi, JOY *pjoy) __asm__("UpdateCptn");
+    virtual void Init() __asm__("func_002219C8");
+    virtual void Activate(void *pvHero, void *pv) __asm__("ActivateCptn");
+    virtual void Deactivate(void *pvHero, void *pv) __asm__("DeactivateCptn");
 };
 
 /* CMBASE: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (6 copies in Lilly ports) */

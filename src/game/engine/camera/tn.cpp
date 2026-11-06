@@ -424,7 +424,7 @@ extern LM D_002C41D0;
 extern LM D_002C41A8;
 extern const SWCB D_002A96E8, D_002A96F0;
 extern CPD D_002C4120;              /* the default CPD */
-extern void *D_002DB858[];          /* CPTN's vtable */
+extern void *D_002DB858[] __asm__("_vt$7CMPART2");          /* CPTN's vtable */
 int D_002DE240;
 extern int D_002DFBC4;
 extern float D_002C4110;

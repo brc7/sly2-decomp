@@ -21,13 +21,13 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 extern CM D_002DDF40;   /* g_cm */
 extern "C" {
-extern void *D_002CD570[];  /* CPLCY vtable */
-extern void *D_002CD528[];  /* CMPART1 vtable */
-extern void *D_002CD4E0[];  /* CPLOOK vtable */
-extern void *D_002CD498[];  /* CPZOOM vtable */
-extern void *D_002CD450[];  /* CPHANG vtable */
-extern void *D_002CD408[];  /* CPCAMBLEND vtable */
-extern void *D_002CD3C0[];  /* CPTURRET vtable */
+extern void *D_002CD570[] __asm__("_vt$5CPLCY");  /* CPLCY vtable */
+extern void *D_002CD528[] __asm__("_vt$7CMPART1");  /* CMPART1 vtable */
+extern void *D_002CD4E0[] __asm__("_vt$6CPLOOK");  /* CPLOOK vtable */
+extern void *D_002CD498[] __asm__("_vt$6CPZOOM");  /* CPZOOM vtable */
+extern void *D_002CD450[] __asm__("_vt$6CPHANG");  /* CPHANG vtable */
+extern void *D_002CD408[] __asm__("_vt$10CPCAMBLEND");  /* CPCAMBLEND vtable */
+extern void *D_002CD3C0[] __asm__("_vt$8CPTURRET");  /* CPTURRET vtable */
 extern int D_002DE254;      /* the active policy (compared by FActiveCplcy) */
 CPLCY *CPLCY_ctor(CPLCY *pcplcy);
 void InitCplcy(CPLCY *pcplcy);
@@ -65,7 +65,7 @@ extern "C" CPLCY *CPLCY_ctor(CPLCY *pcplcy)
  * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8,
  *   docs/reference/functions/camera.md#tn-0x220d40-0x223f70
  * @end-sly2-annot */
-extern "C" void InitCplcy()
+void CPLCY::Init()   /* key function: CPLCY's vtable comes out here */
 {
 }
 
@@ -176,9 +176,9 @@ extern "C" CMPART1 *CMPART1_ctor(CMPART1 *pcmpart1)
  * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; static naming pass; sources: r2_131F70
  * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
-extern "C" void InitCmpart1(CMPART1 *pcmpart1)
+void CMPART1::Init()   /* key function */
 {
-    InitCplcy(pcmpart1);
+    CPLCY::Init();
 }
 
 /** @sly2-annot addr=0x14FDC0
@@ -494,8 +494,9 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
  * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
 /* Slot 7: releases the two sound pointers. */
-extern "C" void func_001505D8(CPLOOK *pcplook)
+void CPLOOK::VSlot7()   /* key function */
 {
+    CPLOOK *pcplook = this;
     RcPtr_Assign(&pcplook->psndUnk38, 0);
     RcPtr_Assign(&pcplook->psndZoom, 0);
 }
@@ -836,8 +837,9 @@ void UpdateCpzoom(struct X *p)
  * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
 /* Slot 7: releases the two sound pointers. */
-extern "C" void func_00150DE8(CPZOOM *pcpzoom)
+void CPZOOM::VSlot7()   /* key function */
 {
+    CPZOOM *pcpzoom = this;
     RcPtr_Assign(&pcpzoom->psndUnkc4, 0);
     RcPtr_Assign(&pcpzoom->psndZoom, 0);
 }
@@ -1111,8 +1113,9 @@ void ActivateCphang(struct A *a, int n, void *b)
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
-extern "C" void DeactivateCphang(CPHANG *pcphang, void *pvHero, void *pv)
+void CPHANG::Deactivate(void *pvHero, void *pv)   /* key function */
 {
+    CPHANG *pcphang = this;
     ReleaseAct(&pcphang->pact1);
     CutCm(&D_002DDF40);
     DeactivateCplcy(pcphang, pvHero, pv);
@@ -1267,17 +1270,21 @@ void ActivateCplcy(struct A *a, int n, struct B *b);
  *   r2_131F70+verdicts_tu_r1r2+runtime
  * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
-void ActivateCpcamblend(struct A *a, int n, struct B *b)
+} } // namespace M_ActivateCpcamblend
+void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
+    using namespace M_ActivateCpcamblend;
+    struct A *a = (struct A *)this;
+    int n = (int)pvHero;
+    struct B *b = (struct B *)pv;
     struct O *o;
     struct VTE *e;
-    ActivateCplcy(a, n, b);
+    M_ActivateCpcamblend::ActivateCplcy(a, n, b);
     a->pb = b;
     o = b->po;
     e = &o->vt[1];
     e->pfn((char *)o + e->d);
 }
-} } // namespace M_ActivateCpcamblend
 
 namespace M_DeactivateCpcamblend { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
@@ -1430,15 +1437,18 @@ void SetCmNearClip__FP2CMf(struct G *pg, float g);
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
-void ActivateCpturret(void *a, struct B *b)
+} } // namespace M_ActivateCpturret
+void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
+    using namespace M_ActivateCpturret;
+    void *a = this;
+    struct B *b = (struct B *)pvHero;
     struct G *pg;
-    ActivateCplcy(a, b);
-    pg = &D_002DDF40;
+    M_ActivateCpturret::ActivateCplcy(a, b);
+    pg = &M_ActivateCpturret::D_002DDF40;
     SetCmNearClip__FP2CMf(pg, 49.0f);
     pg->g24 = b->g;
 }
-} } // namespace M_ActivateCpturret
 
 namespace M_UpdateCpturret {
 typedef int qword __attribute__((mode(TI)));
@@ -1551,8 +1561,10 @@ void UpdateCpturret(X *p)
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
  * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
-extern "C" void ActivateCptwoshot(CPTWOSHOT *pcptwoshot, LO *ploHero, LO *ploOwner)
+void CPTWOSHOT::Activate(void *pvHero, void *pv)   /* key function */
 {
+    CPTWOSHOT *pcptwoshot = this;
+    LO *ploHero = (LO *)pvHero, *ploOwner = (LO *)pv;
     ActivateCplcy(pcptwoshot, ploHero, ploOwner);
     pcptwoshot->ploHero = ploHero;
     pcptwoshot->ploOwner = ploOwner;

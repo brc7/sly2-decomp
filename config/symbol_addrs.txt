@@ -4307,3 +4307,14 @@ _t6CGcObj1Z8CSidebag$s_aptPage = 0x452138; // type:data size:0x10
 _t6CGcObj1Z7CMethod$s_aptPage = 0x452160; // type:data size:0x10
 g_gc = 0x2DD598; // type:data
 g_pfrmOpen = 0x2DEA4C; // type:data size:0x4
+// vtables named in data/address-names-2 (emitted by their key TUs; class names DRAFT where the comment says so):
+// the camera policies (cplcy.cpp, sly2/cm.h; CMPART2 is tn.cpp's tunnel policy CPTN)
+_vt$9CPTWOSHOT = 0x2CD378; // type:data size:0x48
+_vt$8CPTURRET = 0x2CD3C0; // type:data size:0x48
+_vt$10CPCAMBLEND = 0x2CD408; // type:data size:0x48
+_vt$6CPHANG = 0x2CD450; // type:data size:0x48
+_vt$6CPZOOM = 0x2CD498; // type:data size:0x48
+_vt$6CPLOOK = 0x2CD4E0; // type:data size:0x48
+_vt$7CMPART1 = 0x2CD528; // type:data size:0x48
+_vt$5CPLCY = 0x2CD570; // type:data size:0x48
+_vt$7CMPART2 = 0x2DB858; // type:data size:0x48
