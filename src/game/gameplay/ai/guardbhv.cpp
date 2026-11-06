@@ -133,24 +133,24 @@ struct BHVSTATE : public BHV
     int nState;             /* +0x30 (-1 done) */
 };
 /* The animation a BHVANIM plays (kind 2: a strike record with two flags at +0x60/+0x64). */
-struct STRIKE { char pad0[0x60]; int f60; int f64; };
+struct STRIKE { char pad0[0x60]; int unknown60; int unknown64; };
 struct ANIMREF { int kind; int n4; STRIKE *pstrike; };
 /* BHVANIM (and the leap/juggled/strike behaviours built on it). */
 struct BHVANIMV : public BHV
 {
     int nState;             /* +0x30 (1 done) */
-    int n34;
-    int n38;
+    int unknown34;
+    int lookAt;             /* +0x38 object to face (UpdateBhvanimMotion) */
     int sgf;                /* +0x3C the guard flag it holds */
     ANIMREF *panim;         /* +0x40 */
-    int n44[3];
+    int unknown44[3];
     int isLeapEnabled;                /* +0x50 */
 };
 struct BHVATTACKV : public BHV
 {
     LO *plo;                /* +0x30 the attacked object */
     int nState;             /* +0x34 */
-    int n38[2];
+    int unknown38[2];
     int fHit;               /* +0x40 set by message 0xB from plo's guard */
 };
 /* A message carrying an object (HandleBhvattackMessage, message 0xB). */
@@ -159,30 +159,30 @@ struct BHVCOMBATV : public BHV
 {
     LO *ploTarget;          /* +0x30 */
     int nState;             /* +0x34 */
-    int n38;
+    float tState;           /* +0x38 */
     void *pentry;           /* +0x3C the chosen attack entry */
 };
 struct BHVPATHV : public BHV
 {
-    int n30[7];
+    int unknown30[7];
     int nState;             /* +0x4C (3 finished) */
     float tState;           /* +0x50 */
 };
 struct BHV50 : public BHV
 {
-    int n30[8];
+    int unknown30[8];
     int state;                /* +0x50 */
 };
 struct BHVGOTOV : public BHV
 {
     int nState;             /* +0x30 (1 arrived) */
-    int n34;
+    int unknown34;
     int sgf;                /* +0x38 the guard flag it holds (-1 none) */
 };
 struct BHVTARGET : public BHV
 {
     int nState;             /* +0x30 */
-    int n34;
+    int unknown34;
     LO *plo;                /* +0x38 the target */
 };
 /* The path link list a BHVPATHLINK walks: the count at +0x50. */
@@ -195,14 +195,14 @@ struct BHVPATHLINKV : public BHV
 };
 struct BHVPATROLPATHV : public BHV
 {
-    int n30[2];
+    int unknown30[2];
     float pathParam;              /* +0x38 */
 };
 /* The CID 0x3C guard (a STEPGUARD with more fields; ShouldBhvguardUseNeelaBehavior reads +0x108C). */
 struct STEPGUARD3C : public STEPGUARD
 {
     char pad1010[0x7C];
-    int n108C;              /* +0x108C */
+    int useChaseBehavior;   /* +0x108C */
 };
 
 extern SW D_003DD490;           /* g_sw */
@@ -304,10 +304,10 @@ namespace M_SetBhvanimState { extern "C" {
 struct CLOCK; struct A; struct B; struct E; struct O; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-struct A { char pad[0x74]; float g74; };
-struct B { char pad[0x1C]; float g1C; };
-struct E { int n0; struct A *pa; struct B *pb; int nC; };
-struct O { char pad[0x1A4]; int animGroundFlag; char pad2[0xFD0 - 0x1A8]; char mover[0x20]; float gFF0; float gFF4; };
+struct A { char pad[0x74]; float duration; };
+struct B { char pad[0x1C]; float time; };
+struct E { int n0; struct A *aseg; struct B *asega; int nC; };
+struct O { char pad[0x1A4]; int animGroundFlag; char pad2[0xFD0 - 0x1A8]; char mover[0x20]; float walkPhase; float walkPhaseTime; };
 struct S { char pad[0x10]; struct O *guard; char pad2[0x1C]; int state; float stateTime; char pad3[8]; struct E *pe; };
 void SetStepguardMoverDriver(void *p, struct S *ps);
 void ResetStepguardMover(void *p, struct S *ps);
@@ -325,8 +325,8 @@ void SetBhvanimState(struct S *behavior, int n) {
     case 0: {
         float f;
         SetStepguardMoverDriver(behavior->guard->mover, behavior);
-        if (behavior->pe->n0 == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING) && D_002DDED0.t == behavior->guard->gFF4)
-            f = behavior->pe->pa->g74 * behavior->guard->gFF0;
+        if (behavior->pe->n0 == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING) && D_002DDED0.t == behavior->guard->walkPhaseTime)
+            f = behavior->pe->aseg->duration * behavior->guard->walkPhase;
         else
             f = 0.0f;
         StartAnimBinding(behavior->pe, behavior->guard, behavior->pe->nC | 1, f);
@@ -336,8 +336,8 @@ void SetBhvanimState(struct S *behavior, int n) {
         ClearBhvBusy(behavior);
         if (behavior->pe) {
             if (behavior->pe->n0 == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
-                behavior->guard->gFF0 = behavior->pe->pb->g1C / behavior->pe->pa->g74;
-                behavior->guard->gFF4 = D_002DDED0.t;
+                behavior->guard->walkPhase = behavior->pe->asega->time / behavior->pe->aseg->duration;
+                behavior->guard->walkPhaseTime = D_002DDED0.t;
             }
             StopAnimBinding(behavior->pe);
             behavior->pe = 0;
@@ -670,8 +670,8 @@ void BHVSTRIKE::Start()
     StartBhvanim(behavior);
     panim = behavior->panim;
     if (panim->kind == 2) {
-        panim->pstrike->f60 = 1;
-        behavior->panim->pstrike->f64 = 1;
+        panim->pstrike->unknown60 = 1;
+        behavior->panim->pstrike->unknown64 = 1;
         behavior->isLeapEnabled = 1;
     }
 }
@@ -2575,7 +2575,7 @@ extern "C" int ShouldBhvguardUseNeelaBehavior(BHV *behavior)
     int f;
     f = 0;
     if (FIsBasicDerivedFrom(behavior->pstep, (CID)0x3C) != 0) {
-        f = ((STEPGUARD3C *)behavior->pstep)->n108C != 0;
+        f = ((STEPGUARD3C *)behavior->pstep)->useChaseBehavior != 0;
     }
     return f;
 }
@@ -4885,16 +4885,16 @@ void func_0012E0F0(struct U *u, qword a, qword b);
 // 0x17ABC8: Re-queries the holder and updates the attach act's target.
 void UpdateBhvjuggledHoldAct(struct S *behavior) {
     struct R r;
-    qword q30, q40;
+    qword holdPoint, holdDirection;
     struct W *w;
     qword a;
     if (!behavior->isHoldActive) return;
     { struct O *o = behavior->holder; struct VTE *entry = &o->vt[0x60]; ((void (*)(void *, struct R *, float))entry->pfn)((char *)o + entry->d, &r, behavior->holdAct->endTime - D_002DDED0.t); }
     if (!r.isValid) { behavior->isHoldActive = 0; return; }
     w = behavior->guard->unknown58;
-    CalculateBhvjuggledHoldPoint(behavior, &r, &q30, &q40);
-    a = func_0022FC48(0, w->unknownA0, q30);
-    func_0012E0F0(behavior->holdAct, a, ConvertXfVec(0, w->unknownA0, q40));
+    CalculateBhvjuggledHoldPoint(behavior, &r, &holdPoint, &holdDirection);
+    a = func_0022FC48(0, w->unknownA0, holdPoint);
+    func_0012E0F0(behavior->holdAct, a, ConvertXfVec(0, w->unknownA0, holdDirection));
 }
 } } // namespace M_func_0017ABC8
 
