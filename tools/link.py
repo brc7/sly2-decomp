@@ -45,11 +45,17 @@ def llvm_tool(name):
              f'contains it.')
 
 
+@functools.lru_cache(None)
+def matched():
+    """{function address: source} of config/matched.csv"""
+    return {int(r['addr'], 16): r['source'] for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'matched.csv')))}
+
+
 def sources(sdk=False):
     """(buildable, unbuildable) source paths of config/matched.csv.  The SDK sources assembled by GNU as
     (`SLY2_ASM: gnu-reorder*`) or compiled by the native ee-gcc 2.96 need i386 Linux binaries: unbuildable unless
     --sdk asks for them (gnu_reorder runs GNU as through Docker on macOS; native Linux needs /lib/ld-linux.so.2)"""
-    srcs = sorted({r['source'] for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'matched.csv')))})
+    srcs = sorted(set(matched().values()))
     loader = os.path.exists('/lib/ld-linux.so.2')
     ok, skip = [], []
     for s in srcs:
@@ -111,14 +117,14 @@ def symtab(d, secs):
 class Obj:
     """sections, symbols and relocations of one relocatable object"""
     def __init__(self, src, per_function):
-        self.src, self.per_function, self.path = src, per_function, obj_path(src, per_function)
+        self.src, self.path = src, obj_path(src, per_function)
         self.data, self.secs = elf_secs(self.path)
         self.syms = symtab(self.data, self.secs)
         self.rels = {s[7]: [(o, i & 0xFF, i >> 8) for o, i in (struct.unpack_from('<II', self.data, s[4] + 8 * k)
                                                                for k in range(s[5] // 8))]
                      for s in self.secs if s[1] == 9}    # SHT_REL: target section -> [(offset, type, symbol)]
         self.size = {i: sec[5] for i, sec in enumerate(self.secs)}
-        self.align, self.absolute = {}, {}                   # patches decided by script(), applied by fixed()
+        self.absolute = {}                                   # patches decided by script(), applied by fixed()
 
     def word(self, sec, off):
         return struct.unpack_from('<I', self.data, self.secs[sec][4] + off)[0]
@@ -275,16 +281,10 @@ def tu_verdict(o, img, owner, junk):
     return ' + '.join(sorted(why)) + ': ' + ' '.join(gaps[:6])
 
 
-def tu_check(srcs, img):
+def tu_check(objs, img):
     """{source: reason} for the objects that cannot link whole yet; writes build/link/tutext.txt"""
-    matched = {int(r['addr'], 16): r['source'] for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'matched.csv')))}
-    owner = sorted(matched.items())
-    junk = matchtool.load_junk()
-    bad = {}
-    for s in srcs:
-        why = tu_verdict(Obj(s, False), img, owner, junk)
-        if why:
-            bad[s] = why
+    owner, junk = sorted(matched().items()), matchtool.load_junk()
+    bad = {o.src: why for o in objs for why in [tu_verdict(o, img, owner, junk)] if why}
     open(os.path.join(OUT, 'tutext.txt'), 'w').writelines(f'{s}: {w}\n' for s, w in sorted(bad.items()))
     return bad
 
@@ -311,9 +311,8 @@ def blob_reasons(img, unbuilt):
     """(start, end, reason) of what config says is at the addresses blobs may cover; narrower rows sort later"""
     out = [(s[3], s[3] + s[5], {'.vutext': 'VU microcode', '.irx': 'IOP modules (.irx)', '.text': 'text: padding / not '
             'in config'}.get(s[0], 'data no object defines')) for s in img.secs]
-    matched = {int(r['addr'], 16): r['source'] for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'matched.csv')))}
     for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'functions.csv'))):
-        src = matched.get(int(r['Start'], 16))
+        src = matched().get(int(r['Start'], 16))
         out.append((int(r['Start'], 16), int(r['End'], 16), 'text: unmatched function' if src is None else
                     'text: SDK source that does not build here' if src in unbuilt else 'text: matched but not in an object'))
     out += [(a, e, 'text: dead code (junk.csv)') for a, e in matchtool.load_junk()]
@@ -341,15 +340,15 @@ def q(s):
 def fixed(objs):
     """normalize each object for ld.lld (llvm-objcopy re-sorts the symbol table: gcc 2.95's as leaves locals after
     globals), apply the per-object renames of config/link_aliases.txt, and patch what script() decided: section
-    padding cut where the next section starts (o.size), alignments lowered to what the ELF's address allows (o.align),
-    and sections whose bytes another object already places bound to that address (o.absolute: symbols made absolute)"""
+    padding cut where the next section starts (o.size) and sections bound to an address (o.absolute: their symbols
+    made absolute)"""
     for o in objs:
         p = fix_path(o)
         os.makedirs(os.path.dirname(p), exist_ok=True)
         r = os.path.join(OUT, 'redefine', o.src.replace('/', '__') + '.redefine')
         subprocess.run([llvm_tool('llvm-objcopy')] + (['--redefine-syms=' + r] if os.path.exists(r) else []) + [o.path, p], check=True)
         cut = {o.secs[i][0]: n for i, n in o.size.items() if n != o.secs[i][5]}
-        if not (cut or o.align or o.absolute):
+        if not (cut or o.absolute):
             continue
         d = bytearray(open(p, 'rb').read())
         shoff, = struct.unpack_from('<I', d, 0x20)
@@ -357,8 +356,6 @@ def fixed(objs):
         for i, sec in enumerate(secs):                       # llvm-objcopy keeps section names and order
             if sec[0] in cut:
                 struct.pack_into('<I', d, shoff + 40 * i + 20, cut[sec[0]])
-            if sec[0] in o.align:
-                struct.pack_into('<I', d, shoff + 40 * i + 32, o.align[sec[0]])
         absi = {i: o.absolute[sec[0]] for i, sec in enumerate(secs) if sec[0] in o.absolute}
         st = next(sec for sec in secs if sec[1] == 2)
         for k in range(st[5] // 16):
@@ -372,19 +369,9 @@ def fixed(objs):
         open(p, 'wb').write(d)
 
 
-def same_bytes(o, si, b, n, img):
-    """the section's bytes equal the ELF's at b, words with a relocation aside"""
-    t = img.bytes(b, n)
-    if t is None:
-        return False
-    mine = o.data[o.secs[si][4]:o.secs[si][4] + n]
-    masked = {r[0] // 4 for r in o.rels.get(si, [])}
-    return all(mine[i] == t[i] for i in range(n) if i // 4 not in masked)
-
-
 def script(objs, base, img, reasons):
     """the SECTIONS text, the layout [(start, end, owner, key)], blob bytes by reason, and the sections not linked
-    (dups: bound to the address whose bytes they repeat; overlaps: to .unplaced) and alignment-lowered ones"""
+    (bound: a .bss bound to its address; overlaps: to .unplaced)"""
     entries, first = collections.defaultdict(list), {}
     for (k, si), b in sorted(base.items()):
         out, name = img.sec_at(b), objs[k].secs[si][0]
@@ -419,18 +406,13 @@ def script(objs, base, img, reasons):
                 o = objs[k]
                 sec, n, al = o.secs[si], o.size[si], max(o.secs[si][8], 1)
                 owner = f'{o.src}({sec[0]})'
-                if b < cur:                                  # overlaps what is placed
-                    if sec[1] == 8 or same_bytes(o, si, b, n, img):
-                        # no bytes (.bss under a section whose layout differs), or the ELF's bytes at that address:
-                        # not linked, its symbols are bound to the address
-                        o.absolute[sec[0]] = b
-                        st['dups'].append((owner, b, n))
+                if b < cur:                                  # overlaps what is placed: a .bss is bound to its
+                    if sec[1] == 8:                          # address (its symbols made absolute), anything else
+                        o.absolute[sec[0]] = b               # goes to .unplaced
+                        st['bound'].append((owner, b, n))
                     else:
                         st['overlaps'].append((owner, b, n, (k, si)))
                     continue
-                if b % al:                                   # stricter alignment than the ELF's address allows
-                    o.align[sec[0]] = al = b & -b
-                    st['misaligned'].append((owner, b, sec[8]))
             natural = (cur + al - 1) // al * al              # where the linker puts it on its own
             if b > cur and not nobits and (b != natural or any(img.bytes(cur, b - cur))):
                 blobs.append((cur, b - cur, flags))          # bytes no object covers: cut from the ELF
@@ -472,32 +454,26 @@ def symbols(objs, img, ext):
 
 
 # ---- compare ----
-def mismatch_class(objs, key, off, base, odd, gdef):
-    """why one differing byte differs: (class, the section it is in or its relocation refers to)"""
+def mismatch_class(objs, key, off, odd):
+    """why one differing byte differs: (class, where; details in build/link/mismatch.txt)"""
     if key is None:
         return 'blob', ''
     o, si = objs[key[0]], key[1]
     here = f'{o.src}({o.secs[si][0]})'
-    r = None if key in odd else next((r for r in o.rels.get(si, []) if r[0] == off & ~3), None)
+    if key in odd:
+        return 'in an object section placed against disagreeing evidence', here
+    r = next((r for r in o.rels.get(si, []) if r[0] == off & ~3), None)
     if r is None:
-        return ('in an object section whose layout differs from the ELF' if key in odd else
-                'bytes differ, no relocation'), here
-    name, shndx = o.syms[r[2]][0], o.syms[r[2]][5]
+        return 'bytes differ, no relocation', here
     t = {2: 'R_MIPS_32', 4: 'R_MIPS_26', 5: 'HI16', 6: 'LO16', 7: 'GPREL16'}.get(r[1], str(r[1]))
-    tk, ts = (key[0], shndx) if 0 < shndx < 0xFF00 else gdef.get(name, (None, None))
-    if tk is None:
-        return f'{t} to a symbol no object defines', name
-    where = ('an object section whose layout differs' if (tk, ts) in odd else 'an unplaced object section'
-             if (tk, ts) not in base else 'an object section at its ELF address')
-    return f'{t} to {where}', f'{objs[tk].src}({objs[tk].secs[ts][0]})'
+    return f'{t} relocation', f'{here} -> {o.syms[r[2]][0] or "its section"}'
 
 
-def compare(path, img, layout, objs, base, odd):
+def compare(path, img, layout, objs, odd):
     """per section: equal bytes (all, and those object sections supply); differing bytes by class, details by owner
     in build/link/mismatch.txt"""
-    gdef = {s[0]: (k, s[5]) for k, o in enumerate(objs) for s in o.syms if s[3] and 0 < s[5] < 0xFF00}
     d, secs = elf_secs(path)
-    got = [s for s in secs if s[2] & 2 and s[1] == 1]
+    got = {g[0]: d[g[4]:g[4] + g[5]] for g in secs if g[1] == 1}     # output sections are named and placed as the ELF's
     layout = sorted(layout)
     starts = [l[0] for l in layout]
     print(f'{"section":10s} {"bytes":>9s} {"equal":>9s} {"match":>7s} {"from objects":>12s} {"equal":>9s} {"match":>7s}'
@@ -506,17 +482,12 @@ def compare(path, img, layout, objs, base, odd):
     for s in img.secs:
         if s[1] == 8 or s[0] == '.stack' or not s[5]:
             continue
-        ref, ours, have = img.d[s[4]:s[4] + s[5]], bytearray(s[5]), bytearray(s[5])
-        for g in got:
-            lo, hi = max(g[3], s[3]), min(g[3] + g[5], s[3] + s[5])
-            if lo < hi:
-                ours[lo - s[3]:hi - s[3]] = d[g[4] + lo - g[3]:g[4] + hi - g[3]]
-                have[lo - s[3]:hi - s[3]] = b'\1' * (hi - lo)
-        bad = [i for i in range(s[5]) if ours[i] != ref[i] or not have[i]]
+        ref, ours = img.d[s[4]:s[4] + s[5]], got.get(s[0], b'')
+        bad = [i for i in range(s[5]) if i >= len(ours) or ours[i] != ref[i]]
         objbad = 0
         for i in bad:
             l = layout[bisect.bisect_right(starts, s[3] + i) - 1]
-            c, why = mismatch_class(objs, l[3], s[3] + i - l[0], base, odd, gdef)
+            c, why = mismatch_class(objs, l[3], s[3] + i - l[0], odd)
             detail[c][f'{why or l[2]}'] += 1
             classes[(s[0], c)] += 1
             objbad += l[3] is not None
@@ -566,9 +537,10 @@ def main():
     if compile:
         compile_all(srcs, per_function)
     ok = [s for s in srcs if os.path.exists(obj_path(s, per_function))]
-    fallback = {} if per_function else tu_check(ok, img)
+    objs = [Obj(s, per_function) for s in ok]
+    fallback = {} if per_function else tu_check(objs, img)
     compile_all([s for s in fallback if compile or not os.path.exists(obj_path(s, True))], True)
-    objs = [Obj(s, per_function or s in fallback) for s in ok]
+    objs = [Obj(o.src, True) if o.src in fallback else o for o in objs]
     unbuilt = set(skip) | set(srcs) - set(ok)
     print(f'{len(objs)} objects ({len(srcs) - len(ok)} failed to compile), {len(skip)} sources not buildable here',
           file=sys.stderr)
@@ -598,16 +570,16 @@ def main():
         f.writelines(f'evidence disagrees: {objs[k].src}({objs[k].secs[si][0]}): ' + ' '.join(
             f'0x{b:X}x{n}' for b, n in c.most_common(6)) + '\n' for (k, si), c in sorted(conflicts.items()))
         f.writelines(f'unplaced: {s}({sec}) {n} bytes\n' for s, sec, n in unplaced)
-        f.writelines(f'{what}: {o} at 0x{b:X} ({n})\n' for what in ('dups', 'overlaps', 'misaligned') for o, b, n, *_ in st[what])
+        f.writelines(f'{what}: {o} at 0x{b:X} ({n})\n' for what in ('bound', 'overlaps') for o, b, n, *_ in st[what])
     print(f'placed {len(base)} object sections with {st["assign"]} address assignments (.bss/.sbss gaps no object '
           f'defines: {st["bss gap"]} bytes); not simply placed (build/link/sections.txt): {len(conflicts)} with '
           f'disagreeing evidence, {len(unplaced)} unplaced ({sum(u[2] for u in unplaced)} bytes, to .unplaced), '
-          f'{len(st["dups"])} bound to the address whose bytes they repeat, {len(st["overlaps"])} overlapping (to '
-          f'.unplaced), {len(st["misaligned"])} with their alignment lowered')
+          f'{len(st["bound"])} .bss overlapping another bound to their address, {len(st["overlaps"])} other '
+          f'overlapping (to .unplaced)')
     print(f'{len(derived)} undefined names no config file knows, resolved from the ELF\'s relocated fields')
     print(f'blob bytes by reason ({sum(why.values())}): ' + ', '.join(f'{k} {v}' for k, v in why.most_common()))
     if os.path.exists(elf):
-        compare(elf, img, layout, objs, base, {o[3] for o in st['overlaps']} | set(conflicts))
+        compare(elf, img, layout, objs, set(conflicts))
         symbol_check(elf, img)
 
 
