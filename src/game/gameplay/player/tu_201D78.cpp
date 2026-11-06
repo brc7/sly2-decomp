@@ -179,10 +179,10 @@ extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 {
     VECTORV *pv = &reconSel->vOrigin;
     float y;
-reconSel->model = pmodel;
-pv->x = 0;
-pv->y = 0;
-pv->z = 0;
+    reconSel->model = pmodel;
+    pv->x = 0;
+    pv->y = 0;
+    pv->z = 0;
     y = pv->y;
     pv->x = pv->x * 320.0f + 320.0f;
     pv->y = 246.40000915527344f;
@@ -221,7 +221,10 @@ void ResetReconTargets(RECONSEL *reconSel)
     int i;
     for (i = 0; i < reconSel->count; i++) {
         LOV *o = reconSel->items[i]->plo100;
-        if (o) { VTE *e = &o->pvt[9]; ((void (*)(void *))e->pfn)((char *)o + e->d); }
+        if (o) {
+            VTE *e = &o->pvt[9];
+            ((void (*)(void *))e->pfn)((char *)o + e->d);
+        }
     }
 }
 
@@ -400,42 +403,52 @@ static inline qword Normalize(qword v)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Four-ray occlusion test from the origin to a target: state 1 clear, 2 blocked, 3 partly visible.
-void UpdateReconTargetVisibility(RECONSEL *reconSel,RECONTGT *other)
+void UpdateReconTargetVisibility(RECONSEL *reconSel, RECONTGT *other)
 {
-    int cHit=0;
-    unsigned i=0;
+    int cHit = 0;
+    unsigned i = 0;
     STACKSCOPE frame;
-    V points[4],scale;
+    V points[4], scale;
     QUERY query;
     float radius;
     V *point;
-    qword origin=func_001A62E8(other);
-    radius=other->sHead;
-    IntersectSwBoundingBox(&D_003DD490,origin,reconSel->position.q,FilterReconOccluder,0,&query.count,&query.objects);
+    qword origin = func_001A62E8(other);
+    radius = other->sHead;
+    IntersectSwBoundingBox(&D_003DD490, origin, reconSel->position.q, FilterReconOccluder, 0, &query.count,
+                           &query.objects);
     {
-        qword up=D_002DDFA0[1];
-        qword direction=Normalize(VuSub(reconSel->position.q,origin));
-        qword k,side;
-        __asm__("qmtc2.ni %1,%0":"=j"(k):"r"(radius));
-        scale.q=k;
-        side=Normalize(Cross(up,direction));
-        SCALE_IN_PLACE(direction,scale.q);
-        origin=VuAdd(origin,direction);
-        SCALE_IN_PLACE(up,scale.q);
-        points[0].q=origin;
-        points[1].q=VuAdd(origin,up);
-        points[2].q=VuSub(origin,up);
-        points[3].q=VuAdd(origin,Scale(side,scale.q));
+        qword up = D_002DDFA0[1];
+        qword direction = Normalize(VuSub(reconSel->position.q, origin));
+        qword k, side;
+        __asm__("qmtc2.ni %1,%0" : "=j"(k) : "r"(radius));
+        scale.q = k;
+        side = Normalize(Cross(up, direction));
+        SCALE_IN_PLACE(direction, scale.q);
+        origin = VuAdd(origin, direction);
+        SCALE_IN_PLACE(up, scale.q);
+        points[0].q = origin;
+        points[1].q = VuAdd(origin, up);
+        points[2].q = VuSub(origin, up);
+        points[3].q = VuAdd(origin, Scale(side, scale.q));
     }
-    point=points;
-    for(;i<4;++i){
-        if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,reconSel->position.q,point->q,query.count,query.objects,0))++cHit;
+    point = points;
+    for (; i < 4; ++i) {
+        if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, reconSel->position.q, point->q, query.count,
+                                                           query.objects, 0))
+            ++cHit;
         ++point;
     }
     {
-        int cRay=4; // the game loads this 4 before the switch (v1, beqz delay slot); a case-label constant alone is loaded in v0 after it
-        switch(cHit){case 0:other->state=1;break;case 4:other->state=2;break;case 1:case 2:case 3:other->state=3;break;}
-        i=cRay;
+        int cRay =
+            4; // the game loads this 4 before the switch (v1, beqz delay slot); a case-label constant alone is loaded in v0 after it
+        switch (cHit) {
+        case 0: other->state = 1; break;
+        case 4: other->state = 2; break;
+        case 1:
+        case 2:
+        case 3: other->state = 3; break;
+        }
+        i = cRay;
     }
 }
 
@@ -453,10 +466,14 @@ static inline qword PlaneDelta(qword position,qword camera) {
     __asm__("vsub.xyzw %0,%0,%1" : "+j"(point) : "j"(eye));return point;
 }
 static inline qword SubSecond(qword a,qword b){__asm__("vsub.xyzw %0,%1,%2":"=j"(b):"j"(a),"0"(b));return b;}
-static inline float LengthXY(qword a){float g;
-__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"=j"(a):"0"(a));
-__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(a):"0"(a));
-__asm__("qmfc2.ni %0,%1":"=r"(g):"j"(a));return g;}
+static inline float LengthXY(qword a)
+{
+    float g;
+    __asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y" : "=j"(a) : "0"(a));
+    __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(a) : "0"(a));
+    __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(a));
+    return g;
+}
 static inline void Store(qword*p,qword q){__asm__("sq %1,%0":"=m"(*p):"r"(q));}
 static inline qword ScalarBits(const float*p){qword q;__asm__("lw %0,%1":"=r"(q):"m"(*p));return q;}
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -471,35 +488,48 @@ namespace RO_ORDER { extern const float r_D_002A8550 __asm__("D_002A8550") = 3.4
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Chooses the closest unblocked target in the view frustum; on a change enters selector state 2.
-void SelectReconTarget(RECONSEL*reconSel)
+void SelectReconTarget(RECONSEL *reconSel)
 {
- V radius,screen,position;
- int i=0;
- register RECONTGT *best __asm__("$20")=0;
- LOV *owner=reconSel->model->plo;
- float minimum;
- RECONTGT **slot;
- ((void(*)(void*,qword*))owner->pvt[97].pfn)((char*)owner+owner->pvt[97].d,&reconSel->position.q);
- reconSel->position.f[2]+=20.0f;
- minimum=D_002A8550;
- if(reconSel->count>0){slot=reconSel->items;do{
-   RECONTGT *o=*slot;
-   CMV *camera;
-   float distance; qword eye,threshold,point;
-   if(!IsReconTargetSelectable(o))continue;
-   Store(&position.q,func_001A62E8(o));
-   camera=&D_002DDF40;
-   radius.q=ScalarBits(&o->sRadius);
-   PlaneArguments(&eye,&threshold,&point,radius.q,&camera->v.position,&position.q);
-   if(!FInsideCmFrustum(camera,PlaneDelta(point,eye),threshold))continue;
-   if(!FInsideCmMrd(camera,func_001A62E8(o),o->height,&screen.f[0]))continue;
-   distance=LengthXY(SubSecond(position.q,camera->v.position));
-   if(distance<minimum){
-     UpdateReconTargetVisibility(reconSel,o);
-     if(o->state!=2){best=o;minimum=distance;}
-   }
- }while(++slot,++i<reconSel->count);}
- if(best!=reconSel->actor){reconSel->actor=best;SetReconSelState(reconSel,2);}
+    V radius, screen, position;
+    int i = 0;
+    register RECONTGT *best __asm__("$20") = 0;
+    LOV *owner = reconSel->model->plo;
+    float minimum;
+    RECONTGT **slot;
+    ((void (*)(void *, qword *))owner->pvt[97].pfn)((char *)owner + owner->pvt[97].d, &reconSel->position.q);
+    reconSel->position.f[2] += 20.0f;
+    minimum = D_002A8550;
+    if (reconSel->count > 0) {
+        slot = reconSel->items;
+        do {
+            RECONTGT *o = *slot;
+            CMV *camera;
+            float distance;
+            qword eye, threshold, point;
+            if (!IsReconTargetSelectable(o))
+                continue;
+            Store(&position.q, func_001A62E8(o));
+            camera = &D_002DDF40;
+            radius.q = ScalarBits(&o->sRadius);
+            PlaneArguments(&eye, &threshold, &point, radius.q, &camera->v.position, &position.q);
+            if (!FInsideCmFrustum(camera, PlaneDelta(point, eye), threshold))
+                continue;
+            if (!FInsideCmMrd(camera, func_001A62E8(o), o->height, &screen.f[0]))
+                continue;
+            distance = LengthXY(SubSecond(position.q, camera->v.position));
+            if (distance < minimum) {
+                UpdateReconTargetVisibility(reconSel, o);
+                if (o->state != 2) {
+                    best = o;
+                    minimum = distance;
+                }
+            }
+        } while (++slot, ++i < reconSel->count);
+    }
+    if (best != reconSel->actor) {
+        reconSel->actor = best;
+        SetReconSelState(reconSel, 2);
+    }
 }
 
 /** @sly2-annot addr=0x2026F8
@@ -548,139 +578,159 @@ static inline void Restore(LOV *x,uint mask){uint f=x->grf40;if((f^1)&1)*(uint *
  * @end-sly2-annot */
 // Selector state machine (-1..10); 8 = snapshot (clock and sound paused, player flags 0x102), 9 = photo taken
 // (dialog, game event 10, target marked done).
-void SetReconSelState(RECONSEL *reconSel,int nextState)
+void SetReconSelState(RECONSEL *reconSel, int nextState)
 {
-    if(reconSel->state==nextState)return;
-    if(!reconSel->primary)return;
-    if(!reconSel->secondary)return;
-    if(((uint)(reconSel->state-8)<2)!=((uint)(nextState-8)<2)){
-        if((uint)(nextState-8)<2)IncrementSwHandsOff(&D_003DD490,0);
-        else DecrementSwHandsOff(&D_003DD490,0);
+    if (reconSel->state == nextState)
+        return;
+    if (!reconSel->primary)
+        return;
+    if (!reconSel->secondary)
+        return;
+    if (((uint)(reconSel->state - 8) < 2) != ((uint)(nextState - 8) < 2)) {
+        if ((uint)(nextState - 8) < 2)
+            IncrementSwHandsOff(&D_003DD490, 0);
+        else
+            DecrementSwHandsOff(&D_003DD490, 0);
     }
-    switch(reconSel->state){
-    case -1:case 0:case 2:case 3:case 10:break;
+    switch (reconSel->state) {
+    case -1:
+    case 0:
+    case 2:
+    case 3:
+    case 10: break;
     case 1:
         FadeReconTargetMarkers(reconSel);
         RefreshReconPendingTargets(reconSel);
-        PlayWidgetAnim(reconSel->primary,0x35D);
-        if((int)reconSel->cPending>0)PlayWidgetAnim(reconSel->primary,0x35E);
+        PlayWidgetAnim(reconSel->primary, 0x35D);
+        if ((int)reconSel->cPending > 0)
+            PlayWidgetAnim(reconSel->primary, 0x35E);
         UpdateReconChecklist(reconSel);
         break;
-    case 4:
-        StopWidgetAnim(reconSel->secondary,0x359);
-        break;
-    case 5:case 6:
-        StopWidgetAnim(reconSel->secondary,0x35A);
-        break;
+    case 4: StopWidgetAnim(reconSel->secondary, 0x359); break;
+    case 5:
+    case 6: StopWidgetAnim(reconSel->secondary, 0x35A); break;
     case 7:
-        StopWidgetAnim(reconSel->primary,0x356);
-        StopWidgetAnim(reconSel->secondary,0x356);
-        StopWidgetAnim(reconSel->secondary,0x357);
+        StopWidgetAnim(reconSel->primary, 0x356);
+        StopWidgetAnim(reconSel->secondary, 0x356);
+        StopWidgetAnim(reconSel->secondary, 0x357);
         break;
     case 8:
-        Restore(reconSel->model->plo,reconSel->savedFlags);
-        func_0014D1D0(&D_002DDED0,0,1.0f);
-        func_001FE5B8(D_003DD040,1,1);
-        StopWidgetAnim(reconSel->primary,0x358);
+        Restore(reconSel->model->plo, reconSel->savedFlags);
+        func_0014D1D0(&D_002DDED0, 0, 1.0f);
+        func_001FE5B8(D_003DD040, 1, 1);
+        StopWidgetAnim(reconSel->primary, 0x358);
         break;
     case 9:
         func_0014FE28(&g_cm.cplook);
-        func_00214300(reconSel->primary,-1);
-        Post(reconSel->primary,0x310);
-        if(reconSel->resource){
-            if(reconSel->actor->key!=-1)StartDialog(D_003DD040,reconSel->actor->key,0);
-            func_00147C20(reconSel->resource,0x608,reconSel->actor->key);
+        func_00214300(reconSel->primary, -1);
+        Post(reconSel->primary, 0x310);
+        if (reconSel->resource) {
+            if (reconSel->actor->key != -1)
+                StartDialog(D_003DD040, reconSel->actor->key, 0);
+            func_00147C20(reconSel->resource, 0x608, reconSel->actor->key);
         }
-        SetReconTargetDone(reconSel->actor,1);
-        BroadcastGameEvent(D_002DEB30,10,0);
-        reconSel->actor=0;
-        if(IsReconSelAvailable(reconSel)){
-            PlayWidgetAnim(reconSel->primary,0x35D);
-            if((int)reconSel->cPending>0)PlayWidgetAnim(reconSel->primary,0x35E);
+        SetReconTargetDone(reconSel->actor, 1);
+        BroadcastGameEvent(D_002DEB30, 10, 0);
+        reconSel->actor = 0;
+        if (IsReconSelAvailable(reconSel)) {
+            PlayWidgetAnim(reconSel->primary, 0x35D);
+            if ((int)reconSel->cPending > 0)
+                PlayWidgetAnim(reconSel->primary, 0x35E);
         }
         UpdateReconChecklist(reconSel);
         break;
     }
-    int previous=reconSel->state;
-    reconSel->state=nextState;
-    switch(nextState){
+    int previous = reconSel->state;
+    reconSel->state = nextState;
+    switch (nextState) {
     case 0:
-        reconSel->actor=0;reconSel->selected=-1;reconSel->pending=-1;
+        reconSel->actor = 0;
+        reconSel->selected = -1;
+        reconSel->pending = -1;
         ClearReconTargetMarks(reconSel);
-        Post(reconSel->primary,-1);
+        Post(reconSel->primary, -1);
         ResetReconTargets(reconSel);
         UpdateReconSelInVolume(reconSel);
-        BroadcastGameEvent(D_002DEB30,9,0);
+        BroadcastGameEvent(D_002DEB30, 9, 0);
         break;
     case 1:
-        StopWidgetAnim(reconSel->primary,0x35D);
-        Post(reconSel->secondary,0x339);
+        StopWidgetAnim(reconSel->primary, 0x35D);
+        Post(reconSel->secondary, 0x339);
         break;
     case 5:
-        PlayWidgetAnim(reconSel->secondary,0x35A);
-        SetWidgetAnimPhase(reconSel->secondary,0x35A,0.0f);
+        PlayWidgetAnim(reconSel->secondary, 0x35A);
+        SetWidgetAnimPhase(reconSel->secondary, 0x35A, 0.0f);
         break;
     case 6:
-        PlayWidgetAnim(reconSel->secondary,0x35A);
-        SetWidgetAnimPhase(reconSel->secondary,0x35A,0.0f);
+        PlayWidgetAnim(reconSel->secondary, 0x35A);
+        SetWidgetAnimPhase(reconSel->secondary, 0x35A, 0.0f);
         break;
     case 7:
-        SetSndSourceLo(PsndStartSound(0x52),0);
-        reconSel->selected=reconSel->actor->id;
-        PlayWidgetAnim(reconSel->primary,0x356);
-        PlayWidgetAnim(reconSel->secondary,0x356);
-        PlayWidgetAnim(reconSel->secondary,0x357);
+        SetSndSourceLo(PsndStartSound(0x52), 0);
+        reconSel->selected = reconSel->actor->id;
+        PlayWidgetAnim(reconSel->primary, 0x356);
+        PlayWidgetAnim(reconSel->secondary, 0x356);
+        PlayWidgetAnim(reconSel->secondary, 0x357);
         break;
     case 8: {
-        StopWidgetAnim(reconSel->primary,0x35B);
-        PlayWidgetAnim(reconSel->primary,0x358);
+        StopWidgetAnim(reconSel->primary, 0x35B);
+        PlayWidgetAnim(reconSel->primary, 0x358);
         register MODEL *model __asm__("a1");
         register LOV *widget __asm__("v0");
         register int flags __asm__("a0");
-        __asm__("lw %0,%1":"=r"(model):"m"(reconSel->model));
-        __asm__("lw %0,0(%1)":"=r"(widget):"r"(model),"m"(model->plo));
-        __asm__("lw %0,64(%1)":"=r"(flags):"r"(widget),"m"(widget->grf40));
-        if(IndirectWord(flags))flags=*(uint *)flags;
-        reconSel->savedFlags=Untag(flags);
+        __asm__("lw %0,%1" : "=r"(model) : "m"(reconSel->model));
+        __asm__("lw %0,0(%1)" : "=r"(widget) : "r"(model), "m"(model->plo));
+        __asm__("lw %0,64(%1)" : "=r"(flags) : "r"(widget), "m"(widget->grf40));
+        if (IndirectWord(flags))
+            flags = *(uint *)flags;
+        reconSel->savedFlags = Untag(flags);
         register LOV *updated __asm__("a0");
         register uint raw __asm__("v1");
-        __asm__("lw %0,0(%1)":"=r"(updated):"r"(model),"m"(model->plo));
-        __asm__("lw %0,64(%1)":"=r"(raw):"r"(updated),"m"(updated->grf40));
-        if((raw^1)&1)*(uint *)raw|=0x102;
+        __asm__("lw %0,0(%1)" : "=r"(updated) : "r"(model), "m"(model->plo));
+        __asm__("lw %0,64(%1)" : "=r"(raw) : "r"(updated), "m"(updated->grf40));
+        if ((raw ^ 1) & 1)
+            *(uint *)raw |= 0x102;
         else {
-            register uint inlineWord __asm__("v0")=raw|0x102;
+            register uint inlineWord __asm__("v0") = raw | 0x102;
             __asm__("sw %1,%0" : "=m"(updated->grf40) : "r"(inlineWord));
         }
-        func_001FE5B8(D_003DD040,1,0);
-        func_0014D1D0(&D_002DDED0,0,0.0f);
+        func_001FE5B8(D_003DD040, 1, 0);
+        func_0014D1D0(&D_002DDED0, 0, 0.0f);
         break;
     }
     case 9:
-        Post(reconSel->secondary,0x339);
-        Post(reconSel->primary,0x35C);
-        func_00214300(reconSel->primary,0);
+        Post(reconSel->secondary, 0x339);
+        Post(reconSel->primary, 0x35C);
+        func_00214300(reconSel->primary, 0);
         break;
-    case 3:case 4:
-        reconSel->secondary->actor=reconSel->actor;
-        Post(reconSel->secondary,0x337);
-        PlayWidgetAnim(reconSel->secondary,0x359);
-        SetWidgetAnimPhase(reconSel->secondary,0x359,0.0f);
+    case 3:
+    case 4:
+        reconSel->secondary->actor = reconSel->actor;
+        Post(reconSel->secondary, 0x337);
+        PlayWidgetAnim(reconSel->secondary, 0x359);
+        SetWidgetAnimPhase(reconSel->secondary, 0x359, 0.0f);
         break;
-    case 2:
-        Post(reconSel->secondary,0x339);
-        break;
+    case 2: Post(reconSel->secondary, 0x339); break;
     case 10:
-        reconSel->actor=0;reconSel->selected=-1;reconSel->pending=-1;
+        reconSel->actor = 0;
+        reconSel->selected = -1;
+        reconSel->pending = -1;
         Clear(reconSel->secondary);
         Clear(reconSel->primary);
         NotifyReconTargets(reconSel);
-        BroadcastGameEvent(D_002DEB30,11,0);
+        BroadcastGameEvent(D_002DEB30, 11, 0);
         break;
     case -1:
-        if(previous!=10){
-            BroadcastGameEvent(D_002DEB30,11,0);
-            if(reconSel->primary->shown){SetWidgetState(reconSel->primary,1);SetWidgetRequest(reconSel->primary,1);}
-            if(reconSel->secondary->shown){SetWidgetState(reconSel->secondary,1);SetWidgetRequest(reconSel->secondary,1);}
+        if (previous != 10) {
+            BroadcastGameEvent(D_002DEB30, 11, 0);
+            if (reconSel->primary->shown) {
+                SetWidgetState(reconSel->primary, 1);
+                SetWidgetRequest(reconSel->primary, 1);
+            }
+            if (reconSel->secondary->shown) {
+                SetWidgetState(reconSel->secondary, 1);
+                SetWidgetRequest(reconSel->secondary, 1);
+            }
         }
         break;
     }
@@ -725,122 +775,181 @@ static inline float GClampMM(float g,float minValue,float maxValue){return Max(m
 // takes the photo on button 10 (250 when locked).
 extern "C" void UpdateReconSel(RECONSEL *reconSel)
 {
-    if(!reconSel->primary)return;
-    if(!reconSel->secondary)return;
-    if(reconSel->refreshPending){reconSel->refreshPending=0;EndJtMode(reconSel->model);}
-    if(reconSel->choiceTime+5.0f<D_002DDED0.t)StopWidgetAnim(reconSel->primary,0x35B);
-    if(reconSel->state<8)if(reconSel->state>=2){
-        SelectReconTarget(reconSel);
-        FadeReconTargetMarkers(reconSel);
-        if(!IsReconSelAvailable(reconSel))SetReconSelState(reconSel,1);
+    if (!reconSel->primary)
+        return;
+    if (!reconSel->secondary)
+        return;
+    if (reconSel->refreshPending) {
+        reconSel->refreshPending = 0;
+        EndJtMode(reconSel->model);
     }
-    if(reconSel->actor){
-        qword world=func_001A62E8(reconSel->actor);
-        VU_FLOAT offset=VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
-        qword head=VuAdd(world,QwScaleX(QwUp(&D_002DDF40.mat),offset.qw));
-        qword base=ConvertCmWorldToScreen(&D_002DDF40,world);
-        qword top=ConvertCmWorldToScreen(&D_002DDF40,head);
-        VU_FLOAT screen=ScreenFromProjected(base);
-        float distance=GXOfQw(QwLengthXY(VuSub(screen.qw,reconSel->origin)));
-        VU_FLOAT screenTop=ScreenFromProjected(top);
-        float size=GXOfQw(QwLengthXY(VuSub(screen.qw,screenTop.qw)));
-        float proximity=1.0f-(distance-128.0f)/128.0f;
-        size=size/120.0f;
-        reconSel->rising=1;
-        reconSel->proximity=GClampMM(proximity,0.0f,1.0f);
-        reconSel->sizeGain=size;
-        if(size>1.0f){reconSel->rising=0;reconSel->sizeGain=2.0f-size;}
-        reconSel->sizeGain=Max(reconSel->sizeGain,0.0f);
+    if (reconSel->choiceTime + 5.0f < D_002DDED0.t)
+        StopWidgetAnim(reconSel->primary, 0x35B);
+    if (reconSel->state < 8)
+        if (reconSel->state >= 2) {
+            SelectReconTarget(reconSel);
+            FadeReconTargetMarkers(reconSel);
+            if (!IsReconSelAvailable(reconSel))
+                SetReconSelState(reconSel, 1);
+        }
+    if (reconSel->actor) {
+        qword world = func_001A62E8(reconSel->actor);
+        VU_FLOAT offset = VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
+        qword head = VuAdd(world, QwScaleX(QwUp(&D_002DDF40.mat), offset.qw));
+        qword base = ConvertCmWorldToScreen(&D_002DDF40, world);
+        qword top = ConvertCmWorldToScreen(&D_002DDF40, head);
+        VU_FLOAT screen = ScreenFromProjected(base);
+        float distance = GXOfQw(QwLengthXY(VuSub(screen.qw, reconSel->origin)));
+        VU_FLOAT screenTop = ScreenFromProjected(top);
+        float size = GXOfQw(QwLengthXY(VuSub(screen.qw, screenTop.qw)));
+        float proximity = 1.0f - (distance - 128.0f) / 128.0f;
+        size = size / 120.0f;
+        reconSel->rising = 1;
+        reconSel->proximity = GClampMM(proximity, 0.0f, 1.0f);
+        reconSel->sizeGain = size;
+        if (size > 1.0f) {
+            reconSel->rising = 0;
+            reconSel->sizeGain = 2.0f - size;
+        }
+        reconSel->sizeGain = Max(reconSel->sizeGain, 0.0f);
     }
-    switch(reconSel->state){
-    case -1:
-        break;
+    switch (reconSel->state) {
+    case -1: break;
     case 2:
-        if(reconSel->actor&&reconSel->actor->state!=2)SetReconSelState(reconSel,4);
+        if (reconSel->actor && reconSel->actor->state != 2)
+            SetReconSelState(reconSel, 4);
         break;
     case 4:
-        if(!reconSel->actor)SetReconSelState(reconSel,2);
-        else if(reconSel->actor->state==3)SetReconSelState(reconSel,3);
-        else if(reconSel->proximity>=1.0f){
-            if(reconSel->rising)SetReconSelState(reconSel,5);
-            else SetReconSelState(reconSel,6);
+        if (!reconSel->actor)
+            SetReconSelState(reconSel, 2);
+        else if (reconSel->actor->state == 3)
+            SetReconSelState(reconSel, 3);
+        else if (reconSel->proximity >= 1.0f) {
+            if (reconSel->rising)
+                SetReconSelState(reconSel, 5);
+            else
+                SetReconSelState(reconSel, 6);
         }
         break;
     case 3:
-        if(!reconSel->actor)SetReconSelState(reconSel,2);
-        else if(reconSel->actor->state!=3)SetReconSelState(reconSel,4);
+        if (!reconSel->actor)
+            SetReconSelState(reconSel, 2);
+        else if (reconSel->actor->state != 3)
+            SetReconSelState(reconSel, 4);
         break;
     case 5:
-        if(!reconSel->actor)SetReconSelState(reconSel,2);
-        else if(reconSel->proximity<1.0f)SetReconSelState(reconSel,4);
-        else if(reconSel->sizeGain>=1.0f-reconSel->actor->threshold)SetReconSelState(reconSel,7);
-        else SetWidgetAnimPhase(reconSel->secondary,0x35A,reconSel->sizeGain);
+        if (!reconSel->actor)
+            SetReconSelState(reconSel, 2);
+        else if (reconSel->proximity < 1.0f)
+            SetReconSelState(reconSel, 4);
+        else if (reconSel->sizeGain >= 1.0f - reconSel->actor->threshold)
+            SetReconSelState(reconSel, 7);
+        else
+            SetWidgetAnimPhase(reconSel->secondary, 0x35A, reconSel->sizeGain);
         break;
     case 6:
-        if(!reconSel->actor)SetReconSelState(reconSel,2);
-        else if(reconSel->proximity<1.0f)SetReconSelState(reconSel,4);
-        else if(reconSel->sizeGain>=1.0f-reconSel->actor->threshold)SetReconSelState(reconSel,7);
-        else SetWidgetAnimPhase(reconSel->secondary,0x35A,reconSel->sizeGain);
+        if (!reconSel->actor)
+            SetReconSelState(reconSel, 2);
+        else if (reconSel->proximity < 1.0f)
+            SetReconSelState(reconSel, 4);
+        else if (reconSel->sizeGain >= 1.0f - reconSel->actor->threshold)
+            SetReconSelState(reconSel, 7);
+        else
+            SetWidgetAnimPhase(reconSel->secondary, 0x35A, reconSel->sizeGain);
         break;
     case 7:
-        if(reconSel->actor){
-            if(reconSel->proximity<1.0f||reconSel->sizeGain<1.0f-reconSel->actor->threshold){
-                if(reconSel->rising)SetReconSelState(reconSel,5);
-                else SetReconSelState(reconSel,6);
+        if (reconSel->actor) {
+            if (reconSel->proximity < 1.0f || reconSel->sizeGain < 1.0f - reconSel->actor->threshold) {
+                if (reconSel->rising)
+                    SetReconSelState(reconSel, 5);
+                else
+                    SetReconSelState(reconSel, 6);
             }
-        }
-        else SetReconSelState(reconSel,2);
+        } else
+            SetReconSelState(reconSel, 2);
         break;
     case 8:
-        if(!FWidgetAnimPlaying(reconSel->primary,0x358)){
-            int changed=0;
-            if(reconSel->actor&&reconSel->actor->state==1&&reconSel->proximity>=1.0f&&reconSel->sizeGain>=1.0f-reconSel->actor->threshold){
-                if(!reconSel->actor->mode)SetReconSelState(reconSel,9);
-                else{reconSel->pending=reconSel->actor->choice;SetReconSelState(reconSel,7);changed=1;}
+        if (!FWidgetAnimPlaying(reconSel->primary, 0x358)) {
+            int changed = 0;
+            if (reconSel->actor && reconSel->actor->state == 1 && reconSel->proximity >= 1.0f &&
+                reconSel->sizeGain >= 1.0f - reconSel->actor->threshold) {
+                if (!reconSel->actor->mode)
+                    SetReconSelState(reconSel, 9);
+                else {
+                    reconSel->pending = reconSel->actor->choice;
+                    SetReconSelState(reconSel, 7);
+                    changed = 1;
+                }
+            } else {
+                if (reconSel->actor && reconSel->actor->state != 1) {
+                    reconSel->pending = reconSel->primary->actorChoice;
+                    SetReconSelState(reconSel, 3);
+                } else if (reconSel->proximity >= 1.0f && reconSel->rising) {
+                    reconSel->pending = reconSel->primary->risingChoice;
+                    SetReconSelState(reconSel, 5);
+                } else if (reconSel->proximity >= 1.0f && !reconSel->rising) {
+                    reconSel->pending = reconSel->primary->fallingChoice;
+                    SetReconSelState(reconSel, 6);
+                } else if (reconSel->actor) {
+                    reconSel->pending = reconSel->primary->nearChoice;
+                    SetReconSelState(reconSel, 4);
+                } else {
+                    reconSel->pending = reconSel->primary->emptyChoice;
+                    SetReconSelState(reconSel, 2);
+                }
+                changed = 1;
             }
-            else{
-                if(reconSel->actor&&reconSel->actor->state!=1){reconSel->pending=reconSel->primary->actorChoice;SetReconSelState(reconSel,3);}
-                else if(reconSel->proximity>=1.0f&&reconSel->rising){reconSel->pending=reconSel->primary->risingChoice;SetReconSelState(reconSel,5);}
-                else if(reconSel->proximity>=1.0f&&!reconSel->rising){reconSel->pending=reconSel->primary->fallingChoice;SetReconSelState(reconSel,6);}
-                else if(reconSel->actor){reconSel->pending=reconSel->primary->nearChoice;SetReconSelState(reconSel,4);}
-                else{reconSel->pending=reconSel->primary->emptyChoice;SetReconSelState(reconSel,2);}
-                changed=1;
+            if (changed) {
+                PlayWidgetAnim(reconSel->primary, 0x35B);
+                reconSel->choiceTime = D_002DDED0.t;
             }
-            if(changed){PlayWidgetAnim(reconSel->primary,0x35B);reconSel->choiceTime=D_002DDED0.t;}
         }
         break;
     case 9:
-        if(!FWidgetAnimPlaying(reconSel->primary,0x35C)){
-            int ready=1;
-            SetReconSelState(reconSel,2);
-            for(int i=0;i<reconSel->count;i++){
-                RECONTGT *actor=reconSel->items[i];
-                int done=IsReconTargetDone(actor);
+        if (!FWidgetAnimPlaying(reconSel->primary, 0x35C)) {
+            int ready = 1;
+            SetReconSelState(reconSel, 2);
+            for (int i = 0; i < reconSel->count; i++) {
+                RECONTGT *actor = reconSel->items[i];
+                int done = IsReconTargetDone(actor);
                 // an actor whose link is missing or in state 1 must be done before the refresh
-                int linkReady=!actor->link||actor->link->state==1;
-                if(!done&&linkReady){ready=0;break;}
+                int linkReady = !actor->link || actor->link->state == 1;
+                if (!done && linkReady) {
+                    ready = 0;
+                    break;
+                }
             }
-            if(ready)reconSel->refreshPending=1;
+            if (ready)
+                reconSel->refreshPending = 1;
         }
         break;
     case 10:
-        if(!FWidgetAnimPlaying(reconSel->primary,0x314))SetReconSelState(reconSel,-1);
+        if (!FWidgetAnimPlaying(reconSel->primary, 0x314))
+            SetReconSelState(reconSel, -1);
         break;
     case 0:
-        if(FWidgetAnimPlaying(reconSel->primary,0x314))SetReconSelState(reconSel,1);
+        if (FWidgetAnimPlaying(reconSel->primary, 0x314))
+            SetReconSelState(reconSel, 1);
         break;
     case 1:
         FadeReconTargetMarkers(reconSel);
-        if(IsReconSelAvailable(reconSel))SetReconSelState(reconSel,2);
+        if (IsReconSelAvailable(reconSel))
+            SetReconSelState(reconSel, 2);
         break;
     }
-    if(reconSel->model->state!=1){
-        switch(reconSel->state){
-        case 2:case 3:case 4:case 5:case 6:
-            if(!FActiveCplcy(&g_cm.part3a0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,10,0.0f))SetReconSelState(reconSel,8);
+    if (reconSel->model->state != 1) {
+        switch (reconSel->state) {
+        case 2:
+        case 3:
+        case 4:
+        case 5:
+        case 6:
+            if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 10, 0.0f))
+                SetReconSelState(reconSel, 8);
             break;
         case 7:
-            if(!FActiveCplcy(&g_cm.part3a0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,250,0.0f))SetReconSelState(reconSel,8);
+            if (!FActiveCplcy(&g_cm.part3a0) && GrfConsumePressed__5POCTLUif(D_002E1E40->control, 250, 0.0f))
+                SetReconSelState(reconSel, 8);
             break;
         }
     }
@@ -853,11 +962,13 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Recon target (CID 0x2E) Init: transform init, ids -1/-2.
-extern "C" void InitReconTarget(RECONTGT *target) { InitXfm(target);
-target->id = -1; //P
-target->choice = -1; //P
-target->key = -1; //P
-target->idPending = -2; //P
+extern "C" void InitReconTarget(RECONTGT *target)
+{
+    InitXfm(target);
+    target->id = -1; //P
+    target->choice = -1; //P
+    target->key = -1; //P
+    target->idPending = -2; //P
 }
 
 /** @sly2-annot addr=0x2035A8
