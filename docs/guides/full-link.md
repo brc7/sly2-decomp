@@ -8,33 +8,33 @@ tools/link.py links the image (since link/real-link a real link: one section per
 the ELF the way the original build did is "End state" at the end. The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (data/address-names-2, 2026-11-06)
+## Status (data/commons-file, 2026-11-06)
 
 The one current table; the Status tables of the earlier branches and rounds are in this file's history (last at
-integrate/round10 690b28cf). data/address-names-2 (from integrate/round10 690b28cf) takes the names link.py binds to
-absolute addresses from 492 to 274 and of those, what is left is SDK (Mac), commons, VU/scratchpad offsets that are
-not image addresses, and 9 game objects waiting for decisions ("Absolute symbols" right below); it gives 57 more
-vtables config names and emits them from their key TUs ([tu-merging.md, "Vtables emitted
-(data/address-names-2)"](tu-merging.md#vtables-emitted-dataaddress-names-2)). Every value from freshly built objects
-(build/link and build/progress_cache.json deleted first); integrate/round10's in brackets where different.
+data/address-names-2 f765bdd8). data/commons-file (from f765bdd8) defines the game's commons in one data-only
+source, src/game/app/commons.cpp, in the original's allocation order (user decision; "Absolute symbols" below and
+[tu-merging.md, "Phase 9: the commons file"](tu-merging.md#phase-9-the-commons-file-branch-datacommons-file-2026-11-06)):
+absolute symbols of class common 69 -> 15 (the SDK sources' buffers), 274 -> 220 in all. Every value from freshly
+built objects (build/link and build/progress_cache.json deleted first); data/address-names-2's in brackets where
+different.
 
 | measure | value | tool |
 |---|---|---|
 | functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac); config/matched.csv content unchanged by the run | `JOBS=3 tools/progress.py`, cache deleted, run alone |
 | all game sources (210) | functions 6,017 / 6,017, data symbols 2,187 / 2,187 [2,118] MATCH | `tools/matchtool.py check` |
-| vtables from objects | 284 `.gnu.linkonce.d._vt$*` sections [228], each MATCH against the ELF and emitted in ascending ELF order per object; 2 left in the linkonce data area (EMITTER's/EXPLO's template-instance tables 0x2CE680, 0x2CED18: tu-merging.md) | `tools/matchtool.py check`, llvm-readelf |
-| absolute symbols | 274 [492]: SDK functions the SDK objects define (Mac) 109, SDK data and SDK-only references 53, SDK name mismatches 8, commons 69 [84], VU-memory/scratchpad offsets 26, game objects not defined 9 [78]; plus 17 labels on the `.vutext`/`.irx` blobs (not absolute since this branch) | `tools/link.py` (build/link/absolute.txt) |
-| undefined references not in config (209 merged objects), duplicate strong definitions | 4 [5]: the four `_gp` (tn's `Init__5CPLCY` resolved); 0 | scratch symcheck.py |
-| relocations checked against the ELF | 52,803 [52,051] OK, 0 mismatched | scratch relverify.py |
-| link objects | 527: 527 whole, 0 in per-function fallback | `tools/link.py` |
-| ld.lld | 0 errors; 1,286 [1,221] object sections placed, 2 [3] unplaced (140 bytes: an SDK object's `.data` 100, bq's linkonce copy 40; tn's CMPART2 vtable is placed now), 2 `.bss` overlapping another bound to their address (tn, cplcy) | `tools/link.py` |
-| `.bss`/`.sbss` gaps no object defines | 60,772 bytes in 6 address assignments | `tools/link.py` |
-| differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; from objects .text 1,295,844, .rodata 128,544 [128,176], .data 180,852 [173,628] | `tools/link.py` |
-| blob bytes | 822,888 [830,480]: IOP modules 474,176; data no object defines 193,760 [201,352]; text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,576; padding / not in config 1,036; `func_00100000` 4 | `tools/link.py` |
-| config names at their config address | 8,066 / 8,066 [7,982]: the 57 vtables, 2 template statics, `_ctype_`; renamed rows (printf, sprintf, PvAllocSlot__FP8ALLOCREQ, __4CRefRC4CRef, the five syscall/libgraph names, sceSifLoadModuleBuffer) | `tools/link.py` |
+| vtables from objects | 284 `.gnu.linkonce.d._vt$*` sections, each MATCH against the ELF and emitted in ascending ELF order per object; 2 left in the linkonce data area (EMITTER's/EXPLO's template-instance tables 0x2CE680, 0x2CED18: tu-merging.md) | `tools/matchtool.py check`, llvm-readelf |
+| absolute symbols | 220 [274]: SDK functions the SDK objects define (Mac) 109, SDK data and SDK-only references 53, SDK name mismatches 8, commons 15 [69] (the SDK sources' 989snd/libkernel buffers), VU-memory/scratchpad offsets 26, game objects not defined 9; plus 17 labels on the `.vutext`/`.irx` blobs | `tools/link.py` (build/link/absolute.txt) |
+| undefined references not in config (209 merged objects and commons.cpp), duplicate strong definitions | 4: the four `_gp` (plus commons.cpp's `gcc2_compiled.` and `__gnu_compiled_cplusplus`: local markers g++ leaves without a section in a file with no `.text`, not references); 0 | scratch symcheck.py |
+| relocations checked against the ELF | 55,457 [52,803] OK, 0 mismatched (more checked: config names the pools, heaps and sentries now) | scratch relverify.py |
+| link objects | 528 [527]: 528 whole, 0 in per-function fallback; the new one is commons.cpp (link.py `DATA_SOURCES`) | `tools/link.py` |
+| ld.lld | 0 errors; 1,287 [1,286] object sections placed (commons.cpp's `.sbss` and `.bss`; dl has no `.bss` now), 2 unplaced (140 bytes: an SDK object's `.data` 100, bq's linkonce copy 40), 2 `.bss` overlapping another bound to their address (tn, cplcy) | `tools/link.py` |
+| `.bss`/`.sbss` gaps no object defines | 60,264 [60,772] bytes in 4 [6] address assignments (`.sbss` is all commons.cpp's; the SDK tail ends at 0x452098) | `tools/link.py` |
+| differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; from objects .text 1,295,844, .rodata 128,544, .data 180,852 | `tools/link.py` |
+| blob bytes | 822,888: IOP modules 474,176; data no object defines 193,760; text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,576; padding / not in config 1,036; `func_00100000` 4 | `tools/link.py` |
+| config names at their config address | 8,120 / 8,120 [8,066]: config names the 6 slot pools, 5 splice heaps and their 11 sentries (symbol_addrs.txt); 23 [45] undefined names no config file knows | `tools/link.py` |
 | docs links | 0 broken | `tools/docs/linkcheck.py` |
 
-## Absolute symbols (data/address-names-2)
+## Absolute symbols (data/address-names-2, data/commons-file)
 
 tools/link.py lists every name it binds to an absolute address in build/link/absolute.txt (address, ELF section,
 class, the referencing objects) and prints `absolute symbols: N` by class. A name no object defines is bound to its
@@ -49,7 +49,7 @@ the blob. What changed, by class (start 492, integrate/round10):
 | interior of a defined object | 11 | 0 | gs's double buffer as four objects; elsewhere an asm label with an addend (`__asm__("D_002DDF40+0x60")`): a separate symbol to g++, the owner to the assembler (tu-merging.md, Phase 8) |
 | vtables no object emitted (address-named references) | 45 | 0 | emitted by their key TUs (57 with the unreferenced ones) |
 | other game objects not defined | 33 | 9 | bsp's sentinel planes/leaves, util's limits, mat's/vec's matrix and vector constants, hud's M23, grabspot's flag, emitter's empty reference blocks |
-| commons | 84 | 69 | the address-named duplicates of template statics merged into them; the rest stay (below) |
+| commons | 84 | 69, then 15 (data/commons-file) | the address-named duplicates of template statics merged into them; then the 54 game commons defined by one file, src/game/app/commons.cpp (below); the 15 SDK ones stay |
 | `.vutext`/`.irx` labels | 17 | 0 (17 blob labels) | link.py defines them on the blobs |
 | VU-memory / scratchpad offsets (0x0..0x3AB0) | 26 | 26 | not image addresses: absolute is right |
 | SDK | 179 | 170 | `_ctype_+1`, `_impure_ptr`, `get_eh_context` by name; five syscall/libgraph sources and sceSifLoadModuleBuffer define the names their callers use |
@@ -64,14 +64,20 @@ Left, and who decides:
   renames of SDK sources the naming pass deferred to the Mac (docs/reference/name-confidence.csv). Also to verify
   on the Mac: func_00237B80.c and _sceMpegCscStoreRefImage.c (gnu-reorder) now call SignalSema / FlushCache by name.
 - **User decisions**: tu_1147D8's built-in font (D_0027A778, D_0029A790, font.cpp's D_0029A7A8/D_002A28E8) and
-  tu_114AE0's bitmap block (D_0029A8C0, D_002A28D0): game artwork, how image assets are kept in source. The commons
-  (69: the Splice GC pool words and pages, CSlotPool/CSpliceHeap's template statics and their counters, 989snd's
-  and libkernel's buffers, prog/hud/screen's words): g++ 2.95 emits class and template statics as COMMON and ld
-  allocates them at the end of `.bss`/`.sbss` in an order ld.lld does not reproduce, so link.py assigns each its
-  ELF address for byte identity. Without the assignments the link still works (ld places them), only not at the
-  ELF's addresses. Moving them under the link's control needs either a link.py rule that places each object's
-  COMMON input in order, or one source that defines them all (strong definitions win over the commons); a design
-  choice, not taken here.
+  tu_114AE0's bitmap block (D_0029A8C0, D_002A28D0): game artwork, how image assets are kept in source.
+- **The commons (data/commons-file)**: the user chose one source file over a link.py ordering rule.
+  [src/game/app/commons.cpp](../../src/game/app/commons.cpp) defines the 54 game commons (the Splice GC kinds'
+  list words and block tables, CSlotPool/CSpliceHeap's template statics and their sentries, prog's and hud's words)
+  and dl's two `.sbss` words as ordinary objects, in address order: one object section for all of `.sbss`
+  (0x2DD280..0x2DD31C) and one for the end of `.bss` (0x452098..0x452200). g++ 2.95 emits class and template
+  statics as COMMON and GNU ld allocated commons after every object's `.bss` (8 bytes or less in `.sbss`) in its
+  hash-table order; the strong definitions take the commons' place, so link.py places that file like any object and
+  binds a common to an address only when no object defines it. How the definitions are spelled, and why the pools
+  are storage under the mangled name rather than C++ member definitions: [tu-merging.md, "Phase 9: the commons
+  file"](tu-merging.md#phase-9-the-commons-file-branch-datacommons-file-2026-11-06). Left as commons: the 15 of the
+  SDK sources (989snd's buffers 0x443800..0x448500, libkernel's D_0044EF80), which are not commons of the original
+  link but SDK library `.bss` between other SDK objects' data (`_sif_*` 0x44EDD4.., libgcc's `objects` 0x450278):
+  they belong to the SDK sources (Mac), as `.bss` of one object per library block, not to a game file.
 - **Owner not known (game)**: D_002BBB50 (one of three vectors 0x2BBB30..0x2BBB60 between bsp's leaves and util's
   limits), class_registry's D_002DE720/D_002DE750 (`.bss` after emitter; likely guarded local statics of emitter.h's
   inline accessors).
@@ -630,11 +636,11 @@ link/real-link's placement (gaps from the uncut section sizes: 437,324 bytes):
 | SDK `.rodata` | 10,084 | 0x2AA100 | SDK objects (sceSif error strings, libgcc's `__clz_tab`, libm tables, ...) | comes with the SDK objects (3 below) |
 | small gaps | about 5,480 | ~60 gaps of 4..1,536 bytes (`.rodata` 2,600, `.data` 2,880) | neighbours or a TU between (largest: `.rodata` 1,536 between cheat and clock, `.data` 928 after emitter, 840 near tu_14C548) | unreferenced or unnamed statics of game TUs |
 
-`.bss` (no bytes, but an address assignment each; all but the SDK tail, the `.sbss` commons and three small gaps
-defined on data/bss-gaps): 400,080 from 0x3E1C70 (hud.cpp's buffers, D_003E1C70..D_003E21A0
+`.bss` (no bytes, but an address assignment each; all but the SDK tail, the commons and three small gaps
+defined on data/bss-gaps; the commons by src/game/app/commons.cpp on data/commons-file): 400,080 from 0x3E1C70 (hud.cpp's buffers, D_003E1C70..D_003E21A0
 only hud references, then the `.bss` of the TUs after it up to 0x4421A0); 60,000 at the end from 0x4437A0 (989snd
-D_00443800.., libkernel's `_sif_*`, libgcc's `objects`, then the template statics of CSlotPool/CSpliceHeap at
-0x4520A8.., which the original emitted as commons); 21,536 at 0x3D4A50 (D_003D4A50/54/60, the record many TUs
+D_00443800.., libkernel's `_sif_*`, libgcc's `objects`; since data/commons-file the gap ends at 0x452098, where the commons
+file's `.bss` starts); 21,536 at 0x3D4A50 (D_003D4A50/54/60, the record many TUs
 reference); 4,416 at 0x2E0D00 (D_002E0D00, D_002E1E00); about 1,800 in small gaps.
 
 Order of work: ~~the crt0_splicewrap tables~~ (done, data/crt0-tables: 155,960 bytes), then the vtables (100,312,
