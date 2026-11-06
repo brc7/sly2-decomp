@@ -866,8 +866,8 @@ inline CProc::~CProc()
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_ref {
-    static int c_002DD2BC __asm__("D_002DD2BC");   /* .sbss 0x4 */
-    static int c_002DD2DC __asm__("D_002DD2DC");   /* .sbss 0x4 */
+    static int c_002DD2BC __asm__("_t6CGcObj1Z5CProc$s_ptRoot");   /* .sbss 0x4 */
+    static int c_002DD2DC __asm__("_t6CGcObj1Z7CMethod$s_ptRoot");   /* .sbss 0x4 */
 };
 int COMMONS_ref::c_002DD2BC;
 int COMMONS_ref::c_002DD2DC;

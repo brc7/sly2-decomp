@@ -167,6 +167,6 @@ extern "C" SPS CSidebag_CloneTo(CSidebag *psbSrc, void *q)
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_sidebag {
-    static int c_002DD29C __asm__("D_002DD29C");   /* .sbss 0x4 */
+    static int c_002DD29C __asm__("_t6CGcObj1Z5CVarb$s_ptRoot");   /* .sbss 0x4 */
 };
 int COMMONS_sidebag::c_002DD29C;

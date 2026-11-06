@@ -536,9 +536,9 @@ extern "C" void HandleBasicMessage(BASICV *p, int msg, void *pv) {
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_basic {
-    static int c_002DD2C4 __asm__("D_002DD2C4");   /* .sbss 0x4 */
-    static int c_002DD2CC __asm__("D_002DD2CC");   /* .sbss 0x4 */
-    static int c_00452138[4] __asm__("D_00452138");   /* .bss 0x10 */
+    static int c_002DD2C4 __asm__("_t6CGcObj1Z8CSidebag$s_cpage");   /* .sbss 0x4 */
+    static int c_002DD2CC __asm__("_t6CGcObj1Z8CSidebag$s_ptRoot");   /* .sbss 0x4 */
+    static int c_00452138[4] __asm__("_t6CGcObj1Z8CSidebag$s_aptPage");   /* .bss 0x10 */
 };
 int COMMONS_basic::c_002DD2C4;
 int COMMONS_basic::c_002DD2CC;

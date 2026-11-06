@@ -418,11 +418,11 @@ template void CGcObj<CFrame>::MakeRoot();     /* 0x259A88 */
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_gc {
-    static int c_002DD298 __asm__("D_002DD298");   /* .sbss 0x4 */
-    static int c_002DD2B8 __asm__("D_002DD2B8");   /* .sbss 0x4 */
-    static int c_002DD2C0 __asm__("D_002DD2C0");   /* .sbss 0x4 */
-    static int c_002DD2C8 __asm__("D_002DD2C8");   /* .sbss 0x4 */
-    static int c_002DD2D8 __asm__("D_002DD2D8");   /* .sbss 0x4 */
+    static int c_002DD298 __asm__("_t6CGcObj1Z5CVarb$s_ptRecycle");   /* .sbss 0x4 */
+    static int c_002DD2B8 __asm__("_t6CGcObj1Z5CProc$s_ptRecycle");   /* .sbss 0x4 */
+    static int c_002DD2C0 __asm__("_t6CGcObj1Z8CSidebag$s_ptFirst");   /* .sbss 0x4 */
+    static int c_002DD2C8 __asm__("_t6CGcObj1Z8CSidebag$s_ptRecycle");   /* .sbss 0x4 */
+    static int c_002DD2D8 __asm__("_t6CGcObj1Z7CMethod$s_ptRecycle");   /* .sbss 0x4 */
     static int c_004520B8[2] __asm__("D_004520B8");   /* .bss 0x8 */
     static int c_00452108[2] __asm__("D_00452108");   /* .bss 0x8 */
     static int c_00452130[2] __asm__("D_00452130");   /* .bss 0x8 */

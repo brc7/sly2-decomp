@@ -677,11 +677,11 @@ CRef RefEval(CPair *ppair, CFrame *pframe)
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_eval {
-    static int c_002DD2A0 __asm__("D_002DD2A0");   /* .sbss 0x4 */
-    static int c_002DD2A8 __asm__("D_002DD2A8");   /* .sbss 0x4 */
-    static int c_002DD2B0 __asm__("D_002DD2B0");   /* .sbss 0x4 */
-    static int c_002DD2B4 __asm__("D_002DD2B4");   /* .sbss 0x4 */
-    static qword c_00452110 __asm__("D_00452110");   /* .bss 0x10 */
+    static int c_002DD2A0 __asm__("_t6CGcObj1Z6CFrame$s_ptFirst");   /* .sbss 0x4 */
+    static int c_002DD2A8 __asm__("_t6CGcObj1Z6CFrame$s_ptRecycle");   /* .sbss 0x4 */
+    static int c_002DD2B0 __asm__("_t6CGcObj1Z5CProc$s_ptFirst");   /* .sbss 0x4 */
+    static int c_002DD2B4 __asm__("_t6CGcObj1Z5CProc$s_cpage");   /* .sbss 0x4 */
+    static qword c_00452110 __asm__("_t6CGcObj1Z5CProc$s_aptPage");   /* .bss 0x10 */
 };
 int COMMONS_eval::c_002DD2A0;
 int COMMONS_eval::c_002DD2A8;

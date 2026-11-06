@@ -258,9 +258,9 @@ SPO CFrame_CloneTo(CFrame *src, void *a)
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_frame {
-    static int c_002DD290 __asm__("D_002DD290");   /* .sbss 0x4 */
-    static int c_002DD294 __asm__("D_002DD294");   /* .sbss 0x4 */
-    static qword c_004520C0 __asm__("D_004520C0");   /* .bss 0x10 */
+    static int c_002DD290 __asm__("_t6CGcObj1Z5CVarb$s_ptFirst");   /* .sbss 0x4 */
+    static int c_002DD294 __asm__("_t6CGcObj1Z5CVarb$s_cpage");   /* .sbss 0x4 */
+    static qword c_004520C0 __asm__("_t6CGcObj1Z5CVarb$s_aptPage");   /* .bss 0x10 */
 };
 int COMMONS_frame::c_002DD290;
 int COMMONS_frame::c_002DD294;

@@ -625,9 +625,9 @@ CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, v
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_spliceobj {
-    static int c_002DD2D0 __asm__("D_002DD2D0");   /* .sbss 0x4 */
-    static int c_002DD2D4 __asm__("D_002DD2D4");   /* .sbss 0x4 */
-    static qword c_00452160 __asm__("D_00452160");   /* .bss 0x10 */
+    static int c_002DD2D0 __asm__("_t6CGcObj1Z7CMethod$s_ptFirst");   /* .sbss 0x4 */
+    static int c_002DD2D4 __asm__("_t6CGcObj1Z7CMethod$s_cpage");   /* .sbss 0x4 */
+    static qword c_00452160 __asm__("_t6CGcObj1Z7CMethod$s_aptPage");   /* .bss 0x10 */
 };
 int COMMONS_spliceobj::c_002DD2D0;
 int COMMONS_spliceobj::c_002DD2D4;

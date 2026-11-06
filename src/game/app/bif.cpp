@@ -5418,11 +5418,11 @@ extern "C" { BIF D_002BBB90[169] = {
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_bif {
-    static int c_002DD280 __asm__("D_002DD280");   /* .sbss 0x4 */
-    static int c_002DD284 __asm__("D_002DD284");   /* .sbss 0x4 */
-    static int c_002DD288 __asm__("D_002DD288");   /* .sbss 0x4 */
-    static int c_002DD28C __asm__("D_002DD28C");   /* .sbss 0x4 */
-    static int c_00452098[4] __asm__("D_00452098");   /* .bss 0x10 */
+    static int c_002DD280 __asm__("_t6CGcObj1Z5CPair$s_ptFirst");   /* .sbss 0x4 */
+    static int c_002DD284 __asm__("_t6CGcObj1Z5CPair$s_cpage");   /* .sbss 0x4 */
+    static int c_002DD288 __asm__("_t6CGcObj1Z5CPair$s_ptRecycle");   /* .sbss 0x4 */
+    static int c_002DD28C __asm__("_t6CGcObj1Z5CPair$s_ptRoot");   /* .sbss 0x4 */
+    static int c_00452098[4] __asm__("_t6CGcObj1Z5CPair$s_aptPage");   /* .bss 0x10 */
     static int c_004520A8[4] __asm__("D_004520A8");   /* .bss 0x10 */
 };
 int COMMONS_bif::c_002DD280;
