@@ -30,8 +30,8 @@ struct CRef {
 };
 extern int D_003E1C34;
 extern "C" {
-void GcPair_Unlink(void *pv);
-NODE *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+NODE *PtNew__t6CGcObj1Z5CPair();
 int U8Read__18CBinaryInputStream(BIS *pbis);
 int S32Read__18CBinaryInputStream(BIS *pbis);
 int S16Read__18CBinaryInputStream(BIS *pbis);
@@ -41,18 +41,18 @@ unsigned int U32Read__18CBinaryInputStream(BIS *pbis);
 struct CPairPtr {
     NODE *p;
     ~CPairPtr();
-    void operator=(NODE *pn) __asm__("PairPtr_Assign");
+    void operator=(NODE *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 };
 struct NODE {
     int cref;
     int x4;
     CRef ref;
     CPairPtr pnext;
-    void operator delete(void *pv) { GcPair_Unlink(pv); func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
+    void operator delete(void *pv) { Unlink__t6CGcObj1Z5CPair(pv); func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn) __asm__("func_00256C38");
+    void Set(NODE *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN() {}
     SPN(NODE *pn) { Set(pn); }
     SPN(const SPN &);
@@ -74,7 +74,7 @@ extern "C" SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis);
  * @end-sly2-annot */
 SPN PpairSerializeIn__FP18CBinaryInputStream(BIS *pbis) { unsigned int b = U8Read__18CBinaryInputStream(pbis);
  if (b == 0xFF) return SPN(0);
- SPN sp; NODE *pnNew = PvNewPair(); sp.Set(pnNew);
+ SPN sp; NODE *pnNew = PtNew__t6CGcObj1Z5CPair(); sp.Set(pnNew);
  if (D_003E1C34) { S32Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); S16Read__18CBinaryInputStream(pbis); }
  CRef *pref = &sp->ref; int fNext = (b >> 7) & 0xFF; int tagk = b & 0x7F;
  switch (tagk) {

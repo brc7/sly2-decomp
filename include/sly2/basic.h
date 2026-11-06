@@ -198,7 +198,7 @@ class CRefPtr
 {
 public:
     T *m_p;
-    CRefPtr() {}
+    CRefPtr() { m_p = 0; }   /* clears (the PtNew instances, sly2/gc.h, show it in the nodes' constructors) */
     CRefPtr(REFPTRNULL) { m_p = 0; }   /* the clearing constructor of the classes' counted pointers (BASIC) */
     void Attach(T *p);
     CRefPtr(T *p) { Attach(p); }
@@ -223,23 +223,18 @@ public:
     T *operator->() { return m_p; }
 };
 
-/* CGcObj: from src/game/object/spliceobj/RefGetPeopid.cpp (4 copies in Lilly ports) */
-template <class T>
-class CGcObj
+/* Out of line and not `inline`: one linkonce copy per pointee type (0x256C38 CPair, 0x257038 CProc, 0x257058 CFrame,
+   0x257430 CVarb, 0x257E68 CSidebag, 0x259CF8 CMethod), never inlined (CONFIRMED by match). */
+template <class T> void CRefPtr<T>::Attach(T *p)
 {
-public:
-      int m_cref;
-      uint m_grfGc;
-    void Unlink();
-    ~CGcObj() { Unlink(); }
-    void Release()
+    if (p)
     {
-        if (--m_cref == 0)
-        {
-            delete (T *)this;
-        }
+        p->m_cref++;
     }
-};
+    m_p = p;
+}
+
+/* CGcObj (the base of the collected Splice nodes): sly2/gc.h. */
 
 /* CFrame: sly2/cframe.h (types/views-3: out of basic.h so that splice/frame.cpp and eval.cpp, which define their own
    CFrame views, can include the shared headers). */

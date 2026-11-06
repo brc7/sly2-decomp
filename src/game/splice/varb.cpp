@@ -1,5 +1,6 @@
 // varb.cpp -- CVarb, a Splice variable binding (a reference-counted list node of {symbol, value}).
-// TU 0x12B0E8..0x12B3B0 (3 functions) plus one out-of-line inline instance at 0x257430, address order.
+// TU 0x12B0E8..0x12B3B0 (3 functions, address order). Its counted store 0x257430 is CRefPtr<CVarb>::Attach
+// (sly2/basic.h, emitted by splice/gc.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_varb
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012B390
 #include "sly2/cref.h"
@@ -12,7 +13,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 
 extern "C" {
-CVarb *PvNewBinding();
+CVarb *PtNew__t6CGcObj1Z5CVarb();
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
 
@@ -22,7 +23,7 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 struct SPW
 {
       CVarb *p;
-      void Set(CVarb *pvarb) __asm__("func_00257430");
+      void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
       SPW() {}
       SPW(CVarb *pvarb) { Set(pvarb); }
       SPW(const SPW &);
@@ -44,7 +45,7 @@ extern "C" SPW CVarb_CloneTo(CVarb *src, void *a, void *b);
 SPW CVarb_CloneTo(CVarb *src, void *a, void *b)
 {
       SPW sp;
-      sp.Set(PvNewBinding());
+      sp.Set(PtNew__t6CGcObj1Z5CVarb());
       sp->sym = src->sym;
       sp->ref = CRef_CloneTo(&src->ref, a, b);
       if (src->pnext.p)
@@ -52,17 +53,3 @@ SPW CVarb_CloneTo(CVarb *src, void *a, void *b)
       return SPW(sp.p);
 }
 
-/** @sly2-annot addr=0x257430
- * Purpose: refptr store with incref [game linkonce (inline/template)]
- * Info: proposed name BindingPtr_Init (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-// Out-of-line copy of an inline counted-pointer assignment (this TU's home for it; it sits in the linkonce area at the
-// end of .text). Kept as a plain function under its current symbol until its owning class is known.
-extern "C" void func_00257430(int **pp, int *pcref)
-{
-      if (pcref != 0)
-            *pcref += 1;
-      *pp = pcref;
-}

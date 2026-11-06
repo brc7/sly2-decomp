@@ -27,7 +27,7 @@ typedef unsigned size_t;
 extern SW D_003DD490;
 extern "C" {
 void InitLo(LO *plo);
-void FramePtr_Assign(void *ppframe, CFrame *pframe);   /* the counted CFrame store (linkonce, proxy.cpp) */
+void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");   /* the counted CFrame store (linkonce, proxy.cpp) */
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);   /* the counted sidebag store */
 void UnsubscribeLoAll(BASIC *pbasic);
 OID OidFromSmIsms(SM *psm, int isms);
@@ -426,7 +426,7 @@ extern "C" {
 S *PvAllocSlotheapClear(void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void AppendDlEntry__FP2DLPv(void *, S *);
-void FramePtr_Assign(S *, int);
+void FramePtr_Assign(S *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 int FSmaRetracted(S *);
 int func_001F0438(P *, int);
 void NotifySmaSpliceOnEnterState(S *, int, int);

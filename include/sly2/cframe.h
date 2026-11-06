@@ -7,6 +7,7 @@
 #ifndef SLY2_CFRAME_H
 #define SLY2_CFRAME_H
 #include "sly2/basic.h"
+#include "sly2/gc.h"
 
 /* from src/game/object/proxy/ReleasePspare__FP5PROXYP10PROXYSPARE.cpp (2 copies in Lilly ports) */
 class CFrame : public CGcObj<CFrame>

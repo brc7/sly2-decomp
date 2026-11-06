@@ -1,5 +1,6 @@
 // splicemap.cpp -- the world's Splice script chunks (SPLCS): loading them from the BRX and evaluating each entry once
-// in a fresh frame. TU 0x1FF7E8..0x1FFCF8 (8 functions, address order) and two linkonce Splice-GC helpers.
+// in a fresh frame. TU 0x1FF7E8..0x1FFCF8 (8 functions, address order). The frame pool's GC members are
+// CGcObj<CFrame>'s (sly2/gc.h, emitted by splice/gc.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_splicemap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001FFCD8
 #include "sly2/sw.h"
@@ -35,7 +36,7 @@ struct FRAMEV
     int cref;                   /* +0x0 */
     unsigned prev : 13;         /* +0x4 GC list links: slot index and page */
     unsigned prevpg : 2;
-    unsigned p1 : 1;            /* set by func_00259A88 */
+    unsigned p1 : 1;            /* set by MakeRoot__t6CGcObj1Z6CFrame */
     unsigned next : 13;
     unsigned nextpg : 2;
     unsigned p2 : 1;
@@ -44,8 +45,8 @@ struct FRAMEV
 };
 
 extern "C" {
-void PairPtr_Release(void *pv, int n) __asm__("_$_8CPairPtr");
-void GcPair_Unlink(PAIRV *ppair);
+void PairPtr_Release(void *pv, int n) __asm__("_$_t7CRefPtr1Z5CPair");
+void Unlink__t6CGcObj1Z5CPair(PAIRV *ppair);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
 void func_00257078(FRAMEV *pframe, int n) __asm__("_$_6CFrame");
 }
@@ -60,7 +61,7 @@ struct SPPAIR
         if (q && --q->cref == 0) {
             PairPtr_Release(q->sub, 2);
             Decref__4CRef(&q->ref);
-            GcPair_Unlink(q);
+            Unlink__t6CGcObj1Z5CPair(q);
             func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
         }
     }
@@ -84,14 +85,11 @@ struct SPLCS
 struct SZ { int cb; int cbAlign; SZ(int a, int b) { cb = a; cbAlign = b; } };
 
 extern int D_003E1C34;
-extern char D_002DD598[];
-extern FRAMEV *D_004520E8[4];
-extern unsigned int D_002DD2A4;
-extern FRAMEV *D_002DD2AC;
+extern char g_gc[];
 
 extern "C" {
-void *PvNewFrame(void);
-void FramePtr_Assign(void *ppframe, void *pframe);
+void *PtNew__t6CGcObj1Z6CFrame(void);
+void FramePtr_Assign(void *ppframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void ShutdownSplice(void);
 int U32Read__18CBinaryInputStream(void *pbis);
 SPLCS *func_001AE2A0(SZ *psz);
@@ -100,10 +98,8 @@ SPPAIR PpairSerializeIn__FP18CBinaryInputStream(void *pbis);
 void CBinaryInputStream_SkipStringSw(void *pbis);
 CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i);
 void CGc_UpdateRecyclable(void *pgc);
-SPFRAME func_00257058(void *pv);
-void func_00259A88(FRAMEV *pframe);
-void GcFrame_Unlink(FRAMEV *pframe);
-void GcFrame_PushFront(FRAMEV *pframe, FRAMEV **ppframeHead);
+SPFRAME Attach__t7CRefPtr1Z6CFrameP6CFrame(void *pv);
+void MakeRoot__t6CGcObj1Z6CFrame(FRAMEV *pframe);
 }
 extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
 
@@ -118,8 +114,8 @@ extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
 extern "C" void func_001FF7E8(SW *psw)
 {
     psw->fUnk3a14 = 1;
-    FramePtr_Assign(psw, PvNewFrame());
-    func_00259A88((FRAMEV *)psw->pframe.m_p);
+    FramePtr_Assign(psw, PtNew__t6CGcObj1Z6CFrame());
+    MakeRoot__t6CGcObj1Z6CFrame((FRAMEV *)psw->pframe.m_p);
 }
 
 /** @sly2-annot addr=0x1FF828
@@ -193,7 +189,7 @@ extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
     psw->psplcs = psplcs;
     psplcs->psplcsNext = psw->psplcsHead;
     psw->psplcsHead = psplcs;
-    CGc_UpdateRecyclable(D_002DD598);
+    CGc_UpdateRecyclable(g_gc);
 }
 
 /** @sly2-annot addr=0x1FFA40
@@ -223,9 +219,9 @@ extern "C" CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i)
 {
     CRef r;
     if (psplcs->ae[i].ppair && !psplcs->ae[i].pframe) {
-        void *pv = PvNewFrame();
-        SPFRAME sp = func_00257058(pv);
-        func_00259A88(sp.p);
+        void *pv = PtNew__t6CGcObj1Z6CFrame();
+        SPFRAME sp = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
+        MakeRoot__t6CGcObj1Z6CFrame(sp.p);
         sp.p->n24 = 1;
         r = RefEval__FP5CPairP6CFrame(psplcs->ae[i].ppair, sp.p);
         sp.p->cref++;
@@ -234,59 +230,6 @@ extern "C" CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i)
     Decref__4CRef(&r);
     SetTag__4CRef4TAGK(&r, 0x24);
     return r;
-}
-
-/* Linkonce instances homed here (out-of-line copies of inline Splice GC helpers from 0x254F00..): */
-
-static inline void Handle(FRAMEV *p, int *pidx, int *ppg)
-{
-    unsigned int i;
-    for (i = 0; i < D_002DD2A4; i++) {
-        if (p >= D_004520E8[i] && p < D_004520E8[i] + 0x200) {
-            *pidx = p - D_004520E8[i];
-            *ppg = i;
-            return;
-        }
-    }
-    *pidx = 0;
-    *ppg = 0;
-}
-
-/** @sly2-annot addr=0x255588
- * Purpose: Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game
- *   linkonce (inline/template)]
- * Info: proposed name GcFrame_PushFront (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcFrame_PushFront(FRAMEV *p, FRAMEV **phead)
-{
-    int idx0, pg0, idx1, pg1;
-    FRAMEV *head;
-    Handle(p, &idx0, &pg0);
-    head = *phead;
-    if (head) {
-        head->prev = idx0;
-        head->prevpg = pg0;
-    }
-    Handle(*phead, &idx1, &pg1);
-    p->next = idx1;
-    p->nextpg = pg1;
-    *phead = p;
-}
-
-/** @sly2-annot addr=0x259A88
- * Purpose: move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)]
- * Info: proposed name GcFrame_MakeRoot (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
- * @end-sly2-annot */
-extern "C" void func_00259A88(FRAMEV *pframe)
-{
-    GcFrame_Unlink(pframe);
-    GcFrame_PushFront(pframe, &D_002DD2AC);
-    pframe->p1 = 1;
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

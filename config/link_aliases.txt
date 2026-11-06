@@ -30,13 +30,12 @@ _vt$Q215M_func_0012E2382C9 = D_002CA6A0;   # engine/anim/act.cpp
 _vt$Q215M_func_00211C581D = D_002C9670;   # engine/presentation/hud.cpp
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
-# destructors of view classes -> the C function they stand for (an asm label would drop the call) (1 line, 1 reference)
+# destructors of view classes -> the C function they stand for (an asm label would drop the call) (3 lines)
 [src/game/level/brx_sw.cpp] _$_3OBJ = func_00184950;
+_$_8CPairPtr = _$_t7CRefPtr1Z5CPair;   # sly2/pair.h's CPairPtr: the CRefPtr<CPair> view whose destructor its includers call
+_$_8CVarbPtr = _$_t7CRefPtr1Z5CVarb;   # sly2/varb.h's CVarbPtr: the CRefPtr<CVarb> view
 
 # other declarations that cannot be bound in source (6)
 g_pfrmOpen = D_002DEA4C;   # engine/graphics/pipeline/draw.cpp: codegen depends on the symbol name: neither an asm label nor a rename keeps DrawSw matching
 __builtin_new = func_001AE4F8;   # app/class_registry.cpp: g++'s global operator new; the game's own allocator (next to __builtin_delete at 0x1AE520)
-Attach__t7CRefPtr1Z7CMethodP7CMethod = func_00259CF8;   # object/spliceobj.cpp: template member: g++ 2.95 ignores an asm label on an explicit specialization
-Unlink__t6CGcObj1Z7CMethod = GcPool6_Unlink;   # object/spliceobj.cpp: same
-__as__t7CRefPtr1Z6CFrameP6CFrame = FramePtr_Assign;   # object/proxy.cpp: same
 D_C0 = 0xC0;   # engine/presentation/hud.cpp: an absolute address used as a symbol (%hi/%lo of 0xC0)

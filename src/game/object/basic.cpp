@@ -1,6 +1,7 @@
 // basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, CidBasic), the sidebag and its
 // option setters (EnsureLoSidebag*), Splice events and the deferred Splice callbacks, LO subscriptions and messages.
-// TU 0x132B00..0x1336F0 (28 functions, address order) plus three linkonce copies (0x255C00, 0x258178, 0x258F30).
+// TU 0x132B00..0x1336F0 (28 functions, address order) plus one linkonce copy (0x258F30). The sidebag pool's GC
+// members (PushFront 0x255C00, MakeRoot 0x258178) are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001336D0
 #include "sly2/slotheap.h"
@@ -47,30 +48,29 @@ extern CLOCK D_002DDED0;
 extern int D_0027A1D8[];
 extern int D_0027A10C[];
 
-SIDEBAG *PvNewSidebag(void);
+SIDEBAG *PtNew__t6CGcObj1Z8CSidebag(void);
 void func_002580A8(SIDEBAG **pp, SIDEBAG *p);
-int func_00258178(SIDEBAG *p);
+void MakeRoot__t6CGcObj1Z8CSidebag(SIDEBAG *p);
 void RefEnsureOption__FP5BASICiP4CRef(CREFV *pref, LO *plo, int optid, CREFV *prefValue);
 void Decref__4CRef(CREFV *pref);
 void CRef_ctor_CLQ(CREFV *pref, CLQ *pclq);
 void CRef_ctor_LM(CREFV *pref, LM *plm);
 void CRef_ctor_BASIC(CREFV *pref, BASICV *pbasic);
 void CRef_ctor(CREFV *pref, qword v);
-CPAIR *PvNewPair(void);
-void func_00256C38(SPAIR *psp, CPAIR *pn);
-void PairPtr_Assign(SPAIR *psp, CPAIR *pn);
-void PairPtr_Release(SPAIR *psp, int n) __asm__("_$_8CPairPtr");
+CPAIR *PtNew__t6CGcObj1Z5CPair(void);
+void Attach__t7CRefPtr1Z5CPairP5CPair(SPAIR *psp, CPAIR *pn);
+void PairPtr_Assign(SPAIR *psp, CPAIR *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+void PairPtr_Release(SPAIR *psp, int n) __asm__("_$_t7CRefPtr1Z5CPair");
 CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
 void CRef_SetSymid(CREFV *pref, int n);
 void CRef_SetBasic(CREFV *pref, BASICV *pbasic);
-void GcPair_Unlink(void *pv);
+void Unlink__t6CGcObj1Z5CPair(void *pv);
 void RefEval__FP5CPairP6CFrame(CREFV *pref, CPAIR *ppair, CFrame *pframe);
 void __as__4CRefRC4CRef(CREFV *pref, CREFV *prefFrom);
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
 int PrefFindBinding__6CFrameUii(CFrame *p, int k, int n);
 CREFV *func_00200DA0(CREFV *ret, int x, int *pn, int y);
-void GcSidebag_Unlink(SIDEBAG *p);
 
 void EvalSpliceEventCallback(BASICV *p, CPAIR *ppair, CFrame *pframe, CREFV *pref);
 SWCB *ScheduleSwSpliceCallback(SW *psw, BASICV *p, CPAIR *ppair, float t);
@@ -78,7 +78,6 @@ SPAIR *func_00132ED8(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
 }
 int FIsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
-extern "C" void GcSidebag_PushFront(struct NSB *p, struct NSB **phead);
 
 /** @sly2-annot addr=0x132B00
  * Purpose: BASIC vt1 default (empty); inherited by ~190 classes
@@ -124,7 +123,7 @@ int FIsBasicDerivedFrom(BASICV *po, CIDV n) {
  * @end-sly2-annot */
 void EnsureBasicSidebag(BASICV *p) {
     SIDEBAG **pf = &p->psidebag;
-    if (p->psidebag == 0) { func_002580A8(pf, PvNewSidebag()); func_00258178(p->psidebag); }
+    if (p->psidebag == 0) { func_002580A8(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(p->psidebag); }
 }
 
 /* EnsureLoSidebag* (Sly 1 names); the C++ original inlined the CRef constructor/setter, ~CRef -> Decref. */
@@ -300,28 +299,28 @@ SPAIR *func_00132ED8(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 {
     SPAIR sp;
     CPAIR *p;
-    func_00256C38(&sp, PvNewPair());
+    Attach__t7CRefPtr1Z5CPairP5CPair(&sp, PtNew__t6CGcObj1Z5CPair());
     {
         CREFV *pref = &sp.p->ref;
-        CRef_SetPair(pref, PvNewPair());
+        CRef_SetPair(pref, PtNew__t6CGcObj1Z5CPair());
     }
     p = (CPAIR *)sp.p->ref.u.pv;
     CRef_SetSymid(&p->ref, a2);
     {
-        CPAIR *pn = PvNewPair();
+        CPAIR *pn = PtNew__t6CGcObj1Z5CPair();
         PairPtr_Assign(&p->sp, pn);
     }
     p = p->sp.p;
     CRef_SetBasic(&p->ref, a1);
     if (px && px->m_tagk)
         PairPtr_Assign(&p->sp, (CPAIR *)px->u.pv);
-    func_00256C38(ret, sp.p);
+    Attach__t7CRefPtr1Z5CPairP5CPair(ret, sp.p);
     {
         CPAIR *pt = sp.p;
         if (pt && --pt->cref == 0) {
             PairPtr_Release(&pt->sp, 2);
             Decref__4CRef(&pt->ref);
-            GcPair_Unlink(pt);
+            Unlink__t6CGcObj1Z5CPair(pt);
             func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pt);
         }
     }
@@ -393,7 +392,7 @@ extern "C" void CancelSwSpliceCallback(SW *p, int id) {
             if (--pr->cref == 0 && pr) {
                 PairPtr_Release(&pr->sp, 2);
                 Decref__4CRef(&pr->ref);
-                GcPair_Unlink(pr);
+                Unlink__t6CGcObj1Z5CPair(pr);
                 func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pr);
             }
             func_0011CD98(&p->slotheapEvent, pn);
@@ -430,7 +429,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
             if (pt && --pt->cref == 0) {
                 PairPtr_Release(&pt->sp, 2);
                 Decref__4CRef(&pt->ref);
-                GcPair_Unlink(pt);
+                Unlink__t6CGcObj1Z5CPair(pt);
                 func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pt);
             }
         }
@@ -529,64 +528,6 @@ extern "C" void SendLoMessage(LO *p, int a, int b) {
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
 extern "C" void HandleBasicMessage(BASICV *p, int msg, void *pv) {
-}
-
-/* 0x255C00: linkonce GC helper (sidebag nodes of pool 4 are linked by 13-bit index and 2-bit page). */
-struct NSB { int x0; unsigned prev : 13; unsigned prevpg : 2; unsigned p1 : 1; unsigned next : 13; unsigned nextpg : 2; unsigned p2 : 1; char pad[0xC - 8]; };
-extern "C" NSB *D_00452138[4];      /* pool 4's block table */
-extern "C" unsigned int D_002DD2C4;
-static inline void Handle(NSB *p, int *pidx, int *ppg)
-{
-    unsigned int i;
-    for (i = 0; i < D_002DD2C4; i++) {
-        if (p >= D_00452138[i] && p < D_00452138[i] + 0xC8) {
-            *pidx = p - D_00452138[i];
-            *ppg = i;
-            return;
-        }
-    }
-    *pidx = 0;
-    *ppg = 0;
-}
-/** @sly2-annot addr=0x255C00
- * Purpose: Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game
- *   linkonce (inline/template)]
- * Info: proposed name GcSidebag_PushFront (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcSidebag_PushFront(NSB *p, NSB **phead)
-{
-    int idx0, pg0, idx1, pg1;
-    NSB *head;
-    Handle(p, &idx0, &pg0);
-    head = *phead;
-    if (head) {
-        head->prev = idx0;
-        head->prevpg = pg0;
-    }
-    Handle(*phead, &idx1, &pg1);
-    p->next = idx1;
-    p->nextpg = pg1;
-    *phead = p;
-}
-
-/* 0x258178: linkonce: move a sidebag to the GC's front list (D_002DD2CC) and mark it. */
-extern "C" NSB *D_002DD2CC;
-/** @sly2-annot addr=0x258178
- * Purpose: move sidebag from live list to root list D_002DD2CC, set flag 0x8000 [game linkonce
- *   (inline/template)]
- * Info: proposed name GcSidebag_MakeRoot (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-int func_00258178(SIDEBAG *p) {
-    int grf;
-    GcSidebag_Unlink(p);
-    GcSidebag_PushFront((NSB *)p, &D_002DD2CC);
-    grf = p->grfGc | 0x8000;
-    p->grfGc = grf;
-    return grf;
 }
 
 /* 0x258F30: linkonce class descriptor getter of EMITTER (the EXPLO one is GetExploClassDesc_linkonce). */

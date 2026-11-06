@@ -8,7 +8,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 extern "C" {
-CPair *PvNewPair();
+CPair *PtNew__t6CGcObj1Z5CPair();
 CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 }
 
@@ -16,7 +16,7 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 struct SPW
 {
       CPair *p;
-      void Set(CPair *ppair) __asm__("func_00256C38");
+      void Set(CPair *ppair) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
       SPW() {}
       SPW(CPair *ppair) { Set(ppair); }
       SPW(const SPW &);
@@ -38,7 +38,7 @@ extern "C" SPW CPair_CloneTo(CPair *src, void *a, void *b);
 SPW CPair_CloneTo(CPair *src, void *a, void *b)
 {
       SPW sp;
-      sp.Set(PvNewPair());
+      sp.Set(PtNew__t6CGcObj1Z5CPair());
       sp->ref = CRef_CloneTo(&src->ref, a, b);
       if (src->pnext.p)
             sp->SetNext(CPair_CloneTo(src->pnext.p, a, b).p);

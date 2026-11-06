@@ -99,7 +99,7 @@ OBJ *PacNewKind(int id);
 OBJ *PacNewKind2(int id);
 void func_0012FE58(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
 qword func_0022CA18(void *pa, void *pb);
-void FramePtr_Assign(ASEG *px, int n);
+void FramePtr_Assign(ASEG *px, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_001384C0(ASEG *px);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, ASEG **ppx);
 float func_0012F990(ASEG *paseg, OID oid);

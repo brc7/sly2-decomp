@@ -1,7 +1,6 @@
 // eval.cpp -- the Splice evaluator: RefEval dispatches on the expression's tag to one evaluator per special form
 // (set!, define, assert, if, or, and, cond, case, let, while, lambda, begin) or to RefEvalApply for a call.
-// TU 0x126438..0x127B18 (19 functions) plus eight linkonce instances of the frame/proc pool helpers homed here
-// (0x255718..0x2572E0), address order.
+// TU 0x126438..0x127B18 (19 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_eval
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00127AF8
 #include "sly2/pair.h"
@@ -14,9 +13,9 @@ struct CFrame;
 struct CProc;
 
 extern "C" {
-CPair *PvNewPair();
-CFrame *PvNewFrame();
-CProc *PvNewProc();
+CPair *PtNew__t6CGcObj1Z5CPair();
+CFrame *PtNew__t6CGcObj1Z6CFrame();
+CProc *PtNew__t6CGcObj1Z5CProc();
 CRef CFrame_RefAddBinding(CFrame *pframe, int sym, CRef *pref);
 void CFrame_SetSingleParent(CFrame *pframe, CFrame *pframeParent);
 void printf(const char *psz);
@@ -29,11 +28,12 @@ struct SPZ
 {
     CFrame *p;
     ~SPZ();
-    void operator=(CFrame *pframe) __asm__("FramePtr_Assign");
+    void operator=(CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
 
 
-/* CFrame: an environment frame (as in splice/frame.cpp; the destructor is the linkonce func_00257078 below). */
+/* CFrame: an environment frame (as in splice/frame.cpp; the destructor is the linkonce 0x257078, emitted by
+   splice/gc.cpp). */
 class CFrame
 {
 public:
@@ -68,14 +68,14 @@ struct SPF
     CFrame *p;
     SPF() { p = 0; }
     ~SPF() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
-    void operator=(CFrame *pframe) __asm__("FramePtr_Assign");
+    void operator=(CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
 
 /* Owning pointer to a proc (inline release). */
 struct SPO
 {
     CProc *p;
-    void Set(CProc *pproc) __asm__("func_00257038");
+    void Set(CProc *pproc) __asm__("Attach__t7CRefPtr1Z5CProcP5CProc");
     SPO() {}
     SPO(CProc *pproc) { Set(pproc); }
     SPO(const SPO &);
@@ -384,7 +384,7 @@ CRef RefEvalLet(CPair *ppair, CFrame *pframe)
     CPair *pn;
     if (pargs->ref.m_tagk == 0x1F)
     {
-        CFrame *pframeNew = PvNewFrame();
+        CFrame *pframeNew = PtNew__t6CGcObj1Z6CFrame();
         spf = pframeNew;
         for (pn = (CPair *)pargs->ref.u.pv; pn; pn = pn->pnext.p)
         {
@@ -439,7 +439,7 @@ CRef RefEvalLambda(CPair *ppair, CFrame *pframe)
 {
     CPair *pargs = PpairArgs(ppair);
     CPair *ppairBody = pargs->pnext.p;
-    SPO sp(PvNewProc());
+    SPO sp(PtNew__t6CGcObj1Z5CProc());
     sp->spframe = pframe;
     if (pargs->ref.m_tagk == 0)
         sp->sppairParams = 0;
@@ -509,11 +509,11 @@ struct SPPAIR
 {
     CPair *p;
     int pad;
-    void Set(CPair *ppair) __asm__("func_00256C38");
+    void Set(CPair *ppair) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPPAIR() { p = 0; }
     SPPAIR(CPair *ppair) { Set(ppair); }
     ~SPPAIR() { CPair *ppair = p; if (ppair && --ppair->cref == 0) delete ppair; }
-    void Assign(CPair *ppair) __asm__("PairPtr_Assign");
+    void Assign(CPair *ppair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     SPPAIR &operator=(CPair *ppair) { Assign(ppair); return *this; }
     CPair *operator->() { return p; }
 };
@@ -521,7 +521,7 @@ struct SPFRAME
 {
     CFrame *p;
     int pad;
-    void Set(CFrame *pframe) __asm__("func_00257058");
+    void Set(CFrame *pframe) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
     SPFRAME(CFrame *pframe) { Set(pframe); }
     ~SPFRAME() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
 };
@@ -579,7 +579,7 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
         SPPAIR spList;
         while (spCur.p)
         {
-            SPPAIR spNew(PvNewPair());
+            SPPAIR spNew(PtNew__t6CGcObj1Z5CPair());
             spNew->ref = RefEval(spCur.p, pframe);
             if (spLast.p)
             {
@@ -606,7 +606,7 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
         break;
     case 0x20:
     {
-        SPFRAME spf(PvNewFrame());
+        SPFRAME spf(PtNew__t6CGcObj1Z6CFrame());
         int dummy[2];   /* sizes the frame like the original (0x240) */
         CFrame_SetSingleParent(spf.p, pproc->spframe.p);
         CPair *pparam = pproc->sppairParams.p;
@@ -669,292 +669,8 @@ CRef RefEval(CPair *ppair, CFrame *pframe)
     }
 }
 
-/* Linkonce instances (0x255718..0x2572E0): out-of-line copies of inline Splice GC and pool helpers for frames
-   (pool 2, CSlotPool<0x28, 0x200>) and procs (pool 3, CSlotPool<0x1C, 0x800>), homed in this TU. Kept as plain
-   functions under their current symbols. */
-
-/* GC view of a pool node: reference count, then a link word with prev/next as (index, page) pairs into the pool's
-   blocks and the mark bit. */
-struct GCNODE
-{
-    int cref;
-    unsigned prev : 13;
-    unsigned prevpg : 2;
-    unsigned p1 : 1;
-    unsigned next : 13;
-    unsigned nextpg : 2;
-    unsigned fMark : 1;
-};
-
-/* A proc node (0x1C bytes: the handle math divides by it). */
-struct PROCNODE
-{
-    GCNODE node;
-    char pad[0x1C - 8];
-};
-
-extern "C" {
-/* Pool block tables (0x10 bytes before each pool's SLOTHEAP) and block counts. */
-extern char *D_004520E8[4];          /* frames */
-extern GCNODE *D_00452110[4];        /* procs */
-extern unsigned int D_002DD2A4;      /* frame blocks */
-extern unsigned int D_002DD2B4;      /* proc blocks */
-/* GC list heads: frames, procs. */
-extern GCNODE *D_002DD2A0, *D_002DD2A8, *D_002DD2AC;
-extern char D_002DD2B0[];
-extern int D_002DD598;   /* g_gc (CGc); its first word is the current mark */
-void Collect__3CGc(void *pgc);
-void GcFrame_PushFront(GCNODE *pnode, void *phead);
-void GcProc_PushFront(PROCNODE *pnode, PROCNODE **ppnodeHead);
-void GcBinding_Unlink(void *pv);
-void GcFrame_Unlink(GCNODE *pnode);
-void func_00257250(void *pv, int n) __asm__("_$_8CVarbPtr");
-void Decref__4CRef(void *pref);
-void func_002572E0(CFrame **ppframe, int flags);
-}
-
-/* 0x255718 GcFrame_InitNode: clear the count, push the node on the frame GC list, copy the current mark. */
-extern "C" GCNODE *GcFrame_InitNode(GCNODE *pnode)
-{
-    pnode->cref = 0;
-    GcFrame_PushFront(pnode, &D_002DD2A0);
-    pnode->fMark = D_002DD598;
-    return pnode;
-}
-
-static inline GCNODE *PnodeFrame(unsigned idx, unsigned pg)
-{
-    if (idx == 0 && pg == 0)
-        return 0;
-    return (GCNODE *)(D_004520E8[pg] + idx * 40);
-}
-
-/** @sly2-annot addr=0x255770
- * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name GcFrame_Unlink (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcFrame_Unlink(GCNODE *p)
-{
-    GCNODE *prev = PnodeFrame(p->prev, p->prevpg);
-    GCNODE *next = PnodeFrame(p->next, p->nextpg);
-    if (p == D_002DD2A8)
-        D_002DD2A8 = next;
-    if (prev)
-    {
-        prev->next = p->next;
-        prev->nextpg = p->nextpg;
-    }
-    else if (p == D_002DD2A0)
-    {
-        D_002DD2A0 = next;
-    }
-    else if (p == D_002DD2AC)
-    {
-        D_002DD2AC = next;
-    }
-    if (next)
-    {
-        next->prev = p->prev;
-        next->prevpg = p->prevpg;
-    }
-}
-
-static inline void GcHandleFromProc(PROCNODE *p, int *pidx, int *ppg)
-{
-    unsigned int i;
-    for (i = 0; i < D_002DD2B4; i++)
-    {
-        PROCNODE *pblock = (PROCNODE *)D_00452110[i];
-        if (p >= pblock && p < pblock + 0x800)
-        {
-            *pidx = p - pblock;
-            *ppg = i;
-            return;
-        }
-    }
-    *pidx = 0;
-    *ppg = 0;
-}
-
-/** @sly2-annot addr=0x2558C0
- * Purpose: Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game
- *   linkonce (inline/template)]
- * Info: proposed name GcProc_PushFront (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcProc_PushFront(PROCNODE *p, PROCNODE **phead)
-{
-    int idx0, pg0, idx1, pg1;
-    PROCNODE *head;
-    GcHandleFromProc(p, &idx0, &pg0);
-    head = *phead;
-    if (head)
-    {
-        head->node.prev = idx0;
-        head->node.prevpg = pg0;
-    }
-    GcHandleFromProc(*phead, &idx1, &pg1);
-    p->node.next = idx1;
-    p->node.nextpg = pg1;
-    *phead = p;
-}
-
-/* 0x255A58 GcProc_InitNode: clear the count, push the node on the proc GC list, copy the current mark. */
-extern "C" GCNODE *GcProc_InitNode(GCNODE *pnode)
-{
-    pnode->cref = 0;
-    GcProc_PushFront((PROCNODE *)pnode, (PROCNODE **)D_002DD2B0);
-    pnode->fMark = D_002DD598;
-    return pnode;
-}
-
-/** @sly2-annot addr=0x256DD0
- * Purpose: allocate Frame node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
- *   linkonce (inline/template)]
- * Info: proposed name PvNewFrame (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
- *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
- * @end-sly2-annot */
-extern "C" CFrame *PvNewFrame()
-{
-    CFrame *pframe;
-    if (CSlotPool<0x28, 0x200>::s_pool.slotheap.pslotFree == 0)
-    {
-        if (!g_sw.fUnk3a14 || D_002DD2A4 >= 4)
-            Collect__3CGc(&D_002DD598);
-        if (CSlotPool<0x28, 0x200>::s_pool.slotheap.pslotFree == 0)
-        {
-            void *pv = PvAllocSlotheapClear(&CSlotPool<0x28, 0x200>::s_pool.slotheap);
-            if (D_002DD2A4)
-                func_0011CD98(&CSlotPool<0x28, 0x200>::s_pool.slotheap, pv);
-            D_004520E8[D_002DD2A4++] = (char *)pv;
-        }
-    }
-    pframe = (CFrame *)PvAllocSlotheapClear(&CSlotPool<0x28, 0x200>::s_pool.slotheap);
-    GcFrame_InitNode((GCNODE *)pframe);
-    {
-        CFrame **pp = &pframe->apframe[0].p;
-        int n = 3;
-        do
-        {
-            *pp = 0;
-            n--;
-            pp++;
-        } while (n != -1);
-    }
-    pframe->pbindingFirst = 0;
-    return pframe;
-}
-
-/** @sly2-annot addr=0x256F48
- * Purpose: allocate Proc node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
- *   linkonce (inline/template)]
- * Info: proposed name PvNewProc (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
- *   docs/reference/functions/splice-scripting.md#proc-0x128f70-0x1291a8
- * @end-sly2-annot */
-extern "C" CProc *PvNewProc()
-{
-    CProc *pproc;
-    if (CSlotPool<0x1C, 0x800>::s_pool.slotheap.pslotFree == 0)
-    {
-        if (!g_sw.fUnk3a14 || D_002DD2B4 >= 4)
-            Collect__3CGc(&D_002DD598);
-        if (CSlotPool<0x1C, 0x800>::s_pool.slotheap.pslotFree == 0)
-        {
-            void *pv = PvAllocSlotheapClear(&CSlotPool<0x1C, 0x800>::s_pool.slotheap);
-            if (D_002DD2B4)
-                func_0011CD98(&CSlotPool<0x1C, 0x800>::s_pool.slotheap, pv);
-            D_00452110[D_002DD2B4++] = (GCNODE *)pv;
-        }
-    }
-    pproc = (CProc *)PvAllocSlotheapClear(&CSlotPool<0x1C, 0x800>::s_pool.slotheap);
-    GcProc_InitNode((GCNODE *)pproc);
-    pproc->spframe.p = 0;
-    pproc->sppairParams.p = 0;
-    pproc->sppairBody.p = 0;
-    return pproc;
-}
-
-/* A binding as the frame destructor releases it (splice/frame.cpp's CVarb). */
-struct BINDING
-{
-    int cref;
-    int x4;
-    int sym;
-    int ref[2];       /* CRef */
-    int pnext[1];     /* CPairPtr */
-};
-
-/** @sly2-annot addr=0x257078
- * Purpose: CFrame destructor (gcc 2.95 deleting form with __in_chrg): release binding list ref, release the 4
- *   parent frame refs, unlink from the GC frame list, operator delete to pool D_004520F8 when flags&1
- * Info: proposed name CFrame_dtor (T2); TU game_linkonce
- * Notes: v3: superseded DeleteFrame | top50_round (0.55): Body: GcFrame_Unlink, FramePtr_Release on a[4]
- *   (CFrame_AddParent stores parents there), FreeSlotheapPv(D_004520F8) under flags&1 (the gcc 2.95
- *   destructor delete bit). FramePtr_Assign calls it with 3. Class name CFrame fr | mangled not used
- *   (signature_confident=no): _$_6CFrame
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: sdk_names+top50_round
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* The frame destructor (in-charge flags as g++ 2.95 passes them): release the first binding, the four parent links,
-   unlink from the GC list, and free into the frame pool when deleting. */
-extern "C" void func_00257078(CFrame *p, int flags) __asm__("_$_6CFrame");   /* the destructor's real symbol */
-extern "C" void func_00257078(CFrame *p, int flags)
-{
-    BINDING *pb = (BINDING *)p->pbindingFirst;
-    if (pb)
-    {
-        if (--pb->cref == 0)
-        {
-            func_00257250(pb->pnext, 2);
-            Decref__4CRef(pb->ref);
-            GcBinding_Unlink(pb);
-            func_0011CD98(&CSlotPool<0x18, 0x800>::s_pool.slotheap, pb);
-        }
-    }
-    {
-        CFrame **b = &p->apframe[0].p;
-        if (b)
-        {
-            CFrame **e = b + 4;
-            while (b != e)
-            {
-                --e;
-                func_002572E0(e, 0);
-            }
-        }
-    }
-    GcFrame_Unlink((GCNODE *)p);
-    if (flags & 1)
-        func_0011CD98(&CSlotPool<0x28, 0x200>::s_pool.slotheap, p);
-}
-
-/** @sly2-annot addr=0x2572E0
- * Purpose: release CFrame refptr (DeleteFrame when 0), flags&1 -> delete [game linkonce (inline/template)]
- * Info: proposed name FramePtr_Release (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* The parent-link destructor: release the frame (destroying it when its count drops to 0). */
-extern "C" void func_002572E0(CFrame **ppframe, int flags)
-{
-    CFrame *pframe = *ppframe;
-    if (pframe != 0)
-    {
-        if (--pframe->cref == 0)
-            func_00257078(pframe, 3);
-    }
-    if (flags & 1)
-        operator delete(ppframe);
-}
+/* The frame and proc pools' GC members are CGcObj<CFrame>'s and CGcObj<CProc>'s (sly2/gc.h), the frame destructor
+   (0x257078) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by splice/gc.cpp. */
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end

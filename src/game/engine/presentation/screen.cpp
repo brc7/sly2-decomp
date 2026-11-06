@@ -3823,10 +3823,10 @@ typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
 typedef struct R2 { int cref; } R2;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
 extern char D_004520D0[], D_00452148[];
-void func_00257250(void *, int) __asm__("_$_8CVarbPtr");
+void func_00257250(void *, int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Decref__4CRef(void *);
-void GcBinding_Unlink(void *);
-void GcSidebag_Unlink(void *);
+void Unlink__t6CGcObj1Z5CVarb(void *);
+void Unlink__t6CGcObj1Z8CSidebag(void *);
 void func_0011CD98(void *, void *);
 void func_00257078(void *, int) __asm__("_$_6CFrame");
 void func_001AE520(void *) __asm__("__builtin_delete");
@@ -3837,7 +3837,7 @@ static inline void Release1(R1 *r)
         if (--r->cref == 0) {
             func_00257250(r->x14, 2);
             Decref__4CRef(r->xC);
-            GcBinding_Unlink(r);
+            Unlink__t6CGcObj1Z5CVarb(r);
             func_0011CD98(D_004520D0, r);
         }
     }
@@ -3848,7 +3848,7 @@ static inline void Release4(R4 *r)
     if (r) {
         if (--r->cref == 0) {
             Release1(r->p8);
-            GcSidebag_Unlink(r);
+            Unlink__t6CGcObj1Z8CSidebag(r);
             func_0011CD98(D_00452148, r);
         }
     }

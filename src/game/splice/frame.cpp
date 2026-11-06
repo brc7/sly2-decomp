@@ -1,6 +1,7 @@
 // frame.cpp -- CFrame, a Splice environment frame: up to four parent frames and a list of variable bindings (CVarb),
-// with lookup, binding and cloning. TU 0x127B18..0x128138 (10 functions, address order) plus five linkonce instances
-// of the Splice GC/counted-pointer helpers homed here (0x255248..0x2574E0).
+// with lookup, binding and cloning. TU 0x127B18..0x128138 (10 functions, address order). The binding pool's GC
+// members are CGcObj<CVarb>'s (sly2/gc.h) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by
+// splice/gc.cpp.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_frame
 // SLY2_ALIAS: _GLOBAL_$I$*=_GLOBAL_$I$g_gc
 #include "sly2/cref.h"
@@ -15,35 +16,11 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct CFrame;
 
-/* Splice GC view of a binding node: reference count, then a link word with prev/next as
-   (index, page) pairs into the pool's blocks and the mark bit. */
-struct GCNODE
-{
-    int cref;
-    unsigned prev : 13;
-    unsigned prevpg : 2;
-    unsigned p1 : 1;
-    unsigned next : 13;
-    unsigned nextpg : 2;
-    unsigned fMark : 1;
-    char pad[0x10];  /* the rest of the node: GCNODE is laid over a CVarb (0x18 bytes, the handle math divides by it) */
-};
-typedef char assert_GCNODE_size[sizeof(GCNODE) == 0x18 ? 1 : -1];
-
 extern "C" {
-CVarb *PvNewBinding();
-CFrame *PvNewFrame();
-void FramePtr_Assign(void *pspframe, CFrame *pframe);   /* the parent-pointer store (out of line, 0x256EE0) */
+CVarb *PtNew__t6CGcObj1Z5CVarb();
+CFrame *PtNew__t6CGcObj1Z6CFrame();
+void FramePtr_Assign(void *pspframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");   /* the parent-pointer store (out of line, 0x256EE0) */
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
-void Collect__3CGc(void *pgc);
-GCNODE *GcBinding_InitNode(GCNODE *pnode);
-/* Binding pool bookkeeping. HYPOTHESIS: D_004520C0 is the block table of the binding pool (0x10 bytes before its
-   SLOTHEAP at 0x4520D0; splicemap's frame helpers use 0x4520E8, 0x10 before the frame pool's 0x4520F8), and
-   D_002DD294 its block count. */
-extern GCNODE *D_004520C0[4];
-extern unsigned int D_002DD294;
-extern int D_002DD598;   /* g_gc (CGc); its first word is the current mark */
-extern char D_002DD290[];
 }
 
 
@@ -52,7 +29,7 @@ struct SPZ
 {
     CFrame *p;
     ~SPZ();
-    void operator=(CFrame *pframe) __asm__("FramePtr_Assign");
+    void operator=(CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
 
 
@@ -60,7 +37,7 @@ struct SPZ
 struct SPW
 {
     CVarb *p;
-    void Set(CVarb *pvarb) __asm__("func_00257430");
+    void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
     SPW() {}
     SPW(CVarb *pvarb) { Set(pvarb); }
     SPW(const SPW &);
@@ -75,7 +52,7 @@ class CFrame
 {
 public:
     /* 0x00 */ int cref;
-    /* 0x04 */ int x4;          /* GC link word (GCNODE) */
+    /* 0x04 */ int x4;          /* GC link word (CGcObj, sly2/gc.h) */
     /* 0x08 */ int cframe;      /* parent count */
     /* 0x0C */ SPZ apframe[4];  /* parents */
     /* 0x1C */ CVarbPtr pbindingFirst;
@@ -92,7 +69,7 @@ public:
 struct SPO
 {
     CFrame *p;
-    void Set(CFrame *pframe) __asm__("func_00257058");
+    void Set(CFrame *pframe) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
     SPO() {}
     SPO(CFrame *pframe) { Set(pframe); }
     SPO(const SPO &);
@@ -171,7 +148,7 @@ CRef CFrame_RefAddBinding(CFrame *pframe, int sym, CRef *pref)
 {
     CVarbPtr *ppbFirst = &pframe->pbindingFirst;
     SPW sp;
-    sp.Set(PvNewBinding());
+    sp.Set(PtNew__t6CGcObj1Z5CVarb());
     sp->sym = sym;
     sp->ref = *pref;
     sp->pnext = ppbFirst->p;
@@ -267,120 +244,13 @@ SPO CFrame_CloneTo(CFrame *src, void *a)
 {
     SPO sp;
     int i;
-    sp.Set(PvNewFrame());
+    sp.Set(PtNew__t6CGcObj1Z6CFrame());
     sp->cframe = src->cframe;
     for (i = 0; i < src->cframe; i++)
         (*(SPZ *)((int)(i * 4) + (int)sp.p + 0xC)) = src->apframe[i].p;
     if (src->pbindingFirst.p)
         sp->SetPbinding(CVarb_CloneTo(src->pbindingFirst.p, sp.p, a).p);
     return SPO(sp.p);
-}
-
-/* Linkonce instances (0x255248..0x2574E0): out-of-line copies of inline Splice GC and counted-pointer helpers, homed
-   in this TU. Kept as plain functions under their current symbols. */
-
-static inline void GcHandleFromBinding(GCNODE *pnode, int *pidx, int *ppg)
-{
-    unsigned int i;
-    for (i = 0; i < D_002DD294; i++)
-    {
-        if (pnode >= D_004520C0[i] && pnode < D_004520C0[i] + 0x800)
-        {
-            *pidx = pnode - D_004520C0[i];
-            *ppg = i;
-            return;
-        }
-    }
-    *pidx = 0;
-    *ppg = 0;
-}
-
-/** @sly2-annot addr=0x255248
- * Purpose: Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game
- *   linkonce (inline/template)]
- * Info: proposed name GcBinding_PushFront (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcBinding_PushFront(GCNODE *pnode, GCNODE **ppnodeHead)
-{
-    int idx0, pg0, idx1, pg1;
-    GCNODE *pnodeHead;
-    GcHandleFromBinding(pnode, &idx0, &pg0);
-    pnodeHead = *ppnodeHead;
-    if (pnodeHead)
-    {
-        pnodeHead->prev = idx0;
-        pnodeHead->prevpg = pg0;
-    }
-    GcHandleFromBinding(*ppnodeHead, &idx1, &pg1);
-    pnode->next = idx1;
-    pnode->nextpg = pg1;
-    *ppnodeHead = pnode;
-}
-
-/* 0x2553E0 GcBinding_InitNode: clear the count, push the node on the binding GC list, copy the current mark. */
-extern "C" GCNODE *GcBinding_InitNode(GCNODE *pnode)
-{
-    pnode->cref = 0;
-    GcBinding_PushFront(pnode, (GCNODE **)D_002DD290);
-    pnode->fMark = D_002DD598;
-    return pnode;
-}
-
-/** @sly2-annot addr=0x257058
- * Purpose: refptr store with incref [game linkonce (inline/template)]
- * Info: proposed name FramePtr_Init (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257058(int **pp, int *pcref)
-{
-    if (pcref != 0)
-        *pcref += 1;
-    *pp = pcref;
-}
-
-/** @sly2-annot addr=0x257340
- * Purpose: allocate Binding node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
- *   linkonce (inline/template)]
- * Info: proposed name PvNewBinding (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138,
- *   docs/reference/functions/splice-scripting.md#varb-0x12b0e8-0x12b3b0
- * @end-sly2-annot */
-extern "C" CVarb *PvNewBinding()
-{
-    CVarb *pvarb;
-    if (CSlotPool<0x18, 0x800>::s_pool.slotheap.pslotFree == 0)
-    {
-        if (!g_sw.fUnk3a14 || D_002DD294 >= 4)
-            Collect__3CGc(&D_002DD598);
-        if (CSlotPool<0x18, 0x800>::s_pool.slotheap.pslotFree == 0)
-        {
-            void *pv = PvAllocSlotheapClear(&CSlotPool<0x18, 0x800>::s_pool.slotheap);
-            if (D_002DD294)
-                func_0011CD98(&CSlotPool<0x18, 0x800>::s_pool.slotheap, pv);
-            D_004520C0[D_002DD294++] = (GCNODE *)pv;
-        }
-    }
-    pvarb = (CVarb *)PvAllocSlotheapClear(&CSlotPool<0x18, 0x800>::s_pool.slotheap);
-    GcBinding_InitNode((GCNODE *)pvarb);
-    pvarb->ref.m_tagk = -1;
-    pvarb->pnext.p = 0;
-    return pvarb;
-}
-
-/* 0x257450 func_00257450: CVarbPtr::operator= (sly2/varb.h) (counted store into a binding link; the old binding is deleted when its count drops to 0). */
-void CVarbPtr::operator=(CVarb *pvarb)
-{
-    if (pvarb)
-        pvarb->cref++;
-    CVarb *pvarbOld = p;
-    if (pvarbOld && --pvarbOld->cref == 0)
-        delete pvarbOld;
-    p = pvarb;
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

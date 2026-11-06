@@ -1,5 +1,5 @@
-// spliceutils.cpp -- Splice VM startup/shutdown. TU 0x12AE18..0x12B0E8 (4 functions) plus the six node-pool shutdown
-// helpers it homes in the linkonce area (0x257E88..0x258008), address order.
+// spliceutils.cpp -- Splice VM startup/shutdown. TU 0x12AE18..0x12B0E8 (4 functions, address order). The six node-pool
+// shutdown helpers it calls (0x257E88..0x258008) are CGcObj<T>::Shutdown (sly2/gc.h, emitted by splice/gc.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_spliceutils
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012B0C8
 #include "sly2/slotheap.h"
@@ -12,12 +12,12 @@ SLY2_INSTANTIATE_SPLICE_HEAPS()
 
 int D_002DD5B8;                          /* Splice running flag (spliceutils' .bss) */
 extern "C" {
-void GcShutdownPairPool();
-void GcShutdownFramePool();
-void GcShutdownBindingPool();
-void GcShutdownProcPool();
-void GcShutdownSidebagPool();
-void GcShutdownPool6Pool();
+void Shutdown__t6CGcObj1Z5CPair();
+void Shutdown__t6CGcObj1Z6CFrame();
+void Shutdown__t6CGcObj1Z5CVarb();
+void Shutdown__t6CGcObj1Z5CProc();
+void Shutdown__t6CGcObj1Z8CSidebag();
+void Shutdown__t6CGcObj1Z7CMethod();
 }
 
 /** @sly2-annot addr=0x12AE18
@@ -44,78 +44,15 @@ extern "C" void StartupSplice()
 extern "C" void ShutdownSplice()
 {
       D_002DD5B8 = 0;
-      GcShutdownPairPool();
-      GcShutdownFramePool();
-      GcShutdownBindingPool();
-      GcShutdownProcPool();
-      GcShutdownSidebagPool();
-      GcShutdownPool6Pool();
+      Shutdown__t6CGcObj1Z5CPair();
+      Shutdown__t6CGcObj1Z6CFrame();
+      Shutdown__t6CGcObj1Z5CVarb();
+      Shutdown__t6CGcObj1Z5CProc();
+      Shutdown__t6CGcObj1Z8CSidebag();
+      Shutdown__t6CGcObj1Z7CMethod();
       ResetSlotheap(&CSpliceHeap<0x20, 0x100>::s_heap.slotheap);
       ResetSlotheap(&CSpliceHeap<0x50, 0x100>::s_heap.slotheap);
       ResetSlotheap(&CSpliceHeap<0x20, 0x40>::s_heap.slotheap);
       ResetSlotheap(&CSpliceHeap<0xC, 0x40>::s_heap.slotheap);
       ResetSlotheap(&CSpliceHeap<0x10, 0x20>::s_heap.slotheap);
-}
-
-// Node-pool shutdown helpers: out-of-line linkonce instances (HYPOTHESIS: one template member per node kind), kept as
-// plain C-linkage functions under their current symbols. Each clears the kind's four bookkeeping words (separate
-// globals: each store gets its own lui) and resets its slot pool.
-extern int D_002DD280, D_002DD284, D_002DD288, D_002DD28C;
-extern "C" void GcShutdownPairPool()
-{
-      D_002DD280 = 0;
-      D_002DD288 = 0;
-      D_002DD28C = 0;
-      D_002DD284 = 0;
-      ResetSlotheap(&CSlotPool<0x14, 0x2000>::s_pool.slotheap);
-}
-
-extern int D_002DD2A0, D_002DD2A4, D_002DD2A8, D_002DD2AC;
-extern "C" void GcShutdownFramePool()
-{
-      D_002DD2A0 = 0;
-      D_002DD2A8 = 0;
-      D_002DD2AC = 0;
-      D_002DD2A4 = 0;
-      ResetSlotheap(&CSlotPool<0x28, 0x200>::s_pool.slotheap);
-}
-
-extern int D_002DD290, D_002DD294, D_002DD298, D_002DD29C;
-extern "C" void GcShutdownBindingPool()
-{
-      D_002DD290 = 0;
-      D_002DD298 = 0;
-      D_002DD29C = 0;
-      D_002DD294 = 0;
-      ResetSlotheap(&CSlotPool<0x18, 0x800>::s_pool.slotheap);
-}
-
-extern int D_002DD2B0, D_002DD2B4, D_002DD2B8, D_002DD2BC;
-extern "C" void GcShutdownProcPool()
-{
-      D_002DD2B0 = 0;
-      D_002DD2B8 = 0;
-      D_002DD2BC = 0;
-      D_002DD2B4 = 0;
-      ResetSlotheap(&CSlotPool<0x1C, 0x800>::s_pool.slotheap);
-}
-
-extern int D_002DD2C0, D_002DD2C4, D_002DD2C8, D_002DD2CC;
-extern "C" void GcShutdownSidebagPool()
-{
-      D_002DD2C0 = 0;
-      D_002DD2C8 = 0;
-      D_002DD2CC = 0;
-      D_002DD2C4 = 0;
-      ResetSlotheap(&CSlotPool<0xC, 0xC8>::s_pool.slotheap);
-}
-
-extern int D_002DD2D0, D_002DD2D4, D_002DD2D8, D_002DD2DC;
-extern "C" void GcShutdownPool6Pool()
-{
-      D_002DD2D0 = 0;
-      D_002DD2D8 = 0;
-      D_002DD2DC = 0;
-      D_002DD2D4 = 0;
-      ResetSlotheap(&CSlotPool<0x14, 0x100>::s_pool.slotheap);
 }

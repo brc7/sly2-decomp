@@ -36,7 +36,7 @@ extern CLOCK D_002DDED0;          /* g_clock */
 extern char D_002E65E0[];
 extern char D_003DD040[];
 extern char D_002DDF40[];
-extern char D_002DD598[];
+extern char g_gc[];
 extern "C" {
 void ProcessSwCallbacks(SWVIEW *p);
 void UpdateSwBusyList(SWVIEW *p);
@@ -107,7 +107,7 @@ extern "C" void UpdateSw(SWVIEW *p)
     if (0.0f < D_002DDED0.dtCm)
         UpdateCmLast__FP2CM(D_002DDF40);
     func_0020F7E0(p);
-    CGc_UpdateRecyclable(D_002DD598);
+    CGc_UpdateRecyclable(g_gc);
 }
 
 /** @sly2-annot addr=0x2267C0

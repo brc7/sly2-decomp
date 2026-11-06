@@ -1,5 +1,5 @@
 // bif.cpp -- the Splice builtin functions (RefOp*: list, arithmetic, comparison, vector/matrix, world queries).
-// TU 0x11F440..0x1258F0 (161 functions, address order; the last six are linkonce copies at 0x256C38..0x256D40).
+// TU 0x11F440..0x1258F0 (155 functions, address order; then the three linkonce VU math copies 0x256CE8..0x256D28).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bif
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001258D0
 // Every builtin is `CRef RefOpX(int cref, CRef *aref, CFrame *pframe)` (the mangled symbols say so); the per-function
@@ -1333,12 +1333,12 @@ struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -1353,7 +1353,7 @@ extern "C" CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 {
     SPN sp;
-    sp.Set(PvNewPair());
+    sp.Set(PtNew__t6CGcObj1Z5CPair());
     sp->ref = aref[0];
     CRef *pref = &aref[1];
     if (pref->m_tagk == 0x1F)
@@ -1401,7 +1401,7 @@ struct CRef;
 typedef struct CRef { int m_tagk; void *m_p; } CRef;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
-void PairPtr_Assign(void *p, void *q);
+void PairPtr_Assign(void *p, void *q) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 /** @sly2-annot addr=0x120C48
  * Purpose: Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void
  * Info: proposed name RefOpSetCadr (T1); TU bif
@@ -1592,15 +1592,15 @@ struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 int NRandInRange__Fii(int nLo, int nHi);
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -1653,7 +1653,7 @@ CRef RefOpShuffle(void *pbasic, CRef *aref)
     CPairPtr *psp = pspHead;
     int i;
     for (i = 0; i < c; i++) {
-        *psp = PvNewPair();
+        *psp = PtNew__t6CGcObj1Z5CPair();
         CPair *pnNew = psp->p;
         pnNew->ref = *apref[i];
         psp = &pnNew->pnext;
@@ -1668,7 +1668,7 @@ CRef RefOpShuffle(void *pbasic, CRef *aref)
         }
         if (spRes.p != pnLast) {
             SPN sp;
-            CPair *pnNew = PvNewPair();
+            CPair *pnNew = PtNew__t6CGcObj1Z5CPair();
             sp.Set(pnNew);
             sp->ref = CRef(0);
             InsertAfter(&pnLast->pnext, sp);
@@ -1685,15 +1685,15 @@ struct SP;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SP {
     CPair *p;
     SP() { p = 0; }
     SP(const SP &);
     ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
 };
 extern "C" SP CPair_CloneTo(CPair *src, void *a, void *b);
@@ -1711,7 +1711,7 @@ CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *aref) { if (aref[0].m_tag
    if (pn->ref.m_tagk != 0x1F) continue;
    SP spCopy;
    if (pn->pnext.p) { SP t = CPair_CloneTo(pn->ref.u.ppair, 0, 0); spCopy = t.p; } else spCopy = pn->ref.u.ppair;
-   if (!spRes.p) { spRes = PvNewPair(); spRes->ref = spCopy.p; } else pTail->pnext = spCopy.p;
+   if (!spRes.p) { spRes = PtNew__t6CGcObj1Z5CPair(); spRes->ref = spCopy.p; } else pTail->pnext = spCopy.p;
    pTail = spCopy.p;
    while (pTail->pnext.p) pTail = pTail->pnext.p;
  }
@@ -1726,12 +1726,12 @@ struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN() {}
     SPN(CPair *pn) { Set(pn); }
     SPN(const SPN &);
@@ -1751,21 +1751,21 @@ extern "C" SPN func_00121578(CRef **ppref1, CRef **ppref2);
 SPN func_00121578(CRef **ppref1, CRef **ppref2)
 {
     SPN sp;
-    sp.Set(PvNewPair());
-    sp->ref = PvNewPair();
+    sp.Set(PtNew__t6CGcObj1Z5CPair());
+    sp->ref = PtNew__t6CGcObj1Z5CPair();
     CPair *pn1 = (CPair *)sp->ref.u.pv;
     CRef *pref1 = &pn1->ref;
-    *pref1 = PvNewPair();
-    pn1->SetNext(PvNewPair());
+    *pref1 = PtNew__t6CGcObj1Z5CPair();
+    pn1->SetNext(PtNew__t6CGcObj1Z5CPair());
     CPair *pn2 = (CPair *)pref1->u.pv;
     pn2->ref.Retag(0x12);
-    pn2->SetNext(PvNewPair());
+    pn2->SetNext(PtNew__t6CGcObj1Z5CPair());
     *ppref1 = &pn2->pnext.p->ref;
     CRef *pref2 = &pn1->pnext.p->ref;
-    *pref2 = PvNewPair();
+    *pref2 = PtNew__t6CGcObj1Z5CPair();
     CPair *pn3 = (CPair *)pref2->u.pv;
     pn3->ref.Retag(0x12);
-    pn3->SetNext(PvNewPair());
+    pn3->SetNext(PtNew__t6CGcObj1Z5CPair());
     *ppref2 = &pn3->pnext.p->ref;
     return SPN(sp.p);
 }
@@ -1778,12 +1778,12 @@ struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
@@ -1800,9 +1800,9 @@ extern "C" CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefC
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { if (aref[1].m_tagk == 0) return aref[1];
- SPN spRes; spRes.Set(PvNewPair());
+ SPN spRes; spRes.Set(PtNew__t6CGcObj1Z5CPair());
  SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);
- *pa = aref[0]; CPair *pTail; CPair *pn; pn = (CPair *)aref[1].u.pv; while (pn) { *pb = pn->ref; SPN spNew; CPair *pnNew = PvNewPair(); spNew.Set(pnNew); spNew->ref = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
+ *pa = aref[0]; CPair *pTail; CPair *pn; pn = (CPair *)aref[1].u.pv; while (pn) { *pb = pn->ref; SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew); spNew->ref = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } return CRef((CPair *)spRes->ref.u.pv); }
 } // namespace M_RefOpMap__FiP4CRefP6CFrame
@@ -1814,20 +1814,20 @@ struct SP; struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SP {
     CPair *p;
     SP() { p = 0; }
     SP(const SP &);
     ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
 };
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
@@ -1850,9 +1850,9 @@ CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { i
    *pb = pn->ref;
    CRef r = RefEval__FP5CPairP6CFrame(sp.p, arefCall);
    if (r.m_tagk == 0x17 && r.u.n) {
-     SPN spNew; CPair *pnNew = PvNewPair(); spNew.Set(pnNew);
+     SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
      spNew->ref = pn->ref;
-     if (!spRes.p) { CPair *pnR = PvNewPair(); spRes = pnR; spRes->ref = spNew.p; } else pTail->pnext = spNew.p;
+     if (!spRes.p) { CPair *pnR = PtNew__t6CGcObj1Z5CPair(); spRes = pnR; spRes->ref = spNew.p; } else pTail->pnext = spNew.p;
      CPair *p = spNew.p; pTail = p;
    }
    pn = pn->pnext.p;
@@ -1868,8 +1868,8 @@ struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
@@ -1914,12 +1914,12 @@ struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -1935,7 +1935,7 @@ extern "C" CRef RefOpEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *aref
 CRef RefOpEval__FiP4CRefP6CFrame(void *pbasic, CRef *pref, CRef *aref)
 {
     SPN sp;
-    sp.Set(PvNewPair());
+    sp.Set(PtNew__t6CGcObj1Z5CPair());
     sp->ref = *pref;
     return RefEval__FP5CPairP6CFrame(sp.p, aref);
 }
@@ -2840,12 +2840,12 @@ typedef int qword __attribute__((mode(TI)));
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -2860,8 +2860,8 @@ extern "C" CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *ar
 CRef RefOpVectorRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 {
     SPN sp;
-    sp.Set(PvNewPair());
-    sp->SetNext(PvNewPair());
+    sp.Set(PtNew__t6CGcObj1Z5CPair());
+    sp->SetNext(PtNew__t6CGcObj1Z5CPair());
     CRef *pref = &sp->pnext.p->ref;
     pref->Retag(0x1A);
     sp->ref.SetF32(RadBetweenVectors(*(qword *)aref[0].u.pv, *(qword *)aref[1].u.pv, pref->u.pv));
@@ -3056,12 +3056,12 @@ struct SPN;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -3078,8 +3078,8 @@ CRef RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame(void *pbasic, CRef *ar
 {
     SPN sp;
     struct { float g, h, i; } g;
-    sp.Set(PvNewPair());
-    sp->SetNext(PvNewPair());
+    sp.Set(PtNew__t6CGcObj1Z5CPair());
+    sp->SetNext(PtNew__t6CGcObj1Z5CPair());
     CRef *pref = &sp->pnext.p->ref;
     pref->Retag(0x1A);
     DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(aref[0].u.pv, &g.g, pref->u.pv);
@@ -3760,14 +3760,14 @@ extern "C" { extern CLOCK D_002DDED0; }
 struct R { char pad[0xC]; int n; };
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 CRef CRef_RefCoerceF32(CRef *pref);
 R *ScheduleSwSpliceCallback(G *pg, int n, CPair *pnode, float t);
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -3779,7 +3779,7 @@ extern "C" CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref);
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref) { CRef res(-1, 0x15); SPN sp; OBJ *pobj = (OBJ *)aref[1].u.pv; CPair *pnNew = PvNewPair(); sp.Set(pnNew); sp->ref = PvNewPair(); CPair *pn = sp->ref.u.ppair; pn->ref.SetProc((CProc *)pobj); if (c >= 3) { CPair *pnT = pn; for (CPair *pw = aref[2].u.ppair; pw; pw = pw->pnext.p) { pnT->SetNext(PvNewPair()); pnT = pnT->pnext.p; CRef *pref = &pnT->ref; *pref = PvNewPair(); CPair *pc = pref->u.ppair; pc->ref.Retag(0x12); pc->SetNext(PvNewPair()); pc->pnext.p->ref = pw->ref; } } G *pg = &D_003DD490; float t = D_002DDED0.t; R *pr = ScheduleSwSpliceCallback(pg, 0, sp.p, t + CRef_RefCoerceF32(aref).u.g); res.SetS32(pr->n); return res; }
+CRef RefOpScheduleCallback__FiP4CRefP6CFrame(int c, CRef *aref) { CRef res(-1, 0x15); SPN sp; OBJ *pobj = (OBJ *)aref[1].u.pv; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); sp.Set(pnNew); sp->ref = PtNew__t6CGcObj1Z5CPair(); CPair *pn = sp->ref.u.ppair; pn->ref.SetProc((CProc *)pobj); if (c >= 3) { CPair *pnT = pn; for (CPair *pw = aref[2].u.ppair; pw; pw = pw->pnext.p) { pnT->SetNext(PtNew__t6CGcObj1Z5CPair()); pnT = pnT->pnext.p; CRef *pref = &pnT->ref; *pref = PtNew__t6CGcObj1Z5CPair(); CPair *pc = pref->u.ppair; pc->ref.Retag(0x12); pc->SetNext(PtNew__t6CGcObj1Z5CPair()); pc->pnext.p->ref = pw->ref; } } G *pg = &D_003DD490; float t = D_002DDED0.t; R *pr = ScheduleSwSpliceCallback(pg, 0, sp.p, t + CRef_RefCoerceF32(aref).u.g); res.SetS32(pr->n); return res; }
 } // namespace M_RefOpScheduleCallback__FiP4CRefP6CFrame
 
 // 0x123DD8 RefOpCancelCallback
@@ -3979,8 +3979,8 @@ struct CRef {
 struct O;
 struct NODE { int cref; int pad; CRef ref; NODE *pnext; };
 extern "C" {
-NODE *PvNewPair();
-void PairPtr_Assign(NODE **pp, NODE *p);
+NODE *PtNew__t6CGcObj1Z5CPair();
+void PairPtr_Assign(NODE **pp, NODE *p) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 CRef RefPairFromAplo__FiPP2LO(int c, O **apo);
 }
 /** @sly2-annot addr=0x124078
@@ -3997,7 +3997,7 @@ CRef RefPairFromAplo__FiPP2LO(int c, O **apo)
     NODE *pprev = 0;
     int i;
     for (i = 0; i < c; i++) {
-        NODE *p = PvNewPair();
+        NODE *p = PtNew__t6CGcObj1Z5CPair();
         if (pprev)
             PairPtr_Assign(&pprev->pnext, p);
         else
@@ -4109,12 +4109,12 @@ struct SPN; struct SW; struct OW; struct G;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
@@ -4139,8 +4139,8 @@ extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref);
  * @end-sly2-annot */
 CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref) { CRef res; if (aref[0].m_tagk == 0) return aref[0];
  void *pv = aref[1].u.pv; SW *psw; if (aref[2].m_tagk != 0) psw = ((OW *)aref[2].u.pv)->psw; else psw = (SW *)pv;
- SPN spRes; CPair *pnR = PvNewPair(); spRes.Set(pnR);
- CPair *pTail; CPair *pn = (CPair *)aref[0].u.pv; while (pn) { SPN spNew; CPair *pnNew = PvNewPair(); spNew.Set(pnNew);
+ SPN spRes; CPair *pnR = PtNew__t6CGcObj1Z5CPair(); spRes.Set(pnR);
+ CPair *pTail; CPair *pn = (CPair *)aref[0].u.pv; while (pn) { SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
    int n = pn->ref.u.n; spNew->ref.SetBasic((BASIC *)PloFindSwObject_15E958(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C));
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } int unused[4]; res = CRef((CPair *)spRes->ref.u.pv); return res; }
@@ -4456,15 +4456,15 @@ struct LO;
 extern "C" { extern char D_004520A8[]; }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
-void GcPair_Unlink(void *pv);
-CPair *PvNewPair();
+void Unlink__t6CGcObj1Z5CPair(void *pv);
+CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN(CPair *pn) { Set(pn); }
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
     int pad;
 };
@@ -4519,13 +4519,13 @@ extern "C" CRef RefOpHitTestObjectsImpl__F4BIFKiP4CRefP6CFrame(int pv, int c, CR
                 if (ClsgClipEdgeToObject(pso, *(qword *)prefFrom->u.pv, *(qword *)prefTo->u.pv, 1, &hit) <= 0)
                     continue;
                 {
-                    SPN spLo(PvNewPair());
-                    SPN spPos(PvNewPair());
+                    SPN spLo(PtNew__t6CGcObj1Z5CPair());
+                    SPN spPos(PtNew__t6CGcObj1Z5CPair());
                     spLo->ref.SetBasic((BASIC *)plo);
                     spLo->pnext = spPos.p;
                     if (pv == 0x7B) {
-                        SPN spNormal(PvNewPair());
-                        SPN spItem(PvNewPair());
+                        SPN spNormal(PtNew__t6CGcObj1Z5CPair());
+                        SPN spItem(PtNew__t6CGcObj1Z5CPair());
                         spPos->ref.SetVector((VECTOR *)&hit.pos);
                         spPos->pnext = spNormal.p;
                         spNormal->ref.SetVector((VECTOR *)&hit.normal);
@@ -5132,171 +5132,7 @@ CRef *RefOpSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *aref)
 }
 } } // namespace M_RefOpSetPowerUpAcquired
 
-// 0x254F00 GcPair_PushFront
-namespace M_GcPair_PushFront { extern "C" {
-struct N;
-// SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
-// SLY2_CFLAGS: -O2 -G0
-typedef struct N { int x0; unsigned prev : 13; unsigned prevpg : 2; unsigned p1 : 1; unsigned next : 13; unsigned nextpg : 2; unsigned p2 : 1; char pad[0x14 - 8]; } N;
-extern N *D_00452098[4];
-extern unsigned int D_002DD284;
 
-static inline void Handle(N *p, int *pidx, int *ppg)
-{
-    unsigned int i;
-    for (i = 0; i < D_002DD284; i++) {
-        if (p >= D_00452098[i] && p < D_00452098[i] + 0x2000) {
-            *pidx = p - D_00452098[i];
-            *ppg = i;
-            return;
-        }
-    }
-    *pidx = 0;
-    *ppg = 0;
-}
-
-void GcPair_PushFront(N *p, N **phead)
-{
-    int idx0, pg0, idx1, pg1;
-    N *head;
-    Handle(p, &idx0, &pg0);
-    head = *phead;
-    if (head) {
-        head->prev = idx0;
-        head->prevpg = pg0;
-    }
-    Handle(*phead, &idx1, &pg1);
-    p->next = idx1;
-    p->nextpg = pg1;
-    *phead = p;
-}
-} } // namespace M_GcPair_PushFront
-
-// 0x2550A0 GcPair_InitNode
-namespace M_GcPair_InitNode { extern "C" {
-// SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
-// SLY2_CFLAGS: -O2 -G0
-extern char D_002DD280[]; extern int D_002DD598;
-typedef struct { int x0; unsigned lo : 31; unsigned hi : 1; } S;
-void GcPair_PushFront(S *, void *);
-S *GcPair_InitNode(S *p) { p->x0 = 0; GcPair_PushFront(p, D_002DD280); p->hi = D_002DD598; return p; }
-} } // namespace M_GcPair_InitNode
-
-// 0x2550F8 GcPair_Unlink
-namespace M_GcPair_Unlink { extern "C" {
-struct N;
-typedef struct N { int x0; unsigned prev : 13; unsigned prevpg : 2; unsigned p1 : 1; unsigned next : 13; unsigned nextpg : 2; unsigned p2 : 1; } N;
-extern char *D_00452098[4];
-extern N *D_002DD280, *D_002DD288, *D_002DD28C;
-
-static inline N *Ptr(unsigned idx, unsigned pg)
-{
-    if (idx == 0 && pg == 0)
-        return 0;
-    return (N *)(D_00452098[pg] + idx * 20);
-}
-
-/** @sly2-annot addr=0x2550F8
- * Purpose: unlink node from its GC list (fix list heads) [game linkonce (inline/template)]
- * Info: proposed name GcPair_Unlink (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-void GcPair_Unlink(N *p)
-{
-    N *prev = Ptr(p->prev, p->prevpg);
-    N *next = Ptr(p->next, p->nextpg);
-    if (p == D_002DD288)
-        D_002DD288 = next;
-    if (prev) {
-        prev->next = p->next;
-        prev->nextpg = p->nextpg;
-    } else if (p == D_002DD280) {
-        D_002DD280 = next;
-    } else if (p == D_002DD28C) {
-        D_002DD28C = next;
-    }
-    if (next) {
-        next->prev = p->prev;
-        next->prevpg = p->prevpg;
-    }
-}
-} } // namespace M_GcPair_Unlink
-
-// 0x256B48 PvNewPair
-namespace M_PvNewPair { extern "C" {
-struct POOL; struct N;
-typedef struct POOL { int x0, x4, x8; void *xC; } POOL;
-typedef struct N { int x0; int x4; int x8; int xC; int x10; } N;
-extern POOL D_004520A8;
-extern void *D_00452098[4];
-extern unsigned int D_002DD284;
-extern int D_002DD598;
-void Collect__3CGc(void *);
-void *PvAllocSlotheapClear(POOL *);
-void func_0011CD98(POOL *, void *);
-N *GcPair_InitNode(N *);
-
-/** @sly2-annot addr=0x256B48
- * Purpose: allocate Pair node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
- *   linkonce (inline/template)]
- * Info: proposed name PvNewPair (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/splice-scripting.md#pair-0x128cb8-0x128f70
- * @end-sly2-annot */
-N *PvNewPair(void)
-{
-    N *p;
-    if (D_004520A8.xC == 0) {
-        if (!g_sw.fUnk3a14 || D_002DD284 >= 4)
-            Collect__3CGc(&D_002DD598);
-        if (D_004520A8.xC == 0) {
-            void *pv = PvAllocSlotheapClear(&D_004520A8);
-            if (D_002DD284)
-                func_0011CD98(&D_004520A8, pv);
-            D_00452098[D_002DD284++] = pv;
-        }
-    }
-    p = (N *)PvAllocSlotheapClear(&D_004520A8);
-    GcPair_InitNode(p);
-    p->x8 = -1;
-    p->x10 = 0;
-    return p;
-}
-} } // namespace M_PvNewPair
-
-// 0x256C38 func_00256C38
-/** @sly2-annot addr=0x256C38
- * Purpose: CPair ref-pointer constructor from a raw pointer: incref (if non-null) and store, no release
- * Info: proposed name PairPtr_ctor (T2); TU game_linkonce
- * Notes: v3: superseded PairPtr_Init | top50_round (0.55): Body ++*p; *pp=p. Same smart-pointer family as
- *   PairPtr_Assign 0x256C58 / ~CPairPtr (_$_8CPairPtr) 0x256D40; only caller PpairBuildSpliceEventArgs 0x132ED8 uses
- *   it to initialise a fresh list head and the return value | v2 draft wa
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: sdk_names+top50_round
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* Linkonce: counted-pointer store (adds a reference to the new pointee). */
-extern "C" void func_00256C38(int **pp, int *p)
-{
-    if (p != 0) {
-        *p += 1;
-    }
-    *pp = p;
-}
-
-// 0x256C58 PairPtr_Assign (CPairPtr::operator=)
-/* CPairPtr::operator= (sly2/pair.h): takes a reference on the new pair, then releases the old one. */
-void CPairPtr::operator=(CPair *ppair)
-{
-    if (ppair)
-        ppair->cref++;
-    CPair *ppairOld = p;
-    if (ppairOld && --ppairOld->cref == 0)
-        delete ppairOld;
-    p = ppair;
-}
 
 // 0x256CE8 __8VU_FLOATf
 /** @sly2-annot addr=0x256CE8
@@ -5330,14 +5166,6 @@ qword operator*(VU_FLOAT f, VU_VECTOR v)
     return r;
 }
 
-// 0x256D40 _$_8CPairPtr (~CPairPtr)
-/* ~CPairPtr (sly2/pair.h): releases the pair; deleting it destroys its own link (the recursive call) and value. */
-CPairPtr::~CPairPtr()
-{
-    CPair *ppair = p;
-    if (ppair && --ppair->cref == 0)
-        delete ppair;
-}
 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

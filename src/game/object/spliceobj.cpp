@@ -1,12 +1,14 @@
 // spliceobj.cpp -- object options as Splice values: find an option's EOPID record for an object's class, get and set
 // it as a CRef (method, direct member or getter/setter by type), the option entry points that fall back to the
 // object's sidebag, conversions between CRef lists/arrays and typed values, and the method pool (pool 6). TU
-// 0x1FFCF8..0x201620 (14 functions, address order) plus four linkonce instances of the method pool (0x255F38..).
+// 0x1FFCF8..0x201620 (14 functions, address order) plus the linkonce CRefPtr<CMethod>::Attach (0x259CF8). The method
+// pool's GC members are CGcObj<CMethod>'s (sly2/gc.h, emitted by splice/gc.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_spliceobj
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00201600
 #include "sly2/basic.h"
 #include "sly2/cref.h"
 #include "sly2/eopid.h"
+#include "sly2/gc.h"
 #include "sly2/slotheap.h"
 #include "sly2/sw.h"
 
@@ -27,6 +29,10 @@ public:
     int m_crefReq;
     void operator delete(void *pv) { func_0011CD98(&CSlotPool<0x14, 0x100>::s_pool.slotheap, pv); }
 };
+/* The method pool's members are emitted by splice/gc.cpp: declared as specializations here so that this file calls
+   them without emitting its own (weak) copies. */
+template <> CMethod *CGcObj<CMethod>::PtNew();
+template <> void CGcObj<CMethod>::Unlink();
 
 /* The sidebag calls (sidebag.cpp's CSidebag, by its linker names). */
 struct CSidebag
@@ -43,7 +49,6 @@ struct SPLOPTS { int csplopt; SPLOPT *asplopt; };
 extern SPLOPTS D_00279AD0[];
 
 extern "C" {
-CMethod *PvNewPool6(void);
 CRef *CRef_SetBool(CRef *pref, int f);
 CRef *CRef_SetVector(CRef *pref, const VECTOR4 *pvec);
 CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec);
@@ -91,7 +96,8 @@ extern "C" PVREC *PeopidFind(BASIC *pbasic, int opid)
    with the object, thunk and argument count). Bit 2: the member is read directly at pv + ib; else its getter, called
    on the object (pv itself or, with grf bit 0x2000, what pmfObj(1) returns). Then by type; the case order is the
    code's. Match notes: the getter is called through the typed PMF members without a cast (see sly2/eopid.h);
-   `CRef ref;` is a plain store of -1; the new method is attached in two statements; the matrix pointer is read once. */
+   `CRef ref;` is a plain store of -1; the method pointer is constructed from the new method (CRefPtr(T *) calls Attach;
+   CRefPtr() clears, so a default construction and a separate Attach would add a store); the matrix pointer is read once. */
 /** @sly2-annot addr=0x1FFD98
  * Purpose: Splice value of an object option (method, direct member or getter; by type
  *   bool/float/vector/matrix/int/clq/lm/smp)
@@ -105,9 +111,8 @@ CRef RefGetPeopid(void *pv, PVREC *ppvrec)
     uint grf = ppvrec->grfeopid;
     if (grf & 1)
     {
-        CRefPtr<CMethod> pmethod;
-        CMethod *pmethodNew = PvNewPool6();
-        pmethod.Attach(pmethodNew);
+        CMethod *pmethodNew = CGcObj<CMethod>::PtNew();
+        CRefPtr<CMethod> pmethod(pmethodNew);
         pmethod->m_pbasic = (BASIC *)pv;
         pmethod->m_pfnthunk = ppvrec->pfnthunk;
         pmethod->m_crefReq = ppvrec->crefReq;
@@ -394,7 +399,7 @@ CRef RefEnsureOption(BASIC *pbasic, int opid, CRef *pref)
 }
 
 /* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:
-   the store and the release are out of line (func_00256C38 / PairPtr_Assign, _$_8CPairPtr), the destructor's
+   the store and the release are out of line (Attach__t7CRefPtr1Z5CPairP5CPair / PairPtr_Assign, _$_t7CRefPtr1Z5CPair), the destructor's
    release inline. SPPAIR is 16-byte aligned: the original frame has its list pointers in 16-byte slots, so this form
    exists to reproduce the original codegen. */
 struct CPair;
@@ -409,13 +414,13 @@ public:
 } __attribute__((aligned(16)));
 struct CPair { int cref; int link; CRef ref; SPPAIR next; };
 extern "C" {
-void func_00256C38(SPPAIR *psp, CPair *ppair);
-void PairPtr_Assign(SPPAIR *psp, CPair *ppair);
-void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_8CPairPtr");
-CPair *PvNewPair(void);
-void GcPair_Unlink(CPair *ppair);
+void Attach__t7CRefPtr1Z5CPairP5CPair(SPPAIR *psp, CPair *ppair);
+void PairPtr_Assign(SPPAIR *psp, CPair *ppair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_t7CRefPtr1Z5CPair");
+CPair *PtNew__t6CGcObj1Z5CPair(void);
+void Unlink__t6CGcObj1Z5CPair(CPair *ppair);
 }
-inline SPPAIR::SPPAIR(CPair *q) { func_00256C38(this, q); }
+inline SPPAIR::SPPAIR(CPair *q) { Attach__t7CRefPtr1Z5CPairP5CPair(this, q); }
 inline void SPPAIR::Set(CPair *q) { PairPtr_Assign(this, q); }
 inline SPPAIR::~SPPAIR()
 {
@@ -424,7 +429,7 @@ inline SPPAIR::~SPPAIR()
         if (--q->cref == 0) {
             PairPtr_Release(&q->next, 2);
             q->ref.Decref();
-            GcPair_Unlink(q);
+            Unlink__t6CGcObj1Z5CPair(q);
             func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
         }
     }
@@ -452,7 +457,7 @@ CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv)
     for (int i = 0; i < c; i++) {
         void *pv = apv[i];
         pvrec.otyp = aotyp[i];
-        SPPAIR nw(PvNewPair());
+        SPPAIR nw(PtNew__t6CGcObj1Z5CPair());
         CRef *pref = &nw.p->ref;
         *pref = RefGetPeopid(pv, &pvrec);
         ppTail->Set(nw.p);
@@ -484,7 +489,7 @@ CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv)
     SPPAIR *ppTail = &list;
     for (int i = 0; i < c; i++) {
         pvrec.ib = i * 4;
-        SPPAIR nw(PvNewPair());
+        SPPAIR nw(PtNew__t6CGcObj1Z5CPair());
         CRef *pref = &nw.p->ref;
         *pref = RefGetPeopid(pv, &pvrec);
         ppTail->Set(nw.p);
@@ -614,117 +619,6 @@ CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, v
     return CRef(0x24);
 }
 
-/* Method pool (pool 6) helpers: linkonce instances of the Splice GC pool templates homed here (see gc.cpp for the
-   same per pool). A node's link word holds prev/next as (index, page) pairs into the pool's block table D_00452160
-   (D_002DD2D4 blocks) and the mark bit. */
-struct GCNODE6
-{
-    int cref;
-    unsigned prev : 13;
-    unsigned prevpg : 2;
-    unsigned p1 : 1;
-    unsigned next : 13;
-    unsigned nextpg : 2;
-    unsigned fMark : 1;
-    char pad[0x14 - 8];
-};
-extern "C" {
-extern GCNODE6 *D_00452160[4];
-extern unsigned int D_002DD2D4;
-extern GCNODE6 *D_002DD2D0;   /* the pool's node list */
-extern int D_002DD598;        /* g_gc; its first word is the current mark */
-void Collect__3CGc(void *pgc);
-void GcPool6_PushFront(GCNODE6 *pnode, GCNODE6 **ppnodeHead);
-GCNODE6 *GcPool6_InitNode(GCNODE6 *pnode);
-}
-
-static inline void Handle(GCNODE6 *p, int *pidx, int *ppg)
-{
-    unsigned int i;
-    for (i = 0; i < D_002DD2D4; i++) {
-        if (p >= D_00452160[i] && p < D_00452160[i] + 0x100) {
-            *pidx = p - D_00452160[i];
-            *ppg = i;
-            return;
-        }
-    }
-    *pidx = 0;
-    *ppg = 0;
-}
-
-/** @sly2-annot addr=0x255F38
- * Purpose: Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game
- *   linkonce (inline/template)]
- * Info: proposed name GcPool6_PushFront (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void GcPool6_PushFront(GCNODE6 *p, GCNODE6 **phead)
-{
-    int idx0, pg0, idx1, pg1;
-    GCNODE6 *head;
-    Handle(p, &idx0, &pg0);
-    head = *phead;
-    if (head) {
-        head->prev = idx0;
-        head->prevpg = pg0;
-    }
-    Handle(*phead, &idx1, &pg1);
-    p->next = idx1;
-    p->nextpg = pg1;
-    *phead = p;
-}
-
-/* 0x2560C8 GcPool6_InitNode (linkonce): a new node has no references, goes to the front of the pool list and takes
-   the current mark. */
-extern "C" GCNODE6 *GcPool6_InitNode(GCNODE6 *p)
-{
-    p->cref = 0;
-    GcPool6_PushFront(p, &D_002DD2D0);
-    p->fMark = D_002DD598;
-    return p;
-}
-
-/* PmethodNew: allocate a method node (collecting first when the pool is out of free slots and may not grow). */
-/** @sly2-annot addr=0x259C18
- * Purpose: allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game
- *   linkonce (inline/template)]
- * Info: proposed name PvNewPool6 (T1); TU game_linkonce
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" CMethod *PvNewPool6(void)
-{
-    GCNODE6 *p;
-    if (CSlotPool<0x14, 0x100>::s_pool.slotheap.pslotFree == 0) {
-        if (!g_sw.fUnk3a14 || D_002DD2D4 >= 4)
-            Collect__3CGc(&D_002DD598);
-        if (CSlotPool<0x14, 0x100>::s_pool.slotheap.pslotFree == 0) {
-            void *pv = PvAllocSlotheapClear(&CSlotPool<0x14, 0x100>::s_pool.slotheap);
-            if (D_002DD2D4)
-                func_0011CD98(&CSlotPool<0x14, 0x100>::s_pool.slotheap, pv);
-            D_00452160[D_002DD2D4++] = (GCNODE6 *)pv;
-        }
-    }
-    p = (GCNODE6 *)PvAllocSlotheapClear(&CSlotPool<0x14, 0x100>::s_pool.slotheap);
-    GcPool6_InitNode(p);
-    return (CMethod *)p;
-}
-
-/* CRefPtr<CMethod>::Attach: store with incref. */
-/** @sly2-annot addr=0x259CF8
- * Purpose: refptr store with incref [game linkonce (inline/template)]
- * Info: proposed name Pool6Ptr_Init (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00259CF8(CMethod **ppmethod, CMethod *pmethod)
-{
-    if (pmethod != 0) {
-        pmethod->m_cref += 1;
-    }
-    *ppmethod = pmethod;
-}
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
