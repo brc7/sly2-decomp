@@ -128,7 +128,13 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 
 // 0x171F58: Search behaviour (BHV171) vtable slot 7 (OnPush): base, raises guard flag 0x1F, state -1, both look
 // timers off (FLT_MAX).
-extern "C" void InitBhvSearch(BHV171V *behavior) { InitBhv(behavior); AddStepguardSgf(behavior->guard, 0x1F); behavior->state = -1; behavior->unknown40 = behavior->lookEndTime = 3.40282346638528859812e+38f; }
+extern "C" void InitBhvSearch(BHV171V *behavior)
+{
+    InitBhv(behavior);
+    AddStepguardSgf(behavior->guard, 0x1F);
+    behavior->state = -1;
+    behavior->unknown40 = behavior->lookEndTime = 3.40282346638528859812e+38f;
+}
 
 // 0x171FA0: Search behaviour vtable slot 8 (Start): base, then state 0 (react).
 void BHV171::Start()
@@ -349,7 +355,13 @@ extern "C" int HasBhvSearchReachedTarget(BHV171V *behavior) {
 
 // 0x172760: Returns the last known target position from the shared target record (its first position when this
 // guard is in mode 4 for it, else its second).
-extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *behavior) { WATCH *t = behavior->watched; if (t->mode == 4 && t->guard == behavior->guard) return t->firstPosition; return behavior->watched->secondPosition; }
+extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *behavior)
+{
+    WATCH *t = behavior->watched;
+    if (t->mode == 4 && t->guard == behavior->guard)
+        return t->firstPosition;
+    return behavior->watched->secondPosition;
+}
 
 // 0x172798: Adds a candidate point to a 64-entry list if its pitch and distance from the guard are within limits,
 // recording its heading relative to the guard.
@@ -380,37 +392,70 @@ static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2
 // VU0 helper: vector sum.
 static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: length of a vector (in x).
-static inline qword QwLength(qword v){qword qw,qwLen;
- qw = VuDot(v, v);
- __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qw));return qwLen;}
+static inline qword QwLength(qword v)
+{
+    qword qw, qwLen;
+    qw = VuDot(v, v);
+    __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qw));
+    return qwLen;
+}
 // allocation-only "0"(vfOne): the length reuses the vfOne register, as in the target
-static inline qword QwLengthOne(qword v){qword qw,vfOne,qwLen;
- __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z":"=j"(qw),"=j"(vfOne):"j"(v));
- __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qw),"0"(vfOne));return qwLen;}
+static inline qword QwLengthOne(qword v)
+{
+    qword qw, vfOne, qwLen;
+    __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
+            : "=j"(qw), "=j"(vfOne)
+            : "j"(v));
+    __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qwLen) : "j"(qw), "0"(vfOne));
+    return qwLen;
+}
 // VU0 helper: horizontal (xy) length of a vector.
-static inline qword QwLengthXY(qword v){qword qw;
- __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y":"=j"(qw):"j"(v));
- __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qw):"0"(qw));return qw;}
+static inline qword QwLengthXY(qword v)
+{
+    qword qw;
+    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(qw) : "j"(v));
+    __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
+    return qw;
+}
 // VU0 helper: x of a VU register as a float.
 static inline float GFromVf(qword qw){float g;__asm__("qmfc2 %0, %1":"=r"(g):"j"(qw));return g;}
 // VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1, %0":"=f"(x):"r"(qw));return x;}
 // allocation-only second "j"(b): the extra reference raises b's local-alloc priority, so b gets vf1 and the dot vf2 as in the target
-static inline qword QwDot(qword a,qword b){qword qw,vfOne;
- __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z":"=j"(vfOne),"=j"(qw):"j"(a),"j"(b),"j"(b));return qw;}
+static inline qword QwDot(qword a, qword b)
+{
+    qword qw, vfOne;
+    __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z"
+            : "=j"(vfOne), "=j"(qw)
+            : "j"(a), "j"(b), "j"(b));
+    return qw;
+}
 // VU0 helper: vector scaled by the x of g.
 static inline qword QwScaleX(qword v,qword g){qword qw;__asm__("vmulx.xyzw %0, %1, %2x":"=j"(qw):"j"(v),"0"(g));return qw;}
 // VU0 helper: v divided by g.
-static inline qword QwDivide(qword v,qword g){qword qw;__asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q":"=j"(qw):"j"(v),"j"(g));return qw;}
+static inline qword QwDivide(qword v, qword g)
+{
+    qword qw;
+    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(v), "j"(g));
+    return qw;
+}
 // VU0 helper: base + vector * scale.
-static inline qword QwAddScaled(qword base,qword vec,qword g){qword qw;
- __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x":"=j"(qw):"j"(base),"j"(vec),"j"(g));return qw;}
+static inline qword QwAddScaled(qword base, qword vec, qword g)
+{
+    qword qw;
+    __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(base), "j"(vec), "j"(g));
+    return qw;
+}
 // VU0 helper: loads a float constant from a .data word into a VU register.
 static inline qword VuFloatFromMemWord(int n){qword v;__asm__("qmtc2 %1, %0":"=j"(v):"rV"(n));return v;}
 // VU0 helper: broadcasts a constant into a VU register (volatile so it is not hoisted, as in the target).
-static inline qword VuFloatVolatile(float g){qword v;
- // volatile: the target re-broadcasts the constant inside the loop (loop.c must not hoist it)
- __asm__ __volatile__("qmtc2 %1, %0":"=j"(v):"r"(g));return v;}
+static inline qword VuFloatVolatile(float g)
+{
+    qword v;
+    // volatile: the target re-broadcasts the constant inside the loop (loop.c must not hoist it)
+    __asm__ __volatile__("qmtc2 %1, %0" : "=j"(v) : "r"(g));
+    return v;
+}
 // vsub r = t - b. Allocation-only constraints: "=j"(t)/"1"(t) marks the copy t as consumed by the vsub, and "0"(b) puts r in b's register (as in the target)
 #define QW_SUB_T(r,t,b) __asm__("vsub.xyzw %0, %1, %2":"=j"(r),"=j"(t):"0"(b),"1"(t))
 
@@ -420,73 +465,160 @@ namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.
 // 0x1728B0: Chooses up to four search points: gathers candidate hiding places (several global object lists, cids
 // 0x23/0x67/0x1B), sorts them by heading, keeps up to four well-spread points and fills the rest randomly behind
 // the guard.
-extern "C" void ChooseBhvSearchPoints(BHV171V*behavior){
- WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
- w.query.point.q=func_001A62E8(behavior->guard);
- w.query.heading=RadStepHeading(behavior->guard);w.query.count=0;
- for(object=(*(NODE * *)&g_sw.dlCid34);object;object=object->next104){
-  qword posObj=func_001A62E8(object);
-  qword qwFallback=D_002A2DA0;
-  w.query.delta.q=VuSub(w.query.point.q,posObj);
-  w.query.delta.i[2]=0;
-  qword len=QwLengthOne(w.query.delta.q);
-  qword g=VuFloatFromMemWord(*(int*)&object->reach);
-  qword n;
-  if(GXOfQw(len)<0.0001f){w.query.scalar.q=g;n=qwFallback;}
-  else{w.query.scalar.q=g;n=QwDivide(w.query.delta.q,len);}
-  w.query.candidate.q=QwAddScaled(posObj,n,g);
-  TryAddSearchCandidate(&w.query);
- }
- for(object=(*(NODE * *)&g_sw.dlCid12);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid38);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid88);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid11);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid39);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid13);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlTarget);object;object=object->nextE0){
-  if((object->flags&1)&&FIsBasicDerivedFrom(object,0x13)){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
- }
- {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x23,0,0x100,w.result256);
- if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
- {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x67,0,0x20,w.result32);
- if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
- {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
- if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
- for(object=(*(NODE * *)&g_sw.dlCid98);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
- lastAngle=0.0f;
- qsort(w.query.row,w.query.count,sizeof(ROW),CompareSearchCandidates);
- accepted=0;
- {
-  PAIR*previous=0;
-  for(i=0;i<(int)w.query.count&&accepted<4;i++){
-   ROW*row=&w.query.row[i];qword original=row->point.q;
-   qword up=D_002A2DC0;
-   qword delta=QwSub(original,w.query.point.q);
-   qword qwFallback=D_002A2DA0;
-   qword planar=QwSub(delta,QwScaleX(up,QwDot(delta,up)));
-   qword len=QwLength(planar);
-   if(GXOfQw(len)<0.0001f)planar=qwFallback;
-   else planar=QwDivide(planar,len);
-   qword s=VuFloatVolatile(200.0f);
-   qword target=QwAddScaled(w.query.point.q,planar,s);
-   w.query.delta.q=s;
-   // the one register pin: the vsub consumes a copy of target in vf2, made before the previous test (target: vmove in the beqz slot)
-   register qword probe __asm__("vf2")=target;
-   if(previous){qword d;QW_SUB_T(d,probe,previous->candidate.q);if(GXOfQw(QwLengthXY(d))<150.0f)continue;}
-   previous=&behavior->searchPoints[accepted++];lastAngle=row->angle;previous->original.q=original;previous->candidate.q=target;
-  }
- }
- qword origin=w.query.point.q;
- qword anchor=QwAdd(origin,SetVectorCylind(w.query.heading+3.1415927f,-350.0f,0.0f));
- while(accepted<4){
-  float angle,length;qword point;
-  lastAngle+=GRandInRange(D_002BE5A8.low,D_002BE5A8.high);
-  angle=lastAngle+w.query.heading;
-  length=GRandInRange(D_002BE5B0.low,D_002BE5B0.high);
-  point=QwAdd(anchor,SetVectorCylind(angle,length,0.0f));
-  {PAIR*pair=&behavior->searchPoints[accepted];pair->candidate.q=point;pair->original.q=point;}accepted++;
- }
- behavior->searchPointIndex=0;behavior->nextTime=D_002A53D0;
+extern "C" void ChooseBhvSearchPoints(BHV171V *behavior)
+{
+    WORK w;
+    NODE *object;
+    NODE **cursor;
+    int remaining, i;
+    unsigned accepted;
+    float lastAngle;
+    w.query.point.q = func_001A62E8(behavior->guard);
+    w.query.heading = RadStepHeading(behavior->guard);
+    w.query.count = 0;
+    for (object = (*(NODE **)&g_sw.dlCid34); object; object = object->next104) {
+        qword posObj = func_001A62E8(object);
+        qword qwFallback = D_002A2DA0;
+        w.query.delta.q = VuSub(w.query.point.q, posObj);
+        w.query.delta.i[2] = 0;
+        qword len = QwLengthOne(w.query.delta.q);
+        qword g = VuFloatFromMemWord(*(int *)&object->reach);
+        qword n;
+        if (GXOfQw(len) < 0.0001f) {
+            w.query.scalar.q = g;
+            n = qwFallback;
+        } else {
+            w.query.scalar.q = g;
+            n = QwDivide(w.query.delta.q, len);
+        }
+        w.query.candidate.q = QwAddScaled(posObj, n, g);
+        TryAddSearchCandidate(&w.query);
+    }
+    for (object = (*(NODE **)&g_sw.dlCid12); object; object = object->next1B4) {
+        FindShapeClosestPoint(object, w.query.point.q, 0, &w.query.candidate.q, 0, 0, 0);
+        TryAddSearchCandidate(&w.query);
+    }
+    for (object = (*(NODE **)&g_sw.dlCid38); object; object = object->next104) {
+        w.query.candidate.q = func_001A62E8(object);
+        TryAddSearchCandidate(&w.query);
+    }
+    for (object = (*(NODE **)&g_sw.dlCid88); object; object = object->next174) {
+        w.query.candidate.q = func_001A62E8(object);
+        TryAddSearchCandidate(&w.query);
+    }
+    for (object = (*(NODE **)&g_sw.dlCid11); object; object = object->next1B4) {
+        FindShapeClosestPoint(object, w.query.point.q, 0, &w.query.candidate.q, 0, 0, 0);
+        TryAddSearchCandidate(&w.query);
+    }
+    for (object = (*(NODE **)&g_sw.dlCid39); object; object = object->next104) {
+        w.query.candidate.q = func_001A62E8(object);
+        TryAddSearchCandidate(&w.query);
+    }
+    for (object = (*(NODE **)&g_sw.dlCid13); object; object = object->next1B4) {
+        FindShapeClosestPoint(object, w.query.point.q, 0, &w.query.candidate.q, 0, 0, 0);
+        TryAddSearchCandidate(&w.query);
+    }
+    for (object = (*(NODE **)&g_sw.dlTarget); object; object = object->nextE0) {
+        if ((object->flags & 1) && FIsBasicDerivedFrom(object, 0x13)) {
+            w.query.candidate.q = func_001A62E8(object);
+            TryAddSearchCandidate(&w.query);
+        }
+    }
+    {
+        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x23, 0, 0x100, w.result256);
+        if (count > 0) {
+            cursor = w.result256;
+            remaining = count;
+            do {
+                NODE *item = *cursor++;
+                --remaining;
+                w.query.candidate.q = func_001A62E8(item);
+                TryAddSearchCandidate(&w.query);
+            } while (remaining);
+        }
+    }
+    {
+        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x67, 0, 0x20, w.result32);
+        if (count > 0) {
+            cursor = w.result32;
+            remaining = count;
+            do {
+                NODE *item = *cursor++;
+                --remaining;
+                w.query.candidate.q = func_001A62E8(item);
+                TryAddSearchCandidate(&w.query);
+            } while (remaining);
+        }
+    }
+    {
+        int count = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x1B, 0, 0x80, w.result128);
+        if (count > 0) {
+            cursor = w.result128;
+            remaining = count;
+            do {
+                NODE *item = *cursor++;
+                --remaining;
+                w.query.candidate.q = func_001A62E8(item);
+                TryAddSearchCandidate(&w.query);
+            } while (remaining);
+        }
+    }
+    for (object = (*(NODE **)&g_sw.dlCid98); object; object = object->next174) {
+        w.query.candidate.q = func_001A62E8(object);
+        TryAddSearchCandidate(&w.query);
+    }
+    lastAngle = 0.0f;
+    qsort(w.query.row, w.query.count, sizeof(ROW), CompareSearchCandidates);
+    accepted = 0;
+    {
+        PAIR *previous = 0;
+        for (i = 0; i < (int)w.query.count && accepted < 4; i++) {
+            ROW *row = &w.query.row[i];
+            qword original = row->point.q;
+            qword up = D_002A2DC0;
+            qword delta = QwSub(original, w.query.point.q);
+            qword qwFallback = D_002A2DA0;
+            qword planar = QwSub(delta, QwScaleX(up, QwDot(delta, up)));
+            qword len = QwLength(planar);
+            if (GXOfQw(len) < 0.0001f)
+                planar = qwFallback;
+            else
+                planar = QwDivide(planar, len);
+            qword s = VuFloatVolatile(200.0f);
+            qword target = QwAddScaled(w.query.point.q, planar, s);
+            w.query.delta.q = s;
+            // the one register pin: the vsub consumes a copy of target in vf2, made before the previous test (target: vmove in the beqz slot)
+            register qword probe __asm__("vf2") = target;
+            if (previous) {
+                qword d;
+                QW_SUB_T(d, probe, previous->candidate.q);
+                if (GXOfQw(QwLengthXY(d)) < 150.0f)
+                    continue;
+            }
+            previous = &behavior->searchPoints[accepted++];
+            lastAngle = row->angle;
+            previous->original.q = original;
+            previous->candidate.q = target;
+        }
+    }
+    qword origin = w.query.point.q;
+    qword anchor = QwAdd(origin, SetVectorCylind(w.query.heading + 3.1415927f, -350.0f, 0.0f));
+    while (accepted < 4) {
+        float angle, length;
+        qword point;
+        lastAngle += GRandInRange(D_002BE5A8.low, D_002BE5A8.high);
+        angle = lastAngle + w.query.heading;
+        length = GRandInRange(D_002BE5B0.low, D_002BE5B0.high);
+        point = QwAdd(anchor, SetVectorCylind(angle, length, 0.0f));
+        {
+            PAIR *pair = &behavior->searchPoints[accepted];
+            pair->candidate.q = point;
+            pair->original.q = point;
+        }
+        accepted++;
+    }
+    behavior->searchPointIndex = 0;
+    behavior->nextTime = D_002A53D0;
 }
 
 namespace RO_ORDER { extern const float r_D_002A53D4 __asm__("D_002A53D4") = 3.40282347e+38f; }
