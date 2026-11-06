@@ -1,7 +1,11 @@
-// tu_1BC050.cpp -- CID14, the convex polygon SHAPE (convex volume): its load / clone / hierarchy overrides, the
-// winding test of its outline, the side planes (BuildCid14EdgePlanes) and segment clipping against them (ClipEdgeToCnvo),
-// the overlap and path-zone tests, the free pool of merged polygons and the merge itself (MergeCid14Obstacles: the hull of
-// several polygons, BuildConvexHull). TU 0x1BC050..0x1BE398 (31 functions, address order).
+// tu_1BC050.cpp -- CID14, the convex polygon SHAPE ("convex volume", CNVO): a closed outline in the XY plane used as
+// a navigation obstacle. Role: its load / clone / hierarchy overrides, the winding and convexity test of its
+// outline, its side planes and segment clipping against them, point-inside and overlap tests, registration as an
+// obstacle in the path zone that contains it, the search for free points/ranges along a shape that avoid the
+// obstacles, and the merging of overlapping polygons into one convex hull (a pooled "merged" CID14 owner).
+// Entry points: LoadCid14FromBrx, PostCid14Load, ClipEdgeToCnvo, IsPosInCnvo, DoCnvosOverlap, FindShapeFreePoint,
+// MergeCid14Obstacles, UpdatePendingCid14Obstacles.
+// TU 0x1BC050..0x1BE398 (31 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1BC050
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001BE378
 #include "sly2/slotheap.h"
@@ -174,6 +178,7 @@ static inline void *PvNextDli(DLI *pdli)
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/physics-collision.md#6-source-files,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Slot 7 (Init): the SHAPE init plus the polygon's defaults.
 void CID14::Init()
 {
     CID14V *p = (CID14V *)this;
@@ -191,6 +196,7 @@ void CID14::Init()
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Slot 14 (LoadFromBrx): LoadShapeFromBrx, then allocates one side plane per outline edge (count - 1).
 extern "C" void LoadCid14FromBrx(CID14V *p)
 {
     MSG msg;
@@ -204,6 +210,7 @@ extern "C" void LoadCid14FromBrx(CID14V *p)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Slot 41 (Clone): CloneShape and a copy of the side-plane array.
 extern "C" void CloneCid14(CID14V *p, int x)
 {
     T8 a = p->t1D0;
@@ -221,6 +228,8 @@ extern "C" void CloneCid14(CID14V *p, int x)
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Slot 11: AddLoHierarchy, then queues the polygon on the pending-obstacle list g_sw.dlCid14Pending (registered
+// later by UpdatePendingCid14Obstacles).
 extern "C" void AddCid14Hierarchy(CID14V *p)
 {
     AddLoHierarchy(p);
@@ -233,6 +242,8 @@ extern "C" void AddCid14Hierarchy(CID14V *p)
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Slot 12: RemoveLoHierarchy, detaches the polygon from its merged owner, unregisters the obstacle and leaves the
+// pending list.
 extern "C" void RemoveCid14Hierarchy(CID14V *p)
 {
     DLV *pdl;
@@ -249,6 +260,7 @@ extern "C" void RemoveCid14Hierarchy(CID14V *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Lexicographic comparison of two positions by x, then y (sort callback for the hull).
 int ComparePosXY(qword a, qword b)
 {
     if (GetX(a) < GetX(b)) return -1;
@@ -265,6 +277,7 @@ int ComparePosXY(qword a, qword b)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Sign of the 2D cross product of (a - b) and (b - c) with an epsilon: -1, 0 or 1 for a right turn, straight, left.
 int GetTurnSignXY(qword a, qword b, qword c)
 {
     float g = (GetX(a) - GetX(b)) * (GetY(b) - GetY(c)) - (GetY(a) - GetY(b)) * (GetX(b) - GetX(c));
@@ -280,6 +293,8 @@ int GetTurnSignXY(qword a, qword b, qword c)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Classifies the outline from its turn signs: too few points, convex clockwise, convex counter-clockwise, or not
+// convex.
 int ClassifyCid14Polygon(CID14V *p)
 {
     int cFlip, i, sPrev, sgn;
@@ -329,6 +344,7 @@ int ClassifyCid14Polygon(CID14V *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Wraps a point index into [0, count - 1) for the closed outline (the last point repeats the first).
 int WrapCid14PointIndex(CID14V *p, int n)
 {
     int c = p->c;
@@ -348,6 +364,8 @@ static __inline__ void SwapG(float *a, float *b) { float t = *a; *a = *b; *b = t
  * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Slot 15 (PostLoad): PostLoLoad, classifies the outline and reverses or re-measures it when needed so it is convex
+// with a known winding.
 extern "C" void PostCid14Load(CID14V *p)
 {
     int r, h, i, j;
@@ -419,6 +437,7 @@ static inline qword QwNeg(qword v) { qword qw; __asm__("vsub.xyzw %0, $vf0, $vf0
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398,
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
+// Clips a segment against the polygon's side planes, writing the inside span(s) as LSG entries; returns the count.
 int ClipEdgeToCnvo(CID14V *pcnvo, qword pos1, qword pos2, int clsgMax, LSG *alsg)
 {
     BuildCid14EdgePlanes(pcnvo);
@@ -515,6 +534,7 @@ static __inline__ float GDistPlane(qword plane, qword pos)
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920,
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
+// Returns 1 when a point is inside the polygon (in front of no side plane).
 int IsPosInCnvo(CID14V *p, qword pos)
 {
     int i;
@@ -540,6 +560,8 @@ static inline qword MulPos(M4 *pm, qword v)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Walks the polygon's edges against the path zone (IsEdgeBlockedByPathzone) to find the span of the outline that
+// lies inside walkable space.
 int FindCid14PathzoneSpan(CID14V *p, void *pv, int fRev, float g0, float g1)
 {
     int i0, r, pass, k, i1;
@@ -588,6 +610,7 @@ int FindCid14PathzoneSpan(CID14V *p, void *pv, int fRev, float g0, float g1)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Finds the parameter range of a shape that lies inside its path zone; returns a status code.
 int ClipShapeToPathzone(CID14V *s, void *x, float *pt, int mode, float t)
 {
     float at[2];
@@ -623,6 +646,7 @@ int ClipShapeToPathzone(CID14V *s, void *x, float *pt, int mode, float t)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Searches along a shape for a point inside the path zone; returns 1 and the point when found.
 int FindShapePointInPathzone(CID14V *a, void *b, float g, float range, float *pf, int c)
 {
     float d, t;
@@ -659,6 +683,8 @@ namespace RO_ORDER { extern const float r_D_002A76D4 __asm__("D_002A76D4") = 3.4
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Registers the polygon as an obstacle: transforms the outline to world space, finds its path zone
+// (FindPathzoneAtPos), computes its bounds and calls AddPathzoneObstacle.
 void RegisterCid14Obstacle(CID14V *p)
 {
     STACKSCOPE ctx;
@@ -693,6 +719,7 @@ void RegisterCid14Obstacle(CID14V *p)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Removes the polygon's obstacle registration if it has one.
 void UnregisterCid14Obstacle(CID14V *p)
 {
     void *ppathzone = p->ppathzone;
@@ -709,6 +736,7 @@ void UnregisterCid14Obstacle(CID14V *p)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Removes the polygon from its merged owner's member list (with a safe list iterator) and queues it again.
 void DetachCid14FromOwner(CID14V *p)
 {
     DLI dli;
@@ -731,6 +759,7 @@ void DetachCid14FromOwner(CID14V *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Among the obstacles overlapping a segment, returns the one the segment enters first.
 CID14V *FindFirstObstacleHitBySegment(void *a, void *b, qword q2, qword q3)
 {
     CID14V *buf[0x80];
@@ -770,6 +799,7 @@ static inline qword Cross(qword a, qword b) { qword r; __asm__("vopmula.xyz $ACC
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Rebuilds the polygon's side planes in world space when its transform changed since the last build.
 void BuildCid14EdgePlanes(CID14V *p)
 {
     int i;
@@ -798,6 +828,7 @@ void BuildCid14EdgePlanes(CID14V *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Steps along a shape from a parameter until it leaves the obstacles; returns the free range found.
 int FindShapeFreeRange(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt, float t)
 {
     qword av[2];
@@ -840,6 +871,7 @@ int FindShapeFreeRange(CID14V *p, CID14V *s, int fForward, qword *pq, float *pt,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Finds a free point on a shape around parameter g that avoids every obstacle (searching both directions).
 extern "C" int FindShapeFreePoint(qword q, void *a1, void *a2, CID14V *obj, int dir, CID14V **pp, float *pf, float g)
 {
     float t;
@@ -869,6 +901,7 @@ extern "C" int FindShapeFreePoint(qword q, void *a1, void *a2, CID14V *obj, int 
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Returns 1 when two convex polygons overlap (separating-axis test on their side planes).
 extern "C" int DoCnvosOverlap(CID14V *p, CID14V *q)
 {
     int i;
@@ -895,6 +928,7 @@ extern "C" int DoCnvosOverlap(CID14V *p, CID14V *q)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Creates a merged obstacle object (a new CID14) that will own several member polygons.
 CID14V *NewMergedCid14Obstacle(void)
 {
     CID14V *p;
@@ -949,6 +983,7 @@ CID14V *NewMergedCid14Obstacle(void)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Compares two positions by x (sort callback).
 int ComparePosX(const void *a, const void *b)
 {
     int r = -1;
@@ -972,6 +1007,7 @@ static inline float CrossZ(qword a, qword b, qword c)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Computes the 2D convex hull of a point set (sort plus monotone chain); returns the hull's point count.
 void BuildConvexHull(CID14V *p, int n, qword *pts)
 {
     int i, k, t;
@@ -1019,6 +1055,7 @@ void BuildConvexHull(CID14V *p, int n, qword *pts)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Attaches a polygon to a merged owner and unregisters its individual obstacle.
 void AddCid14ToMerged(CID14V *p, CID14V *po)
 {
     DLV *pdl;
@@ -1048,6 +1085,8 @@ static inline qword MulPtP(M4*m,qword*point){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Merges overlapping convex polygons: collects their points, builds the convex hull and registers it as one new
+// polygon owned by a merged object.
 extern "C" void MergeCid14Obstacles(int n, CID14V **ap)
 {
     int c = 0;
@@ -1121,6 +1160,7 @@ extern "C" void MergeCid14Obstacles(int n, CID14V **ap)
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#tu_1bc050-0x1bc050-0x1be398
  * @end-sly2-annot */
+// Drains g_sw.dlCid14Pending, registering each queued polygon as an obstacle (merging where they overlap).
 extern "C" void UpdatePendingCid14Obstacles(void)
 {
     while (!FIsDlEmpty__FP2DL((DLV *)&g_sw.dlCid14Pending)) {
