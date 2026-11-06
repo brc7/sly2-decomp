@@ -618,7 +618,15 @@ void SetTargetRecordState(struct ANCHOR *,int);
 // VU0 helper: vector difference.
 static __inline__ qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: horizontal (xy) length of a vector.
-static __inline__ float LengthXY(qword a){qword r;float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));__asm__("mtc1 %1,%0":"=f"(f):"r"(r));return f;}
+static __inline__ float LengthXY(qword a)
+{
+    qword r;
+    float f;
+    __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(a));
+    __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(r));
+    __asm__("mtc1 %1,%0" : "=f"(f) : "r"(r));
+    return f;
+}
 // z component of a quadword vector.
 static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 // Absolute value.
@@ -742,7 +750,14 @@ extern int D_002C3D10[];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // 0x206D48: True if the guard derives from one of the five boss classes (cids 0x3B, 0x40, 0x3D, 0x3E, 0x41) that
 // rage does not affect.
-int IsStepguardRageImmune(void *p) { unsigned int i; for (i = 0; i < 5; i++) if (FIsBasicDerivedFrom__FP5BASIC3CID(p, D_002C3D10[i])) return 1; return 0; }
+int IsStepguardRageImmune(void *p)
+{
+    unsigned int i;
+    for (i = 0; i < 5; i++)
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(p, D_002C3D10[i]))
+            return 1;
+    return 0;
+}
 } } // namespace M_func_00206D48
 
 // 0x206DB0 AddStepguardRageIgnoreClasses
@@ -768,7 +783,12 @@ namespace M_func_00206E50 { extern "C" {
 extern int D_002C3D10[];
 void RemoveStepguardIgnoreClass(void *p, int n);
 // 0x206E50: Removes those five boss classes from the ignored-class list.
-void RemoveStepguardRageIgnoreClasses(void *p) { unsigned int i; for (i = 0; i < 5; i++) RemoveStepguardIgnoreClass(p, D_002C3D10[i]); }
+void RemoveStepguardRageIgnoreClasses(void *p)
+{
+    unsigned int i;
+    for (i = 0; i < 5; i++)
+        RemoveStepguardIgnoreClass(p, D_002C3D10[i]);
+}
 } } // namespace M_func_00206E50
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -1053,7 +1073,19 @@ struct Q { char pad[0xC]; int k; int n; };
 struct S { char pad[0x338]; int n; };
 // 0x207530: STEPGUARD vtable slot 86: true if the zap's damage reaches the maximum hit points and its kind is not
 // one of the harmless kinds (0, 1, 0x80000, 0x100000).
-int IsStepguardZapLethal(struct S *guard, struct Q *q) { if (-q->n < guard->n) return 0; switch (q->k) { case 0: case 1: case 0x80000: case 0x100000: return 0; } return 1; }
+int IsStepguardZapLethal(struct S *guard, struct Q *q)
+{
+    if (-q->n < guard->n)
+        return 0;
+    switch (q->k) {
+    case 0:
+    case 1:
+    case 0x80000:
+    case 0x100000:
+        return 0;
+    }
+    return 1;
+}
 } } // namespace M_func_00207530
 
 // 0x207598 IsStepguardInvulnerable
@@ -1127,7 +1159,16 @@ M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 // VU0 helper: vector difference.
 static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 // VU0 helper: length of a vector.
-static inline float Length(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
+static inline float Length(qword a)
+{
+    qword one;
+    float f;
+    __asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+            : "+j"(a), "=&j"(one));
+    __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(a));
+    __asm__("mtc1 %1,%0" : "=f"(f) : "r"(a));
+    return f;
+}
 // 0x207690: STEPGUARD vtable slot 19 (render): draws the guard; while the camera policy is active, applies a 0.85 s
 // squash/stretch pulse and a distance-based scale.
 extern "C" void RenderStepguardSelf(P *guard)
@@ -1200,7 +1241,12 @@ void OnSoRemove(struct S *p);
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 // 0x2079A0: STEPGUARD vtable slot 22 (OnRemove): base, unlinks from the world's guard list and stamps the removal
 // time (+0xFF8).
-void OnStepguardRemove(struct S *guard) { OnSoRemove(guard); RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlStepguard, guard); guard->t = D_002DDED0.t; }
+void OnStepguardRemove(struct S *guard)
+{
+    OnSoRemove(guard);
+    RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlStepguard, guard);
+    guard->t = D_002DDED0.t;
+}
 } } // namespace M_OnStepguardRemove
 
 // 0x2079E0 OnStepguardAdd
@@ -1225,14 +1271,31 @@ unsigned long GetSgfMask(int n) { if (n == -1) return 0; return 1L << n; }
 namespace M_GrfFromSgfArray { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x207A40: Returns the OR of the masks of an array of guard flags.
-unsigned long GetSgfArrayMask(int c, int *a) { unsigned long m = 0; int i; for (i = 0; i < c; i++) m |= GetSgfMask(a[i]); return m; }
+unsigned long GetSgfArrayMask(int c, int *a)
+{
+    unsigned long m = 0;
+    int i;
+    for (i = 0; i < c; i++)
+        m |= GetSgfMask(a[i]);
+    return m;
+}
 } } // namespace M_GrfFromSgfArray
 
 // 0x207AA0 ListSgfsInMask
 namespace M_CsgfFromGrf { extern "C" {
 unsigned long GetSgfMask(int n);
 // 0x207AA0: Lists the guard flags set in a mask (from 46 down to 0) into an array; returns the count.
-int ListSgfsInMask(unsigned long m, int *a) { int c = 0; int i; for (i = 0x2E; i >= 0; i--) if (m & GetSgfMask(i)) { *a++ = i; c++; } return c; }
+int ListSgfsInMask(unsigned long m, int *a)
+{
+    int c = 0;
+    int i;
+    for (i = 0x2E; i >= 0; i--)
+        if (m & GetSgfMask(i)) {
+            *a++ = i;
+            c++;
+        }
+    return c;
+}
 } } // namespace M_CsgfFromGrf
 
 // 0x207B10 GetSgfMaskFromSpliceList
@@ -1243,7 +1306,17 @@ void func_002013D8(struct CRef *pref, void *p, int a, int b, int *pn, int *an);
 unsigned long GetSgfArrayMask(int c, int *a);
 void Decref__4CRef(struct CRef *pref);
 // 0x207B10: Converts a Splice list of guard-flag enums (type 0x1010) to a mask.
-unsigned long GetSgfMaskFromSpliceList(void *p) { int an[16]; struct CRef ref; int c; unsigned long m; func_002013D8(&ref, p, 0x1010, 0x10, &c, an); m = GetSgfArrayMask(c, an); Decref__4CRef(&ref); return m; }
+unsigned long GetSgfMaskFromSpliceList(void *p)
+{
+    int an[16];
+    struct CRef ref;
+    int c;
+    unsigned long m;
+    func_002013D8(&ref, p, 0x1010, 0x10, &c, an);
+    m = GetSgfArrayMask(c, an);
+    Decref__4CRef(&ref);
+    return m;
+}
 } } // namespace M_func_00207B10
 
 // 0x207B70 SetStepguardAnimBinding
@@ -1516,7 +1589,14 @@ struct E;
 struct E { int a[4]; };
 void CloneAnimBinding(struct E *pe);
 // 0x208208: Deep-copies all 26 entries of a zap-reaction table.
-void CloneZapReactions(void *p, struct E *pe) { int i; for (i = 25; i >= 0; i--) { CloneAnimBinding(pe); pe++; } }
+void CloneZapReactions(void *p, struct E *pe)
+{
+    int i;
+    for (i = 25; i >= 0; i--) {
+        CloneAnimBinding(pe);
+        pe++;
+    }
+}
 } } // namespace M_func_00208208
 
 // 0x208250 CloneStepguardAnimBindings
@@ -1707,7 +1787,15 @@ namespace M_func_00208700 { extern "C" {
 struct S;
 struct S { char pad[0x394]; unsigned int classCount; int classes[3]; };
 // 0x208700: Adds a class to the preferred-class list (at most 3).
-void AddStepguardPreferClass(struct S *guard, int cid) { unsigned int c = guard->classCount; if (c < 3) { int *pn = &guard->classes[c]; guard->classCount = c + 1; *pn = cid; } }
+void AddStepguardPreferClass(struct S *guard, int cid)
+{
+    unsigned int c = guard->classCount;
+    if (c < 3) {
+        int *pn = &guard->classes[c];
+        guard->classCount = c + 1;
+        *pn = cid;
+    }
+}
 } } // namespace M_func_00208700
 
 // 0x208728 RemoveStepguardPreferClass
@@ -2740,7 +2828,15 @@ void *func_00205458(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 // 0x209E28: Sends mode record 6 with `value` to the guard's root behaviour (BHVGUARD).
-void SendStepguardRootBhvMode6(void *p, int n) { void *o = func_00205458(p, 0x9C); struct F f; func_002333B4(&f, 0, sizeof f); f.a[0] = 6; f.a[4] = n; SetBhvguardMode(o, &f); }
+void SendStepguardRootBhvMode6(void *p, int n)
+{
+    void *o = func_00205458(p, 0x9C);
+    struct F f;
+    func_002333B4(&f, 0, sizeof f);
+    f.a[0] = 6;
+    f.a[4] = n;
+    SetBhvguardMode(o, &f);
+}
 } } // namespace M_func_00209E28
 
 // 0x209E88 StunStepguardThrownOp1
@@ -3046,7 +3142,14 @@ namespace M_func_0020A658 { extern "C" {
 struct S;
 struct S { char pad[0x28]; int c; int a[1]; };
 // 0x20A658: Returns the guard's index in an engagement record's guard list (-1 if absent).
-int FindTargetRecordGuardIndex(struct S *guard, int n) { int i; for (i = 0; i < guard->c; i++) if (n == guard->a[i]) return i; return -1; }
+int FindTargetRecordGuardIndex(struct S *guard, int n)
+{
+    int i;
+    for (i = 0; i < guard->c; i++)
+        if (n == guard->a[i])
+            return i;
+    return -1;
+}
 } } // namespace M_func_0020A658
 
 // 0x20A690 GetTargetRecordFacing
@@ -3138,12 +3241,17 @@ float GetTargetRecordFacing(P *);
 float RadNormalize__Ff(float);
 }
 // Matching helper (register-pinned asm): prepares the plane-test operands (threshold bits, camera-relative point).
-static inline void PlaneArguments(qword *threshold,qword *point,U *scalar,float f,const qword *camera,const qword *position){
- register qword view asm("vf1"),bits asm("$2"),local asm("vf2"),value asm("$6");
- __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tlqc2 %2,%5":"=j"(view),"=&r"(bits),"=j"(local):"m"(*camera),"f"(f),"m"(*position));
- scalar->q=bits;
- __asm__("por %0,$zero,%2\n\tvsub.xyzw %1,%1,%3":"=r"(value),"+j"(local):"r"(scalar->q),"j"(view));
- *threshold=value;*point=local;
+static inline void PlaneArguments(qword *threshold, qword *point, U *scalar, float f, const qword *camera,
+                                  const qword *position)
+{
+    register qword view asm("vf1"), bits asm("$2"), local asm("vf2"), value asm("$6");
+    __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tlqc2 %2,%5"
+            : "=j"(view), "=&r"(bits), "=j"(local)
+            : "m"(*camera), "f"(f), "m"(*position));
+    scalar->q = bits;
+    __asm__("por %0,$zero,%2\n\tvsub.xyzw %1,%1,%3" : "=r"(value), "+j"(local) : "r"(scalar->q), "j"(view));
+    *threshold = value;
+    *point = local;
 }
 // VU0 helper: loads a quadword into a VU register.
 static inline qword Load(const qword *p){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(*p));return r;}
@@ -3615,7 +3723,14 @@ struct S;
 unsigned long GetSgfMask(int n);
 struct S { char pad[0x2C0]; unsigned long m; };
 // 0x20B3D0: STEPGUARD vtable slot 77 (health state): 2 dead (flag 7), 1 hurt (flags 5/6), else 0.
-int GetStepguardHealthState(struct S *guard) { if (guard->m & GetSgfMask(7)) return 2; if (guard->m & (GetSgfMask(5) | GetSgfMask(6))) return 1; return 0; }
+int GetStepguardHealthState(struct S *guard)
+{
+    if (guard->m & GetSgfMask(7))
+        return 2;
+    if (guard->m & (GetSgfMask(5) | GetSgfMask(6)))
+        return 1;
+    return 0;
+}
 } } // namespace M_JthsCurrentStepguard
 
 // 0x20B438 IncrementStepguardBusy
