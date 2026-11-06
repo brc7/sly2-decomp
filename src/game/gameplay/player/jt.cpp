@@ -169,7 +169,7 @@ struct LOREF
       undefined4 unk_0x04;
 };
 
-int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("func_0019C8D0");
+int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("CanJtUseGadgetInAir");
 
 int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("CanJtUseGadgetInGrab");
 
@@ -257,7 +257,7 @@ struct JTREC
       ASEG *apaseg[2];
 };
 
-void JtInteractPre(JTREC *prec) __asm__("func_001371C8");
+void JtInteractPre(JTREC *prec) __asm__("EndBentleyHelperWhenRetracted");
 
 struct STUNHOLD
 {
@@ -425,9 +425,9 @@ void ApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRF
 
 void ReblendAsegbl(ASEGBL *pasegbl) __asm__("func_001384C0");
 
-int NJtRecSide(JTREC *prec) __asm__("func_001374F0");
+int NJtRecSide(JTREC *prec) __asm__("IsBentleyHelperTargetBehind");
 
-void SetJtRecState(JTREC *prec, int nState) __asm__("func_001375D0");
+void SetJtRecState(JTREC *prec, int nState) __asm__("SetBentleyHelperState");
 
 void SetJtModeState(JTMODE *pjtmode, int nState);
 
@@ -496,7 +496,7 @@ extern struct S *D_002E1E40;
 void InitStepplayer(struct S *p);
 void InitGait(void *pv, struct S *p, int n);
 void func_00204D48(struct S *p, float g);
-void func_001371B8(void *pv, struct S *p);
+void InitBentleyHelper(void *pv, struct S *p);
 void ResetJtHands(void *pv);
 static __inline__ void InitLm(struct LM4 *range, float g8, float gc) { range->g8 = g8; range->gc = gc; range->n = 0; }
 /** @sly2-annot addr=0x188488
@@ -537,7 +537,7 @@ void InitJt(struct S *p)
     p->x1fbc = 0x25;
     p->x1fc8 = 0x26;
     p->x1fd4 = 0x29;
-    func_001371B8(p->x1ff0, p);
+    InitBentleyHelper(p->x1ff0, p);
     p->x1000 = 1;
     p->x1020 = 200.0f;
     p->x264 = 0xC7;
@@ -681,7 +681,7 @@ extern float D_002BF290;
 extern float D_002BF294;
 void func_001F9B20(P*);void PresetStepAccel(P*);
 void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
-void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void func_00137248(void*);
+void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void CorrectBentleyRideVelocity(void*);
 qword func_00204E38(P*,MODEL*,float);float func_0012F990(void*,int);
 void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
 M4*func_001A6318(P*);float func_0011E290(qword,qword,qword*,qword*);
@@ -720,7 +720,7 @@ extern "C" void PresetJtAccel(P*p){
  case 2:PresetJtAccelJump((char*)p+0x2C0);break;
  case 4:PresetJtAccelZap((char*)p+0xDF0);break;
  case 7:PresetJtAccelHide((char*)p+0x4C0);break;
- case 6:func_00137248((char*)p+0x1FF0);break;
+ case 6:CorrectBentleyRideVelocity((char*)p+0x1FF0);break;
  case 14:{
   VTE*e=&p->vt[33];
   w.a.q=((qword(*)(void*))e->fn)((char*)p+e->delta);
@@ -791,7 +791,7 @@ extern float D_002BF29C;
 extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
 extern void ResetJtPipeAdjust(void *p, struct A *pa, void *pv);
 extern void AdjustJtHurtXp(void *p, struct A *pa, void *pv);
-extern void func_001374E0(void *p, struct A *pa, void *pv);
+extern void SetBentleyXpFriction(void *p, struct A *pa, void *pv);
 static __inline__ float GClamp(float g, float lo, float hi)
 {
     if (g < lo) return lo;
@@ -837,7 +837,7 @@ void AdjustJtXp(struct O *p, struct A *pa, void *pv)
         AdjustJtHurtXp(p->aDF0, pa, pv);
         break;
     case 6:
-        func_001374E0(p->a1FF0, pa, pv);
+        SetBentleyXpFriction(p->a1FF0, pa, pv);
         break;
     case 24:
         pa->g94 = 0.0f;
@@ -2855,7 +2855,7 @@ float RadStepHeading(struct P*);float RadNormalize__Ff(float);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void*,struct P*,unsigned int);
 void UpdateJtModeInput(struct P*);void ChooseJtGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
 struct BINDING*func_0012FF10(void*,struct P*,void*,int);
-void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void func_00137218(void*);
+void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void FaceBentleyInteractTarget(void*);
 void UpdateDirectionalAcceleration(struct P*,void*,int,float,float);void UpdateJtAttachCorrection(struct P*);
 void UpdateGaitBlend(void*,float);void FaceStepToward(struct P*,void*);
 qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
@@ -2916,7 +2916,7 @@ void UpdateJtPre(struct P*p){
  case 3:UpdateJtActiveHang__FP2JT(p);break;
  case 2:UpdateJtActiveJump(At(p,0x2C0));break;
  case 7:UpdateJtActiveHide(At(p,0x4C0));break;
- case 6:func_00137218(At(p,0x1FF0));break;
+ case 6:FaceBentleyInteractTarget(At(p,0x1FF0));break;
  case 10:UpdateDirectionalAcceleration(p,At(p,0x1AC0),p->axesBEnabled,p->state->heading,p->state->amount);break;
  case 11:UpdateJtAttachCorrection(p);break;
  case 12:UpdateGaitBlend(At(p,0x1C30),p->state->amount);func_00204660(p,p->state->heading);break;
@@ -3181,7 +3181,7 @@ namespace M_func_0018C060 { extern "C" {
 struct S { char pad[0x2C0]; char x2c0[0x200]; char x4c0[0x60]; void *x520; char p1[0x8CC]; char xdf0[0x930]; void *a1720[0x6A]; int n; };
 void *GetJtGrabAdjustRecord(void *p, int *pn);
 void *GetJtHurtAdjustRecord(void *p, int *pn);
-void *func_0019C870(void *p, int *pn);
+void *GetJtAirAdjustRecord(void *p, int *pn);
 void SetStepPhys(struct S *p, void *pv, int n);
 /** @sly2-annot addr=0x18C060
  * Purpose: JT vt90 (pure virtual in STEPPLAYER): get state-specific array from jts 7/4/2 sub-objects and pass
@@ -3198,7 +3198,7 @@ void ApplyJtStateStepParams(struct S *p)
     switch (p->n) {
     case 7: pv = GetJtGrabAdjustRecord(p->x4c0, &n); break;
     case 4: pv = GetJtHurtAdjustRecord(p->xdf0, &n); break;
-    case 2: pv = func_0019C870(p->x2c0, &n); break;
+    case 2: pv = GetJtAirAdjustRecord(p->x2c0, &n); break;
     case 21: case 22: pv = p->x520; break;
     default: pv = p->a1720[p->n]; break;
     }

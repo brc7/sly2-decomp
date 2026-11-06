@@ -1098,7 +1098,7 @@ int GetBentleyPlayerState(struct S *p) {
 namespace M_func_00135D80 { extern "C" {
 struct S { char pad[0x268]; int f268; char pad1[0x2c0 - 0x26c]; int f2c0; char pad2[0x4c0 - 0x2c4]; int f4c0; char pad3[0xdf0 - 0x4c4]; int fdf0; char pad4[0x13d0 - 0xdf4]; int st; };
 int GetJtGrabAdjustRecord(void *, int *);
-int func_0019C870(void *, int *);
+int GetJtAirAdjustRecord(void *, int *);
 int GetJtHurtAdjustRecord(void *, int *);
 void SetStepPhys(struct S *, int, int);
 /** @sly2-annot addr=0x135D80
@@ -1116,7 +1116,7 @@ void ApplyBentleyStateStepParams(struct S *p) {
     switch (p->st) {
     case 3: r = GetJtGrabAdjustRecord(&p->f4c0, &n); break;
     case 4: r = GetJtHurtAdjustRecord(&p->fdf0, &n); break;
-    case 2: r = func_0019C870(&p->f2c0, &n); break;
+    case 2: r = GetJtAirAdjustRecord(&p->f2c0, &n); break;
     default: r = 0; break;
     }
     if (!r) r = p->f268;
@@ -1597,7 +1597,7 @@ struct P { char pad[0x2C0]; char a2C0[0x200]; char a4C0[0xF50 - 0x4C0]; char aF5
     long x1818; };
 extern int D_002DFBC0;
 int IsStepplayerInJtMode();
-int func_0019C8D0(void *pv, int k);
+int CanJtUseGadgetInAir(void *pv, int k);
 int CanJtUseGadgetInGrab(void *pv, int k);
 int CanJtUseGadgetOnPipe(void *pv, int k);
 struct E *GetBentleyGadgetFromId(struct P *p, int k);
@@ -1621,7 +1621,7 @@ int CanBentleyUseGadget(struct P *p, int k)
         return 0;
     switch (p->x13D0) {
     case 2:
-        if (func_0019C8D0(p->a2C0, k))
+        if (CanJtUseGadgetInAir(p->a2C0, k))
             goto inner;
         goto fail;
     case 3:
@@ -2029,7 +2029,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r2b_rest+verdicts_followups
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-extern "C" void func_001371B8(BTBLENDS *blends, BENTLEY *bentley)
+extern "C" void InitBentleyHelper(BTBLENDS *blends, BENTLEY *bentley)
 {
     blends->pbentley = bentley;
     blends->nUnk04 = -1;
@@ -2047,7 +2047,7 @@ int FAsegaRetracted(int);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-void func_001371C8(struct S *p) {
+void EndBentleyHelperWhenRetracted(struct S *p) {
     if (FAsegaRetracted(p->po->f1030)) {
         struct O *object = p->po; struct VTE *vt = object->vt;
         ((void (*)(void *, int))vt[88].pfn)((char *)object + vt[88].d, 0);
@@ -2061,7 +2061,7 @@ void func_001371C8(struct S *p) {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-extern "C" void func_00137218(BTBLENDS *blends)
+extern "C" void FaceBentleyInteractTarget(BTBLENDS *blends)
 {
     BENTLEY *bentley;
     LO *lo;
@@ -2074,7 +2074,7 @@ extern "C" void func_00137218(BTBLENDS *blends)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00137248 {
-// func_00137248 (Claude agent laneB24, 2026-10-23): matched. len as an mtc1 asm from the qword (gcc emits the qmfc2), cz via a pextuw asm with a float "=r" output (gcc emits the mtc1).
+// CorrectBentleyRideVelocity (Claude agent laneB24, 2026-10-23): matched. len as an mtc1 asm from the qword (gcc emits the qmfc2), cz via a pextuw asm with a float "=r" output (gcc emits the mtc1).
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 union UQ { qword q; };
@@ -2203,7 +2203,7 @@ void AddSoAcceleration(P *p, qword v);
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_00137248(S *s)
+extern "C" void CorrectBentleyRideVelocity(S *s)
 {
     P *p = s->p;
     P *py = ((PX *)p)->py;
@@ -2239,7 +2239,7 @@ extern "C" void func_00137248(S *s)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-extern "C" void func_001374E0(void *pv, XP *xp)
+extern "C" void SetBentleyXpFriction(void *pv, XP *xp)
 {
     xp->gFriction = D_002BC9B4;
 }
@@ -2258,7 +2258,7 @@ qword func_001A62E8(void *p);
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-int func_001374F0(struct P *p)
+int IsBentleyHelperTargetBehind(struct P *p)
 {
     float zero = 0.0f;
     struct Q *pq = p->po->pq;
@@ -2363,7 +2363,7 @@ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8
  * @end-sly2-annot */
-extern "C" void func_001375D0(S *s, int k)
+extern "C" void SetBentleyHelperState(S *s, int k)
 {
     X *px;
     if (k == s->k)

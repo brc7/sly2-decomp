@@ -661,7 +661,7 @@ namespace M_func_001457A8 {
 // func_001457A8 MATCH (Claude agent for Lilly, T1647, 2026-10-25), from v6 (14).
 // Branch 1: VU_FLOAT has a user copy ctor (so the temporary lives at 0x40) and its qmtc2 ctor writes a plain qword
 // local first, then copies it into q (an asm output straight into the member goes through a second stack temp).
-// Branch 2: the VU_FLOAT is loaded with an asm lw from "m"(f) (VU_FLOATM, as in func_001375D0), and AddScaled takes
+// Branch 2: the VU_FLOAT is loaded with an asm lw from "m"(f) (VU_FLOATM, as in SetBentleyHelperState), and AddScaled takes
 // its operands in (a, s, b) order.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };

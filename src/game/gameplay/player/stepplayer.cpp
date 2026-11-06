@@ -45,7 +45,7 @@ int FSwHandsOff(SW *psw);
 STEPPLAYER *PpoHero(SW *psw);
 void SetTnTnsOverride(TN *ptn, int f);
 void func_00204768(STEPPLAYER *pstepplayer);
-void func_00199298(JTAIR *pjtair);
+void FreeJtWallRunXps(JTAIR *pjtair);
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
 int TakeJtDamage(JTHURT *pjthurt, ZPR *pzpr);
 int GetJtHurtStatus(JTHURT *pjthurt);
@@ -679,7 +679,7 @@ extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
 
 namespace M_func_00140D00 { extern "C" {
 void func_001F4FA8(void *p);
-void func_001991A0(void *p);
+void AddJtWallRunXps(void *p);
 void UpdateJtInternalXpsHide(void *p);
 void UpdateJtInternalXpsPipe(void *p);
 /** @sly2-annot addr=0x140D00
@@ -693,7 +693,7 @@ void UpdateJtInternalXpsPipe(void *p);
 void StepplayerVirtual59(char *p)
 {
     func_001F4FA8(p);
-    if (*(int *)(p + 0x2DC) != -1) func_001991A0(p + 0x2C0);
+    if (*(int *)(p + 0x2DC) != -1) AddJtWallRunXps(p + 0x2C0);
     if (*(int *)(p + 0x4CC) != -1) UpdateJtInternalXpsHide(p + 0x4C0);
     if (*(int *)(p + 0xF54) != -1) UpdateJtInternalXpsPipe(p + 0xF50);
 }
@@ -711,7 +711,7 @@ void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here 
     STEPPLAYER *player = this;
     func_00204768(player);
     if (player->jtair.nState != -1) {
-        func_00199298(&player->jtair);
+        FreeJtWallRunXps(&player->jtair);
     }
 }
 
@@ -1148,7 +1148,7 @@ void GetSoCpdefi(struct JT *, struct XP *);
 qword func_001A62E8(void *);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, int n);
 qword PosSmooth(qword a, qword b, float dt, void *pv, int n);
-void func_0019C8B0(void *, struct XP *);
+void AddJtAirCpdefiFlags(void *, struct XP *);
 void SmoothJtCameraCurveTarget(void *, struct XP *);
 void AddJtHurtCpdefiFlags(void *, struct XP *);
 
@@ -1220,7 +1220,7 @@ void GetStepplayerCpdefi(struct JT *jt, struct XP *xp)
     }
     jt->x1050 = xp->pos.f[2];
     if (jt->x2DC != -1)
-        func_0019C8B0(jt->ax2C0, xp);
+        AddJtAirCpdefiFlags(jt->ax2C0, xp);
     if (jt->x4CC != -1)
         SmoothJtCameraCurveTarget(jt->ax4C0, xp);
     if (jt->xDF4 != -1)

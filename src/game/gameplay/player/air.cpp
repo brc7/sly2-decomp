@@ -1,5 +1,5 @@
 // air.cpp -- the player's air state (JTAIR, stepplayer.h): jump set-up and launch presets, air input and the active
-// jump, ledge/edge grab tests (FCheckJtSingleEdge, FCheckJtEdgeNormal, PxpFindJtBestEdge), stuck and obstruction
+// jump, ledge/edge grab tests (FCheckJtSingleEdge, IsJtEdgeNormalValid, PxpFindJtBestEdge), stuck and obstruction
 // tests, jump-to-target measurement, landing choice, and the JMT object (CID 40). TU 0x195950..0x19CBF8
 // (44 functions, address order). Most functions keep their per-function views in namespaces (wave-9 device).
 // Entry points: SetJtAirJump (every launch into the air), SetJtAirState, UpdateJtAirInput/UpdateJtActiveJump and
@@ -2160,7 +2160,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
 }
 } // namespace M_UpdateJtActiveJump
 
-//////// 0x1991A0 func_001991A0
+//////// 0x1991A0 AddJtWallRunXps
 namespace M_func_001991A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
@@ -2186,7 +2186,7 @@ void GetNormalVectors(qword a, qword b, qword c, qword *pm);
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
-void func_001991A0(struct P *p)
+void AddJtWallRunXps(struct P *p)
 {
     if (p->x1c == 0x11) {
         U q, r;
@@ -2211,7 +2211,7 @@ void func_001991A0(struct P *p)
 }
 } } // namespace M_func_001991A0
 
-//////// 0x199298 func_00199298
+//////// 0x199298 FreeJtWallRunXps
 namespace M_func_00199298 {
 struct Y {
     int a0, a4, a8;
@@ -2297,7 +2297,7 @@ extern "C" void FreeSwXpList__FP2SWP2XP(G *g, X *x);
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // During a wall run (kind 0x11) frees the wall-run contact list.
-extern "C" void func_00199298(P *p)
+extern "C" void FreeJtWallRunXps(P *p)
 {
     EC *ec;
     if (p->x1c != 0x11 || !(ec = p->xc8->x4->xec))
@@ -2328,7 +2328,7 @@ extern "C" void func_00199298(P *p)
 }
 } // namespace M_func_00199298
 
-//////// 0x199408 FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR
+//////// 0x199408 IsJtSingleEdgeGrabbable
 namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR {
 /* Find the horizontal contact normal along a steep/shallow face boundary. */
 typedef int qword __attribute__((mode(TI)));
@@ -2346,14 +2346,14 @@ static inline qword Scale(qword a,float f,VECTOR&k){qword q,r;__asm__("qmtc2.ni 
 /** @sly2-annot addr=0x199408
  * Purpose: (existing) For an edge between a walkable (n.z>0.7) and a wall face (n.z<0.55) compute the grab
  *   direction
- * Info: proposed name FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR (EXISTING); TU air
+ * Info: proposed name IsJtSingleEdgeGrabbable (EXISTING); TU air
  * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // For an edge between a walkable face (normal z > 0.7) and a wall face (normal z < 0.55) computes the grab direction;
 // returns nonzero if the edge is a ledge Sly can grab.
 /* Its VECTOR (a qword/float/int union) is not basic.h's, so it keeps its symbol as a C-linkage definition. */
-extern "C" int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT*,SO*so,EDGE*e,VECTOR*out){
+extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT*,SO*so,EDGE*e,VECTOR*out){
  GEO*geom=&so->geom;FACE*chosen;
  VECTOR d,r,k;
  FACE*a=&geom->faces[e->faceA];FACE*b=&geom->faces[e->faceB];
@@ -2370,7 +2370,7 @@ extern "C" int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT*,SO*so,EDGE*e,VECT
 }
 } // namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR
 
-//////// 0x1995D8 func_001995D8
+//////// 0x1995D8 BuildJtEdgeProbeArc
 namespace M_func_001995D8 {
 /* Build paired arc samples and transform them into world space. */
 typedef int qword __attribute__((mode(TI)));
@@ -2392,7 +2392,7 @@ static inline void Set(U*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
  * @end-sly2-annot */
 // Generates paired arc sample points (9 rotations of 15 degrees) and transforms them to world space, used to probe a
 // ledge's surroundings.
-extern "C" void func_001995D8(P*p,const M4*world,int count,U*out){
+extern "C" void BuildJtEdgeProbeArc(P*p,const M4*world,int count,U*out){
  M3 m;U *cursor=out,*v;
  Set(cursor++,p->bx,p->bz);Set(cursor++,p->bx,p->by);Set(cursor++,p->ax,p->az);v=cursor++;Set(v,p->bx,p->bz);
  float x=p->ax,y=v->f[1];qword a=Pack(x,y,p->az),b=Pack(x,y,p->ay);
@@ -2401,9 +2401,9 @@ extern "C" void func_001995D8(P*p,const M4*world,int count,U*out){
 }
 } // namespace M_func_001995D8
 
-//////// 0x1997D8 FCheckJtEdgeNormal
+//////// 0x1997D8 IsJtEdgeNormalValid
 namespace M_FCheckJtEdgeNormal {
-// Collision sweep: builds a MATRIX4 from the incoming basis row/point, asks func_001995D8 for 22 sample points
+// Collision sweep: builds a MATRIX4 from the incoming basis row/point, asks BuildJtEdgeProbeArc for 22 sample points
 // (11 segments) and tests every segment against the shapes of every layer; returns whether at least 2 hits
 // had a plane normal with Z > 0.7 (any hit before the 3rd segment, or with parameter 0, fails at once).
 //
@@ -2434,7 +2434,7 @@ extern "C" { extern qword D_002A2DB0; }
 extern "C" {
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 qword *VECTOR_opAssign(qword *pq, qword q);
-void func_001995D8(struct P *p, const M4 *pm, int n, U *apt);
+void BuildJtEdgeProbeArc(struct P *p, const M4 *pm, int n, U *apt);
 int ClsgClipEdgeToObject(struct S0 *s, qword a, qword b, int n, HIT *ph);
 }
 
@@ -2446,13 +2446,13 @@ static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *
 /** @sly2-annot addr=0x1997D8
  * Purpose: Sweep 11 probe segments around the edge point against every layer's shapes; true if >=2 hit (valid
  *   ledge normal)
- * Info: proposed name FCheckJtEdgeNormal (T1); TU air
+ * Info: proposed name IsJtEdgeNormalValid (T1); TU air
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest+verdicts_A2
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Sweeps 11 probe segments around the edge point against every layer's shapes; true if at least two hit (a valid
 // ledge normal).
-extern "C" int FCheckJtEdgeNormal(struct P *p, qword q1, qword q2)
+extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
 {
     M3 m;
     M4 m4;
@@ -2467,7 +2467,7 @@ extern "C" int FCheckJtEdgeNormal(struct P *p, qword q1, qword q2)
     pm->m = m;
     m4.m.r[0].i[3] = m4.m.r[1].i[3] = m4.m.r[2].i[3] = 0;
     pm->pos.f[3] = 1.0f;
-    func_001995D8(p, &m4, 22, (U *)apt);
+    BuildJtEdgeProbeArc(p, &m4, 22, (U *)apt);
     for (l = p->x0->xec->x64; l; l = l->x4) {
         int i;
         if (l->xc->xec->x70 & 4)
@@ -2502,7 +2502,7 @@ typedef char guard_size_HIT[sizeof(HIT) == 112 ? 1 : -1];
 
 //////// 0x1999D0 IsJtEdgeGrabbable
 namespace M_func_001999D0 {
-// IsJtEdgeGrabbable: contact direction of a JT against a shape feature, then FCheckJtEdgeNormal(p, point, *out).
+// IsJtEdgeGrabbable: contact direction of a JT against a shape feature, then IsJtEdgeNormalValid(p, point, *out).
 //   kind 1 (vertex): sum of FCheckJtSingleEdge directions over the edges at that vertex (func_001665F0, max 64)
 //   kind 2 (face):   face must be flat enough (plane z >= 0.7); sum of the directions of both edge lists whose
 //                    segment passes func_00118668 against the actor's tree
@@ -2527,9 +2527,9 @@ struct SPAN { U first, last, firstPlane, lastPlane; float from, to; int flags; F
 extern "C" {
 extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
 int func_001665F0(GEOMETRY *, QUERY *, int, int, EDGE **);
-int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
+int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
 int func_00118668(NODE *, int, qword, qword, int, SPAN *);
-int FCheckJtEdgeNormal(JT *, qword, qword);
+int IsJtEdgeNormalValid(JT *, qword, qword);
 }
 
 static inline qword Add(qword a, qword b)
@@ -2572,7 +2572,7 @@ static inline qword Normalize(qword v, qword fallback)
 
 /** @sly2-annot addr=0x1999D0
  * Purpose: Contact direction vs a shape feature: vertex -> sum FCheckJtSingleEdge over edges at the point
- *   (CpedgeFromGeomPoint, max 64) + BSP clip test; edge -> FCheckJtSingleEdge; then FCheckJtEdgeNormal
+ *   (CpedgeFromGeomPoint, max 64) + BSP clip test; edge -> FCheckJtSingleEdge; then IsJtEdgeNormalValid
  * Info: proposed name FCheckJtEdgeGrab (T1); TU air
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest+verdicts_B
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
@@ -2590,7 +2590,7 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
         GEOMETRY *geometry = &shape->geometry;
         int count = func_001665F0(geometry, &shape->query, (U *)info - geometry->points, 64, edges);
         for (int i = 0; i < count; i++) {
-            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edges[i], &direction)) {
+            if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edges[i], &direction)) {
                 found = 1;
                 sum = Add(sum, direction.q);
             }
@@ -2601,7 +2601,7 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
         break;
     }
     case 3:
-        if (!FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, (EDGE *)info, out))
+        if (!IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, (EDGE *)info, out))
             return 0;
         break;
     case 2: {
@@ -2613,7 +2613,7 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
         U direction;
         SPAN spans[2];
         for (EDGE *edge = face->first; edge; edge = edge->next) {
-            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
+            if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 U *points = shape->geometry.points;
                 if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {
@@ -2623,7 +2623,7 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
             }
         }
         for (EDGE *edge = face->second; edge; edge = edge->nextOther) {
-            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
+            if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 U *points = shape->geometry.points;
                 if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {
@@ -2638,7 +2638,7 @@ extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, vo
         break;
     }
     }
-    return FCheckJtEdgeNormal(jt, point, out->q);
+    return IsJtEdgeNormalValid(jt, point, out->q);
 }
 } // namespace M_func_001999D0
 
@@ -2932,7 +2932,7 @@ extern "C" int IsJtStuck(P*p,float previous,float*stamp){
 }
 } // namespace M_FCheckJtStuck
 
-//////// 0x19A400 FTimeJtJumpToTarget
+//////// 0x19A400 SolveJtJumpTimeToTarget
 namespace M_FTimeJtJumpToTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -2942,12 +2942,12 @@ struct S { struct B *pb; };
 int CSolveQuadratic__FfffPf(float, float, float, float *);
 /** @sly2-annot addr=0x19A400
  * Purpose: Solve 0.5 g t^2 + dvz t + dz = 0 (CSolveQuadratic) for the landing time; fail if no positive root
- * Info: proposed name FTimeJtJumpToTarget (T1); TU air
+ * Info: proposed name SolveJtJumpTimeToTarget (T1); TU air
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
-int FTimeJtJumpToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
+int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
     int n = CSolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, GetZ(b) - GetZ(d), GetZ(a) - GetZ(c), ag);
     if (n <= 0) return 0;
@@ -2974,7 +2974,7 @@ typedef struct { short d; short pad; struct SPACE *(*pfn)(void *, void *); } VTE
 struct O { char pad[0xC]; VTE *vt; };
 qword func_001A62E8(void *p);
 qword GetXfVelocity(struct SPACE *p, struct SPACE *stop, qword q);
-int FTimeJtJumpToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg);
+int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
 static __inline__ float LenXY0(qword v)
 {
@@ -3023,7 +3023,7 @@ void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput,
       __asm__("daddu %0,%4,$zero\n\tpor %1,$zero,%5\n\tpor %2,$zero,%6\n\tpor %3,$zero,%7"
        :"=&r"(receiver),"=&r"(initial),"=&r"(velocity),"=&r"(q)
        :"r"(p),"r"(pos),"r"(a),"r"(got));
-      solved=FTimeJtJumpToTarget(receiver,initial,velocity,b,q,&w.at); }
+      solved=SolveJtJumpTimeToTarget(receiver,initial,velocity,b,q,&w.at); }
     if (!solved) {
         float dz = GetZ(a) - GetZ(q);
         float g = p->pb->pc->g88;
@@ -3286,7 +3286,7 @@ qword JtPlanLaunchVz(JTAIR *air, int kind)
 }
 } // namespace M_func_0019A750
 
-//////// 0x19AA58 GMeasureJumpRail
+//////// 0x19AA58 MeasureJumpToRail
 namespace M_GMeasureJumpRail { extern "C" {
 
 typedef int qword __attribute__((mode(TI)));
@@ -3303,12 +3303,12 @@ typedef char S_c_Offset[FIELD_OFFSET(S,c)==8?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
 /** @sly2-annot addr=0x19AA58
  * Purpose: MinimizeRange callback: GetJtRailLanding at u then MeasureJtJumpToTarget cost
- * Info: proposed name GMeasureJumpRail (T1); TU air
+ * Info: proposed name MeasureJumpToRail (T1); TU air
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // MinimizeRange callback: the rail landing at parameter u (GetJtRailLanding), then the MeasureJtJumpToTarget cost.
-float GMeasureJumpRail(S*s,float parameter){
+float MeasureJumpToRail(S*s,float parameter){
  float r;qword a,b;
  GetJtRailLanding(s->a,s->c,&a,&b,parameter);
  MeasureJtJumpToTarget(s->b,s->q,s->c,a,b,0,&r,0,0);
@@ -3316,7 +3316,7 @@ float GMeasureJumpRail(S*s,float parameter){
 }
 } } // namespace M_GMeasureJumpRail
 
-//////// 0x19AAB8 func_0019AAB8
+//////// 0x19AAB8 MeasureJumpToHidePoint
 namespace M_func_0019AAB8 {
 
 typedef int qword __attribute__((mode(TI)));
@@ -3349,7 +3349,7 @@ typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
  * @end-sly2-annot */
 // MinimizeRange callback: the target object's position at u (virtual call), then the MeasureJtJumpToTarget cost.
 // (target class inferred: hide point)
-extern "C" float func_0019AAB8(S*s,float parameter){
+extern "C" float MeasureJumpToHidePoint(S*s,float parameter){
  V v;float r;
  s->object->f3(s->move->actor,&v,0,parameter);
  MeasureJtJumpToTarget(s->move,s->q,s->object,v.q,D_002A2DD0,0,&r,0,0);
@@ -3357,7 +3357,7 @@ extern "C" float func_0019AAB8(S*s,float parameter){
 }
 } // namespace M_func_0019AAB8
 
-//////// 0x19AB38 func_0019AB38
+//////// 0x19AB38 MeasureJumpToHideShape
 namespace M_func_0019AB38 {
 
 typedef int qword __attribute__((mode(TI)));
@@ -3388,7 +3388,7 @@ typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Same as MeasureJumpToHidePoint for the other hide-shape class. (inferred)
-extern "C" float func_0019AB38(S*s,float parameter){
+extern "C" float MeasureJumpToHideShape(S*s,float parameter){
  V v;float r;
  s->object->f3(s->move->actor,&v,0,parameter);
  MeasureJtJumpToTarget(s->move,s->q,s->object,v.q,D_002A2DD0,0,&r,0,0);
@@ -3396,7 +3396,7 @@ extern "C" float func_0019AB38(S*s,float parameter){
 }
 } // namespace M_func_0019AB38
 
-//////// 0x19ABB8 GMeasureJumpTargetTime
+//////// 0x19ABB8 MeasureJumpTargetAtTime
 namespace M_GMeasureJumpTargetTime { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct CONTEXT; struct OBJECT;
@@ -3409,16 +3409,16 @@ typedef char S_Object_Offset[FIELD_OFFSET(struct S,b)==4?1:-1];
 typedef char S_Local_Point_Offset[FIELD_OFFSET(struct S,q)==16?1:-1];
 /** @sly2-annot addr=0x19ABB8
  * Purpose: MinimizeRange callback over time: MeasureJtJumpToTargetAtTime(dt) cost
- * Info: proposed name GMeasureJumpTargetTime (T1); TU air
+ * Info: proposed name MeasureJumpTargetAtTime (T1); TU air
  * Notes: names_v2 v1 proposed OnJmtRemove__FP3JMT (0.001)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // MinimizeRange callback over time: the MeasureJtJumpToTargetAtTime cost after dt.
-float GMeasureJumpTargetTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }
+float MeasureJumpTargetAtTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }
 } } // namespace M_GMeasureJumpTargetTime
 
-//////// 0x19ABF0 GMeasureJumpPipe
+//////// 0x19ABF0 MeasureJumpToPipe
 namespace M_GMeasureJumpPipe { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } V;
@@ -3427,7 +3427,7 @@ struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
 void EvaluateShapeS(struct OBJECT *, float, V *, V *);
 qword ConvertAloPos(struct OBJECT *, struct OBJECT *, qword);
-float GMeasureJumpTargetTime(void *, float);
+float MeasureJumpTargetAtTime(void *, float);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char V_Size[sizeof(V)==16?1:-1];
@@ -3439,27 +3439,27 @@ typedef char T_Context_Offset[FIELD_OFFSET(struct T,a)==0?1:-1];
 typedef char T_Object_Offset[FIELD_OFFSET(struct T,b)==4?1:-1];
 typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
 /** @sly2-annot addr=0x19ABF0
- * Purpose: Callback: evaluate curve at s, then MinimizeRange over time with GMeasureJumpTargetTime
- * Info: proposed name GMeasureJumpPipe (T1); TU air
+ * Purpose: Callback: evaluate curve at s, then MinimizeRange over time with MeasureJumpTargetAtTime
+ * Info: proposed name MeasureJumpToPipe (T1); TU air
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Callback: evaluates the pipe curve at s, then minimizes over time with MeasureJumpTargetAtTime.
-float GMeasureJumpPipe(struct S *s, float parameter) {
+float MeasureJumpToPipe(struct S *s, float parameter) {
     V v; struct T t; float r;
     struct OBJECT *b = s->b;
     EvaluateShapeS(b, parameter, &v, 0);
     t.a = s->a;
     t.b = b;
     t.q = ConvertAloPos(0, b, v.q);
-    MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
+    MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
     return r;
 }
 } } // namespace M_GMeasureJumpPipe
 
-//////// 0x19AC88 func_0019AC88
+//////// 0x19AC88 MeasureJumpAlongPath
 namespace M_func_0019AC88 { extern "C" {
-// func_0019AC88: speed-limited trajectory time/length helper. Builds a path with func_00185D18 (3 outputs), integrates
+// MeasureJumpAlongPath: speed-limited trajectory time/length helper. Builds a path with func_00185D18 (3 outputs), integrates
 // the velocity with EvaluateBezierPos at t=0 and t=t, and returns min(1e6, (|v0|+|v1|) * t * 0.5).
 // Trick: the halved time goes into a NEW local (h), not back into t. Overwriting t adds an anti-dependence to the
 // `mov.s $f13,t` argument move, which then outranks the por a1/a2 moves in sched1 and ends up before them.
@@ -3487,7 +3487,7 @@ static inline float Len(qword v) {
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Callback: speed-limited path length and time to a target along a Bezier path; returns min(1e6, (v0 + v1) * t / 2).
-float func_0019AC88(struct P *p, float t)
+float MeasureJumpAlongPath(struct P *p, float t)
 {
  U a,b,c,d,e;
  qword pos,vel;
@@ -3509,7 +3509,7 @@ float func_0019AC88(struct P *p, float t)
 }
 } } // namespace M_func_0019AC88
 
-//////// 0x19AE00 FFindJtObstruction
+//////// 0x19AE00 FindJtObstruction
 namespace M_FFindJtObstruction {
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
@@ -3531,17 +3531,17 @@ static inline float Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
     return r;
 }
-extern "C" int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc);
+extern "C" int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc);
 /** @sly2-annot addr=0x19AE00
  * Purpose: Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment);
  *   return hit point
- * Info: proposed name FFindJtObstruction (T1); TU air
+ * Info: proposed name FindJtObstruction (T1); TU air
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Checks the predicted Bezier jump path for obstructions (box query plus line tests per segment); returns nonzero
 // with the hit point.
-int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
+int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
 {
     struct V { float x, y, z; } __attribute__((aligned(16))) pos;
     HIT hit;
@@ -3593,7 +3593,7 @@ extern "C" float GAdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
     return gScore;
 }
 
-//////// 0x19B0A8 func_0019B0A8
+//////// 0x19B0A8 FilterJtObstruction
 namespace M_func_0019B0A8 { extern "C" {
 struct SO { char pad[0x70]; long fl; };
 struct A { char pad[0xEC]; struct SO *pso; };
@@ -3606,7 +3606,7 @@ struct L { int c; struct SO **a; };
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Obstruction filter: ignores flagged contacts, objects with flag 4 and objects in an ignore list.
-int func_0019B0A8(struct L *l, struct X *x) {
+int FilterJtObstruction(struct L *l, struct X *x) {
     struct SO *so;
     int i;
     if (x->fl & (1L << 48)) return 0;
@@ -3621,8 +3621,8 @@ int func_0019B0A8(struct L *l, struct X *x) {
 namespace M_JtbsChooseJtLanding {
 // ChooseJtLanding: chooses the jump target of the player (JTAIR, the family of Lilly's jtair.c: PlanJtLaunchVelocity is
 // JtPlanLaunchVz). Every candidate list (D_003E13B4..D_003E142C are 12-byte DL heads) is scanned; a candidate is
-// scored with MinimizeRange (a 1-D minimizer over the matched GMeasureJumpRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
-// biased by GAdjustJtLandingScore and checked for a clear path with FFindJtObstruction unless it is the forced target. The best one
+// scored with MinimizeRange (a 1-D minimizer over the matched MeasureJumpToRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
+// biased by GAdjustJtLandingScore and checked for a clear path with FindJtObstruction unless it is the forced target. The best one
 // is published in pstepplayer->pxf (+0xA8 landing time, +0xC0 position, +0xD0 velocity) and SetJtAirState starts the
 // jump of that kind (9 shapes, 10 curves, 14 hooks, 16 meshes, 18 the partner's target, 15/11 curves, 12/13 shapes).
 //
@@ -3672,7 +3672,7 @@ struct STEPPLAYER : LO
     XF *pxf;                    // 0x58
     char pad5C[0xE8 - 0x5C];
     SOPHYS *psophys;            // 0xE8
-    void *psoCollide;           // 0xEC (filter argument of FFindJtObstruction)
+    void *psoCollide;           // 0xEC (filter argument of FindJtObstruction)
     char padF0[0x218 - 0xF0];
     qword *pqwUnk218;           // 0x218
     char pad21C[0x240 - 0x21C];
@@ -3728,10 +3728,10 @@ struct HOOK
 struct MESH { char pad0[0x100]; MESH *pmeshNext; int pad104; float sHeight; };
 
 // Callback contexts (layouts from the matched callbacks).
-struct CURVECTX { void *pjtcontrol; void *pjtair; CURVE *pcurve; int pad; qword v; };    // GMeasureJumpRail
+struct CURVECTX { void *pjtcontrol; void *pjtair; CURVE *pcurve; int pad; qword v; };    // MeasureJumpToRail
 struct OBJCTX { JTAIR *pjtair; void *plo; int pad[2]; qword v; };                         // ABB8, AC88, AAB8, AB38
-struct PAIR { JTAIR *pjtair; void *plo; };                                               // GMeasureJumpPipe
-struct SOLIST { int cpso; void **apso; };                                                // func_0019B0A8
+struct PAIR { JTAIR *pjtair; void *plo; };                                               // MeasureJumpToPipe
+struct SOLIST { int cpso; void **apso; };                                                // FilterJtObstruction
 
 typedef float (*PFNSCORE)(void *, float);
 
@@ -3750,10 +3750,10 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,
                    VECTOR *ppos, VECTOR *pv);
 float GAdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
-int FFindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
+int FindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
                   VECTOR *ppos);
 void FFilterSoPair();
-void func_0019B0A8();
+void FilterJtObstruction();
 void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
 void func_001E7410(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
 float DuGetShapeSearchIncrement(CURVE *pcurve);
@@ -3761,12 +3761,12 @@ float UFromShapeS(CURVE *pcurve, float s);
 float SMaxShape(CURVE *pcurve);
 float SFromShapeU(CURVE *pcurve, float u);
 void MinimizeRange__FPFPvf_fPvffffPfT6(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
-float GMeasureJumpRail(void *pv, float u);
-float GMeasureJumpTargetTime(void *pv, float u);
-float GMeasureJumpPipe(void *pv, float u);
-float func_0019AC88(void *pv, float u);
-float func_0019AAB8(void *pv, float u);
-float func_0019AB38(void *pv, float u);
+float MeasureJumpToRail(void *pv, float u);
+float MeasureJumpTargetAtTime(void *pv, float u);
+float MeasureJumpToPipe(void *pv, float u);
+float MeasureJumpAlongPath(void *pv, float u);
+float MeasureJumpToHidePoint(void *pv, float u);
+float MeasureJumpToHideShape(void *pv, float u);
 void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, float u);
 void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t);
 void func_00185310(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
@@ -3798,7 +3798,7 @@ static inline float GMinOf(float a, float b) { return a < b ? a : b; }
 
 /** @sly2-annot addr=0x19B110
  * Purpose: Choose the jump target/landing among all candidate lists ((*(HOOK * *)&g_sw.dlTarget)..(*(MESH * *)&g_sw.dlCid9)), scoring with
- *   MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FFindJtObstruction; then
+ *   MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FindJtObstruction; then
  *   SetJtAirState
  * Info: proposed name ChooseJtLanding (T1); TU air
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
@@ -3839,7 +3839,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 g = GAdjustJtLandingScore(air, shape, g, D_002BF8E4);
                 if (bestScore <= g)
                     continue;
-                if (FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                if (FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                                   posHit.q, vHit.q, 0))
                     continue;
             }
@@ -3865,8 +3865,8 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ctx.pjtair = air->pstepplayer->jtair;
             ctx.pcurve = curve;
             ctx.v = vLaunch.q;
-            func_001E7410(curve, GMeasureJumpRail, &ctx, 0, 0, &uStart, 0);
-            MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpRail, &ctx, uStart, DuGetShapeSearchIncrement(curve), UFromShapeS(curve, 50.0f),
+            func_001E7410(curve, MeasureJumpToRail, &ctx, 0, 0, &uStart, 0);
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToRail, &ctx, uStart, DuGetShapeSearchIncrement(curve), UFromShapeS(curve, 50.0f),
                           UFromShapeS(curve, SMaxShape(curve) - 50.0f), &u, &g);
             if (curve != forcedTarget) {
                 if (g >= D_002BF8E0)
@@ -3880,7 +3880,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             MeasureJtJumpToTarget(air, vLaunch, curve, posTarget, dpos, &t, 0, &posHit, &vHit);
             vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
             if (curve != forcedTarget &&
-                FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                               posHit.q, vHit.q, 0))
                 continue;
             ploBest = curve;
@@ -3916,7 +3916,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ctx.v = D_002A2DD0;
             ctx.pjtair = air;
             ctx.plo = phook;
-            MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, &g);
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, &g);
             MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
             if (phook != forcedTarget) {
                 if (g >= D_002BF8E0)
@@ -3924,7 +3924,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
                 g = GAdjustJtLandingScore(air, phook, g, D_002BF8EC);
                 if (bestScore <= g)
                     continue;
-                if (FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q,
+                if (FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q,
                                   posHit.q, vHit.q, &posTarget))
                     continue;
             }
@@ -3950,7 +3950,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             ctx.v = vLaunch.q;
             ctx.pjtair = air;
             ctx.plo = pmesh;
-            MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AC88, &ctx, 1.0f, 0.25f, 0.25f, 2.0f, &t, &gMesh);
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpAlongPath, &ctx, 1.0f, 0.25f, 0.25f, 2.0f, &t, &gMesh);
             if (pmesh != forcedTarget) {
                 if (gMesh >= D_002BF8E0)
                     continue;
@@ -3961,7 +3961,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             func_00185D18(pmesh, pos.q, vLaunch.q, air->pstepplayer->psophys->dvGravity.q, air->pstepplayer->sRadius,
                           t, &triHit, &posHit, &vHit);
             if (pmesh != forcedTarget &&
-                FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+                FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
             kind = 16;
@@ -3991,7 +3991,7 @@ extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
             apso[1] = D_002F7900->psoCollide;
             solist.cpso = 2;
             solist.apso = apso;
-            if (FFindJtObstruction(air, (void *)func_0019B0A8, &solist, t, pos.q, vLaunch.q, posHit.q, vHit.q, 0))
+            if (FindJtObstruction(air, (void *)FilterJtObstruction, &solist, t, pos.q, vLaunch.q, posHit.q, vHit.q, 0))
                 goto LPartnerDone;
         }
         posBest = posHit;
@@ -4018,7 +4018,7 @@ LPartnerDone:
         float s, gCurve;
         pair.pjtair = air;
         pair.plo = curve;
-        MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(curve) - 50.0f, &s, &gCurve);
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(curve) - 50.0f, &s, &gCurve);
         if (curve != forcedTarget) {
             if (D_002BF8E0 <= gCurve)
                 continue;
@@ -4031,10 +4031,10 @@ LPartnerDone:
         ctx.plo = curve;
         EvaluateShapeS(curve, s, &posTarget, 0);
         ctx.v = ConvertAloPos(0, curve, posTarget.q);
-        MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
         if (curve != forcedTarget &&
-            FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, &posTarget))
             continue;
         kind = 15;
@@ -4060,7 +4060,7 @@ LPartnerDone:
         ctx.v = v.q;
         ctx.pjtair = air;
         ctx.plo = shape;
-        MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AAB8, &ctx, atan2f(dpos.f[1], dpos.f[0]) * shape->rAngle, D_002BF914, -FLT_MAX,
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHidePoint, &ctx, atan2f(dpos.f[1], dpos.f[0]) * shape->rAngle, D_002BF914, -FLT_MAX,
                       FLT_MAX, &u, &g);
         g = g * D_002BF90C;
         if (shape != forcedTarget) {
@@ -4075,7 +4075,7 @@ LPartnerDone:
         MeasureJtJumpToTarget(air, v, shape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
         if (shape != forcedTarget &&
-            FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         kind = 12;
@@ -4099,7 +4099,7 @@ LPartnerDone:
         ctx.v = v.q;
         ctx.pjtair = air;
         ctx.plo = curve;
-        MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AB38, &ctx, sCur, D_002BF918, 30.0f, SMaxShape(curve) - 30.0f, &u, &g);
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHideShape, &ctx, sCur, D_002BF918, 30.0f, SMaxShape(curve) - 30.0f, &u, &g);
         g = g * D_002BF90C;
         if (curve != forcedTarget) {
             if (g >= D_002BF8E0)
@@ -4113,7 +4113,7 @@ LPartnerDone:
         MeasureJtJumpToTarget(air, v, curve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
         if (curve != forcedTarget &&
-            FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         kind = 11;
@@ -4139,7 +4139,7 @@ LPartnerDone:
             g = GAdjustJtLandingScore(air, shape, g, D_002BF8FC);
             if (bestScore <= g)
                 continue;
-            if (FFindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            if (FindJtObstruction(air, (void *)FFilterSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
         }
@@ -4441,7 +4441,7 @@ extern "C" void LandJtAir(JTAIR *air)
     SetJtAirState(air, 4, 0);
 }
 
-//////// 0x19C870 func_0019C870
+//////// 0x19C870 GetJtAirAdjustRecord
 namespace M_func_0019C870 { extern "C" {
 struct O { char pad[0x520]; int x520; };
 struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c4; };
@@ -4453,7 +4453,7 @@ struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
-int func_0019C870(struct S *s, int *pn) {
+int GetJtAirAdjustRecord(struct S *s, int *pn) {
     int v;
     switch (s->x1c) {
     case 0xB: case 0xC: case 0xD: v = s->p->x520; break;
@@ -4465,7 +4465,7 @@ int func_0019C870(struct S *s, int *pn) {
 }
 } } // namespace M_func_0019C870
 
-//////// 0x19C8B0 func_0019C8B0
+//////// 0x19C8B0 AddJtAirCpdefiFlags
 /** @sly2-annot addr=0x19C8B0
  * Purpose: If x28 set, *pgrf
  * Info: proposed name AddJtAirCpdefiFlags (T2); TU air
@@ -4474,14 +4474,14 @@ int func_0019C870(struct S *s, int *pn) {
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Camera-definition hook: ORs the air flags into *flags when +0x28 is set. (inferred)
-extern "C" void func_0019C8B0(JTAIR *air, int *pgrf)
+extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 {
     if (air->fCanDoubleJump != 0) {
         *pgrf |= 1;
     }
 }
 
-//////// 0x19C8D0 func_0019C8D0
+//////// 0x19C8D0 CanJtUseGadgetInAir
 namespace M_func_0019C8D0 { extern "C" {
 struct O { char pad[0x12F0]; int x12f0; };
 struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
@@ -4494,7 +4494,7 @@ int FActiveCplcy__FP5CPLCY(void *);
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Whether gadget/action k can be used in the current air sub-state.
-int func_0019C8D0(struct S *p, int k) {
+int CanJtUseGadgetInAir(struct S *p, int k) {
     switch (k) {
     case 22:
         if (p->x4 >= 17) goto L;

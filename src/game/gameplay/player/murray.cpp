@@ -2508,7 +2508,7 @@ namespace M_func_001B8008 { extern "C" {
 struct P { char pad[0x268]; int x268; char pad1[0x13D0 - 0x26C]; int k; char pad2[0x13F0 - 0x13D4]; int x13F0; char pad3[0x1458 - 0x13F4]; int x1458; char pad4[0x1A58 - 0x145C]; int a1A58[0x16]; int a1AB0[3]; int x1ABC; };
 int GetJtGrabAdjustRecord(void *p, int *pk);
 int GetJtHurtAdjustRecord(void *p, int *pk);
-int func_0019C870(void *p, int *pk);
+int GetJtAirAdjustRecord(void *p, int *pk);
 void SetStepPhys(struct P *p, int v, int k);
 /** @sly2-annot addr=0x1B8008
  * Purpose: MURRAY vt90: choose the per-state STEP parameter block (component-supplied for 2/13/14, carry
@@ -2527,7 +2527,7 @@ void ApplyMurrayStateStepParams(struct P *p)
     case 14: v = GetJtHurtAdjustRecord((char *)p + 0xDF0, &k); break;
     case 2:
         if (p->x13F0) v = p->x1ABC;
-        else v = func_0019C870((char *)p + 0x2C0, &k);
+        else v = GetJtAirAdjustRecord((char *)p + 0x2C0, &k);
         break;
     case 5: v = p->a1AB0[p->x1458]; break;
     default: v = p->a1A58[p->k]; break;
@@ -3692,7 +3692,7 @@ struct O { char pad[0x180]; void *x180; };
 struct P { char pad[0x2C4]; int x2C4; char pad1[0x12F0 - 0x2C8]; int x12F0; char pad2[0x13D0 - 0x12F4]; int x13D0; char pad3[0x13F0 - 0x13D4]; struct O *x13F0; };
 extern int D_002DFBC0;
 int IsStepplayerInJtMode(struct P *p);
-int func_0019C8D0(void *p, int k);
+int CanJtUseGadgetInAir(void *p, int k);
 int CanJtUseGadgetInGrab(void *p, int k);
 int CanJtUseGadgetOnPipe(void *p, int k);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
@@ -3712,7 +3712,7 @@ int FCanUseGadget__6MURRAYi(struct P *p, int k)
     case 0: case 1: case 9: case 10:
         break;
     case 2:
-        if (!func_0019C8D0((char *)p + 0x2C0, k)) return 0;
+        if (!CanJtUseGadgetInAir((char *)p + 0x2C0, k)) return 0;
         break;
     case 13:
         if (!CanJtUseGadgetInGrab((char *)p + 0x4C0, k)) return 0;
