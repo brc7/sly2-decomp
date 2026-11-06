@@ -22,18 +22,18 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct EMITBV
 {
     char pad0[0xD4];
-    float gD4;              /* +0xD4 */
+    float ripScale;              /* +0xD4 */
 };
 /* RIPG (: SO): state, the emitter's scale, the list of live rips, and the bounds copied into its tree record. */
 struct RIPGV : public SO
 {
-    int nState;             /* +0x150 */
+    int ripgState;             /* +0x150 */
     char pad154[4];
-    float g158;             /* +0x158 */
-    DL dlRip;               /* +0x15C */
+    float emitScale;             /* +0x158 */
+    DL ripList;               /* +0x15C */
     char pad168[0x170 - 0x168];
-    qword aqwBounds[3];     /* +0x170 */
-    float gBounds;          /* +0x1A0 */
+    qword boundsData[3];     /* +0x170 */
+    float boundsRadius;          /* +0x1A0 */
 };
 /* A subscription node (pool D_003E1144). */
 struct RIPSUB
@@ -48,20 +48,20 @@ struct RIPSUB
 struct RIP
 {
     int kind;
-    int cref;               /* +0x04 */
-    RIPGV *pripg;            /* +0x08 */
+    int refCount;               /* +0x04 */
+    RIPGV *ripGroup;            /* +0x08 */
     char padC[0x18 - 0xC];
     float g18;              /* +0x18 */
     char pad1C[0x20 - 0x1C];
     qword q20;              /* +0x20 */
     qword q30;              /* +0x30 */
     char pad40[0x70 - 0x40];
-    qword posCur;           /* +0x70 */
-    qword posPrev;          /* +0x80 */
+    qword currentPosition;           /* +0x70 */
+    qword previousPosition;          /* +0x80 */
     char pad90[0xA0 - 0x90];
     qword qA0;              /* +0xA0 */
     char padB0[0xE8 - 0xB0];
-    RIPSUB *psubFirst;      /* +0xE8 */
+    RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
     virtual void PostEmit(void *pv) __asm__("PostRipEmit");   /* slot 2 */
     virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
@@ -77,7 +77,7 @@ typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
    SHRAPNEL are the Sly 1 symbols' class names. Fields: only the two words a GLINT/RIPT1 body reads (RIPF). */
 struct RIPF : RIP
 {
-    LO *ploFollow;          /* +0xF0 */
+    LO *followObject;          /* +0xF0 */
     int nF4;                /* +0xF4 */
 };
 struct FLYING : RIP   /* RIPT 3 */
@@ -217,10 +217,10 @@ void InitRipg__FP4RIPG(struct S *p)
 } } // namespace M_InitRipg__FP4RIPG
 
 // Copy emitb rate into RIPG.
-void SetRipgEmitb(RIPGV *pripg, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
-void SetRipgEmitb(RIPGV *pripg, EMITBV *pemitb)
+void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
+void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 {
-    pripg->g158 = pemitb->gD4;
+    ripGroup->emitScale = pemitb->ripScale;
 }
 
 namespace M_OnRipgRemove__FP4RIPG {
@@ -256,24 +256,24 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 // RIPG vt slot 12 (OnRemove): release rips / clear SW default RIPG.
-extern "C" void OnRipgRemove__FP4RIPG(RIPGV *pripg)
+extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
 {
     DLI dli;
     RIP *prip;
     SW *psw;
-    InitDli(&dli, &pripg->dl);
+    InitDli(&dli, &ripGroup->dl);
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(prip);
     psw = &D_003DD490;
-    if (pripg == psw->x406C) psw->x406C = 0;
-    RemoveSoHierarchy(pripg);
-    if (pripg->xEC) {
-        RemoveSwAaobrObject(psw, pripg->xEC);
-        pripg->xEC = 0;
+    if (ripGroup == psw->x406C) psw->x406C = 0;
+    RemoveSoHierarchy(ripGroup);
+    if (ripGroup->xEC) {
+        RemoveSwAaobrObject(psw, ripGroup->xEC);
+        ripGroup->xEC = 0;
     }
-    SnipLo(pripg);
-    RemoveSlEntry(PdlFromSwCid(psw, 0x57), pripg);
-    if (!pripg->x10) FreeLoroot(pripg);
-    func_0011CD98(psw->pool, pripg);
+    SnipLo(ripGroup);
+    RemoveSlEntry(PdlFromSwCid(psw, 0x57), ripGroup);
+    if (!ripGroup->x10) FreeLoroot(ripGroup);
+    func_0011CD98(psw->pool, ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
 } // namespace M_OnRipgRemove__FP4RIPG
@@ -368,14 +368,14 @@ void ProjectRipgTransform(S *p)
 // RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag
 // g_sw.fAaoxUnsorted, call SO bound update 0x1F4BA8.
 /* RIPG slot 49. */
-extern "C" void UpdateRipgBounds(RIPGV *pripg)
+extern "C" void UpdateRipgBounds(RIPGV *ripGroup)
 {
-    ((qword *)pripg->ptree)[0] = pripg->aqwBounds[0];
-    ((qword *)pripg->ptree)[1] = pripg->aqwBounds[1];
-    ((qword *)pripg->ptree)[2] = pripg->aqwBounds[2];
-    ((float *)pripg->ptree)[12] = pripg->gBounds;
+    ((qword *)ripGroup->ptree)[0] = ripGroup->boundsData[0];
+    ((qword *)ripGroup->ptree)[1] = ripGroup->boundsData[1];
+    ((qword *)ripGroup->ptree)[2] = ripGroup->boundsData[2];
+    ((float *)ripGroup->ptree)[12] = ripGroup->boundsRadius;
     g_sw.fAaoxUnsorted = 1;
-    func_001F4BA8(pripg);
+    func_001F4BA8(ripGroup);
 }
 
 namespace M_UpdateRipg { extern "C" {
@@ -406,21 +406,21 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 // RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active.
-void UpdateRipg(struct RIPGV *pripg)
+void UpdateRipg(struct RIPGV *ripGroup)
 {
     DLI dli;
     struct RIP *prip;
-    InitDli(&dli, &pripg->dl);
+    InitDli(&dli, &ripGroup->dl);
     while ((prip = (struct RIP *)PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t <= prip->tStart) continue;
         AddRipRef__FP3RIP(prip);
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         ReleaseRip__FP3RIP(prip);
     }
-    if (!func_001A61A0(pripg) || FIsDlEmpty__FP2DL(&pripg->dl))
-        ((void (*)(void *))pripg->vt[9].pf)((char *)pripg + pripg->vt[9].d);
+    if (!func_001A61A0(ripGroup) || FIsDlEmpty__FP2DL(&ripGroup->dl))
+        ((void (*)(void *))ripGroup->vt[9].pf)((char *)ripGroup + ripGroup->vt[9].d);
     else
-        BounceRipgRips__FP4RIPG(pripg);
+        BounceRipgRips__FP4RIPG(ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
 } } // namespace M_UpdateRipg
@@ -555,11 +555,11 @@ static inline void *PvNextDli(DLI *pdli)
     return pv;
 }
 // RIPG vt slot 19 RenderSelf: render each rip via vtable.
-extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *pripg, CM *pcm, RO *pro)
+extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *ripGroup, CM *pcm, RO *pro)
 {
     DLI dli;
     RIP *prip;
-    InitDli(&dli, &pripg->dl);
+    InitDli(&dli, &ripGroup->dl);
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t <= prip->tStart) continue;
             ((void (*)(void *))prip->vt[6].pf)((char *)prip + prip->vt[6].d);
@@ -572,8 +572,8 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *pripg, CM *pcm, RO *pro)
 /* RIPG slot 62. */
 int RIPG::VUnk61()
 {
-    RIPGV *pripg = (RIPGV *)this;
-    return pripg->nState != 1;
+    RIPGV *ripGroup = (RIPGV *)this;
+    return ripGroup->ripgState != 1;
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -716,7 +716,7 @@ void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes 
 // Unlink from RIPG dl + ReleaseRip.
 void RemoveRip(RIP *prip)
 {
-    RemoveDlEntry(&prip->pripg->dlRip, prip);
+    RemoveDlEntry(&prip->ripGroup->ripList, prip);
     ReleaseRip(prip);
 }
 
@@ -728,7 +728,7 @@ extern "C" void PostRipEmit(RIP *prip, void *pv)
 // CRef++.
 void AddRipRef(RIP *prip)
 {
-    prip->cref++;
+    prip->refCount++;
 }
 
 namespace M_ReleaseRip__FP3RIP { extern "C" {
@@ -1294,8 +1294,8 @@ extern "C" void SubscribeRipObject(RIP *prip, LO *plo)
 {
     RIPSUB *psub = (RIPSUB *)PvAllocSlotheapClear(&g_sw.slotheapRefnode);
     psub->plo = plo;
-    psub->pnext = prip->psubFirst;
-    prip->psubFirst = psub;
+    psub->pnext = prip->firstSubscription;
+    prip->firstSubscription = psub;
 }
 
 // 0x1CF5C0: dead-code scrap (sly2/scrap.h)
@@ -1783,8 +1783,8 @@ void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable co
 /* RIPT 4 (glint) Project: follow the object. */
 extern "C" void ProjectGlint(RIPF *prip)
 {
-    prip->posPrev = prip->posCur;
-    prip->posCur = func_001A62E8(prip->ploFollow);
+    prip->previousPosition = prip->currentPosition;
+    prip->currentPosition = func_001A62E8(prip->followObject);
 }
 
 namespace M_RenderGlint {
