@@ -4638,7 +4638,7 @@ typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE6C0;
-struct G { char pad[0x4020]; void *noises; };
+struct G { char pad[0x4020]; void *yellNoise; };
 extern struct G D_003DD490;
 struct R { char pad[0x54]; int noiseType; };
 struct T { char pad[0x208]; int isOnGround; };
@@ -4660,7 +4660,7 @@ void UpdateBhvThrown(struct S *behavior) {
         if (D_002DDED0.t - behavior->lastYellTime > D_002BE6C0) {
             struct G *g = &D_003DD490;
             behavior->lastYellTime = D_002DDED0.t;
-            NewNoise(g->noises, func_001A62E8(behavior->guard), behavior->guard)->noiseType = 3;
+            NewNoise(g->yellNoise, func_001A62E8(behavior->guard), behavior->guard)->noiseType = 3;
         }
     }
 }
@@ -4873,10 +4873,10 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void *pfn; };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct R { int n0; int a[11]; };
-struct U { char pad[0x1C]; float g1C; };
-struct W { char pad[0xA0]; int nA0; };
-struct T { char pad[0x58]; struct W *p58; };
+struct R { int isValid; int a[11]; };
+struct U { char pad[0x1C]; float endTime; };
+struct W { char pad[0xA0]; int unknownA0; };
+struct T { char pad[0x58]; struct W *unknown58; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x48]; struct O *holder; int isHoldActive; struct U *holdAct; };
 void CalculateBhvjuggledHoldPoint(struct S *p, struct R *r, qword *a, qword *b);
 qword func_0022FC48(int a, int b, qword q);
@@ -4889,12 +4889,12 @@ void UpdateBhvjuggledHoldAct(struct S *behavior) {
     struct W *w;
     qword a;
     if (!behavior->isHoldActive) return;
-    { struct O *o = behavior->holder; struct VTE *entry = &o->vt[0x60]; ((void (*)(void *, struct R *, float))entry->pfn)((char *)o + entry->d, &r, behavior->holdAct->g1C - D_002DDED0.t); }
-    if (!r.n0) { behavior->isHoldActive = 0; return; }
-    w = behavior->guard->p58;
+    { struct O *o = behavior->holder; struct VTE *entry = &o->vt[0x60]; ((void (*)(void *, struct R *, float))entry->pfn)((char *)o + entry->d, &r, behavior->holdAct->endTime - D_002DDED0.t); }
+    if (!r.isValid) { behavior->isHoldActive = 0; return; }
+    w = behavior->guard->unknown58;
     CalculateBhvjuggledHoldPoint(behavior, &r, &q30, &q40);
-    a = func_0022FC48(0, w->nA0, q30);
-    func_0012E0F0(behavior->holdAct, a, ConvertXfVec(0, w->nA0, q40));
+    a = func_0022FC48(0, w->unknownA0, q30);
+    func_0012E0F0(behavior->holdAct, a, ConvertXfVec(0, w->unknownA0, q40));
 }
 } } // namespace M_func_0017ABC8
 
@@ -4908,11 +4908,11 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BE6C8, D_002BE6CC;
 struct VTE { short d; short pad; void *pfn; };
-struct C { char pad[0x1C]; float g1C; };
-struct B { char pad[0x90]; struct C *p90; };
-struct A { char pad[0xC]; struct VTE *vt; char pad2[0x58 - 0x10]; struct B *p58; char pad3[0x208 - 0x5C]; int isOnGround; };
-struct Y { char pad[0x60]; void *p60; };
-struct X { char pad[0x19A4]; struct Y *p19A4; };
+struct C { char pad[0x1C]; float endTime; };
+struct B { char pad[0x90]; struct C *currentAct; };
+struct A { char pad[0xC]; struct VTE *vt; char pad2[0x58 - 0x10]; struct B *unknown58; char pad3[0x208 - 0x5C]; int isOnGround; };
+struct Y { char pad[0x60]; void *frame; };
+struct X { char pad[0x19A4]; struct Y *unknown19A4; };
 struct S { char pad[0x10]; struct A *guard; char pad2[0x50 - 0x14]; int state; float stateTime; int pad3; struct X *holder; int pad4; struct C *holdAct; };
 struct OUT { char pad[0x30]; qword v; };
 void UpdateBhvanim(struct S *p);
@@ -4921,7 +4921,7 @@ void UpdateBhvjuggledHoldAct(struct S *p);
 qword func_001A62E8(struct A *a);
 void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
 // Returns the frame object of the actor's +0x19A4 record.
-static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->p19A4;return y->p60;}
+static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->unknown19A4;return y->frame;}
 // VU0 helper: z component of a vector.
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x17AC90: BHVJUGGLED vtable slot 10 (Update): held/carried states 0-1, released/falling states 2-3 (until
@@ -4942,7 +4942,7 @@ void UpdateBhvjuggled(struct S *behavior) {
         case 1:
             if (behavior->state == 1 && behavior->guard->isOnGround) {
                 SetBhvjuggledState(behavior, 3);
-            } else if (behavior->guard->p58->p90 != behavior->holdAct || behavior->guard->p58->p90->g1C < D_002DDED0.t) {
+            } else if (behavior->guard->unknown58->currentAct != behavior->holdAct || behavior->guard->unknown58->currentAct->endTime < D_002DDED0.t) {
                 SetBhvjuggledState(behavior, 2);
             } else if (GetZ(v) < 0.0f && behavior->state == 0) {
                 SetBhvjuggledState(behavior, 1);
@@ -5022,13 +5022,13 @@ typedef char layout_VTE_delta[((unsigned)&((struct VTE*)0)->d==0)?1:-1];
 typedef char layout_VTE_fn[((unsigned)&((struct VTE*)0)->pfn==4)?1:-1];
 typedef char layout_CLOCK_time[((unsigned)&((struct CLOCK*)0)->t==0)?1:-1];
 typedef char layout_CLOCK_dt[((unsigned)&((struct CLOCK*)0)->dt==4)?1:-1];
-typedef char layout_C_gain[((unsigned)&((struct C*)0)->g1C==0x1C)?1:-1];
-typedef char layout_B_control[((unsigned)&((struct B*)0)->p90==0x90)?1:-1];
+typedef char layout_C_gain[((unsigned)&((struct C*)0)->endTime==0x1C)?1:-1];
+typedef char layout_B_control[((unsigned)&((struct B*)0)->currentAct==0x90)?1:-1];
 typedef char layout_A_vt[((unsigned)&((struct A*)0)->vt==0xC)?1:-1];
-typedef char layout_A_control[((unsigned)&((struct A*)0)->p58==0x58)?1:-1];
+typedef char layout_A_control[((unsigned)&((struct A*)0)->unknown58==0x58)?1:-1];
 typedef char layout_A_active[((unsigned)&((struct A*)0)->isOnGround==0x208)?1:-1];
-typedef char layout_X_y[((unsigned)&((struct X*)0)->p19A4==0x19A4)?1:-1];
-typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->p60==0x60)?1:-1];
+typedef char layout_X_y[((unsigned)&((struct X*)0)->unknown19A4==0x19A4)?1:-1];
+typedef char layout_Y_frame[((unsigned)&((struct Y*)0)->frame==0x60)?1:-1];
 typedef char layout_S_actor[((unsigned)&((struct S*)0)->guard==0x10)?1:-1];
 typedef char layout_S_state[((unsigned)&((struct S*)0)->state==0x50)?1:-1];
 typedef char layout_S_time[((unsigned)&((struct S*)0)->stateTime==0x54)?1:-1];
@@ -5041,16 +5041,16 @@ typedef char layout_OUT_position[((unsigned)&((struct OUT*)0)->v==0x30)?1:-1];
 namespace M_BHVJUGGLED_FHandleMessage { extern "C" {
 struct G; struct VTE; struct O; struct C; struct A; struct S; struct M; struct X;
 typedef int qword __attribute__((mode(TI)));
-struct G { char pad[0x4028]; void *p4028; };
+struct G { char pad[0x4028]; void *hitNoise; };
 extern struct G D_003DD490;
 extern void *D_002BE6D0[];
 extern int D_002BE6E8[];
 struct VTE { short d; short pad; void *pfn; };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct C { int pad; void *p4; void *p8; int nC; };
-struct A { char pad[0x33C]; int n33C; };
+struct C { int pad; void *anim; void *payload; int flags; };
+struct A { char pad[0x33C]; int hp; };
 struct S { char pad[0x10]; struct A *guard; char pad2[0x2C]; struct C *binding; char pad3[0xC]; int state; int pad4; int hitCount; };
-struct M { int n0; int pad; int n8; int nC; int n10; char pad2[0x30]; int n44; };
+struct M { int animation; int pad; int event; int kind; int amount; char pad2[0x30]; int reactFlags; };
 struct X { int a; int pad[7]; qword v; qword pad2; };
 int HandleBhvanimMessage(struct S *p, int msg, struct M *pm);
 int GetAnimBindingInstance(struct C *c);
@@ -5071,8 +5071,8 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
     switch (msg) {
     case 9:
         if (behavior->binding == 0) return 0;
-        if (GetAnimBindingInstance(behavior->binding) != pm->n0) return 0;
-        if (pm->n8 == 0x3D) behavior->hitCount = 0;
+        if (GetAnimBindingInstance(behavior->binding) != pm->animation) return 0;
+        if (pm->event == 0x3D) behavior->hitCount = 0;
         return 0;
     case 0xC:
         {
@@ -5081,22 +5081,22 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
             struct G *pg;
             struct O *o;
             struct A *a;
-            if (pm->nC != 0x200000) return 0;
-            if (!(pm->n44 & 8)) return 0;
+            if (pm->kind != 0x200000) return 0;
+            if (!(pm->reactFlags & 8)) return 0;
             if (!behavior->state) return 0;
             if (IsAnimBindingDone(behavior->binding)) {
                 StopAnimBinding(behavior->binding);
-                StartAnimBinding(behavior->binding, behavior->guard, behavior->binding->nC | 1, 0.0f);
+                StartAnimBinding(behavior->binding, behavior->guard, behavior->binding->flags | 1, 0.0f);
             }
             behavior->hitCount++;
             g = 0.0f;
             i = 4; if (behavior->hitCount <= 3) i = behavior->hitCount;
             while (i > 0) {
-                float *r = func_0012F938(behavior->binding->p4, D_002BE6D0[i]);
+                float *r = func_0012F938(behavior->binding->anim, D_002BE6D0[i]);
                 if (r) { g = *r; break; }
                 i--;
             }
-            func_00130D30(behavior->binding->p8, g, 1.0f, 0);
+            func_00130D30(behavior->binding->payload, g, 1.0f, 0);
             SetBhvjuggledState(behavior, 0);
             o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
             if (o) {
@@ -5110,10 +5110,10 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
             }
             a = behavior->guard;
             {
-                int m = a->n33C + pm->n10;
-                a->n33C = m < 5 ? 5 : m;
+                int m = a->hp + pm->amount;
+                a->hp = m < 5 ? 5 : m;
             }
-            NewNoise(D_003DD490.p4028, func_001A62E8(behavior->guard), behavior->guard);
+            NewNoise(D_003DD490.hitNoise, func_001A62E8(behavior->guard), behavior->guard);
             return 1;
         }
     }
