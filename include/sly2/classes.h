@@ -1032,9 +1032,9 @@ typedef char assert_BHV191_size[sizeof(BHV191) == 0x50 ? 1 : -1];
 struct HACK : PO
 {
     char pad180[0x1C0 - 0x180];
+    virtual void RemoveHierarchy() __asm__("func_0017F110");   /* slot 12 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0017F090");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("func_0017F110");   /* slot 12 */
     virtual void VUnk14() __asm__("func_0017F138");   /* slot 15 */
     virtual void VUnk25(LO *plo) __asm__("func_0017F170");   /* slot 26 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("func_0017F1A0");   /* slot 55 */
@@ -1050,10 +1050,10 @@ struct HACKSHIP : HACK
     char pad1C0[0x2A4 - 0x1C0];
     int nUnk2a4;
     char pad2A8[0x2B0 - 0x2A8];
-    HACKSHIP() { nUnk2a4 = 0; }
+    HACKSHIP();
+    virtual void RemoveHierarchy() __asm__("func_0017F740");   /* slot 12 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackshipClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHackship");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("func_0017F740");   /* slot 12 */
     virtual void VUnk14() __asm__("func_0017F850");   /* slot 15 */
     virtual void VUnk15() __asm__("func_0017F930");   /* slot 16 */
     virtual void VUnk69() __asm__("func_0017FB50");   /* slot 70 */
@@ -1062,13 +1062,19 @@ struct HACKSHIP : HACK
     virtual void VSlot83() __asm__("func_0017FCB0");   /* slot 83 */
 };
 typedef char assert_HACKSHIP_size[sizeof(HACKSHIP) == 0x2B0 ? 1 : -1];
+/* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
+   its key TU (as global functions the ELF does not have), so the key TU defines SLY2_KEY_TU_HACKSHIP and sees
+   only the declaration. */
+#ifndef SLY2_KEY_TU_HACKSHIP
+inline HACKSHIP::HACKSHIP() { nUnk2a4 = 0; }
+#endif
 
 /* 74 HACKBULLET (0x1E0); vtable 0x2D1328, 83 slots */
 struct HACKBULLET : HACK
 {
     char pad1C0[0x1E0 - 0x1C0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetHackbulletClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00180188");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetHackbulletClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("func_001801B8");   /* slot 16 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("func_001803E0");   /* slot 55 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("func_001803A8");   /* slot 61 */
@@ -1079,6 +1085,7 @@ typedef char assert_HACKBULLET_size[sizeof(HACKBULLET) == 0x1E0 ? 1 : -1];
 struct HACKENEMY : HACK
 {
     char pad1C0[0x390 - 0x1C0];
+    virtual void VSlot83() __asm__("func_00181238");   /* slot 83 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHackenemyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00181060");   /* slot 5 */
     virtual void Init() __asm__("InitHackenemy");   /* slot 7 */
@@ -1089,7 +1096,6 @@ struct HACKENEMY : HACK
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("func_00180FF0");   /* slot 55 */
     virtual void VUnk69() __asm__("func_00180EE8");   /* slot 70 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("func_001811B8");   /* slot 75 */
-    virtual void VSlot83() __asm__("func_00181238");   /* slot 83 */
 };
 typedef char assert_HACKENEMY_size[sizeof(HACKENEMY) == 0x390 ? 1 : -1];
 
@@ -1097,8 +1103,8 @@ typedef char assert_HACKENEMY_size[sizeof(HACKENEMY) == 0x390 ? 1 : -1];
 struct HACKLOCK : HACK
 {
     char pad1C0[0x250 - 0x1C0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetHacklockClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHacklock");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetHacklockClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_00181440");   /* slot 15 */
     virtual void VUnk15() __asm__("func_00181478");   /* slot 16 */
     virtual void VSlot83() __asm__("func_00181598");   /* slot 83 */
@@ -1109,8 +1115,8 @@ typedef char assert_HACKLOCK_size[sizeof(HACKLOCK) == 0x250 ? 1 : -1];
 struct HACKWALL : HACK
 {
     char pad1C0[0x2A0 - 0x1C0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetHackwallClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHackwall");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetHackwallClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_00181840");   /* slot 15 */
     virtual void VUnk15() __asm__("func_00181F60");   /* slot 16 */
     virtual void RenderSelf() __asm__("func_001821C0");   /* slot 19 */
@@ -1613,7 +1619,7 @@ struct ROBOTTANK : PO
     char pad180[0x598 - 0x180];
     int nUnk598;
     char pad59C[0x5D0 - 0x59C];
-    ROBOTTANK() { nUnk598 = 0; }
+    ROBOTTANK();
     virtual CLASSINFO *Pclassinfo() __asm__("GetRobottankClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRobottank");   /* slot 7 */
     virtual void VUnk14() __asm__("PostRobottankLoad");   /* slot 15 */
@@ -1630,6 +1636,12 @@ struct ROBOTTANK : PO
     virtual void OnActive(int fActive) __asm__("OnRobottankActive");   /* slot 78 */
 };
 typedef char assert_ROBOTTANK_size[sizeof(ROBOTTANK) == 0x5D0 ? 1 : -1];
+/* The constructor class_registry inlines into its factory. g++ 2.95 emits a class's inline member functions in
+   its key TU (as global functions the ELF does not have), so the key TU defines SLY2_KEY_TU_ROBOTTANK and sees
+   only the declaration. */
+#ifndef SLY2_KEY_TU_ROBOTTANK
+inline ROBOTTANK::ROBOTTANK() { nUnk598 = 0; }
+#endif
 
 /* 108 CID108 (0x170): robot-tank ammo pickup; vtable 0x2D7A40, 75 slots */
 struct CID108 : SO
