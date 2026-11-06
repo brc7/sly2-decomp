@@ -1,8 +1,10 @@
-// tu_173158.cpp -- CID119 (cid 0x77, an LO of 0xB0 bytes): a guard spawner. It keeps spawn selectors (an LO spot,
-// a small spot, or a curve sampled along its length), guard templates and test offsets, and up to its capacity of
+// tu_173158.cpp -- the guard spawner (CID119, cid 0x77, an LO of 0xB0 bytes). It keeps spawn selectors (an LO spot,
+// a small spot, or a curve sampled along its length), guard templates and test offsets, and a fixed number of
 // spawned-guard slots; every few seconds it picks a free slot and a spawn point the camera cannot see (screen
-// rectangle, distance, line of sight from the camera) and clones a guard there. VU0 and EE asm; GetSpawnPointConcealment,
-// UpdateSpawner, UpdateSpawnerEntries and ChooseSpawnerSpawnPoint are hand-tuned (register pins, allocation-only operands).
+// rectangle, distance, line of sight from the camera) and clones a guard there. Entry points: the CID119 slots
+// (Init, LoadSpawnerFromBrx, PostSpawnerLoad, UpdateSpawner, RemoveSpawnerHierarchy) and the Splice options
+// AddSpawner*. VU0 and EE asm; GetSpawnPointConcealment, UpdateSpawner, UpdateSpawnerEntries and
+// ChooseSpawnerSpawnPoint are hand-tuned (register pins, allocation-only operands).
 // TU 0x173158..0x174898 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_173158
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00174878
@@ -162,29 +164,13 @@ float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
 SCRIPTV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
 
-/** @sly2-annot addr=0x173158
- * Purpose: cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s
- * Info: proposed name InitCid119 (T2); class CID119 slot7; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable) | verifier PLAUSIBLE: Placeholder class (CID 0x77 vtable slot
- *   7). Body InitLo, +0x80=5500, +0x84/88/8C=1, +0xA0=30, +0xA4=50: matches; calling 30/50 'respawn delays'
- *   is not supported by this body. | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173158: Spawner (CID119) vtable slot 7 (Init): LO Init, then the defaults: spawn distance 5500, capacity/counts
+// 1, respawn delays 30 and 50 s.
 void CID119::Init() { CID119V *p = (CID119V *)this; InitLo(p); p->sPlanar = 5500.0f; p->fEdge = p->fOcclusion = p->fRange = 1; p->dtRespawn = 30.0f; p->dtRespawn2 = 50.0f; }
 
 static inline AI *SetAi(AI *pa, int cb, int align) { pa->cb = cb; pa->align = align; return pa; }
-/** @sly2-annot addr=0x1731B8
- * Purpose: Preallocates spawn-point (0x1C each), template and offset arrays, LO load, shrinks
- * Info: proposed name LoadCid119FromBrx (T2); class CID119 slot14; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable) | level_parser CONFIRMED-parse: payload layout followed by the
- *   parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3b_rest+parse-verified
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x1731B8: Spawner vtable slot 14 (LoadFromBrx): preallocates the selector, template and offset arrays at their
+// maximum sizes, loads the LO (Splice options fill them), then shrinks them.
 extern "C" void LoadSpawnerFromBrx(CID119V *p, void *pv) {
     SCOPE mk;
     AI ai;
@@ -199,13 +185,7 @@ extern "C" void LoadSpawnerFromBrx(CID119V *p, void *pv) {
     STACKSCOPE_ctor_1AE4A0(&mk, 2);
 }
 
-/** @sly2-annot addr=0x1732E0
- * Purpose: Appends spawn selector kind 0 (an LO spot) with oid (max 128)
- * Info: proposed name AddCid119SpawnLo (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x1732E0: Splice option: appends a spawn selector of kind 0 (an LO spot) by oid (at most 128).
 extern "C" void AddSpawnerLoSpot(CID119V *p, int oid)
 {
     int c = p->csel;
@@ -218,15 +198,7 @@ extern "C" void AddSpawnerLoSpot(CID119V *p, int oid)
     }
 }
 
-/** @sly2-annot addr=0x173318
- * Purpose: Appends spawn selector kind 1 (a curve, sampled)
- * Info: proposed name AddCid119SpawnCurve (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex)) | verifier PLAUSIBLE: Placeholder class. Appends
- *   {kind=1, arg} to 0x1C-stride array +0x54 (max 128); data-ref only (splice). 'spawn'/'curve' not shown by
- *   this body. | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173318: Splice option: appends a spawn selector of kind 1 (a curve, sampled along its length).
 extern "C" void AddSpawnerCurve(CID119V *p, int oid)
 {
     int c = p->csel;
@@ -239,13 +211,7 @@ extern "C" void AddSpawnerCurve(CID119V *p, int oid)
     }
 }
 
-/** @sly2-annot addr=0x173358
- * Purpose: Appends spawn selector kind 2 (an LO spot using the minimum radius)
- * Info: proposed name AddCid119SpawnLoSmall (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173358: Splice option: appends a spawn selector of kind 2 (an LO spot tested with the minimum radius).
 extern "C" void AddSpawnerSmallLoSpot(CID119V *p, int oid)
 {
     int c = p->csel;
@@ -258,34 +224,15 @@ extern "C" void AddSpawnerSmallLoSpot(CID119V *p, int oid)
     }
 }
 
-/** @sly2-annot addr=0x173398
- * Purpose: Appends a guard template object (max 8) at +0x90/+0x94
- * Info: proposed name AddCid119Template (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173398: Splice option: appends a guard template object (at most 8).
 extern "C" void AddSpawnerTemplate(CID119V *p, LOV *x) { if (p->ctmpl < 8) { p->atmpl[p->ctmpl++] = x; } }
 
-/** @sly2-annot addr=0x1733C8
- * Purpose: Appends a test offset vector (max 16) at +0x98/+0x9C
- * Info: proposed name AddCid119Offset (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex)) | verifier PLAUSIBLE: Placeholder class. Appends a
- *   qword to array +0x9C (count +0x98, max 16); caller LoadCid119FromBrx. 'test offset' not supported. | T2
- *   forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x1733C8: Splice option: appends a test offset (at most 16): points around a spawn point that must also be hidden
+// from the camera.
 extern "C" void AddSpawnerOffset(CID119V *p, qwordV x) { register int n __asm__("$3"); register int i __asm__("$6"); i = p->cpos; if (i < 16) { register qwordV *a __asm__("$4"); register int off __asm__("$2"); a = p->apos; off = i * 16; n = i + 1; p->cpos = n; *(qwordV *)(off + (int)a) = x; } }
 
-/** @sly2-annot addr=0x1733F8
- * Purpose: Resolves selector oids; for kind 1 creates a cid 0x71 script with a goto; allocates per-slot
- *   entries; marks busy
- * Info: proposed name PostCid119Load (T2); class CID119 slot15; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x1733F8: Spawner vtable slot 15 (PostLoad): resolves the selector oids; for curves creates a guard script (cid
+// 0x71) with a goto; allocates the per-slot entries and registers for updates.
 extern "C" void PostSpawnerLoad(CID119V *p) {
     int i;
     AI al;
@@ -322,12 +269,7 @@ extern "C" void PostSpawnerLoad(CID119V *p) {
 static __inline__ float GetX(qwordV q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-/** @sly2-annot addr=0x173588
- * Purpose: True if a projected point is in front (z>1e-4) and within +/-r in x and y
- * Info: proposed name FInScreenRect (T2); TU tu_173158
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173588: True if a projected point is in front of the camera (z > 1e-4) and within +-`extent` in x and y.
 extern "C" int IsInScreenRect(qwordV v, float r) {
     int f = 0;
     if (GetZ(v) > 0.0001f) {
@@ -350,18 +292,8 @@ static __inline__ qwordV MAdd(qwordV p, qwordV up, float s) {
     return r;
 }
 
-/** @sly2-annot addr=0x173610
- * Purpose: Cast a line along the up axis from pos+a*up to pos+b*up against SW objects (IntersectSwBoundingBox
- *   + PsoHitTestLineObjects, default filter FFilterSoNotSelfVt62); on a hit with a walkable normal (z>=0.7
- *   unless k) move *ppos to it
- * Info: proposed name FSnapToGround (T2); TU tu_173158
- * Notes: top50_round (0.55): Body (STACKSCOPE). Callers FStepplayerWillLand, FitStepToTerrain, StartBhvleap,
- *   SpawnCid119Guard, FGuardStuck
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: r3b_rest+top50_round
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898,
- *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
+// 0x173610: Casts a line along the up axis (from pos + `top` to pos + `bottom`) against the world's objects; on a
+// hit with a walkable normal (z >= 0.7) moves the position to the hit and returns true.
 extern "C" int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void)) {
     SCOPE x;
     int na, nb;
@@ -390,15 +322,8 @@ static inline float Len2(qwordV input){register qwordV a asm("vf2")=input,d asm(
 static inline void ReadInputs(CMV*source,const U&position,qwordV&cpu,qwordV&point,qwordV&vector){register CMV*p asm("$2")=source;register qwordV r asm("$5"),v asm("vf1"),o asm("vf2");__asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2":"=r"(r),"=j"(v),"=j"(o):"m"(p->mat.r[3]),"m"(position.q));cpu=r;point=v;vector=o;}
 static inline float Z(qwordV a){register int bits asm("$5");union{int n;float f;}value;__asm__("pextuw %0,$0,%1":"=r"(bits):"r"(a));value.n=bits;return value.f;}
 static inline int TooFar(qwordV a,float limit){return limit<Len2(a);}
-/** @sly2-annot addr=0x173768
- * Purpose: Camera check for a spawn point: 0 if too far, behind or off screen; else 1 at screen edge, 2 out
- *   of planar range, 3 occluded (0 if plainly visible)
- * Info: proposed name KCid119PointConcealed (T2); class CID119; TU tu_173158
- * Notes: names_v2 C proposed PostFlameEmit__FP5FLAMEP5EMITB (0.200) | Cid77->Cid119 (CID 0x77=119,
- *   agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173768: Camera concealment of a spawn point: 0 if it is visible (or too far / behind / off screen: unusable),
+// else 1 at the screen edge, 2 out of the planar range, 3 occluded.
 extern "C" int GetSpawnPointConcealment(CID119V*p,qwordV pos,int count,void**objects,float distance){
  register int cso asm("$19")=count;register void**apso asm("$18")=objects;
  U raised,origin,position,difference;
@@ -420,14 +345,8 @@ extern "C" int GetSpawnPointConcealment(CID119V*p,qwordV pos,int count,void**obj
  return 0;
 }
 
-/** @sly2-annot addr=0x173928
- * Purpose: Ends a spawned-guard slot: kind 0 removes the guard (vt9 RemoveLo), kind 1 sets a respawn delay;
- *   decrements count
- * Info: proposed name ReleaseCid119Entry (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173928: Ends a spawned-guard slot: kind 0 removes the guard (vtable slot 9, RemoveLo), kind 1 arms a respawn
+// delay; decrements the live count.
 extern "C" void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f) {
     pe->status = k;
     switch (k) {
@@ -447,25 +366,13 @@ extern "C" void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f) {
     p->cent--;
 }
 
-/** @sly2-annot addr=0x173A18
- * Purpose: Current player position (PpoCur) or the camera position
- * Info: proposed name PosCid119Focus (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173A18: Returns the focus position the spawner works from: the current player's position, or the camera's.
 extern "C" qwordV GetSpawnerFocusPosition(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return func_001A62E8(PpoHero(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
-/** @sly2-annot addr=0x173A68
- * Purpose: Periodically spawns a guard at a concealed spawn point when a slot is free (gated by the player's
- *   last alert event), aims it and sends message 0x19
- * Info: proposed name UpdateCid119 (T2); class CID119 slot16; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r3b_rest+verdicts_tu_r3r5
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173A68: Spawner vtable slot 16 (Update): periodically, when a slot is free (and gated by the player's last
+// alert event), spawns a guard at a concealed spawn point, aims it at the player and sends it message 0x19.
 extern "C" void UpdateSpawner(CID119V*p){
  U point;
  M3 rotation;
@@ -531,13 +438,7 @@ static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return SqrtV(SumXY(a)); }
 static inline float LengthXY(VU_VECTOR a) { return VuToFloat(LengthXYV(a).q); }
 static inline float DistXYImpl(VU_VECTOR a, VU_VECTOR b) { return LengthXY(a - b); }
 static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); }
-/** @sly2-annot addr=0x173D18
- * Purpose: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough
- * Info: proposed name UpdateCid119Entries (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173D18: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough away.
 extern "C" void UpdateSpawnerEntries(CID119V *p, qwordV pos) {
     int i;
     for (i = 0; i < p->centMax; i++) {
@@ -561,13 +462,7 @@ extern "C" void UpdateSpawnerEntries(CID119V *p, qwordV pos) {
     }
 }
 
-/** @sly2-annot addr=0x173E78
- * Purpose: Picks the oldest free slot (or the oldest occupied one past the timeout)
- * Info: proposed name PentryCid119Free (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173E78: Picks the slot to use: the oldest free one, or the oldest occupied one past the timeout.
 extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *plo) {
     float t4 = D_002DDED0.t - D_002BE5E0;
     float t8 = D_002DDED0.t;
@@ -641,14 +536,8 @@ static inline float SLengthXY(qwordV qw)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A53E0 __asm__("D_002A53E0") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x173F18
- * Purpose: Picks the nearest usable spawn selector (LO spot or curve sample) where every offset point is
- *   concealed from the camera
- * Info: proposed name ChooseCid119SpawnPoint (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x173F18: Picks the nearest usable spawn selector (LO spot or curve sample) where every test offset point is
+// concealed from the camera; returns its position.
 extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip)
 {
     SCOPE frame;
@@ -775,15 +664,8 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposO
     return pselBest;
 }
 
-/** @sly2-annot addr=0x174490
- * Purpose: Clones/activates a guard from a template at the chosen point (0x1CB250), optionally sets its
- *   BHV156 mode
- * Info: proposed name SpawnCid119Guard (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/engine/guards-ai.md#open-questions, docs/open-questions.md#guards,
- *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x174490: Spawns a guard from a template at the chosen point (clone and activate) and optionally sets its root
+// behaviour mode.
 extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip) {
     GUARDV *r = 0;
     int k;
@@ -832,15 +714,7 @@ extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *p, SEL *m, qwordV *pv, M3 *pma
     return r;
 }
 
-/** @sly2-annot addr=0x1746B8
- * Purpose: Base remove then releases all active slots
- * Info: proposed name RemoveCid119Hierarchy (T2); class CID119 slot12; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable) | slot 12 is RemoveHierarchy (CONFLICTS#5: LO base
- *   0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy; OnAdd/OnRemove are slots 23/22 per arbitration); was
- *   OnCid119Remove
- * Confidence: low (draft) [T2 0.55] - evidence: arbitration; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
+// 0x1746B8: Spawner vtable slot 12 (RemoveHierarchy): LO base, then releases every active slot.
 extern "C" void RemoveSpawnerHierarchy(CID119V *p) {
     int i;
     RemoveLoHierarchy(p);
