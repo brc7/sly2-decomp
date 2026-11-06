@@ -2061,8 +2061,8 @@ typedef char assert_WAYPT_size[sizeof(WAYPT) == 0x190 ? 1 : -1];
 struct WR : LO
 {
     char pad50[0x900 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetWrClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitWr");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetWrClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("UpdateWrMatrixes__FP2WR");   /* slot 16 */
 };
 typedef char assert_WR_size[sizeof(WR) == 0x900 ? 1 : -1];
