@@ -2001,7 +2001,7 @@ void SetPowerupAcquired(int, int);
 void RefreshThiefnetItems(OBJ *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, int);
-void func_0019F0A8(void *);
+void RefreshPlayersAfterPowerupChange(void *);
 void sprintf(char *, const char *, ...);
 CRef RefGetSaveVarV(const char *, ...);
 CRef RefSetSaveVarV(const CRef &, const char *, ...);
@@ -2041,7 +2041,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
                     SetPowerupAcquired(p->x254, 1);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
-                    func_0019F0A8(D_003DD490);
+                    RefreshPlayersAfterPowerupChange(D_003DD490);
                 } else if (have >= cost) {
                     func_001DA950(p, 0, 0x34);
                 } else {

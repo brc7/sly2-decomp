@@ -196,11 +196,11 @@ extern "C" void SetJtgoal(JTGOAL *p, qword pos)
 
 /** @sly2-annot addr=0x1449C8
  * Purpose: returns fHold (+0x28)
- * Info: proposed name FJtgoalHold (T1); TU jtgoal
+ * Info: proposed name IsJtgoalHolding (T1); TU jtgoal
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
  * @end-sly2-annot */
-extern "C" int FJtgoalHold(JTGOAL *p)
+extern "C" int IsJtgoalHolding(JTGOAL *p)
 {
     return p->f28;
 }

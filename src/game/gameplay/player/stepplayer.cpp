@@ -290,7 +290,7 @@ int GrfConsumePressed__5POCTLUif(struct Q *q, float g, int n);
 int GrfPressedWithin__5POCTLUif(struct Q *q, float g, int n);
 void func_00140338(struct P *p);
 void UpdateJtgoal(int *pl);
-int FJtgoalHold(int *pl);
+int IsJtgoalHolding(int *pl);
 void func_001E46A0(void *p, struct Q *q);
 void UpdateStepplayerInteractCandidates(struct P *p);
 void func_001A2460(struct P *p);
@@ -323,7 +323,7 @@ void UpdateStepplayer(struct P *p)
     pl = &p->xFD0;
     if (p->xDF4 == -1) {
         UpdateJtgoal(pl);
-        if (!FJtgoalHold(pl)) {
+        if (!IsJtgoalHolding(pl)) {
             if (p->c270 > 0) {
                 struct O *po = p->a274[p->c270 - 1];
                 struct VTE *e = &po->vt[14];
@@ -346,7 +346,7 @@ void UpdateStepplayer(struct P *p)
             OpenGadgetMenuForHero(D_003DA0F0);
         }
     }
-    if (!FJtgoalHold(pl))
+    if (!IsJtgoalHolding(pl))
         UpdateBhvstk(&p->x26C);
 }
 } } // namespace M_UpdateStepplayer
@@ -847,8 +847,8 @@ void func_002245B8(void *p);
 void ReleaseAsega(void *p);
 void ChargeGadgetMp(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
-void func_0019F170(void *p, int n);
-void func_0019F220(void *p, int n);
+void SetGuardOverride(void *p, int n);
+void SetAllGuardsSpecialState(void *p, int n);
 void *PloAcquireProxy(void *p, int n);
 void SetLoParent_1A58D0(void *p, int a, int b);
 void func_00156780(void *p);
@@ -978,10 +978,10 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                     ChargeGadgetMp(p);
                     switch (F(int, p, 0x9BC)) {
                     case 0xE:
-                        func_0019F170(&D_003DD490, 1);
+                        SetGuardOverride(&D_003DD490, 1);
                         break;
                     case 0x15:
-                        func_0019F220(&D_003DD490, 0x15);
+                        SetAllGuardsSpecialState(&D_003DD490, 0x15);
                         break;
                     case 0x17: {
                         DLI dli;

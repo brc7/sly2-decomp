@@ -77,7 +77,7 @@ int NCompletionPercentGs(void *pgs, void *psvset);
 void SetPowerupAcquired(int n, int f);
 int IGadgetSlotFromId(void *pstepplayer, int id);
 void SetStepplayerGadget(void *pstepplayer, int islot, int id);
-void func_0019F0A8(void *psw);
+void RefreshPlayersAfterPowerupChange(void *psw);
 void _ResetCodes(CODES *pcodes);
 int AddCode(CODES *pcodes, CODE *pcode);
 }
@@ -268,7 +268,7 @@ extern "C" void ClearCheatItems(void)
 extern "C" void CheatGiveGadget(int id)
 {
     SetPowerupAcquired(id, 1);
-    func_0019F0A8(D_003DD490);
+    RefreshPlayersAfterPowerupChange(D_003DD490);
 }
 
 /** @sly2-annot addr=0x14C2D8

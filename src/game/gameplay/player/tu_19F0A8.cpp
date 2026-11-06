@@ -26,7 +26,7 @@ float D_002BF938 = 6.0f;         /* override duration (s) */
 extern "C" {
 int CploFindSwObjectsByClass(SWVIEW *psw, int grffso, int cid, int a, int cpoMax, void *apo);
 void SetStepguardSpecial(GUARDV *pguard, int n);
-void func_0019F170(SWVIEW *psw, int f);
+void SetGuardOverride(SWVIEW *psw, int f);
 }
 
 /** @sly2-annot addr=0x19F0A8
@@ -36,7 +36,7 @@ void func_0019F170(SWVIEW *psw, int f);
  * See: docs/engine/main-loop-startup.md#8-key-functions, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548
  * @end-sly2-annot */
-extern "C" void func_0019F0A8()
+extern "C" void RefreshPlayersAfterPowerupChange()
 {
       OBJ *apo[8];
       int c, i;
@@ -60,7 +60,7 @@ extern "C" void UpdateSwGuardOverride(SWVIEW *psw)
 {
       if (psw->fGuardOverride != 0) {
             if (D_002BF938 < D_002DDED0.t - psw->tGuardOverride)
-                  func_0019F170(psw, 0);
+                  SetGuardOverride(psw, 0);
       }
 }
 
@@ -71,7 +71,7 @@ extern "C" void UpdateSwGuardOverride(SWVIEW *psw)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_19f0a8-0x19f0a8-0x19f3e8
  * @end-sly2-annot */
-extern "C" void func_0019F170(SWVIEW *psw, int f)
+extern "C" void SetGuardOverride(SWVIEW *psw, int f)
 {
       GUARDV *apguard[32];
       int c, i;
@@ -93,7 +93,7 @@ extern "C" void func_0019F170(SWVIEW *psw, int f)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#tu_19f0a8-0x19f0a8-0x19f3e8
  * @end-sly2-annot */
-extern "C" void func_0019F220(SWVIEW *psw, int n)
+extern "C" void SetAllGuardsSpecialState(SWVIEW *psw, int n)
 {
       GUARDV *apguard[32];
       int c, i;
