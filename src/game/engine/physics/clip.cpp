@@ -18,13 +18,13 @@ struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(
 
 /* A clipped segment (0x60): end points, the planes there, the parameters along the edge, its kind and two per-end
    words (MergeSegmentLists copies at[0]/apos[0]/anormal[0]/x4C for an entry and the [1] fields/x50 for an exit). */
-struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; int x4C; int x50; int pad[3]; };
+struct LSG { qword points[2]; qword planes[2]; float params[2]; int kind; int entryData; int exitData; int pad[3]; };
 typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
 /* View of the object a segment is clipped against: its bounding-sphere centre (pa->q70) and radius (+0x8), the
    flags (bit 49 of +0x10: has a sphere) and its BSP (+0x74). */
-struct SPHEREV { char pad[0x70]; qword q70; };
-struct SOCLIP { SPHEREV *pa; int pad; float f8; int pad2; unsigned long ul10; char pad18[0x74 - 0x18]; int x74; };
-typedef char assert_SOCLIP_x74[(unsigned int)&((SOCLIP *)0)->x74 == 0x74 ? 1 : -1];
+struct SPHEREV { char pad[0x70]; qword center; };
+struct SOCLIP { SPHEREV *sphere; int pad; float radius; int pad2; unsigned long flags; char pad18[0x74 - 0x18]; int bsp; };
+typedef char assert_SOCLIP_x74[(unsigned int)&((SOCLIP *)0)->bsp == 0x74 ? 1 : -1];
 
 struct CTX { int a[4]; };
 struct AREQ { int cb; int cbAlign; };
@@ -51,9 +51,9 @@ void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);   /* CopyAb__FPvT0Ui */
  * @end-sly2-annot */
 // Clips the segment a->b against one object using its own BSP (+0x74); returns the number of LSG spans written
 // (at most c) into alsg.
-extern "C" int ClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg)
+extern "C" int ClipEdgeToObject(SOCLIP *object, qword start, qword end, int maxSegments, LSG *segments)
 {
-    return ClipEdgeToObjectPruned(p, p->x74, a, b, c, alsg);
+    return ClipEdgeToObjectPruned(object, object->bsp, start, end, maxSegments, segments);
 }
 
 /** @sly2-annot addr=0x14C6D8
@@ -66,10 +66,10 @@ extern "C" int ClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg)
  * @end-sly2-annot */
 // Clips a->b against an object through a given BSP (n), or, when n is 0 and the object is a sphere (flag bit 49),
 // against its bounding sphere. Returns the span count. Lets callers pass a pre-pruned BSP.
-extern "C" int ClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *alsg)
+extern "C" int ClipEdgeToObjectPruned(SOCLIP *object, int bsp, qword start, qword end, int maxSegments, LSG *segments)
 {
-    if (n) return func_00118668(n, 0x7FFFFFFF, a, b, c, alsg);
-    if (p->ul10 & (1UL << 49)) return ClipEdgeToSphere(p->pa->q70, p->f8, a, b, c, alsg);
+    if (bsp) return func_00118668(bsp, 0x7FFFFFFF, start, end, maxSegments, segments);
+    if (object->flags & (1UL << 49)) return ClipEdgeToSphere(object->sphere->center, object->radius, start, end, maxSegments, segments);
     return 0;
 }
 
@@ -115,47 +115,47 @@ static inline qword Normalize(const qword &v)
  * @end-sly2-annot */
 // Intersects the segment pos0->pos1 with a sphere: solves the quadratic in the segment parameter, clamps the roots
 // to [0,1] and writes up to two LSG entries (entry/exit points with outward normals). Returns the span count.
-extern "C" int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg)
+extern "C" int ClipEdgeToSphere(qword center, float radius, qword start, qword end, int maxSegments, LSG *segments)
 {
-    float au[2];
-    if (clsgMax <= 0)
+    float params[2];
+    if (maxSegments <= 0)
         return 0;
-    qword dpos = VuSub(pos0, posCenter);
-    float c = Dot(dpos, dpos) - sRadius * sRadius;
-    qword dir = VuSub(pos1, pos0);
-    float a = Dot(dir, dir);
-    float b = 2.0f * Dot(dir, dpos);
-    float disc = b * b - 4.0f * a * c;
-    if (disc < 1e-4f)
+    qword offset = VuSub(start, center);
+    float cTerm = Dot(offset, offset) - radius * radius;
+    qword direction = VuSub(end, start);
+    float aTerm = Dot(direction, direction);
+    float bTerm = 2.0f * Dot(direction, offset);
+    float discriminant = bTerm * bTerm - 4.0f * aTerm * cTerm;
+    if (discriminant < 1e-4f)
         return 0;
-    disc = SqrtF(disc);
+    discriminant = SqrtF(discriminant);
     {
-        float u0 = (-b - disc) / (2.0f * a);
-        float u1 = (-b + disc) / (2.0f * a);
-        au[0] = u0;
-        au[1] = u1;
-        if (u0 < 0.0f && u1 < 0.0f)
+        float param0 = (-bTerm - discriminant) / (2.0f * aTerm);
+        float param1 = (-bTerm + discriminant) / (2.0f * aTerm);
+        params[0] = param0;
+        params[1] = param1;
+        if (param0 < 0.0f && param1 < 0.0f)
             return 0;
-        if (u0 > 1.0f && u1 > 1.0f)
+        if (param0 > 1.0f && param1 > 1.0f)
             return 0;
     }
     {
-        float t0 = au[0];
-        float t1 = au[1];
-        t1 = GMin(1.0f, t1);
-        t0 = GMax(t0, 0.0f);
-        au[1] = t1;
-        au[0] = t0;
+        float clamped0 = params[0];
+        float clamped1 = params[1];
+        clamped1 = GMin(1.0f, clamped1);
+        clamped0 = GMax(clamped0, 0.0f);
+        params[1] = clamped1;
+        params[0] = clamped0;
     }
     for (int i = 0; i < 2; i++) {
-        float u = au[i];
-        alsg->au[i] = u;
-        qword pos = Combo(VU_FLOAT(u), pos1, VU_FLOAT(1.0f - u), pos0);
-        qword d = VuSubRef(pos, posCenter);
-        alsg->apos[i] = pos;
-        InitPlaneFromNormalPos(&alsg->anormal[i], Normalize(d), pos);
+        float param = params[i];
+        segments->params[i] = param;
+        qword point = Combo(VU_FLOAT(param), end, VU_FLOAT(1.0f - param), start);
+        qword normal = VuSubRef(point, center);
+        segments->points[i] = point;
+        InitPlaneFromNormalPos(&segments->planes[i], Normalize(normal), point);
     }
-    alsg->lsgk = 1;
+    segments->kind = 1;
     return 1;
 }
 
@@ -170,86 +170,86 @@ extern "C" int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qwor
 // Merges two sorted span lists into alsgOut (at most cMax entries) using the set operation k (0 = union; the
 // others intersect/subtract, inferred from the cases). Returns the merged count. Used to combine several objects'
 // clip results along the same segment.
-extern "C" int MergeSegmentLists(int c1, struct LSG *alsg1, int c2, struct LSG *alsg2_, int cMax, struct LSG *alsgOut, int k)
+extern "C" int MergeSegmentLists(int count1, struct LSG *list1, int count2, struct LSG *list2Arg, int maxSegments, struct LSG *output, int operation)
 {
-    /* hard-register local: fixes the s2/s3 assignment of alsg2 vs c2 */
-    register struct LSG *alsg2 __asm__("$18") = alsg2_;
-    struct CTX ctx;
-    struct AREQ req;
-    struct LSG *apl[2];
-    struct LSG *alsgT;
-    struct LSG *plsg;
-    struct LSG *plsgEnd1;
-    struct LSG *plsgEnd2;
-    int i1, i2, fPrev, n, c;
-    STACKSCOPE_ctor(&ctx);
+    /* hard-register local: fixes the s2/s3 assignment of list2 vs count2 */
+    register struct LSG *list2 __asm__("$18") = list2Arg;
+    struct CTX scope;
+    struct AREQ request;
+    struct LSG *cursors[2];
+    struct LSG *scratch;
+    struct LSG *out;
+    struct LSG *end1;
+    struct LSG *end2;
+    int inside1, inside2, wasInside, threshold, count;
+    STACKSCOPE_ctor(&scope);
     {
-        struct AREQ *preq = &req;
-        preq->cb = cMax * sizeof(struct LSG);
-        preq->cbAlign = 0x10;
-        alsgT = (struct LSG *)PvAllocSlot__FP8ALLOCREQ(preq);
+        struct AREQ *requestPtr = &request;
+        requestPtr->cb = maxSegments * sizeof(struct LSG);
+        requestPtr->cbAlign = 0x10;
+        scratch = (struct LSG *)PvAllocSlot__FP8ALLOCREQ(requestPtr);
     }
-    i1 = 0;
-    i2 = 0;
-    apl[0] = alsg1;
-    fPrev = 0;
-    apl[1] = alsg2;
-    plsgEnd1 = alsg1 + c1;
-    plsgEnd2 = alsg2 + c2;
-    plsg = alsgT;
-    switch (k) {
+    inside1 = 0;
+    inside2 = 0;
+    cursors[0] = list1;
+    wasInside = 0;
+    cursors[1] = list2;
+    end1 = list1 + count1;
+    end2 = list2 + count2;
+    out = scratch;
+    switch (operation) {
     case 0:
-        n = 1;
+        threshold = 1;
         break;
     case 1:
-        n = 2;
+        threshold = 2;
         break;
     }
-    while (apl[0] < plsgEnd1 || apl[1] < plsgEnd2) {
-        float g1, g2;
-        int iOld;
-        struct LSG **ppl;
-        struct LSG *pl;
-        int fIn;
-        g1 = apl[0] < plsgEnd1 ? apl[0]->au[i1] : 3.40282346638528859812e+38f;
-        g2 = apl[1] < plsgEnd2 ? apl[1]->au[i2] : 3.40282346638528859812e+38f;
-        if (g1 <= g2) {
-            iOld = i1;
-            i1 = 1 - iOld;
-            ppl = &apl[0];
+    while (cursors[0] < end1 || cursors[1] < end2) {
+        float param1, param2;
+        int wasInsideSpan;
+        struct LSG **cursor;
+        struct LSG *current;
+        int isInside;
+        param1 = cursors[0] < end1 ? cursors[0]->params[inside1] : 3.40282346638528859812e+38f;
+        param2 = cursors[1] < end2 ? cursors[1]->params[inside2] : 3.40282346638528859812e+38f;
+        if (param1 <= param2) {
+            wasInsideSpan = inside1;
+            inside1 = 1 - wasInsideSpan;
+            cursor = &cursors[0];
         } else {
-            iOld = i2;
-            i2 = 1 - iOld;
-            ppl = &apl[1];
+            wasInsideSpan = inside2;
+            inside2 = 1 - wasInsideSpan;
+            cursor = &cursors[1];
         }
-        fIn = n <= i1 + i2;
-        pl = *ppl;
-        if (fIn != fPrev) {
-            if (fIn) {
-                plsg->au[0] = pl->au[0];
-                plsg->apos[0] = pl->apos[0];
-                plsg->anormal[0] = pl->anormal[0];
-                plsg->x4C = pl->x4C;
+        isInside = threshold <= inside1 + inside2;
+        current = *cursor;
+        if (isInside != wasInside) {
+            if (isInside) {
+                out->params[0] = current->params[0];
+                out->points[0] = current->points[0];
+                out->planes[0] = current->planes[0];
+                out->entryData = current->entryData;
             } else {
-                plsg->au[1] = pl->au[1];
-                plsg->apos[1] = pl->apos[1];
-                plsg->anormal[1] = pl->anormal[1];
-                plsg->x50 = pl->x50;
-                plsg++;
-                if (cMax < plsg - alsgT) {
-                    plsg--;
+                out->params[1] = current->params[1];
+                out->points[1] = current->points[1];
+                out->planes[1] = current->planes[1];
+                out->exitData = current->exitData;
+                out++;
+                if (maxSegments < out - scratch) {
+                    out--;
                     break;
                 }
             }
-            fPrev = fIn;
+            wasInside = isInside;
         }
-        if (iOld == 1)
-            *ppl = pl + 1;
+        if (wasInsideSpan == 1)
+            *cursor = current + 1;
     }
-    c = plsg - alsgT;
-    CopyAb(alsgOut, alsgT, c * sizeof(struct LSG));
-    STACKSCOPE_ctor_1AE4A0(&ctx, 2);
-    return c;
+    count = out - scratch;
+    CopyAb(output, scratch, count * sizeof(struct LSG));
+    STACKSCOPE_ctor_1AE4A0(&scope, 2);
+    return count;
 }
 
 // 0x14CC50: dead-code scrap (sly2/scrap.h)
@@ -264,26 +264,26 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  * @end-sly2-annot */
 // Returns the first object (the one entered at the smallest segment parameter) among apso[0..cso) that the line
 // a->b hits, filtering by grf, and copies the winning span into *plsg. Sly 1 name.
-extern "C" void *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int grf, qword a, qword b, int cso, void **apso, struct LSG *plsg)
+extern "C" void *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int flags, qword start, qword end, int numObjects, void **objects, struct LSG *hitSegment)
 {
-    void *psoBest = 0;
-    float tBest = 3.40282346638528859812e+38f;
+    void *bestObject = 0;
+    float bestParam = 3.40282346638528859812e+38f;
     int i;
-    for (i = 0; i < cso; i++) {
-        struct LSG alsg[2];
-        void *pso = apso[i];
-        int c = ClipEdgeToObject((SOCLIP *)pso, a, b, 2, alsg);
-        int j = 0;
-        if (c > 0 && alsg[0].au[0] == 0.0f && (grf & 1))
-            j = 1;
-        if (j < c && alsg[j].au[0] < tBest) {
-            tBest = alsg[j].au[0];
-            psoBest = pso;
-            if (plsg)
-                *plsg = alsg[j];
+    for (i = 0; i < numObjects; i++) {
+        struct LSG segments[2];
+        void *object = objects[i];
+        int count = ClipEdgeToObject((SOCLIP *)object, start, end, 2, segments);
+        int first = 0;
+        if (count > 0 && segments[0].params[0] == 0.0f && (flags & 1))
+            first = 1;
+        if (first < count && segments[first].params[0] < bestParam) {
+            bestParam = segments[first].params[0];
+            bestObject = object;
+            if (hitSegment)
+                *hitSegment = segments[first];
         }
     }
-    return psoBest;
+    return bestObject;
 }
 
 /** @sly2-annot addr=0x14CDB0
@@ -296,15 +296,15 @@ extern "C" void *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int grf, qword a
  * @end-sly2-annot */
 // Clips a->b against every object in apso and unions the results (MergeSegmentLists k=0) into alsg; returns the
 // number of spans. Scratch lists live in a stack scope.
-extern "C" int ClipEdgeToObjects(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg)
+extern "C" int ClipEdgeToObjects(qword start, qword end, int numObjects, void **objects, int maxSegments, struct LSG *segments)
 {
-    int c = 0;
+    int count = 0;
     int i;
-    for (i = 0; i < cso; i++) {
-        struct LSG *plsg = &alsg[c];
-        int n = ClipEdgeToObject((SOCLIP *)apso[i], a, b, cMax - c, plsg);
-        if (n)
-            c = MergeSegmentLists(c, alsg, n, plsg, cMax, alsg, 0);
+    for (i = 0; i < numObjects; i++) {
+        struct LSG *next = &segments[count];
+        int numNew = ClipEdgeToObject((SOCLIP *)objects[i], start, end, maxSegments - count, next);
+        if (numNew)
+            count = MergeSegmentLists(count, segments, numNew, next, maxSegments, segments, 0);
     }
-    return c;
+    return count;
 }
