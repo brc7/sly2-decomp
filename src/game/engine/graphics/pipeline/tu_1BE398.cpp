@@ -36,7 +36,7 @@ union TEX0 { TEX0_FIELDS fields; long word; };
 
 struct RTCAM;
 /* A render target (g_sw.artgt[2], sly2/sw.h's RENDERTGT, 0x28 bytes; this view reads TEX0 as bit-fields): its size, texture register, the two GIF packets built by
-   func_001BE398, and the camera object that owns it (0 when free). */
+   InitRenderTargets, and the camera object that owns it (0 when free). */
 struct RT
 {
     int dx, dy;
@@ -50,7 +50,7 @@ struct RT
 };
 typedef char assert_RT_size[sizeof(RT) == 0x28 ? 1 : -1];
 
-/* An object the camera renders (+0xE4 list): LO fields used by func_001BEB28. */
+/* An object the camera renders (+0xE4 list): LO fields used by AcquireRenderTarget. */
 struct LOROOTV { struct LOV *plo; };
 struct LOV { char pad0[0xC]; VTE *vt; char pad10[4]; LOROOTV *ploroot; char pad18[0x10]; unsigned long x28; char pad30[0x10]; int x40; };
 /* An object of the second list (+0x108). */
@@ -77,7 +77,7 @@ struct SW; struct LO; struct BASIC;
 /* The hero's PO view: a 0x34-derived hero hands on to the object at +0xF40. */
 struct POV { char pad[0xF40]; POV *xF40; };
 
-/* The two render targets' lookup rows (26 ints each, -1: none), indexed by func_001BEE10 (tu_1BE398's .data). */
+/* The two render targets' lookup rows (26 ints each, -1: none), indexed by GetRenderTargetTexture (tu_1BE398's .data). */
 int D_002C0B28[26] = {-1, -1, -1, 15, 15, 16, 16, -1, -1, 17, -1, -1, -1, -1, -1, 15, 16, 17, 15, 16, 17, -1, 15, 16, 17, -1};
 int D_002C0B90[26] = {-1, -1, -1, 18, 18, 19, 19, -1, -1, 20, -1, -1, -1, -1, -1, 18, 19, 20, 18, 19, 20, -1, 18, 19, 20, -1};
 int *D_002C0BF8[2] = {D_002C0B28, D_002C0B90};
@@ -88,10 +88,10 @@ M3*GetLoWorldMatrix(RTCAM*);
 qword GetLoWorldPos(RTCAM*);
 qword*VECTOR_opAssign(qword*,qword);
 float tanf(float);
-void func_0014D8F8(M4*,M4*,M4*);
+void CombineEyeLookAtProj(M4*,M4*,M4*);
 void BeginRpGlob(VIFS *pvifs, int, int);
-void func_001BE6F0(RT *prt, VIFS *pvifs);
-RT *func_001BEB28(RTCAM *pcam);
+void SetupRenderTargetView(RT *prt, VIFS *pvifs);
+RT *AcquireRenderTarget(RTCAM *pcam);
 void InitXfm(RTCAM *pcam);
 void LoadXfmFromBrx(RTCAM *pcam, void *pbis);
 int IsLoInWorld(LOV *plo);
@@ -110,15 +110,9 @@ static inline int PackNext(GIFS &g, int x, int y)
     g.PackXYZ(x << 4, y << 4, 0);
     return x;
 }
-/** @sly2-annot addr=0x1BE398
- * Purpose: Allocate GS buffers and build TEX0/CLUT setup packets for the two offscreen item-render slots
- *   (D_003E1A78, D_003E1AA0)
- * Info: proposed name InitItemRenderTargets (T2); TU tu_1BE398
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BE398(RT *pt, GSB *px)
+// Level setup of the two render targets (D_003E1A78, D_003E1AA0): allocates each one's 128x128 texture from GS memory
+// and builds its packets (clear the target, bind it as a texture with TEX0/CLUT). (inferred)
+extern "C" void InitRenderTargets(RT *pt, GSB *px)
 {
     register int cbBlock __asm__("$17") = 0x40;
     register int negative __asm__("$19") = -1;
@@ -175,15 +169,9 @@ extern "C" void func_001BE398(RT *pt, GSB *px)
 static inline qword Bcast(float f){register qword q __asm__("vf2");q = VuFromFloat<qword>(f);return q;}
 static inline qword Scale0(qword v,qword k){register qword q __asm__("vf4");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
 static inline qword Scale2(qword v,qword k){register qword q __asm__("vf1");__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(q):"j"(v),"j"(k));return q;}
-/** @sly2-annot addr=0x1BE6F0
- * Purpose: Build look-at + projection for the slot's camera object and emit VIF/DMA setup (base/offset,
- *   unpack)
- * Info: proposed name SetupItemRenderView (T2); TU tu_1BE398
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BE6F0(RT*p,VIFS*v){
+// Starts rendering into a target: builds the look-at and projection of the target's camera object (RTCAM) and emits
+// the VIF setup (BASE/OFFSET, the camera constants for VU1). Called by the BeginRpRenderTarget0/1 pass hooks. (inferred)
+extern "C" void SetupRenderTargetView(RT*p,VIFS*v){
  U axis0,axis1,axis2,minus2,minus0,copy1;
  M4 view;
  U scalar;
@@ -222,7 +210,7 @@ extern "C" void func_001BE6F0(RT*p,VIFS*v){
  slope*=4096.0f;
  aspect*=4096.0f;
  BuildSimpleProjectionMatrix((float)p->dx/aspect,(float)p->dy/slope,0.0f,0.0f,p->camera->clipFar,p->camera->clipNear,(MATRIX4*)&projection);
- func_0014D8F8(pv,&projection,&product);
+ CombineEyeLookAtProj(pv,&projection,&product);
  {RTCAM*camera=p->camera;
   float z=(camera->clipFar+camera->clipNear)/(camera->clipFar-camera->clipNear);
   float k=1.0f-z;
@@ -243,41 +231,22 @@ extern "C" void func_001BE6F0(RT*p,VIFS*v){
  v->EndDmaCnt();
 }
 
-/** @sly2-annot addr=0x1BE990
- * Purpose: Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then
- *   BeginRpGlob
- * Info: proposed name BeginRpRenderTarget0 (T1); TU tu_1BE398
- * Notes: superseded: DrawItemRenderSlot0 (r5b_rest)
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
+// Pass 8 begin (kind 15): set up render-to-texture slot 0 (target packet + slot camera) then BeginRpGlob. (inferred)
 extern "C" void BeginRpRenderTarget0(VIFS *pvifs, int a1, int a2)
 {
-    func_001BE6F0(&((RT *)g_sw.artgt)[0], pvifs);
+    SetupRenderTargetView(&((RT *)g_sw.artgt)[0], pvifs);
     BeginRpGlob(pvifs, a1, a2);
 }
 
-/** @sly2-annot addr=0x1BE9E8
- * Purpose: Pass 9 begin (kind 18): same for slot 1
- * Info: proposed name BeginRpRenderTarget1 (T1); TU tu_1BE398
- * Notes: superseded: DrawItemRenderSlot1 (r5b_rest)
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
+// Pass 9 begin (kind 18): same for slot 1. (inferred)
 extern "C" void BeginRpRenderTarget1(VIFS *pvifs, int a1, int a2)
 {
-    func_001BE6F0(&((RT *)g_sw.artgt)[1], pvifs);
+    SetupRenderTargetView(&((RT *)g_sw.artgt)[1], pvifs);
     BeginRpGlob(pvifs, a1, a2);
 }
 
-/** @sly2-annot addr=0x1BEA40
- * Purpose: CID 45 vt7: InitXfm, fov/near/far defaults 1, 4, 1000
- * Info: proposed name InitCid45 (T2); class CID45 slot7; TU tu_1BE398
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
+// Initializes a render-target camera (RTCAM, class cid 0x2D, vtable slot 7): XFM init, field of view 1 rad, near 4,
+// far 1000. (inferred)
 void CID45::Init()
 {
     RTCAM *pcam = (RTCAM *)this;
@@ -287,40 +256,21 @@ void CID45::Init()
     pcam->clipNear = 1000.0f;
 }
 
-/** @sly2-annot addr=0x1BEA88
- * Purpose: CID 45 vt14: LoadXfmFromBrx
- * Info: proposed name LoadCid45FromBrx (T2); class CID45 slot14; TU tu_1BE398
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels |
- *   verifier PLAUSIBLE: Placeholder class. CID 0x2D vtable slot 14, tail call LoadXfmFromBrx. | T2 forced:
- *   verifier: placeholder name
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources:
- *   r5b_rest+parse-verified+verdicts_followups
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BEA88(RTCAM *pcam, void *pbis)
+// Loads an RTCAM from the level file (vtable slot 14): just its transform.
+extern "C" void LoadRtcamFromBrx(RTCAM *pcam, void *pbis)
 {
     LoadXfmFromBrx(pcam, pbis);
 }
 
-/** @sly2-annot addr=0x1BEAA8
- * Purpose: Append object to list
- * Info: proposed name AddCid45Object (T2); class CID45; TU tu_1BE398
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BEAA8(RTCAM *p, LOV *x)
+// Adds an object to the set the camera renders into its target. (inferred)
+extern "C" void AddRtcamObject(RTCAM *p, LOV *x)
 {
     if (x) p->ap[p->c++] = x;
 }
 
-/** @sly2-annot addr=0x1BEAD0
- * Purpose: Append object, set flags, call its vt9
- * Info: proposed name AddCid45ObjectShown (T2); class CID45; TU tu_1BE398
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BEAD0(RTCAM *p, RTO *po)
+// Adds an object to the camera's set and records how to restore it after the render (flags), calling its vtable slot 9
+// (inferred: hides it from the normal scene while it is shown in the target).
+extern "C" void AddRtcamObjectShown(RTCAM *p, RTO *po)
 {
     if (po) {
         VTE *e;
@@ -332,14 +282,9 @@ extern "C" void func_001BEAD0(RTCAM *p, RTO *po)
     }
 }
 
-/** @sly2-annot addr=0x1BEB28
- * Purpose: Grab a free render slot for this holder, prepare objects (in-world check, DL append)
- * Info: proposed name AcquireCid45RenderSlot (T2); class CID45; TU tu_1BE398
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" RT *func_001BEB28(RTCAM *p)
+// Claims a free render target for the camera (returns it, or 0 if both are taken) and prepares the camera's objects
+// for it. The HUD calls this to show a 3D object (found with FindObjectForRenderTarget) as a texture. (inferred)
+extern "C" RT *AcquireRenderTarget(RTCAM *p)
 {
     unsigned int i;
     int j;
@@ -380,26 +325,17 @@ extern "C" RT *func_001BEB28(RTCAM *p)
     return p->prt;
 }
 
-/** @sly2-annot addr=0x1BECF8
- * Purpose: wrapper
- * Info: proposed name AcquireCid45RenderSlotThunk (T2); class CID45; TU tu_1BE398
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BECF8(RTCAM *pcam)
+// AcquireRenderTarget without the result (the form used as a callback). (inferred)
+extern "C" void AcquireRenderTargetNoResult(RTCAM *pcam)
 {
-    func_001BEB28(pcam);
+    AcquireRenderTarget(pcam);
 }
 
 #define VCALL(o, n, args...) ((void (*)(...))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, args)
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
-/** @sly2-annot addr=0x1BED18
- * Purpose: Release slot, restore objects (vt9 / vt21(1)), self vt21(0), vt3 msg 3
- * Info: proposed name ReleaseCid45RenderSlot (T2); class CID45; TU tu_1BE398
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BED18(RTCAM *p)
+// Gives the camera's render target back: restores its objects (vtable slots 9 / 21 by the recorded flags), then
+// notifies itself (slot 21 with 0, message 3). (inferred)
+extern "C" void ReleaseRenderTarget(RTCAM *p)
 {
     int i;
     if (!p->prt) return;
@@ -416,29 +352,16 @@ extern "C" void func_001BED18(RTCAM *p)
 #undef VCALL
 #undef VCALL0
 
-/** @sly2-annot addr=0x1BEE10
- * Purpose: Table lookup D_002C0BF8[slot][n] or -1
- * Info: proposed name IRenderSlotTexture (T2); TU tu_1BE398
- * Notes: verifier PLAUSIBLE: Returns D_002C0BF8[(pe - D_003E1A78)][n] (row of 10 ints) or -1; caller
- *   DrawGlobsetSkinned. That the value is a texture index is a guess. | T2 forced: verifier: role word not
- *   supported by the code
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest+verdicts_followups
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" int func_001BEE10(RTCAM *p, int n)
+// Returns texture n of the camera's render target (table D_002C0BF8[target][n]), or -1 when it holds none; used by
+// the glob renderer to bind the target texture. (inferred)
+extern "C" int GetRenderTargetTexture(RTCAM *p, int n)
 {
     if (!p->prt) return -1;
     return D_002C0BF8[p->prt - (RT *)g_sw.artgt][n];
 }
 
-/** @sly2-annot addr=0x1BEE60
- * Purpose: CID 45 vt19: if it owns a slot, draw each held object's globset (0x169198)
- * Info: proposed name RenderCid45Self (T2); class CID45 slot19; TU tu_1BE398
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BEE60(RTCAM *p)
+// Renders the camera (vtable slot 19): when it holds a target, draws each of its objects' globsets into it. (inferred)
+extern "C" void RenderRtcam(RTCAM *p)
 {
     int i;
     if (p->prt) {
@@ -447,13 +370,9 @@ extern "C" void func_001BEE60(RTCAM *p)
 }
 
 static __inline__ POV *Get(POV *po) { return (po && FIsBasicDerivedFrom((BASIC *)po, (CID)0x34)) ? po->xF40 : po; }
-/** @sly2-annot addr=0x1BEED8
- * Purpose: Find preview object by id (0x2AE/0x2AF relative to current player)
- * Info: proposed name FindItemPreviewObject (T2); TU tu_1BE398
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/rendering.md#tu_1be398-0x1be398-0x1bf110
- * @end-sly2-annot */
-extern "C" void func_001BEED8(int id)
+// Finds the object to show in a render target by id: ids 0x2AE and 0x2AF are searched relative to the hero (the
+// player object, or what it controls), others in the whole world. (inferred)
+extern "C" void FindObjectForRenderTarget(int id)
 {
     switch (id) {
     case 0x2AE:{

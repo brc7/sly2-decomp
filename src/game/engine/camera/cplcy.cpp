@@ -42,29 +42,14 @@ void SetCmNearClip(CM *pcm, float sNearClip);
 void SetCmFov(CM *pcm, float fov);
 void CutCm(CM *pcm);
 
-/** @sly2-annot addr=0x14FCA8
- * Purpose: CPLCY base constructor: vptr(+0xC) = D_002CD570
- * Info: proposed name CPLCY_ctor (T1); class CPLCY; TU cplcy
- * Notes: names_v2 v1 proposed SetCmSniperFocus__FP2CMP3ALOff (0.004) | mangled dropped (base does not match
- *   final name): __5CPLCY
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#4-source-files, docs/engine/camera.md#5-key-functions,
- *   docs/engine/guards-ai.md#8-source-files
- * @end-sly2-annot */
+// CPLCY base constructor: vptr(+0xC) = D_002CD570.
 extern "C" CPLCY *CPLCY_ctor(CPLCY *pcplcy)
 {
     PVTCPLCY(pcplcy) = D_002CD570;
     return pcplcy;
 }
 
-/** @sly2-annot addr=0x14FCC0
- * Purpose: Default (empty) CPLCY slot 1 = Init
- * Info: proposed name InitCplcy (T1); class CPLCY; TU cplcy
- * Notes: names_v2 v1 proposed JoltCm__FP2CM (0.004)
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8,
- *   docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Default (empty) CPLCY slot 1 = Init. (inferred)
 void CPLCY::Init()   /* key function: CPLCY's vtable comes out here */
 {
 }
@@ -73,15 +58,7 @@ namespace M_ActivateCplcy { extern "C" {
 struct G { char pad[0x24]; float f24; char pad2[0x24]; float f4c; };
 extern struct G D_002DDF40;
 struct T { int a; float b; float c; };
-/** @sly2-annot addr=0x14FCC8
- * Purpose: Default slot 2 Activate(psoFocus, pv): pvHero(+0)=psoFocus; save g_cm fovTarget (+4) and sNearClip
- *   (+8)
- * Info: proposed name ActivateCplcy (T1); class CPLCY; TU cplcy
- * Notes: names_v2 v1 proposed _GLOBAL_$I$StartupCm__Fv (0.000)
- * Confidence: high [T1 0.80] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
- *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Default slot 2 Activate(psoFocus, pv): pvHero(+0)=psoFocus; save g_cm fovTarget (+4) and sNearClip (+8)
 void ActivateCplcy(struct T *p, int a)
 {
     p->a = a;
@@ -90,13 +67,7 @@ void ActivateCplcy(struct T *p, int a)
 }
 } } // namespace M_ActivateCplcy
 
-/** @sly2-annot addr=0x14FCE8
- * Purpose: Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); fovTarget=saved
- * Info: proposed name DeactivateCplcy (T1); class CPLCY; TU cplcy
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8,
- *   docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Default slot 3 Deactivate: pvHero=0; SetCmNearClip(saved); fovTarget=saved.
 extern "C" void DeactivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
 {
     pcplcy->pvHero = 0;
@@ -104,64 +75,33 @@ extern "C" void DeactivateCplcy(CPLCY *pcplcy, void *pvHero, void *pv)
     D_002DDF40.fovTarget = pcplcy->gFovTargetSaved;
 }
 
-/** @sly2-annot addr=0x14FD30
- * Purpose: Default (empty) slot 4: called by SetCmPolicy with pv on every insert
- * Info: proposed name SetCplcy (T1); class CPLCY; TU cplcy
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Default (empty) slot 4: called by SetCmPolicy with pv on every insert. (inferred)
 extern "C" void SetCplcy()
 {
 }
 
-/** @sly2-annot addr=0x14FD38
- * Purpose: Default (empty) slot 5: called by RevokeCmPolicy for each removed entry
- * Info: proposed name CPLCY_Revoke (T1); class CPLCY; TU cplcy
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Default (empty) slot 5: called by RevokeCmPolicy for each removed entry. (inferred)
 extern "C" void CPLCY_Revoke()
 {
 }
 
-/** @sly2-annot addr=0x14FD40
- * Purpose: Default (empty) slot 6 Update(pcpdefi, pjoy)
- * Info: proposed name UpdateCplcy (T1); class CPLCY; TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Default (empty) slot 6 Update(pcpdefi, pjoy)
 extern "C" void UpdateCplcy()
 {
 }
 
-/** @sly2-annot addr=0x14FD48
- * Purpose: Default (empty) slot 7
- * Info: proposed name ResetCplcy (T2); class CPLCY; TU cplcy
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
-extern "C" void func_0014FD48()
+// Default (empty) slot 7. (inferred)
+extern "C" void ResetCplcy()
 {
 }
 
-/** @sly2-annot addr=0x14FD50
- * Purpose: True if pcplcy is g_cm's current top policy (D_002DE254 = g_cm.acpr[0].pcplcy)
- * Info: proposed name FActiveCplcy (T1); TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8,
- *   docs/reference/functions/player.md#jt-0x188488-0x18e540
- * @end-sly2-annot */
+// True if pcplcy is g_cm's current top policy (D_002DE254 = g_cm.acpr[0].pcplcy)
 int FActiveCplcy(CPLCY *pcplcy)
 {
     return D_002DE254 == (int)pcplcy;
 }
 
-/** @sly2-annot addr=0x14FD68
- * Purpose: Constructor of the default policy at CM+0x3A0 (vtable D_002CD528)
- * Info: proposed name CMPART1_ctor (T1); class CMPART1; TU cplcy
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Constructor of the default policy at CM+0x3A0 (vtable D_002CD528) (inferred)
 extern "C" CMPART1 *CMPART1_ctor(CMPART1 *pcmpart1)
 {
     CPLCY_ctor(pcmpart1);
@@ -169,39 +109,19 @@ extern "C" CMPART1 *CMPART1_ctor(CMPART1 *pcmpart1)
     return pcmpart1;
 }
 
-/** @sly2-annot addr=0x14FDA0
- * Purpose: Slot 1 of D_002CD528: just calls CPLCY::Init
- * Info: proposed name InitCmpart1 (T1); class CMPART1; TU cplcy
- * Notes: names_v2 C proposed PostTnLoad__FP2TN (0.638)
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Slot 1 of D_002CD528: just calls CPLCY::Init. (inferred)
 void CMPART1::Init()   /* key function */
 {
     CPLCY::Init();
 }
 
-/** @sly2-annot addr=0x14FDC0
- * Purpose: Slot 6 of D_002CD528: just calls CPLCY::Update (default policy does nothing)
- * Info: proposed name UpdateCmpart1 (T1); class CMPART1; TU cplcy
- * Notes: names_v2 C proposed RenderTnSelf__FP2TNP2CMP2RO (0.638)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources:
- *   r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Slot 6 of D_002CD528: just calls CPLCY::Update (default policy does nothing)
 extern "C" void UpdateCmpart1(CMPART1 *pcmpart1, void *pv, JOY *pjoy)
 {
     UpdateCplcy(pcmpart1, pv, pjoy);
 }
 
-/** @sly2-annot addr=0x14FDE0
- * Purpose: CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndUnk38 = 0
- * Info: proposed name CPLOOK_ctor (T1); class CPLOOK; TU cplcy
- * Notes: runtime5a #9/#11: CM+0x450 CPLOOK prio 7 = binocucom camera for all three characters
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPLOOK ctor (vtable D_002CD4E0): rZoomMax(+0x28)=7.0, psndZoom/psndUnk38 = 0.
 extern "C" CPLOOK *CPLOOK_ctor(CPLOOK *pcplook)
 {
     CPLCY_ctor(pcplook);
@@ -212,12 +132,9 @@ extern "C" CPLOOK *CPLOOK_ctor(CPLOOK *pcplook)
     return pcplook;
 }
 
-/** @sly2-annot addr=0x14FE28
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Info: TU cplcy
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * @end-sly2-annot */
-extern "C" void func_0014FE28(CPLOOK *pcplook)
+// Resets the look policy's zoom: zoom amount and its speed to 0, and the camera field of view back to the policy's
+// zoom field of view (radFovZoom).
+extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 {
     pcplook->uZoom = 0.0f;
     pcplook->svuZoom = 0.0f;
@@ -231,13 +148,7 @@ struct X { void *po; };
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-/** @sly2-annot addr=0x14FE58
- * Purpose: Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER
- * Info: proposed name PosCplookAnchor (T1); TU cplcy
- * Notes: names_v2 C proposed FCheckTbspPoint__FP4TBSPP6VECTOR (0.649)
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER. (inferred)
 qword PosCplookAnchor(struct X *p)
 {
     U s;
@@ -266,12 +177,7 @@ struct X { int a[4]; float g10; float g14; };
 extern qword D_002A5000;
 void LoadRotateMatrixPanTiltP(M3 *pm, float x, float y) __asm__("LoadRotateMatrixPanTilt");
 qword PosCplookAnchor(struct X *p);
-/** @sly2-annot addr=0x14FEC8
- * Purpose: Eye = anchor + RotMatrix(radPan +0x10, radTilt +0x14) * D_002A5000 offset
- * Info: proposed name PosCplookEye (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Eye = anchor + RotMatrix(radPan +0x10, radTilt +0x14) * D_002A5000 offset. (inferred)
 qword PosCplookEye(struct X *p)
 {
     M3 m;
@@ -317,16 +223,8 @@ void *GetLoWorldMatrix(int);
 float GLimitLm__FP2LMf(F2 *, float);
 void SetCmNearClip__FP2CMf(struct G *, float);
 
-/** @sly2-annot addr=0x14FF38
- * Purpose: Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus),
- *   pan/tilt limits, uZoom=0, fov zoom range, near clip 49, cEnter++
- * Info: proposed name ActivateCplook (T1); TU cplcy
- * Notes: runtime3: CM+0x450 CPLOOK prio 7
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/engine/camera.md#5-key-functions, docs/engine/camera.md#open-questions,
- *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Binocucom/look mode enter: start zoom sounds 0x26/0x25, pan/tilt from current camera (or focus), pan/tilt limits,
+// uZoom=0, fov zoom range, near clip 49, cEnter++.
 void ActivateCplook(struct X *p)
 {
     struct G *pg;
@@ -426,13 +324,8 @@ static __inline__ float GClamp2(float g, float gMin, float gMax)
     return g;
 }
 
-/** @sly2-annot addr=0x150160
- * Purpose: Look-mode update: zoom from joy (+0x1074) with sound pitch/volume, fov lerp, pan/tilt from sticks
- *   (invert option via splice 0x3D4A60), limits, SetCmLookAt(eye, anchor)
- * Info: proposed name UpdateCplook (T1); TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Look-mode update: zoom from joy (+0x1074) with sound pitch/volume, fov lerp, pan/tilt from sticks (invert option via
+// splice 0x3D4A60), limits, SetCmLookAt(eye, anchor)
 void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
 {
     float x, u, gPan, gTilt, dt;
@@ -487,12 +380,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
 }
 } } // namespace M_UpdateCplook
 
-/** @sly2-annot addr=0x1505D8
- * Purpose: Slot 7: release psndUnk38/psndZoom refs
- * Info: proposed name ResetCplook (T2); TU cplcy
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Slot 7: release psndUnk38/psndZoom refs. (inferred)
 /* Slot 7: releases the two sound pointers. */
 void CPLOOK::VSlot7()   /* key function */
 {
@@ -516,13 +404,7 @@ static inline void Release(void **pp, float g)
         RcPtr_Assign(pp, 0);
     }
 }
-/** @sly2-annot addr=0x150610
- * Purpose: Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then
- *   CPLCY::Deactivate
- * Info: proposed name DeactivateCplook (T1); TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Stop/release zoom sounds, SetCmCut with pan+PI/-tilt (camera continues behind), then CPLCY::Deactivate.
 void DeactivateCplook(struct A *a, int n, void *b)
 {
     Release(&a->p34, 0.0f);
@@ -535,15 +417,7 @@ void DeactivateCplook(struct A *a, int n, void *b)
 }
 } } // namespace M_DeactivateCplook
 
-/** @sly2-annot addr=0x150728
- * Purpose: CPZOOM ctor (vtable D_002CD498): rZoomMax(+0xB4)=7.0, uZoomTarget(+0x18)=-1, sounds 0
- * Info: proposed name CPZOOM_ctor (T1); class CPZOOM; TU cplcy
- * Notes: runtime6 C7: CM+0x520 = CPZOOM = the recon camera (prio 8 while JTMODE kind 1, S57); ctor called on
- *   cm+0x520 by 0x14D3D8
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPZOOM ctor (vtable D_002CD498): rZoomMax(+0xB4)=7.0, uZoomTarget(+0x18)=-1, sounds 0.
 extern "C" CPZOOM *CPZOOM_ctor(CPZOOM *pcpzoom)
 {
     CPLCY_ctor(pcpzoom);
@@ -564,12 +438,7 @@ extern char D_003DD490[];
 struct S { int pad[4]; void *p10; };
 qword GetLoWorldPos(void *p);
 void *GetCurrentPo(void *p);
-/** @sly2-annot addr=0x150780
- * Purpose: Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos
- * Info: proposed name PosCpzoomCenter (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos. (inferred)
 qword PosCpzoomCenter(struct S *p)
 {
     VU v;
@@ -630,13 +499,8 @@ static inline qword MulM3(M3 *pm, qword v)
     __asm__("vmulax.xyz ACC, %2, %1x\n\tvmadday.xyz ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(r) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]));
     return r;
 }
-/** @sly2-annot addr=0x1507F8
- * Purpose: Eye: if ploFocus(+0x14), behind center looking at focus (updates radPan +0xA4); else center +
- *   Rot(radPan,radTilt)*offset
- * Info: proposed name PosCpzoomEye (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Eye: if ploFocus(+0x14), behind center looking at focus (updates radPan +0xA4); else center +
+// Rot(radPan,radTilt)*offset. (inferred)
 qword PosCpzoomEye(struct X *p)
 {
     qword r;
@@ -670,15 +534,8 @@ void PauseSnd(void *p);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *pmat, float *pa, float *pb);
 void SetCmNearClip__FP2CMf(struct G *pg, float g);
 void SnapCpzoom(struct A *a);
-/** @sly2-annot addr=0x150938
- * Purpose: Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49,
- *   SnapCpzoom, shares cEnter counter (g_cm+0x4A4)
- * Info: proposed name ActivateCpzoom (T1); TU cplcy
- * Notes: runtime6 C7: CPZOOM activated as the recon camera (JTMODE kind 1, S57)
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Zoom-cam enter: zoom sounds 0x26/0x25, pan/tilt from current camera mat, fov range, near clip 49, SnapCpzoom, shares
+// cEnter counter (g_cm+0x4A4)
 void ActivateCpzoom(struct A *a, int n)
 {
     void *p;
@@ -756,15 +613,8 @@ static __inline__ float GFrac(float g, float a, float b)
     return (g - a) / (b - a);
 }
 
-/** @sly2-annot addr=0x150A28
- * Purpose: Smooth uZoom toward uZoomTarget with sounds; if posed (fPose +0x40) blend pos/eul/fov to target
- *   pose, else smooth center/eye and SetCmLookAt
- * Info: proposed name UpdateCpzoom (T1); TU cplcy
- * Notes: runtime6 C7: CPZOOM = recon camera (S57)
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Smooth uZoom toward uZoomTarget with sounds; if posed (fPose +0x40) blend pos/eul/fov to target pose, else smooth
+// center/eye and SetCmLookAt.
 void UpdateCpzoom(struct X *p)
 {
     UpdateCplcy(p);
@@ -830,12 +680,7 @@ void UpdateCpzoom(struct X *p)
 }
 } } // namespace M_UpdateCpzoom
 
-/** @sly2-annot addr=0x150DE8
- * Purpose: Slot 7: release the two sound refs (+0xC4/+0xC0)
- * Info: proposed name ResetCpzoom (T2); TU cplcy
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Slot 7: release the two sound refs (+0xC4/+0xC0) (inferred)
 /* Slot 7: releases the two sound pointers. */
 void CPZOOM::VSlot7()   /* key function */
 {
@@ -844,12 +689,7 @@ void CPZOOM::VSlot7()   /* key function */
     RcPtr_Assign(&pcpzoom->psndZoom, 0);
 }
 
-/** @sly2-annot addr=0x150E20
- * Purpose: ploOwner(+0x10)=plo; if posed, SnapCpzoom; fPose=0
- * Info: proposed name SetCpzoomOwner (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// PloOwner(+0x10)=plo; if posed, SnapCpzoom; fPose=0. (inferred)
 extern "C" void SetCpzoomOwner(CPZOOM *pcpzoom, LO *plo)
 {
     pcpzoom->ploOwner = plo;
@@ -859,12 +699,7 @@ extern "C" void SetCpzoomOwner(CPZOOM *pcpzoom, LO *plo)
     pcpzoom->fPose = 0;
 }
 
-/** @sly2-annot addr=0x150E60
- * Purpose: ploFocus(+0x14)=plo; if posed, SnapCpzoom; fPose=0
- * Info: proposed name SetCpzoomFocus (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// PloFocus(+0x14)=plo; if posed, SnapCpzoom; fPose=0. (inferred)
 extern "C" void SetCpzoomFocus(CPZOOM *pcpzoom, LO *plo)
 {
     pcpzoom->ploFocus = plo;
@@ -874,12 +709,7 @@ extern "C" void SetCpzoomFocus(CPZOOM *pcpzoom, LO *plo)
     pcpzoom->fPose = 0;
 }
 
-/** @sly2-annot addr=0x150EA0
- * Purpose: posTarget(+0x80), eulTarget(+0x90), radFovTarget(+0xA0); if not posed SnapCpzoom; fPose=1
- * Info: proposed name SetCpzoomPose (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// PosTarget(+0x80), eulTarget(+0x90), radFovTarget(+0xA0); if not posed SnapCpzoom; fPose=1. (inferred)
 extern "C" void SetCpzoomPose(CPZOOM *pcpzoom, qword pos, qword eul, float radFov)
 {
     *(qword *)&pcpzoom->posTarget = pos;
@@ -891,12 +721,7 @@ extern "C" void SetCpzoomPose(CPZOOM *pcpzoom, qword pos, qword eul, float radFo
     pcpzoom->fPose = 1;
 }
 
-/** @sly2-annot addr=0x150EE8
- * Purpose: uZoomTarget(+0x18)=g
- * Info: proposed name SetCpzoomUZoomTarget (T1); TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// UZoomTarget(+0x18)=g.
 extern "C" void SetCpzoomUZoomTarget(CPZOOM *pcpzoom, float uZoomTarget)
 {
     pcpzoom->uZoomTarget = uZoomTarget;
@@ -911,12 +736,7 @@ struct S {
 };
 qword PosCpzoomCenter(struct S *p);
 qword PosCpzoomEye(struct S *p);
-/** @sly2-annot addr=0x150EF0
- * Purpose: Reset smoothed center/eye to current targets, uZoom=uZoomTarget (if >=0), pose = target pose
- * Info: proposed name SnapCpzoom (T1); TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Reset smoothed center/eye to current targets, uZoom=uZoomTarget (if >=0), pose = target pose.
 void SnapCpzoom(struct S *p)
 {
     p->q20 = PosCpzoomCenter(p);
@@ -953,12 +773,7 @@ static __inline__ float GetZ(qword q)
     return z;
 }
 static __inline__ int FNear(float a, float b) { return FFloatsNear__Ffff(a, b, 0.0001f); }
-/** @sly2-annot addr=0x150F58
- * Purpose: Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis
- * Info: proposed name FCpzoomCenterArrived (T2); TU cplcy
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Smoothed center (+0x20) == PosCpzoomCenter within 1e-4 per axis. (inferred)
 int func_00150F58(struct S *p)
 {
     int f = 0;
@@ -996,12 +811,7 @@ static __inline__ float GetZ(qword q)
     return z;
 }
 static __inline__ int FNear(float a, float b) { return FFloatsNear__Ffff(a, b, 0.0001f); }
-/** @sly2-annot addr=0x151018
- * Purpose: Smoothed eye (+0x30) == PosCpzoomEye within 1e-4
- * Info: proposed name FCpzoomEyeArrived (T2); TU cplcy
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Smoothed eye (+0x30) == PosCpzoomEye within 1e-4. (inferred)
 int func_00151018(struct S *p)
 {
     int f = 0;
@@ -1018,12 +828,7 @@ int func_00151018(struct S *p)
 namespace M_func_001510D8 { extern "C" {
 struct S { int pad[6]; float g18; char pad2[0xAC - 0x1C]; float gAC; };
 int FFloatsNear__Ffff(float a, float b, float eps);
-/** @sly2-annot addr=0x1510D8
- * Purpose: uZoomTarget < 0 or uZoom ~= uZoomTarget (0.01)
- * Info: proposed name FCpzoomZoomArrived (T2); TU cplcy
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// UZoomTarget < 0 or uZoom ~= uZoomTarget (0.01) (inferred)
 int func_001510D8(struct S *p)
 {
     int f = 0;
@@ -1047,12 +852,7 @@ static inline void Release(void **pp, float g)
         RcPtr_Assign(pp, 0);
     }
 }
-/** @sly2-annot addr=0x151130
- * Purpose: Release sounds, clear owner/focus/pose, uZoomTarget=-1, CutCm, CPLCY::Deactivate
- * Info: proposed name DeactivateCpzoom (T1); TU cplcy
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Release sounds, clear owner/focus/pose, uZoomTarget=-1, CutCm, CPLCY::Deactivate.
 void DeactivateCpzoom(struct A *a, int n, void *b)
 {
     Release(&a->pC0, 0.0f);
@@ -1066,12 +866,7 @@ void DeactivateCpzoom(struct A *a, int n, void *b)
 }
 } } // namespace M_DeactivateCpzoom
 
-/** @sly2-annot addr=0x151208
- * Purpose: CPHANG ctor (vtable D_002CD450)
- * Info: proposed name CPHANG_ctor (T1); class CPHANG; TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPHANG ctor (vtable D_002CD450)
 extern "C" CPHANG *CPHANG_ctor(CPHANG *pcphang)
 {
     CPLCY_ctor(pcphang);
@@ -1088,12 +883,7 @@ void ActivateCplcy(struct A *a, int n, void *b);
 void SetCmNearClip__FP2CMf(void *pg, float g);
 void SetCmFov__FP2CMf(void *pg, float g);
 int NewPositionAct(int n, void *pb, int a, int b, int c, qword q);
-/** @sly2-annot addr=0x151240
- * Purpose: Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), tNext=-1
- * Info: proposed name ActivateCphang (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), tNext=-1. (inferred)
 void ActivateCphang(struct A *a, int n, void *b)
 {
     void *pg;
@@ -1107,12 +897,7 @@ void ActivateCphang(struct A *a, int n, void *b)
 }
 } } // namespace M_ActivateCphang
 
-/** @sly2-annot addr=0x1512E0
- * Purpose: 0x12E460(+0x14), CutCm, CPLCY::Deactivate
- * Info: proposed name DeactivateCphang (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// 0x12E460(+0x14), CutCm, CPLCY::Deactivate. (inferred)
 void CPHANG::Deactivate(void *pvHero, void *pv)   /* key function */
 {
     CPHANG *pcphang = this;
@@ -1188,13 +973,8 @@ static inline qword AddScaled2(VU_VECTOR a, VU_VECTOR b, VU_VECTOR c, VU_FLOAT s
     return r;
 }
 
-/** @sly2-annot addr=0x151340
- * Purpose: Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF
- *   (0x12D108) and SetCmMat4 from the camera transform
- * Info: proposed name UpdateCphang (T1); TU cplcy
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Sway spring: stick deflection or, in state 9, random targets every few seconds; moves target XF (0x12D108) and
+// SetCmMat4 from the camera transform.
 void UpdateCphang(X *p, void *pv, JOY *pjoy)
 {
     qword pos, v;
@@ -1240,15 +1020,7 @@ void UpdateCphang(X *p, void *pv, JOY *pjoy)
 }
 } // namespace M_UpdateCphang
 
-/** @sly2-annot addr=0x151610
- * Purpose: CPCAMBLEND ctor (vtable D_002CD408)
- * Info: proposed name CPCAMBLEND_ctor (T1); class CPCAMBLEND; TU cplcy
- * Notes: runtime6 C7: CM+0x500 = CPCAMBLEND (prio 10, pv = JSG+0x84 CAMMOVE) during CamBlendFrom/To (S59);
- *   ctor called on cm+0x500 by 0x14D3D8
- * Confidence: mid (draft) [T1 0.75] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPCAMBLEND ctor (vtable D_002CD408) (inferred)
 extern "C" CPCAMBLEND *CPCAMBLEND_ctor(CPCAMBLEND *pcpcamblend)
 {
     CPLCY_ctor(pcpcamblend);
@@ -1262,14 +1034,7 @@ struct O { int a[3]; struct VTE *vt; };
 struct B { int pad[5]; struct O *po; };
 struct A { int pad[4]; struct B *pb; };
 void ActivateCplcy(struct A *a, int n, struct B *b);
-/** @sly2-annot addr=0x151648
- * Purpose: pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event)
- * Info: proposed name ActivateCpcamblend (T1); TU cplcy
- * Notes: runtime6 C7: CPCAMBLEND active with pv = JSG CAMMOVE (S59)
- * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+verdicts_tu_r1r2+runtime
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Pcammove(+0x10)=pv; pcammove->pevent vt1 (begin event)
 } } // namespace M_ActivateCpcamblend
 void CPCAMBLEND::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
@@ -1294,12 +1059,7 @@ struct A { int pad[4]; struct B *pb; };
 extern char D_002DDF40[];
 void DeactivateCplcy(struct A *a, int n, struct B *b);
 void CutCm__FP2CM(void *p);
-/** @sly2-annot addr=0x151698
- * Purpose: CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent vt2 (end event); pcammove=0
- * Info: proposed name DeactivateCpcamblend (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPLCY::Deactivate; CutCm if fCutOnLeave(+0xC); pevent vt2 (end event); pcammove=0. (inferred)
 void DeactivateCpcamblend(struct A *a, int n, struct B *b)
 {
     struct O *o;
@@ -1364,15 +1124,8 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
 }
 
 }
-/** @sly2-annot addr=0x151700
- * Purpose: t=(clock.t - tModeStart)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov
- *   between the two CAMPOSEs; SetCmMat4 + SetCmFov
- * Info: proposed name UpdateCpcamblend (T1); TU cplcy
- * Notes: runtime6 C7: CPCAMBLEND is the cutscene blend camera (S59)
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/engine/camera.md#open-questions, docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// T=(clock.t - tModeStart)/dt; curve weight dot((t^3,t^2,t), D_002BDA70[iCurve]); lerp pos/eul/fov between the two
+// CAMPOSEs; SetCmMat4 + SetCmFov.
 extern "C" void UpdateCpcamblend(struct X *p)
 {
     float u, t, t1, fov;
@@ -1412,12 +1165,7 @@ extern "C" void UpdateCpcamblend(struct X *p)
 }
 } // namespace M_UpdateCpcamblend
 
-/** @sly2-annot addr=0x1518C8
- * Purpose: CPTURRET ctor (vtable D_002CD3C0)
- * Info: proposed name CPTURRET_ctor (T1); class CPTURRET; TU cplcy
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPTURRET ctor (vtable D_002CD3C0) (inferred)
 extern "C" CPTURRET *CPTURRET_ctor(CPTURRET *pcpturret)
 {
     CPLCY_ctor(pcpturret);
@@ -1431,12 +1179,7 @@ extern struct G D_002DDF40;
 struct B { char pad[0x1BC]; float g; };
 void ActivateCplcy(void *a, struct B *b);
 void SetCmNearClip__FP2CMf(struct G *pg, float g);
-/** @sly2-annot addr=0x151900
- * Purpose: CPLCY::Activate; near clip 49; fovTarget = turret +0x1BC
- * Info: proposed name ActivateCpturret (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPLCY::Activate; near clip 49; fovTarget = turret +0x1BC. (inferred)
 } } // namespace M_ActivateCpturret
 void CPTURRET::Activate(void *pvHero, void *pv)   /* key function (the namespace's views) */
 {
@@ -1506,14 +1249,8 @@ static inline qword AddScaled(qword a, qword b, VU_FLOAT s)
     return r;
 }
 
-/** @sly2-annot addr=0x151950
- * Purpose: Camera follows turret object's world matrix (plo->vt31 PmatWorld), smoothing rotation/position
- *   unless cut; fov from turret +0x1BC
- * Info: proposed name UpdateCpturret (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Camera follows turret object's world matrix (plo->vt31 PmatWorld), smoothing rotation/position unless cut; fov from
+// turret +0x1BC. (inferred)
 void UpdateCpturret(X *p)
 {
     UpdateCplcy(p);
@@ -1555,12 +1292,7 @@ void UpdateCpturret(X *p)
 }
 } // namespace M_UpdateCpturret
 
-/** @sly2-annot addr=0x151BF0
- * Purpose: CPLCY::Activate; +0x14=psoFocus arg, +0x10=pv arg
- * Info: proposed name ActivateCptwoshot (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// CPLCY::Activate; +0x14=psoFocus arg, +0x10=pv arg. (inferred)
 void CPTWOSHOT::Activate(void *pvHero, void *pv)   /* key function */
 {
     CPTWOSHOT *pcptwoshot = this;
@@ -1641,13 +1373,8 @@ static inline qword Scale(qword a, VU_FLOATJ s) { qword r; __asm__("vmulx.xyzw %
 
 static inline void Cm1(M4 *pm) { SetCmMat4(&D_002DDF40, pm); }
 static inline void Cm2(float g) { SetCmFov__FP2CMf(&D_002DDF40, g); }
-/** @sly2-annot addr=0x151C38
- * Purpose: Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by
- *   distance curves, look-at matrix, fov from distance curve
- * Info: proposed name UpdateCptwoshot (T1); TU cplcy
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
- * @end-sly2-annot */
+// Frame two objects: focus = weighted mix at z=150, eye offset sideways (cross with up) and up by distance curves,
+// look-at matrix, fov from distance curve. (inferred)
 void UpdateCptwoshot(X *p)
 {
     U d;

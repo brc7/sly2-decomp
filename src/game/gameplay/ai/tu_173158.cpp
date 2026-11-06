@@ -140,7 +140,7 @@ EVENT *FindTargetRecordById(LOV *object);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
 void SetDetectorTargetStateById(DETV *pdet,LOV *object,int k);
-void func_001B44D8(int *, void ***);
+void CollectVisibleMsGlobs(int *, void ***);
 float SMaxShape(LOV *);
 int FindRangeContaining(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
@@ -581,7 +581,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposO
     SEL *pselBest;
     int fFlip = 0;
     STACKSCOPE_ctor(&frame);
-    func_001B44D8(&cplo, &aplo);
+    CollectVisibleMsGlobs(&cplo, &aplo);
     pselBest = 0;
     float sBest = D_002A53E0;
 

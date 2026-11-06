@@ -5908,7 +5908,7 @@ extern "C" { extern float D_002BE750; }
 extern "C" { extern float D_002BE754; }
 extern "C" { extern qword D_002A2DC0; }
 extern "C" {
-void func_001B44D8(int *pcpso, SOPART ***papso);
+void CollectVisibleMsGlobs(int *pcpso, SOPART ***papso);
 }
 extern "C" {
 SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("FindFirstObjectHitByLine");
@@ -5927,7 +5927,7 @@ int SnapPositionToSurfaceAbove(qword *ppos)
     STACKSCOPE scope;
     int cpso;
     SOPART **apso;
-    func_001B44D8(&cpso, &apso);
+    CollectVisibleMsGlobs(&cpso, &apso);
     qword posBottom = QwAddScaled(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE750));
     qword posTop = QwAddScaled(*ppos, D_002A2DC0, VuFloatFromMemWord(*(int *)&D_002BE754));
     LSG lsg;

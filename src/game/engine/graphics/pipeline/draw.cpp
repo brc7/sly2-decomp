@@ -1,5 +1,9 @@
-// draw.cpp -- frame draw: render-list (RPL) sorting and the per-frame VIF1 chain (DrawSw).
-// TU 0x157A50..0x1585D8 (7 functions, address order).
+// draw.cpp -- frame draw: turns the frame's render list into the VIF1 DMA chain. Objects append RPL entries (pass kind,
+// sort depth, DMA CALL addresses) while rendering (render.cpp AllocRenderListEntry); DrawSw bucket-sorts them by kind
+// (CprplPartitionArpl, depth-sorting the blended kinds with the two qsort comparators), emits the frame and camera VU
+// constants, and walks the buckets calling each pass's begin/end hook (table D_002BDD88) around the entries' CALL
+// tags. BeginRpForeground is the begin hook of the foreground pass. TU 0x157A50..0x1585D8 (7 functions, address
+// order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_draw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001585B8
 #include "vifs.h"
@@ -12,10 +16,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* One render-list entry: kind (pass bucket), sort depth, two DMA CALL addresses (0 = none). */
 struct RPL
 {
-    int k;      /* +0x0 kind, 0..25 */
-    float z;    /* +0x4 */
-    int a8;     /* +0x8 */
-    int aC;     /* +0xC */
+    int kind;      /* +0x0 kind, 0..25 */
+    float depth;   /* +0x4 sort depth */
+    int dmaCall0;  /* +0x8 DMA CALL address, 0 = none */
+    int dmaCall1;  /* +0xC */
 };
 typedef char assert_RPL_size[sizeof(RPL) == 0x10 ? 1 : -1];
 
@@ -24,7 +28,7 @@ struct V3 { float x, y, z; };
 struct V4 { V3 v; float w; };
 
 /* Views of objects whose classes are not modelled yet; only the fields this TU reads. */
-struct CM { char pad[0x4C]; float rNear; float rFar; char pad2[0xC]; MATRIX4V m60; char pad3[0xA0]; MATRIX4V m140; };
+struct CM { char pad[0x4C]; float rNear; float rFar; char pad2[0xC]; MATRIX4V cameraMatrix; char pad3[0xA0]; MATRIX4V viewProj; };
 struct FR { char pad[0x24]; uchar *pb24; };
 struct GAME { char pad[0x3E28]; int a3E28[4]; int f3E38; int f3E3C; char pad2[0x3EA8 - 0x3E40]; int f3EA8; };
 typedef void (*PFNRP)(VIFS *, int, int);
@@ -55,167 +59,139 @@ void func_001EA9F0(GAME *pgame, int n);
 
 typedef int (*PFNCMP)(const void *, const void *);
 
-/** @sly2-annot addr=0x157A50
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name NCmpPrplReverseZ__FPP3RPLT0 (EXISTING); TU draw
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
-int NCmpPrplReverseZ(RPL **pprpl1, RPL **pprpl2)
+// qsort comparator for RPL pointers: descending depth (farthest first, back-to-front for blended passes), ties broken
+// by entry address. Used for kinds 1, 2, 5, 6, 10 and 25.
+int NCmpPrplReverseZ(RPL **entryA, RPL **entryB)
 {
-    RPL *plhs = *pprpl1;
-    RPL *prhs = *pprpl2;
-    if (prhs->z < plhs->z)
+    RPL *lhs = *entryA;
+    RPL *rhs = *entryB;
+    if (rhs->depth < lhs->depth)
         return -1;
-    if (plhs->z < prhs->z)
+    if (lhs->depth < rhs->depth)
         return 1;
-    return plhs - prhs;
+    return lhs - rhs;
 }
 
-/** @sly2-annot addr=0x157A98
- * Purpose: qsort comparator: RPLs by ascending z, ties by address (front-to-back order)
- * Info: proposed name NCmpPrplZ (T1); TU draw
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
- * @end-sly2-annot */
-int NCmpPrplZ(RPL **pprpl1, RPL **pprpl2)
+// qsort comparator for RPL pointers: ascending depth (nearest first), ties broken by reverse entry address. Used for
+// kind 21 only.
+int NCmpPrplZ(RPL **entryA, RPL **entryB)
 {
-    RPL *plhs = *pprpl1;
-    RPL *prhs = *pprpl2;
-    if (prhs->z < plhs->z)
+    RPL *lhs = *entryA;
+    RPL *rhs = *entryB;
+    if (rhs->depth < lhs->depth)
         return 1;
-    if (plhs->z < prhs->z)
+    if (lhs->depth < rhs->depth)
         return -1;
-    return prhs - plhs;
+    return rhs - lhs;
 }
 
-/** @sly2-annot addr=0x157AE0
- * Purpose: Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some
- *   buckets, returns end index
- * Info: proposed name CprplPartitionArpl (T1); TU draw
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+verdicts_A1
- * See: docs/engine/rendering.md#3-drawsw-sort-prologue-and-pass-dispatch-srchandfunc_00157fa0c-cstatic,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
- * @end-sly2-annot */
-int CprplPartitionArpl(int c, RPL *arpl, RPL **aprpl, int *aiFirst, int *ac)
+// Counting-sorts the frame's RPL array by kind (26 kinds) into the pointer array aprpl, recording each kind's first
+// index (aiFirst) and end index (ac), then depth-sorts the blended kinds. Returns the total entry count (end of kind
+// 25).
+int CprplPartitionArpl(int count, RPL *entries, RPL **sorted, int *firstIndex, int *endIndex)
 {
-    int ai[26];
+    int nextIndex[26];
     int i;
-    RPL *prpl;
+    RPL *entry;
     for (i = 25; i >= 0; i--)
-        ac[i] = 0;
-    {int j; for (j = 0, prpl = arpl; j < c; j++, prpl++)
-        ac[prpl->k]++;}
-    aiFirst[0] = 0;
-    ai[0] = 0;
+        endIndex[i] = 0;
+    {int j; for (j = 0, entry = entries; j < count; j++, entry++)
+        endIndex[entry->kind]++;}
+    firstIndex[0] = 0;
+    nextIndex[0] = 0;
     for (i = 1; i < 26; i++) {
         int t;
-        aiFirst[i] = t = ac[i - 1];
-        ac[i] += t;
-        ai[i] = aiFirst[i];
+        firstIndex[i] = t = endIndex[i - 1];
+        endIndex[i] += t;
+        nextIndex[i] = firstIndex[i];
     }
-    {int k; for (k = 0; k < c; k++, arpl++)
-        aprpl[ai[arpl->k]++] = arpl;}
-    qsort(aprpl + aiFirst[5], ac[5] - aiFirst[5], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(aprpl + aiFirst[6], ac[6] - aiFirst[6], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(aprpl + aiFirst[10], ac[10] - aiFirst[10], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(aprpl + aiFirst[1], ac[1] - aiFirst[1], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(aprpl + aiFirst[2], ac[2] - aiFirst[2], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(aprpl + aiFirst[25], ac[25] - aiFirst[25], 4, (PFNCMP)NCmpPrplReverseZ);
-    qsort(aprpl + aiFirst[21], ac[21] - aiFirst[21], 4, (PFNCMP)NCmpPrplZ);
-    return ac[25];
+    {int k; for (k = 0; k < count; k++, entries++)
+        sorted[nextIndex[entries->kind]++] = entries;}
+    qsort(sorted + firstIndex[5], endIndex[5] - firstIndex[5], 4, (PFNCMP)NCmpPrplReverseZ);
+    qsort(sorted + firstIndex[6], endIndex[6] - firstIndex[6], 4, (PFNCMP)NCmpPrplReverseZ);
+    qsort(sorted + firstIndex[10], endIndex[10] - firstIndex[10], 4, (PFNCMP)NCmpPrplReverseZ);
+    qsort(sorted + firstIndex[1], endIndex[1] - firstIndex[1], 4, (PFNCMP)NCmpPrplReverseZ);
+    qsort(sorted + firstIndex[2], endIndex[2] - firstIndex[2], 4, (PFNCMP)NCmpPrplReverseZ);
+    qsort(sorted + firstIndex[25], endIndex[25] - firstIndex[25], 4, (PFNCMP)NCmpPrplReverseZ);
+    qsort(sorted + firstIndex[21], endIndex[21] - firstIndex[21], 4, (PFNCMP)NCmpPrplZ);
+    return endIndex[25];
 }
 
-/** @sly2-annot addr=0x157CF0
- * Purpose: Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010,
- *   re-upload camera/ambient VU globals, BASE/OFFSET 0x32/0x1E7, then BeginRpGlob
- * Info: proposed name BeginRpForeground (T1); TU draw
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
- * @end-sly2-annot */
-extern "C" void BeginRpForeground(VIFS *pvifs, void *a1, void *a2)
+// Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010, re-upload
+// camera/ambient VU globals, BASE/OFFSET 0x32/0x1E7, then BeginRpGlob. (inferred)
+extern "C" void BeginRpForeground(VIFS *vifs, void *a1, void *a2)
 {
-    V4 akg[2];
-    MATRIX4V m1, m2;
+    V4 clipConstants[2];
+    MATRIX4V viewProj, cameraMatrix;
     if (D_003DD490.f3E38) {
         if (g_pfrmOpen == &D_002DEA50)
-            pvifs->AddDmaCall((QW *)D_002DF940);
+            vifs->AddDmaCall((QW *)D_002DF940);
         else
-            pvifs->AddDmaCall((QW *)D_002DFA80);
+            vifs->AddDmaCall((QW *)D_002DFA80);
     } else {
-        pvifs->AddDmaCall((QW *)D_002DF800);
+        vifs->AddDmaCall((QW *)D_002DF800);
     }
-    pvifs->m_fCheckCnt = 1;
-    pvifs->AddDmaCnt();
-    pvifs->AddVifFlush();
-    pvifs->AddVifDirect(0x25, (QW *)D_002DF010, 0);
-    pvifs->AddVifBaseOffset(0, 0);
+    vifs->m_fCheckCnt = 1;
+    vifs->AddDmaCnt();
+    vifs->AddVifFlush();
+    vifs->AddVifDirect(0x25, (QW *)D_002DF010, 0);
+    vifs->AddVifBaseOffset(0, 0);
     {
-        CM *pcm = &D_002DDF40;
-        float rNear = pcm->rNear;
-        float rFar = pcm->rFar;
-        float r = (rNear + rFar) / (rNear - rFar);
-        float s = rNear * (1.0f - r);
-        akg[0].v = D_002C1F00;
-        akg[0].w = 1.0f / s;
-        akg[1].v = D_002C1F10;
-        akg[1].w = -r / s;
-        pvifs->AddVifUnpack(UPK_V4_32, 2, akg, 0);
+        CM *camera = &D_002DDF40;
+        float rNear = camera->rNear;
+        float rFar = camera->rFar;
+        float depthRatio = (rNear + rFar) / (rNear - rFar);
+        float depthScale = rNear * (1.0f - depthRatio);
+        clipConstants[0].v = D_002C1F00;
+        clipConstants[0].w = 1.0f / depthScale;
+        clipConstants[1].v = D_002C1F10;
+        clipConstants[1].w = -depthRatio / depthScale;
+        vifs->AddVifUnpack(UPK_V4_32, 2, clipConstants, 0);
         if (D_003DD490.f3E38) {
             if (g_pfrmOpen == &D_002DEA50)
-                func_0014F768(pcm, 1, 0, &m1, &m2);
+                func_0014F768(camera, 1, 0, &viewProj, &cameraMatrix);
             else
-                func_0014F768(pcm, 2, 0, &m1, &m2);
+                func_0014F768(camera, 2, 0, &viewProj, &cameraMatrix);
         } else {
-            MATRIX4V *pm1 = &pcm->m140;
-            MATRIX4V *pm2 = &pcm->m60;
-            m1 = *pm1;
-            m2 = *pm2;
+            MATRIX4V *pm1 = &camera->viewProj;
+            MATRIX4V *pm2 = &camera->cameraMatrix;
+            viewProj = *pm1;
+            cameraMatrix = *pm2;
         }
     }
-    pvifs->AddVifUnpack(UPK_V4_32, 4, &m1, 2);
-    pvifs->AddVifUnpack(UPK_V4_32, 4, &m2, 6);
-    pvifs->AddVifUnpack(UPK_V4_32, 1, (char *)&g_sw.vecLightRgb, 10);
-    pvifs->AddVifBaseOffset(0x32, 0x1E7);
-    pvifs->EndDmaCnt();
-    BeginRpGlob(pvifs, a1, a2);
+    vifs->AddVifUnpack(UPK_V4_32, 4, &viewProj, 2);
+    vifs->AddVifUnpack(UPK_V4_32, 4, &cameraMatrix, 6);
+    vifs->AddVifUnpack(UPK_V4_32, 1, (char *)&g_sw.vecLightRgb, 10);
+    vifs->AddVifBaseOffset(0x32, 0x1E7);
+    vifs->EndDmaCnt();
+    BeginRpGlob(vifs, a1, a2);
 }
 
 // g_pfrmOpen: Sly 1 name of the current-frame pointer (frm.cpp defines it; config/symbol_addrs.txt names 0x2DEA4C so).
-/** @sly2-annot addr=0x157FA0
- * Purpose: Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL
- *   kind-change calls the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL
- *   tags; flushes VIFS/GIFS
- * Info: proposed name DrawSw (T1); class SW slot9; TU draw
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/engine/overview.md#5-per-frame-update-and-render, docs/engine/overview.md#6-subsystem-map
- * @end-sly2-annot */
-extern "C" void DrawSw(GAME *pgame)
+// Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls
+// the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL tags; flushes VIFS/GIFS.
+// (inferred)
+extern "C" void DrawSw(GAME *world)
 {
     MATRIX4V mat0;
     MATRIX4V mat1;
-    RPL *aprpl[0x2000];
-    int aiFirst[26];
-    int ac[26];
+    RPL *sorted[0x2000];
+    int firstIndex[26];
+    int endIndex[26];
     V4 v0, v1;
-    int c;
-    int kPrev, kindPrev;
+    int count;
+    int passPrev, kindPrev;
     int i;
 
-    c = CprplPartitionArpl(D_003D4A50 - D_003B3980, D_003B3980, aprpl, aiFirst, ac);
+    count = CprplPartitionArpl(D_003D4A50 - D_003B3980, D_003B3980, sorted, firstIndex, endIndex);
     {
-        uchar *pb = D_002DEA28.m_pb;
-        g_pfrmOpen->pb24 = pb;
+        uchar *writePointer = D_002DEA28.m_pb;
+        g_pfrmOpen->pb24 = writePointer;
     }
     D_002DEA28.AddDmaCall((QW *)D_002DF800);
     D_002DEA28.m_fCheckCnt = 1;
     D_002DEA28.AddDmaCnt();
-    if (pgame->f3E3C || aiFirst[1] == ac[1])
+    if (world->f3E3C || firstIndex[1] == endIndex[1])
         D_002DEA28.AddVifDirect(0x25, (QW *)D_002DEDC0, 0);
     if (D_003DD490.f3E38) {
         D_002DEA28.AddVifFlush();
@@ -228,12 +204,12 @@ extern "C" void DrawSw(GAME *pgame)
     {
         float sNear = D_002DDF40.rNear;
         float sFar = D_002DDF40.rFar;
-        float k = (sNear + sFar) / (sNear - sFar);
-        float g = sNear * (1.0f - k);
+        float depthRatio = (sNear + sFar) / (sNear - sFar);
+        float depthScale = sNear * (1.0f - depthRatio);
         v0.v = D_002C1F00;
-        v0.w = 1.0f / g;
+        v0.w = 1.0f / depthScale;
         v1.v = D_002C1F10;
-        v1.w = -k / g;
+        v1.w = -depthRatio / depthScale;
     }
     D_002DEA28.AddVifUnpack(UPK_V4_32, 2, &v0, 0);
     D_002DEA28.AddVifUnpack(UPK_S32, 1, &D_002DE5A4, 0xD);
@@ -244,46 +220,46 @@ extern "C" void DrawSw(GAME *pgame)
         else
             func_0014F768(&D_002DDF40, 2, 0, &mat0, &mat1);
     } else {
-        MATRIX4V *pm0 = &D_002DDF40.m140;
-        MATRIX4V *pm1 = &D_002DDF40.m60;
+        MATRIX4V *pm0 = &D_002DDF40.viewProj;
+        MATRIX4V *pm1 = &D_002DDF40.cameraMatrix;
         mat0 = *pm0;
         mat1 = *pm1;
     }
     D_002DEA28.AddVifUnpack(UPK_V4_32, 4, &mat0, 2);
     D_002DEA28.AddVifUnpack(UPK_V4_32, 4, &mat1, 6);
-    D_002DEA28.AddVifUnpack(UPK_V4_32, 1, pgame->a3E28, 0xA);
+    D_002DEA28.AddVifUnpack(UPK_V4_32, 1, world->a3E28, 0xA);
     D_002DEA28.AddVifBaseOffset(0x32, 0x1E7);
     D_002DEA28.EndDmaCnt();
-    kPrev = -1;
+    passPrev = -1;
     kindPrev = -1;
-    for (i = 0; i < c; i++) {
-        RPL *prpl = aprpl[i];
-        int kind = prpl->k;
-        int k = D_002BDD20[kind];
-        if (k != kPrev) {
-            if (kPrev != -1)
-                D_002BDD88[kPrev][1](&D_002DEA28, kindPrev, kind);
-            D_002BDD88[k][0](&D_002DEA28, kind, kindPrev);
+    for (i = 0; i < count; i++) {
+        RPL *entry = sorted[i];
+        int kind = entry->kind;
+        int pass = D_002BDD20[kind];
+        if (pass != passPrev) {
+            if (passPrev != -1)
+                D_002BDD88[passPrev][1](&D_002DEA28, kindPrev, kind);
+            D_002BDD88[pass][0](&D_002DEA28, kind, kindPrev);
             kindPrev = kind;
-            kPrev = k;
+            passPrev = pass;
         }
-        if (prpl->a8) {
-            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)prpl->a8 << 32) | 0x50000000;
+        if (entry->dmaCall0) {
+            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)entry->dmaCall0 << 32) | 0x50000000;
             D_002DEA28.m_pb += sizeof(QW);
         }
-        if (prpl->aC) {
-            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)prpl->aC << 32) | 0x50000000;
+        if (entry->dmaCall1) {
+            *(ulong *)D_002DEA28.m_pb = ((ulong)(unsigned int)entry->dmaCall1 << 32) | 0x50000000;
             D_002DEA28.m_pb += sizeof(QW);
         }
     }
-    if (kPrev != -1)
-        D_002BDD88[kPrev][1](&D_002DEA28, kindPrev, -1);
+    if (passPrev != -1)
+        D_002BDD88[passPrev][1](&D_002DEA28, kindPrev, -1);
     D_003D4A50 = 0;
     D_002DEA00.Flush();
     D_002DEA28.Flush();
-    if (pgame->f3EA8) {
-        pgame->f3EA8 = 0;
-        func_001EA9F0(pgame, 0);
+    if (world->f3EA8) {
+        world->f3EA8 = 0;
+        func_001EA9F0(world, 0);
     }
 }
 

@@ -1,5 +1,5 @@
 // tn.cpp -- TN, the camera tunnel (sly2/xfm.h): load / clone / init, its CPD table, its state (SetTnTns: pushes or revokes the
-// tunnel camera policy), its path basis (func_00221408 / func_002215C0); CPTN, the tunnel camera policy (CMPART2, sly2/cm.h):
+// tunnel camera policy), its path basis (ProjectPointOntoTnPath / EvaluateTnPathPos); CPTN, the tunnel camera policy (CMPART2, sly2/cm.h):
 // activate / deactivate and its per-frame update (UpdateCptn, a Lilly port), the line-of-sight test and the eye's obstacle
 // avoidance. TU 0x220D40..0x223F70 (31 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tn
@@ -255,10 +255,10 @@ struct CPD
       float cDist;
       LM lmTilt;
 } __attribute__((aligned(16)));
-void UpdateCmProgress(CMPART2 *pcmpart, CPDEFI *pcpdefi) __asm__("func_00221CE8");
-void CalcCpdFocus(CPD *pcpd, CPDEFI *pcpdefi, qword *ppos, TN *ptn) __asm__("func_00220DD8");
-void CalculateTnCrv(TN *ptn, qword qwPos, VECTOR4 *pdposCrv, VECTOR4 *pvecTangent) __asm__("func_00221408");
-void CalculateTnPos(TN *ptn, VECTOR4 *pdposCrv, float sBase, float dsOffset, CLQ *aclq, LM *alm, FTND ftnd, qword *pposOther) __asm__("func_002215C0");
+void UpdateCmProgress(CMPART2 *pcmpart, CPDEFI *pcpdefi) __asm__("UpdateCptnTarget");
+void CalcCpdFocus(CPD *pcpd, CPDEFI *pcpdefi, qword *ppos, TN *ptn) __asm__("BlendTnFocusPos");
+void CalculateTnCrv(TN *ptn, qword qwPos, VECTOR4 *pdposCrv, VECTOR4 *pvecTangent) __asm__("ProjectPointOntoTnPath");
+void CalculateTnPos(TN *ptn, VECTOR4 *pdposCrv, float sBase, float dsOffset, CLQ *aclq, LM *alm, FTND ftnd, qword *pposOther) __asm__("EvaluateTnPathPos");
 extern "C" {
 float atanf(float x);
 }
@@ -355,7 +355,7 @@ struct LOREF
 extern "C" void BroadcastGameEvent(GAME *pgame, int nEvent, LO *plo);
 extern "C" void GetVectorCylind(qword v, float *prad, float *psXY, float *pz);
 qword ClipCmEye(CM *pcm, qword posFrom, qword posTo) __asm__("func_0014F110");
-void FreeCamClip(CMPART2 *pcmpart, qword posFocus, qword posEye, qword *pposOut) __asm__("func_00223A70");
+void FreeCamClip(CMPART2 *pcmpart, qword posFocus, qword posEye, qword *pposOut) __asm__("AvoidCptnSegmentObstacles");
 void UpdateCmLineOfSight(CMPART2 *pcmpart) __asm__("func_002236E8");
 extern qword D_002A2DA0;
 extern int D_002C4118;
@@ -411,7 +411,7 @@ union UF { qword q; float f; };
 struct VTE { short d; short pad; int (*pfn)(...); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 struct POX { char pad[0x2DC]; int x2DC; };        /* the current player as UpdateTnCallback reads it */
-struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GDistPlanePos) */
+struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GetPlaneDistance) */
 extern SW D_003DD490;
 extern "C" {
 extern const float D_002A96E0;   /* defined below where the ELF has it (.rodata order) */
@@ -475,7 +475,7 @@ void FindShapeClosestPointFromS(SHAPE *p, qword q, float g, int a, int b, int c,
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 qword SetVectorSphere(float a, float b, float c);
 void CutCm__FP2CM(CM *pcm);
-int FFilterCamera(void *pv, SO *pso);
+int HasCameraBsp(void *pv, SO *pso);
 void IntersectSwBoundingBox(SW *psw, qword posMin, qword posMax, int (*pfnFilter)(void *, SO *), int nUnk, int *pcpso, SOPART ***papso);
 qword ConvertCmWorldToScreen(CM *pcm, qword pos);
 qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
@@ -484,23 +484,23 @@ qword FindCmClosestClearPos(int, SOPART **, qword, float);
 qword SquishCmEye(CM *, int, SOPART **, float (*)(void *, qword, qword, PLANEREC *), qword, qword, float, float);
 void InitVuTemp(void *p);
 
-void func_00220D40(CPD *p);
-void func_00220DD8(CPD *p, CPDEFI *pa, qword *ppos, TN *ps);
+void InitTnDefaultAngles(CPD *p);
+void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps);
 void SetTnTns(TN *p, int k);
-void func_00221408(TN *p, qword v, qword *out, qword *normal);
-void func_00221818(TN *p, int id);
-void func_00221940(TN *p);
-void func_00221CE8(CMPART2 *p, CPDEFI *b);
-float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n);
+void ProjectPointOntoTnPath(TN *p, qword v, qword *out, qword *normal);
+void SelectTnCpdForCid(TN *p, int id);
+void ClearTnCpd(TN *p);
+void UpdateCptnTarget(CMPART2 *p, CPDEFI *b);
+float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n);
 }
 /* Callers' own views (asm labels): their argument order / count is what g++ loads the registers in. */
 struct COEF { float a, b, c, d; };
 struct BOUND { float low, high; };
-extern "C" void func_002215C0(TN *p, float *times, COEF *coef, BOUND *bounds, int mode, qword *out, float time, float delta);
-void func_002215C0F(TN *p, qword *times, M3 *coef, LM *bounds, float time, float delta, int mode, qword *out) __asm__("func_002215C0");
+extern "C" void EvaluateTnPathPos(TN *p, float *times, COEF *coef, BOUND *bounds, int mode, qword *out, float time, float delta);
+void func_002215C0F(TN *p, qword *times, M3 *coef, LM *bounds, float time, float delta, int mode, qword *out) __asm__("EvaluateTnPathPos");
 extern "C" void UpdateTnCallback(TN *p);
 void UpdateTnCallbackA(TN *p, int a) __asm__("UpdateTnCallback");
-void func_00221940I(TN *p, int id) __asm__("func_00221940");
+void func_00221940I(TN *p, int id) __asm__("ClearTnCpd");
 
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -508,15 +508,8 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A96E0 __asm__("D_002A96E0") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A96E4 __asm__("D_002A96E4") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x220D40
- * Purpose: if both angles are the sentinel, set both to GLimitLm(atan2(h, len))
- * Info: proposed name InitCptnAngles (T2); TU tn
- * Notes: agent qualifier: lazy pitch init
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/camera.md#3-camera-policies-cplcycpp-0x14fca8-0x1520c8-plus-tncpp,
- *   docs/engine/camera.md#4-source-files, docs/engine/camera.md#5-key-functions
- * @end-sly2-annot */
-void func_00220D40(CPD *p)
+// If both angles are the sentinel, set both to GLimitLm(atan2(h, len)) (inferred)
+void InitTnDefaultAngles(CPD *p)
 {
     if (p->lmTilt.gMin == D_002A96E0 && p->lmTilt.gMax == D_002A96E4) {
         float a = p->dsOffset + p->aclqOffset[0].g0;
@@ -529,13 +522,9 @@ void func_00220D40(CPD *p)
 
 union UM { qword q; float f[4]; };
 struct M3F { UM r[3]; };
-/** @sly2-annot addr=0x220DD8
- * Purpose: lerp of two endpoints by t; optional matrix/basis via 0x221408 / 0x2215C0
- * Info: proposed name GetTnfnNose (T2); TU tn
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-void func_00220DD8(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
+// Blends the focus definition's base and adjusted positions by the CPD weight into *ppos; with a tunnel, also builds
+// the rate matrix and moves the result along the tunnel path (ProjectPointOntoTnPath / EvaluateTnPathPos). (inferred)
+void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
 {
     UM u;
     float t = p->gWeight;
@@ -556,19 +545,14 @@ void func_00220DD8(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
         m.r[2].f[1] = p->agRate[2];
         n = ps->fCylind;
         ps->fCylind = 0;
-        func_00221408(ps, *ppos, &u.q, (qword *)ab);
+        ProjectPointOntoTnPath(ps, *ppos, &u.q, (qword *)ab);
         func_002215C0F(ps, &u.q, (M3 *)&m, p->almOffset, ps->uProgress, 0.0f, 1, ppos);
         ps->fCylind = n;
     }
 }
 
-/** @sly2-annot addr=0x220ED0
- * Purpose: InitXfm; camera defaults (2.0,1.0,2.0,1.0), tns=-1, clq/lm defaults D_002C41C0/D_002C41D0,
- *   priority 7, busyk 1, grf|=2
- * Info: proposed name InitTn (T1); class TN slot7; TU tn
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// InitXfm; camera defaults (2.0,1.0,2.0,1.0), tns=-1, clq/lm defaults D_002C41C0/D_002C41D0, priority 7, busyk 1,
+// grf|=2.
 extern "C" void InitTn(TN *p)
 {
     int f;
@@ -589,28 +573,14 @@ extern "C" void InitTn(TN *p)
 }
 
 namespace RO_ORDER { extern const unsigned int r_D_002A96E8[2] __asm__("D_002A96E8") = {0, 0}; }   /* a null callback record */
-/** @sly2-annot addr=0x220F88
- * Purpose: RemoveLoHierarchy then clears the TN sw-callback (0x149B58(g_sw,1,ptn,cb))
- * Info: proposed name RemoveTnHierarchy (T1); class TN slot12; TU tn
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// RemoveLoHierarchy then clears the TN sw-callback (0x149B58(g_sw,1,ptn,cb)) (inferred)
 extern "C" void RemoveTnHierarchy(TN *p)
 {
     RemoveLoHierarchy(p);
     ClearSwCallbacks(&D_003DD490, 1, p, D_002A96E8.l, 0);
 }
 
-/** @sly2-annot addr=0x220FD0
- * Purpose: LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot
- * Info: proposed name LoadTnFromBrx (T1); class TN slot14; TU tn
- * Notes: names_v2 C proposed PostAloLoadCallback__FP3ALO5MSGIDPv (0.438) | level_parser CONFIRMED-parse:
- *   payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r8_21BB88+parse-verified
- * See: docs/engine/camera.md#5-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// LoadXfm-style XF read, ReadGeom + ReadBspc (tunnel BSP), then tables allocated via PvAllocSlot.
 extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
 {
     MARK mark;
@@ -626,9 +596,9 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
         pm->nKind = 0x10;
         p->acpd = (CPD *)AllocFromStack(pm);
     }
-    func_00221818(p, 0x30);
+    SelectTnCpdForCid(p, 0x30);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
-    func_00221940(p);
+    ClearTnCpd(p);
     {
         MSGA *pm = &msg;
         pm->cb = p->ccpd * 0x90;
@@ -652,39 +622,22 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
     STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }
 
-/** @sly2-annot addr=0x221120
- * Purpose: returns 0 if field null else stores &field
- * Info: proposed name FGetTnPshape (T2); class TN slot28; TU tn
- * Notes: agent qualifier: splice getter
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-extern "C" int func_00221120(TN *p, SHAPE ***pp)
+// Returns 0 if field null else stores &field. (inferred)
+extern "C" int TryGetTnShape(TN *p, SHAPE ***pp)
 {
     if (!p->pshape) return 0;
     *pp = &p->pshape; return 1;
 }
 
-/** @sly2-annot addr=0x221140
- * Purpose: CloneXfm then re-resolves ref field 0x10C via 0x13E510
- * Info: proposed name CloneTn (T1); class TN slot41; TU tn
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// CloneXfm then re-resolves ref field 0x10C via 0x13E510. (inferred)
 extern "C" void CloneTn(TN *p)
 {
     CloneXfm(p);
     p->pshape = PloCloneLo__FP2LOP2SO(p->pshape, p->psoParent);
 }
 
-/** @sly2-annot addr=0x221178
- * Purpose: tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out ->
- *   RevokeCmPolicy(8) + event 6; store tns and tTns=g_clock.t
- * Info: proposed name SetTnTns (T1); TU tn
- * Notes: names_v2 C proposed FChooseRobRoc__FP3ROBP3ROH (0.638)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Tns change: In -> SetCmPolicy(g_cm, pri+2, &g_cm.cptn(+0x3B0), ppo, ptn) + splice event 5; Out -> RevokeCmPolicy(8)
+// + event 6; store tns and tTns=g_clock.t.
 void SetTnTns(TN *p, int k)
 {
     if (k == p->tns) return;
@@ -702,26 +655,15 @@ void SetTnTns(TN *p, int k)
     p->tTns = D_002DDED0.t;
 }
 
-/** @sly2-annot addr=0x221268
- * Purpose: if changed store and call UpdateTnCallback(ptn,0)
- * Info: proposed name SetTnTnsOverride (T1); TU tn
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70,
- *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
- * @end-sly2-annot */
+// If changed store and call UpdateTnCallback(ptn,0)
 extern "C" void SetTnTnsOverride(TN *p, int x)
 {
     if (x != p->tnsWant) { p->tnsWant = (TNS)x; UpdateTnCallbackA(p, 0); }
 }
 
 static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"(value));return value;}
-/** @sly2-annot addr=0x221298
- * Purpose: current player (0x1C4A48 GetCurrentPo); retarget; inside test via tunnel BSP (0x118FB0) unless override;
- *   switch unless jumping
- * Info: proposed name UpdateTnCallback (T1); TU tn
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Current player (0x1C4A48 GetCurrentPo); retarget; inside test via tunnel BSP (0x118FB0) unless override; switch unless
+// jumping.
 void UpdateTnCallback(TN *p)
 {
     POX *po = GetCurrentPo(&D_003DD490);
@@ -744,26 +686,14 @@ set:
     SetTnTns(p, f);
 }
 
-/** @sly2-annot addr=0x221388
- * Purpose: UpdateLo then, if tnsOverride, PostSwCallback(g_sw, ptn, UpdateTnCallback)
- * Info: proposed name UpdateTn (T1); class TN slot16; TU tn
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// UpdateLo then, if tnsOverride, PostSwCallback(g_sw, ptn, UpdateTnCallback)
 extern "C" void UpdateTn(TN *p)
 {
     UpdateLo(p);
     if (p->tnsWant) PostSwCallback(&D_003DD490, p, D_002A96F0.l, 0);
 }
 
-/** @sly2-annot addr=0x2213D8
- * Purpose: OnLoRemove then SetTnTns(Out)
- * Info: proposed name OnTnRemove (T1); class TN slot22; TU tn
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation)
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_tu_r7r8
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// OnLoRemove then SetTnTns(Out)
 void TN::Freeze()
 {
     TN *p = (TN *)this;
@@ -771,7 +701,7 @@ void TN::Freeze()
     SetTnTns(p, 0);
 }
 
-// The tunnel's path basis: func_00221408 projects a world point into it and returns the path direction; func_002215C0 evaluates
+// The tunnel's path basis: ProjectPointOntoTnPath projects a world point into it and returns the path direction; EvaluateTnPathPos evaluates
 // a clamped path offset, then rotates and translates it into world space.
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
 static inline qword Add(qword a,qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b));return r; }
@@ -790,13 +720,8 @@ static inline qword InverseRotate(const M3 &m, qword v) {
     __asm__("vmul.xyzw %2,%5,%0\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%6,%0\n\tvmul.xyzw %4,%7,%0\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y" : "+j"(v),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2]));
     return v;
 }
-/** @sly2-annot addr=0x221408
- * Purpose: projects a world point into the path basis and returns path direction
- * Info: proposed name CalculateTnCrv (T2); TU tn
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-void func_00221408(TN *p,qword v,qword *out,qword *normal) {
+// Projects a world point into the path basis and returns path direction. (inferred)
+void ProjectPointOntoTnPath(TN *p,qword v,qword *out,qword *normal) {
     U pos;
     M3 m;
     if(p->pshape) {
@@ -819,13 +744,8 @@ void func_00221408(TN *p,qword v,qword *out,qword *normal) {
 static inline qword Rotate(const M3 &m,qword v) {
     __asm__("vmulax.xyz ACC,%1,%0x\n\tvmadday.xyz ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z" : "+j"(v) : "j"(m.r[0]),"j"(m.r[1]),"j"(m.r[2])); return v;
 }
-/** @sly2-annot addr=0x2215C0
- * Purpose: evaluates a clamped path offset (fmodf), rotates/translates to world
- * Info: proposed name CalculateTnPos (T2); TU tn
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-void func_002215C0(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qword *out,float time,float delta) {
+// Evaluates a clamped path offset (fmodf), rotates/translates to world. (inferred)
+void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qword *out,float time,float delta) {
     U pos,normal,center;
     M3 m;
     U rotated;
@@ -863,13 +783,10 @@ void func_002215C0(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qword *o
     *out=Add(center.q,rotated.q);
 }
 
-/** @sly2-annot addr=0x221818
- * Purpose: chooses/creates the TNFN record (max 4) for an id; resets 0x118
- * Info: proposed name SelectTnTnfn (T2); TU tn
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-void func_00221818(TN *p, int id)
+// Makes the tunnel's CPD record for a class id current (CPD: the camera parameters the tunnel applies to that class
+// of focus object): clears the current one, then finds the record for cid, or (fewer than four and not loaded from
+// the level) appends one copied from the previous record or the default D_002C4120. (inferred)
+void SelectTnCpdForCid(TN *p, int id)
 {
     int i;
     CPD *pe;
@@ -894,43 +811,22 @@ void func_00221818(TN *p, int id)
     p->pcpd->cid = (CID)id;
 }
 
-/** @sly2-annot addr=0x221940
- * Purpose: 0x118 = 0
- * Info: proposed name ClearTnTnfn (T2); TU tn
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-void func_00221940(TN *p) {
+// Clears the tunnel's current CPD record.
+void ClearTnCpd(TN *p) {
     p->pcpd = 0;
 }
 
-/** @sly2-annot addr=0x221948
- * Purpose: returns *(0x118)
- * Info: proposed name GetTnTnfnFirstWord (T2); TU tn
- * Notes: agent qualifier: splice getter
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-extern "C" int func_00221948(TN *p) {
+// Returns the class id of the tunnel's current CPD record.
+extern "C" int GetTnCpdCid(TN *p) {
     return p->pcpd->cid;
 }
 
-/** @sly2-annot addr=0x221958
- * Purpose: returns current TNFN pointer (0x118); base getter for TN splice properties
- * Info: proposed name PtnfnFromTn (T1); TU tn
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-extern "C" CPD *PtnfnFromTn(TN *p) {
+// Returns the tunnel's current CPD record (the base the TN splice/script properties read and write). (inferred)
+extern "C" CPD *GetTnCpd(TN *p) {
     return p->pcpd;
 }
 
-/** @sly2-annot addr=0x221960
- * Purpose: tnfn.vecFocus.x = y = u, z = 1.0
- * Info: proposed name SetTnFocusRatio (T1); TU tn
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Sets the current CPD's focus rates: x and y to g, z to 1. (inferred)
 extern "C" void SetTnFocusRatio(TN *p, float g) {
     CPD *pcpd = p->pcpd;
     pcpd->agRate[1] = g;
@@ -938,24 +834,12 @@ extern "C" void SetTnFocusRatio(TN *p, float g) {
     p->pcpd->agRate[2] = 1.0f;
 }
 
-/** @sly2-annot addr=0x221980
- * Purpose: returns tnfn.vecFocus.x
- * Info: proposed name GetTnFocusX (T1); TU tn
- * Notes: verifier PLAUSIBLE: GetTnFocusRatio -> GetTnFocusX
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Returns the current CPD's x focus rate. (inferred)
 extern "C" float GetTnFocusX(TN *p) {
     return p->pcpd->agRate[0];
 }
 
-/** @sly2-annot addr=0x221990
- * Purpose: base CPLCY ctor 0x14FCA8 then vptr = D_002DB858
- * Info: proposed name CPTN_ctor (T1); class CPTN; TU tn
- * Notes: agent qualifier: (ctor)
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Base CPLCY ctor 0x14FCA8 then vptr = D_002DB858. (inferred)
 extern "C" CMPART2 *CPTN_ctor(CMPART2 *p) {
     CPLCY_ctor(p);
     *(void ***)((char *)p + 0xC) = D_002DB858;
@@ -968,14 +852,8 @@ extern const unsigned int r_D_002A96F0[2] __asm__("D_002A96F0") = {0xFFFF0000, (
 }
 namespace RO_ORDER { extern const float r_D_002A96F8 __asm__("D_002A96F8") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A96FC __asm__("D_002A96FC") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x2219C8
- * Purpose: base 0x14FCC0, sets globals D_002C41A8, clears fields
- * Info: proposed name InitCptn (T2); TU tn
- * Notes: names_v2 C proposed SetAloSndRepeat__FP3ALOP2LM (0.200) | agent qualifier: CPTN vt slot1
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-extern "C" void func_002219C8(CMPART2 *p)
+// Base 0x14FCC0, sets globals D_002C41A8, clears fields. (inferred)
+extern "C" void InitCptn(CMPART2 *p)
 {
     InitCplcy(p);
     D_002C41A8.gMin = D_002A96F8;
@@ -986,13 +864,7 @@ extern "C" void func_002219C8(CMPART2 *p)
 
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
-/** @sly2-annot addr=0x221A18
- * Purpose: base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8)
- * Info: proposed name ActivateCptn (T1); TU tn
- * Notes: agent qualifier: CPTN vt slot2
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8) (inferred)
 extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
 {
     struct { qword a[5]; } q0;
@@ -1014,16 +886,16 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
         p->pcpd = pe;
     }
     p->fEntered = 1;
-    func_00220D40(p->pcpd);
+    InitTnDefaultAngles(p->pcpd);
     GetCmCpdefi(&D_002DDF40, pj, &q0);
-    func_00220DD8(p->pcpd, (CPDEFI *)&q0, &q50, 0);
+    BlendTnFocusPos(p->pcpd, (CPDEFI *)&q0, &q50, 0);
     if (p->ptn) {
         TN *ptT = p->ptn;
         if (ptT->pshape)
             FindShapeClosestPoint(ptT->pshape, q50, 0, &q60, 0, 0, &ptT->uProgress);
         else if (ptT->fCircle)
-            func_00221CE8(p, (CPDEFI *)&q0);
-        func_00220DD8(p->pcpd, (CPDEFI *)&q0, &q50, p->ptn);
+            UpdateCptnTarget(p, (CPDEFI *)&q0);
+        BlendTnFocusPos(p->pcpd, (CPDEFI *)&q0, &q50, p->ptn);
     }
     { qword *pq = &D_002DDF40.dposFocus; a = VAdd(q50, *pq);
     GetVectorSphere(VSub(pq[-0x25], a), &p->radPan, &p->radTilt, &p->sDist); }
@@ -1041,13 +913,7 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
         D_002DDF40.fovTarget = p->ptn->radFov;
 }
 
-/** @sly2-annot addr=0x221CC0
- * Purpose: clears tn/ppo (0x10,0x14) then base 0x14FCE8
- * Info: proposed name DeactivateCptn (T1); TU tn
- * Notes: agent qualifier: CPTN vt slot3
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Clears tn/ppo (0x10,0x14) then base 0x14FCE8. (inferred)
 extern "C" void DeactivateCptn(CMPART2 *p) {
     p->ptn = 0;
     p->pcpd = 0;
@@ -1056,20 +922,14 @@ extern "C" void DeactivateCptn(CMPART2 *p) {
 
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-/** @sly2-annot addr=0x221CE8
- * Purpose: positions tn target via FillCrvcCache or atan2 heading
- * Info: proposed name UpdateCptnTarget (T2); TU tn
- * Notes: agent qualifier: tn follow target heading
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-void func_00221CE8(CMPART2 *p, CPDEFI *b)
+// Positions tn target via FillCrvcCache or atan2 heading. (inferred)
+void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
 {
     TN *ps = p->ptn;
     qword q;
     if (!ps) return;
     if (!ps->pshape && !ps->fCircle) return;
-    func_00220DD8(p->pcpd, b, &q, 0);
+    BlendTnFocusPos(p->pcpd, b, &q, 0);
     if (ps->pshape) {
         FindShapeClosestPointFromS(ps->pshape, q, ps->uProgress, 0, 0, 0, 0, &ps->uProgress);
     } else {
@@ -1739,12 +1599,7 @@ static inline qword QwAxesXyz(qword qwV, qword qwBack, qword qwSide, qword qwUp)
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z" : "=j"(qw) : "j"(qwV), "j"(qwBack), "j"(qwSide), "j"(qwUp));
     return qw;
 }
-/** @sly2-annot addr=0x2236E8
- * Purpose: every 0.5 s tests 5 points around hero for visibility; cut after 2 s hidden
- * Info: proposed name UpdateCmLineOfSight (T1); TU tn
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
+// Every 0.5 s tests 5 points around hero for visibility; cut after 2 s hidden. (inferred)
 extern "C" void func_002236E8(CMPART2 *pcmpart)
 {
     LO *plo = (LO *)pcmpart->pvHero;
@@ -1794,7 +1649,7 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
     STACKSCOPE scope;
     int cpso;
     SOPART **apso;
-    IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], FFilterCamera, 0, &cpso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, aqw[0], aqw[1], HasCameraBsp, 0, &cpso, &apso);
     for (i = 0; i < 5; i++, pqw++)
     {
         aqw[2] = ConvertCmWorldToScreen(&D_002DDF40, *pqw);
@@ -1811,14 +1666,8 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
         CutCm__FP2CM(&D_002DDF40);
 }
 
-/** @sly2-annot addr=0x223A10
- * Purpose: signed distance of pos to a plane
- * Info: proposed name GDistPlanePos (T1); TU tn
- * Notes: verifier PLAUSIBLE: GDistPlanePoint? (helper) -> GDistPlanePos
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n)
+// Signed distance of pos to a plane. (inferred)
+float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n)
 {
     UF d, one;
     qword plane, td, tone;
@@ -1834,8 +1683,8 @@ float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n)
     return dist;
 }
 
-/* func_00223A70: moves the camera eye off obstacles: the clear position nearest the hero, then the best of a fan of
-   cylindrical offsets around begin -> end, squished against the camera hulls (SquishCmEye with GDistPlanePos).
+/* AvoidCptnSegmentObstacles: moves the camera eye off obstacles: the clear position nearest the hero, then the best of a fan of
+   cylindrical offsets around begin -> end, squished against the camera hulls (SquishCmEye with GetPlaneDistance).
    (Claude agent) MATCH: the loop's SetVectorCylind result is a plain qword local; gcc emits the qmtc2 itself and schedules it. */
 struct CAMS {void *object;char pad[0x30];int state;};
 struct SCOPEW {SCOPEW(){(void)STACKSCOPE_ctor((MARK *)this);}~SCOPEW(){STACKSCOPE_ctor_1AE4A0((MARK *)this,2);}};
@@ -1851,13 +1700,8 @@ static inline qword Blend(qword a,qword b,qword left,qword right){__asm__("vmula
 static inline qword BlendToRight(qword a,qword b,qword left,qword right){__asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%0,%3x":"+j"(b):"j"(a),"j"(left),"j"(right));return b;}
 static inline void StoreVF(qword *p,qword q){__asm__("sqc2 %1,%0":"=m"(*p):"j"(q));}
 namespace RO_ORDER { extern const float r_D_002A9700 __asm__("D_002A9700") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x223A70
- * Purpose: camera segment avoidance (objects in box, UpdateCmFade)
- * Info: proposed name UpdateCptnSegmentAvoid (T2); TU tn
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/camera.md#tn-0x220d40-0x223f70
- * @end-sly2-annot */
-extern "C" void func_00223A70(CAMS *p,qword begin,qword end,qword *out){
+// Camera segment avoidance (objects in box, UpdateCmFade) (inferred)
+extern "C" void AvoidCptnSegmentObstacles(CAMS *p,qword begin,qword end,qword *out){
     void *object=p->object;
     WORK w;
     qword final;
@@ -1865,7 +1709,7 @@ extern "C" void func_00223A70(CAMS *p,qword begin,qword end,qword *out){
     float one=1.0f;
     w.minimum.q=Min(begin,Min(end,GetLoWorldPos(object)));
     w.maximum.q=Max(begin,Max(end,GetLoWorldPos(object)));
-    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,FFilterCamera,0,&w.count,&w.objects);
+    IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,HasCameraBsp,0,&w.count,&w.objects);
     int count=w.count; SOPART **objects=w.objects;
     w.origin.q=FindCmClosestClearPos(count,objects,GetLoWorldPos(object),500.0f);
     FFindCmClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
@@ -1895,7 +1739,7 @@ extern "C" void func_00223A70(CAMS *p,qword begin,qword end,qword *out){
         }while(angle<3.1415927f);
         w.candidate.q=w.best.q;
     }else w.candidate.q=end;
-    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GDistPlanePos,w.candidate.q,w.candidate.q,D_002DDF40.sNearCorner,D_002DDF40.sNearCorner));
+    final=ToVF(SquishCmEye(&D_002DDF40,w.count,w.objects,GetPlaneDistance,w.candidate.q,w.candidate.q,D_002DDF40.sNearCorner,D_002DDF40.sNearCorner));
     FFindCmClearInterval(w.count,w.objects,w.candidate.q,final,0.0f,&w.low,&w.high);
     if(w.high!=1.0f){
         float u=(w.low+w.high)*0.5f;

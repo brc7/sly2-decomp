@@ -1323,7 +1323,7 @@ typedef struct {
     unsigned char Reserve3[512];
 } ICONSYS;
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-void ConvertPchzToSjis(char *, unsigned char *);
+void ConvertStringToSjis(char *, unsigned char *);
 int McWriteFile(void *s, char *name, void *b, int n);
 
 /** @sly2-annot addr=0x1AC008
@@ -1378,7 +1378,7 @@ int WriteIconSys(void *p, char *dir, char *title)
     icon.Ambient[0] = 0.5f;
     icon.Ambient[1] = 0.5f;
     icon.Ambient[2] = 0.5f;
-    ConvertPchzToSjis(title, icon.TitleName);
+    ConvertStringToSjis(title, icon.TitleName);
     strcpy((char *)icon.FnameView, "memcard_icon.ico");
     strcpy((char *)icon.FnameCopy, "memcard_icon.ico");
     strcpy((char *)icon.FnameDel, "memcard_icon.ico");

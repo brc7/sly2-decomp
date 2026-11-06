@@ -159,7 +159,7 @@ qwordV SetVectorCylind(float a, float b, float c);
 void GetVectorSphere(qwordV v, float *pa, float *pb, float *pc);
 FRAME *STACKSCOPE_ctor(FRAME *pf);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pf, int n) __asm__("_$_10STACKSCOPE");
-void func_001B44D8(int *pc, void **pa);
+void CollectVisibleMsGlobs(int *pc, void **pa);
 qwordV SetVectorSphere(float pan, float tilt, float s);
 int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *pv, qwordV *phit);
 }
@@ -607,7 +607,7 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
     }
     GetVectorSphere(VuSub(Add(posTarget, off.q), pos), &pan, &tilt, &s);
     STACKSCOPE_ctor(&frame);
-    func_001B44D8(&c, &av);
+    CollectVisibleMsGlobs(&c, &av);
     gBest = D_002A513C;
     for (i = 0; i < 11; i++) {
         qwordV test;

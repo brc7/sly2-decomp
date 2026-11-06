@@ -1,7 +1,7 @@
 // light.cpp -- LIGHT (CID 4): init / load / hierarchy / add and remove, the default light, RebuildLight (strength curves and
 // colour into the 0x30-byte shader payload at +0x120), the world's light slots (a 256-bit free map, a plane tree whose
-// leaves hold the 256-bit mask of the lights that reach them), the best-ranked lights for a point (func_001A3F78) and
-// the per-frame shader packets built from them (func_001A4478 / func_001A4AD8). TU 0x1A3260..0x1A4E08 (32 functions,
+// leaves hold the 256-bit mask of the lights that reach them), the best-ranked lights for a point (FindLightsAffectingPoint) and
+// the per-frame shader packets built from them (BuildSoLightPackets / BuildLightPackets). TU 0x1A3260..0x1A4E08 (32 functions,
 // address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_light
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A4DE8
@@ -23,7 +23,7 @@ union UV { qword q; float f[4]; UV(); };
 inline UV::UV() { (void)InitVuTemp(this); }
 /* The 48-byte shader payload of a light (RebuildLight fills it; the packets copy it). */
 struct BLOCK { union { uint words[12]; struct { int kind; float coefficients[11]; } values; }; };
-struct LIGHTO { char pad[0xA4]; int xA4; };
+struct LIGHTO { char pad[0xA4]; int transformStamp; };
 
 /* LIGHT (0x170) as this TU reads it. */
 struct LIGHTV
@@ -31,18 +31,18 @@ struct LIGHTV
     int x0, x4, x8;
     VTE *vt;                    /* 0x0C */
     char pad10[0x20 - 0x10];
-    LIGHTV *pnext;               /* 0x20: next in D_003E04F8's list */
+    LIGHTV *next;                /* 0x20: next in D_003E04F8's list */
     char pad24[0x40 - 0x24];
-    int grf40;                  /* 0x40: pointer or tagged flags */
+    int flagsOrPointer;         /* 0x40: pointer or tagged flags */
     char pad44[0x50 - 0x44];
-    LIGHTO *po;                 /* 0x50 */
+    LIGHTO *parent;             /* 0x50 */
     char pad54[0xA0 - 0x54];
     qword direction;            /* 0xA0 */
     char padB0[0xE0 - 0xB0];
     int kind;                   /* 0xE0: 0 directional, 1 point */
-    int xE4;                    /* 0xE4 */
+    int parentStamp;            /* 0xE4: parent transform stamp the light was last rebuilt for */
     char padE8[0xF0 - 0xE8];
-    union { qword qwHsv; float agHsv[4]; };  /* 0xF0 */
+    union { qword highlightHsv; float highlightHsvComponents[4]; };  /* 0xF0 */
     UV position;                /* 0x100: bounding sphere centre */
     float bias, weight;         /* 0x110: rank = bias + weight * distance */
     int slot;                   /* 0x118: world slot, < 0 until assigned */
@@ -57,10 +57,10 @@ struct LIGHTV
             float ruFall;                       /* 0x14C */
         };
     };
-    float gStrength;            /* 0x150 */
-    float degCone;              /* 0x154 */
+    float midtoneStrength;      /* 0x150 */
+    float midtoneAngle;         /* 0x154 degrees */
     int enabled;                /* 0x158 */
-    int x15C, x160;             /* 0x15C */
+    int isStatic, isDynamic;    /* 0x15C: exclusive flags (see SetLightStatic / SetLightDynamic) */
     union { LMK lmk; struct { float sNear, sFar; }; };   /* 0x164 */
     int pad16C;
 };
@@ -73,7 +73,7 @@ typedef union { qword q[2]; uint a[8]; } MASK;
 struct SWL
 {
     char pad0[0x3D5C];
-    int x3d5c;                  /* 0x3D5C: light changes */
+    int relightStamp;           /* 0x3D5C: bumped by light changes */
     char pad3D60[0x4154 - 0x3D60];
     LIGHTV *objects[0x100];      /* 0x4154 */
     int disabled;               /* 0x4554: rebuild the masks */
@@ -92,7 +92,7 @@ typedef char Offset_mask[FIELD_OFFSET(SWL, mask) == 0x4570 ? 1 : -1];
 typedef char Offset_free[FIELD_OFFSET(SWL, free) == 0x4590 ? 1 : -1];
 typedef char Size_NODE[sizeof(NODE) == 32 ? 1 : -1];
 
-/* The packet request of func_001A4478 / func_001A4AD8. */
+/* The packet request of BuildSoLightPackets / BuildLightPackets. */
 struct LIGHTQ {
     int pad0; qword *input; int pad8[2];
     float strength;               // 0x10
@@ -139,15 +139,15 @@ void GetNormalVectors(qword a, qword b, qword c, M3R *pm);
 qword *VECTOR_opAssign(qword *p, qword v);
 
 void RebuildLight(LIGHTV *p);
-void func_001A3610(LIGHTV *p, float f);
-void func_001A3630(LIGHTV *p, float f);
-void func_001A3B38(LIGHTV *p);
-void func_001A3B80(SWL *s, NODE *n, qword pos, float r, int bit);
+void SetLightMidtoneStrength(LIGHTV *p, float f);
+void SetLightMidtoneAngle(LIGHTV *p, float f);
+void InvalidateLight(LIGHTV *p);
+void InsertLightInTree(SWL *s, NODE *n, qword pos, float r, int bit);
 void AddLightToSw(SWL *s, LIGHTV *o);
 void RemoveLightFromSw(SWL *p, LIGHTV *q);
 struct RESULT;
-void func_001A3F78(SWL *p, qword pos, int capacity, RESULT *results);
-int FSphereHitsSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
+void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results);
+int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere);
 }
 int FFloatsNear(float a, float b, float eps) __asm__("FFloatsNear__Ffff");
 float cosf(float) __asm__("cosf");
@@ -161,254 +161,156 @@ static __inline__ qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-/** @sly2-annot addr=0x1A3260
- * Purpose: After world load, if no light in the world light list (*(LIGHT * *)&g_sw.aslCid[4]) qualifies (x160==0), create a
- *   LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240
- * Info: proposed name EnsureSwDefaultLight (T1); TU light
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/hud-ui.md#4-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// After world load, if no light in the world light list (*(LIGHT * *)&g_sw.aslCid[4]) qualifies (not dynamic), create a
+// LIGHT (PloNew CID 4, oid 0x188) aimed along (-0.2,0.3,-1) with strength 255 and angle 240. (inferred)
 extern "C" void EnsureSwDefaultLight(void)
 {
-    LIGHTV *p;
+    LIGHTV *light;
     M3R c;
     union { qword q; float f; } r;
     M3R m;
-    for (p = (*(LIGHTV * *)&g_sw.aslCid[4]); p; p = p->pnext) {
-        if (p->x160 == 0) break;
+    for (light = (*(LIGHTV * *)&g_sw.aslCid[4]); light; light = light->next) {
+        if (light->isDynamic == 0) break;
     }
-    if (p) return;
-    p = PloNew__F3CIDP2SO3OIDi(4, 0, 0x188, -1);
+    if (light) return;
+    light = PloNew__F3CIDP2SO3OIDi(4, 0, 0x188, -1);
     r.q = Make(-0.2f, 0.3f, -1.0f);
     BuildOrthonormalMatrixZ(&m, r.q, D_002A2DC0);
     c = m;
-    ((void (*)(LIGHTV *, M3R *))p->vt[30].pfn)((LIGHTV *)((char *)p + p->vt[30].d), &c);
-    func_001A3610(p, 255.0f);
-    func_001A3630(p, 240.0f);
+    ((void (*)(LIGHTV *, M3R *))light->vt[30].pfn)((LIGHTV *)((char *)light + light->vt[30].d), &c);
+    SetLightMidtoneStrength(light, 255.0f);
+    SetLightMidtoneAngle(light, 240.0f);
 }
 
-/** @sly2-annot addr=0x1A3360
- * Purpose: LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ...
- * Info: proposed name InitLight (T1); class LIGHT slot7; TU light
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// LIGHT vt7 Init: InitXfm, kind 0, slot -1, falloff 200/2000, angle 240, ...
 void LIGHT::Init()
 {
-    LIGHTV *s = (LIGHTV *)this;
-    int v;
-    InitXfm(s);
-    s->kind = 0;
-    s->xE4 = -1; s->slot = -1;
-    s->sNear = 200.0f;
-    s->sFar = 2000.0f;
-    s->degCone = 240.0f;
-    s->enabled = 1;
-    SetLoBusyk(s, 1);
-    v = s->grf40;
-    if ((v ^ 1) & 1) *(int *)v &= ~0x20;
-    else s->grf40 = v & ~0x20;
+    LIGHTV *light = (LIGHTV *)this;
+    int flags;
+    InitXfm(light);
+    light->kind = 0;
+    light->parentStamp = -1; light->slot = -1;
+    light->sNear = 200.0f;
+    light->sFar = 2000.0f;
+    light->midtoneAngle = 240.0f;
+    light->enabled = 1;
+    SetLoBusyk(light, 1);
+    flags = light->flagsOrPointer;
+    if ((flags ^ 1) & 1) *(int *)flags &= ~0x20;
+    else light->flagsOrPointer = flags & ~0x20;
 }
 
-/** @sly2-annot addr=0x1A3400
- * Purpose: LIGHT vt15: PostLoLoad then RebuildLight
- * Info: proposed name PostLightLoad (T1); class LIGHT slot15; TU light
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void PostLightLoad(LIGHTV *p) {
-    PostLoLoad(p);
-    RebuildLight(p);
+// LIGHT vt15: PostLoLoad then RebuildLight.
+extern "C" void PostLightLoad(LIGHTV *light) {
+    PostLoLoad(light);
+    RebuildLight(light);
 }
 
-/** @sly2-annot addr=0x1A3430
- * Purpose: LIGHT vt11: AddLoHierarchy then RebuildLight
- * Info: proposed name AddLightHierarchy (T1); class LIGHT slot11; TU light
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void AddLightHierarchy(LIGHTV *p) {
-    AddLoHierarchy(p);
-    RebuildLight(p);
+// LIGHT vt11: AddLoHierarchy then RebuildLight. (inferred)
+extern "C" void AddLightHierarchy(LIGHTV *light) {
+    AddLoHierarchy(light);
+    RebuildLight(light);
 }
 
-/** @sly2-annot addr=0x1A3460
- * Purpose: LIGHT vt17: LO vt17, then if parent's x0A4 differs from own xE4 rebuild
- * Info: proposed name LIGHT_vt17 (T2); class LIGHT slot17; TU light
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void func_001A3460(LIGHTV *p) {
-    int k;
-    LIGHTO *po;
-    InheritLoFlag4(p);
-    po = p->po;
-    k = 0;
-    if (po != 0) {
-        k = po->xA4;
+// Transform update (vtable slot 17): LO projection, then rebuilds the light when its parent's transform stamp is newer
+// than the one it was last built for. (inferred)
+extern "C" void ProjectLightTransform(LIGHTV *light) {
+    int parentStamp;
+    LIGHTO *parent;
+    InheritLoFlag4(light);
+    parent = light->parent;
+    parentStamp = 0;
+    if (parent != 0) {
+        parentStamp = parent->transformStamp;
     }
-    if (p->xE4 < k) {
-        p->xE4 = k;
-        RebuildLight(p);
+    if (light->parentStamp < parentStamp) {
+        light->parentStamp = parentStamp;
+        RebuildLight(light);
     }
 }
 
-/** @sly2-annot addr=0x1A34B0
- * Purpose: LIGHT vt12: RemoveLoHierarchy then InvalidateLight
- * Info: proposed name RemoveLightHierarchy (T1); class LIGHT slot12; TU light
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void RemoveLightHierarchy(LIGHTV *p) {
-    RemoveLoHierarchy(p);
-    func_001A3B38(p);
+// LIGHT vt12: RemoveLoHierarchy then InvalidateLight. (inferred)
+extern "C" void RemoveLightHierarchy(LIGHTV *light) {
+    RemoveLoHierarchy(light);
+    InvalidateLight(light);
 }
 
-/** @sly2-annot addr=0x1A34E0
- * Purpose: LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot)
- * Info: proposed name OnLightRemove (T1); class LIGHT slot22; TU light
- * Notes: names_v2 v1 proposed UpdateLightXfWorldHierarchy__FP5LIGHT (0.001) | slot 22 OnRemove resolved by
- *   arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was
- *   LIGHT_Freeze)
- * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources: arbitration_slots22_23
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void OnLightRemove(LIGHTV *p) {
-    OnLoRemove(p);
-    RemoveLightFromSw(&D_003DD490, p);
+// LIGHT vt22: LO Freeze then RemoveLightFromSw (free tree slot)
+extern "C" void OnLightRemove(LIGHTV *light) {
+    OnLoRemove(light);
+    RemoveLightFromSw(&D_003DD490, light);
 }
 
-/** @sly2-annot addr=0x1A3518
- * Purpose: LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree)
- * Info: proposed name OnLightAdd (T1); class LIGHT slot23; TU light
- * Notes: names_v2 v1 proposed RemoveLightFromSw__FP5LIGHT (0.004) | slot 23 OnAdd resolved by arbitration
- *   (OnRemove/OnAdd = object leaves/enters the active world, incl. proximity activation) (was LIGHT_Unfreeze)
- * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources: arbitration_slots22_23
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void OnLightAdd(LIGHTV *p) {
-    OnLoAdd(p);
-    AddLightToSw(&D_003DD490, p);
+// LIGHT vt23: LO Unfreeze then AddLightToSw (alloc slot, insert into light tree)
+extern "C" void OnLightAdd(LIGHTV *light) {
+    OnLoAdd(light);
+    AddLightToSw(&D_003DD490, light);
 }
 
-/** @sly2-annot addr=0x1A3550
- * Purpose: LIGHT vt29: XFM TranslateToPos then RebuildLight
- * Info: proposed name TranslateLightToPos (T1); class LIGHT slot29; TU light
- * Notes: names_v2 C proposed OnLightAdd__FP5LIGHT (0.638)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void TranslateLightToPos(LIGHTV *p) {
-    TranslateXfmToPos(p);
-    RebuildLight(p);
+// LIGHT vt29: XFM TranslateToPos then RebuildLight. (inferred)
+extern "C" void TranslateLightToPos(LIGHTV *light) {
+    TranslateXfmToPos(light);
+    RebuildLight(light);
 }
 
-/** @sly2-annot addr=0x1A3580
- * Purpose: LIGHT vt30: XFM RotateToMat then RebuildLight
- * Info: proposed name RotateLightToMat (T1); class LIGHT slot30; TU light
- * Notes: names_v2 v1 proposed OnLightAdd__FP5LIGHT (0.000)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void RotateLightToMat(LIGHTV *p) {
-    RotateXfmToMat(p);
-    RebuildLight(p);
+// LIGHT vt30: XFM RotateToMat then RebuildLight. (inferred)
+extern "C" void RotateLightToMat(LIGHTV *light) {
+    RotateXfmToMat(light);
+    RebuildLight(light);
 }
 
-/** @sly2-annot addr=0x1A35B0
- * Purpose: Invalidate, set kind (xE0), RebuildLight
- * Info: proposed name SetLightKind (T1); TU light
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void SetLightKind(LIGHTV *p, int a) { func_001A3B38(p); p->kind = a; RebuildLight(p); }
+// Sets the light kind (0 directional, 1 point) and rebuilds it, invalidating the lighting before and after.
+extern "C" void SetLightKind(LIGHTV *light, int kind) { InvalidateLight(light); light->kind = kind; RebuildLight(light); }
 
-/** @sly2-annot addr=0x1A35F0
- * Purpose: Store color vector xF0 (HSV, converted with ConvertUserHsvToUserRgb in RebuildLight) and rebuild
- * Info: proposed name SetLightHighlightColor (T2); TU light
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void func_001A35F0(LIGHTV *p, qword hsv) {
-    p->qwHsv = hsv;
-    RebuildLight(p);
+// Sets the highlight colour (HSV; RebuildLight converts it to RGB and colour-corrects it) and rebuilds.
+extern "C" void SetLightHighlightColor(LIGHTV *light, qword hsv) {
+    light->highlightHsv = hsv;
+    RebuildLight(light);
 }
 
-/** @sly2-annot addr=0x1A3610
- * Purpose: Store float x150 and rebuild
- * Info: proposed name SetLightMidtoneStrength (T2); TU light
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-void func_001A3610(LIGHTV *p, float f) {
-    p->gStrength = f;
-    RebuildLight(p);
+// Sets the midtone strength (0..255) and rebuilds.
+void SetLightMidtoneStrength(LIGHTV *light, float strength) {
+    light->midtoneStrength = strength;
+    RebuildLight(light);
 }
 
-/** @sly2-annot addr=0x1A3630
- * Purpose: Store float x154 (deg, clamped >=30 in RebuildLight) and rebuild
- * Info: proposed name SetLightMidtoneAngle (T2); TU light
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-void func_001A3630(LIGHTV *p, float f) {
-    p->degCone = f;
-    RebuildLight(p);
+// Sets the midtone spread angle in degrees (RebuildLight clamps it to at least 30) and rebuilds.
+void SetLightMidtoneAngle(LIGHTV *light, float angle) {
+    light->midtoneAngle = angle;
+    RebuildLight(light);
 }
 
-/** @sly2-annot addr=0x1A3650
- * Purpose: Copy an 8-byte LM falloff and rebuild
- * Info: proposed name SetLightFallOff (T2); TU light
- * Notes: names_v2 v1 proposed OnLightRemove__FP5LIGHT (0.003)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void func_001A3650(LIGHTV *p, LMK *pk) { p->lmk = *pk; RebuildLight(p); }
+// Sets the point-light falloff range (near/far distances, as an 8-byte LM) and rebuilds.
+extern "C" void SetLightFalloff(LIGHTV *light, LMK *falloff) { light->lmk = *falloff; RebuildLight(light); }
 
-/** @sly2-annot addr=0x1A3680
- * Purpose: Toggle flag x15C (clears x160 when set), invalidating before/after
- * Info: proposed name SetLightFStatic (T2); TU light
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void func_001A3680(LIGHTV *p, int f) {
-    if (f != p->x15C) {
-        func_001A3B38(p);
-        p->x15C = f;
-        if (f != 0) {
-            p->x160 = 0;
+// Sets the static flag (exclusive with dynamic), invalidating the lighting before and after the change. (inferred: static
+// lights stay in the world light tree without forcing it to be rebuilt)
+extern "C" void SetLightStatic(LIGHTV *light, int isStatic) {
+    if (isStatic != light->isStatic) {
+        InvalidateLight(light);
+        light->isStatic = isStatic;
+        if (isStatic != 0) {
+            light->isDynamic = 0;
         }
-        func_001A3B38(p);
+        InvalidateLight(light);
     }
 }
 
-/** @sly2-annot addr=0x1A36D8
- * Purpose: Toggle flag x160 (clears x15C when set), invalidating before/after
- * Info: proposed name SetLightDynamic (T2); TU light
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void func_001A36D8(LIGHTV *p, int f) {
-    if (f != p->x160) {
-        func_001A3B38(p);
-        p->x160 = f;
-        if (f != 0) {
-            p->x15C = 0;
+// Sets the dynamic flag (exclusive with static), invalidating the lighting before and after the change. Dynamic lights
+// do not bump the world's relight stamp, so moving them does not resubmit static relighting. (inferred)
+extern "C" void SetLightDynamic(LIGHTV *light, int isDynamic) {
+    if (isDynamic != light->isDynamic) {
+        InvalidateLight(light);
+        light->isDynamic = isDynamic;
+        if (isDynamic != 0) {
+            light->isStatic = 0;
         }
-        func_001A3B38(p);
+        InvalidateLight(light);
     }
 }
 
-/** @sly2-annot addr=0x1A3730
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// Fits y = du + ru*x through two points (constant y0 when the x values coincide). Used to turn designer light settings
+// into the linear terms the VU1 lighting code evaluates.
 void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru)
 {
     if (FFloatsNear(x0, x1, 0.0001f))
@@ -422,11 +324,8 @@ void FitLinearFunction(float x0, float y0, float x1, float y1, float *pdu, float
     *pdu = y0 - a * x0;
 }
 
-/** @sly2-annot addr=0x1A37D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// Fits y = du + ru/x through two points (constant y0 when the x values coincide or either is near zero): a reciprocal
+// falloff.
 void FitRecipFunction(float x0, float y0, float x1, float y1, float *pdu, float *pru)
 {
     float gEpsilon = 0.0001f;
@@ -444,11 +343,8 @@ void FitRecipFunction(float x0, float y0, float x1, float y1, float *pdu, float 
     *pdu = d;
 }
 
-/** @sly2-annot addr=0x1A38A8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// Converts two (angle in degrees, strength 0..255) settings into a linear function of the light's angular term c+c^3,
+// where c = cos(angle/2), through FitLinearFunction; used for the midtone/highlight spread of a light.
 void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu, float *pru)
 {
     const float kDegToHalfRad = 0.008726647f;
@@ -461,85 +357,67 @@ void ConvertAngleStrength(float deg0, float g0, float deg1, float g1, float *pdu
 }
 
 static inline float Max1(float a, float b) { return (a > b) ? a : b; }
-/** @sly2-annot addr=0x1A3968
- * Purpose: Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction
- *   falloff, position; then InvalidateLight
- * Info: proposed name RebuildLight (T1); TU light
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-void RebuildLight(LIGHTV *p)
+// Recompute the light's shading parameters: ConvertAngleStrength, HSV->RGB color, FitLinearFunction falloff, position;
+// then InvalidateLight. (inferred)
+void RebuildLight(LIGHTV *light)
 {
-    V3 v;
-    float g;
-    float a;
-    g = Max1(p->gStrength, p->agHsv[2]);
-    a = (p->degCone > 30.0f) ? p->degCone : 30.0f;
-    ConvertAngleStrength(a, 0.0f, 0.0f, g, &p->duAngle, &p->ruAngle);
-    ConvertUserHsvToUserRgb__FP6VECTORT0(&p->qwHsv, &v);
-    func_001ED2D8(&v);
-    p->agRgba[0] = v.x;
-    p->agRgba[1] = v.y;
-    p->agRgba[2] = v.z;
-    p->agRgba[3] = p->gStrength;
-    if (0.0f < g) {
-        p->agRgba[0] = p->agRgba[0] / g;
-        p->agRgba[1] = p->agRgba[1] / g;
-        p->agRgba[2] = p->agRgba[2] / g;
-        p->agRgba[3] = p->agRgba[3] / g;
+    V3 rgb;
+    float strength;
+    float coneAngle;
+    strength = Max1(light->midtoneStrength, light->highlightHsvComponents[2]);
+    coneAngle = (light->midtoneAngle > 30.0f) ? light->midtoneAngle : 30.0f;
+    ConvertAngleStrength(coneAngle, 0.0f, 0.0f, strength, &light->duAngle, &light->ruAngle);
+    ConvertUserHsvToUserRgb__FP6VECTORT0(&light->highlightHsv, &rgb);
+    func_001ED2D8(&rgb);
+    light->agRgba[0] = rgb.x;
+    light->agRgba[1] = rgb.y;
+    light->agRgba[2] = rgb.z;
+    light->agRgba[3] = light->midtoneStrength;
+    if (0.0f < strength) {
+        light->agRgba[0] = light->agRgba[0] / strength;
+        light->agRgba[1] = light->agRgba[1] / strength;
+        light->agRgba[2] = light->agRgba[2] / strength;
+        light->agRgba[3] = light->agRgba[3] / strength;
     }
-    p->ruAngle = -p->ruAngle;
-    switch (p->kindPayload = p->kind) {
+    light->ruAngle = -light->ruAngle;
+    switch (light->kindPayload = light->kind) {
     case 0:
         {
-            struct F4 { float x, y, z, w; } *pv = (struct F4 *)&p->position;
-            pv->z = 0.0f;
-            pv->y = 0.0f;
-            pv->x = 0.0f;
+            struct F4 { float x, y, z, w; } *pos = (struct F4 *)&light->position;
+            pos->z = 0.0f;
+            pos->y = 0.0f;
+            pos->x = 0.0f;
         }
-        p->bias = 1.0f;
-        p->weight = 0.0f;
-        p->vec = *((V3 *(*)(LIGHTV *))p->vt[31].pfn)((LIGHTV *)((char *)p + p->vt[31].d));
+        light->bias = 1.0f;
+        light->weight = 0.0f;
+        light->vec = *((V3 *(*)(LIGHTV *))light->vt[31].pfn)((LIGHTV *)((char *)light + light->vt[31].d));
         break;
     case 1:
-        p->position.q = GetLoWorldPos(p);
-        p->vec = *(V3 *)&p->position;
-        FitLinearFunction(p->sNear, 1.0f, p->sFar, 0.0f, &p->duFall, &p->ruFall);
-        p->bias = p->duFall;
-        p->weight = p->ruFall;
+        light->position.q = GetLoWorldPos(light);
+        light->vec = *(V3 *)&light->position;
+        FitLinearFunction(light->sNear, 1.0f, light->sFar, 0.0f, &light->duFall, &light->ruFall);
+        light->bias = light->duFall;
+        light->weight = light->ruFall;
         break;
     }
-    g = Max1(p->agHsv[2], p->gStrength);
-    p->bias = p->bias * g;
-    p->weight = p->weight * g;
-    func_001A3B38(p);
+    strength = Max1(light->highlightHsvComponents[2], light->midtoneStrength);
+    light->bias = light->bias * strength;
+    light->weight = light->weight * strength;
+    InvalidateLight(light);
 }
 
-/** @sly2-annot addr=0x1A3B38
- * Purpose: If not dynamic bump g_sw static-light stamp (+0x3D5C); if x15C==0 and kind!=0 set global dirty
- *   g_sw.fUnk4554
- * Info: proposed name InvalidateLight (T2); TU light
- * Notes: names_v2 C proposed SetLightFallOff__FP5LIGHTP2LM (0.638)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-void func_001A3B38(LIGHTV *p)
+// Records that the light changed: a non-dynamic light bumps the world's relight stamp (RenderSw then resubmits
+// relighting), and a non-static point light marks the world light tree for rebuilding (g_sw.fUnk4554). (inferred)
+void InvalidateLight(LIGHTV *light)
 {
-    if (!p->x160) D_003DD490.x3d5c++;
-    if (!p->x15C && p->kind) g_sw.fUnk4554 = 1;
+    if (!light->isDynamic) D_003DD490.relightStamp++;
+    if (!light->isStatic && light->kind) g_sw.fUnk4554 = 1;
 }
 
 union UF { qword q; float f; };
 static __inline__ void SetBit(int *a, int bit) { int *pw = &a[bit / 32]; *pw |= 1 << bit; }
-/** @sly2-annot addr=0x1A3B80
- * Purpose: Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf
- *   masks
- * Info: proposed name InsertLightInTree (T2); TU light
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-void func_001A3B80(SWL *s, NODE *n, qword pos, float r, int bit)
+// Recursive: descend the light BSP by plane distance vs radius and set the light's slot bit in leaf masks. (inferred)
+void InsertLightInTree(SWL *s, NODE *n, qword pos, float r, int bit)
 {
     UF d, one;
     qword plane, td, tone;
@@ -553,13 +431,13 @@ void func_001A3B80(SWL *s, NODE *n, qword pos, float r, int bit)
     d.q = td;
     if (dist < r) {
         if (n->left)
-            func_001A3B80(s, n->left, pos, r, bit);
+            InsertLightInTree(s, n->left, pos, r, bit);
         else
             SetBit((int *)s->leaves[n->leftLeaf].a, bit);
     }
     if (-r < dist) {
         if (n->right)
-            func_001A3B80(s, n->right, pos, r, bit);
+            InsertLightInTree(s, n->right, pos, r, bit);
         else
             SetBit((int *)s->leaves[n->rightLeaf].a, bit);
     }
@@ -573,13 +451,7 @@ static __inline__ void SetBitM(int *a, int bit)
     int m = 1 << bit;
     *pw |= m;
 }
-/** @sly2-annot addr=0x1A3D00
- * Purpose: Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending
- * Info: proposed name AddLightToSw (T1); TU light
- * Notes: names_v2 C proposed UpdateLightBeamGrfzon__FP5LIGHT (0.638)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// Allocate a slot from the 256-entry free bitmap if none, insert into the light tree or mark pending. (inferred)
 void AddLightToSw(SWL *s, LIGHTV *o)
 {
     if (o->slot < 0) {
@@ -610,21 +482,15 @@ void AddLightToSw(SWL *s, LIGHTV *o)
     }
     if (s->disabled)
         return;
-    if (o->x15C)
+    if (o->isStatic)
         return;
-    if (!o->kind || o->x160 || !s->tree)
+    if (!o->kind || o->isDynamic || !s->tree)
         SetBitM(s->pending, o->slot);
     else
-        func_001A3B80(s, s->tree, GetLoWorldPos(o), o->sFar, o->slot);
+        InsertLightInTree(s, s->tree, GetLoWorldPos(o), o->sFar, o->slot);
 }
 
-/** @sly2-annot addr=0x1A3E88
- * Purpose: Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554)
- * Info: proposed name RemoveLightFromSw (T1); TU light
- * Notes: names_v2 C proposed NCmpFindLight__FPP5LIGHTT0 (0.638)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// Free the light's slot bit, clear table entry, slot=-1, mark tree dirty (+0x4554) (inferred)
 void RemoveLightFromSw(SWL *p, LIGHTV *q)
 {
     int n = q->slot;
@@ -634,13 +500,7 @@ void RemoveLightFromSw(SWL *p, LIGHTV *q)
     p->disabled = 1;
 }
 
-/** @sly2-annot addr=0x1A3EE8
- * Purpose: If the light tree is dirty, clear masks and re-insert every slotted light
- * Info: proposed name PrepareSwLights (T1); TU light
- * Notes: names_v2 v1 proposed SetLightKind__FP5LIGHT6LIGHTK (0.200)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
+// If the light tree is dirty, clear masks and re-insert every slotted light. (inferred)
 extern "C" void PrepareSwLights(SWL *s)
 {
     unsigned int i;
@@ -655,7 +515,7 @@ extern "C" void PrepareSwLights(SWL *s)
     }
 }
 
-/* func_001A3F78: collect the best-ranked lights for a query position.
+/* FindLightsAffectingPoint: collect the best-ranked lights for a query position.
  *
  * Walks the world's plane tree (BSP) down to one leaf using the sign of
  * dot(plane.xyz, pos) - plane.w, ORs that leaf's 256-bit light mask into a local copy of the
@@ -719,14 +579,8 @@ static inline int BitIndex(uint isolated, int base)
     if (isolated & 0xFFFF0000U) result += 16;
     return result;
 }
-/** @sly2-annot addr=0x1A3F78
- * Purpose: Walk the light tree for a point and rank up to N lights affecting it
- * Info: proposed name FindSwLights (T2); TU light
- * Notes: names_v2 C proposed PrepareSwLightsForDraw__FP2SW (0.638)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-void func_001A3F78(SWL *p, qword pos, int capacity, RESULT *results)
+// Walk the light tree for a point and rank up to N lights affecting it. (inferred)
+void FindLightsAffectingPoint(SWL *p, qword pos, int capacity, RESULT *results)
 {
     WORK w;
     NODE *n;
@@ -771,7 +625,7 @@ void func_001A3F78(SWL *p, qword pos, int capacity, RESULT *results)
     }
 }
 
-/* FSphereHitsSpheres (Claude agent, wave-3 lane 9): does a sphere (pos, sRadius) touch a chain of spheres? First every sphere of the
+/* DoesSphereHitSpheres (Claude agent, wave-3 lane 9): does a sphere (pos, sRadius) touch a chain of spheres? First every sphere of the
  * chain is tested on its own, then the capsule-like hull between each adjacent pair: the common tangent line of the two circles
  * (normal n = u * s + perp * sqrt(1 - s*s) with u the unit axis, s = (r0 - r1) / |axis|) gives the tangent points A and B; the
  * point touches when its distance to the tangent is below sRadius and its projection onto AB falls inside the segment.
@@ -821,15 +675,8 @@ static inline VV AddScaled(VV base, VU_FLOAT g, VV v)
     return r;
 }
 static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
-/** @sly2-annot addr=0x1A4258
- * Purpose: True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones)
- * Info: proposed name FSphereHitsSpheres (T1); TU light
- * Notes: names_v2 B proposed TwpsFindSwLights__FP2SWP6VECTORfiiPiT5PP5LIGHT (0.950)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r4b_rest+verdicts_followups
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-int FSphereHitsSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
+// True if a sphere overlaps any of a list of spheres (or the capsules between consecutive ones)
+int DoesSphereHitSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
 {
     int i;
     float sDist;
@@ -868,10 +715,10 @@ int FSphereHitsSpheres(qword pos, float sRadius, int csphere, SPHERE *asphere)
     return 0;
 }
 
-// func_001A4478: per-frame "shader basis" packets for a query point.
-//  1. point = *p->input (optionally transformed by M4 *transform); func_001A3F78 collects the 4 best-ranked lights.
+// BuildSoLightPackets: per-frame "shader basis" packets for a query point.
+//  1. point = *p->input (optionally transformed by M4 *transform); FindLightsAffectingPoint collects the 4 best-ranked lights.
 //  2. If p->strength != 0: four 48-byte VIF packets (tag 0x6C03C000 | (i*3+0x15) + 12 words), from each result
-//     light's payload (+0x120), the rest from the default block D_002BFC60 (same code as func_001A4AD8), padded to a qword.
+//     light's payload (+0x120), the rest from the default block D_002BFC60 (same code as BuildLightPackets), padded to a qword.
 //  3. If p->limit != 0: weighted centre of the enabled results (kind 1: virtual slot 31 returns a matrix, its row 3;
 //     kind 0: point - direction * D_002BFC90), clamped to D_002BFC94 * limit from the point; basis from GetNormalVectors,
 //     row 2 = dir * extent; packet (M4 rows + kind + fraction) unpacked with tag 0x6C05C00E after aligning to 12 mod 16.
@@ -919,21 +766,15 @@ static inline void Align(uint align)
         pb = dma->m_pb;
     }
 }
-/** @sly2-annot addr=0x1A4478
- * Purpose: Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag
- *   0x6C03C000
- * Info: proposed name BuildSoLightPackets (T2); TU light
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8,
- *   docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void func_001A4478(SWL *world, M4 *transform, LIGHTQ *p)
+// Per object: find the 4 best lights for its point and emit four 48-byte VIF parameter packets (tag 0x6C03C000.
+// (inferred)
+extern "C" void BuildSoLightPackets(SWL *world, M4 *transform, LIGHTQ *p)
 {
     RESULT results[4];
     qword point = *p->input;
     if (transform)
         point = Transform(*transform, point);
-    func_001A3F78(world, point, 4, results);
+    FindLightsAffectingPoint(world, point, 4, results);
     if (p->strength == 0.0f) {
         p->cqwPacket = 0;
         p->pbPacket = 0;
@@ -1032,7 +873,7 @@ extern "C" void func_001A4478(SWL *world, M4 *transform, LIGHTQ *p)
             spheres[1].sRadius = p->limit * extent / dist;
             spheres[2].pos = AddScaledQ(center, basis.row[2].q, VU_FLOAT(1.5f));
             *(int *)&spheres[2].sRadius = 0;
-            packet.kind = FSphereHitsSpheres(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
+            packet.kind = DoesSphereHitSpheres(D_002DDF40.position, D_002DDF40.radius, 3, spheres);
             {
                 uchar *pb = D_002DEA28.m_pb;
                 p->pbBasis = pb;
@@ -1062,7 +903,7 @@ extern "C" void func_001A4478(SWL *world, M4 *transform, LIGHTQ *p)
     }
 }
 
-// func_001A4AD8: builds four 48-byte shader parameter packets (tag word + 12 payload words each) in the global VIFS
+// BuildLightPackets: builds four 48-byte shader parameter packets (tag word + 12 payload words each) in the global VIFS
 // packet buffer: one per light in ap[0..n) (payload at +0x120 of each, filled in by RebuildLight), the rest of the
 // four slots from the default block D_002BFC60. Stores the packet length in qwords in o->cqwPacket (start cursor in
 // o->pbPacket).
@@ -1079,13 +920,8 @@ typedef char P_payload_Offset[FIELD_OFFSET(LIGHTV,payload)==288?1:-1];
 typedef char VIFS_m_pb_Offset[FIELD_OFFSET(VIFS,m_pb)==12?1:-1];
 typedef char BLOCK_PrefixSize[sizeof(BLOCK)==48?1:-1];
 typedef char VIFS_PrefixSize[sizeof(VIFS)==36?1:-1];
-/** @sly2-annot addr=0x1A4AD8
- * Purpose: Same packet build for an explicit light list (rebuilds each light first)
- * Info: proposed name BuildLightPackets (T2); TU light
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
- * See: docs/reference/functions/rendering.md#light-0x1a3260-0x1a4e08
- * @end-sly2-annot */
-extern "C" void func_001A4AD8(void *a0, int n, LIGHTV **ap, LIGHTQ *o)
+// Same packet build for an explicit light list (rebuilds each light first) (inferred)
+extern "C" void BuildLightPackets(void *a0, int n, LIGHTV **ap, LIGHTQ *o)
 {
     int i;
     o->pbPacket = D_002DEA28.m_pb;

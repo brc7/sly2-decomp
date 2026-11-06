@@ -120,7 +120,7 @@ SO *FindFirstObjectHitByLine(int,qword,qword,int,SO **,HIT *);
 int CSolveQuadratic__FfffPf(float,float,float,float *);
 M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
 V *VECTOR_opAssign(V *,qword);
-void func_0021C5F8(EFFECT *,qword);
+void SetTrailMeshPositions(EFFECT *,qword);
 int MaxInt(int, int);
 void AttachJtHandsObject(CTRLSEL *,O *);
 void ReleaseJtHandsActs(CTRLSEL *);
@@ -562,7 +562,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower,int fUpdateBlends)
    pframe->s=0.0f;
    pframe->mat=mat;
   }
-  func_0021C5F8(thrower->effect,posLaunch);
+  SetTrailMeshPositions(thrower->effect,posLaunch);
  }
  qword posAim=thrower->targetWorld.q;
  qword posHeroNow=GetLoWorldPos(thrower->owner);

@@ -43,7 +43,7 @@ void AddDmaCnt__4DMAS(R *);
 void AddVifDirect__4VIFSiP2QWi(R *, int, void *, int);
 void EndDmaCnt__4DMAS(R *);
 void AddDmaRet__4DMAS(R *);
-Q *PrplAllocRpl(void);
+Q *AllocRenderListEntry(void);
 }
 
 /** @sly2-annot addr=0x15DC80
@@ -146,7 +146,7 @@ extern "C" void func_0015DD48(X *p)
     }
     EndDmaCnt__4DMAS(pr);
     AddDmaRet__4DMAS(pr);
-    pq = PrplAllocRpl();
+    pq = AllocRenderListEntry();
     pq->x8 = x;
     pq->x4 = -1.0f;
     switch (p->k6C) {

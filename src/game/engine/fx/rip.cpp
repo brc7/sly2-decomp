@@ -22,18 +22,18 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct EMITBV
 {
     char pad0[0xD4];
-    float gD4;              /* +0xD4 */
+    float ripScale;              /* +0xD4 */
 };
 /* RIPG (: SO): state, the emitter's scale, the list of live rips, and the bounds copied into its tree record. */
 struct RIPGV : public SO
 {
-    int nState;             /* +0x150 */
+    int ripgState;             /* +0x150 */
     char pad154[4];
-    float g158;             /* +0x158 */
-    DL dlRip;               /* +0x15C */
+    float emitScale;             /* +0x158 */
+    DL ripList;               /* +0x15C */
     char pad168[0x170 - 0x168];
-    qword aqwBounds[3];     /* +0x170 */
-    float gBounds;          /* +0x1A0 */
+    qword boundsData[3];     /* +0x170 */
+    float boundsRadius;          /* +0x1A0 */
 };
 /* A subscription node (pool D_003E1144). */
 struct RIPSUB
@@ -48,20 +48,20 @@ struct RIPSUB
 struct RIP
 {
     int kind;
-    int cref;               /* +0x04 */
-    RIPGV *pripg;            /* +0x08 */
+    int refCount;               /* +0x04 */
+    RIPGV *ripGroup;            /* +0x08 */
     char padC[0x18 - 0xC];
     float g18;              /* +0x18 */
     char pad1C[0x20 - 0x1C];
     qword q20;              /* +0x20 */
     qword q30;              /* +0x30 */
     char pad40[0x70 - 0x40];
-    qword posCur;           /* +0x70 */
-    qword posPrev;          /* +0x80 */
+    qword currentPosition;           /* +0x70 */
+    qword previousPosition;          /* +0x80 */
     char pad90[0xA0 - 0x90];
     qword qA0;              /* +0xA0 */
     char padB0[0xE8 - 0xB0];
-    RIPSUB *psubFirst;      /* +0xE8 */
+    RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
     virtual void PostEmit(void *pv) __asm__("PostRipEmit");   /* slot 2 */
     virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
@@ -69,7 +69,7 @@ struct RIP
     virtual void Update(float dt) __asm__("UpdateRip");   /* slot 5 */
     virtual void Render(CM *pcm) __asm__("RenderRip");   /* slot 6 */
     virtual void Touch(int fRemove) __asm__("TouchRip__FP3RIPi");   /* slot 7 */
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceRip");   /* slot 8 */
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("HandleRipBounce");   /* slot 8 */
 };
 typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
 /* The kinds, in the reverse of their emission order (vtables 0x2D7738 .. 0x2D7468; RIP's 0x2D7788 last). DRAFT
@@ -77,7 +77,7 @@ typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
    SHRAPNEL are the Sly 1 symbols' class names. Fields: only the two words a GLINT/RIPT1 body reads (RIPF). */
 struct RIPF : RIP
 {
-    LO *ploFollow;          /* +0xF0 */
+    LO *followObject;          /* +0xF0 */
     int nF4;                /* +0xF4 */
 };
 struct FLYING : RIP   /* RIPT 3 */
@@ -107,7 +107,7 @@ struct MATCH : RIP   /* RIPT 6 */
 struct GLINT : RIP   /* RIPT 4 */
 {
     virtual void Init(qword pos, int n, float g) __asm__("func_001D0108");   /* key function */
-    virtual void Project() __asm__("func_001D0158");
+    virtual void Project() __asm__("ProjectGlint");
     virtual void Render(CM *pcm) __asm__("RenderGlint");
 };
 struct SMACK : RIP   /* RIPT 9 */
@@ -120,20 +120,20 @@ struct SMACK : RIP   /* RIPT 9 */
 struct RIPT1 : RIP   /* RIPT 1 */
 {
     virtual void Init(qword pos, int n, float g) __asm__("func_001D0CA8");   /* key function */
-    virtual void PostEmit(void *pv) __asm__("func_001D0CE8");
-    virtual void Touch(int fRemove) __asm__("func_001D0D28");
+    virtual void PostEmit(void *pv) __asm__("PostRipt1Emit");
+    virtual void Touch(int fRemove) __asm__("UpdateRipt1");
 };
 struct RIPT0 : RIP   /* RIPT 0 */
 {
     virtual void Touch(int fRemove) __asm__("func_001D10E8");   /* key function */
-    virtual void Init(qword pos, int n, float g) __asm__("func_001D0E48");
-    virtual void Project() __asm__("func_001D0EB8");
+    virtual void Init(qword pos, int n, float g) __asm__("InitBublet");
+    virtual void Project() __asm__("ProjectBubletTransform");
 };
 struct LEAF : RIP   /* RIPT 5 */
 {
     virtual void PostEmit(void *pv) __asm__("PostLeafEmit");   /* key function */
     virtual void Project() __asm__("ProjectLeafTransform");
-    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("func_001D0BF8");
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("StickLeafOnBounce");
 };
 struct REMIT : RIP   /* RIPT 2 */
 {
@@ -166,14 +166,8 @@ void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOB
 void *GetSwClassList(struct G *p, int n);
 void AppendSlEntry(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
-/** @sly2-annot addr=0x1CDCD0
- * Purpose: Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool
- *   (+0x403C), zero it, construct (CRef), add to world
- * Info: proposed name PripgNew (T1); TU rip
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/particles-effects.md#5-source-files, docs/engine/particles-effects.md#6-key-functions,
- *   docs/engine/rendering.md#12-source-files
- * @end-sly2-annot */
+// Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it,
+// construct (CRef), add to world. (inferred)
 struct O *PripgNew(struct G *p, int a)
 {
     struct O *po;
@@ -205,13 +199,7 @@ void SetLoBusyk(struct S *p, int n);
 void EnsureSoTree(struct S *p);
 void SetSoTreeFlag2(struct S *p, int n);
 static inline int FPtr(int v) { return !(v & 1); }
-/** @sly2-annot addr=0x1CDDC8
- * Purpose: RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags
- * Info: proposed name InitRipg (T1); class RIPG slot7; TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags.
 void InitRipg__FP4RIPG(struct S *p)
 {
     int v;
@@ -228,20 +216,11 @@ void InitRipg__FP4RIPG(struct S *p)
 }
 } } // namespace M_InitRipg__FP4RIPG
 
-/** @sly2-annot addr=0x1CDE70
- * Purpose: copy emitb rate into RIPG
- * Info: proposed name SetRipgEmitb__FP4RIPGP5EMITB (EXISTING); TU rip
- * Notes: verifier: purpose partly wrong: Existing name = Sly 1 SetRipgEmitb, but the copied field is
- *   emitrip.sExpand (emitb+0xD4 -> ripg+0x158), not a rate.
- * Confidence: high [EXISTING 0.90] - evidence: Sly 1 / Lilly reference; pre-existing symbol in
- *   symbol_addrs.txt; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-void SetRipgEmitb(RIPGV *pripg, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
-void SetRipgEmitb(RIPGV *pripg, EMITBV *pemitb)
+// Copy emitb rate into RIPG.
+void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb) __asm__("SetRipgEmitb__FP4RIPGP5EMITB");
+void SetRipgEmitb(RIPGV *ripGroup, EMITBV *pemitb)
 {
-    pripg->g158 = pemitb->gD4;
+    ripGroup->emitScale = pemitb->ripScale;
 }
 
 namespace M_OnRipgRemove__FP4RIPG {
@@ -276,30 +255,25 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-/** @sly2-annot addr=0x1CDE80
- * Purpose: RIPG vt slot 12 (OnRemove): release rips / clear SW default RIPG
- * Info: proposed name OnRipgRemove__FP4RIPG (EXISTING); class RIPG slot12; TU rip
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-extern "C" void OnRipgRemove__FP4RIPG(RIPGV *pripg)
+// RIPG vt slot 12 (OnRemove): release rips / clear SW default RIPG.
+extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
 {
     DLI dli;
     RIP *prip;
     SW *psw;
-    InitDli(&dli, &pripg->dl);
+    InitDli(&dli, &ripGroup->dl);
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(prip);
     psw = &D_003DD490;
-    if (pripg == psw->x406C) psw->x406C = 0;
-    RemoveSoHierarchy(pripg);
-    if (pripg->xEC) {
-        RemoveSwAaobrObject(psw, pripg->xEC);
-        pripg->xEC = 0;
+    if (ripGroup == psw->x406C) psw->x406C = 0;
+    RemoveSoHierarchy(ripGroup);
+    if (ripGroup->xEC) {
+        RemoveSwAaobrObject(psw, ripGroup->xEC);
+        ripGroup->xEC = 0;
     }
-    SnipLo(pripg);
-    RemoveSlEntry(GetSwClassList(psw, 0x57), pripg);
-    if (!pripg->x10) FreeLoroot(pripg);
-    FreeSlotheapSlot(psw->pool, pripg);
+    SnipLo(ripGroup);
+    RemoveSlEntry(GetSwClassList(psw, 0x57), ripGroup);
+    if (!ripGroup->x10) FreeLoroot(ripGroup);
+    FreeSlotheapSlot(psw->pool, ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
 } // namespace M_OnRipgRemove__FP4RIPG
@@ -343,14 +317,8 @@ static inline qword Mid(qword a, qword b, qword k) { qword r; __asm__("vmulax.xy
 // Length of a vector in two steps (sum of squares, then sqrt).  The "memory" clobbers keep the stores around the steps in source order.
 #define LEN1(d, one, v) __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(v) : "memory")
 #define LEN2(d) __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "+j"(d) : : "memory")
-/** @sly2-annot addr=0x1CDF88
- * Purpose: RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by
- *   size, set center/radius
- * Info: proposed name ProjectRipgTransform (T1); class RIPG slot17; TU rip
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPG vt slot 17: iterate rips, run due ones' project step, accumulate min/max bounds, grow by size, set
+// center/radius. (inferred)
 void ProjectRipgTransform(S *p)
 {
     DLI dli;
@@ -397,23 +365,17 @@ void ProjectRipgTransform(S *p)
 #undef LEN1
 #undef LEN2
 
-/** @sly2-annot addr=0x1CE170
- * Purpose: RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set
- *   dirty flag g_sw.fAaoxUnsorted, call SO bound update 0x1F4BA8
- * Info: proposed name UpdateRipgBounds (T1); class RIPG slot49; TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPG vt slot 49: copy RIPG bounds (+0x170..+0x1A0) into its geometry/bound record (+0xEC), set dirty flag
+// g_sw.fAaoxUnsorted, call SO bound update 0x1F4BA8.
 /* RIPG slot 49. */
-extern "C" void UpdateRipgBounds(RIPGV *pripg)
+extern "C" void UpdateRipgBounds(RIPGV *ripGroup)
 {
-    ((qword *)pripg->ptree)[0] = pripg->aqwBounds[0];
-    ((qword *)pripg->ptree)[1] = pripg->aqwBounds[1];
-    ((qword *)pripg->ptree)[2] = pripg->aqwBounds[2];
-    ((float *)pripg->ptree)[12] = pripg->gBounds;
+    ((qword *)ripGroup->ptree)[0] = ripGroup->boundsData[0];
+    ((qword *)ripGroup->ptree)[1] = ripGroup->boundsData[1];
+    ((qword *)ripGroup->ptree)[2] = ripGroup->boundsData[2];
+    ((float *)ripGroup->ptree)[12] = ripGroup->boundsRadius;
     g_sw.fAaoxUnsorted = 1;
-    ClearSoTreeBoundsDirty(pripg);
+    ClearSoTreeBoundsDirty(ripGroup);
 }
 
 namespace M_UpdateRipg { extern "C" {
@@ -443,33 +405,22 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-/** @sly2-annot addr=0x1CE1C8
- * Purpose: RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then
- *   BounceRipgRips if active
- * Info: proposed name UpdateRipg (EXISTING); class RIPG slot16; TU rip
- * Notes: agent/verifier proposes UpdateRipg for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> UpdateRipg (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.75] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r5_1AE130+arbitration
- * See: docs/engine/particles-effects.md#2-rip-particles-ripcpp-0x1cdcd0-0x1d1370,
- *   docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-void UpdateRipg(struct RIPGV *pripg)
+// RIPG::Update (vt slot 16): AddRipRef/update each rip via its vtable, ReleaseRip, then BounceRipgRips if active.
+void UpdateRipg(struct RIPGV *ripGroup)
 {
     DLI dli;
     struct RIP *prip;
-    InitDli(&dli, &pripg->dl);
+    InitDli(&dli, &ripGroup->dl);
     while ((prip = (struct RIP *)PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t <= prip->tStart) continue;
         AddRipRef__FP3RIP(prip);
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         ReleaseRip__FP3RIP(prip);
     }
-    if (!IsLoInWorld(pripg) || FIsDlEmpty__FP2DL(&pripg->dl))
-        ((void (*)(void *))pripg->vt[9].pf)((char *)pripg + pripg->vt[9].d);
+    if (!IsLoInWorld(ripGroup) || FIsDlEmpty__FP2DL(&ripGroup->dl))
+        ((void (*)(void *))ripGroup->vt[9].pf)((char *)ripGroup + ripGroup->vt[9].d);
     else
-        BounceRipgRips__FP4RIPG(pripg);
+        BounceRipgRips__FP4RIPG(ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
 } } // namespace M_UpdateRipg
@@ -524,14 +475,7 @@ static inline void *Next(DLI *it) { void *p = *it->next; it->next = (void **)((c
 static inline void SetAlign(REQ *r, int a) { r->align = a; }
 static inline const qword &Origin(STATE *s) { return s->origin; }
 static inline int Min(int a, int b) { return a <= b ? a : b; }
-/** @sly2-annot addr=0x1CE2E8
- * Purpose: Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's
- *   FBounce virtual
- * Info: proposed name BounceRipgRips (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Collide live rips with nearby SO shapes (scratch stack alloc, BSP query) calling each rip's FBounce virtual.
 void BounceRipgRips__FP4RIPG(P *p)
 {
     if (p->mode == 1) {
@@ -610,17 +554,12 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-/** @sly2-annot addr=0x1CE608
- * Purpose: RIPG vt slot 19 RenderSelf: render each rip via vtable
- * Info: proposed name RenderRipgSelf__FP4RIPGP2CMP2RO (EXISTING); class RIPG slot19; TU rip
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *pripg, CM *pcm, RO *pro)
+// RIPG vt slot 19 RenderSelf: render each rip via vtable.
+extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *ripGroup, CM *pcm, RO *pro)
 {
     DLI dli;
     RIP *prip;
-    InitDli(&dli, &pripg->dl);
+    InitDli(&dli, &ripGroup->dl);
     while ((prip = (RIP *)PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t <= prip->tStart) continue;
             ((void (*)(void *))prip->vt[6].pf)((char *)prip + prip->vt[6].d);
@@ -629,17 +568,12 @@ extern "C" void RenderRipgSelf__FP4RIPGP2CMP2RO(RIPGV *pripg, CM *pcm, RO *pro)
 }
 } // namespace M_RenderRipgSelf__FP4RIPGP2CMP2RO
 
-/** @sly2-annot addr=0x1CE6C0
- * Purpose: RIPG vt slot 62: returns (state(+0x150) != 1)
- * Info: proposed name FRipgUnk62 (T2); class RIPG slot62; TU rip
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPG vt slot 62: returns (state(+0x150) != 1) (inferred)
 /* RIPG slot 62. */
 int RIPG::VUnk61()
 {
-    RIPGV *pripg = (RIPGV *)this;
-    return pripg->nState != 1;
+    RIPGV *ripGroup = (RIPGV *)this;
+    return ripGroup->ripgState != 1;
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -661,16 +595,8 @@ extern char D_002D7508[] __asm__("_vt$5RIPT0");
 extern char D_002D7788[] __asm__("_vt$3RIP");
 extern char D_002D7468[] __asm__("_vt$5REMIT");
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-/** @sly2-annot addr=0x1CE6D0
- * Purpose: Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's
- *   vtable (11 types, vtables 0x2D7468..0x2D7788)
- * Info: proposed name PvtripFromRipt (T1); TU rip
- * Notes: names_v2 C proposed PvtripFromRipt__F4RIPT (0.638) | returns the VTRIP vtable for a RIPT (table of
- *   11 RIP vtables); r5 PripConstructRipt (was PripConstructRipt)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: verify_r3r5_summary
- * See: docs/engine/particles-effects.md#2-rip-particles-ripcpp-0x1cdcd0-0x1d1370,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's vtable (11 types,
+// vtables 0x2D7468..0x2D7788) (inferred)
 struct X *PvtripFromRipt(struct X *p, unsigned int k)
 {
     struct X *px;
@@ -746,13 +672,7 @@ void *PvAllocSlotheapClear(void *pool);
 struct R *PvtripFromRipt(void *pv, void *a);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void AddRipRef__FP3RIP(struct R *r);
-/** @sly2-annot addr=0x1CE888
- * Purpose: Allocate a RIP from the rip pool (g_sw.slotheapRefnode?), construct by type, link into RIPG dlRip, AddRipRef
- * Info: proposed name PripNewRipg (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5+verdicts_A2
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Allocate a RIP from the rip pool (g_sw.slotheapRefnode?), construct by type, link into RIPG dlRip, AddRipRef.
 struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
 {
     void *pv;
@@ -777,16 +697,7 @@ struct RIP { char pad[0x14]; float t14; float g18; int x1c; float g20; char pad2
 extern float D_002DDED0;
 extern qword D_002C1F50;
 extern struct M3 D_002A2D00;
-/** @sly2-annot addr=0x1CE920
- * Purpose: RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix
- * Info: proposed name InitRip (T1); TU rip
- * Notes: verifier: purpose partly wrong: Sly 1 InitRip: psoTouch(+0xE0), tCreated=g_clock.t,
- *   dtLifetime(+0x18)=1.0, clqScale(+0x20)=scale arg, clqAlpha(+0x30)=g_clqAlphaRip, pos/posPrev, identity
- *   mat;
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix.
 } } // namespace M_InitRip
 void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here (the namespace's views) */
 {
@@ -802,37 +713,22 @@ void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes 
     p->m = D_002A2D00;/*E*/
 }
 
-/** @sly2-annot addr=0x1CE980
- * Purpose: unlink from RIPG dl + ReleaseRip
- * Info: proposed name RemoveRip__FP3RIP (EXISTING); TU rip
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Unlink from RIPG dl + ReleaseRip.
 void RemoveRip(RIP *prip)
 {
-    RemoveDlEntry(&prip->pripg->dlRip, prip);
+    RemoveDlEntry(&prip->ripGroup->ripList, prip);
     ReleaseRip(prip);
 }
 
-/** @sly2-annot addr=0x1CE9B8
- * Purpose: RIP default PostEmit (vt entry 2): empty
- * Info: proposed name PostRipEmit (T1); TU rip
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIP default PostEmit (vt entry 2): empty. (inferred)
 extern "C" void PostRipEmit(RIP *prip, void *pv)
 {
 }
 
-/** @sly2-annot addr=0x1CE9C0
- * Purpose: cRef++
- * Info: proposed name AddRipRef__FP3RIP (EXISTING); TU rip
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// CRef++.
 void AddRipRef(RIP *prip)
 {
-    prip->cref++;
+    prip->refCount++;
 }
 
 namespace M_ReleaseRip__FP3RIP { extern "C" {
@@ -841,14 +737,7 @@ struct LO { char pad[0xC]; struct VTE *vt; };
 struct N { struct LO *plo; int x4; struct N *pnNext; };
 struct S { int x0; int cRef; char p1[0xE8 - 0x8]; struct N *pn; struct VTE *vt; };
 void FreeSlotheapSlot(void *pool, void *pv);
-/** @sly2-annot addr=0x1CE9D0
- * Purpose: Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes,
- *   free rip
- * Info: proposed name ReleaseRip (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes, free rip.
 void ReleaseRip__FP3RIP(struct S *p)
 {
     struct N *pn, *pnNext;
@@ -866,12 +755,7 @@ void ReleaseRip__FP3RIP(struct S *p)
 }
 } } // namespace M_ReleaseRip__FP3RIP
 
-/** @sly2-annot addr=0x1CEA88
- * Purpose: if fTouching RemoveRip (default vt entry 7)
- * Info: proposed name TouchRip__FP3RIPi (EXISTING); TU rip
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// If fTouching RemoveRip (default vt entry 7)
 void TouchRip(RIP *prip, int fRemove)
 {
     if (fRemove != 0) {
@@ -882,14 +766,7 @@ void TouchRip(RIP *prip, int fRemove)
 namespace M_ForceRipFade__FP3RIPf {
 struct RIP { char pad[0x14]; float t14; float g18; };
 extern "C" { extern CLOCK D_002DDED0; }
-/** @sly2-annot addr=0x1CEAA8
- * Purpose: start fade
- * Info: proposed name ForceRipFade__FP3RIPf (EXISTING); TU rip
- * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Start fade.
 extern "C" void ForceRipFade__FP3RIPf(RIP *prip, float dt)
 {
     float t = prip->g18 - (D_002DDED0.t - prip->t14);
@@ -919,7 +796,7 @@ void CalculateWaterCurrent(void*,qw,qw*,qw*);
 qw GetXfVelocity(void*,void*,qw);
 void ForceRipFade__FP3RIPf(RIP*,float);
 void FindClosestPointOnLineSegment(qw,qw,qw,qw*,float*,float*);
-int FBounceRip(RIP*,SHAPE*,qw,qw);
+int HandleRipBounce(RIP*,SHAPE*,qw,qw);
 }
 static inline float Max(float a,float b){return a<b?b:a;}
 static inline float Evaluate(POLY*p,float t){return p->a+t*(p->b+t*p->c);}
@@ -939,16 +816,8 @@ static inline qw PrepareOffsetTorque(qw normal,float amount,WORK&w){register qw 
  __asm__("mfc1 $3,%3\n\tqmtc2.ni $3,%0\n\tvmulx.xyzw $vf10,%4,%0x\n\tsqc2 %0,%1\n\tvopmula.xyz $ACC,$vf10,%4\n\tvopmsub.xyz %0,%4,$vf10\n\tsqc2 $vf10,%2":"=&j"(torque),"=m"(w.temporary.q),"=m"(w.offset.q):"f"(amount),"j"(normal):"vf10","$3");return torque;
 }
 static inline SHAPE*CaptureShape(SHAPE*incoming){register SHAPE*saved __asm__("$17");__asm__("daddu %0,%1,$zero":"=r"(saved):"r"(incoming));return saved;}
-/** @sly2-annot addr=0x1CEB08
- * Purpose: RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity,
- *   ForceRipFade
- * Info: proposed name FBounceRip (T1); TU rip
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/guides/port-plan.md#11-first-20-engineering-tasks-ranked,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-int FBounceRip(RIP*p,SHAPE*incomingShape,qw point,qw normal){
+// RIP default FBounce (vt entry 8): reflect velocity off an SO contact, friction/elasticity, ForceRipFade. (inferred)
+int HandleRipBounce(RIP*p,SHAPE*incomingShape,qw point,qw normal){
  SHAPE*shape=CaptureShape(incomingShape);
  WORK w;float radius,elastic,friction;void*owner;
  {register qw incomingNormal __asm__("vf8");__asm__("qmtc2.ni %1,%0":"=j"(incomingNormal):"r"(normal));
@@ -1170,13 +1039,7 @@ typedef char layout_ceb08_70[(sizeof(((PROX*)0)->distance)==4)?1:-1];
 
 namespace M_func_001CEFC8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-/** @sly2-annot addr=0x1CEFC8
- * Purpose: helper: |v|^2 < 4
- * Info: proposed name FVecShorterThan2 (T2); TU rip
- * Notes: names_v2 B proposed InitDroplet__FP7DROPLETP6VECTORfP2SO (0.856)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Helper: |v|^2 < 4. (inferred)
 int func_001CEFC8(qword v)
 {
     float g;
@@ -1194,13 +1057,7 @@ int func_001CEFC8(qword v)
 
 namespace M_func_001CF010 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-/** @sly2-annot addr=0x1CF010
- * Purpose: helper: |v|^2 < 0.0004
- * Info: proposed name FVecShorterThan0p02 (T2); TU rip
- * Notes: names_v2 B proposed InitDablet__FP6DABLETP6VECTORfP2SO (0.856)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Helper: |v|^2 < 0.0004. (inferred)
 int func_001CF010(qword v)
 {
     float g;
@@ -1218,13 +1075,7 @@ int func_001CF010(qword v)
 
 namespace M_func_001CF058 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-/** @sly2-annot addr=0x1CF058
- * Purpose: helper: |v|^2 < 25
- * Info: proposed name FVecShorterThan5 (T2); TU rip
- * Notes: names_v2 v1 proposed InitDroplet__FP7DROPLETP6VECTORfP2SO (0.023)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Helper: |v|^2 < 25. (inferred)
 int func_001CF058(qword v)
 {
     float g;
@@ -1280,13 +1131,7 @@ static inline qword AddScaled(qword a,qword b,qword s){qword r;__asm__("vadda.xy
 static inline int ClockWord(char*page){int word;__asm__("lw %0,%%lo(%2)(%1)":"=r"(word):"r"(page),"i"(&D_002DDED0.dtbits),"m"(*(const int*)(page-0x212C)));return word;}
 static inline char*ClockPage(){register char*page __asm__("$2");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002DDED0.dtbits));return page;}
 static inline void PublishBasisStart(S*p,qword first,qword second){__asm__("sqc2 %3,0x40(%2)\n\tsqc2 %4,0x50(%2)":"=m"(p->mat.r[0].q),"=m"(p->mat.r[1].q):"r"(p),"j"(first),"j"(second));}
-/** @sly2-annot addr=0x1CF0A0
- * Purpose: RIP default Project (vt entry 4): integrate velocity/position with damping and gravity
- * Info: proposed name ProjectRipTransform (T1); TU rip
- * Notes: names_v2 B proposed RenderTrail__FP5TRAILP2CM (0.856)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIP default Project (vt entry 4): integrate velocity/position with damping and gravity. (inferred)
 void ProjectRipTransform(S*p){
  WORK w;
  if(!func_001CF010(p->omega)) {
@@ -1358,13 +1203,7 @@ struct G { char pad[0x150]; int x150; };
 struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float x14; float x18; char p1[0x70 - 0x1C]; qword x70;
     char p2[0xE0 - 0x80]; struct LO *xE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
 void RemoveRip__FP3RIP(struct S *p);
-/** @sly2-annot addr=0x1CF268
- * Purpose: RIP default Update (vt entry 5): fade/age and RemoveRip when expired
- * Info: proposed name UpdateRip (T1); TU rip
- * Notes: names_v2 v1 proposed TouchDroplet__FP7DROPLETi (0.167)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIP default Update (vt entry 5): fade/age and RemoveRip when expired. (inferred)
 void UpdateRip(struct S *p)
 {
     struct LO *plo;
@@ -1405,13 +1244,7 @@ int FRenderRipPosMat(S*,qword,const M3&);
 static inline float Poly(POLY *p,float t){return p->a+t*(p->b+t*p->c);}
 static inline float Clamp(float f,float lo,float hi){if(f<lo)return lo;if(hi<f)return hi;return f;}
 static inline qword BcG(float f){U u;qword r;__asm__("mfc1 %0,%1":"=r"(r):"f"(f));u.q=r;return r;}
-/** @sly2-annot addr=0x1CF338
- * Purpose: Compute rip render position/matrix relative to camera; false if culled
- * Info: proposed name FRenderRipPosMat (T1); TU rip
- * Notes: names_v2 v1 proposed ProjectBubletTransform__FP6BUBLETf (0.002)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Compute rip render position/matrix relative to camera; false if culled. (inferred)
 int FRenderRipPosMat(S*p,qword pos,const M3&mat)
 {
     if(!p->lo)return 1;
@@ -1444,56 +1277,32 @@ int FRenderRipPosMat(S *p, qword q, M m);
 void RemoveRip__FP3RIP(S *p);
 void RenderRip(S *p);
 }
-/** @sly2-annot addr=0x1CF518
- * Purpose: RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip
- * Info: proposed name RenderRip (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_A2+verify_side
- * See: docs/engine/particles-effects.md#2-rip-particles-ripcpp-0x1cdcd0-0x1d1370,
- *   docs/engine/particles-effects.md#6-key-functions, docs/engine/rendering.md#8-blips-hud-screen-effects
- * @end-sly2-annot */
+// RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip.
 void RenderRip(S *p)
 {
     if (!FRenderRipPosMat(p, p->q70, p->m)) RemoveRip__FP3RIP(p);
 }
 } // namespace M_RenderRip
 
-/** @sly2-annot addr=0x1CF570
- * Purpose: RIP default OnRemove (vt entry 3): empty
- * Info: proposed name OnRipRemove (T1); TU rip
- * Notes: names_v2 B proposed ProjectRoseTransform__FP4ROSEf (0.856)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIP default OnRemove (vt entry 3): empty. (inferred)
 extern "C" void OnRipRemove(RIP *prip)
 {
 }
 
-/** @sly2-annot addr=0x1CF578
- * Purpose: Push {plo} subscription node (pool g_sw.slotheapRefnode) onto rip->(+0xE8) list
- * Info: proposed name SubscribeRipObject (T1); TU rip
- * Notes: names_v2 v1 proposed InitDablet__FP6DABLETP6VECTORfP2SO (0.079)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Push {plo} subscription node (pool g_sw.slotheapRefnode) onto rip->(+0xE8) list. (inferred)
 extern "C" void SubscribeRipObject(RIP *prip, LO *plo)
 {
     RIPSUB *psub = (RIPSUB *)PvAllocSlotheapClear(&g_sw.slotheapRefnode);
     psub->plo = plo;
-    psub->pnext = prip->psubFirst;
-    prip->psubFirst = psub;
+    psub->pnext = prip->firstSubscription;
+    prip->firstSubscription = psub;
 }
 
 // 0x1CF5C0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x40");
 
-/** @sly2-annot addr=0x1CF5C8
- * Purpose: Returns 0x110 (largest RIP subclass size) for the rip pool
- * Info: proposed name CbMaxRip (T1); TU rip
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-extern "C" int CbMaxRip()
+// Returns 0x110 (largest RIP subclass size) for the rip pool. (inferred)
+extern "C" int GetMaxRipSize()
 {
     return 0x110;
 }
@@ -1502,13 +1311,7 @@ namespace M_PostFlyingEmit { extern "C" {
 struct B { int a[3]; int c; };
 struct S { int a[2]; struct B *pb; char pad[0xE4]; int f0; int f4; };
 void PostRipEmit(struct S *a, struct S *b);
-/** @sly2-annot addr=0x1CF5D0
- * Purpose: FLYING (Sly2 RIPT 3) PostEmit: base PostRipEmit + setup
- * Info: proposed name PostFlyingEmit (T1); TU rip
- * Notes: names_v2 v1 proposed InitFlake__FP5FLAKEP6VECTORfP2SO (0.001)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// FLYING (Sly2 RIPT 3) PostEmit: base PostRipEmit + setup. (inferred)
 void PostFlyingEmit(struct S *a, struct S *b)
 {
     PostRipEmit(a, b);
@@ -1529,13 +1332,7 @@ M BuildOrthonormalMatrixZ(qword a, qword b);
 int FRenderRipPosMat(S *p, qword q, M m);
 void RenderFlying(S *p);
 }
-/** @sly2-annot addr=0x1CF618
- * Purpose: FLYING Render: oriented render via FRenderRipPosMat
- * Info: proposed name RenderFlying (T1); TU rip
- * Notes: names_v2 B proposed RenderStuck__FP5STUCKP2CM (0.957)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// FLYING Render: oriented render via FRenderRipPosMat. (inferred)
 void RenderFlying(S *p)
 {
     qword v;
@@ -1586,14 +1383,7 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1]));
  __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2]));
 }
-/** @sly2-annot addr=0x1CF6B0
- * Purpose: Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation
- * Info: proposed name CreateStuck (T1); TU rip
- * Notes: names_v2 C proposed ProjectLeafTransform__FP4LEAFf (0.638)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Spawn a STUCK rip (PripNewRipg) attached to the hit object at the contact point/orientation. (inferred)
 O *CreateStuck(EMIT*p,LO*visual,LO*space,qword position,qword direction){
  O*object=0;
  if(visual){
@@ -1634,20 +1424,7 @@ extern int D_002C1F70[1];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
 void RemoveRip__FP3RIP(struct S *p);
-/** @sly2-annot addr=0x1CF968
- * Purpose: FLYING FBounce: on contact CreateStuck then RemoveRip
- * Info: proposed name FBounceLeaf (T1); TU rip
- * Notes: names_v2 A proposed FBounceLeaf__FP4LEAFP2SOP6VECTORT2 (0.927) [verified CORRECT] | CONFLICT:
- *   verified tier-A name differs from TU name; orchestrator: verified name FBounceLeaf__FP4LEAFP2SOP6VECTORT2
- *   restored over FBounceFlying (verified > unverified) | arbitration adopt verified: Verifier matched Sly1
- *   FBounceLeaf; referenced only from data word 0x2D777C (callback). Mangling not checked here (dispute note
- *   says vectors by value), leave bla
- * Confidence: mid (draft) [T1 0.65] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
- *   sources: r5_1AE130+verdicts_A2;verified_A+arbitration
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/open-questions.md#names-and-classes-cross-cutting,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// FLYING FBounce: on contact CreateStuck then RemoveRip. (inferred)
 } } // namespace M_FBounceLeaf
 int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
@@ -1663,13 +1440,7 @@ int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the names
     return 1;
 }
 
-/** @sly2-annot addr=0x1CFA20
- * Purpose: STUCK (RIPT 10) Update: base UpdateRip
- * Info: proposed name UpdateStuck (T1); TU rip
- * Notes: names_v2 v1 proposed TouchFlake__FP5FLAKEi (0.638)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// STUCK (RIPT 10) Update: base UpdateRip. (inferred)
 void STUCK::Update(float dt)   /* key function: STUCK's vtable comes out here */
 {
     RIP *prip = this;
@@ -1686,13 +1457,7 @@ M ConvertXfMat(void *p, int n, M *pm);
 int FRenderRipPosMat(S *p, qword q, M m);
 void RenderStuck(S *p);
 }
-/** @sly2-annot addr=0x1CFA40
- * Purpose: STUCK Render: transform by host object's matrix, FRenderRipPosMat
- * Info: proposed name RenderStuck (T1); TU rip
- * Notes: names_v2 B proposed PostBulletEmit__FP6BULLETP5EMITB (0.892)
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// STUCK Render: transform by host object's matrix, FRenderRipPosMat. (inferred)
 void RenderStuck(S *p)
 {
     qword q = TransformXfPos(p->p, 0, p->q70);
@@ -1735,14 +1500,7 @@ static inline qword VLen(qword v)
 static inline float LowerLimit(char*page){return *(const float*)(page-0x44A0);}
 static inline float ReadLengthAndPublish(qword length,char**out,LM**limits,float*duration,float life){register char*page __asm__("$2");register LM*address __asm__("$3");register float scalar __asm__("$f3");__asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\tswc1 %6,%3\n\tmtc1 %1,%2\n\taddiu %1,%0,%%lo(%5)":"=&r"(page),"=&r"(address),"=f"(scalar),"=m"(*duration):"j"(length),"i"(&D_002BBB60),"f"(life));*out=page;*limits=address;return scalar;}
 static inline void CopyDirection(SHRAPNEL*dest,const EMITBV*source){register float xz __asm__("$f0");register float y __asm__("$f1");__asm__("lwc1 %0,%5\n\tswc1 %0,%2\n\tlwc1 %1,%6\n\tswc1 %1,%3\n\tlwc1 %0,%7\n\tswc1 %0,%4":"=&f"(xz),"=&f"(y),"=m"(dest->dir.x),"=m"(dest->dir.y),"=m"(dest->dir.z):"m"(source->dir.x),"m"(source->dir.y),"m"(source->dir.z));}
-/** @sly2-annot addr=0x1CFAB8
- * Purpose: SHRAPNEL (RIPT 8) PostEmit
- * Info: proposed name PostShrapnelEmit__FP8SHRAPNELP5EMITB (EXISTING); TU rip
- * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources:
- *   r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// SHRAPNEL (RIPT 8) PostEmit.
 extern "C" void PostShrapnelEmit__FP8SHRAPNELP5EMITB(SHRAPNEL *psh, EMITBV *pemitb)
 {
     float len, g;
@@ -1770,15 +1528,9 @@ struct C { char pad[0x60]; void *p60; };
 struct B { char pad[0xEC]; struct C *pc; };
 struct A { int x0; struct B *pb; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int FBounceRip(void *p, struct A *pa, qword q0, qword q1);
+int HandleRipBounce(void *p, struct A *pa, qword q0, qword q1);
 void RemoveRip__FP3RIP(void *p);
-/** @sly2-annot addr=0x1CFBE0
- * Purpose: SHRAPNEL FBounce: FBounceRip then remove on condition
- * Info: proposed name FBounceShrapnel (T1); TU rip
- * Notes: names_v2 v1 proposed InitBurst__FP5BURSTP6VECTORfP2SO (0.173)
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// SHRAPNEL FBounce: HandleRipBounce then remove on condition. (inferred)
 } } // namespace M_FBounceShrapnel
 int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
@@ -1791,7 +1543,7 @@ int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the nam
         RemoveRip__FP3RIP(p);
         return 1;
     }
-    return FBounceRip(p, pa, q0, q1);
+    return HandleRipBounce(p, pa, q0, q1);
 }
 
 namespace M_RenderShrapnel__FP8SHRAPNELP2CM {
@@ -1814,12 +1566,7 @@ static inline qword Depth(SHRAPNEL*p){
  __asm__("lw %1,0xF0(%2)\n\tqmtc2.ni %1,%0":"=j"(k),"=&r"(bits):"r"(p),"m"(p->depth.bits));
  return k;
 }
-/** @sly2-annot addr=0x1CFC88
- * Purpose: SHRAPNEL Render
- * Info: proposed name RenderShrapnel__FP8SHRAPNELP2CM (EXISTING); TU rip
- * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// SHRAPNEL Render.
 extern "C" void RenderShrapnel__FP8SHRAPNELP2CM(SHRAPNEL *input,CM *){
     SHRAPNEL *p=Receiver(input);
     U point,scalar;
@@ -1851,12 +1598,7 @@ struct SO;
 struct MATCH { char pad[0x20]; float g20; float g24; int n28; int pad2; qword q30; };
 extern "C" { extern qword D_002BBB50; }
 extern "C" void InitRip(MATCH *p, VECTOR *pv, float g, SO *pso);
-/** @sly2-annot addr=0x1CFCD8
- * Purpose: MATCH (RIPT 6) Init
- * Info: proposed name InitMatch__FP5MATCHP6VECTORfP2SO (EXISTING); TU rip
- * Confidence: high [EXISTING 0.80] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// MATCH (RIPT 6) Init.
 extern "C" void InitMatch__FP5MATCHP6VECTORfP2SO(MATCH *pmatch, VECTOR *pv, float g, SO *pso)
 {
     InitRip(pmatch, pv, g, pso);
@@ -1897,14 +1639,7 @@ static inline qword Bc(float g)
     u.q = s;
     return s;
 }
-/** @sly2-annot addr=0x1CFD30
- * Purpose: Aim match at its target object: take target pose, decompose rotation, set launch velocity
- * Info: proposed name LaunchMatch (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r5_1AE130+verdicts_tu_r3r5+verdicts_A2+verify_side+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// Aim match at its target object: take target pose, decompose rotation, set launch velocity.
 void LaunchMatch__FP5MATCH(S *p)
 {
     MAT4 m4;
@@ -1970,13 +1705,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r {
     __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z" : "=j"(r.r[1]) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[1]));
     __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z" : "=j"(r.r[2]) : "j"(a.r[0]), "j"(a.r[1]), "j"(a.r[2]), "j"(b.r[2]));
 }
-/** @sly2-annot addr=0x1CFE88
- * Purpose: MATCH Project: Hermite-follow target pose
- * Info: proposed name ProjectMatchTransform (T1); TU rip
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// MATCH Project: Hermite-follow target pose. (inferred)
 void ProjectMatchTransform(S *p)
 {
     CLOCK *clock = &D_002DDED0;
@@ -2013,13 +1742,7 @@ extern struct CLOCK { float t; } D_002DDED0;
 struct S { char p0[0x14]; float g14; float g18; struct O *po; char p1[0x104-0x20]; int f104; };
 void LaunchMatch__FP5MATCH(struct S *p);
 void RemoveRip__FP3RIP(struct S *p);
-/** @sly2-annot addr=0x1D0038
- * Purpose: MATCH Update: LaunchMatch / RemoveRip
- * Info: proposed name UpdateMatch (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_A2+verify_side
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// MATCH Update: LaunchMatch / RemoveRip.
 } } // namespace M_UpdateMatch
 void MATCH::Update(float dt)   /* key function (the namespace's views) */
 {
@@ -2038,25 +1761,14 @@ namespace M_RenderMatch { extern "C" {
 extern struct CLOCK { float t; } D_002DDED0;
 struct S { char pad[0x14]; float g14; };
 void RenderRip(struct S *p);
-/** @sly2-annot addr=0x1D00D0
- * Purpose: MATCH Render: wraps RenderRip
- * Info: proposed name RenderMatch (T1); TU rip
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// MATCH Render: wraps RenderRip. (inferred)
 void RenderMatch(struct S *p) {
     if (D_002DDED0.t < p->g14) return;
     RenderRip(p);
 }
 } } // namespace M_RenderMatch
 
-/** @sly2-annot addr=0x1D0108
- * Purpose: RIPT 4 Init: InitRip + extra fields
- * Info: proposed name InitGlint (T2); TU rip
- * Notes: names_v2 v1 proposed InitDebris__FP6DEBRISP6VECTORfP2SO (0.001)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPT 4 Init: InitRip + extra fields. (inferred)
 /* RIPT 4 (glint) Init. */
 void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable comes out here */
 {
@@ -2067,17 +1779,12 @@ void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable co
     prip->q20 = D_002C1FA0;
 }
 
-/** @sly2-annot addr=0x1D0158
- * Purpose: RIPT 4 Project: snap position to followed LO (PosLoWorld)
- * Info: proposed name ProjectGlintTransform (T2); TU rip
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPT 4 Project: snap position to followed LO (PosLoWorld) (inferred)
 /* RIPT 4 (glint) Project: follow the object. */
-extern "C" void func_001D0158(RIPF *prip)
+extern "C" void ProjectGlint(RIPF *prip)
 {
-    prip->posPrev = prip->posCur;
-    prip->posCur = GetLoWorldPos(prip->ploFollow);
+    prip->previousPosition = prip->currentPosition;
+    prip->currentPosition = GetLoWorldPos(prip->followObject);
 }
 
 namespace M_RenderGlint {
@@ -2130,15 +1837,7 @@ static inline M3 Multiply(const M3&a,const M3&b) return r {
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[1]));
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[2]));
 }
-/** @sly2-annot addr=0x1D0190
- * Purpose: RIPT 4 Render: large custom draw (fades; RemoveRip when done)
- * Info: proposed name RenderGlint (T1); TU rip
- * Notes: verifier: purpose partly wrong: RIPT 4 VTRIP entry 5 (Render); matches Sly 1 RenderGlint
- *   (dist*0.001, clq size/alpha/spin, camera-facing). RemoveRip happens when the camera cull fails, not 'wh
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPT 4 Render: large custom draw (fades; RemoveRip when done)
 extern "C" void RenderGlint(RIP *p)
 {
     M3 basis,rotation,product;
@@ -2192,13 +1891,7 @@ extern qword D_002BBB50;
 void InitRip(OBJ *, qword);
 qword ConvertCmWorldToScreen(void *, qword);
 float GRandInRange__Fff(float, float);
-/** @sly2-annot addr=0x1D04E8
- * Purpose: SMACK (RIPT 9) Init
- * Info: proposed name InitSmack (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// SMACK (RIPT 9) Init.
 void InitSmack(OBJ *p, qword q)
 {
     DEF *d;
@@ -2242,13 +1935,7 @@ typedef struct {
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
 qword ConvertCmScreenToWorld(void *, qword);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
-/** @sly2-annot addr=0x1D05A0
- * Purpose: SMACK Project
- * Info: proposed name ProjectSmackTransform (T1); TU rip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// SMACK Project.
 void ProjectSmackTransform(OBJ *p)
 {
     EvaluateBezierPos(GMax(p->x14 + p->x18 - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->x100, p->x90, p->xF0->a, p->xF0->b, &p->x100, &p->x90, 0);
@@ -2279,12 +1966,7 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r {
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[1]));
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2]):"j"(a.r[0]),"j"(a.r[1]),"j"(a.r[2]),"j"(b.r[2]));
 }
-/** @sly2-annot addr=0x1D0630
- * Purpose: SMACK Render
- * Info: proposed name RenderSmack (T1); TU rip
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// SMACK Render. (inferred)
 void RenderSmack(S *p) {
  M3 camera,fade,spin,render;
  U axis;float angle;
@@ -2315,14 +1997,7 @@ struct OBJ {
     void *xF8;
 };
 extern "C" void RemoveRip__FP3RIP(OBJ *);
-/** @sly2-annot addr=0x1D0800
- * Purpose: SMACK Update (RemoveRip when done)
- * Info: proposed name UpdateSmack (T1); TU rip
- * Notes: names_v2 C proposed UpdateRip__FP3RIPf (0.200)
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// SMACK Update (RemoveRip when done)
 } // namespace M_UpdateSmack
 void SMACK::Update(float dt)   /* key function (the namespace's views) */
 {
@@ -2348,12 +2023,7 @@ extern "C" void PostRipEmit(OBJ *);
 extern "C" float GRandInRange__Fff(float, float);
 extern "C" MATRIX3 *LoadLookAtMatrix(MATRIX3 *,qword);
 static inline MATRIX3 MakeBasis(qword vector) return r {LoadLookAtMatrix(&r,vector);}
-/** @sly2-annot addr=0x1D08D8
- * Purpose: LEAF (RIPT 5) PostEmit: random initial orientation
- * Info: proposed name PostLeafEmit (T1); TU rip
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// LEAF (RIPT 5) PostEmit: random initial orientation. (inferred)
 } // namespace M_PostLeafEmit
 void LEAF::PostEmit(void *pv)   /* key function (the namespace's views) */
 {
@@ -2466,12 +2136,7 @@ static inline qword NormalizeSafe(qword *pv, const qword *pfallback)
     else *pv = Divide(v, len);
     return len;
 }
-/** @sly2-annot addr=0x1D09A0
- * Purpose: LEAF Project: flutter + base ProjectRipTransform
- * Info: proposed name ProjectLeafTransform (T1); TU rip
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// LEAF Project: flutter + base ProjectRipTransform. (inferred)
 extern "C" void ProjectLeafTransform(P *p)
 {
     qword row0 = p->matrix.r[0];
@@ -2506,16 +2171,8 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 R *CreateStuck(OBJ *, void *, void *, qword, qword);
 void ConvertAloMat(M3 *, int, void *, M3 *);
 void RemoveRip__FP3RIP(OBJ *);
-/** @sly2-annot addr=0x1D0BF8
- * Purpose: LEAF FBounce: CreateStuck/RemoveRip on contact
- * Info: proposed name FBounceLeaf_1D0BF8 (T3); TU rip
- * Notes: COLLISION: FBounceLeaf already used at 0x1CF968; renamed FBounceLeaf_1D0BF8 | arbitration assigned
- *   FBounceLeaf to 0x1CF968; this body needs another name
- * Confidence: low (draft) [T3 0.70] - evidence: arbitration; sources: r5_1AE130
- * See: docs/open-questions.md#names-and-classes-cross-cutting,
- *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-int func_001D0BF8(OBJ *p, S *s, qword a, qword b)
+// LEAF FBounce: CreateStuck/RemoveRip on contact. (inferred)
+int StickLeafOnBounce(OBJ *p, S *s, qword a, qword b)
 {
     R *r;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(s->x4, 0x33))
@@ -2531,13 +2188,7 @@ int func_001D0BF8(OBJ *p, S *s, qword a, qword b)
 }
 } } // namespace M_func_001D0BF8
 
-/** @sly2-annot addr=0x1D0CA8
- * Purpose: RIPT 1 Init: InitRip + params
- * Info: proposed name InitRipt1 (T2); TU rip
- * Notes: names_v2 v1 proposed InitRay__FP3RAYP6VECTORfP2SO (0.638)
- * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPT 1 Init: InitRip + params. (inferred)
 /* RIPT 1 Init. */
 void RIPT1::Init(qword pos, int n, float g)   /* key function: RIPT1's vtable comes out here */
 {
@@ -2547,15 +2198,9 @@ void RIPT1::Init(qword pos, int n, float g)   /* key function: RIPT1's vtable co
     prip->qA0 = D_002C1F40;
 }
 
-/** @sly2-annot addr=0x1D0CE8
- * Purpose: RIPT 1 PostEmit
- * Info: proposed name PostRipt1Emit (T2); TU rip
- * Notes: names_v2 v1 proposed InitRose__FP4ROSEP6VECTORfP2SO (0.438)
- * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPT 1 PostEmit. (inferred)
 /* RIPT 1 PostEmit. */
-extern "C" void *func_001D0CE8(RIPF *prip, void *pv)
+extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
 {
     void *pvEmit;
     PostRipEmit(prip, pv);
@@ -2591,14 +2236,8 @@ typedef struct { qword pos; char rest[0x50]; } HIT;
 int ClipEdgeToObject(void *, qword, qword, int, HIT *);
 EMIT *PripNewRipg(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
-/** @sly2-annot addr=0x1D0D28
- * Purpose: RIPT 1 Update: periodically spawns child rips (PripNewRipg) and touches/ends itself
- * Info: proposed name UpdateRipt1 (T2); TU rip
- * Notes: names_v2 v1 proposed UpdateRose__FP4ROSEf (0.638)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-void func_001D0D28(OBJ *p, int n)
+// RIPT 1 Update: periodically spawns child rips (PripNewRipg) and touches/ends itself. (inferred)
+void UpdateRipt1(OBJ *p, int n)
 {
     HIT hit;
     int i;
@@ -2635,13 +2274,8 @@ struct S {
 extern qword D_002C1F40;
 extern void InitRip(struct S *);
 
-/** @sly2-annot addr=0x1D0E48
- * Purpose: RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, accel -8
- * Info: proposed name InitBublet (T2); TU rip
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-void func_001D0E48(struct S *p)
+// RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, accel -8. (inferred)
+void InitBublet(struct S *p)
 {
     union U u;
     qword k, r;
@@ -2718,13 +2352,8 @@ static inline void BasisArguments(qword normal,struct B*destination,qword*argume
      :"=&r"(value),"=r"(output):"j"(normal),"p"(destination));
  *argument=value;*receiver=output;
 }
-/** @sly2-annot addr=0x1D0EB8
- * Purpose: RIPT 0 Project: wobble + base ProjectRipTransform
- * Info: proposed name ProjectBubletTransform (T2); TU rip
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
-void func_001D0EB8(struct S*p) {
+// RIPT 0 Project: wobble + base ProjectRipTransform. (inferred)
+void ProjectBubletTransform(struct S*p) {
     int near=0,choose=0;
     float roll;
     ProjectRipTransform(p);
@@ -2783,12 +2412,7 @@ typedef char layout_clock_time[(MIX_OFF(struct CLOCK,time)==0)?1:-1];
 } } // namespace M_func_001D0EB8
 #undef MIX_OFF
 
-/** @sly2-annot addr=0x1D10E8
- * Purpose: RIPT 0 Touch: TouchRip
- * Info: proposed name TouchBublet (T2); TU rip
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// RIPT 0 Touch: TouchRip. (inferred)
 /* RIPT 0 (bublet) Touch. */
 void RIPT0::Touch(int f)   /* key function: RIPT0's vtable comes out here */
 {
@@ -2801,12 +2425,7 @@ struct O { char p0[8]; int *pn; char p1[0xF0-0xC]; int oid; float gF4; };
 extern struct G D_003DD490;
 void PostRipEmit(struct O *p, struct O *q);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int oid, int n);
-/** @sly2-annot addr=0x1D1108
- * Purpose: REMIT (RIPT 2) PostEmit: resolve target emitter oid via SW lookup, copy rate
- * Info: proposed name PostRemitEmit (T1); TU rip
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// REMIT (RIPT 2) PostEmit: resolve target emitter oid via SW lookup, copy rate. (inferred)
 void PostRemitEmit(struct O *p, struct O *q) {
     PostRipEmit(p, q);
     p->oid = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->oid, *q->pn);
@@ -2830,12 +2449,7 @@ typedef struct {
     float xF8;
 } OBJ;
 void UpdateRip(OBJ *);
-/** @sly2-annot addr=0x1D1160
- * Purpose: REMIT Update: UpdateRip; accumulate rate*dt and send emit message (4) with position to target
- * Info: proposed name UpdateRemit (T1); TU rip
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
- * @end-sly2-annot */
+// REMIT Update: UpdateRip; accumulate rate*dt and send emit message (4) with position to target. (inferred)
 } } // namespace M_UpdateRemit
 void REMIT::Update(float dt)   /* key function (the namespace's views) */
 {

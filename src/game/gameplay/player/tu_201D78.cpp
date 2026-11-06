@@ -121,7 +121,7 @@ void PlayWidgetAnim(WIDGETV *, int);
 void SetWidgetExclusive(WIDGETV *, int);
 void SetClockRate(void *, int, float);
 void SetSoundManagerFlags(void *, int, int);
-void func_0014FE28(void *);
+void ResetCplookZoom(void *);
 void *StartDialog(void *, int, int);
 void func_00147C20(void *, int, int);
 void BroadcastGameEvent(void *, int, void *);
@@ -584,7 +584,7 @@ void SetReconSelState(RECONSEL *reconSel,int nextState)
         StopWidgetAnim(reconSel->primary,0x358);
         break;
     case 9:
-        func_0014FE28(&g_cm.cplook);
+        ResetCplookZoom(&g_cm.cplook);
         SetWidgetExclusive(reconSel->primary,-1);
         Post(reconSel->primary,0x310);
         if(reconSel->resource){

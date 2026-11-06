@@ -57,7 +57,7 @@ extern "C" VIFS D_002DEA28;
 struct BUF { VEC a[0x2B]; VEC b[0x2B]; VEC c[0x2B]; char pad[0x840 - 0x810]; };
 typedef char assert_BUF_size[sizeof(BUF) == 0x840 ? 1 : -1];
 
-/* Bezier tangents of a particle on a path (BLIPG::x160 == 2), allocated from the SW's third blip heap. */
+/* Bezier tangents of a particle on a path (BLIPG::motionKind == 2), allocated from the SW's third blip heap. */
 struct BEZ { qwordV v0; qwordV v10; };
 
 struct BLIPGV;
@@ -99,7 +99,7 @@ struct BLIPGV
     char pad44[0xE0 - 0x44];
     LOV *plo;                /* 0xE0 subscribed object (CID 0x1D) */
     char padE4[0xF0 - 0xE4];
-    qwordV vF0;              /* 0xF0 bounding sphere centre */
+    qwordV boundsCenter;              /* 0xF0 bounding sphere centre */
     float g100;             /* 0x100 radius */
     char pad104[0x110 - 0x104];
     POLY poly;              /* 0x110 */
@@ -112,19 +112,19 @@ struct BLIPGV
     char pad148[8];
     S150 s150;              /* 0x150 */
     int pad15C;
-    int x160;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
+    int motionKind;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
     int pad164[3];
     char ab170[0x30];       /* 0x170 EMITDV */
     int n1A0;               /* 0x1A0 */
     int pad1A4[3];
     GE age[0x20];           /* 0x1B0 */
-    int c3B0;               /* 0x3B0 colour count */
-    unsigned char aclr[0x20][4]; /* 0x3B4 */
+    int numColors;               /* 0x3B0 colour count */
+    unsigned char colors[0x20][4]; /* 0x3B4 */
     int x434;
-    void *p438;             /* 0x438 GIF packet (D_002DD5C0/D_002DD600) */
-    int x43C;               /* 0x43C render kind */
+    void *gifPacket;             /* 0x438 GIF packet (D_002DD5C0/D_002DD600) */
+    int renderKind;               /* 0x43C render kind */
     float g440;
-    int c444;               /* 0x444 live particles */
+    int numLiveParticles;               /* 0x444 live particles */
     DLV dl;                  /* 0x448 BLIPs */
     DLEV dle;                /* 0x454 on D_002DEAF0 */
 };
@@ -179,7 +179,7 @@ void SnipLo(BLIPGV *p);
 void FreeLoroot(BLIPGV *p);
 void UpdateLo(BLIPGV *p, float dt);
 void SubscribeLoObject(BLIPGV *p, LOV *plo);
-void *func_001EC8D0(void *pv);
+void *FindShdOrDefault(void *pv);
 M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
 void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, int);
 void FlushCache(int);
@@ -215,15 +215,9 @@ void EnsureVu1Code(VIFS *pvifs, void *pvStart, void *pvEnd);    /* EnsureVu1Code
 
 void RemoveBlip(BLIPV *pblip) __asm__("RemoveBlip__FP4BLIP");
 extern "C" void ProjectBlipgTransformAccel(BLIPGV *p);
-extern "C" void func_0013A688(BLIPGV *p);
+extern "C" void AddBlipgVuParams(BLIPGV *p);
 
-/** @sly2-annot addr=0x138F08
- * Purpose: Build static blip GIF packet for blend mode n
- * Info: proposed name BuildBlipAqwGifs (T1); TU blip
- * Confidence: high [T1 0.90] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/animation.md#6-source-files, docs/engine/particles-effects.md#5-source-files,
- *   docs/engine/particles-effects.md#6-key-functions
- * @end-sly2-annot */
+// Build static blip GIF packet for blend mode n.
 extern "C" void BuildBlipAqwGifs__FiPP2QW(int n, QW *aqw)
 {
     GIFS gifs;
@@ -235,32 +229,20 @@ extern "C" void BuildBlipAqwGifs__FiPP2QW(int n, QW *aqw)
     gifs.EndDmaCnt();
 }
 
-/** @sly2-annot addr=0x138FC0
- * Purpose: Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600))
- * Info: proposed name StartupBlips (T1); TU blip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verify_side
- * See: docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot,
- *   docs/engine/particles-effects.md#6-key-functions
- * @end-sly2-annot */
+// Build the two blip GIF packets (BuildBlipAqwGifs(1,&D_002DD5C0), (2,&D_002DD600))
 void StartupBlips()
 {
     BuildBlipAqwGifs__FiPP2QW(1, D_002DD5C0);
     BuildBlipAqwGifs__FiPP2QW(2, D_002DD600);
 }
 
-/** @sly2-annot addr=0x138FF8
- * Purpose: Allocate a BLIP (+spline block) and append to the blipg list
- * Info: proposed name PblipNew (T1); TU blip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
-extern "C" BLIPV *PblipNew(SW *psw, BLIPGV *pblipg)
+// Allocate a BLIP (+spline block) and append to the blipg list.
+extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
 {
     SLOTHEAP *pslotheap = &psw->slotheapBlip;
     BLIPV *pblip = (BLIPV *)PvAllocSlotheapClear(pslotheap);
     if (!pblip) return 0;
-    if (pblipg->x160 == 2) {
+    if (pblipg->motionKind == 2) {
         pblip->ae = (BEZ *)PvAllocSlotheapClear(&psw->slotheapBez);
         if (!pblip->ae) { FreeSlotheapSlot(pslotheap, pblip); return 0; }
     }
@@ -269,27 +251,15 @@ extern "C" BLIPV *PblipNew(SW *psw, BLIPGV *pblipg)
     return pblip;
 }
 
-/** @sly2-annot addr=0x139098
- * Purpose: Move blip from its group list to the pending-free list
- * Info: proposed name RemoveBlip (T1); TU blip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// Move blip from its group list to the pending-free list.
 void RemoveBlip(BLIPV *pblip)
 {
     RemoveDlEntry(&pblip->pblipg->dl, pblip);
     AppendDlEntry(&D_002DEB00, pblip);
 }
 
-/** @sly2-annot addr=0x1390D8
- * Purpose: Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list,
- *   call vt7 Init, vt11 AddHierarchy, vt15 PostLoad
- * Info: proposed name PblipgNew (T1); TU blip
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// Allocate a BLIPG from pool g_sw+0x4070 (0x460 bytes, vptr 0x2CB5D8), add to the cid 0x1C list, call vt7 Init, vt11
+// AddHierarchy, vt15 PostLoad.
 extern "C" BLIPGV *PblipgNew(SW *psw)
 {
     BLIPGV *p;
@@ -310,14 +280,7 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     return p;
 }
 
-/** @sly2-annot addr=0x1391C8
- * Purpose: BLIPG vt7 Init
- * Info: proposed name InitBlipg (T1); class BLIPG slot7; TU blip
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r2b_rest+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// BLIPG vt7 Init.
 void InitBlipg(BLIPGV *p) __asm__("InitBlipg__FP5BLIPG");
 void InitBlipg(BLIPGV *p)
 {
@@ -332,15 +295,7 @@ void InitBlipg(BLIPGV *p)
     else p->x40 = (x & 1) | 0xe;
 }
 
-/** @sly2-annot addr=0x139250
- * Purpose: BLIPG vt12: remove all blips, base remove, queue group for freeing
- * Info: proposed name OnBlipgRemove (T1); class BLIPG slot12; TU blip
- * Notes: slot 12 is RemoveHierarchy by position, but the body matches Sly 1 OnBlipgRemove; Sly 1 name kept
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
- *   r2b_rest+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// BLIPG vt12: remove all blips, base remove, queue group for freeing.
 void OnBlipgRemove(BLIPGV *p) __asm__("OnBlipgRemove__FP5BLIPG");
 void OnBlipgRemove(BLIPGV *p)
 {
@@ -355,12 +310,7 @@ void OnBlipgRemove(BLIPGV *p)
     D_002DD2FC = dli.m_pdliNext;
 }
 
-/** @sly2-annot addr=0x139318
- * Purpose: BLIPG vt2: remove from the cid list and return to pool g_sw+0x4070
- * Info: proposed name DeleteBlipg (T2); class BLIPG slot2; TU blip
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// BLIPG vt2: remove from the cid list and return to pool g_sw+0x4070. (inferred)
 void BLIPG::VUnk01()
 {
     BLIPGV *p = (BLIPGV *)this;
@@ -373,25 +323,20 @@ void BLIPG::VUnk01()
 /* v5 (Claude agent, laneC11 2026-10-23): aligned 5 -> 4. cExtra = 0 moved before c = v, plus a 2nd pin cExtra in $10 (t2). Left: with cExtra pinned, if-conversion gives bnel+subu instead of slt/subu/movn (v1/v0 swap on the slt). cExtra unpinned with the early init: 13; px pinned to $9 too: 7. */
 /* v4 (Claude agent, laneC9 2026-10-23): aligned 6 -> 5 with ONE register pin (c in $8) plus v = px->c; c = v; v >>= 1 (gives the target's lw v0 + daddu t0,v0). Left: cExtra = 0 (t2) is emitted after the loops; target sets it right after the load (then the loop-head alignment nops line up). cExtra = 0 right after c = v: 13 (px/cExtra swap t1/t2); declaration order: 13. */
 struct SHD { int x0; int x4; int x8; unsigned char ab[4]; int c; long *al; };
-/** @sly2-annot addr=0x139370
- * Purpose: Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build
- *   the texture GIF regs
- * Info: proposed name PropagateBlipgShader (T1); TU blip
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// Choose blend GIF from the shader flag, cache colour, compute power-of-two texture dims and build the texture GIF
+// regs. (inferred)
 extern "C" void PropagateBlipgShader(BLIPGV *p, void *pv)
 {
-    register SHD *px asm("$9") = (SHD *)func_001EC8D0(pv); /* register pin (Claude agent): px in t1 */
+    register SHD *px asm("$9") = (SHD *)FindShdOrDefault(pv); /* register pin (Claude agent): px in t1 */
     int n, v, i, j;
     int cExtra;
     int c;
     GE *pge;
-    p->p438 = (px->x8 & 1) ? D_002DD600 : D_002DD5C0;
-    if (p->c3B0 == 0) {
-        p->c3B0 = 1;
+    p->gifPacket = (px->x8 & 1) ? D_002DD600 : D_002DD5C0;
+    if (p->numColors == 0) {
+        p->numColors = 1;
         for (j = 0; j < 4; j++)
-            p->aclr[0][j] = (px->ab[j] + 1) >> 1;
+            p->colors[0][j] = (px->ab[j] + 1) >> 1;
     }
     v = px->c;
     cExtra = 0;
@@ -431,12 +376,7 @@ static __inline__ int FVecsNear(qwordV a, qwordV b)
 static __inline__ float GEval(POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
 static __inline__ void InitS(float g, S150 *ps) { register float r asm("$f1") = 1.0f; /* register pin (Claude agent): f0/f1 tie */ ps->x0 = 0; ps->x8 = 0; ps->g4 = r / g; }
 static __inline__ float GMax3(float a, float b, float c) { if (b < a && c < a) return a; if (c < b) return b; return c; }
-/** @sly2-annot addr=0x1394C8
- * Purpose: Bind emitter parameter block to the blip group (copies emit settings, then PropagateBlipgShader)
- * Info: proposed name SetBlipgEmitb (T1); TU blip
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// Bind emitter parameter block to the blip group (copies emit settings, then PropagateBlipgShader) (inferred)
 extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
 {
     CLR *pclr;
@@ -445,18 +385,18 @@ extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
     int i, j, k;
     k = q->xC0;
     g = 1.0f;
-    p->x43C = k;
+    p->renderKind = k;
     if (k == 1)
         g = q->gF0;
     p->g440 = g;
     pclr = q->pclrDC;
     if (pclr) {
-        p->c3B0 = pclr->c;
-        for (i = 0; i < p->c3B0; i++)
+        p->numColors = pclr->c;
+        for (i = 0; i < p->numColors; i++)
         {
-            int iDst = p->c3B0 - i - 1;
+            int iDst = p->numColors - i - 1;
             for (j = 0; j < 4; j++)
-                p->aclr[iDst][j] = (pclr->ab[i][j] + 1) >> 1;
+                p->colors[iDst][j] = (pclr->ab[i][j] + 1) >> 1;
         }
         p->x434 = q->xCC;
     }
@@ -491,7 +431,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
     InitS(g, &p->s150);
     {
     int kC4 = q->xC4;
-    p->x160 = kC4;
+    p->motionKind = kC4;
     if (!kC4) {
         int fNear = FVecsNear(D_002A2DD0, q->v60);
         if (fNear && q->g58 == 0.0f && q->g80 == 0.0f)
@@ -499,31 +439,20 @@ extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
     }
     }
     if (f)
-        p->x160 = 1;
+        p->motionKind = 1;
     func_002333B4(p->ab170, 0, 0x30);
-    if (!p->x160)
+    if (!p->motionKind)
         SetEmitdvEmitb((EMITDV *)p->ab170, q);
 }
 
-/** @sly2-annot addr=0x1398E0
- * Purpose: BLIPG vt16 Update: just UpdateLo
- * Info: proposed name UpdateBlipg (T1); class BLIPG slot16; TU blip
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// BLIPG vt16 Update: just UpdateLo. (inferred)
 extern "C" void UpdateBlipg(BLIPGV *p, float dt)
 {
     UpdateLo(p, dt);
 }
 
-/** @sly2-annot addr=0x139900
- * Purpose: BLIPG vt51: SubscribeLoObject, and if the target is an EMITTER-family (cid 0x1D) remember it
- *   (+0xE0) and copy its +0x38
- * Info: proposed name SubscribeBlipgObject (T1); class BLIPG slot51; TU blip
- * Notes: names_v2 C proposed UpdateBlipg__FP5BLIPGf (0.638)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// BLIPG vt51: SubscribeLoObject, and if the target is an EMITTER-family (cid 0x1D) remember it (+0xE0) and copy its
+// +0x38. (inferred)
 extern "C" void SubscribeBlipgObject(BLIPGV *p, LOV *plo)
 {
     SubscribeLoObject(p, plo);
@@ -534,7 +463,7 @@ extern "C" void SubscribeBlipgObject(BLIPGV *p, LOV *plo)
 }
 
 // laneZ2 v4 (Claude agent, 2026-10-30): particle update through VU0 microprogram 0x10.
-// Built from build/hand_wip/CblipeProjectBlipTransformAccel.lilly1.c (Claude agent for Lilly, T1646). The fixed vf21-vf31 registers
+// Built from build/hand_wip/ProjectBlipTransformAccel.lilly1.c (Claude agent for Lilly, T1646). The fixed vf21-vf31 registers
 // of the microprogram are bound only inside the inline VU helper UpdateMs10, which loads them, runs vcallms 0x10
 // per live particle and stores the results after the cfc2.i interlock; the function body has no register pins.
 // Microprogram ABI: vf27 = dt, vf28..vf31 = matrix rows 3..0, vf23/vf24 = the pa/pb entries; it accumulates the
@@ -594,20 +523,15 @@ static __inline__ int UpdateMs10(const M4 *pm, qwordV dt, qwordV *pa, qwordV *pb
     *pvMax = vmax;
     return cDead;
 }
-/** @sly2-annot addr=0x139950
- * Purpose: VU0 microprogram 0x10 particle step for a run of blips, accumulating bounds
- * Info: proposed name CblipeProjectBlipTransformAccel (T1); TU blip
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
-extern "C" int CblipeProjectBlipTransformAccel(M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k, qwordV *pvMin, qwordV *pvMax)
+// VU0 microprogram 0x10 particle step for a run of blips, accumulating bounds. (inferred)
+extern "C" int ProjectBlipTransformAccel(M4 *pm, qwordV dt, qwordV *pa, qwordV *pb, qwordV *pc, int c, int k, qwordV *pvMin, qwordV *pvMax)
 {
     return UpdateMs10(pm, dt, pa, pb, pc, c, k, pvMin, pvMax);
 }
 
 // ProjectBlipgTransformAccel (0x139AB8): DMA-double-buffered VU particle update over the DLI list at p->dl (0x448), accumulating the
-// bounding box of every particle batch in vMin/vMax (CblipeProjectBlipTransformAccel, microprogram), then sets the bounding sphere
-// p->vF0 = centre, p->g100 = radius + p->g120 (or calls virtual slot 9 when p->c444 drops to 0).
+// bounding box of every particle batch in vMin/vMax (ProjectBlipTransformAccel, microprogram), then sets the bounding sphere
+// p->boundsCenter = centre, p->g100 = radius + p->g120 (or calls virtual slot 9 when p->numLiveParticles drops to 0).
 // MATCH (Claude agent for Lilly, T1675, 2026-10-25), built on lilly2 (T1663: arg block) and lilly1 (T1659: sceDmaSync returns int).
 // The prologue (hi $LC0 v0, zero v1, hi $LC1 v0, f0 stores then f1 stores) needs VECTOR = struct with an anonymous union:
 // store_constructor clears the struct (sq zero) and then ALWAYS emits a CLOBBER for the union member, even when already
@@ -619,7 +543,7 @@ extern "C" SPRBUF D_003DD2C0[2];
 /* The float is passed as a one-qword struct here (the dt word loaded into a GPR by VuFloatDt). */
 struct VU_FLOATM { qwordV qw; };
 extern "C" int CblipeProjectBlipTransformAccelM(M4 *pm, VU_FLOATM dt, char *a, char *b, char *c, int n, int d,
-                                                VECTORV *pvMin, VECTORV *pvMax) __asm__("CblipeProjectBlipTransformAccel");
+                                                VECTORV *pvMin, VECTORV *pvMax) __asm__("ProjectBlipTransformAccel");
 struct VU_FLOATA { qwordV qw; VU_FLOATA(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(qw) : "r"(f)); } VU_FLOATA() {} };
 static inline VU_FLOATM VuFloatDt()
 {
@@ -657,13 +581,7 @@ static inline float GFromQw(const qwordV &qw)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(qw)); /* mtc1 from a qword: gcc emits the qmfc2 */
     return g;
 }
-/** @sly2-annot addr=0x139AB8
- * Purpose: VU-accelerated particle advance with bounds
- * Info: proposed name ProjectBlipgTransformAccel (T1); TU blip
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// VU-accelerated particle advance with bounds.
 extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
 {
     VECTORV vMin = {{{FLT_MAX, FLT_MAX, FLT_MAX}}};
@@ -686,24 +604,24 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
         SwapSprBuffers();
         pqNext = (BLIPV *)PvNextDli(&dli);
         if (pqNext) Kick(pqNext);
-        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, p->x43C, &vMin, &vMax);
+        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, p->renderKind, &vMin, &vMax);
         i = (pq->i + 1) & 1;
         {
             BUF *pb = &pq->abuf[i];
             SaveSprBuf(pb, pb->b, pb->c, 0);
         }
         pq->c -= n;
-        p->c444 -= n;
+        p->numLiveParticles -= n;
         if (pq->c <= 0) RemoveBlip(pq);
         else pq->i = i;
         pq = pqNext;
     }
     sceDmaSync(D_002DE59C, 0, 0);
-    if (p->c444 <= 0) {
+    if (p->numLiveParticles <= 0) {
         p->pvt[9].pfn((char *)p + p->pvt[9].d);
     } else {
         qwordV c = QwMid(vMin.q, vMax.q, VU_FLOATA(0.5f));
-        p->vF0 = c;
+        p->boundsCenter = c;
         float g = GFromQw(QwLength(VuSubRef(c, vMax.q)));
         p->g100 = g + p->g120;
     }
@@ -711,11 +629,11 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
     }
 }
 
-// ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->x160 != 0 or D_002BC9C0 is set). For every particle
-// batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: x160 0 =
-// velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; x43C == 2 updates c.w through
-// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->vF0 = centre, p->g100 = radius + p->g120 (or calls
-// virtual slot 9 when p->c444 drops to 0).
+// ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->motionKind != 0 or D_002BC9C0 is set). For every particle
+// batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
+// velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; renderKind == 2 updates c.w through
+// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->boundsCenter = centre, p->g100 = radius + p->g120 (or calls
+// virtual slot 9 when p->numLiveParticles drops to 0).
 // MATCH (Claude agent for Lilly, T1677, 2026-10-25): lilly5 (T1673) + the T1675 ProjectBlipgTransformAccel prologue fix: VECTOR is a
 // struct with an anonymous union, so store_constructor emits a sched1-only CLOBBER after the clear, which gives both pool
 // his $v0 and the zero reload $v1. Loop givs: the post-switch copies go through c-based pointers pcs/pcd (laneC2f).
@@ -743,17 +661,11 @@ static __inline__ qwordV MulPoint(M4 *pm, qwordV v)
             : "=j"(r) : "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]), "j"(v));
     return r;
 }
-/** @sly2-annot addr=0x139DC0
- * Purpose: BLIPG vt17: per-blip transform/projection (non-accelerated path)
- * Info: proposed name ProjectBlipgTransform (T1); class BLIPG slot17; TU blip
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// BLIPG vt17: per-blip transform/projection (non-accelerated path) (inferred)
 extern "C" void ProjectBlipgTransform(BLIPGV *p)
 {
     M4 m;
-    if (p->x160 == 0) {
+    if (p->motionKind == 0) {
         if (D_002BC9C0 == 0) {
             ProjectBlipgTransformAccel(p);
             return;
@@ -782,7 +694,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
                 cDead++;
                 continue;
             }
-            switch (p->x160) {
+            switch (p->motionKind) {
             case 0: {
                 qwordV v = MulPoint(&m, pb->b[i].q);
                 pbn->b[j].q = v;
@@ -810,7 +722,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
             CA(pcd)[0].v.w = CA(pcs)[0].v.w;
             CB(pcd)[0].v.w = CB(pcs)[0].v.w;
             *pcd = *pcs;
-            if (p->x43C == 2)
+            if (p->renderKind == 2)
                 pcd->v.w = RadNormalize(pcs->v.w + pcs->v.z * pclock->dt);
             *(qwordV *)&vMin = Min(*(qwordV *)&vMin, CA(pcd)[0].q);
             *(qwordV *)&vMax = Max(*(qwordV *)&vMax, CA(pcd)[0].q);
@@ -818,20 +730,20 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
             j++;
         }
         pq->c -= cDead;
-        p->c444 -= cDead;
+        p->numLiveParticles -= cDead;
         if (pq->c <= 0)
             RemoveBlip(pq);
         else
             pq->i = iNext;
     }
-    if (p->c444 <= 0) {
+    if (p->numLiveParticles <= 0) {
         VTE *pvt = p->pvt;
         pvt[9].pfn((char *)p + pvt[9].d);
     } else {
         qwordV c, d, l;
         float g;
         c = Mid(*(qwordV *)&vMin, *(qwordV *)&vMax, VU_FLOATT(0.5f));
-        p->vF0 = c;
+        p->boundsCenter = c;
         d = VuSub(c, *(qwordV *)&vMax);
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
@@ -845,15 +757,15 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
 #undef CB
 
 // RenderBlipgSelf: light-list VU upload (Claude agent for Lilly, T1676; built on the team's v2..v14 drafts).
-// Collects the lights of p->plo's list whose position (PosLoWorld 0x1A62E8 + PmatLoWorld 0x1A6318 rotating p->vF0)
+// Collects the lights of p->plo's list whose position (PosLoWorld 0x1A62E8 + PmatLoWorld 0x1A6318 rotating p->boundsCenter)
 // passes the camera tests FInsideCmFrustum / FInsideCmMrd, as LIGHTMs in a stack array (or the single D_002A2D30 when the
 // list check fails), then uploads each light per DMA queue through the VIF helpers.
 // Matching notes (gather loop, the last diffs; found with sched1/sched2/local-alloc dumps):
 //  * The g100 lw must issue after the &D_002DDF40 addiu in sched1 (else lw and lui overlap and the lui gets v1):
 //    the lw is written inside the VU_FLOATR asm with an allocation-only "r"(pcm) input.
-//  * The vF0 barrier is an operand-less volatile asm: a "+j"(v) one gives v 2 more refs, and local-alloc then
-//    ranks the vF0 chain above mat.r[2] (vF0 vf1 instead of vf2).
-//  * Plain VuSub (2 refs on pcm->pos): with SubE's duplicate operand the cm pos qty outranks the vF0 chain (vf2/vf3 swap).
+//  * The boundsCenter barrier is an operand-less volatile asm: a "+j"(v) one gives v 2 more refs, and local-alloc then
+//    ranks the boundsCenter chain above mat.r[2] (boundsCenter vf1 instead of vf2).
+//  * Plain VuSub (2 refs on pcm->pos): with SubE's duplicate operand the cm pos qty outranks the boundsCenter chain (vf2/vf3 swap).
 //  * The empty "=r"(z) asm only exists for sched2 (see the comment there).
 struct LIGHTM { qwordV r[3]; float x30, y30, z30, w30; };
 extern "C" LIGHTM D_002A2D30;
@@ -875,7 +787,7 @@ qwordV GetLoWorldPos(LOV *plo);
 M3 *GetLoWorldMatrix(LOV *plo);
 int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
-DMA *PrplAllocRpl(void);
+DMA *AllocRenderListEntry(void);
 }
 static inline void *PvAllocStack(int cb) { return AllocFromStack(AL(cb, 0x10)); }
 /* earlyclobber output (else branch: vsub vf3 distinct from its inputs); the 2nd "j"(b) is allocation-only */
@@ -889,13 +801,7 @@ static inline qwordV RotKZ(const M3 &m, qwordV v, qwordV k, int z)
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z" : "=j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "0"(v), "r"(k), "r"(z));
     return r;
 }
-/** @sly2-annot addr=0x13A1E8
- * Purpose: BLIPG vt19 RenderSelf: build VU1 DMA for the blip group
- * Info: proposed name RenderBlipgSelf (T1); class BLIPG slot19; TU blip
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/particles-effects.md#6-key-functions, docs/engine/particles-effects.md#open-questions,
- *   docs/engine/rendering.md#2-render-list-entries-rpl
- * @end-sly2-annot */
+// BLIPG vt19 RenderSelf: build VU1 DMA for the blip group. (inferred)
 extern "C" void RenderBlipgSelf(BLIPGV *p)
 {
     FRAME frame;
@@ -927,8 +833,8 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
                 else
                     mat = *pmId;
             }
-            qwordV v = p->vF0;
-            __asm__ volatile(""); /* barrier: the vF0 load issues first (an operand-less one adds no refs to v) */
+            qwordV v = p->boundsCenter;
+            __asm__ volatile(""); /* barrier: the boundsCenter load issues first (an operand-less one adds no refs to v) */
             CMV *pcm = &D_002DDF40;
             VU_FLOATR vf(&p->g100, pcm);
             /* empty asm, emits nothing: z depends on pcm and feeds the Rot and the Add, so in sched2 it takes the
@@ -958,8 +864,8 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
     done:;
     } else {
         register CMV *pcm asm("$4") = &D_002DDF40; /* register pin: the target builds &D_002DDF40 in a0 */
-        qwordV v = p->vF0;
-        __asm__("" : "+j"(v)); /* empty asm: keeps vF0 in a pseudo */
+        qwordV v = p->boundsCenter;
+        __asm__("" : "+j"(v)); /* empty asm: keeps boundsCenter in a pseudo */
         VU_FLOATR vf(p->g100);
         if (!FInsideCmFrustum(pcm, SubE(v, pcm->pos), vf))
             goto none;
@@ -972,7 +878,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
         return;
     }
     int c = 0;
-    DMA *pdma = PrplAllocRpl();
+    DMA *pdma = AllocRenderListEntry();
     pdma->x0 = 0xC;
     pdma->x4 = 0;
     int save = D_002DEA28.xC;
@@ -981,7 +887,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
         BUF *pb = &pq->abuf[pq->i];
         for (int i = 0; i < cLight; i++) {
             if (c < 2) {
-                func_0013A688(p);
+                AddBlipgVuParams(p);
                 c++;
             }
             unsigned short as[3];
@@ -992,12 +898,12 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
             AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 9, 1, as, 0, ten);
             AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 4, &aLight[i], 7);
             AddVifStcycl__4VIFSii(&D_002DEA28, 1, 10);
-            if (p->x43C == 1)
+            if (p->renderKind == 1)
                 AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->b, as[0] + 1, 0);
             AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->c, as[0] + 2, 0);
             AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->a, as[0] + 3, 0);
             AddVifStcycl__4VIFSii(&D_002DEA28, 1, 1);
-            switch (p->x43C) {
+            switch (p->renderKind) {
             case 0: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000000); break;
             case 1: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000390); break;
             case 2: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000870); break;
@@ -1011,14 +917,9 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }
 
-/** @sly2-annot addr=0x13A688
- * Purpose: Append VIF unpacks of render constants (camera fields, group colour, time, flags, blip arrays) to
- *   the DMA list
- * Info: proposed name AddBlipgVu1Params (T2); TU blip
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
-extern "C" void func_0013A688(BLIPGV *p)
+// Append VIF unpacks of render constants (camera fields, group colour, time, flags, blip arrays) to the DMA list.
+// (inferred)
+extern "C" void AddBlipgVuParams(BLIPGV *p)
 {
     float *pg;
     int *pn;
@@ -1034,39 +935,25 @@ extern "C" void func_0013A688(BLIPGV *p)
     pn[0] = 0;
     if (p->x434)
         pn[0] |= 1;
-    pn[1] = p->c3B0;
+    pn[1] = p->numColors;
     pn[2] = p->n1A0;
     *(float *)&pn[3] = pclock->dtReal;
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, p->c3B0, p->aclr, 0x30 - p->c3B0);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, p->numColors, p->colors, 0x30 - p->numColors);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, p->ab130, 1);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &p->poly, 2);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, p->ab140, 3);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &p->s150, 4);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, p->p438, 0x30);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, p->gifPacket, 0x30);
     AddVifUnpackRefs__4VIFS3UPKiPviPPPv(pdma, 0xC, p->n1A0, p->age, 0xF, 0);
 }
 
-/** @sly2-annot addr=0x13A830
- * Purpose: Pass 2 begin (kind 12): upload blip microprogram
- * Info: proposed name BeginRpBlip (T1); TU blip
- * Notes: superseded: EnsureBlipVu1Code (r2b_rest)
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// Pass 2 begin (kind 12): upload blip microprogram. (inferred)
 extern "C" void BeginRpBlip(VIFS *pvifs)
 {
     EnsureVu1Code(pvifs, D_0025A0C0, D_0025AF90);
 }
 
-/** @sly2-annot addr=0x13A858
- * Purpose: Pass 2 end: FLUSHA
- * Info: proposed name EndRpBlip (T1); TU blip
- * Notes: superseded: FlushBlipVu1 (r2b_rest)
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/particles-effects.md#blip-0x138f08-0x13a9e8
- * @end-sly2-annot */
+// Pass 2 end: FLUSHA. (inferred)
 extern "C" void EndRpBlip(VIFS *pvifs)
 {
     AddDmaCnt__4DMAS(pvifs);

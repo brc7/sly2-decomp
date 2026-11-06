@@ -172,51 +172,35 @@ extern VIEW D_002DDF40;
 extern RPL D_003B3980[0x2000];
 extern RPL *D_003D4A50;
 extern "C" {
-int FUpdatableSaa__FP3SAA(OBJ *pobj);
+int ShouldUpdateSaa__FP3SAA(OBJ *pobj);
 void SubmitGlobsetRelight(SCENE *pscene);
-void func_001D57B8(STACK *pstack, BLOCK *pblock);
-BLOCK *func_001D57E0(STACK *pstack);
+void PushBlockStack(STACK *pstack, BLOCK *pblock);
+BLOCK *PopBlockStack(STACK *pstack);
 M4 __ml__FRC7MATRIX4T0(const M4 &matA, const M4 &matB);
 M4 InvertMatrix4Rigid(const M4 &matSrc);
 float GetMaxRowLengthMatrix3(M4 *pmat);
-RENDER *func_001D6508(G *pg, qword pos, float sRadius, float sFar, int grfChannels);
-BLOCK *func_001D6480(G *pg);
+RENDER *InsertRenderEntry(G *pg, qword pos, float sRadius, float sFar, int grfChannels);
+BLOCK *AllocRenderBlock(G *pg);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 }
 extern const float D_002A7870;   /* defined below where the ELF has it (.rodata order) */
 
-/** @sly2-annot addr=0x1D57A8
- * Purpose: *p = 0 (empty stack)
- * Info: proposed name InitIntStack (T2); TU tu_1D57A8
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/main-loop-startup.md#7-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
-extern "C" STACK *func_001D57A8(STACK *pstack)
+// Empties a block stack (the explicit stack CullSceneRenderList walks the render tree with).
+extern "C" STACK *InitBlockStack(STACK *pstack)
 {
     pstack->c = 0;
     return pstack;
 }
 
-/** @sly2-annot addr=0x1D57B8
- * Purpose: Push int on 256-entry stack if not full
- * Info: proposed name PushIntStack (T2); TU tu_1D57A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#tu_1d57a8-0x1d57a8-0x1d6848
- * @end-sly2-annot */
-extern "C" void func_001D57B8(STACK *pstack, BLOCK *pblock)
+// Pushes a render-tree block on the stack (256 entries; ignored when full).
+extern "C" void PushBlockStack(STACK *pstack, BLOCK *pblock)
 {
     if (pstack->c < 0x100)
         pstack->a[pstack->c++] = pblock;
 }
 
-/** @sly2-annot addr=0x1D57E0
- * Purpose: Pop int (0 if empty)
- * Info: proposed name PopIntStack (T2); TU tu_1D57A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#tu_1d57a8-0x1d57a8-0x1d6848
- * @end-sly2-annot */
-extern "C" BLOCK *func_001D57E0(STACK *pstack)
+// Pops a render-tree block (0 when the stack is empty).
+extern "C" BLOCK *PopBlockStack(STACK *pstack)
 {
     if (pstack->c == 0)
         return 0;
@@ -401,14 +385,8 @@ static inline void PadQw()
         pdma->pb += 4;
     }
 }
-/** @sly2-annot addr=0x1D5808
- * Purpose: Scene render-list walk: cull every RENDER of every BLOCK against view (VU0 microprogram 0x1C0) and
- *   queue meshes/packets/deferred blocks
- * Info: proposed name CullSceneRenderList (T1); TU tu_1D57A8
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/rendering.md#2-render-list-entries-rpl, docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#ms-0x1b4438-0x1b4728
- * @end-sly2-annot */
+// Scene render-list walk: cull every RENDER of every BLOCK against view (VU0 microprogram 0x1C0) and queue
+// meshes/packets/deferred blocks. (inferred)
 extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
 {
     OBJ *apobjDeferred[512];
@@ -416,7 +394,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     for (i = 0; i < pscene->cobj; i++)
     {
         OBJ *pobj = pscene->apobj[i];
-        if (FUpdatableSaa__FP3SAA(pobj))
+        if (ShouldUpdateSaa__FP3SAA(pobj))
         {
             VTENT *pvte = &pobj->pvt[8];
             pvte->pfn((char *)pobj + pvte->delta);
@@ -426,10 +404,10 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     if (pscene->nStamp != pg->nStamp)
         SubmitGlobsetRelight(pscene);
     int cDeferred = 0;
-    func_001D57B8(pstack, pscene->pblockRoot);
+    PushBlockStack(pstack, pscene->pblockRoot);
     int grfChannels = D_002DDF40.grfChannels;
     BLOCK *pblock;
-    while ((pblock = func_001D57E0(pstack)) != 0)
+    while ((pblock = PopBlockStack(pstack)) != 0)
     {
         qword *aqwPlane = D_002DDF40.aqwPlane;
         for (uint ir = 0; ir < 4; ir++)
@@ -448,7 +426,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
             switch (prender->kind)
             {
             case 1:
-                func_001D57B8(pstack, (BLOCK *)prender->pv);
+                PushBlockStack(pstack, (BLOCK *)prender->pv);
                 break;
             case 4:
                 if ((uint)cDeferred < 512)
@@ -592,7 +570,7 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
             }
         }
         if (pblock->ar[3].pblockNext)
-            func_001D57B8(pstack, pblock->ar[3].pblockNext);
+            PushBlockStack(pstack, pblock->ar[3].pblockNext);
     }
     for (i = 0; i < cDeferred; i++)
     {
@@ -602,16 +580,9 @@ extern "C" void CullSceneRenderList(STACK *pstack, SCENE *pscene)
     }
 }
 
-/** @sly2-annot addr=0x1D6310
- * Purpose: Unregister LO from world sphere tree: mark node entry free (fl|=0xF<<32), +0x140=-1, +0x144=0,
- *   clear grf 0x80
- * Info: proposed name RemoveLoFromSphereTree (T2); TU tu_1D57A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/physics-collision.md#7-key-functions,
- *   docs/reference/functions/animation.md#xf-0x22c818-0x231100,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
-extern "C" void func_001D6310(OBJ *pobj)
+// Takes an object out of the world's render tree: marks its entry free (kind -1), forgets the entry and clears its
+// in-tree flag (0x80).
+extern "C" void RemoveLoFromRenderTree(OBJ *pobj)
 {
     if (pobj->prender) {
         int n;
@@ -624,17 +595,10 @@ extern "C" void func_001D6310(OBJ *pobj)
     }
 }
 
-/** @sly2-annot addr=0x1D6378
- * Purpose: Insert LO's world bounding sphere (vt31 matrix * +0x90, radius +0xA0*scale) into world 4-ary
- *   sphere tree (g_sw+?), store entry +0x144, set grf 0x80
- * Info: proposed name AddLoToSphereTree (T2); TU tu_1D57A8
- * Notes: names_v2 C proposed SCalcLasenShapeExtent__FP5LASENP5LBEAM (0.501)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r6_1D5150
- * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
- *   docs/reference/functions/animation.md#xf-0x22c818-0x231100,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
-extern "C" void func_001D6378(OBJ *pobj)
+// Puts an object into the world's render tree: its world bounding sphere (local centre through its world matrix,
+// radius scaled by the matrix) goes in as a deferred entry (KIND_DEFERRED: its Render is called when the entry is
+// visible); stores the entry and sets the in-tree flag (0x80).
+extern "C" void AddLoToRenderTree(OBJ *pobj)
 {
     M4 m = *((M4 *(*)(void *))pobj->pvt[31].pfn)((char *)pobj + pobj->pvt[31].delta);
     qword v;
@@ -642,7 +606,7 @@ extern "C" void func_001D6378(OBJ *pobj)
     v = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, pobj->posLocal);
     {
         float r = GetMaxRowLengthMatrix3(&m) * pobj->sRadius;
-        prender = func_001D6508(&D_003DD490, v, r, pobj->sFar, pobj->grfChannels);
+        prender = InsertRenderEntry(&D_003DD490, v, r, pobj->sFar, pobj->grfChannels);
     }
     pobj->prender = prender;
     if (prender) {
@@ -659,13 +623,8 @@ extern "C" void func_001D6378(OBJ *pobj)
 struct MSG { int cb; int nKind; };
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 
-/** @sly2-annot addr=0x1D6480
- * Purpose: Allocate 0x80-byte node of 4 sphere entries (kinds = -1)
- * Info: proposed name PsphnodeNew (T2); TU tu_1D57A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#tu_1d57a8-0x1d57a8-0x1d6848
- * @end-sly2-annot */
-extern "C" BLOCK *func_001D6480(G *pg)
+// Allocates a render-tree block: four empty entries (kind -1), 0x80 bytes.
+extern "C" BLOCK *AllocRenderBlock(G *pg)
 {
     MSG msg;
     BLOCK *pblock = (BLOCK *)PvAllocMsg(&msg, 0x80, 0x10);
@@ -689,14 +648,10 @@ static inline float Dist(qword a, qword b)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7870 __asm__("D_002A7870") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1D6508
- * Purpose: Descend sphere tree choosing child sphere that contains (pos,r) within busy distance; allocate
- *   free entry
- * Info: proposed name PsphentInsert (T2); TU tu_1D57A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
- * See: docs/reference/functions/rendering.md#tu_1d57a8-0x1d57a8-0x1d6848
- * @end-sly2-annot */
-extern "C" RENDER *func_001D6508(G *pg, qword pos, float r, float f, int mask)
+// Finds a free entry for a sphere (pos, radius, far distance, channel mask) in the render tree: descends from the root
+// into the child block whose sphere contains it best, then takes or allocates a free entry. Returns 0 when the world
+// has no tree. (inferred)
+extern "C" RENDER *InsertRenderEntry(G *pg, qword pos, float r, float f, int mask)
 {
     BLOCK *pblockLevel = pg->pblockRoot;
     BLOCK *pblock;
@@ -742,7 +697,7 @@ extern "C" RENDER *func_001D6508(G *pg, qword pos, float r, float f, int mask)
         }
         if (!pblockChild) {
             if (!prenderFree) {
-                pblock->ar[3].pblockNext = func_001D6480(pg);
+                pblock->ar[3].pblockNext = AllocRenderBlock(pg);
                 prenderFree = pblock->ar[3].pblockNext->ar;
             }
             prenderFree->sFar = f;

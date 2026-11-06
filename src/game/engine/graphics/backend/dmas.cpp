@@ -1,4 +1,9 @@
-// dmas.cpp -- DMA channel startup and DMAS, the DMA chain builder. TU 0x157200..0x1578F8 (20 functions, address order).
+// dmas.cpp -- DMA startup and DMAS, the DMA chain builder every renderer uses. A DMAS writes PS2 DMA source-chain tags
+// (CNT, REF, CALL, RET, END) and their payload into a buffer it owns (from the frame slot heap, AllocSw, or a caller's
+// static array, AllocStatic); Detach / DetachCopySw close the chain and hand the buffer (or a heap copy) to the
+// caller. VIFS and GIFS (vifs.cpp, gifs.cpp) derive from it. Entry points: StartupDma (boot: resets DMA and caches the
+// channel handles), DMAS::AddDmaCnt / AddDmaCall / AddDmaRefs / EndDmaCnt. TU 0x157200..0x1578F8 (20 functions,
+// address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dmas
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001578D8
 #include "dmas.h"
@@ -21,12 +26,8 @@ sceDmaChan *D_002DE59C;   /* fromSPR */
 sceDmaChan *D_002DE5A0;   /* toSPR */
 }
 
-/** @sly2-annot addr=0x157200
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/overview.md#1-boot,
- *   docs/engine/rendering.md#12-source-files
- * @end-sly2-annot */
+// Boot-time DMA setup: resets the DMA controller and the GS path, then caches the VIF0, VIF1, GIF, fromSPR and toSPR
+// channel handles in the five globals above.
 void StartupDma()
 {
     sceDmaReset(1);
@@ -38,11 +39,7 @@ void StartupDma()
     D_002DE5A0 = sceDmaGetChan(9);
 }
 
-/** @sly2-annot addr=0x157278
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Constructs an empty chain builder (no buffer, no padding, no open GIF primitive).
 DMAS::DMAS()
 {
     m_fPad = 0;
@@ -50,11 +47,7 @@ DMAS::DMAS()
     Clear();
 }
 
-/** @sly2-annot addr=0x1572B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Forgets the buffer: all pointers to null (the memory belongs to the slot heap or the caller).
 void DMAS::Clear()
 {
     m_pbMax = NULL;
@@ -63,28 +56,14 @@ void DMAS::Clear()
     m_pb = NULL;
 }
 
-/** @sly2-annot addr=0x1572D0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Rewinds the write pointer to the start of the buffer and drops any open CNT tag, keeping the buffer.
 void DMAS::Reset()
 {
     m_pqwCnt = NULL;
     m_pb = m_ab;
 }
 
-/** @sly2-annot addr=0x1572E0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name AllocStack__4DMASi (EXISTING); TU dmas
- * Notes: names_v2 v1 hint not used: AllocStack__4DMASi | RENAME proposed -> AllocStack__4DMASi
- *   (existing_name_changes.csv)
- * Confidence: name high [EXISTING 0.90]; purpose not reviewed - evidence: arbitration; static naming pass;
- *   pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/core-library.md#1-memory,
- *   docs/engine/rendering.md#9-textures-cluts-and-gs-memory-shdcpp-0x1ea568-gscpp-0x16f2d0-cstatic,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
+// Gives the builder a fresh buffer of cqw quadwords from the frame slot heap (16-byte aligned).
 void DMAS::AllocSw(int cqw)
 {
     ALLOCREQ req;
@@ -97,11 +76,7 @@ void DMAS::AllocSw(int cqw)
     m_pbMax = ab + cb;
 }
 
-/** @sly2-annot addr=0x157330
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Uses a caller-provided array of cqw quadwords as the buffer.
 void DMAS::AllocStatic(int cqw, QW *aqw)
 {
     m_ab = (uchar *)aqw;
@@ -109,11 +84,8 @@ void DMAS::AllocStatic(int cqw, QW *aqw)
     m_pbMax = (uchar *)(aqw + cqw);
 }
 
-/** @sly2-annot addr=0x157348
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Closes the open CNT tag, then returns the chain's length (quadwords) and start, and detaches the buffer from the
+// builder.
 void DMAS::Detach(int *pcqw, QW **paqw)
 {
     EndDmaCnt();
@@ -129,21 +101,14 @@ void DMAS::Detach(int *pcqw, QW **paqw)
     Clear();
 }
 
-/** @sly2-annot addr=0x1573C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// DetachCopySw into the default heap (g_heapSw).
 void DMAS::DetachCopySw(int *pcqw, QW **paqw, QW **paqwCopy)
 {
     DetachCopySw(&g_heapSw, pcqw, paqw, paqwCopy);
 }
 
-/** @sly2-annot addr=0x1573F8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Closes the open CNT tag and detaches the buffer like Detach, also returning a copy of the chain allocated from the
+// given heap (for chains that must outlive the frame's slot heap).
 void DMAS::DetachCopySw(HEAP *pheap, int *pcqw, QW **paqw, QW **paqwCopy)
 {
     EndDmaCnt();
@@ -164,11 +129,7 @@ void DMAS::DetachCopySw(HEAP *pheap, int *pcqw, QW **paqw, QW **paqwCopy)
     Clear();
 }
 
-/** @sly2-annot addr=0x1574A0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Hook for derived streams to push buffered data out before detaching; the base version does nothing.
 void DMAS::Flush()
 {
 }
@@ -177,11 +138,8 @@ void DMAS::Flush()
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x1574B8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Opens a new DMA CNT tag (ID 1: transfer the data that follows, then continue with the next tag) at the write
+// pointer, closing the previous one; its quadword count is filled in by EndDmaCnt.
 void DMAS::AddDmaCnt()
 {
     EndDmaCnt();
@@ -192,11 +150,8 @@ void DMAS::AddDmaCnt()
     m_pqwCnt->aul[1] = 0;
 }
 
-/** @sly2-annot addr=0x157500
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Adds a DMA REF tag (ID 4) that transfers cqw quadwords from aqw in place. If a CNT was open it is closed first and a
+// new one reopened after the tag, so callers can keep appending inline data.
 void DMAS::AddDmaRefs(int cqw, QW *aqw)
 {
     int fCnt = 0;
@@ -221,11 +176,8 @@ void DMAS::AddDmaRefs(int cqw, QW *aqw)
     }
 }
 
-/** @sly2-annot addr=0x157598
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Adds a DMA CALL tag (ID 5) that runs the chain at aqw and returns here (on its RET), closing and reopening an open
+// CNT around it like AddDmaRefs. Used to splice prebuilt packets (models, frame contexts) into the frame chain.
 void DMAS::AddDmaCall(QW *aqw)
 {
     int fCnt = 0;
@@ -250,11 +202,7 @@ void DMAS::AddDmaCall(QW *aqw)
     }
 }
 
-/** @sly2-annot addr=0x157620
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Closes the open CNT and adds a DMA RET tag (ID 6): ends a called sub-chain.
 void DMAS::AddDmaRet()
 {
     EndDmaCnt();
@@ -264,22 +212,14 @@ void DMAS::AddDmaRet()
     pqw->aul[1] = 0;
 }
 
-/** @sly2-annot addr=0x157660
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Copies cqw quadwords of raw data into the chain at the write pointer (no tag of its own).
 void DMAS::AddDmaBulk(int cqw, QW *aqw)
 {
     CopyAqw(m_pb, aqw, cqw);
     m_pb += cqw * sizeof(QW);
 }
 
-/** @sly2-annot addr=0x1576B0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Closes the open CNT and adds a DMA END tag (ID 7): the end of the whole chain.
 void DMAS::AddDmaEnd()
 {
     EndDmaCnt();
@@ -289,11 +229,8 @@ void DMAS::AddDmaEnd()
     pqw->aul[1] = 0;
 }
 
-/** @sly2-annot addr=0x1576F0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Closes the open CNT tag: pads the payload to a quadword boundary with zero words (when the stream pads) or ends the
+// open GIF primitive, then stores the payload's quadword count in the tag's QWC field.
 void DMAS::EndDmaCnt()
 {
     if (m_fPad)
@@ -318,11 +255,7 @@ void DMAS::EndDmaCnt()
     }
 }
 
-/** @sly2-annot addr=0x157798
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/rendering.md#dmas-0x157200-0x1578f8
- * @end-sly2-annot */
+// Hook for derived streams to finish an open primitive (GIFS overrides it); the base version does nothing.
 void DMAS::EndPrim(int n)
 {
 }

@@ -61,7 +61,7 @@ void func_0016EF00(MODEL *,int);
 void UpdateLo(TRAIL *p, float dt);
 void UpdateSoXfWorld(TRAIL *);
 qwordV GetLoWorldPos(void *);
-void func_0021C5F8(TRAIL *, qwordV);
+void SetTrailMeshPositions(TRAIL *, qwordV);
 void RenderSoSelf(TRAIL *);
 extern char D_002C44F0[];
 extern const float D_002A9240;   /* defined below where the ELF has it (.rodata order) */
@@ -69,14 +69,7 @@ extern const float D_002A9244;   /* defined below where the ELF has it (.rodata 
 }
 
 
-/** @sly2-annot addr=0x21BB88
- * Purpose: Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0
- * Info: proposed name InitTrail (T1); class CID105 slot7; TU trail
- * Notes: agent qualifier: cid105 Init
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/hud-ui.md#4-source-files, docs/engine/particles-effects.md#5-source-files,
- *   docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
+// Init: InitSo then fields 0x170=1.0, 0x174/0x178=0, 0x184=100.0. (inferred)
 extern "C" void InitTrail(TRAIL *p)
 {
     InitSo(p);
@@ -87,13 +80,7 @@ extern "C" void InitTrail(TRAIL *p)
     p->followRate = 100.0f;
 }
 
-/** @sly2-annot addr=0x21BBD0
- * Purpose: calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08)
- * Info: proposed name Cid105_slot11 (T2); class CID105 slot11; TU trail
- * Notes: agent qualifier: (AddHierarchy override) - reset history on add
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
+// Calls SO slot11 0x1F2C30 then, if flag 0x15C set, resets the matrix ring (0x21BC08) (inferred)
 void CID105::AddHierarchy()
 {
     TRAIL *p = (TRAIL *)this;
@@ -106,13 +93,8 @@ static inline int Wrap(int index, int count)
 {
     return index % count;
 }
-/** @sly2-annot addr=0x21BC08
- * Purpose: fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix,
- *   alpha 0; idle=0
- * Info: proposed name ResetTrailHistory (T1); TU trail
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
+// Fills the whole ring (count entries, 1/60 s apart, ending now) with the current world matrix, alpha 0; idle=0.
+// (inferred)
 extern "C" void ResetTrailHistory(TRAIL *p)
 {
     float t = D_002DDED0.t;
@@ -158,14 +140,8 @@ static inline void SampleInputs(qwordV *buffer,float maximum,float minimum,qword
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A9240 __asm__("D_002A9240") = 3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A9244 __asm__("D_002A9244") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x21BD18
- * Purpose: PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis
- *   (min/max) and builds per-vertex Sample{pos,fraction} tables
- * Info: proposed name PostTrailLoad (T1); class CID105 slot15; TU trail
- * Notes: agent qualifier: cid105 PostLoad
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
+// PostLoad: count = fade*60+2 (fade default 0.5 s); allocs ring; projects every mesh vertex on axis (min/max) and
+// builds per-vertex Sample{pos,fraction} tables. (inferred)
 extern "C" void PostTrailLoad(TRAIL *p){
     PostSoLoad(p);
     if(!p->count && p->fade==0.0f)p->fade=0.5f;
@@ -225,15 +201,8 @@ extern "C" void PostTrailLoad(TRAIL *p){
     if(!p->state){unsigned int flags=p->flags;if((flags^1)&1){*(unsigned int *)flags|=2;}else p->flags=flags|2;}
 }
 
-/** @sly2-annot addr=0x21C0D8
- * Purpose: ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt
- *   slot9 (Remove)
- * Info: proposed name UpdateTrail (T1); class CID105 slot16; TU trail
- * Notes: agent qualifier: cid105 slot16
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
+// Ramps uAlpha(0x12C) by duAlpha(0x130)*dt clamped 0..1; when faded out and idle>=count calls own vt slot9 (Remove)
+// (inferred)
 extern "C" void UpdateTrail(TRAIL *p, float dt)
 {
     UpdateLo(p, dt);
@@ -258,14 +227,8 @@ static inline float Sqrt(qwordV d) {
     f = VuToFloat(d);
     return f;
 }
-/** @sly2-annot addr=0x21C1C8
- * Purpose: after SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow
- *   target moved by rate/distance (0x21C5F8)
- * Info: proposed name Cid105_slot17 (T2); class CID105 slot17; TU trail
- * Notes: agent qualifier: (per-frame SO update) - record history sample
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
+// After SO::Update (0x1F3980) pushes {t, uAlpha, length, PmatWorld} into ring; optional follow target moved by
+// rate/distance (0x21C5F8) (inferred)
 extern "C" void func_0021C1C8(TRAIL *p)
 {
     UpdateSoXfWorld(p);
@@ -296,7 +259,7 @@ extern "C" void func_0021C1C8(TRAIL *p)
             }
             e->length = p->distance;
         }
-        func_0021C5F8(p, GetLoWorldPos(p));
+        SetTrailMeshPositions(p, GetLoWorldPos(p));
     }
 }
 
@@ -314,15 +277,9 @@ static inline void StoreXYZ(U *dst,qwordV v) {
     dst->f[1]=GetY(q);
     dst->f[2]=GetZ(q);
 }
-/** @sly2-annot addr=0x21C340
- * Purpose: deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction,
- *   writes positions and per-vertex alpha, then base render 0x1F3C70
- * Info: proposed name RenderTrailSelf (T2); class CID105 slot19; TU trail
- * Notes: agent qualifier: cid105 slot19
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
-extern "C" void func_0021C340(TRAIL *p) {
+// Deforms each mesh vertex by lerping between the two ring matrices bracketing its axis fraction, writes positions and
+// per-vertex alpha, then base render 0x1F3C70. (inferred)
+extern "C" void RenderTrail(TRAIL *p) {
     N *node;
     U scalar;
     float saved;
@@ -374,13 +331,8 @@ extern "C" void func_0021C340(TRAIL *p) {
 }
 
 // Copy a position to each linked mesh record.
-/** @sly2-annot addr=0x21C5F8
- * Purpose: copies one position into the vertex record of every linked mesh node
- * Info: proposed name SetTrailMeshPositions (T2); TU trail
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/particles-effects.md#trail-0x21bb88-0x21c820
- * @end-sly2-annot */
-extern "C" void func_0021C5F8(TRAIL *p, qwordV q)
+// Copies one position into the vertex record of every linked mesh node. (inferred)
+extern "C" void SetTrailMeshPositions(TRAIL *p, qwordV q)
 {
     N *n;
     for (n = p->model.nodes; n; n = n->next) {
@@ -398,26 +350,11 @@ extern "C" void func_0021C5F8(TRAIL *p, qwordV q)
 // 0x259D98..0x259DD4: the x/y/z readers of a VECTOR held in a qword (HYPOTHESIS: VU_VECTOR's inline accessors):
 // inline, defined after their caller, so g++ calls them and emits the out-of-line copies (linkonce), as the original
 // did.
-/** @sly2-annot addr=0x259D98
- * Purpose: float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)]
- * Info: proposed name VU_VECTOR_GetX (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// Float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)]. (inferred)
 inline float func_00259D98(qwordV *p) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(*p)); return f; }
 
-/** @sly2-annot addr=0x259DA8
- * Purpose: float lane 1 (prot3w then mtc1) [game linkonce (inline/template)]
- * Info: proposed name VU_VECTOR_GetY (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// Float lane 1 (prot3w then mtc1) [game linkonce (inline/template)]. (inferred)
 inline float func_00259DA8(qwordV *p) { float f; qwordV t; __asm__("prot3w %0, %1" : "=&r"(t) : "r"(*p)); __asm__("mtc1 %1, %0" : "=f"(f) : "r"(t)); return f; }
 
-/** @sly2-annot addr=0x259DC0
- * Purpose: float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)]
- * Info: proposed name VU_VECTOR_GetZ (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// Float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)]. (inferred)
 inline float func_00259DC0(qwordV *p) { float f; qwordV t; __asm__("pextuw %0, $0, %1" : "=&r"(t) : "r"(*p)); __asm__("mtc1 %1, %0" : "=f"(f) : "r"(t)); return f; }

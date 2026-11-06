@@ -206,7 +206,7 @@ extern "C" { extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C; }
 extern "C" POOL *InitSlotheap(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void InitSl(DL *,int);
-extern "C" int CbMaxRip(void);
+extern "C" int GetMaxRipSize(void);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 /* The world names (g_apchzWorld, the save-variable key of each world's progress), defined first: the strings are
    the first of sw's .rodata (a definition's literals are emitted with it) and the table lies in the first part of
@@ -243,7 +243,7 @@ extern "C" SW *SW_ctor(SW *p)
     InitSlotheap(&p->pool3E44,0x30,0x40,0x10);
     InitSlotheap(&p->pool4008,0x60,0x40,0x10);
     InitSlotheap(&p->pool403C,0x1b0,0x10,0x10);
-    int chosen=CbMaxRip();
+    int chosen=GetMaxRipSize();
     chosen=chosen?chosen:0xF0;
     InitSlotheap(&p->pool4054,chosen,0x80,0x10);
     InitSlotheap(&p->pool4070,0x460,0x28,0x10);
@@ -385,7 +385,7 @@ void DeleteSwSplice(struct S *p);
 void ClearGameDifficulty(void *p);
 void func_0014D650(void *p);
 void ResetSndmgr(void *p);
-void func_001EC7E8(void);
+void ClearShaderGsState(void);
 void SetRumbleRums__FP6RUMBLE4RUMS(void *p, int n);
 void FreeSw__Fv(void);
 
@@ -413,7 +413,7 @@ void DeleteSw(struct S *world)
     ClearGameDifficulty(pv);
     func_0014D650(D_002DDF40);
     ResetSndmgr(D_003DD040);
-    func_001EC7E8();
+    ClearShaderGsState();
     SetRumbleRums__FP6RUMBLE4RUMS((*(char (*)[])&g_joy.rumble), 3);
     D_002E1E40 = 0;
     D_002F7900 = 0;
@@ -449,7 +449,7 @@ void *AllocFromWorldHeap(struct MSG *pmsg);
 void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void InitSl(void *p, int n);
 void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
-void func_001BE398(void *p, struct ZPR *pz);
+void InitRenderTargets(void *p, struct ZPR *pz);
 void BroadcastGameEvent(void *p, int a, int b);
 
 /** @sly2-annot addr=0x20E180
@@ -484,7 +484,7 @@ void InitSwLoadBuffers(struct S *world)
     InitSl(world->ph->dl, 0x14);
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        func_001BE398(world->a45E8[j], &zpr);
+        InitRenderTargets(world->a45E8[j], &zpr);
     if (world->fl3BF4 & 0x20)
         world->n3E38 = 1;
     BroadcastGameEvent(D_002DEB30, 2, 0);
@@ -1365,7 +1365,7 @@ void RelocateSharedColorTables(void *x);
 void UploadBitmaps__FP3GSB(void *p);
 void STACKSCOPE_ctor_1AE4A0(struct L *pl, int n) __asm__("_$_10STACKSCOPE");
 void Skip__18CBinaryInputStreami(void *q, int a);
-void func_00170828(void *p);
+void AllocGsbBitmaps(void *p);
 /** @sly2-annot addr=0x20F640
  * Purpose: If shared block changed: read cb bytes into slot alloc and rebuild (0x1EA568, 0x170730); else skip
  *   it and reuse (0x170828)
@@ -1395,7 +1395,7 @@ void LoadSwSharedDataFromBrx(void *world, void *q)
         STACKSCOPE_ctor_1AE4A0(&l, 2);
     } else {
         Skip__18CBinaryInputStreami(q, D_003E1C30);
-        func_00170828(world);
+        AllocGsbBitmaps(world);
     }
 }
 } } // namespace M_LoadSwSharedDataFromBrx

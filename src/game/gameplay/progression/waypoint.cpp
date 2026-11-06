@@ -198,7 +198,7 @@ UQ *InitVuTemp(UQ *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(REQ *);
-int FFilterCamera(void *, O *);
+int HasCameraBsp(void *, O *);
 void IntersectSwBoundingBox(SW *, qwordV, qwordV, int (*)(void *, O *), void *, int *, O ***);
 int CollectBspSurfacesTouchingPolygon(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
@@ -360,7 +360,7 @@ extern "C" void func_0022A220(O *po)
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;
     IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
-                  FFilterCamera, 0, &cpso, &apso);
+                  HasCameraBsp, 0, &cpso, &apso);
     qwordV dpos = VuSub(posSrc, posCam);
     int nso = cpso;
     float sMax = ZOfN(dpos, nso) / LenXYFN(dpos, nso);
@@ -437,7 +437,7 @@ extern "C" void func_0022A220(O *po)
 // What decided the match: tStart reused for both fade times (one pseudo -> the game's f4/f3 registers), clamp
 // with a single result variable and by-value limits, `dz = p ? .. : 0.0f` (splits cse so g_normalZ's hi part is
 // copied into s4), the name plate drawn through a by-value RGBA inline (copy addresses in s0/s1), and the
-// float argument of func_001CD780 second (invisible in the callee, decides the f12 move's slot).
+// float argument of DrawWorldLabel second (invisible in the callee, decides the f12 move's slot).
 extern LMV D_002BBB60;      // g_lmZeroOne
 float D_002C4494 = 10.0f, D_002C4498 = 10.0f, D_002C449C = 0.1f;   /* waypoint's .data, address order */
 CLQV D_002C44A0 = {1.0f, -0.5f, 0.0f, 0.0f}, D_002C44B0 = {1.0f, -1.0f, 0.0f, 0.0f}, D_002C44C0 = {0.5f, 0.000285714282f, 0.0f, 0.0f};
@@ -454,9 +454,9 @@ VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
 void RenderLoAtMatrix(SOV *pso, MATRIX4V *pmat, float a, float b);
 void RenderLoAlongSegment(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
 char *PchzFindSwLangstr__FP2SWi(SW *psw, int id);
-void func_001CD780(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
+void DrawWorldLabel(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
-static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { func_001CD780(pos, s, PchzFindSwLangstr__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
+static inline void DrawLabel(qwordV pos, RGBAV rgba0, RGBAV rgba1, int id, float s) { DrawWorldLabel(pos, s, PchzFindSwLangstr__FP2SWi(&D_003DD490, id), &rgba0, &rgba1); }
 
 static inline float GEvaluateClq(CLQV *pclq, float x) { return pclq->g0 + x * (pclq->g1 + x * pclq->g2); }
 static inline float GLimitG(float g, float gMin, float gMax)

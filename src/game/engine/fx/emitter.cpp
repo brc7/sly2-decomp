@@ -81,14 +81,15 @@ typedef EMITTER EMITTERV;
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
 struct EXPLGV : public XFM
 {
-    int cplo;               /* +0xE0 */
-    LO **aplo;              /* +0xE4 */
+    int numChildren;        /* +0xE0 */
+    LO **children;          /* +0xE4 */
 };
-/* The object of func_0015C650 (class unknown): a lazily created SFX at +0xF0. */
+/* The EXPLS (an explosion's sound-effect part; EnsureExplsSfx is registered as an EXPLS option accessor in the class
+   option table): its lazily created SFX at +0xF0. */
 struct SFXHOLDER : public XFM
 {
     char padE0[0x10];
-    SFX *psfx;              /* +0xF0 */
+    SFX *sfx;               /* +0xF0 */
 };
 
 extern SW D_003DD490;       /* g_sw */
@@ -113,13 +114,7 @@ extern M4 D_002DE5B0;
 extern B7 D_002DE5F0;
 struct S { int a; int b; int pad[2]; M4 m; B7 b7; char pad2[0x100 - 0xC0]; };
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
-/** @sly2-annot addr=0x159118
- * Purpose: Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
- * Info: proposed name InitEmitb (T1); TU emitter
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/core-library.md#6-source-files, docs/engine/particles-effects.md#5-source-files,
- *   docs/engine/particles-effects.md#6-key-functions
- * @end-sly2-annot */
+// Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
 void func_00159118(struct S *p)
 {
     func_002333B4(p, 0, sizeof(struct S));
@@ -135,15 +130,7 @@ struct S { char pad[0x40]; unsigned int fl; char pad2[0xF0 - 0x44]; int nF0; int
 void InitXfm(void *p);
 void InitDl__FP2DLi(void *pdl, int ib);
 void SetLoBusyk(void *p, int n);
-/** @sly2-annot addr=0x1591B0
- * Purpose: EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for
- *   update, flag 2
- * Info: proposed name InitEmitter (T1); class EMITTER slot7; TU emitter
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
- *   docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2.
 } } // namespace M_InitEmitter
 void EMITTER::Init() { using namespace M_InitEmitter; M_InitEmitter::S *p = (M_InitEmitter::S *)this;
     unsigned int v;
@@ -210,15 +197,9 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
     }
     *pr = t;
 }
-/** @sly2-annot addr=0x159240
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream (EXISTING); TU emitter
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: name high [EXISTING 0.75]; purpose not reviewed - evidence: pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Reads an emitter mesh (particles spawn on its surface) from the level file: the vertex positions, then the
+// triangles, accumulating each triangle's area into the mesh's total so emission can pick triangles in proportion to
+// area; normals are zeroed for later computation.
 extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *pemitmesh, CBinaryInputStream *pbis)
 {
     int i;
@@ -250,14 +231,8 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
 }
 } // namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream
 
-/** @sly2-annot addr=0x1594D8
- * Purpose: Forwards to 0x1C4848(&g_sw, p) (SW-level registration of the emitter)
- * Info: TU emitter
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r3_1539A8+verdicts_A1
- * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68
- * @end-sly2-annot */
-extern "C" void func_001594D8(EMITTERV *pemitter)
+// Forwards to 0x1C4848(&g_sw, p) (SW-level registration of the emitter) (inferred)
+extern "C" void AddEmitterToHeroFollowers(EMITTERV *pemitter)
 {
     AddSwPoFollower(&D_003DD490, pemitter);
 }
@@ -301,12 +276,9 @@ static __inline__ void *PvAllocCopy(int cb, void *pv)
 
 static __inline__ int FPtr(int n) { return !(n & 1); }
 
-/** @sly2-annot addr=0x159500
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Post-load setup of an EMITTER: runs the shared emitter template, schedules a callback when it emits from an object,
+// infers the emission mode when the level left it unset (-1: 3 when it has a rate or count, 1 when it has a period,
+// else 0), then sets up the mode.
 void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
 {
     ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
@@ -402,13 +374,8 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
 }
 } } // namespace M_PostEmitterLoad__FP7EMITTER
 
-/** @sly2-annot addr=0x159968
- * Purpose: Re-parents the emitter to the LO found via +0xE4 (0x1A58D0(p, 0x1A5BF0(oid), 0))
- * Info: TU emitter
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r3_1539A8
- * @end-sly2-annot */
-extern "C" void func_00159968(EMITTERV *pemitter)
+// Re-parents the emitter to the LO found via +0xE4 (0x1A58D0(p, 0x1A5BF0(oid), 0)) (inferred)
+extern "C" void AttachEmitterToReferencedObject(EMITTERV *pemitter)
 {
     SetLoParent(pemitter, GetSoFromLo((int)*pemitter->pemitb->aploRef), 0);
 }
@@ -417,12 +384,8 @@ namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv {
 struct EMITTERV { char pad[0x14C]; void *p14C; void *p150; };
 enum MSGID { MSGID_0, MSGID_1 };
 extern "C" { void UnsubscribeLoObject(void *pv, void *po); }
-/** @sly2-annot addr=0x1599A8
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Emitter message handler: on message 1 (an object is going away) forgets that object if it is one of the two the
+// emitter subscribed to.
 extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTERV *pemitter, MSGID msgid, void *pv)
 {
     if (msgid == 1) {
@@ -437,11 +400,8 @@ extern "C" void HandleEmitterMessage__FP7EMITTER5MSGIDPv(EMITTERV *pemitter, MSG
 }
 } // namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv
 
-/** @sly2-annot addr=0x159A08
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Accessor used by the property system: returns the emitter, marking it dirty (values changed) when the access is a
+// write.
 #ifndef SLY2_ENUM_ENSK
 #define SLY2_ENUM_ENSK
 enum ENSK { ENSK_Nil = -1, ENSK_Get = 0, ENSK_Set = 1 };
@@ -477,11 +437,8 @@ static inline void Wrap(float *pg, float &gMin, float &gMax, float &gBox, float 
         *pg += *pdg;
     }
 }
-/** @sly2-annot addr=0x159A20
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Applies the emitter's box modifier to its live particles (when sBox is set): keeps them inside a box of half-size
+// sBox around the source object or the emitter (inferred from the body).
 extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
 {
     float sBox = pemitter->sBox;
@@ -547,7 +504,7 @@ void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void EmitParticles__FiP5EMITBP5EMITG(int c, EMITBV *pemitb, EMITX *px);
 }
 void OnEmitterValuesChanged(EMITTERV *p) __asm__("OnEmitterValuesChanged__FP7EMITTER");
-int FPausedEmitter(EMITTERV *p) __asm__("FPausedEmitter__FP7EMITTER");
+int FPausedEmitter(EMITTERV *p) __asm__("IsEmitterPaused__FP7EMITTER");
 void PauseEmitter(EMITTERV *p, float dt) __asm__("PauseEmitter__FP7EMITTERf");
 void PauseEmitterIndefinite(EMITTERV *p) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void ModifyEmitterParticles(EMITTERV *p) __asm__("ModifyEmitterParticles__FP7EMITTER");
@@ -563,12 +520,8 @@ static inline float Dist2(qword a, qword b)
 }
 static inline int FLess(float a, float b) { return a < b; }
 
-/** @sly2-annot addr=0x159C80
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/particles-effects.md#1-emitters-emittercpp-0x159118-0x15cd68,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Per-frame emitter update: applies changed values, updates the LO, then (when the emitter is not slaved) decides from
+// its linked emitters and pause state whether to emit this frame and emits through its EMITB.
 extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *p, float dt)
 {
     if (p->fChanged)
@@ -692,33 +645,21 @@ LActive:
 }
 } // namespace M_UpdateEmitter__FP7EMITTERf
 
-/** @sly2-annot addr=0x15A138
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Pauses the emitter for dt seconds (until the clock passes tUnpause).
 void PauseEmitter(EMITTERV *pemitter, float dt) __asm__("PauseEmitter__FP7EMITTERf");
 void PauseEmitter(EMITTERV *pemitter, float dt)
 {
     pemitter->tUnpause = D_002DDED0.t + dt;
 }
 
-/** @sly2-annot addr=0x15A150
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Pauses the emitter until it is explicitly unpaused (tUnpause = the largest float).
 void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void PauseEmitterIndefinite(EMITTERV *pemitter)
 {
     pemitter->tUnpause = D_002A514C;
 }
 
-/** @sly2-annot addr=0x15A160
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Unpauses the emitter now.
 void UnpauseEmitter(EMITTERV *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
 void UnpauseEmitter(EMITTERV *pemitter)
 {
@@ -728,12 +669,9 @@ void UnpauseEmitter(EMITTERV *pemitter)
 namespace M_FPausedEmitter__FP7EMITTER {
 extern "C" { extern CLOCK D_002DDED0; }
 struct EMITTERV { char pad[0xF0]; int k; int c; char pad2[0x148 - 0xF8]; float tUnpause; };
-/** @sly2-annot addr=0x15A170
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
-extern "C" int FPausedEmitter__FP7EMITTER(EMITTERV *pemitter)
+// Returns whether the emitter is paused: before its unpause time, or (count modes 0 and 1) with no particles left to
+// emit.
+extern "C" int IsEmitterPaused__FP7EMITTER(EMITTERV *pemitter)
 {
     if (D_002DDED0.t < pemitter->tUnpause)
         return 1;
@@ -747,11 +685,8 @@ extern "C" int FPausedEmitter__FP7EMITTER(EMITTERV *pemitter)
 }
 } // namespace M_FPausedEmitter__FP7EMITTER
 
-/** @sly2-annot addr=0x15A1C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Called when the emitter's properties changed: clears the dirty flag, pushes the new emission parameters to its blip
+// and rip groups and restarts the emission timer from the rate range (per minute in mode 3).
 void OnEmitterValuesChanged(EMITTERV *pemitter) __asm__("OnEmitterValuesChanged__FP7EMITTER");
 void OnEmitterValuesChanged(EMITTERV *pemitter)
 {
@@ -773,11 +708,7 @@ namespace M_SetEmitterParticleCount__FP7EMITTERi {
 struct EMITTERV { char pad[0xE0]; int fDirty; char pad2[0xC]; int k; int c; };
 void PauseEmitterIndefinite(EMITTERV *pemitter) __asm__("PauseEmitterIndefinite__FP7EMITTER");
 void UnpauseEmitter(EMITTERV *pemitter) __asm__("UnpauseEmitter__FP7EMITTER");
-/** @sly2-annot addr=0x15A240
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Sets the emitter's particle count; in count mode 0, 0 pauses it and -1 unpauses it.
 extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTERV *pemitter, int c)
 {
     switch (pemitter->k) {
@@ -797,11 +728,8 @@ extern "C" void SetEmitterParticleCount__FP7EMITTERi(EMITTERV *pemitter, int c)
 }
 } // namespace M_SetEmitterParticleCount__FP7EMITTERi
 
-/** @sly2-annot addr=0x15A2B0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Sets the emitter's auto-pause flag (the condition that pauses it is read elsewhere; inferred to be its source going
+// out of view).
 void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause) __asm__("SetEmitterAutoPause__FP7EMITTERi");
 void SetEmitterAutoPause(EMITTERV *pemitter, int fAutoPause)
 {
@@ -922,11 +850,8 @@ static inline float GetX(qword q)
 }
 
 void WakeSoWater(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac, float gScale) __asm__("WakeSoWater__FP2SOP5WATERfP6VECTORT3ff");
-/** @sly2-annot addr=0x15A2C0
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Makes an object's wake in water: by distance from its last wake point and a random chance per dt, emits splash
+// particles and plays the wake sound, scaled by speed (gFrac, gScale) (inferred from the body).
 extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *p, WATER *pwater, qword pos, qword v, float dt, float gFrac, float gScale)
 {
     float g = 0.0f;
@@ -1099,16 +1024,7 @@ static inline VU_VECTOR Normalize(qword d)
     }
     return dir;
 }
-/** @sly2-annot addr=0x15A808
- * Purpose: Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton)
- * Info: proposed name ChooseEmitoPos (T1); TU emitter
- * Notes: verifier: purpose partly wrong: Sly 1 ChooseEmitoPos(emito,i,c,ppos,pnormal). Cases are
- *   point(0)/box(1)/curve(2, cumulative length)/mesh(3, area-weighted triangle), not 'sphere/skeleton'.
- * Confidence: high [T1 0.85] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
- *   r3_1539A8+verdicts_tu_r3r5+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Chooses a particle origin position/direction from the EMITO shape (point/sphere/box/skeleton)
 extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *p, int i, int c, qword *ppos, qword *pv)
 {
     EP *pep = &p->ep;
@@ -1234,15 +1150,8 @@ qword ConvertMatVec(struct M4 *pm, int z, qword v);
 qword GetXfVelocity(struct R *r, int z, qword v);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 
-/** @sly2-annot addr=0x15AD48
- * Purpose: Transforms a chosen particle position (and velocity, depending on mode) from the reference SO
- *   space to world space
- * Info: proposed name ConvertEmitoPosVec (T1); TU emitter
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources:
- *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Transforms a chosen particle position (and velocity, depending on mode) from the reference SO space to world space.
+// (inferred)
 void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
 {
     struct Y *py = &p->y;
@@ -1267,11 +1176,8 @@ struct LM { float gMin; float gMax; };
 struct EMITVX { int c; float dg; float drad; float g; float rad; };
 float RadNormalize(float rad) asm("RadNormalize__Ff");
 float GRandInRange(float gMin, float gMax) asm("GRandInRange__Fff");
-/** @sly2-annot addr=0x15AE38
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Sets up an even distribution of emission directions: c directions around the circle (capped at cMax) times enough
+// tilt steps to cover the LM tilt range, starting at a random pan angle.
 extern "C" void CalculateEmitvx__FiP2LMiP6EMITVX(int c, LM *plm, int cMax, EMITVX *pemitvx)
 {
     int n;
@@ -1302,11 +1208,8 @@ float RadNormalize__Ff(float g);
 qword SetVectorSphere(float pan, float tilt, float r);
 void GetNormalVectors(qword a, qword b, qword c, M3 *pm);
 
-/** @sly2-annot addr=0x15AF08
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Picks the velocity of particle i from an EMITVX distribution: its pan/tilt grid cell, jittered by gRand, rotated
+// into the emission normal's frame and scaled by speed sv.
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(struct EMITVX *pemitvx, float gRand, float sv, struct LM *plm,
                                                      qword *pnormal, int i, qword *pv)
 {
@@ -1342,14 +1245,7 @@ extern struct CLOCK D_002DDED0;
 void ChooseEmitVelocity__FP6EMITVXffP2LMP6VECTORiT4(void *pemitvx, float a, float b, struct P *plm, qword *pv, int n, qword *pvOut);
 float GRandInRange__Fff(float a, float b);
 
-/** @sly2-annot addr=0x15B0C8
- * Purpose: Chooses per-particle velocity (ChooseEmitVelocity) and age
- * Info: proposed name ChooseEmitvVelocityAge (T1); TU emitter
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources:
- *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Chooses per-particle velocity (ChooseEmitVelocity) and age. (inferred)
 void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(struct P *p, void *pemitvx, int unused, int n, qword *ppos, qword *pv, qword *pvel, float *ptBirth, float *ptDeath)
 {
     float t, g;
@@ -1432,14 +1328,7 @@ void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITTERV *pemit);
 MATRIX3 *GetLoWorldMatrix(void *p);
 int FIsDlEmpty__FP2DL(void *p);
 }
-/** @sly2-annot addr=0x15B1B0
- * Purpose: Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions
- * Info: proposed name EmitRips (T1); TU emitter
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r3_1539A8+verdicts_tu_r3r5+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Spawns RIP particles (PripNewRipg, SetRipgEmitb, SetEmitdvEmitb) for originated positions.
 extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTERV *pemit, EMITX *px, int c, qword *apos, qword *avel, float *at0, float *at1)
 {
     SO *pso = 0;
@@ -1508,7 +1397,7 @@ extern CM D_002DDF40;
 extern char D_003DD490[];
 PRG *PblipgNew(void *pv);
 void SetBlipgEmitb(PRG *pprg, EMITTERV *p);
-BLK *PblipNew(void *pv, PRG *pprg);
+BLK *NewBlip(void *pv, PRG *pprg);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int NRandInRange__Fii(int nMin, int nMax);
 float GRandInRange__Fff(float gMin, float gMax);
@@ -1526,14 +1415,7 @@ static inline float Dot(qword a, qword b)
 
 static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gMax); }
 
-/** @sly2-annot addr=0x15B428
- * Purpose: Spawns BLIP particles for originated positions
- * Info: proposed name EmitBlips (T1); TU emitter
- * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources:
- *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Spawns BLIP particles for originated positions. (inferred)
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
 {
     PRG *pprg = 0;
@@ -1553,7 +1435,7 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c
     }
     BLK *pblk = pprg->pblkFirst;
     int k = 0;
-    while (k < c && (pblk || (pblk = PblipNew(D_003DD490, pprg)))) {
+    while (k < c && (pblk || (pblk = NewBlip(D_003DD490, pprg)))) {
         qword *pq1 = pblk->afr[1].apos;
         for (unsigned int i = pblk->c; i < 43 && k < c; k++, i++) {
             FR *pfr = &pblk->afr[0];
@@ -1625,15 +1507,8 @@ static inline qword Cross(qword a, qword b)
     __asm__("vopmula.xyz ACC, %1, %2\n\tvopmsub.xyz %0, %2, %1" : "=j"(d) : "j"(a), "j"(b));
     return d;
 }
-/** @sly2-annot addr=0x15B7E8
- * Purpose: Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos,
- *   ChooseEmitvVelocityAge, ConvertEmitoPosVec)
- * Info: proposed name OriginateParticles (T1); TU emitter
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources:
- *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Computes origin position/velocity/age for c particles (CalculateEmitvx, ChooseEmitoPos, ChooseEmitvVelocityAge,
+// ConvertEmitoPosVec) (inferred)
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *pemit, BUF *pb)
 {
     pb->apos = (qword *)PvAlloc(c * 16, 16);
@@ -1705,13 +1580,7 @@ static inline qword MulRot(const M4 &m, qword v)
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Scale(qword v, VU_FLOAT s) { qword d; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(d) : "j"(v), "j"(s.q)); return d; }
 
-/** @sly2-annot addr=0x15B9F0
- * Purpose: For spline-sink emitters (kind 2) computes the extra per-particle transform data passed to
- *   EmitBlips
- * Info: proposed name OriginateSplineSinkParticles (T1); TU emitter
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// For spline-sink emitters (kind 2) computes the extra per-particle transform data passed to EmitBlips. (inferred)
 void OriginateSplineSinkParticles(int c, EMITTERV *pemit, TIMES *ptimes, BUF *pb)
 {
     ALO *palo = pemit->peo->palo;
@@ -1780,15 +1649,8 @@ void OriginateParticles__FiP5EMITBP7EMITGEN(void *a, B *b, LOC *ploc);
 void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(B *b, void *c, void *a, int q0, int q1, int q2, int q3);
 void OriginateSplineSinkParticles(void *a, B *b, LOC *ploc, L2 *pl2);
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(B *b, void *c, void *a, int q0, int q1, int q2, int q3, int x, int y);
-/** @sly2-annot addr=0x15BD20
- * Purpose: Emits c particles: OriginateParticles, then EmitRips (rip emitters) or
- *   [OriginateSplineSinkParticles] + EmitBlips
- * Info: proposed name EmitParticles (T1); TU emitter
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources:
- *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions, docs/engine/particles-effects.md#open-questions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Emits c particles: OriginateParticles, then EmitRips (rip emitters) or [OriginateSplineSinkParticles] + EmitBlips.
+// (inferred)
 void EmitParticles__FiP5EMITBP5EMITG(void *a, B *b, void *c)
 {
     if (a) {
@@ -1822,13 +1684,8 @@ struct Y { int a; int b; int c; };
 void func_00159118(struct X *px);
 void EmitParticles__FiP5EMITBP5EMITG(void *p, struct X *px, struct Y *py);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
-/** @sly2-annot addr=0x15BE28
- * Purpose: Builds a temporary EMITB (InitEmitb) from explicit position/velocity/matrix/params and calls
- *   EmitParticles
- * Info: TU emitter
- * Notes: names_v2 B proposed StockSplashBig__FP6VECTORfP2SO (0.856) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r3_1539A8
- * @end-sly2-annot */
+// Builds a temporary EMITB (InitEmitb) from explicit position/velocity/matrix/params and calls EmitParticles.
+// (inferred)
 void func_0015BE28(qword q0, qword q1, void *p, M4 *pm, B7 *pb7, int n1, int n2, int n3)
 {
     struct X x;
@@ -1880,12 +1737,7 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
     }
     *pr = t;
 }
-/** @sly2-annot addr=0x15BF40
- * Purpose: Copies the drift/velocity parameters of an EMITB into an EMITDV
- * Info: proposed name SetEmitdvEmitb (T1); TU emitter
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Copies the drift/velocity parameters of an EMITB into an EMITDV. (inferred)
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *po, struct S *ps)
 {
     po->q0 = ps->q60;
@@ -1913,12 +1765,7 @@ static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
         r.r[i] = Add(a.r[i], b.r[i]);
 }
 extern "C" MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p);
-/** @sly2-annot addr=0x15BFD8
- * Purpose: Computes the drift/curl matrix of an EMITDV for time t
- * Info: proposed name CalculateEmitdvMatrix (T1); TU emitter
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Computes the drift/curl matrix of an EMITDV for time t. (inferred)
 MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p)
 {
     MATRIX4 mScale = D_002A2D30;
@@ -1948,13 +1795,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
 struct P { int a; int b; float f; float g; qword q; qword r; qword s; };
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
-/** @sly2-annot addr=0x15C150
- * Purpose: Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51)
- * Info: proposed name ExplodeExpl (T1); TU emitter
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) (inferred)
 void func_0015C150(struct O *o)
 {
     struct P p = {0};
@@ -1970,14 +1811,8 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
 struct P { int a; int b; float f; float g; qword q; qword r; qword s; };
-/** @sly2-annot addr=0x15C198
- * Purpose: Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls
- *   slot 51)
- * Info: proposed name ExplodeExplParams (T1); TU emitter
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51)
+// (inferred)
 void ExplodeExplParams(struct O *o, int a, int b, float f, float g, qword q, qword r)
 {
     struct P p;
@@ -1993,14 +1828,7 @@ void ExplodeExplParams(struct O *o, int a, int b, float f, float g, qword q, qwo
 }
 } } // namespace M_ExplodeExplParams
 
-/** @sly2-annot addr=0x15C1E0
- * Purpose: Empty base implementation of the EXPL explode virtual (slot 51)
- * Info: proposed name ExplodeExplExplso (T1); class EXPL slot51; TU emitter
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources:
- *   r3_1539A8+verdicts_A1+names_v2-signature(verified)
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// Empty base implementation of the EXPL explode virtual (slot 51) (inferred)
 void EXPL::VSlot51()   /* key function: EXPL's vtable comes out here (ExplodeExplExplso__FP4EXPLP6EXPLSO, empty) */
 {
 }
@@ -2020,15 +1848,7 @@ void LoadXfmFromBrx(struct S *p, void *q);
 void CLoadCollectorArray_ctor(struct DA *pda);
 void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-/** @sly2-annot addr=0x15C1E8
- * Purpose: EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo
- * Info: proposed name LoadExplgFromBrx (T1); class EXPLG slot14; TU emitter
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r3_1539A8+parse-verified
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo.
 void LoadExplgFromBrx(struct S *p, void *q)
 {
     struct C ctx;
@@ -2054,17 +1874,12 @@ void LoadExplgFromBrx(struct S *p, void *q)
 }
 } } // namespace M_LoadExplgFromBrx
 
-/** @sly2-annot addr=0x15C310
- * Purpose: EXPLG: returns child count (+0xE0) and child array (+0xE4) via out-param
- * Info: proposed name CploExplgChildren (T1); class EXPLG slot28; TU emitter
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
-int EXPLG::CploChildren(LO ***paplo)
+// Returns an explosion group's children: the array through the out parameter, the count as the result.
+int EXPLG::CploChildren(LO ***childrenOut)
 {
-    EXPLGV *pexplg = (EXPLGV *)this;
-    *paplo = pexplg->aplo;
-    return pexplg->cplo;
+    EXPLGV *group = (EXPLGV *)this;
+    *childrenOut = group->children;
+    return group->numChildren;
 }
 
 namespace M_CloneExplg { extern "C" {
@@ -2074,12 +1889,7 @@ static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg-
 struct S { int pad[4]; void *p10; char pad2[0xE0 - 0x14]; int c; void **apv; };
 void CloneXfm(struct S *p, void *pv);
 void *PloCloneLo__FP2LOP2SO(void *pv, void *p10);
-/** @sly2-annot addr=0x15C320
- * Purpose: EXPLG clone: XFM clone, realloc child array, clone each child (0x13E510)
- * Info: proposed name CloneExplg (T1); class EXPLG slot41; TU emitter
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// EXPLG clone: XFM clone, realloc child array, clone each child (0x13E510) (inferred)
 void CloneExplg(struct S *p, void *pv)
 {
     MSG msg;
@@ -2134,13 +1944,8 @@ inline qword QwRotateVec(const MATRIX3 *pmat, qword qwVec)
     return qwResult;
 }
 extern "C" void ExplodeExplgExplso(S *p, P *pp);
-/** @sly2-annot addr=0x15C3C0
- * Purpose: EXPLG explode: transforms the explosion origin by its matrix and forwards the explode call to
- *   every child explosion (vtable)
- * Info: proposed name ExplodeExplgExplso (T1); class EXPLG slot51; TU emitter
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// EXPLG explode: transforms the explosion origin by its matrix and forwards the explode call to every child explosion
+// (vtable) (inferred)
 void ExplodeExplgExplso(S *p, P *pp)
 {
     P loc = *pp;
@@ -2177,13 +1982,7 @@ void ExplodeExplgExplso(S *p, P *pp)
 namespace M_HandleExplsMessage { extern "C" {
 struct O { char pad[0x100]; void *p100; void *p104; };
 void UnsubscribeLoObject(void *pv, void *po);
-/** @sly2-annot addr=0x15C5C8
- * Purpose: EXPLS::HandleMessage: on msg 1 (removed) forgets cached p100/p104 references
- * Info: proposed name HandleExplsMessage (T1); class EXPLS slot5; TU emitter
- * Notes: names_v2 B proposed BindExplg__FP5EXPLG (0.856)
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// EXPLS::HandleMessage: on msg 1 (removed) forgets cached p100/p104 references. (inferred)
 } } // namespace M_HandleExplsMessage
 void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
@@ -2204,13 +2003,7 @@ void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 namespace M_ExplodeExplsExplso { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
-/** @sly2-annot addr=0x15C628
- * Purpose: EXPLS explode: forwards to its own vtable slot 52 (fire)
- * Info: proposed name ExplodeExplsExplso (T1); class EXPLS slot51; TU emitter
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8+verdicts_B
- * See: docs/engine/particles-effects.md#6-key-functions,
- *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// EXPLS explode: forwards to its own vtable slot 52 (fire) (inferred)
 void ExplodeExplsExplso(struct O *o, int x)
 {
     struct VTE *e = &o->vt[52];
@@ -2218,18 +2011,14 @@ void ExplodeExplsExplso(struct O *o, int x)
 }
 } } // namespace M_ExplodeExplsExplso
 
-/** @sly2-annot addr=0x15C650
- * Purpose: UNKNOWN - no analysis recorded yet (byte-matched only).
- * Info: TU emitter
- * Notes: names_v2 v1 hint not used: CloneExplo__FP5EXPLOT0
- * Confidence: none - unanalysed; anything inferred from the code here is a guess
- * @end-sly2-annot */
-extern "C" SFX *func_0015C650(SFXHOLDER *p)
+// Returns the EXPLS's sound effect, creating it on first use. Used by the class option table (five EXPLS options
+// point at it), so level data can set the explosion's sound properties.
+extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
 {
-    if (p->psfx == 0) {
-        p->psfx = NewSfx();
+    if (explosionSound->sfx == 0) {
+        explosionSound->sfx = NewSfx();
     }
-    return p->psfx;
+    return explosionSound->sfx;
 }
 
 namespace M_FireExplsExplso { extern "C" {
@@ -2270,13 +2059,8 @@ extern void SetSndRange(void *p, float a, float b);
 extern void SetSndVolume(void *p, float g);
 extern void SetSndPitch(void *p, float g);
 
-/** @sly2-annot addr=0x15C690
- * Purpose: EXPLS fire: builds a temporary emitter setup (EMITP/EMITB/EMITR copies) at the explosion position
- *   and emits particles
- * Info: proposed name FireExplsExplso (T1); class EXPLS slot52; TU emitter
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
- * @end-sly2-annot */
+// EXPLS fire: builds a temporary emitter setup (EMITP/EMITB/EMITR copies) at the explosion position and emits
+// particles. (inferred)
 void FireExplsExplso(EMITTERV *p, EMITO *po)
 {
     EMITP emitp;
@@ -2447,7 +2231,7 @@ LM D_002BDEC0 = {0.5f, 2.0f};
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_emitter {
-void p_func_00159968() __asm__("func_00159968");
+void p_func_00159968() __asm__("AttachEmitterToReferencedObject");
 extern "C" {
 extern const unsigned int D_002A5140[2] = {0xFFFF0000, (unsigned int)p_func_00159968};
 }

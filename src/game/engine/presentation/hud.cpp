@@ -1554,7 +1554,7 @@ struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 extern char D_00442210[],D_002DF010[];
 void CopyAqw__FPvT0i(void *,void *,int);
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
@@ -1580,7 +1580,7 @@ void QueueWidgetRenderSetup(struct S *p){
     Align(&D_002DEA28,0);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=p->priority<<18;
     e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
 }
@@ -2621,8 +2621,8 @@ struct S { int x0; int k; L *pl; int xc; int i; void *x14; };
 struct T { char pad[0x30]; S *x30; char pad34[0x24]; int x58; };
 extern "C" int IFreeSpriteSlot(void *p);
 extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
-extern "C" void *func_001BEED8(int);
-extern "C" void *func_001BEB28(void *);
+extern "C" void *FindObjectForRenderTarget(int);
+extern "C" void *AcquireRenderTarget(void *);
 /** @sly2-annot addr=0x215730
  * Purpose: bind item to payload by kind (4 nested sprite: start anim 0x314)
  * Info: proposed name SetSpriteItemSource (T2); TU hud
@@ -2641,9 +2641,9 @@ extern "C" void SetSpriteItemSource(S *p, T *t, void *q, RGBA c0, RGBA c1)
         break;
     case 6:
         if (p->i != -1) {
-            void *pv = func_001BEED8(p->i);
+            void *pv = FindObjectForRenderTarget(p->i);
             if (pv)
-                p->x14 = func_001BEB28(pv);
+                p->x14 = AcquireRenderTarget(pv);
         }
         break;
     }
@@ -2684,7 +2684,7 @@ struct Q { char pad[0x20]; void *x20; };
 struct S { int x0; int k; struct L *pl; int xc; int i; struct Q *x14; };
 struct T { char pad[0x58]; int x58; };
 void StopSpriteSlot(void *p, int a);
-void func_001BED18(void *p);
+void ReleaseRenderTarget(void *p);
 void InitSpriteItem(struct T *t);
 /** @sly2-annot addr=0x2158C0
  * Purpose: release item payload (stop nested slot / texture ref) and reinit
@@ -2702,7 +2702,7 @@ void ReleaseSpriteItem(struct S *p, struct T *t)
     case 6:
         if (p->x14) {
             if (p->x14->x20)
-                func_001BED18(p->x14->x20);
+                ReleaseRenderTarget(p->x14->x20);
             p->x14 = 0;
         }
         break;
@@ -3288,7 +3288,7 @@ struct E {int kind;float priority;uint address;int tag;};
 extern "C" { extern struct R D_002DEA28; }
 extern "C" { extern char D_00442210[],D_002DF010[]; }
 extern "C" void CopyAqw__FPvT0i(void *,void *,int);
-extern "C" struct E *PrplAllocRpl(void);
+extern "C" struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
@@ -3338,7 +3338,7 @@ extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
     Align(&D_002DEA28,0);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=p->priority<<18;
     e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
 }
@@ -3397,7 +3397,7 @@ int GetRichText2NextChar(struct RT *);
 float GetFontGlyphWidth2(void *,int);
 struct GLYPH *PglyffFromCh__8CFontBrxc(void *,int);
 void BuildGlyphPacket(struct GLYPH *,union M4 *,struct DATA *,int);
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;}
@@ -3466,7 +3466,7 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
     Align(&D_002DEA28,0);
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
     {
-        struct E *e=PrplAllocRpl();
+        struct E *e=AllocRenderListEntry();
         e->kind=0x15;e->priority=style->priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
     }
 }
@@ -3481,9 +3481,9 @@ int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
  * Purpose: GLYFF* = &glyphs[i] for i = 0x215A50(ch)
  * Info: proposed name CFontBrx_PglyffFromCh (T1); TU hud
  * Notes: names_v2 C proposed ShowTotalsQMARK (0.167) | agent qualifier: pointer form | COLLISION:
- *   PglyffFromCh already used (same name proposed for 0x15F8A8); renamed to PglyffFromCh_216B40 | superseded:
+ *   FindGlyphForChar already used (same name proposed for 0x15F8A8); renamed to PglyffFromCh_216B40 | superseded:
  *   PglyffFromCh_216B40 (arbitration) | arbitration knock-on rename: CONFIRMED static: char arg (andi 0xff),
- *   returns GLYFF* or NULL = Sly1 CFontBrx::PglyffFromCh contract. | arbitration mangling: compile a
+ *   returns GLYFF* or NULL = Sly1 CFontBrx::FindGlyphForChar contract. | arbitration mangling: compile a
  *   declaration in the scratch build and compare before committing
  * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; arbitration; static naming pass;
  *   sources: r7c_hud+arbitration
@@ -3693,7 +3693,7 @@ struct S {char pad[0xA4];int priority;};
 struct E {int kind;float priority;uint address;int pad;};
 extern struct R D_002DEA28;
 extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Mscal(struct R *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
@@ -3724,7 +3724,7 @@ void QueueSpriteVuProgram(struct S *p,int mode,float priority){
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;
     D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->pad=0;
 }
 } } // namespace M_func_00217298
@@ -3744,7 +3744,7 @@ struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline int Min(int a,int b){return a<b?a:b;}
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
@@ -3785,7 +3785,7 @@ void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     Align(&D_002DEA28);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=data->priority+(p->owner->priority<<18);
     e->address=(uint)tag&0x0FFFFFFF;
     e->tag=p->tag;
@@ -3808,7 +3808,7 @@ struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
@@ -3849,7 +3849,7 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     Align(&D_002DEA28);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=data->priority+(p->owner->priority<<18);
     e->address=(uint)tag&0x0FFFFFFF;
     if(p->type==6)e->tag=p->tag;else e->tag=p->rawtag;

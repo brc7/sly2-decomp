@@ -1,5 +1,6 @@
-// ms.cpp -- MS (cid 0x31): a static mesh, an SO with no fields of its own. TU 0x1B4438..0x1B4728 (5 functions,
-// address order).
+// ms.cpp -- MS (cid 0x31): a static mesh, an SO with no fields of its own. Renders its globset (directly, or through the
+// scene render list when it is posed) and provides the list of all visible static-mesh globs. Entry points: MS::Init,
+// RenderMsGlobset, CollectVisibleMsGlobs. TU 0x1B4438..0x1B4728 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_ms
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001B4708
 #include "sly2/so.h"
@@ -15,95 +16,80 @@ struct MSV : public SO
 {
 };
 
-/* Scene render-list scratch on the stack (HYPOTHESIS name; size CONFIRMED by match: frame size). */
+/* The render-tree block stack (tu_1D57A8 STACK: a count and 256 block pointers; size CONFIRMED by match: frame size). */
 struct INTSTACK
 {
       byte ab[0x410];
 };
 
-/* Glob owner list walked by func_001B44D8 (HYPOTHESIS: per-world list of mesh owners; offsets CONFIRMED by match). */
+/* The MS objects' globs walked by CollectVisibleMsGlobs (the world's class list 49 = cid 0x31 MS; offsets CONFIRMED by
+   match, the GLOBREF/GLOBOWNER view names are this file's). */
 struct GLOBREF
 {
       byte pad[0x10];
-      long grf;
+      long flags;             /* bit 48: hidden/culled (inferred) */
       byte pad2[0xB0 - 0x18];
 };
 struct GLOBOWNER
 {
       byte pad[0x20];
-      GLOBOWNER *pownerNext;
+      GLOBOWNER *nextOwner;
       byte pad1[0xE0 - 0x24];
-      int cglobref;
-      GLOBREF *aglobref;
+      int numGlobs;
+      GLOBREF *globs;
 };
 
 extern "C" {
 void InitSo(SO *pso);
-void func_001D57A8(INTSTACK *pis);                                     /* InitIntStack (HYPOTHESIS) */
+void InitBlockStack(INTSTACK *stack);   /* tu_1D57A8: the render-tree block stack */
 void CullSceneRenderList(INTSTACK *pis, GLOBSET *pglobset);
 void RenderSoGlobset(GLOBSET *pglobset, int a, int b, float f, float g);
 }
 
-/** @sly2-annot addr=0x1B4438
- * Purpose: MS::Init (vt7): InitSo then clear flag bit 35 of +0x148
- * Info: proposed name InitMs (T1); class MS slot7; TU ms
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/cutscenes.md#4-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
+// Initializes a static mesh (vtable slot 7): SO init, then clears SO flag bit 35 (fUnk35).
 void MS::Init()
 {
-    MSV *pms = (MSV *)this;
-      InitSo(pms);
-      pms->fUnk35 = 0;
+    MSV *mesh = (MSV *)this;
+      InitSo(mesh);
+      mesh->fUnk35 = 0;
 }
 
-/** @sly2-annot addr=0x1B4478
- * Purpose: MS::RenderSelf (vt19): draw globset +0x80 via 0x1D57A8/0x1D5808 path if +0xC8 else
- *   DrawGlobset(0x168638)
- * Info: proposed name RenderMsGlobset (T1); class MS slot19; TU ms
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#ms-0x1b4438-0x1b4728
- * @end-sly2-annot */
-extern "C" void RenderMsGlobset(MSV *pms)
+// Renders the mesh (vtable slot 19): a posed globset goes through the scene render list (init the stack scratch, then
+// CullSceneRenderList); an unposed one is drawn directly with RenderSoGlobset.
+extern "C" void RenderMsGlobset(MSV *mesh)
 {
-      if (pms->globset.aposeset) {
+      if (mesh->globset.aposeset) {
             // posed (skinned) globs go through the scene render list
-            INTSTACK is;
-            func_001D57A8(&is);
-            CullSceneRenderList(&is, &pms->globset);
+            INTSTACK scratch;
+            InitBlockStack(&scratch);
+            CullSceneRenderList(&scratch, &mesh->globset);
       } else {
-            RenderSoGlobset(&pms->globset, 0, 0, 1.0f, 1.0f);
+            RenderSoGlobset(&mesh->globset, 0, 0, 1.0f, 1.0f);
       }
 }
 
-/** @sly2-annot addr=0x1B44D8
- * Purpose: Gather pointers to all visible entries across a global linked list (*(GLOBOWNER * *)&g_sw.aslCid[49]) (count +0xE0, array
- *   +0xE4) into a stack-heap array
- * Info: proposed name CollectMsGlobs (T2); TU ms
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/rendering.md#ms-0x1b4438-0x1b4728
- * @end-sly2-annot */
-extern "C" void func_001B44D8(int *pc, GLOBREF ***papglobref)
+// Builds an array of pointers to every glob of every static mesh in the world (class list 49) whose flag bit 48 is
+// clear, allocated from the frame slot heap. Returns the count and the array through the out parameters.
+extern "C" void CollectVisibleMsGlobs(int *countOut, GLOBREF ***globsOut)
 {
-      GLOBOWNER *powner;
-      GLOBREF **apglobref, **ppglobref;
+      GLOBOWNER *mesh;
+      GLOBREF **globs, **nextSlot;
       ALLOCREQ req;
-      int c = 0, i;
+      int count = 0, i;
 
-      for (powner = (*(GLOBOWNER * *)&g_sw.aslCid[49]); powner; powner = powner->pownerNext)
-            c += powner->cglobref;
-      req.cb = c * 4;
+      for (mesh = (*(GLOBOWNER * *)&g_sw.aslCid[49]); mesh; mesh = mesh->nextOwner)
+            count += mesh->numGlobs;
+      req.cb = count * 4;
       req.cbAlign = 0x10;
-      apglobref = (GLOBREF **)AllocFromStack(&req);   /* dmas.h */
-      ppglobref = apglobref;
-      for (powner = (*(GLOBOWNER * *)&g_sw.aslCid[49]); powner; powner = powner->pownerNext) {
-            for (i = 0; i < powner->cglobref; i++) {
-                  GLOBREF *pglobref = &powner->aglobref[i];
-                  if (!(pglobref->grf & (1L << 48)))
-                        *ppglobref++ = pglobref;
+      globs = (GLOBREF **)AllocFromStack(&req);   /* dmas.h */
+      nextSlot = globs;
+      for (mesh = (*(GLOBOWNER * *)&g_sw.aslCid[49]); mesh; mesh = mesh->nextOwner) {
+            for (i = 0; i < mesh->numGlobs; i++) {
+                  GLOBREF *glob = &mesh->globs[i];
+                  if (!(glob->flags & (1L << 48)))
+                        *nextSlot++ = glob;
             }
       }
-      *pc = ppglobref - apglobref;
-      *papglobref = apglobref;
+      *countOut = nextSlot - globs;
+      *globsOut = globs;
 }
