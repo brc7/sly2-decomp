@@ -1,5 +1,7 @@
-// tu_1B9F80.cpp -- NEELA, a guard (STEPGUARD) that picks a target inside one of two volumes and turns an animated part
-// toward it, and its behaviour (a BHV with three states: target in the near volume, outside, timed out). VU0 asm.
+// tu_1B9F80.cpp -- NEELA (cid 0x3C, a STEPGUARD): she picks a target inside one of two volumes (another guard, or a
+// cid 0x62 object) and turns her animated prop toward it; and her chase behaviour (BHV174, flag 0x25) with three
+// states: player inside the near volume (resume her script), outside (chase the player), timed out (give up, game
+// event 0x33). VU0 asm.
 // TU 0x1B9F80..0x1BAB50 (14 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1B9F80
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001BAB30
@@ -114,14 +116,7 @@ extern void *D_002E1E40;    /* the player */
 extern qword D_002A2DD0;
 extern char D_002DEB30[];
 
-/** @sly2-annot addr=0x1B9F80
- * Purpose: CID 60 vt7: InitStepguard + tuning (1.35, -0.0003, 0.9, 1.2, 7.0), flags
- * Info: proposed name InitNeela (T1); class NEELA slot7; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: InitCid60Guard -> InitNeela
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1B9F80: NEELA vtable slot 7 (Init): STEPGUARD Init plus her movement tuning constants and flags.
 void NEELA::Init()
 {
     NEELAV *p = (NEELAV *)this;
@@ -139,16 +134,8 @@ void NEELA::Init()
     p->n4A4 = 1;
 }
 
-/** @sly2-annot addr=0x1BA018
- * Purpose: CID 60 vt15: PostStepguardLoad, BindLoOidTable(3), predict ASEG effect offset (label 0x5DB) for
- *   the held prop, SetSoMass 0.25
- * Info: proposed name PostNeelaLoad (T1); class NEELA slot15; TU tu_1B9F80
- * Notes: names_v2 C proposed FadeAloIn__FP3ALOf (0.253) | class identity from whole_game WE names/object
- *   strings: PostCid60GuardLoad -> PostNeelaLoad
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA018: NEELA vtable slot 15 (PostLoad): STEPGUARD post-load, binds her oid table, precomputes the prop
+// animation's effect offset (label 0x5DB) and sets her mass to 0.25.
 extern "C" void PostNeelaLoad(NEELAV *p)
 {
     L l;
@@ -167,13 +154,8 @@ extern "C" void PostNeelaLoad(NEELAV *p)
     SetSoMass(p, 0.25f);
 }
 
-/** @sly2-annot addr=0x1BA0B8
- * Purpose: CID 60 vt26: ResetStepguardToHome then vt9 on attached prop
- * Info: proposed name Neela_VUnk26Proxy (T2); class NEELA slot26; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: Cid60Guard_VUnk26Proxy -> Neela_VUnk26Proxy
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA0B8: NEELA vtable slot 26 (reset to home): ResetStepguardToHome, then hides her attached prop (its vtable
+// slot 9).
 extern "C" void ResetNeelaToHome(NEELAV *p)
 {
     O *po;
@@ -185,12 +167,7 @@ extern "C" void ResetNeelaToHome(NEELAV *p)
     }
 }
 
-/** @sly2-annot addr=0x1BA100
- * Purpose: Box-query filter: object class == 0x62 (CID 98)
- * Info: proposed name FFilterCid98 (T2); class CID98; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA100: Box-query filter: accepts only cid 0x62 objects.
 extern "C" int FilterCid98(void *pv, ROW *prow)
 {
     return CidBasic(prow->object) == 0x62;
@@ -218,14 +195,9 @@ typedef char NEELA_axis_Offset[FIELD_OFFSET(NEELAV,axis)==4160?1:-1];
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7620 __asm__("D_002A7620") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1BA128
- * Purpose: CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a
- *   volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends
- * Info: proposed name UpdateNeela (T1); class NEELA slot16; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: UpdateCid60Guard -> UpdateNeela
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA128: NEELA vtable slot 16 (Update): STEPGUARD update; state 0: with flag 0x25 in modes 9/2, looks for the
+// nearest other guard in a volume or a cid 0x62 object in a box and goes to state 1; state 1: aims her prop at the
+// target until its animation ends.
 extern "C" void UpdateNeela(NEELAV*p){
  UpdateStepguard(p);
  switch(p->state){
@@ -273,14 +245,8 @@ extern "C" void UpdateNeela(NEELAV*p){
  }
 }
 
-/** @sly2-annot addr=0x1BA408
- * Purpose: State 1 starts prop animation (0x12F9B8), constraint to target (0x12DC18), behaviour 0x9E target,
- *   speed x4; leaving restores
- * Info: proposed name SetNeelaState (T2); class NEELA; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: SetCid60GuardState -> SetNeelaState
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA408: Neela state change: state 1 starts the prop animation, constrains it toward the target, points her
+// chase behaviour at it and speeds it up 4x; leaving state 1 restores them.
 extern "C" void SetNeelaState(NEELAV *p, int st)
 {
     if (st == p->state) return;
@@ -306,12 +272,7 @@ extern "C" void SetNeelaState(NEELAV *p, int st)
     }
 }
 
-/** @sly2-annot addr=0x1BA560
- * Purpose: BHV174 s7: base, state -1, AddStepguardSgf(0x25)
- * Info: proposed name InitBhv174 (T2); class BHV174 slot7; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA560: Neela chase behaviour (BHV174) vtable slot 7 (OnPush): base, state -1, raises guard flag 0x25.
 extern "C" void InitBhvNeelaChase(NBHV *p)
 {
     InitBhv(p);
@@ -319,12 +280,7 @@ extern "C" void InitBhvNeelaChase(NBHV *p)
     AddStepguardSgf(p->po, 0x25);
 }
 
-/** @sly2-annot addr=0x1BA598
- * Purpose: BHV174 s8: StartBhv then state 0
- * Info: proposed name StartBhv174 (T2); class BHV174 slot8; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA598: Neela chase behaviour vtable slot 8 (Start): base, then state 0.
 void BHV174::Start()
 {
     NBHV *p = (NBHV *)this;
@@ -332,12 +288,7 @@ void BHV174::Start()
     SetBhvNeelaChaseState(p, 0);
 }
 
-/** @sly2-annot addr=0x1BA5C8
- * Purpose: BHV174 s9: state -1, CloseBhv, RemoveStepguardSgf(0x25)
- * Info: proposed name CloseBhv174 (T2); class BHV174 slot9; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA5C8: Neela chase behaviour vtable slot 9 (Close): state -1, base, lowers flag 0x25.
 extern "C" void CloseBhvNeelaChase(NBHV *p)
 {
     SetBhvNeelaChaseState(p, -1);
@@ -355,13 +306,9 @@ static inline float Dist(qword a, qword b) {
     return f;
 }
 static inline float GEval(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x * pp->c2); }
-/** @sly2-annot addr=0x1BA608
- * Purpose: BHV174 s10: state 0 while player (g_pjt) inside volume xEC, 1 when outside, back when inside xE8,
- *   2 after timeout; scales a behaviour parameter by distance to player
- * Info: proposed name UpdateBhv174 (T2); class BHV174 slot10; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA608: Neela chase behaviour vtable slot 10 (Update): state 0 while the player is inside the outer volume, 1
+// once outside, back to 0 inside the inner volume, 2 after a timeout; scales a child parameter by the distance to
+// the player.
 extern "C" void UpdateBhvNeelaChase(NBHV *p)
 {
     int s;
@@ -404,13 +351,8 @@ extern "C" void UpdateBhvNeelaChase(NBHV *p)
     }
 }
 
-/** @sly2-annot addr=0x1BA828
- * Purpose: BHV174 state: 0 resume script (0xA9), 1 chase player (0x9E target=g_pjt), 2 behaviour 0x9D +
- *   BroadcastGameEvent 0x33
- * Info: proposed name SetBhv174State (T2); TU tu_1B9F80
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA828: Neela chase state change: 0 resumes the patrol script (BHV169), 1 chases the player (cid 0x9E), 2 plays
+// an animation (cid 0x9D) and broadcasts game event 0x33.
 extern "C" void SetBhvNeelaChaseState(NBHV *p, int st)
 {
     if (st == p->state) return;
@@ -441,12 +383,7 @@ extern "C" void SetBhvNeelaChaseState(NBHV *p, int st)
     }
 }
 
-/** @sly2-annot addr=0x1BA980
- * Purpose: Clear 3 words, store n, send record 0xF to child behaviour 0x9C (0x176750)
- * Info: TU tu_1B9F80
- * Notes: names_v2 C proposed SetAloRealClock__FP3ALOi (0.242) | agent qualifier: splice: CID 60 command
- * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r5b_rest
- * @end-sly2-annot */
+// 0x1BA980: Sends mode record 0xF with `value` to the guard's root behaviour (BHVGUARD, cid 0x9C).
 extern "C" void SendRootBhvMode15(NEELAV *p, int n)
 {
     MODE f;
