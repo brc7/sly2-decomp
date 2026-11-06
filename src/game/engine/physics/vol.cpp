@@ -1,5 +1,8 @@
-// vol.cpp -- VOL, a trigger volume (an XFM with a BSP and its geometry): load, point and sphere tests, and the
-// add/remove hooks that keep the global list of volumes. VU0 macro-mode asm.
+// vol.cpp -- VOL, a trigger volume: an XFM carrying a convex-cell BSP and its collision geometry.
+// Role: answers "is this point / sphere inside the volume?" for gameplay (guard detectors and zones, buttons,
+// splice scripts' CHECK_POINT option) and keeps the world's list of active volumes (g_sw.dlCid23).
+// Entry points: VOL::LoadFromBrx (level load), IsPointInVol, IsSphereInVol, CID23::Unfreeze / FreezeVol
+// (enter / leave the active world). VU0 macro-mode asm.
 // TU 0x227BB8..0x227FE8 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_vol
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00227FC8
@@ -18,13 +21,13 @@ typedef union { qword q; float f[4]; } VU;
 struct VOLV
 {
     char pad[0xE0];
-    struct { int cbsp; int cbspFull; int nUnk08; int absp; } bspc;   /* +0xE0 */
-    struct { int cpos; qword *apos; int csurf; void *asurf; int cedge; void *aedge; } geom;   /* +0xF0 */
+    struct { int numNodes; int numNodesFull; int unknown08; int nodes; } bspc;   /* +0xE0 */
+    struct { int numPoints; qword *points; int numSurfaces; void *surfaces; int numEdges; void *edges; } geom;   /* +0xF0 */
     char pad108[8];
-    qword posCenter;    /* +0x110 centre of the bounding sphere */
-    float sRadius;      /* +0x120 its radius (squared length is computed, then overwritten by D_002A9880) */
+    qword center;       /* +0x110 centre of the bounding sphere */
+    float radiusSquared; /* +0x120 squared radius of the bounding sphere (-FLT_MAX when the volume has no points) */
 };
-typedef char assert_VOL_sRadius[(unsigned int)&((VOLV *)0)->sRadius == 0x120 ? 1 : -1];
+typedef char assert_VOL_radiusSquared[(unsigned int)&((VOLV *)0)->radiusSquared == 0x120 ? 1 : -1];
 
 typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct MARK { int a[4]; } MARK;
@@ -63,30 +66,33 @@ namespace RO_ORDER { extern const float r_D_002A9880 __asm__("D_002A9880") = -3.
  * See: docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/engine/physics-collision.md#6-source-files, docs/engine/physics-collision.md#7-key-functions
  * @end-sly2-annot */
+// Loads a volume from the level stream: the XFM part, then the collision geometry and its BSP, then a bounding
+// sphere around the geometry's points (centre = middle of the axis-aligned box, radius = half its diagonal). The
+// sphere is the cheap early-out of IsPointInVol.
 void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
 {
-    VOLV *p = (VOLV *)this;
-    void *pbis = (void *)pbis_m;
-    LoadXfmFromBrx(p, pbis);
-    ReadGeom__18CBinaryInputStreamP4GEOM(pbis, &p->geom);
-    CBinaryInputStream_ReadBspc(pbis, &p->geom, &p->bspc);
-    if (p->geom.cpos > 0) {
+    VOLV *vol = (VOLV *)this;
+    void *stream = (void *)pbis_m;
+    LoadXfmFromBrx(vol, stream);
+    ReadGeom__18CBinaryInputStreamP4GEOM(stream, &vol->geom);
+    CBinaryInputStream_ReadBspc(stream, &vol->geom, &vol->bspc);
+    if (vol->geom.numPoints > 0) {
         VU u;
-        qword a,b,m; register qword h __asm__("vf1");
-        qword g;
-        a = VecMinArray(p->geom.cpos, p->geom.apos);
-        __asm__("qmtc2.ni %1,%0" : "=j"(a) : "r"(a));
-        b = VecMaxArray(p->geom.cpos, p->geom.apos);
-        h = VuFromFloat<qword>(0.5f);
-        u.q = h;
-        __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(m) : "j"(a), "j"(h), "j"(b));
-        a = VuSub(m, a);
-        p->posCenter = m;
-        a = VuDot(a, a);
-        __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(a));
-        __asm__("sw %1,%0" : "=m"(p->sRadius) : "r"(g));
+        qword boxMin,boxMax,center; register qword half __asm__("vf1");
+        qword radiusSquared;
+        boxMin = VecMinArray(vol->geom.numPoints, vol->geom.points);
+        __asm__("qmtc2.ni %1,%0" : "=j"(boxMin) : "r"(boxMin));
+        boxMax = VecMaxArray(vol->geom.numPoints, vol->geom.points);
+        half = VuFromFloat<qword>(0.5f);
+        u.q = half;
+        __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(center) : "j"(boxMin), "j"(half), "j"(boxMax));
+        boxMin = VuSub(center, boxMin);
+        vol->center = center;
+        boxMin = VuDot(boxMin, boxMin);
+        __asm__("qmfc2.ni %0, %1" : "=r"(radiusSquared) : "j"(boxMin));
+        __asm__("sw %1,%0" : "=m"(vol->radiusSquared) : "r"(radiusSquared));
     } else {
-        p->sRadius = D_002A9880;
+        vol->radiusSquared = D_002A9880;
     }
 }
 
@@ -98,17 +104,20 @@ void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
  *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int IsPointInVol(VOLV *p, qword q)
+// Returns 1 when a world-space point is inside the volume: the point is converted into the volume's local space,
+// rejected if outside the bounding sphere, otherwise looked up in the volume's BSP. Used by guard detectors and
+// zones, buttons and the splice option CHECK_POINT.
+extern "C" int IsPointInVol(VOLV *vol, qword point)
 {
-    qword a = ConvertAloPos(0, p, q), d, r;
-    float f;
-    int fFar;
-    d = VuSub(a, p->posCenter);
-    r = VuDot(d, d);
-    f = VuToFloat(r);
-    fFar = p->sRadius < f;
-    if (fFar) return 0;
-    return PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, a) != 0;
+    qword localPoint = ConvertAloPos(0, vol, point), offset, distanceSquared;
+    float distanceSquaredValue;
+    int isOutsideSphere;
+    offset = VuSub(localPoint, vol->center);
+    distanceSquared = VuDot(offset, offset);
+    distanceSquaredValue = VuToFloat(distanceSquared);
+    isOutsideSphere = vol->radiusSquared < distanceSquaredValue;
+    if (isOutsideSphere) return 0;
+    return PbspPointInBspQuick(vol->bspc.nodes, 0x7FFFFFFF, localPoint) != 0;
 }
 
 
@@ -118,32 +127,35 @@ extern "C" int IsPointInVol(VOLV *p, qword q)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int IsSphereInVol(VOLV *p, qword v, float g)
+// Returns 1 when a sphere (world-space centre, radius) touches the volume (inferred from the BSP query's result
+// codes 0/2). A radius of 1 or less degrades to IsPointInVol; otherwise the BSP is pruned against the sphere using
+// a scratch list of up to 0x1555 leaves allocated in a stack scope. Called by the splice option thunk at 0x1047A0.
+extern "C" int IsSphereInVol(VOLV *vol, qword center, float radius)
 {
-    if (g <= 1.0f) {
-        return IsPointInVol(p, v);
+    if (radius <= 1.0f) {
+        return IsPointInVol(vol, center);
     } else {
-        MARK mark;
-        int f = 0;
-        MSG msg;
-        int c;
-        void *pv;
-        STACKSCOPE_ctor(&mark);
+        MARK scope;
+        int isInside = 0;
+        MSG request;
+        int numLeaves;
+        void *leaves;
+        STACKSCOPE_ctor(&scope);
         {
-            int cT = p->bspc.cbspFull;
-            MSG *pm = &msg;
-            cT = NMin(cT, 0x1555);
-            c = cT;
-            pm->cb = cT * 12;
-            pm->nKind = 0x10;
-            pv = PvAllocSlot__FP8ALLOCREQ(pm);
+            int capacity = vol->bspc.numNodesFull;
+            MSG *requestPtr = &request;
+            capacity = NMin(capacity, 0x1555);
+            numLeaves = capacity;
+            requestPtr->cb = capacity * 12;
+            requestPtr->nKind = 0x10;
+            leaves = PvAllocSlot__FP8ALLOCREQ(requestPtr);
         }
         {
-            int r = func_00118A88((void *)p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, v), &c, &pv, g);
-            if (r == 0 || r == 2) f = 1;
+            int result = func_00118A88((void *)vol->bspc.nodes, 0x7FFFFFFF, ConvertAloPos(0, vol, center), &numLeaves, &leaves, radius);
+            if (result == 0 || result == 2) isInside = 1;
         }
-        STACKSCOPE_ctor_1AE4A0(&mark, 2);
-        return f;
+        STACKSCOPE_ctor_1AE4A0(&scope, 2);
+        return isInside;
     }
 }
 
@@ -156,11 +168,13 @@ extern "C" int IsSphereInVol(VOLV *p, qword v, float g)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
+// Slot 23 (OnAdd): the volume enters the active world; runs the base LO hook and appends it to the world's
+// volume list g_sw.dlCid23.
 void CID23::Unfreeze()
 {
-    VOLV *p = (VOLV *)this;
-    OnLoAdd(p);
-    AppendDlEntry(&g_sw.dlCid23, p);
+    VOLV *vol = (VOLV *)this;
+    OnLoAdd(vol);
+    AppendDlEntry(&g_sw.dlCid23, vol);
 }
 
 /** @sly2-annot addr=0x227E58
@@ -172,8 +186,10 @@ void CID23::Unfreeze()
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" void FreezeVol(VOLV *p)
+// Slot 22 (OnRemove), the counterpart of CID23::Unfreeze: the volume leaves the active world; runs the base LO
+// hook and unlinks it from g_sw.dlCid23.
+extern "C" void FreezeVol(VOLV *vol)
 {
-    OnLoRemove(p);
-    RemoveDlEntry(&g_sw.dlCid23, p);
+    OnLoRemove(vol);
+    RemoveDlEntry(&g_sw.dlCid23, vol);
 }
