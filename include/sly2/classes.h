@@ -606,8 +606,8 @@ typedef char assert_CARMELITA_size[sizeof(CARMELITA) == 0x1020 ? 1 : -1];
 /* 64 CONTESSA (0x1010); vtable 0x2CD0A0, 89 slots */
 struct CONTESSA : STEPGUARD
 {
-    virtual CLASSINFO *Pclassinfo() __asm__("GetContessaClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0014FAC8");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetContessaClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("func_0014FAF8");   /* slot 16 */
 };
 typedef char assert_CONTESSA_size[sizeof(CONTESSA) == 0x1010 ? 1 : -1];
