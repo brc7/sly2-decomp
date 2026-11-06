@@ -1266,6 +1266,10 @@ struct E { int x0; int x4; };
 struct F { char pad[0xF8]; int xf8; };
 struct O { char pad[0xF64]; F *xf64; char pad2[0xFE0 - 0xF68]; O *xfe0; };
 struct P { void *x0; };
+// The frame's scope and the two sector indices IntersectSwBoundingBox returns, laid out as func_00192A28's frame
+// has them. At namespace scope, not local to the function: g++ 2.95 emits a local class's implicit constructor and
+// destructor out of line even when every use is inlined, and the ELF has no such functions.
+struct SCOPEDIJ { char c; STACKSCOPE frame; int i, j; };
 extern "C" void func_00192A28(P *p);
 /** @sly2-annot addr=0x192A28
  * Purpose: For each detector-owning object in list (*(O * *)&g_sw.dlStepguard) that currently tracks the player: if farther
@@ -1293,7 +1297,7 @@ void func_00192A28(P *p)
             SetDetectorTargetState(o->xf64, e, 0);
             continue;
         }
-        struct { char c; STACKSCOPE frame; int i, j; } x;
+        SCOPEDIJ x;
 
         IntersectSwBoundingBox(D_003DD490, a, b, (void *)func_00154568, o, &x.i, &x.j);
         if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, x.i, x.j, 0)) continue;
