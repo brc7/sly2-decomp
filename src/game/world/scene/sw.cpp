@@ -708,7 +708,7 @@ void func_0020E2B0(struct S *p);
 void func_001FF828(struct S *p);
 void InitSwProxySpares(struct S *p);
 void func_0020F710(struct S *p);
-void func_001569B8(struct S *p);
+void CreateSwNoiseTypes(struct S *p);
 void EnsureSwDefaultLight(struct S *p);
 void PostLoadSwPathzones(struct S *p);
 void func_00210940(struct S *p);
@@ -740,7 +740,7 @@ void PostSwLoad(struct S *p)
     func_001FF828(p);
     InitSwProxySpares(p);
     func_0020F710(p);
-    func_001569B8(p);
+    CreateSwNoiseTypes(p);
     EnsureSwDefaultLight(p);
     PostLoadSwPathzones(p);
     func_00210940(p);

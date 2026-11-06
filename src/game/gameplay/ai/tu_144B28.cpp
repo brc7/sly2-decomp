@@ -429,7 +429,7 @@ struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword func_001A62E8(void *p);
 ulong GrfFromSgf(int n);
-int FStepguardHasSgf(struct SO *p, int n);
+int StepguardHasSgf(struct SO *p, int n);
 struct LIST *func_001F8240(void *p);
 
 static __inline__ float GDist(qword a, qword b)
@@ -479,7 +479,7 @@ struct SO *func_001450E0(struct P *p)
         g = GDist(pos, func_001A62E8(pso));
         if (pso == p->p90)
             g = GFromClq(g, &D_002BD300);
-        if (FStepguardHasSgf(pso, 3))
+        if (StepguardHasSgf(pso, 3))
             g = GFromClq(g, &D_002BD320);
         if (g < gBest) {
             psoBest = pso;
@@ -497,7 +497,7 @@ struct SO *func_001450E0(struct P *p)
             g = GFromClq(g, &D_002BD310);
             if (pso == p->p90)
                 g = GFromClq(g, &D_002BD300);
-            if (FStepguardHasSgf(pso, 3))
+            if (StepguardHasSgf(pso, 3))
                 g = GFromClq(g, &D_002BD320);
             if (g < gBest) {
                 psoBest = pso;
@@ -536,9 +536,9 @@ int func_001459C0(struct P *p);
 int FCheckLm__FP2LMf(struct LM *plm, float g);
 void SetBhvfollowState(struct P *p, int n);
 int CidBasic(void *p);
-int func_00145DA0(struct X *px);
-int func_00146298(struct X *px);
-int func_00146790(struct X *px);
+int IsBhvInteractIdle(struct X *px);
+int IsBhvInteract2Idle(struct X *px);
+int IsBhvInteract3Idle(struct X *px);
 void func_001457A8(struct P *p);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
 
@@ -622,15 +622,15 @@ void UpdateBhvfollow(struct P *p)
             else {
                 switch (CidBasic(p->p10)) {
                 case 0x36:
-                    if (func_00145DA0(p->p18))
+                    if (IsBhvInteractIdle(p->p18))
                         SetBhvfollowState(p, 0);
                     break;
                 case 0x37:
-                    if (func_00146298(p->p18))
+                    if (IsBhvInteract2Idle(p->p18))
                         SetBhvfollowState(p, 0);
                     break;
                 case 0x35:
-                    if (func_00146790(p->p18))
+                    if (IsBhvInteract3Idle(p->p18))
                         SetBhvfollowState(p, 0);
                     break;
                 }
@@ -782,7 +782,7 @@ struct SO *func_00145AA8(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
 int func_001C09A0(struct SO *pso, qword pos, int n);
-int func_00173610(qword *ppos, float a, float b, int c, int d);
+int SnapToGround(qword *ppos, float a, float b, int c, int d);
 /** @sly2-annot addr=0x1459C0
  * Purpose: checks the leader's ground object vs own
  * Info: proposed name FBhvfollowLeaderOnNewGround (T2); TU tu_144B28
@@ -806,7 +806,7 @@ int func_001459C0(struct P *p)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x34) && p->p30->x2DC != -1) return 0;
     pos = func_001A62E8(p->p30);
     if (!func_001C09A0(pso, pos, 0)) return 0;
-    if (!func_00173610(&pos, 100.0f, -150.0f, 0, 0)) return 0;
+    if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0)) return 0;
     p->pos = pos;
     return 1;
 }
@@ -975,7 +975,7 @@ void BHV195::VSlot9()
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
  * @end-sly2-annot */
-extern "C" int func_00145DA0(BHVSTATE *pbhv)
+extern "C" int IsBhvInteractIdle(BHVSTATE *pbhv)
 {
     return ~pbhv->nState == 0;
 }
@@ -1201,7 +1201,7 @@ void BHV196::VSlot9()
  * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
  * @end-sly2-annot */
-extern "C" int func_00146298(BHVSTATE *pbhv)
+extern "C" int IsBhvInteract2Idle(BHVSTATE *pbhv)
 {
     return ~pbhv->nState == 0;
 }
@@ -1427,7 +1427,7 @@ void BHV197::VSlot9()
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
  * @end-sly2-annot */
-extern "C" int func_00146790(BHVSTATE *pbhv)
+extern "C" int IsBhvInteract3Idle(BHVSTATE *pbhv)
 {
     return ~pbhv->nState == 0;
 }

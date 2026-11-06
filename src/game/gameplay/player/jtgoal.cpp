@@ -49,8 +49,8 @@ R *func_00205458(void *, int);
 void BroadcastGameEvent(void *, int, T *);
 void FadeSoOut(T *, float);
 qword func_001A62E8(void *p);
-int func_00173610(float, float, qword *, int, int);
-int FSnapPosToSurfaceAbove(qword *);
+int SnapToGround(float, float, qword *, int, int);
+int SnapPositionToSurfaceAbove(qword *);
 void func_0019F540(PO *, qword);
 }
 struct BASIC;
@@ -151,7 +151,7 @@ extern "C" void UpdateJtgoal(JTGOAL *p)
         float g = GDist(r, p->pos);
         if (p->d20 - g < D_002BD2D4 * D_002BD2D0) {
             qword v = p->pos;
-            if (func_00173610(100.0f, -150.0f, &v, 0, 0) || FSnapPosToSurfaceAbove(&v)) {
+            if (SnapToGround(100.0f, -150.0f, &v, 0, 0) || SnapPositionToSurfaceAbove(&v)) {
                 func_0019F540(p->p0, v);
                 p->f28 = 1;
             }

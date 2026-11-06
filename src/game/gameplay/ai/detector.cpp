@@ -66,7 +66,7 @@ typedef char assert_SOV_x11AC[(unsigned int)&((SOV *)0)->x11AC == 0x11AC ? 1 : -
 /* A world volume of the occluder list g_sw.dlCid23 (+0xEC its BSP, +0x130 next). */
 struct WVOL { char pad[0xEC]; void *xEC; char pad1[0x130 - 0xF0]; WVOL *pNext; };
 struct BUF { char a[0x180]; };
-/* Line-test callback arguments (func_00154568/func_00154528). */
+/* Line-test callback arguments (FilterDetectorLineOfSightHit/FilterDetectorHitClass31). */
 struct EC { char pad[0x70]; unsigned long fl; };
 struct OV { int pad[4]; OV *pNext; int n14; char pad2[0xEC - 0x18]; EC *pec; };
 struct HITV { int pad; OV *po; int pad2[2]; unsigned long fl; };
@@ -100,15 +100,15 @@ void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
 VECTORQ *func_001A6318(SOV *p);
 void UpdateDetectorTargets(DETECTORV *p);
-qword func_00153E60(DETECTORV *p);
+qword GetDetectorEyePosition(DETECTORV *p);
 void AddDetectorTarget(DETECTORV *p, void *plo);
 void SetDetectorTargetState(DETECTORV *p, DTE *pe, int k);
-DTE *PdteFindDetectorTarget(DETECTORV *p, void *plo);
-int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k);
-int func_00154528(void *pv, HITV *phit);
-int func_00154568(DETECTORV *p, HITV *phit);
-int func_001545F0(DETECTORV *p, SOV *pso);
-int func_00154770(DETECTORV *p, SOV *pso);
+DTE *FindDetectorTarget(DETECTORV *p, void *plo);
+int CalculateDetectorTargetState(DETECTORV *p, SOV *pso, int k);
+int FilterDetectorHitClass31(void *pv, HITV *phit);
+int FilterDetectorLineOfSightHit(DETECTORV *p, HITV *phit);
+int IsDetectorLineBlocked(DETECTORV *p, SOV *pso);
+int IsDetectorTargetConcealed(DETECTORV *p, SOV *pso);
 }
 
 /** @sly2-annot addr=0x153D58
@@ -155,7 +155,7 @@ extern "C" void UpdateDetectorTargets(DETECTORV *p)
     int i;
     for (i = 0; i < p->cdte; i++) {
         DTE *pe = &p->adte[i];
-        SetDetectorTargetState(p, pe, KCalculateDetectorTarget(p, (SOV *)pe->plo, pe->k));
+        SetDetectorTargetState(p, pe, CalculateDetectorTargetState(p, (SOV *)pe->plo, pe->k));
     }
 }
 
@@ -166,7 +166,7 @@ extern "C" void UpdateDetectorTargets(DETECTORV *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
  * @end-sly2-annot */
-extern "C" qword func_00153E60(DETECTORV *p)
+extern "C" qword GetDetectorEyePosition(DETECTORV *p)
 {
     if (!p->pso) return func_001A62E8(p);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pso, 0x38)) {
@@ -189,7 +189,7 @@ extern "C" qword func_00153E60(DETECTORV *p)
  * Notes: names_v2 C proposed FReachedStepguardGoal__FP9STEPGUARD (0.200) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3_1539A8
  * @end-sly2-annot */
-extern "C" void func_00153EF8(DETECTORV *p, void *ploOld, void *plo)
+extern "C" void UpdateDetectorTrackedObject(DETECTORV *p, void *ploOld, void *plo)
 {
     if (ploOld != plo) {
         AddDetectorTarget(p, plo);
@@ -205,7 +205,7 @@ extern "C" void func_00153EF8(DETECTORV *p, void *ploOld, void *plo)
  * @end-sly2-annot */
 extern "C" void AddDetectorTarget(DETECTORV *p, void *plo)
 {
-    if (PdteFindDetectorTarget(p, plo) == 0) {
+    if (FindDetectorTarget(p, plo) == 0) {
         unsigned int c = p->cdte;
         if (c < 8U) {
             DTE *pe;
@@ -225,7 +225,7 @@ extern "C" void AddDetectorTarget(DETECTORV *p, void *plo)
  * @end-sly2-annot */
 extern "C" void RemoveDetectorTarget(DETECTORV *p, void *plo)
 {
-    DTE *pe = PdteFindDetectorTarget(p, plo);
+    DTE *pe = FindDetectorTarget(p, plo);
     if (pe) {
         SetDetectorTargetState(p, pe, 0);
         p->cdte--;
@@ -239,7 +239,7 @@ extern "C" void RemoveDetectorTarget(DETECTORV *p, void *plo)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
  * @end-sly2-annot */
-extern "C" void func_00153FF8(DETECTORV *p)
+extern "C" void ResetDetectorTargets(DETECTORV *p)
 {
     int i;
     for (i = 0; i < p->cdte; i++) {
@@ -258,7 +258,7 @@ extern "C" void func_00153FF8(DETECTORV *p)
  * @end-sly2-annot */
 extern "C" void SetDetectorTargetStateById(DETECTORV *p, void *plo, int k)
 {
-    DTE *pe = PdteFindDetectorTarget(p, plo);
+    DTE *pe = FindDetectorTarget(p, plo);
     if (pe != 0) {
         SetDetectorTargetState(p, pe, k);
     }
@@ -310,7 +310,7 @@ extern "C" void SetDetectorTargetState(DETECTORV *o, DTE *pe, int nNew)
  * @end-sly2-annot */
 extern "C" int GetDetectorTargetStateById(DETECTORV *p, void *plo)
 {
-    DTE *pe = PdteFindDetectorTarget(p, plo);
+    DTE *pe = FindDetectorTarget(p, plo);
     if (pe)
         return pe->k;
     return -1;
@@ -318,12 +318,12 @@ extern "C" int GetDetectorTargetStateById(DETECTORV *p, void *plo)
 
 /** @sly2-annot addr=0x154180
  * Purpose: Finds the target entry with a given id in the detector list (NULL for id 0)
- * Info: proposed name PdteFindDetectorTarget (T1); TU detector
+ * Info: proposed name FindDetectorTarget (T1); TU detector
  * Notes: names_v2 C proposed UseStepguardPhys__FP9STEPGUARD3SGS3OID (0.253)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
  * @end-sly2-annot */
-extern "C" DTE *PdteFindDetectorTarget(DETECTORV *p, void *plo)
+extern "C" DTE *FindDetectorTarget(DETECTORV *p, void *plo)
 {
     int i;
     if (!plo)
@@ -341,12 +341,12 @@ static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, 
  * Purpose: Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects
  *   hidden/disguised/invisible targets, BSP line-of-sight through all world occluders, inner/outer volumes
  *   (0x227C90) and optional line test (0x1545F0)
- * Info: proposed name KCalculateDetectorTarget (T1); TU detector
+ * Info: proposed name CalculateDetectorTargetState (T1); TU detector
  * Notes: names_v2 C proposed UpdateStepguardEffect__FP9STEPGUARD (0.438)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
  * @end-sly2-annot */
-extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
+extern "C" int CalculateDetectorTargetState(DETECTORV *p, SOV *pso, int k)
 {
     BUF buf;
     qword v;
@@ -365,7 +365,7 @@ extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
     else
         v = func_001A62E8(pso);
     for (pw = *(WVOL **)&g_sw.dlCid23; pw; pw = pw->pNext) {
-        qword a = ConvertAloPos(0, pw, func_00153E60(p));
+        qword a = ConvertAloPos(0, pw, GetDetectorEyePosition(p));
         qword b = ConvertAloPos(0, pw, v);
         if (func_00118668(pw->xEC, 0x7FFFFFFF, a, b, 4, &buf) > 0) { k = 0; goto done; }
     }
@@ -382,9 +382,9 @@ extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
         }
         if (!FCheckVolPoint(p->pvolNear, v)) { k = 0; goto done; }
         if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
-        if ((p->grf & 1) == 0 && func_00154770(p, pso)) { k = 0; goto done; }
+        if ((p->grf & 1) == 0 && IsDetectorTargetConcealed(p, pso)) { k = 0; goto done; }
         if (p->grf & 2) { k = 1; goto done; }
-        { k = !func_001545F0(p, pso); goto done; }
+        { k = !IsDetectorLineBlocked(p, pso); goto done; }
     case 1:
         if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
         if (!FCheckVolPoint(p->pvolNear, v)) { k = 2; goto done; }
@@ -393,7 +393,7 @@ extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
         if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
         if (FCheckVolPoint(p->pvolNear, v)) {
             if (p->grf & 2) { k = 1; goto done; }
-            if (func_001545F0(p, pso)) return k;
+            if (IsDetectorLineBlocked(p, pso)) return k;
             k = 1;
             goto done;
         }
@@ -401,7 +401,7 @@ extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
     default:
         goto done;
     }
-    if ((p->grf & 8) && func_001545F0(p, pso)) k = 0;
+    if ((p->grf & 8) && IsDetectorLineBlocked(p, pso)) k = 0;
 done:
     return k;
 }
@@ -412,7 +412,7 @@ done:
  * Notes: no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
  * @end-sly2-annot */
-extern "C" int func_00154528(void *pv, HITV *phit)
+extern "C" int FilterDetectorHitClass31(void *pv, HITV *phit)
 {
     if (func_0020FA10(pv, phit) == 0) {
         return 0;
@@ -427,7 +427,7 @@ extern "C" int func_00154528(void *pv, HITV *phit)
  * Notes: no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
  * @end-sly2-annot */
-extern "C" int func_00154568(DETECTORV *a, HITV *b)
+extern "C" int FilterDetectorLineOfSightHit(DETECTORV *a, HITV *b)
 {
     OV *po;
     if (b->fl & 0x1000000000000L)
@@ -453,12 +453,12 @@ extern "C" int func_00154568(DETECTORV *a, HITV *b)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
  * @end-sly2-annot */
-extern "C" int func_001545F0(DETECTORV *p, SOV *pso)
+extern "C" int IsDetectorLineBlocked(DETECTORV *p, SOV *pso)
 {
     STACKSCOPE frame;
     int i;
     qword *ppos = D_002BDBF0;
-    qword q = func_00153E60(p);
+    qword q = GetDetectorEyePosition(p);
     AL al(0x10, 0x10);
     qword *apos = (qword *)PvAllocSlot__FP8ALLOCREQ(&al);
     int ii, jj;
@@ -470,8 +470,8 @@ extern "C" int func_001545F0(DETECTORV *p, SOV *pso)
         __asm__("vmini.xyz %0, %0, %1" : "+j"(vmin) : "j"(t));
         __asm__("vmax.xyz %0, %0, %1" : "+j"(vmax) : "j"(t));
     }
-    void *pfn = (void *)func_00154568;
-    if (p->grf & 4) pfn = (void *)func_00154528;
+    void *pfn = (void *)FilterDetectorLineOfSightHit;
+    if (p->grf & 4) pfn = (void *)FilterDetectorHitClass31;
     IntersectSwBoundingBox(D_003DD490, vmin, vmax, pfn, p, &ii, &jj);
     bool f;
     for (i = 0; (f = i < 1); i++)
@@ -492,7 +492,7 @@ static inline float Dot(qword a, const VECTORQ &b)
  * Notes: no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
  * @end-sly2-annot */
-extern "C" int func_00154770(DETECTORV *p, SOV *pso)
+extern "C" int IsDetectorTargetConcealed(DETECTORV *p, SOV *pso)
 {
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34)) return 0;
     if (pso->x4CC == -1) return 0;

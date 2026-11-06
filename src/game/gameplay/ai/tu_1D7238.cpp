@@ -71,8 +71,8 @@ void StartJoySelection__FP3JOY(void *pjoy);
 CRef func_002013D8(void *pv, int a, int b, int *pc, void **apv);
 int func_001F0438(SMV *psm, void *pv);
 void SetSmaGoal(SMA *psma, void *pv);
-void func_001D7480(SAFEHOUSEV *psh, int state);
-void func_001D77D0(SAFEHOUSEV *psh, int d);
+void SetCharSelectState(SAFEHOUSEV *psh, int state);
+void StepCharSelect(SAFEHOUSEV *psh, int d);
 }
 int FActiveCplcy(CPLCY *pcplcy);
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
@@ -102,7 +102,7 @@ void SAFEHOUSE::Init()
  *   identity)
  * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
  * @end-sly2-annot */
-extern "C" void func_001D7268(SAFEHOUSEV *psh)
+extern "C" void PostSafehouseLoad(SAFEHOUSEV *psh)
 {
     VTE *e;
     PostSoLoad(psh);
@@ -120,7 +120,7 @@ extern "C" void func_001D7268(SAFEHOUSEV *psh)
  * See: docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
  *   docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
  * @end-sly2-annot */
-extern "C" void func_001D72A8(SAFEHOUSEV *psh)
+extern "C" void UpdateSafehouse(SAFEHOUSEV *psh)
 {
     char *pjoy;
     int n;
@@ -163,7 +163,7 @@ extern "C" void func_001D72A8(SAFEHOUSEV *psh)
             }
         }
     } else {
-        func_001D77D0(psh, n);
+        StepCharSelect(psh, n);
     }
 }
 
@@ -176,15 +176,15 @@ extern "C" void func_001D72A8(SAFEHOUSEV *psh)
  *   identity)
  * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
  * @end-sly2-annot */
-extern "C" void func_001D7418(SAFEHOUSEV *psh, int n)
+extern "C" void HandleSafehouseMessage(SAFEHOUSEV *psh, int n)
 {
     SetPoCtlState(psh, n);
     switch (n) {
     case 0:
-        func_001D7480(psh, 0);
+        SetCharSelectState(psh, 0);
         return;
     case 1:
-        func_001D7480(psh, 1);
+        SetCharSelectState(psh, 1);
         break;
     }
 }
@@ -195,7 +195,7 @@ extern "C" void func_001D7418(SAFEHOUSEV *psh, int n)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
  * @end-sly2-annot */
-extern "C" void func_001D7480(SAFEHOUSEV *psh, int state)
+extern "C" void SetCharSelectState(SAFEHOUSEV *psh, int state)
 {
     if (psh->state == state)
         return;
@@ -234,7 +234,7 @@ extern "C" void func_001D7480(SAFEHOUSEV *psh, int state)
             idx = -1;
         }
         ReplaceSma(psh->psm, psh, idx, 0, &psh->psma);
-        func_001D77D0(psh, 0);
+        StepCharSelect(psh, 0);
         StartJoySelection__FP3JOY((D_002DFBC0 & 2) ? D_002DFC00 : D_002E0D00);
         VCALL5(psh, 3, 5, 0, 0, 0, 0);
     }
@@ -269,7 +269,7 @@ extern "C" void AddSafehouseEntry(SAFEHOUSEV *psh, void *pvState, int grfBtn, in
 extern "C" void SetPoChoices(SAFEHOUSEV *psh, void *pv)
 {
     func_002013D8(pv, 6, 6, &psh->cchoice, psh->achoice);
-    func_001D77D0(psh, 0);
+    StepCharSelect(psh, 0);
 }
 
 /** @sly2-annot addr=0x1D77D0
@@ -279,7 +279,7 @@ extern "C" void SetPoChoices(SAFEHOUSEV *psh, void *pv)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/reference/functions/player.md#tu_1d7238-0x1d7238-0x1d7a30
  * @end-sly2-annot */
-extern "C" void func_001D77D0(SAFEHOUSEV *psh, int d)
+extern "C" void StepCharSelect(SAFEHOUSEV *psh, int d)
 {
     int i0;
     int i;

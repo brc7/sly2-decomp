@@ -97,14 +97,14 @@ void CloneXfm(LISTENER *p, LISTENER *pBase);
 void UpdateLo(LISTENER *p);
 void *memmove(void *dst, void *src, int cb);
 qword func_001A62E8(void *p);
-void func_00156548(NOISETYPE *ptype, qword pos, int b, NOISE **ppnoise);
-void func_00156780(NOISE *pnoise);
-int func_00156870(NOISE *pnoise);
-float func_00156898(NOISE *pnoise);
-NOISE *func_00156698(NOISETYPE *ptype, qword pos, int b);
-void func_00156BE0(NOISETYPE *ptype, qword q, int c, NOISE **ppnoise);
-void func_00156DE0(LISTENER *p, int f);
-int func_00156FE8(LISTENER *plo, NOISE *p);
+void CreateNoise(NOISETYPE *ptype, qword pos, int b, NOISE **ppnoise);
+void RemoveNoise(NOISE *pnoise);
+int IsNoiseRemoved(NOISE *pnoise);
+float GetNoiseRadius(NOISE *pnoise);
+NOISE *NewNoise(NOISETYPE *ptype, qword pos, int b);
+void ReplaceHeldNoise(NOISETYPE *ptype, qword q, int c, NOISE **ppnoise);
+void DropListenerNoises(LISTENER *p, int f);
+int CanListenerHearNoise(LISTENER *plo, NOISE *p);
 }
 void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 void RemoveDlEntry(void *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
@@ -145,7 +145,7 @@ struct Lock {
  * See: docs/engine/guards-ai.md#5-perception, docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" void func_00156548(NOISETYPE *p, qword q, int b, NOISE **pps)
+extern "C" void CreateNoise(NOISETYPE *p, qword q, int b, NOISE **pps)
 {
     NOISE *ps = (NOISE *)PvAllocSlotheapClear(&D_003DD490.pool);
     func_002333B4(ps, 0, 0x60);
@@ -177,10 +177,10 @@ extern "C" void func_00156548(NOISETYPE *p, qword q, int b, NOISE **pps)
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" NOISE *func_00156698(NOISETYPE *ptype, qword pos, int b)
+extern "C" NOISE *NewNoise(NOISETYPE *ptype, qword pos, int b)
 {
     NOISE *pnoise;
-    func_00156548(ptype, pos, b, &pnoise);
+    CreateNoise(ptype, pos, b, &pnoise);
     return pnoise;
 }
 
@@ -203,7 +203,7 @@ void CID147::VUnk00()   /* key function: CID147's vtable comes out here */
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_001566C8(NOISE *pnoise)
+extern "C" void ReleaseNoise(NOISE *pnoise)
 {
     int cref = pnoise->cref - 1;
     pnoise->cref = cref;
@@ -221,12 +221,12 @@ extern "C" void func_001566C8(NOISE *pnoise)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156728(NOISE *pnoise)
+extern "C" void ExpireNoise(NOISE *pnoise)
 {
     float dt = pnoise->ptype->g60;
     if (dt >= 0.0f) {
         if ((pnoise->tStart + dt) < D_002DDED0.t) {
-            func_00156780(pnoise);
+            RemoveNoise(pnoise);
         }
     }
 }
@@ -245,13 +245,13 @@ public:
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156780(NOISE *o)
+extern "C" void RemoveNoise(NOISE *o)
 {
-    if (func_00156870(o))
+    if (IsNoiseRemoved(o))
         return;
     CRefGuard guard(o);
     ((void (*)(void *, int, NOISE *))o->vt[4].pfn)((char *)o + o->vt[4].d, 0xF, o);
-    if (func_00156870(o))
+    if (IsNoiseRemoved(o))
         return;
     RemoveDlEntry((char *)&g_sw.dlStimulus, o);
     ((void (*)(void *, int, int, int, int, int))o->vt[3].pfn)((char *)o + o->vt[3].d, 3, 0, 0, 0, 0);
@@ -264,7 +264,7 @@ extern "C" void func_00156780(NOISE *o)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" int func_00156870(NOISE *pnoise)
+extern "C" int IsNoiseRemoved(NOISE *pnoise)
 {
     return FFindDlEntry((char *)&g_sw.dlStimulus, pnoise) == 0;
 }
@@ -275,7 +275,7 @@ extern "C" int func_00156870(NOISE *pnoise)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/engine/guards-ai.md#5-perception, docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" float func_00156898(NOISE *p)
+extern "C" float GetNoiseRadius(NOISE *p)
 {
     NOISETYPE *pq = p->ptype;
     float dt, t;
@@ -295,7 +295,7 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" int func_00156918(NOISE *p, qword pos)
+extern "C" int IsPositionInNoise(NOISE *p, qword pos)
 {
     qword d, l;
     float dist;
@@ -305,7 +305,7 @@ extern "C" int func_00156918(NOISE *p, qword pos)
     __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(l) : "j"(d));
     __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
     dist = VuToFloat(l);
-    { int f = func_00156898(p) < dist; return f ^ 1; }
+    { int f = GetNoiseRadius(p) < dist; return f ^ 1; }
 }
 
 static inline void Init(NOISETYPE *o) { VTE *e = &o->vt[9]; ((void (*)(void *))e->pfn)((char *)o + e->d); }
@@ -316,7 +316,7 @@ static inline void Init(NOISETYPE *o) { VTE *e = &o->vt[9]; ((void (*)(void *))e
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_001569B8(SWN *p)
+extern "C" void CreateSwNoiseTypes(SWN *p)
 {
     {
         NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
@@ -387,7 +387,7 @@ extern "C" void EmitSwNoise(SWN *p, int k, qword q, int c)
     case 0: ptype = p->atype[0]; break;
     case 1: ptype = p->atype[1]; break;
     }
-    func_00156698(ptype, q, c);
+    NewNoise(ptype, q, c);
 }
 
 /** @sly2-annot addr=0x156BE0
@@ -396,12 +396,12 @@ extern "C" void EmitSwNoise(SWN *p, int k, qword q, int c)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156BE0(NOISETYPE *x, qword q, int c, NOISE **ppo)
+extern "C" void ReplaceHeldNoise(NOISETYPE *x, qword q, int c, NOISE **ppo)
 {
     if (*ppo) {
         NOISE *o;
         VTE *e;
-        func_00156780(*ppo);
+        RemoveNoise(*ppo);
         o = *ppo;
         e = &o->vt[2];
         ((void (*)(void *))e->pfn)((char *)o + e->d);
@@ -410,7 +410,7 @@ extern "C" void func_00156BE0(NOISETYPE *x, qword q, int c, NOISE **ppo)
     if (x) {
         NOISE *o;
         VTE *e;
-        func_00156548(x, q, c, ppo);
+        CreateNoise(x, q, c, ppo);
         o = *ppo;
         e = &o->vt[1];
         ((void (*)(void *))e->pfn)((char *)o + e->d);
@@ -423,7 +423,7 @@ extern "C" void func_00156BE0(NOISETYPE *x, qword q, int c, NOISE **ppo)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156C80(SWN *p, int k, qword q, int c, NOISE **ppnoise)
+extern "C" void ReplaceHeldSwNoise(SWN *p, int k, qword q, int c, NOISE **ppnoise)
 {
     NOISETYPE *ptype;
     switch (k) {
@@ -431,7 +431,7 @@ extern "C" void func_00156C80(SWN *p, int k, qword q, int c, NOISE **ppnoise)
     case 1: ptype = p->atype[1]; break;
     default: ptype = 0; break;
     }
-    func_00156BE0(ptype, q, c, ppnoise);
+    ReplaceHeldNoise(ptype, q, c, ppnoise);
 }
 
 /** @sly2-annot addr=0x156CC8
@@ -441,7 +441,7 @@ extern "C" void func_00156C80(SWN *p, int k, qword q, int c, NOISE **ppnoise)
  * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156CC8(LISTENER *p)
+extern "C" void InitListener(LISTENER *p)
 {
     unsigned int v;
     InitXfm(p);
@@ -476,10 +476,10 @@ void CID47::AddHierarchy()
  * Confidence: low (draft) [T2 0.55] - evidence: arbitration; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156D58(LISTENER *p)
+extern "C" void RemoveListenerHierarchy(LISTENER *p)
 {
     RemoveLoHierarchy(p);
-    func_00156DE0(p, 1);
+    DropListenerNoises(p, 1);
     RemoveDlEntry((char *)&g_sw.dlCid47, p);
 }
 
@@ -490,7 +490,7 @@ extern "C" void func_00156D58(LISTENER *p)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156D98(LISTENER *p, LISTENER *pBase)
+extern "C" void CloneListener(LISTENER *p, LISTENER *pBase)
 {
     K k = p->k104;
     CloneXfm(p, pBase);
@@ -504,13 +504,13 @@ extern "C" void func_00156D98(LISTENER *p, LISTENER *pBase)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156DE0(LISTENER *p, int f)
+extern "C" void DropListenerNoises(LISTENER *p, int f)
 {
     int i;
     for (i = 0; i < (int)p->c;) {
         NOISE **ppo = &p->ao[i];
         NOISE *o = *ppo;
-        if (f || func_00156870(o)) {
+        if (f || IsNoiseRemoved(o)) {
             VTE *e = &o->vt[2];
             ((void (*)(void *))e->pfn)((char *)o + e->d);
             memmove(ppo, ppo + 1, (p->c - i) * sizeof(NOISE *) - sizeof(NOISE *));
@@ -528,11 +528,11 @@ extern "C" void func_00156DE0(LISTENER *p, int f)
  * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_00156EB8(LISTENER *p)
+extern "C" void UpdateListener(LISTENER *p)
 {
     NOISE *o;
     UpdateLo(p);
-    func_00156DE0(p, 0);
+    DropListenerNoises(p, 0);
     for (o = *(NOISE **)&g_sw.dlStimulus; o; o = o->pnext) {
         int i;
         for (i = 0; i < (int)p->c; i++)
@@ -540,7 +540,7 @@ extern "C" void func_00156EB8(LISTENER *p)
                 break;
         if (i < (int)p->c)
             continue;
-        if (!func_00156FE8(p, o))
+        if (!CanListenerHearNoise(p, o))
             continue;
         if (p->c < 8) {
             VTE *e = &o->vt[1];
@@ -570,7 +570,7 @@ static __inline__ int FIn(qword d, float g) { return DistXY(d) < g; }
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" int func_00156FE8(LISTENER *plo, NOISE *p)
+extern "C" int CanListenerHearNoise(LISTENER *plo, NOISE *p)
 {
     NOISETYPE *pq;
     qword d, pos;

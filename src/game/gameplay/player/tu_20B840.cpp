@@ -164,7 +164,7 @@ void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
 qword GetSoDvGravity(ALO *);
 void func_0020B210(ALO *);
-void func_0020D178(void *);
+void DisableStuckWatch(void *);
 float func_00196928(qword,qword,float,float,float,float);
 qword func_0022FC48(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
@@ -627,7 +627,7 @@ void SetLeapState(LEAPV *p,int state)
         if(FIsBasicDerivedFrom((BASIC *)p->subject,(CID)0x38)){
             ALO *subject=p->subject;
             func_0020B210(subject);
-            func_0020D178(subject->control);
+            DisableStuckWatch(subject->control);
         }
         float playbackRate=p->job->svt;
         register ALO *motionSubject __asm__("$3")=p->subject;

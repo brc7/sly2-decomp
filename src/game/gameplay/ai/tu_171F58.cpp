@@ -31,7 +31,7 @@ struct GUARDV
 };
 typedef char assert_GUARDV_grfFE8[(unsigned int)&((GUARDV *)0)->grfFE8 == 0xFE8 ? 1 : -1];
 
-/* A sub-behaviour started by func_00172320 (func_00205438 finds it on the guard; vtable slot 8 starts it). */
+/* A sub-behaviour started by SetBhvSearchState (func_00205438 finds it on the guard; vtable slot 8 starts it). */
 struct BHVO { char pad[0xC]; VE *pvt; char pad10[0x2C]; int n3C; char pad40[0xC0 - 0x40]; int nC0; };
 /* The watched perception record (+0x44; vtable slots 1/2 are incref/decref). */
 struct WATCH { char pad[0xC]; VE *pvt; char pad10[0x10]; qword pos20; qword pos30; char pad40[4]; GUARDV *pguard; char pad48[0xC]; int n54; };
@@ -45,10 +45,10 @@ struct BHV171V
     int pad14;
     union
     {
-        void *pbhvCur;       /* +0x18 the running sub-behaviour (FBhvanimDone, FBhvgotoArrived...) */
+        void *pbhvCur;       /* +0x18 the running sub-behaviour (IsBhvanimDone, HasBhvgotoArrived...) */
         char abhvstk[0x18];  /* the sub-behaviour stack (PopBhv) */
     };
-    int state;               /* +0x30 -1 idle, 0..5 (func_00172018) */
+    int state;               /* +0x30 -1 idle, 0..5 (UpdateBhvSearch) */
     float tState;
     float tLook;             /* +0x38 */
     float tNext;             /* +0x3C give-up time in state 2, next search point time in state 3 */
@@ -61,11 +61,11 @@ struct BHV171V
 };
 typedef char assert_BHV171_ipair[(unsigned int)&((BHV171V *)0)->ipair == 0xD0 ? 1 : -1];
 
-/* Candidate list built by func_001728B0 (func_00172798 adds one). */
+/* Candidate list built by ChooseBhvSearchPoints (TryAddSearchCandidate adds one). */
 typedef struct ROW { U point; float angle; } ROW;
 typedef struct QUERY { U point; float heading; unsigned count; ROW row[64]; U candidate, delta, scalar; } QUERY;
 typedef char assert_QUERY_candidate[(unsigned int)&((QUERY *)0)->candidate == 0x820 ? 1 : -1];
-/* An object of one of the global lists func_001728B0 searches (next links at several offsets). */
+/* An object of one of the global lists ChooseBhvSearchPoints searches (next links at several offsets). */
 typedef struct NODE{char pad0[0xE0];struct NODE*nextE0;char padE4[4];unsigned flags;char padEC[0x18];struct NODE*next104;char pad108[4];float reach;char pad110[0x64];struct NODE*next174;char pad178[0x3C];struct NODE*next1B4;}NODE;
 typedef struct WORK{QUERY query;NODE*result256[256];NODE*result32[32];NODE*result128[128];}WORK;
 typedef struct LMV{float low,high;}LMV;
@@ -89,25 +89,25 @@ int IsBhvBusyAbove(BHV171V *pbhv);
 void PopBhv(void *pbhvstk);
 void AddStepguardSgf(GUARDV *pguard, int sgf);
 void RemoveStepguardSgf(GUARDV *pguard, int sgf);
-int FBhvanimDone(void *pbhv);
+int IsBhvanimDone(void *pbhv);
 int func_00209098(GUARDV *pguard);
 BHVO *func_00205438(GUARDV *pguard, int n);
 qword func_001A62E8(void *plo);
 void func_002562A8(GOAL *pgoal);
 void SetBhvgotoGoal(void *pbhv, GOAL *pgoal);
-int FBhvgotoArrived(void *pbhv);
+int HasBhvgotoArrived(void *pbhv);
 int FBhvgotoPathFinished(void *pbhv);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *pmover, float rad);
-void func_00172320(BHV171V *pbhv, int state);
-void func_00172560(BHV171V *pbhv);
-void func_001725E0(BHV171V *pbhv, WATCH *pwatch);
-int func_00172658(BHV171V *pbhv);
-qword func_00172760(BHV171V *pbhv);
-int func_00172798(QUERY *pquery);
-int func_00172888(ROW *a, ROW *b);
-void func_001728B0(BHV171V *pbhv);
-void func_00172F10(BHV171V *pbhv);
+void SetBhvSearchState(BHV171V *pbhv, int state);
+void SetBhvSearchLookTimers(BHV171V *pbhv);
+void SetBhvSearchWatched(BHV171V *pbhv, WATCH *pwatch);
+int HasBhvSearchReachedTarget(BHV171V *pbhv);
+qword GetBhvSearchLastKnownPosition(BHV171V *pbhv);
+int TryAddSearchCandidate(QUERY *pquery);
+int CompareSearchCandidates(ROW *a, ROW *b);
+void ChooseBhvSearchPoints(BHV171V *pbhv);
+void StepBhvSearchPoint(BHV171V *pbhv);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
 float RadStepHeading(void *plo);
 void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*);
@@ -133,7 +133,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
  *   docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-extern "C" void func_00171F58(BHV171V *pbhv) { InitBhv(pbhv); AddStepguardSgf(pbhv->pguard, 0x1F); pbhv->state = -1; pbhv->g40 = pbhv->tLook = 3.40282346638528859812e+38f; }
+extern "C" void InitBhvSearch(BHV171V *pbhv) { InitBhv(pbhv); AddStepguardSgf(pbhv->pguard, 0x1F); pbhv->state = -1; pbhv->g40 = pbhv->tLook = 3.40282346638528859812e+38f; }
 
 /** @sly2-annot addr=0x171FA0
  * Purpose: BHV171 slot 8: base, SetBhv171State(0)
@@ -147,7 +147,7 @@ void BHV171::Start()
 {
     BHV171V *pbhv = (BHV171V *)this;
     StartBhv(pbhv);
-    func_00172320(pbhv, 0);
+    SetBhvSearchState(pbhv, 0);
 }
 
 /** @sly2-annot addr=0x171FD0
@@ -157,12 +157,12 @@ void BHV171::Start()
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" void func_00171FD0(BHV171V *pbhv)
+extern "C" void CloseBhvSearch(BHV171V *pbhv)
 {
     CloseBhv(pbhv);
-    func_00172320(pbhv, -1);
+    SetBhvSearchState(pbhv, -1);
     RemoveStepguardSgf(pbhv->pguard, 0x1F);
-    func_001725E0(pbhv, 0);
+    SetBhvSearchWatched(pbhv, 0);
 }
 
 /** @sly2-annot addr=0x172018
@@ -173,49 +173,49 @@ extern "C" void func_00171FD0(BHV171V *pbhv)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" void func_00172018(BHV171V *p) {
+extern "C" void UpdateBhvSearch(BHV171V *p) {
     int s;
     UpdateBhv(p);
     while (!IsBhvBusyAbove(p)) {
         s = p->state;
         switch (s) {
         case 0:
-            if (FBhvanimDone(p->pbhvCur)) func_00172320(p, 1);
+            if (IsBhvanimDone(p->pbhvCur)) SetBhvSearchState(p, 1);
             break;
         case 1:
             if (func_00209098(p->pguard)) {
-                func_00172320(p, 5);
+                SetBhvSearchState(p, 5);
             } else if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172320(p, 2);
+                if (HasBhvSearchReachedTarget(p)) {
+                    SetBhvSearchState(p, 2);
                 } else {
-                    qword v = func_00172760(p);
+                    qword v = GetBhvSearchLastKnownPosition(p);
                     GOAL x;
                     func_002562A8(&x);
                     x.v = v;
                     SetBhvgotoGoal(p->pbhvCur, &x);
                 }
                 p->fReplan = 0;
-            } else if (func_00172658(p) || FBhvgotoArrived(p->pbhvCur) || FBhvgotoPathFinished(p->pbhvCur)) {
-                func_00172320(p, 2);
+            } else if (HasBhvSearchReachedTarget(p) || HasBhvgotoArrived(p->pbhvCur) || FBhvgotoPathFinished(p->pbhvCur)) {
+                SetBhvSearchState(p, 2);
             }
             break;
         case 2:
             if (func_00209098(p->pguard)) {
-                func_00172320(p, 5);
+                SetBhvSearchState(p, 5);
             } else if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172560(p);
+                if (HasBhvSearchReachedTarget(p)) {
+                    SetBhvSearchLookTimers(p);
                 } else {
-                    func_00172320(p, 1);
+                    SetBhvSearchState(p, 1);
                 }
                 p->fReplan = 0;
-            } else if (p->tLook < D_002DDED0.t || FBhvanimDone(p->pbhvCur)) {
-                func_00172320(p, 4);
+            } else if (p->tLook < D_002DDED0.t || IsBhvanimDone(p->pbhvCur)) {
+                SetBhvSearchState(p, 4);
             } else if (D_002DDED0.t > p->tNext) {
-                func_00172320(p, 3);
+                SetBhvSearchState(p, 3);
             } else {
-                qword a = func_00172760(p);
+                qword a = GetBhvSearchLastKnownPosition(p);
                 qword b = func_001A62E8(p->pguard);
                 qword d;
                 d = VuSub(a, b);
@@ -224,33 +224,33 @@ extern "C" void func_00172018(BHV171V *p) {
             break;
         case 3:
             if (func_00209098(p->pguard)) {
-                func_00172320(p, 5);
+                SetBhvSearchState(p, 5);
             } else if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172320(p, 2);
+                if (HasBhvSearchReachedTarget(p)) {
+                    SetBhvSearchState(p, 2);
                 } else {
-                    func_00172320(p, 1);
+                    SetBhvSearchState(p, 1);
                 }
                 p->fReplan = 0;
             } else if (p->tLook < D_002DDED0.t) {
-                func_00172320(p, 4);
+                SetBhvSearchState(p, 4);
             } else {
-                func_00172F10(p);
+                StepBhvSearchPoint(p);
             }
             break;
         case 5:
-            if (!func_00209098(p->pguard)) func_00172320(p, 1);
+            if (!func_00209098(p->pguard)) SetBhvSearchState(p, 1);
             break;
         case 4:
             if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172320(p, 2);
+                if (HasBhvSearchReachedTarget(p)) {
+                    SetBhvSearchState(p, 2);
                 } else {
-                    func_00172320(p, 1);
+                    SetBhvSearchState(p, 1);
                 }
                 p->fReplan = 0;
-            } else if (FBhvanimDone(p->pbhvCur)) {
-                func_00172320(p, -1);
+            } else if (IsBhvanimDone(p->pbhvCur)) {
+                SetBhvSearchState(p, -1);
             }
             break;
         }
@@ -270,7 +270,7 @@ namespace RO_ORDER { extern const float r_D_002A5398 __asm__("D_002A5398") = 3.4
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" void func_00172320(BHV171V *p, int n) {
+extern "C" void SetBhvSearchState(BHV171V *p, int n) {
     if (n == p->state) return;
     PopBhv(p->abhvstk);
     p->state = n;
@@ -286,7 +286,7 @@ extern "C" void func_00172320(BHV171V *p, int n) {
             VE *e;
             qword v;
             o->nC0 = 1;
-            v = func_00172760(p);
+            v = GetBhvSearchLastKnownPosition(p);
             func_002562A8(&x);
             x.v = v;
             SetBhvgotoGoal(o, &x);
@@ -296,13 +296,13 @@ extern "C" void func_00172320(BHV171V *p, int n) {
         break;
     case 2:
         {
-            qword a = func_00172760(p);
+            qword a = GetBhvSearchLastKnownPosition(p);
             qword b = func_001A62E8(p->pguard);
             qword d;
             d = VuSub(a, b);
             SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
             { BHVO *o = func_00205438(p->pguard, 0x9E); VE *e = &o->pvt[8]; e->pfn((char *)o + e->d); }
-            func_00172560(p);
+            SetBhvSearchLookTimers(p);
         }
         break;
     case 3:
@@ -310,14 +310,14 @@ extern "C" void func_00172320(BHV171V *p, int n) {
             BHVO *o = func_00205438(p->pguard, 0xBA);
             VE *e;
             o->nC0 = 1;
-            func_001728B0(p);
-            func_00172F10(p);
+            ChooseBhvSearchPoints(p);
+            StepBhvSearchPoint(p);
             e = &o->pvt[8]; e->pfn((char *)o + e->d);
         }
         break;
     case 4:
         { BHVO *o = func_00205438(p->pguard, 0x9D); VE *e; o->n3C = 0xE; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
-        func_001725E0(p, 0);
+        SetBhvSearchWatched(p, 0);
         p->fReplan = 0;
         break;
     case 5:
@@ -332,7 +332,7 @@ extern "C" void func_00172320(BHV171V *p, int n) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" int func_00172550(BHV171V *pbhv)
+extern "C" int IsBhvSearchIdle(BHV171V *pbhv)
 {
     return ~pbhv->state == 0;
 }
@@ -343,7 +343,7 @@ extern "C" int func_00172550(BHV171V *pbhv)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" void func_00172560(BHV171V *p) {
+extern "C" void SetBhvSearchLookTimers(BHV171V *p) {
     float t = D_002DDED0.t;
     p->tLook = t + GRandInRange(p->pguard->gLookMin, p->pguard->gLookMax);
     if (p->pguard->nE78 == 1) p->tNext = D_002DDED0.t + D_002BE5A0;
@@ -357,7 +357,7 @@ extern "C" void func_00172560(BHV171V *p) {
  * See: docs/engine/guards-ai.md#5-perception,
  *   docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" void func_001725E0(BHV171V *p, WATCH *o) {
+extern "C" void SetBhvSearchWatched(BHV171V *p, WATCH *o) {
     if (o == p->pwatch) return;
     if (p->pwatch) { VE *e = &p->pwatch->pvt[2]; e->pfn((char *)p->pwatch + e->d); }
     p->pwatch = o;
@@ -380,7 +380,7 @@ static inline float Dist(qword a, qword b) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" int func_00172658(BHV171V *p) {
+extern "C" int HasBhvSearchReachedTarget(BHV171V *p) {
     GUARDV *o = p->pguard;
     struct LOV *t;
     float d;
@@ -388,7 +388,7 @@ extern "C" int func_00172658(BHV171V *p) {
     t = o->ploTarget;
     if (!t) return 0;
     d = Dist(func_001A62E8(t), func_001A62E8(p->pguard));
-    if (Dist(func_00172760(p), func_001A62E8(p->pguard)) < d + 50.0f) return 1;
+    if (Dist(GetBhvSearchLastKnownPosition(p), func_001A62E8(p->pguard)) < d + 50.0f) return 1;
     return 0;
 }
 
@@ -398,7 +398,7 @@ extern "C" int func_00172658(BHV171V *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" qword func_00172760(BHV171V *p) { WATCH *t = p->pwatch; if (t->n54 == 4 && t->pguard == p->pguard) return t->pos20; return p->pwatch->pos30; }
+extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *p) { WATCH *t = p->pwatch; if (t->n54 == 4 && t->pguard == p->pguard) return t->pos20; return p->pwatch->pos30; }
 
 /** @sly2-annot addr=0x172798
  * Purpose: Adds a candidate point to a 64-entry list if its pitch and distance are within limits, storing its
@@ -407,7 +407,7 @@ extern "C" qword func_00172760(BHV171V *p) { WATCH *t = p->pwatch; if (t->n54 ==
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" int func_00172798(QUERY *p) {
+extern "C" int TryAddSearchCandidate(QUERY *p) {
     float a, b, c;
     qword d;
     ROW *pe;
@@ -432,7 +432,7 @@ extern "C" int func_00172798(QUERY *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" int func_00172888(ROW *a, ROW *b) { return a->angle < b->angle; }
+extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->angle; }
 
 struct VU_FLOAT{qword qw;};
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -473,7 +473,7 @@ namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" void func_001728B0(BHV171V*p){
+extern "C" void ChooseBhvSearchPoints(BHV171V*p){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
  w.query.point.q=func_001A62E8(p->pguard);
  w.query.heading=RadStepHeading(p->pguard);w.query.count=0;
@@ -488,26 +488,26 @@ extern "C" void func_001728B0(BHV171V*p){
   if(GXOfQw(len)<0.0001f){w.query.scalar.q=g;n=qwFallback;}
   else{w.query.scalar.q=g;n=QwDivide(w.query.delta.q,len);}
   w.query.candidate.q=QwAddScaled(posObj,n,g);
-  func_00172798(&w.query);
+  TryAddSearchCandidate(&w.query);
  }
- for(object=(*(NODE * *)&g_sw.dlCid12);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid38);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid88);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid11);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid39);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid13);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid12);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid38);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid88);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid11);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid39);object;object=object->next104){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid13);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
  for(object=(*(NODE * *)&g_sw.dlTarget);object;object=object->nextE0){
-  if((object->flags&1)&&FIsBasicDerivedFrom(object,0x13)){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+  if((object->flags&1)&&FIsBasicDerivedFrom(object,0x13)){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
  }
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x23,0,0x100,w.result256);
- if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
+ if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x67,0,0x20,w.result32);
- if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
+ if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
- if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);func_00172798(&w.query);}while(remaining);}}
- for(object=(*(NODE * *)&g_sw.dlCid98);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);func_00172798(&w.query);}
+ if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=func_001A62E8(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
+ for(object=(*(NODE * *)&g_sw.dlCid98);object;object=object->next174){w.query.candidate.q=func_001A62E8(object);TryAddSearchCandidate(&w.query);}
  lastAngle=0.0f;
- qsort(w.query.row,w.query.count,sizeof(ROW),func_00172888);
+ qsort(w.query.row,w.query.count,sizeof(ROW),CompareSearchCandidates);
  accepted=0;
  {
   PAIR*previous=0;
@@ -550,14 +550,14 @@ namespace RO_ORDER { extern const float r_D_002A53D4 __asm__("D_002A53D4") = 3.4
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
  * @end-sly2-annot */
-extern "C" void func_00172F10(BHV171V *p) {
+extern "C" void StepBhvSearchPoint(BHV171V *p) {
     void *pbhvCur;
     PAIR *pe;
     GOAL q;
     if (p->ipair >= 4) return;
     pbhvCur = p->pbhvCur;
     if (p->tNext == D_002A53D4) {
-        if (FBhvgotoArrived(pbhvCur)) p->tNext = D_002DDED0.t + 1.0f;
+        if (HasBhvgotoArrived(pbhvCur)) p->tNext = D_002DDED0.t + 1.0f;
     }
     if (D_002DDED0.t < p->tNext) return;
     pe = &p->apair[p->ipair++];

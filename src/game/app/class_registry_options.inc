@@ -60,7 +60,7 @@ void IdBootyCur() __asm__("IdBootyCur");
 void MpStepplayerCur() __asm__("MpStepplayerCur");
 void OidFromTaskState() __asm__("OidFromTaskState");
 void OidProxyLo() __asm__("OidProxyLo");
-void PdetectorGetStepguard() __asm__("PdetectorGetStepguard");
+void GetStepguardDetector() __asm__("GetStepguardDetector");
 void PemitterEnsureEmitter__FP7EMITTER4ENSK() __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
 void PpoCur() __asm__("PpoCur");
 void PpoHero() __asm__("PpoHero");
@@ -567,14 +567,14 @@ void func_00144408() __asm__("func_00144408");
 void func_00149248() __asm__("func_00149248");
 void func_001497E0() __asm__("func_001497E0");
 void func_00149848() __asm__("func_00149848");
-void func_00156870() __asm__("func_00156870");
+void IsNoiseRemoved() __asm__("IsNoiseRemoved");
 void func_0015C650() __asm__("func_0015C650");
 void func_001628B0() __asm__("func_001628B0");
-void func_001732E0() __asm__("func_001732E0");
-void func_00173318() __asm__("func_00173318");
-void func_00173358() __asm__("func_00173358");
-void func_00173398() __asm__("func_00173398");
-void func_001733C8() __asm__("func_001733C8");
+void AddSpawnerLoSpot() __asm__("AddSpawnerLoSpot");
+void AddSpawnerCurve() __asm__("AddSpawnerCurve");
+void AddSpawnerSmallLoSpot() __asm__("AddSpawnerSmallLoSpot");
+void AddSpawnerTemplate() __asm__("AddSpawnerTemplate");
+void AddSpawnerOffset() __asm__("AddSpawnerOffset");
 void func_001813C0() __asm__("func_001813C0");
 void func_001813F0() __asm__("func_001813F0");
 void func_00184028() __asm__("func_00184028");
@@ -620,7 +620,7 @@ void func_001E79A0() __asm__("func_001E79A0");
 void func_001E79F0() __asm__("func_001E79F0");
 void func_001E7FF0() __asm__("func_001E7FF0");
 void func_001F07E8() __asm__("func_001F07E8");
-void func_001F1EB8() __asm__("func_001F1EB8");
+void GetStepguardLootRefList() __asm__("GetStepguardLootRefList");
 void func_001F2688() __asm__("func_001F2688");
 void func_001F2718() __asm__("func_001F2718");
 void func_001F2740() __asm__("func_001F2740");
@@ -666,9 +666,9 @@ void func_00203FA0() __asm__("func_00203FA0");
 void func_00204D48() __asm__("func_00204D48");
 void func_00204DA8() __asm__("func_00204DA8");
 void func_00206458() __asm__("func_00206458");
-void func_00206488() __asm__("func_00206488");
+void SetStepguardHitPoints() __asm__("SetStepguardHitPoints");
 void func_002064A0() __asm__("func_002064A0");
-void func_00208538() __asm__("func_00208538");
+void SetStepguardForcedTarget() __asm__("SetStepguardForcedTarget");
 void func_00209A88() __asm__("func_00209A88");
 void func_0020A010() __asm__("func_0020A010");
 void func_0020A518() __asm__("func_0020A518");
@@ -982,7 +982,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x1011, 0x92, EOPID_INT(0x350), EOPID_INT(0x350), EOPID_INT(0x350), EOPID_NONE}, /* [249] opt 375, STEPGUARD (+11) */
     {0x1011, 0x92, EOPID_INT(0x354), EOPID_INT(0x354), EOPID_INT(0x354), EOPID_NONE}, /* [250] opt 376, STEPGUARD (+11) */
     {0x1011, 0x92, EOPID_INT(0x358), EOPID_INT(0x358), EOPID_INT(0x358), EOPID_NONE}, /* [251] opt 377, STEPGUARD (+11) */
-    {5, 0x124, EOPID_PMF(func_00206458), EOPID_PMF(func_00206488), EOPID_PMF(func_00206488), EOPID_NONE}, /* [252] opt 378, STEPGUARD (+11) */
+    {5, 0x124, EOPID_PMF(func_00206458), EOPID_PMF(SetStepguardHitPoints), EOPID_PMF(SetStepguardHitPoints), EOPID_NONE}, /* [252] opt 378, STEPGUARD (+11) */
     {5, 0x124, EOPID_PMF(func_002064A0), EOPID_PMF(SetStepguardHpLevel), EOPID_PMF(SetStepguardHpLevel), EOPID_NONE}, /* [253] opt 379, STEPGUARD (+11) */
     {5, 0x92, EOPID_INT(0x338), EOPID_INT(0x338), EOPID_INT(0x338), EOPID_NONE}, /* [254] opt 380, STEPGUARD (+11) */
     {5, 0x92, EOPID_INT(0x33C), EOPID_INT(0x33C), EOPID_INT(0x33C), EOPID_NONE}, /* [255] opt 381, STEPGUARD (+11) */
@@ -990,7 +990,7 @@ EOPIDROW D_002AC880[1449] = {
     {5, 0x92, EOPID_INT(0x340), EOPID_INT(0x340), EOPID_INT(0x340), EOPID_NONE}, /* [257] opt 383, STEPGUARD (+11) */
     {5, 0x92, EOPID_INT(0x344), EOPID_INT(0x344), EOPID_INT(0x344), EOPID_NONE}, /* [258] opt 384, STEPGUARD (+11) */
     {0x206D, 0x92, EOPID_INT(0x348), EOPID_INT(0x348), EOPID_INT(0x348), EOPID_NONE}, /* [259] opt 385, STEPGUARD (+11) */
-    {0x2002, 0x22, EOPID_INT(0x38C), EOPID_PMF(func_00208538), EOPID_NONE, EOPID_NONE}, /* [260] opt 386, STEPGUARD (+11) */
+    {0x2002, 0x22, EOPID_INT(0x38C), EOPID_PMF(SetStepguardForcedTarget), EOPID_NONE, EOPID_NONE}, /* [260] opt 386, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00103498), EOPID_INT(1), EOPID_NONE}, /* [261] opt 387, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(func_00103520), EOPID_FN(func_00103520), EOPID_INT(1), EOPID_NONE}, /* [262] opt 388, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(func_001035A8), EOPID_FN(func_001035A8), EOPID_INT(1), EOPID_NONE}, /* [263] opt 389, STEPGUARD (+11) */
@@ -1041,10 +1041,10 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x401, EOPID_FN(func_00103C18), EOPID_FN(func_00103C18), EOPID_INT(1), EOPID_NONE}, /* [308] opt 432, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(func_00103CA0), EOPID_FN(func_00103CA0), EOPID_INT(1), EOPID_NONE}, /* [309] opt 433, STEPGUARD (+11) */
     {0x12, 0x401, EOPID_FN(func_00103D28), EOPID_FN(func_00103D28), EOPID_INT(1), EOPID_NONE}, /* [310] opt 434, STEPGUARD (+11) */
-    {0x8006, 4, EOPID_PMF(func_001F1EB8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [311] opt 435, STEPGUARD (+11) */
-    {0x1016, 0x2092, EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_PMF(PdetectorGetStepguard)}, /* [312] opt 436, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_PMF(PdetectorGetStepguard)}, /* [313] opt 437, STEPGUARD (+11) */
-    {0, 0x2092, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_PMF(PdetectorGetStepguard)}, /* [314] opt 438, STEPGUARD (+11) */
+    {0x8006, 4, EOPID_PMF(GetStepguardLootRefList), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [311] opt 435, STEPGUARD (+11) */
+    {0x1016, 0x2092, EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_INT(0xF8), EOPID_PMF(GetStepguardDetector)}, /* [312] opt 436, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_INT(0xF0), EOPID_PMF(GetStepguardDetector)}, /* [313] opt 437, STEPGUARD (+11) */
+    {0, 0x2092, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_PMF(GetStepguardDetector)}, /* [314] opt 438, STEPGUARD (+11) */
     {0x2016, 0x124, EOPID_PMFI(func_00259D60), EOPID_PMFI(func_00259D38), EOPID_PMFI(func_00259D38), EOPID_NONE}, /* [315] opt 439, STEPGUARD (+11) */
     {0x2016, 0x124, EOPID_PMFI(func_00259D70), EOPID_PMFI(func_00259D48), EOPID_PMFI(func_00259D48), EOPID_NONE}, /* [316] opt 440, STEPGUARD (+11) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00103DB0), EOPID_INT(1), EOPID_NONE}, /* [317] opt 441, STEPGUARD (+11) */
@@ -1831,7 +1831,7 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x12, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_NONE, EOPID_NONE}, /* [1098] opt 959, CID147 */
     {0x1047, 0x12, EOPID_INT(0x54), EOPID_INT(0x54), EOPID_NONE, EOPID_NONE}, /* [1099] opt 957, CID147 */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010D8E0), EOPID_NONE, EOPID_NONE}, /* [1100] opt 237, CID147 */
-    {0, 4, EOPID_PMF(func_00156870), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1101] opt 255, CID147 */
+    {0, 4, EOPID_PMF(IsNoiseRemoved), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1101] opt 255, CID147 */
     {0x206F, 0x92, EOPID_INT(0x164), EOPID_INT(0x164), EOPID_INT(0x164), EOPID_NONE}, /* [1102] opt 484, CID100 (+2) */
     {0x2088, 2, EOPID_INT(0x168), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1103] opt 183, CID100 (+2) */
     {0x1049, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [1104] opt 960, CID100 (+2) */
@@ -2054,16 +2054,16 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1321] opt 1136, WAYPT */
     {0x2084, 0x82, EOPID_INT(0x188), EOPID_NONE, EOPID_INT(0x188), EOPID_NONE}, /* [1322] opt 1137, WAYPT */
     {0x1049, 0x82, EOPID_INT(0x184), EOPID_NONE, EOPID_INT(0x184), EOPID_NONE}, /* [1323] opt 1138, WAYPT */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001732E0), EOPID_NONE}, /* [1324] opt 1139, CID119 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_00173318), EOPID_NONE}, /* [1325] opt 1140, CID119 */
-    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_00173358), EOPID_NONE}, /* [1326] opt 1141, CID119 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerLoSpot), EOPID_NONE}, /* [1324] opt 1139, CID119 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerCurve), EOPID_NONE}, /* [1325] opt 1140, CID119 */
+    {6, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerSmallLoSpot), EOPID_NONE}, /* [1326] opt 1141, CID119 */
     {5, 0x92, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE}, /* [1327] opt 1142, CID119 */
-    {0x2006, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_00173398), EOPID_NONE}, /* [1328] opt 1143, CID119 */
+    {0x2006, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerTemplate), EOPID_NONE}, /* [1328] opt 1143, CID119 */
     {0, 0x92, EOPID_INT(0x84), EOPID_INT(0x84), EOPID_INT(0x84), EOPID_NONE}, /* [1329] opt 1144, CID119 */
     {0, 0x92, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_NONE}, /* [1330] opt 1145, CID119 */
     {0, 0x92, EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_INT(0x8C), EOPID_NONE}, /* [1331] opt 1146, CID119 */
     {1, 0x92, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_NONE}, /* [1332] opt 1147, CID119 */
-    {2, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001733C8), EOPID_NONE}, /* [1333] opt 1148, CID119 */
+    {2, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(AddSpawnerOffset), EOPID_NONE}, /* [1333] opt 1148, CID119 */
     {1, 0x92, EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_INT(0xA0), EOPID_NONE}, /* [1334] opt 1149, CID119 */
     {1, 0x92, EOPID_INT(0xA4), EOPID_INT(0xA4), EOPID_INT(0xA4), EOPID_NONE}, /* [1335] opt 1150, CID119 */
     {0x1067, 0x92, EOPID_INT(0xAC), EOPID_INT(0xAC), EOPID_INT(0xAC), EOPID_NONE}, /* [1336] opt 1151, CID119 */

@@ -1862,7 +1862,7 @@ struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
 struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *p10DC; char pad3[0x180C - 0x10E0]; int x180C; };
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
-int FStepguardHasSgf(struct O *po, int n);
+int StepguardHasSgf(struct O *po, int n);
 int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
 struct S *FindBhvInBhvstk(void *p, int n);
@@ -1898,7 +1898,7 @@ int FTryMurrayTakedown(struct P *p)
     struct S *ps;
     if (!p->p10DC)
         return 0;
-    if (!FStepguardHasSgf(p->p10DC, 0x17) || !GrfPressedWithin__5POCTLUif(p->pl, 0xA0, 0.15f))
+    if (!StepguardHasSgf(p->p10DC, 0x17) || !GrfPressedWithin__5POCTLUif(p->pl, 0xA0, 0.15f))
         goto ret0;
     ps = FindBhvInBhvstk(p->p10DC->x26C, 0xB1);
     if (ps->x50 >= 3)
@@ -2188,7 +2188,7 @@ struct T { char pad[0x180]; struct LO *po; };
 struct P { char pad[0x13F0]; struct T *p13F0; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword v1420; };
 void DetachMurrayCarried(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
-void func_00209FB8(struct LO *p);
+void StunStepguardThrownOp3(struct LO *p);
 qword func_001A62E8(struct LO *p);
 qword GetSoDvGravity(struct LO *p);
 qword func_001D69F0(qword a, qword b, qword c, float t);
@@ -2221,7 +2221,7 @@ void ThrowMurrayCarried(struct P *p)
         float t;
         qword v;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38))
-            func_00209FB8(po);
+            StunStepguardThrownOp3(po);
         t = Dist(func_001A62E8(po), p->v1420) / p->g1414;
         v = func_001D69F0(func_001A62E8(po), p->v1420, GetSoDvGravity(po), t);
         ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, v);
@@ -2266,7 +2266,7 @@ struct S { char pad[0x13F0]; struct T *pt; };
 extern qword D_002C09D0, D_002A2DD0;
 void DetachMurrayCarried(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-void func_00209FB8(struct O *p);
+void StunStepguardThrownOp3(struct O *p);
 qword ConvertAloVec(struct S *p, int n, qword q);
 void func_001F7A68(struct O *p, int n);
 /** @sly2-annot addr=0x1B7AE8
@@ -2284,7 +2284,7 @@ void func_001B7AE8(struct S *p)
     po = p->pt->po;
     p->pt = 0;
     if ((int)(po->f28 >> 60) & 1) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38)) func_00209FB8(po);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38)) StunStepguardThrownOp3(po);
         q = ConvertAloVec(p, 0, D_002C09D0);
         ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, q);
         ((void (*)(void *, qword))po->vt[36].pfn)((char *)po + po->vt[36].d, D_002A2DD0);
@@ -3498,7 +3498,7 @@ extern "C" M4 ConvertAloMat4(void*,void*,M4*);
 extern "C" void func_001B72B0(P*,NODE*,const M4*,qword*,qword*);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
 extern "C" void func_00209E28(OWNER*,int);
-extern "C" void func_00209E88(OWNER*);
+extern "C" void StunStepguardThrownOp1(OWNER*);
 extern "C" void func_001B7700(P*,qword,float*,float*,qword*,qword*);
 extern "C" MOTION*func_0012DE58(void*,void*,void*,float,qword,qword);
 extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
@@ -3589,7 +3589,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
    p->m1624=func_0012DD28(p,stretch->second,(void*)5,stretch);
    p->m160C=func_0012DDB0(p,p->targetSecond,(void*)5,(void*)5,(int)stretch->frame,&frame);
   }
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))func_00209E88(owner);
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))StunStepguardThrownOp1(owner);
   ClearXYZ(&p->velocity);
   break;
  }

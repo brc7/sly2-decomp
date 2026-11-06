@@ -578,7 +578,7 @@ SLY2_SPLICEWRAP_BEGIN(func_00102A10)
 #include "../../generated/splicewrap/func_00102A10.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_00207B70(void *p, void *, int, int);
+extern "C" void SetStepguardAnimBinding(void *p, void *, int, int);
 /** @sly2-annot addr=0x102A88
  * Purpose: Splice option thunk: optid 369 on STEPGUARD (g_aeopid[243] thunkUser, returns Void, crefReq 3);
  *   unpacks 3 args (0x9010, Oid, 0x100B) -> Void via RefSetArgsFromSplice then calls SetStepguardAnimBinding
@@ -598,11 +598,11 @@ extern "C" CRef func_00102A88(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00207B70(p, &v0, v1, v2);
+    SetStepguardAnimBinding(p, &v0, v1, v2);
     return ref;
 }
 
-extern "C" void func_00207BC8(void *p, void *, int, int);
+extern "C" void SetAndResolveStepguardAnimBinding(void *p, void *, int, int);
 /** @sly2-annot addr=0x102B60
  * Purpose: Splice option thunk: optid 369 on STEPGUARD (g_aeopid[243] thunkFn, returns Void, crefReq 3);
  *   unpacks 3 args (0x9010, Oid, 0x100B) -> Void via RefSetArgsFromSplice then calls
@@ -622,7 +622,7 @@ extern "C" CRef func_00102B60(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00207BC8(p, &v0, v1, v2);
+    SetAndResolveStepguardAnimBinding(p, &v0, v1, v2);
     return ref;
 }
 
@@ -867,10 +867,10 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunk_KCalculateDetectorTarget (was src/game/app/splice_thunks/RefThunk_KCalculateDetectorTarget.cpp) ----
 namespace T_RefThunk_KCalculateDetectorTarget {
-extern "C" { int KCalculateDetectorTarget(void *p, int, int); CRef RefThunk_KCalculateDetectorTarget(void *p, int c, void *aref); }
+extern "C" { int CalculateDetectorTargetState(void *p, int, int); CRef RefThunk_KCalculateDetectorTarget(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x104188
  * Purpose: Splice option thunk: optid 466 on DETECTOR (g_aeopid[347] thunkFn, returns 0x106B, crefReq 2);
- *   unpacks 2 args (0x2002, 0x106B) -> 0x106B via RefSetArgsFromSplice then calls KCalculateDetectorTarget
+ *   unpacks 2 args (0x2002, 0x106B) -> 0x106B via RefSetArgsFromSplice then calls CalculateDetectorTargetState
  *   (0x1541D8)
  * Info: proposed name RefThunk_KCalculateDetectorTarget (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r0_thunks+table-verified(g_aeopid
@@ -883,7 +883,7 @@ CRef RefThunk_KCalculateDetectorTarget(void *p, int c, void *aref)
     int v0;
     int v1;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &v0, &v1);
-    ref = KCalculateDetectorTarget(p, v0, v1);
+    ref = CalculateDetectorTargetState(p, v0, v1);
     return ref;
 }
 } // namespace T_RefThunk_KCalculateDetectorTarget
@@ -930,7 +930,7 @@ extern "C" CRef func_00104558(void *p, int c, void *aref)
     return ref;
 }
 
-extern "C" void func_0020B060(void *p, int, float, float, float, float);
+extern "C" void SetAndResolveGuardAttackBindingKind2(void *p, int, float, float, float, float);
 /** @sly2-annot addr=0x104638
  * Purpose: Splice option thunk: optid 371 on CID120 (g_aeopid[365] thunkFn, returns Void, crefReq 5); unpacks
  *   5 args (Oid, Float, Float, Float, Float) -> Void via RefSetArgsFromSplice then calls
@@ -952,7 +952,7 @@ extern "C" CRef func_00104638(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    func_0020B060(p, v0, v1, v2, v3, v4);
+    SetAndResolveGuardAttackBindingKind2(p, v0, v1, v2, v3, v4);
     return ref;
 }
 
@@ -2297,7 +2297,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010D798)
 #include "../../generated/splicewrap/func_0010D798.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void * func_00156698(void *p, qword, int);
+extern "C" void * NewNoise(void *p, qword, int);
 /** @sly2-annot addr=0x10D840
  * Purpose: Splice option thunk: optid 214 on CID117 (g_aeopid[1095] thunkFn, returns 0x2093, crefReq 2);
  *   unpacks 2 args (Vector, 0x2002) -> 0x2093 via RefSetArgsFromSplice then calls PnoiseEmit (0x156698)
@@ -2312,7 +2312,7 @@ extern "C" CRef func_0010D840(void *p, int c, void *aref)
     union { qword q; } v0;
     int v1;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &v0, &v1);
-    ref = func_00156698(p, v0.q, v1);
+    ref = NewNoise(p, v0.q, v1);
     return ref;
 }
 
@@ -2648,7 +2648,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010F6E8)
 #include "../../generated/splicewrap/func_0010F6E8.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" qword func_00155FB0(void *p, qword q);
+extern "C" qword ChooseEscapePosition(void *p, qword q);
 /** @sly2-annot addr=0x10F7B0
  * Purpose: Splice option thunk: optid 1156 on CID59 (g_aeopid[1341] thunkFn, returns Vector, crefReq 1);
  *   unpacks 1 args (Vector) -> Vector via RefSetArgsFromSplice then calls PosChooseEscape (0x155FB0)
@@ -2663,7 +2663,7 @@ extern "C" CRef func_0010F7B0(void *p, int c, void *aref)
     union { qword q; } u;
     int k = 2;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &u);
-    ref = func_00155FB0(p, u.q);
+    ref = ChooseEscapePosition(p, u.q);
     return ref;
 }
 

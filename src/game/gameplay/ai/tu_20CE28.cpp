@@ -38,18 +38,18 @@ float D_002C3E50 = 100.0f;
 float D_002C3E54 = -600.0f;
 float D_002C3E58 = 0.0f;
 extern "C" {
-int func_0020D020(STUCKWATCH *p);
-void func_0020D108(STUCKWATCH *p, int n);
+int IsGuardStuck(STUCKWATCH *p);
+void SetStuckWatchState(STUCKWATCH *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 int func_0020FA50(void *pv, FPAIR *p);
-int func_0020CFC0(void *pv, FPAIR *p);
-int FStepguardHasSgf(GUARDV *o, int n);
+int FilterStuckProbe(void *pv, FPAIR *p);
+int StepguardHasSgf(GUARDV *o, int n);
 qword ConvertAloPos(GUARDV *o, int a, qword v);
-int func_00173610(qword *pv, float f, float g, int a, int (*pfn)(void *, FPAIR *));
+int SnapToGround(qword *pv, float f, float g, int a, int (*pfn)(void *, FPAIR *));
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void func_001F7598(WMSG *pmsg);
 qword func_001A62E8(void *p);
-void func_0020D3C0(VOLWATCH *p, int k);
+void SetHazardWatchState(VOLWATCH *p, int k);
 }
 
 /** @sly2-annot addr=0x20CE28
@@ -59,7 +59,7 @@ void func_0020D3C0(VOLWATCH *p, int k);
  * See: docs/engine/animation.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" void func_0020CE28(STUCKWATCH *p, GUARDV *po) { p->po = po; p->state = -1; p->fEnabled = 1; }
+extern "C" void InitStuckWatch(STUCKWATCH *p, GUARDV *po) { p->po = po; p->state = -1; p->fEnabled = 1; }
 
 /** @sly2-annot addr=0x20CE40
  * Purpose: state -1, enabled, state 0
@@ -67,7 +67,7 @@ extern "C" void func_0020CE28(STUCKWATCH *p, GUARDV *po) { p->po = po; p->state 
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020CE40(STUCKWATCH *p) { p->state = -1; p->fEnabled = 1; func_0020D108(p, 0); }
+extern "C" void ResetStuckWatch(STUCKWATCH *p) { p->state = -1; p->fEnabled = 1; SetStuckWatchState(p, 0); }
 
 /** @sly2-annot addr=0x20CE70
  * Purpose: if all 5 probe points blocked for > D_002C3DF0 s -> InflictZap kind 0x4000 on self
@@ -75,28 +75,28 @@ extern "C" void func_0020CE40(STUCKWATCH *p) { p->state = -1; p->fEnabled = 1; f
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020CE70(STUCKWATCH *p)
+extern "C" void UpdateStuckWatch(STUCKWATCH *p)
 {
     int f, k;
     if (!p->fEnabled)
         return;
-    f = func_0020D020(p);
+    f = IsGuardStuck(p);
     do {
         k = p->state;
         switch (k) {
         case 0:
             if (f)
-                func_0020D108(p, 1);
+                SetStuckWatchState(p, 1);
             break;
         case 1:
             if (!f)
-                func_0020D108(p, 0);
+                SetStuckWatchState(p, 0);
             else if (D_002DDED0.t - p->t > D_002C3DF0 && !((int (*)(void *, int))p->po->vt[76].pf)((char *)p->po + p->po->vt[76].d, 0x4000))
-                func_0020D108(p, 2);
+                SetStuckWatchState(p, 2);
             break;
         case 2:
             if (!f)
-                func_0020D108(p, 0);
+                SetStuckWatchState(p, 0);
             break;
         }
     } while (p->state != k);
@@ -109,7 +109,7 @@ extern "C" void func_0020CE70(STUCKWATCH *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" int func_0020CFC0(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(p->o, 0x59)) return 1; return func_0020FA50(pv, p); }
+extern "C" int FilterStuckProbe(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(p->o, 0x59)) return 1; return func_0020FA50(pv, p); }
 
 /** @sly2-annot addr=0x20D020
  * Purpose: 5 probe offsets D_002C3E00 around guard all blocked
@@ -117,16 +117,16 @@ extern "C" int func_0020CFC0(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" int func_0020D020(STUCKWATCH *p)
+extern "C" int IsGuardStuck(STUCKWATCH *p)
 {
     GUARDV *o = p->po;
     unsigned int i;
-    if (o->n208 || o->nF80 != -1 || !o->n4A0 || FStepguardHasSgf(o, 0x13))
+    if (o->n208 || o->nF80 != -1 || !o->n4A0 || StepguardHasSgf(o, 0x13))
         return 0;
     i = 0;
     do {
         qword v = ConvertAloPos(p->po, 0, D_002C3E00[i].q);
-        if (func_00173610(&v, D_002C3E50, D_002C3E54, 1, func_0020CFC0))
+        if (SnapToGround(&v, D_002C3E50, D_002C3E54, 1, FilterStuckProbe))
             break;
         i++;
     } while (i < 5);
@@ -139,7 +139,7 @@ extern "C" int func_0020D020(STUCKWATCH *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020D108(STUCKWATCH *p, int n)
+extern "C" void SetStuckWatchState(STUCKWATCH *p, int n)
 {
     if (p->state == n) return;
     p->state = n;
@@ -161,10 +161,10 @@ extern "C" void func_0020D108(STUCKWATCH *p, int n)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020D178(STUCKWATCH *p)
+extern "C" void DisableStuckWatch(STUCKWATCH *p)
 {
     p->fEnabled = 0;
-    func_0020D108(p, 0);
+    SetStuckWatchState(p, 0);
 }
 
 /** @sly2-annot addr=0x20D1A0
@@ -185,7 +185,7 @@ extern "C" void EnableStuckWatch(STUCKWATCH *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020D1B0(VOLWATCH *p, GUARDV *po) { p->po = po; p->state = -1; p->fEnabled = 1; }
+extern "C" void InitHazardWatch(VOLWATCH *p, GUARDV *po) { p->po = po; p->state = -1; p->fEnabled = 1; }
 
 /** @sly2-annot addr=0x20D1C8
  * Purpose: state 0
@@ -193,7 +193,7 @@ extern "C" void func_0020D1B0(VOLWATCH *p, GUARDV *po) { p->po = po; p->state = 
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020D1C8(VOLWATCH *p) { p->state = -1; p->fEnabled = 1; func_0020D3C0(p, 0); }
+extern "C" void ResetHazardWatch(VOLWATCH *p) { p->state = -1; p->fEnabled = 1; SetHazardWatchState(p, 0); }
 
 /** @sly2-annot addr=0x20D1F8
  * Purpose: inside hazard object (vt73) while falling for > D_002C3E58 s -> zap with hazard params
@@ -201,7 +201,7 @@ extern "C" void func_0020D1C8(VOLWATCH *p) { p->state = -1; p->fEnabled = 1; fun
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020D1F8(VOLWATCH *p)
+extern "C" void UpdateHazardWatch(VOLWATCH *p)
 {
     int k;
     if (!p->fEnabled)
@@ -227,19 +227,19 @@ extern "C" void func_0020D1F8(VOLWATCH *p)
                     f = 1;
             }
             if (f)
-                func_0020D3C0(p, 1);
+                SetHazardWatchState(p, 1);
             break;
         }
         case 1:
             if (!p->pvol)
-                func_0020D3C0(p, 0);
+                SetHazardWatchState(p, 0);
             else if (D_002DDED0.t - p->t > D_002C3E58 &&
                      !((int (*)(void *, void *))p->po->vt[76].pf)((char *)p->po + p->po->vt[76].d, (void *)p->pvol->n188))
-                func_0020D3C0(p, 2);
+                SetHazardWatchState(p, 2);
             break;
         case 2:
             if (!p->pvol || ((int (*)(void *, void *))p->po->vt[76].pf)((char *)p->po + p->po->vt[76].d, (void *)p->pvol->n188))
-                func_0020D3C0(p, 0);
+                SetHazardWatchState(p, 0);
             break;
         }
     } while (p->state != k);
@@ -251,7 +251,7 @@ extern "C" void func_0020D1F8(VOLWATCH *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020D3C0(VOLWATCH *p, int state)
+extern "C" void SetHazardWatchState(VOLWATCH *p, int state)
 {
     if (state != p->state) {
         p->state = state;
@@ -276,7 +276,7 @@ extern "C" void func_0020D3C0(VOLWATCH *p, int state)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" void func_0020D460(VOLWATCH *p, WVOL *pvol)
+extern "C" void SetHazardWatchTarget(VOLWATCH *p, WVOL *pvol)
 {
     p->pvol = pvol;
 }

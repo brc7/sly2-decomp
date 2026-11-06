@@ -1720,7 +1720,7 @@ namespace M_func_00205910 {
  * What it does: the actor's orientation is turned about the up axis (D_002A2DC0) by its heading (p+0x1A8) into a position+rotation
  * matrix matCur (copied to matOrig); the largest probe radius (length of the local probe points, start -FLT_MAX D_002A85F8) is the
  * sphere for the nearby-objects query (IntersectSwBoundingSphere, filter func_0020FA50 with p+0xEC as context).  Then D_002C3CE4 passes: every
- * probe point is placed with matCur and snapped to the floor by the line test func_00173610 (height->max / height->min); a probe
+ * probe point is placed with matCur and snapped to the floor by the line test SnapToGround (height->max / height->min); a probe
  * that finds no floor is dropped by D_002C3CE0 along matCur's up row.  The plane through the three probes gives a normal (cross of
  * the two edges, D_002A2DC0 if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, DecomposeRotateMatrixRad
  * measures its angle, which is limited to D_002C3CE8 (func_0011B500 rebuilds the rotation about the same axis with the limit),
@@ -1767,7 +1767,7 @@ FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingSphere(GAME *,qword,float,int (*)(void *,void *),void *,int *,void ***);
 int func_0020FA50(void *,void *);
-int func_00173610(qword *,float,float,int,void *);
+int SnapToGround(qword *,float,float,int,void *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *);
 }
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -1836,7 +1836,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
         qword up=*(qword *)matCur.mat[2];
         for(int i=0;i<pointCount;i++){
             point.q=QwTransformPos(&matCur,localPoints[i]);
-            if(func_00173610(&point.q,height->max,height->min,0,0))points[i].q=point.q;
+            if(SnapToGround(&point.q,height->max,height->min,0,0))points[i].q=point.q;
             else points[i].q=QwAddScaled(point.q,up,VuFloatFromMemWord(*(int *)&D_002C3CE0));
         }
         MATRIX3 adjustment;

@@ -58,7 +58,7 @@ struct CID120 : LO
     virtual void Init() __asm__("func_0020AD38");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_0020AE18");   /* slot 15 */
-    virtual void Clone(LO *ploBase) __asm__("func_0020ADE8");   /* slot 41 */
+    virtual void Clone(LO *ploBase) __asm__("CloneGuardAttack");   /* slot 41 */
 };
 typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
 
@@ -96,7 +96,7 @@ struct STEPGUARD : public STEP
       LEAP leap;        /* +0xDB0 constructed by STEPGUARD_ctor (LEAP_ctor) */
       CID146 cid146;    /* +0xE20 (DIRANIM) constructed inline by STEPGUARD_ctor */
       undefined4 unk_0xe60[(0xf04 - 0xe60) / 4];
-      float tAttackNext;    /* +0xF04 [S] earliest time of the next attack choice (guardbhv FBhvcombatChooseAttack) */
+      float tAttackNext;    /* +0xF04 [S] earliest time of the next attack choice (guardbhv TryBhvcombatChooseAttack) */
       undefined4 unk_0xf08[(0xf3c - 0xf08) / 4];
       int fUnkF3C;          /* +0xF3C [S] set by StartBhvstrike */
       undefined4 unk_0xf40[(0xf60 - 0xf40) / 4];
@@ -106,7 +106,7 @@ struct STEPGUARD : public STEP
       undefined4 unk_0xf6c;
       qword qwUnkF70;       /* +0xF70 [S] */
       undefined4 unk_0xf80[(0xf94 - 0xf80) / 4];
-      int cUnkF94;          /* +0xF94 [S] FBhvguardHasTargetList: non-zero with cUnkFA8 means a target list */
+      int cUnkF94;          /* +0xF94 [S] HasBhvguardTargetList: non-zero with cUnkFA8 means a target list */
       undefined4 unk_0xf98[(0xfa8 - 0xf98) / 4];
       int cUnkFA8;          /* +0xFA8 [S] */
       undefined4 unk_0xfac[(0xfe0 - 0xfac) / 4];
@@ -135,7 +135,7 @@ struct STEPGUARD : public STEP
     virtual int JthsCurrent() __asm__("JthsCurrentStepguard");   /* slot 77 */
     virtual int VUnk84() __asm__("func_0020B090");   /* slot 85 */
     virtual int VUnk85(ZPR *pzpr) __asm__("func_00207530");   /* slot 86 */
-    virtual void VUnk86(int fOn) __asm__("func_001F1F38");   /* slot 87 */
+    virtual void VUnk86(int fOn) __asm__("SetStepguardPlayable");   /* slot 87 */
     virtual void VSlot87() __asm__("PloChooseStepguardTarget");   /* slot 87: not yet identified (STEPGUARD adds 2 slots to STEP's 87) */
     virtual void VSlot88() __asm__("FStepguardSenseStimulus");   /* slot 88: not yet identified */
 };

@@ -56,7 +56,7 @@ void CONTESSA::Init()
  * See: docs/engine/bosses.md#33-the-contessa-m5_heist-boss-tasks-l17-castle-exterior,
  *   docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8
  * @end-sly2-annot */
-extern "C" void func_0014FAF8(GUARDV *pguard, float dt)
+extern "C" void UpdateContessa(GUARDV *pguard, float dt)
 {
       UpdateStepguard(pguard, dt);
       if (pguard->nF80 == -1 && pguard->n208 != 0)

@@ -104,7 +104,7 @@ int func_001709A8(void *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) retu
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_001709F8(SSG *pssg)
+extern "C" void InitGuardScript(SSG *pssg)
 {
     InitLo(pssg);
     func_0011A050(&pssg->dlSsge, 0x18);
@@ -166,7 +166,7 @@ void func_00170A58(struct S *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170B40(SSG *pssg, int id)
+extern "C" void AddGuardScriptSetContext(SSG *pssg, int id)
 {
     PssgeAppend(pssg, 0, id);
 }
@@ -208,7 +208,7 @@ void func_00170BA0(void *p, struct K *pk) { func_00170E00(p, 2, -1)->k = *pk; }
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170BE0(SSG *pssg, int id)
+extern "C" void AddGuardScriptTeleport(SSG *pssg, int id)
 {
     PssgeAppend(pssg, 3, id);
 }
@@ -220,7 +220,7 @@ extern "C" void func_00170BE0(SSG *pssg, int id)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170C00(SSG *pssg, int id)
+extern "C" void AddGuardScriptMessage(SSG *pssg, int id)
 {
     PssgeAppend(pssg, 4, id);
 }
@@ -232,7 +232,7 @@ extern "C" void func_00170C00(SSG *pssg, int id)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170C20(SSG *pssg, float g)
+extern "C" void AddGuardScriptWait(SSG *pssg, float g)
 {
     PssgeAppend(pssg, 5, -1)->g = g;
 }
@@ -244,7 +244,7 @@ extern "C" void func_00170C20(SSG *pssg, float g)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170C50(SSG *pssg, int id, int n8, int nC)
+extern "C" void AddGuardScriptGoto(SSG *pssg, int id, int n8, int nC)
 {
     SSGE *pssge;
     pssge = PssgeAppend(pssg, 6, id);
@@ -259,7 +259,7 @@ extern "C" void func_00170C50(SSG *pssg, int id, int n8, int nC)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170C90(SSG *pssg, int id, int n10, float g14)
+extern "C" void AddGuardScriptLookAt(SSG *pssg, int id, int n10, float g14)
 {
     SSGE *pssge;
     pssge = PssgeAppend(pssg, 7, id);
@@ -274,7 +274,7 @@ extern "C" void func_00170C90(SSG *pssg, int id, int n10, float g14)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170CD0(SSG *pssg, int id)
+extern "C" void AddGuardScriptAnim(SSG *pssg, int id)
 {
     PssgeAppend(pssg, 8, id);
 }
@@ -286,7 +286,7 @@ extern "C" void func_00170CD0(SSG *pssg, int id)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170CF0(SSG *pssg, int id)
+extern "C" void AddGuardScriptLabel(SSG *pssg, int id)
 {
     PssgeAppend(pssg, 9, id);
 }
@@ -298,7 +298,7 @@ extern "C" void func_00170CF0(SSG *pssg, int id)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170D10(SSG *pssg, int id)
+extern "C" void AddGuardScriptJump(SSG *pssg, int id)
 {
     PssgeAppend(pssg, 10, id);
 }
@@ -310,7 +310,7 @@ extern "C" void func_00170D10(SSG *pssg, int id)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170D30(SSG *pssg, int n1, int n2)
+extern "C" void AddGuardScriptBusyOn(SSG *pssg, int n1, int n2)
 {
     PssgeAppend(pssg, 0xB, -1);
 }
@@ -322,7 +322,7 @@ extern "C" void func_00170D30(SSG *pssg, int n1, int n2)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170D50(SSG *pssg, int n1, int n2)
+extern "C" void AddGuardScriptBusyOff(SSG *pssg, int n1, int n2)
 {
     PssgeAppend(pssg, 0xC, -1);
 }
@@ -336,7 +336,7 @@ extern "C" void func_00170D50(SSG *pssg, int n1, int n2)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+verdicts_followups
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170D70(SSG *pssg, int id, int n)
+extern "C" void AddGuardScriptKind13(SSG *pssg, int id, int n)
 {
     PssgeAppend(pssg, 0xD, id)->n = n;
 }
@@ -348,7 +348,7 @@ extern "C" void func_00170D70(SSG *pssg, int id, int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170DA0(SSG *pssg, int id, int n)
+extern "C" void AddGuardScriptKind14(SSG *pssg, int id, int n)
 {
     PssgeAppend(pssg, 0xE, id)->n = n;
 }
@@ -363,7 +363,7 @@ extern "C" void func_00170DA0(SSG *pssg, int id, int n)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest+verdicts_followups
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170DD0(SSG *pssg, int id, int n)
+extern "C" void AddGuardScriptEnsureRelayAlarm(SSG *pssg, int id, int n)
 {
     PssgeAppend(pssg, 0xF, id)->n = n;
 }
@@ -397,7 +397,7 @@ extern "C" SSGE *func_00170E00(SSG *pssg, int kind, int id)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00170E68(SSG *pssg, LO *plo)
+extern "C" void StartGuardScriptOnGuard(SSG *pssg, LO *plo)
 {
     if (plo != 0) {
         func_00171CF8(plo, pssg);
@@ -591,7 +591,7 @@ void func_00171258(struct S *p, struct T *t, int a, struct U *u) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" void func_00171398(BHVSSG *pbhv)
+extern "C" void CloseBhvScript(BHVSSG *pbhv)
 {
     CloseBhv(pbhv);
     ClearBhvBusy(pbhv);
@@ -640,7 +640,7 @@ loop:
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-extern "C" int func_00171458(BHVSSG *pbhv)
+extern "C" int IsBhvScriptDone(BHVSSG *pbhv)
 {
     return pbhv->pssgeCur == 0;
 }
@@ -654,8 +654,8 @@ struct S { char pad[0x10]; struct O *p10; int pad2; void *p18; char pad3[0x1C]; 
 int FBhvpatrolpathDone(void *p);
 int FBhvrailArrived(void *p);
 int FBhvpipeArrived(void *p);
-int FBhvgotoArrived(void *p);
-int FBhvanimDone(void *p);
+int HasBhvgotoArrived(void *p);
+int IsBhvanimDone(void *p);
 void SetStepguardMoverRadTarget(void *p, float g);
 void PopBhv(void *p);
 /** @sly2-annot addr=0x171468
@@ -682,7 +682,7 @@ int func_00171468(struct S *p) {
         }
         break;
     case 7:
-        if (FBhvgotoArrived(p->p18)) {
+        if (HasBhvgotoArrived(p->p18)) {
             p->n40 = 0;
             SetStepguardMoverRadTarget(p->p10->aFD0, p->g48);
         }
@@ -691,7 +691,7 @@ int func_00171468(struct S *p) {
         if (p->pe->g8 < D_002DDED0.t - p->g3C) p->n40 = 0;
         break;
     case 13: case 14:
-        if (FBhvanimDone(p->p18)) p->n40 = 0;
+        if (IsBhvanimDone(p->p18)) p->n40 = 0;
         break;
     }
     if (!p->n40) PopBhv(&p->p18);

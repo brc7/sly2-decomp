@@ -1253,12 +1253,12 @@ void SetJtGrabState(struct P *p, int n, int a, int b)
 namespace M_func_00192A28 {
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
-void *PdteFindDetectorTarget(void *a, void *b);
+void *FindDetectorTarget(void *a, void *b);
 void SetDetectorTargetState(void *a, void *b, int c);
 qword func_001A62E8(void *p);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
-void func_00154568(void);
+void FilterDetectorLineOfSightHit(void);
 extern char D_003DD490[];
 extern float D_002BF638;
 }
@@ -1283,7 +1283,7 @@ void func_00192A28(P *p)
 {
     O *o;
     for (o = (*(O * *)&g_sw.dlStepguard); o; o = o->xfe0) {
-        E *e = (E *)PdteFindDetectorTarget(o->xf64, p->x0);
+        E *e = (E *)FindDetectorTarget(o->xf64, p->x0);
         if (!e || !e->x4 || (o->xf64->xf8 & 1)) continue;
         qword a = func_001A62E8(o);
         qword b = func_001A62E8(p->x0);
@@ -1299,7 +1299,7 @@ void func_00192A28(P *p)
         }
         SCOPEDIJ x;
 
-        IntersectSwBoundingBox(D_003DD490, a, b, (void *)func_00154568, o, &x.i, &x.j);
+        IntersectSwBoundingBox(D_003DD490, a, b, (void *)FilterDetectorLineOfSightHit, o, &x.i, &x.j);
         if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, x.i, x.j, 0)) continue;
         SetDetectorTargetState(o->xf64, e, 0);
     }

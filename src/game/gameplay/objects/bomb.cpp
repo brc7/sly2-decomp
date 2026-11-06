@@ -141,7 +141,7 @@ int CsbiIntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 int func_001F7598(MSG *pmsg);
-int *func_00156698(int n, qword pos, void *pv);
+int *NewNoise(int n, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
 void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void func_001CB518(BOMBV *);
@@ -829,7 +829,7 @@ extern "C" void DetonateBomb(BOMBV *p)
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }
-        func_00156698(D_003DD490.x402C, func_001A62E8(p), pv)[0x54 / 4] = 1;
+        NewNoise(D_003DD490.x402C, func_001A62E8(p), pv)[0x54 / 4] = 1;
     }
     ((void (*)(BOMBV *))p->vt[9].pfn)((BOMBV *)((char *)p + p->vt[9].d));
     p->x174 = 0;

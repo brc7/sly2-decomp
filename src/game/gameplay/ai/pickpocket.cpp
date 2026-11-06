@@ -115,7 +115,7 @@ void StageStepguardLoot(P *p);
  * See: docs/engine/animation.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
  *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
  * @end-sly2-annot */
-extern "C" void func_001F1768(P *p, int x)
+extern "C" void AddStepguardLootCoins(P *p, int x)
 {
     if (p->busy) {
         ITEM *pe = &p->items[p->count++];
@@ -129,7 +129,7 @@ extern "C" void func_001F1768(P *p, int x)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
  * @end-sly2-annot */
-extern "C" void func_001F17B0(P *p, int x)
+extern "C" void AddStepguardLootItem(P *p, int x)
 {
     if (p->count <= 0 || p->busy) {
         ITEM *pe = &p->items[p->count++];
@@ -319,7 +319,7 @@ extern "C" void *PickpocketStepguard(P *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
  * @end-sly2-annot */
-extern "C" void *func_001F1EB8(void *r, P *p)
+extern "C" void *GetStepguardLootRefList(void *r, P *p)
 {
     int buf[8];
     int n = 0;
@@ -337,7 +337,7 @@ extern "C" void *func_001F1EB8(void *r, P *p)
  * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
  * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
  * @end-sly2-annot */
-extern "C" void func_001F1F38(P *p, int f)
+extern "C" void SetStepguardPlayable(P *p, int f)
 {
     func_00205D10(p, f);
     if (f) { if (p->owner) VFN(p->owner, 21, 0); }

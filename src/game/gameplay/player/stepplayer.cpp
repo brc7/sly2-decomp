@@ -448,7 +448,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002BCC6C, D_002BCC70, D_002BCC74, D_002BCC78;
 int func_001409E8(struct P *p);
 qword func_001A62E8(struct P *p);
-void func_00156548(void *a, qword pos, struct P *p, int n);
+void CreateNoise(void *a, qword pos, struct P *p, int n);
 
 static inline float GClamp(float g, float lo, float hi)
 {
@@ -502,7 +502,7 @@ void func_00140750(struct P *p)
         { float dt = D_002DDED0.dt; p->x10D0 = GClamp(p->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
-    if (p->x10D0 == 1.0f) func_00156548(p->p10C4, func_001A62E8(p), p, 0);
+    if (p->x10D0 == 1.0f) CreateNoise(p->p10C4, func_001A62E8(p), p, 0);
 }
 } } // namespace M_func_00140750
 
@@ -527,10 +527,10 @@ struct X { char pad[0x104]; struct X *pxNext; };
 struct P { char pad[0x10C4]; void *p10C4; };
 int FStepplayerInJtmode(struct P *p);
 qword func_001A62E8(struct P *p);
-void *func_00156698(void *a, qword pos, struct P *p);
-int FStepguardHasSgf(struct SO *pso, int n);
-int func_00156FE8(struct X *px, void *q);
-void func_00156780(void *q);
+void *NewNoise(void *a, qword pos, struct P *p);
+int StepguardHasSgf(struct SO *pso, int n);
+int CanListenerHearNoise(struct X *px, void *q);
+void RemoveNoise(void *q);
 /** @sly2-annot addr=0x1409E8
  * Purpose: Returns 2 if in jtmode<3 or no query from 0x156698; else 1 if any guard ((*(struct SO * *)&g_sw.dlStepguard)) answers
  *   vt89(query) or any (*(struct X * *)&g_sw.dlCid47) entry 0x156FE8 matches, 0 otherwise; guard states 0x1D/0xB force 2
@@ -547,21 +547,21 @@ int func_001409E8(struct P *p)
     struct X *px;
     if (FStepplayerInJtmode(p)) return 2;
     q = 0;
-    if (p->p10C4) q = func_00156698(p->p10C4, func_001A62E8(p), p);
+    if (p->p10C4) q = NewNoise(p->p10C4, func_001A62E8(p), p);
     if (!q) return 2;
     r = 0;
     pso = (*(struct SO * *)&g_sw.dlStepguard);
     for (;;) {
         if (!pso) break;
-        if (FStepguardHasSgf(pso, 0x1D) || FStepguardHasSgf(pso, 0xB)) { r = 2; break; }
+        if (StepguardHasSgf(pso, 0x1D) || StepguardHasSgf(pso, 0xB)) { r = 2; break; }
         if (pso->vt[89].pfn((char *)pso + pso->vt[89].d, q)) { r = 1; break; }
         pso = pso->psoNext;
     }
     if (r == 0) {
         for (px = (*(struct X * *)&g_sw.dlCid47); px; px = px->pxNext)
-            if (func_00156FE8(px, q)) { r = 1; break; }
+            if (CanListenerHearNoise(px, q)) { r = 1; break; }
     }
-    func_00156780(q);
+    RemoveNoise(q);
     return r;
 }
 } } // namespace M_func_001409E8
@@ -851,7 +851,7 @@ void func_0019F170(void *p, int n);
 void func_0019F220(void *p, int n);
 void *PloAcquireProxy(void *p, int n);
 void SetLoParent_1A58D0(void *p, int a, int b);
-void func_00156780(void *p);
+void RemoveNoise(void *p);
 void func_001CCC88(void *p, void *q);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
 void func_001CD098(void *p, void *q);
@@ -992,7 +992,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
                         while ((po2 = PvNextDli(&dli)) != 0) {
                             if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == p)
-                                func_00156780(po2);
+                                RemoveNoise(po2);
                         }
                         D_002DD2FC = dli.m_pdliNext;
                         D_003DD490.g4758 = D_002DDED0.t + D_002BCC94;
@@ -2999,7 +2999,7 @@ typedef struct { short d; short pad; qword (*pfn)(struct SO *); } VT;
 struct G { char pad[0x88]; float g; };
 struct SO { int x0, x4, x8; VT *vt; char pad[0xE8 - 0x10]; struct G *pg; char pad2[0x248 - 0xEC]; float z; };
 qword func_001A62E8(struct SO *p);
-int func_00173610(qword *ppos, int a, int b, float f, float g);
+int SnapToGround(qword *ppos, int a, int b, float f, float g);
 /** @sly2-annot addr=0x143D20
  * Purpose: Predict height after dt under gravity; if <=0 test ground 0x173610 at pos
  * Info: proposed name FStepplayerWillLand (T2); TU stepplayer
@@ -3015,7 +3015,7 @@ int func_00143D20(struct SO *p, float dt)
     if (h > 0.0f)
         return 0;
     pos.q = func_001A62E8(p);
-    return func_00173610(&pos.q, 0, 0, 0.0f, h);
+    return SnapToGround(&pos.q, 0, 0, 0.0f, h);
 }
 } } // namespace M_func_00143D20
 

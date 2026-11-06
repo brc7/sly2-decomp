@@ -1062,7 +1062,7 @@ MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 
 GRABSPOTV *PspotFromLo(LO *plo) __asm__("PgrabspotFromLo");
 
-extern "C" int GuardSpawnerGroundSnap(qword *ppos, int n, void *pfnFilter, float gUp, float gDown) __asm__("func_00173610");
+extern "C" int GuardSpawnerGroundSnap(qword *ppos, int n, void *pfnFilter, float gUp, float gDown) __asm__("SnapToGround");
 
 void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtJtcs__FP2JTi");
 

@@ -1,8 +1,8 @@
 // tu_173158.cpp -- CID119 (cid 0x77, an LO of 0xB0 bytes): a guard spawner. It keeps spawn selectors (an LO spot,
 // a small spot, or a curve sampled along its length), guard templates and test offsets, and up to its capacity of
 // spawned-guard slots; every few seconds it picks a free slot and a spawn point the camera cannot see (screen
-// rectangle, distance, line of sight from the camera) and clones a guard there. VU0 and EE asm; func_00173768,
-// func_00173A68, func_00173D18 and func_00173F18 are hand-tuned (register pins, allocation-only operands).
+// rectangle, distance, line of sight from the camera) and clones a guard there. VU0 and EE asm; GetSpawnPointConcealment,
+// UpdateSpawner, UpdateSpawnerEntries and ChooseSpawnerSpawnPoint are hand-tuned (register pins, allocation-only operands).
 // TU 0x173158..0x174898 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_173158
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00174878
@@ -86,11 +86,11 @@ struct CID119V
     int mode;
 };
 typedef char assert_CID119_size[sizeof(CID119V) == 0xB0 ? 1 : -1];
-/* func_00173A68's event record (the hero's last noise) and the message argument it sends. */
+/* UpdateSpawner's event record (the hero's last noise) and the message argument it sends. */
 struct EVENT{float time;char pad4[8];LOV*tag;char pad10[0x10];EVENT*next;char pad24[4];int kind;LOV*previous;};
 struct LINK{LOV**pp;};
 struct CRefV{int tag;void*value;};
-/* func_00173610's line hit. */
+/* SnapToGround's line hit. */
 struct HITY { qwordV v; char pad[0x18]; float f28; char pad2[0x14]; float f40; char pad3[0x1C]; };
 struct VU_FLOAT { qwordV qw; };
 /* SetBhvguardMode's argument (cleared by its constructor). */
@@ -126,7 +126,7 @@ void *PvAllocSlot__FP8ALLOCREQ(AI *pa);
 void *func_001AE238(AI *pa, void *pv);
 void *func_001AE2A0(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
-void func_00170C50(SCRIPTV *o, int a, int b, int c);
+void AddGuardScriptGoto(SCRIPTV *o, int a, int b, int c);
 int func_0020FA50(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
@@ -147,16 +147,16 @@ M3 func_0011B500(float, qwordV);
 GUARDV *PloAcquireProxy(void *p, int n);
 void *func_00205458(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
-void func_001733C8(CID119V *p, qwordV q);
-int func_00173588(qwordV v, float r);
-int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void));
-int func_00173768(CID119V *p, qwordV pos, int count, void **objects, float distance);
-void func_00173928(CID119V *p, ENTRY *pe, int k, int f);
-qwordV func_00173A18(CID119V *p);
-void func_00173D18(CID119V *p, qwordV pos);
-ENTRY *func_00173E78(CID119V *p, LOV *plo);
-SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip);
-GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip);
+void AddSpawnerOffset(CID119V *p, qwordV q);
+int IsInScreenRect(qwordV v, float r);
+int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void));
+int GetSpawnPointConcealment(CID119V *p, qwordV pos, int count, void **objects, float distance);
+void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f);
+qwordV GetSpawnerFocusPosition(CID119V *p);
+void UpdateSpawnerEntries(CID119V *p, qwordV pos);
+ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *plo);
+SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip);
+GUARDV *SpawnGuardFromSpawner(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip);
 }
 float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
@@ -185,14 +185,14 @@ static inline AI *SetAi(AI *pa, int cb, int align) { pa->cb = cb; pa->align = al
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_001731B8(CID119V *p, void *pv) {
+extern "C" void LoadSpawnerFromBrx(CID119V *p, void *pv) {
     SCOPE mk;
     AI ai;
     STACKSCOPE_ctor(&mk);
     p->asel = (SEL *)func_001AE378(SetAi(&ai, 0xE00, 0x10));
     p->apos = (qwordV *)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x100, 0x10));
     p->atmpl = (LOV **)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x20, 0x10));
-    func_001733C8(p, D_002A2DD0);
+    AddSpawnerOffset(p, D_002A2DD0);
     LoadLoFromBrx(p, pv);
     p->asel = (SEL *)func_001AE238(SetAi(&ai, p->csel * 0x1C, 0x10), p->asel);
     { void *pv9C = func_001AE238(SetAi(&ai, p->cpos << 4, 0x10), p->apos); void *pv94 = p->atmpl; p->apos = (qwordV *)pv9C; p->atmpl = (LOV **)func_001AE238(SetAi(&ai, 0x20, 0x10), pv94); }
@@ -206,7 +206,7 @@ extern "C" void func_001731B8(CID119V *p, void *pv) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_001732E0(CID119V *p, int oid)
+extern "C" void AddSpawnerLoSpot(CID119V *p, int oid)
 {
     int c = p->csel;
     if (c < 0x80) {
@@ -227,7 +227,7 @@ extern "C" void func_001732E0(CID119V *p, int oid)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest+verdicts_followups
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_00173318(CID119V *p, int oid)
+extern "C" void AddSpawnerCurve(CID119V *p, int oid)
 {
     int c = p->csel;
     if (c < 0x80) {
@@ -246,7 +246,7 @@ extern "C" void func_00173318(CID119V *p, int oid)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_00173358(CID119V *p, int oid)
+extern "C" void AddSpawnerSmallLoSpot(CID119V *p, int oid)
 {
     int c = p->csel;
     if (c < 0x80) {
@@ -265,7 +265,7 @@ extern "C" void func_00173358(CID119V *p, int oid)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_00173398(CID119V *p, LOV *x) { if (p->ctmpl < 8) { p->atmpl[p->ctmpl++] = x; } }
+extern "C" void AddSpawnerTemplate(CID119V *p, LOV *x) { if (p->ctmpl < 8) { p->atmpl[p->ctmpl++] = x; } }
 
 /** @sly2-annot addr=0x1733C8
  * Purpose: Appends a test offset vector (max 16) at +0x98/+0x9C
@@ -276,7 +276,7 @@ extern "C" void func_00173398(CID119V *p, LOV *x) { if (p->ctmpl < 8) { p->atmpl
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest+verdicts_followups
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_001733C8(CID119V *p, qwordV x) { register int n __asm__("$3"); register int i __asm__("$6"); i = p->cpos; if (i < 16) { register qwordV *a __asm__("$4"); register int off __asm__("$2"); a = p->apos; off = i * 16; n = i + 1; p->cpos = n; *(qwordV *)(off + (int)a) = x; } }
+extern "C" void AddSpawnerOffset(CID119V *p, qwordV x) { register int n __asm__("$3"); register int i __asm__("$6"); i = p->cpos; if (i < 16) { register qwordV *a __asm__("$4"); register int off __asm__("$2"); a = p->apos; off = i * 16; n = i + 1; p->cpos = n; *(qwordV *)(off + (int)a) = x; } }
 
 /** @sly2-annot addr=0x1733F8
  * Purpose: Resolves selector oids; for kind 1 creates a cid 0x71 script with a goto; allocates per-slot
@@ -286,7 +286,7 @@ extern "C" void func_001733C8(CID119V *p, qwordV x) { register int n __asm__("$3
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_001733F8(CID119V *p) {
+extern "C" void PostSpawnerLoad(CID119V *p) {
     int i;
     AI al;
     unsigned int f;
@@ -299,7 +299,7 @@ extern "C" void func_001733F8(CID119V *p) {
                 SCRIPTV *o;
                 e->plo = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, e->oid, 0);
                 o = PloNew(0x71, 0, 0x2CB, -1);
-                func_00170C50(o, e->oid, 1, -1);
+                AddGuardScriptGoto(o, e->oid, 1, -1);
                 e->pq = o->pq54;
                 e->pscript = o;
             }
@@ -328,7 +328,7 @@ static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" int func_00173588(qwordV v, float r) {
+extern "C" int IsInScreenRect(qwordV v, float r) {
     int f = 0;
     if (GetZ(v) > 0.0001f) {
         float x = GetX(v);
@@ -362,7 +362,7 @@ static __inline__ qwordV MAdd(qwordV p, qwordV up, float s) {
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-extern "C" int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void)) {
+extern "C" int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void)) {
     SCOPE x;
     int na, nb;
     qwordV va, vb;
@@ -399,7 +399,7 @@ static inline int TooFar(qwordV a,float limit){return limit<Len2(a);}
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" int func_00173768(CID119V*p,qwordV pos,int count,void**objects,float distance){
+extern "C" int GetSpawnPointConcealment(CID119V*p,qwordV pos,int count,void**objects,float distance){
  register int cso asm("$19")=count;register void**apso asm("$18")=objects;
  U raised,origin,position,difference;
  register CMV*camera asm("$2")=&D_002DDF40;
@@ -410,8 +410,8 @@ extern "C" int func_00173768(CID119V*p,qwordV pos,int count,void**objects,float 
  qwordV screen=ConvertCmWorldToScreen(camera,LoadCpu(position));
  register float zLimit asm("$f1")=D_002BE5BC;
  if(Z(screen)<zLimit)return 0;
- if(!func_00173588(screen,D_002BE5C0))return 0;
- if(p->fEdge&&!func_00173588(screen,D_002BE5C4))return 1;
+ if(!IsInScreenRect(screen,D_002BE5C0))return 0;
+ if(p->fEdge&&!IsInScreenRect(screen,D_002BE5C4))return 1;
  if(p->fRange&&TooFar(difference.q,p->sPlanar))return 2;
  if(p->fOcclusion){
   {register qwordV copied asm("$5")=position.q;raised.q=copied;}raised.f[2]+=D_002BE5C8;
@@ -428,7 +428,7 @@ extern "C" int func_00173768(CID119V*p,qwordV pos,int count,void**objects,float 
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_00173928(CID119V *p, ENTRY *pe, int k, int f) {
+extern "C" void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f) {
     pe->status = k;
     switch (k) {
     case 0:
@@ -437,7 +437,7 @@ extern "C" void func_00173928(CID119V *p, ENTRY *pe, int k, int f) {
         break;
     case 1:
         pe->tReady = D_002DDED0.t + p->dtRespawn;
-        pe->pos = func_00173A18(p);
+        pe->pos = GetSpawnerFocusPosition(p);
         if ((f ^ 1) & 1) pe->psel->tUntil = D_002DDED0.t + p->dtRespawn2;
         break;
     }
@@ -454,7 +454,7 @@ extern "C" void func_00173928(CID119V *p, ENTRY *pe, int k, int f) {
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return func_001A62E8(PpoHero(g)); return D_002DDF40.mat.r[3]; }
+extern "C" qwordV GetSpawnerFocusPosition(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return func_001A62E8(PpoHero(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
@@ -466,7 +466,7 @@ static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, 
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r3b_rest+verdicts_tu_r3r5
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_00173A68(CID119V*p){
+extern "C" void UpdateSpawner(CID119V*p){
  U point;
  M3 rotation;
  int flag;
@@ -478,8 +478,8 @@ extern "C" void func_00173A68(CID119V*p){
  SEL*selector;
  LOV*context;
  UpdateLo(p);
- pos=func_00173A18(p);
- func_00173D18(p,pos);
+ pos=GetSpawnerFocusPosition(p);
+ UpdateSpawnerEntries(p,pos);
  if(D_002DDED0.t<p->tNext)return;
  p->tNext=D_002DDED0.t+D_002BE5D0;
  if(p->cent==p->centMax){int close=DistanceXY(pos,p->posLast)<D_002BE5D4;if(close)return;}
@@ -497,13 +497,13 @@ extern "C" void func_00173A68(CID119V*p){
   }
  }
  }
- entry=func_00173E78(p,event&&event->kind==1?event->previous:0);
+ entry=FindFreeSpawnerEntry(p,event&&event->kind==1?event->previous:0);
  if(!entry)return;
- selector=func_00173F18(p,pos,&point.q,&rotation,&flag);
+ selector=ChooseSpawnerSpawnPoint(p,pos,&point.q,&rotation,&flag);
  if(!selector)return;
  p->posLast=pos;
- if(entry->pguard)func_00173928(p,entry,0,1);
- object=func_00174490(p,selector,&point.q,&rotation,flag);
+ if(entry->pguard)ReleaseSpawnerEntry(p,entry,0,1);
+ object=SpawnGuardFromSpawner(p,selector,&point.q,&rotation,flag);
  if(!object)return;
  SetSoAlpha(object,0.01f);
  FadeSoIn(object,0.5f);
@@ -518,7 +518,7 @@ extern "C" void func_00173A68(CID119V*p){
  ((void(*)(void*,int,int,int,void*const*,CRefV*))p->vt[3].pfn)((char*)p+p->vt[3].d,0x19,0,1,(void*const*)&link,0);
 }
 
-// func_00173D18 (Claude agent, 2026-10-25): MATCH. Updates the per-entry state of an array of 0x30-byte records (e->po object,
+// UpdateSpawnerEntries (Claude agent, 2026-10-25): MATCH. Updates the per-entry state of an array of 0x30-byte records (e->po object,
 // e->k state, g4 max, g8 clock stamp). The VU helper layers (VsubXyzw, operator-, LengthXY, DistXYImpl, DistXY) pass VU_VECTORs
 // by value; they add ~30 RTL insns to the loop (pass 1: 90, pass 2: 81 > threshold) so loop.c hoists the clock's %hi only in
 // the second pass, giving the target's preheader order (1, hi BE5DC, giv 0, hi clock). Fewer layers (86) or more (94+) differ.
@@ -538,7 +538,7 @@ static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); 
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_00173D18(CID119V *p, qwordV pos) {
+extern "C" void UpdateSpawnerEntries(CID119V *p, qwordV pos) {
     int i;
     for (i = 0; i < p->centMax; i++) {
         ENTRY *e = &p->aent[i];
@@ -552,9 +552,9 @@ extern "C" void func_00173D18(CID119V *p, qwordV pos) {
                 }
             }
         } else if (o->n330) {
-            func_00173928(p, e, 1, 0);
+            ReleaseSpawnerEntry(p, e, 1, 0);
         } else if (((int)(o->fl >> 60) & 1) == 0 || ((int)(e->psel->plo->fl >> 60) & 1) == 0) {
-            func_00173928(p, e, 0, 0);
+            ReleaseSpawnerEntry(p, e, 0, 0);
         } else {
             e->tActive = (e->tActive > o->g84) ? e->tActive : o->g84;
         }
@@ -568,7 +568,7 @@ extern "C" void func_00173D18(CID119V *p, qwordV pos) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" ENTRY *func_00173E78(CID119V *p, LOV *plo) {
+extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *plo) {
     float t4 = D_002DDED0.t - D_002BE5E0;
     float t8 = D_002DDED0.t;
     ENTRY *peBest = 0;
@@ -649,7 +649,7 @@ namespace RO_ORDER { extern const float r_D_002A53E0 __asm__("D_002A53E0") = 3.4
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip)
+extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip)
 {
     SCOPE frame;
     union { VECTOR4V v; qwordV q; } posBest;
@@ -712,7 +712,7 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
                 goto next;
             for (int j = 0; j < pset->cpos; j++)
             {
-                if (!func_00173768(pset, QwAdd(posObj, QwRotateVecAt(&mat, &pset->apos[j])), cplo, aplo, sRadius))
+                if (!GetSpawnPointConcealment(pset, QwAdd(posObj, QwRotateVecAt(&mat, &pset->apos[j])), cplo, aplo, sRadius))
                     goto next;
             }
             sBest = sDist;
@@ -747,7 +747,7 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
                         int j;
                         for (j = 0; j < pset->cpos; j++)
                         {
-                            if (!func_00173768(pset, QwAdd(posCurve.q, QwRotateVecAt(&matCurve, &pset->apos[j])), cplo, aplo, sRadiusMin))
+                            if (!GetSpawnPointConcealment(pset, QwAdd(posCurve.q, QwRotateVecAt(&matCurve, &pset->apos[j])), cplo, aplo, sRadiusMin))
                                 break;
                         }
                         if (j >= pset->cpos)
@@ -784,7 +784,7 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
  * See: docs/engine/guards-ai.md#open-questions, docs/open-questions.md#guards,
  *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip) {
+extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip) {
     GUARDV *r = 0;
     int k;
     switch (m->kind) {
@@ -796,7 +796,7 @@ extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int f
       {
         int idx[8];
         int i, j, l;
-        func_00173610(pv, D_002BE5F0[1], D_002BE5F0[0], 1, 0);
+        SnapToGround(pv, D_002BE5F0[1], D_002BE5F0[0], 1, 0);
         for (l = 0; l < p->ctmpl; l++) idx[l] = l;
         for (j = 0; j < p->ctmpl; j++) {
             int i = NRandInRange(0, p->ctmpl - 1);
@@ -841,11 +841,11 @@ extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int f
  * Confidence: low (draft) [T2 0.55] - evidence: arbitration; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" void func_001746B8(CID119V *p) {
+extern "C" void RemoveSpawnerHierarchy(CID119V *p) {
     int i;
     RemoveLoHierarchy(p);
     if (!p->aent) return;
     for (i = 0; i < p->centMax; i++) {
-        ENTRY *pe = &p->aent[i]; if (pe->pguard) func_00173928(p, pe, 0, 0);
+        ENTRY *pe = &p->aent[i]; if (pe->pguard) ReleaseSpawnerEntry(p, pe, 0, 0);
     }
 }

@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void func_0014A178(s32, s32, s32);               /* extern */
+void AddRoutePoint(s32, s32, s32);               /* extern */
 CRef *func_0010FB48(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[2] = { 4187, 6 };
@@ -9,7 +9,7 @@ CRef *func_0010FB48(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 2, aref, aotyp, &arg0_v, &arg1_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_0014A178(pbasic, arg0_v, arg1_v);
+    AddRoutePoint(pbasic, arg0_v, arg1_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

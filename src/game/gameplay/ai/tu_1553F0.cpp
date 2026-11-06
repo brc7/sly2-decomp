@@ -1,7 +1,7 @@
 // tu_1553F0.cpp -- Dimitri (a STEPGUARD with a table of escape routes, DIMITRI) and his two behaviours: escaping
 // along the route whose near end is farthest from his target (flag 0x22), and an attack/hide cycle that walks a
-// two-point path between the route's volumes (flag 0x23); plus the flee-position search func_00155FB0 and the
-// linkonce VecCombo (a VU_FLOAT/VU_VECTOR weighted sum). VU0 asm; func_00155868 and func_00155FB0 are hand-tuned.
+// two-point path between the route's volumes (flag 0x23); plus the flee-position search ChooseEscapePosition and the
+// linkonce VecCombo (a VU_FLOAT/VU_VECTOR weighted sum). VU0 asm; FindDimitriFarthestRoute and ChooseEscapePosition are hand-tuned.
 // TU 0x1553F0..0x1564E8 (18 functions, address order) and the linkonce instance 0x258480.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1553F0
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001564C8
@@ -81,7 +81,7 @@ struct BHVATK
     float tState;
     ESC *pesc;                /* +0x38 */
     float g3C;
-    void *ploGoal;            /* +0x40 the route end to go to (func_00155A68) */
+    void *ploGoal;            /* +0x40 the route end to go to (ChooseBhvFleeRouteEnd) */
     float t44;
     float t48;
     void *ploTarget;          /* +0x4C */
@@ -89,7 +89,7 @@ struct BHVATK
     ATKENTRY *pentry;         /* +0x54 */
 };
 typedef char assert_BHVATK_pentry[(unsigned int)&((BHVATK *)0)->pentry == 0x54 ? 1 : -1];
-/* func_00155FB0's types (the hero: vtable slot 33 at +0x108 is GetVelocity). */
+/* ChooseEscapePosition's types (the hero: vtable slot 33 at +0x108 is GetVelocity). */
 struct M3 { qwordV r[3]; };
 struct VECTORV { float x, y, z, w; };
 class HERO;
@@ -129,14 +129,14 @@ float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float g);
 void MeasureShape(PATHV *p);
 void SetBhvpathShape(BHVO *a, PATHV *b, int c);
-int FBhvanimDone(void *p);
+int IsBhvanimDone(void *p);
 int FBhvpathAtEnd(void *p);
-int FBhvattackDone(void *p);
+int IsBhvattackDone(void *p);
 int PentryChooseStepguardAttack(DIMITRIV *p, void *ploTarget, int z);
-void func_00155788(BHVESC *p, int k);
-ESC *func_00155868(BHVESC *p);
-void func_00155AE0(BHVATK *p, int k);
-void *func_00155A68(BHVATK *p);
+void SetBhvDimitriRootState(BHVESC *p, int k);
+ESC *FindDimitriFarthestRoute(BHVESC *p);
+void SetBhvFleeState(BHVATK *p, int k);
+void *ChooseBhvFleeRouteEnd(BHVATK *p);
 extern qwordV g_normalZ __asm__("D_002A2DC0");
 extern VECTORV D_002BDC60;
 extern float D_002BDC70[2];
@@ -218,7 +218,7 @@ void DIMITRI::VUnk14()
  * See: docs/engine/bosses.md#31-dimitri-m1_boss-l05-nightclub-heist-level,
  *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_00155530(DIMITRIV *p, int a, int b, int c, int d)
+extern "C" void AddDimitriRoute(DIMITRIV *p, int a, int b, int c, int d)
 {
     ESC *pe = &p->aesc[p->cesc++];
     pe->oidA = a;
@@ -250,10 +250,10 @@ void BHV180::OnPush()
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_00155598(BHVESC *p)
+extern "C" void CloseBhvDimitriRoot(BHVESC *p)
 {
     CloseBhv(p);
-    func_00155788(p, -1);
+    SetBhvDimitriRootState(p, -1);
     RemoveStepguardSgf(p->pguard, 0x22);
     SetStepguardTarget(p->pguard, 0);
 }
@@ -267,16 +267,16 @@ extern "C" void func_00155598(BHVESC *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_001555E0(BHVESC *p)
+extern "C" void StartBhvDimitriRoot(BHVESC *p)
 {
     StartBhv(p);
     SetStepguardTarget(p->pguard, p->ploTarget);
     if (p->pguard->hpLast - p->pguard->hp >= 90)
-        p->pesc = func_00155868(p);
+        p->pesc = FindDimitriFarthestRoute(p);
     if (p->pesc)
-        func_00155788(p, 0);
+        SetBhvDimitriRootState(p, 0);
     else
-        func_00155788(p, 1);
+        SetBhvDimitriRootState(p, 1);
 }
 
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -286,7 +286,7 @@ static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : 
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_00155660(BHVESC *p)
+extern "C" void UpdateBhvDimitriRoot(BHVESC *p)
 {
     UpdateBhv(p);
     while (!IsBhvBusyAbove(p)) {
@@ -304,7 +304,7 @@ extern "C" void func_00155660(BHVESC *p)
             dist = VuToFloat(l);
             f = 0;
             if (dist < 850.0f && __builtin_fabsf(GetZ(d)) < 400.0f && py->x30) f = 1;
-            if (f) func_00155788(p, 1);
+            if (f) SetBhvDimitriRootState(p, 1);
             break;
         }
         }
@@ -318,7 +318,7 @@ extern "C" void func_00155660(BHVESC *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_00155788(BHVESC *p, int k)
+extern "C" void SetBhvDimitriRootState(BHVESC *p, int k)
 {
     if (k == p->state)
         return;
@@ -372,7 +372,7 @@ namespace RO_ORDER { extern const float r_D_002A5130 __asm__("D_002A5130") = -3.
  * See: docs/engine/bosses.md#31-dimitri-m1_boss-l05-nightclub-heist-level,
  *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" ESC *func_00155868(BHVESC *p)
+extern "C" ESC *FindDimitriFarthestRoute(BHVESC *p)
 {
     ESC *peBest = 0;
     int i;
@@ -416,7 +416,7 @@ namespace RO_ORDER { extern const float r_D_002A5134 __asm__("D_002A5134") = 3.4
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_001559B0(BHVATK *p)
+extern "C" void InitBhvFlee(BHVATK *p)
 {
     InitBhv(p);
     AddStepguardSgf(p->pguard, 0x23);
@@ -434,10 +434,10 @@ extern "C" void func_001559B0(BHVATK *p)
  * See: docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_001559F8(BHVATK *p)
+extern "C" void CloseBhvFlee(BHVATK *p)
 {
     CloseBhv(p);
-    func_00155AE0(p, -1);
+    SetBhvFleeState(p, -1);
     RemoveStepguardSgf(p->pguard, 0x23);
 }
 
@@ -453,7 +453,7 @@ void BHV181::Start()
 {
     BHVATK *p = (BHVATK *)this;
     StartBhv(p);
-    func_00155AE0(p, 0);
+    SetBhvFleeState(p, 0);
 }
 
 /** @sly2-annot addr=0x155A68
@@ -465,7 +465,7 @@ void BHV181::Start()
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+verdicts_followups
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void *func_00155A68(BHVATK *p)
+extern "C" void *ChooseBhvFleeRouteEnd(BHVATK *p)
 {
     if (FCheckVolPoint(p->pesc->ploB, func_001A62E8(p->ploTarget)))
         return p->pesc->ploA;
@@ -494,7 +494,7 @@ namespace RO_ORDER { extern const float r_D_002A5138 __asm__("D_002A5138") = 3.4
  * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime-corrected
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_00155AE0(BHVATK *p, int k)
+extern "C" void SetBhvFleeState(BHVATK *p, int k)
 {
     if (k == p->state) return;
     switch (p->state) {
@@ -516,7 +516,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
     case 0: {
         BHVO *pa;
         qwordV d;
-        p->ploGoal = func_00155A68(p);
+        p->ploGoal = ChooseBhvFleeRouteEnd(p);
         pa = func_00205438(p->pguard, 0x9D);
         pa->x3C = 0xB;
         d = VuSub(func_001A62E8(p->ploGoal), func_001A62E8(p->pguard));
@@ -576,14 +576,14 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" void func_00155D90(BHVATK *p)
+extern "C" void UpdateBhvFlee(BHVATK *p)
 {
     UpdateBhv(p);
     while (!IsBhvBusyAbove(p)) {
         int s = p->state;
         switch (s) {
         case 0:
-            if (FBhvanimDone(p->pbhvCur)) {
+            if (IsBhvanimDone(p->pbhvCur)) {
                 DIMITRIV *pso;
                 qwordV d = VuSub(func_001A62E8(p->ploGoal), p->pguard->pos);
                 pso = p->pguard;
@@ -593,29 +593,29 @@ extern "C" void func_00155D90(BHVATK *p)
                 pso = p->pguard;
                 ((void (*)(void *, qwordV))pso->vt[36].pfn)((char *)pso + pso->vt[36].d, D_002A2DD0);
                 p->t48 = D_002DDED0.t;
-                func_00155AE0(p, 1);
+                SetBhvFleeState(p, 1);
             }
             break;
         case 2:
             if (FBhvpathAtEnd(p->pbhvCur))
-                func_00155AE0(p, 1);
+                SetBhvFleeState(p, 1);
             break;
         case 1:
             if (2.5f < D_002DDED0.t - p->t48 && 0.1f < D_002DDED0.t - p->tState) {
                 if ((p->pentry = (ATKENTRY *)PentryChooseStepguardAttack(p->pguard, p->ploTarget, 0)) != 0)
-                    func_00155AE0(p, 3);
+                    SetBhvFleeState(p, 3);
             }
             break;
         case 3:
             p->t44 = D_002DDED0.t;
-            if (FBhvattackDone(p->pbhvCur)) {
+            if (IsBhvattackDone(p->pbhvCur)) {
                 int k = 1;
-                void *n = func_00155A68(p);
+                void *n = ChooseBhvFleeRouteEnd(p);
                 if (n != p->ploGoal) {
                     p->ploGoal = n;
                     k = 2;
                 }
-                func_00155AE0(p, k);
+                SetBhvFleeState(p, k);
             }
             break;
         }
@@ -654,7 +654,7 @@ namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8
  * @end-sly2-annot */
-extern "C" qwordV func_00155FB0(void *p, qwordV pos)
+extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
 {
     HERO *pso = PpoHero(D_003DD490);
     float dist = Len(VuSub(func_001A62E8(pso), pos));
@@ -726,7 +726,7 @@ extern "C" qwordV func_00155FB0(void *p, qwordV pos)
 /* Linkonce instance 0x258480 (an out-of-line copy of an inline helper, homed in this TU): r = v1 * f1.x + v2 * f2.x.
    A plain definition (link/linkonce-misc): as an inline defined after its caller g++ does not emit it, because the
    caller reaches it only through VecComboQ (a differently typed, asm-labelled declaration), which does not mark the
-   inline used; calling VecCombo itself would change func_00155FB0's code. The attributes give it what g++ gives an
+   inline used; calling VecCombo itself would change ChooseEscapePosition's code. The attributes give it what g++ gives an
    inline function's out-of-line copy (link/linkonce-rest): a weak symbol in .gnu.linkonce.t.<symbol>. */
 /** @sly2-annot addr=0x258480
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.

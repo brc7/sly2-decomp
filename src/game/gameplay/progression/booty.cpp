@@ -134,7 +134,7 @@ void HideSoPart(BOOTYV *p, void *pv);
 void ShowSoPartsById(BOOTYV *p, int n);
 void func_001F6B48(BOOTYV *p, int n);
 void func_001618F8(SW *psw, float g);
-void func_00156C80(SW *psw, int n, qword v, CID37V *pq, void *pv);
+void ReplaceHeldSwNoise(SW *psw, int n, qword v, CID37V *pq, void *pv);
 void BroadcastGameEvent(void *pv, int n, void *p);
 void func_00161958(SW *psw);
 void SetSoCnstrForce(BOOTYV *p, int n);
@@ -602,7 +602,7 @@ void SetBootyState(BOOTYV *p, int st)
     case 1:
         if (p->pbootyeCur->xC)
             func_001618F8(&g_sw, p->pcont->g18C + 0.99f);
-        func_00156C80(&g_sw, 1, func_001A62E8(p->pcont), p->pcont, (char *)p->pcont + 0x198);
+        ReplaceHeldSwNoise(&g_sw, 1, func_001A62E8(p->pcont), p->pcont, (char *)p->pcont + 0x198);
         if (st == 2)
             BroadcastGameEvent(D_002DEB30, 0x2F, p);
         p->pcont->pbooty = 0;
@@ -651,7 +651,7 @@ void SetBootyState(BOOTYV *p, int st)
         VCALL(p, 9, PFNV));
         break;
     case 1:
-        func_00156C80(&g_sw, -1, D_002A2DD0, 0, (char *)p->pcont + 0x198);
+        ReplaceHeldSwNoise(&g_sw, -1, D_002A2DD0, 0, (char *)p->pcont + 0x198);
         SetLoXfFromMat(p, VCALL(p->pcont, 31, PFNP)));
         SetLoParent_1A58D0(p, (void *)p->pcont->x10, 3);
         p->pcont->pbooty = p;

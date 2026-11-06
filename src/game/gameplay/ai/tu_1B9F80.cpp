@@ -68,16 +68,16 @@ void SetSoMass(NEELAV *p, float g);
 void ResetStepguardToHome(NEELAV *p);
 int CidBasic(void *pv);
 void UpdateStepguard(NEELAV*);
-int FStepguardHasSgf(NEELAV*,int);
+int StepguardHasSgf(NEELAV*,int);
 qword func_001A62E8(void*);
 qword ConvertAloPos(NEELAV*,void*,qword);
 int FCheckVolPoint(VOLUME*,qword);
-void func_001BA408(NEELAV*,int);
+void SetNeelaState(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword func_0011BFF0(M3*);
-int func_001BA100(void*,ROW*);
+int FilterCid98(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 void func_00130B18(ASEGA *o);
 void ReleaseAct(MOTION **p);
@@ -92,7 +92,7 @@ void UpdateBhv(NBHV *p);
 int IsBhvBusyAbove(NBHV *p);
 void AddStepguardSgf(NEELAV *p, int n);
 void RemoveStepguardSgf(NEELAV *p, int n);
-void func_001BA828(NBHV *p, int n);
+void SetBhvNeelaChaseState(NBHV *p, int n);
 void func_00171C18(int a, void *b);
 void PopBhv(int *p);
 O *func_00205438(NEELAV *p, int b);
@@ -174,7 +174,7 @@ extern "C" void PostNeelaLoad(NEELAV *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA0B8(NEELAV *p)
+extern "C" void ResetNeelaToHome(NEELAV *p)
 {
     O *po;
     ResetStepguardToHome(p);
@@ -191,7 +191,7 @@ extern "C" void func_001BA0B8(NEELAV *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" int func_001BA100(void *pv, ROW *prow)
+extern "C" int FilterCid98(void *pv, ROW *prow)
 {
     return CidBasic(prow->object) == 0x62;
 }
@@ -230,36 +230,36 @@ extern "C" void UpdateNeela(NEELAV*p){
  UpdateStepguard(p);
  switch(p->state){
  case 0:{
-  if(!FStepguardHasSgf(p,0x25))break;
+  if(!StepguardHasSgf(p,0x25))break;
   VOLUME*volume;
-  if(FStepguardHasSgf(p,9)){volume=p->first;p->target=0;}
-  else if(FStepguardHasSgf(p,2)){volume=p->second;p->target=0;}
+  if(StepguardHasSgf(p,9)){volume=p->first;p->target=0;}
+  else if(StepguardHasSgf(p,2)){volume=p->second;p->target=0;}
   else break;
   float nearest=D_002A7620;
   for(NEELAV*node=(*(NEELAV * *)&g_sw.dlStepguard);node;node=node->next){
-   if(node==p||FStepguardHasSgf(node,7))continue;
+   if(node==p||StepguardHasSgf(node,7))continue;
    qword origin=Vector(func_001A62E8(p));
    float distance=Square(VuSub(origin,func_001A62E8(node)));
    if(nearest<distance)continue;
    if(FCheckVolPoint(volume,func_001A62E8(node))){p->target=node;nearest=distance;}
   }
-  if(!p->target&&!FStepguardHasSgf(p,2)){
+  if(!p->target&&!StepguardHasSgf(p,2)){
    qword position=Vector(ConvertAloPos(p,0,D_002C0A80.q));
    qword low=VuAdd(position,D_002C0A90.q);
    qword high=VuAdd(position,D_002C0AA0.q);
    STACKSCOPE arena;
    int count;ROW**rows;
-   IntersectSwBoundingBox(&D_003DD490,low,high,func_001BA100,0,&count,&rows);
+   IntersectSwBoundingBox(&D_003DD490,low,high,FilterCid98,0,&count,&rows);
    for(int i=0;i<count;i++){
     ROW*row=rows[i];
     if(FCheckVolPoint(volume,func_001A62E8(row->object))){p->target=row->object;break;}
    }
   }
-  if(p->target)func_001BA408(p,1);
+  if(p->target)SetNeelaState(p,1);
   break;
  }
  case 1:{
-  if(FAsegaRetracted(p->animation)){func_001BA408(p,0);break;}
+  if(FAsegaRetracted(p->animation)){SetNeelaState(p,0);break;}
   NODE*node=p->node;
   qword position=func_001A62E8(p->target);
   qword local=func_0022FC48(0,node->space,position);
@@ -281,7 +281,7 @@ extern "C" void UpdateNeela(NEELAV*p){
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA408(NEELAV *p, int st)
+extern "C" void SetNeelaState(NEELAV *p, int st)
 {
     if (st == p->state) return;
     if (p->state == 1) {
@@ -291,7 +291,7 @@ extern "C" void func_001BA408(NEELAV *p, int st)
         ReleaseAct(&p->motion);
         p->motion = 0;
         p->target = 0;
-        if (FStepguardHasSgf(p, 2)) func_00205458(p, 0x9E)->ptarget = D_002E1E40;
+        if (StepguardHasSgf(p, 2)) func_00205458(p, 0x9E)->ptarget = D_002E1E40;
         func_00204D48(p, 1.0f);
     }
     p->state = st;
@@ -300,7 +300,7 @@ extern "C" void func_001BA408(NEELAV *p, int st)
     func_0012F9B8(p->id, p, 1, &p->animation, 0.0f, 1.0f);
     VCALL0((O *)p->animation, 1);
     p->motion = func_0012DC18(p, p->node, 5, 8, 3, D_002A2DD0);
-    if (FStepguardHasSgf(p, 2)) {
+    if (StepguardHasSgf(p, 2)) {
         func_00205458(p, 0x9E)->ptarget = p->target;
         func_00204D48(p, 4.0f);
     }
@@ -312,7 +312,7 @@ extern "C" void func_001BA408(NEELAV *p, int st)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA560(NBHV *p)
+extern "C" void InitBhvNeelaChase(NBHV *p)
 {
     InitBhv(p);
     p->state = -1;
@@ -329,7 +329,7 @@ void BHV174::Start()
 {
     NBHV *p = (NBHV *)this;
     StartBhv(p);
-    func_001BA828(p, 0);
+    SetBhvNeelaChaseState(p, 0);
 }
 
 /** @sly2-annot addr=0x1BA5C8
@@ -338,9 +338,9 @@ void BHV174::Start()
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA5C8(NBHV *p)
+extern "C" void CloseBhvNeelaChase(NBHV *p)
 {
-    func_001BA828(p, -1);
+    SetBhvNeelaChaseState(p, -1);
     CloseBhv(p);
     RemoveStepguardSgf(p->po, 0x25);
 }
@@ -362,7 +362,7 @@ static inline float GEval(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x *
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA608(NBHV *p)
+extern "C" void UpdateBhvNeelaChase(NBHV *p)
 {
     int s;
     UpdateBhv(p);
@@ -374,15 +374,15 @@ extern "C" void func_001BA608(NBHV *p)
         case 0: {
             DETECTORV *ps = p->po->pdetector;
             if (!FCheckVolPoint(ps->pvolFar, func_001A62E8(D_002E1E40)))
-                func_001BA828(p, 1);
+                SetBhvNeelaChaseState(p, 1);
             break;
         }
         case 1: {
             DETECTORV *ps = p->po->pdetector;
             if (FCheckVolPoint(ps->pvolNear, func_001A62E8(D_002E1E40)))
-                func_001BA828(p, 0);
+                SetBhvNeelaChaseState(p, 0);
             else if (p->po->poly.dt < D_002DDED0.t - p->changed)
-                func_001BA828(p, 2);
+                SetBhvNeelaChaseState(p, 2);
             break;
         }
         case 2:
@@ -391,7 +391,7 @@ extern "C" void func_001BA608(NBHV *p)
         if (s == p->state)
             break;
     }
-    if (p->state == 0 && FStepguardHasSgf(p->po, 9)) {
+    if (p->state == 0 && StepguardHasSgf(p->po, 9)) {
         float d = Dist(func_001A62E8(p->po), func_001A62E8(D_002E1E40));
         NEELAV *po = p->po;
         float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);
@@ -411,7 +411,7 @@ extern "C" void func_001BA608(NBHV *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA828(NBHV *p, int st)
+extern "C" void SetBhvNeelaChaseState(NBHV *p, int st)
 {
     if (st == p->state) return;
     if (p->state == 0) func_00171C18(p->x18, p->po->ab);
@@ -447,7 +447,7 @@ extern "C" void func_001BA828(NBHV *p, int st)
  * Notes: names_v2 C proposed SetAloRealClock__FP3ALOi (0.242) | agent qualifier: splice: CID 60 command
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r5b_rest
  * @end-sly2-annot */
-extern "C" void func_001BA980(NEELAV *p, int n)
+extern "C" void SendRootBhvMode15(NEELAV *p, int n)
 {
     MODE f;
     O *po;

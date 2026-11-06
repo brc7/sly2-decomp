@@ -692,7 +692,7 @@ extern "C"{
  void*PsndStartSound(int);
  void SetSndSourceLo(void*,P*);
  qword func_001A62E8(P*);
- void*func_00156698(int,qword,P*);
+ void*NewNoise(int,qword,P*);
 }
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
 static inline int Reject(P*p,int flags){VE*v=&p->vt[76];return ((int(*)(P*,int))v->fn)((P*)((char*)p+v->delta),flags);}
@@ -814,7 +814,7 @@ notify:
 sound:
  register G*game __asm__("$16")=&D_003DD490;
  qword point=func_001A62E8(p->actor);int channel=game->channel;
- (void)func_00156698(channel,point,p->actor);
+ (void)NewNoise(channel,point,p->actor);
  return 1;
 }
 } // namespace M_FTakeJtDamage

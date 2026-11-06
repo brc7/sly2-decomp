@@ -153,7 +153,7 @@ qwordV LimitVectorLength(qwordV v, float r);
 struct HIT { SOV *owner; int field4; SOV *object; int filter, channel; char pad14[0xC]; qwordV point, impulse; char pad40[0x20]; };
 void func_001F7598(HIT *px);
 struct R54 { char pad[0x54]; int x54; };
-R54 *func_00156698(void *pv, qwordV pos, CID100V *p);
+R54 *NewNoise(void *pv, qwordV pos, CID100V *p);
 void ReleaseAct(ACT **);
 void RecalcSwOxfFilterForObject(SW *, CID100V *);
 void SetSoCnstrForce(CID100V *, int);
@@ -167,7 +167,7 @@ void FadeSoOut(CID100V *, float);
 void SetSmaGoalIfReachable(SMA *, int);
 struct R30 { char pad[0x30]; int state; };
 R30 *func_00205458(ACTOR *, int);
-int func_0017A9C0(R30 *);
+int IsBhvThrownDone(R30 *);
 void func_00209840(CONTROL *, const M3 *);
 void func_0017A8C8(R30 *, int);
 void SetActPositionGoal(void *, qwordV);
@@ -666,7 +666,7 @@ void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
     }
     for (m = 0; m < cx; m++)
         func_001F7598(&ax[m]);
-    func_00156698(D_003DD490.x402C, pos, p)->x54 = 1;
+    NewNoise(D_003DD490.x402C, pos, p)->x54 = 1;
     STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }
 
@@ -828,7 +828,7 @@ extern "C" void func_00225300(CID100V *p) {
             R30 *r;
             if(!p->actor) {
                 VCALL(p, 76),3);
-            } else if(!(r=func_00205458(p->actor,0xB0)) || func_0017A9C0(r)) {
+            } else if(!(r=func_00205458(p->actor,0xB0)) || IsBhvThrownDone(r)) {
                 VCALL(p, 76),2);
             } else {
                 M3 m((p->source?func_001A6318(p->source):func_001A6318(p))->basis);

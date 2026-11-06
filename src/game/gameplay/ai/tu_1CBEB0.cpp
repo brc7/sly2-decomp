@@ -10,10 +10,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct RAJANV : public STEPGUARD
 {
-      int fCmPolicy;            /* +0x1010 camera policy 6 is set (func_001CBF90) */
+      int fCmPolicy;            /* +0x1010 camera policy 6 is set (SetRajanCameraFocus) */
 };
 
-/* Stimulus as func_001CBEE0 sees it (HYPOTHESIS: a noise/sense stimulus with a range). */
+/* Stimulus as CanRajanSenseStimulus sees it (HYPOTHESIS: a noise/sense stimulus with a range). */
 struct RANGE { float lo, hi; };
 struct STIMSRC { byte pad[0x50]; int n50; float g54; RANGE range; };
 struct STIMOWNER { byte pad[0x18]; int cid; };
@@ -55,7 +55,7 @@ void RAJAN::Init()
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/guards-ai.md#tu_1cbeb0-0x1cbeb0-0x1cc158
  * @end-sly2-annot */
-extern "C" int func_001CBEE0(void *p, STIMULUS *pstim)
+extern "C" int CanRajanSenseStimulus(void *p, STIMULUS *pstim)
 {
       STIMSRC *psrc = pstim->psrc;
       RANGE range = psrc->range;
@@ -86,7 +86,7 @@ extern "C" int func_001CBEE0(void *p, STIMULUS *pstim)
  * See: docs/engine/bosses.md#32-rajan-m3_boss-l12-temple-exterior,
  *   docs/reference/functions/guards-ai.md#tu_1cbeb0-0x1cbeb0-0x1cc158
  * @end-sly2-annot */
-extern "C" void func_001CBF90(RAJANV *prajan, int f)
+extern "C" void SetRajanCameraFocus(RAJANV *prajan, int f)
 {
       if (prajan->fCmPolicy == f)
             return;
