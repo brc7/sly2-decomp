@@ -133,7 +133,7 @@ int GrfConsumePressed__5POCTLUif(POCTL *, int, float);
 void func_00195A00(void *, int, int, int);
 void SetJtJtcs__FP2JTi(JT *, int);
 void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
-void func_001384C0(ASEG *);
+void RecalculateAsegBlend(ASEG *);
 void SetStepRadTargetVec(JT *, qword);
 void FixStepAngularVelocity(JT *);
 void func_00204660(JT *, float);
@@ -673,7 +673,7 @@ extern "C" void ChooseJtSweepTarget(JT *p, BLEND *pblend, ASEG *paseg)
     else t = 1.0f;
     pblend->outgoing = t;
     pblend->incoming = 1.0f - t;
-    func_001384C0(paseg);
+    RecalculateAsegBlend(paseg);
     p->surface = palo;
     if (palo && p->mode == 0) {
         SetStepRadTargetVec(p, v.q);

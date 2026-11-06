@@ -93,7 +93,7 @@ qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);
 qword func_0011BFF0(const M3 *pmat);
 void SetActPositionGoal(ACT *pact, qword pos);
 void func_00130D30(ASEGA *pasega, int n, float t, float g);
-void func_001384C0(ASEGBL *pasegbl);
+void RecalculateAsegBlend(ASEGBL *pasegbl);
 void SetStepRadTargetVec(LO *plo, qword vec);
 void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
@@ -310,7 +310,7 @@ extern "C" void UpdateJtHands(JTHANDS *p)
     func_00130D30(*p->ppasega, 0, w.t * p->pasegbl->tMax, 0.0f);
     p->abl[1].uWeight = w.projection;
     p->abl[0].uWeight = 1.0f - w.projection;
-    func_001384C0(p->pasegbl);
+    RecalculateAsegBlend(p->pasegbl);
     w.saved.q = w.position.q;
     SO *receiver;
     qword delta = DifferenceFromSaved(&w.saved, func_001A62E8(p->pso), p, receiver);
@@ -520,7 +520,7 @@ extern "C" void func_001CCAC0(JTHANDS *p, int nMode)
         if (p->nKind == 2)
             p->pact1Euler = func_0012DC18(p->pso, p->pxf, 5, 7, 3, func_0022CA18(p->pxf, p->pxf));
         p->abl[1].uWeight = p->abl[0].uWeight = 0.5f;
-        func_001384C0(p->pasegbl);
+        RecalculateAsegBlend(p->pasegbl);
         EnsureSwCallback(&D_003DD490, p->pso, D_002A77C8.l, p);
         break;
     case -1:

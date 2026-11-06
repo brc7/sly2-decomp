@@ -66,7 +66,7 @@ typedef char assert_PLAYERV_target[(unsigned int)&((PLAYERV *)0)->targetMode == 
 extern "C" {
 ASEGREF *func_0012FF10(CLIP *pclip, ACTOR *p, void *a, int b);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(ACTOR *p, int cb, int c, DIRAXIS *ae, int count, int *keys, int *counts, MULTI **pn);
-void func_001384C0(void *prequest);
+void RecalculateAsegBlend(void *prequest);
 void FaceStepToward(PLAYERV *p, TARGETV *ptarget);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float, float, float);
@@ -176,7 +176,7 @@ extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
   scalar.q=k;
   axes++;
  }
- {qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(total.q),"j"(rk));{register void*argument __asm__("$4")=request;scalar.q=rk;p->acceleration.q=q;func_001384C0(argument);}}
+ {qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(total.q),"j"(rk));{register void*argument __asm__("$4")=request;scalar.q=rk;p->acceleration.q=q;RecalculateAsegBlend(argument);}}
 }
 
 static inline qword GetVel(PLAYERV*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}

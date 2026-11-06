@@ -1585,10 +1585,10 @@ FillBlAmrsg__FiiPviiP3OID,0x137FB8,78,match,src/game/engine/anim/blend.cpp
 CalculateBlendAmrsg__FiiPviiP4MRSGPf,0x1380F0,160,match,src/game/engine/anim/blend.cpp
 ImrsgLookUp__FffiP4MRSGPf,0x138370,32,match,src/game/engine/anim/blend.cpp
 SetAsegblDominantBl,0x1383F0,51,match,src/game/engine/anim/blend.cpp
-func_001384C0,0x1384C0,103,match,src/game/engine/anim/blend.cpp
-func_00138660,0x138660,195,match,src/game/engine/anim/blend.cpp
+RecalculateAsegBlend,0x1384C0,103,match,src/game/engine/anim/blend.cpp
+BlendChannelPose,0x138660,195,match,src/game/engine/anim/blend.cpp
 EvaluateBlendChnPosVel,0x138970,139,match,src/game/engine/anim/blend.cpp
-func_00138BA0,0x138BA0,132,match,src/game/engine/anim/blend.cpp
+EvaluateBlendFloatCurve,0x138BA0,132,match,src/game/engine/anim/blend.cpp
 StaticInit_blend,0x138DB0,77,match,src/game/engine/anim/blend.cpp
 func_00138EE8,0x138EE8,8,match,src/game/engine/anim/blend.cpp
 BuildBlipAqwGifs__FiPP2QW,0x138F08,46,match,src/game/engine/fx/blip.cpp
@@ -6563,7 +6563,7 @@ Shutdown__t6CGcObj1Z7CMethod,0x257FC8,16,match,src/game/splice/gc.cpp
 RcPtr_Assign,0x258040,26,match,src/game/engine/camera/cplcy.cpp
 func_002580A8,0x2580A8,51,match,src/game/engine/anim/asega.cpp
 MakeRoot__t6CGcObj1Z8CSidebag,0x258178,16,match,src/game/splice/gc.cpp
-func_002581B8,0x2581B8,2,match,src/game/engine/anim/blend.cpp
+GetBlendCurveKind,0x2581B8,2,match,src/game/engine/anim/blend.cpp
 RefGetGlobalSaveVar,0x2581C0,15,match,src/game/world/state/game.cpp
 RefSetGlobalSaveVar,0x258200,16,match,src/game/world/state/game.cpp
 func_00258248,0x258248,14,match,src/game/ui/memcard.cpp

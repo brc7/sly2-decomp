@@ -203,16 +203,16 @@ struct ACT7 : ACT
 struct AC5 : AC
 {
     int an[7];
-    virtual void VSlot2(void *pv) __asm__("func_00138660");   /* slot 2 */
+    virtual void VSlot2(void *pv) __asm__("BlendChannelPose");   /* slot 2 */
     virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("EvaluateBlendChnPosVel");   /* slot 3 */
-    virtual int VSlot4() __asm__("func_002581B8");   /* slot 4 */
+    virtual int VSlot4() __asm__("GetBlendCurveKind");   /* slot 4 */
 };
 
 /* ACG2 (0x14; vtable 0x2CB588, emitted by blend.cpp): blend-channel float curve */
 struct ACG2 : ACG
 {
     int an[4];
-    virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("func_00138BA0");   /* slot 2 */
+    virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("EvaluateBlendFloatCurve");   /* slot 2 */
 };
 
 #endif

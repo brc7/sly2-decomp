@@ -421,7 +421,7 @@ extern "C" void SetStepRadTargetVec(STEP *pstep, qword dpos);
 
 void ApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega) __asm__("func_0012F9B8");
 
-void ReblendAsegbl(ASEGBL *pasegbl) __asm__("func_001384C0");
+void ReblendAsegbl(ASEGBL *pasegbl) __asm__("RecalculateAsegBlend");
 
 int NJtRecSide(JTREC *prec) __asm__("func_001374F0");
 
@@ -2828,7 +2828,7 @@ qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
 int FPowerupAcquired(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
 void SetAsegaSpeed__FP5ASEGAf(struct MODEL*,float);void func_00204660(struct P*,float);
 void DrainStepplayerMp(struct P*,float);void SetJtJts__FP2JT3JTS4JTBS(struct P*,int,int);
-float GLimitAbs__Fff(float,float);void func_001384C0(void*);
+float GLimitAbs__Fff(float,float);void RecalculateAsegBlend(void*);
 void UpdateJtActiveZap(void*);void UpdateJtPlaces(struct P*);int FAsegaRetracted(void*);void func_001306A8(void**);
 static inline void*At(struct P*p,int offset){return(char*)p+offset;}
 static inline void ReadBinding(struct BINDING*b,struct MODEL*m,qword*out){
@@ -2904,7 +2904,7 @@ void UpdateJtPre(struct P*p){
   one=1.0f;entry=&p->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)p+entry->delta);
   weight=D_002BF3CC*GLimitAbs__Fff(Z(velocity)/(p->factor*D_002BF35C),one);
   {register float zero __asm__("$f2")=0.0f;register float magnitude __asm__("$f3");register float left __asm__("$f0");__asm__("abs.s %0,%2\n\tmax.s %1,%3,%2\n\tneg.s %2,%2":"=f"(magnitude),"=f"(left),"+f"(weight):"f"(zero));__asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3":"=m"(p->left),"+f"(one),"+f"(zero),"=m"(p->right):"f"(left),"f"(magnitude),"f"(weight));p->middle=one;}
-  func_001384C0(p->blend);break;
+  RecalculateAsegBlend(p->blend);break;
  }
  case 0:case 1:break;
  }
@@ -4548,7 +4548,7 @@ extern "C" qword func_001A62E8(P*);
 extern "C" void SmoothMatrix(M3*,M3*,SMP*,M3*,qword*,float);
 extern "C" qword PosSmooth(qword,qword,SMP*,qword*,float);
 extern "C" qword ConvertAloVec(O*,O*,qword);
-extern "C" void func_001384C0(ANIM*);
+extern "C" void RecalculateAsegBlend(ANIM*);
 static inline qword Make(float x,float y,float z){qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));return q;}
 static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
 static inline qword Normalize(qword vin,const U*negative,U*u){
@@ -4645,7 +4645,7 @@ extern "C" void func_0018DF60(P*p){
  __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4":"=&r"(animation),"+&f"(middle),"=f"(weight),"+f"(left),"=m"(p->weight):"m"(p->anim),"m"(params->weight));
  __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3":"+&f"(one),"+&f"(right),"+&f"(middle),"=m"(p->left):"f"(weight),"f"(left));
  p->right=right;p->middle=middle;p->base=one;
- func_001384C0(animation);
+ RecalculateAsegBlend(animation);
 }
 
 typedef char Qword_Size[(sizeof(qword)==16)?1:-1];

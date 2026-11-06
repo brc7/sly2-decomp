@@ -75,7 +75,7 @@ qword PosSmooth(qword,qword,float,SMPV*,U*);
 void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void func_0019CC50(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void func_0019EAB0(JTPIPE*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
-void func_0019E110(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
+void func_0019E110(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword func_001A62E8(void*);
 void func_0019FD30(void *pplaces, void *pso, float g);
@@ -276,7 +276,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
   register ASEGV*animation __asm__("$4");register float complement __asm__("$f0");
   __asm__(".set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%0\n\t.set at\n\tlw %1,0x70(%3)\n\tsub.s %0,%0,%4\n\tswc1 %4,%2":"=f"(complement),"=r"(animation),"=m"(p->weight1):"r"(p),"f"(weight):"$1","memory");
   p->weight0=complement;
-  func_001384C0(animation);
+  RecalculateAsegBlend(animation);
  }
  func_0019EAB0(p,mode);
 }

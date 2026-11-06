@@ -1888,7 +1888,7 @@ void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, f
 qword ConvertAloPos(void *, struct PO *, qword);
 void SetStepRadTargetVec(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
-void func_001384C0(void *);
+void RecalculateAsegBlend(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
 void func_00131B10(void *, struct PO *, int);
 void func_00131A90(void *, float);
@@ -1951,7 +1951,7 @@ void func_00136F48(struct S *ps, int state)
         pv = pe->p18;
         pe->fC = ps->g1C;
         dt = 0.06666667f;
-        func_001384C0(pv);
+        RecalculateAsegBlend(pv);
         break;
     }
     }

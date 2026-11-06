@@ -104,7 +104,7 @@ float atan2f(float,float);
 float RadStepHeading(O *);
 float RadNormalize__Ff(float);
 void SetJtthrowState(JTTHROW *,int);
-void func_001384C0(ASEG *);
+void RecalculateAsegBlend(ASEG *);
 int FAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
@@ -340,7 +340,7 @@ extern "C" void UpdateJtthrow(JTTHROW *s){
    float threshold=s->idleThreshold;
    if(threshold<angle)SetJtthrowState(s,2);
    else if(angle<-threshold)SetJtthrowState(s,1);
-   else{s->blend1=angle/threshold*0.5f+0.5f;s->blend0=1.0f-s->blend1;func_001384C0(s->animation0);}
+   else{s->blend1=angle/threshold*0.5f+0.5f;s->blend0=1.0f-s->blend1;RecalculateAsegBlend(s->animation0);}
    break;
   }
   case 1:case 2:
@@ -578,10 +578,10 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  pjtthrow->ablB[1].gWeight=uTurn*uNear;
  pjtthrow->ablB[2].gWeight=uTurnOpp*uFar;
  pjtthrow->ablB[3].gWeight=uTurn*uFar;
- func_001384C0(pjtthrow->animation4);
+ RecalculateAsegBlend(pjtthrow->animation4);
  pjtthrow->ablC[0].gWeight=uNear;
  pjtthrow->ablC[1].gWeight=uFar;
- func_001384C0(pjtthrow->animation7);
+ RecalculateAsegBlend(pjtthrow->animation7);
 }
 #include "sly2/vu0.h" // here, not at the top: declared before UpdateJtThrowArc, the helpers change its code (355 of 517 off)
 
@@ -839,7 +839,7 @@ extern "C" void SetJtthrowState(JTTHROW *s,int state){
   s->selected=0;
   return;
  case 0:
-  if(previous!=1&&previous!=2){s->blend0=s->blend1=0.5f;func_001384C0(s->animation0);}
+  if(previous!=1&&previous!=2){s->blend0=s->blend1=0.5f;RecalculateAsegBlend(s->animation0);}
   animation=s->animation0;flags=9;break;
  case 1:animation=s->animation1;break;
  case 2:animation=s->animation2;break;

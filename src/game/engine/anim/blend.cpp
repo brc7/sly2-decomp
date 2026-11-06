@@ -1,7 +1,9 @@
 // blend.cpp -- ASEGBL, an animation segment that blends several segments: building one from a set of segments
 // (EnsureAsegBlendDynamic), per-segment MRSG timing tables, the dominant segment, and evaluating blended channels
 // (positions/rotations with VU0 asm, scalars). TU 0x137A30..0x138F08 (11 functions, address order), and the linkonce
-// copy func_002581B8 (an inline virtual of a class whose vtable belongs to this TU; at the end).
+// copy GetBlendCurveKind (an inline virtual of a class whose vtable belongs to this TU; at the end).
+// Entry points: EnsureAsegBlendDynamic (blend creation, from the animation code), RecalculateAsegBlend (after weight
+// changes), and the blended-channel curve slots called through AC5/ACG2 vtables.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_blend
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00138EE8
 #include "sly2/slotheap.h"
@@ -43,7 +45,7 @@ struct CHN
     VU xE0;
     VU xF0;
 };
-/* A segment's channel chain entry and the chain list (SetAsegblDominantBl, func_001384C0). */
+/* A segment's channel chain entry and the chain list (SetAsegblDominantBl, RecalculateAsegBlend). */
 struct CHNE { int f0; int f4; CHN *px; char pad[0x1c - 0xc]; int f1c; char pad2[0x28 - 0x20]; CHNE *pnext; };
 struct LINK { char pad[0x1C]; float g1C; char pad20[0xC]; LINK *pnext; int f30; CHNE *pcFirst; };
 struct KEY { float t; int x4; int x8; int xC; };
@@ -84,7 +86,7 @@ struct VTE { short d; short pad; void *pfn; };
 struct CHNO { VTE *vt; };
 /* A blended channel: its blend, timing tables and per-element channel objects; then the default value. */
 struct BLCHNQ { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; qword q; };
-struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("func_0012B4F0"); virtual void VSlot2(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void VSlot2(CHN *pq) __asm__("func_00138660"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int VSlot4() __asm__("func_002581B8"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("func_0012CC60"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("func_00138BA0"); };
+struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("func_0012B4F0"); virtual void VSlot2(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void VSlot2(CHN *pq) __asm__("BlendChannelPose"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int VSlot4() __asm__("GetBlendCurveKind"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("func_0012CC60"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("EvaluateBlendFloatCurve"); };
 
 extern const float D_002A4AF0;   /* defined below where the ELF has it (.rodata order) */
 extern char D_002C44E0[];
@@ -100,7 +102,7 @@ OBJ *PacNewKind2(int id);
 void func_0012FE58(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
 qword func_0022CA18(void *pa, void *pb);
 void FramePtr_Assign(ASEG *px, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_001384C0(ASEG *px);
+void RecalculateAsegBlend(ASEG *px);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, ASEG **ppx);
 float func_0012F990(ASEG *paseg, OID oid);
 float GModPositive__Fff(float, float);
@@ -123,6 +125,9 @@ int ImrsgLookUp(float t, float tMax, int cmrsg, MRSG *amrsg, float *pdt);
  * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
  *   docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions
  * @end-sly2-annot */
+// Finds or creates the blend segment (ASEGBL, class 0x6E) that blends a given set of animation segments with the given
+// weights: reuses an existing blend over the same segments when there is one, otherwise builds a new one (channels per
+// blended object, MRSG timing tables for each sync point) and returns it through the last argument.
 extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, ASEG **ppx)
 {
     ELEM *pe;
@@ -233,7 +238,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pe->w = (pe->paseg == pxFirst) ? 1.0f : 0.0f;
             pe = (ELEM *)((char *)pe + cb);
         }
-        func_001384C0(pxNew);
+        RecalculateAsegBlend(pxNew);
         *ppx = pxNew;
     }
 }
@@ -244,6 +249,9 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Fills each blended segment's MRSG timing table: for every sync-point OID, the time at which that segment reaches it and
+// the duration to the next sync point (wrapping around the segment's length). These tables let segments of different
+// lengths stay in step while blended.
 void FillBlAmrsg(int cbBl, int cbl, void *pbl, int ibAmrsg, int coid, OID *aoid)
 {
     int ibl;
@@ -276,6 +284,8 @@ void FillBlAmrsg(int cbBl, int cbl, void *pbl, int ibAmrsg, int coid, OID *aoid)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Computes the blend's own timing table as the weight-averaged durations of the segments' tables (and, through pf, the
+// blend's total length); with no sync points the length is simply the weighted average of the segment lengths.
 extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *amrsg, float *pf)
 {
     float gSum = 0.0f;
@@ -338,6 +348,8 @@ extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRS
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Finds which sync-point interval of an MRSG table contains time t (wrapping at tMax); returns its index and, through
+// pdt, the time elapsed since that sync point. Returns cmrsg when no interval matches.
 int ImrsgLookUp(float t, float tMax, int cmrsg, MRSG *amrsg, float *pdt)
 {
     int i;
@@ -366,6 +378,8 @@ namespace RO_ORDER { extern const float r_D_002A4AF0 __asm__("D_002A4AF0") = -3.
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Records which blended segment dominates (weight above 0.9999, or -1 for none); when it changes, resets the smoothing
+// state of every live action on the blend's channels so they do not interpolate across the switch.
 extern "C" void SetAsegblDominantBl(ASEG *p, int n) {
     LINK *pa;
     CHNE *pc;
@@ -390,7 +404,10 @@ extern "C" void SetAsegblDominantBl(ASEG *p, int n) {
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-extern "C" void func_001384C0(ASEG *p)
+// Re-blends a blend segment after its weights changed (Sly 1: ReblendAsegbl): updates the dominant segment, recomputes the
+// blended timing tables and total length while keeping the links' relative times, and mirrors times onto a linked
+// blend (+0xD8) so paired blends stay in sync.
+extern "C" void RecalculateAsegBlend(ASEG *p)
 {
     int unused[4];
     int i;
@@ -449,6 +466,9 @@ static __inline__ qword MaddN(qword a, qword v, qword s)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Evaluates a blended pose channel (vtable label BlendChannelPose): with a dominant segment it forwards to that segment's
+// channel; otherwise it maps the blend time onto each weighted segment through the MRSG tables, evaluates each segment's
+// channel and weight-sums the positions and rotations into the output channel record.
 void AC5::VSlot2(CHN *pq)
 { BLCHNQ *p = (BLCHNQ *)this;
     VU c, d;
@@ -578,6 +598,8 @@ static __inline__ qword Madd(qword a, qword v, qword s)
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Evaluates a blended position/rotation curve at time t (rate = time scale): maps t into each weighted segment's time
+// through the MRSG tables, evaluates the segment curves and returns their weighted sum (VU0 asm).
 void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
 { BLCHNQ *p = (BLCHNQ *)this;
     float u;
@@ -667,6 +689,8 @@ done:
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Evaluates a blended float curve (vtable label EvaluateBlendFloatCurve): weighted sum over the blended segments of each
+// segment's float curve value and its rate, at the MRSG-mapped time.
 void ACG2::Evaluate(float t, float r, float *pa, float *pb)
 { BLCHNF *p = (BLCHNF *)this;
     float g0;
@@ -722,9 +746,9 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
 }
 
 // AC5's vtable 0x2CB5A8 and ACG2's 0x2CB588 (sly2/act.h; act.cpp's PacNewKind/PacNewKind2 construct them) sit
-// right before blip's _vt$5BLIPG in .data: this is their key TU (AC5::VSlot2 = func_00138660 and ACG2::Evaluate =
-// func_00138BA0 above are the key functions), so g++ emits both vtables here, and AC5's inline slot 4 below comes
-// out of line with them, weak in .gnu.linkonce.t.func_002581B8. The asm label keeps the config name (HYPOTHESIS:
+// right before blip's _vt$5BLIPG in .data: this is their key TU (AC5::VSlot2 = BlendChannelPose and ACG2::Evaluate =
+// EvaluateBlendFloatCurve above are the key functions), so g++ emits both vtables here, and AC5's inline slot 4 below comes
+// out of line with them, weak in .gnu.linkonce.t.GetBlendCurveKind. The asm label keeps the config name (HYPOTHESIS:
 // in the original an in-class `virtual int Kind() { return 5; }`). The classes are declared on the BLCHNF line
 // near the top of the file, so that the functions above keep their line numbers.
 /** @sly2-annot addr=0x2581B8
@@ -733,4 +757,5 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
  * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// The blended curve's kind: always 5 (inferred: an in-class inline virtual; emitted out of line here as linkonce).
 inline int AC5::VSlot4() { return 5; }

@@ -66,7 +66,7 @@ void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF 
 CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("func_0012FF10");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 void FillBlAmrsg(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
-void ReblendAsegbl(ASEGBL *pasegbl) __asm__("func_001384C0");
+void ReblendAsegbl(ASEGBL *pasegbl) __asm__("RecalculateAsegBlend");
 struct VKBLEND : public VECKEY
 {
       ASEGBL *pasegbl;
@@ -150,7 +150,7 @@ extern const float D_002A8904;   /* defined below where the ELF has it (.rodata 
 extern void *D_002DAA10[] __asm__("_vt$4LEAP");
 extern void *D_002DA9D0[] __asm__("_vt$6CID146");
 
-void func_001384C0(ASEGBL *);
+void RecalculateAsegBlend(ASEGBL *);
 float GModPositive__Fff(float a, float b);
 void *PsndStartSound(int h);
 void SetSndSourceLo(void *p, void *source);
@@ -364,7 +364,7 @@ extern "C" void UpdateGaitBlend(GAIT *p, float g)
         p->abl[1].gWeight = g;
         p->abl[0].gWeight = 1.0f - g;
     }
-    func_001384C0(p->pasegbl);
+    RecalculateAsegBlend(p->pasegbl);
     pt = p->pstepplayer;
     InitScalar(&a,*(int *)&func_0020BB48(p)->svt);
     b = a;
