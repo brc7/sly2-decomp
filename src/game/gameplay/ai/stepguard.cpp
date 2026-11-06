@@ -1637,9 +1637,9 @@ extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
 
 // 0x2085B0 AddStepguardDetectTargetBack
 // 0x2085B0: Adds a detector target in the generated (back) part of the list.
-extern "C" void AddStepguardDetectTargetBack(STEPGUARD *guard, LO *plo)
+extern "C" void AddStepguardDetectTargetBack(STEPGUARD *guard, LO *object)
 {
-    TryAddStepguardDetectTarget(guard, plo, 0);
+    TryAddStepguardDetectTarget(guard, object, 0);
 }
 
 // 0x2085D0 TryAddStepguardDetectTarget
@@ -2931,13 +2931,13 @@ ret0:
 
 // 0x20A378 IsStepguardTargetValidEx
 // 0x20A378: IsStepguardTargetValid with extra cases for Murray and cids 0x3A/0x3D.
-extern "C" int IsStepguardTargetValidEx(LO *plo, LO *ploOther, int n)
+extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 {
-    if ((FIsBasicDerivedFrom((BASIC *)ploOther, (CID)0x36) != 0) && (FIsBasicDerivedFrom((BASIC *)plo, (CID)0x3A) == 0) &&
-        (FIsBasicDerivedFrom((BASIC *)plo, (CID)0x3D) == 0) && (plo != D_002DD648)) {
+    if ((FIsBasicDerivedFrom((BASIC *)ploOther, (CID)0x36) != 0) && (FIsBasicDerivedFrom((BASIC *)object, (CID)0x3A) == 0) &&
+        (FIsBasicDerivedFrom((BASIC *)object, (CID)0x3D) == 0) && (object != D_002DD648)) {
         return 1;
     }
-    return IsStepguardTargetValid(plo, ploOther, n);
+    return IsStepguardTargetValid(object, ploOther, n);
 }
 
 // 0x20A408 ChooseStepguardStimulus
@@ -3030,9 +3030,9 @@ void SetStepguardPatrolScript(struct S *guard, int n)
 // 0x20A5F8 InitTargetRecord
 // 0x20A5F8: Initializes a shared per-target engagement record (0xAC bytes) and links it on the world's list.
 /* Initialises a target record for plo and appends it to the record list g_sw.dlTargetrec. */
-extern "C" TARGETREC *InitTargetRecord(TARGETREC *ptargetrec, LO *plo)
+extern "C" TARGETREC *InitTargetRecord(TARGETREC *ptargetrec, LO *object)
 {
-    ptargetrec->plo = plo;
+    ptargetrec->plo = object;
     ptargetrec->g14 = 1.0f;
     ptargetrec->g18 = 2.0f;
     ptargetrec->n10 = -1;

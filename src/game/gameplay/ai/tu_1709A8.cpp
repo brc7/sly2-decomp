@@ -259,10 +259,10 @@ extern "C" SSGE *AddGuardScriptCommand(SSG *script, int kind, int id)
 }
 
 // 0x170E68: Starts this script on a guard, if one is given.
-extern "C" void StartGuardScriptOnGuard(SSG *script, LO *plo)
+extern "C" void StartGuardScriptOnGuard(SSG *script, LO *object)
 {
-    if (plo != 0) {
-        StartGuardScript(plo, script);
+    if (object != 0) {
+        StartGuardScript(object, script);
     }
 }
 
@@ -814,11 +814,11 @@ void SetGuardRoutineMode(void *p) { struct F f; void *o = func_00205458(p, 0x9C)
 
 // 0x171DA8: True if the guard's root behaviour is in mode 5 running this script.
 /* Whether plo's guard behaviour (CID 0x9C) is in mode 5 on script command id. */
-extern "C" int IsGuardRunningScript(LO *plo, int id)
+extern "C" int IsGuardRunningScript(LO *object, int id)
 {
     BHVGUARDV *pbhvguard;
     int f;
-    pbhvguard = (BHVGUARDV *)func_00205458(plo, 0x9C);
+    pbhvguard = (BHVGUARDV *)func_00205458(object, 0x9C);
     f = 0;
     if ((pbhvguard != 0) && (pbhvguard->mode == 5)) {
         f = pbhvguard->argument == id;

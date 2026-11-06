@@ -730,11 +730,11 @@ void UpdateBhvattack(struct S *behavior) {
 // landed.
 extern "C" int HandleBhvattackMessage(BHVATTACKV *behavior, int msgid, MSGLO *pmsg)
 {
-    LO *plo;
+    LO *object;
     if (msgid == 0xB) {
-        plo = pmsg->plo;
-        if (plo == behavior->plo) {
-            if (GetStepguardFromLo(plo) == (STEPGUARD *)behavior->pstep) {
+        object = pmsg->plo;
+        if (object == behavior->plo) {
+            if (GetStepguardFromLo(object) == (STEPGUARD *)behavior->pstep) {
                 behavior->fHit = 1;
                 return 1;
             }

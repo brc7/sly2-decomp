@@ -568,15 +568,15 @@ namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.
 // the clearest of 11 directions away from it.
 extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
 {
-    HERO *pso = PpoHero(D_003DD490);
-    float dist = Len(VuSub(func_001A62E8(pso), pos));
+    HERO *object = PpoHero(D_003DD490);
+    float dist = Len(VuSub(func_001A62E8(object), pos));
     float u = GGetDifficulty(D_002DE578);
-    qwordV posTarget = AddScaled(func_001A62E8(pso), g_normalZ, VU_FLOAT(50.0f));
+    qwordV posTarget = AddScaled(func_001A62E8(object), g_normalZ, VU_FLOAT(50.0f));
     VUV off;
     VECTORV clq;
     LMV lm;
     VUV sc;
-    qwordV vel = pso->pvt->pfn((HERO *)((char *)pso + pso->pvt->d));
+    qwordV vel = object->pvt->pfn((HERO *)((char *)object + object->pvt->d));
     FRAME frame;
     VUV hit;
     qwordV pad[5]; /* unused: frame layout */
@@ -601,8 +601,8 @@ extern "C" qwordV ChooseEscapePosition(void *p, qwordV pos)
         }
         off.q = ScaleR(vel, sc);
     } else {
-        M3 *pm = func_001A6318(pso);
-        M3 *pm2 = func_001A6318(pso);
+        M3 *pm = func_001A6318(object);
+        M3 *pm2 = func_001A6318(object);
         off.q = SetVectorCylind(atan2f(((float *)pm)[1], ((float *)pm2)[0]), D_002BDC98, 0.0f);
     }
     GetVectorSphere(VuSub(Add(posTarget, off.q), pos), &pan, &tilt, &s);

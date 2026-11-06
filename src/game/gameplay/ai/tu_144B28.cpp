@@ -494,7 +494,7 @@ void UpdateBhvfollow(struct P *behavior)
     struct PO *po;
     qword a, b;
     float gXY, g;
-    struct SO *pso;
+    struct SO *object;
     void *pv30;
     UpdateBhv(behavior);
     po = behavior->guard;
@@ -502,9 +502,9 @@ void UpdateBhvfollow(struct P *behavior)
     a = func_001A62E8(po);
     b = func_001A62E8(pv30);
     gXY = LenXY(Sub(a, b));
-    pso = PickBhvfollowTarget(behavior);
-    if (pso) {
-        qword c = func_001A62E8(pso);
+    object = PickBhvfollowTarget(behavior);
+    if (object) {
+        qword c = func_001A62E8(object);
         float dA = Len(Sub(c, a));
         float dB = Len(Sub(c, b));
         g = dA < dB ? dA : dB;
@@ -520,7 +520,7 @@ void UpdateBhvfollow(struct P *behavior)
             if (f)
                 SetBhvfollowState(behavior, 1);
             else if (FCheckLm__FP2LMf(&D_002BD330, g)) {
-                behavior->p90 = pso;
+                behavior->p90 = object;
                 SetBhvfollowState(behavior, 2);
             }
             break;
@@ -697,18 +697,18 @@ int SnapToGround(qword *ppos, float a, float b, int c, int d);
 // 0x1459C0: True if the leader stands on a different ground object than the follower.
 int IsBhvfollowLeaderOnNewGround(struct P *behavior)
 {
-    struct SO *pso = GetBhvfollowLeaderGround(behavior);
+    struct SO *object = GetBhvfollowLeaderGround(behavior);
     struct D *pd;
     struct E *pe;
     qword pos;
-    if (!pso) return 0;
+    if (!object) return 0;
     pd = behavior->pa->pc ? behavior->pa->pc->pd : 0;
     pe = pd ? pd->pe : 0;
-    if ((struct E *)pso == pe) return 0;
-    if (pso->k == 0x2CA) return 0;
+    if ((struct E *)object == pe) return 0;
+    if (object->k == 0x2CA) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, 0x34) && behavior->leader->x2DC != -1) return 0;
     pos = func_001A62E8(behavior->leader);
-    if (!func_001C09A0(pso, pos, 0)) return 0;
+    if (!func_001C09A0(object, pos, 0)) return 0;
     if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0)) return 0;
     behavior->pos = pos;
     return 1;
