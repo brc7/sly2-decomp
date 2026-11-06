@@ -1,7 +1,8 @@
 /* include/sly2/guard.h -- STEPGUARD (CID 0x38) and the guard root behaviour BHV156 (CID 0x9C).
  * Written by hand in types_round2 from runtime findings (runtime, runtime2, runtime4, runtime7a FINDINGS; devtools/ram_inspector
  * guard decoder). Only offsets with evidence are named; the rest is padding. Tags: [R] runtime-confirmed (offset and meaning
- * checked in save-state RAM), [S] static, [H] hypothesis. No src/ file includes this header yet. */
+ * checked in save-state RAM), [S] static, [H] hypothesis. Included by sly2/classes.h and the guard TUs under
+ * src/game/gameplay/ai/ (stepguard, guardbhv, detector, pickpocket, gomer, ...). */
 #ifndef SLY2_GUARD_H
 #define SLY2_GUARD_H
 #include "sly2/leap.h"
@@ -62,7 +63,9 @@ struct CID120 : LO
 };
 typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
 
-/* STEPGUARD: class descriptor cb 0x1010, vtable 89 entries (types/cid_table.csv, CONFIRMED runtime) */
+/* STEPGUARD: the guard: a STEP driven by its behaviour stack (root BHV156), with hit points, a target, pickpocket
+   loot, a vision detector and animation bindings.
+   class descriptor cb 0x1010, vtable 89 entries (types/cid_table.csv, CONFIRMED runtime) */
 struct STEPGUARD : public STEP
 {
       unsigned long grfsg;          /* +0x2C0 [R] guard flag word == union of the flags of the behaviours on bhvstk (all
