@@ -802,7 +802,7 @@ void UpdateMurrayCarry(struct P *murray)
             }
             break;
         }
-        if (murray->carrySubstate == s || murray->state != 5)
+        if (murray->carrySubstate == s || murray->state != MURRAY_CARRY)
             break;
     }
     switch (murray->carrySubstate) {
@@ -1118,14 +1118,14 @@ extern "C" void UpdateMurrayStrafe(P *murray)
             else {
                 PL *pl = murray->input;
                 float strength = pl->strength;
-                if (murray->mainState == 0 ? 0.1f < strength : 0.0f < strength)
+                if (murray->mainState == MURRAY_IDLE ? 0.1f < strength : 0.0f < strength)
                     SetMurrayStrafeSubstate(murray, 2);
                 else
                     SetMurrayStrafeSubstate(murray, 0);
             }
         } break;
         }
-        if (murray->state == before || murray->mainState != 9)
+        if (murray->state == before || murray->mainState != MURRAY_STRAFE)
             break;
     }
     switch (murray->state) {
@@ -1638,7 +1638,7 @@ void GetJtPipeVelocity(void *p, int *pf);
 // MURRAY camera definition (slot 50): stamps x1080 while moving, STEPPLAYER base, then flag bit 1 for flop/strafe.
 void GetMurrayCpdefi(struct S *murray, int *pf)
 {
-    if (murray->k != 0 && murray->k != 16 && murray->x4CC) murray->t1080 = D_002DDED0.t;
+    if (murray->k != MURRAY_IDLE && murray->k != MURRAY_PLAYER_STATE_4 && murray->x4CC) murray->t1080 = D_002DDED0.t;
     GetStepplayerCpdefi(murray, pf);
     switch (murray->k) {
     case MURRAY_ATTACK:
@@ -1672,7 +1672,7 @@ void PresetJtAccelPipe(void *p);
 void PresetMurrayAccel(struct S *murray)
 {
     char *b = (char *)murray;
-    if (murray->k == 20) func_001F9B20(murray);
+    if (murray->k == MURRAY_PIPE) func_001F9B20(murray);
     else PresetStepAccel(murray);
     switch (murray->k) {
     case MURRAY_JUMP: PresetJtAccelJump(b + 0x2C0); break;
@@ -1784,7 +1784,7 @@ void HandleMurrayMessage(P *murray, int msg, MSG *pm)
         break;
     case 10:
         if (pm->x0 != murray->x1034) return;
-        if (murray->state != 6) return;
+        if (murray->state != MURRAY_STRUGGLE) return;
         if (pm->x8 == pm->x4) return;
         switch (pm->x8) {
         case 0x1CA:
@@ -2608,13 +2608,13 @@ void DropMurrayCarried(struct P *murray)
 {
     struct O *o;
     struct X *x;
-    if (murray->state == 6) {
+    if (murray->state == MURRAY_STRUGGLE) {
         if (murray->x1530) SetSmaGoal(murray->x1530, 0x1CA);
         return;
     }
     o = murray->carried;
     if (!o) return;
-    if (murray->state == 4 && murray->x1450 == 0) {
+    if (murray->state == MURRAY_LIFT && murray->x1450 == 0) {
         ((void (*)())o->vt[3].pfn)((char *)o + o->vt[3].d, 6, 0, 0, 0, 0);
         murray->carried = 0;
         return;
@@ -2937,7 +2937,7 @@ int GetStepplayerModeCode(struct S *p);
 int GetMurrayModeCode(struct S *murray)
 {
     if (murray->f204) return 0;
-    if (murray->m == 1 || murray->n == 20) return 0;
+    if (murray->m == 1 || murray->n == MURRAY_PIPE) return 0;
     return GetStepplayerModeCode(murray);
 }
 } } // namespace M_func_001B8368
@@ -2993,7 +2993,7 @@ int ShouldMurrayIgnoreIntersection(struct P *murray, void *pv)
     int n = FIgnoreIntersection__10STEPPLAYERP2SO(murray, pv);
     if (murray->p1430 && FFindLoParent(pv, murray->p1430))
         n = func_00134310(n, 3);
-    else if (murray->state == 15)
+    else if (murray->state == MURRAY_AIMED_THROW)
         n = AdjustJtThrowFindFlags(murray->a1910, pv, n);
     return n;
 }
