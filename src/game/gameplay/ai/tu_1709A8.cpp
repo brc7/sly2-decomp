@@ -19,6 +19,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Class ids used here (docs/reference/class-tree.md). */
 enum {
+    CID_BHV187 = 0xBB,
+    CID_BHV188 = 0xBC,
     CID_SHAPE = 0xA,
     CID_PIPE = 0xB,
     CID_RAIL = 0xD,
@@ -515,25 +517,25 @@ extern "C" void CloseBhvScript(BHVSSG *behavior)
    (behaviour slot 15). Returns the current command (0 at the end). */
 extern "C" SSGE *UpdateBhvScript(BHVSSG *behavior)
 {
-    SSGE *pssgeNext;
+    SSGE *next;
     SSGE *command;
     UpdateBhv(behavior);
     command = behavior->currentCommand;
     if (command != 0) {
-loop:
-        command = (SSGE *)IsBhvScriptCommandBusy(behavior);
-        if (command == 0) {
+        for (;;) {
+            command = (SSGE *)IsBhvScriptCommandBusy(behavior);
+            if (command != 0)
+                break;   // still running
             command = behavior->currentCommand;
-            pssgeNext = command->next;
-            behavior->currentCommand = pssgeNext;
-            if (pssgeNext != 0) {
-                VTE *entry = behavior->vt;
-                ((void (*)(BHVSSG *, SSGE *))entry[15].pfn)((BHVSSG *)((char *)behavior + entry[15].d), pssgeNext);
-                command = behavior->currentCommand;
-                if (command != 0) {
-                    goto loop;
-                }
-            }
+            next = command->next;
+            behavior->currentCommand = next;
+            if (next == 0)
+                break;   // the script ended (returns the last command)
+            VTE *entry = behavior->vt;
+            ((void (*)(BHVSSG *, SSGE *))entry[15].pfn)((BHVSSG *)((char *)behavior + entry[15].d), next);   // StartCommand
+            command = behavior->currentCommand;
+            if (command == 0)
+                break;
         }
     }
     return command;
@@ -685,15 +687,12 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         break;
     case 5: {
         struct A *a = behavior->guard;
-        int k;
         switch (a->nF80) {
         case 2:
-            k = 0xBB;
-            goto spawn;
+            ((struct O *)func_00205438(a, CID_BHV187))->V8();
+            break;
         case 3:
-            k = 0xBC;
-        spawn:
-            ((struct O *)func_00205438(a, k))->V8();
+            ((struct O *)func_00205438(a, CID_BHV188))->V8();
             break;
         case -1:
             ((struct O *)func_00205438(a, CID_BHVIDLE))->V8();
