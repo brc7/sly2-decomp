@@ -4376,3 +4376,4 @@ _vt$4EXPL = 0x2CE9D0; // type:data size:0x1A8
 // emitter.h's empty reference blocks (template static data members, DRAFT names; emitter.cpp)
 _t9EMITBREFS1Z7EMITTER$s_apvNull = 0x2CE4A0; // type:data size:0x14
 _t9EMITBREFS1Z5EXPLO$s_apvNull = 0x2CE4B8; // type:data size:0x14
+_ctype_ = 0x2AA6A0; // type:data (newlib ctype table; game code reads it as _ctype_+1)
