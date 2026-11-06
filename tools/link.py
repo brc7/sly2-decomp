@@ -73,17 +73,22 @@ def compile_all(srcs, per_function):
     appended to matchtool's include list, the one argument list every compile path of compile_src passes on"""
     flag = '-ffunction-sections'
     matchtool.INCLUDES = [x for x in matchtool.INCLUDES if x != flag] + ([flag] if per_function else [])
+    failed = []
     def one(s):
         o = obj_path(s, per_function)
         os.makedirs(os.path.dirname(o), exist_ok=True)
         try:
             shutil.move(matchtool.compile_src(s), o)   # relative path, as matchtool is run (the path-hash quirk)
-        except (SystemExit, OSError):                  # compile error, or a compiler this host cannot run
-            print(f'FAILED: {s}' + (' (the previous object is kept)' if os.path.exists(o) else ''), file=sys.stderr)
+        except (SystemExit, OSError):                  # compile error, or a compiler this host cannot run:
+            if os.path.exists(o):                      # never link a stale object in its place
+                os.remove(o)
+            failed.append(s)
+            print(f'FAILED: {s}', file=sys.stderr)
     with ThreadPoolExecutor(os.cpu_count() or 2) as ex:
         for i, _ in enumerate(ex.map(one, srcs)):
             if i % 50 == 0:
                 print(f'compiled {i}/{len(srcs)}{" (per function)" if per_function else ""}', file=sys.stderr)
+    return sorted(failed)
 
 
 # ---- ELF reading ----
@@ -530,15 +535,17 @@ def main():
     compile = '--no-compile' not in sys.argv
     srcs, sdk = sources()
     if '--sdk-only' in sys.argv:             # the SDK sources only, where the i386 tools run (see full-link.md)
-        return compile_all(sdk, False)
+        failed = compile_all(sdk, False)
+        if failed:
+            sys.exit(f'link.py: {len(failed)} SDK sources failed to compile:\n  ' + '\n  '.join(failed))
+        return
     img = Image(ELF)
-    if compile:
-        compile_all(srcs, per_function)
+    failed = compile_all(srcs, per_function) if compile else []
     ok = [s for s in srcs if os.path.exists(obj_path(s, per_function))]
     ok += [s for s in sdk if os.path.exists(obj_path(s, False))]          # SDK objects built by --sdk-only
     objs = [Obj(s, per_function and s in srcs) for s in ok]
     fallback = {} if per_function else tu_check(objs, img)
-    compile_all([s for s in fallback if s in srcs and (compile or not os.path.exists(obj_path(s, True)))], True)
+    failed += compile_all([s for s in fallback if s in srcs and (compile or not os.path.exists(obj_path(s, True)))], True)
     objs = [Obj(o.src, True) if o.src in fallback and os.path.exists(obj_path(o.src, True)) else o for o in objs]
     unbuilt = set(srcs + sdk) - set(ok)
     print(f'{len(objs)} objects ({len(set(srcs) - set(ok))} sources failed to compile, {len(set(sdk) - set(ok))} SDK '
@@ -580,6 +587,9 @@ def main():
     if os.path.exists(elf):
         compare(elf, img, layout, objs, set(conflicts))
         symbol_check(elf, img)
+    if failed:                               # the link above left them out (their bytes are blobs): still a failure
+        sys.exit(f'\nlink.py: {len(failed)} sources failed to compile (their stale objects were deleted):\n  '
+                 + '\n  '.join(failed))
 
 
 if __name__ == '__main__':
