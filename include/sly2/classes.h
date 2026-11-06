@@ -199,8 +199,8 @@ typedef char assert_GUARD_size[sizeof(GUARD) == 0x1010 ? 1 : -1];
 struct CID44 : XFM
 {
     char padE0[0x140 - 0xE0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid44ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0012E600");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid44ClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("func_0012E6A0");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("func_0012E6E8");   /* slot 12 */
     virtual void VUnk14() __asm__("func_0012E648");   /* slot 15 */
