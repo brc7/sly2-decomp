@@ -105,7 +105,7 @@ CRef RefOpPrint(int c, CRef *aref, CFrame *pframe);
 CRef RefOpEqv(int c, CRef *aref, CFrame *pframe);
 
 /* The argument list of a special form: the rest of the list after the keyword. */
-static inline CPair *PpairArgs(CPair *ppair) { return ((CPair *)ppair->ref.u.pv)->pnext.p; }
+static inline CPair *PpairArgs(CPair *ppair) { return ((CPair *)ppair->ref.u.pv)->next.p; }
 
 /** @sly2-annot addr=0x126438
  * Purpose: Evaluates a symbol: looks up its binding in the frame chain (0x127D78) and returns it
@@ -133,7 +133,7 @@ CRef RefEvalSet(CPair *ppair, CFrame *pframe)
 {
     CRef ref;
     CPair *pargs = PpairArgs(ppair);
-    ref = RefEval(pargs->pnext.p, pframe);
+    ref = RefEval(pargs->next.p, pframe);
     ref = pframe->RefSetBinding(pargs->ref.u.n, &ref);
     return ref;
 }
@@ -148,7 +148,7 @@ CRef RefEvalDefine(CPair *ppair, CFrame *pframe)
 {
     CRef ref;
     CPair *pargs = PpairArgs(ppair);
-    ref = RefEval(pargs->pnext.p, pframe);
+    ref = RefEval(pargs->next.p, pframe);
     ref = CFrame_RefAddBinding(pframe, pargs->ref.u.n, &ref);
     return ref;
 }
@@ -163,7 +163,7 @@ CRef RefEvalAssert(CPair *ppair, CFrame *pframe)
 {
     CRef ref;
     CPair *pargs = PpairArgs(ppair);
-    CPair *pmsg = pargs->pnext.p;
+    CPair *pmsg = pargs->next.p;
     ref = RefEval(pargs, pframe);
     if (ref.u.n == 0)
     {
@@ -186,7 +186,7 @@ CRef RefEvalAssert(CPair *ppair, CFrame *pframe)
 extern "C" CRef func_001266C8(CPair *ppair, CFrame *pframe)
 {
     CRef ref;
-    CPair *pargs = ((CPair *)ppair->ref.u.pv)->pnext.p;
+    CPair *pargs = ((CPair *)ppair->ref.u.pv)->next.p;
     if (pargs)
         ref = RefEval(pargs, pframe);
     else
@@ -208,8 +208,8 @@ CRef RefEvalIf(CPair *ppair, CFrame *pframe)
 {
     CRef ref;
     CPair *ppairCond = PpairArgs(ppair);
-    CPair *ppairThen = ppairCond->pnext.p;
-    CPair *ppairElse = ppairThen->pnext.p;
+    CPair *ppairThen = ppairCond->next.p;
+    CPair *ppairElse = ppairThen->next.p;
     ref = RefEval(ppairCond, pframe);
     if (ref.u.n == 1)
         ref = RefEval(ppairThen, pframe);
@@ -233,7 +233,7 @@ CRef RefEvalOr(CPair *ppair, CFrame *pframe)
 {
     CRef ref;
     CPair *pq;
-    for (pq = PpairArgs(ppair); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(ppair); pq; pq = pq->next.p)
     {
         ref = RefEval(pq, pframe);
         if (ref.m_tagk != 0x17 || ref.u.n != 0)
@@ -254,7 +254,7 @@ CRef RefEvalAnd(CPair *ppair, CFrame *pframe)
     CRef ref;
     CPair *pq;
     ref = true;
-    for (pq = PpairArgs(ppair); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(ppair); pq; pq = pq->next.p)
     {
         ref = RefEval(pq, pframe);
         if (ref.m_tagk == 0x17 && ref.u.n == 0)
@@ -291,18 +291,18 @@ CRef RefEvalCond(CPair *ppair, CFrame *pframe)
             f = 0;
             if (test.m_tagk != 0x17 || test.u.n)
                 f = 1;
-            if (f && !pc->pnext.p)
+            if (f && !pc->next.p)
                 ref = test;
         }
         if (f)
         {
-            for (pc = pc->pnext.p; pc; pc = pc->pnext.p)
+            for (pc = pc->next.p; pc; pc = pc->next.p)
                 ref = RefEval(pc, pframe);
             pcl = 0;
         }
         else
         {
-            pcl = pcl->pnext.p;
+            pcl = pcl->next.p;
         }
     }
     return ref;
@@ -325,7 +325,7 @@ CRef RefEvalCase(CPair *ppair, CFrame *pframe)
     ref.InitTag(0x24);
     pkey = PpairArgs(ppair);
     arefT[0] = RefEval(pkey, pframe);
-    pcl = pkey->pnext.p;
+    pcl = pkey->next.p;
     while (pcl)
     {
         CPair *pc = (CPair *)pcl->ref.u.pv;
@@ -350,19 +350,19 @@ CRef RefEvalCase(CPair *ppair, CFrame *pframe)
                 }
                 else
                 {
-                    pk = pk->pnext.p;
+                    pk = pk->next.p;
                 }
             }
         }
         if (f)
         {
-            for (pc = pc->pnext.p; pc; pc = pc->pnext.p)
+            for (pc = pc->next.p; pc; pc = pc->next.p)
                 ref = RefEval(pc, pframe);
             pcl = 0;
         }
         else
         {
-            pcl = pcl->pnext.p;
+            pcl = pcl->next.p;
         }
     }
     return ref;
@@ -386,10 +386,10 @@ CRef RefEvalLet(CPair *ppair, CFrame *pframe)
     {
         CFrame *pframeNew = PtNew__t6CGcObj1Z6CFrame();
         spf = pframeNew;
-        for (pn = (CPair *)pargs->ref.u.pv; pn; pn = pn->pnext.p)
+        for (pn = (CPair *)pargs->ref.u.pv; pn; pn = pn->next.p)
         {
             CPair *pb = (CPair *)pn->ref.u.pv;
-            refVal = RefEval(pb->pnext.p, pframe);
+            refVal = RefEval(pb->next.p, pframe);
             refT = CFrame_RefAddBinding(spf.p, pb->ref.u.n, &refVal);
         }
         CFrame_SetSingleParent(spf.p, pframe);
@@ -399,7 +399,7 @@ CRef RefEvalLet(CPair *ppair, CFrame *pframe)
         spf = pframe;
     }
     CPair *pq;
-    for (pq = pargs->pnext.p; pq; pq = pq->pnext.p)
+    for (pq = pargs->next.p; pq; pq = pq->next.p)
         ref = RefEval(pq, spf.p);
     return ref;
 }
@@ -415,7 +415,7 @@ CRef RefEvalWhile(CPair *ppair, CFrame *pframe)
 {
     CRef ref;
     CPair *ppairCond = PpairArgs(ppair);
-    CPair *ppairBody = ppairCond->pnext.p;
+    CPair *ppairBody = ppairCond->next.p;
     for (;;)
     {
         ref = RefEval(ppairCond, pframe);
@@ -438,7 +438,7 @@ CRef RefEvalWhile(CPair *ppair, CFrame *pframe)
 CRef RefEvalLambda(CPair *ppair, CFrame *pframe)
 {
     CPair *pargs = PpairArgs(ppair);
-    CPair *ppairBody = pargs->pnext.p;
+    CPair *ppairBody = pargs->next.p;
     SPO sp(PtNew__t6CGcObj1Z5CProc());
     sp->spframe = pframe;
     if (pargs->ref.m_tagk == 0)
@@ -458,7 +458,7 @@ CRef RefEvalLambda(CPair *ppair, CFrame *pframe)
         }
         else
         {
-            pparam = pparam->pnext.p;
+            pparam = pparam->next.p;
             c++;
         }
     }
@@ -481,7 +481,7 @@ CRef RefEvalLambdaBody(CPair *ppair, CFrame *pframe)
     do
     {
         ref = RefEval(pbody, pframe);
-        pbody = pbody->pnext.p;
+        pbody = pbody->next.p;
     } while (pbody);
     return ref;
 }
@@ -498,7 +498,7 @@ CRef RefEvalBegin(CPair *ppair, CFrame *pframe)
     CPair *pq;
     ref.Decref();
     ref.InitTag(0x24);
-    for (pq = PpairArgs(ppair); pq; pq = pq->pnext.p)
+    for (pq = PpairArgs(ppair); pq; pq = pq->next.p)
         ref = RefEval(pq, pframe);
     return ref;
 }
@@ -563,14 +563,14 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
     }
     int carg = cargMin + (fRest != 0);
     CRef aref[32];
-    CPair *pn = ppairFn->pnext.p;
+    CPair *pn = ppairFn->next.p;
     int c = cargMin;
     int i;
     for (i = 0; i < c; i++)
     {
         ref = RefEval(pn, pframe);
         aref[i] = ref;
-        pn = pn->pnext.p;
+        pn = pn->next.p;
     }
     if (fRest)
     {
@@ -583,7 +583,7 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
             spNew->ref = RefEval(spCur.p, pframe);
             if (spLast.p)
             {
-                spLast->pnext = spNew.p;
+                spLast->next = spNew.p;
                 spLast = spNew.p;
             }
             else
@@ -592,7 +592,7 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
                 spList = spLast.p;
             }
             c++;
-            spCur = spCur->pnext.p;
+            spCur = spCur->next.p;
         }
         if (spList.p)
             aref[i] = spList.p;
@@ -613,9 +613,9 @@ CRef RefEvalApply(CPair *ppair, CFrame *pframe)
         for (i = 0; i < carg; i++)
         {
             if (pparam->ref.m_tagk == 0x14)
-                pparam = pparam->pnext.p;
+                pparam = pparam->next.p;
             CRef r = CFrame_RefAddBinding(spf.p, pparam->ref.u.n, &aref[i]);
-            pparam = pparam->pnext.p;
+            pparam = pparam->next.p;
         }
         ref = RefEvalLambdaBody((CPair *)pproc, spf.p);
         break;
@@ -661,7 +661,7 @@ CRef RefEval(CPair *ppair, CFrame *pframe)
         case 14: return RefEvalWhile(ppair, pframe);
         case 16: return RefEvalBegin(ppair, pframe);
         case 15: return RefEvalLambda(ppair, pframe);
-        case 18: return pn->pnext.p->ref;
+        case 18: return pn->next.p->ref;
         case 17: return CRef(-1);
         }
         return RefEvalApply(ppair, pframe);

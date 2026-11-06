@@ -40,7 +40,7 @@ SPW CPair_CloneTo(CPair *src, void *a, void *b)
       SPW sp;
       sp.Set(PtNew__t6CGcObj1Z5CPair());
       sp->ref = CRef_CloneTo(&src->ref, a, b);
-      if (src->pnext.p)
-            sp->SetNext(CPair_CloneTo(src->pnext.p, a, b).p);
+      if (src->next.p)
+            sp->SetNext(CPair_CloneTo(src->next.p, a, b).p);
       return SPW(sp.p);
 }
