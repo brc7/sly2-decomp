@@ -636,3 +636,12 @@ SLY2_SCRAP("addiu $sp, $sp, 0x40");
 SLY2_SCRAP("nop");
 SLY2_SCRAP("nop");
 SLY2_SCRAP("daddu $2, $7, $0");
+
+// ---- util's .data (0x2BBB60): the limits {0, 1} and {-1, 1} many TUs clamp with (Sly 1's g_lmZeroOne and kin, util.c:
+// names DRAFT). Owner by layout and name: util is the TU between bsp (whose leaves end at 0x2BBB30) and bif (0x2BBB70)
+// that Sly 1 put them in; the three vectors 0x2BBB30..0x2BBB60 before them are left (owner not known). Under asm labels
+// so that no declaration has to agree with the definitions' types.
+namespace DATA_UTIL {
+extern float d_D_002BBB60[2] __asm__("D_002BBB60") = {0.0f, 1.0f};
+extern float d_D_002BBB68[2] __asm__("D_002BBB68") = {-1.0f, 1.0f};
+}
