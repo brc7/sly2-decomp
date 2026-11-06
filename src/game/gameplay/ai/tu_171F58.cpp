@@ -24,6 +24,11 @@ enum {
     CID_BHVIDLE = 0x9E,
     CID_BHVGOTO = 0xBA,
 };
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+   section 2). Only the identified flags are named. */
+enum {
+    SGF_SEARCH = 0x1F,
+};
 
 typedef union U { qword q; float f[4]; int i[4]; } U;
 /* g++ 2.95 vtable entry. */
@@ -142,7 +147,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 extern "C" void InitBhvSearch(BHV171V *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x1F);
+    AddStepguardSgf(behavior->guard, SGF_SEARCH);
     behavior->state = -1;
     behavior->unknown40 = behavior->lookEndTime = 3.40282346638528859812e+38f;
 }
@@ -161,7 +166,7 @@ extern "C" void CloseBhvSearch(BHV171V *behavior)
 {
     CloseBhv(behavior);
     SetBhvSearchState(behavior, -1);
-    RemoveStepguardSgf(behavior->guard, 0x1F);
+    RemoveStepguardSgf(behavior->guard, SGF_SEARCH);
     SetBhvSearchWatched(behavior, 0);
 }
 
