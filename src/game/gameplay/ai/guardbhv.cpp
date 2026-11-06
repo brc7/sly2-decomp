@@ -7706,8 +7706,8 @@ typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0xA8 - 0x10]; int nA8; int nAC; char pad3[0xC]; int nBC; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int shape; int pad3; float pathParam; int pad4; char a40[0x10]; int n50; int n54; int n58; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0xA8 - 0x10]; int lookAtTarget; int unknownAC; char pad3[0xC]; int isDirect; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; int shape; int pad3; float pathParam; int pad4; char goal[0x10]; int lookAtTarget; int unknownAC; int isDirect; };
 void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
 void FindShapeClosestPointFromS(int a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
@@ -7720,13 +7720,13 @@ void StartBhvpatrolpath(struct S *behavior) {
     struct O *o;
     StartBhv(behavior);
     if (behavior->pathParam >= 0.0f)
-        FindShapeClosestPointFromS(behavior->shape, behavior->pathParam, func_001A62E8(behavior->guard), &D_003DD020, behavior->a40, 0, 0, &behavior->pathParam);
+        FindShapeClosestPointFromS(behavior->shape, behavior->pathParam, func_001A62E8(behavior->guard), &D_003DD020, behavior->goal, 0, 0, &behavior->pathParam);
     else
-        FindShapeClosestPoint(behavior->shape, func_001A62E8(behavior->guard), &D_003DD020, behavior->a40, 0, 0, &behavior->pathParam);
+        FindShapeClosestPoint(behavior->shape, func_001A62E8(behavior->guard), &D_003DD020, behavior->goal, 0, 0, &behavior->pathParam);
     o = PushStepBhv(behavior->guard, CID_BHVGOTO);
-    o->nA8 = behavior->n50;
-    o->nAC = behavior->n54;
-    o->nBC = behavior->n58;
+    o->lookAtTarget = behavior->lookAtTarget;
+    o->unknownAC = behavior->unknownAC;
+    o->isDirect = behavior->isDirect;
     AdvanceBhvpatrolpathGoal(behavior, 1);
     o->vt[8].pfn((char *)o + o->vt[8].d);
 }
@@ -7756,10 +7756,10 @@ namespace M_AdvanceBhvpatrolpathGoal { extern "C" {
 struct R; struct B; struct X; struct S;
 typedef int qword __attribute__((mode(TI)));
 extern float D_002BE7BC, D_002BE7C0, D_002BE7C4;
-struct R { float f0; float f4; };
-struct B { char pad[0xE4]; int nE4; char pad2[0x180 - 0xE8]; void *p180; };
+struct R { float start; float end; };
+struct B { char pad[0xE4]; int isClosed; char pad2[0x180 - 0xE8]; void *blockedRanges; };
 struct X { qword a; qword v; };
-struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; struct B *shape; int isForward; float pathParam; int pad4; qword goal; char pad5[8]; int n58; };
+struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; struct B *shape; int isForward; float pathParam; int pad4; qword goal; char pad5[8]; int isDirect; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float SMinShape(struct B *b);
 float SMaxShape(struct B *b);
@@ -7777,7 +7777,7 @@ void AdvanceBhvpatrolpathGoal(struct S *behavior, int force) {
     if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->guard, CID_GUARD)) d = D_002BE7BC; else d = D_002BE7C0;
     if (behavior->isForward == 0) d = -d;
     t = behavior->pathParam + d;
-    if (behavior->shape->nE4 == 0) {
+    if (behavior->shape->isClosed == 0) {
         float lo = SMinShape(behavior->shape);
         float hi = SMaxShape(behavior->shape);
         if (t < lo) t = lo;
@@ -7785,11 +7785,11 @@ void AdvanceBhvpatrolpathGoal(struct S *behavior, int force) {
     } else {
         t = SWrapShape(behavior->shape, t);
     }
-    if (behavior->n58 == 0) {
+    if (behavior->isDirect == 0) {
         struct R *r;
-        func_001EA000(behavior->shape->p180);
-        r = func_001EA3B0(behavior->shape->p180, t);
-        if (r) t = SWrapShape(behavior->shape, behavior->isForward != 0 ? r->f4 : r->f0);
+        func_001EA000(behavior->shape->blockedRanges);
+        r = func_001EA3B0(behavior->shape->blockedRanges, t);
+        if (r) t = SWrapShape(behavior->shape, behavior->isForward != 0 ? r->end : r->start);
     }
     if (force == 0 && __builtin_fabsf(behavior->pathParam - t) < D_002BE7C4) return;
     {
@@ -7818,7 +7818,7 @@ int IsBhvpatrolpathDone(struct S *behavior) { if (!IsBhvpatrolpathAtEnd(behavior
 // 0x17EEB8 IsBhvpatrolpathAtEnd
 namespace M_FBhvpatrolpathAtEnd { extern "C" {
 struct O; struct S;
-struct O { char pad[0xE4]; int nE4; };
+struct O { char pad[0xE4]; int isClosed; };
 struct S { char pad[0x30]; struct O *shape; int isForward; float pathParam; };
 extern float D_002BE7B8;
 float SMaxShape(struct O *p);
@@ -7826,7 +7826,7 @@ float SMinShape(struct O *p);
 // 0x17EEB8: True if the shape is open and the parameter is within tolerance of its end.
 int IsBhvpatrolpathAtEnd(struct S *behavior) {
     float g;
-    if (behavior->shape->nE4) return 0;
+    if (behavior->shape->isClosed) return 0;
     if (behavior->isForward) g = SMaxShape(behavior->shape); else g = SMinShape(behavior->shape);
     if (D_002BE7B8 < __builtin_fabsf(behavior->pathParam - g)) return 0;
     return 1;
