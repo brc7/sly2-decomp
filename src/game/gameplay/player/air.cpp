@@ -732,29 +732,29 @@ static inline void PublishReal(U*home,qword value){__asm__ volatile("sqc2 %1,%0"
  * @end-sly2-annot */
 // Air sub-state change: leaves the old one and enters the new one (clips, cane state, landing target, velocities,
 // state-machine flags).
-extern "C" void SetJtAirState(CONTEXT*p,int newMode,SOURCE*source){WORK w;
- if(newMode==p->mode)return;
- switch(p->mode){
- case 17:func_00204F78(p->actor,p->link->target,0);p->link=0;break;
- case 7:{SOURCE*old=p->source;p->source=0;RecalcSwOxfFilterForObject(&D_003DD490,old);break;}
- case 6:{SOURCE*old=p->source;p->source=0;if(p->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)SetBarrelState(old,0);}func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;break;}
+extern "C" void SetJtAirState(CONTEXT*air,int newMode,SOURCE*source){WORK w;
+ if(newMode==air->mode)return;
+ switch(air->mode){
+ case 17:func_00204F78(air->actor,air->link->target,0);air->link=0;break;
+ case 7:{SOURCE*old=air->source;air->source=0;RecalcSwOxfFilterForObject(&D_003DD490,old);break;}
+ case 6:{SOURCE*old=air->source;air->source=0;if(air->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)SetBarrelState(old,0);}func_002303A0(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;break;}
  case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:case 16:case 18:
-  func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;
-  if(Less(p->mode,16)&&!Less(p->mode,14)){if(p->actor!=D_002E1E40)SetJtHandsTarget((SECONDARY*)p->actor->secondary,-1);else SetJtCaneState__FP2JTi(p->actor,-1);}break;
- case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F8);SetStepplayerTnOverride(p->actor,0);break;
- case 21:ReleaseAct(&p->event);func_002303A0(p->actor,p->actor->body,2);func_001F6860(p->actor,0);break;
+  func_002303A0(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;
+  if(Less(air->mode,16)&&!Less(air->mode,14)){if(air->actor!=D_002E1E40)SetJtHandsTarget((SECONDARY*)air->actor->secondary,-1);else SetJtCaneState__FP2JTi(air->actor,-1);}break;
+ case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(air->actor->effect)SetSmaGoal(air->actor->effect,0x5F8);SetStepplayerTnOverride(air->actor,0);break;
+ case 21:ReleaseAct(&air->event);func_002303A0(air->actor,air->actor->body,2);func_001F6860(air->actor,0);break;
  }
  register unsigned clockHigh __asm__("$3"),savedClockHigh __asm__("$21");
  __asm__("lui %0,%%hi(%1)":"=r"(clockHigh):"i"(&D_002DDED0));
  __asm__("daddu %0,%1,$zero":"=r"(savedClockHigh):"r"(clockHigh));
- ANIMATION*active=p->actor->animation;CLIP*clip=0;p->mode=newMode;p->source=source;
- float entryTime,blend;__asm__("mtc1 $zero,%1\n\tlwc1 %0,%%lo(%3)(%2)":"=f"(entryTime),"=f"(blend):"r"(clockHigh),"i"(&D_002DDED0):"memory");p->time=entryTime;int flags=1;float weight=1.0f;
+ ANIMATION*active=air->actor->animation;CLIP*clip=0;air->mode=newMode;air->source=source;
+ float entryTime,blend;__asm__("mtc1 $zero,%1\n\tlwc1 %0,%%lo(%3)(%2)":"=f"(entryTime),"=f"(blend):"r"(clockHigh),"i"(&D_002DDED0):"memory");air->time=entryTime;int flags=1;float weight=1.0f;
  switch(newMode){
- case 17:{flags=9;Notify(p->actor,91);func_00204F78(p->actor,p->link->target,1);qword point=func_0022FC48(p->link->space,0,p->relative.q);
+ case 17:{flags=9;Notify(air->actor,91);func_00204F78(air->actor,air->link->target,1);qword point=func_0022FC48(air->link->space,0,air->relative.q);
   register qword direction __asm__("vf1"),negative __asm__("vf2"),upArg __asm__("$5");register U*axisAddress __asm__("$4");
   float negativeScalar=-1.0f;
   __asm__("lui $3,%%hi(%6)\n\tlui %3,%%hi(%7)\n\tlqc2 %0,%4\n\tmfc1 %2,%5\n\taddiu $3,$3,%%lo(%6)\n\tqmtc2.ni %2,%1\n\taddiu %3,%3,%%lo(%7)\n\tlq %2,0($3)\n\tvmulx.xyzw %0,%0,%1x"
-   :"=&j"(direction),"=j"(negative),"=&r"(upArg),"=r"(axisAddress):"m"(p->direction.q),"f"(negativeScalar),"i"(&D_002A2DC0),"i"(&D_002A2DB0):"$3","memory");
+   :"=&j"(direction),"=j"(negative),"=&r"(upArg),"=r"(axisAddress):"m"(air->direction.q),"f"(negativeScalar),"i"(&D_002A2DC0),"i"(&D_002A2DB0):"$3","memory");
   register qword axisArg __asm__("$6"),directionArg __asm__("$4");register TWO_ROWS*basisOutput __asm__("$7");
   __asm__("lq %0,0(%2)\n\taddiu %1,%4,0x20\n\tqmfc2.ni %2,%3"
    :"=&r"(axisArg),"=r"(basisOutput),"=r"(directionArg):"j"(direction),"p"(&w.temp),"2"(axisAddress):"memory");
@@ -764,7 +764,7 @@ extern "C" void SetJtAirState(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   {register ACTOR*owner __asm__("$16");qword value;
    __asm__("lqc2 $vf3,%2\n\tlqc2 $vf1,%3\n\tlqc2 $vf5,%4\n\tlqc2 $vf4,%5\n\tlw %0,%6\n\tvmulax.xyz $ACC,$vf5,$vf3x\n\tvmadday.xyz $ACC,$vf4,$vf3y\n\tvmaddz.xyz $vf3,$vf1,$vf3z\n\tlqc2 %1,%7\n\tvsub.xyzw %1,%1,$vf3"
     :"=&r"(owner),"=j"(value)
-    :"m"(p->offset.q),"m"(w.basis.row[2].q),"m"(w.basis.row[0].q),"m"(w.basis.row[1].q),"m"(p->actor),"m"(w.temp.q)
+    :"m"(air->offset.q),"m"(w.basis.row[2].q),"m"(w.basis.row[0].q),"m"(w.basis.row[1].q),"m"(air->actor),"m"(w.temp.q)
     :"vf1","vf3","vf4","vf5");
    actor=owner;delta=value;}
   register ACTOR*pointOwner __asm__("$4");
@@ -772,31 +772,31 @@ extern "C" void SetJtAirState(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   {qword point=func_001A62E8(pointOwner);register qword position __asm__("vf1");
    __asm__("qmtc2.ni %1,%0":"=j"(position):"r"(point));
    __asm__("vsub.xyzw %0,%0,%1":"+j"(delta):"j"(position));actor->offset.q=delta;}
-  ClearVelocity(p->actor);p->flags28=0;clip=p->special154;
-  if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}break;}
+  ClearVelocity(air->actor);air->flags28=0;clip=air->special154;
+  if(air->focused){func_00204DA8(air->actor,air->oldScale);SetStepplayerTnOverride(air->actor,0);air->focused=0;}break;}
  case 0:case 1:case 4:case 5:case 7:
-  switch(p->state){case 13:clip=p->special148;break;case 14:clip=p->special158;break;case 16:clip=p->actor->clip1514;break;case 15:clip=p->actor->clip1518;break;}
-  if(!clip)clip=p->base[p->variant];if(!clip)clip=p->base[0];break;
- case 2:case 3:if(p->state==14)clip=p->special15C;if(!clip)clip=p->alternate[p->variant];if(!clip)clip=p->alternate[0];if(!clip)clip=p->base[0];p->flags28=0;break;
- case 6:func_002303A0(p->actor,p->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);SetBarrelState(source,1);ClearVelocity(p->actor);clip=p->actor->animation->clip;break;
- case 8:func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);clip=active->clip;break;
+  switch(air->state){case 13:clip=air->special148;break;case 14:clip=air->special158;break;case 16:clip=air->actor->clip1514;break;case 15:clip=air->actor->clip1518;break;}
+  if(!clip)clip=air->base[air->variant];if(!clip)clip=air->base[0];break;
+ case 2:case 3:if(air->state==14)clip=air->special15C;if(!clip)clip=air->alternate[air->variant];if(!clip)clip=air->alternate[0];if(!clip)clip=air->base[0];air->flags28=0;break;
+ case 6:func_002303A0(air->actor,air->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);SetBarrelState(source,1);ClearVelocity(air->actor);clip=air->actor->animation->clip;break;
+ case 8:func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);clip=active->clip;break;
  case 11:case 12:case 13:case 14:case 15:
-  func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;p->variant=0;clip=p->base[0];
-  if(Less(p->mode,16)&&!Less(p->mode,14)){ACTOR*actor=p->actor;if(actor==D_002E1E40){actor->primaryFocus=p->source;SetJtCaneState__FP2JTi(actor,0);}else{actor->secondaryFocus=p->source;weight=0.0f;SetJtHandsTarget((SECONDARY*)p->actor->secondary,0);clip=p->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
- case 9:case 10:case 16:case 18:{func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;ACTOR*actor=p->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=PlanJtLaunchVelocity(p,4);((void(*)(void*,qword))v.fn)(receiver,velocity);p->variant=0;if(p->mode==16)clip=p->special14C;else clip=p->special148;active=0;break;}
- case -1:if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}p->fieldBC=0;p->state=-1;break;
- case 19:func_00204660(p->actor,p->actor->heading-D_002BF780[p->variant]);p->flags28=0;clip=p->scripted;SetStepplayerTnOverride(p->actor,p->scriptFocus);p->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F7);break;
- case 20:p->tracks[0].control.bits=0;p->tracks[1].control.bits=0;p->tracks[2].control.bits=0;p->tracks[3].control.bits=0;p->scriptedGain=1.0f;func_001384C0(p->multi);clip=p->multi;flags=9;break;
+  func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;air->variant=0;clip=air->base[0];
+  if(Less(air->mode,16)&&!Less(air->mode,14)){ACTOR*actor=air->actor;if(actor==D_002E1E40){actor->primaryFocus=air->source;SetJtCaneState__FP2JTi(actor,0);}else{actor->secondaryFocus=air->source;weight=0.0f;SetJtHandsTarget((SECONDARY*)air->actor->secondary,0);clip=air->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
+ case 9:case 10:case 16:case 18:{func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;ACTOR*actor=air->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=PlanJtLaunchVelocity(air,4);((void(*)(void*,qword))v.fn)(receiver,velocity);air->variant=0;if(air->mode==16)clip=air->special14C;else clip=air->special148;active=0;break;}
+ case -1:if(air->focused){func_00204DA8(air->actor,air->oldScale);SetStepplayerTnOverride(air->actor,0);air->focused=0;}air->fieldBC=0;air->state=-1;break;
+ case 19:func_00204660(air->actor,air->actor->heading-D_002BF780[air->variant]);air->flags28=0;clip=air->scripted;SetStepplayerTnOverride(air->actor,air->scriptFocus);air->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(air->actor->effect)SetSmaGoal(air->actor->effect,0x5F7);break;
+ case 20:air->tracks[0].control.bits=0;air->tracks[1].control.bits=0;air->tracks[2].control.bits=0;air->tracks[3].control.bits=0;air->scriptedGain=1.0f;func_001384C0(air->multi);clip=air->multi;flags=9;break;
  case 21:{register float minimum __asm__("$f21"),maximum __asm__("$f20");register qword bodyPosition __asm__("$3");register OBJECT*queryObject __asm__("$4");
   __asm__("lw $2,0(%4)\n\tlw %1,0x1D0(%4)\n\tlw %0,0x58($2)\n\tli.s %2,-1.00000000000000000000e3\n\tlq %0,0x70(%0)\n\tli.s %3,-1.00000000000000000000e0"
-   :"=&r"(bodyPosition),"=r"(queryObject),"=f"(minimum),"=f"(maximum):"r"(p),"m"(p->actor),"m"(p->query.object):"$2","at","memory");
+   :"=&r"(bodyPosition),"=r"(queryObject),"=f"(minimum),"=f"(maximum):"r"(air),"m"(air->actor),"m"(air->query.object):"$2","at","memory");
   w.bodyPosition.q=bodyPosition;
-  if(queryObject&&(FIsBasicDerivedFrom__FP5BASIC3CID(queryObject,19)||FIsBasicDerivedFrom__FP5BASIC3CID(p->query.object,11))){minimum=0.0f;maximum=500.0f;}
-  qword queried=GetJtPlacePosition(p->actor,&p->query,D_002BF7A0);
+  if(queryObject&&(FIsBasicDerivedFrom__FP5BASIC3CID(queryObject,19)||FIsBasicDerivedFrom__FP5BASIC3CID(air->query.object,11))){minimum=0.0f;maximum=500.0f;}
+  qword queried=GetJtPlacePosition(air->actor,&air->query,D_002BF7A0);
   register ACTOR*queryOwner __asm__("$3");register qword queriedVector __asm__("vf2");register float maximumArg __asm__("$f15"),minimumArg __asm__("$f13");
   __asm__("lw %0,%5\n\tqmtc2.ni %4,%1\n\tsq %4,%2\n\tmov.s %3,%6"
    :"=&r"(queryOwner),"=j"(queriedVector),"=m"(w.goal.q),"=f"(maximumArg)
-   :"r"(queried),"m"(p->actor),"f"(maximum));
+   :"r"(queried),"m"(air->actor),"f"(maximum));
   register float durationUnit __asm__("$f14"),rangeLimit __asm__("$f12");
   __asm__("lqc2 $vf3,%3\n\tmov.s %1,%4\n\tvsub.xyzw %0,%0,$vf3\n\tli.s %2,1.00000000000000000000e0"
    :"+j"(queriedVector),"=f"(minimumArg),"=f"(durationUnit):"m"(w.bodyPosition.q),"f"(minimum):"vf3","at");
@@ -808,7 +808,7 @@ extern "C" void SetJtAirState(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   float solved=ComputeMaxBallisticTime(deltaArg,accelerationArg,rangeLimit,minimumArg,durationUnit,maximumArg);maximum=D_002BF7A0;
   {register float negativeHalf __asm__("$f1")=-0.5f;register ACTOR*velocityOwner __asm__("$5");
    __asm__("max.s %0,%0,%3\n\tlw %1,%4\n\tmul.s %2,%0,%2"
-    :"+f"(maximum),"=r"(velocityOwner),"+f"(negativeHalf):"f"(solved),"m"(p->actor));
+    :"+f"(maximum),"=r"(velocityOwner),"+f"(negativeHalf):"f"(solved),"m"(air->actor));
    register qword full __asm__("vf1"),quotient __asm__("vf3");register VTE*vt __asm__("$2");register unsigned halfBits __asm__("$3");
    __asm__("lqc2 $vf2,%4\n\tmfc1 %3,%5\n\tqmtc2.ni %3,%0\n\tlw %2,%6\n\tmfc1 %3,%7\n\tvdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %1,$vf2,$Q"
     :"=j"(full),"=j"(quotient),"=r"(vt),"=&r"(halfBits)
@@ -832,16 +832,16 @@ extern "C" void SetJtAirState(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   __asm__("lwc1 %0,%%lo(%4)(%3)\n\tsqc2 %5,%1\n\tlq %2,%6\n\tadd.s %0,%0,%7"
    :"=&f"(deadline),"=m"(w.endVelocity.q),"=r"(goalArg):"r"(savedClockHigh),"i"(&D_002DDED0),"j"(endVelocity),"m"(w.goal.q),"f"(maximum):"memory");
   register BODY*coordinateBody __asm__("$2");
-  __asm__ volatile("lw $3,%2\n\tlw %0,0x58($3)\n\tsqc2 %3,%1":"=&r"(coordinateBody),"=m"(w.temp.q):"m"(p->actor),"j"(fullAfter):"$3","memory");
-  qword localGoal=func_0022FC48(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,p->actor->body->frame,w.endVelocity.q);
-  p->event=func_0012DE58(p->actor,p->actor->body,5,deadline,localGoal,localEnd);func_001F6860(p->actor,1);
+  __asm__ volatile("lw $3,%2\n\tlw %0,0x58($3)\n\tsqc2 %3,%1":"=&r"(coordinateBody),"=m"(w.temp.q):"m"(air->actor),"j"(fullAfter):"$3","memory");
+  qword localGoal=func_0022FC48(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,air->actor->body->frame,w.endVelocity.q);
+  air->event=func_0012DE58(air->actor,air->actor->body,5,deadline,localGoal,localEnd);func_001F6860(air->actor,1);
   {register ACTOR*cleared __asm__("$3");register qword directionArg __asm__("$5");
-   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(p->actor),"m"(w.delta.q));
-   ClearVelocity(cleared);SetStepRadTargetVec(p->actor,directionArg);}clip=p->base[0];break;}
- case 22:clip=p->special1C8;flags=9;break;
+   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(air->actor),"m"(w.delta.q));
+   ClearVelocity(cleared);SetStepRadTargetVec(air->actor,directionArg);}clip=air->base[0];break;}
+ case 22:clip=air->special1C8;flags=9;break;
  }
- switch(p->mode){case 0:case 2:p->actionFlag=0;break;case 18:RecalcSwOxfFilterForObject(&D_003DD490,p->actor);break;}
- if(p->mode!=-1){if(!active||active->clip!=clip){ReleaseSma(&p->actor->component);ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,p->actor,blend,weight,flags,&p->actor->animation);}Notify(p->actor,90);}
+ switch(air->mode){case 0:case 2:air->actionFlag=0;break;case 18:RecalcSwOxfFilterForObject(&D_003DD490,air->actor);break;}
+ if(air->mode!=-1){if(!active||active->clip!=clip){ReleaseSma(&air->actor->component);ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,air->actor,blend,weight,flags,&air->actor->animation);}Notify(air->actor,90);}
 }
 } // namespace M_func_00195FB8
 
