@@ -49,58 +49,78 @@ struct TASKSTATE { int a[2]; };
 struct ASHE
 {
     union { OID oid; ASEGV *paseg; } u;
-    int x;                  /* passed to PasegaEnsureAseg */
+    int ensureArg;          /* last argument of PasegaEnsureAseg (inferred: a segment flag) */
 };
 struct ASH
 {
-    int c;
-    ASHE a[8];
+    int count;
+    ASHE entries[8];
 };
 
 struct BTN
 {
-    LOV *plo;                /* +0x00 the button object */
-    ASH aash[2];            /* +0x04 played on trigger (0) and on untrigger (1) */
-    float svt;              /* +0x8C segment speed (1.0; negative plays backwards) */
-    int state;              /* +0x90 (-1 until the first SetBtnButtons) */
-    float tState;           /* +0x94 time of the last state change */
-    float dtReset;          /* +0x98 (1.0) */
-    int fNoSound;           /* +0x9C */
-    int fSeek;              /* +0xA0 seek the segments by the sign of svt */
-    int fStayTriggered;     /* +0xA4 */
-    void *pvRelay;          /* +0xA8 relay argument */
-    void *prelay;           /* +0xAC */
-    int crsmg;              /* +0xB0 */
-    RSMG arsmg[8];          /* +0xB4 */
-    int ctaskstate;         /* +0x134 */
-    TASKSTATE ataskstate[4];/* +0x138 */
+    LOV *plo;                   /* +0x00 the button object */
+    ASH animLists[2];           /* +0x04 played on trigger (0) and on untrigger (1) */
+    float segmentSpeed;         /* +0x8C (1.0; negative plays backwards) */
+    int state;                  /* +0x90 BTN_STATE (-1 until the first SetBtnButtons) */
+    float stateTime;            /* +0x94 time of the last state change */
+    float resetDelay;           /* +0x98 seconds a pressed button waits before it resets (1.0; negative: never) */
+    int isSilent;               /* +0x9C no click sound on trigger */
+    int seeksBySpeedSign;       /* +0xA0 seek the segments by the sign of segmentSpeed */
+    int staysTriggered;         /* +0xA4 trigger does not move on to BTN_PRESSED */
+    void *relayArg;             /* +0xA8 relay argument (a volume button stores the first object inside) */
+    void *relay;                /* +0xAC fired on trigger */
+    int numRsmgs;               /* +0xB0 */
+    RSMG rsmgs[8];              /* +0xB4 */
+    int numTaskStates;          /* +0x134 */
+    TASKSTATE taskStates[4];    /* +0x138 applied on trigger */
 };
 typedef char assert_BTN_size[sizeof(BTN) == 0x158 ? 1 : -1];
 
-/* Contact graph of a solid object (as in barrier.cpp; HYPOTHESIS: SO contact lists). */
-struct CONTACTEND { int x0; int x4; LOV *plo; void *pv; char pad[0x30]; };
-struct CONTACT { CONTACTEND aend[2]; char pad[0x9C - 0x80]; int x9C; char padA0[0xAC - 0xA0]; CONTACT *pnext; };
-struct CONTACTL { CONTACT *pcontact; CONTACTL *pnext; };
-struct SOTREEV { char pad[0x60]; LOV *plo; CONTACTL *pcontactl; };
+/* BTN states (inferred from SetBtnButtons and the update functions). */
+enum BTN_STATE
+{
+    BTN_UNINITIALIZED = -1,
+    BTN_UP = 0,             /* waiting; going to BTN_DOWN triggers */
+    BTN_DOWN = 1,           /* triggered and held */
+    BTN_PRESSED = 2,        /* triggered; resets after resetDelay */
+    BTN_LOCKED = 3,         /* stays as it is */
+    BTN_RESETTING = 4       /* goes back to up/down by pressKind on the next update */
+};
+
+/* What presses a BUTTON (BUTTONV::pressKind). */
+enum BUTTON_PRESS_KIND
+{
+    PRESS_CONTACT = 0,      /* an allowed object touching it */
+    PRESS_WORKER = 1,       /* an allowed worker hit (FAbsorbButtonWkr) */
+    PRESS_WORKER_TOGGLE = 2,/* a worker hit toggles it up/down */
+    PRESS_SLY_INTERACTION = 3 /* Sly in interaction kind 3 with slyInteractionId */
+};
+
+/* Contact graph of a solid object (as in barrier.cpp; inferred: SO contact lists). */
+struct CONTACTEND { int unknown0; int unknown4; LOV *object; void *tree; char pad[0x30]; };
+struct CONTACT { CONTACTEND ends[2]; char pad[0x9C - 0x80]; int unknown9C; char padA0[0xAC - 0xA0]; CONTACT *next; };
+struct CONTACTL { CONTACT *firstContact; CONTACTL *next; };
+struct SOTREEV { char pad[0x60]; LOV *object; CONTACTL *contactLists; };
 
 /* BUTTON : SO (sizeof(SO) == 0x150). The SO part is a view of the fields used here, not the sly2/so.h class. */
 struct BUTTONV
 {
     int pad0[3];
-    VT *pvt;                /* +0x0C */
+    VT *pvt;                    /* +0x0C */
     char pad10[0x40 - 0x10];
-    unsigned int grf40;     /* +0x40 flag word, or (low bit clear) a pointer to it */
+    unsigned int taggedFlags;   /* +0x40 flag word, or (low bit clear) a pointer to it */
     char pad44[0xEC - 0x44];
-    SOTREEV *ptree;         /* +0xEC */
+    SOTREEV *tree;              /* +0xEC */
     char padF0[0x150 - 0xF0];
-    BTN btn;                /* +0x150 */
-    int btnk;               /* +0x2A8 what presses it: 0 contact, 1/2 worker, 3 player state */
-    int cploPush;           /* +0x2AC objects that may press it (none: any) */
-    LOV *aploPush[8];
-    int ccidPush;           /* +0x2D0 classes that may press it (none: any) */
-    CIDV acidPush[8];
-    int x2F4;               /* +0x2F4 compared with the player state */
-    LOV *ploPush;            /* +0x2F8 the object pressing it */
+    BTN btn;                    /* +0x150 */
+    int pressKind;              /* +0x2A8 BUTTON_PRESS_KIND */
+    int numPushObjects;         /* +0x2AC objects that may press it (none: any) */
+    LOV *pushObjects[8];
+    int numPushClasses;         /* +0x2D0 classes that may press it (none: any) */
+    CIDV pushClasses[8];
+    int slyInteractionId;       /* +0x2F4 compared with Sly's interactionId (inferred) */
+    LOV *pusher;                /* +0x2F8 the object pressing it */
 };
 typedef char assert_BUTTON_size[sizeof(BUTTONV) == 0x2FC ? 1 : -1];
 
@@ -108,28 +128,30 @@ typedef char assert_BUTTON_size[sizeof(BUTTONV) == 0x2FC ? 1 : -1];
 struct VOLBTNV
 {
     int pad0[3];
-    VT *pvt;                /* +0x0C */
+    VT *pvt;                    /* +0x0C */
     char pad10[0x40 - 0x10];
-    unsigned int grf40;     /* +0x40 */
+    unsigned int taggedFlags;   /* +0x40 */
     char pad44[0x130 - 0x44];
-    BTN btn;                /* +0x130 */
-    int cploPush;           /* +0x288 objects that may press it */
-    LOV *aploPush[8];
-    int ccidPush;           /* +0x2AC classes that may press it */
-    CIDV acidPush[4];
-    int cploInside;         /* +0x2C0 objects inside (sorted), kept when fTrackInside */
-    LOV **aploInside;        /* +0x2C4 */
-    int fTrackInside;       /* +0x2C8 */
+    BTN btn;                    /* +0x130 */
+    int numPushObjects;         /* +0x288 objects that may press it */
+    LOV *pushObjects[8];
+    int numPushClasses;         /* +0x2AC classes that may press it */
+    CIDV pushClasses[4];
+    int numInside;              /* +0x2C0 objects inside (sorted), kept when tracksInside */
+    LOV **objectsInside;        /* +0x2C4 */
+    int tracksInside;           /* +0x2C8 */
 };
 
 /* A worker as FAbsorbButtonWkr sees it. */
-struct WKR { LOV *plo; char pad[0x40]; int grf; };
+struct WKR { LOV *source; char pad[0x40]; int flags; };
+enum { WKR_FLAG_NO_PRESS = 4 };   /* (inferred: hits with this flag never press buttons) */
 
-/* The pressing object as UpdateButtonPlayerPush sees it. */
-struct PUSHER { char pad[0x2C4]; int x2C4; char pad2C8[0x2DC - 0x2C8]; int x2DC; float t2E0; };
+/* The pressing hero (CID 0x34) as UpdateButtonPlayerPush sees it. */
+struct PUSHER { char pad[0x2C4]; int unknown2C4; char pad2C8[0x2DC - 0x2C8]; int state; float stateTime; };
 
-/* HYPOTHESIS: the player state (the object 0x2E1E40 points to). */
-struct PLAYERSTATEV { char pad[0x18C4]; int x18C4; int x18C8; };
+/* Sly (the hero 0x2E1E40 points to): an interaction kind and id (inferred). */
+struct SLYV { char pad[0x18C4]; int interactionId; int interactionKind; };
+enum { SLY_INTERACTION_BUTTON = 3 };   /* (inferred) */
 
 /* EnsureSwCallback takes an 8-byte struct by value in one register: pass it as a long read through a packed view
    (pilot blocker B4, caller side; see barrier.cpp). Here the global itself is declared with the packed type: a cast
@@ -139,21 +161,21 @@ struct LONGU { long l; } __attribute__((packed));
 extern SW D_003DD490;           /* g_sw */
 extern char D_002DEB30[];
 extern CLOCK D_002DDED0;        /* g_clock */
-extern PLAYERSTATEV *D_002E1E40;
+extern SLYV *D_002E1E40;
 extern const LONGU D_002A4E80;   /* callback kind: an 8-byte struct, read as one long */
 
 LOV *PloFindSwObject(SW *psw, int grffso, OID oid, LOV *ploContext) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
-ASEGV *PasegaEnsureAseg(ASEGV *paseg, ALO *palo, SEEK seek, float t, float svt, int x) __asm__("PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi");
-int FAddRsmg(SW *psw, RSMG *arsmg, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
+ASEGV *PasegaEnsureAseg(ASEGV *paseg, ALO *palo, SEEK seek, float t, float segmentSpeed, int x) __asm__("PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi");
+int FAddRsmg(SW *psw, RSMG *rsmgs, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
 int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
 extern "C" {
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, LOV *plo);
-void TriggerRsmg(SW *psw, int crsmg, RSMG *arsmg, LOV *plo, int fOn);
-void FireRelay(void *prelay, void *pv);
-void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, LOV *plo);
-void func_00161F10(void *p, TASKSTATE *ataskstate, int cMax, int *pc, int d, int e);
+void TriggerRsmg(SW *psw, int numRsmgs, RSMG *rsmgs, LOV *plo, int fOn);
+void FireRelay(void *relay, void *pv);
+void ApplyTaskStates(void *p, int c, TASKSTATE *taskStates, LOV *plo);
+void func_00161F10(void *p, TASKSTATE *taskStates, int cMax, int *pc, int d, int e);
 void InitSo(BUTTONV *pbutton);
 void LoadSoFromBrx(BUTTONV *pbutton, void *pbis);
 void PostSoLoad(BUTTONV *pbutton);
@@ -198,218 +220,240 @@ void SetVolbtnButtons(VOLBTNV *pvolbtn, int state);
 int CompareVolbtnObjects(LOV **pplo1, LOV **pplo2);
 }
 
-// Append {oid, x} to an ASH list (max 8). (inferred)
-extern "C" int AddAshEntry(ASH *animList, OID oid, int x)
+// Calls the object's vtable slot 3 (HandleSpliceEvent) with a Splice event and no arguments.
+static inline void SendSpliceEvent(LOV *object, int event)
 {
-    if ((unsigned int)animList->c >= 8)
+    VT *entry = &object->pvt[3];
+    ((void (*)(void *, int, int, int, int, int))entry->pfn)((char *)object + entry->d, event, 0, 0, 0, 0);
+}
+
+// Calls the object's vtable slot 4 (SendMessage).
+static inline void SendObjectMessage(LOV *object, int message, void *arg)
+{
+    VT *entry = &object->pvt[4];
+    ((void (*)(void *, int, void *))entry->pfn)((char *)object + entry->d, message, arg);
+}
+
+// Sets bits of an LO flag word that is stored inline or (low bit clear) behind a pointer.
+static inline void SetTaggedFlags(unsigned int *taggedFlags, int bits)
+{
+    unsigned int flags = *taggedFlags;
+    if ((flags ^ 1) & 1)
+        *(int *)flags |= bits;
+    else
+        *taggedFlags = flags | bits;
+}
+
+enum
+{
+    SPLICE_EVENT_TRIGGER = 5,
+    SPLICE_EVENT_UNTRIGGER = 6,
+    SPLICE_EVENT_INSIDE_CHANGED = 9,  /* a tracking volume button's set of objects inside changed */
+    MESSAGE_BUTTON_TRIGGERED = 6,
+    MESSAGE_BUTTON_UNTRIGGERED = 7,
+    SOUND_BUTTON_CLICK = 2,
+    FIND_OBJECT_ANY = 4                 /* PloFindSwObject search flags used for segment lookups */
+};
+enum { SEEK_FROM_START = 0, SEEK_CURRENT = 1, SEEK_FROM_END = 2 };   /* SEEK values (as in Sly 1) */
+
+// Appends {oid, ensureArg} to an animation list (at most 8 entries); returns 0 when full. (inferred)
+extern "C" int AddAshEntry(ASH *animList, OID oid, int ensureArg)
+{
+    if ((unsigned int)animList->count >= 8)
         return 0;
-    animList->a[animList->c].u.oid = oid;
-    animList->a[animList->c].x = x;
-    animList->c++;
+    animList->entries[animList->count].u.oid = oid;
+    animList->entries[animList->count].ensureArg = ensureArg;
+    animList->count++;
     return 1;
 }
 
-// Resolve each ASH oid to an object (PloFindSwObject kind 4) and keep the asegs. (inferred)
-extern "C" void PostAshLoad(ASH *animList, LOV *ploContext)
+// Resolves each entry's oid to its animation segment (searched from the button object) and removes the segment
+// from the world, so it only plays when the button runs it; unknown oids become null. (inferred)
+extern "C" void PostAshLoad(ASH *animList, LOV *context)
 {
     int i;
-    for (i = 0; i < animList->c; i++)
+    for (i = 0; i < animList->count; i++)
     {
-        LOV *plo = PloFindSwObject(&D_003DD490, 4, animList->a[i].u.oid, ploContext);
-        if (plo)
+        LOV *segment = PloFindSwObject(&D_003DD490, FIND_OBJECT_ANY, animList->entries[i].u.oid, context);
+        if (segment)
         {
-            VT *e;
-            animList->a[i].u.paseg = (ASEGV *)plo;
-            e = &plo->pvt[9];   /* Remove */
-            ((void (*)(void *))e->pfn)((char *)plo + e->d);
+            VT *entry;
+            animList->entries[i].u.paseg = (ASEGV *)segment;
+            entry = &segment->pvt[9];   /* Remove */
+            ((void (*)(void *))entry->pfn)((char *)segment + entry->d);
         }
         else
         {
-            animList->a[i].u.paseg = 0;
+            animList->entries[i].u.paseg = 0;
         }
     }
 }
 
-// BTN defaults: state -1, rates 1.0. (inferred)
+// BTN defaults: uninitialized state, segment speed and reset delay 1.0.
 extern "C" void InitBtn(BTN *btn)
 {
-    btn->state = -1;
-    btn->svt = 1.0f;
-    btn->dtReset = 1.0f;
+    btn->state = BTN_UNINITIALIZED;
+    btn->segmentSpeed = 1.0f;
+    btn->resetDelay = 1.0f;
 }
 
-// BTN owner = palo. (inferred)
-extern "C" void LoadBtn(BTN *btn, LOV *plo)
+// Remembers the object the BTN belongs to.
+extern "C" void LoadBtn(BTN *btn, LOV *object)
 {
-    btn->plo = plo;
+    btn->plo = object;
 }
 
-// PostAshLoad for the on and off ASH lists. (inferred)
+// Resolves both animation lists (trigger and untrigger) after load.
 extern "C" void PostBtnLoad(BTN *btn)
 {
     unsigned int i;
     for (i = 0; i < 2; i++)
-        PostAshLoad(&btn->aash[i], btn->plo);
+        PostAshLoad(&btn->animLists[i], btn->plo);
 }
 
-// Fire Splice event 5 on the owner, run the 'on' asegs and RSMG triggers. (inferred)
+// Trigger: Splice event 5 on the object, the click sound, the trigger segments/rsmgs/relay/task states; then the
+// button moves on to BTN_PRESSED (unless it stays triggered) and the object gets message 6.
 extern "C" void TriggerBtn(BTN *btn)
 {
-    LOV *plo = btn->plo;
-    VT *e = &plo->pvt[3];   /* HandleSpliceEvent */
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)plo + e->d, 5, 0, 0, 0, 0);
-    if (!btn->fNoSound)
+    SendSpliceEvent(btn->plo, SPLICE_EVENT_TRIGGER);
+    if (!btn->isSilent)
     {
-        LOV *plo2 = btn->plo;
-        SetSndSourceLo(PsndStartSound(2), plo2);
+        LOV *object = btn->plo;
+        SetSndSourceLo(PsndStartSound(SOUND_BUTTON_CLICK), object);
     }
     RunBtnAsegs(btn, 0);
-    if (!btn->fStayTriggered)
-        SetBtnButtons(btn, 2);
-    {
-        LOV *plo3 = btn->plo;
-        VT *e3 = &plo3->pvt[4];   /* SendMessage */
-        ((void (*)(void *, int, void *))e3->pfn)((char *)plo3 + e3->d, 6, btn);
-    }
+    if (!btn->staysTriggered)
+        SetBtnButtons(btn, BTN_PRESSED);
+    SendObjectMessage(btn->plo, MESSAGE_BUTTON_TRIGGERED, btn);
 }
 
-// Fire Splice event 6, run the 'off' asegs (RunBtnAsegs(1)). (inferred)
+// Untrigger: Splice event 6, the untrigger segments and rsmgs, then message 7 to the object.
 extern "C" void UntriggerBtn(BTN *btn)
 {
-    LOV *plo = btn->plo;
-    VT *e = &plo->pvt[3];   /* HandleSpliceEvent */
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)plo + e->d, 6, 0, 0, 0, 0);
+    SendSpliceEvent(btn->plo, SPLICE_EVENT_UNTRIGGER);
     RunBtnAsegs(btn, 1);
-    {
-        LOV *plo2 = btn->plo;
-        VT *e2 = &plo2->pvt[4];   /* SendMessage */
-        ((void (*)(void *, int, void *))e2->pfn)((char *)plo2 + e2->d, 7, btn);
-    }
+    SendObjectMessage(btn->plo, MESSAGE_BUTTON_UNTRIGGERED, btn);
 }
 
-// Apply/seek every aseg in ASH list i on its object. (inferred)
-extern "C" void RunBtnAsegs(BTN *btn, int iash)
+// Plays every segment of animation list listIndex (0 trigger, 1 untrigger) on the object its segment belongs to,
+// then triggers the rsmgs (on for list 0, off for list 1); list 0 also fires the relay and applies the task states.
+extern "C" void RunBtnAsegs(BTN *btn, int listIndex)
 {
     int j;
-    ASEGV *paseg;
-    for (j = 0; j < btn->aash[iash].c; j++)
+    ASEGV *segment;
+    for (j = 0; j < btn->animLists[listIndex].count; j++)
     {
-        LOV *plo;
-        int oid, x;
-        paseg = btn->aash[iash].a[j].u.paseg;
-        if (!paseg)
+        LOV *target;
+        int oid, ensureArg;
+        segment = btn->animLists[listIndex].entries[j].u.paseg;
+        if (!segment)
             continue;
-        oid = paseg->ploroot->plo->oid;
-        x = btn->aash[iash].a[j].x;
+        oid = segment->ploroot->plo->oid;
+        ensureArg = btn->animLists[listIndex].entries[j].ensureArg;
         if (btn->plo->oid == oid)
-            plo = btn->plo;
+            target = btn->plo;
         else if (oid != -1)
-            plo = PloFindSwObject(&D_003DD490, 4, (OID)oid, btn->plo);
+            target = PloFindSwObject(&D_003DD490, FIND_OBJECT_ANY, (OID)oid, btn->plo);
         else
-            plo = 0;
-        if (btn->fSeek)
+            target = 0;
+        if (btn->seeksBySpeedSign)
         {
-            int seek = 0;
-            if (btn->svt < 0.0f)
-                seek = 2;
-            PasegaEnsureAseg(paseg, (ALO *)plo, (SEEK)seek, 0.0f, btn->svt, x);
+            int seek = SEEK_FROM_START;
+            if (btn->segmentSpeed < 0.0f)
+                seek = SEEK_FROM_END;
+            PasegaEnsureAseg(segment, (ALO *)target, (SEEK)seek, 0.0f, btn->segmentSpeed, ensureArg);
         }
         else
         {
-            PasegaEnsureAseg(paseg, (ALO *)plo, (SEEK)1, 0.0f, btn->svt, x);
+            PasegaEnsureAseg(segment, (ALO *)target, (SEEK)SEEK_CURRENT, 0.0f, btn->segmentSpeed, ensureArg);
         }
     }
-    TriggerRsmg(&D_003DD490, btn->crsmg, btn->arsmg, btn->plo, iash == 0);
-    if (iash == 0)
+    TriggerRsmg(&D_003DD490, btn->numRsmgs, btn->rsmgs, btn->plo, listIndex == 0);
+    if (listIndex == 0)
     {
-        if (btn->prelay)
-            FireRelay(btn->prelay, btn->pvRelay);
-        ApplyTaskStates(D_002DEB30, btn->ctaskstate, btn->ataskstate, btn->plo);
+        if (btn->relay)
+            FireRelay(btn->relay, btn->relayArg);
+        ApplyTaskStates(D_002DEB30, btn->numTaskStates, btn->taskStates, btn->plo);
     }
 }
 
-// BTN state change; 0->1 triggers, any->0 untriggers; stamps time. (inferred)
+// Changes the BTN state and stamps the time; up -> down triggers, any initialized state -> up untriggers.
 extern "C" void SetBtnButtons(BTN *btn, int state)
 {
-    int fTrigger, fUntrigger;
-    int stateOld = btn->state;
-    if (stateOld == state)
+    int shouldTrigger, shouldUntrigger;
+    int oldState = btn->state;
+    if (oldState == state)
         return;
-    fTrigger = stateOld == 0 && state == 1;
-    fUntrigger = stateOld != -1 && state == 0;
+    shouldTrigger = oldState == BTN_UP && state == BTN_DOWN;
+    shouldUntrigger = oldState != BTN_UNINITIALIZED && state == BTN_UP;
     btn->state = state;
-    btn->tState = D_002DDED0.t;
-    if (fTrigger)
+    btn->stateTime = D_002DDED0.t;
+    if (shouldTrigger)
         TriggerBtn(btn);
-    if (fUntrigger)
+    if (shouldUntrigger)
         UntriggerBtn(btn);
 }
 
-// AddAshEntry on the 'on' list (+4). (inferred)
-extern "C" void AddBtnAseg(BTN *btn, OID oid, int x)
+// Adds a segment to the trigger list.
+extern "C" void AddBtnAseg(BTN *btn, OID oid, int ensureArg)
 {
-    AddAshEntry(&btn->aash[0], oid, x);
+    AddAshEntry(&btn->animLists[0], oid, ensureArg);
 }
 
-// AddAshEntry on the 'off' list (+0x48). (inferred)
-extern "C" void AddBtnOffAseg(BTN *btn, OID oid, int x)
+// Adds a segment to the untrigger list.
+extern "C" void AddBtnOffAseg(BTN *btn, OID oid, int ensureArg)
 {
-    AddAshEntry(&btn->aash[1], oid, x);
+    AddAshEntry(&btn->animLists[1], oid, ensureArg);
 }
 
-// FAddRsmg(g_sw, arsmg +0xB4, 8, &crsmg, fOnTrigger, oidRoot, oidSM, oidGoal).
-extern "C" void SetBtnRsmg(BTN *btn, int d, OID e, OID f, OID g)
+// Adds an rsmg (state-machine goal) applied on trigger/untrigger (FAddRsmg, at most 8).
+extern "C" void SetBtnRsmg(BTN *btn, int onTrigger, OID root, OID stateMachine, OID goal)
 {
-    FAddRsmg(&D_003DD490, btn->arsmg, 8, &btn->crsmg, d, e, f, g);
+    FAddRsmg(&D_003DD490, btn->rsmgs, 8, &btn->numRsmgs, onTrigger, root, stateMachine, goal);
 }
 
-// Register (oid, x) in a 4-entry list via 0x161F10 on D_002DEB30. (inferred)
-extern "C" void AddBtnEventListener(BTN *btn, int d, int e)
+// Adds a task state applied on trigger (at most 4; func_00161F10 on the task table D_002DEB30). (inferred)
+extern "C" void AddBtnEventListener(BTN *btn, int task, int taskState)
 {
-    func_00161F10(D_002DEB30, btn->ataskstate, 4, &btn->ctaskstate, d, e);
+    func_00161F10(D_002DEB30, btn->taskStates, 4, &btn->numTaskStates, task, taskState);
 }
 
-// BUTTON (cid 0x53) vtable slot 7: InitSo, InitBtn(+0x150), flag.
+// BUTTON (cid 0x53) vtable slot 7 (Init): SO init, BTN defaults, LO flag 2.
 extern "C" void InitButton(BUTTONV *button)
 {
-    unsigned int grf;
     InitSo(button);
     InitBtn(&button->btn);
-    grf = button->grf40;
-    if ((grf ^ 1) & 1)
-        *(int *)grf |= 2;
-    else
-        button->grf40 = grf | 2;
+    SetTaggedFlags(&button->taggedFlags, 2);
 }
 
-// vtable slot 14: LoadSoFromBrx then LoadBtn(+0x150, this).
+// BUTTON vtable slot 14 (LoadFromBrx): SO load, then the BTN belongs to this button.
 extern "C" void LoadButtonFromBrx(BUTTONV *button, void *stream)
 {
     LoadSoFromBrx(button, stream);
     LoadBtn(&button->btn, (LOV *)button);
 }
 
-// vtable slot 15: PostSoLoad, PostBtnLoad, SetButtonButtons(0). (inferred)
+// BUTTON vtable slot 15 (PostLoad): resolves the segments and starts the button up (untriggered).
 extern "C" void PostButtonLoad(BUTTONV *button)
 {
     PostSoLoad(button);
     PostBtnLoad(&button->btn);
-    SetButtonButtons(button, 0);
+    SetButtonButtons(button, BTN_UP);
 }
 
-// vtable slot 41: SO Clone then btn owner = self. (inferred)
-void BUTTON::Clone(LO *pbuttonBase_m)
+// BUTTON vtable slot 41 (Clone): SO clone; the BTN belongs to the clone.
+void BUTTON::Clone(LO *baseObject)
 {
     BUTTONV *button = (BUTTONV *)this;
-    BUTTONV *pbuttonBase = (BUTTONV *)pbuttonBase_m;
-    CloneSo(button, pbuttonBase);
+    BUTTONV *base = (BUTTONV *)baseObject;
+    CloneSo(button, base);
     button->btn.plo = (LOV *)button;
 }
 
-// Index (0/1) of the other end of a contact, relative to the given tree.
-static inline int IOther(SOTREEV *ptree, CONTACT *pcontact)
+// Index (0/1) of the contact end that belongs to the given tree.
+static inline int GetContactEndIndex(SOTREEV *tree, CONTACT *contact)
 {
-    return ptree->plo == pcontact->aend[0].plo ? 0 : 1;
+    return tree->object == contact->ends[0].object ? 0 : 1;
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -419,236 +463,239 @@ namespace RO_ORDER {   /* pointers through asm-labelled declarations */
 void p_func_00149010() __asm__("UpdateButtonPlayerPush");
 extern const unsigned int r_D_002A4E80[2] __asm__("D_002A4E80") = {0xFFFF0000, (unsigned int)p_func_00149010};
 }
-// vtable slot 16: UpdateSo then press/repush state machine against pushing objects (current player etc.) (inferred)
+// BUTTON vtable slot 16 (Update): the SO update, then the button state machine. A pressed button stays pressed
+// while Sly keeps the matching interaction and resets after resetDelay; a resetting button goes back to up (or down
+// for contact/toggle/Sly buttons that are still held); an up/down button samples what holds it: Sly's interaction
+// (PRESS_SLY_INTERACTION) or an allowed object touching it (PRESS_CONTACT), which is checked one frame later by
+// UpdateButtonPlayerPush through a world callback. (inferred)
 extern "C" void UpdateButton(BUTTONV *button, float dt)
 {
     UpdateSo(button, dt);
     switch (button->btn.state)
     {
-    case 2:
+    case BTN_PRESSED:
     {
-        PLAYERSTATEV *pps = D_002E1E40;
-        if (pps && pps->x18C8 == 3 && pps->x18C4 == button->x2F4)
-            button->btn.tState = D_002DDED0.t;
-        if (0.0f <= button->btn.dtReset && button->btn.dtReset < D_002DDED0.t - button->btn.tState)
-            SetButtonButtons(button, 4);
+        SLYV *sly = D_002E1E40;
+        if (sly && sly->interactionKind == SLY_INTERACTION_BUTTON && sly->interactionId == button->slyInteractionId)
+            button->btn.stateTime = D_002DDED0.t;
+        if (0.0f <= button->btn.resetDelay && button->btn.resetDelay < D_002DDED0.t - button->btn.stateTime)
+            SetButtonButtons(button, BTN_RESETTING);
         break;
     }
-    case 3:
+    case BTN_LOCKED:
         break;
-    case 4:
+    case BTN_RESETTING:
     {
-        int k = -1;
-        switch (button->btnk)
+        int newState = BTN_UNINITIALIZED;
+        switch (button->pressKind)
         {
-        case 0:
-        case 2:
-        case 3:
-            k = 1;
+        case PRESS_CONTACT:
+        case PRESS_WORKER_TOGGLE:
+        case PRESS_SLY_INTERACTION:
+            newState = BTN_DOWN;
             break;
-        case 1:
-            k = 0;
+        case PRESS_WORKER:
+            newState = BTN_UP;
             break;
         }
-        if (k != -1)
-            SetButtonButtons(button, k);
+        if (newState != BTN_UNINITIALIZED)
+            SetButtonButtons(button, newState);
         break;
     }
-    case 0:
-    case 1:
+    case BTN_UP:
+    case BTN_DOWN:
     {
-        int k = button->btn.state;
-        LOV *ploOther;
-        switch (button->btnk)
+        int newState = button->btn.state;
+        LOV *other;
+        switch (button->pressKind)
         {
-        case 1:
-        case 2:
+        case PRESS_WORKER:
+        case PRESS_WORKER_TOGGLE:
             break;
-        case 3:
+        case PRESS_SLY_INTERACTION:
         {
-            PLAYERSTATEV *pps = D_002E1E40;
-            k = 0;
-            if (pps && pps->x18C8 == 3)
-                k = pps->x18C4 == button->x2F4;
+            SLYV *sly = D_002E1E40;
+            newState = BTN_UP;
+            if (sly && sly->interactionKind == SLY_INTERACTION_BUTTON)
+                newState = sly->interactionId == button->slyInteractionId;
             break;
         }
-        found:
-            button->ploPush = ploOther;
+        foundPusher:   /* reached from the contact loop below; a FindContactPusher helper instead changes the frame */
+            /* the press is confirmed by UpdateButtonPlayerPush (D_002A4E80) from the world's callback list */
+            button->pusher = other;
             EnsureSwCallback(&D_003DD490, button, D_002A4E80.l, 0);
-            k = button->btn.state;
+            newState = button->btn.state;
             break;
-        case 0:
+        case PRESS_CONTACT:
         {
-            CONTACTL *pcontactl;
-            k = 0;
-            for (pcontactl = button->ptree->pcontactl; pcontactl; pcontactl = pcontactl->pnext)
+            CONTACTL *contactList;
+            newState = BTN_UP;
+            for (contactList = button->tree->contactLists; contactList; contactList = contactList->next)
             {
-                CONTACT *pcontact;
-                for (pcontact = pcontactl->pcontact; pcontact; pcontact = pcontact->pnext)
+                CONTACT *contact;
+                for (contact = contactList->firstContact; contact; contact = contact->next)
                 {
-                    if (pcontact->x9C != 10)
+                    if (contact->unknown9C != 10)
                     {
-                        int i = IOther(button->ptree, pcontact);
-                        int j = 1 - i;
-                        CONTACTEND *pend = &pcontact->aend[i];
-                        ploOther = pcontact->aend[j].plo;
-                        if (pend->pv == button && CanObjectPushButton(button, ploOther))
-                            goto found;
+                        int ownEnd = GetContactEndIndex(button->tree, contact);
+                        int otherEnd = 1 - ownEnd;
+                        CONTACTEND *end = &contact->ends[ownEnd];
+                        other = contact->ends[otherEnd].object;
+                        if (end->tree == button && CanObjectPushButton(button, other))
+                            goto foundPusher;
                     }
                 }
             }
             break;
         }
         }
-        SetButtonButtons(button, k);
+        SetButtonButtons(button, newState);
         break;
     }
     }
 }
 
-// vtable slot 75: zap/hit by an allowed object presses the button (by btnt mode). (inferred)
-extern "C" void *FAbsorbButtonWkr(BUTTONV *button, WKR *pwkr)
+// BUTTON vtable slot 75 (absorb a worker hit): after the base absorb, an allowed hit presses a worker button that is
+// up, or toggles a toggle button (pressing it only once resetDelay has passed). Returns the base result.
+extern "C" void *FAbsorbButtonWkr(BUTTONV *button, WKR *hit)
 {
-    void *pv = func_001F7588(button, pwkr);
-    if (pv && !(pwkr->grf & 4) && CanObjectPushButton(button, pwkr->plo))
+    void *result = func_001F7588(button, hit);
+    if (result && !(hit->flags & WKR_FLAG_NO_PRESS) && CanObjectPushButton(button, hit->source))
     {
-        switch (button->btnk)
+        switch (button->pressKind)
         {
-        case 1:
-            if (button->btn.state == 0)
-                SetButtonButtons(button, 1);
+        case PRESS_WORKER:
+            if (button->btn.state == BTN_UP)
+                SetButtonButtons(button, BTN_DOWN);
             break;
-        case 2:
-            if (button->btn.state == 0)
+        case PRESS_WORKER_TOGGLE:
+            if (button->btn.state == BTN_UP)
             {
-                if (button->btn.dtReset <= D_002DDED0.t - button->btn.tState)
-                    SetButtonButtons(button, 1);
+                if (button->btn.resetDelay <= D_002DDED0.t - button->btn.stateTime)
+                    SetButtonButtons(button, BTN_DOWN);
             }
-            else if (button->btn.state == 1)
+            else if (button->btn.state == BTN_DOWN)
             {
-                SetButtonButtons(button, 0);
+                SetButtonButtons(button, BTN_UP);
             }
             break;
         }
     }
-    return pv;
+    return result;
 }
 
-// if a STEPPLAYER (+0x2F8) is in a particular grab state, press the button. (inferred)
+// World callback queued by UpdateButton: presses the button for the object touching it, unless that object is a
+// hero (CID 0x34) in state 0x11 or just entered body state 3 (less than 0.15 s ago), which drops the pusher. (inferred)
 extern "C" void UpdateButtonPlayerPush(BUTTONV *button)
 {
-    if (FIsBasicDerivedFrom((BASIC *)button->ploPush, (CIDV)0x34))
+    if (FIsBasicDerivedFrom((BASIC *)button->pusher, (CIDV)0x34))
     {
-        PUSHER *ppusher = (PUSHER *)button->ploPush;
-        if (ppusher->x2DC == 0x11 || (ppusher->x2C4 == 3 && D_002DDED0.t - ppusher->t2E0 < 0.15f))
+        PUSHER *hero = (PUSHER *)button->pusher;
+        if (hero->state == 0x11 || (hero->unknown2C4 == 3 && D_002DDED0.t - hero->stateTime < 0.15f))
         {
-            button->ploPush = 0;
+            button->pusher = 0;
             return;
         }
     }
-    SetButtonButtons(button, 1);
+    SetButtonButtons(button, BTN_DOWN);
 }
 
-// SetBtnButtons(+0x150, n). (inferred)
+// Sets the BUTTON's BTN state.
 extern "C" void SetButtonButtons(BUTTONV *button, int state)
 {
     SetBtnButtons(&button->btn, state);
 }
 
-// TriggerBtn(+0x150). (inferred)
+// Triggers the BUTTON's BTN.
 extern "C" void TriggerButton(BUTTONV *button)
 {
     TriggerBtn(&button->btn);
 }
 
-// UntriggerBtn(+0x150). (inferred)
+// Untriggers the BUTTON's BTN.
 extern "C" void UntriggerButton(BUTTONV *button)
 {
     UntriggerBtn(&button->btn);
 }
 
-// Is the object allowed to push (push oid/cid lists vs no-push lists). (inferred)
-extern "C" int CanObjectPushButton(BUTTONV *button, LOV *plo)
+// May this object press the button? It must be in the push-object list and derive from a push class, each check
+// applying only when its list is non-empty.
+extern "C" int CanObjectPushButton(BUTTONV *button, LOV *object)
 {
     int i, j;
-    if (button->cploPush > 0)
+    if (button->numPushObjects > 0)
     {
-        for (i = 0; i < button->cploPush; i++)
-            if (button->aploPush[i] == plo)
+        for (i = 0; i < button->numPushObjects; i++)
+            if (button->pushObjects[i] == object)
                 break;
-        if (i >= button->cploPush)
+        if (i >= button->numPushObjects)
             return 0;
     }
-    if (button->ccidPush > 0)
+    if (button->numPushClasses > 0)
     {
-        for (j = 0; j < button->ccidPush; j++)
-            if (FIsBasicDerivedFrom((BASIC *)plo, button->acidPush[j]))
+        for (j = 0; j < button->numPushClasses; j++)
+            if (FIsBasicDerivedFrom((BASIC *)object, button->pushClasses[j]))
                 break;
-        if (j >= button->ccidPush)
+        if (j >= button->numPushClasses)
             return 0;
     }
     return 1;
 }
 
-// AddBtnAseg(+0x150, oid). (inferred)
-extern "C" void AddButtonAseg(BUTTONV *button, OID oid, int x)
+// Splice: adds a trigger segment.
+extern "C" void AddButtonAseg(BUTTONV *button, OID oid, int ensureArg)
 {
-    AddBtnAseg(&button->btn, oid, x);
+    AddBtnAseg(&button->btn, oid, ensureArg);
 }
 
-// AddBtnOffAseg(+0x150, oid). (inferred)
-extern "C" void AddButtonOffAseg(BUTTONV *button, OID oid, int x)
+// Splice: adds an untrigger segment.
+extern "C" void AddButtonOffAseg(BUTTONV *button, OID oid, int ensureArg)
 {
-    AddBtnOffAseg(&button->btn, oid, x);
+    AddBtnOffAseg(&button->btn, oid, ensureArg);
 }
 
-// append oid to push list (max 8). (inferred)
-extern "C" void AddButtonPushObject(BUTTONV *button, LOV *plo)
+// Splice: adds an object that may press the button (at most 8).
+extern "C" void AddButtonPushObject(BUTTONV *button, LOV *object)
 {
-    if ((unsigned int)button->cploPush < 8)
-        button->aploPush[button->cploPush++] = plo;
+    if ((unsigned int)button->numPushObjects < 8)
+        button->pushObjects[button->numPushObjects++] = object;
 }
 
-// append to second list (max 8). (inferred)
+// Splice: adds a class that may press the button (at most 8).
 extern "C" void AddButtonPushClass(BUTTONV *button, CIDV cid)
 {
-    if ((unsigned int)button->ccidPush < 8)
-        button->acidPush[button->ccidPush++] = cid;
+    if ((unsigned int)button->numPushClasses < 8)
+        button->pushClasses[button->numPushClasses++] = cid;
 }
 
-// SetBtnRsmg(+0x150,...) (inferred)
-extern "C" void SetButtonRsmg(BUTTONV *button, int d, OID e, OID f, OID g)
+// Splice: adds an rsmg (SetBtnRsmg).
+extern "C" void SetButtonRsmg(BUTTONV *button, int onTrigger, OID root, OID stateMachine, OID goal)
 {
-    SetBtnRsmg(&button->btn, d, e, f, g);
+    SetBtnRsmg(&button->btn, onTrigger, root, stateMachine, goal);
 }
 
-// 0x148B78 on +0x150. (inferred)
-extern "C" void AddButtonEventListener(BUTTONV *button, int d, int e)
+// Splice: adds a task state applied on trigger (AddBtnEventListener).
+extern "C" void AddButtonEventListener(BUTTONV *button, int task, int taskState)
 {
-    AddBtnEventListener(&button->btn, d, e);
+    AddBtnEventListener(&button->btn, task, taskState);
 }
 
-// BUTTON (cid 0x53) vtable slot 12: base RemoveSoHierarchy; if pressed, reset buttons to 0. (inferred)
+// BUTTON vtable slot 12 (RemoveHierarchy): SO removal; a down or pressed button goes back up (untriggers).
 extern "C" void RemoveButtonHierarchy(BUTTONV *button)
 {
     RemoveSoHierarchy(button);
-    if ((unsigned int)(button->btn.state - 1) < 2)
-        SetButtonButtons(button, 0);
+    if ((unsigned int)(button->btn.state - BTN_DOWN) < 2)   /* BTN_DOWN or BTN_PRESSED */
+        SetButtonButtons(button, BTN_UP);
 }
 
-// VOLBTN (cid 0x18)/0x19 vtable slot 7: base init, InitBtn. (inferred)
+// VOLBTN (cid 0x18) vtable slot 7 (Init): XFM init, BTN defaults, silent, not busy, LO flag 2.
 extern "C" void InitVolbtn(VOLBTNV *volumeButton)
 {
-    unsigned int grf;
     InitXfm(volumeButton);
     InitBtn(&volumeButton->btn);
-    volumeButton->btn.fNoSound = 1;
+    volumeButton->btn.isSilent = 1;
     SetLoBusyk(volumeButton, 0);
-    grf = volumeButton->grf40;
-    if ((grf ^ 1) & 1)
-        *(int *)grf |= 2;
-    else
-        volumeButton->grf40 = grf | 2;
+    SetTaggedFlags(&volumeButton->taggedFlags, 2);
 }
 
 // VOLBTN vtable slot 14 (LoadFromBrx): loads the VOL part and the BTN; a volume button that tracks what is inside stays
@@ -657,212 +704,213 @@ extern "C" void LoadVolbtnFromBrx(VOLBTNV *volumeButton, void *stream)
 {
     LoadVolFromBrx(volumeButton, stream);
     LoadBtn(&volumeButton->btn, (LOV *)volumeButton);
-    if (volumeButton->fTrackInside)
-        volumeButton->btn.fStayTriggered = 1;
+    if (volumeButton->tracksInside)
+        volumeButton->btn.staysTriggered = 1;
 }
 
-// vtable slot 15: base, PostBtnLoad. (inferred)
+// VOLBTN vtable slot 15 (PostLoad): resolves the segments, starts up; a tracking button allocates its list of the
+// objects inside (func_001AE1D0: 0x100 bytes, heap kind 0x10; inferred).
 extern "C" void PostVolbtnLoad(VOLBTNV *volumeButton)
 {
     PostLoLoad(volumeButton);
     PostBtnLoad(&volumeButton->btn);
-    SetVolbtnButtons(volumeButton, 0);
-    if (volumeButton->fTrackInside)
+    SetVolbtnButtons(volumeButton, BTN_UP);
+    if (volumeButton->tracksInside)
     {
-        int an[2];
-        an[0] = 0x100;
-        an[1] = 0x10;
-        volumeButton->aploInside = (LOV **)func_001AE1D0(an);
+        int request[2];
+        request[0] = 0x100;
+        request[1] = 0x10;
+        volumeButton->objectsInside = (LOV **)func_001AE1D0(request);
     }
 }
 
-// vtable slot 41. (inferred)
-void VOLBTN::Clone(LO *pvolbtnBase_m)
+// VOLBTN vtable slot 41 (Clone): XFM clone; the BTN belongs to the clone.
+void VOLBTN::Clone(LO *baseObject)
 {
     VOLBTNV *volumeButton = (VOLBTNV *)this;
-    VOLBTNV *pvolbtnBase = (VOLBTNV *)pvolbtnBase_m;
-    CloneXfm(volumeButton, pvolbtnBase);
+    VOLBTNV *base = (VOLBTNV *)baseObject;
+    CloneXfm(volumeButton, base);
     volumeButton->btn.plo = (LOV *)volumeButton;
 }
 
-// qsort comparator (difference / 0x14). (inferred)
-/* qsort comparator: objects in address order. */
-extern "C" int CompareVolbtnObjects(LOV **pplo1, LOV **pplo2)
+// qsort comparator: objects in address order (the pointer difference counts LO-sized steps).
+extern "C" int CompareVolbtnObjects(LOV **first, LOV **second)
 {
-    return *pplo1 - *pplo2;
+    return *first - *second;
 }
 
-// vtable slot 16: volume button - objects inside the volume trigger/untrigger. (inferred)
+// VOLBTN vtable slot 16 (Update): a pressed button resets after resetDelay; an up or down button collects the
+// candidate objects (push objects, every object of each push class, or the player objects when neither list is set)
+// and is down while any of them stands inside the volume (FCheckVolPoint at its position); the first such object
+// is the relay argument. A tracking button also keeps the sorted set of objects inside and sends Splice event 9
+// when it changes.
 extern "C" void UpdateVolbtn(VOLBTNV *volumeButton, float dt)
 {
     int state;
     UpdateLo(volumeButton, dt);
     state = volumeButton->btn.state;
-    if (state == 2)
+    if (state == BTN_PRESSED)
     {
-        if (0.0f <= volumeButton->btn.dtReset && volumeButton->btn.dtReset < D_002DDED0.t - volumeButton->btn.tState)
-            SetVolbtnButtons(volumeButton, 1);
+        if (0.0f <= volumeButton->btn.resetDelay && volumeButton->btn.resetDelay < D_002DDED0.t - volumeButton->btn.stateTime)
+            SetVolbtnButtons(volumeButton, BTN_DOWN);
     }
-    else if (state < 3) if (state >= 0)
+    else if (state < BTN_LOCKED) if (state >= BTN_UP)   /* two tests: a combined range test becomes one unsigned compare */
     {
-        LOV *aplo[64];
-        LOV *aploSel[64];
-        int ctx[4];
+        LOV *candidates[64];
+        LOV *inside[64];
+        int stackScope[4];
         int i = 0;
-        int fFound = 0;
-        int c;
+        int isAnyInside = 0;
+        int numCandidates;
         int j;
-        int cSel;
-        STACKSCOPE_ctor(ctx);
-        CopyAb(aplo, volumeButton->aploPush, volumeButton->cploPush * 4);
-        c = volumeButton->cploPush;
-        for (; i < volumeButton->ccidPush; i++)
-            c += CploFindSwObjectsByClass(&D_003DD490, 0x505, volumeButton->acidPush[i], 0, 0x40 - c, &aplo[c]);
-        if (volumeButton->cploPush == 0 && volumeButton->ccidPush == 0)
+        int numInside;
+        STACKSCOPE_ctor(stackScope);
+        CopyAb(candidates, volumeButton->pushObjects, volumeButton->numPushObjects * 4);
+        numCandidates = volumeButton->numPushObjects;
+        for (; i < volumeButton->numPushClasses; i++)
+            numCandidates += CploFindSwObjectsByClass(&D_003DD490, 0x505, volumeButton->pushClasses[i], 0,
+                                                      0x40 - numCandidates, &candidates[numCandidates]);
+        if (volumeButton->numPushObjects == 0 && volumeButton->numPushClasses == 0)
         {
-            CopyAb(&aplo[c], D_003DD490.apo, D_003DD490.cpo * 4);
-            c += D_003DD490.cpo;
+            CopyAb(&candidates[numCandidates], D_003DD490.apo, D_003DD490.cpo * 4);
+            numCandidates += D_003DD490.cpo;
         }
-        volumeButton->btn.pvRelay = 0;
-        cSel = 0;
+        volumeButton->btn.relayArg = 0;
+        numInside = 0;
         j = 0;
-        if (j < c) do
+        if (j < numCandidates) do   /* a for loop is rotated differently */
         {
-            LOV *plo = aplo[j];
-            if (plo && func_001A61A0(plo) && FCheckVolPoint(volumeButton, func_001A62E8(plo)))
+            LOV *object = candidates[j];
+            if (object && func_001A61A0(object) && FCheckVolPoint(volumeButton, func_001A62E8(object)))
             {
-                fFound = 1;
-                if (!volumeButton->btn.pvRelay)
-                    volumeButton->btn.pvRelay = plo;
-                if (!volumeButton->fTrackInside)
+                isAnyInside = 1;
+                if (!volumeButton->btn.relayArg)
+                    volumeButton->btn.relayArg = object;
+                if (!volumeButton->tracksInside)
                     break;
-                aploSel[cSel++] = plo;
+                inside[numInside++] = object;
             }
-        } while (++j < c);
-        if (volumeButton->fTrackInside)
+        } while (++j < numCandidates);
+        if (volumeButton->tracksInside)
         {
-            int fChanged = 0;
-            qsort(aplo, c, 4, (int (*)(const void *, const void *))CompareVolbtnObjects);
-            if (volumeButton->cploInside != cSel)
+            int hasChanged = 0;
+            qsort(candidates, numCandidates, 4, (int (*)(const void *, const void *))CompareVolbtnObjects);
+            if (volumeButton->numInside != numInside)
             {
-                fChanged = 1;
+                hasChanged = 1;
             }
             else
             {
                 /* first element checked before the loop; the loop is entered at its increment (keeps loop.c from
                    strength-reducing it, like the target) */
-                int i2 = 0;
-                if (i2 < cSel)
+                int k = 0;
+                if (k < numInside)
                 {
-                    if (aploSel[i2] == volumeButton->aploInside[i2])
+                    if (inside[k] == volumeButton->objectsInside[k])
                         goto next;
-                    fChanged = 1;
+                    hasChanged = 1;
                     goto changed;
                     for (;;)
                     {
                     next:
-                        i2++;
-                        if (i2 >= cSel)
+                        k++;
+                        if (k >= numInside)
                             break;
-                        if (aploSel[i2] != volumeButton->aploInside[i2])
+                        if (inside[k] != volumeButton->objectsInside[k])
                         {
                         changed:
-                            fChanged = 1;
+                            hasChanged = 1;
                             break;
                         }
                     }
                 }
             }
-            if (fChanged)
+            if (hasChanged)
             {
-                VT *e;
-                volumeButton->cploInside = cSel;
-                CopyAb(volumeButton->aploInside, aploSel, cSel * 4);
-                e = &volumeButton->pvt[3];   /* HandleSpliceEvent */
-                ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)volumeButton + e->d, 9, 0, 0, 0, 0);
+                volumeButton->numInside = numInside;
+                CopyAb(volumeButton->objectsInside, inside, numInside * 4);
+                SendSpliceEvent((LOV *)volumeButton, SPLICE_EVENT_INSIDE_CHANGED);
             }
         }
-        SetVolbtnButtons(volumeButton, fFound);
-        STACKSCOPE_ctor_1AE4A0(ctx, 2);
+        SetVolbtnButtons(volumeButton, isAnyInside);
+        STACKSCOPE_ctor_1AE4A0(stackScope, 2);
     }
 }
 
-// SetBtnButtons on the volbtn's BTN. (inferred)
+// Sets the VOLBTN's BTN state.
 extern "C" void SetVolbtnButtons(VOLBTNV *volumeButton, int state)
 {
     SetBtnButtons(&volumeButton->btn, state);
 }
 
-// TriggerBtn. (inferred)
+// Triggers the VOLBTN's BTN.
 extern "C" void TriggerVolbtn(VOLBTNV *volumeButton)
 {
     TriggerBtn(&volumeButton->btn);
 }
 
-// UntriggerBtn. (inferred)
+// Untriggers the VOLBTN's BTN.
 extern "C" void UntriggerVolbtn(VOLBTNV *volumeButton)
 {
     UntriggerBtn(&volumeButton->btn);
 }
 
-// AddBtnAseg. (inferred)
-extern "C" void AddVolbtnAseg(VOLBTNV *volumeButton, OID oid, int x)
+// Splice: adds a trigger segment.
+extern "C" void AddVolbtnAseg(VOLBTNV *volumeButton, OID oid, int ensureArg)
 {
-    AddBtnAseg(&volumeButton->btn, oid, x);
+    AddBtnAseg(&volumeButton->btn, oid, ensureArg);
 }
 
-// AddBtnOffAseg. (inferred)
-extern "C" void AddVolbtnOffAseg(VOLBTNV *volumeButton, OID oid, int x)
+// Splice: adds an untrigger segment.
+extern "C" void AddVolbtnOffAseg(VOLBTNV *volumeButton, OID oid, int ensureArg)
 {
-    AddBtnOffAseg(&volumeButton->btn, oid, x);
+    AddBtnOffAseg(&volumeButton->btn, oid, ensureArg);
 }
 
-// append to push list (max 8). (inferred)
-extern "C" void AddVolbtnPushObject(VOLBTNV *volumeButton, LOV *plo)
+// Splice: adds an object that may press the volume button (at most 8).
+extern "C" void AddVolbtnPushObject(VOLBTNV *volumeButton, LOV *object)
 {
-    if ((unsigned int)volumeButton->cploPush < 8)
-        volumeButton->aploPush[volumeButton->cploPush++] = plo;
+    if ((unsigned int)volumeButton->numPushObjects < 8)
+        volumeButton->pushObjects[volumeButton->numPushObjects++] = object;
 }
 
-// append to a 4-entry list. (inferred)
+// Splice: adds a class that may press the volume button (at most 4).
 extern "C" void AddVolbtnPushClass(VOLBTNV *volumeButton, CIDV cid)
 {
-    if ((unsigned int)volumeButton->ccidPush < 4)
-        volumeButton->acidPush[volumeButton->ccidPush++] = cid;
+    if ((unsigned int)volumeButton->numPushClasses < 4)
+        volumeButton->pushClasses[volumeButton->numPushClasses++] = cid;
 }
 
-// SetBtnRsmg. (inferred)
-extern "C" void SetVolbtnRsmg(VOLBTNV *volumeButton, int d, OID e, OID f, OID g)
+// Splice: adds an rsmg (SetBtnRsmg).
+extern "C" void SetVolbtnRsmg(VOLBTNV *volumeButton, int onTrigger, OID root, OID stateMachine, OID goal)
 {
-    SetBtnRsmg(&volumeButton->btn, d, e, f, g);
+    SetBtnRsmg(&volumeButton->btn, onTrigger, root, stateMachine, goal);
 }
 
-// 0x148B78. (inferred)
-extern "C" void AddVolbtnEventListener(VOLBTNV *volumeButton, int d, int e)
+// Splice: adds a task state applied on trigger (AddBtnEventListener).
+extern "C" void AddVolbtnEventListener(VOLBTNV *volumeButton, int task, int taskState)
 {
-    AddBtnEventListener(&volumeButton->btn, d, e);
+    AddBtnEventListener(&volumeButton->btn, task, taskState);
 }
 
-// build a CRef from +0x2C0/+0x2C4 (0x200F58 tag 0x2002). (inferred)
-/* The objects inside as a Splice list (otyp 0x2002). */
+// Splice getter: the objects inside a tracking volume button, as a Splice list (otyp 0x2002).
 extern "C" CRef GetVolbtnPushStateRef(VOLBTNV *volumeButton)
 {
-    return func_00200F58(volumeButton->cploInside, 0x2002, volumeButton->aploInside);
+    return func_00200F58(volumeButton->numInside, 0x2002, volumeButton->objectsInside);
 }
 
-// vtable slot 12: base, untrigger if pressed. (inferred)
+// VOLBTN vtable slot 12 (RemoveHierarchy): LO removal; a down or pressed button goes back up, and a tracking
+// button empties its inside list and sends Splice event 9.
 extern "C" void RemoveVolbtnHierarchy(VOLBTNV *volumeButton)
 {
     RemoveLoHierarchy(volumeButton);
-    if ((unsigned int)(volumeButton->btn.state - 1) < 2)
+    if ((unsigned int)(volumeButton->btn.state - BTN_DOWN) < 2)   /* BTN_DOWN or BTN_PRESSED */
     {
-        SetVolbtnButtons(volumeButton, 0);
-        if (volumeButton->fTrackInside)
+        SetVolbtnButtons(volumeButton, BTN_UP);
+        if (volumeButton->tracksInside)
         {
-            VT *e;
-            volumeButton->cploInside = 0;
-            e = &volumeButton->pvt[3];   /* HandleSpliceEvent */
-            ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)volumeButton + e->d, 9, 0, 0, 0, 0);
+            volumeButton->numInside = 0;
+            SendSpliceEvent((LOV *)volumeButton, SPLICE_EVENT_INSIDE_CHANGED);
         }
     }
 }
