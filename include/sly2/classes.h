@@ -515,8 +515,8 @@ typedef char assert_WIDGET131_size[sizeof(WIDGET131) == 0x140 ? 1 : -1];
 struct CID116 : LO
 {
     char pad50[0x70 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid116ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0015DC80");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid116ClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("func_0015DCD8");   /* slot 16 */
     virtual void RenderSelf() __asm__("func_0015DD48");   /* slot 19 */
 };
