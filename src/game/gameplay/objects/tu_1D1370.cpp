@@ -60,27 +60,27 @@ void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_InitRobottank { extern "C" {
 struct V { float x, y, z; };
-struct S { char p0[0x180]; int n180; char p1[0x51C-0x184]; float g51C; struct V v520; int pad; int n530; struct V v534;
-    char p2[0x55C-0x540]; int n55C; char p3[0x578-0x560]; int n578; char p4[8]; int n584; char p5[8]; int n590; char p6[8]; int n59C; };
+struct S { char p0[0x180]; int state; char p1[0x51C-0x184]; float maxDrive; struct V unknown520; int pad; int unknown530; struct V unknown534;
+    char p2[0x55C-0x540]; int maxHealth; char p3[0x578-0x560]; int unknown578; char p4[8]; int unknown584; char p5[8]; int unknown590; char p6[8]; int engineSoundId; };
 void InitPo(struct S *p);
 // Inline helper SetVector: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register
 // and instruction choice matches the original; its name says what it computes.
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
-// CID 77 vtable slot 7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
+// CID 77 vtable slot 7 Init: InitPo, max health 100, ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
 void InitRobottank(struct S *tank) {
     InitPo(tank);
-    tank->g51C = 500.0f; //P
-    tank->n180 = -1; //P
-    SetVector(&tank->v520, 1500.0f, -1000.0f, 0.0f); //P
-    tank->n59C = -1; //P
-    tank->v534.x = 1500.0f;
-    tank->v534.y = 2500.0f;
-    tank->v534.z = 1.0f;
-    tank->n55C = 100;
-    tank->n590 = 30;
-    tank->n584 = 30;
-    tank->n578 = 30;
-    tank->n530 = 0;
+    tank->maxDrive = 500.0f; //P
+    tank->state = -1; //P
+    SetVector(&tank->unknown520, 1500.0f, -1000.0f, 0.0f); //P
+    tank->engineSoundId = -1; //P
+    tank->unknown534.x = 1500.0f;
+    tank->unknown534.y = 2500.0f;
+    tank->unknown534.z = 1.0f;
+    tank->maxHealth = 100;
+    tank->unknown590 = 30;
+    tank->unknown584 = 30;
+    tank->unknown578 = 30;
+    tank->unknown530 = 0;
 }
 } } // namespace M_InitRobottank
 
@@ -701,71 +701,71 @@ typedef char guard_80[(OFF(P,attachments[1])-OFF(P,attachments[0])==4)?1:-1];
 namespace M_ReadRobottankInput { extern "C" {
 typedef struct {
     char pad[0x18];
-    float g;
+    float stick;
     char pad1c[0x30 - 0x1C];
     unsigned int fl;
-} SUB;
+} POCTL_VIEW;
 typedef struct {
     char pad[0x20];
-    void *x20;
+    void *sma;
     unsigned int fl;
-    int x28;
+    int fireButtons;
 } ITEM;
 typedef struct {
     char pad[0x150];
-    SUB *psub;
+    POCTL_VIEW *control;
     char pad154[0x4F8 - 0x154];
-    int c;
-    ITEM *a[8];
-    float x51C;
+    int weaponCount;
+    ITEM *weapons[8];
+    float maxDrive;
     char pad520[0x540 - 0x520];
-    float x540;
-    float x544;
+    float heading;
+    float goalHeading;
     int pad548;
-    float x54C;
-    float x550;
+    float wheelAngle;
+    float drive;
 } OBJ;
 int HasRobottankWeaponAmmo(ITEM *);
 void SetSmaGoal(void *, int);
-int GrfConsumePressed__5POCTLUif(SUB *, int, float);
+int GrfConsumePressed__5POCTLUif(POCTL_VIEW *, int, float);
 // Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires
 // (SMA goal 0x68) or held-flag variant (0x67). (inferred)
 void ReadRobottankInput(OBJ *tank)
 {
     int i;
-    SUB *ps = tank->psub;
-    float g = ps->g;
-    tank->x544 = g;
+    POCTL_VIEW *ps = tank->control;
+    float stick = ps->stick;
+    tank->goalHeading = stick;
     if (ps->fl & 0x40) {
-        tank->x550 = tank->x51C;
-        tank->x54C = tank->x540;
+        tank->drive = tank->maxDrive;
+        tank->wheelAngle = tank->heading;
     } else {
-        tank->x54C = g;
-        tank->x550 = 0.0f;
+        tank->wheelAngle = stick;
+        tank->drive = 0.0f;
     }
-    for (i = 0; i < tank->c; i++) {
-        ITEM *q = tank->a[i];
+    for (i = 0; i < tank->weaponCount; i++) {
+        ITEM *q = tank->weapons[i];
         if (HasRobottankWeaponAmmo(q)) {
-            if (tank->psub->fl & q->fl)
-                SetSmaGoal(q->x20, 0x67);
-            else if (GrfConsumePressed__5POCTLUif(tank->psub, q->x28, 0.0f))
-                SetSmaGoal(q->x20, 0x68);
+            if (tank->control->fl & q->fl)
+                SetSmaGoal(q->sma, 0x67);
+            else if (GrfConsumePressed__5POCTLUif(tank->control, q->fireButtons, 0.0f))
+                SetSmaGoal(q->sma, 0x68);
         }
     }
 }
 } } // namespace M_ReadRobottankInput
 
-// Keeps its per-function views in a namespace of its own (see the file header).
+// Keeps its per-function views in weapons namespace of its own (see the file header).
 namespace M_func_001D2240 { extern "C" {
-struct O { char pad[0x80]; int n80; };
-struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
+struct O { char pad[0x80]; int state; };
+struct S { char pad[0x4F8]; int weaponCount; struct O *weapons[1]; };
 int HasRobottankWeaponAmmo(struct O *po);
 // First weapon with enough ammo whose state is not 4. (inferred)
 struct O *FindReadyRobottankWeapon(struct S *tank) {
     int i;
-    for (i = 0; i < tank->c; i++) {
-        struct O *po = tank->ap[i];
-        if (HasRobottankWeaponAmmo(po) && po->n80 != 4) return po;
+    for (i = 0; i < tank->weaponCount; i++) {
+        struct O *po = tank->weapons[i];
+        if (HasRobottankWeaponAmmo(po) && po->state != 4) return po;
     }
     return 0;
 }
@@ -778,13 +778,13 @@ namespace RO_ORDER { extern const float r_D_002A7810 __asm__("D_002A7810") = 3.4
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D22D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-typedef struct { char pad[0x158]; int x158; } SO;
+typedef struct { char pad[0x158]; int pickupKind; } SO;
 typedef struct { float f; int a, b; } E12;
 typedef struct {
     char pad0[0x57C];
-    E12 a57C[5];
+    E12 pickupBias[5];
     char pad5b8[0x5B8 - 0x57C - 60];
-    SO *x5B8;
+    SO *lastPickup;
 } OBJ;
 extern char D_003DD490[];
 extern const float D_002A7810;   /* defined below where the ELF has it (.rodata order) */
@@ -808,9 +808,9 @@ SO *FindNearestRobottankPickup(OBJ *pickup)
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(pos));
         __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
-        if (so == pickup->x5B8)
+        if (so == pickup->lastPickup)
             f = D_002C20C0[0] + f * (D_002C20C0[1] + f * D_002C20C0[2]);
-        f += pickup->a57C[so->x158].f;
+        f += pickup->pickupBias[so->pickupKind].f;
         if (f < fMin) {
             fMin = f;
             best = so;
@@ -849,9 +849,9 @@ typedef struct { float x, y, z; } __attribute__((aligned(16))) VECTOR;
 typedef union { qword q; float f; } U;
 typedef struct {
     char pad0[0x51C];
-    float slip;
+    float maxDrive;
     char pad520[0x544 - 0x520];
-    float heading;
+    float goalHeading;
     char pad548[0x550 - 0x548];
     float drive;
     char pad554[0x5AC - 0x554];
@@ -915,7 +915,7 @@ static inline qword NormalizeOr(qword value,qword fallback)
     }
     return cpu;
 }
-// Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal heading/drive. (inferred)
+// Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal goalHeading/drive. (inferred)
 void SteerRobottankAlongPath(OBJ *tank)
 {
     VECTOR va, vb;
@@ -934,8 +934,8 @@ void SteerRobottankAlongPath(OBJ *tank)
     v=AddScaled(point,fallback,f);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(w) : "j"(v), "j"(pos));
     dir=NormalizeOr(w,fallback);
-    tank->heading = atan2f(GetY(dir), GetX(dir));
-    tank->drive = tank->slip * 0.75f;
+    tank->goalHeading = atan2f(GetY(dir), GetX(dir));
+    tank->drive = tank->maxDrive * 0.75f;
 }
 } } // namespace M_func_001D2490
 
@@ -1875,50 +1875,50 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct LONGU { long l; } __attribute__((packed));   /* the 8-byte callback by value (B4) */
 typedef struct {
-    struct { char pad[8]; void *x8; char pad2[0x34]; } ab[2];
-    qword x80;
+    struct { char pad[8]; void *so; char pad2[0x34]; } sides[2];
+    qword normal;
     char pad90[4];
-    float x94;
-    float x98;
+    float elasticity;
+    float friction;
 } OBJ;
 extern char D_003DD490[];
 extern const LONGU D_002A7840;
 void func_001F4FB0(void *, OBJ *, int);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, long, void *);
-// Inline helper GetZ: a few VU0/EE instructions in asm (or a small accessor) written so the compiler's register and
+// Inline helper GetZ: tank few VU0/EE instructions in asm (or tank small accessor) written so the compiler's register and
 // instruction choice matches the original; its name says what it computes.
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 // CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID
 // 0x6C pickup schedules CollectRcCarPickup. (inferred)
-void AdjustRobottankNewXp(void *a, OBJ *tank, int n)
+void AdjustRobottankNewXp(void *tank, OBJ *contact, int side)
 {
-    void *e;
+    void *other;
     qword v;
-    func_001F4FB0(a, tank, n);
-    e = tank->ab[1 - n].x8;
-    if (n == 0) {
-        v = tank->x80;
+    func_001F4FB0(tank, contact, side);
+    other = contact->sides[1 - side].so;
+    if (side == 0) {
+        v = contact->normal;
     } else {
         U s;
         qword sq;
         __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
         s.q = sq;
-        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(tank->x80), "j"(s.q));
+        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(contact->normal), "j"(s.q));
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(e, 0x4D) || GetZ(v) < 0.7f) {
-        tank->x94 = 0.0f;
-        tank->x98 = 0.1f;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 0x4D) || GetZ(v) < 0.7f) {
+        contact->elasticity = 0.0f;
+        contact->friction = 0.1f;
     } else {
-        tank->x94 = 0.5f;
-        tank->x98 = 0.1f;
+        contact->elasticity = 0.5f;
+        contact->friction = 0.1f;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(e, 0x6C))
-        EnsureSwCallback(D_003DD490, a, D_002A7840.l, e);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(other, 0x6C))
+        EnsureSwCallback(D_003DD490, tank, D_002A7840.l, other);
 }
 } } // namespace M_AdjustRobottankNewXp
 
-// Keeps its per-function views in a namespace of its own (see the file header).
+// Keeps its per-function views in tank namespace of its own (see the file header).
 namespace M_UpdateRobottankBounds { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct E { int a[8]; float g20; int b[11]; qword q50; };
@@ -2192,10 +2192,10 @@ typedef struct OBJ {
     char pad188[0x568 - 0x188];
     W *pw;
     int pad56c;
-    void *x570;
+    void *sma;
     char pad574[0x598 - 0x574];
-    void *x598;
-    int x59C;
+    void *engineSound;
+    int engineSoundId;
 } OBJ;
 extern int D_002C2208[];
 void PlayWidgetAnim(W *, int);
@@ -2223,12 +2223,12 @@ void SetRobottankState(OBJ *tank, int n)
             PlayWidgetAnim(tank->pw, 0x34F);
             UpdateRobottankHealthMeter(tank);
         }
-        if (tank->x59C != -1) {
-            void *ps = PsndStartSound(tank->x59C);
+        if (tank->engineSoundId != -1) {
+            void *ps = PsndStartSound(tank->engineSoundId);
             SetSndSourceLo(ps, tank);
-            RcPtr_Assign(&tank->x598, ps);
-            SetSndRange(tank->x598, 500.0f, 1500.0f);
-            PauseSnd(tank->x598);
+            RcPtr_Assign(&tank->engineSound, ps);
+            SetSndRange(tank->engineSound, 500.0f, 1500.0f);
+            PauseSnd(tank->engineSound);
         }
         break;
     case 1:
@@ -2243,7 +2243,7 @@ void SetRobottankState(OBJ *tank, int n)
         if (pw2)
             ((void (*)(void *))pw2->vt->a[50].pfn)((char *)pw2 + pw2->vt->a[50].d);
         {
-            void **pps = &tank->x598;
+            void **pps = &tank->engineSound;
             if (*pps) {
                 StopSnd(*pps, 0.0f);
                 RcPtr_Assign(pps, 0);
@@ -2258,8 +2258,8 @@ void SetRobottankState(OBJ *tank, int n)
         tank->vt->a[3].pfn((char *)tank + tank->vt->a[3].d, 5, 0, 0, 0, 0);
         break;
     }
-    if (tank->x570 && tank->state != -1)
-        SetSmaGoalIfReachable(tank->x570, D_002C2208[tank->state]);
+    if (tank->sma && tank->state != -1)
+        SetSmaGoalIfReachable(tank->sma, D_002C2208[tank->state]);
 }
 } } // namespace M_SetRobottankState
 
@@ -2303,16 +2303,16 @@ struct B : A {
     char *vt;
 };
 struct X : B {
-    int x10;
-    int x14;
-    int x18;
+    int unknown10;
+    int unknown14;
+    int unknown18;
     char pad1c[0x2C - 0x1C];
-    int x2C;
+    int unknown2C;
     int pad30[2];
-    int x38;
+    int unknown38;
     char pad[0xB0 - 0x3C];
 };
-struct OBJ { char pad[0x4F8]; unsigned int n; X *a[8]; };
+struct OBJ { char pad[0x4F8]; unsigned int weaponCount; X *weapons[8]; };
 // Allocates a weapon record from the world heap and sets its vtable (D_002C94A0).
 static inline X *CreateItem(OBJ *owner) {
  void *allocated=func_001AE4F8(sizeof(X));
@@ -2331,15 +2331,15 @@ extern "C" void AddRobottankWeapon(OBJ *tank, int a, int b, int inputC, int inpu
 {
     register int c __asm__("$20")=inputC;
     register int d __asm__("$21")=inputD;
-    if (tank->n < 8) {
+    if (tank->weaponCount < 8) {
         X *it = CreateItem(tank);
-        unsigned int index=tank->n;
-        it->x14=a;
-        it->x18=b;
-        tank->a[index]=it;
-        tank->n=index+1;
-        it->x38=d;
-        it->x2C=c;
+        unsigned int index=tank->weaponCount;
+        it->unknown14=a;
+        it->unknown18=b;
+        tank->weapons[index]=it;
+        tank->weaponCount=index+1;
+        it->unknown38=d;
+        it->unknown2C=c;
     }
 }
 
@@ -2353,13 +2353,13 @@ typedef char native_layout_5[(sizeof(X)==0xB0)?1:-1];
 typedef char native_layout_6[(OFF(X,x0)==0)?1:-1];
 typedef char native_layout_7[(OFF(X,x4)==4)?1:-1];
 typedef char native_layout_8[(OFF(X,vt)==0xC)?1:-1];
-typedef char native_layout_9[(OFF(X,x10)==0x10)?1:-1];
-typedef char native_layout_10[(OFF(X,x14)==0x14)?1:-1];
-typedef char native_layout_11[(OFF(X,x18)==0x18)?1:-1];
-typedef char native_layout_12[(OFF(X,x2C)==0x2C)?1:-1];
-typedef char native_layout_13[(OFF(X,x38)==0x38)?1:-1];
-typedef char native_layout_14[(OFF(OBJ,n)==0x4F8)?1:-1];
-typedef char native_layout_15[(OFF(OBJ,a)==0x4FC)?1:-1];
+typedef char native_layout_9[(OFF(X,unknown10)==0x10)?1:-1];
+typedef char native_layout_10[(OFF(X,unknown14)==0x14)?1:-1];
+typedef char native_layout_11[(OFF(X,unknown18)==0x18)?1:-1];
+typedef char native_layout_12[(OFF(X,unknown2C)==0x2C)?1:-1];
+typedef char native_layout_13[(OFF(X,unknown38)==0x38)?1:-1];
+typedef char native_layout_14[(OFF(OBJ,weaponCount)==0x4F8)?1:-1];
+typedef char native_layout_15[(OFF(OBJ,weapons)==0x4FC)?1:-1];
 } // namespace M_func_001D4B90
 
 // Keeps its per-function views in a namespace of its own (see the file header).
