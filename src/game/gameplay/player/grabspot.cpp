@@ -1506,3 +1506,8 @@ float D_002BE900 = 1000.0f;
 float D_002BE904 = 1000.0f;
 float D_002BE908 = 50.0f;
 float D_002BE90C = 75.0f;
+
+/* grabspot's .bss (0x2DFB84, after tu_17F090's ship singleton D_002DFB80): the hold-position debug flag read above.
+   Extent unclear (60 bytes to joy's D_002DFBC0; no other name in between). Under an asm label so that the
+   declarations above need not agree. */
+namespace BSS_GRABSPOT { extern "C" { extern int b_D_002DFB84 __asm__("D_002DFB84"); } int b_D_002DFB84; }
