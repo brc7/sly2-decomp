@@ -5572,7 +5572,7 @@ SetJtthrowState,0x2206C8,327,match,src/game/gameplay/player/throw.cpp
 StaticInit_throw,0x220BE8,77,match,src/game/gameplay/player/throw.cpp
 func_00220D20,0x220D20,8,match,src/game/gameplay/player/throw.cpp
 InitTnDefaultAngles,0x220D40,37,match,src/game/engine/camera/tn.cpp
-LerpTnfnEndpoints,0x220DD8,62,match,src/game/engine/camera/tn.cpp
+BlendTnFocusPos,0x220DD8,62,match,src/game/engine/camera/tn.cpp
 InitTn,0x220ED0,45,match,src/game/engine/camera/tn.cpp
 RemoveTnHierarchy,0x220F88,18,match,src/game/engine/camera/tn.cpp
 LoadTnFromBrx,0x220FD0,84,match,src/game/engine/camera/tn.cpp
@@ -5585,10 +5585,10 @@ UpdateTn,0x221388,19,match,src/game/engine/camera/tn.cpp
 OnTnRemove,0x2213D8,12,match,src/game/engine/camera/tn.cpp
 ProjectPointOntoTnPath,0x221408,109,match,src/game/engine/camera/tn.cpp
 EvaluateTnPathPos,0x2215C0,149,match,src/game/engine/camera/tn.cpp
-SelectTnfnForId,0x221818,74,match,src/game/engine/camera/tn.cpp
-ClearTnTnfn,0x221940,2,match,src/game/engine/camera/tn.cpp
-GetTnTnfn,0x221948,3,match,src/game/engine/camera/tn.cpp
-GetTnfnOfTn,0x221958,2,match,src/game/engine/camera/tn.cpp
+SelectTnCpdForCid,0x221818,74,match,src/game/engine/camera/tn.cpp
+ClearTnCpd,0x221940,2,match,src/game/engine/camera/tn.cpp
+GetTnCpdCid,0x221948,3,match,src/game/engine/camera/tn.cpp
+GetTnCpd,0x221958,2,match,src/game/engine/camera/tn.cpp
 SetTnFocusRatio,0x221960,8,match,src/game/engine/camera/tn.cpp
 GetTnFocusX,0x221980,3,match,src/game/engine/camera/tn.cpp
 CPTN_ctor,0x221990,13,match,src/game/engine/camera/tn.cpp

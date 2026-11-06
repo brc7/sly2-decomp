@@ -64,7 +64,7 @@ void PdetectorGetStepguard() __asm__("PdetectorGetStepguard");
 void PemitterEnsureEmitter__FP7EMITTER4ENSK() __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
 void PpoCur() __asm__("PpoCur");
 void PpoHero() __asm__("PpoHero");
-void GetTnfnOfTn() __asm__("GetTnfnOfTn");
+void GetTnCpd() __asm__("GetTnCpd");
 void PwreGetWrBend__FP2WR4ENSK() __asm__("PwreGetWrBend__FP2WR4ENSK");
 void PwreGetWrCircle__FP2WR4ENSK() __asm__("PwreGetWrCircle__FP2WR4ENSK");
 void RefThunkAsegAPPLY() __asm__("RefThunkAsegAPPLY");
@@ -677,8 +677,8 @@ void func_0020A9C0() __asm__("func_0020A9C0");
 void func_0020AF08() __asm__("func_0020AF08");
 void func_0020F2B8() __asm__("func_0020F2B8");
 void func_00210978() __asm__("func_00210978");
-void SelectTnfnForId() __asm__("SelectTnfnForId");
-void GetTnTnfn() __asm__("GetTnTnfn");
+void SelectTnCpdForCid() __asm__("SelectTnCpdForCid");
+void GetTnCpdCid() __asm__("GetTnCpdCid");
 void func_00224610() __asm__("func_00224610");
 void func_00224638() __asm__("func_00224638");
 void func_00226370() __asm__("func_00226370");
@@ -906,25 +906,25 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x24, EOPID_PMF(GetCmRotDeg), EOPID_PMF(SetCmRotDeg), EOPID_NONE, EOPID_NONE}, /* [173] opt 36, CM */
     {1, 0x92, EOPID_INT(0x620), EOPID_INT(0x624), EOPID_INT(0x624), EOPID_NONE}, /* [174] opt 303, CM */
     {5, 0x92, EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_NONE}, /* [175] opt 220, CID5 */
-    {7, 0x124, EOPID_PMF(GetTnTnfn), EOPID_PMF(SelectTnfnForId), EOPID_PMF(SelectTnfnForId), EOPID_NONE}, /* [176] opt 307, TN */
+    {7, 0x124, EOPID_PMF(GetTnCpdCid), EOPID_PMF(SelectTnCpdForCid), EOPID_PMF(SelectTnCpdForCid), EOPID_NONE}, /* [176] opt 307, TN */
     {0x12, 0x400, EOPID_FN(func_001027E0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [177] opt 308, TN */
-    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(GetTnfnOfTn)}, /* [178] opt 309, TN */
-    {9, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(GetTnfnOfTn)}, /* [179] opt 310, TN */
-    {0xA, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMF(GetTnfnOfTn)}, /* [180] opt 311, TN */
-    {9, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(GetTnfnOfTn)}, /* [181] opt 312, TN */
-    {0xA, 0x2092, EOPID_INT(0x48), EOPID_INT(0x48), EOPID_INT(0x48), EOPID_PMF(GetTnfnOfTn)}, /* [182] opt 313, TN */
-    {9, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(GetTnfnOfTn)}, /* [183] opt 314, TN */
-    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMF(GetTnfnOfTn)}, /* [184] opt 315, TN */
-    {1, 0x2092, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_PMF(GetTnfnOfTn)}, /* [185] opt 316, TN */
-    {1, 0x2092, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_PMF(GetTnfnOfTn)}, /* [186] opt 317, TN */
-    {1, 0x2092, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_PMF(GetTnfnOfTn)}, /* [187] opt 318, TN */
-    {1, 0x2092, EOPID_INT(0x64), EOPID_INT(0x64), EOPID_INT(0x64), EOPID_PMF(GetTnfnOfTn)}, /* [188] opt 319, TN */
-    {1, 0x2092, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_PMF(GetTnfnOfTn)}, /* [189] opt 320, TN */
+    {1, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMF(GetTnCpd)}, /* [178] opt 309, TN */
+    {9, 0x2092, EOPID_INT(0x10), EOPID_INT(0x10), EOPID_INT(0x10), EOPID_PMF(GetTnCpd)}, /* [179] opt 310, TN */
+    {0xA, 0x2092, EOPID_INT(0x40), EOPID_INT(0x40), EOPID_INT(0x40), EOPID_PMF(GetTnCpd)}, /* [180] opt 311, TN */
+    {9, 0x2092, EOPID_INT(0x20), EOPID_INT(0x20), EOPID_INT(0x20), EOPID_PMF(GetTnCpd)}, /* [181] opt 312, TN */
+    {0xA, 0x2092, EOPID_INT(0x48), EOPID_INT(0x48), EOPID_INT(0x48), EOPID_PMF(GetTnCpd)}, /* [182] opt 313, TN */
+    {9, 0x2092, EOPID_INT(0x30), EOPID_INT(0x30), EOPID_INT(0x30), EOPID_PMF(GetTnCpd)}, /* [183] opt 314, TN */
+    {0xA, 0x2092, EOPID_INT(0x50), EOPID_INT(0x50), EOPID_INT(0x50), EOPID_PMF(GetTnCpd)}, /* [184] opt 315, TN */
+    {1, 0x2092, EOPID_INT(0x58), EOPID_INT(0x58), EOPID_INT(0x58), EOPID_PMF(GetTnCpd)}, /* [185] opt 316, TN */
+    {1, 0x2092, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_PMF(GetTnCpd)}, /* [186] opt 317, TN */
+    {1, 0x2092, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_PMF(GetTnCpd)}, /* [187] opt 318, TN */
+    {1, 0x2092, EOPID_INT(0x64), EOPID_INT(0x64), EOPID_INT(0x64), EOPID_PMF(GetTnCpd)}, /* [188] opt 319, TN */
+    {1, 0x2092, EOPID_INT(0x68), EOPID_INT(0x68), EOPID_INT(0x68), EOPID_PMF(GetTnCpd)}, /* [189] opt 320, TN */
     {1, 0x124, EOPID_PMF(GetTnFocusX), EOPID_PMF(SetTnFocusRatio), EOPID_PMF(SetTnFocusRatio), EOPID_NONE}, /* [190] opt 321, TN */
-    {2, 0x2092, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_PMF(GetTnfnOfTn)}, /* [191] opt 322, TN */
-    {1, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMF(GetTnfnOfTn)}, /* [192] opt 323, TN */
-    {1, 0x2092, EOPID_INT(0x84), EOPID_INT(0x84), EOPID_INT(0x84), EOPID_PMF(GetTnfnOfTn)}, /* [193] opt 324, TN */
-    {0xA, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMF(GetTnfnOfTn)}, /* [194] opt 325, TN */
+    {2, 0x2092, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_PMF(GetTnCpd)}, /* [191] opt 322, TN */
+    {1, 0x2092, EOPID_INT(0x80), EOPID_INT(0x80), EOPID_INT(0x80), EOPID_PMF(GetTnCpd)}, /* [192] opt 323, TN */
+    {1, 0x2092, EOPID_INT(0x84), EOPID_INT(0x84), EOPID_INT(0x84), EOPID_PMF(GetTnCpd)}, /* [193] opt 324, TN */
+    {0xA, 0x2092, EOPID_INT(0x88), EOPID_INT(0x88), EOPID_INT(0x88), EOPID_PMF(GetTnCpd)}, /* [194] opt 325, TN */
     {1, 0x92, EOPID_INT(0x130), EOPID_INT(0x130), EOPID_INT(0x130), EOPID_NONE}, /* [195] opt 326, TN */
     {0, 0x92, EOPID_INT(0x120), EOPID_INT(0x120), EOPID_INT(0x120), EOPID_NONE}, /* [196] opt 327, TN */
     {0x100E, 0x92, EOPID_INT(0x164), EOPID_INT(0x164), EOPID_INT(0x164), EOPID_NONE}, /* [197] opt 328, TN */

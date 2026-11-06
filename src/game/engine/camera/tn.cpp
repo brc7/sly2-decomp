@@ -256,7 +256,7 @@ struct CPD
       LM lmTilt;
 } __attribute__((aligned(16)));
 void UpdateCmProgress(CMPART2 *pcmpart, CPDEFI *pcpdefi) __asm__("UpdateCptnTarget");
-void CalcCpdFocus(CPD *pcpd, CPDEFI *pcpdefi, qword *ppos, TN *ptn) __asm__("LerpTnfnEndpoints");
+void CalcCpdFocus(CPD *pcpd, CPDEFI *pcpdefi, qword *ppos, TN *ptn) __asm__("BlendTnFocusPos");
 void CalculateTnCrv(TN *ptn, qword qwPos, VECTOR4 *pdposCrv, VECTOR4 *pvecTangent) __asm__("ProjectPointOntoTnPath");
 void CalculateTnPos(TN *ptn, VECTOR4 *pdposCrv, float sBase, float dsOffset, CLQ *aclq, LM *alm, FTND ftnd, qword *pposOther) __asm__("EvaluateTnPathPos");
 extern "C" {
@@ -485,11 +485,11 @@ qword SquishCmEye(CM *, int, SOPART **, float (*)(void *, qword, qword, PLANEREC
 void func_002564B8(void *p);
 
 void InitTnDefaultAngles(CPD *p);
-void LerpTnfnEndpoints(CPD *p, CPDEFI *pa, qword *ppos, TN *ps);
+void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps);
 void SetTnTns(TN *p, int k);
 void ProjectPointOntoTnPath(TN *p, qword v, qword *out, qword *normal);
-void SelectTnfnForId(TN *p, int id);
-void ClearTnTnfn(TN *p);
+void SelectTnCpdForCid(TN *p, int id);
+void ClearTnCpd(TN *p);
 void UpdateCptnTarget(CMPART2 *p, CPDEFI *b);
 float GetPlaneDistance(void *p, qword pos, qword b, PLANEREC *n);
 }
@@ -500,7 +500,7 @@ extern "C" void EvaluateTnPathPos(TN *p, float *times, COEF *coef, BOUND *bounds
 void func_002215C0F(TN *p, qword *times, M3 *coef, LM *bounds, float time, float delta, int mode, qword *out) __asm__("EvaluateTnPathPos");
 extern "C" void UpdateTnCallback(TN *p);
 void UpdateTnCallbackA(TN *p, int a) __asm__("UpdateTnCallback");
-void func_00221940I(TN *p, int id) __asm__("ClearTnTnfn");
+void func_00221940I(TN *p, int id) __asm__("ClearTnCpd");
 
 static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -522,8 +522,9 @@ void InitTnDefaultAngles(CPD *p)
 
 union UM { qword q; float f[4]; };
 struct M3F { UM r[3]; };
-// Lerp of two endpoints by t; optional matrix/basis via 0x221408 / 0x2215C0. (inferred)
-void LerpTnfnEndpoints(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
+// Blends the focus definition's base and adjusted positions by the CPD weight into *ppos; with a tunnel, also builds
+// the rate matrix and moves the result along the tunnel path (ProjectPointOntoTnPath / EvaluateTnPathPos). (inferred)
+void BlendTnFocusPos(CPD *p, CPDEFI *pa, qword *ppos, TN *ps)
 {
     UM u;
     float t = p->gWeight;
@@ -595,9 +596,9 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
         pm->nKind = 0x10;
         p->acpd = (CPD *)PvAllocSlot__FP8ALLOCREQ(pm);
     }
-    SelectTnfnForId(p, 0x30);
+    SelectTnCpdForCid(p, 0x30);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
-    ClearTnTnfn(p);
+    ClearTnCpd(p);
     {
         MSGA *pm = &msg;
         pm->cb = p->ccpd * 0x90;
@@ -782,8 +783,10 @@ void EvaluateTnPathPos(TN *p,float *times,COEF *coef,BOUND *bounds,int mode,qwor
     *out=Add(center.q,rotated.q);
 }
 
-// Chooses/creates the TNFN record (max 4) for an id; resets 0x118. (inferred)
-void SelectTnfnForId(TN *p, int id)
+// Makes the tunnel's CPD record for a class id current (CPD: the camera parameters the tunnel applies to that class
+// of focus object): clears the current one, then finds the record for cid, or (fewer than four and not loaded from
+// the level) appends one copied from the previous record or the default D_002C4120. (inferred)
+void SelectTnCpdForCid(TN *p, int id)
 {
     int i;
     CPD *pe;
@@ -808,22 +811,22 @@ void SelectTnfnForId(TN *p, int id)
     p->pcpd->cid = (CID)id;
 }
 
-// 0x118 = 0. (inferred)
-void ClearTnTnfn(TN *p) {
+// Clears the tunnel's current CPD record.
+void ClearTnCpd(TN *p) {
     p->pcpd = 0;
 }
 
-// Returns *(0x118) (inferred)
-extern "C" int GetTnTnfn(TN *p) {
+// Returns the class id of the tunnel's current CPD record.
+extern "C" int GetTnCpdCid(TN *p) {
     return p->pcpd->cid;
 }
 
-// Returns current TNFN pointer (0x118); base getter for TN splice properties. (inferred)
-extern "C" CPD *GetTnfnOfTn(TN *p) {
+// Returns the tunnel's current CPD record (the base the TN splice/script properties read and write). (inferred)
+extern "C" CPD *GetTnCpd(TN *p) {
     return p->pcpd;
 }
 
-// Tnfn.vecFocus.x = y = u, z = 1.0. (inferred)
+// Sets the current CPD's focus rates: x and y to g, z to 1. (inferred)
 extern "C" void SetTnFocusRatio(TN *p, float g) {
     CPD *pcpd = p->pcpd;
     pcpd->agRate[1] = g;
@@ -831,7 +834,7 @@ extern "C" void SetTnFocusRatio(TN *p, float g) {
     p->pcpd->agRate[2] = 1.0f;
 }
 
-// Returns tnfn.vecFocus.x. (inferred)
+// Returns the current CPD's x focus rate. (inferred)
 extern "C" float GetTnFocusX(TN *p) {
     return p->pcpd->agRate[0];
 }
@@ -885,14 +888,14 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
     p->fEntered = 1;
     InitTnDefaultAngles(p->pcpd);
     GetCmCpdefi(&D_002DDF40, pj, &q0);
-    LerpTnfnEndpoints(p->pcpd, (CPDEFI *)&q0, &q50, 0);
+    BlendTnFocusPos(p->pcpd, (CPDEFI *)&q0, &q50, 0);
     if (p->ptn) {
         TN *ptT = p->ptn;
         if (ptT->pshape)
             FindShapeClosestPoint(ptT->pshape, q50, 0, &q60, 0, 0, &ptT->uProgress);
         else if (ptT->fCircle)
             UpdateCptnTarget(p, (CPDEFI *)&q0);
-        LerpTnfnEndpoints(p->pcpd, (CPDEFI *)&q0, &q50, p->ptn);
+        BlendTnFocusPos(p->pcpd, (CPDEFI *)&q0, &q50, p->ptn);
     }
     { qword *pq = &D_002DDF40.dposFocus; a = VAdd(q50, *pq);
     GetVectorSphere(VSub(pq[-0x25], a), &p->radPan, &p->radTilt, &p->sDist); }
@@ -926,7 +929,7 @@ void UpdateCptnTarget(CMPART2 *p, CPDEFI *b)
     qword q;
     if (!ps) return;
     if (!ps->pshape && !ps->fCircle) return;
-    LerpTnfnEndpoints(p->pcpd, b, &q, 0);
+    BlendTnFocusPos(p->pcpd, b, &q, 0);
     if (ps->pshape) {
         FindShapeClosestPointFromS(ps->pshape, q, ps->uProgress, 0, 0, 0, 0, &ps->uProgress);
     } else {
