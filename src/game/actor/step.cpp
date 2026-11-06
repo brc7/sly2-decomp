@@ -56,8 +56,11 @@ void InitBhvstk(void *pv, struct S *p);
  * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
-void InitStep(struct S *p)
+} } // namespace M_InitStep
+void STEP::Init()
 {
+    using namespace M_InitStep;
+    M_InitStep::S *p = (M_InitStep::S *)this;
     InitPo(p);
     p->n264 = -1;
     p->g260 = 1.0f;
@@ -68,7 +71,6 @@ void InitStep(struct S *p)
     p->g214 = -50.0f;
     InitBhvstk(p->x26C, p);
 }
-} } // namespace M_InitStep
 
 /** @sly2-annot addr=0x2039C0
  * Purpose: STEP vt14: LoadPoFromBrx, cache local base pos (+0x240 = ConvertAloPos(parent,this,0)), 0x1F8300
@@ -486,9 +488,8 @@ void UpdateStep(struct S *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-int STEP::VUnk84()
+extern "C" int func_002040F8(STEP *pstep)
 {
-    STEP *pstep = (STEP *)this;
     return (pstep->nUnk204 != 0) ? 0 : 7;
 }
 
