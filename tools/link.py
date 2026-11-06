@@ -13,7 +13,9 @@ usage: python3 tools/link.py [--no-compile] [--per-function] | --sdk-only | --ch
   2. place every object section at the address its symbols and relocations give it in the ELF, fill what no object
      covers with byte ranges cut from your disc/SCUS_973.16 (build/link/blobs.o, never committed), and write
      build/link/sly2.ld from tools/link.ld.in: sections in address order, an address assignment only where the
-     linker's own layout would not land there
+     linker's own layout would not land there; a name no object defines is bound to its address (listed with its
+     class in build/link/absolute.txt) unless it points into the VU microcode or the IOP modules, which stay binary:
+     such a name is a symbol on its blob section
   3. link with ld.lld and compare build/link/sly2.elf with the ELF section by section
 """
 import bisect, collections, csv, functools, os, re, shutil, struct, subprocess, sys
@@ -27,6 +29,8 @@ OUT = os.path.join(ROOT, 'build', 'link')
 ELF = matchtool.ELF
 LINKONCE = (0x254F00, 0x259DF0)                              # the ELF's .gnu.linkonce.t area (end of .text)
 ADDR_NAME = re.compile(r'(?:D|func)_([0-9A-F]{8})$')          # an address name: the address is in the name
+BLOB_SECS = ('.vutext', '.irx')                              # never source (VU microcode, IOP modules): a name that
+                                                             # points into them is a label on its blob, not an address
 
 
 @functools.lru_cache(None)
@@ -291,16 +295,22 @@ def tu_check(objs, img):
 
 
 # ---- blobs: ELF byte ranges as input sections of one generated object ----
-def write_blobs(path, ranges, img):
-    """ranges: [(addr, size, sh_flags)] -> an ELF32 relocatable with one section .blob.XXXXXXXX per range"""
+def write_blobs(path, ranges, img, labels={}):
+    """ranges: [(addr, size, sh_flags)] -> an ELF32 relocatable with one section .blob.XXXXXXXX per range, and a global
+    symbol for each name of labels {name: address} inside one of them (relative to its section)"""
     names, body, hdrs = b'\0.shstrtab\0.symtab\0', b'', []
     for a, n, fl in ranges:
         nm = len(names); names += f'.blob.{a:08X}\0'.encode()
         hdrs.append((nm, 1, fl, 0, 0x34 + len(body), n, 0, 0, 1, 0)); body += img.bytes(a, n)
+    syms = b'\0' * 16
+    for name, v in sorted(labels.items()):
+        i = next(i for i, (a, n, fl) in enumerate(ranges) if a <= v < a + n)   # KeyError-like StopIteration: a bug
+        syms += struct.pack('<IIIBBH', len(names), v - ranges[i][0], 0, 0x10, 0, 3 + i)
+        names += name.encode() + b'\0'
     off = 0x34 + len(body)
     hdrs = [(0,) * 10, (1, 3, 0, 0, off, len(names), 0, 0, 1, 0),
-            (11, 2, 0, 0, off + len(names), 16, 1, 1, 4, 16)] + hdrs
-    data = body + names + b'\0' * 16
+            (11, 2, 0, 0, off + len(names), len(syms), 1, 1, 4, 16)] + hdrs
+    data = body + names + syms
     shoff = 0x34 + len(data)
     eh = b'\x7fELF\1\1\1' + b'\0' * 9 + struct.pack('<HHIIIIIHHHHHH', 1, 8, 1, 0, 0, shoff, 0x20924001, 0x34, 0, 0,
                                                      40, len(hdrs), 1)
@@ -370,7 +380,7 @@ def fixed(objs):
         open(p, 'wb').write(d)
 
 
-def script(objs, base, img, reasons):
+def script(objs, base, img, reasons, labels):
     """the SECTIONS text, the layout [(start, end, owner, key)], blob bytes by reason, and the sections not linked
     (bound: a .bss bound to its address; overlaps: to .unplaced)"""
     entries, first = collections.defaultdict(list), {}
@@ -430,7 +440,7 @@ def script(objs, base, img, reasons):
             layout.append((b, b + n, owner, (k, si)))
             prev, cur = (o, si, b), b + n
         lines.append(f'  {name} 0x{va:X}{" (NOLOAD)" if nobits else ""} : {{\n' + '\n'.join(body) + '\n  } =0')   # pad with zeros
-    write_blobs(os.path.join(OUT, 'blobs.o'), blobs, img)
+    write_blobs(os.path.join(OUT, 'blobs.o'), blobs, img, labels)
     return '\n'.join(lines), layout, why, st
 
 
@@ -451,22 +461,26 @@ def symbols(objs, img, ext):
     for n, a in config_addrs().items():
         if not ADDR_NAME.match(n):
             named_at[a].append(n)
-    extra, derived, report = [], [], []
+    extra, derived, report, labels = [], [], [], {}
     for n in sorted((undef - defined - {'_gp'}) | commons):
         a = addr_of(n)
         if a is None and n in ext:                           # named by no config file: the ELF's relocated value
             a = ext[n]; derived.append(n)
         if a is not None:
-            extra.append(f'{q(n)} = 0x{a:08X};')  # COMMON too: its address is the ELF's
-            cls = ('common' if n in commons else 'ELF-derived' if n in derived else
+            sec = img.sec_at(a)
+            if sec and sec[0] in BLOB_SECS and n not in commons:
+                labels[n] = a                                # defined on the blob by write_blobs
+            else:
+                extra.append(f'{q(n)} = 0x{a:08X};')  # COMMON too: its address is the ELF's
+            cls = (f'label on the {sec[0]} blob' if n in labels else 'common' if n in commons else
+                   'ELF-derived' if n in derived else
                    'address name at a config name' if ADDR_NAME.match(n) and named_at.get(a) else
                    'address name' if ADDR_NAME.match(n) else 'config name')
-            sec = img.sec_at(a)
             report.append((a, n, sec[0] if sec else '-', cls, ' '.join(named_at.get(a, [])[:1]), sorted(users[n])))
     with open(os.path.join(OUT, 'absolute.txt'), 'w') as f:
         f.writelines(f'0x{a:08X} {n} {sec} [{cls}{": " + at if at else ""}] <- {" ".join(u)}\n'
                      for a, n, sec, cls, at, u in sorted(report))
-    return '\n'.join(lines + extra), derived, collections.Counter(r[3] for r in report)
+    return '\n'.join(lines + extra), derived, collections.Counter(r[3] for r in report), labels
 
 
 # ---- compare ----
@@ -567,8 +581,8 @@ def main():
           f'sources without an object: --sdk-only builds them)', file=sys.stderr)
     base, conflicts, ext = place(objs, img)
     unplaced = [(objs[k].src, o.secs[i][0], o.secs[i][5]) for k, o in enumerate(objs) for i in o.alloc() if (k, i) not in base]
-    syms, derived, absolute = symbols(objs, img, ext)
-    secs, layout, why, st = script(objs, base, img, blob_reasons(img, unbuilt))
+    syms, derived, absolute, labels = symbols(objs, img, ext)
+    secs, layout, why, st = script(objs, base, img, blob_reasons(img, unbuilt), labels)
     fixed(objs)
     ld, elf = os.path.join(OUT, 'sly2.ld'), os.path.join(OUT, 'sly2.elf')
     tpl = open(os.path.join(ROOT, 'tools', 'link.ld.in')).read()
@@ -598,8 +612,10 @@ def main():
           f'{len(st["bound"])} .bss overlapping another bound to their address, {len(st["overlaps"])} other '
           f'overlapping (to .unplaced)')
     print(f'{len(derived)} undefined names no config file knows, resolved from the ELF\'s relocated fields')
-    print(f'absolute symbols: {sum(absolute.values())} (build/link/absolute.txt): '
-          + ', '.join(f'{k} {v}' for k, v in absolute.most_common()))
+    blob = {k: v for k, v in absolute.items() if k.startswith('label on')}
+    print(f'absolute symbols: {sum(absolute.values()) - sum(blob.values())} (build/link/absolute.txt): '
+          + ', '.join(f'{k} {v}' for k, v in absolute.most_common() if k not in blob)
+          + f'; labels on the never-source blobs (not absolute): ' + ', '.join(f'{k[13:]} {v}' for k, v in blob.items()))
     print(f'blob bytes by reason ({sum(why.values())}): ' + ', '.join(f'{k} {v}' for k, v in why.most_common()))
     if os.path.exists(elf):
         compare(elf, img, layout, objs, set(conflicts))
