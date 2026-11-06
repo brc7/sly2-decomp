@@ -2918,7 +2918,7 @@ void BuildThiefnetInfoText(char *pch)
 
 namespace M_func_001DCC58 { extern "C" {
 extern char D_002D8468[] __asm__("_vt$7JOBLIST");
-struct S { int a, b, c; void *vt; char pad[0x10]; int n20; };
+struct S { int a, b, c; void *vt; char pad[0x10]; int widgetOid; };
 struct S *ConstructScreen(struct S *p);
 void ClearJobList(struct S *p);
 /** @sly2-annot addr=0x1DCC58
@@ -2931,7 +2931,7 @@ void ClearJobList(struct S *p);
 struct S *ConstructScreen4E0(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D8468;
-    p->n20 = 0x4E0;
+    p->widgetOid = 0x4E0;
     ClearJobList(p);
     return p;
 }
@@ -2968,7 +2968,7 @@ extern "C" void ResetJobList(SCREENV *screen)
 
 namespace M_ClearJobList { extern "C" {
 extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
-struct S { char p0[0x40]; int n40; float g44; char p1[0x11C-0x48]; int n11C, n120, n124; };
+struct S { char p0[0x40]; int page; float pageTime; char p1[0x11C-0x48]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 /** @sly2-annot addr=0x1DCD08
  * Purpose: Job list: state -1, timestamp, anim handles -1
  * Info: proposed name ClearJobList (T1); TU screen
@@ -2977,28 +2977,28 @@ struct S { char p0[0x40]; int n40; float g44; char p1[0x11C-0x48]; int n11C, n12
  * @end-sly2-annot */
 // Job list: state -1, time stamp, no animation handles.
 void ClearJobList(struct S *p) {
-    p->n40 = -1; //P
-    p->g44 = D_002DDED0.tReal; //P
-    p->n11C = -1; //P
-    p->n120 = -1; //P
-    p->n124 = -1; //P
+    p->page = -1; //P
+    p->pageTime = D_002DDED0.tReal; //P
+    p->popupAnim = -1; //P
+    p->scrollUpAnim = -1; //P
+    p->scrollDownAnim = -1; //P
 }
 } } // namespace M_ClearJobList
 
 namespace M_UpdateJobList { extern "C" {
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *); } a[32]; } VT;
-typedef struct { char pad[0xC]; VT *vt; char pad10[0x58 - 0x10]; int x58; } W;
+typedef struct { char pad[0xC]; VT *vt; char pad10[0x58 - 0x10]; int visibility; } W;
 typedef struct {
     char pad[0x10];
-    void *x10;
+    void *joy;
     char pad14[0x24 - 0x14];
-    W *pw;
+    W *widget;
     char pad28[0x40 - 0x28];
-    int x40;
+    int page;
     char pad44[4];
-    int c;
+    int entryCount;
     char pad4c[0x114 - 0x4C];
-    int x114;
+    int openedFromJobs;
 } OBJ;
 void UpdateTimedScreen(OBJ *);
 int AreWidgetLoadsIdle(void);
@@ -3020,38 +3020,38 @@ void UpdateJobListWidgets(OBJ *);
 void UpdateJobList(OBJ *p)
 {
     UpdateTimedScreen(p);
-    if (p->x40 == -1)
+    if (p->page == -1)
         return;
-    if (p->x10 == 0)
+    if (p->joy == 0)
         return;
-    if (p->pw->x58 == 0) {
+    if (p->widget->visibility == 0) {
         if (!AreWidgetLoadsIdle())
             return;
-        SetWidgetState(p->pw, 1);
-        SetWidgetRequest(p->pw, 2);
-        p->pw->vt->a[16].pfn((char *)p->pw + p->pw->vt->a[16].d);
+        SetWidgetState(p->widget, 1);
+        SetWidgetRequest(p->widget, 2);
+        p->widget->vt->a[16].pfn((char *)p->widget + p->widget->vt->a[16].d);
     }
-    if (GrfHandleJoyBtn(p->x10, 0x800)) {
+    if (GrfHandleJoyBtn(p->joy, 0x800)) {
         SetJobListPage(p, -1);
         return;
     }
-    switch (p->x40) {
+    switch (p->page) {
     case 0:
-        if (GrfHandleJoyBtn(p->x10, 0x10)) {
+        if (GrfHandleJoyBtn(p->joy, 0x10)) {
             SetJobListPage(p, -1);
             return;
         }
-        if (p->c && GrfHandleJoyBtn(p->x10, 0xF0)) {
+        if (p->entryCount && GrfHandleJoyBtn(p->joy, 0xF0)) {
             SetJobListPage(p, 1);
             return;
         }
         break;
     case 1:
-        if (!p->x114 && GrfHandleJoyBtn(p->x10, 0x10)) {
+        if (!p->openedFromJobs && GrfHandleJoyBtn(p->joy, 0x10)) {
             SetJobListPage(p, -1);
             return;
         }
-        if (GrfHandleJoyBtn(p->x10, 0xF0)) {
+        if (GrfHandleJoyBtn(p->joy, 0xF0)) {
             SetJobListPage(p, 0);
             return;
         }
@@ -3063,7 +3063,7 @@ void UpdateJobList(OBJ *p)
 } } // namespace M_UpdateJobList
 
 namespace M_SelectJobListItem { extern "C" {
-struct S { char p0[0x48]; int c; char p1[0x118-0x4C]; int i; };
+struct S { char p0[0x48]; int entryCount; char p1[0x118-0x4C]; int selectedRow; };
 void CloseScreen(struct S *p);
 static inline int Clamp(int n, int lo, int hi) {
     if (n < lo) return lo;
@@ -3078,11 +3078,11 @@ static inline int Clamp(int n, int lo, int hi) {
  * @end-sly2-annot */
 // Selects a job-list row (clamped).
 void SelectJobListItem(struct S *p, int i) {
-    int c = p->c;
+    int entryCount = p->entryCount;
     int n;
-    if (c == 0) n = -1;
-    else n = Clamp(i, 0, c - 1);
-    p->i = n;
+    if (entryCount == 0) n = -1;
+    else n = Clamp(i, 0, entryCount - 1);
+    p->selectedRow = n;
     CloseScreen(p);
 }
 } } // namespace M_SelectJobListItem
@@ -3090,27 +3090,27 @@ void SelectJobListItem(struct S *p, int i) {
 namespace M_RefreshJobListEntries {
 struct SO {
     char pad0[0x54];
-    int x54;
+    int taskState;
     char pad58[0x5C - 0x58];
-    int x5C;
+    int taskTextId;
     char pad60[0x6C - 0x60];
-    int x6C;
+    int jobTextId;
     char pad70[0x7C - 0x70];
-    SO *x7C;
+    SO *job;
 };
-struct E { SO *o; int a; int b; };
+struct E { SO *task; int iconAnim; int checkAnim; };
 struct OBJ {
     char pad0[0x24];
-    void *x24;
+    void *widget;
     char pad28[0x40 - 0x28];
-    int x40;
+    int page;
     char pad44[0x48 - 0x44];
-    int n;
-    E ae[0x10];
-    int x10C;
-    SO *x110;
-    int x114;
-    int x118;
+    int entryCount;
+    E entries[0x10];
+    int maxRows;
+    SO *selectedJob;
+    int openedFromJobs;
+    int selectedRow;
 };
 extern "C" {
 void StopWidgetAnim(void *, int);
@@ -3133,39 +3133,39 @@ void SelectJobListItem(OBJ *, int);
 // selected job up to the first unfinished one.
 extern "C" void RefreshJobListEntries(OBJ *p)
 {
-    for (int i = 0; i < p->n; i++) {
-        E *e = &p->ae[i];
-        if (e->a != -1) {
-            StopWidgetAnim(p->x24, e->a);
-            e->a = -1;
+    for (int i = 0; i < p->entryCount; i++) {
+        E *e = &p->entries[i];
+        if (e->iconAnim != -1) {
+            StopWidgetAnim(p->widget, e->iconAnim);
+            e->iconAnim = -1;
         }
-        if (e->b != -1) {
-            StopWidgetAnim(p->x24, e->b);
-            e->b = -1;
+        if (e->checkAnim != -1) {
+            StopWidgetAnim(p->widget, e->checkAnim);
+            e->checkAnim = -1;
         }
     }
-    p->x118 = 0;
-    p->n = 0;
-    func_002333B4(p->ae, 0, p->n * sizeof(E));
+    p->selectedRow = 0;
+    p->entryCount = 0;
+    func_002333B4(p->entries, 0, p->entryCount * sizeof(E));
     STACKSCOPE frame;
     int c;
     SO **aso;
     SortTasksTopologically(&c, &aso);
     qsort(aso, c, 4, func_00165C28);
-    switch (p->x40) {
+    switch (p->page) {
     case 0: {
         SO *last = 0;
         for (int i = 0; i < c; i++) {
-            SO *so = aso[i]->x7C;
+            SO *so = aso[i]->job;
             if (so && last != so) {
                 last = so;
-                if (func_00163430(so) > 0 && so->x6C != -1) {
-                    E *e = &p->ae[p->n++];
-                    e->o = so;
-                    e->b = -1;
-                    e->a = -1;
-                    if (p->x110 == so)
-                        p->x118 = e - p->ae;
+                if (func_00163430(so) > 0 && so->jobTextId != -1) {
+                    E *e = &p->entries[p->entryCount++];
+                    e->task = so;
+                    e->checkAnim = -1;
+                    e->iconAnim = -1;
+                    if (p->selectedJob == so)
+                        p->selectedRow = e - p->entries;
                 }
             }
         }
@@ -3175,32 +3175,32 @@ extern "C" void RefreshJobListEntries(OBJ *p)
         int flag = 0;
         for (int i = 0; i < c; i++) {
             SO *so = aso[i];
-            if (p->x110 == so->x7C && so->x5C != -1) {
-                if (flag && !so->x54)
+            if (p->selectedJob == so->job && so->taskTextId != -1) {
+                if (flag && !so->taskState)
                     break;
-                E *e = &p->ae[p->n++];
-                e->o = so;
-                e->b = -1;
-                e->a = -1;
-                if (so->x54 == 1)
+                E *e = &p->entries[p->entryCount++];
+                e->task = so;
+                e->checkAnim = -1;
+                e->iconAnim = -1;
+                if (so->taskState == 1)
                     flag = 1;
-                if (!so->x54)
+                if (!so->taskState)
                     break;
             }
         }
         break;
     }
     }
-    if (p->n > p->x10C) {
-        memmove(p->ae, &p->ae[p->n - p->x10C], p->x10C * sizeof(E));
-        int d = p->n - p->x10C;
-        if (d < p->x118)
-            p->x118 -= d;
+    if (p->entryCount > p->maxRows) {
+        memmove(p->entries, &p->entries[p->entryCount - p->maxRows], p->maxRows * sizeof(E));
+        int d = p->entryCount - p->maxRows;
+        if (d < p->selectedRow)
+            p->selectedRow -= d;
         else
-            p->x118 = 0;
-        p->n = p->x10C;
+            p->selectedRow = 0;
+        p->entryCount = p->maxRows;
     }
-    SelectJobListItem(p, p->x118);
+    SelectJobListItem(p, p->selectedRow);
 }
 } // namespace M_RefreshJobListEntries
 
@@ -3257,31 +3257,31 @@ typedef struct SUB {
     char pad0[0xC];
     VTE *vt;
     char pad10[0x58 - 0x10];
-    int x58;
+    int visibility;
     char pad5c[0x70 - 0x5C];
-    int x70;
-    int x74;
-    int x78;
+    int pageAnimSecond;
+    int pageAnimFirst;
+    int pageAnimThird;
 } SUB;
-typedef struct { int x0, x4, x8; } E12;
+typedef struct { int task, x4, x8; } E12;
 typedef struct OBJ {
     char pad0[0xC];
     VTE *vt;
     char pad10[0x24 - 0x10];
-    SUB *x24;
+    SUB *widget;
     char pad28[0x40 - 0x28];
-    int x40;
-    float x44;
-    int x48;
-    E12 a4C[1];
+    int page;
+    float pageTime;
+    int entryCount;
+    E12 entries[1];
     char pad58[0x10C - 0x58];
-    int x10C;
-    int x110;
-    int x114;
-    int x118;
-    int x11C;
-    int x120;
-    int x124;
+    int maxRows;
+    int selectedJob;
+    int openedFromJobs;
+    int selectedRow;
+    int popupAnim;
+    int scrollUpAnim;
+    int scrollDownAnim;
 } OBJ;
 extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
@@ -3303,59 +3303,59 @@ void RefreshJobListEntries(OBJ *);
 void SetJobListPage(OBJ *p, int s)
 {
     int old;
-    if (!p->x24)
+    if (!p->widget)
         s = -1;
-    if (s == p->x40)
+    if (s == p->page)
         return;
-    if (p->x40 == -1) {
+    if (p->page == -1) {
         IncrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 10);
     }
-    old = p->x40;
-    p->x40 = s;
-    p->x44 = D_002DDED0.tReal;
+    old = p->page;
+    p->page = s;
+    p->pageTime = D_002DDED0.tReal;
     switch (s) {
     case -1:
         DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
-        if (p->x24->x58 > 0)
-            SetWidgetRequest(p->x24, 1);
-        p->x11C = s;
-        p->x120 = s;
-        p->x124 = s;
+        if (p->widget->visibility > 0)
+            SetWidgetRequest(p->widget, 1);
+        p->popupAnim = s;
+        p->scrollUpAnim = s;
+        p->scrollDownAnim = s;
         break;
     case 0:
-        p->x10C = 0xA;
-        p->x24->x70 = 0x4E3;
-        p->x24->x78 = 0x4E2;
+        p->maxRows = 0xA;
+        p->widget->pageAnimSecond = 0x4E3;
+        p->widget->pageAnimThird = 0x4E2;
         if (old == 1)
-            p->x24->x74 = 0x4E8;
+            p->widget->pageAnimFirst = 0x4E8;
         else
-            p->x24->x74 = 0x4E1;
-        if (p->x24->x58) {
-            SetWidgetState(p->x24, 1);
-            SetWidgetRequest(p->x24, 2);
-            VCALL(p->x24, 16);
+            p->widget->pageAnimFirst = 0x4E1;
+        if (p->widget->visibility) {
+            SetWidgetState(p->widget, 1);
+            SetWidgetRequest(p->widget, 2);
+            VCALL(p->widget, 16);
         }
         break;
     case 1: {
-        int i = p->x118;
-        if (i >= 0 && i < p->x48)
-            p->x110 = p->a4C[i].x0;
+        int i = p->selectedRow;
+        if (i >= 0 && i < p->entryCount)
+            p->selectedJob = p->entries[i].task;
         else
-            p->x110 = (*(int *)&g_sw.ploJobCur);
-        p->x114 = (old == 0);
-        p->x10C = 4;
-        p->x24->x70 = 0x4E6;
-        p->x24->x78 = 0x4E5;
+            p->selectedJob = (*(int *)&g_sw.ploJobCur);
+        p->openedFromJobs = (old == 0);
+        p->maxRows = 4;
+        p->widget->pageAnimSecond = 0x4E6;
+        p->widget->pageAnimThird = 0x4E5;
         if (old == 0)
-            p->x24->x74 = 0x4E7;
+            p->widget->pageAnimFirst = 0x4E7;
         else
-            p->x24->x74 = 0x4E4;
-        if (p->x24->x58) {
-            SetWidgetState(p->x24, 1);
-            SetWidgetRequest(p->x24, 2);
-            VCALL(p->x24, 16);
+            p->widget->pageAnimFirst = 0x4E4;
+        if (p->widget->visibility) {
+            SetWidgetState(p->widget, 1);
+            SetWidgetRequest(p->widget, 2);
+            VCALL(p->widget, 16);
         }
         break;
     }
@@ -3376,11 +3376,11 @@ extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the 
 typedef struct {
     char pad[0x28];
     int state;
-    float t;
+    float stateTime;
     char pad30[0x48 - 0x30];
-    int c;
+    int entryCount;
     char pad4c[0x118 - 0x4C];
-    int i;
+    int selectedRow;
 } OBJ;
 void SetJobListPage(OBJ *, int);
 void SelectJobListItem(OBJ *, int);
@@ -3398,10 +3398,10 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
     if (n == p->state)
         return;
     p->state = n;
-    p->t = D_002DDED0.tReal;
+    p->stateTime = D_002DDED0.tReal;
     switch (n) {
     case 0:
-        if (p->c)
+        if (p->entryCount)
             SetJobListPage(p, 1);
         break;
     case 4:
@@ -3410,16 +3410,16 @@ void SetJobListStickDir(OBJ *p, unsigned int n)
     case 1:
     case 2:
     case 3:
-        if (p->i > 0) {
-            SelectJobListItem(p, p->i - 1);
+        if (p->selectedRow > 0) {
+            SelectJobListItem(p, p->selectedRow - 1);
             SetSndSourceLo(PsndStartSound(0x35), 0);
         }
         break;
     case 5:
     case 6:
     case 7:
-        if (p->i < p->c - 1) {
-            SelectJobListItem(p, p->i + 1);
+        if (p->selectedRow < p->entryCount - 1) {
+            SelectJobListItem(p, p->selectedRow + 1);
             SetSndSourceLo(PsndStartSound(0x35), 0);
         }
         break;
