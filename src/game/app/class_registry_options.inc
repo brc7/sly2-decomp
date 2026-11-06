@@ -556,7 +556,7 @@ void func_001107B8() __asm__("func_001107B8");
 void func_00110838() __asm__("func_00110838");
 void func_001108E0() __asm__("func_001108E0");
 void func_00110998() __asm__("func_00110998");
-void func_0012EE78() __asm__("func_0012EE78");
+void EnsureCurrentAmbSound() __asm__("EnsureCurrentAmbSound");
 void func_00132ED0() __asm__("func_00132ED0");
 void func_0013BC60() __asm__("func_0013BC60");
 void func_0013C4D8() __asm__("func_0013C4D8");
@@ -831,11 +831,11 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x12, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE, EOPID_NONE}, /* [98] opt 172, CIRCLER */
     {0x12, 0x400, EOPID_FN(func_00101768), EOPID_NONE, EOPID_INT(5), EOPID_NONE}, /* [99] opt 207, CID43 */
     {0x12, 0x400, EOPID_FN(func_00101848), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [100] opt 208, CID43 */
-    {0xE, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_0012EE78)}, /* [101] opt 209, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(4), EOPID_PMF(func_0012EE78)}, /* [102] opt 210, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(8), EOPID_PMF(func_0012EE78)}, /* [103] opt 211, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0xC), EOPID_PMF(func_0012EE78)}, /* [104] opt 212, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x10), EOPID_PMF(func_0012EE78)}, /* [105] opt 213, CID43 */
+    {0xE, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(EnsureCurrentAmbSound)}, /* [101] opt 209, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(4), EOPID_PMF(EnsureCurrentAmbSound)}, /* [102] opt 210, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(8), EOPID_PMF(EnsureCurrentAmbSound)}, /* [103] opt 211, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0xC), EOPID_PMF(EnsureCurrentAmbSound)}, /* [104] opt 212, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x10), EOPID_PMF(EnsureCurrentAmbSound)}, /* [105] opt 213, CID43 */
     {0x2086, 1, EOPID_NONE, EOPID_FN(RefThunkAsegAPPLY), EOPID_INT(4), EOPID_NONE}, /* [106] opt 214, ASEG (+1) */
     {0x12, 0x400, EOPID_FN(func_001019D0), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [107] opt 215, ASEG (+1) */
     {0x2086, 1, EOPID_NONE, EOPID_FN(RefThunkAsegENSURE), EOPID_INT(5), EOPID_NONE}, /* [108] opt 216, ASEG (+1) */

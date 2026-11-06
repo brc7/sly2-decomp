@@ -386,7 +386,7 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_SetScrollerMasterSpeeds)
 #include "../../generated/splicewrap/RefThunk_SetScrollerMasterSpeeds.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_0012EEE0(void *p, int, int, int, float, float);
+extern "C" void AddAmbSound(void *p, int, int, int, float, float);
 /** @sly2-annot addr=0x101768
  * Purpose: Splice option thunk: optid 207 on CID43 (g_aeopid[99] thunkUser, returns Void, crefReq 5); unpacks
  *   5 args (0xE, Int, Int, Float, Float) -> Void via RefSetArgsFromSplice then calls SetCid43SoundParam
@@ -408,7 +408,7 @@ extern "C" CRef func_00101768(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    func_0012EEE0(p, v0, v1, v2, v3, v4);
+    AddAmbSound(p, v0, v1, v2, v3, v4);
     return ref;
 }
 

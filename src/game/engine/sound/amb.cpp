@@ -50,7 +50,7 @@ void func_001FB1F8(void *psnd, float uVol);
 void SetSndPitch(void *psnd, float uPitch);
 void StopSnd(void *psnd, float g);
 void RcPtr_Assign(void **pp, void *p);
-void func_0012EEE0(AMB *pamb, int n, int x, int y, float g, float h);
+void AddAmbSound(AMB *pamb, int n, int x, int y, float g, float h);
 }
 
 /** @sly2-annot addr=0x12EB48
@@ -74,7 +74,7 @@ void CID43::Init()
  * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void func_0012EB78(AMB *pamb, void *pbis)
+extern "C" void LoadAmbFromBrx(AMB *pamb, void *pbis)
 {
     STACKSCOPE obj;
     AREQV req;
@@ -102,7 +102,7 @@ extern "C" void func_0012EB78(AMB *pamb, void *pbis)
  * Confidence: low (draft) [T2 0.85] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void func_0012EC50(AMB *pamb)
+extern "C" void PostAmbLoad(AMB *pamb)
 {
     AREQV req;
     void *p;
@@ -128,7 +128,7 @@ extern "C" void func_0012EC50(AMB *pamb)
  * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void func_0012ED20(AMB *pamb)
+extern "C" void OnAmbAdd(AMB *pamb)
 {
     int i;
     OnLoAdd(pamb);
@@ -152,7 +152,7 @@ extern "C" void func_0012ED20(AMB *pamb)
  *   arbitration_slots22_23
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void func_0012EDE8(AMB *pamb)
+extern "C" void OnAmbRemove(AMB *pamb)
 {
     int i;
     OnLoRemove(pamb);
@@ -171,11 +171,11 @@ extern "C" void func_0012EDE8(AMB *pamb)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" AMBSND *func_0012EE78(AMB *pamb)
+extern "C" AMBSND *EnsureCurrentAmbSound(AMB *pamb)
 {
     if (!pamb->pambsndCur) {
         pamb->pambsndCur = &pamb->aambsnd[pamb->cambsnd];
-        func_0012EEE0(pamb, -1, 300, 3000, 1.0f, 0.0f);
+        AddAmbSound(pamb, -1, 300, 3000, 1.0f, 0.0f);
     }
     return pamb->pambsndCur;
 }
@@ -186,7 +186,7 @@ extern "C" AMBSND *func_0012EE78(AMB *pamb)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void func_0012EEE0(AMB *pamb, int n, int x, int y, float g, float h)
+extern "C" void AddAmbSound(AMB *pamb, int n, int x, int y, float g, float h)
 {
     if (pamb->cambsnd < 8) {
         AMBSND *pambsnd = &pamb->aambsnd[pamb->cambsnd++];
@@ -205,7 +205,7 @@ extern "C" void func_0012EEE0(AMB *pamb, int n, int x, int y, float g, float h)
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void func_0012EF40(AMB *pamb, int n, int x, int y, float g)
+extern "C" void AddAmbLinkedSound(AMB *pamb, int n, int x, int y, float g)
 {
     if (pamb->cambrec < 8) {
         AMBREC *prec = &pamb->aambrec[pamb->cambrec++];

@@ -203,10 +203,10 @@ struct CID43 : XFM
     char padE0[0x100 - 0xE0];
     virtual void Init() __asm__("func_0012EB48");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid43ClassDesc");   /* slot 6 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_0012EB78");   /* slot 14 */
-    virtual void VUnk14() __asm__("func_0012EC50");   /* slot 15 */
-    virtual void Freeze() __asm__("func_0012EDE8");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_0012ED20");   /* slot 23 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAmbFromBrx");   /* slot 14 */
+    virtual void VUnk14() __asm__("PostAmbLoad");   /* slot 15 */
+    virtual void Freeze() __asm__("OnAmbRemove");   /* slot 22 */
+    virtual void Unfreeze() __asm__("OnAmbAdd");   /* slot 23 */
 };
 typedef char assert_CID43_size[sizeof(CID43) == 0x100 ? 1 : -1];
 
