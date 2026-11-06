@@ -3822,7 +3822,7 @@ namespace M_func_00258348 { extern "C" {
 typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
 typedef struct R2 { int cref; } R2;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
-extern char D_004520D0[], D_00452148[];
+extern char D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"), D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
 void func_00257250(void *, int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Decref__4CRef(void *);
 void Unlink__t6CGcObj1Z5CVarb(void *);

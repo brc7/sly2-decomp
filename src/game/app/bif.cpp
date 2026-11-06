@@ -1330,7 +1330,7 @@ extern "C" CREFV *RefOpNot__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
 namespace M_RefOpCons__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -1589,7 +1589,7 @@ namespace M_RefOpShuffle {
 struct SPN;
 // (Claude agent, laneB10) MATCH: the !fShuffle reassign goes through an inline SetSpn(SPN*, CPair*) so &spRes is substituted directly (no pseudo for gcse to share with pspHead).
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -1682,7 +1682,7 @@ CRef RefOpShuffle(void *pbasic, CRef *aref)
 namespace M_RefOpAppend__FiP4CRefP6CFrame {
 struct SP;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -1723,7 +1723,7 @@ CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *aref) { if (aref[0].m_tag
 namespace M_func_00121578 {
 struct SPN;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -1775,7 +1775,7 @@ SPN func_00121578(CRef **ppref1, CRef **ppref2)
 namespace M_RefOpMap__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -1811,7 +1811,7 @@ CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { if (
 namespace M_RefOpFilter__FiP4CRefP6CFrame {
 struct SP; struct SPN;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -1865,7 +1865,7 @@ CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall) { i
 namespace M_RefOpForEach__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -1911,7 +1911,7 @@ CRef RefOpForEach__FiP4CRefP6CFrame(void *pbasic, CRef *aref, CRef *arefCall)
 namespace M_RefOpEval__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -2837,7 +2837,7 @@ namespace M_RefOpVectorRadianNormal__FiP4CRefP6CFrame {
 struct SPN;
 typedef int qword __attribute__((mode(TI)));
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -3053,7 +3053,7 @@ CRef *RefOpMatrixDecomposeToEuler__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRe
 namespace M_RefOpMatrixDecomposeToRadianNormal__FiP4CRefP6CFrame {
 struct SPN;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -3753,7 +3753,7 @@ namespace M_RefOpScheduleCallback__FiP4CRefP6CFrame {
 struct R; struct SPN;
 
 struct OBJ;
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
@@ -4106,7 +4106,7 @@ CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
 namespace M_RefOpFindObjectsFromOids {
 struct SPN; struct SW; struct OW; struct G;
 
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -4453,7 +4453,7 @@ struct SPN; struct SO; struct LO; struct HIT;
 typedef int qword __attribute__((mode(TI)));
 
 struct LO;
-extern "C" { extern char D_004520A8[]; }
+extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
 void func_0011CD98(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
@@ -5423,11 +5423,9 @@ struct COMMONS_bif {
     static int c_002DD288 __asm__("_t6CGcObj1Z5CPair$s_ptRecycle");   /* .sbss 0x4 */
     static int c_002DD28C __asm__("_t6CGcObj1Z5CPair$s_ptRoot");   /* .sbss 0x4 */
     static int c_00452098[4] __asm__("_t6CGcObj1Z5CPair$s_aptPage");   /* .bss 0x10 */
-    static int c_004520A8[4] __asm__("D_004520A8");   /* .bss 0x10 */
 };
 int COMMONS_bif::c_002DD280;
 int COMMONS_bif::c_002DD284;
 int COMMONS_bif::c_002DD288;
 int COMMONS_bif::c_002DD28C;
 int COMMONS_bif::c_00452098[4];
-int COMMONS_bif::c_004520A8[4];

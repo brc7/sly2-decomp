@@ -1254,7 +1254,7 @@ typedef char VE_type_Offset[FIELD_OFFSET(VE,type)==4?1:-1];
 typedef char META_bytes_Offset[FIELD_OFFSET(META,bytes)==12?1:-1];
 typedef char G_phase_Offset[FIELD_OFFSET(G,phase)==16144?1:-1];
 extern "C"{
-extern char g_gc[],D_004520D0[],D_00452148[];
+extern char g_gc[],D_004520D0[] __asm__("_t9CSlotPool2i24i2048$s_pool"),D_00452148[] __asm__("_t9CSlotPool2i12i200$s_pool");
 extern G D_003DD490;
 void CGc_UpdateRecyclable(void*);
 void func_00257250(void*,int) __asm__("_$_t7CRefPtr1Z5CVarb");

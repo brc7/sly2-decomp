@@ -5027,8 +5027,8 @@ extern "C" { extern HEAP D_003E1C80; }
 extern "C" { extern char D_003E21A0[],D_002CA578[]; }
 extern "C" { extern STRINGGEN D_003E1C88[108]; }
 extern "C" { extern void *D_002C40A0; }
-extern "C" { extern int D_002DD2E0,D_002DD2E4,D_002DD2E8,D_002DD2EC,D_002DD2F0,D_002DD2F4; }
-extern "C" { extern POOL D_004520A8,D_004520D0,D_004520F8,D_00452120,D_00452148,D_00452170; }
+extern "C" { extern int D_002DD2E0 __asm__("__sn_t9CSlotPool2i20i8192$s_pool"),D_002DD2E4 __asm__("__sn_t9CSlotPool2i24i2048$s_pool"),D_002DD2E8 __asm__("__sn_t9CSlotPool2i40i512$s_pool"),D_002DD2EC __asm__("__sn_t9CSlotPool2i28i2048$s_pool"),D_002DD2F0 __asm__("__sn_t9CSlotPool2i12i200$s_pool"),D_002DD2F4 __asm__("__sn_t9CSlotPool2i20i256$s_pool"); }
+extern "C" { extern POOL D_004520A8 __asm__("_t9CSlotPool2i20i8192$s_pool"),D_004520D0 __asm__("_t9CSlotPool2i24i2048$s_pool"),D_004520F8 __asm__("_t9CSlotPool2i40i512$s_pool"),D_00452120 __asm__("_t9CSlotPool2i28i2048$s_pool"),D_00452148 __asm__("_t9CSlotPool2i12i200$s_pool"),D_00452170 __asm__("_t9CSlotPool2i20i256$s_pool"); }
 // Existing constant records are twelve bytes each; the linker separates them by sixteen.
 extern "C" { extern const STRINGGEN D_002A8B90; }
 extern "C" { extern const STRINGGEN D_002A8BA0; }
@@ -5298,32 +5298,12 @@ extern const char D_002A8B88[] = "     ";
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
+// The pool words 0x2DD2E0.. and pools 0x4520A8.. are CSlotPool's template statics (__sn_t9CSlotPool...$s_pool,
+// _t9CSlotPool...$s_pool), which every object including the pool header defines; the declarations above name them.
 struct COMMONS_hud {
-    static int c_002DD2E0 __asm__("D_002DD2E0");   /* .sbss 0x4 */
-    static int c_002DD2E4 __asm__("D_002DD2E4");   /* .sbss 0x4 */
-    static int c_002DD2E8 __asm__("D_002DD2E8");   /* .sbss 0x4 */
-    static int c_002DD2EC __asm__("D_002DD2EC");   /* .sbss 0x4 */
-    static int c_002DD2F0 __asm__("D_002DD2F0");   /* .sbss 0x4 */
-    static int c_002DD2F4 __asm__("D_002DD2F4");   /* .sbss 0x4 */
     static int c_002DD318 __asm__("D_002DD318");   /* .sbss 0x4 */
-    static int c_004520D0[6] __asm__("D_004520D0");   /* .bss 0x18 */
-    static int c_004520F8[4] __asm__("D_004520F8");   /* .bss 0x10 */
-    static qword c_00452120 __asm__("D_00452120");   /* .bss 0x10 */
-    static int c_00452148[6] __asm__("D_00452148");   /* .bss 0x18 */
-    static int c_00452170[6] __asm__("D_00452170");   /* .bss 0x18 */
 };
-int COMMONS_hud::c_002DD2E0;
-int COMMONS_hud::c_002DD2E4;
-int COMMONS_hud::c_002DD2E8;
-int COMMONS_hud::c_002DD2EC;
-int COMMONS_hud::c_002DD2F0;
-int COMMONS_hud::c_002DD2F4;
 int COMMONS_hud::c_002DD318;
-int COMMONS_hud::c_004520D0[6];
-int COMMONS_hud::c_004520F8[4];
-qword COMMONS_hud::c_00452120;
-int COMMONS_hud::c_00452148[6];
-int COMMONS_hud::c_00452170[6];
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
