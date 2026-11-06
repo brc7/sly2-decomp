@@ -10,7 +10,40 @@ the ELF the way the original build did is "End state" at the end. The symbol sid
 
 ## Status (integrate/round9, 2026-11-06)
 
-(Measurements pending.)
+Authoritative numbers for integrate/round9: integrate/round8 (0bd0ca5f, its Status below) + link/eopid-real-refs (no
+trailing-space asm labels; g_aeopid names the 63 inline accessors and emitter.h instances by their C++ names, so
+class_registry emits their linkonce copies; the key TUs emit the 10 grab-spot getters; eopid_linkonce.cpp gone) +
+link/linkonce-rest (the last 18 linkonce copies in linkonce form: sly2/arrayv.h's container templates instantiated
+by tu_119BC8, the weak/section attribute form for operator*, VecCombo, CHash<char *, int>::Resize and the three
+class_registry constructors; the scraps this exposed as `SLY2_SCRAP`; link.py deletes a failed source's stale object
+and exits 1) + data/bss-gaps (about 170 data objects in 31 TUs, the phase-3 commons converted to TU `.bss`;
+tu-merging.md "Phase 7"). Fixes in the merges: blend's func_002581B8 (linkonce-rest put it in eopid_linkonce.cpp,
+which link/eopid-real-refs deleted; g_aeopid does not reference it) is emitted by blend.cpp, the key TU of its
+vtable 0x2CB5A8, through a file-scope address reference (4 bytes of unplaced `.data`; tu-merging.md "The container
+family"); the three class_registry constructors stay in the attribute form (the inline form in classes.h is emitted
+by stepguard.cpp but inlined by class_registry's eleven guard factories; recorded there and in class_registry.cpp);
+a stray sym_new.json at the repo root removed; stale eopid_linkonce.cpp mentions in emitter.h and lo.h. All values
+from freshly built objects (build/link and the progress cache deleted first); integrate/round8's in brackets.
+
+| measure | value | tool |
+|---|---|---|
+| functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac; config/matched.csv content unchanged by the run) | `tools/progress.py`, cache deleted first, run alone |
+| all game sources (210) | functions 6,017 / 6,017, data symbols 2,072 / 2,072 [1,932] MATCH | `tools/matchtool.py check` |
+| nm symbol sets (527 objects) | against link/eopid-real-refs (1a7c0130): exactly the union of link/linkonce-rest's and data/bss-gaps' changes against their base e344ef63, except blend's func_002581B8 (W in blend.cpp instead of eopid_linkonce.cpp, as designed) | scratch nmdef.py / nm4way.py |
+| definitions per symbol | every global or weak function symbol (6,127) is defined by exactly one object; linkonce copies are W in their one emitting object | nm over the 527 objects |
+| undefined references not in config (209 merged objects), duplicate strong definitions | 39, 0 | scratch symcheck.py |
+| relocations checked against the ELF | 50,842 [50,740] OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
+| link objects | 527: 527 whole, 0 in per-function fallback [521 / 6]; build/link/tutext.txt is empty | `tools/link.py` |
+| ld.lld | 0 errors; 1,175 object sections placed, 4 unplaced (176 bytes: an SDK object's `.data` 100, bq's and tn's linkonce copies 40 + 32, blend's address reference 4), 2 `.bss` overlapping another bound to their address (tn, cplcy) | `tools/link.py` |
+| `.bss`/`.sbss` gaps no object defines | 60,772 bytes in 6 address assignments [487,824 in 20] | `tools/link.py` |
+| differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; from objects .text 1,295,844 [1,295,772], .rodata 128,176 [126,184], .data 163,220 [160,936] | `tools/link.py` |
+| blob bytes | 840,888 [845,256]: IOP modules 474,176; data no object defines 211,760 [216,056]; text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,576 [1,620]; padding / not in config 1,036 [1,064]; `func_00100000` 4 | `tools/link.py` |
+| config names at their config address | 7,983 / 7,983 [7,824] | `tools/link.py` |
+| a failed compile | the source is listed, its stale object deleted, exit 1 (checked with an `#error` in blend.cpp) | `tools/link.py` |
+| docs links | 0 broken (12,628 checked) | `tools/docs/linkcheck.py` |
+
+Merge conflicts: eopid-real-refs none; linkonce-rest tu_1553F0 (VecCombo: the attributes on data/vtables' `qwordV`
+signature), eopid_linkonce.cpp (modify/delete), the guides; bss-gaps only full-link.md.
 
 ### Status (link/linkonce-rest on integrate/round8 e344ef63, 2026-11-06; superseded above)
 
