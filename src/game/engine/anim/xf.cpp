@@ -1,7 +1,8 @@
 // xf.cpp -- object transforms (XF, so.h): loading an SO's transforms from the level file, the per-frame slot update
 // (UpdateSoSlots), world matrices and hierarchies, frame conversion of points/vectors/matrices (func_0022FC48,
 // ConvertXfVec/Mat), velocities (GetXfVelocity), transform acts and slot settling, matrix blending.
-// TU 0x22C818..0x231100 (43 functions, address order) plus the linkonce VECTOR_opAssign 0x256D18.
+// TU 0x22C818..0x231100 (43 functions, address order) plus the inline VECTOR_opAssign (its linkonce copy 0x256D18),
+// defined after its callers.
 //
 // Types: sly2 headers (basic.h, lo.h, so.h, sw.h); the file-scope types after the includes are UpdateSoSlots'
 // Lilly declarations. The m2c bodies are written on them; the other functions keep the per-function views they
@@ -2763,7 +2764,7 @@ typedef int qword __attribute__((mode(TI)));
  * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }
+inline qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }   /* inline, after its callers: the linkonce copy */
 } } // namespace M_VECTOR_opAssign
 
 

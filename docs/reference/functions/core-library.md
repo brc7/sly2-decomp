@@ -434,7 +434,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x255F38](../../../src/game/object/spliceobj.cpp) | `GcPool6_PushFront` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2560C8](../../../src/game/object/spliceobj.cpp) | `GcPool6_InitNode` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../src/game/splice/ref.cpp) | `GcPool6_Unlink` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256278](../../../src/game/engine/camera/cm.cpp) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x256278](../../../include/sly2/cm.h) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../include/sly2/cm.h) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A0](../../../include/sly2/cm.h) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A8](../../../src/game/gameplay/ai/guardbhv.cpp) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |

@@ -3924,6 +3924,7 @@ strlen = 0x21ED28; // type:func
 PvAllocCopy__FP4HEAPiPvi = 0x116970; // type:func
 Free__9CDynArray = 0x116D28; // type:func
 Reserve__9CDynArrayi = 0x116D70; // type:func
+func_00256278__FP2CMP7MATRIX3 = 0x256278; // type:func
 func_002564A8__FPxx = 0x2564A8; // type:func
 LoadEmitblipColorsFromBrx__H1Z7EMITTER_PX01P18CBinaryInputStream_v = 0x2584A8; // type:func
 LoadEmitterFromBrx__H1Z7EMITTER_PX01P18CBinaryInputStream_v = 0x258598; // type:func

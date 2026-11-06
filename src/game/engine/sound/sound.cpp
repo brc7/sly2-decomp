@@ -2815,7 +2815,7 @@ void func_001FF108(int a, int b, int c, float g)
 namespace M_func_00259B48 { extern "C" {
 typedef struct { int pad[2]; short d1; short p1; void (*f1)(void *); short d2; short p2; void (*f2)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
-void func_00259B48(O **pp, O *o)
+inline void func_00259B48(O **pp, O *o)
 {
     if (o) o->vt->f1((char *)o + o->vt->d1);
     if (*pp) (*pp)->vt->f2((char *)*pp + (*pp)->vt->d2);
@@ -2826,7 +2826,7 @@ void func_00259B48(O **pp, O *o)
 namespace M_func_00259BB0 { extern "C" {
 typedef struct { int pad[2]; short d; short p; void (*f)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
-void func_00259BB0(O **pp, O *o) { if (o) o->vt->f((char *)o + o->vt->d); *pp = o; }
+inline void func_00259BB0(O **pp, O *o) { if (o) o->vt->f((char *)o + o->vt->d); *pp = o; }
 } } // namespace M_func_00259BB0
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

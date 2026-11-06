@@ -3863,7 +3863,7 @@ typedef struct S { R2 *p0; R4 *p4; } S;
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-void func_00258348(S *p, int flags)
+inline void func_00258348(S *p, int flags)
 {
     Release4(p->p4);
     {

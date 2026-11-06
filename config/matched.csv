@@ -6492,7 +6492,7 @@ GcSidebag_Unlink,0x255DE8,84,match,src/game/splice/sidebag.cpp
 GcPool6_PushFront,0x255F38,100,match,src/game/object/spliceobj.cpp
 GcPool6_InitNode,0x2560C8,22,match,src/game/object/spliceobj.cpp
 GcPool6_Unlink,0x256120,84,match,src/game/splice/ref.cpp
-func_00256278,0x256278,7,match,src/game/engine/camera/cm.cpp
+func_00256278__FP2CMP7MATRIX3,0x256278,7,match,src/game/app/eopid_linkonce.cpp
 func_00256298__FP2CM,0x256298,2,match,src/game/app/eopid_linkonce.cpp
 func_002562A0__FP2CM,0x2562A0,2,match,src/game/app/eopid_linkonce.cpp
 func_002562A8,0x2562A8,3,match,src/game/gameplay/ai/guardbhv.cpp

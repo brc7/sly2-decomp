@@ -104,7 +104,8 @@ typedef char assert_STEP_bhvstk[SLY2_OFFSETOF(STEP, bhvstk) == 0x26C ? 1 : -1]; 
 /* Option accessor (inline): a g_aeopid setter (the set PMF of the record at 0x2AEC48); src/game/app/eopid_linkonce.cpp
  * takes its address to emit the out-of-line copy, see docs/guides/tu-merging.md "Inline functions and linkonce
  * copies". Name is a placeholder. */
-extern "C" void func_00204660(STEP *pstep, float rad);   /* set the target heading (step.cpp) */
-inline void func_00259D18(STEP *pstep, float rad) { func_00204660(pstep, rad); }
+namespace STEP_H { extern "C" void func_00204660(STEP *pstep, float rad); }   /* set the target heading (step.cpp);
+   in a namespace because includers declare the C function on their own views (stepguard, mode) */
+inline void func_00259D18(STEP *pstep, float rad) { STEP_H::func_00204660(pstep, rad); }
 
 #endif /* SLY2_STEP_H */
