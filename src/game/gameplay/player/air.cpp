@@ -2669,7 +2669,7 @@ extern char D_003DD490[];
 extern int func_00144068(LO *);
 extern int func_001999D0(P *,SHAPE *,qword,int,void *,U *);
 extern void RecalcSwXpMovement(void *,int,CONTACT **);
-extern BSPNODE *PbspPointInBspQuick(BSPNODE *,BSPNODE *,qword);
+extern BSPNODE *FindBspLeafContainingPointFast(BSPNODE *,BSPNODE *,qword);
 static inline qword Scalar(float f)
 {
     qword q;
@@ -2760,7 +2760,7 @@ CONTACT *PxpFindJtBestEdge__FP2JTPiP6VECTOR(P *p,int *outSide,qword *outNormal)
                 { U s={back}; }
                 point.q=value;
                 { U s={lift}; }
-                if (PbspPointInBspQuick(shape->bsp,(BSPNODE *)0x7FFFFFFF,value)) continue;
+                if (FindBspLeafContainingPointFast(shape->bsp,(BSPNODE *)0x7FFFFFFF,value)) continue;
                 if (best && Opposite(contact,side)->position.f[2] < bestHeight) continue;
                 best=contact;
                 bestHeight=Opposite(best,side)->position.f[2];

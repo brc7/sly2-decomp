@@ -37,7 +37,7 @@ void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 qword VecMinArray(int c, qword *points);
 qword VecMaxArray(int c, qword *points);
 qword ConvertAloPos(int a, VOLV *p, qword q);
-int PbspPointInBspQuick(int a, int b, qword q);
+int FindBspLeafContainingPointFast(int a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *AllocFromStack(MSG *pmsg);
@@ -108,7 +108,7 @@ extern "C" int FCheckVolPoint(VOLV *p, qword q)
     f = VuToFloat(r);
     fFar = p->sRadius < f;
     if (fFar) return 0;
-    return PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, a) != 0;
+    return FindBspLeafContainingPointFast(p->bspc.absp, 0x7FFFFFFF, a) != 0;
 }
 
 

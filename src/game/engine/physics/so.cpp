@@ -4166,7 +4166,7 @@ typedef unsigned long ulong;
 struct O { char pad[0x70]; qword pos; };
 struct E { struct O *po; int pad; float r; int pad2; ulong fl; char pad3[0x74 - 0x18]; void *p74; char pad4[0xB0 - 0x78]; };
 struct P { char pad[0xE0]; int c; struct E *ae; };
-int PbspPointInBspQuick(void *, int, qword);
+int FindBspLeafContainingPointFast(void *, int, qword);
 /** @sly2-annot addr=0x1F72F8
  * Purpose: SO vt73: true if pos is inside any visible sphere part or part BSP (0x118FB0)
  * Info: proposed name FPosInSo (T2); class SO slot73; TU so
@@ -4191,7 +4191,7 @@ int func_001F72F8(struct P *p, qword pos)
             __asm__("mtc1 %1, %0" : "=f"(d2) : "r"(t));
             { int f = d2 < r2; if (f) return 1; }
         }
-        if (pe->p74 && PbspPointInBspQuick(pe->p74, 0x7FFFFFFF, pos)) return 1;
+        if (pe->p74 && FindBspLeafContainingPointFast(pe->p74, 0x7FFFFFFF, pos)) return 1;
     }
     return 0;
 }

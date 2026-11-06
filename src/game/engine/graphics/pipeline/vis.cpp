@@ -33,7 +33,7 @@ void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pgeom);
 void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *pv, void *pbis);
 qword ConvertAloPos(int a, VIS *pvis, qword pos);
-int PbspPointInBspQuick(int pbsp, int n, qword pos);
+int FindBspLeafContainingPointFast(int pbsp, int n, qword pos);
 void func_00227440(VIS *pvis, int fInside);
 }
 
@@ -79,7 +79,7 @@ extern "C" void func_00227380(VIS *pvis, void *pbis)
  * @end-sly2-annot */
 extern "C" void func_002273F0(VIS *pvis, qword pos)
 {
-      func_00227440(pvis, PbspPointInBspQuick(pvis->bspc.pbsp, 0x7FFFFFFF, ConvertAloPos(0, pvis, pos)) != 0);
+      func_00227440(pvis, FindBspLeafContainingPointFast(pvis->bspc.pbsp, 0x7FFFFFFF, ConvertAloPos(0, pvis, pos)) != 0);
 }
 
 /** @sly2-annot addr=0x227440

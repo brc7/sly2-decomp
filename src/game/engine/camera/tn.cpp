@@ -454,7 +454,7 @@ void RevokeCmPolicy(CM *pcm, int a, int b, int c, int d, TN *ptn);
 POX *PpoCur(SW *psw);
 qword func_001A62E8(void *plo);
 qword ConvertAloPos(void *source, void *p, qword q);
-BSP *PbspPointInBspQuick(BSP *p, unsigned int limit, qword v);
+BSP *FindBspLeafContainingPointFast(BSP *p, unsigned int limit, qword v);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void UpdateLo(TN *p);
 void OnLoRemove(TN *p);
@@ -733,7 +733,7 @@ void UpdateTnCallback(TN *p)
     }
     int initial=p->tnsWant;
     int sentinel=AutomaticSentinel();
-    if(initial==sentinel) f=PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, func_001A62E8(po))) != 0;
+    if(initial==sentinel) f=FindBspLeafContainingPointFast(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, func_001A62E8(po))) != 0;
     else f=initial;
     if (p->nUnk124) goto set;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) goto set;

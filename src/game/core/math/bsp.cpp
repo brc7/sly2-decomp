@@ -5,7 +5,7 @@
 // A BSP node holds a plane and two children; null children are outside / inside leaves. Collision code clips edges
 // against these volumes, the culling and query code locates points, and level loading clones trees between
 // geometries. Entry points: ClsgClipEdgeToBsp, PruneBspBySphere, CollectBspSurfacesTouchingPolygon,
-// PbspPointInBspQuick, FindBspLeafContainingPoint, CloneBspc, InitPlaneFromPositions / InitPlaneFromNormalPos,
+// FindBspLeafContainingPointFast, FindBspLeafContainingPoint, CloneBspc, InitPlaneFromPositions / InitPlaneFromNormalPos,
 // TransformPlane.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bsp
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001195C0
@@ -51,7 +51,7 @@ public:
     VUF() __asm__("InitVuTemp");
     qword q;
 };
-union VUFU { qword q; float f[4]; };   /* PbspPointInBspQuick calls that constructor by hand */
+union VUFU { qword q; float f[4]; };   /* FindBspLeafContainingPointFast calls that constructor by hand */
 extern "C" inline void *InitVuTemp(void *p);   /* inline, defined after its callers (end of file) */
 
 // func_00118668: ported from Lilly's personal Sly 2 decomp (src/P2/bsp.c), reduced to the declarations it needs.
@@ -415,18 +415,18 @@ extern "C" int CollectBspSurfacesTouchingPolygon(BSP *node, BSP *nodeLimit, int 
 // 0x118FA8: dead-code scrap, a nop unit (sly2/scrap.h)
 SLY2_SCRAP("nop");
 
-// PbspPointInBspQuick (Claude agent, lane A8, 2026-10-23): BSP-style plane walk. From v6: one asm doing qmfc2.ni + mtc1 (scratch "=&r"), and the left child clipped into a block-scoped `q = 0; if (p < pnodeMax) q = p;` (gives the target v1->v0 copy). oq pinned to vf2.
+// FindBspLeafContainingPointFast (Claude agent, lane A8, 2026-10-23): BSP-style plane walk. From v6: one asm doing qmfc2.ni + mtc1 (scratch "=&r"), and the left child clipped into a block-scoped `q = 0; if (p < pnodeMax) q = p;` (gives the target v1->v0 copy). oq pinned to vf2.
 /** @sly2-annot addr=0x118FB0
  * Purpose: Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the
  *   leaf node
- * Info: proposed name PbspPointInBspQuick (T1); TU bsp
+ * Info: proposed name FindBspLeafContainingPointFast (T1); TU bsp
  * Notes: names_v2 C proposed CloneBspc__FP4GEOMP4BSPCT0T1 (0.638)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
  * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tn-0x220d40-0x223f70,
  *   docs/reference/functions/core-library.md#bsp-0x118668-0x1195e0
  * @end-sly2-annot */
 // Returns the BSP leaf containing pos; points within 1e-4 of a plane go to the negative child (fast version).
-extern "C" BSP *PbspPointInBspQuick(BSP *node, BSP *nodeLimit, qword pos)
+extern "C" BSP *FindBspLeafContainingPointFast(BSP *node, BSP *nodeLimit, qword pos)
 {
     BSP *p;
     VUFU d;
@@ -683,7 +683,7 @@ inline qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
 /** @sly2-annot addr=0x2564B8
  * Purpose: return arg0 (out-of-line inline accessor/cast in the linkonce block)
  * Info: proposed name Identity_002564B8 (T2); TU game_linkonce
- * Notes: top50_round (0.15): Body only; 4 BSP/light/plane callers (PbspPointInBspQuick, InsertLightInTree,
+ * Notes: top50_round (0.15): Body only; 4 BSP/light/plane callers (FindBspLeafContainingPointFast, InsertLightInTree,
  *   GDistPlanePos). No evidence for a better name; leave as draft
  * Confidence: low (draft) [T2 0.15] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4

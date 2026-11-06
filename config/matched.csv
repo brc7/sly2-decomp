@@ -833,7 +833,7 @@ PvAllocClear__FP4HEAPii,0x116918,21,match,src/game/platform/memory/heap.cpp
 PvAllocCopy__FP4HEAPiPvi,0x116970,25,match,src/game/platform/memory/heap.cpp
 PchzAllocCopy__FP4HEAPPci,0x1169D8,21,match,src/game/platform/memory/heap.cpp
 CSwHeap_PvAlloc,0x116A30,10,match,src/game/platform/memory/heap.cpp
-CSwHeap_PvRealloc,0x116A58,14,match,src/game/platform/memory/heap.cpp
+CSwHeap_Realloc,0x116A58,14,match,src/game/platform/memory/heap.cpp
 CSwHeap_Free,0x116A90,2,match,src/game/platform/memory/heap.cpp
 __11CLinearHeapiPUc,0x116A98,8,match,src/game/platform/memory/heap.cpp
 PvAlloc__11CLinearHeapii,0x116AB8,15,match,src/game/platform/memory/heap.cpp
@@ -891,7 +891,7 @@ func_00118648,0x118648,8,match,src/game/core/binstream/bis.cpp
 func_00118668,0x118668,263,match,src/game/core/math/bsp.cpp
 PruneBspBySphere,0x118A88,159,match,src/game/core/math/bsp.cpp
 CollectBspSurfacesTouchingPolygon,0x118D08,168,match,src/game/core/math/bsp.cpp
-PbspPointInBspQuick,0x118FB0,55,match,src/game/core/math/bsp.cpp
+FindBspLeafContainingPointFast,0x118FB0,55,match,src/game/core/math/bsp.cpp
 FindBspLeafContainingPoint,0x119090,85,match,src/game/core/math/bsp.cpp
 CloneBspc,0x1191E8,71,match,src/game/core/math/bsp.cpp
 InitPlaneFromPositions,0x119308,33,match,src/game/core/math/bsp.cpp
@@ -992,7 +992,7 @@ GSmooth__FfffP3SMPPf,0x11D018,105,match,src/game/core/math/util.cpp
 GSmoothA__FffffP4SMPAPf,0x11D1C0,65,match,src/game/core/math/util.cpp
 RadSmooth__FfffP3SMPPf,0x11D2D0,27,match,src/game/core/math/util.cpp
 RadSmoothA__FffffP4SMPAPf,0x11D340,31,match,src/game/core/math/util.cpp
-NRand,0x11D3C0,13,match,src/game/core/math/util.cpp
+GetRandomInt,0x11D3C0,13,match,src/game/core/math/util.cpp
 NRandInRange__Fii,0x11D3F8,19,match,src/game/core/math/util.cpp
 GRandInRange__Fff,0x11D448,34,match,src/game/core/math/util.cpp
 FFloatsNear__Ffff,0x11D4D0,14,match,src/game/core/math/util.cpp

@@ -92,14 +92,14 @@ void *CSwHeap::PvAlloc(int size, int alignment)   /* key function: CSwHeap's vta
 /** @sly2-annot addr=0x116A58
  * Purpose: vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4
  *   unless it is -1
- * Info: proposed name CSwHeap_PvRealloc (T1); class CSwHeap; TU heap
+ * Info: proposed name CSwHeap_Realloc (T1); class CSwHeap; TU heap
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
 // CSwHeap::PvRealloc: allocates a new block (at the heap's own alignment unless it is -1, then the caller's); the
 // old block is neither copied nor freed.
-extern "C" void *CSwHeap_PvRealloc(CSwHeap *swHeap, void *block, int size, int alignment)
+extern "C" void *CSwHeap_Realloc(CSwHeap *swHeap, void *block, int size, int alignment)
 {
     return ((HEAP *)swHeap)->PvAlloc(size, swHeap->cbAlign != -1 ? swHeap->cbAlign : alignment);
 }

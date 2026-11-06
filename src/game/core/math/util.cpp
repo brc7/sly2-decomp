@@ -24,7 +24,7 @@ float GModPositive(float gDividend, float gDivisor);
 int CSolveQuadratic(float a, float b, float c, float *ax);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext);
-extern "C" int NRand();
+extern "C" int GetRandomInt();
 
 /** @sly2-annot addr=0x11CF60
  * Purpose: Wraps an angle into [-pi, pi) using GModPositive
@@ -189,12 +189,12 @@ float RadSmoothA(float current, float currentRate, float target, float dt, SMPA 
 
 /** @sly2-annot addr=0x11D3C0
  * Purpose: rand() % 905010707
- * Info: proposed name NRand (T1); TU util
+ * Info: proposed name GetRandomInt (T1); TU util
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
 // Returns a pseudo-random non-negative int (rand() mod 905010707).
-int NRand()
+int GetRandomInt()
 {
     return rand() % 905010707;
 }
@@ -209,7 +209,7 @@ int NRand()
 // Returns a uniform random int in [low, high].
 int NRandInRange(int low, int high)
 {
-    int nRand = NRand();
+    int nRand = GetRandomInt();
     int nBase = low - 1;
     return low + nRand % (high - nBase);
 }
@@ -226,7 +226,7 @@ float GRandInRange(float min, float max)
 {
     if (min == max)
         return min;
-    return min + (max - min) * (float)(NRand() % 0x16A1B) * 1.078760305972537e-05f;
+    return min + (max - min) * (float)(GetRandomInt() % 0x16A1B) * 1.078760305972537e-05f;
 }
 
 /** @sly2-annot addr=0x11D4D0

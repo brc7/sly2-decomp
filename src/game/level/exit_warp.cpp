@@ -110,7 +110,7 @@ void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
 void WipeToWorldWarp(SW *psw, void *pvWorld, int a, int b, int grf, int c);
 qwordV func_001A62E8(LO *plo);
 qwordV ConvertAloPos(int a, EXITV *pexit, qwordV pos);
-int PbspPointInBspQuick(void *pbsp, int n, qwordV pos);
+int FindBspLeafContainingPointFast(void *pbsp, int n, qwordV pos);
 void TriggerRsmg(SW *psw, int crsmg, RSMG *arsmg, WARPV *pwarp, int fOn);
 
 WARPV *PwarpFromOid(SW *psw, OID oid, OID oidContext);
@@ -426,7 +426,7 @@ extern "C" void UpdateExit(EXITV *pexit, float dt)
         if (!ploHero)
             return;
         u.q = ConvertAloPos(0, pexit, func_001A62E8(ploHero));
-        fInside = PbspPointInBspQuick(pexit->pbsp, 0x7FFFFFFF, u.q) != 0;
+        fInside = FindBspLeafContainingPointFast(pexit->pbsp, 0x7FFFFFFF, u.q) != 0;
         switch (pexit->exits)
         {
         case 3:
