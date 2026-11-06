@@ -429,8 +429,8 @@ namespace M_ApplySmCore {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VTE5 { short d; short p; void (*pfn)(void *, int, int, int, int, int); };
 struct VT { VTE a[3]; VTE5 a3; };
-struct P { int n0; char pad[0xC - 4]; VT *pvt; char pad2[0x68 - 0x10]; char dl68[0xC]; };
-struct S { int n0; int n4; int n8; VT *pvt; char pad[0x24 - 0x10]; P *p24; int n28; int n2C; int pad30; int n34; int n38; int n3C; int pad40; float f44; int n48; int pad4C; };
+struct P { int n0; char pad[0xC - 4]; VT *vtable; char pad2[0x68 - 0x10]; char dl68[0xC]; };
+struct S { int n0; int n4; int n8; VT *vtable; char pad[0x24 - 0x10]; P *sm; int rootObject; int applyFlags; int pad30; int currentState; int nextState; int goalState; int pad40; float speed; int routeMask; int pad4C; };
 struct SW { char pad[0x3DDC]; char dl[0xC]; char pool[0x10]; };
 extern "C" { extern SW D_003DD490; }
 extern "C" { extern VT D_002D9768 __asm__("_vt$3SMA"); }
@@ -446,8 +446,8 @@ void ChooseSmaTransition(S *, int);
 }
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
-    ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F01B8
  * Purpose: Takes an SMA from the g_sw pool (+0x3DDC), memsets 0x50, links it into SM and world lists, runs
@@ -464,26 +464,26 @@ extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
     S *ps = PvAllocSlotheapClear(D_003DD490.pool);
     *pps = ps;
     func_002333B4(ps, 0, 0x50);
-    ps->pvt = &D_002D9768;
-    ps->n28 = a;
-    ps->n2C = c;
-    ps->n48 = d;
+    ps->vtable = &D_002D9768;
+    ps->rootObject = a;
+    ps->applyFlags = c;
+    ps->routeMask = d;
     ps->n0 = 0;
     ps->n4 = 0;
-    ps->p24 = p;
-    ps->n38 = -1;
-    ps->f44 = 1.0f;
+    ps->sm = p;
+    ps->nextState = -1;
+    ps->speed = 1.0f;
     AppendDlEntry__FP2DLPv(D_003DD490.dl, ps);
     AppendDlEntry__FP2DLPv(p->dl68, ps);
-    ps->pvt->a[1].pfn((char *)ps + ps->pvt->a[1].d);
+    ps->vtable->a[1].pfn((char *)ps + ps->vtable->a[1].d);
     Lock l(p);
     FramePtr_Assign(ps, p->n0);
-    ps->pvt->a3.pfn((char *)ps + ps->pvt->a3.d, 2, 0, 0, 0, 0);
+    ps->vtable->a3.pfn((char *)ps + ps->vtable->a3.d, 2, 0, 0, 0, 0);
     if (FSmaRetracted(ps)) return;
     if (b != -1) {
         int v = FindSmStateRequired(p, b);
-        ps->n34 = v;
-        ps->n3C = v;
+        ps->currentState = v;
+        ps->goalState = v;
         NotifySmaSpliceOnEnterState(ps, -1, v);
     }
     ChooseSmaTransition(ps, 0);
@@ -659,7 +659,7 @@ namespace M_func_001F0598 { extern "C" {
 struct VTE { short d; short p; void *pfn; };
 struct VT { struct VTE a[4]; };
 struct Q { char pad[0x68]; char dl[1]; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x24 - 0x10]; struct Q *pq; char pad3[0x30 - 0x28]; void *p30; };
+struct P { char pad[0xC]; struct VT *vtable; char pad2[0x24 - 0x10]; struct Q *pq; char pad3[0x30 - 0x28]; void *currentAsega; };
 struct DL;
 int FSmaRetracted(struct P *);
 void RetractAsega(void *);
@@ -678,15 +678,15 @@ void RemoveDlEntry__FP2DLPv(void *, void *);
 void RetractSma(struct P *p)
 {
     if (!FSmaRetracted(p)) {
-        void *pv = p->p30;
+        void *pv = p->currentAsega;
         if (pv) {
-            p->p30 = 0;
+            p->currentAsega = 0;
             RetractAsega(pv);
         }
         RemoveDlEntry__FP2DLPv(p->pq->dl, p);
         RemoveDlEntry__FP2DLPv(&g_sw.dlSma, p);
-        ((void (*)(void *, int, int, int, int, int))p->pvt->a[3].pfn)((char *)p + p->pvt->a[3].d, 3, 0, 0, 0, 0);
-        ((void (*)(void *))p->pvt->a[2].pfn)((char *)p + p->pvt->a[2].d);
+        ((void (*)(void *, int, int, int, int, int))p->vtable->a[3].pfn)((char *)p + p->vtable->a[3].d, 3, 0, 0, 0, 0);
+        ((void (*)(void *))p->vtable->a[2].pfn)((char *)p + p->vtable->a[2].d);
     }
 }
 } } // namespace M_func_001F0598
@@ -711,15 +711,15 @@ namespace M_SetSmaGoal {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
 struct F { int pad[3]; int fl; };
-struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x30 - 0x28]; void *p30; char pad4[0x3C - 0x34]; int n3C; F *pf; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x24 - 0x10]; void *sm; char pad3[0x30 - 0x28]; void *currentAsega; char pad4[0x3C - 0x34]; int goalState; F *currentTransition; };
 extern "C" int FSmaRetracted(P *);
 extern "C" int FindSmStateRequired(void *, int);
 extern "C" void RetractAsega(void *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
-    ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F0660
  * Purpose: ismsGoal = (oid==-1 ? -1 : IsmsFindSmRequired); if changed: retract the running ASEGA when the
@@ -733,12 +733,12 @@ struct Lock {
 extern "C" void SetSmaGoal(P *p, int n)
 {
     if (FSmaRetracted(p)) return;
-    n = n == -1 ? -1 : FindSmStateRequired(p->p24, n);
-    if (n != p->n3C) {
+    n = n == -1 ? -1 : FindSmStateRequired(p->sm, n);
+    if (n != p->goalState) {
         Lock l(p);
-        p->n3C = n;
-        if (p->p30) {
-            if (p->pf->fl & 2) RetractAsega(p->p30);
+        p->goalState = n;
+        if (p->currentAsega) {
+            if (p->currentTransition->fl & 2) RetractAsega(p->currentAsega);
         } else ChooseSmaTransition(p, 0);
     }
 }
@@ -746,7 +746,7 @@ extern "C" void SetSmaGoal(P *p, int n)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetSmaGoalIfReachable { extern "C" {
-struct P { char pad[0x24]; void *p24; char pad2[0x30 - 0x28]; int n30; int n34; int n38; char pad3[0x48 - 0x3C]; int n48; };
+struct P { char pad[0x24]; void *sm; char pad2[0x30 - 0x28]; int currentAsega; int currentState; int nextState; char pad3[0x48 - 0x3C]; int routeMask; };
 int FSmaRetracted(struct P *);
 int IsmsFindSmOptional__FP2SM3OID(void *, int);
 int PsmtChooseTowardGoal(void *, int, int, int, int);
@@ -763,8 +763,8 @@ void SetSmaGoal(struct P *, int);
 void SetSmaGoalIfReachable(struct P *p, int n)
 {
     if (!FSmaRetracted(p) && n != -1) {
-        int r = IsmsFindSmOptional__FP2SM3OID(p->p24, n);
-        if (r != -1 && PsmtChooseTowardGoal(p->p24, p->n48, !p->n30 ? p->n34 : p->n38, r, 0))
+        int r = IsmsFindSmOptional__FP2SM3OID(p->sm, n);
+        if (r != -1 && PsmtChooseTowardGoal(p->sm, p->routeMask, !p->currentAsega ? p->currentState : p->nextState, r, 0))
             SetSmaGoal(p, n);
     }
 }
@@ -799,7 +799,7 @@ extern "C" OID GetSmaCurrentState(SMA *psma)
 namespace M_GetSmaNext { extern "C" {
 struct E { int a; int b; };
 struct T { char pad[0x54]; struct E *ae; };
-struct S { char pad[0x24]; struct T *pt; char pad2[0xC]; int x34; int x38; };
+struct S { char pad[0x24]; struct T *pt; char pad2[0xC]; int currentState; int nextState; };
 /** @sly2-annot addr=0x1F0808
  * Purpose: OID of ismsNext (+0x38), else of ismsCur
  * Info: proposed name GetSmaNext (T1); TU sm
@@ -809,9 +809,9 @@ struct S { char pad[0x24]; struct T *pt; char pad2[0xC]; int x34; int x38; };
 // OID of the state the running transition leads to, else of the current state.
 int GetSmaNext(struct S *p)
 {
-    int i = p->x38;
+    int i = p->nextState;
     if (i >= 0) return p->pt->ae[i].a;
-    i = p->x34;
+    i = p->currentState;
     if (i >= 0) return p->pt->ae[i].a;
     return -1;
 }
@@ -821,13 +821,13 @@ int GetSmaNext(struct S *p)
 namespace M_SetSmaSvt {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *pvt; char pad2[0x30 - 0x10]; void *p30; char pad3[0x44 - 0x34]; float g; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; void *currentAsega; char pad3[0x44 - 0x34]; float g; };
 extern "C" int FSmaRetracted(P *);
 extern "C" void SetAsegaSpeed__FP5ASEGAf(void *, float);
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
-    ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F0850
  * Purpose: Stores +0x44; SetAsegaSpeed on the running ASEGA
@@ -842,7 +842,7 @@ extern "C" void SetSmaSvt(P *p, float g)
     if (!FSmaRetracted(p)) {
         Lock l(p);
         p->g = g;
-        if (p->p30) SetAsegaSpeed__FP5ASEGAf(p->p30, g);
+        if (p->currentAsega) SetAsegaSpeed__FP5ASEGAf(p->currentAsega, g);
     }
 }
 } // namespace M_SetSmaSvt
@@ -880,15 +880,15 @@ void AbortSmaTransition(struct P *p)
 namespace M_SeekSma {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x3C - 0x28]; int n3C; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x24 - 0x10]; void *sm; char pad3[0x3C - 0x28]; int goalState; };
 extern "C" int FSmaRetracted(P *);
 extern "C" int FindSmStateRequired(void *, int);
 extern "C" void AbortSmaTransition(P *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
-    ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F0948
  * Purpose: Set the goal, abort the current transition, choose again immediately (ChooseSmaTransition(p, 1))
@@ -902,7 +902,7 @@ extern "C" void SeekSma(P *p, int n)
 {
     if (!FSmaRetracted(p)) {
         Lock l(p);
-        p->n3C = FindSmStateRequired(p->p24, n);
+        p->goalState = FindSmStateRequired(p->sm, n);
         AbortSmaTransition(p);
         ChooseSmaTransition(p, 1);
     }
@@ -913,7 +913,7 @@ extern "C" void SeekSma(P *p, int n)
 namespace M_SnapSma {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x30 - 0x28]; void *p30; int n34; int n38; int n3C; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x24 - 0x10]; void *sm; char pad3[0x30 - 0x28]; void *currentAsega; int currentState; int nextState; int goalState; };
 extern "C" int FSmaRetracted(P *);
 extern "C" int FindSmStateRequired(void *, int);
 extern "C" void RetractAsega(void *);
@@ -921,8 +921,8 @@ extern "C" void NotifySmaSpliceOnEnterState(P *, int, int);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
-    ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F09D8
  * Purpose: Jump straight to a state: kill the ASEGA, set cur/goal, notify enter, choose
@@ -936,17 +936,17 @@ extern "C" void SnapSma(P *p, int n)
 {
     if (!FSmaRetracted(p)) {
         Lock l(p);
-        int m = FindSmStateRequired(p->p24, n);
-        if (p->n34 == m && (p->n3C == m || p->n3C == -1)) return;
+        int m = FindSmStateRequired(p->sm, n);
+        if (p->currentState == m && (p->goalState == m || p->goalState == -1)) return;
         {
-            void *pv = p->p30;
+            void *pv = p->currentAsega;
             int old;
             if (pv) {
-                p->p30 = 0;
+                p->currentAsega = 0;
                 RetractAsega(pv);
             }
-            old = p->n34;
-            p->n38 = -1; p->n3C = m; p->n34 = m;
+            old = p->currentState;
+            p->nextState = -1; p->goalState = m; p->currentState = m;
             NotifySmaSpliceOnEnterState(p, old, m);
             ChooseSmaTransition(p, 0);
         }
@@ -1054,7 +1054,7 @@ struct T { char pad[0x74]; float f74; };
 struct A { struct T *pt; int n4; int n8; };
 struct E8 { int n0; int n4; };
 struct G { char pad[0x54]; struct E8 *a54; };
-struct P { char pad[0x24]; struct G *pg; int n28; int n2C; struct ANIMATION *n30; int n34; int n38; int n3C; struct A *p40; float f44; int n48; };
+struct P { char pad[0x24]; struct G *pg; int rootObject; int applyFlags; struct ANIMATION *currentAsega; int currentState; int nextState; int goalState; struct A *currentTransition; float speed; int routeMask; };
 int FSmaRetracted(struct P *);
 struct A *PsmtChooseFrom(struct G *, int, int, int);
 struct A *PsmtChooseTowardGoal(struct G *, int, int, int, int);
@@ -1084,30 +1084,30 @@ void ChooseSmaTransition(struct P *p, int k)
     goto test;
 select:
     if(nx==random){
-        pa=PsmtChooseFrom(p->pg,p->n48,p->n34,0);
-        if(pa)p->n3C=(pa->n4!=p->n34)?pa->n4:pa->n8;
+        pa=PsmtChooseFrom(p->pg,p->routeMask,p->currentState,0);
+        if(pa)p->goalState=(pa->n4!=p->currentState)?pa->n4:pa->n8;
     }else{
-        p->n3C=nx;
-        pa=PsmtChooseTowardGoal(p->pg,p->n48,p->n34,nx,1);
+        p->goalState=nx;
+        pa=PsmtChooseTowardGoal(p->pg,p->routeMask,p->currentState,nx,1);
     }
     k=0;
 apply:
-        p->p40 = pa;
+        p->currentTransition = pa;
         if (!pa) return;
         fl = 0;
         if (pa->pt) {
             float a, b;
             int f;
-            if (pa->n4 == p->n34) {
-                p->n38 = pa->n8;
+            if (pa->n4 == p->currentState) {
+                p->nextState = pa->n8;
                 a = 0.0f;
-                b = p->f44;
+                b = p->speed;
             } else {
-                p->n38 = pa->n4;
-                b = -p->f44;
+                p->nextState = pa->n4;
+                b = -p->speed;
                 a = pa->pt->f74;
             }
-            f = p->n2C;
+            f = p->applyFlags;
             if (k == 1) {
                 f |= 2;
                 f &= random;
@@ -1116,28 +1116,28 @@ apply:
             } else if (pa->pt->f74 == 0.0f) {
                 fl = 1;
             }
-            ApplyAsegCore(pa->pt, p->n28, a, b, f, &p->n30);
+            ApplyAsegCore(pa->pt, p->rootObject, a, b, f, &p->currentAsega);
         }
         {
             int oldArgument,newArgument;
             struct P *pArgument;
-            if(!p->n30){
-                int old=p->n34;
+            if(!p->currentAsega){
+                int old=p->currentState;
                 int nw=pa->n4;
                 if(nw==old)nw=pa->n8;
-                p->n34=nw;
+                p->currentState=nw;
                 oldArgument=old;
                 newArgument=nw;
                 pArgument=Receiver(p);
             }else{
                 int old;
-                if(!fl){SubscribeLoObject(p->n30,p);return;}
-                fl=p->n38;
-                old=p->n34;
-                p->n34=fl;
-                p->n38=finished;
-                RetractAsega(p->n30);
-                p->n30=0;
+                if(!fl){SubscribeLoObject(p->currentAsega,p);return;}
+                fl=p->nextState;
+                old=p->currentState;
+                p->currentState=fl;
+                p->nextState=finished;
+                RetractAsega(p->currentAsega);
+                p->currentAsega=0;
                 oldArgument=old;
                 newArgument=fl;
                 pArgument=Receiver(p);
@@ -1145,13 +1145,13 @@ apply:
             NotifySmaSpliceOnEnterState(pArgument,oldArgument,newArgument);
         }
     if(FSmaRetracted(p))return;
-    if(p->n30)return;
+    if(p->currentAsega)return;
 test:
-    if(p->n34!=p->n3C){
-        pa=PsmtChooseTowardGoal(p->pg,p->n48,p->n34,p->n3C,1);
+    if(p->currentState!=p->goalState){
+        pa=PsmtChooseTowardGoal(p->pg,p->routeMask,p->currentState,p->goalState,1);
         goto apply;
     }
-    nx=((struct E8*)((unsigned)p->pg->a54+EntryOffset(p->n34)))->n4;
+    nx=((struct E8*)((unsigned)p->pg->a54+EntryOffset(p->currentState)))->n4;
     if(nx!=finished)goto select;
 }
 }
@@ -1173,15 +1173,15 @@ typedef char E8_n0_Offset[FIELD_OFFSET(E8,n0)==0?1:-1];
 typedef char E8_n4_Offset[FIELD_OFFSET(E8,n4)==4?1:-1];
 typedef char G_a54_Offset[FIELD_OFFSET(G,a54)==0x54?1:-1];
 typedef char P_pg_Offset[FIELD_OFFSET(P,pg)==0x24?1:-1];
-typedef char P_n28_Offset[FIELD_OFFSET(P,n28)==0x28?1:-1];
-typedef char P_n2C_Offset[FIELD_OFFSET(P,n2C)==0x2C?1:-1];
-typedef char P_n30_Offset[FIELD_OFFSET(P,n30)==0x30?1:-1];
-typedef char P_n34_Offset[FIELD_OFFSET(P,n34)==0x34?1:-1];
-typedef char P_n38_Offset[FIELD_OFFSET(P,n38)==0x38?1:-1];
-typedef char P_n3C_Offset[FIELD_OFFSET(P,n3C)==0x3C?1:-1];
-typedef char P_p40_Offset[FIELD_OFFSET(P,p40)==0x40?1:-1];
-typedef char P_f44_Offset[FIELD_OFFSET(P,f44)==0x44?1:-1];
-typedef char P_n48_Offset[FIELD_OFFSET(P,n48)==0x48?1:-1];
+typedef char P_n28_Offset[FIELD_OFFSET(P,rootObject)==0x28?1:-1];
+typedef char P_n2C_Offset[FIELD_OFFSET(P,applyFlags)==0x2C?1:-1];
+typedef char P_n30_Offset[FIELD_OFFSET(P,currentAsega)==0x30?1:-1];
+typedef char P_n34_Offset[FIELD_OFFSET(P,currentState)==0x34?1:-1];
+typedef char P_n38_Offset[FIELD_OFFSET(P,nextState)==0x38?1:-1];
+typedef char P_n3C_Offset[FIELD_OFFSET(P,goalState)==0x3C?1:-1];
+typedef char P_p40_Offset[FIELD_OFFSET(P,currentTransition)==0x40?1:-1];
+typedef char P_f44_Offset[FIELD_OFFSET(P,speed)==0x44?1:-1];
+typedef char P_n48_Offset[FIELD_OFFSET(P,routeMask)==0x48?1:-1];
 } } // namespace M_ChooseSmaTransition
 
 /** @sly2-annot addr=0x1F0FA0
@@ -1209,13 +1209,13 @@ extern "C" void EndSmaTransition(SMA *psma)
 namespace M_func_001F0FD8 {
 struct VTE { short d; short p; void *pfn; };
 struct VT { VTE a[6]; };
-struct Q { char pad[0xC]; VT *pvt; };
-struct P { char pad[0xC]; VT *pvt; char pad2[0x28 - 0x10]; Q *pq; };
+struct Q { char pad[0xC]; VT *vtable; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x28 - 0x10]; Q *pq; };
 extern "C" void SendLoMessage(P *, int, int);
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; ((void (*)(void *))p->pvt->a[1].pfn)((char *)p + p->pvt->a[1].d); }
-    ~Lock() { ((void (*)(void *))p->pvt->a[2].pfn)((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; ((void (*)(void *))p->vtable->a[1].pfn)((char *)p + p->vtable->a[1].d); }
+    ~Lock() { ((void (*)(void *))p->vtable->a[2].pfn)((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F0FD8
  * Purpose: Forwards to listener +0x28's vtable slot 5, then to base 0x133508
@@ -1230,7 +1230,7 @@ extern "C" void SendSmaMessage(P *p, int a, int b)
 {
     Lock l(p);
     Q *q = p->pq;
-    if (q) ((void (*)(void *, int, int))q->pvt->a[5].pfn)((char *)q + q->pvt->a[5].d, a, b);
+    if (q) ((void (*)(void *, int, int))q->vtable->a[5].pfn)((char *)q + q->vtable->a[5].d, a, b);
     SendLoMessage(p, a, b);
 }
 } // namespace M_func_001F0FD8
@@ -1239,13 +1239,13 @@ extern "C" void SendSmaMessage(P *p, int a, int b)
 namespace M_HandleSmaMessage {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
-struct P { char pad[0xC]; VT *pvt; char pad2[0x30 - 0x10]; int n30; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; int currentAsega; };
 extern "C" void EndSmaTransition(P *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
-    ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F1078
  * Purpose: On msg 2 (ASEGA finished) for the current ASEGA: EndSmaTransition, ChooseSmaTransition
@@ -1257,7 +1257,7 @@ struct Lock {
 // next one.
 extern "C" void HandleSmaMessage(P *p, int k, int n)
 {
-    if (k == 2 && n == p->n30) {
+    if (k == 2 && n == p->currentAsega) {
         Lock l(p);
         EndSmaTransition(p);
         ChooseSmaTransition(p, 0);
@@ -1271,14 +1271,14 @@ struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
 struct A { char pad[0x74]; float g74; };
 struct Q { char pad[0x14]; A *pa; int pad2; float g1C; };
-struct P { char pad[0xC]; VT *pvt; char pad2[0x30 - 0x10]; Q *pq; };
+struct P { char pad[0xC]; VT *vtable; char pad2[0x30 - 0x10]; Q *pq; };
 extern "C" int FSmaRetracted(P *);
 extern "C" void RetractAsega(Q *);
 extern "C" void SeekAsega(Q *, int, float, float);
 struct Lock {
     P *p;
-    Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
-    ~Lock() { p->pvt->a[2].pfn((char *)p + p->pvt->a[2].d); }
+    Lock(P *pp) { p = pp; p->vtable->a[1].pfn((char *)p + p->vtable->a[1].d); }
+    ~Lock() { p->vtable->a[2].pfn((char *)p + p->vtable->a[2].d); }
 };
 /** @sly2-annot addr=0x1F10F0
  * Purpose: While a transition runs: if dt < remaining, seek forward and stop; else end and re-choose
@@ -1311,7 +1311,7 @@ struct V3 { float x, y, z; float w; };
 struct T { char pad[0x74]; float f74; float f78; char pad2[0x80 - 0x7C]; struct V3 v80; float f90; float f94; };
 struct A { struct T *pt; int n4; int n8; int nC; };
 struct Q { char pad[0x14]; struct T *pt; char pad2[0x1C - 0x18]; float f1C; char pad3[0x40 - 0x20]; float f40; };
-struct P { char pad[0x24]; void *p24; char pad2[0x30 - 0x28]; struct Q *pq; int n34; char pad3[0x40 - 0x38]; struct A *pa; char pad4[0x48 - 0x44]; int n48; };
+struct P { char pad[0x24]; void *sm; char pad2[0x30 - 0x28]; struct Q *pq; int currentState; char pad3[0x40 - 0x38]; struct A *pa; char pad4[0x48 - 0x44]; int routeMask; };
 extern char D_002DE578[];
 int FSmaRetracted(struct P *);
 int FindSmStateRequired(void *, int);
@@ -1336,9 +1336,9 @@ float DtSmaToState(struct P *p, int k)
     int end, cur;
     struct A *pa;
     if (FSmaRetracted(p)) return r;
-    end = FindSmStateRequired(p->p24, k);
+    end = FindSmStateRequired(p->sm, k);
     if (!p->pq) {
-        cur = p->n34;
+        cur = p->currentState;
     } else {
         struct Q *pq = p->pq;
         if (!(p->pa->nC & 2)) {
@@ -1349,9 +1349,9 @@ float DtSmaToState(struct P *p, int k)
             else return r;
             r = x / d;
         }
-        if (p->pa->n4 != p->n34) cur = p->pa->n4; else cur = p->pa->n8;
+        if (p->pa->n4 != p->currentState) cur = p->pa->n4; else cur = p->pa->n8;
     }
-    while (cur != end && (pa = PsmtChooseTowardGoal(p->p24, p->n48, cur, end, 1)) != 0) {
+    while (cur != end && (pa = PsmtChooseTowardGoal(p->sm, p->routeMask, cur, end, 1)) != 0) {
         if (pa->pt) {
             float t = GGetDifficulty(D_002DE578);
             float v = Eval(&pa->pt->v80, t);
@@ -1391,7 +1391,7 @@ extern "C" void SetSmaMask(SMA *psma, int grfRoute)
 namespace M_NotifySmaSpliceOnEnterState { extern "C" {
 struct VTE { short d; short p; void *pfn; };
 struct VT { struct VTE a[5]; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x24 - 0x10]; void *p24; };
+struct P { char pad[0xC]; struct VT *vtable; char pad2[0x24 - 0x10]; void *sm; };
 struct L { struct P *p; int a; int b; };
 int OidFromSmIsms(void *, int);
 /** @sly2-annot addr=0x1F13A8
@@ -1408,12 +1408,12 @@ void NotifySmaSpliceOnEnterState(struct P *p, int a, int b)
     struct L l;
     int *ap[2];
     l.p = p;
-    l.a = OidFromSmIsms(p->p24, a);
-    l.b = OidFromSmIsms(p->p24, b);
-    ((void (*)(void *, int, struct L *))p->pvt->a[4].pfn)((char *)p + p->pvt->a[4].d, 10, &l);
+    l.a = OidFromSmIsms(p->sm, a);
+    l.b = OidFromSmIsms(p->sm, b);
+    ((void (*)(void *, int, struct L *))p->vtable->a[4].pfn)((char *)p + p->vtable->a[4].d, 10, &l);
     ap[0] = &l.a;
     ap[1] = &l.b;
-    ((void (*)(void *, int, int, int, int **, int))p->pvt->a[3].pfn)((char *)p + p->pvt->a[3].d, 8, 0, 2, ap, 0);
+    ((void (*)(void *, int, int, int, int **, int))p->vtable->a[3].pfn)((char *)p + p->vtable->a[3].d, 8, 0, 2, ap, 0);
 }
 } } // namespace M_NotifySmaSpliceOnEnterState
 
@@ -1421,7 +1421,7 @@ void NotifySmaSpliceOnEnterState(struct P *p, int a, int b)
 namespace M_ReplaceSma { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[3]; };
-struct X { char pad[0xC]; struct VT *pvt; };
+struct X { char pad[0xC]; struct VT *vtable; };
 void RetractSma(struct X *);
 struct X *ApplySmToObject(void *, int, int, int);
 /** @sly2-annot addr=0x1F1448
@@ -1438,13 +1438,13 @@ void ReplaceSma(void *pv, int a, int b, int c, struct X **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);
-        (*ppx)->pvt->a[2].pfn((char *)*ppx + (*ppx)->pvt->a[2].d);
+        (*ppx)->vtable->a[2].pfn((char *)*ppx + (*ppx)->vtable->a[2].d);
         *ppx = 0;
     }
     if (pv) {
         struct X *px = ApplySmToObject(pv, a, b, c);
         *ppx = px;
-        px->pvt->a[1].pfn((char *)px + px->pvt->a[1].d);
+        px->vtable->a[1].pfn((char *)px + px->vtable->a[1].d);
     }
 }
 } } // namespace M_ReplaceSma
@@ -1453,7 +1453,7 @@ void ReplaceSma(void *pv, int a, int b, int c, struct X **ppx)
 namespace M_ReplaceSmaEx { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[3]; };
-struct X { char pad[0xC]; struct VT *pvt; };
+struct X { char pad[0xC]; struct VT *vtable; };
 void RetractSma(struct X *);
 struct X *PsmaApplySmEx(void *, int, int, int, int);
 /** @sly2-annot addr=0x1F14F8
@@ -1467,13 +1467,13 @@ void ReplaceSmaEx(void *pv, int a, int b, int c, int d, struct X **ppx)
 {
     if (*ppx) {
         RetractSma(*ppx);
-        (*ppx)->pvt->a[2].pfn((char *)*ppx + (*ppx)->pvt->a[2].d);
+        (*ppx)->vtable->a[2].pfn((char *)*ppx + (*ppx)->vtable->a[2].d);
         *ppx = 0;
     }
     if (pv) {
         struct X *px = PsmaApplySmEx(pv, a, b, c, d);
         *ppx = px;
-        px->pvt->a[1].pfn((char *)px + px->pvt->a[1].d);
+        px->vtable->a[1].pfn((char *)px + px->vtable->a[1].d);
     }
 }
 } } // namespace M_ReplaceSmaEx
