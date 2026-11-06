@@ -407,7 +407,7 @@ class Rename:
                     duplicate_definitions=self.dups, existing_uses_of_new_name=self.existing_uses,
                     cxx=self.cxx, base_name_edits={p: len(v) for p, v in sorted(self.sites.items())},
                     compiler_guided_lines=self.guided,
-                    verification={p: {k: {f: v for f, v in res.items() if f != 'syms'} for k, res in d.items()}
+                    verification={p: {k: {f: v for f, v in res.items() if f not in ('syms', 'fulllog')} for k, res in d.items()}
                                   for p, d in self.verification.items()})
 
 def read_requests(path):
@@ -703,6 +703,55 @@ class Engine:
                     out.append((t.start(), t.end(), nb))
         return sorted(set(out))
 
+    def guide_ambiguous(self, r, renames, rounds=6):
+        """Find the remaining call sites of an ambiguous member (`p->Skip(n)` where several classes have a Skip) by
+        compiling: with only the scoped sites renamed, every call that still means C::old fails to compile ("no
+        matching function for call to `C::old'", "has no member named `old'"); those lines are renamed and the
+        candidates are rebuilt until they compile. Every file with an `old` code token (or including a header with
+        one) is also re-verified, so a call that silently binds to another same-named method (e.g. inherited) shows
+        up in the symbol-table check."""
+        R = self.repo; ob = r.cxx['old_base']
+        tok = re.compile(r'(?<![%s])%s(?![%s])' % (IDC, re.escape(ob), IDC))
+        with_tok = [p for p, t in self.orig_files.items() if ob in t and 'code' in token_kinds(t, ob)]
+        cands = {p for p in with_tok if p.endswith(('.c', '.cpp'))}
+        for h in with_tok:
+            if not h.endswith(('.c', '.cpp')): cands |= self.includers(h)
+        cands = sorted(p for p in cands if not R.unbuildable(p))
+        for p in with_tok: r.files.setdefault(p, {})
+        self.log(f'{r.old}: base name {ob} is shared; finding call sites by compiling {len(cands)} file(s) ...')
+        why = None
+        for _ in range(rounds):
+            self.materialize([r], renames)
+            res = self.verifier(self.cur(cands), R, {})
+            failing = []; new = 0
+            for p in cands:
+                x = res[self.state.get(p, p)]
+                if x['build'] == 'ok': continue
+                failing.append(p)
+                for m in re.finditer(r'^([^\s:]+):(\d+): (.*)$', x.get('fulllog', x['log']), re.M):
+                    f, ln, msg = m.group(1), int(m.group(2)), m.group(3)
+                    f = os.path.relpath(os.path.join(R.root, f), R.root).replace(os.sep, '/')
+                    if not tok.search(msg) or f not in self.orig_files: continue
+                    if ln not in r.guided.setdefault(f, []): r.guided[f].append(ln); new += 1
+            if not failing: break
+            if not new:
+                why = f'{failing[0]} does not build after renaming {ob} at the scoped sites and the compiler names no call site; rename by hand'
+                break
+        else:
+            why = f'call sites still failing after {rounds} compile rounds'
+        self.materialize([], renames)
+        if why: return why
+        r.guided = {p: sorted(v) for p, v in r.guided.items() if v}
+        for p in r.guided: r.files.setdefault(p, {})
+        for p in list(r.files):
+            n = len(self.sites_of(r, p))
+            if n: r.files[p]['base'] = n - r.files[p].get('base-comment', 0)
+        ver = set(r.verify) | set(cands)
+        for p in r.guided:
+            if not p.endswith(('.c', '.cpp')): ver |= self.includers(p)
+        r.verify = sorted(p for p in ver if not R.unbuildable(p))
+        return None
+
     def _defines_cxx(self, text, r):
         """A natural C++ definition of the function: `[C::]base(...) {` at file scope (namespaces allowed), qualified by
         the class for members; or a member defined inside its class body."""
@@ -954,6 +1003,14 @@ class Engine:
         if not pending:
             for r in renames: self.report_line(r)
             return 0
+        for r in pending:
+            if r.cxx and r.cxx['ambiguous'] and r.cxx['member'] and not r.cxx.get('label_only') and verify:
+                why = self.guide_ambiguous(r, renames)
+                if why: self._refuse(r, why)
+        pending = [r for r in pending if r.status == 'pending']
+        if not pending:
+            for r in renames: self.report_line(r)
+            return 1
         baseline = {}
         if verify:
             allf = sorted({p for r in pending for p in r.verify})
@@ -1155,7 +1212,8 @@ class MatchtoolVerifier:
             elif not line.startswith(('!!', '  ')): other.append(line)
         build = 'ok' if p.returncode == 0 and (funcs or not other) else 'failed'
         return dict(build=build, funcs=funcs, syms=sorted(syms),
-                    log=(p.stdout + p.stderr)[-2000:] if build != 'ok' else '')
+                    log=(p.stdout + p.stderr)[-2000:] if build != 'ok' else '',
+                    fulllog=(p.stdout + p.stderr) if build != 'ok' else '')
 
     def __call__(self, paths, repo, name_map):
         with ThreadPoolExecutor(self.jobs) as ex:
