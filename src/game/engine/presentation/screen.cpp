@@ -2447,24 +2447,24 @@ typedef struct SUB {
     char pad0[0xC];
     VTE *vt;
     char pad10[0x58 - 0x10];
-    int x58;
+    int visibility;
     char pad5c[0x70 - 0x5C];
-    int x70;
-    int x74;
-    int x78;
+    int pageAnimSecond;     /* +0x70..+0x78: the page's three animation ids (inferred; named by id order) */
+    int pageAnimFirst;
+    int pageAnimThird;
 } SUB;
 typedef struct OBJ {
     char pad0[0xC];
     VTE *vt;
     char pad10[0x24 - 0x10];
-    SUB *x24;
+    SUB *widget;
     char pad28[0x40 - 0x28];
-    int x40;
-    float x44;
+    int tab;
+    float tabTime;
     char pad48[0x25C - 0x48];
-    int x25C;
-    int x260;
-    int x264;
+    int popupAnim;
+    int scrollUpAnim;
+    int scrollDownAnim;
 } OBJ;
 extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
 extern char D_003DD490[];
@@ -2491,52 +2491,52 @@ void SelectThiefnetItem(OBJ *, int);
 void SetThiefnetTab(OBJ *p, int s)
 {
     int old;
-    if (!p->x24)
+    if (!p->widget)
         s = -1;
-    if (s == p->x40)
+    if (s == p->tab)
         return;
-    if (p->x40 == -1) {
+    if (p->tab == -1) {
         func_0014D1D0(&D_002DDED0, 0.0f, 0);
         IncrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 10);
-        SetWidgetState(p->x24, 1);
+        SetWidgetState(p->widget, 1);
     }
-    old = p->x40;
-    p->x40 = s;
-    p->x44 = D_002DDED0.tReal;
+    old = p->tab;
+    p->tab = s;
+    p->tabTime = D_002DDED0.tReal;
     switch (s) {
     case -1:
-        VCALL(p->x24, 50);
+        VCALL(p->widget, 50);
         func_0014D1D0(&D_002DDED0, 1.0f, 0);
         DecrementSwHandsOff(D_003DD490, 0);
         VCALL(p, 11);
-        if (p->x24->x58 > 0)
-            SetWidgetRequest(p->x24, 1);
-        p->x25C = s;
-        p->x260 = s;
-        p->x264 = s;
+        if (p->widget->visibility > 0)
+            SetWidgetRequest(p->widget, 1);
+        p->popupAnim = s;
+        p->scrollUpAnim = s;
+        p->scrollDownAnim = s;
         break;
     case 0:
-        p->x24->x74 = 0x4D4;
-        p->x24->x70 = 0x4D5;
-        p->x24->x78 = 0x4D6;
+        p->widget->pageAnimFirst = 0x4D4;
+        p->widget->pageAnimSecond = 0x4D5;
+        p->widget->pageAnimThird = 0x4D6;
         if (old == 1) {
-            SetWidgetState(p->x24, 1);
-            SetWidgetState(p->x24, 2);
+            SetWidgetState(p->widget, 1);
+            SetWidgetState(p->widget, 2);
         } else {
-            SetWidgetRequest(p->x24, 2);
+            SetWidgetRequest(p->widget, 2);
         }
         SetSndSourceLo(PsndStartSound(0x35), 0);
         break;
     case 1:
-        p->x24->x74 = 0x49B;
-        p->x24->x70 = 0x49C;
-        p->x24->x78 = 0x49D;
+        p->widget->pageAnimFirst = 0x49B;
+        p->widget->pageAnimSecond = 0x49C;
+        p->widget->pageAnimThird = 0x49D;
         if (old == 0) {
-            SetWidgetState(p->x24, 1);
-            SetWidgetState(p->x24, 2);
+            SetWidgetState(p->widget, 1);
+            SetWidgetState(p->widget, 2);
         } else {
-            SetWidgetRequest(p->x24, 2);
+            SetWidgetRequest(p->widget, 2);
         }
         SetSndSourceLo(PsndStartSound(0x35), 0);
         break;
@@ -2626,9 +2626,9 @@ void SetThiefnetStickDir(OBJ *p, unsigned int n)
 } } // namespace M_func_001DC4B0
 
 namespace M_BuildGadgetMenuInfoText { extern "C" {
-typedef struct { char pad[0x30]; int x30; int x34; int x38; char pad3c[0x48 - 0x3C]; int x48; } GS;
-typedef struct { int pad[5]; int x14; int x18; int x1C; } REC;
-typedef struct { char pad[0x1C]; int x1C; } OBJ;
+typedef struct { char pad[0x30]; int timerKind; int closeTime; int modeArg; char pad3c[0x48 - 0x3C]; int selectedGadget; } GS;
+typedef struct { int pad[5]; int nameTextId; int ids2; int descriptionTextId; } REC;
+typedef struct { char pad[0x1C]; int flags; } OBJ;   /* gadget menu item */
 extern GS D_003DA0F0;
 extern char D_003DD490[];
 extern REC D_002BCD00[];
@@ -2653,14 +2653,14 @@ void BuildGadgetMenuInfoText(char *out)
 {
     char buf[256];
     unsigned char *s;
-    if (D_003DA0F0.x30 != -1) {
-        strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, D_003DA0F0.x38));
-    } else if (D_003DA0F0.x48 == -1) {
+    if (D_003DA0F0.timerKind != -1) {
+        strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, D_003DA0F0.modeArg));
+    } else if (D_003DA0F0.selectedGadget == -1) {
         strcpy(out, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xDD));
     } else {
-        OBJ *po = FindScreenEntry(&D_003DA0F0,D_003DA0F0.x48);
-        int v = IGadgetSlotFromId(PpoHero(D_003DD490), D_003DA0F0.x48);
-        if ((po->x1C & 1) && v < 0) {
+        OBJ *po = FindScreenEntry(&D_003DA0F0,D_003DA0F0.selectedGadget);
+        int v = IGadgetSlotFromId(PpoHero(D_003DD490), D_003DA0F0.selectedGadget);
+        if ((po->flags & 1) && v < 0) {
             strcpy(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0xE1));
             s = (unsigned char *)D_002A7A10;
         } else {
@@ -2669,10 +2669,10 @@ void BuildGadgetMenuInfoText(char *out)
                 sz = D_002C3268[v];
             else
                 sz = D_002A7A10;
-            sprintf(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x1C), sz, sz, sz);
-            s = (unsigned char *)PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x18);
+            sprintf(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].descriptionTextId), sz, sz, sz);
+            s = (unsigned char *)PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].ids2);
         }
-        sprintf(out, D_002A7A18, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.x48].x14),
+        sprintf(out, D_002A7A18, PchzFindSwLangstr__FP2SWi(D_003DD490, D_002BCD00[D_003DA0F0.selectedGadget].nameTextId),
                       *s ? D_002A7A28 : D_002A7A10, s, buf);
     }
 }
@@ -2846,9 +2846,9 @@ typedef struct { int x0,x4,cost,xC,x10,ids1,ids2,x1C; } REC;
 typedef struct { char *name; int ids,pad; } REC2;
 typedef struct {
     char pad[0x30];
-    int x30,pad34,x38,pad3C,x40;
+    int timerKind,pad34,modeArg,pad3C,tab;
     char pad44[0x254-0x44];
-    int x254,x258;
+    int selectedPowerup,selectedLoot;
 } TBL;
 extern TBL D_003DA150;
 extern REC D_002BCD00[];
@@ -2876,15 +2876,15 @@ static inline void CopyId(char *p,int id)
 void BuildThiefnetInfoText(char *pch)
 {
     TBL *pt=&D_003DA150;
-    if(pt->x30!=-1) {
-        CopyId(pch,pt->x38);
+    if(pt->timerKind!=-1) {
+        CopyId(pch,pt->modeArg);
         return;
     } else {
-        switch(pt->x40) {
+        switch(pt->tab) {
         case 0: {
-            unsigned int i=pt->x254;
+            unsigned int i=pt->selectedPowerup;
             if(i<0x2B) {
-                if(D_002BCD00[i].ids2!=pt->x30) {
+                if(D_002BCD00[i].ids2!=pt->timerKind) {
                     int *pc=&D_002BCD00[i].cost;
                     int count=func_00161798(D_002DEB30);
                     int idsT=count<*pc?0xD9:0xDA;
@@ -2900,7 +2900,7 @@ void BuildThiefnetInfoText(char *pch)
             return;
         }
         case 1: {
-            unsigned int i=pt->x258;
+            unsigned int i=pt->selectedLoot;
             if(i<0x40) {
                 sprintf(pch,PchzFindSwLangstr__FP2SWi(&D_003DD490,0xDB),D_002C3288[i].name);
                 return;
