@@ -291,10 +291,10 @@ typedef char assert_BOOTY_size[sizeof(BOOTY) == 0x190 ? 1 : -1];
 struct CID104 : SO
 {
     char pad150[0x180 - 0x150];
+    virtual void VUnk14() __asm__("func_00147220");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid104ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00147338");   /* slot 5 */
     virtual void Init() __asm__("func_001471C0");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_00147220");   /* slot 15 */
     virtual void VUnk15() __asm__("func_00147278");   /* slot 16 */
 };
 typedef char assert_CID104_size[sizeof(CID104) == 0x180 ? 1 : -1];
