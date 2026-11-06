@@ -520,3 +520,10 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Measured gcse PRE hash:** `hash(plus (reg r) (const_int c)) = (13258 + r + c) mod S`, S = (insns/2)|1 (func_001A8B50 notes).
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
+- **Readability pass (r2, object/splice/world/ui/level), what codegen kept fixed:** goto layouts that share tails across switch
+  cases or jump into a common cleanup/`done` label (MsgFromMcError, McJobCreateSave, load_file_from_disc) do not survive a
+  structured rewrite: `break` + a re-test of the result, or per-case `return`s, reorder blocks (40-90% differ). Search loops written
+  as `again: ... goto again` (FindProxyRefPath, BindLoOidTable's part search) also keep their shape: `while (--j >= 0)` or a reset
+  of the iterator moves the loop test. A `goto skip` around one call does become an `if` when the skipped condition is assigned in
+  the condition (`if (!parent || (bit = (parent->bits >> 60) & 1) != 0)`, AddLo); the plain `(... & 1)` form changes allocation.
+  Field / local renames, slot and bit constants, enums for result codes never change the object.
