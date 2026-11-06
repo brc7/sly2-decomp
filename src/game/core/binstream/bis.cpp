@@ -72,11 +72,17 @@ struct TREE
     NODE *anode;
 };
 
-/* CMemInputStream: a CBinaryInputStream over one memory buffer (vtable D_002CA5A0; CBinaryInputStream's is
-   D_002CA5C0). Its constructor, deleting destructor, Fill and SetBuffer still carry C names (func_00118480,
-   CMemInputStream_ctor, func_001184E8, func_00118500), so the class cannot be declared as a subclass yet: this is a
-   POD view of the object (the 0x30 bytes of base fields it touches are named) and the vtable is stored by hand. */
-struct CMemInputStream
+/* CMemInputStream: a CBinaryInputStream over one memory buffer (vtable 0x2CA5A0, emitted here; CBinaryInputStream's is
+   0x2CA5C0). Its constructor, deleting destructor, Fill and SetBuffer still carry C names (func_00118480,
+   CMemInputStream_ctor, func_001184E8, func_00118500): the class below declares Fill (the key function, defined as its
+   member) for the vtable, and the bodies read the object through the view CMemInputStreamV (the 0x30 bytes of base
+   fields it touches named), whose constructor stores the vtable by hand. */
+class CMemInputStream : public CBinaryInputStream
+{
+public:
+    virtual void Fill() __asm__("func_001184E8");   /* slot 1; key function */
+};
+struct CMemInputStreamV
 {
     /* 0x00 */ int grfbis;
     /* 0x04 */ byte *apad04[3];
@@ -87,15 +93,15 @@ struct CMemInputStream
     /* 0x34 */ int cbMem;
     /* 0x38 */ byte *pbMem;
 };
-typedef char assert_CMemInputStream_size[sizeof(CMemInputStream) == 0x3C ? 1 : -1];
+typedef char assert_CMemInputStream_size[sizeof(CMemInputStreamV) == 0x3C ? 1 : -1];
 
 extern "C" {
 void *func_001AE1D0(MSG *pmsg);
 void *func_001AE2A0(MSG *pmsg);
 void InitPlaneFromPositions(FACE *pface, qword pos0, qword pos1, qword pos2);
-void __18CBinaryInputStream(CMemInputStream *pmis);   /* CBinaryInputStream::CBinaryInputStream() below */
+void __18CBinaryInputStream(CMemInputStreamV *pmis);   /* CBinaryInputStream::CBinaryInputStream() below */
 extern char D_002BBAF0[];
-extern char D_002CA5A0[];   /* CMemInputStream vtable */
+extern char D_002CA5A0[] __asm__("_vt$15CMemInputStream");   /* CMemInputStream vtable */
 }
 
 static inline void *PvAllocGeom(int cb)
@@ -738,7 +744,7 @@ SLY2_SCRAP("sw $0, 0x28($4)");
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" CMemInputStream *func_00118480(CMemInputStream *pmis)
+extern "C" CMemInputStreamV *func_00118480(CMemInputStreamV *pmis)
 {
     __18CBinaryInputStream(pmis);
     pmis->pvtbl = D_002CA5A0;
@@ -751,7 +757,7 @@ extern "C" CMemInputStream *func_00118480(CMemInputStream *pmis)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void CMemInputStream_ctor(CMemInputStream *pmis, int grf)
+extern "C" void CMemInputStream_ctor(CMemInputStreamV *pmis, int grf)
 {
     pmis->pvtbl = D_002CA5A0;
     if (grf & 1)
@@ -765,8 +771,9 @@ extern "C" void CMemInputStream_ctor(CMemInputStream *pmis, int grf)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void func_001184E8(CMemInputStream *pmis)
+void CMemInputStream::Fill()   /* key function: CMemInputStream's vtable comes out here */
 {
+    CMemInputStreamV *pmis = (CMemInputStreamV *)this;
     pmis->cbRaw = pmis->cbMem;
     pmis->pbRaw = pmis->pbMem;
     pmis->cbMem = 0;
@@ -778,7 +785,7 @@ extern "C" void func_001184E8(CMemInputStream *pmis)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
-extern "C" void func_00118500(CMemInputStream *pmis, int cb, byte *pb, int grfbis)
+extern "C" void func_00118500(CMemInputStreamV *pmis, int cb, byte *pb, int grfbis)
 {
     pmis->cbMem = cb;
     pmis->pbMem = pb;
