@@ -119,6 +119,7 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b);
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// CRef copy constructor: copies the tag and payload and takes a reference on boxed or counted payloads.
 /* The copy constructor (CRef(const CRef &)). */
 extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *source)
 {
@@ -137,6 +138,7 @@ extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *source)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs a vector value (tag 0x1A): allocates a reference-counted VECTOR box and copies *vector into it.
 extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *vector)
 {
     VALVECTOR *p;
@@ -157,6 +159,7 @@ extern "C" CRef *CRef_ctor_VECTOR(CRef *pref, const qword *vector)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs a vector value (tag 0x1A) from a vector passed by value in a quadword register.
 extern "C" CRef *CRef_ctor(CRef *pref, qword vec)
 {
     VALVECTOR *p;
@@ -177,6 +180,7 @@ extern "C" CRef *CRef_ctor(CRef *pref, qword vec)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs a matrix value (tag 0x1B) in a new MATRIX4 box.
 extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *matrix)
 {
     VALMATRIX *p;
@@ -197,6 +201,7 @@ extern "C" CRef *CRef_ctor_MATRIX4(CRef *pref, const MATRIX4V *matrix)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs a CLQ value (tag 0x1C, four floats) in a new box.
 extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *clq)
 {
     VALCLQ *p;
@@ -217,6 +222,7 @@ extern "C" CRef *CRef_ctor_CLQ(CRef *pref, const qword *clq)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs an LM value (tag 0x1D, a {min, max} float range) in a new box.
 extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *lm)
 {
     VALLM *p;
@@ -237,6 +243,7 @@ extern "C" CRef *CRef_ctor_LM(CRef *pref, const LMV *lm)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs an SMP value (tag 0x1E, three smoothing floats) in a new box.
 extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *smp)
 {
     VALSMP *p;
@@ -257,6 +264,7 @@ extern "C" CRef *CRef_ctor_SMP(CRef *pref, const SMPV *smp)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs a pair value (tag 0x1F), taking a reference on the pair.
 extern "C" CRef *CRef_ctor_CPair(CRef *pref, CPair *pair)
 {
     pref->u.pv = pair;
@@ -273,6 +281,7 @@ extern "C" CRef *CRef_ctor_CPair(CRef *pref, CPair *pair)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs a procedure value (tag 0x20), taking a reference on the proc.
 extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *proc)
 {
     pref->u.pv = proc;
@@ -289,6 +298,7 @@ extern "C" CRef *CRef_ctor_CProc(CRef *pref, CProc *proc)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Constructs a game-object value (tag 0x21), taking a reference through the object's vtable slot 1 when non-null.
 extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *object)
 {
     if (object)
@@ -306,6 +316,7 @@ extern "C" CRef *CRef_ctor_BASIC(CRef *pref, BASICOBJ *object)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns an integer (tag 0x15) after releasing the old payload.
 CRef &CRef::SetS32(int n)
 {
     Decref();
@@ -322,6 +333,7 @@ CRef &CRef::SetS32(int n)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a float (tag 0x16) after releasing the old payload.
 CRef &CRef::SetF32(float g)
 {
     Decref();
@@ -337,6 +349,7 @@ CRef &CRef::SetF32(float g)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a boolean (tag 0x17) after releasing the old payload.
 extern "C" CRef *CRef_SetBool(CRef *pref, int f)
 {
     pref->Decref();
@@ -352,6 +365,7 @@ extern "C" CRef *CRef_SetBool(CRef *pref, int f)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a symbol id (tag 0x18) after releasing the old payload.
 extern "C" CRef *CRef_SetSymid(CRef *pref, int symid)
 {
     pref->Decref();
@@ -367,6 +381,7 @@ extern "C" CRef *CRef_SetSymid(CRef *pref, int symid)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a built-in function index (tag 0x19) after releasing the old payload.
 extern "C" CRef *CRef_SetBifk(CRef *pref, int bifk)
 {
     pref->Decref();
@@ -381,6 +396,7 @@ extern "C" CRef *CRef_SetBifk(CRef *pref, int bifk)
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// CRef assignment: references the source payload, releases the old one, then copies tag and payload.
 CRef &CRef::operator=(const CRef &r)
 {
     ((CRef &)r).Incref();
@@ -396,6 +412,7 @@ CRef &CRef::operator=(const CRef &r)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a vector (tag 0x1A): releases the old payload, allocates a new box and copies *vector.
 extern "C" CRef *CRef_SetVector(CRef *pref, const qword *vector)
 {
     VALVECTOR *p;
@@ -417,6 +434,7 @@ extern "C" CRef *CRef_SetVector(CRef *pref, const qword *vector)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a vector (tag 0x1A) passed by value in a quadword register.
 extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
 {
     VALVECTOR *p;
@@ -436,6 +454,7 @@ extern "C" CRef *CRef_SetVector_VU_VECTOR(CRef *pref, qword vec)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a matrix (tag 0x1B) in a new box.
 extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
 {
     VALMATRIX *p;
@@ -456,6 +475,7 @@ extern "C" CRef *CRef_SetMatrix(CRef *pref, const MATRIX4V *matrix)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a CLQ (tag 0x1C) in a new box.
 extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
 {
     VALCLQ *p;
@@ -475,6 +495,7 @@ extern "C" CRef *CRef_SetClq(CRef *pref, const qword *clq)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns an LM range (tag 0x1D) in a new box.
 extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
 {
     VALLM *p;
@@ -494,6 +515,7 @@ extern "C" CRef *CRef_SetLm(CRef *pref, const LMV *lm)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns an SMP (tag 0x1E) in a new box.
 extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
 {
     VALSMP *p;
@@ -514,6 +536,7 @@ extern "C" CRef *CRef_SetSmp(CRef *pref, const SMPV *smp)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a pair (tag 0x1F): references the new pair before releasing the old payload.
 extern "C" CRef *CRef_SetPair(CRef *pref, CPair *pair)
 {
     pair->cref++;
@@ -530,6 +553,7 @@ extern "C" CRef *CRef_SetPair(CRef *pref, CPair *pair)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a procedure (tag 0x20).
 extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
 {
     proc->m_cref++;
@@ -545,6 +569,7 @@ extern "C" CRef *CRef_SetProc(CRef *pref, CProc *proc)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a game object (tag 0x21), referencing it through vtable slot 1.
 extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *object)
 {
     if (object)
@@ -562,6 +587,7 @@ extern "C" CRef *CRef_SetBasic(CRef *pref, BASICOBJ *object)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Assigns a native method (tag 0x22).
 extern "C" CRef *CRef_SetMethod(CRef *pref, CMethod *method)
 {
     method->cref++;
@@ -579,6 +605,8 @@ struct VECTOR2V { float x, y; };
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Value equality: same tag and equal payload (numbers, symbols, objects by identity, boxed vectors and matrices by
+// contents).
 bool CRef::operator==(const CRef &ref)
 {
     if (m_tagk != ref.m_tagk)
@@ -612,6 +640,8 @@ bool CRef::operator==(const CRef &ref)
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Deep copy of a value: boxes are re-allocated, pairs and procs cloned recursively (CPair_CloneTo, CProc_CloneTo),
+// objects re-referenced. Used when cloning objects with their Splice state.
 CRef CRef_CloneTo(CRef *pref, void *a, void *b)
 {
     switch (pref->m_tagk)
@@ -637,6 +667,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Returns the value coerced to an integer (floats truncated).
 extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *source)
 {
     if (source->m_tagk == 0x15)
@@ -658,6 +689,7 @@ extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *source)
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Returns the value coerced to a float (integers promoted); the numeric built-ins use it.
 extern "C" CRef *CRef_RefCoerceF32(CRef *pref, CRef *source)
 {
     if (source->m_tagk == 0x16)
@@ -679,6 +711,8 @@ extern "C" CRef *CRef_RefCoerceF32(CRef *pref, CRef *source)
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Takes a reference on the payload according to its tag (box counts, pair/proc/method counts, objects via vtable
+// slot 1).
 void CRef::Incref()
 {
     switch (m_tagk)
@@ -717,6 +751,8 @@ void CRef::Incref()
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Releases the payload according to its tag; a box, pair, proc or method whose count reaches zero is freed into its
+// pool, objects are released through their vtable.
 void CRef::Decref()
 {
     switch (m_tagk)
@@ -798,6 +834,7 @@ void CRef::Decref()
  *   symbol_addrs.txt
  * See: docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Releases the old payload and sets a new tag; boxed tags (0x1A..0x1E) get a fresh box from their pool.
 void CRef::SetTag(TAGK tagk)
 {
     m_tagk = tagk;

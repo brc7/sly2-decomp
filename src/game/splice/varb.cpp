@@ -42,6 +42,7 @@ extern "C" SPW CVarb_CloneTo(CVarb *src, void *a, void *b);
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138,
  *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
+// Clones a binding chain: a new binding per entry with the same symbol and a deep-copied value (CRef_CloneTo).
 SPW CVarb_CloneTo(CVarb *src, void *a, void *b)
 {
       SPW sp;

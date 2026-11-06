@@ -92,6 +92,7 @@ SPS CSidebag_CloneTo(CSidebag *source, void *q);
  *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
+// Adds a binding {sym, value} at the head of the object's sidebag; returns Void.
 extern "C" CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref)
 {
     SPW *firstSlot = &sidebag->pbindingFirst;
@@ -109,6 +110,7 @@ extern "C" CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
+// Assigns a new value to the sidebag's existing binding of sym (nothing happens when unbound); returns Void.
 CRef CSidebag::RefSetBinding(int sym, CRef *pref)
 {
     CVarb *pb;
@@ -134,6 +136,7 @@ CRef CSidebag::RefSetBinding(int sym, CRef *pref)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
+// Looks sym up in the sidebag and copies its value into *pref when pref is non-null; returns whether it was found.
 int CSidebag::FFindBinding(int sym, CRef *pref)
 {
     for (CVarb *p = pbindingFirst.p; p; p = p->pnext.p) {
@@ -153,6 +156,7 @@ int CSidebag::FFindBinding(int sym, CRef *pref)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
+// Clones a sidebag: a new sidebag holding a deep copy of the binding list.
 extern "C" SPS CSidebag_CloneTo(CSidebag *source, void *q)
 {
     SPS sp;

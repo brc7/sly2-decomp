@@ -43,6 +43,8 @@ SPO CProc_CloneTo(CProc *pprocSrc, X *px);
  *   docs/reference/functions/splice-scripting.md#proc-0x128f70-0x1291a8,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Clones a closure: a new proc with the given frame (or the source's frame when none is given) and the source's
+// parameter count, rest flag, parameter list and body. Returns an owning pointer.
 SPO CProc_CloneTo(CProc *pprocSrc, X *px)
 {
     SPO sp;

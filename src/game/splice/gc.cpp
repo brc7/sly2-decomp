@@ -138,6 +138,7 @@ void CGc_UpdateRecyclable();
  * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
  * @end-sly2-annot */
+// Constructor of the global Splice garbage collector g_gc (clears its mark state).
 extern "C" CGc *CGc_ctor(CGc *pgc)
 {
     pgc->fMark = 0;
@@ -151,6 +152,8 @@ extern "C" CGc *CGc_ctor(CGc *pgc)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
  * @end-sly2-annot */
+// Resets the "recyclable" cursor of each of the six Splice node pools to the start of the pool, so allocation reuses
+// freed slots first (inferred).
 extern "C" void CGc_UpdateRecyclable()
 {
     CGcObj<CPair>::s_ptRecycle = CGcObj<CPair>::s_ptFirst;
@@ -187,6 +190,8 @@ static inline void PushFrame(CGc *pgc, CFrame *pf) { pgc->apFrame[pgc->cFrame++]
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
  * @end-sly2-annot */
+// Mark phase: drains the frame, proc and pair work stacks, marking every reachable child with the current mark bit and
+// pushing the ones not yet marked.
 void CGc::MarkLiveObjects()
 {
     CGc *pgc = this;
@@ -266,6 +271,7 @@ void CGc::MarkLiveObjects()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
  * @end-sly2-annot */
+// Marks one root value: a pair or proc not yet marked is marked and pushed on its work stack; a method is just marked.
 extern "C" void CGc_MarkRootRef(CGc *pgc, CRef *pref)
 {
     switch (pref->m_tagk)
@@ -320,6 +326,9 @@ static inline void InitMarkStack(int *pc, void ***pap, int c)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#gc-0x128138-0x128b60
  * @end-sly2-annot */
+// Full Splice garbage collection: flips the mark bit, allocates the work stacks, clears the marks of all six pools,
+// marks the roots (live frames, object sidebags and the stack's values), runs MarkLiveObjects and frees every unmarked
+// node.
 void CGc::Collect()
 {
     STACKSCOPE ss;

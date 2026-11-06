@@ -94,6 +94,7 @@ SPO CFrame_CloneTo(CFrame *source, void *a);
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Makes parentFrame the only parent of frame (frame count 1, first slot assigned through the counted pointer).
 void CFrame_SetSingleParent(CFrame *frame, CFrame *parentFrame)
 {
     frame->cframe = 1;
@@ -106,6 +107,7 @@ void CFrame_SetSingleParent(CFrame *frame, CFrame *parentFrame)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Appends parentFrame to frame's parent array (up to four parents).
 void CFrame_AddParent(CFrame *frame, CFrame *parentFrame)
 {
     /* Spelled as (index*4 + frame) + 0xC: `apframe[cframe++] = ...` computes (frame + 0xC) + index*4 (12 of 13
@@ -122,6 +124,7 @@ void CFrame_AddParent(CFrame *frame, CFrame *parentFrame)
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Removes parentFrame from frame's parent array, shifting the later parents down.
 void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame)
 {
     int i;
@@ -144,6 +147,7 @@ void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame)
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Adds a new binding {sym, value} at the head of the frame's binding list; returns Void.
 CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref)
 {
     CVarbPtr *ppbFirst = &frame->pbindingFirst;
@@ -165,6 +169,8 @@ CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref)
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Assigns a new value to the existing binding of sym, searching this frame and its parents; returns Void (nothing
+// happens when the symbol is unbound).
 CRef CFrame::RefSetBinding(unsigned int sym, CRef *pref)
 {
     CRef ref;
@@ -185,6 +191,7 @@ CRef CFrame::RefSetBinding(unsigned int sym, CRef *pref)
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18,
  *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Looks sym up (in the parents too when recurse is set) and copies the value into *pref; returns whether it was found.
 int CFrame::FFindBinding(unsigned int sym, int recurse, CRef *pref)
 {
     CRef *prefFound = PrefFindBinding(sym, recurse);
@@ -202,6 +209,8 @@ int CFrame::FFindBinding(unsigned int sym, int recurse, CRef *pref)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Returns a pointer to the value bound to sym in this frame or, when recurse is set, in a parent frame (depth first).
+// The busy flag stops cycles in the parent graph. Returns null when unbound.
 CRef *CFrame::PrefFindBinding(unsigned int sym, int recurse)
 {
     CRef *pref = 0;
@@ -240,6 +249,7 @@ done:
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138
  * @end-sly2-annot */
+// Deep-copies a frame: new frame with the same parents and a cloned binding list.
 SPO CFrame_CloneTo(CFrame *source, void *a)
 {
     SPO sp;

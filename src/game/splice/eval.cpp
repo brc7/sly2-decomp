@@ -115,6 +115,8 @@ static inline CPair *PpairArgs(CPair *expr) { return ((CPair *)expr->ref.u.pv)->
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// Evaluates a symbol expression: looks the symbol up in the frame and its parents (CFrame::FFindBinding) and
+// returns the bound value (Nil when unbound).
 CRef RefEvalSymbol(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -129,6 +131,8 @@ CRef RefEvalSymbol(CPair *expr, CFrame *frame)
  * See: docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (set! sym expr): evaluates expr and stores it in the existing binding of sym found in the frame chain
+// (CFrame::RefSetBinding); returns Void.
 CRef RefEvalSet(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -144,6 +148,7 @@ CRef RefEvalSet(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (define sym expr): evaluates expr and adds a new binding for sym to this frame (CFrame_RefAddBinding).
 CRef RefEvalDefine(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -159,6 +164,8 @@ CRef RefEvalDefine(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.88] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (assert expr ...): evaluates each operand and prints "Splice assert: " plus the failing expression when one is false;
+// returns Void. A debug aid for level scripts.
 CRef RefEvalAssert(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -183,6 +190,8 @@ CRef RefEvalAssert(CPair *expr, CFrame *frame)
  * See: docs/engine/splice-scripting.md#open-questions,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// Special form 6 (keyword unknown, new in Sly 2): evaluates its first operand and returns that value, or Void when the
+// form has no operand. (inferred: the keyword name is not known; docs/engine/splice-scripting.md lists candidates.)
 extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -204,6 +213,7 @@ extern "C" CRef EvalSpecialForm6(CPair *expr, CFrame *frame)
  * See: docs/engine/splice-scripting.md#3-the-evaluator,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (if test then [else]): evaluates test; evaluates and returns then when it is not #f, else the optional else branch.
 CRef RefEvalIf(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -229,6 +239,7 @@ CRef RefEvalIf(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (or expr ...): returns the first operand value that is not #f, or #f when all are false.
 CRef RefEvalOr(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -249,6 +260,7 @@ CRef RefEvalOr(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (and expr ...): stops at the first #f operand and returns it; otherwise returns the last value.
 CRef RefEvalAnd(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -269,6 +281,7 @@ CRef RefEvalAnd(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (cond (test body...) ... [else body...]): evaluates the body of the first clause whose test is true (else = tag 0xB).
 CRef RefEvalCond(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -314,6 +327,8 @@ CRef RefEvalCond(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (case key ((datum...) body...) ... [else ...]): evaluates key and runs the first clause holding an eqv? datum
+// (RefOpEqv), or the else clause.
 CRef RefEvalCase(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -374,6 +389,8 @@ CRef RefEvalCase(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.92] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (let ((sym val) ...) body...): evaluates each value in the outer frame, binds them in a new child frame and evaluates
+// the body there.
 CRef RefEvalLet(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -411,6 +428,7 @@ CRef RefEvalLet(CPair *expr, CFrame *frame)
  * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (while test body...): re-evaluates the body while test is true; returns the last body value.
 CRef RefEvalWhile(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -435,6 +453,8 @@ CRef RefEvalWhile(CPair *expr, CFrame *frame)
  * See: docs/engine/splice-scripting.md#3-the-evaluator,
  *   docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (lambda (params... [. rest]) body...): builds a CProc closure over the current frame, recording the required
+// parameter count, whether a rest parameter follows, the parameter list and the body.
 CRef RefEvalLambda(CPair *expr, CFrame *frame)
 {
     CPair *args = PpairArgs(expr);
@@ -473,6 +493,7 @@ CRef RefEvalLambda(CPair *expr, CFrame *frame)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// Runs a closure's body in its call frame: evaluates each body expression in order and returns the last value.
 /* The symbol says CPair *, but the argument is the CProc being applied (RefEvalApply passes it). */
 CRef RefEvalLambdaBody(CPair *expr, CFrame *frame)
 {
@@ -492,6 +513,7 @@ CRef RefEvalLambdaBody(CPair *expr, CFrame *frame)
  * Confidence: high [T1 0.93] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#eval-0x126438-0x127b18
  * @end-sly2-annot */
+// (begin expr ...): evaluates the operands in order and returns the last value (Void when empty).
 CRef RefEvalBegin(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -534,6 +556,9 @@ struct SPFRAME
  * See: docs/engine/splice-scripting.md#3-the-evaluator, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/formats/splice-scripts.md#3-names
  * @end-sly2-annot */
+// Function application: evaluates the operator and the operands, then calls a built-in (tag 0x19, the
+// D_002BBB90 table of {function, minimum arguments, rest flag}), a native object method (tag 0x22), or a lambda (new
+// frame binding the parameters, extra arguments collected into the rest list), checking the argument count.
 CRef RefEvalApply(CPair *expr, CFrame *frame)
 {
     CRef ref;
@@ -635,6 +660,9 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
  * See: docs/engine/overview.md#6-subsystem-map, docs/engine/splice-scripting.md#3-the-evaluator,
  *   docs/engine/splice-scripting.md#7-key-functions
  * @end-sly2-annot */
+// The Splice evaluator's entry point: atoms evaluate to themselves, symbols are looked up, and a list is dispatched on
+// its head tag to the special-form evaluators (1 set!, 2 define, 5 assert, 6 form 6, 7 if, 8 or, 9 and, 10 cond,
+// 12 case, 13 let, 14 while, 15 lambda, 16 begin, 17 import -> Nil, 18 quote -> datum); any other list is a call.
 CRef RefEval(CPair *expr, CFrame *frame)
 {
     switch (expr->ref.m_tagk)

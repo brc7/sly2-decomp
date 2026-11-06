@@ -35,6 +35,8 @@ extern "C" SPW CPair_CloneTo(CPair *src, void *a, void *b);
  *   docs/reference/functions/splice-scripting.md#pair-0x128cb8-0x128f70,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
+// Deep-copies a list: a new pair per node, each element cloned with CRef_CloneTo and the tail cloned recursively.
+// Returns an owning pointer to the new head.
 SPW CPair_CloneTo(CPair *src, void *a, void *b)
 {
       SPW sp;
