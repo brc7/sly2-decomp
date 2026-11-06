@@ -126,7 +126,8 @@ struct SAVE
     MEMCARD memcard;        /* +0xFD5C */
 };
 /* A dialog widget: vtable +0xC, id +0x20, its child +0x24, mode and when it was set, state. */
-struct MCCHILD { char pad0[0x58]; int n58; float t5C; char pad60[4]; int n64; char pad68[0xB0 - 0x68]; int fB0; };
+/* The dialog's child widget: its display state (2: fully shown), when that was reached, the state it is heading for. */
+struct MCCHILD { char pad0[0x58]; int displayState; float tDisplayState; char pad60[4]; int targetDisplayState; char pad68[0xB0 - 0x68]; int unknownB0; };
 struct MCDLG
 {
     char pad0[0xC];
@@ -1931,7 +1932,7 @@ void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes
     func_001DA770(dialog);
     pchild = dialog->pchild;
     if (pchild != 0) {
-        pchild->fB0 = 1;
+        pchild->unknownB0 = 1;
         if (dialog->nState != -1) {
             SetMcDialogState(dialog, dialog->nState);
         }
@@ -2065,7 +2066,7 @@ extern const unsigned int r_D_002A6D88[2] __asm__("D_002A6D88") = {0xFFFF0000, (
 namespace M_CMemcardDialog_Update { extern "C" {
 struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct passed as a packed long */
 struct PMF { short delta; short index; void (*pfn)(void *); };
-struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int unknown64; };   /* the dialog's child widget (2: fully shown) */
+struct P { char pad[0x58]; int displayState; float tDisplayState; int pad2; int targetDisplayState; };   /* the dialog's child widget (2: fully shown) */
 struct S { char pad[0x10]; void *joypad; char pad2[0x24 - 0x14]; struct P *child; char pad3[0x40 - 0x28]; int state; int phase; int pad4; int followUpAction; };
 struct MC { char pad[8]; int state; char pad2[0xFD58 - 0xC]; int selectedSlot; char pad3[0xFD6C - 0xFD5C]; int jobResult; };   /* SAVE; jobResult: memcard.jobResult */
 struct CLOCK { char pad[0x3C]; float tReal; };
@@ -2105,7 +2106,7 @@ void CMemcardDialog_Update(struct S *dialog)
         return;
     if (child->displayState != 2)
         return;
-    c = child->unknown64;
+    c = child->targetDisplayState;
     if (c != 2)
         return;
     if (IsSwTransitionBusy(D_003DD490))
@@ -2659,7 +2660,7 @@ extern "C" void FormatSavePageTextA(char *pch)
 }
 
 namespace M_func_001AD980 { extern "C" {
-struct G { char pad[0x3A18]; char x3A18[1]; };
+struct G { char pad[0x3A18]; char gameState[1]; };   /* g_sw; +0x3A18: the game-progress object */
 extern struct G D_003DD490;
 extern char D_003DA530[], D_003D4A60[];
 int FScreenShown(void *p);
@@ -2677,23 +2678,23 @@ void sprintf(char *buf, char *fmt, ...);
 // Dynamic text: "<label> : <n>%" with the game's completion percentage.
 void FormatSaveCompletionText(char *buf)
 {
-    char *a;
-    struct G *g;
+    char *episodeName;
+    struct G *world;
     char *fmt;
     if (FScreenShown(D_003DA530))
         return;
     fmt = "%s : %d%%";
-    g = &D_003DD490;
-    a = PchzFindSwLangstr__FP2SWi(g, IdsFromWorld(NEpisodeBest()));
-    sprintf(buf, fmt, a, GetCompletionPercent(g->x3A18, D_003D4A60));
+    world = &D_003DD490;
+    episodeName = PchzFindSwLangstr__FP2SWi(world, IdsFromWorld(NEpisodeBest()));
+    sprintf(buf, fmt, episodeName, GetCompletionPercent(world->gameState, D_003D4A60));
 }
 } } // namespace M_func_001AD980
 
 namespace M_func_001ADA20 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
-struct E { int x0, x4, x8, xC, x10; int x14; int x18; };
-struct G { int pad[9]; int x24; };
-struct GD { char pad[0x3B1C]; int x3B1C; };
+struct E { int x0, x4, widget, xC, x10; int selectedIndex; int x18; };   /* a pause menu page */
+struct G { int pad[9]; int topPage; };
+struct GD { char pad[0x3B1C]; int saveVarIsUsed; };
 struct B { char data[0x5464]; };
 extern struct G D_003D9ED0;
 #undef D_003D9EDC
@@ -2716,37 +2717,37 @@ char *strcpy1(char *d, const char *s);
 // Dynamic text (string 0x5CD) of the save page. (inferred: content not identified)
 void FormatSavePageTextB(char *buf)
 {
-    struct G *g = &D_003D9ED0;
-    struct GD *gd;
+    struct G *menu = &D_003D9ED0;
+    struct GD *world;
     struct CRef ref;
-    float f;
-    if (!IsPauseMenuOnSavePage(g))
+    float isUsed;
+    if (!IsPauseMenuOnSavePage(menu))
         return;
-    gd = &D_003DD490;
+    world = &D_003DD490;
     {
-    struct E *e = &D_003D9EDC[g->x24];
-    RefGetGlobalSaveVar(&ref, gd->x3B1C, &D_002E6604[e->x14]);
+    struct E *page = &D_003D9EDC[menu->topPage];
+    RefGetGlobalSaveVar(&ref, world->saveVarIsUsed, &D_002E6604[page->selectedIndex]);
     }
-    f = ref.m_tag;
+    isUsed = ref.m_tag;
     Decref__4CRef(&ref);
-    switch (GetPauseMenuTopPageId(g)) {
+    switch (GetPauseMenuTopPageId(menu)) {
     case 0x1E:
-        if (f != 0.0f)
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
+        if (isUsed != 0.0f)
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x25));
         else
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x26));
         break;
     case 0x1F:
-        if (f != 0.0f)
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x27));
+        if (isUsed != 0.0f)
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x27));
         else
-            strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x26));
+            strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x26));
         break;
     case 0x19:
-        strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x29));
-        if (f != 0.0f) {
+        strcpy(buf, PchzFindSwLangstr__FP2SWi(world, 0x29));
+        if (isUsed != 0.0f) {
             strcpy1(buf, "\n");
-            strcpy1(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
+            strcpy1(buf, PchzFindSwLangstr__FP2SWi(world, 0x25));
         }
         break;
     }
@@ -2848,7 +2849,7 @@ CMcStatus::CMcStatus()
 namespace M_func_001ADE38 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x24]; struct O *po; };
+struct S { char pad[0x24]; struct O *child; };
 /** @sly2-annot addr=0x1ADE38
  * Purpose: small
  * Info: TU memcard
@@ -2856,13 +2857,17 @@ struct S { char pad[0x24]; struct O *po; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
  * @end-sly2-annot */
 // Shows the status widget's child (slot 49 with -1).
-void ShowMcDialogWidget(struct S *dialog) { struct O *o = dialog->po; if (o) { struct VTE *e = &o->vt[49]; e->pfn((char *)o + e->d, -1); } }
+void ShowMcDialogWidget(struct S *dialog) 
+{
+    struct O *child = dialog->child;
+    if (child) { struct VTE *e = &child->vt[49]; e->pfn((char *)child + e->d, -1); }
+}
 } } // namespace M_func_001ADE38
 
 namespace M_HideMcDialogWidget { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
-struct S { char pad[0x24]; struct O *po; };
+struct S { char pad[0x24]; struct O *child; };
 /** @sly2-annot addr=0x1ADE70
  * Purpose: small
  * Info: proposed name HideMcDialogWidget (T1); TU memcard
@@ -2872,12 +2877,16 @@ struct S { char pad[0x24]; struct O *po; };
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Hides the status widget's child (slot 50).
-void HideMcDialogWidget(struct S *dialog) { struct O *o = dialog->po; if (o) { struct VTE *e = &o->vt[50]; e->pfn((char *)o + e->d); } }
+void HideMcDialogWidget(struct S *dialog) 
+{
+    struct O *child = dialog->child;
+    if (child) { struct VTE *e = &child->vt[50]; e->pfn((char *)child + e->d); }
+}
 } } // namespace M_HideMcDialogWidget
 
 namespace M_func_001ADEA8 {
-struct O { char pad[0x58]; int x58; int pad2[2]; int x64; };
-struct S { char pad[0x24]; O *po; };
+struct O { char pad[0x58]; int displayState; int pad2[2]; int targetDisplayState; };
+struct S { char pad[0x24]; O *child; };
 /** @sly2-annot addr=0x1ADEA8
  * Purpose: child x58>=2 or x64>=2
  * Info: proposed name FMcStatusVisible (T2); TU memcard
@@ -2887,9 +2896,10 @@ struct S { char pad[0x24]; O *po; };
 // True when the status widget's child is shown or showing.
 extern "C" int IsMcStatusVisible(S *dialog)
 {
-    O *o = dialog->po;
-    if (!o) return 0;
-    if (o->x58 < 2 && o->x64 < 2) return 0; return 1;
+    O *child = dialog->child;
+    if (!child) return 0;
+    if (child->displayState < 2 && child->targetDisplayState < 2) return 0;
+    return 1;
 }
 } // namespace M_func_001ADEA8
 
@@ -2908,7 +2918,7 @@ extern "C" void CMcStatus_Update(MCDLG *dialog)
     func_001DA808(dialog);
     pchild = dialog->pchild;
     if (pchild != 0) {
-        if (pchild->n58 == 2 && pchild->n64 == pchild->n58 && D_002DDED0.tReal - pchild->t5C > 1.0f &&
+        if (pchild->displayState == 2 && pchild->targetDisplayState == pchild->displayState && D_002DDED0.tReal - pchild->tDisplayState > 1.0f &&
             FMemcardThreadValid(&D_002F633C) == 0) {
             HideMcDialogWidget(dialog);
         }
