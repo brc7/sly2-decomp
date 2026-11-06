@@ -1,5 +1,8 @@
-// clip.cpp -- clipping a line segment against objects (their BSP, or a bounding sphere), producing LSG
-// segments; merging segment lists; the closest object hit by a line. VU0 macro-mode asm.
+// clip.cpp -- clipping a line segment against solid objects. Each object is clipped through its BSP, or through
+// its bounding sphere when it has none; the result is a list of LSG spans (entry/exit points, planes and
+// parameters along the segment). Span lists are combined with set operations, and PsoHitTestLineObjects returns
+// the first object a line hits. Used by line-of-sight tests, ground probes (STEP) and the contact builder.
+// Entry points: ClipEdgeToObject(s), MergeSegmentLists, PsoHitTestLineObjects. VU0 macro-mode asm.
 // TU 0x14C6A0..0x14CFE0 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_clip
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014CFC0
@@ -46,6 +49,8 @@ void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);   /* CopyAb__FPvT0Ui */
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/engine/physics-collision.md#6-source-files
  * @end-sly2-annot */
+// Clips the segment a->b against one object using its own BSP (+0x74); returns the number of LSG spans written
+// (at most c) into alsg.
 extern "C" int ClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg)
 {
     return ClipEdgeToObjectPruned(p, p->x74, a, b, c, alsg);
@@ -59,6 +64,8 @@ extern "C" int ClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
  * @end-sly2-annot */
+// Clips a->b against an object through a given BSP (n), or, when n is 0 and the object is a sphere (flag bit 49),
+// against its bounding sphere. Returns the span count. Lets callers pass a pre-pruned BSP.
 extern "C" int ClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *alsg)
 {
     if (n) return func_00118668(n, 0x7FFFFFFF, a, b, c, alsg);
@@ -106,6 +113,8 @@ static inline qword Normalize(const qword &v)
  * See: docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
  * @end-sly2-annot */
+// Intersects the segment pos0->pos1 with a sphere: solves the quadratic in the segment parameter, clamps the roots
+// to [0,1] and writes up to two LSG entries (entry/exit points with outward normals). Returns the span count.
 extern "C" int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg)
 {
     float au[2];
@@ -158,6 +167,9 @@ extern "C" int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qwor
  * See: docs/engine/camera.md#5-key-functions, docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/engine/physics-collision.md#7-key-functions
  * @end-sly2-annot */
+// Merges two sorted span lists into alsgOut (at most cMax entries) using the set operation k (0 = union; the
+// others intersect/subtract, inferred from the cases). Returns the merged count. Used to combine several objects'
+// clip results along the same segment.
 extern "C" int MergeSegmentLists(int c1, struct LSG *alsg1, int c2, struct LSG *alsg2_, int cMax, struct LSG *alsgOut, int k)
 {
     /* hard-register local: fixes the s2/s3 assignment of alsg2 vs c2 */
@@ -250,6 +262,8 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
  * @end-sly2-annot */
+// Returns the first object (the one entered at the smallest segment parameter) among apso[0..cso) that the line
+// a->b hits, filtering by grf, and copies the winning span into *plsg. Sly 1 name.
 extern "C" void *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int grf, qword a, qword b, int cso, void **apso, struct LSG *plsg)
 {
     void *psoBest = 0;
@@ -280,6 +294,8 @@ extern "C" void *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int grf, qword a
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
  * @end-sly2-annot */
+// Clips a->b against every object in apso and unions the results (MergeSegmentLists k=0) into alsg; returns the
+// number of spans. Scratch lists live in a stack scope.
 extern "C" int ClipEdgeToObjects(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg)
 {
     int c = 0;
