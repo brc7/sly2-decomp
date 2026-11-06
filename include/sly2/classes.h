@@ -255,8 +255,8 @@ typedef char assert_BLIPG_size[sizeof(BLIPG) == 0x460 ? 1 : -1];
 struct BOMB : SO
 {
     char pad150[0x210 - 0x150];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBombClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBombMessage");   /* slot 5 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBombClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBomb");   /* slot 7 */
     virtual void VUnk14() __asm__("PostBombLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateBomb");   /* slot 16 */
