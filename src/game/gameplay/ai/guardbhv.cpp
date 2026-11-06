@@ -5868,7 +5868,8 @@ void UpdateBhvCircle(struct S *behavior) {
     qword pos;
     UpdateBhv(behavior);
     d = 0;
-    if (behavior->state != 0) {
+    if (behavior->state == 0)
+        return;
     a = behavior->guard;
     c = a->pE8;
     b = a->p294;
@@ -5879,21 +5880,20 @@ void UpdateBhvCircle(struct S *behavior) {
     g = GetTargetRecordFacing(k);
     pos = func_001A62E8(o);
     t = behavior->child;
-    if (t->f70 > D_002BE748) goto doit;
+    if (t->f70 > D_002BE748) goto repath;   // (a float test inverted into an if-block compiles as c.le/bc1f: no match)
     {
         qword dv;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(b->pF4[b->nE8 - 1]), "j"(pos));
         GetVectorCylind(dv, &out[0], &out[1], 0);
     }
-    if (__builtin_fabsf(RadNormalize__Ff(out[0] - g)) > k->f18) goto doit;
+    if (__builtin_fabsf(RadNormalize__Ff(out[0] - g)) > k->f18) goto repath;
     if (FCheckLm__FP2LMf(behavior->guard->a324, out[1])) return;
-doit:
+repath:
     {
         qword v = func_001A62E8(behavior->guard);
         func_001C02D0(q, v, ChooseBhvCirclePosition(behavior, q, g, pos), b);
     }
     SetBhvpathShape(t, b, 0);
-    }
 }
 } } // namespace M_func_0017C3E8
 
