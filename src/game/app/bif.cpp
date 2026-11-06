@@ -395,11 +395,11 @@ static inline void Mul2(V8 *p, float d)
 CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *args)
 {
     CRef ref;
-    int fInt = 0;
+    int isIntResult = 0;
     switch (args[0].m_tagk) {
     case TAGK_S32:
         ref = (float)args[0].u.n;
-        fInt = 1;
+        isIntResult = 1;
         break;
     case TAGK_F32:
     case TAGK_VECTOR:
@@ -409,31 +409,27 @@ CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *args)
         ref = CRef_CloneTo(&args[0], 0, 0);
         break;
     }
-    NODE *pn = 0;
+    NODE *node = 0;
     int bits;
     if (args[1].m_tagk)
-        pn = (NODE *)args[1].u.pv;
-    for (; pn; pn = pn->pnext) {
-        CRef *pr = &pn->ref;
+        node = (NODE *)args[1].u.pv;
+    for (; node; node = node->pnext) {
+        CRef *operand = &node->ref;
         switch (ref.m_tagk) {
         case TAGK_F32:
-            switch (pr->m_tagk) {
-            case TAGK_F32: {
-                float d;
-                d = pr->u.g;
-                fInt = 0;
-                goto LMul;
-            case TAGK_S32:
-                d = (float)pr->u.n;
-            LMul:
-                ref.u.g *= d;
+            switch (operand->m_tagk) {
+            case TAGK_F32:
+                isIntResult = 0;
+                ref.u.g *= operand->u.g;
                 break;
-            }
+            case TAGK_S32:
+                ref.u.g *= (float)operand->u.n;
+                break;
             case TAGK_VECTOR:
-                ref = MulVFR(pr, ref.u.g);
+                ref = MulVFR(operand, ref.u.g);
                 break;
             case TAGK_MATRIX: {
-                MATRIX4 *pm = (MATRIX4 *)pr->u.pv;
+                MATRIX4 *pm = (MATRIX4 *)operand->u.pv;
                 VU_FLOAT_M s(ref.u.g);
                 float g = s.F();
                 MATRIX4 mat;
@@ -447,7 +443,7 @@ CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *args)
                 ref.Decref();
                 ref.InitTag(TAGK_CLQ);
                 VECTOR *pvec = (VECTOR *)ref.u.pv;
-                VECTOR *pvSrc = (VECTOR *)pr->u.pv;
+                VECTOR *pvSrc = (VECTOR *)operand->u.pv;
                 VECTOR_opAssign(pvec, VU_FLOAT_X(g) * VU_VECTOR(*pvSrc));
                 break;
             }
@@ -455,7 +451,7 @@ CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *args)
                 float g = ref.u.g;
                 ref.Decref();
                 ref.InitTag(TAGK_LM);
-                V8 *ps = (V8 *)pr->u.pv;
+                V8 *ps = (V8 *)operand->u.pv;
                 V8 *pd = (V8 *)ref.u.pv;
                 pd->x = ps->x * g;
                 pd->y = ps->y * g;
@@ -464,46 +460,46 @@ CRef RefOpMult__FiP4CRefP6CFrame(void *pv, CRef *args)
             }
             break;
         case TAGK_VECTOR:
-            switch (pr->m_tagk) {
-            case TAGK_S32: MulVector((qword *)ref.u.pv, (float)pr->u.n); break;
-            case TAGK_F32: MulVectorR((qword *)ref.u.pv, pr->u.g); break;
+            switch (operand->m_tagk) {
+            case TAGK_S32: MulVector((qword *)ref.u.pv, (float)operand->u.n); break;
+            case TAGK_F32: MulVectorR((qword *)ref.u.pv, operand->u.g); break;
             }
             break;
         case TAGK_MATRIX:
-            switch (pr->m_tagk) {
-            case TAGK_S32: MulMatrixM((MATRIX4 *)ref.u.pv, (float)pr->u.n); break;
-            case TAGK_F32: MulMatrix((MATRIX4 *)ref.u.pv, pr->u.g); break;
-            case TAGK_VECTOR: ref = MulMatVec((MATRIX4 *)ref.u.pv, (qword *)pr->u.pv); break;
+            switch (operand->m_tagk) {
+            case TAGK_S32: MulMatrixM((MATRIX4 *)ref.u.pv, (float)operand->u.n); break;
+            case TAGK_F32: MulMatrix((MATRIX4 *)ref.u.pv, operand->u.g); break;
+            case TAGK_VECTOR: ref = MulMatVec((MATRIX4 *)ref.u.pv, (qword *)operand->u.pv); break;
             case TAGK_MATRIX: {
                 MATRIX4 *pm = (MATRIX4 *)ref.u.pv;
-                *pm = __ml__FRC7MATRIX4T0(*pm, *(MATRIX4 *)pr->u.pv);
+                *pm = __ml__FRC7MATRIX4T0(*pm, *(MATRIX4 *)operand->u.pv);
                 break;
             }
             }
             break;
         case TAGK_CLQ:
-            switch (pr->m_tagk) {
+            switch (operand->m_tagk) {
             case TAGK_S32: {
                 VECTOR *pvec = (VECTOR *)ref.u.pv;
-                VECTOR_opAssign(pvec, VU_FLOAT_X((float)pr->u.n) * VU_VECTOR(*pvec));
+                VECTOR_opAssign(pvec, VU_FLOAT_X((float)operand->u.n) * VU_VECTOR(*pvec));
                 break;
             }
             case TAGK_F32: {
                 VECTOR *pvec = (VECTOR *)ref.u.pv;
-                VECTOR_opAssign(pvec, VU_FLOAT_X(pr->u.g) * VU_VECTOR(*pvec));
+                VECTOR_opAssign(pvec, VU_FLOAT_X(operand->u.g) * VU_VECTOR(*pvec));
                 break;
             }
             }
             break;
         case TAGK_LM:
-            switch (pr->m_tagk) {
-            case TAGK_S32: Mul2((V8 *)ref.u.pv, (float)pr->u.n); break;
-            case TAGK_F32: Mul2((V8 *)ref.u.pv, pr->u.g); break;
+            switch (operand->m_tagk) {
+            case TAGK_S32: Mul2((V8 *)ref.u.pv, (float)operand->u.n); break;
+            case TAGK_F32: Mul2((V8 *)ref.u.pv, operand->u.g); break;
             }
             break;
         }
     }
-    if (fInt && ref.m_tagk == TAGK_F32)
+    if (isIntResult && ref.m_tagk == TAGK_F32)
         ref = (int)ref.u.g;
     return ref;
 }
@@ -5251,7 +5247,8 @@ struct CRef {
     CRef &operator=(const CRef &r);
     CRef &operator=(float g);
 };
-struct O { int pad[2]; int k; O *pparent; int pad2[5]; int f; };
+struct O { int pad[2]; int kind; O *parent; int pad2[5]; int isObjectFrame; };   /* a call frame (inferred field meanings) */
+enum { BIFK_NOOP = 0x86 };   /* builtin 134, noop~ */
 class CFrame { public: CRef *PrefFindBinding(unsigned int sym, int fRecurse) __asm__("PrefFindBinding__6CFrameUii"); };
 extern "C" CRef RefOpFindBindingOrNoop(void *pbasic, CRef *args, O *po);
 /** @sly2-annot addr=0x125510
@@ -5268,22 +5265,22 @@ extern "C" CRef RefOpFindBindingOrNoop(void *pbasic, CRef *args, O *po);
  * @end-sly2-annot */
 // Looks up a symbol in the calling object frame chain (CFrame::PrefFindBinding(sym,1)); if unbound returns Bifk 0x86
 // (slot 134 no-op builtin).
-CRef RefOpFindBindingOrNoop(void *pbasic, CRef *args, O *po)
+CRef RefOpFindBindingOrNoop(void *pbasic, CRef *args, O *frame)
 {
-    if (po && po->k == 1) {
-        while (!po->f) {
-            po = po->pparent;
-            if (!po || po->k != 1)
-                goto fail;
+    if (frame && frame->kind == 1) {
+        while (!frame->isObjectFrame) {
+            frame = frame->parent;
+            if (!frame || frame->kind != 1)
+                goto unbound;   /* one shared tail; a second `return CRef(...)` here does not match */
         }
         {
-            CRef *pref = ((CFrame *)po->pparent)->PrefFindBinding(args[0].u.n, 1);
-            if (pref)
-                return *pref;
+            CRef *binding = ((CFrame *)frame->parent)->PrefFindBinding(args[0].u.n, 1);
+            if (binding)
+                return *binding;
         }
     }
-fail:
-    return CRef(0x86, TAGK_BIFK);
+unbound:
+    return CRef(BIFK_NOOP, TAGK_BIFK);
 }
 } // namespace M_RefOpFindBindingOrNoop
 
