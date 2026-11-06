@@ -527,3 +527,10 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
   of the iterator moves the loop test. A `goto skip` around one call does become an `if` when the skipped condition is assigned in
   the condition (`if (!parent || (bit = (parent->bits >> 60) & 1) != 0)`, AddLo); the plain `(... & 1)` form changes allocation.
   Field / local renames, slot and bit constants, enums for result codes never change the object.
+- **Readability pass (r3, game / tu_15CD68 / wipe / update):** a `goto` into a shared "set flag" block
+  (`if (p) { if (N(p) >= 100) goto setf; } if (cheat) { setf: f = 1; }`) became `if ((p && N(p) >= 100) || cheat) f = 1;`
+  with no change (UpdateEpisodeMenu). Inlined SetLoFlags / ClearLoFlags bodies (the tagged LO flag word) move into a
+  `static inline` helper unchanged; so do minified one-line bodies re-laid out, extra brace scopes around a CRef temp,
+  anonymous unions naming one offset two ways (a JOB's +0x7C start count vs a TASK's job pointer), and enum constants in
+  `case` labels. The `_GLOBAL_$I$<file><hash>` constructor stub's suffix follows the file text, so every edit changes
+  it (aliased by wildcard; ignore it in nm comparisons).
