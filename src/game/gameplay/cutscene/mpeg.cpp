@@ -1020,11 +1020,3 @@ extern "C" int func_001B42C0(CMPEG *p) {
     return p->pstrm != 0;
 }
 
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_mpeg {
-    static int c_004425DC[5] __asm__("D_004425DC");   /* .bss 0x14 */
-};
-int COMMONS_mpeg::c_004425DC[5];

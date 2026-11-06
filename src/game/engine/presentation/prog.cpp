@@ -395,10 +395,8 @@ extern "C" void func_001C93E0(GIFS *pgs, M2 *pm, float alpha)
 // of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
 // name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
 struct COMMONS_prog {
-    static int c_004425D0 __asm__("D_004425D0");   /* .bss 0x4 */
     static float *c_002DD314 __asm__("D_002DD314");   /* .sbss 0x4 (was a plain definition before D_003D3A3C) */
 };
-int COMMONS_prog::c_004425D0;
 float *COMMONS_prog::c_002DD314;
 
 // ---- prog's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.

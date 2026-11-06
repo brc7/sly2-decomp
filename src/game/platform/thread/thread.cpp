@@ -130,11 +130,17 @@ void StartupThread()
     ptid[1] = func_00234820(&tp);
 }
 
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_thread {
-    static int c_004425F0[798] __asm__("D_004425F0");   /* .bss 0xC78 */
-};
-int COMMONS_thread::c_004425F0[798];
+// ---- thread's .bss (tu-merging.md "Data": .bss gaps): 0x4425D0..0x4435F0, after hud's .bss in TU order. The
+// thread-id table (8 words up to the stack: main (prog's D_004425D0), render (frm's D_004425D4), memcard's
+// D_004425D8, mpeg's D_004425DC, 4 words no code names) and the render thread's 0x1000-byte stack (StartupThread's
+// stackSize). The table's words that other TUs name are spelled as separate words (an int is 4-aligned; a later
+// views pass can make them interiors of one array), the rest as one array (8-aligned at 0x4425E0). Asm-labelled so
+// the declarations above, which the functions see, stay as they are; emitted in this order (first declaration).
+namespace BSS_thread {
+int b_004425D0 __asm__("D_004425D0");
+int b_004425D4 __asm__("D_004425D4");
+int b_004425D8 __asm__("D_004425D8");
+int b_004425DC __asm__("D_004425DC");
+int b_004425E0[4] __asm__("D_004425E0");
+char b_004425F0[0x1000] __asm__("D_004425F0");
+}

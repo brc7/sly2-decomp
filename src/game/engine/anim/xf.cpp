@@ -2768,13 +2768,10 @@ inline qword *VECTOR_opAssign(qword *p, qword v) { *p = v; return p; }   /* inli
 } } // namespace M_VECTOR_opAssign
 
 
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_xf {
-    static int c_004437A0[2] __asm__("D_004437A0");   /* .bss 0x8 */
-    static int c_004437A8[22] __asm__("D_004437A8");   /* .bss 0x58 */
-};
-int COMMONS_xf::c_004437A0[2];
-int COMMONS_xf::c_004437A8[22];
+// ---- xf's .bss (tu-merging.md "Data": .bss gaps): 0x4437A0..0x443800, after wipe's .bss in TU order and before the
+// SDK's (989snd at 0x443800): the transform stack depth (a word; the array after it is 8-aligned) and the 22-entry
+// transform stack. Asm-labelled so the declarations above stay as the functions see them.
+namespace BSS_xf {
+int b_004437A0 __asm__("D_004437A0");
+int b_004437A8[22] __asm__("D_004437A8");
+}

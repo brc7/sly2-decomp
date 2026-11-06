@@ -2813,11 +2813,3 @@ extern "C" inline void func_00258248(FILEKEY *pfk)
 // functions' own literals, pooled per TU, so they are spelled as literals where they are used (tu-merging.md
 // "Phase 6: one link mode"); the pointer-to-member records are defined among the functions (RO_ORDER).
 
-// ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
-// template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end
-// of .bss (small ones in .sbss), which is why these addresses are not in TU order. Sizes are the gaps to the next
-// name in the ELF; a 16-aligned start with a 16-multiple size is a qword array (commons take the type's alignment).
-struct COMMONS_memcard {
-    static int c_004425D8 __asm__("D_004425D8");   /* .bss 0x4 */
-};
-int COMMONS_memcard::c_004425D8;
