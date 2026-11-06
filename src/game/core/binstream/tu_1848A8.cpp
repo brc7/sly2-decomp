@@ -42,7 +42,16 @@ typedef char assert_CBinaryInputStream_ibufFill[(uint)&((CBinaryInputStream *)0)
 /* 0x10-byte sector key passed to func_00184D60 (KEY in engine/presentation/hud). */
 struct SECTORKEY { uint isector; uint cb; int kind; };
 
-extern char D_002D2918[];   /* _vt of the subclass */
+/* CStreamBis (DRAFT class name) is a CBinaryInputStream subclass (bis.h) with Fill and Close of its own, vtable 0x2D2918,
+   emitted here. This TU reads the object through its private CBinaryInputStream view (above), so the class is declared
+   on its own with just the two slots (the vtable is all that depends on it; nothing here constructs it in C++). */
+class CStreamBis
+{
+public:
+    virtual void Fill() __asm__("CStreamBis_Refill");   /* slot 1; key function */
+    virtual void Close() __asm__("CStreamBis_Close");   /* slot 2 */
+};
+extern char D_002D2918[] __asm__("_vt$10CStreamBis");   /* CStreamBis's vtable */
 extern "C" {
 void __18CBinaryInputStream(CBinaryInputStream *p);
 void __builtin_delete(void *pv);
@@ -192,8 +201,9 @@ extern "C" void func_00184C60(CBinaryInputStream *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" void CStreamBis_Refill(CBinaryInputStream *p)
+void CStreamBis::Fill()   /* key function: CStreamBis's vtable comes out here */
 {
+    CBinaryInputStream *p = (CBinaryInputStream *)this;
     if (p->fd >= 0) func_00184C60(p);
     else if (p->isector >= 0) func_001849A0(p);
     else {
