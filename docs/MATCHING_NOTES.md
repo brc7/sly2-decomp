@@ -532,5 +532,9 @@ Measured while cleaning src/game/gameplay/ai/ (object compared byte-for-byte bef
   (`int isClose = a < b; if (isClose)`, `int isInWorld = (int)(flags >> 60) & 1;` in its own block) is load-bearing:
   inlining it into the `if` changes the branch structure. A goto that leaves a nested loop to continue the outer one
   cannot become `break` + re-test (loop rotation changes): keep it as a labelled `goto nextX`.
+- A goto into the else branch (`if (n > 0) { ...; if (n > 0) A; else goto choose; } else { choose: B }`) becomes two
+  plain ifs (`if (n > 0) {...}  if (n > 0) A; else B;`) for free (GenerateStepguardLoot). `} else { if` -> `} else if`
+  is free. m2c's `if (n > 0) do {...} while (j < n);` cannot always become a `for` (GenerateStepguardLoot's coin
+  split: no match), and a hand-rotated goto loop (test at the bottom, pinned registers) stayed as is.
 - `*(i + array)` and `array[i]` can differ (operand order of the address add): keep the index-first form where the
   match needs it and comment it.

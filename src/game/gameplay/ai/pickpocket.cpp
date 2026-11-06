@@ -21,6 +21,14 @@ struct VO { char pad[0xC]; VTE *pvt; };
 #define VF(q, n) ((void (*)(void *))(q)->pvt[n].pfn)((char *)(q) + (q)->pvt[n].d)
 #define VFN(q, n, a) (q)->pvt[n].pfn((char *)(q) + (q)->pvt[n].d, a)
 
+/* Class ids tested here (docs/reference/class-tree.md). */
+enum { CID_GUARD = 0x3A, CID_KEY = 0x5C };
+/* Object ids of the loot templates: a coin pile, a generated item reward, and the pouch launch kinds for a
+   plain object and a key. */
+enum { OID_LOOT_COINS = 0x2B3, OID_LOOT_ITEM = 0x2B5, LAUNCH_OBJECT = 0x2B0, LAUNCH_KEY = 0x2B1 };
+/* Pickpocket states (P::pickpocketState). */
+enum { PICKPOCKET_NONE = -1, PICKPOCKET_ALERT = 0, PICKPOCKET_COINS = 1, PICKPOCKET_ITEM = 2 };
+
 /* The object at +0x494 that the loot comes from (also passed to the prize sprayer functions of tu_1C2D20). */
 struct OWNER
 {
@@ -117,7 +125,10 @@ extern "C" void AddStepguardLootCoins(P *guard, int count)
 {
     if (guard->isLootFixed) {
         ITEM *entry = &guard->loot[guard->lootCount++];
-        entry->oid = 0x2B3; entry->key = -1; entry->flags = 0; entry->count = count;
+        entry->oid = OID_LOOT_COINS;
+        entry->key = -1;
+        entry->flags = 0;
+        entry->count = count;
     }
 }
 
@@ -143,11 +154,13 @@ extern "C" void SetStepguardPickpocketState(P *guard, int state)
     guard->pickpocketState = state;
     guard->stateTime = D_002DDED0.t;
     switch (state) {
-    case -1: case 0:
+    case PICKPOCKET_NONE:
+    case PICKPOCKET_ALERT:
         if (guard->indicator0) VF(guard->indicator0, 9);
         if (guard->indicator1) VF(guard->indicator1, 9);
         break;
-    case 1: case 2:
+    case PICKPOCKET_COINS:
+    case PICKPOCKET_ITEM:
         if (guard->indicator0) VF(guard->indicator0, 8);
         if (guard->indicator1) VF(guard->indicator1, 8);
         break;
@@ -164,13 +177,17 @@ extern "C" void UpdateStepguardPickpocket(P *guard)
     ulong alertMask;
     int state;
     if (!guard->pouch) return;
-    state = -1;
+    state = PICKPOCKET_NONE;
     if (guard->pouch->canPickpocket) {
         alertMask = GetSgfMask(0x1D) | GetSgfMask(0x20) | GetSgfMask(5) | GetSgfMask(6)
             | GetSgfMask(7) | GetSgfMask(0x17) | GetSgfMask(0x16);
-        if (guard->guardFlags & alertMask) state = 0;
-        else if (!guard->lootCount || guard->loot[guard->lootCount - 1].oid == 0x2B3 || !PpoHero(&D_003DD490) || PpoHero(&D_003DD490) != D_002E1E40) state = 1;
-        else state = 2;
+        if (guard->guardFlags & alertMask)
+            state = PICKPOCKET_ALERT;
+        else if (!guard->lootCount || guard->loot[guard->lootCount - 1].oid == OID_LOOT_COINS
+                 || !PpoHero(&D_003DD490) || PpoHero(&D_003DD490) != D_002E1E40)
+            state = PICKPOCKET_COINS;
+        else
+            state = PICKPOCKET_ITEM;
     }
     SetStepguardPickpocketState(guard, state);
 }
@@ -183,52 +200,79 @@ extern "C" void GenerateStepguardLoot(P *guard)
 {
     TABLE *table;
     ITEM reward;
-    int world,total,remaining,slots;unsigned int i;
+    int world, total, remaining, numCoinEntries;
+    unsigned int i;
     func_001C2DB8(guard->pouch);
-    if(guard->isLootFixed)return;
-    world=NWorldCur();if(world==-1)world=1;
-    if(FIsBasicDerivedFrom__FP5BASIC3CID(guard,0x3A))table=&D_002C3968[world];else table=&D_002C3748[world];
-    func_002333B4(&reward,0,sizeof(reward));
-    if(guard->lootCount>0){
-        OBJECT *object=PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490,4,guard->loot[0].oid,guard->pouch);
-        if(object && FIsBasicDerivedFrom__FP5BASIC3CID(object,0x5C) && object->state && FTaskComplete(object->state))guard->lootCount=0;
-        if(guard->lootCount>0){reward=guard->loot[0];}
-        else goto choose_reward;
-    }else{
-choose_reward:
-        if(GRandInRange__Fff(0.0f,1.0f)>table->chance){reward.key=-1;reward.oid=-1;}
-        else{
-            total=0;for(i=0;i<6;i++)total+=table->picks[i].weight;
-            int choice=NRandInRange__Fii(0,total-1);
-            const PICK *pick=&table->picks[0];
-            register int weight asm("$3")=pick->weight; /* pin: weight must be v1 (global-alloc gives it v0 and swaps pick/weight otherwise) */
-            asm("" : "+r"(weight)); /* empty asm: gives the first weight load a dependent so sched2 issues it before the choice copy, as in the target */
-            i=0;goto test_pick;
-next_pick:
-            choice-=pick->weight;i++;
-            if(i>=6)goto selected_pick;
-            pick=&table->picks[i];
-            weight=pick->weight;
-test_pick:
-            if(choice>=weight)goto next_pick;
-            reward.key=pick->key;
-selected_pick:;
-            reward.count=1;reward.oid=0x2B5;
-        }
+    if (guard->isLootFixed)
+        return;
+    world = NWorldCur();
+    if (world == -1)
+        world = 1;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(guard, CID_GUARD))
+        table = &D_002C3968[world];
+    else
+        table = &D_002C3748[world];
+    func_002333B4(&reward, 0, sizeof(reward));
+    if (guard->lootCount > 0) {
+        // A level-given first entry: dropped once its key's task is complete.
+        OBJECT *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, guard->loot[0].oid, guard->pouch);
+        if (object && FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_KEY) && object->state && FTaskComplete(object->state))
+            guard->lootCount = 0;
     }
-    guard->lootCount=0;
-    remaining=NRandInRange__Fii(table->minimum,table->maximum);
-    slots=NRandInRange__Fii(2,3);
-    int j=0;
-    if(slots>0){do{
-        ITEM *item=&guard->loot[guard->lootCount++];
-        item->oid=0x2B3;item->flags=0;
-        int amount=remaining/(slots-j);
-        if(amount<1)amount=1;
-        remaining-=amount;item->count=amount;
-        if(!remaining)break;j++;
-    }while(j<slots);}
-    if(reward.count>0)guard->loot[guard->lootCount++]=reward;
+    if (guard->lootCount > 0) {
+        reward = guard->loot[0];
+    } else if (GRandInRange__Fff(0.0f, 1.0f) > table->chance) {
+        reward.key = -1;
+        reward.oid = -1;
+    } else {
+        // Weighted pick among the table's six rewards.
+        total = 0;
+        for (i = 0; i < 6; i++)
+            total += table->picks[i].weight;
+        int choice = NRandInRange__Fii(0, total - 1);
+        const PICK *pick = &table->picks[0];
+        register int weight asm("$3") = pick->weight; /* pin: weight must be v1 (global-alloc gives it v0 and swaps pick/weight otherwise) */
+        asm("" : "+r"(weight)); /* empty asm: gives the first weight load a dependent so sched2 issues it before the choice copy, as in the target */
+        // (The loop is written with gotos: its rotated shape, test at the bottom, is what matches.)
+        i = 0;
+        goto testPick;
+nextPick:
+        choice -= pick->weight;
+        i++;
+        if (i >= 6)
+            goto picked;
+        pick = &table->picks[i];
+        weight = pick->weight;
+testPick:
+        if (choice >= weight)
+            goto nextPick;
+        reward.key = pick->key;
+picked:;
+        reward.count = 1;
+        reward.oid = OID_LOOT_ITEM;
+    }
+    // Split a random coin total into two or three coin entries, then append the reward.
+    guard->lootCount = 0;
+    remaining = NRandInRange__Fii(table->minimum, table->maximum);
+    numCoinEntries = NRandInRange__Fii(2, 3);
+    int j = 0;
+    if (numCoinEntries > 0) {
+        do {
+            ITEM *item = &guard->loot[guard->lootCount++];
+            item->oid = OID_LOOT_COINS;
+            item->flags = 0;
+            int amount = remaining / (numCoinEntries - j);
+            if (amount < 1)
+                amount = 1;
+            remaining -= amount;
+            item->count = amount;
+            if (!remaining)
+                break;
+            j++;
+        } while (j < numCoinEntries);
+    }
+    if (reward.count > 0)
+        guard->loot[guard->lootCount++] = reward;
 }
 
 // 0x1F1CF8: Stages the next loot entry: from the current index on, finds the entry's object and loads it into the
@@ -242,15 +286,15 @@ extern "C" void StageStepguardLoot(P *guard)
         int key, launchKind;
         if (!object) continue;
         key = entry->key;
-        launchKind = 0x2B0;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5C)) {
+        launchKind = LAUNCH_OBJECT;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, CID_KEY)) {
             OBJECT::OSTATE *objectState = object->state;
             if (objectState) {
                 int taskState = objectState->taskState;
                 if (taskState == -1 || taskState == 0) { guard->isStaged = 1; break; }
                 if (taskState != 1) continue;
             }
-            launchKind = 0x2B1;
+            launchKind = LAUNCH_KEY;
         }
         if (func_001C2DC8(guard->pouch, object, key, launchKind) == 1) guard->isStaged = 1;
         break;
@@ -265,13 +309,11 @@ extern "C" void *PickpocketStepguard(P *guard)
 {
     void *launched;
     if (guard->nextLoot >= guard->lootCount) return 0;
-    {
-        BroadcastGameEvent(&D_002DEB30, 0x19, guard);
-        launched = func_001C2EF0(guard->pouch, (guard->loot + guard->nextLoot)->count);
-        SetStepguardPickpocketState(guard, -1);
-        guard->nextLoot++;
-        StageStepguardLoot(guard);
-    }
+    BroadcastGameEvent(&D_002DEB30, 0x19, guard);
+    launched = func_001C2EF0(guard->pouch, (guard->loot + guard->nextLoot)->count);   // (pointer form needed for the match)
+    SetStepguardPickpocketState(guard, PICKPOCKET_NONE);
+    guard->nextLoot++;
+    StageStepguardLoot(guard);
     return launched;
 }
 
@@ -291,6 +333,9 @@ extern "C" void *GetStepguardLootRefList(void *result, P *guard)
 extern "C" void SetStepguardPlayable(P *guard, int isPlayable)
 {
     func_00205D10(guard, isPlayable);
-    if (isPlayable) { if (guard->pouch) VFN(guard->pouch, 21, 0); }
-    else if (guard->pouch) VFN(guard->pouch, 21, 1);
+    if (isPlayable) {
+        if (guard->pouch) VFN(guard->pouch, 21, 0);
+    } else if (guard->pouch) {
+        VFN(guard->pouch, 21, 1);
+    }
 }
