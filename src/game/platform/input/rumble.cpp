@@ -1,5 +1,9 @@
 // rumble.cpp -- pad vibration: rumble patterns (RUMPAT) played on the DualShock actuators, and the rumble option.
-// TU 0x1D5150..0x1D57A8 (11 functions, address order).
+// A pattern is a looped list of (small motor on/off, large motor power, duration) instructions played for a given
+// time; RUMBLE (one per pad, inside JOY) steps it with real (unscaled) time. The vibration option lives in the save
+// variable g_sw.psvpNoVibration, overridable by a forced mode (D_002C2D8C). Entry points: InitRumble, UpdateRumble,
+// TriggerRumbleRumk / TriggerRumbleRumpat, FRumbleEnabled, EnsureRumbleModeDefault, ResetRumbleSaveVar.
+// Close to Sly 1's rumble.c. TU 0x1D5150..0x1D57A8 (11 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rumble
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D5788
 #include "sly2/slotheap.h"
@@ -13,19 +17,19 @@ typedef unsigned char byte;
 
 /* RUMS (Sly 2 order) and RUMK: sly2/basic.h */
 
-struct RUMINS { byte fHighSpeedMotor; byte bLowSpeedMotor; float dt; };
-struct RUMPAT { int crumins; RUMINS arumins[32]; };
+struct RUMINS { byte highSpeedMotorOn; byte lowSpeedMotorPower; float duration; };
+struct RUMPAT { int instructionCount; RUMINS instructions[32]; };
 typedef char assert_RUMPAT_size[sizeof(RUMPAT) == 0x104 ? 1 : -1];
 
 struct RUMBLE
 {
-    int nPort;          /* +0x0 */
-    int nSlot;          /* +0x4 */
-    RUMS rums;          /* +0x8 */
-    RUMPAT *prumpat;    /* +0xC */
-    int irumins;        /* +0x10 */
-    float dtRumble;     /* +0x14 */
-    float dtRumins;     /* +0x18 */
+    int port;                   /* +0x0 */
+    int slot;                   /* +0x4 */
+    RUMS state;                 /* +0x8 */
+    RUMPAT *pattern;            /* +0xC */
+    int instructionIndex;       /* +0x10 */
+    float timeLeft;             /* +0x14 seconds of the pattern left to play */
+    float instructionTimeLeft;  /* +0x18 seconds left on the current instruction */
 };
 
 extern CLOCK D_002DDED0;
@@ -52,9 +56,9 @@ void Decref__4CRef(void *p);
 void *__4CRefRC4CRef(void *p, const void *q); /* CRef copy ctor: returns this */
 }
 
-void SetRumbleRums(RUMBLE *prumble, RUMS rums);
-void StopRumbleActuators(RUMBLE *prumble);
-void TriggerRumbleRumpat(RUMBLE *prumble, RUMPAT *prumpat, float dt);
+void SetRumbleRums(RUMBLE *rumble, RUMS state);
+void StopRumbleActuators(RUMBLE *rumble);
+void TriggerRumbleRumpat(RUMBLE *rumble, RUMPAT *pattern, float duration);
 extern "C" int FRumbleEnabled(void);
 
 /* The CRef spelling ResetRumbleSaveVar matched with: an empty default constructor, a copy constructor through
@@ -69,17 +73,17 @@ struct CRef {
     CRef(const RAW &r) { __4CRefRC4CRef(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
-extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
-extern "C" CRef RefGetGlobalSaveVar(void *pv, void *p);
-static inline void SetPv(void *pv, const RAW &r, void *)
+extern "C" CRef RefSetGlobalSaveVar(void *saveVar, const CRef &ref, void *p);
+extern "C" CRef RefGetGlobalSaveVar(void *saveVar, void *p);
+static inline void SetPv(void *saveVar, const RAW &r, void *)
 {
     CRef arg(r);
-    const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
+    const CRef &ret = RefSetGlobalSaveVar(saveVar, arg, D_003D4A60);
 }
-static inline void SetPv2(void *pv, const RAW &r)
+static inline void SetPv2(void *saveVar, const RAW &r)
 {
     CRef arg(r);
-    const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60);
+    const CRef &ret = RefSetGlobalSaveVar(saveVar, arg, D_003D4A60);
 }
 
 /** @sly2-annot addr=0x1D5150
@@ -90,14 +94,16 @@ static inline void SetPv2(void *pv, const RAW &r)
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/main-loop-startup.md#7-source-files,
  *   docs/engine/main-loop-startup.md#8-key-functions
  * @end-sly2-annot */
-void InitRumble(RUMBLE *prumble, int nPort, int nSlot)
+// Binds a rumble controller to a pad port/slot and resets it: Idle if it was Dead, otherwise Stop (which zeroes
+// the motors first).
+void InitRumble(RUMBLE *rumble, int port, int slot)
 {
-    if (prumble->rums == RUMS_Dead)
-        SetRumbleRums(prumble, RUMS_Idle);
+    if (rumble->state == RUMS_Dead)
+        SetRumbleRums(rumble, RUMS_Idle);
     else
-        SetRumbleRums(prumble, RUMS_Stop);
-    prumble->nPort = nPort;
-    prumble->nSlot = nSlot;
+        SetRumbleRums(rumble, RUMS_Stop);
+    rumble->port = port;
+    rumble->slot = slot;
 }
 
 /** @sly2-annot addr=0x1D51B8
@@ -108,34 +114,37 @@ void InitRumble(RUMBLE *prumble, int nPort, int nSlot)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
-void UpdateRumble(RUMBLE *prumble)
+// Per-frame update. Rumbling: advance through the pattern's instructions (looping) by real frame time, sending
+// each to the actuators, until the requested duration runs out, then Stop. Stop/Kill: keep the motors at zero for
+// a few frames, then settle in Idle (Stop) or Dead (Kill).
+void UpdateRumble(RUMBLE *rumble)
 {
-    byte abShockDirect[6];
+    byte actuators[6];
     float dtReal = D_002DDED0.dtReal;
-    switch (prumble->rums) {
+    switch (rumble->state) {
     case RUMS_Rumble:
-        if (prumble->dtRumble > 0.0f) {
-            prumble->dtRumins -= dtReal;
-            if (prumble->dtRumins <= 0.0f) {
-                if (++prumble->irumins >= prumble->prumpat->crumins)
-                    prumble->irumins = 0;
-                abShockDirect[0] = prumble->prumpat->arumins[prumble->irumins].fHighSpeedMotor;
-                abShockDirect[1] = prumble->prumpat->arumins[prumble->irumins].bLowSpeedMotor;
-                scePadSetActDirect(prumble->nPort, prumble->nSlot, abShockDirect);
-                prumble->dtRumins = prumble->prumpat->arumins[prumble->irumins].dt;
+        if (rumble->timeLeft > 0.0f) {
+            rumble->instructionTimeLeft -= dtReal;
+            if (rumble->instructionTimeLeft <= 0.0f) {
+                if (++rumble->instructionIndex >= rumble->pattern->instructionCount)
+                    rumble->instructionIndex = 0;
+                actuators[0] = rumble->pattern->instructions[rumble->instructionIndex].highSpeedMotorOn;
+                actuators[1] = rumble->pattern->instructions[rumble->instructionIndex].lowSpeedMotorPower;
+                scePadSetActDirect(rumble->port, rumble->slot, actuators);
+                rumble->instructionTimeLeft = rumble->pattern->instructions[rumble->instructionIndex].duration;
             }
-            prumble->dtRumble -= dtReal;
+            rumble->timeLeft -= dtReal;
         } else {
-            SetRumbleRums(prumble, RUMS_Stop);
+            SetRumbleRums(rumble, RUMS_Stop);
         }
         break;
     case RUMS_Stop:
     case RUMS_Kill:
-        if (prumble->dtRumins > 0.0f) {
-            StopRumbleActuators(prumble);
-            prumble->dtRumins -= dtReal;
+        if (rumble->instructionTimeLeft > 0.0f) {
+            StopRumbleActuators(rumble);
+            rumble->instructionTimeLeft -= dtReal;
         } else {
-            SetRumbleRums(prumble, (prumble->rums == RUMS_Stop) ? RUMS_Idle : RUMS_Dead);
+            SetRumbleRums(rumble, (rumble->state == RUMS_Stop) ? RUMS_Idle : RUMS_Dead);
         }
         break;
     default:
@@ -151,9 +160,10 @@ void UpdateRumble(RUMBLE *prumble)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
-void TriggerRumbleRumk(RUMBLE *prumble, RUMK rumk, float dt)
+// Plays one of the predefined patterns (D_002C2260, indexed by RUMK) for `duration` seconds.
+void TriggerRumbleRumk(RUMBLE *rumble, RUMK kind, float duration)
 {
-    TriggerRumbleRumpat(prumble, &D_002C2260[rumk], dt);
+    TriggerRumbleRumpat(rumble, &D_002C2260[kind], duration);
 }
 
 /** @sly2-annot addr=0x1D5340
@@ -162,15 +172,17 @@ void TriggerRumbleRumk(RUMBLE *prumble, RUMK rumk, float dt)
  * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r6_1D5150
  * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
-void TriggerRumbleRumpat(RUMBLE *prumble, RUMPAT *prumpat, float dt)
+// Plays `pattern` for `duration` seconds if the pad can rumble, the pattern is not empty and vibration is
+// enabled; restarts from the first instruction even if already rumbling.
+void TriggerRumbleRumpat(RUMBLE *rumble, RUMPAT *pattern, float duration)
 {
-    if (prumble->rums != RUMS_Dead && prumpat->crumins > 0 && FRumbleEnabled()) {
-        prumble->dtRumble = dt;
-        prumble->prumpat = prumpat;
-        prumble->irumins = 0;
-        prumble->dtRumins = prumpat->arumins[0].dt;
-        prumble->rums = RUMS_Nil;
-        SetRumbleRums(prumble, RUMS_Rumble);
+    if (rumble->state != RUMS_Dead && pattern->instructionCount > 0 && FRumbleEnabled()) {
+        rumble->timeLeft = duration;
+        rumble->pattern = pattern;
+        rumble->instructionIndex = 0;
+        rumble->instructionTimeLeft = pattern->instructions[0].duration;
+        rumble->state = RUMS_Nil;
+        SetRumbleRums(rumble, RUMS_Rumble);
     }
 }
 
@@ -180,27 +192,29 @@ void TriggerRumbleRumpat(RUMBLE *prumble, RUMPAT *prumpat, float dt)
  * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r6_1D5150
  * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
-void SetRumbleRums(RUMBLE *prumble, RUMS rums)
+// State transition: entering Rumble sends the first instruction; entering Stop/Kill zeroes the motors and holds
+// them for 4 frames of real time; Dead/Idle just record the state.
+void SetRumbleRums(RUMBLE *rumble, RUMS state)
 {
-    if (rums == prumble->rums)
+    if (state == rumble->state)
         return;
-    unsigned char abShockDirect[6];
-    switch (rums)
+    unsigned char actuators[6];
+    switch (state)
     {
     case RUMS_Rumble:
-        abShockDirect[0] = prumble->prumpat->arumins[0].fHighSpeedMotor;
-        abShockDirect[1] = prumble->prumpat->arumins[0].bLowSpeedMotor;
-        scePadSetActDirect(prumble->nPort, prumble->nSlot, abShockDirect);
-        prumble->rums = rums;
+        actuators[0] = rumble->pattern->instructions[0].highSpeedMotorOn;
+        actuators[1] = rumble->pattern->instructions[0].lowSpeedMotorPower;
+        scePadSetActDirect(rumble->port, rumble->slot, actuators);
+        rumble->state = state;
         break;
     case RUMS_Stop:
     case RUMS_Kill:
-        StopRumbleActuators(prumble);
-        prumble->dtRumins = g_clock.dtReal * 4.0f;
+        StopRumbleActuators(rumble);
+        rumble->instructionTimeLeft = g_clock.dtReal * 4.0f;
     case RUMS_Dead:
     case RUMS_Idle:
     default:
-        prumble->rums = rums;
+        rumble->state = state;
         break;
     }
 }
@@ -213,12 +227,13 @@ void SetRumbleRums(RUMBLE *prumble, RUMS rums)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
-void StopRumbleActuators(RUMBLE *prumble)
+// Turns both motors off.
+void StopRumbleActuators(RUMBLE *rumble)
 {
-    unsigned char abShockDirect[6];
-    abShockDirect[0] = 0;
-    abShockDirect[1] = 0;
-    scePadSetActDirect(prumble->nPort, prumble->nSlot, abShockDirect);
+    unsigned char actuators[6];
+    actuators[0] = 0;
+    actuators[1] = 0;
+    scePadSetActDirect(rumble->port, rumble->slot, actuators);
 }
 
 /** @sly2-annot addr=0x1D5498
@@ -231,6 +246,7 @@ void StopRumbleActuators(RUMBLE *prumble)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
+// Makes the forced vibration mode follow the save option (mode 1) if no mode was set.
 extern "C" void EnsureRumbleModeDefault(void)
 {
     if (D_002C2D8C == 0)
@@ -244,13 +260,15 @@ extern "C" void EnsureRumbleModeDefault(void)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
+// Writes a forced vibration mode into the save option: mode 2 (forced on) clears g_sw.psvpNoVibration, mode 3
+// (forced off) sets it; mode 1 leaves it.
 extern "C" void ResetRumbleSaveVar(void)
 {
     RAW ref;
     switch (D_002C2D8C) {
     case 1: break;
-    case 2: { void *pv = g_sw.psvpNoVibration; ref.m_tagk = 0x17; ref.m_tag = 0; SetPv(pv, ref, D_003D4A60); } Decref__4CRef(&ref); break;
-    case 3: { void *pv = g_sw.psvpNoVibration; SetBool2(&ref, 1); SetPv2(pv, ref); } Decref__4CRef(&ref); break;
+    case 2: { void *saveVar = g_sw.psvpNoVibration; ref.m_tagk = 0x17; ref.m_tag = 0; SetPv(saveVar, ref, D_003D4A60); } Decref__4CRef(&ref); break;
+    case 3: { void *saveVar = g_sw.psvpNoVibration; SetBool2(&ref, 1); SetPv2(saveVar, ref); } Decref__4CRef(&ref); break;
     }
 }
 
@@ -262,6 +280,8 @@ extern "C" void ResetRumbleSaveVar(void)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
  * @end-sly2-annot */
+// Returns whether vibration is enabled: forced on (mode 2), forced off (modes 0 and 3), otherwise the inverse of
+// the save option g_sw.psvpNoVibration.
 extern "C" int FRumbleEnabled(void)
 {
     switch (D_002C2D8C) {
@@ -272,12 +292,12 @@ extern "C" int FRumbleEnabled(void)
         return 0;
     case 1:
     default: {
-        int n;
+        int noVibration;
         {
             CRef ref = RefGetGlobalSaveVar(g_sw.psvpNoVibration, D_003D4A60);
-            n = ref.m_tag;
+            noVibration = ref.m_tag;
         }
-        return n ^ 1;
+        return noVibration ^ 1;
     }
     }
 }
