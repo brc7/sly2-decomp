@@ -1,5 +1,6 @@
 // turret.cpp -- TURRET, a player-controlled turret (a PO): aim (pitch/yaw from a target or the stick), zoom (from a
-// target's bounds or the stick), firing through a launcher, and its rotation act. VU0 and EE 128-bit asm.
+// target's bounds or the stick), firing through a launcher, and its rotation act. Entry points: the TURRET vtable
+// (InitTurret, CloneTurret, PostLoad, OnTurretActive, UpdateTurret, FilterTurretProxySource). VU0 and EE 128-bit asm.
 // TU 0x2259D8..0x226550 (12 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_turret
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00226530
@@ -34,7 +35,7 @@ struct TURRETV
     char pad0[0xC];
     VTE *vt;            /* +0x00C */
     char pad10[0x4C];
-    int x5C;            /* +0x05C */
+    int unknown5C;      /* +0x05C */
     char pad60[0xF0];
     CONTROL *control;   /* +0x150 */
     char pad154[0x2C];
@@ -46,15 +47,15 @@ struct TURRETV
     LMV pitchRange;      /* +0x1A4 */
     LMV range;           /* +0x1AC zoom range */
     float blend, velocity, strength;  /* +0x1B4 */
-    PROXYSRC *pproxy;   /* +0x1C0 what it fires (PloAcquireProxy) */
-    void *plauncher;    /* +0x1C4 */
-    void *plaunched;    /* +0x1C8 last object fired */
-    int output;         /* +0x1CC the rotation act is running */
-    void *pself;        /* +0x1D0 */
-    int fActive;        /* +0x1D4 */
-    void *pact;         /* +0x1D8 rotation act */
+    PROXYSRC *projectileProxy;   /* +0x1C0 what it fires (PloAcquireProxy) */
+    void *launcher;     /* +0x1C4 */
+    void *lastLaunched; /* +0x1C8 last object fired */
+    int isActRunning;   /* +0x1CC the rotation act is running */
+    void *self;         /* +0x1D0 */
+    int isActive;       /* +0x1D4 */
+    void *rotationAct;  /* +0x1D8 rotation act */
 };
-typedef char assert_TURRET_pact[(unsigned int)&((TURRETV *)0)->pact == 0x1D8 ? 1 : -1];
+typedef char assert_TURRET_pact[(unsigned int)&((TURRETV *)0)->rotationAct == 0x1D8 ? 1 : -1];
 
 /* turret's .data (address order). */
 LMV D_002C4400 = {0.1f, 1.0f};
@@ -98,147 +99,114 @@ int func_0012DC18(TURRETV *p, int c, int a, int b, int d, qword q);
 void ReleaseAct(void **ph);
 }
 
+// Packs three floats into a VU vector (x, y, z).
 static inline qword Make(float x,float y,float z) {
     qword q,t;
     __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));
     return q;
 }
 
-/** @sly2-annot addr=0x2259D8
- * Purpose: InitPo; lmPan=(-1.5,1.5), lmTilt=(-0.7,0.7), defaults, self pointer
- * Info: proposed name InitTurret (T1); class TURRET slot7; TU turret
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode
- * @end-sly2-annot */
-extern "C" void InitTurret(TURRETV *p)
+// TURRET vtable slot 7 (Init): PO defaults; yaw range +-1.5 rad, pitch range +-0.7 rad, zoom and smoothing
+// defaults, and the self pointer at +0x1D0.
+extern "C" void InitTurret(TURRETV *turret)
 {
-    InitPo(p);
-    p->range = D_002C4400;
-    p->output = 1;
-    p->strength = p->range.hi;
-    p->pitchRange.lo = -1.5f;
-    p->pitchRange.hi = 1.5f;
-    p->yawRange.lo = -0.7f;
-    p->yawRange.hi = 0.7f;
-    p->fActive = 1;
-    p->pself = p;
+    InitPo(turret);
+    turret->range = D_002C4400;
+    turret->isActRunning = 1;
+    turret->strength = turret->range.hi;
+    turret->pitchRange.lo = -1.5f;
+    turret->pitchRange.hi = 1.5f;
+    turret->yawRange.lo = -0.7f;
+    turret->yawRange.hi = 0.7f;
+    turret->isActive = 1;
+    turret->self = turret;
 }
 
-/** @sly2-annot addr=0x225A68
- * Purpose: ClonePo then fix self pointer 0x1D0
- * Info: proposed name CloneTurret (T1); class TURRET slot41; TU turret
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void *CloneTurret(TURRETV *p, TURRETV *pSrc)
+// TURRET Clone: copies the source PO, then points the self pointer back at this turret.
+extern "C" void *CloneTurret(TURRETV *turret, TURRETV *source)
 {
     void *pv;
-    ClonePo(p, pSrc);
-    pv = p->pself;
-    if (pv == pSrc)
-        p->pself = p;
+    ClonePo(turret, source);
+    pv = turret->self;
+    if (pv == source)
+        turret->self = turret;
     return pv;
 }
 
-/** @sly2-annot addr=0x225AA8
- * Purpose: PostSoLoad then pending state -> 0x226370(p,1)
- * Info: proposed name PostTurretLoad (T1); class TURRET slot15; TU turret
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
+// TURRET vtable slot 15 (PostLoad): finishes the SO load and, if the level marked it active, activates it
+// (SetTurretActive). (inferred)
 void TURRET::VUnk14()
 {
-    TURRETV *p = (TURRETV *)this;
-    PostSoLoad(p);
-    if (p->output) { p->output = 0; SetTurretActive(p, 1); }
+    TURRETV *turret = (TURRETV *)this;
+    PostSoLoad(turret);
+    if (turret->isActRunning) { turret->isActRunning = 0; SetTurretActive(turret, 1); }
 }
 
-/** @sly2-annot addr=0x225AE8
- * Purpose: OnPoActive then SetCmPolicy(g_cm,9,g_cm+0x5F0,..) or RevokeCmPolicy
- * Info: proposed name OnTurretActive (T1); class TURRET slot78; TU turret
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void OnTurretActive(TURRETV *p, int b)
+// TURRET OnActive: when the player takes the turret, installs camera policy 9 (the turret view) on g_cm;
+// revokes it when the player leaves.
+extern "C" void OnTurretActive(TURRETV *turret, int b)
 {
-    OnPoActive(p, b);
-    if (b) SetCmPolicy(D_002DDF40, 9, D_002DDF40 + 0x5F0, p, 0);
-    else RevokeCmPolicy(D_002DDF40, 0xF, 9, D_002DDF40 + 0x5F0, p, 0);
+    OnPoActive(turret, b);
+    if (b) SetCmPolicy(D_002DDF40, 9, D_002DDF40 + 0x5F0, turret, 0);
+    else RevokeCmPolicy(D_002DDF40, 0xF, 9, D_002DDF40 + 0x5F0, turret, 0);
 }
 
-/** @sly2-annot addr=0x225B60
- * Purpose: SO update then aim (0x225BA0), zoom (0x225E98), fire (0x226250)
- * Info: proposed name UpdateTurret (T1); class TURRET slot16; TU turret
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void UpdateTurret(TURRETV *p, float dt)
+// TURRET vtable slot 16 (Update): SO update, then aim, zoom and fire.
+extern "C" void UpdateTurret(TURRETV *turret, float dt)
 {
-    UpdateSo(p, dt);
-    UpdateTurretAim(p);
-    UpdateTurretZoom(p);
-    UpdateTurretFire(p);
+    UpdateSo(turret, dt);
+    UpdateTurretAim(turret);
+    UpdateTurretZoom(turret);
+    UpdateTurretFire(turret);
 }
 
-// Update target-facing angles or integrate angular input.
-/** @sly2-annot addr=0x225BA0
- * Purpose: pan/tilt toward target or from stick, limited by lmPan/lmTilt
- * Info: proposed name UpdateTurretAim (T1); TU turret
- * Notes: names_v2 C proposed AdjustStepXpVelocityBase__FP4STEPP2XPi (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void UpdateTurretAim(TURRETV *p){
-    if(p->target && p->aim) {
+// Aims the turret: with a target and aiming enabled, turns pan/tilt toward it; otherwise integrates the stick into
+// smoothed angular velocities. Both are clamped to the yaw/pitch ranges, and the rotation act gets the new goal.
+extern "C" void UpdateTurretAim(TURRETV *turret){
+    if(turret->target && turret->aim) {
         M3 m;
         float pitch,yaw;
         qword target;
-        m=LoadLookAtMatrix((target=func_001A62E8(p->target),VuSub(target,func_001A62E8(p))));
+        m=LoadLookAtMatrix((target=func_001A62E8(turret->target),VuSub(target,func_001A62E8(turret))));
         DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(&m,&pitch,&yaw);
-        float dp=pitch-p->pitch;
-        float dy=yaw-p->yaw;
-        p->pitch=pitch;p->yaw=yaw;
-        p->vpitch=dp;p->vyaw=dy;
+        float dp=pitch-turret->pitch;
+        float dy=yaw-turret->yaw;
+        turret->pitch=pitch;turret->yaw=yaw;
+        turret->vpitch=dp;turret->vyaw=dy;
     } else {
-        if(p->control) {
-            float x=GLimitAbs__Fff(p->control->x+p->control->z,1.0f);
-            float y=GLimitAbs__Fff(p->control->y,1.0f);
-            float strength=p->strength;
+        if(turret->control) {
+            float x=GLimitAbs__Fff(turret->control->x+turret->control->z,1.0f);
+            float y=GLimitAbs__Fff(turret->control->y,1.0f);
+            float strength=turret->strength;
             float gain=(1.0f-strength)*0.5f+strength;
             float cubic=-x*x;
             cubic=cubic*x;
             float accel=gain*10.0f;
             float ax=cubic*accel;
             float limit=strength*1.3f;
-            if(ax*p->vpitch<=0.0f)p->vpitch=0.0f;
+            if(ax*turret->vpitch<=0.0f)turret->vpitch=0.0f;
             float cubeY=y*y;
             cubeY=cubeY*y;
             float ay=cubeY*accel;
             if(!RefGetGlobalSaveVar((*(int *)&g_sw.psvpReverseAim),D_003D4A60).u.n)ay=-ay;
-            if(ay*p->vyaw<=0.0f)p->vyaw=0.0f;
+            if(ay*turret->vyaw<=0.0f)turret->vyaw=0.0f;
             CLOCK *clock=&D_002DDED0;
             const float *damping=D_002C4408;
-            p->vpitch=GSmooth__FfffP3SMPPf(p->vpitch,0.0f,clock->dt,damping,0);
-            p->vyaw=GSmooth__FfffP3SMPPf(p->vyaw,0.0f,clock->dt,damping,0);
-            p->vpitch=GLimitAbs__Fff(p->vpitch+ax*clock->dt,limit*0.9f);
-            p->vyaw=GLimitAbs__Fff(p->vyaw+ay*clock->dt,limit*0.8f);
-            p->pitch+=p->vpitch*clock->dt;
-            p->yaw+=p->vyaw*clock->dt;
+            turret->vpitch=GSmooth__FfffP3SMPPf(turret->vpitch,0.0f,clock->dt,damping,0);
+            turret->vyaw=GSmooth__FfffP3SMPPf(turret->vyaw,0.0f,clock->dt,damping,0);
+            turret->vpitch=GLimitAbs__Fff(turret->vpitch+ax*clock->dt,limit*0.9f);
+            turret->vyaw=GLimitAbs__Fff(turret->vyaw+ay*clock->dt,limit*0.8f);
+            turret->pitch+=turret->vpitch*clock->dt;
+            turret->yaw+=turret->vyaw*clock->dt;
         }
     }
-    p->pitch=GLimitLm__FP2LMf(&p->pitchRange,p->pitch);
-    p->yaw=GLimitLm__FP2LMf(&p->yawRange,p->yaw);
-    if(p->output){V v;v.q=Make(0.0f,-p->yaw,p->pitch);SetActPositionGoal(p->pact,v.q);}
+    turret->pitch=GLimitLm__FP2LMf(&turret->pitchRange,turret->pitch);
+    turret->yaw=GLimitLm__FP2LMf(&turret->yawRange,turret->yaw);
+    if(turret->isActRunning){V v;v.q=Make(0.0f,-turret->yaw,turret->pitch);SetActPositionGoal(turret->rotationAct,v.q);}
 }
 
-// Update zoom from target bounds or controller input.
-static inline qword LoadVF(const qword &q){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(q));return r;}
+// Zoom: framed on the target's bounds when following one, else driven by the controller's zoom input.
+static inline qword LoadVF(const qword &proxySource){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(proxySource));return r;}
 static inline qword ToVF(qword v){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(v));return r;}
 static inline qword Difference(qword b,qword a){qword r;__asm__("vsub.xyzw %0,%2,%1":"=j"(r):"j"(b),"j"(a));return r;}
 static inline float Length(qword d){qword r;float f;
@@ -253,33 +221,26 @@ static inline qword InverseRotate(const M3 &m,qword v){qword r=m.r[0],one,a,b,c;
     __asm__("vmul.xyzw %2,%0,%7\n\tvmaxw.xyzw %1,$vf0,$vf0w\n\tvmul.xyzw %3,%5,%7\n\tvmul.xyzw %4,%6,%7\n\tvadday.x ACC,%2,%2y\n\tvmaddz.x %0,%1,%2z\n\tvaddax.y ACC,%3,%3x\n\tvmaddz.y %0,%1,%3z\n\tvaddax.z ACC,%4,%4x\n\tvmaddy.z %0,%1,%4y":"+j"(r),"=&j"(one),"=&j"(a),"=&j"(b),"=&j"(c):"j"(m.r[1]),"j"(m.r[2]),"j"(v));return r;}
 static inline float Fraction(LMV *range,float f){if(range->lo==range->hi)return 0.0f;return (f-range->lo)/(range->hi-range->lo);}
 static inline float Blend(LMV *range,float u){return (1.0f-u)*range->lo+u*range->hi;}
-/** @sly2-annot addr=0x225E98
- * Purpose: zoom from target bounds or controller
- * Info: proposed name UpdateTurretZoom (T2); TU turret
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void UpdateTurretZoom(TURRETV *p){
-    if(p->target && p->follow){
+extern "C" void UpdateTurretZoom(TURRETV *turret){
+    if(turret->target && turret->follow){
         M4 m;
         V future,offset,local,swapped;
         SMPV spring;
         V saved;
         V scratch;
-        float radius=p->target->shape?p->target->shape->radius:0.0f;
-        scratch.q=ToVF(func_001A62E8(p));
-        float angle=atanf(radius/(Length(VuSub(scratch.q,func_001A62E8(p->target)))*0.5f));
+        float radius=turret->target->shape?turret->target->shape->radius:0.0f;
+        scratch.q=ToVF(func_001A62E8(turret));
+        float angle=atanf(radius/(Length(VuSub(scratch.q,func_001A62E8(turret->target)))*0.5f));
         angle=angle+angle;
         CLOCK *clock=&D_002DDED0;
-        angle=GMax(angle,p->range.lo);
-        LoadIdentityMatrix4(p->target->component,0,&m,0,clock->dt);
+        angle=GMax(angle,turret->range.lo);
+        LoadIdentityMatrix4(turret->target->component,0,&m,0,clock->dt);
         scratch.q=LoadVF(m.r[3]);future.q=scratch.q;
-        offset.q=VuSub(scratch.q,func_001A62E8(p->target));
+        offset.q=VuSub(scratch.q,func_001A62E8(turret->target));
         float extent=radius+OffsetLength(offset.q);
         saved.q=future.q;
-        local.q=Difference(func_001A62E8(p),saved.q);
-        local.q=InverseRotate(*func_001A6318(p),local.q);
+        local.q=Difference(func_001A62E8(turret),saved.q);
+        local.q=InverseRotate(*func_001A6318(turret),local.q);
         swapped.f[0]=-local.f[1];swapped.f[1]=local.f[2];swapped.f[2]=local.f[0];
         float desired;
         if(local.f[0]>0.0001f){
@@ -287,75 +248,61 @@ extern "C" void UpdateTurretZoom(TURRETV *p){
             horizontal=horizontal+horizontal;
             float vertical=atanf((GAbs(swapped.f[1])+extent)/swapped.f[2]);
             vertical=vertical+vertical;
-            desired=GMin(GMax(horizontal,vertical),p->range.hi);
-        }else desired=p->range.hi;
+            desired=GMin(GMax(horizontal,vertical),turret->range.hi);
+        }else desired=turret->range.hi;
         desired=GMax(desired,angle);
-        float target=GLimitLm__FP2LMf(&D_002BBB60,1.0f-Fraction(&p->range,desired));
-        float delta=GAbs(target-p->blend);
+        float target=GLimitLm__FP2LMf(&D_002BBB60,1.0f-Fraction(&turret->range,desired));
+        float delta=GAbs(target-turret->blend);
         spring=D_002A97B0;
         float rate=(1.0f-delta)*D_002C4418[0]+delta*D_002C4418[1];
         spring.d*=rate;spring.a*=rate;spring.b*=rate;
-        p->blend=GSmoothA__FffffP4SMPAPf(p->blend,p->velocity,target,D_002DDED0.dt,&spring,&p->velocity);
+        turret->blend=GSmoothA__FffffP4SMPAPf(turret->blend,turret->velocity,target,D_002DDED0.dt,&spring,&turret->velocity);
     }else {
-        if(p->control){
-            float blend=p->blend,zoom=p->control->zoom;
-            p->velocity=(D_002C4420[0]+blend*(D_002C4420[1]+blend*D_002C4420[2]))*zoom*GAbs(zoom);
-            p->blend=GLimitLm__FP2LMf(&D_002BBB60,blend+p->velocity*D_002DDED0.dt);
+        if(turret->control){
+            float blend=turret->blend,zoom=turret->control->zoom;
+            turret->velocity=(D_002C4420[0]+blend*(D_002C4420[1]+blend*D_002C4420[2]))*zoom*GAbs(zoom);
+            turret->blend=GLimitLm__FP2LMf(&D_002BBB60,blend+turret->velocity*D_002DDED0.dt);
         }
     }
-    p->strength=Blend(&p->range,1.0f-p->blend);
+    turret->strength=Blend(&turret->range,1.0f-turret->blend);
 }
 
-/** @sly2-annot addr=0x226250
- * Purpose: on fire button (0x1C4700 mask 0xFF) spawn projectile (0x1CB250/0x1D6B00) and send splice event 5
- * Info: proposed name FireTurret (T2); TU turret
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
- *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void UpdateTurretFire(TURRETV *p)
+// Fires on any newly pressed button: takes a projectile from the proxy pool, launches it from the launcher and fires
+// the turret's Splice event 5. (inferred)
+extern "C" void UpdateTurretFire(TURRETV *turret)
 {
-    if (p->control && POCTL_FConsumePressed(p->control, 0xFF)) {
-        if (p->pproxy) {
-            void *v = PloAcquireProxy(p->pproxy, 0);
+    if (turret->control && POCTL_FConsumePressed(turret->control, 0xFF)) {
+        if (turret->projectileProxy) {
+            void *v = PloAcquireProxy(turret->projectileProxy, 0);
             if (!v) return;
-            p->plaunched = v;
-            if (p->plauncher) LaunchSoFromLauncher(p->plauncher, v);
-            p->vt[3].pf((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+            turret->lastLaunched = v;
+            if (turret->launcher) LaunchSoFromLauncher(turret->launcher, v);
+            turret->vt[3].pf((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
         } else
-            p->vt[3].pf((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+            turret->vt[3].pf((char *)turret + turret->vt[3].d, 5, 0, 0, 0, 0);
     }
 }
 
-/** @sly2-annot addr=0x226310
- * Purpose: base filter 0x1F4FC8; add flag when other matches own target kind
- * Info: proposed name FFilterTurret (T2); class TURRET slot61; TU turret
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void *FilterTurretProxySource(TURRETV *p, PROXYSRC *q)
+// Proxy-source filter: the SO default, plus an extra flag when the candidate's kind matches the turret's projectile
+// (so the turret ignores its own shots). (inferred)
+extern "C" void *FilterTurretProxySource(TURRETV *turret, PROXYSRC *proxySource)
 {
-    void *v = FIgnoreSoIntersection(p);
-    if (p->pproxy && q->k == p->pproxy->k) v = func_00134310(v, 1);
+    void *v = FIgnoreSoIntersection(turret);
+    if (turret->projectileProxy && proxySource->k == turret->projectileProxy->k) v = func_00134310(v, 1);
     return v;
 }
 
-/** @sly2-annot addr=0x226370
- * Purpose: state change; on enable builds a target vector and calls 0x12DC18/0x12E460
- * Info: proposed name SetTurretActiveState (T2); TU turret
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
- * @end-sly2-annot */
-extern "C" void SetTurretActive(TURRETV *p, int k)
+// Turns the turret on (creates the rotation act toward the current pan/tilt) or off (releases the act). (inferred)
+extern "C" void SetTurretActive(TURRETV *turret, int k)
 {
-    if (p->output != k) {
-        p->output = k;
+    if (turret->isActRunning != k) {
+        turret->isActRunning = k;
         if (k) {
             V v;
-            v.q = Make(0.0f, -p->yaw, p->pitch);
-            p->pact = (void *)func_0012DC18(p, p->x5C, 1, 5, 3, v.q);
+            v.q = Make(0.0f, -turret->yaw, turret->pitch);
+            turret->rotationAct = (void *)func_0012DC18(turret, turret->unknown5C, 1, 5, 3, v.q);
         } else {
-            ReleaseAct(&p->pact);
+            ReleaseAct(&turret->rotationAct);
         }
     }
 }
