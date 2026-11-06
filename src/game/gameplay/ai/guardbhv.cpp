@@ -29,6 +29,15 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* Zap (damage) kinds of a zap message (docs/engine/player.md "Damage kinds", physics-collision.md); only the
    kinds tested by name here. */
 enum { ZAP_WATER = 0x2000, ZAP_STUCK_WATCH = 0x4000, ZAP_SLEEP_DART = 0x80000, ZAP_JUGGLE = 0x200000 };
+/* Zap reaction bits of a zap message's flags (HandleBhvguardMessage; inferred from how each bit is resolved):
+   flinch (stagger meter), hurt, KO and knockdown. */
+enum {
+    REACT_FLINCH = 0x10,
+    REACT_HURT = 0x20,
+    REACT_KO = 0x40,
+    REACT_KNOCKDOWN = 0x80,
+    REACT_ANY = 0xF0
+};
 /* BHVGUARD awareness modes (the root behaviour's mode record kind, +0x30; docs/engine/guards-ai.md section 3). Past
    the documented ones, a mode is named after the behaviour it pushes (SetBhvguardMode) and what ends it
    (UpdateBhvguard); GUARD_MODE_WATCH is inferred. */
@@ -1895,7 +1904,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
             Clear(&w.next);
             w.next.kind = GUARD_MODE_KO;
             w.next.msg = *msg;
-            w.next.msg.data.flags = 0x40;
+            w.next.msg.data.flags = REACT_KO;
             SetBhvguardMode(behavior, &w.next);
             return 1;
         }
@@ -1996,7 +2005,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
             goto finish;
         }
         originalFlags = msg->data.flags;
-        if (!(originalFlags & 0xF0))
+        if (!(originalFlags & REACT_ANY))
             goto finish;
         flags = originalFlags;
         Clear(&w.next);
@@ -2006,28 +2015,29 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
             (void)NewNoise(context, position, behavior->guard);
         }
         if (Below(behavior->current.kind, GUARD_MODE_KO) && !Below(behavior->current.kind, GUARD_MODE_SLEEP)
-            && FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object, CID_CLASS101) && (originalFlags & 0xB0))
-            flags = originalFlags | 0x40;
+            && FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object, CID_CLASS101)
+            && (originalFlags & (REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN)))
+            flags = originalFlags | REACT_KO;
         if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
-            flags |= 0x80;
-        if (flags & 0x40)
-            flags &= ~0xB0;
-        if (flags & 0xA0)
-            flags &= ~0x10;
-        if (flags & 0x80) {
-            flags &= ~0x20;
+            flags |= REACT_KNOCKDOWN;
+        if (flags & REACT_KO)
+            flags &= ~(REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN);
+        if (flags & (REACT_HURT | REACT_KNOCKDOWN))
+            flags &= ~REACT_FLINCH;
+        if (flags & REACT_KNOCKDOWN) {
+            flags &= ~REACT_HURT;
             int type = Slot(behavior->guard, msg->data.kind, 0x8D0)->kind;
             if (type == -1 && Slot(behavior->guard, msg->data.kind, 0xA70)->kind != type) {
-                flags &= ~0x80;
-                flags |= 0x20;
+                flags &= ~REACT_KNOCKDOWN;
+                flags |= REACT_HURT;
             }
             if (Slot(behavior->guard, msg->data.kind, 0x8D0)->kind == -1
                 && !FindBestAnimBinding(behavior->guard, GetSgfMask(6))) {
-                flags &= ~0x80;
-                flags |= 0x20;
+                flags &= ~REACT_KNOCKDOWN;
+                flags |= REACT_HURT;
             }
         }
-        if (flags & 0x10) {
+        if (flags & REACT_FLINCH) {
             if (behavior->guard->capacity > 0) {
                 behavior->guard->progress += msg->data.amount;
                 if (behavior->guard->progress > 0) {
@@ -2035,28 +2045,28 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                                                           &behavior->guard->animation);
                     behavior->guard->animationTime = D_002DDED0.t;
                 } else
-                    flags |= 0x20;
+                    flags |= REACT_HURT;
             } else
-                flags |= 0x20;
+                flags |= REACT_HURT;
         }
-        if (flags & 0xA0) {
+        if (flags & (REACT_HURT | REACT_KNOCKDOWN)) {
             behavior->guard->progress = behavior->guard->capacity;
             int delta = behavior->guard->capacity > 0 ? -behavior->guard->capacity : msg->data.amount;
             int reserve = behavior->guard->reserve + delta;
             behavior->guard->reserve = reserve < 0 ? 0 : reserve;
             if (behavior->guard->reserve > 0) {
-                w.next.kind = (flags & 0x80) ? GUARD_MODE_KNOCKDOWN : GUARD_MODE_HURT;
+                w.next.kind = (flags & REACT_KNOCKDOWN) ? GUARD_MODE_KNOCKDOWN : GUARD_MODE_HURT;
                 w.next.msg = *msg;
                 selected = &w.next.msg;
             } else
-                flags |= 0x40;
+                flags |= REACT_KO;
         }
-        if (flags & 0x40) {
+        if (flags & REACT_KO) {
             w.next.kind = GUARD_MODE_KO;
             w.next.msg = *selected;
             selected = &w.next.msg;
         }
-        if (flags & 0xE0) {
+        if (flags & (REACT_HURT | REACT_KO | REACT_KNOCKDOWN)) {
             if (FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPPLAYER)) {
                 qword own = func_001A62E8(behavior->guard);
                 OBJECT *otherObject = selected->data.object;
