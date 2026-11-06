@@ -240,8 +240,8 @@ typedef char assert_BARRIER_size[sizeof(BARRIER) == 0x180 ? 1 : -1];
 struct BLIPG : XFM
 {
     BLIP ablip[32];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBlipgClassDesc");   /* slot 6 */
     virtual void VUnk01() __asm__("func_00139318");   /* slot 2 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBlipgClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBlipg__FP5BLIPG");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("OnBlipgRemove__FP5BLIPG");   /* slot 12 */
     virtual void VUnk15() __asm__("UpdateBlipg");   /* slot 16 */
