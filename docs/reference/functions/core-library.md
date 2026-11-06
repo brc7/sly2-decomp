@@ -434,7 +434,7 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x255F38](../../../include/sly2/gc.h) | `PushFront__t6CGcObj1Z7CMethodPP7CMethod` | Splice GC pool template: push node onto a list (prev/next stored as (index,page) pairs) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x2560C8](../../../include/sly2/gc.h) | `__t6CGcObj1Z7CMethod` | init new node: x0=0, push on live list, stamp GC epoch (D_002DD598) [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x256120](../../../include/sly2/gc.h) | `Unlink__t6CGcObj1Z7CMethod` | unlink node from its GC list (fix list heads) [game linkonce (inline/template)] | 0.50 | T1 |  |
-| [0x256278](../../../src/game/engine/camera/cm.cpp) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x256278](../../../include/sly2/cm.h) | `SetCmMat_thunk` | virtual thunk -> SetCmMat 0x14F428 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x256298](../../../include/sly2/cm.h) | `CmIface_GetQw90` | return qword at +0x90 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A0](../../../include/sly2/cm.h) | `CmIface_Ptr60` | return this+0x60 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2562A8](../../../src/game/gameplay/ai/guardbhv.cpp) | `ClearPathlinkEndpoint` | Inline default constructor of a two-pointer record: p->a=0; p->b=0 | 0.30 | T2 | top50; top50 round; v2 name ClearTwoWords |
@@ -518,11 +518,11 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258470](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetHorizontalJust` | p->x14 = jh [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258478](../../../src/game/gameplay/objects/rhythm.cpp) | `CTextBox_SetVerticalJust` | p->x18 = jv [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x258480](../../../src/game/gameplay/ai/tu_1553F0.cpp) | `VecCombo__FG8VU_FLOATG9VU_VECTORT0T1` |  |  | existing |  |
-| [0x2584A8](../../../src/game/engine/fx/emitter.cpp) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258598](../../../src/game/engine/fx/emitter.cpp) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x258620](../../../src/game/engine/fx/emitter.cpp) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x258658](../../../src/game/engine/fx/emitter.cpp) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x2586D8](../../../src/game/engine/fx/emitter.cpp) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
+| [0x2584A8](../../../include/sly2/emitter.h) | `LoadEmitblipColorsFromBrx` | read count + RGBA list into EMITB [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258598](../../../include/sly2/emitter.h) | `LoadEmitterFromBrx` | EMITTER vt14: alloc+InitEmitb, LoadXfmFromBrx, options, blip colours [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x258620](../../../include/sly2/emitter.h) | `CloneEmitter` | EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x258658](../../../include/sly2/emitter.h) | `PemitbEnsureEmitter` | copy-on-write EMITB when ensk==1 and cref>=2 [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x2586D8](../../../include/sly2/emitter.h) | `BindEmitter` | resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x258898](../../../include/sly2/emitter.h) | `PemitbEmitterPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258920](../../../include/sly2/emitter.h) | `PemitbEmitterPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2589A8](../../../include/sly2/emitter.h) | `EnsureEmitterEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -541,12 +541,12 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x258E40](../../../include/sly2/emitter.h) | `GetEmitterPartAKind` | return PartA variant kind (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258E60](../../../include/sly2/emitter.h) | `PvEmitterPartAEnsureKind2` | ensure PartA variant 2 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x258EC8](../../../include/sly2/emitter.h) | `PvEmitterPartAEnsureKind1` | ensure PartA variant 1 (EMITTER copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x258F30](../../../src/game/object/basic.cpp) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x258F40](../../../src/game/engine/fx/emitter.cpp) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x259030](../../../src/game/engine/fx/emitter.cpp) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
-| [0x2590B8](../../../src/game/engine/fx/emitter.cpp) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
-| [0x2590F0](../../../src/game/actor/po.cpp) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
-| [0x259170](../../../src/game/engine/fx/emitter.cpp) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
+| [0x258F30](../../../include/sly2/emitter.h) | `EMITTER_PvOptionDefaults` | virtual returning static data &D_002BAD2C [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x258F40](../../../include/sly2/emitter.h) | `LoadExploBlipColorsFromBrx` | EXPLO twin of 0x2584A8 [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x259030](../../../include/sly2/emitter.h) | `LoadExploFromBrx` | EXPLO/EXPLS vt14 (template twin of LoadEmitterFromBrx) [game linkonce (inline/template)] | 0.75 | T1 | parse |
+| [0x2590B8](../../../include/sly2/emitter.h) | `CloneExplo` | EXPLO/EXPLS vt41 [game linkonce (inline/template)] | 0.55 | T1 |  |
+| [0x2590F0](../../../include/sly2/emitter.h) | `PemitbEnsureExplo` | copy-on-write EMITB of an EXPLO [game linkonce (inline/template)] | 0.60 | T1 |  |
+| [0x259170](../../../include/sly2/emitter.h) | `BindExplo` | EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)] | 0.40 | T2 |  |
 | [0x259330](../../../include/sly2/emitter.h) | `PemitbExploPartAEnsure` | ensure sub-record A (kind 0; default D_002BDE10); else default object D_002DE720 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2593B8](../../../include/sly2/emitter.h) | `PemitbExploPartBEnsure` | ensure sub-record B (kind 1; default D_002BDE70) (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259440](../../../include/sly2/emitter.h) | `EnsureExploEmitbPartByKind` | switch(kind): 0 -> PartA ensure, 1 -> PartB ensure (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
@@ -565,38 +565,38 @@ Totals on this page: EXISTING 125, T1 175, T2 160.
 | [0x2598D8](../../../include/sly2/emitter.h) | `GetExploPartAKind` | return PartA variant kind (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2598F8](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind2` | ensure PartA variant 2 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259960](../../../include/sly2/emitter.h) | `PvExploPartAEnsureKind1` | ensure PartA variant 1 (EXPLO copy) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599C8](../../../src/game/engine/fx/emitter.cpp) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2599C8](../../../include/sly2/emitter.h) | `EXPLO_PvOptionDefaults` | virtual returning static data &D_002BAD68 [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599D8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetX` | return v[0] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E0](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetY` | return v[1] [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x2599E8](../../../src/game/engine/graphics/pipeline/glob.cpp) | `VECTOR_GetZ` | return v[2] [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x2599F0](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x2599F0](../../../include/sly2/xfm.h) | `PvOptBase_Self_002599F0` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x2599F8](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_002599F8` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A00](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A00](../../../include/sly2/xfm.h) | `PvOptBase_Self_00259A00` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A08](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A08` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A10](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A10](../../../include/sly2/xfm.h) | `PvOptBase_Self_00259A10` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A18](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A18` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A20](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A20](../../../include/sly2/so.h) | `PvOptBase_Self_00259A20` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A28](../../../include/sly2/so.h) | `PvOptBase_Plus150_00259A28` | option-record base accessor: return this+0x150 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A30](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A30](../../../include/sly2/xfm.h) | `PvOptBase_Self_00259A30` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A38](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259A38` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A40](../../../src/game/gameplay/player/grabspot.cpp) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259A40](../../../include/sly2/xfm.h) | `PvOptBase_Self_00259A40` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259A48](../../../include/sly2/xfm.h) | `PvOptBase_Plus130_00259A48` | option-record base accessor: return this+0x130 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259A70](../../../src/game/gameplay/player/grabspot.cpp) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259A70](../../../include/sly2/xfm.h) | `Identity64_00259A70` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259A78](../../../include/sly2/xfm.h) | `PvOptBase_Plus100_00259A78` | option-record base accessor: return this+0x100 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259A88](../../../src/game/object/splicemap.cpp) | `GcFrame_MakeRoot` | move frame to root list D_002DD2AC, set flag 0x8000 [game linkonce (inline/template)] | 0.45 | T2 |  |
 | [0x259AE8](../../../include/sly2/lo.h) | `FGetBit60At28` | return (x28>>60)&1 [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259AF8](../../../src/game/gameplay/player/pipe.cpp) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259AF8](../../../include/sly2/xfm.h) | `PvOptBase_Self_00259AF8` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B00](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_00259B00` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259B08](../../../src/game/gameplay/player/rail.cpp) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
+| [0x259B08](../../../include/sly2/xfm.h) | `PvOptBase_Self_00259B08` | return this (identity accessor) [game linkonce (inline/template)] | 0.20 | T2 |  |
 | [0x259B10](../../../include/sly2/xfm.h) | `PvOptBase_Plus190_00259B10` | option-record base accessor: return this+0x190 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259B20](../../../include/sly2/so.h) | `GetE8DC10` | p->xE8 ? p->xE8->xDC ? ->x10 : 0 [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259B48](../../../src/game/engine/sound/sound.cpp) | `RcPtrAssign_00259B48` | same template, other type (sound/music objects) [game linkonce (inline/template)] | 0.35 | T2 |  |
 | [0x259BB0](../../../src/game/engine/sound/sound.cpp) | `RcPtrInit_00259BB0` | intrusive ptr store with AddRef (no release) [game linkonce (inline/template)] | 0.30 | T2 |  |
-| [0x259C08](../../../src/game/gameplay/player/grabspot.cpp) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
+| [0x259C08](../../../include/sly2/xfm.h) | `Identity64_00259C08` | return arg (64-bit) [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259C10](../../../include/sly2/xfm.h) | `PvOptBase_PlusE0_00259C10` | option-record base accessor: return this+0xE0 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259C18](../../../include/sly2/gc.h) | `PtNew__t6CGcObj1Z7CMethod` | allocate Pool6 node from its slotheap (runs CGc_Collect when exhausted), then InitNode [game linkonce (inline/template)] | 0.50 | T1 |  |
 | [0x259CF8](../../../src/game/object/spliceobj.cpp) | `Pool6Ptr_Init` | refptr store with incref [game linkonce (inline/template)] | 0.20 | T2 |  |
-| [0x259D18](../../../src/game/actor/step.cpp) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
+| [0x259D18](../../../include/sly2/step.h) | `SetStepRadTarget_thunk` | virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)] | 0.30 | T2 |  |
 | [0x259D38](../../../include/sly2/guard.h) | `SetF64_E8` | p->xF64->xE8 = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D48](../../../include/sly2/guard.h) | `SetF64_EC` | p->xF64->xEC = v [game linkonce (inline/template)] | 0.15 | T2 |  |
 | [0x259D60](../../../include/sly2/guard.h) | `GetF64_E8` | return p->xF64->xE8 [game linkonce (inline/template)] | 0.15 | T2 |  |

@@ -1,6 +1,6 @@
 // guardbhv.cpp -- the guard behaviours (BHV subclasses on a STEPGUARD's behaviour stack): anim, strike, attack,
 // combat, path, patrol, ko/hit, leap, juggled, shoot, rail, pipe, goto, path link, patrol path...
-// TU 0x174898..0x17F090 (190 functions, address order; the last is the linkonce copy func_002562A8).
+// TU 0x174898..0x17F090 (189 functions, address order), then the inline func_002562A8 (linkonce copy 0x2562A8).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_guardbhv
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0017F070
 // The per-function files keep their views in namespaces named after the function (docs/guides/tu-merging.md
@@ -8053,7 +8053,7 @@ typedef struct { int a; int b; } P;
  * Confidence: low (draft) [T2 0.30] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-void func_002562A8(P *p) { p->a = 0; p->b = 0; }
+inline void func_002562A8(P *p) { p->a = 0; p->b = 0; }   /* inline, after its callers: they call it and g++ emits the linkonce copy */
 } } // namespace M_func_002562A8
 
 

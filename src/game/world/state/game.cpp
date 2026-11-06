@@ -3846,12 +3846,12 @@ extern "C" void func_001660F8()
 
 namespace M_RefGetGlobalSaveVar { extern "C" {
  void RefGetSaveVar(void *, void *, int, int);
-void *RefGetGlobalSaveVar(void *a, int b, int c) { RefGetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; }
+inline void *RefGetGlobalSaveVar(void *a, int b, int c) { RefGetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c); return a; }
 } } // namespace M_RefGetGlobalSaveVar
 
 namespace M_RefSetGlobalSaveVar { extern "C" {
  void RefSetSaveVar(void *, void *, int, int, int);
-void *RefSetGlobalSaveVar(void *a, int b, int c, int d) { RefSetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; }
+inline void *RefSetGlobalSaveVar(void *a, int b, int c, int d) { RefSetSaveVar(a, (*(char (*)[])&g_sw.savevars), b, c, d); return a; }
 } } // namespace M_RefSetGlobalSaveVar
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

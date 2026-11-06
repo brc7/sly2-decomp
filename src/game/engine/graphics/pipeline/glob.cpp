@@ -28,7 +28,7 @@ struct RGBAW { uint rgba; RGBAW(uint n) { rgba = n; } };
 RGBAW D_002DEB50(0x80101010);
 SLY2_INSTANTIATE_SLOT_POOLS()
 
-typedef unsigned size_t;
+typedef unsigned size_t; inline float func_002599D8(VECTOR *pvec); inline float func_002599E0(VECTOR *pvec); inline float func_002599E8(VECTOR *pvec);   /* the VECTOR component readers: inline, defined after their callers (end of file) */
 
 extern "C" {
 extern char D_0025B880[], D_0025C1B0[];   /* the cel-border VU1 microprogram */
@@ -3923,9 +3923,9 @@ void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 OBJECT*func_001EC8F8(int);
 int func_001EC688(OBJECT*,int,int,VIFS*);
 void func_001699E8(P*,D*,E*,SPHERE*,int,int,const int*,FACE**,CBinaryInputStream*);
-float func_002599D8(const U*);
-float func_002599E0(const U*);
-float func_002599E8(const U*);
+/* func_002599D8/E0/E8: the file-scope inline readers */
+
+
 extern QW D_002DEB60;
 extern uint D_002BE540[];
 extern UPK D_002BE558[];
@@ -3977,9 +3977,9 @@ typedef char DMAS_m_pb_Offset[FIELD_OFFSET(DMAS,m_pb)==12?1:-1];
 static inline ushort Flags(ushort v){__asm__("" : "+r"(v));return v;}
 template <int V> static inline int Flags(){int v=V;__asm__ __volatile__("" : "+r"(v));return v;}
 static inline void WriteVertex(U *destination,U value){
- float x=func_002599D8(&value);
- float y=func_002599E0(&value);
- float z=func_002599E8(&value);
+ float x=::func_002599D8((VECTOR *)&value);
+ float y=::func_002599E0((VECTOR *)&value);
+ float z=::func_002599E8((VECTOR *)&value);
  destination->f[0]=x;destination->f[1]=y;destination->f[2]=z;
 }
 /** @sly2-annot addr=0x16CF78
@@ -4802,9 +4802,9 @@ typedef struct { float x, y, z, w; int a, b; } E;
 typedef struct { A *pa; int pad[3]; V4 v10; float g20; int pad2[8]; E *ae; } S;
 extern V4 D_002A2DD0;
 void func_001D6310(A *pa);
-float func_002599D8(V4 *pv);
-float func_002599E0(V4 *pv);
-float func_002599E8(V4 *pv);
+/* func_002599D8/E0/E8: the file-scope inline readers */
+
+
 
 /** @sly2-annot addr=0x16EF00
  * Purpose: Resets an attachment record (clear flag on attached object, zero vector, radius 1e6)
@@ -4825,9 +4825,9 @@ void func_0016EF00(S *p, int i)
     p->g20 = g;
     pe = &p->ae[i];
     v = D_002A2DD0;
-    x = func_002599D8(&v);
-    y = func_002599E0(&v);
-    z = func_002599E8(&v);
+    x = ::func_002599D8((VECTOR *)&v);
+    y = ::func_002599E0((VECTOR *)&v);
+    z = ::func_002599E8((VECTOR *)&v);
     pe->x = x;
     pe->y = y;
     pe->z = z;
@@ -4841,8 +4841,9 @@ void func_0016EF00(S *p, int i)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-// 0x2599D8: out-of-line copy of a VECTOR component reader (linkonce).
-extern "C" float func_002599D8(VECTOR *pvec)
+// 0x2599D8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
+// out-of-line copy (linkonce), as the original did.
+inline float func_002599D8(VECTOR *pvec)
 {
     return pvec->x;
 }
@@ -4853,8 +4854,9 @@ extern "C" float func_002599D8(VECTOR *pvec)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-// 0x2599E0: out-of-line copy of a VECTOR component reader (linkonce).
-extern "C" float func_002599E0(VECTOR *pvec)
+// 0x2599E0: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
+// out-of-line copy (linkonce), as the original did.
+inline float func_002599E0(VECTOR *pvec)
 {
     return pvec->y;
 }
@@ -4865,8 +4867,9 @@ extern "C" float func_002599E0(VECTOR *pvec)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-// 0x2599E8: out-of-line copy of a VECTOR component reader (linkonce).
-extern "C" float func_002599E8(VECTOR *pvec)
+// 0x2599E8: a VECTOR component reader: inline, defined after its callers, so g++ calls it and emits the
+// out-of-line copy (linkonce), as the original did.
+inline float func_002599E8(VECTOR *pvec)
 {
     return pvec->z;
 }

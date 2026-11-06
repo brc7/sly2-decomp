@@ -1,7 +1,7 @@
 // rhythm.cpp -- the rhythm (dance) minigame: the dancers (a step object playing the move clip for each key, D_002DE570's cues
 // telling them when) and the rhythm manager (cue timing, button presses, the score window, the note track it draws with
-// rich text, the score-driven SMA crowd). TU 0x1520C8..0x153850 (30 functions, address order), then five linkonce
-// CTextBox setters (0x258438..0x258480) used by DrawRhythmMgr.
+// rich text, the score-driven SMA crowd). TU 0x1520C8..0x153850 (30 functions, address order), then the five inline
+// CTextBox setters behind the linkonce copies 0x258438..0x258480 (used by DrawRhythmMgr).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rhythm
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00153988
 #include "sly2/slotheap.h"
@@ -562,7 +562,7 @@ struct FONT { char ab[0x84]; float dy; char pad[0xA0 - 0x88]; };
 struct RGBA { unsigned int word; };
 struct RGBAB { unsigned char c[4]; };
 template <class T> static inline T *Addr(T *p) { return p; }
-/* The text box (0x1C); its setters are linkonce copies placed at the end of this file. */
+/* The text box (0x1C); its setters are inline members defined at the end of this file (linkonce copies). */
 struct TB {
     float x, y, dx, dy;
     RGBA color;
@@ -948,14 +948,17 @@ extern "C" void func_00153810(RHYTHMMGR *p, int oid, int k) {
     }
 }
 
-/* Linkonce copies (out-of-line instances of the CTextBox setters, 0x258438..). */
+/* The CTextBox setters (0x258438..): inline members defined after their callers, so g++ calls them and emits the
+   out-of-line copies (linkonce), as the original did. Symbols: the asm labels on the declarations (screen, mpeg and
+   render call them by those names; HYPOTHESIS: Sly 1's CTextBox::SetPos/SetSize/SetTextColor/SetHorizontalJust/
+   SetVerticalJust, whose mangled names would need their parameter types). */
 /** @sly2-annot addr=0x258438
  * Purpose: p->x=x; p->y=y [game linkonce (inline/template)]
  * Info: proposed name CTextBox_SetPos (T1); TU game_linkonce
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-void TB::SetPos(float x, float y) { this->x = x; this->y = y; }
+inline void TB::SetPos(float x, float y) { this->x = x; this->y = y; }
 
 /** @sly2-annot addr=0x258448
  * Purpose: p->dx=dx; p->dy=dy [game linkonce (inline/template)]
@@ -963,7 +966,7 @@ void TB::SetPos(float x, float y) { this->x = x; this->y = y; }
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-void TB::SetSize(float x, float y) { this->dx = x; this->dy = y; }
+inline void TB::SetSize(float x, float y) { this->dx = x; this->dy = y; }
 
 /** @sly2-annot addr=0x258458
  * Purpose: p->rgba = *c [game linkonce (inline/template)]
@@ -971,7 +974,7 @@ void TB::SetSize(float x, float y) { this->dx = x; this->dy = y; }
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-void TB::SetColor(RGBA *c) { *(RGBAB *)&this->color = *(RGBAB *)c; }
+inline void TB::SetColor(RGBA *c) { *(RGBAB *)&this->color = *(RGBAB *)c; }
 
 /** @sly2-annot addr=0x258470
  * Purpose: p->x14 = jh [game linkonce (inline/template)]
@@ -979,7 +982,7 @@ void TB::SetColor(RGBA *c) { *(RGBAB *)&this->color = *(RGBAB *)c; }
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-void TB::SetHorizontalJust(int j) {
+inline void TB::SetHorizontalJust(int j) {
     jh = j;
 }
 
@@ -989,7 +992,7 @@ void TB::SetHorizontalJust(int j) {
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-void TB::SetVerticalJust(int j) {
+inline void TB::SetVerticalJust(int j) {
     jv = j;
 }
 

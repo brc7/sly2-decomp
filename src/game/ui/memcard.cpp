@@ -2791,7 +2791,7 @@ extern "C" void func_001ADF78(MCDLG *pdlg, int nMode)
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
 /* linkonce copy (0x258248): clears a file key. */
-extern "C" void func_00258248(FILEKEY *pfk)
+extern "C" inline void func_00258248(FILEKEY *pfk)
 {
     memset(pfk, 0, 8);
     pfk->bC = 0;

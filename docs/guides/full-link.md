@@ -462,7 +462,8 @@ constructor/destructor (func_00192A28's) are code the ELF does not have. For a r
 **Fixes, in order:** (1) the linkonce copies back to templates/inline functions in headers (tu-merging.md "Inline
 functions and linkonce copies": a non-`inline` function template is emitted per instance as linkonce and never
 inlined into callers, which is why emitter.h's set kept matching; free inline functions would be inlined by callers
-that now call them), one family at a time, renaming to the mangled names; (2) the crt0 block as one object (done on
+that now call them), one family at a time, renaming to the mangled names (link/linkonce-pools, link/linkonce-misc:
+the five families below; an inline function defined after its callers keeps them calls); (2) the crt0 block as one object (done on
 link/crt0-block: the wrappers included as `.inc` fragments in address order, compiled as C++ with C linkage; their
 code is unchanged); (3) the junk scraps and the 16-byte alignments. (1) and (3) were not done on
 this branch (timebox: diagnosis only); (3) is done on link/junk-padding (next section).
@@ -548,6 +549,31 @@ Eleven objects no longer split: gc, spliceutils, eval, frame, sidebag, proc, var
 ref, which now fail only for a junk.csv scrap inside their range (0x1FFA68, 0x129D50: 8 bytes each), hence 33 -> 35.
 bif and basic stay split by copies of the other families (bif's VU math, basic's GetEmitterClassDesc_linkonce). The 27
 left: class_registry (crt0 block) and the EMITTER/EXPLO, accessor, container, math/text-box and "other" families.
+
+### Linkonce copies moved (link/linkonce-misc, 2026-11-06)
+
+From main f674c97e (integrate/round7 sources, `-fno-rtti`), the EMITTER/EXPLO, accessor, math/text-box and "other"
+families of the plain-function linkonce copies (tu-merging.md, "Linkonce copies by family") went back to linkonce
+form: 51 functions (EMITTER/EXPLO 12 as function templates in sly2/emitter.h; 12 data-only references, the GRABSPOT
+owner getters and two g_aeopid setters, as free inline functions emitted by eopid_linkonce.cpp; 27 called helpers as
+inline functions defined after their callers). The pools family (link/linkonce-pools), tu_119BC8/bis, blend, the
+class_registry constructors (link/crt0-block) and the reverted VecCombo / operator* are not in it.
+
+| measure | before | after | tool |
+|---|---:|---:|---|
+| objects split by other objects' code (TU check without `-ffunction-sections`) | 38 | 18 | `tools/link.py` |
+| objects one run at their ELF address | 855 | 870 | `tools/link.py` |
+| objects with junk.csv scraps inside / gap or padding differences | 33 / 4 | 36 / 6 | `tools/link.py` |
+| differing bytes | 115 | 115 | `tools/link.py` |
+| unplaced bytes (eopid_linkonce's .data, 12 more address references) | 544 | 592 | `tools/link.py` |
+
+The 20 objects no longer split: po, step, emitter, grabspot, pipe, rail, glob, trail, bsp, mark, guardbhv, asega, xf,
+cm, cplcy, screen, sound, rhythm, memcard, game. Five of them now show what the copies hid: junk.csv scraps inside
+emitter (0x15BF38), cm (0x14E320, 0x14F3C0) and memcard (0x1AB748, 0x1ABFF8, 0x1AC848), and 8-byte alignment gaps
+in bsp (0x118FA8, 0x1193D0) and guardbhv (0x178CF8), fix (3) above. Still split: the pools family's objects (bif, gc,
+eval, frame, sidebag, ref, spliceutils, splicemap, spliceobj, proc, varb, proxy, basic), class_registry, tu_119BC8,
+bis, blend, tu_1553F0. All 932 objects were rebuilt from scratch: their section bytes change only by the moved copies
+(compared section by section against the objects of f674c97e) and their nm symbol sets only by the renames.
 
 ### Data order (data/bss-order on integrate/round5 before types/views-2/-3, 2026-11-05; superseded by Status)
 

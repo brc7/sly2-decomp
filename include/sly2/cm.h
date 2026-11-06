@@ -284,6 +284,8 @@ typedef char assert_CM_cpzoom_rZoomMax[SLY2_OFFSETOF(CM, cpzoom.rZoomMax) == 0x5
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 inline qword func_00256298(CM *pcm) { return *(qword *)&pcm->pos; }   /* get; its set is SetCmPos */
 inline MATRIX4 *func_002562A0(CM *pcm) { return &pcm->mat; }          /* get; its set is func_00256278 (SetCmMat) */
+extern "C" void SetCmMat(CM *pcm, MATRIX3 *pmat);
+inline void func_00256278(CM *pcm, MATRIX3 *pmat) { SetCmMat(pcm, pmat); }   /* set: forwards to SetCmMat */
 
 /* g_cm: the one camera (cm.cpp defines it under its address name as a CMG). */
 extern CM g_cm __asm__("D_002DDF40");

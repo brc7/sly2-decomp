@@ -1,7 +1,7 @@
 // trail.cpp -- TRAIL, a mesh smeared along the object's recent path: a ring of past matrices (sampled each frame),
 // the mesh vertices placed between two ring entries by their position along an axis, faded by age; plus three
-// linkonce vector component readers. VU0 and EE asm. TU 0x21BB88..0x21C820 (10 functions, address order) and
-// three linkonce instances 0x259D98..0x259DD4.
+// linkonce vector component readers. VU0 and EE asm. TU 0x21BB88..0x21C820 (10 functions, address order); the
+// readers 0x259D98..0x259DD4 are inline functions defined at the end (their linkonce copies).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_trail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021C800
 #include "sly2/slotheap.h"
@@ -46,6 +46,9 @@ struct ALLOC {int bytes,align;};
 union REQUEST {ALLOC alloc;qword q;float f[4];};
 
 extern CLOCK D_002DDED0;
+/* the x/y/z readers of a qword vector: inline, defined after their caller (end of the functions) */
+inline float func_00259D98(qword *pq); inline float func_00259DA8(qword *pq);
+inline float func_00259DC0(qword *pq);
 extern "C" {
 void InitSo(TRAIL *);
 void AddSoHierarchy(TRAIL *p);
@@ -59,9 +62,6 @@ void func_001F3980(TRAIL *);
 qword func_001A62E8(void *);
 void func_0021C5F8(TRAIL *, qword);
 void RenderSoSelf(TRAIL *);
-float func_00259D98(qword *pq);
-float func_00259DA8(qword *pq);
-float func_00259DC0(qword *pq);
 extern char D_002C44F0[];
 extern const float D_002A9240;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A9244;   /* defined below where the ELF has it (.rodata order) */
@@ -393,15 +393,16 @@ extern "C" void func_0021C5F8(TRAIL *p, qword q)
     }
 }
 
-// 0x259D98..0x259DD4: linkonce instances homed in this TU, the out-of-line x/y/z readers of a VECTOR held in a
-// qword (HYPOTHESIS: VU_VECTOR's inline accessors). C-linkage functions under their current symbols.
+// 0x259D98..0x259DD4: the x/y/z readers of a VECTOR held in a qword (HYPOTHESIS: VU_VECTOR's inline accessors):
+// inline, defined after their caller, so g++ calls them and emits the out-of-line copies (linkonce), as the original
+// did.
 /** @sly2-annot addr=0x259D98
  * Purpose: float lane 0 of qword (mtc1 low word) [game linkonce (inline/template)]
  * Info: proposed name VU_VECTOR_GetX (T2); TU game_linkonce
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" float func_00259D98(qword *p) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(*p)); return f; }
+inline float func_00259D98(qword *p) { float f; __asm__("mtc1 %1, %0" : "=f"(f) : "r"(*p)); return f; }
 
 /** @sly2-annot addr=0x259DA8
  * Purpose: float lane 1 (prot3w then mtc1) [game linkonce (inline/template)]
@@ -409,7 +410,7 @@ extern "C" float func_00259D98(qword *p) { float f; __asm__("mtc1 %1, %0" : "=f"
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" float func_00259DA8(qword *p) { float f; qword t; __asm__("prot3w %0, %1" : "=&r"(t) : "r"(*p)); __asm__("mtc1 %1, %0" : "=f"(f) : "r"(t)); return f; }
+inline float func_00259DA8(qword *p) { float f; qword t; __asm__("prot3w %0, %1" : "=&r"(t) : "r"(*p)); __asm__("mtc1 %1, %0" : "=f"(f) : "r"(t)); return f; }
 
 /** @sly2-annot addr=0x259DC0
  * Purpose: float lane 2 (pextuw $0 then mtc1) [game linkonce (inline/template)]
@@ -417,4 +418,4 @@ extern "C" float func_00259DA8(qword *p) { float f; qword t; __asm__("prot3w %0,
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" float func_00259DC0(qword *p) { float f; qword t; __asm__("pextuw %0, $0, %1" : "=&r"(t) : "r"(*p)); __asm__("mtc1 %1, %0" : "=f"(f) : "r"(t)); return f; }
+inline float func_00259DC0(qword *p) { float f; qword t; __asm__("pextuw %0, $0, %1" : "=&r"(t) : "r"(*p)); __asm__("mtc1 %1, %0" : "=f"(f) : "r"(t)); return f; }

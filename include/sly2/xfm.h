@@ -197,4 +197,19 @@ inline void *func_00259B00(PIPE *ppipe) { return (char *)ppipe + sizeof(SHAPE); 
 inline void *func_00259B10(RAIL *prail) { return (char *)prail + sizeof(SHAPE); }  /* RAIL : SHAPE */
 inline void *func_00259C10(CID39 *p) { return (char *)p + sizeof(XFM); }      /* CID39 : XFM */
 
+/* The GRABSPOT owner getters: slot 6 of each class's GRABSPOT vtable (the entry's delta brings `this` back to the
+ * object's start) returns the object itself; GRABSPOT's own slot 6 (func_00182E78) returns 0. In the linkonce area
+ * each sits right before its class's ensure accessor above (BARREL's in sly2/so.h). HYPOTHESIS: inline virtual
+ * overrides in the original; free inline functions here, emitted by src/game/app/eopid_linkonce.cpp's address
+ * references like the accessors (a member of these polymorphic classes would only be emitted by their key TU). */
+inline void *func_002599F0(CID12 *p) { return p; }
+inline void *func_00259A00(CID34 *p) { return p; }
+inline void *func_00259A10(CID38 *p) { return p; }
+inline void *func_00259A30(CID35 *p) { return p; }
+inline void *func_00259A40(CID27 *p) { return p; }
+inline void *func_00259A70(HND *phnd) { return phnd; }
+inline void *func_00259AF8(PIPE *ppipe) { return ppipe; }
+inline void *func_00259B08(RAIL *prail) { return prail; }
+inline void *func_00259C08(CID39 *p) { return p; }
+
 #endif /* SLY2_XFM_H */

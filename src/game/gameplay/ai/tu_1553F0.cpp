@@ -719,7 +719,10 @@ extern "C" qword func_00155FB0(void *p, qword pos)
     }
 }
 
-/* Linkonce instance 0x258480 (an out-of-line copy of an inline helper, homed in this TU): r = v1 * f1.x + v2 * f2.x. */
+/* Linkonce instance 0x258480 (an out-of-line copy of an inline helper, homed in this TU): r = v1 * f1.x + v2 * f2.x.
+   Kept a plain function (link/linkonce-misc): as an inline defined after its caller g++ does not emit it, because
+   the caller reaches it only through VecComboQ (a differently typed, asm-labelled declaration), which does not mark
+   the inline used; calling VecCombo itself would change func_00155FB0's code. */
 /** @sly2-annot addr=0x258480
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed

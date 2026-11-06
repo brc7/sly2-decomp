@@ -1676,7 +1676,7 @@ void UpdateCptwoshot(X *p)
 namespace M_RcPtr_Assign { extern "C" {
 typedef struct { int pad[2]; short d1; short p1; void (*f1)(void *); short d2; short p2; void (*f2)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
-void RcPtr_Assign(O **pp, O *o)
+inline void RcPtr_Assign(O **pp, O *o)
 {
     if (o) o->vt->f1((char *)o + o->vt->d1);
     if (*pp) (*pp)->vt->f2((char *)*pp + (*pp)->vt->d2);

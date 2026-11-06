@@ -1,8 +1,7 @@
 // po.cpp -- PO, a player-controllable object (init / load / clone, messages, its control state and tunnel camera, healing,
 // hp / mp), POCTL (the per-PO controller: sticks turned into camera-relative polar form, buttons down and when each was last
 // pressed), and the world's player selection (the current PO, the override, switching between them, the PO closest to a
-// point, the player list for the HUD). TU 0x1C3D70..0x1C4E50 (37 functions, address order), then the linkonce
-// PemitbEnsureEmitter (0x258658).
+// point, the player list for the HUD). TU 0x1C3D70..0x1C4E50 (37 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_po
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001C4E30
 #include "sly2/slotheap.h"
@@ -138,7 +137,9 @@ void UpdatePoctlPressed(POCTL *p);
 int GrfPressedWithin__5POCTLUif(POCTL *p, unsigned int grf, float dt);
 int GrfConsumePressed__5POCTLUif(POCTL *p, unsigned int grf, float dt);
 void func_001C48C0(SWP *p);
-EMB *PemitbEnsureEmitter(EMITX *p, int x);
+/* sly2/emitter.h's PemitbEnsure<EMITTER> (the linkonce copy 0x258658, emitted by emitter.cpp); po's private
+   EMITX/EMB views keep it from including emitter.h (its heap allocators are declared on other request types) */
+EMB *PemitbEnsureEmitter(EMITX *p, int x) __asm__("PemitbEnsure__H1Z7EMITTER_PX014ENSK_P5EMITB");
 }
 /* LoadRotateMatrixPanTilt as this caller sees it: returning the matrix. */
 MATRIX3 LoadRotateMatrixPanTiltR(float a, float b) __asm__("LoadRotateMatrixPanTilt");
@@ -825,21 +826,4 @@ extern "C" int func_001C4BD8(SWP *p, int cMax, void **ap)
         *ap = D_002C0D18;
     }
     return c;
-}
-
-/* Linkonce copy (0x258658): the emitter's copy-on-write ensure. */
-// 0x00258658 PemitbEnsureEmitter
-EMB *PemitbEnsureEmitter(EMITX *p, int x)
-{
-    if (x == 1) {
-        p->fDirty = x;
-        if (p->pemitb->cref >= 2) {
-            MSG t;
-            p->pemitb->cref--;
-            t.cb = 0x100; t.nKind = 0x10;
-            p->pemitb = func_001AE238(&t, p->pemitb);
-            p->pemitb->cref = x;
-        }
-    }
-    return p->pemitb;
 }

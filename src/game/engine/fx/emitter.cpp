@@ -1,10 +1,10 @@
 // emitter.cpp -- particle emitters (EMITTER : XFM) and explosions (EXPL/EXPLG/EXPLS/EXPLO): emitter blocks (EMITB),
 // origins (EMITO) and velocities (EMITV), emission of particles / blips / rips, the emitter update and pause, and
-// the explosion groups. TU 0x159118..0x15CD68 (54 functions with the linkonce copies at 0x258620..0x2599C8,
-// address order).
+// the explosion groups. TU 0x159118..0x15CD68 (44 functions, address order); at the end, the explicit
+// instantiations of sly2/emitter.h's member templates (the 12 linkonce copies 0x2584A8..0x2599C8).
 //
-// Types: the file-scope EMITTER is a view of the fields the m2c bodies read (sly2/emitter.h's EMITTER pads them;
-// emitter.h is not included because its EMITV is a different record from the 0x70-byte EMITV defaults below).
+// Types: EMITTER and EMITB are sly2/emitter.h's (the fields the m2c bodies read are named there); the 0x70-byte
+// EMITV defaults below are EMITDEF::EMITV, a different record from emitter.h's 0x40-byte EMITV.
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does);
 // their C++-named definitions are C-linkage definitions of their literal symbols there (the namespace would change
 // the mangling), as in wave 9.
@@ -17,6 +17,7 @@
 #include "sly2/xfm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
+#include "sly2/emitter.h"
 extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The emitter defaults (0x15CAD8, the static initializer). D_002DE5B0 / D_002DE5F0 are the EMITO / EMITV defaults
@@ -71,33 +72,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct RIPG;
 struct BLIPG;
 struct SFX;
-/* The emitter block as the m2c bodies read it: share count, and at +0x8 a pointer to the parent's id. */
-struct EMITB
-{
-    int cref;
-    int kv;
-    int *poidParent;        /* +0x08 (HYPOTHESIS: by func_00159968) */
-};
-/* EMITTER (CID 0x1D : XFM, cb 0x160): the fields the m2c bodies use; names follow the hand-written views. */
-struct EMITTER : public XFM
-{
-    int fDirty;             /* +0xE0 */
-    EMITB *pemitb;          /* +0xE4 */
-    char padE8[8];
-    int k;                  /* +0xF0 emission kind (3: rate per second) */
-    int c;                  /* +0xF4 */
-    LM lmRate;              /* +0xF8 */
-    char pad100[0x114 - 0x100];
-    int fAutoPause;         /* +0x114 */
-    char pad118[0x130 - 0x118];
-    float tNext;            /* +0x130 */
-    char pad134[0x148 - 0x134];
-    float tUnpause;         /* +0x148 */
-    RIPG *pripg;            /* +0x14C */
-    BLIPG *pblipg;          /* +0x150 */
-    char pad154[0x160 - 0x154];
-};
-typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];
+/* EMITB and EMITTER (CID 0x1D : XFM, cb 0x160): sly2/emitter.h. */
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
 struct EXPLG : public XFM
 {
@@ -301,7 +276,6 @@ extern char D_003DD490[];
 struct LONGU { long l; } __attribute__((packed));
 extern const struct LONGU D_002A5140;
 extern float D_002A5148;
-void func_002586D8(struct EMITTER *p);
 void PostSwCallback(void *pg, struct EMITTER *p, long k, int n);
 float GRandInRange__Fff(float gMin, float gMax);
 void PauseEmitterIndefinite__FP7EMITTER(struct EMITTER *p);
@@ -331,7 +305,7 @@ static __inline__ int FPtr(int n) { return !(n & 1); }
  * @end-sly2-annot */
 void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
 {
-    func_002586D8(pemitter);
+    ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
     if (pemitter->pemitb->pemito->palo)
         PostSwCallback(D_003DD490, pemitter, D_002A5140.l, 0);
     if (pemitter->kind == -1) {
@@ -432,7 +406,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTER *pemitter)
  * @end-sly2-annot */
 extern "C" void func_00159968(EMITTER *pemitter)
 {
-    SetLoParent_1A58D0(pemitter, PsoFromLo(*pemitter->pemitb->poidParent), 0);
+    SetLoParent_1A58D0(pemitter, PsoFromLo((int)*pemitter->pemitb->aploRef), 0);
 }
 
 namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv {
@@ -2411,351 +2385,21 @@ void FireExplsExplso(EMITTER *p, EMITO *po)
 
 
 
-namespace M_LoadEmitblipColorsFromBrx { extern "C" {
-typedef struct { unsigned char r, g, b, a; } RGBA;
-typedef struct { int n; RGBA ac[1]; } LIST;
-typedef struct { char pad[0xC]; int xC; char pad2[0xC]; LIST *x1C; } Y;
-typedef struct { char pad[0xC0]; Y y; } T;
-typedef struct { char pad[0xE4]; T *xE4; } X;
-typedef struct { int cb; int align; } DESC;
-int U16Read__18CBinaryInputStream(void *);
-int U8Read__18CBinaryInputStream(void *);
-int U32Read__18CBinaryInputStream(void *);
-void ColorCorrectRgba(RGBA *);
-void *func_001AE1D0(DESC *);
-
-static inline int Min(int a, int b) { return a < b ? a : b; }
-
-/** @sly2-annot addr=0x2584A8
- * Purpose: read count + RGBA list into EMITB [game linkonce (inline/template)]
- * Info: proposed name LoadEmitblipColorsFromBrx (T1); TU game_linkonce
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: sdk_names+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-void LoadEmitblipColorsFromBrx(X *p, void *ps)
-{
-    int n = U16Read__18CBinaryInputStream(ps);
-    int i;
-    Y *y;
-    LIST *l;
-    union { DESC d; RGBA c; } u;
-    if (n == 0)
-        return;
-    y = &p->xE4->y;
-    u.d.cb = n * 4 + 4;
-    u.d.align = 0x10;
-    l = (__typeof__(l))func_001AE1D0(&u.d);
-    y->x1C = l;
-    y->xC = U8Read__18CBinaryInputStream(ps);
-    l->n = Min(n, 32);
-    for (i = 0; i < n; i++) {
-        *(int *)&u.c = U32Read__18CBinaryInputStream(ps);
-        ColorCorrectRgba(&u.c);
-        if (i < l->n)
-            l->ac[i] = u.c;
-    }
-}
-} } // namespace M_LoadEmitblipColorsFromBrx
-
-namespace M_LoadEmitterFromBrx { extern "C" {
-typedef struct { char pad[0x10]; int x10; char pad2[0x1C]; void *x30; } E;
-typedef struct { char pad[0xE4]; E *xE4; } S;
-typedef struct { int a, b; } P;
-E *func_001AE1D0(P *); void func_00159118(E *); void LoadXfmFromBrx(S *, int); void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(void *, int); void LoadEmitblipColorsFromBrx(S *, int);
-void LoadEmitterFromBrx(S *p, int x)
-{
-    P t;
-    t.a = 0x100; t.b = 0x10;
-    func_00159118(p->xE4 = func_001AE1D0(&t));
-    LoadXfmFromBrx(p, x);
-    if (p->xE4->x10 == 3) LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(p->xE4->x30, x);
-    LoadEmitblipColorsFromBrx(p, x);
-}
-} } // namespace M_LoadEmitterFromBrx
-
-/** @sly2-annot addr=0x258620
- * Purpose: EMITTER vt41: CloneXfm then share EMITB (cref++) [game linkonce (inline/template)]
- * Info: proposed name CloneEmitter (T1); class EMITTER slot41; TU game_linkonce
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x258620): XFM clone, then one more share of the emitter block. */
-extern "C" void CloneEmitter(EMITTER *pemitter, EMITTER *pemitterBase)
-{
-    CloneXfm(pemitter, pemitterBase);
-    pemitter->pemitb->cref++;
-}
-
-namespace M_func_002586D8 { extern "C" {
-typedef struct { int cb; int cbAlign; } AREQ;
-typedef struct {
-    int x0; int x4; void *x8; int pad0C; int x10; int pad14[3]; int x20; int pad24[3]; int x30;
-    char p34[0xC8 - 0x34]; int xC8; int xCC; int xD0; int xD4;
-} X;
-typedef struct { char p0[0xE4]; X *px; } SO;
-extern char D_003DD490[];
-extern char D_002CE4A0[];
-void PostLoLoad(SO *p);
-void *func_002333B4(void *p, int c, int n) __asm__("memset");
-int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, SO *p);
-void PemitbEnsureEmitter(SO *p, int f);
-void *func_001AE238(AREQ *preq, void *pv);
-/** @sly2-annot addr=0x2586D8
- * Purpose: resolve emitter object references (PloFindSwObject) after load [game linkonce (inline/template)]
- * Info: proposed name BindEmitter (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-void func_002586D8(SO *p)
-{
-    void *a[5];
-    AREQ req;
-    AREQ *preq;
-    X *x;
-    int o1;
-    int o2 = -1;
-
-    PostLoLoad(p);
-    {
-        X *x0 = p->px;
-        o1 = x0->x20;
-        if (x0->x10 == 2)
-            o2 = x0->x30;
-    }
-    func_002333B4(a, 0, 0x14);
-    if (o1 != -1)
-        a[0] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, o1, p);
-    if (o2 != -1) {
-        void *q = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, o2, p);
-        a[0] = 0;
-        a[1] = q;
-    }
-    x = p->px;
-    switch (x->x4) {
-    case 1: {
-        int c8 = x->xC8;
-        int cc = x->xCC;
-        int d0 = x->xD0;
-        if (c8 != -1)
-            a[2] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, c8, p);
-        if (cc != -1)
-            a[3] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, cc, p);
-        if (d0 != -1)
-            a[4] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, d0, p);
-        break;
-    }
-    case 0:
-        if (x->xD4 != -1)
-            a[2] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, x->xD4, p);
-        break;
-    }
-    if (p->px->x8 == 0)
-        p->px->x8 = D_002CE4A0;
-    if (func_00233178(p->px->x8, a, 0x14)) {
-        PemitbEnsureEmitter(p, 1);
-        preq = &req;
-        req.cb = 0x14;
-        preq->cbAlign = 0x10;
-        p->px->x8 = func_001AE238(preq, a);
-    }
-}
-} } // namespace M_func_002586D8
-
-namespace M_LoadExploBlipColorsFromBrx { extern "C" {
-typedef struct { unsigned char r, g, b, a; } RGBA;
-typedef struct { int n; RGBA ac[1]; } LIST;
-typedef struct { char pad[0xC]; int xC; char pad2[0xC]; LIST *x1C; } Y;
-typedef struct { char pad[0xC0]; Y y; } T;
-typedef struct { char pad[0xE4]; T *xE4; } X;
-typedef struct { int cb; int align; } DESC;
-int U16Read__18CBinaryInputStream(void *);
-int U8Read__18CBinaryInputStream(void *);
-int U32Read__18CBinaryInputStream(void *);
-void ColorCorrectRgba(RGBA *);
-void *func_001AE1D0(DESC *);
-
-static inline int Min(int a, int b) { return a < b ? a : b; }
-
-/** @sly2-annot addr=0x258F40
- * Purpose: EXPLO twin of 0x2584A8 [game linkonce (inline/template)]
- * Info: proposed name LoadExploBlipColorsFromBrx (T1); TU game_linkonce
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: sdk_names+parse-verified
- * See: docs/engine/core-library.md#7-key-functions,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-void LoadExploBlipColorsFromBrx(X *p, void *ps)
-{
-    int n = U16Read__18CBinaryInputStream(ps);
-    int i;
-    Y *y;
-    LIST *l;
-    union { DESC d; RGBA c; } u;
-    if (n == 0)
-        return;
-    y = &p->xE4->y;
-    u.d.cb = n * 4 + 4;
-    u.d.align = 0x10;
-    l = (__typeof__(l))func_001AE1D0(&u.d);
-    y->x1C = l;
-    y->xC = U8Read__18CBinaryInputStream(ps);
-    l->n = Min(n, 32);
-    for (i = 0; i < n; i++) {
-        *(int *)&u.c = U32Read__18CBinaryInputStream(ps);
-        ColorCorrectRgba(&u.c);
-        if (i < l->n)
-            l->ac[i] = u.c;
-    }
-}
-} } // namespace M_LoadExploBlipColorsFromBrx
-
-namespace M_LoadExploFromBrx { extern "C" {
-typedef struct { char pad[0x10]; int x10; char pad2[0x1C]; void *x30; } E;
-typedef struct { char pad[0xE4]; E *xE4; } S;
-typedef struct { int a, b; } P;
-E *func_001AE1D0(P *); void func_00159118(E *); void LoadXfmFromBrx(S *, int); void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(void *, int); void LoadExploBlipColorsFromBrx(S *, int);
-void LoadExploFromBrx(S *p, int x)
-{
-    P t;
-    t.a = 0x100; t.b = 0x10;
-    func_00159118(p->xE4 = func_001AE1D0(&t));
-    LoadXfmFromBrx(p, x);
-    if (p->xE4->x10 == 3) LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(p->xE4->x30, x);
-    LoadExploBlipColorsFromBrx(p, x);
-}
-} } // namespace M_LoadExploFromBrx
-
-/** @sly2-annot addr=0x2590B8
- * Purpose: EXPLO/EXPLS vt41 [game linkonce (inline/template)]
- * Info: proposed name CloneExplo (T1); class EXPLO slot41; TU game_linkonce
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* linkonce copy (0x2590B8), the EXPLO instance of the same code (EXPLO's block pointer is also at +0xE4). */
-extern "C" void CloneExplo(EMITTER *pexplo, EMITTER *pexploBase)
-{
-    CloneXfm(pexplo, pexploBase);
-    pexplo->pemitb->cref++;
-}
-
-namespace M_PemitbEnsureExplo { extern "C" {
-typedef struct { int x0; } E;
-typedef struct { char pad[0xE0]; int xE0; E *xE4; } S;
-typedef struct { int a, b; } P;
-E *func_001AE238(P *, E *);
-E *PemitbEnsureExplo(S *p, int x)
-{
-    if (x == 1) {
-        p->xE0 = x;
-        if (p->xE4->x0 >= 2) {
-            P t;
-            p->xE4->x0--;
-            t.a = 0x100; t.b = 0x10;
-            p->xE4 = func_001AE238(&t, p->xE4);
-            p->xE4->x0 = x;
-        }
-    }
-    return p->xE4;
-}
-} } // namespace M_PemitbEnsureExplo
-
-namespace M_func_00259170 { extern "C" {
-typedef struct { int cb; int cbAlign; } AREQ;
-typedef struct {
-    int x0; int x4; void *x8; int pad0C; int x10; int pad14[3]; int x20; int pad24[3]; int x30;
-    char p34[0xC8 - 0x34]; int xC8; int xCC; int xD0; int xD4;
-} X;
-typedef struct { char p0[0xE4]; X *px; } SO;
-extern char D_003DD490[];
-extern char D_002CE4B8[];
-void PostLoLoad(SO *p);
-void *func_002333B4(void *p, int c, int n) __asm__("memset");
-int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
-void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, SO *p);
-void PemitbEnsureExplo(SO *p, int f);
-void *func_001AE238(AREQ *preq, void *pv);
-/** @sly2-annot addr=0x259170
- * Purpose: EXPLO vt15 PostLoad: resolve object refs [game linkonce (inline/template)]
- * Info: proposed name BindExplo (T2); class EXPLO slot15; TU game_linkonce
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-void func_00259170(SO *p)
-{
-    void *a[5];
-    AREQ req;
-    AREQ *preq;
-    X *x;
-    int o1;
-    int o2 = -1;
-
-    PostLoLoad(p);
-    {
-        X *x0 = p->px;
-        o1 = x0->x20;
-        if (x0->x10 == 2)
-            o2 = x0->x30;
-    }
-    func_002333B4(a, 0, 0x14);
-    if (o1 != -1)
-        a[0] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, o1, p);
-    if (o2 != -1) {
-        void *q = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, o2, p);
-        a[0] = 0;
-        a[1] = q;
-    }
-    x = p->px;
-    switch (x->x4) {
-    case 1: {
-        int c8 = x->xC8;
-        int cc = x->xCC;
-        int d0 = x->xD0;
-        if (c8 != -1)
-            a[2] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, c8, p);
-        if (cc != -1)
-            a[3] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, cc, p);
-        if (d0 != -1)
-            a[4] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, d0, p);
-        break;
-    }
-    case 0:
-        if (x->xD4 != -1)
-            a[2] = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, x->xD4, p);
-        break;
-    }
-    if (p->px->x8 == 0)
-        p->px->x8 = D_002CE4B8;
-    if (func_00233178(p->px->x8, a, 0x14)) {
-        PemitbEnsureExplo(p, 1);
-        preq = &req;
-        req.cb = 0x14;
-        preq->cbAlign = 0x10;
-        p->px->x8 = func_001AE238(preq, a);
-    }
-}
-} } // namespace M_func_00259170
-
-/** @sly2-annot addr=0x2599C8
- * Purpose: duplicate EXPLO class-descriptor getter (vtable slot 6 of the second, never-stored EXPLO vtable):
- *   returns the same record as GetExploClassDesc (0x113C10)
- * Info: was proposed as EXPLO_PvOptionDefaults (wrong); _linkonce suffix keeps the symbol distinct from
- *   GetExploClassDesc; TU game_linkonce
- * Confidence: high - evidence: static analysis (same data record as GetExploClassDesc); sources:
- *   class_reference hidden-types
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" {
-#undef D_002BAD68
-#define D_002BAD68 (*(char (*)[])((char *)base_D_002BAAE8 + 0x280))   /* class descriptor table+0x280 (row 32, +0x0) */   /* EXPLO class descriptor */
-}
-/* linkonce copy (0x2599C8). */
-extern "C" void *GetExploClassDesc_linkonce()
-{
-    return D_002BAD68;
-}
+/* The linkonce copies 0x2584A8..0x2599C8: the EMITTER and EXPLO instances of sly2/emitter.h's member templates
+   (each pair is one template; the accessors between them are instantiated by app/eopid_linkonce.cpp). An explicit
+   instantiation emits each in its own .gnu.linkonce.t.<symbol>, as the original's implicit ones were. */
+template void LoadEmitblipColorsFromBrx(EMITTER *, CBinaryInputStream *);   /* 0x2584A8 */
+template void LoadEmitterFromBrx(EMITTER *, CBinaryInputStream *);          /* 0x258598, EMITTER slot 14 */
+template void CloneEmitter(EMITTER *, LO *);                                /* 0x258620, slot 41 */
+template EMITB *PemitbEnsure(EMITTER *, ENSK);                              /* 0x258658 */
+template void func_002586D8(EMITTER *);                                     /* 0x2586D8 */
+template CLASSINFO *GetEmitterClassDesc_linkonce(EMITTER *);                /* 0x258F30 */
+template void LoadEmitblipColorsFromBrx(EXPLO *, CBinaryInputStream *);     /* 0x258F40 */
+template void LoadEmitterFromBrx(EXPLO *, CBinaryInputStream *);            /* 0x259030, EXPLO slot 14 */
+template void CloneEmitter(EXPLO *, LO *);                                  /* 0x2590B8, slot 41 */
+template EMITB *PemitbEnsure(EXPLO *, ENSK);                                /* 0x2590F0 */
+template void func_002586D8(EXPLO *);                                       /* 0x259170, slot 15 */
+template CLASSINFO *GetEmitterClassDesc_linkonce(EXPLO *);                  /* 0x2599C8 */
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.

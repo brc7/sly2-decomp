@@ -1,6 +1,7 @@
 // rail.cpp -- RAIL, a shape the player can grab and slide along (a SHAPE with GRABSPOTDATA at +0x190), kept in a global
 // list: init/load/add/remove/clone, its range, closest point and a random point/direction on it. VU0 and EE asm.
-// TU 0x1CB908..0x1CBEB0 (11 functions, address order) and the linkonce instance func_00259B08.
+// TU 0x1CB908..0x1CBEB0 (11 functions, address order); RAIL's GRABSPOT owner getter func_00259B08 is an inline
+// function in sly2/xfm.h.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CBE90
 #include "sly2/slotheap.h"
@@ -271,15 +272,3 @@ typedef char layout_bound_page_size[(sizeof(BOUND_PAGE)==0x1ED0)?1:-1];
 typedef char layout_bound_page_alignment[(__alignof__(BOUND_PAGE)==4)?1:-1];
 #undef OFF
 
-// 0x259B08 func_00259B08: linkonce instance homed in this TU (returns its argument; HYPOTHESIS an empty inline
-// constructor or conversion). Kept as a C-linkage function under its current symbol.
-/** @sly2-annot addr=0x259B08
- * Purpose: return this (identity accessor) [game linkonce (inline/template)]
- * Info: proposed name PvOptBase_Self_00259B08 (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" int func_00259B08(int n)
-{
-    return n;
-}

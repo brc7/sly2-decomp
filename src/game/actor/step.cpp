@@ -1,7 +1,8 @@
 // step.cpp -- STEP (step.h, a PO that walks: guards and players derive from it): init/load/clone, physics part
 // binding (SetStepPhys/UpdateStepPhys), acceleration presets, contact adjustment (floor contact, custom and axis
 // contacts), heading and facing, the behaviour stack accessors and transform matching.
-// TU 0x203948..0x205E70 (45 functions, address order) plus the linkonce 0x259D18.
+// TU 0x203948..0x205E70 (45 functions, address order); the linkonce setter 0x259D18 is an inline function in
+// sly2/step.h.
 //
 // Types: step.h STEP/BHVSTK, po.h PO/POCTL, so.h SO/XF; the 18 m2c bodies are written on them. The other functions
 // keep the per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp
@@ -1893,17 +1894,6 @@ extern "C" void func_00205D10()
 {
 }
 
-/** @sly2-annot addr=0x259D18
- * Purpose: virtual thunk -> SetStepRadTarget 0x204660 [game linkonce (inline/template)]
- * Info: proposed name SetStepRadTarget_thunk (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-// 0x259D18: out-of-line copy of an inline that forwards to func_00204660 (linkonce).
-extern "C" void func_00259D18(STEP *pstep, float rad)
-{
-    func_00204660(pstep, rad);
-}
 
 // ---- step's .data in address order (tu-merging.md "Phase 6: one link mode"): one block after the functions (definition order is emission order); the declarations above are what the functions see.
 namespace M_UpdateStepPhys { extern "C" {

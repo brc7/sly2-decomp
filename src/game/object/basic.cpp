@@ -1,7 +1,8 @@
 // basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, CidBasic), the sidebag and its
 // option setters (EnsureLoSidebag*), Splice events and the deferred Splice callbacks, LO subscriptions and messages.
-// TU 0x132B00..0x1336F0 (28 functions, address order) plus one linkonce copy (0x258F30). The sidebag pool's GC
-// members (PushFront 0x255C00, MakeRoot 0x258178) are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp).
+// TU 0x132B00..0x1336F0 (28 functions, address order). The sidebag pool's GC members (PushFront 0x255C00, MakeRoot
+// 0x258178) are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp); the EMITTER class descriptor getter
+// 0x258F30 is emitter.cpp's (sly2/emitter.h).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001336D0
 #include "sly2/slotheap.h"
@@ -528,20 +529,6 @@ extern "C" void SendLoMessage(LO *p, int a, int b) {
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
 extern "C" void HandleBasicMessage(BASICV *p, int msg, void *pv) {
-}
-
-/* 0x258F30: linkonce class descriptor getter of EMITTER (the EXPLO one is GetExploClassDesc_linkonce). */
-/** @sly2-annot addr=0x258F30
- * Purpose: duplicate EMITTER class-descriptor getter (vtable slot 6 of the second, never-stored EMITTER vtable):
- *   returns the same record as GetEmitterClassDesc (0x113BE0)
- * Info: was proposed as EMITTER_PvOptionDefaults (wrong); _linkonce suffix keeps the symbol distinct from
- *   GetEmitterClassDesc; TU game_linkonce
- * Confidence: high - evidence: static analysis (same data record as GetEmitterClassDesc); sources:
- *   class_reference hidden-types
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" int *GetEmitterClassDesc_linkonce(void) {
-    return &D_002BAAE8[29].f0;   /* the EMITTER class descriptor row (was the address name D_002BAD2C) */
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

@@ -1,7 +1,7 @@
 // cm.cpp -- the camera (CM, the global g_cm at D_002DDF40): construction with its embedded policies, setup, the
 // view matrix / frustum / fog setters, the visibility zone, adjustment and cuts, the policy stack, the camera
-// filters and the linkonce ~CM. TU 0x14D3D8..0x14FAC8 (55 functions with the linkonce copies at 0x256278.. and
-// 0x258290.., address order).
+// filters. TU 0x14D3D8..0x14FAC8 (53 functions, address order), then the inline ~CM body func_00258290 (defined
+// after its callers: the linkonce copy 0x258290); the matrix setter 0x256278 is an inline function in sly2/cm.h.
 //
 // Types: sly2/cm.h's CM and policy classes for the m2c bodies; the hand-written per-function files keep their views
 // in namespaces named after each function (as jt.cpp does), and their C++-named definitions are C-linkage
@@ -1842,17 +1842,14 @@ int FInsideCmMrd(struct P *p, qword v, float g, float *pu)
 } } // namespace M_FInsideCmMrd
 
 
-namespace M_func_00256278 { extern "C" {
-void SetCmMat(void);
-void func_00256278(void) { SetCmMat(); }
-} } // namespace M_func_00256278
+/* 0x256278 (the matrix option's setter, forwarding to SetCmMat): an inline function in sly2/cm.h. */
 
 namespace M_func_00258290 { extern "C" {
 typedef struct { int pad[4]; short d; short p; void (*f)(void *); } VT;
 typedef struct { int pad[3]; VT *vt; } O;
 typedef struct { char pad[0x484]; O *x484; O *x488; char pad2[0x154]; O *x5E0; O *x5E4; } S;
 void func_00258348(S *, int);
-void func_00258290(S *p, int x)
+inline void func_00258290(S *p, int x)
 {
     if (p->x5E4) p->x5E4->vt->f((char *)p->x5E4 + p->x5E4->vt->d);
     if (p->x5E0) p->x5E0->vt->f((char *)p->x5E0 + p->x5E0->vt->d);
