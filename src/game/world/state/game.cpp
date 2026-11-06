@@ -3865,3 +3865,11 @@ int D_002DEB28;
  * M_InitGame landed after D_002DEB4C. The file-scope declaration above is char[]; the views keep their types. */
 char D_002DEB30[0x1C];
 void *D_002DEB4C;
+
+// ---- game's .rodata.early (tu-merging.md "Phase 6"): the two FILEREC keys it compares with (the hub level of the
+// completed-episode check D_002A37E8, the hub level D_002A3828), after tu_15CD68's keys in TU order. Asm-labelled,
+// so the declarations above stay as the functions see them.
+namespace GAME_KEYS {
+extern const unsigned int r_D_002A37E8[16] __asm__("D_002A37E8") __attribute__((section(".rodata.early"))) = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
+extern const unsigned int r_D_002A3828[16] __asm__("D_002A3828") __attribute__((section(".rodata.early"))) = {0xAE8D1B8F, 0x6B159FA1, 0x933455C9, 0xB01C14EA, 0x0BDCFA9D, 0x219167D9, 0xDFB3AA2C, 0xD00AA5F9, 0x3541D382, 0xF273BFEC, 0xBA7CD138, 0x967706C1, 0x227E97BD, 0xAE8850AF, 0x933455F0, 0x6B085F9E};
+}
