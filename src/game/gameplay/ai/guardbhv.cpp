@@ -1603,7 +1603,11 @@ void SetBhvcombatState(struct S *behavior, int n) {
         SetTargetRecordState(behavior->guard->engagement, 3);
         break;
     case 2:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV173); o->shootTarget = behavior->target; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHV173);
+            o->shootTarget = behavior->target;
+            StartPushedBhv(o);
+        }
         SetTargetRecordState(behavior->guard->engagement, 4);
         break;
     case 3:
@@ -1707,19 +1711,40 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
     clearsTarget = 0;
     switch (m->kind) {
     case GUARD_MODE_SCRIPT:
-        { struct O *o; clearsTarget = 1; o = PushStepBhv(behavior->guard, CID_BHV169); SetBhvScriptScript(o, m->u.s.arg, 1, 0); StartPushedBhv(o); }
+        {
+            struct O *o;
+            clearsTarget = 1;
+            o = PushStepBhv(behavior->guard, CID_BHV169);
+            SetBhvScriptScript(o, m->u.s.arg, 1, 0);
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_CALM:
         { struct O *o; clearsTarget = 1; o = PushStepBhv(behavior->guard, CID_BHVPATROL); StartPushedBhv(o); }
         break;
     case GUARD_MODE_ALERT_ANIM:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVANIM); o->sgf = 0xB; o->lookAt = m->u.s.arg; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHVANIM);
+            o->sgf = 0xB;
+            o->lookAt = m->u.s.arg;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_ALERT:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVCOMBAT); o->combatTarget = m->u.s.arg; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHVCOMBAT);
+            o->combatTarget = m->u.s.arg;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_SUSPICIOUS:
-        { struct O *o; clearsTarget = 1; o = PushStepBhv(behavior->guard, CID_BHV171); SetBhvSearchWatched(o, m->u.s.arg); StartPushedBhv(o); }
+        {
+            struct O *o;
+            clearsTarget = 1;
+            o = PushStepBhv(behavior->guard, CID_BHV171);
+            SetBhvSearchWatched(o, m->u.s.arg);
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_HURT:
         { struct O *o = PushStepBhv(behavior->guard, CID_BHV161); o->zap = m->u.zap; StartPushedBhv(o); }
@@ -1728,16 +1753,29 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
         { struct O *o = PushStepBhv(behavior->guard, CID_BHV162); o->zap = m->u.zap; StartPushedBhv(o); }
         break;
     case GUARD_MODE_KO:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVKO); o->zap = m->u.zap; clearsTarget = 1; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHVKO);
+            o->zap = m->u.zap;
+            clearsTarget = 1;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_SLEEP:
         { struct O *o = PushStepBhv(behavior->guard, CID_BHV175); StartPushedBhv(o); }
         break;
     case GUARD_MODE_THROWN:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV176); o->thrownKind = behavior->mode.u.s.arg; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHV176);
+            o->thrownKind = behavior->mode.u.s.arg;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_JUGGLED:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVJUGGLED); o->juggled.holder = m->u.s.arg; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHVJUGGLED);
+            o->juggled.holder = m->u.s.arg;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_TARGET_LIST:
         { struct O *o = PushStepBhv(behavior->guard, CID_BHV178); StartPushedBhv(o); }
@@ -1749,20 +1787,45 @@ void SetBhvguardMode(struct S *behavior, struct F *m) {
         { struct O *o = PushStepBhv(behavior->guard, CID_BHV182); o->target = m->u.s.arg; StartPushedBhv(o); }
         break;
     case GUARD_MODE_NEELA_CHASE:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV174); o->useChaseBehavior = behavior->guard->useChaseBehavior; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHV174);
+            o->useChaseBehavior = behavior->guard->useChaseBehavior;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_ESCORT:
-        { struct O *o; clearsTarget = 1; o = PushStepBhv(behavior->guard, CID_BHV183); o->escortObject = behavior->guard->escortObject; o->u40.pos = behavior->guard->escortPos; StartPushedBhv(o); }
+        {
+            struct O *o;
+            clearsTarget = 1;
+            o = PushStepBhv(behavior->guard, CID_BHV183);
+            o->escortObject = behavior->guard->escortObject;
+            o->u40.pos = behavior->guard->escortPos;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_WATCH:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE); o->sgf = 0x1A; o->lookAt = m->u.s.arg; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE);
+            o->sgf = 0x1A;
+            o->lookAt = m->u.s.arg;
+            StartPushedBhv(o);
+        }
         { float t = D_002DDED0.t; behavior->watchEndTime = t + GRandInRange__Fff(D_002BE618[0], D_002BE618[1]); }
         break;
     case GUARD_MODE_STALK:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV189); o->target = m->u.s.arg; o->u40.stalkParam = m->u.s.argFloat; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHV189);
+            o->target = m->u.s.arg;
+            o->u40.stalkParam = m->u.s.argFloat;
+            StartPushedBhv(o);
+        }
         break;
     case GUARD_MODE_RELOCATE:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV191); o->u40.pos = behavior->guard->relocatePoint; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHV191);
+            o->u40.pos = behavior->guard->relocatePoint;
+            StartPushedBhv(o);
+        }
         break;
     }
     if (clearsTarget) SetStepguardTarget(behavior->guard, 0);
@@ -4143,7 +4206,11 @@ void SetBhvpatrolState(struct S *behavior, int n) {
         behavior->walkEndTime = 3.40282346638528859812e+38f;
         break;
     case 0:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV169); SetBhvScriptScript(o, behavior->script, 0, behavior->guard->scriptResumePoint); StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHV169);
+            SetBhvScriptScript(o, behavior->script, 0, behavior->guard->scriptResumePoint);
+            StartPushedBhv(o);
+        }
         ArmBhvpatrolWalkTimer(behavior);
         behavior->pauseEndTime = 3.40282346638528859812e+38f;
         break;
@@ -6685,10 +6752,18 @@ void SetBhvgotoState(struct S *behavior, int n) {
     behavior->stateTime = D_002DDED0.t;
     switch (n) {
     case 4:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE); o->u30.s.lookAt = behavior->lookAtTarget; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE);
+            o->u30.s.lookAt = behavior->lookAtTarget;
+            StartPushedBhv(o);
+        }
         break;
     case 3:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHVPATHLINK); o->u30.pathlink = behavior->firstLink; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHVPATHLINK);
+            o->u30.pathlink = behavior->firstLink;
+            StartPushedBhv(o);
+        }
         break;
     case 1:
     case 2:
@@ -6710,7 +6785,12 @@ void SetBhvgotoState(struct S *behavior, int n) {
     case 0:
         break;
     case 5:
-        { struct O *o = PushStepBhv(behavior->guard, CID_BHV191); o->u30.goalRef = behavior->relocateGoalRef; o->u40.goalPos = behavior->relocatePos; StartPushedBhv(o); }
+        {
+            struct O *o = PushStepBhv(behavior->guard, CID_BHV191);
+            o->u30.goalRef = behavior->relocateGoalRef;
+            o->u40.goalPos = behavior->relocatePos;
+            StartPushedBhv(o);
+        }
         break;
     }
 }
