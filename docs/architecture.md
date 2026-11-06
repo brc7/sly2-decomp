@@ -125,11 +125,10 @@ src/
                                    TU leaves: empty_1AE7D0(2), memcard(81), menu(38), tu_15CD68(12)
   game/app/                    L11 composition root: main loop, boot sequence, class registry (New*/Get*ClassDesc, D_002BAAE8), Splice built-ins (bif, bif2) and binding thunks
                                    TU leaves: bif(161), bif2(31), class_registry(828: the whole crt0_splicewrap TU, generated wrappers included), main(7), tu_1A4E08(9)
-                                   eopid_linkonce.cpp (not a TU): takes the addresses of the inline option accessors defined in the
-                                   class headers (include/sly2/*.h), as the option table g_aeopid does, so g++ emits their linkonce copies
-                                   (formerly game/core/linkonce/unhomed; see docs/guides/tu-merging.md "Inline functions and linkonce copies")
                                    class_registry_options.inc (not a TU): crt0_splicewrap's Splice option tables (g_aeopid, the class option
-                                   arrays), included by class_registry.cpp (docs/guides/tu-merging.md "The crt0_splicewrap tables")
+                                   arrays), included by class_registry.cpp (docs/guides/tu-merging.md "The crt0_splicewrap tables"); its
+                                   records take the addresses of the inline option accessors of the class headers, so class_registry emits
+                                   their linkonce copies (formerly game/core/linkonce/unhomed, then app/eopid_linkonce.cpp)
   generated/splicewrap/        L11 tools/gen_splicewrap.py output (373 wrappers, .inc); never edit by hand
                                    not a TU: fragments that app/class_registry.cpp (crt0_splicewrap) includes at their addresses
 ```
@@ -213,7 +212,8 @@ or one call each; all are listed in the design record, research/layout/):
 
 Rows 26, 51 and 52 were measured when the unhomed linkonce copies sat in game/core/linkonce/. That directory is gone
 (inline passes 1 and 3): the copies are inline functions or function templates in the class headers (include/sly2/),
-emitted through src/game/app/eopid_linkonce.cpp, so those edges now come from app/ (L11) and are downward.
+emitted by app/class_registry.cpp (the option table g_aeopid takes their addresses; the grab-spot owner getters by their
+key TUs in gameplay/), so those edges now come from app/ (L11) and are downward.
 
 Specific notes (CONFIRMED from edge examples):
 - core/containers -> object: `tu_119BC8` (util library) defines a class whose vtable inherits BASIC slots; `bq`/`dynarray` call

@@ -1,0 +1,934 @@
+{
+ "unresolved": {
+  "src/game/app/bif.cpp": [
+   [
+    "unknown",
+    "_$_8CPairPtr"
+   ]
+  ],
+  "src/game/app/class_registry.cpp": [
+   [
+    "unknown",
+    "__builtin_new"
+   ]
+  ],
+  "src/game/engine/anim/act.cpp": [
+   [
+    "namespace",
+    "_vt$Q212M_PacNewKind2C0"
+   ],
+   [
+    "namespace",
+    "_vt$Q212M_PacNewKind2C1"
+   ],
+   [
+    "namespace",
+    "_vt$Q212M_PacNewKind2C2"
+   ],
+   [
+    "namespace",
+    "_vt$Q212M_PacNewKind2C3"
+   ],
+   [
+    "namespace",
+    "_vt$Q212M_PacNewKind2C4"
+   ],
+   [
+    "namespace",
+    "_vt$Q212M_PacNewKind2C5"
+   ],
+   [
+    "namespace",
+    "_vt$Q213M_PacNewKind22C0"
+   ],
+   [
+    "namespace",
+    "_vt$Q213M_PacNewKind22C1"
+   ],
+   [
+    "namespace",
+    "_vt$Q213M_PacNewKind22C2"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C0"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C1"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C2"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C3"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C4"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C5"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C6"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C7"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C8"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_0012E2382C9"
+   ]
+  ],
+  "src/game/engine/camera/tn.cpp": [
+   [
+    "unknown",
+    "Init__5CPLCY"
+   ]
+  ],
+  "src/game/engine/graphics/pipeline/draw.cpp": [
+   [
+    "unknown",
+    "g_pfrmOpen"
+   ]
+  ],
+  "src/game/engine/presentation/hud.cpp": [
+   [
+    "unknown",
+    "D_C0"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_00211C581D"
+   ]
+  ],
+  "src/game/engine/presentation/prog.cpp": [
+   [
+    "unknown",
+    "_gp"
+   ]
+  ],
+  "src/game/gameplay/cutscene/mpeg.cpp": [
+   [
+    "unknown",
+    "_gp"
+   ]
+  ],
+  "src/game/level/brx_sw.cpp": [
+   [
+    "unknown",
+    "_$_3OBJ"
+   ]
+  ],
+  "src/game/platform/thread/thread.cpp": [
+   [
+    "unknown",
+    "_gp"
+   ]
+  ],
+  "src/game/splice/eval.cpp": [
+   [
+    "unknown",
+    "_$_8CPairPtr"
+   ]
+  ],
+  "src/game/splice/frame.cpp": [
+   [
+    "unknown",
+    "_$_8CVarbPtr"
+   ]
+  ],
+  "src/game/splice/pair.cpp": [
+   [
+    "unknown",
+    "_$_8CPairPtr"
+   ]
+  ],
+  "src/game/splice/ref.cpp": [
+   [
+    "unknown",
+    "_$_8CPairPtr"
+   ]
+  ],
+  "src/game/splice/serialize.cpp": [
+   [
+    "unknown",
+    "_$_8CPairPtr"
+   ]
+  ],
+  "src/game/splice/sidebag.cpp": [
+   [
+    "unknown",
+    "_$_8CVarbPtr"
+   ]
+  ],
+  "src/game/splice/varb.cpp": [
+   [
+    "unknown",
+    "_$_8CVarbPtr"
+   ]
+  ],
+  "src/game/ui/memcard.cpp": [
+   [
+    "unknown",
+    "_gp"
+   ],
+   [
+    "namespace",
+    "_vt$Q215M_func_001ADDF04CDer"
+   ]
+  ],
+  "src/game/world/scene/callback.cpp": [
+   [
+    "unknown",
+    "_$_8CPairPtr"
+   ]
+  ]
+ },
+ "convention": {
+  "src/game/actor/po.cpp": [
+   "D_002A2DB0",
+   "D_002CA240",
+   "D_002E0D00",
+   "D_002E1E00"
+  ],
+  "src/game/actor/step.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60"
+  ],
+  "src/game/app/bif.cpp": [
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002DE578",
+   "D_003D4A60"
+  ],
+  "src/game/app/class_registry.cpp": [
+   "D_002BDDF0",
+   "D_002BDE00",
+   "D_002BDE10",
+   "D_002BDE50",
+   "D_002BDE58",
+   "D_002BDE60",
+   "D_002BDE70",
+   "D_002DE720",
+   "D_002DE750"
+  ],
+  "src/game/app/main.cpp": [
+   "D_00259DF0",
+   "D_0025E050",
+   "D_002BE538",
+   "D_004E5D80",
+   "D_004E5E38"
+  ],
+  "src/game/core/binstream/bis.cpp": [
+   "D_002BBAF0",
+   "D_002CA5A0"
+  ],
+  "src/game/core/binstream/tu_1848A8.cpp": [
+   "D_002D2918"
+  ],
+  "src/game/core/containers/tu_11AFE0.cpp": [
+   "D_002AA6A1"
+  ],
+  "src/game/core/math/bsp.cpp": [
+   "D_002BBAF0",
+   "D_002BBB10",
+   "D_002BBB20"
+  ],
+  "src/game/core/math/mat.cpp": [
+   "D_002A2D00",
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0"
+  ],
+  "src/game/core/math/vec.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002A2DF0",
+   "D_002A2E00"
+  ],
+  "src/game/engine/anim/act.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/engine/anim/aseg.cpp": [
+   "D_002CAF08",
+   "D_002CAF48",
+   "D_002DE578"
+  ],
+  "src/game/engine/anim/blend.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/engine/anim/sm.cpp": [
+   "D_002D9768",
+   "D_002DE578"
+  ],
+  "src/game/engine/anim/tail.cpp": [
+   "D_002A2DA0",
+   "D_002DB338"
+  ],
+  "src/game/engine/anim/wr.cpp": [
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/engine/anim/xf.cpp": [
+   "D_002A2D30",
+   "D_002A2DA0",
+   "D_002A2DD0",
+   "D_002CA6A0",
+   "D_002CA7A0",
+   "D_002CA7E0",
+   "D_002CA820"
+  ],
+  "src/game/engine/camera/cm.cpp": [
+   "D_002A2DD0",
+   "D_002A2DE0",
+   "D_002BBB60",
+   "D_002CA4D0",
+   "D_002CD378",
+   "D_002E0D00"
+  ],
+  "src/game/engine/camera/cplcy.cpp": [
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_002BBB68",
+   "D_002CD3C0",
+   "D_002CD408",
+   "D_002CD450",
+   "D_002CD498",
+   "D_002CD4E0",
+   "D_002CD528",
+   "D_002CD570",
+   "D_003D4A60"
+  ],
+  "src/game/engine/camera/tn.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_002DB858"
+  ],
+  "src/game/engine/camera/tu_12E600.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002CAB90"
+  ],
+  "src/game/engine/font/font.cpp": [
+   "D_002AA6A1",
+   "D_002BE320"
+  ],
+  "src/game/engine/fx/blip.cpp": [
+   "D_00000000",
+   "D_00000390",
+   "D_00000870",
+   "D_0025A0C0",
+   "D_0025AF90",
+   "D_002A2D00",
+   "D_002A2D30",
+   "D_002A2DD0",
+   "D_002CB5D8"
+  ],
+  "src/game/engine/fx/emitter.cpp": [
+   "D_002A2D30",
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002CE4A0",
+   "D_002CE4B8"
+  ],
+  "src/game/engine/fx/rip.cpp": [
+   "D_002A2D00",
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB50",
+   "D_002BBB60",
+   "D_002D7468",
+   "D_002D74B8",
+   "D_002D7508",
+   "D_002D7558",
+   "D_002D75A8",
+   "D_002D75F8",
+   "D_002D7648",
+   "D_002D7698",
+   "D_002D76E8",
+   "D_002D7738",
+   "D_002D7788",
+   "D_002D77D8",
+   "D_002D9978"
+  ],
+  "src/game/engine/graphics/backend/frm.cpp": [
+   "D_0025E680",
+   "D_00262320",
+   "D_002DEBE0",
+   "D_002DECD0"
+  ],
+  "src/game/engine/graphics/backend/gs.cpp": [
+   "D_002DEBE0",
+   "D_002DECC0",
+   "D_002DECD0"
+  ],
+  "src/game/engine/graphics/backend/vifs.cpp": [
+   "D_002C4430"
+  ],
+  "src/game/engine/graphics/pipeline/draw.cpp": [
+   "D_002C1F00",
+   "D_002C1F10",
+   "D_003D4A50"
+  ],
+  "src/game/engine/graphics/pipeline/glob.cpp": [
+   "D_00000000",
+   "D_00000738",
+   "D_000007F0",
+   "D_00001910",
+   "D_00001A68",
+   "D_00001AA0",
+   "D_00002E20",
+   "D_00002E68",
+   "D_00002EB0",
+   "D_00002EE8",
+   "D_00002EF8",
+   "D_00002F80",
+   "D_00002FC8",
+   "D_00003358",
+   "D_00003628",
+   "D_000037A8",
+   "D_00003AB0",
+   "D_0025B880",
+   "D_0025C1B0",
+   "D_0025C1C0",
+   "D_0025E040",
+   "D_0025E090",
+   "D_0025E668",
+   "D_0025E680",
+   "D_00262320",
+   "D_002A2D30",
+   "D_002A2DD0"
+  ],
+  "src/game/engine/graphics/pipeline/light.cpp": [
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0"
+  ],
+  "src/game/engine/graphics/pipeline/render.cpp": [
+   "D_003D4A50"
+  ],
+  "src/game/engine/graphics/pipeline/shd.cpp": [
+   "D_002BBB60"
+  ],
+  "src/game/engine/graphics/pipeline/tu_1BE398.cpp": [
+   "D_002C1F00",
+   "D_002C1F10"
+  ],
+  "src/game/engine/graphics/pipeline/tu_1D57A8.cpp": [
+   "D_003D4A50"
+  ],
+  "src/game/engine/physics/clip.cpp": [
+   "D_002A2DA0"
+  ],
+  "src/game/engine/physics/mark.cpp": [
+   "D_002A2DC0",
+   "D_002BBB20"
+  ],
+  "src/game/engine/physics/path.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0"
+  ],
+  "src/game/engine/physics/shape.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0"
+  ],
+  "src/game/engine/physics/so.cpp": [
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002A2DE0",
+   "D_002A2DF0",
+   "D_002A2E00",
+   "D_002CA280",
+   "D_002CA2C0"
+  ],
+  "src/game/engine/physics/solve.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/engine/physics/tu_185130.cpp": [
+   "D_002A2DC0",
+   "D_002BE918"
+  ],
+  "src/game/engine/physics/tu_1BC050.cpp": [
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/engine/physics/tu_1D6848.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/engine/physics/water.cpp": [
+   "D_002A2D00",
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/engine/presentation/hud.cpp": [
+   "D_00000000",
+   "D_00000030",
+   "D_00000060",
+   "D_00000090",
+   "D_000000C0",
+   "D_00000100",
+   "D_00000140",
+   "D_00000650",
+   "D_0025AFA0",
+   "D_0025B870",
+   "D_002A2E10",
+   "D_002A2E20",
+   "D_002A3A10",
+   "D_002AA6A1",
+   "D_002BE538",
+   "D_002CA578",
+   "D_002DAF30",
+   "D_002DEBF0",
+   "D_002DECE0",
+   "D_003D4A60",
+   "D_003D9EDC",
+   "D_003D9EF4",
+   "D_003E1C70",
+   "D_003E1C80",
+   "D_003E1C88",
+   "D_003E21A0"
+  ],
+  "src/game/engine/presentation/prog.cpp": [
+   "D_002BBB60",
+   "D_002BE538"
+  ],
+  "src/game/engine/presentation/screen.cpp": [
+   "D_002CA490",
+   "D_002D37D0",
+   "D_002D8368",
+   "D_002D83E8",
+   "D_002D8468",
+   "D_002D84E8",
+   "D_002D8568",
+   "D_002D85E8",
+   "D_002D8668",
+   "D_002DDEC0",
+   "D_002E0D00",
+   "D_002E1E60",
+   "D_003D4A60"
+  ],
+  "src/game/engine/sound/sound.cpp": [
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_002CA510",
+   "D_002D9BE0",
+   "D_002D9C70",
+   "D_002D9D00"
+  ],
+  "src/game/gameplay/ai/bhvstk.cpp": [
+   "D_002CC1C0",
+   "D_002CC240",
+   "D_002CC2C0",
+   "D_002CC340",
+   "D_002CC3C0",
+   "D_002CC440",
+   "D_002CC4C0",
+   "D_002CCE90",
+   "D_002CDD40",
+   "D_002CDDC0",
+   "D_002CF7F8",
+   "D_002CFA10",
+   "D_002CFC20",
+   "D_002CFCA0",
+   "D_002CFD20",
+   "D_002CFDA0",
+   "D_002CFE20",
+   "D_002CFF20",
+   "D_002CFFA0",
+   "D_002D0020",
+   "D_002D00A0",
+   "D_002D0120",
+   "D_002D01A0",
+   "D_002D0220",
+   "D_002D02A0",
+   "D_002D0320",
+   "D_002D03A0",
+   "D_002D0420",
+   "D_002D04A0",
+   "D_002D0520",
+   "D_002D05A0",
+   "D_002D0620",
+   "D_002D06A0",
+   "D_002D07B0",
+   "D_002D0830",
+   "D_002D08B0",
+   "D_002D0930",
+   "D_002D0A30",
+   "D_002D0AB0",
+   "D_002D4AF8"
+  ],
+  "src/game/gameplay/ai/detector.cpp": [
+   "D_002A2DC0"
+  ],
+  "src/game/gameplay/ai/guardbhv.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_002DE578"
+  ],
+  "src/game/gameplay/ai/noise.cpp": [
+   "D_002CE2B8"
+  ],
+  "src/game/gameplay/ai/stepguard.cpp": [
+   "D_002A2DA0",
+   "D_002A2DD0",
+   "D_002A2DE0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/ai/tu_144B28.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/ai/tu_14A008.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/ai/tu_1553F0.cpp": [
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002DE578",
+   "func_00256CE8"
+  ],
+  "src/game/gameplay/ai/tu_1709A8.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/ai/tu_171F58.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0"
+  ],
+  "src/game/gameplay/ai/tu_173158.cpp": [
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/ai/tu_1B9F80.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/ai/tu_1D7238.cpp": [
+   "D_002E0D00",
+   "D_003D4A54"
+  ],
+  "src/game/gameplay/cutscene/mpeg.cpp": [
+   "D_002D4220",
+   "D_002D4240"
+  ],
+  "src/game/gameplay/cutscene/relay.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_002D8C08",
+   "D_002DE578"
+  ],
+  "src/game/gameplay/cutscene/tu_1471C0.cpp": [
+   "D_002BD39C",
+   "D_002DECD0"
+  ],
+  "src/game/gameplay/objects/bomb.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/objects/missile.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/objects/rhythm.cpp": [
+   "D_002BBB60",
+   "D_002DE578"
+  ],
+  "src/game/gameplay/objects/sensor.cpp": [
+   "D_002A2DC0",
+   "D_002A2DF0",
+   "D_002A2E00"
+  ],
+  "src/game/gameplay/objects/tu_17F090.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_002DE578",
+   "D_002E1E00"
+  ],
+  "src/game/gameplay/objects/tu_1B0B78.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002DE578"
+  ],
+  "src/game/gameplay/objects/tu_1BAB50.cpp": [
+   "D_002DE578"
+  ],
+  "src/game/gameplay/objects/tu_1C2D20.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0"
+  ],
+  "src/game/gameplay/objects/tu_1D1370.cpp": [
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002C94A0"
+  ],
+  "src/game/gameplay/objects/tu_223F70.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002A2DE0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/objects/turret.cpp": [
+   "D_002BBB60",
+   "D_003D4A60"
+  ],
+  "src/game/gameplay/player/air.cpp": [
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/player/bentley.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/player/cane.cpp": [
+   "D_002A2DC0"
+  ],
+  "src/game/gameplay/player/grab.cpp": [
+   "D_002A2D00",
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/player/grabspot.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002DFB84"
+  ],
+  "src/game/gameplay/player/hang.cpp": [
+   "D_002A2D00",
+   "D_002A2DA0",
+   "D_002A2DB0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/player/hurt.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_002DE578",
+   "D_002E1E00"
+  ],
+  "src/game/gameplay/player/jt.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/player/jthands.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/player/mode.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/player/murray.cpp": [
+   "D_002A2D30",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002A2DE0",
+   "D_002BBB60"
+  ],
+  "src/game/gameplay/player/pipe.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0"
+  ],
+  "src/game/gameplay/player/pipe_jt.cpp": [
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/player/places.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/player/rail.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0"
+  ],
+  "src/game/gameplay/player/stepplayer.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002BBB60",
+   "D_003D4A54",
+   "D_003D4A60"
+  ],
+  "src/game/gameplay/player/throw.cpp": [
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0"
+  ],
+  "src/game/gameplay/player/tu_201D78.cpp": [
+   "D_002DDFA0"
+  ],
+  "src/game/gameplay/player/tu_20B840.cpp": [
+   "D_002A2DD0",
+   "D_002DA9D0",
+   "D_002DAA10"
+  ],
+  "src/game/gameplay/progression/booty.cpp": [
+   "D_002A2DD0",
+   "D_002A2DE0",
+   "D_002BBB60",
+   "D_003D4A60"
+  ],
+  "src/game/gameplay/progression/cheat.cpp": [
+   "D_002BD4E0",
+   "D_002BD518",
+   "D_002BD550",
+   "D_002BD588",
+   "D_002BD5C0",
+   "D_002BD5F8",
+   "D_002BD630",
+   "D_002BD668",
+   "D_002BD6A0",
+   "D_002BD6D8",
+   "D_002BD710",
+   "D_002BD748",
+   "D_002BD780",
+   "D_002BD7B8",
+   "D_002BD7F0",
+   "D_003D4A60"
+  ],
+  "src/game/gameplay/progression/prize.cpp": [
+   "D_002A2D00",
+   "D_002A2DA0",
+   "D_002A2DC0",
+   "D_002A2DD0",
+   "D_002A2DE0",
+   "D_003D4A60"
+  ],
+  "src/game/gameplay/progression/waypoint.cpp": [
+   "D_002A2DC0",
+   "D_002BBB60"
+  ],
+  "src/game/object/brx.cpp": [
+   "D_002CBE38",
+   "D_002CBE50"
+  ],
+  "src/game/object/lo.cpp": [
+   "D_002A2D30",
+   "D_002A2DD0"
+  ],
+  "src/game/object/proxy.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/object/splicemap.cpp": [
+   "func_00129658"
+  ],
+  "src/game/object/xform.cpp": [
+   "D_002A2DD0"
+  ],
+  "src/game/platform/input/joy.cpp": [
+   "D_002DDEC0"
+  ],
+  "src/game/platform/input/rumble.cpp": [
+   "D_003D4A60"
+  ],
+  "src/game/platform/memory/heap.cpp": [
+   "D_002CA578"
+  ],
+  "src/game/platform/memory/memory.cpp": [
+   "D_0047220F"
+  ],
+  "src/game/platform/memory/tu_1147D8.cpp": [
+   "D_0027A778",
+   "D_0029A790"
+  ],
+  "src/game/platform/memory/tu_114AE0.cpp": [
+   "D_0029A8C0",
+   "D_002A28D0"
+  ],
+  "src/game/platform/runtime/text.cpp": [
+   "D_002AA6A1"
+  ],
+  "src/game/ui/memcard.cpp": [
+   "D_002A38E8",
+   "D_002D3750",
+   "D_002E6604",
+   "D_002F633C",
+   "D_003D4A60"
+  ],
+  "src/game/ui/menu.cpp": [
+   "D_002BBB60",
+   "D_002E6604",
+   "D_003D4A60"
+  ],
+  "src/game/ui/tu_15CD68.cpp": [
+   "D_002A37A8",
+   "D_002BE080",
+   "D_002BE1B8",
+   "D_002BE200",
+   "D_002BE248",
+   "D_003D4A60"
+  ],
+  "src/game/world/scene/sw.cpp": [
+   "D_002A39E8",
+   "D_002BBB60",
+   "D_002E1E60",
+   "D_002E1E88",
+   "D_003D4A54",
+   "D_003D4A60"
+  ],
+  "src/game/world/state/difficulty.cpp": [
+   "D_002DE578",
+   "D_003D4A60"
+  ],
+  "src/game/world/state/game.cpp": [
+   "D_002A37E8",
+   "D_002A3828",
+   "D_002DE578",
+   "D_002E1E00",
+   "D_002E1E88",
+   "D_003D4A60"
+  ],
+  "src/game/world/state/save.cpp": [
+   "D_002AA6A1",
+   "D_003D4A60"
+  ]
+ },
+ "dupdefs": {},
+ "nsdefs": {}
+}
