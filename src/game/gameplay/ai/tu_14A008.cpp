@@ -26,70 +26,70 @@ struct ALLOCREQ { int cb, cbAlign; };
 struct SCOPE { int a[4]; };
 
 /* A path shape (SHAPE: +0xE8 point count, +0xF0 s per point, +0xF4 positions). */
-struct SHAPEV { char pad[0xE8]; int ccv; int padEC; float *mpicvs; qword *mpicvpos; };
+struct SHAPEV { char pad[0xE8]; int pointCount; int padEC; float *pointDistances; qword *pointPositions; };
 /* A route station: its kind (0 walk, 1 jump), the oid of its object, the object. */
-struct RTE { int k; int oid; void *plo; };
+struct RTE { int k; int oid; void *object; };
 /* The route (an LO, which ends at +0x50). */
-struct ROUTE { char pad[0x50]; int fReverse; int crte; RTE *arte; SHAPEV *pshape; };
-typedef char assert_ROUTE_pshape[(unsigned int)&((ROUTE *)0)->pshape == 0x5C ? 1 : -1];
+struct ROUTE { char pad[0x50]; int isReversed; int stationCount; RTE *stations; SHAPEV *shape; };
+typedef char assert_ROUTE_shape[(unsigned int)&((ROUTE *)0)->shape == 0x5C ? 1 : -1];
 /* An LO view: vtable, and the fInWorld bit (ChooseCarmelitaTarget). */
-struct LOV { char pad[0xC]; VTE *vt; char pad10[0x18]; int x28; signed char x2C; char x2D; long k : 4; unsigned long b : 8; unsigned int f : 1; };
+struct LOV { char pad[0xC]; VTE *vt; char pad10[0x18]; int unknown28; signed char unknown2C; char unknown2D; long k : 4; unsigned long b : 8; unsigned int isInWorld : 1; };
 /* The guard's detector: its targets. */
-struct DTE { LOV *po; int fOn; int pad[2]; };
-struct DETV { char pad[0xFC]; int cdte; DTE adte[8]; };
+struct DTE { LOV *object; int state; int pad[2]; };
+struct DETV { char pad[0xFC]; int targetCount; DTE targets[8]; };
 struct V3 { int x; int y; int z; };
 /* The patrolling guard (a STEPGUARD with a marker object at +0x1010). */
 struct GUARDV
 {
     int pad[3]; VTE *vt;
     char pad1[0x190 - 0x10];
-    V3 v190;
+    V3 desiredVelocity;
     char pad19C[0x208 - 0x19C];
-    int x208;
+    int isOnGround;
     char pad20C[0x294 - 0x20C];
-    SHAPEV *ppath;
+    SHAPEV *path;
     char pad298[0x38C - 0x298];
-    LOV *ploTarget;
-    LOV *plo390;
+    LOV *target;
+    LOV *forcedTarget;
     char pad394[0x4A4 - 0x394];
-    int n4A4;
+    int unknown4A4;
     char pad4A8[0xF04 - 0x4A8];
-    float tF04;
+    float attackCooldownEnd;
     char padF08[0xF64 - 0xF08];
-    DETV *pdetector;
+    DETV *detector;
     char padF68[0x1010 - 0xF68];
-    LOV *ploMarker;          /* +0x1010 the position marker the guard targets while patrolling */
+    LOV *marker;          /* +0x1010 the position marker the guard targets while patrolling */
 };
-typedef char assert_GUARDV_ploMarker[(unsigned int)&((GUARDV *)0)->ploMarker == 0x1010 ? 1 : -1];
+typedef char assert_GUARDV_marker[(unsigned int)&((GUARDV *)0)->marker == 0x1010 ? 1 : -1];
 /* An attack entry (ChooseStepguardAttack; +0x60 the cool-down range). */
-struct ATKENTRY { char pad[0x60]; LMV lm; };
+struct ATKENTRY { char pad[0x60]; LMV cooldown; };
 /* The behaviour. */
 struct BHVRT
 {
     char pad0[0x10];
-    GUARDV *pguard;
-    int x14;
-    union { void *pbhvCur; char abhvstk[0x18]; };
+    GUARDV *guard;
+    int unknown14;
+    union { void *currentChild; char childSlot[0x18]; };
     int state;
-    float tState;
-    ROUTE *proute;           /* +0x38 */
-    int iCur;                /* +0x3C the station the guard is at */
-    int iTarget;             /* +0x40 the station to go to */
-    ATKENTRY *pentry;        /* +0x44 */
-    float t48;               /* +0x48 last time the hero moved fast */
+    float stateTime;
+    ROUTE *route;           /* +0x38 */
+    int currentStation;                /* +0x3C the station the guard is at */
+    int targetStation;             /* +0x40 the station to go to */
+    ATKENTRY *attack;        /* +0x44 */
+    float lastFastHeroTime;               /* +0x48 last time the hero moved fast */
 };
-typedef char assert_BHVRT_t48[(unsigned int)&((BHVRT *)0)->t48 == 0x48 ? 1 : -1];
+typedef char assert_BHVRT_lastFastHeroTime[(unsigned int)&((BHVRT *)0)->lastFastHeroTime == 0x48 ? 1 : -1];
 /* The hero (UpdateBhvRouteChase): vtable slot 33, his path while hanging (+0x258), his state (+0x2DC). */
 struct PATH { char pad[0x90]; int c; qword *av; };
-struct HEROV { char pad[0xC]; VTE *vt; char pad1[0x258 - 0x10]; PATH *ppath; char pad2[0x2DC - 0x25C]; int x2DC; };
+struct HEROV { char pad[0xC]; VTE *vt; char pad1[0x258 - 0x10]; PATH *path; char pad2[0x2DC - 0x25C]; int state; };
 /* An object of the hiding-place list (*(SO **)&g_sw.dlCid98) (UpdateBhvRouteChase). */
-struct XEC { char pad[0x20]; qword pos; float g30; };
-struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int grfE8; XEC *pxEC; char pad2[0x174 - 0xF0]; SOV *pnext; };
+struct XEC { char pad[0x20]; qword pos; float radius; };
+struct SOV { char pad[0xC]; VTE *vt; char pad1[0xE8 - 0x10]; int flags; XEC *hidingInfo; char pad2[0x174 - 0xF0]; SOV *next; };
 /* The sub-behaviours started by SetBhvRouteState. */
 struct O9E { int pad[3]; VTE *vt; char pad1[0x38 - 0x10]; void *x38; int x3C; };
 struct OA7 { int pad[3]; VTE *vt; char pad1[0x40 - 0x10]; int x40; char pad2[0x64 - 0x44]; float x64; char pad3[0xC0 - 0x68]; int xC0; char pad4[4]; void *xC8; };
 struct OAC { int pad[3]; VTE *vt; char padx[0x50 - 0x10]; qword x50; char pad1[0x68 - 0x60]; int x68; };
-struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LOV *x30; char pad2[8]; ATKENTRY *pentry; };
+struct OA4 { int pad[3]; VTE *vt; char pad1[0x30 - 0x10]; LOV *x30; char pad2[8]; ATKENTRY *attack; };
 struct MSG { int kind; int pad[3]; int val; char pad2[0x70 - 0x14]; };
 
 extern CLOCK D_002DDED0;
@@ -190,10 +190,10 @@ extern "C" void LoadRouteFromBrx(ROUTE *p, void *pbis)
     ALLOCREQ s;
     STACKSCOPE_ctor(&f);
     InitS(&s, 0x100, 0x10);
-    p->arte = func_001AE378(&s);
+    p->stations = func_001AE378(&s);
     LoadLoFromBrx(p, pbis);
-    InitS(&s, p->crte, 0x10);
-    p->arte = func_001AE238(&s, p->arte);
+    InitS(&s, p->stationCount, 0x10);
+    p->stations = func_001AE238(&s, p->stations);
     STACKSCOPE_ctor_1AE4A0(&f, 2);
 }
 
@@ -204,29 +204,29 @@ void CID123::VUnk14()
     ROUTE *p = (ROUTE *)this;
     int i;
     PostLoLoad(p);
-    p->pshape = func_001E94B0(0x62C, p->crte);
-    p->pshape->ccv = p->crte;
-    for (i = 0; i < p->crte; i++) {
-        RTE *e = &p->arte[i];
+    p->shape = func_001E94B0(0x62C, p->stationCount);
+    p->shape->pointCount = p->stationCount;
+    for (i = 0; i < p->stationCount; i++) {
+        RTE *e = &p->stations[i];
         void *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, p);
-        e->plo = o;
+        e->object = o;
         if (o) {
-            qword *pq = (qword *)((i << 4) + (int)p->pshape->mpicvpos);
+            qword *pq = (qword *)((i << 4) + (int)p->shape->pointPositions);
             *pq = func_001A62E8(o);
         }
     }
-    MeasureShape(p->pshape);
+    MeasureShape(p->shape);
 }
 
 // 0x14A178: Splice option: appends a route point {oid, kind} (at most 256).
 extern "C" void AddRoutePoint(ROUTE *p, int k, int oid)
 {
-    int c = p->crte;
+    int c = p->stationCount;
     if (c < 0x100) {
-        RTE *prte = &p->arte[c];
+        RTE *prte = &p->stations[c];
         prte->k = k;
         prte->oid = oid;
-        p->crte = p->crte + 1;
+        p->stationCount = p->stationCount + 1;
     }
 }
 
@@ -236,10 +236,10 @@ extern "C" void InitBhvRoute(BHVRT *behavior)
 {
     InitBhv(behavior);
     func_001FEE90(D_003DD040);
-    AddStepguardSgf(behavior->pguard, 0x24);
+    AddStepguardSgf(behavior->guard, 0x24);
     behavior->state = -1;
-    behavior->iTarget = -1;
-    behavior->iCur = -1;
+    behavior->targetStation = -1;
+    behavior->currentStation = -1;
 }
 
 // 0x14A200: Route behaviour vtable slot 8 (Start): state 0, start time, clears the guard's +0x4A4.
@@ -248,8 +248,8 @@ void BHV182::Start()
     BHVRT *behavior = (BHVRT *)this;
     StartBhv(behavior);
     SetBhvRouteState(behavior, 0);
-    behavior->t48 = D_002DDED0.t;
-    behavior->pguard->n4A4 = 0;
+    behavior->lastFastHeroTime = D_002DDED0.t;
+    behavior->guard->unknown4A4 = 0;
 }
 
 // 0x14A248: Route behaviour vtable slot 9 (Close): state -1, lowers flag 0x24, stops the music cue, sets the
@@ -258,9 +258,9 @@ extern "C" void CloseBhvRoute(BHVRT *behavior)
 {
     CloseBhv(behavior);
     SetBhvRouteState(behavior, -1);
-    RemoveStepguardSgf(behavior->pguard, 0x24);
+    RemoveStepguardSgf(behavior->guard, 0x24);
     func_001FEEA0(D_003DD040);
-    behavior->pguard->n4A4 = 1;
+    behavior->guard->unknown4A4 = 1;
 }
 
 // 0x14A2A0: Route behaviour vtable slot 10 (Update): updates the chase position, then runs the state machine: 0 at
@@ -277,16 +277,16 @@ extern "C" void UpdateBhvRoute(BHVRT *behavior)
         s = behavior->state;
         switch (s) {
         case 0:
-            if (IsStepguardHandsOff(behavior->pguard)) {
+            if (IsStepguardHandsOff(behavior->guard)) {
                 SetBhvRouteState(behavior, 4);
             } else if (IsBhvRouteOffGround(behavior)) {
                 SetBhvRouteState(behavior, 2);
             } else {
                 int v = FindBhvRouteBestStation(behavior);
-                behavior->iTarget = v;
-                if (v == behavior->iCur) {
-                    ATKENTRY *r = ChooseStepguardAttack(behavior->pguard, PpoHero(&D_003DD490), 0);
-                    behavior->pentry = r;
+                behavior->targetStation = v;
+                if (v == behavior->currentStation) {
+                    ATKENTRY *r = ChooseStepguardAttack(behavior->guard, PpoHero(&D_003DD490), 0);
+                    behavior->attack = r;
                     if (r)
                         SetBhvRouteState(behavior, 3);
                 } else {
@@ -295,29 +295,29 @@ extern "C" void UpdateBhvRoute(BHVRT *behavior)
             }
             break;
         case 1:
-            if (IsStepguardHandsOff(behavior->pguard))
+            if (IsStepguardHandsOff(behavior->guard))
                 SetBhvRouteState(behavior, 4);
             else if (IsBhvRouteOffGround(behavior))
                 SetBhvRouteState(behavior, 2);
-            else if (IsBhvpathAtEnd(behavior->pbhvCur))
+            else if (IsBhvpathAtEnd(behavior->currentChild))
                 SetBhvRouteState(behavior, 0);
             else
-                ChooseStepguardAttack(behavior->pguard, PpoHero(&D_003DD490), 0);
+                ChooseStepguardAttack(behavior->guard, PpoHero(&D_003DD490), 0);
             break;
         case 2:
-            if (IsStepguardHandsOff(behavior->pguard))
+            if (IsStepguardHandsOff(behavior->guard))
                 SetBhvRouteState(behavior, 4);
-            else if (IsBhvanimDone(behavior->pbhvCur))
+            else if (IsBhvanimDone(behavior->currentChild))
                 SetBhvRouteState(behavior, 0);
             break;
         case 3:
-            if (IsStepguardHandsOff(behavior->pguard))
+            if (IsStepguardHandsOff(behavior->guard))
                 SetBhvRouteState(behavior, 4);
-            else if (IsBhvattackDone(behavior->pbhvCur))
+            else if (IsBhvattackDone(behavior->currentChild))
                 SetBhvRouteState(behavior, 0);
             break;
         case 4:
-            if (!IsStepguardHandsOff(behavior->pguard))
+            if (!IsStepguardHandsOff(behavior->guard))
                 SetBhvRouteState(behavior, 0);
             break;
         }
@@ -330,9 +330,9 @@ extern "C" void UpdateBhvRoute(BHVRT *behavior)
 // walked off the route, inferred).
 extern "C" int IsBhvRouteOffGround(BHVRT *behavior)
 {
-    GUARDV *guard = behavior->pguard;
+    GUARDV *guard = behavior->guard;
     qword t;
-    if (guard->x208) return 0;
+    if (guard->isOnGround) return 0;
     t = func_001A62E8(guard);
     return SnapToGround(&t, 1, 0, 100.0f, -250.0f) == 0;
 }
@@ -393,7 +393,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     SW *pg = &D_003DD490;
     HEROV *pso = PpoHero(pg);
     qword posPlayer = func_001A62E8(pso);
-    qword posMe = func_001A62E8(behavior->pguard);
+    qword posMe = func_001A62E8(behavior->guard);
     qword d = VuSub(posPlayer, posMe);
     qword v;
     qword pos;
@@ -402,11 +402,11 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
         v = ((qword (*)(void *))entry->pfn)((char *)pso + entry->d);
     }
     if (FLess(D_002BD460, Len(v)))
-        behavior->t48 = D_002DDED0.t;
-    float dt = D_002DDED0.t - behavior->t48;
+        behavior->lastFastHeroTime = D_002DDED0.t;
+    float dt = D_002DDED0.t - behavior->lastFastHeroTime;
     if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !FSwHandsOff(pg)) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x2DC == 0x11) {
-            PATH *ppath = pso->ppath;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->state == 0x11) {
+            PATH *ppath = pso->path;
             pos = func_001A62E8(pso);
             int c = ppath->c;
             for (int i = 0; i < c; i++) {
@@ -415,28 +415,28 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
             }
             goto done;
         }
-        SetStepguardTarget(behavior->pguard, pso);
+        SetStepguardTarget(behavior->guard, pso);
         return;
     }
-    for (SOV *ps = (*(SOV **)&g_sw.dlCid98); ps; ps = ps->pnext) {
+    for (SOV *ps = (*(SOV **)&g_sw.dlCid98); ps; ps = ps->next) {
         if (!func_001BBE48(ps)) {
             SOV *apso[8];
             qword posT = func_001A62E8(ps);
             float r = D_002BD478;
-            if (ps->pxEC) {
-                posT = ps->pxEC->pos;
-                r = ps->pxEC->g30;
+            if (ps->hidingInfo) {
+                posT = ps->hidingInfo->pos;
+                r = ps->hidingInfo->radius;
             }
             int c = CploFindSwObjectsByClass(&D_003DD490, 1, 0x12, ps, 8, apso);
             int k = 0;
             for (int i = 0; i < c; i++) {
-                if (apso[i]->grfE8 & 0x17E)
+                if (apso[i]->flags & 0x17E)
                     apso[k++] = apso[i];
             }
             if (k) {
                 SOV *pt = apso[NRandInRange(0, k - 1)];
                 posT = func_001A62E8(pt);
-                r = *(float *)&pt->pxEC;
+                r = *(float *)&pt->hidingInfo;
             }
             if (!FLess(D_002BD478 * D_002BD478, LenSq(VuSub(posT, posPlayer)))) {
                 float pan = GRandInRange(-3.1415927f, 3.1415927f);
@@ -467,11 +467,11 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     }
 done:
     {
-        LOV *plo = behavior->pguard->ploMarker;
+        LOV *plo = behavior->guard->marker;
         VTE *entry = &plo->vt[29];
         ((void (*)(void *, qword))entry->pfn)((char *)plo + entry->d, pos);
     }
-    SetStepguardTarget(behavior->pguard, behavior->pguard->ploMarker);
+    SetStepguardTarget(behavior->guard, behavior->guard->marker);
 }
 
 // Remaps g through an LM range (inferred: clamped linear mapping).
@@ -489,15 +489,15 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
     float ag[1];
     void *pv = PpoHero(&D_003DD490);
     float gBest = -1.0f;
-    FindShapeClosestPoint(behavior->proute->pshape, func_001A62E8(pv), 0, 0, 0, 0, ag);
-    for (; i < behavior->proute->crte; i++) {
+    FindShapeClosestPoint(behavior->route->shape, func_001A62E8(pv), 0, 0, 0, 0, ag);
+    for (; i < behavior->route->stationCount; i++) {
         float g, u1, u2, u3, s;
         U v;
-        RTE *pe = &behavior->proute->arte[i];
-        if (!pe->plo)
+        RTE *pe = &behavior->route->stations[i];
+        if (!pe->object)
             continue;
-        g = ag[0] - behavior->proute->pshape->mpicvs[i];
-        if (behavior->proute->fReverse == 1)
+        g = ag[0] - behavior->route->shape->pointDistances[i];
+        if (behavior->route->isReversed == 1)
             g = -g;
         if (FCheckLm(&D_002BD480, g))
             u1 = GRemap(&D_002BD480, g);
@@ -505,7 +505,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
             u1 = 1.0f - GRemap(&D_002BD488, g);
         else
             u1 = 0.0f;
-        v.q = ConvertCmWorldToScreen(D_002DDF40, behavior->proute->pshape->mpicvpos[i]);
+        v.q = ConvertCmWorldToScreen(D_002DDF40, behavior->route->shape->pointPositions[i]);
         if (FCheckLm(&D_002BD490, v.f[2]))
             u2 = GRemap(&D_002BD490, v.f[2]);
         else if (FCheckLm(&D_002BD498, v.f[2]))
@@ -530,12 +530,12 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
 extern "C" void AdvanceBhvRouteStation(BHVRT *behavior)
 {
     int k;
-    if (behavior->iCur < behavior->iTarget) {
-        behavior->iCur++;
-        k = behavior->proute->arte[behavior->iCur].k;
+    if (behavior->currentStation < behavior->targetStation) {
+        behavior->currentStation++;
+        k = behavior->route->stations[behavior->currentStation].k;
     } else {
-        k = behavior->proute->arte[behavior->iCur].k;
-        behavior->iCur--;
+        k = behavior->route->stations[behavior->currentStation].k;
+        behavior->currentStation--;
     }
     switch (k) {
     case 0:
@@ -550,7 +550,7 @@ extern "C" void AdvanceBhvRouteStation(BHVRT *behavior)
 // 0x14AE18: Returns the kind of the current route station.
 extern "C" void *GetBhvRouteStationKind(BHVRT *behavior)
 {
-    return behavior->proute->arte[behavior->iCur].plo;
+    return behavior->route->stations[behavior->currentStation].object;
 }
 
 #define VCALL0(po, n) { VTE *e = &(po)->vt[n]; ((void (*)(void *))e->pfn)((char *)(po) + e->d); }
@@ -562,92 +562,92 @@ extern "C" void SetBhvRouteState(BHVRT *behavior, int state)
         return;
     switch (behavior->state) {
     case 0:
-        SetStepguardAimAct(behavior->pguard, 0, 0, D_002A2DD0);
+        SetStepguardAimAct(behavior->guard, 0, 0, D_002A2DD0);
         break;
     case -1:
     case 1:
-        SetSoCnstrForce(behavior->pguard, 1);
-        SetSoCnstrTorque(behavior->pguard, 1);
+        SetSoCnstrForce(behavior->guard, 1);
+        SetSoCnstrTorque(behavior->guard, 1);
         break;
     case 3: {
         float t = D_002DDED0.t;
-        behavior->pguard->tF04 = t + GRandInRange(behavior->pentry->lm.gMin, behavior->pentry->lm.gMax);
-        behavior->pentry = 0;
+        behavior->guard->attackCooldownEnd = t + GRandInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
+        behavior->attack = 0;
         break;
     }
     }
-    PopBhv(behavior->abhvstk);
+    PopBhv(behavior->childSlot);
     behavior->state = state;
-    behavior->tState = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O9E *po = (struct O9E *)func_00205438(behavior->pguard, 0x9E);
+        struct O9E *po = (struct O9E *)func_00205438(behavior->guard, 0x9E);
         po->x38 = PpoHero(&D_003DD490);
         VCALL0(po, 8);
         {
-            GUARDV *guard = behavior->pguard;
+            GUARDV *guard = behavior->guard;
             VTE *entry = &guard->vt[35];
             ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
         }
         {
-            GUARDV *guard = behavior->pguard;
+            GUARDV *guard = behavior->guard;
             VTE *entry = &guard->vt[36];
             ((void (*)(void *, qword))entry->pfn)((char *)guard + entry->d, D_002A2DD0);
         }
         {
-            V3 *pv = &behavior->pguard->v190;
+            V3 *pv = &behavior->guard->desiredVelocity;
             pv->x = pv->y = pv->z = 0;
         }
         break;
     }
     case 1: {
-        SHAPEV *psp = behavior->pguard->ppath;
+        SHAPEV *psp = behavior->guard->path;
         struct OA7 *po;
-        psp->ccv = 2;
+        psp->pointCount = 2;
         {
-            qword *pq = psp->mpicvpos;
-            *pq = func_001A62E8(behavior->pguard);
-            pq = psp->mpicvpos;
+            qword *pq = psp->pointPositions;
+            *pq = func_001A62E8(behavior->guard);
+            pq = psp->pointPositions;
             pq[1] = func_001A62E8(GetBhvRouteStationKind(behavior));
         }
         MeasureShape(psp);
-        po = (struct OA7 *)func_00205438(behavior->pguard, 0xA7);
+        po = (struct OA7 *)func_00205438(behavior->guard, 0xA7);
         SetBhvpathShape(po, psp, 0);
         po->xC0 = 8;
         po->x40 = 1;
         po->x64 = 25.0f;
         po->xC8 = PpoHero(&D_003DD490);
         VCALL0(po, 8);
-        behavior->pguard->tF04 = D_002DDED0.t;
-        SetSoCnstrForce(behavior->pguard, 0);
-        SetSoCnstrTorque(behavior->pguard, 0);
+        behavior->guard->attackCooldownEnd = D_002DDED0.t;
+        SetSoCnstrForce(behavior->guard, 0);
+        SetSoCnstrTorque(behavior->guard, 0);
         break;
     }
     case 2: {
-        struct OAC *po = (struct OAC *)func_00205438(behavior->pguard, 0xAC);
+        struct OAC *po = (struct OAC *)func_00205438(behavior->guard, 0xAC);
         po->x50 = func_001A62E8(GetBhvRouteStationKind(behavior));
         po->x68 = 1;
         VCALL0(po, 8);
         break;
     }
     case 3: {
-        struct OA4 *po = (struct OA4 *)func_00205438(behavior->pguard, 0xA4);
-        po->x30 = behavior->pguard->ploTarget;
-        po->pentry = behavior->pentry;
+        struct OA4 *po = (struct OA4 *)func_00205438(behavior->guard, 0xA4);
+        po->x30 = behavior->guard->target;
+        po->attack = behavior->attack;
         VCALL0(po, 8);
-        behavior->pguard->tF04 = 3.40282346638528859812e+38f;
+        behavior->guard->attackCooldownEnd = 3.40282346638528859812e+38f;
         break;
     }
     case 4: {
-        struct O9E *po = (struct O9E *)func_00205438(behavior->pguard, 0x9E);
+        struct O9E *po = (struct O9E *)func_00205438(behavior->guard, 0x9E);
         po->x38 = PpoHero(&D_003DD490);
         po->x3C = 1;
         VCALL0(po, 8);
         break;
     }
     case -1:
-        SetSoCnstrForce(behavior->pguard, 0);
-        SetSoCnstrTorque(behavior->pguard, 0);
+        SetSoCnstrForce(behavior->guard, 0);
+        SetSoCnstrTorque(behavior->guard, 0);
         break;
     }
 }
@@ -660,7 +660,7 @@ void CARMELITA::Init()
     GUARDV *guard = (GUARDV *)this;
     InitStepguard(guard);
     D_002DD648 = guard;
-    guard->n4A4 = 1;
+    guard->unknown4A4 = 1;
 }
 
 // 0x14B1D8: CARMELITA vtable slot 15 (PostLoad): STEPGUARD post-load, then creates her helper object (oid 0x62B) at
@@ -668,7 +668,7 @@ void CARMELITA::Init()
 extern "C" void PostCarmelitaLoad(GUARDV *guard)
 {
     PostStepguardLoad(guard);
-    guard->ploMarker = PloNew(3, 0, 0x62B, -1);
+    guard->marker = PloNew(3, 0, 0x62B, -1);
 }
 
 // 0x14B218: CARMELITA vtable slot 5 (HandleMessage): STEPGUARD handler; message 0xB about herself while not on her
@@ -679,7 +679,7 @@ extern "C" void HandleCarmelitaMessage(GUARDV *guard, int msgid, void **ppv)
     if (StepguardHasSgf(guard, 0x24) == 0 && msgid == 0xB) {
         GUARDV *pguard = (GUARDV *)ppv[0];
         if (pguard == guard) {
-            SetDetectorTargetStateById(pguard->pdetector, ppv[1], 1);
+            SetDetectorTargetStateById(pguard->detector, ppv[1], 1);
         }
     }
 }
@@ -713,32 +713,32 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
     if (StepguardHasSgf(guard, 0x24))
         return ChooseStepguardTarget(guard);
     poBest = 0;
-    po = guard->plo390;
-    if (po && (uchar)po->f) {   /* (uchar): the bit extract of the target (see brx) */
+    po = guard->forcedTarget;
+    if (po && (uchar)po->isInWorld) {   /* (uchar): the bit extract of the target (see brx) */
         poBest = po;
     } else {
     gBest = D_002A4EE8;
     kBest = 999;
     pos = func_001A62E8(guard);
-    for (i = 0; i < guard->pdetector->cdte; i++) {
-        DTE *pe = &guard->pdetector->adte[i];
+    for (i = 0; i < guard->detector->targetCount; i++) {
+        DTE *pe = &guard->detector->targets[i];
         int k;
         float g;
-        if (!pe->fOn)
+        if (!pe->state)
             continue;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->po, 0x34))
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->object, 0x34))
             k = 0;
-        else if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->po, 0x3A))
+        else if (FIsBasicDerivedFrom__FP5BASIC3CID(pe->object, 0x3A))
             k = 1;
         else
             k = 2;
-        g = GDist(pos, func_001A62E8(pe->po));
-        if (pe->po == guard->ploTarget)
+        g = GDist(pos, func_001A62E8(pe->object));
+        if (pe->object == guard->target)
             g = D_002BD4B0[0] + g * (D_002BD4B0[1] + g * D_002BD4B0[2]);
         if (k < kBest || (k == kBest && g < gBest)) {
             kBest = k;
             gBest = g;
-            poBest = pe->po;
+            poBest = pe->object;
         }
     }
     }
