@@ -1,6 +1,9 @@
-// noise.cpp -- noises (NOISE, 0x60-byte refcounted records from the world's pool, on DL g_sw.dlStimulus): emitted by
-// type (the seven NOISETYPE objects, cid 0x75, created at world load), heard by listeners (an XFM keeping up to eight
-// noises it picked up), loudness over time and the in-range test. EE/VU0 asm.
+// noise.cpp -- noises: the stimuli guards hear. A NOISE is a 0x60-byte refcounted record allocated from the world's
+// pool and linked on g_sw.dlStimulus; it is emitted from one of seven NOISETYPE objects (cid 0x75, created at world
+// load) that define its range, height window and lifetime. Listeners (cid 0x2F, an XFM subclass) each keep up to
+// eight noises they have picked up. Entry points: CreateSwNoiseTypes (world load), NewNoise / EmitSwNoise /
+// ReplaceHeldNoise (emit), RemoveNoise / ExpireNoise (end), GetNoiseRadius / IsPositionInNoise /
+// CanListenerHearNoise (range tests) and UpdateListener (per-frame pickup). EE/VU0 asm.
 // TU 0x1564E8..0x157200 (23 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_noise
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001571E0
@@ -21,49 +24,49 @@ struct VTE { short d; short pad; void *pfn; };
 /* A noise type (cid 0x75, an LO): loudness, height range, duration. */
 struct NOISETYPE
 {
-    int pframe;              /* +0x0 the type's frame (passed to each noise) */
+    int frame;              /* +0x0 the type's frame (passed to each noise) */
     int pad4[2];
     VTE *vt;
     char pad10[0x30];
-    int fl;                  /* +0x40 */
+    int flags;                  /* +0x40 */
     char pad44[0xC];
-    int n50;                 /* +0x50 listeners ignore it when set */
-    float g54;               /* +0x54 range */
-    LMV lm;                   /* +0x58 height range */
-    float g60;               /* +0x60 duration (< 0: lasts) */
-    int n64;
+    int isMuted;                 /* +0x50 listeners ignore it when set */
+    float range;               /* +0x54 range */
+    LMV heightRange;                   /* +0x58 height range */
+    float duration;               /* +0x60 duration (< 0: lasts) */
+    int unknown64;
 };
-typedef char assert_NOISETYPE_n64[(unsigned int)&((NOISETYPE *)0)->n64 == 0x64 ? 1 : -1];
+typedef char assert_NOISETYPE_unknown64[(unsigned int)&((NOISETYPE *)0)->unknown64 == 0x64 ? 1 : -1];
 /* A noise (0x60 bytes). */
 struct NOISE
 {
-    int pframe;              /* +0x0 */
-    int psidebag;            /* +0x4 */
-    int n8;
+    int frame;              /* +0x0 */
+    int sidebag;            /* +0x4 */
+    int unknown8;
     VTE *vt;                 /* +0xC slot 1 incref, 2 decref, 3 send, 4 notify */
-    int cref;                /* +0x10 */
-    NOISETYPE *ptype;        /* +0x14 */
+    int refCount;                /* +0x10 */
+    NOISETYPE *type;        /* +0x14 */
     int pad18[2];
     qword pos;               /* +0x20 */
-    qword pos30;
-    int n40;
+    qword startPosition;
+    int loudness;
     int pad44;
-    int id;                  /* +0x48 */
-    float tStart;            /* +0x4C */
-    int n50;
-    int n54;
-    NOISE *pnext;            /* +0x58 link of DL g_sw.dlStimulus */
+    int serial;                  /* +0x48 */
+    float startTime;            /* +0x4C */
+    int unknown50;
+    int unknown54;
+    NOISE *next;            /* +0x58 link of DL g_sw.dlStimulus */
     int pad5C;
 };
 typedef char assert_NOISE_size[sizeof(NOISE) == 0x60 ? 1 : -1];
 /* The world's noise state (D_003DD490). */
-struct SWN { char pad[0x3D68]; int cnoise; char pad2[0x3FFC - 0x3D6C]; char dl[0xC]; SLOTHEAP pool; NOISETYPE *atype[7]; };
-typedef char assert_SWN_atype[(unsigned int)&((SWN *)0)->atype == 0x4020 ? 1 : -1];
+struct SWN { char pad[0x3D68]; int noiseCount; char pad2[0x3FFC - 0x3D6C]; char stimulusList[0xC]; SLOTHEAP pool; NOISETYPE *types[7]; };
+typedef char assert_SWN_types[(unsigned int)&((SWN *)0)->types == 0x4020 ? 1 : -1];
 /* A listener (an XFM, which ends at +0xE0): the noises it hears. */
 struct K { short x; short y; int i; };
-struct LISTENER { char pad0[0xC]; VTE *vt; char pad10[0x18]; int x28; signed char ips; char x2D; long k : 4; unsigned int pad1 : 8; unsigned int f : 1;
-                  char pad30[0x10]; unsigned int grfUnk40; char pad44[0xE0 - 0x44]; unsigned int c; NOISE *ao[8]; K k104; };
-typedef char assert_LISTENER_k104[(unsigned int)&((LISTENER *)0)->k104 == 0x104 ? 1 : -1];
+struct LISTENER { char pad0[0xC]; VTE *vt; char pad10[0x18]; int unknown28; signed char ips; char x2D; long k : 4; unsigned int pad1 : 8; unsigned int isInWorld : 1;
+                  char pad30[0x10]; unsigned int grfUnk40; char pad44[0xE0 - 0x44]; unsigned int noiseCount; NOISE *noises[8]; K key; };
+typedef char assert_LISTENER_key[(unsigned int)&((LISTENER *)0)->key == 0x104 ? 1 : -1];
 
 /* noise's .data (address order): default loudness and its range, the falloff time and polynomial, and the per-kind
  * noise durations/loudnesses. */
@@ -82,29 +85,29 @@ extern float D_002BDD14;
 extern float D_002BDD18;
 extern "C" {
 extern VTE D_002CE2B8[] __asm__("_vt$6CID147");          /* NOISE's (CID147's) vtable, emitted here */
-void InitLo(NOISETYPE *p);
+void InitLo(NOISETYPE *object);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(NOISE *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *pv, int n);
-void UnsubscribeLoAll(NOISE *pnoise);
-int FCheckLm__FP2LMf(void *p, float z);
+void func_002580A8(void *pointer, int value);
+void UnsubscribeLoAll(NOISE *noise);
+int FCheckLm__FP2LMf(void *object, float z);
 NOISETYPE *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
-void InitXfm(LISTENER *p);
-void SetLoBusyk(LISTENER *p, int n);
-void AddLoHierarchy(LISTENER *p);
-void RemoveLoHierarchy(LISTENER *p);
-void CloneXfm(LISTENER *p, LISTENER *pBase);
-void UpdateLo(LISTENER *p);
+void InitXfm(LISTENER *object);
+void SetLoBusyk(LISTENER *object, int value);
+void AddLoHierarchy(LISTENER *object);
+void RemoveLoHierarchy(LISTENER *object);
+void CloneXfm(LISTENER *object, LISTENER *source);
+void UpdateLo(LISTENER *object);
 void *memmove(void *dst, void *src, int cb);
-qword func_001A62E8(void *p);
-void CreateNoise(NOISETYPE *ptype, qword pos, int b, NOISE **ppnoise);
-void RemoveNoise(NOISE *pnoise);
-int IsNoiseRemoved(NOISE *pnoise);
-float GetNoiseRadius(NOISE *pnoise);
-NOISE *NewNoise(NOISETYPE *ptype, qword pos, int b);
-void ReplaceHeldNoise(NOISETYPE *ptype, qword q, int c, NOISE **ppnoise);
-void DropListenerNoises(LISTENER *p, int f);
-int CanListenerHearNoise(LISTENER *plo, NOISE *p);
+qword func_001A62E8(void *object);
+void CreateNoise(NOISETYPE *type, qword pos, int b, NOISE **heldNoise);
+void RemoveNoise(NOISE *noise);
+int IsNoiseRemoved(NOISE *noise);
+float GetNoiseRadius(NOISE *noise);
+NOISE *NewNoise(NOISETYPE *type, qword pos, int b);
+void ReplaceHeldNoise(NOISETYPE *type, qword q, int c, NOISE **heldNoise);
+void DropListenerNoises(LISTENER *object, int f);
+int CanListenerHearNoise(LISTENER *listener, NOISE *object);
 }
 void AppendDlEntry(void *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");
 void RemoveDlEntry(void *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");
@@ -112,121 +115,87 @@ int FFindDlEntry(void *pdl, void *pv) __asm__("FFindDlEntry__FP2DLPv");
 
 #define VCALL0(p, n) ((void (*)(void *))(p)->vt[n].pfn)((char *)(p) + (p)->vt[n].d)
 
-/** @sly2-annot addr=0x1564E8
- * Purpose: LO::Init (0x1A5270) then defaults g54/lm/g60=0.25 and flag 0x40
- * Info: proposed name InitCid117 (T2); class CID117 slot7; TU noise
- * Notes: Cid75->Cid117 (CID 0x75=117, vtable)
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
+// 0x1564E8: NOISETYPE (CID117, cid 0x75) Init: LO Init, then the default range (1500), height window (-200..500), a
+// 0.25 s lifetime and LO flag 0x40.
 void CID117::Init()
 {
-    NOISETYPE *p = (NOISETYPE *)this;
-    InitLo(p);
-    p->g54 = D_002BDCD0;
-    p->lm = D_002BDCD8;
-    p->g60 = 0.25f;
-    p->fl |= 0x40;
+    NOISETYPE *type = (NOISETYPE *)this;
+    InitLo(type);
+    type->range = D_002BDCD0;
+    type->heightRange = D_002BDCD8;
+    type->duration = 0.25f;
+    type->flags |= 0x40;
 }
 
 /* Holds a reference while the noise is set up (vtable slots 1/2). */
 struct Lock {
-    NOISE *p;
-    Lock(NOISE *pp) { p = pp; VCALL0(p, 1); }
-    ~Lock() { VCALL0(p, 2); }
+    NOISE *noise;
+    Lock(NOISE *target) { noise = target; VCALL0(noise, 1); }
+    ~Lock() { VCALL0(noise, 2); }
 };
-/** @sly2-annot addr=0x156548
- * Purpose: Creates a refcounted 0x60 stimulus object (cid 0x93) at a position from a template (class 0x75),
- *   stamps time/serial, appends it to the SW list and to g_sw.dlStimulus
- * Info: proposed name NewNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/guards-ai.md#5-perception, docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void CreateNoise(NOISETYPE *p, qword q, int b, NOISE **pps)
+// 0x156548: Creates a noise of type `type` at `pos`: allocates and clears a record from the world's noise pool,
+// stamps the emit time and a serial id, appends it to the active list g_sw.dlStimulus, binds the type's frame and
+// sends message 2 (emitted) to it. Optionally returns it through `outNoise`.
+extern "C" void CreateNoise(NOISETYPE *type, qword pos, int loudness, NOISE **outNoise)
 {
-    NOISE *ps = (NOISE *)PvAllocSlotheapClear(&D_003DD490.pool);
-    func_002333B4(ps, 0, 0x60);
-    ps->pframe = 0;
-    ps->psidebag = 0;
-    ps->ptype = p;
-    ps->pos = q;
-    ps->pos30 = q;
-    ps->vt = D_002CE2B8;
-    ps->n40 = b;
-    ps->id = ++D_003DD490.cnoise;
-    ps->tStart = D_002DDED0.t;
-    ps->n54 = p->n64;
-    AppendDlEntry(D_003DD490.dl, ps);
-    VCALL0(ps, 1);
-    Lock l(ps);
-    FramePtr_Assign(ps, p->pframe);
-    if (pps) *pps = ps;
-    ((void (*)(void *, int, int, int, int, int))ps->vt[3].pfn)((char *)ps + ps->vt[3].d, 2, 0, 0, 0, 0);
+    NOISE *noise = (NOISE *)PvAllocSlotheapClear(&D_003DD490.pool);
+    func_002333B4(noise, 0, 0x60);
+    noise->frame = 0;
+    noise->sidebag = 0;
+    noise->type = type;
+    noise->pos = pos;
+    noise->startPosition = pos;
+    noise->vt = D_002CE2B8;
+    noise->loudness = loudness;
+    noise->serial = ++D_003DD490.noiseCount;
+    noise->startTime = D_002DDED0.t;
+    noise->unknown54 = type->unknown64;
+    AppendDlEntry(D_003DD490.stimulusList, noise);
+    VCALL0(noise, 1);
+    Lock lock(noise);
+    FramePtr_Assign(noise, type->frame);
+    if (outNoise) *outNoise = noise;
+    ((void (*)(void *, int, int, int, int, int))noise->vt[3].pfn)((char *)noise + noise->vt[3].d, 2, 0, 0, 0, 0);
 }
 
-/** @sly2-annot addr=0x156698
- * Purpose: NewNoise(template, pos, arg, &pnoise) and return the new noise
- * Info: proposed name PnoiseNew (T2); TU noise
- * Notes: v3: superseded PnoiseEmit | top50_round (0.55): Body. Wrapper returning the created stimulus;
- *   callers EmitSwNoise, DetonateBomb, EmitStepguardStimulus, RefThunkCid117APPLY. Sly-style Pxxx
- *   constructor-returning name | v2 draft was PnoiseEmit
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: r3b_rest+top50_round
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
-extern "C" NOISE *NewNoise(NOISETYPE *ptype, qword pos, int b)
+// 0x156698: Creates a noise (CreateNoise) and returns it. Called by EmitSwNoise, bomb detonation,
+// EmitStepguardStimulus and the Splice thunk.
+extern "C" NOISE *NewNoise(NOISETYPE *type, qword pos, int loudness)
 {
-    NOISE *pnoise;
-    CreateNoise(ptype, pos, b, &pnoise);
-    return pnoise;
+    NOISE *noise;
+    CreateNoise(type, pos, loudness, &noise);
+    return noise;
 }
 
-/** @sly2-annot addr=0x1566B8
- * Purpose: cid 0x93 vt1: ++refcount (+0x10)
- * Info: proposed name IncrefCid147 (T2); class CID147 slot1; TU noise
- * Notes: verifier PLAUSIBLE: IncrefNoise -> IncrefCid93 | Cid93->Cid147 (CID 0x93=147, vtable)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest+verdicts_tu_r3r5
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
+// 0x1566B8: Noise (CID147) vtable slot 1: adds a reference.
 void CID147::VUnk00()   /* key function: CID147's vtable comes out here */
 {
-    NOISE *pnoise = (NOISE *)this;
-    pnoise->cref = pnoise->cref + 1;
+    NOISE *noise = (NOISE *)this;
+    noise->refCount = noise->refCount + 1;
 }
 
-/** @sly2-annot addr=0x1566C8
- * Purpose: cid 0x93 vt2: --refcount; at zero clears refs and frees to pool g_sw.slotheapStimulus
- * Info: proposed name DecrefNoise (T2); class CID147 slot2; TU noise
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void ReleaseNoise(NOISE *pnoise)
+// 0x1566C8: Noise vtable slot 2: drops a reference; at zero, clears its frame and side-bag references, unsubscribes
+// it and frees it back to the world's noise pool.
+extern "C" void ReleaseNoise(NOISE *noise)
 {
-    int cref = pnoise->cref - 1;
-    pnoise->cref = cref;
-    if (cref <= 0) {
-        FramePtr_Assign(pnoise, 0);
-        func_002580A8(&pnoise->psidebag, 0);
-        UnsubscribeLoAll(pnoise);
-        func_0011CD98(&g_sw.slotheapStimulus, pnoise);
+    int refCount = noise->refCount - 1;
+    noise->refCount = refCount;
+    if (refCount <= 0) {
+        FramePtr_Assign(noise, 0);
+        func_002580A8(&noise->sidebag, 0);
+        UnsubscribeLoAll(noise);
+        func_0011CD98(&g_sw.slotheapStimulus, noise);
     }
 }
 
-/** @sly2-annot addr=0x156728
- * Purpose: Removes the noise once its template lifetime (+0x60, if >=0) has elapsed
- * Info: proposed name ExpireNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void ExpireNoise(NOISE *pnoise)
+// 0x156728: Removes the noise once its type's lifetime has elapsed (a negative lifetime lasts until removed
+// explicitly).
+extern "C" void ExpireNoise(NOISE *noise)
 {
-    float dt = pnoise->ptype->g60;
-    if (dt >= 0.0f) {
-        if ((pnoise->tStart + dt) < D_002DDED0.t) {
-            RemoveNoise(pnoise);
+    float duration = noise->type->duration;
+    if (duration >= 0.0f) {
+        if ((noise->startTime + duration) < D_002DDED0.t) {
+            RemoveNoise(noise);
         }
     }
 }
@@ -234,320 +203,244 @@ extern "C" void ExpireNoise(NOISE *pnoise)
 /* Holds a reference across the notification (vtable slots 1/2). */
 class CRefGuard {
 public:
-    NOISE *m_p;
-    CRefGuard(NOISE *p) : m_p(p) { VCALL0(p, 1); }
-    ~CRefGuard() { VCALL0(m_p, 2); }
+    NOISE *noise;
+    CRefGuard(NOISE *target) : noise(target) { VCALL0(target, 1); }
+    ~CRefGuard() { VCALL0(noise, 2); }
 };
-/** @sly2-annot addr=0x156780
- * Purpose: Notifies listeners (vt 0xF), unlinks the noise from the active list g_sw.dlStimulus, sends message 3,
- *   releases
- * Info: proposed name RemoveNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void RemoveNoise(NOISE *o)
+// 0x156780: Ends a noise: notifies its subscribers (message 0xF), unlinks it from the active list, sends message 3
+// (removed) and drops the list's reference. Safe to call on an already removed noise.
+extern "C" void RemoveNoise(NOISE *noise)
 {
-    if (IsNoiseRemoved(o))
+    if (IsNoiseRemoved(noise))
         return;
-    CRefGuard guard(o);
-    ((void (*)(void *, int, NOISE *))o->vt[4].pfn)((char *)o + o->vt[4].d, 0xF, o);
-    if (IsNoiseRemoved(o))
+    CRefGuard guard(noise);
+    ((void (*)(void *, int, NOISE *))noise->vt[4].pfn)((char *)noise + noise->vt[4].d, 0xF, noise);
+    if (IsNoiseRemoved(noise))
         return;
-    RemoveDlEntry((char *)&g_sw.dlStimulus, o);
-    ((void (*)(void *, int, int, int, int, int))o->vt[3].pfn)((char *)o + o->vt[3].d, 3, 0, 0, 0, 0);
-    VCALL0(o, 2);
+    RemoveDlEntry((char *)&g_sw.dlStimulus, noise);
+    ((void (*)(void *, int, int, int, int, int))noise->vt[3].pfn)((char *)noise + noise->vt[3].d, 3, 0, 0, 0, 0);
+    VCALL0(noise, 2);
 }
 
-/** @sly2-annot addr=0x156870
- * Purpose: True if the noise is no longer in the active list
- * Info: proposed name FNoiseRemoved (T2); TU noise
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" int IsNoiseRemoved(NOISE *pnoise)
+// 0x156870: True if the noise is no longer on the active list g_sw.dlStimulus.
+extern "C" int IsNoiseRemoved(NOISE *noise)
 {
-    return FFindDlEntry((char *)&g_sw.dlStimulus, pnoise) == 0;
+    return FFindDlEntry((char *)&g_sw.dlStimulus, noise) == 0;
 }
 
-/** @sly2-annot addr=0x156898
- * Purpose: Current radius: template radius, grown by a quadratic over the template's ramp time
- * Info: proposed name SRadiusNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/engine/guards-ai.md#5-perception, docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" float GetNoiseRadius(NOISE *p)
+// 0x156898: Current audible radius: the type's range scaled by a quadratic ramp over the first min(1 s, lifetime)
+// after emission (constant range for lasting noises).
+extern "C" float GetNoiseRadius(NOISE *noise)
 {
-    NOISETYPE *pq = p->ptype;
-    float dt, t;
-    if (0.0f < pq->g60) {
-        dt = GMin(D_002BDCE0, pq->g60);
-        t = GMin((D_002DDED0.t - p->tStart) / dt, 1.0f);
-        return pq->g54 * (D_002BDCF0[0] + t * (D_002BDCF0[1] + t * D_002BDCF0[2]));
+    NOISETYPE *type = noise->type;
+    float rampTime, progress;
+    if (0.0f < type->duration) {
+        rampTime = GMin(D_002BDCE0, type->duration);
+        progress = GMin((D_002DDED0.t - noise->startTime) / rampTime, 1.0f);
+        return type->range * (D_002BDCF0[0] + progress * (D_002BDCF0[1] + progress * D_002BDCF0[2]));
     }
-    return pq->g54;
+    return type->range;
 }
 
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
-/** @sly2-annot addr=0x156918
- * Purpose: True if a position is within the noise's height range and current radius
- * Info: proposed name FPosInNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" int IsPositionInNoise(NOISE *p, qword pos)
+// 0x156918: True if `pos` is inside the noise: within the type's height window above/below the emitter and within
+// the current radius in the horizontal plane.
+extern "C" int IsPositionInNoise(NOISE *noise, qword pos)
 {
-    qword d, l;
-    float dist;
-    d = VuSub(pos, p->pos);
-    if (!FCheckLm__FP2LMf(&p->ptype->lm, GetZ(d)))
+    qword offset, lengthSquared;
+    float distance;
+    offset = VuSub(pos, noise->pos);
+    if (!FCheckLm__FP2LMf(&noise->type->heightRange, GetZ(offset)))
         return 0;
-    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(l) : "j"(d));
-    __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
-    dist = VuToFloat(l);
-    { int f = GetNoiseRadius(p) < dist; return f ^ 1; }
+    __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=&j"(lengthSquared) : "j"(offset));
+    __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(lengthSquared) : "j"(lengthSquared));
+    distance = VuToFloat(lengthSquared);
+    { int isOutside = GetNoiseRadius(noise) < distance; return isOutside ^ 1; }
 }
 
-static inline void Init(NOISETYPE *o) { VTE *e = &o->vt[9]; ((void (*)(void *))e->pfn)((char *)o + e->d); }
-/** @sly2-annot addr=0x1569B8
- * Purpose: Creates the seven cid 0x75 noise templates (oids 0x2C2..0x2C8) into SW+0x4020[7]
- * Info: proposed name CreateSwNoiseTemplates (T2); TU noise
- * Notes: names_v2 C proposed FindAsegClosestPoint__FP4ASEGP3ALOP6VECTORfPfT2T2 (0.200)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void CreateSwNoiseTypes(SWN *p)
+static inline void Init(NOISETYPE *type) { VTE *entry = &type->vt[9]; ((void (*)(void *))entry->pfn)((char *)type + entry->d); }
+// 0x1569B8: Creates the world's seven noise types (oids 0x2C2..0x2C8) with their per-kind range, lifetime and
+// audibility, and stores them in the world's type table. Called at world load (inferred).
+extern "C" void CreateSwNoiseTypes(SWN *world)
 {
     {
-        NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
-        o->n50 = 0;
-        p->atype[0] = o;
-        Init(o);
+        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C2, -1);
+        type->isMuted = 0;
+        world->types[0] = type;
+        Init(type);
     }
     {
-        NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
-        o->n50 = 1;
-        o->g60 = D_002BDD00;
-        p->atype[1] = o;
-        Init(o);
+        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C3, -1);
+        type->isMuted = 1;
+        type->duration = D_002BDD00;
+        world->types[1] = type;
+        Init(type);
     }
     {
-        NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
-        o->n50 = 0;
-        o->g54 = D_002BDD04;
-        p->atype[2] = o;
-        Init(o);
+        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C4, -1);
+        type->isMuted = 0;
+        type->range = D_002BDD04;
+        world->types[2] = type;
+        Init(type);
     }
     {
-        NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C5, -1);
-        o->g54 = D_002BDD08;
-        o->g60 = D_002BDD0C;
-        o->n50 = 0;
-        p->atype[3] = o;
-        Init(o);
+        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C5, -1);
+        type->range = D_002BDD08;
+        type->duration = D_002BDD0C;
+        type->isMuted = 0;
+        world->types[3] = type;
+        Init(type);
     }
     {
-        NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C7, -1);
-        o->n64 = 3;
-        o->g60 = -1.0f;
-        o->n50 = 0;
-        p->atype[5] = o;
-        Init(o);
+        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C7, -1);
+        type->unknown64 = 3;
+        type->duration = -1.0f;
+        type->isMuted = 0;
+        world->types[5] = type;
+        Init(type);
     }
     {
-        NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C6, -1);
-        o->g54 = D_002BDD10;
-        o->g60 = D_002BDD14;
-        o->n50 = 0;
-        p->atype[4] = o;
-        Init(o);
+        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C6, -1);
+        type->range = D_002BDD10;
+        type->duration = D_002BDD14;
+        type->isMuted = 0;
+        world->types[4] = type;
+        Init(type);
     }
     {
-        NOISETYPE *o = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
-        o->n50 = 0;
-        o->g54 = D_002BDD18;
-        p->atype[6] = o;
-        Init(o);
+        NOISETYPE *type = PloNew__F3CIDP2SO3OIDi(0x75, 0, 0x2C8, -1);
+        type->isMuted = 0;
+        type->range = D_002BDD18;
+        world->types[6] = type;
+        Init(type);
     }
 }
 
-/** @sly2-annot addr=0x156B98
- * Purpose: Emit a noise from one of the two SW noise templates (k=0 -> SW+0x4020, 1 -> +0x4024) at pos
- * Info: proposed name EmitSwNoise (T1); TU noise
- * Notes: top50_round (0.60): Body; Splice thunk RefThunk_EmitSwNoise 0x10BFF8 exposes it; guard/player
- *   message handlers call it
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r3b_rest+top50_round
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050,
- *   docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void EmitSwNoise(SWN *p, int k, qword q, int c)
+// 0x156B98: Emits a noise at `pos` from one of the world's two generic noise types (kind 0 or 1).
+extern "C" void EmitSwNoise(SWN *world, int kind, qword pos, int loudness)
 {
-    NOISETYPE *ptype;
-    switch (k) {
-    case 0: ptype = p->atype[0]; break;
-    case 1: ptype = p->atype[1]; break;
+    NOISETYPE *type;
+    switch (kind) {
+    case 0: type = world->types[0]; break;
+    case 1: type = world->types[1]; break;
     }
-    NewNoise(ptype, q, c);
+    NewNoise(type, pos, loudness);
 }
 
-/** @sly2-annot addr=0x156BE0
- * Purpose: Removes and releases the held noise, then creates a new one and increfs it
- * Info: proposed name ReplaceHeldNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void ReplaceHeldNoise(NOISETYPE *x, qword q, int c, NOISE **ppo)
+// 0x156BE0: Replaces a held noise: removes and releases the one in `heldNoise` (if any), then creates a new one of
+// `type` (if non-null) and holds a reference to it. Used for noises that follow their emitter (pain, sleep,
+// yelling).
+extern "C" void ReplaceHeldNoise(NOISETYPE *type, qword pos, int loudness, NOISE **heldNoise)
 {
-    if (*ppo) {
-        NOISE *o;
-        VTE *e;
-        RemoveNoise(*ppo);
-        o = *ppo;
-        e = &o->vt[2];
-        ((void (*)(void *))e->pfn)((char *)o + e->d);
-        *ppo = 0;
+    if (*heldNoise) {
+        NOISE *noise;
+        VTE *entry;
+        RemoveNoise(*heldNoise);
+        noise = *heldNoise;
+        entry = &noise->vt[2];
+        ((void (*)(void *))entry->pfn)((char *)noise + entry->d);
+        *heldNoise = 0;
     }
-    if (x) {
-        NOISE *o;
-        VTE *e;
-        CreateNoise(x, q, c, ppo);
-        o = *ppo;
-        e = &o->vt[1];
-        ((void (*)(void *))e->pfn)((char *)o + e->d);
+    if (type) {
+        NOISE *noise;
+        VTE *entry;
+        CreateNoise(type, pos, loudness, heldNoise);
+        noise = *heldNoise;
+        entry = &noise->vt[1];
+        ((void (*)(void *))entry->pfn)((char *)noise + entry->d);
     }
 }
 
-/** @sly2-annot addr=0x156C80
- * Purpose: ReplaceHeldNoise using SW template 0 or 1
- * Info: proposed name ReplaceHeldSwNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void ReplaceHeldSwNoise(SWN *p, int k, qword q, int c, NOISE **ppnoise)
+// 0x156C80: ReplaceHeldNoise using the world's generic noise type 0 or 1.
+extern "C" void ReplaceHeldSwNoise(SWN *world, int kind, qword pos, int loudness, NOISE **heldNoise)
 {
-    NOISETYPE *ptype;
-    switch (k) {
-    case 0: ptype = p->atype[0]; break;
-    case 1: ptype = p->atype[1]; break;
-    default: ptype = 0; break;
+    NOISETYPE *type;
+    switch (kind) {
+    case 0: type = world->types[0]; break;
+    case 1: type = world->types[1]; break;
+    default: type = 0; break;
     }
-    ReplaceHeldNoise(ptype, q, c, ppnoise);
+    ReplaceHeldNoise(type, pos, loudness, heldNoise);
 }
 
-/** @sly2-annot addr=0x156CC8
- * Purpose: XFM::Init then 0x1A6CA8(p,0), flag 2
- * Info: proposed name InitCid47 (T2); class CID47 slot7; TU noise
- * Notes: Cid2F->Cid47 (CID 0x2F=47, hex-literal)
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void InitListener(LISTENER *p)
+// 0x156CC8: Listener (CID47, cid 0x2F) Init: XFM Init, not busy, then sets object flag 2.
+extern "C" void InitListener(LISTENER *listener)
 {
-    unsigned int v;
-    InitXfm(p);
-    SetLoBusyk(p, 0);
-    v = p->grfUnk40;
-    if ((v ^ 1) & 1) *(int *)v |= 2;
-    else p->grfUnk40 = v | 2;
+    unsigned int flags;
+    InitXfm(listener);
+    SetLoBusyk(listener, 0);
+    flags = listener->grfUnk40;
+    if ((flags ^ 1) & 1) *(int *)flags |= 2;
+    else listener->grfUnk40 = flags | 2;
 }
 
-/** @sly2-annot addr=0x156D20
- * Purpose: Base add (0x1A5800) then appends this to the global class list g_sw.dlCid47
- * Info: proposed name AddCid47Hierarchy (T2); class CID47 slot11; TU noise
- * Notes: Cid2F->Cid47 (CID 0x2F=47, hex-literal) | slot 11 is AddHierarchy (CONFLICTS#5: LO base
- *   0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy; OnAdd/OnRemove are slots 23/22 per arbitration); was
- *   OnCid47Add
- * Confidence: low (draft) [T2 0.55] - evidence: arbitration; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
+// 0x156D20: Listener vtable slot 11 (AddHierarchy): LO base, then links the listener on the world list
+// g_sw.dlCid47.
 void CID47::AddHierarchy()
 {
-    LISTENER *p = (LISTENER *)this;
-    AddLoHierarchy(p);
-    AppendDlEntry((char *)&g_sw.dlCid47, p);
+    LISTENER *listener = (LISTENER *)this;
+    AddLoHierarchy(listener);
+    AppendDlEntry((char *)&g_sw.dlCid47, listener);
 }
 
-/** @sly2-annot addr=0x156D58
- * Purpose: Base remove (0x1A5848), 0x156DE0(p,1), unlink from g_sw.dlCid47
- * Info: proposed name RemoveCid47Hierarchy (T2); class CID47 slot12; TU noise
- * Notes: Cid2F->Cid47 (CID 0x2F=47, hex-literal) | slot 12 is RemoveHierarchy (CONFLICTS#5: LO base
- *   0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy; OnAdd/OnRemove are slots 23/22 per arbitration); was
- *   OnCid47Remove
- * Confidence: low (draft) [T2 0.55] - evidence: arbitration; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void RemoveListenerHierarchy(LISTENER *p)
+// 0x156D58: Listener vtable slot 12 (RemoveHierarchy): LO base, drops every held noise and unlinks from
+// g_sw.dlCid47.
+extern "C" void RemoveListenerHierarchy(LISTENER *listener)
 {
-    RemoveLoHierarchy(p);
-    DropListenerNoises(p, 1);
-    RemoveDlEntry((char *)&g_sw.dlCid47, p);
+    RemoveLoHierarchy(listener);
+    DropListenerNoises(listener, 1);
+    RemoveDlEntry((char *)&g_sw.dlCid47, listener);
 }
 
-/** @sly2-annot addr=0x156D98
- * Purpose: XFM clone (0x2311B0) preserving a 3-word key field
- * Info: proposed name CloneCid47 (T2); class CID47 slot41; TU noise
- * Notes: Cid2F->Cid47 (CID 0x2F=47, hex-literal)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void CloneListener(LISTENER *p, LISTENER *pBase)
+// 0x156D98: Listener vtable slot 41 (Clone): XFM clone that keeps the listener's own trailing key field.
+extern "C" void CloneListener(LISTENER *listener, LISTENER *source)
 {
-    K k = p->k104;
-    CloneXfm(p, pBase);
-    p->k104 = k;
+    K key = listener->key;
+    CloneXfm(listener, source);
+    listener->key = key;
 }
 
-/** @sly2-annot addr=0x156DE0
- * Purpose: Releases removed (or, if f, all) noises from a listener's array
- * Info: proposed name DropCid47Noises (T2); class CID47; TU noise
- * Notes: Cid2F->Cid47 (CID 0x2F=47, hex-literal)
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void DropListenerNoises(LISTENER *p, int f)
+// 0x156DE0: Releases the listener's noises that have been removed from the world (or all of them when `dropAll`),
+// compacting its array.
+extern "C" void DropListenerNoises(LISTENER *listener, int dropAll)
 {
     int i;
-    for (i = 0; i < (int)p->c;) {
-        NOISE **ppo = &p->ao[i];
-        NOISE *o = *ppo;
-        if (f || IsNoiseRemoved(o)) {
-            VTE *e = &o->vt[2];
-            ((void (*)(void *))e->pfn)((char *)o + e->d);
-            memmove(ppo, ppo + 1, (p->c - i) * sizeof(NOISE *) - sizeof(NOISE *));
-            p->c--;
+    for (i = 0; i < (int)listener->noiseCount;) {
+        NOISE **slot = &listener->noises[i];
+        NOISE *noise = *slot;
+        if (dropAll || IsNoiseRemoved(noise)) {
+            VTE *entry = &noise->vt[2];
+            ((void (*)(void *))entry->pfn)((char *)noise + entry->d);
+            memmove(slot, slot + 1, (listener->noiseCount - i) * sizeof(NOISE *) - sizeof(NOISE *));
+            listener->noiseCount--;
         } else {
             i++;
         }
     }
 }
 
-/** @sly2-annot addr=0x156EB8
- * Purpose: LO::Update then 0x156DE0(p,0) and scans list g_sw.dlStimulus for objects not in its own set
- * Info: proposed name UpdateCid47 (T2); class CID47 slot16; TU noise
- * Notes: Cid2F->Cid47 (CID 0x2F=47, hex-literal)
- * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
- * @end-sly2-annot */
-extern "C" void UpdateListener(LISTENER *p)
+// 0x156EB8: Listener vtable slot 16 (Update): LO update, drops dead noises, then picks up at most one new noise
+// from the active list that it can hear, holding a reference and sending itself message 5 (heard a noise).
+extern "C" void UpdateListener(LISTENER *listener)
 {
-    NOISE *o;
-    UpdateLo(p);
-    DropListenerNoises(p, 0);
-    for (o = *(NOISE **)&g_sw.dlStimulus; o; o = o->pnext) {
+    NOISE *noise;
+    UpdateLo(listener);
+    DropListenerNoises(listener, 0);
+    for (noise = *(NOISE **)&g_sw.dlStimulus; noise; noise = noise->next) {
         int i;
-        for (i = 0; i < (int)p->c; i++)
-            if (o == p->ao[i])
+        for (i = 0; i < (int)listener->noiseCount; i++)
+            if (noise == listener->noises[i])
                 break;
-        if (i < (int)p->c)
+        if (i < (int)listener->noiseCount)
             continue;
-        if (!CanListenerHearNoise(p, o))
+        if (!CanListenerHearNoise(listener, noise))
             continue;
-        if (p->c < 8) {
-            VTE *e = &o->vt[1];
-            ((void (*)(void *))e->pfn)((char *)o + e->d);
-            p->ao[p->c++] = o;
-            e = &p->vt[3];
-            ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 5, 0, 0, 0, 0);
+        if (listener->noiseCount < 8) {
+            VTE *entry = &noise->vt[1];
+            ((void (*)(void *))entry->pfn)((char *)noise + entry->d);
+            listener->noises[listener->noiseCount++] = noise;
+            entry = &listener->vt[3];
+            ((void (*)(void *, int, int, int, int, int))entry->pfn)((char *)listener + entry->d, 5, 0, 0, 0, 0);
         }
         return;
     }
@@ -563,23 +456,18 @@ static __inline__ float DistXY(qword d)
     return dist;
 }
 static __inline__ int FIn(qword d, float g) { return DistXY(d) < g; }
-/** @sly2-annot addr=0x156FE8
- * Purpose: True if an LO lies within a noise's height range and radius
- * Info: proposed name FLoInNoise (T2); TU noise
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
-extern "C" int CanListenerHearNoise(LISTENER *plo, NOISE *p)
+// 0x156FE8: True if the listener is in the world and the noise is audible (its type not muted) with the listener
+// inside its height window and range.
+extern "C" int CanListenerHearNoise(LISTENER *listener, NOISE *noise)
 {
-    NOISETYPE *pq;
-    qword d, pos;
-    if ((uchar)plo->f) {
-        pq = p->ptype;
-        if (!pq->n50) {
-            pos = func_001A62E8(plo);
-            d = VuSub(pos, p->pos);
-            if (FCheckLm__FP2LMf(&pq->lm, GetZ(d)) && FIn(d, pq->g54))
+    NOISETYPE *type;
+    qword offset, listenerPos;
+    if ((uchar)listener->isInWorld) {
+        type = noise->type;
+        if (!type->isMuted) {
+            listenerPos = func_001A62E8(listener);
+            offset = VuSub(listenerPos, noise->pos);
+            if (FCheckLm__FP2LMf(&type->heightRange, GetZ(offset)) && FIn(offset, type->range))
                 return 1;
         }
     }
