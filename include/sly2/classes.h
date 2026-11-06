@@ -1830,8 +1830,8 @@ typedef char assert_CID125_size[sizeof(CID125) == 0x60 ? 1 : -1];
 struct WIDGET129 : WIDGET
 {
     char pad110[0x220 - 0x110];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget129ClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("func_00211EC0");   /* slot 15 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget129ClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("func_00211F90");   /* slot 16 */
 };
 typedef char assert_WIDGET129_size[sizeof(WIDGET129) == 0x220 ? 1 : -1];
@@ -1840,8 +1840,8 @@ typedef char assert_WIDGET129_size[sizeof(WIDGET129) == 0x220 ? 1 : -1];
 struct WIDGET127 : WIDGET
 {
     char pad110[0x120 - 0x110];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget127ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00211D08");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget127ClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("func_00211D38");   /* slot 16 */
     virtual void VSlot49() __asm__("func_00211CA8");   /* slot 49 */
 };
@@ -1850,8 +1850,8 @@ typedef char assert_WIDGET127_size[sizeof(WIDGET127) == 0x120 ? 1 : -1];
 /* 128 WIDGET128 (0x110): WIDGET: job completion banner (pauses clock slot 7); vtable 0x2DAA50, 50 slots */
 struct WIDGET128 : WIDGET
 {
-    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget128ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00211E40");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget128ClassDesc");   /* slot 6 */
 };
 typedef char assert_WIDGET128_size[sizeof(WIDGET128) == 0x110 ? 1 : -1];
 

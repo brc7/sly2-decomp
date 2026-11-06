@@ -16,10 +16,11 @@
 #include "vifs.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
+#include "sly2/classes.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
-struct WIDGET : public LO
+struct WIDGETV : public LO
 {
     char pad50[0x8];
     int nState;             /* +0x58 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing */
@@ -66,9 +67,9 @@ char *PchzReconPending(int *pn);
 char *PchzReconSelected(int *pn);
 void func_002277D0(char *pchz, int n);
 void func_00227940(char *pchz, int n);
-void SetWidgetRequest(WIDGET *pwidget, int nRequest);
-void SetWidgetStateW(WIDGET *pwidget, int nState) __asm__("SetWidgetState");
-int FWidgetObscured(WIDGET *pwidget);
+void SetWidgetRequest(WIDGETV *pwidget, int nRequest);
+void SetWidgetStateW(WIDGETV *pwidget, int nState) __asm__("SetWidgetState");
+int FWidgetObscured(WIDGETV *pwidget);
 void func_0021A998(SPRITEITEM *pitem, int i, int n);
 void func_00218660(SPRITEGRP *pgrp, int i);
 /* func_002185D0 returns what func_002185F8 leaves in v0 (its own body is void) */
@@ -586,12 +587,11 @@ void InitLo(struct S *p);
  * Confidence: low (draft) [T2 0.60] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211D08(struct S *p)
-{
+} } // namespace M_func_00211D08
+void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *p = (M_func_00211D08::S *)this;
     InitLo(p);
     p->f = 1;
 }
-} } // namespace M_func_00211D08
 
 // 0x211D38 func_00211D38
 namespace M_func_00211D38 { extern "C" {
@@ -647,12 +647,11 @@ void InitLo(struct S *p);
  * Confidence: low (draft) [T2 0.60] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211E40(struct S *p)
-{
+} } // namespace M_func_00211E40
+void WIDGET128::Init() { using namespace M_func_00211E40; M_func_00211E40::S *p = (M_func_00211E40::S *)this;
     InitLo(p);
     p->f = 1;
 }
-} } // namespace M_func_00211E40
 
 // 0x211E70 func_00211E70
 namespace M_func_00211E70 { extern "C" {
@@ -713,8 +712,8 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
  * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211EC0(struct S *p)
-{
+} } // namespace M_func_00211EC0
+void WIDGET129::VUnk14() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *p = (M_func_00211EC0::S *)this;
     int i;
     PostWidgetLoad(p);
     for (i = 0; i < p->c194; i++) {
@@ -728,7 +727,6 @@ void func_00211EC0(struct S *p)
             p->a114[i].p = q;
     }
 }
-} } // namespace M_func_00211EC0
 
 // 0x211F90 func_00211F90
 namespace M_func_00211F90 { extern "C" {
@@ -829,7 +827,7 @@ struct S *WIDGET_ctor(struct S *p)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Whether the widget is neither shown nor asked to show (state and request both below 2). */
-extern "C" int func_002121C8(WIDGET *pwidget)
+extern "C" int func_002121C8(WIDGETV *pwidget)
 {
     int f;
     f = 0;
@@ -1230,7 +1228,7 @@ void S::M(int k)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void HideWidget(WIDGET *pwidget)
+extern "C" void HideWidget(WIDGETV *pwidget)
 {
     SetWidgetRequest(pwidget, 1);
     if (pwidget->idAnimHide == -1) {
@@ -1248,7 +1246,7 @@ extern "C" void HideWidget(WIDGET *pwidget)
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Restarts the state timer of a visible widget. */
-extern "C" void func_00212A30(WIDGET *pwidget)
+extern "C" void func_00212A30(WIDGETV *pwidget)
 {
     if (pwidget->nState == 2) {
         pwidget->tState = D_002DDED0.tReal;
@@ -1266,7 +1264,7 @@ extern "C" void func_00212A30(WIDGET *pwidget)
  *   docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Requests a state (1 hide, 2 show) and stamps the request time. */
-extern "C" void SetWidgetRequest(WIDGET *pwidget, int nRequest)
+extern "C" void SetWidgetRequest(WIDGETV *pwidget, int nRequest)
 {
     if (pwidget->nRequest != nRequest) {
         pwidget->nRequest = nRequest;
@@ -1530,7 +1528,7 @@ void QueueWidgetRenderSetup(struct S *p){
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" int FWidgetVisible(WIDGET *pwidget)
+extern "C" int FWidgetVisible(WIDGETV *pwidget)
 {
     if (pwidget->idAnimMain == -1) {
         return 0;
@@ -2084,7 +2082,7 @@ int FSpriteHasAnim(void *pv, struct S *p, int id)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
-extern "C" void func_00214300(WIDGET *pwidget, int f)
+extern "C" void func_00214300(WIDGETV *pwidget, int f)
 {
     int fOld;
     fOld = pwidget->fA8;
