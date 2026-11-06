@@ -30,7 +30,7 @@ extern "C" {
 void PostSoLoad(SKYV *pso);
 void SetLoBusyk(SKYV *plo, int busyk);
 void UpdateSo(SKYV *pso);
-qword func_001A62E8(SKYV *pso);
+qword GetLoWorldPos(SKYV *pso);
 }
 
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -66,6 +66,6 @@ extern "C" void UpdateSky(SKYV *psky)
     union V v;
     UpdateSo(psky);
     v.q = (*(CMV *)&g_cm.mat).pos;
-    if (!psky->n150) v.f[2] = GetZ(func_001A62E8(psky));
+    if (!psky->n150) v.f[2] = GetZ(GetLoWorldPos(psky));
     psky->vt[29].pf((char *)psky + psky->vt[29].d, v.q);
 }

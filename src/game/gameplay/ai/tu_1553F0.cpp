@@ -121,7 +121,7 @@ void PopBhv(void *pbhvstk);
 void AddStepguardSgf(DIMITRIV *pguard, int sgf);
 void RemoveStepguardSgf(DIMITRIV *pguard, int sgf);
 void SetStepguardTarget(DIMITRIV *pguard, void *plo);
-qwordV func_001A62E8(void *p);
+qwordV GetLoWorldPos(void *p);
 BHVO *func_00205438(DIMITRIV *pguard, int n);
 int FCheckVolPoint(void *p, qwordV q);
 void func_0020AC28(DIMITRIV *pso, int a, int b, qwordV q);
@@ -147,7 +147,7 @@ extern float D_002BDCA0[11];   /* pan offsets tried in turn */
 extern const float D_002A513C;   /* defined below where the ELF has it (.rodata order) */
 HERO *PpoHero(void *p);
 extern char D_002DE578[];
-M3 *func_001A6318(void *p);
+M3 *GetLoWorldMatrix(void *p);
 float GGetDifficulty(void *p);
 VUV func_00256CE8(float g) __asm__("__8VU_FLOATf+0");   /* VU_FLOAT(float); +0: a plain label would make g++ emit this file's inline constructor under that name */
 VUV __9VU_VECTORRC6VECTOR(VECTORV *pv);
@@ -294,8 +294,8 @@ extern "C" void func_00155660(BHVESC *p)
         switch (s) {
         case 0: {
             BHVY *py = (BHVY *)p->pbhvCur;
-            qwordV a = func_001A62E8(p->pguard);
-            qwordV b = func_001A62E8(p->ploTarget);
+            qwordV a = GetLoWorldPos(p->pguard);
+            qwordV b = GetLoWorldPos(p->ploTarget);
             qwordV d, l;
             float dist; int f;
             d = VuSub(a, b);
@@ -376,13 +376,13 @@ extern "C" ESC *func_00155868(BHVESC *p)
 {
     ESC *peBest = 0;
     int i;
-    qwordV pos = func_001A62E8(p->ploTarget);
+    qwordV pos = GetLoWorldPos(p->ploTarget);
     float gBest = D_002A5130;
     for (i = 0; i < p->pguard->cesc; i++) {
         ESC *pe = &p->pguard->aesc[i];
         if (D_002BDC50 || !pe->fUsed) {
-            qwordV a = func_001A62E8(pe->ploA);
-            qwordV b = func_001A62E8(pe->ploC);
+            qwordV a = GetLoWorldPos(pe->ploA);
+            qwordV b = GetLoWorldPos(pe->ploC);
             qwordV da, db, la, lb;
             float g;
             {
@@ -467,9 +467,9 @@ void BHV181::Start()
  * @end-sly2-annot */
 extern "C" void *func_00155A68(BHVATK *p)
 {
-    if (FCheckVolPoint(p->pesc->ploB, func_001A62E8(p->ploTarget)))
+    if (FCheckVolPoint(p->pesc->ploB, GetLoWorldPos(p->ploTarget)))
         return p->pesc->ploA;
-    if (FCheckVolPoint(p->pesc->ploD, func_001A62E8(p->ploTarget)))
+    if (FCheckVolPoint(p->pesc->ploD, GetLoWorldPos(p->ploTarget)))
         return p->pesc->ploC;
     return p->pesc->ploA;
 }
@@ -519,7 +519,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
         p->ploGoal = func_00155A68(p);
         pa = func_00205438(p->pguard, 0x9D);
         pa->x3C = 0xB;
-        d = VuSub(func_001A62E8(p->ploGoal), func_001A62E8(p->pguard));
+        d = VuSub(GetLoWorldPos(p->ploGoal), GetLoWorldPos(p->pguard));
         {
             float g = atan2f(GetY(d), GetX(d)) + 3.1415927f;
             SetStepguardMoverRadTarget(p->pguard->moverFD0, g);
@@ -543,11 +543,11 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
         palo->xE8 = k;
         {
             qwordV *pq = palo->pq;
-            pq[0] = func_001A62E8(p->pguard);
+            pq[0] = GetLoWorldPos(p->pguard);
         }
         {
             qwordV *pq = palo->pq;
-            pq[1] = func_001A62E8(p->ploGoal);
+            pq[1] = GetLoWorldPos(p->ploGoal);
         }
         MeasureShape(palo);
         SetBhvpathShape(pa, palo, 0);
@@ -585,7 +585,7 @@ extern "C" void func_00155D90(BHVATK *p)
         case 0:
             if (FBhvanimDone(p->pbhvCur)) {
                 DIMITRIV *pso;
-                qwordV d = VuSub(func_001A62E8(p->ploGoal), p->pguard->pos);
+                qwordV d = VuSub(GetLoWorldPos(p->ploGoal), p->pguard->pos);
                 pso = p->pguard;
                 ((void (*)(void *, qwordV))pso->vt[29].pfn)((char *)pso + pso->vt[29].d, d);
                 pso = p->pguard;
@@ -657,9 +657,9 @@ namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.
 extern "C" qwordV func_00155FB0(void *p, qwordV pos)
 {
     HERO *pso = PpoHero(D_003DD490);
-    float dist = Len(VuSub(func_001A62E8(pso), pos));
+    float dist = Len(VuSub(GetLoWorldPos(pso), pos));
     float u = GGetDifficulty(D_002DE578);
-    qwordV posTarget = AddScaled(func_001A62E8(pso), g_normalZ, VU_FLOAT(50.0f));
+    qwordV posTarget = AddScaled(GetLoWorldPos(pso), g_normalZ, VU_FLOAT(50.0f));
     VUV off;
     VECTORV clq;
     LMV lm;
@@ -689,8 +689,8 @@ extern "C" qwordV func_00155FB0(void *p, qwordV pos)
         }
         off.q = ScaleR(vel, sc);
     } else {
-        M3 *pm = func_001A6318(pso);
-        M3 *pm2 = func_001A6318(pso);
+        M3 *pm = GetLoWorldMatrix(pso);
+        M3 *pm2 = GetLoWorldMatrix(pso);
         off.q = SetVectorCylind(atan2f(((float *)pm)[1], ((float *)pm2)[0]), D_002BDC98, 0.0f);
     }
     GetVectorSphere(VuSub(Add(posTarget, off.q), pos), &pan, &tilt, &s);

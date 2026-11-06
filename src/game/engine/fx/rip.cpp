@@ -147,7 +147,7 @@ void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
 void UpdateRip(RIP *prip, float dt);
 void InitRip(RIP *prip);
 void PostRipEmit(RIP *prip, void *pv);
-qword func_001A62E8(LO *plo);   /* the object's world position */
+qword GetLoWorldPos(LO *plo);   /* the object's world position */
 }
 void RemoveDlEntry(DL *pdl, void *pv);
 void ReleaseRip(RIP *prip);
@@ -1882,8 +1882,8 @@ struct S {
     char pad3[0xF0 - 0xB0]; qword axis; float rad; LO *plo;
 };
 extern "C" {
-qword func_001A62E8(LO *plo);
-MAT3 *func_001A6318(LO *plo);
+qword GetLoWorldPos(LO *plo);
+MAT3 *GetLoWorldMatrix(LO *plo);
 void LoadIdentityMatrix4(void *p, int n, MAT4 *pm, int k, float g);
 MAT3 MulMatrix3Matrix3(MAT4 *pm, MAT3 *pm2);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MAT3 *pm, float *pg, qword *pv);
@@ -1910,8 +1910,8 @@ void LaunchMatch__FP5MATCH(S *p)
     MAT4 m4;
     MAT3 m;
     qword d, s1, s2;
-    p->pos = func_001A62E8(p->plo);
-    p->mat = *func_001A6318(p->plo);
+    p->pos = GetLoWorldPos(p->plo);
+    p->mat = *GetLoWorldMatrix(p->plo);
     LoadIdentityMatrix4(p->px->p60, 0, &m4, 0, p->dt);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(m4.a[3]), "j"(p->pos));
     s1 = Bc(1.0f / p->dt);
@@ -2077,7 +2077,7 @@ void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable co
 extern "C" void func_001D0158(RIPF *prip)
 {
     prip->posPrev = prip->posCur;
-    prip->posCur = func_001A62E8(prip->ploFollow);
+    prip->posCur = GetLoWorldPos(prip->ploFollow);
 }
 
 namespace M_RenderGlint {

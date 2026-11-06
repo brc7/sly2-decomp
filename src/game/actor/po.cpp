@@ -122,7 +122,7 @@ void *func_001AE2A0(MSG *pmsg);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int n);
 void Decref__4CRef(struct CRef *p);
 void UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(SWP *p, int a, int b, int c);
-qword func_001A62E8(POV *);
+qword GetLoWorldPos(POV *);
 int PbhvFindBhvstk(void *p, int n);
 
 int GetPoCtlState(POV *p);
@@ -792,7 +792,7 @@ extern "C" POV *PpoClosestSw(SWP *p,qword v) {
     for(;i<p->c;++i) {
         POV *lo=p->a[i];
         if((int)(lo->flags>>60)&1) {
-            float dist=LenSq(Sub(v,func_001A62E8(lo)));
+            float dist=LenSq(Sub(v,GetLoWorldPos(lo)));
             if(dist<minimum) { minimum=dist; best=lo; }
         }
     }

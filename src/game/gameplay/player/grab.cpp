@@ -484,7 +484,7 @@ void func_0019CC50(void *, int, int, int);
 int FAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
 void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);                         // stack allocation in the current STACKSCOPE
-qword func_001A62E8(ACTOR *);                           // world position
+qword GetLoWorldPos(ACTOR *);                           // world position
 int FFilterSoPair(void *, SO *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
 int ClsgClipEdgeToObject(SO *, qword, qword, int, LSG *);      // line test against an object
@@ -536,7 +536,7 @@ static inline void ProbeGround(CONTEXT *p)
     STACKSCOPE scope;
     LSG alsg[8];
     int i;
-    qword pos = func_001A62E8(p->pactor);
+    qword pos = GetLoWorldPos(p->pactor);
     qword posBase = QwAdd(pos, p->pactor->posOffset);
     qword posEnd = QwAdd(posBase, QwScale(D_002A2DC0, VuFloat(&D_002BF5B0)));
     int cso;
@@ -646,7 +646,7 @@ extern "C" void UpdateJtGrabInput(CONTEXT *p)
             }
             break;
         case 9:
-            if (FWithin(func_001A62E8(p->pactorFocus), func_001A62E8(p->attach.pactor), D_002BF5B4)) {
+            if (FWithin(GetLoWorldPos(p->pactorFocus), GetLoWorldPos(p->attach.pactor), D_002BF5B4)) {
                 func_001CD098(&p->attach, p->pactorFocus);
                 SetControl(p->pactor, 0);
             }
@@ -779,7 +779,7 @@ extern float D_002BF5CC;
 extern U D_002BF5D0[3];   // probe points (hang)
 extern U D_002BF600[3];   // probe points (low)
 extern HEIGHT D_002BF630;
-qword func_001A62E8(ACTOR *);
+qword GetLoWorldPos(ACTOR *);
 void func_00182CD8(void *, ACTOR *, float *, U *, float *);
 qword PosSmooth(qword, qword, float, SMP *, U *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -886,7 +886,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
 {
     U pos;
     U velOld;
-    pos.q = func_001A62E8(ctx->actor);
+    pos.q = GetLoWorldPos(ctx->actor);
     velOld.q = GetVelocity(ctx->actor);
     JOY *pjoy = ctx->actor->pjoy;
 
@@ -1255,7 +1255,7 @@ typedef int qword __attribute__((mode(TI)));
 extern "C" {
 void *PdteFindDetectorTarget(void *a, void *b);
 void SetDetectorTargetState(void *a, void *b, int c);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
 void func_00154568(void);
@@ -1285,8 +1285,8 @@ void func_00192A28(P *p)
     for (o = (*(O * *)&g_sw.dlStepguard); o; o = o->xfe0) {
         E *e = (E *)PdteFindDetectorTarget(o->xf64, p->x0);
         if (!e || !e->x4 || (o->xf64->xf8 & 1)) continue;
-        qword a = func_001A62E8(o);
-        qword b = func_001A62E8(p->x0);
+        qword a = GetLoWorldPos(o);
+        qword b = GetLoWorldPos(p->x0);
         qword d, t;
         float dist;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
@@ -1314,7 +1314,7 @@ namespace M_SetJtGrabKind {
 //
 // Matching notes (wave-5 lane 5, fresh rewrite):
 // - p ends up in s2 only because two block-local call-crossing pointers take s0/s1 while p is live (old action 4:
-//   `ACTOR *actor = p->pactor` before the position call; action 34: `AUX *aux = p->aux` before func_001A62E8).
+//   `ACTOR *actor = p->pactor` before the position call; action 34: `AUX *aux = p->aux` before GetLoWorldPos).
 // - Normalize: return-style inline plus a split vdiv / vmulq (see Unit) keeps the fallback lq/qmtc2 of the target.
 // - old step 7: VuFloat's "r,V" alternative (UpdateJtGrabInput idiom) fixes the vt/fn and actor/height registers.
 // - step -1 reset: the zeros are a chained `param = value = 0.0f` (0.0f in f0) and sched1 puts the stores that kill
@@ -1381,8 +1381,8 @@ extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002BF650;
 extern float D_002BF63C;
 extern float D_002BF640;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-qword func_001A62E8(void *);
-M3 *func_001A6318(void *);
+qword GetLoWorldPos(void *);
+M3 *GetLoWorldMatrix(void *);
 void FindShapeClosestPoint(SOURCE *, qword, void *, void *, void *, float *, float *);
 void func_00183B80(SOURCE *, int);
 void SubscribeLoObject(SOURCE *, ACTOR *);
@@ -1511,7 +1511,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
     case -1:
         if (p->focus && FIsBasicDerivedFrom__FP5BASIC3CID(p->focus, 10)) {
             SOURCE *source = p->focus;
-            FindShapeClosestPoint(source, func_001A62E8(p->pactor), 0, 0, 0, &p->param, &p->value);
+            FindShapeClosestPoint(source, GetLoWorldPos(p->pactor), 0, 0, 0, &p->param, &p->value);
         }
         switch (p->action) {
         case 1: {
@@ -1528,7 +1528,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             SubscribeLoObject(source, p->pactor);
             func_00204F78(p->pactor, source, 1);
             ACTOR *actor = p->pactor;
-            actor->position = func_001A62E8(source);
+            actor->position = GetLoWorldPos(source);
             break;
         }
         case 3: {
@@ -1542,7 +1542,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             dir.i[2] = 0;
             Normalize(&dir.q);
             qword normal = dir.q;   // read before the call: a VU pseudo spilled to 0x50
-            p->reversed = X(Dot(normal, func_001A6318(p->pactor)->row[0])) < D_002BF63C;
+            p->reversed = X(Dot(normal, GetLoWorldMatrix(p->pactor)->row[0])) < D_002BF63C;
             break;
         }
         case 2: {
@@ -1568,10 +1568,10 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         if (Less(step, 11) && !Less(step, 9)) {
             SOURCE *source = p->focus;
             if (source->other) {
-                qword pos = func_001A62E8(source->other);
+                qword pos = GetLoWorldPos(source->other);
                 SetVector(p->pactor, 29, Sub(pos, p->pactor->posOffset));
                 p->pactor->motion = AddScaled(pos, D_002A2DC0, VuFloat(p->pactor->height));
-                SetStepRadTargetVec(p->pactor, func_001A6318(source->other)->row[0]);
+                SetStepRadTargetVec(p->pactor, GetLoWorldMatrix(source->other)->row[0]);
                 SetPointer(p->pactor, 30, p->pactor->local);
                 SetVector(p->pactor, 35, D_002A2DD0);
                 SetVector(p->pactor, 36, D_002A2DD0);
@@ -1742,7 +1742,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
                         func_00194118(p);
                         p->aux->enabled = 1;
                         AUX *aux = p->aux;
-                        aux->position = ConvertAloPos(0, p->aux, func_001A62E8(source));
+                        aux->position = ConvertAloPos(0, p->aux, GetLoWorldPos(source));
                         p->aux->value = source->parameter;
                         SetStepplayerTnOverride(p->pactor, p->aux);
                     }
@@ -1752,7 +1752,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
                         SetStepplayerTnOverride(p->pactor, source->owner);
                     else {
                         func_00194118(p);
-                        qword v = Transform(*func_001A6318(source), D_002BF650);
+                        qword v = Transform(*GetLoWorldMatrix(source), D_002BF650);
                         SetX(&p->aux->data->x, v);
                         p->aux->data->y = GetY(v);
                         p->aux->data->z = GetZ(v);
@@ -1797,7 +1797,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         SOURCE *source = p->focus;
         clip = p->clip324;
         if (source->other) {
-            M3 basis = *func_001A6318(source->other);
+            M3 basis = *GetLoWorldMatrix(source->other);
             SetStepRadTargetVec(p->pactor, basis.row[0]);
         }
         p->pactor->velocity = D_002A2DD0;
@@ -2018,8 +2018,8 @@ struct LO { char pad[0xC]; VTE *vt; char pad2[0x190 - 0x10]; qword x190; char pa
 struct T { char pad[0xE4]; int xe4; char pad2[0x1BC - 0xE8]; int x1bc; };
 struct S { struct LO *x0; int x4; int x8; int xc; int x10; struct T *x14; int x18; float x1c; float x20; };
 extern qword D_002A2DB0;
-qword func_001A62E8(void *p);
-M4 *func_001A6318(struct LO *p);
+qword GetLoWorldPos(void *p);
+M4 *GetLoWorldMatrix(struct LO *p);
 void FindShapeClosestPointFromU(struct T *t, qword a, struct PROJECTION *projection, qword *p0, qword *p1, float *pf0, float *pf1, float g);
 float SMinShape(struct T *t);
 float SMaxShape(struct T *t);
@@ -2059,7 +2059,7 @@ void UpdateJtInternalXpsHide(struct S *p)
     switch (p->x8) {
     case 4: {
         U pos;
-        pos.q = func_001A62E8(p->x14);
+        pos.q = GetLoWorldPos(p->x14);
         p->x0->vt[82].v82.pfn((char *)p->x0 + p->x0->vt[82].v82.d, 0x23, p->x14, pos.q, D_002A2DB0, *p->x0->x218);
         break;
     }
@@ -2076,7 +2076,7 @@ void UpdateJtInternalXpsHide(struct S *p)
             float d0, d1;
             vel.q = p->x0->vt[33].v33.pfn((char *)p->x0 + p->x0->vt[33].v33.d);
             d0 = Dot(vel.q, v1.q);
-            m = func_001A6318(p->x0);
+            m = GetLoWorldMatrix(p->x0);
             w=p->x0->x190;
             __asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(w):"j"(m->row[0]),"j"(m->row[1]),"j"(m->row[2]));
             d1 = -Dot2(w, v1.q);
@@ -2325,7 +2325,7 @@ struct P { struct O *x0; int x4; int x8; int pad[2]; struct T *x14; void *x18; i
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 void func_0019FD30(void *p, void *s, float g);
 void func_0019FEB0(void *p, int a, qword q);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 /** @sly2-annot addr=0x1942F0
  * Purpose: Per grab state, record the held spot/param into the STEPPLAYER+0x9E0 place table (0x19FD30 /
@@ -2375,9 +2375,9 @@ void func_001942F0(struct P *p)
         {
             qword a;
             U d;
-            a = func_001A62E8(p->x0);
+            a = GetLoWorldPos(p->x0);
             qword dq;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(func_001A62E8(p->x14)));
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(GetLoWorldPos(p->x14)));
             d.q = dq;
             g = atan2f(d.f[1], d.f[0]) * s;
         }
@@ -2498,7 +2498,7 @@ namespace M_AddJtGrabCandidate__FP2SWP10STEPPLAYERUxP2LOP8GRABSPOTiP10JTGRABCAND
 extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 extern "C" { extern CLOCK D_002DDED0; }
 
 
@@ -2683,7 +2683,7 @@ extern "C" {
 void* memset(void* ptr, int value, size_t num);
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 
 
 

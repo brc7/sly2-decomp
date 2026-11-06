@@ -288,7 +288,7 @@ struct EMITTERV *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, in
 struct EMITTERV *PloNew__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
 void *func_001AE238(struct ALLOCREQ *preq, void *pv);
 void SetLoBusyk(struct EMITTERV *p, int n);
-void *func_001A6318(struct EMITTERV *p);
+void *GetLoWorldMatrix(struct EMITTERV *p);
 void AppendDlEntry__FP2DLPv(void *pv, struct EMITTERV *p);
 
 static __inline__ void *PvAllocCopy(int cb, void *pv)
@@ -390,7 +390,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
             SetLoBusyk(pemitterNew, 1);
             pvte = &pemitterNew->pvt[30];
             pthis = (char *)pemitterNew + pvte->delta;
-            pvte->pfn(pthis, func_001A6318(pemitter));
+            pvte->pfn(pthis, GetLoWorldMatrix(pemitter));
         }
         pemitter->nE0 = 0;
         AppendDlEntry__FP2DLPv((char *)pemitterNew + 0x11C, pemitter);
@@ -465,7 +465,7 @@ struct EMITO { ALO *palo; };
 struct EMITBV { int pad0; int f4; EMITO *pemito; };
 struct EMITTERV { char pad[0xE4]; EMITBV *pemitb; char pad1[0x140 - 0xE8]; float sBox; char pad2[0x150 - 0x144]; PRG *pprg; };
 extern "C" {
-qword func_001A62E8(ALO *palo);
+qword GetLoWorldPos(ALO *palo);
 float GModPositive__Fff(float g, float gMod);
 }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -490,8 +490,8 @@ extern "C" void ModifyEmitterParticles__FP7EMITTER(EMITTERV *pemitter)
         volatile int unused;
         vecBox.v.z = sBox; vecBox.v.y = sBox; vecBox.v.x = sBox;
         if (pemitter->pemitb->pemito->palo) {
-            posMin.q = Sub(func_001A62E8(pemitter->pemitb->pemito->palo), vecBox.q);
-            posMax.q = Add(func_001A62E8(pemitter->pemitb->pemito->palo), vecBox.q);
+            posMin.q = Sub(GetLoWorldPos(pemitter->pemitb->pemito->palo), vecBox.q);
+            posMax.q = Add(GetLoWorldPos(pemitter->pemitb->pemito->palo), vecBox.q);
         } else {
             qword m, k;
             __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-1.0f));
@@ -540,7 +540,7 @@ extern "C" {
 void UpdateLo(EMITTERV *p);
 int FIsDlEmpty__FP2DL(int *pdl);
 int func_001A61A0(EMITTERV *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float GRandInRange__Fff(float gMin, float gMax);
 int CPvDl__FP2DL(int *pdl);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
@@ -584,7 +584,7 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *p, float dt)
             if (!pe->x10)
                 goto LActive;
             float r = pe->g38 * D_002DDF40.g1C;
-            qword pos = func_001A62E8(pe);
+            qword pos = GetLoWorldPos(pe);
             r = r * r;
             if (FLess(Dist2(pos, D_002DDF40.pos), r))
                 goto LActive;
@@ -592,7 +592,7 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *p, float dt)
         return;
     } else if (p->x10) {
         float r = p->g38 * D_002DDF40.g1C;
-        qword pos = func_001A62E8(p);
+        qword pos = GetLoWorldPos(p);
         r = r * r;
         if (FLess(r, Dist2(pos, D_002DDF40.pos)))
             return;
@@ -1038,7 +1038,7 @@ struct EMITBV {
 extern "C" {
 float GRandInRange__Fff(float gMin, float gMax);
 void EvaluateShapeS(MESHO *pmesh, float g, qword *ppos, qword *pnormal);
-MATRIX3 *func_001A6318(void *palo);
+MATRIX3 *GetLoWorldMatrix(void *palo);
 }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -1195,7 +1195,7 @@ extern "C" void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITBV *p, int i, int c, qw
     case 4: {
         void *palo = p->pemito->palo;
         if (palo) {
-            MATRIX3 *pm = func_001A6318(palo);
+            MATRIX3 *pm = GetLoWorldMatrix(palo);
             *pv = MulTMat(*pm, MulCam(&D_002DDF40, pep->v40));
         } else {
             *pv = MulCam(&D_002DDF40, pep->v40);
@@ -1429,7 +1429,7 @@ void SubscribeLoObject(SO *pso, void *p);
 PART *PripNewRipg(void *p, int n, SO *pso);
 float GRandInRange__Fff(float a, float b);
 void SetEmitdvEmitb__FP6EMITDVP5EMITB(void *p, EMITTERV *pemit);
-MATRIX3 *func_001A6318(void *p);
+MATRIX3 *GetLoWorldMatrix(void *p);
 int FIsDlEmpty__FP2DL(void *p);
 }
 /** @sly2-annot addr=0x15B1B0
@@ -1472,7 +1472,7 @@ extern "C" void EmitRips__FP5EMITBP5EMITGiP6VECTORT3PfT5(EMITTERV *pemit, EMITX 
         SetEmitdvEmitb__FP6EMITDVP5EMITB(ppart->abA0, pemit);
         ppart->x1C = pemit->pshd->x8;
         if (pemit->pshd->p0)
-            ppart->mat40 = *func_001A6318(pemit->pshd->p0);
+            ppart->mat40 = *GetLoWorldMatrix(pemit->pshd->p0);
         ppart->Init(pemit);
     }
     if (FIsDlEmpty__FP2DL((char *)pso + 0x15C))

@@ -119,7 +119,7 @@ void LoadLoFromBrx(ROUTE *proute, void *pbis);
 void PostLoLoad(ROUTE *proute);
 SHAPEV *func_001E94B0(int oid, int c);
 void *PloFindSwObject__FP2SWi3OIDP2LO(SW *psw, int k, int oid, void *plo);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void MeasureShape(SHAPEV *pshape);
 void InitBhv(BHVRT *p);
 void StartBhv(BHVRT *p);
@@ -222,7 +222,7 @@ void CID123::VUnk14()
         e->plo = o;
         if (o) {
             qword *pq = (qword *)((i << 4) + (int)p->pshape->mpicvpos);
-            *pq = func_001A62E8(o);
+            *pq = GetLoWorldPos(o);
         }
     }
     MeasureShape(p->pshape);
@@ -379,7 +379,7 @@ extern "C" int func_0014A478(BHVRT *p)
     GUARDV *q = p->pguard;
     qword t;
     if (q->x208) return 0;
-    t = func_001A62E8(q);
+    t = GetLoWorldPos(q);
     return func_00173610(&t, 1, 0, 100.0f, -250.0f) == 0;
 }
 
@@ -432,8 +432,8 @@ extern "C" void func_0014A4D0(BHVRT *p)
 {
     SW *pg = &D_003DD490;
     HEROV *pso = PpoHero(pg);
-    qword posPlayer = func_001A62E8(pso);
-    qword posMe = func_001A62E8(p->pguard);
+    qword posPlayer = GetLoWorldPos(pso);
+    qword posMe = GetLoWorldPos(p->pguard);
     qword d = VuSub(posPlayer, posMe);
     qword v;
     qword pos;
@@ -447,7 +447,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
     if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !FSwHandsOff(pg)) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x2DC == 0x11) {
             PATH *ppath = pso->ppath;
-            pos = func_001A62E8(pso);
+            pos = GetLoWorldPos(pso);
             int c = ppath->c;
             for (int i = 0; i < c; i++) {
                 if (GetZ(pos) < GetZ(ppath->av[i]))
@@ -461,7 +461,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
     for (SOV *ps = (*(SOV **)&g_sw.dlCid98); ps; ps = ps->pnext) {
         if (!func_001BBE48(ps)) {
             SOV *apso[8];
-            qword posT = func_001A62E8(ps);
+            qword posT = GetLoWorldPos(ps);
             float r = D_002BD478;
             if (ps->pxEC) {
                 posT = ps->pxEC->pos;
@@ -475,7 +475,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
             }
             if (k) {
                 SOV *pt = apso[NRandInRange(0, k - 1)];
-                posT = func_001A62E8(pt);
+                posT = GetLoWorldPos(pt);
                 r = *(float *)&pt->pxEC;
             }
             if (!FLess(D_002BD478 * D_002BD478, LenSq(VuSub(posT, posPlayer)))) {
@@ -500,7 +500,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
     if (FLess(Len2(v), D_002BD460)) {
         qword e = VuSub(posMe, posPlayer);
         float rad = atan2f(GetY(e), GetX(e));
-        qword pp = func_001A62E8(pso);
+        qword pp = GetLoWorldPos(pso);
         pos = Add(pp, SetVectorCylind(GRandInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {
         pos = AddScaledNorm(posPlayer, v, VU_FLOAT(-D_002BD470));
@@ -533,7 +533,7 @@ extern "C" int func_0014AA30(BHVRT *p)
     float ag[1];
     void *pv = PpoHero(&D_003DD490);
     float gBest = -1.0f;
-    FindShapeClosestPoint(p->proute->pshape, func_001A62E8(pv), 0, 0, 0, 0, ag);
+    FindShapeClosestPoint(p->proute->pshape, GetLoWorldPos(pv), 0, 0, 0, 0, ag);
     for (; i < p->proute->crte; i++) {
         float g, u1, u2, u3, s;
         U v;
@@ -664,9 +664,9 @@ extern "C" void func_0014AE38(BHVRT *p, int state)
         psp->ccv = 2;
         {
             qword *pq = psp->mpicvpos;
-            *pq = func_001A62E8(p->pguard);
+            *pq = GetLoWorldPos(p->pguard);
             pq = psp->mpicvpos;
-            pq[1] = func_001A62E8(func_0014AE18(p));
+            pq[1] = GetLoWorldPos(func_0014AE18(p));
         }
         MeasureShape(psp);
         po = (struct OA7 *)func_00205438(p->pguard, 0xA7);
@@ -683,7 +683,7 @@ extern "C" void func_0014AE38(BHVRT *p, int state)
     }
     case 2: {
         struct OAC *po = (struct OAC *)func_00205438(p->pguard, 0xAC);
-        po->x50 = func_001A62E8(func_0014AE18(p));
+        po->x50 = GetLoWorldPos(func_0014AE18(p));
         po->x68 = 1;
         VCALL0(po, 8);
         break;
@@ -804,7 +804,7 @@ extern "C" LOV *func_0014B290(GUARDV *p)
     } else {
     gBest = D_002A4EE8;
     kBest = 999;
-    pos = func_001A62E8(p);
+    pos = GetLoWorldPos(p);
     for (i = 0; i < p->pdetector->cdte; i++) {
         DTE *pe = &p->pdetector->adte[i];
         int k;
@@ -817,7 +817,7 @@ extern "C" LOV *func_0014B290(GUARDV *p)
             k = 1;
         else
             k = 2;
-        g = GDist(pos, func_001A62E8(pe->po));
+        g = GDist(pos, GetLoWorldPos(pe->po));
         if (pe->po == p->ploTarget)
             g = D_002BD4B0[0] + g * (D_002BD4B0[1] + g * D_002BD4B0[2]);
         if (k < kBest || (k == kBest && g < gBest)) {

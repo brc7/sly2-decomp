@@ -132,8 +132,8 @@ void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z,
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CMV*,qwordV);
 LOV *PpoHero(void *g);
-qwordV func_001A62E8(void *p);
-M4 *func_001A6318(void *p);
+qwordV GetLoWorldPos(void *p);
+M4 *GetLoWorldMatrix(void *p);
 EVENT *func_001F8240(LOV *plo);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
@@ -454,7 +454,7 @@ extern "C" void func_00173928(CID119V *p, ENTRY *pe, int k, int f) {
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return func_001A62E8(PpoHero(g)); return D_002DDF40.mat.r[3]; }
+extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return GetLoWorldPos(PpoHero(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
@@ -697,14 +697,14 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
             switch (psel->kind)
             {
             case 0:
-                posObj = func_001A62E8(psel->plo);
-                mat = *(M3 *)func_001A6318(psel->plo);
+                posObj = GetLoWorldPos(psel->plo);
+                mat = *(M3 *)GetLoWorldMatrix(psel->plo);
                 sRadius = psel->plo->sRadius;
                 break;
             case 2:
                 sRadius = sRadiusMin;
-                posObj = func_001A62E8(psel->plo);
-                mat = *(M3 *)func_001A6318(psel->plo);
+                posObj = GetLoWorldPos(psel->plo);
+                mat = *(M3 *)GetLoWorldMatrix(psel->plo);
                 break;
             }
             float sDist = SLengthXY(QwSubFrom(pos, posObj));

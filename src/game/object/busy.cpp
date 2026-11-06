@@ -40,7 +40,7 @@ float D_002BD450 = 500.0f;   /* busy's .data (the next 12 bytes are 0: alignment
 extern DLI *D_002DD2FC;     /* g_pdliFirst */
 extern "C" {
 void *PpoHero(void);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_00147EC8(SWBUSY *p, void *pv);
 void func_00147EE8(SWBUSY *p, void *pv);
 void func_00147E20(SWBUSY *p, ITEM *pitem);
@@ -153,7 +153,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
     n = D_002DDF40.grf;
     pvB = PpoHero();
     if (pvB)
-        posB = func_001A62E8(pvB);
+        posB = GetLoWorldPos(pvB);
     else
         posB = pos;
     gA = GDist(pos, p->q39B0);
@@ -183,7 +183,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
                 goto leave;
             } else {
                 float d;
-                d = GDist(func_001A62E8(pso), pos) - pso->g38;
+                d = GDist(GetLoWorldPos(pso), pos) - pso->g38;
                 fIn = d < 0.0f;
                 if (D_002BD450 < __builtin_fabsf(d) - gA) {
                 leave:
@@ -196,7 +196,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
                 fIn = 0;
             } else {
                 float d;
-                d = GDist(func_001A62E8(pso), posB) - pso->g38;
+                d = GDist(GetLoWorldPos(pso), posB) - pso->g38;
                 fIn = d < 0.0f;
                 if (D_002BD450 < __builtin_fabsf(d) - gB)
                     func_00147EE8(p, pv);
@@ -245,7 +245,7 @@ extern "C" void func_00148300(SWBUSY *p, SO *pso)
     posA = D_002DDF40.pos;
     grf = D_002DDF40.grf;
     po = PpoHero();
-    if (po) posB = func_001A62E8(po);
+    if (po) posB = GetLoWorldPos(po);
     else posB = posA;
     id = (int)pso->pvBusy;
     switch ((int)((pso->grf << 8) >> 60)) {
@@ -260,7 +260,7 @@ extern "C" void func_00148300(SWBUSY *p, SO *pso)
             float r;
             fIn = 1;
             r = pso->g38 * pso->g38;
-            fIn = GDistSq(func_001A62E8(pso), posA) < r;
+            fIn = GDistSq(GetLoWorldPos(pso), posA) < r;
         } else {
             fIn = 0;
         }
@@ -270,7 +270,7 @@ extern "C" void func_00148300(SWBUSY *p, SO *pso)
             float r;
             fIn = 1;
             r = pso->g38 * pso->g38;
-            fIn = GDistSq(func_001A62E8(pso), posB) < r;
+            fIn = GDistSq(GetLoWorldPos(pso), posB) < r;
         } else {
             fIn = 0;
         }

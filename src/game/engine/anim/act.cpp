@@ -1294,7 +1294,7 @@ struct CLOCK { float t; int dt; };
 extern struct CLOCK D_002DDED0;
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
 void *PpoClosestSw(void *pg, qword pos);
-qword func_001A62E8(void *po);
+qword GetLoWorldPos(void *po);
 void func_002301D0(void *a, struct X *b);
 qword ConvertXfVec(int n, int k, qword v);
 void CalculateVectorPanTilt(qword q, float *pa, float *pb);
@@ -1343,7 +1343,7 @@ void UpdateActLookAt(struct P *p)
         po = PpoClosestSw(D_003DD490, posT);
     if (po) {
         qword d, t;
-        d = func_001A62E8(po);
+        d = GetLoWorldPos(po);
         __asm__("vsub.xyzw %0, %0, %1" : "+j"(d) : "j"(posT));
         dv = d;
         __asm__("" : "+j"(d));  /* empty asm: keeps d and dv separate pseudos */

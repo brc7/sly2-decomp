@@ -116,8 +116,8 @@ void PostSoLoad(BOOTYV *);
 void UpdateSo(BOOTYV *);
 void func_00143380(HERO *);
 void RenderSoSelf(BOOTYV *);
-qword func_001A62E8(void *);
-void *func_001A6318(void *);
+qword GetLoWorldPos(void *);
+void *GetLoWorldMatrix(void *);
 M4 LoadMatrixFromPosRotScale(qword, void *, VU *);
 void func_001A5EE8(BOOTYV *, M4 *, float, float);
 void HandleBasicMessage(BOOTYV *, int, MATCH *);
@@ -295,7 +295,7 @@ extern "C" void RenderBootySelf(BOOTYV *p)
             for (i = 0; i < 3; i++)
                 v.f[i] = (1.0f - g) + g * p->vScale.f[i];
         }
-        M4 mT = LoadMatrixFromPosRotScale(func_001A62E8(p), func_001A6318(p), &v);   /* initialised, not assigned: g++ builds an assigned call result in a temporary first (the C file had no copy) */
+        M4 mT = LoadMatrixFromPosRotScale(GetLoWorldPos(p), GetLoWorldMatrix(p), &v);   /* initialised, not assigned: g++ builds an assigned call result in a temporary first (the C file had no copy) */
         m = mT;
         func_001A5EE8(p, &m, 1.0f, 1.0f);
         break;
@@ -529,9 +529,9 @@ static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 #define LINKE(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
-    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, func_001A62E8(PA), 0, 1.0f); \
+    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
     SubscribeRipObject(p->pmatch, p); \
-    g = Dist(func_001A62E8(PA), func_001A62E8(PB)); \
+    g = Dist(GetLoWorldPos(PA), GetLoWorldPos(PB)); \
     p->pmatch->p1C = (PB); \
     p->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
     { SA0 *ps = &p->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
@@ -542,9 +542,9 @@ static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 #define LINKE3(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
-    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, func_001A62E8(PA), 0, 1.0f); \
+    ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, GetLoWorldPos(PA), 0, 1.0f); \
     SubscribeRipObject(p->pmatch, p); \
-    g = Dist3(func_001A62E8(PA), func_001A62E8(PB), 250.0f); \
+    g = Dist3(GetLoWorldPos(PA), GetLoWorldPos(PB), 250.0f); \
     p->pmatch->p1C = (PB); \
     p->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
     { SA0 *ps = &p->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
@@ -602,7 +602,7 @@ void SetBootyState(BOOTYV *p, int st)
     case 1:
         if (p->pbootyeCur->xC)
             func_001618F8(&g_sw, p->pcont->g18C + 0.99f);
-        func_00156C80(&g_sw, 1, func_001A62E8(p->pcont), p->pcont, (char *)p->pcont + 0x198);
+        func_00156C80(&g_sw, 1, GetLoWorldPos(p->pcont), p->pcont, (char *)p->pcont + 0x198);
         if (st == 2)
             BroadcastGameEvent(D_002DEB30, 0x2F, p);
         p->pcont->pbooty = 0;

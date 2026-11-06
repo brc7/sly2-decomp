@@ -1885,7 +1885,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { void *p0; void *p4; int pad[2]; qword q10; };
 extern char D_003DD020[];
 void FindShapeClosestPoint(void *p, qword a, void *b, qword *pq, int c, int d, int e);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x1C1EC0
  * Purpose: Position of a path endpoint record: closest point on its shape (+0), else its object position
  *   (+4), else stored vector (+0x10)
@@ -1901,7 +1901,7 @@ qword func_001C1EC0(struct S *p, qword a)
     if (p->p0) {
         FindShapeClosestPoint(p->p0, a, D_003DD020, &q, 0, 0, 0);
     } else if (p->p4) {
-        q = func_001A62E8(p->p4);
+        q = GetLoWorldPos(p->p4);
     } else {
         q = p->q10;
     }
@@ -1915,7 +1915,7 @@ typedef int qword __attribute__((mode(TI)));
 struct S { void *p0; void *p4; int pad[2]; qword q10; };
 float SMaxShape(void *p);
 void EvaluateShapeS(void *p, qword *pq, int n, float g);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x1C1F28
  * Purpose: Endpoint position using shape midpoint
  * Info: proposed name PosPathlinkEndpointCenter (T2); TU path
@@ -1928,7 +1928,7 @@ qword func_001C1F28(struct S *p)
     if (p->p0) {
         EvaluateShapeS(p->p0, &q, 0, SMaxShape(p->p0) * 0.5f);
     } else if (p->p4) {
-        q = func_001A62E8(p->p4);
+        q = GetLoWorldPos(p->p4);
     } else {
         q = p->q10;
     }
@@ -2109,7 +2109,7 @@ void STACKSCOPE_ctor_1AE4A0(void *pframe, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE378(MSG *pmsg);
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
-qword func_001A62E8(void *pv);
+qword GetLoWorldPos(void *pv);
 NAV *PpathzoneFromPos(qword pos, int f);
 void ClearDl__FP2DL(DL *pdl);
 void InitDl__FP2DLi(DL *pdl, int ibDle);
@@ -2158,7 +2158,7 @@ extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, in
     anode = (NODE *)PvAllocClear(pgraph->cnav * sizeof(NODE));
     afAllowed = (int *)PvAlloc(pgraph->cedge * sizeof(int));
     func_002333B4(afAllowed, 0xFF, pgraph->cedge * sizeof(int));
-    qword posStart = func_001A62E8(pvActor);
+    qword posStart = GetLoWorldPos(pvActor);
     NAV *pnavStart = PnavFind(posStart);
     NAV *pnavGoal = PnavFind(posGoal);
 

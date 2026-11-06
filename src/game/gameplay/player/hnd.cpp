@@ -40,7 +40,7 @@ void HND::Init()
 
 struct VEC { float x, y, z, w; };
 float D_002BE910 = -150.0f;   /* hnd's .data (0x2BE910; the next 4 bytes are 0): z offset of the grab position */
-extern "C" qword func_001A62E8(void *a, void *b);
+extern "C" qword GetLoWorldPos(void *a, void *b);
 /** @sly2-annot addr=0x184F98
  * Purpose: GRABSPOT slot C: owner position + D_002BE910 in z
  * Info: proposed name GetHndGrabPos (T2); class HND; TU hnd
@@ -49,7 +49,7 @@ extern "C" qword func_001A62E8(void *a, void *b);
  * @end-sly2-annot */
 extern "C" void func_00184F98(void *a, void *b, VEC *p)
 {
-    *(qword *)p = func_001A62E8(a, b);
+    *(qword *)p = GetLoWorldPos(a, b);
     p->z += D_002BE910;
 }
 

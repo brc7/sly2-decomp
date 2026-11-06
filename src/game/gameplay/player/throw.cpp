@@ -94,7 +94,7 @@ float D_002C4100 = 3.0f, D_002C4104 = 2.0f;     // flight time / blend rate limi
 extern const float D_002A96A0;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(O *a, int b, int c, void *d, int e, int f, int g, void *h);
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 int FPowerupAcquired(int);
 qword SetVectorCylind(float,float,float);
 void GetVectorCylind(qword,float *,float *,float *);
@@ -287,7 +287,7 @@ static inline void CopyRange(RANGE &destination,const RANGE &source){
 extern "C" void UpdateJtthrow(JTTHROW *s){
  WORK w;
  register CONTROL *control asm("$19")=s->owner->control;
- qword initial=func_001A62E8(s->owner);
+ qword initial=GetLoWorldPos(s->owner);
  int initialState=SaveOwnerPosition(w.ownerPosition,initial,s);
  if(initialState<7){
  if(initialState>=4){
@@ -334,7 +334,7 @@ extern "C" void UpdateJtthrow(JTTHROW *s){
   ASEGAV *animation=s->owner->animation;
   switch(previous){
   case 0:{
-   w.scratch.vector.q=IdleDifference(func_001A62E8(s->selected),w.ownerPosition);
+   w.scratch.vector.q=IdleDifference(GetLoWorldPos(s->selected),w.ownerPosition);
    float heading=atan2f(w.scratch.vector.f[1],w.scratch.vector.f[0]);
    float angle=RadNormalize__Ff(heading-RadStepHeading(s->owner));
    float threshold=s->idleThreshold;
@@ -357,8 +357,8 @@ extern "C" void UpdateJtthrow(JTTHROW *s){
     if(s->animation0)SetJtthrowState(s,0);else IntCall(s->owner,88,0);
     O *selected=s->selected;if(selected==D_002DD5BC&&selected->mode==8){
      w.speed.q=ScalarHome(w.scratch.vector,CPUFloat(400.0f));
-     O *positionOwner;w.playerPosition.q=SavedPlayerAndOwner(func_001A62E8(selected),s,positionOwner);
-     qword position=func_001A62E8(positionOwner),currentVF,playerVF;V *upper,*savedUpper;ProjectionInputs(position,w.playerPosition,currentVF,playerVF,upper,savedUpper);
+     O *positionOwner;w.playerPosition.q=SavedPlayerAndOwner(GetLoWorldPos(selected),s,positionOwner);
+     qword position=GetLoWorldPos(positionOwner),currentVF,playerVF;V *upper,*savedUpper;ProjectionInputs(position,w.playerPosition,currentVF,playerVF,upper,savedUpper);
      qword direction=PointDifference(playerVF,currentVF);qword up=LoadVF(*InitialUpAddress(upper));direction=PlanarUnit(direction,up);
      qword speedValue,upValue; qword height=LiftFromUpper(600.0f,w.speed,savedUpper,speedValue,upValue);
      O *launchOwner;int launchFlag;LaunchPublication(LaunchVelocity(direction,speedValue,upValue,height),w.vector,launchOwner,launchFlag);
@@ -474,7 +474,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
  qword posLaunch=ConvertAloPos(pjtthrow->owner,0,pjtthrow->secondary.q);
  qword posHold=pjtthrow->targetWorld.q;
  qword vAccel=pjtthrow->selected->pgravity->vAccel.q;
- qword posHero=func_001A62E8(pjtthrow->owner);
+ qword posHero=GetLoWorldPos(pjtthrow->owner);
  float uFar=GClamp((GLengthXY(QwSub(posHold,posHero))-pjtthrow->bounds.lo)/(pjtthrow->bounds.hi-pjtthrow->bounds.lo),0.0f,1.0f);
  qword vLaunch=func_001D6848(posLaunch,pjtthrow->targetWorld.q,vAccel,GFromClq(D_002C40F0,uFar));
  float tApex=GMax(-GZOfQw(vLaunch)/GZOfQw(vAccel),0.0f);
@@ -556,7 +556,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
   func_0021C5F8(pjtthrow->effect,posLaunch);
  }
  qword posAim=pjtthrow->targetWorld.q;
- qword posHeroNow=func_001A62E8(pjtthrow->owner);
+ qword posHeroNow=GetLoWorldPos(pjtthrow->owner);
  V dpos;
  dpos.q=QwSub(posAim,posHeroNow);
  float rad=atan2f(dpos.f[1],dpos.f[0]);
@@ -664,7 +664,7 @@ extern "C" void func_00220508(JTTHROW *p, void *q)
 {
     int k = p->state;
     if (k < 7) if (k >= 4) {
-        qword v = func_001A62E8(q), a = p->targetWorld.q, d, r;
+        qword v = GetLoWorldPos(q), a = p->targetWorld.q, d, r;
         int len;
         int enabled=Enabled();
         d = VuSub(a, v);
@@ -810,7 +810,7 @@ extern "C" void SetJtthrowState(JTTHROW *s,int state){
  case -1:func_00204660(s->owner,RadStepHeading(s->owner));s->owner->movement=0;break;
  case 7:
   {O*getterOwner;w.saved.q=SavedTargetAndOwner(s,getterOwner);
-   qword position=func_001A62E8(getterOwner);qword current=ToVF(position);O *receiver;qword target=RestoreTarget(&receiver,s,w.saved);SetStepRadTargetVec(receiver,SubS(target,current));}
+   qword position=GetLoWorldPos(getterOwner);qword current=ToVF(position);O *receiver;qword target=RestoreTarget(&receiver,s,w.saved);SetStepRadTargetVec(receiver,SubS(target,current));}
   s->owner->movement=0;
   break;
  default:s->owner->direction.q=D_002A2DD0.q;s->owner->movement=1;break;
@@ -821,8 +821,8 @@ extern "C" void SetJtthrowState(JTTHROW *s,int state){
   if(s->selected==D_002DD5BC&&!s->selected->playerState){
     O*chosen=s->selected;
     w.scalar.q=CPUFloatS(400.0f);w.coefficient.q=w.scalar.q;
-    O*getterOwner;w.point.q=SavedPlayerAndOwnerS(func_001A62E8(PositionReceiver(chosen)),s,getterOwner);
-    qword position=func_001A62E8(getterOwner),direction;V*savedUpper;
+    O*getterOwner;w.point.q=SavedPlayerAndOwnerS(GetLoWorldPos(PositionReceiver(chosen)),s,getterOwner);
+    qword position=GetLoWorldPos(getterOwner),direction;V*savedUpper;
     qword up=ProjectionStart(position,w.point,direction,savedUpper);
     direction=ProjectUnit(direction,up);
     float liftHeight;qword liftUp=LiftInputs(savedUpper,liftHeight),speed;O *receiver;int flag;qword height=LaunchOperands(liftHeight,w.coefficient,speed,receiver,flag);

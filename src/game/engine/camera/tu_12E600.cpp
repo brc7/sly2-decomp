@@ -51,8 +51,8 @@ void ActivateCplcy(CPCAMERAV *t, void *b, CAMERA *s);
 void DeactivateCplcy(CPCAMERAV *t, int b, CAMERA *s);
 void SetCmFov__FP2CMf(void *a, float g);
 void CutCm__FP2CM(void *pcm);
-qwordV func_001A62E8(CAMERA *pso);
-M3 *func_001A6318(CAMERA *pso);
+qwordV GetLoWorldPos(CAMERA *pso);
+M3 *GetLoWorldMatrix(CAMERA *pso);
 void func_0014E1A8(void *pcm, qwordV a, qwordV b, float g, float h);
 void VECTOR_opAssign(qwordV *p, qwordV v);
 void SetCmMat4(void *pcm, M4 *pm);
@@ -221,11 +221,11 @@ extern "C" void func_0012E858(CPCAMERAV *p)
 {
     CAMERA *pso = p->pcamera;
     if (pso->psoTarget) {
-        qwordV a = func_001A62E8(pso);
-        qwordV b = func_001A62E8(pso->psoTarget);
+        qwordV a = GetLoWorldPos(pso);
+        qwordV b = GetLoWorldPos(pso->psoTarget);
         func_0014E1A8(D_002DDF40, a, b, 0.0f, 0.0f);
     } else {
-        M3 m = *func_001A6318(pso);
+        M3 m = *GetLoWorldMatrix(pso);
         M3 mT;
         M4 m4;
         U g;
@@ -243,7 +243,7 @@ extern "C" void func_0012E858(CPCAMERAV *p)
         mT.r[1] = t1;
         }
         mT.r[2] = m.r[1];
-        pos = func_001A62E8(pso);
+        pos = GetLoWorldPos(pso);
         VECTOR_opAssign(&m4.r[3], pos);
         LoadM4(pm, &mT);
         ((int *)&m4.r[2])[3] = 0;

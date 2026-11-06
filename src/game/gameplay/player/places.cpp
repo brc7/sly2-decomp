@@ -97,7 +97,7 @@ CLQ D_002BF9D0 = {400.0f, -1.0f, 0.0f};
 LM D_002BF9E0 = {0.0f, 1000.0f};
 int CploFindSwObjectsByClass(G *g, int k, int n, int m, int c, LO2 **apv);
 float func_0019F7D0(JTPLACES *p, PLACE *e, int c, LO2 **apv);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_0019FEB0(JTPLACES *p, PLACESPOT *a, qword q);
 void func_0019FD30(JTPLACES *p, PLACESO *b, float g);
 void func_001942F0(void *p);
@@ -305,7 +305,7 @@ extern "C" void func_0019FAF8(JTPLACES *p, PLACE *pe)
     if (best == D_002A66A0) {
         qword r;
         func_002333B4(pe, 0, 0x20);
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(p->pjt)), "j"(p->pjt->x240));
+        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(GetLoWorldPos(p->pjt)), "j"(p->pjt->x240));
         pe->v.q = r;
     }
 }

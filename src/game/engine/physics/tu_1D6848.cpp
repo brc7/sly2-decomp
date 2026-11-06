@@ -220,7 +220,7 @@ extern XFV D_002C44F0;           // identity frame
 extern qwordV D_002A2DA0;        // default direction
 extern char D_003DD490[];
 extern "C" {
-qwordV func_001A62E8(SOV *);                                       // PosLoWorld
+qwordV GetLoWorldPos(SOV *);                                       // PosLoWorld
 MATRIX4V *__ml__FRC7MATRIX4T0(MATRIX4V *, MATRIX4V *, MATRIX4V *);
 void *func_002333B4(void *, int, int) __asm__("memset");                           // memset
 void LoadIdentityMatrix4(XFV *, int, MATRIX4V *, MATRIX4V *, float);
@@ -337,7 +337,7 @@ static inline void LoadIdentity(MATRIX4V *pm) { func_002333B4(pm, 0, sizeof(*pm)
 extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
 {
     MATRIX4V matParent;
-    qwordV posStart = func_001A62E8(pso);
+    qwordV posStart = GetLoWorldPos(pso);
     VV posOrigin(posStart);
     SOV *psoSource = plaunch->psoSource;
     XFV *pxf;

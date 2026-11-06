@@ -60,7 +60,7 @@ void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
 void func_0016EF00(MODEL *,int);
 void UpdateLo(TRAIL *p, float dt);
 void func_001F3980(TRAIL *);
-qwordV func_001A62E8(void *);
+qwordV GetLoWorldPos(void *);
 void func_0021C5F8(TRAIL *, qwordV);
 void RenderSoSelf(TRAIL *);
 extern char D_002C44F0[];
@@ -284,7 +284,7 @@ extern "C" void func_0021C1C8(TRAIL *p)
             float length;
             if (p->g == 0.0f)
                 p->distance = -4.0f;
-            pos = func_001A62E8(p->follow);
+            pos = GetLoWorldPos(p->follow);
             {
                 float rate = p->followRate;
                 qwordV d = VuSub(p->previous, pos);
@@ -296,7 +296,7 @@ extern "C" void func_0021C1C8(TRAIL *p)
             }
             e->length = p->distance;
         }
-        func_0021C5F8(p, func_001A62E8(p));
+        func_0021C5F8(p, GetLoWorldPos(p));
     }
 }
 

@@ -70,7 +70,7 @@ void func_001384C0(void *prequest);
 void FaceStepToward(PLAYERV *p, TARGETV *ptarget);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float, float, float);
-M4 *func_001A6318(PLAYERV *p);
+M4 *GetLoWorldMatrix(PLAYERV *p);
 }
 float D_002BF9F0 = 0.3f;   /* dirblend's .data: input dead zone (the next 12 bytes are 0: alignment) */
 
@@ -195,7 +195,7 @@ static inline void RemoveSide(PLAYERV*p,U*result,U*old){
  M4*basis;
  qword value;
  old->q=ToVu(GetVel(p));
- basis=func_001A6318(p);
+ basis=GetLoWorldMatrix(p);
  value=ProjectOut(basis->r[1],old->q);
  result->q=value;
  SetVel(p,value);

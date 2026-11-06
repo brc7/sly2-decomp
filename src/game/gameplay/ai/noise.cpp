@@ -96,7 +96,7 @@ void RemoveLoHierarchy(LISTENER *p);
 void CloneXfm(LISTENER *p, LISTENER *pBase);
 void UpdateLo(LISTENER *p);
 void *memmove(void *dst, void *src, int cb);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_00156548(NOISETYPE *ptype, qword pos, int b, NOISE **ppnoise);
 void func_00156780(NOISE *pnoise);
 int func_00156870(NOISE *pnoise);
@@ -577,7 +577,7 @@ extern "C" int func_00156FE8(LISTENER *plo, NOISE *p)
     if ((uchar)plo->f) {
         pq = p->ptype;
         if (!pq->n50) {
-            pos = func_001A62E8(plo);
+            pos = GetLoWorldPos(plo);
             d = VuSub(pos, p->pos);
             if (FCheckLm__FP2LMf(&pq->lm, GetZ(d)) && FIn(d, pq->g54))
                 return 1;

@@ -694,8 +694,8 @@ struct R { int n; struct LO **ap; int x8; int c; int x10; void *x14; void **ap18
 struct G { char pad[0x3F04]; int c3F04; struct R *ar; };
 void *IdProxy__Fii(int i, int c);
 void *func_001AE2A0(struct A *pa);
-qword func_001A62E8(struct LO *p);
-struct MAT3 *func_001A6318(struct LO *p);
+qword GetLoWorldPos(struct LO *p);
+struct MAT3 *GetLoWorldMatrix(struct LO *p);
 void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f; }
@@ -731,8 +731,8 @@ void InitSwProxySpares(struct G *pg)
         for (k = 0; k < pr->n; k++) {
             px = &pr->x64[k];
             plo = pr->ap[pr->c * pr->n + k];
-            px->q = func_001A62E8(plo);
-            px->mat = *func_001A6318(plo);
+            px->q = GetLoWorldPos(plo);
+            px->mat = *GetLoWorldMatrix(plo);
             NormalizeRotateMatrix3__FP7MATRIX3(&px->mat);
         }
         a.cb = (pr->x8 - pr->c) * 0x50;
@@ -1296,7 +1296,7 @@ struct Q { char pad[0xDC]; int xDC; };
 struct S { char pad[0x64]; struct LO *x64; char p1[0xCC - 0x68]; int xCC; char p2[0xE8 - 0xD0]; struct Q *xE8; };
 void func_001CB4E0(struct S *p, int n);
 void func_001F7A68(struct S *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void *PpathzoneFromPos(qword q, int n);
 void func_001F37C8(struct S *p, void *pv);
 /** @sly2-annot addr=0x1CB518
@@ -1322,7 +1322,7 @@ void func_001CB518(struct S *p, int n)
     f = 0;
     if (p->xE8) f = p->xE8->xDC;
     if (f) {
-        func_001F37C8(p, PpathzoneFromPos(func_001A62E8(p), 1));
+        func_001F37C8(p, PpathzoneFromPos(GetLoWorldPos(p), 1));
     }
     for (plo = p->x64; plo; plo = plo->x24)
         ((void (*)(void *, int))plo->vt[26].pf)((char *)plo + plo->vt[26].d, n);

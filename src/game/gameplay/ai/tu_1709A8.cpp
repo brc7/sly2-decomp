@@ -475,7 +475,7 @@ struct O { char pad[0xC]; struct VTE *vt; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 void FindShapeClosestPoint(struct O *po, qword pos, int a, qword *pq, struct VEC *pv, int b, int c);
 float atan2f(float y, float x);
-qword func_001A62E8(struct O *po);
+qword GetLoWorldPos(struct O *po);
 /** @sly2-annot addr=0x1710F8
  * Purpose: Position and heading of a target: closest point/tangent on a SHAPE (cid 0xA) or the LO position
  *   and yaw
@@ -495,7 +495,7 @@ void func_001710F8(void *pv, qword pos, struct O *po, qword *ppos, float *pg) {
             f = atan2f(v.y, v.x);
         } else {
             float *a, *b;
-            q = func_001A62E8(po);
+            q = GetLoWorldPos(po);
             a = po->vt[31].pfn((char *)po + po->vt[31].d);
             b = po->vt[31].pfn((char *)po + po->vt[31].d);
             f = atan2f(a[1], b[0]);
@@ -927,7 +927,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
 namespace M_func_00171AF8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; void *p30; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_001710F8(void *p, qword q, int a, int b, int c);
 /** @sly2-annot addr=0x171AF8
  * Purpose: GetCid71TargetPose relative to the guard position
@@ -935,7 +935,7 @@ void func_001710F8(void *p, qword q, int a, int b, int c);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-void func_00171AF8(struct S *p, int a, int b, int c) { func_001710F8(p->p30, func_001A62E8(p->p10), a, b, c); }
+void func_00171AF8(struct S *p, int a, int b, int c) { func_001710F8(p->p30, GetLoWorldPos(p->p10), a, b, c); }
 } } // namespace M_func_00171AF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).

@@ -128,7 +128,7 @@ void UpdateSoPartGeom(NODE *);
 void func_001F4D50(SO *);
 void func_00230630(SO *, XF *);
 M3 *InvertMatrix3Cofactor(M3 *pd, const M3 *ps);
-qword func_001A62E8(SO *pso);
+qword GetLoWorldPos(SO *pso);
 
 void func_001F8F80(SW *psw, int k);
 void BuildContactGroup(SW *psw, SO *pso, int *pc, SO **apso);
@@ -840,7 +840,7 @@ qword func_001FAA00(SO *input,qword v) {
 qword func_001FAA48(SO *p, qword a, qword b)
 {
     qword r, c, d;
-    d = func_001A62E8(p);
+    d = GetLoWorldPos(p);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(d));
     c=b;
     __asm__("vopmula.xyz $ACC, %1, %0\n\tvopmsub.xyz %0, %0, %1" : "+j"(c) : "j"(r));

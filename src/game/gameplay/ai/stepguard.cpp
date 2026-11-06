@@ -500,7 +500,7 @@ void SetStepguardGrfsgf(struct S *p, int n);
 void func_0020CE40(void *p);
 void func_0020D1C8(void *p);
 void EnableStuckWatch(void *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float RadStepHeading(struct S *p);
 void func_00204660(struct S *p, float f);
 unsigned long GrfFromSgf(int n);
@@ -536,7 +536,7 @@ void ResetStepguardToHome(struct S *p)
     func_0020CE40(p->p498);
     func_0020D1C8(p->p49C);
     EnableStuckWatch(p->p498);
-    p->q300 = func_001A62E8(p);
+    p->q300 = GetLoWorldPos(p);
     p->f310 = RadStepHeading(p);
     p->p2F0->pq = pq;
     p->p2F0->f = p->f310;
@@ -701,7 +701,7 @@ extern float D_002A8614;
 extern float D_002C3D04,D_002C3D08,D_002C3D0C;
 ulong GrfFromSgf(int);
 int CploFindSwObjectsByClass(struct GAME *,int,int,int,int,struct P **);
-qword func_001A62E8(struct P *);
+qword GetLoWorldPos(struct P *);
 void qsort(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
 int NCmpGuardCandidateDist(const void *,const void *);
 int FAddStepguardDetectTarget(struct P *,struct P *,int);
@@ -764,8 +764,8 @@ void UpdateStepguardDetectTargets(struct P *p)
                     if(object!=p){
                         qword otherPosition;
                         float distance;
-                        ownerPosition=func_001A62E8(p);
-                        otherPosition=func_001A62E8(object);
+                        ownerPosition=GetLoWorldPos(p);
+                        otherPosition=GetLoWorldPos(object);
                         distance=LengthXY(Subtract(ownerPosition,otherPosition));
                         if(distance<D_002C3D04 && (unsigned int)candidateCount<64){
                             struct CANDIDATE *record;
@@ -818,8 +818,8 @@ void UpdateStepguardDetectTargets(struct P *p)
             switch(entry->mode){case 1:func_0020A9A8(p->anchor,1);break;
             case 2:{
                 qword ownPosition,difference;
-                anchorPosition=func_001A62E8(p->anchor->object);
-                ownPosition=func_001A62E8(p);
+                anchorPosition=GetLoWorldPos(p->anchor->object);
+                ownPosition=GetLoWorldPos(p);
                 difference=Subtract(anchorPosition,ownPosition);
                 if(Near(difference))func_0020A9A8(p->anchor,2);
             }break;
@@ -1269,7 +1269,7 @@ void func_001F3C10(P *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RenderSoGlobset(EFFECT *,const M4 *,void *,float,float);
 void *func_002333B4(void *,int,unsigned int) __asm__("memset");
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 float sinf(float);
 qword *VECTOR_opAssign(qword *,qword);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
@@ -1300,7 +1300,7 @@ extern "C" void RenderStepguardSelf(P *p)
             local.rows[2].f[2]=1.0f;
             local.rows[1].f[1]=1.0f;
             local.rows[0].f[0]=1.0f;
-            float distance=Length(Subtract(func_001A62E8(p),camera->position.q));
+            float distance=Length(Subtract(GetLoWorldPos(p),camera->position.q));
             PROFILE *profile=&(*(PROFILE *)&g_sw.clqGuardScale);
             float gain=profile->a+distance*(profile->b+distance*profile->c);
             float min=profile->min,max=profile->max;
@@ -1841,7 +1841,7 @@ struct ENTRY {O *object;int available;int x8,xC;};
 struct GROUP {char padFC[0xFC];int count;ENTRY entries[1];};
 struct P {char pad38C[0x38C];O *previous,*current;char pad394[0xBD0];GROUP *group;char padF68[0x54];int mode;};
 extern "C" { extern float D_002A886C,D_002C3D70[3],D_002C3D80[3]; }
-extern "C" qword func_001A62E8(void *);
+extern "C" qword GetLoWorldPos(void *);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
 extern "C" int func_002089F0(P *,O *);
 extern "C" int func_00208B38(P *,O *);
@@ -1875,7 +1875,7 @@ extern "C" O *PloChooseStepguardTarget(P*p)
     if(p->current&&(((unsigned int)(p->current->flags>>60))&1)){best=p->current;goto done;}
     {
         float bestDistance=D_002A886C;
-        U origin;origin.q=func_001A62E8(p);
+        U origin;origin.q=GetLoWorldPos(p);
         for(int i=0;i<p->group->count;i++){
             ENTRY *entry=&p->group->entries[i];
             O *candidate=entry->object;
@@ -1883,7 +1883,7 @@ extern "C" O *PloChooseStepguardTarget(P*p)
             if(!entry->available&&(!(p->mode==0x22||p->mode==0x25)||!FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38)))continue;
             if(func_002089F0(p,candidate))continue;
             if(func_00208B38(p,candidate))return candidate;
-            qword delta=Sub(origin.q,func_001A62E8(candidate));O *previous=p->previous;
+            qword delta=Sub(origin.q,GetLoWorldPos(candidate));O *previous=p->previous;
             float distance=Length(delta);
             if(candidate==previous)distance=Weight(distance,D_002C3D70);
             if((p->mode==0x22||p->mode==0x25)&&FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38))distance=Weight(distance,D_002C3D80);
@@ -2300,7 +2300,7 @@ struct O { char pad[0x14]; T *pt; char pad1[0x20 - 0x18]; qword pos; char pad2[0
 extern "C" {
 int FStepguardSensesEnabled(S2 *p);
 void *PdteFindDetectorTarget(F64 *p, void *x);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int func_00156918(O *o, qword q);
 int FCheckVolPoint(L *pl, qword q);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
@@ -2337,11 +2337,11 @@ int FStepguardSenseStimulus(S2 *p, O *o)
             return 0;
     }
     pt = o->pt;
-    pos = func_001A62E8(p);
+    pos = GetLoWorldPos(p);
     tpos = o->pos;
     switch (pt->k) {
     case 0:
-        return func_00156918(o, func_001A62E8(p));
+        return func_00156918(o, GetLoWorldPos(p));
     case 1: {
         L *pl = p->pF64->pl;
         if (!pl || ((pl->fl28 >> 60) & 1) == 0)
@@ -2403,7 +2403,7 @@ unsigned long GrfFromSgf(int n);
 int FStepguardHasSgf(struct S *p, int n);
 struct Y *func_00205458(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int FCheckVolPoint(struct L *pl, qword q);
 int FCheckLm__FP2LMf(void *p, float f);
 
@@ -2452,7 +2452,7 @@ int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
             pl = p->p3F8;
         else
             pl = p->p3F4;
-        if (pl && !!((pl->fl28 >> 60) & 1) && FCheckVolPoint(pl, func_001A62E8(x)))
+        if (pl && !!((pl->fl28 >> 60) & 1) && FCheckVolPoint(pl, GetLoWorldPos(x)))
             return 3;
     }
     pv = FStepguardHasSgf(p, 0x17) ? p->a368 : p->a370;
@@ -3266,8 +3266,8 @@ struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; c
 extern qword D_002A2DA0;
 void func_001F4FA8(struct S *p);
 void EvaluateShapeS(void *po, qword *pa, qword *pb, float f);
-qword func_001A62E8(void *p);
-qword *func_001A6318(void *p);
+qword GetLoWorldPos(void *p);
+qword *GetLoWorldMatrix(void *p);
 
 /** @sly2-annot addr=0x209C88
  * Purpose: STEPGUARD vt59: when attached (+0xF80 0..3) add constraint contacts via vt82 against the attach
@@ -3291,19 +3291,19 @@ void func_00209C88(struct S *p)
         EvaluateShapeS(p->pF84, &a, &b, p->fF88);
         pe = &p->vt[82];
         pthis = (char *)p + pe->d;
-        pe->pf(pthis, 7, p->pF84, a, b, func_001A62E8(p->pF90));
+        pe->pf(pthis, 7, p->pF84, a, b, GetLoWorldPos(p->pF90));
         break;
     }
     case 2: {
         struct VE *pe = &p->vt[82];
         void *pthis = (char *)p + pe->d;
-        pe->pf(pthis, 7, p->pF84, func_001A62E8(p->pF84), *func_001A6318(p->pF84), func_001A62E8(p->pF90));
+        pe->pf(pthis, 7, p->pF84, GetLoWorldPos(p->pF84), *GetLoWorldMatrix(p->pF84), GetLoWorldPos(p->pF90));
         break;
     }
     case 3: {
         struct VE *pe = &p->vt[82];
         void *pthis = (char *)p + pe->d;
-        pe->pf(pthis, 7, p->pF84, func_001A62E8(p->pF84), D_002A2DA0, *p->p218);
+        pe->pf(pthis, 7, p->pF84, GetLoWorldPos(p->pF84), D_002A2DA0, *p->p218);
         break;
     }
     }
@@ -3474,11 +3474,11 @@ typedef int qword __attribute__((mode(TI)));
 struct K { char pad[0x50]; int n50; };
 struct E { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; int n54x; };
 struct E2 { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; char pad4[4]; int n54; char pad5[0x60 - 0x58]; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 
 static inline float DistSq(void *p, qword *pq)
 {
-    qword a = func_001A62E8(p), d, r, t;
+    qword a = GetLoWorldPos(p), d, r, t;
     float f;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(*pq));
     __asm__("vmul.xyz %0, %0, %0\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(r), "=&j"(t) : "0"(d));
@@ -3811,7 +3811,7 @@ struct P { char pad[0xC]; Actor *target; int kind; float unused,tolerance; int d
 struct Camera { char pad[0x90]; qword position; };
 extern "C" { extern Camera D_002DDF40; }
 extern "C" {
-qword func_001A62E8(Actor *);
+qword GetLoWorldPos(Actor *);
 int FInsideCmFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
 float func_0020A690(P *);
@@ -3847,20 +3847,20 @@ extern "C" int func_0020A818(P*p,Actor*a)
     switch(p->kind){
     case 0:{
         if(a->ready)return 1;
-        qword returned;returned=func_001A62E8(a);
+        qword returned;returned=GetLoWorldPos(a);
         register Camera *camera __asm__("$4");
         __asm__("sq %2,%0\n\tla %1,%3":"=m"(position0.q),"=r"(camera):"r"(returned),"i"(&D_002DDF40));
         qword threshold,point;
         PlaneArguments(&threshold,&point,&scalar,0.0f,&camera->position,&position0.q);
         if(!FInsideCmFrustum(camera,point,threshold))goto fail;
-        qword other;other=func_001A62E8(p->target);
+        qword other;other=GetLoWorldPos(p->target);
         GetVectorCylind(Sub(position0.q,other),&angle[0],0,0);
         if(p->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[0]-func_0020A690(p)))){fail:return 0;}
         return 1;
     }
     case 1:{
-        position1.q=func_001A62E8(a);
-        qword other;other=func_001A62E8(p->target);
+        position1.q=GetLoWorldPos(a);
+        qword other;other=GetLoWorldPos(p->target);
         GetVectorCylind(Sub(position1.q,other),&angle[1],0,0);
         if(p->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[1]-func_0020A690(p))))return 0;
         return 1;
@@ -4308,7 +4308,7 @@ extern float D_002C3DB8;
 extern struct { char pad[0x4030]; int n4030; } D_003DD490;
 struct X { char pad[0x30]; qword v; char pad2[4]; void *p44; char pad3[0xC]; int n54; };
 struct S { char pad[0xE60]; int nE60; char pad2[0xF44 - 0xE64]; float t; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void func_00156548(int a, qword v, struct S *p, struct X **ppx);
 struct X *func_00156698(int a, qword v, struct S *p);
 /** @sly2-annot addr=0x20B140
@@ -4322,12 +4322,12 @@ struct X *func_00156698(int a, qword v, struct S *p);
 void func_0020B140(struct S *p, void *q)
 {
     struct X *px;
-    qword v = func_001A62E8(q);
+    qword v = GetLoWorldPos(q);
     px = 0;
     if (p->nE60)
-        func_00156548(p->nE60, func_001A62E8(p), p, &px);
+        func_00156548(p->nE60, GetLoWorldPos(p), p, &px);
     else
-        px = func_00156698(D_003DD490.n4030, func_001A62E8(p), p);
+        px = func_00156698(D_003DD490.n4030, GetLoWorldPos(p), p);
     px->v = v;
     px->p44 = q;
     px->n54 = 4;
@@ -4375,7 +4375,7 @@ typedef int qword __attribute__((mode(TI)));
 struct A { char pad[0x124]; int k124; };
 struct S { char pad[0xF80]; int kF80; struct A *pF84; int xF88; int nF8C; void *pF90; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void FindShapeClosestPoint(struct A *pa, qword q, int a, int b, int c, int d, int *pn);
 void func_00204F78(struct S *p, struct A *pa, int n);
 
@@ -4391,11 +4391,11 @@ void func_0020B2A8(struct S *p, struct A *pa, int n)
     p->nF8C = n;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pa, 0xB)) {
         p->kF80 = 1;
-        FindShapeClosestPoint(p->pF84, func_001A62E8(p->pF90), 0, 0, 0, 0, &p->xF88);
+        FindShapeClosestPoint(p->pF84, GetLoWorldPos(p->pF90), 0, 0, 0, 0, &p->xF88);
         func_00204F78(p, p->pF84, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0xD)) {
         p->kF80 = 0;
-        FindShapeClosestPoint(p->pF84, func_001A62E8(p), 0, 0, 0, 0, &p->xF88);
+        FindShapeClosestPoint(p->pF84, GetLoWorldPos(p), 0, 0, 0, 0, &p->xF88);
         func_00204F78(p, p->pF84, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0x13) && p->pF84->k124 == 3) {
         p->kF80 = 2;

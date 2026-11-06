@@ -2132,7 +2132,7 @@ extern float D_002BC99C;
 extern float D_002BC9A0;
 extern SMP D_002BC9A8;
 extern qword D_002A2DC0, D_002A2DA0;
-qword func_001A62E8(P *p);
+qword GetLoWorldPos(P *p);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 float GLimitAbs__Fff(float g, float gMax);
 M3 func_0011B500(qword axis, float g);
@@ -2157,7 +2157,7 @@ extern "C" void func_00137248(S *s)
     float gMax = D_002BC99C * D_002BC99C / D_002BC998 + D_002BC9A0;
     qword dv = Sub(p->GetVel(), py->GetVel());
     UQ n;
-    qword d0 = Sub(func_001A62E8(s->p), func_001A62E8(py));
+    qword d0 = Sub(GetLoWorldPos(s->p), GetLoWorldPos(py));
     n.q = Sub(d0, Scale(D_002A2DC0, Dot(d0, D_002A2DC0)));
     qword qlen = Length(n.q);
     SafeDiv(n, qlen, D_002A2DA0);
@@ -2196,7 +2196,7 @@ struct Q { char pad[0x18]; float g18; float g1C; };
 struct O { char pad[0x150]; struct Q *pq; char pad2[0x10DC - 0x154]; void *p10DC; };
 struct P { struct O *po; int x4; int x8; int xC; };
 qword SetVectorCylind(float a, float b, float c);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 /** @sly2-annot addr=0x1374F0
  * Purpose: aim toward +0x10DC target
  * Info: proposed name JtHelper1374F0 (T2); TU bentley
@@ -2209,11 +2209,11 @@ int func_001374F0(struct P *p)
     struct Q *pq = p->po->pq;
     if (zero < pq->g1C && p->po->p10DC) {
         qword v = SetVectorCylind(pq->g18 - 1.5707964f, 1.0f, zero);
-        qword a = func_001A62E8(p->po->p10DC);
+        qword a = GetLoWorldPos(p->po->p10DC);
         qword b, d, t;
         float g;
         __asm__("" : "+j"(a));
-        b = func_001A62E8(p->po);
+        b = GetLoWorldPos(p->po);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         __asm__("vmul.xyz %0, %2, %3\n"
             "vaddw.x %1, $vf0, $vf0w\n"

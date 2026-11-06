@@ -83,7 +83,7 @@ qword D_002BDBF0[1] = {0};   /* detector's .data: the zero position (16 bytes) *
 void InitXfm(DETECTORV *p);
 void SetLoBusyk(DETECTORV *p, int n);
 void UpdateLo(DETECTORV *p);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void BroadcastGameEvent(void *p, int n, void *q);
 void memmove(void *dst, void *src, int cb);
@@ -98,7 +98,7 @@ int CidBasic(OV *po);
 void *PvAllocSlot__FP8ALLOCREQ(AL *pal);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
-VECTORQ *func_001A6318(SOV *p);
+VECTORQ *GetLoWorldMatrix(SOV *p);
 void UpdateDetectorTargets(DETECTORV *p);
 qword func_00153E60(DETECTORV *p);
 void AddDetectorTarget(DETECTORV *p, void *plo);
@@ -168,19 +168,19 @@ extern "C" void UpdateDetectorTargets(DETECTORV *p)
  * @end-sly2-annot */
 extern "C" qword func_00153E60(DETECTORV *p)
 {
-    if (!p->pso) return func_001A62E8(p);
+    if (!p->pso) return GetLoWorldPos(p);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pso, 0x38)) {
         U g;
         qword gq;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
         qword r;
-        qword pos = func_001A62E8(p->pso);
+        qword pos = GetLoWorldPos(p->pso);
         float f = 80.0f;
         gq = VuFromFloat<qword>(f);
         g.q = gq;
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos), "j"(D_002A2DC0), "j"(g.q));
         return r;
     }
-    return func_001A62E8(p->pso);
+    return GetLoWorldPos(p->pso);
 }
 
 /** @sly2-annot addr=0x153EF8
@@ -361,9 +361,9 @@ extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x11AC) { k = 0; goto done; }
     if (p->fForce) { k = 1; goto done; }
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x33))
-        v = Add(func_001A62E8(pso), pso->pos);
+        v = Add(GetLoWorldPos(pso), pso->pos);
     else
-        v = func_001A62E8(pso);
+        v = GetLoWorldPos(pso);
     for (pw = *(WVOL **)&g_sw.dlCid23; pw; pw = pw->pNext) {
         qword a = ConvertAloPos(0, pw, func_00153E60(p));
         qword b = ConvertAloPos(0, pw, v);
@@ -496,7 +496,7 @@ extern "C" int func_00154770(DETECTORV *p, SOV *pso)
 {
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34)) return 0;
     if (pso->x4CC == -1) return 0;
-    VECTORQ d; d.q = VuSub(func_001A62E8(pso), func_001A62E8(p));
+    VECTORQ d; d.q = VuSub(GetLoWorldPos(pso), GetLoWorldPos(p));
     switch (pso->x4C8) {
     case 0:
     case 13:
@@ -508,7 +508,7 @@ extern "C" int func_00154770(DETECTORV *p, SOV *pso)
             return !pso->x4D4->xE4;
         }
         {
-            bool f = Dot(d.q, *func_001A6318(pso)) <= 0.0f;
+            bool f = Dot(d.q, *GetLoWorldMatrix(pso)) <= 0.0f;
             bool g = false;
             if (pso->x4C8 == 0) g = !pso->x1040;
             if (f == g) break;

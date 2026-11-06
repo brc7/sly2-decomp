@@ -21,7 +21,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
    Skip added for LoadSwObjectsFromBrx). EOPID is sly2/eopid.h's, CRef sly2/cref.h's. Callees keep the names that file
    gave them. */
 MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
-extern "C" LORUN *PdcbAddLo(LO *plo);
+extern "C" LORUN *AddLoDeferredCallback(LO *plo);
 class CBinaryStreamBase
 {
 public:
@@ -534,7 +534,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                     OIDFIELD *poidfield = (OIDFIELD *)func_00210120(&D_003DD490);
                     poidfield->oid = (OID)oid;
                     poidfield->ib = pf - (char *)pvStruct;
-                    LORUN *plorun = PdcbAddLo((LO *)pvStruct);
+                    LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
                     plorun->pv = poidfield;
                     plorun->pfn = PostLoadOidField;
                     return;
@@ -712,7 +712,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                 OIDSETTER *poidsetter = (OIDSETTER *)func_00210120(&D_003DD490);
                 poidsetter->oid = (OID)oid;
                 poidsetter->setter = peopid->setFile;
-                LORUN *plorun = PdcbAddLo((LO *)pvStruct);
+                LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
                 plorun->pv = poidsetter;
                 plorun->pfn = PostLoadOidSetter;
                 return;

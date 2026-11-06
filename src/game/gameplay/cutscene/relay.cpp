@@ -3536,7 +3536,7 @@ inline int GrfUpdateLo(LO *plo)
     }
     return grf;
 }
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 SMA *PsmaFindOnAlo(ALO *paloRoot, OID oidSm) __asm__("func_001F67E0");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
 OID GetSmaCur(SMA *psma) __asm__("func_001F07E8");
@@ -4773,7 +4773,7 @@ inline int GrfUpdateLo(LO *plo)
     }
     return grf;
 }
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
 OID GetSmaCur(SMA *psma) __asm__("func_001F07E8");
 int FFloatsNear(float g1, float g2, float gEpsilon) __asm__("FFloatsNear__Ffff");
@@ -5548,7 +5548,7 @@ ACTOR *func_001E1DB8(P*,int);
 void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
 void func_00204660(ACTOR*,float);
 void EvaluateShapeU(PATH*,float,qword*,qword*);
-qword func_001A62E8(ACTOR*);
+qword GetLoWorldPos(ACTOR*);
 qword ConvertAloVec(void*,ACTOR*,qword);
 void UpdatePoctlPressed(OUTPUT*);
 int FFloatsNear__Ffff(float,float,float);
@@ -5680,7 +5680,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   }else{
    GetJsgTargetPosHeading(p,target,&work.from.q,0);
    work.first=work.from.q;
-   TargetDisplacement(work.to,work.first,func_001A62E8(actor));
+   TargetDisplacement(work.to,work.first,GetLoWorldPos(actor));
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
    float distance=LengthXY(work.to.q);
    float gain=D_002C3630[0]+distance*(D_002C3630[1]+distance*D_002C3630[2]);
@@ -5699,7 +5699,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   GetJsgTargetPosHeading(p,target,&work.from.q,0);
   {register qword captured __asm__("$3")=work.from.q;work.second=captured;}
   {
-   qword actorPosition=func_001A62E8(actor);
+   qword actorPosition=GetLoWorldPos(actor);
    register qword targetPoint __asm__("vf2");
    register qword currentPoint __asm__("vf3");
    register qword displacement __asm__("vf1");
@@ -5803,7 +5803,7 @@ struct VTE { short d; short pad; float *(*pfn)(void *); };
 struct O { int pad[3]; struct VTE *vt; char pad2[0x1A8 - 0x10]; float g1A8; char pad3[0x240 - 0x1AC]; qword v240; };
 struct P { char pad[0x24]; struct O *po24; char pad2[0x44 - 0x28]; struct O *po44; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-qword func_001A62E8(struct O *po);
+qword GetLoWorldPos(struct O *po);
 void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, int b, int c);
 float atan2f(float y, float x);
 /** @sly2-annot addr=0x1E4D40
@@ -5822,17 +5822,17 @@ void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
     if (!px) px = p->po44;
     if (po) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
-            FindShapeClosestPoint(po, func_001A62E8(px), 0, &uv.q, ag, 0, 0);
+            FindShapeClosestPoint(po, GetLoWorldPos(px), 0, &uv.q, ag, 0, 0);
             g = atan2f(ag[1], ag[0]);
         } else {
             float *p1, *p2;
-            uv.q = func_001A62E8(po);
+            uv.q = GetLoWorldPos(po);
             p1 = po->vt[0x1F].pfn((char *)po + po->vt[0x1F].d);
             p2 = po->vt[0x1F].pfn((char *)po + po->vt[0x1F].d);
             g = atan2f(p1[1], p2[0]);
         }
     } else {
-        uv.q = func_001A62E8(px);
+        uv.q = GetLoWorldPos(px);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(px, 0x33)) {
             qword q;
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(q) : "j"(uv.q), "j"(px->v240));
@@ -5920,7 +5920,7 @@ struct X { char pad[0x1044]; int n1044; float f1048; char pad2[0x1060 - 0x104C];
 struct P { char pad[0x24]; struct X *p24; char pad2[0x74 - 0x28]; void *p74; };
 extern qword D_002A2DD0;
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-qword func_001A62E8(struct X *);
+qword GetLoWorldPos(struct X *);
 void GetJsgTargetPosHeading(struct P *, void *, qword *, int);
 /** @sly2-annot addr=0x1E5000
  * Purpose: Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
@@ -5940,7 +5940,7 @@ void func_001E5000(struct P *p, void *pv)
         if (px) {
             qword v = px->v1060, q, d;
             px->n1044 = 0;
-            q = func_001A62E8(px);
+            q = GetLoWorldPos(px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(q));
             px->v1070 = d;
             ((float *)&px->v1070)[2] = 0.0f;

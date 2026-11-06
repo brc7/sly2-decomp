@@ -52,7 +52,7 @@ float D_002C0CE8 = 0.05f, D_002C0CEC = 0.15f;      // launch stagger, lifetime s
 LMV D_002C0CF0 = {-1.5f, 1.5f}, D_002C0CF8 = {100.0f, 150.0f};   // random ranges: two offset angles
 extern const float D_002A76E8;   /* defined below where the ELF has it (.rodata order) */
 void *PpoHero(GAME *);
-qwordV func_001A62E8(void *);
+qwordV GetLoWorldPos(void *);
 float GRandInRange__Fff(float, float);
 qwordV SetVectorCylind(float, float, float);
 M3 BuildOrthonormalMatrixZ(qwordV, qwordV);
@@ -210,7 +210,7 @@ extern "C" SOV *func_001C2EF0(SPRAYER *p, int count)
         if (!first)
             first = node;
         qwordV start = p->pxf->position;
-        qwordV target = func_001A62E8(PpoHero(game));
+        qwordV target = GetLoWorldPos(PpoHero(game));
         float pan = Rand(D_002C0CF0);
         qwordV offset = SetVectorCylind(pan, Rand(D_002C0CF8), -75.0f);
         qwordV delta = VuSub(target, start);

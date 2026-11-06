@@ -109,7 +109,7 @@ float SMaxShape(CID14V *p);
 float SMinShape(CID14V *p);
 float SWrapShape(CID14V *p, float g);
 int FPosInPathzone(void *b, qword v, int c);
-qword func_001A62E8(CID14V *p);
+qword GetLoWorldPos(CID14V *p);
 void *PpathzoneFromPos(qword pos, int n);
 void func_001C1BA0(void *r, CID14V *p);
 void func_001C1968(void *ppathzone, CID14V *p);
@@ -681,7 +681,7 @@ void func_001BD040(CID14V *p)
     }
     p->vmin.f[2] = D_002A76D0;
     p->vmax.f[2] = D_002A76D4;
-    r = PpathzoneFromPos(func_001A62E8(p), 0);
+    r = PpathzoneFromPos(GetLoWorldPos(p), 0);
     if (!r)
         return;
     func_001C1BA0(r, p);

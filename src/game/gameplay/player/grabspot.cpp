@@ -177,7 +177,7 @@ namespace M_func_00182D78 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VT { struct { short d; short pad; void *(*pfn)(void *); } a[8]; };
 struct O { char pad[0x20]; struct VT *pvt; };
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern qword SetVectorSphere(float a, float b, float c);
 extern float GRandInRange__Fff(float a, float b);
 extern float D_002BE8B0;
@@ -196,7 +196,7 @@ void func_00182D78(struct O *p, qword *pv, qword *pdv)
     float t = GRandInRange__Fff(-1.0f, 1.0f);
     float gTilt = __builtin_fabsf(t) * t * 1.5707964f;
     float gR = GRandInRange__Fff(0.0f, D_002BE8B0);
-    *pv = VAdd(func_001A62E8(po), SetVectorSphere(gPan, gTilt, gR));
+    *pv = VAdd(GetLoWorldPos(po), SetVectorSphere(gPan, gTilt, gR));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_00182D78
@@ -578,7 +578,7 @@ namespace M_func_001834D0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x218]; qword *p218; };
 struct P { char pad[0x10C]; float f10C; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
@@ -591,7 +591,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
 void func_001834D0(struct P *p, struct Q *q, float *pg)
 {
     qword a = *q->p218;
-    qword b = func_001A62E8(p);
+    qword b = GetLoWorldPos(p);
     qword d;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     *pg = atan2f(GetY(d), GetX(d)) * p->f10C;
@@ -602,7 +602,7 @@ namespace M_func_00183540 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x10C]; float g10C; };
 struct J { char pad[0x240]; qword v240; char pad2[0x103C - 0x250]; float g103C; int n1040; };
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -617,7 +617,7 @@ void func_00183540(struct O *p, float g, struct J *pj, qword *pv, float *pg)
     float gPan = g / p->g10C;
     float gR = p->g10C + pj->g103C;
     if (pv) {
-        *pv = VSub(VAdd(func_001A62E8(p), SetVectorCylind(gPan, gR, 0.0f)), pj->v240);
+        *pv = VSub(VAdd(GetLoWorldPos(p), SetVectorCylind(gPan, gR, 0.0f)), pj->v240);
     }
     if (pg) {
         if (pj->n1040 == 1)
@@ -630,7 +630,7 @@ void func_00183540(struct O *p, float g, struct J *pj, qword *pv, float *pg)
 namespace M_func_00183600 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x10C]; float g10C; };
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern qword SetVectorCylind(float a, float b, float c);
 extern float GRandInRange__Fff(float a, float b);
 extern float D_002BE8C4;
@@ -646,7 +646,7 @@ void func_00183600(struct O *p, qword *pv, qword *pdv)
 {
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = GRandInRange__Fff(0.0f, D_002BE8C4) + p->g10C;
-    *pv = VAdd(func_001A62E8(p), SetVectorCylind(gPan, gR, 0.0f));
+    *pv = VAdd(GetLoWorldPos(p), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_00183600
@@ -733,8 +733,8 @@ namespace M_func_00183818 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x10C]; int n10C; };
 struct J { char pad[0x240]; qword v240; char pad2[0x103C - 0x250]; float g103C; int n1040; };
-extern qword func_001A62E8(void *p);
-extern qword *func_001A6318(void *p);
+extern qword GetLoWorldPos(void *p);
+extern qword *GetLoWorldMatrix(void *p);
 extern float atan2f(float y, float x);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
@@ -750,11 +750,11 @@ void func_00183818(struct O *p, struct J *pj, qword *pv, float *pg)
     qword d;
     if (p->n10C == 0)
         g = pj->g103C;
-    d = *func_001A6318(p);
+    d = *GetLoWorldMatrix(p);
     if (pv) {
         qword a, s, r;
         union { qword q; float f[4]; } u;
-        a = func_001A62E8(p);
+        a = GetLoWorldPos(p);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(pj->v240));
         __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
         u.q = s;
@@ -886,7 +886,7 @@ struct S { char pad[0x17C]; int x17c; char p1[0xC]; int x18c; };
 extern qword D_002A2DD0;
 extern char D_002BE8D0[], D_002BE8E0[];
 void func_001F9B20(struct S *p);
-void *func_001A6318(struct S *p);
+void *GetLoWorldMatrix(struct S *p);
 void TiltMatUpright(void *p, int n, struct M *pm);
 void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b);
 /** @sly2-annot addr=0x183B00
@@ -902,7 +902,7 @@ void func_00183B00(struct S *p)
     func_001F9B20(p);
     if (p->x18c && !p->x17c) {
         struct M m;
-        TiltMatUpright(func_001A6318(p), 0, &m);
+        TiltMatUpright(GetLoWorldMatrix(p), 0, &m);
         AccelSoTowardMatSpring(p, &m, D_002BE8D0, D_002A2DD0, D_002BE8E0);
     }
 }
@@ -931,7 +931,7 @@ void SetSoCnstrForce(struct O *p, int n);
 void SetSoCnstrTorque(struct O *p, int n);
 void func_001F68A8(struct O *p, int n);
 void UpdateSwBusyList(void *p);
-void *func_001A6318(struct O *p);
+void *GetLoWorldMatrix(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
 qword func_0011BFF0(MATRIX3 *pm);
@@ -982,7 +982,7 @@ void func_00183B80(struct O *p, int n)
             if (!ps)
                 ps = (struct S2 *)p->p190->p60;
             { struct VTE *e = &p->pvt[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)p + e->d, p->p190, ps, 3); }
-            TiltMatUpright(func_001A6318(p), 0, &m);
+            TiltMatUpright(GetLoWorldMatrix(p), 0, &m);
             m = ConvertXfMat(0, p->p5C->pA0, &m);
 
             q = func_0011BFF0(&m);
@@ -1021,7 +1021,7 @@ struct S { char pad[0xC]; struct VTE *vt; char p1[0x16C]; int x17c; char p2[0x10
 struct M { struct Q *q; void *pv; };
 extern char D_003DD490[];
 int func_001F7588(struct S *p, struct Q *q);
-qword func_001A62E8(struct S *p);
+qword GetLoWorldPos(struct S *p);
 void EmitSwNoise(void *g, int n, qword pos, struct S *p);
 void SetJtModeState__FP6JTMODEi(void *p, int n);
 void func_00183B80(struct S *p, int n);
@@ -1040,7 +1040,7 @@ int func_00183E08(struct S *p, struct Q *q)
     if (!func_001F7588(p, q)) return 0;
     if (p->x17c == 3) return 1;
     if (!(q->fl & 8)) return 1;
-    EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
+    EmitSwNoise(D_003DD490, 0, GetLoWorldPos(p), p);
     if (p->x190) {
         struct O *o;
         SetJtModeState__FP6JTMODEi(p->x190->xf00, -1);
@@ -1228,7 +1228,7 @@ extern "C" int func_001841F0(GRABSPOT35 *p, STEPPLAYER *pstepplayer)
 
 namespace M_func_00184208 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-qword func_001A62E8(void *a, void *b);
+qword GetLoWorldPos(void *a, void *b);
 /** @sly2-annot addr=0x184208
  * Purpose: Out PosLoWorld of the owner
  * Info: proposed name GetCid35GrabPos (T2); class CID35; TU grabspot
@@ -1237,7 +1237,7 @@ qword func_001A62E8(void *a, void *b);
  * @end-sly2-annot */
 void func_00184208(void *a, void *b, qword *p)
 {
-    if (p) *p = func_001A62E8(a, b);
+    if (p) *p = GetLoWorldPos(a, b);
 }
 } } // namespace M_func_00184208
 
@@ -1343,7 +1343,7 @@ namespace M_func_001843F0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x38]; float g38; char pad2[0x110 - 0x3C]; qword pos; };
 extern void PostLoLoad(struct O *p);
-extern qword func_001A62E8(void *p);
+extern qword GetLoWorldPos(void *p);
 extern qword ConvertAloPos(void *p, void *q, qword v);
 extern float D_002BE904;
 static __inline__ float GDist(qword a, qword b)
@@ -1367,7 +1367,7 @@ void func_001843F0(struct O *p)
 {
     PostLoLoad(p);
     if (p->g38 == 1e10f) {
-        p->g38 = GDist(func_001A62E8(p), ConvertAloPos(p, 0, p->pos)) + D_002BE904;
+        p->g38 = GDist(GetLoWorldPos(p), ConvertAloPos(p, 0, p->pos)) + D_002BE904;
     }
 }
 } } // namespace M_func_001843F0
@@ -1410,7 +1410,7 @@ typedef union { qword q; VEC v; } UV;
 struct S { char pad[0x110]; qword q110; char p1[0x3C]; void *p15c; };
 extern int D_002DFB84;
 extern float D_002BE908;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword ConvertAloPos(struct S *p, int n, qword q);
 static __inline__ float GetZ(qword q)
 {
@@ -1429,11 +1429,11 @@ void func_00184510(struct S *p, int unused, UV *pv)
 {
     if (pv) {
         if (D_002DFB84) {
-            pv->q = func_001A62E8(p->p15c);
+            pv->q = GetLoWorldPos(p->p15c);
             pv->v.z = pv->v.z + D_002BE908;
         } else {
             pv->q = ConvertAloPos(p, 0, p->q110);
-            pv->v.z = GetZ(func_001A62E8(p->p15c)) + D_002BE908;
+            pv->v.z = GetZ(GetLoWorldPos(p->p15c)) + D_002BE908;
         }
     }
 }

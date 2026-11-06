@@ -108,7 +108,7 @@ void func_002109D0(void *pvWorld);
 void UpdateLo(EXITV *pexit, float dt);
 void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
 void WipeToWorldWarp(SW *psw, void *pvWorld, int a, int b, int grf, int c);
-qwordV func_001A62E8(LO *plo);
+qwordV GetLoWorldPos(LO *plo);
 qwordV ConvertAloPos(int a, EXITV *pexit, qwordV pos);
 int PbspPointInBspQuick(void *pbsp, int n, qwordV pos);
 void TriggerRsmg(SW *psw, int crsmg, RSMG *arsmg, WARPV *pwarp, int fOn);
@@ -443,7 +443,7 @@ extern "C" void UpdateExit(EXITV *pexit, float dt)
         int fInside;
         if (!ploHero)
             return;
-        u.q = ConvertAloPos(0, pexit, func_001A62E8(ploHero));
+        u.q = ConvertAloPos(0, pexit, GetLoWorldPos(ploHero));
         fInside = PbspPointInBspQuick(pexit->pbsp, 0x7FFFFFFF, u.q) != 0;
         switch (pexit->exits)
         {

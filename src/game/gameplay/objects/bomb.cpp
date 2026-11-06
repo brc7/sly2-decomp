@@ -117,7 +117,7 @@ void UpdateSo(BOMBV *p);
 void *func_001AE1D0(AREQV *);
 void HandleBasicMessage(BOMBV *, int, void *);
 void UpdateSwPox(G *pg, XEC *pa, XEC *pb, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int func_0014C748(qword a, qword b, qword c, int n, HITB *phit, float g);
 void func_001F5990(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
 void PxpAdd(G *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
@@ -131,7 +131,7 @@ void func_001F4930(BOMBV *, qword);
 void SetSoCnstrForce(BOMBV *, int);
 void SetSoCnstrTorque(BOMBV *, int);
 int func_001F7588(BOMBV *p, WKR *pm);
-M3 *func_001A6318(BOMBV *);
+M3 *GetLoWorldMatrix(BOMBV *);
 void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
 void func_0020FA10();
@@ -301,10 +301,10 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
         if (!(uchar)plo->f)
             continue;
         {
-            qword a = func_001A62E8(pso);
+            qword a = GetLoWorldPos(pso);
             XEC *px = plo->pxp;
             qword b = p->pxa->pos;
-            if (func_0014C748(a, b, func_001A62E8(p), 1, &hit, px->g30)) {
+            if (func_0014C748(a, b, GetLoWorldPos(p), 1, &hit, px->g30)) {
                 CXP *pe;
                 qword d;
                 register qword vp __asm__("vf2");
@@ -585,7 +585,7 @@ extern "C" int FAbsorbBombWkr(BOMBV *p, WKR *pm)
             n = rn;
         }
         pu->q = n;
-        PrepareBombDetonation(p, func_001A62E8(p), u.q);
+        PrepareBombDetonation(p, GetLoWorldPos(p), u.q);
         if (FIsBasicDerivedFrom__FP5BASIC3CID((void *)pm->x0, 0x4F))
             PrimeBomb(p, 0.25f);
         else
@@ -603,7 +603,7 @@ static __inline__ qword MulV(M3 *pm, qword v)
 static __inline__ void MulStore(BOMBV *p, M3 *pm)
 {
     M3 t, u;
-    M3 *pb = func_001A6318(p);
+    M3 *pb = GetLoWorldMatrix(p);
     u.r[0] = t.r[0] = MulV(pm, pb->r[0]);
     u.r[1] = t.r[1] = MulV(pm, pb->r[1]);
     t.r[2] = u.r[2] = MulV(pm, pb->r[2]);
@@ -646,7 +646,7 @@ extern "C" void PrepareBombDetonation(BOMBV *p, qword pos, qword q)
     }
     switch (p->x170) {
     case 0:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(p)->r[2], q);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(p)->r[2], q);
         MulStore(p, &m);
         break;
     case 1:
@@ -654,11 +654,11 @@ extern "C" void PrepareBombDetonation(BOMBV *p, qword pos, qword q)
         p->matDetonate = m;
         break;
     case 2:
-        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(p)->r[0], q);
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, GetLoWorldMatrix(p)->r[0], q);
         MulStore(p, &m);
         break;
     case 3:
-        p->matDetonate = *func_001A6318(p);
+        p->matDetonate = *GetLoWorldMatrix(p);
         break;
     }
 }
@@ -764,7 +764,7 @@ extern "C" void DetonateBomb(BOMBV *p)
 {
     if (((p->fl >> 60) & 1) == 0)
         return;
-    PrepareBombDetonation(p, func_001A62E8(p), D_002A2DC0);
+    PrepareBombDetonation(p, GetLoWorldPos(p), D_002A2DC0);
     FRAME frame;
     if (p->x164 == 0) {
         FrameInit(&frame);
@@ -784,7 +784,7 @@ extern "C" void DetonateBomb(BOMBV *p)
             msg.v20 = p->posDetonate;
             msg.p = p;
             msg.po = (POV *)po;
-            qword pos = func_001A62E8(po);
+            qword pos = GetLoWorldPos(po);
             qword def = D_002A2DC0;
             d = VuSub(pos, p->posDetonate);
             {
@@ -829,7 +829,7 @@ extern "C" void DetonateBomb(BOMBV *p)
             POV *pT = *po->pp14;
             if (pT != po) pv = pT;
         }
-        func_00156698(D_003DD490.x402C, func_001A62E8(p), pv)[0x54 / 4] = 1;
+        func_00156698(D_003DD490.x402C, GetLoWorldPos(p), pv)[0x54 / 4] = 1;
     }
     ((void (*)(BOMBV *))p->vt[9].pfn)((BOMBV *)((char *)p + p->vt[9].d));
     p->x174 = 0;

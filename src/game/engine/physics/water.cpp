@@ -147,7 +147,7 @@ void SetSndSourceLo(void *, SOW *);
 void SetSndRange(void *, float, float);
 void func_001FB1F8(void *, float);
 void func_00228D20(SOW *, N **);
-qwordV func_001A62E8(void *p);
+qwordV GetLoWorldPos(void *p);
 int FFloatsNear__Ffff(float a, float b, float eps);
 qwordV ApplyConstr(CONSTRAINT *, NODE *, qwordV);
 void AddSoAcceleration(SOW *, qwordV);
@@ -155,7 +155,7 @@ void CalculateWaterCurrent(SOW *, qwordV, qwordV *, qwordV *);
 float func_0011E290(qwordV, qwordV, qwordV *, qwordV *);
 void AccelSoTowardPosSpring(SOW *, qwordV, const COEF *, qwordV, const COEF *);
 void AccelSoTowardMatSpring(SOW *, const M3 *, const COEF *, qwordV, const COEF *);
-M4B *func_001A6318(SOW *);
+M4B *GetLoWorldMatrix(SOW *);
 void TiltMatUpright(const M3 *, M3 *, M3 *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(const M3 *, float *, qwordV *);
 void func_001FAC98(SOW *, qwordV);
@@ -456,7 +456,7 @@ extern "C" float func_00229468(SOW *p, SOW *pj, qwordV *ppos, qwordV *pnormal)
     void **apv;
     int c;
     float g;
-    work.a.q = work.b.q = func_001A62E8(pj);
+    work.a.q = work.b.q = GetLoWorldPos(pj);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pj, 0x33)) {
         work.a.f[2] = work.a.f[2] + pj->height;
         if (pj->x208)
@@ -634,7 +634,7 @@ extern "C" void func_002297F8(SOW *a,SOW *b){
   AddSoAcceleration(a,ApplyConstr(&a->physics->constraint,a->motion,Scale(a->physics->direction.q,k)));
  }
  if(friction!=0.0f){
-  CalculateWaterCurrent(b,func_001A62E8(a),&w.velocity.q,&w.phase.vectors[0].q);
+  CalculateWaterCurrent(b,GetLoWorldPos(a),&w.velocity.q,&w.phase.vectors[0].q);
   qwordV linear=Get(a,33);qwordV relative=VuSub(w.velocity.q,linear);
   float dot=func_0011E290(relative,w.normal.q,&w.phase.vectors[1].q,&w.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;
@@ -659,7 +659,7 @@ extern "C" void func_002297F8(SOW *a,SOW *b){
  }
  else ZeroXyz(w.velocity,0.0f);
  if(spring!=0.0f){
-  TiltMatUpright(&func_001A6318(a)->basis,&w.phase.basis,0);
+  TiltMatUpright(&GetLoWorldMatrix(a)->basis,&w.phase.basis,0);
   DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&w.phase.basis,&w.angle,&w.axis.vector.q);
   float gain=spring*3.0f;qwordV k=VuFromFloat<qwordV>(w.angle*gain*span);
   qwordV rotation=Scale(w.axis.vector.q,k);w.angularNormal.q=k;

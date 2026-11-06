@@ -1071,7 +1071,7 @@ struct P { char pad[0x1A8]; float g1A8; char pad1[0x13F0 - 0x1AC]; void *p13F0; 
            char pad3[0x1420 - 0x1414]; qword v1420; };
 struct G { char pad[0x13B4]; struct O *pFirst; };
 extern float D_002C0984, D_002C0988;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int func_00184380(void *a, struct O *po);
 float atan2f(float y, float x);
 float RadStepHeading(struct P *p);
@@ -1108,7 +1108,7 @@ void ChooseMurrayThrowTarget(struct P *p)
             continue;
         if (func_00184380(p->p13F0, po))
             continue;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(func_001A62E8(po)), "j"(func_001A62E8(p)));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(po)), "j"(GetLoWorldPos(p)));
         dist = LenXY(d);
         if (gMax < dist)
             continue;
@@ -1121,11 +1121,11 @@ void ChooseMurrayThrowTarget(struct P *p)
             continue;
         poBest = po;
         gMax = dist;
-        p->v1420 = func_001A62E8(poBest);
+        p->v1420 = GetLoWorldPos(poBest);
     }
     if (!poBest) {
         qword a, b, r;
-        a = func_001A62E8(p);
+        a = GetLoWorldPos(p);
         b = SetVectorCylind(p->g1A8, p->g1410, 0.0f);
         __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
         p->v1420 = r;
@@ -1230,7 +1230,7 @@ void func_0020BD68(void *);
 void SetJtModeState__FP6JTMODEi(void *, int);
 int FPowerupAcquired(int);
 void ChooseMurrayThrowTarget(P *);
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 void SetStepRadTargetVec(P *, qword);
 void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
@@ -1317,7 +1317,7 @@ extern "C" void SetMurrayState(P *p, int next)
         if (a && FPowerupAcquired(0x11)) clip = p->extra7; else clip = p->clip7;
         { register qword zero __asm__("$3") = D_002A2DD0.q; p->velocity.q = zero; }   // pin: the zero vector goes through $v1 here
         ChooseMurrayThrowTarget(p);
-        U point = p->goal; qword current = func_001A62E8(p);
+        U point = p->goal; qword current = GetLoWorldPos(p);
         qword difference;
         __asm__("vsub.xyzw %0,%0,%2" : "=j"(difference) : "0"(point.q), "j"(current));
         SetStepRadTargetVec(p, difference); break;
@@ -1443,7 +1443,7 @@ extern float D_002C0990[];
 extern float D_002C099C;
 void HandleStepplayerMessage(P *p, int msg, MSG *pm);
 void SetMurrayFlopSubstate(P *p, int k);
-qword func_001A62E8(P *p);
+qword GetLoWorldPos(P *p);
 void EmitSwNoise(void *g, int z, qword q, P *p);
 void ThrowMurrayCarried(P *p);
 void func_001B7AE8(P *p);
@@ -1470,7 +1470,7 @@ void HandleMurrayMessage(P *p, int msg, MSG *pm)
             SetMurrayFlopSubstate(p, 1);
             break;
         case 0x1A5:
-            EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
+            EmitSwNoise(D_003DD490, 0, GetLoWorldPos(p), p);
             break;
         case 0x1EB:
             switch (p->x13D0) {
@@ -1490,7 +1490,7 @@ void HandleMurrayMessage(P *p, int msg, MSG *pm)
             break;
         case 0x1C8:
             if (!p->x1450) {
-                EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
+                EmitSwNoise(D_003DD490, 0, GetLoWorldPos(p), p);
                 SetMurrayLiftSubstate(p, 1);
             }
             break;
@@ -1866,7 +1866,7 @@ int FStepguardHasSgf(struct O *po, int n);
 int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
 struct S *PbhvFindBhvstk(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int FCheckLm__FP2LMf(void *p, float g);
 void SetBhvjuggledState(struct S *p, int n);
 void StartMurrayLiftGuard(struct P *p, void *q);
@@ -1909,8 +1909,8 @@ int FTryMurrayTakedown(struct P *p)
     }
     {
             int f = 0, g;
-            qword a = func_001A62E8(p->p10DC);
-            qword d = func_001A62E8(p);
+            qword a = GetLoWorldPos(p->p10DC);
+            qword d = GetLoWorldPos(p);
             __asm__("vsub.xyzw %0, %1, %0" : "+j"(d) : "j"(a));
             u.q = d;
             if (LenXY(d) < D_002C09AC && FCheckLm__FP2LMf(D_002C09B0, GetZ(d)) && p->p10DC->xFEC)
@@ -2189,7 +2189,7 @@ struct P { char pad[0x13F0]; struct T *p13F0; char pad2[0x1414 - 0x13F4]; float 
 void DetachMurrayCarried(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void func_00209FB8(struct LO *p);
-qword func_001A62E8(struct LO *p);
+qword GetLoWorldPos(struct LO *p);
 qword GetSoDvGravity(struct LO *p);
 qword func_001D69F0(qword a, qword b, qword c, float t);
 void func_001F7A68(struct LO *p, int n);
@@ -2222,8 +2222,8 @@ void ThrowMurrayCarried(struct P *p)
         qword v;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38))
             func_00209FB8(po);
-        t = Dist(func_001A62E8(po), p->v1420) / p->g1414;
-        v = func_001D69F0(func_001A62E8(po), p->v1420, GetSoDvGravity(po), t);
+        t = Dist(GetLoWorldPos(po), p->v1420) / p->g1414;
+        v = func_001D69F0(GetLoWorldPos(po), p->v1420, GetSoDvGravity(po), t);
         ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, v);
         func_001F7A68(po, 2);
     }
@@ -2234,7 +2234,7 @@ namespace M_func_001B7A78 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct P { char pad[0x1420]; qword q1420; };
 void SetMurrayState(struct P *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void SetStepRadTargetVec(struct P *p, qword q);
 /** @sly2-annot addr=0x1B7A78
  * Purpose: Splice-callable: SetMurrayState(7) and override the throw goal with the given object's position,
@@ -2248,9 +2248,9 @@ void func_001B7A78(struct P *p, void *pv)
     qword a, b, d;
     SetMurrayState(p, 7);
     if (pv) {
-        a = func_001A62E8(pv);
+        a = GetLoWorldPos(pv);
         p->q1420 = a;
-        b = func_001A62E8(p);
+        b = GetLoWorldPos(p);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         SetStepRadTargetVec(p, d);
     }
@@ -2715,7 +2715,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
 struct T { char pad[0x14]; int x14; };
 struct P { char pad[0x10DC]; void *x10DC; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; char pad2[0x190C - 0x1808]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword ConvertAloVec(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -2735,7 +2735,7 @@ void StartMurrayPunch(struct P *p)
         if (v == p->x17FC || v == p->x1804) k = 1;
         else k = 0;
     } else if (p->x10DC) {
-        if (GetY(ConvertAloVec(0, p, Sub(func_001A62E8(p->x10DC), func_001A62E8(p)))) > 0.0f) k = 0;
+        if (GetY(ConvertAloVec(0, p, Sub(GetLoWorldPos(p->x10DC), GetLoWorldPos(p)))) > 0.0f) k = 0;
         else k = 1;
     } else
         k = 1;
@@ -2749,7 +2749,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
 struct T { char pad[0x14]; int x14; };
 struct P { char pad[0x10DC]; void *x10DC; char pad1[0x17FC - 0x10E0]; int x17FC; int x1800; int x1804; int x1808; char pad2[0x190C - 0x180C]; struct T *x190C; };
 void SetMurrayState(struct P *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword ConvertAloVec(void *a, void *b, qword q);
 void SetMurrayAttack(struct P *p, int k);
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -2771,7 +2771,7 @@ void StartMurrayAltAttack(struct P *p)
         if (v == p->x17FC || v == p->x1804) k = 3;
         else k = 2;
     } else if (p->x10DC) {
-        if (GetY(ConvertAloVec(0, p, Sub(func_001A62E8(p->x10DC), func_001A62E8(p)))) > 0.0f) k = 2;
+        if (GetY(ConvertAloVec(0, p, Sub(GetLoWorldPos(p->x10DC), GetLoWorldPos(p)))) > 0.0f) k = 2;
         else k = 3;
     } else
         k = 3;
@@ -2800,7 +2800,7 @@ struct P {
     char pad7[0x1830 - 0x1824]; qword v1830; char pad8[0x190C - 0x1840]; void *x190C;
 };
 void ReleaseAsega(void *pp);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
 void func_00204660(struct P *p, float g);
@@ -2843,7 +2843,7 @@ void SetMurrayAttack(struct P *p, int k)
     p->v190 = D_002A2DD0;
     if (p->p10DC && p->x10E4 >= 2 && !(p->pl->x30 & 8)) {
         qword d;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(func_001A62E8(p->p10DC)), "j"(func_001A62E8(p)));
+        __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(GetLoWorldPos(p->p10DC)), "j"(GetLoWorldPos(p)));
         g = atan2f(GetY(d), GetX(d));
         if (__builtin_fabsf(RadNormalize__Ff(g - p->g1A8)) < D_002C09F0) {
             func_00204660(p, g);
@@ -2866,13 +2866,13 @@ void SetMurrayAttack(struct P *p, int k)
             qword a, b, pos, t, v;
             ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &a, 0.0f, 0.0f, 0);
             ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &b, p->panim->p14->g74, 0.0f, 0);
-            pos = func_001A62E8(p);
+            pos = GetLoWorldPos(p);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(t) : "j"(b), "j"(a));
             t = MulM3(p->m1B0, t);
             __asm__("vadd.xyzw %0, %1, %2" : "=j"(v) : "j"(pos), "j"(t));
             p->v1830 = v;
         } else {
-            p->v1830 = func_001A62E8(p);
+            p->v1830 = GetLoWorldPos(p);
         }
     }
     func_001431D0(p);
@@ -3077,8 +3077,8 @@ struct P { char pad[0x190]; union V3 v190; char pad1[0x1030 - 0x1A0]; struct ANI
     char pad3[0x1890 - 0x1870]; struct O x1890; struct O *x1900; struct CLIP *x1904; int x1908; };
 void func_0020C080(struct O *o);
 void StartLeap(struct SCRIPT *a, struct P *p, int n, struct O *b);
-qword func_001A62E8(struct P *p);
-struct M3 *func_001A6318(struct P *p);
+qword GetLoWorldPos(struct P *p);
+struct M3 *GetLoWorldMatrix(struct P *p);
 void ReleaseSma(struct COMPONENT *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(struct CLIP *a, struct P *p, float time, float rate, int n, struct ANIMATION **q);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
@@ -3154,11 +3154,11 @@ void func_001B8D30(struct P *p, int st)
         p->x1900 = &p->x1890;
         StartLeap(&p->x1850, p, 1, &p->x1890);
         q = p->x1900;
-        uv.q = func_001A62E8(p);
+        uv.q = GetLoWorldPos(p);
         __asm__("mfc1 %0, %1" : "=r"(b) : "f"(-p->f186C));
         u.q = b;
         u2.q = u.q;
-        px = func_001A6318(p);
+        px = GetLoWorldMatrix(p);
         {
             register qword axis __asm__("vf1") = px->row[0];
             register qword origin __asm__("vf2") = uv.q;

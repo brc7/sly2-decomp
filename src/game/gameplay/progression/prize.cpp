@@ -424,7 +424,7 @@ extern qword D_002A2DA0, D_002A2DC0, D_002A2DD0, D_002A2DE0;
 extern float D_002C0D74, D_002C0D78;
 void STACKSCOPE_ctor(STACKSCOPE *);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *, int) __asm__("_$_10STACKSCOPE");
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 int FFilterDprizeObjects(void *, SOPART *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, SOPART *), void *, int *, SOPART ***);
 int CsbiIntersectSphereBsp(qword, float, SOPART *, void *, int, void *, int, CMCONTACT *);
@@ -507,9 +507,9 @@ extern "C" void CheckDprizeBounce(P *p)
     STACKSCOPE frame;
     U vec;
     float gDeepest = 0.0f;
-    qword pos = func_001A62E8(p);
+    qword pos = GetLoWorldPos(p);
     qword posMin = (vec.qw = VuFloat(-p->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
-    qword posMax = func_001A62E8(p);
+    qword posMax = GetLoWorldPos(p);
     vec.qw = VuFloatBits(p->sRadius.bits);
     posMax = QwAddScaled(posMax, D_002A2DE0, vec.qw);
     int cpart;
@@ -521,7 +521,7 @@ extern "C" void CheckDprizeBounce(P *p)
         SOPART *ppart = appart[i];
         if (ppart->grf & (1UL << 49)) {
             qword center = ppart->pxf->pos;
-            qword posCur = func_001A62E8(p);
+            qword posCur = GetLoWorldPos(p);
             float g = GFromQw(QwLength(QwSub(center, posCur))) - ppart->sRadius - p->sRadius.g;
             if (g < gDeepest) {
                 vec.qw = QwNormalize(QwSub(p->pos, ppart->pxf->pos), D_002A2DA0);
@@ -531,7 +531,7 @@ extern "C" void CheckDprizeBounce(P *p)
                 }
             }
         } else if (ppart->cplane) {
-            int ccontact = CsbiIntersectSphereBsp(func_001A62E8(p), p->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
+            int ccontact = CsbiIntersectSphereBsp(GetLoWorldPos(p), p->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
             for (int j = 0; j < ccontact; j++) {
                 CMCONTACT *pcontact = &acontact[j];
                 float g = GDot(pcontact->pos, pcontact->plane.qw) - pcontact->plane.g[3];
@@ -583,7 +583,7 @@ struct SO { char pad[0xE0]; int count; struct SHAPE *shapes; };
 struct S { char pad[0xC]; struct VTE *vt; char pad10[0x1DC-0x10]; float radius; };
 struct Q { int enabled,pad4; float radius; struct SO *so; };
 extern float D_002C0D7C;
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 int CsbiIntersectSphereBsp(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
 static inline void Trigger(struct S *p)
 {
@@ -623,8 +623,8 @@ int FCheckDprizeCollect(struct S *p,struct Q *q)
     int i;
     float distance,maximum;
     if(!q->enabled||!q->so)return 0;
-    pos=ToVu(func_001A62E8(p));
-    distance=LenSq(Sub(pos,func_001A62E8(q->so)));
+    pos=ToVu(GetLoWorldPos(p));
+    distance=LenSq(Sub(pos,GetLoWorldPos(q->so)));
     maximum=D_002C0D7C;
     if(maximum*maximum<distance)return 0;
     if(distance<q->radius*q->radius) {
@@ -636,13 +636,13 @@ int FCheckDprizeCollect(struct S *p,struct Q *q)
         if(s->flags&(1UL<<50))continue;
         if(s->flags&(1UL<<49)) {
             float r=p->radius+s->radius;
-            qword here=func_001A62E8(p);
+            qword here=GetLoWorldPos(p);
             if(LenSq(Sub(here,s->pos->pos))<r*r) {
                 Trigger(p);
                 return 1;
             }
         } else {
-            qword here=func_001A62E8(p);
+            qword here=GetLoWorldPos(p);
             if(CsbiIntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,p->radius)) {
                 Trigger(p);
                 return 1;
@@ -819,8 +819,8 @@ struct R { char pad[0x30]; Q *x30; };
 struct LO { char pad[0x12C]; float x12C; char p1[0x150 - 0x130]; int x150; char p2[0x168 - 0x154]; R *x168; };
 extern "C" {
 H *func_0012FF10(void *p, LO *plo, int a, int b);
-qword func_001A62E8(LO *plo);
-void *func_001A6318(LO *plo);
+qword GetLoWorldPos(LO *plo);
+void *GetLoWorldMatrix(LO *plo);
 void RenderSoSelf(LO *plo);
 void RenderDprizeSelf(LO *p);
 }
@@ -847,7 +847,7 @@ void RenderDprizeSelf(LO *p)
             OBJ *pobj = ph->pobj;
             ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->x1C, q->x40);
             M4 m;
-            m = LoadMatrixFromPosRotScale(func_001A62E8(p), func_001A6318(p), &v);
+            m = LoadMatrixFromPosRotScale(GetLoWorldPos(p), GetLoWorldMatrix(p), &v);
             func_001A5EE8(p, m, p->x12C, p->x12C);
         } else {
             RenderSoSelf(p);
@@ -973,7 +973,7 @@ extern struct G D_003DD490;
 qword ConvertAloVec(struct S *,void *,qword);
 float GRandInRange__Fff(float,float);
 struct Q *PripNewRipg(struct G *,void *,void *);
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 static inline float Dot(qword a,qword b)
 {
     qword d,one;
@@ -1017,7 +1017,7 @@ void func_001C6308(struct S *p)
                 {
                     struct VTE *method=&q->vt[1];
                     void *ctx=(char *)q+method->delta;
-                    qword pos=func_001A62E8(emitter);
+                    qword pos=GetLoWorldPos(emitter);
                     method->fn(ctx,pos,1,0);
                 }
                 {
@@ -1111,8 +1111,8 @@ extern char D_002C0DA0[];
 extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
 struct X *PripNewRipg(void *pg, int a, int b);
-qword func_001A62E8(struct S *p);
-struct MAT *func_001A6318(struct S *p);
+qword GetLoWorldPos(struct S *p);
+struct MAT *GetLoWorldMatrix(struct S *p);
 void func_001C67A0(struct S *p, int n);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
@@ -1141,9 +1141,9 @@ void func_001C65F8(struct S *p, int n)
             px->xF0 = D_002C0DA0;
             px->xF8 = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, func_001A62E8(p), 0, 1.0f);
+            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(p), 0, 1.0f);
             px->x1C = p;
-            px->mat = *func_001A6318(p);
+            px->mat = *GetLoWorldMatrix(p);
         } else {
             func_001C67A0(p, 0);
         }
@@ -1251,8 +1251,8 @@ extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
 struct X *PripNewRipg(void *pg, int a, int b);
 struct LO *PpoHero(void *pg);
-qword func_001A62E8(struct S *p);
-struct MAT *func_001A6318(struct S *p);
+qword GetLoWorldPos(struct S *p);
+struct MAT *GetLoWorldMatrix(struct S *p);
 void OnMedicineSmackDone(struct S *p, int n);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
@@ -1290,9 +1290,9 @@ void func_001C68F0(struct S *p, int n)
             px->xF0 = D_002C0E10;
             px->xF8 = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, func_001A62E8(p), 0, 1.0f);
+            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, GetLoWorldPos(p), 0, 1.0f);
             px->x1C = p;
-            px->mat = *func_001A6318(p);
+            px->mat = *GetLoWorldMatrix(p);
         } else {
             OnMedicineSmackDone(p, 0);
         }
@@ -1611,7 +1611,7 @@ LO *PpoHero(void *);
 REGION *PpathzoneFromPos(qword, int);
 int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
 int FClipPathzone(REGION *, qword, qword, int);
-qword func_001A62E8(LO *);
+qword GetLoWorldPos(LO *);
 void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *);
 int PdprizeNewSpray(void *, int, int, LO **);
 int FFilterDprizeObjects(void *, CANDIDATE *);
@@ -1711,7 +1711,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     if (FindPathzoneClosestPoint(pregion, posOrig.q, &posSnap.q, 1))
         posSnap.f[2] = posOrig.f[2];
     else {
-        qword pos = func_001A62E8(plo);
+        qword pos = GetLoWorldPos(plo);
         if (!FindPathzoneClosestPoint(pregion, pos, &posSnap.q, 1))
             return;
         posSnap.f[2] = GetZ(pos);
@@ -2274,7 +2274,7 @@ struct M { int n; struct S *p; int pad[14]; };
 extern char D_003DD490[];
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
-qword func_001A62E8(struct S *p);
+qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
 struct LO *func_001CB658(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
@@ -2306,7 +2306,7 @@ void SetClueDprizes(struct S *p, int n)
         }
         pg = D_003DD490;
         n = 2;
-        qv = func_001A62E8(p);
+        qv = GetLoWorldPos(p);
         EmitSwNoise(pg, 0, qv, p);
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
         q = func_001CB658(p);
@@ -2725,7 +2725,7 @@ void func_001306A8(void *p);
 void func_00142140(void *p, void *q);
 qword ConvertAloVec(void *p, void *frame, qword q);
 qword ConvertXfVec(void *frame, void *p, qword q);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword func_0022FC48(void *frame, void *p, qword q);
 void func_002303A0(struct S *p, struct X *px, int n);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
@@ -2763,7 +2763,7 @@ void func_001C8918(struct S *p, int n)
         q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1080));
         px->xB0 = q;
         {int selected;Selection(p,&selected,&px);
-        q=func_0022FC48(0,px->xA0,func_001A62E8(p->a1A8[selected]));}
+        q=func_0022FC48(0,px->xA0,GetLoWorldPos(p->a1A8[selected]));}
         px->xC0 = q;
         px = p->x204;
         q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1090));

@@ -130,7 +130,7 @@ int func_00134310(int r, int n);
 void FireMissile(MISSILE *pmissile, LO *ploTarget, V *ppos);
 V func_001B2398(MISSILE *pmissile, float g);
 qword LimitVectorLength(qword v, float s);
-qword func_001A62E8(SO *pso);
+qword GetLoWorldPos(SO *pso);
 int func_0014C748(qword a, qword b, qword c, int n, HIT *phit, float r);
 void LoadIdentityMatrix4(void *pv, int a, M4 *pmat, int b, float g);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
@@ -401,7 +401,7 @@ extern "C" void FireSplmiss(CID82*p,LO*source,V*point){
   register CID82*owner __asm__("$4");
   __asm__("daddu %0,%4,$zero\n\tlq %1,%5\n\tsqc2 %6,%2\n\tsq %1,%3\n\tlq %1,%7":"=r"(owner),"=&r"(scalarWord),"=m"(w.spill.q),"=m"(w.direction.q):"r"(p),"m"(w.dir),"j"(velocity),"m"(w.scalar));
   *(qword*)&w.factor=scalarWord;
-  qword fresh=func_001A62E8(owner);
+  qword fresh=GetLoWorldPos(owner);
   register qword direction __asm__("vf3"),position __asm__("vf4");register qword*zero __asm__("$3");
   __asm__("lqc2 %0,%3\n\tlui %1,%%hi(%5)\n\tqmtc2.ni %4,%2\n\taddiu %1,%1,%%lo(%5)":"=j"(direction),"=&r"(zero),"=j"(position):"m"(w.direction.q),"r"(fresh),"i"(&D_002A2DD0));
   register qword d __asm__("vf2"),acc __asm__("vf1"),amount __asm__("vf3");register int count __asm__("$7");
@@ -471,7 +471,7 @@ extern "C" void func_001B2468(CID82*p){
   register qword scaleWord __asm__("$2");
   __asm__("mfc1 %0,%2\n\tsq %0,%1":"=r"(scaleWord),"=m"(w.scale.q):"f"(1.5f/remaining));
   w.integrated.q=scaleWord;
-  qword position=func_001A62E8(p);
+  qword position=GetLoWorldPos(p);
   register qword destination __asm__("vf1"),delta __asm__("vf2");register VE*table __asm__("$3");register float negative __asm__("$f0");
   __asm__("lqc2 %0,%5\n\tqmtc2.ni %6,%1\n\tlw %2,%7\n\tvsub.xyzw %1,%0,%1\n\tli.s %3,%8\n\tsqc2 %1,%4":"=j"(destination),"=j"(delta),"=r"(table),"=f"(negative),"=m"(w.delta.q):"m"(w.destination),"r"(position),"m"(PVT(p)),"F"(-0.5f));
   register qword(*method)(void*) __asm__("$2");register void*receiver __asm__("$4");register qword copiedNegative __asm__("$3");
@@ -484,7 +484,7 @@ extern "C" void func_001B2468(CID82*p){
  }else *(qword*)&w.output=p->qwVelTarget;
  register CLOCK*clock __asm__("$17")=&D_002DDED0;
  float frameDt=clock->dt;
- qword position=func_001A62E8(p);
+ qword position=GetLoWorldPos(p);
  qword velocity=Velocity(p);
  register float tension __asm__("$f14");
  register qword startPosition __asm__("$4"),startVelocity __asm__("$5"),endPosition __asm__("$6"),endVelocity __asm__("$7");

@@ -871,8 +871,8 @@ struct DMA { int x0; int x4; int x8; int xC; };
 extern "C" {
 void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
 int func_001A61A0(LOV *plo);
-qwordV func_001A62E8(LOV *plo);
-M3 *func_001A6318(LOV *plo);
+qwordV GetLoWorldPos(LOV *plo);
+M3 *GetLoWorldMatrix(LOV *plo);
 int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
 DMA *PrplAllocRpl(void);
@@ -918,12 +918,12 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
             qwordV pos;
             M3 mat;
             if (*pplo) {
-                pos = func_001A62E8(*pplo);
-                mat = *func_001A6318(*pplo);
+                pos = GetLoWorldPos(*pplo);
+                mat = *GetLoWorldMatrix(*pplo);
             } else {
-                pos = func_001A62E8(plo);
+                pos = GetLoWorldPos(plo);
                 if (plo->x10)
-                    mat = *func_001A6318(plo->x10);
+                    mat = *GetLoWorldMatrix(plo->x10);
                 else
                     mat = *pmId;
             }

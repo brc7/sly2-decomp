@@ -104,7 +104,7 @@ extern const float D_002A8550;   /* defined below where the ELF has it (.rodata 
 
 int CploFindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);
 int FCheckVolPoint(LOV *pvol, qword v);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void FadeSoIn(LOV *plo, float f);
 void FadeSoOut(LOV *plo, float f);
 void func_00213BD8(WIDGETV *pw, int id, int v);
@@ -290,7 +290,7 @@ void func_002020C8(RECONSEL *p)
         float f, r;
         if (!o->plo100)
             continue;
-        a = func_001A62E8(o);
+        a = GetLoWorldPos(o);
         __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(D_002DDF40.v.position));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
         if (o->rFade < f && ((o->plo100->fl28 >> 60) & 1) == 0)
@@ -394,7 +394,7 @@ void UpdateReconTargetVisibility(RECONSEL *p,RECONTGT *other)
     QUERY query;
     float radius;
     V *point;
-    qword origin=func_001A62E8(other);
+    qword origin=GetLoWorldPos(other);
     radius=other->sHead;
     IntersectSwBoundingBox(&D_003DD490,origin,p->position.q,func_00202350,0,&query.count,&query.objects);
     {
@@ -471,12 +471,12 @@ void SelectReconTarget(RECONSEL*p)
    CMV *camera;
    float distance; qword eye,threshold,point;
    if(!FReconTargetSelectable(o))continue;
-   Store(&position.q,func_001A62E8(o));
+   Store(&position.q,GetLoWorldPos(o));
    camera=&D_002DDF40;
    radius.q=ScalarBits(&o->sRadius);
    PlaneArguments(&eye,&threshold,&point,radius.q,&camera->v.position,&position.q);
    if(!FInsideCmFrustum(camera,PlaneDelta(point,eye),threshold))continue;
-   if(!FInsideCmMrd(camera,func_001A62E8(o),o->height,&screen.f[0]))continue;
+   if(!FInsideCmMrd(camera,GetLoWorldPos(o),o->height,&screen.f[0]))continue;
    distance=LengthXY(SubSecond(position.q,camera->v.position));
    if(distance<minimum){
      UpdateReconTargetVisibility(p,o);
@@ -713,7 +713,7 @@ extern "C" void UpdateReconSel(RECONSEL *p)
         if(!func_002022D8(p))SetReconSelState(p,1);
     }
     if(p->actor){
-        qword world=func_001A62E8(p->actor);
+        qword world=GetLoWorldPos(p->actor);
         VU_FLOAT offset=VuFloatFromMemWord(*(int *)&p->actor->sHead);
         qword head=VuAdd(world,QwScaleX(QwUp(&D_002DDF40.mat),offset.qw));
         qword base=ConvertCmWorldToScreen(&D_002DDF40,world);

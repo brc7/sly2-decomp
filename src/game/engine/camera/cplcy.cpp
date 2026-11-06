@@ -229,7 +229,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
 struct X { void *po; };
 extern qword D_002A2DC0;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 /** @sly2-annot addr=0x14FE58
  * Purpose: Look anchor: focus object position (0x1A62E8), +150 along up if it is a STEPPLAYER
@@ -242,7 +242,7 @@ qword PosCplookAnchor(struct X *p)
 {
     U s;
     U pos;
-    pos.q = func_001A62E8(p->po);
+    pos.q = GetLoWorldPos(p->po);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) {
         register qword rs __asm__("vf2");
         register qword rp __asm__("vf3");
@@ -313,7 +313,7 @@ void RcPtr_Assign(int *, void *);
 void PauseSnd(int);
 void DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(void *, float *, float *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(int, int);
-void *func_001A6318(int);
+void *GetLoWorldMatrix(int);
 float GLimitLm__FP2LMf(F2 *, float);
 void SetCmNearClip__FP2CMf(struct G *, float);
 
@@ -352,7 +352,7 @@ void ActivateCplook(struct X *p)
         p->x44 = D_002BD970;
         p->x4C = p->x10;
         p->x50 = p->x14;
-        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(func_001A6318(p->x0), &p->x10, &p->x14);
+        DecomposeRotateMatrixPanTilt__FP7MATRIX3PfT1(GetLoWorldMatrix(p->x0), &p->x10, &p->x14);
         g = GLimitLm__FP2LMf(&D_002BD960, p->x14);
         p->x14 = g;
         p->x3C.a += p->x10;
@@ -562,7 +562,7 @@ struct G { char pad[0x90]; qword q90; };
 extern struct G D_002DDF40;
 extern char D_003DD490[];
 struct S { int pad[4]; void *p10; };
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void *PpoCur(void *p);
 /** @sly2-annot addr=0x150780
  * Purpose: Center: ploOwner(+0x10) pos, else player (0x1C4A48) pos +150 z, else camera pos
@@ -574,11 +574,11 @@ qword PosCpzoomCenter(struct S *p)
 {
     VU v;
     if (p->p10) {
-        v.q = func_001A62E8(p->p10);
+        v.q = GetLoWorldPos(p->p10);
     } else {
         void *o = PpoCur(D_003DD490);
         if (o) {
-            v.q = func_001A62E8(o);
+            v.q = GetLoWorldPos(o);
             v.f[2] += 150.0f;
         } else {
             v.q = D_002DDF40.q90;
@@ -594,7 +594,7 @@ typedef union { qword q; float f[4]; } U;
 typedef struct { qword r[3]; } M3;
 struct X { char pad[0x14]; void *p14; char pad1[0xA4 - 0x18]; float gA4; float gA8; };
 extern qword D_002A5000;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 qword PosCpzoomCenter(struct X *p);
 float atan2f(float y, float x);
 void LoadRotateMatrixPanTilt(M3 *pm, float a, float b);
@@ -642,7 +642,7 @@ qword PosCpzoomEye(struct X *p)
     qword r;
     if (p->p14) {
         U n;
-        qword a = func_001A62E8(p->p14);
+        qword a = GetLoWorldPos(p->p14);
         n.q = Normalize(Sub(a, PosCpzoomCenter(p)));
         p->gA4 = atan2f(n.f[1], n.f[0]);
         r = Add(PosCpzoomCenter(p), VecMul(n.q, -GFromQ(Len(D_002A5000))));
@@ -1590,7 +1590,7 @@ struct ALO;
 struct X { char pad[0x10]; ALO *p10; ALO *p14; };
 extern "C" {
 void UpdateCplcy(X *p);
-qword func_001A62E8(ALO *p);
+qword GetLoWorldPos(ALO *p);
 M3 *LoadLookAtMatrix(M3 *pm, qword v);
 qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(CM *p, M4 *m);
@@ -1652,11 +1652,11 @@ void UpdateCptwoshot(X *p)
 {
     U d;
     UpdateCplcy(p);
-    d.q = Sub(func_001A62E8(p->p10), func_001A62E8(p->p14));
+    d.q = Sub(GetLoWorldPos(p->p10), GetLoWorldPos(p->p14));
     d.f[2] = 0.0f;
     float dist = Length(d.q);
     U focus;
-    focus.q = VecCombo(VU_FLOAT(D_002BDACC, 0), VU_VECTOR(func_001A62E8(p->p10)), VU_FLOAT(1.0f - D_002BDACC), VU_VECTOR(func_001A62E8(p->p14)));
+    focus.q = VecCombo(VU_FLOAT(D_002BDACC, 0), VU_VECTOR(GetLoWorldPos(p->p10)), VU_FLOAT(1.0f - D_002BDACC), VU_VECTOR(GetLoWorldPos(p->p14)));
     focus.f[2] = 150.0f;
     U pos;
     pos.q = focus.q;

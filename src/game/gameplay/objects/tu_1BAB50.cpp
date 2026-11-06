@@ -85,7 +85,7 @@ void func_001F6B48(TRIG *p, int v);
 void func_001F4F10(TRIG *p);
 void FreeSwXpList__FP2SWP2XP(SW *psw, int k);
 void *PpoHero(SW *psw);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void EmitSwNoise(SW *psw, int z, qword q, void *x);
 void BroadcastGameEvent(void *g, int k, TRIG *p);
 void func_0014F750(void *g, int v);
@@ -415,7 +415,7 @@ void TRIG::Action()
     func_001BB648(p, p->ae - 1);
     func_001BB648(p, pe);
     if (!p->x16C || !FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x38) || FIsBasicDerivedFrom__FP5BASIC3CID(p->x16C, 0x3C)) {
-        EmitSwNoise(&D_003DD490, 0, func_001A62E8(p), p->x16C);
+        EmitSwNoise(&D_003DD490, 0, GetLoWorldPos(p), p->x16C);
     }
     if (pe->n > 0) {
         if (++p->x158 >= pe->n) {
@@ -496,8 +496,8 @@ void func_001BB648(TRIG *p, E *pe)
         case 10:
             if (p->x168 & 8) {
                 qword q;
-                if (psPrev) q = func_001A62E8(psPrev);
-                else q = func_001A62E8(p);
+                if (psPrev) q = GetLoWorldPos(psPrev);
+                else q = GetLoWorldPos(p);
                 func_00154E10(D_002DE578, q, pi->b, -100, p);
             }
             break;

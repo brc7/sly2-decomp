@@ -154,7 +154,7 @@ void func_001384C0(ASEGBL *);
 float GModPositive__Fff(float a, float b);
 void *PsndStartSound(int h);
 void SetSndSourceLo(void *p, void *source);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void SetSndSourcePos(void *p, qword q);
 void SetSndRange(void *p, float a, float b);
 void func_001FB1F8(void *p, float t);
@@ -398,7 +398,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *p)
             { float u = 1.0f - t; t *= p->gVolRun; t += u * p->gVolWalk; }
             h = PsndStartSound(p->sfxidStep);
             SetSndSourceLo(h, 0);
-            SetSndSourcePos(h, func_001A62E8(x->paloRoot));
+            SetSndSourcePos(h, GetLoWorldPos(x->paloRoot));
             SetSndRange(h, 500.0f, 2000.0f);
             func_001FB1F8(h, t);
         }

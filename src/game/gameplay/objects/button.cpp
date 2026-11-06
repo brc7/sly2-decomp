@@ -173,7 +173,7 @@ void STACKSCOPE_ctor(int *pctx);
 void STACKSCOPE_ctor_1AE4A0(int *pctx, int n) __asm__("_$_10STACKSCOPE");
 int CploFindSwObjectsByClass(SW *psw, int grffso, CIDV cid, int x, int cploMax, LOV **aplo);
 int func_001A61A0(LOV *plo);
-qwordV func_001A62E8(LOV *plo);
+qwordV GetLoWorldPos(LOV *plo);
 int FCheckVolPoint(VOLBTNV *pvolbtn, qwordV pos);
 void qsort(void *pv, int c, int cb, int (*pfncmp)(const void *, const void *));
 CRef func_00200F58(int c, int otyp, LOV **aplo);
@@ -928,7 +928,7 @@ extern "C" void UpdateVolbtn(VOLBTNV *pvolbtn, float dt)
         if (j < c) do
         {
             LOV *plo = aplo[j];
-            if (plo && func_001A61A0(plo) && FCheckVolPoint(pvolbtn, func_001A62E8(plo)))
+            if (plo && func_001A61A0(plo) && FCheckVolPoint(pvolbtn, GetLoWorldPos(plo)))
             {
                 fFound = 1;
                 if (!pvolbtn->btn.pvRelay)

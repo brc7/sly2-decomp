@@ -133,7 +133,7 @@ void RotateXfmToMat(LIGHTV *p);
 void func_001A5E80(LIGHTV *p);
 void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, V3 *pv);
 void func_001ED2D8(V3 *pv);
-qword func_001A62E8(LIGHTV *p);
+qword GetLoWorldPos(LIGHTV *p);
 void *func_002333B4(void *, int, uint) __asm__("memset");                     /* memset */
 void GetNormalVectors(qword a, qword b, qword c, M3R *pm);
 qword *VECTOR_opAssign(qword *p, qword v);
@@ -503,7 +503,7 @@ void RebuildLight(LIGHTV *p)
         p->vec = *((V3 *(*)(LIGHTV *))p->vt[31].pfn)((LIGHTV *)((char *)p + p->vt[31].d));
         break;
     case 1:
-        p->position.q = func_001A62E8(p);
+        p->position.q = GetLoWorldPos(p);
         p->vec = *(V3 *)&p->position;
         FitLinearFunction(p->sNear, 1.0f, p->sFar, 0.0f, &p->duFall, &p->ruFall);
         p->bias = p->duFall;
@@ -615,7 +615,7 @@ void AddLightToSw(SWL *s, LIGHTV *o)
     if (!o->kind || o->x160 || !s->tree)
         SetBitM(s->pending, o->slot);
     else
-        func_001A3B80(s, s->tree, func_001A62E8(o), o->sFar, o->slot);
+        func_001A3B80(s, s->tree, GetLoWorldPos(o), o->sFar, o->slot);
 }
 
 /** @sly2-annot addr=0x1A3E88

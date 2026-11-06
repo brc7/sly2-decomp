@@ -922,7 +922,7 @@ void SetStepRadTargetVec(void *p, qword v) { func_00204660(p, atan2f(GetY(v), Ge
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FaceStepToward { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void SetStepRadTargetVec(void *p, qword v);
 /** @sly2-annot addr=0x2046F0
  * Purpose: Turn toward another LO: SetStepRadTargetVec(PosLoWorld(lo) - PosLoWorld(this))
@@ -935,8 +935,8 @@ void SetStepRadTargetVec(void *p, qword v);
 void FaceStepToward(void *p, void *q)
 {
     qword a, b, d;
-    a = func_001A62E8(q);
-    b = func_001A62E8(p);
+    a = GetLoWorldPos(q);
+    b = GetLoWorldPos(p);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
     SetStepRadTargetVec(p, d);
 }
@@ -1096,7 +1096,7 @@ extern qword D_002A2DC0;
 extern char D_003DD490[];
 void func_001F5990(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 int ClsgClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
 int func_002048C8(struct S *p, qword v, struct X *x, int n);
 void PxpAdd(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
@@ -1120,7 +1120,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
         return;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x->p4->pec->p60, 0x33))
         return;
-    pos = func_001A62E8(p);
+    pos = GetLoWorldPos(p);
     if (ClsgClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? p->p21C : p->p218), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
@@ -1677,8 +1677,8 @@ struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(
 struct M3 { qword r[3]; };
 struct S { char pad[0x218]; qword *origin; int pad21C; float radius; };
 extern "C" {
-M3 *func_001A6318(S *p);
-qword func_001A62E8(S *p);
+M3 *GetLoWorldMatrix(S *p);
+qword GetLoWorldPos(S *p);
 extern int D_002C3CC8[2][3];
 }
 static inline qword MulX(qword v, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(g.q)); return r; }
@@ -1695,9 +1695,9 @@ extern "C" void func_002057E8(S *p, qword out[2][3])
 {
     qword point[5];
     qword origin = *p->origin;
-    qword right = func_001A6318(p)->r[0];
-    qword forward = LoadVf(&func_001A6318(p)->r[1]);
-    point[0] = func_001A62E8(p);
+    qword right = GetLoWorldMatrix(p)->r[0];
+    qword forward = LoadVf(&GetLoWorldMatrix(p)->r[1]);
+    point[0] = GetLoWorldPos(p);
     float radius = p->radius;
     point[1] = Add(origin, MulX(right, VU_FLOAT(radius)));
     point[2] = Add(origin, MulX(forward, VU_FLOAT(radius)));
@@ -1761,7 +1761,7 @@ extern "C" {
 MATRIX3 func_0011B500(qword,float);
 MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("func_0011B500");
 MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
-qword func_001A62E8(P *);
+qword GetLoWorldPos(P *);
 qword *VECTOR_opAssign(qword *,qword);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
@@ -1821,7 +1821,7 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
 extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;
-    InitMat(&matCur,Rotation(D_002A2DC0,p->heading),func_001A62E8(p));
+    InitMat(&matCur,Rotation(D_002A2DC0,p->heading),GetLoWorldPos(p));
     matOrig=matCur;
     float radius=D_002A85F8;
     for(int i=0;i<pointCount;i++){float length=GLength(localPoints[i]);radius=(radius>length)?radius:length;}

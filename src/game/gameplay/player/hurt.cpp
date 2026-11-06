@@ -101,7 +101,7 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  void func_00204660(P*,float);
  void FixStepAngularVelocity(P*);
  void SetStepRadTargetVec(P*,qword);
- qword func_001A62E8(P*);
+ qword GetLoWorldPos(P*);
  float RadStepHeading(P*);
  void func_001F4BF8(P*);
  void ReleaseAsega(ASEGA**);
@@ -235,7 +235,7 @@ extern "C" void SetJtHurtState(C*p,int next){
  case 9:clip=p->clips[next];flags=0x21;break;
  case 10:
   camera0.q=Position();
-  {P*owner;qword direction=Difference(&camera0,func_001A62E8(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
+  {P*owner;qword direction=Difference(&camera0,GetLoWorldPos(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
   flags=0x21;
  case 3:
   clip=p->clips[next];
@@ -243,7 +243,7 @@ extern "C" void SetJtHurtState(C*p,int next){
   break;
  case 5:case 11:
   camera1.q=Position();
-  {P*owner;qword direction=Difference1(&camera1,func_001A62E8(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
+  {P*owner;qword direction=Difference1(&camera1,GetLoWorldPos(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
   if(next==11)flags=0x21;
   clip=p->clips[next];break;
  case 0:case 6:case 7:clip=p->clips[next];break;
@@ -531,8 +531,8 @@ extern F D_002BFB04;
 extern U D_002A2DA0,D_002A2DC0;
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O*,int);
 qword LimitVectorLength(qword,float);
-qword func_001A62E8(struct O*);
-struct M3*func_001A6318(struct O*);
+qword GetLoWorldPos(struct O*);
+struct M3*GetLoWorldMatrix(struct O*);
 qword ConvertAloVec(struct O*,struct O*,qword);
 void SetJtHurtState(struct P*,int);
 static inline float Max(float a,float b){return a>b?a:b;}
@@ -597,10 +597,10 @@ void func_001A16C8(struct P*p){
             struct O*target=p->target;
             struct M3*basis;
             qword delta,local;
-            selfPosition.q=func_001A62E8(p->self);
-            targetPosition.q=func_001A62E8(target);
+            selfPosition.q=GetLoWorldPos(p->self);
+            targetPosition.q=GetLoWorldPos(target);
             {qword k=Word(-150.0f);scratch.q=k;negative.q=k;}
-            basis=func_001A6318(target);
+            basis=GetLoWorldMatrix(target);
             delta=Intercept(&selfPosition,&targetPosition,basis,&negative);
             local=ConvertAloVec(0,target,delta);
             if(Z(local)>0.0f)output.q=ConvertAloVec(target,0,D_002BFAE0.q);
@@ -617,8 +617,8 @@ void func_001A16C8(struct P*p){
                 scratch=basis->row[0];
             }else{
                 qword targetPoint;
-                otherPosition.q=func_001A62E8(p->self);
-                targetPoint=func_001A62E8(target);
+                otherPosition.q=GetLoWorldPos(p->self);
+                targetPoint=GetLoWorldPos(target);
                 scratch.q=Difference(&otherPosition,targetPoint);
             }
             scratch.bits[2]=0;
@@ -691,7 +691,7 @@ extern "C"{
  int CidBasic(P*);
  void*PsndStartSound(int);
  void SetSndSourceLo(void*,P*);
- qword func_001A62E8(P*);
+ qword GetLoWorldPos(P*);
  void*func_00156698(int,qword,P*);
 }
 static inline int Add32(int a,int b){return (int)((unsigned)a+(unsigned)b);}
@@ -813,7 +813,7 @@ notify:
  }
 sound:
  register G*game __asm__("$16")=&D_003DD490;
- qword point=func_001A62E8(p->actor);int channel=game->channel;
+ qword point=GetLoWorldPos(p->actor);int channel=game->channel;
  (void)func_00156698(channel,point,p->actor);
  return 1;
 }
@@ -1100,7 +1100,7 @@ struct HIT {L*target;int pad4;P*source;int tag,kind;char pad14[0xC];U point,dire
 struct MSG {int type;char pad4[0x1C];U position;};
 struct CLOCK {float time,dt;};
 extern "C" CLOCK D_002DDED0;
-extern "C" qword func_001A62E8(P*);
+extern "C" qword GetLoWorldPos(P*);
 extern "C" void*func_002333B4(void*,int,int) __asm__("memset");
 extern "C" P*func_001F7598(HIT*);
 extern "C" int func_001A2788(P*,L*,qword*);
@@ -1120,7 +1120,7 @@ extern "C" void func_001A2460(P*p){
  U point;
  int valid;
  if(p->link){
-  point.q=func_001A62E8(p);
+  point.q=GetLoWorldPos(p);
   point.f[2]+=p->height;
   if(p->mode==3||p->mode==10)point.f[2]-=10.0f;
   L*link=p->link;
@@ -1137,7 +1137,7 @@ extern "C" void func_001A2460(P*p){
    hit.source=p;
    hit.tag=p->link->tag;
    hit.kind=p->link->kind;
-   hit.point.q=func_001A62E8(p);
+   hit.point.q=GetLoWorldPos(p);
    hit.direction.q=Direction(p);
    (void)func_001F7598(&hit);
   }
@@ -1156,7 +1156,7 @@ extern "C" void func_001A2460(P*p){
   ENTRY*entry=&p->entries[i];
   if(D_002DDED0.time-entry->time<0.05f)continue;
   P*object=entry->object;
-  position.q=func_001A62E8(object);
+  position.q=GetLoWorldPos(object);
   void*frame=((void*(*)(void*,M4*))object->vt[32].fn)((char*)object+object->vt[32].delta,pbase);
   LoadIdentityMatrix4(frame,0,ppred,0,D_002DDED0.dt);
   predicted=__ml__FRC7MATRIX4T0(ppred,pbase);
@@ -1187,7 +1187,7 @@ struct O { char pad[0x1098]; float x1098; float x109C; };
 struct L { char pad[0xE0]; int xE0; };
 extern "C" {
 extern qword D_002A2DD0;
-qword func_001A62E8(void *p);
+qword GetLoWorldPos(void *p);
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 int func_001F7E08(L *pl, void *pfn, int n, void *pv);
 int ClsgClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
@@ -1206,7 +1206,7 @@ int func_001A2788(O *po, L *pl, qword *pv)
     HIT hit;
     off.q = D_002A2DD0;
     {
-        qword p = func_001A62E8(po);
+        qword p = GetLoWorldPos(po);
         qword d;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(p), "j"(off.q));
         a.q = d;
@@ -1252,7 +1252,7 @@ extern struct CLOCK D_002DDED0;
 int func_001A2788(struct P *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
 void func_002297F8(struct P *p,void *o);
-qword func_001A62E8(struct P *p);
+qword GetLoWorldPos(struct P *p);
 float GSmoothA__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
 void AddSoAcceleration(struct P *p,qword v);
 static inline qword GetVel(struct P *p) { return ((qword (*)(void *))p->vt[33].pfn)((char *)p+p->vt[33].d); }
@@ -1293,7 +1293,7 @@ void func_001A28B0(struct P *p,void *o)
   bcast.q=k;
   v=Scale(v,k);
   accel.q=v;
-  origin.q=func_001A62E8(p);
+  origin.q=GetLoWorldPos(p);
   clock=&D_002DDED0;
   GSmoothA__FffffP4SMPAPf(origin.f[2]+p->height10A0,vel.f[2]-dir.f[2],pos.f[2],clock->dt,&p->smp10A8,&z);
   g=(z-vel.f[2])/clock->dt-p->xE8->v80.f[2];

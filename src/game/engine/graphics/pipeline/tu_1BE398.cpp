@@ -84,8 +84,8 @@ int *D_002C0BF8[2] = {D_002C0B28, D_002C0B90};
 extern SW D_003DD490;
 extern "C" {
 extern V3 D_002C1F00,D_002C1F10;
-M3*func_001A6318(RTCAM*);
-qword func_001A62E8(RTCAM*);
+M3*GetLoWorldMatrix(RTCAM*);
+qword GetLoWorldPos(RTCAM*);
 qword*VECTOR_opAssign(qword*,qword);
 float tanf(float);
 void func_0014D8F8(M4*,M4*,M4*);
@@ -195,7 +195,7 @@ extern "C" void func_001BE6F0(RT*p,VIFS*v){
  float slope;
  if(!p->camera)return;
  object=p->camera->parent?p->camera->parent:p->camera;
- basis=func_001A6318(object);
+ basis=GetLoWorldMatrix(object);
  M4*pv=&view;
  axis0.q=basis->r[0];
  {qword neg=Bcast(-1.0f);
@@ -208,7 +208,7 @@ extern "C" void func_001BE6F0(RT*p,VIFS*v){
   minus2.q=nz;
   minus0.q=nx;
  }
- {qword position=func_001A62E8(object);
+ {qword position=GetLoWorldPos(object);
  VECTOR_opAssign(&view.r[3].q,position);}
  aspect=(float)p->dx;
  aspect/=(float)p->dy;

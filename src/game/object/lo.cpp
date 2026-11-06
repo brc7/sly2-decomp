@@ -25,7 +25,7 @@ extern MATRIX4 D_002A2D30;      /* identity */
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
 void FreeLoroot(LO *plo);
 void GetLoChildDl(SO *psoParent, DL **ppdl, LO **pploFirst);
-LORUN *PdcbAddLo(LO *plo);
+LORUN *AddLoDeferredCallback(LO *plo);
 void DeferLoRemoveCallback(LO *plo, void *pv);
 void *func_00210100(SW *psw);
 void func_00210268(SW *psw, LO *plo);
@@ -451,13 +451,13 @@ extern "C" void func_001A5B80(LO *plo, LO *ploRoot, int fRoot)
 
 /** @sly2-annot addr=0x1A5BE8
  * Purpose: LO vt28 default: no children (return 0)
- * Info: proposed name LO_CploChildren (T1); class LO slot28; TU lo
+ * Info: proposed name LO_GetChildren (T1); class LO slot28; TU lo
  * Notes: names_v2 v1 proposed GetLightDiffuse_Old__FP5LIGHTPf (0.002)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4_17F090
  * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" int LO_CploChildren()
+extern "C" int LO_GetChildren()
 {
     return 0;
 }
@@ -549,19 +549,19 @@ void DeferLoRemoveCallback(struct O *p) { struct VTE *e = &p->vt[9]; e->pfn((cha
  * @end-sly2-annot */
 extern "C" void DeferLoRemove(LO *plo)
 {
-    PdcbAddLo(plo)->pfn = DeferLoRemoveCallback;
+    AddLoDeferredCallback(plo)->pfn = DeferLoRemoveCallback;
 }
 
 /** @sly2-annot addr=0x1A5D58
  * Purpose: Alloc a 12-byte {pfn,arg,next} node from g_sw array (+0x39D0/+0x39D4 counter) and push on plo->x34
  *   list
- * Info: proposed name PdcbAddLo (T1); TU lo
+ * Info: proposed name AddLoDeferredCallback (T1); TU lo
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 /* A new deferred callback record on the object's list. */
-extern "C" LORUN *PdcbAddLo(LO *plo)
+extern "C" LORUN *AddLoDeferredCallback(LO *plo)
 {
     LORUN *plorun = (LORUN *)func_00210100(&D_003DD490);
     plorun->plorunNext = plo->plorunFirst;
@@ -658,7 +658,7 @@ extern "C" void RenderLoSelf()
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 /* default (empty) virtual */
-extern "C" void func_001A5EE0()
+extern "C" void RenderLoAll()
 {
 }
 
@@ -784,7 +784,7 @@ extern "C" void RotateLoToMat()
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 /* LO GetVelocity default: zero. */
-extern "C" qword func_001A6120()
+extern "C" qword GetLoVelocity()
 {
     return D_002A2DD0;
 }
@@ -796,7 +796,7 @@ extern "C" qword func_001A6120()
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 /* default (empty) virtual */
-extern "C" void func_001A6130()
+extern "C" void SetLoVelocity()
 {
 }
 
@@ -963,12 +963,12 @@ int FMatchesLoName(struct S *p, int b)
 
 /** @sly2-annot addr=0x1A62D8
  * Purpose: LO vt31 default: return static identity D_002A2D30
- * Info: proposed name LO_PmatWorld (T1); class LO slot31; TU lo
+ * Info: proposed name LO_GetWorldMatrix (T1); class LO slot31; TU lo
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" MATRIX4 *LO_PmatWorld()
+extern "C" MATRIX4 *LO_GetWorldMatrix()
 {
     return &D_002A2D30;
 }
@@ -981,7 +981,7 @@ extern "C" MATRIX4 *LO_PmatWorld()
  *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
 /* The object's world position (row 3 of its world matrix). */
-extern "C" qword func_001A62E8(LO *plo)
+extern "C" qword GetLoWorldPos(LO *plo)
 {
     return ((qword *)plo->PmatWorld())[3];
 }
@@ -994,7 +994,7 @@ extern "C" qword func_001A62E8(LO *plo)
  * See: docs/engine/object-model.md#7-xfm-and-transform-helpers, docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" void func_001A6318(LO *plo)
+extern "C" void GetLoWorldMatrix(LO *plo)
 {
     plo->PmatWorld();
 }
@@ -1011,7 +1011,7 @@ static __inline__ qword Make(float x, float y, float z)
             : "=&r"(q), "=&r"(t) : "f"(x), "f"(y), "f"(z));
     return q;
 }
-extern void *func_001A6318(void);
+extern void *GetLoWorldMatrix(void);
 extern qword func_0011BFF0(void *p);
 /** @sly2-annot addr=0x1A6340
  * Purpose: Decompose PmatLoWorld into Euler angles (0x11BFF0) and convert rad->deg (57.2958)
@@ -1022,7 +1022,7 @@ extern qword func_0011BFF0(void *p);
 qword func_001A6340(void)
 {
     union { qword q; float f; } r;
-    qword v = func_0011BFF0(func_001A6318());
+    qword v = func_0011BFF0(GetLoWorldMatrix());
     r.q = Make(GetX(v) * 57.2957763671875f, GetY(v) * 57.2957763671875f, GetZ(v) * 57.2957763671875f);
     return r.q;
 }
@@ -1386,7 +1386,7 @@ struct M *func_001A6B30(void *unused, struct M *pm)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" void func_001A6B88(LO *plo, LO *ploOther)
+extern "C" void MoveLoToObject(LO *plo, LO *ploOther)
 {
     SetLoXfFromMat(plo, ploOther->PmatWorld());
 }
@@ -1397,7 +1397,7 @@ extern "C" void func_001A6B88(LO *plo, LO *ploOther)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" void func_001A6BC8(LO *plo, XF *pxf)
+extern "C" void SetLoTransformFromXf(LO *plo, XF *pxf)
 {
     SetLoXfFromMat(plo, &pxf->matWorld);
 }
@@ -1440,7 +1440,7 @@ void func_001A6C48(struct S *p, float g)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" int func_001A6C90(LO *plo)
+extern "C" int GetLoBusyk(LO *plo)
 {
     return plo->busyk;
 }
@@ -1528,7 +1528,7 @@ void func_001A6D28(struct O *p, int b)
  * See: docs/engine/object-model.md#2-the-lo-virtual-interface,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" void func_001A6DC0(LO *plo, uchar grfvis)
+extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
 {
     plo->grfvis = grfvis;
 }
@@ -1612,7 +1612,7 @@ void func_001A6E80(struct S *p, int f)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
-extern "C" int func_001A6EE8()
+extern "C" int LO_Slot43Default()
 {
     return 0;
 }
@@ -1624,7 +1624,7 @@ extern "C" int func_001A6EE8()
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 /* default (empty) virtual */
-extern "C" void func_001A6EF0()
+extern "C" void LO_Slot44Default()
 {
 }
 
@@ -1635,7 +1635,7 @@ extern "C" void func_001A6EF0()
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 /* default (empty) virtual */
-extern "C" void func_001A6EF8()
+extern "C" void LO_Slot45Default()
 {
 }
 
@@ -1674,7 +1674,7 @@ qword ConvertAloPos(struct LO *a, struct LO *b, qword v)
 namespace M_ConvertAloVec { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[3]; } M3;
-M3 *func_001A6318(void *p);
+M3 *GetLoWorldMatrix(void *p);
 void InvertMatrix3Cofactor(M3 *pm, M3 *pn);
 /** @sly2-annot addr=0x1A6FC0
  * Purpose: Same for direction vectors (rotation only, M3)
@@ -1686,13 +1686,13 @@ void InvertMatrix3Cofactor(M3 *pm, M3 *pn);
 qword ConvertAloVec(void *a, void *b, qword v)
 {
     if (a) {
-        M3 *pm = func_001A6318(a);
+        M3 *pm = GetLoWorldMatrix(a);
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
                 : "=j"(v) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]));
     }
     if (b) {
         M3 m;
-        InvertMatrix3Cofactor(&m, func_001A6318(b));
+        InvertMatrix3Cofactor(&m, GetLoWorldMatrix(b));
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
                 : "=j"(v) : "j"(v), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
     }
@@ -1703,7 +1703,7 @@ qword ConvertAloVec(void *a, void *b, qword v)
 namespace M_ConvertAloMat {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
-extern "C" M3 *func_001A6318(void *p);
+extern "C" M3 *GetLoWorldMatrix(void *p);
 extern "C" M3 InvertMatrix3Cofactor(const M3 *b);
 static inline M3 Mul(const M3 &a, const M3 &b) return r
 {
@@ -1724,10 +1724,10 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
 extern "C" M3 ConvertAloMat(void *a, void *b, const M3 *m)
 {
     M3 result;
-    if (a) result = Mul(*func_001A6318(a), *m);
+    if (a) result = Mul(*GetLoWorldMatrix(a), *m);
     else result = *m;
     if (b) {
-        result = Mul(InvertMatrix3Cofactor(func_001A6318(b)), result);
+        result = Mul(InvertMatrix3Cofactor(GetLoWorldMatrix(b)), result);
     }
     return result;
 }

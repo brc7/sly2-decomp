@@ -4068,7 +4068,7 @@ struct S {char pad[0x24]; O *owner; int enabled;};
 extern "C" M23 D_002A3A10;
 struct G;
 extern "C" G D_002DDF40;
-extern "C" qword func_001A62E8(void *);
+extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
 extern "C" void func_002183E8(S *,int,M23 *,float,const RGBA &,const RGBA &);
 static inline float GetX(qword q) {float f; __asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
@@ -4095,7 +4095,7 @@ extern "C" void func_00218220(S *p,float dt) {
     if(p->enabled) {
         M23 m=D_002A3A10;
         if(p->owner->follow) {
-            qword pos=func_001A62E8(p->owner->follow); qword q=ConvertCmWorldToScreen(&D_002DDF40,pos);
+            qword pos=GetLoWorldPos(p->owner->follow); qword q=ConvertCmWorldToScreen(&D_002DDF40,pos);
             m.a[4] = GetX(q)*320.0f+320.0f;
             m.a[5] = GetY(q)*-246.40001f+246.40001f;
         }

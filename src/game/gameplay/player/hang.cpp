@@ -62,8 +62,8 @@ typedef char assert_JT_response[(uint)&((JT *)0)->response == 0x1910 ? 1 : -1];
 typedef char assert_JT_x1a00[(uint)&((JT *)0)->x1a00 == 0x1A00 ? 1 : -1];
 
 extern "C"{
-qword func_001A62E8(void*);
-M4*func_001A6318(void*);
+qword GetLoWorldPos(void*);
+M4*GetLoWorldMatrix(void*);
 qword GetXfVelocity(void*,void*,qword);
 float func_0011E290(qword,qword,qword*,qword*);
 float GSmoothA__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
@@ -193,7 +193,7 @@ extern "C" void AnticipateJtForce(NODE*p,NODE*other,qword*point,float*input,DELT
  DELTA effects[2][3];U velocity[2];U relative[3];
  float matrix[3][3],decomposed[3][3],rhs[3],weights[3];qword scalar;
  objects[0].p=p;objects[1].p=other;
- StoreQ(&points[0],func_001A62E8(p));StoreQ(&points[1],*point);
+ StoreQ(&points[0],GetLoWorldPos(p));StoreQ(&points[1],*point);
  
  for(;axisIndex<3;axisIndex++){
   for(side=0;side<2;side++){
@@ -266,10 +266,10 @@ static inline qword QwAddScaled2Q(qword base,qword a,qword b,qword k){qword r;__
  * @end-sly2-annot */
 extern "C" void CalculateJtHangAccel__FP2JT(JT*p){
  U anchor,displacement,anchorVelocity,axis;
- anchor.q=func_001A62E8(p->target);
- M3 anchorBasis=*(M3*)func_001A6318(p->target);
+ anchor.q=GetLoWorldPos(p->target);
+ M3 anchorBasis=*(M3*)GetLoWorldMatrix(p->target);
  anchorVelocity.q=GetXfVelocity(Space(p->target),0,anchor.q);
- axis.q=VuSubRef(func_001A62E8(p),anchor.q);
+ axis.q=VuSubRef(GetLoWorldPos(p),anchor.q);
  displacement=axis;
  qword length=NormalizeAt(&axis,&D_002A2DC0);
  float distance=GXOfVf(length);
@@ -314,7 +314,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT*p){
   base=anchorVelocity.q; /* empty asm: the dt bits as a GPR qword (target lw; sq, no qmtc2). The "V" alternative is allocation-only (never chosen: the operand is offsettable), it keeps the MEM in the asm so reload loads it straight into the output reg */
   qword point=anchor.q,spin=D_002A2DD0.q;
   state.direction=D_002A2DD0;state.position=D_002A2DD0;state.velocity.q=dt;
-  qword arm=VuSubRef(point,func_001A62E8(object));
+  qword arm=VuSubRef(point,GetLoWorldPos(object));
   velocity.q=QwAddScaled2Q(base,spin,QwCross(spin,arm),dt);
  }else velocity=anchorVelocity;
  state.rotation=func_0011B570(QwScaleX(VuAdd(angularFirst.q,angular.q),VuFloat(Addr(&D_002DDED0)->dt*0.5f)));
@@ -352,9 +352,9 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *p)
     M3P m1, m2, m;
     AddSoAcceleration(p, p->response[0].first.q);
     qword a;
-    __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(func_001A62E8(p->target)));
+    __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(GetLoWorldPos(p->target)));
     v.q = a;
-    a = VuSub(a, func_001A62E8(p));
+    a = VuSub(a, GetLoWorldPos(p));
     d.q = a;
     m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0.q, a);
     m2 = func_0011B500(D_002A2DC0.q, p->angle);
@@ -437,9 +437,9 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
  float inputDifference=RadNormalize__Ff(p->input->angle-p->angle);
  if(p->input->amount>0.3f){float d=Abs(inputDifference);if(d<1.0471975803375244140625f){near=1;p->farTime=D_002DDED0.t;}else if(d>2.094395160675048828125f){far=1;p->farTime=D_002DDED0.t;}}
  else p->previous=-1;
- w.reference.q=func_001A62E8(p->target);register JT*receiver __asm__("$4");
+ w.reference.q=GetLoWorldPos(p->target);register JT*receiver __asm__("$4");
  __asm__("sq %2,%1\n\tdaddu %0,%3,$zero" : "=r"(receiver),"=m"(w.target.q) : "r"(w.reference.q),"r"(p));
- register qword positionBits __asm__("$2")=func_001A62E8(receiver);
+ register qword positionBits __asm__("$2")=GetLoWorldPos(receiver);
  register qword position __asm__("vf2"),targetVector __asm__("vf1");
  register float epsilon __asm__("$f1");const uint epsilonBits=0x38D1B717;
  __asm__(".set noat\n\tqmtc2.ni %3,%0\n\tlui $1,%4\n\tori $1,$1,%5\n\tmtc1 $1,%2\n\tlqc2 %1,%6\n\t.set at"
@@ -575,7 +575,7 @@ extern "C" qword func_00190C58(JT *p)
     register int lengthBits __asm__("$3");
     UF s;
     float g;
-    q = func_001A62E8(p->target);
+    q = GetLoWorldPos(p->target);
     d = VuSub(q, p->x19cc->m40.r[3].q);
     {
         register const qword *address __asm__("$2") = &D_002A2DC0.q;
@@ -616,7 +616,7 @@ extern "C" void func_00190D10(JT *p)
     int n;
 
     a = VuAdd(func_00190C58(p), p->x1960);
-    b = func_001A62E8(p->x19a4);
+    b = GetLoWorldPos(p->x19a4);
     d = VuSub(a, b);
     a = ConvertXfVec(0, p->x19c4->xa0, d);
     t = p->x19c4;
@@ -644,7 +644,7 @@ extern "C" void func_00190D10(JT *p)
 extern "C" void UpdateJtHangIkGoals__FP2JT(JT *p)
 {
     M3P m;
-    qword d = VuSub(func_001A62E8(p->target), p->x19cc->m40.r[3].q);
+    qword d = VuSub(GetLoWorldPos(p->target), p->x19cc->m40.r[3].q);
     qword q = ConvertXfVec(0, p->x19c0->xa0, d);
     m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), func_0011B500(D_002A2DA0.q, D_002BF594));
     SetActPositionGoal(p->x1a00, func_0011BFF0(&m));

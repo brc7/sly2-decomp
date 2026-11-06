@@ -23,9 +23,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Declarations of UpdateCptn (ported from Lilly's personal Sly 2 decomp, src/P2/cplcy.c), used by the whole TU. */
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
-qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
+qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
 extern "C" qword ConvertAloVec(LO *ploFrom, LO *ploTo, qword qwVec);
-MATRIX4 *PmatLoWorld(LO *plo) __asm__("func_001A6318");
+MATRIX4 *PmatLoWorld(LO *plo) __asm__("GetLoWorldMatrix");
 void DecomposeRotateMatrixPanTilt(MATRIX3 *pmat, float *pradPan, float *pradTilt);
 static inline float GEvaluateClq(CLQ *pclq, float x)
 {
@@ -452,7 +452,7 @@ void CloneXfm(TN *p);
 void SetCmPolicy(CM *pcm, int nPriority, CMPART2 *pcplcy, LO *plo, TN *ptn);
 void RevokeCmPolicy(CM *pcm, int a, int b, int c, int d, TN *ptn);
 POX *PpoCur(SW *psw);
-qword func_001A62E8(void *plo);
+qword GetLoWorldPos(void *plo);
 qword ConvertAloPos(void *source, void *p, qword q);
 BSP *PbspPointInBspQuick(BSP *p, unsigned int limit, qword v);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
@@ -462,7 +462,7 @@ void EvaluateShapeS(SHAPE *pshape, float t, qword *ppos, qword *pnormal);
 M3 BuildOrthonormalMatrixZ(qword, qword);
 qword SetVectorCylind(float, float, float);
 void GetVectorCylind(qword, float *, float *, float *);
-M3 *func_001A6318(TN *p);
+M3 *GetLoWorldMatrix(TN *p);
 float fmodf(float, float);
 void CPLCY_ctor(CMPART2 *p);
 void InitCplcy(CMPART2 *p);
@@ -733,7 +733,7 @@ void UpdateTnCallback(TN *p)
     }
     int initial=p->tnsWant;
     int sentinel=AutomaticSentinel();
-    if(initial==sentinel) f=PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, func_001A62E8(po))) != 0;
+    if(initial==sentinel) f=PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, GetLoWorldPos(po))) != 0;
     else f=initial;
     if (p->nUnk124) goto set;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) goto set;
@@ -811,7 +811,7 @@ void func_00221408(TN *p,qword v,qword *out,qword *normal) {
         m=BuildOrthonormalMatrixZ(*normal,D_002A2DC0q);
         *out=InverseRotate(m,Sub(v,pos.q));
     } else {
-        *normal=Normalize(func_001A6318(p)->r[0]);
+        *normal=Normalize(GetLoWorldMatrix(p)->r[0]);
         *out=ConvertAloPos(0,p,v);
     }
 }
@@ -1766,7 +1766,7 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
     aqw[0] = aqw[1] = *(qword *)&D_002DDF40.pos;
     qword qwUp = D_002A2DC0q;
     aqw[10] = qwUp;
-    qword qwToHero = QwSub(func_001A62E8(plo), *(qword *)&D_002DDF40.pos);
+    qword qwToHero = QwSub(GetLoWorldPos(plo), *(qword *)&D_002DDF40.pos);
     qword qwCross = QwCross(qwUp, qwToHero);
     qword qwFallback = D_002A2DA0;
     qword qwLen = QwLengthUntied(qwCross);
@@ -1784,7 +1784,7 @@ extern "C" void func_002236E8(CMPART2 *pcmpart)
     qword *pqw; // the current sample
     for (i = 0; i < 5; i++)
     {
-        qword pos = QwAdd(func_001A62E8(plo), QwAxesXyz(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
+        qword pos = QwAdd(GetLoWorldPos(plo), QwAxesXyz(D_002C4290[i], aqw[8], aqw[9], aqw[10]));
         aqw[0] = QwMiniXyz(aqw[0], pos);
         aqw[1] = QwMaxXyz(aqw[0], pos);
         pqw = &aqw[3 + i];
@@ -1863,11 +1863,11 @@ extern "C" void func_00223A70(CAMS *p,qword begin,qword end,qword *out){
     qword final;
     float initialAngle=0.0f;
     float one=1.0f;
-    w.minimum.q=Min(begin,Min(end,func_001A62E8(object)));
-    w.maximum.q=Max(begin,Max(end,func_001A62E8(object)));
+    w.minimum.q=Min(begin,Min(end,GetLoWorldPos(object)));
+    w.maximum.q=Max(begin,Max(end,GetLoWorldPos(object)));
     IntersectSwBoundingBox(&D_003DD490,w.minimum.q,w.maximum.q,FFilterCamera,0,&w.count,&w.objects);
     int count=w.count; SOPART **objects=w.objects;
-    w.origin.q=FindCmClosestClearPos(count,objects,func_001A62E8(object),500.0f);
+    w.origin.q=FindCmClosestClearPos(count,objects,GetLoWorldPos(object),500.0f);
     FFindCmClearInterval(w.count,w.objects,w.origin.q,end,initialAngle,&w.low,&w.high);
     if(w.high<one){
         float angle=initialAngle;

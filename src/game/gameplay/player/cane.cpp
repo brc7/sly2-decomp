@@ -106,18 +106,18 @@ extern int D_002BF448[24];
 void*D_002E1E44;void*D_002E1E48;   // cane's .bss
 void HideSoPart(JT*,ACTION*);void func_001F4BF8(JT*);void func_001CCAC0(void*,int);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
-qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
+qword GetLoWorldPos(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int IsmsFindSmOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void func_00131A90(ASEGA*,float);
 }
-static __inline__ void Emit(JT*p,int id){if(id!=-1){EFFECT*effect=PsndStartSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,func_001A62E8(p));}}
+static __inline__ void Emit(JT*p,int id){if(id!=-1){EFFECT*effect=PsndStartSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,GetLoWorldPos(p));}}
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static __inline__ void Link(NODE*p,NODE*other){VE&v=p->vt[38];((void(*)(void*,NODE*))v.fn)((char*)p+v.delta,other);}
 static __inline__ void Inactive(NODE*p){VE&v=p->vt[9];((void(*)(void*))v.fn)((char*)p+v.delta);}
 
 extern "C" {
-qword func_001A62E8(void *);
+qword GetLoWorldPos(void *);
 qword ConvertAloPos(void *, void *, qword);
 float atan2f(float, float);
 float RadNormalize__Ff(float);
@@ -180,7 +180,7 @@ extern "C" void SetJtJtcs__FP2JTi(JT*p,int state){
 
  case 3:{
   WORK work;
-  register qword first __asm__("$2")=ConvertAloPos(0,p,func_001A62E8(p->pointObject));
+  register qword first __asm__("$2")=ConvertAloPos(0,p,GetLoWorldPos(p->pointObject));
   register POINT*point __asm__("$3");register void*world __asm__("$4");register JT*receiver __asm__("$5");
   __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero":"=r"(point),"=r"(world),"=r"(receiver),"=m"(work.first.q):"m"(p->point),"r"(first),"r"(p));
   register qword second __asm__("$2")=ConvertAloPos(world,receiver,point->position.q);
@@ -422,7 +422,7 @@ extern "C" int FJtSweepBack(JT *p)
     qword a, b, s, d;
     float t;
     int f;
-    a = ConvertAloPos(0, p, func_001A62E8(p->pointObject));
+    a = ConvertAloPos(0, p, GetLoWorldPos(p->pointObject));
     b = ConvertAloPos(0, p, p->point->position.q);
     t = 0.5f;
     s = VuFromFloat<qword>(t);
@@ -450,7 +450,7 @@ extern "C" int func_0018EE38(JT *p)
         qword d, l;
         float g;
         int f;
-        d = VuSub(func_001A62E8(p->p10dc), func_001A62E8(p));
+        d = VuSub(GetLoWorldPos(p->p10dc), GetLoWorldPos(p));
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(l) : "j"(d));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
         g = VuToFloat(l);
@@ -626,7 +626,7 @@ extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtI
  qword position;
  qword early=QwFromF(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
  rotation=func_0011B500(D_002A2DC0,headingInput);
- position=func_001A62E8(p);
+ position=GetLoWorldPos(p);
  VU_FLOAT scalar=VuFloatBits(dt);
  origin.q=AddScaled(position,GetVelocity(p),scalar);
  reference.q=ConvertAloPos(p,0,offset->q);
@@ -636,14 +636,14 @@ extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtI
   struct{U hdr;M4 m;}fx;
   float t,distance;
   if(!(node->flags&mask))continue;
-  candidate.q=func_001A62E8(node);
+  candidate.q=GetLoWorldPos(node);
   void*owner=GetFrame(node,&fx.m);
   LoadIdentityMatrix4(owner,0,&prediction,dt,0);
   FindClosestPointOnLineSegment(target.q,candidate.q,Transform(prediction,fx.m.r[3].q),0,&t,&distance);
   if(IsBonus(node))distance+=D_002BF4B8;
   if(distance<nearest){
    qword other=candidate.q;
-   U scratch;scratch.q=VuSubRef(other,func_001A62E8(p));
+   U scratch;scratch.q=VuSubRef(other,GetLoWorldPos(p));
    float angle=AbsF(RadNormalize__Ff(atan2f(scratch.f[1],scratch.f[0])-heading));
    if(cone<angle)continue;
    best=node;nearest=distance;
