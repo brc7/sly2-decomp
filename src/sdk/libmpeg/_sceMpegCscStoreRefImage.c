@@ -19,7 +19,7 @@ int func_00234740(int ch, int (*h)(int, void *), int next, void *arg);
 int func_00234750(int ch, int id);
 int func_00235248(int ch);
 int func_002351E0(int ch);
-void s1_FlushCache(int);
+void FlushCache(int);
 int func_00239450(void);
 int func_002394A0(void);
 int _sceMpegDispatchMpegCallback(void *mp, CB *cb);
@@ -83,7 +83,7 @@ void _sceMpegCscStoreRefImage(D *d, P *p)
     ipuCmd(d, 0);
     while (RS(0x10002010) < 0)
         ;
-    s1_FlushCache(0);
+    FlushCache(0);
     st.addr = p->addr & 0x0FFFFFFF;
     st.size = n * 0x18;
     if (st.size > 0xFFFF) {

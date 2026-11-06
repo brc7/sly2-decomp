@@ -2,13 +2,13 @@
 __asm__(
     ".set noreorder\n"
     ".text\n"
-    ".globl s1_FlushCache\n"
-    ".ent s1_FlushCache\n"
-    "s1_FlushCache:\n"
+    ".globl FlushCache\n"
+    ".ent FlushCache\n"
+    "FlushCache:\n"
     "addiu $3, $0, 100\n"
     "syscall\n"
     "jr $31\n"
     "nop\n"
-    ".end s1_FlushCache\n"
+    ".end FlushCache\n"
     ".set reorder\n"
 );

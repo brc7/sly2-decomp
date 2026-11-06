@@ -2,7 +2,7 @@
 // SLY2_CFLAGS: -O2 -G0
 typedef int u_long128 __attribute__((mode(TI)));
 extern u_long128 D_002C66C0, D_002C66D0;
-void s1_sceGsResetPath(void)
+void sceGsResetPath(void)
 {
     int tmp;
     *(volatile int *)0x10003C10 = 1;

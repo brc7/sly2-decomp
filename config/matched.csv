@@ -5948,11 +5948,11 @@ SetupThread,0x2349E0,4,match,src/sdk/libkernel/syscall/SetupThread.c
 SetupHeap,0x2349F0,4,match,src/sdk/libkernel/syscall/SetupHeap.c
 EndOfHeap,0x234A00,4,match,src/sdk/libkernel/syscall/EndOfHeap.c
 RFU063,0x234A10,4,match,src/sdk/libkernel/syscall/RFU063.c
-s1_CreateSema,0x234A20,4,match,src/sdk/libkernel/syscall/s1_CreateSema.c
+CreateSema,0x234A20,4,match,src/sdk/libkernel/syscall/s1_CreateSema.c
 func_00234A30,0x234A30,4,match,src/sdk/libkernel/syscall/func_00234A30.c
-s1_SignalSema,0x234A40,4,match,src/sdk/libkernel/syscall/s1_SignalSema.c
+SignalSema,0x234A40,4,match,src/sdk/libkernel/syscall/s1_SignalSema.c
 func_00234A50,0x234A50,4,match,src/sdk/libkernel/syscall/func_00234A50.c
-s1_WaitSema,0x234A60,4,match,src/sdk/libkernel/syscall/s1_WaitSema.c
+WaitSema,0x234A60,4,match,src/sdk/libkernel/syscall/s1_WaitSema.c
 func_00234A70,0x234A70,4,match,src/sdk/libkernel/syscall/func_00234A70.c
 iPollSema,0x234A80,4,match,src/sdk/libkernel/syscall/iPollSema.c
 ReferSemaStatus,0x234A90,4,match,src/sdk/libkernel/syscall/ReferSemaStatus.c
@@ -5988,7 +5988,7 @@ KSeg0,0x234C60,4,match,src/sdk/libkernel/syscall/KSeg0.c
 EnableCache,0x234C70,4,match,src/sdk/libkernel/syscall/EnableCache.c
 DisableCache,0x234C80,4,match,src/sdk/libkernel/syscall/DisableCache.c
 GetCop0,0x234C90,4,match,src/sdk/libkernel/syscall/GetCop0.c
-s1_FlushCache,0x234CA0,4,match,src/sdk/libkernel/syscall/s1_FlushCache.c
+FlushCache,0x234CA0,4,match,src/sdk/libkernel/syscall/s1_FlushCache.c
 CpuConfig,0x234CB0,4,match,src/sdk/libkernel/syscall/CpuConfig.c
 iGetCop0,0x234CC0,4,match,src/sdk/libkernel/syscall/iGetCop0.c
 iFlushCache,0x234CD0,4,match,src/sdk/libkernel/syscall/iFlushCache.c
@@ -6234,7 +6234,7 @@ fde_split,0x240050,93,match,src/sdk/libgcc/fde_split.c
 func_002401C8,0x2401C8,3,match,src/sdk/libc/func_002401C8.c
 func_002401D8,0x2401D8,83,match,src/sdk/libc/func_002401D8.c
 func_00240328,0x240328,4,match,src/sdk/libc/func_00240328.c
-s1_sceGsResetPath,0x240338,40,match,src/sdk/libgraph/s1_sceGsResetPath.c
+sceGsResetPath,0x240338,40,match,src/sdk/libgraph/s1_sceGsResetPath.c
 sceGsSyncPath,0x2403D8,34,match,src/sdk/libgraph/sceGsSyncPath.c
 sceGsResetGraph,0x240460,100,match,src/sdk/libgraph/sceGsResetGraph.c
 func_002405F0,0x2405F0,3,match,src/sdk/libgraph/func_002405F0.c

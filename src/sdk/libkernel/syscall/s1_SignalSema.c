@@ -2,13 +2,13 @@
 __asm__(
     ".set noreorder\n"
     ".text\n"
-    ".globl s1_SignalSema\n"
-    ".ent s1_SignalSema\n"
-    "s1_SignalSema:\n"
+    ".globl SignalSema\n"
+    ".ent SignalSema\n"
+    "SignalSema:\n"
     "addiu $3, $0, 66\n"
     "syscall\n"
     "jr $31\n"
     "nop\n"
-    ".end s1_SignalSema\n"
+    ".end SignalSema\n"
     ".set reorder\n"
 );
