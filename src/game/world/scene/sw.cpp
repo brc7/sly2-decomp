@@ -713,7 +713,7 @@ namespace M_PostSwLoad { extern "C" {
 struct VE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VE *vt; };
 struct S {
-    char pad0[0x39D0]; int callbackCount; int pad39D4; int callbackIndex; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* (inferred) the deferred-callback array state */
+    char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
     char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
     char pad2[0x45CC - 0x408C]; void *unknown45CC;
 };
@@ -771,8 +771,8 @@ void PostSwLoad(struct S *world)
     }
     world->ppoLast = 0;
     world->ppoFirst = 0;
-    world->callbackIndex = 0;
-    world->callbackCount = 0;
+    world->loadBuffer1 = 0;
+    world->loadBuffer0 = 0;
     func_001C1260(world->unknown45CC);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
