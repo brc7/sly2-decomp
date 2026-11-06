@@ -28,6 +28,9 @@
 #include "sly2/scrap.h"
 #include "player_input.h"
 
+// Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
+static inline JT *AsJt(void *p) { return (JT *)p; }
+
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
 static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
@@ -658,7 +661,7 @@ void PostJtLoad(char *p)
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, A(0x2014), 0, 0, 0, A(0x2038));
     F(int, 0x1804) = F(int, 0x19A4);
     InitJtHands__FP7JTHANDSP2SOPP5ASEGA(A(0x17D0), p, A(0x18E0));
-    SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+    SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
     SetLoBusyk(p, 1);
     if (F(int, 0x1D24))
         F(int, 0x1D28) = func_001F0380(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
@@ -966,8 +969,8 @@ void HandleJtMessage(char *p, int msg, void *pv)
     HandleStepplayerMessage(p, msg, pv);
     switch (msg) {
     case 3:
-        if (pv == F(void *, 0x18E0)) {
-            if (F(int, 0x18D8) == 10)
+        if (pv == AsJt(p)->janim.pasega) {
+            if (AsJt(p)->jtas == 10)
                 SetJtCaneState__FP2JTi(p, 2);
             else
                 SetJtCaneState__FP2JTi(p, -1);
@@ -975,15 +978,15 @@ void HandleJtMessage(char *p, int msg, void *pv)
         }
         if (pv != F(void *, 0x1030))
             break;
-        switch (F(int, 0x18C8)) {
+        switch (AsJt(p)->jts) {
         case 9:
-        case 0xB: SetJtState__FP2JT3JTS4JTBS(p, 0, -1); break;
-        case 7:
-        case 0x15: F(int, 0x1038) = -1; break;
+        case JTS_Pickpocket: SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1); break;
+        case JTS_Grab:
+        case JTS_SurfaceClimb: F(int, 0x1038) = -1; break;
         case 5:
 
-            if (F(int, 0x18D0) < 10) {
-                if (F(int, 0x18D0) >= 8)
+            if (AsJt(p)->jtbs < 10) {
+                if (AsJt(p)->jtbs >= 8)
                     SetJtState__FP2JT3JTS4JTBS(p, 5, 4);
             }
 
@@ -993,16 +996,16 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 9: {
         MSG9 *pm = (MSG9 *)pv;
         void *x = pm->x0;
-        if (x == F(void *, 0x1030) || x == F(void *, 0x18E0) || (F(O1034 *, 0x1034) && x == F(O1034 *, 0x1034)->x30)) {
+        if (x == F(void *, 0x1030) || x == AsJt(p)->janim.pasega || (F(O1034 *, 0x1034) && x == F(O1034 *, 0x1034)->x30)) {
             switch (pm->x8) {
-            case 0x16E: func_00131B10(F(void *, 0x18E0), p, F(int, 0x10B8)); break;
-            case 0x16F: func_00131B60(F(void *, 0x18E0), p, 3, D_002BF2A0); break;
-            case 0x170: func_00131B60(F(void *, 0x18E0), p, 3, D_002BF2B8); break;
-            case 0x164: F(int, 0x18E4) = 1; break;
-            case 0x166: F(int, 0x18E8) = 1; break;
+            case 0x16E: func_00131B10(AsJt(p)->janim.pasega, p, F(int, 0x10B8)); break;
+            case 0x16F: func_00131B60(AsJt(p)->janim.pasega, p, 3, D_002BF2A0); break;
+            case 0x170: func_00131B60(AsJt(p)->janim.pasega, p, 3, D_002BF2B8); break;
+            case 0x164: AsJt(p)->janim.fInputOpen = 1; break;
+            case 0x166: AsJt(p)->janim.fLandAlt = 1; break;
             case 0x165:
                 if (F(int, 0x18EC)) {
-                    switch (F(int, 0x18D8)) {
+                    switch (AsJt(p)->jtas) {
                     case 0xC:
                     case 0xE:
                     case 0x10:
@@ -1017,8 +1020,8 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 }
                 break;
             case 0x167:
-                if (F(void *, 0x10DC) && F(int, 0x1BD4)) {
-                    void *object = PickpocketStepguard(F(void *, 0x10DC), func_001A62E8(p));
+                if (AsJt(p)->ploInteract && F(int, 0x1BD4)) {
+                    void *object = PickpocketStepguard(AsJt(p)->ploInteract, func_001A62E8(p));
                     if (object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) &&
                         !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
                         int oid = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
@@ -1037,13 +1040,13 @@ void HandleJtMessage(char *p, int msg, void *pv)
                     struct VTE *e = &F(struct VTE *, 0xC)[35];
                     ((void (*)(void *, qword))e->pfn)(p + e->d, F(qword, 0x190));
                 }
-                px = func_00205458(F(void *, 0x10DC), 0xB1);
+                px = func_00205458(AsJt(p)->ploInteract, 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 4);
                 break;
             }
             case 0x174: {
-                void *px = func_00205458(F(void *, 0x10DC), 0xB1);
+                void *px = func_00205458(AsJt(p)->ploInteract, 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 6);
                 break;
@@ -1056,15 +1059,15 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 1: {
         E *pe;
         int i;
-        switch (F(int, 0x18C8)) {
-        case 3:
-        case 0x16:
-            if (F(void *, 0x18C4) == pv)
+        switch (AsJt(p)->jts) {
+        case JTS_Hang:
+        case JTS_HangFollow:
+            if (AsJt(p)->phndHang == pv)
                 SetJtAirJump(A(0x2C0), 0, 0, 0);
             break;
-        case 7:
-            if (F(int, 0x4C8) < 5) {
-                if (F(int, 0x4C8) >= 3 && F(void *, 0x4D4) == pv)
+        case JTS_Grab:
+            if (AsJt(p)->jtgrab.nState < 5) {
+                if (AsJt(p)->jtgrab.nState >= 3 && AsJt(p)->jtgrab.plo == pv)
                     SetJtAirJump(A(0x2C0), 0, 0, 0);
             }
             break;
@@ -1085,7 +1088,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
             break;
         k = pm->x8->xC;
         if (k & 2) {
-            switch (F(int, 0x18D8)) {
+            switch (AsJt(p)->jtas) {
             case 4:
             case 6:
             case 0xC:
@@ -1093,7 +1096,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
             case 0x10:
             case 0x12:
             case 0x14:
-                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+                SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
                 SetJtCaneState__FP2JTi(p, 8);
                 break;
             case 5:
@@ -1103,12 +1106,12 @@ void HandleJtMessage(char *p, int msg, void *pv)
             case 0x11:
             case 0x13:
             case 0x15:
-                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+                SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
                 SetJtCaneState__FP2JTi(p, 9);
                 break;
             }
         } else if (k & 4) {
-            SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+            SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
             SetJtCaneState__FP2JTi(p, 8);
         }
         break;
@@ -3117,8 +3120,8 @@ void UpdateJt(char *p)
         return;
     if (F(void *, 0x150))
         UpdateJtPre(p);
-    switch (F(int, 0x18C8)) {
-    case 1: {
+    switch (AsJt(p)->jts) {
+    case JTS_Run: {
         qword s, motion;
         func_00204660(p, F(struct X150 *, 0x150)->g18);
         UpdateGaitBlend(A(0x1320), 1.0f);
@@ -3136,7 +3139,7 @@ void UpdateJt(char *p)
         break;
     }
     case 5:
-        if (F(int, 0x18D0) == 5) {
+        if (AsJt(p)->jtbs == 5) {
             qword s, motion;
             UpdateDirectionalBlend(p, A(0x13D0), F(void *, 0x14D0));
             {
@@ -3153,11 +3156,11 @@ void UpdateJt(char *p)
         }
         break;
     case 0xA: UpdateDirectionalBlend(p, A(0x1AC0), F(void *, 0x1BC0)); break;
-    case 0: UpdateJtStand(p); break;
-    case 3: UpdateJtHangIkGoals__FP2JT(p); break;
-    case 0xC: UpdateGaitFootsteps(A(0x1C30)); break;
-    case 0x15: func_00185E40(p); break;
-    case 0x16: UpdateJtSmoothing(p); break;
+    case JTS_Stand: UpdateJtStand(p); break;
+    case JTS_Hang: UpdateJtHangIkGoals__FP2JT(p); break;
+    case JTS_Gait2: UpdateGaitFootsteps(A(0x1C30)); break;
+    case JTS_SurfaceClimb: func_00185E40(p); break;
+    case JTS_HangFollow: UpdateJtSmoothing(p); break;
     case 0x18:
         if (F(void *, 0x19F0)) {
             C40(p, F(void *, 0x19D8), F(void *, 0x19E0), F(void *, 0x19F0), A(0x1520), D_002BF3DC);
@@ -3168,16 +3171,16 @@ void UpdateJt(char *p)
         break;
     }
     UpdateJtCane__FP2JT(p);
-    if (F(int, 0x18D8) == 0) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0xB)) {
-            void *po2 = F(void *, 0x1854);
+    if (AsJt(p)->jtas == 0) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0xB)) {
+            void *po2 = AsJt(p)->hands.ploTarget;
             for (i = 0; i < 3; i++)
-                FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, F(float, 0x1858));
+                FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, AsJt(p)->hands.sParam);
         } else {
             qword q;
-            if (!FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0x13))
+            if (!FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13))
                 goto end;
-            q = func_001A62E8(F(void *, 0x1854));
+            q = func_001A62E8(AsJt(p)->hands.ploTarget);
             av[2] = q;
             av[1] = q;
             av[0] = q;
@@ -3187,17 +3190,17 @@ void UpdateJt(char *p)
             FindClosestPointBetweenLineSegments(aq[i - 1], aq[i], av[i - 1], av[i], u.f, ag, &w.q);
 
             if (ag[0] < F(float, 0x19AC)) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0x13)) {
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13)) {
                     object = F(struct X1854 *, 0x1854);
                     F(struct X1854 *, 0x18C4) = object;
                     if (object->x124 == 3)
-                        SetJtState__FP2JT3JTS4JTBS(p, 0x16, -1);
+                        SetJtState__FP2JT3JTS4JTBS(p, JTS_HangFollow, -1);
                     else
-                        SetJtState__FP2JT3JTS4JTBS(p, 3, 1);
+                        SetJtState__FP2JT3JTS4JTBS(p, JTS_Hang, 1);
 
                 } else {
                     F(void *, 0xF5C) = F(void *, 0x1854);
-                    F(float, 0xF60) = F(float, 0x1858);
+                    AsJt(p)->jtpipe.s = AsJt(p)->hands.sParam;
                     SetJtState__FP2JT3JTS4JTBS(p, 8, -1);
                 }
                 break;
@@ -4128,14 +4131,14 @@ void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m);
 void SetJtPlayerState(void *p, int n)
 {
     switch (n) {
-    case 0: SetJtState__FP2JT3JTS4JTBS(p, 0, -1); break;
-    case 1: SetJtState__FP2JT3JTS4JTBS(p, 2, -1); break;
-    case 2: SetJtState__FP2JT3JTS4JTBS(p, 7, -1); break;
+    case 0: SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1); break;
+    case 1: SetJtState__FP2JT3JTS4JTBS(p, JTS_Air, -1); break;
+    case 2: SetJtState__FP2JT3JTS4JTBS(p, JTS_Grab, -1); break;
     case 3: SetJtState__FP2JT3JTS4JTBS(p, 4, -1); break;
     case 4: SetJtState__FP2JT3JTS4JTBS(p, 0x12, -1); break;
     case 5: SetJtState__FP2JT3JTS4JTBS(p, 0x13, -1); break;
     case 6: SetJtState__FP2JT3JTS4JTBS(p, 0x14, -1); break;
-    case 7: SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1); break;
+    case 7: SetJtState__FP2JT3JTS4JTBS(p, JTS_Throw, -1); break;
     case 8: SetJtState__FP2JT3JTS4JTBS(p, 8, -1); break;
     }
 }
@@ -4279,15 +4282,15 @@ int JT::FCanUseGadget(int gadgetId)
             if (!FJtpipeCanUseGadget(&jtpipe, gadgetId))
                 return 0;
             break;
-        case 3:
+        case JTS_Hang:
             if (gadgetId != 3)
                 return 0;
             break;
-        case 0:
-        case 1:
+        case JTS_Stand:
+        case JTS_Run:
         case 5:
         case 10:
-        case 12:
+        case JTS_Gait2:
             break;
         case JTS_Throw:
             if (jtthrow.nState - 4U < 3)
@@ -4346,10 +4349,10 @@ int JT::FCanUseGadget(int gadgetId)
                 return 0;
             switch (jts)
             {
-                case 0:
-                case 1:
+                case JTS_Stand:
+                case JTS_Run:
                 case 10:
-                case 12:
+                case JTS_Gait2:
                     return 1;
             }
             return 0;
@@ -4446,7 +4449,7 @@ void UseJtGadget(char *p, int n)
     case 0x29: {
         REC *record = GetJtGadgetRecord(p, n);
         OBJ *pobj;
-        if ((unsigned int)(F(int, 0x11B4) - 4) < 3) {
+        if ((unsigned int)(AsJt(p)->jtthrow.nState - 4) < 3) {
             SetJtThrowState(A(0x11B0), 7);
             break;
         }
@@ -4464,7 +4467,7 @@ void UseJtGadget(char *p, int n)
         }
         F(OBJ *, 0x11C0) = pobj;
         GetGadgetButtonMask(p, n);
-        SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, JTS_Throw, -1);
         SetJtThrowState(A(0x11B0), 4);
         break;
     }
@@ -4479,7 +4482,7 @@ void UseJtGadget(char *p, int n)
         break;
     case 0x18:
         ChargeGadgetMp(p, n);
-        SetJtState__FP2JT3JTS4JTBS(p, 6, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, JTS_Interact, -1);
         break;
     case 0x19:
         ChargeGadgetMp(p, n);
