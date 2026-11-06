@@ -6505,7 +6505,7 @@ func_00256350__FP6CID150,0x256350,3,match,src/game/app/eopid_linkonce.cpp
 STEPGUARD_ctor,0x256360,33,match,src/game/app/class_registry.cpp
 JT_ctor,0x2563E8,22,match,src/game/app/class_registry.cpp
 MURRAY_ctor,0x256440,22,match,src/game/app/class_registry.cpp
-func_002564A8,0x2564A8,3,match,src/game/core/math/bsp.cpp
+func_002564A8__FPxx,0x2564A8,3,match,src/game/core/math/bsp.cpp
 func_002564B8,0x2564B8,2,match,src/game/core/math/bsp.cpp
 func_002564C0,0x2564C0,2,match,src/game/engine/physics/mark.cpp
 func_002564E0,0x2564E0,17,match,src/game/core/containers/tu_119BC8.cpp
@@ -6624,9 +6624,9 @@ func_00258E40__H1Z5EXPLO_PX01_i,0x2598D8,8,match,src/game/app/eopid_linkonce.cpp
 func_00258E60__H1Z5EXPLO_PX014ENSK_Pv,0x2598F8,25,match,src/game/app/eopid_linkonce.cpp
 func_00258EC8__H1Z5EXPLO_PX014ENSK_Pv,0x259960,25,match,src/game/app/eopid_linkonce.cpp
 GetEmitterClassDesc_linkonce__H1Z5EXPLO_PX01_P9CLASSINFO,0x2599C8,3,match,src/game/engine/fx/emitter.cpp
-func_002599D8,0x2599D8,2,match,src/game/engine/graphics/pipeline/glob.cpp
-func_002599E0,0x2599E0,2,match,src/game/engine/graphics/pipeline/glob.cpp
-func_002599E8,0x2599E8,2,match,src/game/engine/graphics/pipeline/glob.cpp
+func_002599D8__FP6VECTOR,0x2599D8,2,match,src/game/engine/graphics/pipeline/glob.cpp
+func_002599E0__FP6VECTOR,0x2599E0,2,match,src/game/engine/graphics/pipeline/glob.cpp
+func_002599E8__FP6VECTOR,0x2599E8,2,match,src/game/engine/graphics/pipeline/glob.cpp
 func_002599F0__FP5CID12,0x2599F0,2,match,src/game/app/eopid_linkonce.cpp
 func_002599F8__FP5CID12,0x2599F8,2,match,src/game/app/eopid_linkonce.cpp
 func_00259A00__FP5CID34,0x259A00,2,match,src/game/app/eopid_linkonce.cpp
@@ -6654,11 +6654,11 @@ func_00259C08__FP5CID39,0x259C08,2,match,src/game/app/eopid_linkonce.cpp
 func_00259C10__FP5CID39,0x259C10,2,match,src/game/app/eopid_linkonce.cpp
 PvNewPool6,0x259C18,56,match,src/game/object/spliceobj.cpp
 func_00259CF8,0x259CF8,7,match,src/game/object/spliceobj.cpp
-func_00259D18,0x259D18,7,match,src/game/actor/step.cpp
+func_00259D18__FP4STEPf,0x259D18,7,match,src/game/app/eopid_linkonce.cpp
 func_00259D38__FP9STEPGUARDP3VOL,0x259D38,3,match,src/game/app/eopid_linkonce.cpp
 func_00259D48__FP9STEPGUARDP3VOL,0x259D48,3,match,src/game/app/eopid_linkonce.cpp
 func_00259D60__FP9STEPGUARD,0x259D60,3,match,src/game/app/eopid_linkonce.cpp
 func_00259D70__FP9STEPGUARD,0x259D70,3,match,src/game/app/eopid_linkonce.cpp
-func_00259D98,0x259D98,4,match,src/game/engine/fx/trail.cpp
-func_00259DA8,0x259DA8,5,match,src/game/engine/fx/trail.cpp
-func_00259DC0,0x259DC0,5,match,src/game/engine/fx/trail.cpp
+func_00259D98__FPx,0x259D98,4,match,src/game/engine/fx/trail.cpp
+func_00259DA8__FPx,0x259DA8,5,match,src/game/engine/fx/trail.cpp
+func_00259DC0__FPx,0x259DC0,5,match,src/game/engine/fx/trail.cpp

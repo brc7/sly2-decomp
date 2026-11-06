@@ -1,6 +1,7 @@
 // bsp.cpp -- BSP trees of planes (collision volumes): clipping an edge to a BSP, simplifying a tree around a point or
 // a polygon, point queries, cloning a tree, and planes (from three points, from normal and point, transformed). VU0
-// asm. TU 0x118668..0x1195E0 (12 functions, address order) and two linkonce instances (0x2564A8, 0x2564B8).
+// asm. TU 0x118668..0x1195E0 (12 functions, address order) and the inline functions behind two linkonce copies
+// (0x2564A8, 0x2564B8), defined at the end.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bsp
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001195C0
 #include "sly2/slotheap.h"
@@ -45,7 +46,7 @@ public:
     qword q;
 };
 union VUFU { qword q; float f[4]; };   /* PbspPointInBspQuick calls that constructor by hand */
-extern "C" void *func_002564B8(void *p);
+extern "C" inline void *func_002564B8(void *p);   /* inline, defined after its callers (end of file) */
 
 // func_00118668: ported from Lilly's personal Sly 2 decomp (src/P2/bsp.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
@@ -604,7 +605,7 @@ extern "C" void SetPlane(PLANE *pplane, qword normal, float d)
 // readback is an mtc1 asm taking the qword (gcc emits the qmfc2 itself). Together they fix every VF number.
 struct VECTORQ;
 extern "C" VECTORQ *func_002564C0(VECTORQ *);
-extern "C" qword *func_002564A8(qword *p, qword v);
+inline qword *func_002564A8(qword *p, qword v);   /* inline, defined after its caller (end of file) */
 /* A VECTOR held in a qword with its out-of-line empty constructor (func_002564C0). */
 struct VECTORQ { qword q; VECTORQ() { (void)func_002564C0(this); } };
 struct MAT { qword r[4]; };
@@ -636,15 +637,17 @@ extern "C" qword func_001193D8(MAT *pm, qword plane)
     return u.q;
 }
 
-// 0x2564A8 / 0x2564B8: linkonce instances homed in this TU (a qword store returning its destination, and VUF's empty
-// constructor returning this). C-linkage functions under their current symbols.
+// 0x2564A8 / 0x2564B8: a qword store returning its destination, and VUF's empty constructor returning this: inline,
+// defined after their callers, so g++ calls them and emits the out-of-line copies (linkonce), as the original did.
+// 0x2564B8 keeps its C symbol (tu_1BC050, cm and path call it by that name, and VUF/VU_QWORD's constructors are
+// bound to it).
 /** @sly2-annot addr=0x2564A8
  * Purpose: *p = qword v; return p [game linkonce (inline/template)]
  * Info: proposed name VECTOR4_opAssign (T2); TU game_linkonce
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
+inline qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
 
 /** @sly2-annot addr=0x2564B8
  * Purpose: return arg0 (out-of-line inline accessor/cast in the linkonce block)
@@ -654,7 +657,7 @@ extern "C" qword *func_002564A8(qword *p, qword v) { *p = v; return p; }
  * Confidence: low (draft) [T2 0.15] - evidence: semantic review; sources: sdk_names+top50_round
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" void *func_002564B8(void *p)
+extern "C" inline void *func_002564B8(void *p)
 {
     return p;
 }

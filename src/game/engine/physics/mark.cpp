@@ -2,7 +2,8 @@
 // parts of two object trees and dispatches to the sphere/sphere, sphere/BSP, BSP/BSP and swept-vertex markers, which
 // clip edges against the other part's BSP (ClsgClip*, CategorizeAlsg, CplsgFindEdgePath) and append XPs (contacts)
 // through PxpAdd; the XP list helpers and the per-frame contact position/velocity refresh (RecalcSwXp*).
-// TU 0x1A7C18..0x1AA978 (21 functions, address order) plus the linkonce VECTOR constructor 0x2564C0.
+// TU 0x1A7C18..0x1AA978 (21 functions, address order) plus the inline function behind the linkonce copy 0x2564C0
+// (defined at the end).
 //
 // Types: the contact record XP/XPS and the BSP geometry (EDGE, SURF, BSP, LSG, from Lilly's CsbiIntersectSphereBsp
 // port) are TU-private; parts, trees, objects and transforms are so.h's SOPART, SOTREE, SO and XF, the world sw.h's SW.
@@ -561,7 +562,7 @@ typedef int qword __attribute__((mode(TI)));
 struct SCALAR;
 struct VECTOR;
 extern "C" SCALAR *func_002564B8(SCALAR *);
-extern "C" VECTOR *func_002564C0(VECTOR *);
+extern "C" inline VECTOR *func_002564C0(VECTOR *);   /* defined after its callers (end of file) */
 struct SCALAR { qword q; SCALAR() { (void)func_002564B8(this); } };
 struct VECTOR { qword q; VECTOR() { (void)func_002564C0(this); } };
 struct VU_VECTOR4 { qword q; VU_VECTOR4(qword a) { q = a; } };
@@ -1763,8 +1764,12 @@ extern "C" XP *AddSoXps(SW *psw, SOTREE *ptreeSmall, SOTREE *ptreeLarge)
 
 
 
-// 0x2564C0: out-of-line copy of the empty VECTOR constructor (linkonce; func_001A87F0's VECTOR temporaries call it).
-extern "C" void *func_002564C0(void *pv)
+// 0x2564C0: the empty VECTOR constructor's body (func_001A87F0's VECTOR temporaries call it): inline, defined after
+// its callers, so g++ calls it and emits the out-of-line copy (linkonce), as the original did. It keeps its C symbol
+// (bsp, tu_1D1370 and waypoint call it by that name).
+namespace M_func_001A87F0 {
+extern "C" inline VECTOR *func_002564C0(VECTOR *pvec)
 {
-    return pv;
+    return pvec;
 }
+} // namespace M_func_001A87F0

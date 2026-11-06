@@ -18,6 +18,7 @@
 #include "sly2/lo.h"
 #include "sly2/so.h"
 #include "sly2/xfm.h"
+#include "sly2/step.h"
 #include "sly2/stepplayer.h"
 #include "sly2/guard.h"
 #include "sly2/emitter.h"
@@ -37,6 +38,8 @@ SLY2_EOPID_REF(002562F0, &func_002562F0)   // set
 SLY2_EOPID_REF(00256318, &func_00256318)   // get
 SLY2_EOPID_REF(00256328, &func_00256328)   // set
 SLY2_EOPID_REF(00256350, &func_00256350)   // get
+// STEP
+SLY2_EOPID_REF(00259D18, &func_00259D18)   // set
 // STEPPLAYER
 SLY2_EOPID_REF(00258280, &func_00258280)   // get
 // SHAPE/XFM/VOL/TARGET-derived classes: ensure (the class's own fields)
