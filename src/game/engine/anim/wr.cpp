@@ -83,7 +83,7 @@ struct WEKI
     float innerWeight;
     float outerDistance;
     float outerWeight;
-    int unk14[3];
+    int unknown14[3];
     MATRIX4V dmat;
 };
 
@@ -105,9 +105,9 @@ struct WRBG
 {
     SO *pso;
     GLOBV *glob;
-    int unk08;
+    int unknown08;
     WRV *warp;           /* +0xC (AddWrWarpGroup) */
-    int unk10[8];
+    int unknown10[8];
     WEKI envelope;
     SLV batches;
     WRBG *nextInGlobset;
@@ -129,7 +129,7 @@ struct WRE
 {
     int kind;          /* 0 circle, 1 bend */
     int matrixIndex;
-    int unk08[2];
+    int unknown08[2];
     union { V axis; VECTORV vecAxis; };
     V vectorA;
     PAYLOAD data;
@@ -152,7 +152,7 @@ struct WRV
     M4 warpMatrices[4];    /* +0x6F0 */
     M4 uvMatrices[4];      /* +0x7F0 */
     WRBG *warpGroups;  /* +0x8F0 the warp groups (a DL: head, tail, ibDle) */
-    int unk8F4[2];
+    int warpGroupsTailAndIbDle[2];   /* the rest of the warp-group DL */
     int valuesChanged;
 };
 typedef char assert_WR_fValuesChanged[(unsigned int)&((WRV *)0)->valuesChanged == 0x8FC ? 1 : -1];

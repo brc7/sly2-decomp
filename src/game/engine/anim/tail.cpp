@@ -66,9 +66,9 @@ struct E;
 struct O { struct M3 mat; char pad[0x70-0x30]; qword pos; char pad1[0xA8-0x80]; struct E *entry; };
 struct VE { short d; short pad; struct O *(*get)(void *,int); };
 struct S { char pad[0xC]; struct VE *vt; };
-struct E { struct M3 mat; qword pos; qword tipPosition; qword x50; struct N *chain; struct O *xf; int x68; int x6C; };
+struct E { struct M3 mat; qword pos; qword tipPosition; qword tipVelocity; struct N *chain; struct O *xf; int unknown68; int unknown6C; };   /* CHAINLINK below */
 struct N { int linkCount; struct E *links; int stepCount; float bendStiffness; float damping; float relativeDamping; float maxBendAngle; int lastUpdateTime; qword gravity; qword lastSegment; qword previousAnchor; };
-struct Hook { int kind; struct S *so; struct O *xf; int priority; int x10; int flags; void *vt; struct E *entry; };
+struct Hook { int kind; struct S *so; struct O *xf; int priority; int next; int role; void *vt; struct E *entry; };   /* ACTV + vtable + link */
 struct Alloc { int cb; int align; };
 extern char D_002DB338[] __asm__("_vt$4ACT3");
 extern "C" {
@@ -129,7 +129,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
             action->xf=link->xf;
             action->priority=-1;
             action->entry=link;
-            action->flags=16;
+            action->role=16;
             AddXfAct(so,link->xf,action);
             link->xf->entry=link;
         }
@@ -210,7 +210,7 @@ struct CHAINLINK
       qword tipVelocity;
       CHAIN *chain;
       XF *pxf;
-      undefined4 unk_0x68[2];
+      undefined4 unknown68[2];
 };
 struct CHAIN
 {
