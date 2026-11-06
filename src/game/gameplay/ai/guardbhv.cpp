@@ -6141,7 +6141,7 @@ struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int 
 void PopBhv(void *p);
 struct O *PushStepBhv(void *p, int n);
 void SetBhvpathShape(struct O *o, int a, int b);
-// 0x17C550: Circle behaviour state change: 0 idle facing the target, 1 walk the guard's pathShape shape (BHVWALKPATH).
+// 0x17C550: Circle behaviour state change: 0 idle facing the target, 1 walk the guard's path shape (BHVWALKPATH).
 void SetBhvCircleState(struct S *behavior, int n)
 {
     if (n == behavior->state)
@@ -6800,11 +6800,11 @@ struct S {
 void PopBhv(void *p);
 struct O *PushStepBhv(void *p, int n);
 void SetBhvpathShape(struct O *o, int a, int b);
-// 0x17D450: BHVGOTO state change: 4 stand (BHVIDLE), 1/2 walk the pathShape (BHVWALKPATH, the run animation when
-// allowed), 3 traverse a pathShape link (BHVPATHLINK), 5 relocate (BHVRELOCATE).
+// 0x17D450: BHVGOTO state change: 4 stand (BHVIDLE), 1/2 walk the path (BHVWALKPATH, the run animation when
+// allowed), 3 traverse a path link (BHVPATHLINK), 5 relocate (BHVRELOCATE).
 void SetBhvgotoState(struct S *behavior, int n) {
     if (n == behavior->state) return;
-    if (!((unsigned)n < 3 && behavior->state >= 0 && behavior->state < 3)) PopBhv((char *)behavior + 0x18);
+    if (!((unsigned)n < 3 && behavior->state >= 0 && behavior->state < 3)) PopBhv(&behavior->child);
     behavior->state = n;
     behavior->stateTime = D_002DDED0.t;
     switch (n) {
