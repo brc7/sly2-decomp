@@ -263,7 +263,7 @@ extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *w
             goto start;
         }
     } else {
-start:
+    start:
         jtMode->nKind = kind;
         jtMode->pstepOther = otherStep;
         jtMode->ploHudOverride = widget;
@@ -642,27 +642,30 @@ typedef char Alignment_5[__alignof__(GTASK)==4?1:-1];
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
 // Collects the world's tag ids from the game record and sorts them (qsort) for the HUD. (inferred)
-extern "C" void GatherJtModeHudTags(JTMODEHUD*hud){
- WIDGET*pt=hud->pwidgetHud;
- if(!pt)return;
- pt->tags[0]=pt->tags[1]=-1;
- GTASK*pg=(GTASK*)&D_003DD490;
- if(!pg->currentTask || pg->currentTask->headerTagId==-1)return;
- hud->pwidgetHud->tags[0]=pg->currentTask->headerTagId;
- int n=1,i=0;
- GTASK*pgLoop=CopyGame(pg);
- STACKSCOPE fr;
- int c;
- X**ap;
- SortTasksTopologically(&c,&ap);
- qsort(ap,c,4,func_00165C28);
- for(;i<c;i++){
-  X*x=ap[i];
-  if(pgLoop->currentTask==x->parent && x->tagId!=-1 && !FTaskComplete(x)){
-   hud->pwidgetHud->tags[n++]=x->tagId;
-   break;
-  }
- }
+extern "C" void GatherJtModeHudTags(JTMODEHUD *hud)
+{
+    WIDGET *pt = hud->pwidgetHud;
+    if (!pt)
+        return;
+    pt->tags[0] = pt->tags[1] = -1;
+    GTASK *pg = (GTASK *)&D_003DD490;
+    if (!pg->currentTask || pg->currentTask->headerTagId == -1)
+        return;
+    hud->pwidgetHud->tags[0] = pg->currentTask->headerTagId;
+    int n = 1, i = 0;
+    GTASK *pgLoop = CopyGame(pg);
+    STACKSCOPE fr;
+    int c;
+    X **ap;
+    SortTasksTopologically(&c, &ap);
+    qsort(ap, c, 4, func_00165C28);
+    for (; i < c; i++) {
+        X *x = ap[i];
+        if (pgLoop->currentTask == x->parent && x->tagId != -1 && !FTaskComplete(x)) {
+            hud->pwidgetHud->tags[n++] = x->tagId;
+            break;
+        }
+    }
 }
 #undef FIELD_OFFSET
 
@@ -682,26 +685,25 @@ extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
     if (hud->pnUnk14)
         UpdateReconSel((SELECTOR *)hud->pnUnk14);
     switch (hud->nState) {
-    case -1:
-        return;
-    case 2:{
-        int a,b;
-        Below(a,hud->pwidgetHud);
+    case -1: return;
+    case 2: {
+        int a, b;
+        Below(a, hud->pwidgetHud);
         b = 1;
         if (hud->pjtmode->nKind == 1) {
-            Below(b,hud->pwidgetCur);
+            Below(b, hud->pwidgetCur);
         }
         if (a && b)
             SetJtModeHudState(hud, -1);
         return;
     }
-    case 0:{
-        int a,b;
-        Equal(a,hud->pwidgetHud);
+    case 0: {
+        int a, b;
+        Equal(a, hud->pwidgetHud);
         D_002BF920 = -1;
         b = 1;
         if (hud->pjtmode->nKind == 1) {
-            Equal(b,hud->pwidgetCur);
+            Equal(b, hud->pwidgetCur);
         }
         if (a && b)
             SetJtModeHudState(hud, 1);
@@ -711,19 +713,21 @@ extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
     if (!hud->pwidgetHud)
         return;
     if (hud->nState) {
-        int previous=hud->pjtmode->pstepplayer->nInteractMode;
-        if(previous==4){
-            if(D_002BF920!=previous)PlayWidgetAnim(hud->pwidgetHud,0x353);
-            if(hud->pjtmode->pstepplayer->nInteractMode==previous)goto store;
+        int previous = hud->pjtmode->pstepplayer->nInteractMode;
+        if (previous == 4) {
+            if (D_002BF920 != previous)
+                PlayWidgetAnim(hud->pwidgetHud, 0x353);
+            if (hud->pjtmode->pstepplayer->nInteractMode == previous)
+                goto store;
         }
-        if(D_002BF920==4)StopWidgetAnim(hud->pwidgetHud,0x353);
-store:
-        D_002BF920=hud->pjtmode->pstepplayer->nUnk10e4;
+        if (D_002BF920 == 4)
+            StopWidgetAnim(hud->pwidgetHud, 0x353);
+    store:
+        D_002BF920 = hud->pjtmode->pstepplayer->nUnk10e4;
     }
     SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->pstepplayer->radTarget + 3.14159265f) * 0.15915494f);
     SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.uZoom);
 }
-
 
 /** @sly2-annot addr=0x19DCA0
  * Purpose: Set active HUD widget to arg or default (field c)
