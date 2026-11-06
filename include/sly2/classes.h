@@ -1399,13 +1399,13 @@ typedef char assert_NEELA_size[sizeof(NEELA) == 0x10A0 ? 1 : -1];
 struct CID98 : SO
 {
     char pad150[0x180 - 0x150];
+    virtual void VUnk57() __asm__("func_001BB250");   /* slot 58 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid98ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001BAB50");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001BABA0");   /* slot 14 */
     virtual void Freeze() __asm__("func_001BAD80");   /* slot 22 */
     virtual void Unfreeze() __asm__("func_001BADB8");   /* slot 23 */
     virtual void VUnk25(LO *plo) __asm__("func_001BBEA8");   /* slot 26 */
-    virtual void VUnk57() __asm__("func_001BB250");   /* slot 58 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("func_001BADF0");   /* slot 75 */
 };
 typedef char assert_CID98_size[sizeof(CID98) == 0x180 ? 1 : -1];

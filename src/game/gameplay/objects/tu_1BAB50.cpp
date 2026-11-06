@@ -12,6 +12,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
+#include "sly2/classes.h"
 typedef struct VTE { short d; short pad; void (*pfn)(); } VTE;
 typedef struct SOX { char pad[0xC]; VTE *vt; } SOX;   /* any SO, for its virtual calls */
 /* A trigger class (cid, armed) or an action (kind, value). */
@@ -52,7 +53,7 @@ typedef char offset_0_x170[FIELD_OFFSET(TRIG,x170)==0x170?1:-1];
 typedef char size_1[sizeof(E)==16?1:-1];
 typedef char size_2[sizeof(I)==8?1:-1];
 
-struct AREQ { int cb; int align; AREQ(int c, int a) { cb = c; align = a; } };
+struct AREQV { int cb; int align; AREQV(int c, int a) { cb = c; align = a; } };
 struct MSG { int cb; int nKind; };
 struct SW;
 typedef void (TRIG::*PMF)();
@@ -64,9 +65,9 @@ extern char D_002DFC00[];
 extern char D_002DE578[];
 extern const char D_002A76B8[];   /* defined below where the ELF has it (.rodata order) */
 extern const char D_002A76C0[];   /* defined below where the ELF has it (.rodata order) */
-void *func_001AE318(const AREQ &r);
-void *func_001AE378(const AREQ &r);
-void *func_001AE238(const AREQ &r, void *pv);
+void *func_001AE318(const AREQV &r);
+void *func_001AE378(const AREQV &r);
+void *func_001AE238(const AREQV &r, void *pv);
 void InitSo(TRIG *p);
 void func_001F7918(TRIG *p, int a, int b);
 void LoadSoFromBrx(TRIG *p, void *a);
@@ -123,9 +124,9 @@ extern "C" void func_001BAB50(TRIG *p) {
     func_001F7918(p, 0x80001, 0);
 }
 
-static inline void *Alloc(int cb) { return func_001AE318(AREQ(cb, 0x10)); }
-static inline void *AllocB(int cb) { return func_001AE378(AREQ(cb, 0x10)); }
-static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQ(cb, 0x10), pv); }
+static inline void *Alloc(int cb) { return func_001AE318(AREQV(cb, 0x10)); }
+static inline void *AllocB(int cb) { return func_001AE378(AREQV(cb, 0x10)); }
+static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQV(cb, 0x10), pv); }
 /** @sly2-annot addr=0x1BABA0
  * Purpose: CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim
  *   allocations to counts
@@ -351,8 +352,9 @@ struct XPO { char pad[0x64]; L *pl; };
  * See: docs/engine/gameplay-objects.md#key-functions,
  *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
  * @end-sly2-annot */
-extern "C" void func_001BB250(TRIG *p)
+void CID98::VUnk57()
 {
+    TRIG *p = (TRIG *)this;
     L *pl;
     int i, j;
     func_001F4F10(p);
