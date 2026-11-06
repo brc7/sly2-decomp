@@ -27,6 +27,11 @@ enum {
     CID_BHVLEAP = 0xAC,
     CID_BHV182 = 0xB6,
 };
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+   section 2). Only the identified flags are named. */
+enum {
+    SGF_ROUTE = 0x24,   // BHV182 (Carmelita route)
+};
 
 typedef union { qword q; float f[4]; } U;
 /* g++ 2.95 vtable entry. */
@@ -248,7 +253,7 @@ extern "C" void InitBhvRoute(BHVRT *behavior)
 {
     InitBhv(behavior);
     func_001FEE90(D_003DD040);
-    AddStepguardSgf(behavior->guard, 0x24);
+    AddStepguardSgf(behavior->guard, SGF_ROUTE);
     behavior->state = -1;
     behavior->targetStation = -1;
     behavior->currentStation = -1;
@@ -270,7 +275,7 @@ extern "C" void CloseBhvRoute(BHVRT *behavior)
 {
     CloseBhv(behavior);
     SetBhvRouteState(behavior, -1);
-    RemoveStepguardSgf(behavior->guard, 0x24);
+    RemoveStepguardSgf(behavior->guard, SGF_ROUTE);
     func_001FEEA0(D_003DD040);
     behavior->guard->unknown4A4 = 1;
 }
@@ -695,7 +700,7 @@ extern "C" void PostCarmelitaLoad(GUARDV *guard)
 extern "C" void HandleCarmelitaMessage(GUARDV *guard, int msgid, void **ppv)
 {
     HandleStepguardMessage(guard, msgid, ppv);
-    if (StepguardHasSgf(guard, 0x24) == 0 && msgid == 0xB) {
+    if (StepguardHasSgf(guard, SGF_ROUTE) == 0 && msgid == 0xB) {
         GUARDV *pguard = (GUARDV *)ppv[0];
         if (pguard == guard) {
             SetDetectorTargetStateById(pguard->detector, ppv[1], 1);
@@ -729,7 +734,7 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
     int kBest;
     qword pos;
     int i;
-    if (StepguardHasSgf(guard, 0x24))
+    if (StepguardHasSgf(guard, SGF_ROUTE))
         return ChooseStepguardTarget(guard);
     poBest = 0;
     object = guard->forcedTarget;
