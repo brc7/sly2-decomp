@@ -1,5 +1,9 @@
-// dirblend.cpp -- directional clip blending for the player: per-clip root velocities, blend weights from the
-// movement vector, and the directional acceleration/side state. VU0 macro-mode asm with register pins.
+// dirblend.cpp -- directional clip blending for the player (Sly 1's BLDIR idea): each of eight directional clips
+// (forward/back/left/right variants) records its root velocity, and the blend weights are solved from the desired
+// movement vector so the animation's root motion matches the requested velocity.
+// Entry points: InitDirectionalBlend (setup, called by grab/murray loaders), UpdateDirectionalBlend (per-frame weights,
+// from grab and the physics step), UpdateDirectionalAcceleration (steer input -> acceleration and side state).
+// VU0 macro-mode asm with register pins: locals are pinned to vf/f registers, keep statement order.
 // TU 0x1A0300..0x1A0B18 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dirblend
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A0AF8
@@ -19,18 +23,18 @@ struct ACTOR; struct MULTI;
 struct VT { short delta, pad; void *fn; };
 
 /* A directional clip (only its duration, +0x74, is read). */
-struct CLIP { char pad[0x74]; WORD x74; };
+struct CLIP { char pad[0x74]; WORD duration; };
 /* An animation segment object returned by func_0012FF10 (+4) and its vtable (slot 3 samples a position). */
 struct ASEGV;
-typedef struct { short d; short pad; void (*pfn)(ASEGV *, float, float, qword *, void *); } ASEGVT;
+typedef struct { short delta; short pad; void (*sample)(ASEGV *, float, float, qword *, void *); } ASEGVT;
 struct ASEGV { ASEGVT *vt; };
-struct ASEGREF { int x0; ASEGV *x4; };
+struct ASEGREF { int unknown0; ASEGV *segment; };
 
 /* One of the eight directional axes (an array of 8, 0x20 each): blend weight, clip, root velocity. */
 struct DIRAXIS
 {
     union { float value; int bits; } weight;  /* +0x00 */
-    CLIP *pclip;                              /* +0x04 nonzero: the axis is active */
+    CLIP *clip;                               /* +0x04 nonzero: the axis is active */
     char pad8[8];
     U direction;                              /* +0x10 root velocity of the clip */
 };
@@ -64,13 +68,13 @@ typedef char assert_PLAYERV_side[(unsigned int)&((PLAYERV *)0)->side == 0x1038 ?
 typedef char assert_PLAYERV_target[(unsigned int)&((PLAYERV *)0)->targetMode == 0x10E4 ? 1 : -1];
 
 extern "C" {
-ASEGREF *func_0012FF10(CLIP *pclip, ACTOR *p, void *a, int b);
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(ACTOR *p, int cb, int c, DIRAXIS *ae, int count, int *keys, int *counts, MULTI **pn);
-void func_001384C0(void *prequest);
-void FaceStepToward(PLAYERV *p, TARGETV *ptarget);
+ASEGREF *func_0012FF10(CLIP *clip, ACTOR *actor, void *keyFlag, int keyMode);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(ACTOR *actor, int entrySize, int entryCount, DIRAXIS *entries, int count, int *keys, int *counts, MULTI **blendOut);
+void func_001384C0(void *blend);
+void FaceStepToward(PLAYERV *player, TARGETV *target);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float, float, float);
-M4 *func_001A6318(PLAYERV *p);
+M4 *func_001A6318(PLAYERV *player);
 }
 float D_002BF9F0 = 0.3f;   /* dirblend's .data: input dead zone (the next 12 bytes are 0: alignment) */
 
@@ -82,35 +86,38 @@ float D_002BF9F0 = 0.3f;   /* dirblend's .data: input dead zone (the next 12 byt
  * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
  *   docs/engine/animation.md#6-source-files, docs/engine/player.md#10-source-files
  * @end-sly2-annot */
-extern "C" void func_001A0300(struct ACTOR *p, DIRAXIS *ae, MULTI **pn)
+// Measures each active directional clip's root velocity (displacement between t=0 and t=duration, divided by the
+// duration) into axes[i].direction, then allocates the 8-entry dynamic animation blend for them and returns it in
+// *blendOut. Called once when a move that uses directional blending is set up (grab, Murray).
+extern "C" void InitDirectionalBlend(struct ACTOR *actor, DIRAXIS *axes, MULTI **blendOut)
 {
-    DIRAXIS *e = ae;
+    DIRAXIS *axis = axes;
     int i;
-    U v0, v1, t;
-    MULTI *n;
-    for (i = 0; i < 8; i++, e++) {
-        if (e->pclip) {
-            ASEGREF *o = func_0012FF10(e->pclip, p, (void *)1, 1);
-            if (o) {
-                o->x4->vt[3].pfn((ASEGV *)((char *)o->x4 + o->x4->vt[3].d), 0.0f, 1.0f, &v0.q, 0);
-                o->x4->vt[3].pfn((ASEGV *)((char *)o->x4 + o->x4->vt[3].d), e->pclip->x74.value, 1.0f, &v1.q, 0);
+    U startPos, endPos, durationVec;
+    MULTI *blend;
+    for (i = 0; i < 8; i++, axis++) {
+        if (axis->clip) {
+            ASEGREF *segmentRef = func_0012FF10(axis->clip, actor, (void *)1, 1);
+            if (segmentRef) {
+                segmentRef->segment->vt[3].sample((ASEGV *)((char *)segmentRef->segment + segmentRef->segment->vt[3].delta), 0.0f, 1.0f, &startPos.q, 0);
+                segmentRef->segment->vt[3].sample((ASEGV *)((char *)segmentRef->segment + segmentRef->segment->vt[3].delta), axis->clip->duration.value, 1.0f, &endPos.q, 0);
                 {
-                    register qword d __asm__("vf2");
+                    register qword delta __asm__("vf2");
                     register qword scalar __asm__("vf1");
-                    register CLIP *clip __asm__("$2") = e->pclip;
-                    register unsigned int bits __asm__("$2") = clip->x74.bits;
+                    register CLIP *axisClip __asm__("$2") = axis->clip;
+                    register unsigned int bits __asm__("$2") = axisClip->duration.bits;
                     __asm__("qmtc2.ni %1, %0" : "=j"(scalar) : "r"(bits));
-                    d = v0.q;
-                    d = VuSubRef(d, v1.q);
-                    t.q = scalar;
-                    __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %0, $Q" : "+j"(d) : "j"(t.q));
-                    e->direction.q = d;
+                    delta = startPos.q;
+                    delta = VuSubRef(delta, endPos.q);
+                    durationVec.q = scalar;
+                    __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %0, $Q" : "+j"(delta) : "j"(durationVec.q));
+                    axis->direction.q = delta;
                 }
             }
         }
     }
-    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0x20, 8, ae, 0, 0, 0, &n);
-    *pn = n;
+    EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(actor, 0x20, 8, axes, 0, 0, 0, &blend);
+    *blendOut = blend;
 }
 
 static inline float FloatX(qword q){int bits;float f;__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(q));__asm__("mtc1 %1,%0":"=f"(f):"r"(bits));return f;}
@@ -127,24 +134,27 @@ static inline float Float1(qword q){register int bits __asm__("$7");register flo
  * See: docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
+// Per-frame: picks the axis set for the current side (-1 none, 0 negative, 1 positive), weights each axis by how much
+// of the player's acceleration lies along its root velocity (normalized so weights sum to at most 1, the remainder
+// going to the idle/head axis), rescales the acceleration to the blended root velocity and reblends `request`.
+extern "C" void UpdateDirectionalBlend(PLAYERV*player,DIRAXIS*axes,void*request){
  int indices[5];
  U total,scalar;
  int i,count,clear,accum;
  register float rate __asm__("$f4");float sum;
- register qword rk __asm__("vf6");
+ register qword rateVec __asm__("vf6");
  if(!request)return;
- rate=p->anim->rate;
- if(!axes[6].pclip||!axes[7].pclip)p->side=-1;
- else if(p->side==-1){
-  if(FloatX(VuDot(p->acceleration.q,axes[0].direction.q))<0.0f)p->side=1;
-  else p->side=0;
+ rate=player->anim->rate;
+ if(!axes[6].clip||!axes[7].clip)player->side=-1;
+ else if(player->side==-1){
+  if(FloatX(VuDot(player->acceleration.q,axes[0].direction.q))<0.0f)player->side=1;
+  else player->side=0;
  }
- {register int ratebits __asm__("$7");__asm__("mfc1 %0,%1":"=r"(ratebits):"f"(rate));rk = VuFromFloat<qword>(ratebits);}
+ {register int ratebits __asm__("$7");__asm__("mfc1 %0,%1":"=r"(ratebits):"f"(rate));rateVec = VuFromFloat<qword>(ratebits);}
  for(clear=7;clear>=0;clear--)axes[clear].weight.value=0.0f;
- switch(p->side){
+ switch(player->side){
  case -1:
-  if(!axes[7].pclip){indices[0]=6;indices[1]=2;indices[2]=4;}
+  if(!axes[7].clip){indices[0]=6;indices[1]=2;indices[2]=4;}
   else{indices[0]=7;indices[1]=3;indices[2]=5;}
   indices[3]=0;indices[4]=1;count=5;
   break;
@@ -156,10 +166,10 @@ extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
   for(i=1;i<count;i++){
    DIRAXIS*entry=&axes[indices[i]];
    float denominator=rate*Float1(VuDot(entry->direction.q,entry->direction.q));
-   float along=Float3(VuDot(p->acceleration.q,entry->direction.q));
-   float w=Max(along/denominator,0.0f);
-   entry->weight.value=w;
-   sum+=w;
+   float along=Float3(VuDot(player->acceleration.q,entry->direction.q));
+   float weight=Max(along/denominator,0.0f);
+   entry->weight.value=weight;
+   sum+=weight;
   }
  }
  {DIRAXIS*head=&axes[indices[0]];
@@ -176,12 +186,12 @@ extern "C" void func_001A0450(PLAYERV*p,DIRAXIS*axes,void*request){
   scalar.q=k;
   axes++;
  }
- {qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(total.q),"j"(rk));{register void*argument __asm__("$4")=request;scalar.q=rk;p->acceleration.q=q;func_001384C0(argument);}}
+ {qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(total.q),"j"(rateVec));{register void*argument __asm__("$4")=request;scalar.q=rateVec;player->acceleration.q=q;func_001384C0(argument);}}
 }
 
-static inline qword GetVel(PLAYERV*p){return ((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);}
-static inline void SetVel(PLAYERV*p,qword v){((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,v);}
-static inline qword ScaleAndSetSide(PLAYERV*p,qword v,qword k,int side){qword r;__asm__("vmulx.xyzw %0,%2,%3x\n\tsw %4,%1":"=j"(r),"=m"(p->side):"j"(v),"j"(k),"r"(side));return r;}
+static inline qword GetVel(PLAYERV*player){return ((qword(*)(void*))player->vt[33].fn)((char*)player+player->vt[33].delta);}
+static inline void SetVel(PLAYERV*player,qword v){((void(*)(void*,qword))player->vt[35].fn)((char*)player+player->vt[35].delta,v);}
+static inline qword ScaleAndSetSide(PLAYERV*player,qword v,qword k,int side){qword r;__asm__("vmulx.xyzw %0,%2,%3x\n\tsw %4,%1":"=j"(r),"=m"(player->side):"j"(v),"j"(k),"r"(side));return r;}
 static inline qword ToVu(qword bits){register qword r __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(bits));return r;}
 static inline qword ProjectOut(qword ni,qword vi){
  register qword n __asm__("vf1")=ni,v __asm__("vf3")=vi;
@@ -191,16 +201,16 @@ static inline qword ProjectOut(qword ni,qword vi){
  v = VuSub(v, dot);
  return v;
 }
-static inline void RemoveSide(PLAYERV*p,U*result,U*old){
+static inline void RemoveSide(PLAYERV*player,U*result,U*oldVelocity){
  M4*basis;
  qword value;
- old->q=ToVu(GetVel(p));
- basis=func_001A6318(p);
- value=ProjectOut(basis->r[1],old->q);
+ oldVelocity->q=ToVu(GetVel(player));
+ basis=func_001A6318(player);
+ value=ProjectOut(basis->r[1],oldVelocity->q);
  result->q=value;
- SetVel(p,value);
+ SetVel(player,value);
 }
-static inline void BlendPositive(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,U*out){
+static inline void BlendPositive(PLAYERV*player,DIRAXIS*axes,float xin,const U*input,U*out){
  float x=xin;
  register float y __asm__("$f3"),zero __asm__("$f0"),left __asm__("$f2"),right __asm__("$f0");
  register qword a __asm__("vf2"),b __asm__("vf1"),c __asm__("vf4");
@@ -213,9 +223,9 @@ static inline void BlendPositive(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,
  __asm__("mfc1 %0,%4\n\tlqc2 %1,%5\n\tqmtc2.ni %0,%2\n\tlqc2 %3,%6":"=&r"(leftbits),"=j"(a),"=j"(kc),"=j"(b):"f"(left),"m"(axes[1].direction.q),"m"(axes[3].direction.q));
  out->q=kb;
  __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(ka):"j"(a),"j"(b),"j"(c),"0"(ka),"j"(kb),"j"(kc));
- p->acceleration.q=ka;out->q=kc;
+ player->acceleration.q=ka;out->q=kc;
 }
-static inline void BlendNegative(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,U*out){
+static inline void BlendNegative(PLAYERV*player,DIRAXIS*axes,float xin,const U*input,U*out){
  float x=xin;
  register float y __asm__("$f2"),zero __asm__("$f0"),left __asm__("$f3"),right __asm__("$f0"),negativeY __asm__("$f2");
  register qword a __asm__("vf3"),b __asm__("vf1"),c __asm__("vf4");
@@ -228,7 +238,7 @@ static inline void BlendNegative(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,
  __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5":"=j"(kc),"=j"(a),"=j"(b):"r"(left),"m"(axes[0].direction.q),"m"(axes[2].direction.q));
  out->q=kb;
  __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(ka):"j"(a),"j"(b),"j"(c),"0"(ka),"j"(kb),"j"(kc));
- __asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(p->acceleration.q),"=m"(out->q):"j"(ka),"j"(kc));
+ __asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(player->acceleration.q),"=m"(out->q):"j"(ka),"j"(kc));
 }
 
 /** @sly2-annot addr=0x1A0720
@@ -237,35 +247,38 @@ static inline void BlendNegative(PLAYERV*p,DIRAXIS*axes,float xin,const U*input,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18
  * @end-sly2-annot */
-extern "C" void func_001A0720(PLAYERV*p,DIRAXIS*axes,int enabled,float heading,float magnitude){
- U input,scalar,old;
+// Turns a steering input (heading and magnitude relative to the player's facing, optionally facing the lock-on
+// target) into the player's acceleration: chooses the side from the lateral input past a dead zone (D_002BF9F0),
+// removes the sideways velocity when the side flips, and blends the two side axes' root velocities. (inferred)
+extern "C" void UpdateDirectionalAcceleration(PLAYERV*player,DIRAXIS*axes,int enabled,float heading,float magnitude){
+ U input,scaleOut,oldVelocity;
  register int side __asm__("$3");
  float zero;
  TARGETV*target;
  if(!enabled)return;
- target=p->target;
- if(target){if(p->targetMode==3)target=target->anchor;
- FaceStepToward(p,target);}
+ target=player->target;
+ if(target){if(player->targetMode==3)target=target->anchor;
+ FaceStepToward(player,target);}
  zero=0.0f;
- input.q=SetVectorCylind(RadNormalize__Ff(heading-p->heading),magnitude,zero);
+ input.q=SetVectorCylind(RadNormalize__Ff(heading-player->heading),magnitude,zero);
  if(D_002BF9F0<input.f[1]){
-  if(p->side==0){input.f[1]=zero;RemoveSide(p,&scalar,&old);}
+  if(player->side==0){input.f[1]=zero;RemoveSide(player,&scaleOut,&oldVelocity);}
   side=1;
  }else if(input.f[1]<-D_002BF9F0){
-  if(p->side==1){input.f[1]=zero;RemoveSide(p,&scalar,&old);}
+  if(player->side==1){input.f[1]=zero;RemoveSide(player,&scaleOut,&oldVelocity);}
   side=0;
- }else{side=p->side;if(side==-1)side=0;}
+ }else{side=player->side;if(side==-1)side=0;}
  {register float x __asm__("$f1")=input.f[0];
  if(side==1){
-  BlendPositive(p,axes,x,&input,&scalar);
+  BlendPositive(player,axes,x,&input,&scaleOut);
  }else{
-  BlendNegative(p,axes,x,&input,&scalar);
+  BlendNegative(player,axes,x,&input,&scaleOut);
  }
  }
- p->acceleration.i[2]=0;
- {unsigned int animWord=(unsigned int)p->anim;register qword rate __asm__("vf2"),acceleration __asm__("vf1"),scaled __asm__("vf1");
- __asm__("lqc2 %0,%2\n\tlw %1,%3":"=j"(acceleration),"+r"(animWord):"m"(p->acceleration.q),"m"(((ANIMV*)animWord)->ratebits));
- rate=VuFromFloat<qword>(animWord);scaled=ScaleAndSetSide(p,acceleration,rate,side);
-  __asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(p->acceleration.q),"=m"(scalar.q):"j"(scaled),"j"(rate));
+ player->acceleration.i[2]=0;
+ {unsigned int animWord=(unsigned int)player->anim;register qword rate __asm__("vf2"),acceleration __asm__("vf1"),scaled __asm__("vf1");
+ __asm__("lqc2 %0,%2\n\tlw %1,%3":"=j"(acceleration),"+r"(animWord):"m"(player->acceleration.q),"m"(((ANIMV*)animWord)->ratebits));
+ rate=VuFromFloat<qword>(animWord);scaled=ScaleAndSetSide(player,acceleration,rate,side);
+  __asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(player->acceleration.q),"=m"(scaleOut.q):"j"(scaled),"j"(rate));
  }
 }

@@ -50,7 +50,7 @@ LO *PloAcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand);
 LO *PloNew__F3CIDP2SO3OIDi(CID cid, SO *psoParent, OID oid, int n);
 void SetTnTnsOverride(TN *ptn, int n);
 void func_00194118(JTGRAB *pjtgrab);
-void func_001A0300(STEPPLAYER *pstepplayer, BLDIR *abldir, ASEGBL **ppasegbl);
+void InitDirectionalBlend(STEPPLAYER *pstepplayer, BLDIR *abldir, ASEGBL **ppasegbl);
 void PostJtLoadGait(GAIT *pgait);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(STEPPLAYER *pstepplayer, int n1, int n2, void *abl, int n4, int n5, int n6, ASEGBL **ppasegbl);
 void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(JTHANDS *phands, STEPPLAYER *pstepplayer, ASEGA **ppasega);
@@ -412,8 +412,8 @@ extern "C" void PostLoadJtGrab(JTGRAB *pjtgrab)
     pjtgrab->ptn = (TN *)PloNew__F3CIDP2SO3OIDi((CID)0xF, 0, (OID)0x148, -1);
     SetTnTnsOverride(pjtgrab->ptn, 0);
     func_00194118(pjtgrab);
-    func_001A0300(pjtgrab->pstepplayer, pjtgrab->abldirA, &pjtgrab->pasegblA);
-    func_001A0300(pjtgrab->pstepplayer, pjtgrab->abldirB, &pjtgrab->pasegblB);
+    InitDirectionalBlend(pjtgrab->pstepplayer, pjtgrab->abldirA, &pjtgrab->pasegblA);
+    InitDirectionalBlend(pjtgrab->pstepplayer, pjtgrab->abldirB, &pjtgrab->pasegblB);
     PostJtLoadGait(&pjtgrab->gaitA);
     PostJtLoadGait(&pjtgrab->gaitB);
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(pjtgrab->pstepplayer, 0xC, 3, pjtgrab->ablC, 0, 0, 0, &pjtgrab->pasegblC);
@@ -802,7 +802,7 @@ void func_00195A00(void *, int, int, int);
 float atan2f(float, float);
 void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void UpdateJtHands(void *);
-void func_001A0450(ACTOR *, ENTRY *, void *);
+void UpdateDirectionalBlend(ACTOR *, ENTRY *, void *);
 void func_00205910(ACTOR *, HEIGHT *, int, U *);
 BINDING *func_0012FF10(void *, ACTOR *, int, int);
 void FaceStepToward(ACTOR *, FOCUS *);
@@ -1109,7 +1109,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 if (!e->active)
                     e = &ctx->axes2[2];
                 SetXYZ(&ctx->actor->velocity, -pjoy->y * GLengthXY(e->direction.q), pjoy->x * GLengthXY(ctx->axes2[1].direction.q), 0.0f);
-                func_001A0450(ctx->actor, ctx->axes2, ctx->request2);
+                UpdateDirectionalBlend(ctx->actor, ctx->axes2, ctx->request2);
                 ACTOR *actor = ctx->actor;
                 float turn = -actor->velocity.f[1] / D_002BF5CC;
                 actor->velocity.q = QwScaleX(D_002A2DA0, QwDot(actor->velocity.q, D_002A2DA0));
@@ -1151,7 +1151,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
 
     switch (ctx->step) {
     case 1:
-        func_001A0450(ctx->actor, ctx->axes, ctx->request);
+        UpdateDirectionalBlend(ctx->actor, ctx->axes, ctx->request);
         if (ctx->actor->x1024 == ctx->x68) {
             switch (ctx->x2C) {
             case 1:

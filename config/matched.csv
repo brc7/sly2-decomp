@@ -3203,9 +3203,9 @@ func_001A0048,0x1A0048,34,match,src/game/gameplay/player/places.cpp
 RemoveSwPlacesOf,0x1A00D0,53,match,src/game/gameplay/player/places.cpp
 StaticInit_places,0x1A01A8,77,match,src/game/gameplay/player/places.cpp
 func_001A02E0,0x1A02E0,8,match,src/game/gameplay/player/places.cpp
-func_001A0300,0x1A0300,83,match,src/game/gameplay/player/dirblend.cpp
-func_001A0450,0x1A0450,179,match,src/game/gameplay/player/dirblend.cpp
-func_001A0720,0x1A0720,167,match,src/game/gameplay/player/dirblend.cpp
+InitDirectionalBlend,0x1A0300,83,match,src/game/gameplay/player/dirblend.cpp
+UpdateDirectionalBlend,0x1A0450,179,match,src/game/gameplay/player/dirblend.cpp
+UpdateDirectionalAcceleration,0x1A0720,167,match,src/game/gameplay/player/dirblend.cpp
 StaticInit_dirblend,0x1A09C0,77,match,src/game/gameplay/player/dirblend.cpp
 func_001A0AF8,0x1A0AF8,8,match,src/game/gameplay/player/dirblend.cpp
 InitJtHurt,0x1A0B18,10,match,src/game/gameplay/player/hurt.cpp

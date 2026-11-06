@@ -581,7 +581,7 @@ extern void PostLoadStepplayer(void *p);
 extern void BindLoOidTable(void *p, int n, void *pv);
 extern int PxfFindSo(void *p, int a, int b);
 extern void PostJtLoadGait(void *p);
-extern void func_001A0300(void *p, void *a, void *b);
+extern void InitDirectionalBlend(void *p, void *a, void *b);
 extern void PostJtLoadSwing(void *p, void *a, void *b);
 extern int func_0012DBB0(void *p, int a, int b);
 extern int func_0012DC18(void *p, int a, int b, int c, int d, qword q);
@@ -622,9 +622,9 @@ void PostJtLoad(char *p)
     F(int, 0x19C0) = PxfFindSo(p, 0xC, 6);
     PostJtLoadGait(A(0x1320));
     PostJtLoadGait(A(0x1C30));
-    func_001A0300(p, A(0x1AC0), A(0x1BC0));
+    InitDirectionalBlend(p, A(0x1AC0), A(0x1BC0));
     PostJtLoadSwing(p, A(0x1970), A(0x1994));
-    func_001A0300(p, A(0x1E10), A(0x1F10));
+    InitDirectionalBlend(p, A(0x1E10), A(0x1F10));
     F(int, 0x19E4) = func_0012DBB0(p, F(int, 0x10B8), 5);
     F(int, 0x19E8) = func_0012DBB0(p, F(int, 0x19C8), 5);
     F(int, 0x19EC) = func_0012DBB0(p, F(int, 0x19C4), 5);
@@ -641,7 +641,7 @@ void PostJtLoad(char *p)
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A20), 0, 0, 0, A(0x1A38));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A3C), 0, 0, 0, A(0x1A54));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A58), 0, 0, 0, A(0x1A70));
-    func_001A0300(p, A(0x13D0), A(0x14D0));
+    InitDirectionalBlend(p, A(0x13D0), A(0x14D0));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 4, A(0x1F60), 0, 0, 0, A(0x1F90));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, A(0x2014), 0, 0, 0, A(0x2038));
     F(int, 0x1804) = F(int, 0x19A4);
@@ -2822,7 +2822,7 @@ void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void*,struct P*,unsigned int);
 void func_0018B2C0(struct P*);void JtChooseGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
 struct BINDING*func_0012FF10(void*,struct P*,void*,int);
 void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void func_00137218(void*);
-void func_001A0720(struct P*,void*,int,float,float);void func_0018B460(struct P*);
+void UpdateDirectionalAcceleration(struct P*,void*,int,float,float);void func_0018B460(struct P*);
 void UpdateGaitBlend(void*,float);void FaceStepToward(struct P*,void*);
 qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
 int FPowerupAcquired(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
@@ -2881,12 +2881,12 @@ void UpdateJtPre(struct P*p){
  case 2:UpdateJtActiveJump(At(p,0x2C0));break;
  case 7:UpdateJtActiveHide(At(p,0x4C0));break;
  case 6:func_00137218(At(p,0x1FF0));break;
- case 10:func_001A0720(p,At(p,0x1AC0),p->axesBEnabled,p->state->heading,p->state->amount);break;
+ case 10:UpdateDirectionalAcceleration(p,At(p,0x1AC0),p->axesBEnabled,p->state->heading,p->state->amount);break;
  case 11:func_0018B460(p);break;
  case 12:UpdateGaitBlend(At(p,0x1C30),p->state->amount);func_00204660(p,p->state->heading);break;
  case 5:switch(p->submode){
   case 4:if(p->owner)FaceStepToward(p,p->owner);break;
-  case 5:func_001A0720(p,At(p,0x13D0),p->axesAEnabled,p->state->heading,p->state->amount);break;
+  case 5:UpdateDirectionalAcceleration(p,At(p,0x13D0),p->axesAEnabled,p->state->heading,p->state->amount);break;
   case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=ConvertAloVec(0,p,phase.direction);break;
  }break;
  case 16:
@@ -2971,7 +2971,7 @@ extern void UpdateJtPre(void *p);
 extern void func_00204660(void *p, float g);
 extern void UpdateGaitBlend(void *p, float g);
 extern void UpdateGaitFootsteps(void *p);
-extern void func_001A0450(void *p, void *a, void *animation);
+extern void UpdateDirectionalBlend(void *p, void *a, void *animation);
 extern void UpdateJtStand(void *p);
 extern void UpdateJtHangIkGoals__FP2JT(void *p);
 extern void func_00185E40(void *p);
@@ -3036,7 +3036,7 @@ void UpdateJt(char *p)
     case 5:
         if (F(int, 0x18D0) == 5) {
             qword s, motion;
-            func_001A0450(p, A(0x13D0), F(void *, 0x14D0));
+            UpdateDirectionalBlend(p, A(0x13D0), F(void *, 0x14D0));
             {
                 unsigned page;
                 __asm__("lui %0,%%hi(%3)\n\tlqc2 %1,%4\n\tlw %0,%%lo(%3)(%0)\n\tqmtc2.ni %0,%2"
@@ -3050,7 +3050,7 @@ void UpdateJt(char *p)
         }
         break;
     case 0xA:
-        func_001A0450(p, A(0x1AC0), F(void *, 0x1BC0));
+        UpdateDirectionalBlend(p, A(0x1AC0), F(void *, 0x1BC0));
         break;
     case 0:
         UpdateJtStand(p);

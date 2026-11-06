@@ -135,7 +135,7 @@ union VQ { float af[4]; ti128 q; };   /* a 16-byte vector that can be initialize
 extern VQ D_002BC920;
 void PostLoadStepplayer(struct S *);
 int PxfFindSo(struct S *, int, int);
-void func_001A0300(struct S *, void *, void *);
+void InitDirectionalBlend(struct S *, void *, void *);
 void PostJtLoadGait(void *);
 void func_00136D28(void *, struct S *, ti128, float, float);
 void func_001426E8(struct S *, int);
@@ -150,8 +150,8 @@ void SetBentleyState(struct S *, int);
 void PostBentleyLoad(struct S *p) {
     PostLoadStepplayer(p);
     p->f10b8 = PxfFindSo(p, 0xb, 1);
-    func_001A0300(p, p->a13e0, p->a14e0);
-    func_001A0300(p, p->a14f0, p->a15f0);
+    InitDirectionalBlend(p, p->a13e0, p->a14e0);
+    InitDirectionalBlend(p, p->a14f0, p->a15f0);
     PostJtLoadGait(p->a1320);
     PostJtLoadGait(p->a1600);
     func_00136D28(p->a1710, p, D_002BC920.q, -50.0f, 50.0f);
@@ -389,7 +389,7 @@ void UpdateJtActiveJump(void *pv);
 void UpdateJtActiveHide(void *pv);
 void FaceStepToward(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
-void func_001A0450(struct P *p, void *pv, int n);
+void UpdateDirectionalBlend(struct P *p, void *pv, int n);
 qword func_00204E38(struct P *p, struct S1030 *px, float g);
 void SetAsegaSpeed__FP5ASEGAf(struct S1030 *px, float g);
 float RadNormalize__Ff(float g);
@@ -438,7 +438,7 @@ static __inline__ void SetVel(struct P *p, qword v, void *pv, int n)
     p->v190 = v;
     p->v190 = MulT(&p->m1B0, v);
     p->x1038 = -1;
-    func_001A0450(p, pv, n);
+    UpdateDirectionalBlend(p, pv, n);
 }
 static __inline__ void Pull(struct P *p)
 {
