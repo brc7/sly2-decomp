@@ -625,8 +625,8 @@ void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *p 
 namespace M_func_00211D38 { extern "C" {
 // Actor update: commit completed state after every noninitial guard path.
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
-struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int x58; float x5C; char pad60[0xB0]; int x110; int x114; };
-extern struct G { char pad[0x3B0C]; void *x3B0C; } D_003DD490;
+struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int unknown110; int keepsGamePaused; };
+extern struct G { char pad[0x3B0C]; void *unknown3B0C; } D_003DD490;
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int IsWidgetIdle(struct S *p);
@@ -651,16 +651,16 @@ void UpdateModalBoxWidget(struct S *p)
     if (r)
         return;
     UpdateWidget(p);
-    if (p->x58 == 2 && 0.5f < g_clock.tReal - p->x5C && !FScreenShown(D_002E6550)
+    if (p->state == 2 && 0.5f < g_clock.tReal - p->stateTime && !FScreenShown(D_002E6550)
         && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
-        if (p->x114 == 0 && D_003DD490.x3B0C) {
+        if (p->keepsGamePaused == 0 && D_003DD490.unknown3B0C) {
             D_002DD318++;
-            func_00162DF8(D_003DD490.x3B0C);
+            func_00162DF8(D_003DD490.unknown3B0C);
         }
         p->pvt->pf((char *)p + p->pvt->d);
     }
-    p->x110 = 1;
+    p->unknown110 = 1;
     return;
 }
 } } // namespace M_func_00211D38
@@ -912,10 +912,10 @@ int FWidgetAnimPlaying(struct S *p, int k)
 // 0x212298 LoadWidgetFromBrx
 namespace M_LoadWidgetFromBrx { extern "C" {
 typedef struct { int cb; int cbAlign; } AREQ;
-struct O { char pad[0x40]; void *x40; };
+struct O { char pad[0x40]; void *owner; };
 struct S {
-    char pad[0x50]; int x50; int x54; int x58; char pad5c[0x14]; int x70; int x74; int x78; int x7C;
-    char pad80[0x10]; float x90; int x94; int x98; char pad9c[0x20]; int xBC; struct O *xC0; void *xC4;
+    char pad[0x50]; int spriteCount; int sprites; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; int mainAnimId;
+    char pad80[0x10]; float duration; int width; int height; char pad9c[0x20]; int hasFont; struct O *deferredLoad; void *spriteOps;
 };
 extern char D_003E1C70[], D_003E1C80[];
 
@@ -944,32 +944,32 @@ void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
 void LoadWidgetFromBrx(struct S *p, void *pbis)
 {
     int f;
-    p->x70 = 0x310;
-    p->x74 = 0x30F;
-    p->x78 = 0x311;
+    p->loopAnimId = 0x310;
+    p->showAnimId = 0x30F;
+    p->hideAnimId = 0x311;
     LoadLoFromBrx(p, pbis);
     f = S8Read__18CBinaryInputStream(pbis);
-    p->x90 = F32Read__18CBinaryInputStream(pbis);
-    p->x94 = U32Read__18CBinaryInputStream(pbis);
-    p->x98 = U32Read__18CBinaryInputStream(pbis);
-    p->xBC = U32Read__18CBinaryInputStream(pbis);
+    p->duration = F32Read__18CBinaryInputStream(pbis);
+    p->width = U32Read__18CBinaryInputStream(pbis);
+    p->height = U32Read__18CBinaryInputStream(pbis);
+    p->hasFont = U32Read__18CBinaryInputStream(pbis);
     if (f) {
         AREQ req;
-        p->x58 = 0;
+        p->state = 0;
         req.cb = 0x50;
         req.cbAlign = 0x10;
-        p->xC4 = D_003E1C70;
-        p->xC0 = func_001AE2A0(&req);
-        p->xC0->x40 = p;
-        CBinaryInputStream_ReadCb64(pbis, p->xC0);
-        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
+        p->spriteOps = D_003E1C70;
+        p->deferredLoad = func_001AE2A0(&req);
+        p->deferredLoad->owner = p;
+        CBinaryInputStream_ReadCb64(pbis, p->deferredLoad);
+        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), p->deferredLoad);
     } else {
-        p->x58 = 1;
-        p->xC4 = D_003E1C80;
-        LoadSpriteTable(p, pbis, p, &p->x50, &p->x54);
+        p->state = 1;
+        p->spriteOps = D_003E1C80;
+        LoadSpriteTable(p, pbis, p, &p->spriteCount, &p->sprites);
         LoadSpriteGroups(p, pbis, p);
     }
-    p->x7C = -1;
+    p->mainAnimId = -1;
 }
 } } // namespace M_LoadWidgetFromBrx
 
@@ -1236,7 +1236,7 @@ struct B { char pad[0xC];
   virtual void v11(); virtual void v12(); virtual void v13(); virtual void v14(); virtual void v15();
   virtual void v16(); };
 struct S : B {
-  char pad10[0x48]; int x58; char pad5c[0x14]; int x70; int x74; int x78; char pad7c[8]; void *x84;
+  char pad10[0x48]; int state; char pad5c[0x14]; int loopAnimId; int showAnimId; int hideAnimId; char pad7c[8]; void *mainSprite;
   void A(int) __asm__("SetWidgetState");
   void Bf(int) __asm__("SetWidgetRequest");
   int F(void *, int) __asm__("FSpriteHasAnim");
@@ -1246,25 +1246,25 @@ struct S : B {
 // argument (-1 = default).
 void S::M(int k)
 {
-    if (!x58)
+    if (!state)
         A(1);
     Bf(2);
-    x70 = k;
-    x74 = -1;
-    x78 = -1;
+    loopAnimId = k;
+    showAnimId = -1;
+    hideAnimId = -1;
     if (k != -1) {
         A(1);
         A(2);
         return;
     }
-    x70 = 0x314;
-    if (F(x84, 0x30F))
-        x74 = 0x30F;
-    if (F(x84, 0x310))
-        x70 = 0x310;
-    if (F(x84, 0x311))
-        x78 = 0x311;
-    if (x58 == 1)
+    loopAnimId = 0x314;
+    if (F(mainSprite, 0x30F))
+        showAnimId = 0x30F;
+    if (F(mainSprite, 0x310))
+        loopAnimId = 0x310;
+    if (F(mainSprite, 0x311))
+        hideAnimId = 0x311;
+    if (state == 1)
         v16();
 }
 } // namespace M_ShowWidget
