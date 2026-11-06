@@ -27,7 +27,7 @@ struct BLMRSG { int ib; int syncCount; MRSG *syncTable; };
 struct ELEM { union { float w; int iw; }; ASEG *paseg; };
 /* Entry of a segment's channel table (EnsureAsegBlendDynamic). */
 struct OBJ;
-struct ENT { unsigned n : 20; unsigned k : 10; unsigned isSkipped : 1; signed isFloatChannel : 1; OBJ *pobj; };
+struct ENT { unsigned n : 20; unsigned k : 10; unsigned skipStandalone : 1; signed isRotationCurve : 1; OBJ *pobj; };
 struct OBJ { int vtableWord; ASEG *px; BLMRSG *syncTables; OBJ **apobj; qword restValue; };
 /* The value a channel is evaluated into (0x100 bytes). */
 struct CHN
@@ -115,7 +115,7 @@ void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU
 int ImrsgLookUp(float t, float tMax, int syncCount, MRSG *syncTable, float *pdt);
 
 // EnsureAsegBlendDynamic (Claude agent laneBE2, 2026-10-23): MATCH. Built from build/hand_wip/EnsureAsegBlendDynamic.fresh14.cpp:
-// the E3-loop "r"(0x10) asm removed, one allocation-only empty asm on the i*4 giv, one register pin (mF31 in s5),
+// the E3-loop "r"(0x10) asm removed, one allocation-only empty asm on the i*4 giv, one register pin (rotationCurveBit in s5),
 // and the not-found slot written as `pentNew = &pxNew->aent[pxNew->c++];`.
 #define PELEM(i) ((ELEM *)((char *)elements + (i) * cb))
 /** @sly2-annot addr=0x137A30
@@ -190,7 +190,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
                 ENT *pentNew;
                 OBJ *pobj;
                 int k;
-                if (pent->isSkipped) continue;
+                if (pent->skipStandalone) continue;
                 k = 0;
                 ENT *entries = pxNew->entries;
                 for (; k < pxNew->c; k++) {
@@ -202,8 +202,8 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
                 pentNew->n = (*(unsigned *)pent << 12) >> 12;
                 pentNew->k = pent->k;
             found:
-                register unsigned mF31 asm("$21") = 0x80000000;  /* register pin: mF31 in s5 like the target (global alloc otherwise gives s5 to &req) */
-                if (pent->isFloatChannel >= 0) {
+                register unsigned rotationCurveBit asm("$21") = 0x80000000;  /* register pin: rotationCurveBit in s5 like the target (global alloc otherwise gives s5 to &req) */
+                if (pent->isRotationCurve >= 0) {
             if (!pentNew->pobj) {
             int a; void *pv;
             pobj = PacNewKind(5);
@@ -221,7 +221,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pobj->syncTables = pxNew->syncTables;
             pobj->apobj = (OBJ **)func_001AE2A0(AREQ(c * 4));
             pentNew->pobj = pobj;
-            *(unsigned *)pentNew |= mF31;
+            *(unsigned *)pentNew |= rotationCurveBit;
             } else pobj = pentNew->pobj;
                 }
                 pobj->apobj[i] = pent->pobj;

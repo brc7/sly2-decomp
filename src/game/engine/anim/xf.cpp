@@ -2724,7 +2724,7 @@ typedef struct P {
 } P;
 typedef struct C { char pad0[4]; LO *object; P *xf; char padC[0x28 - 0xC]; struct C *nextActSeg; } C;
 typedef struct OBJ { VT *vt; } OBJ;
-typedef struct E { OBJ *target; int arg; char pad8[8]; struct E *next; } E;
+typedef struct E { OBJ *curve; int targetIndex; char pad8[8]; struct E *next; } E;
 /* ASEGA (aseg.h): local time +0x1C, act segments +0x34, overrides +0x38, speed +0x40; ACTSEG (C) and OVRA (E) views */
 typedef struct A { char pad0[0x1C]; float localTime; char pad20[0x34 - 0x20]; C *firstActSeg; E *firstOverride; char pad3C[4]; float speed; } A;
 typedef struct G { char pad[0x3D58]; int worldStampCounter; } G;
@@ -2809,7 +2809,7 @@ void EvaluateXfSlotValue(A *a, int flag)
     {
         E *e;
         for (e = a->firstOverride; e; e = e->next)
-            ((void (*)(void *, int, int, float, float))e->target->vt[2].pfn)((char *)e->target + e->target->vt[2].d, e->arg, 0, a->localTime, a->speed);
+            ((void (*)(void *, int, int, float, float))e->curve->vt[2].pfn)((char *)e->curve + e->curve->vt[2].d, e->targetIndex, 0, a->localTime, a->speed);
     }
 }
 } } // namespace M_func_00230CF0
