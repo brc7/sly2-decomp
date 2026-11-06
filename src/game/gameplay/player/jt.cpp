@@ -2407,13 +2407,10 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (!(jt->pctl->grfbtn & 8))
+                    if (!(jt->pctl->grfbtn & 8) && FFightStanceInRange(jt, 0))
                     {
-                        if (FFightStanceInRange(jt, 0))
-                        {
-                            SetJtJts(jt, JTS_Unk05, JTBS_4);
-                            break;
-                        }
+                        SetJtJts(jt, JTS_Unk05, JTBS_4);
+                        break;
                     }
                     if (jt->pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
                     {
@@ -2421,13 +2418,10 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->nUnk10e4 == 3)
+                    if (jt->nUnk10e4 == 3 && jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.15f))
                     {
-                        if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.15f))
-                        {
-                            SetJtJts(jt, JTS_Pickpocket, JTBS_Nil);
-                            break;
-                        }
+                        SetJtJts(jt, JTS_Pickpocket, JTBS_Nil);
+                        break;
                     }
                     if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.2f))
                     {
@@ -2530,13 +2524,10 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtAirJump(&jt->jtair, 0xB, 0, 0);
                         break;
                     }
-                    if (jt->pxpFloor)
+                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z)
                     {
-                        if (0.7f < jt->pxpFloor->normal.z)
-                        {
-                            if (D_002DDED0.t - jt->tJts > 0.4f)
-                                SetJtJts(jt, JTS_Stand, JTBS_Nil);
-                        }
+                        if (D_002DDED0.t - jt->tJts > 0.4f)
+                            SetJtJts(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
                 case JTS_Unk0E:
@@ -2545,18 +2536,12 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtJts(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pxpFloor)
+                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z && D_002DDED0.t - jt->tJts > 0.4f)
                     {
-                        if (0.7f < jt->pxpFloor->normal.z)
-                        {
-                            if (D_002DDED0.t - jt->tJts > 0.4f)
-                            {
-                                float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
-                                ASEGA *asega = jt->pasegaUnk1030;
-                                if (asega->tLocal < tLabel)
-                                    SeekAsega(asega, SEEK_Start, tLabel, asega->svt);
-                            }
-                        }
+                        float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
+                        ASEGA *asega = jt->pasegaUnk1030;
+                        if (asega->tLocal < tLabel)
+                            SeekAsega(asega, SEEK_Start, tLabel, asega->svt);
                     }
                     break;
                 case JTS_Pounce:
