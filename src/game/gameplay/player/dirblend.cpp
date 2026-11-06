@@ -137,108 +137,170 @@ static inline float Float1(qword q){register int bits __asm__("$7");register flo
 // Per-frame: picks the axis set for the current side (-1 none, 0 negative, 1 positive), weights each axis by how much
 // of the player's acceleration lies along its root velocity (normalized so weights sum to at most 1, the remainder
 // going to the idle/head axis), rescales the acceleration to the blended root velocity and reblends `request`.
-extern "C" void UpdateDirectionalBlend(PLAYERV*player,DIRAXIS*axes,void*request){
- int indices[5];
- U total,scalar;
- int i,count,clear,accum;
- register float rate __asm__("$f4");float sum;
- register qword rateVec __asm__("vf6");
- if(!request)return;
- rate=player->anim->rate;
- if(!axes[6].clip||!axes[7].clip)player->side=-1;
- else if(player->side==-1){
-  if(FloatX(VuDot(player->acceleration.q,axes[0].direction.q))<0.0f)player->side=1;
-  else player->side=0;
- }
- {register int ratebits __asm__("$7");__asm__("mfc1 %0,%1":"=r"(ratebits):"f"(rate));rateVec = VuFromFloat<qword>(ratebits);}
- for(clear=7;clear>=0;clear--)axes[clear].weight.value=0.0f;
- switch(player->side){
- case -1:
-  if(!axes[7].clip){indices[0]=6;indices[1]=2;indices[2]=4;}
-  else{indices[0]=7;indices[1]=3;indices[2]=5;}
-  indices[3]=0;indices[4]=1;count=5;
-  break;
- case 0:indices[0]=6;indices[1]=2;indices[2]=4;indices[3]=0;count=4;break;
- case 1:indices[0]=7;indices[1]=3;indices[2]=5;indices[3]=1;count=4;break;
- }
- sum=0.0f;
- if(rate>0.0f){
-  for(i=1;i<count;i++){
-   DIRAXIS*entry=&axes[indices[i]];
-   float denominator=rate*Float1(VuDot(entry->direction.q,entry->direction.q));
-   float along=Float3(VuDot(player->acceleration.q,entry->direction.q));
-   float weight=Max(along/denominator,0.0f);
-   entry->weight.value=weight;
-   sum+=weight;
-  }
- }
- {DIRAXIS*head=&axes[indices[0]];
- if(sum<1.0f)head->weight.value=1.0f-sum;
- else{
-  head->weight.value=0.0f;
-  for(i=1;i<count;i++)axes[indices[i]].weight.value/=sum;
- }
- }
- total.i[0]=total.i[1]=total.i[2]=0;
- for(accum=7;accum>=0;accum--){
-  qword k=VuFromFloat<qword>(axes->weight.bits);
-  total.q=VuAddScaled(total.q,axes->direction.q,k);
-  scalar.q=k;
-  axes++;
- }
- {qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(total.q),"j"(rateVec));{register void*argument __asm__("$4")=request;scalar.q=rateVec;player->acceleration.q=q;func_001384C0(argument);}}
+extern "C" void UpdateDirectionalBlend(PLAYERV *player, DIRAXIS *axes, void *request)
+{
+    int indices[5];
+    U total, scalar;
+    int i, count, clear, accum;
+    register float rate __asm__("$f4");
+    float sum;
+    register qword rateVec __asm__("vf6");
+    if (!request)
+        return;
+    rate = player->anim->rate;
+    if (!axes[6].clip || !axes[7].clip)
+        player->side = -1;
+    else if (player->side == -1) {
+        if (FloatX(VuDot(player->acceleration.q, axes[0].direction.q)) < 0.0f)
+            player->side = 1;
+        else
+            player->side = 0;
+    }
+    {
+        register int ratebits __asm__("$7");
+        __asm__("mfc1 %0,%1" : "=r"(ratebits) : "f"(rate));
+        rateVec = VuFromFloat<qword>(ratebits);
+    }
+    for (clear = 7; clear >= 0; clear--)
+        axes[clear].weight.value = 0.0f;
+    switch (player->side) {
+    case -1:
+        if (!axes[7].clip) {
+            indices[0] = 6;
+            indices[1] = 2;
+            indices[2] = 4;
+        } else {
+            indices[0] = 7;
+            indices[1] = 3;
+            indices[2] = 5;
+        }
+        indices[3] = 0;
+        indices[4] = 1;
+        count = 5;
+        break;
+    case 0:
+        indices[0] = 6;
+        indices[1] = 2;
+        indices[2] = 4;
+        indices[3] = 0;
+        count = 4;
+        break;
+    case 1:
+        indices[0] = 7;
+        indices[1] = 3;
+        indices[2] = 5;
+        indices[3] = 1;
+        count = 4;
+        break;
+    }
+    sum = 0.0f;
+    if (rate > 0.0f) {
+        for (i = 1; i < count; i++) {
+            DIRAXIS *entry = &axes[indices[i]];
+            float denominator = rate * Float1(VuDot(entry->direction.q, entry->direction.q));
+            float along = Float3(VuDot(player->acceleration.q, entry->direction.q));
+            float weight = Max(along / denominator, 0.0f);
+            entry->weight.value = weight;
+            sum += weight;
+        }
+    }
+    {
+        DIRAXIS *head = &axes[indices[0]];
+        if (sum < 1.0f)
+            head->weight.value = 1.0f - sum;
+        else {
+            head->weight.value = 0.0f;
+            for (i = 1; i < count; i++)
+                axes[indices[i]].weight.value /= sum;
+        }
+    }
+    total.i[0] = total.i[1] = total.i[2] = 0;
+    for (accum = 7; accum >= 0; accum--) {
+        qword k = VuFromFloat<qword>(axes->weight.bits);
+        total.q = VuAddScaled(total.q, axes->direction.q, k);
+        scalar.q = k;
+        axes++;
+    }
+    {
+        qword q;
+        __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(q) : "j"(total.q), "j"(rateVec));
+        {
+            register void *argument __asm__("$4") = request;
+            scalar.q = rateVec;
+            player->acceleration.q = q;
+            func_001384C0(argument);
+        }
+    }
 }
 
 static inline qword GetVel(PLAYERV*player){return ((qword(*)(void*))player->vt[33].fn)((char*)player+player->vt[33].delta);}
 static inline void SetVel(PLAYERV*player,qword v){((void(*)(void*,qword))player->vt[35].fn)((char*)player+player->vt[35].delta,v);}
 static inline qword ScaleAndSetSide(PLAYERV*player,qword v,qword k,int side){qword r;__asm__("vmulx.xyzw %0,%2,%3x\n\tsw %4,%1":"=j"(r),"=m"(player->side):"j"(v),"j"(k),"r"(side));return r;}
 static inline qword ToVu(qword bits){register qword r __asm__("vf3");__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(bits));return r;}
-static inline qword ProjectOut(qword ni,qword vi){
- register qword n __asm__("vf1")=ni,v __asm__("vf3")=vi;
- register qword dot __asm__("vf2");
- dot = VuDot(v, n);
- __asm__("vmulx.xyzw %0,%1,%0x":"+j"(dot):"j"(n));
- v = VuSub(v, dot);
- return v;
+static inline qword ProjectOut(qword ni, qword vi)
+{
+    register qword n __asm__("vf1") = ni, v __asm__("vf3") = vi;
+    register qword dot __asm__("vf2");
+    dot = VuDot(v, n);
+    __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(dot) : "j"(n));
+    v = VuSub(v, dot);
+    return v;
 }
-static inline void RemoveSide(PLAYERV*player,U*result,U*oldVelocity){
- M4*basis;
- qword value;
- oldVelocity->q=ToVu(GetVel(player));
- basis=func_001A6318(player);
- value=ProjectOut(basis->r[1],oldVelocity->q);
- result->q=value;
- SetVel(player,value);
+static inline void RemoveSide(PLAYERV *player, U *result, U *oldVelocity)
+{
+    M4 *basis;
+    qword value;
+    oldVelocity->q = ToVu(GetVel(player));
+    basis = func_001A6318(player);
+    value = ProjectOut(basis->r[1], oldVelocity->q);
+    result->q = value;
+    SetVel(player, value);
 }
-static inline void BlendPositive(PLAYERV*player,DIRAXIS*axes,float xin,const U*input,U*out){
- float x=xin;
- register float y __asm__("$f3"),zero __asm__("$f0"),left __asm__("$f2"),right __asm__("$f0");
- register qword a __asm__("vf2"),b __asm__("vf1"),c __asm__("vf4");
- register qword ka __asm__("vf3"),kb __asm__("vf5"),kc __asm__("vf6");
- register int ybits __asm__("$2"),leftbits __asm__("$2");
- __asm__("lwc1 %1,%3\n\tmtc1 $%2,%0":"=f"(zero),"=f"(y):"J"(0),"m"(input->f[1]));
- __asm__("mfc1 %0,%3\n\tmin.s %1,%4,%5\n\tlqc2 %2,%6":"=&r"(ybits),"=f"(left),"=j"(c):"f"(y),"f"(zero),"f"(x),"m"(axes[5].direction.q));
- __asm__("qmtc2.ni %4,%0\n\tneg.s %1,%1\n\tmax.s %2,%5,%6\n\tsqc2 %0,%3":"=j"(ka),"+&f"(left),"=f"(right),"=m"(out->q):"r"(ybits),"f"(zero),"f"(x));
- kb = VuFromFloat<qword>(right);
- __asm__("mfc1 %0,%4\n\tlqc2 %1,%5\n\tqmtc2.ni %0,%2\n\tlqc2 %3,%6":"=&r"(leftbits),"=j"(a),"=j"(kc),"=j"(b):"f"(left),"m"(axes[1].direction.q),"m"(axes[3].direction.q));
- out->q=kb;
- __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(ka):"j"(a),"j"(b),"j"(c),"0"(ka),"j"(kb),"j"(kc));
- player->acceleration.q=ka;out->q=kc;
+static inline void BlendPositive(PLAYERV *player, DIRAXIS *axes, float xin, const U *input, U *out)
+{
+    float x = xin;
+    register float y __asm__("$f3"), zero __asm__("$f0"), left __asm__("$f2"), right __asm__("$f0");
+    register qword a __asm__("vf2"), b __asm__("vf1"), c __asm__("vf4");
+    register qword ka __asm__("vf3"), kb __asm__("vf5"), kc __asm__("vf6");
+    register int ybits __asm__("$2"), leftbits __asm__("$2");
+    __asm__("lwc1 %1,%3\n\tmtc1 $%2,%0" : "=f"(zero), "=f"(y) : "J"(0), "m"(input->f[1]));
+    __asm__("mfc1 %0,%3\n\tmin.s %1,%4,%5\n\tlqc2 %2,%6"
+            : "=&r"(ybits), "=f"(left), "=j"(c)
+            : "f"(y), "f"(zero), "f"(x), "m"(axes[5].direction.q));
+    __asm__("qmtc2.ni %4,%0\n\tneg.s %1,%1\n\tmax.s %2,%5,%6\n\tsqc2 %0,%3"
+            : "=j"(ka), "+&f"(left), "=f"(right), "=m"(out->q)
+            : "r"(ybits), "f"(zero), "f"(x));
+    kb = VuFromFloat<qword>(right);
+    __asm__("mfc1 %0,%4\n\tlqc2 %1,%5\n\tqmtc2.ni %0,%2\n\tlqc2 %3,%6"
+            : "=&r"(leftbits), "=j"(a), "=j"(kc), "=j"(b)
+            : "f"(left), "m"(axes[1].direction.q), "m"(axes[3].direction.q));
+    out->q = kb;
+    __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x"
+            : "=j"(ka)
+            : "j"(a), "j"(b), "j"(c), "0"(ka), "j"(kb), "j"(kc));
+    player->acceleration.q = ka;
+    out->q = kc;
 }
-static inline void BlendNegative(PLAYERV*player,DIRAXIS*axes,float xin,const U*input,U*out){
- float x=xin;
- register float y __asm__("$f2"),zero __asm__("$f0"),left __asm__("$f3"),right __asm__("$f0"),negativeY __asm__("$f2");
- register qword a __asm__("vf3"),b __asm__("vf1"),c __asm__("vf4");
- register qword ka __asm__("vf2"),kb __asm__("vf6"),kc __asm__("vf5");
- __asm__("mtc1 $%2,%0\n\tlwc1 %1,%3":"=f"(zero),"=f"(y):"J"(0),"m"(input->f[1]));
- __asm__("min.s %0,%2,%3\n\tlqc2 %1,%4":"=f"(left),"=j"(c):"f"(zero),"f"(x),"m"(axes[4].direction.q));
- __asm__("max.s %0,%2,%3\n\tneg.s %1,%4":"=&f"(right),"=f"(negativeY):"0"(zero),"f"(x),"f"(y));
- __asm__("qmtc2.ni %2,%0\n\tneg.s %1,%1":"=j"(kb),"+f"(left):"r"(right));
- __asm__("qmtc2.ni %2,%0\n\tsqc2 %0,%1":"=j"(ka),"=m"(out->q):"r"(negativeY));
- __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5":"=j"(kc),"=j"(a),"=j"(b):"r"(left),"m"(axes[0].direction.q),"m"(axes[2].direction.q));
- out->q=kb;
- __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x":"=j"(ka):"j"(a),"j"(b),"j"(c),"0"(ka),"j"(kb),"j"(kc));
- __asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(player->acceleration.q),"=m"(out->q):"j"(ka),"j"(kc));
+static inline void BlendNegative(PLAYERV *player, DIRAXIS *axes, float xin, const U *input, U *out)
+{
+    float x = xin;
+    register float y __asm__("$f2"), zero __asm__("$f0"), left __asm__("$f3"), right __asm__("$f0"),
+        negativeY __asm__("$f2");
+    register qword a __asm__("vf3"), b __asm__("vf1"), c __asm__("vf4");
+    register qword ka __asm__("vf2"), kb __asm__("vf6"), kc __asm__("vf5");
+    __asm__("mtc1 $%2,%0\n\tlwc1 %1,%3" : "=f"(zero), "=f"(y) : "J"(0), "m"(input->f[1]));
+    __asm__("min.s %0,%2,%3\n\tlqc2 %1,%4" : "=f"(left), "=j"(c) : "f"(zero), "f"(x), "m"(axes[4].direction.q));
+    __asm__("max.s %0,%2,%3\n\tneg.s %1,%4" : "=&f"(right), "=f"(negativeY) : "0"(zero), "f"(x), "f"(y));
+    __asm__("qmtc2.ni %2,%0\n\tneg.s %1,%1" : "=j"(kb), "+f"(left) : "r"(right));
+    __asm__("qmtc2.ni %2,%0\n\tsqc2 %0,%1" : "=j"(ka), "=m"(out->q) : "r"(negativeY));
+    __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5"
+            : "=j"(kc), "=j"(a), "=j"(b)
+            : "r"(left), "m"(axes[0].direction.q), "m"(axes[2].direction.q));
+    out->q = kb;
+    __asm__("vmulax.xyzw ACC,%1,%4x\n\tvmaddax.xyzw ACC,%2,%5x\n\tvmaddx.xyzw %0,%3,%6x"
+            : "=j"(ka)
+            : "j"(a), "j"(b), "j"(c), "0"(ka), "j"(kb), "j"(kc));
+    __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->acceleration.q), "=m"(out->q) : "j"(ka), "j"(kc));
 }
 
 /** @sly2-annot addr=0x1A0720
@@ -250,35 +312,57 @@ static inline void BlendNegative(PLAYERV*player,DIRAXIS*axes,float xin,const U*i
 // Turns a steering input (heading and magnitude relative to the player's facing, optionally facing the lock-on
 // target) into the player's acceleration: chooses the side from the lateral input past a dead zone (D_002BF9F0),
 // removes the sideways velocity when the side flips, and blends the two side axes' root velocities. (inferred)
-extern "C" void UpdateDirectionalAcceleration(PLAYERV*player,DIRAXIS*axes,int enabled,float heading,float magnitude){
- U input,scaleOut,oldVelocity;
- register int side __asm__("$3");
- float zero;
- TARGETV*target;
- if(!enabled)return;
- target=player->target;
- if(target){if(player->targetMode==3)target=target->anchor;
- FaceStepToward(player,target);}
- zero=0.0f;
- input.q=SetVectorCylind(RadNormalize__Ff(heading-player->heading),magnitude,zero);
- if(D_002BF9F0<input.f[1]){
-  if(player->side==0){input.f[1]=zero;RemoveSide(player,&scaleOut,&oldVelocity);}
-  side=1;
- }else if(input.f[1]<-D_002BF9F0){
-  if(player->side==1){input.f[1]=zero;RemoveSide(player,&scaleOut,&oldVelocity);}
-  side=0;
- }else{side=player->side;if(side==-1)side=0;}
- {register float x __asm__("$f1")=input.f[0];
- if(side==1){
-  BlendPositive(player,axes,x,&input,&scaleOut);
- }else{
-  BlendNegative(player,axes,x,&input,&scaleOut);
- }
- }
- player->acceleration.i[2]=0;
- {unsigned int animWord=(unsigned int)player->anim;register qword rate __asm__("vf2"),acceleration __asm__("vf1"),scaled __asm__("vf1");
- __asm__("lqc2 %0,%2\n\tlw %1,%3":"=j"(acceleration),"+r"(animWord):"m"(player->acceleration.q),"m"(((ANIMV*)animWord)->ratebits));
- rate=VuFromFloat<qword>(animWord);scaled=ScaleAndSetSide(player,acceleration,rate,side);
-  __asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(player->acceleration.q),"=m"(scaleOut.q):"j"(scaled),"j"(rate));
- }
+extern "C" void UpdateDirectionalAcceleration(PLAYERV *player, DIRAXIS *axes, int enabled, float heading,
+                                              float magnitude)
+{
+    U input, scaleOut, oldVelocity;
+    register int side __asm__("$3");
+    float zero;
+    TARGETV *target;
+    if (!enabled)
+        return;
+    target = player->target;
+    if (target) {
+        if (player->targetMode == 3)
+            target = target->anchor;
+        FaceStepToward(player, target);
+    }
+    zero = 0.0f;
+    input.q = SetVectorCylind(RadNormalize__Ff(heading - player->heading), magnitude, zero);
+    if (D_002BF9F0 < input.f[1]) {
+        if (player->side == 0) {
+            input.f[1] = zero;
+            RemoveSide(player, &scaleOut, &oldVelocity);
+        }
+        side = 1;
+    } else if (input.f[1] < -D_002BF9F0) {
+        if (player->side == 1) {
+            input.f[1] = zero;
+            RemoveSide(player, &scaleOut, &oldVelocity);
+        }
+        side = 0;
+    } else {
+        side = player->side;
+        if (side == -1)
+            side = 0;
+    }
+    {
+        register float x __asm__("$f1") = input.f[0];
+        if (side == 1) {
+            BlendPositive(player, axes, x, &input, &scaleOut);
+        } else {
+            BlendNegative(player, axes, x, &input, &scaleOut);
+        }
+    }
+    player->acceleration.i[2] = 0;
+    {
+        unsigned int animWord = (unsigned int)player->anim;
+        register qword rate __asm__("vf2"), acceleration __asm__("vf1"), scaled __asm__("vf1");
+        __asm__("lqc2 %0,%2\n\tlw %1,%3"
+                : "=j"(acceleration), "+r"(animWord)
+                : "m"(player->acceleration.q), "m"(((ANIMV *)animWord)->ratebits));
+        rate = VuFromFloat<qword>(animWord);
+        scaled = ScaleAndSetSide(player, acceleration, rate, side);
+        __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(player->acceleration.q), "=m"(scaleOut.q) : "j"(scaled), "j"(rate));
+    }
 }
