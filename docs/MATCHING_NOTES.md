@@ -525,3 +525,10 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
   `for (;;) { if (!p) return; ...; p = p->next; }` list walk cannot become `while (p)` / `for (; p; )` (loop.c rotates those to a
   bottom test; DetachXfActById), and a loop entered at its test via `goto test` cannot become a `for (;;)` with the test first
   (block order changes; ChooseSmaTransition).
+- **Readability pass (names r3, hud / sound):** field and local renames, named constants (enum values in comparisons and
+  case labels, macros in calls), early returns and splitting one-liners never changed codegen. Compiler-imposed: a
+  nested `if (x != 0) { if (x == 1) B; } else A;` cannot become `if (x == 0) A; else if (x == 1) B;` (block order
+  follows the source; BuildReconSelectionText); byte arithmetic `(H *)(i * sizeof(H) + (int)base)` cannot become
+  `&base[i]` (scheduling; RestartNestedSprite). A global enum constant passed as a call argument makes g++'s
+  argument-dependent lookup see the file-scope declaration next to a per-function `extern "C"` redeclaration
+  (ambiguous overload): use a macro for constants passed to such calls (sound.cpp SUKR_*).
