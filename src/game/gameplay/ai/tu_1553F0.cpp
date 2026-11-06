@@ -24,6 +24,12 @@ enum {
     CID_BHVWALKPATH = 0xA7,
     CID_BHV181 = 0xB5,
 };
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+   section 2). Only the identified flags are named. */
+enum {
+    SGF_FLEE = 0x22,   // BHV180 (Dimitri flee)
+    SGF_DIMITRI_ATTACK = 0x23,   // BHV181
+};
 
 typedef int qwordV __attribute__((mode(TI)));
 typedef struct CLOCKV { float t; float dt; } CLOCKV;
@@ -219,7 +225,7 @@ void BHV180::OnPush()
 {
     BHVESC *behavior = (BHVESC *)this;
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x22);
+    AddStepguardSgf(behavior->guard, SGF_FLEE);
     behavior->state = -1;
 }
 
@@ -228,7 +234,7 @@ extern "C" void CloseBhvDimitriEscape(BHVESC *behavior)
 {
     CloseBhv(behavior);
     SetBhvDimitriEscapeState(behavior, -1);
-    RemoveStepguardSgf(behavior->guard, 0x22);
+    RemoveStepguardSgf(behavior->guard, SGF_FLEE);
     SetStepguardTarget(behavior->guard, 0);
 }
 
@@ -375,7 +381,7 @@ namespace RO_ORDER { extern const float r_D_002A5134 __asm__("D_002A5134") = 3.4
 extern "C" void InitBhvDimitriAttack(BHVATK *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->guard, 0x23);
+    AddStepguardSgf(behavior->guard, SGF_DIMITRI_ATTACK);
     behavior->state = -1;
     behavior->unknown3C = D_002A5134;
 }
@@ -385,7 +391,7 @@ extern "C" void CloseBhvDimitriAttack(BHVATK *behavior)
 {
     CloseBhv(behavior);
     SetBhvDimitriAttackState(behavior, -1);
-    RemoveStepguardSgf(behavior->guard, 0x23);
+    RemoveStepguardSgf(behavior->guard, SGF_DIMITRI_ATTACK);
 }
 
 // 0x155A38: Dimitri attack behaviour vtable slot 8 (Start): state 0.
