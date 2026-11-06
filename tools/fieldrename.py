@@ -386,7 +386,9 @@ class Batch:
                 ds = self.parse(tu, log); per = {}
                 bad = [d for d in ds if d[2] in ('new', 'other')]
                 if any(d[2] == 'new' for d in bad):
-                    raise Fail('%s: a rewritten token belonged to another struct: %s' % (tu, [d[:2] + d[4:] for d in bad if d[2] == 'new'][:3]))
+                    raise Fail('%s: a rewritten token belonged to another struct: %s (typically a template body instantiated '
+                               'for several types: rename the same field of every instantiating type in one batch, or edit by hand)'
+                               % (tu, [d[:2] + d[4:] for d in bad if d[2] == 'new'][:3]))
                 if bad and len(bad) == len(ds) and rnd == 1 and self.args.dry_run:
                     self.warnings.append('%s does not build here (dropped from the dry run)' % tu); scope.remove(tu); continue
                 if bad and len(bad) == len(ds):
