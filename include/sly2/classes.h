@@ -1771,8 +1771,8 @@ typedef char assert_CIRCLER_size[sizeof(CIRCLER) == 0x60 ? 1 : -1];
 struct SKY : SO
 {
     char pad150[0x160 - 0x150];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetSkyClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("PostSkyLoad");   /* slot 15 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSkyClassDesc");   /* slot 6 */
     virtual void VUnk15() __asm__("UpdateSky");   /* slot 16 */
 };
 typedef char assert_SKY_size[sizeof(SKY) == 0x160 ? 1 : -1];
