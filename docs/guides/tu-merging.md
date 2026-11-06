@@ -622,6 +622,61 @@ real names and `_vt$` config names first). The scratch tools of this branch: sur
 prep/vrename (include and V renames), convert (key function), fixamb/fixsym (ambiguities, labels), vtcheck, order
 (emission order), batch (all of it per TU, commit when everything holds).
 
+### Vtables emitted, continued (data/vtables-2)
+
+data/vtables-2 (from link/eopid-real-refs 1a7c0130) emits 44 more vtables (10,328 bytes) and removes
+config/link_aliases.txt: every name the objects reference is now bound in source or config. Each vtable is checked
+slot by slot (scratch vtcheck.py: 226 vtables, 0 bad but tn's `_vt$7CMPART2`, which has no config name), every object
+emits its vtables in ascending ELF order (scratch ordercheck.py) and the emitting objects come in TU order (scratch
+tuorder.py: 225 vtables, 0 out of order); every function and data symbol of the 210 game sources MATCHes.
+
+- **class_registry's 19** (0x2C8940..0x2CA550): the 13 left above plus the six in the same run without config names
+  (WIDGET130, POCTL, CID150, CID149, CM, CID152: `_vt$9WIDGET130` ... added). The getters `extern "C" CLASSINFO
+  *GetBearcubClassDesc()` became `CLASSINFO *BEARCUB::Pclassinfo()` (Pclassinfo is already each class's first
+  virtual). Emission order needed the headers rearranged: sly2/classes.h now includes basic.h and lo.h, defines
+  CID152, includes cm.h, defines CID154, then includes aseg.h, so.h, po.h, emitter.h before players.h; CID149 moved
+  into so.h between CID148 and CID150, WIDGET130 after CID101; cm.h no longer includes aseg.h (it used nothing of it).
+- **GOMER** (gomer.cpp): the slot-7 function's config symbol `RenderGomerSelf__FP5GOMERP2CMP2RO` carries a draft
+  three-parameter signature, but the code only forwards a1/a2 to InitStepguard: `void GOMER::Init() {
+  STEPGUARD::Init(); ... }` reproduces it (Init declared first in GOMER).
+- **WARP, EXIT, CID41** (exit_warp.cpp): bis.h declares VECTOR/VECTOR4/MATRIX3/MATRIX4 instead of including mat.h
+  (its readers take them by pointer; bis.cpp includes mat.h itself), which removes the clash of vec.h's 16-byte
+  VECTOR with sly2/basic.h's. Key functions WARP::LoadFromBrx, EXIT::Init, CID41::LoadFromBrx; views EXITV/WARPV.
+- **The act family** (new sly2/act.h): ACT (vptr +0x18) and AC/ACG (curves, vptr +0x0) with their kinds. Names:
+  ACT, ACTSEG, AC, ACG are Sly 1's (HYPOTHESIS); ACT1..ACT9, AC0..AC5, ACG0..ACG2 are DRAFT names after the
+  factories' kind numbers (func_0012E238, PacNewKind, PacNewKind2; jt.cpp's ACT1/ACT5 views use the same). act.cpp
+  emits its 17 (0x2CA6A0..0x2CA9C8), asega ACTSEG, tail ACT3, ik ACT7; blend.cpp's AC5 (0x2CB5A8) and ACG2
+  (0x2CB588) are not emitted (blend.cpp is in integrate/round9's merge; act.cpp's references resolve through their
+  config names). The factories construct **in place** (`new (PvNewAc(sizeof(AC0))) AC0`, then the kind stores): as
+  class members, the allocators and inline constructors got out-of-line copies in act.cpp, the classes' key TU (the
+  rule above). Key functions defined in per-function namespaces moved out as the members and open the namespace
+  (`using namespace M_x;` plus using-declarations for every name the namespace shares with the file scope).
+- **hud's and memcard's local classes**: hud's constructor func_00211C58 is `WIDGET130::WIDGET130()` (two fields
+  added to classes.h's WIDGET130, draft names). memcard's status widget is `CMcStatus : SCREEN` (DRAFT names; new
+  sly2/screen.h with SCREEN's 14-slot layout from 0x2D85E8, SCREEN's constructor and ResetMode out of line), its
+  vtable 0x2D36D0 emitted by memcard (key function SetMode, slot 14). ResetMode as a member, not a C declaration
+  taking `MCDLG *`: the latter put the field store in the call's delay slot.
+- **The rest of the alias table**: `__builtin_new` is memory.cpp's `void *operator new(unsigned int)` (config
+  0x1AE4F8 renamed from func_001AE4F8); frm.cpp's frame pointer is `g_pfrmOpen` (config name at 0x2DEA4C; draw.cpp
+  already used it and frm.cpp MATCHes renamed); hud's `D_C0` is the address name `D_000000C0`; brx_sw's stream view
+  is `CStreamBis` and its destructor `_$_10CStreamBis` (config name of 0x184950, DRAFT class name as
+  CStreamBis_Close/Refill; tu_1848A8 defines it by asm label on its C definition); CPairPtr/CVarbPtr (pair.h,
+  varb.h, and serialize.cpp's copy) are explicit specializations of CRefPtr (table "Views unified"). With no line
+  left, config/link_aliases.txt is deleted; tools/linkaliases.py reads it only if present and still derives the
+  address names link.py asks it for. It can go once link.py does that itself (link.py's `symbols()` already maps
+  the remaining undefined address names to absolute addresses; dropping the call and moving `ADDR_NAME`/`q` into
+  link.py is a link.py change, left to the branch that owns it).
+
+Measured (fresh build/link): tools/link.py 0 differing bytes, blob bytes 845,256 -> 834,928 (data no object defines
+216,056 -> 205,728), 2,238 sections placed (+44), 7,884 config names at their address; symcheck 5 unresolved (tn's
+`Init__5CPLCY` and four `_gp`; 39 at the branch start: the alias table's names and the view vtables), 0 duplicate
+strong globals; relverify 51,943 relocations OK, 0 mismatched (without an alias file); nm against the branch start:
+only the vtables (U -> V/W), the slot functions they reference, the renamed references (`_$_8CPairPtr` ->
+`_$_t7CRefPtr1Z5CPair`, the view vtables -> the real ones, `D_C0`, `func_001AE4F8`/`func_00184950`/`D_002DEA4C`
+definitions under their new names) and the `_GLOBAL_$D$`/`$I$` stubs' file hashes. Not done: 62 more vtables in the
+linkonce data area have no config name yet (about 7,950 bytes: STEPPLAYER's, the camera policies', the screens',
+the rips', GRABSPOT's, LEAP's, WIDGET's...), the next candidates.
+
 ## Path-hash quirk (asm functions)
 
 GCC 2.95 hashes the source file name and the line number into the gcse ordering of inline-asm expressions; in rare
