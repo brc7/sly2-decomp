@@ -2030,11 +2030,11 @@ typedef char assert_WARP_size[sizeof(WARP) == 0x180 ? 1 : -1];
 struct WATER : SO
 {
     char pad150[0x190 - 0x150];
+    virtual void VUnk14() __asm__("PostWaterLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWaterClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00229370");   /* slot 5 */
     virtual void Init() __asm__("InitWater");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("func_00229308");   /* slot 12 */
-    virtual void VUnk14() __asm__("PostWaterLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateWater");   /* slot 16 */
     virtual void VUnk48() __asm__("func_00229680");   /* slot 49 */
     virtual void InitPhys() __asm__("func_00228BB0");   /* slot 64 */
