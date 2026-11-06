@@ -102,9 +102,13 @@ void SetBhvScriptScript(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELAV *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(O *p, MODE *pf);
-extern const float D_002A7620;   /* defined below where the ELF has it (.rodata order) */
+extern const float D_002A7620; /* defined below where the ELF has it (.rodata order) */
 /* tu_1B9F80's .data (address order): the snip table, then NEELA's target volume: the centre offset and the box around it. */
-struct SNIP { int grfsnip; int oid; int ib; };   /* Sly 1's SnipLoObjects record */
+struct SNIP {
+    int grfsnip;
+    int oid;
+    int ib;
+}; /* Sly 1's SnipLoObjects record */
 SNIP D_002C0A50[3] = {{0x200, 0x5D8, 0x1020}, {0x10, 0x5D9, 0x1030}, {0x10, 0x5DA, 0x1034}};
 U D_002C0A80 = {{400.0f, 0.0f, 70.0f, 0.0f}};
 U D_002C0A90 = {{-500.0f, -500.0f, -300.0f, 0.0f}};
@@ -176,7 +180,13 @@ extern "C" int FilterCid98(void *pv, ROW *prow)
 // VU0 helper: moves a CPU quadword into a VU register.
 static inline qword Vector(qword r){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(r));return v;}
 // VU0 helper: squared length of a vector.
-static inline float Square(qword a){float f;a = VuDot(a, a);f = VuToFloat(a);return f;}
+static inline float Square(qword a)
+{
+    float f;
+    a = VuDot(a, a);
+    f = VuToFloat(a);
+    return f;
+}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
 typedef char ROW_Size[sizeof(ROW)==8?1:-1];
@@ -200,51 +210,73 @@ namespace RO_ORDER { extern const float r_D_002A7620 __asm__("D_002A7620") = 3.4
 // 0x1BA128: NEELA vtable slot 16 (Update): STEPGUARD update; state 0: with flag 0x25 in modes 9/2, looks for the
 // nearest other guard in a volume or a cid 0x62 object in a box and goes to state 1; state 1: aims her prop at the
 // target until its animation ends.
-extern "C" void UpdateNeela(NEELAV*neela){
- UpdateStepguard(neela);
- switch(neela->state){
- case 0:{
-  if(!StepguardHasSgf(neela,0x25))break;
-  VOLUME*volume;
-  if(StepguardHasSgf(neela,9)){volume=neela->first;neela->target=0;}
-  else if(StepguardHasSgf(neela,2)){volume=neela->second;neela->target=0;}
-  else break;
-  float nearest=D_002A7620;
-  for(NEELAV*node=(*(NEELAV * *)&g_sw.dlStepguard);node;node=node->next){
-   if(node==neela||StepguardHasSgf(node,7))continue;
-   qword origin=Vector(func_001A62E8(neela));
-   float distance=Square(VuSub(origin,func_001A62E8(node)));
-   if(nearest<distance)continue;
-   if(FCheckVolPoint(volume,func_001A62E8(node))){neela->target=node;nearest=distance;}
-  }
-  if(!neela->target&&!StepguardHasSgf(neela,2)){
-   qword position=Vector(ConvertAloPos(neela,0,D_002C0A80.q));
-   qword low=VuAdd(position,D_002C0A90.q);
-   qword high=VuAdd(position,D_002C0AA0.q);
-   STACKSCOPE arena;
-   int count;ROW**rows;
-   IntersectSwBoundingBox(&D_003DD490,low,high,FilterCid98,0,&count,&rows);
-   for(int i=0;i<count;i++){
-    ROW*row=rows[i];
-    if(FCheckVolPoint(volume,func_001A62E8(row->object))){neela->target=row->object;break;}
-   }
-  }
-  if(neela->target)SetNeelaState(neela,1);
-  break;
- }
- case 1:{
-  if(FAsegaRetracted(neela->animation)){SetNeelaState(neela,0);break;}
-  NODE*node=neela->node;
-  qword position=func_001A62E8(neela->target);
-  qword local=func_0022FC48(0,node->space,position);
-  qword direction=VuSub(local,neela->node->position);
-  M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,neela->axis,direction);
-  MOTION*motion=neela->motion;
-  motion->angles=func_0011BFF0(&matrix);
-  break;
- }
- default:break;
- }
+extern "C" void UpdateNeela(NEELAV *neela)
+{
+    UpdateStepguard(neela);
+    switch (neela->state) {
+    case 0: {
+        if (!StepguardHasSgf(neela, 0x25))
+            break;
+        VOLUME *volume;
+        if (StepguardHasSgf(neela, 9)) {
+            volume = neela->first;
+            neela->target = 0;
+        } else if (StepguardHasSgf(neela, 2)) {
+            volume = neela->second;
+            neela->target = 0;
+        } else
+            break;
+        float nearest = D_002A7620;
+        for (NEELAV *node = (*(NEELAV **)&g_sw.dlStepguard); node; node = node->next) {
+            if (node == neela || StepguardHasSgf(node, 7))
+                continue;
+            qword origin = Vector(func_001A62E8(neela));
+            float distance = Square(VuSub(origin, func_001A62E8(node)));
+            if (nearest < distance)
+                continue;
+            if (FCheckVolPoint(volume, func_001A62E8(node))) {
+                neela->target = node;
+                nearest = distance;
+            }
+        }
+        if (!neela->target && !StepguardHasSgf(neela, 2)) {
+            qword position = Vector(ConvertAloPos(neela, 0, D_002C0A80.q));
+            qword low = VuAdd(position, D_002C0A90.q);
+            qword high = VuAdd(position, D_002C0AA0.q);
+            STACKSCOPE arena;
+            int count;
+            ROW **rows;
+            IntersectSwBoundingBox(&D_003DD490, low, high, FilterCid98, 0, &count, &rows);
+            for (int i = 0; i < count; i++) {
+                ROW *row = rows[i];
+                if (FCheckVolPoint(volume, func_001A62E8(row->object))) {
+                    neela->target = row->object;
+                    break;
+                }
+            }
+        }
+        if (neela->target)
+            SetNeelaState(neela, 1);
+        break;
+    }
+    case 1: {
+        if (FAsegaRetracted(neela->animation)) {
+            SetNeelaState(neela, 0);
+            break;
+        }
+        NODE *node = neela->node;
+        qword position = func_001A62E8(neela->target);
+        qword local = func_0022FC48(0, node->space, position);
+        qword direction = VuSub(local, neela->node->position);
+        M3 matrix;
+        BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix, neela->axis, direction);
+        MOTION *motion = neela->motion;
+        motion->angles = func_0011BFF0(&matrix);
+        break;
+    }
+    default:
+        break;
+    }
 }
 
 // 0x1BA408: Neela state change: state 1 starts the prop animation, constrains it toward the target, points her
