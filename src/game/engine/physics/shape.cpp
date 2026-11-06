@@ -1805,7 +1805,7 @@ extern "C" { extern qword D_002A2DC0; }
 extern "C" {
 qword GetXfVelocity(SPACE *, SPACE *, qword);
 void CopyAb__FPvT0Ui(void *, const void *, unsigned);
-int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
+int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
 M4 *InvertMatrix4Rigid(M4 *, M4 *);
 void InvalidateShapeCache(PATH *);
 void func_001E8378(CHAIN *);
@@ -2024,7 +2024,7 @@ void func_001E8378(CHAIN *p)
                 break;
             for (int j = j0; j < count; j++) {
                 float t;
-                if (!func_0014C748(p->position[i - 1].q, step, Q(&accP[j - 1]), Q(&accP[j]), 1, &lsg)) {
+                if (!ClipEdgeToSphere(p->position[i - 1].q, step, Q(&accP[j - 1]), Q(&accP[j]), 1, &lsg)) {
                     p->position[i] = accP[j - 1];
                     t = 0.0f;
                 } else if (lsg.au[1] < 1.0f) {
@@ -2741,7 +2741,7 @@ void *func_001E9F50(qword q)
 namespace M_func_001EA000 { extern "C" {
 // func_001EA000 (lane 5): matched. Samples an object's path over [tStart, tEnd] and collects the time segments where
 // func_001E9F50 finds a valid position into ps->aseg10 (func_001BD560 == 3 means "no bound found", so tStart/tEnd are
-// used), intersects them with ps->aseg through ClsgMergeAlsg and fixes up a wrap-around pair at the end.
+// used), intersects them with ps->aseg through MergeSegmentLists and fixes up a wrap-around pair at the end.
 // Notes for whoever touches this again:
 //  - `pseg` (the aseg10 pointer used by the wrap-around fix-up) must be assigned after the copy loops, outside the block
 //    that uses it, so cse does not fold pseg[0] into 0x10(ps); gcse then keeps it as a separate spilled copy.
@@ -2773,7 +2773,7 @@ void EvaluateShapeS(struct O *, float, qword *, qword *);
 void *func_001E9F50(qword);
 int func_001BD560(void *, struct O *, float, int, qword *, float *);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-int ClsgMergeAlsg(int, struct X *, int, struct X *, int, struct X *, int);
+int MergeSegmentLists(int, struct X *, int, struct X *, int, struct X *, int);
 
 /** @sly2-annot addr=0x1EA000
  * Purpose: Sample the path over [t0,t1] and collect valid parameter ranges, intersect with existing ones
@@ -2857,7 +2857,7 @@ void func_001EA000(struct S *ps)
         ay[j].b = aseg[j].b;
     }
     pseg = ps->aseg10;
-    n = ClsgMergeAlsg(cseg, ay, c, ax, 0x10, ay, 0);
+    n = MergeSegmentLists(cseg, ay, c, ax, 0x10, ay, 0);
     for (k = 0; k < n; k++) {
         aseg[k].a = ay[k].a;
         aseg[k].b = ay[k].b;

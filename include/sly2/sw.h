@@ -192,7 +192,7 @@ struct SW : public BASIC
                                the 3 states with no world loaded) */
 
       PO *apo[16];          /* +0x3EBC [R] player objects (oids 8 Bentley, 7 Sly(JT), 9 Murray, 0x4357 CID 0x46 char-select) */
-      PO *ppoHero;          /* +0x3EFC [R] CURRENT player (PpoCur): follows character switches; g_pjt stays Sly (runtime3) */
+      PO *ppoHero;          /* +0x3EFC [R] CURRENT player (GetCurrentPo): follows character switches; g_pjt stays Sly (runtime3) */
       PO *ppoOverride;      /* +0x3F00 [R] override player; 0 in all states; current = ppoOverride ? ppoOverride : ppoHero */
       int cproxysrc;
       PROXYSRC *aproxysrc;

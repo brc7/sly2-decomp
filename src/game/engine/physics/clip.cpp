@@ -14,7 +14,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 
 /* A clipped segment (0x60): end points, the planes there, the parameters along the edge, its kind and two per-end
-   words (ClsgMergeAlsg copies at[0]/apos[0]/anormal[0]/x4C for an entry and the [1] fields/x50 for an exit). */
+   words (MergeSegmentLists copies at[0]/apos[0]/anormal[0]/x4C for an entry and the [1] fields/x50 for an exit). */
 struct LSG { qword apos[2]; qword anormal[2]; float au[2]; int lsgk; int x4C; int x50; int pad[3]; };
 typedef char assert_LSG_size[sizeof(LSG) == 0x60 ? 1 : -1];
 /* View of the object a segment is clipped against: its bounding-sphere centre (pa->q70) and radius (+0x8), the
@@ -29,10 +29,10 @@ extern "C" {
 extern qword D_002A2DA0;
 void InitPlaneFromNormalPos(qword *pnormal, qword normal, qword pos);
 int func_00118668(int n, int m, qword a, qword b, int c, LSG *alsg);
-int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
-int ClsgClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *alsg);
-int ClsgClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg);
-int ClsgMergeAlsg(int c1, LSG *alsg1, int c2, LSG *alsg2_, int cMax, LSG *alsgOut, int k);
+int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg);
+int ClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *alsg);
+int ClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg);
+int MergeSegmentLists(int c1, LSG *alsg1, int c2, LSG *alsg2_, int cMax, LSG *alsgOut, int k);
 struct CTX *STACKSCOPE_ctor(struct CTX *);
 void STACKSCOPE_ctor_1AE4A0(struct CTX *, int) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(struct AREQ *);
@@ -40,33 +40,33 @@ void *PvAllocSlot__FP8ALLOCREQ(struct AREQ *);
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);   /* CopyAb__FPvT0Ui */
 
 /** @sly2-annot addr=0x14C6A0
- * Purpose: Clip segment against an SO: ClsgClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...)
- * Info: proposed name ClsgClipEdgeToObject (T1); TU clip
+ * Purpose: Clip segment against an SO: ClipEdgeToObjectPruned(pso, pso->bsp (+0x74), ...)
+ * Info: proposed name ClipEdgeToObject (T1); TU clip
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/engine/physics-collision.md#6-source-files
  * @end-sly2-annot */
-extern "C" int ClsgClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg)
+extern "C" int ClipEdgeToObject(SOCLIP *p, qword a, qword b, int c, LSG *alsg)
 {
-    return ClsgClipEdgeToObjectPruned(p, p->x74, a, b, c, alsg);
+    return ClipEdgeToObjectPruned(p, p->x74, a, b, c, alsg);
 }
 
 /** @sly2-annot addr=0x14C6D8
  * Purpose: If a BSP is given ClsgClipEdgeToBsp, else if the object is a sphere (bit 49) ClsgClipEdgeToSphere
  *   with its center/radius
- * Info: proposed name ClsgClipEdgeToObjectPruned (T1); TU clip
+ * Info: proposed name ClipEdgeToObjectPruned (T1); TU clip
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
  * @end-sly2-annot */
-extern "C" int ClsgClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *alsg)
+extern "C" int ClipEdgeToObjectPruned(SOCLIP *p, int n, qword a, qword b, int c, LSG *alsg)
 {
     if (n) return func_00118668(n, 0x7FFFFFFF, a, b, c, alsg);
-    if (p->ul10 & (1UL << 49)) return func_0014C748(p->pa->q70, p->f8, a, b, c, alsg);
+    if (p->ul10 & (1UL << 49)) return ClipEdgeToSphere(p->pa->q70, p->f8, a, b, c, alsg);
     return 0;
 }
 
-// func_0014C748 MATCH (Claude agent, lane K2, 2026-10-24), no register pins, VU helper asms only. Fresh rewrite (old v12 draft 10).
+// ClipEdgeToSphere MATCH (Claude agent, lane K2, 2026-10-24), no register pins, VU helper asms only. Fresh rewrite (old v12 draft 10).
 // Keys: (1) the three dots as mtc1-from-VF (GXOfVf with an allocation-only "j") instead of a qmfc2 "=r"(float) asm: gcc emits the
 // qmfc2 itself, which gives the target's prologue schedule and VF numbering; (2) `float a = Dot(dir, dir);` declared BEFORE b
 // (no function-top a/b): a's pseudo is then lower than b's, so global-alloc gives a f4 / b f5 (equal priority, lower number first);
@@ -106,7 +106,7 @@ static inline qword Normalize(const qword &v)
  * See: docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
  * @end-sly2-annot */
-extern "C" int func_0014C748(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg)
+extern "C" int ClipEdgeToSphere(qword posCenter, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg)
 {
     float au[2];
     if (clsgMax <= 0)
@@ -153,12 +153,12 @@ extern "C" int func_0014C748(qword posCenter, float sRadius, qword pos0, qword p
 /** @sly2-annot addr=0x14C9F8
  * Purpose: Merge two sorted LSG interval lists into an output list with a set operation selected by k (0 =
  *   union ...)
- * Info: proposed name ClsgMergeAlsg (T1); TU clip
+ * Info: proposed name MergeSegmentLists (T1); TU clip
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_A1+verify_side
  * See: docs/engine/camera.md#5-key-functions, docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/engine/physics-collision.md#7-key-functions
  * @end-sly2-annot */
-extern "C" int ClsgMergeAlsg(int c1, struct LSG *alsg1, int c2, struct LSG *alsg2_, int cMax, struct LSG *alsgOut, int k)
+extern "C" int MergeSegmentLists(int c1, struct LSG *alsg1, int c2, struct LSG *alsg2_, int cMax, struct LSG *alsgOut, int k)
 {
     /* hard-register local: fixes the s2/s3 assignment of alsg2 vs c2 */
     register struct LSG *alsg2 __asm__("$18") = alsg2_;
@@ -258,7 +258,7 @@ extern "C" void *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int grf, qword a
     for (i = 0; i < cso; i++) {
         struct LSG alsg[2];
         void *pso = apso[i];
-        int c = ClsgClipEdgeToObject((SOCLIP *)pso, a, b, 2, alsg);
+        int c = ClipEdgeToObject((SOCLIP *)pso, a, b, 2, alsg);
         int j = 0;
         if (c > 0 && alsg[0].au[0] == 0.0f && (grf & 1))
             j = 1;
@@ -274,21 +274,21 @@ extern "C" void *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int grf, qword a
 
 /** @sly2-annot addr=0x14CDB0
  * Purpose: Clip a segment against a list of SOs, merging each object's LSG list into the result
- *   (ClsgMergeAlsg k=0)
- * Info: proposed name ClsgClipEdgeToObjects (T1); TU clip
+ *   (MergeSegmentLists k=0)
+ * Info: proposed name ClipEdgeToObjects (T1); TU clip
  * Notes: names_v2 v1 proposed FUN_00141b48 (0.000)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#clip-0x14c6a0-0x14cfe0
  * @end-sly2-annot */
-extern "C" int ClsgClipEdgeToObjects(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg)
+extern "C" int ClipEdgeToObjects(qword a, qword b, int cso, void **apso, int cMax, struct LSG *alsg)
 {
     int c = 0;
     int i;
     for (i = 0; i < cso; i++) {
         struct LSG *plsg = &alsg[c];
-        int n = ClsgClipEdgeToObject((SOCLIP *)apso[i], a, b, cMax - c, plsg);
+        int n = ClipEdgeToObject((SOCLIP *)apso[i], a, b, cMax - c, plsg);
         if (n)
-            c = ClsgMergeAlsg(c, alsg, n, plsg, cMax, alsg, 0);
+            c = MergeSegmentLists(c, alsg, n, plsg, cMax, alsg, 0);
     }
     return c;
 }

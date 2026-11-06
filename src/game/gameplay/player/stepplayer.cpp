@@ -39,9 +39,9 @@ extern char D_002DEB30[];       /* the game */
 extern CLOCK D_002DDED0;
 extern const float D_002A4D60;
 int FSwHandsOff(SW *psw);
-STEPPLAYER *PpoHero(SW *psw);
+STEPPLAYER *GetHeroPo(SW *psw);
 void SetTnTnsOverride(TN *ptn, int f);
-void func_00204768(STEPPLAYER *pstepplayer);
+void AdjustStepXps(STEPPLAYER *pstepplayer);
 void func_00199298(JTAIR *pjtair);
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
 int FTakeJtDamage(JTHURT *pjthurt, ZPR *pzpr);
@@ -58,7 +58,7 @@ BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int n);
 void UpdateStepplayerBootySave(STEPPLAYER *pstepplayer, int n0, int n1);
 void SetBootyState(LO *pbooty, int nState);
 void TranslateStepToPos(STEP *pstep, qword pos);
-int FCanPoBeHealed(PO *ppo);
+int CanPoBeHealed(PO *ppo);
 void func_00142860(STEPPLAYER *pstepplayer);
 int func_00144038(STEPPLAYER *pstepplayer);
 void func_00142140(STEPPLAYER *pstepplayer, LO *plo);
@@ -648,7 +648,7 @@ void func_00140C30(struct X *p, void *a, struct Y *b, qword v)
  * @end-sly2-annot */
 extern "C" void SetStepplayerTnOverride(STEPPLAYER *pstepplayer, TN *ptn)
 {
-    STEPPLAYER *pstepplayerHero = PpoHero(&D_003DD490);
+    STEPPLAYER *pstepplayerHero = GetHeroPo(&D_003DD490);
     if (pstepplayerHero == pstepplayer) {
         if (pstepplayerHero->ptnUnk1024 != 0) {
             SetTnTnsOverride(pstepplayerHero->ptnUnk1024, 0);
@@ -690,7 +690,7 @@ void func_00140D00(char *p)
 void STEPPLAYER::VUnk57()   /* key function: STEPPLAYER's vtable comes out here */
 {
     STEPPLAYER *pstepplayer = this;
-    func_00204768(pstepplayer);
+    AdjustStepXps(pstepplayer);
     if (pstepplayer->jtair.nState != -1) {
         func_00199298(&pstepplayer->jtair);
     }
@@ -763,7 +763,7 @@ extern "C" void OnStepplayerHeroDied(STEPPLAYER *pstepplayer)
 
 namespace M_STEPPLAYER_FInvulnerable { extern "C" {
 extern void *D_003D4A54;
-int FIsPoCur(void *p);
+int IsPoCurrent(void *p);
 int func_001A2230(void *p, int a);
 /** @sly2-annot addr=0x140ED8
  * Purpose: vt76: invulnerable if jtmode state==1, jtair state 0x15, the D_003D4A54 PO is current, else jthurt
@@ -778,7 +778,7 @@ int STEPPLAYER_FInvulnerable(char *p, int a)
 {
     if (*(int *)(p + 0xF20) == 1) return 1;
     if (*(int *)(p + 0x2DC) == 0x15) return 1;
-    if (D_003D4A54 && FIsPoCur(D_003D4A54)) return 1;
+    if (D_003D4A54 && IsPoCurrent(D_003D4A54)) return 1;
     return func_001A2230(p + 0xDF0, a);
 }
 } } // namespace M_STEPPLAYER_FInvulnerable
@@ -838,7 +838,7 @@ extern struct GG *D_002E1E40;
 extern float D_002BCC94;
 void RunJtHurtCallback(void *p);
 void SetJtthrowState(void *p, int n);
-qword func_00204E38(void *p, struct SO *pso, float g);
+qword GetStepAsegaTranslation(void *p, struct SO *pso, float g);
 qword func_001A62E8(void *p);
 void func_002205A8(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
@@ -918,7 +918,7 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
             break;
         switch (pmsg->k) {
         case 0x15E: {
-            qword v = func_00204E38(p, pmsg->pso, pmsg->g);
+            qword v = GetStepAsegaTranslation(p, pmsg->pso, pmsg->g);
             qword *pm = &F(qword, p, 0x1B0);
             union { qword q; float f[4]; } s; /* home of the -1.0f VU_FLOAT: stored, never read */
             qword sv, r;
@@ -1240,7 +1240,7 @@ struct P {
     char pad7[0xDF4 - 0x370]; int xDF4;
 };
 qword func_001A62E8(struct P *p);
-qword func_001D6848(qword a, qword b, float g, qword c);
+qword CalculateBallisticLaunchVelocity(qword a, qword b, float g, qword c);
 void func_00195A00(void *p, int a, int b, int c);
 /** @sly2-annot addr=0x141968
  * Purpose: Splice: compute ballistic velocity from pos(+dz) toward target (0x1D6848 with g,h), SetVelocity
@@ -1256,7 +1256,7 @@ void func_00141968(struct P *p, qword v, float g, float h)
     UQ r;
     pos.q = func_001A62E8(p);
     pos.f[2] += p->dz;
-    r.q = func_001D6848(pos.q, v, g, p->pE8->q);
+    r.q = CalculateBallisticLaunchVelocity(pos.q, v, g, p->pE8->q);
     p->vt[35].pfn((char *)p + p->vt[35].d, r.q);
     if (p->xDF4 == -1) {
         func_00195A00((char *)p + 0x2C0, 8, 0, 0);
@@ -1855,7 +1855,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x30 - 0x10]; int n30; char pad3[0x40 - 0x34]; qword q40; };
 void ClearBhvstk__FP6BHVSTK(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x142540
  * Purpose: Splice optid 446 on STEPPLAYER: clear the BHV stack and, if a leader is given, push BHVFOLLOW (cid
  *   194) with leader +0x30 and params +0x40/+0x44, then Start (AI partner follow)
@@ -1873,7 +1873,7 @@ void StartStepplayerFollow(char *p, int a, qword q)
     struct VTE *e;
     ClearBhvstk__FP6BHVSTK(p + 0x26C);
     if (a) {
-        o = func_00205438(p, 0xC2);
+        o = PushStepBehavior(p, 0xC2);
         o->n30 = a;
         o->q40 = q;
         e = &o->vt[8];
@@ -3140,14 +3140,14 @@ extern "C" int func_00144068(STEPPLAYER *pstepplayer)
 }
 
 /** @sly2-annot addr=0x144090
- * Purpose: vt80: PO FCanPoBeHealed and hurt state != 2
+ * Purpose: vt80: PO CanPoBeHealed and hurt state != 2
  * Info: proposed name STEPPLAYER_FCanBeHealed (T1); class STEPPLAYER slot80; TU stepplayer
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
 int STEPPLAYER::FCanBeHealed()
 {
-    if (FCanPoBeHealed(this) == 0) {
+    if (CanPoBeHealed(this) == 0) {
         return 0;
     }
     return func_001A23C0(&jthurt) != 2;
@@ -3276,7 +3276,7 @@ void AddStepplayerHpMp(char *p, int a, int b)
 } } // namespace M_AddStepplayerHpMp
 
 namespace M_func_001442D0 { extern "C" {
-void func_00205478(void *p, int a, int b);
+void AddStepDialogSmRefs(void *p, int a, int b);
 void func_00143EE0(void *p, int a, int b, int c);
 void SetJtModeState__FP6JTMODEi(void *p, int a);
 /** @sly2-annot addr=0x1442D0
@@ -3288,7 +3288,7 @@ void SetJtModeState__FP6JTMODEi(void *p, int a);
  * @end-sly2-annot */
 void func_001442D0(char *p, int a, int b)
 {
-    func_00205478(p, a, b);
+    AddStepDialogSmRefs(p, a, b);
     if (b) {
         if (++*(int *)(p + 0x12F4) == 1) {
             func_00143EE0(p, 0x60B, 9, 5);
@@ -3299,7 +3299,7 @@ void func_001442D0(char *p, int a, int b)
 } } // namespace M_func_001442D0
 
 namespace M_func_00144338 { extern "C" {
-void func_00205588(void *p, int a, int b);
+void RemoveStepDialogSmRefs(void *p, int a, int b);
 void func_00143FF8(void *p);
 /** @sly2-annot addr=0x144338
  * Purpose: vt84 (STEP VUnk83(grf,fCount)): base 0x205588; when +0x12F4 drops to 0 stop the script anim
@@ -3309,7 +3309,7 @@ void func_00143FF8(void *p);
  * @end-sly2-annot */
 void func_00144338(char *p, int a, int b)
 {
-    func_00205588(p, a, b);
+    RemoveStepDialogSmRefs(p, a, b);
     if (b) {
         if (--*(int *)(p + 0x12F4) == 0) func_00143FF8(p);
     }

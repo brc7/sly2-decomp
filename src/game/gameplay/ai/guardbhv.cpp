@@ -332,13 +332,13 @@ struct O { char pad[0x30]; void *p30; char pad2[0x1C]; void *parent; };
 struct S { char pad[0x10]; struct A *p10; char pad2[0x2C]; void *p40; };
 struct M { struct ANIMATION *animation; float f4; int n8; };
 struct ANIMATION *func_00209518(void *p);
-qword func_00204E38(struct A *a, struct ANIMATION *animation, float f);
+qword GetStepAsegaTranslation(struct A *a, struct ANIMATION *animation, float f);
 void LockStepguardMover(void *p, struct S *s);
 void func_002097D8(void *p, struct S *s);
 void SetBhvBusy(struct S *p);
 void ClearBhvBusy(struct S *p);
-struct O *func_00205458(struct A *a, int n);
-void *PpoHero(struct G *g);
+struct O *FindStepBehavior(struct A *a, int n);
+void *GetHeroPo(struct G *g);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 int FFindLoParent(void *n, void *o);
 void func_0014F750(void *p, int n);
@@ -364,7 +364,7 @@ int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
     switch (pm->n8) {
     case 0x15E:
         {
-            qword v = func_00204E38(p->p10, animation, pm->f4);
+            qword v = GetStepAsegaTranslation(p->p10, animation, pm->f4);
             qword n, r;
             U u;
             struct A *a;
@@ -400,15 +400,15 @@ int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
         return 1;
     case 0x2F:
         {
-            struct O *o = func_00205458(p->p10, 0xA5);
-            if (o && o->p30 == PpoHero(&D_003DD490)) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 8, 1.0f);
+            struct O *o = FindStepBehavior(p->p10, 0xA5);
+            if (o && o->p30 == GetHeroPo(&D_003DD490)) TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 8, 1.0f);
         }
         return 0;
     case 0x34:
     case 0x35:
         {
-            void *g = PpoHero(&D_003DD490);
-            struct O *o = func_00205458(p->p10, 0xA0);
+            void *g = GetHeroPo(&D_003DD490);
+            struct O *o = FindStepBehavior(p->p10, 0xA0);
             if (o && FFindLoParent(o->parent, g) && g == D_002F7900) {
                 switch (pm->n8) {
                 case 0x35: func_0014F750(D_002DDF40, 0); break;
@@ -803,7 +803,7 @@ void SubscribeLoObject(struct Q *q, void *p);
 void func_0020AC28(void *p, void *po, int n, qword v);
 void PopBhv(void *p);
 void ClearBhvBusy(struct S *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x175488
  * Purpose: BHVATTACK state switch: 0 = subscribe to victim, push BHVSTRIKE with the chosen attack entry and
  *   aim; 1 = push BHVANIM flag 4 (follow-through after a confirmed hit); -1 = clear busy
@@ -829,7 +829,7 @@ void SetBhvattackState(struct S *p, int n) {
             struct O *o;
             struct VTE *e;
             SubscribeLoObject(p->q30, p->p10);
-            o = func_00205438(p->p10, 0x9F);
+            o = PushStepBehavior(p->p10, 0x9F);
             o->q38 = p->q30;
             o->n40 = p->p3C->nC0;
             if (p->p3C->nA0) {
@@ -843,7 +843,7 @@ void SetBhvattackState(struct S *p, int n) {
         break;
     case 1:
         {
-            struct O *o = func_00205438(p->p10, 0x9D);
+            struct O *o = PushStepBehavior(p->p10, 0x9D);
             struct VTE *e;
             o->n3C = 4;
             o->q38 = p->q30;
@@ -1280,7 +1280,7 @@ struct R { int pad; struct R1 *p4; };
 union V { qword q; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct T *t, int n);
 qword func_001A62E8(void *p);
-float RadStepHeading(struct A *a);
+float GetStepHeading(struct A *a);
 void GetVectorSphere(qword v, float *a, float *b, float *c);
 int FCheckLm__FP2LMf(void *p, float f);
 float RadNormalize__Ff(float f);
@@ -1340,7 +1340,7 @@ int FBhvcombatCanShoot(struct S *p) {
     pa = func_001A62E8(p->p10);
     pb = func_001A62E8(p->p30);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pb), "j"(pa));
-    g = RadStepHeading(p->p10);
+    g = GetStepHeading(p->p10);
     GetVectorSphere(d, &f[0], &f[1], &f[2]);
     if (!FCheckLm__FP2LMf(p->p10->aF48, f[2])) return 0;
     {
@@ -1594,7 +1594,7 @@ struct P { char pad[0x60]; float f60; float f64; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; int n30; int n34; float f38; struct P *p3C; int pad4; int n44; char pad5[8]; qword v50; };
 void PopBhv(void *p);
 float GRandInRange__Fff(float a, float b);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void func_0020A9A8(void *p, int n);
 qword func_001A62E8(int p);
 void func_002562A8(struct X *x);
@@ -1625,11 +1625,11 @@ void SetBhvcombatState(struct S *p, int n) {
     p->f38 = D_002DDED0.t;
     switch (n) {
     case 0:
-        { struct O *o = func_00205438(p->p10, 0xB3); struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xB3); struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 1:
         {
-            struct O *o = func_00205438(p->p10, 0xA4);
+            struct O *o = PushStepBehavior(p->p10, 0xA4);
             struct VTE *e;
             o->n30 = p->n30;
             o->n3C = (int)p->p3C;
@@ -1639,12 +1639,12 @@ void SetBhvcombatState(struct S *p, int n) {
         func_0020A9A8(p->p10->p3CC, 3);
         break;
     case 2:
-        { struct O *o = func_00205438(p->p10, 0xAD); struct VTE *e; o->n38 = p->n30; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xAD); struct VTE *e; o->n38 = p->n30; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         func_0020A9A8(p->p10->p3CC, 4);
         break;
     case 3:
         {
-            struct O *o = func_00205438(p->p10, 0xBA);
+            struct O *o = PushStepBehavior(p->p10, 0xBA);
             qword v1, v2;
             struct X x;
             struct VTE *e;
@@ -1663,12 +1663,12 @@ void SetBhvcombatState(struct S *p, int n) {
         }
         break;
     case 4:
-        { struct O *o = func_00205438(p->p10, 0x9D); struct VTE *e; o->n3C = 0xD; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9D); struct VTE *e; o->n3C = 0xD; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         SetDetectorTargetStateById(p->p10->pF64, p->n30, 0);
         SetStepguardTarget(p->p10, 0);
         break;
     case 5:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -1729,7 +1729,7 @@ struct A { char pad[0x4B0]; qword v4B0; char pad2[0xF68 - 0x4C0]; int nF68; int 
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; struct F f30; float fA0; float fA4; };
 int FBhvguardModeSame(struct F *a, struct F *b);
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void func_00171258(struct O *o, int a, int b, int c);
 void func_001725E0(struct O *o, int n);
 float GRandInRange__Fff(float a, float b);
@@ -1757,62 +1757,62 @@ void SetBhvguardMode(struct S *p, struct F *m) {
     fl = 0;
     switch (m->a) {
     case 5:
-        { struct O *o; fl = 1; o = func_00205438(p->p10, 0xA9); func_00171258(o, m->u.s.n10, 1, 0); VCALL(o) }
+        { struct O *o; fl = 1; o = PushStepBehavior(p->p10, 0xA9); func_00171258(o, m->u.s.n10, 1, 0); VCALL(o) }
         break;
     case 1:
-        { struct O *o; fl = 1; o = func_00205438(p->p10, 0xAA); VCALL(o) }
+        { struct O *o; fl = 1; o = PushStepBehavior(p->p10, 0xAA); VCALL(o) }
         break;
     case 3:
-        { struct O *o = func_00205438(p->p10, 0x9D); o->n3C = 0xB; o->n38 = m->u.s.n10; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0x9D); o->n3C = 0xB; o->n38 = m->u.s.n10; VCALL(o) }
         break;
     case 4:
-        { struct O *o = func_00205438(p->p10, 0xA5); o->n30 = m->u.s.n10; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xA5); o->n30 = m->u.s.n10; VCALL(o) }
         break;
     case 2:
-        { struct O *o; fl = 1; o = func_00205438(p->p10, 0xAB); func_001725E0(o, m->u.s.n10); VCALL(o) }
+        { struct O *o; fl = 1; o = PushStepBehavior(p->p10, 0xAB); func_001725E0(o, m->u.s.n10); VCALL(o) }
         break;
     case 9:
-        { struct O *o = func_00205438(p->p10, 0xA1); o->b50 = m->u.b; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xA1); o->b50 = m->u.b; VCALL(o) }
         break;
     case 10:
-        { struct O *o = func_00205438(p->p10, 0xA2); o->b50 = m->u.b; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xA2); o->b50 = m->u.b; VCALL(o) }
         break;
     case 11:
-        { struct O *o = func_00205438(p->p10, 0xA3); o->b50 = m->u.b; fl = 1; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xA3); o->b50 = m->u.b; fl = 1; VCALL(o) }
         break;
     case 8:
-        { struct O *o = func_00205438(p->p10, 0xAF); VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xAF); VCALL(o) }
         break;
     case 6:
-        { struct O *o = func_00205438(p->p10, 0xB0); o->n3C = *(int *)((char *)p + 0x40); VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xB0); o->n3C = *(int *)((char *)p + 0x40); VCALL(o) }
         break;
     case 7:
-        { struct O *o = func_00205438(p->p10, 0xB1); *(int *)((char *)o + 0x5C) = m->u.s.n10; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xB1); *(int *)((char *)o + 0x5C) = m->u.s.n10; VCALL(o) }
         break;
     case 12:
-        { struct O *o = func_00205438(p->p10, 0xB2); VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xB2); VCALL(o) }
         break;
     case 13:
-        { struct O *o = func_00205438(p->p10, 0xB4); o->n38 = m->u.s.n10; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xB4); o->n38 = m->u.s.n10; VCALL(o) }
         break;
     case 14:
-        { struct O *o = func_00205438(p->p10, 0xB6); o->n38 = m->u.s.n10; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xB6); o->n38 = m->u.s.n10; VCALL(o) }
         break;
     case 15:
-        { struct O *o = func_00205438(p->p10, 0xAE); o->n38 = p->p10->n108C; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xAE); o->n38 = p->p10->n108C; VCALL(o) }
         break;
     case 16:
-        { struct O *o; fl = 1; o = func_00205438(p->p10, 0xB7); o->n30 = p->p10->nF68; o->u40.v40 = p->p10->vF70; VCALL(o) }
+        { struct O *o; fl = 1; o = PushStepBehavior(p->p10, 0xB7); o->n30 = p->p10->nF68; o->u40.v40 = p->p10->vF70; VCALL(o) }
         break;
     case 17:
-        { struct O *o = func_00205438(p->p10, 0x9E); o->n3C = 0x1A; o->n38 = m->u.s.n10; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); o->n3C = 0x1A; o->n38 = m->u.s.n10; VCALL(o) }
         { float t = D_002DDED0.t; p->fA4 = t + GRandInRange__Fff(D_002BE618[0], D_002BE618[1]); }
         break;
     case 18:
-        { struct O *o = func_00205438(p->p10, 0xBD); o->n38 = m->u.s.n10; o->u40.f40 = m->u.s.f14; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xBD); o->n38 = m->u.s.n10; o->u40.f40 = m->u.s.f14; VCALL(o) }
         break;
     case 19:
-        { struct O *o = func_00205438(p->p10, 0xBF); o->u40.v40 = p->p10->v4B0; VCALL(o) }
+        { struct O *o = PushStepBehavior(p->p10, 0xBF); o->u40.v40 = p->p10->v4B0; VCALL(o) }
         break;
     }
     if (fl) SetStepguardTarget(p->p10, 0);
@@ -2305,7 +2305,7 @@ struct S { char pad[0x10]; struct A *p10; char pad2[0x1C]; int n30; };
 struct F { int a; int pad[3]; void *p10; float f14; int rest[0x16]; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *p, int n);
-void *PpoHero(struct G *g);
+void *GetHeroPo(struct G *g);
 int FBhvguardHasTargetList(struct S *p);
 int func_00177D70(struct S *p);
 int func_00208B38(struct A *p, void *q);
@@ -2328,10 +2328,10 @@ void ResumeBhvguard(struct S *p) {
     func_002333B4(&f, 0, sizeof f);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p10, 0x3B) && p->p10->n1010 > 0) {
         f.a = 0xD;
-        f.p10 = PpoHero(&D_003DD490);
+        f.p10 = GetHeroPo(&D_003DD490);
     } else if (p->p10->nFBC == 0x15) {
         f.a = 0x12;
-        f.p10 = PpoHero(&D_003DD490);
+        f.p10 = GetHeroPo(&D_003DD490);
         f.f14 = D_002A54D0;
     } else if (FBhvguardHasTargetList(p)) {
         f.a = 0xC;
@@ -3485,7 +3485,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x34]; int n4C; char pad3[0xC0 - 0x50]; int nC0; int pad4; int nC8; int pad5; qword qD0; float gE0; };
 void SetBhvpathState(struct S *p, int n);
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 qword func_001A62E8(void *p);
 /** @sly2-annot addr=0x1791C8
  * Purpose: BHVWALKPATH SetState: moving states push BHVANIM with walk flag (+0xC0, 8 = with object), stopped
@@ -3505,7 +3505,7 @@ void SetBhvwalkpathState(struct S *p, int n) {
         if ((unsigned)old < 2) return;
         PopBhv(p->a18);
         {
-            struct O *o = func_00205438(p->p10, 0x9D);
+            struct O *o = PushStepBehavior(p->p10, 0x9D);
             struct VTE *e;
             o->n3C = p->nC0;
             if (p->nC0 == 8) o->n38 = p->nC8;
@@ -3518,7 +3518,7 @@ void SetBhvwalkpathState(struct S *p, int n) {
         if (old == 2 || old == 4 || old == 3) return;
         PopBhv(p->a18);
         {
-            struct O *o = func_00205438(p->p10, 0x9E);
+            struct O *o = PushStepBehavior(p->p10, 0x9E);
             struct VTE *e;
             o->n38 = p->nC8;
             e = &o->vt[8]; e->pfn((char *)o + e->d);
@@ -3570,7 +3570,7 @@ void func_0020C6F8(void *p, qword v);
 void func_0020AB68(struct A *a, int b, int c, qword v);
 void SetBhvBusy(struct S *p);
 void func_00156C80(struct G *g, int n, qword v, struct A *a, void *q);
-void *PpoHero(struct G *g);
+void *GetHeroPo(struct G *g);
 int FFindLoParent(int n, void *o);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 /** @sly2-annot addr=0x179328
@@ -3618,7 +3618,7 @@ void StartBhvhit(struct S *p) {
     p->fB0 = p->fB4 = D_002A5584;
     p->p10->nF04 = 0;
     if (p->p10->n334) {
-        void *o = PpoHero(&D_003DD490);
+        void *o = GetHeroPo(&D_003DD490);
         if (o && FFindLoParent(p->n50, o) && (o == D_002F7900 || (p->n5C & 0x40000))) {
             TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f);
             p->fB0 = D_002DDED0.t + 5.00000044703483581543e-02f;
@@ -3825,7 +3825,7 @@ struct A {
 struct S { char pad[0x10]; struct A *p10; char pad2[0x2C]; int *p40; char pad3[0xC]; void *p50; char pad4[8]; int mask5C; };
 int func_001F78A0(int mask);
 void StartBhvhit(struct S *p);
-void *PpoHero(struct G *g);
+void *GetHeroPo(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
 qword ConvertAloPos(struct A *source, void *target, qword v);
 void func_00154E10(void *a, qword v, int n, int m, struct A *p);
@@ -3864,7 +3864,7 @@ void StartBhvko(struct S *p) {
     a = p->p10;
     if (a->n330 == 0) {
         a->n330 = 1;
-        if (p->p50 == PpoHero(&D_003DD490))
+        if (p->p50 == GetHeroPo(&D_003DD490))
             BroadcastGameEvent(D_002DEB30, 0x18, p->p10);
         else
             BroadcastGameEvent(D_002DEB30, 0x17, p->p10);
@@ -4050,7 +4050,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
 struct S { char pad[0x10]; char *p10; int pad2; void *p18; char pad3[0x14]; float g30; float g34; int n38; float g3C; void *p40; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void func_00171C18(void *p, void *q);
 void func_00171258(struct O *o, void *t, int a, void *u);
 void ArmBhvpatrolPauseTimer(struct S *p);
@@ -4073,17 +4073,17 @@ void SetBhvpatrolState(struct S *p, int n) {
     p->g3C = D_002DDED0.t;
     switch (n) {
     case 1: case 2:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); }
         ArmBhvpatrolPauseTimer(p);
         p->g30 = 3.40282346638528859812e+38f;
         break;
     case 0:
-        { struct O *o = func_00205438(p->p10, 0xA9); struct VTE *e; func_00171258(o, p->p40, 0, p->p10 + 0x2DC); e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xA9); struct VTE *e; func_00171258(o, p->p40, 0, p->p10 + 0x2DC); e = &o->vt[8]; e->pfn((char *)o + e->d); }
         ArmBhvpatrolWalkTimer(p);
         p->g34 = 3.40282346638528859812e+38f;
         break;
     case 3:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -4635,7 +4635,7 @@ struct T { char pad[0x32C]; int n32C; };
 struct S { char pad[0x10]; struct T *p10; int pad2; char a18[0x18]; int n30; float g34; };
 void PopBhv(void *p);
 void ClearBhvBusy(struct S *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x17A8C8
  * Purpose: BHV176 (thrown/stunned guard) state switch: push BHVANIM (cid 0x9D) with anim flag 18/19/20/21/19
  *   for states 0-4, airborne flag step+0x32C for states 0-1; -1 clears busy
@@ -4653,7 +4653,7 @@ void func_0017A8C8(struct S *p, int n) {
     switch (n) {
     case 0: case 1: case 2: case 3: case 4:
         {
-            struct O *o = func_00205438(p->p10, 0x9D);
+            struct O *o = PushStepBehavior(p->p10, 0x9D);
             int a[5] = { 18, 19, 20, 21, 19 };
             struct VTE *e;
             o->n3C = a[p->n30];
@@ -5131,7 +5131,7 @@ extern "C"{
  qword func_0022FC48(void*,void*,qword);
  qword ConvertXfVec(void*,void*,qword);
  DELTA*func_0012DE58(P*,GROUP*,void*,float,qword,qword);
- P*PpoHero(void*);
+ P*GetHeroPo(void*);
  void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float);
  ENTRY*func_0012F938(void*,int);
 }
@@ -5275,7 +5275,7 @@ extern "C" void SetBhvjuggledState(C*p,int next){
    p->delta=func_0012DE58(p->actor,first,0,end,localPoint,localDirection);
   }
   int owned=0;if(request.flag)owned=p->target->owner==p->actor;p->owned=owned;
-  if(p->actor->attention){P*focus=PpoHero(D_003DD490);if(focus&&p->target==focus)TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00,3,0.15f);}
+  if(p->actor->attention){P*focus=GetHeroPo(D_003DD490);if(focus&&p->target==focus)TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00,3,0.15f);}
   break;
  }
  case 3:{ENTRY*entry=func_0012F938(p->control->curves,0x3C);if(entry)func_00130D30(p->control->asega,0,entry->value,1.0f);break;}
@@ -5421,7 +5421,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; };
 struct T { char pad[0xF60]; int nF60; };
 struct S { char pad[0x10]; struct T *pt; int pad2; char a18[0x18]; int n30; float g34; int n38; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x17B750
  * Purpose: BHVSHOOT state: 0 = push BHVANIM flag 0x11 aimed at target and set +0xF60
  * Info: proposed name SetBhvshootState (T1); TU guardbhv
@@ -5439,7 +5439,7 @@ void SetBhvshootState(struct S *p, int n) {
     p->n30 = n;
     p->g34 = D_002DDED0.t;
     if (!n) {
-        struct O *o = func_00205438(p->pt, 0x9D);
+        struct O *o = PushStepBehavior(p->pt, 0x9D);
         struct VTE *e;
         o->n3C = 0x11;
         o->n38 = p->n38;
@@ -5521,7 +5521,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; int n30; char pad3[8]; int n3C; int n40; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; int n30; float g34; char pad3[8]; int n40; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void SetStepguardTarget(void *p, int n);
 /** @sly2-annot addr=0x17B8B0
  * Purpose: BHVTARGETS state: 0 idle and no target, 1 push BHVCOMBAT on the chosen target, 2 idle hands-off
@@ -5537,14 +5537,14 @@ void func_0017B8B0(struct S *p, int n) {
     p->g34 = D_002DDED0.t;
     switch (n) {
     case 0:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e = &o->vt[8]; e->pfn((char *)o + e->d); }
         SetStepguardTarget(p->p10, 0);
         break;
     case 1:
-        { struct O *o = func_00205438(p->p10, 0xA5); struct VTE *e; o->n30 = p->n40; o->n40 = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xA5); struct VTE *e; o->n30 = p->n40; o->n40 = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 2:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -5977,7 +5977,7 @@ struct X { char pad[0xC]; int nC; };
 struct T { char pad[0x294]; int n294; char pad2[0x3CC - 0x298]; struct X *px; };
 struct S { char pad[0x10]; struct T *p10; int pad2; char a18[0x18]; int n30; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void SetBhvpathShape(struct O *o, int a, int b);
 /** @sly2-annot addr=0x17C550
  * Purpose: BHVCIRCLE state: 0 push BHVIDLE facing target, 1 push BHVWALKPATH on the guard path shape
@@ -5992,10 +5992,10 @@ void func_0017C550(struct S *p, int n) {
     p->n30 = n;
     switch (n) {
     case 0:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e; o->n38 = p->p10->px->nC; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e; o->n38 = p->p10->px->nC; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 1:
-        { struct O *o = func_00205438(p->p10, 0xA7); struct VTE *e; SetBhvpathShape(o, p->p10->n294, 0); o->nC0 = 8; o->nC8 = p->p10->px->nC; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xA7); struct VTE *e; SetBhvpathShape(o, p->p10->n294, 0); o->nC0 = 8; o->nC8 = p->p10->px->nC; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -6133,7 +6133,7 @@ struct X { qword a; qword v; };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; char pad3[0xA8 - 0x40]; void *pA8; int nAC; char pad4[0x10]; int nC0; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; void *p30; char pad3[0xC]; qword v40; int n50; float f54; char pad4[8]; qword v60; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 qword func_001A62E8(void *p);
 qword ConvertAloPos(void *p, int n, qword v);
 void func_002562A8(struct X *x);
@@ -6156,7 +6156,7 @@ void func_0017C928(struct S *p, int n) {
     switch (n) {
     case 1:
         {
-            struct O *o = func_00205438(p->p10, 0xBA);
+            struct O *o = PushStepBehavior(p->p10, 0xBA);
             qword v = func_001A62E8(p->p30);
             struct VTE *e;
             p->v60 = v;
@@ -6170,7 +6170,7 @@ void func_0017C928(struct S *p, int n) {
         break;
     case 2:
         {
-            struct O *o = func_00205438(p->p10, 0x9E);
+            struct O *o = PushStepBehavior(p->p10, 0x9E);
             struct VTE *e;
             o->n38 = (int)p->p30;
             o->n3C = 1;
@@ -6179,7 +6179,7 @@ void func_0017C928(struct S *p, int n) {
         break;
     case 0:
         {
-            struct O *o = func_00205438(p->p10, 0xBA);
+            struct O *o = PushStepBehavior(p->p10, 0xBA);
             qword v;
             struct VTE *e;
             p->v60 = func_001A62E8(p->p30);
@@ -6307,7 +6307,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; int n30; float g34; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x17CD00
  * Purpose: BHVRAIL state: 0 push BHVANIM flag 9 (walk), 1 flag 2 (stand)
  * Info: proposed name SetBhvrailState (T1); TU guardbhv
@@ -6321,10 +6321,10 @@ void SetBhvrailState(struct S *p, int n) {
     p->g34 = D_002DDED0.t;
     switch (n) {
     case 1:
-        { struct O *o = func_00205438(p->p10, 0x9D); struct VTE *e; o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9D); struct VTE *e; o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 0:
-        { struct O *o = func_00205438(p->p10, 0x9D); struct VTE *e; o->n3C = 9; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9D); struct VTE *e; o->n3C = 9; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -6474,7 +6474,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; int n30; float g34; int pad3; int n3C; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x17D058
  * Purpose: BHVPIPE state: 0 BHVANIM flag 9, 1 flag 2
  * Info: proposed name SetBhvpipeState (T1); TU guardbhv
@@ -6488,10 +6488,10 @@ void SetBhvpipeState(struct S *p, int n) {
     p->g34 = D_002DDED0.t;
     switch (n) {
     case 1:
-        { struct O *o = func_00205438(p->p10, 0x9D); struct VTE *e; o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); } p->n3C = 0;
+        { struct O *o = PushStepBehavior(p->p10, 0x9D); struct VTE *e; o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); } p->n3C = 0;
         break;
     case 0:
-        { struct O *o = func_00205438(p->p10, 0x9D); struct VTE *e; o->n3C = 9; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9D); struct VTE *e; o->n3C = 9; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -6564,7 +6564,7 @@ struct T { char pad[0x1B0]; struct M3 m1B0; char pad2[0xF84 - 0x1E0]; void *pF84
 struct S { char pad[0x10]; struct T *pt; };
 extern qword D_002A2DC0;
 void StartBhv(struct S *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 qword *func_001A6318(void *p);
 struct M3 BuildOrthonormalMatrixZ(qword a, qword b);
 /** @sly2-annot addr=0x17D1F0
@@ -6577,7 +6577,7 @@ struct M3 BuildOrthonormalMatrixZ(qword a, qword b);
 void func_0017D1F0(struct S *p) {
     struct O *o; struct VTE *e; struct T *t;
     StartBhv(p);
-    o = func_00205438(p->pt, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d);
+    o = PushStepBehavior(p->pt, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d);
     t = p->pt;
     t->m1B0 = BuildOrthonormalMatrixZ(*func_001A6318(t->pF84), D_002A2DC0);
 }
@@ -6619,7 +6619,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
 struct S { char pad[0x10]; void *p10; };
 void StartBhv(struct S *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 /** @sly2-annot addr=0x17D2E0
  * Purpose: BHVATTACH39 Start: push BHVANIM flag 2
  * Info: proposed name StartBhv188 (T2); class BHV188 slot8; TU guardbhv
@@ -6627,7 +6627,7 @@ struct O *func_00205438(void *p, int n);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void func_0017D2E0(struct S *p) { struct O *o; struct VTE *e; StartBhv(p); o = func_00205438(p->p10, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+void func_0017D2E0(struct S *p) { struct O *o; struct VTE *e; StartBhv(p); o = PushStepBehavior(p->p10, 0x9D); o->n3C = 2; e = &o->vt[8]; e->pfn((char *)o + e->d); }
 } } // namespace M_func_0017D2E0
 
 // 0x17D330 func_0017D330
@@ -6728,7 +6728,7 @@ struct S {
     char pad4[0x80 - 0x38]; qword v80; qword v90; char pad5[0xA8 - 0xA0]; int nA8; int nAC; char pad6[8]; int nB8; int nBC;
 };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void SetBhvpathShape(struct O *o, int a, int b);
 /** @sly2-annot addr=0x17D450
  * Purpose: BHVGOTO state: 4 stand (BHVIDLE), 1/2 walk path (BHVWALKPATH, run anim 8 when allowed), 3 traverse
@@ -6746,10 +6746,10 @@ void SetBhvgotoState(struct S *p, int n) {
     p->f34 = D_002DDED0.t;
     switch (n) {
     case 4:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e; o->u30.s.n38 = p->nA8; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e; o->u30.s.n38 = p->nA8; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 3:
-        { struct O *o = func_00205438(p->p10, 0xBE); struct VTE *e; o->u30.n30 = p->nB8; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xBE); struct VTE *e; o->u30.n30 = p->nB8; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 1:
     case 2:
@@ -6757,7 +6757,7 @@ void SetBhvgotoState(struct S *p, int n) {
             struct O *o = p->p18;
             if (o == 0) {
                 struct VTE *e;
-                o = func_00205438(p->p10, 0xA7);
+                o = PushStepBehavior(p->p10, 0xA7);
                 o->nC8 = p->nA8;
                 o->u40.n40 = p->nBC;
                 if (!p->nA8 || p->nAC || !(p->p10->nFE8 & 4)) o->nC0 = 9; else o->nC0 = 8;
@@ -6772,7 +6772,7 @@ void SetBhvgotoState(struct S *p, int n) {
     case 0:
         break;
     case 5:
-        { struct O *o = func_00205438(p->p10, 0xBF); struct VTE *e; o->u30.v30 = p->v80; o->u40.v40 = p->v90; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xBF); struct VTE *e; o->u30.v30 = p->v80; o->u40.v40 = p->v90; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -7432,7 +7432,7 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; char pad3[0xC0 - 0x40]; int nC0; };
 struct S { char pad[0x10]; void *p10; int pad2; char a18[0x18]; int n30; float g34; int n38; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void func_0017E0E0(struct S *p);
 /** @sly2-annot addr=0x17E278
  * Purpose: BHVSTALK state: 0 BHVANIM flag 0xB at target, 1 BHVGOTO with run flag 0x1C, 2 idle hands-off
@@ -7448,13 +7448,13 @@ void func_0017E278(struct S *p, int n) {
     p->g34 = D_002DDED0.t;
     switch (n) {
     case 0:
-        { struct O *o = func_00205438(p->p10, 0x9D); struct VTE *e; o->n3C = 0xB; o->n38 = p->n38; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9D); struct VTE *e; o->n3C = 0xB; o->n38 = p->n38; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 1:
-        { struct O *o = func_00205438(p->p10, 0xBA); struct VTE *e; o->nC0 = 1; o->n38 = 0x1C; func_0017E0E0(p); e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0xBA); struct VTE *e; o->nC0 = 1; o->n38 = 0x1C; func_0017E0E0(p); e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     case 2:
-        { struct O *o = func_00205438(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
+        { struct O *o = PushStepBehavior(p->p10, 0x9E); struct VTE *e; o->n3C = 1; e = &o->vt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -7633,7 +7633,7 @@ typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40]; qword q50; char pad3[8]; int n68; };
 struct S { char pad[0x10]; void *p10; char pad2[0x1C]; char *p30; int n34; };
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(void *pe, qword q);
 /** @sly2-annot addr=0x17E628
@@ -7646,7 +7646,7 @@ qword func_001C1EC0(void *pe, qword q);
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
 void PushBhvpathlinkLeap(struct S *p) {
-    struct O *o = func_00205438(p->p10, 0xAC);
+    struct O *o = PushStepBehavior(p->p10, 0xAC);
     struct VTE *e;
     o->n68 = 1;
     o->q50 = func_001C1EC0(p->p30 + 0x60 + p->n34 * 32, func_001A62E8(p->p10));
@@ -7670,7 +7670,7 @@ struct A { char pad[0x294]; struct B *p294; };
 struct P { char pad[0x60]; struct SEG a60[(0x120 - 0x60) / 32]; int n120; };
 struct S { char pad[0x10]; struct A *p10; int pad2; char a18[0x18]; struct P *p30; int n34; int n38; float f3C; float f40; };
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 qword func_001A62E8(void *p);
 qword func_001C1EC0(struct SEG *s, qword v);
 void MeasureShape(struct B *b);
@@ -7695,7 +7695,7 @@ void SetBhvpathlinkState(struct S *p, int n) {
         switch (p->p30->n120) {
         case 0:
             {
-                struct O *o = func_00205438(p->p10, 0xA7);
+                struct O *o = PushStepBehavior(p->p10, 0xA7);
                 struct B *b = p->p10->p294;
                 qword pos = func_001A62E8(p->p10);
                 qword q = func_001C1EC0(&p->p30->a60[p->n34], pos);
@@ -7727,7 +7727,7 @@ void SetBhvpathlinkState(struct S *p, int n) {
         break;
     case 1:
         {
-            struct O *o = func_00205438(p->p10, 0xBF);
+            struct O *o = PushStepBehavior(p->p10, 0xBF);
             struct SEG *sg = (struct SEG *)(p->n34 * 32 + (int)p->p30);
             o->v30 = sg[3].a;
             o->u40.v40 = sg[3].b;
@@ -7822,7 +7822,7 @@ qword func_001A62E8(struct O *p);
 qword func_001C1EC0(void *p, qword q);
 int func_00173610(qword *pq, float a, float b, int n, void *pfn);
 void FSnapPosToSurfaceAbove(qword *pq);
-struct O *func_00205438(struct O *p, int n);
+struct O *PushStepBehavior(struct O *p, int n);
 void func_0020B210(struct O *p);
 /** @sly2-annot addr=0x17E9B0
  * Purpose: Snap the point to ground (or the surface above); leap there (capability bit 0) or teleport
@@ -7838,7 +7838,7 @@ void func_0017E9B0(struct S *p) {
     u.q = func_001C1EC0(p->a30, func_001A62E8(p->p10));
     if (!func_00173610(&u.q, 150.0f, -250.0f, 1, 0)) FSnapPosToSurfaceAbove(&u.q);
     if (p->p10->nFE8 & 1) {
-        struct O *o = func_00205438(p->p10, 0xAC);
+        struct O *o = PushStepBehavior(p->p10, 0xAC);
         struct VTE *e;
         o->q50 = u.q;
         o->n68 = 1;
@@ -7904,7 +7904,7 @@ void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
 void FindShapeClosestPointFromS(int a, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 void FindShapeClosestPoint(int a, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void AdvanceBhvpatrolpathGoal(struct S *p, int n);
 /** @sly2-annot addr=0x17EB88
  * Purpose: BHVPATROLPATH Start: closest parameter on the path shape, push BHVGOTO, first goal
@@ -7922,7 +7922,7 @@ void StartBhvpatrolpath(struct S *p) {
         FindShapeClosestPointFromS(p->n30, p->g38, func_001A62E8(p->p10), &D_003DD020, p->a40, 0, 0, &p->g38);
     else
         FindShapeClosestPoint(p->n30, func_001A62E8(p->p10), &D_003DD020, p->a40, 0, 0, &p->g38);
-    o = func_00205438(p->p10, 0xBA);
+    o = PushStepBehavior(p->p10, 0xBA);
     o->nA8 = p->n50;
     o->nAC = p->n54;
     o->nBC = p->n58;

@@ -328,9 +328,9 @@ void SetBhv193Goal(BHV193V *pbhv, qword qwPos) __asm__("func_00144F48");
 
 void SetBhv166Path(BHV166 *pbhv, void *pshape, int nUnk38) __asm__("SetBhvpathShape");
 
-void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("func_00204660");
+void SetStepRadTarget(STEP *pstep, float radTarget) __asm__("SetStepTargetHeading");
 
-void SetStepRadTowardDir(STEP *pstep, qword dpos) __asm__("SetStepRadTargetVec");
+void SetStepRadTowardDir(STEP *pstep, qword dpos) __asm__("SetStepTargetHeadingFromVector");
 
 struct LOREF
 {
@@ -1227,7 +1227,7 @@ struct SGG
 extern SW D_003DD490;           /* g_sw */
 int FFindDlEntry(DL *pdl, void *pv);
 extern "C" {
-LO *PpoHero(SW *psw);
+LO *GetHeroPo(SW *psw);
 void FireRelay(RELAYV *prelay, LO *ploFirer);
 void StopRelay(RELAYV *prelay);
 RELAYCMD *PrelaycmdAddRelay(RELAYV *prelay, int relayck, int fAsync);
@@ -1481,7 +1481,7 @@ void FireRelay(OBJ *p, int n)
 
 // 0x1DFE80 func_001DFE80
 /** @sly2-annot addr=0x1DFE80
- * Purpose: FireRelay(prelay, PpoCur())
+ * Purpose: FireRelay(prelay, GetCurrentPo())
  * Info: proposed name FireRelayPlayer (T2); TU relay
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
@@ -1489,7 +1489,7 @@ void FireRelay(OBJ *p, int n)
 /* Fires the relay with the hero as the firer. */
 extern "C" void func_001DFE80(RELAYV *prelay)
 {
-    FireRelay(prelay, PpoHero(&D_003DD490));
+    FireRelay(prelay, GetHeroPo(&D_003DD490));
 }
 
 // 0x1DFEB8 StopRelay
@@ -3607,7 +3607,7 @@ extern "C" { extern SUBTITLE D_004435F0; }
 
 
 extern "C" void RelayFire(RELAYV *prelay, LO *ploFirer) __asm__("FireRelay");
-extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("func_00205438");
+extern "C" BHV *PbhvPushStep(STEP *pstep, int cid) __asm__("PushStepBehavior");
 extern "C" void EnterJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot) __asm__("SetJtGrabState");
 extern "C" void SetJtGrabPhase(JTGRAB *pjtgrab, int nPhase) __asm__("SetJtGrabKind");
 extern "C" void LaunchJtToPos(STEP *pstep, qword posTarget, float radTilt, float uSteer) __asm__("func_00141968");
@@ -4865,7 +4865,7 @@ static inline float GXOfQwAct(qword qw)
 }
 extern "C" { extern SNDMGR D_003DD040; }
 extern "C" { extern char D_003DA530[]; }
-extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
+extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("FindStepBehavior");
 extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("FMatchesLoName");
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSGV *pjsg);
@@ -5540,13 +5540,13 @@ extern qword D_002A2DA0;
 extern float D_002C3630[3],D_002BBB60[2],D_002C3640;
 float SClampShape(PATH*,float);
 void EvaluateShapeS(PATH*,qword*,qword*,float);
-qword func_001C4768(OUTPUT*,qword);
+qword GetPoctlLateralVector(OUTPUT*,qword);
 float atan2f(float,float);
 float SMaxShape(PATH*),UMaxShape(PATH*);
 float RadNormalize__Ff(float);
 ACTOR *func_001E1DB8(P*,int);
 void GetJsgTargetPosHeading(P*,ACTOR*,qword*,float*);
-void func_00204660(ACTOR*,float);
+void SetStepTargetHeading(ACTOR*,float);
 void EvaluateShapeU(PATH*,float,qword*,qword*);
 qword func_001A62E8(ACTOR*);
 qword ConvertAloVec(void*,ACTOR*,qword);
@@ -5637,7 +5637,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   EvaluateShapeS(actor->curve,&work.from.q,0,t);
   t=SClampShape(actor->curve,actor->curveTime-50.0f);
   EvaluateShapeS(actor->curve,&work.to.q,0,t);
-  qword direction=func_001C4768(out,Sub(work.from.q,work.to.q));
+  qword direction=GetPoctlLateralVector(out,Sub(work.from.q,work.to.q));
   float x=X(direction),y=Y(direction);
   out->heading=atan2f(y,x);out->x=x;out->y=y;
   if(actor->curve->cyclic){
@@ -5656,7 +5656,7 @@ extern "C" void func_001E46A0(P *p,OUTPUT *out){
   ACTOR *target=func_001E1DB8(p,param->value.id);
   if(!target)goto stopped;
   GetJsgTargetPosHeading(p,target,0,&work.heading);
-  func_00204660(actor,work.heading);out->heading=work.heading;
+  SetStepTargetHeading(actor,work.heading);out->heading=work.heading;
   goto stopped;
  }
  case 0x24:{
@@ -5887,7 +5887,7 @@ extern struct G D_003DD490;
 struct P { char pad[0x24]; void *p24; char pad2[0x6C - 0x28]; struct O *po; int fActive; };
 void SetTnTnsOverride(struct O *po, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
-void *PpoCur(struct G *pg);
+void *GetCurrentPo(struct G *pg);
 /** @sly2-annot addr=0x1E4F20
  * Purpose: Switch the script's active tunnel (ptnCur +0x6C): release/hide old (0x221268(tn,-1), vt9),
  *   attach/show new (vt8) with owner = actor or current PO
@@ -5907,7 +5907,7 @@ void SetJsgTunnel(struct P *p, struct O *po)
     p->po = po;
     p->fActive = (uchar)po->fBit60 == 0;
     if (p->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
-    po->pvE0 = (p->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(p->p24, 0x30)) ? p->p24 : PpoCur(&D_003DD490);
+    po->pvE0 = (p->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(p->p24, 0x30)) ? p->p24 : GetCurrentPo(&D_003DD490);
     SetTnTnsOverride(po, 1);
 }
 } } // namespace M_SetJsgTunnel

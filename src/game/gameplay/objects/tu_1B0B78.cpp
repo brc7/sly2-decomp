@@ -113,7 +113,7 @@ float UMinShape(SHAPE *);
 float UMaxShape(SHAPE *);
 float UWrapShape(SHAPE *, float);
 void EvaluateShapeU(SHAPE *, float, qwordV *, qwordV *);
-LOV *PpoClosestSw(SW *, qwordV);
+LOV *FindClosestSwPo(SW *, qwordV);
 EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
@@ -519,7 +519,7 @@ void func_001B1328(CID96V*p,int next){
    float end=SMaxShape(p->pshapeFlee);
    p->deadline=D_002DDED0.t+travel+(end-w.parameter)/p->speed.value-p->lead;
   }else{
-   LOV*near=PpoClosestSw(&D_003DD490,w.first.q);w.second=w.first;w.first.q=func_001A62E8(near);p->deadline=D_002DDED0.t+2.0f;
+   LOV*near=FindClosestSwPo(&D_003DD490,w.first.q);w.second=w.first;w.first.q=func_001A62E8(near);p->deadline=D_002DDED0.t+2.0f;
   }
   qwordV ff=w.first.q;qwordV ss=w.second.q;qwordV gap=VuSub(ss,ff);
   w.direction.q=gap;w.direction.i[2]=0;
@@ -614,7 +614,7 @@ int func_001B1900(CID96V *p)
 {
     int r = p->state;
     qwordV pos = func_001A62E8(p);
-    LOV *po = PpoClosestSw(&D_003DD490, pos);
+    LOV *po = FindClosestSwPo(&D_003DD490, pos);
     U d;
     float len;
     if (!po)

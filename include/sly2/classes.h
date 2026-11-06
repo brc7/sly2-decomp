@@ -2041,14 +2041,14 @@ struct WATER : SO
     char pad150[0x190 - 0x150];
     virtual void VUnk14() __asm__("PostWaterLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWaterClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("func_00229370");   /* slot 5 */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleWaterMessage");   /* slot 5 */
     virtual void Init() __asm__("InitWater");   /* slot 7 */
-    virtual void RemoveHierarchy() __asm__("func_00229308");   /* slot 12 */
+    virtual void RemoveHierarchy() __asm__("RemoveWaterHierarchy");   /* slot 12 */
     virtual void VUnk15() __asm__("UpdateWater");   /* slot 16 */
-    virtual void VUnk48() __asm__("func_00229680");   /* slot 49 */
-    virtual void InitPhys() __asm__("func_00228BB0");   /* slot 64 */
-    virtual void VUnk70() __asm__("func_002292D8");   /* slot 71 */
-    virtual void VUnk72() __asm__("func_00229D78");   /* slot 73 */
+    virtual void VUnk48() __asm__("UpdateWaterBounds");   /* slot 49 */
+    virtual void InitPhys() __asm__("InitWaterPhysics");   /* slot 64 */
+    virtual void VUnk70() __asm__("AddWaterExternalAccelerations");   /* slot 71 */
+    virtual void VUnk72() __asm__("EnsureWaterZapData");   /* slot 73 */
 };
 typedef char assert_WATER_size[sizeof(WATER) == 0x190 ? 1 : -1];
 

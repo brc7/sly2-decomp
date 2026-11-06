@@ -99,7 +99,7 @@ void func_0017F6B0(HACKV *phack);
 void func_0017FD08(HACKSHIPV *phackship, int nState);
 void func_00181268(HACKENEMYV *phackenemy, int nState);
 void UpdateHackshipHealthBar(HACKSHIPV *phackship);
-int FIsPoActive(SO *pso);
+int IsPoActive(SO *pso);
 void func_0017F408(HACKV *phack, int c, HACKE *ahacke);
 void func_00181728(HACKLOCKV *phacklock);
 void func_0017F4C0(HACKLOCKV *phacklock, HACKE *phacke);
@@ -410,7 +410,7 @@ void ClearSwCallbacks(void *g, int a, void *p, long k, int n);
  * Purpose: Health = max; cancel pending dying callback (ClearSwCallbacks D_002A5638)
  * Info: proposed name ResetHack (T2); class HACK slot83; TU tu_17F090
  * Notes: Cid47->Cid71 (CID 0x47=71, vtable) | verifier PLAUSIBLE: Placeholder class. +0x184 = +0x180 (hp =
- *   max: class vtable has FCanPoBeHealed/AddPoHpMp), and if +0x18C ClearSwCallbacks(g_sw,1,p,D_002A5638).
+ *   max: class vtable has CanPoBeHealed/AddPoHpMp), and if +0x18C ClearSwCallbacks(g_sw,1,p,D_002A5638).
  *   Called by 4 subclass Reset overrides. | v3 class identity: ResetCid71 -> ResetHack | T2 forced: v3:
  *   coined class word (Hack) without descriptor/string backing
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources:
@@ -686,7 +686,7 @@ int HACKSHIP_TakeDamage(struct S *p, int *pn) {
 extern "C" void func_0017FCB0(HACKSHIPV *phackship)
 {
     func_0017F6B0((HACKV *)phackship);
-    if (FIsPoActive(phackship) != 0) {
+    if (IsPoActive(phackship) != 0) {
         func_0017FD08(phackship, 1);
     } else {
         func_0017FD08(phackship, 0);
@@ -1393,7 +1393,7 @@ struct O { char pad[0xC]; struct VT *pvt; char pad1[0x194 - 0x10]; ANIMATION *x1
 struct MSG { ANIMATION *animation; float time; int kind; };
 extern "C" void HandlePoMessage(struct O *p, int msg, struct MSG *pm);
 extern "C" MATRIX3 func_0011B500(qword v, float g);
-extern "C" qword func_00204E38(struct O *p, ANIMATION *animation, float time);
+extern "C" qword GetStepAsegaTranslation(struct O *p, ANIMATION *animation, float time);
 extern "C" qword D_002A2DC0;
 extern "C" void func_00181060(struct O *p, int msg, struct MSG *pm);
 /** @sly2-annot addr=0x181060
@@ -1414,7 +1414,7 @@ void func_00181060(struct O *p, int msg, struct MSG *pm)
                 MATRIX3 m;
                 qword v, r;
                 m = func_0011B500(D_002A2DC0, p->g204);
-                v = func_00204E38(p, pm->animation, pm->time);
+                v = GetStepAsegaTranslation(p, pm->animation, pm->time);
                 __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
                     : "=&j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v));
                 p->v210 = r;
@@ -2363,7 +2363,7 @@ typedef struct WORK{U direction,newEndpoint,oldEndpoint;SEGMENT segments[2];U sc
 extern qword D_002A2DA0;extern int D_003DD490;
 extern void func_001F5990(P*,REQUEST*,int,int,int,CONTACT**);
 extern qword*func_002564B8(qword*);
-extern int func_0014C748(qword,float,qword,qword,int,SEGMENT*);
+extern int ClipEdgeToSphere(qword,float,qword,qword,int,SEGMENT*);
 extern void PxpAdd(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
 
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
@@ -2421,7 +2421,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
     for(j=q->start;j<q->count;j++){
      w.newEndpoint.q=Point(&q->matrix,q->vertices[j]);w.oldEndpoint.q=q->world[j];
      w.newEndpoint.f[2]=w.oldEndpoint.f[2]=n->position.f[2];
-     if(func_0014C748(n->position.q,radius,w.newEndpoint.q,w.oldEndpoint.q,2,w.segments)>0){
+     if(ClipEdgeToSphere(n->position.q,radius,w.newEndpoint.q,w.oldEndpoint.q,2,w.segments)>0){
       qword plane,point,result;
       w.scale.q=BroadcastBits(*(int*)&q->radius);
       plane=w.segments[0].plane;point=w.oldEndpoint.q;

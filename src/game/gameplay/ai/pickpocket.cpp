@@ -89,7 +89,7 @@ TABLE D_002C3968[9] = {
 extern "C" {
 void SetSmaGoalIfReachable(void *psma, int n);
 ulong GrfFromSgf(int);
-int PpoHero(G *);
+int GetHeroPo(G *);
 void func_001C2DB8(OWNER *);
 int func_001C2DC8(OWNER *, OBJECT *, int, int);
 void *func_001C2EF0(OWNER *, int);
@@ -102,7 +102,7 @@ float GRandInRange__Fff(float, float);
 int NRandInRange__Fii(int, int);
 void BroadcastGameEvent(G *, int, P *);
 void func_00200F58(void *, int, int, int *);
-void func_00205D10(P *, int);
+void IgnoreStepSlot87(P *, int);
 void SetStepguardPickpocketState(P *p, int k);
 void UpdateStepguardPickpocket(P *p);
 void StageStepguardLoot(P *p);
@@ -189,7 +189,7 @@ extern "C" void UpdateStepguardPickpocket(P *p)
         m = GrfFromSgf(0x1D) | GrfFromSgf(0x20) | GrfFromSgf(5) | GrfFromSgf(6)
             | GrfFromSgf(7) | GrfFromSgf(0x17) | GrfFromSgf(0x16);
         if (p->grfsg & m) k = 0;
-        else if (!p->count || p->items[p->count - 1].kind == 0x2B3 || !PpoHero(&D_003DD490) || PpoHero(&D_003DD490) != D_002E1E40) k = 1;
+        else if (!p->count || p->items[p->count - 1].kind == 0x2B3 || !GetHeroPo(&D_003DD490) || GetHeroPo(&D_003DD490) != D_002E1E40) k = 1;
         else k = 2;
     }
     SetStepguardPickpocketState(p, k);
@@ -339,7 +339,7 @@ extern "C" void *func_001F1EB8(void *r, P *p)
  * @end-sly2-annot */
 extern "C" void func_001F1F38(P *p, int f)
 {
-    func_00205D10(p, f);
+    IgnoreStepSlot87(p, f);
     if (f) { if (p->owner) VFN(p->owner, 21, 0); }
     else if (p->owner) VFN(p->owner, 21, 1);
 }

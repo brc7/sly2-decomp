@@ -94,11 +94,11 @@ qword func_0011BFF0(const M3 *pmat);
 void SetActPositionGoal(ACT *pact, qword pos);
 void func_00130D30(ASEGA *pasega, int n, float t, float g);
 void func_001384C0(ASEGBL *pasegbl);
-void SetStepRadTargetVec(LO *plo, qword vec);
+void SetStepTargetHeadingFromVector(LO *plo, qword vec);
 void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
 SO *PsoFromLo(LO *plo);
-int func_00134310(int grf, int n);   /* NMaxIgnore */
+int MaxInt(int grf, int n);   /* NMaxIgnore */
 int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
 qword func_0022CA18(XF *pxfA, XF *pxfB);
@@ -314,7 +314,7 @@ extern "C" void UpdateJtHands(JTHANDS *p)
     w.saved.q = w.position.q;
     SO *receiver;
     qword delta = DifferenceFromSaved(&w.saved, func_001A62E8(p->pso), p, receiver);
-    SetStepRadTargetVec(receiver, delta);
+    SetStepTargetHeadingFromVector(receiver, delta);
     FixStepAngularVelocity(p->pso);
 }
 
@@ -448,7 +448,7 @@ extern "C" int func_001CC9A8(JTHANDS *phands, SO *pso, int grf)
     if (phands->nMode == 1) {
         SO *psoTarget = PsoFromLo(phands->ploTarget);
         if (psoTarget && psoTarget->ptree && pso->ptree == psoTarget->ptree)
-            grf = func_00134310(grf, 3);
+            grf = MaxInt(grf, 3);
     }
     return grf;
 }

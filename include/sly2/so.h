@@ -240,7 +240,7 @@ struct SO : public LO
       virtual void VUnk68(FX *pfx, qword qwPos, VECTOR4 *pvecDv) __asm__("func_001FADD0");
       virtual void VUnk69() __asm__("func_001F9B20");
       virtual void VUnk70() __asm__("AddSoExternalAccelerations");
-      virtual void VUnk71() __asm__("func_002297F8");
+      virtual void VUnk71() __asm__("AddSoWaterAcceleration");
       virtual void VUnk72() __asm__("func_001F72F8");
       virtual void ProcessSoZapContacts() __asm__("func_001F7410");
       virtual int FTakeDamage(ZPR *pzpr) __asm__("func_001F7588");

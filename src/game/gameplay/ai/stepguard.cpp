@@ -77,7 +77,7 @@ void SetLoBusyk(STEPGUARD *pstepguard, int busyk);
 int FGrfHasSgf(unsigned long grfsg, int sgf);
 void UpdateStepguardPickpocket(STEPGUARD *pstepguard);
 int FAddStepguardDetectTarget(STEPGUARD *pstepguard, LO *plo, int n);
-void *func_00205458(STEPGUARD *pstepguard, int cid);
+void *FindStepBehavior(STEPGUARD *pstepguard, int cid);
 void func_0017A8C8(void *pbhv, int n);
 BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int cid);
 int func_0020A298(LO *plo, LO *ploOther, int n);
@@ -85,7 +85,7 @@ int func_0020A658(TARGETREC *ptargetrec, STEPGUARD *pstepguard);
 void func_0020A9A8(TARGETREC *ptargetrec, int n);
 TARGETREC *func_001F8278(LO *plo);
 void func_001F5078(STEPGUARD *pstepguard);
-void func_00204660(STEPGUARD *pstepguard);
+void SetStepTargetHeading(STEPGUARD *pstepguard);
 int func_00207B10(int n);
 ANIMBINDING *func_00209C18(STEPGUARD *pstepguard, int i);
 void ResolveAnimBinding(ANIMBINDING *pbinding, STEPGUARD *pstepguard);
@@ -296,7 +296,7 @@ extern const struct K D_002A8608;
 extern qword D_002A2DE0;
 void PostStepLoad(struct S *p);
 void BindLoOidTable(struct S *p, int n, void *pv);
-void func_00204DA8(struct S *p, float f);
+void SetStepGravityRatio(struct S *p, float f);
 void func_002303A0(struct S *p, int n, int m);
 void ResolveStepguardAnimBindings(struct S *p);
 void func_0020AAA8(struct S *p);
@@ -323,7 +323,7 @@ void PostStepguardLoad(struct S *p)
     void *x;
     PostStepLoad(p);
     BindLoOidTable(p, 1, D_002C3CF8);
-    func_00204DA8(p, p->f260);
+    SetStepGravityRatio(p, p->f260);
     func_002303A0(p, p->n58, 2);
     func_002303A0(p, p->n5C, 2);
     ResolveStepguardAnimBindings(p);
@@ -371,7 +371,7 @@ struct S { char pad[0x26C]; char x26C[4]; };
 int FIgnoreSoIntersection(struct S *p, struct Q *q);
 int FStepguardHasSgf(struct S *p, int n);
 struct O *PbhvFindBhvstk(void *p, int n);
-int func_00134310(int a, int b);
+int MaxInt(int a, int b);
 /** @sly2-annot addr=0x206380
  * Purpose: STEPGUARD vt61: base test, plus ignore non-fixed objects while flag 7 (dead), or BHV177
  *   (stunned/carried, cid 0xB1) states 0/4/5 vs its holder group
@@ -384,7 +384,7 @@ int FIgnoreStepguardIntersection(struct S *p, struct Q *q)
     int r = FIgnoreSoIntersection(p, q);
     if (FStepguardHasSgf(p, 7)) {
         if (!((int (*)(void *))q->vt[62].pfn)((char *)q + q->vt[62].d))
-            r = func_00134310(r, 1);
+            r = MaxInt(r, 1);
     } else if (FStepguardHasSgf(p, 0x17)) {
         struct O *o = PbhvFindBhvstk(p->x26C, 0xB1);
         if (q->pEC == o->pt->pEC) {
@@ -392,7 +392,7 @@ int FIgnoreStepguardIntersection(struct S *p, struct Q *q)
             case 0:
             case 4:
             case 5:
-                r = func_00134310(r, 1);
+                r = MaxInt(r, 1);
                 break;
             }
         }
@@ -501,14 +501,14 @@ void func_0020CE40(void *p);
 void func_0020D1C8(void *p);
 void EnableStuckWatch(void *p);
 qword func_001A62E8(void *p);
-float RadStepHeading(struct S *p);
-void func_00204660(struct S *p, float f);
+float GetStepHeading(struct S *p);
+void SetStepTargetHeading(struct S *p, float f);
 unsigned long GrfFromSgf(int n);
 void *PanimbindBest(struct S *p, unsigned long m);
 void func_00153EF8(struct F64 *pf, struct S *p, int n);
 void GenerateStepguardLoot(struct S *p);
 void StageStepguardLoot(struct S *p);
-struct O *func_00205438(struct S *p, int n);
+struct O *PushStepBehavior(struct S *p, int n);
 void SetLoParent_1A58D0(struct F64 *pf, struct S *p, int n);
 
 /** @sly2-annot addr=0x206518
@@ -537,10 +537,10 @@ void ResetStepguardToHome(struct S *p)
     func_0020D1C8(p->p49C);
     EnableStuckWatch(p->p498);
     p->q300 = func_001A62E8(p);
-    p->f310 = RadStepHeading(p);
+    p->f310 = GetStepHeading(p);
     p->p2F0->pq = pq;
     p->p2F0->f = p->f310;
-    func_00204660(p, p->f310);
+    SetStepTargetHeading(p, p->f310);
     p->flFE8 = 0;
     if (PanimbindBest(p, GrfFromSgf(9)))
         p->flFE8 |= 2;
@@ -562,7 +562,7 @@ void ResetStepguardToHome(struct S *p)
     }
     if (p->pFEC)
         p->pFEC->vt[9].pf((char *)p->pFEC + p->pFEC->vt[9].d);
-    o = func_00205438(p, 0x9C);
+    o = PushStepBehavior(p, 0x9C);
     o->vt[8].pf((char *)o + o->vt[8].d);
     SetLoParent_1A58D0(p->pF64, p, 0xF);
     p->pF64->pE0 = p;
@@ -895,7 +895,7 @@ namespace M_func_00206EB0 { extern "C" {
 struct X;
 struct X { char pad[0x4C]; int n4C; };
 int FStepguardHasSgf(void *p, int n);
-struct X *func_00205458(void *p, int n);
+struct X *FindStepBehavior(void *p, int n);
 int func_00206D48(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 
@@ -913,7 +913,7 @@ int func_00206EB0(void *p, int k)
         return 1;
     if (FStepguardHasSgf(p, 7))
         return 0;
-    x = func_00205458(p, 0xA9);
+    x = FindStepBehavior(p, 0xA9);
     if (x && x->n4C)
         return 0;
     switch (k) {
@@ -957,10 +957,10 @@ void func_00208728(struct S *p, int n);
 void func_00206E50(struct S *p);
 void func_00208700(struct S *p, int n);
 void func_00206DB0(struct S *p);
-void *func_00205458(struct S *p, int n);
+void *FindStepBehavior(struct S *p, int n);
 struct Y *func_00209518(void *p);
 void SetAsegaMasterSpeed(struct Y *y, float f);
-int PpoHero(void *p);
+int GetHeroPo(void *p);
 void ResumeBhvguard(struct Z *z);
 
 /** @sly2-annot addr=0x207030
@@ -994,7 +994,7 @@ void SetStepguardSpecial(struct S *p, int k)
         func_00206E50(p);
         break;
     case 0xE: {
-        struct X *x = (__typeof__(x))func_00205458(p, 0x9D);
+        struct X *x = (__typeof__(x))FindStepBehavior(p, 0x9D);
         if (x) {
             struct Y *y = func_00209518(x->p40);
             if (y)
@@ -1003,8 +1003,8 @@ void SetStepguardSpecial(struct S *p, int k)
         break;
     }
     case 0x15: {
-        struct Z *z = (__typeof__(z))func_00205458(p, 0x9C);
-        if (z && z->k30 == 0x12 && z->n40 == PpoHero(D_003DD490) && z->f44 == D_002A8698)
+        struct Z *z = (__typeof__(z))FindStepBehavior(p, 0x9C);
+        if (z && z->k30 == 0x12 && z->n40 == GetHeroPo(D_003DD490) && z->f44 == D_002A8698)
             ResumeBhvguard(z);
         break;
     }
@@ -1021,7 +1021,7 @@ void SetStepguardSpecial(struct S *p, int k)
         func_00206DB0(p);
         break;
     case 0xE: {
-        struct X *x = (__typeof__(x))func_00205458(p, 0x9D);
+        struct X *x = (__typeof__(x))FindStepBehavior(p, 0x9D);
         if (x) {
             struct Y *y = func_00209518(x->p40);
             if (y)
@@ -1036,7 +1036,7 @@ void SetStepguardSpecial(struct S *p, int k)
         break;
     }
     case 0x15: {
-        struct Z *z = (__typeof__(z))func_00205458(p, 0x9C);
+        struct Z *z = (__typeof__(z))FindStepBehavior(p, 0x9C);
         if (z) {
             switch (z->k30) {
             case 1: case 2: case 3: case 4:
@@ -2401,7 +2401,7 @@ extern float D_002C3D94;
 void HeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
 unsigned long GrfFromSgf(int n);
 int FStepguardHasSgf(struct S *p, int n);
-struct Y *func_00205458(struct S *p, int n);
+struct Y *FindStepBehavior(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword func_001A62E8(void *p);
 int IsPointInVol(struct L *pl, qword q);
@@ -2432,11 +2432,11 @@ int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
             if (FStepguardHasSgf(p, 0x1D))
                 o = p->p38C;
             else if (FStepguardHasSgf(p, 5))
-                o = func_00205458(p, 0xA1)->p50;
+                o = FindStepBehavior(p, 0xA1)->p50;
             else if (FStepguardHasSgf(p, 6))
-                o = func_00205458(p, 0xA2)->p50;
+                o = FindStepBehavior(p, 0xA2)->p50;
             else if (FStepguardHasSgf(p, 0x17)) {
-                o = func_00205458(p, 0xB1)->p5C;
+                o = FindStepBehavior(p, 0xB1)->p5C;
                 if (o == x)
                     *pout += D_002C3D90;
             } else
@@ -2809,8 +2809,8 @@ union FLOATWORD { float value; int bits; };
 struct Param { int pad[2]; union FLOATWORD *value; };
 struct S { char pad[0x190]; qword v190; char pad2[0x1E0 - 0x1A0]; qword v1E0; char pad3[0xFC4 - 0x1F0]; struct Param *param; };
 extern qword D_002A2DD0;
-qword func_00204E38(struct S *, struct E *, float);
-qword func_00204ED8(struct S *, struct E *, float);
+qword GetStepAsegaTranslation(struct S *, struct E *, float);
+qword GetStepAsegaRotation(struct S *, struct E *, float);
 void UpdateLeap(struct B *);
 /** @sly2-annot addr=0x209618
  * Purpose: Set desired velocity +0x190 (= -translation*scale) and angular +0x1E0 from the binding's
@@ -2840,8 +2840,8 @@ void func_00209618(struct Entry *entry, struct S *s)
             if (kind == 0) e = (struct E *)entry->object;
             else e = ((struct A *)entry->object)->pe30;
             if (e) {
-                value.q = func_00204E38(s, e, e->radius);
-                extra = func_00204ED8(s, e, e->radius);
+                value.q = GetStepAsegaTranslation(s, e, e->radius);
+                extra = GetStepAsegaRotation(s, e, e->radius);
             }
         }
         break;
@@ -2851,7 +2851,7 @@ void func_00209618(struct Entry *entry, struct S *s)
             UpdateLeap((struct B *)entry->object);
             b = (struct B *)entry->object;
             if (b->state > 0 && (b->state < 3 || b->state == 4)) break;
-            value.q = func_00204E38(s, b->pe38, b->pe38->radius);
+            value.q = GetStepAsegaTranslation(s, b->pe38, b->pe38->radius);
         }
         break;
     case 3: {
@@ -2999,7 +2999,7 @@ void func_002097E0(struct O **pp) { struct O *o = *pp; if (o) { struct VTE *e = 
 extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *pmover)
 {
     if (pmover->fLocked == 0) {
-        func_00204660(pmover->pstepguard);
+        SetStepTargetHeading(pmover->pstepguard);
     }
 }
 
@@ -3314,7 +3314,7 @@ void func_00209C88(struct S *p)
 namespace M_func_00209E28 { extern "C" {
 struct F;
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int oid);
+void *FindStepBehavior(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 /** @sly2-annot addr=0x209E28
@@ -3323,7 +3323,7 @@ void SetBhvguardMode(void *p, struct F *pf);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-void func_00209E28(void *p, int n) { void *o = func_00205458(p, 0x9C); struct F f; func_002333B4(&f, 0, sizeof f); f.a[0] = 6; f.a[4] = n; SetBhvguardMode(o, &f); }
+void func_00209E28(void *p, int n) { void *o = FindStepBehavior(p, 0x9C); struct F f; func_002333B4(&f, 0, sizeof f); f.a[0] = 6; f.a[4] = n; SetBhvguardMode(o, &f); }
 } } // namespace M_func_00209E28
 
 // 0x209E88 func_00209E88
@@ -3336,7 +3336,7 @@ void func_00209E28(void *p, int n) { void *o = func_00205458(p, 0x9C); struct F 
 extern "C" void func_00209E88(STEPGUARD *pstepguard)
 {
     if ((FStepguardHasSgf(pstepguard, 0x16) != 0) || (FStepguardHasSgf(pstepguard, 0x12) != 0)) {
-        func_0017A8C8(func_00205458(pstepguard, 0xB0), 1);
+        func_0017A8C8(FindStepBehavior(pstepguard, 0xB0), 1);
     }
 }
 
@@ -3349,7 +3349,7 @@ extern float D_002C3DA8;
 struct O { char pad[0x50]; int k; };
 struct S { char pad[0xC]; VTE *vt; };
 int FStepguardHasSgf(struct S *p, int n);
-struct O *func_00205458(struct S *p, int n);
+struct O *FindStepBehavior(struct S *p, int n);
 void func_0017A8C8(struct O *o, int n);
 void SetBhvjuggledState(struct O *o, int n);
 qword LimitVectorLength(qword v, float g);
@@ -3363,12 +3363,12 @@ qword LimitVectorLength(qword v, float g);
 void func_00209EE0(struct S *p)
 {
     if (FStepguardHasSgf(p, 0x12) || FStepguardHasSgf(p, 0x13)) {
-        func_0017A8C8(func_00205458(p, 0xB0), 2);
+        func_0017A8C8(FindStepBehavior(p, 0xB0), 2);
     } else {
         struct O *o;
         if (!FStepguardHasSgf(p, 0x17))
             return;
-        o = func_00205458(p, 0xB1);
+        o = FindStepBehavior(p, 0xB1);
         if (o->k != 3 && o->k != 6)
             SetBhvjuggledState(o, 2);
     }
@@ -3390,7 +3390,7 @@ void func_00209EE0(struct S *p)
 extern "C" void func_00209FB8(STEPGUARD *pstepguard)
 {
     if ((FStepguardHasSgf(pstepguard, 0x16) != 0) || (FStepguardHasSgf(pstepguard, 0x13) != 0)) {
-        func_0017A8C8(func_00205458(pstepguard, 0xB0), 3);
+        func_0017A8C8(FindStepBehavior(pstepguard, 0xB0), 3);
     }
 }
 
@@ -3399,14 +3399,14 @@ namespace M_func_0020A010 { extern "C" {
 struct O;
 struct O { char pad[0x58]; int n; };
 int FStepguardHasSgf(void *p, int n);
-struct O *func_00205458(void *p, int oid);
+struct O *FindStepBehavior(void *p, int oid);
 /** @sly2-annot addr=0x20A010
  * Purpose: BHV177 +0x58 while stunned (flag 0x17), else 0
  * Info: proposed name GetStepguardStunField (T2); TU stepguard
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-int func_0020A010(void *p) { if (FStepguardHasSgf(p, 0x17)) return func_00205458(p, 0xB1)->n; return 0; }
+int func_0020A010(void *p) { if (FStepguardHasSgf(p, 0x17)) return FindStepBehavior(p, 0xB1)->n; return 0; }
 } } // namespace M_func_0020A010
 
 // 0x20A058 func_0020A058
@@ -4278,7 +4278,7 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct S { char pad[0x2C0]; long fl; char pad2[0xFD0 - 0x2C8]; struct O *po; };
 long GrfFromSgf(int n);
-int func_002040F8(struct S *p);
+int GetStepGroundProbeFlags(struct S *p);
 /** @sly2-annot addr=0x20B090
  * Purpose: STEPGUARD vt85: 1 if flag 0x14; 0 if flags 0x12/0x13/0x16; else mover driver vt12 or STEP base
  * Info: proposed name GrfStepguardGroundProbe (T2); class STEPGUARD slot85; TU stepguard
@@ -4295,7 +4295,7 @@ int func_0020B090(struct S *p)
         return 0;
     if (p->po)
         return ((int (*)(void *))p->po->vt[12].pfn)((char *)p->po + p->po->vt[12].d);
-    return func_002040F8(p);
+    return GetStepGroundProbeFlags(p);
 }
 } } // namespace M_func_0020B090
 
@@ -4339,7 +4339,7 @@ void func_0020B140(struct S *p, void *q)
 namespace M_func_0020B210 { extern "C" {
 struct S;
 struct S { char pad[0xF80]; int state; int arg; };
-void func_00204F78(struct S *p, int a, int b);
+void LinkStepAttachment(struct S *p, int a, int b);
 /** @sly2-annot addr=0x20B210
  * Purpose: Unlink attachment (LinkStepAttachment f=0) and clear +0xF80/+0xF84
  * Info: proposed name DetachStepguard (T2); TU stepguard
@@ -4351,16 +4351,16 @@ void func_0020B210(struct S *p)
 {
     switch (p->state) {
     case 0:
-        func_00204F78(p, p->arg, 0);
+        LinkStepAttachment(p, p->arg, 0);
         break;
     case 1:
-        func_00204F78(p, p->arg, 0);
+        LinkStepAttachment(p, p->arg, 0);
         break;
     case 2:
-        func_00204F78(p, p->arg, 0);
+        LinkStepAttachment(p, p->arg, 0);
         break;
     case 3:
-        func_00204F78(p, p->arg, 0);
+        LinkStepAttachment(p, p->arg, 0);
         break;
     }
     p->arg = 0;
@@ -4377,7 +4377,7 @@ struct S { char pad[0xF80]; int kF80; struct A *pF84; int xF88; int nF8C; void *
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
 qword func_001A62E8(void *p);
 void FindShapeClosestPoint(struct A *pa, qword q, int a, int b, int c, int d, int *pn);
-void func_00204F78(struct S *p, struct A *pa, int n);
+void LinkStepAttachment(struct S *p, struct A *pa, int n);
 
 /** @sly2-annot addr=0x20B2A8
  * Purpose: Attach to object by class: CID11 pipe?, CID13 rail?, CID19 (k124==3), CID39 -> +0xF80 kind 0..3
@@ -4392,17 +4392,17 @@ void func_0020B2A8(struct S *p, struct A *pa, int n)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pa, 0xB)) {
         p->kF80 = 1;
         FindShapeClosestPoint(p->pF84, func_001A62E8(p->pF90), 0, 0, 0, 0, &p->xF88);
-        func_00204F78(p, p->pF84, 1);
+        LinkStepAttachment(p, p->pF84, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0xD)) {
         p->kF80 = 0;
         FindShapeClosestPoint(p->pF84, func_001A62E8(p), 0, 0, 0, 0, &p->xF88);
-        func_00204F78(p, p->pF84, 1);
+        LinkStepAttachment(p, p->pF84, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0x13) && p->pF84->k124 == 3) {
         p->kF80 = 2;
-        func_00204F78(p, p->pF84, 1);
+        LinkStepAttachment(p, p->pF84, 1);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0x27)) {
         p->kF80 = 3;
-        func_00204F78(p, p->pF84, 1);
+        LinkStepAttachment(p, p->pF84, 1);
     } else {
         p->pF84 = 0;
     }
@@ -4532,7 +4532,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DBC;
 extern const float D_002A88CC;
 void UpdateLo(struct S *p);
-void *func_00205458(struct O *po, int n);
+void *FindStepBehavior(struct O *po, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct L *pl);
 void func_00153FF8(void *p);
@@ -4564,7 +4564,7 @@ void func_0020B590(struct S *p)
                 o->vt[9].pf((char *)o + o->vt[9].d);
                 break;
             case 2: {
-                void *x = func_00205458(o, 0x9C);
+                void *x = FindStepBehavior(o, 0x9C);
                 if (x) {
                     struct L l;
                     func_002333B4(&l, 0, sizeof(l));

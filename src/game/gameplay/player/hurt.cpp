@@ -98,11 +98,11 @@ extern "C" const float D_002A6720;   /* defined below where the ELF has it (.rod
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  float atan2f(float,float);
  float RadNormalize__Ff(float);
- void func_00204660(P*,float);
+ void SetStepTargetHeading(P*,float);
  void FixStepAngularVelocity(P*);
- void SetStepRadTargetVec(P*,qword);
+ void SetStepTargetHeadingFromVector(P*,qword);
  qword func_001A62E8(P*);
- float RadStepHeading(P*);
+ float GetStepHeading(P*);
  void func_001F4BF8(P*);
  void ReleaseAsega(ASEGA**);
  void ReleaseSma(COMPONENT**);
@@ -229,13 +229,13 @@ extern "C" void SetJtHurtState(C*p,int next){
    float blend=ClampKnownLower(fraction,lower,range);
    float angle=atan2f(velocity.f[1],velocity.f[0])+3.1415927f;
    angle=RadNormalize__Ff(angle-p->actor->yaw);
-   func_00204660(p->actor,p->actor->yaw+angle*blend);
+   SetStepTargetHeading(p->actor,p->actor->yaw+angle*blend);
    FixStepAngularVelocity(p->actor);
   }}
  case 9:clip=p->clips[next];flags=0x21;break;
  case 10:
   camera0.q=Position();
-  {P*owner;qword direction=Difference(&camera0,func_001A62E8(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
+  {P*owner;qword direction=Difference(&camera0,func_001A62E8(p->actor),p,owner);SetStepTargetHeadingFromVector(owner,direction);}
   flags=0x21;
  case 3:
   clip=p->clips[next];
@@ -243,19 +243,19 @@ extern "C" void SetJtHurtState(C*p,int next){
   break;
  case 5:case 11:
   camera1.q=Position();
-  {P*owner;qword direction=Difference1(&camera1,func_001A62E8(p->actor),p,owner);SetStepRadTargetVec(owner,direction);}
+  {P*owner;qword direction=Difference1(&camera1,func_001A62E8(p->actor),p,owner);SetStepTargetHeadingFromVector(owner,direction);}
   if(next==11)flags=0x21;
   clip=p->clips[next];break;
  case 0:case 6:case 7:clip=p->clips[next];break;
  case 4:case 12:
   SetVector(p->actor,D_002A2DD0.q);
-  func_00204660(p->actor,RadStepHeading(p->actor));
+  SetStepTargetHeading(p->actor,GetStepHeading(p->actor));
   p->actor->control->yaw=p->actor->yaw;
   if(next==12)flags=0x21;
   clip=p->clips[next];break;
  case 1:case 2:
   flags=0;
-  func_00204660(p->actor,RadStepHeading(p->actor));
+  SetStepTargetHeading(p->actor,GetStepHeading(p->actor));
   p->actor->control->yaw=p->actor->yaw;clip=p->clips[next];break;
  }
  func_001F4BF8(p->actor);
@@ -390,7 +390,7 @@ void func_001F4BF8(struct LO *po);
 float cosf(float g);
 float atan2f(float y, float x);
 float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
-void func_00204660(struct LO *po, float g);
+void SetStepTargetHeading(struct LO *po, float g);
 int FCheckJtStuck(struct LO *po, int n, float g);
 void RunJtHurtCallback(struct S *s);
 static inline float GClamp(float g, float lo, float hi)
@@ -439,7 +439,7 @@ done:
         float g;
         v.q = s->po->vt[33].pfn((struct LO *)((char *)s->po + s->po->vt[33].d));
         g = atan2f(v.f[1], v.f[0]) + 3.1415927f;
-        func_00204660(s->po, RadSmooth__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
+        SetStepTargetHeading(s->po, RadSmooth__FfffP3SMPPf(D_002BFAC0, 0, s->po->x1A8, g, D_002DDED0.dt));
         if (0.25f < D_002DDED0.t - s->x8 && s->po->x208)
             RunJtHurtCallback(s);
         else if (FCheckJtStuck(s->po, 0, s->x8))
@@ -1190,8 +1190,8 @@ extern qword D_002A2DD0;
 qword func_001A62E8(void *p);
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
 int func_001F7E08(L *pl, void *pfn, int n, void *pv);
-int ClsgClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
-void func_00229D60(void);
+int ClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
+void CanWaterInflictZap(void);
 int func_001A2788(O *po, L *pl, qword *pv);
 }
 /** @sly2-annot addr=0x1A2788
@@ -1220,8 +1220,8 @@ int func_001A2788(O *po, L *pl, qword *pv)
     pmsg->cb = pl->xE0 * 4;
     pmsg->nKind = 0x10;
     void *pbuf = PvAllocSlot__FP8ALLOCREQ(pmsg);
-    int n = func_001F7E08(pl, (void *)func_00229D60, 0, pbuf);
-    if (!ClsgClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
+    int n = func_001F7E08(pl, (void *)CanWaterInflictZap, 0, pbuf);
+    if (!ClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
         return 0;
     qword r;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(hit.pos), "j"(off.q));
@@ -1251,7 +1251,7 @@ struct P {
 extern struct CLOCK D_002DDED0;
 int func_001A2788(struct P *p,void *o,qword *pos);
 void CalculateWaterCurrent(void *o,qword pos,qword *dir,qword *v);
-void func_002297F8(struct P *p,void *o);
+void AddSoWaterAcceleration(struct P *p,void *o);
 qword func_001A62E8(struct P *p);
 float GSmoothA__FffffP4SMPAPf(float pos,float vel,float target,float dt,struct SMP *s,float *result);
 void AddSoAcceleration(struct P *p,qword v);
@@ -1279,7 +1279,7 @@ void func_001A28B0(struct P *p,void *o)
  case 7:
  vertical:
   origin.q=GetVel(p);
-  if(origin.f[2]<0.0f) func_002297F8(p,o);
+  if(origin.f[2]<0.0f) AddSoWaterAcceleration(p,o);
   break;
  case 3:case 10:
   if(!func_001A2788(p,o,&pos.q)) break;
@@ -1301,7 +1301,7 @@ void func_001A28B0(struct P *p,void *o)
   AddSoAcceleration(p,accel.q);
   break;
  default:
-  func_002297F8(p,o);
+  AddSoWaterAcceleration(p,o);
   break;
  }
 }

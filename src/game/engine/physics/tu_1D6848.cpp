@@ -56,7 +56,7 @@ static inline qwordV Difference(qwordV end,const qwordV *start){qwordV result;re
  * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
  *   docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
  * @end-sly2-annot */
-extern "C" qwordV func_001D6848(float g, qwordV start, qwordV end, qwordV acc)
+extern "C" qwordV CalculateBallisticLaunchVelocity(float g, qwordV start, qwordV end, qwordV acc)
 {
     union U delta, vel, scalar;
     qwordV d, s, n, r;
@@ -104,7 +104,7 @@ static inline qwordV Bc(float g) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
  * @end-sly2-annot */
-extern "C" qwordV func_001D69F0(qwordV a, qwordV b, qwordV acc, float dt)
+extern "C" qwordV CalculateVelocityToReachPos(qwordV a, qwordV b, qwordV acc, float dt)
 {
     float halfdt = dt * 0.5f;
     float accz = Z(acc);
@@ -155,7 +155,7 @@ void CID112::Init() { S *p = (S *)this;
 // the source's frame, optionally advanced by a predicted time (clqPredict over the distance, clamped to lmPredict), then
 // moved by clqOffset(distance) along the direction to it. Depending on the object's class it gets a speed vector (0x52),
 // a velocity toward that point at its own launch speed plus a matching orientation (0x51), or a ballistic launch velocity
-// (func_001D6848); a random spin from lmSpin; and class 0x50 objects are told their target.
+// (CalculateBallisticLaunchVelocity); a random spin from lmSpin; and class 0x50 objects are told their target.
 // Matching notes (all found on the -da dumps):
 //  * matParent / mat / matPredict reproduce the frame; mat and matPredict live in an inner block, so their slots are freed and
 //    every later temporary (VU_FLOAT, VECTOR, VECTOR4) lands at sp+0x40 like the game's dead stores. posStart, posOrigin,
@@ -232,7 +232,7 @@ void SetSoCnstrTorque(SOV *, void *);
 void SetLoParent_1A58D0(SOV *, int, int);
 void func_001F4898(SOV *, qwordV);
 qwordV GetSoDvGravity(SOV *);
-qwordV func_001D6848(float, qwordV, qwordV, qwordV);                 // CalculateLaunchVelocity
+qwordV CalculateBallisticLaunchVelocity(float, qwordV, qwordV, qwordV);                 // CalculateLaunchVelocity
 void LoadLookAtMatrix(MATRIX3V *, qwordV);
 float GRandInRange__Fff(float, float);                               // GRandInRange
 }
@@ -385,7 +385,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
         pso->RotateToMat(&mat);
     } else {
         qwordV vAccel = GetSoDvGravity(pso);
-        qwordV v = func_001D6848(plaunch->pitch, posStart, posLaunch, vAccel);
+        qwordV v = CalculateBallisticLaunchVelocity(plaunch->pitch, posStart, posLaunch, vAccel);
         pso->SetVelocity(v);
     }
     if (plaunch->lmSpin.gMax > 0.0f) {

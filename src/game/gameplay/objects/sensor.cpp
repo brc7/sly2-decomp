@@ -251,7 +251,7 @@ extern "C" {
 void InitSo(SOV *pso);
 int FMatchesLoName(SOV *pso, OID oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pbasic, CID cid);
-int func_00134310(int n, int nMax);   /* NMaxIgnore */
+int MaxInt(int n, int nMax);   /* NMaxIgnore */
 void *func_001AE378(ALLOCREQ *preq);
 void *func_001AE238(ALLOCREQ *preq, void *pv);
 void *func_001AE2A0(ALLOCREQ *preq);
@@ -276,8 +276,8 @@ void func_001F5988(void);
 void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
 void EnsureSwCallback(SW *psw, LASENV *plasen, PFNLASEN pfn, int n);
 void func_001F5990(SOV *pso, REQUEST *preq, int a2, int a3, int a4, XP **ppxp);
-int ClsgClipEdgeToObject(REQUEST *preq, qword posA, qword posB, int n, HIT *phit);
-int func_00205670(void *pso, qword posA, qword posB, qword *ppos);
+int ClipEdgeToObject(REQUEST *preq, qword posA, qword posB, int n, HIT *phit);
+int IntersectStepFootprint(void *pso, qword posA, qword posB, qword *ppos);
 void PxpAdd(SW *psw, SOPARTV *apart, REQUEST *preq, qword pos, qword dir, int n, int s, int x, XP **ppxp, float g);
 void func_001F7598(ZAP *pzap);   /* InflictZap */
 void UpdateSo(SOV *pso, float dt);
@@ -320,11 +320,11 @@ extern "C" int FIgnoreSensorIntersection(SENSORV *psensor, SOV *pso)
     int r = 1;
     for (i = 0; i < psensor->coidNoTrigger; i++) {
         if (FMatchesLoName(pso, psensor->aoidNoTrigger[i]))
-            r = func_00134310(r, 2);
+            r = MaxInt(r, 2);
     }
     for (j = 0; j < psensor->ccidNoTrigger; j++) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, psensor->acidNoTrigger[j]))
-            r = func_00134310(r, 2);
+            r = MaxInt(r, 2);
     }
     return r;
 }
@@ -754,8 +754,8 @@ extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, flo
     }
 }
 
-/* func_001DF0A0 (LASEN vt60): for every beam, find where it hits the request's object (first ClsgClipEdgeToObject,
-   else the CID 0x33 test func_00205670), add a kind-10 contact there with PxpAdd, and post ZapLasenBeams through
+/* func_001DF0A0 (LASEN vt60): for every beam, find where it hits the request's object (first ClipEdgeToObject,
+   else the CID 0x33 test IntersectStepFootprint), add a kind-10 contact there with PxpAdd, and post ZapLasenBeams through
    EnsureSwCallback. What mattered for the match:
     - the same 6-argument virtual signature as func_001823C8 / AddBombCustomXps, with every argument passed through to
       the empty base stub func_001F5990 (no code, but the call's argument uses fix the prologue schedule);
@@ -813,10 +813,10 @@ extern "C" void func_001DF0A0(LASENV *p, REQUEST *q, int a2, int a3, int a4, XP 
         HIT hit;
         int found = 0;
         GetLasenBeamEnds(p, e->aend, seg, 0);
-        if (!ClsgClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
+        if (!ClipEdgeToObject(q, seg[0], seg[1], 1, &hit)) {
             SOV *so = *q->psub->ppso;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(so, (CID)0x33))
-                found = func_00205670(so, seg[0], seg[1], &pos.q);
+                found = IntersectStepFootprint(so, seg[0], seg[1], &pos.q);
         } else {
             found = 1;
             pos.q = hit.pos;

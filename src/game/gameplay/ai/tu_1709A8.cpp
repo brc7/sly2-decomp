@@ -80,7 +80,7 @@ void RemoveStepguardSgf(STEPGUARD *pstepguard, int sgf);
 void func_00171258(BHVSSG *pbhv, SSG *pssg, int n, void *pv);
 int func_00171468(BHVSSG *pbhv);
 SSGE *func_001711F0(SSG *pssg, int id);
-void *func_00205458(LO *plo, int cid);
+void *FindStepBehavior(LO *plo, int cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -737,7 +737,7 @@ extern "C" { extern struct CLOCK D_002DDED0; }
 extern "C" { void *func_001715B8(struct S *p, int oid); }
 extern "C" { void func_00171AF8(struct S *p, void *o, qword *pq, float *pg); }
 extern "C" { void func_00171B60(struct S *p, qword q, float g); }
-extern "C" { void *func_00205438(struct A *a, int k); }
+extern "C" { void *PushStepBehavior(struct A *a, int k); }
 extern "C" { void func_001E9C30(void *o); }
 extern "C" { void SetBhvrailGoal(void *o, int n); }
 extern "C" { void SetBhvpipeGoal(void *o, int n); }
@@ -804,10 +804,10 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         case 3:
             k = 0xBC;
         spawn:
-            ((struct O *)func_00205438(a, k))->V8();
+            ((struct O *)PushStepBehavior(a, k))->V8();
             break;
         case -1:
-            ((struct O *)func_00205438(a, 0x9E))->V8();
+            ((struct O *)PushStepBehavior(a, 0x9E))->V8();
             break;
         }
         p->n40 = 1;
@@ -821,7 +821,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         n = a->nF80;
         switch (n) {
         case -1: {
-            struct O2 *o2 = (struct O2 *)func_00205438(a, 0xC0);
+            struct O2 *o2 = (struct O2 *)PushStepBehavior(a, 0xC0);
             o2->p30 = o;
             o2->n34 = c->u.s.n8;
             o2->n58 = p->n4C;
@@ -832,13 +832,13 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
             break;
         }
         case 0: {
-            struct O *o2 = (struct O *)func_00205438(a, 0xB8);
+            struct O *o2 = (struct O *)PushStepBehavior(a, 0xB8);
             SetBhvrailGoal(o2, (int)p->p38->p8);
             VCALL8(o2);
             break;
         }
         case 1: {
-            struct O *o2 = (struct O *)func_00205438(a, 0xB9);
+            struct O *o2 = (struct O *)PushStepBehavior(a, 0xB9);
             SetBhvpipeGoal(o2, (int)p->p38->p8);
             VCALL8(o2);
             break;
@@ -866,7 +866,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         a = p->p10;
         n = a->nF80;
         if (n == -1) {
-            struct O3 *o3 = (struct O3 *)func_00205438(a, 0xBA);
+            struct O3 *o3 = (struct O3 *)PushStepBehavior(a, 0xBA);
             SetBhvgotoGoal(o3, &x);
             if (c->n10 != -1) o3->nA8 = func_001715B8(p, c->n10);
             o3->gB0 = c->g14;
@@ -895,7 +895,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         break;
     case 13: {
         void *o = func_001715B8(p, p->p38->n4);
-        struct O4 *o4 = (struct O4 *)func_00205438(p->p10, 0xAC);
+        struct O4 *o4 = (struct O4 *)PushStepBehavior(p->p10, 0xAC);
         o4->p60 = o;
         o4->n68 = 1;
         o4->n64 = c->u.s.n8;
@@ -909,7 +909,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         p->x50.n5C = c->u.s.n8;
         ResolveAnimBinding(&p->x50, p->p10);
         if (p->p10->nF80 == -1) {
-            struct O5 *o5 = (struct O5 *)func_00205438(p->p10, 0x9D);
+            struct O5 *o5 = (struct O5 *)PushStepBehavior(p->p10, 0x9D);
             o5->p40 = &p->x50;
             VCALL8(o5);
             p->n40 = 1;
@@ -946,7 +946,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct T { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char a1B0[0x10]; };
 struct S { char pad[0x10]; struct T *pt; };
 void func_0020B210(struct T *t);
-void func_00204660(struct T *t, float g);
+void SetStepTargetHeading(struct T *t, float g);
 /** @sly2-annot addr=0x171B60
  * Purpose: Places the guard at a position and heading and zeroes its velocities
  * Info: proposed name TeleportBhv169Guard (T2); TU tu_1709A8
@@ -958,7 +958,7 @@ void func_00171B60(struct S *p, qword q, float g) {
     struct VTE *e;
     func_0020B210(t);
     e = &t->vt[0x1D]; ((void (*)(void *, qword))e->pfn)((char *)t + e->d, q);
-    func_00204660(t, g);
+    SetStepTargetHeading(t, g);
     e = &t->vt[0x1E]; ((void (*)(void *, void *))e->pfn)((char *)t + e->d, t->a1B0);
     e = &t->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)t + e->d, D_002A2DD0);
     e = &t->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)t + e->d, D_002A2DD0);
@@ -1014,7 +1014,7 @@ extern "C" void func_00171C98(BHVSSG *pbhv, int id)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171CF8 { extern "C" {
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int n);
+void *FindStepBehavior(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 /** @sly2-annot addr=0x171CF8
@@ -1025,13 +1025,13 @@ void SetBhvguardMode(void *p, struct F *pf);
  *   docs/engine/guards-ai.md#9-key-functions,
  *   docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-void func_00171CF8(void *p, int n) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[4] = n; f.a[0] = 5; SetBhvguardMode(o, &f); } }
+void func_00171CF8(void *p, int n) { struct F f; void *o = FindStepBehavior(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[4] = n; f.a[0] = 5; SetBhvguardMode(o, &f); } }
 } } // namespace M_func_00171CF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171D58 { extern "C" {
 struct F { int a[0x1C]; };
-void *func_00205458(void *p, int n);
+void *FindStepBehavior(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
 /** @sly2-annot addr=0x171D58
@@ -1043,7 +1043,7 @@ void SetBhvguardMode(void *p, struct F *pf);
  *   role)
  * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
  * @end-sly2-annot */
-void func_00171D58(void *p) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[0] = 1; SetBhvguardMode(o, &f); } }
+void func_00171D58(void *p) { struct F f; void *o = FindStepBehavior(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[0] = 1; SetBhvguardMode(o, &f); } }
 } } // namespace M_func_00171D58
 
 /** @sly2-annot addr=0x171DA8
@@ -1057,7 +1057,7 @@ extern "C" int func_00171DA8(LO *plo, int id)
 {
     BHVGUARDV *pbhvguard;
     int f;
-    pbhvguard = (BHVGUARDV *)func_00205458(plo, 0x9C);
+    pbhvguard = (BHVGUARDV *)FindStepBehavior(plo, 0x9C);
     f = 0;
     if ((pbhvguard != 0) && (pbhvguard->nMode == 5)) {
         f = pbhvguard->nArg == id;

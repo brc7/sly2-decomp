@@ -34,8 +34,8 @@ SOPART *PsopartFindSo(SO *pso, OID oid);
 void SetStepPhys(STEP *pstep, SOPART *ppart, int n);
 void TranslateSoToPos(SO *pso, qword pos);
 void RotateSoToMat(SO *pso, MATRIX3 *pmat);
-void func_00204660(STEP *pstep, float rad);
-float RadStepHeading(STEP *pstep);
+void SetStepTargetHeading(STEP *pstep, float rad);
+float GetStepHeading(STEP *pstep);
 float atan2f(float y, float x);
 void func_001F5988(SO *pso, SO *psoOther);
 BHV *PbhvPushBhvstk(BHVSTK *pbhvstk);
@@ -46,8 +46,8 @@ BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, CID cid);
 namespace M_InitStep { extern "C" {
 struct S { char pad[0x200]; float g200; char p1[0x10]; float g214; char p2[8]; float g220; char p3[0x3C]; float g260; int n264; char p4[4]; char x26C[4]; };
 void InitPo(struct S *p);
-void func_00204D48(struct S *p, float g);
-void func_00204660(struct S *p, float g);
+void ScaleStepSpinSpeed(struct S *p, float g);
+void SetStepTargetHeading(struct S *p, float g);
 void InitBhvstk(void *pv, struct S *p);
 /** @sly2-annot addr=0x203948
  * Purpose: STEP vt7 Init: InitPo, rGravity(0x260)=1, SetStepSpinRatio(1), SetStepRadTarget(0), base radius
@@ -66,8 +66,8 @@ void STEP::Init()
     p->n264 = -1;
     p->g260 = 1.0f;
     p->g200 = 1.0f;
-    func_00204D48(p, 1.0f);
-    func_00204660(p, 0.0f);
+    ScaleStepSpinSpeed(p, 1.0f);
+    SetStepTargetHeading(p, 0.0f);
     p->g220 = 30.0f;
     p->g214 = -50.0f;
     InitBhvstk(p->x26C, p);
@@ -108,7 +108,7 @@ void PostSoLoad(struct O *p);
 int func_001E94B0(int a, int b);
 void func_002303A0(struct O *p, int n, int f);
 void *PsopartFindSo(struct O *p, int oid);
-void func_00203AF0(struct O *p, void *pv);
+void BuildStepPhysPart(struct O *p, void *pv);
 void HideSoPart(struct O *p, void *pv);
 void PostBhvstkLoad(void *pv);
 /** @sly2-annot addr=0x203A38
@@ -129,7 +129,7 @@ void PostStepLoad(struct O *p)
     if (p->oid != -1) {
         p->p268 = PsopartFindSo(p, p->oid);
         if (p->p268) {
-            func_00203AF0(p, p->p268);
+            BuildStepPhysPart(p, p->p268);
             HideSoPart(p, p->p268);
         }
     }
@@ -184,7 +184,7 @@ void UpdateGeomWorld(void *a, void *b, void *c);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00203AF0(struct S *p, struct M *m)
+void BuildStepPhysPart(struct S *p, struct M *m)
 {
     int n, fl, i, c;
     float mn;
@@ -237,7 +237,7 @@ void func_00203AF0(struct S *p, struct M *m)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_00203CB8(STEP *pstep, OID oid, int n)
+extern "C" void SetStepPhysByOid(STEP *pstep, OID oid, int n)
 {
     SOPART *ppart;
     ppart = PsopartFindSo(pstep, oid);
@@ -412,7 +412,7 @@ void UpdateStepPhys(struct S *input)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_00203FA0(STEP *pstep, int n)
+extern "C" void SetStepNoBase(STEP *pstep, int n)
 {
     if (pstep->nUnk204 != n) {
         pstep->nUnk204 = n;
@@ -489,7 +489,7 @@ void UpdateStep(struct S *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" int func_002040F8(STEP *pstep)
+extern "C" int GetStepGroundProbeFlags(STEP *pstep)
 {
     return (pstep->nUnk204 != 0) ? 0 : 7;
 }
@@ -582,7 +582,7 @@ extern "C" void RotateStepToMat(STEP *pstep, MATRIX3 *pmat)
 {
     POCTL *pctl;
     RotateSoToMat(pstep, pmat);
-    func_00204660(pstep, RadStepHeading(pstep));
+    SetStepTargetHeading(pstep, GetStepHeading(pstep));
     pctl = pstep->pctl;
     if (pctl != 0) {
         pctl->radLeft = pstep->radTarget;
@@ -595,7 +595,7 @@ extern "C" void RotateStepToMat(STEP *pstep, MATRIX3 *pmat)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" int func_00204248()
+extern "C" int QueryStepSlot63()
 {
     return 1;
 }
@@ -900,32 +900,32 @@ struct S { char pad[0x1A8]; float g; int pad2; MATRIX3 m; };
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00204660(struct S *p, float g) { p->g = g; p->m = func_0011B500(D_002A2DC0, g); }
+void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = func_0011B500(D_002A2DC0, g); }
 } } // namespace M_func_00204660
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetStepRadTargetVec { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 float atan2f(float y, float x);
-void func_00204660(void *p, float g);
+void SetStepTargetHeading(void *p, float g);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x2046B0
  * Purpose: SetStepRadTarget(atan2(v.y, v.x)) for a direction vector
- * Info: proposed name SetStepRadTargetVec (T1); TU step
+ * Info: proposed name SetStepTargetHeadingFromVector (T1); TU step
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void SetStepRadTargetVec(void *p, qword v) { func_00204660(p, atan2f(GetY(v), GetX(v))); }
+void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTargetHeading(p, atan2f(GetY(v), GetX(v))); }
 } } // namespace M_SetStepRadTargetVec
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FaceStepToward { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 qword func_001A62E8(void *p);
-void SetStepRadTargetVec(void *p, qword v);
+void SetStepTargetHeadingFromVector(void *p, qword v);
 /** @sly2-annot addr=0x2046F0
- * Purpose: Turn toward another LO: SetStepRadTargetVec(PosLoWorld(lo) - PosLoWorld(this))
+ * Purpose: Turn toward another LO: SetStepTargetHeadingFromVector(PosLoWorld(lo) - PosLoWorld(this))
  * Info: proposed name FaceStepToward (T1); TU step
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
@@ -938,18 +938,18 @@ void FaceStepToward(void *p, void *q)
     a = func_001A62E8(q);
     b = func_001A62E8(p);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-    SetStepRadTargetVec(p, d);
+    SetStepTargetHeadingFromVector(p, d);
 }
 } } // namespace M_FaceStepToward
 
 /** @sly2-annot addr=0x204740
  * Purpose: Current heading = atan2(xf.mat[0][1], xf.mat[0][0])
- * Info: proposed name RadStepHeading (T1); TU step
+ * Info: proposed name GetStepHeading (T1); TU step
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 /* The heading of the step's root transform (atan2 of its world x axis). */
-extern "C" float RadStepHeading(STEP *pstep)
+extern "C" float GetStepHeading(STEP *pstep)
 {
     XF *pxf = pstep->pxfRoot;
     return atan2f(pxf->matWorld.mat[0][1], pxf->matWorld.mat[0][0]);
@@ -980,7 +980,7 @@ static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigne
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_00204768(struct P *p)
+void AdjustStepXps(struct P *p)
 {
     struct N *best;
     struct L *group;
@@ -1024,7 +1024,7 @@ void func_00204768(struct P *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_002048C8 { extern "C" {
-// func_002048C8 (Claude agent, 2026-10-17): breadth-first polygon adjacency search. MATCH.
+// HasStepFloorNearby (Claude agent, 2026-10-17): breadth-first polygon adjacency search. MATCH.
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned short ushort;
 union V {qword q;float f[4];};
@@ -1041,7 +1041,7 @@ static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-int func_002048C8(struct P *p,qword position,struct GEOM *g,struct POLY *first)
+int HasStepFloorNearby(struct P *p,qword position,struct GEOM *g,struct POLY *first)
 {
     struct POLY *queue[32];
     union V closest;
@@ -1097,8 +1097,8 @@ extern char D_003DD490[];
 void func_001F5990(void);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword func_001A62E8(void *p);
-int ClsgClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
-int func_002048C8(struct S *p, qword v, struct X *x, int n);
+int ClipEdgeToObjectPruned(struct X *x, int a, qword pos, qword v, int n, struct HIT *phit);
+int HasStepFloorNearby(struct S *p, qword v, struct X *x, int n);
 void PxpAdd(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d, int e, float f);
 
 /** @sly2-annot addr=0x204AC8
@@ -1121,7 +1121,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
     if (FIsBasicDerivedFrom__FP5BASIC3CID(x->p4->pec->p60, 0x33))
         return;
     pos = func_001A62E8(p);
-    if (ClsgClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? p->p21C : p->p218), 1, &hit) <= 0)
+    if (ClipEdgeToObjectPruned(x, a4, pos, *((fl & 2) ? p->p21C : p->p218), 1, &hit) <= 0)
         return;
     if (0.0f < hit.t) {
         if (fl & 8)
@@ -1130,7 +1130,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
             n = D_002A2DC0;
         else if (hit.n48)
             n = hit.normal;
-        else if (func_002048C8(p, *p->p218, x, hit.n4C))
+        else if (HasStepFloorNearby(p, *p->p218, x, hit.n4C))
             n = D_002A2DC0;
         else
             n = hit.normal;
@@ -1201,7 +1201,7 @@ struct S { char pad[0x1F0]; float g; VECTOR v; };
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00204D48(struct S *p, float g)
+void ScaleStepSpinSpeed(struct S *p, float g)
 {
     p->v = D_002C3CB8;
     p->v.x *= g;
@@ -1226,7 +1226,7 @@ extern "C" void SetSoMass(struct STEP *pso, float m);   /* SetSoMass */
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_00204DA8(struct STEP *pstep, float rGravity)
+extern "C" void SetStepGravityRatio(struct STEP *pstep, float rGravity)
 {
     float r = 0.1f;
     qword qwScaled;
@@ -1269,7 +1269,7 @@ struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
  * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r7b_guard+top50_round
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-qword func_00204E38(void *p, struct Q *q, float g)
+qword GetStepAsegaTranslation(void *p, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !FAsegaRetracted(q)) {
@@ -1300,7 +1300,7 @@ struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-qword func_00204ED8(void *p, struct Q *q, float g)
+qword GetStepAsegaRotation(void *p, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !FAsegaRetracted(q)) {
@@ -1329,7 +1329,7 @@ void func_001F4BF8(struct O *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00204F78(struct O *p, void *pv, int f)
+void LinkStepAttachment(struct O *p, void *pv, int f)
 {
     struct O *o = (struct O *)PsoFromLo(pv);
     while (o && !o->pvEC) o = o->pParent;
@@ -1524,7 +1524,7 @@ typedef char layout_adjusted[((unsigned)&((P*)0)->adjusted==0x1060)?1:-1];
  * See: docs/engine/player.md#3-step-stepcpp-0x203948, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" BHV *func_00205438(STEP *pstep)
+extern "C" BHV *PushStepBehavior(STEP *pstep)
 {
     return PbhvPushBhvstk(&pstep->bhvstk);
 }
@@ -1536,7 +1536,7 @@ extern "C" BHV *func_00205438(STEP *pstep)
  * See: docs/engine/player.md#3-step-stepcpp-0x203948,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" BHV *func_00205458(STEP *pstep, CID cid)
+extern "C" BHV *FindStepBehavior(STEP *pstep, CID cid)
 {
     return PbhvFindBhvstk(&pstep->bhvstk, cid);
 }
@@ -1558,7 +1558,7 @@ void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_00205478(struct S *p, int mask)
+void AddStepDialogSmRefs(struct S *p, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1596,7 +1596,7 @@ void func_001F0598(void *y);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
-void func_00205588(struct S *p, int mask)
+void RemoveStepDialogSmRefs(struct S *p, int mask)
 {
     int i;
     for (i = 0; i < 6; i++) {
@@ -1626,7 +1626,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef union {qword q;float f[4];int i[4];} V;
 struct P {char pad[0x208];int enabled;};
 extern qword D_002A2DC0;
-void func_002057E8(struct P*,V*);
+void BuildStepFootprint(struct P*,V*);
 int FIntersectRayTriangle(qword,qword,qword,qword,qword,float*,float*);
 static inline qword Sub(const qword*a,const qword*b){qword av=*a,bv=*b;register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(av),"j"(bv));return r;}
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -1645,7 +1645,7 @@ __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-int func_00205670(struct P*p,qword from,qword to,qword*output)
+int IntersectStepFootprint(struct P*p,qword from,qword to,qword*output)
 {
  V tri[6],d,k;
  float distance,length;
@@ -1655,7 +1655,7 @@ int func_00205670(struct P*p,qword from,qword to,qword*output)
  register V *end __asm__("s2");
  register float *distanceOut __asm__("s3");
  if(!p->enabled)return 0;
- func_002057E8(p,tri);
+ BuildStepFootprint(p,tri);
  d.q=Sub(&to,&from);
  length=Normal(&d,&D_002A2DC0);
  distanceOut=&distance;third=&tri[2];t=tri;end=tri+6;
@@ -1691,7 +1691,7 @@ static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" void func_002057E8(S *p, qword out[2][3])
+extern "C" void BuildStepFootprint(S *p, qword out[2][3])
 {
     qword point[5];
     qword origin = *p->origin;
@@ -1715,7 +1715,7 @@ extern "C" void func_002057E8(S *p, qword out[2][3])
 namespace RO_ORDER { extern const float r_D_002A85F8 __asm__("D_002A85F8") = -3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00205910 {
-/* func_00205910 (Lilly / Claude agent, T1593): terrain-fit of the crawl probes (our name UpdateCrawlCollide, 0x205910; see
+/* FitStepToTerrain (Lilly / Claude agent, T1593): terrain-fit of the crawl probes (our name UpdateCrawlCollide, 0x205910; see
  * re/symbols: the 3-probe floor follower of the vent crawl, called from UpdateJtGrab case 8).  MATCH, no register pins.
  * What it does: the actor's orientation is turned about the up axis (D_002A2DC0) by its heading (p+0x1A8) into a position+rotation
  * matrix matCur (copied to matOrig); the largest probe radius (length of the local probe points, start -FLT_MAX D_002A85F8) is the
@@ -1818,7 +1818,7 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
  * See: docs/engine/bosses.md#33-the-contessa-m5_heist-boss-tasks-l17-castle-exterior,
  *   docs/engine/bosses.md#6-open-questions, docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8
  * @end-sly2-annot */
-extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *localPoints)
+extern "C" void FitStepToTerrain(P *p,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;
     InitMat(&matCur,Rotation(D_002A2DC0,p->heading),func_001A62E8(p));
@@ -1880,7 +1880,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-extern "C" int func_00205D08()
+extern "C" int IsStepHitByLethalZap()
 {
     return 0;
 }
@@ -1893,7 +1893,7 @@ extern "C" int func_00205D08()
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_00205D10()
+extern "C" void IgnoreStepSlot87()
 {
 }
 

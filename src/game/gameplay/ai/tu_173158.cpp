@@ -131,7 +131,7 @@ int func_0020FA50(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CMV*,qwordV);
-LOV *PpoHero(void *g);
+LOV *GetHeroPo(void *g);
 qwordV func_001A62E8(void *p);
 M4 *func_001A6318(void *p);
 EVENT *func_001F8240(LOV *plo);
@@ -145,7 +145,7 @@ void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 func_0011B500(float, qwordV);
 GUARDV *PloAcquireProxy(void *p, int n);
-void *func_00205458(GUARDV *r, int n);
+void *FindStepBehavior(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
 void func_001733C8(CID119V *p, qwordV q);
 int func_00173588(qwordV v, float r);
@@ -448,13 +448,13 @@ extern "C" void func_00173928(CID119V *p, ENTRY *pe, int k, int f) {
 }
 
 /** @sly2-annot addr=0x173A18
- * Purpose: Current player position (PpoCur) or the camera position
+ * Purpose: Current player position (GetCurrentPo) or the camera position
  * Info: proposed name PosCid119Focus (T2); class CID119; TU tu_173158
  * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
  * @end-sly2-annot */
-extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return func_001A62E8(PpoHero(g)); return D_002DDF40.mat.r[3]; }
+extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (GetHeroPo(g)) return func_001A62E8(GetHeroPo(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
@@ -483,7 +483,7 @@ extern "C" void func_00173A68(CID119V*p){
  if(D_002DDED0.t<p->tNext)return;
  p->tNext=D_002DDED0.t+D_002BE5D0;
  if(p->cent==p->centMax){int close=DistanceXY(pos,p->posLast)<D_002BE5D4;if(close)return;}
- event=0;context=PpoHero(&D_003DD490);
+ event=0;context=GetHeroPo(&D_003DD490);
  {
  if(context){
   event=func_001F8240(context);
@@ -817,7 +817,7 @@ extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int f
             if (r) {
             m->pq->n8 = fFlip;
             r->pscript = m->pscript;
-            o = func_00205458(r, 0x9C);
+            o = FindStepBehavior(r, 0x9C);
             F f;
             f.a = -1;
             SetBhvguardMode(o, &f);

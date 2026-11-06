@@ -261,7 +261,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float gD0; };
 struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34; int n38; float g3C; qword q40; };
 void StartBhv(void *p);
-struct O *func_00205438(void *p, int n);
+struct O *PushStepBehavior(void *p, int n);
 void func_00144F48(struct P *p, qword q);
 /** @sly2-annot addr=0x144E68
  * Purpose: BHV193 slot 8: push a BHV168 (0x205438(owner,0xA8)) with own parameters and goal, start it
@@ -276,7 +276,7 @@ void func_00144E68(struct P *p)
     struct O *o;
     struct VTE *e;
     StartBhv(p);
-    o = func_00205438(p->o10, 0xA8);
+    o = PushStepBehavior(p->o10, 0xA8);
     o->n40 = p->n30;
     o->g64 = p->g34;
     o->nCC = p->n38;
@@ -856,7 +856,7 @@ struct P {
 };
 extern struct CLOCK D_002DDED0;
 void PopBhv(void *p);
-struct O *func_00205438(void *p, int oid);
+struct O *PushStepBehavior(void *p, int oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 void func_001457A8(struct P *p);
@@ -864,7 +864,7 @@ void func_0019F540(void *p, qword v);
 int CidBasic(void *p);
 static __inline__ void Activate(struct P *p, int oid)
 {
-    struct O *po = func_00205438(p->p10, oid);
+    struct O *po = PushStepBehavior(p->p10, oid);
     po->x38 = p->x90;
     po->vt[8].pfn((char *)po + po->vt[8].d);
 }
@@ -886,7 +886,7 @@ void SetBhvfollowState(struct P *p, int state)
     p->tState = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O *po = func_00205438(p->p10, 0xA8);
+        struct O *po = PushStepBehavior(p->p10, 0xA8);
         if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x32)) {
             po->xC0 = p->p30->x150;
             po->xC4 = 8;
@@ -1740,12 +1740,12 @@ extern void *D_002E1E40;
 float D_002BD374 = 0.5f, D_002BD378 = 15.0f;
 void UpdateBhv(struct P *p);
 qword func_001A62E8(void *p);
-void SetStepRadTargetVec(struct X *px, qword v);
+void SetStepTargetHeadingFromVector(struct X *px, qword v);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
-float RadStepHeading(struct X *px);
+float GetStepHeading(struct X *px);
 float GLimitAbs__Fff(float g, float dg);
-void func_00204660(struct X *px, float g);
+void SetStepTargetHeading(struct X *px, float g);
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 /** @sly2-annot addr=0x146F18
@@ -1765,7 +1765,7 @@ void func_00146F18(struct P *p)
             a = func_001A62E8(D_002E1E40);
             b = func_001A62E8(p->px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            SetStepRadTargetVec(p->px, d);
+            SetStepTargetHeadingFromVector(p->px, d);
         }
         p->g30 = p->px->g1A8;
         break;
@@ -1778,8 +1778,8 @@ void func_00146F18(struct P *p)
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
             g = atan2f(GetY(d), GetX(d));
             if (__builtin_fabsf(RadNormalize__Ff(g - p->g30)) < D_002BD374) {
-                gCur = RadStepHeading(p->px);
-                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; func_00204660(p->px, gCur + GLimitAbs__Fff(d, k * dt)); }
+                gCur = GetStepHeading(p->px);
+                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; SetStepTargetHeading(p->px, gCur + GLimitAbs__Fff(d, k * dt)); }
             }
         }
         break;

@@ -84,7 +84,7 @@ void ShowSoPartsById(TRIG *p, int v);
 void func_001F6B48(TRIG *p, int v);
 void func_001F4F10(TRIG *p);
 void FreeSwXpList__FP2SWP2XP(SW *psw, int k);
-void *PpoHero(SW *psw);
+void *GetHeroPo(SW *psw);
 qword func_001A62E8(void *p);
 void EmitSwNoise(SW *psw, int z, qword q, void *x);
 void BroadcastGameEvent(void *g, int k, TRIG *p);
@@ -400,7 +400,7 @@ void TRIG::Action()
     E *pe;
     int v;
     if (func_001BBE48(p)) return;
-    if (p->x16C == PpoHero(&D_003DD490)) {
+    if (p->x16C == GetHeroPo(&D_003DD490)) {
         p->x168 = 0xE;
     } else {
         v = p->x170;

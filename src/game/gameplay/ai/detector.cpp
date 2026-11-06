@@ -87,7 +87,7 @@ qword func_001A62E8(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void BroadcastGameEvent(void *p, int n, void *q);
 void memmove(void *dst, void *src, int cb);
-SOV *PpoHero(void *p);
+SOV *GetHeroPo(void *p);
 int func_001A61A0(SOV *p);
 int func_0020F1B8(void *p);
 qword ConvertAloPos(void *plo0, void *plo1, qword v);
@@ -351,7 +351,7 @@ extern "C" int KCalculateDetectorTarget(DETECTORV *p, SOV *pso, int k)
     BUF buf;
     qword v;
     WVOL *pw;
-    SOV *pme = PpoHero(D_003DD490);
+    SOV *pme = GetHeroPo(D_003DD490);
     if (!pso) { k = 0; goto done; }
     if (!func_001A61A0(pso)) { k = 0; goto done; }
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x32) && pso->vt[77].pfn((char *)pso + pso->vt[77].d) == 2) { k = 0; goto done; }

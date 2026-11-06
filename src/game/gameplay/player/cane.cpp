@@ -134,9 +134,9 @@ void func_00195A00(void *, int, int, int);
 void SetJtJtcs__FP2JTi(JT *, int);
 void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
 void func_001384C0(ASEG *);
-void SetStepRadTargetVec(JT *, qword);
+void SetStepTargetHeadingFromVector(JT *, qword);
 void FixStepAngularVelocity(JT *);
-void func_00204660(JT *, float);
+void SetStepTargetHeading(JT *, float);
 extern float D_002BF4AC;
 extern float D_002BF4B0[2];   /* an LM {min, max}: the takedown target's z window */
 extern "C" float D_002BF4B8;
@@ -676,7 +676,7 @@ extern "C" void ChooseJtSweepTarget(JT *p, BLEND *pblend, ASEG *paseg)
     func_001384C0(paseg);
     p->surface = palo;
     if (palo && p->mode == 0) {
-        SetStepRadTargetVec(p, v.q);
+        SetStepTargetHeadingFromVector(p, v.q);
         FixStepAngularVelocity(p);
     }
 }
@@ -699,7 +699,7 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *p)
     p->surface = palo;
     if (palo)
         g = atan2f(v.f[1], v.f[0]);
-    func_00204660(p, g);
+    SetStepTargetHeading(p, g);
     FixStepAngularVelocity(p);
 }
 
@@ -717,7 +717,7 @@ extern "C" void ChooseJtSmashTarget__FP2JT(JT *p)
     ChooseJtAttackTarget((ALO *)p, p->heading, 4, 0.25f, &D_002BF4E0, &palo, &v.q, 3.15f);
     p->surface = palo;
     if (palo) {
-        SetStepRadTargetVec(p, v.q);
+        SetStepTargetHeadingFromVector(p, v.q);
         FixStepAngularVelocity(p);
     }
 }

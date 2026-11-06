@@ -118,12 +118,12 @@ void *func_001AE1D0(AREQV *);
 void HandleBasicMessage(BOMBV *, int, void *);
 void UpdateSwPox(G *pg, XEC *pa, XEC *pb, int n);
 qword func_001A62E8(void *p);
-int func_0014C748(qword a, qword b, qword c, int n, HITB *phit, float g);
+int ClipEdgeToSphere(qword a, qword b, qword c, int n, HITB *phit, float g);
 void func_001F5990(BOMBV *p, CREQ *ps, int a2, int a3, int a4, int a5);
 void PxpAdd(G *pg, XE4 *pxa, CREQ *ps, qword a, qword b, int k, int x, int y, float g, int z);
 void func_001F4F10(BOMBV *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-int func_001C4098(BOMBV *p);
+int IsPoPlayable(BOMBV *p);
 void PostSwCallback(G *pg, BOMBV *p, long k, void *x);
 void SetLoParent_1A58D0(BOMBV *, Q18 *, int);
 void func_001F4898(BOMBV *, qword);
@@ -147,7 +147,7 @@ void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void func_001CB518(BOMBV *);
 void func_001F6860(BOMBV *, int);
 int FIgnoreSoIntersection(BOMBV *pbomb, SOV *pso);
-int func_00134310(int r, int n);
+int MaxInt(int r, int n);
 void RecalcSwOxfFilterForObject(G *pg, BOMBV *p);
 void DetonateBomb(BOMBV *p);
 void UpdateBombCustomXps(BOMBV *p);
@@ -304,7 +304,7 @@ extern "C" void UpdateBombCustomXps(BOMBV *p)
             qword a = func_001A62E8(pso);
             XEC *px = plo->pxp;
             qword b = p->pxa->pos;
-            if (func_0014C748(a, b, func_001A62E8(p), 1, &hit, px->g30)) {
+            if (ClipEdgeToSphere(a, b, func_001A62E8(p), 1, &hit, px->g30)) {
                 CXP *pe;
                 qword d;
                 register qword vp __asm__("vf2");
@@ -456,7 +456,7 @@ extern "C" void func_0013AEB0(BOMBV *p)
                 BOMBV *pOther = AE(pq)[IOther(pq, p)].p;
                 if (FIsBasicDerivedFrom__FP5BASIC3CID(pOther, 0x32)) {
                     f = 0;
-                    if (func_001C4098(pOther))
+                    if (IsPoPlayable(pOther))
                         f = 1;
                 }
                 break;
@@ -867,7 +867,7 @@ extern "C" int FIgnoreBombIntersection(BOMBV *p, SOV *pso)
 {
     int r = FIgnoreSoIntersection(p, pso);
     if (pso->ploroot->plo == p->pbombOwner->ploroot->plo) {
-        r = func_00134310(r, 1);
+        r = MaxInt(r, 1);
     }
     return r;
 }

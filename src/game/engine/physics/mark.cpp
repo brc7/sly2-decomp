@@ -1473,7 +1473,7 @@ struct B{LO*lo;char pad4[0xC];unsigned long flags;char pad18[8];M4 m;char pad60[
 struct HIT{qword p;char pad10[0x30];float time;int x44,x48,tag;char pad50[0x10];};
 struct W;struct C;
 extern "C" M4 InvertMatrix4Rigid(const M4*);
-extern "C" int ClsgClipEdgeToObject(B*,qword,qword,int,HIT*);
+extern "C" int ClipEdgeToObject(B*,qword,qword,int,HIT*);
 extern "C" void PxpAdd(W*,A*,B*,qword,qword,int,int,int,C**,float);
 static inline qword TransformNew(const M4*m,qword p){qword r;__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=&j"(r):"j"(m->r[0]),"j"(m->r[1]),"j"(p),"j"(m->r[2]),"j"(m->r[3]));return r;}
 static inline qword Transform(const M4*m,qword p){__asm__("vmulax.xyz ACC,%1,%3x\n\tvmadday.xyz ACC,%2,%3y\n\tvmaddaz.xyz ACC,%4,%3z\n\tvmaddw.xyz %0,%5,$vf0w":"=j"(p):"j"(m->r[0]),"j"(m->r[1]),"0"(p),"j"(m->r[2]),"j"(m->r[3]));return p;}
@@ -1506,7 +1506,7 @@ extern "C" void func_001A9D38(W*w,A*a,B*b,C**out){
   qword pos=TransformNew(&a->m,a->vertices[i]);
   if(b->oldGeneration!=b->generation)pos=Transform(&b->lo->m,Transform(&InvertMatrix4Rigid(&b->m),pos));
   qword dest=a->probes[i];
-  int count=ClsgClipEdgeToObject(b,pos,dest,2,hits);
+  int count=ClipEdgeToObject(b,pos,dest,2,hits);
   if(count){
    int skip=hits[0].time==0.0f;
    if(skip<count){

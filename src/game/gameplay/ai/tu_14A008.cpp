@@ -132,7 +132,7 @@ void func_001FEEA0(void *p);
 void AddStepguardSgf(GUARDV *p, int n);
 void RemoveStepguardSgf(GUARDV *p, int n);
 int func_00209098(GUARDV *p);
-HEROV *PpoHero(SW *psw);
+HEROV *GetHeroPo(SW *psw);
 ATKENTRY *PentryChooseStepguardAttack(GUARDV *p, HEROV *phero, int m);
 int FBhvpathAtEnd(void *p);
 int FBhvanimDone(void *p);
@@ -152,7 +152,7 @@ qword ConvertCmWorldToScreen(void *, qword);
 void func_0020AC28(GUARDV *, int, int, qword);
 void SetSoCnstrForce(GUARDV *, int);
 void SetSoCnstrTorque(GUARDV *, int);
-void *func_00205438(GUARDV *, int);
+void *PushStepBehavior(GUARDV *, int);
 void SetBhvpathShape(OA7 *, SHAPEV *, int);
 void InitStepguard(GUARDV *p);
 void PostStepguardLoad(GUARDV *p);
@@ -161,7 +161,7 @@ int FStepguardHasSgf(GUARDV *p, int k);
 void SetDetectorTargetStateById(DETV *pdet, void *plo, int k);
 LOV *PloChooseStepguardTarget(GUARDV *p);
 void *memset(void *p, int c, unsigned int n);
-void *func_00205458(GUARDV *p, int n);
+void *FindStepBehavior(GUARDV *p, int n);
 void SetBhvguardMode(void *p, MSG *m);
 void func_0014A4D0(BHVRT *p);
 int func_0014A478(BHVRT *p);
@@ -323,7 +323,7 @@ extern "C" void func_0014A2A0(BHVRT *p)
                 int v = func_0014AA30(p);
                 p->iTarget = v;
                 if (v == p->iCur) {
-                    ATKENTRY *r = PentryChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
+                    ATKENTRY *r = PentryChooseStepguardAttack(p->pguard, GetHeroPo(&D_003DD490), 0);
                     p->pentry = r;
                     if (r)
                         func_0014AE38(p, 3);
@@ -340,7 +340,7 @@ extern "C" void func_0014A2A0(BHVRT *p)
             else if (FBhvpathAtEnd(p->pbhvCur))
                 func_0014AE38(p, 0);
             else
-                PentryChooseStepguardAttack(p->pguard, PpoHero(&D_003DD490), 0);
+                PentryChooseStepguardAttack(p->pguard, GetHeroPo(&D_003DD490), 0);
             break;
         case 2:
             if (func_00209098(p->pguard))
@@ -431,7 +431,7 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 extern "C" void func_0014A4D0(BHVRT *p)
 {
     SW *pg = &D_003DD490;
-    HEROV *pso = PpoHero(pg);
+    HEROV *pso = GetHeroPo(pg);
     qword posPlayer = func_001A62E8(pso);
     qword posMe = func_001A62E8(p->pguard);
     qword d = VuSub(posPlayer, posMe);
@@ -531,7 +531,7 @@ extern "C" int func_0014AA30(BHVRT *p)
     int iBest = -1;
     int i = 0;
     float ag[1];
-    void *pv = PpoHero(&D_003DD490);
+    void *pv = GetHeroPo(&D_003DD490);
     float gBest = -1.0f;
     FindShapeClosestPoint(p->proute->pshape, func_001A62E8(pv), 0, 0, 0, 0, ag);
     for (; i < p->proute->crte; i++) {
@@ -639,8 +639,8 @@ extern "C" void func_0014AE38(BHVRT *p, int state)
     p->tState = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O9E *po = (struct O9E *)func_00205438(p->pguard, 0x9E);
-        po->x38 = PpoHero(&D_003DD490);
+        struct O9E *po = (struct O9E *)PushStepBehavior(p->pguard, 0x9E);
+        po->x38 = GetHeroPo(&D_003DD490);
         VCALL0(po, 8);
         {
             GUARDV *px = p->pguard;
@@ -669,12 +669,12 @@ extern "C" void func_0014AE38(BHVRT *p, int state)
             pq[1] = func_001A62E8(func_0014AE18(p));
         }
         MeasureShape(psp);
-        po = (struct OA7 *)func_00205438(p->pguard, 0xA7);
+        po = (struct OA7 *)PushStepBehavior(p->pguard, 0xA7);
         SetBhvpathShape(po, psp, 0);
         po->xC0 = 8;
         po->x40 = 1;
         po->x64 = 25.0f;
-        po->xC8 = PpoHero(&D_003DD490);
+        po->xC8 = GetHeroPo(&D_003DD490);
         VCALL0(po, 8);
         p->pguard->tF04 = D_002DDED0.t;
         SetSoCnstrForce(p->pguard, 0);
@@ -682,14 +682,14 @@ extern "C" void func_0014AE38(BHVRT *p, int state)
         break;
     }
     case 2: {
-        struct OAC *po = (struct OAC *)func_00205438(p->pguard, 0xAC);
+        struct OAC *po = (struct OAC *)PushStepBehavior(p->pguard, 0xAC);
         po->x50 = func_001A62E8(func_0014AE18(p));
         po->x68 = 1;
         VCALL0(po, 8);
         break;
     }
     case 3: {
-        struct OA4 *po = (struct OA4 *)func_00205438(p->pguard, 0xA4);
+        struct OA4 *po = (struct OA4 *)PushStepBehavior(p->pguard, 0xA4);
         po->x30 = p->pguard->ploTarget;
         po->pentry = p->pentry;
         VCALL0(po, 8);
@@ -697,8 +697,8 @@ extern "C" void func_0014AE38(BHVRT *p, int state)
         break;
     }
     case 4: {
-        struct O9E *po = (struct O9E *)func_00205438(p->pguard, 0x9E);
-        po->x38 = PpoHero(&D_003DD490);
+        struct O9E *po = (struct O9E *)PushStepBehavior(p->pguard, 0x9E);
+        po->x38 = GetHeroPo(&D_003DD490);
         po->x3C = 1;
         VCALL0(po, 8);
         break;
@@ -859,12 +859,12 @@ extern "C" void func_0014B468(GUARDV *p, int val)
     MSG m;
     void *o;
     memset(&m, 0, sizeof(m));
-    o = func_00205458(p, 0x9C);
+    o = FindStepBehavior(p, 0x9C);
     if (val) {
         m.val = val;
         m.kind = 0xE;
         SetBhvguardMode(o, &m);
-    } else if (func_00205458(p, 0xB6)) {
+    } else if (FindStepBehavior(p, 0xB6)) {
         m.kind = 1;
         SetBhvguardMode(o, &m);
     }

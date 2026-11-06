@@ -77,7 +77,7 @@ qwordV func_001A62E8(void *plo);     /* PosLoWorld */
 void InitSo(WAYPTV *p);
 void PostSoLoad(WAYPTV *p);
 void UpdateSo(WAYPTV *p);
-JTV *PpoHero(SW *psw);
+JTV *GetHeroPo(SW *psw);
 int FIsBasicDerivedFrom__FP5BASIC3CID(JTV *pj, int k);
 }
 
@@ -151,7 +151,7 @@ extern "C" void UpdateWaypt(WAYPTV *p)
     int f;
     float r;
     UpdateSo(p);
-    pj = PpoHero(&D_003DD490);
+    pj = GetHeroPo(&D_003DD490);
     if (pj && FIsBasicDerivedFrom__FP5BASIC3CID(pj, p->cidTrigger)) {
         r = p->fActive ? p->sRadiusOn : p->sRadiusOff;
         f = GDist(func_001A62E8(pj), func_001A62E8(p)) < r;

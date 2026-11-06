@@ -129,15 +129,15 @@ int GetPoCtlState(POV *p);
 POCTLV *POCTL_ctor(POCTLV *p, POV *q);
 void SwitchToPo(SWP *pg, POV *plo);
 void SetPoctlStateValue(POCTLV *pv, int n);
-POV *PpoHero(SWP *p);
-POV *PpoCur(SWP *p);
+POV *GetHeroPo(SWP *p);
+POV *GetCurrentPo(SWP *p);
 void ResetPoctl(POCTLV *p);
 void ClearPoctlJoyPressed(POCTLV *p, int grf);
-void func_001C4330(POCTLV *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
+void ConvertPoctlStick(POCTLV *p, float g, float *px, float *py, float *pang, float *pr, float *pr2);
 void UpdatePoctlPressed(POCTLV *p);
 int GrfPressedWithin__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
 int GrfConsumePressed__5POCTLUif(POCTLV *p, unsigned int grf, float dt);
-void func_001C48C0(SWP *p);
+void UpdateSwPoFollowers(SWP *p);
 /* sly2/emitter.h's PemitbEnsure<EMITTER> (the linkonce copy 0x258658, emitted by emitter.cpp); po's private
    EMITX/EMB views keep it from including emitter.h (its heap allocators are declared on other request types) */
 EMB *PemitbEnsureEmitter(EMITX *p, int x) __asm__("PemitbEnsure__H1Z7EMITTER_PX014ENSK_P5EMITB");
@@ -210,12 +210,12 @@ extern "C" void HandlePoMessage(POV *p, int n)
 /** @sly2-annot addr=0x1C3E90
  * Purpose: PO virtual slot 76: true if invulnerability cheat bit (D_002E1E00&1) or world hands-off
  *   (FSwHandsOff(&g_sw))
- * Info: proposed name FInvulnerablePo (T1); class PO slot76; TU po
+ * Info: proposed name IsPoInvulnerable (T1); class PO slot76; TU po
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r5_1AE130
  * See: docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
  *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int FInvulnerablePo(void) { /*B*/if ((D_002E1E00 & 1) || FSwHandsOff(&D_003DD490)) return 1; return 0;/*E*/ }
+extern "C" int IsPoInvulnerable(void) { /*B*/if ((D_002E1E00 & 1) || FSwHandsOff(&D_003DD490)) return 1; return 0;/*E*/ }
 
 /** @sly2-annot addr=0x1C3ED0
  * Purpose: PO virtual slot 77: returns 0 (JTHS_Normal)
@@ -310,28 +310,28 @@ int GetPoCtlState(POV *p) {
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int func_001C4098(POV *p) {
+extern "C" int IsPoPlayable(POV *p) {
     return ~GetPoCtlState(p) != 0;
 }
 
 /** @sly2-annot addr=0x1C40C0
  * Purpose: True if PO == g_sw current PO (+0x3EFC)
- * Info: proposed name FIsPoCur (T1); TU po
+ * Info: proposed name IsPoCurrent (T1); TU po
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int FIsPoCur(POV *p) {
-    return p == PpoHero(&D_003DD490);
+extern "C" int IsPoCurrent(POV *p) {
+    return p == GetHeroPo(&D_003DD490);
 }
 
 /** @sly2-annot addr=0x1C40F8
  * Purpose: True if PO == effective current PO (override +0x3F00 else +0x3EFC)
- * Info: proposed name FIsPoActive (T1); TU po
+ * Info: proposed name IsPoActive (T1); TU po
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int FIsPoActive(POV *p) {
-    return p == PpoCur(&D_003DD490);
+extern "C" int IsPoActive(POV *p) {
+    return p == GetCurrentPo(&D_003DD490);
 }
 
 /** @sly2-annot addr=0x1C4130
@@ -352,7 +352,7 @@ extern "C" void SetPoTnCam(POV *p, TNV *ptn) {
         if (ptn != 0) {
             ptn->nPriority = -1;
             SetLoParent_1A58D0(p->ptn, 0, 0);
-            if (PpoCur(&D_003DD490) == p) {
+            if (GetCurrentPo(&D_003DD490) == p) {
                 SetTnTnsOverride(p->ptn, 1);
             }
         }
@@ -366,12 +366,12 @@ class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual
 /** @sly2-annot addr=0x1C41B8
  * Purpose: PO virtual slot 80 (Lilly FCanBeHealed): sends message 0xD with a bool CRef (default 1) and
  *   returns the answer
- * Info: proposed name FCanPoBeHealed (T1); class PO slot80; TU po
+ * Info: proposed name CanPoBeHealed (T1); class PO slot80; TU po
  * Notes: names_v2 C proposed InitRoh__FP3ROH (0.638)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int FCanPoBeHealed(OBase *p)
+extern "C" int CanPoBeHealed(OBase *p)
 {
     CRef ref;
     int f = 1;
@@ -443,7 +443,7 @@ static inline float GMaxR(float a, float b) { return a < b ? b : a; }
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-void func_001C4330(POCTLV *p, float g, float *px, float *py, float *pang, float *pr, float *pr2)
+void ConvertPoctlStick(POCTLV *p, float g, float *px, float *py, float *pang, float *pr, float *pr2)
 {
     float s, c;
     *pr = sqrtf_(*px * *px + *py * *py);
@@ -495,8 +495,8 @@ extern "C" void UpdatePoctl(POCTLV *p)
         break;
     }
     p->mat = LoadRotateMatrixPanTiltR(a, b);
-    func_001C4330(p, a, &p->g10, &p->g14, &p->g18, &p->g1c, &p->g70);
-    func_001C4330(p, a, &p->g20, &p->g24, &p->g28, &p->g2c, &p->g74);
+    ConvertPoctlStick(p, a, &p->g10, &p->g14, &p->g18, &p->g1c, &p->g70);
+    ConvertPoctlStick(p, a, &p->g20, &p->g24, &p->g28, &p->g2c, &p->g74);
     UpdatePoctlPressed(p);
 }
 
@@ -585,11 +585,11 @@ extern "C" int POCTL_FConsumePressed(POCTLV *p, unsigned int grf) { return GrfCo
 
 /** @sly2-annot addr=0x1C4728
  * Purpose: (grfbtn(+0x30) & grf) != 0 (held test)
- * Info: proposed name POCTL_FButtonDown (T1); class POCTL; TU po
+ * Info: proposed name POCTL_IsButtonDown (T1); class POCTL; TU po
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int POCTL_FButtonDown(POCTLV *p, int grf) {
+extern "C" int POCTL_IsButtonDown(POCTLV *p, int grf) {
     return (p->n30 & grf) != 0;
 }
 
@@ -638,7 +638,7 @@ static inline qword Norm(qword v, qword fallback)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" qword func_001C4768(POCTLV *p, qword dir)
+extern "C" qword GetPoctlLateralVector(POCTLV *p, qword dir)
 {
     U v;
     v.q = Local((M3 *)&p->mat, dir);
@@ -650,14 +650,14 @@ extern "C" qword func_001C4768(POCTLV *p, qword dir)
 
 /** @sly2-annot addr=0x1C4840
  * Purpose: Returns g_sw current PO (SW+0x3EFC)
- * Info: proposed name PpoHero (T1); TU po
- * Notes: verify r3r5: 0x1C4840 returns SW+0x3EFC (the hero), distinct from effective PpoCur 0x1C4A48;
- *   integrator name (was PpoCur) | runtime3: g_pjt is always Sly, not the current player (PpoHero confirmed)
+ * Info: proposed name GetHeroPo (T1); TU po
+ * Notes: verify r3r5: 0x1C4840 returns SW+0x3EFC (the hero), distinct from effective GetCurrentPo 0x1C4A48;
+ *   integrator name (was GetCurrentPo) | runtime3: g_pjt is always Sly, not the current player (GetHeroPo confirmed)
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
  * See: docs/engine/player.md#1-class-chain, docs/engine/player.md#11-key-functions,
  *   docs/guides/devtools.md#code_explorer
  * @end-sly2-annot */
-POV *PpoHero(SWP *p) {
+POV *GetHeroPo(SWP *p) {
     return p->ppoHero;
 }
 
@@ -668,7 +668,7 @@ POV *PpoHero(SWP *p) {
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" void func_001C4848(SWP *p, EMITX *q)
+extern "C" void AddSwPoFollower(SWP *p, EMITX *q)
 {
     if (p->uc < 4) {
         EMB *pv;
@@ -691,7 +691,7 @@ extern "C" void func_001C4848(SWP *p, EMITX *q)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-void func_001C48C0(SWP *p)
+void UpdateSwPoFollowers(SWP *p)
 {
     int i;
     for (i = 0; i < p->ic; i++) {
@@ -714,7 +714,7 @@ void Decref4(CREF4 *p) __asm__("Decref__4CRef");
  * @end-sly2-annot */
 void SwitchToPo(SWP *p, POV *plo)
 {
-    POV *cur = PpoCur(p);
+    POV *cur = GetCurrentPo(p);
     POV *nw = p->ppoOverride;
     if (!nw) nw = plo;
     if (cur != nw && cur) VCALL(cur, 78, 0);
@@ -729,20 +729,20 @@ void SwitchToPo(SWP *p, POV *plo)
         Decref4(&ref);
     }
     UpdateJtGrabCandidates__FP2SWP10STEPPLAYERiP10JTGRABCAND(p, 0, 0, 0);
-    func_001C48C0(p);
+    UpdateSwPoFollowers(p);
 }
 
 /** @sly2-annot addr=0x1C4A48
  * Purpose: Effective current PO: override SW+0x3F00 if set else SW+0x3EFC
- * Info: proposed name PpoCur (T1); TU po
- * Notes: verifier CORRECT: PpoActive -> PpoCur | runtime3: SW+0x3EFC is the current player (Murray in
+ * Info: proposed name GetCurrentPo (T1); TU po
+ * Notes: verifier CORRECT: PpoActive -> GetCurrentPo | runtime3: SW+0x3EFC is the current player (Murray in
  *   S32-S35)
  * Confidence: high [T1 0.90] - evidence: runtime (save-state RAM); sources:
  *   r5_1AE130+verdicts_tu_r3r5+runtime
  * See: docs/engine/camera.md#5-key-functions, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
-POV *PpoCur(SWP *p) {
+POV *GetCurrentPo(SWP *p) {
     POV *ppo = p->ppoOverride;
     if (ppo == 0) {
         ppo = p->ppoHero;
@@ -758,9 +758,9 @@ POV *PpoCur(SWP *p) {
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void func_001C4A60(SWP *p, POV *plo)
+extern "C" void SetSwPoOverride(SWP *p, POV *plo)
 {
-    POV *cur = PpoCur(p);
+    POV *cur = GetCurrentPo(p);
     POV *nw = plo;
     if (!nw) nw = p->ppoHero;
     if (cur != nw && cur) VCALL(cur, 78, 0);
@@ -781,12 +781,12 @@ static inline float LenSq(qword a) {
 namespace RO_ORDER { extern const float r_D_002A7708 __asm__("D_002A7708") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x1C4AF8
  * Purpose: Nearest PO in the SW PO list (+0x3EB8) to a position, among POs with LO flag bit 60
- * Info: proposed name PpoClosestSw (T1); TU po
+ * Info: proposed name FindClosestSwPo (T1); TU po
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8,
  *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" POV *PpoClosestSw(SWP *p,qword v) {
+extern "C" POV *FindClosestSwPo(SWP *p,qword v) {
     POV *best=0; int i=0;
     float minimum=D_002A7708;
     for(;i<p->c;++i) {
@@ -806,14 +806,14 @@ extern "C" POV *PpoClosestSw(SWP *p,qword v) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int func_001C4BD8(SWP *p, int cMax, void **ap)
+extern "C" int CollectActivePzis(SWP *p, int cMax, void **ap)
 {
     int c;
     unsigned int j;
     POV *plo, *plo2;
     if (cMax <= 0) return 0;
     c = 1;
-    plo = PpoHero(p);
+    plo = GetHeroPo(p);
     if (plo) {
     *ap = &plo->n15c;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x34)) {

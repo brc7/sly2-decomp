@@ -96,7 +96,7 @@ void InitXfm(RTCAM *pcam);
 void LoadXfmFromBrx(RTCAM *pcam, void *pbis);
 int func_001A61A0(LOV *plo);
 void func_00169198(void *pv, RTCAM *pcam);
-POV *PpoHero(SW *psw);
+POV *GetHeroPo(SW *psw);
 }
 int IgsAllocGsb(GSB *pgsb, int cb);
 uint NLog2(uint n);
@@ -457,12 +457,12 @@ extern "C" void func_001BEED8(int id)
 {
     switch (id) {
     case 0x2AE:{
-        POV*object=Get(PpoHero(&D_003DD490));
+        POV*object=Get(GetHeroPo(&D_003DD490));
         (void)PloFindSwObject(&D_003DD490,1,(OID)id,(LO *)object);
         break;
     }
     case 0x2AF:
-        (void)PloFindSwObject(&D_003DD490, 1, (OID)0x2AF, (LO *)PpoHero(&D_003DD490));
+        (void)PloFindSwObject(&D_003DD490, 1, (OID)0x2AF, (LO *)GetHeroPo(&D_003DD490));
         break;
     default:
         (void)PloFindSwObject(&D_003DD490, 0x405, (OID)id, 0);

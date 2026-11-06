@@ -662,7 +662,7 @@ struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x1C8 - 0x10]; int x1C8; float x1CC; };
-int func_001C4BD8(void *pg, int c, void **ap);
+int CollectActivePzis(void *pg, int c, void **ap);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 int FCheckDprizeCollect(struct S *p, void *pv);
 /** @sly2-annot addr=0x1C5D18
@@ -680,7 +680,7 @@ void CheckDprizeCollect(struct S *p)
         ((void (*)(void *, int))p->vt[76].pf)((char *)p + p->vt[76].d, 1);
         return;
     }
-    n = func_001C4BD8(D_003DD490, 0x10, ap);
+    n = CollectActivePzis(D_003DD490, 0x10, ap);
     for (i = 0; ; i++) {
         if (i >= n) break;
         if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x5B)) break;
@@ -1250,7 +1250,7 @@ extern char D_002C0E10[];
 extern char D_002DEB30[];
 float GRandInRange__Fff(float a, float b);
 struct X *PripNewRipg(void *pg, int a, int b);
-struct LO *PpoHero(void *pg);
+struct LO *GetHeroPo(void *pg);
 qword func_001A62E8(struct S *p);
 struct MAT *func_001A6318(struct S *p);
 void OnMedicineSmackDone(struct S *p, int n);
@@ -1260,7 +1260,7 @@ void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
 /** @sly2-annot addr=0x1C68F0
- * Purpose: CID 93 setter (uses PpoCur - gives to current character)
+ * Purpose: CID 93 setter (uses GetCurrentPo - gives to current character)
  * Info: proposed name SetMedicineDprizes (T2); class MEDICINE slot76; TU prize
  * Notes: class identity from whole_game WE names/object strings: SetDprize93Dprizes -> SetMedicineDprizes
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources:
@@ -1276,7 +1276,7 @@ void func_001C68F0(struct S *p, int n)
         p->x238 = GRandInRange__Fff(p->x230, p->x234);
         break;
     case 1: {
-        struct LO *q = PpoHero(D_003DD490);
+        struct LO *q = GetHeroPo(D_003DD490);
         struct X *px;
         struct LO *plo;
         if (!((int (*)(void *))q->vt[80].pf)((char *)q + q->vt[80].d)) {
@@ -1607,7 +1607,7 @@ extern "C" { extern LM D_002C0EB0; }
 extern "C" { extern float D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC4; }
 extern "C" {
 int func_001C6DE8(float, float, float, qword, int, CANDIDATE **, qword *);
-LO *PpoHero(void *);
+LO *GetHeroPo(void *);
 REGION *PpathzoneFromPos(qword, int);
 int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
 int FClipPathzone(REGION *, qword, qword, int);
@@ -1701,7 +1701,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
     VECTOR4 posOrig;
     if (!func_001C6DE8(0.0f, 300.0f, D_002A775C, posSeed, 0, 0, &posOrig.q))
         return;
-    LO *plo = PpoHero(pworld);
+    LO *plo = GetHeroPo(pworld);
     REGION *pregion = 0;
     if (plo)
         pregion = PregionFromLo(plo);

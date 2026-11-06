@@ -77,7 +77,7 @@ void func_001F59A0(JT*,M3P*,float*);
 M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 M3P func_0011B500(qword,float);
 qword func_0011BFF0(M3P*);
-void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void func_00204660(JT*,float);float atan2f(float,float);
+void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
 void SetJtJts__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void func_001F5078(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void func_0019CC50(void*,int,JT*,void*);
 float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001384C0(ANIMATION*);float GLimitAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
@@ -433,7 +433,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
  WORK w;int near=0,far=0;
  GetJtHangHeading__FP2JTPf(p,&w.heading);
  if(p->flipped)w.heading=RadNormalize__Ff(w.heading+3.1415927410125732421875f);
- func_00204660(p,w.heading);
+ SetStepTargetHeading(p,w.heading);
  float inputDifference=RadNormalize__Ff(p->input->angle-p->angle);
  if(p->input->amount>0.3f){float d=Abs(inputDifference);if(d<1.0471975803375244140625f){near=1;p->farTime=D_002DDED0.t;}else if(d>2.094395160675048828125f){far=1;p->farTime=D_002DDED0.t;}}
  else p->previous=-1;

@@ -40,7 +40,7 @@ void func_0018D698(BENTLEY *pbentley, JTPOCKET *ppocket, LO *plo);
 void UnlockProxyPlo(PROXY *pproxy, LO *plo);
 void func_00136F48(BTBLENDS *pbtblends, int n);
 void func_00141E70(STEPPLAYER *pstepplayer);
-int FIsPoCur(PO *ppo);
+int IsPoCurrent(PO *ppo);
 int GrfbtnGadget(STEPPLAYER *pstepplayer, int n);
 void ShowSoGlobsById(SO *pso, int id);
 void HideSoGlobsById(SO *pso, int id);
@@ -380,7 +380,7 @@ void UpdateStepplayer(struct P *p);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *pv, struct P *p, int n);
 void func_00134D30(struct P *p);
 void UpdateBentleyStateMachine(struct P *p);
-void func_00204660(struct P *p, float g);
+void SetStepTargetHeading(struct P *p, float g);
 int func_001430C8(struct P *p);
 void SetSmaMask(int a, int b);
 void UpdateGaitBlend(void *pv, float g);
@@ -390,7 +390,7 @@ void UpdateJtActiveHide(void *pv);
 void FaceStepToward(struct P *p, int n);
 qword SetVectorCylind(float a, float b, float c);
 void func_001A0450(struct P *p, void *pv, int n);
-qword func_00204E38(struct P *p, struct S1030 *px, float g);
+qword GetStepAsegaTranslation(struct P *p, struct S1030 *px, float g);
 void SetAsegaSpeed__FP5ASEGAf(struct S1030 *px, float g);
 float RadNormalize__Ff(float g);
 float GLimitAbs__Fff(float g, float dg);
@@ -443,7 +443,7 @@ static __inline__ void SetVel(struct P *p, qword v, void *pv, int n)
 static __inline__ void Pull(struct P *p)
 {
     VUF u;
-    qword v = func_00204E38(p, p->p1030, p->p1030->g1C);
+    qword v = GetStepAsegaTranslation(p, p->p1030, p->p1030->g1C);
     qword r;
     qword uq;
     __asm__("qmtc2.ni %1, %0" : "=j"(uq) : "r"(-1.0f));
@@ -454,7 +454,7 @@ static __inline__ void Pull(struct P *p)
 static __inline__ void PullB(struct P *p)
 {
     VUF u;
-    qword v = func_00204E38(p, p->p1030, p->p1030->g1C);
+    qword v = GetStepAsegaTranslation(p, p->p1030, p->p1030->g1C);
     qword r, t;
     __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(-1.0f));
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(t));
@@ -484,17 +484,17 @@ void UpdateBentley(struct P *p)
     switch (p->x13D0) {
     case 0:
         if (p->x181C) {
-            func_00204660(p, D_002BC934);
+            SetStepTargetHeading(p, D_002BC934);
             break;
         }
         SetSmaMask(p->x1034, func_001430C8(p));
         break;
     case 1:
-        func_00204660(p, p->p150->g18);
+        SetStepTargetHeading(p, p->p150->g18);
         Kick(p->x1320, 1.0f);
         break;
     case 7:
-        func_00204660(p, p->p150->g18);
+        SetStepTargetHeading(p, p->p150->g18);
         Kick(p->x1600, p->p150->g1C);
         break;
     case 2:
@@ -524,7 +524,7 @@ void UpdateBentley(struct P *p)
             float z = 0.0f;
             if (z < p->p150->g1C) {
                 float d = RadNormalize__Ff(p->p150->g18 - p->g1A8);
-                func_00204660(p, p->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
+                SetStepTargetHeading(p, p->g1A8 + GLimitAbs__Fff(d, g1 * D_002BC960 * D_002DDED0.dt));
             }
             SetVel(p, SetVectorCylind(p->p150->g18 + 3.1415927f, g0 * LenXY(p->v1520) * p->p1030->g40, z), p->x14F0, p->x15F0);
         }
@@ -535,11 +535,11 @@ void UpdateBentley(struct P *p)
     case 11:
         PullB(p);
         SetAsegaSpeed__FP5ASEGAf(p->p1030, p->p150->g1C);
-        func_00204660(p, p->p150->g18);
+        SetStepTargetHeading(p, p->p150->g18);
         break;
     case 14:
         Pull(p);
-        func_00204660(p, p->p150->g18);
+        SetStepTargetHeading(p, p->p150->g18);
         break;
     }
     func_00135EB0(p);
@@ -1265,7 +1265,7 @@ int FAsegaRetracted(void *pv);
 void func_00136040(struct P *p, int n);
 void func_00224258(struct O *po, int n);
 int GrfbtnGadget(struct P *p, int n);
-int POCTL_FButtonDown(void *pv, int n);
+int POCTL_IsButtonDown(void *pv, int n);
 void func_00136298(struct P *p);
 void func_00195A00(void *pv, int a, int b, int c);
 /** @sly2-annot addr=0x136118
@@ -1291,7 +1291,7 @@ void func_00136118(struct P *p)
                 func_00224258(po, po->x1A0);
                 goto common;
             }
-            if (po->x158 == 4 || !POCTL_FButtonDown(p->p150, GrfbtnGadget(p, p->pq->x0) | 0x10)) {
+            if (po->x158 == 4 || !POCTL_IsButtonDown(p->p150, GrfbtnGadget(p, p->pq->x0) | 0x10)) {
                 ((void (*)(void *, int))po->vt[76].pfn)((char *)po + po->vt[76].d, 1);
             common:
                 func_00136298(p);
@@ -1435,8 +1435,8 @@ extern qword D_002A2DD0;
 void SetLoParent_1A58D0(struct P *, int, int);
 void ReleaseAct(void *);
 void func_002303A0(struct P *, struct O *, int);
-float RadStepHeading(struct P *);
-void func_00204660(struct P *, float);
+float GetStepHeading(struct P *);
+void SetStepTargetHeading(struct P *, float);
 void FixStepAngularVelocity(struct P *);
 void SetJtthrowState(void *, int);
 M4 func_0022FF40(void *, void *, M4 *);
@@ -1468,7 +1468,7 @@ void func_00136530(struct P *p, int k)
         break;
     }
     case 1:
-        func_00204660(p, RadStepHeading(p));
+        SetStepTargetHeading(p, GetStepHeading(p));
         p->x1A4 = 0;
         FixStepAngularVelocity(p);
         break;
@@ -1754,7 +1754,7 @@ void BENTLEY::VSlot105()
 {
     BENTLEY *pbentley = (BENTLEY *)this;
     func_00141E70(pbentley);
-    if ((FIsPoCur(pbentley) != 0) && (GrfbtnGadget(pbentley, 0xC) != 0)) {
+    if ((IsPoCurrent(pbentley) != 0) && (GrfbtnGadget(pbentley, 0xC) != 0)) {
         ShowSoGlobsById(pbentley, 0x24D);
         return;
     }
@@ -1886,7 +1886,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, float);
 qword ConvertAloPos(void *, struct PO *, qword);
-void SetStepRadTargetVec(struct PO *, qword);
+void SetStepTargetHeadingFromVector(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
 void func_001384C0(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
@@ -1933,7 +1933,7 @@ void func_00136F48(struct S *ps, int state)
         r.q = ConvertAloPos(ps->pvE4, ps->po, D_002A2DD0);
         ps->x8 = 0.0f < r.a[1] ? 1 : 0;
         if (state == 0 && f) {
-            SetStepRadTargetVec(ps->po, v.q);
+            SetStepTargetHeadingFromVector(ps->po, v.q);
             FixStepAngularVelocity(ps->po);
         }
     }

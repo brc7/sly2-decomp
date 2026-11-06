@@ -84,7 +84,7 @@ void ActivateJob(JOBV *pjob);
 void CompleteJob(JOBV *pjob, TASKV *ptask);
 void CompleteJob1(JOBV *pjob) __asm__("CompleteJob");   /* OnJobTaskComplete passes only the job (a1 is left as is) */
 void SetSwTaskPending(SW *psw, LO *plo);
-LO *PpoHero(SW *psw);
+LO *GetHeroPo(SW *psw);
 void func_00143380(LO *pstepplayer);
 void SetCurrentJob(JOBV *pjob);
 void GoToTask(TASKV *ptask);
@@ -1366,7 +1366,7 @@ extern "C" void ActivateJob(JOBV *pjob)
     LO *ploHero;
     if (FIsCurrentJob(pjob) == 0) {
         BroadcastGameEvent(D_002DEB30, 0x1C, pjob);
-        ploHero = PpoHero(&D_003DD490);
+        ploHero = GetHeroPo(&D_003DD490);
         if (ploHero != 0 && FIsBasicDerivedFrom(ploHero, (CID)0x34) != 0) {
             func_00143380(ploHero);
         }

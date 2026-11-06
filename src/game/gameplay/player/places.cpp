@@ -75,10 +75,10 @@ void LoadIdentityMatrix4(void *o, float g, int n, M4 *pm, int m);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void ReturnJtToSafePlace(JT *, PLACE *);
 void func_0019FAF8(JTPLACES *p, PLACE *e);
-JT *PpoHero(G *g);
+JT *GetHeroPo(G *g);
 qword func_0019F3F8(JT *p, PLACE *e, float g);
 float func_00196928(qword a, qword b, float c, float d, float e, float f);
-void SetStepRadTargetVec(JT *p, qword q);
+void SetStepTargetHeadingFromVector(JT *p, qword q);
 void CutCm__FP2CM(D *d);
 void func_00195A00(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
@@ -186,14 +186,14 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
     if (!q) {
         func_0019FAF8(&p->places, &e);
         q = &e;
-        if (p == PpoHero(&D_003DD490)) {
+        if (p == GetHeroPo(&D_003DD490)) {
             qword r = func_0019F3F8(p, &e, 0.0f);
             float g = func_00196928(VuSub(r, p->x58->x70), p->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
                 int save = p->places.c;
                 ((void (*)(void *, qword))p->vt[29].pfn)((char *)p + p->vt[29].d, VuSub(r, p->x240));
                 p->places.c = save;
-                SetStepRadTargetVec(p, D_002DDF40.x60);
+                SetStepTargetHeadingFromVector(p, D_002DDF40.x60);
                 ((void (*)(void *, void *))p->vt[30].pfn)((char *)p + p->vt[30].d, p->x1b0);
                 CutCm__FP2CM(&D_002DDF40);
                 func_00195A00(p->x2c0, 0xB, 0, 0);

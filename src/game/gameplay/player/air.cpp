@@ -86,7 +86,7 @@ struct GRABSPOTV : public GRABSPOTDATA
     virtual int FGetWrapRange(float *pasRange);
 };
 
-extern "C" void SetStepRadTargetVec(STEP *pstep, qword dpos);
+extern "C" void SetStepTargetHeadingFromVector(STEP *pstep, qword dpos);
 
 struct SWALLOC
 {
@@ -257,7 +257,7 @@ struct VU_FLOAT
     qword qw;
 };
 
-void SetStepGravityRatio(STEP *pstep, float rGravity) __asm__("func_00204DA8");
+void SetStepGravityRatio(STEP *pstep, float rGravity) __asm__("SetStepGravityRatio");
 
 void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("func_00195FB8");
 
@@ -582,8 +582,8 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
-qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
+qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -725,7 +725,7 @@ static inline void PublishReal(U*home,qword value){__asm__ volatile("sqc2 %1,%0"
 extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  if(newMode==p->mode)return;
  switch(p->mode){
- case 17:func_00204F78(p->actor,p->link->target,0);p->link=0;break;
+ case 17:LinkStepAttachment(p->actor,p->link->target,0);p->link=0;break;
  case 7:{SOURCE*old=p->source;p->source=0;RecalcSwOxfFilterForObject(&D_003DD490,old);break;}
  case 6:{SOURCE*old=p->source;p->source=0;if(p->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)func_00183B80(old,0);}func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;break;}
  case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:case 16:case 18:
@@ -740,7 +740,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  ANIMATION*active=p->actor->animation;CLIP*clip=0;p->mode=newMode;p->source=source;
  float entryTime,blend;__asm__("mtc1 $zero,%1\n\tlwc1 %0,%%lo(%3)(%2)":"=f"(entryTime),"=f"(blend):"r"(clockHigh),"i"(&D_002DDED0):"memory");p->time=entryTime;int flags=1;float weight=1.0f;
  switch(newMode){
- case 17:{flags=9;Notify(p->actor,91);func_00204F78(p->actor,p->link->target,1);qword point=func_0022FC48(p->link->space,0,p->relative.q);
+ case 17:{flags=9;Notify(p->actor,91);LinkStepAttachment(p->actor,p->link->target,1);qword point=func_0022FC48(p->link->space,0,p->relative.q);
   register qword direction __asm__("vf1"),negative __asm__("vf2"),upArg __asm__("$5");register U*axisAddress __asm__("$4");
   float negativeScalar=-1.0f;
   __asm__("lui $3,%%hi(%6)\n\tlui %3,%%hi(%7)\n\tlqc2 %0,%4\n\tmfc1 %2,%5\n\taddiu $3,$3,%%lo(%6)\n\tqmtc2.ni %2,%1\n\taddiu %3,%3,%%lo(%7)\n\tlq %2,0($3)\n\tvmulx.xyzw %0,%0,%1x"
@@ -763,7 +763,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
    __asm__("qmtc2.ni %1,%0":"=j"(position):"r"(point));
    __asm__("vsub.xyzw %0,%0,%1":"+j"(delta):"j"(position));actor->offset.q=delta;}
   ClearVelocity(p->actor);p->flags28=0;clip=p->special154;
-  if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}break;}
+  if(p->focused){SetStepGravityRatio(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}break;}
  case 0:case 1:case 4:case 5:case 7:
   switch(p->state){case 13:clip=p->special148;break;case 14:clip=p->special158;break;case 16:clip=p->actor->clip1514;break;case 15:clip=p->actor->clip1518;break;}
   if(!clip)clip=p->base[p->variant];if(!clip)clip=p->base[0];break;
@@ -774,8 +774,8 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;p->variant=0;clip=p->base[0];
   if(Less(p->mode,16)&&!Less(p->mode,14)){ACTOR*actor=p->actor;if(actor==D_002E1E40){actor->primaryFocus=p->source;SetJtJtcs__FP2JTi(actor,0);}else{actor->secondaryFocus=p->source;weight=0.0f;func_001CCAC0((SECONDARY*)p->actor->secondary,0);clip=p->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
  case 9:case 10:case 16:case 18:{func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;ACTOR*actor=p->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=func_0019A750(p,4);((void(*)(void*,qword))v.fn)(receiver,velocity);p->variant=0;if(p->mode==16)clip=p->special14C;else clip=p->special148;active=0;break;}
- case -1:if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}p->fieldBC=0;p->state=-1;break;
- case 19:func_00204660(p->actor,p->actor->heading-D_002BF780[p->variant]);p->flags28=0;clip=p->scripted;SetStepplayerTnOverride(p->actor,p->scriptFocus);p->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F7);break;
+ case -1:if(p->focused){SetStepGravityRatio(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}p->fieldBC=0;p->state=-1;break;
+ case 19:SetStepTargetHeading(p->actor,p->actor->heading-D_002BF780[p->variant]);p->flags28=0;clip=p->scripted;SetStepplayerTnOverride(p->actor,p->scriptFocus);p->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F7);break;
  case 20:p->tracks[0].control.bits=0;p->tracks[1].control.bits=0;p->tracks[2].control.bits=0;p->tracks[3].control.bits=0;p->scriptedGain=1.0f;func_001384C0(p->multi);clip=p->multi;flags=9;break;
  case 21:{register float minimum __asm__("$f21"),maximum __asm__("$f20");register qword bodyPosition __asm__("$3");register OBJECT*queryObject __asm__("$4");
   __asm__("lw $2,0(%4)\n\tlw %1,0x1D0(%4)\n\tlw %0,0x58($2)\n\tli.s %2,-1.00000000000000000000e3\n\tlq %0,0x70(%0)\n\tli.s %3,-1.00000000000000000000e0"
@@ -827,7 +827,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   p->event=func_0012DE58(p->actor,p->actor->body,5,deadline,localGoal,localEnd);func_001F6860(p->actor,1);
   {register ACTOR*cleared __asm__("$3");register qword directionArg __asm__("$5");
    __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(p->actor),"m"(w.delta.q));
-   ClearVelocity(cleared);SetStepRadTargetVec(p->actor,directionArg);}clip=p->base[0];break;}
+   ClearVelocity(cleared);SetStepTargetHeadingFromVector(p->actor,directionArg);}clip=p->base[0];break;}
  case 22:clip=p->special1C8;flags=9;break;
  }
  switch(p->mode){case 0:case 2:p->actionFlag=0;break;case 18:RecalcSwOxfFilterForObject(&D_003DD490,p->actor);break;}
@@ -1540,7 +1540,7 @@ void UpdateJtAirInput(JTAIR *pjtair)
                             break;
                         }
                     }
-                    SetStepRadTargetVec(pjtair->pstepplayer, QwScale(pjtair->normalEdge, VuFloat(-1.0f)));
+                    SetStepTargetHeadingFromVector(pjtair->pstepplayer, QwScale(pjtair->normalEdge, VuFloat(-1.0f)));
                     if (pctl->GrfPressedWithin(0x400, 0.15f))
                     {
                         if (pjtair->pstepplayer->FCanUseGadget(3))
@@ -1702,15 +1702,15 @@ qword ConvertXfVec(SPACE *, SPACE *, qword);
 void func_00195FB8(CONTEXT *, int, void *);
 void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
-float RadStepHeading(ACTOR *);
+float GetStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
 void CalculateSinCos__FfPfT1(float, float *, float *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
 void func_001384C0(CLIP *);
 void EvaluateShapeU(void *, float, qword *, qword *);
 void UpdateJtHands(void *);
-void SetStepRadTargetVec(ACTOR *, qword);
-void func_00204660(ACTOR *, float);
+void SetStepTargetHeadingFromVector(ACTOR *, qword);
+void SetStepTargetHeading(ACTOR *, float);
 void DrainStepplayerMp(ACTOR *, float);
 qword SetVectorCylind(float, float, float);
 M3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword, qword);
@@ -1993,7 +1993,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         heading = headingSample;
         break;
     case 20: {
-        float headingOld = RadStepHeading(p->actor);
+        float headingOld = GetStepHeading(p->actor);
         float s, c;
         CalculateSinCos__FfPfT1(RadNormalize__Ff(input->heading - headingOld), &s, &c);
         float lateral = s * input->amount;
@@ -2042,7 +2042,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             target.q = func_001A62E8(p->source);
         if (p->actor != D_002E1E40)
             UpdateJtHands((char *)p->actor + 0x900);
-        SetStepRadTargetVec(p->actor, QwSub(target.q, pos.q));
+        SetStepTargetHeadingFromVector(p->actor, QwSub(target.q, pos.q));
         heading = p->actor->heading;
         break;
     }
@@ -2079,7 +2079,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         break;
     }
     if (p->mode != 22)
-        func_00204660(p->actor, heading);
+        SetStepTargetHeading(p->actor, heading);
 
     switch (p->mode) {
     case 0 ... 5: case 7: {
@@ -2406,12 +2406,12 @@ extern "C" {
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 qword *VECTOR_opAssign(qword *pq, qword q);
 void func_001995D8(struct P *p, const M4 *pm, int n, U *apt);
-int ClsgClipEdgeToObject(struct S0 *s, qword a, qword b, int n, HIT *ph);
+int ClipEdgeToObject(struct S0 *s, qword a, qword b, int n, HIT *ph);
 }
 
 static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *h)
 {
-    return ClsgClipEdgeToObject(s, *a, *b, 1, h);
+    return ClipEdgeToObject(s, *a, *b, 1, h);
 }
 
 /** @sly2-annot addr=0x1997D8
@@ -2472,7 +2472,7 @@ typedef char guard_size_HIT[sizeof(HIT) == 112 ? 1 : -1];
 //////// 0x1999D0 func_001999D0
 namespace M_func_001999D0 {
 // func_001999D0: contact direction of a JT against a shape feature, then FCheckJtEdgeNormal(p, point, *out).
-//   kind 1 (vertex): sum of FCheckJtSingleEdge directions over the edges at that vertex (func_001665F0, max 64)
+//   kind 1 (vertex): sum of FCheckJtSingleEdge directions over the edges at that vertex (CollectEdgesAtGeomPoint, max 64)
 //   kind 2 (face):   face must be flat enough (plane z >= 0.7); sum of the directions of both edge lists whose
 //                    segment passes func_00118668 against the actor's tree
 //   kind 3 (edge):   FCheckJtSingleEdge directly
@@ -2495,7 +2495,7 @@ struct JT { ACTOR *actor; };
 struct SPAN { U first, last, firstPlane, lastPlane; float from, to; int flags; FACE *firstFace, *lastFace; };
 extern "C" {
 extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
-int func_001665F0(GEOMETRY *, QUERY *, int, int, EDGE **);
+int CollectEdgesAtGeomPoint(GEOMETRY *, QUERY *, int, int, EDGE **);
 int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
 int func_00118668(NODE *, int, qword, qword, int, SPAN *);
 int FCheckJtEdgeNormal(JT *, qword, qword);
@@ -2555,7 +2555,7 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         int found = 0;
         qword sum = D_002A2DD0.q;
         GEOMETRY *geometry = &shape->geometry;
-        int count = func_001665F0(geometry, &shape->query, (U *)info - geometry->points, 64, edges);
+        int count = CollectEdgesAtGeomPoint(geometry, &shape->query, (U *)info - geometry->points, 64, edges);
         for (int i = 0; i < count; i++) {
             if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, edges[i], &direction)) {
                 found = 1;

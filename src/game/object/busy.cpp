@@ -39,7 +39,7 @@ extern CM D_002DDF40;
 float D_002BD450 = 500.0f;   /* busy's .data (the next 12 bytes are 0: alignment) */
 extern DLI *D_002DD2FC;     /* g_pdliFirst */
 extern "C" {
-void *PpoHero(void);
+void *GetHeroPo(void);
 qword func_001A62E8(void *p);
 void func_00147EC8(SWBUSY *p, void *pv);
 void func_00147EE8(SWBUSY *p, void *pv);
@@ -151,7 +151,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
     void *pv;
     pos = D_002DDF40.pos;
     n = D_002DDF40.grf;
-    pvB = PpoHero();
+    pvB = GetHeroPo();
     if (pvB)
         posB = func_001A62E8(pvB);
     else
@@ -244,7 +244,7 @@ extern "C" void func_00148300(SWBUSY *p, SO *pso)
     if ((*(int *)&g_sw.aploNew)) return;
     posA = D_002DDF40.pos;
     grf = D_002DDF40.grf;
-    po = PpoHero();
+    po = GetHeroPo();
     if (po) posB = func_001A62E8(po);
     else posB = posA;
     id = (int)pso->pvBusy;

@@ -451,7 +451,7 @@ SHAPE *PloCloneLo__FP2LOP2SO(SHAPE *plo, SO *pso);
 void CloneXfm(TN *p);
 void SetCmPolicy(CM *pcm, int nPriority, CMPART2 *pcplcy, LO *plo, TN *ptn);
 void RevokeCmPolicy(CM *pcm, int a, int b, int c, int d, TN *ptn);
-POX *PpoCur(SW *psw);
+POX *GetCurrentPo(SW *psw);
 qword func_001A62E8(void *plo);
 qword ConvertAloPos(void *source, void *p, qword q);
 BSP *PbspPointInBspQuick(BSP *p, unsigned int limit, qword v);
@@ -716,7 +716,7 @@ extern "C" void SetTnTnsOverride(TN *p, int x)
 
 static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"(value));return value;}
 /** @sly2-annot addr=0x221298
- * Purpose: current player (0x1C4A48 PpoCur); retarget; inside test via tunnel BSP (0x118FB0) unless override;
+ * Purpose: current player (0x1C4A48 GetCurrentPo); retarget; inside test via tunnel BSP (0x118FB0) unless override;
  *   switch unless jumping
  * Info: proposed name UpdateTnCallback (T1); TU tn
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88
@@ -724,7 +724,7 @@ static inline int AutomaticSentinel(){int value;__asm__("addiu %0,$zero,-1":"=r"
  * @end-sly2-annot */
 void UpdateTnCallback(TN *p)
 {
-    POX *po = PpoCur(&D_003DD490);
+    POX *po = GetCurrentPo(&D_003DD490);
     int f;
     if (!po) return;
     if ((LO *)po != p->ploHero) {

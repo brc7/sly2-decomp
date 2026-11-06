@@ -38,7 +38,7 @@ struct GEOM
     PLANE *asurf;       /* +0x0C */
     int x10, x14;
 };
-/* An edge (a, b: point indices) and a surface's edge list (+0x10), as func_001665F0 walks them. */
+/* An edge (a, b: point indices) and a surface's edge list (+0x10), as CollectEdgesAtGeomPoint walks them. */
 struct EDGE { unsigned short a, b; int pad; EDGE *next; };
 struct SURFV { char pad[0x10]; EDGE *edges; };
 struct Entry { int a, b; SURFV *poly; };
@@ -231,7 +231,7 @@ extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
  * @end-sly2-annot */
-extern "C" int func_001665F0(GEOM*p,GEOMTREE*g,int index,int max,EDGE**out){
+extern "C" int CollectEdgesAtGeomPoint(GEOM*p,GEOMTREE*g,int index,int max,EDGE**out){
  FRAME frame;int capacity,limit,count,i;Entry*first,*end;
  STACKSCOPE_ctor(&frame);
  capacity=NMin(g->count,0x1555);limit=capacity;REQ req(capacity*12,16);

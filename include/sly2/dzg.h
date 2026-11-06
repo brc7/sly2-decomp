@@ -19,7 +19,7 @@ struct DZ
       float g10;            /* +0x10 residual */
       float g14;            /* +0x14 residual change per unit step */
       float *ag;            /* +0x18 row (0 until the row is filled) */
-      DZ *pdzOther;         /* +0x1C the friction row paired with a contact row, and back (SolveDzgFric) */
+      DZ *pdzOther;         /* +0x1C the friction row paired with a contact row, and back (SolveDzgFriction) */
       DLE dle;              /* +0x20 */
 };
 typedef char assert_DZ_size[sizeof(DZ) == 0x28 ? 1 : -1];

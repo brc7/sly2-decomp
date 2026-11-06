@@ -1044,7 +1044,7 @@ struct T { int a, b, c; };
 struct O { char pad[0x70]; int c; struct T *at; };
 struct HIT { char pad[0x40]; float g40; float g44; char pad2[0x18]; };
 int func_00118668(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, struct HIT *ahit);
-int ClsgMergeAlsg(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f);
+int MergeSegmentLists(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f);
 /** @sly2-annot addr=0x14EA08
  * Purpose: Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8),
  *   returns first clear gap > duMin in *puFrom/ *puTo
@@ -1063,7 +1063,7 @@ int FFindCmClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgM
         struct O *po = apo[i];
         int cNew = func_00118668(po->at, po->at + po->c, pos, dir, 0x40 - c, &ahit[c]);
         if (cNew)
-            c = ClsgMergeAlsg(c, ahit, cNew, &ahit[c], 0x40, ahit, 0);
+            c = MergeSegmentLists(c, ahit, cNew, &ahit[c], 0x40, ahit, 0);
     }
     for (j = 0; ; j++) {
         if (c < j)
@@ -1319,7 +1319,7 @@ float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
 } } // namespace M_SvSquishCmEyeConstraint
 
 namespace M_func_0014F110 {
-// func_0014F110 (Claude agent, lane K5, 2026-10-24): MATCH. Built on laneK4v1 (K3/K4 fresh rewrite in the func_0014C748 style).
+// func_0014F110 (Claude agent, lane K5, 2026-10-24): MATCH. Built on laneK4v1 (K3/K4 fresh rewrite in the ClipEdgeToSphere style).
 // Keys: the VU_FLOAT(const float *) ctor's word input has a never-chosen "V" alternative ("r,V"), so it stays a MEM until
 // reload: the clock dt load is then an input reload (lw v0 for the vdiv; for the final AddScaled reload reuses the dying
 // pclock register, lw s0,0x10(s0)), which also shortens the clock chain in sched1 so no extra operand is needed on the vdiv;

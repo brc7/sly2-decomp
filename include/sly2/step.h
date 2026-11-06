@@ -87,16 +87,16 @@ struct STEP : public PO
     virtual void VUnk53(SO *pso) __asm__("OnStepSoContactFreed");   /* slot 54 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustStepNewXp");   /* slot 55 */
     virtual void VUnk56(XP *pxp, int ixpd) __asm__("AdjustStepXpVelocity");   /* slot 57 */
-    virtual void VUnk57() __asm__("func_00204768");   /* slot 58 */
+    virtual void VUnk57() __asm__("AdjustStepXps");   /* slot 58 */
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddStepCustomXps");   /* slot 60 */
-    virtual int CpartExtra() __asm__("func_00204248");   /* slot 63 */
+    virtual int CpartExtra() __asm__("QueryStepSlot63");   /* slot 63 */
     virtual void VUnk69() __asm__("PresetStepAccel");   /* slot 70 */
       virtual void VUnk81(int grf, LO *plo, qword qw1, qword qw2, qword qw3) __asm__("AddStepAxisXps");
-      virtual void VUnk82(uint grf, int fCount) __asm__("func_00205478");
-      virtual void VUnk83(uint grf, int fCount) __asm__("func_00205588");
-      virtual int VUnk84() __asm__("func_002040F8");
-      virtual int VUnk85(ZPR *pzpr) __asm__("func_00205D08");
-      virtual void VUnk86(int fOn) __asm__("func_00205D10");
+      virtual void VUnk82(uint grf, int fCount) __asm__("AddStepDialogSmRefs");
+      virtual void VUnk83(uint grf, int fCount) __asm__("RemoveStepDialogSmRefs");
+      virtual int VUnk84() __asm__("GetStepGroundProbeFlags");
+      virtual int VUnk85(ZPR *pzpr) __asm__("IsStepHitByLethalZap");
+      virtual void VUnk86(int fOn) __asm__("IgnoreStepSlot87");
 };
 typedef char assert_STEP_size[sizeof(STEP) == 0x2C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_STEP_bhvstk[SLY2_OFFSETOF(STEP, bhvstk) == 0x26C ? 1 : -1];   /* guard behaviour stack at STEP+0x26C (CONFIRMED runtime) */
@@ -104,8 +104,8 @@ typedef char assert_STEP_bhvstk[SLY2_OFFSETOF(STEP, bhvstk) == 0x26C ? 1 : -1]; 
 /* Option accessor (inline): a g_aeopid setter (the set PMF of the record at 0x2AEC48); the record takes its address,
  * which emits the out-of-line copy in class_registry, see docs/guides/tu-merging.md "Inline functions and linkonce
  * copies". Name is a placeholder. */
-namespace STEP_H { extern "C" void func_00204660(STEP *pstep, float rad); }   /* set the target heading (step.cpp);
+namespace STEP_H { extern "C" void SetStepTargetHeading(STEP *pstep, float rad); }   /* set the target heading (step.cpp);
    in a namespace because includers declare the C function on their own views (stepguard, mode) */
-inline void func_00259D18(STEP *pstep, float rad) { STEP_H::func_00204660(pstep, rad); }
+inline void func_00259D18(STEP *pstep, float rad) { STEP_H::SetStepTargetHeading(pstep, rad); }
 
 #endif /* SLY2_STEP_H */

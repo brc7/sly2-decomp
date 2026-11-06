@@ -101,7 +101,7 @@ struct CID82 : public MISSILE
 };
 typedef char assert_CID82_size[sizeof(CID82) == 0x290 ? 1 : -1];
 
-/* FireSplmiss's collision result (func_0014C748). */
+/* FireSplmiss's collision result (ClipEdgeToSphere). */
 struct HIT { qword q[4]; float t0, t1; int count; void *owner0, *owner1; };
 typedef char assert_HIT_size[sizeof(HIT) == 0x60 ? 1 : -1];
 /* Stack layouts of the two hand-scheduled functions (their asm stores into these slots by name). */
@@ -126,12 +126,12 @@ void ReleaseAct(ACT **ppact);
 ACT *func_0012DCA0(MISSILE *pmissile, XF *pxf, int a, int b, float g0, float g1);
 void ApplyBombThrow(BOMB *pbomb);
 int FIgnoreBombIntersection(BOMB *pbomb, SO *pso);
-int func_00134310(int r, int n);
+int MaxInt(int r, int n);
 void FireMissile(MISSILE *pmissile, LO *ploTarget, V *ppos);
 V func_001B2398(MISSILE *pmissile, float g);
 qword LimitVectorLength(qword v, float s);
 qword func_001A62E8(SO *pso);
-int func_0014C748(qword a, qword b, qword c, int n, HIT *phit, float r);
+int ClipEdgeToSphere(qword a, qword b, qword c, int n, HIT *phit, float r);
 void LoadIdentityMatrix4(void *pv, int a, M4 *pmat, int b, float g);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 void AddSoAcceleration(SO *pso, qword qwAccel);
@@ -240,9 +240,9 @@ int FIgnoreMissileIntersection(MISSILE *pmissile, SO *pso)
     int i, j;
     int r = FIgnoreBombIntersection(pmissile, pso);
     for (i = 0; i < pmissile->coidIgnore; i++)
-        if (pmissile->aoidIgnore[i] == pso->oid) r = func_00134310(r, 1);
+        if (pmissile->aoidIgnore[i] == pso->oid) r = MaxInt(r, 1);
     for (j = 0; j < pmissile->ccidIgnore; j++)
-        if (FIsBasicDerivedFrom(pso, pmissile->acidIgnore[j])) r = func_00134310(r, 1);
+        if (FIsBasicDerivedFrom(pso, pmissile->acidIgnore[j])) r = MaxInt(r, 1);
     return r;
 }
 
@@ -410,7 +410,7 @@ extern "C" void FireSplmiss(CID82*p,LO*source,V*point){
   register float radius __asm__("$f12");register HIT*output __asm__("$8");
   __asm__("lq %0,%5\n\tlwc1 %1,%6\n\tqmfc2.ni %2,%7\n\tlq %3,%8\n\tla %4,%a9":"=&r"(originArgument),"=f"(radius),"=&r"(endpointArgument),"=&r"(velocityArgument),"=r"(output):"m"(*zero),"m"(p->svMax),"j"(acc),"m"(w.velocity.q),"p"(&w.hit));
   w.tmp.q=acc;
-  func_0014C748(originArgument,velocityArgument,endpointArgument,count,output,radius);
+  ClipEdgeToSphere(originArgument,velocityArgument,endpointArgument,count,output,radius);
   register float max __asm__("$f1");
   register float lo __asm__("$f1")=0.25f;
   register float hi __asm__("$f3")=w.hit.t1;

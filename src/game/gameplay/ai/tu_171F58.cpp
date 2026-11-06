@@ -31,7 +31,7 @@ struct GUARDV
 };
 typedef char assert_GUARDV_grfFE8[(unsigned int)&((GUARDV *)0)->grfFE8 == 0xFE8 ? 1 : -1];
 
-/* A sub-behaviour started by func_00172320 (func_00205438 finds it on the guard; vtable slot 8 starts it). */
+/* A sub-behaviour started by func_00172320 (PushStepBehavior finds it on the guard; vtable slot 8 starts it). */
 struct BHVO { char pad[0xC]; VE *pvt; char pad10[0x2C]; int n3C; char pad40[0xC0 - 0x40]; int nC0; };
 /* The watched perception record (+0x44; vtable slots 1/2 are incref/decref). */
 struct WATCH { char pad[0xC]; VE *pvt; char pad10[0x10]; qword pos20; qword pos30; char pad40[4]; GUARDV *pguard; char pad48[0xC]; int n54; };
@@ -91,7 +91,7 @@ void AddStepguardSgf(GUARDV *pguard, int sgf);
 void RemoveStepguardSgf(GUARDV *pguard, int sgf);
 int FBhvanimDone(void *pbhv);
 int func_00209098(GUARDV *pguard);
-BHVO *func_00205438(GUARDV *pguard, int n);
+BHVO *PushStepBehavior(GUARDV *pguard, int n);
 qword func_001A62E8(void *plo);
 void func_002562A8(GOAL *pgoal);
 void SetBhvgotoGoal(void *pbhv, GOAL *pgoal);
@@ -109,7 +109,7 @@ int func_00172888(ROW *a, ROW *b);
 void func_001728B0(BHV171V *pbhv);
 void func_00172F10(BHV171V *pbhv);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
-float RadStepHeading(void *plo);
+float GetStepHeading(void *plo);
 void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*);
 int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
@@ -277,11 +277,11 @@ extern "C" void func_00172320(BHV171V *p, int n) {
     p->tState = D_002DDED0.t;
     switch (n) {
     case 0:
-        { BHVO *o = func_00205438(p->pguard, 0x9D); VE *e; o->n3C = 0xC; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
+        { BHVO *o = PushStepBehavior(p->pguard, 0x9D); VE *e; o->n3C = 0xC; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
         break;
     case 1:
         {
-            BHVO *o = func_00205438(p->pguard, 0xBA);
+            BHVO *o = PushStepBehavior(p->pguard, 0xBA);
             GOAL x;
             VE *e;
             qword v;
@@ -301,13 +301,13 @@ extern "C" void func_00172320(BHV171V *p, int n) {
             qword d;
             d = VuSub(a, b);
             SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
-            { BHVO *o = func_00205438(p->pguard, 0x9E); VE *e = &o->pvt[8]; e->pfn((char *)o + e->d); }
+            { BHVO *o = PushStepBehavior(p->pguard, 0x9E); VE *e = &o->pvt[8]; e->pfn((char *)o + e->d); }
             func_00172560(p);
         }
         break;
     case 3:
         {
-            BHVO *o = func_00205438(p->pguard, 0xBA);
+            BHVO *o = PushStepBehavior(p->pguard, 0xBA);
             VE *e;
             o->nC0 = 1;
             func_001728B0(p);
@@ -316,12 +316,12 @@ extern "C" void func_00172320(BHV171V *p, int n) {
         }
         break;
     case 4:
-        { BHVO *o = func_00205438(p->pguard, 0x9D); VE *e; o->n3C = 0xE; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
+        { BHVO *o = PushStepBehavior(p->pguard, 0x9D); VE *e; o->n3C = 0xE; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
         func_001725E0(p, 0);
         p->fReplan = 0;
         break;
     case 5:
-        { BHVO *o = func_00205438(p->pguard, 0x9E); VE *e; o->n3C = 1; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
+        { BHVO *o = PushStepBehavior(p->pguard, 0x9E); VE *e; o->n3C = 1; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
         break;
     }
 }
@@ -476,7 +476,7 @@ namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.
 extern "C" void func_001728B0(BHV171V*p){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
  w.query.point.q=func_001A62E8(p->pguard);
- w.query.heading=RadStepHeading(p->pguard);w.query.count=0;
+ w.query.heading=GetStepHeading(p->pguard);w.query.count=0;
  for(object=(*(NODE * *)&g_sw.dlCid34);object;object=object->next104){
   qword posObj=func_001A62E8(object);
   qword qwFallback=D_002A2DA0;

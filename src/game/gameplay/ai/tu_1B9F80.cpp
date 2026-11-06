@@ -81,8 +81,8 @@ int func_001BA100(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 void func_00130B18(ASEGA *o);
 void ReleaseAct(MOTION **p);
-O *func_00205458(NEELAV *p, int n);
-void func_00204D48(NEELAV *p, float f);
+O *FindStepBehavior(NEELAV *p, int n);
+void ScaleStepSpinSpeed(NEELAV *p, float f);
 void func_0012F9B8(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
 MOTION *func_0012DC18(NEELAV *p, NODE *a, int b, int c, int d, qword q);
 void InitBhv(NBHV *p);
@@ -95,7 +95,7 @@ void RemoveStepguardSgf(NEELAV *p, int n);
 void func_001BA828(NBHV *p, int n);
 void func_00171C18(int a, void *b);
 void PopBhv(int *p);
-O *func_00205438(NEELAV *p, int b);
+O *PushStepBehavior(NEELAV *p, int b);
 void func_00171258(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELAV *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
@@ -291,8 +291,8 @@ extern "C" void func_001BA408(NEELAV *p, int st)
         ReleaseAct(&p->motion);
         p->motion = 0;
         p->target = 0;
-        if (FStepguardHasSgf(p, 2)) func_00205458(p, 0x9E)->ptarget = D_002E1E40;
-        func_00204D48(p, 1.0f);
+        if (FStepguardHasSgf(p, 2)) FindStepBehavior(p, 0x9E)->ptarget = D_002E1E40;
+        ScaleStepSpinSpeed(p, 1.0f);
     }
     p->state = st;
     p->changed = D_002DDED0.t;
@@ -301,8 +301,8 @@ extern "C" void func_001BA408(NEELAV *p, int st)
     VCALL0((O *)p->animation, 1);
     p->motion = func_0012DC18(p, p->node, 5, 8, 3, D_002A2DD0);
     if (FStepguardHasSgf(p, 2)) {
-        func_00205458(p, 0x9E)->ptarget = p->target;
-        func_00204D48(p, 4.0f);
+        FindStepBehavior(p, 0x9E)->ptarget = p->target;
+        ScaleStepSpinSpeed(p, 4.0f);
     }
 }
 
@@ -395,8 +395,8 @@ extern "C" void func_001BA608(NBHV *p)
         float d = Dist(func_001A62E8(p->po), func_001A62E8(D_002E1E40));
         NEELAV *po = p->po;
         float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);
-        Q1 *q1 = (Q1 *)func_00205458(p->po, 0xA7);
-        Q2 *q2 = (Q2 *)func_00205458(p->po, 0xB8);
+        Q1 *q1 = (Q1 *)FindStepBehavior(p->po, 0xA7);
+        Q2 *q2 = (Q2 *)FindStepBehavior(p->po, 0xB8);
         if (q1)
             q1->gC4 = r;
         else if (q2)
@@ -420,19 +420,19 @@ extern "C" void func_001BA828(NBHV *p, int st)
     p->changed = D_002DDED0.t;
     switch (st) {
     case 0: {
-        O *o = func_00205438(p->po, 0xA9);
+        O *o = PushStepBehavior(p->po, 0xA9);
         func_00171258(o, p->pv38, 0, p->po->ab);
         VCALL0(o, 8);
         break;
     }
     case 1: {
-        O *o = func_00205438(p->po, 0x9E);
+        O *o = PushStepBehavior(p->po, 0x9E);
         o->ptarget = D_002E1E40;
         VCALL0(o, 8);
         break;
     }
     case 2: {
-        O *o = func_00205438(p->po, 0x9D);
+        O *o = PushStepBehavior(p->po, 0x9D);
         o->pv40 = &p->po->n1060;
         VCALL0(o, 8);
         BroadcastGameEvent(D_002DEB30, 0x33, p->po);
@@ -455,7 +455,7 @@ extern "C" void func_001BA980(NEELAV *p, int n)
     p->n108C = n;
     func_002333B4(&f, 0, sizeof(f));
     f.a[0] = 0xF;
-    po = func_00205458(p, 0x9C);
+    po = FindStepBehavior(p, 0x9C);
     if (po) SetBhvguardMode(po, &f);
 }
 #undef FIELD_OFFSET

@@ -463,7 +463,7 @@ struct M3 {qword r[3];};
 struct CAMERA {char pad[0x90];qword position;};
 extern char D_003DD490[],D_002BBB60[];
 extern struct CAMERA D_002DDF40;
-void *PpoCur(void*);
+void *GetCurrentPo(void*);
 qword func_001A62E8(void*);
 qword func_001A7348(const struct M3*,const struct M3*,qword);
 float GLimitLm__FP2LMf(void*,float);
@@ -493,7 +493,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
  float high,low,distance,value;
  register qword difference __asm__("vf3");
  source.q=point;
- player=PpoCur(D_003DD490);
+ player=GetCurrentPo(D_003DD490);
  if(player)reference=func_001A62E8(player);
  else reference=D_002DDF40.position;
  high=limits->high;low=limits->low;
@@ -668,7 +668,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void func_001FBAF8(void);
 void func_00232320(struct M *, void (*)(void), struct P *);
 void func_002322F0(struct M *);
-int PpoHero(void *);
+int GetHeroPo(void *);
 void func_001FEED0(struct G *);
 /** @sly2-annot addr=0x1FBC58
  * Purpose: vt9: build 989 play params (bank, sound index, vol/pan/pitch); loopers play async with handle
@@ -722,7 +722,7 @@ void PlayBanksnd(struct P *p)
     case 0x73: id = D_002DD5BC; break;
     case 0x15: id = D_002F7900; break;
     }
-    if (id == PpoHero(D_003DD490)) func_001FEED0(&D_003DD040);
+    if (id == GetHeroPo(D_003DD490)) func_001FEED0(&D_003DD040);
 }
 } } // namespace M_PlayBanksnd
 
@@ -2006,7 +2006,7 @@ struct SW { char pad[0x4034]; struct O *p4034; };
 extern struct SW D_003DD490;
 void func_001FCF70(void);
 void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
-void *PpoHero(struct SW *);
+void *GetHeroPo(struct SW *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword func_001A62E8(void *);
 void func_00156BE0(struct O *, qword, void *, void *);
@@ -2032,7 +2032,7 @@ void func_001FDA48(struct P *p)
         func_002330D0(0x524B5553, 0xB, 0, 0, 0, 0, 0, func_001FCF70, (long)p);
     }
     po = 0;
-    pv = PpoHero(&D_003DD490);
+    pv = GetHeroPo(&D_003DD490);
     if (pv && FIsBasicDerivedFrom__FP5BASIC3CID(pv, 0x34) && 0.5f < p->f70) {
         float y;
         po = D_003DD490.p4034;
@@ -2073,7 +2073,7 @@ struct COEF {float a,b,c;};
 struct PLAYER {char pad4C8[0x4C8];int action;char pad4CC[0xBFC];int mode;char pad10CC[0x20];int state;};
 struct P {char pad5C[0x5C];int modeA,modeB,selected;char pad68[0xA0];float weights[3];struct COEF coefficients[3];char pad138[0xCC];int count;struct REF *refs[8];};
 extern char D_003DD490[];
-struct PLAYER *PpoCur(void *);
+struct PLAYER *GetCurrentPo(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 float GSmooth__FfffP3SMPPf(float,float,float,struct COEF *,float *);
 void SetStreamsndGroupVolume(struct REF *,int,float);
@@ -2095,8 +2095,8 @@ void func_001FDC08(struct P *input)
     p->selected=1;
     if(p->modeA)p->selected=2;
     else if(p->modeB)p->selected=0;
-    else if(PpoCur(D_003DD490) && FIsBasicDerivedFrom__FP5BASIC3CID(PpoCur(D_003DD490),0x34)){
-        struct PLAYER *player=PpoCur(D_003DD490);
+    else if(GetCurrentPo(D_003DD490) && FIsBasicDerivedFrom__FP5BASIC3CID(GetCurrentPo(D_003DD490),0x34)){
+        struct PLAYER *player=GetCurrentPo(D_003DD490);
         if(player->state==3)p->selected=0;
         else if(player->state==4)p->selected=2;
         else if(player->mode!=-1)p->selected=0;

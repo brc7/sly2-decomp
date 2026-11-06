@@ -137,7 +137,7 @@ void LoadXfmFromBrx(RECONTGT *p, void *pbis);
 void PostLoLoad(RECONTGT *p);
 void SubscribeLoObject(LINK *plink, RECONTGT *p);
 void HandleBasicMessage(RECONTGT *p, int msg, void *pm);
-PLAYER *PpoHero(SW *psw);
+PLAYER *GetHeroPo(SW *psw);
 void RequestTaskState(LINK *plink, int n, RECONTGT *p);
 void func_0019D948(void *pv);
 int FTaskComplete(LINK *plink);
@@ -885,7 +885,7 @@ extern "C" void HandleReconTargetMessage(RECONTGT *p, int msg, void *pm)
     PLAYER *o;
     HandleBasicMessage(p, msg, pm);
     if (msg != 0x11) return;
-    o = PpoHero(&D_003DD490);
+    o = GetHeroPo(&D_003DD490);
     if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34) && o->preconsel) {
         RefreshReconPendingTargets(o->preconsel);
         UpdateReconChecklist(o->preconsel);
@@ -904,7 +904,7 @@ void func_002036E8(RECONTGT *p, int n)
     if (p->link) {
         PLAYER *o;
         RequestTaskState(p->link, 2, p);
-        o = PpoHero(&D_003DD490);
+        o = GetHeroPo(&D_003DD490);
         if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34)) func_0019D948(o->abF24);
     } else p->fDone = n;
 }

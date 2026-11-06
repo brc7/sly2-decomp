@@ -63,14 +63,14 @@ void InitDl__FP2DLi(DL *, int);
 void AppendDlEntry__FP2DLPv(DL *, void *);
 int FFindDlEntry__FP2DLPv(DL *, void *);
 void RemoveDlEntry__FP2DLPv(DL *, void *);
-L *PoxAddSw(SW *, X *, X *);
-L *PoxRemoveSw(SW *, X *, X *);
+L *AddSwObjectPair(SW *, X *, X *);
+L *RemoveSwObjectPair(SW *, X *, X *);
 void FreeSwXpList__FP2SWP2XP(SW *, void *);
 void func_001F5078(LO *);
 void *memmove(void *, const void *, unsigned int);
-int func_00133D08(SW *, X *, X *);
+int ShouldSwPairObjects(SW *, X *, X *);
 void UpdateSwPox(SW *, X *, X *, int);
-int func_00134310(int a, int b);
+int MaxInt(int a, int b);
 void FlushSwBoundsUpdates(SW *p);
 void UpdateSwAaox(SW *p);
 C *STACKSCOPE_ctor(C *);
@@ -133,7 +133,7 @@ extern "C" void RemoveSwAaobrObject(SW *p, X *px)
         L *pl2;
         VCALL(px->plo, 54, void (*)(void *, LO *)), pl->po);
         VCALL(pl->po, 54, void (*)(void *, LO *)), px->plo);
-        pl2 = PoxRemoveSw(p, pl->po->px, px);
+        pl2 = RemoveSwObjectPair(p, pl->po->px, px);
         if (pl->pv) {
             if (!VCALL(pl->po, 62, int (*)(void *))))
                 func_001F5078(pl->po);
@@ -215,11 +215,11 @@ extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
         break;
     }
     pl = plT;
-    if (f || func_00133D08(p, px1, px2)) {
+    if (f || ShouldSwPairObjects(p, px1, px2)) {
         if (!pl) {
             L *pl2;
-            plT = PoxAddSw(p, px1, px2);
-            pl2 = PoxAddSw(p, px2, px1);
+            plT = AddSwObjectPair(p, px1, px2);
+            pl2 = AddSwObjectPair(p, px2, px1);
             plT->pother = pl2;
             pl2->pother = plT;
             pl = plT;
@@ -228,8 +228,8 @@ extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
         L *pl1, *pl2;
         VCALL(px1->plo, 54, void (*)(void *, LO *)), px2->plo);
         VCALL(px2->plo, 54, void (*)(void *, LO *)), px1->plo);
-        pl1 = PoxRemoveSw(p, px1, px2);
-        pl2 = PoxRemoveSw(p, px2, px1);
+        pl1 = RemoveSwObjectPair(p, px1, px2);
+        pl2 = RemoveSwObjectPair(p, px2, px1);
         if (pl1->pv) {
             FreeSwXpList__FP2SWP2XP(p, pl1->pv);
             if (!VCALL(pl1->po, 62, int (*)(void *))))
@@ -249,12 +249,12 @@ extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
 
 /** @sly2-annot addr=0x133C68
  * Purpose: Allocate OX from pool g_sw+0x3CF8, psoOther = other, push on poxa list
- * Info: proposed name PoxAddSw (T1); TU bbmark
+ * Info: proposed name AddSwObjectPair (T1); TU bbmark
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r2b_rest
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
-extern "C" L *PoxAddSw(SW *p, X *px1, X *px2)
+extern "C" L *AddSwObjectPair(SW *p, X *px1, X *px2)
 {
     L *pl = (L *)PvAllocSlotheapClear(&p->poolPox);
     pl->po = px2->plo;
@@ -265,11 +265,11 @@ extern "C" L *PoxAddSw(SW *p, X *px1, X *px2)
 
 /** @sly2-annot addr=0x133CB8
  * Purpose: Unlink and return the OX whose other matches
- * Info: proposed name PoxRemoveSw (T1); TU bbmark
+ * Info: proposed name RemoveSwObjectPair (T1); TU bbmark
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
-extern "C" L *PoxRemoveSw(SW *unused, X *px1, X *px2) {
+extern "C" L *RemoveSwObjectPair(SW *unused, X *px1, X *px2) {
     LO *key = px2->plo;
     L *pn = px1->pl;
     if (pn) {
@@ -299,7 +299,7 @@ static __inline__ int Call(LO *po, LO *poOther)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
-extern "C" int func_00133D08(SW *unused, X *pa, X *pb)
+extern "C" int ShouldSwPairObjects(SW *unused, X *pa, X *pb)
 {
     int n1, n2, r;
     if (pa->min[0] >= pb->max[0] || pa->min[1] >= pb->max[1] || pa->min[2] >= pb->max[2] ||
@@ -307,7 +307,7 @@ extern "C" int func_00133D08(SW *unused, X *pa, X *pb)
         return 0;
     n1 = Call(pa->plo, pb->plo);
     n2 = Call(pb->plo, pa->plo);
-    r = func_00134310(n1, n2);
+    r = MaxInt(n1, n2);
     return r != 1 && r != 3;
 }
 
@@ -452,7 +452,7 @@ extern "C" void RecalcSwXpAll(SW *p)
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
-extern "C" int func_00134310(int a, int b)
+extern "C" int MaxInt(int a, int b)
 {
     return (b >= a) ? b : a;
 }

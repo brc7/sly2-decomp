@@ -487,7 +487,7 @@ void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);                         // stack allo
 qword func_001A62E8(ACTOR *);                           // world position
 int FFilterSoPair(void *, SO *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
-int ClsgClipEdgeToObject(SO *, qword, qword, int, LSG *);      // line test against an object
+int ClipEdgeToObject(SO *, qword, qword, int, LSG *);      // line test against an object
 void UpdateSoPartGeom(SO *);
 qword VecMinArray(int, qword *);                      // min of points
 qword VecMaxArray(int, qword *);                      // max of points
@@ -543,7 +543,7 @@ static inline void ProbeGround(CONTEXT *p)
     SO **apso;
     IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, FFilterSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++) {
-        int clsg = ClsgClipEdgeToObject(apso[i], posBase, posEnd, 8, alsg);
+        int clsg = ClipEdgeToObject(apso[i], posBase, posEnd, 8, alsg);
         LSG *plsg = alsg;
         for (int j = 0; j < clsg; j++)
             if (plsg[j].au[0] != 0.0f)
@@ -790,8 +790,8 @@ float UMinShape(FOCUS *);
 float UMaxShape(FOCUS *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
 void func_001940B0(CONTEXT *, int) __asm__("SetJtHfdk__FP2JT4HFDK");
-void func_00204660(ACTOR *, float);
-float RadStepHeading(ACTOR *);
+void SetStepTargetHeading(ACTOR *, float);
+float GetStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
 void SetJtGrabKind(CONTEXT *, int);
 void UpdateGaitBlend(PROGRAM *, float);
@@ -803,7 +803,7 @@ float atan2f(float, float);
 void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void UpdateJtHands(void *);
 void func_001A0450(ACTOR *, ENTRY *, void *);
-void func_00205910(ACTOR *, HEIGHT *, int, U *);
+void FitStepToTerrain(ACTOR *, HEIGHT *, int, U *);
 BINDING *func_0012FF10(void *, ACTOR *, int, int);
 void FaceStepToward(ACTOR *, FOCUS *);
 void FixStepAngularVelocity(ACTOR *);
@@ -974,8 +974,8 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
             if (ctx->action == 0)
                 func_001940B0(ctx, 3);
         }
-        func_00204660(ctx->actor, heading);
-        if (ctx->step == 5 && 0.25f < __builtin_fabsf(RadNormalize__Ff(RadStepHeading(ctx->actor) - heading)))
+        SetStepTargetHeading(ctx->actor, heading);
+        if (ctx->step == 5 && 0.25f < __builtin_fabsf(RadNormalize__Ff(GetStepHeading(ctx->actor) - heading)))
             step = 5;
         SetJtGrabKind(ctx, step);
         break;
@@ -984,7 +984,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         if (ctx->focus->enabled && 0.0f < pjoy->amount && ctx->program180.clip) {
             SetJtGrabKind(ctx, 4);
             UpdateGaitBlend(&ctx->program180, pjoy->amount);
-            func_00204660(ctx->actor, ctx->actor->pjoy->heading);
+            SetStepTargetHeading(ctx->actor, ctx->actor->pjoy->heading);
             UpdateGaitFootsteps(&ctx->program180);
         } else {
             SetJtGrabKind(ctx, 0);
@@ -1001,7 +1001,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         }
         // fall through: face the stick
     case 4:
-        func_00204660(ctx->actor, pjoy->heading);
+        SetStepTargetHeading(ctx->actor, pjoy->heading);
         break;
     case 3: {
         FOCUS *focus = ctx->focus;
@@ -1085,11 +1085,11 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         if (0.0f < g) {
             SetJtGrabKind(ctx, 4);
             UpdateGaitBlend(&ctx->program240, g);
-            func_00204660(ctx->actor, heading);
+            SetStepTargetHeading(ctx->actor, heading);
             UpdateGaitFootsteps(&ctx->program240);
         } else {
             SetJtGrabKind(ctx, 0);
-            func_00204660(ctx->actor, heading);
+            SetStepTargetHeading(ctx->actor, heading);
         }
         break;
     }
@@ -1113,14 +1113,14 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
                 ACTOR *actor = ctx->actor;
                 float turn = -actor->velocity.f[1] / D_002BF5CC;
                 actor->velocity.q = QwScaleX(D_002A2DA0, QwDot(actor->velocity.q, D_002A2DA0));
-                func_00204660(ctx->actor, ctx->actor->heading + turn * D_002DDED0.dt);
+                SetStepTargetHeading(ctx->actor, ctx->actor->heading + turn * D_002DDED0.dt);
             } else {
                 SetJtGrabKind(ctx, 9);
             }
             if (ctx->actor == D_002E1E40)
-                func_00205910(ctx->actor, &D_002BF630, 3, D_002BF5D0);
+                FitStepToTerrain(ctx->actor, &D_002BF630, 3, D_002BF5D0);
             else
-                func_00205910(ctx->actor, &D_002BF630, 3, D_002BF600);
+                FitStepToTerrain(ctx->actor, &D_002BF630, 3, D_002BF600);
             break;
         }
         break;
@@ -1387,14 +1387,14 @@ void FindShapeClosestPoint(SOURCE *, qword, void *, void *, void *, float *, flo
 void func_00183B80(SOURCE *, int);
 void SubscribeLoObject(SOURCE *, ACTOR *);
 void UnsubscribeLoObject(SOURCE *, ACTOR *);
-void func_00204F78(ACTOR *, SOURCE *, int);
+void LinkStepAttachment(ACTOR *, SOURCE *, int);
 void EvaluateShapeU(SOURCE *, float, qword *, qword *);
 EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void RcPtr_Assign(EFFECT **, EFFECT *);
 void FaceStepToward(ACTOR *, SOURCE *);
 void FixStepAngularVelocity(ACTOR *);
-void SetStepRadTargetVec(ACTOR *, qword);
+void SetStepTargetHeadingFromVector(ACTOR *, qword);
 void SetCmPolicy(MANAGER *, int, CAMERA *, ACTOR *, void *);
 void RevokeCmPolicy(MANAGER *, int, int, CAMERA *, ACTOR *, void *);
 void SetJtJtcs__FP2JTi(ACTOR *, int);
@@ -1526,7 +1526,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             SOURCE *source = p->focus;
             SourceState(source, 5);
             SubscribeLoObject(source, p->pactor);
-            func_00204F78(p->pactor, source, 1);
+            LinkStepAttachment(p->pactor, source, 1);
             ACTOR *actor = p->pactor;
             actor->position = func_001A62E8(source);
             break;
@@ -1536,7 +1536,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             U dir, tangent;
             SourceState(source, 5);
             SubscribeLoObject(source, p->pactor);
-            func_00204F78(p->pactor, source, 1);
+            LinkStepAttachment(p->pactor, source, 1);
             p->index = -1;
             EvaluateShapeU(source, p->param, &p->pactor->position, &tangent.q);
             dir.i[2] = 0;
@@ -1571,7 +1571,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
                 qword pos = func_001A62E8(source->other);
                 SetVector(p->pactor, 29, Sub(pos, p->pactor->posOffset));
                 p->pactor->motion = AddScaled(pos, D_002A2DC0, VuFloat(p->pactor->height));
-                SetStepRadTargetVec(p->pactor, func_001A6318(source->other)->row[0]);
+                SetStepTargetHeadingFromVector(p->pactor, func_001A6318(source->other)->row[0]);
                 SetPointer(p->pactor, 30, p->pactor->local);
                 SetVector(p->pactor, 35, D_002A2DD0);
                 SetVector(p->pactor, 36, D_002A2DD0);
@@ -1607,7 +1607,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
             SOURCE *source = p->focus;
             SourceState(source, 6);
             UnsubscribeLoObject(source, p->pactor);
-            func_00204F78(p->pactor, source, 0);
+            LinkStepAttachment(p->pactor, source, 0);
             break;
         }
         case 6:
@@ -1798,7 +1798,7 @@ extern "C" void SetJtGrabKind(CONTEXT *p, int step)
         clip = p->clip324;
         if (source->other) {
             M3 basis = *func_001A6318(source->other);
-            SetStepRadTargetVec(p->pactor, basis.row[0]);
+            SetStepTargetHeadingFromVector(p->pactor, basis.row[0]);
         }
         p->pactor->velocity = D_002A2DD0;
         SourceState(source, 5);
@@ -1958,7 +1958,7 @@ float SMaxShape(struct O *o);
 float GModPositive__Fff(float g, float hi);
 void EvaluateShapeS(struct O *o, float g, U *pv, int n);
 qword ConvertAloPos(int n, struct P *p, qword q);
-int func_0014C748(qword a, float g, qword b, qword c, int n, struct HIT *pv);
+int ClipEdgeToSphere(qword a, float g, qword b, qword c, int n, struct HIT *pv);
 static __inline__ float GClamp(float g, float lo, float hi)
 {
     if (g < lo)
@@ -1997,7 +1997,7 @@ void func_00193C98(struct P *p, struct Q *q, void *r)
         t = GClamp(p->x4e0 + g, lo, hi);
     EvaluateShapeS(o, t, &v, 0);
     v.q = ConvertAloPos(0, p, v.q);
-    if (func_0014C748(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
+    if (ClipEdgeToSphere(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(hit.b.q), "j"(q->x10.q));
         func_0012DA30(r, d);
     }
@@ -2741,7 +2741,7 @@ static inline float GLength(qword v)
     return GFromVf(QwLength(v));
 }
 extern "C" {
-int FIsPoCur(STEPPLAYER *pstepplayer);
+int IsPoCurrent(STEPPLAYER *pstepplayer);
 }
 extern "C" {
 int GetHintBoxTextId(HINTBOX *phintbox) __asm__("func_001DA5B0");
@@ -2770,7 +2770,7 @@ void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf) __asm__(
 void GatherJtGrabCandidates(SW *psw, STEPPLAYER *pstepplayer, uint grf)
 {
     JTGRABCAND ajtgrabcand[4];
-    if (!FIsPoCur(pstepplayer))
+    if (!IsPoCurrent(pstepplayer))
         return;
     memset(ajtgrabcand, 0, sizeof(ajtgrabcand));
     uint i = 0;

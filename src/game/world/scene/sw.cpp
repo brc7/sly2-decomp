@@ -804,8 +804,8 @@ void func_001618F8(SW *,float);
 void ClearCheatItems(void);
 CONTEXT *PwarpFromOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
-ACTOR *PpoHero(SW *);
-ACTOR *PpoCur(SW *);
+ACTOR *GetHeroPo(SW *);
+ACTOR *GetCurrentPo(SW *);
 void Decref__4CRef(REF *);
 ACTOR *PloFindSwObject__FP2SWi3OIDP2LO(SW *,int,int,void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *,int);
@@ -888,7 +888,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     if(changed||(p->request.flags&0x40))ClearCheatItems();
     CONTEXT *context=PwarpFromOid(p,p->request.objectId,p->request.objectKey);
     if(context){TriggerWarp(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
-    if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
+    if(!GetHeroPo(p)&&!GetCurrentPo(p)&&p->actorCount>0){
         ACTOR *selected=0;
         int actorId;
         {REF value=RefGetSaveVarV("oidPoCurrent",0);actorId=value.value;}
@@ -911,7 +911,7 @@ extern "C" void ExecuteSwTransition(SW *p)
         }
     }
     if(!NWorldCur()){
-        ACTOR *actor=PpoHero(p);
+        ACTOR *actor=GetHeroPo(p);
         if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
     UpdateCmLast__FP2CM(D_002DDF40);
@@ -1459,7 +1459,7 @@ struct O { char pad[0xC]; VTE *vt; };
 struct S { char pad[0x60]; struct O *po; char pad2[0xC]; long fl; };
 struct B { char pad[0xEC]; struct S *ps; };
 struct E { int pad; struct B *pb; int pad2[2]; long fl; };
-int func_00134310(int a, int b);
+int MaxInt(int a, int b);
 #define VC61(o, a) ((int (*)(void *, struct O *))(o)->vt[61].pfn)((char *)(o) + (o)->vt[61].d, a)
 /** @sly2-annot addr=0x20F948
  * Purpose: Intersection filter: reject self/flagged; accept unless relationship 0x134310(a,b) is 1 or 3
@@ -1479,7 +1479,7 @@ int FFilterSoPair(struct S *p, struct E *e)
         return 0;
     a = VC61(p->po, ps->po);
     b = VC61(ps->po, p->po);
-    r = func_00134310(a, b);
+    r = MaxInt(a, b);
     return r != 1 && r != 3;
 }
 } } // namespace M_FFilterSoPair
@@ -1891,7 +1891,7 @@ struct XB { char pad[0xC];
 struct X : XB { char pad10[0x10]; X *next; };
 struct B { X *first; int a, b; };
 struct S { char pad[0x3038]; B ab[199]; };
-extern "C" void func_001C4A60(S *p, int k);
+extern "C" void SetSwPoOverride(S *p, int k);
 /** @sly2-annot addr=0x2102A0
  * Purpose: 0x1C4A60(p,0) then vt24 on every LO in the 199 class buckets (+0x3038)
  * Info: proposed name RefreshSwObjects (T2); TU sw
@@ -1904,7 +1904,7 @@ extern "C" void func_001C4A60(S *p, int k);
 extern "C" void func_002102A0(S *p)
 {
     int i;
-    func_001C4A60(p, 0);
+    SetSwPoOverride(p, 0);
     for (i = 0; i < 199; i++) {
         X *x = ((struct B *)((char *)p + 0x3038))[i].first;
         for (; x; x = x->next)

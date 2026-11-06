@@ -38,8 +38,8 @@ void CidBasic() __asm__("CidBasic");
 void FAsegaRetracted() __asm__("FAsegaRetracted");
 void FIsCurrentJob() __asm__("FIsCurrentJob");
 void FIsCurrentTask() __asm__("FIsCurrentTask");
-void FIsPoActive() __asm__("FIsPoActive");
-void FIsPoCur() __asm__("FIsPoCur");
+void IsPoActive() __asm__("IsPoActive");
+void IsPoCurrent() __asm__("IsPoCurrent");
 void FJobComplete() __asm__("FJobComplete");
 void FPausedEmitter__FP7EMITTER() __asm__("FPausedEmitter__FP7EMITTER");
 void FReconTargetDone() __asm__("FReconTargetDone");
@@ -62,8 +62,8 @@ void OidFromTaskState() __asm__("OidFromTaskState");
 void OidProxyLo() __asm__("OidProxyLo");
 void PdetectorGetStepguard() __asm__("PdetectorGetStepguard");
 void PemitterEnsureEmitter__FP7EMITTER4ENSK() __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
-void PpoCur() __asm__("PpoCur");
-void PpoHero() __asm__("PpoHero");
+void GetCurrentPo() __asm__("GetCurrentPo");
+void GetHeroPo() __asm__("GetHeroPo");
 void PtnfnFromTn() __asm__("PtnfnFromTn");
 void PwreGetWrBend__FP2WR4ENSK() __asm__("PwreGetWrBend__FP2WR4ENSK");
 void PwreGetWrCircle__FP2WR4ENSK() __asm__("PwreGetWrCircle__FP2WR4ENSK");
@@ -602,8 +602,8 @@ void func_001BEAD0() __asm__("func_001BEAD0");
 void func_001C20E8() __asm__("func_001C20E8");
 void func_001C2148() __asm__("func_001C2148");
 void func_001C3C08() __asm__("func_001C3C08");
-void func_001C4098() __asm__("func_001C4098");
-void func_001C4A60() __asm__("func_001C4A60");
+void IsPoPlayable() __asm__("IsPoPlayable");
+void SetSwPoOverride() __asm__("SetSwPoOverride");
 void func_001C7A40() __asm__("func_001C7A40");
 void func_001C7A58() __asm__("func_001C7A58");
 void func_001C7B10() __asm__("func_001C7B10");
@@ -662,9 +662,9 @@ void func_001F8898() __asm__("func_001F8898");
 void func_001F88D8() __asm__("func_001F88D8");
 void func_001FB1F8() __asm__("func_001FB1F8");
 void func_001FE888() __asm__("func_001FE888");
-void func_00203FA0() __asm__("func_00203FA0");
-void func_00204D48() __asm__("func_00204D48");
-void func_00204DA8() __asm__("func_00204DA8");
+void SetStepNoBase() __asm__("SetStepNoBase");
+void ScaleStepSpinSpeed() __asm__("ScaleStepSpinSpeed");
+void SetStepGravityRatio() __asm__("SetStepGravityRatio");
 void func_00206458() __asm__("func_00206458");
 void func_00206488() __asm__("func_00206488");
 void func_002064A0() __asm__("func_002064A0");
@@ -954,11 +954,11 @@ EOPIDROW D_002AC880[1449] = {
     {0x1053, 0x92, EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_INT(0xF4), EOPID_NONE}, /* [221] opt 347, CID21 */
     {2, 0x92, EOPID_INT(0x240), EOPID_INT(0x240), EOPID_INT(0x240), EOPID_NONE}, /* [222] opt 348, STEP (+17) */
     {1, 0x92, EOPID_INT(0x220), EOPID_INT(0x220), EOPID_INT(0x220), EOPID_NONE}, /* [223] opt 349, STEP (+17) */
-    {1, 0x122, EOPID_INT(0x1F0), EOPID_PMF(func_00204D48), EOPID_PMF(func_00204D48), EOPID_NONE}, /* [224] opt 350, STEP (+17) */
-    {1, 0x122, EOPID_INT(0x260), EOPID_PMF(func_00204DA8), EOPID_PMF(func_00204DA8), EOPID_NONE}, /* [225] opt 351, STEP (+17) */
+    {1, 0x122, EOPID_INT(0x1F0), EOPID_PMF(ScaleStepSpinSpeed), EOPID_PMF(ScaleStepSpinSpeed), EOPID_NONE}, /* [224] opt 350, STEP (+17) */
+    {1, 0x122, EOPID_INT(0x260), EOPID_PMF(SetStepGravityRatio), EOPID_PMF(SetStepGravityRatio), EOPID_NONE}, /* [225] opt 351, STEP (+17) */
     {6, 0x80, EOPID_NONE, EOPID_NONE, EOPID_INT(0x264), EOPID_NONE}, /* [226] opt 352, STEP (+17) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00102858), EOPID_INT(2), EOPID_NONE}, /* [227] opt 353, STEP (+17) */
-    {0, 0xA2, EOPID_INT(0x204), EOPID_PMF(func_00203FA0), EOPID_INT(0x204), EOPID_NONE}, /* [228] opt 354, STEP (+17) */
+    {0, 0xA2, EOPID_INT(0x204), EOPID_PMF(SetStepNoBase), EOPID_INT(0x204), EOPID_NONE}, /* [228] opt 354, STEP (+17) */
     {1, 0x22, EOPID_INT(0x1A8), EOPID_PMFI(func_00259D18), EOPID_NONE, EOPID_NONE}, /* [229] opt 355, STEP (+17) */
     {2, 0x12, EOPID_INT(0x190), EOPID_INT(0x190), EOPID_NONE, EOPID_NONE}, /* [230] opt 356, STEP (+17) */
     {0, 0x92, EOPID_INT(0x298), EOPID_INT(0x298), EOPID_INT(0x298), EOPID_NONE}, /* [231] opt 357, STEP (+17) */
@@ -1615,9 +1615,9 @@ EOPIDROW D_002AC880[1449] = {
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_FInvulnerablePo), EOPID_INT(1), EOPID_NONE}, /* [882] opt 804, PO (+28) */
     {0x102D, 4, EOPID_VPMF(0x4E, 0xC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [883] opt 805, PO (+28) */
     {0x1037, 0x24, EOPID_PMF(GetPoCtlState), EOPID_VPMF(0x50, 0xC), EOPID_NONE, EOPID_NONE}, /* [884] opt 806, PO (+28) */
-    {0, 4, EOPID_PMF(func_001C4098), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [885] opt 807, PO (+28) */
-    {0, 4, EOPID_PMF(FIsPoCur), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [886] opt 808, PO (+28) */
-    {0, 4, EOPID_PMF(FIsPoActive), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [887] opt 809, PO (+28) */
+    {0, 4, EOPID_PMF(IsPoPlayable), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [885] opt 807, PO (+28) */
+    {0, 4, EOPID_PMF(IsPoCurrent), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [886] opt 808, PO (+28) */
+    {0, 4, EOPID_PMF(IsPoActive), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [887] opt 809, PO (+28) */
     {0x2089, 2, EOPID_INT(0x150), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [888] opt 810, PO (+28) */
     {0x103C, 0x92, EOPID_INT(0x154), EOPID_INT(0x154), EOPID_INT(0x154), EOPID_NONE}, /* [889] opt 811, PO (+28) */
     {0x200F, 0x122, EOPID_INT(0x16C), EOPID_PMF(SetPoTnCam), EOPID_PMF(SetPoTnCam), EOPID_NONE}, /* [890] opt 812, PO (+28) */
@@ -1656,9 +1656,9 @@ EOPIDROW D_002AC880[1449] = {
     {0xD, 0x92, EOPID_INT(0x3E00), EOPID_INT(0x3E00), EOPID_INT(0x3E00), EOPID_NONE}, /* [923] opt 842, SW */
     {0, 0x82, EOPID_INT(0x3E38), EOPID_NONE, EOPID_INT(0x3E38), EOPID_NONE}, /* [924] opt 768, SW */
     {0, 0x92, EOPID_INT(0x3E3C), EOPID_INT(0x3E3C), EOPID_INT(0x3E3C), EOPID_NONE}, /* [925] opt 843, SW */
-    {0x2032, 4, EOPID_PMF(PpoHero), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [926] opt 844, SW */
-    {0x2032, 4, EOPID_PMF(PpoCur), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [927] opt 845, SW */
-    {0x2032, 0x22, EOPID_INT(0x3F00), EOPID_PMF(func_001C4A60), EOPID_NONE, EOPID_NONE}, /* [928] opt 846, SW */
+    {0x2032, 4, EOPID_PMF(GetHeroPo), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [926] opt 844, SW */
+    {0x2032, 4, EOPID_PMF(GetCurrentPo), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [927] opt 845, SW */
+    {0x2032, 0x22, EOPID_INT(0x3F00), EOPID_PMF(SetSwPoOverride), EOPID_NONE, EOPID_NONE}, /* [928] opt 846, SW */
     {0x2032, 1, EOPID_NONE, EOPID_FN(RefThunk_PpoClosestSw), EOPID_INT(1), EOPID_NONE}, /* [929] opt 847, SW */
     {1, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [930] opt 848, SW */
     {0xA, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [931] opt 849, SW */

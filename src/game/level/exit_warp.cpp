@@ -94,7 +94,7 @@ extern "C" {
 int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *ploContext, int cploMax, void *aplo);
 void LoadXfmFromBrx(WARPV *pwarp, CBinaryInputStream *pbis);
 void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
-LO *PpoHero(SW *psw);
+LO *GetHeroPo(SW *psw);
 void InitXfm(EXITV *pexit);
 void SetLoBusyk(EXITV *pexit, int busyk);
 void *func_001AE238(MEMREQ *pmemreq, WARPBLOB *pblob);
@@ -219,7 +219,7 @@ void CID41::LoadFromBrx(CBinaryInputStream *pbis)
  * @end-sly2-annot */
 extern "C" void func_00228170(WARPV *pwarp)
 {
-    LO *ploHero = PpoHero(&D_003DD490);
+    LO *ploHero = GetHeroPo(&D_003DD490);
     if (ploHero)
     {
         VT *pvtHero = *(VT **)((char *)ploHero + 0xC);
@@ -420,7 +420,7 @@ extern "C" void UpdateExit(EXITV *pexit, float dt)
     case 1:
     case 3:
     {
-        LO *ploHero = PpoHero(&D_003DD490);
+        LO *ploHero = GetHeroPo(&D_003DD490);
         union { qwordV q; } u;
         int fInside;
         if (!ploHero)

@@ -74,13 +74,13 @@ float SMaxShape(PATH*);
 qword PosSmooth(qword,qword,float,SMPV*,U*);
 void func_00195A00(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void func_0019CC50(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void func_0019EAB0(JTPIPE*,int);
-float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword func_001C4768(INPUT*,qword);
+float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
 void func_0019E110(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void func_001F4BF8(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword func_001A62E8(void*);
 void func_0019FD30(void *pplaces, void *pso, float g);
 void SubscribeLoObject(PATH*,JT*);void UnsubscribeLoObject(PATH*,JT*);
-void func_00204F78(JT*,PATH*,int);
+void LinkStepAttachment(JT*,PATH*,int);
 float GLimitLm__FP2LMf(LMV*,float);
 void SetStepplayerTnOverride(JT*,void*);
 EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourcePos(EFFECT*,qword);
@@ -236,7 +236,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  goto proceed;
  turn:func_0019EAB0(p,4);return;
  proceed:;
- register qword tangent __asm__("$2")=func_001C4768(input,VuSub(w.ahead.q,w.behind.q));
+ register qword tangent __asm__("$2")=GetPoctlLateralVector(input,VuSub(w.ahead.q,w.behind.q));
  __asm__("lwc1 $f1,0x10(%6)\n\tqmtc2.ni %5,$vf4\n\tlwc1 $f0,0x14(%6)\n\tmtc1 $zero,%2\n\tmfc1 $3,$f1\n\tmfc1 $4,$f0\n\tpextlw $3,$4,$3\n\tmfc1 $4,%2\n\tpcpyld $3,$4,$3\n\tlwc1 %0,0x1c(%6)\n\tqmtc2.ni $3,$vf3\n\tlw %1,0x20(%7)\n\tvmul.xyz $vf1,$vf4,$vf3\n\tvaddw.x $vf2,$vf0,$vf0w\n\tvadday.x ACC,$vf1,$vf1y\n\tvmaddz.x $vf1,$vf2,$vf1z\n\tsq $3,%3\n\tqmfc2.ni $2,$vf1\n\tmtc1 $2,%4":"=f"(amount),"=r"(previous),"=f"(zero),"=m"(w.reuse.input.q),"=f"(dot):"r"(tangent),"r"(input),"r"(p):"$2","$3","$4","$f0","$f1","vf1","vf2","vf3","vf4","memory");
  }
  switch(previous){case 0:if(amount<0.25f)p->previous=-1;else if(dot<-0.7f)p->previous=1;break;
@@ -400,7 +400,7 @@ extern "C" void func_0019EAB0(JTPIPE*p,int next){
  WORKB w;
  switch(old){
  case -1:{
-  PathState(p->path,5);SubscribeLoObject(p->path,p->actor);func_00204F78(p->actor,p->path,1);
+  PathState(p->path,5);SubscribeLoObject(p->path,p->actor);LinkStepAttachment(p->actor,p->path,1);
   p->previous=old;
   EvaluateShapeS(p->path,SClampShape(p->path,p->distance+50.0f),&w.ahead,0);
   EvaluateShapeS(p->path,SClampShape(p->path,p->distance-50.0f),&w.behind,0);
@@ -423,7 +423,7 @@ extern "C" void func_0019EAB0(JTPIPE*p,int next){
  ASEGV*clip=0;float position=0.0f,speed=1.0f;int flags=1;
  switch(next){
  case -1:{
-  PathState(p->path,6);UnsubscribeLoObject(p->path,p->actor);func_00204F78(p->actor,p->path,0);
+  PathState(p->path,6);UnsubscribeLoObject(p->path,p->actor);LinkStepAttachment(p->actor,p->path,0);
   JT*actor=p->actor;w.target=actor->goal;
   void*focus;actor->motion.q=GoalInputs(&w.target,func_001A62E8(actor),focus);
   p->actor->motion.i[2]=0;SetStepplayerTnOverride(p->actor,focus);

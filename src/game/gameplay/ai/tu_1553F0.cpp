@@ -51,7 +51,7 @@ struct DIMITRIV
     int hpLast;               /* +0x1018 hp when the last escape started */
 };
 typedef char assert_DIMITRI_hpLast[(unsigned int)&((DIMITRIV *)0)->hpLast == 0x1018 ? 1 : -1];
-/* A sub-behaviour found by func_00205438 (vtable slot 8 starts it). */
+/* A sub-behaviour found by PushStepBehavior (vtable slot 8 starts it). */
 struct BHVO { int a[3]; VTE *vt; char pad[0x20]; union { void *plo30; int x30; }; int pad34; union { void *p38; int x38; }; int x3C; int x40;
               char pad44[8]; void *n4C; char pad50[0xC0 - 0x50]; int xC0; int padC4; void *pC8; };
 typedef char assert_BHVO_xC8[(unsigned int)&((BHVO *)0)->pC8 == 0xC8 ? 1 : -1];
@@ -122,7 +122,7 @@ void AddStepguardSgf(DIMITRIV *pguard, int sgf);
 void RemoveStepguardSgf(DIMITRIV *pguard, int sgf);
 void SetStepguardTarget(DIMITRIV *pguard, void *plo);
 qwordV func_001A62E8(void *p);
-BHVO *func_00205438(DIMITRIV *pguard, int n);
+BHVO *PushStepBehavior(DIMITRIV *pguard, int n);
 int IsPointInVol(void *p, qwordV q);
 void func_0020AC28(DIMITRIV *pso, int a, int b, qwordV q);
 float atan2f(float y, float x);
@@ -145,7 +145,7 @@ extern float D_002BDC90[2];
 extern float D_002BDC98;
 extern float D_002BDCA0[11];   /* pan offsets tried in turn */
 extern const float D_002A513C;   /* defined below where the ELF has it (.rodata order) */
-HERO *PpoHero(void *p);
+HERO *GetHeroPo(void *p);
 extern char D_002DE578[];
 M3 *func_001A6318(void *p);
 float GGetDifficulty(void *p);
@@ -329,7 +329,7 @@ extern "C" void func_00155788(BHVESC *p, int k)
     p->tState = D_002DDED0.t;
     switch (k) {
     case 0: {
-        BHVO *o = func_00205438(p->pguard, 0xB5);
+        BHVO *o = PushStepBehavior(p->pguard, 0xB5);
         VTE *e;
         o->p38 = p->pesc;
         o->n4C = p->ploTarget;
@@ -339,7 +339,7 @@ extern "C" void func_00155788(BHVESC *p, int k)
         break;
     }
     case 1: {
-        BHVO *o = func_00205438(p->pguard, 0xA5);
+        BHVO *o = PushStepBehavior(p->pguard, 0xA5);
         VTE *e;
         o->plo30 = p->ploTarget;
         o->x40 = k;
@@ -517,7 +517,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
         BHVO *pa;
         qwordV d;
         p->ploGoal = func_00155A68(p);
-        pa = func_00205438(p->pguard, 0x9D);
+        pa = PushStepBehavior(p->pguard, 0x9D);
         pa->x3C = 0xB;
         d = VuSub(func_001A62E8(p->ploGoal), func_001A62E8(p->pguard));
         {
@@ -530,7 +530,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
     }
     case 1: {
         BHVO *pa;
-        pa = func_00205438(p->pguard, 0x9E);
+        pa = PushStepBehavior(p->pguard, 0x9E);
         pa->p38 = p->ploTarget;
         ((void (*)(void *))pa->vt[8].pfn)((char *)pa + pa->vt[8].d);
         break;
@@ -538,7 +538,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
     case 2: {
         BHVO *pa;
         PATHV *palo;
-        pa = func_00205438(p->pguard, 0xA7);
+        pa = PushStepBehavior(p->pguard, 0xA7);
         palo = p->pguard->ppath;
         palo->xE8 = k;
         {
@@ -559,7 +559,7 @@ extern "C" void func_00155AE0(BHVATK *p, int k)
     }
     case 3: {
         BHVO *pa;
-        pa = func_00205438(p->pguard, 0xA4);
+        pa = PushStepBehavior(p->pguard, 0xA4);
         pa->x3C = (int)p->pentry;
         pa->plo30 = p->ploTarget;
         ((void (*)(void *))pa->vt[8].pfn)((char *)pa + pa->vt[8].d);
@@ -656,7 +656,7 @@ namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.
  * @end-sly2-annot */
 extern "C" qwordV func_00155FB0(void *p, qwordV pos)
 {
-    HERO *pso = PpoHero(D_003DD490);
+    HERO *pso = GetHeroPo(D_003DD490);
     float dist = Len(VuSub(func_001A62E8(pso), pos));
     float u = GGetDifficulty(D_002DE578);
     qwordV posTarget = AddScaled(func_001A62E8(pso), g_normalZ, VU_FLOAT(50.0f));

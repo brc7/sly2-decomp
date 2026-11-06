@@ -116,7 +116,7 @@ void RecalcSwXpAll(SW *psw);
 int func_00230348(int);
 int func_00230380(int);
 int FFloatsNear__Ffff(float, float, float);
-void func_00229798(SO *pso);
+void ApplySoExternalAccelerations(SO *pso);
 void SlotUnsettle(SO *pso, XF *pxf);
 qword ConvertXfVec(XF *pxf, XF *pxfParent, qword v);
 void func_001F4BF8(SO *pso);
@@ -325,7 +325,7 @@ applyFlags:
 
 // SolveSwGroup: solve the contacts of a group of touching objects (Sly 1 SolveSwGroup).
 // Builds a DZG over the contacts (InitDzgXp), turns every contact into a DZ row with its limits,
-// sets each row's target (bounce or separating speed), solves (SolveDzgFric) and applies the
+// sets each row's target (bounce or separating speed), solves (SolveDzgFriction) and applies the
 // impulses (ApplyDzg), then tells the objects (vtable callbacks 65/66/67).
 // Args: (game, flags, objectCount, objects, contactCount, contacts). flags&1 = resting contacts,
 // flags&4 = position pass first (returns early when flags == 4).
@@ -338,7 +338,7 @@ void ApplyDzg(DZGXP *,float,float);
 void RecalcSwXpPos(SW *,int,XP **);
 void RecalcSwXpMovement(SW *,int,XP **);
 float GRandInRange__Fff(float,float);
-void SolveDzgFric(DZGXP *,int);
+void SolveDzgFriction(DZGXP *,int);
 }
 void ClearDzgSolution(DZG *);
 #define FLT_MAX 3.40282347e+38f
@@ -439,7 +439,7 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
             if(maximum<magnitude)maximum=magnitude;
         }
     }
-    SolveDzgFric(&group,flags);
+    SolveDzgFriction(&group,flags);
     float magnitude=Sqrt(maximum);
     ApplyDzg(&group,magnitude+magnitude,50.0f);
     int k;for(k=0;k<objectCount;k++){}
@@ -487,7 +487,7 @@ extern "C" void func_001F9B20(SO *p)
     int fNear = FNear(D_002A2DD0, p->psophys->v80);
     if (!fNear) fUpd = p->psophys->constrPos.k != 3;
     if (fUpd) AddSoAcceleration(p, ApplyConstr(&p->psophys->constrPos, p->pxfPos, p->psophys->v80));
-    if (p->n138) func_00229798(p);
+    if (p->n138) ApplySoExternalAccelerations(p);
 }
 
 static inline M3C BuildRotation(qword vector) return matrix {func_0011B570(&matrix,vector);}

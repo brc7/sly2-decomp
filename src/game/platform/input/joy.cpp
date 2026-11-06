@@ -44,7 +44,7 @@ int scePadEnterPressMode(int port, int slot);
 int scePadGetState(int port, int slot);
 int scePadRead(int port, int slot, unsigned char *pb);
 void _MatchCodes(void *p, JOY *pjoy, int grfbtn);
-int PpoHero(void *p);
+int GetHeroPo(void *p);
 void BroadcastGameEvent(SNDV *p, int n, int a);
 int func_00187998(JOY *pjoy);
 int GrfJoyPressed(JOY *pjoy, int grf);
@@ -464,7 +464,7 @@ extern "C" int func_00187998(JOY *p)
             p->dtIdle = 0;
 
             if (D_002DDED0.tReal - D_002DEB30.t > 15.0f) {
-                BroadcastGameEvent(&D_002DEB30, 0xE, PpoHero(D_003DD490));
+                BroadcastGameEvent(&D_002DEB30, 0xE, GetHeroPo(D_003DD490));
                 D_002DEB30.t = D_002DDED0.tReal;
             }
         } else {

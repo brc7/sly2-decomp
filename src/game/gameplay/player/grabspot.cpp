@@ -70,7 +70,7 @@ void InitGrabspot(void *pgrabspot);
 void func_001F7918(SO *pso, int grf, int n);
 void func_001CB518(SO *pso);
 int FIgnoreSoIntersection(SO *pso, LO *plo);
-int func_00134310(int grf, int f);
+int MaxInt(int grf, int f);
 void func_00183F50(GRABSPOT35 *p);
 void func_00184130(GRABSPOT35 *p, LO *plo);
 void StartMurrayLiftGrabspot(LO *plo, GRABSPOT36 *p);
@@ -870,10 +870,10 @@ extern "C" int func_00183A50(BARRELV *pbarrel, LO *plo)
     if (FIsBasicDerivedFrom(plo, (CID)0x34) != 0) {
         STEPPLAYER *pstepplayer = (STEPPLAYER *)plo;
         if (pstepplayer->jtgrab.nState == 1 && pbarrel == (BARRELV *)pstepplayer->jtgrab.plo) {
-            grf = func_00134310(grf, 1);
+            grf = MaxInt(grf, 1);
         }
         if ((unsigned int)(pstepplayer->jtair.nState - 6) < 2 && pbarrel == (BARRELV *)pstepplayer->jtair.plo) {
-            grf = func_00134310(grf, 1);
+            grf = MaxInt(grf, 1);
         }
     }
     return grf;

@@ -512,7 +512,7 @@ FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
 int func_00118A88(void *, int, qword, float, int *, ENTRY **);
-int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
+int ClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int FIsDlEmpty__FP2DL(DL *);
 void BounceRipgRips__FP4RIPG(P *);
@@ -567,7 +567,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                     RIP *rip;
                     for (rip = (RIP *)Next(&phase.rip); rip; rip = (RIP *)Next(&phase.rip)) {
                         if (D_002DDED0.t <= rip->start) continue;
-                        int count = ClsgClipEdgeToObjectPruned(shape, entries, rip->extra, rip->position, 4, contacts);
+                        int count = ClipEdgeToObjectPruned(shape, entries, rip->extra, rip->position, 4, contacts);
                         int i = 0;
                         if (i < count) do {
                             XP *hit = &contacts[i];
@@ -2588,7 +2588,7 @@ typedef struct {
 } OBJ;
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
-int ClsgClipEdgeToObject(void *, qword, qword, int, HIT *);
+int ClipEdgeToObject(void *, qword, qword, int, HIT *);
 EMIT *PripNewRipg(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
 /** @sly2-annot addr=0x1D0D28
@@ -2607,7 +2607,7 @@ void func_001D0D28(OBJ *p, int n)
         goto done;
     hit.pos = p->x70;
     for (i = 0; i < p->q->c; i++) {
-        if (ClsgClipEdgeToObject(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
+        if (ClipEdgeToObject(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
             goto found;
     }
 found:

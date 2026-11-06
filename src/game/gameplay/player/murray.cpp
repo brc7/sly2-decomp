@@ -463,8 +463,8 @@ void func_001B5038(struct P *p);
 void UpdateMurrayStateMachine(struct P *p);
 int func_001430C8(struct P *p);
 void SetSmaMask(void *p, int n);
-void func_00204660(struct P *p, float g);
-qword func_00204E38(struct P *p, struct ASEGA *pl, float g);
+void SetStepTargetHeading(struct P *p, float g);
+qword GetStepAsegaTranslation(struct P *p, struct ASEGA *pl, float g);
 void UpdateGaitBlend(void *p, float g);
 void UpdateGaitFootsteps(void *p);
 void UpdateJtActiveJump(void *p);
@@ -474,7 +474,7 @@ void func_001B90B8(struct P *p);
 void SetAsegaSpeed__FP5ASEGAf(struct ASEGA *p,float g);
 void func_001B82A0(struct P *p);
 void UpdateJtActiveZap(void *p);
-int func_00133D08(struct G *pg,struct BBOX *a,struct BBOX *b);
+int ShouldSwPairObjects(struct G *pg,struct BBOX *a,struct BBOX *b);
 void RecalcSwOxfFilterForObject(struct G *pg, struct P *p);
 void SetActPositionGoal(void *p, qword v);
 static inline qword Bcast(float g) { qword a; __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(g)); return a; }
@@ -566,12 +566,12 @@ void UpdateMurray(struct P *p)
         SetSmaMask(p->p1034, func_001430C8(p));
         break;
     case 1:
-        func_00204660(p, p->pl->g18);
+        SetStepTargetHeading(p, p->pl->g18);
         UpdateGaitBlend(p->x1320, 1.0f);
         UpdateGaitFootsteps(p->x1320);
         break;
     case 10:
-        func_00204660(p, p->pl->g18);
+        SetStepTargetHeading(p, p->pl->g18);
         UpdateGaitBlend(p->x1540, p->pl->g1C);
         UpdateGaitFootsteps(p->x1540);
         break;
@@ -588,17 +588,17 @@ void UpdateMurray(struct P *p)
         func_001B90B8(p);
         break;
     case 17:
-        Neg(p, func_00204E38(p, p->p1030, p->p1030->time));
+        Neg(p, GetStepAsegaTranslation(p, p->p1030, p->p1030->time));
         break;
     case 18:
-        Neg2(p, func_00204E38(p, p->p1030, p->p1030->time));
-        func_00204660(p, p->pl->g18);
+        Neg2(p, GetStepAsegaTranslation(p, p->p1030, p->p1030->time));
+        SetStepTargetHeading(p, p->pl->g18);
         break;
     }
     func_001B82A0(p);
     UpdateJtActiveZap(p->xDF0);
     if (p->p1430 && p->g1434 + 0.1f < D_002DDED0.t) {
-        if (!p->p1430->xEC || !func_00133D08(&D_003DD490, p->xEC, p->p1430->xEC))
+        if (!p->p1430->xEC || !ShouldSwPairObjects(&D_003DD490, p->xEC, p->p1430->xEC))
             p->p1430 = 0;
         if (!p->p1430)
             RecalcSwOxfFilterForObject(&D_003DD490, p);
@@ -635,8 +635,8 @@ int FPowerupAcquired(int n);
 void func_00195A00(void *p, int a, int b, int c);
 void func_0019CC50(void *p, int a, int b, int c);
 void SetMurrayCarrySubstate(struct P *p, int n);
-void func_00204660(struct P *p, float g);
-qword func_00204E38(struct P *p,struct PL*pl,float g);
+void SetStepTargetHeading(struct P *p, float g);
+qword GetStepAsegaTranslation(struct P *p,struct PL*pl,float g);
 void UpdateGaitBlend(void *p, float g);
 void UpdateGaitFootsteps(void *p);
 static inline void NegateSource(qword value,qword*velocity,U*scalar){
@@ -705,15 +705,15 @@ void UpdateMurrayCarry(struct P *p)
     case 0:
         break;
     case 1:
-        func_00204660(p, p->pl->g18);
+        SetStepTargetHeading(p, p->pl->g18);
         UpdateGaitBlend(p->x1460, p->pl->g1C);
         UpdateGaitFootsteps(p->x1460);
         break;
     case 2: {
         U u;
         qword v;
-        func_00204660(p, p->pl->g18);
-        v = func_00204E38(p,p->p1030,p->p1030->g1C);
+        SetStepTargetHeading(p, p->pl->g18);
+        v = GetStepAsegaTranslation(p,p->p1030,p->p1030->g1C);
         NegateSource(v,&p->v190,&u);
         break;
     }
@@ -839,7 +839,7 @@ extern char D_003DD490[];
 extern int D_002C0908[][5], D_002C0948[][5];
 extern float D_002C0900;
 struct P { char pad[0x150]; int x150; char pad1[0x1034 - 0x154]; int x1034; char pad2[0x1524 - 0x1038]; float f1524; float f1528; int x152C; int x1530; int x1534; };
-struct P *PpoHero(void *g);
+struct P *GetHeroPo(void *g);
 int FSwHandsOff(void *g);
 int func_001F07E8(int a);
 int GetSmaGoal(int a);
@@ -856,7 +856,7 @@ void SetSmaGoal(int a, int b);
 void func_001B5820(struct P *p)
 {
     int a;
-    if (PpoHero(D_003DD490) != p) return;
+    if (GetHeroPo(D_003DD490) != p) return;
     if (FSwHandsOff(D_003DD490)) return;
     a = func_001F07E8(p->x1034);
     if (a != GetSmaGoal(p->x1034)) return;
@@ -912,7 +912,7 @@ void StartMurrayPunch(P*);
 void StartMurrayAltAttack(P*);
 void func_001B5D30(P*,int);
 void FaceStepToward(P*,void*);
-void func_00204660(P*,float);
+void SetStepTargetHeading(P*,float);
 void UpdateGaitBlend(void*,float);
 void UpdateGaitFootsteps(void*);
 qword SetVectorCylind(float,float,float);
@@ -999,7 +999,7 @@ extern "C" void func_001B5990(P*p){
   func_001A0450(p,p->axes,p->request);
   break;
  }
- case 1:func_00204660(p,p->input->angle);UpdateGaitBlend(p->motion,p->input->strength);UpdateGaitFootsteps(p->motion);break;
+ case 1:SetStepTargetHeading(p,p->input->angle);UpdateGaitBlend(p->motion,p->input->strength);UpdateGaitFootsteps(p->motion);break;
  }
 }
 } // namespace M_func_001B5990
@@ -1074,7 +1074,7 @@ extern float D_002C0984, D_002C0988;
 qword func_001A62E8(void *p);
 int func_00184380(void *a, struct O *po);
 float atan2f(float y, float x);
-float RadStepHeading(struct P *p);
+float GetStepHeading(struct P *p);
 float RadNormalize__Ff(float g);
 qword SetVectorCylind(float a, float b, float c);
 static __inline__ float GetZ2(qword t) { __asm__("pextuw %0,$0,%0" : "+r"(t)); return GetX(t); }
@@ -1117,7 +1117,7 @@ void ChooseMurrayThrowTarget(struct P *p)
         if (500.0f < GetZ2(ToGpr(d)))
             continue;
         { qword t = ToGpr(d); float x = GetX(t); __asm__ __volatile__("prot3w %0,%0" : "+r"(t)); g = atan2f(GetX(t), x); }
-        if (D_002C0988 < __builtin_fabsf(RadNormalize__Ff(g - RadStepHeading(p))))
+        if (D_002C0988 < __builtin_fabsf(RadNormalize__Ff(g - GetStepHeading(p))))
             continue;
         poBest = po;
         gMax = dist;
@@ -1231,7 +1231,7 @@ void SetJtModeState__FP6JTMODEi(void *, int);
 int FPowerupAcquired(int);
 void ChooseMurrayThrowTarget(P *);
 qword func_001A62E8(P *);
-void SetStepRadTargetVec(P *, qword);
+void SetStepTargetHeadingFromVector(P *, qword);
 void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
@@ -1320,7 +1320,7 @@ extern "C" void SetMurrayState(P *p, int next)
         U point = p->goal; qword current = func_001A62E8(p);
         qword difference;
         __asm__("vsub.xyzw %0,%0,%2" : "=j"(difference) : "0"(point.q), "j"(current));
-        SetStepRadTargetVec(p, difference); break;
+        SetStepTargetHeadingFromVector(p, difference); break;
     }
     case 8: { ASEG *a = p->extra8; if (a && p->alternate8) clip = a; else clip = p->clip8; goto clear_velocity; }
     case 9: func_001B5D30(p, 0); Call((OBJ *)p, 90); return;
@@ -2191,7 +2191,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
 void func_00209FB8(struct LO *p);
 qword func_001A62E8(struct LO *p);
 qword GetSoDvGravity(struct LO *p);
-qword func_001D69F0(qword a, qword b, qword c, float t);
+qword CalculateVelocityToReachPos(qword a, qword b, qword c, float t);
 void func_001F7A68(struct LO *p, int n);
 static inline float Dist(qword a, qword b) {
     qword d;
@@ -2223,7 +2223,7 @@ void ThrowMurrayCarried(struct P *p)
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x38))
             func_00209FB8(po);
         t = Dist(func_001A62E8(po), p->v1420) / p->g1414;
-        v = func_001D69F0(func_001A62E8(po), p->v1420, GetSoDvGravity(po), t);
+        v = CalculateVelocityToReachPos(func_001A62E8(po), p->v1420, GetSoDvGravity(po), t);
         ((void (*)(void *, qword))po->vt[35].pfn)((char *)po + po->vt[35].d, v);
         func_001F7A68(po, 2);
     }
@@ -2235,7 +2235,7 @@ typedef int qword __attribute__((mode(TI)));
 struct P { char pad[0x1420]; qword q1420; };
 void SetMurrayState(struct P *p, int n);
 qword func_001A62E8(void *p);
-void SetStepRadTargetVec(struct P *p, qword q);
+void SetStepTargetHeadingFromVector(struct P *p, qword q);
 /** @sly2-annot addr=0x1B7A78
  * Purpose: Splice-callable: SetMurrayState(7) and override the throw goal with the given object's position,
  *   facing it
@@ -2252,7 +2252,7 @@ void func_001B7A78(struct P *p, void *pv)
         p->q1420 = a;
         b = func_001A62E8(p);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-        SetStepRadTargetVec(p, d);
+        SetStepTargetHeadingFromVector(p, d);
     }
 }
 } } // namespace M_func_001B7A78
@@ -2560,7 +2560,7 @@ struct VE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VE *vt; };
 struct T { char pad[0x180]; struct O *po; };
 struct P { char pad[0xF1C]; struct O *xF1C; char pad2[0x13F0 - 0xF20]; struct T *x13F0; };
-void func_00205D10(struct P *p, int b);
+void IgnoreStepSlot87(struct P *p, int b);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 #define VCALL(o, n, ...) ((void (*)())(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d, __VA_ARGS__)
 /** @sly2-annot addr=0x1B81B8
@@ -2573,7 +2573,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
 void func_001B81B8(struct P *p, int b)
 {
     struct O *o;
-    func_00205D10(p, b);
+    IgnoreStepSlot87(p, b);
     if (b) {
         if (!p->x13F0) return;
         o = p->x13F0->po;
@@ -2671,7 +2671,7 @@ namespace M_MURRAY_FIgnoreIntersection { extern "C" {
 struct P { char pad[0x13D0]; int n13D0; char pad1[0x1430 - 0x13D4]; void *p1430; char pad2[0x1910 - 0x1434]; int a1910[1]; };
 int FIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
 int FFindLoParent(void *pv, void *p1);
-int func_00134310(int n, int k);
+int MaxInt(int n, int k);
 int func_00220498(int *pn, void *pv, int n);
 /** @sly2-annot addr=0x1B8450
  * Purpose: MURRAY vt61(pso): base flags 0x144388; adds bit 3 for an object that is (part of) the recently
@@ -2687,7 +2687,7 @@ int MURRAY_FIgnoreIntersection(struct P *p, void *pv)
 {
     int n = FIgnoreIntersection__10STEPPLAYERP2SO(p, pv);
     if (p->p1430 && FFindLoParent(pv, p->p1430))
-        n = func_00134310(n, 3);
+        n = MaxInt(n, 3);
     else if (p->n13D0 == 15)
         n = func_00220498(p->a1910, pv, n);
     return n;
@@ -2803,7 +2803,7 @@ void ReleaseAsega(void *pp);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
-void func_00204660(struct P *p, float g);
+void SetStepTargetHeading(struct P *p, float g);
 void FixStepAngularVelocity(struct P *p);
 void ReleaseSma(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
@@ -2846,7 +2846,7 @@ void SetMurrayAttack(struct P *p, int k)
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(func_001A62E8(p->p10DC)), "j"(func_001A62E8(p)));
         g = atan2f(GetY(d), GetX(d));
         if (__builtin_fabsf(RadNormalize__Ff(g - p->g1A8)) < D_002C09F0) {
-            func_00204660(p, g);
+            SetStepTargetHeading(p, g);
             FixStepAngularVelocity(p);
         }
     }
@@ -2978,7 +2978,7 @@ struct P {
 };
 extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
-qword func_00204E38(struct P*,struct Q*,float);
+qword GetStepAsegaTranslation(struct P*,struct Q*,float);
 struct PARAM *func_0012F938(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertAloVec(void*,void*,qword);
@@ -3039,7 +3039,7 @@ static inline qword OrbitVector(struct P*p){
 void func_001B8B70(struct P*p){
     U scalar;
     if(p->source){
-        qword value=func_00204E38(p,p->source,p->source->time);
+        qword value=GetStepAsegaTranslation(p,p->source,p->source->time);
         NegateSource(value,&p->velocity,&scalar);
         {
             register int active __asm__("$3")=p->blend;
@@ -3259,7 +3259,7 @@ namespace M_func_001B90B8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x1C]; float g; };
 struct P { char pad[0x180]; float f180; int pad2[3]; qword q190; char pad3[0x1030 - 0x1A0]; struct Q *pq; char pad4[0x1840 - 0x1034]; int n; };
-qword func_00204E38(struct P *p, struct Q *pq, float g);
+qword GetStepAsegaTranslation(struct P *p, struct Q *pq, float g);
 /** @sly2-annot addr=0x1B90B8
  * Purpose: State 12 substates 1/3: velocity from animation root motion
  * Info: proposed name UpdateMurrayPowerVelocity (T2); TU murray
@@ -3269,7 +3269,7 @@ qword func_00204E38(struct P *p, struct Q *pq, float g);
 void func_001B90B8(struct P *p)
 {
     if (p->n == 1 || p->n == 3) {
-        qword v = func_00204E38(p, p->pq, p->pq->g);
+        qword v = GetStepAsegaTranslation(p, p->pq, p->pq->g);
         qword r;
         union { qword q; float f; } s;
         {
@@ -3815,7 +3815,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
 struct S { char pad[0x26C]; char x26c[4]; };
 void ClearBhvstk__FP6BHVSTK(void *p);
-struct O *func_00205438(struct S *p, int oid);
+struct O *PushStepBehavior(struct S *p, int oid);
 /** @sly2-annot addr=0x1B9CA0
  * Purpose: Splice-callable (p,f): 0x1EECD0(p->x26C); if f, find child 0xC6 and call its vt8
  * Info: TU murray
@@ -3826,7 +3826,7 @@ void func_001B9CA0(struct S *p, int f)
 {
     ClearBhvstk__FP6BHVSTK(p->x26c);
     if (f) {
-        struct O *po = func_00205438(p, 0xC6);
+        struct O *po = PushStepBehavior(p, 0xC6);
         struct VTE *e = &po->vt[8];
         ((void (*)(void *))e->pfn)((char *)po + e->d);
     }

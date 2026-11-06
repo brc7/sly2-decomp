@@ -1,8 +1,8 @@
 // water.cpp -- WATER (an SO): the objects inside it (a node list at +0x150, mirrored into each object's XA list at
 // +0x138 so it gets the water's accelerations), the splash event when something falls in fast, the vertical span
-// of an object under the surface (func_00229468), the current at a point, and the per-contact buoyancy, friction,
-// righting torque and wake (func_002297F8). VU0 macro-mode and EE asm; UpdateWater, func_00229468 and
-// func_002297F8 are hand-tuned (register pins, allocation-only operands, a memory clobber).
+// of an object under the surface (GetWaterSubmergedFraction), the current at a point, and the per-contact buoyancy, friction,
+// righting torque and wake (AddSoWaterAcceleration). VU0 macro-mode and EE asm; UpdateWater, GetWaterSubmergedFraction and
+// AddSoWaterAcceleration are hand-tuned (register pins, allocation-only operands, a memory clobber).
 // TU 0x228B48..0x229EF0 (22 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_water
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00229ED0
@@ -98,7 +98,7 @@ struct WORLD { char pad[0x40E8]; SLOTHEAP slotheapN; };   /* +0x40E8 the pool of
 extern "C" void *func_002333B4(void *, int, int) __asm__("memset");
 enum Init { Uninitialized, Zero };
 struct M4 { V r[4]; M4(Init mode) { if (mode == Zero) func_002333B4(this, 0, 0x40); } };
-/* func_002297F8's types. */
+/* AddSoWaterAcceleration's types. */
 struct M4B { M3 basis; qwordV position; };
 struct COEF { float f[3]; };
 /* sly2/basic.h's CLQ (Sly 1 util.h), same layout; basic.h cannot be included here (its qword is unsigned). */
@@ -110,7 +110,7 @@ union PHASE { V vectors[3]; M3 basis; };
 union AXIS { COEF coefficients; V vector; };
 struct WORK7F8 { V point, normal, velocity; PHASE phase; AXIS axis; V angularNormal, angularTangent, scalar; float angle; };
 typedef char assert_WORK7F8_size[sizeof(WORK7F8) == 0xB0 ? 1 : -1];
-/* UpdateWater's and func_00229468's stack layouts (their asm addresses these slots). */
+/* UpdateWater's and GetWaterSubmergedFraction's stack layouts (their asm addresses these slots). */
 union SCRATCH { REQ request; PAIR pair; V velocity; };
 struct WORK { MARK mark; SCRATCH scratch; V start, end; LSG intervals[16]; V origin; EVENT event; int count; N **head; REQ *request; };
 struct WORK468 { V a, b; MARK mark __attribute__((aligned(16))); REQ msg __attribute__((aligned(16))); LSG alsg[0x10]; };
@@ -134,19 +134,19 @@ qwordV func_0011BFB8(M4 *pm);
 MARK *STACKSCOPE_ctor(MARK *);
 void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
-int func_00229D60(void *, COLL *);
+int CanWaterInflictZap(void *, COLL *);
 int func_001F7E08(SOW *, int (*)(void *, COLL *), void *, COLL **);
 int func_001F6838(SOW *);
 int func_00230380(int);
-float func_00229468(SOW *, SOW *, qwordV *, qwordV *);
-N *func_002296A0(WORLD *);
+float GetWaterSubmergedFraction(SOW *, SOW *, qwordV *, qwordV *);
+N *AllocSwXa(WORLD *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOW *, int);
-int ClsgClipEdgeToObjects(qwordV, qwordV, int, COLL **, int, LSG *);
+int ClipEdgeToObjects(qwordV, qwordV, int, COLL **, int, LSG *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, SOW *);
 void SetSndRange(void *, float, float);
 void func_001FB1F8(void *, float);
-void func_00228D20(SOW *, N **);
+void UpdateSwXaList(SOW *, N **);
 qwordV func_001A62E8(void *p);
 int FFloatsNear__Ffff(float a, float b, float eps);
 qwordV ApplyConstr(CONSTRAINT *, NODE *, qwordV);
@@ -162,9 +162,9 @@ void func_001FAC98(SOW *, qwordV);
 void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SOW *, WATER *, float, qwordV, qwordV, float, float);
 void StopSnd(EMITTER *, float);
 void RcPtr_Assign(EMITTER **, EMITTER *);
-void func_00229738(SOW *p, N *pn);
+void RemoveSoXa(SOW *p, N *pn);
 void AddSoXa(SOW *p, N *pn);
-void func_002296C0(WORLD *pg, N *pn);
+void FreeSwXaList(WORLD *pg, N *pn);
 void UpdateSoTreeBounds(SOW *p);
 void func_001F5078(SOW *p, N *pn);
 /* The same function called with the object only (AddSoXa: with pn passed on, a1 is copied first; 8 of 11 off). */
@@ -198,7 +198,7 @@ extern "C" void InitWater(SOW *p)
  * Notes: descriptive only: water slot override (constraints) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88+verdicts_B
  * @end-sly2-annot */
-extern "C" void func_00228BB0(SOW *p)
+extern "C" void InitWaterPhysics(SOW *p)
 {
     func_001F3590(p);
     func_001F68A8(p, 1);
@@ -262,7 +262,7 @@ extern "C" void CalculateWaterCurrent(SOW *p, qwordV v, qwordV *ppos, qwordV *pr
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" void func_00228D20(SOW *pv, N **ppn)
+extern "C" void UpdateSwXaList(SOW *pv, N **ppn)
 {
     N *pn = *ppn;
     N *pnFree = 0;
@@ -272,7 +272,7 @@ extern "C" void func_00228D20(SOW *pv, N **ppn)
         long b = po->flags;
         if (((int)(b >> 31) & 1) != ((b >> 32) & 1)) {
             if (b & 0x80000000L)
-                func_00229738(po, pn);
+                RemoveSoXa(po, pn);
             else
                 AddSoXa(po, pn);
         }
@@ -289,7 +289,7 @@ extern "C" void func_00228D20(SOW *pv, N **ppn)
         }
         pn = pnNext;
     }
-    func_002296C0(&D_003DD490, pnFree);
+    FreeSwXaList(&D_003DD490, pnFree);
 }
 
 // Track collider membership and emit contact and impact events.
@@ -314,14 +314,14 @@ extern "C" void UpdateWater(SOW *p){
  STACKSCOPE_ctor(&work.mark);
  {register int size __asm__("$3")=p->count;register int alignment __asm__("$2")=16;register REQ*req __asm__("$4")=work.request;size*=4;work.scratch.request.size=size;Fields(req)->alignment=alignment;
  objects=(COLL **)PvAllocSlot__FP8ALLOCREQ(req);}
- work.count=func_001F7E08(p,func_00229D60,0,objects);
+ work.count=func_001F7E08(p,CanWaterInflictZap,0,objects);
  for(link=p->state->first;link;link=link->next){
   SOW *o=link->object;
   if(!o->physics||o->physics->spring<1e-4f||func_001F6838(o)||!func_00230380(o->body->kind))continue;
-  if(func_00229468(p,o,0,0)==0.0f)continue;
+  if(GetWaterSubmergedFraction(p,o,0,0)==0.0f)continue;
   o->flags|=0x100000000L;
   if(o->flags&0x80000000L)continue;
-  {register WORLD*world __asm__("$4")=&D_003DD490;n=func_002296A0(world);}
+  {register WORLD*world __asm__("$4")=&D_003DD490;n=AllocSwXa(world);}
   n->owner=p;n->object=o;n->next=p->first;p->first=n;
   if(!p->recipient)continue;
   work.scratch.velocity.q=Velocity(o);
@@ -335,7 +335,7 @@ extern "C" void UpdateWater(SOW *p){
    if(FIsBasicDerivedFrom__FP5BASIC3CID(o,0x33))dz=o->height;
    else dz=o->state->minimum.f[2]-c->source->position.f[2];
    work.start.f[2]+=dz;work.end.f[2]+=dz;
-   if(ClsgClipEdgeToObjects(work.start.q,work.end.q,work.count,objects,16,work.intervals)>0){
+   if(ClipEdgeToObjects(work.start.q,work.end.q,work.count,objects,16,work.intervals)>0){
     qwordV normal;
     float fall=Min(-work.scratch.velocity.f[2],600.0f)*(1.0f/600.0f);
     float radius=((o->state->maximum.f[0]-o->state->minimum.f[0])+(o->state->maximum.f[1]-o->state->minimum.f[1]))*0.5f;
@@ -361,7 +361,7 @@ extern "C" void UpdateWater(SOW *p){
    Signal(o,o->flags&0x80000000L?5:4,(PAIR *)work.request);
   }
  }
- func_00228D20(p,work.head);STACKSCOPE_ctor_1AE4A0(&work.mark,2);
+ UpdateSwXaList(p,work.head);STACKSCOPE_ctor_1AE4A0(&work.mark,2);
 }
 
 /** @sly2-annot addr=0x2292D8
@@ -370,7 +370,7 @@ extern "C" void UpdateWater(SOW *p){
  * Notes: descriptive only: water: call other vt72 (contact) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" void func_002292D8(SOW *p, PAIR *b)
+extern "C" void AddWaterExternalAccelerations(SOW *p, PAIR *b)
 {
     SOW *po = b->object;
     po->vt[72].f.pf((char *)po + po->vt[72].delta, p);
@@ -383,12 +383,12 @@ extern "C" void func_002292D8(SOW *p, PAIR *b)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" void func_00229308(SOW *p)
+extern "C" void RemoveWaterHierarchy(SOW *p)
 {
     N *n;
     RemoveSoHierarchy(p);
-    for (n = p->first; n; n = n->next) func_00229738(n->object, n);
-    func_002296C0(&D_003DD490, p->first);
+    for (n = p->first; n; n = n->next) RemoveSoXa(n->object, n);
+    FreeSwXaList(&D_003DD490, p->first);
     p->first = 0;
 }
 
@@ -399,7 +399,7 @@ extern "C" void func_00229308(SOW *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" void func_00229370(SOW *p, int k, SOW *q)
+extern "C" void HandleWaterMessage(SOW *p, int k, SOW *q)
 {
     if (k == 1 && q != p) {
         PAIR msg;
@@ -425,8 +425,8 @@ extern "C" void func_00229370(SOW *p, int k, SOW *q)
         msg.object = pn->object;
         if (pn) {
             pn->next = 0;
-            func_00229738(pn->object, pn);
-            func_002296C0(&D_003DD490, pn);
+            RemoveSoXa(pn->object, pn);
+            FreeSwXaList(&D_003DD490, pn);
         }
         msg.object->vt[4].f.signal((char *)msg.object + msg.object->vt[4].delta, 5, &msg);
     }
@@ -450,7 +450,7 @@ static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();retu
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" float func_00229468(SOW *p, SOW *pj, qwordV *ppos, qwordV *pnormal)
+extern "C" float GetWaterSubmergedFraction(SOW *p, SOW *pj, qwordV *ppos, qwordV *pnormal)
 {
     WORK468 work;
     void **apv;
@@ -472,8 +472,8 @@ extern "C" float func_00229468(SOW *p, SOW *pj, qwordV *ppos, qwordV *pnormal)
         pm->alignment = 0x10;
         apv = (void **)PvAllocSlot__FP8ALLOCREQ(pm);
     }
-    c = func_001F7E08(p, func_00229D60, 0, (COLL **)apv);
-    if (!ClsgClipEdgeToObjects(work.a.q, work.b.q, c, (COLL **)apv, 0x10, work.alsg)) {
+    c = func_001F7E08(p, CanWaterInflictZap, 0, (COLL **)apv);
+    if (!ClipEdgeToObjects(work.a.q, work.b.q, c, (COLL **)apv, 0x10, work.alsg)) {
         if (pnormal)
             *pnormal = D_002A2DC0;
         STACKSCOPE_ctor_1AE4A0(&work.mark, 2);
@@ -505,7 +505,7 @@ extern "C" float func_00229468(SOW *p, SOW *pj, qwordV *ppos, qwordV *pnormal)
  *   slot49 | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" void func_00229680(SOW *p)
+extern "C" void UpdateWaterBounds(SOW *p)
 {
     UpdateSoTreeBounds(p);
 }
@@ -517,7 +517,7 @@ extern "C" void func_00229680(SOW *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" N *func_002296A0(WORLD *pg)
+extern "C" N *AllocSwXa(WORLD *pg)
 {
     return (N *)PvAllocSlotheapClear(&pg->slotheapN);
 }
@@ -528,7 +528,7 @@ extern "C" N *func_002296A0(WORLD *pg)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" void func_002296C0(WORLD *p, N *n)
+extern "C" void FreeSwXaList(WORLD *p, N *n)
 {
     while (n) {
         N *next = n->next;
@@ -558,7 +558,7 @@ extern "C" void AddSoXa(SOW *p, N *pn)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" void func_00229738(SOW *p, N *n)
+extern "C" void RemoveSoXa(SOW *p, N *n)
 {
     N **pp;
     for (pp = &p->firstXa; *pp; pp = &(*pp)->nextXa) {
@@ -574,7 +574,7 @@ extern "C" void func_00229738(SOW *p, N *n)
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
-extern "C" void func_00229798(SOW *p)
+extern "C" void ApplySoExternalAccelerations(SOW *p)
 {
     N *n;
     for (n = p->firstXa; n; n = n->nextXa) {
@@ -619,10 +619,10 @@ static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitt
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
-extern "C" void func_002297F8(SOW *a,SOW *b){
+extern "C" void AddSoWaterAcceleration(SOW *a,SOW *b){
  WORK7F8 w;
  int i;
- float span=func_00229468(b,a,&w.point.q,&w.normal.q);
+ float span=GetWaterSubmergedFraction(b,a,&w.point.q,&w.normal.q);
  float epsilon=0.0001f;
  if(span<epsilon)return;
  float spring=Near(D_002A2DD0,a->physics->direction.q,epsilon)?0.0f:a->physics->spring*b->physics->spring;
@@ -678,7 +678,7 @@ extern "C" void func_002297F8(SOW *a,SOW *b){
  * Notes: descriptive only: water predicate: !(grf bit50) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
  * @end-sly2-annot */
-extern "C" int func_00229D60(void *p, COLL *q)
+extern "C" int CanWaterInflictZap(void *p, COLL *q)
 {
     return ((q->flags >> 50) & 1) == 0;
 }
@@ -689,7 +689,7 @@ extern "C" int func_00229D60(void *p, COLL *q)
  * Notes: descriptive only: water wrapper -> ExtendSoBounds | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" void func_00229D78(SOW *p)
+extern "C" void EnsureWaterZapData(SOW *p)
 {
     func_001F72F8(p);
 }

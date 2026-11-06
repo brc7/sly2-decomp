@@ -45,7 +45,7 @@ extern char D_002DEB30[];
 extern "C" {
 int func_00144068(PO *);
 int FSwHandsOff(void *);
-R *func_00205458(void *, int);
+R *FindStepBehavior(void *, int);
 void BroadcastGameEvent(void *, int, T *);
 void FadeSoOut(T *, float);
 qword func_001A62E8(void *p);
@@ -118,7 +118,7 @@ extern "C" void UpdateJtgoal(JTGOAL *p)
                 int i = IOther(p->p0, pso);
                 T *po = (T *)pso->ae[1 - i].x8;
                 if (FIsBasicDerivedFrom((BASIC *)po, CID_38)) {
-                    R *pr = func_00205458(po, 0xA9);
+                    R *pr = FindStepBehavior(po, 0xA9);
                     if (!pr || !pr->x4C) {
                         if (0.0f <= po->x130)
                             BroadcastGameEvent(D_002DEB30, 0x17, po);
@@ -135,7 +135,7 @@ extern "C" void UpdateJtgoal(JTGOAL *p)
         if (p->p0->x1084->x40->k != 0x24)
             return;
     } else {
-        R *pr = func_00205458(p->p0, 0xA8);
+        R *pr = FindStepBehavior(p->p0, 0xA8);
         if (!pr)
             return;
         {

@@ -55,7 +55,7 @@ void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
 DZG *InitDzg(DZG *pdzg, int cdzMax);
 qword LimitVectorLength(qword v, float g);
 
-DZX *func_00158958(DZGXP *pdzgxp, DZ *pdz);
+DZX *GetDzgExtraForDz(DZGXP *pdzgxp, DZ *pdz);
 void FillDzgDz(DZGXP *pdzgxp, int grf, DZ *pdz, DZX *pdzx);
 void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *pdzgxp, int grf);
 void AppendDzgDz__FP3DZGP2DZ(DZGXP *pdzgxp, DZ *pdz, DZX *pdzx);
@@ -192,7 +192,7 @@ extern "C" void FillDzgDz(DZGXP *pdzgxp, int grf, DZ *pdz, DZX *pdzx)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
  * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
-extern "C" DZX *func_00158958(DZGXP *pdzgxp, DZ *pdz)
+extern "C" DZX *GetDzgExtraForDz(DZGXP *pdzgxp, DZ *pdz)
 {
     return &pdzgxp->adzx[pdz - pdzgxp->adz];
 }
@@ -218,7 +218,7 @@ extern "C" void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *pdzgxp, int grf)
     while ((pdz = (DZ *)PvNextDli(&dli)) != 0) {
         if (pdz->nKind == 1) {
             if (!pdz->ag)
-                FillDzgDz(pdzgxp, grf, pdz, func_00158958(pdzgxp, pdz));
+                FillDzgDz(pdzgxp, grf, pdz, GetDzgExtraForDz(pdzgxp, pdz));
             RemoveDlEntry(&pdzgxp->dlD, pdz);
             AppendDlEntry(&pdzgxp->dlA, pdz);
             pdzgxp->cdzA++;
@@ -238,12 +238,12 @@ extern "C" void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *pdzgxp, int grf)
         if (!pdzBest)
             break;
         if (!pdzBest->ag)
-            FillDzgDz(pdzgxp, grf, pdzBest, func_00158958(pdzgxp, pdzBest));
+            FillDzgDz(pdzgxp, grf, pdzBest, GetDzgExtraForDz(pdzgxp, pdzBest));
         EnforceDzgDz(pdzgxp, pdzBest);
     }
 }
 
-/* SolveDzgFric: each pass re-solves, picks the contact row (without a friction row yet) whose tangential push (the
+/* SolveDzgFriction: each pass re-solves, picks the contact row (without a friction row yet) whose tangential push (the
    rows' gC-weighted response vectors minus the normal part) is largest, then appends a friction row paired with it:
    its g10 = -|v|, its DZX gets the push divided by g10 and the contact, its limits come from the contact's friction
    (and for kind 14 from the first side's gravity and mass), and AppendDzgDz adds it. What mattered for the match:
@@ -303,12 +303,12 @@ union VEC4 { qword q; float f[4]; };
 /** @sly2-annot addr=0x158B20
  * Purpose: Friction pass: repeatedly SolveDzg, then adds a friction row for the free contact with the largest
  *   tangential push, clamped by the material's friction (dt-scaled), via AppendDzgDz
- * Info: proposed name SolveDzgFric (T1); TU dzg
+ * Info: proposed name SolveDzgFriction (T1); TU dzg
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3b_rest+verdicts_A1
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
-extern "C" void SolveDzgFric(DZGXP *pdzgxp, int grf)
+extern "C" void SolveDzgFriction(DZGXP *pdzgxp, int grf)
 {
     for (;;) {
         SolveDzg__FP3DZGiiPP2XPPiPPP2SO(pdzgxp, grf);

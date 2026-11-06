@@ -128,7 +128,7 @@ M4 *func_001A6318(void *p);
 void HandleBasicMessage(CID100V *p, int k, struct MSG100 *q);
 void SetLoParent_1A58D0(CID100V *p, void *q, int a);
 int FIgnoreSoIntersection(CID100V *p, BASIC *q);
-int func_00134310(int v, int a);
+int MaxInt(int v, int a);
 void func_001F4FB0(CID100V *p, XP *pxp, int i);
 void func_001F4F10(CID100V *p);
 void func_001F9B20(CID100V *);
@@ -166,7 +166,7 @@ int CploFindSwObjectsByClass(SW *, int, int, int, int, SOV **);
 void FadeSoOut(CID100V *, float);
 void SetSmaGoalIfReachable(SMA *, int);
 struct R30 { char pad[0x30]; int state; };
-R30 *func_00205458(ACTOR *, int);
+R30 *FindStepBehavior(ACTOR *, int);
 int func_0017A9C0(R30 *);
 void func_00209840(CONTROL *, const M3 *);
 void func_0017A8C8(R30 *, int);
@@ -175,7 +175,7 @@ void SprayDprizes(SW *, int, qwordV, void *, int);
 void BroadcastGameEvent(GAME *, int, void *);
 void AddSoAcceleration(SOV *o, qwordV v);
 void AccelSoTowardPosSpring(SOV *o, qwordV v, void *a, qwordV b, void *c);
-void func_00229738(ACTOR *po, HOOK *node);
+void RemoveSoXa(ACTOR *po, HOOK *node);
 int func_00206EB0(ACTOR *po, int k);
 void AddSoXa(ACTOR *po, HOOK *node);
 void func_00209E28(ACTOR *po, int k);
@@ -346,7 +346,7 @@ extern "C" int func_002242E0(CID100V *p, BASIC *q)
 {
     int v = FIgnoreSoIntersection(p, q);
     int k = p->state;
-    if (k == 0 || k == 4) { if (FIsBasicDerivedFrom(q, CID_34)) v = func_00134310(v, 1); }
+    if (k == 0 || k == 4) { if (FIsBasicDerivedFrom(q, CID_34)) v = MaxInt(v, 1); }
     return v;
 }
 
@@ -828,7 +828,7 @@ extern "C" void func_00225300(CID100V *p) {
             R30 *r;
             if(!p->actor) {
                 VCALL(p, 76),3);
-            } else if(!(r=func_00205458(p->actor,0xB0)) || func_0017A9C0(r)) {
+            } else if(!(r=FindStepBehavior(p->actor,0xB0)) || func_0017A9C0(r)) {
                 VCALL(p, 76),2);
             } else {
                 M3 m((p->source?func_001A6318(p->source):func_001A6318(p))->basis);
@@ -920,8 +920,8 @@ extern "C" void func_00225660(CID100V *p, int k)
         return;
     if (p->state == 5 && p->actor) {
         R30 *pv;
-        func_00229738(p->actor, &p->hook);
-        pv = func_00205458(p->actor, 0xB0);
+        RemoveSoXa(p->actor, &p->hook);
+        pv = FindStepBehavior(p->actor, 0xB0);
         if (pv)
             func_0017A8C8(pv, 2);
         if (p->actor->color)
