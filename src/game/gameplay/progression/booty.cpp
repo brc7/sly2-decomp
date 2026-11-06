@@ -1,6 +1,8 @@
 // booty.cpp -- BOOTY (CID 0x67), the carried booty object (docs/engine/game-progression.md section 5): entry table,
 // states (idle, in container, transfer, carried, dropped and returning, marker), rendering, and its container
-// CID37 (CID 0x25) with the saved container kind. TU 0x13BDF0..0x13D558 (28 functions, address order).
+// CID37 (CID 0x25) with the saved container kind. Entry points: the BOOTY and CID37 vtables, the Splice setters
+// (AddBootyEntry, AddAlarmAlbrk, SetBootyContainerKind) and the world callbacks ReturnDroppedBooty /
+// SpawnBootyInContainer. TU 0x13BDF0..0x13D558 (28 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_booty
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013D538
 #include "sly2/slotheap.h"
@@ -174,92 +176,62 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);    /* FIsBasicDerivedFrom__FP5B
 void LaunchMatch(MATCH *pmatch);                    /* LaunchMatch__FP5MATCH */
 int IlevelCur();                                    /* IlevelCur__Fv */
 
-/** @sly2-annot addr=0x13BDF0
- * Purpose: cid 0x67 vt7: InitSo, default scale vector (+0x170), state -1, set a flag bit
- * Info: proposed name InitBooty (T1); class BOOTY slot7; TU booty
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/game-progression.md#7-source-files,
- *   docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files
- * @end-sly2-annot */
-extern "C" void InitBooty(BOOTYV *p) {
+// cid 0x67 vt7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
+extern "C" void InitBooty(BOOTYV *booty) {
     int x;
-    InitSo(p);
-    p->vScale.q = D_002A2DE0; p->st = -1; x = p->x40;
+    InitSo(booty);
+    booty->vScale.q = D_002A2DE0; booty->st = -1; x = booty->x40;
     if ((x ^ 1) & 1) *(int *)x |= 2;
-    else p->x40 = x | 2;
+    else booty->x40 = x | 2;
 }
 
 static inline REQ *SetReq(REQ *pr, int cb, int cbAlign) { pr->cb = cb; pr->cbAlign = cbAlign; return pr; }
-/** @sly2-annot addr=0x13BE58
- * Purpose: cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used
- *   entries (0x2C each) to SW heap
- * Info: proposed name LoadBootyFromBrx (T1); class BOOTY slot14; TU booty
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest+parse-verified
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void LoadBootyFromBrx(BOOTYV *p, void *a) {
+// cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to
+// SW heap. (inferred)
+extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
     STACKSCOPEC ctx;
     REQ req;
     STACKSCOPE_ctor(&ctx);
-    p->abootye = (BOOTYE *)func_001AE378(SetReq(&req, 0x580, 0x10));
-    LoadSoFromBrx(p, a);
-    ClearCurrentBootyEntry(p);
-    p->abootye = (BOOTYE *)func_001AE238(SetReq(&req, p->cbootye * 0x2c, 0x10), p->abootye);
+    booty->abootye = (BOOTYE *)func_001AE378(SetReq(&req, 0x580, 0x10));
+    LoadSoFromBrx(booty, a);
+    ClearCurrentBootyEntry(booty);
+    booty->abootye = (BOOTYE *)func_001AE238(SetReq(&req, booty->cbootye * 0x2c, 0x10), booty->abootye);
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
 
-/** @sly2-annot addr=0x13BF00
- * Purpose: cid 0x67 vt15: PostSoLoad then SetBootyState(0)
- * Info: proposed name PostBootyLoad (T1); class BOOTY slot15; TU booty
- * Notes: names_v2 v1 proposed CloneAlarm__FP5ALARMT0 (0.041)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void BOOTY::VUnk14() { BOOTYV *p = (BOOTYV *)this;
-    PostSoLoad(p);
-    SetBootyState(p, 0);
+// cid 0x67 vt15: PostSoLoad then SetBootyState(0). (inferred)
+void BOOTY::VUnk14() { BOOTYV *booty = (BOOTYV *)this;
+    PostSoLoad(booty);
+    SetBootyState(booty, 0);
 }
 
-/** @sly2-annot addr=0x13BF30
- * Purpose: cid 0x67 vt27: SetBootyState(0)
- * Info: proposed name BOOTY_VUnk26 (T2); class BOOTY slot27; TU booty
- * Notes: names_v2 C proposed SetCmPos__FP2CMP6VECTOR (0.638)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void ClearBootyState(BOOTYV *p) {
-    SetBootyState(p, 0);
+// cid 0x67 vt27: SetBootyState(0). (inferred)
+extern "C" void ClearBootyState(BOOTYV *booty) {
+    SetBootyState(booty, 0);
 }
 
-/** @sly2-annot addr=0x13BF50
- * Purpose: cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried)
- *   forces a drop (DropStepplayerBooty) once the level timer D_003E1BFC passes
- * Info: proposed name UpdateBooty (T1); class BOOTY slot16; TU booty
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void UpdateBooty(BOOTYV *p) {
+// cid 0x67 vt16: UpdateSo; state 5 (dropped) returns to its source after 5 s; state 4 (carried) forces a drop
+// (DropStepplayerBooty) once the level timer D_003E1BFC passes. (inferred)
+extern "C" void UpdateBooty(BOOTYV *booty) {
     int st;
-    UpdateSo(p);
-    st = p->st;
+    UpdateSo(booty);
+    st = booty->st;
     switch (st) {
     case 5:
-        if ((D_002DDED0.t - p->tState) >= 5.0f) {
-            ReturnDroppedBooty(p, 0);
+        if ((D_002DDED0.t - booty->tState) >= 5.0f) {
+            ReturnDroppedBooty(booty, 0);
             return;
         }
         return;
     case 4:
-        if ((p->pbootyeCur->xC != 0) && (D_002DDED0.t >= g_sw.tHudTimerEnd)) {
-            func_00143380(p->phero);
+        if ((booty->pbootyeCur->xC != 0) && (D_002DDED0.t >= g_sw.tHudTimerEnd)) {
+            func_00143380(booty->phero);
         }
         break;
     }
 }
 
+// Clamps g to [gMin, gMax].
 static inline float GClampE(float g, float gMin, float gMax)
 {
     float r;
@@ -271,38 +243,32 @@ static inline float GClampE(float g, float gMin, float gMax)
         r = g;
     return r;
 }
-/** @sly2-annot addr=0x13C000
- * Purpose: cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states
- *   1/5 draw normally
- * Info: proposed name RenderBootySelf (T1); class BOOTY slot19; TU booty
- * Notes: names_v2 v1 proposed PostAlarmLoadCallbackHookup__FP5ALARM5MSGIDPv (0.168)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void RenderBootySelf(BOOTYV *p)
+// cid 0x67 vt19: when carried, scale-pop animation (CLQ over time) and draw at the player; in states 1/5 draw
+// normally. (inferred)
+extern "C" void RenderBootySelf(BOOTYV *booty)
 {
-    switch (p->st) {
+    switch (booty->st) {
     case 4: {
         VU v;
         M4 m;
-        float dt = D_002DDED0.t - p->tState;
-        if (p->tDrop <= dt) {
-            v = p->vScale;
+        float dt = D_002DDED0.t - booty->tState;
+        if (booty->tDrop <= dt) {
+            v = booty->vScale;
         } else {
-            float u = dt / p->tDrop;
+            float u = dt / booty->tDrop;
             float g = GClampE(D_002A4B30[0] + u * (D_002A4B30[1] + u * D_002A4B30[2]), D_002BBB60.a, D_002BBB60.b);
             int i;
             for (i = 0; i < 3; i++)
-                v.f[i] = (1.0f - g) + g * p->vScale.f[i];
+                v.f[i] = (1.0f - g) + g * booty->vScale.f[i];
         }
-        M4 mT = LoadMatrixFromPosRotScale(func_001A62E8(p), func_001A6318(p), &v);   /* initialised, not assigned: g++ builds an assigned call result in a temporary first (the C file had no copy) */
+        M4 mT = LoadMatrixFromPosRotScale(func_001A62E8(booty), func_001A6318(booty), &v);   /* initialised, not assigned: g++ builds an assigned call result in a temporary first (the C file had no copy) */
         m = mT;
-        func_001A5EE8(p, &m, 1.0f, 1.0f);
+        func_001A5EE8(booty, &m, 1.0f, 1.0f);
         break;
     }
     case 1:
     case 5:
-        RenderSoSelf(p);
+        RenderSoSelf(booty);
         break;
     case 2:
     case 3:
@@ -310,24 +276,19 @@ extern "C" void RenderBootySelf(BOOTYV *p)
     }
 }
 
-/** @sly2-annot addr=0x13C1B8
- * Purpose: cid 0x67 vt5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2)
- *   or 1 (from 3)
- * Info: proposed name HandleBootyMessage (T1); class BOOTY slot5; TU booty
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void HandleBootyMessage(BOOTYV *p, int msg, MATCH *a) {
-    HandleBasicMessage(p, msg, a);
+// cid 0x67 vt5: base; msg 4 while dropped -> state 0; msg 8 from its container -> state 4 (from 2) or 1 (from 3).
+// (inferred)
+extern "C" void HandleBootyMessage(BOOTYV *booty, int msg, MATCH *a) {
+    HandleBasicMessage(booty, msg, a);
     switch (msg) {
     case 4:
-        if (p->st == 5) SetBootyState(p, 0);
+        if (booty->st == 5) SetBootyState(booty, 0);
         break;
     case 8:
-        if (a == p->pmatch) {
-            switch (p->st) {
-            case 2: SetBootyState(p, 4); break;
-            case 3: SetBootyState(p, 1); break;
+        if (a == booty->pmatch) {
+            switch (booty->st) {
+            case 2: SetBootyState(booty, 4); break;
+            case 3: SetBootyState(booty, 1); break;
             }
         }
         break;
@@ -336,61 +297,38 @@ extern "C" void HandleBootyMessage(BOOTYV *p, int msg, MATCH *a) {
 
 struct XPO { BASIC *pbasic; };
 struct XPM { char pad[0x14]; XPO *pa; };
-/** @sly2-annot addr=0x13C278
- * Purpose: cid 0x67 vt61: while dropped (5) ignore STEPPLAYERs (3), else base
- * Info: proposed name FIgnoreBootyIntersection (T1); class BOOTY slot61; TU booty
- * Notes: names_v2 v1 proposed TriggerAlarm__FP5ALARM4ALTK (0.002)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" int FIgnoreBootyIntersection(BOOTYV *p, XPM *pm) {
-    if (p->st == 5 && FIsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
-    return FIgnoreSoIntersection(p, pm);
+// cid 0x67 vt61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
+extern "C" int FIgnoreBootyIntersection(BOOTYV *booty, XPM *pm) {
+    if (booty->st == 5 && FIsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
+    return FIgnoreSoIntersection(booty, pm);
 }
 
 struct XPE { int f0; int f4; BASIC *pbasic; char pad[0x34]; };
-/** @sly2-annot addr=0x13C2D8
- * Purpose: cid 0x67 vt55: base, and when dropped and touched by a non-player post callback D_002A4B58
- * Info: proposed name AdjustBootyNewXp (T1); class BOOTY slot55; TU booty
- * Notes: names_v2 C proposed EnableAlarmSensors__FP5ALARM (0.167)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void AdjustBootyNewXp(BOOTYV *p, XPE *ae, int i) {
-    func_001F4FB0(p, ae, i);
-    if (p->st == 5) { XPE *pe = &ae[1 - i]; if (!FIsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, p, D_002A4B58.l, 0); }
+// cid 0x67 vt55: base, and when dropped and touched by a non-player post callback D_002A4B58. (inferred)
+extern "C" void AdjustBootyNewXp(BOOTYV *booty, XPE *ae, int i) {
+    func_001F4FB0(booty, ae, i);
+    if (booty->st == 5) { XPE *pe = &ae[1 - i]; if (!FIsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, booty, D_002A4B58.l, 0); }
 }
 
-/** @sly2-annot addr=0x13C368
- * Purpose: cid 0x67 vt75: if zap qualifies and dropped, reset to state 0 and return 1
- * Info: proposed name BOOTY_FTakeDamage (T2); class BOOTY slot75; TU booty
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" int TakeBootyDamage(BOOTYV *p, void *pv) {
-    if ((func_001F7588(p, pv) == 0) || (p->st != 5)) {
+// cid 0x67 vt75: if zap qualifies and dropped, reset to state 0 and return 1. (inferred)
+extern "C" int TakeBootyDamage(BOOTYV *booty, void *pv) {
+    if ((func_001F7588(booty, pv) == 0) || (booty->st != 5)) {
         return 0;
     }
-    SetBootyState(p, 0);
+    SetBootyState(booty, 0);
     return 1;
 }
 
-/** @sly2-annot addr=0x13C3B8
- * Purpose: Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158)
- * Info: proposed name AddBootyEntry (T1); TU booty
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/game-progression.md#5-booty-booty-tu-0x13bdf0,
- *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void AddBootyEntry(BOOTYV *p, int id, int x4, int x14) {
+// Splice: append entry {id, a, b} (max 32, 0x2C bytes) and make it current (+0x158). (inferred)
+extern "C" void AddBootyEntry(BOOTYV *booty, int id, int x4, int x14) {
     int c;
     BOOTYE *pe;
-    ClearCurrentBootyEntry(p);
-    c = p->cbootye;
+    ClearCurrentBootyEntry(booty);
+    c = booty->cbootye;
     if (c < 0x20) {
-        p->cbootye = c + 1;
-        pe = p->abootye + c;
-        p->pbootyeCur = pe;
+        booty->cbootye = c + 1;
+        pe = booty->abootye + c;
+        booty->pbootyeCur = pe;
         pe->id = id;
         pe->x4 = x4;
         pe->x14 = x14;
@@ -399,42 +337,24 @@ extern "C" void AddBootyEntry(BOOTYV *p, int id, int x4, int x14) {
     }
 }
 
-/** @sly2-annot addr=0x13C440
- * Purpose: current entry (+0x158) = 0
- * Info: proposed name ClearBootyCurEntry (T2); TU booty
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void ClearCurrentBootyEntry(BOOTYV *p) {
-    p->pbootyeCur = 0;
+// current entry (+0x158) = 0. (inferred)
+void ClearCurrentBootyEntry(BOOTYV *booty) {
+    booty->pbootyeCur = 0;
 }
 
-/** @sly2-annot addr=0x13C448
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name AddBootyEntryOid (EXISTING); TU booty
- * Notes: RENAME proposed -> AddBootyEntryOid (existing_name_changes.csv)
- * Confidence: name high [EXISTING 0.80]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/engine/game-progression.md#5-booty-booty-tu-0x13bdf0,
- *   docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void AddAlarmAlbrk(ALARM *palarm, OID oid)
+// Splice setter: adds an object name (at most three) to the current booty entry; the symbol still carries Sly 1's
+// ALARM class name (BOOTY's old label), so it cannot be renamed by rename.py yet.
+void AddAlarmAlbrk(ALARM *booty, OID oid)
 {
-    BOOTYE *p = palarm->pbootyeCur;
-    if (p->c1C < 3) p->aoid[p->c1C++] = oid;
+    BOOTYE *entry = booty->pbootyeCur;
+    if (entry->c1C < 3) entry->aoid[entry->c1C++] = oid;
 }
 
-/** @sly2-annot addr=0x13C478
- * Purpose: id of the current entry or -1
- * Info: proposed name GetCurrentBootyEntryId (T1); TU booty
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" int GetCurrentBootyEntryId(BOOTYV *p) {
+// id of the current entry or -1. (inferred)
+extern "C" int GetCurrentBootyEntryId(BOOTYV *booty) {
     BOOTYE *pe;
     int id;
-    pe = p->pbootyeCur;
+    pe = booty->pbootyeCur;
     id = -1;
     if (pe != 0) {
         id = pe->id;
@@ -442,49 +362,33 @@ extern "C" int GetCurrentBootyEntryId(BOOTYV *p) {
     return id;
 }
 
-/** @sly2-annot addr=0x13C490
- * Purpose: make the entry with this id current (else the first)
- * Info: proposed name SelectBootyEntry (T1); TU booty
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void SelectBootyEntry(BOOTYV *p, int id) {
+// make the entry with this id current (else the first). (inferred)
+void SelectBootyEntry(BOOTYV *booty, int id) {
     int i;
-    for (i = 0; i < p->cbootye; i++) {
-        if (id == p->abootye[i].id) { p->pbootyeCur = &p->abootye[i]; return; }
+    for (i = 0; i < booty->cbootye; i++) {
+        if (id == booty->abootye[i].id) { booty->pbootyeCur = &booty->abootye[i]; return; }
     }
-    p->pbootyeCur = p->abootye;
+    booty->pbootyeCur = booty->abootye;
 }
 
-/** @sly2-annot addr=0x13C4D8
- * Purpose: returns current entry pointer
- * Info: proposed name PentryBootyCur (T2); TU booty
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" BOOTYE *GetCurrentBootyEntry(BOOTYV *p) {
-    return p->pbootyeCur;
+// returns current entry pointer. (inferred)
+extern "C" BOOTYE *GetCurrentBootyEntry(BOOTYV *booty) {
+    return booty->pbootyeCur;
 }
 
-/** @sly2-annot addr=0x13C4E0
- * Purpose: If dropped: reset to 0 and, if its container is still in world, put it back there (state 1)
- * Info: proposed name ReturnDroppedBooty (T2); TU booty
- * Notes: names_v2 v1 proposed FGetAlarmSensorList__FP5ALARMPv (0.001)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void ReturnDroppedBooty(BOOTYV *p, int) {
+// If dropped: reset to 0 and, if its container is still in world, put it back there (state 1). (inferred)
+void ReturnDroppedBooty(BOOTYV *booty, int) {
     CID37V *pcont;
     BOOTYE *pe;
-    if (p->st == 5) {
-        pcont = p->pcont;
-        p->pcont = 0;
-        pe = p->pbootyeCur;
-        SetBootyState(p, 0);
+    if (booty->st == 5) {
+        pcont = booty->pcont;
+        booty->pcont = 0;
+        pe = booty->pbootyeCur;
+        SetBootyState(booty, 0);
         if ((pcont != 0) && (func_001A61A0(pcont) != 0)) {
-            p->pcont = pcont;
-            p->pbootyeCur = pe;
-            SetBootyState(p, 1);
+            booty->pcont = pcont;
+            booty->pbootyeCur = pe;
+            SetBootyState(booty, 1);
         }
     }
 }
@@ -503,6 +407,7 @@ typedef void (*PFNQ)(void *, qword);
 typedef void *(*PFNP)(void *);
 typedef void (*PFNM)(void *, MSG *);
 typedef void (*PFNE)(void *, qword, int, float);
+// Distance between two points.
 static inline float Dist(qword a, qword b)
 {
     qword d;
@@ -514,6 +419,7 @@ static inline float Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Distance between two points, at least k (inferred from the use with 250).
 static inline float Dist3(qword a, qword b, float k)
 {
     qword d;
@@ -525,33 +431,35 @@ static inline float Dist3(qword a, qword b, float k)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d), "f"(k)); /* mtc1 from a qword (gcc emits the qmfc2); "f"(k): allocation-only operand (Claude agent) */
     return g;
 }
+// Larger of two floats.
 static inline float GMaxR(float a, float b) { return a < b ? b : a; }
 #define LINKE(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
     ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, func_001A62E8(PA), 0, 1.0f); \
-    SubscribeRipObject(p->pmatch, p); \
+    SubscribeRipObject(booty->pmatch, booty); \
     g = Dist(func_001A62E8(PA), func_001A62E8(PB)); \
-    p->pmatch->p1C = (PB); \
-    p->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
-    { SA0 *ps = &p->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
-    p->pmatch->p104 = (PA); \
-    LaunchMatch(p->pmatch); \
-    VCALL(p, 8, PFNV)); \
+    booty->pmatch->p1C = (PB); \
+    booty->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
+    { SA0 *ps = &booty->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
+    booty->pmatch->p104 = (PA); \
+    LaunchMatch(booty->pmatch); \
+    VCALL(booty, 8, PFNV)); \
 }
 #define LINKE3(PE, PA, PB) { \
     VTE *pvte = &(PE)->pvt->a[1]; \
     float g; \
     ((PFNE)pvte->pfn)((char *)(PE) + pvte->d, func_001A62E8(PA), 0, 1.0f); \
-    SubscribeRipObject(p->pmatch, p); \
+    SubscribeRipObject(booty->pmatch, booty); \
     g = Dist3(func_001A62E8(PA), func_001A62E8(PB), 250.0f); \
-    p->pmatch->p1C = (PB); \
-    p->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
-    { SA0 *ps = &p->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
-    p->pmatch->p104 = (PA); \
-    LaunchMatch(p->pmatch); \
-    VCALL(p, 8, PFNV)); \
+    booty->pmatch->p1C = (PB); \
+    booty->pmatch->g18 = GMaxR(250.0f, g) * 0.002f; \
+    { SA0 *ps = &booty->pmatch->sA0; ps->x0 = 0; ps->g8 = -3000.0f; ps->x4 = 0; } \
+    booty->pmatch->p104 = (PA); \
+    LaunchMatch(booty->pmatch); \
+    VCALL(booty, 8, PFNV)); \
 }
+// Sends message kind k about the object to itself (vtable slot 51).
 static inline void Notify(RLO *pr, int k)
 {
     MSG msg;
@@ -567,134 +475,138 @@ void p_func_0013C4E0() __asm__("ReturnDroppedBooty");
 extern const unsigned int r_D_002A4B58[2] __asm__("D_002A4B58") = {0xFFFF0000, (unsigned int)p_func_0013C4E0};
 }
 namespace RO_ORDER { extern const VQ r_D_002A4B60 __asm__("D_002A4B60") = {{0.0f, 0.0f, -2500.0f, 0.0f}}; }
-void SetBootyState(BOOTYV *p, int st)
+// BOOTY state machine (-1 inactive .. 6): leaves the old state (unregisters from the world booty manager g_sw+0x4638,
+// stops effects) and enters the new one (registers, picks the container or carrier, starts the transfer/drop effects,
+// stamps the time). States: 0 idle, 1 in container, 2/3 transfer, 4 carried, 5 dropped and returning, 6 marker
+// (inferred from the callers).
+void SetBootyState(BOOTYV *booty, int st)
 {
     int stOld;
     HERO *pot;
     int i;
     HERO *pot4;
-    if (p->st == st)
+    if (booty->st == st)
         return;
     if (g_sw.ploUnk4638 != 0) {
-        int fOld = p->st >= 2;
+        int fOld = booty->st >= 2;
         int fNew = st >= 2;
         if (fOld) {
             if (!fNew)
-                UnlockProxyPlo(g_sw.ploUnk4638, p);
+                UnlockProxyPlo(g_sw.ploUnk4638, booty);
         } else if (fNew) {
-            LockProxyPlo(g_sw.ploUnk4638, p);
+            LockProxyPlo(g_sw.ploUnk4638, booty);
         }
     }
-    stOld = p->st;
-    pot = p->phero;
+    stOld = booty->st;
+    pot = booty->phero;
     switch (stOld) {
     case -1:
         break;
     case 0:
-        func_001F6A68(p);
-        for (i = 0; i < (int)p->pbootyeCur->c1C; i++)
-            ShowSoGlobsById(p, p->pbootyeCur->aoid[i]);
-        for (i = 0; i < p->cpart; i++)
-            HideSoPart(p, p->apart + i * 0xB0);
-        if (p->pbootyeCur->x18 != -1)
-            ShowSoPartsById(p, p->pbootyeCur->x18);
+        func_001F6A68(booty);
+        for (i = 0; i < (int)booty->pbootyeCur->c1C; i++)
+            ShowSoGlobsById(booty, booty->pbootyeCur->aoid[i]);
+        for (i = 0; i < booty->cpart; i++)
+            HideSoPart(booty, booty->apart + i * 0xB0);
+        if (booty->pbootyeCur->x18 != -1)
+            ShowSoPartsById(booty, booty->pbootyeCur->x18);
         break;
     case 1:
-        if (p->pbootyeCur->xC)
-            func_001618F8(&g_sw, p->pcont->g18C + 0.99f);
-        func_00156C80(&g_sw, 1, func_001A62E8(p->pcont), p->pcont, (char *)p->pcont + 0x198);
+        if (booty->pbootyeCur->xC)
+            func_001618F8(&g_sw, booty->pcont->g18C + 0.99f);
+        func_00156C80(&g_sw, 1, func_001A62E8(booty->pcont), booty->pcont, (char *)booty->pcont + 0x198);
         if (st == 2)
-            BroadcastGameEvent(D_002DEB30, 0x2F, p);
-        p->pcont->pbooty = 0;
-        p->pcont = 0;
-        VCALL(p, 3, PFN3), 5, 0, 0, 0, 0);
+            BroadcastGameEvent(D_002DEB30, 0x2F, booty);
+        booty->pcont->pbooty = 0;
+        booty->pcont = 0;
+        VCALL(booty, 3, PFN3), 5, 0, 0, 0, 0);
         break;
     case 2:
-        p->pmatch = 0;
+        booty->pmatch = 0;
         if (st == 4)
-            p->tDrop = 0.3f;
+            booty->tDrop = 0.3f;
         break;
     case 3:
-        p->pmatch = 0;
+        booty->pmatch = 0;
         break;
     case 4:
-        pot4 = p->phero;
-        p->phero = 0;
+        pot4 = booty->phero;
+        booty->phero = 0;
         VCALL(pot4->pr, 9, PFNV));
         pot4->pbooty = 0;
-        if (p->pbootyeCur->x18 != -1)
-            ShowSoPartsById(p, p->pbootyeCur->x18);
-        if (p->pbootyeCur->xC)
+        if (booty->pbootyeCur->x18 != -1)
+            ShowSoPartsById(booty, booty->pbootyeCur->x18);
+        if (booty->pbootyeCur->xC)
             func_00161958(&g_sw);
         break;
     case 5: {
-        RLO *pr = p->plo164;
+        RLO *pr = booty->plo164;
         if (pr)
             Notify(pr, 1);
-        SetSoCnstrForce(p, 1);
-        SetSoCnstrTorque(p, 1);
-        VCALL(p, 35, PFNQ), D_002A2DD0);
-        VCALL(p, 36, PFNQ), D_002A2DD0);
-        SetSoDvGravity(p, D_002A2DD0);
+        SetSoCnstrForce(booty, 1);
+        SetSoCnstrTorque(booty, 1);
+        VCALL(booty, 35, PFNQ), D_002A2DD0);
+        VCALL(booty, 36, PFNQ), D_002A2DD0);
+        SetSoDvGravity(booty, D_002A2DD0);
         break;
     }
     case 6:
-        p->tDrop = 0.0f;
+        booty->tDrop = 0.0f;
         break;
     }
-    p->st = st;
-    p->tState = D_002DDED0.t;
+    booty->st = st;
+    booty->tState = D_002DDED0.t;
     switch (st) {
     case 0:
-        p->pbootyeCur = 0;
-        SetLoParent_1A58D0(p, 0, 0);
-        VCALL(p, 9, PFNV));
+        booty->pbootyeCur = 0;
+        SetLoParent_1A58D0(booty, 0, 0);
+        VCALL(booty, 9, PFNV));
         break;
     case 1:
-        func_00156C80(&g_sw, -1, D_002A2DD0, 0, (char *)p->pcont + 0x198);
-        SetLoXfFromMat(p, VCALL(p->pcont, 31, PFNP)));
-        SetLoParent_1A58D0(p, (void *)p->pcont->x10, 3);
-        p->pcont->pbooty = p;
+        func_00156C80(&g_sw, -1, D_002A2DD0, 0, (char *)booty->pcont + 0x198);
+        SetLoXfFromMat(booty, VCALL(booty->pcont, 31, PFNP)));
+        SetLoParent_1A58D0(booty, (void *)booty->pcont->x10, 3);
+        booty->pcont->pbooty = booty;
         if (stOld != 3) {
-            VCALL(p, 9, PFNV));
-            FadeSoIn(p, 0.5f);
+            VCALL(booty, 9, PFNV));
+            FadeSoIn(booty, 0.5f);
         }
-        VCALL(p, 3, PFN3), 6, 0, 0, 0, 0);
+        VCALL(booty, 3, PFN3), 6, 0, 0, 0, 0);
         break;
     case 2:
     case 6:
-        VCALL(p->phero->pr, 8, PFNV));
-        if (p->st == 2) {
-            p->pmatch = PripNewRipg(&g_sw, 6, 0);
+        VCALL(booty->phero->pr, 8, PFNV));
+        if (booty->st == 2) {
+            booty->pmatch = PripNewRipg(&g_sw, 6, 0);
         } else {
-            p->pmatch = 0;
-            VCALL(p, 3, PFN3), 6, 0, 0, 0, 0);
-            VCALL(p, 3, PFN3), 5, 0, 0, 0, 0);
+            booty->pmatch = 0;
+            VCALL(booty, 3, PFN3), 6, 0, 0, 0, 0);
+            VCALL(booty, 3, PFN3), 5, 0, 0, 0, 0);
         }
         {
-            MATCH *pe = p->pmatch;
+            MATCH *pe = booty->pmatch;
             if (pe)
-                LINKE(pe, p, p->phero->pr);
+                LINKE(pe, booty, booty->phero->pr);
         }
-        SetLoXfFromMat(p, VCALL(p->phero->pr, 31, PFNP)));
-        SetLoParent_1A58D0(p, p->phero->pr, 3);
-        if (!p->pmatch)
-            SetBootyState(p, 4);
+        SetLoXfFromMat(booty, VCALL(booty->phero->pr, 31, PFNP)));
+        SetLoParent_1A58D0(booty, booty->phero->pr, 3);
+        if (!booty->pmatch)
+            SetBootyState(booty, 4);
         break;
     case 3: {
-        SetLoXfFromMat(p, VCALL(p->pcont, 31, PFNP)));
-        SetLoParent_1A58D0(p, (void *)p->pcont->x10, 3);
-        p->pmatch = PripNewRipg(&g_sw, 6, 0);
-        if (p->pmatch)
-            LINKE3(p->pmatch, pot->pr, p);
-        if (!p->pmatch)
-            SetBootyState(p, 1);
+        SetLoXfFromMat(booty, VCALL(booty->pcont, 31, PFNP)));
+        SetLoParent_1A58D0(booty, (void *)booty->pcont->x10, 3);
+        booty->pmatch = PripNewRipg(&g_sw, 6, 0);
+        if (booty->pmatch)
+            LINKE3(booty->pmatch, pot->pr, booty);
+        if (!booty->pmatch)
+            SetBootyState(booty, 1);
         break;
     }
     case 4:
-        p->phero->pbooty = p;
-        if (p->pbootyeCur->x18 != -1)
-            func_001F6B48(p, p->pbootyeCur->x18);
+        booty->phero->pbooty = booty;
+        if (booty->pbootyeCur->x18 != -1)
+            func_001F6B48(booty, booty->pbootyeCur->x18);
         break;
     case 5: {
         union { qword q; float f[4]; } v;
@@ -704,20 +616,20 @@ void SetBootyState(BOOTYV *p, int st)
         float a, b, c;
         float lo = -6.2831855f, hi = 6.2831855f;
         (void)&w;
-        SetLoParent_1A58D0(p, 0, 3);
-        SetSoCnstrForce(p, 0);
-        SetSoCnstrTorque(p, 0);
+        SetLoParent_1A58D0(booty, 0, 3);
+        SetSoCnstrForce(booty, 0);
+        SetSoCnstrTorque(booty, 0);
         {
-            qword *pv = (qword *)VCALL(p, 31, PFNP));
+            qword *pv = (qword *)VCALL(booty, 31, PFNP));
             qword vv = *pv;
             VT *pvt;
             qword sq, vq;
             __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(1000.0f) : "memory"); /* "memory" clobber (Claude agent): with pvt read after this asm, keeps the vtable lw after the qmtc2 like the target */
-            pvt = p->pvt;
+            pvt = booty->pvt;
             __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(vq) : "j"(vv), "j"(sq), "r"(pvt) : "$2"); /* "r"(pvt): allocation-only (Claude agent), keeps the vtable load before the vmulx like the target; "$2": clobber of the dead v0 (Claude agent), so pvt takes v1 like the target */
             s.q = sq;
             v.q = vq;
-            ((PFNQ)pvt->a[35].pfn)((char *)p + pvt->a[35].d, v.q);
+            ((PFNQ)pvt->a[35].pfn)((char *)booty + pvt->a[35].d, v.q);
         }
         a = GRandInRange__Fff(lo, hi);
         b = GRandInRange__Fff(lo, hi);
@@ -725,86 +637,58 @@ void SetBootyState(BOOTYV *p, int st)
         u.f[0] = a;
         u.f[1] = b;
         u.f[2] = c;
-        VCALL(p, 36, PFNQ), u.q);
-        SetSoDvGravity(p, D_002A4B60.q);
-        BroadcastGameEvent(D_002DEB30, 0x30, p);
+        VCALL(booty, 36, PFNQ), u.q);
+        SetSoDvGravity(booty, D_002A4B60.q);
+        BroadcastGameEvent(D_002DEB30, 0x30, booty);
         break;
     }
     }
 }
 
-/** @sly2-annot addr=0x13CEB8
- * Purpose: cid 0x25 vt7: base init 0x183F08, default kind 0x2BC, -1, 15.0
- * Info: proposed name InitBootyContainer (T2); class CID37 slot7; TU booty
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void InitBootyContainer(CID37V *p) {
-    func_00183F08(p);
-    p->kind = 0x2BC;
-    p->n188 = -1;
-    p->g18C = 15.0f;
+// cid 0x25 vt7: base init 0x183F08, default kind 0x2BC, -1, 15.0. (inferred)
+extern "C" void InitBootyContainer(CID37V *container) {
+    func_00183F08(container);
+    container->kind = 0x2BC;
+    container->n188 = -1;
+    container->g18C = 15.0f;
 }
 
-/** @sly2-annot addr=0x13CEF8
- * Purpose: cid 0x25 vt15: base 0x183F50, unique id from a g_sw counter
- * Info: proposed name PostBootyContainerLoad (T2); class CID37 slot15; TU booty
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void CID37::VUnk14() { CID37V *p = (CID37V *)this; func_00183F50(p); p->id = g_sw.cCid37++; }
+// cid 0x25 vt15: base 0x183F50, unique id from a g_sw counter. (inferred)
+void CID37::VUnk14() { CID37V *container = (CID37V *)this; func_00183F50(container); container->id = g_sw.cCid37++; }
 
-/** @sly2-annot addr=0x13CF38
- * Purpose: If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the
- *   template, select its entry, link and set state 1
- * Info: proposed name SpawnBootyInContainer (T2); TU booty
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void SpawnBootyInContainer(CID37V *p, int) {
+// If none yet and the manager exists: look up saved kind (0x13D248), clone a booty from the template, select its
+// entry, link and set state 1. (inferred)
+void SpawnBootyInContainer(CID37V *container, int) {
     SW *pg;
     int i;
     BOOTYV *pa;
-    if (p->pbooty) return;
+    if (container->pbooty) return;
     pg = &g_sw;
     if (!pg->ploUnk4638) return;
-    i = GetSavedBootyContainerKind(p);
+    i = GetSavedBootyContainerKind(container);
     if (i == -1) return;
     pa = PloAcquireProxy(pg->ploUnk4638, 0);
-    p->pbooty = pa;
+    container->pbooty = pa;
     if (pa) {
         SelectBootyEntry(pa, i);
-        p->pbooty->pcont = p;
-        SetBootyState(p->pbooty, 1);
+        container->pbooty->pcont = container;
+        SetBootyState(container->pbooty, 1);
     }
 }
 
-/** @sly2-annot addr=0x13CFD8
- * Purpose: cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0)
- * Info: proposed name OnCid37Add (T2); class CID37 slot23; TU booty
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was BootyContainer_VUnk22)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void OnBootyContainerAdd(CID37V *p) { func_00183FB8(p); EnsureSwCallback(&g_sw, p, D_002A4BB0.l, 0); }
+// cid 0x25 vt23: base 0x183FB8 then EnsureSwCallback(D_002A4BB0). (inferred)
+extern "C" void OnBootyContainerAdd(CID37V *container) { func_00183FB8(container); EnsureSwCallback(&g_sw, container, D_002A4BB0.l, 0); }
 
-/** @sly2-annot addr=0x13D020
- * Purpose: cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast
- *   event 0x32 on mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0)
- *   and sound 0x27
- * Info: proposed name OnBootyContainerTouched (T2); class CID37 slot51; TU booty
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void OnBootyContainerTouched(CID37V *p, HERO *q)
+// cid 0x25 vt51: when a STEPPLAYER touches: refuse (message 0x124, sound 0x36) if locked, broadcast event 0x32 on
+// mismatch, else swap booty between player and container (UpdateStepplayerBootySave case 0) and sound 0x27.
+// (inferred)
+extern "C" void OnBootyContainerTouched(CID37V *container, HERO *q)
 {
     BOOTYV *pqa, *ppa;
     if (!FIsBasicDerivedFrom((BASIC *)q, CID_34))
         return;
     pqa = q->pbooty;
-    ppa = p->pbooty;
+    ppa = container->pbooty;
     if (!pqa && !ppa)
         return;
     if (ppa && g_sw.ploJobCur && !ppa->pbootyeCur->x10) {
@@ -812,36 +696,31 @@ extern "C" void OnBootyContainerTouched(CID37V *p, HERO *q)
         SetSndSourceLo(PsndStartSound(0x36), 0);
         return;
     }
-    if (p->f190 || (pqa && pqa->pbootyeCur->x14 != p->n188)) {
-        BroadcastGameEvent(D_002DEB30, 0x32, p);
+    if (container->f190 || (pqa && pqa->pbootyeCur->x14 != container->n188)) {
+        BroadcastGameEvent(D_002DEB30, 0x32, container);
         return;
     }
-    if (p->pbooty)
+    if (container->pbooty)
         SetSndSourceLo(PsndStartSound(0x27), 0);
-    UpdateStepplayerBootySave(q, 0, p);
-    if (q->pbooty && p->pbooty) {
-        q->pbooty->pcont = p;
+    UpdateStepplayerBootySave(q, 0, container);
+    if (q->pbooty && container->pbooty) {
+        q->pbooty->pcont = container;
         SetBootyState(q->pbooty, 3);
-        p->pbooty->phero = q;
-        SetBootyState(p->pbooty, 2);
+        container->pbooty->phero = q;
+        SetBootyState(container->pbooty, 2);
     } else if (q->pbooty) {
-        q->pbooty->pcont = p;
+        q->pbooty->pcont = container;
         SetBootyState(q->pbooty, 3);
     } else {
-        p->pbooty->phero = q;
-        SetBootyState(p->pbooty, 2);
+        container->pbooty->phero = q;
+        SetBootyState(container->pbooty, 2);
     }
-    func_00184130(p, q);
+    func_00184130(container, q);
 }
 
 struct SVKEYS { int c; short *as; };
-/** @sly2-annot addr=0x13D1A8
- * Purpose: Build the save key for this container (level entry + two symbols + id)
- * Info: proposed name PkeyBootyContainerSave (T2); TU booty
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-void GetBootyContainerSaveKey(CID37V *p) {
+// Build the save key for this container (level entry + two symbols + id). (inferred)
+void GetBootyContainerSaveKey(CID37V *container) {
     short as[3];
     SVKEYS par;
     int i;
@@ -854,7 +733,7 @@ void GetBootyContainerSaveKey(CID37V *p) {
     pv += 8;
     as[0] = NFindSaveSymbol(pv, D_002A4BB8);
     short r = NFindSaveSymbol(pv, D_002A4BC0);
-    register int t __asm__("$3") = p->idShort;
+    register int t __asm__("$3") = container->idShort;
     register int c __asm__("$5") = 3;
     par.c = c;
     __asm__("" : : : "memory");
@@ -880,6 +759,7 @@ extern "C" {
 void RefGetGlobalSaveVar(CREFC *, void *, void *);
 CRef RefSetGlobalSaveVar(void *, const CRef &, void *);
 }
+// Reads an integer save variable through a CRef.
 static inline int NFromRef(void *pv)
 {
     CREFC ref;
@@ -889,22 +769,13 @@ static inline int NFromRef(void *pv)
     Decref__4CRef(&ref);
     return n;
 }
-/** @sly2-annot addr=0x13D248
- * Purpose: Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 ->
- *   -1
- * Info: proposed name GetSavedBootyContainerKind (T1); TU booty
- * Notes: verifier better_name (CORRECT row): Reads save-var via PkeyBootyContainerSave key; 0 -> default
- *   +0x184; 7..9 -> -1; 0x2BF-0x2C1 -> 0x2BC-0x2BE; sole caller SpawnBootyInContainer. Drop the trailing
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/game-progression.md#8-key-functions,
- *   docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-int GetSavedBootyContainerKind(CID37V *p) {
+// Read saved kind for this container (default +0x184); remap 0x2BF..0x2C1 -> 0x2BC..0x2BE, 7..9 -> -1.
+int GetSavedBootyContainerKind(CID37V *container) {
     STACKSCOPEC ctx;
     int n;
     STACKSCOPE_ctor(&ctx);
-    n = NFromRef(PvContSaveKey(p));
-    if (n == 0) n = p->kind;
+    n = NFromRef(PvContSaveKey(container));
+    if (n == 0) n = container->kind;
     else if (n >= 0) { if (n < 10) { if (n >= 7) n = -1; } }
     switch (n) {
     case 0x2bf: n = 0x2bc; break;
@@ -916,22 +787,17 @@ int GetSavedBootyContainerKind(CID37V *p) {
 }
 
 static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(pv, arg, D_003D4A60); }
-/** @sly2-annot addr=0x13D328
- * Purpose: Splice: reset current booty, save kind n, and spawn if n != -1
- * Info: proposed name SetBootyContainerKind (T2); TU booty
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/game-progression.md#booty-0x13bdf0-0x13d558
- * @end-sly2-annot */
-extern "C" void SetBootyContainerKind(CID37V *p, int n)
+// Splice: reset current booty, save kind n, and spawn if n != -1. (inferred)
+extern "C" void SetBootyContainerKind(CID37V *container, int n)
 {
-    if (p->pbooty) SetBootyState(p->pbooty, 0);
+    if (container->pbooty) SetBootyState(container->pbooty, 0);
     STACKSCOPE frame;
     {
-        void *po = PvContSaveKey(p);
+        void *po = PvContSaveKey(container);
         CRef ref(0x15, n);
         SetPv(po, ref, D_003D4A60);
     }
-    if (n != -1) SpawnBootyInContainer(p, 0);
+    if (n != -1) SpawnBootyInContainer(container, 0);
 }
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has

@@ -900,7 +900,7 @@ static inline float Length(qword value)
     __asm__("mtc1 %1,%0" : "=f"(r) : "r"(d));
     return r;
 }
-// World positions of a beam\x27s two endpoints and their distance (GetLasenBeamEnds).
+// World positions of a beam's two endpoints and their distance (GetLasenBeamEnds).
 static inline void Query(LASENV *owner, BEAM *beam, U (&points)[2], float &distance)
 {
     GetLasenBeamEnds(owner, beam->aend, &points[0].q, &distance);
@@ -970,7 +970,7 @@ extern "C" void RenderLasenSelf(LASENV *laser)
     }
 }
 
-// Stores a beam endpoint\x27s load-time parameters.
+// Stores a beam endpoint's load-time parameters.
 static inline void SetParams(BEAMPARAMS *pparams, float fraction, float speed, float duration, int mode)
 {
     pparams->fraction = fraction;

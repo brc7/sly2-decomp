@@ -194,13 +194,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__F
 
 #define VCALL(po, slot) (po)->pvt[slot].pfn((char *)(po) + (po)->pvt[slot].d
 
-/** @sly2-annot addr=0x223F70
- * Purpose: InitSo; +0x?=-10, 3000.0, -1, -1; grf|=6
- * Info: proposed name InitCid100 (T2); class CID100 slot7; TU tu_223F70
- * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/camera.md#4-source-files, docs/engine/gameplay-objects.md#source-files,
- *   docs/engine/gameplay-objects.md#key-functions
- * @end-sly2-annot */
+// InitSo; +0x?=-10, 3000.0, -1, -1; grf|=6. (inferred)
 void InitTossable(CID100V *p)
 {
     int f;
@@ -214,15 +208,7 @@ void InitTossable(CID100V *p)
     else p->grf = f | 6;
 }
 
-/** @sly2-annot addr=0x223FE0
- * Purpose: LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0
- * Info: proposed name LoadCid100FromBrx (T2); class CID100 slot14; TU tu_223F70
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r8_21BB88+parse-verified
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// LoadSoFromBrx then psophys(0xE8)->0xD4 = 0xD8 = 2.0. (inferred)
 extern "C" void LoadTossableFromBrx(CID100V *p, void *pbis) {
     SOPHYSV *psophys;
     LoadSoFromBrx(p, pbis);
@@ -233,26 +219,14 @@ extern "C" void LoadTossableFromBrx(CID100V *p, void *pbis) {
     }
 }
 
-/** @sly2-annot addr=0x224028
- * Purpose: SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal)
- * Info: proposed name AddCid100Hierarchy (T2); class CID100 slot11; TU tu_223F70
- * Notes: agent qualifier: (slot11)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal). (inferred)
 extern "C" void AddTossableHierarchy(CID100V *p)
 {
     AddSoHierarchy(p);
     if (p->psm) ReplaceSma(p->psm, p, -1, 0, &p->psma);
 }
 
-/** @sly2-annot addr=0x224068
- * Purpose: SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8
- * Info: proposed name RemoveCid100Hierarchy (T2); class CID100 slot12; TU tu_223F70
- * Notes: agent qualifier: (slot12)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// SO slot12, SetState(-1) via vt76, release SM handle 0x1F15B8. (inferred)
 void CID100::RemoveHierarchy()
 {
     CID100V *p = (CID100V *)this;
@@ -261,15 +235,8 @@ void CID100::RemoveHierarchy()
     ReleaseSma(&p->psma);
 }
 
-/** @sly2-annot addr=0x2240B0
- * Purpose: CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (0x224258); if the
- *   owner +0x16C is farther than +0x170 (3000) -> vt75 -> state 3 (auto-fire)
- * Info: proposed name UpdateCid100 (T2); class CID100 slot16; TU tu_223F70
- * Notes: runtime5a #18 CLARIFIED: distance owner(+0x16C) > +0x170 (3000) -> vt75 -> state 3 (auto-fire) | T2:
- *   placeholder token Cid100
- * Confidence: low (draft) [T2 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (0x224258); if the owner +0x16C is
+// farther than +0x170 (3000) -> vt75 -> state 3 (auto-fire). (inferred)
 void UpdateTossable(CID100V *p)
 {
     UpdateSo(p);
@@ -291,12 +258,7 @@ void UpdateTossable(CID100V *p)
     }
 }
 
-/** @sly2-annot addr=0x224190
- * Purpose: if state in {1,2} SetState(3); return 1
- * Info: class CID100 slot75; TU tu_223F70
- * Notes: descriptive only: Cid100 state helper: drop to state 3 from 1/2 | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
+// if state in {1,2} SetState(3); return 1. (inferred)
 extern "C" int TakeTossableDamage(CID100V *p)
 {
     switch (p->state) { case 1: case 2: VCALL(p, 76), 3); }
@@ -304,12 +266,7 @@ extern "C" int TakeTossableDamage(CID100V *p)
 }
 
 struct MSG100 { int a; CID100V *o; };
-/** @sly2-annot addr=0x2241D8
- * Purpose: base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3)
- * Info: proposed name HandleCid100Message (T2); class CID100 slot5; TU tu_223F70
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3). (inferred)
 extern "C" void HandleTossableMessage(CID100V *p, int k, MSG100 *q)
 {
     HandleBasicMessage(p, k, q);
@@ -319,13 +276,7 @@ extern "C" void HandleTossableMessage(CID100V *p, int k, MSG100 *q)
     }
 }
 
-/** @sly2-annot addr=0x224258
- * Purpose: states 0x1A/0x29 -> SetState(3); else SetLoParent(q or 0,3) and SetState(2)
- * Info: TU tu_223F70
- * Notes: descriptive only: Cid100 attach/detach to carrier | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// states 0x1A/0x29 -> SetState(3); else SetLoParent(q or 0,3) and SetState(2). (inferred)
 void StickTossable(CID100V *p, SOV *q)
 {
     int k = p->kind;
@@ -336,12 +287,7 @@ void StickTossable(CID100V *p, SOV *q)
     }
 }
 
-/** @sly2-annot addr=0x2242E0
- * Purpose: base 0x1F4FC8; in states 0/4 and other is STEPPLAYER (flag 0x34) add flag via 0x134310
- * Info: class CID100 slot61; TU tu_223F70
- * Notes: descriptive only: Cid100 filter flags vs player | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
+// base 0x1F4FC8; in states 0/4 and other is STEPPLAYER (flag 0x34) add flag via 0x134310. (inferred)
 extern "C" int FIgnoreTossableIntersection(CID100V *p, BASIC *q)
 {
     int v = FIgnoreSoIntersection(p, q);
@@ -350,12 +296,7 @@ extern "C" int FIgnoreTossableIntersection(CID100V *p, BASIC *q)
     return v;
 }
 
-/** @sly2-annot addr=0x224350
- * Purpose: base 0x1F4FB0 then out->0x98 = 0.25
- * Info: class CID100 slot55; TU tu_223F70
- * Notes: descriptive only: Cid100 slot (sets 0x98 = 0.25 on out struct) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88+verdicts_A2
- * @end-sly2-annot */
+// base 0x1F4FB0 then out->0x98 = 0.25. (inferred)
 extern "C" float AdjustTossableNewXp(CID100V *p, XP *pxp, int i) {
     func_001F4FB0(p, pxp, i);
     pxp->elasticity = 0.25f;
@@ -372,13 +313,7 @@ static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV
 static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.pOther));return value;}
 static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
-/** @sly2-annot addr=0x224380
- * Purpose: walks contact edges, picks neighbouring actor (0x224638, 0x224508)
- * Info: proposed name UpdateCid100Contacts (T2); class CID100 slot58; TU tu_223F70
- * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// walks contact edges, picks neighbouring actor (0x224638, 0x224508). (inferred)
 extern "C" void UpdateTossableContacts(CID100V *p)
 {
     SOV *q;
@@ -412,13 +347,7 @@ extern "C" void UpdateTossableContacts(CID100V *p)
     }
 }
 
-/** @sly2-annot addr=0x224508
- * Purpose: returns 0 if any node in list has one of 4 flags D_002C42E8
- * Info: proposed name FCid100ChainFree (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// returns 0 if any node in list has one of 4 flags D_002C42E8. (inferred)
 int IsTossableChainFree(CID100V *p, SOV *q)
 {
     unsigned i;
@@ -429,58 +358,28 @@ int IsTossableChainFree(CID100V *p, SOV *q)
     return 1;
 }
 
-/** @sly2-annot addr=0x224590
- * Purpose: returns state in {1,2}
- * Info: proposed name FCid100Active (T2); class CID100; TU tu_223F70
- * Notes: agent qualifier: state 1 or 2
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// returns state in {1,2}. (inferred)
 extern "C" int IsTossableActive(CID100V *p)
 {
     switch (p->state) { case 1: case 2: return 1; }
     return 0;
 }
 
-/** @sly2-annot addr=0x2245B8
- * Purpose: Fire a held/stuck Bentley gadget object: Health Extractor (id 11) -> SetCid100State(5), else
- *   (Trigger Bomb) -> state 3. Caller HandleStepplayerMessage msg 9 kind 0x27C (2nd gadget press, JTGRAB
- *   nState 0xB)
- * Info: proposed name TriggerCid100 (T2); TU tu_223F70
- * Notes: descriptive only: Cid100 release state | no usable identifier; purpose only | runtime5a #17: S51
- *   JTGRAB tEnter 571.17, bomb state 3 at 571.57 | T2: placeholder token Cid100
- * Confidence: low (draft) [T2 0.60] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime5a
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648
- * @end-sly2-annot */
+// Fire a held/stuck Bentley gadget object: Health Extractor (id 11) -> SetCid100State(5), else (Trigger Bomb) ->
+// state 3. Caller HandleStepplayerMessage msg 9 kind 0x27C (2nd gadget press, JTGRAB nState 0xB). (inferred)
 extern "C" void TriggerTossable(CID100V *p)
 {
     if (p->kind == 11) VCALL(p, 76), 5);
     else VCALL(p, 76), 3);
 }
 
-/** @sly2-annot addr=0x224610
- * Purpose: True if the gadget id (+0x15C) is 7 (Trigger Bomb) or 11 (Health Extractor)
- * Info: proposed name FCid100ThrowableGadget (T2); class CID100; TU tu_223F70
- * Notes: verifier PLAUSIBLE: FCid100Held? (state 7 or 11) -> FCid100State7Or11 | v3: superseded
- *   FCid100State7Or11 | runtime5a #16 CORRECTION: reads +0x15C = gadget id (runtime bomb +0x15C = 7), not the
- *   state +0x150; v2 FCid100State7Or11 | T2: placeholder token Cid100
- * Confidence: low (draft) [T2 0.70] - evidence: runtime (save-state RAM); sources:
- *   r8_21BB88+verdicts_tu_r7r8+runtime5a
- * See: docs/engine/gameplay-objects.md#key-functions, docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// True if the gadget id (+0x15C) is 7 (Trigger Bomb) or 11 (Health Extractor). (inferred)
 extern "C" int IsThrowableGadget(CID100V *p)
 {
     int x = p->kind; if (x != 7 && x != 11) return 0; return 1;
 }
 
-/** @sly2-annot addr=0x224638
- * Purpose: state table predicate (4 with flag; 5,7,9,11,13,26,37,41)
- * Info: proposed name FCid100StateBlocks (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// state table predicate (4 with flag; 5,7,9,11,13,26,37,41). (inferred)
 int IsTossableStateBlocking(CID100V *p)
 {
     switch (p->kind) {
@@ -490,15 +389,7 @@ int IsTossableStateBlocking(CID100V *p)
     }
 }
 
-/** @sly2-annot addr=0x224688
- * Purpose: True if the gadget id (+0x15C) is 11 (Health Extractor)
- * Info: proposed name FCid100HealthExtractor (T2); class CID100; TU tu_223F70
- * Notes: v3: superseded FCid100State11 | runtime5a #17: +0x15C is the gadget id; v2 FCid100State11 | T2:
- *   placeholder token Cid100
- * Confidence: low (draft) [T2 0.65] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime5a
- * See: docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// True if the gadget id (+0x15C) is 11 (Health Extractor). (inferred)
 int IsHealthExtractor(CID100V *p) {
     return p->kind == 0xB;
 }
@@ -520,12 +411,7 @@ static inline qwordV Sqrt(qwordV len) {
 static inline float X(qwordV v) { float f;__asm__("qmfc2.ni %0,%1" : "=r"(f) : "j"(v));return f; }
 static inline qwordV ScaleQ(qwordV d,qwordV len) { qwordV r;
     __asm__ __volatile__("vdiv Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,Q" : "=j"(r) : "j"(d),"0"(len));return r; }
-/** @sly2-annot addr=0x224698
- * Purpose: turns linked active object toward target in horizontal plane
- * Info: proposed name OrientCid100ToTarget (T2); class CID100 slot70; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// turns linked active object toward target in horizontal plane. (inferred)
 extern "C" void OrientTossableToTarget(CID100V *p) {
     M3 m;
     if(p->state==0 || p->state==4)return;
@@ -580,12 +466,7 @@ static inline float Clamp(float f,float lo,float hi){float r;if(f<lo)r=lo;else i
 static inline qwordV Get(SOV *o,int slot){VTE *v=o->pvt;return v[slot].get((char *)o+v[slot].d);}
 static inline void Set(SOV *o,int slot,qwordV q){VTE *v=o->pvt;v[slot].set((char *)o+v[slot].d,q);}
 static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
-/** @sly2-annot addr=0x224820
- * Purpose: traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*)
- * Info: proposed name ProbeCid100Hit (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// traces a probe segment, records HIT, pushes the touched body (impulse via ApplySo*). (inferred)
 void ProbeTossableHit(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
  SOV *owner=Pin(ownerIn);LSG hit;int bits;
  COLL *collider=PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,start,end,queryCount,objects,&hit);
@@ -637,12 +518,7 @@ void ProbeTossableHit(SOV *ownerIn,int filter,int channel,qwordV start,qwordV en
 static __inline__ qwordV VAdd(qwordV a, qwordV b) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 struct COLLA { XFV *pb; };
-/** @sly2-annot addr=0x224BF8
- * Purpose: builds probe sphere set and calls 0x224820 per probe
- * Info: proposed name SweepCid100Probes (T2); class CID100; TU tu_223F70
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// builds probe sphere set and calls 0x224820 per probe. (inferred)
 void SweepTossableProbes(CID100V *p, int a, int b, qwordV pos, float r)
 {
     STACKSCOPEMK mark;
@@ -670,12 +546,7 @@ void SweepTossableProbes(CID100V *p, int a, int b, qwordV pos, float r)
     STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }
 
-/** @sly2-annot addr=0x224E70
- * Purpose: SetLoParent(this,0,1) then 0x224BF8 at world pos
- * Info: TU tu_223F70
- * Notes: descriptive only: Cid100 detach+sweep | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
+// SetLoParent(this,0,1) then 0x224BF8 at world pos. (inferred)
 extern "C" void DropTossable(CID100V *p, float f)
 {
     SetLoParent_1A58D0(p, 0, 1);
@@ -719,17 +590,8 @@ static inline M3 MakeBasis(qwordV direction,qwordV rawUp) return result;{
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A97A8 __asm__("D_002A97A8") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x224EC8
- * Purpose: CID100 (Bentley gadget object, id +0x15C) state: -1 pooled, 0 held by owner, 1 flight, 2 stuck to
- *   surface +0x1A0, 3 detonate/release, 5 health extract; each plays SMA goal D_002C4398[state] = 109..114
- * Info: proposed name SetCid100State (T2); class CID100 slot76; TU tu_223F70
- * Notes: runtime5a #19 CLARIFIED: states -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health-extract;
- *   SMA goal D_002C4398[state] | T2: placeholder token Cid100
- * Confidence: low (draft) [T2 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/player.md#7-bentley-bentleycpp-0x134648,
- *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// CID100 (Bentley gadget object, id +0x15C) state: -1 pooled, 0 held by owner, 1 flight, 2 stuck to surface +0x1A0, 3
+// detonate/release, 5 health extract; each plays SMA goal D_002C4398[state] = 109..114. (inferred)
 void SetTossableState(CID100V *p,int state){
  int old=p->state;
  if(state==old)return;
@@ -776,13 +638,7 @@ void SetTossableState(CID100V *p,int state){
  if(p->psma&&p->state>=0)SetSmaGoalIfReachable(p->psma,D_002C4398[p->state]);
 }
 
-/** @sly2-annot addr=0x2252E0
- * Purpose: calls InitCid100
- * Info: proposed name InitCid102 (T2); class CID102 slot7; TU tu_223F70
- * Notes: names_v2 C proposed ExtendLasen__FP5LASENf (0.200)
- * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// calls InitCid100. (inferred)
 void CID102::Init() { CID100V *p = (CID100V *)this;
     InitTossable(p);
 }
@@ -812,13 +668,7 @@ static inline qwordV Splat(float f) {
     __asm__("pextlw %0,%2,%2\n\tpextlw %1,%0,%0" : "=r"(t),"=r"(r) : "r"(b));
     return r;
 }
-/** @sly2-annot addr=0x225300
- * Purpose: state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3
- * Info: proposed name UpdateCid102 (T2); class CID102 slot16; TU tu_223F70
- * Notes: names_v2 C proposed UpdateCamsen__FP6CAMSENf (0.290)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// state-5 update: fade actor in, hand control, drop prize 0x5D, post game event 0x18, state 3. (inferred)
 extern "C" void UpdateGuardTrap(CID100V *p) {
     int old;
     UpdateTossable(p);
@@ -859,12 +709,7 @@ extern "C" void UpdateGuardTrap(CID100V *p) {
 }
 
 struct MSGO { int a; SOV *o; };
-/** @sly2-annot addr=0x2255C8
- * Purpose: negated vector -> 0x1FAC30
- * Info: class CID102 slot71; TU tu_223F70
- * Notes: descriptive only: Cid102 impulse helper | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
- * @end-sly2-annot */
+// negated vector -> 0x1FAC30. (inferred)
 extern "C" void PushGuardTrapAway(CID100V *p, MSGO *q)
 {
     SOV *o = q->o;
@@ -907,13 +752,7 @@ static inline qwordV LoadCoefficient(){
     return scalar;
 }
 struct Vec {qwordV q;Vec(const qwordV &v):q(v){}operator qwordV()const{return q;}};
-/** @sly2-annot addr=0x225660
- * Purpose: change selection state and prepare nearest eligible actor
- * Info: proposed name SenseCid102 (T2); class CID102 slot76; TU tu_223F70
- * Notes: names_v2 C proposed SenseCamsen__FP6CAMSENP7SENSORS (0.438) | agent qualifier: select nearest actor
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r8_21BB88
- * See: docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
- * @end-sly2-annot */
+// change selection state and prepare nearest eligible actor. (inferred)
 extern "C" void SelectGuardTrapTarget(CID100V *p, int k)
 {
     if (k == p->state)

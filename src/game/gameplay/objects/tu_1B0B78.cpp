@@ -139,14 +139,7 @@ float RadNormalize(float r);                                                    
 LOV *PloFindSwObject(SW *psw, int grf, OID oid, LOV *ploCtx) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");                                   /* PloFindSwObject__FP2SWi3OIDP2LO */
 void SetStepSpinRatio(STEP *pstep, float r);
 
-/** @sly2-annot addr=0x1B0B78
- * Purpose: CID 96 vt7 Init: InitSo + defaults
- * Info: proposed name InitCid96 (T2); class CID96 slot7; TU tu_1B0B78
- * Notes: names_v2 v1 proposed FCheckStepXpBase__FP4STEPP2XPi (0.074)
- * Confidence: low (draft) [T2 0.60] - evidence: static naming pass; sources: r5b_rest
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/hud-ui.md#4-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt7 Init: InitSo + defaults. (inferred)
 extern "C" void InitCritter(CID96V *p)
 {
     int i;
@@ -175,28 +168,14 @@ extern "C" void InitCritter(CID96V *p)
     else p->x40 |= 2;
 }
 
-/** @sly2-annot addr=0x1B0C68
- * Purpose: CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null)
- * Info: proposed name RemoveCid96Hierarchy (T2); class CID96 slot12; TU tu_1B0B78
- * Notes: slot 12 is RemoveHierarchy (CONFLICTS#5: LO base 0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy;
- *   OnAdd/OnRemove are slots 23/22 per arbitration); was OnCid96Remove
- * Confidence: low (draft) [T2 0.50] - evidence: arbitration; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt12: RemoveSoHierarchy then stop animation (ApplyAsegCur null). (inferred)
 extern "C" void RemoveCritterHierarchy(CID96V *p)
 {
     RemoveSoHierarchy(p);
     ApplyAsegCur(0, 0, 0.0f, 0.0f, 0, &p->pasega);
 }
 
-/** @sly2-annot addr=0x1B0CA8
- * Purpose: CID 96 vt14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects
- * Info: proposed name LoadCid96FromBrx (T2); class CID96 slot14; TU tu_1B0B78
- * Notes: level_parser CONFIRMED-code (layout read from the matched function; class absent from samples)
- * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r5b_rest+parse-code
- * See: docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt14: LoadSoFromBrx, set XF role of child x58, cache id, resolve linked objects. (inferred)
 extern "C" void LoadCritterFromBrx(CID96V *p, CBinaryInputStream *pbis)
 {
     XFV *pxf;
@@ -212,13 +191,7 @@ extern "C" void LoadCritterFromBrx(CID96V *p, CBinaryInputStream *pbis)
     ResolveCritterLinks(p);
 }
 
-/** @sly2-annot addr=0x1B0D08
- * Purpose: CID 96 vt15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset
- * Info: proposed name PostCid96Load (T2); class CID96 slot15; TU tu_1B0B78
- * Notes: names_v2 v1 proposed AdjustStepNewXp__FP4STEPP2XPi (0.438)
- * Confidence: low (draft) [T2 0.65] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt15: PostSoLoad, resolve links, compute walk speeds from two ASEG clips (0x1B1A38), reset. (inferred)
 extern "C" void PostCritterLoad(CID96V *p)
 {
     PostSoLoad(p);
@@ -228,26 +201,14 @@ extern "C" void PostCritterLoad(CID96V *p)
     ResetCritter(p);
 }
 
-/** @sly2-annot addr=0x1B0D60
- * Purpose: CID 96 vt26: proxy base then reset
- * Info: proposed name Cid96_VUnk26Proxy (T2); class CID96 slot26; TU tu_1B0B78
- * Notes: names_v2 v1 proposed UpdateStepMatTarget__FP4STEP (0.004)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt26: proxy base then reset. (inferred)
 extern "C" void ResetCritterFromProxy(CID96V *p)
 {
     func_001CB518(p);
     ResetCritter(p);
 }
 
-/** @sly2-annot addr=0x1B0D90
- * Purpose: Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle
- * Info: proposed name ResetCid96 (T2); class CID96; TU tu_1B0B78
- * Notes: names_v2 v1 proposed UpdateStepXfWorld__FP4STEP (0.070)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// Squash ratio 1, if on a path go to state 1 at path start (vt29 TranslateToPos), else idle. (inferred)
 void ResetCritter(CID96V *p)
 {
     qwordV v;
@@ -267,14 +228,8 @@ void ResetCritter(CID96V *p)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A70E0 __asm__("D_002A70E0") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1B0E28
- * Purpose: CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut);
- *   path following
- * Info: proposed name UpdateCid96 (T2); class CID96 slot16; TU tu_1B0B78
- * Notes: names_v2 v1 proposed AddStepCustomXpsBase__FP4STEPP2SOP3BSPPP2XP (0.058)
- * Confidence: low (draft) [T2 0.60] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt16: UpdateSo; state machine idle(0)/walk(1)/turn(2)/flee(3)/run-off(4, then FadeSoOut); path following.
+// (inferred)
 extern "C" void UpdateCritter(CID96V *p)
 {
     int st;
@@ -311,13 +266,8 @@ extern "C" void UpdateCritter(CID96V *p)
 
 struct M96 { int k; int pad[3]; qwordV a; qwordV b; qwordV c; };
 struct A96 { char pad[0x20]; qwordV q20; qwordV q30; int pad1; int n44; };
-/** @sly2-annot addr=0x1B0F88
- * Purpose: vt75-like zap handler: on accepted hit with flag 8 go to state 5 and send vt51 (explode) to linked
- *   object x1C8
- * Info: proposed name HandleCid96Zap (T2); class CID96 slot75; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// vt75-like zap handler: on accepted hit with flag 8 go to state 5 and send vt51 (explode) to linked object x1C8.
+// (inferred)
 extern "C" int TakeCritterDamage(CID96V *p, A96 *pa)
 {
     int r = func_001F7588(p, pa);
@@ -335,12 +285,7 @@ extern "C" int TakeCritterDamage(CID96V *p, A96 *pa)
 }
 
 static __inline__ void ClearV(V3 *pv) { pv->z = 0; pv->y = 0; pv->x = 0; }
-/** @sly2-annot addr=0x1B1030
- * Purpose: CID 96 vt17: in states 2-3 clear child velocities and call vt70, then SO vt17
- * Info: proposed name UpdateCid96XfWorld (T2); class CID96 slot17; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt17: in states 2-3 clear child velocities and call vt70, then SO vt17. (inferred)
 extern "C" void UpdateCritterXfWorld(CID96V *p)
 {
     int n = p->state;
@@ -354,37 +299,21 @@ extern "C" void UpdateCritterXfWorld(CID96V *p)
     func_001F3980(p);
 }
 
-/** @sly2-annot addr=0x1B10B0
- * Purpose: CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position
- * Info: proposed name PresetCid96Accel (T2); class CID96 slot70; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt70: AccelSoTowardMatBounded toward stored matrix/position. (inferred)
 extern "C" void PresetCritterAccel(CID96V *p)
 {
     func_001F59A0(p, &p->basis, &p->spin);
 }
 
 struct MSG { char pad[0x14]; ASEG *paseg; };   /* the ASEGA's clip (ASEGA::paseg) */
-/** @sly2-annot addr=0x1B10D0
- * Purpose: CID 96 vt5: base handler; msg 2 from its own SMA with matching id -> state 4
- * Info: proposed name HandleCid96Message (T2); class CID96 slot5; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt5: base handler; msg 2 from its own SMA with matching id -> state 4. (inferred)
 extern "C" void HandleCritterMessage(CID96V *p, int msg, ASEGA *pm)
 {
     HandleBasicMessage(p, msg, pm);
     if (msg == 2 && pm == p->pasega && ((MSG *)pm)->paseg == p->ae[3].paseg) SetCritterState(p, 4);
 }
 
-/** @sly2-annot addr=0x1B1140
- * Purpose: CID 96 vt19: RenderSoSelf
- * Info: proposed name RenderCid96Self (T2); class CID96 slot19; TU tu_1B0B78
- * Notes: names_v2 C proposed AddStepCustomXps__FP4STEPP2SOiP3BSPT3PP2XP (0.236)
- * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// CID 96 vt19: RenderSoSelf. (inferred)
 void CID96::RenderSelf()
 {
     CID96V *p = (CID96V *)this;
@@ -402,12 +331,7 @@ static __inline__ qwordV VLen(qwordV c)
     return r;
     }
 }
-/** @sly2-annot addr=0x1B1160
- * Purpose: Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends
- * Info: proposed name UpdateCid96PathFollow (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// Advance along curve x16C (closest point, wrap/clamp, speed scaling), switch state at ends. (inferred)
 void UpdateCritterPathFollow(CID96V *p)
 {
     SHAPE *q;
@@ -483,13 +407,8 @@ static inline qwordV SplatBits(int bits){qwordV q;__asm__("qmtc2.ni %1,%0":"=j"(
 static inline void Call(CID96V*p,int index){VTE&v=p->pvt[index];((void(*)(void*))v.pfn)((char*)p+v.d);}
 static inline void SetMode(CID96V*p){VTE&v=p->pvt[47];((void(*)(void*,int))v.pfn)((char*)p+v.d,4);}
 static inline M4*GetMatrix(CID96V*p){VTE&v=p->pvt[31];return ((M4*(*)(void*))v.pfn)((char*)p+v.d);}
-/** @sly2-annot addr=0x1B1328
- * Purpose: State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee
- *   to path end from nearest player with deadline, 5 hit; sound and ASEG per state
- * Info: proposed name SetCid96State (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// State switch: 0 idle (random delay), 1 walk (mode 4), 2 turn around, 3 squash (ratio x2), 4 flee to path end from
+// nearest player with deadline, 5 hit; sound and ASEG per state. (inferred)
 void SetCritterState(CID96V*p,int next){
  int old=p->state;if(old==next)return;WORK w;
  switch(old){case -1:case 0:case 2:case 3:func_002303A0(p,p->pxf5C,p->oldMode);func_0022C840(p,p->pxf5C);break;}
@@ -546,16 +465,7 @@ void SetCritterState(CID96V*p,int next){
 
 /* SetCid96SpinRatio (docs/engine/gameplay-objects.md): the symbol still says STEP. */
 static inline float SqrtF(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=f"(r) : "f"(g)); return r; }
-/** @sly2-annot addr=0x1B17B8
- * Purpose: Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C
- * Info: proposed name SetCid96SpinRatio (EXISTING); class CID96; TU tu_1B0B78
- * Notes: agent/verifier proposes SetCid96SquashRatio for this existing name (see existing_name_changes.csv) |
- *   RENAME proposed -> SetCid96SpinRatio (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.65] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r5b_rest+arbitration
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes,
- *   docs/engine/gameplay-objects.md#key-functions, docs/engine/player.md#3-step-stepcpp-0x203948
- * @end-sly2-annot */
+// Store scale vector D_002C0248*(r, r, 1/sqrt r) at +0x210 and r at +0x21C.
 void SetStepSpinRatio(STEP *pstep, float r)
 {
     CID96V *p = (CID96V *)pstep;
@@ -566,25 +476,14 @@ void SetStepSpinRatio(STEP *pstep, float r)
     p->ratio = r;
 }
 
-/** @sly2-annot addr=0x1B1818
- * Purpose: Store heading and rotation matrix about up
- * Info: proposed name SetCid96Heading (T2); class CID96; TU tu_1B0B78
- * Notes: names_v2 C proposed SetStepGravityRatio__FP4STEPf (0.200)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// Store heading and rotation matrix about up. (inferred)
 void SetCritterHeading(CID96V *p, float g)
 {
     p->heading = g;
     p->basis = func_0011B500(D_002A2DC0.q, g);
 }
 
-/** @sly2-annot addr=0x1B1868
- * Purpose: True when facing within 1 degree of stored heading
- * Info: proposed name FCid96FacingHeading (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// True when facing within 1 degree of stored heading. (inferred)
 int IsCritterFacingHeading(CID96V *p)
 {
     float *a = ((float *(*)(void *))p->pvt[31].pfn)((char *)p + p->pvt[31].d);
@@ -604,12 +503,7 @@ static inline float Length(qwordV v)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
-/** @sly2-annot addr=0x1B1900
- * Purpose: Look at nearest player (0x1C4AF8): flee/turn decision and heading
- * Info: proposed name ChooseCid96StateFromPlayer (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// Look at nearest player (0x1C4AF8): flee/turn decision and heading. (inferred)
 int ChooseCritterStateFromPlayer(CID96V *p)
 {
     int r = p->state;
@@ -637,12 +531,7 @@ int ChooseCritterStateFromPlayer(CID96V *p)
 typedef struct { float x, y, z, w; } __attribute__((aligned(16))) V;
 struct C96 { VTE *vt; };
 struct Y96 { int x0; C96 *pc; };
-/** @sly2-annot addr=0x1B1A38
- * Purpose: Root-motion speed of a clip for this object (displacement / duration)
- * Info: proposed name GetAsegSpeedForObject (T2); TU tu_1B0B78
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// Root-motion speed of a clip for this object (displacement / duration). (inferred)
 void GetAsegSpeedForObject(CID96V *p, LOV *px, float *pf)
 {
     V v0, v1;
@@ -658,23 +547,13 @@ void GetAsegSpeedForObject(CID96V *p, LOV *px, float *pf)
     *pf = __builtin_fabsf(v1.x - v0.x) / px->tMax * px->svtMaster;
 }
 
-/** @sly2-annot addr=0x1B1B10
- * Purpose: index < 6
- * Info: proposed name FValidCid96Link (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// index < 6. (inferred)
 int IsValidCritterLinkIndex(unsigned int n)
 {
     return n < 6U;
 }
 
-/** @sly2-annot addr=0x1B1B18
- * Purpose: Set link slot n (not 2/5) id and optional value
- * Info: proposed name SetCid96Link (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// Set link slot n (not 2/5) id and optional value. (inferred)
 extern "C" void SetCritterLink(CID96V *p, int n, OID oid, int grf)
 {
     if (IsValidCritterLinkIndex(n) && n != 2 && n != 5) {
@@ -685,12 +564,7 @@ extern "C" void SetCritterLink(CID96V *p, int n, OID oid, int grf)
     }
 }
 
-/** @sly2-annot addr=0x1B1B98
- * Purpose: PloFindSwObject by id and call its vt (slot 9)
- * Info: proposed name PloFindCid96Link (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// PloFindSwObject by id and call its vt (slot 9). (inferred)
 ASEG *FindCritterLinkObject(CID96V *p, OID oid)
 {
     LOV *plo;
@@ -702,12 +576,7 @@ ASEG *FindCritterLinkObject(CID96V *p, OID oid)
     return (ASEG *)plo;
 }
 
-/** @sly2-annot addr=0x1B1BF0
- * Purpose: Resolve the 6 link ids into object pointers
- * Info: proposed name ResolveCid96Links (T2); class CID96; TU tu_1B0B78
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1b0b78-0x1b0b78-0x1b1db8
- * @end-sly2-annot */
+// Resolve the 6 link ids into object pointers. (inferred)
 void ResolveCritterLinks(CID96V *p)
 {
     int i;

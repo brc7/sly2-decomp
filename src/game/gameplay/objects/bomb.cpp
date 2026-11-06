@@ -523,7 +523,7 @@ static __inline__ qword MulV(M3 *pm, qword v)
     o = VuMulMatrix3(pm->r[0], pm->r[1], pm->r[2], v);
     return o;
 }
-// Writes a rotation into the bomb\x27s transform (helper of PrepareBombDetonation).
+// Writes a rotation into the bomb's transform (helper of PrepareBombDetonation).
 static __inline__ void MulStore(BOMBV *bomb, M3 *pm)
 {
     M3 t, u;

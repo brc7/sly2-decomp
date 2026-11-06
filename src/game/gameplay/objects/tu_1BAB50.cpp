@@ -111,13 +111,7 @@ int func_001BBE48X(TRIG *p, XPC *e) __asm__("IsBreakableDone");
 E *func_001BBE68K(TRIG *p, const void *k) __asm__("GetCurrentBreakableStage");
 static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318M(pmsg); }
 
-/** @sly2-annot addr=0x1BAB50
- * Purpose: CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0)
- * Info: proposed name InitCid98 (T2); class CID98 slot7; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// CID 98 vt7: InitSo, zap responses (SetSoZapResponse 0x3FFFFFF->8, 0x80001->0). (inferred)
 extern "C" void InitBreakable(TRIG *p) {
     InitSo(p);
     func_001F7918(p, 0x03FFFFFF, 8);
@@ -127,16 +121,8 @@ extern "C" void InitBreakable(TRIG *p) {
 static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
 static inline void *AllocB(int cb) { return func_001AE378(AREQV(cb, 0x10)); }
 static inline void *Realloc(void *pv, int cb) { return func_001AE238(AREQV(cb, 0x10), pv); }
-/** @sly2-annot addr=0x1BABA0
- * Purpose: CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim
- *   allocations to counts
- * Info: proposed name LoadCid98FromBrx (T2); class CID98 slot14; TU tu_1BAB50
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r5b_rest+parse-verified
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// CID 98 vt14: allocate trigger-class list and stage table (with stage -1), LoadSoFromBrx, trim allocations to
+// counts. (inferred)
 extern "C" void LoadBreakableFromBrx(TRIG *p, void *a)
 {
     STACKSCOPE ctx;
@@ -163,29 +149,13 @@ extern "C" void LoadBreakableFromBrx(TRIG *p, void *a)
     }
 }
 
-/** @sly2-annot addr=0x1BAD80
- * Purpose: CID 98 vt22: FreezeSo then RemoveDlEntry from class list (*(char (*)[])&g_sw.dlCid98)
- * Info: proposed name OnCid98Remove (T2); class CID98 slot22; TU tu_1BAB50
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was FreezeCid98)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// CID 98 vt22: FreezeSo then RemoveDlEntry from class list (*(char (*)[])&g_sw.dlCid98). (inferred)
 extern "C" void OnBreakableRemove(TRIG *p) {
     OnSoRemove(p);
     RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), p);
 }
 
-/** @sly2-annot addr=0x1BADB8
- * Purpose: CID 98 vt23: UnfreezeSo then AppendDlEntry to (*(char (*)[])&g_sw.dlCid98)
- * Info: proposed name OnCid98Add (T2); class CID98 slot23; TU tu_1BAB50
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was UnfreezeCid98)
- * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// CID 98 vt23: UnfreezeSo then AppendDlEntry to (*(char (*)[])&g_sw.dlCid98). (inferred)
 extern "C" void OnBreakableAdd(TRIG *p) {
     OnSoAdd(p);
     AppendDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlCid98), p);
@@ -193,12 +163,7 @@ extern "C" void OnBreakableAdd(TRIG *p) {
 
 /* A contact record: the other object and its flags word at +0x40. */
 struct XPC { TRIG *x0; int x4; int x8; int xC; char pad[0x30]; union { unsigned long l; struct { int lo; int hi; } w; } x40; };
-/** @sly2-annot addr=0x1BADF0
- * Purpose: Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8)
- * Info: proposed name FCid98AcceptZap (T2); class CID98 slot75; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Zap filter: accept zaps of allowed kind from allowed classes and schedule the reaction (0x1BAED8). (inferred)
 extern "C" int AcceptBreakableZap(TRIG *p, XPC *e)
 {
     int i;
@@ -214,12 +179,7 @@ extern "C" int AcceptBreakableZap(TRIG *p, XPC *e)
     return 1;
 }
 
-/** @sly2-annot addr=0x1BAED8
- * Purpose: Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React)
- * Info: proposed name ScheduleCid98Reaction (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Remember instigator and kind, EnsureSwCallback(g_sw, this, &Cid98::React). (inferred)
 void ScheduleBreakableReaction(TRIG *p, void *a, int b)
 {
     p->x170 = b;
@@ -228,13 +188,8 @@ void ScheduleBreakableReaction(TRIG *p, void *a, int b)
 }
 
 enum { EVENT_SHIFT = 4 };
-/** @sly2-annot addr=0x1BAF18
- * Purpose: Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and
- *   target stage
- * Info: proposed name SetCid98Stage (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Jump to stage id (0x609 first, 0x60A last), replaying show/hide of globs/parts between current and target stage.
+// (inferred)
 void SetBreakableStage(TRIG *p, int id)
 {
     int iTarget = p->i;
@@ -341,17 +296,8 @@ typedef char event_shift[sizeof(E)==(1<<EVENT_SHIFT)?1:-1];
 /* The object's contact list (XP records: +0x4 next, +0x8 the armed flag, +0xC the other object). */
 struct L { int x0; struct L *next; int *px8; TRIG *po; };
 struct XPO { char pad[0x64]; L *pl; };
-/** @sly2-annot addr=0x1BB250
- * Purpose: CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to
- *   touching CID-98 objects
- * Info: proposed name ScheduleCid98TouchEvents (T2); class CID98 slot58; TU tu_1BAB50
- * Notes: verifier PLAUSIBLE: Placeholder class (CID 0x62 vtable slot 58). ScheduleSoTouchEvents, then for
- *   each pending contact whose class matches an enabled filter entry: ScheduleCid98Reaction (both ways when
- *   the other is also C | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+verdicts_followups
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// CID 98 vt58: SO base, then for contacts with allowed trigger classes schedule a reaction; chain to touching CID-98
+// objects. (inferred)
 void CID98::VUnk57()
 {
     TRIG *p = (TRIG *)this;
@@ -386,14 +332,8 @@ void CID98::VUnk57()
     }
 }
 
-/** @sly2-annot addr=0x1BB400
- * Purpose: Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648),
- *   stimulus 0x156B98, BroadcastGameEvent, advance stage
- * Info: proposed name ReactCid98 (T2); class CID98; TU tu_1BAB50
- * Notes: names_v2 C proposed FIsJsgJsgeComplete__FP3JSGP4JSGE (0.638)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648), stimulus
+// 0x156B98, BroadcastGameEvent, advance stage. (inferred)
 void TRIG::Action()
 {
     TRIG *p = this;
@@ -437,13 +377,8 @@ void TRIG::Action()
 }
 
 typedef struct MSGS { int a; SOX *ps; char pad[0x38]; } MSGS;
-/** @sly2-annot addr=0x1BB648
- * Purpose: Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm,
- *   TriggerJoyRumbleRumk, sound 0x154E10, spawn 0x161F48
- * Info: proposed name RunCid98StageActions (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10,
+// spawn 0x161F48. (inferred)
 void RunBreakableStageActions(TRIG *p, E *pe)
 {
     int i;
@@ -514,12 +449,7 @@ void RunBreakableStageActions(TRIG *p, E *pe)
     }
 }
 
-/** @sly2-annot addr=0x1BB918
- * Purpose: Append (class, flag) to trigger list (max 8)
- * Info: proposed name AddCid98TriggerClass (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Append (class, flag) to trigger list (max 8). (inferred)
 extern "C" int AddBreakableTriggerClass(TRIG *p, int a, int b) {
     int c = p->c150;
     int r = c < 8;
@@ -533,12 +463,7 @@ extern "C" int AddBreakableTriggerClass(TRIG *p, int a, int b) {
     return r;
 }
 
-/** @sly2-annot addr=0x1BB950
- * Purpose: Append stage id with action buffer (max 32)
- * Info: proposed name AddCid98Stage (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Append stage id with action buffer (max 32). (inferred)
 extern "C" void AddBreakableStage(TRIG *p, int id)
 {
     MSG msg;
@@ -552,12 +477,7 @@ extern "C" void AddBreakableStage(TRIG *p, int id)
     }
 }
 
-/** @sly2-annot addr=0x1BB9B8
- * Purpose: Init stage -1 with action buffer
- * Info: proposed name InitCid98PreStage (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Init stage -1 with action buffer. (inferred)
 extern "C" void InitBreakablePreStage(TRIG *p)
 {
     E *pe;
@@ -569,12 +489,7 @@ extern "C" void InitBreakablePreStage(TRIG *p)
     if (!pe->a) pe->a = (I *)PvAllocMsg(&msg, 0x200, 0x10);
 }
 
-/** @sly2-annot addr=0x1BBA18
- * Purpose: Set a field of the current stage record (D_002A76B8 key)
- * Info: proposed name SetCid98StageParam (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Set a field of the current stage record (D_002A76B8 key). (inferred)
 extern "C" void SetBreakableStageParam(TRIG *p, int x)
 {
     if (p->i != -1) {
@@ -583,82 +498,42 @@ extern "C" void SetBreakableStageParam(TRIG *p, int x)
     }
 }
 
-/** @sly2-annot addr=0x1BBA60
- * Purpose: Record action kind 6 with arg
- * Info: proposed name AddCid98Action6 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action kind 6 with arg. (inferred)
 extern "C" void AddBreakableAction6(TRIG *p, int v) {
     AddBreakableAction(p, 6)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBA90
- * Purpose: Record action kind 7
- * Info: proposed name AddCid98Action7 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action kind 7. (inferred)
 extern "C" void AddBreakableAction7(TRIG *p, int v) {
     AddBreakableAction(p, 7)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBAC0
- * Purpose: Record action kind 8
- * Info: proposed name AddCid98Action8 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action kind 8. (inferred)
 extern "C" void AddBreakableAction8(TRIG *p, int v) {
     AddBreakableAction(p, 8)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBAF0
- * Purpose: Record action kind 9
- * Info: proposed name AddCid98Action9 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action kind 9. (inferred)
 extern "C" void AddBreakableAction9(TRIG *p, int v) {
     AddBreakableAction(p, 9)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBB20
- * Purpose: Record action kind 10
- * Info: proposed name AddCid98Action10 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action kind 10. (inferred)
 extern "C" void AddBreakableAction10(TRIG *p, int v) {
     AddBreakableAction(p, 0xA)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBB50
- * Purpose: Record action kind 11
- * Info: proposed name AddCid98Action11 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action kind 11. (inferred)
 extern "C" void AddBreakableAction11(TRIG *p, int v) {
     AddBreakableAction(p, 0xB)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBB80
- * Purpose: Record action kind 0
- * Info: proposed name AddCid98Action0 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action kind 0. (inferred)
 extern "C" void AddBreakableAction0(TRIG *p, int v) {
     AddBreakableAction(p, 0)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBBB0
- * Purpose: Outside stage recording: ShowSoGlobsById now; else record action 2
- * Info: proposed name AddCid98ShowGlobs (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Outside stage recording: ShowSoGlobsById now; else record action 2. (inferred)
 extern "C" void AddBreakableShowGlobs(TRIG *p, int v) {
     if (IsBreakableStageValid(p) == 0) {
         ShowSoGlobsById(p, v);
@@ -667,12 +542,7 @@ extern "C" void AddBreakableShowGlobs(TRIG *p, int v) {
     AddBreakableAction(p, 2)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBC08
- * Purpose: Same for ShowSoPartsById (action 4)
- * Info: proposed name AddCid98ShowParts (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Same for ShowSoPartsById (action 4). (inferred)
 extern "C" void AddBreakableShowParts(TRIG *p, int v) {
     if (IsBreakableStageValid(p) == 0) {
         ShowSoPartsById(p, v);
@@ -681,12 +551,7 @@ extern "C" void AddBreakableShowParts(TRIG *p, int v) {
     AddBreakableAction(p, 4)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBC60
- * Purpose: Record action 1 (default arg = own id)
- * Info: proposed name AddCid98Action1 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action 1 (default arg = own id). (inferred)
 extern "C" void AddBreakableAction1(TRIG *p, int v) {
     int oid = v;
     if (oid == -1) {
@@ -695,12 +560,7 @@ extern "C" void AddBreakableAction1(TRIG *p, int v) {
     AddBreakableAction(p, 1)->b = oid;
 }
 
-/** @sly2-annot addr=0x1BBC98
- * Purpose: HideSoGlobsById now or record action 3
- * Info: proposed name AddCid98HideGlobs (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// HideSoGlobsById now or record action 3. (inferred)
 extern "C" void AddBreakableHideGlobs(TRIG *p, int v) {
     if (IsBreakableStageValid(p) == 0) {
         HideSoGlobsById(p, v);
@@ -709,12 +569,7 @@ extern "C" void AddBreakableHideGlobs(TRIG *p, int v) {
     AddBreakableAction(p, 3)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBCF0
- * Purpose: HideSoPartsById now or record action 5
- * Info: proposed name AddCid98HideParts (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// HideSoPartsById now or record action 5. (inferred)
 extern "C" void AddBreakableHideParts(TRIG *p, int v) {
     if (IsBreakableStageValid(p) == 0) {
         func_001F6B48(p, v);
@@ -723,12 +578,7 @@ extern "C" void AddBreakableHideParts(TRIG *p, int v) {
     AddBreakableAction(p, 5)->b = v;
 }
 
-/** @sly2-annot addr=0x1BBD48
- * Purpose: Record action 12 with a two-int payload
- * Info: proposed name AddCid98Action12 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Record action 12 with a two-int payload. (inferred)
 extern "C" void AddBreakableAction12(TRIG *p, int a, int b)
 {
     MSG msg;
@@ -738,16 +588,7 @@ extern "C" void AddBreakableAction12(TRIG *p, int a, int b)
     ((int *)pi->b)[1] = b;
 }
 
-/** @sly2-annot addr=0x1BBDB0
- * Purpose: Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it
- * Info: proposed name PactionAddCid98 (T2); class CID98; TU tu_1BAB50
- * Notes: names_v2 C proposed LoadHbskFromBrx__FP4HBSKP18CBinaryInputStream (0.197) | top50_round (0.45):
- *   Body; callers AddCid98Action*, AddCid98ShowGlobs/HideGlobs/ShowParts (Splice builders). Class placeholder
- *   -> T2 | T2: placeholder token Cid98
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; static naming pass; sources:
- *   r5b_rest+top50_round
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Append an action of kind x to the current stage of a CID98 object (max 64 per stage) and return it. (inferred)
 I *AddBreakableAction(TRIG *p, int x)
 {
     E *pe = func_001BBE68K(p, D_002A76C0);
@@ -759,12 +600,7 @@ I *AddBreakableAction(TRIG *p, int x)
     return pi;
 }
 
-/** @sly2-annot addr=0x1BBE18
- * Purpose: current stage index valid (0..count-1 or -1)
- * Info: proposed name FCid98StageValid (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// current stage index valid (0..count-1 or -1). (inferred)
 int IsBreakableStageValid(TRIG *p) {
     int i = p->i;
     int f = 0;
@@ -774,22 +610,12 @@ int IsBreakableStageValid(TRIG *p) {
     return f;
 }
 
-/** @sly2-annot addr=0x1BBE48
- * Purpose: !FCid98StageValid
- * Info: proposed name FCid98Done (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// !FCid98StageValid. (inferred)
 int IsBreakableDone(TRIG *p) {
     return IsBreakableStageValid(p) == 0;
 }
 
-/** @sly2-annot addr=0x1BBE68
- * Purpose: Current stage record or NULL
- * Info: proposed name PstageCurCid98 (T2); class CID98; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// Current stage record or NULL. (inferred)
 E *GetCurrentBreakableStage(TRIG *p) {
     if (IsBreakableStageValid(p) == 0) {
         return 0;
@@ -797,12 +623,7 @@ E *GetCurrentBreakableStage(TRIG *p) {
     return (E *)((char *)p->ae + p->i * 0x10);
 }
 
-/** @sly2-annot addr=0x1BBEA8
- * Purpose: CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints
- * Info: proposed name Cid98_VUnk26Proxy (T2); class CID98 slot26; TU tu_1BAB50
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1bab50-0x1bab50-0x1bc050
- * @end-sly2-annot */
+// CID 98 vt26: proxy base, reset to first stage (0x609), restore constraints. (inferred)
 extern "C" void ResetBreakable(TRIG *p)
 {
     func_001CB518(p);
