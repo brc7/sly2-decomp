@@ -1,16 +1,16 @@
 Start,End,Reason
 0x00116D20,0x00116D24,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
 0x00117640,0x0011764C,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
-0x00117BC8,0x00117BCC,dead-code scrap
-0x00117CF8,0x00117CFC,dead-code scrap
-0x00117E30,0x00117E34,dead-code scrap
-0x00118218,0x0011821C,dead-code scrap
-0x00118378,0x0011837C,dead-code scrap
-0x00118478,0x0011847C,"orphan instructions, no return"
+0x00117BC8,0x00117BCC,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
+0x00117CF8,0x00117CFC,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
+0x00117E30,0x00117E34,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
+0x00118218,0x0011821C,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
+0x00118378,0x0011837C,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
+0x00118478,0x0011847C,"orphan instructions, no return; emitted by its TU source (SLY2_SCRAP)"
 0x00118FA8,0x00118FB0,dead-code scrap (a nop unit); emitted by its TU source (SLY2_SCRAP)
 0x001193D0,0x001193D4,"orphan instructions, no return; emitted by its TU source (SLY2_SCRAP)"
 0x00119BC0,0x00119BC8,dead-code scrap before a real function
-0x00119C30,0x00119C44,dead-code scrap
+0x00119C30,0x00119C44,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
 0x0011A3F0,0x0011A3F4,"orphan instructions, no return; emitted by its TU source (SLY2_SCRAP)"
 0x0011B040,0x0011B04C,dead-code scrap; emitted by its TU source (SLY2_SCRAP)
 0x0011B300,0x0011B314,"orphan instructions, no return"
