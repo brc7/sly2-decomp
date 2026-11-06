@@ -1,4 +1,6 @@
 // amb.cpp -- AMB, an ambient sound emitter: an XFM that starts its looping sounds when added to the world.
+// Entry points are its class slots: CID43::Init, LoadAmbFromBrx, PostAmbLoad, OnAmbAdd / OnAmbRemove, plus the option
+// accessors EnsureCurrentAmbSound / AddAmbSound used while loading.
 // TU 0x12EB48..0x12F0F0 (10 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_amb
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012F0D0
@@ -13,19 +15,19 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct AREQV { int cb; int cbAlign; };
 
 /* A sound the emitter plays (0x14 bytes, 8 at most). */
-struct AMBSND { int id; float sMin; float sMax; float uVol; float uPitch; };
+struct AMBSND { int soundId; float minDistance; float maxDistance; float volume; float pitch; };
 /* A second list of 8 records (0x10 bytes) bound at load to sounds found by id. */
-struct AMBREC { int id; float v[2]; float g; };
+struct AMBREC { int soundId; float range[2]; float gain; };
 
 /* AMB : XFM (CID unknown here). */
 struct AMB : public XFM
 {
-    AMBSND *pambsndCur;     /* +0xE0 */
-    int cambsnd;            /* +0xE4 */
-    AMBSND *aambsnd;        /* +0xE8 */
-    void **apsnd;           /* +0xEC playing sounds, one per AMBSND */
-    int cambrec;            /* +0xF0 */
-    AMBREC *aambrec;        /* +0xF4 */
+    AMBSND *currentSound;     /* +0xE0 */
+    int soundCount;            /* +0xE4 */
+    AMBSND *sounds;        /* +0xE8 */
+    void **playingSounds;           /* +0xEC playing sounds, one per AMBSND */
+    int linkedCount;            /* +0xF0 */
+    AMBREC *linkedSounds;        /* +0xF4 */
 };
 
 struct G { char pad[0x228]; void *p; };
@@ -50,7 +52,7 @@ void func_001FB1F8(void *psnd, float uVol);
 void SetSndPitch(void *psnd, float uPitch);
 void StopSnd(void *psnd, float g);
 void RcPtr_Assign(void **pp, void *p);
-void AddAmbSound(AMB *pamb, int n, int x, int y, float g, float h);
+void AddAmbSound(AMB *amb, int soundId, int minDistance, int maxDistance, float volume, float pitch);
 }
 
 /** @sly2-annot addr=0x12EB48
@@ -60,11 +62,12 @@ void AddAmbSound(AMB *pamb, int n, int x, int y, float g, float h);
  * See: docs/engine/animation.md#6-source-files, docs/engine/animation.md#open-questions,
  *   docs/engine/camera.md#4-source-files
  * @end-sly2-annot */
+// Initializes an ambient sound emitter (class 0x2B, slot 7): base XFM init, not busy (it needs no per-frame update).
 void CID43::Init()
 {
-    AMB *pamb = (AMB *)this;
-    InitXfm(pamb);
-    SetLoBusyk(pamb, 0);
+    AMB *amb = (AMB *)this;
+    InitXfm(amb);
+    SetLoBusyk(amb, 0);
 }
 
 /** @sly2-annot addr=0x12EB78
@@ -74,24 +77,26 @@ void CID43::Init()
  * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r1_116918+parse-verified
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void LoadAmbFromBrx(AMB *pamb, void *pbis)
+// Loads an ambient emitter (slot 14): allocates room for up to 8 sounds and 8 linked sounds, loads the XFM part (whose
+// options fill the lists), then shrinks both allocations to the counts actually used.
+extern "C" void LoadAmbFromBrx(AMB *amb, void *stream)
 {
     STACKSCOPE obj;
-    AREQV req;
-    AREQV *preq = &req;
-    req.cb = 0xA0;
-    preq->cbAlign = 0x10;
-    pamb->aambsnd = (AMBSND *)func_001AE378(preq);
-    req.cb = 0x80;
-    preq->cbAlign = 0x10;
-    pamb->aambrec = (AMBREC *)func_001AE378(preq);
-    LoadXfmFromBrx(pamb, pbis);
-    req.cb = pamb->cambsnd * 0x14;
-    preq->cbAlign = 0x10;
-    pamb->aambsnd = (AMBSND *)func_001AE238(preq, pamb->aambsnd);
-    req.cb = pamb->cambrec * 0x10;
-    preq->cbAlign = 0x10;
-    pamb->aambrec = (AMBREC *)func_001AE238(preq, pamb->aambrec);
+    AREQV request;
+    AREQV *requestRef = &request;
+    request.cb = 0xA0;
+    requestRef->cbAlign = 0x10;
+    amb->sounds = (AMBSND *)func_001AE378(requestRef);
+    request.cb = 0x80;
+    requestRef->cbAlign = 0x10;
+    amb->linkedSounds = (AMBREC *)func_001AE378(requestRef);
+    LoadXfmFromBrx(amb, stream);
+    request.cb = amb->soundCount * 0x14;
+    requestRef->cbAlign = 0x10;
+    amb->sounds = (AMBSND *)func_001AE238(requestRef, amb->sounds);
+    request.cb = amb->linkedCount * 0x10;
+    requestRef->cbAlign = 0x10;
+    amb->linkedSounds = (AMBREC *)func_001AE238(requestRef, amb->linkedSounds);
 }
 
 /** @sly2-annot addr=0x12EC50
@@ -102,20 +107,22 @@ extern "C" void LoadAmbFromBrx(AMB *pamb, void *pbis)
  * Confidence: low (draft) [T2 0.85] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void PostAmbLoad(AMB *pamb)
+// After-load hook (slot 15): allocates the playing-sound handle array and, if the sound system has a stream-sound group,
+// registers each linked sound with it (found by sound id; inferred: these play as streamed sounds with a range).
+extern "C" void PostAmbLoad(AMB *amb)
 {
-    AREQV req;
-    void *p;
-    PostLoLoad(pamb);
-    req.cb = pamb->cambsnd * 4;
-    req.cbAlign = 0x10;
-    pamb->apsnd = func_001AE2A0(&req);
-    p = D_003DD040.p;
-    if (p) {
+    AREQV request;
+    void *soundGroup;
+    PostLoLoad(amb);
+    request.cb = amb->soundCount * 4;
+    request.cbAlign = 0x10;
+    amb->playingSounds = func_001AE2A0(&request);
+    soundGroup = D_003DD040.p;
+    if (soundGroup) {
         int i;
-        for (i = 0; i < pamb->cambrec; i++) {
-            AMBREC *prec = &pamb->aambrec[i];
-            func_001FC408(prec->g, p, func_001FE990(&D_003DD040, prec->id), pamb, prec->v);
+        for (i = 0; i < amb->linkedCount; i++) {
+            AMBREC *link = &amb->linkedSounds[i];
+            func_001FC408(link->gain, soundGroup, func_001FE990(&D_003DD040, link->soundId), amb, link->range);
         }
     }
 }
@@ -128,18 +135,20 @@ extern "C" void PostAmbLoad(AMB *pamb)
  * Confidence: low (draft) [T2 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void OnAmbAdd(AMB *pamb)
+// Called when the emitter enters the world (slot 23): starts every one of its sounds as a looping positional sound on the
+// emitter with its distance range, volume and pitch, keeping a reference-counted handle to each.
+extern "C" void OnAmbAdd(AMB *amb)
 {
     int i;
-    OnLoAdd(pamb);
-    for (i = 0; i < pamb->cambsnd; i++) {
-        AMBSND *pambsnd = &pamb->aambsnd[i];
-        void *psnd = PsndStartSound(pambsnd->id);
-        SetSndSourceLo(psnd, pamb);
-        SetSndRange(psnd, pambsnd->sMin, pambsnd->sMax);
-        func_001FB1F8(psnd, pambsnd->uVol);
-        SetSndPitch(psnd, pambsnd->uPitch);
-        RcPtr_Assign((void **)(i * 4 + (int)pamb->apsnd), psnd);
+    OnLoAdd(amb);
+    for (i = 0; i < amb->soundCount; i++) {
+        AMBSND *sound = &amb->sounds[i];
+        void *playing = PsndStartSound(sound->soundId);
+        SetSndSourceLo(playing, amb);
+        SetSndRange(playing, sound->minDistance, sound->maxDistance);
+        func_001FB1F8(playing, sound->volume);
+        SetSndPitch(playing, sound->pitch);
+        RcPtr_Assign((void **)(i * 4 + (int)amb->playingSounds), playing);
     }
 }
 
@@ -152,15 +161,16 @@ extern "C" void OnAmbAdd(AMB *pamb)
  *   arbitration_slots22_23
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void OnAmbRemove(AMB *pamb)
+// Called when the emitter leaves the world (slot 22): stops every playing sound immediately and releases its handle.
+extern "C" void OnAmbRemove(AMB *amb)
 {
     int i;
-    OnLoRemove(pamb);
-    for (i = 0; i < pamb->cambsnd; i++) {
-        void **ppsnd = (void **)((i << 2) + (int)pamb->apsnd);
-        if (ppsnd && *ppsnd) {
-            StopSnd(*ppsnd, 0.0f);
-            RcPtr_Assign(ppsnd, 0);
+    OnLoRemove(amb);
+    for (i = 0; i < amb->soundCount; i++) {
+        void **slot = (void **)((i << 2) + (int)amb->playingSounds);
+        if (slot && *slot) {
+            StopSnd(*slot, 0.0f);
+            RcPtr_Assign(slot, 0);
         }
     }
 }
@@ -171,13 +181,15 @@ extern "C" void OnAmbRemove(AMB *pamb)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" AMBSND *EnsureCurrentAmbSound(AMB *pamb)
+// Option-table accessor: returns the sound the emitter's option setters edit, adding a default one first (no sound id,
+// range 300..3000, full volume, unchanged pitch) if there is none yet.
+extern "C" AMBSND *EnsureCurrentAmbSound(AMB *amb)
 {
-    if (!pamb->pambsndCur) {
-        pamb->pambsndCur = &pamb->aambsnd[pamb->cambsnd];
-        AddAmbSound(pamb, -1, 300, 3000, 1.0f, 0.0f);
+    if (!amb->currentSound) {
+        amb->currentSound = &amb->sounds[amb->soundCount];
+        AddAmbSound(amb, -1, 300, 3000, 1.0f, 0.0f);
     }
-    return pamb->pambsndCur;
+    return amb->currentSound;
 }
 
 /** @sly2-annot addr=0x12EEE0
@@ -186,15 +198,16 @@ extern "C" AMBSND *EnsureCurrentAmbSound(AMB *pamb)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void AddAmbSound(AMB *pamb, int n, int x, int y, float g, float h)
+// Adds a sound (id, min/max audible distance, volume, pitch) to the emitter; at most 8, extras are ignored.
+extern "C" void AddAmbSound(AMB *amb, int soundId, int minDistance, int maxDistance, float volume, float pitch)
 {
-    if (pamb->cambsnd < 8) {
-        AMBSND *pambsnd = &pamb->aambsnd[pamb->cambsnd++];
-        pambsnd->id = n;
-        pambsnd->sMin = x;
-        pambsnd->sMax = y;
-        pambsnd->uVol = g;
-        pambsnd->uPitch = h;
+    if (amb->soundCount < 8) {
+        AMBSND *sound = &amb->sounds[amb->soundCount++];
+        sound->soundId = soundId;
+        sound->minDistance = minDistance;
+        sound->maxDistance = maxDistance;
+        sound->volume = volume;
+        sound->pitch = pitch;
     }
 }
 
@@ -205,13 +218,15 @@ extern "C" void AddAmbSound(AMB *pamb, int n, int x, int y, float g, float h)
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-extern "C" void AddAmbLinkedSound(AMB *pamb, int n, int x, int y, float g)
+// Adds a linked sound record (id, range, gain) to the emitter; at most 8. No callers in the binary (inferred: an option
+// setter reached only through a table).
+extern "C" void AddAmbLinkedSound(AMB *amb, int soundId, int rangeMin, int rangeMax, float gain)
 {
-    if (pamb->cambrec < 8) {
-        AMBREC *prec = &pamb->aambrec[pamb->cambrec++];
-        prec->id = n;
-        prec->v[0] = x;
-        prec->v[1] = y;
-        prec->g = g;
+    if (amb->linkedCount < 8) {
+        AMBREC *link = &amb->linkedSounds[amb->linkedCount++];
+        link->soundId = soundId;
+        link->range[0] = rangeMin;
+        link->range[1] = rangeMax;
+        link->gain = gain;
     }
 }
