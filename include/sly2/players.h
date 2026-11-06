@@ -174,6 +174,7 @@ struct BENTLEY : public STEPPLAYER
       int nUnk1870;
       int nUnk1874;
       undefined4 unk_0x1878[(0x1880 - 0x1878) / 4];
+    virtual void VSlot105() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBentleyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBentleyMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBentley");   /* slot 7 */
@@ -195,7 +196,6 @@ struct BENTLEY : public STEPPLAYER
     virtual int FCanUseGadget(int idGadget) __asm__("BENTLEY_FCanUseGadget");   /* slot 99 */
     virtual void StartGadget(int idGadget) __asm__("StartBentleyGadget");   /* slot 100 */
     virtual void VSlot103() __asm__("BENTLEY_PchzSaveVarRoot");   /* slot 103 */
-    virtual void VSlot105() __asm__("OnBentleyGadgetsChanged");   /* slot 105 */
 };
 typedef char assert_BENTLEY_size[sizeof(BENTLEY) == 0x1880 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
