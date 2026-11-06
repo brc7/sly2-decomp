@@ -13,6 +13,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
+#include "player_input.h"
 union U {float f[4];qword q;int bits[4];};   // floats first, so U globals can be initialized
 struct VE{short delta,pad;void*fn;};
 struct ASEG{char pad0[0x74];float duration;};
@@ -160,175 +161,402 @@ extern U D_002BF4E0;
 // Sets Sly's cane state (JT+0x18D8, jtcs): leaves the old one (removes the sweep effect unless continuing, stops the
 // reach tracker), resolves the generic sweep state 3 to a fore/back sweep (4/5 or 6/7), and enters the new one
 // (blend clip, contact deadline, sounds). -1 ends any cane action.
-extern "C" void SetJtCaneState__FP2JTi(JT*jt,int state){
- if(jt->state==state)return;
- int compatible=0;
- if(state!=-1&&jt->state!=-1)compatible=state==D_002BF448[jt->state];
- if(!compatible)HideSoPart(jt,jt->action);
- int exitEffect=-1;
- switch(jt->state){case 1:exitEffect=jt->target->exitEffect;func_001F4BF8(jt);break;case 2:func_001F4BF8(jt);break;case 0:SetJtHandsTarget(jt->track,-1);break;case -1:break;}
- Emit(jt,exitEffect);
- register float start __asm__("$f22")=0.0f;
- ASEG*clip=0;
- register float rate __asm__("$f21")=1.0f,stopDelay __asm__("$f20")=0.0f;
- int enterEffect=-1;register float sharedDeadline __asm__("$f0"),sharedDelay __asm__("$f1");register int sharedMode __asm__("$2");register char*clockHigh __asm__("$3");
- switch(state){
- case -1:jt->surface=0;break;
- case 1:case 2:func_001F4BF8(jt);break;
- case 10:func_001F4BF8(jt);clip=jt->alternate10;break;
- case 11:func_001F4BF8(jt);clip=jt->alternate11;break;
- case 0:{SetJtHandsTarget(jt->track,0);clip=jt->idle;rate=0.0f;
-  register JT*receiver __asm__("$4");register float half __asm__("$f1"),duration __asm__("$f0");
-  __asm__("daddu %0,%3,$zero\n\t.set noat\n\tlui $1,0x3f00\n\tmtc1 $1,%1\n\t.set at\n\taddiu %2,$zero,15":"=r"(receiver),"=f"(half),"=r"(enterEffect):"r"(jt):"$1");
-  __asm__("lwc1 %0,%1":"=f"(duration):"m"(clip->duration));start=duration*half;
-  func_001F4BF8(receiver);sharedDelay=0.1f;sharedDeadline=D_002DDED0.t;goto deadline_add;}
+extern "C" void SetJtCaneState__FP2JTi(JT *jt, int state)
+{
+    if (jt->state == state)
+        return;
+    int compatible = 0;
+    if (state != -1 && jt->state != -1)
+        compatible = state == D_002BF448[jt->state];
+    if (!compatible)
+        HideSoPart(jt, jt->action);
+    int exitEffect = -1;
+    switch (jt->state) {
+    case 1:
+        exitEffect = jt->target->exitEffect;
+        func_001F4BF8(jt);
+        break;
+    case 2: func_001F4BF8(jt); break;
+    case 0: SetJtHandsTarget(jt->track, -1); break;
+    case -1: break;
+    }
+    Emit(jt, exitEffect);
+    register float start __asm__("$f22") = 0.0f;
+    ASEG *clip = 0;
+    register float rate __asm__("$f21") = 1.0f, stopDelay __asm__("$f20") = 0.0f;
+    int enterEffect = -1;
+    register float sharedDeadline __asm__("$f0"), sharedDelay __asm__("$f1");
+    register int sharedMode __asm__("$2");
+    register char *clockHigh __asm__("$3");
+    switch (state) {
+    case -1: jt->surface = 0; break;
+    case 1:
+    case 2: func_001F4BF8(jt); break;
+    case 10:
+        func_001F4BF8(jt);
+        clip = jt->alternate10;
+        break;
+    case 11:
+        func_001F4BF8(jt);
+        clip = jt->alternate11;
+        break;
+    case 0: {
+        SetJtHandsTarget(jt->track, 0);
+        clip = jt->idle;
+        rate = 0.0f;
+        register JT *receiver __asm__("$4");
+        register float half __asm__("$f1"), duration __asm__("$f0");
+        __asm__("daddu %0,%3,$zero\n\t.set noat\n\tlui $1,0x3f00\n\tmtc1 $1,%1\n\t.set at\n\taddiu %2,$zero,15"
+                : "=r"(receiver), "=f"(half), "=r"(enterEffect)
+                : "r"(jt)
+                : "$1");
+        __asm__("lwc1 %0,%1" : "=f"(duration) : "m"(clip->duration));
+        start = duration * half;
+        func_001F4BF8(receiver);
+        sharedDelay = 0.1f;
+        sharedDeadline = D_002DDED0.t;
+        goto deadline_add;
+    }
 
- case 3:{
-  WORK work;
-  register qword first __asm__("$2")=ConvertAloPos(0,jt,func_001A62E8(jt->pointObject));
-  register POINT*point __asm__("$3");register void*world __asm__("$4");register JT*receiver __asm__("$5");
-  __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero":"=r"(point),"=r"(world),"=r"(receiver),"=m"(work.first.q):"m"(jt->point),"r"(first),"r"(jt));
-  register qword second __asm__("$2")=ConvertAloPos(world,receiver,point->position.q);
-  register qword average __asm__("vf2");register int mode __asm__("$3");
-  __asm__(".set noat\n\tlui $1,0x3f00\n\tmtc1 $1,$f0\n\t.set at\n\tqmtc2.ni %3,$vf4\n\tlqc2 $vf3,%4\n\tmfc1 $3,$f0\n\tqmtc2.ni $3,$vf1\n\tlw %1,%5\n\tvmulax.xyzw ACC,$vf3,$vf1x\n\tvmaddx.xyzw %0,$vf4,$vf1x\n\tsqc2 $vf1,%2":"=j"(average),"=r"(mode),"=m"(work.half.q):"r"(second),"m"(work.first.q),"m"(jt->mode):"$1","$f0","vf1","vf3","vf4");
-  work.average.q=average;
-  if(!mode){
-   if(D_002E1E44){state=6;goto enter6;}
-   if(D_002E1E48){state=7;goto enter7;}
-   if(work.average.f[1]<0.0f){state=6;goto enter6;}
-   state=7;goto enter7;
-  }
-  if(D_002E1E44){state=4;goto enter4;}
-  if(D_002E1E48){state=5;goto enter5;}
-  if(work.average.f[1]<0.0f){state=4;goto enter4;}
-  state=5;goto enter5;
- }
- case 4:enter4:{ChooseJtSweepTarget(jt,&jt->blend4,jt->blend4.clip);enterEffect=11;
-  register float deadline __asm__("$f0"),delay __asm__("$f1");
-  __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 %0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay):"i"(&D_002BF434),"i"(&D_002DDED0),"i"(&D_002BF430):"$2","$3","$4","memory");
-  __asm__("add.s %0,%0,%2\n\tlw %1,%3":"+f"(deadline),"=r"(clip):"f"(delay),"m"(jt->blend4.clip));
-  jt->deadline=deadline;break;}
- case 5:enter5:{ChooseJtSweepTarget(jt,&jt->blend5,jt->blend5.clip);enterEffect=11;
-  register float deadline __asm__("$f0"),delay __asm__("$f1");
-  __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 %0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay):"i"(&D_002BF438),"i"(&D_002DDED0),"i"(&D_002BF430):"$2","$3","$4","memory");
-  __asm__("add.s %0,%0,%2\n\tlw %1,%3":"+f"(deadline),"=r"(clip):"f"(delay),"m"(jt->blend5.clip));
-  jt->deadline=deadline;break;}
- case 6:enter6:{ChooseJtSweepTarget(jt,&jt->blend6,jt->blend6.clip);enterEffect=11;stopDelay=D_002BF430;clip=jt->blend6.clip;
-  int found=IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B);
-  /* Native V1 is rebuilt after the cancellation callback. */
-  clockHigh=(char*)0x002e0000;
-  if(found>=0){SnapSma(jt->component,0x17B);clockHigh=(char*)0x002e0000;}
-  sharedDelay=D_002BF434;
-  goto deadline_clock_read;
- }
- case 7:enter7:{ChooseJtSweepTarget(jt,&jt->blend7,jt->blend7.clip);enterEffect=11;stopDelay=D_002BF430;clip=jt->blend7.clip;
-  int found=IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B);
-  /* Native V1 is rebuilt after the cancellation callback. */
-  clockHigh=(char*)0x002e0000;
-  if(found>=0){SnapSma(jt->component,0x17B);clockHigh=(char*)0x002e0000;}
-  sharedDelay=D_002BF438;
- }
- deadline_clock_read:
- __asm__ __volatile__("lwc1 %0,%%lo(%2)(%1)":"=f"(sharedDeadline):"r"(clockHigh),"i"(&D_002DDED0):"memory");
- deadline_add:jt->deadline=sharedDeadline+sharedDelay;break;
- case 8:clip=jt->clip8;break;
- case 9:clip=jt->clip9;break;
- case 12:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$5");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$2","$3","$4","memory");
-  sharedDeadline=deadline;
-  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2":"+f"(sharedDeadline),"=r"(sharedMode),"=m"(jt->attack):"f"(delay),"m"(jt->mode),"r"(attack):"memory");
-  clip=jt->clip12;
-  goto attack_ready;
- }
- case 13:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$5");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$2","$3","$4","memory");
-  sharedDeadline=deadline;
-  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2":"+f"(sharedDeadline),"=r"(sharedMode),"=m"(jt->attack):"f"(delay),"m"(jt->mode),"r"(attack):"memory");
-  clip=jt->clip13;
- }
- attack_ready:jt->deadline=sharedDeadline;
- if(!sharedMode&&IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B)>=0)SnapSma(jt->component,0x17B);break;
- case 14:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip14):"memory");
-  jt->deadline=deadline;
-  break;}
- case 15:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip15):"memory");
-  jt->deadline=deadline;
-  break;}
- case 16:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip16):"memory");
-  jt->deadline=deadline;
-  break;}
- case 17:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip17):"memory");
-  jt->deadline=deadline;
-  break;}
- case 18:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip18):"memory");
-  jt->deadline=deadline;
-  break;}
- case 19:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip19):"memory");
-  jt->deadline=deadline;
-  break;}
- case 20:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip20):"memory");
-  jt->deadline=deadline;
-  break;}
- case 21:{
-  register float deadline __asm__("$f0"),delay __asm__("$f1");register int attack __asm__("$2");
-  __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 %0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay),"=r"(attack):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$3","$4","memory");
-  __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5":"+f"(deadline),"=r"(clip),"=m"(jt->attack):"f"(delay),"r"(attack),"m"(jt->clip21):"memory");
-  jt->deadline=deadline;
-  break;}
- case 22:case 23:{clip=state==22?jt->clip22:jt->clip23;
-  register float deadline __asm__("$f0"),delay __asm__("$f1");
-  __asm__ __volatile__("lui $2,%%hi(%3)\n\tlui $4,%%hi(%4)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 %0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)":"=f"(deadline),"=f"(delay),"=f"(stopDelay):"i"(&D_002BF440),"i"(&D_002DDED0),"i"(&D_002BF43C):"$2","$3","$4","memory");
-  register int mode __asm__("$2");
-  __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw $zero,%2":"+f"(deadline),"=r"(mode),"=m"(jt->attack):"f"(delay),"m"(jt->mode):"memory");
-  jt->deadline=deadline;
-  if(!mode&&IsmsFindSmOptional__FP2SM3OID(jt->sm,0x17B)>=0)SnapSma(jt->component,0x17B);
-  break;}
- }
- if(compatible){register ASEGA*current __asm__("$2")=jt->current;enterEffect=-1;
-  __asm__("lwc1 $f1,%2\n\tlwc1 $f2,%3\n\tlwc1 $f0,%4\n\tlwc1 %0,%5\n\tdiv.s %0,%0,$f2\n\tmin.s %1,$f0,$f1":"=f"(rate),"=f"(start):"m"(clip->duration),"m"(current->rate),"m"(current->localTime),"m"(current->elapsed):"$f0","$f1","$f2");
- }
- else jt->finished=0;
- register int previousState __asm__("$3");
- __asm__("lw %0,%1":"=r"(previousState):"m"(jt->state));
- int wasAlternate=previousState==11||previousState==2;
- int nowAlternate=state==11||state==2;
- if(wasAlternate!=nowAlternate){
-  if(state==11||state==2){Active(jt->alternateNode);Link(jt->alternateNode,jt->normalNode);Inactive(jt->normalNode);}
-  else{Active(jt->normalNode);Link(jt->normalNode,jt->alternateNode);Inactive(jt->alternateNode);}
- }
- jt->state=state;
- register ASEG*clipArgument __asm__("$4");register float startArgument __asm__("$f12"),rateArgument __asm__("$f13"),now __asm__("$f0");
- __asm__ __volatile__("lui $2,%%hi(%4)\n\tdaddu %0,%5,$zero\n\tmov.s %1,%6\n\tlwc1 %3,%%lo(%4)($2)\n\tmov.s %2,%7":"=r"(clipArgument),"=f"(startArgument),"=f"(rateArgument),"=f"(now):"i"(&D_002DDED0),"r"(clip),"f"(start),"f"(rate):"$2","memory");
- jt->reset=0;jt->stateTime=now;
- ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clipArgument,jt,startArgument,rateArgument,1,&jt->current);
- if(stopDelay!=0.0f){register ASEGA*current __asm__("$4");register float stopTime __asm__("$f12");
-  __asm__ __volatile__("lui $3,%%hi(%2)\n\tlw %0,%3\n\tlwc1 %1,%%lo(%2)($3)":"=r"(current),"=f"(stopTime):"i"(&D_002DDED0),"m"(jt->current):"$3","memory");
-  func_00131A90(current,stopTime+stopDelay);
- }
- Emit(jt,enterEffect);
+    case 3: {
+        WORK work;
+        register qword first __asm__("$2") = ConvertAloPos(0, jt, func_001A62E8(jt->pointObject));
+        register POINT *point __asm__("$3");
+        register void *world __asm__("$4");
+        register JT *receiver __asm__("$5");
+        __asm__("lw %0,%4\n\tdaddu %1,$zero,$zero\n\tsq %5,%3\n\tdaddu %2,%6,$zero"
+                : "=r"(point), "=r"(world), "=r"(receiver), "=m"(work.first.q)
+                : "m"(jt->point), "r"(first), "r"(jt));
+        register qword second __asm__("$2") = ConvertAloPos(world, receiver, point->position.q);
+        register qword average __asm__("vf2");
+        register int mode __asm__("$3");
+        __asm__(".set noat\n\tlui $1,0x3f00\n\tmtc1 $1,$f0\n\t.set at\n\tqmtc2.ni %3,$vf4\n\tlqc2 $vf3,%4\n\tmfc1 "
+                "$3,$f0\n\tqmtc2.ni $3,$vf1\n\tlw %1,%5\n\tvmulax.xyzw ACC,$vf3,$vf1x\n\tvmaddx.xyzw "
+                "%0,$vf4,$vf1x\n\tsqc2 $vf1,%2"
+                : "=j"(average), "=r"(mode), "=m"(work.half.q)
+                : "r"(second), "m"(work.first.q), "m"(jt->mode)
+                : "$1", "$f0", "vf1", "vf3", "vf4");
+        work.average.q = average;
+        if (!mode) {
+            if (D_002E1E44) {
+                state = 6;
+                goto enter6;
+            }
+            if (D_002E1E48) {
+                state = 7;
+                goto enter7;
+            }
+            if (work.average.f[1] < 0.0f) {
+                state = 6;
+                goto enter6;
+            }
+            state = 7;
+            goto enter7;
+        }
+        if (D_002E1E44) {
+            state = 4;
+            goto enter4;
+        }
+        if (D_002E1E48) {
+            state = 5;
+            goto enter5;
+        }
+        if (work.average.f[1] < 0.0f) {
+            state = 4;
+            goto enter4;
+        }
+        state = 5;
+        goto enter5;
+    }
+    case 4:
+    enter4: {
+        ChooseJtSweepTarget(jt, &jt->blend4, jt->blend4.clip);
+        enterEffect = 11;
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 "
+                             "%0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay)
+                             : "i"(&D_002BF434), "i"(&D_002DDED0), "i"(&D_002BF430)
+                             : "$2", "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%2\n\tlw %1,%3" : "+f"(deadline), "=r"(clip) : "f"(delay), "m"(jt->blend4.clip));
+        jt->deadline = deadline;
+        break;
+    }
+    case 5:
+    enter5: {
+        ChooseJtSweepTarget(jt, &jt->blend5, jt->blend5.clip);
+        enterEffect = 11;
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        __asm__ __volatile__("lui $4,%%hi(%4)\n\tlui $2,%%hi(%3)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 "
+                             "%0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay)
+                             : "i"(&D_002BF438), "i"(&D_002DDED0), "i"(&D_002BF430)
+                             : "$2", "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%2\n\tlw %1,%3" : "+f"(deadline), "=r"(clip) : "f"(delay), "m"(jt->blend5.clip));
+        jt->deadline = deadline;
+        break;
+    }
+    case 6:
+    enter6: {
+        ChooseJtSweepTarget(jt, &jt->blend6, jt->blend6.clip);
+        enterEffect = 11;
+        stopDelay = D_002BF430;
+        clip = jt->blend6.clip;
+        int found = IsmsFindSmOptional__FP2SM3OID(jt->sm, 0x17B);
+        /* Native V1 is rebuilt after the cancellation callback. */
+        clockHigh = (char *)0x002e0000;
+        if (found >= 0) {
+            SnapSma(jt->component, 0x17B);
+            clockHigh = (char *)0x002e0000;
+        }
+        sharedDelay = D_002BF434;
+        goto deadline_clock_read;
+    }
+    case 7:
+    enter7: {
+        ChooseJtSweepTarget(jt, &jt->blend7, jt->blend7.clip);
+        enterEffect = 11;
+        stopDelay = D_002BF430;
+        clip = jt->blend7.clip;
+        int found = IsmsFindSmOptional__FP2SM3OID(jt->sm, 0x17B);
+        /* Native V1 is rebuilt after the cancellation callback. */
+        clockHigh = (char *)0x002e0000;
+        if (found >= 0) {
+            SnapSma(jt->component, 0x17B);
+            clockHigh = (char *)0x002e0000;
+        }
+        sharedDelay = D_002BF438;
+    }
+    deadline_clock_read:
+        __asm__ __volatile__("lwc1 %0,%%lo(%2)(%1)"
+                             : "=f"(sharedDeadline)
+                             : "r"(clockHigh), "i"(&D_002DDED0)
+                             : "memory");
+    deadline_add:
+        jt->deadline = sharedDeadline + sharedDelay;
+        break;
+    case 8: clip = jt->clip8; break;
+    case 9: clip = jt->clip9; break;
+    case 12: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$5");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$2", "$3", "$4", "memory");
+        sharedDeadline = deadline;
+        __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2"
+                : "+f"(sharedDeadline), "=r"(sharedMode), "=m"(jt->attack)
+                : "f"(delay), "m"(jt->mode), "r"(attack)
+                : "memory");
+        clip = jt->clip12;
+        goto attack_ready;
+    }
+    case 13: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$5");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$2", "$3", "$4", "memory");
+        sharedDeadline = deadline;
+        __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw %5,%2"
+                : "+f"(sharedDeadline), "=r"(sharedMode), "=m"(jt->attack)
+                : "f"(delay), "m"(jt->mode), "r"(attack)
+                : "memory");
+        clip = jt->clip13;
+    }
+    attack_ready:
+        jt->deadline = sharedDeadline;
+        if (!sharedMode && IsmsFindSmOptional__FP2SM3OID(jt->sm, 0x17B) >= 0)
+            SnapSma(jt->component, 0x17B);
+        break;
+    case 14: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip14)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 15: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip15)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 16: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip16)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 17: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip17)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 18: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip18)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 19: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip19)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 20: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip20)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 21: {
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        register int attack __asm__("$2");
+        __asm__ __volatile__("lui $2,%%hi(%4)\n\tlui $4,%%hi(%5)\n\tlwc1 %1,%%lo(%4)($2)\n\tlui $3,%%hi(%6)\n\tlwc1 "
+                             "%0,%%lo(%5)($4)\n\taddiu %3,$zero,1\n\tlwc1 %2,%%lo(%6)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay), "=r"(attack)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$3", "$4", "memory");
+        __asm__("add.s %0,%0,%3\n\tsw %4,%2\n\tlw %1,%5"
+                : "+f"(deadline), "=r"(clip), "=m"(jt->attack)
+                : "f"(delay), "r"(attack), "m"(jt->clip21)
+                : "memory");
+        jt->deadline = deadline;
+        break;
+    }
+    case 22:
+    case 23: {
+        clip = state == 22 ? jt->clip22 : jt->clip23;
+        register float deadline __asm__("$f0"), delay __asm__("$f1");
+        __asm__ __volatile__("lui $2,%%hi(%3)\n\tlui $4,%%hi(%4)\n\tlwc1 %1,%%lo(%3)($2)\n\tlui $3,%%hi(%5)\n\tlwc1 "
+                             "%0,%%lo(%4)($4)\n\tlwc1 %2,%%lo(%5)($3)"
+                             : "=f"(deadline), "=f"(delay), "=f"(stopDelay)
+                             : "i"(&D_002BF440), "i"(&D_002DDED0), "i"(&D_002BF43C)
+                             : "$2", "$3", "$4", "memory");
+        register int mode __asm__("$2");
+        __asm__("add.s %0,%0,%3\n\tlw %1,%4\n\tsw $zero,%2"
+                : "+f"(deadline), "=r"(mode), "=m"(jt->attack)
+                : "f"(delay), "m"(jt->mode)
+                : "memory");
+        jt->deadline = deadline;
+        if (!mode && IsmsFindSmOptional__FP2SM3OID(jt->sm, 0x17B) >= 0)
+            SnapSma(jt->component, 0x17B);
+        break;
+    }
+    }
+    if (compatible) {
+        register ASEGA *current __asm__("$2") = jt->current;
+        enterEffect = -1;
+        __asm__("lwc1 $f1,%2\n\tlwc1 $f2,%3\n\tlwc1 $f0,%4\n\tlwc1 %0,%5\n\tdiv.s %0,%0,$f2\n\tmin.s %1,$f0,$f1"
+                : "=f"(rate), "=f"(start)
+                : "m"(clip->duration), "m"(current->rate), "m"(current->localTime), "m"(current->elapsed)
+                : "$f0", "$f1", "$f2");
+    } else
+        jt->finished = 0;
+    register int previousState __asm__("$3");
+    __asm__("lw %0,%1" : "=r"(previousState) : "m"(jt->state));
+    int wasAlternate = previousState == 11 || previousState == 2;
+    int nowAlternate = state == 11 || state == 2;
+    if (wasAlternate != nowAlternate) {
+        if (state == 11 || state == 2) {
+            Active(jt->alternateNode);
+            Link(jt->alternateNode, jt->normalNode);
+            Inactive(jt->normalNode);
+        } else {
+            Active(jt->normalNode);
+            Link(jt->normalNode, jt->alternateNode);
+            Inactive(jt->alternateNode);
+        }
+    }
+    jt->state = state;
+    register ASEG *clipArgument __asm__("$4");
+    register float startArgument __asm__("$f12"), rateArgument __asm__("$f13"), now __asm__("$f0");
+    __asm__ __volatile__("lui $2,%%hi(%4)\n\tdaddu %0,%5,$zero\n\tmov.s %1,%6\n\tlwc1 %3,%%lo(%4)($2)\n\tmov.s %2,%7"
+                         : "=r"(clipArgument), "=f"(startArgument), "=f"(rateArgument), "=f"(now)
+                         : "i"(&D_002DDED0), "r"(clip), "f"(start), "f"(rate)
+                         : "$2", "memory");
+    jt->reset = 0;
+    jt->stateTime = now;
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clipArgument, jt, startArgument, rateArgument, 1, &jt->current);
+    if (stopDelay != 0.0f) {
+        register ASEGA *current __asm__("$4");
+        register float stopTime __asm__("$f12");
+        __asm__ __volatile__("lui $3,%%hi(%2)\n\tlw %0,%3\n\tlwc1 %1,%%lo(%2)($3)"
+                             : "=r"(current), "=f"(stopTime)
+                             : "i"(&D_002DDED0), "m"(jt->current)
+                             : "$3", "memory");
+        func_00131A90(current, stopTime + stopDelay);
+    }
+    Emit(jt, enterEffect);
 }
 
 typedef char layout_qword[(sizeof(qword)==16)?1:-1];
@@ -426,7 +654,10 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
 // local frame, so a back sweep is used.
 extern "C" int ShouldJtSweepBack(JT *jt)
 {
-    union { qword q; float f[4]; } u;
+    union {
+        qword q;
+        float f[4];
+    } u;
     qword a, b, s, d;
     float t;
     int f;
@@ -437,7 +668,9 @@ extern "C" int ShouldJtSweepBack(JT *jt)
     u.q = s;
     __asm__("vmulax.xyzw ACC, %1, %2x\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(d) : "j"(a), "j"(s), "j"(b));
     f = 1;
-    if (GetY(d) > 0.0f) {} else f = 0;
+    if (GetY(d) > 0.0f) {
+    } else
+        f = 0;
     return f;
 }
 
@@ -525,9 +758,7 @@ extern "C" int ChooseJtSweepCaneState(JT *jt)
     switch (jt->state) {
     case 0x16: r = 0x17; break;
     case 0x17: r = 0x16; break;
-    default:
-        r = ShouldJtSweepBack(jt) ? 0x17 : 0x16;
-        break;
+    default: r = ShouldJtSweepBack(jt) ? 0x17 : 0x16; break;
     }
     return r;
 }
@@ -554,7 +785,7 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
     f = 0;
     switch (jt->mode) {
     case 3: case 21: case 22:
-        if (GrfConsumePressed__5POCTLUif(jt->pt, 0x80, 0.0f))
+        if (GrfConsumePressed__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.0f))
             SetJtAirJump(jt->air, 0, 0, 0);
         break;
     case 7:
@@ -584,10 +815,10 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
     case 12 ... 23:
         if (!jt->finished) return;
     case -1:
-        if (GrfConsumePressed__5POCTLUif(jt->pt, 0x10, 0.35f)) {
+        if (GrfConsumePressed__5POCTLUif(jt->pt, BUTTON_ALT_ATTACK, 0.35f)) {
             SetJtCaneState__FP2JTi(jt, -1);
             SetJtCaneState__FP2JTi(jt, ChooseJtSweepCaneState(jt));
-        } else if (GrfConsumePressed__5POCTLUif(jt->pt, 0x80, 0.35f)) {
+        } else if (GrfConsumePressed__5POCTLUif(jt->pt, BUTTON_ATTACK, 0.35f)) {
             SetJtCaneState__FP2JTi(jt, -1);
             SetJtCaneState__FP2JTi(jt, ChooseJtAttackCaneState(jt));
         }
@@ -630,43 +861,55 @@ static inline int IsBonus(ALO*const &n){return PloFindSwObjectByClass__FP2SWi3CI
  * @end-sly2-annot */
 // Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
 // (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.
-extern "C" void ChooseJtAttackTarget(ALO*jt,float headingInput,int mask,float dtInput,U*offset,ALO**out,qword*outvector,float cone){
- register float heading __asm__("$f21")=headingInput; float dt=dtInput; // the one pin: heading in f21 (else f20/f21 swap)
- M3 rotation;
- U origin,reference,target,delta,candidate;
- M4 prediction;
- U answer;
- ALO*best=0;
- float nearest=300.0f;
- qword position;
- qword early=QwFromF(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
- rotation=func_0011B500(D_002A2DC0,headingInput);
- position=func_001A62E8(jt);
- VU_FLOAT scalar=VuFloatBits(dt);
- origin.q=AddScaled(position,GetVelocity(jt),scalar);
- reference.q=ConvertAloPos(jt,0,offset->q);
- target.q=VuAdd(Rotate(rotation,offset->q),origin.q);
- delta.q=VuSubRef(target.q,reference.q);
- for(ALO*node=(*(ALO * *)&g_sw.dlTarget);node;node=node->next){
-  struct{U hdr;M4 m;}fx;
-  float t,distance;
-  if(!(node->flags&mask))continue;
-  candidate.q=func_001A62E8(node);
-  void*owner=GetFrame(node,&fx.m);
-  LoadIdentityMatrix4(owner,0,&prediction,dt,0);
-  FindClosestPointOnLineSegment(target.q,candidate.q,Transform(prediction,fx.m.r[3].q),0,&t,&distance);
-  if(IsBonus(node))distance+=D_002BF4B8;
-  if(distance<nearest){
-   qword other=candidate.q;
-   U scratch;scratch.q=VuSubRef(other,func_001A62E8(jt));
-   float angle=AbsF(RadNormalize__Ff(atan2f(scratch.f[1],scratch.f[0])-heading));
-   if(cone<angle)continue;
-   best=node;nearest=distance;
-   qword pred=prediction.r[3].q; answer.q=VuSubRef(pred,origin.q);
-  }
- }
- *out=best;
- *outvector=answer.q;
+extern "C" void ChooseJtAttackTarget(ALO *jt, float headingInput, int mask, float dtInput, U *offset, ALO **out,
+                                     qword *outvector, float cone)
+{
+    register float heading __asm__("$f21") = headingInput;
+    float dt = dtInput; // the one pin: heading in f21 (else f20/f21 swap)
+    M3 rotation;
+    U origin, reference, target, delta, candidate;
+    M4 prediction;
+    U answer;
+    ALO *best = 0;
+    float nearest = 300.0f;
+    qword position;
+    qword early = QwFromF(dt); // computed before the 11B500 call; cse merges the VuFloatBits(dt) below into it
+    rotation = func_0011B500(D_002A2DC0, headingInput);
+    position = func_001A62E8(jt);
+    VU_FLOAT scalar = VuFloatBits(dt);
+    origin.q = AddScaled(position, GetVelocity(jt), scalar);
+    reference.q = ConvertAloPos(jt, 0, offset->q);
+    target.q = VuAdd(Rotate(rotation, offset->q), origin.q);
+    delta.q = VuSubRef(target.q, reference.q);
+    for (ALO *node = (*(ALO **)&g_sw.dlTarget); node; node = node->next) {
+        struct {
+            U hdr;
+            M4 m;
+        } fx;
+        float t, distance;
+        if (!(node->flags & mask))
+            continue;
+        candidate.q = func_001A62E8(node);
+        void *owner = GetFrame(node, &fx.m);
+        LoadIdentityMatrix4(owner, 0, &prediction, dt, 0);
+        FindClosestPointOnLineSegment(target.q, candidate.q, Transform(prediction, fx.m.r[3].q), 0, &t, &distance);
+        if (IsBonus(node))
+            distance += D_002BF4B8;
+        if (distance < nearest) {
+            qword other = candidate.q;
+            U scratch;
+            scratch.q = VuSubRef(other, func_001A62E8(jt));
+            float angle = AbsF(RadNormalize__Ff(atan2f(scratch.f[1], scratch.f[0]) - heading));
+            if (cone < angle)
+                continue;
+            best = node;
+            nearest = distance;
+            qword pred = prediction.r[3].q;
+            answer.q = VuSubRef(pred, origin.q);
+        }
+    }
+    *out = best;
+    *outvector = answer.q;
 }
 
 /** @sly2-annot addr=0x18F560
