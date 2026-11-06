@@ -91,7 +91,7 @@ void InitRobottank(struct S *p) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_CloneRobottank {
-extern "C" { extern char D_002C94A0[]; }
+extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
 struct OBJ;struct X;extern "C" void func_001D4D30(X*,OBJ*);
 extern "C" void *func_001AE4F8(int);
 struct A { int x0; int x4; A() {} };
@@ -2415,7 +2415,7 @@ void func_001D4B48(struct S *p, int n, struct K *pk, float g) {
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001D4B90 {
-extern "C" { extern char D_002C94A0[]; }
+extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
 struct OBJ;
 struct X;
 extern "C" void func_001D4D30(X *,OBJ *);

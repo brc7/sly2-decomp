@@ -5198,7 +5198,7 @@ struct Q; struct E; struct P;
 struct Q { int a, b, c; void *pvt; int pad[4]; void *p20; void *p24; int pad2[2]; };
 struct E { char pad[0x94]; int n94; int pad2; int n9C; char pad3[0x100 - 0xA0]; };
 struct P { char pad[0x50]; int c; struct E *ae; };
-extern char D_002CA2C0[];
+extern char D_002CA2C0[] __asm__("_vt$6CID149");
 struct Pool;
 struct Q *PvAllocSlotheapClear(struct Pool *);
 void func_002333B4(void *, int, int) __asm__("memset");
@@ -5233,7 +5233,7 @@ struct Q *func_001F8510(struct P *p, int k, int m)
 namespace M_func_001F85E0 { extern "C" {
 struct Q;
 struct Q { int a, b, c; void *pvt; int pad[4]; void *p20; void *p24; int pad2[2]; };
-extern char D_002CA280[];
+extern char D_002CA280[] __asm__("_vt$6CID150");
 struct Pool;
 void *PsopartFindSo(void *);
 struct Q *PvAllocSlotheapClear(struct Pool *);

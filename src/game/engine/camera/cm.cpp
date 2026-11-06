@@ -42,7 +42,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #define PVTCM(p) (*(void **)((char *)(p) + 0xC))
 
 extern "C" {
-extern void *D_002CA4D0[];  /* CM vtable */
+extern void *D_002CA4D0[] __asm__("_vt$2CM");  /* CM vtable */
 extern void *D_002CD378[];  /* CPTWOSHOT vtable */
 CMPART1 *CMPART1_ctor(CMPART1 *p);
 CMPART2 *CPTN_ctor(CMPART2 *p);

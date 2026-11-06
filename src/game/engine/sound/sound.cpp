@@ -1383,7 +1383,7 @@ struct P {
     char padA0[0x104 - 0xA0]; int n104; char pad108[0x114 - 0x108]; struct T t114; struct T t120; struct T t12C;
     char pad138[0x200 - 0x138]; int n200; int pad204; int a208[8]; int n228;
 };
-extern char D_002CA510[];
+extern char D_002CA510[] __asm__("_vt$6CID152");
 extern const struct V2 D_002A83B8;
 extern const struct V2 D_002A83C0;
 void func_0011CCA8(void *, int, int, int);

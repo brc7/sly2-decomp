@@ -90,7 +90,7 @@ extern SWP D_003DD490;
 extern "C" {
 extern int D_002E1E00;
 extern CMV D_002DDF40;
-extern char D_002CA240[];
+extern char D_002CA240[] __asm__("_vt$5POCTL");
 extern float D_002DDED0;
 extern qword D_002A2DB0;
 extern const float D_002A7708;   /* defined below where the ELF has it (.rodata order) */

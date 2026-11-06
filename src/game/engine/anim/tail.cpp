@@ -63,7 +63,7 @@ struct E { struct M3 mat; qword pos; qword world; qword x50; struct N *node; str
 struct N { int count; struct E *entries; int x8; float xC; float x10; float x14; float x18; int x1C; qword q20; qword q30; qword q40; };
 struct Hook { int kind; struct S *owner; struct O *object; int xC; int x10; int flags; void *vt; struct E *entry; };
 struct Alloc { int cb; int align; };
-extern char D_002DB338[];
+extern char D_002DB338[] __asm__("_vt$4ACT3");
 extern "C" {
 int S8Read__18CBinaryInputStream(void *);
 int U8Read__18CBinaryInputStream(void *);

@@ -82,8 +82,8 @@ namespace M_PripgNew { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct O { int x0; int x4; int x8; struct VTE *vt; char p1[0x80 - 0x10]; char x80[0xD0]; int x150; };
 struct G { char pad[0x403C]; char pool[0x30]; struct O *x406C; };
-extern struct VTE D_002D9978[];
-extern struct VTE D_002D77D8[];
+extern struct VTE D_002D9978[] __asm__("_vt$2SO");
+extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
 void *PvAllocSlotheapClear(void *pool);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */

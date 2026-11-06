@@ -29,7 +29,7 @@ void *func_001DCC58(void *pv);      /* JOBLIST constructor */
 void *func_001DD648(void *pv);      /* screen 0x52D constructor */
 void *func_001DD7D8(void *pv);      /* title screen constructor */
 void func_00258348(void *pv, int grfDelete);
-extern char D_002D8668[], D_002D37D0[], D_002CA490[];   /* vtables of the HUD meter, pause menu and notice */
+extern char D_002D8668[], D_002D37D0[], D_002CA490[] __asm__("_vt$6CID154");   /* vtables of the HUD meter, pause menu and notice */
 extern char D_002D8568[];   /* GADGETMENU vtable */
 }
 struct SCRLIST

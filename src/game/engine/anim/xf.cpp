@@ -788,7 +788,7 @@ struct J9 {JOB h;int pad1C;V value;};
 struct E {M4 matrix;char pad40[0x50];JOB *jobs;int kind,pad98,tag;RESOURCE *reference;int padA4;RESOURCE *origin;short lo,hi;char padB0[0x10];qword current;char padD0[0x10];qword previous;char padF0[0x10];};
 struct S {char pad0[0xC];VE *vt;char pad10[0x30];int flags;char pad44[0xC];int count;E *records;RESOURCE *a,*b,*c;};
 struct REQ {int size,kind;};
-extern "C" { extern char D_002CA820[],D_002CA7E0[],D_002CA7A0[],D_002CA6A0[]; }
+extern "C" { extern char D_002CA820[] __asm__("_vt$4ACT1"),D_002CA7E0[] __asm__("_vt$4ACT2"),D_002CA7A0[] __asm__("_vt$4ACT4"),D_002CA6A0[] __asm__("_vt$4ACT9"); }
 extern "C" {
 int S16Read__18CBinaryInputStream(void *);
 int S32Read__18CBinaryInputStream(void *);

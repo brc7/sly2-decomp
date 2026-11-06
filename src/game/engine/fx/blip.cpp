@@ -155,7 +155,7 @@ QW D_002DD5C0[4];       /* the two blip GIF packets (blip's .bss) */
 QW D_002DD600[4];
 extern DLV D_002DEAF0;
 extern DLV D_002DEB00;
-extern VTE D_002CB5D8[];
+extern VTE D_002CB5D8[] __asm__("_vt$5BLIPG");
 extern qwordV D_002A2DD0;
 int D_002BC9C0 = 0;     /* blip's .data: force the CPU projection */
 extern int D_002C3C5C;

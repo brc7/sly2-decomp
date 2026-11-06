@@ -148,7 +148,7 @@ float D_002C3DE0 = 5.0f;
 float D_002C3DE4 = 1.1f;
 extern const float D_002A8904;   /* defined below where the ELF has it (.rodata order) */
 extern void *D_002DAA10[];
-extern void *D_002DA9D0[];
+extern void *D_002DA9D0[] __asm__("_vt$6CID146");
 
 void func_001384C0(ASEGBL *);
 float GModPositive__Fff(float a, float b);
