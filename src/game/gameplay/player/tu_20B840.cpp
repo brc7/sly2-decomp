@@ -403,7 +403,11 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
         if (!f) {
             float t = gait->abl[1].gWeight;
             void *h;
-            { float u = 1.0f - t; t *= gait->gVolRun; t += u * gait->gVolWalk; }
+            {
+                float u = 1.0f - t;
+                t *= gait->gVolRun;
+                t += u * gait->gVolWalk;
+            }
             h = PsndStartSound(gait->sfxidStep);
             SetSndSourceLo(h, 0);
             SetSndSourcePos(h, func_001A62E8(x->paloRoot));
@@ -481,11 +485,16 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
         goto initialized;
     CURVECALL((CV *)c->pkey, &v0.q, 0, p->a, 1.0f);
     CURVECALL((CV *)c->pkey, &v1.q, 0, p->c, 1.0f);
-    __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4":"=j"(d),"=f"(start):"j"(v0.q),"j"(v1.q),"m"(p->a));
+    __asm__("vsub.xyzw %0,%2,%3\n\tlwc1 %1,%4" : "=j"(d), "=f"(start) : "j"(v0.q), "j"(v1.q), "m"(p->a));
     h = p->c;
-    __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tdaddu %1,%z3,$zero\n\tsub.s %2,%2,%4" : "+j"(d),"=r"(derivative),"+f"(h) : "rJ"((qword*)0),"f"(start));
+    __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q\n\tdaddu "
+            "%1,%z3,$zero\n\tsub.s %2,%2,%4"
+            : "+j"(d), "=r"(derivative), "+f"(h)
+            : "rJ"((qword *)0), "f"(start));
     h *= 0.5f;
-    __asm__("qmfc2.ni %0,%3\n\tsw %0,%1\n\tlw %2,%4":"=&r"(n),"=m"(p->dist.bits),"=r"(thirdCurve):"j"(d),"m"(c->pkey));
+    __asm__("qmfc2.ni %0,%3\n\tsw %0,%1\n\tlw %2,%4"
+            : "=&r"(n), "=m"(p->dist.bits), "=r"(thirdCurve)
+            : "j"(d), "m"(c->pkey));
     CURVECALL(thirdCurve, &v2.q, derivative, start + h, 1.0f);
     {
         V3 *pv = &p->v;
@@ -632,94 +641,113 @@ static inline float MaxR(float a,float b){return a<b?b:a;}
  * @end-sly2-annot */
 // Leap states: 0 start animation; 1 launch (ballistic time or the given flight time) with a constraint; 2/3 seek the
 // target; 4 land.
-void SetLeapState(LEAPV *leap,int state)
+void SetLeapState(LEAPV *leap, int state)
 {
-    U scalar,delta,acceleration,velocity,finalVelocity;
-    if(state==leap->state)return;
-    leap->state=state;
-    leap->stateTime=D_002DDED0.time;
-    switch(state){
+    U scalar, delta, acceleration, velocity, finalVelocity;
+    if (state == leap->state)
+        return;
+    leap->state = state;
+    leap->stateTime = D_002DDED0.time;
+    switch (state) {
     case 0:
-        ApplyAsegCur(leap->tuning->animation,leap->subject,0.0f,1.0f,leap->index,&leap->job);
-        SubscribeLoObject(leap->job,leap);
-        leap->previousVelocity.q=GetSoDvGravity(leap->subject);
+        ApplyAsegCur(leap->tuning->animation, leap->subject, 0.0f, 1.0f, leap->index, &leap->job);
+        SubscribeLoObject(leap->job, leap);
+        leap->previousVelocity.q = GetSoDvGravity(leap->subject);
         break;
-    case 1:{
-        if(FIsBasicDerivedFrom((BASIC *)leap->subject,(CID)0x38)){
-            ALO *subject=leap->subject;
+    case 1: {
+        if (FIsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38)) {
+            ALO *subject = leap->subject;
             func_0020B210(subject);
             func_0020D178(subject->control);
         }
-        float playbackRate=leap->job->svt;
-        register ALO *motionSubject __asm__("$3")=leap->subject;
+        float playbackRate = leap->job->svt;
+        register ALO *motionSubject __asm__("$3") = leap->subject;
         register XF *motionSpace __asm__("$4");
         register LEAPTUNE *motionTuning __asm__("$3");
         register float square __asm__("$f0");
         __asm__("lw %0,%3\n\tmul.s %1,%4,%4\n\tlw %2,%5"
-          :"=&r"(motionSpace),"=f"(square),"=r"(motionTuning)
-          :"m"(motionSubject->space),"f"(playbackRate),"m"(leap->tuning));
+                : "=&r"(motionSpace), "=f"(square), "=r"(motionTuning)
+                : "m"(motionSubject->space), "f"(playbackRate), "m"(leap->tuning));
         register qword rateSquared __asm__("vf3");
         register int ballistic __asm__("$2");
-        __asm__("lqc2 $vf4,%4\n\tlqc2 $vf1,%5\n\tmfc1 %0,%8\n\tqmtc2.ni %0,%1\n\tvmulx.xyzw $vf2,$vf1,%1x\n\tsqc2 $vf2,%2\n\tlqc2 $vf2,%6\n\tvsub.xyzw $vf1,$vf2,$vf4\n\tsqc2 $vf1,%3\n\tlw %0,%7"
-          :"=&r"(ballistic),"=&j"(rateSquared),"=m"(acceleration.q),"=m"(delta.q)
-          :"m"(POSITION(motionSpace)),"m"(motionTuning->acceleration.q),"m"(leap->target.q),"m"(leap->ballistic),"f"(square):"vf1","vf2","vf4");
-        scalar.q=rateSquared;
+        __asm__("lqc2 $vf4,%4\n\tlqc2 $vf1,%5\n\tmfc1 %0,%8\n\tqmtc2.ni %0,%1\n\tvmulx.xyzw $vf2,$vf1,%1x\n\tsqc2 "
+                "$vf2,%2\n\tlqc2 $vf2,%6\n\tvsub.xyzw $vf1,$vf2,$vf4\n\tsqc2 $vf1,%3\n\tlw %0,%7"
+                : "=&r"(ballistic), "=&j"(rateSquared), "=m"(acceleration.q), "=m"(delta.q)
+                : "m"(POSITION(motionSpace)), "m"(motionTuning->acceleration.q), "m"(leap->target.q),
+                  "m"(leap->ballistic), "f"(square)
+                : "vf1", "vf2", "vf4");
+        scalar.q = rateSquared;
         float time;
-        if(ballistic){
-            float low,high,slopeLow,slopeHigh;
-            if(leap->related&&(FIsBasicDerivedFrom((BASIC *)leap->related,(CID)0x13)||FIsBasicDerivedFrom((BASIC *)leap->related,(CID)0xB))){
-                low=1250.0f;slopeLow=1.1f;high=0.0f;slopeHigh=50.0f;
-            }else if(leap->steep){
-                low=1500.0f;slopeLow=1.33f;high=-1500.0f;slopeHigh=-1.33f;
-            }else{
-                low=1250.0f;slopeLow=1.1f;high=-1250.0f;slopeHigh=-1.1f;
+        if (ballistic) {
+            float low, high, slopeLow, slopeHigh;
+            if (leap->related && (FIsBasicDerivedFrom((BASIC *)leap->related, (CID)0x13) ||
+                                  FIsBasicDerivedFrom((BASIC *)leap->related, (CID)0xB))) {
+                low = 1250.0f;
+                slopeLow = 1.1f;
+                high = 0.0f;
+                slopeHigh = 50.0f;
+            } else if (leap->steep) {
+                low = 1500.0f;
+                slopeLow = 1.33f;
+                high = -1500.0f;
+                slopeHigh = -1.33f;
+            } else {
+                low = 1250.0f;
+                slopeLow = 1.1f;
+                high = -1250.0f;
+                slopeHigh = -1.1f;
             }
-            time=ComputeMaxBallisticTime(delta.q,acceleration.q,low,high,slopeLow,slopeHigh);
-        }else time=motionTuning->flightTime/playbackRate;
-        time=MaxR(leap->tuning->minimumTime/playbackRate,time);
-        ALO *subject=leap->subject;
-        VTE &entry=subject->pvt[35];
-        short adjustment=entry.d;
-        void (*applyVelocity)(void *,qword)=(void (*)(void *,qword))entry.pfn;
-        scalar.q=Scalar(1.0f/time);
-        qword inverseTime=scalar.q;
-        scalar.q=Scalar(-0.5f*time);
-        qword initialVelocity=Combine(delta.q,inverseTime,acceleration.q,scalar.q);
-        Store(&velocity,initialVelocity);
-        applyVelocity((char *)subject+adjustment,velocity.q);
-        leap->arrival=D_002DDED0.time+time;
-        leap->end=leap->arrival-leap->tuning->minimumTime/playbackRate;
-        if(leap->ballistic){
-            register qword timeScalar __asm__("vf1"),motionVelocity __asm__("vf2"),force __asm__("vf3");
+            time = ComputeMaxBallisticTime(delta.q, acceleration.q, low, high, slopeLow, slopeHigh);
+        } else
+            time = motionTuning->flightTime / playbackRate;
+        time = MaxR(leap->tuning->minimumTime / playbackRate, time);
+        ALO *subject = leap->subject;
+        VTE &entry = subject->pvt[35];
+        short adjustment = entry.d;
+        void (*applyVelocity)(void *, qword) = (void (*)(void *, qword))entry.pfn;
+        scalar.q = Scalar(1.0f / time);
+        qword inverseTime = scalar.q;
+        scalar.q = Scalar(-0.5f * time);
+        qword initialVelocity = Combine(delta.q, inverseTime, acceleration.q, scalar.q);
+        Store(&velocity, initialVelocity);
+        applyVelocity((char *)subject + adjustment, velocity.q);
+        leap->arrival = D_002DDED0.time + time;
+        leap->end = leap->arrival - leap->tuning->minimumTime / playbackRate;
+        if (leap->ballistic) {
+            register qword timeScalar __asm__("vf1"), motionVelocity __asm__("vf2"), force __asm__("vf3");
             register ALO *launchSubject __asm__("$3");
             register qword target __asm__("$6");
             __asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tlqc2 %2,%6\n\tlw %3,%7"
-              :"=j"(timeScalar),"=j"(motionVelocity),"=j"(force),"=r"(launchSubject)
-              :"r"(time),"m"(velocity.q),"m"(acceleration.q),"m"(leap->subject));
+                    : "=j"(timeScalar), "=j"(motionVelocity), "=j"(force), "=r"(launchSubject)
+                    : "r"(time), "m"(velocity.q), "m"(acceleration.q), "m"(leap->subject));
             __asm__("vadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%2,%3x\n\tlq %1,%4"
-              :"+j"(motionVelocity),"=r"(target):"j"(force),"j"(timeScalar),"m"(leap->target.q));
+                    : "+j"(motionVelocity), "=r"(target)
+                    : "j"(force), "j"(timeScalar), "m"(leap->target.q));
             register XF *parentSpace __asm__("$2");
             __asm__("sqc2 %4,%0\n\tlw %1,%5\n\tsqc2 %3,%2"
-              :"=m"(finalVelocity.q),"=r"(parentSpace),"=m"(scalar.q)
-              :"j"(timeScalar),"j"(motionVelocity),"m"(launchSubject->space));
-            qword position=func_0022FC48(0,parentSpace->pxfParent,target);
-            qword speed=ConvertXfVec(0,leap->subject->space->pxfParent,finalVelocity.q);
-            leap->constraint=func_0012DE58(leap->subject,leap->subject->space,5,position,speed,leap->arrival);
-            leap->subject->flags|=0x04000000ul;
-            RecalcSwOxfFilterForObject(&D_003DD490,leap->subject);
+                    : "=m"(finalVelocity.q), "=r"(parentSpace), "=m"(scalar.q)
+                    : "j"(timeScalar), "j"(motionVelocity), "m"(launchSubject->space));
+            qword position = func_0022FC48(0, parentSpace->pxfParent, target);
+            qword speed = ConvertXfVec(0, leap->subject->space->pxfParent, finalVelocity.q);
+            leap->constraint = func_0012DE58(leap->subject, leap->subject->space, 5, position, speed, leap->arrival);
+            leap->subject->flags |= 0x04000000ul;
+            RecalcSwOxfFilterForObject(&D_003DD490, leap->subject);
         }
-        SetSoDvGravity(leap->subject,acceleration.q);
+        SetSoDvGravity(leap->subject, acceleration.q);
         break;
     }
-    case 2:func_00130D30(leap->job,0,leap->tuning->afterStart,1.0f);break;
+    case 2: func_00130D30(leap->job, 0, leap->tuning->afterStart, 1.0f); break;
     case 3:
-        func_00130D30(leap->job,0,leap->tuning->afterEnd,1.0f);
-        if(leap->related)func_0020B2A8(leap->subject,leap->related,leap->kind);
+        func_00130D30(leap->job, 0, leap->tuning->afterEnd, 1.0f);
+        if (leap->related)
+            func_0020B2A8(leap->subject, leap->related, leap->kind);
         break;
     case 4:
-        if(leap->ballistic)ReleaseLeapConstraint(leap);
-        SetSoDvGravity(leap->subject,leap->previousVelocity.q);
-        if(FIsBasicDerivedFrom((BASIC *)leap->subject,(CID)0x38))EnableStuckWatch(leap->subject->control);
+        if (leap->ballistic)
+            ReleaseLeapConstraint(leap);
+        SetSoDvGravity(leap->subject, leap->previousVelocity.q);
+        if (FIsBasicDerivedFrom((BASIC *)leap->subject, (CID)0x38))
+            EnableStuckWatch(leap->subject->control);
         break;
     }
 }
@@ -736,8 +764,12 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
 {
     switch (leap->state) {
     case 0: leap->target.q = v; break;
-    case 1: case 2:
-        if (leap->ballistic) { ACTPOS *pd = (ACTPOS *)leap->constraint; pd->v = func_0022FC48(0, leap->subject->space->pxfParent, v); }
+    case 1:
+    case 2:
+        if (leap->ballistic) {
+            ACTPOS *pd = (ACTPOS *)leap->constraint;
+            pd->v = func_0022FC48(0, leap->subject->space->pxfParent, v);
+        }
         break;
     }
 }
@@ -782,9 +814,10 @@ extern "C" void InvalidateDirAnims(DIRBL *dirAnims) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Measures the root velocity and speed of the four directional animations.
-extern "C" void InitDirAnims(DIRBL *dirAnims,ALO *arg)
+extern "C" void InitDirAnims(DIRBL *dirAnims, ALO *arg)
 {
-    DIRE *e; unsigned int i;
+    DIRE *e;
+    unsigned int i;
     if (dirAnims->fInit)
         return;
     for (i = 0; i < 4; i++) {
@@ -792,32 +825,36 @@ extern "C" void InitDirAnims(DIRBL *dirAnims,ALO *arg)
         CHN *c;
         U v0, v1;
         U u;
-        qword d,vel,r,s;
+        qword d, vel, r, s;
         register qword tmp __asm__("vf4");
         register qword start __asm__("vf2");
         register qword end __asm__("vf3");
         register qword scalar __asm__("vf1");
         int f;
         e = &dirAnims->ae[i];
-        o = (ASEG *)PloFindSwObject(&D_003DD490SW,4,(OID)(int)e->animation,(LO *)arg);
+        o = (ASEG *)PloFindSwObject(&D_003DD490SW, 4, (OID)(int)e->animation, (LO *)arg);
         e->animation = o;
         if (!o)
             continue;
-        c = func_0012FF10(o,arg,1,1);
-        ((VECKEY *)c->pkey)->GetValue(0.0f,1.0f,&v0.q,0);
-        ((VECKEY *)c->pkey)->GetValue(o->tMax,1.0f,&v1.q,0);
-        { register int bits __asm__("$17")=*(int *)&o->tMax;
-          __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5"
-                  : "=j"(scalar),"=j"(start),"=j"(end)
-                  : "r"(bits),"m"(v0.q),"m"(v1.q)); }
-        u.q=scalar;
+        c = func_0012FF10(o, arg, 1, 1);
+        ((VECKEY *)c->pkey)->GetValue(0.0f, 1.0f, &v0.q, 0);
+        ((VECKEY *)c->pkey)->GetValue(o->tMax, 1.0f, &v1.q, 0);
+        {
+            register int bits __asm__("$17") = *(int *)&o->tMax;
+            __asm__("qmtc2.ni %3,%0\n\tlqc2 %1,%4\n\tlqc2 %2,%5"
+                    : "=j"(scalar), "=j"(start), "=j"(end)
+                    : "r"(bits), "m"(v0.q), "m"(v1.q));
+        }
+        u.q = scalar;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "0"(end), "j"(start));
         __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(vel) : "0"(u.q), "j"(d));
-        __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=&j"(r), "=&j"(tmp) : "j"(vel));
+        __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z"
+                : "=&j"(r), "=&j"(tmp)
+                : "j"(vel));
         e->velocity = vel;
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(s) : "0"(r));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(s));
-        e->speed.bits=f;
+        e->speed.bits = f;
     }
     dirAnims->fInit = 1;
 }
@@ -920,15 +957,36 @@ void CID146::HandleMessage(MSGID msg_m, void *pm_m)
 }
 
 // Select the best animation direction and update its velocity.
-static inline qword Dot(qword a,qword b){qword r,one;
-__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(r),"=&j"(one):"j"(a),"j"(b));return r;}
-static inline qword DotReuse(qword a,qword b){qword one;
-__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(b),"=&j"(one):"j"(a),"0"(b));return b;}
+static inline qword Dot(qword a, qword b)
+{
+    qword r, one;
+    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+            : "=&j"(r), "=&j"(one)
+            : "j"(a), "j"(b));
+    return r;
+}
+static inline qword DotReuse(qword a, qword b)
+{
+    qword one;
+    __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+            : "=j"(b), "=&j"(one)
+            : "j"(a), "0"(b));
+    return b;
+}
 static inline qword Sqrt(qword q){__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(q):"0"(q));return q;}
-static inline void Normalize(U*dst,qword v){qword length=Sqrt(Dot(v,v));register qword result __asm__("vf3");
-__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=&j"(result):"j"(length),"j"(v));dst->q=result;}
-static inline qword NormalizeEntry(qword v){qword length=Sqrt(Dot(v,v));
-__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(length):"0"(length),"j"(v));return length;}
+static inline void Normalize(U *dst, qword v)
+{
+    qword length = Sqrt(Dot(v, v));
+    register qword result __asm__("vf3");
+    __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=&j"(result) : "j"(length), "j"(v));
+    dst->q = result;
+}
+static inline qword NormalizeEntry(qword v)
+{
+    qword length = Sqrt(Dot(v, v));
+    __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(length) : "0"(length), "j"(v));
+    return length;
+}
 static inline float Float(qword v){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(v));return f;}
 static inline qword ScalarFW(const FLOATWORD*p){register qword v __asm__("vf1");register int w __asm__("$2")=p->bits;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(w));return v;}
 static inline qword Scale(qword v,qword s){register qword r __asm__("vf2");__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(v),"j"(s));return r;}
@@ -944,44 +1002,58 @@ namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
 // Chooses the best of the four directional animations for the desired direction.
-extern "C" void SelectDirAnim(DIRSEL*dirAnims,qword v)
+extern "C" void SelectDirAnim(DIRSEL *dirAnims, qword v)
 {
- U scalar,direction;
- register qword finalDirection __asm__("vf3");
- DIRE *best=0;
- register DIRE *current __asm__("v0");
- Normalize(&direction,v);
- float maximum=D_002A8904;
- if(dirAnims->forward||dirAnims->backward){
-   DIRE *entry;
-   unsigned int i;float bias;
-   register qword scoringDirection __asm__("vf4");
-   __asm__("lqc2 %0,%4\n\tlw %1,%5\n\tdaddu %2,%z6,$zero\n\tlwc1 %3,%7":"=j"(scoringDirection),"=&r"(entry),"=&r"(i),"=f"(bias):"m"(direction.q),"m"(dirAnims->entries),"rJ"(0),"m"(D_002C3DE4));
-   do{
-     ASEG *animation=entry->animation;
-     if(animation){
-       float score=Float(DotReuse(scoringDirection,NormalizeEntry(entry->velocity)));
-       if(animation==dirAnims->active->paseg)score*=bias;
-       if(maximum<score){maximum=score;best=entry;}
-     }
-   }while(++entry,++i<4);
- current=dirAnims->best;
- finalDirection=direction.q;
- if(best!=current){
-   float time=0.0f;
-   EA*tag;
-   ASEG*animation;
-   int id;
-   if(dirAnims->forward){id=0x17D;animation=best->animation;}
-   else {id=0x17F;animation=best->animation;}
-   tag=func_0012F938(animation,id);
-   if(tag)time=tag->tLocal;
-   ApplyAsegCur(best->animation,dirAnims->root,time,1.0f,dirAnims->flags,&dirAnims->active);
-   SubscribeLoObject(dirAnims->active,dirAnims);
-   dirAnims->best=best;
- }
- }
- current=dirAnims->best;finalDirection=direction.q;
- scalar.q=ScalarFW(&current->speed);
- dirAnims->direction=Scale(finalDirection,scalar.q);
+    U scalar, direction;
+    register qword finalDirection __asm__("vf3");
+    DIRE *best = 0;
+    register DIRE *current __asm__("v0");
+    Normalize(&direction, v);
+    float maximum = D_002A8904;
+    if (dirAnims->forward || dirAnims->backward) {
+        DIRE *entry;
+        unsigned int i;
+        float bias;
+        register qword scoringDirection __asm__("vf4");
+        __asm__("lqc2 %0,%4\n\tlw %1,%5\n\tdaddu %2,%z6,$zero\n\tlwc1 %3,%7"
+                : "=j"(scoringDirection), "=&r"(entry), "=&r"(i), "=f"(bias)
+                : "m"(direction.q), "m"(dirAnims->entries), "rJ"(0), "m"(D_002C3DE4));
+        do {
+            ASEG *animation = entry->animation;
+            if (animation) {
+                float score = Float(DotReuse(scoringDirection, NormalizeEntry(entry->velocity)));
+                if (animation == dirAnims->active->paseg)
+                    score *= bias;
+                if (maximum < score) {
+                    maximum = score;
+                    best = entry;
+                }
+            }
+        } while (++entry, ++i < 4);
+        current = dirAnims->best;
+        finalDirection = direction.q;
+        if (best != current) {
+            float time = 0.0f;
+            EA *tag;
+            ASEG *animation;
+            int id;
+            if (dirAnims->forward) {
+                id = 0x17D;
+                animation = best->animation;
+            } else {
+                id = 0x17F;
+                animation = best->animation;
+            }
+            tag = func_0012F938(animation, id);
+            if (tag)
+                time = tag->tLocal;
+            ApplyAsegCur(best->animation, dirAnims->root, time, 1.0f, dirAnims->flags, &dirAnims->active);
+            SubscribeLoObject(dirAnims->active, dirAnims);
+            dirAnims->best = best;
+        }
+    }
+    current = dirAnims->best;
+    finalDirection = direction.q;
+    scalar.q = ScalarFW(&current->speed);
+    dirAnims->direction = Scale(finalDirection, scalar.q);
 }
