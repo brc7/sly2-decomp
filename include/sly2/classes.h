@@ -1295,8 +1295,8 @@ typedef char assert_CID40_size[sizeof(CID40) == 0xF0 ? 1 : -1];
 struct LIGHT : XFM
 {
     char padE0[0x170 - 0xE0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetLightClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitLight");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetLightClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddLightHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemoveLightHierarchy");   /* slot 12 */
     virtual void VUnk14() __asm__("PostLightLoad");   /* slot 15 */
