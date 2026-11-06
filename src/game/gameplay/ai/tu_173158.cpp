@@ -168,6 +168,7 @@ SCRIPTV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew_
 // 1, respawn delays 30 and 50 s.
 void CID119::Init() { CID119V *p = (CID119V *)this; InitLo(p); p->sPlanar = 5500.0f; p->fEdge = p->fOcclusion = p->fRange = 1; p->dtRespawn = 30.0f; p->dtRespawn2 = 50.0f; }
 
+// Fills an allocation request (size, alignment).
 static inline AI *SetAi(AI *pa, int cb, int align) { pa->cb = cb; pa->align = align; return pa; }
 // 0x1731B8: Spawner vtable slot 14 (LoadFromBrx): preallocates the selector, template and offset arrays at their
 // maximum sizes, loads the LO (Splice options fill them), then shrinks them.
@@ -266,8 +267,11 @@ extern "C" void PostSpawnerLoad(CID119V *p) {
     else p->grfUnk40 = f | 2;
 }
 
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qwordV q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+// VU0 helper: z component of a vector.
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x173588: True if a projected point is in front of the camera (z > 1e-4) and within +-`extent` in x and y.
 extern "C" int IsInScreenRect(qwordV v, float r) {
@@ -316,12 +320,19 @@ extern "C" int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void)
     return 1;
 }
 
+// Loads a quadword into a CPU register (register-pinned for the match).
 static inline qwordV LoadCpu(const U&u){register qwordV q asm("$5");__asm__("lq %0,%1":"=r"(q):"m"(u.q));return q;}
+// VU0 helper: loads a quadword into a VU register.
 static inline qwordV Load(const U&u){register qwordV q asm("vf3");__asm__("lqc2 %0,%1":"=j"(q):"m"(u.q));return q;}
+// VU0 helper: length of a vector (third instruction pattern for the match).
 static inline float Len3(qwordV a,const U&u){qwordV b=Load(u);register qwordV d asm("vf1");float f;d = VuDot(a, b);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+// VU0 helper: length of a vector (alternate instruction pattern for the match).
 static inline float Len2(qwordV input){register qwordV a asm("vf2")=input,d asm("vf1");float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(d):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+// Loads the camera and position operands (register-pinned asm for the match).
 static inline void ReadInputs(CMV*source,const U&position,qwordV&cpu,qwordV&point,qwordV&vector){register CMV*p asm("$2")=source;register qwordV r asm("$5"),v asm("vf1"),o asm("vf2");__asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2":"=r"(r),"=j"(v),"=j"(o):"m"(p->mat.r[3]),"m"(position.q));cpu=r;point=v;vector=o;}
+// z component of a quadword vector.
 static inline float Z(qwordV a){register int bits asm("$5");union{int n;float f;}value;__asm__("pextuw %0,$0,%1":"=r"(bits):"r"(a));value.n=bits;return value.f;}
+// True if a vector is longer than `limit`.
 static inline int TooFar(qwordV a,float limit){return limit<Len2(a);}
 // 0x173768: Camera concealment of a spawn point: 0 if it is visible (or too far / behind / off screen: unusable),
 // else 1 at the screen edge, 2 out of the planar range, 3 occluded.
@@ -431,13 +442,20 @@ extern "C" void UpdateSpawner(CID119V*p){
 // by value; they add ~30 RTL insns to the loop (pass 1: 90, pass 2: 81 > threshold) so loop.c hoists the clock's %hi only in
 // the second pass, giving the target's preheader order (1, hi BE5DC, giv 0, hi clock). Fewer layers (86) or more (94+) differ.
 struct VU_VECTOR { qwordV q; VU_VECTOR() {} VU_VECTOR(qwordV a) { q = a; } };
+// VU0 helper: vector difference.
 static inline VU_VECTOR VsubXyzw(VU_VECTOR a, VU_VECTOR b) { qwordV d; d = VuSub(a.q, b.q); return VU_VECTOR(d); }
+// VU0 helper: x*x + y*y of a vector.
 static inline VU_VECTOR SumXY(VU_VECTOR a) { qwordV d; __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
+// VU0 helper: square root of a VU vector's x.
 static inline VU_VECTOR SqrtV(VU_VECTOR a) { qwordV d; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
 static inline VU_VECTOR operator-(VU_VECTOR a, VU_VECTOR b) { return VsubXyzw(a, b); }
+// VU0 helper: horizontal (xy) length as a VU vector.
 static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return SqrtV(SumXY(a)); }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline float LengthXY(VU_VECTOR a) { return VuToFloat(LengthXYV(a).q); }
+// VU0 helper: horizontal (xy) distance between two points.
 static inline float DistXYImpl(VU_VECTOR a, VU_VECTOR b) { return LengthXY(a - b); }
+// VU0 helper: horizontal (xy) distance.
 static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); }
 // 0x173D18: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough away.
 extern "C" void UpdateSpawnerEntries(CID119V *p, qwordV pos) {

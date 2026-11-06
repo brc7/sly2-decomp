@@ -166,6 +166,7 @@ int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, in
 float GRandInRange(float gMin, float gMax);
 float RadNormalize(float rad);
 
+// Fills an allocation request and allocates from the world heap.
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
 // 0x1553F0: DIMITRI vtable slot 14 (LoadFromBrx): allocates room for the route records, STEPGUARD load, then sets
 // +0x1018 to INT_MAX.
@@ -235,6 +236,7 @@ extern "C" void StartBhvDimitriRoot(BHVESC *behavior)
         SetBhvDimitriRootState(behavior, 1);
 }
 
+// VU0 helper: z component of a vector.
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // 0x155660: Dimitri root behaviour update: while watching, switches state when the player comes within 850
 // horizontally and 400 vertically.
@@ -305,7 +307,9 @@ static inline qwordV Dot(qwordV v)
     __asm__ __volatile__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "j"(v));
     return d;
 }
+// Square root.
 static inline qwordV Sqrt(qwordV v) { qwordV d; __asm__ __volatile__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(d) : "j"(v)); return d; }
+// VU0 helper: x of a VU register as a float.
 static inline float GFromQ(qwordV v) { float g; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -532,9 +536,13 @@ static inline qwordV AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT s)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(a.q), "j"(b.q), "j"(s.q));
     return r;
 }
+// VU0 helper: vector scaled by a VU float.
 static inline qwordV Scale(VU_VECTOR v, VU_FLOAT s) { qwordV r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q), "j"(v.q)); /* extra operand: allocation only */ return r; }
+// VU0 helper: vector scaled by a VU float (register operand variant).
 static inline qwordV ScaleR(VU_VECTOR v, const VUV &s) { qwordV r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q), "j"(v.q)); return r; }
+// VU0 helper: vector difference (alternate pattern for the match).
 static inline qwordV Sub2(qwordV a, qwordV b) { qwordV d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b) : "vf4"); /* clobber of dead vf4 */ return d; }
+// VU0 helper: vector sum.
 static inline qwordV Add(qwordV a, qwordV b) { qwordV d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b), "j"(a)); /* extra operand: allocation only */ return d; }
 // VU0 helper: length of a vector.
 static inline float Len(qwordV a)
@@ -546,8 +554,10 @@ static inline float Len(qwordV a)
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
 }
+// Clamps g into a range.
 static inline float GClampR(float g, LMV *plm) { if (g < plm->gMin) return plm->gMin; if (plm->gMax < g) return plm->gMax; return g; }
 
+// True if a velocity is faster than the .data limit.
 static inline int FFast(qwordV v) { return D_002BDC98 < Len(v); }
 
 namespace RO_ORDER { extern const float r_D_002A513C __asm__("D_002A513C") = -3.40282347e+38f; }

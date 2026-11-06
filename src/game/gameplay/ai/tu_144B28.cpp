@@ -123,7 +123,9 @@ qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int k);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
 // VU0 helper: horizontal (xy) length of a vector.
@@ -151,15 +153,20 @@ static __inline__ float LenXY2(qword d)
     return g;
 }
 
+// Clamps g into a range.
 static __inline__ float GClampR(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
+// True if two points are farther apart (horizontally) than the .data limit.
 static __inline__ int FFar(qword a, qword b) { qword d; float lim = D_002BD2F0; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return lim < LenXY2(d); }
+// VU0 helper: dot product.
 static __inline__ qword Dot(qword a, qword b) { register qword r __asm__("vf2"); register qword t __asm__("vf4");
         __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z"
                 : "=&j"(t), "=&j"(r) : "j"(a), "j"(b)); return r; }
+// VU0 helper: component of d perpendicular to an axis.
 static __inline__ qword Perp(qword d, qword axis) { qword v, r;
         v = Dot(d, axis);
         __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(v) : "j"(axis));
         __asm__("vsub.xyzw %0, %1, %0" : "+j"(v) : "j"(d)); return v; }
+// Evaluates a quadratic a0 + g (a1 + g a2).
 static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
 // 0x144BC8: Walk-goal behaviour vtable slot 14 (steering): base fills the steering record, then while travelling
 // (states 0/1) sets the speed from the horizontal distance to the goal (scaled) and the heading toward it.
@@ -364,6 +371,7 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Evaluates a CLQ quadratic at g.
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
 
 // 0x1450E0: Picks the nearest object of several guard-state classes around the followed object (its current threat,
@@ -462,6 +470,7 @@ static __inline__ float LenXY(qword d)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(t));
     return g;
 }
+// VU0 helper: vector difference.
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 // VU0 helper: length of a vector.
 static __inline__ float Len(qword d)
@@ -473,7 +482,9 @@ static __inline__ float Len(qword d)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Clamps *pg into [lo, hi].
 static __inline__ void GClamp(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; }
+// True if two points are farther apart (horizontally) than the .data limit.
 static __inline__ int FFar(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
 
 // 0x1453F0: Follow behaviour vtable slot 10 (Update): follows the leader (+0x30); distance bands switch between
@@ -932,7 +943,9 @@ void ResetBhvSteering(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
 void SteerBhvInteract(struct P *behavior, struct Q *q)
@@ -1118,7 +1131,9 @@ void ResetBhvSteering(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146560: Second interact behaviour vtable slot 14 (steering).
 void SteerBhvInteract2(struct P *behavior, struct Q *q)
@@ -1341,7 +1356,9 @@ void ResetBhvSteering(struct P *p, struct Q *q);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: vector difference.
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 // VU0 helper: square root through the Q register.
 static __inline__ float SqrtQ(qword t)
@@ -1351,6 +1368,7 @@ static __inline__ float SqrtQ(qword t)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(t));
     return g;
 }
+// Evaluates a CLQ quadratic at g.
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
 // Clamps g to an LM range.
 static __inline__ float GLimitLm(struct LM *plm, float g)
@@ -1496,7 +1514,9 @@ float RadNormalize__Ff(float g);
 float RadStepHeading(struct X *px);
 float GLimitAbs__Fff(float g, float dg);
 void func_00204660(struct X *px, float g);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840) relative to the current
 // player.

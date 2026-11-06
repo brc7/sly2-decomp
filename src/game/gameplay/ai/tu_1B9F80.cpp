@@ -173,7 +173,9 @@ extern "C" int FilterCid98(void *pv, ROW *prow)
     return CidBasic(prow->object) == 0x62;
 }
 
+// VU0 helper: moves a CPU quadword into a VU register.
 static inline qword Vector(qword r){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(r));return v;}
+// VU0 helper: squared length of a vector.
 static inline float Square(qword a){float f;a = VuDot(a, a);f = VuToFloat(a);return f;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
@@ -306,6 +308,7 @@ static inline float Dist(qword a, qword b) {
     f = VuToFloat(d);
     return f;
 }
+// Evaluates a quadratic c0 + x (c1 + x c2).
 static inline float GEval(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x * pp->c2); }
 // 0x1BA608: Neela chase behaviour vtable slot 10 (Update): state 0 while the player is inside the outer volume, 1
 // once outside, back to 0 inside the inner volume, 2 after a timeout; scales a child parameter by the distance to

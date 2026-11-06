@@ -430,7 +430,9 @@ void DriveStepguardFromAnim(void *a, struct A *b);
 qword func_001A62E8(void *p);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *p, float f);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x174F08: BHVANIM vtable slot 11 (UpdateMotion): while playing, drives the guard's velocity from the animation's
 // root motion (else zero) and faces the look-at object.
@@ -463,8 +465,8 @@ namespace M_InitBhvidle { extern "C" {
 struct S;
 struct S { char pad[0x3C]; int n3C; };
 void InitBhvanim(struct S *p);
-// 0x174FC8: BHVIDLE vtable slot 7 (OnPush): BHVANIM OnPush with the stand/idle flag (2).
 } } // namespace M_InitBhvidle
+// 0x174FC8: BHVIDLE vtable slot 7 (OnPush): BHVANIM OnPush with the stand/idle flag (2).
 void BHVIDLE::OnPush() { using namespace M_InitBhvidle; M_InitBhvidle::S *p = (M_InitBhvidle::S *)this; InitBhvanim(p); p->n3C = 2; }
 
 // 0x174FF8 StartBhvidle
@@ -1216,8 +1218,11 @@ int IsBhvattackDone(void*);
 int IsBhvshootDone(void*);
 int IsBhvanimDone(void*);
 void EmitStepguardStimulus(P*,P*);
+// Stores a quadword (keeps the target's instruction choice).
 static inline void StorePoint(U*home,qword a){__asm__("sq %1,%0":"=m"(home->q):"r"(a):"memory");}
+// VU0 helper: x of a VU register as a float (register-pinned).
 static inline float XFloat(qword q){register float f __asm__("$3");__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
+// VU0 helper: square root of x.
 static inline qword Root(qword q){__asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(q));return q;}
 // Matching helper (register-pinned asm): horizontal distance from `pos` to a point; also returns the actor and its mode.
 static inline float DistanceXY(C*p,U*point,qword pos,P**actor,int*mode){
@@ -1228,6 +1233,7 @@ static inline float DistanceXY(C*p,U*point,qword pos,P**actor,int*mode){
  __asm__("vmul.xy %0,%0,%0":"+j"(d));__asm__("vaddy.x %0,%0,%0y":"+j"(d));d=Root(d);
  __asm__("qmfc2.ni %0,%1":"=r"(n):"j"(d));__asm__("mtc1 %1,%0":"=f"(f):"r"(n));*actor=o;return f;
 }
+// Returns the region object of the actor's tuning owner (NULL if none).
 static inline void*ActorRegion(P*actor){OWNER*owner=actor->tuning?actor->tuning->owner:0;return owner?owner->region:0;}
 // Matching helper (register-pinned asm): true if the actor moved farther than a .data threshold from `point`.
 static inline int Moved(C*p,U*point){
@@ -1431,8 +1437,8 @@ namespace M_InitBhvguard { extern "C" {
 struct S;
 struct S { char pad[0x30]; int n30; };
 void InitBhv(struct S *p);
-// 0x1766D8: BHVGUARD vtable slot 7 (OnPush): no mode (-1).
 } } // namespace M_InitBhvguard
+// 0x1766D8: BHVGUARD vtable slot 7 (OnPush): no mode (-1).
 void BHVGUARD::OnPush() { using namespace M_InitBhvguard; M_InitBhvguard::S *p = (M_InitBhvguard::S *)this; InitBhv(p); p->n30 = -1; }
 
 // 0x176708 StartBhvguard
@@ -1615,11 +1621,17 @@ int IsStepguardTargetValid(OBJECT*,OBJECT*,unsigned long);
 void*FindBestAnimBinding(OBJECT*,unsigned long);
 int HandleBhvMessage(S*,int,MSG*);
 }
+// Clears a mode record.
 static __inline__ void Clear(STATE*s){(void)func_002333B4(s,0,sizeof(*s));}
+// Asks the object whether it accepts a zap (its vtable slot 86).
 static __inline__ int Accept(OBJECT*p,MSG*m){VE&v=p->vt[86];return((int(*)(void*,MSG*))v.fn)((char*)p+v.delta,m);}
+// Returns the per-kind slot of an object's table.
 static __inline__ SLOT*Slot(OBJECT*p,unsigned kind,int offset){int index=func_001F78A0(kind);return(SLOT*)((char*)p+offset+index*sizeof(SLOT));}
+// The larger of two values.
 static __inline__ float Max(float a,float b){register float right __asm__("$f1")=b;__asm__("max.s %0,%0,%1":"+f"(a):"f"(right));return a;}
+// Moves a float's bits to a CPU register (register-pinned for the match).
 static __inline__ qword Raw(float value){register qword bits __asm__("$10");__asm__("mfc1 %0,%1":"=r"(bits):"f"(value));return bits;}
+// VU0 helper: a float broadcast into a VU register.
 static __inline__ qword Scalar(float value){int bits;qword result;__asm__("mfc1 %0,%1":"=r"(bits):"f"(value));__asm__("qmtc2.ni %1,%0":"=j"(result):"r"(bits));return result;}
 // VU0 helper: normalized vector.
 static __inline__ qword Normalize(qword input){
@@ -1628,7 +1640,9 @@ static __inline__ qword Normalize(qword input){
  __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(result):"j"(norm),"j"(input));
  return result;
 }
+// VU0 helper: s = a * s.x.
 static __inline__ qword ScaleInPlace(qword a,qword s){__asm__("vmulx.xyzw %0,%1,%0x":"+j"(s):"j"(a));return s;}
+// a < b (kept as a helper for the match).
 static __inline__ int Below(int a,int b){return a<b;}
 enum KINDENUM{KIND_NONE=-1,KIND_MAX=0x7fffffff};
 // 0x176BE8: BHVGUARD vtable slot 13 (HandleMessage): message 12 (zap) picks hurt, knockdown or KO from the zap
@@ -1868,8 +1882,11 @@ extern "C"{
  int IsBhvStalkDone(H*);
  void ResumeBhvguard(C*);
 }
+// Returns the object's chosen target (vtable slot 88).
 static inline P*Target(P*p){VE*v=&p->vt[88];return ((P*(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+// Returns the object's health state (vtable slot 77).
 static inline int Mode(P*p){VE*v=&p->vt[77];return ((int(*)(P*))v->fn)((P*)((char*)p+v->delta));}
+// Clears a mode record.
 static inline void Clear(STATE*s){func_002333B4(s,0,sizeof(*s));}
 // Fills a mode record to engage `object`: a timed forced-class attack (kind 18, random delay) for forced classes, else plain combat (kind 3).
 static inline void Attack(C*p,STATE*s,P*object){
@@ -2127,8 +2144,8 @@ struct S;
 struct S { char pad[0x34]; float g34; char pad2[0x10]; float g48; int n4C; char pad3[0x8]; int n58; char pad4[0x8]; float g64; float g68; float g6C; char pad5[0x30]; int nA0; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
 void InitBhv(struct S *p);
-// 0x177E80: BHVPATH vtable slot 7 (OnPush): no path, default speeds and radii, state -1.
 } } // namespace M_InitBhvpath
+// 0x177E80: BHVPATH vtable slot 7 (OnPush): no path, default speeds and radii, state -1.
 void BHVPATH::OnPush() { using namespace M_InitBhvpath; M_InitBhvpath::S *p = (M_InitBhvpath::S *)this; InitBhv(p); p->g34 = p->g48 = -1.0f; p->g64 = D_002BE62C; p->g68 = D_002BE624; p->g6C = D_002BE628; p->n4C = -1; p->n58 = 0; p->nA0 = 1; }
 
 // 0x177EF0 StartBhvpath
@@ -2140,7 +2157,9 @@ struct S { char pad[0xC]; struct VTE *vt; void *p10; char pad2[0x50]; float g64;
 extern float D_002BE624, D_002BE628, D_002BE62C;
 void StartBhv(struct S *p);
 qword func_001A62E8(void *p);
+// The larger of two values.
 static inline float Max(float a, float b) { return a > b ? a : b; }
+// The smaller of two values.
 static inline float Min(float a, float b) { return a < b ? a : b; }
 // 0x177EF0: BHVPATH vtable slot 8 (Start): remembers the start position, clamps the radii from the speed, state 0.
 void StartBhvpath(struct S *behavior) {
@@ -2465,11 +2484,17 @@ static inline qword QwVelocity(void *pv)
     return ((qword (*)(void *))pvte->pfn)((char *)pobj + pvte->delta);
 }
 
+// VU0 helper: vector difference.
 static inline VV VSub(VV a, VV b) { return QwSub(a, b); }
+// VU0 helper: a + b * s.
 static inline VV VAddScaled(VV a, VV b, const VU_FLOAT &g) { return QwAddScaled(a, b, g); }
+// VU0 helper: v minus its projection on n.
 static inline VV VProjectOut(VV v, VV n) { return QwProjectOut(v, n); }
+// VU0 helper: cross product.
 static inline VV VCross(VV a, VV b) { return QwCross(a, b); }
+// VU0 helper: dot product.
 static inline VV VDot(VV a, VV b) { return QwDot(a.q, b.q); }
+// VU0 helper: length of a vector.
 static inline VV VLength(VV v) { return QwLength(v); }
 // VU0 helper: length of a vector (second instruction pattern for the match).
 static inline qword QwLength2(qword v)
@@ -2482,6 +2507,7 @@ static inline qword QwLength2(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(r) : "j"(qw));
     return r;
 }
+// VU0 helper: length of a vector (alternate pattern).
 static inline VV VLength2(VV v) { return QwLength2(v); }
 struct VU_VECTOR
 {
@@ -2896,8 +2922,8 @@ struct S;
 struct S { char pad[0xC0]; int nC0; float gC4; char pad2[0x18]; float gE0; };
 extern float D_002BE694;
 void InitBhvpath(struct S *p);
-// 0x178E98: BHVWALKPATH vtable slot 7 (OnPush): BHVPATH OnPush, walk animation flag 9, rate 1.
 } } // namespace M_InitBhvwalkpath
+// 0x178E98: BHVWALKPATH vtable slot 7 (OnPush): BHVPATH OnPush, walk animation flag 9, rate 1.
 void BHVWALKPATH::OnPush() { using namespace M_InitBhvwalkpath; M_InitBhvwalkpath::S *p = (M_InitBhvwalkpath::S *)this; InitBhvpath(p); p->gE0 = D_002BE694; p->gC4 = 1.0f; p->nC0 = 9; }
 
 // 0x178EE0 UpdateBhvwalkpath
@@ -3023,7 +3049,9 @@ static inline qword QwLengthDot(qword v)
     __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(qw) : "0"(qw));
     return qw;
 }
+// VU0 helper: length of a vector.
 static inline float GLength(qword v) { return GFromVf(QwLength(v)); }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline float GLengthXY(qword v) { return GFromVf(QwLengthXY(v)); }
 // VU0 helper: vector scaled by the x of a VU float.
 static inline qword QwScaleX(qword qwVec, VU_FLOAT g)
@@ -3254,8 +3282,8 @@ extern struct G D_003DD490;
 struct S { char pad[0x10]; char *p10; };
 void CloseBhvanim(struct S *p);
 void ReplaceHeldSwNoise(struct G *g, int a, qword q, int b, void *pv);
-// 0x179598: BHVHIT vtable slot 9 (Close): BHVANIM Close, releases the held noise.
 } } // namespace M_CloseBhvhit
+// 0x179598: BHVHIT vtable slot 9 (Close): BHVANIM Close, releases the held noise.
 void BHVHIT::VSlot9() { using namespace M_CloseBhvhit; using M_CloseBhvhit::D_003DD490; M_CloseBhvhit::S *p = (M_CloseBhvhit::S *)this; CloseBhvanim(p); ReplaceHeldSwNoise(&D_003DD490, -1, D_002A2DD0, 0, p->p10 + 0x35C); }
 
 namespace RO_ORDER { extern const float r_D_002A5584 __asm__("D_002A5584") = 3.40282347e+38f; }
@@ -3290,8 +3318,8 @@ namespace M_func_001796A0 { extern "C" {
 struct S;
 struct S { char pad[0x3C]; int n3C; };
 void InitBhvanim(struct S *p);
-// 0x1796A0: Hurt behaviour (BHV161) vtable slot 7 (OnPush): BHVHIT OnPush with the hurt flag (5).
 } } // namespace M_func_001796A0
+// 0x1796A0: Hurt behaviour (BHV161) vtable slot 7 (OnPush): BHVHIT OnPush with the hurt flag (5).
 void BHV161::OnPush() { using namespace M_func_001796A0; M_func_001796A0::S *p = (M_func_001796A0::S *)this; InitBhvanim(p); p->n3C = 5; }
 
 // 0x1796D0 StartBhvHurt
@@ -3322,8 +3350,8 @@ namespace M_func_00179750 { extern "C" {
 struct S;
 struct S { char pad[0x3C]; int n3C; };
 void InitBhvanim(struct S *p);
-// 0x179750: Knockdown behaviour (BHV162) vtable slot 7 (OnPush): BHVHIT OnPush with the knockdown flag (6).
 } } // namespace M_func_00179750
+// 0x179750: Knockdown behaviour (BHV162) vtable slot 7 (OnPush): BHVHIT OnPush with the knockdown flag (6).
 void BHV162::OnPush() { using namespace M_func_00179750; M_func_00179750::S *p = (M_func_00179750::S *)this; InitBhvanim(p); p->n3C = 6; }
 
 // 0x179780 StartBhvKnockdown
@@ -3685,7 +3713,9 @@ extern "C"{
  void func_0020C6F8(INFO*,qword);
  void SetBhvBusy(C*);
 }
+// Returns the guard's mover (at +0xFD0).
 static inline CONTROL*Control(P*p){return (CONTROL*)((char*)p+0xFD0);}
+// Heading (atan2) of a vector's xy components.
 static inline float Angle(qword delta){qword x;int y;float fx,fy;__asm__("qmfc2.ni %0,%1":"=r"(x):"j"(delta));__asm__("prot3w %0,%1":"=r"(y):"r"(x));__asm__("mtc1 %1,%0":"=f"(fx):"r"(x));__asm__("mtc1 %1,%0":"=f"(fy):"r"(y));return atan2f(fy,fx);}
 // Matching helper (register-pinned asm): returns current - home and the actor, in the operand order the target uses.
 static inline qword HeadingInputs(C*p,U*home,qword current,P**actor){
@@ -4121,13 +4151,20 @@ struct REQUEST{int flag;float along,up;int padC;qword point,direction;};
 extern qword D_002A2DC0,D_002A2DA0;
 extern float D_002BE6C4;
 qword func_001A62E8(void*);
+// VU0 helper: moves a CPU quadword into a VU register.
 static inline qword ToVU(qword word){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(word));return r;}
+// VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: a minus its projection on n.
 static inline qword Reject(qword a,qword n){qword d,one;__asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a),"j"(n));__asm__("vmulx.xyzw %0,%1,%2x":"=j"(d):"j"(n),"j"(d));return Sub(a,d);}
+// VU0 helper: normalized a, or `fallback` for a zero vector.
 static inline qword Normal(qword a,qword fallback){register qword d __asm__("vf1");qword one;float len;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=&j"(d),"=&j"(one):"j"(a));__asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(d):"j"(d));__asm__("qmfc2.ni %0,%1":"=r"(len):"j"(d));if(len<0.0001f){d=fallback;}else{__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(d):"j"(d),"j"(a));}return d;}
 
+// VU0 helper: offset point along a direction and up axis (register-pinned asm).
 static inline qword NativePoint(qword point,qword direction,qword along,qword up,qword height,unsigned int*high){register unsigned int h __asm__("$2");__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddax.xyzw ACC,%2,%3x\n\tvmaddx.xyzw %0,%4,%5x\n\tlui %1,%%hi(%6)":"+j"(point),"=r"(h):"j"(direction),"j"(along),"j"(up),"j"(height),"i"(&D_002BE6C4));*high=h;return point;}
+// VU0 helper: heading point: point + up * height (register-pinned asm).
 static inline qword NativeHeading(qword point,qword up,qword height){__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(point):"j"(up),"j"(height));return point;}
+// Stores a point and a scalar (register-pinned asm for the match).
 static inline void PublishPoint(U*home,qword scalar,qword*out,qword point){__asm__ volatile("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(home->q),"=m"(*out):"j"(scalar),"j"(point));}
 // 0x17AA78: Computes the hold point and direction from the holder's request (its vtable slot 96) relative to the
 // guard.
@@ -4230,7 +4267,9 @@ void SetBhvjuggledState(struct S *p, int n);
 void UpdateBhvjuggledHoldAct(struct S *p);
 qword func_001A62E8(struct A *a);
 void LoadIdentityMatrix4(void *a, void *b, struct OUT *pm, struct OUT *other, float g);
+// Returns the frame object of the actor's +0x19A4 record.
 static inline void*Frame(struct X*x){register struct Y*y __asm__("$2")=x->p19A4;return y->p60;}
+// VU0 helper: z component of a vector.
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x17AC90: BHVJUGGLED vtable slot 10 (Update): held/carried states 0-1, released/falling states 2-3 (until
 // landed), prediction states 4-5.
@@ -4479,6 +4518,7 @@ extern "C"{
  void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float);
  ENTRY*func_0012F938(void*,int);
 }
+// Asks the holder for a hold request (its vtable slot 96).
 static inline void Request(P*p,REQUEST*r,float duration){VE*v=&p->vt[96];((void(*)(P*,REQUEST*,float))v->fn)((P*)((char*)p+v->delta),r,duration);}
 // Matching helper (register-pinned asm): blends the guard toward a desired vector with a gain from .data; kept as asm for the match.
 static inline void BlendSet(C*p,qword current,U*desired,U*scale,U*scratch){
@@ -4555,6 +4595,7 @@ typedef char ENTRY_kind_Offset[FIELD_OFFSET(ENTRY,kind)==4?1:-1];
 typedef char ENTRY_key_Offset[FIELD_OFFSET(ENTRY,key)==8?1:-1];
 typedef char CLOCK_time_Offset[FIELD_OFFSET(CLOCK,time)==0?1:-1];
 typedef char CLOCK_dt_Offset[FIELD_OFFSET(CLOCK,dt)==4?1:-1];
+// True for the motionless modes (0, 4, 5).
 static inline int Still(int m){int f=0;if(m==4||m==5||m==0)f=1;return f;}
 // 0x17B1A8: BHVJUGGLED state switch: attaches an act to the holder, releases acts and XF roles, changes the mass
 // and seeks animation labels (0x3C/0x173).
@@ -4814,18 +4855,28 @@ extern "C"{
  qword func_001A62E8(P*);
  void FindClosestPointOnLine(qword,qword,qword,qword*,float*,float*);
 }
+// Bit 60 of an object's flag word (in the world).
 static inline unsigned long Eligible(unsigned long flags){return (flags>>60)&1;}
+// VU0 helper: moves a CPU quadword into a VU register.
 static inline qword From(qword a){qword r;__asm__("qmtc2.ni %1,%0":"=j"(r):"r"(a));return r;}
+// VU0 helper: loads a quadword into a VU register.
 static inline qword Load(U*u){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(u->q));return r;}
+// VU0 helper: x of a VU register as a float.
 static inline float X(qword q){float f;__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
+// VU0 helper: length of a vector.
 static inline float Length(qword v){register qword one __asm__("vf2"); qword d=v;
  __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d),"=&j"(one):"j"(v));
  __asm__("vsqrt $Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"+j"(d));return X(d);
 }
+// VU0 helper: distance from an origin to a point.
 static inline float Distance(U*origin,qword point){register qword a __asm__("vf2")=origin->q;qword b=point,d;__asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));return Length(d);}
+// VU0 helper: distance from a point to an origin.
 static inline float DistanceFrom(qword point,U*origin){qword a=point,b=Load(origin),d;__asm__("vsub.xyzw %0,%1,%2":"=&j"(d):"j"(a),"j"(b));return Length(d);}
+// Identity (keeps a value in a register for the match).
 static inline qword To(qword a){return a;}
+// VU0 helper: stores a VU register to memory.
 static inline void Store(U*u,qword a){__asm__("sqc2 %1,%0":"=m"(u->q):"j"(a));}
+// Clamps *x into a range.
 static inline void ClampIn(float*x,RANGE*p){float lo=p->lo,hi=p->hi;if(*x<lo)*x=lo;else if(hi<*x)*x=hi;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char POLY_Size[sizeof(POLY)==12?1:-1];
@@ -5047,13 +5098,20 @@ int func_001C0A40(void*,qword,qword,int,SEGMENT*);
 void FindClosestPointOnLineSegment(qword,qword,qword,qword*,float*,float*);
 }
 struct VU_FLOAT{qword qw;};
+// VU0 helper: loads a float constant from a .data word into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"rV"(n));return v;}
+// VU0 helper: vector sum.
 static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: vector difference.
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: base + v * g, using a scratch slot (for the match).
 static inline qword QwOffset(qword base,qword v,const qword&g,U*scratch){scratch->q=g;qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g));return r;}
+// VU0 helper: loads a float constant from a .data word into a VU register.
 static inline qword QwFromMemWord(int n){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"rV"(n));return v;}
+// VU0 helper: base + vector * scale.
 static inline qword QwAddScaled(qword base,qword v,VU_FLOAT g){qword r;__asm__("vadda.xyzw ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(base),"j"(v),"j"(g.qw));return r;}
 
+// Closest point on a segment to t, and its distance.
 static inline void Closest(qword t,const SEGMENT*s,U&pt,float&d){FindClosestPointOnLineSegment(t,s->a,s->b,&pt.q,0,&d);}
 // 0x17BFF8: Chooses a free path-zone point near the target within the guard's close/far distance bands and angle
 // limits (narrow, then wide), sampling 10/10/15 directions.
@@ -5240,8 +5298,11 @@ int IsStepguardHandsOff(void*);
 void SetBhvEscortState(struct P*,int);
 void ClearPointerPair(struct X*);
 void SetBhvgotoGoal(void*,const struct X*);
+// VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: a -= b.
 static inline qword SubIn(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"+j"(a):"j"(b));return a;}
+// VU0 helper: horizontal (xy) length of a vector.
 static inline float LenXY(qword v){float r;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(v):"0"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(v):"0"(v));__asm__("qmfc2.ni %0,%1":"=r"(r):"j"(v));return r;}
 // 0x17C6D0: Escort behaviour vtable slot 10 (Update): follows the escorted object at a local offset: walks when
 // within 700, runs (state 1) beyond 1000, re-goals after the object moves 250.
@@ -6049,6 +6110,7 @@ qword func_001C1EC0(struct X *s, qword v);
 void FindClosestPointOnLineSegment(qword p, qword a, qword b, qword *pc, float *pt, int n);
 void MeasureShape(struct B *b);
 int func_001C02D0(void *q, qword a, qword b, struct B *c);
+// VU0 helper: z component of a vector.
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 // 0x17DA28: Plans the move: routes, builds the path curve to the next waypoint or path link (or a straight
 // two-point shape) and picks the state.
@@ -6299,10 +6361,13 @@ int func_001C0B50(void *q, qword v, qword *out);
 void ClearPointerPair(struct X *x);
 void SetBhvgotoGoal(void *p, struct X *x);
 }
+// Default constructor: both pointers cleared (ClearPointerPair).
 inline X::X() { ClearPointerPair(this); }
 extern "C" {
 }
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 // 0x17E0E0: Picks the farthest free point among 16 directions around the target and sends the goto child there.
 extern "C" void RegoalBhvStalk(struct S *behavior) {

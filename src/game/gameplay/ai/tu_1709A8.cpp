@@ -283,7 +283,9 @@ struct P*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
 void GetGuardScriptTargetPose(struct P*,qword,struct P*,qword*,float*);
 void FindShapeClosestPoint(struct P*,qword,void*,qword*,qword*,float*,float*);
 void FindShapeClosestPointFromS(struct P*,qword,void*,qword*,qword*,float*,float*,float);
+// VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: length of a vector.
 static inline float Length(qword v){qword d,one;float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"0"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
 // Choose the closest eligible point while walking the selector chain.
 // 0x170E90: Picks the command (kind 3/7 point or kind 6 shape) whose point is closest to a position, skipping
@@ -546,6 +548,7 @@ extern "C" { void func_001E9C30(void *o); }
 extern "C" { void SetBhvrailGoal(void *o, int n); }
 extern "C" { void SetBhvpipeGoal(void *o, int n); }
 extern "C" { void ClearPointerPair(struct X *x); }
+// Default constructor: both pointers cleared (ClearPointerPair).
 inline X::X() { ClearPointerPair(this); }
 extern "C" { int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n); }
 extern "C" { void SetBhvgotoGoal(void *o, struct X *x); }

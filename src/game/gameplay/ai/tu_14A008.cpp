@@ -337,8 +337,11 @@ extern "C" int IsBhvRouteOffGround(BHVRT *behavior)
     return SnapToGround(&t, 1, 0, 100.0f, -250.0f) == 0;
 }
 
+// a < b (kept as a helper for the match).
 static inline int FLess(float a, float b) { return a < b; }
+// VU0 helper: vector difference.
 static inline qword SubX(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b), "j"(b)); /* extra operand: allocation only */ return r; }
+// VU0 helper: vector sum.
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 // VU0 helper: length of a vector.
 static inline float Len(qword a)
@@ -366,8 +369,11 @@ static inline float Len2(qword a)
     g = VuToFloat(d);
     return g;
 }
+// VU0 helper: x component of a vector.
 static inline float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static inline float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
+// VU0 helper: z component of a vector.
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // VU0 helper: a plus the normalized direction of v scaled by s.
 static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)

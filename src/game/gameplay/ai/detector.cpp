@@ -268,6 +268,7 @@ extern "C" DTE *FindDetectorTarget(DETECTORV *detector, void *object)
     return 0;
 }
 
+// VU0 helper: vector sum.
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 // 0x1541D8: Computes the new detection state (0 unseen, 1 seen, 2 lost) of one target from its current one: unseen
 // if the target is gone, dead, disguised against this hero, globally invisible, disabled or flagged hidden; seen if

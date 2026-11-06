@@ -614,10 +614,15 @@ int TryAddStepguardDetectTarget(struct P *,struct P *,int);
 void UpdateDetectorTargets(struct MANAGER *);
 struct ENTRY *FindDetectorTarget(struct MANAGER *,struct P *);
 void SetTargetRecordState(struct ANCHOR *,int);
+// VU0 helper: vector difference.
 static __inline__ qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LengthXY(qword a){qword r;float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));__asm__("mtc1 %1,%0":"=f"(f):"r"(r));return f;}
+// z component of a quadword vector.
 static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
+// Absolute value.
 static __inline__ float Abs(float f){return __builtin_fabsf(f);}
+// True if a difference vector is within the horizontal and vertical .data limits.
 static __inline__ int Near(qword difference){return LengthXY(difference)<D_002C3D08 && Abs(Z(difference))<D_002C3D0C;}
 /* Two empty-asm tricks for the nearby-object collection loop (T1592); neither emits an instruction:
    OPAQUE_COUNT: an empty asm that "sets" the candidate count. loop.c then sees no basic induction variable, so
@@ -1118,7 +1123,9 @@ qword *VECTOR_opAssign(qword *,qword);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 }
+// VU0 helper: vector difference.
 static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: length of a vector.
 static inline float Length(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
 // 0x207690: STEPGUARD vtable slot 19 (render): draws the guard; while the camera policy is active, applies a 0.85 s
 // squash/stretch pulse and a distance-based scale.
@@ -1564,6 +1571,7 @@ static inline float Length(qword d){
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
 }
+// Quadratic weight k0 + d (k1 + d k2).
 static inline float Weight(float distance,const float *k){return k[0]+distance*(k[1]+distance*k[2]);}
 // 0x2082D0: STEPGUARD vtable slot 88 (choose target): keeps the forced target while it is in the world; else picks
 // among the detector's targets, forced classes first, skipping ignored classes, preferring preferred classes, with
@@ -1636,6 +1644,7 @@ extern "C" void AddStepguardDetectTargetBack(STEPGUARD *guard, LO *plo)
 // 0x2085D0 TryAddStepguardDetectTarget
 namespace M_FAddStepguardDetectTarget {
 struct E; struct T; struct S;
+// Placement new.
 inline void *operator new(unsigned int,void *storage){return storage;}
 struct S;
 struct E { struct S *object; int n4; float t8; int pad; E(S *source,const CLOCK&clock):object(source),n4(0),t8(clock.t){} };
@@ -3134,7 +3143,9 @@ static inline void PlaneArguments(qword *threshold,qword *point,U *scalar,float 
  __asm__("por %0,$zero,%2\n\tvsub.xyzw %1,%1,%3":"=r"(value),"+j"(local):"r"(scalar->q),"j"(view));
  *threshold=value;*point=local;
 }
+// VU0 helper: loads a quadword into a VU register.
 static inline qword Load(const qword *p){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(*p));return r;}
+// VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j"(b),"0"(a));return a;}
 // 0x20A818: Engagement token: true if this guard may attack the record's target now (not disabled, no other engaged
 // guard busy; kind 0 also requires the guard ready or in view of the camera).
@@ -3342,9 +3353,9 @@ extern float D_002A88C8;
 struct S { char pad[0x50]; int n50; float f54, f58, f5C, f60, f64, f68, f6C; char pad2[0x7C - 0x70]; int n7C; int n80; int n84; char pad3[0xA8 - 0x88]; int nA8; void *pAC; char eB0[4]; };
 void InitLo(struct S *p);
 void ReleaseAnimBinding(void *pe, void *p);
+} } // namespace M_func_0020AD38
 // 0x20AD38: Guard attack (CID120, cid 0x78) vtable slot 7 (Init): LO Init, range 0..300, height -5000..5000,
 // cooldown 0.2..0.5 s, angle 10 degrees, no oids, empty binding.
-} } // namespace M_func_0020AD38
 void CID120::Init() { using namespace M_func_0020AD38; M_func_0020AD38::S *p = (M_func_0020AD38::S *)this;
     InitLo(p);
     p->n50 = 0;
@@ -3637,8 +3648,8 @@ struct S;
 struct S { char pad[0x40]; int fl; };
 void InitLo(struct S *p);
 void SetLoBusyk(struct S *p, int n);
-// 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
 } } // namespace M_func_0020B4A8
+// 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
 void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *p = (M_func_0020B4A8::S *)this;
     int v;
     InitLo(p);

@@ -242,6 +242,7 @@ extern "C" float GetNoiseRadius(NOISE *noise)
     return type->range;
 }
 
+// VU0 helper: z component of a vector.
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 // 0x156918: True if `pos` is inside the noise: within the type's height window above/below the emitter and within
 // the current radius in the horizontal plane.
@@ -258,6 +259,7 @@ extern "C" int IsPositionInNoise(NOISE *noise, qword pos)
     { int isOutside = GetNoiseRadius(noise) < distance; return isOutside ^ 1; }
 }
 
+// Calls the object's Init (vtable slot 9 of the noise type view).
 static inline void Init(NOISETYPE *type) { VTE *entry = &type->vt[9]; ((void (*)(void *))entry->pfn)((char *)type + entry->d); }
 // 0x1569B8: Creates the world's seven noise types (oids 0x2C2..0x2C8) with their per-kind range, lifetime and
 // audibility, and stores them in the world's type table. Called at world load (inferred).
@@ -456,6 +458,7 @@ static __inline__ float DistXY(qword d)
     dist = VuToFloat(l);
     return dist;
 }
+// True if a vector's horizontal length is below g.
 static __inline__ int FIn(qword d, float g) { return DistXY(d) < g; }
 // 0x156FE8: True if the listener is in the world and the noise is audible (its type not muted) with the listener
 // inside its height window and range.
