@@ -1697,8 +1697,8 @@ typedef char assert_LASEN_size[sizeof(LASEN) == 0x1D0 ? 1 : -1];
 struct RELAY : LO
 {
     char pad50[0xB0 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetRelayClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRelay");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetRelayClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadRelayFromBrx");   /* slot 14 */
     virtual void VUnk15() __asm__("UpdateRelay");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("CloneRelay");   /* slot 41 */
