@@ -62,16 +62,7 @@ struct S { char p0[0x180]; int n180; char p1[0x51C-0x184]; float g51C; struct V 
     char p2[0x55C-0x540]; int n55C; char p3[0x578-0x560]; int n578; char p4[8]; int n584; char p5[8]; int n590; char p6[8]; int n59C; };
 void InitPo(struct S *p);
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
-/** @sly2-annot addr=0x1D1370
- * Purpose: CID 77 vt7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1
- * Info: proposed name InitRobottank (T1); class ROBOTTANK slot7; TU tu_1D1370
- * Notes: names_v2 v1 proposed RenderFlying__FP6FLYINGP2CM (0.000) | class identity from whole_game WE
- *   names/object strings: InitRcCar -> InitRobottank
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/particles-effects.md#5-source-files,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
 void InitRobottank(struct S *p) {
     InitPo(p);
     p->g51C = 500.0f; //P
@@ -115,16 +106,8 @@ struct OBJ { char pad[0x4F8]; int c; X *a[1]; };
 extern "C" {
 void ClonePo(OBJ *);
 void CopyRobottankWeapon(X *, X *);
-/** @sly2-annot addr=0x1D1410
- * Purpose: CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0,
- *   init 0x1D4D30, copy 0x9C bytes)
- * Info: proposed name CloneRobottank (T1); class ROBOTTANK slot41; TU tu_1D1370
- * Notes: names_v2 v1 proposed FBounceFlying__FP6FLYINGP2SOP6VECTORT2 (0.003) | class identity from whole_game
- *   WE names/object strings: CloneRcCar -> CloneRobottank
- * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30,
+// copy 0x9C bytes). (inferred)
 void CloneRobottank(OBJ *p)
 {
     int i;
@@ -155,15 +138,7 @@ typedef char native_layout_12[(OFF(OBJ,c)==0x4F8)?1:-1];
 typedef char native_layout_13[(OFF(OBJ,a)==0x4FC)?1:-1];
 } // namespace M_CloneRobottank
 
-/** @sly2-annot addr=0x1D14C0
- * Purpose: health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0)
- * Info: proposed name ResetRobottankHealth (T1); TU tu_1D1370
- * Notes: names_v2 v1 proposed UpdateStuck__FP5STUCKf (0.000) | class identity from whole_game WE names/object
- *   strings: ResetRcCarHealth -> ResetRobottankHealth
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0). (inferred)
 /* Full health, the meter updated, the animation machine back to its first state, state 0. */
 extern "C" void ResetRobottankHealth(ROBOTTANKV *ptank)
 {
@@ -207,17 +182,9 @@ void ResetRobottankHealth(P *);
 }
 static inline qword Zero(){qword r;asm("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
 static inline qword CPU(qword value){qword result;asm("qmfc2.ni %0,%1":"=r"(result):"j"(value));return result;}
-/** @sly2-annot addr=0x1D1518
- * Purpose: CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their
- *   normalized layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA
- *   bindings), drop unresolved ones; allocate nav path object (0x1E94B0(0x2C9,16)); ResetRcCarHealth
- * Info: proposed name PostRobottankLoad (T1); class ROBOTTANK slot15; TU tu_1D1370
- * Notes: names_v2 C proposed SetAloParent__FP3ALOT0 (0.438) | class identity from whole_game WE names/object
- *   strings: PostRcCarLoad -> PostRobottankLoad
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized
+// layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop
+// unresolved ones; allocate nav path object (0x1E94B0(0x2C9,16)); ResetRcCarHealth. (inferred)
 extern "C" void PostRobottankLoad(P *p){
  U scalar,maximum,minimum;
  register int i __asm__("$18")=0;CURRENT current;SCALE scale;
@@ -398,31 +365,14 @@ typedef char native_layout_57[(OFF(P,binding)==0x570)?1:-1];
 typedef char native_layout_58[(OFF(P,path)==0x5AC)?1:-1];
 } // namespace M_PostRobottankLoad
 
-/** @sly2-annot addr=0x1D1910
- * Purpose: CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth
- * Info: proposed name Robottank_VUnk26Proxy (T2); class ROBOTTANK slot26; TU tu_1D1370
- * Notes: names_v2 C proposed UpdateAloXfWorld__FP3ALO (0.438) | class identity from whole_game WE
- *   names/object strings: RcCar_VUnk26Proxy -> Robottank_VUnk26Proxy
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt26: SO vt26 base (0x1CB518 proxy reset) then ResetRcCarHealth. (inferred)
 extern "C" void ResetRobottank(ROBOTTANKV *ptank)
 {
     func_001CB518(ptank);
     ResetRobottankHealth(ptank);
 }
 
-/** @sly2-annot addr=0x1D1940
- * Purpose: CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2
- * Info: proposed name OnRobottankActive (T1); class ROBOTTANK slot78; TU tu_1D1370
- * Notes: names_v2 C proposed DupAloRo__FP3ALOP2ROT1 (0.200) | class identity from whole_game WE names/object
- *   strings: OnRcCarActive -> OnRobottankActive
- * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
- *   r5b_rest+verdicts_followups+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt78(f): OnPoActive, then state 2 when activated, back to 0 when deactivated from 2.
 void ROBOTTANK::OnActive(int fActive)
 {
     ROBOTTANKV *ptank = (ROBOTTANKV *)this;
@@ -506,17 +456,9 @@ static inline void ResetDrive(P *p){
 }
 static inline M4*GetMatrixFrom(P*p,VENTRY*vt){VENTRY&e=vt[31];return ((M4*(*)(void*))e.fn)((char*)p+e.delta);}
 static inline qword GetVelocity(P *p){VENTRY &e=p->vt[33];return ((qword (*)(void *))e.fn)((char *)p+e.delta);}
-/** @sly2-annot addr=0x1D19A8
- * Purpose: CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input /
- *   mode 1 AI / else idle; steering and throttle from polynomial tables of heading error; turret/actuator
- *   goal; engine sound volume/pitch
- * Info: proposed name UpdateRobottank (T1); class ROBOTTANK slot16; TU tu_1D1370
- * Notes: names_v2 C proposed RenderAloGlobset__FP3ALOP2CMP2RO (0.638) | class identity from whole_game WE
- *   names/object strings: UpdateRcCar -> UpdateRobottank
- * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else
+// idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound
+// volume/pitch. (inferred)
 extern "C" void UpdateRobottank(P *p)
 {
     U scalar,position,targetPosition,targetVelocity,shot;
@@ -773,17 +715,8 @@ typedef struct {
 int HasRobottankWeaponAmmo(ITEM *);
 void SetSmaGoal(void *, int);
 int GrfConsumePressed__5POCTLUif(SUB *, int, float);
-/** @sly2-annot addr=0x1D2150
- * Purpose: Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its
- *   button mask fires (SMA goal 0x68) or held-flag variant (0x67)
- * Info: proposed name ReadRobottankInput (T1); TU tu_1D1370
- * Notes: names_v2 C proposed UpdateAloThrob__FP3ALOf (0.200) | class identity from whole_game WE names/object
- *   strings: ReadRcCarInput -> ReadRobottankInput
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/engine/minigames.md#5-rc-combat-robottank-0x4d-tu-0x1d1370-ccode,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires
+// (SMA goal 0x68) or held-flag variant (0x67). (inferred)
 void ReadRobottankInput(OBJ *p)
 {
     int i;
@@ -814,15 +747,7 @@ namespace M_func_001D2240 { extern "C" {
 struct O { char pad[0x80]; int n80; };
 struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
 int HasRobottankWeaponAmmo(struct O *po);
-/** @sly2-annot addr=0x1D2240
- * Purpose: First weapon with enough ammo whose state is not 4
- * Info: proposed name PweaponReadyRobottank (T2); TU tu_1D1370
- * Notes: names_v2 C proposed SetAloBlotContext__FP3ALOP4BLOT (0.200) | class identity from whole_game WE
- *   names/object strings: PweaponReadyRcCar -> PweaponReadyRobottank
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// First weapon with enough ammo whose state is not 4. (inferred)
 struct O *FindReadyRobottankWeapon(struct S *p) {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -853,13 +778,7 @@ extern const float D_002A7810;   /* defined below where the ELF has it (.rodata 
 extern float D_002C20C0[3];
 qword func_001A62E8(void *);
 int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
-/** @sly2-annot addr=0x1D22D0
- * Purpose: Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass
- * Info: proposed name FindRobottankPickup (T2); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: FindRcCarPickup -> FindRobottankPickup
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass. (inferred)
 SO *FindNearestRobottankPickup(OBJ *p)
 {
     SO *best = 0;
@@ -896,14 +815,7 @@ struct E { float x, y, z, w; };
 struct O { char pad[0xE8]; int c; int a, b; struct E *ae; };
 struct S { char pad[0x5AC]; struct O *po; int n5B0; };
 qword func_001A62E8(struct S *p);
-/** @sly2-annot addr=0x1D2420
- * Purpose: Clear x5B0 and set every wheel record's z to the car's height
- * Info: proposed name ResetRobottankWheelHeights (T2); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: ResetRcCarWheelHeights ->
- *   ResetRobottankWheelHeights
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Clear x5B0 and set every wheel record's z to the car's height. (inferred)
 void ResetRobottankWheelHeights(struct S *p) {
     qword q;
     int i;
@@ -982,16 +894,7 @@ static inline qword NormalizeOr(qword value,qword fallback)
     }
     return cpu;
 }
-/** @sly2-annot addr=0x1D2490
- * Purpose: Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal
- *   heading/drive
- * Info: proposed name SteerRobottankAlongPath (T2); TU tu_1D1370
- * Notes: names_v2 v1 proposed FBounceBullet__FP6BULLETP2SOP6VECTORT2 (0.002) | class identity from whole_game
- *   WE names/object strings: SteerRcCarAlongPath -> SteerRobottankAlongPath
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal heading/drive. (inferred)
 void SteerRobottankAlongPath(OBJ *p)
 {
     VECTOR va, vb;
@@ -1125,15 +1028,8 @@ static inline VV Rotate(const M3 &m, VV v)
 static inline float Max(float a, float b) { return a < b ? b : a; }
 static inline float Abs(float f) { return __builtin_fabsf(f); }
 
-/** @sly2-annot addr=0x1D2610
- * Purpose: Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack
- *   in place, 2 pursue, 3 back away), steering, fire weapons when aim error is small
- * Info: proposed name UpdateRobottankAi (T1); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: UpdateRcCarAi -> UpdateRobottankAi
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/engine/minigames.md#5-rc-combat-robottank-0x4d-tu-0x1d1370-ccode,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack in place, 2
+// pursue, 3 back away), steering, fire weapons when aim error is small. (inferred)
 extern "C" void UpdateRobottankAi(P *p)
 {
     VV position = func_001A62E8(p);
@@ -1285,13 +1181,7 @@ extern "C" void UpdateRobottankAi(P *p)
 }
 } // namespace M_UpdateRobottankAi
 
-/** @sly2-annot addr=0x1D2DD0
- * Purpose: Return the contact in an XP list with the largest +0x90 value (deepest)
- * Info: proposed name PxpBestRobottankWheel (T2); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: PxpBestRcCarWheel -> PxpBestRobottankWheel
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Return the contact in an XP list with the largest +0x90 value (deepest). (inferred)
 /* The contact of the list with the largest separation above D_002A7834, or 0. */
 namespace RO_ORDER { extern const float r_D_002A7834 __asm__("D_002A7834") = -3.40282347e+38f; }
 extern "C" XP *FindDeepestRobottankWheelXp(ROBOTTANKV *ptank, XPLISTV *pxplist)
@@ -1418,14 +1308,8 @@ static inline float ClampTo(float v, const LIMITS &l) { return Clamp(v, l.low, l
 static inline float Min(float a, float b) { return b < a ? b : a; }
 static inline float Abs(float f) { return __builtin_fabsf(f); }
 
-/** @sly2-annot addr=0x1D2E18
- * Purpose: CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses,
- *   turn and drive within traction budget
- * Info: proposed name PresetRobottankAccel (T1); class ROBOTTANK slot70; TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: PresetRcCarAccel -> PresetRobottankAccel
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive
+// within traction budget. (inferred)
 extern "C" void PresetRobottankAccel(P *p)
 {
     func_001F9B20(p);
@@ -1662,15 +1546,8 @@ static inline VU_VECTOR Blend(const qword &a, const VU_FLOAT &sa, const qword &b
     return VU_VECTOR(r);
 }
 
-/** @sly2-annot addr=0x1D3450
- * Purpose: Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass
- *   (ClsgClipEdgeToBsp), post deepest tangency as kind-10 contact (PxpAdd 0x1A7C18)
- * Info: proposed name AddRobottankWheelXps (T1); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: AddRcCarWheelXps -> AddRobottankWheelXps
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post
+// deepest tangency as kind-10 contact (PxpAdd 0x1A7C18). (inferred)
 extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3, int unused4, BSP *pbspRoot, CONTACT **ppcontact)
 {
     int csupport = 0;
@@ -1868,16 +1745,8 @@ typedef struct {
 } OBJ;
 void func_001F5990(void);
 void func_001D3450(OBJ *, ENT *, A *, int, int, int, void *);
-/** @sly2-annot addr=0x1D3E48
- * Purpose: CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object
- *   passes its vt62 test
- * Info: proposed name AddRobottankCustomXps (T1); class ROBOTTANK slot60; TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: AddRcCarCustomXps -> AddRobottankCustomXps
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources:
- *   r5b_rest+verdicts_B+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62
+// test. (inferred)
 void AddRobottankCustomXps(OBJ *p, A *pa, int x, int y, int z)
 {
     int i;
@@ -1897,16 +1766,7 @@ struct E { int a[2]; char b[0x58]; };
 struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
 void func_001F5988(struct S *p, void *q);
 void func_001F4DA8(struct S *p, void *q, void *pe);
-/** @sly2-annot addr=0x1D3F30
- * Purpose: CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel
- * Info: proposed name Robottank_vt54 (T2); class ROBOTTANK slot54; TU tu_1D1370
- * Notes: agent qualifier: (remove wheel contacts) | class identity from whole_game WE names/object strings:
- *   RcCar_vt54 -> Robottank_vt54
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources:
- *   r5b_rest+verdicts_B+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
 void RemoveRobottankContactsWith(struct S *p, void *q) {
     int i;
     func_001F5988(p, q);
@@ -1918,15 +1778,7 @@ void RemoveRobottankContactsWith(struct S *p, void *q) {
 namespace M_func_001D3FA8 { extern "C" {
 struct O { char pad[0x14]; int id; };
 struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
-/** @sly2-annot addr=0x1D3FA8
- * Purpose: Find weapon record by id
- * Info: proposed name PweaponFindRobottank (T2); TU tu_1D1370
- * Notes: names_v2 v1 proposed RenderShrapnel__FP8SHRAPNELP2CM (0.000) | class identity from whole_game WE
- *   names/object strings: PweaponFindRcCar -> PweaponFindRobottank
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Find weapon record by id. (inferred)
 struct O *FindRobottankWeapon(struct S *p, int id) {
     int i;
     for (i = 0; i < p->c; i++) {
@@ -1944,16 +1796,8 @@ struct Q { char pad[0x574]; struct E ae[1]; };
 struct S { char p0[0x150]; int n150; int a; int i; int d; };
 void SetRcPickupState(struct S *p, int n);
 static inline int Min(int a, int b) { return a < b ? a : b; }
-/** @sly2-annot addr=0x1D3FF0
- * Purpose: Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max)
- *   and set pickup state 2
- * Info: proposed name CollectRobottankPickup (T2); TU tu_1D1370
- * Notes: names_v2 v1 proposed InitGlint__FP5GLINTP6VECTORfP2SO (0.002) | class identity from whole_game WE
- *   names/object strings: CollectRcCarPickup -> CollectRobottankPickup
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup
+// state 2. (inferred)
 void CollectRobottankPickup(struct Q *q, struct S *p) {
     if (p->n150 != 2) {
         struct E *pe = &q->ae[p->i];
@@ -1982,14 +1826,8 @@ void func_001F4FB0(void *, OBJ *, int);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void EnsureSwCallback(void *, void *, long, void *);
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
-/** @sly2-annot addr=0x1D4050
- * Purpose: CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D
- *   vehicle); touching CID 0x6C pickup schedules CollectRcCarPickup
- * Info: proposed name AdjustRobottankNewXp (T1); class ROBOTTANK slot55; TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: AdjustRcCarNewXp -> AdjustRobottankNewXp
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID
+// 0x6C pickup schedules CollectRcCarPickup. (inferred)
 void AdjustRobottankNewXp(void *a, OBJ *p, int n)
 {
     void *e;
@@ -2025,13 +1863,7 @@ struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
 void UpdateSoTreeBounds(struct S *p);
 qword ConvertAloPos(struct S *p, int n, qword q);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
-/** @sly2-annot addr=0x1D4178
- * Purpose: CID 77 vt49: SO tree bounds then extend by each wheel sphere
- * Info: proposed name UpdateRobottankBounds (T1); class ROBOTTANK slot49; TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: UpdateRcCarBounds -> UpdateRobottankBounds
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt49: SO tree bounds then extend by each wheel sphere. (inferred)
 void UpdateRobottankBounds(struct S *p) {
     int i;
     UpdateSoTreeBounds(p);
@@ -2081,16 +1913,8 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(x),"j"(y),"j"(z),"j"(b.r[1].q));
  __asm__("vmulax.xyz $ACC,%1,%4x\n\tvmadday.xyz $ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(x),"j"(y),"j"(z),"j"(b.r[2].q));
 }
-/** @sly2-annot addr=0x1D41F8
- * Purpose: CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices,
- *   then RenderSoSelf
- * Info: proposed name RenderRobottankSelf (T1); class ROBOTTANK slot19; TU tu_1D1370
- * Notes: names_v2 v1 proposed RenderGlint__FP5GLINTP2CM (0.200) | class identity from whole_game WE
- *   names/object strings: RenderRcCarSelf -> RenderRobottankSelf
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then
+// RenderSoSelf. (inferred)
 extern "C" void RenderRobottankSelf(P*p){
  V velocity,point;M3 basis;
  VE*method=&p->vt[33];
@@ -2225,16 +2049,8 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
     ((void (*)(void *, qword))pset->fn)(receiver, Add(original, delta.q));
 }
 
-/** @sly2-annot addr=0x1D4568
- * Purpose: CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when
- *   dead, random or sender-relative knock-back impulse
- * Info: proposed name HandleRobottankZap (T2); class ROBOTTANK slot75; TU tu_1D1370
- * Notes: names_v2 B proposed CalculateAloDrive__FP3ALOP3CLQP2LMffPfN25 (0.856) | class identity from
- *   whole_game WE names/object strings: HandleRcCarZap -> HandleRobottankZap
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 77 vt75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or
+// sender-relative knock-back impulse. (inferred)
 int TakeRobottankDamage(P *p, EVENT *event)
 {
     if (!func_001F7588(p, event))
@@ -2312,16 +2128,8 @@ void PauseSnd(void *);
 void StopSnd(void *, float);
 void SetRobottankTactic(OBJ *, int);
 void SetSmaGoalIfReachable(void *, int);
-/** @sly2-annot addr=0x1D4940
- * Purpose: Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5);
- *   drives body SMA goal from D_002C2208[state]
- * Info: proposed name SetRobottankState (T1); TU tu_1D1370
- * Notes: names_v2 v1 proposed ProjectMatchTransform__FP5MATCHf (0.042) | class identity from whole_game WE
- *   names/object strings: SetRcCarState -> SetRobottankState
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vt3 msg 5); drives body SMA
+// goal from D_002C2208[state]. (inferred)
 void SetRobottankState(OBJ *p, int n)
 {
     W *pw;
@@ -2375,13 +2183,7 @@ void SetRobottankState(OBJ *p, int n)
 }
 } } // namespace M_SetRobottankState
 
-/** @sly2-annot addr=0x1D4B28
- * Purpose: Set AI tactic x188 with timestamp x18C
- * Info: proposed name SetRobottankTactic (T2); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: SetRcCarTactic -> SetRobottankTactic
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Set AI tactic x188 with timestamp x18C. (inferred)
 /* Sets the second state (+0x188), stamping the time. */
 extern "C" void SetRobottankTactic(ROBOTTANKV *ptank, int nState)
 {
@@ -2396,13 +2198,7 @@ namespace M_func_001D4B48 { extern "C" {
 struct K { int a, b; };
 struct E { int n; int a[7]; float g; struct K k; int pad[13]; };
 struct S { char pad[0x190]; unsigned int c; int pad2[3]; struct E ae[8]; };
-/** @sly2-annot addr=0x1D4B48
- * Purpose: Append wheel record (id, radius, ...) if fewer than 8
- * Info: proposed name AddRobottankWheel (T2); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: AddRcCarWheel -> AddRobottankWheel
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Append wheel record (id, radius, ...) if fewer than 8. (inferred)
 void AddRobottankWheel(struct S *p, int n, struct K *pk, float g) {
     if (p->c < 8) {
         struct E *pe = &p->ae[p->c++];
@@ -2449,15 +2245,7 @@ static inline X *CreateItem(OBJ *owner) {
  __asm__("sw %1,%0":"=m"(item->vt):"r"(vtable):"memory");
  register X*receiver __asm__("$4");__asm__ __volatile__("daddu %0,%2,$zero\n\tsw $zero,%1":"=&r"(receiver),"=m"(item->x4):"r"(item));InitRobottankWeapon(receiver,owner);return item;
 }
-/** @sly2-annot addr=0x1D4B90
- * Purpose: Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8
- * Info: proposed name AddRobottankWeapon (T2); TU tu_1D1370
- * Notes: names_v2 v1 proposed UpdateMatch__FP5MATCHf (0.001) | class identity from whole_game WE names/object
- *   strings: AddRcCarWeapon -> AddRobottankWeapon
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8. (inferred)
 extern "C" void AddRobottankWeapon(OBJ *p, int a, int b, int inputC, int inputD)
 {
     register int c __asm__("$20")=inputC;
@@ -2498,15 +2286,7 @@ namespace M_func_001D4C48 { extern "C" {
 struct K { int a, b; };
 struct E { int n; int a, b; struct K k; };
 struct S { char pad[0x4A4]; unsigned int c; struct E ae[4]; };
-/** @sly2-annot addr=0x1D4C48
- * Purpose: Append (id, data) record if fewer than 4
- * Info: proposed name AddRobottankAttachment (T2); TU tu_1D1370
- * Notes: names_v2 v1 proposed RenderMatch__FP5MATCHP2CM (0.039) | class identity from whole_game WE
- *   names/object strings: AddRcCarAttachment -> AddRobottankAttachment
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Append (id, data) record if fewer than 4. (inferred)
 void AddRobottankAttachment(struct S *p, int n, struct K *pk) {
     if (p->c < 4) {
         struct E *pe = &p->ae[p->c++];
@@ -2520,15 +2300,7 @@ void AddRobottankAttachment(struct S *p, int n, struct K *pk) {
 namespace M_UpdateRobottankHealthMeter { extern "C" {
 struct S { char p0[0x55C]; int n55C, n560, f564; void *p568; };
 void SetWidgetAnimPhase(void *p, int n, float g);
-/** @sly2-annot addr=0x1D4C88
- * Purpose: Set meter value 0x34F = health/max (inverted if x564)
- * Info: proposed name UpdateRobottankHealthMeter (T1); TU tu_1D1370
- * Notes: names_v2 v1 proposed PostRemitEmit__FP5REMITP5EMITB (0.001) | class identity from whole_game WE
- *   names/object strings: UpdateRcCarHealthMeter -> UpdateRobottankHealthMeter
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Set meter value 0x34F = health/max (inverted if x564). (inferred)
 void UpdateRobottankHealthMeter(struct S *p) {
     if (p->p568) {
         float g = (float)p->n560 / (float)p->n55C;
@@ -2542,13 +2314,7 @@ void UpdateRobottankHealthMeter(struct S *p) {
 namespace M_func_001D4CE0 { extern "C" {
 struct E { int a; int n; float g; };
 struct S { char pad[0x574]; struct E ae[1]; };
-/** @sly2-annot addr=0x1D4CE0
- * Purpose: Set ammo slot i (count, max)
- * Info: proposed name SetRobottankAmmo (T2); TU tu_1D1370
- * Notes: class identity from whole_game WE names/object strings: SetRcCarAmmo -> SetRobottankAmmo
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Set ammo slot i (count, max). (inferred)
 void SetRobottankAmmo(struct S *p, int i, float g, int n) {
     struct E *pe = &p->ae[i];
     pe->n = n;
@@ -2556,31 +2322,13 @@ void SetRobottankAmmo(struct S *p, int i, float g, int n) {
 }
 } } // namespace M_func_001D4CE0
 
-/** @sly2-annot addr=0x1D4D00
- * Purpose: Get field +0x574 of 12-byte slot i
- * Info: proposed name GetRobottankSlotValue (T2); TU tu_1D1370
- * Notes: names_v2 C proposed GetAloLookAtIgnore__FP3ALOPf (0.638) | class identity from whole_game WE
- *   names/object strings: GetRcCarSlotValue -> GetRobottankSlotValue
- * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Get field +0x574 of 12-byte slot i. (inferred)
 extern "C" int GetRobottankSlotValue(ROBOTTANKV *ptank, int i)
 {
     return ptank->arec[i].n;
 }
 
-/** @sly2-annot addr=0x1D4D18
- * Purpose: Set field +0x574 of 12-byte slot i
- * Info: proposed name SetRobottankSlotValue (T2); TU tu_1D1370
- * Notes: verifier PLAUSIBLE: Placeholder. p[+0x574 + 12*i] = v; caller is a splice wrapper. | class identity
- *   from whole_game WE names/object strings: SetRcCarSlotValue -> SetRobottankSlotValue | T2 forced:
- *   verifier: placeholder name
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources:
- *   r5b_rest+verdicts_followups+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Set field +0x574 of 12-byte slot i. (inferred)
 extern "C" void SetRobottankSlotValue(ROBOTTANKV *ptank, int i, int n)
 {
     ptank->arec[i].n = n;
@@ -2612,15 +2360,7 @@ extern S8 D_002C2218;
 extern S8 D_002C2220;
 extern S8 D_002C2240;
 extern qword D_002C2230;
-/** @sly2-annot addr=0x1D4D30
- * Purpose: Weapon record defaults (owner, default vectors D_002C2218..)
- * Info: proposed name InitRobottankWeapon (T2); TU tu_1D1370
- * Notes: names_v2 v1 proposed UpdateRemit__FP5REMITf (0.013) | class identity from whole_game WE names/object
- *   strings: InitRcCarWeapon -> InitRobottankWeapon
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Weapon record defaults (owner, default vectors D_002C2218..) (inferred)
 void InitRobottankWeapon(OBJ *p, void *q)
 {
     p->x10 = q;
@@ -2638,18 +2378,7 @@ void InitRobottankWeapon(OBJ *p, void *q)
 }
 } } // namespace M_func_001D4D30
 
-/** @sly2-annot addr=0x1D4DE0
- * Purpose: CopyAb 0x9C bytes from +0x14
- * Info: proposed name CopyRobottankWeapon (T2); TU tu_1D1370
- * Notes: names_v2 C proposed GetAloLookAtTiltFunction__FP3ALOP3CLQ (0.438) | verifier PLAUSIBLE:
- *   CopyAb(dst+0x14, src+0x14, 0x9C); only caller CloneRcCar. 'Weapon' is not supported by the code; it is a
- *   clone sub-struct copy. | class identity from whole_game WE names/object strings: CopyRcCarWeapon ->
- *   CopyRobottankWeapon | T2 forced: verifier: role word not supported by the code
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources:
- *   r5b_rest+verdicts_followups+whole_game(class identity)
- * See: docs/engine/gameplay-objects.md#key-functions,
- *   docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CopyAb 0x9C bytes from +0x14. (inferred)
 /* Copies 0x9C bytes from +0x14 of one object to the other. */
 extern "C" void CopyRobottankWeapon(char *pvDst, char *pvSrc)
 {
@@ -2661,15 +2390,7 @@ namespace M_func_001D4E08 { extern "C" {
 struct E { int n; int a; int b; };
 struct O { char pad[0x574]; struct E ae[1]; };
 struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
-/** @sly2-annot addr=0x1D4E08
- * Purpose: ammo of the weapon's slot >= its cost
- * Info: proposed name FRobottankWeaponHasAmmo (T2); TU tu_1D1370
- * Notes: names_v2 C proposed GetAloLookAtTiltLimits__FP3ALOP2LM (0.200) | class identity from whole_game WE
- *   names/object strings: FRcCarWeaponHasAmmo -> FRobottankWeaponHasAmmo
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// ammo of the weapon's slot >= its cost. (inferred)
 int HasRobottankWeaponAmmo(struct S *p) {
     return p->po->ae[p->i].n >= p->n;
 }
@@ -2680,15 +2401,7 @@ namespace M_func_001D4E30 { extern "C" {
 struct E { int n; int a; int b; };
 struct O { char pad[0x574]; struct E ae[1]; };
 struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
-/** @sly2-annot addr=0x1D4E30
- * Purpose: Subtract weapon cost from its slot, clamp 0
- * Info: proposed name UseRobottankWeaponAmmo (T2); TU tu_1D1370
- * Notes: names_v2 C proposed SetAloTargetAttacks__FP3ALOi (0.638) | class identity from whole_game WE
- *   names/object strings: UseRcCarWeaponAmmo -> UseRobottankWeaponAmmo
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Subtract weapon cost from its slot, clamp 0. (inferred)
 void UseRobottankWeaponAmmo(struct S *p) {
     struct E *pe = &p->po->ae[p->i];
     int n = pe->n - p->n;
@@ -2701,12 +2414,7 @@ void UseRobottankWeaponAmmo(struct S *p) {
 namespace M_InitRcPickup { extern "C" {
 struct S { char p0[0x40]; int x40; char p1[0x150-0x44]; int n150; int a[2]; int n15C; };
 void InitSo(struct S *p);
-/** @sly2-annot addr=0x1D4E68
- * Purpose: CID 108 vt7 Init: InitSo, amount 30 (x15C), state -1
- * Info: proposed name InitRcPickup (T1); class CID108 slot7; TU tu_1D1370
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 108 vt7 Init: InitSo, amount 30 (x15C), state -1. (inferred)
 void InitRcPickup(struct S *p) {
     int v;
     InitSo(p);
@@ -2724,12 +2432,7 @@ struct S { char p0[0x160]; void *p160; int a164; };
 void PostSoLoad(struct S *p);
 void ReplaceSma(void *a, struct S *p, int b, int c, int *pn);
 void SetRcPickupState(struct S *p, int n);
-/** @sly2-annot addr=0x1D4EC8
- * Purpose: CID 108 vt15: PostSoLoad, SMA binding, state 0
- * Info: proposed name PostRcPickupLoad (T1); class CID108 slot15; TU tu_1D1370
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 108 vt15: PostSoLoad, SMA binding, state 0. (inferred)
 void PostRcPickupLoad(struct S *p) {
     PostSoLoad(p);
     ReplaceSma(p->p160, p, -1, 0, &p->a164);
@@ -2737,13 +2440,7 @@ void PostRcPickupLoad(struct S *p) {
 }
 } } // namespace M_PostRcPickupLoad
 
-/** @sly2-annot addr=0x1D4F10
- * Purpose: CID 108 vt26: proxy base then state -1 -> 0 (respawn)
- * Info: proposed name RcPickup_VUnk26Proxy (T2); class CID108 slot26; TU tu_1D1370
- * Notes: names_v2 C proposed GetAloSndRepeat__FP3ALOP2LM (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 108 vt26: proxy base then state -1 -> 0 (respawn). (inferred)
 extern "C" void ResetRobottankPickup(RCPICKUP *ppickup)
 {
     func_001CB518(ppickup);
@@ -2757,12 +2454,7 @@ struct O { char pad[0x98]; short h98; };
 struct S { char p0[0x58]; struct O *po; char p1[0x150-0x5C]; int n150; };
 void UpdateSo(struct S *p);
 void SetRcPickupState(struct S *p, int n);
-/** @sly2-annot addr=0x1D4F50
- * Purpose: CID 108 vt16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3
- * Info: proposed name UpdateRcPickup (T1); class CID108 slot16; TU tu_1D1370
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// CID 108 vt16: UpdateSo; in state 0 go to state 1 when owner's x98 == 3. (inferred)
 } } // namespace M_UpdateRcPickup
 void CID108::VUnk15() { using namespace M_UpdateRcPickup; M_UpdateRcPickup::S *p = (M_UpdateRcPickup::S *)this;
     UpdateSo(p);
@@ -2775,12 +2467,7 @@ extern struct CLOCK { float t; } D_002DDED0;
 extern int D_002C2248[];
 struct S { char p0[0x150]; int n150; float g154; char p1[0x164-0x158]; void *p164; };
 void SetSmaGoalIfReachable(void *p, int n);
-/** @sly2-annot addr=0x1D4FA0
- * Purpose: Pickup state x150 with time; SMA goal from D_002C2248[state]
- * Info: proposed name SetRcPickupState (T1); TU tu_1D1370
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/gameplay-objects.md#tu_1d1370-0x1d1370-0x1d5150
- * @end-sly2-annot */
+// Pickup state x150 with time; SMA goal from D_002C2248[state]. (inferred)
 void SetRcPickupState(struct S *p, int n) {
     if (n == p->n150) return;
     p->n150 = n;
