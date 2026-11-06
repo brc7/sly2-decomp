@@ -102,7 +102,7 @@ struct STEPGUARD : public STEP
       undefined4 unk_0xfec[(0xffc - 0xfec) / 4];
       int cBusy;            /* +0xFFC [R] busy count */
       undefined4 unk_0x1000[4];
-    STEPGUARD() __asm__("STEPGUARD_ctor");   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp */
+    STEPGUARD() __asm__("STEPGUARD_ctor") __attribute__((weak, section(".gnu.linkonce.t.STEPGUARD_ctor")));   /* inline in the game (linkonce copy at 0x256360), called by the guard factories: defined in app/class_registry.cpp as a weak linkonce copy (see there) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetStepguardClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleStepguardMessage");   /* slot 5 */
     virtual void Init() __asm__("InitStepguard");   /* slot 7 */

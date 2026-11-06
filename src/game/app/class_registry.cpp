@@ -6871,8 +6871,10 @@ extern "C" CLASSINFO *GetBhv198ClassDesc() { return &D_002BAAE8[198]; }
 // ---- Out-of-line constructors from the linkonce area (0x256360..0x256498) ----
 // The constructors of STEPGUARD, JT and MURRAY: inline in the game (their copies sit in the linkonce area) but
 // called, not inlined, by the factories (HYPOTHESIS: too big for g++'s inliner). Defined here as the constructors
-// they are, under their current symbols (the asm labels in the views above); here they are ordinary global
-// functions, in the game weak linkonce copies.
+// they are, under their current symbols (the asm labels in the views above). The real form, inline in the class, is
+// not emitted here: g++ 2.95 emits a polymorphic class's inline members only in the TU that emits its vtable (its
+// key TU, once data/vtables gives these classes one). So the declarations' attributes give the definitions what an
+// out-of-line inline copy gets: a weak symbol in .gnu.linkonce.t.<symbol>.
 
 /** @sly2-annot addr=0x256360
  * Purpose: inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game
