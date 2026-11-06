@@ -1578,16 +1578,8 @@ extern "C" void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
 extern "C" void ResolveStepguardAnimBindings(STEPGUARD *guard)
 {
     int i;
-    ANIMBINDINGREC *prec;
-    i = 0;
-    if (guard->cbindingrec > 0) {
-        prec = guard->abindingrec;
-        do {
-            ResolveAnimBinding(&prec->binding, guard);
-            i += 1;
-            prec++;
-        } while (i < guard->cbindingrec);
-    }
+    for (i = 0; i < guard->cbindingrec; i++)
+        ResolveAnimBinding(&guard->abindingrec[i].binding, guard);
     ResolveZapReactions(guard, guard->aabindingZap[2]);
     ResolveZapReactions(guard, guard->aabindingZap[0]);
     ResolveZapReactions(guard, guard->aabindingZap[1]);
@@ -1597,15 +1589,12 @@ extern "C" void ResolveStepguardAnimBindings(STEPGUARD *guard)
 // 0x208178: Releases all 26 entries of a zap-reaction table.
 extern "C" void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
 {
-    ANIMBINDING *pbinding;
+    ANIMBINDING *binding = abinding;
     int i;
-    pbinding = abinding;
-    i = 25;
-    do {
-        ReleaseAnimBinding(pbinding, guard);
-        i -= 1;
-        pbinding++;
-    } while (i >= 0);
+    for (i = 25; i >= 0; i--) {   // 26 zap kinds
+        ReleaseAnimBinding(binding, guard);
+        binding++;
+    }
 }
 
 // 0x2081C8 ReleaseStepguardZapReactions
@@ -1638,16 +1627,8 @@ void CloneZapReactions(void *p, struct E *pe)
 extern "C" void CloneStepguardAnimBindings(STEPGUARD *guard)
 {
     int i;
-    ANIMBINDINGREC *prec;
-    i = 0;
-    if (guard->cbindingrec > 0) {
-        prec = guard->abindingrec;
-        do {
-            i += 1;
-            CloneAnimBinding(&prec->binding);
-            prec++;
-        } while (i < guard->cbindingrec);
-    }
+    for (i = 0; i < guard->cbindingrec; i++)
+        CloneAnimBinding(&guard->abindingrec[i].binding);
     CloneZapReactions(guard, guard->aabindingZap[2]);
     CloneZapReactions(guard, guard->aabindingZap[0]);
     CloneZapReactions(guard, guard->aabindingZap[1]);
