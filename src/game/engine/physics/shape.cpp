@@ -1226,7 +1226,7 @@ float DuGetShapeSearchIncrement(struct S *p)
 
 namespace M_func_001E7840 { extern "C" {
 struct P { char pad[0x40]; int fl; char pad2[0x17C - 0x44]; void *px; };
-void *func_001AE4F8(int cb);
+void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void *InitChain(void *pv, struct P *p);
 void MeasureShape(struct P *p);
 void SetLoBusyk(struct P *p, int n);

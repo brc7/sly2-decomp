@@ -53,7 +53,7 @@ int sceCdGetReadPos(void);
 int sceCdGetError(void);
 int func_00241E88(int) __asm__("sceCdSync");
 void ReadCdDirect(uint isector, uint csector, void *pv, int mode);
-void InitGeom__FP4GEOM(CBinaryInputStream *p);  /* the call target's current (wrong) name; the base Close */
+void CBinaryInputStream_Close(CBinaryInputStream *p) __asm__("Close__18CBinaryInputStream");  /* the base Close (bis.cpp) */
 void CStreamBis_Close(CBinaryInputStream *p);
 void func_00184C60(CBinaryInputStream *p);
 void func_001849A0(CBinaryInputStream *p);
@@ -220,7 +220,7 @@ extern "C" void CStreamBis_Close(CBinaryInputStream *p)
             sceCdBreak();
         p->isector = -1;
     }
-    InitGeom__FP4GEOM(p);
+    CBinaryInputStream_Close(p);
 }
 
 /** @sly2-annot addr=0x184D60

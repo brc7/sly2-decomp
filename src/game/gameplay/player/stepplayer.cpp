@@ -2730,16 +2730,16 @@ extern "C" KEY *PkeyFindBootySaveVar(int id)
 } // namespace M_PkeyFindBootySaveVar
 
 namespace M_UpdateStepplayerBootySave {
-// MATCH (Claude agent, laneC20 2026-10-23): v4 + func_001291A8 (CRef copy ctor) declared returning void * instead of void.
+// MATCH (Claude agent, laneC20 2026-10-23): v4 + __4CRefRC4CRef (CRef copy ctor) declared returning void * instead of void.
 struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-extern "C" void *func_001291A8(CRef *, const CRef *); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
+extern "C" void *__4CRefRC4CRef(CRef *, const CRef *); // CRef copy ctor returns this (void *); declaring it void scheduled the pv copy early
 extern "C" CRef *func_00129658(CRef *, const CRef *) __asm__("__as__4CRefRC4CRef");
 struct CRef {
     int tagk; int tag;
     CRef() { tagk = -1; }
     CRef(int k, int n) { tagk = k; tag = n; }
-    CRef(const CRef &r) { func_001291A8(this, &r); }
+    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
     ~CRef() { Decref__4CRef(this); }
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };
@@ -2776,7 +2776,7 @@ struct CRefRaw { int tagk; int tag; };
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRefRaw arg;
-    func_001291A8((CRef *)&arg, &r);
+    __4CRefRC4CRef((CRef *)&arg, &r);
     RefSetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
     Decref__4CRef((CRef *)&arg);
 }
@@ -2855,13 +2855,13 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
 namespace M_func_00143AF0 {
 struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-extern "C" void func_001291A8(CRef *, const CRef *);
+extern "C" void __4CRefRC4CRef(CRef *, const CRef *);
 struct CRef {
     int tagk; int tag;
     CRef() { tagk = -1; }
     CRef(int n, int k) { tag = n; tagk = k; }
     CRef(int k, int n, int) { tagk = k; tag = n; }
-    CRef(const CRef &r) { func_001291A8(this, &r); }
+    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
 struct CRefRaw { int tagk; int tag; };  /* same layout, no ctor/dtor */
@@ -2882,7 +2882,7 @@ CRef RefSetSaveVarV(const CRef &ref, void *o, void *pv, int n);
 static inline void SetPv(void *pv, const CRef &r, void *)
 {
     CRefRaw arg;
-    func_001291A8((CRef *)&arg, &r);
+    __4CRefRC4CRef((CRef *)&arg, &r);
     {
         const CRef &ret = RefSetGlobalSaveVar(pv, *(CRef *)&arg, &D_003D4A60);
     }

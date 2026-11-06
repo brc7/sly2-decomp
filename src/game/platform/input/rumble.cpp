@@ -49,7 +49,7 @@ extern char D_003D4A60[];
 extern "C" {
 int scePadSetActDirect(int port, int slot, byte *ab);
 void Decref__4CRef(void *p);
-void *func_001291A8(void *p, const void *q); /* CRef copy ctor: returns this */
+void *__4CRefRC4CRef(void *p, const void *q); /* CRef copy ctor: returns this */
 }
 
 void SetRumbleRums(RUMBLE *prumble, RUMS rums);
@@ -58,15 +58,15 @@ void TriggerRumbleRumpat(RUMBLE *prumble, RUMPAT *prumpat, float dt);
 extern "C" int FRumbleEnabled(void);
 
 /* The CRef spelling ResetRumbleSaveVar matched with: an empty default constructor, a copy constructor through
-   func_001291A8 declared returning this (void did not match), and a raw {tagk, tag} source type. */
+   __4CRefRC4CRef declared returning this (void did not match), and a raw {tagk, tag} source type. */
 struct RAW { int m_tagk; int m_tag; };
 static inline void SetBool2(RAW *p, int f) { p->m_tag = f; p->m_tagk = 0x17; }
 struct CRef {
     int m_tagk; int m_tag;
     CRef() {}
     CRef(int f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &r) { func_001291A8(this, &r); }
-    CRef(const RAW &r) { func_001291A8(this, &r); }
+    CRef(const CRef &r);   /* out of line: __4CRefRC4CRef (ref.cpp) */
+    CRef(const RAW &r) { __4CRefRC4CRef(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
 extern "C" CRef RefSetGlobalSaveVar(void *pv, const CRef &ref, void *p);
@@ -237,7 +237,7 @@ extern "C" void EnsureRumbleModeDefault(void)
         D_002C2D8C = 1;
 }
 
-// (Claude agent) matched: the CRef copy ctor (func_001291A8) must be declared returning this, not void.
+// (Claude agent) matched: the CRef copy ctor (__4CRefRC4CRef) must be declared returning this, not void.
 /** @sly2-annot addr=0x1D54B8
  * Purpose: Mode 2: store save var (g_sw.psvpNoVibration) = 0; mode 3: = 1
  * Info: proposed name ResetRumbleSaveVar (T1); TU rumble

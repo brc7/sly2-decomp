@@ -120,7 +120,7 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b);
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
 /* The copy constructor (CRef(const CRef &)). */
-extern "C" CRef *func_001291A8(CRef *pref, const CRef *prefSrc)
+extern "C" CRef *__4CRefRC4CRef(CRef *pref, const CRef *prefSrc)
 {
     pref->m_tagk = prefSrc->m_tagk;
     pref->u.n = prefSrc->u.n;
@@ -641,7 +641,7 @@ extern "C" CRef *CRef_RefCoerceS32(CRef *pref, CRef *prefSrc)
 {
     if (prefSrc->m_tagk == 0x15)
     {
-        func_001291A8(pref, prefSrc);
+        __4CRefRC4CRef(pref, prefSrc);
     }
     else
     {
@@ -662,7 +662,7 @@ extern "C" CRef *CRef_RefCoerceF32(CRef *pref, CRef *prefSrc)
 {
     if (prefSrc->m_tagk == 0x16)
     {
-        func_001291A8(pref, prefSrc);
+        __4CRefRC4CRef(pref, prefSrc);
     }
     else
     {

@@ -300,7 +300,7 @@ void func_00204DA8(struct S *p, float f);
 void func_002303A0(struct S *p, int n, int m);
 void ResolveStepguardAnimBindings(struct S *p);
 void func_0020AAA8(struct S *p);
-void *func_001AE4F8(int cb);
+void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void func_0020CE28(void *pv, struct S *p);
 void func_0020D1B0(void *pv, struct S *p);
 void PostSwCallback(void *g, struct S *p, long k, int n);

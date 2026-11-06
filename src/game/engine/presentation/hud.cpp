@@ -997,7 +997,7 @@ typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern "C" BIS *func_001848A8(BIS *,int,void *,int);
-extern "C" void func_00184950(BIS *,int);
+extern "C" void func_00184950(BIS *,int) __asm__("_$_10CStreamBis");
 extern "C" void func_00258248(KEY *);
 extern "C" void *func_001AE318(MSG *);
 extern "C" int func_00184D60(BIS *,KEY *);
@@ -2462,7 +2462,7 @@ void AllocSw__4DMASi(void *, int);
 void AddPrimPack__4GIFSiiUl(void *, int, int, int);
 void PackAD__4GIFSll(void *, int, unsigned long);
 void AddPrimEnd__4GIFS(void *);
-void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *);
+void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *) __asm__("DetachCopySw__4DMASP4HEAPPiPP2QWT3");   /* DMAS::DetachCopySw(HEAP *, ...) (dmas.cpp) */
 }
 struct BUF { int a[12]; };
 struct P { char pad[0xC4]; int xC4; };

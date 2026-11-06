@@ -13,7 +13,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct CRef;
 extern "C" {
 void Decref__4CRef(CRef *pref);
-void func_001291A8(CRef *pref, const CRef *prefSrc);    /* copy constructor */
+void __4CRefRC4CRef(CRef *pref, const CRef *prefSrc);    /* copy constructor */
 void func_00129658(CRef *pref, const CRef *prefSrc);    /* assignment */
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 }
@@ -25,7 +25,7 @@ struct CRef
     int tagk;
     int tag;
     CRef() { tagk = -1; }
-    CRef(const CRef &r) { func_001291A8(this, &r); }
+    CRef(const CRef &r);   /* out of line: __4CRefRC4CRef (ref.cpp) */
     ~CRef() { Decref__4CRef(this); }
     CRef &operator=(const CRef &r) { func_00129658(this, &r); return *this; }
 };

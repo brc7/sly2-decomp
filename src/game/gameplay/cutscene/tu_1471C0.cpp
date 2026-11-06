@@ -57,7 +57,7 @@ extern P *D_002DD644;
 extern char D_003DD040[];
 extern char D_003DD490[];
 extern "C" {
-extern X *D_002DEA4C;
+extern X *D_002DEA4C __asm__("g_pfrmOpen");
 #undef D_002DEA34
 #define D_002DEA34 (*(void * *)((char *)base_D_002DEA28 + 0xC))   /* frm's VIFS+0xC */
 extern GIFS D_002DEA00;

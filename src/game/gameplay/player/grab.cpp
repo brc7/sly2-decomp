@@ -2510,7 +2510,7 @@ extern "C" { extern CLOCK D_002DDED0; }
 
 
 
-extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb); }
+extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui"); }
 
 
 

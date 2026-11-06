@@ -31,7 +31,7 @@ struct SCREEN : BASIC
     virtual void VSlot11() __asm__("func_001D9910");   /* slot 11 */
     virtual void PostLoad() __asm__("func_001DA770");   /* slot 12 (screen.cpp: resolves the widget) */
     virtual void VSlot13() __asm__("func_001DA7B0");   /* slot 13 */
-    virtual void SetMode(int nMode) __asm__("func_0023C820");   /* slot 14 (pure) */
+    virtual void SetMode(int nMode) __asm__("__pure_virtual");   /* slot 14 (pure) */
 };
 
 #endif

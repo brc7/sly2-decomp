@@ -107,7 +107,7 @@ void HandleBasicMessage(POV *p, int n);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
 int FSwHandsOff(SWP *p);
-void *func_001AE4F8(int cb);
+void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void SetTnTnsOverride(void *p, int f);
 void SetCmPolicy(CMV *pg, int n, void *pv, void *p, int m);
 void RevokeCmPolicy(CMV *pg, int a, int b, void *c, void *d, int e);

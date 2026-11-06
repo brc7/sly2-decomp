@@ -2103,7 +2103,7 @@ extern "C" {
 void *STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
-void func_001291A8(void *p, const void *q);
+void __4CRefRC4CRef(void *p, const void *q);
 void *FClueCollected(int n);
 int CClueCollected(void);
 void func_001C7C30(int n, int f);
@@ -2112,7 +2112,7 @@ struct CRef {
     int m_tagk; int m_tag;
     CRef() {}
     CRef(int f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &r) { func_001291A8(this, &r); }
+    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
 extern "C" { extern char D_003D4A60[]; }
@@ -2412,7 +2412,7 @@ extern "C" {
 void *STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
-void *func_001291A8(void *p, const void *q);
+void *__4CRefRC4CRef(void *p, const void *q);
 void *FVaultOpened(void);
 void func_001ABD98(void *p, int n);
 }
@@ -2420,7 +2420,7 @@ struct CRef {
     int m_tagk; int m_tag;
     CRef() {}
     CRef(int f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &r) { func_001291A8(this, &r); }
+    CRef(const CRef &r) { __4CRefRC4CRef(this, &r); }
     ~CRef() { Decref__4CRef(this); }
 };
 extern "C" { extern char D_003D4A60[]; }

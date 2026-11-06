@@ -92,7 +92,7 @@ char D_003D3A50[0x1000] __attribute__((aligned(16)));   /* thread stack (0x3D3A5
 extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an object */
 extern VIFS D_002DEA28;
 extern GIFS D_002DEA00;
-extern FRM *D_002DEA4C;
+extern FRM *D_002DEA4C __asm__("g_pfrmOpen");
 extern CLOCK D_002DDED0;
 extern int D_002DEDBC,D_002DEB18;
 extern uint D_002BE538;

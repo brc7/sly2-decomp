@@ -9,8 +9,8 @@
  * +0x0 and a vptr at +0x18, curves with a vptr at +0x0; GetActsegGoal is ACTSEG's slot 5). The others are DRAFT names
  * after the kind their factory switches on (func_0012E238's act kind 0..9, as jt.cpp's ACT1/ACT5 views;
  * PacNewKind's curve kind 0..5, PacNewKind2's float-curve kind 0..2). Member names are drafts too (VSlot<n> where
- * nothing names the slot); signatures are those of the functions the key TUs define as members. func_0023C820 is
- * the slot of a pure virtual (libgcc's __pure_virtual in the SDK). */
+ * nothing names the slot); signatures are those of the functions the key TUs define as members. The pure
+ * slots name libgcc's __pure_virtual (0x23C820, in the SDK). */
 #ifndef SLY2_ACT_H
 #define SLY2_ACT_H
 #include "sly2/basic.h"
@@ -19,8 +19,8 @@
 struct AC
 {
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_0012B4F0");   /* slot 1 */
-    virtual void VSlot2(void *pv) __asm__("func_0023C820");   /* slot 2 (pure) */
-    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("func_0023C820");   /* slot 3 (pure) */
+    virtual void VSlot2(void *pv) __asm__("__pure_virtual");   /* slot 2 (pure) */
+    virtual void Evaluate(void *pv, void *pdv, float g, float dtScale) __asm__("__pure_virtual");   /* slot 3 (pure) */
 };
 
 /* AC0 (0x10; vtable 0x2CA9A0): constant vector curve */
@@ -72,7 +72,7 @@ struct AC4 : AC
 struct ACG
 {
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_0012CC60");   /* slot 1 */
-    virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("func_0023C820");   /* slot 2 (pure) */
+    virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("__pure_virtual");   /* slot 2 (pure) */
 };
 
 /* ACG1 (0xC; vtable 0x2CA8C0): keyed float curve */

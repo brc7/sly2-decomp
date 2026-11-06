@@ -3574,13 +3574,13 @@ void UpdateTitleScreen(OBJ *p)
 } } // namespace M_UpdateTitleScreen
 
 namespace M_StartNewGame {
-extern "C" { void *func_001291A8(void *, const void *); void Decref__4CRef(void *); }
+extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
 class CRef {
 public:
     int m_tagk;
     int m_tag;
     CRef(int tagk, int n) { m_tagk = tagk; m_tag = n; }
-    CRef(const CRef &ref) { func_001291A8(this, &ref); }
+    CRef(const CRef &ref) { __4CRefRC4CRef(this, &ref); }
     ~CRef() { Decref__4CRef(this); }
 };
 struct G;

@@ -58,7 +58,7 @@ typedef char CONTEXT_Size[sizeof(CONTEXT)==21604?1:-1];
 typedef char BANK_current_Offset[FIELD_OFFSET(BANK,current)==64856?1:-1];
 /* A save variable reference. */
 struct CRef;
-extern "C" CRef *func_001291A8(CRef *, const CRef *);
+extern "C" CRef *__4CRefRC4CRef(CRef *, const CRef *);
 extern "C" void Decref__4CRef(void *);
 struct CRef {
     int tag;
@@ -66,7 +66,7 @@ struct CRef {
     CRef(int x) { tag = 0x15; n = x; }
     CRef(bool x) { tag = 0x17; n = x; }
     CRef(float x) { tag = 0x16; f = x; }
-    CRef(const CRef &r) { func_001291A8(this, &r); }
+    CRef(const CRef &r);   /* out of line: __4CRefRC4CRef (ref.cpp) */
     ~CRef() { Decref__4CRef(this); }
 };
 typedef char CRefSize[sizeof(CRef)==8?1:-1];

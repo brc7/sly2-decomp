@@ -43,7 +43,7 @@ void Decref(CREFV *pref) __asm__("Decref__4CRef");
 void RefCmp(CREFV *pref, CREFV *aref, int cmpk) __asm__("RefCmp__FP4CRef4CMPK");
 void RefUfo(CREFV *pref, CREFV *aref, int ufok) __asm__("RefUfo__FP4CRef4UFOK");
 void RefEqualHelper(CREFV *pref, CREFV *pref1, CREFV *pref2) __asm__("RefEqualHelper__FP4CRefT0");
-CREFV *func_001291A8(CREFV *pref, CREFV *prefSrc);             /* CRef copy constructor */
+CREFV *__4CRefRC4CRef(CREFV *pref, CREFV *prefSrc);             /* CRef copy constructor */
 CREFV *CRef_ctor_CPair(CREFV *pref, PAIRV *ppair);
 CREFV *CRef_ctor_VECTOR(CREFV *pref, VECTORQ *pvec);
 CREFV *CRef_ctor_MATRIX4(CREFV *pref, MATRIX4 *pmat);
@@ -1371,7 +1371,7 @@ CRef RefOpCons__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
  * @end-sly2-annot */
 extern "C" CREFV *RefOpCar__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
 {
-    func_001291A8(pref, &aref->u.ppair->ref);
+    __4CRefRC4CRef(pref, &aref->u.ppair->ref);
     return pref;
 }
 
@@ -1494,7 +1494,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct PAIR { int a; int b; CRef ref; struct PAIR *pnext; } PAIR;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x120D78
  * Purpose: Splice builtin "nth": walk list to index a1
@@ -1517,7 +1517,7 @@ CRef *RefOpNth__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
             }
         }
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -1580,7 +1580,7 @@ CRef RefOpIsMember__FiP4CRefP6CFrame(int carg, CRef *aref, void *pctx)
  * @end-sly2-annot */
 extern "C" CREFV *RefOpList__FiP4CRefP6CFrame(CREFV *pref, int cref, CREFV *aref)
 {
-    func_001291A8(pref, aref);
+    __4CRefRC4CRef(pref, aref);
     return pref;
 }
 
@@ -2082,7 +2082,7 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 /** @sly2-annot addr=0x1220B8
  * Purpose: Splice builtin "clq": 3 floats -> tag 0x1C
  * Info: proposed name RefOpClq (T1); TU bif
@@ -2103,7 +2103,7 @@ CRef *RefOpClq__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         pg[i] = tmp.u.g;
         Decref__4CRef(&tmp);
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2116,7 +2116,7 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 /** @sly2-annot addr=0x122168
  * Purpose: Splice builtin "lm": 2 floats -> tag 0x1D
  * Info: proposed name RefOpLm (T1); TU bif
@@ -2137,7 +2137,7 @@ CRef *RefOpLm__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         pg[i] = tmp.u.g;
         Decref__4CRef(&tmp);
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2150,7 +2150,7 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 /** @sly2-annot addr=0x122218
  * Purpose: Splice builtin "smp": 3 floats -> tag 0x1E
  * Info: proposed name RefOpSmp (T1); TU bif
@@ -2171,7 +2171,7 @@ CRef *RefOpSmp__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         pg[i] = tmp.u.g;
         Decref__4CRef(&tmp);
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2187,7 +2187,7 @@ typedef struct VECTOR { float x, y, z, w; } VECTOR;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct IDX { int pad[3]; int i; struct IDX *pnext; } IDX;
 void Decref__4CRef(CRef *pref);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 CRef *SetF32__4CReff(CRef *pref, float g);
 CRef *CRef_SetVector(CRef *pref, VECTOR *pv);
 /** @sly2-annot addr=0x1222C8
@@ -2233,7 +2233,7 @@ CRef *RefOpGetElement__FiP4CRefP6CFrame(CRef *ret, int carg, CRef *aref)
             SetF32__4CReff(&ref, *pf);
         break;
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2287,7 +2287,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef float (*PFNG)(float);
 extern PFNG D_002BBB70[];
 void SetF32__4CReff(CRef *pref, float g);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1224A8
  * Purpose: Unary float op dispatcher (sqrt, sin, cos, tan, asin, acos, atan, rad-normalize by UFOK 0..7)
@@ -2307,7 +2307,7 @@ CRef *RefUfo__FP4CRef4UFOK(CRef *ret, CRef *parg, int i)
         g = (float)parg->m_tag;
     }
     SetF32__4CReff(&ref, D_002BBB70[i](g));
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2493,7 +2493,7 @@ struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x122770
  * Purpose: Splice builtin "vector-cross-product": VU outer product (cross)
@@ -2510,7 +2510,7 @@ CRef *RefOpVectorCrossProduct__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *a
     __asm__ ("vopmula.xyz ACC, %1, %2\n"
         "vopmsub.xyz %0, %2, %1" : "=j"(v) : "j"(a), "j"(b));
     CRef_ctor(&ref, v);
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2723,7 +2723,7 @@ struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x122B08
  * Purpose: Splice builtin "vector-project-normal": (a.b)b
@@ -2743,7 +2743,7 @@ CRef *RefOpVectorProjectNormal__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
         "vmaddz.x %0, %1, %0z\n"
         "vmulx.xyzw %1, %2, %0x" : "+j"(a), "=j"(t) : "j"(b));
     CRef_ctor(&ref, t);
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2755,7 +2755,7 @@ struct CRef;
 typedef int qword __attribute__((mode(TI)));
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 CRef *CRef_ctor(CRef *pref, qword v);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x122B70
  * Purpose: Splice builtin "vector-project-tangent": a-(a.b)b
@@ -2777,7 +2777,7 @@ CRef *RefOpVectorProjectTangent__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef 
         "vmulx.xyzw %0, %3, %0x\n"
         "vsub.xyzw %3, %2, %0" : "=&j"(t), "=&j"(u), "+j"(a), "+j"(b));
     CRef_ctor(&ref, b);
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -2910,7 +2910,7 @@ extern "C" CREFV *RefOpMatrixInvert__FiP4CRefP6CFrame(CREFV *pref, int cref, CRE
     CREFV ref;
     SetTag(&ref, 0x1B);
     func_0011C2F0(aref->u.pmat, ref.u.pmat);
-    func_001291A8(pref, &ref);
+    __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
 }
@@ -2927,7 +2927,7 @@ extern "C" CREFV *RefOpMatrixCalculateDmat__FiP4CRefP6CFrame(CREFV *pref, int cr
     CREFV ref;
     SetTag(&ref, 0x1B);
     CalculateDmat4(aref[0].u.pmat, aref[1].u.pmat, ref.u.pmat);
-    func_001291A8(pref, &ref);
+    __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
 }
@@ -3003,7 +3003,7 @@ extern "C" CREFV *RefOpMatrixDecomposeToTranslate__FiP4CRefP6CFrame(CREFV *pref,
 {
     CREFV ref;
     CRef_ctor_VECTOR(&ref, (VECTORQ *)aref->u.pmat->mat[3]);
-    func_001291A8(pref, &ref);
+    __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
 }
@@ -3019,7 +3019,7 @@ extern "C" CREFV *RefOpMatrixDecomposeToRotate__FiP4CRefP6CFrame(CREFV *pref, in
 {
     CREFV ref;
     CRef_ctor_MATRIX4(&ref, aref->u.pmat);
-    func_001291A8(pref, &ref);
+    __4CRefRC4CRef(pref, &ref);
     Decref(&ref);
     return pref;
 }
@@ -3432,7 +3432,7 @@ struct CRef;
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 void SetS32__4CRefi(CRef *pref, int n);
 void SetF32__4CReff(CRef *pref, float g);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1236F8
  * Purpose: Splice builtin "abs": abs int/float
@@ -3453,7 +3453,7 @@ CRef *RefOpAbs__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         if (g < 0.0f) g = -g;
         SetF32__4CReff(&ref, g);
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -3806,7 +3806,7 @@ typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 void Decref__4CRef(CRef *pref);
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void CRef_RefCoerceF32(CRef *pref, CRef *prefSrc);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 extern float D_002DDED0;
 /** @sly2-annot addr=0x123E18
  * Purpose: Splice builtin "defer-object-update": obj+0x30 = g_clock.t + dt
@@ -3826,7 +3826,7 @@ CRef *RefOpDeferObjectUpdate__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *ar
     g = refT.u.g;
     Decref__4CRef(&refT);
     *(float *)(p + 0x30) = D_002DDED0 + g;
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -4018,7 +4018,7 @@ typedef struct G { char pad[0x3F0C]; void *pv; } G;
 extern G D_003DD490;
 void *PloFindSwObject_15E958(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x124150
  * Purpose: Splice builtin "find-object": 0x15E958 find by oid (k=1 or 5), optional 3rd arg = search root
@@ -4045,7 +4045,7 @@ CRef *RefOpFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         int a = aref[0].m_tag;
         CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, k, a, b, plo ? plo->pv : pg->pv));
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -4155,7 +4155,7 @@ typedef struct G { char pad[0x3F0C]; void *pv; } G;
 extern G D_003DD490;
 void *PloFindSwObject_15E958(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1244E8
  * Purpose: Splice builtin "find-nearest-object": like find-object with k=4
@@ -4181,7 +4181,7 @@ CRef *RefOpFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *ar
         int a = aref[0].m_tag;
         CRef_SetBasic(&ref, PloFindSwObject_15E958(pg, 4, a, b, plo ? plo->pv : pg->pv));
     }
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }
@@ -4677,7 +4677,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct MATRIX4 { qword a[4]; } MATRIX4;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void ConvertAloMat4(MATRIX4 *pmat, int a, int b, int c);
-CRef *func_001291A8(CRef *pref, CRef *prefSrc);
+CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
 /** @sly2-annot addr=0x1250D8
  * Purpose: Splice builtin "convert-object-matrix": ConvertAloMat 0x1A71B0
@@ -4695,7 +4695,7 @@ CRef *RefOpConvertObjectMatrix__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *
     pmat = (MATRIX4 *)ref.m_tag;
     ConvertAloMat4(&mat, aref[0].m_tag, aref[1].m_tag, aref[2].m_tag);
     *pmat = mat;
-    func_001291A8(ret, &ref);
+    __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;
 }

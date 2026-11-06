@@ -2702,7 +2702,7 @@ void *PvAllocSwImpl(SWALLOCC *pswalloc) __asm__("func_001AE1D0");
 void *PvAllocSwClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE2A0");
 void *PvAllocStackClearImpl(SWALLOCC *pswalloc) __asm__("func_001AE378");
 void *PvAllocStackImpl(SWALLOCC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
-extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb); }
+extern "C" { void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui"); }
 struct UVF
 {
     float u, v;
@@ -4241,7 +4241,7 @@ extern "C" { extern GAME D_003DD490; }
 extern "C" { extern int D_002DEB70[2]; }
 extern "C" { 
  }
-extern "C" { extern QW*D_002DEA4C; }
+extern "C" { extern QW*D_002DEA4C __asm__("g_pfrmOpen"); }
 extern "C" { extern QW D_002DEA50[],D_002DF940[],D_002DFA80[]; }
 extern "C" void AddFramePatch(int,GIFS*,COMMAND**);
 extern "C" void func_0016D6C8(GIFS*,uint,COMMAND**);

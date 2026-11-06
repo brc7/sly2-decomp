@@ -865,14 +865,14 @@ void func_0013D1A8(CID37V *p) {
 }
 
 /* The Splice value of a save variable (the per-function files' own CRef: inline two-word constructor, out-of-line
-   copy (func_001291A8) and Decref; sly2/cref.h's has no inline (tag, value) constructor). */
-extern "C" { void *func_001291A8(void *, const void *); void Decref__4CRef(void *); }
+   copy (__4CRefRC4CRef) and Decref; sly2/cref.h's has no inline (tag, value) constructor). */
+extern "C" { void *__4CRefRC4CRef(void *, const void *); void Decref__4CRef(void *); }
 class CRef {
 public:
     int m_tagk;
     int m_tag;
     CRef(int tagk, int n) { m_tagk = tagk; m_tag = n; }
-    CRef(const CRef &ref) { func_001291A8(this, &ref); }
+    CRef(const CRef &ref);   /* out of line: __4CRefRC4CRef (ref.cpp) */
     ~CRef() { Decref__4CRef(this); }
 };
 struct CREFC { int m_tagk; int m_n; };

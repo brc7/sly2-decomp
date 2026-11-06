@@ -703,7 +703,7 @@ struct CRef;
 extern "C" void Decref__4CRef(CRef *);
 struct CRef {
     int m_tagk; union { int n; float g; void *pv; } u;
-    CRef(const CRef &) __asm__("func_001291A8");
+    CRef(const CRef &) __asm__("__4CRefRC4CRef");
     ~CRef() { Decref__4CRef(this); }
 };
 struct PMF { short delta; short pad; int (*pfn)(void *); };
@@ -1356,7 +1356,7 @@ struct REQUEST {uint bytes,alignment;};
 struct X;
 extern "C" void func_00258248(X *px);
 struct X { uint x0; uint x4; int x8; char pad[0x110 - 0xC]; X() { x8 = 2; func_00258248(this); } };
-struct Y;extern "C" void func_00184950(Y*,int);
+struct Y;extern "C" void func_00184950(Y*,int) __asm__("_$_10CStreamBis");
 struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("func_001848A8");~Y(){func_00184950(this,2);}};
 struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
 extern "C" {
@@ -2088,13 +2088,13 @@ namespace M_func_001ACFE0 {
 // ahead of the a2 setup (the scheduler boosts insns that set a register exactly once in the function).
 class CRef;
 extern "C" void Decref__4CRef(CRef *pref);                       // ~CRef
-extern "C" CRef *func_001291A8(CRef *, const CRef *);            // CRef copy ctor, returns this
+extern "C" CRef *__4CRefRC4CRef(CRef *, const CRef *);            // CRef copy ctor, returns this
 class CRef {
 public:
     int m_tagk;
     int m_tag;
     CRef(bool f) { m_tagk = 0x17; m_tag = f; }
-    CRef(const CRef &ref) { func_001291A8(this, &ref); }
+    CRef(const CRef &ref) { __4CRefRC4CRef(this, &ref); }
     ~CRef() { Decref__4CRef(this); }
 };
 class O;
@@ -2358,7 +2358,7 @@ extern SAVE D_002E65E0;
 namespace M_func_001AD538 {
 struct CRef;
 extern "C" void Decref__4CRef(CRef *);
-struct CRef { int m_tagk; float m_tag; CRef(const CRef &) __asm__("func_001291A8"); ~CRef() { Decref__4CRef(this); } };
+struct CRef { int m_tagk; float m_tag; CRef(const CRef &) __asm__("__4CRefRC4CRef"); ~CRef() { Decref__4CRef(this); } };
 struct B { char data[0x5464]; };
 struct G { char pad[0x24]; struct B a[3]; char pad2[0xFD50 - 0x24 - 3 * 0x5464]; struct B *xFD50; };
 struct GD { char pad[0x3B1C]; int x3B1C; };

@@ -206,7 +206,7 @@ void func_001F55C8(SO *pso);
 void func_001F8668(SO *pso, int n);
 void func_001F4E28(SO *pso);
 int func_001F8240(LO *plo);
-void *func_001AE4F8(int cb);
+void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void func_0020A5F8(void *ptargetrec, LO *plo);
 STEPREC *func_001F8300(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");

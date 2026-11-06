@@ -154,11 +154,11 @@ extern "C" void func_00161458()
 }
 
 namespace M_UpdateGameTimers {
-extern "C" {void*func_001291A8(void*,const void*);void Decref__4CRef(void*);}
+extern "C" {void*__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
 struct CRefData{int tag;union{int n;float g;};};
 struct CRef:CRefData{
  CRef(float x){tag=0x16;g=x;}
- CRef(const CRef&r){func_001291A8(this,&r);}
+ CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT;
@@ -178,7 +178,7 @@ static inline float GetFloat(OPT*p,void*context){const CRef&r=RefGetGlobalSaveVa
 static inline void SetPv(OPT*p,const CRef&r,void*context){CRef arg(r);const CRef&ret=RefSetGlobalSaveVar(p,arg,context);}
 static inline void SetFloat(OPT*p,float x,void*context){CRef r(x);SetPv(p,r,context);}
 struct CRefCopy:CRefData{
- CRefCopy(const CRefData&r){func_001291A8(this,&r);}
+ CRefCopy(const CRefData&r){__4CRefRC4CRef(this,&r);}
  ~CRefCopy(){Decref__4CRef(this);}
 };
 static inline void SetPrimaryFloat(OPT*p,float value,void*context){
@@ -314,13 +314,13 @@ int func_00161798(void)
 } } // namespace M_func_00161798
 
 namespace M_func_001617E0 {
-extern "C" {void*func_001291A8(void*,const void*);void Decref__4CRef(void*);}
+extern "C" {void*__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
 class CRef {
 public:
     int m_tagk;
     int m_tag;
     CRef(int n) { m_tagk = 0x15; m_tag = n; }
-    CRef(const CRef &ref) { func_001291A8(this,&ref); }
+    CRef(const CRef &ref) { __4CRefRC4CRef(this,&ref); }
     ~CRef() { Decref__4CRef(this); }
 
 };
@@ -515,7 +515,7 @@ extern BANK D_002E65E0;
  void BeginTask(P*);
  void AnnounceTaskJob(P*);
  void WipeToWorldWarp(G*,CHECK*,int,int,int,int);
- CRef*func_001291A8(CRef*,const CRef*);
+ CRef*__4CRefRC4CRef(CRef*,const CRef*);
  void Decref__4CRef(CRef*);
 }
 struct LEASE{LEASE(){STACKSCOPE_ctor(this);}void Release(){STACKSCOPE_ctor_1AE4A0(this,2);}};
@@ -523,7 +523,7 @@ struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
  OVERRIDE(P*p,int x,int y):context(0),object(p){if(object){oldX=object->x;object->x=x;oldY=object->y;object->y=y;}}
  ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}
 };
-struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){Decref__4CRef(this);}};
+struct CRef{int kind;union{int n;float g;};CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef RefGetGlobalSaveVar(void*,void*);
 static inline float GetFloat(void*p,void*context){const CRef&r=RefGetGlobalSaveVar(p,context);return r.g;}
 static inline int Same(CHECK*a,CHECK*b){
@@ -1718,14 +1718,14 @@ int func_00163430(struct S *p)
 } } // namespace M_func_00163430
 
 namespace M_UpdateJobSaveVars {
-extern "C" {void*func_001291A8(void*,const void*);void Decref__4CRef(void*);}
+extern "C" {void*__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
 struct CRef{
  int m_tagk;
  union{int m_tag;float m_g;};
  CRef(int n){m_tagk=0x15;m_tag=n;}
  CRef(bool f){m_tagk=0x17;m_tag=f;}
  CRef(float g){m_tagk=0x16;m_g=g;}
- CRef(const CRef&r){func_001291A8(this,&r);}
+ CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
@@ -2494,13 +2494,13 @@ void RestoreTaskState(struct X *p)
 } } // namespace M_RestoreTaskState
 
 namespace M_UpdateTaskSaveVars {
-extern "C" {void *func_001291A8(void*,const void*);void Decref__4CRef(void*);}
+extern "C" {void *__4CRefRC4CRef(void*,const void*);void Decref__4CRef(void*);}
 struct CRef {
  int tag;
  union {int n;float g;};
  CRef(int x){tag=0x15;n=x;}
  CRef(bool x){tag=0x17;n=x;}
- CRef(const CRef&r){func_001291A8(this,&r);}
+ CRef(const CRef&r){__4CRefRC4CRef(this,&r);}
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
@@ -3038,7 +3038,7 @@ int NEpisodePercentComplete(void*);
 int FTaskLive(P*);
 void OnJobTaskComplete(void*,P*);
 void func_001ABD98(void*,int);
-CRef*func_001291A8(CRef*,const CRef*);
+CRef*__4CRefRC4CRef(CRef*,const CRef*);
 void Decref__4CRef(CRef*);
 }
 static inline void*Allocate(int n){return func_001AE378(REQUEST(n,16));}
@@ -3046,7 +3046,7 @@ struct OVERRIDE{CONTEXT*context;P*object;int oldX,oldY;
     OVERRIDE(P*p,int x,int y):context(0),object(p){if(object){oldX=object->x;object->x=x;oldY=object->y;object->y=y;}}
     ~OVERRIDE(){if(context){context->x=oldX;context->y=oldY;}if(object){object->x=oldX;object->y=oldY;}}
 };
-struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){func_001291A8(this,&r);}~CRef(){Decref__4CRef(this);}};
+struct CRef{int kind,value;CRef(int v){kind=0x15;value=v;}CRef(const CRef&r){__4CRefRC4CRef(this,&r);}~CRef(){Decref__4CRef(this);}};
 extern "C" CRef RefSetGlobalSaveVar(void*,const CRef&,void*);
 static inline void SetPv(void*object,const CRef&ref,void*){CRef arg(ref);const CRef&result=RefSetGlobalSaveVar(object,arg,D_003D4A60);}
 static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A60);}

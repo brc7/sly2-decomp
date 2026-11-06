@@ -786,7 +786,7 @@ void SetPhase__F5PHASE(int);
 void func_00258248(KEY *);
 STREAM *func_001848A8(STREAM *,int,void *,int);
 int func_00184D60(STREAM *,KEY *);
-void func_00184950(STREAM *,int);
+void func_00184950(STREAM *,int) __asm__("_$_10CStreamBis");
 void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *);
 void CStreamBis_Refill(STREAM *);
 void DeleteSw(SW *);

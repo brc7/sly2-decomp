@@ -496,13 +496,13 @@ struct STEPPLAYER : public STEP
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreIntersection__10STEPPLAYERP2SO");   /* slot 61 */
     virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("func_00140DB0");   /* slot 68 */
     virtual void VUnk71() __asm__("func_001A28B0");   /* slot 72 */
-    virtual void VUnk87(int n) __asm__("func_0023C820");
-    virtual int VUnk88() __asm__("func_0023C820");
-    virtual void VUnk89() __asm__("func_0023C820");
-    virtual void VUnk90() __asm__("func_0023C820");
-    virtual int VUnk91() __asm__("func_0023C820");
+    virtual void VUnk87(int n) __asm__("__pure_virtual");
+    virtual int VUnk88() __asm__("__pure_virtual");
+    virtual void VUnk89() __asm__("__pure_virtual");
+    virtual void VUnk90() __asm__("__pure_virtual");
+    virtual int VUnk91() __asm__("__pure_virtual");
       virtual void OnHeroDied() __asm__("OnStepplayerHeroDied");
-    virtual int VUnk93() __asm__("func_0023C820");
+    virtual int VUnk93() __asm__("__pure_virtual");
       virtual void SetPlayerInteractMode(int nKind, LO *ploTarget, int nMode, LO *ploFight) __asm__("SetStepplayerPlayerInteractMode");
       virtual void GetStunHold(STUNHOLD *phold, float dt) __asm__("GetStepplayerStunHold");
       virtual void GetCmFocusPos(VECTOR4 *ppos) __asm__("GetStepplayerCmFocusPos");
@@ -523,7 +523,7 @@ struct STEPPLAYER : public STEP
     virtual int VUnk85(ZPR *pzpr) __asm__("func_00144418");   /* override declared in SetJtJts__FP2JT3JTS4JTBS.cpp */
     virtual void VSlot101() __asm__("UpdateStepplayerGadget");   /* slot 101: not yet identified */
     virtual void VSlot102() __asm__("StopStepplayerGadget");   /* slot 102: not yet identified */
-    virtual void VSlot103() __asm__("func_0023C820");   /* slot 103: not yet identified */
+    virtual void VSlot103() __asm__("__pure_virtual");   /* slot 103: not yet identified */
     virtual void VSlot104() __asm__("func_00141E30");   /* slot 104: not yet identified */
     virtual void VSlot105() __asm__("func_00141E70");   /* slot 105: not yet identified */
 };

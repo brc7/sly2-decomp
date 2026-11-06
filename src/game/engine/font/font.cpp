@@ -146,7 +146,7 @@ CFontBrx D_002DE770[2];
 CFontBrx *D_002DE9F0[4];
 extern const unsigned char D_002AA6A1[];
 extern GIFS D_002DEA00;
-extern FRM *D_002DEA4C;
+extern FRM *D_002DEA4C __asm__("g_pfrmOpen");
 void func_001703F8(GSB *pgsb, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void BuildBmpGifs(BMP *pbmp, int n, GIFS *pgifs);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");

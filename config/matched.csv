@@ -1266,7 +1266,7 @@ func_00128F50,0x128F50,8,match,src/game/splice/pair.cpp
 CProc_CloneTo,0x128F70,56,match,src/game/splice/proc.cpp
 StaticInit_proc,0x129050,77,match,src/game/splice/proc.cpp
 func_00129188,0x129188,8,match,src/game/splice/proc.cpp
-func_001291A8,0x1291A8,14,match,src/game/splice/ref.cpp
+__4CRefRC4CRef,0x1291A8,14,match,src/game/splice/ref.cpp
 CRef_ctor_VECTOR,0x1291E0,26,match,src/game/splice/ref.cpp
 CRef_ctor,0x129248,25,match,src/game/splice/ref.cpp
 CRef_ctor_MATRIX4,0x1292B0,32,match,src/game/splice/ref.cpp

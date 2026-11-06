@@ -53,6 +53,6 @@ public:
     void ReadGeom(GEOM *pgeom);    /* 0x117FD0 */
 };
 
-extern "C" void CopyAb(void *pvDst, void *pvSrc, uint cb);
+extern "C" void CopyAb(void *pvDst, void *pvSrc, uint cb) __asm__("CopyAb__FPvT0Ui");   /* memory.cpp's C++ CopyAb */
 extern "C" void *memcpy(void *dst, const void *src, uint cb);
 #endif

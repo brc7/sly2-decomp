@@ -93,7 +93,7 @@ void InitRobottank(struct S *p) {
 namespace M_CloneRobottank {
 extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
 struct OBJ;struct X;extern "C" void func_001D4D30(X*,OBJ*);
-extern "C" void *func_001AE4F8(int);
+extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
 struct A { int x0; int x4; A() {} };
 struct B : A {
     int x8;
@@ -2419,7 +2419,7 @@ extern "C" { extern char D_002C94A0[] __asm__("_vt$3JSG"); }
 struct OBJ;
 struct X;
 extern "C" void func_001D4D30(X *,OBJ *);
-extern "C" void *func_001AE4F8(int);
+extern "C" void *func_001AE4F8(int) __asm__("__builtin_new");
 struct A { int x0; };
 struct B : A {
     int x4;
