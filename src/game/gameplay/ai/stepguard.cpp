@@ -1704,24 +1704,24 @@ extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, in
 // 0x208700 AddStepguardPreferClass
 namespace M_func_00208700 { extern "C" {
 struct S;
-struct S { char pad[0x394]; unsigned int c; int a[3]; };
+struct S { char pad[0x394]; unsigned int classCount; int classes[3]; };
 // 0x208700: Adds a class to the preferred-class list (at most 3).
-void AddStepguardPreferClass(struct S *guard, int n) { unsigned int c = guard->c; if (c < 3) { int *pn = &guard->a[c]; guard->c = c + 1; *pn = n; } }
+void AddStepguardPreferClass(struct S *guard, int cid) { unsigned int c = guard->classCount; if (c < 3) { int *pn = &guard->classes[c]; guard->classCount = c + 1; *pn = cid; } }
 } } // namespace M_func_00208700
 
 // 0x208728 RemoveStepguardPreferClass
 namespace M_func_00208728 { extern "C" {
 struct S;
-struct S { char pad[0x394]; int n; int a[1]; };
+struct S { char pad[0x394]; int classCount; int classes[1]; };
 void *memmove(void *d, void *s, int n);
 // 0x208728: Removes a class from the preferred-class list.
-void RemoveStepguardPreferClass(struct S *guard, int x)
+void RemoveStepguardPreferClass(struct S *guard, int cid)
 {
     int i;
-    for (i = 0; i < guard->n; i++) {
-        if (guard->a[i] == x) {
-            memmove(guard->a + i, guard->a + i + 1, (guard->n - i) * 4 - 4);
-            guard->n--;
+    for (i = 0; i < guard->classCount; i++) {
+        if (guard->classes[i] == cid) {
+            memmove(guard->classes + i, guard->classes + i + 1, (guard->classCount - i) * 4 - 4);
+            guard->classCount--;
         }
     }
 }
@@ -1742,14 +1742,14 @@ extern "C" void ClearStepguardGeneratedTargets(STEPGUARD *guard)
 // 0x2087E8 IsStepguardPreferClass
 namespace M_func_002087E8 { extern "C" {
 struct S;
-struct S { char pad[0x394]; int c; int a[1]; };
+struct S { char pad[0x394]; int classCount; int classes[1]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 // 0x2087E8: True if the object derives from a preferred class.
-int IsStepguardPreferClass(struct S *guard, void *o)
+int IsStepguardPreferClass(struct S *guard, void *object)
 {
     int i;
-    for (i = 0; i < guard->c; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(o, guard->a[i])) return 1;
+    for (i = 0; i < guard->classCount; i++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
@@ -1793,24 +1793,24 @@ extern "C" void ClearStepguardTargetLists(STEPGUARD *guard)
 // 0x208920 AddStepguardIgnoreClass
 namespace M_func_00208920 { extern "C" {
 struct S;
-struct S { char pad[0x3A8]; unsigned int c; int a[5]; };
+struct S { char pad[0x3A8]; unsigned int classCount; int classes[5]; };
 // 0x208920: Adds a class to the ignored-class list (at most 5).
-void AddStepguardIgnoreClass(struct S *guard, int n) { if (guard->c < 5) guard->a[guard->c++] = n; }
+void AddStepguardIgnoreClass(struct S *guard, int cid) { if (guard->classCount < 5) guard->classes[guard->classCount++] = cid; }
 } } // namespace M_func_00208920
 
 // 0x208948 RemoveStepguardIgnoreClass
 namespace M_func_00208948 { extern "C" {
 struct S;
-struct S { char pad[0x3A8]; int n; int a[1]; };
+struct S { char pad[0x3A8]; int classCount; int classes[1]; };
 void *memmove(void *d, void *s, int n);
 // 0x208948: Removes a class from the ignored-class list.
-void RemoveStepguardIgnoreClass(struct S *guard, int x)
+void RemoveStepguardIgnoreClass(struct S *guard, int cid)
 {
     int i;
-    for (i = 0; i < guard->n; i++) {
-        if (guard->a[i] == x) {
-            memmove(guard->a + i, guard->a + i + 1, (guard->n - i) * 4 - 4);
-            guard->n--;
+    for (i = 0; i < guard->classCount; i++) {
+        if (guard->classes[i] == cid) {
+            memmove(guard->classes + i, guard->classes + i + 1, (guard->classCount - i) * 4 - 4);
+            guard->classCount--;
         }
     }
 }
@@ -1826,14 +1826,14 @@ extern "C" void ClearStepguardIgnoreClasses(STEPGUARD *guard)
 // 0x2089F0 IsStepguardIgnoreClass
 namespace M_func_002089F0 { extern "C" {
 struct S;
-struct S { char pad[0x3A8]; int c; int a[1]; };
+struct S { char pad[0x3A8]; int classCount; int classes[1]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 // 0x2089F0: True if the object derives from an ignored class.
-int IsStepguardIgnoreClass(struct S *guard, void *o)
+int IsStepguardIgnoreClass(struct S *guard, void *object)
 {
     int i;
-    for (i = 0; i < guard->c; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(o, guard->a[i])) return 1;
+    for (i = 0; i < guard->classCount; i++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
@@ -1842,24 +1842,24 @@ int IsStepguardIgnoreClass(struct S *guard, void *o)
 // 0x208A68 AddStepguardForceClass
 namespace M_func_00208A68 { extern "C" {
 struct S;
-struct S { char pad[0x3C0]; unsigned int c; int a[2]; };
+struct S { char pad[0x3C0]; unsigned int classCount; int classes[2]; };
 // 0x208A68: Adds a class to the forced-class list (at most 2).
-void AddStepguardForceClass(struct S *guard, int n) { if (guard->c < 2) guard->a[guard->c++] = n; }
+void AddStepguardForceClass(struct S *guard, int cid) { if (guard->classCount < 2) guard->classes[guard->classCount++] = cid; }
 } } // namespace M_func_00208A68
 
 // 0x208A90 RemoveStepguardForceClass
 namespace M_func_00208A90 { extern "C" {
 struct S;
-struct S { char pad[0x3C0]; int n; int a[1]; };
+struct S { char pad[0x3C0]; int classCount; int classes[1]; };
 void *memmove(void *d, void *s, int n);
 // 0x208A90: Removes a class from the forced-class list.
-void RemoveStepguardForceClass(struct S *guard, int x)
+void RemoveStepguardForceClass(struct S *guard, int cid)
 {
     int i;
-    for (i = 0; i < guard->n; i++) {
-        if (guard->a[i] == x) {
-            memmove(guard->a + i, guard->a + i + 1, (guard->n - i) * 4 - 4);
-            guard->n--;
+    for (i = 0; i < guard->classCount; i++) {
+        if (guard->classes[i] == cid) {
+            memmove(guard->classes + i, guard->classes + i + 1, (guard->classCount - i) * 4 - 4);
+            guard->classCount--;
         }
     }
 }
@@ -1875,14 +1875,14 @@ extern "C" void ClearStepguardForceClasses(STEPGUARD *guard)
 // 0x208B38 IsStepguardForceClass
 namespace M_func_00208B38 { extern "C" {
 struct S;
-struct S { char pad[0x3C0]; int c; int a[1]; };
+struct S { char pad[0x3C0]; int classCount; int classes[1]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
 // 0x208B38: True if the object derives from a forced class.
-int IsStepguardForceClass(struct S *guard, void *o)
+int IsStepguardForceClass(struct S *guard, void *object)
 {
     int i;
-    for (i = 0; i < guard->c; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(o, guard->a[i])) return 1;
+    for (i = 0; i < guard->classCount; i++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
