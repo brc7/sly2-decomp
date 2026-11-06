@@ -369,7 +369,7 @@ extern "C" void AddBtnEventListener(BTN *btn, int d, int e)
     func_00161F10(D_002DEB30, btn->ataskstate, 4, &btn->ctaskstate, d, e);
 }
 
-// cid 0x53 vtable slot 7: InitSo, InitBtn(+0x150), flag.
+// BUTTON (cid 0x53) vtable slot 7: InitSo, InitBtn(+0x150), flag.
 extern "C" void InitButton(BUTTONV *button)
 {
     unsigned int grf;
@@ -628,7 +628,7 @@ extern "C" void AddButtonEventListener(BUTTONV *button, int d, int e)
     AddBtnEventListener(&button->btn, d, e);
 }
 
-// cid 0x53 vtable slot 12: base RemoveSoHierarchy; if pressed, reset buttons to 0. (inferred)
+// BUTTON (cid 0x53) vtable slot 12: base RemoveSoHierarchy; if pressed, reset buttons to 0. (inferred)
 extern "C" void RemoveButtonHierarchy(BUTTONV *button)
 {
     RemoveSoHierarchy(button);
@@ -636,7 +636,7 @@ extern "C" void RemoveButtonHierarchy(BUTTONV *button)
         SetButtonButtons(button, 0);
 }
 
-// cid 0x18/0x19 vtable slot 7: base init, InitBtn. (inferred)
+// VOLBTN (cid 0x18)/0x19 vtable slot 7: base init, InitBtn. (inferred)
 extern "C" void InitVolbtn(VOLBTNV *volumeButton)
 {
     unsigned int grf;

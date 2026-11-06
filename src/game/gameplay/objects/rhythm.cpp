@@ -153,7 +153,7 @@ extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
     ApplyDancerAseg(dancer, 0, 0);
 }
 
-// cid 0x44 vtable slot 15: base 0x203A38, BindDancerMoves (resolve aseg oids), vtable slot 79(0). (inferred)
+// DANCER (cid 0x44) vtable slot 15: base 0x203A38, BindDancerMoves (resolve aseg oids), vtable slot 79(0). (inferred)
 void DANCER::VUnk14()
 {
     DANCERV *o = (DANCERV *)this;

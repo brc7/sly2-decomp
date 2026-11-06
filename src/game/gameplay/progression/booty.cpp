@@ -176,7 +176,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);    /* FIsBasicDerivedFrom__FP5B
 void LaunchMatch(MATCH *pmatch);                    /* LaunchMatch__FP5MATCH */
 int IlevelCur();                                    /* IlevelCur__Fv */
 
-// cid 0x67 vtable slot 7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
+// BOOTY (cid 0x67) vtable slot 7: InitSo, default scale vector (+0x170), state -1, set a flag bit. (inferred)
 extern "C" void InitBooty(BOOTYV *booty) {
     int x;
     InitSo(booty);
@@ -186,7 +186,7 @@ extern "C" void InitBooty(BOOTYV *booty) {
 }
 
 static inline REQ *SetReq(REQ *pr, int cb, int cbAlign) { pr->cb = cb; pr->cbAlign = cbAlign; return pr; }
-// cid 0x67 vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to
+// BOOTY (cid 0x67) vt14: LoadSoFromBrx into a stack-allocated entry table (0x580), then copy the used entries (0x2C each) to
 // SW heap. (inferred)
 extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
     STACKSCOPEC ctx;
@@ -199,13 +199,13 @@ extern "C" void LoadBootyFromBrx(BOOTYV *booty, void *a) {
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }
 
-// cid 0x67 vtable slot 15: PostSoLoad then SetBootyState(0). (inferred)
+// BOOTY (cid 0x67) vtable slot 15: PostSoLoad then SetBootyState(0). (inferred)
 void BOOTY::VUnk14() { BOOTYV *booty = (BOOTYV *)this;
     PostSoLoad(booty);
     SetBootyState(booty, 0);
 }
 
-// cid 0x67 vtable slot 27: SetBootyState(0). (inferred)
+// BOOTY (cid 0x67) vtable slot 27: SetBootyState(0). (inferred)
 extern "C" void ClearBootyState(BOOTYV *booty) {
     SetBootyState(booty, 0);
 }
@@ -297,20 +297,20 @@ extern "C" void HandleBootyMessage(BOOTYV *booty, int msg, MATCH *a) {
 
 struct XPO { BASIC *pbasic; };
 struct XPM { char pad[0x14]; XPO *pa; };
-// cid 0x67 vtable slot 61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
+// BOOTY (cid 0x67) vtable slot 61: while dropped (5) ignore STEPPLAYERs (3), else base. (inferred)
 extern "C" int FIgnoreBootyIntersection(BOOTYV *booty, XPM *pm) {
     if (booty->st == 5 && FIsBasicDerivedFrom(pm->pa->pbasic, CID_34)) return 3;
     return FIgnoreSoIntersection(booty, pm);
 }
 
 struct XPE { int f0; int f4; BASIC *pbasic; char pad[0x34]; };
-// cid 0x67 vtable slot 55: base, and when dropped and touched by a non-player post callback D_002A4B58. (inferred)
+// BOOTY (cid 0x67) vtable slot 55: base, and when dropped and touched by a non-player post callback D_002A4B58. (inferred)
 extern "C" void AdjustBootyNewXp(BOOTYV *booty, XPE *ae, int i) {
     func_001F4FB0(booty, ae, i);
     if (booty->st == 5) { XPE *pe = &ae[1 - i]; if (!FIsBasicDerivedFrom(pe->pbasic, CID_34)) EnsureSwCallback(&g_sw, booty, D_002A4B58.l, 0); }
 }
 
-// cid 0x67 vtable slot 75: if zap qualifies and dropped, reset to state 0 and return 1. (inferred)
+// BOOTY (cid 0x67) vtable slot 75: if zap qualifies and dropped, reset to state 0 and return 1. (inferred)
 extern "C" int TakeBootyDamage(BOOTYV *booty, void *pv) {
     if ((func_001F7588(booty, pv) == 0) || (booty->st != 5)) {
         return 0;

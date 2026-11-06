@@ -118,7 +118,7 @@ extern qword D_002BE7D0;
 extern struct K D_002BE7E0;
 struct S { char pad[0x40]; int fl40; char pad2[0x13C]; int n180; char pad3[0x1C]; qword q1A0; struct K k1B0; };
 void InitSo(struct S *p);
-// CID 0x47 vtable slot 7: InitSo, max health x180=10, two default vectors, grf. (inferred)
+// HACK (cid 0x47) vtable slot 7: InitSo, max health x180=10, two default vectors, grf. (inferred)
 void InitHack(struct S *p) {
     int v;
     InitSo(p);
@@ -683,7 +683,7 @@ void UpdateHackshipHealthBar(struct S *p)
 namespace M_func_00180188 { extern "C" {
 struct S { char pad[0x188]; int n; };
 void InitHack(struct S *p);
-// CID 0x4A vtable slot 7: InitCid47, field = 10. (inferred)
+// HACKBULLET (cid 0x4A) vtable slot 7: InitCid47, field = 10. (inferred)
 } } // namespace M_func_00180188
 void HACKBULLET::Init()
 {
@@ -802,7 +802,7 @@ void InitHack(struct S *p);
 void SetHackenemyScale(struct S *p, float g);
 void SetHackenemyRange(struct S *p, float g);
 void InitHackAnimEntries(struct S *p, int n, void *pv);
-// CID 0x49 vtable slot 7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries. (inferred)
+// HACKENEMY (cid 0x49) vtable slot 7: InitCid47, defaults (range 250, limits -/+FLT_MAX, scales), entries. (inferred)
 void InitHackenemy(struct S *p)
 {
     InitHack(p);
@@ -1260,7 +1260,7 @@ extern "C" void SetHackenemyRange(HACKENEMYV *enemy, float g)
     enemy->sRange = g * D_002BE87C;
 }
 
-// CID 0x4B vtable slot 7: InitCid47 + 3 entries. (inferred)
+// HACKLOCK (cid 0x4B) vtable slot 7: InitCid47 + 3 entries. (inferred)
 void HACKLOCK::Init()
 {
     HACKLOCKV *lock = (HACKLOCKV *)this;
@@ -1432,7 +1432,7 @@ namespace M_InitHackwall { extern "C" {
 struct S { char pad[0x40]; int fl; char p2[0x248]; char dl[0xC]; };
 void InitHack(struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
-// CID 0x4C vtable slot 7: InitCid47, grf. (inferred)
+// HACKWALL (cid 0x4C) vtable slot 7: InitCid47, grf. (inferred)
 } } // namespace M_InitHackwall
 void HACKWALL::Init()
 {
