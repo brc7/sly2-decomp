@@ -14,6 +14,8 @@
 
 typedef void (BASIC::*PMF)();
 
+/* SETTER: how an option is written: a byte offset into the object, a pointer to member function or a Splice thunk
+   (EOPID::grfeopid says which). */
 union SETTER
 {
       int ibSet;
@@ -22,6 +24,7 @@ union SETTER
       void (BASIC::*pmfSetN)(int);
 };
 
+/* EOPID: one object option: how scripts and the level loader read and write a named property of an object. */
 struct EOPID
 {
       OTYP otyp;                /* +0x00 0 bool, 1 float, 2 vector, 4 matrix, 9 clq, 10 lm, 11 smp, 5..8/13..17/19/20/23 int;

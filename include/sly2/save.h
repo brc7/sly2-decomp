@@ -9,18 +9,20 @@
 #include "sly2/basic.h"
 
 /* per-character block, 0x18 bytes: sly at +0x50, bentley at +0x68, murray at +0x80 */
+/* GSCHAR: one character's saved state: health, gadget power and equipped gadgets. */
 struct GSCHAR
 {
       int hpCur;            /* +0x0 [R] current hp (JT jthurt.php points here; sly.hpCur 37 -> 40 between S10 and S11) */
       int mpCur;            /* +0x4 [R] current gadget power (STEPPLAYER::pmpCur points here) */
-      int oidBooty;         /* +0x8 [S] */
+      int oidBooty;         /* +0x8 [S] booty (treasure) object (inferred from the name) */
       int apukCur[3];       /* +0xC [S] equipped power-ups (gadget ids) per slot */
 };
 
+/* GS: the whole save game (the save-variable store's backing memory), written to the memory card. */
 struct GS
 {
-      int episodeCurrent;   /* +0x00 [S] */
-      int episodeBest;      /* +0x04 [S] */
+      int episodeCurrent;   /* +0x00 [S] current episode */
+      int episodeBest;      /* +0x04 [S] furthest episode reached */
       int widCurrent;       /* +0x08 [S] world id */
       OID oidPoCurrent;     /* +0x0C [R] oid of the current playable character (== SW::ppoHero's oid in 71/73 states; keeps
                                the last character while the char-select PO is current) */
@@ -28,17 +30,17 @@ struct GS
 
       float suck_history_mission[3];   /* +0x14 suck_history.mission_0..2 [S] */
       int lang;             /* +0x20 flags.lang [S] */
-      int fNoVibration;     /* +0x24 flags.* [S] */
-      int nMixerMode;       /* +0x28 */
-      int fAutosaveWarned;  /* +0x2C */
-      int fReverseLookAround;  /* +0x30 */
-      int fReverseAim;      /* +0x34 */
-      int fNoShowBudDistractWarning;  /* +0x38 */
-      float uMusicVolume;   /* +0x3C */
-      float uEffectsVolume; /* +0x40 */
-      int fUseHeadset;      /* +0x44 */
-      float dxScreenCenter; /* +0x48 */
-      float dyScreenCenter; /* +0x4C */
+      int fNoVibration;     /* +0x24 flags.* [S] vibration off; the settings below are the options menu's */
+      int nMixerMode;       /* +0x28 sound output mode */
+      int fAutosaveWarned;  /* +0x2C the autosave warning was shown */
+      int fReverseLookAround;  /* +0x30 invert the look-around camera */
+      int fReverseAim;      /* +0x34 invert aiming */
+      int fNoShowBudDistractWarning;  /* +0x38 do not show the partner-distraction warning (inferred) */
+      float uMusicVolume;   /* +0x3C music volume, 0..1 */
+      float uEffectsVolume; /* +0x40 effects volume, 0..1 */
+      int fUseHeadset;      /* +0x44 use the USB headset */
+      float dxScreenCenter; /* +0x48 screen position offset x */
+      float dyScreenCenter; /* +0x4C screen position offset y */
       GSCHAR sly;           /* +0x50 [R] */
       GSCHAR bentley;       /* +0x68 [S] */
       GSCHAR murray;        /* +0x80 [S] */

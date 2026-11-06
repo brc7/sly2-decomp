@@ -67,8 +67,8 @@ template <class K, class V> class CHash
 public:
     int m_c;                  /* +0x00 bucket count (0 until the first Insert) */
     void **m_ap;              /* +0x04 buckets */
-    int m_count;              /* +0x08 */
-    void *m_palloc;           /* +0x0C */
+    int m_count;              /* +0x08 number of entries */
+    void *m_palloc;           /* +0x0C allocator of the entries */
 
     void Clear();
     void Resize(int c);       /* rehash into c buckets (only the <char *, int> specialization is defined) */
@@ -81,13 +81,14 @@ class CDynArrayVBase
 public:
     void *m_powner;           /* +0x00 */
     CDynArrayVBase *m_pnext;  /* +0x04 */
-    int m_unk8;               /* +0x08 */
+    int m_unk8;               /* +0x08 unknown */
                               /* +0x0C vptr */
     virtual void Init(void *powner) = 0;
     virtual void Clear() = 0;
     virtual void Load(CBinaryInputStream *pbis) = 0;
 };
 
+/* A listener on a CDynArrayV: told about every element added (OnAdd) and when the array is cleared. */
 template <class T> class CArrayListener
 {
 public:
@@ -103,7 +104,7 @@ template <class T> class CDynArrayV : public CDynArrayVBase
 {
 public:
     char m_ary[0x18];                 /* +0x10 CDynArray */
-    CArrayListener<T> *m_plistener;   /* +0x28 */
+    CArrayListener<T> *m_plistener;   /* +0x28 first listener */
 
     virtual void Init(void *powner);
     virtual void Clear();
@@ -117,9 +118,9 @@ public:
 template <class T> class CHashIndex : public CArrayListener<T>
 {
 public:
-    CDynArrayV<T> *m_pary;            /* +0x0C */
-    int (*m_pfnKey)(T *);             /* +0x10 */
-    CHash<T, int> m_hash;             /* +0x14 */
+    CDynArrayV<T> *m_pary;            /* +0x0C the indexed array */
+    int (*m_pfnKey)(T *);             /* +0x10 key function (element -> key) */
+    CHash<T, int> m_hash;             /* +0x14 key -> element index */
 
     void Init(CDynArrayV<T> *pary, void *pfnKey);
     virtual void Clear();

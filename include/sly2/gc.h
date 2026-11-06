@@ -51,11 +51,11 @@ extern "C" CGc *CGc_ctor(CGc *pgc);
 struct CGc
 {
       /* 0x00 */ unsigned int fMark;  /* current mark, flipped by every collection */
-      /* 0x04 */ int cFrame;          /* mark stacks */
+      /* 0x04 */ int cFrame;          /* mark stacks: frames to visit (count, entries) */
       /* 0x08 */ CFrame **apFrame;
-      /* 0x0C */ int cNode;
+      /* 0x0C */ int cNode;           /* nodes (pairs) to visit */
       /* 0x10 */ CPair **apNode;
-      /* 0x14 */ int cClo;
+      /* 0x14 */ int cClo;            /* closures (procedures) to visit */
       /* 0x18 */ CProc **apClo;
 
       CGc() { CGc_ctor(this); }
@@ -73,16 +73,18 @@ template <> struct CGcPool<CProc> { typedef CSlotPool<0x1C, 0x800> POOL; };
 template <> struct CGcPool<CSidebag> { typedef CSlotPool<0xC, 0xC8> POOL; };
 template <> struct CGcPool<CMethod> { typedef CSlotPool<0x14, 0x100> POOL; };
 
+/* CGcObj<T>: the header of every collected Splice node of kind T (reference count and GC link word) and the
+   kind's pool bookkeeping and GC operations. */
 template <class T>
 class CGcObj
 {
 public:
       int m_cref;                   /* 0x00 reference count */
       unsigned m_iPrev : 13;        /* 0x04 link word: previous node (index, block) */
-      unsigned m_ipagePrev : 2;
+      unsigned m_ipagePrev : 2;     /*      block of the previous node */
       unsigned m_fRoot : 1;         /*      on the root list (MakeRoot) */
       unsigned m_iNext : 13;        /*      next node (index, block) */
-      unsigned m_ipageNext : 2;
+      unsigned m_ipageNext : 2;     /*      block of the next node */
       unsigned m_fMark : 1;         /*      live when equal to g_gc.fMark */
 
       CGcObj();

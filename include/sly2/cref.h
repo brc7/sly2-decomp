@@ -26,14 +26,15 @@ struct BASIC;
 struct CMethod;
 
 
+/* CRef: a Splice value: a type tag and a one-word payload (a number, or a counted pointer to a heap value). */
 struct CRef
 {
-      int m_tagk;
+      int m_tagk;   /* the value's type (TAGK) */
       union
       {
-            int n;
-            float g;
-            void *pv;
+            int n;   /* 0x15 s32, 0x17 bool, 0x18 symid, 0x19 bifk */
+            float g;   /* 0x16 f32 */
+            void *pv;   /* any pointer payload */
             /* the payload by tag (spliceobj reads and writes it typed; one word in every case) */
             VECTOR *pvec;           /* 0x1A */
             MATRIX4 *pmat;          /* 0x1B */

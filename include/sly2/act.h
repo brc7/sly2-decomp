@@ -86,7 +86,7 @@ struct ACG1 : ACG
 /* ACG0 (0x8; vtable 0x2CA8A0): constant float curve */
 struct ACG0 : ACG
 {
-    float g;
+    float g;   /* the constant value */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadAcFloatConstFromBrx");   /* slot 1 */
     virtual void Evaluate(float *pg, float *pdg, float g, float dtScale) __asm__("func_0012CC98");   /* slot 2 */
 };
@@ -96,11 +96,11 @@ struct ACG0 : ACG
 struct ACT
 {
     int ack;                /* +0x00 kind: func_0012E238's switch */
-    ALO *palo;              /* +0x04 */
-    XF *pxf;                /* +0x08 */
-    int nPriority;          /* +0x0C */
-    ACT *pactNext;          /* +0x10 */
-    int nRole;              /* +0x14 */
+    ALO *palo;              /* +0x04 the animated object */
+    XF *pxf;                /* +0x08 the transform the act drives */
+    int nPriority;          /* +0x0C priority among the acts on the same transform */
+    ACT *pactNext;          /* +0x10 next act on the same transform (XF::pactFirst list) */
+    int nRole;              /* +0x14 role of the transform the act drives (inferred, as XF::nRole) */
     virtual void VSlot1() __asm__("func_0012CE98");   /* slot 1 */
     virtual void VSlot2() __asm__("func_0012CED8");   /* slot 2 */
     virtual void VSlot3() __asm__("func_0012CF20");   /* slot 3 */
@@ -149,7 +149,7 @@ struct ACT5 : ACT
 struct ACT6 : ACT
 {
     int n1C;
-    float mat[4][4];        /* +0x20 */
+    float mat[4][4];        /* +0x20 the matrix applied */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("func_0012DFE0");   /* slot 5 */
     virtual void Update() __asm__("func_0012DEF0");   /* slot 4 */
 };

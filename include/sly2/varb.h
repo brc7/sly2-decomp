@@ -33,6 +33,7 @@ public:
 };
 typedef CRefPtr<CVarb> CVarbPtr;
 
+/* CVarb: a Splice variable binding (symbol, value, next binding). */
 struct CVarb
 {
       int cref;               /* 0x00 reference count */
