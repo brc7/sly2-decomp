@@ -188,15 +188,15 @@ extern "C" void UpdateDetectorTrackedObject(DETECTORV *detector, void *oldObject
 // 0x153F18: Adds an object to the target list (at most eight) in state 0, unless it is already tracked.
 extern "C" void AddDetectorTarget(DETECTORV *detector, void *object)
 {
-    if (FindDetectorTarget(detector, object) == 0) {
-        unsigned int count = detector->targetCount;
-        if (count < 8U) {   // at most eight targets
-            DTE *entry;
-            detector->targetCount = count + 1;
-            entry = &detector->targets[count];
-            entry->object = object;
-            SetDetectorTargetState(detector, entry, 0);
-        }
+    if (FindDetectorTarget(detector, object) != 0)
+        return;
+    unsigned int count = detector->targetCount;
+    if (count < 8U) {   // at most eight targets
+        DTE *entry;
+        detector->targetCount = count + 1;
+        entry = &detector->targets[count];
+        entry->object = object;
+        SetDetectorTargetState(detector, entry, 0);
     }
 }
 
