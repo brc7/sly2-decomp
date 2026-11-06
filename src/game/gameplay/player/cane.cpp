@@ -22,7 +22,7 @@ struct NODE{char pad0[12];VE*vt;};
 struct TARGET{char pad0[0x130];int exitEffect;};
 struct POINT{char pad0[0x70];U position;};
 /* The controller (POCTL) as the cane code reads it. */
-struct POCTL{char pad0[0x18];float g18,g1c;char pad20[0x10];int fl;};
+struct POCTL{char pad0[0x18];float stickAngle,stickMagnitude;char pad20[0x10];int fl;};
 struct BLEND{float incoming,unknown4,unknown8,outgoing,unknown10,unknown14;ASEG*clip;};
 struct WORK{U average,half,first;};
 /* View of the player (JT); fields named in SetJtJtcs's terms. */
@@ -34,14 +34,14 @@ struct JT{
  char pad154[0x54];
  float heading;
  char pad1ac[0x114];
- char x2c0[0x208];
- int x4c8;
+ char air[0x208];
+ int grabState;
  char pad4cc[0xb5c];
  SM * sm;
  char pad102c[0x8];
  COMPONENT * component;
  char pad1038[0xa4];
- char * p10dc;
+ char * interactTarget;
  char pad10e0[0x3f4];
  ASEG * alternate10;
  ASEG * alternate11;
@@ -61,7 +61,7 @@ struct JT{
  float stateTime;
  ASEGA * current;
  int finished;
- int x18e8;
+ int unknown18E8;
  int attack;
  char pad18f0[0xb0];
  NODE * normalNode;
@@ -125,7 +125,7 @@ float atan2f(float, float);
 float RadNormalize__Ff(float);
 void UpdateJtHands(void *);
 int FCheckLm__FP2LMf(void *, float);
-struct BHV { char pad[0x50]; int n50; char pad54[8]; void *p5C; };
+struct BHV { char pad[0x50]; int kind; char pad54[8]; void *subject; };
 BHV *PbhvFindBhvstk(void *, int);
 void SetJtState__FP2JT3JTS4JTBS(JT *, int, int);
 int ShouldJtSweepBack(JT *);
@@ -456,11 +456,11 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "
 extern "C" int ChooseJtAttackCaneState(JT *jt)
 {
     int n;
-    if (jt->p10dc) {
+    if (jt->interactTarget) {
         qword d, l;
         float g;
         int f;
-        d = VuSub(func_001A62E8(jt->p10dc), func_001A62E8(jt));
+        d = VuSub(func_001A62E8(jt->interactTarget), func_001A62E8(jt));
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(l) : "j"(d));
         __asm__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(l) : "j"(l));
         g = VuToFloat(l);
@@ -468,9 +468,9 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
         if (g < D_002BF4AC)
             f = FCheckLm__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
         if (f) {
-            BHV *pt = PbhvFindBhvstk(jt->p10dc + 0x26C, 0xB1);
-            if (pt && pt->p5C == jt) {
-                int k = pt->n50;
+            BHV *pt = PbhvFindBhvstk(jt->interactTarget + 0x26C, 0xB1);
+            if (pt && pt->subject == jt) {
+                int k = pt->kind;
                 if (k < 2) {
                     if (k >= 0) {
                         SetJtState__FP2JT3JTS4JTBS(jt, 0x10, -1);
@@ -483,7 +483,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
     if (jt->jtbs == 5) {
         float *pa = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
         float *pb = ((float *(*)(void *))jt->vt[31].fn)((char *)jt + jt->vt[31].delta);
-        float d = RadNormalize__Ff(jt->pt->g18 - atan2f(pa[1], pb[0]));
+        float d = RadNormalize__Ff(jt->pt->stickAngle - atan2f(pa[1], pb[0]));
         float ad = __builtin_fabsf(d);
         if (ad < 0.7853982f)
             n = 0xE;
@@ -555,16 +555,16 @@ extern "C" void UpdateJtActiveCane__FP2JT(JT *jt)
     switch (jt->mode) {
     case 3: case 21: case 22:
         if (GrfConsumePressed__5POCTLUif(jt->pt, 0x80, 0.0f))
-            SetJtAirJump(jt->x2c0, 0, 0, 0);
+            SetJtAirJump(jt->air, 0, 0, 0);
         break;
     case 7:
-        if (jt->x4c8 < 5) f = jt->x4c8 >= 3;
+        if (jt->grabState < 5) f = jt->grabState >= 3;
         break;
     case 5:
         switch (jt->jtbs) {
         case 6: case 7:
             if (!(jt->pt->fl & 0x80)) {
-                if (jt->x18e8) SetJtState__FP2JT3JTS4JTBS(jt, 5, 8);
+                if (jt->unknown18E8) SetJtState__FP2JT3JTS4JTBS(jt, 5, 8);
                 else SetJtState__FP2JT3JTS4JTBS(jt, 5, 4);
             }
             break;
@@ -711,7 +711,7 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *jt)
     U v;
     ALO *alo;
     float g;
-    if (jt->pt && 0.5f < jt->pt->g1c) g = jt->pt->g18;
+    if (jt->pt && 0.5f < jt->pt->stickMagnitude) g = jt->pt->stickAngle;
     else g = jt->heading;
     ChooseJtAttackTarget((ALO *)jt, g, 8, 0.25f, &D_002BF4D0, &alo, &v.q, 1.0f);
     jt->surface = alo;
