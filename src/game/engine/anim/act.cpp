@@ -2106,7 +2106,7 @@ extern "C" void SetRestActPose(ACTREST *act, qword pos, qword v)
 namespace M_func_0012E120 { extern "C" {
 /* VU normalize + length; register vars pin the dead qmfc2 output and the py reloads */
 typedef int qword __attribute__((mode(TI)));
-typedef struct Y { char pad[0xB0]; qword baseValue; qword direction; int length; char pad2[0xE0 - 0xD4]; int unknownE0; } Y;
+typedef struct Y { char pad[0xB0]; qword velocity; qword direction; int length; char pad2[0xE0 - 0xD4]; int unknownE0; } Y;
 typedef struct X { char pad[8]; Y *xf; char pad2[0x20 - 0xC]; qword vector; } X;
 extern qword D_002A2DA0;
 void AttachActBase(X *x);
@@ -2154,7 +2154,7 @@ void ACT9::VSlot1()
     X *x = (X *)this;
     qword l;
     AttachActBase(x);
-    x->xf->baseValue = x->vector;
+    x->xf->velocity = x->vector;
     x->xf->direction = x->vector;
     l = Normalize1(&x->xf->direction, &D_002A2DA0);
     {
