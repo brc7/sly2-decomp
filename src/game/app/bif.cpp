@@ -5135,9 +5135,12 @@ CRef *RefOpSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *aref)
 
 
 // 0x256CE8 / 0x256D08: VU_FLOAT's and VU_VECTOR's constructors, inline members defined after their callers, so g++
-// calls them and emits the out-of-line copies (linkonce), as the original did. operator* (0x256D28) stays a plain
-// function: its callers reach it only through asm-labelled declarations of other views, which do not make g++ emit
-// an inline definition.
+// calls them and emits the out-of-line copies (linkonce), as the original did. operator* (0x256D28) is a plain
+// definition: its callers reach it only through asm-labelled declarations of other views, and g++ 2.95 emits an
+// inline free function only when a call or reference names that function itself (an asm label naming its symbol does
+// not count, nor does taking its address inside an unemitted inline); calling it through the real declaration
+// changes the RefOp* code. Its declaration gives it what g++ gives an inline function's out-of-line copy: a weak
+// symbol in .gnu.linkonce.t.<symbol>.
 // 0x256CE8 __8VU_FLOATf
 /** @sly2-annot addr=0x256CE8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -5163,6 +5166,7 @@ inline VU_VECTOR::VU_VECTOR(const VECTORQ &vec)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+qword operator*(VU_FLOAT f, VU_VECTOR v) __attribute__((weak, section(".gnu.linkonce.t.__ml__FG8VU_FLOATG9VU_VECTOR")));
 qword operator*(VU_FLOAT f, VU_VECTOR v)
 {
     qword r;
