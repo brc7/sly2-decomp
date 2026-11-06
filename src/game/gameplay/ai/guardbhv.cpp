@@ -1853,6 +1853,8 @@ int HandleBhvMessage(S*,int,MSG*);
 static __inline__ void Clear(STATE*s){(void)func_002333B4(s,0,sizeof(*s));}
 // Asks the object whether it accepts a zap (its vtable slot 86).
 static __inline__ int Accept(OBJECT*p,MSG*m){VE&v=p->vt[86];return((int(*)(void*,MSG*))v.fn)((char*)p+v.delta,m);}
+// The guard's zap-reaction binding tables (STEPGUARD::aabindingZap[0] and [1]), indexed by zap kind.
+enum { KNOCKDOWN_REACTIONS = 0x8D0, HURT_REACTIONS = 0xA70 };
 // Returns the per-kind slot of an object's table.
 static __inline__ SLOT *Slot(OBJECT *p, unsigned kind, int offset)
 {
@@ -1969,10 +1971,9 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                     ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->otherClip, behavior->guard, 0.0f, 1.0f, 1,
                                                           &behavior->guard->otherAnimation);
             }
-            goto finish;
-        }
-        if (msg->data.kind == ZAP_JUGGLE && (msg->data.flags & 8)) {
-            if (IsStepguardTargetValidEx(behavior->guard, msg->data.object, GetSgfMask(6))) {
+        } else if (msg->data.kind == ZAP_JUGGLE && (msg->data.flags & 8)
+                   && IsStepguardTargetValidEx(behavior->guard, msg->data.object, GetSgfMask(6))) {
+            {
                 {
                     int reserve = behavior->guard->reserve + msg->data.amount;
                     int limited = 4 < reserve ? reserve : 5;
@@ -1983,10 +1984,8 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
                 w.next.kind = GUARD_MODE_JUGGLED;
                 w.next.msg.data.object = msg->data.object;
                 SetBhvguardMode(behavior, &w.next);
-                goto finish;
             }
-        }
-        if (msg->data.kind == 0x1000000 && (msg->data.flags & 8)) {
+        } else if (msg->data.kind == 0x1000000 && (msg->data.flags & 8)) {
             Clear(&w.next);
             if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
                 w.next.kind = GUARD_MODE_KNOCKDOWN;
@@ -1996,9 +1995,7 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
             behavior->current.kind = GUARD_MODE_NONE;
             SetBhvguardMode(behavior, &w.next);
             SetStepguardSpecial(behavior->guard, 8);
-            goto finish;
-        }
-        if (msg->data.kind == 0x2000000 && (msg->data.flags & 8)) {
+        } else if (msg->data.kind == 0x2000000 && (msg->data.flags & 8)) {
             Clear(&w.next);
             if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
                 w.next.kind = GUARD_MODE_KNOCKDOWN;
@@ -2008,112 +2005,109 @@ extern "C" int HandleBhvguardMessage(S *behavior, int event, MSG *msg)
             behavior->current.kind = GUARD_MODE_NONE;
             SetBhvguardMode(behavior, &w.next);
             SetStepguardSpecial(behavior->guard, 0x22);
-            goto finish;
-        }
-        originalFlags = msg->data.flags;
-        if (!(originalFlags & REACT_ANY))
-            goto finish;
-        flags = originalFlags;
-        Clear(&w.next);
-        {
-            void *context = msg->data.kind == 0x40000 ? (*(void **)&g_sw.apstimk[3]) : (*(void **)&g_sw.apstimk[0]);
-            qword position = func_001A62E8(behavior->guard);
-            (void)NewNoise(context, position, behavior->guard);
-        }
-        if (Below(behavior->current.kind, GUARD_MODE_KO) && !Below(behavior->current.kind, GUARD_MODE_SLEEP)
-            && FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object, CID_CLASS101)
-            && (originalFlags & (REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN)))
-            flags = originalFlags | REACT_KO;
-        if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
-            flags |= REACT_KNOCKDOWN;
-        if (flags & REACT_KO)
-            flags &= ~(REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN);
-        if (flags & (REACT_HURT | REACT_KNOCKDOWN))
-            flags &= ~REACT_FLINCH;
-        if (flags & REACT_KNOCKDOWN) {
-            flags &= ~REACT_HURT;
-            int type = Slot(behavior->guard, msg->data.kind, 0x8D0)->kind;
-            if (type == -1 && Slot(behavior->guard, msg->data.kind, 0xA70)->kind != type) {
-                flags &= ~REACT_KNOCKDOWN;
-                flags |= REACT_HURT;
+        } else if ((originalFlags = msg->data.flags) & REACT_ANY) {
+            flags = originalFlags;
+            Clear(&w.next);
+            {
+                void *context = msg->data.kind == 0x40000 ? (*(void **)&g_sw.apstimk[3]) : (*(void **)&g_sw.apstimk[0]);
+                qword position = func_001A62E8(behavior->guard);
+                (void)NewNoise(context, position, behavior->guard);
             }
-            if (Slot(behavior->guard, msg->data.kind, 0x8D0)->kind == -1
-                && !FindBestAnimBinding(behavior->guard, GetSgfMask(6))) {
-                flags &= ~REACT_KNOCKDOWN;
-                flags |= REACT_HURT;
+            if (Below(behavior->current.kind, GUARD_MODE_KO) && !Below(behavior->current.kind, GUARD_MODE_SLEEP)
+                && FIsBasicDerivedFrom__FP5BASIC3CID(msg->data.object, CID_CLASS101)
+                && (originalFlags & (REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN)))
+                flags = originalFlags | REACT_KO;
+            if (IsStepguardTargetValid(behavior->guard, msg->data.object, GetSgfMask(SGF_JUGGLED)))
+                flags |= REACT_KNOCKDOWN;
+            if (flags & REACT_KO)
+                flags &= ~(REACT_FLINCH | REACT_HURT | REACT_KNOCKDOWN);
+            if (flags & (REACT_HURT | REACT_KNOCKDOWN))
+                flags &= ~REACT_FLINCH;
+            if (flags & REACT_KNOCKDOWN) {
+                flags &= ~REACT_HURT;
+                int type = Slot(behavior->guard, msg->data.kind, KNOCKDOWN_REACTIONS)->kind;
+                if (type == -1 && Slot(behavior->guard, msg->data.kind, HURT_REACTIONS)->kind != type) {
+                    flags &= ~REACT_KNOCKDOWN;
+                    flags |= REACT_HURT;
+                }
+                if (Slot(behavior->guard, msg->data.kind, KNOCKDOWN_REACTIONS)->kind == -1
+                    && !FindBestAnimBinding(behavior->guard, GetSgfMask(6))) {
+                    flags &= ~REACT_KNOCKDOWN;
+                    flags |= REACT_HURT;
+                }
             }
-        }
-        if (flags & REACT_FLINCH) {
-            if (behavior->guard->capacity > 0) {
-                behavior->guard->progress += msg->data.amount;
-                if (behavior->guard->progress > 0) {
-                    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->clip, behavior->guard, 0.0f, 1.0f, 1,
-                                                          &behavior->guard->animation);
-                    behavior->guard->animationTime = D_002DDED0.t;
+            if (flags & REACT_FLINCH) {
+                if (behavior->guard->capacity > 0) {
+                    behavior->guard->progress += msg->data.amount;
+                    if (behavior->guard->progress > 0) {
+                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(behavior->guard->clip, behavior->guard, 0.0f, 1.0f, 1,
+                                                              &behavior->guard->animation);
+                        behavior->guard->animationTime = D_002DDED0.t;
+                    } else
+                        flags |= REACT_HURT;
                 } else
                     flags |= REACT_HURT;
-            } else
-                flags |= REACT_HURT;
-        }
-        if (flags & (REACT_HURT | REACT_KNOCKDOWN)) {
-            behavior->guard->progress = behavior->guard->capacity;
-            int delta = behavior->guard->capacity > 0 ? -behavior->guard->capacity : msg->data.amount;
-            int reserve = behavior->guard->reserve + delta;
-            behavior->guard->reserve = reserve < 0 ? 0 : reserve;
-            if (behavior->guard->reserve > 0) {
-                w.next.kind = (flags & REACT_KNOCKDOWN) ? GUARD_MODE_KNOCKDOWN : GUARD_MODE_HURT;
-                w.next.msg = *msg;
+            }
+            if (flags & (REACT_HURT | REACT_KNOCKDOWN)) {
+                behavior->guard->progress = behavior->guard->capacity;
+                int delta = behavior->guard->capacity > 0 ? -behavior->guard->capacity : msg->data.amount;
+                int reserve = behavior->guard->reserve + delta;
+                behavior->guard->reserve = reserve < 0 ? 0 : reserve;
+                if (behavior->guard->reserve > 0) {
+                    w.next.kind = (flags & REACT_KNOCKDOWN) ? GUARD_MODE_KNOCKDOWN : GUARD_MODE_HURT;
+                    w.next.msg = *msg;
+                    selected = &w.next.msg;
+                } else
+                    flags |= REACT_KO;
+            }
+            if (flags & REACT_KO) {
+                w.next.kind = GUARD_MODE_KO;
+                w.next.msg = *selected;
                 selected = &w.next.msg;
-            } else
-                flags |= REACT_KO;
+            }
+            if (flags & (REACT_HURT | REACT_KO | REACT_KNOCKDOWN)) {
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPPLAYER)) {
+                    qword own = func_001A62E8(behavior->guard);
+                    OBJECT *otherObject = selected->data.object;
+                    w.own.q = own;
+                    w.other.q = func_001A62E8(otherObject);
+                    qword scalar = Raw(-150.0f);
+                    w.copy.q = scalar;
+                    OBJECT *frameObject = selected->data.object;
+                    w.scalar.q = scalar;
+                    M4 *frame = func_001A6318(frameObject);
+                    int special;
+                    {
+                        register qword axis __asm__("vf1"), origin __asm__("vf2"), delta __asm__("vf3");
+                        register OBJECT *receiver __asm__("$4");
+                        register int queryKind __asm__("$5");
+                        const int targetKind = 0x36;
+                        const OFFSETINPUTS &inputs = *(const OFFSETINPUTS *)&w.own;
+                        __asm__("lqc2 %0,%5\n\taddiu %4,$zero,%8\n\tlqc2 %1,16+%6\n\tlqc2 %2,32+%6\n\tvadda.xyzw "
+                                "$ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x\n\tlw %3,%7\n\tlqc2 %1,%6\n\tvsub.xyzw %2,%1,%0"
+                                : "=&j"(axis), "=&j"(origin), "=&j"(delta), "=&r"(receiver), "=&r"(queryKind)
+                                : "m"(frame->r[0]), "m"(inputs), "m"(selected->data.object), "i"(targetKind));
+                        w.delta.q = delta;
+                        special = FIsBasicDerivedFrom__FP5BASIC3CID(receiver, queryKind);
+                    }
+                    qword direction = w.delta.q;
+                    if (special && selected->data.object->state == 12) {
+                        OBJECT *object = selected->data.object;
+                        *(qword *)&w.scalar = ConvertAloVec(0, object, direction);
+                        w.scalar.f[0] *= 0.25f;
+                        direction = ConvertAloVec(object, 0, w.scalar.q);
+                    }
+                    qword normalized = Normalize(direction);
+                    *(qword *)&w.scalar = Scalar(500.0f);
+                    selected->data.direction = ScaleInPlace(normalized, w.scalar.q);
+                } else if (behavior->guard->mode == -1 && FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPGUARD)
+                           && selected->data.object->mode == 0x22)
+                    SetStepguardSpecial(behavior->guard, 0x22);
+                behavior->current.kind = GUARD_MODE_NONE;
+                SetBhvguardMode(behavior, &w.next);
+            }
         }
-        if (flags & REACT_KO) {
-            w.next.kind = GUARD_MODE_KO;
-            w.next.msg = *selected;
-            selected = &w.next.msg;
-        }
-        if (flags & (REACT_HURT | REACT_KO | REACT_KNOCKDOWN)) {
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPPLAYER)) {
-                qword own = func_001A62E8(behavior->guard);
-                OBJECT *otherObject = selected->data.object;
-                w.own.q = own;
-                w.other.q = func_001A62E8(otherObject);
-                qword scalar = Raw(-150.0f);
-                w.copy.q = scalar;
-                OBJECT *frameObject = selected->data.object;
-                w.scalar.q = scalar;
-                M4 *frame = func_001A6318(frameObject);
-                int special;
-                {
-                    register qword axis __asm__("vf1"), origin __asm__("vf2"), delta __asm__("vf3");
-                    register OBJECT *receiver __asm__("$4");
-                    register int queryKind __asm__("$5");
-                    const int targetKind = 0x36;
-                    const OFFSETINPUTS &inputs = *(const OFFSETINPUTS *)&w.own;
-                    __asm__("lqc2 %0,%5\n\taddiu %4,$zero,%8\n\tlqc2 %1,16+%6\n\tlqc2 %2,32+%6\n\tvadda.xyzw "
-                            "$ACC,%1,$vf0\n\tvmaddx.xyzw %0,%0,%2x\n\tlw %3,%7\n\tlqc2 %1,%6\n\tvsub.xyzw %2,%1,%0"
-                            : "=&j"(axis), "=&j"(origin), "=&j"(delta), "=&r"(receiver), "=&r"(queryKind)
-                            : "m"(frame->r[0]), "m"(inputs), "m"(selected->data.object), "i"(targetKind));
-                    w.delta.q = delta;
-                    special = FIsBasicDerivedFrom__FP5BASIC3CID(receiver, queryKind);
-                }
-                qword direction = w.delta.q;
-                if (special && selected->data.object->state == 12) {
-                    OBJECT *object = selected->data.object;
-                    *(qword *)&w.scalar = ConvertAloVec(0, object, direction);
-                    w.scalar.f[0] *= 0.25f;
-                    direction = ConvertAloVec(object, 0, w.scalar.q);
-                }
-                qword normalized = Normalize(direction);
-                *(qword *)&w.scalar = Scalar(500.0f);
-                selected->data.direction = ScaleInPlace(normalized, w.scalar.q);
-            } else if (behavior->guard->mode == -1 && FIsBasicDerivedFrom__FP5BASIC3CID(selected->data.object, CID_STEPGUARD)
-                       && selected->data.object->mode == 0x22)
-                SetStepguardSpecial(behavior->guard, 0x22);
-            behavior->current.kind = GUARD_MODE_NONE;
-            SetBhvguardMode(behavior, &w.next);
-        }
-finish:
+        // every zap ends here
         if (D_002F7900 && selected->data.kind == 0x20000)
             func_001B9D28(D_002F7900, func_001A62E8(behavior->guard));
         return 1;
