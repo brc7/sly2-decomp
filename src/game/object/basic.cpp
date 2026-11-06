@@ -1,6 +1,6 @@
 // basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, CidBasic), the sidebag and its
 // option setters (EnsureLoSidebag*), Splice events and the deferred Splice callbacks, LO subscriptions and messages.
-// TU 0x132B00..0x1336F0 (28 functions, address order) plus three linkonce copies (0x255C00, 0x258178, 0x258F30).
+// TU 0x132B00..0x1336F0 (28 functions, address order) plus two linkonce copies (0x255C00, 0x258178; the EMITTER class descriptor getter 0x258F30 is emitter.cpp's now).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001336D0
 #include "sly2/slotheap.h"
@@ -587,20 +587,6 @@ int func_00258178(SIDEBAG *p) {
     grf = p->grfGc | 0x8000;
     p->grfGc = grf;
     return grf;
-}
-
-/* 0x258F30: linkonce class descriptor getter of EMITTER (the EXPLO one is GetExploClassDesc_linkonce). */
-/** @sly2-annot addr=0x258F30
- * Purpose: duplicate EMITTER class-descriptor getter (vtable slot 6 of the second, never-stored EMITTER vtable):
- *   returns the same record as GetEmitterClassDesc (0x113BE0)
- * Info: was proposed as EMITTER_PvOptionDefaults (wrong); _linkonce suffix keeps the symbol distinct from
- *   GetEmitterClassDesc; TU game_linkonce
- * Confidence: high - evidence: static analysis (same data record as GetEmitterClassDesc); sources:
- *   class_reference hidden-types
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" int *GetEmitterClassDesc_linkonce(void) {
-    return &D_002BAAE8[29].f0;   /* the EMITTER class descriptor row (was the address name D_002BAD2C) */
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
