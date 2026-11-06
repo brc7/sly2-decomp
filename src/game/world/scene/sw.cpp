@@ -400,16 +400,16 @@ void FreeSw__Fv(void);
  * @end-sly2-annot */
 // Tears down the current world before a load: game callback 1, frees the view and joystick state, resets the sound
 // manager, clears about 15 global object pointers and frees the world's memory.
-void DeleteSw(struct S *p)
+void DeleteSw(struct S *world)
 {
     void *pv = D_002DEB30;
     BroadcastGameEvent(pv, 1, 0);
-    if (p->h3B18) {
-        AbortJob(p->h3B18);
-        p->h3B18 = 0;
+    if (world->h3B18) {
+        AbortJob(world->h3B18);
+        world->h3B18 = 0;
     }
     func_001D9408(D_003D9E70);
-    DeleteSwSplice(p);
+    DeleteSwSplice(world);
     ClearGameDifficulty(pv);
     func_0014D650(D_002DDF40);
     ResetSndmgr(D_003DD040);
@@ -462,7 +462,7 @@ void BroadcastGameEvent(void *p, int a, int b);
  * @end-sly2-annot */
 // Sets up a fresh world for loading: the work buffers (3 x 0x4800 and 0x8000 bytes), a list header, two ZPR inits,
 // game callback 2.
-void InitSwLoadBuffers(struct S *p)
+void InitSwLoadBuffers(struct S *world)
 {
     struct MSG msg;
     struct ZPR zpr;
@@ -471,22 +471,22 @@ void InitSwLoadBuffers(struct S *p)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        p->a3CD4[i] = func_001AE1D0(&msg);
+        world->a3CD4[i] = func_001AE1D0(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    p->p3F20 = func_001AE2A0(&msg);
+    world->p3F20 = func_001AE2A0(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    p->ph = (__typeof__(p->ph))func_001AE2A0(&msg);
-    p->ph->a = -1;
-    p->ph->c = -1;
-    func_0011A050(p->ph->dl, 0x14);
+    world->ph = (__typeof__(world->ph))func_001AE2A0(&msg);
+    world->ph->a = -1;
+    world->ph->c = -1;
+    func_0011A050(world->ph->dl, 0x14);
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
-        func_001BE398(p->a45E8[j], &zpr);
-    if (p->fl3BF4 & 0x20)
-        p->n3E38 = 1;
+        func_001BE398(world->a45E8[j], &zpr);
+    if (world->fl3BF4 & 0x20)
+        world->n3E38 = 1;
     BroadcastGameEvent(D_002DEB30, 2, 0);
 }
 } } // namespace M_func_0020E180
@@ -505,10 +505,10 @@ void SetLoVisMask(struct O *o, int n);
  * @end-sly2-annot */
 // Picks the main MS object (class 0x31): of up to 16, the one with the largest +0xB8 value; stores its +0xC8 and makes
 // it visible to every camera mask. (inferred)
-void SelectSwMainMs(struct S *p)
+void SelectSwMainMs(struct S *world)
 {
     struct O *apo[16];
-    int c = CploFindSwObjectsByClass(p, 5, 0x31, 0, 16, apo);
+    int c = CploFindSwObjectsByClass(world, 5, 0x31, 0, 16, apo);
     int nMax = 0;
     struct O *poBest = 0;
     int i;
@@ -519,7 +519,7 @@ void SelectSwMainMs(struct S *p)
         }
     }
     if (poBest) {
-        p->n = poBest->nC8;
+        world->n = poBest->nC8;
         SetLoVisMask(poBest, 0xFF);
     }
 }
@@ -539,14 +539,14 @@ extern "C" O *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
  * @end-sly2-annot */
 // Creates the world's screen tint/fill object (class 0x74, CID116 in docs/reference/class-tree.md; parameters 0.1 and
 // 0.25, flags 0x80200000), adds it and stores it at SW+0x3E60. (inferred)
-extern "C" void CreateSwScreenTint(S *p)
+extern "C" void CreateSwScreenTint(S *world)
 {
-    p->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
-    p->o->g60 = 0.1f;
-    p->o->g64 = 0.25f;
-    p->o->x54 = 0x80200000;
-    p->o->n6C = 1;
-    p->o->V9();
+    world->o = PloNew__F3CIDP2SO3OIDi(0x74, 0, -1, -1);
+    world->o->g60 = 0.1f;
+    world->o->g64 = 0.25f;
+    world->o->x54 = 0x80200000;
+    world->o->n6C = 1;
+    world->o->V9();
 }
 } // namespace M_func_0020E338
 
@@ -746,34 +746,34 @@ void BroadcastGameEvent(void *p, int a, int b);
  * @end-sly2-annot */
 // After the BRX is read: resets the transient pools, binds the HUD objects, runs the post-load callbacks (slot 15)
 // until the queue is empty, resets the camera and runs game callback 4.
-void PostSwLoad(struct S *p)
+void PostSwLoad(struct S *world)
 {
     struct O **ppo;
-    func_0011CDD8(p->a403C);
-    func_0011CDD8(p->a4054);
-    func_0011CDD8(p->a4070);
-    func_0011CDD8(p->a4088);
-    CreateSwScreenTint(p);
-    SelectSwMainMs(p);
-    ClearSwSpliceTable(p);
-    InitSwProxySpares(p);
-    BindSwTimerHud(p);
-    func_001569B8(p);
-    EnsureSwDefaultLight(p);
-    PostLoadSwPathzones(p);
-    BindSwBootyProxy(p);
-    func_001957C0(p);
+    func_0011CDD8(world->a403C);
+    func_0011CDD8(world->a4054);
+    func_0011CDD8(world->a4070);
+    func_0011CDD8(world->a4088);
+    CreateSwScreenTint(world);
+    SelectSwMainMs(world);
+    ClearSwSpliceTable(world);
+    InitSwProxySpares(world);
+    BindSwTimerHud(world);
+    func_001569B8(world);
+    EnsureSwDefaultLight(world);
+    PostLoadSwPathzones(world);
+    BindSwBootyProxy(world);
+    func_001957C0(world);
     func_001D9520(D_003D9E70);
-    while (ProcessSwCallbacks(p), p->ppoLast != p->ppoFirst) {
-        for (ppo = p->ppoFirst; ppo < p->ppoLast; ppo++)
+    while (ProcessSwCallbacks(world), world->ppoLast != world->ppoFirst) {
+        for (ppo = world->ppoFirst; ppo < world->ppoLast; ppo++)
             (*ppo)->vt[15].pf((char *)*ppo + (*ppo)->vt[15].d);
-        p->ppoLast = p->ppoFirst;
+        world->ppoLast = world->ppoFirst;
     }
-    p->ppoLast = 0;
-    p->ppoFirst = 0;
-    p->n39D8 = 0;
-    p->n39D0 = 0;
-    func_001C1260(p->p45CC);
+    world->ppoLast = 0;
+    world->ppoFirst = 0;
+    world->n39D8 = 0;
+    world->n39D0 = 0;
+    func_001C1260(world->p45CC);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -863,16 +863,16 @@ static inline STREAM *StreamHome(STREAM *home){register STREAM *result __asm__("
 // Runs a pending level transition: opens the level file, deletes the old world, constructs a new g_sw, loads it from
 // the BRX (LoadSwFromBrx, PostSwLoad), restores the checkpoint and the current actor, sets up the camera and runs game
 // callback 5. Called once per frame by the main loop.
-extern "C" void ExecuteSwTransition(SW *p)
+extern "C" void ExecuteSwTransition(SW *world)
 {
-    if(!p->pending)return;
+    if(!world->pending)return;
     FlushFrames__Fi(1);
-    REQUEST request=p->request;
-    REQUEST *destination=&p->request;
-    p->pending=0;
+    REQUEST request=world->request;
+    REQUEST *destination=&world->request;
+    world->pending=0;
     float resume;
     if(request.flags&0xCD)resume=0.0f;
-    else{float remaining=p->resumeTime-Time();resume=remaining>0.0f?remaining:0.0f;}
+    else{float remaining=world->resumeTime-Time();resume=remaining>0.0f?remaining:0.0f;}
     FRAME frame;
     FRAME *scope=&frame;
     STACKSCOPE_ctor(scope);
@@ -883,7 +883,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     InitFileKey(keyPointer);
     int hasFile=NonZero(request.header.words[1]^request.header.words[15]);
     if(hasFile&&!SetKey(&key,&request.header)){STACKSCOPE_ctor_1AE4A0(scope,2);return;}
-    HEADER *current=&p->current; const HEADER *requested=&request.header; int changed=!Same(requested,current);
+    HEADER *current=&world->current; const HEADER *requested=&request.header; int changed=!Same(requested,current);
     STREAM stream;
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
@@ -892,7 +892,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
-    DeleteSw(p);
+    DeleteSw(world);
     ResetClock(D_002DDED0);
     AddGrfusr__Fi(8);
     func_002333B4(&D_003DD490,0,0x4790);
@@ -900,20 +900,20 @@ extern "C" void ExecuteSwTransition(SW *p)
     SW_ctor(&D_003DD490);
     if(CMpeg_ExecuteOids(D_002F66B0))changed=1;
     InitCm__FP2CM(D_002DDF40);
-    p->current=request.header;
+    world->current=request.header;
     *destination=request;
-    InitSwLoadBuffers(p);
-    if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(p,reader);CStreamBis_Close(reader);}
-    PostSwLoad(p);
-    if(resume>0.0f)ShowCountdownHud(p,resume);
-    if(changed||(p->request.flags&0x40))ClearCheatItems();
-    CONTEXT *context=FindWarpByOid(p,p->request.objectId,p->request.objectKey);
-    if(context){TriggerWarp(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
-    if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
+    InitSwLoadBuffers(world);
+    if(hasFile){LoadSwFromBrx__FP2SWP18CBinaryInputStream(world,reader);CStreamBis_Close(reader);}
+    PostSwLoad(world);
+    if(resume>0.0f)ShowCountdownHud(world,resume);
+    if(changed||(world->request.flags&0x40))ClearCheatItems();
+    CONTEXT *context=FindWarpByOid(world,world->request.objectId,world->request.objectKey);
+    if(context){TriggerWarp(context);world->objectId=world->request.objectId;world->objectKey=world->request.objectKey;}
+    if(!PpoHero(world)&&!PpoCur(world)&&world->actorCount>0){
         ACTOR *selected=0;
         int actorId;
         {REF value=RefGetSaveVarV("oidPoCurrent",0);actorId=value.value;}
-        if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(p,5,actorId,0);
+        if(actorId!=-1)selected=PloFindSwObject__FP2SWi3OIDP2LO(world,5,actorId,0);
         if(!selected)selected=D_002E1E40;
         if(!selected)selected=D_002DD5BC;
         if(!selected)selected=D_002F7900;
@@ -925,14 +925,14 @@ extern "C" void ExecuteSwTransition(SW *p)
                 for(i=0;i<context->count;i++)if(context->objects[i].tag==selected->tag)break;
                 if(i>=context->count)Attach(selected,context);
             }
-            for(int i=0;i<p->actorCount;i++){
-                ACTOR *actor=p->actors[i];
+            for(int i=0;i<world->actorCount;i++){
+                ACTOR *actor=world->actors[i];
                 if(actor!=selected&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&!GetPoCtlState(actor))Hide(actor);
             }
         }
     }
     if(!NWorldCur()){
-        ACTOR *actor=PpoHero(p);
+        ACTOR *actor=PpoHero(world);
         if(actor&&FIsBasicDerivedFrom__FP5BASIC3CID(actor,0x34)&&actor->widget&&!actor->widget->shown)SetWidgetState(actor->widget,1);
     }
     UpdateCmLast__FP2CM(D_002DDF40);
@@ -961,11 +961,11 @@ void IncrementSwInputLock(struct S *p);
  * @end-sly2-annot */
 // Takes control away from the player (counted): the first call disables input; flag 1 also shows the letterbox,
 // flag 2 also locks input.
-void IncrementSwHandsOff(struct S *p, int fl)
+void IncrementSwHandsOff(struct S *world, int fl)
 {
-    if (++p->c == 1) AddGrfusr__Fi(2);
-    if (fl & 1) AcquireSwLetterbox(p);
-    if (fl & 2) IncrementSwInputLock(p);
+    if (++world->c == 1) AddGrfusr__Fi(2);
+    if (fl & 1) AcquireSwLetterbox(world);
+    if (fl & 2) IncrementSwInputLock(world);
 }
 } } // namespace M_IncrementSwHandsOff
 
@@ -987,14 +987,14 @@ void DecrementSwInputLock(struct S *p);
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
 // Gives control back (counted): the last call re-enables input; flags as for IncrementSwHandsOff.
-void DecrementSwHandsOff(struct S *p, int grf)
+void DecrementSwHandsOff(struct S *world, int grf)
 {
-    if (--p->n == 0) {
+    if (--world->n == 0) {
         RemoveGrfusr__Fi(2);
         func_00187E08(&D_002DFC00, 8);
     }
-    if (grf & 1) ReleaseSwLetterbox(p);
-    if (grf & 2) DecrementSwInputLock(p);
+    if (grf & 1) ReleaseSwLetterbox(world);
+    if (grf & 2) DecrementSwInputLock(world);
 }
 } } // namespace M_DecrementSwHandsOff
 
@@ -1142,30 +1142,30 @@ float GLimitLm__FP2LMf(void *p, float g);
  * @end-sly2-annot */
 // Recomputes the ambient light colour from the world's HSV colour scaled by the midtone and shadow levels and bumps
 // the illumination change counter.
-void UpdateSwIllum(struct S *p)
+void UpdateSwIllum(struct S *world)
 {
     float k = 1.0f / 255.0f;
     V3 c;
     UV out;
     U u;
     qword r;
-    c.x = p->hsv.x;
-    c.y = p->hsv.y * k;
-    c.z = p->hsv.z * k;
+    c.x = world->hsv.x;
+    c.y = world->hsv.y * k;
+    c.z = world->hsv.z * k;
     ConvertUserRgbToUserHsv(&c, &out);
     {
         qword qwuqOut;
-        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(p->f3E20 * k));
+        __asm__("qmtc2.ni %1, %0" : "=j"(qwuqOut) : "r"(world->f3E20 * k));
         u.q = qwuqOut;
     }
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(out.q), "j"(u.q));
     out.q = r;
     func_001ED2D8(&out);
-    p->rgb = out.v;
-    p->f3E34 = p->f3E24 * k;
-    if (p->f3E38)
-        p->f3E34 = GLimitLm__FP2LMf(D_002BBB60, p->f3E34 + 0.3f);
-    p->n3D5C++;
+    world->rgb = out.v;
+    world->f3E34 = world->f3E24 * k;
+    if (world->f3E38)
+        world->f3E34 = GLimitLm__FP2LMf(D_002BBB60, world->f3E34 + 0.3f);
+    world->n3D5C++;
 }
 } } // namespace M_UpdateSwIllum
 
@@ -1377,7 +1377,7 @@ void func_00170828(void *p);
  *   docs/formats/textures.md#1-layout-inside-a-world-entry-cstatic--cparse
  * @end-sly2-annot */
 // Reads the shared data block when it changed (and rebuilds from it), otherwise skips it and reuses the loaded copy.
-void LoadSwSharedDataFromBrx(void *p, void *q)
+void LoadSwSharedDataFromBrx(void *world, void *q)
 {
     Align__18CBinaryInputStreami(q, 0x10);
     if (D_003E1C54) {
@@ -1391,11 +1391,11 @@ void LoadSwSharedDataFromBrx(void *p, void *q)
         x = PvAllocSlot__FP8ALLOCREQ(pm); }
         Read__18CBinaryInputStreamiPv(q, D_003E1C30, x);
         RelocateSharedColorTables(x);
-        UploadBitmaps__FP3GSB(p);
+        UploadBitmaps__FP3GSB(world);
         STACKSCOPE_ctor_1AE4A0(&l, 2);
     } else {
         Skip__18CBinaryInputStreami(q, D_003E1C30);
-        func_00170828(p);
+        func_00170828(world);
     }
 }
 } } // namespace M_LoadSwSharedDataFromBrx
@@ -1420,7 +1420,7 @@ int func_001C7D00(void);
  * @end-sly2-annot */
 // Finds the four timer HUD objects (oids 0x371, 0x36D, 0x36E, 0x36F), initializes them and records two counters.
 // (inferred)
-void BindSwTimerHud(struct S *p)
+void BindSwTimerHud(struct S *world)
 {
     struct L l;
     int i;
@@ -1432,11 +1432,11 @@ void BindSwTimerHud(struct S *p)
         int x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x405, D_002C3E70[i], 0);
         if (x) {
             SetWidgetXf(x, &l);
-            p->ae[i].x = x;
+            world->ae[i].x = x;
         }
     }
-    p->n4764 = CClueCollected();
-    p->n4768 = func_001C7D00();
+    world->n4764 = CClueCollected();
+    world->n4768 = func_001C7D00();
 }
 } } // namespace M_func_0020F710
 
@@ -1464,14 +1464,14 @@ void SetSndSourceLo(void *p, void *source);
  * @end-sly2-annot */
 // Per-frame timer HUD update: smooths the four elements and, while a countdown runs, plays the tick/tock sounds
 // (0x30/0x31) once a second. (inferred)
-void UpdateSwTimerHud(struct S *p)
+void UpdateSwTimerHud(struct S *world)
 {
     float z;
     float t = 0.0f;
     int i;
     z = t;
     for (i = 0; i < 4; i++) {
-        struct E *e = &p->ae[i];
+        struct E *e = &world->ae[i];
         struct O *o = e->po;
         if (!o || !FWidgetVisible(o)) {
             e->f = 1;
@@ -1486,13 +1486,13 @@ void UpdateSwTimerHud(struct S *p)
         }
         t += D_002C3E80;
         if (i == 3) {
-            float d = -D_002DDED0.t + p->t476C;
+            float d = -D_002DDED0.t + world->t476C;
             int n;
             d = (0.0f > d) ? 0.0f : d;
             n = (int)d;
-            if (n != p->n4770) {
+            if (n != world->n4770) {
                 SetSndSourceLo(PsndStartSound((n & 1) ? 0x30 : 0x31), 0);
-                p->n4770 = n;
+                world->n4770 = n;
             }
         }
     }
@@ -1517,16 +1517,16 @@ int func_00134310(int a, int b);
  * @end-sly2-annot */
 // Intersection filter: rejects the object itself and flagged objects, and pairs whose relationship (0x134310) is 1
 // or 3.
-int ShouldKeepSoPair(struct S *p, struct E *e)
+int ShouldKeepSoPair(struct S *object, struct E *e)
 {
     struct S *ps = e->pb->ps;
     int a, b, r;
     if (!(e->fl & (1L << 48)) && (ps->fl & 4))
         return 0;
-    if ((e->fl & (1L << 48)) || ps == p)
+    if ((e->fl & (1L << 48)) || ps == object)
         return 0;
-    a = VC61(p->po, ps->po);
-    b = VC61(ps->po, p->po);
+    a = VC61(object->po, ps->po);
+    b = VC61(ps->po, object->po);
     r = func_00134310(a, b);
     return r != 1 && r != 3;
 }
@@ -1544,11 +1544,11 @@ struct S { int a; struct P *pp; char pad[8]; long fl; };
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Intersection filter: keeps objects that are not the context object and do not have flag 4.
-int ShouldKeepSoNotSelf(struct O *po, struct S *p) {
+int ShouldKeepSoNotSelf(struct O *object, struct S *p) {
     int r = 0;
     if (!(p->fl & 0x1000000000000L)) {
         struct O *o = p->pp->po;
-        if (!(o->fl & 4)) r = o != po;
+        if (!(o->fl & 4)) r = o != object;
     }
     return r;
 }
@@ -1966,12 +1966,12 @@ extern "C" void func_001C4A60(S *p, int k);
  * @end-sly2-annot */
 // Calls vtable slot 24 on every object of the 199 class lists, after 0x1C4A60(world, 0). (inferred: the slot's
 // meaning is not known; PROXY uses it to release its spares)
-extern "C" void CallSlot24OnSwObjects(S *p)
+extern "C" void CallSlot24OnSwObjects(S *world)
 {
     int i;
-    func_001C4A60(p, 0);
+    func_001C4A60(world, 0);
     for (i = 0; i < 199; i++) {
-        X *x = ((struct B *)((char *)p + 0x3038))[i].first;
+        X *x = ((struct B *)((char *)world + 0x3038))[i].first;
         for (; x; x = x->next)
             x->v24();
     }
@@ -2097,15 +2097,15 @@ struct X *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int oid, void *ctx);
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Animation event 17: finds the object and up to two others and sends them a message.
-void SendSwAsegMessage(void *pg, int oid, int oid1, int oid2, float g, void *ctx)
+void SendSwAsegMessage(void *world, int oid, int oid1, int oid2, float g, void *ctx)
 {
-    struct X *x = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid, ctx);
+    struct X *x = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid, ctx);
     struct MSG msg;
     if (!x)
         return;
     msg.grf = 0;
     if (oid1 != -1) {
-        struct X *y = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid1, ctx);
+        struct X *y = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid1, ctx);
         if (y) {
             msg.p4 = y;
             msg.grf |= 1;
@@ -2119,7 +2119,7 @@ void SendSwAsegMessage(void *pg, int oid, int oid1, int oid2, float g, void *ctx
         }
     }
     if (oid2 != -1) {
-        struct X *z = PloFindSwObject__FP2SWi3OIDP2LO(pg, 4, oid2, ctx);
+        struct X *z = PloFindSwObject__FP2SWi3OIDP2LO(world, 4, oid2, ctx);
         if (z) {
             msg.p30 = z;
             msg.grf |= 0x20;
@@ -2489,15 +2489,15 @@ extern char *PchzAllocCopy__FP4HEAPPci(ALLOC *, char *, int);
  * See: docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Replaces each entry of a string table by its localized string (FindSwLangstr), copied into a linear heap.
-void LocalizeSwStringTable(TBL *p)
+void LocalizeSwStringTable(TBL *table)
 {
     ALLOC al;
     int i;
     if (D_003DD490.f == 0)
         return;
-    __11CLinearHeapiPUc(&al, p->x8, p->xC);
-    for (i = 0; i < p->c; i++) {
-        ENT *e = &p->a[i];
+    __11CLinearHeapiPUc(&al, table->x8, table->xC);
+    for (i = 0; i < table->c; i++) {
+        ENT *e = &table->a[i];
         e->pchOut = PchzFindSwLangstr__FP2SWi(&D_003DD490, e->pch);
         if (func_0021ED28(e->pchOut))
             e->pchOut = PchzAllocCopy__FP4HEAPPci(&al, e->pchOut, 4);

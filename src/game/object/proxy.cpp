@@ -289,16 +289,16 @@ void func_0011A070(struct DL *pl, void *pv);
  * @end-sly2-annot */
 // Finds the proxy-reference (PXR) node for the id path ids[0..count) under a parent node, creating the missing nodes
 // from the world heap. Proxy objects keep their path so they can be found by their source's oids.
-struct N *FindProxyRefPath(struct N *p, int c, const int *aid)
+struct N *FindProxyRefPath(struct N *parentNode, int c, const int *aid)
 {
     struct N *pn, *pnParent, *pnNew;
     struct AL al;
     int i;
 again:
-    for (pn = (struct N *)p->dl.head; pn; pn = pn->pnNext) {
+    for (pn = (struct N *)parentNode->dl.head; pn; pn = pn->pnNext) {
         if (pn->id == *aid) {
             if (c == 1) return pn;
-            p = pn;
+            parentNode = pn;
             c--;
             aid++;
             goto again;
@@ -307,7 +307,7 @@ again:
     al.cb = c * sizeof(struct N);
     al.cbAlign = 0x10;
     pnNew = (struct N *)func_001AE2A0(&al);
-    pnParent = p;
+    pnParent = parentNode;
     for (i = 0; i < c; i++) {
         pn = &pnNew[i];
         func_0011A050(&pn->dl, 0x14);
@@ -645,12 +645,12 @@ void SetLoIdProxy(struct O *p, void *a);
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // SO's SetIdProxy (vtable slot 25): LO's version, then the same on every child.
-void SetSoIdProxy(struct O *p, void *a)
+void SetSoIdProxy(struct O *object, void *a)
 {
     struct O *o;
     int unused[4];
-    SetLoIdProxy(p, a);
-    for (o = p->pFirst; o; o = o->pNext) { struct VTE *e = &o->vt[25]; e->pfn((char *)o + e->d, a, 0); }
+    SetLoIdProxy(object, a);
+    for (o = object->pFirst; o; o = o->pNext) { struct VTE *e = &o->vt[25]; e->pfn((char *)o + e->d, a, 0); }
 }
 } } // namespace M_SetSoIdProxy
 
@@ -673,9 +673,9 @@ void *IdProxy__Fii(int i, int c);
  * @end-sly2-annot */
 // Takes the next unused copy of proxy source sourceIndex: sets its proxy id, adds and reparents its objects, applies
 // the placement (slot 37) to each, reports them to the load collector and advances the source's next-copy index.
-void AddProxyCopy(struct G *pg, int i, int a, int b, void *x, int y, struct Z *pz)
+void AddProxyCopy(struct G *world, int i, int a, int b, void *x, int y, struct Z *pz)
 {
-    struct R *pr = &pg->ar[i];
+    struct R *pr = &world->ar[i];
     void *v = IdProxy__Fii(i, pr->c);
     int j;
     pr->ap18[pr->c] = x;
@@ -722,14 +722,14 @@ static inline void SetIdent(struct MAT4 *pm) { func_002333B4(pm, 0, 0x40); pm->m
  * @end-sly2-annot */
 // After the level load, turns every unused copy of each proxy source into a spare (records the objects' rest poses
 // and builds the spare array).
-void InitSwProxySpares(struct G *pg)
+void InitSwProxySpares(struct G *world)
 {
     int i, j, k;
     struct LO *plo;
     struct X *px;
     struct A a;
-    for (i = 0; i < pg->c3F04; i++) {
-        struct R *pr = &pg->ar[i];
+    for (i = 0; i < world->c3F04; i++) {
+        struct R *pr = &world->ar[i];
         if (pr->c >= pr->x8) continue;
         for (j = pr->c; j < pr->x8; j++) {
             void *v = IdProxy__Fii(i, j);
@@ -794,22 +794,22 @@ void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p);
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // PROXY's Clone (vtable slot 41): clones the XFM part and copies the init records.
-void CloneProxy(struct S *p, struct S *q)
+void CloneProxy(struct S *proxy, struct S *source)
 {
     int i;
     union { struct AL al; struct SP sp; } u;
-    CloneXfm(p, q);
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
+    CloneXfm(proxy, source);
+    for (i = 0; i < proxy->c; i++) {
+        struct E *pe = &proxy->ae[i];
         struct RC *prc;
         if (!pe->x8) continue;
-        if (p->ae == q->ae) {
-            u.al.cb = p->c * sizeof(struct E);
+        if (proxy->ae == source->ae) {
+            u.al.cb = proxy->c * sizeof(struct E);
             u.al.cbAlign = 0x10;
-            p->ae = func_001AE238(&u.al, p->ae);
-            pe = &p->ae[i];
+            proxy->ae = func_001AE238(&u.al, proxy->ae);
+            pe = &proxy->ae[i];
         }
-        CFrame_CloneTo(&u.sp, pe->x8, p);
+        CFrame_CloneTo(&u.sp, pe->x8, proxy);
         pe->x8 = u.sp.p;
         prc = u.sp.p;
         if (prc && --prc->cRef == 0) func_00257078(prc, 3);
@@ -1049,19 +1049,19 @@ void *GetProxySpareFromCopyIndex(struct S *p, int i);
  * @end-sly2-annot */
 // Picks the best-rated spare with a rating of at least minRating (keeping the current one when it qualifies); null
 // when none does.
-void *ChooseProxySpare(struct S *p, int vMin)
+void *ChooseProxySpare(struct S *proxy, int vMin)
 {
     int i, v, vBest;
     void *pv, *pvBest;
-    if (p->xE4 == 0 && p->xE8) {
-        if (RateProxySpare(p, p->xE8) < 3) return 0;
-        pvBest = p->xE8;
+    if (proxy->xE4 == 0 && proxy->xE8) {
+        if (RateProxySpare(proxy, proxy->xE8) < 3) return 0;
+        pvBest = proxy->xE8;
     } else {
         vBest = vMin;
         pvBest = 0;
-        for (i = p->pt->i0; i < p->pt->c; i++) {
-            pv = GetProxySpareFromCopyIndex(p, i);
-            v = RateProxySpare(p, pv);
+        for (i = proxy->pt->i0; i < proxy->pt->c; i++) {
+            pv = GetProxySpareFromCopyIndex(proxy, i);
+            v = RateProxySpare(proxy, pv);
             if (v >= vBest) {
                 pvBest = pv;
                 vBest = v;
@@ -1122,20 +1122,20 @@ static inline void Query(P *p,void **cursor){VTE &v=p->vt[3];((void(*)(P *,int,i
  * @end-sly2-annot */
 // Acquires a spare copy for the proxy: chooses one, takes it from its previous owner, places its objects at the
 // proxy and applies the init records (slot 26 on each object). Returns the spare or null.
-extern "C" NODE *AcquireProxySpare(P *p,int minimum){
+extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
  STREAM stream;
  WORK work;
- NODE *node=ChooseProxySpare(p,minimum);
+ NODE *node=ChooseProxySpare(proxy,minimum);
  if(!node)return 0;
  if(node->owner)ReleasePspare__FP5PROXYP10PROXYSPARE(node->owner,node);
- node->owner=p;node->next=p->head;p->head=node;
- work.owner=p;
- node->matrix=p->matrix;
- int row=IcopyFromPspare__FP5PROXYP10PROXYSPARE(p,node);
- work.id=IdProxy__Fii(p->table-D_003DD490.tables,row);
+ node->owner=proxy;node->next=proxy->head;proxy->head=node;
+ work.owner=proxy;
+ node->matrix=proxy->matrix;
+ int row=IcopyFromPspare__FP5PROXYP10PROXYSPARE(proxy,node);
+ work.id=IdProxy__Fii(proxy->table-D_003DD490.tables,row);
  TREE *tree=FindProxyRefPath(D_003DD490.root,1,&work.id);
- for(int i=0;i<p->bindCount;i++){
-  BIND *bind=&p->binds[i];
+ for(int i=0;i<proxy->bindCount;i++){
+  BIND *bind=&proxy->binds[i];
   if(bind->kind==5)continue;
   if(bind->kind==6){work.found=tree->owner;if(!work.found)continue;}
   else if(FindSwObjectsInProxyScope(&D_003DD490,0xA05,bind->kind,0,tree,1,&work.found)!=1)continue;
@@ -1144,19 +1144,19 @@ extern "C" NODE *AcquireProxySpare(P *p,int minimum){
   func_00118500(&stream,bind->begin,bind->end,0);
   int index;
   while((index=S16Read__18CBinaryInputStream(&stream))>=0){DESC *desc=&D_002AC880[index];LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(work.found,desc,desc->flags&0x2031,&stream);}
-  if(bind->resource && !p->disabled){
+  if(bind->resource && !proxy->disabled){
    if(work.found->resource)CFrame_AddParent(bind->resource,work.found->resource);
    FramePtr_Assign(&work.found->resource,bind->resource);
   }
   CMemInputStream_ctor(&stream,2);
  }
- for(int i=0;i<p->table->count;i++){
+ for(int i=0;i<proxy->table->count;i++){
  void **cursor=&work.cursor;
-  P *child=p->table->objects[row*p->table->count+i];
+  P *child=proxy->table->objects[row*proxy->table->count+i];
   VTE &entry=child->vt[42];
   work.child=child;
-  ((void(*)(P *,float))entry.fn)(Adjusted(child,entry),p->scale);Channel(work.child,p->context,p->channel);Matrix(work.child,&p->matrix);Reset(work.child);Parent(work.child,p);
-  work.cursor=&work.child;Query(p,cursor);
+  ((void(*)(P *,float))entry.fn)(Adjusted(child,entry),proxy->scale);Channel(work.child,proxy->context,proxy->channel);Matrix(work.child,&proxy->matrix);Reset(work.child);Parent(work.child,proxy);
+  work.cursor=&work.child;Query(proxy,cursor);
   work.cursor=&work.owner;Query(work.child,cursor);
  }
  return node;
@@ -1248,14 +1248,14 @@ R GetProxyCopyObjects(S *p);
  * See: docs/reference/functions/object-model.md#proxy-0x1c9940-0x1cb908
  * @end-sly2-annot */
 // Returns a Splice list of the objects of every spare the proxy holds.
-R GetProxyCopyObjects(S *p)
+R GetProxyCopyObjects(S *proxy)
 {
     void *ap[0x20];
     unsigned int c = 0;
     N *pn;
-    for (pn = p->xE8; pn && c < 0x20; pn = pn->pnext) {
-        int i = IcopyFromPspare__FP5PROXYP10PROXYSPARE(p, pn);
-        ap[c++] = p->xE0->ap[i];
+    for (pn = proxy->xE8; pn && c < 0x20; pn = pn->pnext) {
+        int i = IcopyFromPspare__FP5PROXYP10PROXYSPARE(proxy, pn);
+        ap[c++] = proxy->xE0->ap[i];
     }
     return R(c, 0x2002, ap);
 }
@@ -1319,9 +1319,9 @@ void SetLoVisMask(struct S *p, int n);
  * @end-sly2-annot */
 // LO's ResetForProxy (vtable slot 26, run when a spare copy is placed): copies the proxy's visibility mask onto the
 // object unless it keeps its own.
-void LO_ResetForProxy(struct S *p, struct A *pa)
+void LO_ResetForProxy(struct S *object, struct A *pa)
 {
-    if (pa && !(p->fl & (1UL << 58))) SetLoVisMask(p, pa->b);
+    if (pa && !(object->fl & (1UL << 58))) SetLoVisMask(object, pa->b);
 }
 } } // namespace M_func_001CB4E0
 
@@ -1352,19 +1352,19 @@ void func_001F37C8(struct S *p, void *pv);
  * @end-sly2-annot */
 // SO's ResetForProxy (vtable slot 26): LO's version, zap mode off, clears a state word, re-picks the physics region
 // from the position when needed, then the same on every child.
-void SO_ResetForProxy(struct S *p, int n)
+void SO_ResetForProxy(struct S *object, int n)
 {
     struct LO *plo;
     int f;
-    LO_ResetForProxy(p, n);
-    func_001F7A68(p, 0);
-    p->xCC = -1;
+    LO_ResetForProxy(object, n);
+    func_001F7A68(object, 0);
+    object->xCC = -1;
     f = 0;
-    if (p->xE8) f = p->xE8->xDC;
+    if (object->xE8) f = object->xE8->xDC;
     if (f) {
-        func_001F37C8(p, PpathzoneFromPos(GetLoWorldPos(p), 1));
+        func_001F37C8(object, PpathzoneFromPos(GetLoWorldPos(object), 1));
     }
-    for (plo = p->x64; plo; plo = plo->x24)
+    for (plo = object->x64; plo; plo = plo->x24)
         ((void (*)(void *, int))plo->vt[26].pf)((char *)plo + plo->vt[26].d, n);
 }
 } } // namespace M_func_001CB518
@@ -1413,14 +1413,14 @@ void SO_Slot27(LO *p, int n);
  * @end-sly2-annot */
 // SO's vtable slot 27: LO's default, then clears the physics region (SetSoPhysRegion(this, 0)) when a flag of its +0xE8
 // record is set, and the same slot on every child. (inferred: the slot's meaning is not known.)
-void SO_Slot27(LO *p, int n)
+void SO_Slot27(LO *object, int n)
 {
     LO *pc;
     int f;
-    LO_Slot27Default(p, n);
-    f = p->pa ? p->pa->f : 0;
-    if (f) func_001F37C8(p, 0);
-    for (pc = p->pFirst; pc; pc = pc->pNext) pc->Fn(n);
+    LO_Slot27Default(object, n);
+    f = object->pa ? object->pa->f : 0;
+    if (f) func_001F37C8(object, 0);
+    for (pc = object->pFirst; pc; pc = pc->pNext) pc->Fn(n);
 }
 } // namespace M_func_001CB5D0
 
@@ -1440,15 +1440,15 @@ int GetCopyIndexFromProxyId(int id);
  * @end-sly2-annot */
 // Returns the per-copy value stored in the proxy source table for the object's proxy id (0 when the object is not a
 // proxy copy). (inferred)
-int GetProxyCopyValue(struct S *p)
+int GetProxyCopyValue(struct S *proxy)
 {
-    struct A *pa = p->pa;
+    struct A *pa = proxy->pa;
     int i, j;
     struct E *pe;
     struct F *pf;
     if (!pa || !pa->f24) return 0;
     i = IsrcFromIdProxy__Fi(pa->id);
-    j = GetCopyIndexFromProxyId(p->pa->id);
+    j = GetCopyIndexFromProxyId(proxy->pa->id);
     pe = &(*(struct E * *)&g_sw.aproxysrc)[i];
     pf = &pe->af[j - pe->iFirst];
     return pf->v;
@@ -1474,14 +1474,14 @@ void RemoveDlEntry__FP2DLPv(struct SL *pl, void *pv);
  * @end-sly2-annot */
 // PROXY's vtable slot 24: releases every held spare and, when the proxy is in its activity zone, sends the leave
 // notification (slot 22) and drops it from the zone list. (inferred)
-void PROXY_ReleaseSpares(struct S *p)
+void PROXY_ReleaseSpares(struct S *proxy)
 {
     struct LO *plo;
-    while (p->pE8) ReleasePspare__FP5PROXYP10PROXYSPARE(p, p->pE8);
-    if (FFindDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), p->ph)) {
-        plo = p->ph->plo;
+    while (proxy->pE8) ReleasePspare__FP5PROXYP10PROXYSPARE(proxy, proxy->pE8);
+    if (FFindDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->ph)) {
+        plo = proxy->ph->plo;
         ((void (*)(void *))plo->vt[22].pf)((char *)plo + plo->vt[22].d);
-        RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), p->ph);
+        RemoveDlEntry__FP2DLPv(&(*(struct SL *)&g_sw.dlBusy), proxy->ph);
     }
 }
 } } // namespace M_func_001CB6D8

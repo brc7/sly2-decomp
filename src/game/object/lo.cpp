@@ -147,10 +147,10 @@ struct G { int a[4]; };
  * @end-sly2-annot */
 // Returns the child list an object lives in and its "first removed child" slot: the parent's when there is one, else
 // the world's top-level list.
-void GetLoChildDl(char *p, void **pa, void **pb)
+void GetLoChildDl(char *parent, void **childList, void **firstRemovedSlot)
 {
-    if (p) { *pa = p + 0x64; *pb = p + 0x70; }
-    else { *pa = &(*(struct G *)&g_sw.dlChild); *pb = (char *)&(*(struct G *)&g_sw.dlChild) + 0xC; }
+    if (parent) { *childList = parent + 0x64; *firstRemovedSlot = parent + 0x70; }
+    else { *childList = &(*(struct G *)&g_sw.dlChild); *firstRemovedSlot = (char *)&(*(struct G *)&g_sw.dlChild) + 0xC; }
 }
 } } // namespace M_GetLoChildDl
 
@@ -180,45 +180,45 @@ void UpdateSoBusy(void *g, struct S *s);
 // Adds the object to the world (vtable slot 8): clears the removed bit, moves it into the in-world part of its parent's
 // child list, runs AddHierarchy when the parent is in the world, registers its root in the busy list and adds the
 // children recursively, then calls OnAdd.
-void AddLo(struct S *s)
+void AddLo(struct S *object)
 {
     void *a;
     struct S **b;
     struct S **list;
     struct VTE *e;
     int n, i;
-    if (!(s->x28.u & 0x0100000000000000UL))
+    if (!(object->x28.u & 0x0100000000000000UL))
         return;
-    s->x28.u &= ~0x0100000000000000UL;
-    GetLoChildDl(s->x10, &a, &b);
-    if (s == *b) {
-        *b = s->x24;
+    object->x28.u &= ~0x0100000000000000UL;
+    GetLoChildDl(object->x10, &a, &b);
+    if (object == *b) {
+        *b = object->x24;
     } else {
-        RemoveDlEntry__FP2DLPv(a, s);
-        InsertDlEntryBefore__FP2DLPvT1(a, *b, s);
+        RemoveDlEntry__FP2DLPv(a, object);
+        InsertDlEntryBefore__FP2DLPvT1(a, *b, object);
     }
-    if (s->x10) {
-        unsigned long t = (s->x10->x28.u >> 60) & 1;
+    if (object->x10) {
+        unsigned long t = (object->x10->x28.u >> 60) & 1;
         if (!t)
             goto skip;
     }
-    e = &s->vt[0x58 / 8];
-    ((void (*)(void *))e->pfn)((char *)s + e->d);
+    e = &object->vt[0x58 / 8];
+    ((void (*)(void *))e->pfn)((char *)object + e->d);
 skip:
-    if (!s->x10 && (int)s->x28.b.st != 2)
-        ResortSwBusyEntry(D_003DD490, s->x14);
-    e = &s->vt[0xE0 / 8];
-    n = ((int (*)(void *, struct S ***))e->pfn)((char *)s + e->d, &list);
+    if (!object->x10 && (int)object->x28.b.st != 2)
+        ResortSwBusyEntry(D_003DD490, object->x14);
+    e = &object->vt[0xE0 / 8];
+    n = ((int (*)(void *, struct S ***))e->pfn)((char *)object + e->d, &list);
     for (i = 0; i < n; i++) {
         struct S *p = list[i];
         struct VTE *g = &p->vt[0x40 / 8];
         ((void (*)(void *))g->pfn)((char *)p + g->d);
     }
-    if (IsLoInWorld(s)) {
-        e = &s->vt[0xB8 / 8];
-        ((void (*)(void *))e->pfn)((char *)s + e->d);
-    } else if (!s->x10) {
-        UpdateSoBusy(D_003DD490, s);
+    if (IsLoInWorld(object)) {
+        e = &object->vt[0xB8 / 8];
+        ((void (*)(void *))e->pfn)((char *)object + e->d);
+    } else if (!object->x10) {
+        UpdateSoBusy(D_003DD490, object);
     }
 }
 } } // namespace M_AddLo
@@ -245,7 +245,7 @@ void AppendDlEntry__FP2DLPv(void *a, struct S *s);
  * @end-sly2-annot */
 // Removes the object from the world (vtable slot 9): unregisters it, moves it to the removed tail of its parent's child
 // list, sets the removed bit, removes the children recursively and runs RemoveHierarchy when it was in the world.
-void RemoveLo(struct S *s)
+void RemoveLo(struct S *object)
 {
     struct VTE *e;
     unsigned long f;
@@ -253,33 +253,33 @@ void RemoveLo(struct S *s)
     struct S **b;
     struct S **list;
     int n, i;
-    if (s->x28 & 0x0100000000000000UL)
+    if (object->x28 & 0x0100000000000000UL)
         return;
-    if (IsLoInWorld(s)) {
-        e = &s->vt[0xB0 / 8];
-        ((void (*)(void *))e->pfn)((char *)s + e->d);
-        if (!s->x10)
-            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), (void *)s->x14);
+    if (IsLoInWorld(object)) {
+        e = &object->vt[0xB0 / 8];
+        ((void (*)(void *))e->pfn)((char *)object + e->d);
+        if (!object->x10)
+            RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), (void *)object->x14);
     }
-    if (!s->x10)
-        RemoveFromSwBusyList(D_003DD490, s->x14);
-    f = (s->x28 >> 60) & 1;
-    GetLoChildDl(s->x10, &a, &b);
-    RemoveDlEntry__FP2DLPv(a, s);
-    AppendDlEntry__FP2DLPv(a, s);
+    if (!object->x10)
+        RemoveFromSwBusyList(D_003DD490, object->x14);
+    f = (object->x28 >> 60) & 1;
+    GetLoChildDl(object->x10, &a, &b);
+    RemoveDlEntry__FP2DLPv(a, object);
+    AppendDlEntry__FP2DLPv(a, object);
     if (!*b)
-        *b = s;
-    s->x28 |= 0x0100000000000000UL;
-    e = &s->vt[0xE0 / 8];
-    n = ((int (*)(void *, struct S ***))e->pfn)((char *)s + e->d, &list);
+        *b = object;
+    object->x28 |= 0x0100000000000000UL;
+    e = &object->vt[0xE0 / 8];
+    n = ((int (*)(void *, struct S ***))e->pfn)((char *)object + e->d, &list);
     for (i = 0; i < n; i++) {
         struct S *p = list[i];
         struct VTE *g = &p->vt[0x48 / 8];
         ((void (*)(void *))g->pfn)((char *)p + g->d);
     }
     if (f) {
-        e = &s->vt[0x60 / 8];
-        ((void (*)(void *))e->pfn)((char *)s + e->d);
+        e = &object->vt[0x60 / 8];
+        ((void (*)(void *))e->pfn)((char *)object + e->d);
     }
 }
 } } // namespace M_RemoveLo
@@ -316,12 +316,12 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x18]; ulong fl; };
  *   docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
 // vtable slot 11: sets the in-world bit and sends the "added" notification (vtable slot 4, message 0).
-void AddLoHierarchy(struct O *p)
+void AddLoHierarchy(struct O *object)
 {
     struct VTE *e;
-    p->fl |= (ulong)1 << 60;
-    e = &p->vt[4];
-    e->pfn((char *)p + e->d, 0, p);
+    object->fl |= (ulong)1 << 60;
+    e = &object->vt[4];
+    e->pfn((char *)object + e->d, 0, object);
 }
 } } // namespace M_AddLoHierarchy
 
@@ -342,12 +342,12 @@ void RemoveSwPlacesOf(void *g, struct S *s, int n);
  * @end-sly2-annot */
 // vtable slot 12: clears the in-world bit, clears references to the object when it is flagged for that, and sends the
 // "removed" notification (vtable slot 4, message 1).
-void RemoveLoHierarchy(struct S *s)
+void RemoveLoHierarchy(struct S *object)
 {
-    s->x28 &= ~0x1000000000000000UL;
-    if (s->x28 & 0x0800000000000000UL)
-        RemoveSwPlacesOf(D_003DD490, s, 0);
-    s->vt->e[4].pfn((char *)s + s->vt->e[4].d, 1, s);
+    object->x28 &= ~0x1000000000000000UL;
+    if (object->x28 & 0x0800000000000000UL)
+        RemoveSwPlacesOf(D_003DD490, object, 0);
+    object->vt->e[4].pfn((char *)object + object->vt->e[4].d, 1, object);
 }
 } } // namespace M_RemoveLoHierarchy
 
@@ -364,7 +364,7 @@ struct O { char pad[0xC]; struct VTE *vt; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Reparents an object: calls its SetParent (vtable slot 10) with the new parent and flags.
-void SetLoParent(struct O *p, int a, int b) { struct VTE *e = &p->vt[10]; e->pfn((char *)p + e->d, a, 0, b); }
+void SetLoParent(struct O *object, int a, int b) { struct VTE *e = &object->vt[10]; e->pfn((char *)object + e->d, a, 0, b); }
 } } // namespace M_SetLoParent_1A58D0
 
 namespace M_func_001A5900 { extern "C" {
@@ -500,7 +500,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Returns the object itself when it is an SO (cid 0x30), else its parent SO.
-struct S *GetSoFromLo(struct S *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) return p; return p->x10; }
+struct S *GetSoFromLo(struct S *object) { if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x30)) return object; return object->x10; }
 } } // namespace M_PsoFromLo
 
 /** @sly2-annot addr=0x1A5C28
@@ -540,21 +540,21 @@ void SetLoBusyk(struct S *s, int n);
  * @end-sly2-annot */
 // After the level load (vtable slot 15): runs the deferred callbacks and sends Splice message 0; an object whose Splice
 // frame binds an update handler becomes busy and wants Splice updates, others get the default next Splice time.
-void PostLoLoad(struct S *s)
+void PostLoLoad(struct S *object)
 {
     struct VTE *e;
-    RunLoDeferredCallbacks(s);
-    e = &s->vt[3];
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)s + e->d, 0, 1, 0, 0, 0);
-    if (s->x0 && PrefFindBinding__6CFrameUii(s->x0, 1, 1)) {
+    RunLoDeferredCallbacks(object);
+    e = &object->vt[3];
+    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)object + e->d, 0, 1, 0, 0, 0);
+    if (object->x0 && PrefFindBinding__6CFrameUii(object->x0, 1, 1)) {
         int v;
-        if ((int)s->st == 2)
-            SetLoBusyk(s, 0);
-        v = s->x40;
+        if ((int)object->st == 2)
+            SetLoBusyk(object, 0);
+        v = object->x40;
         if ((v ^ 1) & 1) *(int *)v |= 2;
-        else s->x40 = v | 2;
+        else object->x40 = v | 2;
     } else {
-        s->x30 = D_002A6A40;
+        object->x30 = D_002A6A40;
     }
 }
 } } // namespace M_PostLoLoad
@@ -569,7 +569,7 @@ struct O { char pad[0xC]; struct VTE *vt; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // The deferred-callback body that removes the object (its Remove, vtable slot 9).
-void DeferLoRemoveCallback(struct O *p) { struct VTE *e = &p->vt[9]; e->pfn((char *)p + e->d); }
+void DeferLoRemoveCallback(struct O *object) { struct VTE *e = &object->vt[9]; e->pfn((char *)object + e->d); }
 } } // namespace M_DeferLoRemoveCallback
 
 /** @sly2-annot addr=0x1A5D30
@@ -614,16 +614,16 @@ struct S { char pad[0x34]; E *first; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Runs every deferred callback queued on the object, in the order they were added.
-void RunLoDeferredCallbacks(struct S *s)
+void RunLoDeferredCallbacks(struct S *object)
 {
     E *a[32];
-    E *e = s->first;
+    E *e = object->first;
     int n;
     if (!e)
         return;
     n = 0;
     do { a[n] = e; n++; e = e->next; } while (e);
-    for (n--; n >= 0; n--) { e = a[n]; e->pfn(s, e->arg); }
+    for (n--; n >= 0; n--) { e = a[n]; e->pfn(object, e->arg); }
 }
 } } // namespace M_RunLoDeferredCallbacks
 
@@ -641,11 +641,11 @@ extern float D_002DDED0;
  * @end-sly2-annot */
 // LO's per-frame update (vtable slot 16): when the object's next Splice time has come, sends Splice message 1 (the
 // update event).
-void UpdateLo(struct O *p)
+void UpdateLo(struct O *object)
 {
-    if (p->x30 <= D_002DDED0) {
-        struct VTE *e = &p->vt[3];
-        e->pfn((char *)p + e->d, 1, 1, 0, 0, 0);
+    if (object->x30 <= D_002DDED0) {
+        struct VTE *e = &object->vt[3];
+        e->pfn((char *)object + e->d, 1, 1, 0, 0, 0);
     }
 }
 } } // namespace M_UpdateLo
@@ -670,9 +670,9 @@ static inline void ClearFlag(struct S *p, unsigned int fl)
  * @end-sly2-annot */
 // vtable slot 17: clears flag 4 unless the parent has flag 4 set (the flag is inherited from the parent; its meaning
 // is not known). (inferred)
-void InheritLoFlag4(struct S *p)
+void InheritLoFlag4(struct S *object)
 {
-    if (!p->x10 || !(p->x10->x40->x0 & 4)) ClearFlag(p, 4);
+    if (!object->x10 || !(object->x10->x40->x0 & 4)) ClearFlag(object, 4);
 }
 } } // namespace M_func_001A5E80
 
@@ -724,19 +724,19 @@ void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
  * @end-sly2-annot */
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
-void RenderLoAtMatrix(struct O *o, void *m, float a, float b)
+void RenderLoAtMatrix(struct O *object, void *m, float a, float b)
 {
     M4 t;
     M4 r;
     M4 inv;
     M4 *pr = &r;
     M4 *pinv = &inv;
-    struct VTE *e = &o->vt[0xF8 / 8];
-    InvertMatrix4Rigid(pinv, ((void *(*)(void *))e->pfn)((char *)o + e->d));
+    struct VTE *e = &object->vt[0xF8 / 8];
+    InvertMatrix4Rigid(pinv, ((void *(*)(void *))e->pfn)((char *)object + e->d));
     __ml__FRC7MATRIX4T0(pr, m, pinv);
     t = r;
-    e = &o->vt[0xA0 / 8];
-    ((void (*)(void *, M4 *, int, float, float))e->pfn)((char *)o + e->d, &t, 0, a, b);
+    e = &object->vt[0xA0 / 8];
+    ((void (*)(void *, M4 *, int, float, float))e->pfn)((char *)object + e->d, &t, 0, a, b);
 }
 } } // namespace M_func_001A5EE8
 
@@ -765,7 +765,7 @@ static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,
  * @end-sly2-annot */
 // Draws an object stretched along the segment start->end, facing the camera (width scaling, 0.01 epsilon), through
 // RenderLoAtMatrix. Used for beams and similar effects. (inferred)
-void RenderLoAlongSegment(void *p,qword a,qword b,float width,float scale)
+void RenderLoAlongSegment(void *object,qword a,qword b,float width,float scale)
 {
  U x,y,z;
  struct M4 m; struct M4 *pm;
@@ -793,7 +793,7 @@ void RenderLoAlongSegment(void *p,qword a,qword b,float width,float scale)
   pm->r[2].q=z.q;
   m.r[0].i[3]=m.r[1].i[3]=m.r[2].i[3]=0;
   pm->r[3].f[3]=1.0f;
-  RenderLoAtMatrix(p,pm,scale,scale);
+  RenderLoAtMatrix(object,pm,scale,scale);
  }
 }
 } } // namespace M_func_001A5FB8
@@ -924,10 +924,10 @@ struct S { char pad[0x14]; void *x14; char pad2[0x10]; ulong fl; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // True when the object's in-world bit is set and its root record is in the world's in-world list.
-int IsLoInWorld(struct S *p)
+int IsLoInWorld(struct S *object)
 {
     int r = 0;
-    if ((int)(p->fl >> 60) & 1) r = FFindDlEntry__FP2DLPv((DL *)&g_sw.dlBusy, p->x14) != 0;
+    if ((int)(object->fl >> 60) & 1) r = FFindDlEntry__FP2DLPv((DL *)&g_sw.dlBusy, object->x14) != 0;
     return r;
 }
 } } // namespace M_func_001A61A0
@@ -960,16 +960,16 @@ typedef char Int_Size[sizeof(int)==4?1:-1];
  * @end-sly2-annot */
 // LO's Splice event handler (vtable slot 3): the BASIC handling, then the trigger (5) and untrigger (6) events are also
 // reported to the game progress object (as game events 0x1A/0x1B).
-void HandleLoSpliceEvent(void *p, int n, int deferred, int argumentCount,
+void HandleLoSpliceEvent(void *object, int n, int deferred, int argumentCount,
                    void *const *arguments, struct CRef *output)
 {
-    HandleBasicSpliceEvent(p, n, deferred, argumentCount, arguments, output);
+    HandleBasicSpliceEvent(object, n, deferred, argumentCount, arguments, output);
     switch (n) {
     case 5:
-        BroadcastGameEvent(D_002DEB30, 0x1A, p);
+        BroadcastGameEvent(D_002DEB30, 0x1A, object);
         break;
     case 6:
-        BroadcastGameEvent(D_002DEB30, 0x1B, p);
+        BroadcastGameEvent(D_002DEB30, 0x1B, object);
         break;
     }
 }
@@ -986,12 +986,12 @@ struct S { char pad[0x3C]; struct Q *pq; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Returns the oid of the proxy the object was cloned from (the last proxy-ref node owned by it), or -1.
-int GetLoProxyOid(struct S *p)
+int GetLoProxyOid(struct S *object)
 {
     int r = -1;
-    struct Q *q = p->pq;
+    struct Q *q = object->pq;
     while (q) {
-        if (q->x10 != p) break;
+        if (q->x10 != object) break;
         r = q->x8;
         q = q->next;
     }
@@ -1010,11 +1010,11 @@ struct S { char pad[0x18]; int x18; char pad2[0x20]; struct Q *pq; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // True when the object's oid, or the oid of one of its proxy-alias nodes, equals oid.
-int HasLoOid(struct S *p, int b)
+int HasLoOid(struct S *object, int b)
 {
     struct Q *q;
-    if (p->x18 == b) return 1;
-    for (q = p->pq; q && q->x10 == p; q = q->next)
+    if (object->x18 == b) return 1;
+    for (q = object->pq; q && q->x10 == object; q = q->next)
         if (q->x8 == b) return 1;
     return 0;
 }
@@ -1119,7 +1119,7 @@ void LoadRotateMatrixEuler(M3 *pm, qword v);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Sets the object's orientation from Euler angles in degrees (through RotateToMat, slot 30).
-void SetLoEulerDegrees(struct LO *p, qword v)
+void SetLoEulerDegrees(struct LO *object, qword v)
 {
     M3 c;
     union { qword q; float f; } r;
@@ -1127,7 +1127,7 @@ void SetLoEulerDegrees(struct LO *p, qword v)
     r.q = Make(GetX(v) * 0.017453294f, GetY(v) * 0.017453294f, GetZ(v) * 0.017453294f);
     LoadRotateMatrixEuler(&m, r.q);
     c = m;
-    p->vt[30].pfn((struct LO *)((char *)p + p->vt[30].d), &c);
+    object->vt[30].pfn((struct LO *)((char *)object + object->vt[30].d), &c);
 }
 } } // namespace M_func_001A63B0
 
@@ -1142,12 +1142,12 @@ struct O { int x0, x4, x8; struct VTE *vt; };
  * @end-sly2-annot */
 // LO's ApplyTransform (vtable slot 37: premultiply by a matrix; XFM_ApplyTransform is the XFM version): a plain LO
 // has no transform of its own, so it forwards the matrix to every child returned by slot 28. (inferred)
-void LO_ApplyTransform(struct O *o, void *arg)
+void LO_ApplyTransform(struct O *object, void *arg)
 {
     struct O **list;
     int n, i;
-    struct VTE *e = &o->vt[0xE0 / 8];
-    n = ((int (*)(void *, struct O ***))e->pfn)((char *)o + e->d, &list);
+    struct VTE *e = &object->vt[0xE0 / 8];
+    n = ((int (*)(void *, struct O ***))e->pfn)((char *)object + e->d, &list);
     for (i = 0; i < n; i++) {
         struct O *p = list[i];
         struct VTE *f = &p->vt[0x128 / 8];
@@ -1244,11 +1244,11 @@ struct S { char pad[0x40]; unsigned int x40; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 47: sets bits in the object's flag word.
-void SetLoFlags(struct S *p, unsigned int fl)
+void SetLoFlags(struct S *object, unsigned int fl)
 {
-    unsigned int v = p->x40;
+    unsigned int v = object->x40;
     if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
-    else p->x40 = v | fl;
+    else object->x40 = v | fl;
 }
 } } // namespace M_func_001A66C8
 
@@ -1262,11 +1262,11 @@ struct S { char pad[0x40]; unsigned int x40; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 48: clears bits in the object's flag word.
-void ClearLoFlags(struct S *p, unsigned int fl)
+void ClearLoFlags(struct S *object, unsigned int fl)
 {
-    unsigned int v = p->x40;
+    unsigned int v = object->x40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
-    else p->x40 = v & ~fl;
+    else object->x40 = v & ~fl;
 }
 } } // namespace M_func_001A66F8
 
@@ -1364,30 +1364,30 @@ static inline META*Type(P*p){VE*v=&p->vt[6];return v->type((P*)((char*)p+v->delt
 // LO's Clone (vtable slot 41): copies the Splice frame and sidebag references, scale, flag bits and tag word from the
 // source, clones the proxy nodes during proxy instantiation and copies the class body past the LO header (size from
 // the class info).
-extern "C" void CloneLo(P*p,const P*source){
+extern "C" void CloneLo(P*object,const P*source){
     CGc_UpdateRecyclable(g_gc);
     if(source->field){
-        {RF r=CSidebag_CloneTo(source->field,p);func_002580A8(&p->field,r.p);}
-        (void)MakeRoot__t6CGcObj1Z8CSidebag(p->field);
+        {RF r=CSidebag_CloneTo(source->field,object);func_002580A8(&object->field,r.p);}
+        (void)MakeRoot__t6CGcObj1Z8CSidebag(object->field);
     }
     if(source->root){
-        {RR r=CFrame_CloneTo(source->root,p);FramePtr_Assign(&p->root,r.p);}
-        (void)MakeRoot__t6CGcObj1Z6CFrame(p->root);
+        {RR r=CFrame_CloneTo(source->root,object);FramePtr_Assign(&object->root,r.p);}
+        (void)MakeRoot__t6CGcObj1Z6CFrame(object->root);
     }
-    p->scale=source->scale;
-    p->flags.bits.mode=source->flags.bits.mode;
-    p->flags.bits.autoA=source->flags.bits.autoA;
-    p->flags.bits.kind=source->flags.bits.kind;
-    p->flags.bits.autoB=source->flags.bits.autoB;
-    p->tag.Set(source->tag.Get());
-    p->word34=source->word34;
+    object->scale=source->scale;
+    object->flags.bits.mode=source->flags.bits.mode;
+    object->flags.bits.autoA=source->flags.bits.autoA;
+    object->flags.bits.kind=source->flags.bits.kind;
+    object->flags.bits.autoB=source->flags.bits.autoB;
+    object->tag.Set(source->tag.Get());
+    object->word34=source->word34;
     char*dst;const char*src;
-    if(D_003DD490.phase!=-2){src=(const char*)source+0x50;dst=(char*)p+0x50;p->nodes=source->nodes;}
+    if(D_003DD490.phase!=-2){src=(const char*)source+0x50;dst=(char*)object+0x50;object->nodes=source->nodes;}
     else{
-        src=(const char*)source+0x50;dst=(char*)p+0x50;REQUEST request;
+        src=(const char*)source+0x50;dst=(char*)object+0x50;REQUEST request;
         for(NODE*n=source->nodes;n&&n->owner==source;n=n->next){
             NODE*copy=CopyNode(sizeof(NODE),&request,n);
-            copy->owner=p;
+            copy->owner=object;
             ClearSle(&copy->chain);
             ClearSle(&copy->link);
             ClearSl(copy->list);
@@ -1396,7 +1396,7 @@ extern "C" void CloneLo(P*p,const P*source){
             func_0011A070(list,copy);
         }
     }
-    CopyAb__FPvT0Ui(dst,src,Type(p)->bytes-0x50);
+    CopyAb__FPvT0Ui(dst,src,Type(object)->bytes-0x50);
 }
 } // namespace M_CloneLo
 #undef FIELD_OFFSET
@@ -1413,7 +1413,7 @@ struct O { char pad[0xC]; struct VTE *vt; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 40: clones the hierarchy by forwarding to Clone (slot 41).
-void CloneLoHierarchy(struct O *p, int a) { struct VTE *e = &p->vt[41]; e->pfn((char *)p + e->d, a); }
+void CloneLoHierarchy(struct O *object, int a) { struct VTE *e = &object->vt[41]; e->pfn((char *)object + e->d, a); }
 } } // namespace M_CloneLoHierarchy
 
 namespace M_FFindLoParent { extern "C" {
@@ -1507,10 +1507,10 @@ struct S { char pad[0x10]; int x10; void *x14; char pad2[0x10]; ulong fl; int pa
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 42: sets the busy distance (default 1e10) and re-sorts the root in the world's busy list.
-void SetLoBusyDistance(struct S *p, float g)
+void SetLoBusyDistance(struct S *object, float g)
 {
-    p->x38 = g;
-    if (!p->x10 && ((int)(p->fl >> 60) & 1)) ResortSwBusyEntry(&D_003DD490, p->x14);
+    object->x38 = g;
+    if (!object->x10 && ((int)(object->fl >> 60) & 1)) ResortSwBusyEntry(&D_003DD490, object->x14);
 }
 } } // namespace M_func_001A6C48
 
@@ -1553,12 +1553,12 @@ void ResortSwBusyEntry(void *, void *);
  * @end-sly2-annot */
 // Sets the busy kind (0 busy within the busy distance of the camera, 1 always busy, 2 never busy, 3 busy within the
 // busy distance of the hero) and re-sorts the root in the world's busy list when it is in the world.
-void SetLoBusyk(struct O *p, int n)
+void SetLoBusyk(struct O *object, int n)
 {
-    if (n != p->n52) {
-        p->n52 = n;
-        if (!p->pParent && (unsigned char)p->f60 != 0)
-            ResortSwBusyEntry(D_003DD490, p->pv14);
+    if (n != object->n52) {
+        object->n52 = n;
+        if (!object->pParent && (unsigned char)object->f60 != 0)
+            ResortSwBusyEntry(D_003DD490, object->pv14);
     }
 }
 } } // namespace M_SetLoBusyk
@@ -1591,16 +1591,16 @@ void ResortSwBusyEntry(void *, void *);
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Sets the visibility mask: re-sorts the root, sets the mask through slot 46 and ORs it into the following siblings.
-void SetLoVisMask(struct O *p, int b)
+void SetLoVisMask(struct O *object, int b)
 {
     struct O *q;
-    if ((unsigned char)p->world->palo->f60)
-        ResortSwBusyEntry(D_003DD490, p->world);
+    if ((unsigned char)object->world->palo->f60)
+        ResortSwBusyEntry(D_003DD490, object->world);
     {
-        struct VTE *e = &p->vt[46];
-        ((void (*)(void *, int))e->pfn)((char *)p + e->d, b);
+        struct VTE *e = &object->vt[46];
+        ((void (*)(void *, int))e->pfn)((char *)object + e->d, b);
     }
-    for (q = p->pNext; q; q = q->pNext)
+    for (q = object->pNext; q; q = q->pNext)
         q->b2D |= b;
 }
 } } // namespace M_func_001A6D28
@@ -1629,11 +1629,11 @@ void SetLoVisMask(struct O *, int);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // SO's SetVisMask (vtable slot 46): stores the mask and propagates it to the children that do not keep their own.
-void SetSoVisMask(struct O *p, int b)
+void SetSoVisMask(struct O *object, int b)
 {
     struct O *q;
-    *((unsigned char *)p + 0x2D) = b;
-    for (q = p->pFirst; q; q = q->pNext) {
+    *((unsigned char *)object + 0x2D) = b;
+    for (q = object->pFirst; q; q = q->pNext) {
         if (!(q->grf & (1UL << 58)))
             SetLoVisMask(q, b);
     }
@@ -1650,7 +1650,7 @@ struct S { char pad[0x28]; ulong fl; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Sets or clears the "keeps its own visibility mask" bit (a parent's SetVisMask then skips it).
-void SetLoOwnVisMask(struct S *p, int f) { p->fl = (p->fl & ~((ulong)1 << 58)) | ((ulong)(f & 1) << 58); }
+void SetLoOwnVisMask(struct S *object, int f) { object->fl = (object->fl & ~((ulong)1 << 58)) | ((ulong)(f & 1) << 58); }
 } } // namespace M_func_001A6E38
 
 namespace M_func_001A6E70 { extern "C" {
@@ -1663,7 +1663,7 @@ struct S { char pad[0x28]; ulong fl; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // True when the object keeps its own visibility mask.
-int HasLoOwnVisMask(struct S *p) { return (int)(p->fl >> 58) & 1; }
+int HasLoOwnVisMask(struct S *object) { return (int)(object->fl >> 58) & 1; }
 } } // namespace M_func_001A6E70
 
 namespace M_func_001A6E80 { extern "C" {
@@ -1687,10 +1687,10 @@ static inline void ClearFlag(struct S *p, unsigned int fl)
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 21: sets or clears flag 8 of the flag word (meaning not known). (inferred)
-void SetLoFlag8(struct S *p, int f)
+void SetLoFlag8(struct S *object, int f)
 {
-    if (f) SetFlag(p, 8);
-    else ClearFlag(p, 8);
+    if (f) SetFlag(object, 8);
+    else ClearFlag(object, 8);
 }
 } } // namespace M_func_001A6E80
 

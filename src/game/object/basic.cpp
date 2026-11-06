@@ -113,8 +113,8 @@ extern "C" void BASIC_Slot2Default(void) {
  * @end-sly2-annot */
 // True when the object's class is cid or derives from it: the class ids of a subtree are contiguous, so this is a
 // range test of the object's cid against [cid, cidMax of cid) in the class-descriptor table.
-int FIsBasicDerivedFrom(BASICV *po, CIDV n) {
-    CLASSINFO *pr = ((CLASSINFO *(*)(void *))po->vtable[6].pfn)((char *)po + po->vtable[6].d);
+int FIsBasicDerivedFrom(BASICV *object, CIDV n) {
+    CLASSINFO *pr = ((CLASSINFO *(*)(void *))object->vtable[6].pfn)((char *)object + object->vtable[6].d);
     int x = pr->cid;
     int f = 0;
     if (x >= n) { CIDDESC *pt = &D_002BAAE8[n]; f = x < pt->cidLast; }
@@ -129,9 +129,9 @@ int FIsBasicDerivedFrom(BASICV *po, CIDV n) {
  *   docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Gives the object a sidebag (its Splice variable bindings) when it has none.
-void EnsureBasicSidebag(BASICV *p) {
-    SIDEBAG **pf = &p->psidebag;
-    if (p->psidebag == 0) { func_002580A8(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(p->psidebag); }
+void EnsureBasicSidebag(BASICV *object) {
+    SIDEBAG **pf = &object->psidebag;
+    if (object->psidebag == 0) { func_002580A8(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(object->psidebag); }
 }
 
 /* EnsureLoSidebag* (Sly 1 names); the C++ original inlined the CRef constructor/setter, ~CRef -> Decref. */
@@ -288,11 +288,11 @@ extern "C" void EnsureLoSidebagBasic(LO *plo, int optid)
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Returns the object's class id (from its class info, vtable slot 6).
-extern "C" int GetBasicCid(BASICV *p)
+extern "C" int GetBasicCid(BASICV *object)
 {
-    VTE *vtable = p->vtable;
+    VTE *vtable = object->vtable;
     short d = vtable[6].d;
-    return ((CLASSINFO *(*)(void *, int))vtable[6].pfn)((char *)p + d, d)->cid;
+    return ((CLASSINFO *(*)(void *, int))vtable[6].pfn)((char *)object + d, d)->cid;
 }
 
 /** @sly2-annot addr=0x132ED0
@@ -376,12 +376,12 @@ void EvalSpliceEventCallback(BASICV *p, CPAIR *pair, CFrame *frame, CREFV *pref)
  * @end-sly2-annot */
 // Schedules a Splice callback: allocates a node from the world's pool with an id (a new one when anonymous) and the
 // time t, and inserts it into the world's time-sorted callback list. Returns the node.
-SWCB *ScheduleSwSpliceCallback(SW *p, BASICV *a, CPAIR *pc, float t) {
+SWCB *ScheduleSwSpliceCallback(SW *world, BASICV *a, CPAIR *pc, float t) {
     SWCB *pn;
     SWCB *pnPrev;
     SWCB *pnCur;
     pc->cref++;
-    pn = (SWCB *)PvAllocSlotheapClear(&p->slotheapEvent);
+    pn = (SWCB *)PvAllocSlotheapClear(&world->slotheapEvent);
     pn->pbasic = a;
     if (!a) pn->id = ++g_sw.cEventWorld;
     else pn->id = -1;
@@ -406,13 +406,13 @@ SWCB *ScheduleSwSpliceCallback(SW *p, BASICV *a, CPAIR *pc, float t) {
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Cancels the scheduled Splice callback with the given id and frees its node.
-extern "C" void CancelSwSpliceCallback(SW *p, int id) {
+extern "C" void CancelSwSpliceCallback(SW *world, int id) {
     SWCB *pn;
     if (id == -1) return;
-    for (pn = ((DLV *)&p->slEvent)->head; pn; pn = pn->pnext) {
+    for (pn = ((DLV *)&world->slEvent)->head; pn; pn = pn->pnext) {
         if (pn->id == id) {
             CPAIR *pr;
-            RemoveSlEntry((DLV *)&p->slEvent, pn);
+            RemoveSlEntry((DLV *)&world->slEvent, pn);
             pr = pn->pair;
             if (--pr->cref == 0 && pr) {
                 PairPtr_Release(&pr->sp, 2);
@@ -420,7 +420,7 @@ extern "C" void CancelSwSpliceCallback(SW *p, int id) {
                 Unlink__t6CGcObj1Z5CPair(pr);
                 func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pr);
             }
-            func_0011CD98(&p->slotheapEvent, pn);
+            func_0011CD98(&world->slotheapEvent, pn);
             return;
         }
     }
@@ -440,17 +440,17 @@ extern "C" void CancelSwSpliceCallback(SW *p, int id) {
  * @end-sly2-annot */
 // BASIC's Splice event handler (vtable slot 3): when the object's frame binds a handler for the event, builds the
 // arguments (types from the event parameter tables) and either schedules the call (posted) or evaluates it now.
-extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CREFV *z)
+extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int y, CREFV *z)
 {
-    if (p->frame && PrefFindBinding__6CFrameUii(p->frame, k, 1)) {
+    if (object->frame && PrefFindBinding__6CFrameUii(object->frame, k, 1)) {
         CREFV ref;
         SPAIR sp;
         BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
-        BuildSpliceEventCall(&sp, p, k, &ref);
+        BuildSpliceEventCall(&sp, object, k, &ref);
         if (f)
-            ScheduleSwSpliceCallback(&g_sw, p, sp.p, D_002DDED0.t);
+            ScheduleSwSpliceCallback(&g_sw, object, sp.p, D_002DDED0.t);
         else
-            EvalSpliceEventCallback(p, sp.p, p->frame, z);
+            EvalSpliceEventCallback(object, sp.p, object->frame, z);
         {
             CPAIR *pt = sp.p;
             if (pt && --pt->cref == 0) {
@@ -495,9 +495,9 @@ extern "C" void SendUntriggerEvent(BASICV *p) { VTE *vt = p->vtable; ((void (*)(
  * @end-sly2-annot */
 // Subscribes target to the object's messages: adds it to the object's subscriber list (counted, so repeated
 // subscriptions need as many unsubscribes).
-extern "C" void SubscribeLoObject(LO *p, LO *id) {
+extern "C" void SubscribeLoObject(LO *object, LO *id) {
     REFNODE *pe;
-    for (pe = p->prefnodeFirst; pe; pe = pe->pnext) {
+    for (pe = object->prefnodeFirst; pe; pe = pe->pnext) {
         if (pe->plo == id) { pe->cref++; return; }
     }
     {
@@ -505,8 +505,8 @@ extern "C" void SubscribeLoObject(LO *p, LO *id) {
         __asm__("" : "+r"(peNew));
         peNew->plo = id;
         { register int one __asm__("$2") = 1; __asm__("" : "+r"(one)); peNew->cref = one; }
-        peNew->pnext = p->prefnodeFirst;
-        p->prefnodeFirst = peNew;
+        peNew->pnext = object->prefnodeFirst;
+        object->prefnodeFirst = peNew;
     }
 }
 
@@ -518,10 +518,10 @@ extern "C" void SubscribeLoObject(LO *p, LO *id) {
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Removes one subscription of target from the object's subscriber list.
-extern "C" void UnsubscribeLoObject(LO *p, LO *id) {
+extern "C" void UnsubscribeLoObject(LO *object, LO *id) {
     REFNODE **ppe;
     REFNODE *pe;
-    for (ppe = &p->prefnodeFirst; (pe = *ppe) != 0; ppe = &pe->pnext) { if (pe->plo == id) { if (--pe->cref <= 0) { *ppe = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); } break; } }
+    for (ppe = &object->prefnodeFirst; (pe = *ppe) != 0; ppe = &pe->pnext) { if (pe->plo == id) { if (--pe->cref <= 0) { *ppe = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); } break; } }
 }
 
 /** @sly2-annot addr=0x1334A8
@@ -531,10 +531,10 @@ extern "C" void UnsubscribeLoObject(LO *p, LO *id) {
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Frees the object's whole subscriber list.
-extern "C" void UnsubscribeLoAll(LO *p) {
-    REFNODE *pe = p->prefnodeFirst;
+extern "C" void UnsubscribeLoAll(LO *object) {
+    REFNODE *pe = object->prefnodeFirst;
     while (pe) { REFNODE *pNext = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); pe = pNext; }
-    p->prefnodeFirst = 0;
+    object->prefnodeFirst = 0;
 }
 
 /** @sly2-annot addr=0x133508
@@ -545,10 +545,10 @@ extern "C" void UnsubscribeLoAll(LO *p) {
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
 // BASIC's SendMessage (vtable slot 4): the object handles the message itself (slot 5), then every subscriber does.
-extern "C" void SendLoMessage(LO *p, int a, int b) {
+extern "C" void SendLoMessage(LO *object, int a, int b) {
     REFNODE *pn;
-    ((void (*)(void *, int, int))p->vtable[5].pfn)((char *)p + p->vtable[5].d, a, b);
-    for (pn = p->prefnodeFirst; pn; ) {
+    ((void (*)(void *, int, int))object->vtable[5].pfn)((char *)object + object->vtable[5].d, a, b);
+    for (pn = object->prefnodeFirst; pn; ) {
         LO *po = pn->plo;
         pn = pn->pnext;
         ((void (*)(void *, int, int))po->vtable[5].pfn)((char *)po + po->vtable[5].d, a, b);
@@ -563,7 +563,7 @@ extern "C" void SendLoMessage(LO *p, int a, int b) {
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0
  * @end-sly2-annot */
 // BASIC's HandleMessage (vtable slot 5): ignores the message; derived classes override it and call it as the base.
-extern "C" void HandleBasicMessage(BASICV *p, int msg, void *pv) {
+extern "C" void HandleBasicMessage(BASICV *object, int msg, void *pv) {
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

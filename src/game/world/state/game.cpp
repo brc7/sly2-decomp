@@ -778,7 +778,7 @@ extern "C" void *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void 
  * @end-sly2-annot */
 // On a job or task state change: for each visibility record whose mask covers the state group and whose level
 // matches, adds the object when the state's bit is set and removes it otherwise.
-extern "C" void ApplyStateLoVisibility(void *p, int nState, int c, E *ae)
+extern "C" void ApplyStateLoVisibility(void *object, int nState, int c, E *ae)
 {
     int i;
     int grfState = GetStateBit(nState);
@@ -934,19 +934,19 @@ static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
  * @end-sly2-annot */
 // Loads a JOB from the BRX: preallocates its visibility, rsmg and two event-id lists, loads the LO part, then shrinks
 // them to the counts read.
-extern "C" void LoadJobFromBrx(S *p, CBinaryInputStream *stream)
+extern "C" void LoadJobFromBrx(S *job, CBinaryInputStream *stream)
 {
     STACKSCOPE fr;
     ALLOCREQ req;
-    p->a90 = PvAllocReq(&req, 0x200, 0x10);
-    p->a98 = PvAllocReq(&req, 0x300, 0x10);
-    p->a58 = PvAllocReq(&req, 0x80, 0x10);
-    p->a60 = PvAllocReq(&req, 0x80, 0x10);
-    LoadLoFromBrx(p, stream);
-    p->a90 = PvShrinkReq(&req, p->c8C * 16, 0x10, p->a90);
-    p->a98 = PvShrinkReq(&req, p->c94 * 0x18, 0x10, p->a98);
-    p->a58 = PvShrinkReq(&req, p->c54 * 4, 0x10, p->a58);
-    p->a60 = PvShrinkReq(&req, p->c5C * 4, 0x10, p->a60);
+    job->a90 = PvAllocReq(&req, 0x200, 0x10);
+    job->a98 = PvAllocReq(&req, 0x300, 0x10);
+    job->a58 = PvAllocReq(&req, 0x80, 0x10);
+    job->a60 = PvAllocReq(&req, 0x80, 0x10);
+    LoadLoFromBrx(job, stream);
+    job->a90 = PvShrinkReq(&req, job->c8C * 16, 0x10, job->a90);
+    job->a98 = PvShrinkReq(&req, job->c94 * 0x18, 0x10, job->a98);
+    job->a58 = PvShrinkReq(&req, job->c54 * 4, 0x10, job->a58);
+    job->a60 = PvShrinkReq(&req, job->c5C * 4, 0x10, job->a60);
     CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadJobFromBrx
@@ -965,10 +965,10 @@ struct S { char pad[0x54]; int c; int *a; };
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a game-event id that completes the job when it arrives (at most 32).
-void AddJobCompleteEvent(struct S *p, int n)
+void AddJobCompleteEvent(struct S *job, int n)
 {
-    if (p->c < 32) {
-        p->a[p->c++] = n;
+    if (job->c < 32) {
+        job->a[job->c++] = n;
     }
 }
 } } // namespace M_AddJobCompleteEvent
@@ -983,10 +983,10 @@ struct S { char pad[0x5C]; int c; int *a; };
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a game-event id that fails the job when it arrives (at most 32).
-void AddJobFailEvent(struct S *p, int n)
+void AddJobFailEvent(struct S *job, int n)
 {
-    if (p->c < 32) {
-        p->a[p->c++] = n;
+    if (job->c < 32) {
+        job->a[job->c++] = n;
     }
 }
 } } // namespace M_func_00162630
@@ -1001,11 +1001,11 @@ struct S { char pad[0xAC]; int a; int b; int c; };
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: sets the job's completion widget oid and its intro and outro labels.
-void SetJobCompletionWidget(struct S *p, int a, int b, int c)
+void SetJobCompletionWidget(struct S *job, int a, int b, int c)
 {
-    p->a = a;
-    p->b = b;
-    p->c = c;
+    job->a = a;
+    job->b = b;
+    job->c = c;
 }
 } } // namespace M_func_00162660
 
@@ -1022,9 +1022,9 @@ int IsSwTransitionBusy(void *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // True when the job is enabled, not in mode 2/3 and no world transition is in progress.
-int IsJobLive(struct S *p)
+int IsJobLive(struct S *job)
 {
-    if (p->f50 == 0 && p->n != 2 && p->n != 3)
+    if (job->f50 == 0 && job->n != 2 && job->n != 3)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
@@ -1041,10 +1041,10 @@ int GetStateBit(int i);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a visibility record {object, context, state mask, level} to the job.
-void AddJobStateVisibility(struct S *p, int a, int i, int b, int d)
+void AddJobStateVisibility(struct S *job, int a, int i, int b, int d)
 {
-    if (p->f50 == 0 && p->c < 32) {
-        struct E *pe = &p->ae[p->c++];
+    if (job->f50 == 0 && job->c < 32) {
+        struct E *pe = &job->ae[job->c++];
         pe->a = a;
         pe->b = b;
         pe->c = GetStateBit(i);
@@ -1063,10 +1063,10 @@ struct S { char pad[0x50]; int f50; char pad2[0x94 - 0x54]; int c; struct E *ae;
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a state rsmg record {state, root, state machine, goal, level} to the job.
-void AddJobStateRsmg(struct S *p, int a, int b, int c, int d, int f)
+void AddJobStateRsmg(struct S *job, int a, int b, int c, int d, int f)
 {
-    if (p->f50 == 0 && p->c < 32) {
-        struct E *pe = &p->ae[p->c++];
+    if (job->f50 == 0 && job->c < 32) {
+        struct E *pe = &job->ae[job->c++];
         pe->f = f; pe->a = a; pe->b = b; pe->c = c; pe->d = d; pe->e = 0;
     }
 }
@@ -1106,35 +1106,35 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, void *owner);
  * @end-sly2-annot */
 // JOB post-load (slot 15): applies the inactive visuals when it is not current, restores its counters from the save
 // variables and finds its completion widgets.
-void PostJobLoad(struct S *p)
+void PostJobLoad(struct S *job)
 {
     CRef ref;
     int *pn;
-    PostLoLoad(p);
-    if (!IsCurrentJob(p) && IsJobLive(p)) {
-        ApplyStateLoVisibility(p, 5, p->f8c, p->f90);
-        TriggerStateRsmgs(p, 5, p->f94, p->f98, 1);
+    PostLoLoad(job);
+    if (!IsCurrentJob(job) && IsJobLive(job)) {
+        ApplyStateLoVisibility(job, 5, job->f8c, job->f90);
+        TriggerStateRsmgs(job, 5, job->f94, job->f98, 1);
     }
-    pn = &p->fd0;
+    pn = &job->fd0;
     if (*pn) {
         int n;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        p->f7c = n;
+        job->f7c = n;
     }
-    pn = &p->fe0;
+    pn = &job->fe0;
     if (*pn) {
         float g;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         g = *(float *)&ref.m_tag;
         Decref__4CRef(&ref);
-        p->fa4 = g;
+        job->fa4 = g;
     }
-    p->fa8 = GetSaveVarAddress(D_003DD490.m3a18, &p->fe8, D_003D4A60);
-    if (p->fac != -1)
-        p->fb8 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, p->fac, 0);
-    p->fbc = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
+    job->fa8 = GetSaveVarAddress(D_003DD490.m3a18, &job->fe8, D_003D4A60);
+    if (job->fac != -1)
+        job->fb8 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->fac, 0);
+    job->fbc = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
 }
 } } // namespace M_PostJobLoad
 
@@ -1196,15 +1196,15 @@ void UpdateJobSaveVars(struct S *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Clears the start counts of the job's tasks and the job's own, and refreshes their save variables.
-void ResetJobTasks(struct S *p)
+void ResetJobTasks(struct S *job)
 {
     struct X *px;
-    for (px = p->pFirst; px; px = px->pNext) {
+    for (px = job->pFirst; px; px = px->pNext) {
         px->f64 = 0;
         UpdateTaskSaveVars(px);
     }
-    p->f7c = 0;
-    UpdateJobSaveVars(p);
+    job->f7c = 0;
+    UpdateJobSaveVars(job);
 }
 } } // namespace M_ResetJobTasks
 
@@ -1243,16 +1243,16 @@ extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Makes the job current; when live: counts the start, event 0x21, active visuals and rsmgs, message 0x13.
-extern "C" void BeginJob(O *p)
+extern "C" void BeginJob(O *job)
 {
-    SetSwJobCur(&D_003DD490, p);
-    if (IsJobLive(p)) {
-        p->f7c++;
-        UpdateJobSaveVars(p);
-        BroadcastGameEvent(D_002DEB30, 0x21, p);
-        ApplyStateLoVisibility(p, 4, p->f8c, p->f90);
-        TriggerStateRsmgs(p, 4, p->f94, p->f98, p->ff0);
-        p->Msg(0x13, 0, 0, 0, 0);
+    SetSwJobCur(&D_003DD490, job);
+    if (IsJobLive(job)) {
+        job->f7c++;
+        UpdateJobSaveVars(job);
+        BroadcastGameEvent(D_002DEB30, 0x21, job);
+        ApplyStateLoVisibility(job, 4, job->f8c, job->f90);
+        TriggerStateRsmgs(job, 4, job->f94, job->f98, job->ff0);
+        job->Msg(0x13, 0, 0, 0, 0);
     }
 }
 } // namespace M_BeginJob
@@ -1302,10 +1302,10 @@ static inline int FSame(W *pw1, W *pw2)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Ends the job (and its pending task); when live: event 0x22, inactive visuals and rsmgs, message 0x14.
-extern "C" void EndJob(O *p)
+extern "C" void EndJob(O *job)
 {
     SetSwJobCur(&D_003DD490, 0);
-    if (D_003DD490.f3b14 && D_003DD490.f3b14->f7c && D_003DD490.f3b14->f7c == p)
+    if (D_003DD490.f3b14 && D_003DD490.f3b14->f7c && D_003DD490.f3b14->f7c == job)
         SetSwTaskPending(&D_003DD490, 0);
     W *pw1 = GetCurrentWorldEntry();
     W *pw2 = GetLevelFileRecord(IlevelCur__Fv());
@@ -1313,11 +1313,11 @@ extern "C" void EndJob(O *p)
         D_003DD490.f3c88 = 0x189;
         D_003DD490.f3c8c = -1;
     }
-    if (IsJobLive(p)) {
-        BroadcastGameEvent(D_002DEB30, 0x22, p);
-        ApplyStateLoVisibility(p, 5, p->f8c, p->f90);
-        TriggerStateRsmgs(p, 5, p->f94, p->f98, p->ff0);
-        p->Msg(0x14, 0, 0, 0, 0);
+    if (IsJobLive(job)) {
+        BroadcastGameEvent(D_002DEB30, 0x22, job);
+        ApplyStateLoVisibility(job, 5, job->f8c, job->f90);
+        TriggerStateRsmgs(job, 5, job->f94, job->f98, job->ff0);
+        job->Msg(0x14, 0, 0, 0, 0);
     }
 }
 } // namespace M_EndJob
@@ -1356,28 +1356,28 @@ extern "C" void RestartJob(O *p);
  * @end-sly2-annot */
 // The job's game-event hook: when live, forwards the event (message 0x11) and checks the complete and fail lists;
 // when not live, event 0x10 restarts it.
-extern "C" void HandleJobGameEvent(O *p, int n, int m)
+extern "C" void HandleJobGameEvent(O *job, int n, int m)
 {
-    if (IsJobLive(p)) {
+    if (IsJobLive(job)) {
         void *apv[2];
         int i;
         apv[0] = &n;
         apv[1] = &m;
-        p->Msg(0x11, 0, 2, apv, 0);
-        for (i = 0; i < p->c54; i++) {
-            if (n == p->a58[i]) {
-                SignalJobComplete(p);
+        job->Msg(0x11, 0, 2, apv, 0);
+        for (i = 0; i < job->c54; i++) {
+            if (n == job->a58[i]) {
+                SignalJobComplete(job);
                 break;
             }
         }
-        for (i = 0; i < p->c5C; i++) {
-            if (n == p->a60[i]) {
-                FailJob(p);
+        for (i = 0; i < job->c5C; i++) {
+            if (n == job->a60[i]) {
+                FailJob(job);
                 break;
             }
         }
-    } else if (n == 0x10 && p->f50 && !IsSwTransitionBusy(&D_003DD490)) {
-        RestartJob(p);
+    } else if (n == 0x10 && job->f50 && !IsSwTransitionBusy(&D_003DD490)) {
+        RestartJob(job);
     }
 }
 } // namespace M_HandleJobGameEvent
@@ -1501,14 +1501,14 @@ void EndCurrentJob(struct S *p);
  * @end-sly2-annot */
 // Aborts the job: resets its tasks, makes the start task available again, ends the current task when it belongs to
 // the job, event 0x1F, ends the job.
-void AbortJob(struct S *p)
+void AbortJob(struct S *job)
 {
-    ResetJobTasks(p);
-    SetTaskStateCascade(p->f64, 1);
-    if ((*(struct T * *)&g_sw.ploTaskCur) && (*(struct T * *)&g_sw.ploTaskCur)->ps == p)
+    ResetJobTasks(job);
+    SetTaskStateCascade(job->f64, 1);
+    if ((*(struct T * *)&g_sw.ploTaskCur) && (*(struct T * *)&g_sw.ploTaskCur)->ps == job)
         DeactivateTask((*(struct T * *)&g_sw.ploTaskCur));
-    BroadcastGameEvent(D_002DEB30, 0x1F, p);
-    EndCurrentJob(p);
+    BroadcastGameEvent(D_002DEB30, 0x1F, job);
+    EndCurrentJob(job);
 }
 } } // namespace M_AbortJob
 
@@ -1547,13 +1547,13 @@ void AutosaveGame(void *p, int n);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Finishes the job: marks the end task complete, event 0x20, ends the job and autosaves.
-void FinishJob(struct S *p)
+void FinishJob(struct S *job)
 {
-    if (!p->f78)
-        SetTaskStateCascade(p->f68, 3);
-    BroadcastGameEvent(D_002DEB30, 0x20, p);
-    EndCurrentJob(p);
-    if (!p->f78)
+    if (!job->f78)
+        SetTaskStateCascade(job->f68, 3);
+    BroadcastGameEvent(D_002DEB30, 0x20, job);
+    EndCurrentJob(job);
+    if (!job->f78)
         AutosaveGame(D_002E65E0, 0);
 }
 } } // namespace M_FinishJob
@@ -1575,21 +1575,21 @@ void TakeExit(struct LO *plo);
  * @end-sly2-annot */
 // After a job: steps the game sequence queue when it is not empty, else activates the next task or takes the exit
 // object.
-void ContinueAfterJob(struct S *p)
+void ContinueAfterJob(struct S *job)
 {
     char *pv = D_002E1E88;
     if (func_001A4E70(pv)) {
         func_001A4E80(pv);
-    } else if (p->pc0) {
-        RequestTaskState(p->pc0, 4, p);
-    } else if (p->pcc) {
-        struct LO *plo = p->pcc;
+    } else if (job->pc0) {
+        RequestTaskState(job->pc0, 4, job);
+    } else if (job->pcc) {
+        struct LO *plo = job->pcc;
         int v = plo->fl;
         if ((v ^ 1) & 1)
             *(int *)v |= 0x100;
         else
             plo->fl = v | 0x100;
-        TakeExit(p->pcc);
+        TakeExit(job->pcc);
     }
 }
 } } // namespace M_func_00162FD0
@@ -1612,28 +1612,28 @@ void SetJobCompletionPhase(struct S *p, int n);
  * @end-sly2-annot */
 // JOB per-frame update (slot 16): steps the completion sequence (intro label, outro, shared widget, done) as each
 // widget label finishes.
-void UpdateJob(struct S *p)
+void UpdateJob(struct S *job)
 {
-    UpdateLo(p);
-    switch (p->fc4) {
+    UpdateLo(job);
+    switch (job->fc4) {
     case 1:
-        if (!FWidgetAnimPlaying(p->fb8, p->fb0)) {
-            FinishJob(p);
-            if (p->fc0 || p->fcc)
-                SetJobCompletionPhase(p, 3);
+        if (!FWidgetAnimPlaying(job->fb8, job->fb0)) {
+            FinishJob(job);
+            if (job->fc0 || job->fcc)
+                SetJobCompletionPhase(job, 3);
             else
-                SetJobCompletionPhase(p, 2);
+                SetJobCompletionPhase(job, 2);
         }
         break;
     case 2:
-        if (!FWidgetAnimPlaying(p->fb8, p->fb4)) {
-            ContinueAfterJob(p);
-            SetJobCompletionPhase(p, 0);
+        if (!FWidgetAnimPlaying(job->fb8, job->fb4)) {
+            ContinueAfterJob(job);
+            SetJobCompletionPhase(job, 0);
         }
         break;
     case 3:
-        if (!FWidgetAnimPlaying(p->fbc, 0x30F))
-            ContinueAfterJob(p);
+        if (!FWidgetAnimPlaying(job->fbc, 0x30F))
+            ContinueAfterJob(job);
         break;
     }
 }
@@ -1677,63 +1677,63 @@ static __inline__ void VCall49(struct O *po, int n)
  * @end-sly2-annot */
 // Sets the completion phase (0 none, 1 intro, 2 outro, 3 shared widget): leaving 0 finds the next task and takes
 // control from the player; returning to 0 hides the widgets and gives control back.
-void SetJobCompletionPhase(struct X *p, int n)
+void SetJobCompletionPhase(struct X *job, int n)
 {
     int i;
-    if (p->fC4 == n) return;
-    if (p->fC4 == 0) {
+    if (job->fC4 == n) return;
+    if (job->fC4 == 0) {
         int v;
-        p->fC0 = 0;
-        for (i = 0; i < p->f68->cA0; i++) {
-            struct X *px = p->f68->aA4[i];
+        job->fC0 = 0;
+        for (i = 0; i < job->f68->cA0; i++) {
+            struct X *px = job->f68->aA4[i];
             if (px->fC4) {
-                p->fC0 = px;
+                job->fC0 = px;
                 break;
             }
         }
-        if (p->fC0) {
+        if (job->fC0) {
             int j;
-            for (j = 0; j < p->fC0->c94; j++) {
-                struct X *px = p->fC0->a98[j];
-                if (px != p->f68 && !IsTaskComplete(px)) {
-                    p->fC0 = 0;
+            for (j = 0; j < job->fC0->c94; j++) {
+                struct X *px = job->fC0->a98[j];
+                if (px != job->f68 && !IsTaskComplete(px)) {
+                    job->fC0 = 0;
                     break;
                 }
             }
         }
-        SetLoBusyk(p, 1);
-        v = p->fl;
+        SetLoBusyk(job, 1);
+        v = job->fl;
         if ((v ^ 1) & 1)
             *(int *)v |= 0x102;
         else
-            p->fl = v | 0x102;
+            job->fl = v | 0x102;
         IncrementSwHandsOff(D_003DD490, 2);
     }
-    p->fC4 = n;
-    p->fC8 = D_002DDED0.t;
+    job->fC4 = n;
+    job->fC8 = D_002DDED0.t;
     switch (n) {
     case 0: {
         int v;
-        if (p->pBC) VCall50(p->pBC);
-        if (p->pB8) VCall50(p->pB8);
-        SetLoBusyk(p, 2);
-        v = p->fl;
+        if (job->pBC) VCall50(job->pBC);
+        if (job->pB8) VCall50(job->pB8);
+        SetLoBusyk(job, 2);
+        v = job->fl;
         if ((v ^ 1) & 1)
             *(int *)v &= ~0x102;
         else
-            p->fl = v & ~0x102;
+            job->fl = v & ~0x102;
         DecrementSwHandsOff(D_003DD490, 2);
         break;
     }
     case 1:
-        VCall49(p->pB8, -1);
-        PlayWidgetAnim(p->pB8, p->fB0);
+        VCall49(job->pB8, -1);
+        PlayWidgetAnim(job->pB8, job->fB0);
         break;
     case 3:
-        VCall49(p->pBC, -1);
+        VCall49(job->pBC, -1);
         break;
     case 2:
-        PlayWidgetAnim(p->pB8, p->fB4);
+        PlayWidgetAnim(job->pB8, job->fB4);
         break;
     }
 }
@@ -1781,10 +1781,10 @@ static inline int Max(int a, int b) { return a > b ? a : b; }
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Returns the job's state from its tasks: the start task's state while below 2, else max(end task state, 1).
-int GetJobState(struct S *p)
+int GetJobState(struct S *job)
 {
-    int n = p->a->n;
-    return n < 2 ? n : Max(p->b->n, 1);
+    int n = job->a->n;
+    return n < 2 ? n : Max(job->b->n, 1);
 }
 } } // namespace M_func_00163430
 
@@ -1818,10 +1818,10 @@ static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,cont
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Writes the job's count, complete flag and elapsed time into its save variables.
-extern "C" void UpdateJobSaveVars(S*p){
- {OPT*opt=&p->a;if(opt->kind){SetInt(opt,p->n);}}
- {OPT*opt=&p->b;if(opt->kind){void*key=D_003D4A60;int f=IsJobComplete(p);{SetBool(opt,f!=0,key);}}}
- {OPT*opt=&p->c;if(opt->kind){CRef r(p->g);SetPv(opt,r);}}
+extern "C" void UpdateJobSaveVars(S*job){
+ {OPT*opt=&job->a;if(opt->kind){SetInt(opt,job->n);}}
+ {OPT*opt=&job->b;if(opt->kind){void*key=D_003D4A60;int f=IsJobComplete(job);{SetBool(opt,f!=0,key);}}}
+ {OPT*opt=&job->c;if(opt->kind){CRef r(job->g);SetPv(opt,r);}}
 }
 } // namespace M_UpdateJobSaveVars
 
@@ -1902,26 +1902,26 @@ static inline void *PvAllocB(ALLOCREQ *preq, int cb, int nKind)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Loads a TASK from the BRX: visibility and rsmg arrays, then its prerequisite and successor oid lists.
-extern "C" void LoadTaskFromBrx(S *p, CBinaryInputStream *stream)
+extern "C" void LoadTaskFromBrx(S *task, CBinaryInputStream *stream)
 {
     int i = 0;
     STACKSCOPE fr;
     ALLOCREQ req;
-    p->aAC = PvAllocReq(&req, 0x200, 0x10);
-    p->aB4 = PvAllocReq(&req, 0x300, 0x10);
-    LoadLoFromBrx(p, stream);
-    p->aAC = PvShrinkReq(&req, p->cA8 * 16, 0x10, p->aAC);
-    p->aB4 = PvShrinkReq(&req, p->cB0 * 0x18, 0x10, p->aB4);
-    p->c94 = stream->U8Read();
-    p->a98 = PvAllocA(&req, p->c94 * 4, 0x10);
-    p->a90 = (int *)PvAllocB(&req, p->c94 * 4, 0x10);
-    for (; i < p->c94; i++)
-        p->a90[i] = stream->S32Read();
-    p->cA0 = stream->U8Read();
-    p->aA4 = PvAllocA(&req, p->cA0 * 4, 0x10);
-    p->a9C = (int *)PvAllocB(&req, p->cA0 * 4, 0x10);
-    for (int j = 0; j < p->cA0; j++)
-        p->a9C[j] = stream->S32Read();
+    task->aAC = PvAllocReq(&req, 0x200, 0x10);
+    task->aB4 = PvAllocReq(&req, 0x300, 0x10);
+    LoadLoFromBrx(task, stream);
+    task->aAC = PvShrinkReq(&req, task->cA8 * 16, 0x10, task->aAC);
+    task->aB4 = PvShrinkReq(&req, task->cB0 * 0x18, 0x10, task->aB4);
+    task->c94 = stream->U8Read();
+    task->a98 = PvAllocA(&req, task->c94 * 4, 0x10);
+    task->a90 = (int *)PvAllocB(&req, task->c94 * 4, 0x10);
+    for (; i < task->c94; i++)
+        task->a90[i] = stream->S32Read();
+    task->cA0 = stream->U8Read();
+    task->aA4 = PvAllocA(&req, task->cA0 * 4, 0x10);
+    task->a9C = (int *)PvAllocB(&req, task->cA0 * 4, 0x10);
+    for (int j = 0; j < task->cA0; j++)
+        task->a9C[j] = stream->S32Read();
     CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadTaskFromBrx
@@ -1937,9 +1937,9 @@ int IsSwTransitionBusy(void *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // True when the task is enabled, not in mode 2/3 and no world transition is in progress.
-int IsTaskLive(struct S *p)
+int IsTaskLive(struct S *task)
 {
-    if (p->f50 == 0 && p->n != 2 && p->n != 3)
+    if (task->f50 == 0 && task->n != 2 && task->n != 3)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
@@ -1956,10 +1956,10 @@ int GetStateMaskFromSplice(void *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a visibility record (state mask from a Splice list) to the task.
-void AddTaskStateVisibility(struct S *p, int a, void *pv, int b, int d)
+void AddTaskStateVisibility(struct S *task, int a, void *pv, int b, int d)
 {
-    if (p->f50 == 0 && p->c < 32) {
-        struct E *pe = &p->ae[p->c++];
+    if (task->f50 == 0 && task->c < 32) {
+        struct E *pe = &task->ae[task->c++];
         pe->a = a;
         pe->b = b;
         pe->c = GetStateMaskFromSplice(pv);
@@ -1978,10 +1978,10 @@ struct S { char pad[0x50]; int f50; char pad2[0xB0 - 0x54]; int c; struct E *ae;
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a state rsmg record to the task.
-void AddTaskStateRsmg(struct S *p, int a, int b, int c, int d, int e, int f)
+void AddTaskStateRsmg(struct S *task, int a, int b, int c, int d, int e, int f)
 {
-    if (p->f50 == 0 && p->c < 32) {
-        struct E *pe = &p->ae[p->c++];
+    if (task->f50 == 0 && task->c < 32) {
+        struct E *pe = &task->ae[task->c++];
         pe->a = a; pe->b = b; pe->c = c; pe->d = d; pe->e = e; pe->f = f;
     }
 }
@@ -2026,62 +2026,62 @@ void SetLoBusyk(struct S *p, int n);
  * @end-sly2-annot */
 // TASK post-load (slot 15): links it into its job, resolves the prerequisite and successor oids, applies the
 // inactive visuals when live, restores its save variables and makes it busy when timed or marked.
-void PostTaskLoad(struct S *p)
+void PostTaskLoad(struct S *task)
 {
     CRef ref;
     int i;
     register int j asm("$16"); /* allocation: i/j tie in global alloc */
     int *pnC8;
     int *pnD0;
-    PostLoLoad(p);
-    if (p->f7c)
-        func_0011A070(&p->f7c->children, p);
+    PostLoLoad(task);
+    if (task->f7c)
+        func_0011A070(&task->f7c->children, task);
     i = 0;
     j = 0;
-    pnC8 = &p->fc8;
-    pnD0 = &p->fd0;
-    if (p->c94 > 0) {
+    pnC8 = &task->fc8;
+    pnD0 = &task->fd0;
+    if (task->c94 > 0) {
         do {
-            void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, p->a90[i], 0);
+            void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->a90[i], 0);
             if (pv)
-                p->a98[j++] = pv;
-        } while (++i < p->c94);
+                task->a98[j++] = pv;
+        } while (++i < task->c94);
     }
-    p->c94 = j;
+    task->c94 = j;
     j = 0;
-    for (i = 0; i < p->cA0; i++) {
-        void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, p->a9C[i], 0);
+    for (i = 0; i < task->cA0; i++) {
+        void *pv = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 0x105, task->a9C[i], 0);
         if (pv)
-            p->aA4[j++] = pv;
+            task->aA4[j++] = pv;
     }
-    p->cA0 = j;
-    if (IsCurrentTask(p) == 0 && IsTaskLive(p)) {
-        ApplyStateLoVisibility(p, 5, p->fa8, p->fac);
-        TriggerStateRsmgs(p, 5, p->fb0, p->fb4, 1);
+    task->cA0 = j;
+    if (IsCurrentTask(task) == 0 && IsTaskLive(task)) {
+        ApplyStateLoVisibility(task, 5, task->fa8, task->fac);
+        TriggerStateRsmgs(task, 5, task->fb0, task->fb4, 1);
     }
-    if (p->fc8) {
+    if (task->fc8) {
         int n;
         RefGetGlobalSaveVar(&ref, pnC8, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        p->f64 = n;
+        task->f64 = n;
     }
-    if (p->fd0) {
+    if (task->fd0) {
         int n;
         RefGetGlobalSaveVar(&ref, pnD0, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        p->f68 = n;
+        task->f68 = n;
     }
-    if (p->f78 != 0.0f || p->children.first) {
+    if (task->f78 != 0.0f || task->children.first) {
         int v;
-        if ((int)p->bf.k == 2)
-            SetLoBusyk(p, 0);
-        v = p->fl;
+        if ((int)task->bf.k == 2)
+            SetLoBusyk(task, 0);
+        v = task->fl;
         if ((v ^ 1) & 1)
             *(int *)v |= 2;
         else
-            p->fl = v | 2;
+            task->fl = v | 2;
     }
 }
 
@@ -2136,18 +2136,18 @@ void SendTaskTimeout(struct S *p, int n);
  * @end-sly2-annot */
 // TASK per-frame update (slot 16): sends the timeout of a timed available task and shows its marker object only while
 // it is available and no job is current.
-void UpdateTask(struct S *p)
+void UpdateTask(struct S *task)
 {
     struct O *po;
-    UpdateLo(p);
-    if (p->n == 1 && p->dt > 0.0f) {
-        float dt = D_002DDED0.t - p->t;
-        if (dt < p->dt && p->dt + D_002DDED0.dt <= dt)
-            SendTaskTimeout(p, 0);
+    UpdateLo(task);
+    if (task->n == 1 && task->dt > 0.0f) {
+        float dt = D_002DDED0.t - task->t;
+        if (dt < task->dt && task->dt + D_002DDED0.dt <= dt)
+            SendTaskTimeout(task, 0);
     }
-    po = p->po;
+    po = task->po;
     if (po) {
-        int f = p->n == 1; if ((*(int *)&g_sw.ploJobCur)) f = 0;
+        int f = task->n == 1; if ((*(int *)&g_sw.ploJobCur)) f = 0;
         if (f) {
             struct VTE *e = &po->vt[8];
             e->pfn((char *)po + e->d);
@@ -2200,14 +2200,14 @@ extern "C" void BeginTask(X *px);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Makes the task current unless it already is, ending the previous one.
-extern "C" void ActivateTask(X *px)
+extern "C" void ActivateTask(X *task)
 {
-    if (IsCurrentTask(px)) return;
+    if (IsCurrentTask(task)) return;
     if (D_003DD490.f3b10) {
-        CSave save(D_003DD490.f3b10, px->fF4, px->fF8);
+        CSave save(D_003DD490.f3b10, task->fF4, task->fF8);
         DeactivateTask(D_003DD490.f3b10);
     }
-    BeginTask(px);
+    BeginTask(task);
 }
 } // namespace M_ActivateTask
 
@@ -2273,31 +2273,31 @@ extern "C" void TakeExit(LO *plo);
  * @end-sly2-annot */
 // Makes the task current (and pending when it has a warp) and activates its job; when live: counts the start, event
 // 0x23, active visuals, starts its music, message 0x13.
-extern "C" void BeginTask(O *p)
+extern "C" void BeginTask(O *task)
 {
     G *pg = &D_003DD490;
-    SetSwTaskCur(pg, p);
-    if (p->fb8 != -1)
-        SetSwTaskPending(pg, p);
-    if (p->f7c && !IsCurrentJob(p->f7c))
-        ActivateJob(p->f7c);
-    if (IsTaskLive(p)) {
-        p->f64++;
-        UpdateTaskSaveVars(p);
-        BroadcastGameEvent(D_002DEB30, 0x23, p);
-        ApplyStateLoVisibility(p, 4, p->fa8, p->fac);
-        TriggerStateRsmgs(p, 4, p->fb0, p->fb4, p->ff4);
-        if (p->f5c != -1 && p->f60)
-            PostNotice(D_003DA0C0, p->f5c, -1.0f);
-        p->Msg(0x13, 0, 0, 0, 0);
-        if (p->fc4) {
-            LO *plo = p->fc4;
+    SetSwTaskCur(pg, task);
+    if (task->fb8 != -1)
+        SetSwTaskPending(pg, task);
+    if (task->f7c && !IsCurrentJob(task->f7c))
+        ActivateJob(task->f7c);
+    if (IsTaskLive(task)) {
+        task->f64++;
+        UpdateTaskSaveVars(task);
+        BroadcastGameEvent(D_002DEB30, 0x23, task);
+        ApplyStateLoVisibility(task, 4, task->fa8, task->fac);
+        TriggerStateRsmgs(task, 4, task->fb0, task->fb4, task->ff4);
+        if (task->f5c != -1 && task->f60)
+            PostNotice(D_003DA0C0, task->f5c, -1.0f);
+        task->Msg(0x13, 0, 0, 0, 0);
+        if (task->fc4) {
+            LO *plo = task->fc4;
             int v = plo->fl;
             if ((v ^ 1) & 1)
                 *(int *)v |= 0x100;
             else
                 plo->fl = v | 0x100;
-            TakeExit(p->fc4);
+            TakeExit(task->fc4);
         }
     }
 }
@@ -2328,17 +2328,17 @@ extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Rejects a state change: event 0x27 and message 0x12(state) to the task and its job.
-extern "C" void RejectTaskState(O *p, int n)
+extern "C" void RejectTaskState(O *task, int n)
 {
     void *apv[1];
     apv[0] = &n;
-    if (IsTaskLive(p)) {
+    if (IsTaskLive(task)) {
         D_002DEB30.f8 = n;
-        BroadcastGameEvent(&D_002DEB30, 0x27, p);
-        p->Msg(0x12, 0, 1, apv, 0);
+        BroadcastGameEvent(&D_002DEB30, 0x27, task);
+        task->Msg(0x12, 0, 1, apv, 0);
     }
-    if (p->f7c && IsJobLive(p->f7c))
-        p->f7c->Msg(0x12, 0, 1, apv, 0);
+    if (task->f7c && IsJobLive(task->f7c))
+        task->f7c->Msg(0x12, 0, 1, apv, 0);
 }
 } // namespace M_func_00163E88
 
@@ -2377,16 +2377,16 @@ extern "C" void CancelNotice(void *pv, int n);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Ends the task; when live: event 0x24, inactive visuals and rsmgs, stops its music, message 0x14.
-extern "C" void EndTask(O *p)
+extern "C" void EndTask(O *task)
 {
     SetSwTaskCur(&D_003DD490, 0);
-    if (IsTaskLive(p)) {
-        BroadcastGameEvent(D_002DEB30, 0x24, p);
-        ApplyStateLoVisibility(p, 5, p->fa8, p->fac);
-        TriggerStateRsmgs(p, 5, p->fb0, p->fb4, p->ff4);
-        if (p->f5c != -1 && p->f60)
-            CancelNotice(D_003DA0C0, p->f5c);
-        p->Msg(0x14, 0, 0, 0, 0);
+    if (IsTaskLive(task)) {
+        BroadcastGameEvent(D_002DEB30, 0x24, task);
+        ApplyStateLoVisibility(task, 5, task->fa8, task->fac);
+        TriggerStateRsmgs(task, 5, task->fb0, task->fb4, task->ff4);
+        if (task->f5c != -1 && task->f60)
+            CancelNotice(D_003DA0C0, task->f5c);
+        task->Msg(0x14, 0, 0, 0, 0);
     }
 }
 } // namespace M_EndTask
@@ -2418,17 +2418,17 @@ void Decref__4CRef(CRef *pref);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // True when the task is complete (state >= 2; an unset task uses its saved flag).
-int IsTaskComplete(struct S *p)
+int IsTaskComplete(struct S *task)
 {
-    if (p->n == -1 && p->fd8) {
+    if (task->n == -1 && task->fd8) {
         CRef ref;
         int n;
-        RefGetGlobalSaveVar(&ref, &p->fd8, D_003D4A60);
+        RefGetGlobalSaveVar(&ref, &task->fd8, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
         return n;
     }
-    return p->n >= 2;
+    return task->n >= 2;
 }
 } } // namespace M_FTaskComplete
 
@@ -2445,9 +2445,9 @@ struct S { char pad[0x54]; int n; };
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Returns the default state-machine goal oid of the task's state (0x612..0x615 for 0..3), else -1.
-int GetTaskStateGoalOid(struct S *p)
+int GetTaskStateGoalOid(struct S *task)
 {
-    switch (p->n) {
+    switch (task->n) {
     case 0: return 0x612;
     case 1: return 0x613;
     case 2: return 0x614;
@@ -2507,19 +2507,19 @@ static inline int Max(int a, int b) { return a < b ? b : a; }
  * @end-sly2-annot */
 // Topological visit: records the depth and emits the task once all its prerequisites are visited, then visits the
 // successors.
-extern "C" void VisitTaskTopo(X *p, int *pc, X **apx, int nDepth, int n)
+extern "C" void VisitTaskTopo(X *task, int *pc, X **apx, int nDepth, int n)
 {
-    p->f100 = Max(nDepth, p->f100);
-    p->f104 = Max(n, p->f104);
-    p->fFC++;
-    if (p->fFC >= p->c94) {
-        apx[(*pc)++] = p;
+    task->f100 = Max(nDepth, task->f100);
+    task->f104 = Max(n, task->f104);
+    task->fFC++;
+    if (task->fFC >= task->c94) {
+        apx[(*pc)++] = task;
         nDepth++;
-        if (p->f7c && p->f7c->f68 == p)
+        if (task->f7c && task->f7c->f68 == task)
             n++;
-        for (int i = 0; i < p->cA0; i++) {
-            X *px = p->apxA4[i];
-            CSave save(px, p->fF4, p->fF8);
+        for (int i = 0; i < task->cA0; i++) {
+            X *px = task->apxA4[i];
+            CSave save(px, task->fF4, task->fF8);
             VisitTaskTopo(px, pc, apx, nDepth, n);
         }
     }
@@ -2543,13 +2543,13 @@ void SetTaskState(struct X *p, int n);
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Restores the task's state from its save variables (SetTaskState), with the job start-task cases.
-void RestoreTaskState(struct X *p)
+void RestoreTaskState(struct X *task)
 {
     CRef ref;
     int *pn;
     int n = 0;
     int f;
-    pn = &p->fe0;
+    pn = &task->fe0;
     f = 0;
     if (*pn) {
         int nT;
@@ -2558,7 +2558,7 @@ void RestoreTaskState(struct X *p)
         Decref__4CRef(&ref);
         n = nT;
     }
-    pn = &p->fe8;
+    pn = &task->fe8;
     if (*pn) {
         int nT;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
@@ -2566,23 +2566,23 @@ void RestoreTaskState(struct X *p)
         Decref__4CRef(&ref);
         f = nT;
     }
-    if (f && p->f7c && n < 3 && n > 0) {
-        struct X *pxOwner = p->f7c;
+    if (f && task->f7c && n < 3 && n > 0) {
+        struct X *pxOwner = task->f7c;
         int i;
-        p->f64 = 0;
+        task->f64 = 0;
         n = 1;
-        if (pxOwner->f64 == p)
+        if (pxOwner->f64 == task)
             pxOwner->f7c = 0;
-        for (i = 0; i < p->c; i++) {
-            if (p->apx[i]->n < 2) {
+        for (i = 0; i < task->c; i++) {
+            if (task->apx[i]->n < 2) {
                 n = 0;
                 break;
             }
         }
     }
     if (!n)
-        n = p->c == 0;
-    SetTaskState(p, n);
+        n = task->c == 0;
+    SetTaskState(task, n);
 }
 } } // namespace M_RestoreTaskState
 
@@ -2615,14 +2615,14 @@ static inline void SetInt(OPT*p,int n){CRef r(n);SetPv(p,r);}
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Writes the task's fields into its save variables and refreshes its job's.
-extern "C" void UpdateTaskSaveVars(S*p){
- if(p->fF4==1||p->state==-1)return;
- {OPT*opt=&p->c;if(opt->kind){SetInt(opt,p->a);}}
- {OPT*opt=&p->d;if(opt->kind){SetInt(opt,p->b);}}
- {OPT*opt=&p->e;if(opt->kind){void*key=D_003D4A60;int f=IsTaskComplete(p);{CRef r(f!=0);SetPv(opt,r,key);}}}
- {OPT*opt=&p->f;if(opt->kind){SetInt(opt,p->state);}}
- {OPT*opt=&p->h;if(opt->kind){CRef r(false);SetPv(opt,r,D_003D4A60);}}
- if(p->next)UpdateJobSaveVars(p->next);
+extern "C" void UpdateTaskSaveVars(S*task){
+ if(task->fF4==1||task->state==-1)return;
+ {OPT*opt=&task->c;if(opt->kind){SetInt(opt,task->a);}}
+ {OPT*opt=&task->d;if(opt->kind){SetInt(opt,task->b);}}
+ {OPT*opt=&task->e;if(opt->kind){void*key=D_003D4A60;int f=IsTaskComplete(task);{CRef r(f!=0);SetPv(opt,r,key);}}}
+ {OPT*opt=&task->f;if(opt->kind){SetInt(opt,task->state);}}
+ {OPT*opt=&task->h;if(opt->kind){CRef r(false);SetPv(opt,r,D_003D4A60);}}
+ if(task->next)UpdateJobSaveVars(task->next);
 }
 } // namespace M_UpdateTaskSaveVars
 
@@ -2636,12 +2636,12 @@ struct S { char pad[0x94]; int c; struct X **apx; };
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // True when every prerequisite is complete or optional and available.
-int AreTaskPrereqsMet(struct S *p)
+int AreTaskPrereqsMet(struct S *task)
 {
     int f = 1;
     int i;
-    for (i = 0; f && i < p->c; i++) {
-        struct X *px = p->apx[i];
+    for (i = 0; f && i < task->c; i++) {
+        struct X *px = task->apx[i];
         f = 0;
         if (px->n >= 2 || (px->n == 1 && px->f6c))
             f = 1;
@@ -2714,34 +2714,34 @@ extern "C" void RejectTaskState(X *p, int n);
  * @end-sly2-annot */
 // Validated state request: 4 activates, 5 deactivates, 0..3 only one step up or when the prerequisites are met;
 // otherwise rejected.
-extern "C" void RequestTaskState(X *p, int n, int nF8)
+extern "C" void RequestTaskState(X *task, int n, int nF8)
 {
-    CSave save(p, p->fF4, nF8);
-    CSave saveOwner(p->f7c, p->fF4, nF8, 1);
+    CSave save(task, task->fF4, nF8);
+    CSave saveOwner(task->f7c, task->fF4, nF8, 1);
     if (n == -1)
         n = 4;
-    int nCur = p->n54;
+    int nCur = task->n54;
     if (nCur != -1) {
         switch (n) {
         case 4:
             switch (nCur) {
             case 0:
-                if (AreTaskPrereqsMet(p)) {
-                    SetTaskStateCascade(p, 1);
-                    ActivateTask(p);
+                if (AreTaskPrereqsMet(task)) {
+                    SetTaskStateCascade(task, 1);
+                    ActivateTask(task);
                 } else {
-                    RejectTaskState(p, 4);
+                    RejectTaskState(task, 4);
                 }
                 break;
             case 3:
                 break;
             default:
-                ActivateTask(p);
+                ActivateTask(task);
                 break;
             }
             break;
         case 5:
-            DeactivateTask(p);
+            DeactivateTask(task);
             break;
         case 0:
         case 1:
@@ -2751,7 +2751,7 @@ extern "C" void RequestTaskState(X *p, int n, int nF8)
             switch (nCur) {
             case 0:
                 if (n == 1)
-                    f = AreTaskPrereqsMet(p);
+                    f = AreTaskPrereqsMet(task);
                 break;
             case 1:
                 if (n == 3)
@@ -2761,9 +2761,9 @@ extern "C" void RequestTaskState(X *p, int n, int nF8)
                 return;
             }
             if (f)
-                SetTaskStateCascade(p, n);
+                SetTaskStateCascade(task, n);
             else
-                RejectTaskState(p, n);
+                RejectTaskState(task, n);
             break;
         }
         }
@@ -2832,27 +2832,27 @@ extern "C" void DeactivateTask(X *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Unvalidated state change (ForceTaskState): like RequestTaskState without the checks.
-extern "C" void ForceTaskState(X *p, int n, int nF8)
+extern "C" void ForceTaskState(X *task, int n, int nF8)
 {
-    CSave save(p, p->fF4, nF8);
-    CSave saveOwner(p->f7c, p->fF4, nF8, 1);
+    CSave save(task, task->fF4, nF8);
+    CSave saveOwner(task->f7c, task->fF4, nF8, 1);
     if (n == -1)
         n = 4;
-    if (p->n54 != -1) {
+    if (task->n54 != -1) {
         switch (n) {
         case 4:
-            if (p->n54 == 0 && AreTaskPrereqsMet(p))
-                SetTaskStateCascade(p, 1);
-            ActivateTask(p);
+            if (task->n54 == 0 && AreTaskPrereqsMet(task))
+                SetTaskStateCascade(task, 1);
+            ActivateTask(task);
             break;
         case 5:
-            DeactivateTask(p);
+            DeactivateTask(task);
             break;
         case 0:
         case 1:
         case 2:
         case 3:
-            SetTaskStateCascade(p, n);
+            SetTaskStateCascade(task, n);
             break;
         }
     }
@@ -2934,10 +2934,10 @@ extern "C" void UpdateCurrentJob();
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: forces the task to state 0 and updates the current job.
-extern "C" void ForceTaskState0(X *px)
+extern "C" void ForceTaskState0(X *task)
 {
-    CSave save(px);
-    ForceTaskState(px, 0, 0);
+    CSave save(task);
+    ForceTaskState(task, 0, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164AA8
@@ -2982,10 +2982,10 @@ extern "C" void UpdateCurrentJob();
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: forces the task to state 1 and updates the current job.
-extern "C" void ForceTaskState1(X *px)
+extern "C" void ForceTaskState1(X *task)
 {
-    CSave save(px);
-    ForceTaskState(px, 1, 0);
+    CSave save(task);
+    ForceTaskState(task, 1, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164B38
@@ -3030,10 +3030,10 @@ extern "C" void UpdateCurrentJob();
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: forces the task to state 2 and updates the current job.
-extern "C" void ForceTaskState2(X *px)
+extern "C" void ForceTaskState2(X *task)
 {
-    CSave save(px);
-    ForceTaskState(px, 2, 0);
+    CSave save(task);
+    ForceTaskState(task, 2, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164BC8
@@ -3078,10 +3078,10 @@ extern "C" void UpdateCurrentJob();
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: forces the task to state 3 and updates the current job.
-extern "C" void ForceTaskState3(X *px)
+extern "C" void ForceTaskState3(X *task)
 {
-    CSave save(px);
-    ForceTaskState(px, 3, 0);
+    CSave save(task);
+    ForceTaskState(task, 3, 0);
     UpdateCurrentJob();
 }
 } // namespace M_func_00164C58
@@ -3097,22 +3097,22 @@ struct X { char pad[0x54]; int n; char pad2[0x7C - 0x58]; struct Y *py; char pad
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Collects the successors whose state must be raised along with the task (state 2 becomes 3 across jobs).
-void CollectTaskCascade(struct X *p, int n, int *pc, struct X **apx)
+void CollectTaskCascade(struct X *task, int n, int *pc, struct X **apx)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct X *px = p->apx[i];
+    for (i = 0; i < task->c; i++) {
+        struct X *px = task->apx[i];
         int nChild = n;
         if (n == 2) {
             struct Y *py = px->py;
-            if (!py || (py != p->py && !py->f78))
+            if (!py || (py != task->py && !py->f78))
                 nChild = 3;
         }
         CollectTaskCascade(px, nChild, pc, apx);
     }
-    if (p->fF0 == -1 && p->n < n) {
-        apx[(*pc)++] = p;
-        p->fF0 = n;
+    if (task->fF0 == -1 && task->n < n) {
+        apx[(*pc)++] = task;
+        task->fF0 = n;
     }
 }
 } } // namespace M_CollectTaskCascade
@@ -3163,8 +3163,8 @@ static inline void SetValue(void*object,int n){CRef r(n);SetPv(object,r,D_003D4A
  * @end-sly2-annot */
 // The main task state change: propagates to the collected successors, sets the state, updates the episode percent,
 // handles job start and end tasks and autosaves.
-extern "C" void SetTaskStateCascade(P*p,int state){
-    int old=p->state;
+extern "C" void SetTaskStateCascade(P*task,int state){
+    int old=task->state;
     if(state==old)return;
     if(D_002DEB28)return;
     D_002DEB28=1;
@@ -3176,28 +3176,28 @@ extern "C" void SetTaskStateCascade(P*p,int state){
         P**list;
         int count=0;
         list=(P**)Allocate(g_sw.ctask*4);
-        p->pending=state;
-        CollectTaskCascade(p,filter,&count,list);
+        task->pending=state;
+        CollectTaskCascade(task,filter,&count,list);
         for(;i<count;i++){
             P*object=list[i];
-            OVERRIDE temporary(object,p->x,p->y);
+            OVERRIDE temporary(object,task->x,task->y);
             SetTaskStatePropagate(object,object->pending);
         }
         for(int j=0;j<count;j++)list[j]->pending=-1;
-        p->pending=-1;
+        task->pending=-1;
     }
-    SetTaskStatePropagate(p,state);
+    SetTaskStatePropagate(task,state);
     D_002DEB28=0;
     int mode=NWorldCur();
     if((unsigned)mode<9){
         void*object=D_003DD490.players[mode];
         if(object){SetValue(object,GetEpisodePercentComplete(D_002DEB30));}
     }
-    if(IsTaskLive(p)&&old!=-1&&old<2&&p->state>=2){
-        if(p->link){OnJobTaskComplete(p->link,p);if(p->link)return;}
-        if(p->enabled){
+    if(IsTaskLive(task)&&old!=-1&&old<2&&task->state>=2){
+        if(task->link){OnJobTaskComplete(task->link,task);if(task->link)return;}
+        if(task->enabled){
             int all=1;
-            for(int i=0;i<p->count;i++){if(!p->children[i]->link){all=0;break;}}
+            for(int i=0;i<task->count;i++){if(!task->children[i]->link){all=0;break;}}
             if(!all)return;
         }
         AutosaveGame(D_002E65E0,0);
@@ -3221,12 +3221,12 @@ extern "C" int IsTaskLive(O *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // When live, sends the task's timeout message (0x17).
-extern "C" void SendTaskTimeout(O *p, int n)
+extern "C" void SendTaskTimeout(O *task, int n)
 {
-    if (IsTaskLive(p)) {
+    if (IsTaskLive(task)) {
         void *apv[1];
         apv[0] = &n;
-        p->Msg(0x17, 0, 1, apv, 0);
+        task->Msg(0x17, 0, 1, apv, 0);
     }
 }
 } // namespace M_func_00165118
@@ -3247,13 +3247,13 @@ extern "C" int IsTaskLive(O *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // When live, forwards a game event to the task (message 0x11).
-extern "C" void SendTaskGameEvent(O *p, int n, int m)
+extern "C" void SendTaskGameEvent(O *task, int n, int m)
 {
-    if (IsTaskLive(p)) {
+    if (IsTaskLive(task)) {
         void *apv[2];
         apv[0] = &n;
         apv[1] = &m;
-        p->Msg(0x11, 0, 2, apv, 0);
+        task->Msg(0x11, 0, 2, apv, 0);
     }
 }
 } // namespace M_SendTaskGameEvent
@@ -3477,34 +3477,34 @@ extern "C" void WipeToWorldWarp(G *pg, void *p, int a, int b, int c, int d);
  * @end-sly2-annot */
 // Goes to a task: switches to its job, makes it available and current, picks its character and wipes to its level and
 // warp.
-extern "C" void GoToTask(X *p)
+extern "C" void GoToTask(X *task)
 {
-    CSave save(p, 2, 0);
-    CSave saveOwner(p->f7c, 2, 0, 1);
-    if (p->f7c != D_003DD490.f3b0c) {
+    CSave save(task, 2, 0);
+    CSave saveOwner(task->f7c, 2, 0, 1);
+    if (task->f7c != D_003DD490.f3b0c) {
         if (D_003DD490.f3b0c) {
             CSave saveCur(D_003DD490.f3b0c, 2, 0, 1);
             AbortJob(D_003DD490.f3b0c);
         }
-        if (p->f7c)
-            SetCurrentJob(p->f7c);
+        if (task->f7c)
+            SetCurrentJob(task->f7c);
     }
-    SetTaskStateCascade(p, 1);
-    ActivateTask(p);
-    if (p->fC0 != -1) {
+    SetTaskStateCascade(task, 1);
+    ActivateTask(task);
+    if (task->fC0 != -1) {
         CRef refRet;
         CRef ref;
         ref.m_tagk = 0x15;
-        ref.m_tag = p->fC0;
+        ref.m_tag = task->fC0;
         RefSetSaveVarV(&refRet, &ref, D_002A5238, 0);
         Decref__4CRef(&refRet);
         Decref__4CRef(&ref);
     }
-    int id = p->fB8 == -1 ? 0x189 : p->fB8;
+    int id = task->fB8 == -1 ? 0x189 : task->fB8;
     int k = 4;
-    if (D_003DD490.f3e38 && (p->fBC == -1 || p->fBC == IlevelCur__Fv()))
+    if (D_003DD490.f3e38 && (task->fBC == -1 || task->fBC == IlevelCur__Fv()))
         k = 0x24;
-    WipeToWorldWarp(&D_003DD490, GetLevelFileRecord(p->fBC), id, -1, k, 0x30A);
+    WipeToWorldWarp(&D_003DD490, GetLevelFileRecord(task->fBC), id, -1, k, 0x30A);
 }
 } // namespace M_GoToTask
 
@@ -3582,61 +3582,61 @@ extern "C" void DeactivateTask(O *p);
  * @end-sly2-annot */
 // Low-level task state set: events 0x26/0x25, the available-task list, counts, save variables, messages 0x16/0x15 and
 // the follow-up activate/deactivate.
-extern "C" void SetTaskState(O *p, int n)
+extern "C" void SetTaskState(O *task, int n)
 {
-    if (p->n54 == n)
+    if (task->n54 == n)
         return;
-    if (IsTaskLive(p)) {
-        BroadcastGameEvent(D_002DEB30, 0x26, p);
-        p->Msg(0x16, 0, 0, 0, 0);
+    if (IsTaskLive(task)) {
+        BroadcastGameEvent(D_002DEB30, 0x26, task);
+        task->Msg(0x16, 0, 0, 0, 0);
     }
-    if (p->n54 == 1)
-        RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, p);
-    if (IsTaskLive(p)) {
-        ApplyStateLoVisibility(p, n, p->fa8, p->fac);
-        TriggerStateRsmgs(p, n, p->fb0, p->fb4, p->ff4);
+    if (task->n54 == 1)
+        RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, task);
+    if (IsTaskLive(task)) {
+        ApplyStateLoVisibility(task, n, task->fa8, task->fac);
+        TriggerStateRsmgs(task, n, task->fb0, task->fb4, task->ff4);
     }
     switch (n) {
     case 0:
-        if (p->ff4 == 4) {
-            p->f64 = 0;
-            p->f68 = 0;
-            if (p->f7c && p->f7c->f64 == p)
-                p->f7c->f7c = 0;
+        if (task->ff4 == 4) {
+            task->f64 = 0;
+            task->f68 = 0;
+            if (task->f7c && task->f7c->f64 == task)
+                task->f7c->f7c = 0;
         }
         break;
     case 1:
-        AppendDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, p);
+        AppendDlEntry__FP2DLPv((DL *)&g_sw.dlTaskActive, task);
         break;
     case 2:
-        if (p->ff4 == 0)
-            p->f68++;
+        if (task->ff4 == 0)
+            task->f68++;
         break;
     }
-    p->n54 = n;
-    p->f58 = D_002DDED0.t;
-    UpdateTaskSaveVars(p);
-    if (IsTaskLive(p)) {
-        BroadcastGameEvent(D_002DEB30, 0x25, p);
-        p->Msg(0x15, 0, 0, 0, 0);
-        p->V4(0x11, p);
+    task->n54 = n;
+    task->f58 = D_002DDED0.t;
+    UpdateTaskSaveVars(task);
+    if (IsTaskLive(task)) {
+        BroadcastGameEvent(D_002DEB30, 0x25, task);
+        task->Msg(0x15, 0, 0, 0, 0);
+        task->V4(0x11, task);
     }
-    switch (p->ff4) {
+    switch (task->ff4) {
     case 1:
-        if (p->n54 == 1 && p->f74)
-            D_002DEB44 = p->f18;
+        if (task->n54 == 1 && task->f74)
+            D_002DEB44 = task->f18;
         break;
     case 0:
     case 2:
     case 4:
-        switch (p->n54) {
+        switch (task->n54) {
         case 1:
-            if (p->f70)
-                ActivateTask(p);
+            if (task->f70)
+                ActivateTask(task);
             break;
         case 0:
         case 3:
-            DeactivateTask(p);
+            DeactivateTask(task);
             break;
         }
         break;
@@ -3689,15 +3689,15 @@ extern "C" void RecomputeTaskState(X *px, int n);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // SetTaskState, then recomputes each successor.
-extern "C" void SetTaskStatePropagate(S *p, int n)
+extern "C" void SetTaskStatePropagate(S *task, int n)
 {
     int i;
-    if (p->n == n) return;
-    SetTaskState(p, n);
-    for (i = 0; i < p->c; i++) {
-        X *px = p->apx[i];
-        CSave save(px, p->fF4, p->fF8);
-        RecomputeTaskState(px, p->n);
+    if (task->n == n) return;
+    SetTaskState(task, n);
+    for (i = 0; i < task->c; i++) {
+        X *px = task->apx[i];
+        CSave save(px, task->fF4, task->fF8);
+        RecomputeTaskState(px, task->n);
     }
 }
 } // namespace M_SetTaskStatePropagate
@@ -3714,19 +3714,19 @@ void SetTaskStatePropagate(struct X *p, int n);
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Derives a successor's state from its prerequisites (locked until all are complete, then available).
-void RecomputeTaskState(struct X *p, int n)
+void RecomputeTaskState(struct X *task, int n)
 {
     int nNew; int nState;
-    if (p->fF0 != -1) return;
-    nState = p->n; nNew = nState;
+    if (task->fF0 != -1) return;
+    nState = task->n; nNew = nState;
     if (n >= 0) {
         if (n < 2) {
             nNew = 0;
         } else if (n < 4) {
             int f = 1;
             int i;
-            for (i = 0; i < p->c; i++) {
-                if (p->apy[i]->n < 2) {
+            for (i = 0; i < task->c; i++) {
+                if (task->apy[i]->n < 2) {
                     f = 0;
                     break;
                 }
@@ -3734,7 +3734,7 @@ void RecomputeTaskState(struct X *p, int n)
             if (!f) {
                 nNew = 0;
             } else {
-                switch (p->n) {
+                switch (task->n) {
                 case 0: nNew = 1; break;
                 case 1: case 2: break;
                 case 3: nNew = n; break;
@@ -3742,7 +3742,7 @@ void RecomputeTaskState(struct X *p, int n)
             }
         }
     }
-    SetTaskStatePropagate(p, nNew);
+    SetTaskStatePropagate(task, nNew);
 }
 } } // namespace M_RecomputeTaskState
 

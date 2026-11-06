@@ -945,45 +945,45 @@ void SetMcDialogPhase(void *p, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Worker job: checks the free space, deletes a stale save, creates the directory and writes the slot files.
-int McJobCreateSave(struct S *s)
+int McJobCreateSave(struct S *saveManager)
 {
     char name[0x50];
     int n;
     int k;
     int r;
     int i;
-    void *p = s->xFD5C;
+    void *p = saveManager->xFD5C;
     k = 1;
-    r = McSyncResult(p, sceMcGetEntSpace(s->x0, s->x4, "/"), 0x12, &n);
+    r = McSyncResult(p, sceMcGetEntSpace(saveManager->x0, saveManager->x4, "/"), 0x12, &n);
     if (r == 0) {
         if (!n)
             k = 2;
         k += 5;
         k += (FOpenSaveIconFile(D_002A38E8) + 0x3FF) / 0x400;
         k += 0x42;
-        if (s->x1C < k) {
+        if (saveManager->x1C < k) {
             r = 1;
         } else {
-            r = CreateSaveDir(s);
+            r = CreateSaveDir(saveManager);
             if (r == 0) {
                 for (i = 0; i < 3; i++) {
-                    r = WriteSaveSlotFileReset(s, &s->a[i]);
+                    r = WriteSaveSlotFileReset(saveManager, &saveManager->a[i]);
                     if (r)
                         goto cleanup;
                 }
-                if (s->xC < 5)
-                    s->xC = 5;
+                if (saveManager->xC < 5)
+                    saveManager->xC = 5;
                 goto done;
             }
 cleanup:
             for (i = 0; i < 3; i++) {
-                BuildSaveFilePath(s, &s->a[i], name);
-                McDelete(s, name);
+                BuildSaveFilePath(saveManager, &saveManager->a[i], name);
+                McDelete(saveManager, name);
             }
-            McDelete(s, "/BASCUS-97316YAOTWTD!/icon.sys");
-            McDelete(s, "/BASCUS-97316YAOTWTD!/memcard_icon.ico");
-            McDelete(s, "/BASCUS-97316YAOTWTD!/BASCUS-97316YAOTWTD!");
-            McDelete(s, "/BASCUS-97316YAOTWTD!");
+            McDelete(saveManager, "/BASCUS-97316YAOTWTD!/icon.sys");
+            McDelete(saveManager, "/BASCUS-97316YAOTWTD!/memcard_icon.ico");
+            McDelete(saveManager, "/BASCUS-97316YAOTWTD!/BASCUS-97316YAOTWTD!");
+            McDelete(saveManager, "/BASCUS-97316YAOTWTD!");
         }
     }
     if (r)
@@ -1012,23 +1012,23 @@ int ReadSaveSlotHeaders(struct S *s, struct B *b);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Worker job: reads the card info and the save directory, then each slot's header.
-int McJobGetDir(struct S *s)
+int McJobGetDir(struct S *saveManager)
 {
-    void *p = s->xFD5C;
+    void *p = saveManager->xFD5C;
     int n[2];
     int r;
     int i;
-    r = McSyncResult(p, sceMcGetDir(s->x0, s->x4, "/BASCUS-97316YAOTWTD!", 0, -1, 0), 0xD, &n[0]);
+    r = McSyncResult(p, sceMcGetDir(saveManager->x0, saveManager->x4, "/BASCUS-97316YAOTWTD!", 0, -1, 0), 0xD, &n[0]);
     if (n[0] <= 0) {
-        McGetInfoSync(s, &n[1]);
+        McGetInfoSync(saveManager, &n[1]);
         if (n[1] <= 0x18FFF)
-            s->xC = 4;
+            saveManager->xC = 4;
         return 0xE;
     }
     for (i = 0; r == 0 && i < 3; i++)
-        ReadSaveSlotHeaders(s, &s->a[i]);
-    if (r == 0 && s->xC < 5)
-        s->xC = 5;
+        ReadSaveSlotHeaders(saveManager, &saveManager->a[i]);
+    if (r == 0 && saveManager->xC < 5)
+        saveManager->xC = 5;
     return r;
 }
 } } // namespace M_McJobGetDir
@@ -1067,9 +1067,9 @@ void SetMcDialogPhase(void *p, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Worker job: checks the card, creates the save directory when needed and writes one slot file.
-void *McJobSaveSlot(struct S *s)
+void *McJobSaveSlot(struct S *saveManager)
 {
-    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = WriteSaveSlotFile(s, s->x); if (p) SetMcDialogPhase(D_002E6550, 3); return p;
+    void *p = McJobGetInfo(saveManager); if (!p) p = CreateSaveDir(saveManager); if (!p) p = WriteSaveSlotFile(saveManager, saveManager->x); if (p) SetMcDialogPhase(D_002E6550, 3); return p;
 }
 } } // namespace M_McJobSaveSlot
 
@@ -1111,9 +1111,9 @@ void SetMcDialogPhase(void *p, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Worker job: like McJobSaveSlot, but the slot is written with a GS reset first (WriteSaveSlotFileReset).
-void *McJobSaveSlotResetGs(struct S *s)
+void *McJobSaveSlotResetGs(struct S *saveManager)
 {
-    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = WriteSaveSlotFileReset(s, s->x); if (p) SetMcDialogPhase(D_002E6550, 3); return p;
+    void *p = McJobGetInfo(saveManager); if (!p) p = CreateSaveDir(saveManager); if (!p) p = WriteSaveSlotFileReset(saveManager, saveManager->x); if (p) SetMcDialogPhase(D_002E6550, 3); return p;
 }
 } } // namespace M_func_001ABC68
 
@@ -1133,11 +1133,11 @@ void CreateMemcardThread(void *p, long k);
  * @end-sly2-annot */
 // Starts the autosave: resets the rumble save variable, stores the save variables into the current slot and queues
 // McJobAutosave.
-void StartAutosaveJob(struct S *p)
+void StartAutosaveJob(struct S *saveManager)
 {
-    ResetRumbleSaveVar(p);
-    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), p->xfd50);
-    CreateMemcardThread(p->xfd5c, D_002A6C88.l);
+    ResetRumbleSaveVar(saveManager);
+    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), saveManager->xfd50);
+    CreateMemcardThread(saveManager->xfd5c, D_002A6C88.l);
 }
 } } // namespace M_func_001ABCE8
 
@@ -1156,11 +1156,11 @@ void CreateMemcardThread(void *p, long k);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Starts a save to the current slot: same preparation as the autosave, then queues McJobSaveSlot.
-void StartSaveSlotJob(struct S *p)
+void StartSaveSlotJob(struct S *saveManager)
 {
-    ResetRumbleSaveVar(p);
-    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), p->xfd50);
-    CreateMemcardThread(p->xfd5c, D_002A6C90.l);
+    ResetRumbleSaveVar(saveManager);
+    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), saveManager->xfd50);
+    CreateMemcardThread(saveManager->xfd5c, D_002A6C90.l);
 }
 } } // namespace M_func_001ABD40
 
@@ -1639,36 +1639,36 @@ int McSyncResult(void *p, int a, int b, int c);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Worker job: reads the card info (type, free space, formatted) and records it.
-int McJobGetInfo(struct S *s)
+int McJobGetInfo(struct S *saveManager)
 {
-    void *p = s->xFD5C;
+    void *p = saveManager->xFD5C;
     int h;
     int r;
-    h = sceMcGetInfo(s->x0, s->x4, &s->x18, &s->x1C, &s->x20);
+    h = sceMcGetInfo(saveManager->x0, saveManager->x4, &saveManager->x18, &saveManager->x1C, &saveManager->x20);
     r = McSyncResult(p, h, 1, 0);
     switch (r) {
     case 11:
-        s->xC = 1;
+        saveManager->xC = 1;
         break;
     case 9:
-        s->xC = 3;
+        saveManager->xC = 3;
         break;
     case 10:
     case 12:
         r = 12;
-        s->xC = 2;
+        saveManager->xC = 2;
         break;
     case 0:
-        if (s->x20) { if (s->xC < 3) s->xC = 3; } else s->xC = 2;
+        if (saveManager->x20) { if (saveManager->xC < 3) saveManager->xC = 3; } else saveManager->xC = 2;
         break;
     }
     if (r == 0 || r == 12) {
-        if (s->x18 != 2) {
+        if (saveManager->x18 != 2) {
             r = 11;
-            s->xC = 1;
+            saveManager->xC = 1;
         }
     }
-    s->x14 = g_clock.tReal + 0.3f;
+    saveManager->x14 = g_clock.tReal + 0.3f;
     return r;
 }
 } } // namespace M_McJobGetInfo
@@ -1919,12 +1919,12 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; struct O *x24; char p
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Sets the dialog state; when the dialog is shown, refreshes it (slot 10) and shows its child widget.
-void SetMcDialogState(struct O *p, int a)
+void SetMcDialogState(struct O *dialog, int a)
 {
-    p->x40 = a;
-    if (p->x24) {
-        { struct VTE *e = &p->vt[10]; e->pfn((char *)p + e->d); }
-        { struct O *o = p->x24; struct VTE *e = &o->vt[49]; e->pfn((char *)o + e->d, -1); }
+    dialog->x40 = a;
+    if (dialog->x24) {
+        { struct VTE *e = &dialog->vt[10]; e->pfn((char *)dialog + e->d); }
+        { struct O *o = dialog->x24; struct VTE *e = &o->vt[49]; e->pfn((char *)o + e->d, -1); }
     }
 }
 } } // namespace M_SetMcDialogState
@@ -1940,12 +1940,12 @@ struct O { char pad[0xC]; struct VTE *vt; char pad2[0x14]; struct O *x24; char p
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Clears the dialog state and hides the dialog (slot 11) and its child widget.
-void ClearMcDialogState(struct O *p)
+void ClearMcDialogState(struct O *dialog)
 {
-    p->x40 = -1;
-    if (p->x24) {
-        { struct VTE *e = &p->vt[11]; e->pfn((char *)p + e->d); }
-        { struct O *o = p->x24; struct VTE *e = &o->vt[50]; e->pfn((char *)o + e->d); }
+    dialog->x40 = -1;
+    if (dialog->x24) {
+        { struct VTE *e = &dialog->vt[11]; e->pfn((char *)dialog + e->d); }
+        { struct O *o = dialog->x24; struct VTE *e = &o->vt[50]; e->pfn((char *)o + e->d); }
     }
 }
 } } // namespace M_ClearMcDialogState
@@ -1984,12 +1984,12 @@ struct S { char pad[0x44]; int x44; float x48; };
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Sets the dialog phase and its start time; phases 2 and 3 clear the save request word.
-void SetMcDialogPhase(struct S *p, int n)
+void SetMcDialogPhase(struct S *dialog, int n)
 {
-    if (n == p->x44) return;
+    if (n == dialog->x44) return;
     switch (n) { case 2: case 3: D_002E65E0.x = 0; }
-    p->x44 = n;
-    p->x48 = D_002DDED0.t3c;
+    dialog->x44 = n;
+    dialog->x48 = D_002DDED0.t3c;
 }
 } } // namespace M_func_001ACC38
 extern SAVE D_002E65E0;
@@ -2003,9 +2003,9 @@ struct S { char pad[0x40]; int x40; };
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Returns the button layout of the dialog state: 1 one button, 2 two choices, 0 none.
-int GetMcDialogButtonKind(struct S *p)
+int GetMcDialogButtonKind(struct S *dialog)
 {
-    switch (p->x40) {
+    switch (dialog->x40) {
     case 0x11: case 0x14: case 0x17: case 0x18: case 0x1B: case 0x1D: case 0x22: case 0x23: case 0x24: case 0x2E:
         return 1;
     case 0x12: case 0x15: case 0x1C: case 0x20:
@@ -2053,9 +2053,9 @@ void PopPauseMenuToRoot(void *p);
  * @end-sly2-annot */
 // CMemcardDialog's per-frame update (slot 7): once the dialog has been shown for 0.1 s, handles the pad per the button
 // layout, starts the card jobs and moves to the follow-up state.
-void CMemcardDialog_Update(struct S *s)
+void CMemcardDialog_Update(struct S *dialog)
 {
-    struct P *p = s->x24;
+    struct P *p = dialog->x24;
     int c;
     int r;
     if (!p)
@@ -2067,32 +2067,32 @@ void CMemcardDialog_Update(struct S *s)
         return;
     if (IsSwTransitionBusy(D_003DD490))
         return;
-    if (D_002DDED0.t3c - s->x24->x5C <= 0.1f)
+    if (D_002DDED0.t3c - dialog->x24->x5C <= 0.1f)
         return;
-    r = GetMcDialogButtonKind(s);
+    r = GetMcDialogButtonKind(dialog);
     if (r != 1) {
         if (r == c) {
-            if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
-                ConfirmMcDialog(s);
+            if (dialog->x10 && GrfHandleJoyBtn(dialog->x10, 0x80)) {
+                ConfirmMcDialog(dialog);
                 return;
             }
-            if (s->x10 && GrfHandleJoyBtn(s->x10, 0x10)) {
-                OnMcDialogChoice(s);
+            if (dialog->x10 && GrfHandleJoyBtn(dialog->x10, 0x10)) {
+                OnMcDialogChoice(dialog);
                 return;
             }
         }
     } else {
-        if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
-            OnMcDialogChoice(s);
+        if (dialog->x10 && GrfHandleJoyBtn(dialog->x10, 0x80)) {
+            OnMcDialogChoice(dialog);
             return;
         }
     }
-    switch (s->x40) {
+    switch (dialog->x40) {
     case 0x20:
     case 0x22:
-        if (s->x44 == 1)
+        if (dialog->x44 == 1)
             return;
-        ClearMcDialogState(s);
+        ClearMcDialogState(dialog);
         return;
     case 0x11:
     case 0x12:
@@ -2101,32 +2101,32 @@ void CMemcardDialog_Update(struct S *s)
     case 0x2E:
         if (D_002E65E0.x8 != 6)
             return;
-        ClearMcDialogState(s);
+        ClearMcDialogState(dialog);
         return;
     case 0x13:
         if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         if (!D_002E65E0.xFD6C) {
             CreateMemcardThread(D_002F633C, D_002A6D88.l);
-            SetMcDialogState(s, 0x16);
+            SetMcDialogState(dialog, 0x16);
         } else
-            SetMcDialogState(s, 0x14);
+            SetMcDialogState(dialog, 0x14);
         return;
     case 0x16:
         if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         if (!D_002E65E0.xFD6C) {
-            ClearMcDialogState(s);
+            ClearMcDialogState(dialog);
             return;
         }
-        SetMcDialogState(s, 0x17);
+        SetMcDialogState(dialog, 0x17);
         return;
     case 0x1A:
         if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         if (!D_002E65E0.xFD6C) {
-            ClearMcDialogState(s);
-            switch (s->x4C) {
+            ClearMcDialogState(dialog);
+            switch (dialog->x4C) {
             case 1:
                 ResetGameSequence();
                 return;
@@ -2136,20 +2136,20 @@ void CMemcardDialog_Update(struct S *s)
             }
             return;
         }
-        if (s->x4C == 3)
-            SetMcDialogState(s, 0x23);
+        if (dialog->x4C == 3)
+            SetMcDialogState(dialog, 0x23);
         else
-            SetMcDialogState(s, 0x1D);
+            SetMcDialogState(dialog, 0x1D);
         return;
     case 0x21:
         if (FMemcardThreadValid__FP7MEMCARD(D_002F633C))
             return;
         D_002E65E0.xFD58 = 0;
         if (!D_002E65E0.xFD6C) {
-            ClearMcDialogState(s);
+            ClearMcDialogState(dialog);
             return;
         }
-        SetMcDialogState(s, 0x1D);
+        SetMcDialogState(dialog, 0x1D);
         return;
     }
 }
@@ -2203,15 +2203,15 @@ static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Runs the follow-up of the dialog state the player answered (UI hooks, save jobs).
-void OnMcDialogChoice(S *s)
+void OnMcDialogChoice(S *dialog)
 {
-    switch (s->x40) {
+    switch (dialog->x40) {
     case 17: case 18: case 21: case 24:
         {
             void *g = D_003DA530;
             if (FScreenShown(g) && IsPauseMenuOnLoadPageA(D_003D9ED0)) {
-                ClearMcDialogState(s);
-                SetMcDialogPhase(s, 2);
+                ClearMcDialogState(dialog);
+                SetMcDialogPhase(dialog, 2);
                 PopPauseMenuToRoot(D_003D9ED0);
                 StartNewGame(g);
                 break;
@@ -2219,13 +2219,13 @@ void OnMcDialogChoice(S *s)
         }
         /* fallthrough */
     case 20: case 23: case 29: case 35: case 36: case 46:
-        ClearMcDialogState(s);
-        SetMcDialogPhase(s, 2);
+        ClearMcDialogState(dialog);
+        SetMcDialogPhase(dialog, 2);
         if (IsPauseMenuOnSavePage(D_003D9ED0))
             PopPauseMenuPage(D_003D9ED0);
         break;
     case 27: case 28: case 32:
-        ClearMcDialogState(s);
+        ClearMcDialogState(dialog);
         break;
     case 34:
         {
@@ -2233,9 +2233,9 @@ void OnMcDialogChoice(S *s)
             CRef ref(true);
             SetPv(po, ref, D_003D4A60);
         }
-        if (s->x4C < 4) {
-            if (s->x4C > 0) {
-                SetMcDialogState(s, 0x1A);
+        if (dialog->x4C < 4) {
+            if (dialog->x4C > 0) {
+                SetMcDialogState(dialog, 0x1A);
                 StartSaveSlotJob(D_002E65E0);
             }
         }
@@ -2261,23 +2261,23 @@ void SetMcDialogState(struct S *s, int n);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Confirm path of the dialog: saves to the current slot or queues the pending job.
-void ConfirmMcDialog(struct S *s)
+void ConfirmMcDialog(struct S *dialog)
 {
-    switch (s->x40) {
+    switch (dialog->x40) {
     case 0x1C:
         SaveToCurrentSlot();
         break;
     case 0x12:
         CreateMemcardThread(D_002F633C, D_002A6E88.l);
-        SetMcDialogState(s, 0x13);
+        SetMcDialogState(dialog, 0x13);
         break;
     case 0x15:
         CreateMemcardThread(D_002F633C, D_002A6D88.l);
-        SetMcDialogState(s, 0x16);
+        SetMcDialogState(dialog, 0x16);
         break;
     case 0x20:
         CreateMemcardThread(D_002F633C, D_002A6E90.l);
-        SetMcDialogState(s, 0x21);
+        SetMcDialogState(dialog, 0x21);
         break;
     }
 }
@@ -2813,7 +2813,7 @@ struct S { char pad[0x24]; struct O *po; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
  * @end-sly2-annot */
 // Shows the status widget's child (slot 49 with -1).
-void ShowMcDialogWidget(struct S *p) { struct O *o = p->po; if (o) { struct VTE *e = &o->vt[49]; e->pfn((char *)o + e->d, -1); } }
+void ShowMcDialogWidget(struct S *dialog) { struct O *o = dialog->po; if (o) { struct VTE *e = &o->vt[49]; e->pfn((char *)o + e->d, -1); } }
 } } // namespace M_func_001ADE38
 
 namespace M_HideMcDialogWidget { extern "C" {
@@ -2829,7 +2829,7 @@ struct S { char pad[0x24]; struct O *po; };
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Hides the status widget's child (slot 50).
-void HideMcDialogWidget(struct S *p) { struct O *o = p->po; if (o) { struct VTE *e = &o->vt[50]; e->pfn((char *)o + e->d); } }
+void HideMcDialogWidget(struct S *dialog) { struct O *o = dialog->po; if (o) { struct VTE *e = &o->vt[50]; e->pfn((char *)o + e->d); } }
 } } // namespace M_HideMcDialogWidget
 
 namespace M_func_001ADEA8 {
@@ -2842,9 +2842,9 @@ struct S { char pad[0x24]; O *po; };
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // True when the status widget's child is shown or showing.
-extern "C" int IsMcStatusVisible(S *p)
+extern "C" int IsMcStatusVisible(S *dialog)
 {
-    O *o = p->po;
+    O *o = dialog->po;
     if (!o) return 0;
     if (o->x58 < 2 && o->x64 < 2) return 0; return 1;
 }

@@ -67,9 +67,9 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *stream, CLoadCollec
 
 /* 0x231100 InitXfm */
 // XFM initialization (vtable slot 7): LO init, then identity local matrix and a stale world matrix.
-extern "C" void InitXfm(XFM *p)
+extern "C" void InitXfm(XFM *xfm)
 {
-    float *m; InitLo(p); if (p->psoParent) p->pxfParent = p->psoParent->pxfRoot; m = &p->mat.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(p);
+    float *m; InitLo(xfm); if (xfm->psoParent) xfm->pxfParent = xfm->psoParent->pxfRoot; m = &xfm->mat.mat[0][0]; func_002333B4(m, 0, 0x40); m[0] = m[5] = m[10] = m[15] = 1.0f; InvalidateXfm(xfm);
 }
 
 /** @sly2-annot addr=0x231170
@@ -136,13 +136,13 @@ extern "C" void XFM_RemapClonedXf(XFM *pxfm, XFM *pxfmBase, XF **ppxf)
 /* 0x2312A0 TranslateXfmToPos */
 // XFM's TranslateToPos (vtable slot 29): converts the world position into the parent XF's space, stores it as the
 // local translation and invalidates the world matrix.
-extern "C" void TranslateXfmToPos(XFM *p, qword v)
+extern "C" void TranslateXfmToPos(XFM *xfm, qword v)
 {
-    float *m = &p->mat.mat[0][0];
-    qword r = func_0022FC48(0, p->pxfParent, v);
-    VECTOR_opAssign(&p->mat.mat[3][0], r);
+    float *m = &xfm->mat.mat[0][0];
+    qword r = func_0022FC48(0, xfm->pxfParent, v);
+    VECTOR_opAssign(&xfm->mat.mat[3][0], r);
     m[15] = 1.0f;
-    InvalidateXfm(p);
+    InvalidateXfm(xfm);
 }
 
 static inline void SetM(M3 *pm, M3 m)
@@ -159,10 +159,10 @@ static inline void SetM(M3 *pm, M3 m)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's RotateToMat (vtable slot 30): stores the rotation rows (w = 0) and invalidates the world matrix.
-extern "C" void RotateXfmToMat(XFM *p, MATRIX4 *matrix)
+extern "C" void RotateXfmToMat(XFM *xfm, MATRIX4 *matrix)
 {
-    SetM((M3 *)&p->mat, ConvertXfMat(0, p->pxfParent, matrix));
-    InvalidateXfm(p);
+    SetM((M3 *)&xfm->mat, ConvertXfMat(0, xfm->pxfParent, matrix));
+    InvalidateXfm(xfm);
 }
 
 /** @sly2-annot addr=0x231368
@@ -172,16 +172,16 @@ extern "C" void RotateXfmToMat(XFM *p, MATRIX4 *matrix)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // Recomputes the cached world matrix when the parent XF's stamp is newer than the cached one.
-extern "C" void UpdateXfmMatWorld(XFM *p)
+extern "C" void UpdateXfmMatWorld(XFM *xfm)
 {
-    XF *pxf = p->pxfParent;
+    XF *pxf = xfm->pxfParent;
     if (pxf) {
-        if (p->nStampWorld < pxf->nStampWorld) {
-            p->nStampWorld = pxf->nStampWorld;
-            p->matWorld = pxf->matWorld * p->mat;
+        if (xfm->nStampWorld < pxf->nStampWorld) {
+            xfm->nStampWorld = pxf->nStampWorld;
+            xfm->matWorld = pxf->matWorld * xfm->mat;
         }
-    } else if (p->nStampWorld < 0) {
-        p->matWorld = p->mat;
+    } else if (xfm->nStampWorld < 0) {
+        xfm->matWorld = xfm->mat;
     }
 }
 
@@ -192,11 +192,11 @@ extern "C" void UpdateXfmMatWorld(XFM *p)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // Marks the world matrix stale and, for a top-level object in the world, re-sorts its busy-list entry.
-extern "C" void InvalidateXfm(XFM *p)
+extern "C" void InvalidateXfm(XFM *xfm)
 {
-    p->nStampWorld = -1;
-    if (p->psoParent == 0 && (uchar)p->fInWorld)   /* (uchar): bit extract as the target does */
-        ResortSwBusyEntry(&D_003DD490, p->ploroot);
+    xfm->nStampWorld = -1;
+    if (xfm->psoParent == 0 && (uchar)xfm->fInWorld)   /* (uchar): bit extract as the target does */
+        ResortSwBusyEntry(&D_003DD490, xfm->ploroot);
 }
 
 /** @sly2-annot addr=0x231440
@@ -227,11 +227,11 @@ static inline qword MulPos(const M4 *m, qword v)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's GetVelocity (vtable slot 33): the velocity of the object's point on the parent XF.
-extern "C" qword GetXfmVelocity(XFM *p)
+extern "C" qword GetXfmVelocity(XFM *xfm)
 {
-    XF *o = p->pxfParent;
+    XF *o = xfm->pxfParent;
     if (!o) return D_002A2DD0;
-    return GetXfVelocity(o, 0, MulPos((M4 *)&o->matWorld, *(qword *)p->mat.mat[3]));
+    return GetXfVelocity(o, 0, MulPos((M4 *)&o->matWorld, *(qword *)xfm->mat.mat[3]));
 }
 
 static __inline__ qword Make(float x, float y, float z)
@@ -248,13 +248,13 @@ static __inline__ qword Make(float x, float y, float z)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's GetAngularVelocity (vtable slot 34): the parent XF's angular velocity.
-extern "C" qword GetXfmAngularVelocity(XFM *p)
+extern "C" qword GetXfmAngularVelocity(XFM *xfm)
 {
-    if (!p->pxfParent) return D_002A2DD0;
+    if (!xfm->pxfParent) return D_002A2DD0;
     {
         MATRIX4 m;
         {
-            M4 t = func_0022D148(p->pxfParent, 0);
+            M4 t = func_0022D148(xfm->pxfParent, 0);
             m = *(MATRIX4 *)&t;
         }
         {
@@ -273,16 +273,16 @@ extern "C" qword GetXfmAngularVelocity(XFM *p)
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's local transform (vtable slot 32): copies the local matrix out and returns the parent XF (or a default).
-extern "C" XF *XFM_GetLocalTransform(XFM *p, MATRIX4 *matrix)
+extern "C" XF *XFM_GetLocalTransform(XFM *xfm, MATRIX4 *matrix)
 {
     XF *pxf;
     if (matrix != 0) {
-        ((qword *)matrix)[0] = ((qword *)&p->mat)[0];
-        ((qword *)matrix)[1] = ((qword *)&p->mat)[1];
-        ((qword *)matrix)[2] = ((qword *)&p->mat)[2];
-        ((qword *)matrix)[3] = ((qword *)&p->mat)[3];
+        ((qword *)matrix)[0] = ((qword *)&xfm->mat)[0];
+        ((qword *)matrix)[1] = ((qword *)&xfm->mat)[1];
+        ((qword *)matrix)[2] = ((qword *)&xfm->mat)[2];
+        ((qword *)matrix)[3] = ((qword *)&xfm->mat)[3];
     }
-    pxf = p->pxfParent;
+    pxf = xfm->pxfParent;
     if (pxf == 0) {
         pxf = &D_002C44F0;
     }
@@ -292,7 +292,7 @@ extern "C" XF *XFM_GetLocalTransform(XFM *p, MATRIX4 *matrix)
 /* 0x231598 XFM_ApplyTransform */
 // XFM's ApplyTransform (vtable slot 37): premultiplies the local matrix by the given matrix and invalidates the world
 // matrix.
-extern "C" void XFM_ApplyTransform(XFM *p, M4 *matrix) { M4 t; MulMatrix4Ret(&t, matrix, (M4 *)&p->mat); *(M4 *)&p->mat = t; InvalidateXfm(p); }
+extern "C" void XFM_ApplyTransform(XFM *xfm, M4 *matrix) { M4 t; MulMatrix4Ret(&t, matrix, (M4 *)&xfm->mat); *(M4 *)&xfm->mat = t; InvalidateXfm(xfm); }
 
 /** @sly2-annot addr=0x2315F0
  * Purpose: re-parent keeping world matrix (0x1A5900)
@@ -301,16 +301,16 @@ extern "C" void XFM_ApplyTransform(XFM *p, M4 *matrix) { M4 t; MulMatrix4Ret(&t,
  * See: docs/reference/functions/object-model.md#xform-0x231100-0x2319e8
  * @end-sly2-annot */
 // XFM's SetParent (vtable slot 10): reparents the object (LO_SetParent) keeping its world matrix when asked.
-extern "C" void SetXfmParent(XFM *p, SO *psoNew, XF *pxfNew, int grf)
+extern "C" void SetXfmParent(XFM *xfm, SO *psoNew, XF *pxfNew, int grf)
 {
     M4 m;
     if (grf & 3) {
-        if ((uchar)p->fInWorld) {
-            m = *(M4 *)p->PmatWorld();
+        if ((uchar)xfm->fInWorld) {
+            m = *(M4 *)xfm->PmatWorld();
         } else {
             XF *q;
-            m = *(M4 *)&p->mat;
-            for (q = p->pxfParent; q; q = q->pxfParent)
+            m = *(M4 *)&xfm->mat;
+            for (q = xfm->pxfParent; q; q = q->pxfParent)
             {
                 MATRIX4 t = q->mat * *(MATRIX4 *)&m;
                 m = *(M4 *)&t;
@@ -318,27 +318,27 @@ extern "C" void SetXfmParent(XFM *p, SO *psoNew, XF *pxfNew, int grf)
         }
     }
     if (pxfNew)
-        p->pxfParent = pxfNew;
+        xfm->pxfParent = pxfNew;
     else if (psoNew)
-        p->pxfParent = psoNew->pxfRoot;
+        xfm->pxfParent = psoNew->pxfRoot;
     else
-        p->pxfParent = 0;
-    LO_SetParent(p, psoNew, pxfNew, grf);
+        xfm->pxfParent = 0;
+    LO_SetParent(xfm, psoNew, pxfNew, grf);
     if (grf & 1)
-        p->TranslateToPos(m.r[3]);
+        xfm->TranslateToPos(m.r[3]);
     if (grf & 2)
-        p->RotateToMat((MATRIX4 *)&m);
+        xfm->RotateToMat((MATRIX4 *)&m);
 }
 
 /* 0x231768 LoadXfmXfFromBrx */
 // Reads the XFM's parent XF reference and local matrix from the level stream.
-extern "C" void LoadXfmXfFromBrx(XFM *p, CBinaryInputStream *q)
+extern "C" void LoadXfmXfFromBrx(XFM *xfm, CBinaryInputStream *q)
 {
     int v = q->S16Read();
-    p->pxfParent = ((XF *(*)(void *, int))PVT(p)[49].pfn)((char *)p + PVT(p)[49].d, v);   /* slot 49: the XF for an index */
-    q->ReadMatrix4(&p->mat);
-    InvalidateXfm(p);
-    SetLoVisMask(p, q->U32Read());
+    xfm->pxfParent = ((XF *(*)(void *, int))PVT(xfm)[49].pfn)((char *)xfm + PVT(xfm)[49].d, v);   /* slot 49: the XF for an index */
+    q->ReadMatrix4(&xfm->mat);
+    InvalidateXfm(xfm);
+    SetLoVisMask(xfm, q->U32Read());
 }
 
 /** @sly2-annot addr=0x2317E0
@@ -353,14 +353,14 @@ extern "C" void LoadXfmXfFromBrx(XFM *p, CBinaryInputStream *q)
  * @end-sly2-annot */
 // Loads the child objects listed under an XFM: pushes the XF context, reads the object list, pops it and applies the
 // XFM's matrix to each loaded object (slot 37).
-extern "C" void LoadXfmChildObjectsFromBrx(XFM *p, CBinaryInputStream *stream, CLoadCollectorArray *pl)
+extern "C" void LoadXfmChildObjectsFromBrx(XFM *xfm, CBinaryInputStream *stream, CLoadCollectorArray *pl)
 {
     int i;
-    func_0022D670(p->pxfParent);
-    LoadSwObjectsFromBrx(p->psoParent, stream, pl);
-    func_0022D698(p->pxfParent);
+    func_0022D670(xfm->pxfParent);
+    LoadSwObjectsFromBrx(xfm->psoParent, stream, pl);
+    func_0022D698(xfm->pxfParent);
     for (i = 0; i < pl->c; i++) {
         LO *lo = pl->aplo[i];
-        lo->ApplyProxy(&p->mat);
+        lo->ApplyProxy(&xfm->mat);
     }
 }
