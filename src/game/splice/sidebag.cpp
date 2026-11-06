@@ -44,7 +44,7 @@ struct SPW
     CVarb *p;
     SPW() {}
     SPW(const SPW &);
-    void Set(CVarb *pvarb) __asm__("func_00257430");
+    void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
     ~SPW() { CVarb *pvarb = p; if (pvarb && --pvarb->cref == 0) delete pvarb; }
     void operator=(CVarb *pvarb) __asm__("func_00257450");
     CVarb *operator->() { return p; }
@@ -70,7 +70,7 @@ typedef char assert_CSidebag_size[sizeof(CSidebag) == 0xC ? 1 : -1];
 struct SPS
 {
     CSidebag *p;
-    void Set(CSidebag *psb) __asm__("func_00257E68");
+    void Set(CSidebag *psb) __asm__("Attach__t7CRefPtr1Z8CSidebagP8CSidebag");
     SPS() {}
     SPS(CSidebag *psb) { Set(psb); }
     SPS(const SPS &);
@@ -173,19 +173,6 @@ CVarbPtr::~CVarbPtr()
         delete pvarb;
 }
 
-// 0x257E68 func_00257E68: a counted-pointer store (count the new target, then store it).
-/** @sly2-annot addr=0x257E68
- * Purpose: refptr store with incref [game linkonce (inline/template)]
- * Info: proposed name SidebagPtr_Init (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257E68(GCHDR **pp, GCHDR *p)
-{
-    if (p != 0)
-        p->cref += 1;
-    *pp = p;
-}
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end

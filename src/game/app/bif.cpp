@@ -1338,7 +1338,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -1598,7 +1598,7 @@ int NRandInRange__Fii(int nLo, int nHi);
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("PairPtr_Assign");
     CPair *operator->() { return p; }
@@ -1731,7 +1731,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN() {}
     SPN(CPair *pn) { Set(pn); }
     SPN(const SPN &);
@@ -1783,7 +1783,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
@@ -1827,7 +1827,7 @@ struct SP {
 };
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
@@ -1919,7 +1919,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -2845,7 +2845,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -3061,7 +3061,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -3767,7 +3767,7 @@ R *ScheduleSwSpliceCallback(G *pg, int n, CPair *pnode, float t);
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
 };
@@ -4114,7 +4114,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     CPair *operator->() { return p; }
     int pad[3];
@@ -4461,7 +4461,7 @@ CPair *PtNew__t6CGcObj1Z5CPair();
 }
 struct SPN {
     CPair *p;
-    void Set(CPair *pn) __asm__("func_00256C38");
+    void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN(CPair *pn) { Set(pn); }
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
     void operator=(CPair *pn) __asm__("PairPtr_Assign");
@@ -5133,24 +5133,6 @@ CRef *RefOpSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *aref)
 } } // namespace M_RefOpSetPowerUpAcquired
 
 
-// 0x256C38 func_00256C38
-/** @sly2-annot addr=0x256C38
- * Purpose: CPair ref-pointer constructor from a raw pointer: incref (if non-null) and store, no release
- * Info: proposed name PairPtr_ctor (T2); TU game_linkonce
- * Notes: v3: superseded PairPtr_Init | top50_round (0.55): Body ++*p; *pp=p. Same smart-pointer family as
- *   PairPtr_Assign 0x256C58 / ~CPairPtr (_$_8CPairPtr) 0x256D40; only caller PpairBuildSpliceEventArgs 0x132ED8 uses
- *   it to initialise a fresh list head and the return value | v2 draft wa
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: sdk_names+top50_round
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-/* Linkonce: counted-pointer store (adds a reference to the new pointee). */
-extern "C" void func_00256C38(int **pp, int *p)
-{
-    if (p != 0) {
-        *p += 1;
-    }
-    *pp = p;
-}
 
 // 0x256C58 PairPtr_Assign (CPairPtr::operator=)
 /* CPairPtr::operator= (sly2/pair.h): takes a reference on the new pair, then releases the old one. */

@@ -72,7 +72,7 @@ void ClearSl(SL *psl);
 int FIsSlEmpty(SL *psl);
 void RemoveSlEntry(SL *psl, void *pv);
 int PtNew__t6CGcObj1Z6CFrame();
-SPF func_00257058(int pv);
+SPF Attach__t7CRefPtr1Z6CFrameP6CFrame(int pv);
 void EvalSpliceEventCallback(void *pv, CPair *ppair, CFrame *pframe, int n);
 void PostSwCallback(SW *psw, CObj *pobj, PMFCB pmf, int arg);
 }
@@ -183,7 +183,7 @@ extern "C" void ProcessSwCallbacks(SW *psw)
         else
         {
             int pv = PtNew__t6CGcObj1Z6CFrame();
-            SPF spf = func_00257058(pv);
+            SPF spf = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
             EvalSpliceEventCallback(psw, pevcb->ppair, spf.p, 0);
         }
         RemoveSlEntry(&psw->slEvcb, pevcb);

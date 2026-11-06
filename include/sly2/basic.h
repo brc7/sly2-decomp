@@ -223,6 +223,17 @@ public:
     T *operator->() { return m_p; }
 };
 
+/* Out of line and not `inline`: one linkonce copy per pointee type (0x256C38 CPair, 0x257038 CProc, 0x257058 CFrame,
+   0x257430 CVarb, 0x257E68 CSidebag, 0x259CF8 CMethod), never inlined (CONFIRMED by match). */
+template <class T> void CRefPtr<T>::Attach(T *p)
+{
+    if (p)
+    {
+        p->m_cref++;
+    }
+    m_p = p;
+}
+
 /* CGcObj (the base of the collected Splice nodes): sly2/gc.h. */
 
 /* CFrame: sly2/cframe.h (types/views-3: out of basic.h so that splice/frame.cpp and eval.cpp, which define their own

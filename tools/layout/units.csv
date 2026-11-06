@@ -6533,7 +6533,7 @@ func_002568C0,0x2568C0,tu_119BC8
 func_002569F8,0x2569F8,tu_119BC8
 func_00256AF0,0x256AF0,tu_119BC8
 PtNew__t6CGcObj1Z5CPair,0x256B48,bif
-func_00256C38,0x256C38,bif
+Attach__t7CRefPtr1Z5CPairP5CPair,0x256C38,bif
 PairPtr_Assign,0x256C58,bif
 __8VU_FLOATf,0x256CE8,bif
 __9VU_VECTORRC6VECTOR,0x256D08,bif
@@ -6543,14 +6543,14 @@ _$_8CPairPtr,0x256D40,bif
 PtNew__t6CGcObj1Z6CFrame,0x256DD0,eval
 FramePtr_Assign,0x256EE0,proxy
 PtNew__t6CGcObj1Z5CProc,0x256F48,eval
-func_00257038,0x257038,proc
-func_00257058,0x257058,frame
+Attach__t7CRefPtr1Z5CProcP5CProc,0x257038,proc
+Attach__t7CRefPtr1Z6CFrameP6CFrame,0x257058,frame
 _$_6CFrame,0x257078,eval
 _$_5CProc,0x257148,ref
 _$_8CVarbPtr,0x257250,sidebag
 func_002572E0,0x2572E0,eval
 PtNew__t6CGcObj1Z5CVarb,0x257340,frame
-func_00257430,0x257430,varb
+Attach__t7CRefPtr1Z5CVarbP5CVarb,0x257430,varb
 func_00257450,0x257450,frame
 ClearMarks__t6CGcObj1Z6CFrame,0x2574E0,gc
 ClearMarks__t6CGcObj1Z5CVarb,0x2574E8,gc
@@ -6565,7 +6565,7 @@ FreeGarbage__t6CGcObj1Z5CProc,0x257948,gc
 FreeGarbage__t6CGcObj1Z8CSidebag,0x257AB0,gc
 FreeGarbage__t6CGcObj1Z7CMethod,0x257C18,gc
 PtNew__t6CGcObj1Z8CSidebag,0x257D80,sidebag
-func_00257E68,0x257E68,sidebag
+Attach__t7CRefPtr1Z8CSidebagP8CSidebag,0x257E68,sidebag
 Shutdown__t6CGcObj1Z5CPair,0x257E88,spliceutils
 Shutdown__t6CGcObj1Z6CFrame,0x257EC8,spliceutils
 Shutdown__t6CGcObj1Z5CVarb,0x257F08,spliceutils
@@ -6665,7 +6665,7 @@ func_00259BB0,0x259BB0,sound
 func_00259C08,0x259C08,grabspot
 func_00259C10,0x259C10,game_linkonce
 PtNew__t6CGcObj1Z7CMethod,0x259C18,spliceobj
-func_00259CF8,0x259CF8,spliceobj
+Attach__t7CRefPtr1Z7CMethodP7CMethod,0x259CF8,spliceobj
 func_00259D18,0x259D18,step
 func_00259D38,0x259D38,game_linkonce
 func_00259D48,0x259D48,game_linkonce

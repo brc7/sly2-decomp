@@ -16,7 +16,7 @@ CRef CRef_CloneTo(CRef *pref, void *a, void *b);
 struct SPW
 {
       CPair *p;
-      void Set(CPair *ppair) __asm__("func_00256C38");
+      void Set(CPair *ppair) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
       SPW() {}
       SPW(CPair *ppair) { Set(ppair); }
       SPW(const SPW &);

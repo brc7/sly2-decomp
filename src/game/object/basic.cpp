@@ -58,7 +58,7 @@ void CRef_ctor_LM(CREFV *pref, LM *plm);
 void CRef_ctor_BASIC(CREFV *pref, BASICV *pbasic);
 void CRef_ctor(CREFV *pref, qword v);
 CPAIR *PtNew__t6CGcObj1Z5CPair(void);
-void func_00256C38(SPAIR *psp, CPAIR *pn);
+void Attach__t7CRefPtr1Z5CPairP5CPair(SPAIR *psp, CPAIR *pn);
 void PairPtr_Assign(SPAIR *psp, CPAIR *pn);
 void PairPtr_Release(SPAIR *psp, int n) __asm__("_$_8CPairPtr");
 CREFV *CRef_SetPair(CREFV *pref, CPAIR *pn);
@@ -299,7 +299,7 @@ SPAIR *func_00132ED8(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 {
     SPAIR sp;
     CPAIR *p;
-    func_00256C38(&sp, PtNew__t6CGcObj1Z5CPair());
+    Attach__t7CRefPtr1Z5CPairP5CPair(&sp, PtNew__t6CGcObj1Z5CPair());
     {
         CREFV *pref = &sp.p->ref;
         CRef_SetPair(pref, PtNew__t6CGcObj1Z5CPair());
@@ -314,7 +314,7 @@ SPAIR *func_00132ED8(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
     CRef_SetBasic(&p->ref, a1);
     if (px && px->m_tagk)
         PairPtr_Assign(&p->sp, (CPAIR *)px->u.pv);
-    func_00256C38(ret, sp.p);
+    Attach__t7CRefPtr1Z5CPairP5CPair(ret, sp.p);
     {
         CPAIR *pt = sp.p;
         if (pt && --pt->cref == 0) {

@@ -393,6 +393,12 @@ SLY2_GC_INSTANTIATE(CSidebag)    /* 0x255C00, 0x255D90, 0x255DE8, 0x257D80, 0x25
 SLY2_GC_INSTANTIATE(CMethod)     /* 0x255F38, 0x2560C8, 0x256120, 0x259C18, 0x257FC8 */
 #undef SLY2_GC_INSTANTIATE
 template void CGcObj<CSidebag>::MakeRoot();   /* 0x258178 */
+/* The counted-pointer stores of the same kinds (sly2/basic.h; CRefPtr<CMethod>'s is object/spliceobj.cpp's). */
+template void CRefPtr<CPair>::Attach(CPair *);         /* 0x256C38 */
+template void CRefPtr<CProc>::Attach(CProc *);         /* 0x257038 */
+template void CRefPtr<CFrame>::Attach(CFrame *);       /* 0x257058 */
+template void CRefPtr<CVarb>::Attach(CVarb *);         /* 0x257430 */
+template void CRefPtr<CSidebag>::Attach(CSidebag *);   /* 0x257E68 */
 template void CGcObj<CFrame>::MakeRoot();     /* 0x259A88 */
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

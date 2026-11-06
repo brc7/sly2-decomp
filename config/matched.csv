@@ -6521,7 +6521,7 @@ func_002568C0,0x2568C0,78,match,src/game/core/containers/tu_119BC8.cpp
 func_002569F8,0x2569F8,62,match,src/game/core/containers/tu_119BC8.cpp
 func_00256AF0,0x256AF0,22,match,src/game/core/containers/tu_119BC8.cpp
 PtNew__t6CGcObj1Z5CPair,0x256B48,59,match,src/game/splice/gc.cpp
-func_00256C38,0x256C38,7,match,src/game/app/bif.cpp
+Attach__t7CRefPtr1Z5CPairP5CPair,0x256C38,7,match,src/game/splice/gc.cpp
 PairPtr_Assign,0x256C58,36,match,src/game/app/bif.cpp
 __8VU_FLOATf,0x256CE8,7,match,src/game/app/bif.cpp
 __9VU_VECTORRC6VECTOR,0x256D08,4,match,src/game/app/bif.cpp
@@ -6531,14 +6531,14 @@ _$_8CPairPtr,0x256D40,35,match,src/game/app/bif.cpp
 PtNew__t6CGcObj1Z6CFrame,0x256DD0,67,match,src/game/splice/gc.cpp
 FramePtr_Assign,0x256EE0,25,match,src/game/object/proxy.cpp
 PtNew__t6CGcObj1Z5CProc,0x256F48,59,match,src/game/splice/gc.cpp
-func_00257038,0x257038,7,match,src/game/splice/proc.cpp
-func_00257058,0x257058,7,match,src/game/splice/frame.cpp
+Attach__t7CRefPtr1Z5CProcP5CProc,0x257038,7,match,src/game/splice/gc.cpp
+Attach__t7CRefPtr1Z6CFrameP6CFrame,0x257058,7,match,src/game/splice/gc.cpp
 _$_6CFrame,0x257078,52,match,src/game/splice/eval.cpp
 _$_5CProc,0x257148,65,match,src/game/splice/ref.cpp
 _$_8CVarbPtr,0x257250,35,match,src/game/splice/sidebag.cpp
 func_002572E0,0x2572E0,24,match,src/game/splice/eval.cpp
 PtNew__t6CGcObj1Z5CVarb,0x257340,59,match,src/game/splice/gc.cpp
-func_00257430,0x257430,7,match,src/game/splice/varb.cpp
+Attach__t7CRefPtr1Z5CVarbP5CVarb,0x257430,7,match,src/game/splice/gc.cpp
 func_00257450,0x257450,36,match,src/game/splice/frame.cpp
 ClearMarks__t6CGcObj1Z6CFrame,0x2574E0,2,match,src/game/splice/gc.cpp
 ClearMarks__t6CGcObj1Z5CVarb,0x2574E8,2,match,src/game/splice/gc.cpp
@@ -6553,7 +6553,7 @@ FreeGarbage__t6CGcObj1Z5CProc,0x257948,89,match,src/game/splice/gc.cpp
 FreeGarbage__t6CGcObj1Z8CSidebag,0x257AB0,89,match,src/game/splice/gc.cpp
 FreeGarbage__t6CGcObj1Z7CMethod,0x257C18,89,match,src/game/splice/gc.cpp
 PtNew__t6CGcObj1Z8CSidebag,0x257D80,57,match,src/game/splice/gc.cpp
-func_00257E68,0x257E68,7,match,src/game/splice/sidebag.cpp
+Attach__t7CRefPtr1Z8CSidebagP8CSidebag,0x257E68,7,match,src/game/splice/gc.cpp
 Shutdown__t6CGcObj1Z5CPair,0x257E88,16,match,src/game/splice/gc.cpp
 Shutdown__t6CGcObj1Z6CFrame,0x257EC8,16,match,src/game/splice/gc.cpp
 Shutdown__t6CGcObj1Z5CVarb,0x257F08,16,match,src/game/splice/gc.cpp
@@ -6653,7 +6653,7 @@ func_00259BB0,0x259BB0,18,match,src/game/engine/sound/sound.cpp
 func_00259C08,0x259C08,2,match,src/game/gameplay/player/grabspot.cpp
 func_00259C10__FP5CID39,0x259C10,2,match,src/game/app/eopid_linkonce.cpp
 PtNew__t6CGcObj1Z7CMethod,0x259C18,56,match,src/game/splice/gc.cpp
-func_00259CF8,0x259CF8,7,match,src/game/object/spliceobj.cpp
+Attach__t7CRefPtr1Z7CMethodP7CMethod,0x259CF8,7,match,src/game/object/spliceobj.cpp
 func_00259D18,0x259D18,7,match,src/game/actor/step.cpp
 func_00259D38__FP9STEPGUARDP3VOL,0x259D38,3,match,src/game/app/eopid_linkonce.cpp
 func_00259D48__FP9STEPGUARDP3VOL,0x259D48,3,match,src/game/app/eopid_linkonce.cpp

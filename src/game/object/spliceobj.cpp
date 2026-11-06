@@ -396,7 +396,7 @@ CRef RefEnsureOption(BASIC *pbasic, int opid, CRef *pref)
 }
 
 /* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:
-   the store and the release are out of line (func_00256C38 / PairPtr_Assign, _$_8CPairPtr), the destructor's
+   the store and the release are out of line (Attach__t7CRefPtr1Z5CPairP5CPair / PairPtr_Assign, _$_8CPairPtr), the destructor's
    release inline. SPPAIR is 16-byte aligned: the original frame has its list pointers in 16-byte slots, so this form
    exists to reproduce the original codegen. */
 struct CPair;
@@ -411,13 +411,13 @@ public:
 } __attribute__((aligned(16)));
 struct CPair { int cref; int link; CRef ref; SPPAIR next; };
 extern "C" {
-void func_00256C38(SPPAIR *psp, CPair *ppair);
+void Attach__t7CRefPtr1Z5CPairP5CPair(SPPAIR *psp, CPair *ppair);
 void PairPtr_Assign(SPPAIR *psp, CPair *ppair);
 void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_8CPairPtr");
 CPair *PtNew__t6CGcObj1Z5CPair(void);
 void Unlink__t6CGcObj1Z5CPair(CPair *ppair);
 }
-inline SPPAIR::SPPAIR(CPair *q) { func_00256C38(this, q); }
+inline SPPAIR::SPPAIR(CPair *q) { Attach__t7CRefPtr1Z5CPairP5CPair(this, q); }
 inline void SPPAIR::Set(CPair *q) { PairPtr_Assign(this, q); }
 inline SPPAIR::~SPPAIR()
 {
@@ -616,20 +616,6 @@ CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, v
     return CRef(0x24);
 }
 
-/* CRefPtr<CMethod>::Attach: store with incref. */
-/** @sly2-annot addr=0x259CF8
- * Purpose: refptr store with incref [game linkonce (inline/template)]
- * Info: proposed name Pool6Ptr_Init (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00259CF8(CMethod **ppmethod, CMethod *pmethod)
-{
-    if (pmethod != 0) {
-        pmethod->m_cref += 1;
-    }
-    *ppmethod = pmethod;
-}
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end

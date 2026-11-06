@@ -98,7 +98,7 @@ SPPAIR PpairSerializeIn__FP18CBinaryInputStream(void *pbis);
 void CBinaryInputStream_SkipStringSw(void *pbis);
 CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i);
 void CGc_UpdateRecyclable(void *pgc);
-SPFRAME func_00257058(void *pv);
+SPFRAME Attach__t7CRefPtr1Z6CFrameP6CFrame(void *pv);
 void MakeRoot__t6CGcObj1Z6CFrame(FRAMEV *pframe);
 }
 extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
@@ -220,7 +220,7 @@ extern "C" CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i)
     CRef r;
     if (psplcs->ae[i].ppair && !psplcs->ae[i].pframe) {
         void *pv = PtNew__t6CGcObj1Z6CFrame();
-        SPFRAME sp = func_00257058(pv);
+        SPFRAME sp = Attach__t7CRefPtr1Z6CFrameP6CFrame(pv);
         MakeRoot__t6CGcObj1Z6CFrame(sp.p);
         sp.p->n24 = 1;
         r = RefEval__FP5CPairP6CFrame(psplcs->ae[i].ppair, sp.p);

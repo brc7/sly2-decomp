@@ -75,7 +75,7 @@ struct SPF
 struct SPO
 {
     CProc *p;
-    void Set(CProc *pproc) __asm__("func_00257038");
+    void Set(CProc *pproc) __asm__("Attach__t7CRefPtr1Z5CProcP5CProc");
     SPO() {}
     SPO(CProc *pproc) { Set(pproc); }
     SPO(const SPO &);
@@ -509,7 +509,7 @@ struct SPPAIR
 {
     CPair *p;
     int pad;
-    void Set(CPair *ppair) __asm__("func_00256C38");
+    void Set(CPair *ppair) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPPAIR() { p = 0; }
     SPPAIR(CPair *ppair) { Set(ppair); }
     ~SPPAIR() { CPair *ppair = p; if (ppair && --ppair->cref == 0) delete ppair; }
@@ -521,7 +521,7 @@ struct SPFRAME
 {
     CFrame *p;
     int pad;
-    void Set(CFrame *pframe) __asm__("func_00257058");
+    void Set(CFrame *pframe) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
     SPFRAME(CFrame *pframe) { Set(pframe); }
     ~SPFRAME() { CFrame *pframe = p; if (pframe && --pframe->cref == 0) delete pframe; }
 };

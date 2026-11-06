@@ -37,7 +37,7 @@ struct SPZ
 struct SPW
 {
     CVarb *p;
-    void Set(CVarb *pvarb) __asm__("func_00257430");
+    void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
     SPW() {}
     SPW(CVarb *pvarb) { Set(pvarb); }
     SPW(const SPW &);
@@ -69,7 +69,7 @@ public:
 struct SPO
 {
     CFrame *p;
-    void Set(CFrame *pframe) __asm__("func_00257058");
+    void Set(CFrame *pframe) __asm__("Attach__t7CRefPtr1Z6CFrameP6CFrame");
     SPO() {}
     SPO(CFrame *pframe) { Set(pframe); }
     SPO(const SPO &);
@@ -256,18 +256,6 @@ SPO CFrame_CloneTo(CFrame *src, void *a)
 /* Linkonce instances (0x257058, 0x257450): out-of-line copies of counted-pointer helpers, homed in this TU. Kept as
    plain functions under their current symbols. */
 
-/** @sly2-annot addr=0x257058
- * Purpose: refptr store with incref [game linkonce (inline/template)]
- * Info: proposed name FramePtr_Init (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_00257058(int **pp, int *pcref)
-{
-    if (pcref != 0)
-        *pcref += 1;
-    *pp = pcref;
-}
 
 
 /* 0x257450 func_00257450: CVarbPtr::operator= (sly2/varb.h) (counted store into a binding link; the old binding is deleted when its count drops to 0). */

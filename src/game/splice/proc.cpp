@@ -1,5 +1,5 @@
-// proc.cpp -- CProc, a Splice procedure (closure). TU 0x128F70..0x1291A8 (3 functions) plus one out-of-line inline
-// instance at 0x257038, address order.
+// proc.cpp -- CProc, a Splice procedure (closure). TU 0x128F70..0x1291A8 (3 functions, address order). Its counted
+// store 0x257038 is CRefPtr<CProc>::Attach (sly2/basic.h, emitted by splice/gc.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_proc
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00129188
 #include "sly2/slotheap.h"
@@ -23,7 +23,7 @@ struct CProc {
 };
 struct SPO {
     CProc *p;
-    void Set(CProc *pproc) __asm__("func_00257038");
+    void Set(CProc *pproc) __asm__("Attach__t7CRefPtr1Z5CProcP5CProc");
     SPO() {}
     SPO(CProc *pproc) { Set(pproc); }
     SPO(const SPO &);
@@ -58,17 +58,3 @@ SPO CProc_CloneTo(CProc *pprocSrc, X *px)
     return SPO(sp.p);
 }
 
-/** @sly2-annot addr=0x257038
- * Purpose: refptr store with incref [game linkonce (inline/template)]
- * Info: proposed name ProcPtr_Init (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-// Out-of-line copy of an inline counted-pointer assignment (this TU's home for it; it sits in the linkonce area at the
-// end of .text). Kept as a plain function under its current symbol until its owning class is known.
-extern "C" void func_00257038(int **pp, int *pcref)
-{
-      if (pcref != 0)
-            *pcref += 1;
-      *pp = pcref;
-}

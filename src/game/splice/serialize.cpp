@@ -52,7 +52,7 @@ struct NODE {
 };
 struct SPN {
     NODE *p;
-    void Set(NODE *pn) __asm__("func_00256C38");
+    void Set(NODE *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN() {}
     SPN(NODE *pn) { Set(pn); }
     SPN(const SPN &);
