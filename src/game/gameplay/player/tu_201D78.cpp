@@ -853,11 +853,11 @@ extern "C" void UpdateReconSel(RECONSEL *reconSel)
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Recon target (CID 0x2E) Init: transform init, ids -1/-2.
-extern "C" void InitReconTarget(RECONTGT *p) { InitXfm(p);
-p->id = -1; //P
-p->choice = -1; //P
-p->key = -1; //P
-p->idPending = -2; //P
+extern "C" void InitReconTarget(RECONTGT *target) { InitXfm(target);
+target->id = -1; //P
+target->choice = -1; //P
+target->key = -1; //P
+target->idPending = -2; //P
 }
 
 /** @sly2-annot addr=0x2035A8
@@ -869,15 +869,15 @@ p->idPending = -2; //P
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Recon target LoadFromBrx: defaults 75 / 0.25 / 5000, then the level's values.
-extern "C" void LoadReconTargetFromBrx(RECONTGT *p, void *pbis)
+extern "C" void LoadReconTargetFromBrx(RECONTGT *target, void *pbis)
 {
-    p->sHead = 0.0f;
-    p->sRadius = 75.0f;
-    p->threshold = 0.25f;
-    p->rFade = 5000.0f;
-    LoadXfmFromBrx(p, pbis);
-    if (p->sHead == 0.0f) p->sHead = p->sRadius;
-    if (p->idPending == -2) p->idPending = p->id;
+    target->sHead = 0.0f;
+    target->sRadius = 75.0f;
+    target->threshold = 0.25f;
+    target->rFade = 5000.0f;
+    LoadXfmFromBrx(target, pbis);
+    if (target->sHead == 0.0f) target->sHead = target->sRadius;
+    if (target->idPending == -2) target->idPending = target->id;
 }
 
 /** @sly2-annot addr=0x203638
@@ -906,10 +906,10 @@ void CID46::VUnk14()
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Recon target message handler: on message 0x11 refreshes the player's recon list and checklist.
-extern "C" void HandleReconTargetMessage(RECONTGT *p, int msg, void *pm)
+extern "C" void HandleReconTargetMessage(RECONTGT *target, int msg, void *pm)
 {
     PLAYER *o;
-    HandleBasicMessage(p, msg, pm);
+    HandleBasicMessage(target, msg, pm);
     if (msg != 0x11) return;
     o = PpoHero(&D_003DD490);
     if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34) && o->preconsel) {
@@ -926,14 +926,14 @@ extern "C" void HandleReconTargetMessage(RECONTGT *p, int msg, void *pm)
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Marks the target photographed (in its task, or a local flag without one).
-void SetReconTargetDone(RECONTGT *p, int n)
+void SetReconTargetDone(RECONTGT *target, int n)
 {
-    if (p->link) {
+    if (target->link) {
         PLAYER *o;
-        RequestTaskState(p->link, 2, p);
+        RequestTaskState(target->link, 2, target);
         o = PpoHero(&D_003DD490);
         if (o && FIsBasicDerivedFrom((BASIC *)o, CID_34)) GatherJtModeHudTags(o->abF24);
-    } else p->fDone = n;
+    } else target->fDone = n;
 }
 
 /** @sly2-annot addr=0x203758
@@ -943,7 +943,7 @@ void SetReconTargetDone(RECONTGT *p, int n)
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Whether the target was photographed (task done, or the local flag).
-int IsReconTargetDone(RECONTGT *p) { if (p->link) return FTaskComplete(p->link); return p->fDone; }
+int IsReconTargetDone(RECONTGT *target) { if (target->link) return FTaskComplete(target->link); return target->fDone; }
 
 /** @sly2-annot addr=0x203790
  * Purpose: visible and task state 1
@@ -953,12 +953,12 @@ int IsReconTargetDone(RECONTGT *p) { if (p->link) return FTaskComplete(p->link);
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
 // Whether the target is visible and its task is in state 1.
-int IsReconTargetSelectable(RECONTGT *p)
+int IsReconTargetSelectable(RECONTGT *target)
 {
     LINK *o;
-    if (BIT60(p) == 0) return 0;
-    if (p->plo100 && BIT60(p->plo100)) return 0;
-    o = p->link;
+    if (BIT60(target) == 0) return 0;
+    if (target->plo100 && BIT60(target->plo100)) return 0;
+    o = target->link;
     if (o && o->state != 1) return 0;
     return 1;
 }
