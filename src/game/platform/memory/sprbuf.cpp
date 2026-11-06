@@ -1,5 +1,8 @@
 // sprbuf.cpp -- double-buffered scratchpad transfers (LoadSprBuf/SaveSprBuf) and the two SPRBUF descriptors.
-// TU 0x201620..0x201D78 (5 functions, address order).
+// The EE scratchpad (16 KB at 0x70000000) is split into two 8 KB halves: while code works on the current half, the
+// next one is filled by toSPR DMA (LoadSprBuf) and a finished half is written back by fromSPR DMA (SaveSprBuf).
+// SwapSprBuffers waits for the fill and makes the next half current. Entry points: LoadSprBuf, SaveSprBuf,
+// SwapSprBuffers. TU 0x201620..0x201D78 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=func_002019F0
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00201D58
 #include "sly2/slotheap.h"
@@ -11,7 +14,7 @@ typedef char *va_list;
 typedef unsigned long ulong;
 
 /* One transfer of a SPRBUF: its size and where its data starts (a DMA tag qword precedes it). */
-struct SBE { int cb; ulong *pv; };
+struct SBE { int size; ulong *scratchpad; };   /* one loaded piece: its size and scratchpad address */
 typedef char assert_SBE_size[sizeof(SBE) == 8 ? 1 : -1];
 
 extern "C" void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");   /* memset */
@@ -20,11 +23,11 @@ extern "C" void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset
    (1 loading, 2 current, 3 saving). */
 struct SPRBUF
 {
-    ulong *aqw;     /* +0x00 DMA tag list (uncached address) */
-    char *pv;       /* +0x04 scratchpad address */
-    SBE a[8];       /* +0x08 */
-    int c;          /* +0x48 transfers */
-    int state;      /* +0x4C */
+    ulong *dmaTags;     /* +0x00 DMA tag list (uncached address) */
+    char *scratchpad;   /* +0x04 scratchpad address of this half */
+    SBE pieces[8];      /* +0x08 where each loaded piece landed */
+    int pieceCount;     /* +0x48 transfers */
+    int state;          /* +0x4C 1 loading, 2 current, 3 saving */
     SPRBUF() { func_002333B4(this, 0, sizeof(*this)); }
 };
 typedef char assert_SPRBUF_size[sizeof(SPRBUF) == 0x50 ? 1 : -1];
@@ -40,8 +43,8 @@ void sceDmaRecv(DMAC *pch);
 }
 extern ulong D_003DD380[16], D_003DD400[16];   /* the two tag lists, defined after D_003DD2C0 (address order) */
 
-static inline SPRBUF MakeFirst() { SPRBUF b; b.pv = (char *)0x70000000; b.aqw = (ulong *)((int)D_003DD380 | 0x20000000); return b; }
-static inline SPRBUF MakeSecond() { SPRBUF b; b.aqw = (ulong *)((int)D_003DD400 | 0x20000000); b.pv = (char *)0x70002000; return b; }
+static inline SPRBUF MakeFirst() { SPRBUF b; b.scratchpad = (char *)0x70000000; b.dmaTags = (ulong *)((int)D_003DD380 | 0x20000000); return b; }
+static inline SPRBUF MakeSecond() { SPRBUF b; b.dmaTags = (ulong *)((int)D_003DD400 | 0x20000000); b.scratchpad = (char *)0x70002000; return b; }
 
 // 0x2019F0 func_002019F0 (StaticInit_sprbuf, 218 instructions) and its _GLOBAL_$I$ stub func_00201D58: generated
 // by g++ for the SPRBUF pair below, then the six engine slot pools.
@@ -58,41 +61,44 @@ SLY2_INSTANTIATE_SLOT_POOLS()
  * See: docs/engine/core-library.md#6-source-files, docs/engine/splice-scripting.md#1-layout-of-the-runtime,
  *   docs/engine/splice-scripting.md#6-source-files
  * @end-sly2-annot */
-void LoadSprBuf(int cb, ...)
+// Queues the next scratchpad half to be filled: the varargs are (size, source) pairs ending with size 0 (a null
+// source reserves space without loading it). Lays the pieces out 16-aligned with a DMA tag before each, builds the
+// toSPR tag list and starts the transfer.
+void LoadSprBuf(int size, ...)
 {
-    SPRBUF *psb = &D_003DD2C0[1 - D_002C3C5C];
-    int c = 0;
-    char *pv;
-    char *pvSrc;
-    va_list ap;
-    va_start(ap, cb);
-    pv = psb->pv;
-    if (psb->state == 3)
+    SPRBUF *buffer = &D_003DD2C0[1 - D_002C3C5C];
+    int count = 0;
+    char *dest;
+    char *source;
+    va_list args;
+    va_start(args, size);
+    dest = buffer->scratchpad;
+    if (buffer->state == 3)
         sceDmaSync(D_002DE59C, 0, 0);
-    psb->state = 1;
-    pvSrc = va_arg(ap, char *);
-    while (cb) {
-        int cbNext;
-        char *pvNext;
-        cb = (cb + 15) & ~15;
-        cbNext = va_arg(ap, int);
-        pv += 16;
-        psb->a[c].pv = (ulong *)pv;
-        psb->a[c].cb = cb;
-        pv += cb;
-        pvNext = va_arg(ap, char *);
-        if (pvSrc) {
-            psb->aqw[c * 2] = (ulong)(cb >> 4) | ((ulong)(pvNext ? 3 : 0) << 28) | ((ulong)(unsigned int)pvSrc << 32);
+    buffer->state = 1;
+    source = va_arg(args, char *);
+    while (size) {
+        int nextSize;
+        char *nextSource;
+        size = (size + 15) & ~15;
+        nextSize = va_arg(args, int);
+        dest += 16;
+        buffer->pieces[count].scratchpad = (ulong *)dest;
+        buffer->pieces[count].size = size;
+        dest += size;
+        nextSource = va_arg(args, char *);
+        if (source) {
+            buffer->dmaTags[count * 2] = (ulong)(size >> 4) | ((ulong)(nextSource ? 3 : 0) << 28) | ((ulong)(unsigned int)source << 32);
         }
-        pvSrc = pvNext;
-        cb = cbNext;
-        c++;
+        source = nextSource;
+        size = nextSize;
+        count++;
     }
-    psb->c = c;
+    buffer->pieceCount = count;
     D_002DE5A0->chcr |= 0x40;
-    D_002DE5A0->sadr = ((int)psb->pv & 0x0FFFFFFF) | 0x80000000;
-    sceDmaSend(D_002DE5A0, (int)psb->aqw & 0x0FFFFFFF);
-    va_end(ap);
+    D_002DE5A0->sadr = ((int)buffer->scratchpad & 0x0FFFFFFF) | 0x80000000;
+    sceDmaSend(D_002DE5A0, (int)buffer->dmaTags & 0x0FFFFFFF);
+    va_end(args);
 }
 
 /** @sly2-annot addr=0x2017A0
@@ -100,35 +106,37 @@ void LoadSprBuf(int cb, ...)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#sprbuf-0x201620-0x201d78
  * @end-sly2-annot */
-void SaveSprBuf(void *pv, ...)
+// Writes the current scratchpad half back: the varargs are destination addresses, null-terminated, one for each of
+// the last loaded pieces. Patches their DMA tags and starts the fromSPR transfer.
+void SaveSprBuf(void *dest, ...)
 {
-    SPRBUF *psb = &D_003DD2C0[D_002C3C5C];
-    void *apv[8];
-    int c = 0;
-    int j;
-    DMAC *pch;
-    va_list ap;
-    psb->state = 3;
+    SPRBUF *buffer = &D_003DD2C0[D_002C3C5C];
+    void *dests[8];
+    int count = 0;
+    int destIndex;
+    DMAC *channel;
+    va_list args;
+    buffer->state = 3;
     sceDmaSync(D_002DE59C, 0, 0);
-    va_start(ap, pv);
-    while (pv) {
-        apv[c++] = pv;
-        pv = va_arg(ap, void *);
+    va_start(args, dest);
+    while (dest) {
+        dests[count++] = dest;
+        dest = va_arg(args, void *);
     }
-    j = 0;
-    for (c = psb->c - c; c < psb->c - 1; c++, j++)
-        psb->a[c].pv[-2] = (ulong)(psb->a[c].cb >> 4) | ((ulong)1 << 28) | ((ulong)(int)apv[j] << 32);
-    pch = D_002DE59C;
-    psb->a[c].pv[-2] = (ulong)(psb->a[c].cb >> 4) | ((ulong)7 << 28) | ((ulong)(int)apv[j] << 32);
+    destIndex = 0;
+    for (count = buffer->pieceCount - count; count < buffer->pieceCount - 1; count++, destIndex++)
+        buffer->pieces[count].scratchpad[-2] = (ulong)(buffer->pieces[count].size >> 4) | ((ulong)1 << 28) | ((ulong)(int)dests[destIndex] << 32);
+    channel = D_002DE59C;
+    buffer->pieces[count].scratchpad[-2] = (ulong)(buffer->pieces[count].size >> 4) | ((ulong)7 << 28) | ((ulong)(int)dests[destIndex] << 32);
     {
-        pch->chcr &= ~0x40;
-        pch->sadr = ((int)psb->pv & 0x0FFFFFFF) | 0x80000000;
-        sceDmaRecv(pch);
+        channel->chcr &= ~0x40;
+        channel->sadr = ((int)buffer->scratchpad & 0x0FFFFFFF) | 0x80000000;
+        sceDmaRecv(channel);
     }
-    psb = &D_003DD2C0[1 - D_002C3C5C];
-    if (psb->state == 3)
-        psb->state = 0;
-    va_end(ap);
+    buffer = &D_003DD2C0[1 - D_002C3C5C];
+    if (buffer->state == 3)
+        buffer->state = 0;
+    va_end(args);
 }
 
 /** @sly2-annot addr=0x201998
@@ -138,6 +146,7 @@ void SaveSprBuf(void *pv, ...)
  * See: docs/engine/save-memcard.md#3-scratchpad-buffers-sprbufcpp,
  *   docs/reference/functions/core-library.md#sprbuf-0x201620-0x201d78
  * @end-sly2-annot */
+// Waits for the pending fill, then makes the other half current (state 2).
 extern "C" void SwapSprBuffers(void)
 {
     sceDmaSync(D_002DE5A0, 0, 0);
