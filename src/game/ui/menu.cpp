@@ -34,19 +34,20 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct POOL { char pad[0xC]; VTE *vt; };
 struct JOY;
 /* A menu item (0x20): its message kind, callbacks, an option list (c values at a), flags (bit 1 keep the page open). */
-struct ITEM { int kind; void (*select)(ITEM *); int c; int *a; void (*update)(ITEM *); void (*init)(ITEM *); int x18; uint flags; };
-/* A page's animations: open (x0 / xC), close (x8 / x14), scroll forward (x18) / back (x1C), ... */
-struct META { int x0, x4, x8; int ready; int x10; int back; int forward; int reverse; };
+struct ITEM { int kind; void (*select)(ITEM *); int c; int *a; void (*update)(ITEM *); void (*init)(ITEM *); int subpageMeta; uint flags; };   /* subpageMeta: the META of the page it opens */
+/* A page's animations: shown with showOnOpen / showOnClose / showOnState7 (widget slot 49), then played: ready,
+   back, forward, reverse, state7. */
+struct META { int showOnOpen, showOnState7, showOnClose; int ready; int state7; int back; int forward; int reverse; };
 /* A page (0x1C). */
-struct PAGE { int count; ITEM *items; POOL *pool; int back; int x10; int index; META *meta; };
+struct PAGE { int count; ITEM *items; POOL *pool; int back; int unknown10; int index; META *meta; };
 /* The pause menu. */
 struct PMENU
 {
-    int x0, x4, x8;
+    int frame, sidebag, firstRefNode;
     VTE *vt;                    /* 0x00C */
     JOY *input;                 /* 0x010 */
     char pad14[0x20 - 0x14];
-    POOL *x20;                  /* 0x020: the menu's widget pool */
+    POOL *pool;                 /* 0x020: the menu's widget pool */
     int depth;                  /* 0x024: pages open */
     PAGE ae[16];                /* 0x028 */
     int state;                  /* 0x1E8 */
@@ -61,10 +62,10 @@ typedef char GROUP_Size[sizeof(PAGE)==28?1:-1];
 
 struct DISPU { unsigned int dx : 12; unsigned int dy : 11; unsigned int r0 : 9; unsigned int r1; } __attribute__((aligned(8)));
 struct GSV { char pad[0x18]; DISPU d1; char pad2[0x40 - 0x20]; DISPU d2; };
-struct SWM { char pad[0x3B0C]; union { int x3B0C; void *p3b0c; }; char pad3B10[0x3B40 - 0x3B10]; struct OPT *first, *second; };
-struct SNDMGR { char pad[0x14C]; float x14C; float x150; };
-struct MCDLG { char pad[0x4C]; int x4C; };
-struct GSAVE { char pad[0xFD50]; int f; };
+struct SWM { char pad[0x3B0C]; union { int currentJob; void *currentJobPtr; };   /* sw.h ploJobCur */ char pad3B10[0x3B40 - 0x3B10]; struct OPT *first, *second; };
+struct SNDMGR { char pad[0x14C]; float soundVolume; float musicVolume; };
+struct MCDLG { char pad[0x4C]; int followUpAction; };   /* the memcard dialog (memcard.cpp) */
+struct GSAVE { char pad[0xFD50]; int currentSlot; };   /* the save manager (memcard.cpp) */
 struct OPT;
 struct CONTEXT { char bytes[0x5464]; };
 struct BANK { char pad[0x24]; CONTEXT contexts[3]; char padFD50[8]; CONTEXT *current; };
@@ -106,7 +107,7 @@ extern int D_002C2D8C;
 extern char D_003D4A60[];
 extern char D_002BFDA8[], D_002BFE08[], D_002BFE68[];
 extern ITEM D_002C00E8[];
-extern struct H { char pad[0x24]; int x24; } D_003DA3C0;
+extern struct H { char pad[0x24]; int unknown24; } D_003DA3C0;
 extern ITEM D_002BFEC8[11];
 extern char D_003DA530[];
 /* menu's .data, defined after the functions in address order: the page animations, the pause-menu pages and
@@ -167,7 +168,7 @@ void WipeToWorldWarp(SWM *pg, void *s, int a, int b, int c, int d);
 void SetPauseMenuState(PMENU *s, int st);
 void ReplacePauseMenuPage(PMENU *s, int n, ITEM *af);
 void GoBackPauseMenuPage(PMENU *p);
-void PushPauseMenuPage(PMENU *s, int n, ITEM *af, POOL *x8, META *x18);
+void PushPauseMenuPage(PMENU *s, int n, ITEM *af, POOL *pool, META *meta);
 void PopPauseMenuPage(PMENU *p);
 void PopPauseMenuToRoot(PMENU *p);
 void EnterPauseMenuState11(PMENU *p);
@@ -190,7 +191,7 @@ void RefGetGlobalSaveVarP(CREFP *r, int a, void *b) __asm__("RefGetGlobalSaveVar
  * @end-sly2-annot */
 // Initializes the pause menu: finds its widget (oid 0x370), state 0, no selection.
 extern "C" void InitPauseMenu(PMENU *menu) {
-    menu->x20 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
+    menu->pool = (POOL *)PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x370, 0);
     menu->pending = -1;
     menu->state = 0;
 }
@@ -205,7 +206,7 @@ extern "C" void InitPauseMenu(PMENU *menu) {
 extern "C" void ResetPauseMenu(PMENU *menu) {
     PopPauseMenuToRoot(menu);
     SetPauseMenuState(menu, 0);
-    menu->x20 = 0;
+    menu->pool = 0;
 }
 
 /** @sly2-annot addr=0x1AE9A8
@@ -299,7 +300,7 @@ void SetPauseMenuState(PMENU *menu, int st)
     case 1:
         if (pe && pe->pool) {
             POOL *p = pe->pool;
-            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->x0);
+            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->showOnOpen);
             PlayWidgetAnim(pe->pool, pe->meta->ready);
         }
         break;
@@ -315,7 +316,7 @@ void SetPauseMenuState(PMENU *menu, int st)
     case 8:
         if (pe && pe->pool) {
             POOL *p = pe->pool;
-            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->x8);
+            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->showOnClose);
             PlayWidgetAnim(pe->pool, pe->meta->back);
         }
         break;
@@ -359,8 +360,8 @@ void SetPauseMenuState(PMENU *menu, int st)
     case 7:
         if (pe && pe->pool) {
             POOL *p = pe->pool;
-            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->x4);
-            PlayWidgetAnim(pe->pool, pe->meta->x10);
+            ((void (*)(POOL *, int))p->vt[49].pfn)((POOL *)((char *)p + p->vt[49].d), pe->meta->showOnState7);
+            PlayWidgetAnim(pe->pool, pe->meta->state7);
         }
         break;
     case 0:
@@ -495,7 +496,7 @@ extern "C" void PAUSEMENU_Slot8Default(void) {
 // Replaces the top page with count items (running their init callbacks) and enters state 3.
 void ReplacePauseMenuPage(PMENU *menu, int n, ITEM *af)
 {
-    int x18, x8;
+    int meta, pool;
     int k;
     PAGE *e;
     int i;
@@ -503,16 +504,16 @@ void ReplacePauseMenuPage(PMENU *menu, int n, ITEM *af)
     k = menu->depth;
     if (k > 0) {
         e = PPAGE(menu, k);
-        x8 = (int)e->pool;
-        x18 = (int)e->meta;
+        pool = (int)e->pool;
+        meta = (int)e->meta;
     }
     menu->pending = k + 1;
     e = PPAGE(menu, k + 1);
     func_002333B4(e, 0, sizeof(*e));
     e->items = af;
-    e->pool = (POOL *)x8;
+    e->pool = (POOL *)pool;
     e->back = 1;
-    e->meta = (META *)x18;
+    e->meta = (META *)meta;
     e->count = n;
     for (i = 0; i < e->count; i++) {
         ITEM *f = &e->items[i];
@@ -543,20 +544,20 @@ void GoBackPauseMenuPage(PMENU *menu)
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
 // Pushes a page (items, count, widget pool, title) on the menu stack, runs the items' init callbacks and enters state 1.
-void PushPauseMenuPage(PMENU *menu, int n, ITEM *af, POOL *x8, META *x18)
+void PushPauseMenuPage(PMENU *menu, int n, ITEM *af, POOL *pool, META *meta)
 {
     PAGE *e;
     int i;
-    if (!x8) {
+    if (!pool) {
         if (menu->depth > 0)
-            x8 = menu->ae[menu->depth - 1].pool;
+            pool = menu->ae[menu->depth - 1].pool;
     }
     e = &menu->ae[menu->depth++];
     func_002333B4(e, 0, sizeof(*e));
     e->items = af;
     e->count = n;
-    e->pool = x8;
-    e->meta = x18;
+    e->pool = pool;
+    e->meta = meta;
     e->back = 0;
     SetPauseMenuState(menu, 1);
     for (i = 0; i < e->count; i++) {
@@ -632,7 +633,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.x150 + f * g_clock.dtReal * 1.5f);
+        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.musicVolume + f * g_clock.dtReal * 1.5f);
         SetSndmgrChannelVolume(&D_003DD040, 1, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);
         break;
@@ -642,7 +643,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         float g;
         if (f == 0.0f)
             return;
-        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.x14C + f * g_clock.dtReal * 1.5f);
+        g = GLimitLm__FP2LMf(D_002BBB60, D_003DD040.soundVolume + f * g_clock.dtReal * 1.5f);
         SetSndmgrChannelVolume(&D_003DD040, 0, g, 1);
         SetSndmgrChannelVolume(&D_003DD040, 3, g, 1);
         SetWidgetAnimPhase(p->pool, 0x315, g);
@@ -913,7 +914,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
     ITEM *psrc, *pdst;
     unsigned int i;
     int f, k;
-    if (!D_003D9ED0.x20) return 0;
+    if (!D_003D9ED0.pool) return 0;
     if (IsSwTransitionBusy(&D_003DD490)) return 0;
     if (FScreenShown(&D_002E6550)) return 0;
     pl = PpoHero(&D_003DD490);
@@ -926,13 +927,13 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
         switch (psrc->kind) {
         case 0x6A:
             f = 0;
-            if (D_003DA3C0.x24) {
+            if (D_003DA3C0.unknown24) {
                 if (NWorldCur()) f = 1;
             }
             break;
         case 0x6B:
             f = 0;
-            if (D_003DD490.x3B0C) {
+            if (D_003DD490.currentJob) {
                 if (NWorldCur()) f = 1;
             }
             break;
@@ -957,7 +958,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
         }
         psrc++;
     }
-    PushPauseMenuPage(&D_003D9ED0, pdst - D_002F65D0, D_002F65D0, D_003D9ED0.x20, &D_002BFD38);
+    PushPauseMenuPage(&D_003D9ED0, pdst - D_002F65D0, D_002F65D0, D_003D9ED0.pool, &D_002BFD38);
     if (item) item->flags |= 2;
     return 1;
 }
@@ -988,7 +989,7 @@ extern "C" void OpenPauseOptionsPage(ITEM *item)
         ReplacePauseMenuPage(&D_003D9ED0, dst - D_002F6470, D_002F6470);
         item->flags |= 2;
     } else {
-        PushPauseMenuPage(&D_003D9ED0, dst - D_002F6470, D_002F6470, D_003D9ED0.x20, &D_002BFD38);
+        PushPauseMenuPage(&D_003D9ED0, dst - D_002F6470, D_002F6470, D_003D9ED0.pool, &D_002BFD38);
     }
 }
 
@@ -1013,7 +1014,7 @@ extern "C" void OnPauseItemBack(void) {
 // Item callback: PushPauseMenuPage with the item's page.
 extern "C" void OnPauseItemPushPage(ITEM *item)
 {
-    PushPauseMenuPage(&D_003D9ED0, item->c, (ITEM *)item->a, 0, (META *)item->x18);
+    PushPauseMenuPage(&D_003D9ED0, item->c, (ITEM *)item->a, 0, (META *)item->subpageMeta);
     if (item) item->flags |= 2;
 }
 
@@ -1087,7 +1088,7 @@ extern "C" void OnPauseItemJobList(void)
 // Item text callback for the quit item: string 0x47 or 0x46 by a flag.
 extern "C" void GetPauseQuitItemText(int *menu)
 {
-    if (D_002E65E0.f) { *menu = 0x47; return; }
+    if (D_002E65E0.currentSlot) { *menu = 0x47; return; }
     *menu = 0x46;
 }
 
@@ -1104,10 +1105,10 @@ extern "C" void OnPauseItemSaveAndQuit(ITEM *item)
 {
     BroadcastGameEvent(D_002DEB30, 0x2D, 0);
     BroadcastGameEvent(D_002DEB30, 0x2E, 0);
-    if (D_002E65E0.f) {
+    if (D_002E65E0.currentSlot) {
         CREFP r;
         int v;
-        D_002E6550.x4C = 1;
+        D_002E6550.followUpAction = 1;
         RefGetGlobalSaveVarP(&r, (*(int *)&g_sw.psvpAutosaveWarned), D_003D4A60);
         v = r.tag;
         Decref__4CRef(&r);
@@ -1149,7 +1150,7 @@ extern "C" void OnPauseItemReturnToHideout(ITEM *item)
 {
     SWM *pg = &D_003DD490;
     WipeToWorldWarp(pg, (void *)D_002A3928, 0x189, -1, 0x80, -1);
-    if (pg->p3b0c) FailJob(pg->p3b0c);
+    if (pg->currentJobPtr) FailJob(pg->currentJobPtr);
     if (item) item->flags |= 2;
 }
 
