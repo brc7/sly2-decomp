@@ -570,14 +570,13 @@ void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
             air->gSpeedRatio = 1.0f;
             break;
     }
-    if (kind != 6)
-    {
-        if (kind != 0x11)
-            air->fUnk2c = air->fCanDoubleJump;
-        if (FIsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
-            ((JT *)air->pstepplayer)->janim.nUnk10 = -1;
-        air->zStart = GZOfQw(PosLoWorld(air->pstepplayer));
-    }
+    if (kind == 6)
+        return;
+    if (kind != 0x11)
+        air->fUnk2c = air->fCanDoubleJump;
+    if (FIsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
+        ((JT *)air->pstepplayer)->janim.nUnk10 = -1;
+    air->zStart = GZOfQw(PosLoWorld(air->pstepplayer));
 }
 } // namespace M_func_00195A00
 
@@ -1099,13 +1098,13 @@ extern "C" void SetJtAirState(CONTEXT *air, int newMode, SOURCE *source)
     case 2: air->actionFlag = 0; break;
     case 18: RecalcSwOxfFilterForObject(&D_003DD490, air->actor); break;
     }
-    if (air->mode != -1) {
-        if (!active || active->clip != clip) {
-            ReleaseSma(&air->actor->component);
-            ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, air->actor, blend, weight, flags, &air->actor->animation);
-        }
-        Notify(air->actor, 90);
+    if (air->mode == -1)
+        return;
+    if (!active || active->clip != clip) {
+        ReleaseSma(&air->actor->component);
+        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, air->actor, blend, weight, flags, &air->actor->animation);
     }
+    Notify(air->actor, 90);
 }
 } // namespace M_func_00195FB8
 
@@ -2661,26 +2660,26 @@ void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 // During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
 void AddJtWallRunXps(struct P *p)
 {
-    if (p->x1c == 0x11) {
-        U q, r;
-        M3 m;
-        U s;
-        qword neg, v;
-        q.q = func_001A62E8(p->x0);
-        r.q = func_0022FC48(p->xc8->x0, 0, p->xd0);
-        qword sq;
-        __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
-        s.q = sq;
-        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->xe0), "j"(s.q));
-        m.r[0] = neg;
-        GetNormalVectors(neg, D_002A2DC0, D_002A2DB0, &m.r[1]);
-        __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-                : "=j"(v) : "j"(p->xf0), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
-        qword rq;
-        __asm__("vsub.xyzw %0, %1, %2" : "=j"(rq) : "j"(r.q), "j"(v));
-        r.q = rq;
-        p->x0->vt[82].pfn((char *)p->x0 + p->x0->vt[82].d, 7, p->xc8->x4, r.q, D_002A2DB0, q.q);
-    }
+    if (p->x1c != 0x11)
+        return;
+    U q, r;
+    M3 m;
+    U s;
+    qword neg, v;
+    q.q = func_001A62E8(p->x0);
+    r.q = func_0022FC48(p->xc8->x0, 0, p->xd0);
+    qword sq;
+    __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
+    s.q = sq;
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(neg) : "j"(p->xe0), "j"(s.q));
+    m.r[0] = neg;
+    GetNormalVectors(neg, D_002A2DC0, D_002A2DB0, &m.r[1]);
+    __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
+            : "=j"(v) : "j"(p->xf0), "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]));
+    qword rq;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(rq) : "j"(r.q), "j"(v));
+    r.q = rq;
+    p->x0->vt[82].pfn((char *)p->x0 + p->x0->vt[82].d, 7, p->xc8->x4, r.q, D_002A2DB0, q.q);
 }
 } } // namespace M_func_001991A0
 
@@ -4759,15 +4758,15 @@ LPartnerDone:
         tBest = t;
     }
 
-    if (kind != -1) {
-        XF *xf = air->pstepplayer->pxf;
-        xf->tGoal = D_002DDED0.t + tBest;
-        xf->posGoal = Sub(posBest.q, air->pstepplayer->qwUnk240);
-        xf->vGoal = vBest.q;
-        air->uTarget = uBest;
-        air->sTarget = sBest;
-        SetJtAirState(air, kind, ploBest);
-    }
+    if (kind == -1)
+        return;
+    XF *xf = air->pstepplayer->pxf;
+    xf->tGoal = D_002DDED0.t + tBest;
+    xf->posGoal = Sub(posBest.q, air->pstepplayer->qwUnk240);
+    xf->vGoal = vBest.q;
+    air->uTarget = uBest;
+    air->sTarget = sBest;
+    SetJtAirState(air, kind, ploBest);
 }
 } // namespace M_JtbsChooseJtLanding
 
