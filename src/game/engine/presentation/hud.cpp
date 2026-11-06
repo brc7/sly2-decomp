@@ -25,6 +25,23 @@
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_2275B8), base of D_004435F4 */
 
+/* WIDGET::state values. */
+enum WIDGET_STATE
+{
+    WIDGET_STATE_UNLOADED = 0,
+    WIDGET_STATE_HIDDEN = 1,
+    WIDGET_STATE_VISIBLE = 2,
+    WIDGET_STATE_APPEARING = 3,
+    WIDGET_STATE_DISAPPEARING = 4,
+};
+/* WIDGET::request values. */
+enum WIDGET_REQUEST
+{
+    WIDGET_REQUEST_NONE = 0,
+    WIDGET_REQUEST_HIDE = 1,
+    WIDGET_REQUEST_SHOW = 2,
+};
+
 /* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
 struct WIDGETV : public LO
 {
@@ -82,6 +99,17 @@ void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
 void StaticInit_hud(int fInitialize, int nPriority);
 }
+
+/* Class ids tested by the text getters (docs/reference/class-tree.md). */
+enum HUD_CID
+{
+    CID_STEPPLAYER = 0x34,   /* any playable character */
+    CID_JT = 0x35,           /* Sly */
+    CID_MURRAY = 0x36,
+    CID_BENTLEY = 0x37,
+    CID_KEY = 0x5C,
+    CID_LOOT = 0x5E,         /* a pickpocketed item */
+};
 
 // 0x210EB0 BuildContextText
 /** @sly2-annot addr=0x210EB0
@@ -179,7 +207,7 @@ void BuildTimerText(void *f)
 
 // 0x210FE0 BuildBinocularReadoutText
 namespace M_func_00210FE0 { extern "C" {
-struct X { char pad[0xF20]; int xF20; char padf24[0x18]; float xF3C; };
+struct X { char pad[0xF20]; int modeKind; char padf24[0x18]; float hudZoom; };   /* STEPPLAYER jtmode.nKind (0 look, 1 zoom), jtmode.hud.uZoom */
 extern char D_003DD490[];
 extern char D_002A8AB8[], D_002A8AC0[], D_002A8AC8[], D_002A8AD0[], D_002A8AD8[];
 struct X *PpoHero(void *);
@@ -196,32 +224,32 @@ int fptodp(float);
  * @end-sly2-annot */
 // HUD text 0x2DC: the binocucom readout, per character (Sly: zoom "x%d", Bentley: "x%5.3f", Murray: distance words).
 // (inferred)
-void BuildBinocularReadoutText(char *pch)
+void BuildBinocularReadoutText(char *text)
 {
-    struct X *x = PpoHero(D_003DD490);
-    float g;
-    if (!x || !FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x34))
+    struct X *hero = PpoHero(D_003DD490);
+    float zoom;
+    if (!hero || !FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER))
         return;
-    switch (x->xF20) {
+    switch (hero->modeKind) {
     case 0:
-        g = g_cm.cplook.rZoomMax * x->xF3C;
+        zoom = g_cm.cplook.rZoomMax * hero->hudZoom;
         break;
     case 1:
-        g = g_cm.cpzoom.rZoomMax * x->xF3C;
+        zoom = g_cm.cpzoom.rZoomMax * hero->hudZoom;
         break;
     }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x35)) {
-        sprintf(pch, D_002A8AB8, (int)g);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x37)) {
-        sprintf(pch, D_002A8AC0, fptodp(g));
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x36)) {
-        int n = (int)g;
-        if (n < 4)
-            sprintf(pch, D_002A8AC8, n);
-        else if (n < 8)
-            sprintf(pch, D_002A8AD0, n);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_JT)) {
+        sprintf(text, D_002A8AB8, (int)zoom);
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_BENTLEY)) {
+        sprintf(text, D_002A8AC0, fptodp(zoom));
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_MURRAY)) {
+        int distance = (int)zoom;
+        if (distance < 4)
+            sprintf(text, D_002A8AC8, distance);
+        else if (distance < 8)
+            sprintf(text, D_002A8AD0, distance);
         else
-            sprintf(pch, D_002A8AD8, n);
+            sprintf(text, D_002A8AD8, distance);
     }
 }
 } } // namespace M_func_00210FE0
@@ -236,37 +264,32 @@ void BuildBinocularReadoutText(char *pch)
  * @end-sly2-annot */
 /* STRINGGEN getter (context 0 selected, 1 pending): the recon text of the hero's mode HUD, if the hero is a JT. */
 // HUD texts 0x2DD / 0x2DE: the recon selector's selected item, or its pending caption.
-extern "C" void BuildReconSelectionText(char *pchz, int i)
+extern "C" void BuildReconSelectionText(char *text, int which)
 {
-    JT *pjt;
-    int *pnRecon;
-    char *pchzRecon;
-    pjt = (JT *)PpoHero(&D_003DD490);
-    if ((pjt != 0) && (FIsBasicDerivedFrom((BASIC *)pjt, (CID)0x34) != 0)) {
-        pnRecon = pjt->jtmode.hud.pnUnk14;
-        pchzRecon = 0;
-        if (pnRecon != 0) {
-            if (i != 0) {
-                if (i == 1) {
-                    pchzRecon = PchzReconPending(pnRecon);
-                }
-            } else {
-                pchzRecon = PchzReconSelected(pnRecon);
-            }
-        }
-        if (pchzRecon != 0) {
-            strcpy(pchz, pchzRecon);
+    JT *hero = (JT *)PpoHero(&D_003DD490);
+    if (!hero || !FIsBasicDerivedFrom((BASIC *)hero, (CID)CID_STEPPLAYER))
+        return;
+    int *reconSelector = hero->jtmode.hud.pnUnk14;
+    char *reconText = 0;
+    if (reconSelector) {
+        if (which != 0) {
+            if (which == 1)
+                reconText = PchzReconPending(reconSelector);
+        } else {
+            reconText = PchzReconSelected(reconSelector);
         }
     }
+    if (reconText)
+        strcpy(text, reconText);
 }
 
 // 0x2111F0 BuildReconTargetText
 namespace M_BuildReconTargetText { extern "C" {
 struct G;
 extern struct G D_003DD490;
-struct Z { char pad[0xF8]; int xF8; };
-struct Y { char pad[0x74]; int c; struct Z *a[1]; };
-struct X { char pad[0xF38]; struct Y *py; };
+struct Z { char pad[0xF8]; int nameTextId; };
+struct Y { char pad[0x74]; int numTargets; struct Z *targets[1]; };
+struct X { char pad[0xF38]; struct Y *reconSelector; };   /* STEPPLAYER jtmode.hud.pnUnk14 */
 struct X *PpoHero(struct G *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
@@ -280,12 +303,12 @@ void strcpy(char *dst, char *src);
 // HUD texts 0x2DF-0x2E4: the name of recon target i, if there is one.
 void BuildReconTargetText(char *dst, int i)
 {
-    struct G *g = &D_003DD490;
-    struct X *p = PpoHero(g);
-    if (p && FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x34)) {
-        struct Y *y = p->py;
-        if (y && i < y->c)
-            strcpy(dst, PchzFindSwLangstr__FP2SWi(g, y->a[i]->xF8));
+    struct G *sw = &D_003DD490;
+    struct X *hero = PpoHero(sw);
+    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
+        struct Y *selector = hero->reconSelector;
+        if (selector && i < selector->numTargets)
+            strcpy(dst, PchzFindSwLangstr__FP2SWi(sw, selector->targets[i]->nameTextId));
     }
 }
 } } // namespace M_BuildReconTargetText
@@ -296,7 +319,7 @@ struct RESOURCE { int id; const char *text; };
 struct G { char gap[0x4640]; int count; struct RESOURCE *resources; };
 extern struct G D_003DD490;
 struct F { int id; char pad[0x1C]; };
-struct E { int c; struct F *af; char pad[0xC]; int x14; char pad2[4]; };
+struct E { int numEntries; struct F *entries; char pad[0xC]; int selection; char pad2[4]; };   /* a menu page */
 #undef D_003D9EDC
 extern struct E D_003D9EDC[] __asm__("D_003D9ED0+0xC");   /* screen's object+0xC, a separate symbol to g++: the base+offset form changes BuildMenuCarouselText (CSE of the base) */
 #undef D_003D9EF4
@@ -314,13 +337,13 @@ char *strcpy(char *dst, const char *src);
 // (inferred)
 void BuildMenuCarouselText(char *dst, int k)
 {
-    struct E *e = &D_003D9EDC[D_003D9EF4];
-    if (e->c) {
-        int n = e->c;
-        int j = k + (long)(e->x14 - 3);
+    struct E *page = &D_003D9EDC[D_003D9EF4];
+    if (page->numEntries) {
+        int n = page->numEntries;
+        int j = k + (long)(page->selection - 3);   /* slot 3 of the carousel is the selection */
         while (j < 0)
             j += n;
-        (void)strcpy(dst, PchzFindSwLangstr__FP2SWi(&D_003DD490, e->af[j % n].id));
+        (void)strcpy(dst, PchzFindSwLangstr__FP2SWi(&D_003DD490, page->entries[j % n].id));
     }
 }
 } } // namespace M_func_00211298
@@ -329,9 +352,9 @@ void BuildMenuCarouselText(char *dst, int k)
 
 // 0x211348 BuildWidgetArgText
 namespace M_BuildWidgetArgText { extern "C" {
-struct T { char pad[0xCC]; int a[1]; };
+struct T { char pad[0xCC]; int argTextIds[1]; };
 extern struct G D_003DD490;
-int PchzFindSwLangstr__FP2SWi(struct G *g, int x);
+int PchzFindSwLangstr__FP2SWi(struct G *g, int id);
 void strcpy(void *p, int v);
 /** @sly2-annot addr=0x211348
  * Purpose: STRINGGEN ids 0x2E5-0x2EE: langstr(owner WIDGET->aid[i] at +0xCC)
@@ -340,9 +363,9 @@ void strcpy(void *p, int v);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
-void BuildWidgetArgText(void *p, int i, struct T *t)
+void BuildWidgetArgText(void *text, int i, struct T *widget)
 {
-    strcpy(p, PchzFindSwLangstr__FP2SWi(&D_003DD490, t->a[i]));
+    strcpy(text, PchzFindSwLangstr__FP2SWi(&D_003DD490, widget->argTextIds[i]));
 }
 } } // namespace M_BuildWidgetArgText
 
@@ -390,11 +413,13 @@ extern "C" void BuildTickerText(char *pchz)
 
 // 0x211420 BuildOperatedObjectText
 namespace M_func_00211420 { extern "C" {
-struct E { int x0; int x4; int x8; };
-extern struct E D_002C3288[];
-struct Z { int x0; int x4; };
-struct Y { char pad[0x224]; int x224; char pad228[0x1C]; struct Z *x244; };
-struct X { char pad[0x4C8]; int x4C8; char pad4cc[0x9A0 - 0x4CC]; struct Y *x9A0; char pad9a4[0x1318 - 0x9A4]; int x1318; };
+struct E { char *name; int nameTextId; int sellPrice; };
+extern struct E D_002C3288[];   /* the loot table (screen.cpp's Thiefnet screens) */
+struct Z { int unknown0; int lootIndex; };
+struct Y { char pad[0x224]; int keyTextId; char pad228[0x1C]; struct Z *loot; };
+/* STEPPLAYER: jtgrab.nState, the grabbed object (inferred), the default text id (inferred) */
+struct X { char pad[0x4C8]; int grabState; char pad4cc[0x9A0 - 0x4CC]; struct Y *heldObject; char pad9a4[0x1318 - 0x9A4]; int heldTextId; };
+enum { GRAB_STATE_HOLDING = 0xC };   /* (inferred) */
 extern char D_003DD490[];
 struct X *PpoHero(void *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -408,28 +433,28 @@ void strcpy(char *, char *);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // HUD text 0x2F4: the name of the object the player is operating (in the "operate" mode). (inferred)
-void BuildOperatedObjectText(char *pch)
+void BuildOperatedObjectText(char *text)
 {
     int id = -1;
-    struct X *x = PpoHero(D_003DD490);
-    if (x && FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x34)) {
-        struct Y *y = x->x9A0;
-        if (y) {
-            int k = x->x4C8;
-            if (k == 0xC) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(y, 0x5E))
-                    id = D_002C3288[y->x244->x4].x4;
-                else if (FIsBasicDerivedFrom__FP5BASIC3CID(y, 0x5C))
-                    id = y->x224;
+    struct X *hero = PpoHero(D_003DD490);
+    if (hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, CID_STEPPLAYER)) {
+        struct Y *held = hero->heldObject;
+        if (held) {
+            int grabState = hero->grabState;
+            if (grabState == GRAB_STATE_HOLDING) {
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(held, CID_LOOT))
+                    id = D_002C3288[held->loot->lootIndex].nameTextId;
+                else if (FIsBasicDerivedFrom__FP5BASIC3CID(held, CID_KEY))
+                    id = held->keyTextId;
                 else
-                    id = x->x1318;
+                    id = hero->heldTextId;
             }
         }
     }
     if (id != -1)
-        strcpy(pch, PchzFindSwLangstr__FP2SWi(D_003DD490, id));
+        strcpy(text, PchzFindSwLangstr__FP2SWi(D_003DD490, id));
     else
-        *pch = 0;
+        *text = 0;
 }
 } } // namespace M_func_00211420
 
@@ -577,7 +602,7 @@ WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; a
 
 // 0x211CA8 ShowModalBoxWidget
 namespace M_func_00211CA8 { extern "C" {
-struct S { char pad[0x7C]; int x7c; char pad2[0x90]; int x110; };
+struct S { char pad[0x7C]; int mainAnimId; char pad2[0x90]; int isOpen; };   /* isOpen: WIDGET127+0x110 (inferred) */
 extern struct G D_003DD490;
 void ShowWidget(struct S *p, int k);
 void IncrementSwHandsOff(struct G *g, int a);
@@ -591,20 +616,20 @@ void PlayWidgetAnim(struct S *p, int a);
  * @end-sly2-annot */
 // Shows the modal message box (class 0x7F, slot 49) if it is idle: shows the widget, takes player control and plays its
 // open animation. (inferred)
-void ShowModalBoxWidget(struct S *p, int k)
+void ShowModalBoxWidget(struct S *widget, int arg)
 {
-    if (p->x7c == -1) {
-        ShowWidget(p, k);
+    if (widget->mainAnimId == -1) {
+        ShowWidget(widget, arg);
         IncrementSwHandsOff(&D_003DD490, 0);
-        p->x110 = 1;
-        PlayWidgetAnim(p, 0x33A);
+        widget->isOpen = 1;
+        PlayWidgetAnim(widget, 0x33A);   /* the box's open animation */
     }
 }
 } } // namespace M_func_00211CA8
 
 // 0x211D08 InitModalBoxWidget
 namespace M_func_00211D08 { extern "C" {
-struct S { char pad[0xB0]; int f; };
+struct S { char pad[0xB0]; int fontFlag; };
 void InitLo(struct S *p);
 /** @sly2-annot addr=0x211D08
  * Purpose: CID 0x7F Init (slot7): InitLo, +0xB0 = 1
@@ -616,17 +641,17 @@ void InitLo(struct S *p);
  * @end-sly2-annot */
 } } // namespace M_func_00211D08
 // Initializes the modal message box (class 0x7F): base init and its "font" flag.
-void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *p = (M_func_00211D08::S *)this;
-    InitLo(p);
-    p->f = 1;
+void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *widget = (M_func_00211D08::S *)this;
+    InitLo(widget);
+    widget->fontFlag = 1;
 }
 
 // 0x211D38 UpdateModalBoxWidget
 namespace M_func_00211D38 { extern "C" {
 // Actor update: commit completed state after every noninitial guard path.
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
-struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int unknown110; int keepsGamePaused; };
-extern struct G { char pad[0x3B0C]; void *unknown3B0C; } D_003DD490;
+struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int state; float stateTime; char pad60[0xB0]; int isOpen; int keepsGamePaused; };
+extern struct G { char pad[0x3B0C]; void *pausedClockOwner; } D_003DD490;   /* SW+0x3B0C: resumed via func_00162DF8 (inferred) */
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int IsWidgetIdle(struct S *p);
@@ -645,29 +670,27 @@ void func_00162DF8(void *);
  * @end-sly2-annot */
 // Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
 // resumes the game and hides the box. (inferred)
-void UpdateModalBoxWidget(struct S *p)
+void UpdateModalBoxWidget(struct S *widget)
 {
-    int r = IsWidgetIdle(p);
-    if (r)
+    if (IsWidgetIdle(widget))
         return;
-    UpdateWidget(p);
-    if (p->state == 2 && 0.5f < g_clock.tReal - p->stateTime && !FScreenShown(D_002E6550)
-        && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
+    UpdateWidget(widget);
+    if (widget->state == WIDGET_STATE_VISIBLE && 0.5f < g_clock.tReal - widget->stateTime && !FScreenShown(D_002E6550)
+        && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0 /* face buttons */)) {
         DecrementSwHandsOff(&D_003DD490, 0);
-        if (p->keepsGamePaused == 0 && D_003DD490.unknown3B0C) {
+        if (widget->keepsGamePaused == 0 && D_003DD490.pausedClockOwner) {
             D_002DD318++;
-            func_00162DF8(D_003DD490.unknown3B0C);
+            func_00162DF8(D_003DD490.pausedClockOwner);
         }
-        p->pvt->pf((char *)p + p->pvt->d);
+        widget->pvt->pf((char *)widget + widget->pvt->d);   /* HideWidget (slot 50) */
     }
-    p->unknown110 = 1;
-    return;
+    widget->isOpen = 1;
 }
 } } // namespace M_func_00211D38
 
 // 0x211E40 InitWidget128
 namespace M_func_00211E40 { extern "C" {
-struct S { char pad[0xB0]; int f; };
+struct S { char pad[0xB0]; int fontFlag; };
 void InitLo(struct S *p);
 /** @sly2-annot addr=0x211E40
  * Purpose: CID 0x80 Init: InitLo, +0xB0 = 1
@@ -679,9 +702,9 @@ void InitLo(struct S *p);
  * @end-sly2-annot */
 } } // namespace M_func_00211E40
 // Initializes widget class 0x80: base init and its "font" flag.
-void WIDGET128::Init() { using namespace M_func_00211E40; M_func_00211E40::S *p = (M_func_00211E40::S *)this;
-    InitLo(p);
-    p->f = 1;
+void WIDGET128::Init() { using namespace M_func_00211E40; M_func_00211E40::S *widget = (M_func_00211E40::S *)this;
+    InitLo(widget);
+    widget->fontFlag = 1;
 }
 
 // 0x211E70 AddItemCounterOidA
