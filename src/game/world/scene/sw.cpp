@@ -19,6 +19,7 @@
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/joy.h"
+#include "sly2/scrap.h"
 
 /* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
    destructor func_00258348 (cm.cpp's g_cm pattern). */
@@ -1016,6 +1017,9 @@ extern "C" void func_0020F0F0(SW *psw)
     }
 }
 
+// 0x20F120: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("slt $2, $zero, $2");
+
 /** @sly2-annot addr=0x20F128
  * Purpose: ++SW+0x3D80; first -> show letterbox object (0x1A3078(&D_002E1E60): hides subtitles, vt49)
  * Info: proposed name AcquireSwLetterbox (T1); TU sw
@@ -1043,6 +1047,9 @@ extern "C" void ReleaseSwLetterbox(SW *psw)
         HideLetterbox(D_002E1E60);
     }
 }
+
+// 0x20F190: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("slt $2, $zero, $2");
 
 /** @sly2-annot addr=0x20F198
  * Purpose: ++SW+0x3D84

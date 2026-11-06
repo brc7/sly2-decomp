@@ -183,6 +183,15 @@ at the real address (func_00119BC8, func_0014C1F0, func_00259D60, and 9 more in 
 a leading "orphan instruction + nop" pair as scrap). Totals dropped from 6,813 to 6,661 functions.
 If you find another scrap, add its range to junk.csv with a reason rather than "matching" it.
 
+Update (link/junk-padding, 2026-11-06): each scrap is a run of 8-byte units, one orphaned return-delay-slot
+instruction plus its alignment nop: the remains of functions that are not in the ELF (most likely cut an instruction
+short when unused functions were removed). Inside a TU's range the source now emits them in place so that the object's
+`.text` links as one run: `#include "sly2/scrap.h"` and `SLY2_SCRAP("addiu $sp, $sp, 0x30");` per unit, written
+after the previous function and before any data definition (a top-level asm lands in whatever section gcc is in).
+A unit can be a plain `nop` (8 zero bytes before a function are such a unit, not 16-byte alignment). The junk.csv
+rows emitted this way end with "emitted by its TU source (SLY2_SCRAP)"; they stay out of the function counts. Details
+and evidence: [full-link.md, "Junk scraps and padding"](guides/full-link.md#junk-scraps-and-padding-linkjunk-padding-2026-11-06).
+
 ## Callee return types matter (2026-10-16)
 Declare callees with their real return type even when the result is ignored: constructors, copy constructors and
 CRef::operator= (func_00129658 returns CRef*, func_001291A8 returns void*) return `this`. Declaring them `void`

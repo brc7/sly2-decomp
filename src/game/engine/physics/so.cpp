@@ -15,6 +15,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
+#include "sly2/scrap.h"
 
 extern "C" void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 extern qword D_002A2DC0;
@@ -3827,6 +3828,9 @@ void HideSoGlobsById(struct P *p, int k)
     }
 }
 } } // namespace M_HideSoGlobsById
+
+// 0x1F6A60: dead-code scrap, a nop unit (sly2/scrap.h)
+SLY2_SCRAP("nop");
 
 // 0x1F6A68 func_001F6A68
 namespace M_func_001F6A68 { extern "C" {
