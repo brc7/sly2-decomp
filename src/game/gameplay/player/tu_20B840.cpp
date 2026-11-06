@@ -147,7 +147,7 @@ int D_002C3DD8[2] = {0x20, 0x30};
 float D_002C3DE0 = 5.0f;
 float D_002C3DE4 = 1.1f;
 extern const float D_002A8904;   /* defined below where the ELF has it (.rodata order) */
-extern void *D_002DAA10[];
+extern void *D_002DAA10[] __asm__("_vt$4LEAP");
 extern void *D_002DA9D0[] __asm__("_vt$6CID146");
 
 void func_001384C0(ASEGBL *);
@@ -598,7 +598,8 @@ struct MSGL { int a, b, n8; };
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" int HandleLeapMessage(LEAPV *p, int msg, MSGL *pm) { if (msg == 9 && pm->n8 == 0x22) SetLeapState(p, 1); return HandleBasicMessage(p, msg, pm); }
+void LEAP::HandleMessage(MSGID msg_m, void *pm_m)   /* key function: LEAP's vtable comes out here */
+{ LEAPV *p = (LEAPV *)this; int msg = (int)msg_m; MSGL *pm = (MSGL *)pm_m; if (msg == 9 && pm->n8 == 0x22) SetLeapState(p, 1); HandleBasicMessage(p, msg, pm); }
 
 static inline qword Scalar(float f){qword r;__asm__("qmtc2 %1,%0":"=j"(r):"r"(f));return r;}
 static inline qword Combine(qword a,qword x,qword b,qword y){qword r;__asm__("vmulax.xyzw ACC,%1,%2x\n\tvmaddx.xyzw %0,%3,%4x":"=j"(r):"j"(a),"j"(x),"j"(b),"j"(y));return r;}

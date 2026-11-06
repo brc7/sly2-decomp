@@ -60,7 +60,7 @@ struct LONGU { long l; } __attribute__((packed));
 extern "C" {
 extern SW D_003DD490;
 extern const LONGU D_002A46C8;
-extern VTE D_002CAF48[];
+extern VTE D_002CAF48[] __asm__("_vt$5ASEGA");
 extern VTE D_002CAF08[] __asm__("_vt$6ACTSEG");
 extern char D_002DE578[];
 

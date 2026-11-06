@@ -303,8 +303,8 @@ struct SOPART
 struct CID148 : public BASIC
 {
       undefined4 unk_0x10[4];
+    virtual void VUnk00() __asm__("func_001F8730");   /* slot 1; key function (so.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid148ClassDesc");   /* slot 6 */
-    virtual void VUnk00() __asm__("func_001F8730");   /* slot 1 */
     virtual void VUnk01() __asm__("DecrefXfh");   /* slot 2 */
 };
 typedef char assert_CID148_size[sizeof(CID148) == 0x20 ? 1 : -1];   /* class descriptor cb */

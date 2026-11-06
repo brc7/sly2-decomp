@@ -5301,8 +5301,9 @@ void func_001F8668(struct L *p, long f)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_001F8730(XFH *pxfh)
+void CID148::VUnk00()   /* key function: CID148's vtable comes out here */
 {
+    XFH *pxfh = (XFH *)this;
     pxfh->cref = pxfh->cref + 1;
 }
 

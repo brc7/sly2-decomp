@@ -113,7 +113,7 @@ void InitGrabspot(struct S *p)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-extern "C" int GRABSPOT_FGetGrabRange()
+int GRABSPOT::FGetGrabRange()   /* key function: GRABSPOT's vtable comes out here */
 {
     return 0;
 }

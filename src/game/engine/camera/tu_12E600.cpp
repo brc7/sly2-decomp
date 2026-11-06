@@ -38,7 +38,7 @@ struct CPCAMERAV { char pad[0xC]; void *vt; CAMERA *pcamera; };
 
 extern char D_002DDF40[];   /* g_cm */
 extern U D_002A2DA0, D_002A2DC0;
-extern char D_002CAB90[];   /* _vt of CPCAMERA */
+extern char D_002CAB90[] __asm__("_vt$8CPCAMERA");   /* CPCAMERA's vtable (emitted here) */
 extern "C" {
 void InitXfm(CAMERA *p);
 void PostLoLoad(CAMERA *p);
@@ -175,8 +175,11 @@ extern "C" CPCAMERAV *CPCAMERA_ctor(CPCAMERAV *p)
  * Confidence: low (draft) [T2 0.40] - evidence: Sly 1 / Lilly reference; sources: r1_116918
  * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
  * @end-sly2-annot */
-extern "C" void func_0012E798(CPCAMERAV *t, void *b, CAMERA *s)
+void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vtable comes out here */
 {
+    CPCAMERAV *t = (CPCAMERAV *)this;
+    void *b = pvHero;
+    CAMERA *s = (CAMERA *)pv;
     ActivateCplcy(t, b, s);
     t->pcamera = s;
     if (s->gFov != 0.0f)

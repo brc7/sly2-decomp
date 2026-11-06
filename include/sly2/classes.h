@@ -83,7 +83,7 @@ inline PO::PO() { pvUnk174 = 0; }
 struct GRABSPOT
 {
     char abData[0x20];
-    virtual int FGetGrabRange() __asm__("GRABSPOT_FGetGrabRange");   /* slot 1 */
+    virtual int FGetGrabRange() __asm__("GRABSPOT_FGetGrabRange");   /* slot 1; key function (grabspot.cpp) */
     virtual void GetClosestParam() __asm__("func_00182CC8");         /* slot 2 */
     virtual void GetGrabPos() __asm__("func_00182CD0");              /* slot 3 */
     virtual void AdjustScore() __asm__("func_00182D70");             /* slot 4 */
@@ -120,8 +120,8 @@ struct BHVGUARDREC
 struct SENSOR : SO
 {
     char pad150[0x190 - 0x150];
+    virtual void Init() __asm__("InitSensor");   /* slot 7; key function (sensor.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSensorClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitSensor");   /* slot 7 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreSensorIntersection");   /* slot 61 */
 };
 typedef char assert_SENSOR_size[sizeof(SENSOR) == 0x190 ? 1 : -1];
@@ -175,8 +175,8 @@ typedef char assert_SAA_size[sizeof(SAA) == 0x50 ? 1 : -1];
 struct CID147 : BASIC
 {
     char pad10[0x60 - 0x10];
+    virtual void VUnk00() __asm__("func_001566B8");   /* slot 1; key function (noise.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid147ClassDesc");   /* slot 6 */
-    virtual void VUnk00() __asm__("func_001566B8");   /* slot 1 */
     virtual void VUnk01() __asm__("func_001566C8");   /* slot 2 */
 };
 typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];

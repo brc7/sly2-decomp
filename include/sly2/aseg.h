@@ -154,8 +154,8 @@ struct ASEGA : public BASIC
       int ieaEnd;
       int nWorldHold;
       CRefPtr<SND> psnd;
+    virtual void VUnk00() __asm__("IncrefAsega");   /* slot 1; key function (asega.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetAsegaClassDesc");   /* slot 6 */
-    virtual void VUnk00() __asm__("IncrefAsega");   /* slot 1 */
     virtual void VUnk01() __asm__("DecrefAsega");   /* slot 2 */
     virtual void SendMessage(MSGID msgid, void *pv) __asm__("func_00131738");   /* slot 4 */
 };

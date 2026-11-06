@@ -4318,3 +4318,12 @@ _vt$6CPLOOK = 0x2CD4E0; // type:data size:0x48
 _vt$7CMPART1 = 0x2CD528; // type:data size:0x48
 _vt$5CPLCY = 0x2CD570; // type:data size:0x48
 _vt$7CMPART2 = 0x2DB858; // type:data size:0x48
+_vt$8CPCAMERA = 0x2CAB90; // type:data size:0x48
+// registry classes whose key function is not the class_registry getter (the first declared virtual is defined in
+// the key TU): CID147 noise.cpp, ASEGA asega.cpp, GRABSPOT grabspot.cpp, SENSOR sensor.cpp, CID148 so.cpp, LEAP tu_20B840
+_vt$5ASEGA = 0x2CAF48; // type:data size:0x40
+_vt$6CID147 = 0x2CE2B8; // type:data size:0x40
+_vt$8GRABSPOT = 0x2D28D8; // type:data size:0x40
+_vt$6SENSOR = 0x2D89A0; // type:data size:0x268
+_vt$6CID148 = 0x2D9938; // type:data size:0x40
+_vt$4LEAP = 0x2DAA10; // type:data size:0x40

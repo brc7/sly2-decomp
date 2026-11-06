@@ -13,8 +13,8 @@ struct LEAP : BASIC
 {
     char pad10[0x70 - 0x10];
     LEAP() __asm__("LEAP_ctor");              /* out of line: player/tu_20B840.cpp */
+    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleLeapMessage");   /* slot 5; key function (tu_20B840) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetLeapClassDesc");   /* slot 6 */
-    virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleLeapMessage");   /* slot 5 */
 };
 typedef char assert_LEAP_size[sizeof(LEAP) == 0x70 ? 1 : -1];
 /* CID146 (cid 146, DIRANIM): embedded in STEPGUARD at +0xE20. From app/class_registry.cpp.

@@ -285,7 +285,6 @@ float fmodf(float, float);
 void AppendDlEntry__FP2DLPv(void *pdl, SOTREEV *ptree);
 void RenderSoSelf(SOV *pso);
 
-void InitSensor(SENSORV *psensor);
 void func_001DE5D8(LASENV *plasen);
 void func_001DEDB0(LASENV *plasen);
 void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, float *ps);
@@ -300,8 +299,9 @@ void func_001DF3D0(LASENV *plasen);
  * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/gameplay-objects.md#source-files,
  *   docs/engine/hud-ui.md#4-source-files
  * @end-sly2-annot */
-extern "C" void InitSensor(SENSORV *psensor)
+void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 {
+    SENSORV *psensor = (SENSORV *)this;
     InitSo(psensor);
     psensor->grfSo |= 0x400000000UL;
 }
@@ -368,7 +368,7 @@ extern "C" void AddSensorNoTriggerObject(SENSORV *psensor, OID oid)
 extern "C" void func_001DE400(LASENV *plasen)
 {
     int v;
-    InitSensor(plasen);
+    ((SENSOR *)plasen)->SENSOR::Init();
     plasen->svt = 1.0f;
     plasen->grfSo &= ~0x800000000UL;
     v = plasen->grfDirty;

@@ -81,7 +81,7 @@ extern float D_002BDD10;
 extern float D_002BDD14;
 extern float D_002BDD18;
 extern "C" {
-extern VTE D_002CE2B8[];          /* NOISE vtable */
+extern VTE D_002CE2B8[] __asm__("_vt$6CID147");          /* NOISE's (CID147's) vtable, emitted here */
 void InitLo(NOISETYPE *p);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(NOISE *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
@@ -191,8 +191,9 @@ extern "C" NOISE *func_00156698(NOISETYPE *ptype, qword pos, int b)
  * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest+verdicts_tu_r3r5
  * See: docs/reference/functions/guards-ai.md#noise-0x1564e8-0x157200
  * @end-sly2-annot */
-extern "C" void func_001566B8(NOISE *pnoise)
+void CID147::VUnk00()   /* key function: CID147's vtable comes out here */
 {
+    NOISE *pnoise = (NOISE *)this;
     pnoise->cref = pnoise->cref + 1;
 }
 

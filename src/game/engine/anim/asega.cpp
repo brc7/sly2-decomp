@@ -127,8 +127,9 @@ float GModPositive(float a, float b);                   /* GModPositive__Fff */
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-extern "C" void IncrefAsega(ASEGA *p)
+void ASEGA::VUnk00()   /* key function: ASEGA's vtable comes out here */
 {
+    ASEGA *p = this;
     p->cref = p->cref + 1;
 }
 
