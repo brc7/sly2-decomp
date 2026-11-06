@@ -801,7 +801,7 @@ class Engine:
                 edits.append(f'matched.csv: {p[0]},{p[4]}')
         for line in R.cfg.get('units.csv', '').splitlines()[1:]:
             p = line.split(',')
-            if len(p) >= 3 and p[0] in r.aliases and re.fullmatch(r'0x[0-9A-Fa-f]+', p[1]) and int(p[1], 16) == r.addr:
+            if len(p) >= 3 and p[0] != r.symbol and re.fullmatch(r'0x[0-9A-Fa-f]+', p[1]) and int(p[1], 16) == r.addr:
                 edits.append(f'units.csv: {p[0]} -> {r.symbol}')
         return edits
 
@@ -853,8 +853,7 @@ class Engine:
             rows = []
             for i, line in enumerate(self.orig_cfg['units.csv'].split('\n')):
                 q = line.split(',')
-                if i and len(q) >= 3 and re.fullmatch(r'0x[0-9A-Fa-f]+', q[1]) and int(q[1], 16) in by_addr \
-                        and q[0] in by_addr[int(q[1], 16)].aliases:
+                if i and len(q) >= 3 and re.fullmatch(r'0x[0-9A-Fa-f]+', q[1]) and int(q[1], 16) in by_addr:
                     q[0] = by_addr[int(q[1], 16)].symbol; line = ','.join(q)
                 rows.append(line)
             out['units.csv'] = '\n'.join(rows)
