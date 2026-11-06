@@ -2,6 +2,9 @@
 // title...): the shown-screen list, post-load and draw of the global screens, screen modes, the gadget menu and its
 // items, the job list texts and the title texts. TU 0x1D93D8..0x1DE2A0 (98 functions with the linkonce copy at
 // 0x258348, address order).
+// Entry points: PostLoadScreens / ResetScreens (level load and teardown), UpdateScreens and DrawUi (per frame, from
+// the main loop), ShowScreen / HideScreen, PostNotice / CancelNotice, and the menu open functions (SetGadgetMenuState,
+// SetThiefnetTab, SetJobListPage, ShowTitleScreen); the Build*Text functions are text-table callbacks.
 //
 // Types: TU-private views for the m2c bodies (SCREENV: vtable +0xC, text ids +0x18/+0x20, widget oid +0x20 / object
 // +0x24, mode +0x28 and when it was set +0x2C; the gadget menu and its 0x20-byte items). The hand-written
@@ -205,6 +208,7 @@ void Flush__4DMAS(void *pdmas) __asm__("Flush__4DMAS");
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* the shown-screen list's constructor (a DL of screens, link at +0x14) */
+// Initializes a list of screens (the link field is at +0x14) and returns it.
 extern "C" void *InitScreenList(void *pv)
 {
     InitDl((DL *)pv, 0x14);
@@ -250,6 +254,7 @@ static inline void *PvNextDli(DLI *pdli)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Resets every HUD screen (each one's slot 13) and the list of shown screens (level teardown).
 void ResetScreens(DL *pdl)
 {
     DLI dli;
@@ -281,6 +286,7 @@ void ResetScreens(DL *pdl)
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* PostLoad (slot 12) of every global screen. */
+// After a level loads: runs every HUD screen's post-load (slot 12), which binds each screen to its widget object.
 extern "C" void PostLoadScreens()
 {
     PostHudMeterLoad(&D_003D9E80);
@@ -308,6 +314,8 @@ extern char D_002DFC00[];
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// If the screen at the head of the shown list (the requested top screen) differs from the focused one, tells the old one
+// it lost focus and focuses the new one.
 void UpdateScreenFocus(struct S *p) {
     struct O *po = p->pNew;
     struct O *pOld;
@@ -364,6 +372,7 @@ void UpdateTitleScreen(void *);
  * See: docs/engine/hud-ui.md#2-screens-and-menus-screencpp-0x1d93d8-menu-0x1ae928,
  *   docs/engine/hud-ui.md#5-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
  * @end-sly2-annot */
+// Per-frame HUD screen update: handles the pause / menu buttons and runs every screen's Update (slot 7).
 void UpdateScreens(void *pdl)
 {
     PAD *pad;
@@ -412,6 +421,8 @@ void UpdateScreens(void *pdl)
  * See: docs/engine/hud-ui.md#2-screens-and-menus-screencpp-0x1d93d8-menu-0x1ae928,
  *   docs/engine/hud-ui.md#5-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
  * @end-sly2-annot */
+// Draws the UI (called from the main loop): runs the draw slot of the three main HUD screens, then sends the two HUD DMA
+// streams.
 extern "C" void DrawUi()
 {
     DrawScreen(&D_003D9E80);
@@ -429,6 +440,7 @@ extern "C" void DrawUi()
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* screen slot 7 (empty) */
+// Base screen update (slot 7): nothing.
 void SCREENBASE::Update()   /* key function: SCREENBASE's vtable comes out here */
 {
 }
@@ -441,6 +453,7 @@ void SCREENBASE::Update()   /* key function: SCREENBASE's vtable comes out here 
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* screen slot 8 (empty) */
+// Base screen draw (slot 8, shared by all screens): nothing.
 extern "C" void DrawScreen()
 {
 }
@@ -454,6 +467,7 @@ extern "C" void DrawScreen()
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r6b_rest+top50_round
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// True when the screen is on the shown-screen list.
 extern "C" void FScreenShown(SCREENV *pscreen)
 {
     FFindDlEntry((DL *)&D_003D9E70, pscreen);
@@ -468,6 +482,7 @@ extern "C" void FScreenShown(SCREENV *pscreen)
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* screen slot 9 (empty) */
+// Base screen slot 9: nothing.
 extern "C" void ScreenSlot9Default()
 {
 }
@@ -480,6 +495,7 @@ extern "C" void ScreenSlot9Default()
  *   docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
 /* screen slot 10: (re)insert at the front of the shown list. */
+// Shows a screen (slot 10): moves or appends it to the shown list, so it gets focus when it is on top.
 extern "C" void ShowScreen(SCREENV *pscreen)
 {
     if (FFindDlEntry((DL *)&D_003D9E70, pscreen) != 0) {
@@ -497,6 +513,7 @@ extern "C" void ShowScreen(SCREENV *pscreen)
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* screen slot 11: take off the shown list. */
+// Hides a screen (slot 11): removes it from the shown list and refocuses.
 extern "C" void HideScreen(SCREENV *pscreen)
 {
     if (FFindDlEntry((DL *)&D_003D9E70, pscreen) != 0) {
@@ -542,6 +559,8 @@ void SetWidgetAnimPhase(W *, int, float);
  * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Post-load of the health / gadget-power meter: finds its widget, reads the hero's health and power fractions and picks
+// the per-character animations.
 void PostHudMeterLoad(OBJ *p)
 {
     Q *q;
@@ -595,6 +614,7 @@ void PostHudMeterLoad(OBJ *p)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Resets the meter: state 0, no widget.
 extern "C" void ResetHudMeter(SCREENV *pscreen)
 {
     SetHudMeterState(pscreen, 0);
@@ -636,6 +656,8 @@ void SetWidgetAnimPhase(SUB *, int, float);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Switches the meter's state: hide / appear animations, steady (health gauge, plus the power gauge only if the character
+// owns a power-up that costs power), damage, and the alternate animations.
 void SetHudMeterState(OBJ *p, int s)
 {
     int old = p->x30;
@@ -750,6 +772,8 @@ void SetWidgetAnimPhase(SUB *, int, float);
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 } } // namespace M_UpdateHudMeter
+// Per-frame meter update (slot 7): follows the current hero, animates health drain / fill and power changes smoothly,
+// flashes on damage and plays special animations.
 void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the namespace's views) */
 {
     using namespace M_UpdateHudMeter;
@@ -857,6 +881,7 @@ void HUDMETER::Update()   /* key function: HUDMETER's vtable comes out here (the
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Post-load of the notice banner: finds its widget.
 extern "C" void PostNoticeLoad(SCREENV *pscreen)
 {
     PLONOTICE(pscreen) = PloFindSwObject(&D_003DD490, 0x405, (OID)0x371, 0);
@@ -868,6 +893,7 @@ extern "C" void PostNoticeLoad(SCREENV *pscreen)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Resets the notice banner: no current or queued text, no widget, state 0.
 extern "C" void ResetNotice(SCREENV *pscreen)
 {
     pscreen->idText = -1;
@@ -899,6 +925,8 @@ int FWidgetAnimPlaying(W *, int);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Per-frame notice banner update: marks it shown once the widget is fully visible, times it out (only while hidden),
+// or swaps to the queued text; hides it at the end.
 void UpdateNotice(OBJ *p)
 {
     if (p->pw == 0)
@@ -955,6 +983,7 @@ void SetNoticeState(OBJ *, int);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Requests a notice text for a duration, queued behind the current one; -1 cancels.
 void PostNotice(OBJ *p, int n, float g)
 {
     if (n == -1) {
@@ -991,6 +1020,7 @@ struct S { char pad[0x18]; int n18; int n1C; int n20; };
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Cancels a notice text: the current one times out now, or the queued one is dropped; -1 cancels the queue.
 void CancelNotice(struct S *p, int n) {
     if (n == -1) {
         p->n20 = -1;
@@ -1010,6 +1040,7 @@ void CancelNotice(struct S *p, int n) {
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* The text id queued, else the one shown. */
+// Text id of the notice being shown, or of the queued one.
 extern "C" int GetCurrentNoticeTextId(SCREENV *pscreen)
 {
     int ids = pscreen->idTextQueued;
@@ -1042,6 +1073,8 @@ void ShowWidgetArgs(LO *, int, int *);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Switches the notice banner's state: show the widget with the text, hide it, swap animation, or main animation after
+// a swap.
 void SetNoticeState(OBJ *p, int n)
 {
     LO *plo;
@@ -1112,6 +1145,7 @@ struct S *ConstructScreen(struct S *p) {
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 /* screen slot 12: resolve the widget. */
+// Base screen post-load (slot 12): finds the screen's widget object by its OID.
 void SCREEN::PostLoad()   /* key function: SCREEN's vtable comes out here */
 {
     SCREENV *pscreen = (SCREENV *)this;
@@ -1126,6 +1160,7 @@ void SCREEN::PostLoad()   /* key function: SCREEN's vtable comes out here */
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 /* screen slot 13. */
+// Base screen reset (slot 13): forgets the widget and resets the mode.
 extern "C" void ResetScreen(SCREENV *pscreen)
 {
     pscreen->pchild = 0;
@@ -1139,6 +1174,7 @@ extern "C" void ResetScreen(SCREENV *pscreen)
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
+// Resets a screen's state to -1, stamps the time and clears its mode.
 extern "C" void ResetScreenMode(SCREENV *pscreen)
 {
     pscreen->nMode = -1;
@@ -1158,6 +1194,7 @@ void SetScreenMode(struct S *p, int a, int b);
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
+// Screen update that closes the screen when its mode timer expires.
 void UpdateTimedScreen(struct S *p) {
     func_001D9870(p);
     if (p->g34 <= D_002DDED0.a[15]) SetScreenMode(p, -1, -1);
@@ -1184,6 +1221,8 @@ float atan2f(float, float);
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Turns the left stick into an 8-way direction for menus: calls the screen's slot 14 with the direction when the
+// stick is pushed past 0.8, and with -1 when it returns under 0.5.
 void UpdateScreenStickDir(OBJ *p)
 {
     Q *q = p->q;
@@ -1216,6 +1255,7 @@ void SetSndSourceLo(void *p, int n);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Sets a screen's mode and argument; mode 0 plays the menu sound and starts the timeout.
 void SetScreenMode(struct S *p, int n, int m) {
     p->n38 = m;
     p->n30 = n;
@@ -1242,6 +1282,7 @@ void SetScreenMode(struct S *p, int n, int m) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Clears a screen's mode (closes it).
 extern "C" void CloseScreen(SCREENV *pscreen)
 {
     SetScreenMode(pscreen, -1, -1);
@@ -1253,6 +1294,7 @@ extern "C" void CloseScreen(SCREENV *pscreen)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Gadget-menu screen constructor.
 extern "C" void *GADGETMENU_ctor(void *pv)
 {
     GADGETMENUV *pgm = (GADGETMENUV *)pv;
@@ -1268,6 +1310,7 @@ extern "C" void *GADGETMENU_ctor(void *pv)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Gadget-menu reset (slot 13).
 void GADGETMENU::VSlot13()   /* key function */
 {
     GADGETMENUV *pgm = (GADGETMENUV *)this;
@@ -1281,6 +1324,7 @@ void GADGETMENU::VSlot13()   /* key function */
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Gadget menu: state -1, time stamp.
 extern "C" void ClearGadgetMenu(GADGETMENUV *pgm)
 {
     pgm->nState = -1;
@@ -1323,6 +1367,8 @@ void SetStepplayerGadget(void *, int, int);
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Per-frame gadget menu: circle closes, the info button shows a message, and the three slot buttons assign the selected
+// power-up (if owned) to that slot.
 void UpdateGadgetMenu(OBJ *p)
 {
     void *pv;
@@ -1402,6 +1448,7 @@ static inline float Zero(void){float z;__asm__ volatile("mtc1 $zero,%0":"=f"(z))
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// While the gadget menu is visible, draws the slot button glyph next to each power-up that is equipped in a slot.
 void DrawGadgetMenuSlotLabels(OBJ *p)
 {
     Q *q;
@@ -1471,6 +1518,7 @@ int NEpisodeBest(void);
  * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// True when power-up item i is unlocked by the story progress (its episode threshold).
 int IsScreenItemUnlocked(int i) {
     struct E *pe = &D_002BCD00[i];
     if (pe->n == -1) return 0;
@@ -1492,6 +1540,7 @@ void Decref__4CRef(CRef *pref);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
+// True when the power-up has been bought (save data).
 int FPowerupAcquired(int n) {
     CRef ref;
     char ach[0x20];
@@ -1535,6 +1584,7 @@ extern "C" { void BroadcastGameEvent(G *, int, int); }
  * See: docs/engine/hud-ui.md#5-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Marks a power-up bought or not; buying broadcasts the "power-up acquired" game event.
 extern "C" void SetPowerupAcquired(int n, int f)
 {
     CRef ref;
@@ -1554,6 +1604,7 @@ extern "C" void SetPowerupAcquired(int n, int f)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Refreshes each gadget-menu item's unlocked and acquired flags.
 extern "C" void RefreshGadgetMenuItems(GADGETMENUV *pgm)
 {
     int i = 0;
@@ -1649,6 +1700,7 @@ static inline qword Add(qword a, const qword &b) { qword r; __asm__("vadd.xyzw %
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Moves the gadget-menu selection to the selectable item lying closest along the stick direction (slot 14).
 void SetGadgetMenuStickDir(SELECTOR *sel, int mode)
 {
     U home;
@@ -1731,6 +1783,7 @@ void PlayWidgetAnim(void *, int);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Selects an item and sets every item's highlight animation (selected / acquired / unlocked).
 void SelectGadgetMenuItem(OBJ *p, int key)
 {
     int i;
@@ -1764,6 +1817,7 @@ void SelectGadgetMenuItem(OBJ *p, int key)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Opens the gadget-menu page of the current hero (Sly, Bentley or Murray).
 extern "C" void OpenGadgetMenuForHero(GADGETMENUV *pgm)
 {
     LO *ploHero = PpoHero(&D_003DD490);
@@ -1828,6 +1882,8 @@ void SetGadgetMenuState(OBJ *p, int s);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Opens or closes the gadget menu: opening freezes the clock, takes player control and shows the hero's page; closing
+// restores them.
 void SetGadgetMenuState(OBJ *p, int s)
 {
     if (s == p->x40)
@@ -1915,6 +1971,7 @@ void ClearThiefnet(struct S *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Constructor of the ThiefNet shop screen (widget 0x378, a 64-entry item list).
 struct S *ConstructScreen378(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D84E8;
@@ -1930,6 +1987,7 @@ struct S *ConstructScreen378(struct S *p) {
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// ThiefNet shop reset (slot 13).
 void THIEFNET::VSlot13()   /* key function */
 {
     SCREENV *pscreen = (SCREENV *)this;
@@ -1947,6 +2005,7 @@ struct S { char p0[0x40]; int n40; float g44; int pad; struct P ap[64]; char p1[
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// ThiefNet: state -1, empty item list, no animation handles.
 void ClearThiefnet(struct S *p) {
     unsigned int i;
     p->n40 = -1;
@@ -2018,6 +2077,8 @@ void UpdateThiefnetWidgets(OBJ *);
  *   docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Per-frame ThiefNet: on the buy tab buys the selected power-up (coin check, confirmation, payment, notification); on the
+// sell tab sells one loot item.
 extern "C" void UpdateThiefnet(OBJ *p)
 {
     UpdateTimedScreen(p);
@@ -2093,6 +2154,7 @@ struct S { char p0[0x48]; int n48; char p1[0x250-0x4C]; int n250; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Index just past the last visible row of the scrolling list (window size adjusted for the scroll arrows).
 int GetThiefnetRowEnd(struct S *p) {
     int n = p->n250 + D_002C35B4;
     if (D_003DA570) {
@@ -2133,6 +2195,7 @@ static inline int Clamp(int n, int lo, int hi)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Selects a row (clamped), scrolls the window to it and records the selected power-up / loot id.
 void SelectThiefnetItem(OBJ *p, int i)
 {
     if (p->c == 0) {
@@ -2199,6 +2262,7 @@ extern "C" void SelectThiefnetItem(OBJ *, int);
  *   docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Rebuilds the ThiefNet list: buy tab = unlocked power-ups not yet bought; sell tab = loot kinds the player owns.
 extern "C" void RefreshThiefnetItems(OBJ *p)
 {
     {
@@ -2284,6 +2348,7 @@ void StopWidgetAnim(SUB *, int);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Drives the ThiefNet widget animations: scroll arrows, row icons by item kind, cursor and popup.
 void UpdateThiefnetWidgets(OBJ *p)
 {
     M2 m;
@@ -2408,6 +2473,7 @@ void SelectThiefnetItem(OBJ *, int);
  *   docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Opens ThiefNet on a tab (buy or sell) or closes it (-1), freezing / resuming the clock and player control.
 void SetThiefnetTab(OBJ *p, int s)
 {
     int old;
@@ -2507,6 +2573,7 @@ void SetSndSourceLo(void *, int);
  * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// ThiefNet stick handler (slot 14): left / right switch tabs, up / down move the selection (with sounds).
 void SetThiefnetStickDir(OBJ *p, unsigned int n)
 {
     if (n == p->state)
@@ -2566,6 +2633,8 @@ int IGadgetSlotFromId(void *, int);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback for the gadget-menu info boxes: the popup message, "none", or the selected power-up's name, slot button
+// and description.
 void BuildGadgetMenuInfoText(char *out)
 {
     char buf[256];
@@ -2611,6 +2680,7 @@ void strcpy(char *p, void *q);
  * See: docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the power-up name of list row i.
 void BuildThiefnetPowerupNameText(char *pch, int i) {
     struct G2 *pg = &D_003DA150;
     unsigned int n = pg->ae[pg->i + i].n;
@@ -2635,6 +2705,7 @@ void sprintf(char *pch, char *fmt, char *s);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the power-up cost of list row i.
 void BuildThiefnetPowerupCostText(char *pch, int i) {
     struct G2 *pg = &D_003DA150;
     unsigned int n = pg->ae[pg->i + i].n;
@@ -2681,6 +2752,7 @@ extern "C" { char *PchzFindSwLangstr__FP2SWi(G *, int); }
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the loot name of list row i, with the count when more than one is owned.
 extern "C" void BuildThiefnetLootNameText(char *pch, int k)
 {
     int ids = -1;
@@ -2718,6 +2790,7 @@ void sprintf(char *pch, char *fmt, char *s);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the loot sale price of list row i.
 void BuildThiefnetLootPriceText(char *pch, int i) {
     struct G2 *pg = &D_003DA150;
     unsigned int n = pg->ae[pg->i + i].n;
@@ -2740,6 +2813,7 @@ void strcpy(char *p, void *q);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the popup prompt text for the popup mode.
 void BuildThiefnetPromptText(char *pch) {
     int id;
     switch (D_003DA180) {
@@ -2783,6 +2857,8 @@ static inline void CopyId(char *p,int id)
  * See: docs/engine/minigames.md#8-safehouse-and-thiefnet-ccode,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the popup message, or the selected power-up's name, description and affordability, or the loot sell
+// line.
 void BuildThiefnetInfoText(char *pch)
 {
     TBL *pt=&D_003DA150;
@@ -2837,6 +2913,7 @@ void ClearJobList(struct S *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Constructor of the job-list screen (widget 0x4E0).
 struct S *ConstructScreen4E0(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D8468;
@@ -2852,6 +2929,7 @@ struct S *ConstructScreen4E0(struct S *p) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Job-list post-load: base post-load, then marks the widget.
 void JOBLIST::PostLoad()   /* key function */
 {
     SCREENV *pscreen = (SCREENV *)this;
@@ -2867,6 +2945,7 @@ void JOBLIST::PostLoad()   /* key function */
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Job-list reset (slot 13).
 extern "C" void ResetJobList(SCREENV *pscreen)
 {
     ResetScreen(pscreen);
@@ -2882,6 +2961,7 @@ struct S { char p0[0x40]; int n40; float g44; char p1[0x11C-0x48]; int n11C, n12
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Job list: state -1, time stamp, no animation handles.
 void ClearJobList(struct S *p) {
     p->n40 = -1; //P
     p->g44 = D_002DDED0.a[15]; //P
@@ -2921,6 +3001,8 @@ void UpdateJobListWidgets(OBJ *);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Per-frame job list: waits for the widget to load; START / circle closes; direction buttons switch between the jobs page
+// and the tasks page.
 void UpdateJobList(OBJ *p)
 {
     UpdateTimedScreen(p);
@@ -2980,6 +3062,7 @@ static inline int Clamp(int n, int lo, int hi) {
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Selects a job-list row (clamped).
 void SelectJobListItem(struct S *p, int i) {
     int c = p->c;
     int n;
@@ -3032,6 +3115,8 @@ void SelectJobListItem(OBJ *, int);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Rebuilds the job list: tasks sorted by dependency then order; page 0 lists started jobs, page 1 the tasks of the
+// selected job up to the first unfinished one.
 extern "C" void RefreshJobListEntries(OBJ *p)
 {
     for (int i = 0; i < p->n; i++) {
@@ -3128,6 +3213,7 @@ int FTaskComplete(void *);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Drives the job-list row highlights and completion check marks.
 void UpdateJobListWidgets(OBJ *p)
 {
     int i;
@@ -3199,6 +3285,7 @@ void RefreshJobListEntries(OBJ *);
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78,
  *   docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Opens the job list on a page (jobs or tasks) or closes it (-1), holding player control while open.
 void SetJobListPage(OBJ *p, int s)
 {
     int old;
@@ -3291,6 +3378,7 @@ void SetSndSourceLo(void *, int);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Job-list stick handler (slot 14): left / right switch pages, up / down move the selection.
 void SetJobListStickDir(OBJ *p, unsigned int n)
 {
     if (n == p->state)
@@ -3336,6 +3424,7 @@ void ResetScreenMode(struct S *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Constructor of screen 0x52D (widget 0x52D; its role is unknown).
 struct S *ConstructScreen52D(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D83E8;
@@ -3351,6 +3440,7 @@ struct S *ConstructScreen52D(struct S *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Post-load of screen 0x52D: base post-load, then marks the widget.
 void SCRN52D::PostLoad()   /* key function */
 {
     SCREENV *pscreen = (SCREENV *)this;
@@ -3370,6 +3460,7 @@ struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Shows screen 0x52D and its widget.
 void ShowScreen52D(struct S *p) {
     if (p->po) {
         {
@@ -3395,6 +3486,7 @@ struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Hides screen 0x52D and its widget.
 void HideScreen52D(struct S *p) {
     if (p->po) {
         {
@@ -3421,6 +3513,7 @@ struct S { char pad[0x24]; struct O *po; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// True when the screen's widget is fully shown.
 int IsScreen52DShown(struct S *p) {
     struct O *po = p->po;
     if (!po) return 0;
@@ -3436,6 +3529,7 @@ int IsScreen52DShown(struct S *p) {
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* slot 14: set the mode (stamping the real time). */
+// Screen 0x52D's slot 14: records a new state and the time it changed.
 extern "C" void SetScreenState(SCREENV *pscreen, int nMode)
 {
     if (nMode != pscreen->nMode) {
@@ -3455,6 +3549,7 @@ void ResetScreenMode(struct S *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r6b_rest
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Constructor of the title screen (widget 0x5D2).
 struct S *ConstructTitleScreen(struct S *p) {
     ConstructScreen(p);
     p->vt = D_002D8368;
@@ -3475,6 +3570,7 @@ void EnsureRumbleModeDefault(void);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Shows the title screen and its widget and resets rumble.
 void ShowTitleScreen(struct S *p) {
     if (p->po) {
         {
@@ -3501,6 +3597,7 @@ struct S { int a, b, c; struct VTE *vt; char pad[0x14]; struct O *po; };
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Hides the title screen and its widget.
 void HideTitleScreen(struct S *p) {
     if (p->po) {
         {
@@ -3527,6 +3624,7 @@ void WipeToWorldWarp(void *g, int a, int b, int c, int d, int e);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Language-menu item callback: sets the language and warps to the title world.
 void SelectLanguageItem(struct S *p) {
     SetLanguage(p->p8);
     WipeToWorldWarp(D_003DD490, 0, 0x189, -1, 1, -1);
@@ -3571,6 +3669,8 @@ void func_001AF4D8(void *, int, ITEM *, void *, void *);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Per-frame title screen: START continues from the memory card or starts a new game; SELECT opens the options; X opens
+// the language list when the region has several languages.
 void UpdateTitleScreen(OBJ *p)
 {
     void *pv;
@@ -3647,6 +3747,7 @@ static inline void SetPv(void *pv, const CRef &r, void *) { CRef arg(r); const C
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Starts a new game: clears the save flag, binds the three heroes' health and power, and starts play.
 extern "C" void StartNewGame(void)
 {
     {
@@ -3670,6 +3771,7 @@ extern "C" void StartNewGame(void)
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
 /* slot 14: set the mode (stamping the real time). */
+// Title screen stick handler (slot 14): records the direction and the time.
 void TITLE::SetMode(int nMode)   /* key function */
 {
     SCREENV *pscreen = (SCREENV *)this;
@@ -3709,6 +3811,7 @@ extern "C" { CRef RefGetGlobalSaveVar(void *, void *); }
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the title prompt (continue or new game, options, language).
 extern "C" void BuildTitlePromptText(char *pch)
 {
     float g;
@@ -3744,6 +3847,7 @@ namespace M_IdsFromWorld { extern "C" {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Episode-name string id of a world index (0-8).
 int IdsFromWorld(int n) {
     int r = -1;
     switch (n) {
@@ -3767,6 +3871,7 @@ int IdsFromWorld(int n) {
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r9_bhv_screen+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the current episode's name.
 extern "C" void BuildJobListWorldText(char *pch)
 {
     StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, IdsFromWorld(NWorldCur())));
@@ -3778,6 +3883,7 @@ extern "C" void BuildJobListWorldText(char *pch)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the selected job's description.
 extern "C" void BuildJobDescriptionText(char *pch)
 {
     if (D_003DA4D0 != 0) {
@@ -3791,6 +3897,7 @@ extern "C" void BuildJobDescriptionText(char *pch)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the selected job's name.
 extern "C" void BuildJobNameText(char *pch)
 {
     if (D_003DA4D0 != 0) {
@@ -3812,6 +3919,7 @@ void strcpy(void *p, void *q);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the job name of row i.
 void BuildJobListRowText(void *p, int i) {
     struct G2 *pg = &D_003DA3C0;
     if (i < pg->c) strcpy(p, PchzFindSwLangstr__FP2SWi(&D_003DD490, pg->ae[i].po->n));
@@ -3832,6 +3940,7 @@ void strcpy(void *p, void *q);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the task name of row i.
 void BuildJobListTaskRowText(void *p, int i) {
     struct G2 *pg = &D_003DA3C0;
     if (i < pg->c) strcpy(p, PchzFindSwLangstr__FP2SWi(&D_003DD490, pg->ae[i].po->n));
@@ -3844,6 +3953,7 @@ void BuildJobListTaskRowText(void *p, int i) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: a title-screen string followed by a button glyph.
 extern "C" void func_001DDF60(char *pch)
 {
     StrcpyCall(pch, PchzFindSwLangstr(&D_003DD490, 0x40));
@@ -3856,6 +3966,7 @@ extern "C" void func_001DDF60(char *pch)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
+// Text callback: the game completion percentage.
 extern "C" void BuildTitleCompletionText(char *pch)
 {
     sprintf(pch, D_002A7AB8, NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60));

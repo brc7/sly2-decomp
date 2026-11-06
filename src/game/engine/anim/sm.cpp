@@ -2,6 +2,8 @@
 // from the level file; activations of a machine on an object (SMA, refcounted, on SW::dlSma), their goals, masks and
 // transition choice (weighted, toward the goal), seeking/snapping/skipping, and the splice notifications.
 // TU 0x1EFA90..0x1F1768 (43 functions, address order).
+// Entry points: SM::LoadFromBrx (level loading), ApplySmCore and its wrappers / ReplaceSma (start a machine on an
+// object), SetSmaGoal / SeekSma / SnapSma / SkipSma / SetSmaMask (drive it), HandleSmaMessage (transition end).
 //
 // Types: aseg.h SM/SMA, sw.h SW, lo.h LO; the file-scope types after the includes are LoadSmFromBrx's Lilly
 // declarations (SMT, SMS, SMINIT, its CBinaryInputStream...). The m2c bodies and the three C++-named functions are
@@ -145,6 +147,7 @@ public:
  * See: docs/engine/animation.md#6-source-files, docs/engine/rendering.md#12-source-files,
  *   docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Initializes a state machine object: base LO init and its default flags.
 extern "C" int InitSm(SM *psm)
 {
     InitLo(psm);
@@ -210,6 +213,9 @@ inline void *PvAllocSwCopy(int cb, int cbAlign, void *pvBase)
     pswalloc->cbAlign = cbAlign;
     return PvAllocSwCopyImpl(pswalloc, pvBase);
 }
+// Loads a state machine from the level stream: its states (each with an OID), its transitions (from/to state, the
+// animation segment that plays the transition, flags and weight), the precomputed state-to-state hop-count table per
+// transition mask, and the optional initial activation.
 void SM::LoadFromBrx(CBinaryInputStream *pbis)
 {
     int i = 0;
@@ -367,6 +373,8 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
  *   docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* After load: with an init record, applies the machine to its root object in its initial state (ApplySmToObject). */
+// After-load hook (slot 15): base PostLoLoad; if the machine has an auto-apply record, finds its root object by OID and
+// starts the machine on it.
 void SM::VUnk14()
 {
     SM *psm = (SM *)this;
@@ -389,6 +397,8 @@ struct T *func_001AE1D0(struct CB *);
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Records that the machine should start by itself after loading (root OID and initial state/flags), consumed by the
+// after-load hook.
 void SetSmPendingApply(struct P *p, int a, int b, int c)
 {
     struct CB cb;
@@ -410,6 +420,7 @@ void ApplySmCore(int, int, int, int, int, int);
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
+// Starts the machine on an object (kind 4) and returns the activation through the last argument.
 void PsmaApplySmOut(int a, int b, int c, int d, int e) { ApplySmCore(a, b, c, d, 4, e); }
 } } // namespace M_PsmaApplySmOut
 
@@ -445,6 +456,9 @@ struct Lock {
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Starts a state machine on an object: takes an SMA from the world's pool, links it into the machine's and the world's
+// activation lists, sets its start state and goal, sends the "entered state" notification and chooses the first
+// transition.
 extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
 {
     S *ps = PvAllocSlotheapClear(D_003DD490.pool);
@@ -485,6 +499,7 @@ void ApplySmCore(int, int, int, int, int, int *);
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Starts the machine on an object (kind 4) and returns the activation.
 int ApplySmToObject(int a, int b, int c, int d) { int r; ApplySmCore(a, b, c, d, 4, &r); return r; }
 } } // namespace M_func_001F0380
 
@@ -497,6 +512,7 @@ void ApplySmCore(int, int, int, int, int, int *);
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Starts the machine on an object with an explicit kind and returns the activation.
 int PsmaApplySmEx(int a, int b, int c, int d, int e) { int r; ApplySmCore(a, b, c, d, e, &r); return r; }
 } } // namespace M_PsmaApplySmEx
 
@@ -509,6 +525,7 @@ int PsmaApplySmEx(int a, int b, int c, int d, int e) { int r; ApplySmCore(a, b, 
  *   docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* The machine's activation on palo, or 0. The unused array is part of the original frame. */
+// Returns the machine's activation on the given root object, or 0.
 SMA *PsmaFindSm(SM *psm, ALO *palo)
 {
     int unused[2];
@@ -526,6 +543,7 @@ SMA *PsmaFindSm(SM *psm, ALO *palo)
  * See: docs/engine/animation.md#5-state-machines-sm-and-sma-smcpp-0x1efa90-0x1f1768,
  *   docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Index of the state with the given OID, or -1 if the machine has none.
 int IsmsFindSmOptional(SM *psm, OID oid)
 {
     int isms;
@@ -540,6 +558,7 @@ int IsmsFindSmOptional(SM *psm, OID oid)
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Index of the state with the given OID, clamped to 0 when missing (callers expect the state to exist).
 extern "C" void FindSmStateRequired(SM *psm, OID oid)
 {
     IsmsFindSmOptional(psm, oid);
@@ -574,6 +593,8 @@ struct Q *PsmdFindSm(struct A *p, int n);
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Number of transitions (hops) from one state to another using only transitions allowed by the mask (precomputed
+// table).
 int CsmtDistanceSm(struct A *p, int n, int y, int x)
 {
     struct Q *pq = PsmdFindSm(p, n);
@@ -595,6 +616,7 @@ struct S { char pad[0x50]; int c; struct E *ae; };
  * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// OID of the state at an index, or -1 when out of range.
 int OidFromSmIsms(struct S *p, int n) { if (n < 0 || n >= p->c) return -1; return p->ae[n].a; }
 } } // namespace M_OidFromSmIsms
 
@@ -605,6 +627,7 @@ int OidFromSmIsms(struct S *p, int n) { if (n < 0 || n >= p->c) return -1; retur
  * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Adds a reference to the activation (slot 1).
 void SMA::VUnk00()
 {
     SMA *psma = (SMA *)this;
@@ -618,6 +641,7 @@ void SMA::VUnk00()
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* The last reference frees the activation into SW::slotheapSma after dropping its frame, sidebag and subscriptions. */
+// Drops a reference; at zero the activation is destroyed, unlinked and returned to the world's SMA pool.
 extern "C" void DecrefSma(SMA *psma)
 {
     int cref = psma->cref - 1;
@@ -649,6 +673,8 @@ void RemoveDlEntry__FP2DLPv(void *, void *);
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Stops an activation: drops its running animation, unlinks it from the machine's and the world's lists, sends the
+// "retracted" message (3) and drops the list's reference.
 void RetractSma(struct P *p)
 {
     if (!FSmaRetracted(p)) {
@@ -674,6 +700,7 @@ void RetractSma(struct P *p)
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* Whether the activation is no longer on the world's list (SW::dlSma). */
+// True when the activation is no longer on the world's live SMA list.
 extern "C" int FSmaRetracted(SMA *psma)
 {
     return FFindDlEntry(&D_003DD490.dlSma, psma) == 0;
@@ -701,6 +728,8 @@ struct Lock {
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Sets the goal state (by OID, -1 = none). If it changes, either breaks off the running transition (when the transition
+// allows breaking) or chooses a new transition toward the goal.
 extern "C" void SetSmaGoal(P *p, int n)
 {
     if (FSmaRetracted(p)) return;
@@ -730,6 +759,7 @@ void SetSmaGoal(struct P *, int);
  *   semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Sets the goal only if a path to it exists under the current transition mask.
 void SetSmaGoalIfReachable(struct P *p, int n)
 {
     if (!FSmaRetracted(p) && n != -1) {
@@ -746,6 +776,7 @@ void SetSmaGoalIfReachable(struct P *p, int n)
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// OID of the activation's goal state.
 extern "C" OID GetSmaGoal(SMA *psma)
 {
     return OidFromSmIsms(psma->psm, psma->ismsGoal);
@@ -758,6 +789,7 @@ extern "C" OID GetSmaGoal(SMA *psma)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* The oid of the current state. */
+// OID of the activation's current state.
 extern "C" OID GetSmaCurrentState(SMA *psma)
 {
     return OidFromSmIsms(psma->psm, psma->ismsCur);
@@ -774,6 +806,7 @@ struct S { char pad[0x24]; struct T *pt; char pad2[0xC]; int x34; int x38; };
  * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// OID of the state the running transition leads to, else of the current state.
 int GetSmaNext(struct S *p)
 {
     int i = p->x38;
@@ -803,6 +836,7 @@ struct Lock {
  * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Sets the activation's playback speed and passes it to the running animation.
 extern "C" void SetSmaSvt(P *p, float g)
 {
     if (!FSmaRetracted(p)) {
@@ -827,6 +861,8 @@ void EndSmaTransition(struct P *);
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Aborts the running transition: seeks its animation to the start or end (by the sign of the speed), retracts it and
+// ends the transition there.
 void AbortSmaTransition(struct P *p)
 {
     struct O *po = p->po;
@@ -861,6 +897,7 @@ struct Lock {
  * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Sets a goal and immediately re-chooses (aborting the running transition), so the machine heads for it right away.
 extern "C" void SeekSma(P *p, int n)
 {
     if (!FSmaRetracted(p)) {
@@ -893,6 +930,8 @@ struct Lock {
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Jumps straight to a state without animating: stops the running animation, sets current and goal, notifies the state
+// entry and chooses the next transition.
 extern "C" void SnapSma(P *p, int n)
 {
     if (!FSmaRetracted(p)) {
@@ -953,6 +992,8 @@ int PsmtChooseWeighted(struct P *, int, struct E **);
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Picks a transition out of the current state (or a reversible one) that brings the machine one hop closer to the goal,
+// weighted at random among the candidates.
 int PsmtChooseTowardGoal(struct P *p, int mask, int a, int b)
 {
     struct E *ap[64];
@@ -990,6 +1031,7 @@ int PsmtChooseWeighted(struct P *, int, struct E **);
  *   semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Picks any allowed transition out of a state, weighted at random (wandering when there is no goal).
 int PsmtChooseFrom(struct P *p, int mask, int k)
 {
     struct E *ape[64];
@@ -1029,6 +1071,8 @@ static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// The machine's driver: with no goal (or at the goal) it wanders, otherwise it heads toward the goal; starts the chosen
+// transition's animation segment on the root object, records the next state and notifies.
 void ChooseSmaTransition(struct P *p, int k)
 {
     struct A *pa;
@@ -1148,6 +1192,7 @@ typedef char P_n48_Offset[FIELD_OFFSET(P,n48)==0x48?1:-1];
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* The transition is over: the next state becomes current and the splice is told. */
+// Finishes a transition: the next state becomes current and the splice "entered state" notification is sent.
 extern "C" void EndSmaTransition(SMA *psma)
 {
     int ismsNext;
@@ -1180,6 +1225,7 @@ struct Lock {
  *   semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// The activation's message handler: forwards the message to its listener object (slot 5) and to the LO base handler.
 extern "C" void SendSmaMessage(P *p, int a, int b)
 {
     Lock l(p);
@@ -1207,6 +1253,8 @@ struct Lock {
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Reacts to "animation finished" (message 2) from the running transition's player: ends the transition and chooses the
+// next one.
 extern "C" void HandleSmaMessage(P *p, int k, int n)
 {
     if (k == 2 && n == p->n30) {
@@ -1238,6 +1286,7 @@ struct Lock {
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Skips the activation forward by t seconds, through as many transitions as that covers.
 extern "C" void SkipSma(P *p, float t)
 {
     if (!FSmaRetracted(p)) {
@@ -1279,6 +1328,8 @@ static inline float Eval(struct V3 *pv, float t)
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Estimated time to reach a state: what is left of the running transition plus the durations of the transitions on the
+// path (from fitted per-transition duration curves).
 float DtSmaToState(struct P *p, int k)
 {
     float r = 0.0f;
@@ -1325,6 +1376,8 @@ float DtSmaToState(struct P *p, int k)
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* Sets the route mask; a running transition that the mask breaks is aborted and a new one chosen. */
+// Sets the transition mask (which transitions may be used); if the running transition is no longer allowed, aborts it
+// and re-chooses.
 extern "C" void SetSmaMask(SMA *psma, int grfRoute)
 {
     psma->grfRoute = grfRoute;
@@ -1348,6 +1401,8 @@ int OidFromSmIsms(void *, int);
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// Tells the activation's listeners (message 10) and splice scripts (event with the from/to state OIDs) that a state was
+// entered.
 void NotifySmaSpliceOnEnterState(struct P *p, int a, int b)
 {
     struct L l;
@@ -1377,6 +1432,8 @@ struct X *ApplySmToObject(void *, int, int, int);
  *   docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768,
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8
  * @end-sly2-annot */
+// Replaces a "current activation" slot: retracts and releases the old one and, if a machine is given, starts it on the
+// object and keeps a reference.
 void ReplaceSma(void *pv, int a, int b, int c, struct X **ppx)
 {
     if (*ppx) {
@@ -1405,6 +1462,7 @@ struct X *PsmaApplySmEx(void *, int, int, int, int);
  * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
+// ReplaceSma with an explicit kind.
 void ReplaceSmaEx(void *pv, int a, int b, int c, int d, struct X **ppx)
 {
     if (*ppx) {
@@ -1433,6 +1491,7 @@ void RetractSma(struct O *);
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768,
  *   docs/reference/functions/gameplay-objects.md#tu_223f70-0x223f70-0x2259d8
  * @end-sly2-annot */
+// Retracts the activation in a slot, releases it and clears the slot.
 void ReleaseSma(struct S *p)
 {
     if (p->po) {

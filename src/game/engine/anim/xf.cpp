@@ -3,6 +3,8 @@
 // ConvertXfVec/Mat), velocities (GetXfVelocity), transform acts and slot settling, matrix blending.
 // TU 0x22C818..0x231100 (43 functions, address order) plus the inline VECTOR_opAssign (its linkonce copy 0x256D18),
 // defined after its callers.
+// Entry points: LoadSoXfsFromBrx (level loading), UpdateSoSlots (per frame), UpdateSoXfWorldMatrices /
+// UpdateSoXfWorldHierarchy, TransformXfPos / ConvertXfVec / ConvertXfMat, GetXfVelocity, AddXfAct / RemoveXfAct.
 //
 // Types: sly2 headers (basic.h, lo.h, so.h, sw.h); the file-scope types after the includes are UpdateSoSlots'
 // Lilly declarations. The m2c bodies are written on them; the other functions keep the per-function views they
@@ -112,6 +114,8 @@ struct S { char pad[0x80]; int a; float b; int *pa; float *pb; };
  * See: docs/engine/animation.md#6-source-files, docs/reference/functions/animation.md#xf-0x22c818-0x231100,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
+// Points a transform slot's value/speed references at its own storage (value 0, speed 1), detaching any animation that
+// was driving it.
 void ResetXfValueRef(void *q, struct S *p)
 {
     p->b = 1.0f;
@@ -140,6 +144,7 @@ extern char D_002C44E0[];
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// If the transform slot's role is an active (moving) one, marks the owning SO awake so it gets per-frame updates.
 void WakeXfOwner(struct O *p, struct Q *q)
 {
     switch (q->k) {
@@ -177,6 +182,8 @@ VU *VECTOR_opAssign(VU *pv, qword q);
  * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Builds the local matrix a slot value produces for the slot's component kind: translation, Euler rotation, shear or
+// scale (an identity matrix with the value written in the right place).
 M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
 {
     switch (p->k) {
@@ -246,6 +253,8 @@ qword func_0011BFF0(float *m);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// The inverse of BuildXfValueMatrix: extracts a slot's component value (translation, Euler angles, shear or scale)
+// from a matrix, by the slot's component kind.
 qword GetXfValueFromMatrix(struct S *p, float *m)
 {
     qword v;
@@ -285,6 +294,7 @@ void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
  * Notes: descriptive only: xf: sin/cos basis helper | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
+// Converts Euler-angle rates (b) into an angular velocity vector at the Euler angles a (pitch in y, yaw in z) (inferred).
 qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
 {
     float s0, c0, s1, c1;
@@ -305,6 +315,8 @@ struct V {qword q;};
 struct M4 { qword r[4];  };
 extern "C" qword ConvertEulerRatesToAngularVelocity(qword,qword);
 extern "C" M4 BuildRotationDerivativeMatrix(void *,void *,V);
+// The time derivative of an Euler-rotation slot's matrix: converts the angle rates to an angular velocity and builds
+// the rotation-derivative matrix from it (inferred).
 extern "C" M4 func_0022CB90(void *a,void *b,qword c,qword d) return m {
     V v;v.q=ConvertEulerRatesToAngularVelocity(c,d);
     m=BuildRotationDerivativeMatrix(a,b,v);
@@ -325,6 +337,8 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
  * Notes: descriptive only: xf: derivative matrix by kind | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
+// The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix
+// writes the value (rotation kinds are handled by BuildEulerDerivativeMatrix).
 float *BuildXfValueDerivativeMatrix(float *m, struct S *p, qword v)
 {
     func_002333B4(m, 0, 0x40);
@@ -378,6 +392,7 @@ static inline void RetainMatrices(M4 *incomingDestination,const M3 *incomingBasi
  * Notes: descriptive only: xf: skew derivative matrix | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
+// Builds the derivative of a rotation as skew(angular velocity) times the basis matrix (inferred).
 extern "C" M4 *BuildRotationDerivativeMatrix(M4 *destination, void *pv, const M3 *basis, qword v)
 {
     M4 *pm;const M3 *pmB;RetainMatrices(destination,basis,pm,pmB);func_002333B4(destination, 0, 0x40);
@@ -426,6 +441,7 @@ static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Evaluates a transform slot's current local matrix, including its animation jobs and parent chain.
 extern "C" M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po)
 {
     M4 m, m2;
@@ -555,6 +571,7 @@ static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// Angular velocity of a transform (up to poStop) by finite differences of its slot matrices.
 M4 *GetXfAngularVelocity(M4 *pm, struct O *po, struct O *poStop)
 {
     M4 mB, mA, mE, mC, mD;
@@ -643,6 +660,7 @@ static inline void Eval(O *p,qword *v) {EvaluateBezierPos(p->t1-p->t0,*p->time-p
  * See: docs/engine/animation.md#7-key-functions, docs/engine/player.md#3-step-stepcpp-0x203948,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
 extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
     qword sum;
     qword delta;
@@ -702,6 +720,7 @@ extern int D_004437A8[];
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Pushes a transform table base onto the id-resolution context stack (used while loading nested objects).
 void PushXfContext(int v)
 {
     D_004437A8[D_004437A0++] = v;
@@ -715,6 +734,7 @@ void PushXfContext(int v)
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
 /* Pops the transform stack (D_004437A8[D_004437A0], pushed by PushXfContext). */
+// Pops the id-resolution context stack.
 extern "C" void PopXfContext()
 {
     D_004437A0 -= 1;
@@ -733,6 +753,8 @@ extern int D_004437A8[];
  *   docs/formats/meshes-scene.md#3-transforms-cstatic,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Resolves a transform id to an address: the high bits choose the local table (c), the parent's table (b) or the top
+// of the context stack; the low bits index 0x100-byte transform records.
 int ResolveXfId(int a, struct S *b, struct S *c)
 {
     int r = 0;
@@ -752,6 +774,7 @@ int ResolveXfId(int a, struct S *b, struct S *c)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Resolves a transform id against the object's parent table (the result is not used in this build, inferred).
 extern "C" void ResolveXfIdInParent(LO *plo, int grf)
 {
     ResolveXfId(grf, *(void **)((char *)plo + 0x10), 0);
@@ -764,6 +787,7 @@ extern "C" void ResolveXfIdInParent(LO *plo, int grf)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Resolves a transform id against the object's own and parent tables (the result is not used in this build, inferred).
 extern "C" void ResolveXfIdInSo(LO *plo, int grf)
 {
     ResolveXfId(grf, *(void **)((char *)plo + 0x10), plo);
@@ -827,6 +851,8 @@ static inline void ClearFlag(S *p){int f=p->flags;if((f^1)&1)*(int *)f&=~0x20;el
  *   docs/engine/animation.md#7-key-functions,
  *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse
  * @end-sly2-annot */
+// Loads an SO's transforms from the level stream: per transform its kind, role, matrices and limits, plus optional
+// animation jobs (springs, chases, chains via LoadSoChainsFromBrx).
 extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
  int i=0;
  p->count=S16Read__18CBinaryInputStream(stream);
@@ -884,6 +910,8 @@ void SetXfRole(void *pa, struct S *p, int state);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Keeps an animated slot value inside its [gMin, gMax] range: when it leaves the range (or the job is done) the job's
+// driver is notified and the slot switches to a settling role.
 void UpdateXfJobRange(void *pa, struct S *p)
 {
     float g = *p->pg;
@@ -1274,6 +1302,8 @@ void UpdateSoSlots(SO *pso) __asm__("UpdateSoSlots");
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Per-frame update of all transform slots of an SO: actions by role (chase, spring, curves, IK, chains, constraints),
+// value integration and settling, then world-matrix invalidation. The heart of object animation.
 void UpdateSoSlots(SO *pso)
 {
     int fMoving;
@@ -1864,6 +1894,7 @@ void func_00147E88(void *g, int b);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// After a slot update: for objects with the "needs refresh" flag (bit 60), runs the class-specific refresh.
 void RefreshSoAfterSlotUpdate(struct S *p)
 {
     if (!!((p->f >> 60) & 1)) {
@@ -1891,6 +1922,7 @@ extern "C" void RefreshSoAfterSlotUpdate(S *);
  *   docs/engine/animation.md#animation-format-summary-anim_lab-v31,
  *   docs/formats/meshes-scene.md#3-transforms-cstatic
  * @end-sly2-annot */
+// Recomputes the world matrices of an SO's linked transforms (VU matrix microprogram).
 extern "C" void UpdateSoXfWorldMatrices(S *p) {
     if(p->count>0) {
         X *x=p->array,*last=p->array+p->count-1;
@@ -1930,6 +1962,7 @@ extern "C" void UpdateSoXfWorldMatrices(S *p) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Default (empty) world-hierarchy update for plain LOs.
 extern "C" void UpdateLoXfWorldHierarchy()
 {
 }
@@ -1947,6 +1980,7 @@ void UpdateSoXfWorldMatrices(struct S *p);
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Recomputes an SO's world matrices and then those of its children.
 void UpdateSoXfWorldHierarchy(struct S *p)
 {
     struct O *o;
@@ -1982,6 +2016,7 @@ static inline qword MulPos(const M4 *m, qword v)
  *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
+// Converts a point from transform a's space to transform b's space (0 = world).
 qword TransformXfPos(struct O *a, struct O *b, qword v)
 {
     if (a) v = MulPos(&a->mat, v);
@@ -2014,6 +2049,7 @@ static inline qword Mul3(const M3 *m, qword v)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#xf-0x22c818-0x231100,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// Converts a direction (no translation) from transform a's space to transform b's space (0 = world).
 qword ConvertXfVec(struct O *a, struct O *b, qword v)
 {
     if (a) v = Mul3(&a->mat, v);
@@ -2052,6 +2088,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
  *   r8_21BB88+top50_round
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Converts a 3x3 matrix from transform a's space to transform b's space: inverse(b) * a * m.
 extern "C" M3 *ConvertXfMat(M3 *pr, O *pa, O *pb, const M3 *pm)
 {
     if (pa) {
@@ -2086,6 +2123,7 @@ void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Converts a 4x4 matrix from transform a's space to transform b's space.
 M4 *GetRelativeXfMatrix(M4 *pr, struct O *pa, struct O *pb, M4 *pm)
 {
     M4 m, mT, mInv;
@@ -2133,6 +2171,8 @@ void WakeXfOwner(void *, S *);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
+// Inserts an action into a transform slot's action list, sorted by priority; if it becomes the head (the action in
+// effect) the slot is woken and the old head detached / new head attached, else the head is told (slot 3).
 void AddXfAct(void *ctx, S *s, N *n)
 {
     N **pp = &s->first;
@@ -2169,6 +2209,7 @@ void WakeXfOwner(void *, S *);
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Unlinks an action from a transform slot's list and wakes the slot.
 void RemoveXfAct(void *ctx, S *s, N *n)
 {
     N *head = s->first;
@@ -2211,6 +2252,7 @@ void WakeXfOwner(void *, S *);
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Re-sorts a slot's actions (up to 16) by priority after priorities changed, re-attaching the new head.
 void SortXfActs(void *ctx, S *s)
 {
     N *a[16];
@@ -2253,6 +2295,7 @@ void SortXfActs(void *ctx, S *s)
 namespace M_func_00230310 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
+// True for slot roles that move the value (1-3, 7-12, 17-21).
 int IsXfRoleMoving(int n)
 {
     switch (n) {
@@ -2267,6 +2310,7 @@ int IsXfRoleMoving(int n)
 namespace M_func_00230348 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
+// True for slot roles that are at rest (0, 3, 10, 12, 19).
 int IsXfRoleAtRest(int n)
 {
     switch (n) {
@@ -2281,6 +2325,7 @@ int IsXfRoleAtRest(int n)
 namespace M_func_00230380 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
+// True for velocity-driven slot roles (1-3).
 int IsXfRoleVelocity(int n)
 {
     switch (n) {
@@ -2333,6 +2378,8 @@ void ResetXfValueRef(S *, P *);
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Sets a slot's motion role: leaving a static role captures the current value from the slot matrix, velocity roles
+// start from zero velocity, and the SO is woken unless the new role is at rest.
 void SetXfRole(S *s, P *p, int n)
 {
     if (n == p->x98)
@@ -2384,6 +2431,7 @@ namespace M_SlotUnsettle { extern "C" {
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 typedef struct { char pad[0x98]; unsigned short x98; } B;
 void SetXfRole(void *, B *, int);
+// Puts a settled slot back into motion (inferred: the counterpart of SettleXfSlot).
 void SlotUnsettle(void *a, B *b)
 {
     switch ((short)b->x98) {
@@ -2406,6 +2454,7 @@ void SetXfRole(void *, S *, int);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Moves a slot whose motion has finished to the matching resting role (by kind and phase).
 void SettleXfSlot(void *p, S *s)
 {
     switch (s->k) {
@@ -2511,6 +2560,8 @@ static inline qword AddScale(qword a, qword v, const VUF &f)
  * Notes: descriptive only: xf: apply job override to matrix | no usable identifier; purpose only
  * Confidence: name low [T2 0.20]; purpose not reviewed - evidence: static analysis
  * @end-sly2-annot */
+// A slot's current matrix and its time derivative, from its driving action's goal (value and rate) or its own
+// velocity role.
 void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g)
 {
     if (po->pob) {
@@ -2562,6 +2613,7 @@ namespace M_LoadIdentityMatrix4 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 void *func_002333B4(void *, int, int) __asm__("memset"); void AccumulateXfChainVelocity(void *, void *, float, float *, float *);
+// Helper of the chain velocity code: an identity matrix (the default when no matrix is given, inferred).
 void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
 {
     if (m) {
@@ -2600,6 +2652,8 @@ static inline void AddM4(M4 *d, M4 *a, M4 *b)
  * Notes: descriptive only: xf: blend matrices | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
+// Walks a chain of slots, accumulating the product matrix and its derivative by the product rule, i.e. the velocity of
+// the chain's end transform.
 void AccumulateXfChainVelocity(P *first, P *end, M4 *pA, M4 *pB, float f)
 {
     M4 m1, m2, a, b, s, t1, t2;
@@ -2637,6 +2691,7 @@ namespace M_func_00230CD0 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0
 void AccumulateXfChainVelocity(float);
+// Calls AccumulateXfChainVelocity with only a zero float argument (an unprototyped C caller, inferred to be dead code).
 void AccumulateXfChainVelocityStub(void) { AccumulateXfChainVelocity(0.0f); }
 } } // namespace M_func_00230CD0
 
@@ -2683,6 +2738,7 @@ void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Evaluates a slot's actuator value for the frame (curves, limits) and stores it in the slot.
 void EvaluateXfSlotValue(A *a, int flag)
 {
     LO *list[16];

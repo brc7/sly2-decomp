@@ -2,6 +2,9 @@
 // D_003DD040): sound flags, pan / pitch / volume, the dirty list, bank and stream sounds (start, pause, refcount,
 // pools), stream RPCs, the manager's playback mode and counters. TU 0x1FAF70..0x1FF3B8 (103 functions with the
 // linkonce copies at 0x259xxx, address order).
+// Entry points: StartupSound (boot), LoadSoundSectionFromBrx / PostSoundLoad / ResetSndmgr (level load and teardown),
+// UpdateSndmgr (per frame), PsndStartSound and the SetSnd* / StopSnd setters (game code), PushMusic / StopMusic,
+// StartDialog / StopDialog, and the music-layer request counters.
 //
 // Types: TU-private SND / BANKSND / SNDMGR views for the m2c bodies (sly2/aseg.h's SND is a 3-word stub).
 // g_sndmgr is defined here: SNDMGR_ctor constructs it, and its destructor releases the counted sound pointers at
@@ -166,6 +169,7 @@ void SetSndFlags(struct S *, int, int);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Pauses a sound (counted: nested pauses need as many resumes); the first pause requests "pause" on the next flush.
 void PauseSnd(struct S *p) { if (++p->c == 1) SetSndFlags(p, 6, 2); }
 } } // namespace M_PauseSnd
 
@@ -178,6 +182,7 @@ void SetSndFlags(struct S *, int, int);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Undoes one PauseSnd; the last one requests "continue" on the next flush.
 void ResumeSnd(struct S *p) { if (--p->c == 0) SetSndFlags(p, 6, 4); }
 } } // namespace M_ResumeSnd
 
@@ -187,6 +192,7 @@ void ResumeSnd(struct S *p) { if (--p->c == 0) SetSndFlags(p, 6, 4); }
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Requests that a sound stop, fading out over dtFade seconds (applied by the next UpdateSnd).
 extern "C" void StopSnd(SNDV *psnd, float dtFade)
 {
     psnd->dtFade = dtFade;
@@ -214,6 +220,8 @@ static inline int FNear(qword a, qword b)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 } } // namespace M_StartSnd
+// Starts a sound (slot 7) unless it is already playing or starting: requests start and marks every parameter dirty
+// (plus pause if paused, plus positional if it has a source).
 void CID151::Start()   /* key function: CID151's vtable comes out here (the namespace's views) */
 {
     using namespace M_StartSnd;
@@ -243,6 +251,7 @@ void SetSndFlags(struct P *, int, int);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets a sound's volume (clamped to 0..1); marks it dirty only if it changed by at least 1/1024.
 void SetSndVolume(struct P *p, float x)
 {
     float g = GLimitLm__FP2LMf(&D_002BBB60, x);
@@ -259,6 +268,7 @@ void SetSndVolume(struct P *p, float x)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets a sound's pan angle in degrees (normalized to 0..359) and marks it dirty.
 extern "C" void SetSndPan(SNDV *psnd, int deg)
 {
     int nPan = deg % 360;
@@ -275,6 +285,7 @@ extern "C" void SetSndPan(SNDV *psnd, int deg)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets a sound's pitch and marks it dirty.
 extern "C" void SetSndPitch(SNDV *psnd, int n1, int n2, float rPitch)
 {
     if (rPitch != psnd->rPitch) {
@@ -305,6 +316,7 @@ static inline int FNear(qword a, qword b)
  * See: docs/engine/animation.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/engine/sound.md#2-sound-instances
  * @end-sly2-annot */
+// Makes a sound positional, following an object.
 void SetSndSourceLo(struct P *p, struct SOURCE *source)
 {
     p->source = source;
@@ -332,6 +344,7 @@ static inline int FNear(qword a, qword b)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Makes a sound positional at a fixed world position (a zero vector means not positional).
 void SetSndSourcePos(struct P *p, qword v)
 {
     p->v = v;
@@ -348,6 +361,8 @@ struct S { char pad[0x30]; float a; float b; };
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets the distance at which a positional sound starts to fade (full) and the distance where it is silent (stop);
+// stop is forced to be at least full + 1.
 void SetSndRange(struct S *p, float a, float b) { if (b <= a) { b = a + 1.0f; p->b = b; } else p->b = b; p->a = a; }
 } } // namespace M_SetSndRange
 
@@ -358,6 +373,7 @@ void SetSndRange(struct S *p, float a, float b) { if (b <= a) { b = a + 1.0f; p-
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* SetSndDoppler: empty */
+// Empty in the release build; called with a fade/doppler argument (inferred).
 extern "C" void SetSndDoppler()
 {
 }
@@ -380,6 +396,8 @@ void SetSndPan(struct P *, int);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Positional update (slot 16): volume from the distance to the listener and pan from its direction; switches the
+// sound's culled state when it becomes audible or silent.
 void UpdateSndPositional(struct P *p)
 {
     float f;
@@ -412,6 +430,8 @@ void RemoveSndFromDirtyList(struct S *);
  * See: docs/engine/sound.md#2-sound-instances, docs/engine/sound.md#6-key-functions,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets the masked bits of a sound's request flags; a sound with pending requests is put on the manager's dirty list,
+// one without is taken off it.
 void SetSndFlags(struct S *p, unsigned short m, unsigned short v)
 {
     p->fl = (p->fl & ~m) | (v & m);
@@ -425,6 +445,7 @@ void SetSndFlags(struct S *p, unsigned short m, unsigned short v)
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Puts a sound on the manager's dirty list (taking a reference) if it is not already there.
 extern "C" void AddSndToDirtyList(SNDV *psnd)
 {
     if (FFindDlEntry(&G_SNDMGR.dlDirty, psnd) == 0) {
@@ -446,6 +467,7 @@ void RemoveDlEntry__FP2DLPv(struct DL *, void *);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Takes a sound off the dirty list and drops the list's reference.
 void RemoveSndFromDirtyList(struct X *px)
 {
     if (FFindDlEntry__FP2DLPv((struct DL *)&D_003DD040.dlSndDirty, px)) {
@@ -485,6 +507,8 @@ static inline void Rounded(int*out,float f){float bits;__asm__("cvt.w.s %0,%1":"
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Volume and pan of a point as heard by the listener (the player, or the camera): volume falls linearly from 1 at the
+// full distance to 0 at the stop distance; pan is the angle to the point in degrees.
 void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float*outValue,int*outAngle)
 {
  V source,delta;
@@ -533,6 +557,8 @@ struct Lock {
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/engine/sound.md#2-sound-instances, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Flushes a dirty sound to the sound hardware: positional update, then start, stop, status query, parameters, pause and
+// continue by its request bits (each through its virtual slot).
 extern "C" void UpdateSnd(P *p)
 {
     Lock l(p);
@@ -581,6 +607,8 @@ struct S { int a[3]; struct VTE *vt; char pad[0x30]; int x40; char pad2[0xE]; sh
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Async callback when a looping bank sound started: stores its voice handle, clears "starting", drops the callback's
+// reference.
 void OnBankSoundStarted(int x, long l) { struct S *p = (struct S *)(int)l; p->x40 = x; p->x52 = 0; p->vt[2].pfn((char *)p + p->vt[2].d); }
 } } // namespace M_func_001FBAF8
 
@@ -595,6 +623,8 @@ void SetSndFlags(struct A *p, int a, int b);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Async "is it still playing" callback: a finished sound is stopped, a playing one gets its next status query armed;
+// drops the callback's reference.
 void OnBankSoundStatus(int f, long l)
 {
     struct A *p = (struct A *)l;
@@ -615,6 +645,7 @@ void OnBankSoundStatus(int f, long l)
  * See: docs/engine/animation.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/engine/overview.md#6-subsystem-map
  * @end-sly2-annot */
+// Creates a bank sound for a sound-effect id from the manager's pool; it starts at the next flush.
 extern "C" void PsndStartSound(int sfxid)
 {
     BANKSND_ctor((SNDV *)PvAllocBanksnd(0x70), sfxid);
@@ -626,6 +657,7 @@ extern "C" void PsndStartSound(int sfxid)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Bank-sound constructor: base sound constructor, then the start request.
 extern "C" SNDV *BANKSND_ctor(SNDV *psnd, int sfxid)
 {
     SND_ctor(psnd);
@@ -641,6 +673,7 @@ extern "C" SNDV *BANKSND_ctor(SNDV *psnd, int sfxid)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Kind of a bank sound (slot 8): 2 for looping effects, from the level's sound table, else -1.
 extern "C" int GetBanksndKind(SNDV *psnd)
 {
     int *pn = PsndFromSfxid(&G_SNDMGR, psnd->sfxid);
@@ -677,6 +710,8 @@ void StepRandomSfxVariation(struct G *);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Starts a bank sound on the 989snd library (slot 9) with its bank, sound index, volume, pan and pitch: loopers start
+// asynchronously and get a voice handle, one-shots are fire-and-forget; some effects get special handling.
 void PlayBanksnd(struct P *p)
 {
     struct G *pg = &D_003DD040;
@@ -736,6 +771,7 @@ void snd_StopSound(int h);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Stops a bank sound (slot 10): a fade-out when a fade time was requested, else immediately.
 void StopBanksnd(struct A *p)
 {
     if (p->g > 0.0f)
@@ -751,6 +787,7 @@ void StopBanksnd(struct A *p)
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Pauses a bank sound's voice (slot 11).
 extern "C" void PauseBanksnd(SNDV *psnd)
 {
     snd_PauseSound(psnd->hvoice);
@@ -762,6 +799,7 @@ extern "C" void PauseBanksnd(SNDV *psnd)
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Resumes a bank sound's voice (slot 12).
 extern "C" void ContinueBanksnd(SNDV *psnd)
 {
     snd_ContinueSound(psnd->hvoice);
@@ -776,6 +814,7 @@ void func_00232500(void *, int, int, int, int, int);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sends a bank sound's changed volume, pan and pitch to its voice (slot 13).
 void ApplyBanksndParams(struct X *px)
 {
     int fl = px->fl;
@@ -802,6 +841,7 @@ void SetSndFlags(struct X *, int, int);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Asks the IOP whether a bank sound's voice is still playing (slot 14), with OnBankSoundStatus as callback.
 void BANKSND_QueryStatus(struct X *px)
 {
     if (px->fl & 0x400) {
@@ -823,6 +863,8 @@ void SetSndFlags(struct P *, int, int);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Culling hook (slot 15): a sound that becomes audible again restarts; one that becomes silent is stopped (loopers keep
+// their parameters so they can restart).
 void SetBankSoundCulled(struct P *p, int f)
 {
     if (!f) ((void (*)(void *))p->pvt->a[7].pfn)((char *)p + p->pvt->a[7].d);
@@ -839,6 +881,7 @@ void SetBankSoundCulled(struct P *p, int f)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Adds a reference to a bank sound (slot 1).
 void BANKSND::VUnk00()   /* key function: BANKSND's vtable comes out here */
 {
     SNDV *psnd = (SNDV *)this;
@@ -855,6 +898,7 @@ void FreeBanksnd(struct S *);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool.
 void DecrefBanksnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); FreeBanksnd(p); } }
 } } // namespace M_DecrefBanksnd
 
@@ -864,6 +908,7 @@ void DecrefBanksnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); Fr
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Allocates a bank sound from the manager's pool.
 extern "C" void *PvAllocBanksnd(int cb)
 {
     return PvAllocSlotheapClear(&G_SNDMGR.slotheapBanksnd);
@@ -875,6 +920,7 @@ extern "C" void *PvAllocBanksnd(int cb)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Returns a bank sound to the manager's pool.
 extern "C" void FreeBanksnd(void *pv)
 {
     func_0011CD98(&G_SNDMGR.slotheapBanksnd, pv);
@@ -893,6 +939,7 @@ struct X {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Creates a streamed sound (music, dialog, ambience) for a stream record and kind, or 0 if the pool is empty.
 extern "C" X *PstreamsndNew(A *pa, B *pb)
 {
     X *px;
@@ -946,6 +993,7 @@ void StartSnd(struct P *);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Starts a streamed sound (slot 7): base start, then resets its play time and status queries.
 void StartStreamsnd(struct P *p)
 {
     int f = 0; if (!p->n40) { f = p->c52 || (p->fl & 1); f ^= 1; } if (f) {
@@ -968,6 +1016,7 @@ void SetSndFlags(struct P *, int, int);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets the volume of one of a stream's six sub-groups (channels of a multi-layer stream) and marks it dirty.
 void SetStreamsndGroupVolume(struct P *p, unsigned int k, float g)
 {
     if (k < 6) {
@@ -991,6 +1040,7 @@ static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets the pan of one of a stream's six sub-groups and marks it dirty.
 void SetStreamGroupPan(struct P *p, unsigned int k, int deg)
 {
     if (k < 6) {
@@ -1016,6 +1066,8 @@ void SetSndFlags(struct P *, int, int);
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Adds a positional source (object, volume, range) to a stream sub-group (at most 8 per group); the loudest audible
+// source drives the group's volume and pan.
 void AddStreamGroupSource(struct P *p, unsigned int k, int n, struct R *pr, float g)
 {
     if (k < 6 && p->c[k] < 8) {
@@ -1038,6 +1090,7 @@ struct S { char pad[0x3B8]; int fl; };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Kind of a streamed sound (slot 8): 2 when looping, else 1.
 int GetStreamSoundKind(struct S *p) { return (p->fl & 4) ? 2 : 1; }
 } } // namespace M_func_001FC4F8
 
@@ -1076,6 +1129,8 @@ static inline int FSet(struct K *pk, struct X *px)
  * See: docs/engine/sound.md#6-key-functions, docs/guides/port-plan.md#64-sound--coreaudio-k12,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Starts a streamed sound (slot 9): resolves the stream's file and sends the start command to the IOP stream module
+// with volume and pan.
 void PlayStreamsnd(struct P *p)
 {
     struct K k;
@@ -1117,6 +1172,7 @@ void PlayStreamsnd(struct P *p)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 2 (stop) for the stream. */
+// Stops a streamed sound on the IOP (slot 10).
 extern "C" void StopStreamSound(SNDV *psnd)
 {
     func_00233088(0x524B5553, 2, psnd->hvoice, 0, 0, 0, 0);
@@ -1129,6 +1185,7 @@ extern "C" void StopStreamSound(SNDV *psnd)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 3 (pause) for the stream. */
+// Pauses a streamed sound on the IOP (slot 11).
 extern "C" void PauseStreamSound(SNDV *psnd)
 {
     func_00233088(0x524B5553, 3, psnd->hvoice, 0, 0, 0, 0);
@@ -1141,6 +1198,7 @@ extern "C" void PauseStreamSound(SNDV *psnd)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 4 (continue) for the stream. */
+// Resumes a streamed sound on the IOP (slot 12).
 extern "C" void ResumeStreamSound(SNDV *psnd)
 {
     func_00233088(0x524B5553, 4, psnd->hvoice, 0, 0, 0, 0);
@@ -1156,6 +1214,7 @@ void func_00233088(int, int, int, int, int, int, int);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sends a stream's changed volume, pan and pitch, then each sub-group's parameters (slot 13).
 void ApplyStreamsndParams(struct P *p)
 {
     int i;
@@ -1199,6 +1258,7 @@ void SetSndFlags(struct P *, int, int);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Queries a stream's play position and whether it is still playing (slot 14), with callbacks; accumulates paused time.
 void QueryStreamSoundStatus(struct P *p)
 {
     if (p->f50 & 0x1000) {
@@ -1224,6 +1284,7 @@ void QueryStreamSoundStatus(struct P *p)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND slot 15: streams are not culled */
+// Culling hook (slot 15): nothing, streams are never culled.
 extern "C" void SetStreamSoundCulled()
 {
 }
@@ -1254,6 +1315,8 @@ static inline int FNear(qword a, qword b)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Positional update of a stream (slot 16): the base update, then per sub-group the loudest audible source sets the
+// group's volume and pan.
 void UpdateStreamsndPositional(struct P *p)
 {
     int group;
@@ -1296,6 +1359,8 @@ void SetSndFlags(struct X *, int, int);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Async callback when a stream started: stores its stream handle, or stops the sound if starting failed; drops the
+// callback's reference.
 void OnStreamSoundStarted(int f, long l)
 {
     struct X *px = (struct X *)l;
@@ -1323,6 +1388,7 @@ void SetSndFlags(struct X *, int, int);
  * See: docs/engine/sound.md#6-key-functions, docs/guides/port-plan.md#64-sound--coreaudio-k12,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Async callback of the stream status query.
 void OnStreamsndStatus(int f, long l)
 {
     struct X *px = (struct X *)l;
@@ -1338,6 +1404,7 @@ void OnStreamsndStatus(int f, long l)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Adds a reference to a streamed sound (slot 1).
 void STREAMSND::VUnk00()   /* key function: STREAMSND's vtable comes out here */
 {
     SNDV *psnd = (SNDV *)this;
@@ -1354,6 +1421,7 @@ void FreeStreamsnd(struct S *);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Drops a reference to a streamed sound (slot 2); at zero it is destroyed and returned to its pool.
 void DecrefStreamsnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); FreeStreamsnd(p); } }
 } } // namespace M_DecrefStreamsnd
 
@@ -1363,6 +1431,7 @@ void DecrefStreamsnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); 
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Allocates a streamed sound from the manager's pool.
 extern "C" void *PvAllocStreamsnd(int cb)
 {
     return PvAllocSlotheapClear(&G_SNDMGR.slotheapStreamsnd);
@@ -1374,6 +1443,7 @@ extern "C" void *PvAllocStreamsnd(int cb)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Returns a streamed sound to the manager's pool.
 extern "C" void FreeStreamsnd(void *pv)
 {
     func_0011CD98(&G_SNDMGR.slotheapStreamsnd, pv);
@@ -1456,6 +1526,8 @@ long TickNow(struct CLOCK *);
  * See: docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Boot-time sound setup: starts the 989snd system and the IOP stream module, sets all volumes to 1 and records the start
+// time.
 void StartupSound(void)
 {
     int i, j;
@@ -1481,6 +1553,7 @@ struct S { char pad[0x6C]; int a; int b; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Async callback: stores a query result in the manager and clears its busy flag.
 void OnSoundManagerQueryResult(int x, long l) { struct S *p = (struct S *)(int)l; p->b = x; p->a = 0; }
 } } // namespace M_func_001FCF70
 
@@ -1492,6 +1565,7 @@ struct S { char pad[0xA0]; int a; int b; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Async callback of the manager's periodic status query: stores the result and clears the busy flag.
 void OnSoundManagerStatusResult(int x, long l) { struct S *p = (struct S *)(int)l; p->b = x; p->a = 0; }
 } } // namespace M_func_001FCF88
 
@@ -1513,6 +1587,7 @@ struct T *FindDialogStream(struct S *p, int n) { struct T *pt; for (pt = p->pt; 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Duration of a dialog line's stream by id (0 when unknown); subtitles use it to pace the typewriter effect.
 extern "C" float GetDialogStreamDuration(int id)
 {
     STREAMREC *prec = FindDialogStream(id);
@@ -1543,6 +1618,7 @@ struct S { char pad[0x18]; int c; char pad2[0xE0]; int *a; int *ai; };
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// The manager's sound entry for a sound-effect id, or 0 when the level does not have it.
 int *PsndFromSfxid(struct S *p, int n)
 {
     int i;
@@ -1559,6 +1635,7 @@ int *PsndFromSfxid(struct S *p, int n)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Index of a sound entry in the manager's table.
 extern "C" int IsndFromPsnd(SNDMGRV *psndmgr, SNDV **ppsnd)
 {
     return (int)((char *)ppsnd - (char *)psndmgr->apsnd) >> 2;
@@ -1573,6 +1650,8 @@ struct S { char pad[0xF0]; struct T *pt; struct T *pt2; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Which volume channel a stream belongs to: 1 for dialog streams, 0 for the ambience stream, 2 for anything else
+// (inferred: music).
 int GetStreamVolumeChannel(struct S *p, struct T *x) { struct T *pt; for (pt = p->pt; pt; pt = pt->pnext) if (pt == x) return 1; return p->pt2 != x ? 2 : 0; }
 } } // namespace M_func_001FD080
 
@@ -1585,6 +1664,7 @@ extern int D_002C3C40[];
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// OID of the state machine that animates dialog speaker role n (n < 6), or -1.
 int GetDialogRoleSmOid(int a, unsigned int n) { if (n >= 6) return -1; return D_002C3C40[n]; }
 } } // namespace M_func_001FD0C0
 
@@ -1730,6 +1810,8 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbi
  * See: docs/engine/sound.md#1-sound-manager-soundcpp-0x1faf70-0x1ff398, docs/engine/sound.md#6-key-functions,
  *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
  * @end-sly2-annot */
+// Loads the level's sound section: the sound bank file, the kind of each sound, the effect-id table, the ambience
+// stream, the dialog and music stream records per language and the loose files.
 extern "C" void LoadSoundSectionFromBrx(SNDMGR *psndmgr, CBinaryInputStream *pbis)
 {
     FILEREC rec;
@@ -1845,6 +1927,7 @@ static inline int FSet(struct K *pk, struct X *px)
  * See: docs/open-questions.md#modding-live-test-2026-11-01,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// After loading: loads the sound bank if needed, resolves its cross references and marks which sounds loop.
 void PostSoundLoad(struct P *p)
 {
     int i;
@@ -1889,6 +1972,8 @@ void ResetSndmgrVolumes(struct P *);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Stops every sound and stream, flushes the hardware queues, clears the manager's state and dirty list and resets volumes
+// (level teardown).
 void ResetSndmgr(struct P *p)
 {
     snd_StopAllStreams();
@@ -1954,6 +2039,8 @@ int snd_FlushSoundCommands(void);
  * See: docs/engine/overview.md#5-per-frame-update-and-render,
  *   docs/engine/sound.md#1-sound-manager-soundcpp-0x1faf70-0x1ff398, docs/engine/sound.md#6-key-functions
  * @end-sly2-annot */
+// Per-frame sound update: timing, IOP status polls, global pause while the game is paused, music mix, dialog events,
+// master fades, then flushes every dirty sound and the 989snd command queue.
 void UpdateSndmgr(struct P *p)
 {
     struct X *top;
@@ -2020,6 +2107,7 @@ static inline float Eval(struct V3 *pv, float t)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Polls the IOP stream module and tracks the listener object while a player exists (inferred).
 void UpdateSoundListener(struct P *p)
 {
     struct O *po;
@@ -2056,6 +2144,7 @@ void func_002330D0(int id, int n, int a, int b, int c, int d, int e, void (*pfn)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Issues the manager's periodic status query to the IOP, once at a time.
 void PollSoundManagerStatus(struct A *p)
 {
     if (!p->f) {
@@ -2085,6 +2174,8 @@ static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Picks the music layer (0, 1 or 2) from requests and the player's state (alert, hiding, actions) and cross-fades the
+// three layers of the current music stream toward it, keeping their total power constant.
 void UpdateMusicMix(struct P *input)
 {
     struct P *p=input;
@@ -2135,6 +2226,7 @@ norm:
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Empty per-frame hook in the release build.
 extern "C" void UpdateSoundManagerStub()
 {
 }
@@ -2154,6 +2246,8 @@ void ApplyDialogEvent(struct P *, struct Ent *);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Advances the current dialog: fires its lip-sync / animation events as the stream's play time passes them and stops the
+// dialog at its end.
 void UpdateDialog(struct P *p)
 {
     struct X *x = p->r200;
@@ -2199,6 +2293,8 @@ void SetSmaGoal(void *, int);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Applies one dialog event: a gesture for role 3, otherwise sets the goal state of the speaker role's state machine
+// (lip sync).
 void ApplyDialogEvent(struct P *p, struct E *pe)
 {
     int k = pe->k;
@@ -2245,6 +2341,8 @@ static inline void Set(V2 *pv, float x, float y) { pv->x = x; pv->y = y; }
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Starts a music track: stops the current one, reuses or creates its stream (sources on the player), and pushes it on
+// the 8-deep music stack.
 extern "C" X *PushMusic(P *p, int n)
 {
     Ref r = FindMusic(p, n);
@@ -2286,6 +2384,7 @@ extern "C" void AssignSoundRef(Ref *, void *);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Stops a music track by id if it is playing.
 extern "C" void StopMusic(P *p, int n)
 {
     Ref r;
@@ -2314,6 +2413,7 @@ struct P { char pad[0x204]; struct S s; };
  * See: docs/engine/minigames.md#7-dance-dancer-0x44--rhythm-manager-cid121-0x79-rhythm-tu-0x1520c8-0x1539a8-ccode,
  *   docs/engine/sound.md#2-sound-instances, docs/guides/port-plan.md#64-sound--coreaudio-k12
  * @end-sly2-annot */
+// Play time of the current music track in seconds.
 float TMusicCur(struct P *p)
 {
     struct Q *q;
@@ -2347,6 +2447,7 @@ extern "C" X *FindMusicStream(P *, int);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// A reference to the music stream on the stack with the given id (null when absent).
 extern "C" Ref FindMusic(P *p, int n)
 {
     X *v = FindMusicStream(p, n);
@@ -2370,6 +2471,7 @@ struct S { char pad[0x68]; int fl; };
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets or clears bits of the manager's flags.
 void SetSoundManagerFlags(struct S *p, int f, int fSet) { if (fSet) p->fl |= f; else p->fl &= ~f; }
 } } // namespace M_func_001FE5B8
 
@@ -2379,6 +2481,7 @@ void SetSoundManagerFlags(struct S *p, int f, int fSet) { if (fSet) p->fl |= f; 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// True when the manager's mode is 3 (inferred: muted / paused).
 extern "C" int IsSoundManagerMuted(SNDMGRV *psndmgr)
 {
     return psndmgr->nState == 3;
@@ -2415,6 +2518,8 @@ X *func_001F67E0(X *, int);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Starts a dialog line: stops the current one, creates its stream, shows its subtitle and binds the speaker objects'
+// state machines to the six lip-sync roles.
 extern "C" X *StartDialog(P *p, int k, int f)
 {
     D *pd;
@@ -2472,6 +2577,8 @@ static inline void Stop(struct Ref *pr)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Stops the current dialog: flushes its remaining events, returns the speakers' mouths to rest, stops the stream and
+// clears the dialog state.
 void StopDialog(struct P *p)
 {
     int i;
@@ -2507,6 +2614,7 @@ static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// True while a dialog (optionally the one with the given id) is playing.
 int IsDialogPlaying(struct S *p, int n)
 {
     struct U *pu; int f;
@@ -2540,6 +2648,7 @@ static inline float T(struct X *px) { return (float)px->t * (1.0f / 294912000.0f
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Play time of the current dialog (the cached time while it is still starting).
 float GetDialogTime(struct P *p)
 {
     if (!p->px) return 0.0f;
@@ -2562,6 +2671,7 @@ struct S { char pad[0x1D0]; int c; int a[1]; };
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Index of an id in the manager's stream-group table, or -1 (used to attach ambient emitters to groups).
 int FindStreamGroupIndex(struct S *p, int n) { int i; for (i = 0; i < p->c; i++) if (p->a[i] == n) return i; return -1; }
 } } // namespace M_func_001FE990
 
@@ -2571,6 +2681,7 @@ int FindStreamGroupIndex(struct S *p, int n) { int i; for (i = 0; i < p->c; i++)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets the 989snd output mode (mono / stereo option) if it changed.
 extern "C" void SetSndmgrPlaybackMode(SNDMGRV *psndmgr, int nMode)
 {
     if (psndmgr->nPlaybackMode != nMode) {
@@ -2592,6 +2703,7 @@ void snd_SetMasterVolume(int, int);
  * See: docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets the master volume (clamped) on the 989snd library.
 void SetSndmgrMasterVolume(struct P *p, float x)
 {
     float g = GLimitLm__FP2LMf(&D_002BBB60, x);
@@ -2626,6 +2738,8 @@ static inline X *ReadReceiver(X **pp)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Sets one category's weight on a volume channel, recomputes the channel's output volume, sends it and updates the live
+// streams.
 extern "C" void SetSndmgrChannelVolume(P *p,int channel,int category,float input)
 {
     if((unsigned int)category>=8)return;
@@ -2683,6 +2797,7 @@ void SetSndmgrChannelVolume(void *, int, int, float);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Resets the master volume and all channel weights to 1 (category 1 excepted).
 void ResetSndmgrVolumes(void *p)
 {
     int i, j;
@@ -2701,6 +2816,7 @@ void ResetSndmgrVolumes(void *p)
  * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Adds a request for music layer 2 (counted; AI code raises it, inferred: the alert layer).
 extern "C" void AddMusicLayer2Request(SNDMGRV *psndmgr)
 {
     psndmgr->c5C++;
@@ -2712,6 +2828,7 @@ extern "C" void AddMusicLayer2Request(SNDMGRV *psndmgr)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Removes a request for music layer 2.
 extern "C" void RemoveMusicLayer2Request(SNDMGRV *psndmgr)
 {
     psndmgr->c5C--;
@@ -2723,6 +2840,7 @@ extern "C" void RemoveMusicLayer2Request(SNDMGRV *psndmgr)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Adds a request for music layer 0 (counted).
 extern "C" void AddMusicLayer0Request(SNDMGRV *psndmgr)
 {
     psndmgr->c60++;
@@ -2734,6 +2852,7 @@ extern "C" void AddMusicLayer0Request(SNDMGRV *psndmgr)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Removes a request for music layer 0.
 extern "C" void RemoveMusicLayer0Request(SNDMGRV *psndmgr)
 {
     psndmgr->c60--;
@@ -2767,6 +2886,8 @@ void func_002322F0(struct M *);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// For the hero's sounds: a table-driven random walk of a value in -12..12 that is sent as a voice parameter of effect
+// 0x28 (inferred: a varying pitch or intensity).
 void StepRandomSfxVariation(struct P *p)
 {
     int r;
@@ -2807,6 +2928,7 @@ void SetStreamGroupPan(void *, int, int);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
+// Splice command: sets the volume and pan of the ambience sub-group selected by id.
 void SetAmbienceGroupMix(int a, int b, int c, float g)
 {
     int r = FindStreamGroupIndex(&D_003DD040);
