@@ -1,5 +1,8 @@
 // dzgcore.cpp -- the DZG constraint solver (Sly 1's dzg): a set of DZ constraints in four lists (active, at lower
 // bound, at upper bound, free), solved by repeated Crout decompositions.
+// It is an active-set solver for bounded linear constraints (the physics' contact and joint impulses): constraints
+// move between the lists as they hit or leave their bounds, and each change re-solves the active system.
+// Entry points: InitDzg, ClearDzgSolution, SolveDzgFilled, SolveInequalities.
 // TU 0x11A550..0x11AFE0 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dzgcore
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011AFC0
@@ -47,37 +50,39 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz);
  * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
  *   docs/engine/physics-collision.md#2-contacts-and-solving
  * @end-sly2-annot */
-extern "C" DZG *InitDzg(DZG *pdzg, int cpsoMax)
+// Sets up a solver for at most maxConstraints constraints: allocates the DZ array and the matrices from the
+// current allocator and initialises the four constraint lists.
+extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
 {
     MSG msg;
 
-    pdzg->cdzMax = cpsoMax;
-    pdzg->cdzA = 0;
-    pdzg->cdz = 0;
-    msg.cb = cpsoMax * 0x28;
+    dzg->cdzMax = maxConstraints;
+    dzg->cdzA = 0;
+    dzg->cdz = 0;
+    msg.cb = maxConstraints * 0x28;
     msg.nKind = 0x10;
-    pdzg->adz = (DZ *)AllocClearedFromStack(&msg);
-    func_002333B4(&pdzg->dlA, 0, sizeof(DL));
-    func_002333B4(&pdzg->dlB, 0, sizeof(DL));
-    func_002333B4(&pdzg->dlC, 0, sizeof(DL));
-    func_002333B4(&pdzg->dlD, 0, sizeof(DL));
-    InitDl(&pdzg->dlA, 0x20);
-    InitDl(&pdzg->dlB, 0x20);
-    InitDl(&pdzg->dlC, 0x20);
-    InitDl(&pdzg->dlD, 0x20);
-    msg.cb = cpsoMax * cpsoMax * 4;
+    dzg->adz = (DZ *)AllocClearedFromStack(&msg);
+    func_002333B4(&dzg->dlA, 0, sizeof(DL));
+    func_002333B4(&dzg->dlB, 0, sizeof(DL));
+    func_002333B4(&dzg->dlC, 0, sizeof(DL));
+    func_002333B4(&dzg->dlD, 0, sizeof(DL));
+    InitDl(&dzg->dlA, 0x20);
+    InitDl(&dzg->dlB, 0x20);
+    InitDl(&dzg->dlC, 0x20);
+    InitDl(&dzg->dlD, 0x20);
+    msg.cb = maxConstraints * maxConstraints * 4;
     msg.nKind = 0x10;
-    pdzg->agMat = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
-    msg.cb = cpsoMax * cpsoMax * 4;
+    dzg->agMat = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    msg.cb = maxConstraints * maxConstraints * 4;
     msg.nKind = 0x10;
-    pdzg->agLu = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
-    msg.cb = cpsoMax * 4;
+    dzg->agLu = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    msg.cb = maxConstraints * 4;
     msg.nKind = 0x10;
-    pdzg->agB = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
-    msg.cb = cpsoMax * 4;
+    dzg->agB = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    msg.cb = maxConstraints * 4;
     msg.nKind = 0x10;
-    pdzg->agX = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
-    return pdzg;
+    dzg->agX = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    return dzg;
 }
 
 /** @sly2-annot addr=0x11A6B8
@@ -86,21 +91,22 @@ extern "C" DZG *InitDzg(DZG *pdzg, int cpsoMax)
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
  * @end-sly2-annot */
-void ClearDzgSolution(DZG *pdzg)
+// Clears the previous solution (every constraint's value and state) so the solver can be refilled.
+void ClearDzgSolution(DZG *dzg)
 {
     int i;
 
-    pdzg->cdzA = 0;
-    ClearDl(&pdzg->dlA);
-    ClearDl(&pdzg->dlB);
-    ClearDl(&pdzg->dlC);
-    ClearDl(&pdzg->dlD);
+    dzg->cdzA = 0;
+    ClearDl(&dzg->dlA);
+    ClearDl(&dzg->dlB);
+    ClearDl(&dzg->dlC);
+    ClearDl(&dzg->dlD);
 
-    for (i = 0; i < pdzg->cdz; i++) {
-        DZ *pdzs = &pdzg->adz[i];
+    for (i = 0; i < dzg->cdz; i++) {
+        DZ *pdzs = &dzg->adz[i];
         pdzs->gC = pdzs->g10 = 0.0f;
         ClearDle(&pdzs->dle);
-        AppendDlEntry(&pdzg->dlD, pdzs);
+        AppendDlEntry(&dzg->dlD, pdzs);
     }
 }
 
@@ -115,13 +121,15 @@ namespace RO_ORDER { extern const float r_D_002A4124 __asm__("D_002A4124") = -3.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
  * @end-sly2-annot */
-void EnforceDzgDz(DZG *pdzg, DZ *pdz)
+// Makes constraint dz hold (Sly 1's EnforceDzgDz): adds it to the active set, re-decomposes the active system and
+// moves constraints that would violate their bounds to the bound lists, repeating until consistent.
+void EnforceDzgDz(DZG *dzg, DZ *dz)
 {
     int iter;
-    if (pdz) {
-        RemoveDlEntry(&pdzg->dlD, pdz);
-        AppendDlEntry(&pdzg->dlA, pdz);
-        pdzg->cdzA++;
+    if (dz) {
+        RemoveDlEntry(&dzg->dlD, dz);
+        AppendDlEntry(&dzg->dlA, dz);
+        dzg->cdzA++;
     }
     for (iter = 0; iter < 10; iter++) {
         DZ *pdzI, *pdzJ, *pdzK, *pdzBest;
@@ -129,28 +137,28 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz)
         int i, k;
         float gMin;
 
-        float *pgMat = pdzg->agMat;
-        for (pdzI = (DZ *)pdzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
-            for (pdzJ = (DZ *)pdzg->dlA.head; pdzJ; pdzJ = (DZ *)pdzJ->dle.next)
-                *pgMat++ = pdzI->ag[pdzJ - pdzg->adz];
-        CroutDecomp(pdzg->cdzA, pdzg->agMat, pdzg->agLu);
-        float *pgB = pdzg->agB;
-        for (pdzI = (DZ *)pdzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+        float *pgMat = dzg->agMat;
+        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+            for (pdzJ = (DZ *)dzg->dlA.head; pdzJ; pdzJ = (DZ *)pdzJ->dle.next)
+                *pgMat++ = pdzI->ag[pdzJ - dzg->adz];
+        CroutDecomp(dzg->cdzA, dzg->agMat, dzg->agLu);
+        float *pgB = dzg->agB;
+        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
             *pgB++ = -pdzI->g10;
-        CroutSolve(pdzg->cdzA, pdzg->agLu, pdzg->agB, pdzg->agX);
-        for (i = 0; i < pdzg->cdz; i++) {
+        CroutSolve(dzg->cdzA, dzg->agLu, dzg->agB, dzg->agX);
+        for (i = 0; i < dzg->cdz; i++) {
             float g = 0.0f;
-            float *pgX = pdzg->agX;
-            for (pdzI = (DZ *)pdzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+            float *pgX = dzg->agX;
+            for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
                 g += *pgX++ * pdzI->ag[i];
-            pdzg->adz[i].g14 = g;
+            dzg->adz[i].g14 = g;
         }
 
         pdzBest = 0;
         gMin = 1.0f;
         k = 0;
-        pg = pdzg->agX;
-        for (pdzI = (DZ *)pdzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next) {
+        pg = dzg->agX;
+        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next) {
             float x = *pg++;
             if (x > 1e-4f) {
                 // Empty asm, allocation-only operands (emits nothing): two extra uses of the +-1e-4 constants
@@ -177,7 +185,7 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz)
                 }
             }
         }
-        for (pdzK = (DZ *)pdzg->dlB.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
+        for (pdzK = (DZ *)dzg->dlB.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
             if (pdzK->g14 > -1e-4f) {} else {
                 float t = -pdzK->g10 / pdzK->g14;
                 if (t < gMin) {
@@ -187,7 +195,7 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz)
                 }
             }
         }
-        for (pdzK = (DZ *)pdzg->dlC.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
+        for (pdzK = (DZ *)dzg->dlC.head; pdzK; pdzK = (DZ *)pdzK->dle.next) {
             if (pdzK->g14 < 1e-4f) {} else {
                 float t = -pdzK->g10 / pdzK->g14;
                 if (t < gMin) {
@@ -197,40 +205,40 @@ void EnforceDzgDz(DZG *pdzg, DZ *pdz)
                 }
             }
         }
-        for (i = 0; i < pdzg->cdz; i++) {
-            DZ *pdzT = &pdzg->adz[i];
+        for (i = 0; i < dzg->cdz; i++) {
+            DZ *pdzT = &dzg->adz[i];
             pdzT->g10 += gMin * pdzT->g14;
         }
-        pg = pdzg->agX;
-        for (pdzI = (DZ *)pdzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
+        pg = dzg->agX;
+        for (pdzI = (DZ *)dzg->dlA.head; pdzI; pdzI = (DZ *)pdzI->dle.next)
             pdzI->gC += gMin * *pg++;
 
         switch (k) {
         case 0:
             return;
         case 2:
-            pdzg->cdzA--;
-            RemoveDlEntry(&pdzg->dlA, pdzBest);
-            AppendDlEntry(&pdzg->dlB, pdzBest);
-            if (pdzBest == pdz)
+            dzg->cdzA--;
+            RemoveDlEntry(&dzg->dlA, pdzBest);
+            AppendDlEntry(&dzg->dlB, pdzBest);
+            if (pdzBest == dz)
                 return;
             break;
         case 1:
-            pdzg->cdzA++;
-            RemoveDlEntry(&pdzg->dlB, pdzBest);
-            AppendDlEntry(&pdzg->dlA, pdzBest);
+            dzg->cdzA++;
+            RemoveDlEntry(&dzg->dlB, pdzBest);
+            AppendDlEntry(&dzg->dlA, pdzBest);
             break;
         case 4:
-            pdzg->cdzA--;
-            RemoveDlEntry(&pdzg->dlA, pdzBest);
-            AppendDlEntry(&pdzg->dlC, pdzBest);
-            if (pdzBest == pdz)
+            dzg->cdzA--;
+            RemoveDlEntry(&dzg->dlA, pdzBest);
+            AppendDlEntry(&dzg->dlC, pdzBest);
+            if (pdzBest == dz)
                 return;
             break;
         case 3:
-            pdzg->cdzA++;
-            RemoveDlEntry(&pdzg->dlC, pdzBest);
-            AppendDlEntry(&pdzg->dlA, pdzBest);
+            dzg->cdzA++;
+            RemoveDlEntry(&dzg->dlC, pdzBest);
+            AppendDlEntry(&dzg->dlA, pdzBest);
             break;
         }
     }
@@ -265,27 +273,29 @@ static inline void *PvNextDli(DLI *pdli)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
  * @end-sly2-annot */
-extern "C" void SolveDzgFilled(DZG *pdzg)
+// Solves a filled DZG: moves equality constraints into the active list, enforces them, then repeatedly enforces
+// the most violated remaining constraint until none is violated.
+extern "C" void SolveDzgFilled(DZG *dzg)
 {
     DLI dli;
     DZ *pdz;
 
-    InitDli(&dli, &pdzg->dlD);
+    InitDli(&dli, &dzg->dlD);
     while ((pdz = (DZ *)PvNextDli(&dli)) != 0) {
         if (pdz->nKind == 1) {
-            RemoveDlEntry(&pdzg->dlD, pdz);
-            AppendDlEntry(&pdzg->dlA, pdz);
-            pdzg->cdzA++;
+            RemoveDlEntry(&dzg->dlD, pdz);
+            AppendDlEntry(&dzg->dlA, pdz);
+            dzg->cdzA++;
         }
     }
-    EnforceDzgDz(pdzg, 0);
+    EnforceDzgDz(dzg, 0);
     g_pdliFirst = dli.pdliNext;
 
     for (;;) {
         DZ *pdzMin = 0;
         float gMin = -0.01f;
         DZ *pdzT;
-        for (pdzT = (DZ *)pdzg->dlD.head; pdzT; pdzT = (DZ *)pdzT->dle.next) {
+        for (pdzT = (DZ *)dzg->dlD.head; pdzT; pdzT = (DZ *)pdzT->dle.next) {
             if (pdzT->g10 < gMin) {
                 gMin = pdzT->g10;
                 pdzMin = pdzT;
@@ -294,7 +304,7 @@ extern "C" void SolveDzgFilled(DZG *pdzg)
         if (!pdzMin) {
             break;
         }
-        EnforceDzgDz(pdzg, pdzMin);
+        EnforceDzgDz(dzg, pdzMin);
     }
 }
 
@@ -307,27 +317,29 @@ static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pm
  * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
  *   docs/reference/functions/core-library.md#dzgcore-0x11a550-0x11afe0
  * @end-sly2-annot */
-extern "C" void SolveInequalities(int c, float *agA, float *agB, float *agX, float g)
+// Solves `count` inequality constraints with a temporary DZG on the stack: row i of the count x count matrix A
+// and rhs[i] define constraint i, each bounded above by maxValue; writes the solved values to outX.
+extern "C" void SolveInequalities(int count, float *matrix, float *rhs, float *outX, float maxValue)
 {
     FRAME frame;
-    DZG dzg;
+    DZG solver;
     MSG msg;
     int i;
 
     STACKSCOPE_ctor(&frame);
-    InitDzg(&dzg, c);
-    for (i = 0; i < c; i++) {
-        DZ *pdz = &dzg.adz[i];
-        pdz->gMax = g;
-        pdz->ag = (float *)PvAllocMsg(&msg, c * sizeof(float), 0x10);
-        CopyAb(pdz->ag, agA + i * c, c * sizeof(float));
-        pdz->g10 = agB[i];
-        AppendDlEntry(&dzg.dlD, pdz);
+    InitDzg(&solver, count);
+    for (i = 0; i < count; i++) {
+        DZ *dz = &solver.adz[i];
+        dz->gMax = maxValue;
+        dz->ag = (float *)PvAllocMsg(&msg, count * sizeof(float), 0x10);
+        CopyAb(dz->ag, matrix + i * count, count * sizeof(float));
+        dz->g10 = rhs[i];
+        AppendDlEntry(&solver.dlD, dz);
     }
-    dzg.cdz = c;
-    SolveDzgFilled(&dzg);
-    for (i = 0; i < c; i++) {
-        agX[i] = dzg.adz[i].gC;
+    solver.cdz = count;
+    SolveDzgFilled(&solver);
+    for (i = 0; i < count; i++) {
+        outX[i] = solver.adz[i].gC;
     }
     STACKSCOPE_ctor_1AE4A0(&frame, 2);
 }
