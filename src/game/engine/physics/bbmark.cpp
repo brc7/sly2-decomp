@@ -17,48 +17,48 @@ struct DL { void *head; void *tail; int ibDle; };
 struct VTE { short d; short pad; void *pfn; };
 struct X;
 /* View of an object (LO): vtable, +0x14 its parent, +0xEC its AAOBR. */
-struct LO { int pad[3]; VTE *vt; int x10; void *p14; char pad18[0xD4]; X *px; };
-typedef char assert_LO_px[(unsigned int)&((LO *)0)->px == 0xEC ? 1 : -1];
+struct LO { int pad[3]; VTE *vt; int unknown10; void *parent; char pad18[0xD4]; X *aaobr; };
+typedef char assert_LO_px[(unsigned int)&((LO *)0)->aaobr == 0xEC ? 1 : -1];
 /* A POX link: one overlapping pair, seen from one side (the other side's link is pother). */
-struct L { void *pv; L *pnext; L *pother; LO *po; int f; };
+struct L { void *contacts; L *next; L *other; LO *object; int isForced; };
 /* An object's AAOBR (world bounds and its list links). */
 struct X
 {
     float min[4];           /* +0x00 */
     float max[4];           /* +0x10 */
     char pad20[0x14];
-    DL dl34;                /* +0x34 */
+    DL unknown34List;                /* +0x34 */
     char pad40[8];
-    X *pnextAaobr;          /* +0x48 link in SW::dlAaobr */
+    X *nextAaobr;          /* +0x48 link in SW::dlAaobr */
     char pad4C[0xC];
-    X *pnextXp;             /* +0x58 link in SW::dlXp */
-    int x5C;
-    LO *plo;                /* +0x60 the object */
-    L *pl;                  /* +0x64 its POX links */
-    void *pv68;             /* +0x68 XP list */
-    void *pv6C;             /* +0x6C XP list */
-    unsigned long grf;      /* +0x70 1: in dlBounds, 2: in dlXp, 4/8/0x10: RecalcSwXpAll marks */
+    X *nextXp;             /* +0x58 link in SW::dlXp */
+    int unknown5C;
+    LO *object;                /* +0x60 the object */
+    L *pairs;                  /* +0x64 its POX links */
+    void *contactList68;             /* +0x68 XP list */
+    void *contactList6C;             /* +0x6C XP list */
+    unsigned long flags;      /* +0x70 1: in dlBounds, 2: in dlXp, 4/8/0x10: RecalcSwXpAll marks */
 };
-typedef char assert_X_grf[(unsigned int)&((X *)0)->grf == 0x70 ? 1 : -1];
+typedef char assert_X_grf[(unsigned int)&((X *)0)->flags == 0x70 ? 1 : -1];
 /* One endpoint of an AAOBR on one axis: 0 = min, 1 = max; the AAOBR; the coordinate. */
-struct E { int f0; X *px; float *pg; };
+struct E { int isMax; X *aaobr; float *coordinate; };
 /* View of the world (SW) as the sweep code uses it. */
 struct SW
 {
     char pad0[0x2C];
-    DL dl2c;                /* +0x2C */
+    DL unknown2CList;                /* +0x2C */
     char pad38[0x3CCC - 0x38];
-    int fDirty;             /* +0x3CCC */
-    int c;                  /* +0x3CD0 endpoints per axis */
-    E *aae[3];              /* +0x3CD4 */
+    int isSortDirty;             /* +0x3CCC */
+    int numEndpoints;                  /* +0x3CD0 endpoints per axis */
+    E *axisEndpoints[3];              /* +0x3CD4 */
     SLOTHEAP poolAaobr;     /* +0x3CE0 */
-    SLOTHEAP poolPox;       /* +0x3CF8 */
-    DL dlAaobr;             /* +0x3D10 */
-    DL dl3d1c;              /* +0x3D1C */
-    DL dlBounds;            /* +0x3D28 pending bounds updates */
-    DL dlXp;                /* +0x3D34 AAOBRs whose XPs are to be recalculated */
+    SLOTHEAP pairPool;       /* +0x3CF8 */
+    DL aaobrList;             /* +0x3D10 */
+    DL unknown3D1CList;              /* +0x3D1C */
+    DL boundsUpdateList;            /* +0x3D28 pending bounds updates */
+    DL xpRecalcList;                /* +0x3D34 AAOBRs whose XPs are to be recalculated */
 };
-typedef char assert_SW_dlXp[(unsigned int)&((SW *)0)->dlXp == 0x3D34 ? 1 : -1];
+typedef char assert_SW_dlXp[(unsigned int)&((SW *)0)->xpRecalcList == 0x3D34 ? 1 : -1];
 struct C { int a[4]; };
 
 extern "C" {
@@ -94,25 +94,25 @@ void InvalidateSoAaox(LO *);
  * @end-sly2-annot */
 // Adds an object to the broad phase: allocates its AAOBR from the world pool, links it into the world lists and
 // inserts its min/max endpoints into all three axis arrays (two more endpoints per axis). Returns the AAOBR.
-extern "C" X *AddSwAaobrObject(SW *pg, LO *p) {
-    int i;
-    X *pn = (X *)PvAllocSlotheapClear(&pg->poolAaobr);
-    InitDl__FP2DLi(&pn->dl34, 0x60);
-    pn->plo = p;
-    AppendDlEntry__FP2DLPv(&pg->dlAaobr, pn);
-    if (FFindDlEntry__FP2DLPv(&pg->dl2c, p->p14)) AppendDlEntry__FP2DLPv(&pg->dl3d1c, pn);
-    for (i = 0; i < 3; i++) {
-        E *pe = &pg->aae[i][pg->c];
-        pe->f0 = 0;
-        pe->px = pn;
-        pe->pg = &pn->min[i];
-        pe++;
-        pe->f0 = 1;
-        pe->px = pn;
-        pe->pg = &pn->max[i];
+extern "C" X *AddSwAaobrObject(SW *world, LO *object) {
+    int axis;
+    X *aaobr = (X *)PvAllocSlotheapClear(&world->poolAaobr);
+    InitDl__FP2DLi(&aaobr->unknown34List, 0x60);
+    aaobr->object = object;
+    AppendDlEntry__FP2DLPv(&world->aaobrList, aaobr);
+    if (FFindDlEntry__FP2DLPv(&world->unknown2CList, object->parent)) AppendDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
+    for (axis = 0; axis < 3; axis++) {
+        E *endpoint = &world->axisEndpoints[axis][world->numEndpoints];
+        endpoint->isMax = 0;
+        endpoint->aaobr = aaobr;
+        endpoint->coordinate = &aaobr->min[axis];
+        endpoint++;
+        endpoint->isMax = 1;
+        endpoint->aaobr = aaobr;
+        endpoint->coordinate = &aaobr->max[axis];
     }
-    pg->c += 2;
-    return pn;
+    world->numEndpoints += 2;
+    return aaobr;
 }
 
 /* MATCH (Claude agent laneB14, 2026-10-23), from v2 (3). One register pin (k3 in s5) plus commented empty asms:
@@ -132,62 +132,62 @@ extern "C" X *AddSwAaobrObject(SW *pg, LO *p) {
  * @end-sly2-annot */
 // Removes an object's AAOBR from the broad phase: for every overlap pair both objects are notified (slot 54) and
 // the pair's contact lists freed, then the box leaves the world lists and its endpoints are deleted from the axes.
-extern "C" void RemoveSwAaobrObject(SW *p, X *px)
+extern "C" void RemoveSwAaobrObject(SW *world, X *aaobr)
 {
-    L *pl, *plNext;
-    int i;
-    for (pl = px->pl; pl; pl = plNext) {
-        L *pl2;
-        VCALL(px->plo, 54, void (*)(void *, LO *)), pl->po);
-        VCALL(pl->po, 54, void (*)(void *, LO *)), px->plo);
-        pl2 = RemoveSwObjectPair(p, pl->po->px, px);
-        if (pl->pv) {
-            if (!VCALL(pl->po, 62, int (*)(void *))))
-                WakeSo(pl->po);
-            FreeSwXpList__FP2SWP2XP(p, pl->pv);
+    L *pair, *nextPair;
+    int axis;
+    for (pair = aaobr->pairs; pair; pair = nextPair) {
+        L *otherPair;
+        VCALL(aaobr->object, 54, void (*)(void *, LO *)), pair->object);
+        VCALL(pair->object, 54, void (*)(void *, LO *)), aaobr->object);
+        otherPair = RemoveSwObjectPair(world, pair->object->aaobr, aaobr);
+        if (pair->contacts) {
+            if (!VCALL(pair->object, 62, int (*)(void *))))
+                WakeSo(pair->object);
+            FreeSwXpList__FP2SWP2XP(world, pair->contacts);
         }
-        plNext = pl->pnext;
-        func_0011CD98(&p->poolPox, pl);
-        func_0011CD98(&p->poolPox, pl2);
+        nextPair = pair->next;
+        func_0011CD98(&world->pairPool, pair);
+        func_0011CD98(&world->pairPool, otherPair);
     }
-    /* five empty asms: lengthen p's live range (global-alloc priority), emulating the original insn count here */
+    /* five empty asms: lengthen world's live range (global-alloc priority), emulating the original insn count here */
     __asm__ __volatile__("");
     __asm__ __volatile__("");
     __asm__ __volatile__("");
     __asm__ __volatile__("");
     __asm__ __volatile__("");
-    FreeSwXpList__FP2SWP2XP(p, px->pv6C);
-    RemoveDlEntry__FP2DLPv(&p->dlAaobr, px);
-    if (FFindDlEntry__FP2DLPv(&p->dl3d1c, px))
-        RemoveDlEntry__FP2DLPv(&p->dl3d1c, px);
-    if ((px->grf & 1) == 1)
-        RemoveDlEntry__FP2DLPv(&p->dlBounds, px);
-    if (px->grf & 2)
-        RemoveDlEntry__FP2DLPv(&p->dlXp, px);
+    FreeSwXpList__FP2SWP2XP(world, aaobr->contactList6C);
+    RemoveDlEntry__FP2DLPv(&world->aaobrList, aaobr);
+    if (FFindDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr))
+        RemoveDlEntry__FP2DLPv(&world->unknown3D1CList, aaobr);
+    if ((aaobr->flags & 1) == 1)
+        RemoveDlEntry__FP2DLPv(&world->boundsUpdateList, aaobr);
+    if (aaobr->flags & 2)
+        RemoveDlEntry__FP2DLPv(&world->xpRecalcList, aaobr);
     {
-    E **paae;
+    E **axisArrays;
     register unsigned int k3 __asm__("$21");
-    i = 0;
-    paae = p->aae;
+    axis = 0;
+    axisArrays = world->axisEndpoints;
     k3 = 0xAAAAAAAB;  /* register pin: the exact-/12 multiplier (target s5) */
-    for (; i < 3; i++) {
-        E *ae = ((SW *)((char *)paae - 0x3CD4))->aae[i];  /* = p->aae[i]; this form keeps the addu base-first */
-        E *pe = ae;
-        E *peStart;
+    for (; axis < 3; axis++) {
+        E *endpoints = ((SW *)((char *)axisArrays - 0x3CD4))->axisEndpoints[axis];  /* = world->axisEndpoints[axis]; this form keeps the addu base-first */
+        E *endpoint = endpoints;
+        E *minEndpoint;
         __asm__ __volatile__("");  /* keeps i+1 after pe = ae, so reorg puts it in the b delay slot */
         while (1) {
-            while (pe->px != px)
-                pe++;
-            if (pe->f0)
+            while (endpoint->aaobr != aaobr)
+                endpoint++;
+            if (endpoint->isMax)
                 break;
-            peStart = pe++;
+            minEndpoint = endpoint++;
         }
-        memmove(peStart, peStart + 1, ((int)(((char *)pe - (char *)peStart) * k3) >> 2) * sizeof(E) - sizeof(E));
-        memmove(pe - 1, pe + 1, (p->c - ((int)(((char *)pe - (char *)ae) * k3) >> 2)) * sizeof(E) - sizeof(E));
+        memmove(minEndpoint, minEndpoint + 1, ((int)(((char *)endpoint - (char *)minEndpoint) * k3) >> 2) * sizeof(E) - sizeof(E));
+        memmove(endpoint - 1, endpoint + 1, (world->numEndpoints - ((int)(((char *)endpoint - (char *)endpoints) * k3) >> 2)) * sizeof(E) - sizeof(E));
     }
     }
-    p->c -= 2;
-    func_0011CD98(&p->poolAaobr, px);
+    world->numEndpoints -= 2;
+    func_0011CD98(&world->poolAaobr, aaobr);
 }
 
 /** @sly2-annot addr=0x133A38
@@ -201,58 +201,58 @@ extern "C" void RemoveSwAaobrObject(SW *p, X *px)
  * @end-sly2-annot */
 // Creates or destroys the pair link between two AAOBRs. k = 1 forces the pair on, 2 forces it off, 0 decides from
 // ShouldSwPairObjects; removing a pair wakes both objects and frees its contacts.
-extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
+extern "C" void UpdateSwPox(SW *world, X *aaobrA, X *aaobrB, int mode)
 {
-    L *pl;
-    L *plT;
-    int f;
-    for (plT = px1->pl; plT; plT = plT->pnext) {
-        if (plT->po == px2->plo)
+    L *pair;
+    L *existingPair;
+    int isForced;
+    for (existingPair = aaobrA->pairs; existingPair; existingPair = existingPair->next) {
+        if (existingPair->object == aaobrB->object)
             break;
     }
-    switch (k) {
+    switch (mode) {
     case 1:
-        f = 1;
+        isForced = 1;
         break;
     case 2:
-        f = 0;
+        isForced = 0;
         break;
     case 0:
-        f = 0;
-        if (plT)
-            f = plT->f;
+        isForced = 0;
+        if (existingPair)
+            isForced = existingPair->isForced;
         break;
     }
-    pl = plT;
-    if (f || ShouldSwPairObjects(p, px1, px2)) {
-        if (!pl) {
-            L *pl2;
-            plT = AddSwObjectPair(p, px1, px2);
-            pl2 = AddSwObjectPair(p, px2, px1);
-            plT->pother = pl2;
-            pl2->pother = plT;
-            pl = plT;
+    pair = existingPair;
+    if (isForced || ShouldSwPairObjects(world, aaobrA, aaobrB)) {
+        if (!pair) {
+            L *pairB;
+            existingPair = AddSwObjectPair(world, aaobrA, aaobrB);
+            pairB = AddSwObjectPair(world, aaobrB, aaobrA);
+            existingPair->other = pairB;
+            pairB->other = existingPair;
+            pair = existingPair;
         }
-    } else if (pl) {
-        L *pl1, *pl2;
-        VCALL(px1->plo, 54, void (*)(void *, LO *)), px2->plo);
-        VCALL(px2->plo, 54, void (*)(void *, LO *)), px1->plo);
-        pl1 = RemoveSwObjectPair(p, px1, px2);
-        pl2 = RemoveSwObjectPair(p, px2, px1);
-        if (pl1->pv) {
-            FreeSwXpList__FP2SWP2XP(p, pl1->pv);
-            if (!VCALL(pl1->po, 62, int (*)(void *))))
-                WakeSo(pl1->po);
-            if (!VCALL(pl2->po, 62, int (*)(void *))))
-                WakeSo(pl2->po);
+    } else if (pair) {
+        L *pairA, *pairB;
+        VCALL(aaobrA->object, 54, void (*)(void *, LO *)), aaobrB->object);
+        VCALL(aaobrB->object, 54, void (*)(void *, LO *)), aaobrA->object);
+        pairA = RemoveSwObjectPair(world, aaobrA, aaobrB);
+        pairB = RemoveSwObjectPair(world, aaobrB, aaobrA);
+        if (pairA->contacts) {
+            FreeSwXpList__FP2SWP2XP(world, pairA->contacts);
+            if (!VCALL(pairA->object, 62, int (*)(void *))))
+                WakeSo(pairA->object);
+            if (!VCALL(pairB->object, 62, int (*)(void *))))
+                WakeSo(pairB->object);
         }
-        func_0011CD98(&p->poolPox, pl1);
-        func_0011CD98(&p->poolPox, pl2);
-        pl = 0;
+        func_0011CD98(&world->pairPool, pairA);
+        func_0011CD98(&world->pairPool, pairB);
+        pair = 0;
     }
-    if (pl) {
-        pl->pother->f = f;
-        pl->f = f;
+    if (pair) {
+        pair->other->isForced = isForced;
+        pair->isForced = isForced;
     }
 }
 
@@ -264,13 +264,13 @@ extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
 // Allocates a pair link from the world pool for px1 with px2 as the other side and pushes it on px1's pair list.
-extern "C" L *AddSwObjectPair(SW *p, X *px1, X *px2)
+extern "C" L *AddSwObjectPair(SW *world, X *aaobr, X *otherAaobr)
 {
-    L *pl = (L *)PvAllocSlotheapClear(&p->poolPox);
-    pl->po = px2->plo;
-    pl->pnext = px1->pl;
-    px1->pl = pl;
-    return pl;
+    L *pair = (L *)PvAllocSlotheapClear(&world->pairPool);
+    pair->object = otherAaobr->object;
+    pair->next = aaobr->pairs;
+    aaobr->pairs = pair;
+    return pair;
 }
 
 /** @sly2-annot addr=0x133CB8
@@ -280,23 +280,23 @@ extern "C" L *AddSwObjectPair(SW *p, X *px1, X *px2)
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
 // Unlinks and returns px1's pair link whose other side is px2 (0 if none).
-extern "C" L *RemoveSwObjectPair(SW *unused, X *px1, X *px2) {
-    LO *key = px2->plo;
-    L *pn = px1->pl;
-    if (pn) {
-        L **ppn = &pn->pnext;
-        if (pn->po == key) {
-            px1->pl = pn->pnext;
+extern "C" L *RemoveSwObjectPair(SW *unused, X *aaobr, X *otherAaobr) {
+    LO *otherObject = otherAaobr->object;
+    L *pair = aaobr->pairs;
+    if (pair) {
+        L **link = &pair->next;
+        if (pair->object == otherObject) {
+            aaobr->pairs = pair->next;
         } else {
             for (;;) {
-                pn = pn->pnext;
-                if (!pn) break;
-                if (pn->po == key) { *ppn = pn->pnext; break; }
-                ppn = &pn->pnext;
+                pair = pair->next;
+                if (!pair) break;
+                if (pair->object == otherObject) { *link = pair->next; break; }
+                link = &pair->next;
             }
         }
     }
-    return pn;
+    return pair;
 }
 
 static __inline__ int Call(LO *po, LO *poOther)
@@ -312,16 +312,16 @@ static __inline__ int Call(LO *po, LO *poOther)
  * @end-sly2-annot */
 // Returns 1 when two AAOBRs overlap on all three axes and neither object asks to ignore the other: both objects'
 // ignore-intersection answers (slot 61) are combined with MaxInt and the pair is made unless the result is 1 or 3.
-extern "C" int ShouldSwPairObjects(SW *unused, X *pa, X *pb)
+extern "C" int ShouldSwPairObjects(SW *unused, X *aaobrA, X *aaobrB)
 {
-    int n1, n2, r;
-    if (pa->min[0] >= pb->max[0] || pa->min[1] >= pb->max[1] || pa->min[2] >= pb->max[2] ||
-        pb->min[0] >= pa->max[0] || pb->min[1] >= pa->max[1] || pb->min[2] >= pa->max[2])
+    int ignoreA, ignoreB, ignore;
+    if (aaobrA->min[0] >= aaobrB->max[0] || aaobrA->min[1] >= aaobrB->max[1] || aaobrA->min[2] >= aaobrB->max[2] ||
+        aaobrB->min[0] >= aaobrA->max[0] || aaobrB->min[1] >= aaobrA->max[1] || aaobrB->min[2] >= aaobrA->max[2])
         return 0;
-    n1 = Call(pa->plo, pb->plo);
-    n2 = Call(pb->plo, pa->plo);
-    r = MaxInt(n1, n2);
-    return r != 1 && r != 3;
+    ignoreA = Call(aaobrA->object, aaobrB->object);
+    ignoreB = Call(aaobrB->object, aaobrA->object);
+    ignore = MaxInt(ignoreA, ignoreB);
+    return ignore != 1 && ignore != 3;
 }
 
 /** @sly2-annot addr=0x133E30
@@ -332,11 +332,11 @@ extern "C" int ShouldSwPairObjects(SW *unused, X *pa, X *pb)
  * @end-sly2-annot */
 // Drains the pending-bounds list: for each queued object calls its bounds update (slot 49, UpdateSoTreeBounds)
 // until the list is empty.
-extern "C" void FlushSwBoundsUpdates(SW *p) {
-    X *pq;
-    while ((pq = (X *)p->dlBounds.head) != 0) {
-        LO *po = pq->plo; VTE *vt = po->vt;
-        ((void (*)(void *))vt[49].pfn)((char *)po + vt[49].d);
+extern "C" void FlushSwBoundsUpdates(SW *world) {
+    X *aaobr;
+    while ((aaobr = (X *)world->boundsUpdateList.head) != 0) {
+        LO *object = aaobr->object; VTE *vtable = object->vt;
+        ((void (*)(void *))vtable[49].pfn)((char *)object + vtable[49].d);
     }
 }
 
@@ -349,36 +349,36 @@ extern "C" void FlushSwBoundsUpdates(SW *p) {
  * @end-sly2-annot */
 // If the endpoint arrays are dirty, insertion-sorts each axis; whenever a min and a max endpoint swap places the
 // pair is re-evaluated with UpdateSwPox(.., 0). This is the incremental sweep-and-prune step.
-extern "C" void UpdateSwAaox(SW *p)
+extern "C" void UpdateSwAaox(SW *world)
 {
-    int i;
-    if (!p->fDirty)
+    int axis;
+    if (!world->isSortDirty)
         return;
-    p->fDirty = 0;
-    if (!p->c)
+    world->isSortDirty = 0;
+    if (!world->numEndpoints)
         return;
-    for (i = 0; i < 3; i++) {
-        E *pe = p->aae[i];
-        E *ae = pe;
-        float gMax = *pe->pg;
-        int j;
-        for (j = p->c, pe++; --j > 0; pe++) {
-            float g = *pe->pg;
-            if (gMax <= g) {
-                gMax = g;
+    for (axis = 0; axis < 3; axis++) {
+        E *endpoint = world->axisEndpoints[axis];
+        E *endpoints = endpoint;
+        float maxCoordinate = *endpoint->coordinate;
+        int remaining;
+        for (remaining = world->numEndpoints, endpoint++; --remaining > 0; endpoint++) {
+            float coordinate = *endpoint->coordinate;
+            if (maxCoordinate <= coordinate) {
+                maxCoordinate = coordinate;
             } else {
-                E *pe2;
-                E e;
-                for (pe2 = pe - 1; pe2 >= ae; pe2--) {
-                    if (*pe2->pg <= g)
+                E *insertAt;
+                E moved;
+                for (insertAt = endpoint - 1; insertAt >= endpoints; insertAt--) {
+                    if (*insertAt->coordinate <= coordinate)
                         break;
-                    if (pe->f0 != pe2->f0)
-                        UpdateSwPox(p, pe->px, pe2->px, 0);
+                    if (endpoint->isMax != insertAt->isMax)
+                        UpdateSwPox(world, endpoint->aaobr, insertAt->aaobr, 0);
                 }
-                pe2++;
-                e = *pe;
-                memmove(pe2 + 1, pe2, (pe - pe2) * sizeof(E));
-                *pe2 = e;
+                insertAt++;
+                moved = *endpoint;
+                memmove(insertAt + 1, insertAt, (endpoint - insertAt) * sizeof(E));
+                *insertAt = moved;
             }
         }
     }
@@ -396,67 +396,67 @@ extern "C" void UpdateSwAaox(SW *p)
  * @end-sly2-annot */
 // Once per solver step: flushes bounds updates, re-sorts the axes, then walks the objects queued for contact
 // recalculation and rebuilds the XP lists of their pairs (AddSoXps), using a stack array of up to 0x300 objects.
-extern "C" void RecalcSwXpAll(SW *p)
+extern "C" void RecalcSwXpAll(SW *world)
 {
-    C ctx;
-    X *apx[0x300];
-    int c = 0;
-    X *px;
+    C scope;
+    X *touched[0x300];
+    int numTouched = 0;
+    X *aaobr;
     int i;
-    FlushSwBoundsUpdates(p);
-    UpdateSwAaox(p);
-    STACKSCOPE_ctor(&ctx);
-    for (px = (X *)p->dlXp.head; px; px = px->pnextXp) {
-        unsigned long grf = px->grf;
-        L *pl;
-        if (grf & 4)
+    FlushSwBoundsUpdates(world);
+    UpdateSwAaox(world);
+    STACKSCOPE_ctor(&scope);
+    for (aaobr = (X *)world->xpRecalcList.head; aaobr; aaobr = aaobr->nextXp) {
+        unsigned long flags = aaobr->flags;
+        L *pair;
+        if (flags & 4)
             continue;
-        grf |= 0x10;
-        px->grf = grf;
-        if (!(grf & 8)) {
-            px->grf = grf | 8;
-            apx[c++] = px;
+        flags |= 0x10;
+        aaobr->flags = flags;
+        if (!(flags & 8)) {
+            aaobr->flags = flags | 8;
+            touched[numTouched++] = aaobr;
         }
-        for (pl = px->pl; pl; pl = pl->pnext) {
-            X *px2 = pl->po->px;
-            unsigned long grf2 = px2->grf;
-            void *pv;
-            if (grf2 & 0x10)
+        for (pair = aaobr->pairs; pair; pair = pair->next) {
+            X *otherAaobr = pair->object->aaobr;
+            unsigned long otherFlags = otherAaobr->flags;
+            void *oldContacts;
+            if (otherFlags & 0x10)
                 continue;
-            if (grf2 & 4)
+            if (otherFlags & 4)
                 continue;
-            if (!(grf2 & 8)) {
-                px2->grf = grf2 | 8;
-                apx[c++] = px2;
+            if (!(otherFlags & 8)) {
+                otherAaobr->flags = otherFlags | 8;
+                touched[numTouched++] = otherAaobr;
             }
-            VCALL(px->plo, 54, void (*)(void *, LO *)), px2->plo);
-            VCALL(px2->plo, 54, void (*)(void *, LO *)), px->plo);
-            pv = pl->pv;
-            FreeSwXpList__FP2SWP2XP(p, pv);
-            { void *pvNew = AddSoXps(p, px, px2); pl->pv = pvNew; pl->pother->pv = pvNew; }
-            if (pv || pl->pv) {
-                if (!VCALL(px->plo, 62, int (*)(void *))))
-                    WakeSo(px->plo);
-                if (!VCALL(px2->plo, 62, int (*)(void *))))
-                    WakeSo(px2->plo);
+            VCALL(aaobr->object, 54, void (*)(void *, LO *)), otherAaobr->object);
+            VCALL(otherAaobr->object, 54, void (*)(void *, LO *)), aaobr->object);
+            oldContacts = pair->contacts;
+            FreeSwXpList__FP2SWP2XP(world, oldContacts);
+            { void *newContacts = AddSoXps(world, aaobr, otherAaobr); pair->contacts = newContacts; pair->other->contacts = newContacts; }
+            if (oldContacts || pair->contacts) {
+                if (!VCALL(aaobr->object, 62, int (*)(void *))))
+                    WakeSo(aaobr->object);
+                if (!VCALL(otherAaobr->object, 62, int (*)(void *))))
+                    WakeSo(otherAaobr->object);
             }
         }
     }
-    for (px = (X *)p->dlXp.head; px; px = (X *)p->dlXp.head) {
-        px->grf &= ~0x10L;
-        VCALL(px->plo, 54, void (*)(void *, LO *)), 0);
-        FreeSwXpList__FP2SWP2XP(p, px->pv68);
-        px->pv68 = 0;
-        VCALL(px->plo, 59, void (*)(void *)));
-        px->grf &= ~2L;
-        RemoveDlEntry__FP2DLPv(&p->dlXp, px);
+    for (aaobr = (X *)world->xpRecalcList.head; aaobr; aaobr = (X *)world->xpRecalcList.head) {
+        aaobr->flags &= ~0x10L;
+        VCALL(aaobr->object, 54, void (*)(void *, LO *)), 0);
+        FreeSwXpList__FP2SWP2XP(world, aaobr->contactList68);
+        aaobr->contactList68 = 0;
+        VCALL(aaobr->object, 59, void (*)(void *)));
+        aaobr->flags &= ~2L;
+        RemoveDlEntry__FP2DLPv(&world->xpRecalcList, aaobr);
     }
-    for (i = 0; i < c; i++) {
-        px = apx[i];
-        px->grf &= ~8L;
-        VCALL(px->plo, 58, void (*)(void *)));
+    for (i = 0; i < numTouched; i++) {
+        aaobr = touched[i];
+        aaobr->flags &= ~8L;
+        VCALL(aaobr->object, 58, void (*)(void *)));
     }
-    STACKSCOPE_ctor_1AE4A0(&ctx, 2);
+    STACKSCOPE_ctor_1AE4A0(&scope, 2);
 }
 
 /** @sly2-annot addr=0x134310
@@ -488,11 +488,11 @@ extern "C" int MaxInt(int a, int b)
  * @end-sly2-annot */
 // When an object's collision filter changed: if it has an AAOBR (+0xEC), invalidates its box and re-evaluates its
 // pair with every other AAOBR in the world.
-extern "C" void RecalcSwOxfFilterForObject(SW *pg, LO *pl) {
-    X *po;
-    if (pl->px) {
-        InvalidateSoAaox(pl);
-        for (po = (X *)pg->dlAaobr.head; po; po = po->pnextAaobr)
-            if (po != pl->px) UpdateSwPox(pg, pl->px, po, 0);
+extern "C" void RecalcSwOxfFilterForObject(SW *world, LO *object) {
+    X *other;
+    if (object->aaobr) {
+        InvalidateSoAaox(object);
+        for (other = (X *)world->aaobrList.head; other; other = other->nextAaobr)
+            if (other != object->aaobr) UpdateSwPox(world, object->aaobr, other, 0);
     }
 }
