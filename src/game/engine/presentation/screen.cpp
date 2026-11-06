@@ -2011,8 +2011,8 @@ void THIEFNET::VSlot13()   /* key function */
 
 namespace M_ClearThiefnet { extern "C" {
 extern struct CLOCK { float pad[15]; float tReal; } D_002DDED0;   /* +0x3C: the real (unscaled) clock */
-struct P { int a, b; };
-struct S { char p0[0x40]; int n40; float g44; int pad; struct P ap[64]; char p1[0x25C-0x24C]; int n25C, n260, n264; };
+struct P { int id, iconAnim; };
+struct S { char p0[0x40]; int tab; float tabTime; int pad; struct P items[64]; char p1[0x25C-0x24C]; int popupAnim, scrollUpAnim, scrollDownAnim; };
 /** @sly2-annot addr=0x1DB820
  * Purpose: ThiefNet: state -1, clear the 64-entry item list and anim handles
  * Info: proposed name ClearThiefnet (T1); TU screen
@@ -2022,14 +2022,14 @@ struct S { char p0[0x40]; int n40; float g44; int pad; struct P ap[64]; char p1[
 // ThiefNet: state -1, empty item list, no animation handles.
 void ClearThiefnet(struct S *p) {
     unsigned int i;
-    p->n40 = -1;
-    p->g44 = D_002DDED0.tReal;
-    p->n25C = -1;
-    p->n260 = -1;
-    p->n264 = -1;
+    p->tab = -1;
+    p->tabTime = D_002DDED0.tReal;
+    p->popupAnim = -1;
+    p->scrollUpAnim = -1;
+    p->scrollDownAnim = -1;
     for (i = 0; i < 64; i++) {
-        p->ap[i].a = -1;
-        p->ap[i].b = -1;
+        p->items[i].id = -1;
+        p->items[i].iconAnim = -1;
     }
 }
 } } // namespace M_ClearThiefnet
@@ -2045,18 +2045,18 @@ struct CRef {
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
 };
-struct REC { int a, b, x8; int pad[5]; };
-struct REC12 { int x0, x4, x8; };
+struct REC { int a, b, price; int pad[5]; };
+struct REC12 { int sellPrice, x4, price; };
 struct OBJ {
     char pad0[0x10];
-    void *x10;
+    void *joy;
     char pad14[0x30 - 0x14];
-    int x30;
+    int timerKind;
     char pad34[0x40 - 0x34];
-    int x40;
+    int tab;
     char pad44[0x254 - 0x44];
-    int x254;
-    int x258;
+    int selectedPowerup;
+    int selectedLoot;
 };
 extern "C" {
 extern REC D_002BCD00[];
@@ -2096,24 +2096,24 @@ void UpdateThiefnetWidgets(OBJ *);
 extern "C" void UpdateThiefnet(OBJ *p)
 {
     UpdateTimedScreen(p);
-    if (p->x40 == -1)
+    if (p->tab == -1)
         return;
-    if (!p->x10)
+    if (!p->joy)
         return;
-    if (p->x30 && GrfHandleJoyBtn(p->x10, 0x10)) {
+    if (p->timerKind && GrfHandleJoyBtn(p->joy, 0x10)) {
         SetThiefnetTab(p, -1);
         return;
     }
-    switch (p->x40) {
+    switch (p->tab) {
     case 0:
-        if (GrfHandleJoyBtn(p->x10, 0x40)) {
-            if (p->x254 != -1) {
-                int cost = D_002BCD00[p->x254].x8;
+        if (GrfHandleJoyBtn(p->joy, 0x40)) {
+            if (p->selectedPowerup != -1) {
+                int cost = D_002BCD00[p->selectedPowerup].price;
                 int have = func_00161798(D_002DEB30);
-                if (!p->x30) {
+                if (!p->timerKind) {
                     SetScreenMode(p, -1, -1);
                     func_001617E0(D_002DEB30, have - cost);
-                    SetPowerupAcquired(p->x254, 1);
+                    SetPowerupAcquired(p->selectedPowerup, 1);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
                     func_0019F0A8(D_003DD490);
@@ -2128,17 +2128,17 @@ extern "C" void UpdateThiefnet(OBJ *p)
         }
         break;
     case 1:
-        if (GrfHandleJoyBtn(p->x10, 0x40)) {
-            if (p->x258 == -1) {
+        if (GrfHandleJoyBtn(p->joy, 0x40)) {
+            if (p->selectedLoot == -1) {
                 SetSndSourceLo(PsndStartSound(0x36), 0);
             } else {
                 CRef r;
                 char buf[32];
-                sprintf(buf, D_002A79A0, p->x258);
+                sprintf(buf, D_002A79A0, p->selectedLoot);
                 r = RefGetSaveVarV(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.m_tag > 0) {
                     RefSetSaveVarV(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
-                    func_001617E0(D_002DEB30, func_00161798(D_002DEB30) + D_002C3288[p->x258].x0);
+                    func_001617E0(D_002DEB30, func_00161798(D_002DEB30) + D_002C3288[p->selectedLoot].sellPrice);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
                 }
@@ -2146,13 +2146,13 @@ extern "C" void UpdateThiefnet(OBJ *p)
         }
         break;
     }
-    if (!p->x30 && GrfHandleJoyBtn(p->x10, 0x10))
+    if (!p->timerKind && GrfHandleJoyBtn(p->joy, 0x10))
         SetScreenMode(p, -1, -1);
-    if (GrfHandleJoyBtn(p->x10, 0x80)) {
+    if (GrfHandleJoyBtn(p->joy, 0x80)) {
         SetScreenMode(p, -1, -1);
-        SetThiefnetTab(p, p->x40 == 0);
+        SetThiefnetTab(p, p->tab == 0);
     }
-    if (p->x30)
+    if (p->timerKind)
         UpdateScreenStickDir(p);
     UpdateThiefnetWidgets(p);
 }
@@ -2161,7 +2161,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
 namespace M_func_001DBBA0 { extern "C" {
 extern int D_002C35B4;
 extern int D_003DA570;
-struct S { char p0[0x48]; int n48; char p1[0x250-0x4C]; int n250; };
+struct S { char p0[0x48]; int itemCount; char p1[0x250-0x4C]; int firstVisibleRow; };
 /** @sly2-annot addr=0x1DBBA0
  * Purpose: Index past the last visible row (scroll window D_002C35B4 rows, adjusted for scroll arrows)
  * Info: proposed name IThiefnetRowEnd (T2); TU screen
@@ -2170,38 +2170,38 @@ struct S { char p0[0x48]; int n48; char p1[0x250-0x4C]; int n250; };
  * @end-sly2-annot */
 // Index just past the last visible row of the scrolling list (window size adjusted for the scroll arrows). (inferred)
 int GetThiefnetRowEnd(struct S *p) {
-    int n = p->n250 + D_002C35B4;
+    int n = p->firstVisibleRow + D_002C35B4;
     if (D_003DA570) {
-        n -= (p->n250 > 0);
-        n -= (n < p->n48);
+        n -= (p->firstVisibleRow > 0);
+        n -= (n < p->itemCount);
     }
     return n;
 }
 } } // namespace M_func_001DBBA0
 
 namespace M_SelectThiefnetItem { extern "C" {
-typedef struct { int n; int a; } ENT;
+typedef struct { int id; int iconAnim; } ENT;
 typedef struct {
     char pad[0x48];
-    int c;
-    ENT ae[64];
-    int i;
-    int first;
-    int x254;
-    int x258;
+    int itemCount;
+    ENT items[64];
+    int selectedRow;
+    int firstVisibleRow;
+    int selectedPowerup;
+    int selectedLoot;
 } OBJ;
 extern int D_003DA570;
 extern int D_002C35B4;
 int GetThiefnetRowEnd(OBJ *);
 void CloseScreen(OBJ *);
-static inline int Max(int a, int b) { return a < b ? b : a; }
-static inline int Clamp(int n, int lo, int hi)
+static inline int Max(int iconAnim, int b) { return iconAnim < b ? b : iconAnim; }
+static inline int Clamp(int id, int lo, int hi)
 {
-    if (n < lo)
+    if (id < lo)
         return lo;
-    if (n > hi)
+    if (id > hi)
         return hi;
-    return n;
+    return id;
 }
 /** @sly2-annot addr=0x1DBBE0
  * Purpose: Select row i (clamped), scroll the window, set current power-up/loot id
@@ -2209,32 +2209,32 @@ static inline int Clamp(int n, int lo, int hi)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
  * @end-sly2-annot */
-// Selects a row (clamped), scrolls the window to it and records the selected power-up / loot id.
-void SelectThiefnetItem(OBJ *p, int i)
+// Selects iconAnim row (clamped), scrolls the window to it and records the selected power-up / loot id.
+void SelectThiefnetItem(OBJ *p, int row)
 {
-    if (p->c == 0) {
-        p->first = 0;
-        p->i = -1;
-        p->x254 = -1;
-        p->x258 = -1;
+    if (p->itemCount == 0) {
+        p->firstVisibleRow = 0;
+        p->selectedRow = -1;
+        p->selectedPowerup = -1;
+        p->selectedLoot = -1;
     } else {
-        i = Clamp(i, 0, p->c - 1);
-        p->i = i;
+        row = Clamp(row, 0, p->itemCount - 1);
+        p->selectedRow = row;
         if (D_003DA570) {
-            if (i < p->first) {
-                p->first = i;
+            if (row < p->firstVisibleRow) {
+                p->firstVisibleRow = row;
             } else {
-                while (GetThiefnetRowEnd(p) - 1 < p->i)
-                    p->first++;
+                while (GetThiefnetRowEnd(p) - 1 < p->selectedRow)
+                    p->firstVisibleRow++;
             }
-            if (p->first == 1)
-                p->first = 0;
+            if (p->firstVisibleRow == 1)
+                p->firstVisibleRow = 0;
         } else {
-            int n = Clamp(p->first, Max(i - D_002C35B4 + 1, 0), i);
-            p->first = n;
+            int id = Clamp(p->firstVisibleRow, Max(row - D_002C35B4 + 1, 0), row);
+            p->firstVisibleRow = id;
         }
-        p->x254 = p->ae[p->i].n;
-        p->x258 = p->ae[p->i].n;
+        p->selectedPowerup = p->items[p->selectedRow].id;
+        p->selectedLoot = p->items[p->selectedRow].id;
     }
     CloseScreen(p);
 }
@@ -2250,14 +2250,14 @@ struct CRef {
     CRef &operator=(const CRef &) __asm__("__as__4CRefRC4CRef");
     void Decref() __asm__("Decref__4CRef");
 };
-struct ENT { int n; int a; };
+struct ENT { int id; int iconAnim; };
 struct OBJ {
     char pad[0x40];
-    int x40;
+    int tab;
     int pad44;
-    unsigned int c;
-    ENT ae[0x40];
-    int i;
+    unsigned int itemCount;
+    ENT items[0x40];
+    int selectedRow;
 };
 extern "C" { extern char D_002A79A0[]; }
 extern "C" { extern char D_002A79D0[]; }
@@ -2281,11 +2281,11 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
 {
     {
         int j;
-        for (j = 0; j < (int)p->c; j++)
-            p->ae[j].n = -1;
+        for (j = 0; j < (int)p->itemCount; j++)
+            p->items[j].id = -1;
     }
-    p->c = 0;
-    switch (p->x40) {
+    p->itemCount = 0;
+    switch (p->tab) {
     case 0: {
         int i;
         for (i = 7; i < 0x2B; i++) {
@@ -2293,9 +2293,9 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
                 continue;
             if (FPowerupAcquired(i))
                 continue;
-            if (p->c > 0x40)
+            if (p->itemCount > 0x40)
                 break;
-            p->ae[p->c++].n = i;
+            p->items[p->itemCount++].id = i;
         }
         break;
     }
@@ -2308,40 +2308,40 @@ extern "C" void RefreshThiefnetItems(OBJ *p)
             ref = RefGetSaveVarV(D_002A79D0, D_002A79D8, ach, 0);
             if (ref.m_tag == 0)
                 continue;
-            if (p->c > 0x40)
+            if (p->itemCount > 0x40)
                 break;
-            p->ae[p->c++].n = i;
+            p->items[p->itemCount++].id = i;
         }
         break;
     }
     }
-    SelectThiefnetItem(p, p->i);
+    SelectThiefnetItem(p, p->selectedRow);
 }
 } // namespace M_RefreshThiefnetItems
 
 namespace M_UpdateThiefnetWidgets { extern "C" {
 typedef struct { float a[8]; } M2;
-typedef struct { int x58; } SUBX;
-typedef struct { char pad[0x58]; int x58; } SUB;
-typedef struct { int id; int x4; } E8;
-typedef struct { int a, b; int pad[6]; } REC;
+typedef struct { int visibility; } SUBX;
+typedef struct { char pad[0x58]; int visibility; } SUB;
+typedef struct { int id; int iconAnim; } E8;
+typedef struct { int a, category; int pad[6]; } REC;
 typedef struct OBJ {
     char pad0[0x24];
-    SUB *x24;
+    SUB *widget;
     char pad28[0x30 - 0x28];
-    int x30;
+    int timerKind;
     char pad34[0x40 - 0x34];
-    int x40;
+    int tab;
     char pad44[0x48 - 0x44];
-    int x48;
-    E8 ae[(0x24C - 0x4C) / 8];
-    int x24C;
-    int x250;
-    int x254;
-    int x258;
-    int x25C;
-    int x260;
-    int x264;
+    int itemCount;
+    E8 items[(0x24C - 0x4C) / 8];
+    int selectedRow;
+    int firstVisibleRow;
+    int selectedPowerup;
+    int selectedLoot;
+    int popupAnim;
+    int scrollUpAnim;
+    int scrollDownAnim;
 } OBJ;
 extern int D_003DA570;
 extern float D_002C35B0;
@@ -2368,76 +2368,76 @@ void UpdateThiefnetWidgets(OBJ *p)
     M2 m;
     int end;
     int i;
-    if (p->x24->x58 != 2)
+    if (p->widget->visibility != 2)
         return;
     func_002333B4(&m, 0, sizeof(m));
     m.a[3] = 1.0f;
     m.a[0] = 1.0f;
     end = GetThiefnetRowEnd(p);
-    if (p->x250 > 0) {
-        int id = p->x40 == 0 ? 0x4DA : 0x4A1;
+    if (p->firstVisibleRow > 0) {
+        int id = p->tab == 0 ? 0x4DA : 0x4A1;
         if (D_003DA570) {
-            SetWidgetAnimXf(p->x24, id, &m);
+            SetWidgetAnimXf(p->widget, id, &m);
             m.a[5] += D_002C35B0;
         }
-        SwitchWidgetAnim(p->x24, id, &p->x260);
+        SwitchWidgetAnim(p->widget, id, &p->scrollUpAnim);
     } else {
-        SwitchWidgetAnim(p->x24, -1, &p->x260);
+        SwitchWidgetAnim(p->widget, -1, &p->scrollUpAnim);
     }
-    for (i = p->x250; i < end; i++) {
-        E8 *e = &p->ae[i];
-        int k = D_002C3588[i - p->x250];
-        switch (p->x40) {
+    for (i = p->firstVisibleRow; i < end; i++) {
+        E8 *e = &p->items[i];
+        int k = D_002C3588[i - p->firstVisibleRow];
+        switch (p->tab) {
         case 0:
             if (e->id != -1) {
-                switch (D_002BCD00[e->id].b) {
+                switch (D_002BCD00[e->id].category) {
                 case 7:
-                    e->x4 = 0x456;
+                    e->iconAnim = 0x456;
                     break;
                 case 9:
-                    e->x4 = 0x458;
+                    e->iconAnim = 0x458;
                     break;
                 case 8:
-                    e->x4 = 0x457;
+                    e->iconAnim = 0x457;
                     break;
                 }
-                PlayWidgetAnimWithArg(p->x24, 0x455, k);
-                PlayWidgetAnimWithArg(p->x24, e->x4, k);
+                PlayWidgetAnimWithArg(p->widget, 0x455, k);
+                PlayWidgetAnimWithArg(p->widget, e->iconAnim, k);
             } else {
-                PlayWidgetAnimsWithArg(p->x24, 0x455, k);
-                PlayWidgetAnimsWithArg(p->x24, e->x4, k);
-                e->x4 = -1;
+                PlayWidgetAnimsWithArg(p->widget, 0x455, k);
+                PlayWidgetAnimsWithArg(p->widget, e->iconAnim, k);
+                e->iconAnim = -1;
             }
             break;
         case 1:
             if (e->id != -1)
-                PlayWidgetAnimWithArg(p->x24, 0x455, k);
+                PlayWidgetAnimWithArg(p->widget, 0x455, k);
             else
-                PlayWidgetAnimsWithArg(p->x24, 0x455, k);
+                PlayWidgetAnimsWithArg(p->widget, 0x455, k);
             break;
         }
     }
-    if (p->x24C >= 0) {
-        PlayWidgetAnim(p->x24, 0x437);
+    if (p->selectedRow >= 0) {
+        PlayWidgetAnim(p->widget, 0x437);
         func_002333B4(&m, 0, sizeof(m));
         m.a[3] = 1.0f;
         m.a[0] = 1.0f;
-        m.a[5] = D_002C35B0 * (float)(p->x24C - p->x250);
-        SetWidgetAnimXf(p->x24, 0x437, &m);
+        m.a[5] = D_002C35B0 * (float)(p->selectedRow - p->firstVisibleRow);
+        SetWidgetAnimXf(p->widget, 0x437, &m);
     } else {
-        StopWidgetAnim(p->x24, 0x437);
+        StopWidgetAnim(p->widget, 0x437);
     }
-    if (end < p->x48) {
-        int id = p->x40 == 0 ? 0x4DD : 0x4A4;
+    if (end < p->itemCount) {
+        int id = p->tab == 0 ? 0x4DD : 0x4A4;
         if (D_003DA570) {
-            SetWidgetAnimXf(p->x24, id, &m);
+            SetWidgetAnimXf(p->widget, id, &m);
             m.a[5] += D_002C35B0;
         }
-        SwitchWidgetAnim(p->x24, id, &p->x264);
+        SwitchWidgetAnim(p->widget, id, &p->scrollDownAnim);
     } else {
-        SwitchWidgetAnim(p->x24, -1, &p->x264);
+        SwitchWidgetAnim(p->widget, -1, &p->scrollDownAnim);
     }
-    SwitchWidgetAnim(p->x24, (p->x30 != -1) ? 0x43B : 0x439, &p->x25C);
+    SwitchWidgetAnim(p->widget, (p->timerKind != -1) ? 0x43B : 0x439, &p->popupAnim);
 }
 } } // namespace M_UpdateThiefnetWidgets
 
