@@ -9,7 +9,7 @@ Target: `SCUS_973.16` (NTSC-U, SHA-1 de2af92a54de71e33edc8a160c31c0337a95e6f5)
 
 ## Progress
 
-![Decompilation progress](docs/progress.svg)
+**6,662 / 6,662 functions (350,068 / 350,068 instructions) match.** `tools/progress.py` prints the current totals.
 
 Only functions whose compiled bytes are identical to the original game count, and every call and data address in
 them is checked against the original (relocation-aware check).
@@ -34,13 +34,13 @@ Full description: [docs/architecture.md](docs/architecture.md). In short:
 - `include/` — headers (`bis.h`, `vec.h`, `mat.h`, `common.h`, `m2c_prelude.h`, …)
 - `config/functions.csv` — every function's address/size; `config/symbol_addrs.txt` — names;
   `config/matched.csv` — verified match list (generated); `config/junk.csv` — dead-code scraps between functions
-  (not functions); `config/progress_history.csv` — data for the graph
+  (not functions)
 - `docs/architecture.md` — how `src/` is organised: layers, subsystems, one directory per original source file
 - `docs/MATCHING_NOTES.md` — compiler facts and the matching techniques used
 
 ## Tools
 - `tools/matchtool.py check FILE [func...]` — compile one source and compare it to the original, per function
-- `tools/progress.py` — rebuild every source, regenerate `config/matched.csv`, print totals, redraw the graph
+- `tools/progress.py` — rebuild every source, regenerate `config/matched.csv`, print totals
 - `tools/show.py NAME` — original assembly next to an m2c draft
 - `tools/setup_all.sh` — fetch compilers and tools, extract the executable from your disc
 

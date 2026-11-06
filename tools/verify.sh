@@ -11,8 +11,7 @@
 # 4. doc links           tools/docs/linkcheck.py
 # 5. full link           tools/link.py: ld.lld errors must be 0; differing bytes against the ELF are reported
 #                        (informational: compare with the Status table in docs/guides/full-link.md)
-# Outputs of each step are in build/logs/verify-<step>.log. progress.py rewrites docs/progress.svg (date only);
-# this script leaves that file alone.
+# Outputs of each step are in build/logs/verify-<step>.log.
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT"
 LOGS=build/logs; mkdir -p "$LOGS"

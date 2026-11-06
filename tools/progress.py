@@ -147,14 +147,7 @@ def main():
         print(f'WARNING: {len(broken)} source files did not build in any environment yet; their {nf} function results '
               f'are carried over from the committed config/matched.csv and were NOT verified. '
               f'Totals above include them. (On Apple Silicon run both: natively AND `tools/dev.sh progress`.)')
-    rc = 1 if broken else 0
-    try:
-        import progress_graph
-        progress_graph.render(real, {int(a, 16) for a in seen})
-        print('  graph: docs/progress.svg updated')
-    except Exception as e:
-        print('  graph not updated:', e)
-    return rc
+    return 1 if broken else 0
 
 if __name__ == '__main__':
     sys.exit(main())

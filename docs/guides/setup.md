@@ -56,8 +56,8 @@ WSL or Docker. Untested by us.
 
 ## Everyday loop
 Edit a source file, then `python3 tools/matchtool.py check src/.../file.cpp` (~1 s). Before review: the full
-verification above. Don't commit the files progress.py regenerates (`docs/progress.svg`, `config/matched.csv`,
-`config/progress_history.csv`) unless that is the point of the change.
+verification above (`tools/verify.sh`). progress.py rewrites `config/matched.csv`; commit it only when a function's
+result is meant to change.
 
 ## Troubleshooting
 | Symptom | Cause / fix |
