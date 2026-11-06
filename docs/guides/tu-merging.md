@@ -457,6 +457,8 @@ Every choice:
 | sly2/cframe.h (types/views-3) | CFrame | basic.h's CFrame (proxy.cpp's Lilly view, the only user of its members) moved to its own header; basic.h keeps the forward declaration | splice/frame.cpp and eval.cpp define their own CFrame (members defined in frame.cpp: `FFindBinding__6CFrame...`), so they could not include basic.h's headers at all | the three CFrame views unified (same layout; the counted-pointer forms SPO/SPZ/CVarbPtr differ and are part of the codegen) |
 | sly2/sw.h (types/views-3) | RENDERTGT (SW +0x45E8, two of them) | new struct for the former `_pad_338` (0x28 bytes each: size, TEX0 as a plain ulong, the two GIF packets, the claiming camera), offset assert; tu_1BE398.cpp reads them through its RT view (TEX0 as GS bit-fields) with a cast at the use | tu_1BE398's func_001BE6F0 / func_001BEE10 index the pair; TEX0 bit-field unions also live in font.cpp and shd.cpp, so the header keeps the plain word | a GS register header |
 | macro files (types/views-3) | private views that clash with the shared headers by name | as integrate/round5: removed where the header type has the same layout (basic.h's DL in frm, OID/CID/CLASSINFO/qword/CLOCK/MATRIX3/MATRIX4 in most files), renamed with a `V` (or `Q`/`A`) suffix where the layout differs or matters for codegen: basic's BASICV/CIDV (the hand-made vtable word; signed class ids: basic.h's `enum CID {}` is unsigned), frm's LOV, throw's ASEGAV/CLQV (basic.h's CLQ has a constructor, so no brace-initialized D_002C40F0), tu_201D78's VECTORV/LOV/CMV, pipe_jt's ASEGV/ASEGAV/SMPV/LMV and VECTORA (mat.h's 16-byte VECTOR: its stack locals depend on it), bif's VECTORQ. A renamed view in a C++ symbol keeps the symbol by an asm label on the declaration (`FIsBasicDerivedFrom(BASICV *, CIDV) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID")`, `VU_VECTOR(const VECTORQ &) __asm__("__9VU_VECTORRC6VECTOR")`, tu_201D78's PloFindSwObject); a header field of another type is read with a cast at the use (save's SVKEY/SVSTORE, basic's typed callback list `(DLV *)&g_sw.slEvent`) | every function and data symbol MATCH and each object's nm symbol set is unchanged (symcheck) | the V-named views are the view-unification list for these files; basic.h's CID given a negative enumerator would retire most CIDV/`(CID)0x34` spellings (affects every includer) |
+| sly2/classes.h and the class headers (data/vtables) | key functions | each registry class's first declared virtual is one its key TU defines as a member (an override, or a new virtual preceded only by overrides, moved to the front); the class definitions in emission order (each key TU's classes in descending ELF address order, bases first; aseg.h: SM before SMA; CID120 moved to guard.h before STEPGUARD); HACKSHIP's/ROBOTTANK's inline constructors outside the class under `#ifndef SLY2_KEY_TU_<CLASS>`; SAA's slot 7 family takes `SAAF *` | g++ 2.95 emits a vtable in the TU that defines the key function, its TU's vtables in reverse definition order, and a class's inline members in its key TU; 174 vtables emitted, each slot checked against the ELF | the 17 left: class_registry's 13 (its getters as members), GOMER, exit_warp's three |
+| key TUs (data/vtables) | TU-private views named like classes.h's classes | `V` suffix (types/views-3's rule), C++ symbols kept by asm labels; enums identical to basic.h's removed | the views stay (field layouts the code needs); the real class is only the vtable's carrier | the views fold into the real classes |
 
 ### Views unified (types/views-1)
 
@@ -531,6 +533,86 @@ mismatched. Reverted for codegen: none (every conversion matched on its first co
 Not attempted: act.cpp's 19 curve-class vtables (namespace-scoped classes of PacNewKind2/PacNewKind22/func_0012E238:
 move them to file scope under real names with `_vt$` names in config, as slice 2 did for the registry classes),
 hud's and memcard's local classes, the 19 macros without a header type, unifying the three CFrame views.
+
+### Vtables emitted (data/vtables)
+
+The registry classes' vtables (slice 2 made the classes real, but nothing emitted their vtables) come from their key
+TUs now, as the original build made them: 174 vtables (65,040 bytes; 10 of them the grab-spot classes' secondary
+`_vt$<CLASS>$8GRABSPOT` tables, emitted with their primary) in 81 TUs, each MATCHing the ELF slot for slot. Every
+touched file keeps all functions and data MATCHing; nm symbol sets change only by the new `_vt$` definitions and the
+slot functions they reference (all config names); symcheck is identical to the branch start (35 unresolved, 0
+duplicate strong globals: the vtables are weak `.gnu.linkonce.d` definitions); relverify 37,168 relocations OK, 0
+mismatched.
+
+**The mechanism.** g++ 2.95 emits a class's vtable (in `.gnu.linkonce.d._vt$...`) in the TU that defines the class's
+key function, its first declared non-inline, non-pure virtual. For each class: the key TU is the TU whose place in TU
+order matches the vtable's place in the ELF's linkonce area (the area is in TU order; where a class's own virtuals
+are defined in several TUs the order decides: HND is hnd.cpp's, not grabspot's, because GRABSPOT's own vtable
+(0x2D28D8, grabspot's) lies between; JT jt.cpp's, SO so.cpp's, XFM xform.cpp's: both candidates fit, the one with the
+class's functions was taken). In that TU one virtual whose function the TU defines as a C-named function becomes the
+member definition, and its declaration moves to the front of the class (sly2/classes.h or the class's header):
+
+```cpp
+// was: extern "C" void func_0014FAC8(GUARD *pguard) { InitStepguard(pguard); pguard->n4A4 = 1; }
+void CONTESSA::Init()                     // header: virtual void Init() __asm__("func_0014FAC8"); declared first
+{
+      GUARDV *pguard = (GUARDV *)this;    // the TU's view, renamed (see below)
+      InitStepguard(pguard);
+      pguard->n4A4 = 1;
+}
+```
+
+The member's asm label is the function's own symbol, the body is unchanged, and the view pointer is a cast of `this`:
+no conversion changed code. Further parameters keep their names (`MSGID msgid_m` and `int msgid = (int)msgid_m;` where
+the view's type differs). A function in a per-function namespace is moved out of it and opens it
+(`using namespace M_x; M_x::S *p = (M_x::S *)this;`), with using-declarations for the names the namespace shares with
+the file scope (`using M_x::D_003DD490;`) and a qualified call where a class member hides a free function
+(shape.cpp: `M_func_001E9AC0::Add`, hidden by LO::Add). Shortest bodies at file scope were taken first.
+
+Rules found on the way (each one failed once):
+
+- **Only overrides may move.** New virtuals take their slots in declaration order, so the moved declaration must be
+  an override or a new virtual preceded only by overrides. lo.cpp's first pass moved Freeze (a new virtual of LO) and
+  shifted every LO-derived vtable; step.cpp's moved VUnk84. matchtool's data check did not show it: it masks the
+  relocated words, and a vtable is nothing but relocated words and zero deltas. Each vtable was therefore also checked
+  slot by slot (scratch vtcheck.py: every R_MIPS_32 target's config address against the ELF word, and the section
+  size against config), and link.py's comparison checks the same.
+- **Inline member functions are emitted in the key TU.** g++ 2.95 gives a class's inline members their out-of-line
+  copy in its key TU (global, not linkonce). BASIC's and PO's constructors (inline in classes.h) appeared in basic.cpp
+  and po.cpp: those TUs do not include classes.h (their classes come from basic.h/po.h). HACKSHIP's and ROBOTTANK's
+  constructors (class_registry inlines them) are defined after their classes under `#ifndef SLY2_KEY_TU_<CLASS>`, and
+  tu_17F090/tu_1D1370 define the macro before including classes.h.
+- **Emission order is the reverse of definition order.** A TU's vtables come out in the reverse order of their
+  classes' definitions (forward declarations do not count: tried). classes.h's classes are therefore in emission
+  order: each key TU's classes in descending ELF address order, bases first (a topological sort; the 13 classes whose
+  key TU is class_registry first, the classes without a vtable name before them). aseg.h defines SM before SMA, and
+  guard.h defines CID120 before STEPGUARD (classes.h's family, moved there so stepguard.cpp's three come out as in the
+  ELF). Every key TU emits its vtables in the ELF's order.
+- **A key TU needs the real class.** Each key TU includes classes.h (or only the class's own header: basic.h, po.h,
+  so.h, xfm.h, aseg.h, sw.h, jt.h) after its includes; the TU-private views with the same names as anything classes.h
+  brings were renamed with a `V` suffix (Representation decisions, types/views-3), C++ symbols that carry a renamed
+  type keep their symbol with an asm label on the first declaration (a labelled declaration right before the
+  definition where there was none), and private enums identical to basic.h's (OID, SEEK, ENSK) were removed (CID,
+  signed in the views, is `CIDV`). emitter.h's level-heap allocator became `PvAllocLevelHeap(AREQ *)
+  __asm__("func_001AE2A0")`: its extern "C" declaration conflicted with the merged files' own extern "C" declarations
+  of func_001AE2A0 on their AREQ copies. bomb.cpp called `PrimeBomb__FP4BOMBf(...)` by its mangled name (g++ 2.95
+  resolves an identifier through the assembler name); once BOMB was renamed the calls became `PrimeBomb(...)`.
+  missile.cpp keeps its field views of BOMB/MISSILE/ACCMISS (they already carry the virtual layouts); its SPLMISS view
+  is now `CID82` (the registry name) with CID82's virtuals, and MISSILE::Init / CID82::Init are the key functions.
+- SAA's slot 7 and its six overrides take the `SAAF *` parameter their Sly 1 symbols show
+  (`InitShuffle__FP7SHUFFLEP4SAAF`), so the Init functions could become the members.
+
+Not emitted (17 config names): the 13 whose key TU is class_registry (BEARCUB, BEAR, ARPEGGIO, JEANBISON, JSG, CID118,
+CID101, CID20, CID25, GUARD, EXPLO, ASEGBL, CID154: first in the linkonce area, 0x2C8940..0x2CA4D0, their only own
+virtual defined anywhere is the getter; left to the class_registry work), GOMER (its one own slot 7 holds
+`RenderGomerSelf__FP5GOMERP2CMP2RO`, three parameters, where the slot's member is `Init()`: no member definition
+reproduces the code), and exit_warp's WARP/EXIT/CID41 (exit_warp includes bis.h, whose vec.h VECTOR (aligned) clashes
+with basic.h's). Also not emitted: GRABSPOT's own vtable (0x2D28D8, grabspot.cpp's; no config name), and the
+unnamed vtables between (act.cpp's curve classes, ...). config/link_aliases.txt is unchanged (42 lines; the 21
+vtable lines are act.cpp's 19 namespace-scoped curve classes and hud's/memcard's function-local classes: they need
+real names and `_vt$` config names first). The scratch tools of this branch: survey/keytu (key TU per class),
+prep/vrename (include and V renames), convert (key function), fixamb/fixsym (ambiguities, labels), vtcheck, order
+(emission order), batch (all of it per TU, commit when everything holds).
 
 ## Path-hash quirk (asm functions)
 
