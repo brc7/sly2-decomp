@@ -26,11 +26,11 @@ typedef char assert_SLOTHEAP_size[sizeof(SLOTHEAP) == 0x18 ? 1 : -1];
 /* The slotheap functions keep their current (unmangled) linker symbols until tools/rename.py gives them their final
  * names; the proposed names are in the comments. */
 extern "C" {
-SLOTHEAP *func_0011CCA8(SLOTHEAP *pslotheap, int cb, int c, int cbAlign);   /* InitSlotheap */
+SLOTHEAP *InitSlotheap(SLOTHEAP *pslotheap, int cb, int c, int cbAlign);   /* InitSlotheap */
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);                          /* FreeSlotheapPv */
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);                          /* FreeSlotheapPv */
 void ResetSlotheap(SLOTHEAP *pslotheap);
-void func_0011CDD8(SLOTHEAP *pslotheap);                                    /* PrimeSlotheap */
+void PrimeSlotheap(SLOTHEAP *pslotheap);                                    /* PrimeSlotheap */
 }
 
 /* Engine-wide slot pools. Every game TU includes this header and so instantiates the six pools; g++ 2.95 then emits
@@ -45,7 +45,7 @@ struct CSlotPool
 {
       enum { cb = CB, c = C };   /* slot size, slots per block */
       SLOTHEAP slotheap;
-      CSlotPool() { func_0011CCA8(&slotheap, CB, C, 16); }
+      CSlotPool() { InitSlotheap(&slotheap, CB, C, 16); }
       static CSlotPool s_pool;
 };
 template <int CB, int C> CSlotPool<CB, C> CSlotPool<CB, C>::s_pool;
@@ -68,7 +68,7 @@ template <int CB, int C>
 struct CSpliceHeap
 {
       SLOTHEAP slotheap;
-      CSpliceHeap() { func_0011CCA8(&slotheap, CB, C, 16); }
+      CSpliceHeap() { InitSlotheap(&slotheap, CB, C, 16); }
       static CSpliceHeap s_heap;
 };
 template <int CB, int C> CSpliceHeap<CB, C> CSpliceHeap<CB, C>::s_heap;

@@ -78,7 +78,7 @@ struct TREE
 };
 
 /* CMemInputStream: a CBinaryInputStream over one memory buffer (vtable 0x2CA5A0, emitted here; CBinaryInputStream's is
-   0x2CA5C0). Its constructor, deleting destructor, Fill and SetBuffer still carry C names (func_00118480,
+   0x2CA5C0). Its constructor, deleting destructor, Fill and SetBuffer still carry C names (CMemInputStream_ctor,
    CMemInputStream_dtor, CMemInputStream_Fill, SetMemInputStreamBuffer): the class below declares Fill (the key function, defined as its
    member) for the vtable, and the bodies read the object through the view CMemInputStreamV (the 0x30 bytes of base
    fields it touches named), whose constructor stores the vtable by hand. */
@@ -784,7 +784,7 @@ SLY2_SCRAP("sw $0, 0x28($4)");
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668
  * @end-sly2-annot */
 // CMemInputStream constructor: base constructor, then this class's vtable.
-extern "C" CMemInputStreamV *func_00118480(CMemInputStreamV *stream)
+extern "C" CMemInputStreamV *CMemInputStream_ctor(CMemInputStreamV *stream)
 {
     __18CBinaryInputStream(stream);
     stream->vtable = D_002CA5A0;

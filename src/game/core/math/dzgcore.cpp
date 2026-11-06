@@ -23,7 +23,7 @@ extern "C" {
 extern const float D_002A4120;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A4124;   /* defined below where the ELF has it (.rodata order) */
 void *AllocClearedFromStack(MSG *pmsg);
-void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
+void *AllocFromStack(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");     /* memset */
 void STACKSCOPE_ctor(FRAME *pframe);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pframe, int n) __asm__("_$_10STACKSCOPE");
@@ -72,16 +72,16 @@ extern "C" DZG *InitDzg(DZG *dzg, int maxConstraints)
     InitDl(&dzg->dlD, 0x20);
     msg.cb = maxConstraints * maxConstraints * 4;
     msg.nKind = 0x10;
-    dzg->agMat = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    dzg->agMat = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * maxConstraints * 4;
     msg.nKind = 0x10;
-    dzg->agLu = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    dzg->agLu = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * 4;
     msg.nKind = 0x10;
-    dzg->agB = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    dzg->agB = (float *)AllocFromStack(&msg);
     msg.cb = maxConstraints * 4;
     msg.nKind = 0x10;
-    dzg->agX = (float *)PvAllocSlot__FP8ALLOCREQ(&msg);
+    dzg->agX = (float *)AllocFromStack(&msg);
     return dzg;
 }
 
@@ -308,7 +308,7 @@ extern "C" void SolveDzgFilled(DZG *dzg)
     }
 }
 
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return PvAllocSlot__FP8ALLOCREQ(pmsg); }
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
 
 /** @sly2-annot addr=0x11AD30
  * Purpose: Solves A x >= b style system of c constraints with a DZG on a stack frame; writes agSoln

@@ -1371,7 +1371,7 @@ struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
 extern "C" {
 int sprintf(char *buf, const char *fmt, ...);
 int McOpen(void *p, char *name, int mode, int *ph);
-void *PvAllocSlot__FP8ALLOCREQ(REQUEST *pmsg);
+void *AllocFromStack(REQUEST *pmsg);
 int OpenStreamFromFileKey(Y *py, X *px);
 int McWrite(void *p, int h, char *buf, int n, int *pn);
 int CbRead__18CBinaryInputStreamiPv(Y *py, int cb, char *buf);
@@ -1457,7 +1457,7 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
         REQUEST *pmsg = &msg;
         pmsg->bytes = 0x403F;
         pmsg->alignment = 0x10;
-        void *pv = PvAllocSlot__FP8ALLOCREQ(pmsg);
+        void *pv = AllocFromStack(pmsg);
         Y y(0x403F, pv, 0);
         if (!SetKey(&x, k) || !OpenStreamFromFileKey(&y, &x))
             ret = 0x27;
@@ -1968,7 +1968,7 @@ extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 extern const struct LONGU D_002A6D88;
 int func_0020E040(void *g);
 int func_001ACC80(struct S *s);
-int GrfHandleJoyBtn(void *p, int n);
+int HandleJoyButtons(void *p, int n);
 void func_001AD168(struct S *s);
 void func_001ACFE0(struct S *s);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
@@ -2004,17 +2004,17 @@ void CMemcardDialog_Update(struct S *s)
     r = func_001ACC80(s);
     if (r != 1) {
         if (r == c) {
-            if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
+            if (s->x10 && HandleJoyButtons(s->x10, 0x80)) {
                 func_001AD168(s);
                 return;
             }
-            if (s->x10 && GrfHandleJoyBtn(s->x10, 0x10)) {
+            if (s->x10 && HandleJoyButtons(s->x10, 0x10)) {
                 func_001ACFE0(s);
                 return;
             }
         }
     } else {
-        if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
+        if (s->x10 && HandleJoyButtons(s->x10, 0x80)) {
             func_001ACFE0(s);
             return;
         }

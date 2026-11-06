@@ -1071,7 +1071,7 @@ int IcopyFromPspare__FP5PROXYP10PROXYSPARE(P *,NODE *);
 int IdProxy__Fii(int,int);
 TREE *func_001C99D8(TREE *,int,int *);
 int func_0015E678(SW *,int,int,P *,void *,int,P **);
-STREAM *func_00118480(STREAM *);
+STREAM *CMemInputStream_ctor(STREAM *);
 void SetMemInputStreamBuffer(STREAM *,void *,void *,int);
 short S16Read__18CBinaryInputStream(STREAM *);
 void LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(P *,DESC *,int,STREAM *);
@@ -1112,7 +1112,7 @@ extern "C" NODE *PspareAcquire(P *p,int minimum){
   if(bind->kind==6){work.found=tree->owner;if(!work.found)continue;}
   else if(func_0015E678(&D_003DD490,0xA05,bind->kind,0,tree,1,&work.found)!=1)continue;
   bind->object=work.found;
-  func_00118480(&stream);
+  CMemInputStream_ctor(&stream);
   SetMemInputStreamBuffer(&stream,bind->begin,bind->end,0);
   int index;
   while((index=S16Read__18CBinaryInputStream(&stream))>=0){DESC *desc=&D_002AC880[index];LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(work.found,desc,desc->flags&0x2031,&stream);}

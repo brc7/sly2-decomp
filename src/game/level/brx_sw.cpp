@@ -27,7 +27,7 @@ struct BIS;
 struct AREQ { int cb; int cbAlign; };
 void *AllocFromWorldHeap(AREQ *preq);
 void *AllocClearedFromWorldHeap(AREQ *preq);
-void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
+void *AllocFromStack(AREQ *preq);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void StartupSplice(void);
@@ -97,7 +97,7 @@ class CStreamBis { public: CStreamBis(int k, void *pv, int n) __asm__("CStreamBi
 
 static inline void *AllocZ(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocClearedFromWorldHeap(preq); }
 static inline void *Alloc(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocFromWorldHeap(preq); }
-static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return PvAllocSlot__FP8ALLOCREQ(preq); }
+static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; preq->cbAlign = cbAlign; return AllocFromStack(preq); }
 
 /** @sly2-annot addr=0x13DA18
  * Purpose: Top-level level-body reader: proxy-source table, sound, save vars, level table, langstrs, cells,

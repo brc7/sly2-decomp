@@ -1,5 +1,5 @@
 // tu_11AFE0.cpp -- case-insensitive string hash (h = h * 33 + toupper(c), the djb2 recurrence). Used to look names
-// up in hashed tables where the spelling's case must not matter. Entry point: HashPchzCaseless.
+// up in hashed tables where the spelling's case must not matter. Entry point: HashStringCaseInsensitive.
 // TU 0x11AFE0..0x11B1A8 (3 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_11AFE0
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011B188
@@ -16,14 +16,14 @@ extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
 
 /** @sly2-annot addr=0x11AFE0
  * Purpose: Case-insensitive string hash h = h*33 + toupper(c) (NULL -> default string D_002A4150)
- * Info: proposed name HashPchzCaseless (T1); TU tu_11AFE0
+ * Info: proposed name HashStringCaseInsensitive (T1); TU tu_11AFE0
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
  *   docs/engine/core-library.md#open-questions
  * @end-sly2-annot */
 // Hashes a NUL-terminated string case-insensitively (h = h * 33 + toupper(c), starting at 0); a null pointer
 // hashes like the empty string (0).
-extern "C" int HashPchzCaseless(unsigned char *str)
+extern "C" int HashStringCaseInsensitive(unsigned char *str)
 {
     int hash;
 

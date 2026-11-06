@@ -626,7 +626,7 @@ extern "C" void DecrefSma(SMA *psma)
         FramePtr_Assign(&psma->pframe, 0);
         func_002580A8(&psma->psidebag, 0);
         UnsubscribeLoAll(psma);
-        func_0011CD98(&D_003DD490.slotheapSma, psma);
+        FreeSlotheapSlot(&D_003DD490.slotheapSma, psma);
     }
 }
 

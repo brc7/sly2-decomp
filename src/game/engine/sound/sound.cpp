@@ -101,7 +101,7 @@ int *PsndFromSfxid(SNDMGRV *psndmgr, int sfxid);
 void snd_PauseSound(int hvoice);
 void snd_ContinueSound(int hvoice);
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void func_00233088(int nRpc, int nCmd, int n, int n3, int n4, int n5, int n6);   /* the IOP sound RPC */
 STREAMREC *func_001FCFA0(int id);
 void snd_SetPlaybackMode(int nMode);
@@ -877,7 +877,7 @@ extern "C" void *PvAllocBanksnd(int cb)
  * @end-sly2-annot */
 extern "C" void FreeBanksnd(void *pv)
 {
-    func_0011CD98(&G_SNDMGR.slotheapBanksnd, pv);
+    FreeSlotheapSlot(&G_SNDMGR.slotheapBanksnd, pv);
 }
 
 namespace M_PstreamsndNew {
@@ -1376,7 +1376,7 @@ extern "C" void *PvAllocStreamsnd(int cb)
  * @end-sly2-annot */
 extern "C" void FreeStreamsnd(void *pv)
 {
-    func_0011CD98(&G_SNDMGR.slotheapStreamsnd, pv);
+    FreeSlotheapSlot(&G_SNDMGR.slotheapStreamsnd, pv);
 }
 
 namespace M_SNDMGR_ctor { extern "C" {
@@ -1391,7 +1391,7 @@ struct P {
 extern char D_002CA510[] __asm__("_vt$6CID152");
 extern const struct V2 D_002A83B8;
 extern const struct V2 D_002A83C0;
-void func_0011CCA8(void *, int, int, int);
+void InitSlotheap(void *, int, int, int);
 void InitDl__FP2DLi(void *, int);
 void FitClq__FffffP3CLQ(float, float, float, void *, float);
 static inline void InitT(struct T *pt, float a, float c)
@@ -1415,8 +1415,8 @@ struct P *SNDMGR_ctor(struct P *p)
     p->n0 = 0;
     p->n4 = 0;
     p->pvt = D_002CA510;
-    func_0011CCA8(p->x1C, 0x70, 0x80, 0x10);
-    func_0011CCA8(p->x34, 0x3C0, 0x10, 0x10);
+    InitSlotheap(p->x1C, 0x70, 0x80, 0x10);
+    InitSlotheap(p->x34, 0x3C0, 0x10, 0x10);
     p->n200 = 0;
     q = p->a208;
     for (n = 7; n != -1; n--) *q++ = 0;

@@ -95,7 +95,7 @@ int func_00118668(void *p, int mask, qword a, qword b, int n, BUF *pbuf);
 int FCheckVolPoint(void *p, qword v);
 int func_0020FA10(void *pv, HITV *phit);
 int CidBasic(OV *po);
-void *PvAllocSlot__FP8ALLOCREQ(AL *pal);
+void *AllocFromStack(AL *pal);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
 VECTORQ *func_001A6318(SOV *p);
@@ -460,7 +460,7 @@ extern "C" int func_001545F0(DETECTORV *p, SOV *pso)
     qword *ppos = D_002BDBF0;
     qword q = func_00153E60(p);
     AL al(0x10, 0x10);
-    qword *apos = (qword *)PvAllocSlot__FP8ALLOCREQ(&al);
+    qword *apos = (qword *)AllocFromStack(&al);
     int ii, jj;
     qword vmax = q;
     qword vmin = q;

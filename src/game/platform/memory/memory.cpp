@@ -4,8 +4,8 @@
 // delete, and the word/quadword copy routines.
 // There is no general-purpose free: level data is bump-allocated from the SW heap and dropped wholesale by FreeSw at
 // level unload; per-frame scratch comes from the stack heap and is released by STACKSCOPE marks. The two heaps grow
-// toward each other and CbFreeMem is the gap. Allocation requests (AREQ) carry a size and an alignment.
-// Entry points: StartupMemMgr, AllocFromWorldHeap and its copy/clear variants, FreeSw, PvAllocSlot__FP8ALLOCREQ (the
+// toward each other and GetFreeMemorySize is the gap. Allocation requests (AREQ) carry a size and an alignment.
+// Entry points: StartupMemMgr, AllocFromWorldHeap and its copy/clear variants, FreeSw, AllocFromStack (the
 // stack allocator, misnamed), STACKSCOPE, operator new, CopyAb, CopyAqw. TU 0x1AE150..0x1AE7D0 (21 functions).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_memory
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001AE7B0
@@ -35,7 +35,7 @@ extern "C" {
 void func_002333B4(void *p, int c, int n) __asm__("memset");
 void *AllocFromWorldHeap(AREQ *preq);
 void *AllocClearedFromWorldHeap(AREQ *preq);
-void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
+void *AllocFromStack(AREQ *preq);
 }
 void InitCritSect(CRITSECT *pcritsect);
 void EnterCritSect(CRITSECT *pcritsect);
@@ -50,13 +50,13 @@ void CopyAb(void *pvDst, void *pvSrc, uint cb);
 
 /** @sly2-annot addr=0x1AE150
  * Purpose: Bytes free between world heap top (D_002F6384) and stack heap bottom (D_002F6388)
- * Info: proposed name CbFreeMem (T1); TU memory
+ * Info: proposed name GetFreeMemorySize (T1); TU memory
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
  * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
  *   docs/engine/save-memcard.md#4-source-files
  * @end-sly2-annot */
 // Returns the bytes still free between the top of the SW heap and the bottom of the stack heap.
-extern "C" int CbFreeMem()
+extern "C" int GetFreeMemorySize()
 {
     return D_002F6388 - D_002F6384;
 }
@@ -170,7 +170,7 @@ void FreeSw()
  * @end-sly2-annot */
 // Allocates request->size bytes (rounded up to 16) from the stack heap, which grows down, at request->alignment
 // alignment. The symbol says PvAllocSlot; the body is the stack allocator (PvAllocStackImpl in Sly 1 terms).
-extern "C" void *PvAllocSlot__FP8ALLOCREQ(AREQ *request)
+extern "C" void *AllocFromStack(AREQ *request)
 {
     int cb = request->size;
     uint pv = 0;
@@ -189,11 +189,11 @@ extern "C" void *PvAllocSlot__FP8ALLOCREQ(AREQ *request)
  * Confidence: high [T1 0.92] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-// Stack-heap allocation (PvAllocSlot__FP8ALLOCREQ), then zero-fills the block.
+// Stack-heap allocation (AllocFromStack), then zero-fills the block.
 extern "C" void *AllocClearedFromStack(AREQ *request)
 {
     AREQ m = *request;
-    void *p = PvAllocSlot__FP8ALLOCREQ(&m);
+    void *p = AllocFromStack(&m);
     if (p) func_002333B4(p, 0, request->size);
     return p;
 }

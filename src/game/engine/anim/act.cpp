@@ -59,7 +59,7 @@ struct ACOBJ { char pad0[0x18]; VTEAC *pvt; };
 extern "C" {
 extern qword D_002A2DD0;    /* (0, 0, 0) */
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* frees into the pool */
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* frees into the pool */
 void func_002303A0(ALO *palo, XF *pxf, int n);
 void func_0022C840(ALO *palo, XF *pxf);
 qword func_0022CA18(XF *pxf, XF *pxf2);
@@ -1019,7 +1019,7 @@ extern "C" void *func_0012CE50()
  * @end-sly2-annot */
 extern "C" void func_0012CE70(void *pv)
 {
-    func_0011CD98(&g_sw.slotheapOvra, pv);
+    FreeSlotheapSlot(&g_sw.slotheapOvra, pv);
 }
 
 /** @sly2-annot addr=0x12CE98
@@ -2097,7 +2097,7 @@ extern "C" void *func_0012E1F0()
  * @end-sly2-annot */
 extern "C" void func_0012E210(void *pv)
 {
-    func_0011CD98(&g_sw.slotheapAct, pv);
+    FreeSlotheapSlot(&g_sw.slotheapAct, pv);
 }
 
 namespace M_func_0012E238 {

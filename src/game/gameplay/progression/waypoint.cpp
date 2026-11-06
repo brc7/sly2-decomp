@@ -197,7 +197,7 @@ UQ *func_002564C0(UQ *);
 UQ *InitVuTemp(UQ *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(REQ *);
+void *AllocFromStack(REQ *);
 int FFilterCamera(void *, O *);
 void IntersectSwBoundingBox(SW *, qwordV, qwordV, int (*)(void *, O *), void *, int *, O ***);
 int CollectBspSurfacesTouchingPolygon(NODE *, NODE *, int, UQ *, int *, FACE ***);
@@ -356,7 +356,7 @@ extern "C" void func_0022A220(O *po)
     REQ *preq = (REQ *)&tmp;
     preq->cb = 0x10000;
     preq->align = 16;
-    apface = (FACE **)PvAllocSlot__FP8ALLOCREQ(preq);
+    apface = (FACE **)AllocFromStack(preq);
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;
     IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),

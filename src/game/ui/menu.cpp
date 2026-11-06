@@ -138,9 +138,9 @@ void PlayWidgetAnim(POOL *, int);
 void SetWidgetAnimPhase(POOL *, int, float);
 void func_001D9870();
 int FWidgetAnimPlaying(POOL *, int);
-int DySelectionJoy(JOY *);
-int DxSelectionJoy(JOY *);
-uint GrfHandleJoyBtn(JOY *, uint);
+int GetJoySelectionStepY(JOY *);
+int GetJoySelectionStepX(JOY *);
+uint HandleJoyButtons(JOY *, uint);
 CRef RefGetGlobalSaveVar(OPT *, CONTEXT *);
 CRef RefSetGlobalSaveVar(OPT *, const CRef &, void *);
 void SetMcDialogState(MCDLG *, int);
@@ -363,7 +363,7 @@ void SetPauseMenuState(PMENU *s, int st)
 static inline float Value(OPT*key,CONTEXT*context){CRef result=RefGetGlobalSaveVar(key,context);return result.f;}
 static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
 /** @sly2-annot addr=0x1AEEE0
- * Purpose: Screen vt7: per-frame menu input (DySelectionJoy, GrfHandleJoyBtn), item activation callbacks,
+ * Purpose: Screen vt7: per-frame menu input (GetJoySelectionStepY, HandleJoyButtons), item activation callbacks,
  *   volume/video item handling, save-slot pages
  * Info: proposed name UpdatePauseMenu (T1); TU menu
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
@@ -408,12 +408,12 @@ extern "C" void UpdatePauseMenu(PMENU*p){
  activate:
   SetPauseMenuState(p,7);
   if(!p->input)break;
-  {JOY*input=p->input;direction=DySelectionJoy(input);if(direction<0)goto up;goto positive;}
+  {JOY*input=p->input;direction=GetJoySelectionStepY(input);if(direction<0)goto up;goto positive;}
  case 6:
   if(FWidgetAnimPlaying(group->pool,group->meta->reverse))break;goto activate;
  case 7:{
   if(!p->input)break;
-  uint flags;flags=GrfHandleJoyBtn(p->input,0x870);
+  uint flags;flags=HandleJoyButtons(p->input,0x870);
   if(flags&0x800){func_001AF660(p);break;}
   if((flags&0x10)||(group->count==0&&flags)){if(group->back)func_001AF490(p);else func_001AF608(p);break;}
   if(p->depth>0&&(flags&0x40)){
@@ -436,7 +436,7 @@ extern "C" void UpdatePauseMenu(PMENU*p){
   }
   if(!group)break;
  {
-   direction=DySelectionJoy(p->input);
+   direction=GetJoySelectionStepY(p->input);
    if(direction>=0)goto positive;
  up:SetPauseMenuState(p,6);break;
  positive:if(direction<=0)break;SetPauseMenuState(p,5);break;
@@ -452,7 +452,7 @@ extern "C" void UpdatePauseMenu(PMENU*p){
  case 10:{
   if(!p->input)break;
   ITEM*item;item=&group->items[group->index];
-  uint flags;flags=GrfHandleJoyBtn(p->input,0x850);
+  uint flags;flags=HandleJoyButtons(p->input,0x850);
   if(flags&0x800){func_001AFF88(p,item);
 func_001AF660(p);break;}
   if(flags&0x10)func_001AFF88(p,item);
@@ -598,7 +598,7 @@ void func_001AF6A0(PMENU *p) {
 
 static __inline__ float GClampM(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 /** @sly2-annot addr=0x1AF6D0
- * Purpose: Volume slider items 0x67/0x68 (music/sfx): left/right changes value (DxSelectionJoy),
+ * Purpose: Volume slider items 0x67/0x68 (music/sfx): left/right changes value (GetJoySelectionStepX),
  *   SetSndmgrChannelVolume, update meter
  * Info: proposed name AdjustPauseVolumeItem (T2); TU menu
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
@@ -608,7 +608,7 @@ void func_001AF6D0(PMENU *s, PAGE *p, ITEM *pk)
 {
     switch (pk->kind) {
     case 0x67: {
-        float f = (float)DxSelectionJoy(s->input);
+        float f = (float)GetJoySelectionStepX(s->input);
         float g;
         if (f == 0.0f)
             return;
@@ -618,7 +618,7 @@ void func_001AF6D0(PMENU *s, PAGE *p, ITEM *pk)
         break;
     }
     case 0x68: {
-        float f = (float)DxSelectionJoy(s->input);
+        float f = (float)GetJoySelectionStepX(s->input);
         float g;
         if (f == 0.0f)
             return;
@@ -629,8 +629,8 @@ void func_001AF6D0(PMENU *s, PAGE *p, ITEM *pk)
         break;
     }
     case 0x3F: {
-        float x = (float)DxSelectionJoy(s->input);
-        float y = (float)DySelectionJoy(s->input);
+        float x = (float)GetJoySelectionStepX(s->input);
+        float y = (float)GetJoySelectionStepY(s->input);
         float v;
         if (x == 0.0f && y == 0.0f)
             return;

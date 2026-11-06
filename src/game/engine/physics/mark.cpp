@@ -219,7 +219,7 @@ void FreeSwXpList(SW *psw, XP *pxp)
 {
     while (pxp) {
         XP *pxpNext = pxp->pxpNext;
-        func_0011CD98(&psw->slotheapXp, pxp);
+        FreeSlotheapSlot(&psw->slotheapXp, pxp);
         pxp = pxpNext;
     }
 }
@@ -838,7 +838,7 @@ union U{qword q;float f[4];};union SCR{REQ req;U u;};
 struct WORK{FRAME frame;SCR scratch;HIT hits[16];int count;ENTRY*end;U position,endpoint;};
 extern "C" FRAME*STACKSCOPE_ctor(FRAME*);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");
-extern "C" void*PvAllocSlot__FP8ALLOCREQ(REQ*);
+extern "C" void*AllocFromStack(REQ*);
 extern "C" int PruneBspBySphere(ENTRY*,int,qword,float,int*,ENTRY**);
 extern "C" int func_00118668(ENTRY*,int,qword,qword,int,HIT*);
 extern "C" void InitPlaneFromNormalPos(qword*,qword,qword);
@@ -859,7 +859,7 @@ extern "C" void func_001A9108(ENTRY*tree,int mask,void*geometry,qword pos,OUT*ou
  float radius=Max(radius0,100.0f);
  STACKSCOPE_ctor(&work.frame);
  ENTRY*first;
- {REQ*r=&work.scratch.req;r->bytes=0xFFFC;r->alignment=16;first=(ENTRY*)PvAllocSlot__FP8ALLOCREQ(r);}
+ {REQ*r=&work.scratch.req;r->bytes=0xFFFC;r->alignment=16;first=(ENTRY*)AllocFromStack(r);}
  int limit=0x1555;
  if(radius<52000.0f)do {
   work.end=first;work.count=limit;
@@ -1012,7 +1012,7 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
+void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("AllocFromStack");
 struct VU_FLOAT
 {
     qword qw;
@@ -1608,7 +1608,7 @@ extern BSP D_002BBB20;      /* the "outside" leaf (bsp.cpp) */
 #define PPART_NEXT(ppart) ((SOPART *)(ppart)->dle.next)
 #define GRF_SOTREE(ptree) (*(ulong *)((char *)(ptree) + 0x70))
 extern "C" {
-void *PvAllocSlot__FP8ALLOCREQ(const ALLOCREQ &req);
+void *AllocFromStack(const ALLOCREQ &req);
 int PruneBspP(BSP *pbsp, BSP *pbspLimit, qword pos, float sRadius, int *pcbspLeft, BSP **ppbspNext) __asm__("PruneBspBySphere");   /* AddSoXps's view: position first */
 void func_001A9D38(SW *psw, SOPART *ppart, SOPART *ppartOther, XP **ppxp);
 void MarkSoContactsSphereBsp(SW *psw, SOPART *ppart, SOPART *ppartOther, int cbsp, BSP *absp, XP **ppxp);
@@ -1649,7 +1649,7 @@ extern "C" XP *AddSoXps(SW *psw, SOTREE *ptreeSmall, SOTREE *ptreeLarge)
             cnodeMax = ppart->bspc.cbspFull;
     SCOPE2 stackscope;
     cnodeMax = NMin(cnodeMax, 0x1555);
-    BSP *absp = (BSP *)PvAllocSlot__FP8ALLOCREQ(ALLOCREQ(cnodeMax * sizeof(BSP), 0x10));
+    BSP *absp = (BSP *)AllocFromStack(ALLOCREQ(cnodeMax * sizeof(BSP), 0x10));
     for (ppart = PPART_FIRST(ptreeLarge); ppart; ppart = PPART_NEXT(ppart)) {
         int fFilter = ppart->grfzpk != 0;
         if (ppart->fUnk48 && !fFilter)

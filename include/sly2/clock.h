@@ -22,7 +22,7 @@ struct CLOCK
       float art[9];         /* (CRK_Max) +0x18..+0x38 [R] 9 rate slots multiplied into rt: slot 0 = 0 in S54/S71 (paused), slot 1
                                (CRK_PowerUp) = 0.25 in S72 (slow-motion power-up active), slot 7 = 0 in S61 */
 
-      float tReal;          /* +0x3C [R] real time (s), keeps running during pause; used for UI/menu repeat (DxSelectionJoy) */
+      float tReal;          /* +0x3C [R] real time (s), keeps running during pause; used for UI/menu repeat (GetJoySelectionStepX) */
       float dtReal;         /* +0x40 [R] real frame delta (s) */
       uint unk_0x44;        /* +0x44 [?] */
 
@@ -39,7 +39,7 @@ typedef char assert_CLOCK_rtCm[SLY2_CLOCK_OFFSETOF(CLOCK, rtCm) == 0xC ? 1 : -1]
 typedef char assert_CLOCK_dtCm[SLY2_CLOCK_OFFSETOF(CLOCK, dtCm) == 0x10 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_CLOCK_tCm[SLY2_CLOCK_OFFSETOF(CLOCK, tCm) == 0x14 ? 1 : -1];     /* CONFIRMED runtime */
 typedef char assert_CLOCK_art[SLY2_CLOCK_OFFSETOF(CLOCK, art) == 0x18 ? 1 : -1];     /* CONFIRMED runtime */
-typedef char assert_CLOCK_tReal[SLY2_CLOCK_OFFSETOF(CLOCK, tReal) == 0x3C ? 1 : -1]; /* CONFIRMED runtime + match (DxSelectionJoy reads +0x3C) */
+typedef char assert_CLOCK_tReal[SLY2_CLOCK_OFFSETOF(CLOCK, tReal) == 0x3C ? 1 : -1]; /* CONFIRMED runtime + match (GetJoySelectionStepX reads +0x3C) */
 typedef char assert_CLOCK_dtReal[SLY2_CLOCK_OFFSETOF(CLOCK, dtReal) == 0x40 ? 1 : -1]; /* CONFIRMED runtime */
 typedef char assert_CLOCK_tickFrame[SLY2_CLOCK_OFFSETOF(CLOCK, tickFrame) == 0x48 ? 1 : -1]; /* match (hud.cpp reads +0x48) */
 

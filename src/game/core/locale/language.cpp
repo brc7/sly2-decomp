@@ -2,7 +2,7 @@
 // Each of the 7 regions (america, europe1, europe5, europe11, japan, korea, china) offers a list of the 14 game
 // languages, the first being its default. Startup picks the region, then the language from the console's system
 // language when the region offers it. The fourcc ('FK$e', 'FK$f', ...) selects the localised text/asset set.
-// Entry points: SetRegion, SetLanguage, SetLanguageFromSystem, GetRegionLanguages, CLanguagesRegion,
+// Entry points: SetRegion, SetLanguage, SetLanguageFromSystem, GetRegionLanguages, CountRegionLanguages,
 // FourccFromLanguage. TU 0x1A2BD0..0x1A3020 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_language
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A3000
@@ -129,12 +129,12 @@ extern "C" void GetRegionLanguages(int *outCount, int **outLanguages)
 
 /** @sly2-annot addr=0x1A2C98
  * Purpose: Return number of languages available in the region
- * Info: proposed name CLanguagesRegion (T1); TU language
+ * Info: proposed name CountRegionLanguages (T1); TU language
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
  * @end-sly2-annot */
 // Returns how many languages the current region offers.
-extern "C" int CLanguagesRegion(void)
+extern "C" int CountRegionLanguages(void)
 {
     int count;
     GetRegionLanguages(&count, 0);

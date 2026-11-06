@@ -260,7 +260,7 @@ void SnipLo(RIPGV *p);
 void *PdlFromSwCid(SW *psw, int n);
 void RemoveSlEntry(void *pl, RIPGV *p);
 void FreeLoroot(RIPGV *p);
-void func_0011CD98(void *pool, void *pv);
+void FreeSlotheapSlot(void *pool, void *pv);
 }
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -299,7 +299,7 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *pripg)
     SnipLo(pripg);
     RemoveSlEntry(PdlFromSwCid(psw, 0x57), pripg);
     if (!pripg->x10) FreeLoroot(pripg);
-    func_0011CD98(psw->pool, pripg);
+    FreeSlotheapSlot(psw->pool, pripg);
     D_002DD2FC = dli.m_pdliNext;
 }
 } // namespace M_OnRipgRemove__FP4RIPG
@@ -510,7 +510,7 @@ extern DLI *D_002DD2FC; /* innermost active list iterator */
 extern CLOCK D_002DDED0;
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
+void *AllocFromStack(const REQ *);
 int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
 int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
@@ -556,7 +556,7 @@ void BounceRipgRips__FP4RIPG(P *p)
                         remaining = Min(0x1555, shape->capacity);
                         phase.request.cb = remaining * 12;
                         SetAlign(&phase.request, 16);
-                        entries = (ENTRY *)PvAllocSlot__FP8ALLOCREQ(&phase.request);
+                        entries = (ENTRY *)AllocFromStack(&phase.request);
                         if (PruneBspBySphere(shape->tree, 0x7FFFFFFF, Origin(p->state), p->state->radius, &remaining, &entries) != 2) {
                             STACKSCOPE_ctor_1AE4A0(&frame, 2);
                             continue;
@@ -840,7 +840,7 @@ struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
 struct N { struct LO *plo; int x4; struct N *pnNext; };
 struct S { int x0; int cRef; char p1[0xE8 - 0x8]; struct N *pn; struct VTE *vt; };
-void func_0011CD98(void *pool, void *pv);
+void FreeSlotheapSlot(void *pool, void *pv);
 /** @sly2-annot addr=0x1CE9D0
  * Purpose: Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes,
  *   free rip
@@ -858,10 +858,10 @@ void ReleaseRip__FP3RIP(struct S *p)
             struct LO *plo = pn->plo;
             ((void (*)(void *, int, struct S *))plo->vt[5].pf)((char *)plo + plo->vt[5].d, 8, p);
             pnNext = pn->pnNext;
-            func_0011CD98((*(char (*)[])&g_sw.slotheapRefnode), pn);
+            FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
         }
         p->pn = 0;
-        func_0011CD98((*(char (*)[])&g_sw.slotheapUnk4054), p);
+        FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapUnk4054), p);
     }
 }
 } } // namespace M_ReleaseRip__FP3RIP

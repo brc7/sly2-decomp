@@ -134,7 +134,7 @@ extern "C" void ClearSwCallbacks(SW *psw, unsigned int grf, CObj *pobj, PMFCB pm
         if ((grf & 4) && arg != pcb->arg)
             goto next;
         *ppcb = pcb->pcbNext;
-        func_0011CD98(&psw->slotheapCb, pcb);
+        FreeSlotheapSlot(&psw->slotheapCb, pcb);
         continue;
     next:
         ppcb = &pcb->pcbNext;
@@ -164,7 +164,7 @@ extern "C" void ProcessSwCallbacks(SW *psw)
             PMFCB pmf = pcb->pmf;
             (pcb->pobj->*pmf)(pcb->arg);
             CALLBACK *pcbNext = pcb->pcbNext;
-            func_0011CD98(&psw->slotheapCb, pcb);
+            FreeSlotheapSlot(&psw->slotheapCb, pcb);
             pcb = pcbNext;
         }
     }
@@ -190,6 +190,6 @@ extern "C" void ProcessSwCallbacks(SW *psw)
         CPair *ppair = pevcb->ppair;
         if (--ppair->cref == 0)
             delete ppair;
-        func_0011CD98(&psw->slotheapEvcb, pevcb);
+        FreeSlotheapSlot(&psw->slotheapEvcb, pevcb);
     }
 }

@@ -442,7 +442,7 @@ void ReadGeom__18CBinaryInputStreamP4GEOM(CBinaryInputStream *pbis, GEOM *pgeom)
 void CBinaryInputStream_ReadBspc(CBinaryInputStream *pbis, GEOM *pgeom, BSPC *pbspc);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(MSGA *pmsg);
+void *AllocFromStack(MSGA *pmsg);
 void *AllocCopyFromWorldHeap(MSGA *pmsg, void *pv);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(TN *p, CBinaryInputStream *pbis);
 void CLoadCollectorArray_ctor(MSGA *pmsg);
@@ -624,7 +624,7 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
         MSGA *pm = &msg;
         pm->cb = 0x240;
         pm->nKind = 0x10;
-        p->acpd = (CPD *)PvAllocSlot__FP8ALLOCREQ(pm);
+        p->acpd = (CPD *)AllocFromStack(pm);
     }
     func_00221818(p, 0x30);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);

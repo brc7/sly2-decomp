@@ -48,7 +48,7 @@ struct FRAMEV
 extern "C" {
 void PairPtr_Release(void *pv, int n) __asm__("_$_t7CRefPtr1Z5CPair");
 void Unlink__t6CGcObj1Z5CPair(PAIRV *ppair);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void func_00257078(FRAMEV *pframe, int n) __asm__("_$_6CFrame");
 }
 
@@ -63,7 +63,7 @@ struct SPPAIR
             PairPtr_Release(q->sub, 2);
             Decref__4CRef(&q->ref);
             Unlink__t6CGcObj1Z5CPair(q);
-            func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
+            FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
         }
     }
 };

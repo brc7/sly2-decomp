@@ -2,7 +2,7 @@
 // A pattern is a looped list of (small motor on/off, large motor power, duration) instructions played for a given
 // time; RUMBLE (one per pad, inside JOY) steps it with real (unscaled) time. The vibration option lives in the save
 // variable g_sw.psvpNoVibration, overridable by a forced mode (D_002C2D8C). Entry points: InitRumble, UpdateRumble,
-// TriggerRumbleRumk / TriggerRumbleRumpat, FRumbleEnabled, EnsureRumbleModeDefault, ResetRumbleSaveVar.
+// TriggerRumbleRumk / TriggerRumbleRumpat, IsRumbleEnabled, EnsureRumbleModeDefault, ResetRumbleSaveVar.
 // Close to Sly 1's rumble.c. TU 0x1D5150..0x1D57A8 (11 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rumble
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D5788
@@ -59,7 +59,7 @@ void *__4CRefRC4CRef(void *p, const void *q); /* CRef copy ctor: returns this */
 void SetRumbleRums(RUMBLE *rumble, RUMS state);
 void StopRumbleActuators(RUMBLE *rumble);
 void TriggerRumbleRumpat(RUMBLE *rumble, RUMPAT *pattern, float duration);
-extern "C" int FRumbleEnabled(void);
+extern "C" int IsRumbleEnabled(void);
 
 /* The CRef spelling ResetRumbleSaveVar matched with: an empty default constructor, a copy constructor through
    __4CRefRC4CRef declared returning this (void did not match), and a raw {tagk, tag} source type. */
@@ -167,7 +167,7 @@ void TriggerRumbleRumk(RUMBLE *rumble, RUMK kind, float duration)
 }
 
 /** @sly2-annot addr=0x1D5340
- * Purpose: Start a rumble pattern for dt if pad active and FRumbleEnabled
+ * Purpose: Start a rumble pattern for dt if pad active and IsRumbleEnabled
  * Info: proposed name TriggerRumbleRumpat__FP6RUMBLEP6RUMPATf (EXISTING); TU rumble
  * Confidence: high [EXISTING 0.90] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r6_1D5150
  * See: docs/reference/functions/main-loop-startup.md#rumble-0x1d5150-0x1d57a8
@@ -176,7 +176,7 @@ void TriggerRumbleRumk(RUMBLE *rumble, RUMK kind, float duration)
 // enabled; restarts from the first instruction even if already rumbling.
 void TriggerRumbleRumpat(RUMBLE *rumble, RUMPAT *pattern, float duration)
 {
-    if (rumble->state != RUMS_Dead && pattern->instructionCount > 0 && FRumbleEnabled()) {
+    if (rumble->state != RUMS_Dead && pattern->instructionCount > 0 && IsRumbleEnabled()) {
         rumble->timeLeft = duration;
         rumble->pattern = pattern;
         rumble->instructionIndex = 0;
@@ -274,7 +274,7 @@ extern "C" void ResetRumbleSaveVar(void)
 
 /** @sly2-annot addr=0x1D55B8
  * Purpose: Mode 2 -> 1; 0/3 -> 0; else !save var g_sw.psvpNoVibration
- * Info: proposed name FRumbleEnabled (T1); TU rumble
+ * Info: proposed name IsRumbleEnabled (T1); TU rumble
  * Notes: names_v2 C proposed RumbleUnknown4__FP2GS (0.638)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6_1D5150
  * See: docs/engine/main-loop-startup.md#8-key-functions,
@@ -282,7 +282,7 @@ extern "C" void ResetRumbleSaveVar(void)
  * @end-sly2-annot */
 // Returns whether vibration is enabled: forced on (mode 2), forced off (modes 0 and 3), otherwise the inverse of
 // the save option g_sw.psvpNoVibration.
-extern "C" int FRumbleEnabled(void)
+extern "C" int IsRumbleEnabled(void)
 {
     switch (D_002C2D8C) {
     case 2:

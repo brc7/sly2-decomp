@@ -211,7 +211,7 @@ extern "C" void func_001566C8(NOISE *pnoise)
         FramePtr_Assign(pnoise, 0);
         func_002580A8(&pnoise->psidebag, 0);
         UnsubscribeLoAll(pnoise);
-        func_0011CD98(&g_sw.slotheapStimulus, pnoise);
+        FreeSlotheapSlot(&g_sw.slotheapStimulus, pnoise);
     }
 }
 

@@ -1235,7 +1235,7 @@ void EndJtMode(JTMODE *pjtmode);
 void UnsubscribeLoAll(JSGV *pjsg);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
 void func_00143DE8(LO *pjt, JSGV *pjsg);
 }
 
@@ -1274,7 +1274,7 @@ struct OBJ {
     char pad5c[0x7C - 0x5C];
     int f7C;
 };
-extern "C" { void *PvAllocSlot__FP8ALLOCREQ(MSG *); }
+extern "C" { void *AllocFromStack(MSG *); }
 extern "C" { void *AllocFromWorldHeap(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
@@ -1299,7 +1299,7 @@ extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
     MSG *pmsg = &msg;
     pmsg->cb = 0xA000;
     pmsg->nKind = 0x10;
-    p->ae = (ENT *)PvAllocSlot__FP8ALLOCREQ(pmsg);
+    p->ae = (ENT *)AllocFromStack(pmsg);
     AddRelayBlockBegin(p, -1);
     p->f7C = 1;
     LoadLoFromBrx(p, x);
@@ -3387,7 +3387,7 @@ extern "C" void ReleaseJsg(JSGV *pjsg)
         FramePtr_Assign(&pjsg->pframe, 0);
         func_002580A8(&pjsg->psidebag, 0);
         UnsubscribeLoAll(pjsg);
-        func_0011CD98(&g_sw.slotheapJsg, pjsg);
+        FreeSlotheapSlot(&g_sw.slotheapJsg, pjsg);
     }
 }
 
@@ -4869,7 +4869,7 @@ extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
 extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("FMatchesLoName");
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSGV *pjsg);
-extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
+extern "C" int HandleJoyButtons(JOY *pjoy, uint grfbtn);
 extern "C" int FScreenShown(void *pv);
 extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("func_001FE848");
 extern "C" float func_001FE888(SNDMGR *psndmgr);
@@ -5258,7 +5258,7 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
     case RELAYCK_ButtonPrompt:
         if (prelaycmd->buttonPrompt.oidWho == -1)
         {
-            fComplete = GrfHandleJoyBtn(&D_002DFC00, prelaycmd->buttonPrompt.grfbtn);
+            fComplete = HandleJoyButtons(&D_002DFC00, prelaycmd->buttonPrompt.grfbtn);
         }
         else
         {

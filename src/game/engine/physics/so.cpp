@@ -109,7 +109,7 @@ struct SWALLOC
     int cbAlign;
 };
 
-void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
+void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("AllocFromStack");
 
 
 void EnsureSoBounds(SO *pso) __asm__("EnsureSoBounds");
@@ -212,7 +212,7 @@ STEPREC *func_001F8300(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void UnsubscribeLoAll(XFH *pxfh);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 }
 
 // 0x1F2108 InitSo
@@ -337,7 +337,7 @@ struct R; struct L;
 struct R { int pad[2]; int c; };
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0x134 - 0x74]; struct R *pr; };
 struct Pool;
-void func_0011CD98(struct Pool *, struct R *);
+void FreeSlotheapSlot(struct Pool *, struct R *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
 /** @sly2-annot addr=0x1F2468
  * Purpose: Drop the shared bounds record (+0x134, refcounted, pool (*(struct Pool *)&g_sw.slotheapSobounds)) of this SO and all SO children
@@ -350,7 +350,7 @@ void ReleaseSoBoundsHierarchy(struct L *p)
     struct L *q;
     struct R *pr = p->pr;
     if (pr) {
-        if (--pr->c == 0) func_0011CD98(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
+        if (--pr->c == 0) FreeSlotheapSlot(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
         p->pr = 0;
     }
     for (q = p->first; q != p->end; q = q->next) {
@@ -1177,7 +1177,7 @@ struct T { M3 m; qword v[3]; };
 struct X { char pad[0xE8]; struct T *pt; };
 void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
 void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
-int FInvertMatrix3(struct T *pt, qword *pv);
+int InvertMatrix3(struct T *pt, qword *pv);
 /** @sly2-annot addr=0x1F35F8
  * Purpose: Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular)
  * Info: proposed name AdjustSoMomint (T1); TU so
@@ -1205,7 +1205,7 @@ void AdjustSoMomint(struct X *p, float s)
     r.r[2] = r2;
     func_0023320C(&m, &r, sizeof(M3));
     pt->m = m;
-    if (!FInvertMatrix3(p->pt, p->pt->v))
+    if (!InvertMatrix3(p->pt, p->pt->v))
         func_002333B4(p->pt->v, 0, 0x30);
 }
 } } // namespace M_AdjustSoMomint
@@ -4381,7 +4381,7 @@ extern struct CLOCK D_002DDED0;
 struct E { char pad[0x4C]; float t; };
 struct P { char pad[0x4118]; char pool[0x18]; struct DL dl; };
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
-void func_0011CD98(void *, void *);
+void FreeSlotheapSlot(void *, void *);
 static inline void InitDli(struct DLI *pdli, struct DL *pdl)
 {
     pdli->pdl = pdl;
@@ -4412,7 +4412,7 @@ void ExpireSwZapRecords(struct P *p)
     while ((pe = (__typeof__(pe))PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t < pe->t + 0.25f) continue;
         RemoveDlEntry__FP2DLPv(&p->dl, pe);
-        func_0011CD98(p->pool, pe);
+        FreeSlotheapSlot(p->pool, pe);
     }
     D_002DD2FC = dli.pdliNext;
 }
@@ -5326,7 +5326,7 @@ extern "C" void DecrefXfh(XFH *pxfh)
         FramePtr_Assign(&pxfh->pframe, 0);
         func_002580A8(&pxfh->psidebag, 0);
         UnsubscribeLoAll(pxfh);
-        func_0011CD98(&g_sw.slotheapXfh, pxfh);
+        FreeSlotheapSlot(&g_sw.slotheapXfh, pxfh);
     }
 }
 

@@ -1371,7 +1371,7 @@ struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -1640,7 +1640,7 @@ struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 int NRandInRange__Fii(int nLo, int nHi);
@@ -1735,7 +1735,7 @@ struct SP;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -1777,7 +1777,7 @@ struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -1830,7 +1830,7 @@ struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -1867,7 +1867,7 @@ struct SP; struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -1922,7 +1922,7 @@ struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -1969,7 +1969,7 @@ struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -2923,7 +2923,7 @@ typedef int qword __attribute__((mode(TI)));
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -3147,7 +3147,7 @@ struct SPN;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -3876,7 +3876,7 @@ extern "C" { extern G D_003DD490; }
 extern "C" { extern CLOCK D_002DDED0; }
 struct R { char pad[0xC]; int n; };
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 CRef CRef_RefCoerceF32(CRef *pref);
@@ -4237,7 +4237,7 @@ struct SPN; struct SW; struct OW; struct G;
 
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -4593,7 +4593,7 @@ typedef int qword __attribute__((mode(TI)));
 struct LO;
 extern "C" { extern char D_004520A8[] __asm__("_t9CSlotPool2i20i8192$s_pool"); }
 extern "C" {
-void func_0011CD98(void *pheap, void *pv);
+void FreeSlotheapSlot(void *pheap, void *pv);
 void Unlink__t6CGcObj1Z5CPair(void *pv);
 CPair *PtNew__t6CGcObj1Z5CPair();
 }
@@ -4962,7 +4962,7 @@ typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct CRef { int m_tagk; union { int n; float g; void *pv; } u; } CRef;
 typedef struct NODE { int pad[2]; CRef ref; struct NODE *pnext; } NODE;
 typedef struct ARR { int c; short *a; } ARR;
-short *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
+short *AllocFromStack(AREQ *preq);
 /** @sly2-annot addr=0x1252D0
  * Purpose: Counts a list and allocates (PvAllocSlot-style 0x1AE318) a U16 array of its S32/Symid elements
  *   (save-var path)
@@ -4986,7 +4986,7 @@ void FillAsFromPair(NODE *pnode, ARR *parr)
         AREQ req;
         req.cb = parr->c * 2;
         req.cbAlign = 0x10;
-        parr->a = PvAllocSlot__FP8ALLOCREQ(&req);
+        parr->a = AllocFromStack(&req);
         for (p = pnode, i = 0; p; p = p->pnext, i++) {
             if (p->ref.m_tagk == 0x15 || p->ref.m_tagk == 0x18)
                 { int n = p->ref.u.n; parr->a[i] = n; }

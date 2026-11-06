@@ -55,7 +55,7 @@ float GSmooth__FfffP3SMPPf(float g, float gGoal, float dt, SMP *psmp, float *pdv
 float atan2f(float y, float x);
 float acosf(float g);
 float asinf(float g);
-void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
+void *AllocFromStack(MSG *pmsg);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 
 int FInvertMatrix__FiPfT1(int c, int n, float *pgSrc, float *pgDst);
@@ -84,12 +84,12 @@ void DecomposeRotateMatrixRad(MATRIX3 *pmat, float *prad, VECTOR *pvec);
 
 /** @sly2-annot addr=0x11B318
  * Purpose: FInvertMatrix(stride 4, n 3, src, dst)
- * Info: proposed name FInvertMatrix3 (T1); TU mat
+ * Info: proposed name InvertMatrix3 (T1); TU mat
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8
  * @end-sly2-annot */
 // Inverts a 3x3 matrix stored with a 4-float row stride (FInvertMatrix, Gauss-Jordan).
-extern "C" void FInvertMatrix3(float *src, float *dst) {
+extern "C" void InvertMatrix3(float *src, float *dst) {
     FInvertMatrix__FiPfT1(4, 3, src, dst);
 }
 
@@ -1006,7 +1006,7 @@ void BuildSimpleProjectionMatrix(float xScale, float yScale, float xOffset, floa
 SLY2_SCRAP("nop");
 
 // Gauss-Jordan inverse with column pivoting. Sly 2 takes (stride c, size n, src, dst); the symbol name comes from Sly 1.
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return PvAllocSlot__FP8ALLOCREQ(pmsg); }
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocFromStack(pmsg); }
 static inline float GAbs(float g) { return __builtin_fabsf(g); }
 /** @sly2-annot addr=0x11C500
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.

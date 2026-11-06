@@ -448,11 +448,11 @@ struct V { qword pos; int cEdge; E *aEdge; };
 struct G { int c; };
 struct NODE { V *pv; float f; float g; NODE *parent; int depth; NODE *next; };
 extern "C" {
-void *PvAllocSlot__FP8ALLOCREQ(const AREQ &r);
+void *AllocFromStack(const AREQ &r);
 void *AllocClearedFromStack(const AREQ &r);
 int IcgvFromPcgv__FP2CGP3CGV(G *p, V *pv);
 }
-static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQ(cb, 0x10)); }
+static inline void *Alloc(int cb) { return AllocFromStack(AREQ(cb, 0x10)); }
 static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQ(cb, 0x10)); }
 static inline float Dist2(const qword &a, const qword &b)
 {
@@ -546,10 +546,10 @@ struct CTX { int a[4]; };
 struct REQ { int cb; int align; };
 void STACKSCOPE_ctor(struct CTX *c);
 void STACKSCOPE_ctor_1AE4A0(struct CTX *c, int n) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(struct REQ *r);
+void *AllocFromStack(struct REQ *r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 int FClipEdgeToCbsp(void *ctx, qword a, qword b, int n);
-static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->cb = cb; preq->align = nKind; return PvAllocSlot__FP8ALLOCREQ(preq); }
+static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->cb = cb; preq->align = nKind; return AllocFromStack(preq); }
 /** @sly2-annot addr=0x1BFC18
  * Purpose: Drop intermediate path vertices with clear line of sight (FClipEdgeToCbsp)
  * Info: proposed name SimplifyApcgvNeighbor (T1); TU path
@@ -690,7 +690,7 @@ TRI *PcgtPointInCbspSafe(G *, BSP *, qword, int);
 qword ClosestPointOnCgt(TRI *, qword);
 void STACKSCOPE_ctor(void *);
 void STACKSCOPE_ctor_1AE4A0(void *, int) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(AREQ *);
+void *AllocFromStack(AREQ *);
 void FindPathAStar(G *, V *, V *, int, int *, V **);
 void SimplifyApcgvNeighbor(G *, int *, V **);
 int CposFindPath(G *, qword, qword, int, U *);
@@ -754,11 +754,11 @@ int CposFindPath(G *g, qword from, qword to, int capacity, U *out)
     } else {
         STACKSCOPE mark;
         write = out + 1;
-        V **path = (V **)PvAllocSlot__FP8ALLOCREQ(AREQ().Set(0x200));
+        V **path = (V **)AllocFromStack(AREQ().Set(0x200));
         V initial;
         initial.pos.q = start;
         initial.cEdge = 3;
-        initial.aEdge = (E *)PvAllocSlot__FP8ALLOCREQ(AREQ().Set(0x18));
+        initial.aEdge = (E *)AllocFromStack(AREQ().Set(0x18));
         qword sv = ToVF(start);
         for (int i = 0; i < 3; i++) {
             V *v = first->apv[i];
@@ -2107,7 +2107,7 @@ extern "C" {
 void *STACKSCOPE_ctor(void *pframe);
 void STACKSCOPE_ctor_1AE4A0(void *pframe, int n) __asm__("_$_10STACKSCOPE");
 void *AllocClearedFromStack(MSG *pmsg);
-void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
+void *AllocFromStack(MSG *pmsg);
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 qword func_001A62E8(void *pv);
 NAV *PpathzoneFromPos(qword pos, int f);
@@ -2122,7 +2122,7 @@ int FPosInPathzone(NAV *pnav, qword pos, int f);
 }
 
 static inline void *PvAllocClear(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocClearedFromStack(&msg); }
-static inline void *PvAlloc(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return PvAllocSlot__FP8ALLOCREQ(&msg); }
+static inline void *PvAlloc(int cb) { MSG msg; msg.cb = cb; msg.nKind = 0x10; return AllocFromStack(&msg); }
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword QwLength(qword v)
 {

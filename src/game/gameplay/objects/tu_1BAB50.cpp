@@ -65,7 +65,7 @@ extern char D_002DFC00[];
 extern char D_002DE578[];
 extern const char D_002A76B8[];   /* defined below where the ELF has it (.rodata order) */
 extern const char D_002A76C0[];   /* defined below where the ELF has it (.rodata order) */
-void *PvAllocSlot__FP8ALLOCREQ(const AREQV &r);
+void *AllocFromStack(const AREQV &r);
 void *AllocClearedFromStack(const AREQV &r);
 void *AllocCopyFromWorldHeap(const AREQV &r, void *pv);
 void InitSo(TRIG *p);
@@ -105,7 +105,7 @@ int func_001BBE48(TRIG *p);
 E *func_001BBE68(TRIG *p);
 }
 /* Callers' views (asm labels): the allocator with a plain request, and calls that pass an extra (unused) argument. */
-void *func_001AE318M(MSG *pmsg) __asm__("PvAllocSlot__FP8ALLOCREQ");
+void *func_001AE318M(MSG *pmsg) __asm__("AllocFromStack");
 struct XPC;
 int func_001BBE48X(TRIG *p, XPC *e) __asm__("func_001BBE48");
 E *func_001BBE68K(TRIG *p, const void *k) __asm__("func_001BBE68");
@@ -124,7 +124,7 @@ extern "C" void func_001BAB50(TRIG *p) {
     func_001F7918(p, 0x80001, 0);
 }
 
-static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
+static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
 static inline void *AllocB(int cb) { return AllocClearedFromStack(AREQV(cb, 0x10)); }
 static inline void *Realloc(void *pv, int cb) { return AllocCopyFromWorldHeap(AREQV(cb, 0x10), pv); }
 /** @sly2-annot addr=0x1BABA0

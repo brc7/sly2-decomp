@@ -136,7 +136,7 @@ void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
 void func_0020FA10();
 void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), XEC *px, float g, int *pc, XAV ***paps);
-void *PvAllocSlot__FP8ALLOCREQ(AREQV *preq);
+void *AllocFromStack(AREQV *preq);
 int CsbiIntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
@@ -700,7 +700,7 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
     }
     req.cb = c * 4;
     req.cbAlign = 0x10;
-    apo = (SOV **)PvAllocSlot__FP8ALLOCREQ(&req);
+    apo = (SOV **)AllocFromStack(&req);
     n = 0;
     for (i = 0; i < c; i++) {
         XAV *ps = aps[i];

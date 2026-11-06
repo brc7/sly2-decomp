@@ -51,7 +51,7 @@ extern "C" {
 extern CLOCK D_002DDED0;
 float D_002BDDE8 = 1500.0f;   /* dzg's .data (the next word is 0: alignment) */
 void *AllocClearedFromStack(AL *pal);
-void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
+void *AllocFromStack(const AL &al);
 DZG *InitDzg(DZG *pdzg, int cdzMax);
 qword LimitVectorLength(qword v, float g);
 
@@ -132,7 +132,7 @@ extern "C" void AppendDzgDz__FP3DZGP2DZ(DZGXP *pdzgxp, DZ *pdz, DZX *pdzx)
    the difference of the two sides' responses at that contact (SO slot 68) and the row's dot products with the other
    rows. What mattered for the match: the next aqwRel pointer is computed at the top of the k body (pqwNext = pqw + 1)
    and assigned after the vsub; this gives the target's k+1/pqw+1 s7/fp assignment. */
-static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return PvAllocSlot__FP8ALLOCREQ(al); }
+static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(al); }
 
 /** @sly2-annot addr=0x158728
  * Purpose: Fills one constraint row: lets each of the two bodies add itself (virtual), computes per-SO
@@ -403,7 +403,7 @@ extern "C" void ApplyDzg(DZGXP *pdzgxp, float gDv, float gDw)
     int i;
     SO *pso;
     { register int n asm("$3") = pdzgxp->cpso;  /* register pin: cso in v1 like the target */
-      PvAllocSlot__FP8ALLOCREQ(AL(n * 32, 0x10)); }
+      AllocFromStack(AL(n * 32, 0x10)); }
     for (i = 0; i < pdzgxp->cdz; i++) {
         DZ *pdz = &pdzgxp->adz[i];
         if (pdz->gC == 0.0f) continue;

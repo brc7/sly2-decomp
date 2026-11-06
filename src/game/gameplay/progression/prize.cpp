@@ -1612,7 +1612,7 @@ REGION *PpathzoneFromPos(qword, int);
 int FindPathzoneClosestPoint(REGION *, qword, qword *, int);
 int FClipPathzone(REGION *, qword, qword, int);
 qword func_001A62E8(LO *);
-void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *);
+void *AllocFromStack(ALLOCREQ *);
 int PdprizeNewSpray(void *, int, int, LO **);
 int FFilterDprizeObjects(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
@@ -1626,7 +1626,7 @@ struct VU_FLOAT {
     qword q;
     VU_FLOAT(float f) { __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); }
 };
-static inline void *PvAllocFrame(int cb, int cbAlign) { ALLOCREQ req(cb, cbAlign); return PvAllocSlot__FP8ALLOCREQ(&req); }
+static inline void *PvAllocFrame(int cb, int cbAlign) { ALLOCREQ req(cb, cbAlign); return AllocFromStack(&req); }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
 static inline float GFromVf(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -1792,7 +1792,7 @@ struct H { int a, b, c, d; };
 struct AL { int cb; int cbAlign; int pad[2]; };
 struct S { char p0[0x23C]; int x23C; void *x240; };
 struct H *STACKSCOPE_ctor(struct H *ph);
-void *PvAllocSlot__FP8ALLOCREQ(struct AL *pal);
+void *AllocFromStack(struct AL *pal);
 void *AllocCopyFromWorldHeap(struct AL *pal, void *pv);
 void STACKSCOPE_ctor_1AE4A0(struct H *ph, int n) __asm__("_$_10STACKSCOPE");
 void LoadDprizeFromBrx(struct S *p, void *pv);
@@ -1816,7 +1816,7 @@ void LoadLootFromBrx(struct S *p, void *pv)
     pal = &al;
     pal->cb = 0x580;
     pal->cbAlign = 0x10;
-    p->x240 = PvAllocSlot__FP8ALLOCREQ(pal);
+    p->x240 = AllocFromStack(pal);
     LoadDprizeFromBrx(p, pv);
     func_001C7A08(p);
     pal->cb = p->x23C * 0x2C;

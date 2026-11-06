@@ -871,7 +871,7 @@ namespace M_LoadJobFromBrx {
 struct ALLOCREQ { int cb; int nKind; };
 class CBinaryInputStream;
 struct S { char pad[0x54]; int c54; void *a58; int c5C; void *a60; char pad2[0x8C - 0x64]; int c8C; void *a90; int c94; void *a98; };
-extern "C" void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *preq);
+extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void LoadLoFromBrx(S *p, CBinaryInputStream *pbis);
 extern "C" void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
@@ -879,7 +879,7 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return PvAllocSlot__FP8ALLOCREQ(preq);
+    return AllocFromStack(preq);
 }
 static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 {
@@ -1787,7 +1787,7 @@ public:
     int S32Read() __asm__("S32Read__18CBinaryInputStream");
 };
 struct S { char pad[0x90]; int *a90; int c94; void *a98; int *a9C; int cA0; void *aA4; int cA8; void *aAC; int cB0; void *aB4; };
-extern "C" void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *preq);
+extern "C" void *AllocFromStack(ALLOCREQ *preq);
 extern "C" void *AllocCopyFromWorldHeap(ALLOCREQ *preq, void *pv);
 extern "C" void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
 extern "C" void *AllocFromWorldHeap(ALLOCREQ *preq);
@@ -1797,7 +1797,7 @@ static inline void *PvAllocReq(ALLOCREQ *preq, int cb, int nKind)
 {
     preq->cb = cb;
     preq->nKind = nKind;
-    return PvAllocSlot__FP8ALLOCREQ(preq);
+    return AllocFromStack(preq);
 }
 static inline void *PvShrinkReq(ALLOCREQ *preq, int cb, int nKind, void *pv)
 {

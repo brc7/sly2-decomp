@@ -1,8 +1,8 @@
 // slotheap.cpp -- fixed-size slot allocator. TU 0x11CCA8..0x11CF60 (7 functions, address order).
 // A SLOTHEAP hands out slots of one size from a block of `count` slots allocated from the level heap on first use;
 // freed slots go on an intrusive free list. Every TU instantiates the six engine pools (sly2/slotheap.h), which is
-// why each file ends with the same static initializer. Entry points: func_0011CCA8 (init), PvAllocSlotheapClear,
-// func_0011CD98 (free a slot), ResetSlotheap, func_0011CDD8 (prime). The three placeholders' names (InitSlotheap,
+// why each file ends with the same static initializer. Entry points: InitSlotheap (init), PvAllocSlotheapClear,
+// FreeSlotheapSlot (free a slot), ResetSlotheap, PrimeSlotheap (prime). The three placeholders' names (InitSlotheap,
 // FreeSlotheapSlot, PrimeSlotheap) wait for a rename: sly2/slotheap.h declares them, so it rebuilds every TU.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_slotheap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011CF40
@@ -32,7 +32,7 @@ void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");      /*
  *   docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
  * @end-sly2-annot */
 // Initialises a pool of `count` slots of slotSize bytes at `alignment`; the storage is allocated lazily.
-SLOTHEAP *func_0011CCA8(SLOTHEAP *pool, int slotSize, int count, int alignment)
+SLOTHEAP *InitSlotheap(SLOTHEAP *pool, int slotSize, int count, int alignment)
 {
       pool->cb = slotSize;
       pool->c = count;
@@ -87,7 +87,7 @@ void *PvAllocSlotheapClear(SLOTHEAP *pool)
  * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
  * @end-sly2-annot */
 // Returns a slot to the pool's free list.
-void func_0011CD98(SLOTHEAP *pool, void *slotMemory)
+void FreeSlotheapSlot(SLOTHEAP *pool, void *slotMemory)
 {
       SLOT *slot = (SLOT *)slotMemory;
 
@@ -127,7 +127,7 @@ SLY2_SCRAP("nop");
  * @end-sly2-annot */
 // Allocates and immediately frees one slot, forcing the pool's block to be allocated now (at a known point in the
 // level heap) rather than on first use.
-void func_0011CDD8(SLOTHEAP *pool)
+void PrimeSlotheap(SLOTHEAP *pool)
 {
-      func_0011CD98(pool, PvAllocSlotheapClear(pool));
+      FreeSlotheapSlot(pool, PvAllocSlotheapClear(pool));
 }

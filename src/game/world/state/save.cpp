@@ -109,14 +109,14 @@ void Read__18CBinaryInputStreamiPv(CBinaryInputStream *pbis, int cb, void *pv);
 void CBinaryInputStream_ReadStringSw(CBinaryInputStream *pbis, char **ppchz, void *pheap, int n);
 void *AllocFromWorldHeap(MEMREQ *pmemreq);
 void *AllocCopyFromWorldHeap(MEMREQ *pmemreq, void *pv);
-void *PvAllocSlot__FP8ALLOCREQ(MEMREQ *pmemreq);
+void *AllocFromStack(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
 int atoi(const char *pchz);
 CRef RefGetGlobalSaveVar(SVKEY *pkey, SVSET *psvset);
 CRef RefSetGlobalSaveVar(SVKEY *pkey, const CRef &ref, SVSET *psvset);
 void ResetRumbleSaveVar();
-int CLanguagesRegion();
+int CountRegionLanguages();
 void SetLanguage(int lang);
 void SetSndmgrPlaybackMode(void *psndmgr, int mode);
 void SetSndmgrChannelVolume(void *psndmgr, int ch, int n, float u);
@@ -606,7 +606,7 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey)
         MEMREQ memreq;
         memreq.cb = pkey->c * 2;
         memreq.cbAlign = 0x10;
-        pkey->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+        pkey->ash = (short *)AllocFromStack(&memreq);
         ap = apSave;
         for (pchzT = pchz, i = 0; pchzT; pchzT = VA_ARG_PCH(ap), i++)
         {
@@ -661,7 +661,7 @@ extern "C" SVKEY *PkeyAllocSaveKey(const char *pchz, ...)
     VA_START(ap, pchz);
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    pkey = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    pkey = (SVKEY *)AllocFromStack(&memreq);
     BuildSaveKeyV(pchz, ap, pkey);
     return pkey;
 }
@@ -746,12 +746,12 @@ extern "C" SVKEY *PkeyConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
     int c;
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    pkey = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    pkey = (SVKEY *)AllocFromStack(&memreq);
     c = pkey1->c + pkey2->c;
     pkey->c = c;
     memreq.cb = c * 2;
     memreq.cbAlign = 0x10;
-    pkey->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    pkey->ash = (short *)AllocFromStack(&memreq);
     CopyAb(pkey->ash, pkey1->ash, pkey1->c * 2);
     CopyAb(pkey->ash + pkey1->c, pkey2->ash, pkey2->c * 2);
     return pkey;
@@ -812,7 +812,7 @@ static inline float GGetGlobal(SVKEY *pkey, SVSET *psvset) { return RefGetGlobal
  * @end-sly2-annot */
 extern "C" void ApplyGsSettings(SVSET *psvset)
 {
-    if ((SVKEY *)g_sw.psvpLang && CLanguagesRegion() >= 2)
+    if ((SVKEY *)g_sw.psvpLang && CountRegionLanguages() >= 2)
         SetLanguage(NGetGlobal((SVKEY *)g_sw.psvpLang, psvset));
     if ((SVKEY *)g_sw.psvpMixerMode)
         SetSndmgrPlaybackMode(D_003DD040, NGetGlobal((SVKEY *)g_sw.psvpMixerMode, psvset));

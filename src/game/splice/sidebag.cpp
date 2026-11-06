@@ -62,7 +62,7 @@ public:
     int FFindBinding(int sym, CRef *pref);
     void SetBinding(CVarb *pvarb) { pbindingFirst = pvarb; }
     /* Sidebags live in the fifth engine slot pool (slot size 0xC == sizeof(CSidebag)). */
-    void operator delete(void *pv) { Unlink__t6CGcObj1Z8CSidebag((GCHDR *)pv); func_0011CD98(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
+    void operator delete(void *pv) { Unlink__t6CGcObj1Z8CSidebag((GCHDR *)pv); FreeSlotheapSlot(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
 };
 typedef char assert_CSidebag_size[sizeof(CSidebag) == 0xC ? 1 : -1];
 

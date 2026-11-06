@@ -894,7 +894,7 @@ union U{qword q;float f[4];int i[4];};struct P;
 struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];U normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
 struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{U scalar;REQ request;};struct WORK{U normals[64];SCRATCH scratch;FRAME frame;U residual,original;};
-extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*PvAllocSlot__FP8ALLOCREQ(REQ*);void SolveInequalities(int,float*,float*,float*,float);void func_00195FB8(MOVE*,int,void*);}
+extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*AllocFromStack(REQ*);void SolveInequalities(int,float*,float*,float*,float);void func_00195FB8(MOVE*,int,void*);}
 static inline void Publish(U*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(v):"j"(v),"j"(k));return v;}
@@ -905,7 +905,7 @@ static inline void VectorDot(float*out,qword input,qword source){register qword 
 static inline qword AddScaled(qword input,qword source,qword scalar){register qword sum __asm__("vf3")=input,normal __asm__("vf1")=source,k __asm__("vf2")=scalar;__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(sum):"j"(sum),"j"(normal),"j"(k));return sum;}
 static inline qword Sub(qword input,qword other){register qword a __asm__("vf2")=input,b __asm__("vf3")=other,q __asm__("vf1");__asm__("vsub.xyzw %0,%1,%2":"=j"(q):"j"(a),"j"(b));return q;}
 static inline float Square(qword a){qword q=a,one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(q),"=&j"(one));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(q));return f;}
-static inline float*Allocate(REQ*r,int bytes){r->bytes=bytes;r->alignment=16;return(float*)PvAllocSlot__FP8ALLOCREQ(r);}
+static inline float*Allocate(REQ*r,int bytes){r->bytes=bytes;r->alignment=16;return(float*)AllocFromStack(r);}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char CONTACT_Size[sizeof(CONTACT)==176?1:-1];
@@ -2793,7 +2793,7 @@ extern qword D_002A2DC0;
 extern float D_002A656C;
 STACKSCOPE*STACKSCOPE_ctor(STACKSCOPE*);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
-void*PvAllocSlot__FP8ALLOCREQ(REQUEST*);
+void*AllocFromStack(REQUEST*);
 void SolveInequalities(int,float*,float*,float*,float);
 }
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
@@ -2862,7 +2862,7 @@ extern "C" int FCheckJtStuck(P*p,float previous,float*stamp){
  __asm__("mult $3,%7,%7\n\tla %0,%a5\n\tmfc1 $2,%4\n\tdaddu %1,%0,$zero\n\tqmtc2.ni $2,$vf2\n\tsqc2 $vf2,%3\n\tlui $2,%%hi(%6)\n\taddiu $2,$2,%%lo(%6)\n\tsll $3,$3,2\n\tlqc2 $vf1,0($2)\n\tvmulx.xyzw %2,$vf1,$vf2x\n\tsw $3,%3":"=&r"(request),"=&r"(argument),"=j"(result),"=m"(work.scalar.q):"f"(negative),"p"(&work.request),"i"(&D_002A2DC0),"r"(count):"$2","$3","vf1","vf2","hi","lo","memory");
  down.q=result;
  request->alignment=16;
- returned=(float*)PvAllocSlot__FP8ALLOCREQ(argument);
+ returned=(float*)AllocFromStack(argument);
  }
  register float*matrix __asm__("$22");float*rhs;
  register int rowbytes __asm__("$18")=count*4;
@@ -2870,10 +2870,10 @@ extern "C" int FCheckJtStuck(P*p,float previous,float*stamp){
  register REQUEST*argument __asm__("$4");
  __asm__("sw %3,%2\n\tdaddu %0,%4,$zero\n\tdaddu %1,%5,$zero":"=&r"(argument),"=r"(matrix),"=m"(work.request.bytes):"r"(rowbytes),"r"(request),"r"(returned));
  request->alignment=16;
- rhs=(float*)PvAllocSlot__FP8ALLOCREQ(argument);
+ rhs=(float*)AllocFromStack(argument);
  }
  work.request.bytes=rowbytes;request->alignment=16;
- float*weights=(float*)PvAllocSlot__FP8ALLOCREQ(request);
+ float*weights=(float*)AllocFromStack(request);
  float*cursor=matrix;
  for(group=p->collision->groups;group;group=group->next){
   for(c=group->first;c;c=c->next){

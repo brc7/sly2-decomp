@@ -54,8 +54,8 @@ extern "C" {
 void InitPo(SAFEHOUSEV *ppo);
 void PostSoLoad(SAFEHOUSEV *pso);
 void UpdateSo(SAFEHOUSEV *pso);
-int DxSelectionJoy(void *pjoy);
-int GrfHandleJoyBtn(void *pjoy, int grf);
+int GetJoySelectionStepX(void *pjoy);
+int HandleJoyButtons(void *pjoy, int grf);
 void *func_001F07E8(SMA *psma);
 void SetThiefnetTab(void *pv, int n);
 void FireRelay(SAFEHOUSEV *prelay, int n);
@@ -111,7 +111,7 @@ extern "C" void func_001D7268(SAFEHOUSEV *psh)
 }
 
 /** @sly2-annot addr=0x1D72A8
- * Purpose: UpdateSo; in state 1 read joystick selection (DxSelectionJoy) and cycle SMA goal via 0x1D77D0
+ * Purpose: UpdateSo; in state 1 read joystick selection (GetJoySelectionStepX) and cycle SMA goal via 0x1D77D0
  * Info: proposed name UpdateSafehouse (T2); class SAFEHOUSE slot16; TU tu_1D7238
  * Notes: names_v2 C proposed OnStepguardExitingSgs__FP9STEPGUARD3SGS (0.438) | class identity from whole_game
  *   WE names/object strings: UpdateCharSelectPo -> UpdateSafehouse
@@ -139,7 +139,7 @@ extern "C" void func_001D72A8(SAFEHOUSEV *psh)
         pjoy = D_002DFC00;
     else
         pjoy = D_002E0D00;
-    n = DxSelectionJoy(pjoy);
+    n = GetJoySelectionStepX(pjoy);
     if (n == 0) {
         for (i = 0; ; i++) {
             SAFEHOUSEV *prelay;
@@ -148,7 +148,7 @@ extern "C" void func_001D72A8(SAFEHOUSEV *psh)
                 return;
             if (pe->pvState != func_001F07E8(psh->psma))
                 continue;
-            if (!GrfHandleJoyBtn(pjoy, pe->grfBtn))
+            if (!HandleJoyButtons(pjoy, pe->grfBtn))
                 continue;
             if (pe->oid == -1)
                 continue;

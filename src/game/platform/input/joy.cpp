@@ -1,11 +1,11 @@
 // joy.cpp -- the controllers (JOY, sly2/joy.h): pad startup and the per-frame state machine (mode, actuators, pressure
 // mode), reading buttons and sticks with their deflection, the button pressed/handled masks, rumble, and the menu
-// selection repeat (DxSelectionJoy/DySelectionJoy). FPU asm (sqrt.s).
+// selection repeat (GetJoySelectionStepX/GetJoySelectionStepY). FPU asm (sqrt.s).
 // One JOY (g_joy, D_002DFC00) for pad port 0. UpdateJoy runs each frame: it follows the pad's connection state,
 // switches it to analog/DualShock mode and sets up its actuators and pressure mode, then reads it (ReadJoy). Game
 // code reads buttons as masks: held, pressed this frame, and "handled" (consumed so a press acts once).
-// Entry points: StartupJoy, UpdateJoy, GrfJoyPressed / GrfHandleJoyBtn / SetJoyBtnHandled / ClearJoyButtons,
-// TriggerJoyRumbleRumk, DxSelectionJoy / DySelectionJoy, AddGrfusr / RemoveGrfusr.
+// Entry points: StartupJoy, UpdateJoy, GetJoyButtonsPressed / HandleJoyButtons / SetJoyBtnHandled / ClearJoyButtons,
+// TriggerJoyRumbleRumk, GetJoySelectionStepX / GetJoySelectionStepY, AddGrfusr / RemoveGrfusr.
 // TU 0x187030..0x188488 (19 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_joy
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00188468
@@ -52,9 +52,9 @@ void _MatchCodes(void *p, JOY *pjoy, int grfbtn);
 int PpoHero(void *p);
 void BroadcastGameEvent(SNDV *p, int n, int a);
 int ReadJoy(JOY *pjoy);
-int GrfJoyPressed(JOY *pjoy, int grf);
+int GetJoyButtonsPressed(JOY *pjoy, int grf);
 void SetJoyBtnHandled(JOY *pjoy, int grf);
-int GrfHandleJoyBtn(JOY *pjoy, int grf);
+int HandleJoyButtons(JOY *pjoy, int grf);
 }
 void UpdateGrfjoytFromGrfusr();
 void InitJoy(JOY *joy, int port, int slot);
@@ -502,28 +502,28 @@ extern "C" int ReadJoy(JOY *joy)
 
 /** @sly2-annot addr=0x187D80
  * Purpose: Return pressed&mask and mark those buttons handled (SetJoyBtnHandled)
- * Info: proposed name GrfHandleJoyBtn (T1); TU joy
+ * Info: proposed name HandleJoyButtons (T1); TU joy
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488,
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Returns the buttons in `mask` pressed this frame and marks them handled.
-extern "C" int GrfHandleJoyBtn(JOY *joy, int mask)
+extern "C" int HandleJoyButtons(JOY *joy, int mask)
 {
-    int grfPressed = GrfJoyPressed(joy, mask);
+    int grfPressed = GetJoyButtonsPressed(joy, mask);
     SetJoyBtnHandled(joy, mask);
     return grfPressed;
 }
 
 /** @sly2-annot addr=0x187DD0
  * Purpose: Return x10B8 (pressed this frame) & mask
- * Info: proposed name GrfJoyPressed (T1); TU joy
+ * Info: proposed name GetJoyButtonsPressed (T1); TU joy
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
 // Returns the buttons in `mask` pressed this frame.
-extern "C" int GrfJoyPressed(JOY *joy, int mask)
+extern "C" int GetJoyButtonsPressed(JOY *joy, int mask)
 {
     return joy->grfbtnPressed & mask;
 }
@@ -594,18 +594,18 @@ void StartJoySelection(JOY *joy)
 
 /** @sly2-annot addr=0x187E88
  * Purpose: Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8,
- * Info: proposed name DxSelectionJoy (T1); TU joy
+ * Info: proposed name GetJoySelectionStepX (T1); TU joy
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
 // Menu left/right step with auto-repeat: returns -1, 0 or +1 from the d-pad left/right or the left stick (magnitude
 // >= 0.8), repeating while held.
-extern "C" int DxSelectionJoy(JOY *joy)
+extern "C" int GetJoySelectionStepX(JOY *joy)
 {
     float g;
     if (!joy->dirX) {
-        int grf = GrfHandleJoyBtn(joy, 0xA000);
+        int grf = HandleJoyButtons(joy, 0xA000);
         if (grf & 0x8000) joy->dirX = -1;
         else if (grf & 0x2000) joy->dirX = 1;
         else if (joy->uDeflectLeft >= 0.8f && __builtin_fabsf(joy->dxLeft) > __builtin_fabsf(joy->dyLeft)) {
@@ -643,17 +643,17 @@ extern "C" int DxSelectionJoy(JOY *joy)
 
 /** @sly2-annot addr=0x1880D8
  * Purpose: Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick
- * Info: proposed name DySelectionJoy (T1); TU joy
+ * Info: proposed name GetJoySelectionStepY (T1); TU joy
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-// Menu up/down step with auto-repeat: as DxSelectionJoy for the d-pad up/down or the stick.
-extern "C" int DySelectionJoy(JOY *joy)
+// Menu up/down step with auto-repeat: as GetJoySelectionStepX for the d-pad up/down or the stick.
+extern "C" int GetJoySelectionStepY(JOY *joy)
 {
     float g;
     if (!joy->dirY) {
-        int grf = GrfHandleJoyBtn(joy, 0x5000);
+        int grf = HandleJoyButtons(joy, 0x5000);
         if (grf & 0x1000) joy->dirY = -1;
         else if (grf & 0x4000) joy->dirY = 1;
         else if (joy->uDeflectLeft >= 0.8f && __builtin_fabsf(joy->dyLeft) > __builtin_fabsf(joy->dxLeft)) {

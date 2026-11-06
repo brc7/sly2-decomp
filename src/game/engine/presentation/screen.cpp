@@ -340,7 +340,7 @@ extern PAD D_002E0D00;
 extern char D_003D9ED0[], D_003DA150[], D_003DA0F0[], D_002DDEC0[], D_00443740[], D_003D9E80[];
 extern char D_003DA0C0[], D_003DA3C0[], D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
 void RemoveGrfusr__Fi(int);
-int GrfHandleJoyBtn(PAD *, int);
+int HandleJoyButtons(PAD *, int);
 void ClearJoyButtons(PAD *, int);
 int func_001B0290(int);
 int FIsDlEmpty__FP2DL(void *);
@@ -375,7 +375,7 @@ void func_001D9648(void *pdl)
         pad = &D_002DFC00;
     else
         pad = &D_002E0D00;
-    if (GrfHandleJoyBtn(pad, 0x800)) {
+    if (HandleJoyButtons(pad, 0x800)) {
         if (!func_001B0290(0))
             ClearJoyButtons(pad, 0x800);
     } else if (D_002DFBC0 & 2) {
@@ -1304,7 +1304,7 @@ typedef struct {
 extern struct G D_003DD490;
 extern int D_002C3258[];
 void func_001DA808(OBJ *);
-int GrfHandleJoyBtn(void *, int);
+int HandleJoyButtons(void *, int);
 void *PpoHero(struct G *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 void SetGadgetMenuState(OBJ *, int);
@@ -1335,7 +1335,7 @@ void UpdateGadgetMenu(OBJ *p)
         return;
     if (p->x10 == 0)
         return;
-    if (p->x30 && GrfHandleJoyBtn(p->x10, 0x10)) {
+    if (p->x30 && HandleJoyButtons(p->x10, 0x10)) {
         SetGadgetMenuState(p, -1);
         return;
     }
@@ -1345,7 +1345,7 @@ void UpdateGadgetMenu(OBJ *p)
         return;
     }
     UpdateScreenStickDir(p);
-    if (GrfHandleJoyBtn(p->x10, 0x7E8)) {
+    if (HandleJoyButtons(p->x10, 0x7E8)) {
         r = func_001DAE20(p, p->x48);
         if (r == 0 || ((r->fl & 1) == 0))
             func_001DA950(p, 1, 0xE2);
@@ -1353,7 +1353,7 @@ void UpdateGadgetMenu(OBJ *p)
             func_001DA950(p, 1, 0x31);
     }
     for (i = 0; i < 3; i++) {
-        if (!GrfHandleJoyBtn(p->x10, D_002C3258[i]))
+        if (!HandleJoyButtons(p->x10, D_002C3258[i]))
             continue;
         r = func_001DAE20(p, p->x48);
         if (r == 0 || !(r->fl & 4)) {
@@ -1992,7 +1992,7 @@ extern char D_002DEB30[];
 extern char D_003DD490[];
 extern char D_002A79A0[], D_002A79D0[], D_002A79D8[];
 void func_001DA808(OBJ *);
-int GrfHandleJoyBtn(void *, int);
+int HandleJoyButtons(void *, int);
 void SetThiefnetTab(OBJ *, int);
 int func_00161798(void *);
 void func_001617E0(void *, int);
@@ -2025,13 +2025,13 @@ extern "C" void UpdateThiefnet(OBJ *p)
         return;
     if (!p->x10)
         return;
-    if (p->x30 && GrfHandleJoyBtn(p->x10, 0x10)) {
+    if (p->x30 && HandleJoyButtons(p->x10, 0x10)) {
         SetThiefnetTab(p, -1);
         return;
     }
     switch (p->x40) {
     case 0:
-        if (GrfHandleJoyBtn(p->x10, 0x40)) {
+        if (HandleJoyButtons(p->x10, 0x40)) {
             if (p->x254 != -1) {
                 int cost = D_002BCD00[p->x254].x8;
                 int have = func_00161798(D_002DEB30);
@@ -2053,7 +2053,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
         }
         break;
     case 1:
-        if (GrfHandleJoyBtn(p->x10, 0x40)) {
+        if (HandleJoyButtons(p->x10, 0x40)) {
             if (p->x258 == -1) {
                 SetSndSourceLo(PsndStartSound(0x36), 0);
             } else {
@@ -2071,9 +2071,9 @@ extern "C" void UpdateThiefnet(OBJ *p)
         }
         break;
     }
-    if (!p->x30 && GrfHandleJoyBtn(p->x10, 0x10))
+    if (!p->x30 && HandleJoyButtons(p->x10, 0x10))
         func_001DA950(p, -1, -1);
-    if (GrfHandleJoyBtn(p->x10, 0x80)) {
+    if (HandleJoyButtons(p->x10, 0x80)) {
         func_001DA950(p, -1, -1);
         SetThiefnetTab(p, p->x40 == 0);
     }
@@ -2910,7 +2910,7 @@ void func_001DA808(OBJ *);
 int func_002127C8(void);
 void SetWidgetState(W *, int);
 void SetWidgetRequest(W *, int);
-int GrfHandleJoyBtn(void *, int);
+int HandleJoyButtons(void *, int);
 void SetJobListPage(OBJ *, int);
 void UpdateScreenStickDir(OBJ *);
 void UpdateJobListWidgets(OBJ *);
@@ -2935,27 +2935,27 @@ void UpdateJobList(OBJ *p)
         SetWidgetRequest(p->pw, 2);
         p->pw->vt->a[16].pfn((char *)p->pw + p->pw->vt->a[16].d);
     }
-    if (GrfHandleJoyBtn(p->x10, 0x800)) {
+    if (HandleJoyButtons(p->x10, 0x800)) {
         SetJobListPage(p, -1);
         return;
     }
     switch (p->x40) {
     case 0:
-        if (GrfHandleJoyBtn(p->x10, 0x10)) {
+        if (HandleJoyButtons(p->x10, 0x10)) {
             SetJobListPage(p, -1);
             return;
         }
-        if (p->c && GrfHandleJoyBtn(p->x10, 0xF0)) {
+        if (p->c && HandleJoyButtons(p->x10, 0xF0)) {
             SetJobListPage(p, 1);
             return;
         }
         break;
     case 1:
-        if (!p->x114 && GrfHandleJoyBtn(p->x10, 0x10)) {
+        if (!p->x114 && HandleJoyButtons(p->x10, 0x10)) {
             SetJobListPage(p, -1);
             return;
         }
-        if (GrfHandleJoyBtn(p->x10, 0xF0)) {
+        if (HandleJoyButtons(p->x10, 0xF0)) {
             SetJobListPage(p, 0);
             return;
         }
@@ -3552,14 +3552,14 @@ extern int D_002C35B8[];
 extern char D_002C35F0[];
 void SelectLanguageItem(void);
 void func_001DA808(OBJ *);
-int GrfHandleJoyBtn(PAD *, int);
-int GrfJoyPressed(PAD *, int);
+int HandleJoyButtons(PAD *, int);
+int GetJoyButtonsPressed(PAD *, int);
 void SetJoyBtnHandled(PAD *, int);
 void func_001B04E0(int);
 void func_001ACC38(void *, int);
 void func_00165E38(void *);
 void StartNewGame(OBJ *);
-int CLanguagesRegion(void);
+int CountRegionLanguages(void);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 void GetRegionLanguages(int *, int **);
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -3582,7 +3582,7 @@ void UpdateTitleScreen(OBJ *p)
         return;
     if (p->pad10 == 0)
         return;
-    if (GrfHandleJoyBtn(p->pad10, 0x800)) {
+    if (HandleJoyButtons(p->pad10, 0x800)) {
         if ((D_002E65E0.xFD50 = D_002E65E0.xFD54) != 0) {
             func_001ACC38(D_002E6550, 1);
             func_00165E38(D_002E65E0.xFD50);
@@ -3591,14 +3591,14 @@ void UpdateTitleScreen(OBJ *p)
         }
         return;
     }
-    if (GrfJoyPressed(p->pad10, 0x100) && (p->pad10->fl & 0x108) == 0x100) {
+    if (GetJoyButtonsPressed(p->pad10, 0x100) && (p->pad10->fl & 0x108) == 0x100) {
         SetJoyBtnHandled(p->pad10, 0x100);
         func_001B04E0(0);
         return;
     }
-    if (CLanguagesRegion() < 2)
+    if (CountRegionLanguages() < 2)
         return;
-    if (!GrfHandleJoyBtn(p->pad10, 0x10))
+    if (!HandleJoyButtons(p->pad10, 0x10))
         return;
     pv = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, 0x5D6, 0);
     if (pv == 0)
@@ -3699,7 +3699,7 @@ extern I D_002E65E0;
 extern "C" { extern char D_002A7A70[]; }
 extern "C" char *strcpy(char *, const char *);
 extern "C" char *strcpy1(char *, const char *);
-extern "C" int CLanguagesRegion(void);
+extern "C" int CountRegionLanguages(void);
 extern "C" { char *PchzFindSwLangstr__FP2SWi(G *, int); }
 extern "C" { CRef RefGetGlobalSaveVar(void *, void *); }
 /** @sly2-annot addr=0x1DDBF0
@@ -3729,7 +3729,7 @@ extern "C" void BuildTitlePromptText(char *pch)
     }
     strcpy1(pch, D_002A7A70);
     strcpy1(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 8));
-    if (CLanguagesRegion() >= 2) {
+    if (CountRegionLanguages() >= 2) {
         strcpy1(pch, D_002A7A70);
         strcpy1(pch, PchzFindSwLangstr__FP2SWi(&D_003DD490, 0x56));
     }
@@ -3871,7 +3871,7 @@ void func_00257250(void *, int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Decref__4CRef(void *);
 void Unlink__t6CGcObj1Z5CVarb(void *);
 void Unlink__t6CGcObj1Z8CSidebag(void *);
-void func_0011CD98(void *, void *);
+void FreeSlotheapSlot(void *, void *);
 void func_00257078(void *, int) __asm__("_$_6CFrame");
 void func_001AE520(void *) __asm__("__builtin_delete");
 
@@ -3882,7 +3882,7 @@ static inline void Release1(R1 *r)
             func_00257250(r->x14, 2);
             Decref__4CRef(r->xC);
             Unlink__t6CGcObj1Z5CVarb(r);
-            func_0011CD98(D_004520D0, r);
+            FreeSlotheapSlot(D_004520D0, r);
         }
     }
 }
@@ -3893,7 +3893,7 @@ static inline void Release4(R4 *r)
         if (--r->cref == 0) {
             Release1(r->p8);
             Unlink__t6CGcObj1Z8CSidebag(r);
-            func_0011CD98(D_00452148, r);
+            FreeSlotheapSlot(D_00452148, r);
         }
     }
 }

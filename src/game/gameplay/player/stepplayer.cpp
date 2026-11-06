@@ -2317,7 +2317,7 @@ void func_0012D020(Q *pq);
 qword func_001A62E8(void *p);
 qword ConvertAloPos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
-float RadLimitLm(LM *plm, float g);
+float ClampAngleToRange(LM *plm, float g);
 M3 LoadRotateMatrixPanTilt(float a, float b);
 M3 BuildAxisAngleRotationMatrix(qword v, float g);
 M3 ConvertXfMat(void *pvFrom, void *pvTo, M3 *pm);
@@ -2431,8 +2431,8 @@ void func_00142AF8(P *p)
         }
         func_0012CFE0(p->pq);
         CalculateVectorPanTilt(ConvertAloPos(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
-        pan = RadLimitLm(&p->lmPan, pan);
-        tilt = RadLimitLm(&p->lmTilt, tilt);
+        pan = ClampAngleToRange(&p->lmPan, pan);
+        tilt = ClampAngleToRange(&p->lmTilt, tilt);
         {
             float t;
             if (p->lmPan.gMax == p->lmPan.gMin)
@@ -2669,14 +2669,14 @@ extern char D_002A4DA0[];
 short NFindSaveSymbol(void *, char *);
 int FFindSaveVar(TRIE *, KEY *, OUT *);
 CRef RefGetSaveVar(TRIE *p, KEY *key, char *pb);
-void *PvAllocSlot__FP8ALLOCREQ(const AREQ &);
+void *AllocFromStack(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
 }
 static inline CRef Lookup(KEY &k) { return RefGetSaveVar(&(*(TRIE *)&g_sw.savevars), &k, D_003D4A60); }
 static inline void *Alloc(int cb)
 {
     AREQ req(cb, 0x10);
-    return PvAllocSlot__FP8ALLOCREQ(req);
+    return AllocFromStack(req);
 }
 /** @sly2-annot addr=0x143410
  * Purpose: Search save trie episode.level.booty.aoidAssembly[0..14] for an entry equal to oid; return an

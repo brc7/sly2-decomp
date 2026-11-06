@@ -167,7 +167,7 @@ extern char D_00000870[];
 extern char D_0025A0C0[];
 extern char D_0025AF90[];
 
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");              /* memset */
 DLV *PdlFromSwCid(SW *psw, CIDV cid);
 void AppendSlEntry(DLV *pdl, void *pv);
@@ -262,7 +262,7 @@ extern "C" BLIPV *PblipNew(SW *psw, BLIPGV *pblipg)
     if (!pblip) return 0;
     if (pblipg->x160 == 2) {
         pblip->ae = (BEZ *)PvAllocSlotheapClear(&psw->slotheapBez);
-        if (!pblip->ae) { func_0011CD98(pslotheap, pblip); return 0; }
+        if (!pblip->ae) { FreeSlotheapSlot(pslotheap, pblip); return 0; }
     }
     pblip->pblipg = pblipg;
     AppendDlEntry(&pblipg->dl, pblip);
@@ -365,7 +365,7 @@ void BLIPG::VUnk01()
 {
     BLIPGV *p = (BLIPGV *)this;
     RemoveSlEntry(PdlFromSwCid(&D_003DD490, CID_1C), p);
-    func_0011CD98(&D_003DD490.slotheapBlipg, p);
+    FreeSlotheapSlot(&D_003DD490.slotheapBlipg, p);
 }
 
 /* MATCH (Claude agent, laneC16 2026-10-23), from v6 (3): the c-copy empty asm made volatile. A non-volatile asm stayed between the li a0,1 and the branch, which stops reorg backward search; volatile it is a sched barrier so the li follows it. One pin (px) + two commented empty asms. */
@@ -869,7 +869,7 @@ struct VU_FLOATR {
 };
 struct DMA { int x0; int x4; int x8; int xC; };
 extern "C" {
-void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
+void *AllocFromStack(const AL &al);
 int func_001A61A0(LOV *plo);
 qwordV func_001A62E8(LOV *plo);
 M3 *func_001A6318(LOV *plo);
@@ -877,7 +877,7 @@ int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
 DMA *PrplAllocRpl(void);
 }
-static inline void *PvAllocStack(int cb) { return PvAllocSlot__FP8ALLOCREQ(AL(cb, 0x10)); }
+static inline void *PvAllocStack(int cb) { return AllocFromStack(AL(cb, 0x10)); }
 /* earlyclobber output (else branch: vsub vf3 distinct from its inputs); the 2nd "j"(b) is allocation-only */
 static inline qwordV SubE(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=&j"(r) : "j"(a), "j"(b), "j"(b)); return r; }
 /* "r"(z) inputs below are allocation-only: they only add scheduler dependences (see the comment in the gather loop) */

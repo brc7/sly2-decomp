@@ -54,7 +54,7 @@ void TransformPointsVu0(const MATRIX4 *, unsigned int, const qword *, qword *);
 M3 InvertMatrix3Cofactor(const M3 *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(REQ *);
+void *AllocFromStack(REQ *);
 int PruneBspBySphere(void *, int, qword, int *, Entry **, float);
 }
 
@@ -235,7 +235,7 @@ extern "C" int func_001665F0(GEOM*p,GEOMTREE*g,int index,int max,EDGE**out){
  FRAME frame;int capacity,limit,count,i;Entry*first,*end;
  STACKSCOPE_ctor(&frame);
  capacity=NMin(g->count,0x1555);limit=capacity;REQ req(capacity*12,16);
- end=first=(Entry*)PvAllocSlot__FP8ALLOCREQ(&req);
+ end=first=(Entry*)AllocFromStack(&req);
  if(PruneBspBySphere(g->tree,0x7FFFFFFF,p->apos[index],&limit,&end,1.0f)!=2){STACKSCOPE_ctor_1AE4A0(&frame,2);return 0;}
  int ne=end-first;
  count=0;

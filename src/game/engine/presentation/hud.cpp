@@ -606,7 +606,7 @@ extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int func_002121C8(struct S *p);
 void UpdateWidget(struct S *p);
 int FScreenShown(void *);
-int GrfHandleJoyBtn(void *, int);
+int HandleJoyButtons(void *, int);
 void DecrementSwHandsOff(struct G *, int);
 void func_00162DF8(void *);
 /** @sly2-annot addr=0x211D38
@@ -624,7 +624,7 @@ void func_00211D38(struct S *p)
         return;
     UpdateWidget(p);
     if (p->x58 == 2 && 0.5f < g_clock.tReal - p->x5C && !FScreenShown(D_002E6550)
-        && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
+        && !FScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
         if (p->x114 == 0 && D_003DD490.x3B0C) {
             D_002DD318++;
@@ -999,7 +999,7 @@ extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 extern "C" BIS *CStreamBis_ctor(BIS *,int,void *,int);
 extern "C" void func_00184950(BIS *,int) __asm__("_$_10CStreamBis");
 extern "C" void func_00258248(KEY *);
-extern "C" void *PvAllocSlot__FP8ALLOCREQ(MSG *);
+extern "C" void *AllocFromStack(MSG *);
 extern "C" int OpenStreamFromFileKey(BIS *,KEY *);
 extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
 extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
@@ -1057,7 +1057,7 @@ extern "C" void LoadWidgetSprites(S *p) {
     MSG *msg=&work.tmp.msg;
 
     msg->cb=0x10000;msg->alignment=0x40;
-    CStreamBis_ctor(bs,0x10000,PvAllocSlot__FP8ALLOCREQ(msg),0);
+    CStreamBis_ctor(bs,0x10000,AllocFromStack(msg),0);
     pk->kind=2;
     func_00258248(pk);
     if(!SetKey(&work.key,p->file)||!OpenStreamFromFileKey(bs,pk))goto fail;
@@ -5021,7 +5021,7 @@ struct STRINGGEN {
 };
 extern "C" {
 LINEAR *__11CLinearHeapiPUc(LINEAR *,int,void *);
-POOL *func_0011CCA8(POOL *,int,int,int);
+POOL *InitSlotheap(POOL *,int,int,int);
 void BuildContextText(char *,void *,void *);
 }
 extern "C" { extern LINEAR D_003E1C70; }
@@ -5261,12 +5261,12 @@ extern "C" void StaticInit_hud(int initialize,int priority){
   STRINGGEN special;
   special.id=0x5C1;special.get=BuildContextText;special.context=D_002C40A0;
   *destination=special;
-  if(++D_002DD2E0==1)func_0011CCA8(&D_004520A8,0x14,0x2000,0x10);
-  if(++D_002DD2E4==1)func_0011CCA8(&D_004520D0,0x18,0x800,0x10);
-  if(++D_002DD2E8==1)func_0011CCA8(&D_004520F8,0x28,0x200,0x10);
-  if(++D_002DD2EC==1)func_0011CCA8(&D_00452120,0x1C,0x800,0x10);
-  if(++D_002DD2F0==1)func_0011CCA8(&D_00452148,0xC,0xC8,0x10);
-  if(++D_002DD2F4==1)func_0011CCA8(&D_00452170,0x14,0x100,0x10);
+  if(++D_002DD2E0==1)InitSlotheap(&D_004520A8,0x14,0x2000,0x10);
+  if(++D_002DD2E4==1)InitSlotheap(&D_004520D0,0x18,0x800,0x10);
+  if(++D_002DD2E8==1)InitSlotheap(&D_004520F8,0x28,0x200,0x10);
+  if(++D_002DD2EC==1)InitSlotheap(&D_00452120,0x1C,0x800,0x10);
+  if(++D_002DD2F0==1)InitSlotheap(&D_00452148,0xC,0xC8,0x10);
+  if(++D_002DD2F4==1)InitSlotheap(&D_00452170,0x14,0x100,0x10);
  }
 }
 } // namespace M_StaticInit_hud

@@ -1188,7 +1188,7 @@ struct L { char pad[0xE0]; int xE0; };
 extern "C" {
 extern qword D_002A2DD0;
 qword func_001A62E8(void *p);
-void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
+void *AllocFromStack(MSG *pmsg);
 int func_001F7E08(L *pl, void *pfn, int n, void *pv);
 int ClsgClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void func_00229D60(void);
@@ -1219,7 +1219,7 @@ int func_001A2788(O *po, L *pl, qword *pv)
     MSG *pmsg = &msg;
     pmsg->cb = pl->xE0 * 4;
     pmsg->nKind = 0x10;
-    void *pbuf = PvAllocSlot__FP8ALLOCREQ(pmsg);
+    void *pbuf = AllocFromStack(pmsg);
     int n = func_001F7E08(pl, (void *)func_00229D60, 0, pbuf);
     if (!ClsgClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
         return 0;

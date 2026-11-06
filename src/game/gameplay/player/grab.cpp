@@ -483,7 +483,7 @@ void func_00195A00(void *, int, int, ACTOR *);
 void func_0019CC50(void *, int, int, int);
 int FAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
-void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);                         // stack allocation in the current STACKSCOPE
+void *AllocFromStack(SWALLOC *);                         // stack allocation in the current STACKSCOPE
 qword func_001A62E8(ACTOR *);                           // world position
 int FFilterSoPair(void *, SO *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
@@ -505,7 +505,7 @@ void FreeSwXpList(SW *, XP *) __asm__("FreeSwXpList__FP2SWP2XP");
 static inline void SetControl(ACTOR *p, int n) { VTE &v = p->vt[88]; ((void (*)(void *, int))v.fn)((char *)p + v.delta, n); }
 static inline int CanAct(ACTOR *p, int n) { VTE &v = p->vt[99]; return ((int (*)(void *, int))v.fn)((char *)p + v.delta, n); }
 static inline void Notify(ACTOR *p, ACTOR *q) { VTE &v = p->vt[51]; ((void (*)(void *, ACTOR *))v.fn)((char *)p + v.delta, q); }
-static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return PvAllocSlot__FP8ALLOCREQ(&swalloc); }
+static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in func_0014F110).

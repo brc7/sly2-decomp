@@ -526,7 +526,7 @@ extern "C" LEAPV *func_0020C010(void) {
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
 extern "C" void func_0020C030(LEAPV *p) {
-    func_0011CD98(&g_sw.slotheapLeap, p);
+    FreeSlotheapSlot(&g_sw.slotheapLeap, p);
 }
 
 /** @sly2-annot addr=0x20C058
@@ -841,7 +841,7 @@ extern "C" DIRACT *func_0020CA00(void) {
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
 extern "C" void func_0020CA20(DIRACT *p) {
-    func_0011CD98(&g_sw.slotheapDiract, p);
+    FreeSlotheapSlot(&g_sw.slotheapDiract, p);
 }
 
 /** @sly2-annot addr=0x20CA48
