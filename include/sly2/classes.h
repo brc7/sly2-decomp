@@ -482,9 +482,9 @@ typedef char assert_CID47_size[sizeof(CID47) == 0x110 ? 1 : -1];
 struct EXPLG : EXPL
 {
     char padE0[0xF0 - 0xE0];
+    virtual int CploChildren(LO ***paplo) __asm__("CploExplgChildren");   /* slot 28 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetExplgClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExplgFromBrx");   /* slot 14 */
-    virtual int CploChildren(LO ***paplo) __asm__("CploExplgChildren");   /* slot 28 */
     virtual void Clone(LO *ploBase) __asm__("CloneExplg");   /* slot 41 */
     virtual void VSlot51() __asm__("ExplodeExplgExplso");   /* slot 51 */
 };
@@ -494,8 +494,8 @@ typedef char assert_EXPLG_size[sizeof(EXPLG) == 0xF0 ? 1 : -1];
 struct EXPLS : EXPLO
 {
     char padF0[0x110 - 0xF0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetExplsClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleExplsMessage");   /* slot 5 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetExplsClassDesc");   /* slot 6 */
     virtual void VSlot51() __asm__("ExplodeExplsExplso");   /* slot 51 */
     virtual void VSlot52() __asm__("FireExplsExplso");   /* slot 52 */
 };

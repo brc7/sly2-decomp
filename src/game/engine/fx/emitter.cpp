@@ -2081,8 +2081,9 @@ void LoadExplgFromBrx(struct S *p, void *q)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-extern "C" int CploExplgChildren(EXPLGV *pexplg, LO ***paplo)
+int EXPLG::CploChildren(LO ***paplo)
 {
+    EXPLGV *pexplg = (EXPLGV *)this;
     *paplo = pexplg->aplo;
     return pexplg->cplo;
 }
@@ -2204,8 +2205,12 @@ void UnsubscribeLoObject(void *pv, void *po);
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-void HandleExplsMessage(struct O *o, int msgid, void *pv)
+} } // namespace M_HandleExplsMessage
+void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
+    using namespace M_HandleExplsMessage;
+    M_HandleExplsMessage::O *o = (M_HandleExplsMessage::O *)this;
+    int msgid = (int)msgid_m;
     if (msgid == 1) {
         if (pv == o->p100) {
             UnsubscribeLoObject(pv, o);
@@ -2216,7 +2221,6 @@ void HandleExplsMessage(struct O *o, int msgid, void *pv)
         }
     }
 }
-} } // namespace M_HandleExplsMessage
 
 namespace M_ExplodeExplsExplso { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
