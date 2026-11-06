@@ -1646,8 +1646,8 @@ typedef char assert_CID108_size[sizeof(CID108) == 0x170 ? 1 : -1];
 struct CID112 : LO
 {
     char pad50[0xC0 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid112ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001D6A90");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid112ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID112_size[sizeof(CID112) == 0xC0 ? 1 : -1];
 
