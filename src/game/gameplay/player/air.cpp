@@ -1871,16 +1871,11 @@ void UpdateJtAirInput(JTAIR *air)
             case 0x16:
                 break;
             default:
-            if (air->fCanDoubleJump)
+            if (air->fCanDoubleJump && pctl->GrfPressedWithin(BUTTON_JUMP, 0.0f) &&
+                !FJtLandsWithin(0.075f, air->pstepplayer))
             {
-                if (pctl->GrfPressedWithin(BUTTON_JUMP, 0.0f))
-                {
-                    if (!FJtLandsWithin(0.075f, air->pstepplayer))
-                    {
-                        pctl->ClearJoyPressed(BUTTON_JUMP);
-                        SetJtAirJump(air, 6, air->n2, 0);
-                    }
-                }
+                pctl->ClearJoyPressed(BUTTON_JUMP);
+                SetJtAirJump(air, 6, air->n2, 0);
             }
             if (pctl->GrfPressedWithin(BUTTON_ACTION, 0.0f))
             {
@@ -1889,14 +1884,12 @@ void UpdateJtAirInput(JTAIR *air)
                 if (air->nState != state)
                     pctl->ClearJoyPressed(BUTTON_ACTION);
             }
-            if (pctl->GrfPressedWithin(BUTTON_RUN, 0.0f))
+            if (pctl->GrfPressedWithin(BUTTON_RUN, 0.0f) &&
+                air->pstepplayer == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, air->pstepplayer))
             {
-                if (air->pstepplayer == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, air->pstepplayer))
-                {
-                    ChargeGadgetMp(air->pstepplayer, 0x1B);
-                    pctl->ClearJoyPressed(BUTTON_RUN);
-                    D_002E1E40->StartGadget(0x1B);
-                }
+                ChargeGadgetMp(air->pstepplayer, 0x1B);
+                pctl->ClearJoyPressed(BUTTON_RUN);
+                D_002E1E40->StartGadget(0x1B);
             }
             break;
         }
@@ -1996,13 +1989,10 @@ void UpdateJtAirInput(JTAIR *air)
                     ReturnJtToSafePlace(air->pstepplayer, 0);
                 break;
             case 0x11:
-                if (D_002DDED0.t - air->tState > 0.25f)
+                if (D_002DDED0.t - air->tState > 0.25f && pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
                 {
-                    if (pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
-                    {
-                        SetJtAirJump(air, 3, 0, 0);
-                        break;
-                    }
+                    SetJtAirJump(air, 3, 0, 0);
+                    break;
                 }
                 if (((SO *)air->pedge->plo)->ptree == 0)
                     SetJtAirState(air, 4, 0);
@@ -2011,22 +2001,17 @@ void UpdateJtAirInput(JTAIR *air)
                     STEPPLAYER *player = air->pstepplayer;
                     player->dposUnk1010 = PosSmooth(player->dposUnk1010, D_002A2DD0, D_002DDED0.dt, &D_002BF820, 0);
                     *(qword *)&vec = ConvertXfPos(air->pedge->pxf, 0, air->posEdge);
-                    if (D_002DDED0.t - air->tState > 0.03f)
+                    if (D_002DDED0.t - air->tState > 0.03f &&
+                        !FCheckJtEdgeGrab(air, (SOPART *)air->pedge, *(qword *)&vec, air->nUnk100, (void *)air->nUnk104, &air->normalEdge))
                     {
-                        if (!FCheckJtEdgeGrab(air, (SOPART *)air->pedge, *(qword *)&vec, air->nUnk100, (void *)air->nUnk104, &air->normalEdge))
-                        {
-                            SetJtAirState(air, 4, 0);
-                            break;
-                        }
+                        SetJtAirState(air, 4, 0);
+                        break;
                     }
                     SetStepRadTargetVec(air->pstepplayer, QwScale(air->normalEdge, VuFloat(-1.0f)));
-                    if (pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f))
+                    if (pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && air->pstepplayer->FCanUseGadget(3))
                     {
-                        if (air->pstepplayer->FCanUseGadget(3))
-                        {
-                            pctl->ClearJoyPressed(BUTTON_LOOK);
-                            StartJtMode(&air->pstepplayer->jtmode, 0, 0, 0);
-                        }
+                        pctl->ClearJoyPressed(BUTTON_LOOK);
+                        StartJtMode(&air->pstepplayer->jtmode, 0, 0, 0);
                     }
                 }
                 break;
@@ -2079,15 +2064,12 @@ void UpdateJtAirInput(JTAIR *air)
                         break;
                     }
                 }
-                if (air->fCanDoubleJump)
+                if (air->fCanDoubleJump && air->pstepplayer->pxfUnk58->vUnkB0.z < 0.0f)
                 {
-                    if (air->pstepplayer->pxfUnk58->vUnkB0.z < 0.0f)
-                    {
-                        ApplyAsegCur(air->apasegDoubleJump[0], (ALO *)air->pstepplayer, 0.0f, 1.0f, 1, &air->pstepplayer->pasegaUnk1030);
-                        air->fCanDoubleJump = 0;
-                        air->pstepplayer->SetVelocity(JtPlanLaunchVz(air, 6));
-                        break;
-                    }
+                    ApplyAsegCur(air->apasegDoubleJump[0], (ALO *)air->pstepplayer, 0.0f, 1.0f, 1, &air->pstepplayer->pasegaUnk1030);
+                    air->fCanDoubleJump = 0;
+                    air->pstepplayer->SetVelocity(JtPlanLaunchVz(air, 6));
+                    break;
                 }
                 if (air->placeTarget.pspot != 0 || air->placeTarget.ppart != 0)
                 {
