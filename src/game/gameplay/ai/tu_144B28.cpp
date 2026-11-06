@@ -156,7 +156,13 @@ static __inline__ float LenXY2(qword d)
 // Clamps g into a range.
 static __inline__ float GClampR(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
 // True if two points are farther apart (horizontally) than the .data limit.
-static __inline__ int FFar(qword a, qword b) { qword d; float lim = D_002BD2F0; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return lim < LenXY2(d); }
+static __inline__ int FFar(qword a, qword b)
+{
+    qword d;
+    float lim = D_002BD2F0;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
+    return lim < LenXY2(d);
+}
 // VU0 helper: dot product.
 static __inline__ qword Dot(qword a, qword b) { register qword r __asm__("vf2"); register qword t __asm__("vf4");
         __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z"
@@ -1382,7 +1388,18 @@ static __inline__ float GLimitLm(struct LM *plm, float g)
 }
 /* b: allocation-only "j" input (Claude agent). It keeps b live past the clamp, so b gets its own early qmtc2 instead of
    staying in v0 until the vsub (then the clq clear can use v0 like the target). */
-static __inline__ float GAtanXY2(qword d, qword b) { register qword r __asm__("v1"); /* register pin (Claude agent) */ float x; __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d), "j"(b)); x = GetX(r); { float y; __asm__("prot3w %0,%1" : "=r"(y) : "0"(r)); return atan2f(y, x); } }
+static __inline__ float GAtanXY2(qword d, qword b)
+{
+    register qword r __asm__("v1"); /* register pin (Claude agent) */
+    float x;
+    __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d), "j"(b));
+    x = GetX(r);
+    {
+        float y;
+        __asm__("prot3w %0,%1" : "=r"(y) : "0"(r));
+        return atan2f(y, x);
+    }
+}
 /* y via an int + mtc1 (as in CalculateVectorPanTilt): no GPR output reload here, which keeps reload's round-robin on the target's v0 for case 3 */
 static __inline__ float GAtanR(qword d)
 {
