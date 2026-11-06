@@ -1913,8 +1913,10 @@ typedef char assert_CID101_size[sizeof(CID101) == 0x1B0 ? 1 : -1];
 /* 130 WIDGET130 (0x130); vtable 0x2C9670, 50 slots */
 struct WIDGET130 : WIDGET
 {
-    char pad110[0x130 - 0x110];
-    WIDGET130() __asm__("func_00211C58");     /* out of line: presentation/hud/func_00211C58.cpp */
+    int anUnk110[4];                          /* +0x110 set to -1 by the constructor */
+    int nUnk120;                              /* +0x120 set to -1 by the constructor */
+    char pad124[0x130 - 0x124];
+    WIDGET130() __asm__("func_00211C58");     /* out of line: engine/presentation/hud.cpp */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget130ClassDesc");   /* slot 6 */
 };
 typedef char assert_WIDGET130_size[sizeof(WIDGET130) == 0x130 ? 1 : -1];

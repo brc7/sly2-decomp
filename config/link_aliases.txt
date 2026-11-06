@@ -27,7 +27,6 @@ _vt$Q215M_func_0012E2382C6 = D_002CA720;   # engine/anim/act.cpp
 _vt$Q215M_func_0012E2382C7 = D_002D2E58;   # engine/anim/act.cpp
 _vt$Q215M_func_0012E2382C8 = D_002CA6E0;   # engine/anim/act.cpp
 _vt$Q215M_func_0012E2382C9 = D_002CA6A0;   # engine/anim/act.cpp
-_vt$Q215M_func_00211C581D = D_002C9670;   # engine/presentation/hud.cpp
 _vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
 # destructors of view classes -> the C function they stand for (an asm label would drop the call) (3 lines)
