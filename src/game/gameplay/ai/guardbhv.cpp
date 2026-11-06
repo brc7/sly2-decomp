@@ -306,9 +306,9 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct A { char pad[0x74]; float duration; };
 struct B { char pad[0x1C]; float time; };
-struct E { int n0; struct A *aseg; struct B *asega; int nC; };
+struct E { int kind; struct A *aseg; struct B *asega; int flags; };
 struct O { char pad[0x1A4]; int animGroundFlag; char pad2[0xFD0 - 0x1A8]; char mover[0x20]; float walkPhase; float walkPhaseTime; };
-struct S { char pad[0x10]; struct O *guard; char pad2[0x1C]; int state; float stateTime; char pad3[8]; struct E *pe; };
+struct S { char pad[0x10]; struct O *guard; char pad2[0x1C]; int state; float stateTime; char pad3[8]; struct E *binding; };
 void SetStepguardMoverDriver(void *p, struct S *ps);
 void ResetStepguardMover(void *p, struct S *ps);
 int StepguardHasSgf(struct O *o, int n);
@@ -325,22 +325,22 @@ void SetBhvanimState(struct S *behavior, int n) {
     case 0: {
         float f;
         SetStepguardMoverDriver(behavior->guard->mover, behavior);
-        if (behavior->pe->n0 == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING) && D_002DDED0.t == behavior->guard->walkPhaseTime)
-            f = behavior->pe->aseg->duration * behavior->guard->walkPhase;
+        if (behavior->binding->kind == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING) && D_002DDED0.t == behavior->guard->walkPhaseTime)
+            f = behavior->binding->aseg->duration * behavior->guard->walkPhase;
         else
             f = 0.0f;
-        StartAnimBinding(behavior->pe, behavior->guard, behavior->pe->nC | 1, f);
+        StartAnimBinding(behavior->binding, behavior->guard, behavior->binding->flags | 1, f);
         break;
     }
     case 1:
         ClearBhvBusy(behavior);
-        if (behavior->pe) {
-            if (behavior->pe->n0 == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
-                behavior->guard->walkPhase = behavior->pe->asega->time / behavior->pe->aseg->duration;
+        if (behavior->binding) {
+            if (behavior->binding->kind == 0 && StepguardHasSgf(behavior->guard, SGF_MOVING)) {
+                behavior->guard->walkPhase = behavior->binding->asega->time / behavior->binding->aseg->duration;
                 behavior->guard->walkPhaseTime = D_002DDED0.t;
             }
-            StopAnimBinding(behavior->pe);
-            behavior->pe = 0;
+            StopAnimBinding(behavior->binding);
+            behavior->binding = 0;
             ResetStepguardMover(behavior->guard->mover, behavior);
         }
         behavior->guard->animGroundFlag = 0;
@@ -395,7 +395,7 @@ struct A {
 };
 struct O { char pad[0x30]; void *target; char pad2[0x1C]; void *parent; };
 struct S { char pad[0x10]; struct A *guard; char pad2[0x2C]; void *binding; };
-struct M { struct ANIMATION *animation; float f4; int n8; };
+struct M { struct ANIMATION *animation; float time; int event; };
 struct ANIMATION *GetAnimBindingInstance(void *p);
 qword func_00204E38(struct A *a, struct ANIMATION *animation, float f);
 void LockStepguardMover(void *p, struct S *s);
@@ -417,10 +417,10 @@ int HandleBhvanimMessage(struct S *behavior, int msg, struct M *pm) {
     if (!behavior->binding) return 0;
     animation = GetAnimBindingInstance(behavior->binding);
     if (animation != pm->animation) return 0;
-    switch (pm->n8) {
+    switch (pm->event) {
     case 0x15E:
         {
-            qword v = func_00204E38(behavior->guard, animation, pm->f4);
+            qword v = func_00204E38(behavior->guard, animation, pm->time);
             qword n, r;
             U u;
             struct A *a;
@@ -466,7 +466,7 @@ int HandleBhvanimMessage(struct S *behavior, int msg, struct M *pm) {
             void *g = PpoHero(&D_003DD490);
             struct O *o = FindStepBhv(behavior->guard, CID_BHVHIT);
             if (o && FFindLoParent(o->parent, g) && g == D_002F7900) {
-                switch (pm->n8) {
+                switch (pm->event) {
                 case 0x35: func_0014F750(D_002DDF40, 0); break;
                 case 0x34: TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f); break;
                 }
@@ -498,8 +498,8 @@ typedef char layout_S_p40[((unsigned)&((struct S*)0)->binding==0x40)?1:-1];
 typedef char layout_O_p30[((unsigned)&((struct O*)0)->target==0x30)?1:-1];
 typedef char layout_O_parent[((unsigned)&((struct O*)0)->parent==0x50)?1:-1];
 typedef char layout_M_animation[((unsigned)&((struct M*)0)->animation==0x0)?1:-1];
-typedef char layout_M_f4[((unsigned)&((struct M*)0)->f4==0x4)?1:-1];
-typedef char layout_M_n8[((unsigned)&((struct M*)0)->n8==0x8)?1:-1];
+typedef char layout_M_f4[((unsigned)&((struct M*)0)->time==0x4)?1:-1];
+typedef char layout_M_n8[((unsigned)&((struct M*)0)->event==0x8)?1:-1];
 } } // namespace M_BHVANIM_FHandleMessage
 
 // 0x174EA0 GetBhvanimGroundProbeFlags
@@ -622,7 +622,7 @@ void CloseBhvidle(struct S *behavior)
 // 0x1750E0 HandleBhvidleMessage
 namespace M_BHVIDLE_FHandleMessage { extern "C" {
 struct M; struct T; struct S;
-struct M { int n0; int n4; int n8; };
+struct M { int animation; int time; int event; };
 struct T { char pad[0x5C]; int xfRolesUngrounded; char pad2[0x1A4 - 0x60]; int animGroundFlag; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; int lookAt; char pad3[4]; void *binding; };
 int GetAnimBindingInstance(void *p);
@@ -632,8 +632,8 @@ void func_002303A0(struct T *t, int a, int b);
 // else the BHVANIM handler.
 int HandleBhvidleMessage(struct S *behavior, int msg, struct M *pm)
 {
-    if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->n0) {
-        switch (pm->n8) {
+    if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->animation) {
+        switch (pm->event) {
         case 0x29:
             behavior->guard->animGroundFlag = 1;
             func_002303A0(behavior->guard, behavior->guard->xfRolesUngrounded, 2);
@@ -680,7 +680,7 @@ void BHVSTRIKE::Start()
 namespace M_UpdateBhvstrike { extern "C" {
 struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct T { int a, b; void *p8; };
+struct T { int a, b; void *payload; };
 struct S { char pad[0x38]; void *lookAt; int pad2; struct T *binding; char pad3[0xC]; int isLeapEnabled; };
 void UpdateBhvanim(struct S *p);
 qword func_001A62E8(void *p);
@@ -690,11 +690,11 @@ void func_0020C6F8(void *p, qword q);
 void UpdateBhvstrike(struct S *behavior)
 {
     UpdateBhvanim(behavior);
-    if (!behavior->binding || !behavior->binding->p8)
+    if (!behavior->binding || !behavior->binding->payload)
         behavior->isLeapEnabled = 0;
     if (behavior->isLeapEnabled) {
         struct T *t = behavior->binding;
-        func_0020C6F8(t->p8, func_001A62E8(behavior->lookAt));
+        func_0020C6F8(t->payload, func_001A62E8(behavior->lookAt));
     }
 }
 } } // namespace M_UpdateBhvstrike
@@ -712,9 +712,9 @@ void CloseBhvstrike(struct S *behavior) { CloseBhvanim(behavior); behavior->guar
 // 0x1752F0 HandleBhvstrikeMessage
 namespace M_BHVSTRIKE_FHandleMessage { extern "C" {
 struct M; struct T; struct P; struct S;
-struct M { int n0; int n4; int n8; };
+struct M { int animation; int time; int event; };
 struct T { char pad[0xF3C]; int isEngagedBusy; };
-struct P { char pad[8]; int n8; };
+struct P { char pad[8]; int payload; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x2C]; struct P *binding; char pad3[0xC]; int isLeapEnabled; };
 int GetAnimBindingInstance(void *p);
 int HandleBhvanimMessage(struct S *p, int msg, struct M *pm);
@@ -722,11 +722,11 @@ void func_0020C760(int n);
 // 0x1752F0: BHVSTRIKE vtable slot 13 (HandleMessage): ASEG events 0x2D/0x2E open/close the hit window, 0x30
 // releases the leap; else the BHVANIM handler.
 int HandleBhvstrikeMessage(struct S *behavior, int msg, struct M *pm) {
-    if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->n0) {
-        switch (pm->n8) {
+    if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->animation) {
+        switch (pm->event) {
         case 0x2D: behavior->guard->isEngagedBusy = 1; return 1;
         case 0x2E: behavior->guard->isEngagedBusy = 0; return 1;
-        case 0x30: behavior->isLeapEnabled = 0; func_0020C760(behavior->binding->n8); return 1;
+        case 0x30: behavior->isLeapEnabled = 0; func_0020C760(behavior->binding->payload); return 1;
         }
     }
     return HandleBhvanimMessage(behavior, msg, pm);
