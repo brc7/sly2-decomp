@@ -5026,7 +5026,7 @@ void BuildContextText(char *,void *,void *);
 }
 extern "C" { extern LINEAR D_003E1C70; }
 extern "C" { extern HEAP D_003E1C80; }
-extern "C" { extern char D_003E21A0[],D_002CA578[]; }
+extern "C" { extern char D_003E21A0[],D_002CA578[] __asm__("_vt$7CSwHeap"); }
 extern "C" { extern STRINGGEN D_003E1C88[108]; }
 extern "C" { extern void *D_002C40A0; }
 extern "C" { extern int D_002DD2E0 __asm__("__sn_t9CSlotPool2i20i8192$s_pool"),D_002DD2E4 __asm__("__sn_t9CSlotPool2i24i2048$s_pool"),D_002DD2E8 __asm__("__sn_t9CSlotPool2i40i512$s_pool"),D_002DD2EC __asm__("__sn_t9CSlotPool2i28i2048$s_pool"),D_002DD2F0 __asm__("__sn_t9CSlotPool2i12i200$s_pool"),D_002DD2F4 __asm__("__sn_t9CSlotPool2i20i256$s_pool"); }

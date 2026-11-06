@@ -12,6 +12,19 @@ public:
     virtual void Free(void *pv);                          /* slot 3 */
 };
 
+/* The level heap (heap.cpp, vtable 0x2CA578): PvAlloc takes cb bytes from the SW allocator, PvRealloc forwards to
+   PvAlloc with a fixed alignment (cbAlign, -1 = use the caller's). The virtuals keep their C names as asm labels; heap.cpp
+   defines PvAlloc, the key function. Defined before CLinearHeap: heap.cpp emits CLinearHeap's vtable first. */
+class CSwHeap : public HEAP
+{
+public:
+    /* 0x04 */ int cbAlign;
+
+    virtual void *PvAlloc(int cb, int n) __asm__("CSwHeap_PvAlloc");
+    virtual void *PvRealloc(void *pv, int cb, int n) __asm__("CSwHeap_PvRealloc");
+    virtual void Free(void *pv) __asm__("CSwHeap_Free");
+};
+
 class CLinearHeap : public HEAP
 {
 public:

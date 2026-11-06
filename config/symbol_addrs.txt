@@ -4363,3 +4363,4 @@ _vt$19CLoadCollectorArray = 0x2CBE50; // type:data size:0x18
 // the byte queues' outputs (mpeg.cpp)
 _vt$15CQueueOutputIpu = 0x2D4220; // type:data size:0x20
 _vt$15CQueueOutputIop = 0x2D4240; // type:data size:0x20
+_vt$7CSwHeap = 0x2CA578; // type:data size:0x28
