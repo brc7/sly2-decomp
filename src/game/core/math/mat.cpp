@@ -1017,7 +1017,7 @@ static inline float GAbs(float g) { return __builtin_fabsf(g); }
 // pivoting, using a scratch copy on the stack. Returns whether the matrix was invertible.
 int FInvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
 {
-    int fRet = 0;
+    int isInvertible = 0;
     STACKSCOPE frame;
     int i, j, k;
     int cb = size * stride * 4;
@@ -1039,7 +1039,7 @@ int FInvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
             }
         }
         if (gMax < 1e-4f)
-            goto LDone;
+            goto done;   /* singular (an early return here duplicates STACKSCOPE's cleanup: no match) */
         if (j != i) {
             for (k = 0; k < size; k++) {
                 g = a[k * stride + i]; a[k * stride + i] = a[k * stride + j]; a[k * stride + j] = g;
@@ -1068,9 +1068,9 @@ int FInvertMatrix__FiPfT1(int stride, int size, float *src, float *dst)
         for (j = 0; j < size; j++)
             dst[j * stride + i] /= f;
     }
-    fRet = 1;
-LDone:
-    return fRet;
+    isInvertible = 1;
+done:
+    return isInvertible;
 }
 
 /** @sly2-annot addr=0x11C8E8
