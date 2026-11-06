@@ -89,7 +89,7 @@ void PropagateSais(FRM *pfrm);
 void PropagateSaisF(FRM *pfrm, int f) __asm__("PropagateSais");
 void RebuildFrameGifs__Fv();
 void sceDmaSync(sceDmaChan *pch, int a, int b);
-int FIsDlEmpty__FP2DL(DL*);
+int IsDlEmpty__FP2DL(DL*);
 void RemoveDlEntry__FP2DLPv(DL*,void*);
 void ClearPhase(int phase);
 }
@@ -277,7 +277,7 @@ void RenderFrame(FRM *p, int f)
  * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#frm-0x1607a0-0x1613a8
  * @end-sly2-annot */
 void ClearPendingFrame(FRM *frame){
- if(!FIsDlEmpty__FP2DL(&frame->dl34)){
+ if(!IsDlEmpty__FP2DL(&frame->dl34)){
   DLI iter(&frame->dl34);
   for(LOV*object=(LOV*)iter.Next();object;object=(LOV*)iter.Next()){
    RemoveDlEntry__FP2DLPv(&frame->dl34,object);
@@ -285,7 +285,7 @@ void ClearPendingFrame(FRM *frame){
   }
   ClearDl__FP2DL(&frame->dl34);
  }
- if(!FIsDlEmpty__FP2DL(&frame->dl40)){
+ if(!IsDlEmpty__FP2DL(&frame->dl40)){
   DLI iter(&frame->dl40);
   for(Y*object=(Y*)iter.Next();object;object=(Y*)iter.Next()){
    if(object->storage)func_0011CD98(&g_sw.slotheapUnk40a0,object->storage);

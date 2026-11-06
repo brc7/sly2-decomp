@@ -202,7 +202,7 @@ void AddVifFlusha__4VIFS(VIFS *p);
 void AppendDlEntry(DLV *pdl, void *pv) __asm__("AppendDlEntry__FP2DLPv");                          /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DLV *pdl, void *pv) __asm__("RemoveDlEntry__FP2DLPv");                          /* RemoveDlEntry__FP2DLPv */
 void InitDl(DLV *pdl, int ibDle) __asm__("InitDl__FP2DLi");                                /* InitDl__FP2DLi */
-int FIsDlEmpty(DLV *pdl) __asm__("FIsDlEmpty__FP2DL");                                        /* FIsDlEmpty__FP2DL */
+int IsDlEmpty(DLV *pdl) __asm__("IsDlEmpty__FP2DL");                                        /* IsDlEmpty__FP2DL */
 int CPvDl(DLV *pdl) __asm__("CPvDl__FP2DL");                                             /* CPvDl__FP2DL */
 int FIsBasicDerivedFrom(BASIC *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");                /* FIsBasicDerivedFrom__FP5BASIC3CID */
 int FFloatsNear(float a, float b, float eps);                   /* FFloatsNear__Ffff */
@@ -902,7 +902,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
     STACKSCOPE_ctor(&frame);
     int cLight;
     LIGHTM *aLight;
-    if (p->plo != 0 && FIsDlEmpty((DLV *)&p->plo->x11C) == 0) {
+    if (p->plo != 0 && IsDlEmpty((DLV *)&p->plo->x11C) == 0) {
         cLight = 0;
         aLight = (LIGHTM *)PvAllocStack(CPvDl((DLV *)&p->plo->x11C) << 6);
         LIGHTM *pl = aLight;

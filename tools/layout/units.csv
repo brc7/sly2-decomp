@@ -939,7 +939,7 @@ PrependDlEntry__FP2DLPv,0x11A250,dl
 InsertDlEntryBefore__FP2DLPvT1,0x11A280,dl
 RemoveDlEntry__FP2DLPv,0x11A2E8,dl
 FFindDlEntry__FP2DLPv,0x11A380,dl
-FIsDlEmpty__FP2DL,0x11A3B0,dl
+IsDlEmpty__FP2DL,0x11A3B0,dl
 CPvDl__FP2DL,0x11A3C0,dl
 StaticInit_dl,0x11A3F8,dl
 func_0011A530,0x11A530,dl
@@ -1489,8 +1489,8 @@ func_00132600,0x132600,bas
 FOpenSector__18CBinaryAsyncStreamUiUi,0x132640,bas
 Close__18CBinaryAsyncStream,0x132688,bas
 StartSpooling__18CBinaryAsyncStream,0x132710,bas
-FSpooling__18CBinaryAsyncStream,0x1327D0,bas
-FSpoolingComplete__18CBinaryAsyncStream,0x1327E0,bas
+IsSpooling__18CBinaryAsyncStream,0x1327D0,bas
+IsSpoolingComplete__18CBinaryAsyncStream,0x1327E0,bas
 FinishSpooling__18CBinaryAsyncStream,0x1328A8,bas
 Spool__18CBinaryAsyncStream,0x132930,bas
 Skip__18CBinaryAsyncStreami,0x132998,bas

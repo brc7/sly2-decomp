@@ -427,7 +427,7 @@ struct RIPGV { char pad[0xC]; struct VTE *vt; char p1[0x15C - 0x10]; DL dl; };
 void AddRipRef__FP3RIP(struct RIP *prip);
 void ReleaseRip__FP3RIP(struct RIP *prip);
 int func_001A61A0(struct RIPGV *p);
-int FIsDlEmpty__FP2DL(DL *pdl);
+int IsDlEmpty__FP2DL(DL *pdl);
 void BounceRipgRips__FP4RIPG(struct RIPGV *p);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -466,7 +466,7 @@ void UpdateRipg(struct RIPGV *pripg)
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         ReleaseRip__FP3RIP(prip);
     }
-    if (!func_001A61A0(pripg) || FIsDlEmpty__FP2DL(&pripg->dl))
+    if (!func_001A61A0(pripg) || IsDlEmpty__FP2DL(&pripg->dl))
         ((void (*)(void *))pripg->vt[9].pf)((char *)pripg + pripg->vt[9].d);
     else
         BounceRipgRips__FP4RIPG(pripg);
@@ -514,7 +514,7 @@ void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
 int func_00118A88(void *, int, qword, float, int *, ENTRY **);
 int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-int FIsDlEmpty__FP2DL(DL *);
+int IsDlEmpty__FP2DL(DL *);
 void BounceRipgRips__FP4RIPG(P *);
 }
 /* the scratch request and the rip iterator share one stack slot */
@@ -581,7 +581,7 @@ void BounceRipgRips__FP4RIPG(P *p)
             }
             D_002DD2FC = shapes.outer;
         }
-        if (FIsDlEmpty__FP2DL(&p->rips)) p->vt[9].fn((char *)p + p->vt[9].delta);
+        if (IsDlEmpty__FP2DL(&p->rips)) p->vt[9].fn((char *)p + p->vt[9].delta);
     }
 }
 } // namespace M_BounceRipgRips__FP4RIPG

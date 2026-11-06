@@ -97,7 +97,7 @@ void RemoveLoHierarchy(CID14V *p);
 void AppendDlEntry__FP2DLPv(DLV *pdl, void *pv);
 void RemoveDlEntry__FP2DLPv(DLV *pdl, void *pv);
 int FFindDlEntry__FP2DLPv(DLV *pdl, void *pv);
-int FIsDlEmpty__FP2DL(DLV *pdl);
+int IsDlEmpty__FP2DL(DLV *pdl);
 void PostLoLoad(CID14V *p);
 float UMaxShape(CID14V *p);
 void MeasureShape(CID14V *p);
@@ -1123,7 +1123,7 @@ extern "C" void func_001BDE80(int n, CID14V **ap)
  * @end-sly2-annot */
 extern "C" void func_001BE1E8(void)
 {
-    while (!FIsDlEmpty__FP2DL((DLV *)&g_sw.dlCid14Pending)) {
+    while (!IsDlEmpty__FP2DL((DLV *)&g_sw.dlCid14Pending)) {
         void *pv = ((DLV *)&g_sw.dlCid14Pending)->pvFirst;
         RemoveDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Pending, pv);
         func_001BD040((CID14V *)pv);

@@ -33,8 +33,8 @@ public:
     int FOpenSector(uint isector, uint cb);
     void Close();
     void StartSpooling();
-    bool FSpooling();
-    bool FSpoolingComplete();
+    bool IsSpooling();
+    bool IsSpoolingComplete();
     void FinishSpooling();
     void Spool();
     void Skip(int cb);
@@ -133,7 +133,7 @@ void CBinaryAsyncStream::Close()
         m_fd = -1;
         break;
     case BASK_Cd:
-        if (FSpooling()) {
+        if (IsSpooling()) {
             sceCdSync(0);
             FinishSpooling();
         }
@@ -152,7 +152,7 @@ void CBinaryAsyncStream::Close()
 void CBinaryAsyncStream::StartSpooling()
 {
     int cbHalf = m_cbSpool / 2;
-    if (!FSpooling() && m_cbUnspooled != 0) {
+    if (!IsSpooling() && m_cbUnspooled != 0) {
         int cb = m_cbUnspooled < cbHalf ? m_cbUnspooled : cbHalf;
         byte *pb = (m_pb == m_abSpool) ? m_abSpool + cbHalf : m_abSpool;
         m_cbSpooling = cb;
@@ -173,7 +173,7 @@ void CBinaryAsyncStream::StartSpooling()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
-bool CBinaryAsyncStream::FSpooling()
+bool CBinaryAsyncStream::IsSpooling()
 {
     return m_cbSpooling != 0;
 }
@@ -183,11 +183,11 @@ bool CBinaryAsyncStream::FSpooling()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
-bool CBinaryAsyncStream::FSpoolingComplete()
+bool CBinaryAsyncStream::IsSpoolingComplete()
 {
     int status = 0;
     bool fComplete = false;
-    if (m_cb == m_ibCur && FSpooling())
+    if (m_cb == m_ibCur && IsSpooling())
     {
         switch (m_bask)
         {
@@ -225,7 +225,7 @@ bool CBinaryAsyncStream::FSpoolingComplete()
  * @end-sly2-annot */
 void CBinaryAsyncStream::FinishSpooling()
 {
-    if (!FSpoolingComplete())
+    if (!IsSpoolingComplete())
         return;
     if (m_bask == BASK_Cd)
     {

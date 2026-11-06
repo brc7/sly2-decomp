@@ -647,7 +647,7 @@ struct G;
 extern struct G D_003DD490;
 int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
-int FIsDlEmpty__FP2DL(void *);
+int IsDlEmpty__FP2DL(void *);
 void RemoveSwPlacesOf(struct G *, int, struct E *);
 void func_001F4E28(struct P *);
 void RemoveSwAaobrObject(struct G *, struct Q *);
@@ -667,7 +667,7 @@ void RemoveSoPartFromTree(struct P *p, struct E *pe)
     RemoveDlEntry__FP2DLPv(p->pq->dl, pe);
     if (pe->fl & (1L << 51)) RemoveSwPlacesOf(&D_003DD490, 0, pe);
     func_001F4E28(p);
-    if (FIsDlEmpty__FP2DL(p->pq->dl)) {
+    if (IsDlEmpty__FP2DL(p->pq->dl)) {
         struct Q *pq = p->pq;
         ((struct Q2 *)pq->p60)->pq = 0;
         p->pq = 0;

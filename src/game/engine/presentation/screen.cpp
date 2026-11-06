@@ -343,7 +343,7 @@ void RemoveGrfusr__Fi(int);
 int GrfHandleJoyBtn(PAD *, int);
 void func_00187E08(PAD *, int);
 int func_001B0290(int);
-int FIsDlEmpty__FP2DL(void *);
+int IsDlEmpty__FP2DL(void *);
 void UpdatePauseMenu(void *);
 void UpdateThiefnet(void *);
 void UpdateGadgetMenu(void *);
@@ -379,7 +379,7 @@ void func_001D9648(void *pdl)
         if (!func_001B0290(0))
             func_00187E08(pad, 0x800);
     } else if (D_002DFBC0 & 2) {
-        int r = FIsDlEmpty__FP2DL(pdl);
+        int r = IsDlEmpty__FP2DL(pdl);
         int f = 0;
         if (pad->x100C == 1 && 5.0f <= D_002DDED0.t)
             f = 1;

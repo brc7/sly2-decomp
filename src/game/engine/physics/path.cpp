@@ -2116,7 +2116,7 @@ void InitDl__FP2DLi(DL *pdl, int ibDle);
 void AppendDlEntry__FP2DLPv(DL *pdl, void *pv);
 void RemoveDlEntry__FP2DLPv(DL *pdl, void *pv);
 void InsertDlEntryBefore__FP2DLPvT1(DL *pdl, void *pvNext, void *pv);
-int FIsDlEmpty__FP2DL(DL *pdl);
+int IsDlEmpty__FP2DL(DL *pdl);
 int func_001C26E0(GRAPH *pgraph, EDGE *pedge, void *pvActor);
 int FPosInPathzone(NAV *pnav, qword pos, int f);
 }
@@ -2179,7 +2179,7 @@ extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, in
 
     pnode->state = 2;
     AppendNode(&dlOpen, pnode);
-    while (!FIsDlEmpty__FP2DL(&dlOpen)) {
+    while (!IsDlEmpty__FP2DL(&dlOpen)) {
         pnode = (NODE *)dlOpen.pvFirst;
         if (fExact) {
             if (pnode->pnav == pnavGoal)
@@ -2236,7 +2236,7 @@ extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, in
         }
     }
     int c = 0;
-    if (!FIsDlEmpty__FP2DL(&dlOpen)) {
+    if (!IsDlEmpty__FP2DL(&dlOpen)) {
         if (!fExact && !pnode->pnodeParent) {
             apedge[0] = 0;
             c = 1;

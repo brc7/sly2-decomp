@@ -1356,7 +1356,7 @@ typedef struct {
 } OBJ;
 void UpdateLo(OBJ *);
 void func_001E1C40(void *);
-int FIsDlEmpty__FP2DL(DL *);
+int IsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -1399,7 +1399,7 @@ void UpdateRelay(OBJ *p)
     InitDli(&dli, &p->dl);
     while ((pv = PvNextDli(&dli)) != 0)
         func_001E1C40(pv);
-    if (FIsDlEmpty__FP2DL(&p->dl))
+    if (IsDlEmpty__FP2DL(&p->dl))
         StopRelay(p);
     D_002DD2FC = dli.pdliNext;
 }
@@ -1430,7 +1430,7 @@ struct OBJ {
 void AddRelayBlockEnd(OBJ *);
 void *PjsgNew(OBJ *, void *, int);
 void func_001E1C40(void *);
-int FIsDlEmpty__FP2DL(DL *);
+int IsDlEmpty__FP2DL(DL *);
 void StopRelay(OBJ *);
 void SetLoBusyk(OBJ *, int);
 /** @sly2-annot addr=0x1DFD58
@@ -1461,7 +1461,7 @@ void FireRelay(OBJ *p, int n)
     func_001E1C40(PjsgNew(p, p->x54, 0));
     if (!p->x74)
         return;
-    if (FIsDlEmpty__FP2DL(&p->dl)) {
+    if (IsDlEmpty__FP2DL(&p->dl)) {
         StopRelay(p);
         return;
     }

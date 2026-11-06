@@ -328,11 +328,11 @@ int FFindDlEntry(DL *pdl, void *pv)
 
 /** @sly2-annot addr=0x11A3B0
  * Purpose: pvFirst == NULL
- * Info: proposed name FIsDlEmpty (T1); TU dl
+ * Info: proposed name IsDlEmpty (T1); TU dl
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-int FIsDlEmpty(DL *pdl)
+int IsDlEmpty(DL *pdl)
 {
     return pdl->head == 0;
 }
