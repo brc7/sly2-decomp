@@ -1,4 +1,8 @@
 // dl.cpp -- intrusive singly (SL) and doubly (DL) linked lists: the link lives inside each element at a fixed offset.
+// A list records that offset (SL::ibSle / DL::ibDle), so one element type can sit in several lists through different
+// link fields. Removal patches any live safe iterator (SLI here, DLI in sly2/dli.h) that points at the removed link,
+// which is what lets game code remove objects while it walks a list.
+// Entry points: InitSl/InitDl, Append/Prepend/Insert/Remove{Sl,Dl}Entry, IsEntryInSl, FFindDlEntry, CPvDl.
 // TU 0x11A050..0x11A550 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_dl
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011A530
@@ -14,16 +18,16 @@ extern SLI *D_002DD2F8;
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* Safe iterator over an SL (the SL counterpart of DLI); live iterators form a stack at D_002DD2F8 (g_psliFirst). */
-struct SLI { SL *psl; void **ppv; int ibSle; SLI *psliNext; };
+struct SLI { SL *list; void **link; int linkOffset; SLI *next; };
 SLI *D_002DD2F8;    /* .sbss in the target; ours is .bss (-G0) */
 DLI *D_002DD2FC;    /* g_pdliFirst (sly2/dli.h), likewise */
 
-#define PPVNEXT(psl, pv) ((void **)((char *)(pv) + (psl)->ibSle))
-#define PDLE(pdl, pv) ((DLE *)((char *)(pv) + (pdl)->ibDle))
+#define PPVNEXT(list, entry) ((void **)((char *)(entry) + (list)->ibSle))
+#define PDLE(list, entry) ((DLE *)((char *)(entry) + (list)->ibDle))
 
 extern "C" {
-void PrependSlEntry(SL *psl, void *pv);
-void AppendSlEntry(SL *psl, void *pv);
+void PrependSlEntry(SL *list, void *entry);
+void AppendSlEntry(SL *list, void *entry);
 }
 
 /** @sly2-annot addr=0x11A050
@@ -33,9 +37,10 @@ void AppendSlEntry(SL *psl, void *pv);
  * See: docs/engine/core-library.md#2-containers, docs/engine/core-library.md#6-source-files,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void InitSl(SL *psl, int ibSle)
+// Sets up a singly linked list whose elements keep their next pointer linkOffset bytes in.
+extern "C" void InitSl(SL *list, int linkOffset)
 {
-    psl->ibSle = ibSle;
+    list->ibSle = linkOffset;
 }
 
 /** @sly2-annot addr=0x11A058
@@ -44,9 +49,10 @@ extern "C" void InitSl(SL *psl, int ibSle)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void ClearSle(SLE *psle)
+// Clears one singly linked element's next pointer.
+extern "C" void ClearSle(SLE *link)
 {
-    psle->next = 0;
+    link->next = 0;
 }
 
 /** @sly2-annot addr=0x11A060
@@ -56,7 +62,8 @@ extern "C" void ClearSle(SLE *psle)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void ClearSl(SL *psl) { psl->tail = 0; psl->head = 0; }
+// Empties a singly linked list (does not touch the elements).
+extern "C" void ClearSl(SL *list) { list->tail = 0; list->head = 0; }
 
 /** @sly2-annot addr=0x11A070
  * Purpose: Append to singly linked list (tail pointer)
@@ -65,14 +72,15 @@ extern "C" void ClearSl(SL *psl) { psl->tail = 0; psl->head = 0; }
  * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void AppendSlEntry(SL *psl, void *pv)
+// Appends entry at the tail of a singly linked list.
+extern "C" void AppendSlEntry(SL *list, void *entry)
 {
-    if (psl->tail == 0) {
-        psl->tail = pv;
-        psl->head = pv;
+    if (list->tail == 0) {
+        list->tail = entry;
+        list->head = entry;
     } else {
-        *PPVNEXT(psl, psl->tail) = pv;
-        psl->tail = pv;
+        *PPVNEXT(list, list->tail) = entry;
+        list->tail = entry;
     }
 }
 
@@ -82,15 +90,16 @@ extern "C" void AppendSlEntry(SL *psl, void *pv)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void PrependSlEntry(SL *psl, void *pv)
+// Prepends entry at the head of a singly linked list.
+extern "C" void PrependSlEntry(SL *list, void *entry)
 {
-    void **ppvNext = PPVNEXT(psl, pv);
-    if (psl->head == 0) {
-        psl->tail = pv;
-        psl->head = pv;
+    void **entryLink = PPVNEXT(list, entry);
+    if (list->head == 0) {
+        list->tail = entry;
+        list->head = entry;
     } else {
-        *ppvNext = psl->head;
-        psl->head = pv;
+        *entryLink = list->head;
+        list->head = entry;
     }
 }
 
@@ -100,16 +109,17 @@ extern "C" void PrependSlEntry(SL *psl, void *pv)
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void InsertSlEntryAfter(SL *psl, void *pvPrev, void *pv)
+// Inserts entry after prevEntry (null prevEntry: at the head; the tail: appended).
+extern "C" void InsertSlEntryAfter(SL *list, void *prevEntry, void *entry)
 {
-    if (pvPrev == 0) {
-        PrependSlEntry(psl, pv);
-    } else if (pvPrev == psl->tail) {
-        AppendSlEntry(psl, pv);
+    if (prevEntry == 0) {
+        PrependSlEntry(list, entry);
+    } else if (prevEntry == list->tail) {
+        AppendSlEntry(list, entry);
     } else {
-        void **ppvPrev = PPVNEXT(psl, pvPrev);
-        *PPVNEXT(psl, pv) = *ppvPrev;
-        *ppvPrev = pv;
+        void **ppvPrev = PPVNEXT(list, prevEntry);
+        *PPVNEXT(list, entry) = *ppvPrev;
+        *ppvPrev = entry;
     }
 }
 
@@ -119,26 +129,28 @@ extern "C" void InsertSlEntryAfter(SL *psl, void *pvPrev, void *pv)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" void RemoveSlEntry(SL *psl, void *pv)
+// Unlinks entry from a singly linked list. Finds the predecessor link by a linear walk, retargets any live SLI
+// // iterator that was about to follow the removed link, and fixes the tail when the last element goes.
+extern "C" void RemoveSlEntry(SL *list, void *entry)
 {
-    void **ppvNext = PPVNEXT(psl, pv);
-    void **ppv = &psl->head;
-    SLI *psli;
-    while (pv != *ppv) {
-        ppv = PPVNEXT(psl, *ppv);
+    void **entryLink = PPVNEXT(list, entry);
+    void **prevLink = &list->head;
+    SLI *iterator;
+    while (entry != *prevLink) {
+        prevLink = PPVNEXT(list, *prevLink);
     }
-    for (psli = D_002DD2F8; psli; psli = psli->psliNext) {
-        if (psli->ppv == ppvNext) {
-            psli->ppv = ppv;
+    for (iterator = D_002DD2F8; iterator; iterator = iterator->next) {
+        if (iterator->link == entryLink) {
+            iterator->link = prevLink;
         }
     }
-    *ppv = *ppvNext;
-    if (psl->head == 0) {
-        psl->tail = 0;
-    } else if (*ppv == 0) {
-        psl->tail = (char *)ppv - psl->ibSle;
+    *prevLink = *entryLink;
+    if (list->head == 0) {
+        list->tail = 0;
+    } else if (*prevLink == 0) {
+        list->tail = (char *)prevLink - list->ibSle;
     }
-    *ppvNext = 0;
+    *entryLink = 0;
 }
 
 /** @sly2-annot addr=0x11A1B8
@@ -148,13 +160,14 @@ extern "C" void RemoveSlEntry(SL *psl, void *pv)
  * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" int IsEntryInSl(SL *psl, void *pv)
+// Returns whether entry is currently in the list (it has a successor or is the tail). O(1).
+extern "C" int IsEntryInSl(SL *list, void *entry)
 {
-    int f = 0;
-    if (*PPVNEXT(psl, pv) != 0 || psl->tail == pv) {
-        f = 1;
+    int isLinked = 0;
+    if (*PPVNEXT(list, entry) != 0 || list->tail == entry) {
+        isLinked = 1;
     }
-    return f;
+    return isLinked;
 }
 
 /** @sly2-annot addr=0x11A1E8
@@ -164,9 +177,10 @@ extern "C" int IsEntryInSl(SL *psl, void *pv)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-extern "C" int IsSlEmpty(SL *psl)
+// Returns whether the singly linked list is empty.
+extern "C" int IsSlEmpty(SL *list)
 {
-    return psl->head == 0;
+    return list->head == 0;
 }
 
 /** @sly2-annot addr=0x11A1F8
@@ -176,9 +190,10 @@ extern "C" int IsSlEmpty(SL *psl)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-void InitDl(DL *pdl, int ibDle)
+// Sets up a doubly linked list whose elements keep their DLE link linkOffset bytes in.
+void InitDl(DL *list, int linkOffset)
 {
-    pdl->ibDle = ibDle;
+    list->ibDle = linkOffset;
 }
 
 /** @sly2-annot addr=0x11A200
@@ -189,10 +204,11 @@ void InitDl(DL *pdl, int ibDle)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-void ClearDl(DL *pdl)
+// Empties a doubly linked list (does not touch the elements).
+void ClearDl(DL *list)
 {
-    pdl->tail = 0;
-    pdl->head = 0;
+    list->tail = 0;
+    list->head = 0;
 }
 
 /** @sly2-annot addr=0x11A210
@@ -202,10 +218,11 @@ void ClearDl(DL *pdl)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-void ClearDle(DLE *pdle)
+// Clears one element's DLE link (prev and next).
+void ClearDle(DLE *link)
 {
-    pdle->prev = 0;
-    pdle->next = 0;
+    link->prev = 0;
+    link->next = 0;
 }
 
 /** @sly2-annot addr=0x11A220
@@ -215,17 +232,18 @@ void ClearDle(DLE *pdle)
  * See: docs/engine/core-library.md#2-containers,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-void AppendDlEntry(DL *pdl, void *pv)
+// Appends entry at the tail of a doubly linked list.
+void AppendDlEntry(DL *list, void *entry)
 {
-    DLE *pdle = PDLE(pdl, pv);
-    if (!pdl->tail) {
-        pdl->tail = pv;
-        pdl->head = pv;
+    DLE *link = PDLE(list, entry);
+    if (!list->tail) {
+        list->tail = entry;
+        list->head = entry;
     } else {
-        DLE *pdleLast = PDLE(pdl, pdl->tail);
-        pdle->prev = pdl->tail;
-        pdleLast->next = pv;
-        pdl->tail = pv;
+        DLE *lastLink = PDLE(list, list->tail);
+        link->prev = list->tail;
+        lastLink->next = entry;
+        list->tail = entry;
     }
 }
 
@@ -236,17 +254,18 @@ void AppendDlEntry(DL *pdl, void *pv)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-void PrependDlEntry(DL *pdl, void *pv)
+// Prepends entry at the head of a doubly linked list.
+void PrependDlEntry(DL *list, void *entry)
 {
-    DLE *pdle = PDLE(pdl, pv);
-    if (!pdl->head) {
-        pdl->tail = pv;
-        pdl->head = pv;
+    DLE *link = PDLE(list, entry);
+    if (!list->head) {
+        list->tail = entry;
+        list->head = entry;
     } else {
-        DLE *pdleFirst = PDLE(pdl, pdl->head);
-        pdle->next = pdl->head;
-        pdleFirst->prev = pv;
-        pdl->head = pv;
+        DLE *firstLink = PDLE(list, list->head);
+        link->next = list->head;
+        firstLink->prev = entry;
+        list->head = entry;
     }
 }
 
@@ -257,21 +276,22 @@ void PrependDlEntry(DL *pdl, void *pv)
  * Confidence: high [T1 0.88] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-void InsertDlEntryBefore(DL *pdl, void *pvNext, void *pv)
+// Inserts entry before nextEntry (null: appended; the head: prepended).
+void InsertDlEntryBefore(DL *list, void *nextEntry, void *entry)
 {
-    if (!pvNext) {
-        AppendDlEntry(pdl, pv);
-    } else if (pvNext == pdl->head) {
-        PrependDlEntry(pdl, pv);
+    if (!nextEntry) {
+        AppendDlEntry(list, entry);
+    } else if (nextEntry == list->head) {
+        PrependDlEntry(list, entry);
     } else {
-        DLE *pdle = PDLE(pdl, pv);
-        DLE *pdleNext = PDLE(pdl, pvNext);
-        void *pvPrev = pdleNext->prev;
-        DLE *pdlePrev = PDLE(pdl, pvPrev);
-        pdle->next = pvNext;
-        pdle->prev = pvPrev;
-        pdleNext->prev = pv;
-        pdlePrev->next = pv;
+        DLE *link = PDLE(list, entry);
+        DLE *nextLink = PDLE(list, nextEntry);
+        void *prevEntry = nextLink->prev;
+        DLE *prevLink = PDLE(list, prevEntry);
+        link->next = nextEntry;
+        link->prev = prevEntry;
+        nextLink->prev = entry;
+        prevLink->next = entry;
     }
 }
 
@@ -282,36 +302,38 @@ void InsertDlEntryBefore(DL *pdl, void *pvNext, void *pv)
  * See: docs/engine/core-library.md#2-containers,
  *   docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-void RemoveDlEntry(DL *pdl, void *pv)
+// Unlinks entry from a doubly linked list in O(1), first retargeting any live DLI iterator (chain at
+// // D_002DD2FC) that points at the removed link to the previous element's link (or the list head).
+void RemoveDlEntry(DL *list, void *entry)
 {
-    DLE *pdle = PDLE(pdl, pv);
-    DLI *pdli = D_002DD2FC;
-    void *pvT;
-    while (pdli) {
-        if ((DLE *)pdli->m_ppv == pdle) {
-            void *pvPrev = pdle->prev;
-            if (pvPrev) {
-                pdli->m_ppv = (void **)PDLE(pdl, pvPrev);
+    DLE *link = PDLE(list, entry);
+    DLI *iterator = D_002DD2FC;
+    void *neighbor;
+    while (iterator) {
+        if ((DLE *)iterator->m_ppv == link) {
+            void *prevEntry = link->prev;
+            if (prevEntry) {
+                iterator->m_ppv = (void **)PDLE(list, prevEntry);
             } else {
-                pdli->m_ppv = (void **)pdl;
+                iterator->m_ppv = (void **)list;
             }
         }
-        pdli = pdli->m_pdliNext;
+        iterator = iterator->m_pdliNext;
     }
-    pvT = pdle->prev;
-    if (pvT) {
-        PDLE(pdl, pvT)->next = pdle->next;
+    neighbor = link->prev;
+    if (neighbor) {
+        PDLE(list, neighbor)->next = link->next;
     } else {
-        pdl->head = pdle->next;
+        list->head = link->next;
     }
-    pvT = pdle->next;
-    if (pvT) {
-        PDLE(pdl, pvT)->prev = pdle->prev;
+    neighbor = link->next;
+    if (neighbor) {
+        PDLE(list, neighbor)->prev = link->prev;
     } else {
-        pdl->tail = pdle->prev;
+        list->tail = link->prev;
     }
-    pdle->next = 0;
-    pdle->prev = 0;
+    link->next = 0;
+    link->prev = 0;
 }
 
 /** @sly2-annot addr=0x11A380
@@ -321,9 +343,10 @@ void RemoveDlEntry(DL *pdl, void *pv)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r1_116918+verify_side
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-int FFindDlEntry(DL *pdl, void *pv)
+// Returns whether entry is currently in the list (it has a successor or is the tail).
+int FFindDlEntry(DL *list, void *entry)
 {
-    return PDLE(pdl, pv)->next || pdl->tail == pv;
+    return PDLE(list, entry)->next || list->tail == entry;
 }
 
 /** @sly2-annot addr=0x11A3B0
@@ -332,9 +355,10 @@ int FFindDlEntry(DL *pdl, void *pv)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-int FIsDlEmpty(DL *pdl)
+// Returns whether the doubly linked list is empty.
+int FIsDlEmpty(DL *list)
 {
-    return pdl->head == 0;
+    return list->head == 0;
 }
 
 /** @sly2-annot addr=0x11A3C0
@@ -342,15 +366,16 @@ int FIsDlEmpty(DL *pdl)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#dl-0x11a050-0x11a550
  * @end-sly2-annot */
-int CPvDl(DL *pdl)
+// Counts the elements of a doubly linked list (walks it).
+int CPvDl(DL *list)
 {
-    void *pv = pdl->head;
-    int c = 0;
-    while (pv) {
-        pv = PDLE(pdl, pv)->next;
-        c++;
+    void *entry = list->head;
+    int count = 0;
+    while (entry) {
+        entry = PDLE(list, entry)->next;
+        count++;
     }
-    return c;
+    return count;
 }
 
 // 0x11A3F0: dead-code scrap (sly2/scrap.h)
