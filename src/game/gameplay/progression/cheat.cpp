@@ -299,6 +299,53 @@ extern "C" void StartupCodes(CODES *pcodes)
     AddCode(pcodes, &D_002BD7F0);
 }
 
+
+// ---- cheat's .data (tu-merging.md "Data"): the 15 codes StartupCodes adds (0x2BD4C8..0x2BD810, the first .data after
+// cd's in TU order). Each is its 6-button sequence (pad masks) followed by the code record: in .data the record is
+// 0x20 bytes {abtn, cbtn, pfn, pv, ibtn, fRemove, pcodeNext, 0} (CODE above declares 0x38, the size of one sequence
+// plus record), so each is spelled as its own word record. pv: the volume step (0..8), g_sndmgr+0x10, tu_15CD68's
+// D_002BE26C, gadget numbers. Asm labels: the declarations above stay as the functions see them.
+namespace CHEAT_CODES {
+struct CODEREC { int *abtn; int cbtn; void (*pfn)(void *); void *pv; int ibtn; int fRemove; void *pcodeNext; int x1C; };
+void p_func_0014C140(void *) __asm__("func_0014C140");
+void p_func_0014C190(void *) __asm__("func_0014C190");
+void p_CheatSetFlag(void *) __asm__("CheatSetFlag");
+void p_func_0014C200(void *) __asm__("func_0014C200");
+void p_CheatGiveGadget(void *) __asm__("CheatGiveGadget");
+extern "C" char d_003DD040[] __asm__("D_003DD040");
+extern "C" int k_002BE26C __asm__("D_002BE26C");
+int b_002BD4C8[6] __asm__("D_002BD4C8") = {0x8000, 0x8, 0x1000, 0x4000, 0x1000, 0x8000};
+CODEREC b_002BD4E0 __asm__("D_002BD4E0") = {b_002BD4C8, 6, p_func_0014C140, 0};
+int b_002BD500[6] __asm__("D_002BD500") = {0x2000, 0x8000, 0x1000, 0x1000, 0x1000, 0x8};
+CODEREC b_002BD518 __asm__("D_002BD518") = {b_002BD500, 6, p_func_0014C190, 0};
+int b_002BD538[6] __asm__("D_002BD538") = {0x4000, 0x8, 0x8000, 0x2000, 0x8, 0x4000};
+CODEREC b_002BD550 __asm__("D_002BD550") = {b_002BD538, 6, p_func_0014C190, (void *)1};
+int b_002BD570[6] __asm__("D_002BD570") = {0x8, 0x8000, 0x2000, 0x8, 0x8000, 0x4000};
+CODEREC b_002BD588 __asm__("D_002BD588") = {b_002BD570, 6, p_func_0014C190, (void *)2};
+int b_002BD5A8[6] __asm__("D_002BD5A8") = {0x1000, 0x8000, 0x2000, 0x8000, 0x4000, 0x1000};
+CODEREC b_002BD5C0 __asm__("D_002BD5C0") = {b_002BD5A8, 6, p_func_0014C190, (void *)3};
+int b_002BD5E0[6] __asm__("D_002BD5E0") = {0x1000, 0x2000, 0x2000, 0x1000, 0x8000, 0x8000};
+CODEREC b_002BD5F8 __asm__("D_002BD5F8") = {b_002BD5E0, 6, p_func_0014C190, (void *)4};
+int b_002BD618[6] __asm__("D_002BD618") = {0x8000, 0x8, 0x4000, 0x4000, 0x1000, 0x2000};
+CODEREC b_002BD630 __asm__("D_002BD630") = {b_002BD618, 6, p_func_0014C190, (void *)5};
+int b_002BD650[6] __asm__("D_002BD650") = {0x4000, 0x1000, 0x8, 0x8, 0x8000, 0x4000};
+CODEREC b_002BD668 __asm__("D_002BD668") = {b_002BD650, 6, p_func_0014C190, (void *)6};
+int b_002BD688[6] __asm__("D_002BD688") = {0x8000, 0x8000, 0x8000, 0x4000, 0x4000, 0x8};
+CODEREC b_002BD6A0 __asm__("D_002BD6A0") = {b_002BD688, 6, p_func_0014C190, (void *)7};
+int b_002BD6C0[6] __asm__("D_002BD6C0") = {0x4000, 0x1000, 0x8000, 0x8000, 0x8, 0x2000};
+CODEREC b_002BD6D8 __asm__("D_002BD6D8") = {b_002BD6C0, 6, p_func_0014C190, (void *)8};
+int b_002BD6F8[6] __asm__("D_002BD6F8") = {0x8000, 0x8, 0x8, 0x4000, 0x4000, 0x8000};
+CODEREC b_002BD710 __asm__("D_002BD710") = {b_002BD6F8, 6, p_CheatSetFlag, d_003DD040 + 0x10};
+int b_002BD730[6] __asm__("D_002BD730") = {0x2000, 0x8, 0x4000, 0x8, 0x4000, 0x4000};
+CODEREC b_002BD748 __asm__("D_002BD748") = {b_002BD730, 6, p_CheatSetFlag, &k_002BE26C};
+int b_002BD768[6] __asm__("D_002BD768") = {0x2000, 0x8000, 0x2000, 0x8000, 0x8, 0x8000};
+CODEREC b_002BD780 __asm__("D_002BD780") = {b_002BD768, 6, p_func_0014C200, 0};
+int b_002BD7A0[6] __asm__("D_002BD7A0") = {0x8000, 0x8000, 0x4000, 0x2000, 0x8000, 0x2000};
+CODEREC b_002BD7B8 __asm__("D_002BD7B8") = {b_002BD7A0, 6, p_CheatGiveGadget, (void *)41};
+int b_002BD7D8[6] __asm__("D_002BD7D8") = {0x4000, 0x4000, 0x1000, 0x4000, 0x2000, 0x8000};
+CODEREC b_002BD7F0 __asm__("D_002BD7F0") = {b_002BD7D8, 6, p_CheatGiveGadget, (void *)42};
+}
+
 // ---- cheat's .bss (tu-merging.md "Data": .bss gaps): 0x2DDE88..0x2DDED0, between cd's .bss and clock's in TU order.
 // One CODE no code names (0x38 bytes, exactly the gap after cd's words), then the code list g_codes D_002DDEC0
 // (joy's StartupCodes/_MatchCodes and screen's UpdateCodes take its address). Asm-labelled, so the declarations
