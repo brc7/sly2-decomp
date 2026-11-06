@@ -84,11 +84,11 @@ struct GRABSPOT
 {
     char abData[0x20];
     virtual int FGetGrabRange() __asm__("GRABSPOT_FGetGrabRange");   /* slot 1; key function (grabspot.cpp) */
-    virtual void GetClosestParam() __asm__("func_00182CC8");         /* slot 2 */
-    virtual void GetGrabPos() __asm__("func_00182CD0");              /* slot 3 */
-    virtual void AdjustScore() __asm__("func_00182D70");             /* slot 4 */
-    virtual void GetSparklePos() __asm__("func_00182D78");           /* slot 5 */
-    virtual void VtF() __asm__("func_00182E78");                     /* slot 6 */
+    virtual void GetClosestParam() __asm__("GetGrabspotClosestParam");         /* slot 2 */
+    virtual void GetGrabPos() __asm__("GetGrabspotGrabPosition");              /* slot 3 */
+    virtual void AdjustScore() __asm__("AdjustGrabspotScore");             /* slot 4 */
+    virtual void GetSparklePos() __asm__("GetGrabspotSparklePosition");           /* slot 5 */
+    virtual void VtF() __asm__("GrabspotSlotFDefault");                     /* slot 6 */
 };
 
 /* BLIPG's 32 records (0x1C bytes each) with an empty inline constructor: g++ still emits the 32-step loop. */
@@ -1132,14 +1132,14 @@ struct CID12 : SHAPE, GRABSPOT
     char pad1B4[0x1C0 - 0x1B4];
     virtual void Unfreeze() __asm__("func_00182EB8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid12ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("func_00182E80");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_00182F28");   /* slot 15 */
-    virtual void Freeze() __asm__("func_00182EF0");   /* slot 22 */
-    virtual void Clone(LO *ploBase) __asm__("func_00182FA0");   /* slot 41 */
-    virtual int FGetGrabRange() __asm__("func_00182FE8");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("func_00183040");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("func_001830D8");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("func_00183218");   /* GRABSPOT slot 5 (delta -400) */
+    virtual void Init() __asm__("InitWallGrabspot");   /* slot 7 */
+    virtual void VUnk14() __asm__("PostWallGrabspotLoad");   /* slot 15 */
+    virtual void Freeze() __asm__("OnWallGrabspotRemove");   /* slot 22 */
+    virtual void Clone(LO *ploBase) __asm__("CloneWallGrabspot");   /* slot 41 */
+    virtual int FGetGrabRange() __asm__("GetWallGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual void GetClosestParam() __asm__("GetWallGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos() __asm__("GetWallGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetSparklePos() __asm__("GetWallGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
     virtual void VtF() __asm__("func_002599F0__FP5CID12");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_CID12_size[sizeof(CID12) == 0x1C0 ? 1 : -1];
@@ -1150,14 +1150,14 @@ struct CID34 : XFM, GRABSPOT
     char pad104[0x110 - 0x104];
     virtual void Unfreeze() __asm__("func_00183370");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid34ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("func_00183340");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_001833E0");   /* slot 15 */
-    virtual void Freeze() __asm__("func_001833A8");   /* slot 22 */
-    virtual void Clone(LO *ploBase) __asm__("func_00183450");   /* slot 41 */
-    virtual int FGetGrabRange() __asm__("func_00183498");   /* GRABSPOT slot 1 (delta -224) */
-    virtual void GetClosestParam() __asm__("func_001834D0");   /* GRABSPOT slot 2 (delta -224) */
-    virtual void GetGrabPos() __asm__("func_00183540");   /* GRABSPOT slot 3 (delta -224) */
-    virtual void GetSparklePos() __asm__("func_00183600");   /* GRABSPOT slot 5 (delta -224) */
+    virtual void Init() __asm__("InitPoleGrabspot");   /* slot 7 */
+    virtual void VUnk14() __asm__("PostPoleGrabspotLoad");   /* slot 15 */
+    virtual void Freeze() __asm__("OnPoleGrabspotRemove");   /* slot 22 */
+    virtual void Clone(LO *ploBase) __asm__("ClonePoleGrabspot");   /* slot 41 */
+    virtual int FGetGrabRange() __asm__("GetPoleGrabspotWrapRange");   /* GRABSPOT slot 1 (delta -224) */
+    virtual void GetClosestParam() __asm__("GetPoleGrabspotClosestParam");   /* GRABSPOT slot 2 (delta -224) */
+    virtual void GetGrabPos() __asm__("GetPoleGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
+    virtual void GetSparklePos() __asm__("GetPoleGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -224) */
     virtual void VtF() __asm__("func_00259A00__FP5CID34");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID34_size[sizeof(CID34) == 0x110 ? 1 : -1];
@@ -1168,11 +1168,11 @@ struct CID38 : XFM, GRABSPOT
     char pad104[0x110 - 0x104];
     virtual void Unfreeze() __asm__("func_001836F8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid38ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("func_001836C8");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_00183768");   /* slot 15 */
-    virtual void Freeze() __asm__("func_00183730");   /* slot 22 */
-    virtual void Clone(LO *ploBase) __asm__("func_001837D0");   /* slot 41 */
-    virtual void GetGrabPos() __asm__("func_00183818");   /* GRABSPOT slot 3 (delta -224) */
+    virtual void Init() __asm__("InitHoldGrabspot");   /* slot 7 */
+    virtual void VUnk14() __asm__("PostHoldGrabspotLoad");   /* slot 15 */
+    virtual void Freeze() __asm__("OnHoldGrabspotRemove");   /* slot 22 */
+    virtual void Clone(LO *ploBase) __asm__("CloneHoldGrabspot");   /* slot 41 */
+    virtual void GetGrabPos() __asm__("GetHoldGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
     virtual void VtF() __asm__("func_00259A10__FP5CID38");   /* GRABSPOT slot 6 (delta -224) */
 };
 typedef char assert_CID38_size[sizeof(CID38) == 0x110 ? 1 : -1];
@@ -1185,11 +1185,11 @@ struct BARREL : SO, GRABSPOT
     virtual CLASSINFO *Pclassinfo() __asm__("GetBarrelClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBarrel");   /* slot 7 */
     virtual void Freeze() __asm__("OnBarrelRemove");   /* slot 22 */
-    virtual void VUnk25(LO *plo) __asm__("func_00183970");   /* slot 26 */
+    virtual void VUnk25(LO *plo) __asm__("ResetBarrel");   /* slot 26 */
     virtual void Clone(LO *ploBase) __asm__("CloneBarrel");   /* slot 41 */
-    virtual int FIgnoreIntersection(SO *psoOther) __asm__("func_00183A50");   /* slot 61 */
-    virtual void VUnk69() __asm__("func_00183B00");   /* slot 70 */
-    virtual int FTakeDamage(ZPR *pzpr) __asm__("func_00183E08");   /* slot 75 */
+    virtual int FIgnoreIntersection(SO *psoOther) __asm__("ShouldBarrelIgnoreIntersection");   /* slot 61 */
+    virtual void VUnk69() __asm__("PresetBarrelAccel");   /* slot 70 */
+    virtual int FTakeDamage(ZPR *pzpr) __asm__("HandleBarrelZap");   /* slot 75 */
     virtual void VtF() __asm__("func_00259A20__FP6BARREL");   /* GRABSPOT slot 6 (delta -336) */
 };
 typedef char assert_BARREL_size[sizeof(BARREL) == 0x1A0 ? 1 : -1];
@@ -1200,13 +1200,13 @@ struct CID35 : XFM, GRABSPOT
     char pad104[0x180 - 0x104];
     virtual void Unfreeze() __asm__("func_00183FB8");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid35ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("func_00183F08");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_00183F50");   /* slot 15 */
-    virtual void Freeze() __asm__("func_00183FF0");   /* slot 22 */
-    virtual void GetGrabPos() __asm__("func_00184208");   /* GRABSPOT slot 3 (delta -224) */
-    virtual void AdjustScore() __asm__("func_00184238");   /* GRABSPOT slot 4 (delta -224) */
+    virtual void Init() __asm__("InitTriggerGrabspot");   /* slot 7 */
+    virtual void VUnk14() __asm__("PostTriggerGrabspotLoad");   /* slot 15 */
+    virtual void Freeze() __asm__("OnTriggerGrabspotRemove");   /* slot 22 */
+    virtual void GetGrabPos() __asm__("GetTriggerGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -224) */
+    virtual void AdjustScore() __asm__("AdjustTriggerGrabspotScore");   /* GRABSPOT slot 4 (delta -224) */
     virtual void VtF() __asm__("func_00259A30__FP5CID35");   /* GRABSPOT slot 6 (delta -224) */
-    virtual void VSlot51() __asm__("func_00184130");   /* slot 51 */
+    virtual void VSlot51() __asm__("FireTriggerGrabspot");   /* slot 51 */
 };
 typedef char assert_CID35_size[sizeof(CID35) == 0x180 ? 1 : -1];
 
@@ -1228,8 +1228,8 @@ struct CID36 : CID35
     char pad180[0x1A0 - 0x180];
     virtual void VUnk14() __asm__("func_001842B0");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid36ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("func_00184268");   /* slot 7 */
-    virtual void VSlot51() __asm__("func_00184330");   /* slot 51 */
+    virtual void Init() __asm__("InitCarryGrabspot");   /* slot 7 */
+    virtual void VSlot51() __asm__("OnTriggerGrabspotGrabbed");   /* slot 51 */
 };
 typedef char assert_CID36_size[sizeof(CID36) == 0x1A0 ? 1 : -1];
 
@@ -1239,11 +1239,11 @@ struct CID27 : VOL, GRABSPOT
     char pad154[0x160 - 0x154];
     virtual void Unfreeze() __asm__("func_001844A0");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid27ClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("func_001843C0");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_001843F0");   /* slot 15 */
-    virtual void Freeze() __asm__("func_001844D8");   /* slot 22 */
-    virtual void GetGrabPos() __asm__("func_00184510");   /* GRABSPOT slot 3 (delta -304) */
-    virtual void GetSparklePos() __asm__("func_001845A0");   /* GRABSPOT slot 5 (delta -304) */
+    virtual void Init() __asm__("InitTableGrabspot");   /* slot 7 */
+    virtual void VUnk14() __asm__("PostTableGrabspotLoad");   /* slot 15 */
+    virtual void Freeze() __asm__("OnTableGrabspotRemove");   /* slot 22 */
+    virtual void GetGrabPos() __asm__("GetTableGrabspotGrabPosition");   /* GRABSPOT slot 3 (delta -304) */
+    virtual void GetSparklePos() __asm__("GetTableGrabspotSparklePosition");   /* GRABSPOT slot 5 (delta -304) */
     virtual void VtF() __asm__("func_00259A40__FP5CID27");   /* GRABSPOT slot 6 (delta -304) */
 };
 typedef char assert_CID27_size[sizeof(CID27) == 0x160 ? 1 : -1];
@@ -1254,7 +1254,7 @@ struct HND : TARGET, GRABSPOT
     char pad124[0x140 - 0x124];
     virtual void Init() __asm__("InitHnd");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetHndClassDesc");   /* slot 6 */
-    virtual void GetGrabPos() __asm__("func_00184F98");   /* GRABSPOT slot 3 (delta -256) */
+    virtual void GetGrabPos() __asm__("GetHndGrabPosition");   /* GRABSPOT slot 3 (delta -256) */
     virtual void VtF() __asm__("func_00259A70__FP3HND");   /* GRABSPOT slot 6 (delta -256) */
 };
 typedef char assert_HND_size[sizeof(HND) == 0x140 ? 1 : -1];
@@ -1482,10 +1482,10 @@ struct PIPE : SHAPE, GRABSPOT
     virtual void VUnk14() __asm__("PostPipeLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnPipeRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("ClonePipe");   /* slot 41 */
-    virtual int FGetGrabRange() __asm__("func_001C3BB0");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("func_001C3958");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("func_001C3A08");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("func_001C3A88");   /* GRABSPOT slot 5 (delta -400) */
+    virtual int FGetGrabRange() __asm__("GetPipeWrapRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual void GetClosestParam() __asm__("GetPipeClosestParam");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos() __asm__("GetPipeGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetSparklePos() __asm__("GetPipeSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
     virtual void VtF() __asm__("func_00259AF8__FP4PIPE");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_PIPE_size[sizeof(PIPE) == 0x1E0 ? 1 : -1];
@@ -1575,10 +1575,10 @@ struct RAIL : SHAPE, GRABSPOT
     virtual void VUnk14() __asm__("PostRailLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnRailRemove");   /* slot 22 */
     virtual void Clone(LO *ploBase) __asm__("CloneRail");   /* slot 41 */
-    virtual int FGetGrabRange() __asm__("func_001CBA68");   /* GRABSPOT slot 1 (delta -400) */
-    virtual void GetClosestParam() __asm__("func_001CBAC0");   /* GRABSPOT slot 2 (delta -400) */
-    virtual void GetGrabPos() __asm__("func_001CBB58");   /* GRABSPOT slot 3 (delta -400) */
-    virtual void GetSparklePos() __asm__("func_001CBBA8");   /* GRABSPOT slot 5 (delta -400) */
+    virtual int FGetGrabRange() __asm__("GetRailWrapRange");   /* GRABSPOT slot 1 (delta -400) */
+    virtual void GetClosestParam() __asm__("GetRailClosestParam");   /* GRABSPOT slot 2 (delta -400) */
+    virtual void GetGrabPos() __asm__("GetRailGrabPosition");   /* GRABSPOT slot 3 (delta -400) */
+    virtual void GetSparklePos() __asm__("GetRailSparklePosition");   /* GRABSPOT slot 5 (delta -400) */
     virtual void VtF() __asm__("func_00259B08__FP4RAIL");   /* GRABSPOT slot 6 (delta -400) */
 };
 typedef char assert_RAIL_size[sizeof(RAIL) == 0x1D0 ? 1 : -1];

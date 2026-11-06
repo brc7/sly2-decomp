@@ -65,8 +65,8 @@ void RemoveDlEntry(DL *pdl, void *pv);
 extern "C" {
 char *strcpy(char *, const char *);
 PO *PpoHero(SW *psw);
-char *PchzReconPending(int *pn);
-char *PchzReconSelected(int *pn);
+char *GetReconPendingText(int *pn);
+char *GetReconSelectedText(int *pn);
 void func_002277D0(char *pchz, int n);
 void func_00227940(char *pchz, int n);
 void SetWidgetRequest(WIDGETV *pwidget, int nRequest);
@@ -237,10 +237,10 @@ extern "C" void BuildReconSelectionText(char *pchz, int i)
         if (pnRecon != 0) {
             if (i != 0) {
                 if (i == 1) {
-                    pchzRecon = PchzReconPending(pnRecon);
+                    pchzRecon = GetReconPendingText(pnRecon);
                 }
             } else {
-                pchzRecon = PchzReconSelected(pnRecon);
+                pchzRecon = GetReconSelectedText(pnRecon);
             }
         }
         if (pchzRecon != 0) {

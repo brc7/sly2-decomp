@@ -95,7 +95,7 @@ void ShowCountdownHud(SW *, float);
 void HideCountdownHud(SW *);
 void SetSwAsegEyesClosed(SW *, int, int, LO *, ASEG *, float);
 void func_001F81E0(ALO *, int);
-void func_00143090(ALO *, char *, char *, char *);
+void SetStepplayerIdleParams(ALO *, char *, char *, char *);
 float fmodf(float a, float b);
 
 void func_0012F9B8(ASEG *paseg, ALO *palo, int grfapl, float t, float svt, ASEGA **ppasega);   /* ApplyAseg */
@@ -533,7 +533,7 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
     case 24:
         if (p->paloRoot && FIsBasicDerivedFrom((BASIC *)p->paloRoot, (CID)0x34)) {
             char *pb = (char *)pev->pea24;
-            func_00143090(p->paloRoot, pb, pb + 8, pb + 0x10);
+            SetStepplayerIdleParams(p->paloRoot, pb, pb + 8, pb + 0x10);
         }
         break;
     }

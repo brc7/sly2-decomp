@@ -34,7 +34,7 @@ struct BHV : public BASIC
 typedef char assert_BHV_size[sizeof(BHV) == 0x30 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 /* BHVSTK: a character's behaviour stack: up to 8 behaviours, the root first; the top one runs.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (15 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (15 copies in Lilly ports) */
 struct BHVSTK
 {
       STEP *pstep;          /* +0x00 [R] owner (STEP+0x26C) */
@@ -44,7 +44,7 @@ struct BHVSTK
 
 
 /* STEP: the walking character: a PO with gait, heading, floor contact and a behaviour stack.
-   Layout from src/game/gameplay/player/jt/JtChooseGroundState.cpp (15 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (15 copies in Lilly ports) */
 struct STEP : public PO
 {
       float gUnk180;

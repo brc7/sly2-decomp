@@ -141,7 +141,7 @@ extern "C" int func_001C2DC8(SPRAYER *p, SOV *plo, int id, void *pv)
 // Matching notes:
 //  * `game` is a plain local set before the loop: the address is then a spilled constant that reload rematerializes
 //    as `la a0` at the call (lui/addiu into a0).  Taking &D_003DD490 inside the loop lets loop.c hoist only the HIGH part.
-//  * Scale takes the dot product first (`vmulx %0,%2,%1x`, like GetPipeGoalMat's VU_FLOAT * VU_VECTOR): the asm output
+//  * Scale takes the dot product first (`vmulx %0,%2,%1x`, like GetPipeGoalMatrix's VU_FLOAT * VU_VECTOR): the asm output
 //    is tied to its first dying input, which gives the original vf numbering.
 //  * `count`, start, target and offset are plain values; the stack slots at sp+0x60..0x90 are their spill slots, and
 //    `dest` is caller-saved around the duration call.

@@ -1556,7 +1556,7 @@ namespace M_SprayDprizes {
 // nearest object) and raised again; then up to 50 candidate landing points are tried on a widening spiral around posSnap.
 // A candidate is used when it is blocked from posSnap and its sideways-pushed partner, and a landing spot is found near it
 // among the objects in the box around posSnap; the object is launched ballistically from posOrig to land there after a
-// time from func_00196928 (staggered per object). Objects that found no spot are put back into state 2.
+// time from ComputeMaxBallisticTime (staggered per object). Objects that found no spot are put back into state 2.
 // Matching notes (found on the -da dumps):
 //  * PvAllocFrame keeps its ALLOCREQ in the inline's own block, so the slot is freed and posMin reuses it (sp+0x30) like
 //    the game; posLand is declared in the loop body after the first temporaries so it shares sp+0x50 with them.
@@ -1619,7 +1619,7 @@ void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), 
 float GRandInRange__Fff(float, float);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float, float, float);
-float func_00196928(qword, qword, float, float, float, float);
+float ComputeMaxBallisticTime(qword, qword, float, float, float, float);
 void LaunchSprayedDprize(LO *, qword, qword, float, float);
 }
 struct VU_FLOAT {
@@ -1746,7 +1746,7 @@ extern "C" void SprayDprizes(void *pworld, int kind, qword posSeed, void *pvUnus
         VECTOR4 posLand;
         if (fBlocked && func_001C6DE8(-300.0f, 300.0f, 0.7f, posTrial, ccand, apcand, &posLand.q)) {
             qword posTarget = AddScaled(posLand.q, VU_FLOAT(aplo[cLaunched]->sRadius - 1.0f), D_002A2DC0);
-            float t = func_00196928(Sub(posTarget, posOrig.q), D_002C0D60, D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC0);
+            float t = ComputeMaxBallisticTime(Sub(posTarget, posOrig.q), D_002C0D60, D_002C0EB8, D_002C0EBC, D_002C0EC0, D_002C0EC0);
             t += cLaunched * D_002C0EC4;
             qword v = Combine(Sub(posTarget, posOrig.q), VU_FLOAT(1.0f / t), D_002C0D60, VU_FLOAT(-0.5f * t));
             LO *ploLaunch = aplo[cLaunched++];
@@ -2722,7 +2722,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002C1080;
 extern qword D_002C1090;
 void func_001306A8(void *p);
-void func_00142140(void *p, void *q);
+void SetStepplayerGrabTarget(void *p, void *q);
 qword ConvertAloVec(void *p, void *frame, qword q);
 qword ConvertXfVec(void *frame, void *p, qword q);
 qword GetLoWorldPos(void *p);
@@ -2751,13 +2751,13 @@ void func_001C8918(struct S *p, int n)
     switch (n) {
     case -1:
         p->x194 = -1;
-        func_00142140(p->x190, 0);
+        SetStepplayerGrabTarget(p->x190, 0);
         break;
     case 0:
-        func_00142140(p->x190, p->a1A8[p->x194]);
+        SetStepplayerGrabTarget(p->x190, p->a1A8[p->x194]);
         break;
     case 1:
-        func_00142140(p->x190, p->x208);
+        SetStepplayerGrabTarget(p->x190, p->x208);
         p->x204->xA8 = D_002DDED0.t + 0.25f;
         px = p->x204;
         q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1080));
@@ -2771,7 +2771,7 @@ void func_001C8918(struct S *p, int n)
         func_002303A0(p, p->x204, 0x11);
         break;
     case 2:
-        func_00142140(p->x190, p->a1A8[p->x194]);
+        SetStepplayerGrabTarget(p->x190, p->a1A8[p->x194]);
         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(p->a1CC[p->x194], p, 0.0f, 1.0f, 0, p->x1A0);
         break;
     }

@@ -11,7 +11,7 @@
 
 /* POCTL: the controller of a PO: per-frame stick and button state read from the joypad, with press timestamps for
    buffered input.
-   Layout from src/game/gameplay/player/jt/JtChooseGroundState.cpp (15 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (15 copies in Lilly ports) */
 struct POCTL : public BASIC
 {
       float dxLeft;   /* left stick x, -1..1 */
@@ -44,7 +44,7 @@ struct POCTL : public BASIC
 typedef char assert_POCTL_size[sizeof(POCTL) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 /* PO: the player object: an SO a POCTL controls (the three heroes, vehicles, the character-select object).
-   Layout from src/game/gameplay/player/jt/JtChooseGroundState.cpp (15 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (15 copies in Lilly ports) */
 struct PO : public SO
 {
       POCTL *pctl;   /* the controller */

@@ -1,7 +1,9 @@
 // air.cpp -- the player's air state (JTAIR, stepplayer.h): jump set-up and launch presets, air input and the active
-// jump, ledge/edge grab tests (FCheckJtSingleEdge, FCheckJtEdgeNormal, PxpFindJtBestEdge), stuck and obstruction
+// jump, ledge/edge grab tests (FCheckJtSingleEdge, IsJtEdgeNormalValid, PxpFindJtBestEdge), stuck and obstruction
 // tests, jump-to-target measurement, landing choice, and the JMT object (CID 40). TU 0x195950..0x19CBF8
 // (44 functions, address order). Most functions keep their per-function views in namespaces (wave-9 device).
+// Entry points: SetJtAirJump (every launch into the air), SetJtAirState, UpdateJtAirInput/UpdateJtActiveJump and
+// PresetJtAccelJump (per frame), ChooseJtLanding (jump target choice), FindJtBestEdge (ledge grabs), IsJtStuck.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_air
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0019CBD8
 
@@ -28,8 +30,8 @@ typedef unsigned size_t;
 extern SW D_003DD490;
 extern "C" {
 extern float D_002BF900;    /* landing score bonus for the preferred object */
-void func_00195FB8(JTAIR *pjtair, int n1, int n2);
-void func_00195A00(JTAIR *pjtair, int jtas, int n, LO *plo);   /* SetJtAirState */
+void SetJtAirState(JTAIR *pjtair, int n1, int n2);
+void SetJtAirJump(JTAIR *pjtair, int jtas, int n, LO *plo);   /* SetJtAirState */
 void InitXfm(XFM *pxfm);
 void AddLoHierarchy(LO *plo);
 void RemoveLoHierarchy(LO *plo);
@@ -182,9 +184,9 @@ struct STUNHOLD
       qword qwVel;
 };
 
-void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("func_0019CC50");
+void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
-extern "C" int MpStepplayerCur(STEPPLAYER *pstepplayer);
+extern "C" int GetStepplayerMp(STEPPLAYER *pstepplayer);
 
 struct JTEDGE
 {
@@ -259,7 +261,7 @@ struct VU_FLOAT
 
 void SetStepGravityRatio(STEP *pstep, float rGravity) __asm__("func_00204DA8");
 
-void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("func_00195FB8");
+void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("SetJtAirState");
 
 //////// 0x195950 InitJtAir
 namespace M_InitJtAir { extern "C" {
@@ -277,6 +279,8 @@ extern qword D_002BF740;
  * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
  *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// Initializes the player's air/jump context (STEPPLAYER+0x2C0): owner, kind -1, sub-state -1 and the default jump
+// tuning.
 void InitJtAir(T *t, int a)
 {
     t->x0 = a;
@@ -304,12 +308,13 @@ void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(int, int, int, void *, int
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// Post-load: creates the 5-entry dynamic jump animation blend.
 void PostLoadJtAir(struct S *s) { EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(s->a, 0xC, 5, s->b, 0, 0, 0, s->c); }
 } } // namespace M_PostLoadJtAir
 
-//////// 0x195A00 func_00195A00
+//////// 0x195A00 SetJtAirJump
 namespace M_func_00195A00 {
-// func_00195A00: ported from Lilly's personal Sly 2 decomp (src/P2/jtair.c), reduced to the declarations it needs.
+// SetJtAirJump: ported from Lilly's personal Sly 2 decomp (src/P2/jtair.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF750 (D_002BF750), D_002BF754 (D_002BF754), D_002BF758 (D_002BF758), D_002BF75C (D_002BF75C), D_002BF760 (D_002BF760), D_002BF764 (D_002BF764), D_002BF76C (D_002BF76C), D_002BF770 (D_002BF770), D_002BF730 (g_SheetMovementMiscJumpHorizontalSpeed), D_002BF768 (g_SheetMovementMiscTurnbuckleLaunchHorizontalSpeed), D_002DDED0 (g_clock), D_002A2DC0 (g_normalZ)
 // 0x00195A00 SetJtAirJump (curated name): starts a flight of the given kind. n2 picks the directional clip; plo is the object the sub-state works on.
@@ -352,7 +357,7 @@ static inline float GZOfQw(qword qw)
     __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(qw));
     return z;
 }
-qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("func_0019A750");
+qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
 void DecomposeCylind(qword v, float *prad, float *psXY, float *pz) __asm__("GetVectorCylind");
 extern "C" { extern qword D_002A2DC0; }
@@ -374,7 +379,7 @@ static inline qword QwProjectOut(qword v, qword n)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qw) : "j"(v), "j"(qw));
     return qw;
 }
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
+void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");
 /** @sly2-annot addr=0x195A00
  * Purpose: Start a flight of kind nKind (n2 = directional clip, plo = object): reset record unless double
  *   jump (6), launch velocity from JtPlanLaunchVz, push along facing for 3/0xE, wall run 0x11 adds 400 up,
@@ -386,189 +391,192 @@ void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo)
+// Starts a flight of the given kind (jump, double jump 6, fall, wall run 0x11, rail kinds ...): resets the record
+// unless double-jumping, computes the launch velocity (PlanJtLaunchVelocity), picks the directional clip and the
+// landing target object, and enters the air state. The main way every other state launches the player into the air.
+void SetJtAirJump(JTAIR *air, int kind, int n2, LO *lo)
 {
     qword vel;
     qword velWall;
     float t;
-    if (nKind != 6)
-        pjtair->nKind = nKind;
-    pjtair->n2 = n2;
-    pjtair->pstepplayer->VUnk87(1);
-    if (nKind != 6)
+    if (kind != 6)
+        air->nKind = kind;
+    air->n2 = n2;
+    air->pstepplayer->VUnk87(1);
+    if (kind != 6)
     {
-        pjtair->nUnk40 = 0;
+        air->nUnk40 = 0;
         t = D_002DDED0.t;
-        pjtair->tUnk4c = t;
-        pjtair->tUnk48 = t;
-        pjtair->tUnk44 = t;
+        air->tUnk4c = t;
+        air->tUnk48 = t;
+        air->tUnk44 = t;
     }
-    if (nKind == 9)
+    if (kind == 9)
     {
-        pjtair->rGravitySaved = pjtair->pstepplayer->rUnk260;
-        SetStepGravityRatio(pjtair->pstepplayer, D_002BF750);
+        air->rGravitySaved = air->pstepplayer->rUnk260;
+        SetStepGravityRatio(air->pstepplayer, D_002BF750);
     }
-    vel = JtPlanLaunchVz(pjtair, nKind);
-    pjtair->pstepplayer->SetVelocity(vel);
+    vel = JtPlanLaunchVz(air, kind);
+    air->pstepplayer->SetVelocity(vel);
     t = D_002DDED0.t;
-    pjtair->pstepplayer->tUnk131c = t;
-    if (nKind != 6)
-        pjtair->tStart = D_002DDED0.t;
-    switch (nKind)
+    air->pstepplayer->tUnk131c = t;
+    if (kind != 6)
+        air->tStart = D_002DDED0.t;
+    switch (kind)
     {
         case 0:
-            SetJtAirState(pjtair, 4, plo);
-            pjtair->fCanDoubleJump = 1;
-            pjtair->fUnk24 = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
+            SetJtAirState(air, 4, lo);
+            air->fCanDoubleJump = 1;
+            air->fUnk24 = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
             break;
         case 0xB:
-            SetJtAirState(pjtair, 4, plo);
-            pjtair->fUnk24 = 1;
-            pjtair->fCanDoubleJump = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
+            SetJtAirState(air, 4, lo);
+            air->fUnk24 = 1;
+            air->fCanDoubleJump = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
             break;
         case 3:
-            if (pjtair->pstepplayer->pctl->sLeft < 0.2f)
+            if (air->pstepplayer->pctl->sLeft < 0.2f)
             {
                 qword dvel;
-                pjtair->nUnk40 = 3;
-                dvel = SetVectorCylind(pjtair->pstepplayer->radTarget, D_002BF754, 0.0f);
-                pjtair->pstepplayer->SetVelocity(QwAdd(vel, dvel));
+                air->nUnk40 = 3;
+                dvel = SetVectorCylind(air->pstepplayer->radTarget, D_002BF754, 0.0f);
+                air->pstepplayer->SetVelocity(QwAdd(vel, dvel));
             }
-            SetJtAirState(pjtair, 0, plo);
-            pjtair->fCanDoubleJump = 1;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 0.6f;
-            pjtair->fUnk24 = 0;
+            SetJtAirState(air, 0, lo);
+            air->fCanDoubleJump = 1;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 0.6f;
+            air->fUnk24 = 0;
             break;
         case 1:
         case 2:
         case 0x12:
-            SetJtAirState(pjtair, 0, plo);
-            pjtair->fCanDoubleJump = 1;
-            pjtair->fUnk24 = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
+            SetJtAirState(air, 0, lo);
+            air->fCanDoubleJump = 1;
+            air->fUnk24 = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
             break;
         case 9:
-            SetJtAirState(pjtair, 0, plo);
-            pjtair->fUnk24 = 0;
-            pjtair->fCanDoubleJump = 1;
-            SetPlayerTn(pjtair->pstepplayer, pjtair->ptnLaunch);
-            pjtair->gSpeedRatio = D_002BF758;
-            pjtair->gUnk34 = D_002BF75C;
-            pjtair->fGravityChanged = 1;
+            SetJtAirState(air, 0, lo);
+            air->fUnk24 = 0;
+            air->fCanDoubleJump = 1;
+            SetPlayerTn(air->pstepplayer, air->ptnLaunch);
+            air->gSpeedRatio = D_002BF758;
+            air->gUnk34 = D_002BF75C;
+            air->fGravityChanged = 1;
             break;
         case 7:
-            SetJtAirState(pjtair, 7, plo);
-            pjtair->fCanDoubleJump = 1;
-            pjtair->fUnk24 = 0;
-            pjtair->gSpeedRatio = 1.0f;
-            pjtair->gUnk34 = 1.0f;
+            SetJtAirState(air, 7, lo);
+            air->fCanDoubleJump = 1;
+            air->fUnk24 = 0;
+            air->gSpeedRatio = 1.0f;
+            air->gUnk34 = 1.0f;
             break;
         case 8:
-            SetJtAirState(pjtair, 5, plo);
-            pjtair->fUnk24 = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
-            pjtair->fCanDoubleJump = 1;
-            DecomposeCylind(vel, &pjtair->radSmash, &pjtair->sSmash, 0);
-            pjtair->gUnkb4 = 1.0f;
+            SetJtAirState(air, 5, lo);
+            air->fUnk24 = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
+            air->fCanDoubleJump = 1;
+            DecomposeCylind(vel, &air->radSmash, &air->sSmash, 0);
+            air->gUnkb4 = 1.0f;
             break;
         case 6:
         {
-            int nState = 2;
-            if (pjtair->nKind < 0xF)
+            int state = 2;
+            if (air->nKind < 0xF)
             {
-                if (pjtair->nKind > 0xC)
-                    nState = 3;
+                if (air->nKind > 0xC)
+                    state = 3;
             }
-            SetJtAirState(pjtair, nState, plo);
+            SetJtAirState(air, state, lo);
             break;
         }
         case 0xE:
         {
             float gRatio;
-            SetJtAirState(pjtair, 1, plo);
+            SetJtAirState(air, 1, lo);
             gRatio = D_002BF760;
-            pjtair->fCanDoubleJump = 1;
-            pjtair->gUnk34 = D_002BF764;
-            pjtair->fUnk24 = 0;
-            pjtair->gSpeedRatio = gRatio;
-            if (pjtair->pstepplayer->pctl->sLeft < 0.2f)
+            air->fCanDoubleJump = 1;
+            air->gUnk34 = D_002BF764;
+            air->fUnk24 = 0;
+            air->gSpeedRatio = gRatio;
+            if (air->pstepplayer->pctl->sLeft < 0.2f)
             {
                 qword dvel;
-                pjtair->nUnk40 = 3;
-                dvel = SetVectorCylind(pjtair->pstepplayer->pctl->radLeft, D_002BF730 * gRatio, 0.0f);
-                pjtair->pstepplayer->SetVelocity(QwAdd(vel, dvel));
+                air->nUnk40 = 3;
+                dvel = SetVectorCylind(air->pstepplayer->pctl->radLeft, D_002BF730 * gRatio, 0.0f);
+                air->pstepplayer->SetVelocity(QwAdd(vel, dvel));
             }
             break;
         }
         case 0xD:
-            SetJtAirState(pjtair, 1, plo);
-            pjtair->fCanDoubleJump = 1;
-            pjtair->gSpeedRatio = D_002BF768;
-            pjtair->gUnk34 = D_002BF76C;
-            pjtair->fUnk24 = 0;
+            SetJtAirState(air, 1, lo);
+            air->fCanDoubleJump = 1;
+            air->gSpeedRatio = D_002BF768;
+            air->gUnk34 = D_002BF76C;
+            air->fUnk24 = 0;
             break;
         case 0xA:
-            pjtair->nUnk40 = -1;
-            SetJtAirState(pjtair, 0x15, plo);
-            pjtair->fUnk24 = 0;
-            pjtair->fCanDoubleJump = 0;
-            pjtair->gUnk34 = 0.0f;
-            pjtair->gSpeedRatio = 0.0f;
+            air->nUnk40 = -1;
+            SetJtAirState(air, 0x15, lo);
+            air->fUnk24 = 0;
+            air->fCanDoubleJump = 0;
+            air->gUnk34 = 0.0f;
+            air->gSpeedRatio = 0.0f;
             break;
         case 0xC:
-            SetJtAirState(pjtair, 1, plo);
-            pjtair->nUnk40 = 3;
-            pjtair->fCanDoubleJump = 1;
-            pjtair->fUnk24 = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
+            SetJtAirState(air, 1, lo);
+            air->nUnk40 = 3;
+            air->fCanDoubleJump = 1;
+            air->fUnk24 = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
             break;
         case 0x10:
-            SetJtAirState(pjtair, 4, plo);
-            pjtair->fUnk24 = 0;
-            pjtair->fCanDoubleJump = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
+            SetJtAirState(air, 4, lo);
+            air->fUnk24 = 0;
+            air->fCanDoubleJump = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
             break;
         case 0xF:
-            SetJtAirState(pjtair, 0, plo);
-            pjtair->fUnk24 = 0;
-            pjtair->fCanDoubleJump = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
+            SetJtAirState(air, 0, lo);
+            air->fUnk24 = 0;
+            air->fCanDoubleJump = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
             break;
         case 0x11:
-            if (pjtair->nState == -1)
+            if (air->nState == -1)
             {
-                pjtair->pstepplayer->SetVelocity(QwAdd(QwProjectOut(velWall, D_002A2DC0), D_002BF770));
-                pjtair->fCanDoubleJump = 1;
+                air->pstepplayer->SetVelocity(QwAdd(QwProjectOut(velWall, D_002A2DC0), D_002BF770));
+                air->fCanDoubleJump = 1;
             }
-            SetJtAirState(pjtair, 0x16, 0);
-            pjtair->fUnk24 = 0;
-            pjtair->fUnk2c = 0;
-            pjtair->gUnk34 = 1.0f;
-            pjtair->gSpeedRatio = 1.0f;
+            SetJtAirState(air, 0x16, 0);
+            air->fUnk24 = 0;
+            air->fUnk2c = 0;
+            air->gUnk34 = 1.0f;
+            air->gSpeedRatio = 1.0f;
             break;
     }
-    if (nKind != 6)
+    if (kind != 6)
     {
-        if (nKind != 0x11)
-            pjtair->fUnk2c = pjtair->fCanDoubleJump;
-        if (FIsBasicDerivedFrom(pjtair->pstepplayer, (CID)0x35))
-            ((JT *)pjtair->pstepplayer)->janim.nUnk10 = -1;
-        pjtair->zStart = GZOfQw(PosLoWorld(pjtair->pstepplayer));
+        if (kind != 0x11)
+            air->fUnk2c = air->fCanDoubleJump;
+        if (FIsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
+            ((JT *)air->pstepplayer)->janim.nUnk10 = -1;
+        air->zStart = GZOfQw(PosLoWorld(air->pstepplayer));
     }
 }
 } // namespace M_func_00195A00
 
-//////// 0x195FB8 func_00195FB8
+//////// 0x195FB8 SetJtAirState
 namespace M_func_00195FB8 {
 typedef int qword __attribute__((mode(TI)));
 union U{qword q;float f[4];int i[4];};struct M3{U row[3];};struct VTE{short delta,pad;void*fn;};
@@ -582,8 +590,8 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
-qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void SetBarrelState(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
+qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void func_00204DA8(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void func_00204660(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -722,29 +730,31 @@ static inline void PublishReal(U*home,qword value){__asm__ volatile("sqc2 %1,%0"
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
- if(newMode==p->mode)return;
- switch(p->mode){
- case 17:func_00204F78(p->actor,p->link->target,0);p->link=0;break;
- case 7:{SOURCE*old=p->source;p->source=0;RecalcSwOxfFilterForObject(&D_003DD490,old);break;}
- case 6:{SOURCE*old=p->source;p->source=0;if(p->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)func_00183B80(old,0);}func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;break;}
+// Air sub-state change: leaves the old one and enters the new one (clips, cane state, landing target, velocities,
+// state-machine flags).
+extern "C" void SetJtAirState(CONTEXT*air,int newMode,SOURCE*source){WORK w;
+ if(newMode==air->mode)return;
+ switch(air->mode){
+ case 17:func_00204F78(air->actor,air->link->target,0);air->link=0;break;
+ case 7:{SOURCE*old=air->source;air->source=0;RecalcSwOxfFilterForObject(&D_003DD490,old);break;}
+ case 6:{SOURCE*old=air->source;air->source=0;if(air->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)SetBarrelState(old,0);}func_002303A0(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;break;}
  case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:case 16:case 18:
-  func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;
-  if(Less(p->mode,16)&&!Less(p->mode,14)){if(p->actor!=D_002E1E40)func_001CCAC0((SECONDARY*)p->actor->secondary,-1);else SetJtJtcs__FP2JTi(p->actor,-1);}break;
- case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F8);SetStepplayerTnOverride(p->actor,0);break;
- case 21:ReleaseAct(&p->event);func_002303A0(p->actor,p->actor->body,2);func_001F6860(p->actor,0);break;
+  func_002303A0(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;
+  if(Less(air->mode,16)&&!Less(air->mode,14)){if(air->actor!=D_002E1E40)SetJtHandsTarget((SECONDARY*)air->actor->secondary,-1);else SetJtCaneState__FP2JTi(air->actor,-1);}break;
+ case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(air->actor->effect)SetSmaGoal(air->actor->effect,0x5F8);SetStepplayerTnOverride(air->actor,0);break;
+ case 21:ReleaseAct(&air->event);func_002303A0(air->actor,air->actor->body,2);func_001F6860(air->actor,0);break;
  }
  register unsigned clockHigh __asm__("$3"),savedClockHigh __asm__("$21");
  __asm__("lui %0,%%hi(%1)":"=r"(clockHigh):"i"(&D_002DDED0));
  __asm__("daddu %0,%1,$zero":"=r"(savedClockHigh):"r"(clockHigh));
- ANIMATION*active=p->actor->animation;CLIP*clip=0;p->mode=newMode;p->source=source;
- float entryTime,blend;__asm__("mtc1 $zero,%1\n\tlwc1 %0,%%lo(%3)(%2)":"=f"(entryTime),"=f"(blend):"r"(clockHigh),"i"(&D_002DDED0):"memory");p->time=entryTime;int flags=1;float weight=1.0f;
+ ANIMATION*active=air->actor->animation;CLIP*clip=0;air->mode=newMode;air->source=source;
+ float entryTime,blend;__asm__("mtc1 $zero,%1\n\tlwc1 %0,%%lo(%3)(%2)":"=f"(entryTime),"=f"(blend):"r"(clockHigh),"i"(&D_002DDED0):"memory");air->time=entryTime;int flags=1;float weight=1.0f;
  switch(newMode){
- case 17:{flags=9;Notify(p->actor,91);func_00204F78(p->actor,p->link->target,1);qword point=func_0022FC48(p->link->space,0,p->relative.q);
+ case 17:{flags=9;Notify(air->actor,91);func_00204F78(air->actor,air->link->target,1);qword point=func_0022FC48(air->link->space,0,air->relative.q);
   register qword direction __asm__("vf1"),negative __asm__("vf2"),upArg __asm__("$5");register U*axisAddress __asm__("$4");
   float negativeScalar=-1.0f;
   __asm__("lui $3,%%hi(%6)\n\tlui %3,%%hi(%7)\n\tlqc2 %0,%4\n\tmfc1 %2,%5\n\taddiu $3,$3,%%lo(%6)\n\tqmtc2.ni %2,%1\n\taddiu %3,%3,%%lo(%7)\n\tlq %2,0($3)\n\tvmulx.xyzw %0,%0,%1x"
-   :"=&j"(direction),"=j"(negative),"=&r"(upArg),"=r"(axisAddress):"m"(p->direction.q),"f"(negativeScalar),"i"(&D_002A2DC0),"i"(&D_002A2DB0):"$3","memory");
+   :"=&j"(direction),"=j"(negative),"=&r"(upArg),"=r"(axisAddress):"m"(air->direction.q),"f"(negativeScalar),"i"(&D_002A2DC0),"i"(&D_002A2DB0):"$3","memory");
   register qword axisArg __asm__("$6"),directionArg __asm__("$4");register TWO_ROWS*basisOutput __asm__("$7");
   __asm__("lq %0,0(%2)\n\taddiu %1,%4,0x20\n\tqmfc2.ni %2,%3"
    :"=&r"(axisArg),"=r"(basisOutput),"=r"(directionArg):"j"(direction),"p"(&w.temp),"2"(axisAddress):"memory");
@@ -754,7 +764,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   {register ACTOR*owner __asm__("$16");qword value;
    __asm__("lqc2 $vf3,%2\n\tlqc2 $vf1,%3\n\tlqc2 $vf5,%4\n\tlqc2 $vf4,%5\n\tlw %0,%6\n\tvmulax.xyz $ACC,$vf5,$vf3x\n\tvmadday.xyz $ACC,$vf4,$vf3y\n\tvmaddz.xyz $vf3,$vf1,$vf3z\n\tlqc2 %1,%7\n\tvsub.xyzw %1,%1,$vf3"
     :"=&r"(owner),"=j"(value)
-    :"m"(p->offset.q),"m"(w.basis.row[2].q),"m"(w.basis.row[0].q),"m"(w.basis.row[1].q),"m"(p->actor),"m"(w.temp.q)
+    :"m"(air->offset.q),"m"(w.basis.row[2].q),"m"(w.basis.row[0].q),"m"(w.basis.row[1].q),"m"(air->actor),"m"(w.temp.q)
     :"vf1","vf3","vf4","vf5");
    actor=owner;delta=value;}
   register ACTOR*pointOwner __asm__("$4");
@@ -762,31 +772,31 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   {qword point=GetLoWorldPos(pointOwner);register qword position __asm__("vf1");
    __asm__("qmtc2.ni %1,%0":"=j"(position):"r"(point));
    __asm__("vsub.xyzw %0,%0,%1":"+j"(delta):"j"(position));actor->offset.q=delta;}
-  ClearVelocity(p->actor);p->flags28=0;clip=p->special154;
-  if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}break;}
+  ClearVelocity(air->actor);air->flags28=0;clip=air->special154;
+  if(air->focused){func_00204DA8(air->actor,air->oldScale);SetStepplayerTnOverride(air->actor,0);air->focused=0;}break;}
  case 0:case 1:case 4:case 5:case 7:
-  switch(p->state){case 13:clip=p->special148;break;case 14:clip=p->special158;break;case 16:clip=p->actor->clip1514;break;case 15:clip=p->actor->clip1518;break;}
-  if(!clip)clip=p->base[p->variant];if(!clip)clip=p->base[0];break;
- case 2:case 3:if(p->state==14)clip=p->special15C;if(!clip)clip=p->alternate[p->variant];if(!clip)clip=p->alternate[0];if(!clip)clip=p->base[0];p->flags28=0;break;
- case 6:func_002303A0(p->actor,p->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);func_00183B80(source,1);ClearVelocity(p->actor);clip=p->actor->animation->clip;break;
- case 8:func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);clip=active->clip;break;
+  switch(air->state){case 13:clip=air->special148;break;case 14:clip=air->special158;break;case 16:clip=air->actor->clip1514;break;case 15:clip=air->actor->clip1518;break;}
+  if(!clip)clip=air->base[air->variant];if(!clip)clip=air->base[0];break;
+ case 2:case 3:if(air->state==14)clip=air->special15C;if(!clip)clip=air->alternate[air->variant];if(!clip)clip=air->alternate[0];if(!clip)clip=air->base[0];air->flags28=0;break;
+ case 6:func_002303A0(air->actor,air->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);SetBarrelState(source,1);ClearVelocity(air->actor);clip=air->actor->animation->clip;break;
+ case 8:func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);clip=active->clip;break;
  case 11:case 12:case 13:case 14:case 15:
-  func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;p->variant=0;clip=p->base[0];
-  if(Less(p->mode,16)&&!Less(p->mode,14)){ACTOR*actor=p->actor;if(actor==D_002E1E40){actor->primaryFocus=p->source;SetJtJtcs__FP2JTi(actor,0);}else{actor->secondaryFocus=p->source;weight=0.0f;func_001CCAC0((SECONDARY*)p->actor->secondary,0);clip=p->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
- case 9:case 10:case 16:case 18:{func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;ACTOR*actor=p->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=func_0019A750(p,4);((void(*)(void*,qword))v.fn)(receiver,velocity);p->variant=0;if(p->mode==16)clip=p->special14C;else clip=p->special148;active=0;break;}
- case -1:if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}p->fieldBC=0;p->state=-1;break;
- case 19:func_00204660(p->actor,p->actor->heading-D_002BF780[p->variant]);p->flags28=0;clip=p->scripted;SetStepplayerTnOverride(p->actor,p->scriptFocus);p->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F7);break;
- case 20:p->tracks[0].control.bits=0;p->tracks[1].control.bits=0;p->tracks[2].control.bits=0;p->tracks[3].control.bits=0;p->scriptedGain=1.0f;func_001384C0(p->multi);clip=p->multi;flags=9;break;
+  func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;air->variant=0;clip=air->base[0];
+  if(Less(air->mode,16)&&!Less(air->mode,14)){ACTOR*actor=air->actor;if(actor==D_002E1E40){actor->primaryFocus=air->source;SetJtCaneState__FP2JTi(actor,0);}else{actor->secondaryFocus=air->source;weight=0.0f;SetJtHandsTarget((SECONDARY*)air->actor->secondary,0);clip=air->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
+ case 9:case 10:case 16:case 18:{func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;ACTOR*actor=air->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=PlanJtLaunchVelocity(air,4);((void(*)(void*,qword))v.fn)(receiver,velocity);air->variant=0;if(air->mode==16)clip=air->special14C;else clip=air->special148;active=0;break;}
+ case -1:if(air->focused){func_00204DA8(air->actor,air->oldScale);SetStepplayerTnOverride(air->actor,0);air->focused=0;}air->fieldBC=0;air->state=-1;break;
+ case 19:func_00204660(air->actor,air->actor->heading-D_002BF780[air->variant]);air->flags28=0;clip=air->scripted;SetStepplayerTnOverride(air->actor,air->scriptFocus);air->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(air->actor->effect)SetSmaGoal(air->actor->effect,0x5F7);break;
+ case 20:air->tracks[0].control.bits=0;air->tracks[1].control.bits=0;air->tracks[2].control.bits=0;air->tracks[3].control.bits=0;air->scriptedGain=1.0f;func_001384C0(air->multi);clip=air->multi;flags=9;break;
  case 21:{register float minimum __asm__("$f21"),maximum __asm__("$f20");register qword bodyPosition __asm__("$3");register OBJECT*queryObject __asm__("$4");
   __asm__("lw $2,0(%4)\n\tlw %1,0x1D0(%4)\n\tlw %0,0x58($2)\n\tli.s %2,-1.00000000000000000000e3\n\tlq %0,0x70(%0)\n\tli.s %3,-1.00000000000000000000e0"
-   :"=&r"(bodyPosition),"=r"(queryObject),"=f"(minimum),"=f"(maximum):"r"(p),"m"(p->actor),"m"(p->query.object):"$2","at","memory");
+   :"=&r"(bodyPosition),"=r"(queryObject),"=f"(minimum),"=f"(maximum):"r"(air),"m"(air->actor),"m"(air->query.object):"$2","at","memory");
   w.bodyPosition.q=bodyPosition;
-  if(queryObject&&(FIsBasicDerivedFrom__FP5BASIC3CID(queryObject,19)||FIsBasicDerivedFrom__FP5BASIC3CID(p->query.object,11))){minimum=0.0f;maximum=500.0f;}
-  qword queried=func_0019F3F8(p->actor,&p->query,D_002BF7A0);
+  if(queryObject&&(FIsBasicDerivedFrom__FP5BASIC3CID(queryObject,19)||FIsBasicDerivedFrom__FP5BASIC3CID(air->query.object,11))){minimum=0.0f;maximum=500.0f;}
+  qword queried=GetJtPlacePosition(air->actor,&air->query,D_002BF7A0);
   register ACTOR*queryOwner __asm__("$3");register qword queriedVector __asm__("vf2");register float maximumArg __asm__("$f15"),minimumArg __asm__("$f13");
   __asm__("lw %0,%5\n\tqmtc2.ni %4,%1\n\tsq %4,%2\n\tmov.s %3,%6"
    :"=&r"(queryOwner),"=j"(queriedVector),"=m"(w.goal.q),"=f"(maximumArg)
-   :"r"(queried),"m"(p->actor),"f"(maximum));
+   :"r"(queried),"m"(air->actor),"f"(maximum));
   register float durationUnit __asm__("$f14"),rangeLimit __asm__("$f12");
   __asm__("lqc2 $vf3,%3\n\tmov.s %1,%4\n\tvsub.xyzw %0,%0,$vf3\n\tli.s %2,1.00000000000000000000e0"
    :"+j"(queriedVector),"=f"(minimumArg),"=f"(durationUnit):"m"(w.bodyPosition.q),"f"(minimum):"vf3","at");
@@ -795,10 +805,10 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   __asm__("lw %1,0xE8(%3)\n\tlq %0,%4\n\tlq %1,0x80(%1)\n\tsq %1,%2"
    :"=r"(deltaArg),"=&r"(accelerationArg),"=m"(w.acceleration.q)
    :"r"(queryOwner),"m"(w.delta.q),"m"(queryOwner->motion):"memory");
-  float solved=func_00196928(deltaArg,accelerationArg,rangeLimit,minimumArg,durationUnit,maximumArg);maximum=D_002BF7A0;
+  float solved=ComputeMaxBallisticTime(deltaArg,accelerationArg,rangeLimit,minimumArg,durationUnit,maximumArg);maximum=D_002BF7A0;
   {register float negativeHalf __asm__("$f1")=-0.5f;register ACTOR*velocityOwner __asm__("$5");
    __asm__("max.s %0,%0,%3\n\tlw %1,%4\n\tmul.s %2,%0,%2"
-    :"+f"(maximum),"=r"(velocityOwner),"+f"(negativeHalf):"f"(solved),"m"(p->actor));
+    :"+f"(maximum),"=r"(velocityOwner),"+f"(negativeHalf):"f"(solved),"m"(air->actor));
    register qword full __asm__("vf1"),quotient __asm__("vf3");register VTE*vt __asm__("$2");register unsigned halfBits __asm__("$3");
    __asm__("lqc2 $vf2,%4\n\tmfc1 %3,%5\n\tqmtc2.ni %3,%0\n\tlw %2,%6\n\tmfc1 %3,%7\n\tvdiv $Q,$vf0w,%0x\n\tvwaitq\n\tvmulq.xyzw %1,$vf2,$Q"
     :"=j"(full),"=j"(quotient),"=r"(vt),"=&r"(halfBits)
@@ -822,22 +832,22 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   __asm__("lwc1 %0,%%lo(%4)(%3)\n\tsqc2 %5,%1\n\tlq %2,%6\n\tadd.s %0,%0,%7"
    :"=&f"(deadline),"=m"(w.endVelocity.q),"=r"(goalArg):"r"(savedClockHigh),"i"(&D_002DDED0),"j"(endVelocity),"m"(w.goal.q),"f"(maximum):"memory");
   register BODY*coordinateBody __asm__("$2");
-  __asm__ volatile("lw $3,%2\n\tlw %0,0x58($3)\n\tsqc2 %3,%1":"=&r"(coordinateBody),"=m"(w.temp.q):"m"(p->actor),"j"(fullAfter):"$3","memory");
-  qword localGoal=func_0022FC48(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,p->actor->body->frame,w.endVelocity.q);
-  p->event=func_0012DE58(p->actor,p->actor->body,5,deadline,localGoal,localEnd);func_001F6860(p->actor,1);
+  __asm__ volatile("lw $3,%2\n\tlw %0,0x58($3)\n\tsqc2 %3,%1":"=&r"(coordinateBody),"=m"(w.temp.q):"m"(air->actor),"j"(fullAfter):"$3","memory");
+  qword localGoal=func_0022FC48(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,air->actor->body->frame,w.endVelocity.q);
+  air->event=func_0012DE58(air->actor,air->actor->body,5,deadline,localGoal,localEnd);func_001F6860(air->actor,1);
   {register ACTOR*cleared __asm__("$3");register qword directionArg __asm__("$5");
-   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(p->actor),"m"(w.delta.q));
-   ClearVelocity(cleared);SetStepRadTargetVec(p->actor,directionArg);}clip=p->base[0];break;}
- case 22:clip=p->special1C8;flags=9;break;
+   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(air->actor),"m"(w.delta.q));
+   ClearVelocity(cleared);SetStepRadTargetVec(air->actor,directionArg);}clip=air->base[0];break;}
+ case 22:clip=air->special1C8;flags=9;break;
  }
- switch(p->mode){case 0:case 2:p->actionFlag=0;break;case 18:RecalcSwOxfFilterForObject(&D_003DD490,p->actor);break;}
- if(p->mode!=-1){if(!active||active->clip!=clip){ReleaseSma(&p->actor->component);ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,p->actor,blend,weight,flags,&p->actor->animation);}Notify(p->actor,90);}
+ switch(air->mode){case 0:case 2:air->actionFlag=0;break;case 18:RecalcSwOxfFilterForObject(&D_003DD490,air->actor);break;}
+ if(air->mode!=-1){if(!active||active->clip!=clip){ReleaseSma(&air->actor->component);ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip,air->actor,blend,weight,flags,&air->actor->animation);}Notify(air->actor,90);}
 }
 } // namespace M_func_00195FB8
 
-//////// 0x196928 func_00196928
+//////// 0x196928 ComputeMaxBallisticTime
 namespace M_func_00196928 { extern "C" {
-/* func_00196928: largest non-negative limit from two quadratic root sets and two sqrt cone terms
+/* ComputeMaxBallisticTime: largest non-negative limit from two quadratic root sets and two sqrt cone terms
    (lane 6, 2026-10-24).  v and a are VECTORs passed by value in single GPRs. */
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
@@ -868,7 +878,10 @@ static inline float LenXY(qword v) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-float func_00196928(qword v, qword a, float low, float high, float slope0, float slope1) {
+// The largest non-negative time at which a projectile with the given vertical velocity and acceleration reaches the
+// low/high bounds (two quadratic root sets) and two cone terms. Used to plan launches toward safe places and targets.
+// (inferred)
+float ComputeMaxBallisticTime(qword v, qword a, float low, float high, float slope0, float slope1) {
     U r0, r1;
     float az = Z(a) * 0.5f, naz = -az;
     float vz, best = 0.0f, l, t;
@@ -887,14 +900,14 @@ float func_00196928(qword v, qword a, float low, float high, float slope0, float
 }
 } } // namespace M_func_00196928
 
-//////// 0x196AA8 func_00196AA8
+//////// 0x196AA8 ProjectJtVelocityOnContacts
 namespace M_func_00196AA8 {
 typedef int qword __attribute__((mode(TI)));typedef unsigned int uint;
 union U{qword q;float f[4];int i[4];};struct P;
 struct CONTACT{char pad0[8];P*owner;char padC[0x80-12];U normal;char pad90[0x1C];CONTACT*next;};
 struct GROUP{CONTACT*first;GROUP*next;};struct COLLISION{char pad0[0x64];GROUP*groups;CONTACT*single;};struct P{char pad0[0xEC];COLLISION*collision;};struct MOVE{P*actor;char pad4[0x18];int mode;};
 struct FRAME{};struct REQ{int bytes,alignment;};union SCRATCH{U scalar;REQ request;};struct WORK{U normals[64];SCRATCH scratch;FRAME frame;U residual,original;};
-extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*PvAllocSlot__FP8ALLOCREQ(REQ*);void SolveInequalities(int,float*,float*,float*,float);void func_00195FB8(MOVE*,int,void*);}
+extern "C"{extern U D_002A2DC0;extern float D_002A63B0;FRAME*STACKSCOPE_ctor(FRAME*);void STACKSCOPE_ctor_1AE4A0(FRAME*,int) __asm__("_$_10STACKSCOPE");void*PvAllocSlot__FP8ALLOCREQ(REQ*);void SolveInequalities(int,float*,float*,float*,float);void SetJtAirState(MOVE*,int,void*);}
 static inline void Publish(U*home,qword q){__asm__ volatile("sqc2 %1,%0":"=m"(home->q):"j"(q));}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword v,qword k){__asm__("vmulx.xyzw %0,%1,%2x":"=j"(v):"j"(v),"j"(k));return v;}
@@ -955,7 +968,9 @@ typedef char Normal_Stride[(FIELD_OFFSET(WORK,normals[1])-FIELD_OFFSET(WORK,norm
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" void func_00196AA8(MOVE*p,U*out){
+// Collects up to 64 contact normals (flipped when Sly is not the owner of the contact), solves the inequality system
+// and returns the residual direction the player may still move in. (inferred)
+extern "C" void ProjectJtVelocityOnContacts(MOVE*p,U*out){
  WORK w;unsigned base=(unsigned)w.normals-16;int count=0;CONTACT*c;GROUP*group=p->actor->collision->groups;
  for(;;){c=group?group->first:p->actor->collision->single;
   if(c){unsigned write=base+count*16;do{if((uint)count>=64)goto collected;qword normal=c->normal.q;if(p->actor!=c->owner){qword negative=Scalar(-1.0f);Publish(&w.scratch.scalar,negative);normal=Scale(normal,negative);}if(Z(normal)>0.7f)continue;write+=16;*(qword*)write=Reject(normal,D_002A2DC0.q);count++;}while((c=c->next)!=0);}
@@ -971,7 +986,7 @@ extern "C" void func_00196AA8(MOVE*p,U*out){
  if(count>0){register qword value __asm__("vf3");register int remaining __asm__("$3");register U*normal __asm__("$2");__asm__("qmtc2.ni %3,%0\n\tdaddu %1,%4,$zero\n\tdaddu %2,%5,$zero":"=j"(value),"=&r"(remaining),"=r"(normal):"r"(original),"r"(count),"r"(w.normals));do{VectorDot(write,value,normal->q);write++;normal++;}while(--remaining!=0);}}
  SolveInequalities(count,matrix,rhs,weights,D_002A63B0);
  if(count>0){register float*read __asm__("$2")=weights;register U*normal __asm__("$4")=w.normals;for(register int remaining __asm__("$3")=count;remaining!=0;){register int bits __asm__("$5");__asm__("lw %0,%1":"=r"(bits):"m"(*read));--remaining;register qword scalar __asm__("vf2"),sum __asm__("vf3"),axis __asm__("vf1");__asm__ volatile("qmtc2.ni %5,%0\n\tlqc2 %1,%6\n\tsqc2 %0,%2\n\taddiu %3,%3,4\n\tlqc2 %4,%7":"=j"(scalar),"=j"(sum),"=m"(w.scratch.scalar.q),"+&r"(read),"=j"(axis):"r"(bits),"m"(w.residual.q),"m"(normal->q));w.residual.q=AddScaled(sum,axis,scalar);normal++;}}
- if(Square(Sub(w.original.q,w.residual.q))>1.0f){switch(p->mode){case 0:func_00195FB8(p,1,0);break;case 2:func_00195FB8(p,3,0);break;}}
+ if(Square(Sub(w.original.q,w.residual.q))>1.0f){switch(p->mode){case 0:SetJtAirState(p,1,0);break;case 2:SetJtAirState(p,3,0);break;}}
  {register qword result __asm__("$4")=w.residual.q;out->q=result;}STACKSCOPE_ctor_1AE4A0(&w.frame,2);
 }
 } // namespace M_func_00196AA8
@@ -991,7 +1006,7 @@ struct CLOCK{float time,dt;};struct SMP{float maximum,minimum,duration;};struct 
 union BASE_PHASE{M3 returned;struct{U local,acceleration,corrected,scalar;}vectors;};
 union WORK{struct{U local,scalar;M3 basis,rotation,returned;U original;}turn;struct{U direction;M3 basis;BASE_PHASE phase;}move;U scalar;};
 extern "C"{extern CLOCK D_002DDED0;extern U D_002A2DA0,D_002A2DC0,D_002A2DD0;extern SMP D_002BF7A8,D_002BF7B8,D_002BF7C8;extern float D_002BF7D4,D_002BF7F0,D_002BF7F4,D_002BF7F8,D_002BF810,D_002BF814;extern PARAMS D_002BF7E0;extern POLY D_002BF800;extern RANGE D_002BBB60;
-qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void func_00196AA8(CONTEXT*,U*);}
+qword ConvertAloVec(ACTOR*,ACTOR*,qword);M3*func_0011B570(M3*,qword);M3*LoadLookAtMatrix(M3*,qword);M4*GetLoWorldMatrix(ACTOR*);float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);qword LimitVectorLength(qword,float);void AddSoAcceleration(ACTOR*,qword);void AccelSoTowardPosSpring(ACTOR*,qword,PARAMS*,qword,PARAMS*);void ProjectJtVelocityOnContacts(CONTEXT*,U*);}
 static inline qword Velocity(ACTOR*p){VTE&v=p->vt[33];return ((qword(*)(void*))v.fn)((char*)p+v.delta);}
 static inline qword Scalar(float f){qword q;__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(f));return q;}
 static inline qword Scale(qword a,qword k){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(k));return r;}
@@ -1064,6 +1079,8 @@ typedef char WORK_scalar_Offset[FIELD_OFFSET(WORK,scalar)==0?1:-1];
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// Air physics preset: spins toward the target orientation, steers with the stick (spring toward the desired position),
+// limits horizontal speed and slides along contacts.
 extern "C" void PresetJtAccelJump(CONTEXT*p){WORK w;
  switch(p->mode){
  case 20:{
@@ -1178,7 +1195,7 @@ extern "C" void PresetJtAccelJump(CONTEXT*p){WORK w;
   }else gain=p->gain;
   w.move.phase.vectors.scalar.q=Scalar(gain);w.move.phase.vectors.acceleration.q=Scale(w.move.phase.vectors.acceleration.q,w.move.phase.vectors.scalar.q);
   w.move.phase.vectors.corrected.q=Rotate(&w.move.basis,w.move.phase.vectors.acceleration.q,w.move.basis.row[0].q);
-  func_00196AA8(p,&w.move.phase.vectors.corrected);
+  ProjectJtVelocityOnContacts(p,&w.move.phase.vectors.corrected);
   if(p->mode!=5){
    w.move.direction.q=Velocity(p->actor);
    register float threshold __asm__("$f0"),z __asm__("$f1");
@@ -1195,12 +1212,12 @@ extern "C" void PresetJtAccelJump(CONTEXT*p){WORK w;
 }
 } // namespace M_PresetJtAccelJump
 
-//////// 0x197370 func_00197370
+//////// 0x197370 StartJtAirTurn
 namespace M_func_00197370 { extern "C" {
 struct S60 { char pad[0x40]; float x40; float x44; };
 struct S150 { char pad[0x18]; float x18; };
 struct S1030 { char pad[0x1C]; float x1c; char pad2[0x40-0x20]; float x40; };
-struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *x150; char pad3[0x1030-0x154]; struct S1030 *x1030; char x1034[4]; };
+struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct S1030 *action; char x1034[4]; };
 struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
@@ -1214,13 +1231,14 @@ void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *a, struct O *o, int n, void *b,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-void func_00197370(struct P *p)
+// Marks a mid-air turn and starts the turn/flip clip chosen from the heading difference.
+void StartJtAirTurn(struct P *p)
 {
     float d, ad;
     struct S1030 *s;
     void *pv;
     p->x30 = 1;
-    d = RadNormalize__Ff(p->x0->x150->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
+    d = RadNormalize__Ff(p->x0->controller->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
     ad = __builtin_fabsf(d);
     if (ad < 1.0995574f)
         p->x8 = 3;
@@ -1230,18 +1248,18 @@ void func_00197370(struct P *p)
         p->x8 = 2;
     else
         p->x8 = 1;
-    s = p->x0->x1030;
+    s = p->x0->action;
     pv = Get(p, p->x8);
     if (!pv)
         pv = Get(p, 0);
     if (!pv)
         pv = p->a120[0];
     ReleaseSma(p->x0->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->x1030, s->x1c, s->x40);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->x1c, s->x40);
 }
 } } // namespace M_func_00197370
 
-//////// 0x1974C8 func_001974C8
+//////// 0x1974C8 GetFirstNonNullEntry
 namespace M_func_001974C8 { extern "C" {
 typedef struct N { int v; struct N *next; } N;
 typedef struct O { char pad[0x64]; N *p; } O;
@@ -1251,7 +1269,8 @@ typedef struct O { char pad[0x64]; N *p; } O;
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-int func_001974C8(O *o)
+// Walks a linked list and returns the first non-null payload.
+int GetFirstNonNullEntry(O *o)
 {
     N *p = o->p;
     while (p) {
@@ -1310,37 +1329,37 @@ extern "C" { extern float D_002BF81C; }
 extern "C" { extern SMP D_002BF820; }
 extern "C" { extern float D_002BF82C; }
 extern "C" { extern float D_002BF830; }
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
-void SteerJtAirClip(JTAIR *pjtair) __asm__("func_00197370");
-qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("func_0019A750");
-void ReleaseJtAirObject(JTAIR *pjtair) __asm__("func_0019C828");
-int FJtLandsWithin(float dt, STEP *pstep) __asm__("func_00143D20");
-XP *PxpFirstOfTree(SOTREE *ptree) __asm__("func_001974C8");
-void TryJtAirGrab(JTAIR *pjtair, LO *plo) __asm__("JtbsChooseJtLanding");
-int FJtAirWedged(float tState, STEPPLAYER *pstepplayer, float *ptCheck) __asm__("FCheckJtStuck");
-extern "C" XP *FindJtEdgeGrabContact(JTAIR *pjtair, int *pixpd, VECTOR4 *pnormal) __asm__("PxpFindJtBestEdge__FP2JTPiP6VECTOR");
-extern "C" int FCheckJtEdgeGrab(JTAIR *pjtair, SOPART *ppart, qword posHold, int xpk, void *pv, qword *pnormal) __asm__("func_001999D0");
-extern "C" void StartJtGrabForAirKind(JTAIR *pjtair) __asm__("func_0019C688");
+// SetJtAirJump: the file-scope extern "C" declaration (line 32) is used; a second declaration here became ambiguous after the rename.
+void SteerJtAirClip(JTAIR *pjtair) __asm__("StartJtAirTurn");
+qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
+void ReleaseJtAirObject(JTAIR *pjtair) __asm__("LandJtAir");
+int FJtLandsWithin(float dt, STEP *pstep) __asm__("WillStepplayerLand");
+XP *PxpFirstOfTree(SOTREE *ptree) __asm__("GetFirstNonNullEntry");
+void TryJtAirGrab(JTAIR *pjtair, LO *plo) __asm__("ChooseJtLanding");
+int FJtAirWedged(float tState, STEPPLAYER *pstepplayer, float *ptCheck) __asm__("IsJtStuck");
+extern "C" XP *FindJtEdgeGrabContact(JTAIR *pjtair, int *pixpd, VECTOR4 *pnormal) __asm__("FindJtBestEdge__FP2JTPiP6VECTOR");
+extern "C" int FCheckJtEdgeGrab(JTAIR *pjtair, SOPART *ppart, qword posHold, int xpk, void *pv, qword *pnormal) __asm__("IsJtEdgeGrabbable");
+extern "C" void StartJtGrabForAirKind(JTAIR *pjtair) __asm__("GrabJtAirTarget");
 extern "C" void ReturnJtToSafePlace(STEPPLAYER *pstepplayer, JTPLACE *pplace);
-extern "C" void SetJtthrowState(JTTHROW *pjtthrow, int nState);
+extern "C" void SetJtThrowState(JTTHROW *pjtthrow, int nState);
 extern "C" int FPowerUpAcquired(int ipowerup) __asm__("FPowerupAcquired");
-extern "C" uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GrfbtnGadget");
+extern "C" uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
 extern "C" void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, GRABSPOTV *pspot);
-extern "C" qword QwPosOfJtPlace(float dt, STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("func_0019F3F8");
+extern "C" qword QwPosOfJtPlace(float dt, STEPPLAYER *pstepplayer, JTPLACE *pplace) __asm__("GetJtPlacePosition");
 static inline float GMinOf(float a, float b)
 {
     return (a < b) ? a : b;
 }
-static inline qword QwScale(qword qwVec, VU_FLOAT gScale)
+static inline qword QwScale(qword vec, VU_FLOAT scale)
 {
     qword qw;
-    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(gScale.qw), "j"(qwVec));
+    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(scale.qw), "j"(vec));
     return qw;
 }
 void UpdateJtAirInput(JTAIR *pjtair) __asm__("UpdateJtAirInput");
 /** @sly2-annot addr=0x197500
  * Purpose: Per-frame air input: double jump, glide/hover (Murray/Sly sheet D_002F7900), throws
- *   (SetJtthrowState), grabs (SetJtGrabState / 0x19C688), JtbsChooseJtLanding, edge grabs via
+ *   (SetJtThrowState), grabs (SetJtGrabState / 0x19C688), ChooseJtLanding, edge grabs via
  *   PxpFindJtBestEdge
  * Info: proposed name UpdateJtAirInput (T1); TU air
  * Notes: runtime2/3: JTAIR states 1/3/4/10/0x11 observed; +4 is nKind, +0x1C is nState (purpose claims
@@ -1349,7 +1368,9 @@ void UpdateJtAirInput(JTAIR *pjtair) __asm__("UpdateJtAirInput");
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-void UpdateJtAirInput(JTAIR *pjtair)
+// Per-frame air input: double jump, glide/hover (via the power-up sheet), throws (SetJtThrowState), grabs
+// (SetJtGrabState / GrabJtAirTarget) and gadgets.
+void UpdateJtAirInput(JTAIR *air)
 {
     VECTOR4 posHero;
     VECTOR4 vel;
@@ -1359,22 +1380,22 @@ void UpdateJtAirInput(JTAIR *pjtair)
     int fFloor = 0;
     XP *pxpFloor;
     POCTL *pctl;
-    *(qword *)&posHero = PosLoWorld(pjtair->pstepplayer);
-    *(qword *)&vel = pjtair->pstepplayer->GetVelocity();
-    pctl = pjtair->pstepplayer->pctl;
-    pxpFloor = pjtair->pstepplayer->pxpFloor;
+    *(qword *)&posHero = PosLoWorld(air->pstepplayer);
+    *(qword *)&vel = air->pstepplayer->GetVelocity();
+    pctl = air->pstepplayer->pctl;
+    pxpFloor = air->pstepplayer->pxpFloor;
     if (pxpFloor != 0 && pxpFloor->normal.z > 0.7f)
         fFloor = 1;
     do
     {
-        nStatePrev = pjtair->nState;
-        if (pjtair->plo != 0)
+        nStatePrev = air->nState;
+        if (air->plo != 0)
         {
-            ulong fWorld = pjtair->plo->fInWorld;
+            ulong fWorld = air->plo->fInWorld;
             if (!fWorld)
-                ReleaseJtAirObject(pjtair);
+                ReleaseJtAirObject(air);
         }
-        switch (pjtair->nState)
+        switch (air->nState)
         {
             case 9:
             case 0xA:
@@ -1392,63 +1413,63 @@ void UpdateJtAirInput(JTAIR *pjtair)
             case 0x16:
                 break;
             default:
-            if (pjtair->fCanDoubleJump)
+            if (air->fCanDoubleJump)
             {
                 if (pctl->GrfPressedWithin(0x40, 0.0f))
                 {
-                    if (!FJtLandsWithin(0.075f, pjtair->pstepplayer))
+                    if (!FJtLandsWithin(0.075f, air->pstepplayer))
                     {
                         pctl->ClearJoyPressed(0x40);
-                        SetJtAirJump(pjtair, 6, pjtair->n2, 0);
+                        SetJtAirJump(air, 6, air->n2, 0);
                     }
                 }
             }
             if (pctl->GrfPressedWithin(0x20, 0.0f))
             {
-                int nState = pjtair->nState;
-                TryJtAirGrab(pjtair, 0);
-                if (pjtair->nState != nState)
+                int state = air->nState;
+                TryJtAirGrab(air, 0);
+                if (air->nState != state)
                     pctl->ClearJoyPressed(0x20);
             }
             if (pctl->GrfPressedWithin(0x8, 0.0f))
             {
-                if (pjtair->pstepplayer == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, pjtair->pstepplayer))
+                if (air->pstepplayer == D_002E1E40 && FPowerUpAcquired(0x1B) && !FJtLandsWithin(0.3f, air->pstepplayer))
                 {
-                    ChargeGadgetMp(pjtair->pstepplayer, 0x1B);
+                    ChargeGadgetMp(air->pstepplayer, 0x1B);
                     pctl->ClearJoyPressed(0x8);
                     D_002E1E40->StartGadget(0x1B);
                 }
             }
             break;
         }
-        switch (pjtair->nState)
+        switch (air->nState)
         {
             case 0:
-                if (D_002DDED0.t - pjtair->tState > D_002BF818)
+                if (D_002DDED0.t - air->tState > D_002BF818)
                 {
-                    if (!(pctl->grfbtn & 0x40) && pjtair->nUnk40 != 3)
-                        pjtair->fUnk24 = 1;
-                    SetJtAirState(pjtair, 1, pjtair->plo);
+                    if (!(pctl->grfbtn & 0x40) && air->nUnk40 != 3)
+                        air->fUnk24 = 1;
+                    SetJtAirState(air, 1, air->plo);
                 }
-                else if (!pjtair->fUnk30 && pctl->sLeft > 0.5f)
-                    SteerJtAirClip(pjtair);
+                else if (!air->fUnk30 && pctl->sLeft > 0.5f)
+                    SteerJtAirClip(air);
                 break;
             case 2:
-                if (D_002DDED0.t - pjtair->tState > D_002BF81C)
-                    SetJtAirState(pjtair, 3, pjtair->plo);
-                else if (!pjtair->fUnk30 && pctl->sLeft > 0.5f)
-                    SteerJtAirClip(pjtair);
+                if (D_002DDED0.t - air->tState > D_002BF81C)
+                    SetJtAirState(air, 3, air->plo);
+                else if (!air->fUnk30 && pctl->sLeft > 0.5f)
+                    SteerJtAirClip(air);
                 break;
             case 1:
             case 7:
                 if (vel.z < 0.0f)
-                    SetJtAirState(pjtair, 4, pjtair->plo);
+                    SetJtAirState(air, 4, air->plo);
                 break;
             case 6:
-                if (((CID88 *)pjtair->plo)->nUnk17c == 3)
-                    SetJtAirState(pjtair, 4, 0);
-                else if (*(float *)&pjtair->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
-                    StartJtGrabForAirKind(pjtair);
+                if (((CID88 *)air->plo)->nUnk17c == 3)
+                    SetJtAirState(air, 4, 0);
+                else if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                    StartJtGrabForAirKind(air);
                 break;
             case 9:
             case 0xA:
@@ -1458,178 +1479,178 @@ void UpdateJtAirInput(JTAIR *pjtair)
             case 0xE:
             case 0xF:
             case 0x10:
-                if (*(float *)&pjtair->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
-                    StartJtGrabForAirKind(pjtair);
+                if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                    StartJtGrabForAirKind(air);
                 break;
             case 0x12:
             {
                 float tLabel = TFindAsegLabel(D_002F7900->moverec.pasegUnk64, (OID)0x1C7);
-                float t = *(float *)&pjtair->pstepplayer->pxfUnk58->pxfRef;
+                float t = *(float *)&air->pstepplayer->pxfUnk58->pxfRef;
                 t -= tLabel;
                 if (t <= D_002DDED0.t && D_002F7900->moverec.nState != 3)
                 {
-                    SetJtthrowState((JTTHROW *)&D_002F7900->moverec, 3);
+                    SetJtThrowState((JTTHROW *)&D_002F7900->moverec, 3);
                     break;
                 }
-                if (*(float *)&pjtair->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
-                    StartJtGrabForAirKind(pjtair);
+                if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                    StartJtGrabForAirKind(air);
                 break;
             }
             case 8:
-                if (*(float *)&pjtair->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
-                    SetJtAirState(pjtair, 4, pjtair->plo);
+                if (*(float *)&air->pstepplayer->pxfUnk58->pxfRef < D_002DDED0.t)
+                    SetJtAirState(air, 4, air->plo);
                 break;
             case 5:
-                if (D_002DDED0.t - pjtair->tState > 0.25f && fFloor)
+                if (D_002DDED0.t - air->tState > 0.25f && fFloor)
                 {
-                    pjtair->pstepplayer->VUnk87(0);
+                    air->pstepplayer->VUnk87(0);
                     break;
                 }
-                if (FJtAirWedged(pjtair->tState, pjtair->pstepplayer, &pjtair->pstepplayer->tUnk131c))
-                    ReturnJtToSafePlace(pjtair->pstepplayer, 0);
+                if (FJtAirWedged(air->tState, air->pstepplayer, &air->pstepplayer->tUnk131c))
+                    ReturnJtToSafePlace(air->pstepplayer, 0);
                 break;
             case 3:
             case 4:
                 if (fFloor)
                 {
-                    if (pjtair->nKind == 0xE)
-                        SetJtGrabState(&pjtair->pstepplayer->jtgrab, 0xA, 0, 0);
+                    if (air->nKind == 0xE)
+                        SetJtGrabState(&air->pstepplayer->jtgrab, 0xA, 0, 0);
                     else
-                        pjtair->pstepplayer->VUnk87(0);
+                        air->pstepplayer->VUnk87(0);
                     break;
                 }
                 else
                 {
-                    XP *pxp = FindJtEdgeGrabContact(pjtair, &ixpd, &vec);
-                    if (pxp != 0)
+                    XP *xp = FindJtEdgeGrabContact(air, &ixpd, &vec);
+                    if (xp != 0)
                     {
-                        XPD *pxpd = &pxp->axpd[1 - ixpd];
-                        pjtair->pedge = (JTEDGE *)pxpd->ppart;
-                        pjtair->posEdge = ConvertXfPos(0, pjtair->pedge->pxf, pxpd->pos);
-                        pjtair->nUnk100 = pxp->xpk;
-                        pjtair->nUnk104 = (ixpd == 0) ? (int)pxp->pv1 : (int)pxp->pv0;
-                        pjtair->normalEdge = *(qword *)&vec;
-                        SetJtAirState(pjtair, 0x11, 0);
+                        XPD *pxpd = &xp->axpd[1 - ixpd];
+                        air->pedge = (JTEDGE *)pxpd->ppart;
+                        air->posEdge = ConvertXfPos(0, air->pedge->pxf, pxpd->pos);
+                        air->nUnk100 = xp->xpk;
+                        air->nUnk104 = (ixpd == 0) ? (int)xp->pv1 : (int)xp->pv0;
+                        air->normalEdge = *(qword *)&vec;
+                        SetJtAirState(air, 0x11, 0);
                         break;
                     }
                 }
-                if (FJtAirWedged(pjtair->tState, pjtair->pstepplayer, &pjtair->pstepplayer->tUnk131c))
-                    ReturnJtToSafePlace(pjtair->pstepplayer, 0);
+                if (FJtAirWedged(air->tState, air->pstepplayer, &air->pstepplayer->tUnk131c))
+                    ReturnJtToSafePlace(air->pstepplayer, 0);
                 break;
             case 0x11:
-                if (D_002DDED0.t - pjtair->tState > 0.25f)
+                if (D_002DDED0.t - air->tState > 0.25f)
                 {
                     if (pctl->GrfConsumePressed(0x40, 0.25f))
                     {
-                        SetJtAirJump(pjtair, 3, 0, 0);
+                        SetJtAirJump(air, 3, 0, 0);
                         break;
                     }
                 }
-                if (((SO *)pjtair->pedge->plo)->ptree == 0)
-                    SetJtAirState(pjtair, 4, 0);
+                if (((SO *)air->pedge->plo)->ptree == 0)
+                    SetJtAirState(air, 4, 0);
                 else
                 {
-                    STEPPLAYER *pstepplayer = pjtair->pstepplayer;
-                    pstepplayer->dposUnk1010 = PosSmooth(pstepplayer->dposUnk1010, D_002A2DD0, D_002DDED0.dt, &D_002BF820, 0);
-                    *(qword *)&vec = ConvertXfPos(pjtair->pedge->pxf, 0, pjtair->posEdge);
-                    if (D_002DDED0.t - pjtair->tState > 0.03f)
+                    STEPPLAYER *player = air->pstepplayer;
+                    player->dposUnk1010 = PosSmooth(player->dposUnk1010, D_002A2DD0, D_002DDED0.dt, &D_002BF820, 0);
+                    *(qword *)&vec = ConvertXfPos(air->pedge->pxf, 0, air->posEdge);
+                    if (D_002DDED0.t - air->tState > 0.03f)
                     {
-                        if (!FCheckJtEdgeGrab(pjtair, (SOPART *)pjtair->pedge, *(qword *)&vec, pjtair->nUnk100, (void *)pjtair->nUnk104, &pjtair->normalEdge))
+                        if (!FCheckJtEdgeGrab(air, (SOPART *)air->pedge, *(qword *)&vec, air->nUnk100, (void *)air->nUnk104, &air->normalEdge))
                         {
-                            SetJtAirState(pjtair, 4, 0);
+                            SetJtAirState(air, 4, 0);
                             break;
                         }
                     }
-                    SetStepRadTargetVec(pjtair->pstepplayer, QwScale(pjtair->normalEdge, VuFloat(-1.0f)));
+                    SetStepRadTargetVec(air->pstepplayer, QwScale(air->normalEdge, VuFloat(-1.0f)));
                     if (pctl->GrfPressedWithin(0x400, 0.15f))
                     {
-                        if (pjtair->pstepplayer->FCanUseGadget(3))
+                        if (air->pstepplayer->FCanUseGadget(3))
                         {
                             pctl->ClearJoyPressed(0x400);
-                            StartJtMode(&pjtair->pstepplayer->jtmode, 0, 0, 0);
+                            StartJtMode(&air->pstepplayer->jtmode, 0, 0, 0);
                         }
                     }
                 }
                 break;
             case 0x13:
             case 0x14:
-                if (PxpFirstOfTree(pjtair->pstepplayer->ptree) != 0)
+                if (PxpFirstOfTree(air->pstepplayer->ptree) != 0)
                 {
-                    SetJtAirState(pjtair, 4, 0);
+                    SetJtAirState(air, 4, 0);
                     break;
                 }
-                if (!(pctl->grfbtn & (GrfMatchingSlots(pjtair->pstepplayer, 0x1B) | 8)))
+                if (!(pctl->grfbtn & (GrfMatchingSlots(air->pstepplayer, 0x1B) | 8)))
                 {
-                    SetJtAirState(pjtair, 4, 0);
+                    SetJtAirState(air, 4, 0);
                     break;
                 }
-                if (pjtair->nState == 0x13)
+                if (air->nState == 0x13)
                 {
-                    ASEGA *pasega = pjtair->pstepplayer->pasegaUnk1030;
-                    if (pasega == 0 || FAsegaRetracted(pasega))
-                        SetJtAirState(pjtair, 0x14, 0);
+                    ASEGA *asega = air->pstepplayer->pasegaUnk1030;
+                    if (asega == 0 || FAsegaRetracted(asega))
+                        SetJtAirState(air, 0x14, 0);
                 }
                 break;
             case 0x15:
-                if (pjtair->pact8->tEnd < D_002DDED0.t)
+                if (air->pact8->tEnd < D_002DDED0.t)
                 {
-                    JT *pjt = 0;
+                    JT *jt = 0;
                     int nUnk10;
-                    if (FIsBasicDerivedFrom(pjtair->pstepplayer, (CID)0x35))
+                    if (FIsBasicDerivedFrom(air->pstepplayer, (CID)0x35))
                     {
-                        pjt = (JT *)pjtair->pstepplayer;
-                        nUnk10 = pjt->janim.nUnk10;
+                        jt = (JT *)air->pstepplayer;
+                        nUnk10 = jt->janim.nUnk10;
                     }
-                    *(qword *)&vec = pjtair->pstepplayer->GetVelocity();
+                    *(qword *)&vec = air->pstepplayer->GetVelocity();
                     vec.x = vec.y = 0.0f;
-                    pjtair->pstepplayer->SetVelocity(*(qword *)&vec);
-                    SetJtAirJump(pjtair, 0xB, 0, 0);
-                    if (pjt != 0)
-                        pjt->janim.nUnk10 = nUnk10;
+                    air->pstepplayer->SetVelocity(*(qword *)&vec);
+                    SetJtAirJump(air, 0xB, 0, 0);
+                    if (jt != 0)
+                        jt->janim.nUnk10 = nUnk10;
                     break;
                 }
-                if (pjtair->placeTarget.pspot != 0 && pjtair->pact8->tEnd < D_002DDED0.t + 0.25f)
+                if (air->placeTarget.pspot != 0 && air->pact8->tEnd < D_002DDED0.t + 0.25f)
                 {
-                    if (FIsBasicDerivedFrom(pjtair->placeTarget.plo, (CID)0x13) || FIsBasicDerivedFrom(pjtair->placeTarget.plo, (CID)0xB) ||
-                        FIsBasicDerivedFrom(pjtair->placeTarget.plo, (CID)0xD) || FIsBasicDerivedFrom(pjtair->placeTarget.plo, (CID)0x27) ||
-                        FIsBasicDerivedFrom(pjtair->placeTarget.plo, (CID)0xC) || FIsBasicDerivedFrom(pjtair->placeTarget.plo, (CID)0x22) ||
-                        FIsBasicDerivedFrom(pjtair->placeTarget.plo, (CID)0x26))
+                    if (FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x13) || FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0xB) ||
+                        FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0xD) || FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x27) ||
+                        FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0xC) || FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x22) ||
+                        FIsBasicDerivedFrom(air->placeTarget.plo, (CID)0x26))
                     {
-                        SetJtAirJump(pjtair, 0xB, 0, 0);
-                        TryJtAirGrab(pjtair, pjtair->placeTarget.plo);
+                        SetJtAirJump(air, 0xB, 0, 0);
+                        TryJtAirGrab(air, air->placeTarget.plo);
                         break;
                     }
                 }
-                if (pjtair->fCanDoubleJump)
+                if (air->fCanDoubleJump)
                 {
-                    if (pjtair->pstepplayer->pxfUnk58->vUnkB0.z < 0.0f)
+                    if (air->pstepplayer->pxfUnk58->vUnkB0.z < 0.0f)
                     {
-                        ApplyAsegCur(pjtair->apasegDoubleJump[0], (ALO *)pjtair->pstepplayer, 0.0f, 1.0f, 1, &pjtair->pstepplayer->pasegaUnk1030);
-                        pjtair->fCanDoubleJump = 0;
-                        pjtair->pstepplayer->SetVelocity(JtPlanLaunchVz(pjtair, 6));
+                        ApplyAsegCur(air->apasegDoubleJump[0], (ALO *)air->pstepplayer, 0.0f, 1.0f, 1, &air->pstepplayer->pasegaUnk1030);
+                        air->fCanDoubleJump = 0;
+                        air->pstepplayer->SetVelocity(JtPlanLaunchVz(air, 6));
                         break;
                     }
                 }
-                if (pjtair->placeTarget.pspot != 0 || pjtair->placeTarget.ppart != 0)
+                if (air->placeTarget.pspot != 0 || air->placeTarget.ppart != 0)
                 {
-                    qword posTarget = QwPosOfJtPlace(GMinOf(0.7f, pjtair->pact8->tEnd - D_002DDED0.t), pjtair->pstepplayer, &pjtair->placeTarget);
-                    pjtair->pact8->SetGoal(ConvertXfPos(0, pjtair->pstepplayer->pxfUnk58->pxfParent, posTarget), pjtair->pact8->qwGoalVel);
+                    qword targetPos = QwPosOfJtPlace(GMinOf(0.7f, air->pact8->tEnd - D_002DDED0.t), air->pstepplayer, &air->placeTarget);
+                    air->pact8->SetGoal(ConvertXfPos(0, air->pstepplayer->pxfUnk58->pxfParent, targetPos), air->pact8->qwGoalVel);
                 }
                 break;
             case 0x16:
-                if (MpStepplayerCur(pjtair->pstepplayer) <= 0)
-                    SetJtAirState(pjtair, 4, 0);
-                else if (D_002DDED0.t - pjtair->tState > D_002BF82C && fFloor)
-                    pjtair->pstepplayer->VUnk87(0);
-                else if (D_002DDED0.t - pjtair->tState > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(pjtair->pstepplayer, 0xC)))
-                    SetJtAirState(pjtair, 4, 0);
-                else if (D_002DDED0.t - pjtair->tState > D_002BF830)
-                    SetJtAirState(pjtair, 4, 0);
+                if (GetStepplayerMp(air->pstepplayer) <= 0)
+                    SetJtAirState(air, 4, 0);
+                else if (D_002DDED0.t - air->tState > D_002BF82C && fFloor)
+                    air->pstepplayer->VUnk87(0);
+                else if (D_002DDED0.t - air->tState > D_002BF82C && !(pctl->grfbtn & GrfMatchingSlots(air->pstepplayer, 0xC)))
+                    SetJtAirState(air, 4, 0);
+                else if (D_002DDED0.t - air->tState > D_002BF830)
+                    SetJtAirState(air, 4, 0);
                 break;
         }
-        if (pjtair->nState == nStatePrev)
+        if (air->nState == nStatePrev)
             break;
-    } while (pjtair->nState != -1);
+    } while (air->nState != -1);
 }
 } // namespace M_UpdateJtAirInput
 
@@ -1699,7 +1720,7 @@ void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float 
 qword GetXfVelocity(SPACE *, SPACE *, qword);
 qword func_0022FC48(SPACE *, SPACE *, qword);
 qword ConvertXfVec(SPACE *, SPACE *, qword);
-void func_00195FB8(CONTEXT *, int, void *);
+void SetJtAirState(CONTEXT *, int, void *);
 void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
 float RadStepHeading(ACTOR *);
@@ -1732,8 +1753,8 @@ static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" :
 static inline VU_FLOAT VuFloatMemBits(const float &g) { VU_FLOAT v; __asm__("lw %0,%1" : "=r"(v.q) : "m"(g)); return v; }
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword QwAddScaled(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x" : "=j"(r) : "j"(a), "j"(b), "j"(g.q)); return r; }
-static inline qword QwAddScaled2(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0
-\tvmaddx.xyzw %0,%3,%2x" : "=j"(r) : "j"(a), "j"(g.q), "j"(b), "j"(g.q)); return r; }
+static inline qword QwAddScaled2(qword a, qword b, VU_FLOAT g) { qword r; __asm__("vadda.xyzw $ACC,%1,$vf0\n"
+"\tvmaddx.xyzw %0,%3,%2x" : "=j"(r) : "j"(a), "j"(g.q), "j"(b), "j"(g.q)); return r; }
 static inline qword QwScale2(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g.q), "j"(a), "j"(g.q)); return r; }
 static inline qword QwScale(qword a, VU_FLOAT g) { qword r; __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(g.q)); return r; }
 static inline float GFromVf(qword v) { float g; __asm__("qmfc2.ni %0,%1" : "=r"(g) : "j"(v)); return g; }
@@ -1741,8 +1762,8 @@ static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z)
 static inline float GLengthSqXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromVf(r); }
 static inline float FloatUse(float g, void *a) { __asm__("" : "+f"(g) : "r"(a)); return g; }
 static inline float GFromQw(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q)); return g; }
-static inline float GLengthSqXYQ(qword v) { qword r; __asm__("vmul.xy %0,%1,%1
-\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromQw(r); }
+static inline float GLengthSqXYQ(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n"
+"\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromQw(r); }
 static inline qword QwSqrt(qword v) { qword r; __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(r) : "j"(v)); return r; }
 static inline float GLengthXY(qword v) { qword r; __asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y" : "=j"(r) : "j"(v)); return GFromVf(QwSqrt(r)); }
 static inline qword QwDot(qword a, qword b) { qword r, one; __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(r), "=j"(one) : "j"(a), "j"(b)); return r; }
@@ -1804,6 +1825,8 @@ static inline int FMoving(qword v) { return D_002BF848 < GLengthXY(v); }
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// Per-frame update of the jump state (jts 2): stick combo timers, a search for an interceptable jump target among the
+// world's object lists, landing detection, edge grabs and the transitions out of the air.
 extern "C" void UpdateJtActiveJump(CONTEXT *p)
 {
     INPUT *input = p->actor->input;
@@ -1919,9 +1942,9 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             v.q = Make(velBest.f[0], velBest.f[1], FloatUse(vel.f[2], actor) + tBest * actor->physics->gravity.f[2]);
             body->velocityGoal.q = ConvertXfVec(0, frame, v.q);
             if (srcBest)
-                func_00195FB8(p, 6, srcBest);
+                SetJtAirState(p, 6, srcBest);
             else
-                func_00195FB8(p, 8, objBest);
+                SetJtAirState(p, 8, objBest);
         }
         break;
     }
@@ -1977,7 +2000,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         EvaluateBezierPos(dt, dt, 1.0f, body->position.q, body->velocity.q, body->goal.q, body->velocityGoal.q, 0, 0, &accel1.q);
         if (D_002BF844 < (GLengthQ(accel0.q) + GLengthQ(accel1.q)) * 0.5f * dt)
 
-            func_00195FB8(p, 4, 0);
+            SetJtAirState(p, 4, 0);
         break;
     }
     }
@@ -2137,7 +2160,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
 }
 } // namespace M_UpdateJtActiveJump
 
-//////// 0x1991A0 func_001991A0
+//////// 0x1991A0 AddJtWallRunXps
 namespace M_func_001991A0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f; } U;
@@ -2162,7 +2185,8 @@ void GetNormalVectors(qword a, qword b, qword c, qword *pm);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-void func_001991A0(struct P *p)
+// During a wall run (kind 0x11) adds a constraint frame against the wall to the physics contacts.
+void AddJtWallRunXps(struct P *p)
 {
     if (p->x1c == 0x11) {
         U q, r;
@@ -2187,7 +2211,7 @@ void func_001991A0(struct P *p)
 }
 } } // namespace M_func_001991A0
 
-//////// 0x199298 func_00199298
+//////// 0x199298 FreeJtWallRunXps
 namespace M_func_00199298 {
 struct Y {
     int a0, a4, a8;
@@ -2272,7 +2296,8 @@ extern "C" void FreeSwXpList__FP2SWP2XP(G *g, X *x);
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" void func_00199298(P *p)
+// During a wall run (kind 0x11) frees the wall-run contact list.
+extern "C" void FreeJtWallRunXps(P *p)
 {
     EC *ec;
     if (p->x1c != 0x11 || !(ec = p->xc8->x4->xec))
@@ -2303,7 +2328,7 @@ extern "C" void func_00199298(P *p)
 }
 } // namespace M_func_00199298
 
-//////// 0x199408 FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR
+//////// 0x199408 IsJtSingleEdgeGrabbable
 namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR {
 /* Find the horizontal contact normal along a steep/shallow face boundary. */
 typedef int qword __attribute__((mode(TI)));
@@ -2321,12 +2346,14 @@ static inline qword Scale(qword a,float f,VECTOR&k){qword q,r;__asm__("qmtc2.ni 
 /** @sly2-annot addr=0x199408
  * Purpose: (existing) For an edge between a walkable (n.z>0.7) and a wall face (n.z<0.55) compute the grab
  *   direction
- * Info: proposed name FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR (EXISTING); TU air
+ * Info: proposed name IsJtSingleEdgeGrabbable (EXISTING); TU air
  * Confidence: high [EXISTING 0.85] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// For an edge between a walkable face (normal z > 0.7) and a wall face (normal z < 0.55) computes the grab direction;
+// returns nonzero if the edge is a ledge Sly can grab.
 /* Its VECTOR (a qword/float/int union) is not basic.h's, so it keeps its symbol as a C-linkage definition. */
-extern "C" int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT*,SO*so,EDGE*e,VECTOR*out){
+extern "C" int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT*,SO*so,EDGE*e,VECTOR*out){
  GEO*geom=&so->geom;FACE*chosen;
  VECTOR d,r,k;
  FACE*a=&geom->faces[e->faceA];FACE*b=&geom->faces[e->faceB];
@@ -2343,7 +2370,7 @@ extern "C" int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT*,SO*so,EDGE*e,VECT
 }
 } // namespace M_FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR
 
-//////// 0x1995D8 func_001995D8
+//////// 0x1995D8 BuildJtEdgeProbeArc
 namespace M_func_001995D8 {
 /* Build paired arc samples and transform them into world space. */
 typedef int qword __attribute__((mode(TI)));
@@ -2363,7 +2390,9 @@ static inline void Set(U*v,float x,float z){v->f[0]=x;v->f[2]=z;v->i[1]=0;}
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" void func_001995D8(P*p,const M4*world,int count,U*out){
+// Generates paired arc sample points (9 rotations of 15 degrees) and transforms them to world space, used to probe a
+// ledge's surroundings.
+extern "C" void BuildJtEdgeProbeArc(P*p,const M4*world,int count,U*out){
  M3 m;U *cursor=out,*v;
  Set(cursor++,p->bx,p->bz);Set(cursor++,p->bx,p->by);Set(cursor++,p->ax,p->az);v=cursor++;Set(v,p->bx,p->bz);
  float x=p->ax,y=v->f[1];qword a=Pack(x,y,p->az),b=Pack(x,y,p->ay);
@@ -2372,9 +2401,9 @@ extern "C" void func_001995D8(P*p,const M4*world,int count,U*out){
 }
 } // namespace M_func_001995D8
 
-//////// 0x1997D8 FCheckJtEdgeNormal
+//////// 0x1997D8 IsJtEdgeNormalValid
 namespace M_FCheckJtEdgeNormal {
-// Collision sweep: builds a MATRIX4 from the incoming basis row/point, asks func_001995D8 for 22 sample points
+// Collision sweep: builds a MATRIX4 from the incoming basis row/point, asks BuildJtEdgeProbeArc for 22 sample points
 // (11 segments) and tests every segment against the shapes of every layer; returns whether at least 2 hits
 // had a plane normal with Z > 0.7 (any hit before the 3rd segment, or with parameter 0, fails at once).
 //
@@ -2405,7 +2434,7 @@ extern "C" { extern qword D_002A2DB0; }
 extern "C" {
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 qword *VECTOR_opAssign(qword *pq, qword q);
-void func_001995D8(struct P *p, const M4 *pm, int n, U *apt);
+void BuildJtEdgeProbeArc(struct P *p, const M4 *pm, int n, U *apt);
 int ClsgClipEdgeToObject(struct S0 *s, qword a, qword b, int n, HIT *ph);
 }
 
@@ -2417,11 +2446,13 @@ static inline int HitSegment(struct S0 *s, const qword *a, const qword *b, HIT *
 /** @sly2-annot addr=0x1997D8
  * Purpose: Sweep 11 probe segments around the edge point against every layer's shapes; true if >=2 hit (valid
  *   ledge normal)
- * Info: proposed name FCheckJtEdgeNormal (T1); TU air
+ * Info: proposed name IsJtEdgeNormalValid (T1); TU air
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest+verdicts_A2
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" int FCheckJtEdgeNormal(struct P *p, qword q1, qword q2)
+// Sweeps 11 probe segments around the edge point against every layer's shapes; true if at least two hit (a valid
+// ledge normal).
+extern "C" int IsJtEdgeNormalValid(struct P *p, qword q1, qword q2)
 {
     M3 m;
     M4 m4;
@@ -2436,7 +2467,7 @@ extern "C" int FCheckJtEdgeNormal(struct P *p, qword q1, qword q2)
     pm->m = m;
     m4.m.r[0].i[3] = m4.m.r[1].i[3] = m4.m.r[2].i[3] = 0;
     pm->pos.f[3] = 1.0f;
-    func_001995D8(p, &m4, 22, (U *)apt);
+    BuildJtEdgeProbeArc(p, &m4, 22, (U *)apt);
     for (l = p->x0->xec->x64; l; l = l->x4) {
         int i;
         if (l->xc->xec->x70 & 4)
@@ -2469,15 +2500,15 @@ typedef char guard_HIT_param[(unsigned)&((HIT *)0)->parameter == 64 ? 1 : -1];
 typedef char guard_size_HIT[sizeof(HIT) == 112 ? 1 : -1];
 } // namespace M_FCheckJtEdgeNormal
 
-//////// 0x1999D0 func_001999D0
+//////// 0x1999D0 IsJtEdgeGrabbable
 namespace M_func_001999D0 {
-// func_001999D0: contact direction of a JT against a shape feature, then FCheckJtEdgeNormal(p, point, *out).
+// IsJtEdgeGrabbable: contact direction of a JT against a shape feature, then IsJtEdgeNormalValid(p, point, *out).
 //   kind 1 (vertex): sum of FCheckJtSingleEdge directions over the edges at that vertex (func_001665F0, max 64)
 //   kind 2 (face):   face must be flat enough (plane z >= 0.7); sum of the directions of both edge lists whose
 //                    segment passes func_00118668 against the actor's tree
 //   kind 3 (edge):   FCheckJtSingleEdge directly
 // A sum is normalized with D_002A2DA0 as the fallback; no accepted direction returns 0.
-// What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from GetPipeGoalMat (the asm
+// What mattered (w3lane2): the return-style Normalize with the mtc1-asm X() compare from GetPipeGoalMatrix (the asm
 // between the fallback load and the bc1f stops reorg's backward delay-slot search, so the divide's reload fills
 // it), a two-input Dot so Len(v) = Sqrt(Dot(v, v)), and block-scoped case locals (case 2 reuses case 1's slots).
 typedef int qword __attribute__((mode(TI)));
@@ -2496,9 +2527,9 @@ struct SPAN { U first, last, firstPlane, lastPlane; float from, to; int flags; F
 extern "C" {
 extern U D_002A2DD0, D_002A2DA0;   // zero vector, fallback direction
 int func_001665F0(GEOMETRY *, QUERY *, int, int, EDGE **);
-int FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
+int IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(JT *, SHAPE *, EDGE *, U *);   // FCheckJtSingleEdge
 int func_00118668(NODE *, int, qword, qword, int, SPAN *);
-int FCheckJtEdgeNormal(JT *, qword, qword);
+int IsJtEdgeNormalValid(JT *, qword, qword);
 }
 
 static inline qword Add(qword a, qword b)
@@ -2541,12 +2572,14 @@ static inline qword Normalize(qword v, qword fallback)
 
 /** @sly2-annot addr=0x1999D0
  * Purpose: Contact direction vs a shape feature: vertex -> sum FCheckJtSingleEdge over edges at the point
- *   (CpedgeFromGeomPoint, max 64) + BSP clip test; edge -> FCheckJtSingleEdge; then FCheckJtEdgeNormal
+ *   (CpedgeFromGeomPoint, max 64) + BSP clip test; edge -> FCheckJtSingleEdge; then IsJtEdgeNormalValid
  * Info: proposed name FCheckJtEdgeGrab (T1); TU air
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest+verdicts_B
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *info, U *out)
+// Tests a contact against a shape feature: for a vertex, sums IsJtSingleEdgeGrabbable over the edges meeting there
+// (at most 64) plus a BSP clip test; for an edge tests it directly. Returns nonzero with the grab normal.
+extern "C" int IsJtEdgeGrabbable(JT *jt, SHAPE *shape, qword point, int kind, void *info, U *out)
 {
     switch (kind) {
     case 1: {
@@ -2557,7 +2590,7 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         GEOMETRY *geometry = &shape->geometry;
         int count = func_001665F0(geometry, &shape->query, (U *)info - geometry->points, 64, edges);
         for (int i = 0; i < count; i++) {
-            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, edges[i], &direction)) {
+            if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edges[i], &direction)) {
                 found = 1;
                 sum = Add(sum, direction.q);
             }
@@ -2568,7 +2601,7 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         break;
     }
     case 3:
-        if (!FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, (EDGE *)info, out))
+        if (!IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, (EDGE *)info, out))
             return 0;
         break;
     case 2: {
@@ -2580,9 +2613,9 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         U direction;
         SPAN spans[2];
         for (EDGE *edge = face->first; edge; edge = edge->next) {
-            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, edge, &direction)) {
+            if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 U *points = shape->geometry.points;
-                if (func_00118668(p->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
+                if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
@@ -2590,9 +2623,9 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
             }
         }
         for (EDGE *edge = face->second; edge; edge = edge->nextOther) {
-            if (FCheckJtSingleEdge__FP2JTP2SOP4EDGEP6VECTOR(p, shape, edge, &direction)) {
+            if (IsJtSingleEdgeGrabbable__FP2JTP2SOP4EDGEP6VECTOR(jt, shape, edge, &direction)) {
                 U *points = shape->geometry.points;
-                if (func_00118668(p->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
+                if (func_00118668(jt->actor->shape->query.tree, 0x7FFFFFFF, points[edge->vertices[0]].q,
                                   points[edge->vertices[1]].q, 2, spans) > 0) {
                     found = 1;
                     sum = Add(sum, direction.q);
@@ -2605,14 +2638,14 @@ extern "C" int func_001999D0(JT *p, SHAPE *shape, qword point, int kind, void *i
         break;
     }
     }
-    return FCheckJtEdgeNormal(p, point, out->q);
+    return IsJtEdgeNormalValid(jt, point, out->q);
 }
 } // namespace M_func_001999D0
 
-//////// 0x199D48 PxpFindJtBestEdge__FP2JTPiP6VECTOR
+//////// 0x199D48 FindJtBestEdge
 namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR { extern "C" {
 /* Pick the best supporting contact of a probe object: walk its contact groups, skip contacts
-   whose other body sits under a kind-2 object, test the callback (func_001999D0), then probe a
+   whose other body sits under a kind-2 object, test the callback (IsJtEdgeGrabbable), then probe a
    point offset along the contact direction and reject it if it lies inside the other body's BSP.
    Returns the contact whose other endpoint is highest in Z; *outSide / *outNormal describe it. */
 #define FIELD_OFFSET(t,m) ((uint)&(((t*)0)->m))
@@ -2666,8 +2699,8 @@ extern float D_002C3C60[],D_002BF8A4;
 extern int D_002BF8A8;
 extern qword D_002A2DC0;
 extern char D_003DD490[];
-extern int func_00144068(LO *);
-extern int func_001999D0(P *,SHAPE *,qword,int,void *,U *);
+extern int IsStepplayerPushing(LO *);
+extern int IsJtEdgeGrabbable(P *,SHAPE *,qword,int,void *,U *);
 extern void RecalcSwXpMovement(void *,int,CONTACT **);
 extern BSPNODE *PbspPointInBspQuick(BSPNODE *,BSPNODE *,qword);
 static inline qword Scalar(float f)
@@ -2709,7 +2742,9 @@ static inline ENDPOINT *Opposite2(CONTACT *contact,int side)
  *   r4b_rest+verdicts_A2+names_v2-signature(verified)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-CONTACT *PxpFindJtBestEdge__FP2JTPiP6VECTOR(P *p,int *outSide,qword *outNormal)
+// Picks the best supporting ledge contact of the player (walks the contact groups, IsJtEdgeGrabbable, BSP point test)
+// and returns it with its index and normal.
+CONTACT *FindJtBestEdge__FP2JTPiP6VECTOR(P *p,int *outSide,qword *outNormal)
 {
     U direction,point;
 
@@ -2717,7 +2752,7 @@ CONTACT *PxpFindJtBestEdge__FP2JTPiP6VECTOR(P *p,int *outSide,qword *outNormal)
     GROUP *group;
     CONTACT *best;
     float bestHeight;
-    if (func_00144068(p->self)) return 0;
+    if (IsStepplayerPushing(p->self)) return 0;
     switch(p->mode) {
     case 1:case 3:case 4:case 5:break;
     default:return 0;
@@ -2741,7 +2776,7 @@ CONTACT *PxpFindJtBestEdge__FP2JTPiP6VECTOR(P *p,int *outSide,qword *outNormal)
             case 2: if (side==1) continue; info=contact->info[1]; break;
             default: continue;
             }
-            if (!func_001999D0(p,shape,InputPosition(contact,side),contact->kind,info,&direction)) continue;
+            if (!IsJtEdgeGrabbable(p,shape,InputPosition(contact,side),contact->kind,info,&direction)) continue;
             if ((p->self->ec->flags&2) || (shape->owner->ec->flags&2))
                 RecalcSwXpMovement(D_003DD490,1,&contact);
             if (0.0f < D_002C3C60[side]*contact->difference.f[2]) continue;
@@ -2773,7 +2808,7 @@ CONTACT *PxpFindJtBestEdge__FP2JTPiP6VECTOR(P *p,int *outSide,qword *outNormal)
 }
 } } // namespace M_PxpFindJtBestEdge__FP2JTPiP6VECTOR
 
-//////// 0x19A098 FCheckJtStuck
+//////// 0x19A098 IsJtStuck
 namespace M_FCheckJtStuck {
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef int qword __attribute__((mode(TI)));
@@ -2836,13 +2871,15 @@ typedef char U_q_Offset[FIELD_OFFSET(U,q)==0?1:-1];
 /** @sly2-annot addr=0x19A098
  * Purpose: Return true if Sly is wedged: at most once per second and >=1 s after state change, solve contact
  *   normals against gravity (SolveInequalities) and test residual z > -0.1
- * Info: proposed name FCheckJtStuck (T1); TU air
+ * Info: proposed name IsJtStuck (T1); TU air
  * Notes: names_v2 v1 proposed FUN_0017ece8 (0.000)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" int FCheckJtStuck(P*p,float previous,float*stamp){
+// True if Sly is wedged: at most once per second and at least 1 s after a state change, solves the contact normals
+// against gravity and finds no free direction.
+extern "C" int IsJtStuck(P*p,float previous,float*stamp){
  float now=D_002DDED0.time;
  if(now-previous<1.0f)return 0;
  if(stamp){if(now-*stamp<1.0f)return 0;*stamp=now;}
@@ -2895,7 +2932,7 @@ extern "C" int FCheckJtStuck(P*p,float previous,float*stamp){
 }
 } // namespace M_FCheckJtStuck
 
-//////// 0x19A400 FTimeJtJumpToTarget
+//////// 0x19A400 SolveJtJumpTimeToTarget
 namespace M_FTimeJtJumpToTarget { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -2905,11 +2942,12 @@ struct S { struct B *pb; };
 int CSolveQuadratic__FfffPf(float, float, float, float *);
 /** @sly2-annot addr=0x19A400
  * Purpose: Solve 0.5 g t^2 + dvz t + dz = 0 (CSolveQuadratic) for the landing time; fail if no positive root
- * Info: proposed name FTimeJtJumpToTarget (T1); TU air
+ * Info: proposed name SolveJtJumpTimeToTarget (T1); TU air
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-int FTimeJtJumpToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
+// Solves 0.5 g t^2 + dvz t + dz = 0 for the landing time; fails (returns 0) if there is no positive root.
+int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg) {
     float ag[2];
     int n = CSolveQuadratic__FfffPf(p->pb->pc->g88 * 0.5f, GetZ(b) - GetZ(d), GetZ(a) - GetZ(c), ag);
     if (n <= 0) return 0;
@@ -2936,7 +2974,7 @@ typedef struct { short d; short pad; struct SPACE *(*pfn)(void *, void *); } VTE
 struct O { char pad[0xC]; VTE *vt; };
 qword GetLoWorldPos(void *p);
 qword GetXfVelocity(struct SPACE *p, struct SPACE *stop, qword q);
-int FTimeJtJumpToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg);
+int SolveJtJumpTimeToTarget(struct S *p, qword a, qword b, qword c, qword d, float *pg);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, qword *pp, qword *pv, qword *pa);
 static __inline__ float LenXY0(qword v)
 {
@@ -2962,6 +3000,8 @@ static inline float GMax(float a, float b) { return a > b ? a : b; }
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// Predicts a jump from Sly's position and velocity to a point on a (possibly moving) object: time, cost, and the
+// predicted position and velocity at landing.
 void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput, qword c, float *pt, float *pg, qword *pv, qword *pw)
 {
     struct WORK w;
@@ -2983,7 +3023,7 @@ void MeasureJtJumpToTarget(struct S *p, qword aInput, struct O *o, qword bInput,
       __asm__("daddu %0,%4,$zero\n\tpor %1,$zero,%5\n\tpor %2,$zero,%6\n\tpor %3,$zero,%7"
        :"=&r"(receiver),"=&r"(initial),"=&r"(velocity),"=&r"(q)
        :"r"(p),"r"(pos),"r"(a),"r"(got));
-      solved=FTimeJtJumpToTarget(receiver,initial,velocity,b,q,&w.at); }
+      solved=SolveJtJumpTimeToTarget(receiver,initial,velocity,b,q,&w.at); }
     if (!solved) {
         float dz = GetZ(a) - GetZ(q);
         float g = p->pb->pc->g88;
@@ -3076,9 +3116,9 @@ typedef char WORK_incoming[OFF(struct WORK,incoming)==0x60?1:-1];
 typedef char WORK_sum[OFF(struct WORK,sum)==0x70?1:-1];
 } } // namespace M_MeasureJtJumpToTarget
 
-//////// 0x19A750 func_0019A750
+//////// 0x19A750 PlanJtLaunchVelocity
 namespace M_func_0019A750 {
-// func_0019A750: ported from Lilly's personal Sly 2 decomp (src/P2/jtair.c), reduced to the declarations it needs.
+// PlanJtLaunchVelocity: ported from Lilly's personal Sly 2 decomp (src/P2/jtair.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF8B0 (D_002BF8B0), D_002BF8C0 (D_002BF8C0), D_002BF8C8 (D_002BF8C8), D_002BF8CC (D_002BF8CC), D_002BF8D0 (D_002BF8D0), D_002BF8D4 (D_002BF8D4), D_002BF8D8 (D_002BF8D8), D_002BF8DC (D_002BF8DC), D_002BF73C (g_SheetMovementMiscDoubleJumpHeight), D_002BF738 (g_SheetMovementMiscJumpHeight)
 // 0x0019A750 JtPlanLaunchVz (MATCH, T1312): the velocity the hero gets when a flight of this kind starts. It is the current velocity with its z raised:
@@ -3092,9 +3132,9 @@ namespace M_func_0019A750 {
 //   0, 5, 8, 0xA - 0xC, 0x10, 0x11: nothing (z stays)
 // Returns the velocity (the callers SetVelocity it).
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-static inline float GEvaluateClq(CLQ *pclq, float x)
+static inline float GEvaluateClq(CLQ *clq, float x)
 {
-    return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
+    return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
 int CSolveQuadratic(float a, float b, float c, float *ax) __asm__("CSolveQuadratic__FfffPf");
 
@@ -3122,20 +3162,20 @@ static inline float GMinOf(float a, float b)
 {
     return (a < b) ? a : b;
 }
-static inline float GLimitRange(float g, float gMin, float gMax)
+static inline float GLimitRange(float g, float minValue, float maxValue)
 {
-    if (g < gMin)
-        return gMin;
-    if (gMax < g)
-        return gMax;
+    if (g < minValue)
+        return minValue;
+    if (maxValue < g)
+        return maxValue;
     return g;
 }
-static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
+static inline float GEvaluateClqLm(CLQ *clq, LM *range, float x)
 {
-    float g = GEvaluateClq(pclq, x);
-    float gMin = plm->gMin;
-    float gMax = plm->gMax;
-    return GLimitRange(g, gMin, gMax);
+    float g = GEvaluateClq(clq, x);
+    float minValue = range->gMin;
+    float maxValue = range->gMax;
+    return GLimitRange(g, minValue, maxValue);
 }
 extern "C" { extern float D_002BF8C8; }
 extern "C" { extern float D_002BF8CC; }
@@ -3153,7 +3193,7 @@ static inline float SqrtfEarly(float g)
     __asm__ volatile("sqrt.s %0, %1" : "=&f"(r) : "f"(g));
     return r;
 }
-qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("func_0019A750");
+qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 namespace RO_ORDER { extern const float r_D_002A656C __asm__("D_002A656C") = 3.40282347e+38f; }
 /** @sly2-annot addr=0x19A750
  * Purpose: Launch velocity for a flight kind: z raised to the per-kind value (215/1200/250/500 apex,
@@ -3162,16 +3202,18 @@ namespace RO_ORDER { extern const float r_D_002A656C __asm__("D_002A656C") = 3.4
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-qword JtPlanLaunchVz(JTAIR *pjtair, int nKind)
+// Launch velocity for a flight kind: the vertical part raised to the kind's apex (215/1200/250/500) or constant
+// (700/900/800), bounce and double jump solved from the current velocity.
+qword JtPlanLaunchVz(JTAIR *air, int kind)
 {
     VECTOR4 pos;
     VECTOR4 vel;
     float g;
     float vzNew;
-    *(qword *)&pos = PosLoWorld(pjtair->pstepplayer);
-    *(qword *)&vel = pjtair->pstepplayer->GetVelocity();
-    g = pjtair->pstepplayer->psophys->dvGravity.z;
-    switch (nKind)
+    *(qword *)&pos = PosLoWorld(air->pstepplayer);
+    *(qword *)&vel = air->pstepplayer->GetVelocity();
+    g = air->pstepplayer->psophys->dvGravity.z;
+    switch (kind)
     {
         case 2:
             vzNew = D_002BF8C8;
@@ -3190,7 +3232,7 @@ qword JtPlanLaunchVz(JTAIR *pjtair, int nKind)
         case 0xF:
         {
             float sApex;
-            switch (nKind)
+            switch (kind)
             {
                 case 9:
                     sApex = D_002BF8D4;
@@ -3205,7 +3247,7 @@ qword JtPlanLaunchVz(JTAIR *pjtair, int nKind)
                     sApex = D_002BF738;
                     break;
             }
-            vzNew = SqrtfEarly(GMaxOf((g + g) * (((VECTOR4 *)pjtair->pstepplayer->pqwUnk218)->z - ((VECTOR4 *)&pjtair->pstepplayer->qwUnk230)->z - sApex), 0.0f));
+            vzNew = SqrtfEarly(GMaxOf((g + g) * (((VECTOR4 *)air->pstepplayer->pqwUnk218)->z - ((VECTOR4 *)&air->pstepplayer->qwUnk230)->z - sApex), 0.0f));
             break;
         }
         case 4:
@@ -3215,7 +3257,7 @@ qword JtPlanLaunchVz(JTAIR *pjtair, int nKind)
         {
             float vJump = SqrtfEarly(g * -2.0f * D_002BF738);
             float tApex = -vJump / g;
-            float vzMin = GZOfQw(pjtair->pstepplayer->GetVelocity());
+            float vzMin = GZOfQw(air->pstepplayer->GetVelocity());
             vzMin = GMinOf(vzMin, vJump);
             float tElapsed = (vzMin - vJump) / g;
             float h = tElapsed * (vJump + g * 0.5f * tElapsed);
@@ -3244,7 +3286,7 @@ qword JtPlanLaunchVz(JTAIR *pjtair, int nKind)
 }
 } // namespace M_func_0019A750
 
-//////// 0x19AA58 GMeasureJumpRail
+//////// 0x19AA58 MeasureJumpToRail
 namespace M_GMeasureJumpRail { extern "C" {
 
 typedef int qword __attribute__((mode(TI)));
@@ -3261,11 +3303,12 @@ typedef char S_c_Offset[FIELD_OFFSET(S,c)==8?1:-1];
 typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
 /** @sly2-annot addr=0x19AA58
  * Purpose: MinimizeRange callback: GetJtRailLanding at u then MeasureJtJumpToTarget cost
- * Info: proposed name GMeasureJumpRail (T1); TU air
+ * Info: proposed name MeasureJumpToRail (T1); TU air
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-float GMeasureJumpRail(S*s,float parameter){
+// MinimizeRange callback: the rail landing at parameter u (GetJtRailLanding), then the MeasureJtJumpToTarget cost.
+float MeasureJumpToRail(S*s,float parameter){
  float r;qword a,b;
  GetJtRailLanding(s->a,s->c,&a,&b,parameter);
  MeasureJtJumpToTarget(s->b,s->q,s->c,a,b,0,&r,0,0);
@@ -3273,7 +3316,7 @@ float GMeasureJumpRail(S*s,float parameter){
 }
 } } // namespace M_GMeasureJumpRail
 
-//////// 0x19AAB8 func_0019AAB8
+//////// 0x19AAB8 MeasureJumpToHidePoint
 namespace M_func_0019AAB8 {
 
 typedef int qword __attribute__((mode(TI)));
@@ -3304,7 +3347,9 @@ typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" float func_0019AAB8(S*s,float parameter){
+// MinimizeRange callback: the target object's position at u (virtual call), then the MeasureJtJumpToTarget cost.
+// (target class inferred: hide point)
+extern "C" float MeasureJumpToHidePoint(S*s,float parameter){
  V v;float r;
  s->object->f3(s->move->actor,&v,0,parameter);
  MeasureJtJumpToTarget(s->move,s->q,s->object,v.q,D_002A2DD0,0,&r,0,0);
@@ -3312,7 +3357,7 @@ extern "C" float func_0019AAB8(S*s,float parameter){
 }
 } // namespace M_func_0019AAB8
 
-//////// 0x19AB38 func_0019AB38
+//////// 0x19AB38 MeasureJumpToHideShape
 namespace M_func_0019AB38 {
 
 typedef int qword __attribute__((mode(TI)));
@@ -3342,7 +3387,8 @@ typedef char S_q_Offset[FIELD_OFFSET(S,q)==16?1:-1];
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest+verdicts_B
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" float func_0019AB38(S*s,float parameter){
+// Same as MeasureJumpToHidePoint for the other hide-shape class. (inferred)
+extern "C" float MeasureJumpToHideShape(S*s,float parameter){
  V v;float r;
  s->object->f3(s->move->actor,&v,0,parameter);
  MeasureJtJumpToTarget(s->move,s->q,s->object,v.q,D_002A2DD0,0,&r,0,0);
@@ -3350,7 +3396,7 @@ extern "C" float func_0019AB38(S*s,float parameter){
 }
 } // namespace M_func_0019AB38
 
-//////// 0x19ABB8 GMeasureJumpTargetTime
+//////// 0x19ABB8 MeasureJumpTargetAtTime
 namespace M_GMeasureJumpTargetTime { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct CONTEXT; struct OBJECT;
@@ -3363,15 +3409,16 @@ typedef char S_Object_Offset[FIELD_OFFSET(struct S,b)==4?1:-1];
 typedef char S_Local_Point_Offset[FIELD_OFFSET(struct S,q)==16?1:-1];
 /** @sly2-annot addr=0x19ABB8
  * Purpose: MinimizeRange callback over time: MeasureJtJumpToTargetAtTime(dt) cost
- * Info: proposed name GMeasureJumpTargetTime (T1); TU air
+ * Info: proposed name MeasureJumpTargetAtTime (T1); TU air
  * Notes: names_v2 v1 proposed OnJmtRemove__FP3JMT (0.001)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-float GMeasureJumpTargetTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }
+// MinimizeRange callback over time: the MeasureJtJumpToTargetAtTime cost after dt.
+float MeasureJumpTargetAtTime(void *record, float duration) { struct S *s = (struct S *)record; float f[4]; MeasureJtJumpToTargetAtTime(s->a, s->b, s->q, f, 0, 0, duration); return f[0]; }
 } } // namespace M_GMeasureJumpTargetTime
 
-//////// 0x19ABF0 GMeasureJumpPipe
+//////// 0x19ABF0 MeasureJumpToPipe
 namespace M_GMeasureJumpPipe { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } V;
@@ -3380,7 +3427,7 @@ struct T { struct CONTEXT *a; struct OBJECT *b; int c, d; qword q; };
 struct S { struct CONTEXT *a; struct OBJECT *b; };
 void EvaluateShapeS(struct OBJECT *, float, V *, V *);
 qword ConvertAloPos(struct OBJECT *, struct OBJECT *, qword);
-float GMeasureJumpTargetTime(void *, float);
+float MeasureJumpTargetAtTime(void *, float);
 void MinimizeRange__FPFPvf_fPvffffPfT6(float (*)(void *, float), void *, float, float, float, float, float *, float *);
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 typedef char V_Size[sizeof(V)==16?1:-1];
@@ -3392,26 +3439,27 @@ typedef char T_Context_Offset[FIELD_OFFSET(struct T,a)==0?1:-1];
 typedef char T_Object_Offset[FIELD_OFFSET(struct T,b)==4?1:-1];
 typedef char T_Point_Offset[FIELD_OFFSET(struct T,q)==16?1:-1];
 /** @sly2-annot addr=0x19ABF0
- * Purpose: Callback: evaluate curve at s, then MinimizeRange over time with GMeasureJumpTargetTime
- * Info: proposed name GMeasureJumpPipe (T1); TU air
+ * Purpose: Callback: evaluate curve at s, then MinimizeRange over time with MeasureJumpTargetAtTime
+ * Info: proposed name MeasureJumpToPipe (T1); TU air
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-float GMeasureJumpPipe(struct S *s, float parameter) {
+// Callback: evaluates the pipe curve at s, then minimizes over time with MeasureJumpTargetAtTime.
+float MeasureJumpToPipe(struct S *s, float parameter) {
     V v; struct T t; float r;
     struct OBJECT *b = s->b;
     EvaluateShapeS(b, parameter, &v, 0);
     t.a = s->a;
     t.b = b;
     t.q = ConvertAloPos(0, b, v.q);
-    MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
+    MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &t, 0.5f, 0.25f, 0.25f, 3.0f, 0, &r);
     return r;
 }
 } } // namespace M_GMeasureJumpPipe
 
-//////// 0x19AC88 func_0019AC88
+//////// 0x19AC88 MeasureJumpAlongPath
 namespace M_func_0019AC88 { extern "C" {
-// func_0019AC88: speed-limited trajectory time/length helper. Builds a path with func_00185D18 (3 outputs), integrates
+// MeasureJumpAlongPath: speed-limited trajectory time/length helper. Builds a path with func_00185D18 (3 outputs), integrates
 // the velocity with EvaluateBezierPos at t=0 and t=t, and returns min(1e6, (|v0|+|v1|) * t * 0.5).
 // Trick: the halved time goes into a NEW local (h), not back into t. Overwriting t adds an anti-dependence to the
 // `mov.s $f13,t` argument move, which then outranks the por a1/a2 moves in sched1 and ends up before them.
@@ -3438,7 +3486,8 @@ static inline float Len(qword v) {
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-float func_0019AC88(struct P *p, float t)
+// Callback: speed-limited path length and time to a target along a Bezier path; returns min(1e6, (v0 + v1) * t / 2).
+float MeasureJumpAlongPath(struct P *p, float t)
 {
  U a,b,c,d,e;
  qword pos,vel;
@@ -3460,7 +3509,7 @@ float func_0019AC88(struct P *p, float t)
 }
 } } // namespace M_func_0019AC88
 
-//////// 0x19AE00 FFindJtObstruction
+//////// 0x19AE00 FindJtObstruction
 namespace M_FFindJtObstruction {
 typedef int qword __attribute__((mode(TI)));
 extern "C" {
@@ -3482,15 +3531,17 @@ static inline float Dist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(d));
     return r;
 }
-extern "C" int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc);
+extern "C" int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc);
 /** @sly2-annot addr=0x19AE00
  * Purpose: Check the predicted Bezier jump path for obstructions (bbox query + line tests per segment);
  *   return hit point
- * Info: proposed name FFindJtObstruction (T1); TU air
+ * Info: proposed name FindJtObstruction (T1); TU air
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
+// Checks the predicted Bezier jump path for obstructions (box query plus line tests per segment); returns nonzero
+// with the hit point.
+int FindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qword va, qword b, qword vb, qword *pc)
 {
     struct V { float x, y, z; } __attribute__((aligned(16))) pos;
     HIT hit;
@@ -3531,17 +3582,18 @@ int FFindJtObstruction(void *unused, void *p1, void *p2, float tMax, qword a, qw
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 /* A landing score plus the bonus D_002BF900 for the object the air state prefers (ploUnk37c). */
-extern "C" float GAdjustJtLandingScore(JTAIR *pjtair, LO *plo, float g, float dg)
+// Landing score adjustment: adds the bonus D_002BF900 for the object the air state prefers (inferred).
+extern "C" float GAdjustJtLandingScore(JTAIR *air, LO *lo, float g, float dg)
 {
     float gScore;
     gScore = g + dg;
-    if (plo == pjtair->ploUnk37c) {
+    if (lo == air->ploUnk37c) {
         gScore += D_002BF900;
     }
     return gScore;
 }
 
-//////// 0x19B0A8 func_0019B0A8
+//////// 0x19B0A8 FilterJtObstruction
 namespace M_func_0019B0A8 { extern "C" {
 struct SO { char pad[0x70]; long fl; };
 struct A { char pad[0xEC]; struct SO *pso; };
@@ -3553,24 +3605,25 @@ struct L { int c; struct SO **a; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-int func_0019B0A8(struct L *l, struct X *x) {
-    struct SO *pso;
+// Obstruction filter: ignores flagged contacts, objects with flag 4 and objects in an ignore list.
+int FilterJtObstruction(struct L *l, struct X *x) {
+    struct SO *so;
     int i;
     if (x->fl & (1L << 48)) return 0;
-    pso = x->pa->pso;
-    if (pso->fl & 4) return 0;
-    for (i = 0; i < l->c; i++) if (pso == l->a[i]) return 0;
+    so = x->pa->pso;
+    if (so->fl & 4) return 0;
+    for (i = 0; i < l->c; i++) if (so == l->a[i]) return 0;
     return 1;
 }
 } } // namespace M_func_0019B0A8
 
-//////// 0x19B110 JtbsChooseJtLanding
+//////// 0x19B110 ChooseJtLanding
 namespace M_JtbsChooseJtLanding {
-// JtbsChooseJtLanding: chooses the jump target of the player (JTAIR, the family of Lilly's jtair.c: func_0019A750 is
+// ChooseJtLanding: chooses the jump target of the player (JTAIR, the family of Lilly's jtair.c: PlanJtLaunchVelocity is
 // JtPlanLaunchVz). Every candidate list (D_003E13B4..D_003E142C are 12-byte DL heads) is scanned; a candidate is
-// scored with MinimizeRange (a 1-D minimizer over the matched GMeasureJumpRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
-// biased by GAdjustJtLandingScore and checked for a clear path with FFindJtObstruction unless it is the forced target. The best one
-// is published in pstepplayer->pxf (+0xA8 landing time, +0xC0 position, +0xD0 velocity) and func_00195FB8 starts the
+// scored with MinimizeRange (a 1-D minimizer over the matched MeasureJumpToRail/ABB8/ABF0/AC88/AAB8/AB38 callbacks),
+// biased by GAdjustJtLandingScore and checked for a clear path with FindJtObstruction unless it is the forced target. The best one
+// is published in pstepplayer->pxf (+0xA8 landing time, +0xC0 position, +0xD0 velocity) and SetJtAirState starts the
 // jump of that kind (9 shapes, 10 curves, 14 hooks, 16 meshes, 18 the partner's target, 15/11 curves, 12/13 shapes).
 //
 // Notes on the shape of the source (each was needed for the match):
@@ -3619,7 +3672,7 @@ struct STEPPLAYER : LO
     XF *pxf;                    // 0x58
     char pad5C[0xE8 - 0x5C];
     SOPHYS *psophys;            // 0xE8
-    void *psoCollide;           // 0xEC (filter argument of FFindJtObstruction)
+    void *psoCollide;           // 0xEC (filter argument of FindJtObstruction)
     char padF0[0x218 - 0xF0];
     qword *pqwUnk218;           // 0x218
     char pad21C[0x240 - 0x21C];
@@ -3675,10 +3728,10 @@ struct HOOK
 struct MESH { char pad0[0x100]; MESH *pmeshNext; int pad104; float sHeight; };
 
 // Callback contexts (layouts from the matched callbacks).
-struct CURVECTX { void *pjtcontrol; void *pjtair; CURVE *pcurve; int pad; qword v; };    // GMeasureJumpRail
+struct CURVECTX { void *pjtcontrol; void *pjtair; CURVE *pcurve; int pad; qword v; };    // MeasureJumpToRail
 struct OBJCTX { JTAIR *pjtair; void *plo; int pad[2]; qword v; };                         // ABB8, AC88, AAB8, AB38
-struct PAIR { JTAIR *pjtair; void *plo; };                                               // GMeasureJumpPipe
-struct SOLIST { int cpso; void **apso; };                                                // func_0019B0A8
+struct PAIR { JTAIR *pjtair; void *plo; };                                               // MeasureJumpToPipe
+struct SOLIST { int cpso; void **apso; };                                                // FilterJtObstruction
 
 typedef float (*PFNSCORE)(void *, float);
 
@@ -3692,15 +3745,15 @@ extern float D_002BF90C, D_002BF914, D_002BF918;
 
 qword GetLoWorldPos(void *plo);                                         // PosLoWorld
 void *func_002333B4(void *pv, int b, uint cb) __asm__("memset");                         // memset
-qword func_0019A750(JTAIR *pjtair, int nKind);                         // JtPlanLaunchVz
+qword PlanJtLaunchVelocity(JTAIR *pjtair, int nKind);                         // JtPlanLaunchVz
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *plo, int cid);
 void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos, VU_VECTOR dpos, float *pt, float *pg,
                    VECTOR *ppos, VECTOR *pv);
 float GAdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
-int FFindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
+int FindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
                   VECTOR *ppos);
 void ShouldKeepSoPair();
-void func_0019B0A8();
+void FilterJtObstruction();
 void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
 void func_001E7410(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
 float DuGetShapeSearchIncrement(CURVE *pcurve);
@@ -3708,12 +3761,12 @@ float UFromShapeS(CURVE *pcurve, float s);
 float SMaxShape(CURVE *pcurve);
 float SFromShapeU(CURVE *pcurve, float u);
 void MinimizeRange__FPFPvf_fPvffffPfT6(PFNSCORE pfn, void *pv, float g0, float g1, float gMin, float gMax, float *px, float *pg);
-float GMeasureJumpRail(void *pv, float u);
-float GMeasureJumpTargetTime(void *pv, float u);
-float GMeasureJumpPipe(void *pv, float u);
-float func_0019AC88(void *pv, float u);
-float func_0019AAB8(void *pv, float u);
-float func_0019AB38(void *pv, float u);
+float MeasureJumpToRail(void *pv, float u);
+float MeasureJumpTargetAtTime(void *pv, float u);
+float MeasureJumpToPipe(void *pv, float u);
+float MeasureJumpAlongPath(void *pv, float u);
+float MeasureJumpToHidePoint(void *pv, float u);
+float MeasureJumpToHideShape(void *pv, float u);
 void GetJtRailLanding(void *pjtcontrol, CURVE *pcurve, VECTOR *ppos, VECTOR *pv, float u);
 void MeasureJtJumpToTargetAtTime(JTAIR *pjtair, void *plo, qword pos, float *pg, VECTOR *ppos, VECTOR *pv, float t);
 void func_00185310(MESH *pmesh, qword pos, void *pv, TRI *ptri, VECTOR *ppos, VECTOR *pnormal);
@@ -3721,7 +3774,7 @@ int func_00185D18(MESH *pmesh, qword pos, qword v, qword dv, float s, float t, T
 void EvaluateShapeS(CURVE *pcurve, float s, VECTOR *ppos, VECTOR *pnormal);
 qword ConvertAloPos(void *pvFrom, void *pvTo, qword pos);
 float atan2f(float y, float x);                                 // atan2f
-void func_00195FB8(JTAIR *pjtair, int nKind, void *plo);
+void SetJtAirState(JTAIR *pjtair, int nKind, void *plo);
 }
 
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -3745,102 +3798,104 @@ static inline float GMinOf(float a, float b) { return a < b ? a : b; }
 
 /** @sly2-annot addr=0x19B110
  * Purpose: Choose the jump target/landing among all candidate lists ((*(HOOK * *)&g_sw.dlTarget)..(*(MESH * *)&g_sw.dlCid9)), scoring with
- *   MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FFindJtObstruction; then
+ *   MinimizeRange over the GMeasure* callbacks, GAdjustJtLandingScore and FindJtObstruction; then
  *   SetJtAirState
- * Info: proposed name JtbsChooseJtLanding (T1); TU air
+ * Info: proposed name ChooseJtLanding (T1); TU air
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
+// Chooses the jump target/landing among all candidate lists (hooks, rails, pipes, hide shapes, meshes ...), scoring
+// each with the jump measures, and returns the chosen landing state (jtbs).
+extern "C" void ChooseJtLanding(JTAIR *air, void *forcedTarget)
 {
     void *ploBest = 0;
-    int nKind = -1;
+    int kind = -1;
     float sBest = 0.0f, uBest = 0.0f;
     VECTOR pos, v, posHit, posBest, vHit, vBest;
     TRI tri;
     VECTOR vLaunch, posTarget;
     float t, g;
 
-    pos.q = GetLoWorldPos(pjtair->pstepplayer);
-    v.q = pjtair->pstepplayer->GetVelocity();
-    uint grf = pjtair->pstepplayer->grfTarget;
+    pos.q = GetLoWorldPos(air->pstepplayer);
+    v.q = air->pstepplayer->GetVelocity();
+    uint grf = air->pstepplayer->grfTarget;
     func_002333B4(&tri, 0, sizeof(tri));
-    float gBest = ploForce ? -FLT_MAX : FLT_MAX;
-    vLaunch.q = func_0019A750(pjtair, 4);
+    float bestScore = forcedTarget ? -FLT_MAX : FLT_MAX;
+    vLaunch.q = PlanJtLaunchVelocity(air, 4);
     float tBest = 0.0f;
 
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pjtair->pstepplayer, 0x35)) {
-        for (SHAPE *pshape = (*(SHAPE * *)&g_sw.dlCid39); pshape; pshape = pshape->pshapeNext) {
-            if (!(pshape->grf & grf))
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x35)) {
+        for (SHAPE *shape = (*(SHAPE * *)&g_sw.dlCid39); shape; shape = shape->pshapeNext) {
+            if (!(shape->grf & grf))
                 continue;
-            pshape->GetPoint(pjtair->pstepplayer, &posTarget, 0, 0.0f);
-            if (pshape != ploForce && pshape->sHeight < pos.f[2] - posTarget.f[2])
+            shape->GetPoint(air->pstepplayer, &posTarget, 0, 0.0f);
+            if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
                 continue;
-            MeasureJtJumpToTarget(pjtair, vLaunch, pshape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
-            if (pshape != ploForce) {
+            MeasureJtJumpToTarget(air, vLaunch, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
+            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+            if (shape != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8E4);
-                if (gBest <= g)
+                g = GAdjustJtLandingScore(air, shape, g, D_002BF8E4);
+                if (bestScore <= g)
                     continue;
-                if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                                   posHit.q, vHit.q, 0))
                     continue;
             }
             posBest = posHit;
             vBest = vHit;
-            nKind = 9;
-            ploBest = pshape;
-            gBest = GMinOf(g, gBest);
+            kind = 9;
+            ploBest = shape;
+            bestScore = GMinOf(g, bestScore);
             tBest = t;
         }
 
-        for (CURVE *pcurve = (*(CURVE * *)&g_sw.dlCid13); pcurve; pcurve = pcurve->pcurveNext) {
-            if (!(pcurve->grf & grf))
+        for (CURVE *curve = (*(CURVE * *)&g_sw.dlCid13); curve; curve = curve->pcurveNext) {
+            if (!(curve->grf & grf))
                 continue;
-            if (pcurve != ploForce) {
-                FindShapeClosestPoint(pcurve, *pjtair->pstepplayer->pqwUnk218, 0, &posTarget, 0, 0, 0);
-                if (pcurve->sHeight < pos.f[2] - posTarget.f[2])
+            if (curve != forcedTarget) {
+                FindShapeClosestPoint(curve, *air->pstepplayer->pqwUnk218, 0, &posTarget, 0, 0, 0);
+                if (curve->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
             }
             CURVECTX ctx;
             float uStart, u;
-            ctx.pjtcontrol = pjtair->pstepplayer->jtcontrol;
-            ctx.pjtair = pjtair->pstepplayer->jtair;
-            ctx.pcurve = pcurve;
+            ctx.pjtcontrol = air->pstepplayer->jtcontrol;
+            ctx.pjtair = air->pstepplayer->jtair;
+            ctx.pcurve = curve;
             ctx.v = vLaunch.q;
-            func_001E7410(pcurve, GMeasureJumpRail, &ctx, 0, 0, &uStart, 0);
-            MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpRail, &ctx, uStart, DuGetShapeSearchIncrement(pcurve), UFromShapeS(pcurve, 50.0f),
-                          UFromShapeS(pcurve, SMaxShape(pcurve) - 50.0f), &u, &g);
-            if (pcurve != ploForce) {
+            func_001E7410(curve, MeasureJumpToRail, &ctx, 0, 0, &uStart, 0);
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToRail, &ctx, uStart, DuGetShapeSearchIncrement(curve), UFromShapeS(curve, 50.0f),
+                          UFromShapeS(curve, SMaxShape(curve) - 50.0f), &u, &g);
+            if (curve != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = GAdjustJtLandingScore(pjtair, pcurve, g, D_002BF8E8);
-                if (gBest <= g)
+                g = GAdjustJtLandingScore(air, curve, g, D_002BF8E8);
+                if (bestScore <= g)
                     continue;
             }
             VECTOR dpos;
-            GetJtRailLanding(ctx.pjtcontrol, pcurve, &posTarget, &dpos, u);
-            MeasureJtJumpToTarget(pjtair, vLaunch, pcurve, posTarget, dpos, &t, 0, &posHit, &vHit);
-            vHit.f[2] = vLaunch.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
-            if (pcurve != ploForce &&
-                FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+            GetJtRailLanding(ctx.pjtcontrol, curve, &posTarget, &dpos, u);
+            MeasureJtJumpToTarget(air, vLaunch, curve, posTarget, dpos, &t, 0, &posHit, &vHit);
+            vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+            if (curve != forcedTarget &&
+                FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                               posHit.q, vHit.q, 0))
                 continue;
-            ploBest = pcurve;
-            gBest = GMinOf(g, gBest);
-            nKind = 10;
+            ploBest = curve;
+            bestScore = GMinOf(g, bestScore);
+            kind = 10;
             posBest = posHit;
             vBest = vHit;
             uBest = u;
             tBest = t;
-            sBest = SFromShapeU(pcurve, uBest);
+            sBest = SFromShapeU(curve, uBest);
         }
 
         for (HOOK *phook = (*(HOOK * *)&g_sw.dlTarget); phook; phook = phook->phookNext) {
-            if (phook != ploForce) {
-                if (ploForce)
+            if (phook != forcedTarget) {
+                if (forcedTarget)
                     continue;
                 if ((phook->grfHook & 1) == 0)
                     continue;
@@ -3851,7 +3906,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
                 continue;
             qword posHook = GetLoWorldPos(phook);
             posTarget.q = posHook;
-            if (phook != ploForce) {
+            if (phook != forcedTarget) {
                 if (phook->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
                 if (1000000.0f < LengthSquared(Sub(posHook, pos.q)))
@@ -3859,31 +3914,31 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             }
             OBJCTX ctx;
             ctx.v = D_002A2DD0;
-            ctx.pjtair = pjtair;
+            ctx.pjtair = air;
             ctx.plo = phook;
-            MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, &g);
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, &g);
             MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
-            if (phook != ploForce) {
+            if (phook != forcedTarget) {
                 if (g >= D_002BF8E0)
                     continue;
-                g = GAdjustJtLandingScore(pjtair, phook, g, D_002BF8EC);
-                if (gBest <= g)
+                g = GAdjustJtLandingScore(air, phook, g, D_002BF8EC);
+                if (bestScore <= g)
                     continue;
-                if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
+                if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q,
                                   posHit.q, vHit.q, &posTarget))
                     continue;
             }
-            nKind = 14;
+            kind = 14;
             ploBest = phook;
-            posBest.q = Add(posHit.q, pjtair->pstepplayer->qwUnk240);
+            posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
-            gBest = GMinOf(gBest, g);
+            bestScore = GMinOf(bestScore, g);
             tBest = t;
         }
 
         for (MESH *pmesh = (*(MESH * *)&g_sw.dlCid9); pmesh; pmesh = pmesh->pmeshNext) {
             func_00185310(pmesh, pos.q, 0, 0, &posTarget, 0);
-            if (pmesh != ploForce) {
+            if (pmesh != forcedTarget) {
                 if (pmesh->sHeight < pos.f[2] - posTarget.f[2])
                     continue;
                 if (1000.0f < Length(Sub(posTarget.q, pos.q)))
@@ -3893,217 +3948,217 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             OBJCTX ctx;
             float gMesh;
             ctx.v = vLaunch.q;
-            ctx.pjtair = pjtair;
+            ctx.pjtair = air;
             ctx.plo = pmesh;
-            MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AC88, &ctx, 1.0f, 0.25f, 0.25f, 2.0f, &t, &gMesh);
-            if (pmesh != ploForce) {
+            MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpAlongPath, &ctx, 1.0f, 0.25f, 0.25f, 2.0f, &t, &gMesh);
+            if (pmesh != forcedTarget) {
                 if (gMesh >= D_002BF8E0)
                     continue;
-                gMesh = GAdjustJtLandingScore(pjtair, pmesh, gMesh, D_002BF908);
-                if (gBest <= gMesh)
+                gMesh = GAdjustJtLandingScore(air, pmesh, gMesh, D_002BF908);
+                if (bestScore <= gMesh)
                     continue;
             }
-            func_00185D18(pmesh, pos.q, vLaunch.q, pjtair->pstepplayer->psophys->dvGravity.q, pjtair->pstepplayer->sRadius,
+            func_00185D18(pmesh, pos.q, vLaunch.q, air->pstepplayer->psophys->dvGravity.q, air->pstepplayer->sRadius,
                           t, &triHit, &posHit, &vHit);
-            if (pmesh != ploForce &&
-                FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            if (pmesh != forcedTarget &&
+                FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
-            nKind = 16;
+            kind = 16;
             ploBest = pmesh;
-            posBest.q = Add(posHit.q, pjtair->pstepplayer->qwUnk240);
+            posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
             vBest = vHit;
-            gBest = GMinOf(gBest, gMesh);
+            bestScore = GMinOf(bestScore, gMesh);
             tBest = t;
             tri = triHit;
         }
     }
 
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pjtair->pstepplayer, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(air->pstepplayer, 0x37) && D_002F7900 && D_002F7900->nPartnerState == 15 &&
         !D_002F7900->fPartnerBusy) {
         posTarget.q = GetLoWorldPos(D_002F7900->ploPartnerTarget);
-        MeasureJtJumpToTarget(pjtair, vLaunch, D_002F7900->ploPartnerTarget, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-        vHit.f[2] = vLaunch.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
-        if (D_002F7900->ploPartnerTarget != ploForce) {
+        MeasureJtJumpToTarget(air, vLaunch, D_002F7900->ploPartnerTarget, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
+        vHit.f[2] = vLaunch.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        if (D_002F7900->ploPartnerTarget != forcedTarget) {
             if (g >= D_002BF8E0)
                 goto LPartnerDone;
-            g = GAdjustJtLandingScore(pjtair, D_002F7900, g, D_002BF904);
-            if (gBest <= g)
+            g = GAdjustJtLandingScore(air, D_002F7900, g, D_002BF904);
+            if (bestScore <= g)
                 goto LPartnerDone;
             void *apso[2];
             SOLIST solist;
-            apso[0] = pjtair->pstepplayer->psoCollide;
+            apso[0] = air->pstepplayer->psoCollide;
             apso[1] = D_002F7900->psoCollide;
             solist.cpso = 2;
             solist.apso = apso;
-            if (FFindJtObstruction(pjtair, (void *)func_0019B0A8, &solist, t, pos.q, vLaunch.q, posHit.q, vHit.q, 0))
+            if (FindJtObstruction(air, (void *)FilterJtObstruction, &solist, t, pos.q, vLaunch.q, posHit.q, vHit.q, 0))
                 goto LPartnerDone;
         }
         posBest = posHit;
         vBest = vHit;
-        nKind = 18;
+        kind = 18;
         ploBest = D_002F7900->ploPartnerTarget;
         tBest = t;
-        gBest = GMinOf(g, gBest);
+        bestScore = GMinOf(g, bestScore);
     }
 LPartnerDone:
 
-    for (CURVE *pcurve = (*(CURVE * *)&g_sw.dlCid11); pcurve; pcurve = pcurve->pcurveNext) {
-        if (!(pcurve->grf & pjtair->pstepplayer->grfTarget))
+    for (CURVE *curve = (*(CURVE * *)&g_sw.dlCid11); curve; curve = curve->pcurveNext) {
+        if (!(curve->grf & air->pstepplayer->grfTarget))
             continue;
         float sCur;
-        FindShapeClosestPoint(pcurve, pos.q, 0, &posTarget, 0, 0, &sCur);
-        if (pcurve != ploForce) {
-            if (pcurve->sHeight < pos.f[2] - posTarget.f[2])
+        FindShapeClosestPoint(curve, pos.q, 0, &posTarget, 0, 0, &sCur);
+        if (curve != forcedTarget) {
+            if (curve->sHeight < pos.f[2] - posTarget.f[2])
                 continue;
             if (1000.0f < Length(Sub(posTarget.q, pos.q)))
                 continue;
         }
         PAIR pair;
         float s, gCurve;
-        pair.pjtair = pjtair;
-        pair.plo = pcurve;
-        MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(pcurve) - 50.0f, &s, &gCurve);
-        if (pcurve != ploForce) {
+        pair.pjtair = air;
+        pair.plo = curve;
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToPipe, &pair, sCur, 100.0f, 50.0f, SMaxShape(curve) - 50.0f, &s, &gCurve);
+        if (curve != forcedTarget) {
             if (D_002BF8E0 <= gCurve)
                 continue;
-            gCurve = GAdjustJtLandingScore(pjtair, pcurve, gCurve, D_002BF8F0);
-            if (gBest <= gCurve)
+            gCurve = GAdjustJtLandingScore(air, curve, gCurve, D_002BF8F0);
+            if (bestScore <= gCurve)
                 continue;
         }
         OBJCTX ctx;
-        ctx.pjtair = pjtair;
-        ctx.plo = pcurve;
-        EvaluateShapeS(pcurve, s, &posTarget, 0);
-        ctx.v = ConvertAloPos(0, pcurve, posTarget.q);
-        MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
+        ctx.pjtair = air;
+        ctx.plo = curve;
+        EvaluateShapeS(curve, s, &posTarget, 0);
+        ctx.v = ConvertAloPos(0, curve, posTarget.q);
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpTargetAtTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
-        if (pcurve != ploForce &&
-            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+        if (curve != forcedTarget &&
+            FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, &posTarget))
             continue;
-        nKind = 15;
-        ploBest = pcurve;
-        posBest.q = Add(posHit.q, pjtair->pstepplayer->qwUnk240);
+        kind = 15;
+        ploBest = curve;
+        posBest.q = Add(posHit.q, air->pstepplayer->qwUnk240);
         vBest = vHit;
-        gBest = GMinOf(gBest, gCurve);
+        bestScore = GMinOf(bestScore, gCurve);
         tBest = t;
         sBest = s;
     }
 
-    for (SHAPE *pshape = (*(SHAPE * *)&g_sw.dlCid34); pshape; pshape = pshape->pshapeNext) {
-        if (!(pshape->grf & grf))
+    for (SHAPE *shape = (*(SHAPE * *)&g_sw.dlCid34); shape; shape = shape->pshapeNext) {
+        if (!(shape->grf & grf))
             continue;
-        qword posShape = GetLoWorldPos(pshape);
+        qword posShape = GetLoWorldPos(shape);
         posTarget.q = posShape;
-        if (pshape->sHeight < pos.f[2] - posTarget.f[2])
+        if (shape->sHeight < pos.f[2] - posTarget.f[2])
             continue;
         OBJCTX ctx;
         VECTOR dpos;
         float u;
         dpos.q = Sub(pos.q, posShape);
         ctx.v = v.q;
-        ctx.pjtair = pjtair;
-        ctx.plo = pshape;
-        MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AAB8, &ctx, atan2f(dpos.f[1], dpos.f[0]) * pshape->rAngle, D_002BF914, -FLT_MAX,
+        ctx.pjtair = air;
+        ctx.plo = shape;
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHidePoint, &ctx, atan2f(dpos.f[1], dpos.f[0]) * shape->rAngle, D_002BF914, -FLT_MAX,
                       FLT_MAX, &u, &g);
         g = g * D_002BF90C;
-        if (pshape != ploForce) {
+        if (shape != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
-            g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8F8);
-            if (gBest <= g)
+            g = GAdjustJtLandingScore(air, shape, g, D_002BF8F8);
+            if (bestScore <= g)
                 continue;
         }
         VECTOR posPoint;
-        pshape->GetPoint(pjtair->pstepplayer, &posPoint, 0, u);
-        MeasureJtJumpToTarget(pjtair, v, pshape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
-        if (pshape != ploForce &&
-            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+        shape->GetPoint(air->pstepplayer, &posPoint, 0, u);
+        MeasureJtJumpToTarget(air, v, shape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
+        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        if (shape != forcedTarget &&
+            FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
-        nKind = 12;
-        ploBest = pshape;
+        kind = 12;
+        ploBest = shape;
         posBest = posHit;
         vBest = vHit;
-        gBest = GMinOf(gBest, g);
+        bestScore = GMinOf(bestScore, g);
         tBest = t;
         sBest = u;
     }
 
-    for (CURVE *pcurve = (*(CURVE * *)&g_sw.dlCid12); pcurve; pcurve = pcurve->pcurveNext) {
-        if (!(pcurve->grf & grf))
+    for (CURVE *curve = (*(CURVE * *)&g_sw.dlCid12); curve; curve = curve->pcurveNext) {
+        if (!(curve->grf & grf))
             continue;
         float sCur;
-        FindShapeClosestPoint(pcurve, pos.q, 0, &posTarget, 0, 0, &sCur);
-        if (pcurve->sHeight < pos.f[2] - posTarget.f[2])
+        FindShapeClosestPoint(curve, pos.q, 0, &posTarget, 0, 0, &sCur);
+        if (curve->sHeight < pos.f[2] - posTarget.f[2])
             continue;
         OBJCTX ctx;
         float u;
         ctx.v = v.q;
-        ctx.pjtair = pjtair;
-        ctx.plo = pcurve;
-        MinimizeRange__FPFPvf_fPvffffPfT6(func_0019AB38, &ctx, sCur, D_002BF918, 30.0f, SMaxShape(pcurve) - 30.0f, &u, &g);
+        ctx.pjtair = air;
+        ctx.plo = curve;
+        MinimizeRange__FPFPvf_fPvffffPfT6(MeasureJumpToHideShape, &ctx, sCur, D_002BF918, 30.0f, SMaxShape(curve) - 30.0f, &u, &g);
         g = g * D_002BF90C;
-        if (pcurve != ploForce) {
+        if (curve != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
-            g = GAdjustJtLandingScore(pjtair, pcurve, g, D_002BF8F4);
-            if (gBest <= g)
+            g = GAdjustJtLandingScore(air, curve, g, D_002BF8F4);
+            if (bestScore <= g)
                 continue;
         }
         VECTOR posPoint;
-        pcurve->GetPoint(pjtair->pstepplayer, &posPoint, 0, u);
-        MeasureJtJumpToTarget(pjtair, v, pcurve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
-        if (pcurve != ploForce &&
-            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+        curve->GetPoint(air->pstepplayer, &posPoint, 0, u);
+        MeasureJtJumpToTarget(air, v, curve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
+        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        if (curve != forcedTarget &&
+            FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
-        nKind = 11;
-        ploBest = pcurve;
+        kind = 11;
+        ploBest = curve;
         posBest = posHit;
         vBest = vHit;
-        gBest = GMinOf(gBest, g);
+        bestScore = GMinOf(bestScore, g);
         tBest = t;
         sBest = u;
     }
 
-    for (SHAPE *pshape = (*(SHAPE * *)&g_sw.dlCid38); pshape; pshape = pshape->pshapeNext) {
-        if (!(pshape->grf & grf))
+    for (SHAPE *shape = (*(SHAPE * *)&g_sw.dlCid38); shape; shape = shape->pshapeNext) {
+        if (!(shape->grf & grf))
             continue;
-        pshape->GetPoint(pjtair->pstepplayer, &posTarget, 0, 0.0f);
-        if (pshape != ploForce && pshape->sHeight < pos.f[2] - posTarget.f[2])
+        shape->GetPoint(air->pstepplayer, &posTarget, 0, 0.0f);
+        if (shape != forcedTarget && shape->sHeight < pos.f[2] - posTarget.f[2])
             continue;
-        MeasureJtJumpToTarget(pjtair, v, pshape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
-        vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
-        if (pshape != ploForce) {
+        MeasureJtJumpToTarget(air, v, shape, posTarget, D_002A2DD0, &t, &g, &posHit, &vHit);
+        vHit.f[2] = v.f[2] + t * air->pstepplayer->psophys->dvGravity.f[2];
+        if (shape != forcedTarget) {
             if (g >= D_002BF8E0)
                 continue;
-            g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8FC);
-            if (gBest <= g)
+            g = GAdjustJtLandingScore(air, shape, g, D_002BF8FC);
+            if (bestScore <= g)
                 continue;
-            if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            if (FindJtObstruction(air, (void *)ShouldKeepSoPair, air->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
         }
-        nKind = 13;
-        ploBest = pshape;
-        gBest = GMinOf(g, gBest);
+        kind = 13;
+        ploBest = shape;
+        bestScore = GMinOf(g, bestScore);
         posBest = posHit;
         vBest = vHit;
         tBest = t;
     }
 
-    if (nKind != -1) {
-        XF *pxf = pjtair->pstepplayer->pxf;
-        pxf->tGoal = D_002DDED0.t + tBest;
-        pxf->posGoal = Sub(posBest.q, pjtair->pstepplayer->qwUnk240);
-        pxf->vGoal = vBest.q;
-        pjtair->uTarget = uBest;
-        pjtair->sTarget = sBest;
-        func_00195FB8(pjtair, nKind, ploBest);
+    if (kind != -1) {
+        XF *xf = air->pstepplayer->pxf;
+        xf->tGoal = D_002DDED0.t + tBest;
+        xf->posGoal = Sub(posBest.q, air->pstepplayer->qwUnk240);
+        xf->vGoal = vBest.q;
+        air->uTarget = uBest;
+        air->sTarget = sBest;
+        SetJtAirState(air, kind, ploBest);
     }
 }
 } // namespace M_JtbsChooseJtLanding
@@ -4177,6 +4232,8 @@ typedef char M4_row3_Offset[((unsigned)&((M4*)0)->row[3])==48?1:-1];
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// Cost of landing on a target's local point after duration dt in the target's predicted frame; outputs the goal
+// position and velocity.
 extern "C" void MeasureJtJumpToTargetAtTime(CONTEXT *context,OBJECT *target,qword localPoint,
                              float *score,qword *point,qword *velocity,float duration) {
     V delta;
@@ -4291,18 +4348,18 @@ done:
 }
 } // namespace M_MeasureJtJumpToTargetAtTime
 
-//////// 0x19C688 func_0019C688
+//////// 0x19C688 GrabJtAirTarget
 namespace M_func_0019C688 { extern "C" {
 typedef struct { short d; short pad; void (*pfn)(void *, int); } VT;
 struct C { char pad[0x10C]; int x10c; char pad2[0x124-0x110]; int x124; };
-struct O { char pad[0xC]; VT *vt; char pad2[0x4C0-0x10]; char x4c0[0xF5C-0x4C0]; struct C *xf5c; float xf60;
-    char pad3[0x18C4-0xF64]; struct C *x18c4; char pad4[0x1F18-0x18C8]; struct C *x1f18; };
+struct O { char pad[0xC]; VT *vt; char pad2[0x4C0-0x10]; char grab[0xF5C-0x4C0]; struct C *xf5c; float xf60;
+    char pad3[0x18C4-0xF64]; struct C *hangHandle; char pad4[0x1F18-0x18C8]; struct C *x1f18; };
 struct P { struct O *x0; int x4; int x8; struct C *xc; int x10; float x14; int x18; int x1c; };
 extern int D_002DD5BC;
 void SetJtGrabState(void *p, int n, struct C *c, void *b);
-void SetJtJts__FP2JT3JTS4JTBS(struct O *o, int a, int b);
+void SetJtState__FP2JT3JTS4JTBS(struct O *o, int a, int b);
 void SetBentleyState(int a, int b);
-void func_00195FB8(struct P *p, int a, int b);
+void SetJtAirState(struct P *p, int a, int b);
 #define B(c, off) ((c) ? (void *)((char *)(c) + (off)) : (void *)0)
 /** @sly2-annot addr=0x19C688
  * Purpose: On landing on a grab target, switch per air kind (6,11,12,13,...) to SetJtGrabState with the
@@ -4311,35 +4368,37 @@ void func_00195FB8(struct P *p, int a, int b);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-void func_0019C688(struct P *p)
+// On reaching a grab target, switches per air kind (6, 11, 12, 13, ...) to SetJtGrabState with the target's GRABSPOT
+// part.
+void GrabJtAirTarget(struct P *p)
 {
     switch (p->x1c) {
     case 6:
-        SetJtGrabState(p->x0->x4c0, 1, p->xc, B(p->xc, 0x150));
+        SetJtGrabState(p->x0->grab, 1, p->xc, B(p->xc, 0x150));
         break;
     case 11:
-        SetJtGrabState(p->x0->x4c0, 0, p->xc, B(p->xc, 0x190));
+        SetJtGrabState(p->x0->grab, 0, p->xc, B(p->xc, 0x190));
         break;
     case 12:
-        SetJtGrabState(p->x0->x4c0, 0, p->xc, B(p->xc, 0xE0));
+        SetJtGrabState(p->x0->grab, 0, p->xc, B(p->xc, 0xE0));
         break;
     case 13:
-        SetJtGrabState(p->x0->x4c0, p->xc->x10c, p->xc, B(p->xc, 0xE0));
+        SetJtGrabState(p->x0->grab, p->xc->x10c, p->xc, B(p->xc, 0xE0));
         break;
     case 9:
-        SetJtGrabState(p->x0->x4c0, 4, p->xc, B(p->xc, 0xE0));
+        SetJtGrabState(p->x0->grab, 4, p->xc, B(p->xc, 0xE0));
         break;
     case 10:
-        SetJtGrabState(p->x0->x4c0, 3, p->xc, B(p->xc, 0x190));
+        SetJtGrabState(p->x0->grab, 3, p->xc, B(p->xc, 0x190));
         break;
     case 14:
     {
         struct O *o = p->x0;
-        o->x18c4 = p->xc;
-        if (o->x18c4->x124 == 3)
-            SetJtJts__FP2JT3JTS4JTBS(o, 0x16, -1);
+        o->hangHandle = p->xc;
+        if (o->hangHandle->x124 == 3)
+            SetJtState__FP2JT3JTS4JTBS(o, 0x16, -1);
         else
-            SetJtJts__FP2JT3JTS4JTBS(o, 3, 1);
+            SetJtState__FP2JT3JTS4JTBS(o, 3, 1);
         break;
     }
     case 15:
@@ -4351,7 +4410,7 @@ void func_0019C688(struct P *p)
     {
         struct O *o = p->x0;
         o->x1f18 = p->xc;
-        SetJtJts__FP2JT3JTS4JTBS(o, 0x15, 0xA);
+        SetJtState__FP2JT3JTS4JTBS(o, 0x15, 0xA);
         break;
     }
         break;
@@ -4359,29 +4418,30 @@ void func_0019C688(struct P *p)
         SetBentleyState(D_002DD5BC, 8);
         break;
     default:
-        func_00195FB8(p, 4, 0);
+        SetJtAirState(p, 4, 0);
         break;
     }
 }
 } } // namespace M_func_0019C688
 
-//////// 0x19C828 func_0019C828
+//////// 0x19C828 LandJtAir
 /** @sly2-annot addr=0x19C828
  * Purpose: Kind 0x11 (wall run) -> SetJtAirJump(3); else SetJtAirState(4)
  * Info: proposed name LandJtAir (T2); TU air
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" void func_0019C828(JTAIR *pjtair)
+// Lands: a wall run (kind 0x11) becomes a jump (SetJtAirJump kind 3), otherwise air state 4.
+extern "C" void LandJtAir(JTAIR *air)
 {
-    if (pjtair->nState == 0x11) {
-        func_00195A00(pjtair, 3, 0, 0);
+    if (air->nState == 0x11) {
+        SetJtAirJump(air, 3, 0, 0);
         return;
     }
-    func_00195FB8(pjtair, 4, 0);
+    SetJtAirState(air, 4, 0);
 }
 
-//////// 0x19C870 func_0019C870
+//////// 0x19C870 GetJtAirAdjustRecord
 namespace M_func_0019C870 { extern "C" {
 struct O { char pad[0x520]; int x520; };
 struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c4; };
@@ -4392,7 +4452,8 @@ struct S { struct O *p; int pad[6]; int x1c; char pad2[0xC0-0x20]; int c0; int c
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-int func_0019C870(struct S *s, int *pn) {
+// The adjust record for the air kind (rail kinds 0xB-0xD use the owner's +0x520, wall run +0x0C4, else +0x0C0).
+int GetJtAirAdjustRecord(struct S *s, int *pn) {
     int v;
     switch (s->x1c) {
     case 0xB: case 0xC: case 0xD: v = s->p->x520; break;
@@ -4404,7 +4465,7 @@ int func_0019C870(struct S *s, int *pn) {
 }
 } } // namespace M_func_0019C870
 
-//////// 0x19C8B0 func_0019C8B0
+//////// 0x19C8B0 AddJtAirCpdefiFlags
 /** @sly2-annot addr=0x19C8B0
  * Purpose: If x28 set, *pgrf
  * Info: proposed name AddJtAirCpdefiFlags (T2); TU air
@@ -4412,14 +4473,15 @@ int func_0019C870(struct S *s, int *pn) {
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-extern "C" void func_0019C8B0(JTAIR *pjtair, int *pgrf)
+// Camera-definition hook: ORs the air flags into *flags when +0x28 is set. (inferred)
+extern "C" void AddJtAirCpdefiFlags(JTAIR *air, int *pgrf)
 {
-    if (pjtair->fCanDoubleJump != 0) {
+    if (air->fCanDoubleJump != 0) {
         *pgrf |= 1;
     }
 }
 
-//////// 0x19C8D0 func_0019C8D0
+//////// 0x19C8D0 CanJtUseGadgetInAir
 namespace M_func_0019C8D0 { extern "C" {
 struct O { char pad[0x12F0]; int x12f0; };
 struct S { struct O *p; int x4; int pad[5]; int x1c; int pad2[3]; int x2c; };
@@ -4431,7 +4493,8 @@ int FActiveCplcy__FP5CPLCY(void *);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
-int func_0019C8D0(struct S *p, int k) {
+// Whether gadget/action k can be used in the current air sub-state.
+int CanJtUseGadgetInAir(struct S *p, int k) {
     switch (k) {
     case 22:
         if (p->x4 >= 17) goto L;
@@ -4468,6 +4531,7 @@ int func_0019C8D0(struct S *p, int k) {
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// JMT Init (slot 7): transform init, radius 100. (JMT: an air jump target marker, inferred)
 extern "C" void InitJmt(XFM *pjmt)
 {
     InitXfm(pjmt);
@@ -4482,6 +4546,7 @@ extern "C" void InitJmt(XFM *pjmt)
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// JMT slot 11: adds the hierarchy, then joins the global JMT list (D_003E1420).
 void CID40::AddHierarchy()
 {
     XFM *pjmt = (XFM *)this;
@@ -4499,6 +4564,7 @@ void CID40::AddHierarchy()
  *   r4b_rest+verdicts_B+names_v2-signature(verified)
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// JMT slot 12: removes the hierarchy, then leaves the JMT list.
 extern "C" void RemoveJmtHierarchy(XFM *pjmt)
 {
     RemoveLoHierarchy(pjmt);
@@ -4516,6 +4582,7 @@ void CloneXfm(struct S *);
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
+// JMT Clone (slot 41): clones the transform but keeps its own list entry.
 void CloneJmt(struct S *p) { struct K k = p->k; CloneXfm(p); p->k = k; }
 } } // namespace M_CloneJmt
 

@@ -2,6 +2,8 @@
 // and the chain top (InitJtHands), fitting them to the grab target every frame (UpdateJtHands), choosing a target,
 // and carrying / attaching / releasing a held object with position and orientation acts.
 // TU 0x1CC158..0x1CD5F0 (17 functions, address order).
+// Entry points: InitJtHands__FP7JTHANDSP2SOPP5ASEGA (setup), SetJtHandsTarget, UpdateJtHands (per frame),
+// AttachJtHandsObject / ReleaseJtHandsActs.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_jthands
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CD5D0
 #include "sly2/basic.h"
@@ -28,7 +30,7 @@ struct M4 { qword r[4]; };
 /* Hand-made virtual calls (the vtable pointer of an LO is at +0xC). */
 struct VTE { short delta, pad; void *pfn; };
 /* a macro, not an inline function: an inline function's parameter becomes a new pseudo, which moves a pinned object
-   pointer into another register (func_001CCC88) */
+   pointer into another register (StartJtHandsCarry) */
 #define PVT(plo) (*(VTE **)((char *)(plo) + 0xC))
 
 /* The hero (a JT) as far as this TU reads it beyond SO: the hand-target class mask, the hero's rotation and the ASEGA
@@ -77,7 +79,7 @@ int D_002C1ED0 = 9;
 VQ D_002C1EE0 = {{0.0f, 0.0f, -2250.0f, 0.0f}};   /* gravity when the object has no SOPHYS */
 float D_002C1EF0 = 400.0f, D_002C1EF4 = 0.25f;
 extern qword D_002A2DD0;
-extern const LONGU D_002A77C8;   /* PMF of func_001CCA20 */
+extern const LONGU D_002A77C8;   /* PMF of UpdateJtHandsCallback */
 extern SW D_003DD490;
 void EvaluateShapeU(SHAPE *pshape, float u, qword *ppos, qword *pdir);
 void FindClosestPointOnLineSegment(qword q, qword a, qword b, qword *ppos, float *pu, float *ps);
@@ -109,7 +111,7 @@ float func_0012F990(ASEG *paseg, int n);
 void func_001300B8(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
 qword *VECTOR_opAssign(qword *pdst, qword src);
 void SetLoParent(LO *plo, int a, int b);
-float func_00196928(qword dpos, qword vel, float a, float b, float c, float d);
+float ComputeMaxBallisticTime(qword dpos, qword vel, float a, float b, float c, float d);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *pasega, float svt);
 void func_001F6860(LO *plo, int n);
 void SetLoXfFromMat(LO *plo, M4 *pmat);
@@ -118,19 +120,19 @@ void SetSoCnstrTorque(SO *pso, int n);
 void FadeSoIn(SO *pso, float t);
 void *GetLoWorldMatrix(LO *plo);
 
-void func_001CC168(JTHANDS *phands, qword pos, float *pu, float *ps, float u);
-void func_001CC1F8(JTHANDS *phands, qword pos, float *pu, float *ps, float u);
-float func_001CC288(JTHANDSCTX *pctx, float u);
-float func_001CC2B8(JTHANDSCTX *pctx, float u);
+void GetClosestPointOnJtHandsCurveA(JTHANDS *phands, qword pos, float *pu, float *ps, float u);
+void GetClosestPointOnJtHandsCurveB(JTHANDS *phands, qword pos, float *pu, float *ps, float u);
+float EvaluateJtHandsCurveA(JTHANDSCTX *pctx, float u);
+float EvaluateJtHandsCurveB(JTHANDSCTX *pctx, float u);
 void UpdateJtHands(JTHANDS *phands);
-CID20 *func_001CCA40(JTV *pjt, LO *plo);
-void func_001CCAC0(JTHANDS *phands, int nMode);
+CID20 *FindJtHandsTarget(JTV *pjt, LO *plo);
+void SetJtHandsTarget(JTHANDS *phands, int nMode);
 }
 /* Per-caller views of callees that other callers declare differently (see the mismatch table). */
 /* operator*(const MATRIX4 &, const MATRIX4 &) with its hidden result pointer passed by hand, on quadword rows (an
    extern "C" declaration of the literal mangled name next to the C++ operator* hits ICE 378). */
 extern "C" M4 *MulMatrix4Ret(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");
-extern "C" void MulMatrix4RetV(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");   /* as func_001CD098 calls it */
+extern "C" void MulMatrix4RetV(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");   /* as AttachJtHandsObject calls it */
 /* the same ABI as func_0012DE58 (the float goes to $f12 either way); the order decides argument evaluation */
 extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, float t) __asm__("func_0012DE58");
 extern "C" M4 InvertMatrix4RigidP(const M4 *pmat) __asm__("InvertMatrix4Rigid");
@@ -147,7 +149,8 @@ extern "C" void MinimizeRange(float (*pfn)(void *, float), void *pv, float a, fl
  * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CC158(JTHANDS *phands) { phands->nMode = -1; phands->nKind = -1; }
+// Clears the hands' two target ids (+0x90, +0xA4) to -1.
+extern "C" void ResetJtHands(JTHANDS *hands) { hands->nMode = -1; hands->nKind = -1; }
 
 /** @sly2-annot addr=0x1CC168
  * Purpose: Closest point of q on segment between the two A curves (hand XF path) evaluated at t
@@ -156,11 +159,12 @@ extern "C" void func_001CC158(JTHANDS *phands) { phands->nMode = -1; phands->nKi
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CC168(JTHANDS *phands, qword pos, float *pu, float *ps, float u)
+// Closest point to `point` on the segment between the two A curves (the hand transform's path) evaluated at t.
+extern "C" void GetClosestPointOnJtHandsCurveA(JTHANDS *hands, qword pos, float *pu, float *ps, float u)
 {
     qword a, b;
-    EvaluateShapeU(phands->abl[0].pshapeA, u, &a, 0);
-    EvaluateShapeU(phands->abl[1].pshapeA, u, &b, 0);
+    EvaluateShapeU(hands->abl[0].pshapeA, u, &a, 0);
+    EvaluateShapeU(hands->abl[1].pshapeA, u, &b, 0);
     FindClosestPointOnLineSegment(pos, a, b, 0, pu, ps);
 }
 
@@ -174,11 +178,12 @@ extern "C" void func_001CC168(JTHANDS *phands, qword pos, float *pu, float *ps, 
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest+verdicts_followups
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CC1F8(JTHANDS *phands, qword pos, float *pu, float *ps, float u)
+// Same as GetClosestPointOnJtHandsCurveA, for the B curves (the chain-top transform's path).
+extern "C" void GetClosestPointOnJtHandsCurveB(JTHANDS *hands, qword pos, float *pu, float *ps, float u)
 {
     qword a, b;
-    EvaluateShapeU(phands->abl[0].pshapeB, u, &a, 0);
-    EvaluateShapeU(phands->abl[1].pshapeB, u, &b, 0);
+    EvaluateShapeU(hands->abl[0].pshapeB, u, &a, 0);
+    EvaluateShapeU(hands->abl[1].pshapeB, u, &b, 0);
     FindClosestPointOnLineSegment(pos, a, b, 0, pu, ps);
 }
 
@@ -188,7 +193,8 @@ extern "C" void func_001CC1F8(JTHANDS *phands, qword pos, float *pu, float *ps, 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" float func_001CC288(JTHANDSCTX *pctx, float u) { float g; func_001CC168(pctx->phands, pctx->pos, 0, &g, u); return g; }
+// Parameter callback for curve A, used by FindShapeClosestPointFromS.
+extern "C" float EvaluateJtHandsCurveA(JTHANDSCTX *context, float u) { float g; GetClosestPointOnJtHandsCurveA(context->phands, context->pos, 0, &g, u); return g; }
 
 /** @sly2-annot addr=0x1CC2B8
  * Purpose: Parameter callback for curve B
@@ -196,7 +202,8 @@ extern "C" float func_001CC288(JTHANDSCTX *pctx, float u) { float g; func_001CC1
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" float func_001CC2B8(JTHANDSCTX *pctx, float u) { float g; func_001CC1F8(pctx->phands, pctx->pos, 0, &g, u); return g; }
+// Parameter callback for curve B.
+extern "C" float EvaluateJtHandsCurveB(JTHANDSCTX *context, float u) { float g; GetClosestPointOnJtHandsCurveB(context->phands, context->pos, 0, &g, u); return g; }
 
 /* UpdateJtHands: find the target point (mode 0: closest point on the target path; 1: the reference object; 2: the
    reference object's frame relative to the hand chain), fit the hand curves to it (MinimizeRange over the clip
@@ -229,12 +236,12 @@ static inline qword LengthXY(qword v)
     return word;
 }
 static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "r"(q)); }
-static inline qword DifferenceFromSaved(const U *saved, qword raw, JTHANDS *phands, SO *&receiver)
+static inline qword DifferenceFromSaved(const U *saved, qword raw, JTHANDS *hands, SO *&receiver)
 {
     register qword point __asm__("vf1"), current __asm__("vf2");
     register SO *owner __asm__("$4");
     __asm__("lqc2 %0,%3\n\tqmtc2.ni %4,%1\n\tlw %2,%5\n\tvsub.xyzw %0,%0,%1"
-            : "=&j"(point), "=&j"(current), "=r"(owner) : "m"(*saved), "r"(raw), "m"(phands->pso));
+            : "=&j"(point), "=&j"(current), "=r"(owner) : "m"(*saved), "r"(raw), "m"(hands->pso));
     receiver = owner;
     return point;
 }
@@ -253,41 +260,43 @@ static inline const M4 *InverseArgument(const M4 *value)
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908,
  *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void UpdateJtHands(JTHANDS *p)
+// Fits the hand curves to the grab target: finds the best clip parameter, seeks/reblends the hold clips, and sets the
+// actor's position goal and the step's turn target.
+extern "C" void UpdateJtHands(JTHANDS *hands)
 {
     WORK w;
     register void *cursor __asm__("$16");
-    if (p->nMode == -1) return;
-    switch (p->nKind) {
+    if (hands->nMode == -1) return;
+    switch (hands->nKind) {
     default:
         cursor = &w.stage.late.context;
         break;
     case 0: {
-        cursor = p->ploTarget;
-        FindShapeClosestPointFromS(cursor, GetLoWorldPos(p->pso), 0, &w.position.q, 0, 0, &p->sParam, p->sParam);
+        cursor = hands->ploTarget;
+        FindShapeClosestPointFromS(cursor, GetLoWorldPos(hands->pso), 0, &w.position.q, 0, 0, &hands->sParam, hands->sParam);
         cursor = &w.stage.late.context;
         break;
     }
     case 1: {
-        qword found = GetLoWorldPos(p->ploRef);
+        qword found = GetLoWorldPos(hands->ploRef);
         __asm__("sq %1,%0" : "=m"(w.position.q) : "r"(found));
         cursor = &w.stage.late.context;
         break;
     }
     case 2: {
         M4 *output = &w.stage.early.temporary;
-        M4 *world = ((M4 * (*)(void *))PVT(p->ploRef)[31].pfn)((char *)p->ploRef + PVT(p->ploRef)[31].delta);   /* LO slot 31, PmatWorld */
+        M4 *world = ((M4 * (*)(void *))PVT(hands->ploRef)[31].pfn)((char *)hands->ploRef + PVT(hands->ploRef)[31].delta);   /* LO slot 31, PmatWorld */
         cursor = &w.stage.early.inverse;
-        new (cursor) M4(InvertMatrix4Rigid(&p->matChain));
+        new (cursor) M4(InvertMatrix4Rigid(&hands->matChain));
         const M4 *inverseArg = InverseArgument((M4 *)cursor);
         MulMatrix4Ret(output, world, inverseArg);
         cursor = PublishProductAndBasis(&w);
         break;
     }
     }
-    w.stage.late.context.phands = p;
+    w.stage.late.context.phands = hands;
     {
-        qword raw = ConvertAloPos(0, p->pso, w.position.q);
+        qword raw = ConvertAloPos(0, hands->pso, w.position.q);
         register qword point __asm__("vf1");
         __asm__("qmtc2.ni %1,%0" : "=j"(point) : "r"(raw));
         qword length = LengthXY(point);
@@ -296,26 +305,26 @@ extern "C" void UpdateJtHands(JTHANDS *p)
         StoreX(&w.stage.late.local.f[0], length);
     }
 
-    w.stage.late.context.pos = ConvertAloPos(p->pso, 0, w.stage.late.local.q);
-    if (p->nKind == 2) {
-        MinimizeRange((float (*)(void *, float))func_001CC2B8, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
-        func_001CC1F8(p, w.stage.late.context.pos, &w.projection, 0, w.t);
-        ConvertXfMat(&w.stage.late.temporary, 0, p->pxf->pxfParent, &w.basis);
+    w.stage.late.context.pos = ConvertAloPos(hands->pso, 0, w.stage.late.local.q);
+    if (hands->nKind == 2) {
+        MinimizeRange((float (*)(void *, float))EvaluateJtHandsCurveB, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
+        GetClosestPointOnJtHandsCurveB(hands, w.stage.late.context.pos, &w.projection, 0, w.t);
+        ConvertXfMat(&w.stage.late.temporary, 0, hands->pxf->pxfParent, &w.basis);
         w.stage.late.transformed = w.stage.late.temporary;
-        SetActPositionGoal(p->pact1Euler, func_0011BFF0(&w.stage.late.transformed));
+        SetActPositionGoal(hands->pact1Euler, func_0011BFF0(&w.stage.late.transformed));
     } else {
-        MinimizeRange((float (*)(void *, float))func_001CC288, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
-        func_001CC168(p, w.stage.late.context.pos, &w.projection, 0, w.t);
+        MinimizeRange((float (*)(void *, float))EvaluateJtHandsCurveA, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
+        GetClosestPointOnJtHandsCurveA(hands, w.stage.late.context.pos, &w.projection, 0, w.t);
     }
-    func_00130D30(*p->ppasega, 0, w.t * p->pasegbl->tMax, 0.0f);
-    p->abl[1].uWeight = w.projection;
-    p->abl[0].uWeight = 1.0f - w.projection;
-    func_001384C0(p->pasegbl);
+    func_00130D30(*hands->ppasega, 0, w.t * hands->pasegbl->tMax, 0.0f);
+    hands->abl[1].uWeight = w.projection;
+    hands->abl[0].uWeight = 1.0f - w.projection;
+    func_001384C0(hands->pasegbl);
     w.saved.q = w.position.q;
     SO *receiver;
-    qword delta = DifferenceFromSaved(&w.saved, GetLoWorldPos(p->pso), p, receiver);
+    qword delta = DifferenceFromSaved(&w.saved, GetLoWorldPos(hands->pso), hands, receiver);
     SetStepRadTargetVec(receiver, delta);
-    FixStepAngularVelocity(p->pso);
+    FixStepAngularVelocity(hands->pso);
 }
 
 /* InitJtHands (Lilly's port of Sly 2's jthands.c on the header classes): the matrix of the hand object's XF chain up
@@ -325,23 +334,23 @@ extern "C" void UpdateJtHands(JTHANDS *p)
    clips the blend of the two (weights 1 and 0 to start with) is made. */
 typedef unsigned size_t;
 extern "C" void *memset(void *ptr, int value, size_t num);
-inline void SetMatrix4Identity(MATRIX4 *pmat)
+inline void SetMatrix4Identity(MATRIX4 *matrix)
 {
-    memset(pmat, 0, sizeof(MATRIX4));
-    pmat->mat[3][3] = 1.0f;
-    pmat->mat[2][2] = 1.0f;
-    pmat->mat[1][1] = 1.0f;
-    pmat->mat[0][0] = 1.0f;
+    memset(matrix, 0, sizeof(MATRIX4));
+    matrix->mat[3][3] = 1.0f;
+    matrix->mat[2][2] = 1.0f;
+    matrix->mat[1][1] = 1.0f;
+    matrix->mat[0][0] = 1.0f;
 }
 MATRIX4 operator*(const MATRIX4 &matL, const MATRIX4 &matR);
-inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
+inline qword QwTransformPos(MATRIX4 *matrix, qword pos)
 {
-    qword qwResult;
+    qword result;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(qwResult)
-            : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(*(qword *)pmat->mat[3]),
-              "j"(qwPos));
-    return qwResult;
+            : "=j"(result)
+            : "j"(*(qword *)matrix->mat[0]), "j"(*(qword *)matrix->mat[1]), "j"(*(qword *)matrix->mat[2]), "j"(*(qword *)matrix->mat[3]),
+              "j"(pos));
+    return result;
 }
 struct SWALLOC
 {
@@ -353,13 +362,13 @@ void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc,
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
 extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("func_001300B8");
 extern "C" void MeasureShape(SHAPE *pshape);
-inline void *PvAllocSw(int cb, int cbAlign)
+inline void *PvAllocSw(int cb, int alignment)
 {
     SWALLOC swalloc;
     swalloc.cb = cb;
-    SWALLOC *pswalloc = &swalloc;
-    pswalloc->cbAlign = cbAlign;
-    return PvAllocSwImpl(pswalloc);
+    SWALLOC *allocator = &swalloc;
+    allocator->cbAlign = alignment;
+    return PvAllocSwImpl(allocator);
 }
 
 /** @sly2-annot addr=0x1CC5E8
@@ -368,36 +377,38 @@ inline void *PvAllocSw(int cb, int cbAlign)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega)
+// Builds the hands record: the hand-frame matrix, the sampled A/B curves per hold clip (PredictAsegEffect) and the
+// blend between the clips.
+void InitJtHands(JTHANDS *hands, SO *so, ASEGA **asegaOut)
 {
-    phands->pso = pso;
-    phands->ppasega = ppasega;
-    if (!phands->ploHand)
+    hands->pso = so;
+    hands->ppasega = asegaOut;
+    if (!hands->ploHand)
         return;
     MATRIX4 matHand;
-    XF *pxfHand = phands->ploHand->PxfLocal(&matHand);
-    phands->matChain = matHand;
-    phands->pxf = pxfHand;
-    while (phands->pxf->xfk != 6)
+    XF *pxfHand = hands->ploHand->PxfLocal(&matHand);
+    hands->matChain = matHand;
+    hands->pxf = pxfHand;
+    while (hands->pxf->xfk != 6)
     {
-        phands->matChain = phands->pxf->mat * phands->matChain;
-        phands->pxf = phands->pxf->pxfParent;
+        hands->matChain = hands->pxf->mat * hands->matChain;
+        hands->pxf = hands->pxf->pxfParent;
     }
     int cHands = 0;
     for (int i = 0; i < 2; i++)
     {
-        ASEG *paseg = phands->abl[i].paseg;
-        if (!paseg)
+        ASEG *aseg = hands->abl[i].paseg;
+        if (!aseg)
             continue;
         cHands++;
         for (int j = 0; j < 2; j++)
         {
-            SHAPE *pshape = (SHAPE *)PloNew((CID)10, phands->pso, (OID)0xB2, -1);
-            pshape->crvk = (CRVK)0;
-            pshape->ccv = D_002C1ED0;
-            pshape->mpicvu = (float *)PvAllocSw(D_002C1ED0 << 2, 16);
-            pshape->mpicvs = (float *)PvAllocSw(D_002C1ED0 << 2, 16);
-            pshape->mpicvpos = (VECTOR4 *)PvAllocSw(D_002C1ED0 << 4, 16);
+            SHAPE *shape = (SHAPE *)PloNew((CID)10, hands->pso, (OID)0xB2, -1);
+            shape->crvk = (CRVK)0;
+            shape->ccv = D_002C1ED0;
+            shape->mpicvu = (float *)PvAllocSw(D_002C1ED0 << 2, 16);
+            shape->mpicvs = (float *)PvAllocSw(D_002C1ED0 << 2, 16);
+            shape->mpicvpos = (VECTOR4 *)PvAllocSw(D_002C1ED0 << 4, 16);
             MATRIX4 matSample;
             XF *pxfEffect;
             if (j == 0)
@@ -407,30 +418,30 @@ void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega)
             }
             else
             {
-                pxfEffect = phands->pxf;
+                pxfEffect = hands->pxf;
                 SetMatrix4Identity(&matSample);
             }
             for (int k = 0; k < D_002C1ED0; k++)
             {
                 MATRIX4 matOut;
                 float u = (float)k / (float)(D_002C1ED0 - 1);
-                PredictAsegEffect(u * paseg->tMax, paseg, phands->pso, 0.0f, pxfEffect, phands->pso->pxfRoot, &matOut, 0);
-                pshape->mpicvu[k] = u;
-                qword qwPos = QwTransformPos(&matOut, *(qword *)matSample.mat[3]);
-                pshape->mpicvpos[k] = *(VECTOR4 *)&qwPos;
+                PredictAsegEffect(u * aseg->tMax, aseg, hands->pso, 0.0f, pxfEffect, hands->pso->pxfRoot, &matOut, 0);
+                shape->mpicvu[k] = u;
+                qword pos = QwTransformPos(&matOut, *(qword *)matSample.mat[3]);
+                shape->mpicvpos[k] = *(VECTOR4 *)&pos;
             }
-            pshape->Remove();
-            MeasureShape(pshape);
+            shape->Remove();
+            MeasureShape(shape);
             if (j == 0)
-                phands->abl[i].pshapeA = pshape;
+                hands->abl[i].pshapeA = shape;
             else
-                phands->abl[i].pshapeB = pshape;
+                hands->abl[i].pshapeB = shape;
         }
     }
     if (cHands == 2)
     {
-        phands->abl[0].uWeight = 1.0f;
-        EnsureAsegBlendDynamic((ALO *)phands->pso, 0x14, 2, phands->abl, 0, 0, 0, &phands->pasegbl);
+        hands->abl[0].uWeight = 1.0f;
+        EnsureAsegBlendDynamic((ALO *)hands->pso, 0x14, 2, hands->abl, 0, 0, 0, &hands->pasegbl);
     }
 }
 
@@ -443,11 +454,12 @@ void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" int func_001CC9A8(JTHANDS *phands, SO *pso, int grf)
+// While the hands hold an object (state 1) adds intersection-ignore bits for its object tree.
+extern "C" int GetJtHandsIgnoreFlags(JTHANDS *hands, SO *so, int grf)
 {
-    if (phands->nMode == 1) {
-        SO *psoTarget = GetSoFromLo(phands->ploTarget);
-        if (psoTarget && psoTarget->ptree && pso->ptree == psoTarget->ptree)
+    if (hands->nMode == 1) {
+        SO *psoTarget = GetSoFromLo(hands->ploTarget);
+        if (psoTarget && psoTarget->ptree && so->ptree == psoTarget->ptree)
             grf = func_00134310(grf, 3);
     }
     return grf;
@@ -459,9 +471,10 @@ extern "C" int func_001CC9A8(JTHANDS *phands, SO *pso, int grf)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CCA20(void *pv, JTHANDS *phands)
+// World callback wrapper that runs UpdateJtHands.
+extern "C" void UpdateJtHandsCallback(void *pv, JTHANDS *hands)
 {
-    UpdateJtHands(phands);
+    UpdateJtHands(hands);
 }
 
 /** @sly2-annot addr=0x1CCA40
@@ -471,13 +484,14 @@ extern "C" void func_001CCA20(void *pv, JTHANDS *phands)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" CID20 *func_001CCA40(JTV *pjt, LO *plo)
+// The first nearby object of class 0x14 whose flags match the hands' flags.
+extern "C" CID20 *FindJtHandsTarget(JTV *jt, LO *lo)
 {
     CID20 *apcid[4];
-    int c = CploFindSwObjectsByClass(&D_003DD490, 0x401, 0x14, plo, 4, (LO **)apcid);
+    int c = CploFindSwObjectsByClass(&D_003DD490, 0x401, 0x14, lo, 4, (LO **)apcid);
     int i;
     for (i = 0; i < c; i++) {
-        if (apcid[i]->grfHand & pjt->grfHandTarget) return apcid[i];
+        if (apcid[i]->grfHand & jt->grfHandTarget) return apcid[i];
     }
     return 0;
 }
@@ -490,58 +504,60 @@ extern "C" CID20 *func_001CCA40(JTV *pjt, LO *plo)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CCAC0(JTHANDS *p, int nMode)
+// Chooses the grab target (closest point on a shape, or a class-0x14 object), creates the position act, reblends and
+// schedules UpdateJtHandsCallback.
+extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
 {
-    if (nMode == p->nMode) return;
-    if (p->nMode == 1) {
-        ReleaseAct(&p->pactPos);
-        ReleaseAct(&p->pactTurn);
+    if (nMode == hands->nMode) return;
+    if (hands->nMode == 1) {
+        ReleaseAct(&hands->pactPos);
+        ReleaseAct(&hands->pactTurn);
     }
-    p->nMode = nMode;
-    p->tMode = D_002DDED0.t;
+    hands->nMode = nMode;
+    hands->tMode = D_002DDED0.t;
     switch (nMode) {
     case 0:
     case 1:
-        p->ploRef = p->ploTarget;
-        p->nKind = 1;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->ploTarget, 10)) {
-            LO *pshape = p->ploTarget;
-            FindShapeClosestPoint(pshape, GetLoWorldPos(p->pso), 0, 0, 0, 0, &p->sParam);
-            p->nKind = 0;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->ploTarget, 0x14) && (((CID20 *)p->ploTarget)->grfHand & ((JTV *)p->pso)->grfHandTarget)) {
-            p->nKind = 2;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->ploTarget, 0x30)) {
-            CID20 *pcid = func_001CCA40((JTV *)p->pso, p->ploTarget);
+        hands->ploRef = hands->ploTarget;
+        hands->nKind = 1;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 10)) {
+            LO *shape = hands->ploTarget;
+            FindShapeClosestPoint(shape, GetLoWorldPos(hands->pso), 0, 0, 0, 0, &hands->sParam);
+            hands->nKind = 0;
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x14) && (((CID20 *)hands->ploTarget)->grfHand & ((JTV *)hands->pso)->grfHandTarget)) {
+            hands->nKind = 2;
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(hands->ploTarget, 0x30)) {
+            CID20 *pcid = FindJtHandsTarget((JTV *)hands->pso, hands->ploTarget);
             if (pcid) {
-                p->ploRef = pcid;
-                p->nKind = 2;
+                hands->ploRef = pcid;
+                hands->nKind = 2;
             }
         }
-        if (p->nKind == 2)
-            p->pact1Euler = func_0012DC18(p->pso, p->pxf, 5, 7, 3, func_0022CA18(p->pxf, p->pxf));
-        p->abl[1].uWeight = p->abl[0].uWeight = 0.5f;
-        func_001384C0(p->pasegbl);
-        EnsureSwCallback(&D_003DD490, p->pso, D_002A77C8.l, p);
+        if (hands->nKind == 2)
+            hands->pact1Euler = func_0012DC18(hands->pso, hands->pxf, 5, 7, 3, func_0022CA18(hands->pxf, hands->pxf));
+        hands->abl[1].uWeight = hands->abl[0].uWeight = 0.5f;
+        func_001384C0(hands->pasegbl);
+        EnsureSwCallback(&D_003DD490, hands->pso, D_002A77C8.l, hands);
         break;
     case -1:
-        ReleaseAct(&p->pact1Euler);
-        p->nKind = nMode;
-        p->ploTarget = 0;
-        p->sParam = 0;
-        p->ploRef = 0;
+        ReleaseAct(&hands->pact1Euler);
+        hands->nKind = nMode;
+        hands->ploTarget = 0;
+        hands->sParam = 0;
+        hands->ploRef = 0;
         break;
     }
 }
 
-/* func_001CCC88 (StartJtHandsCarry): create the position and orientation acts that carry the object along the
-   predicted clip path to the hand, timed ballistically (func_00196928), parented to the world (SetLoParent). The body
+/* StartJtHandsCarry (StartJtHandsCarry): create the position and orientation acts that carry the object along the
+   predicted clip path to the hand, timed ballistically (ComputeMaxBallisticTime), parented to the world (SetLoParent). The body
    is a transcription of the target's schedule into register-pinned asm blocks (a matching island: this form exists
    to reproduce the original codegen); its data is the header JTHANDS and SO, the JTV/XFACT views and the work area
    below. */
 union VIEWS { struct { M4 intermediate, product, inverse; } matrices; struct { M3 angles, converted; } basis; U scalar; };
 struct CARRYWORK { M4 original, sample, start, final; VIEWS views; qword velocity, destination, delta, endVelocity; };
-static inline XF *SourceMatrix(LO *plo, M4 *out) { VTE &v = PVT(plo)[32]; return ((XF * (*)(LO *, M4 *))v.pfn)((LO *)((char *)plo + v.delta), out); }   /* LO slot 32, PxfLocal */
-static inline M4 *WorldMatrix(LO *plo) { VTE &v = PVT(plo)[31]; return ((M4 * (*)(LO *))v.pfn)((LO *)((char *)plo + v.delta)); }   /* LO slot 31, PmatWorld */
+static inline XF *SourceMatrix(LO *lo, M4 *out) { VTE &v = PVT(lo)[32]; return ((XF * (*)(LO *, M4 *))v.pfn)((LO *)((char *)lo + v.delta), out); }   /* LO slot 32, PxfLocal */
+static inline M4 *WorldMatrix(LO *lo) { VTE &v = PVT(lo)[31]; return ((M4 * (*)(LO *))v.pfn)((LO *)((char *)lo + v.delta)); }   /* LO slot 31, PmatWorld */
 static inline float Max(float a, float b) { float r; __asm__("max.s %0,%1,%2" : "=f"(r) : "f"(a), "f"(b)); return r; }
 static inline qword *TranslationSlot(CARRYWORK &w) { register qword *slot __asm__("$4"); __asm__("addiu %0,%1,0xB0" : "=r"(slot) : "r"(&w)); return slot; }
 static inline M4 *SampleOutput(M4 *value) { register M4 *result __asm__("$8"); __asm__("daddu %0,%1,$zero" : "=r"(result) : "r"(value)); return result; }
@@ -566,7 +582,9 @@ struct __attribute__((packed)) BASIS_TAIL { float firstW; qword row1, row2; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CCC88(JTHANDS *input, SO *other){
+// Creates position and orientation jobs that carry the selected animated object along the predicted clip path to the
+// hand (ballistic time, reparenting).
+extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other){
  register JTHANDS*p __asm__("$22");register SO*object __asm__("$20");
  __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));
  __asm__("daddu %0,%1,$zero":"=r"(object):"r"(other));
@@ -600,7 +618,7 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  __asm__("lq %0,%2\n\tdaddu %1,%3,$zero":"=&r"(first),"=r"(objectArgument):"m"(work.views.matrices.intermediate.r[0]),"r"(object));
  __asm__("lq %0,%6\n\tlq %1,%7\n\tlq %2,%8\n\tlw %3,%9\n\tsq %5,%4\n\tsq %0,16+%4\n\tsq %1,32+%4"
   :"=&r"(row1),"=&r"(row2),"=&r"(row3),"=&r"(ownerArgument),"=m"(*(M3*)&work.final):"r"(first),"m"(work.views.matrices.intermediate.r[1]),"m"(work.views.matrices.intermediate.r[2]),"m"(work.views.matrices.intermediate.r[3]),"m"(p->pso));
- work.final.r[3]=row3;counterpart=func_001CCA40(ownerArgument,objectArgument);
+ work.final.r[3]=row3;counterpart=FindJtHandsTarget(ownerArgument,objectArgument);
  }
  register M4*finalMatrix __asm__("$17")=&work.final;
  if(counterpart){
@@ -629,7 +647,7 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  float limit;qword initialSpeed;DeltaForDuration(work,GetLoWorldPos(initialOwner),limit,initialSpeed);
  register float negativeLimit __asm__("$f13"),minimum __asm__("$f15"),maximum __asm__("$f14");
  __asm__("neg.s %0,%3\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%1\n\t.set at\n\tmov.s %2,%4":"=f"(negativeLimit),"=f"(minimum),"=f"(maximum):"f"(limit),"f"(unit):"$1");
- float duration=Max(phase,func_00196928(work.delta,initialSpeed,limit,negativeLimit,maximum,minimum));
+ float duration=Max(phase,ComputeMaxBallisticTime(work.delta,initialSpeed,limit,negativeLimit,maximum,minimum));
  float speed=phase/duration;phase=duration;
  SetAsegaSpeed__FP5ASEGAf(anim,speed);
  {
@@ -679,37 +697,38 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CD098(JTHANDS *p, SO *po)
+// Attaches the held object to the hand: force/torque constraints, transform from the hand matrix, acts, fade-in.
+extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
 {
     M4 buf;
     M4 m;
-    if (po == p->psoHeld) return;
-    ReleaseAct(&p->pactPos);
-    ReleaseAct(&p->pactHold);
-    ReleaseAct(&p->pactTurn);
-    XF *pxf = p->ploHand->PxfLocal((MATRIX4 *)&buf);
-    po->SetParent(p->pso, pxf, 0);
-    m = *(M4 *)p->ploHand->PmatWorld();
-    CID20 *pcid = func_001CCA40((JTV *)p->pso, po);
+    if (object == hands->psoHeld) return;
+    ReleaseAct(&hands->pactPos);
+    ReleaseAct(&hands->pactHold);
+    ReleaseAct(&hands->pactTurn);
+    XF *xf = hands->ploHand->PxfLocal((MATRIX4 *)&buf);
+    object->SetParent(hands->pso, xf, 0);
+    m = *(M4 *)hands->ploHand->PmatWorld();
+    CID20 *pcid = FindJtHandsTarget((JTV *)hands->pso, object);
     if (pcid) {
         M4 u;
-        M4 t = ConvertAloMat4(0, po, (M4 *)pcid->PmatWorld());
+        M4 t = ConvertAloMat4(0, object, (M4 *)pcid->PmatWorld());
         u = t;
         M4 w = InvertMatrix4RigidV(u);
         MulMatrix4RetV(&t, &m, &w);
         m = t;
     }
-    SetLoXfFromMat(po, &m);
-    if (po->psophys) {
-        SetSoCnstrForce(po, 1);
-        SetSoCnstrTorque(po, 1);
+    SetLoXfFromMat(object, &m);
+    if (object->psophys) {
+        SetSoCnstrForce(object, 1);
+        SetSoCnstrTorque(object, 1);
     }
-    XF *pxfAct = po->pxfUnk58;
-    p->pactHold = func_0012DC18(po, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
-    pxfAct = po->pxfUnk5c;
-    p->pactTurn = func_0012DC18(po, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
-    FadeSoIn(po, 0.25f);
-    p->psoHeld = po;
+    XF *pxfAct = object->pxfUnk58;
+    hands->pactHold = func_0012DC18(object, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
+    pxfAct = object->pxfUnk5c;
+    hands->pactTurn = func_0012DC18(object, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
+    FadeSoIn(object, 0.25f);
+    hands->psoHeld = object;
 }
 
 /** @sly2-annot addr=0x1CD2C0
@@ -719,13 +738,14 @@ extern "C" void func_001CD098(JTHANDS *p, SO *po)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CD2C0(JTHANDS *phands)
+// Frees the three hand acts that are active.
+extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 {
-    if (phands->psoHeld != 0) {
-        ReleaseAct(&phands->pactPos);
-        ReleaseAct(&phands->pactHold);
-        ReleaseAct(&phands->pactTurn);
-        phands->psoHeld = 0;
+    if (hands->psoHeld != 0) {
+        ReleaseAct(&hands->pactPos);
+        ReleaseAct(&hands->pactHold);
+        ReleaseAct(&hands->pactTurn);
+        hands->psoHeld = 0;
     }
 }
 
@@ -737,36 +757,37 @@ extern "C" void func_001CD2C0(JTHANDS *phands)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#jthands-0x1cc158-0x1cd5f0
  * @end-sly2-annot */
-extern "C" void func_001CD308(JTHANDS *p, SO *po)
+// Variant of SetJtHandsTarget that parents the object and builds the position/rotation acts.
+extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
 {
     M3 mat;
     int unused[4];          /* with mat, the 0x40 bytes PxfLocal fills (a MATRIX4); part of the frame */
-    if (!p->psoHeld) return;
-    func_001CCAC0(p, -1);
-    ReleaseAct(&p->pactPos);
-    ReleaseAct(&p->pactHold);
-    ReleaseAct(&p->pactTurn);
-    if (po->psoParent) {
-        XF *pxf = po->PxfLocal((MATRIX4 *)&mat);
-        p->psoHeld->SetParent(po->psoParent, pxf, 0xF);
+    if (!hands->psoHeld) return;
+    SetJtHandsTarget(hands, -1);
+    ReleaseAct(&hands->pactPos);
+    ReleaseAct(&hands->pactHold);
+    ReleaseAct(&hands->pactTurn);
+    if (object->psoParent) {
+        XF *xf = object->PxfLocal((MATRIX4 *)&mat);
+        hands->psoHeld->SetParent(object->psoParent, xf, 0xF);
     } else {
-        SetLoParent(p->psoHeld, 0, 0xF);
+        SetLoParent(hands->psoHeld, 0, 0xF);
     }
-    XF *pxfAct = p->psoHeld->pxfUnk58;
-    p->pactPos = func_0012DE58Q(p->psoHeld, pxfAct, 5, func_0022FC48(0, pxfAct->pxfParent, GetLoWorldPos(po)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
-    pxfAct = p->psoHeld->pxfUnk5c;
-    mat = ConvertXfMatR(0, pxfAct->pxfParent, GetLoWorldMatrix(po));
-    p->pactTurn = func_0012DC18(p->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
-    p->ploTarget = p->psoHeld;
-    func_001CCAC0(p, 1);
-    p->psoHeld = 0;
+    XF *pxfAct = hands->psoHeld->pxfUnk58;
+    hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, func_0022FC48(0, pxfAct->pxfParent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
+    pxfAct = hands->psoHeld->pxfUnk5c;
+    mat = ConvertXfMatR(0, pxfAct->pxfParent, GetLoWorldMatrix(object));
+    hands->pactTurn = func_0012DC18(hands->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
+    hands->ploTarget = hands->psoHeld;
+    SetJtHandsTarget(hands, 1);
+    hands->psoHeld = 0;
 }
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_jthands {
-void p_func_001CCA20() __asm__("func_001CCA20");
+void p_func_001CCA20() __asm__("UpdateJtHandsCallback");
 extern "C" {
 extern const unsigned int D_002A77C8[2] = {0xFFFF0000, (unsigned int)p_func_001CCA20};
 }

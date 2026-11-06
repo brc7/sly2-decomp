@@ -2325,7 +2325,7 @@ void func_0022C818(S *, P *);
  *   is an at-rest role
  * Info: proposed name SlotSetRole (T1); TU xf
  * Notes: top50_round (0.65): Lilly's Sly 2 headers declare 'void SlotSetRole(SO *pso, XF *pxf, int nRole)'
- *   (src/game/gameplay/player/jt/SetJtJts__FP2JT3JTS4JTBS.cpp:1649, Lilly jtstate.c port) and call it with (pjt, pjt->pxfUnk58/5c, 1|2),
+ *   (src/game/gameplay/player/jt/SetJtState__FP2JT3JTS4JTBS.cpp:1649, Lilly jtstate.c port) and call it with (pjt, pjt->pxfUnk58/5c, 1|2),
  *   matching this body's (so,xf,role). Body
  * Confidence: mid (draft) [T1 0.65] - evidence: Sly 1 / Lilly reference; semantic review; sources:
  *   r8_21BB88+top50_round

@@ -13,7 +13,7 @@
 
 /* EA: an animation event: something a segment triggers at a local time (sound, effect, message...), with a
    kind-dependent payload.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct EA
 {
       float tLocal;   /* segment time (s) the event fires at */
@@ -36,7 +36,7 @@ struct EA
 };
 
 /* ASEGSTART: how a segment starts: start time, speed and apply flags.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGSTART
 {
       float tLocal;   /* start time (s) */
@@ -46,7 +46,7 @@ struct ASEGSTART
 
 /* ASEG: an animation segment (clip): per-channel curves for the transforms it animates, overrides, and
    start/frame/end event lists.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEG : public LO
 {
       DL dlAsega;   /* applications (ASEGA) currently playing this segment */
@@ -77,7 +77,7 @@ struct ASEG : public LO
 typedef char assert_ASEG_size[sizeof(ASEG) == 0xC0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 /* ASEGBL: a blended segment: plays several segments (blend entries) at once with weights.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (16 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (16 copies in Lilly ports) */
 struct ASEGBL : public ASEG
 {
       int cbBl;   /* size of one blend entry */

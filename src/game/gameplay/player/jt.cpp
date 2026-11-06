@@ -1,6 +1,8 @@
 // jt.cpp -- Sly (JT : STEPPLAYER, jt.h): init/load, messages, lean, the XMG rebuild, standing and ground states,
 // the per-frame update, the JT state machine (SetJtJts), player states, gadgets and pockets.
 // TU 0x188488..0x18E540 (51 functions, address order).
+// Entry points: InitJt/LoadJtFromBrx/PostJtLoad, UpdateJt (per frame), SetJtState (the state switch),
+// ChooseJtGroundState, HandleJtMessage, UseJtGadget and the STEPPLAYER virtual overrides.
 //
 // Types: sly2 headers (jt.h JT/JTPOCKET, stepplayer.h, step.h, po.h, so.h...); the file-scope types after the
 // includes are the union of five Lilly ports' private declarations; JT::FCanUseGadget (a member) and the ports
@@ -45,7 +47,7 @@ struct VTEJ { short d; short pad; void (*pfn)(); };
 #define QW1FA0(pjt) (*(qword *)((char *)(pjt) + 0x1FA0))
 extern "C" {
 extern const char D_002A5EF0[];
-void func_00190D10V() __asm__("func_00190D10");   /* takes (JT *, CM *): passed through */
+void func_00190D10V() __asm__("RenderJtHangIk");   /* takes (JT *, CM *): passed through */
 void RenderStepplayerSelf1(STEPPLAYER *pstepplayer) __asm__("RenderStepplayerSelf");   /* called with the player only */
 void func_0012CFE0(ACT5 *pact5);
 void func_0012D020(ACT5 *pact5);
@@ -167,13 +169,13 @@ struct LOREF
       undefined4 unk_0x04;
 };
 
-int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("func_0019C8D0");
+int FJtairCanUseGadget(JTAIR *pjtair, int idGadget) __asm__("CanJtUseGadgetInAir");
 
-int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("func_00194558");
+int FJtgrabCanUseGadget(JTGRAB *pjtgrab, int idGadget) __asm__("CanJtUseGadgetInGrab");
 
-int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("func_0019EEF0");
+int FJtpipeCanUseGadget(JTPIPE *pjtpipe, int idGadget) __asm__("CanJtUseGadgetOnPipe");
 
-bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("FStepplayerInJtmode");
+bool FJtModeActive(STEPPLAYER *pstepplayer) __asm__("IsStepplayerInJtMode");
 
 struct PROXYSPARE
 {
@@ -255,7 +257,7 @@ struct JTREC
       ASEG *apaseg[2];
 };
 
-void JtInteractPre(JTREC *prec) __asm__("func_001371C8");
+void JtInteractPre(JTREC *prec) __asm__("EndBentleyHelperWhenRetracted");
 
 struct STUNHOLD
 {
@@ -267,15 +269,15 @@ struct STUNHOLD
       qword qwVel;
 };
 
-void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("func_0019CC50");
+void StartJtMode(JTMODE *pjtmode, int nKind, STEP *pstepOther, LO *ploHudOverride) __asm__("StartJtMode");
 
-void HeroHurtPre(JTHURT *pjthurt) __asm__("func_001A12F0");
+void HeroHurtPre(JTHURT *pjthurt) __asm__("UpdateJtHurtInput");
 
-extern "C" void UpdateJtthrow(JTTHROW *pjtthrow);
+extern "C" void UpdateJtThrow(JTTHROW *pjtthrow);
 
 extern "C" void UpdateJtActivePipe(JTPIPE *pjtpipe);
 
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("func_00195A00");
+void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");
 
 struct XPD
 {
@@ -423,15 +425,15 @@ void ApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRF
 
 void ReblendAsegbl(ASEGBL *pasegbl) __asm__("func_001384C0");
 
-int NJtRecSide(JTREC *prec) __asm__("func_001374F0");
+int NJtRecSide(JTREC *prec) __asm__("IsBentleyHelperTargetBehind");
 
-void SetJtRecState(JTREC *prec, int nState) __asm__("func_001375D0");
+void SetJtRecState(JTREC *prec, int nState) __asm__("SetBentleyHelperState");
 
 void SetJtModeState(JTMODE *pjtmode, int nState);
 
-void SetJtPipeState(JTPIPE *pjtpipe, int nState) __asm__("func_0019EAB0");
+void SetJtPipeState(JTPIPE *pjtpipe, int nState) __asm__("SetJtPipeState");
 
-void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("func_00195FB8");
+void SetJtAirState(JTAIR *pjtair, int nState, LO *plo) __asm__("SetJtAirState");
 
 struct TRI3
 {
@@ -487,16 +489,16 @@ struct S {
     char pad[0x264]; int x264;
     char p0[0xD98]; int x1000; char p1[0x1C]; float x1020;
     char p2[0x74]; float x1098; float x109c; float x10a0; float x10a4; struct LM4 lm;
-    char p3[0x268]; char x1320[0x4B0]; char x17d0[0xF8]; int x18c8; int p4; int x18d0; int p5; int x18d8;
+    char p3[0x268]; char x1320[0x4B0]; char x17d0[0xF8]; int state; int p4; int x18d0; int p5; int caneState;
     char p6[0xD0]; float x19ac; char p7[0x280]; char x1c30[0x380]; int x1fb0; int p8[2]; int x1fbc; int p9[2]; int x1fc8; int p10[2]; int x1fd4; int p11[6]; char x1ff0[4];
 };
 extern struct S *D_002E1E40;
 void InitStepplayer(struct S *p);
 void InitGait(void *pv, struct S *p, int n);
 void func_00204D48(struct S *p, float g);
-void func_001371B8(void *pv, struct S *p);
-void func_001CC158(void *pv);
-static __inline__ void InitLm(struct LM4 *plm, float g8, float gc) { plm->g8 = g8; plm->gc = gc; plm->n = 0; }
+void InitBentleyHelper(void *pv, struct S *p);
+void ResetJtHands(void *pv);
+static __inline__ void InitLm(struct LM4 *range, float g8, float gc) { range->g8 = g8; range->gc = gc; range->n = 0; }
 /** @sly2-annot addr=0x188488
  * Purpose: JT vt7 Init: base InitStepPlayer 0x13FF70, defaults (x19AC=15, jts/jtbs fields -1, limits
  *   -100/100/50/-10/250, LM 1..4500), gadget records x1FB0..x1FD4 = ids 0x1A/0x25/0x26/0x29, sets g_pjt
@@ -509,15 +511,17 @@ static __inline__ void InitLm(struct LM4 *plm, float g8, float gc) { plm->g8 = g
  * See: docs/engine/main-loop-startup.md#7-source-files, docs/engine/player.md#10-source-files,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
-void InitJt(struct S *p)
+// JT (Sly) Init (vtable slot 7): STEPPLAYER init, then Sly's defaults (state fields -1, lean limits, cane and hands
+// records, helpers).
+void InitJt(struct S *jt)
 {
-    InitStepplayer(p);
-    p->x19ac = 15.0f;
-    p->x18c8 = -1;
-    p->x18d8 = -1;
-    p->x18d0 = -1;
-    InitGait(p->x1320, p, 0x6F);
-    InitGait(p->x1c30, p, 0x6F);
+    InitStepplayer(jt);
+    jt->x19ac = 15.0f;
+    jt->state = -1;
+    jt->caneState = -1;
+    jt->x18d0 = -1;
+    InitGait(jt->x1320, jt, 0x6F);
+    InitGait(jt->x1c30, jt, 0x6F);
     {
     register float a __asm__("$f5")=-100.0f;
     register float b __asm__("$f1")=100.0f;
@@ -526,19 +530,19 @@ void InitJt(struct S *p)
     register float e __asm__("$f4")=250.0f;
     register float f __asm__("$f6")=1.0f;
     register float g __asm__("$f0")=4500.0f;
-    p->x1098=a; p->x109c=b; p->x10a0=c; p->x10a4=d; p->lm.g0=e; InitLm(&p->lm,f,g);
+    jt->x1098=a; jt->x109c=b; jt->x10a0=c; jt->x10a4=d; jt->lm.g0=e; InitLm(&jt->lm,f,g);
     }
-    func_00204D48(p, 1.6f);
-    p->x1fb0 = 0x1A;
-    p->x1fbc = 0x25;
-    p->x1fc8 = 0x26;
-    p->x1fd4 = 0x29;
-    func_001371B8(p->x1ff0, p);
-    p->x1000 = 1;
-    p->x1020 = 200.0f;
-    p->x264 = 0xC7;
-    func_001CC158(p->x17d0);
-    D_002E1E40 = p;
+    func_00204D48(jt, 1.6f);
+    jt->x1fb0 = 0x1A;
+    jt->x1fbc = 0x25;
+    jt->x1fc8 = 0x26;
+    jt->x1fd4 = 0x29;
+    InitBentleyHelper(jt->x1ff0, jt);
+    jt->x1000 = 1;
+    jt->x1020 = 200.0f;
+    jt->x264 = 0xC7;
+    ResetJtHands(jt->x17d0);
+    D_002E1E40 = jt;
 }
 } } // namespace M_InitJt
 
@@ -559,15 +563,16 @@ void BindLoOidTable(struct S *p, int n, void *pv);
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void LoadJtFromBrx(struct S *p)
+// JT LoadFromBrx (slot 14): STEP base, sets the (0, 0, -75) offset and binds his object table (0xAD entries).
+void LoadJtFromBrx(struct S *jt)
 {
     VEC3 *pv;
-    LoadStepFromBrx(p);
-    pv = &p->v;
+    LoadStepFromBrx(jt);
+    pv = &jt->v;
     pv->x = 0.0f;
     pv->y = 0.0f;
     pv->z = -75.0f;
-    BindLoOidTable(p, 0xAD, D_002BE990);
+    BindLoOidTable(jt, 0xAD, D_002BE990);
 }
 } } // namespace M_LoadJtFromBrx
 
@@ -581,16 +586,16 @@ extern void PostLoadStepplayer(void *p);
 extern void BindLoOidTable(void *p, int n, void *pv);
 extern int PxfFindSo(void *p, int a, int b);
 extern void PostJtLoadGait(void *p);
-extern void func_001A0300(void *p, void *a, void *b);
+extern void InitDirectionalBlend(void *p, void *a, void *b);
 extern void PostJtLoadSwing(void *p, void *a, void *b);
 extern int func_0012DBB0(void *p, int a, int b);
 extern int func_0012DC18(void *p, int a, int b, int c, int d, qword q);
 extern void func_00230100(void *p, int a, int b);
-extern void func_001426E8(void *p, int a);
-extern void func_0018B348(void *p);
+extern void AttachStepplayerToStartMarker(void *p, int a);
+extern void CacheJtRestPose(void *p);
 extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g);
 extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void SetLoBusyk(void *p, int a);
 extern int func_001F0380(int a, int b, int c, int d);
 extern char D_002BF1B0[];
@@ -605,6 +610,8 @@ extern qword D_002A2DD0;
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// JT post-load (slot 15): STEPPLAYER post-load, then looks up about ten named child objects/actuators (hands, hook,
+// lean actuators) and builds his animation blends.
 void PostJtLoad(char *p)
 {
     int n;
@@ -622,9 +629,9 @@ void PostJtLoad(char *p)
     F(int, 0x19C0) = PxfFindSo(p, 0xC, 6);
     PostJtLoadGait(A(0x1320));
     PostJtLoadGait(A(0x1C30));
-    func_001A0300(p, A(0x1AC0), A(0x1BC0));
+    InitDirectionalBlend(p, A(0x1AC0), A(0x1BC0));
     PostJtLoadSwing(p, A(0x1970), A(0x1994));
-    func_001A0300(p, A(0x1E10), A(0x1F10));
+    InitDirectionalBlend(p, A(0x1E10), A(0x1F10));
     F(int, 0x19E4) = func_0012DBB0(p, F(int, 0x10B8), 5);
     F(int, 0x19E8) = func_0012DBB0(p, F(int, 0x19C8), 5);
     F(int, 0x19EC) = func_0012DBB0(p, F(int, 0x19C4), 5);
@@ -635,18 +642,18 @@ void PostJtLoad(char *p)
     n = func_0012DC18(p, F(int, 0x19C0), 5, 5, 2, D_002A2DD0);
     F(int, 0x1A00) = n;
     func_00230100(p, F(int, 0x19C0), n);
-    func_001426E8(p, 0x17);
-    func_0018B348(p);
+    AttachStepplayerToStartMarker(p, 0x17);
+    CacheJtRestPose(p);
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A04), 0, 0, 0, A(0x1A1C));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A20), 0, 0, 0, A(0x1A38));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A3C), 0, 0, 0, A(0x1A54));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A58), 0, 0, 0, A(0x1A70));
-    func_001A0300(p, A(0x13D0), A(0x14D0));
+    InitDirectionalBlend(p, A(0x13D0), A(0x14D0));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 4, A(0x1F60), 0, 0, 0, A(0x1F90));
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, A(0x2014), 0, 0, 0, A(0x2038));
     F(int, 0x1804) = F(int, 0x19A4);
     InitJtHands__FP7JTHANDSP2SOPP5ASEGA(A(0x17D0), p, A(0x18E0));
-    SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
+    SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
     SetLoBusyk(p, 1);
     if (F(int, 0x1D24))
         F(int, 0x1D28) = func_001F0380(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
@@ -655,7 +662,7 @@ void PostJtLoad(char *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00188960 {
-// func_00188960 (Claude agent, lane G9, 2026-10-24): MATCH, no register pins, VU helper asms only (Lilly style).
+// PresetJtAccel (Claude agent, lane G9, 2026-10-24): MATCH, no register pins, VU helper asms only (Lilly style).
 // Keys: the 0x20 stack slot is the by-value VU_FLOAT temporary (not a WORK field); WORK = {a, b} at 0x0/0x10 shared by cases 14 and 24; Reject = QwProjectOut.
 
 typedef int qword __attribute__((mode(TI)));
@@ -674,7 +681,7 @@ extern float D_002BF290;
 extern float D_002BF294;
 void func_001F9B20(P*);void PresetStepAccel(P*);
 void PresetJtAccelHang__FP2JT(P*);void PresetJtAccelPipe(void*);void PresetJtAccelJump(void*);
-void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void func_00137248(void*);
+void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void CorrectBentleyRideVelocity(void*);
 qword func_00204E38(P*,MODEL*,float);float func_0012F990(void*,int);
 void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
 M4*GetLoWorldMatrix(P*);float func_0011E290(qword,qword,qword*,qword*);
@@ -702,33 +709,35 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_00188960(P*p){
+// JT physics preset (slot 70): the base preset (SO for states 3/8, else STEP), then the per-state handler (air, grab,
+// hang, pipe, hurt ...).
+extern "C" void PresetJtAccel(P*jt){
  WORK w;
- switch(p->mode){case 3:case 8:func_001F9B20(p);break;case 21:case 22:break;default:PresetStepAccel(p);break;}
- switch(p->mode){
- case 3:PresetJtAccelHang__FP2JT(p);break;
- case 8:PresetJtAccelPipe((char*)p+0xF50);break;
- case 2:PresetJtAccelJump((char*)p+0x2C0);break;
- case 4:PresetJtAccelZap((char*)p+0xDF0);break;
- case 7:PresetJtAccelHide((char*)p+0x4C0);break;
- case 6:func_00137248((char*)p+0x1FF0);break;
+ switch(jt->mode){case 3:case 8:func_001F9B20(jt);break;case 21:case 22:break;default:PresetStepAccel(jt);break;}
+ switch(jt->mode){
+ case 3:PresetJtAccelHang__FP2JT(jt);break;
+ case 8:PresetJtAccelPipe((char*)jt+0xF50);break;
+ case 2:PresetJtAccelJump((char*)jt+0x2C0);break;
+ case 4:PresetJtAccelZap((char*)jt+0xDF0);break;
+ case 7:PresetJtAccelHide((char*)jt+0x4C0);break;
+ case 6:CorrectBentleyRideVelocity((char*)jt+0x1FF0);break;
  case 14:{
-  VTE*e=&p->vt[33];
-  w.a.q=((qword(*)(void*))e->fn)((char*)p+e->delta);
-  w.b.q=func_00204E38(p,p->model,p->model->base);
-  float cap=func_0012F990(p->lookup,0x16D);
-  if(p->model->base<cap){
-   qword resp=p->actor->response;
-   AddSoAcceleration(p,QwScaleX(resp,VuFloat(-1.0f)));
+  VTE*e=&jt->vt[33];
+  w.a.q=((qword(*)(void*))e->fn)((char*)jt+e->delta);
+  w.b.q=func_00204E38(jt,jt->model,jt->model->base);
+  float cap=func_0012F990(jt->lookup,0x16D);
+  if(jt->model->base<cap){
+   qword resp=jt->actor->response;
+   AddSoAcceleration(jt,QwScaleX(resp,VuFloat(-1.0f)));
   }else w.b.f[2]=w.a.f[2];
-  AddSoAcceleration(p,LimitVectorLength(QwDivide(QwSub(w.b.q,w.a.q),VuFloatFromMemWord(*(int*)&D_002DDED0.dt)),D_002BF288));
+  AddSoAcceleration(jt,LimitVectorLength(QwDivide(QwSub(w.b.q,w.a.q),VuFloatFromMemWord(*(int*)&D_002DDED0.dt)),D_002BF288));
   break;
  }
  case 24:
-  if(p->submode==13){
-   VTE*e=&p->vt[33];qword position=((qword(*)(void*))e->fn)((char*)p+e->delta);
-   e=&p->vt[34];qword direction=((qword(*)(void*))e->fn)((char*)p+e->delta);
-   M4*m=GetLoWorldMatrix(p);M3 basis;basis.r[0]=m->r[0];basis.r[1]=m->r[1];basis.r[2]=m->r[2];
+  if(jt->submode==13){
+   VTE*e=&jt->vt[33];qword position=((qword(*)(void*))e->fn)((char*)jt+e->delta);
+   e=&jt->vt[34];qword direction=((qword(*)(void*))e->fn)((char*)jt+e->delta);
+   M4*m=GetLoWorldMatrix(jt);M3 basis;basis.r[0]=m->r[0];basis.r[1]=m->r[1];basis.r[2]=m->r[2];
    float projection=func_0011E290(position,basis.r[0].q,&w.a.q,&w.b.q);
    float dt=D_002DDED0.dt;
    float gAlong=projection-D_002BF290*dt;
@@ -741,7 +750,7 @@ extern "C" void func_00188960(P*p){
    qword sum=QwAdd(w.a.q,w.b.q);
    qword moved=QwSub(QwRotateVecAt(&rotation,&sum),position);
    qword velocity=QwDivide(moved,VuFloatFromMemWord(*(int*)&D_002DDED0.dt));
-   AddSoAcceleration(p,LimitVectorLength(QwProjectOut(velocity,D_002A2DC0),D_002BF28C));
+   AddSoAcceleration(jt,LimitVectorLength(QwProjectOut(velocity,D_002A2DC0),D_002BF28C));
   }
   break;
  }
@@ -773,16 +782,16 @@ namespace M_func_00188CC8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct A { char pad[0x80]; float x80, y84, g88; char pad1[0x94 - 0x8C]; float g94; int n98; int n9C; };
 struct B { char pad[0x1BC]; int x1BC; };
-struct O { char pad[0x4C8]; int x4C8; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
-    char aDF0[0xF50 - 0xDF0]; char aF50[0x18C8 - 0xF50]; int n18C8; int x18CC; int n18D0; float g18D4;
+struct O { char pad[0x4C8]; int grabState; int x4CC; char pad1[0x4D4 - 0x4D0]; struct B *p4D4; char pad2[0xDF0 - 0x4D8];
+    char hurt[0xF50 - 0xDF0]; char pipe[0x18C8 - 0xF50]; int state; int x18CC; int n18D0; float g18D4;
     char pad3[0x1FF0 - 0x18D8]; char a1FF0[1]; };
 extern struct CLOCK D_002DDED0;
 extern float D_002BF298;
 extern float D_002BF29C;
 extern void AdjustStepNewXp(struct O *p, struct A *pa, void *pv);
-extern void func_0019E9C8(void *p, struct A *pa, void *pv);
-extern void func_001A2100(void *p, struct A *pa, void *pv);
-extern void func_001374E0(void *p, struct A *pa, void *pv);
+extern void ResetJtPipeAdjust(void *p, struct A *pa, void *pv);
+extern void AdjustJtHurtXp(void *p, struct A *pa, void *pv);
+extern void SetBentleyXpFriction(void *p, struct A *pa, void *pv);
 static __inline__ float GClamp(float g, float lo, float hi)
 {
     if (g < lo) return lo;
@@ -801,17 +810,18 @@ static __inline__ float GLimLo(float g, float lo, float v)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_00188CC8(struct O *p, struct A *pa, void *pv)
+// JT contact adjust (slot 55): STEP base, then per state (pipe 8 -> ResetJtPipeAdjust, grab 7 friction-like scale ...).
+void AdjustJtXp(struct O *jt, struct A *pa, void *pv)
 {
-    AdjustStepNewXp(p, pa, pv);
-    switch (p->n18C8) {
+    AdjustStepNewXp(jt, pa, pv);
+    switch (jt->state) {
     case 8:
-        func_0019E9C8(p->aF50, pa, pv);
+        ResetJtPipeAdjust(jt->pipe, pa, pv);
         break;
     case 7:
-        if (pa->n9C == 0xE && p->x4C8 == 3 && p->p4D4->x1BC) {
+        if (pa->n9C == 0xE && jt->grabState == 3 && jt->p4D4->x1BC) {
             pa->n98 = 0;
-            if (p->x4CC == 0) {
+            if (jt->x4CC == 0) {
                 pa->g94 = 0.0f;
             } else {
                 qword l;
@@ -824,18 +834,18 @@ void func_00188CC8(struct O *p, struct A *pa, void *pv)
         }
         break;
     case 4:
-        func_001A2100(p->aDF0, pa, pv);
+        AdjustJtHurtXp(jt->hurt, pa, pv);
         break;
     case 6:
-        func_001374E0(p->a1FF0, pa, pv);
+        SetBentleyXpFriction(jt->a1FF0, pa, pv);
         break;
     case 24:
         pa->g94 = 0.0f;
         pa->n98 = 0;
         break;
     case 5:
-        if ((unsigned int)(p->n18D0 - 8) < 2) {
-            register float g __asm__("$f0") = D_002DDED0.t - p->g18D4;
+        if ((unsigned int)(jt->n18D0 - 8) < 2) {
+            register float g __asm__("$f0") = D_002DDED0.t - jt->g18D4;
             if (g < D_002BF298) { g=D_002BF29C; pa->g94=g; }
         }
         break;
@@ -865,18 +875,20 @@ static __inline__ qword VCross(qword a, qword b)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_00188E78(void *p, struct E *ae, int i)
+// JT slot 57: STEP base; for a contact on Sly himself, removes the rotational part (angular velocity x offset) from
+// the contact velocity. (inferred)
+void AdjustJtXpVelocity(void *p, struct E *ae, int i)
 {
     struct E *pe;
-    struct PO *po;
+    struct PO *object;
     AdjustStepXpVelocity(p, ae, i);
     pe = &ae[i];
-    po = pe->po;
-    if (po == p) {
+    object = pe->po;
+    if (object == p) {
         qword v = pe->v30;
-        qword w = po->pvt->a[34].pfn((char *)po + po->pvt->a[34].d);
+        qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
         qword x = pe->v10;
-        pe->v30 = VSub(v, VCross(w, VSub(x, GetLoWorldPos(po))));
+        pe->v30 = VSub(v, VCross(w, VSub(x, GetLoWorldPos(object))));
     }
 }
 } } // namespace M_func_00188E78
@@ -900,20 +912,20 @@ extern char D_002BF2A0[];
 extern char D_002BF2B8[];
 
 extern void HandleStepplayerMessage(void *p, int msg, void *pv);
-extern void SetJtJtcs__FP2JTi(void *p, int n);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtCaneState__FP2JTi(void *p, int n);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void func_00131B10(void *a, void *p, int c);
 extern void func_00131B60(void *a, void *p, int c, void *d);
 extern qword GetLoWorldPos(void *p);
 extern void *PickpocketStepguard(void *a, qword q);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, void *c);
-extern void func_001424E0(void *p, int oid, void *pv, int n);
+extern void StartStepplayerGrabStateC(void *p, int oid, void *pv, int n);
 extern void *func_00205458(void *p, int n);
 extern void SetBhvjuggledState(void *p, int n);
 extern void EmitSwNoise(void *p, int a, qword q, void *c);
-extern void func_00195A00(void *p, int a, int b, int c);
-extern void func_0018D698(void *p, E *pe, void *c);
+extern void SetJtAirJump(void *p, int a, int b, int c);
+extern void SetGadgetRecordObject(void *p, E *pe, void *c);
 
 
 static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
@@ -926,6 +938,8 @@ static __inline__ void ClearX(CLR *px) { px->a = px->b = px->c = 0; }
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// JT message handler (slot 5): STEPPLAYER base, then message 3 (animation finished) and the animation events of Sly's
+// clips (cane hits, footsteps, effects).
 void HandleJtMessage(char *p, int msg, void *pv)
 {
     HandleStepplayerMessage(p, msg, pv);
@@ -933,9 +947,9 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 3:
         if (pv == F(void *, 0x18E0)) {
             if (F(int, 0x18D8) == 10)
-                SetJtJtcs__FP2JTi(p, 2);
+                SetJtCaneState__FP2JTi(p, 2);
             else
-                SetJtJtcs__FP2JTi(p, -1);
+                SetJtCaneState__FP2JTi(p, -1);
             break;
         }
         if (pv != F(void *, 0x1030))
@@ -943,7 +957,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
         switch (F(int, 0x18C8)) {
         case 9:
         case 0xB:
-            SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
+            SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
             break;
         case 7:
         case 0x15:
@@ -951,7 +965,7 @@ void HandleJtMessage(char *p, int msg, void *pv)
             break;
         case 5:
 
-            if (F(int, 0x18D0) < 10) { if (F(int, 0x18D0) >= 8) SetJtJts__FP2JT3JTS4JTBS(p, 5, 4); }
+            if (F(int, 0x18D0) < 10) { if (F(int, 0x18D0) >= 8) SetJtState__FP2JT3JTS4JTBS(p, 5, 4); }
 
             break;
         }
@@ -981,21 +995,21 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 if (F(int, 0x18EC)) {
                     switch (F(int, 0x18D8)) {
                     case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
-                        SetJtJts__FP2JT3JTS4JTBS(p, 5, 6);
+                        SetJtState__FP2JT3JTS4JTBS(p, 5, 6);
                         break;
                     case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
-                        SetJtJts__FP2JT3JTS4JTBS(p, 5, 7);
+                        SetJtState__FP2JT3JTS4JTBS(p, 5, 7);
                         break;
                     }
                 }
                 break;
             case 0x167:
                 if (F(void *, 0x10DC) && F(int, 0x1BD4)) {
-                    void *po = PickpocketStepguard(F(void *, 0x10DC), GetLoWorldPos(p));
-                    if (po && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5B) && !FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5D)) {
+                    void *object = PickpocketStepguard(F(void *, 0x10DC), GetLoWorldPos(p));
+                    if (object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) && !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
                         int oid = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
-                        F(void *, 0x1BCC) = po;
-                        func_001424E0(p, oid, po, -1);
+                        F(void *, 0x1BCC) = object;
+                        StartStepplayerGrabStateC(p, oid, object, -1);
                     }
                 }
                 break;
@@ -1031,17 +1045,17 @@ void HandleJtMessage(char *p, int msg, void *pv)
         case 3:
         case 0x16:
             if (F(void *, 0x18C4) == pv)
-                func_00195A00(A(0x2C0), 0, 0, 0);
+                SetJtAirJump(A(0x2C0), 0, 0, 0);
             break;
         case 7:
             if (F(int, 0x4C8) < 5) { if (F(int, 0x4C8) >= 3 && F(void *, 0x4D4) == pv)
-                func_00195A00(A(0x2C0), 0, 0, 0); }
+                SetJtAirJump(A(0x2C0), 0, 0, 0); }
             break;
         }
         pe = (E *)A(0x1FB0);
         for (i = 0; i < 4; i++, pe++) {
             if (pe->x8 == pv)
-                func_0018D698(p, pe, 0);
+                SetGadgetRecordObject(p, pe, 0);
         }
         break;
     }
@@ -1056,17 +1070,17 @@ void HandleJtMessage(char *p, int msg, void *pv)
         if (k & 2) {
             switch (F(int, 0x18D8)) {
             case 4: case 6: case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
-                SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
-                SetJtJtcs__FP2JTi(p, 8);
+                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+                SetJtCaneState__FP2JTi(p, 8);
                 break;
             case 5: case 7: case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
-                SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
-                SetJtJtcs__FP2JTi(p, 9);
+                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+                SetJtCaneState__FP2JTi(p, 9);
                 break;
             }
         } else if (k & 4) {
-            SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
-            SetJtJtcs__FP2JTi(p, 8);
+            SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+            SetJtCaneState__FP2JTi(p, 8);
         }
         break;
     }
@@ -1076,21 +1090,22 @@ void HandleJtMessage(char *p, int msg, void *pv)
 
 /** @sly2-annot addr=0x189458
  * Purpose: JT vt92: if x18C0 (object he is attached to) call 0x2046F0(pjt,obj) and return 1
- * Info: proposed name JT_FFaceTarget (T1); class JT slot92; TU jt
+ * Info: proposed name TryFaceJtAttachedObject (T1); class JT slot92; TU jt
  * Notes: verifier PLAUSIBLE: JT::FMatchAttached -> JT::FFaceTarget (vt92) | verifier: purpose partly wrong:
  *   JT slot 92 (MURRAY returns 0, BENTLEY no-op). If ploUnk18c0: 0x2046F0 = atan2 of (target pos - own pos)
  *   -> 0x204660 sets heading angle + Z rotation, i.e. turn t
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" int JT_FFaceTarget(JT *pjt)
+// JT slot 92: if Sly is attached to an object (x18C0) faces it and returns 1.
+extern "C" int TryFaceJtAttachedObject(JT *jt)
 {
-    LO *plo;
+    LO *lo;
     int f;
-    plo = pjt->ploAttached;
+    lo = jt->ploAttached;
     f = 0;
-    if (plo != 0) {
-        FaceStepToward(pjt, plo);
+    if (lo != 0) {
+        FaceStepToward(jt, lo);
         f = 1;
     }
     return f;
@@ -1099,18 +1114,19 @@ extern "C" int JT_FFaceTarget(JT *pjt)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00189488 { extern "C" {
 struct S { char pad[0x18C8]; int n; };
-int func_001409B8(struct S *p);
+int StepplayerVirtual98(struct S *p);
 /** @sly2-annot addr=0x189488
  * Purpose: JT vt98: base 0x1409B8; if -1, return 1 for jts 1/5/6/9 else -1
  * Info: proposed name JT_vt98 (T2); class JT slot98; TU jt
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_00189488(struct S *p)
+// JT slot 98: the STEPPLAYER base result; when 0, 1 for states 1/5/6/9 and -1 otherwise (meaning not identified).
+int JtVirtual98(struct S *jt)
 {
-    int r = func_001409B8(p);
+    int r = StepplayerVirtual98(jt);
     if (r != -1) return r;
-    switch (p->n) {
+    switch (jt->n) {
     case 1: case 5: case 6: case 9:
         return 1;
     }
@@ -1127,9 +1143,10 @@ struct S { char pad[0x18C8]; int n; };
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_001894F8(struct S *p)
+// JT slot 94: 1 for the free-movement states 0, 1, 5, 10, 12, 24. (inferred)
+int IsJtFreeMoving(struct S *jt)
 {
-    switch (p->n) {
+    switch (jt->n) {
     case 0: case 1: case 5: case 10: case 12: case 24:
         return 1;
     }
@@ -1154,17 +1171,18 @@ static __inline__ void Call(struct O *o, int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_00189530(struct S *p, int f)
+// JT slot 87 (playable flag): STEP base, then the flag on three attached sub-objects.
+void SetJtPlayable(struct S *jt, int f)
 {
-    func_00205D10(p, f);
+    func_00205D10(jt, f);
     if (f) {
-        Call(p->a, 0);
-        Call(p->b, 0);
-        Call(p->c, 0);
+        Call(jt->a, 0);
+        Call(jt->b, 0);
+        Call(jt->c, 0);
     } else {
-        Call(p->a, 1);
-        Call(p->b, 1);
-        Call(p->c, 1);
+        Call(jt->a, 1);
+        Call(jt->b, 1);
+        Call(jt->c, 1);
     }
 }
 } } // namespace M_func_00189530
@@ -1186,9 +1204,9 @@ namespace M_UpdateJtLean__FP2JT {
 //    tangent and the vertical (SProjectVector) drives the three-clip lean blend of the grab record (ablC, weights +0x7B0 / +0x7BC / +0x7C8, pasegblC +0x7D4), smoothed with GSmoothA
 //    (+0x7D8 the value, +0x7DC its rate), flipped when the record's flip (+0x4E4) is set.
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
-static inline float GEvaluateClq(CLQ *pclq, float x)
+static inline float GEvaluateClq(CLQ *clq, float x)
 {
-    return pclq->g0 + x * (pclq->g1 + x * pclq->g2);
+    return clq->g0 + x * (clq->g1 + x * clq->g2);
 }
 extern "C" { extern LM D_002BBB60; }
 float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext) __asm__("GSmoothA__FffffP4SMPAPf");
@@ -1323,27 +1341,27 @@ static inline float GMinOf(float a, float b)
 {
     return (a < b) ? a : b;
 }
-static inline float GLimitG(float g, float gMin, float gMax)
+static inline float GLimitG(float g, float minValue, float maxValue)
 {
-    if (g < gMin)
-        return gMin;
-    if (gMax < g)
-        return gMax;
+    if (g < minValue)
+        return minValue;
+    if (maxValue < g)
+        return maxValue;
     return g;
 }
-static inline qword QwScale(qword qwVec, VU_FLOAT gScale)
+static inline qword QwScale(qword vec, VU_FLOAT scale)
 {
     qword qw;
-    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(gScale.qw), "j"(qwVec));
+    __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(qw) : "j"(scale.qw), "j"(vec));
     return qw;
 }
-static inline qword QwDotRowsMatP(MATRIX3 *pmat, qword qwV)
+static inline qword QwDotRowsMatP(MATRIX3 *matrix, qword qwV)
 {
     qword qwLocal;
     qword qwTmp0, qwTmp1, qwTmp2, qwOnes;
     __asm__("vmul.xyzw %2, %5, %8\n\tvmaxw.xyzw %1, $vf0, $vf0w\n\tvmul.xyzw %3, %6, %8\n\tvmul.xyzw %4, %7, %8\n\tvadday.x $ACC, %2, %2y\n\tvmaddz.x %0, %1, %2z\n\tvaddax.y $ACC, %3, %3x\n\tvmaddz.y %0, %1, %3z\n\tvaddax.z $ACC, %4, %4x\n\tvmaddy.z %0, %1, %4y"
             : "=j"(qwLocal), "=&j"(qwOnes), "=&j"(qwTmp0), "=&j"(qwTmp1), "=&j"(qwTmp2)
-            : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(qwV));
+            : "j"(*(qword *)matrix->mat[0]), "j"(*(qword *)matrix->mat[1]), "j"(*(qword *)matrix->mat[2]), "j"(qwV));
     return qwLocal;
 }
 static inline qword QwFromXyzV(float gX, float gY, float gZ)
@@ -1364,7 +1382,8 @@ void UpdateJtLean(JT *pjt) __asm__("UpdateJtLean__FP2JT");
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void UpdateJtLean(JT *pjt)
+// Body lean actuators from the velocity of the floor object or curve Sly stands on.
+void UpdateJtLean(JT *jt)
 {
     VECTOR4 vecDv;
     VECTOR4 vecPos;
@@ -1372,77 +1391,77 @@ void UpdateJtLean(JT *pjt)
     VECTOR4 vecLean;
     VECTOR4 vecLocal;
     *(qword *)&vecDv = D_002A2DD0;
-    LO *plo = 0;
-    if (!pjt->pact5Unk19e4)
+    LO *lo = 0;
+    if (!jt->pact5Unk19e4)
         return;
-    if (!FFindInOwnerChain(pjt->pact5Unk19e4))
+    if (!FFindInOwnerChain(jt->pact5Unk19e4))
         return;
-    if (FJtModeActive(pjt))
+    if (FJtModeActive(jt))
     {
-        SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19e4, D_002A2DD0);
-        SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19e8, D_002A2DD0);
-        SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19ec, D_002A2DD0);
+        SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e4, D_002A2DD0);
+        SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e8, D_002A2DD0);
+        SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, D_002A2DD0);
         return;
     }
-    switch (pjt->jts)
+    switch (jt->jts)
     {
     case JTS_Stand:
-        if (pjt->pxpFloor)
-            plo = pjt->pxpFloor->axpd[1].psoLeaf;
+        if (jt->pxpFloor)
+            lo = jt->pxpFloor->axpd[1].psoLeaf;
         break;
     case JTS_Grab:
-        if (pjt->jtgrab.nKind == 0)
+        if (jt->jtgrab.nKind == 0)
         {
-            switch (pjt->jtgrab.nState)
+            switch (jt->jtgrab.nState)
             {
             case 4:
-                plo = pjt->jtgrab.plo;
-                *(qword *)&vecPos = PosLoWorld(plo);
+                lo = jt->jtgrab.plo;
+                *(qword *)&vecPos = PosLoWorld(lo);
                 break;
             case 3:
             {
-                SHAPE *pshape = (SHAPE *)pjt->jtgrab.plo;
-                EvaluateShapeU(pshape, pjt->jtgrab.uParam, (qword *)&vecPos, (qword *)&vecDir);
-                plo = pshape;
-                if (((CID12 *)plo)->nUnk1bc)
+                SHAPE *shape = (SHAPE *)jt->jtgrab.plo;
+                EvaluateShapeU(shape, jt->jtgrab.uParam, (qword *)&vecPos, (qword *)&vecDir);
+                lo = shape;
+                if (((CID12 *)lo)->nUnk1bc)
                 {
                     *(qword *)&vecDir = QwNormalizeDot(*(qword *)&vecDir);
-                    qword qwVel = pjt->GetVelocity();
-                    float gSpeed = GFromVf(QwDot(qwVel, *(qword *)&vecDir));
+                    qword velocity = jt->GetVelocity();
+                    float gSpeed = GFromVf(QwDot(velocity, *(qword *)&vecDir));
                     *(qword *)&vecLean = QwScale(*(qword *)&vecDir, VuFloat(gSpeed));
-                    float sAhead = pjt->jtgrab.sParam + gSpeed * D_002BF2D0;
-                    float sMax = SMaxShape((SHAPE *)plo);
-                    if (((SHAPE *)plo)->fClosed)
+                    float sAhead = jt->jtgrab.sParam + gSpeed * D_002BF2D0;
+                    float sMax = SMaxShape((SHAPE *)lo);
+                    if (((SHAPE *)lo)->fClosed)
                     {
                         sAhead = GModPositive(sAhead, sMax);
                     }
                     else
                     {
-                        float sMin = SMinShape((SHAPE *)plo);
+                        float sMin = SMinShape((SHAPE *)lo);
                         if (sAhead < sMin)
                             sAhead = sMin;
                         else if (sMax < sAhead)
                             sAhead = sMax;
                     }
-                    EvaluateShapeS(pshape, sAhead, 0, (qword *)&vecDir);
+                    EvaluateShapeS(shape, sAhead, 0, (qword *)&vecDir);
                     *(qword *)&vecLocal = QwScale(QwNormalize(*(qword *)&vecDir), VuFloat(gSpeed));
                     *(qword *)&vecDv = QwSub(*(qword *)&vecLocal, *(qword *)&vecLean);
-                    if (pjt->jtgrab.pasegblC)
+                    if (jt->jtgrab.pasegblC)
                     {
                         VECTOR4 vecAcross;
                         *(qword *)&vecAcross = QwNormalizeDot(QwCross(D_002A2DC0, *(qword *)&vecDir));
                         float gAcross = SProjectVector(*(qword *)&vecDv, *(qword *)&vecAcross, 0, (qword *)&vecDv);
                         float g = GLimitG(gAcross / D_002BF2D4, -1.0f, 1.0f);
-                        if (pjt->jtgrab.fFlip)
+                        if (jt->jtgrab.fFlip)
                             g = -g;
-                        float gLean = GSmoothA(pjt->jtgrab.gLean, pjt->jtgrab.dgLean, g * (2.0f - fabsf(g)), D_002DDED0.dt, &D_002BF320, &pjt->jtgrab.dgLean);
-                        pjt->jtgrab.gLean = gLean;
+                        float gLean = GSmoothA(jt->jtgrab.gLean, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)), D_002DDED0.dt, &D_002BF320, &jt->jtgrab.dgLean);
+                        jt->jtgrab.gLean = gLean;
                         float gZero = 0.0f;
                         float gOne = 1.0f;
-                        pjt->jtgrab.ablC[0].gWeight = GMaxOf(gZero, gLean);
-                        pjt->jtgrab.ablC[2].gWeight = GMaxOf(gZero, -gLean);
-                        pjt->jtgrab.ablC[1].gWeight = (gOne - pjt->jtgrab.ablC[0].gWeight) - pjt->jtgrab.ablC[2].gWeight;
-                        ReblendAsegbl(pjt->jtgrab.pasegblC);
+                        jt->jtgrab.ablC[0].gWeight = GMaxOf(gZero, gLean);
+                        jt->jtgrab.ablC[2].gWeight = GMaxOf(gZero, -gLean);
+                        jt->jtgrab.ablC[1].gWeight = (gOne - jt->jtgrab.ablC[0].gWeight) - jt->jtgrab.ablC[2].gWeight;
+                        ReblendAsegbl(jt->jtgrab.pasegblC);
                     }
                     goto lComputeLean;
                 }
@@ -1452,11 +1471,11 @@ void UpdateJtLean(JT *pjt)
         }
         break;
     }
-    if (!plo)
+    if (!lo)
         return;
 lComputeLean:
-    *(qword *)&vecDir = GetXfVelocity(plo->PxfLocal(0), 0, *(qword *)&vecPos);
-    *(qword *)&vecLocal = QwDotRowsMatP(&pjt->matTarget, *(qword *)&vecDir);
+    *(qword *)&vecDir = GetXfVelocity(lo->PxfLocal(0), 0, *(qword *)&vecPos);
+    *(qword *)&vecLocal = QwDotRowsMatP(&jt->matTarget, *(qword *)&vecDir);
     float gLen = GLengthXY(*(qword *)&vecLocal);
     if (gLen > 0.0001f)
     {
@@ -1475,24 +1494,24 @@ lComputeLean:
         vecLean.y = 0.0f;
         vecLean.x = 0.0f;
     }
-    float gFootL = GEvaluateClq(&D_002BF330, ((float *)pjt->pact5Unk19f0)[10]);
-    float gFootR = GEvaluateClq(&D_002BF330, ((float *)pjt->pact5Unk19f4)[10]);
+    float gFootL = GEvaluateClq(&D_002BF330, ((float *)jt->pact5Unk19f0)[10]);
+    float gFootR = GEvaluateClq(&D_002BF330, ((float *)jt->pact5Unk19f4)[10]);
     float gZ = vecLean.z;
     if (gZ < gFootL && gZ < gFootR)
         gFootR = gZ;
     else if (gFootL < gFootR)
         gFootR = gFootL;
-    SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19e4, QwFromXyzV(vecLean.x, vecLean.y, gFootR));
+    SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e4, QwFromXyzV(vecLean.x, vecLean.y, gFootR));
     qword qwHalf = QwScale(*(qword *)&vecLean, VuFloatFromMemWord(*(int *)&D_002BF2E0));
-    if (pjt->jtas == -1)
+    if (jt->jtas == -1)
     {
-        SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19ec, qwHalf);
-        SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19e8, qwHalf);
+        SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, qwHalf);
+        SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e8, qwHalf);
     }
     else
     {
-        SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19ec, D_002A2DD0);
-        SetAct1ValueKeepOffset((ACT1 *)pjt->pact5Unk19e8, D_002A2DD0);
+        SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, D_002A2DD0);
+        SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e8, D_002A2DD0);
     }
 }
 } // namespace M_UpdateJtLean__FP2JT
@@ -1508,17 +1527,17 @@ namespace M_RebuildJtXmg {
 // the record's goal XF (the heel's IK handle). posExtrem = the ball lowered by sRadius (5: ball to sole) along g_normalZ; the sphere the foot can reach is centred on posSphere = the
 // hip + (posExtrem - the handle's goal point) with the radius sSphere = both bones of the leg + 10; the vertical line posExtrem + g_normalZ * 50 .. posExtrem - g_normalZ * 50 is clipped to
 // that sphere (0x14C748, ClsgClipEdgeToSphere's Sly 2 form: the first piece goes to posUp / posDown, fValid = it hit) and posSphereLow = the sphere's lowest point (Sly 2 only).
-// UpdateJtStand (every frame, the two feet) and JT::VUnk15 call it; FMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
+// UpdateJtStand (every frame, the two feet) and JT::VUnk15 call it; TryMatchJtXmg then probes the ground along those lines. pact5 (the foot's offset actuator) is not touched here.
 // Match notes (decomp/learnings.md "T1460"): the two pool constants are `extern int` words read with VuFloatFromMemWord(D) (by-value param); the source order that keeps the game's
 // schedule is "sphere centre store, radius store, then the two constants, then the two QwAddScaled into locals, then the call", and the posExtrem store before the two clip stores.
-inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
+inline qword QwTransformPos(MATRIX4 *matrix, qword pos)
 {
-    qword qwResult;
+    qword result;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(qwResult)
-            : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(*(qword *)pmat->mat[3]),
-              "j"(qwPos));
-    return qwResult;
+            : "=j"(result)
+            : "j"(*(qword *)matrix->mat[0]), "j"(*(qword *)matrix->mat[1]), "j"(*(qword *)matrix->mat[2]), "j"(*(qword *)matrix->mat[3]),
+              "j"(pos));
+    return result;
 }
 
 
@@ -1566,10 +1585,10 @@ static inline qword QwAdd(qword qw0, qword qw1)
     return qw;
 }
 int ClsgClipEdgeToSphere(qword posSphere, float sRadius, qword pos0, qword pos1, int clsgMax, LSG *alsg) __asm__("func_0014C748");
-static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
+static inline qword QwAddScaled(qword qwBase, qword vec, VU_FLOAT scale)
 {
     qword qw;
-    __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(qwVec), "j"(gScale.qw));
+    __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(qw) : "j"(qwBase), "j"(vec), "j"(scale.qw));
     return qw;
 }
 extern "C" { extern qword D_002A2DC0; }
@@ -1584,44 +1603,46 @@ void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *p
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void RebuildJtXmg(JT *pjt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg)
+// Foot placement for one foot: when the foot clip changes, rebuilds the reach geometry (sphere the leg can reach,
+// vertical probe lines).
+void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pact5, XMG *pxmg)
 {
-    ASEGA *pasega;
-    if (pjt->jts == 0)
+    ASEGA *asega;
+    if (jt->jts == 0)
     {
-        switch (pjt->jtas)
+        switch (jt->jtas)
         {
         case 6: case 7: case 8: case 9: case 12: case 13:
-            pasega = pjt->janim.pasega;
+            asega = jt->janim.pasega;
             break;
         default:
-            pasega = pjt->psmaUnk1034->pasegaCur;
+            asega = jt->psmaUnk1034->pasegaCur;
             break;
         }
     }
     else
     {
-        if (pjt->psmaUnk1034 != 0)
-            pasega = pjt->psmaUnk1034->pasegaCur;
+        if (jt->psmaUnk1034 != 0)
+            asega = jt->psmaUnk1034->pasegaCur;
         else
-            pasega = pjt->pasegaUnk1030;
+            asega = jt->pasegaUnk1030;
     }
-    if (pasega->paseg != pxmg->paseg)
+    if (asega->paseg != pxmg->paseg)
     {
-        pxmg->paseg = pasega->paseg;
+        pxmg->paseg = asega->paseg;
         float tLocal = 0.0f;
-        EA *pea = PeaFindAsegLabel(pasega->paseg, (OID)0x16A);
+        EA *pea = PeaFindAsegLabel(asega->paseg, (OID)0x16A);
         if (pea != 0)
         {
             tLocal = pea->tLocal;
         }
         MATRIX4 matExtrem;
-        PredictAsegEffect(pasega->paseg, pjt, tLocal, 0.0f, (XF *)paloExtrem, pjt->pxfRoot, &matExtrem, 0);
+        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->pxfRoot, &matExtrem, 0);
         qword posExtrem = QwAddScaled(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
         MATRIX4 matHip;
-        PredictAsegEffect(pasega->paseg, pjt, tLocal, 0.0f, (XF *)paloHip, pjt->pxfRoot, &matHip, 0);
+        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->pxfRoot, &matHip, 0);
         MATRIX4 matIkh;
-        PredictAsegEffect(pasega->paseg, pjt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, pjt->pxfRoot, &matIkh, 0);
+        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
         qword posIkh = QwTransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
         qword posSphereCenter = QwAdd(*(qword *)matHip.mat[3], QwSub(posExtrem, posIkh));
         pxmg->posSphere = posSphereCenter;
@@ -1656,18 +1677,19 @@ void ShouldKeepSoPair();
 extern char D_003DD490[];
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
-int FMatchJtXmg(O *p, M *pm, void *px);
+int TryMatchJtXmg(O *p, M *pm, void *px);
 }
 static inline qword VMin(qword a, qword b) { qword r; __asm__("vmini.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VMax(qword a, qword b) { qword r; __asm__("vmax.xyz %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 /** @sly2-annot addr=0x189EC8
  * Purpose: Probe the ground along the XMG lines (PsoHitTestLineObjects, normal.z>0.7) and set foot target
- * Info: proposed name FMatchJtXmg (T1); TU jt
+ * Info: proposed name TryMatchJtXmg (T1); TU jt
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int FMatchJtXmg(O *p, M *pm, void *px)
+// Probes the ground along the foot geometry's lines (normal z > 0.7) and sets the foot target; nonzero on a match.
+int TryMatchJtXmg(O *jt, M *pm, void *px)
 {
     if (pm->x4) {
         HIT hit;
@@ -1675,21 +1697,21 @@ int FMatchJtXmg(O *p, M *pm, void *px)
         union { qword q; } u;
         int n0, n1;
         qword a, b, c;
-        a = ConvertAloPos(p, 0, pm->v30);
-        b = ConvertAloPos(p, 0, pm->v40);
-        c = ConvertAloPos(p, 0, pm->v50);
-        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, p->xEC, &n0, &n1);
+        a = ConvertAloPos(jt, 0, pm->v30);
+        b = ConvertAloPos(jt, 0, pm->v40);
+        c = ConvertAloPos(jt, 0, pm->v50);
+        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC, &n0, &n1);
         if ((PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, n0, n1, &hit) || PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
             hit.v0 = VSub(hit.v0, D_002A2DC0);
-            w = ConvertAloPos(0, p, hit.v0);
+            w = ConvertAloPos(0, jt, hit.v0);
             u.q = w;
             func_0012DA30(px, VSub(w, pm->v10));
             return 1;
         } else {
             func_0012DA30(px, D_002A2DD0);
-            if (p->x208 && ((float *)&pm->v40)[2] < -85.0f)
+            if (jt->x208 && ((float *)&pm->v40)[2] < -85.0f)
                 return 0;
             return 1;
         }
@@ -1712,41 +1734,42 @@ struct S {
     char x1520[0x100]; char x1620[0x3B4]; int x19d4, x19d8, x19dc, x19e0; char p6[0xC]; int x19f0, x19f4;
 };
 extern struct CLOCK D_002DDED0;
-int func_001430C8(struct S *p);
+int GetStepplayerLeanFlags(struct S *p);
 void SetSmaMask(void *p, int n);
 float GLimitAbs__Fff(float g, float h);
 void func_00204660(struct S *p, float g);
 void RebuildJtXmg(struct S *p, int a, int b, int c, float g, void *pv);
-int FMatchJtXmg(struct S *p, void *pv, int n);
+int TryMatchJtXmg(struct S *p, void *pv, int n);
 int IsmsFindSmOptional__FP2SM3OID(void *p, int n);
 void SnapSma(void *p, int n);
 /** @sly2-annot addr=0x18A0C8
  * Purpose: Standing: SM mask from 0x1430C8, ride platform rotation, RebuildJtXmg for both feet (x1520/x1620),
- *   FMatchJtXmg
+ *   TryMatchJtXmg
  * Info: proposed name UpdateJtStand (T1); TU jt
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void UpdateJtStand(struct S *p)
+// Standing: state-machine mask from the lean flags, riding platform rotation, foot placement for both feet.
+void UpdateJtStand(struct S *jt)
 {
     struct VTE *e;
-    SetSmaMask(p->x1034, func_001430C8(p));
-    e = &p->vt[92];
-    if (!((int (*)(void *))e->pfn)((char *)p + e->d) && p->pt208) {
-        struct O *o = p->pt208->po;
+    SetSmaMask(jt->x1034, GetStepplayerLeanFlags(jt));
+    e = &jt->vt[92];
+    if (!((int (*)(void *))e->pfn)((char *)jt + e->d) && jt->pt208) {
+        struct O *o = jt->pt208->po;
         UV u;
         e = &o->vt[34];
         u.q = ((qword (*)(void *))e->pfn)((char *)o + e->d);
         u.v.z = GLimitAbs__Fff(u.v.z, 10.0f);
-        func_00204660(p, p->g1a8 + u.v.z * D_002DDED0.dt);
+        func_00204660(jt, jt->g1a8 + u.v.z * D_002DDED0.dt);
     }
-    if (p->x19f0) {
-        RebuildJtXmg(p, p->x19d8, p->x19e0, p->x19f0, 5.0f, p->x1520);
-        RebuildJtXmg(p, p->x19d4, p->x19dc, p->x19f4, 5.0f, p->x1620);
-        if ((!FMatchJtXmg(p, p->x1520, p->x19f0) || !FMatchJtXmg(p, p->x1620, p->x19f4)) &&
-            !p->x1514 && p->x1028) {
-            if (IsmsFindSmOptional__FP2SM3OID(p->x1028, 0x17C) >= 0) SnapSma(p->x1034, 0x17C);
-            p->x1514 = 1;
+    if (jt->x19f0) {
+        RebuildJtXmg(jt, jt->x19d8, jt->x19e0, jt->x19f0, 5.0f, jt->x1520);
+        RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
+        if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
+            !jt->x1514 && jt->x1028) {
+            if (IsmsFindSmOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
+            jt->x1514 = 1;
         }
     }
 }
@@ -1758,18 +1781,19 @@ void UpdateJtStand(struct S *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void RenderJtSelf(JT *pjt, void *pcm)
+// JT render (slot 19): while hanging (state 3) applies the hand IK first, then the STEPPLAYER render.
+extern "C" void RenderJtSelf(JT *jt, void *camera)
 {
-    if (pjt->jts == 3) {
+    if (jt->jts == 3) {
         func_00190D10V();   /* the C file called it without arguments: a0/a1 still hold the JT and pcm */
     }
-    RenderStepplayerSelf1(pjt);
+    RenderStepplayerSelf1(jt);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A278 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int x18d8; char p3[0xC8]; void *x19a4; };
+struct S { char pad[0x1880]; int n; char p1[0xC]; qword a; qword b; qword c; char p2[0x18]; int caneState; char p3[0xC8]; void *hookChild; };
 qword GetLoWorldPos(void *p);
 void func_001F3980(struct S *p);
 /** @sly2-annot addr=0x18A278
@@ -1779,17 +1803,19 @@ void func_001F3980(struct S *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A278(struct S *p)
+// JT slot 17: caches the hook child's world position around the SO base update and records the self/child positions.
+// (inferred)
+void UpdateJtWorldTransform(struct S *jt)
 {
-    p->b = GetLoWorldPos(p->x19a4);
-    p->n = 0;
-    func_001F3980(p);
-    if (!p->x18d8) {
-        p->a = GetLoWorldPos(p);
-        p->c = GetLoWorldPos(p->x19a4);
-        p->n = 3;
+    jt->b = GetLoWorldPos(jt->hookChild);
+    jt->n = 0;
+    func_001F3980(jt);
+    if (!jt->caneState) {
+        jt->a = GetLoWorldPos(jt);
+        jt->c = GetLoWorldPos(jt->hookChild);
+        jt->n = 3;
     } else {
-        p->n = 0;
+        jt->n = 0;
     }
 }
 } } // namespace M_func_0018A278
@@ -1806,12 +1832,13 @@ void ExtendSoTreeBounds(struct S *p, qword q, float g);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A2E0(struct S *p)
+// JT slot 49: SO base, then the same update for each extra entry. (inferred)
+void UpdateJtExtraEntries(struct S *jt)
 {
     int i;
-    UpdateSoTreeBounds(p);
-    for (i = 0; i < p->n; i++)
-        ExtendSoTreeBounds(p, p->aq[i], p->g);
+    UpdateSoTreeBounds(jt);
+    for (i = 0; i < jt->n; i++)
+        ExtendSoTreeBounds(jt, jt->aq[i], jt->g);
 }
 } } // namespace M_func_0018A2E0
 
@@ -1820,9 +1847,9 @@ namespace M_func_0018A350 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z, w; } VEC;
 typedef union { qword q; VEC v; } UV;
-struct S { char pad[0x18C4]; void *p18c4; int n; };
+struct S { char pad[0x18C4]; void *hangHandle; int n; };
 qword GetLoWorldPos(void *p);
-void GetStepplayerCmFocusPos(struct S *p, UV *pv);
+void GetStepplayerCameraFocusPosition(struct S *p, UV *pv);
 static __inline__ float GetZ(qword q)
 {
     float z;
@@ -1836,22 +1863,23 @@ static __inline__ float GetZ(qword q)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A350(struct S *p, UV *pv)
+// JT slot 97: the camera target position (hanging: hook z - 175; state 0x16: -100; ...).
+void GetJtCameraTarget(struct S *jt, UV *pv)
 {
-    switch (p->n) {
+    switch (jt->n) {
     case 3:
-        GetStepplayerCmFocusPos(p, pv);
-        pv->v.z = GetZ(GetLoWorldPos(p->p18c4)) + -175.0f;
+        GetStepplayerCameraFocusPosition(jt, pv);
+        pv->v.z = GetZ(GetLoWorldPos(jt->hangHandle)) + -175.0f;
         break;
     case 0x16:
-        GetStepplayerCmFocusPos(p, pv);
-        pv->v.z = GetZ(GetLoWorldPos(p->p18c4)) + -100.0f;
+        GetStepplayerCameraFocusPosition(jt, pv);
+        pv->v.z = GetZ(GetLoWorldPos(jt->hangHandle)) + -100.0f;
         break;
     case 0x15:
-        pv->q = GetLoWorldPos(p);
+        pv->q = GetLoWorldPos(jt);
         break;
     default:
-        GetStepplayerCmFocusPos(p, pv);
+        GetStepplayerCameraFocusPosition(jt, pv);
         break;
     }
 }
@@ -1859,10 +1887,10 @@ void func_0018A350(struct S *p, UV *pv)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018A428 { extern "C" {
-struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char xf50[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
+struct S { char pad[0x4CC]; int x4cc; char p1[0xA80]; char pipe[4]; int xf54; char p2[0x970]; int n; char p3[0x1D8]; float t; };
 extern struct CLOCK D_002DDED0;
 void GetStepplayerCpdefi(struct S *p, int *pf);
-void func_0019EA00(void *p, int *pf);
+void GetJtPipeVelocity(void *p, int *pf);
 /** @sly2-annot addr=0x18A428
  * Purpose: JT vt50 (p, int *pgrf): stamp x? with g_clock.t while moving, base 0x141640, jts 8 sub, jts 3/5/6
  *   -> *pgrf|=1
@@ -1870,14 +1898,15 @@ void func_0019EA00(void *p, int *pf);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018A428(struct S *p, int *pf)
+// JT camera definition (slot 50): stamps the last-moved time, STEPPLAYER base, then per-state tweaks.
+void GetJtCpdefi(struct S *jt, int *pf)
 {
-    if (p->n != 0 && p->n != 0x12 && p->x4cc && p->xf54 != 1)
-        p->t = D_002DDED0.t;
-    GetStepplayerCpdefi(p, pf);
-    switch (p->n) {
+    if (jt->n != 0 && jt->n != 0x12 && jt->x4cc && jt->xf54 != 1)
+        jt->t = D_002DDED0.t;
+    GetStepplayerCpdefi(jt, pf);
+    switch (jt->n) {
     case 8:
-        func_0019EA00(p->xf50, pf);
+        GetJtPipeVelocity(jt->pipe, pf);
         break;
     case 3: case 5: case 6:
         *pf |= 1;
@@ -1934,7 +1963,8 @@ static __inline__ qword OffsetSub(const M*m,const VU*scalar,const VU*base){
  * Notes: descriptive only: (JT curve/rail helper) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
  * @end-sly2-annot */
-extern "C" void func_0018A4E8(S *ps, R *pr)
+// VU helper of GetStepplayerCpdefi: the smoothed camera curve target. (inferred)
+extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
 {
     float g;register float lift __asm__("$f1"),height __asm__("$f0");
     WORK w;
@@ -2089,18 +2119,18 @@ typedef char SMP_Alignment[__alignof__(SMP)==4?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_JtChooseGroundState {
-// JtChooseGroundState: ported from Lilly's personal Sly 2 decomp (src/P2/jtground.c), reduced to the declarations it needs.
+// ChooseJtGroundState: ported from Lilly's personal Sly 2 decomp (src/P2/jtground.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002BF354 (D_002BF354), D_002BF360 (D_002BF360), D_002BF364 (D_002BF364), D_002BF370 (D_002BF370), D_002DDED0 (g_clock), D_002A2DC0 (g_normalZ)
-// 0x0018A8C8 JtChooseGroundState (curated name)
-inline qword QwTransformPos(MATRIX4 *pmat, qword qwPos)
+// 0x0018A8C8 ChooseJtGroundState (curated name)
+inline qword QwTransformPos(MATRIX4 *matrix, qword pos)
 {
-    qword qwResult;
+    qword result;
     __asm__("vmulax.xyz $ACC, %1, %5x\n\tvmadday.xyz $ACC, %2, %5y\n\tvmaddaz.xyz $ACC, %3, %5z\n\tvmaddw.xyz %0, %4, $vf0w"
-            : "=j"(qwResult)
-            : "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]), "j"(*(qword *)pmat->mat[3]),
-              "j"(qwPos));
-    return qwResult;
+            : "=j"(result)
+            : "j"(*(qword *)matrix->mat[0]), "j"(*(qword *)matrix->mat[1]), "j"(*(qword *)matrix->mat[2]), "j"(*(qword *)matrix->mat[3]),
+              "j"(pos));
+    return result;
 }
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 qword PosLoWorld(LO *plo) __asm__("GetLoWorldPos");
@@ -2166,18 +2196,18 @@ extern "C" {
 void UpdateJtGrabInput(JTGRAB *pjtgrab);
 }
 extern "C" {
-int GetHeroMp(STEPPLAYER *pstepplayer) __asm__("MpStepplayerCur");
+int GetHeroMp(STEPPLAYER *pstepplayer) __asm__("GetStepplayerMp");
 }
 extern "C" {
-uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GrfbtnGadget");
+uint GrfMatchingSlots(STEPPLAYER *pstepplayer, int n) __asm__("GetGadgetButtonMask");
 }
 extern "C" {
-int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis) __asm__("FStepplayerNearInteractTarget");
+int FFightStanceInRange(STEPPLAYER *pstepplayer, int fHysteresis) __asm__("IsStepplayerNearInteractTarget");
 }
 extern "C" {
 qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity) __asm__("func_001D6848");
 }
-int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("FJtGrabNearestCandidate");
+int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("TryGrabJtNearestCandidate");
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 extern "C" float D_002BF354;
 extern "C" float D_002BF360;
@@ -2194,50 +2224,51 @@ static inline qword QwProjectOut(qword v, qword n)
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(qwAcross) : "j"(v), "j"(qwAlong));
     return qwAcross;
 }
-static inline qword QwScaleX(qword qwVec, VU_FLOAT g)
+static inline qword QwScaleX(qword vec, VU_FLOAT g)
 {
     qword qw;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(vec), "j"(g.qw));
     return qw;
 }
-static inline qword QwRotateVecAt(MATRIX3 *pmat, qword *pqwVec)
+static inline qword QwRotateVecAt(MATRIX3 *matrix, qword *pqwVec)
 {
-    qword qwResult;
+    qword result;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(qwResult)
-            : "j"(*pqwVec), "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]));
-    return qwResult;
+            : "=j"(result)
+            : "j"(*pqwVec), "j"(*(qword *)matrix->mat[0]), "j"(*(qword *)matrix->mat[1]), "j"(*(qword *)matrix->mat[2]));
+    return result;
 }
-extern "C" void JtChooseGroundState(JT *pjt) __asm__("JtChooseGroundState");
+extern "C" void ChooseJtGroundState(JT *pjt) __asm__("ChooseJtGroundState");
 /** @sly2-annot addr=0x18A8C8
  * Purpose: Each frame pick the grounded state (stand/run/... via SetJtJts) from input and floor
- * Info: proposed name JtChooseGroundState (T1); TU jt
+ * Info: proposed name ChooseJtGroundState (T1); TU jt
  * Notes: runtime2: run(1) with grfbtn 0x8 / walk(12) / fight stance(5) choices observed
  * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r4_17F090+runtime
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void JtChooseGroundState(JT *pjt)
+// Every frame picks the grounded state (stand, run, crouch, sidestep ...) from input and floor, via SetJtState.
+extern "C" void ChooseJtGroundState(JT *jt)
 {
     JTS jtsOld;
     JTBS jtbsOld;
     do
     {
-        jtsOld = pjt->jts;
-        jtbsOld = pjt->jtbs;
+        jtsOld = jt->jts;
+        jtbsOld = jt->jtbs;
         if (jtsOld >= 0 && jtsOld < JTS_Max)
         {
             switch (jtsOld)
             {
                 case JTS_Grab:
                 {
-                    int nState = pjt->jtgrab.nState;
-                    if (nState < 5)
+                    int state = jt->jtgrab.nState;
+                    if (state < 5)
                     {
-                        if (nState >= 3 || nState == 1)
+                        if (state >= 3 || state == 1)
                             break;
                         goto fell;
                     }
-                    if (nState != 0xC)
+                    if (state != 0xC)
                         goto fell;
                     break;
                 }
@@ -2249,278 +2280,278 @@ extern "C" void JtChooseGroundState(JT *pjt)
                 case JTS_Gait2:
                 case JTS_Throw:
                 case JTS_Unk18:
-                    if (pjt->jtas != 8 && pjt->jtas != 9 || pjt->janim.fInputOpen)
+                    if (jt->jtas != 8 && jt->jtas != 9 || jt->janim.fInputOpen)
                     {
     fell:
-                        if (D_002DDED0.t - pjt->tUnk20c > 0.1f)
-                            SetJtAirJump(&pjt->jtair, 0, 0, 0);
+                        if (D_002DDED0.t - jt->tUnk20c > 0.1f)
+                            SetJtAirJump(&jt->jtair, 0, 0, 0);
                     }
                     break;
             }
-            switch (pjt->jts)
+            switch (jt->jts)
             {
                 case JTS_Air:
-                    UpdateJtAirInput(&pjt->jtair);
-                    if (pjt->nUnk1d30)
+                    UpdateJtAirInput(&jt->jtair);
+                    if (jt->nUnk1d30)
                     {
-                        SetJtJts(pjt, JTS_Unk11, JTBS_Nil);
+                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if (!pjt->FCanUseGadget(2))
+                    if (!jt->FCanUseGadget(2))
                         break;
-                    if (pjt->pctl->GrfConsumePressed(0x80, 0.0f))
-                        SetJtJts(pjt, JTS_Unk0D, JTBS_Nil);
-                    else if (pjt->pctl->GrfConsumePressed(0x10, 0.0f))
-                        SetJtJts(pjt, JTS_Unk0E, JTBS_Nil);
+                    if (jt->pctl->GrfConsumePressed(0x80, 0.0f))
+                        SetJtJts(jt, JTS_Unk0D, JTBS_Nil);
+                    else if (jt->pctl->GrfConsumePressed(0x10, 0.0f))
+                        SetJtJts(jt, JTS_Unk0E, JTBS_Nil);
                     break;
                 case JTS_Grab:
-                    UpdateJtGrabInput(&pjt->jtgrab);
+                    UpdateJtGrabInput(&jt->jtgrab);
                     break;
                 case JTS_Unk04:
-                    HeroHurtPre(&pjt->jthurt);
+                    HeroHurtPre(&jt->jthurt);
                     break;
                 case JTS_Throw:
-                    UpdateJtthrow(&pjt->jtthrow);
+                    UpdateJtThrow(&jt->jtthrow);
                     break;
                 case JTS_Interact:
-                    JtInteractPre((JTREC *)&pjt->unk_0x1ff0);
+                    JtInteractPre((JTREC *)&jt->unk_0x1ff0);
                     break;
                 case JTS_Unk08:
-                    UpdateJtActivePipe(&pjt->jtpipe);
+                    UpdateJtActivePipe(&jt->jtpipe);
                     break;
                 case JTS_Stand:
                 case JTS_Run:
                 case JTS_Unk0A:
                 case JTS_Gait2:
-                    if (pjt->nUnk1d30)
+                    if (jt->nUnk1d30)
                     {
-                        SetJtJts(pjt, JTS_Unk11, JTBS_Nil);
+                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if (pjt->jtas == 8 || pjt->jtas == 9)
+                    if (jt->jtas == 8 || jt->jtas == 9)
                     {
-                        if (!pjt->janim.fInputOpen)
+                        if (!jt->janim.fInputOpen)
                             break;
                     }
-                    if (pjt->pctl->GrfConsumePressed(0x40, 0.1f))
+                    if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
                     {
-                        SetJtAirJump(&pjt->jtair, 1, 0, 0);
+                        SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (!(pjt->pctl->grfbtn & 8))
+                    if (!(jt->pctl->grfbtn & 8))
                     {
-                        if (FFightStanceInRange(pjt, 0))
+                        if (FFightStanceInRange(jt, 0))
                         {
-                            SetJtJts(pjt, JTS_Unk05, JTBS_4);
-                            break;
-                        }
-                    }
-                    if (pjt->pctl->GrfPressedWithin(0x400, 0.15f) && pjt->FCanUseGadget(3))
-                    {
-                        pjt->pctl->ClearJoyPressed(0x400);
-                        StartJtMode(&pjt->jtmode, 0, 0, 0);
-                        break;
-                    }
-                    if (pjt->nUnk10e4 == 3)
-                    {
-                        if (pjt->pctl->GrfConsumePressed(0x20, 0.15f))
-                        {
-                            SetJtJts(pjt, JTS_Pickpocket, JTBS_Nil);
+                            SetJtJts(jt, JTS_Unk05, JTBS_4);
                             break;
                         }
                     }
-                    if (pjt->pctl->GrfConsumePressed(0x20, 0.2f))
+                    if (jt->pctl->GrfPressedWithin(0x400, 0.15f) && jt->FCanUseGadget(3))
                     {
-                        ChooseJtGrabTarget(&pjt->jtgrab, 0xFFFF, 0);
+                        jt->pctl->ClearJoyPressed(0x400);
+                        StartJtMode(&jt->jtmode, 0, 0, 0);
+                        break;
+                    }
+                    if (jt->nUnk10e4 == 3)
+                    {
+                        if (jt->pctl->GrfConsumePressed(0x20, 0.15f))
+                        {
+                            SetJtJts(jt, JTS_Pickpocket, JTBS_Nil);
+                            break;
+                        }
+                    }
+                    if (jt->pctl->GrfConsumePressed(0x20, 0.2f))
+                    {
+                        ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
                     }
                     {
-                        float sLeft = pjt->pctl->sLeft;
-                        if (pjt->jts == 0 ? sLeft > 0.1f : sLeft > 0.0f)
+                        float sLeft = jt->pctl->sLeft;
+                        if (jt->jts == 0 ? sLeft > 0.1f : sLeft > 0.0f)
                         {
-                            if (pjt->pctl->grfbtn & 8)
-                                SetJtJts(pjt, JTS_Run, JTBS_Nil);
-                            else if (pjt->nUnk10e4 == 3)
-                                SetJtJts(pjt, JTS_Unk0A, JTBS_Nil);
+                            if (jt->pctl->grfbtn & 8)
+                                SetJtJts(jt, JTS_Run, JTBS_Nil);
+                            else if (jt->nUnk10e4 == 3)
+                                SetJtJts(jt, JTS_Unk0A, JTBS_Nil);
                             else
-                                SetJtJts(pjt, JTS_Gait2, JTBS_Nil);
+                                SetJtJts(jt, JTS_Gait2, JTBS_Nil);
                         }
                         else
-                            SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                            SetJtJts(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
                 case JTS_Unk18:
-                    if (pjt->nUnk1d30)
+                    if (jt->nUnk1d30)
                     {
-                        SetJtJts(pjt, JTS_Unk11, JTBS_Nil);
+                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if (!(0.0f < GetHeroMp(pjt)))
+                    if (!(0.0f < GetHeroMp(jt)))
                     {
-                        SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (pjt->pctl->GrfConsumePressed(0x40, 0.1f))
+                    if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
                     {
-                        SetJtAirJump(&pjt->jtair, 1, 0, 0);
+                        SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (!(pjt->pctl->grfbtn & GrfMatchingSlots(pjt, 0x19)))
+                    if (!(jt->pctl->grfbtn & GrfMatchingSlots(jt, 0x19)))
                     {
-                        SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (pjt->jtbs == JTBS_13)
+                    if (jt->jtbs == JTBS_13)
                     {
-                        qword qwVel = pjt->GetVelocity();
-                        int fStill = GXOfQw(QwDot(qwVel, *(qword *)PmatLoWorld(pjt)->mat[0])) < D_002BF354;
+                        qword velocity = jt->GetVelocity();
+                        int fStill = GXOfQw(QwDot(velocity, *(qword *)PmatLoWorld(jt)->mat[0])) < D_002BF354;
                         if (fStill)
-                            SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                            SetJtJts(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
                 case JTS_Unk05:
-                    if (pjt->nUnk1d30)
+                    if (jt->nUnk1d30)
                     {
-                        SetJtJts(pjt, JTS_Unk11, JTBS_Nil);
+                        SetJtJts(jt, JTS_Unk11, JTBS_Nil);
                         break;
                     }
-                    if ((uint)(pjt->jtbs - 6) < 4)
+                    if ((uint)(jt->jtbs - 6) < 4)
                         break;
-                    if (pjt->pctl->grfbtn & 8)
+                    if (jt->pctl->grfbtn & 8)
                     {
-                        SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (!FFightStanceInRange(pjt, 1))
+                    if (!FFightStanceInRange(jt, 1))
                     {
-                        SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (pjt->pctl->GrfConsumePressed(0x40, 0.1f))
+                    if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
                     {
-                        SetJtAirJump(&pjt->jtair, 1, 0, 0);
+                        SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (pjt->pctl->GrfPressedWithin(0x400, 0.15f) && pjt->FCanUseGadget(3))
+                    if (jt->pctl->GrfPressedWithin(0x400, 0.15f) && jt->FCanUseGadget(3))
                     {
-                        pjt->pctl->ClearJoyPressed(0x400);
-                        StartJtMode(&pjt->jtmode, 0, 0, 0);
+                        jt->pctl->ClearJoyPressed(0x400);
+                        StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (pjt->pctl->GrfConsumePressed(0x20, 0.2f))
+                    if (jt->pctl->GrfConsumePressed(0x20, 0.2f))
                     {
-                        ChooseJtGrabTarget(&pjt->jtgrab, 0xFFFF, 0);
+                        ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
                     }
-                    if (0.0f < pjt->pctl->sLeft)
-                        SetJtJts(pjt, JTS_Unk05, JTBS_5);
+                    if (0.0f < jt->pctl->sLeft)
+                        SetJtJts(jt, JTS_Unk05, JTBS_5);
                     else
-                        SetJtJts(pjt, JTS_Unk05, JTBS_4);
+                        SetJtJts(jt, JTS_Unk05, JTBS_4);
                     break;
                 case JTS_Hang:
-                    if (D_002DDED0.t - pjt->tJts > 0.25f)
+                    if (D_002DDED0.t - jt->tJts > 0.25f)
                     {
-                        if (pjt->pctl->GrfConsumePressed(0x40, 0.25f))
-                            SetJtAirJump(&pjt->jtair, 2, 0, 0);
+                        if (jt->pctl->GrfConsumePressed(0x40, 0.25f))
+                            SetJtAirJump(&jt->jtair, 2, 0, 0);
                     }
                     break;
                 case JTS_Unk0D:
-                    if (FAsegaStopped(pjt->pasegaUnk1030))
+                    if (FAsegaStopped(jt->pasegaUnk1030))
                     {
-                        SetJtAirJump(&pjt->jtair, 0xB, 0, 0);
+                        SetJtAirJump(&jt->jtair, 0xB, 0, 0);
                         break;
                     }
-                    if (pjt->pxpFloor)
+                    if (jt->pxpFloor)
                     {
-                        if (0.7f < pjt->pxpFloor->normal.z)
+                        if (0.7f < jt->pxpFloor->normal.z)
                         {
-                            if (D_002DDED0.t - pjt->tJts > 0.4f)
-                                SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                            if (D_002DDED0.t - jt->tJts > 0.4f)
+                                SetJtJts(jt, JTS_Stand, JTBS_Nil);
                         }
                     }
                     break;
                 case JTS_Unk0E:
-                    if (FAsegaStopped(pjt->pasegaUnk1030))
+                    if (FAsegaStopped(jt->pasegaUnk1030))
                     {
-                        SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (pjt->pxpFloor)
+                    if (jt->pxpFloor)
                     {
-                        if (0.7f < pjt->pxpFloor->normal.z)
+                        if (0.7f < jt->pxpFloor->normal.z)
                         {
-                            if (D_002DDED0.t - pjt->tJts > 0.4f)
+                            if (D_002DDED0.t - jt->tJts > 0.4f)
                             {
-                                float tLabel = TFindAsegLabel(pjt->pasegUnk1a84, (OID)0x16D);
-                                ASEGA *pasega = pjt->pasegaUnk1030;
-                                if (pasega->tLocal < tLabel)
-                                    SeekAsega(pasega, SEEK_Start, tLabel, pasega->svt);
+                                float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
+                                ASEGA *asega = jt->pasegaUnk1030;
+                                if (asega->tLocal < tLabel)
+                                    SeekAsega(asega, SEEK_Start, tLabel, asega->svt);
                             }
                         }
                     }
                     break;
                 case JTS_Pounce:
-                    if (!pjt->pasegaUnk1030 || FAsegaStopped(pjt->pasegaUnk1030))
-                        SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                    if (!jt->pasegaUnk1030 || FAsegaStopped(jt->pasegaUnk1030))
+                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_Unk13:
                 {
-                    if (!pjt->pasegaUnk1030 || !FAsegaStopped(pjt->pasegaUnk1030))
+                    if (!jt->pasegaUnk1030 || !FAsegaStopped(jt->pasegaUnk1030))
                     {
-                        if (!pjt->psmaUnk1034)
+                        if (!jt->psmaUnk1034)
                             break;
-                        if (!FIsSmaRetracted(pjt->psmaUnk1034))
+                        if (!FIsSmaRetracted(jt->psmaUnk1034))
                             break;
                     }
-                    SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                    SetJtJts(jt, JTS_Stand, JTBS_Nil);
                     break;
                 }
                 case JTS_Unk11:
-                    if (!pjt->nUnk1d30 || D_002DDED0.t - pjt->tJts > D_002BF360)
-                        SetJtJts(pjt, JTS_Stand, JTBS_Nil);
+                    if (!jt->nUnk1d30 || D_002DDED0.t - jt->tJts > D_002BF360)
+                        SetJtJts(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
-                    if (pjt->pctl->GrfConsumePressed(0x40, 0.25f))
-                        SetJtAirJump(&pjt->jtair, 0x12, 0, 0);
+                    if (jt->pctl->GrfConsumePressed(0x40, 0.25f))
+                        SetJtAirJump(&jt->jtair, 0x12, 0, 0);
                     break;
                 case JTS_HangFollow:
-                    if (pjt->pctl->GrfConsumePressed(0x40, 0.25f))
+                    if (jt->pctl->GrfConsumePressed(0x40, 0.25f))
                     {
                         VECTOR4 vTarget;
-                        LO *ploTarget = pjt->phndHang->ploUnk138;
+                        LO *ploTarget = jt->phndHang->ploUnk138;
                         if (ploTarget && FIsBasicDerivedFrom(ploTarget, (CID)10))
                         {
-                            SHAPE *pshape = (SHAPE *)pjt->phndHang->ploUnk138;
-                            EvaluateShapeS(pshape, SMaxShape(pshape) * (0.5f - pjt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
+                            SHAPE *shape = (SHAPE *)jt->phndHang->ploUnk138;
+                            EvaluateShapeS(shape, SMaxShape(shape) * (0.5f - jt->gUnk1f94 * 0.5f), (qword *)&vTarget, 0);
                         }
                         else
                         {
                             VECTOR4 vLocal;
-                            if (pjt->phndHang->ploUnk138)
-                                *(qword *)&vLocal = ConvertLoPos(0, pjt->phndHang, PosLoWorld(pjt->phndHang->ploUnk138));
+                            if (jt->phndHang->ploUnk138)
+                                *(qword *)&vLocal = ConvertLoPos(0, jt->phndHang, PosLoWorld(jt->phndHang->ploUnk138));
                             else
                                 *(qword *)&vLocal = D_002BF370;
                             MATRIX3 mat;
-                            mat = LoadRotateMatrixRad(pjt->gUnk1f94 * D_002BF364, D_002A2DA0);
-                            *(qword *)&vTarget = QwTransformPos(pjt->phndHang->PmatWorld(), QwRotateVecAt(&mat, (qword *)&vLocal));
+                            mat = LoadRotateMatrixRad(jt->gUnk1f94 * D_002BF364, D_002A2DA0);
+                            *(qword *)&vTarget = QwTransformPos(jt->phndHang->PmatWorld(), QwRotateVecAt(&mat, (qword *)&vLocal));
                         }
-                        qword qwVel = CalculateLaunchVelocity(0.5f, PosLoWorld(pjt), QwSub(*(qword *)&vTarget, pjt->qwUnk240), *(qword *)&pjt->psophys->dvGravity);
-                        VU_FLOAT gScale = VuFloatFromMemWord(*(int *)&pjt->gUnk1f98);
-                        pjt->SetVelocity(QwScaleX(qwVel, gScale));
-                        SetJtAirJump(&pjt->jtair, 0xC, 0, 0);
-                        pjt->jtair.qwUnkA0 = QwProjectOut(qwVel, D_002A2DC0);
+                        qword velocity = CalculateLaunchVelocity(0.5f, PosLoWorld(jt), QwSub(*(qword *)&vTarget, jt->qwUnk240), *(qword *)&jt->psophys->dvGravity);
+                        VU_FLOAT scale = VuFloatFromMemWord(*(int *)&jt->gUnk1f98);
+                        jt->SetVelocity(QwScaleX(velocity, scale));
+                        SetJtAirJump(&jt->jtair, 0xC, 0, 0);
+                        jt->jtair.qwUnkA0 = QwProjectOut(velocity, D_002A2DC0);
                     }
                     break;
             }
         }
-    } while (pjt->jts != jtsOld || pjt->jtbs != jtbsOld);
+    } while (jt->jts != jtsOld || jt->jtbs != jtbsOld);
 }
 } // namespace M_JtChooseGroundState
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018B2C0 { extern "C" {
-struct S { char pad[0x150]; void *p150; char p1[0xDAC]; int xf00; int xf04; char p2[0x18]; int xf20; char p3[0xE1C]; int x1d40; };
-int FStepplayerInJtmode(struct S *p);
+struct S { char pad[0x150]; void *controller; char p1[0xDAC]; int xf00; int jtModeState; char p2[0x18]; int jtModeKind; char p3[0xE1C]; int x1d40; };
+int IsStepplayerInJtMode(struct S *p);
 int GrfConsumePressed__5POCTLUif(void *p, int n, float g);
 void EndJtMode(void *p);
 void UpdateJtMode(void *p);
@@ -2531,11 +2562,12 @@ void UpdateJtMode(void *p);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018B2C0(struct S *p)
+// If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
+void UpdateJtModeInput(struct S *p)
 {
-    if (FStepplayerInJtmode(p)) {
-        if (p->xf04 == 1 && !p->xf20 &&
-            GrfConsumePressed__5POCTLUif(p->p150, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
+    if (IsStepplayerInJtMode(p)) {
+        if (p->jtModeState == 1 && !p->jtModeKind &&
+            GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
             EndJtMode(&p->xf00);
         UpdateJtMode(&p->xf00);
     }
@@ -2546,7 +2578,7 @@ void func_0018B2C0(struct S *p)
 namespace M_func_0018B348 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } MATRIX4;
-struct O { char pad[0x60]; void *p60; char pad1[0x19A4 - 0x64]; struct X *p19A4; char pad2[0x19C0 - 0x19A8]; void *p19C0;
+struct O { char pad[0x60]; void *p60; char pad1[0x19A4 - 0x64]; struct X *hookChild; char pad2[0x19C0 - 0x19A8]; void *p19C0;
     char pad3[0x19CC - 0x19C4]; void *p19CC; char pad4[0x1BC8 - 0x19D0]; void *p1BC8; char pad5[0x1BD8 - 0x1BCC]; float g1BD8;
     char pad6[0x1BE0 - 0x1BDC]; qword v1BE0; qword v1BF0; qword v1C00; qword v1C10; qword v1C20; };
 struct X { char pad[0x60]; void *p60; };
@@ -2569,22 +2601,23 @@ static __inline__ qword Mul(MATRIX4 *pm, qword v)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018B348(struct O *p)
+// From clip label 0x167 samples the positions of three child transforms into x1BE0..x1C20.
+void CacheJtRestPose(struct O *jt)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
-    if (p->p1BC8) {
+    if (jt->p1BC8) {
         z = 0.0f;
-        p->g1BD8 = func_0012F990(p->p1BC8, 0x167);
-        func_001300B8(p->p1BC8, p->g1BD8, p, z, p->p19A4->p60, p->p60, &m0, 0);
-        p->v1BE0 = m0.r[3];
-        func_001300B8(p->p1BC8, p->g1BD8, p, z, p->p19CC, p->p60, &m1, 0);
-        p->v1BF0 = m1.r[3];
-        func_001300B8(p->p1BC8, p->g1BD8, p, z, p->p19C0, p->p60, &m2, 0);
-        p->v1C00 = m2.r[3];
-        p->v1C10 = func_0011BFF0(&m2);
+        jt->g1BD8 = func_0012F990(jt->p1BC8, 0x167);
+        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
+        jt->v1BE0 = m0.r[3];
+        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
+        jt->v1BF0 = m1.r[3];
+        func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
+        jt->v1C00 = m2.r[3];
+        jt->v1C10 = func_0011BFF0(&m2);
         InvertMatrix4Rigid(&mi, &m2);
-        p->v1C20 = Mul(&mi, p->v1BE0);
+        jt->v1C20 = Mul(&mi, jt->v1BE0);
     }
 }
 } } // namespace M_func_0018B348
@@ -2635,14 +2668,15 @@ static inline float CorrectionDistance(struct P*p,qword correction){
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018B460(struct P*p){
- struct WORK w;register float ratio __asm__("$f20");{register float height __asm__("$f0")=p->height,base __asm__("$f1")=p->model->base,scale __asm__("$f2")=p->model->scale;height=height-base;__asm__("div.s %0,%1,%2":"=f"(ratio):"f"(height),"f"(scale));}
- if(p->owner&&p->owner->aim){
+// State 11 handler: corrects the attachment and decays inactive responses. (inferred)
+void UpdateJtAttachCorrection(struct P*jt){
+ struct WORK w;register float ratio __asm__("$f20");{register float height __asm__("$f0")=jt->height,base __asm__("$f1")=jt->model->base,scale __asm__("$f2")=jt->model->scale;height=height-base;__asm__("div.s %0,%1,%2":"=f"(ratio):"f"(height),"f"(scale));}
+ if(jt->owner&&jt->owner->aim){
  float zero=0.0f;
  if(zero<ratio){
   register qword mapped __asm__("$17");qword tilt,axis,residual;register float limit __asm__("$f1");struct SPACE*space;register struct SPACE*relativeDestination __asm__("$5");struct M4*frame;float heading;
-  FaceStepToward(p,p->owner->aim);
-  {register struct OWNER*predictionOwner __asm__("$2")=p->owner;
+  FaceStepToward(jt,jt->owner->aim);
+  {register struct OWNER*predictionOwner __asm__("$2")=jt->owner;
    register float capped __asm__("$f12");register struct M4*request __asm__("$6"),*optionalOutput __asm__("$7");
    register struct AIM*aim __asm__("$3");register struct SPACE*sourceSpace __asm__("$5");const int nullValue=0;
    __asm__("lwc1 %0,%6\n\tdaddu %1,%7,$zero\n\tlw %2,%8\n\tdaddu %3,%z9,$zero\n\tmin.s %0,%5,%0\n\tdaddu %4,%z9,$zero"
@@ -2651,15 +2685,15 @@ void func_0018B460(struct P*p){
    LoadIdentityMatrix4(aim->frame,sourceSpace,request,optionalOutput,capped);
   }
   {struct SPACE*sourceSpace;qword predictedPoint=Point(&w.phase.predicted,&D_002BF390,&sourceSpace);register unsigned page __asm__("$3");
-   __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(func_0022FC48(sourceSpace,p->space,predictedPoint)),"i"(&D_002BF3A0));
+   __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(func_0022FC48(sourceSpace,jt->space,predictedPoint)),"i"(&D_002BF3A0));
    {register int zBits __asm__("$2");register float z __asm__("$f12"),x __asm__("$f13"),coefficient __asm__("$f0");
     __asm__("pextuw %0,$zero,%4\n\tlwc1 %3,%%lo(%6)(%5)\n\tmtc1 %0,%1\n\tmtc1 %4,%2":"=&r"(zBits),"=f"(z),"=f"(x),"=f"(coefficient):"r"(mapped),"r"(page),"i"(&D_002BF3A0):"memory");
     heading=atan2f(-z,coefficient*x);}}
   heading=GLimitLm__FP2LMf(&D_002BF3A8,heading);
   tilt=Pack(zero,heading,zero);w.axis.q=tilt;
-  LoadRotateMatrixEuler(&w.rotation,Add(p->euler,w.axis.q));
+  LoadRotateMatrixEuler(&w.rotation,Add(jt->euler,w.axis.q));
   frame=&w.transform;
-  VECTOR_opAssign(&frame->r[3].q,p->position);
+  VECTOR_opAssign(&frame->r[3].q,jt->position);
   {
    register qword row0 __asm__("$3"),row1 __asm__("$2"),mappedVector __asm__("vf6");
    __asm__("lq %2,%5\n\tqmtc2.ni %8,%4\n\tlq %3,%6\n\tsq %2,%0\n\tsq %3,0x10(%7)"
@@ -2667,7 +2701,7 @@ void func_0018B460(struct P*p){
    :"m"(w.rotation.r[0].q),"m"(w.rotation.r[1].q),"r"(frame),"r"(mapped));
    {
     register float one __asm__("$f0")=1.0f;register qword row2 __asm__("$2");register struct FOCUS*focus __asm__("$3");register struct GROUP*group __asm__("$2");
-    __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(row2),"=r"(focus):"m"(w.rotation.r[2].q),"m"(p->focus));
+    __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(row2),"=r"(focus):"m"(w.rotation.r[2].q),"m"(jt->focus));
     __asm__("sq %1,0x20(%2)":"=m"(w.transform.r[2].q):"r"(row2),"r"(frame));
     __asm__("swc1 %5,%0\n\tswc1 %5,%1\n\tswc1 %5,%2\n\tswc1 %6,0x3c(%7)\n\tlw %4,0x58(%8)"
     :"=m"(w.transform.r[2].f[3]),"=m"(w.transform.r[1].f[3]),"=m"(w.transform.r[0].f[3]),"=m"(w.transform.r[3].f[3]),"=r"(group)
@@ -2676,50 +2710,50 @@ void func_0018B460(struct P*p){
      register qword point __asm__("vf4"),axis2 __asm__("vf2"),axis0 __asm__("vf5"),axis1 __asm__("vf3"),origin __asm__("vf1");
      __asm__("lqc2 %0,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\tlqc2 %3,%8\n\tlqc2 %4,%9"
      :"=j"(point),"=j"(axis2),"=j"(axis0),"=j"(axis1),"=j"(origin)
-     :"m"(p->localPoint),"m"(w.transform.r[2].q),"m"(w.transform.r[0].q),"m"(w.transform.r[1].q),"m"(w.transform.r[3].q));
+     :"m"(jt->localPoint),"m"(w.transform.r[2].q),"m"(w.transform.r[0].q),"m"(w.transform.r[1].q),"m"(w.transform.r[3].q));
      __asm__("vmulax.xyz ACC,%2,%5x\n\tvmadday.xyz ACC,%3,%5y\n\tvmaddaz.xyz ACC,%4,%5z\n\tvmaddw.xyz %0,%0,$vf0w\n\tlw %1,%6":"+j"(origin),"=r"(space):"j"(axis0),"j"(axis1),"j"(axis2),"j"(point),"m"(group->space));
      __asm__("vsub.xyzw %0,%0,%1":"+j"(mappedVector):"j"(origin));
      __asm__("sqc2 %2,%0\n\tdaddu %1,%3,$zero":"=m"(w.relative.q),"=r"(relativeDestination):"j"(mappedVector),"r"(space));
     }
    }
   }
-  heading=X(ConvertXfVec(p->space,relativeDestination,w.relative.q));heading=GLimitLm__FP2LMf(&D_002BF3B0,heading);
+  heading=X(ConvertXfVec(jt->space,relativeDestination,w.relative.q));heading=GLimitLm__FP2LMf(&D_002BF3B0,heading);
   axis=Pack(heading,zero,zero);w.axis.q=axis;
   {
-   register qword returned __asm__("vf2")=ConvertXfVec(space,p->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");
+   register qword returned __asm__("vf2")=ConvertXfVec(space,jt->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");
    __asm__("lqc2 %0,%2\n\tlui %1,%%hi(%3)":"=j"(relative),"=r"(page):"m"(w.relative.q),"i"(&D_002BF3B8));
    __asm__("vsub.xyzw %0,%1,%0":"+j"(returned):"j"(relative));
    __asm__("lwc1 %0,%%lo(%4)(%2)\n\tsqc2 %3,%1":"=f"(limit),"=m"(w.residual.q):"r"(page),"j"(returned),"i"(&D_002BF3B8):"memory");
    residual=returned;
   }
-  {register int near __asm__("$2")=1;float distance=CorrectionDistance(p,residual);if(distance<limit){}else near=0;if(near){
-   func_0012DA30(p->dvYaw,tilt);func_0012DA30(p->dvResidual,w.residual.q);func_0012DA30(p->dvX,axis);
-   p->valid=1;p->time=D_002DDED0.time;return;
+  {register int near __asm__("$2")=1;float distance=CorrectionDistance(jt,residual);if(distance<limit){}else near=0;if(near){
+   func_0012DA30(jt->dvYaw,tilt);func_0012DA30(jt->dvResidual,w.residual.q);func_0012DA30(jt->dvX,axis);
+   jt->valid=1;jt->time=D_002DDED0.time;return;
   }}
  }}
- {register float remaining __asm__("$f0")=p->time,after __asm__("$f2"),gain __asm__("$f3");
+ {register float remaining __asm__("$f0")=jt->time,after __asm__("$f2"),gain __asm__("$f3");
   {register float life __asm__("$f1")=D_002BF3BC,now __asm__("$f3")=D_002DDED0.time;remaining=remaining+life;after=D_002DDED0.dt;remaining=remaining-now;after=remaining-after;}
   {register float zero __asm__("$f1")=0.0f;if(zero<after)gain=after/remaining;else gain=zero;}
   {register qword bits __asm__("$2");__asm__("mfc1 %0,%2\n\tsq %0,%1":"=&r"(bits),"=m"(w.gain.q):"f"(gain));}
   {
    register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
-   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(source),"=r"(raw):"m"(p->dvYaw),"m"(w.gain.q));
+   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(source),"=r"(raw):"m"(jt->dvYaw),"m"(w.gain.q));
    __asm__("daddu %0,%3,$zero\n\tsq %4,%1\n\tqmtc2.ni %4,%2":"=&r"(receiver),"=m"(w.phase.scalar.q),"=j"(scalar):"r"(source),"r"(raw));
    __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));func_0012DA30(receiver,scalar);
   }
   {
    register qword raw __asm__("$2"),scalar __asm__("vf2");register struct DV*receiver __asm__("$4");
    __asm__("lq %0,%1":"=r"(raw):"m"(w.gain.q));
-   __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"m"(p->dvResidual));
+   __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"m"(jt->dvResidual));
    __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(receiver->value));func_0012DA30(receiver,scalar);
   }
   {
    register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
-   __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(raw),"=r"(source):"m"(w.gain.q),"m"(p->dvX));
+   __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(raw),"=r"(source):"m"(w.gain.q),"m"(jt->dvX));
    __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tdaddu %2,%4,$zero":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"r"(source));
    __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));func_0012DA30(receiver,scalar);
   }
-  p->valid=0;
+  jt->valid=0;
  }
 }
 
@@ -2819,15 +2853,15 @@ extern float D_002BF3CC;
 extern float D_002BF35C;
 float RadStepHeading(struct P*);float RadNormalize__Ff(float);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void*,struct P*,unsigned int);
-void func_0018B2C0(struct P*);void JtChooseGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
+void UpdateJtModeInput(struct P*);void ChooseJtGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
 struct BINDING*func_0012FF10(void*,struct P*,void*,int);
-void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void func_00137218(void*);
-void func_001A0720(struct P*,void*,int,float,float);void func_0018B460(struct P*);
+void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void FaceBentleyInteractTarget(void*);
+void UpdateDirectionalAcceleration(struct P*,void*,int,float,float);void UpdateJtAttachCorrection(struct P*);
 void UpdateGaitBlend(void*,float);void FaceStepToward(struct P*,void*);
 qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
-int FPowerupAcquired(int);void func_0018E1E0(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
+int FPowerupAcquired(int);void UpdateJtFaceTarget(struct P*);qword func_00204E38(struct P*,struct MODEL*,float);
 void SetAsegaSpeed__FP5ASEGAf(struct MODEL*,float);void func_00204660(struct P*,float);
-void DrainStepplayerMp(struct P*,float);void SetJtJts__FP2JT3JTS4JTBS(struct P*,int,int);
+void DrainStepplayerMp(struct P*,float);void SetJtState__FP2JT3JTS4JTBS(struct P*,int,int);
 float GLimitAbs__Fff(float,float);void func_001384C0(void*);
 void UpdateJtActiveZap(void*);void UpdateJtPlaces(struct P*);int FAsegaRetracted(void*);void func_001306A8(void**);
 static inline void*At(struct P*p,int offset){return(char*)p+offset;}
@@ -2860,56 +2894,58 @@ static inline void PrepareAnimation(struct P*p,U*u,struct MODEL**modelOut,struct
 static inline float Z(qword q){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(q));return r;}
 /** @sly2-annot addr=0x18B7E8
  * Purpose: Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input,
- *   JtChooseGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
+ *   ChooseJtGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
  * Info: proposed name UpdateJtPre (T1); TU jt
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void UpdateJtPre(struct P*p){
+// Per-frame active movement before the base update: grab candidates, mode input, ChooseJtGroundState, component
+// input.
+void UpdateJtPre(struct P*jt){
  union PHASE phase;U scalar;float initialHeading;
- initialHeading=RadStepHeading(p);(void)RadNormalize__Ff(p->state->heading-initialHeading);
- GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490,p,0xFFFF);
- func_0018B2C0(p);JtChooseGroundState(p);UpdateJtActiveCane__FP2JT(p);
- switch(p->mode){
+ initialHeading=RadStepHeading(jt);(void)RadNormalize__Ff(jt->state->heading-initialHeading);
+ GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490,jt,0xFFFF);
+ UpdateJtModeInput(jt);ChooseJtGroundState(jt);UpdateJtActiveCane__FP2JT(jt);
+ switch(jt->mode){
  case 4:case 9:{
-  struct MODEL*m=p->model;struct BINDING*b;p->velocity=D_002A2DD0;
-  if(m){b=func_0012FF10(m->table,p,(void*)1,1);
-   if(b){ReadBinding(b,m,&phase.direction);p->velocity=FirstNegative(&phase.direction,&scalar,-1.0f);}
+  struct MODEL*m=jt->model;struct BINDING*b;jt->velocity=D_002A2DD0;
+  if(m){b=func_0012FF10(m->table,jt,(void*)1,1);
+   if(b){ReadBinding(b,m,&phase.direction);jt->velocity=FirstNegative(&phase.direction,&scalar,-1.0f);}
   }break;
  }
- case 3:UpdateJtActiveHang__FP2JT(p);break;
- case 2:UpdateJtActiveJump(At(p,0x2C0));break;
- case 7:UpdateJtActiveHide(At(p,0x4C0));break;
- case 6:func_00137218(At(p,0x1FF0));break;
- case 10:func_001A0720(p,At(p,0x1AC0),p->axesBEnabled,p->state->heading,p->state->amount);break;
- case 11:func_0018B460(p);break;
- case 12:UpdateGaitBlend(At(p,0x1C30),p->state->amount);func_00204660(p,p->state->heading);break;
- case 5:switch(p->submode){
-  case 4:if(p->owner)FaceStepToward(p,p->owner);break;
-  case 5:func_001A0720(p,At(p,0x13D0),p->axesAEnabled,p->state->heading,p->state->amount);break;
-  case 8:case 9:phase.direction=SetVectorCylind(p->state->heading+3.14159265f,p->state->amount*D_002BF3C0,0.0f);p->velocity=ConvertAloVec(0,p,phase.direction);break;
+ case 3:UpdateJtActiveHang__FP2JT(jt);break;
+ case 2:UpdateJtActiveJump(At(jt,0x2C0));break;
+ case 7:UpdateJtActiveHide(At(jt,0x4C0));break;
+ case 6:FaceBentleyInteractTarget(At(jt,0x1FF0));break;
+ case 10:UpdateDirectionalAcceleration(jt,At(jt,0x1AC0),jt->axesBEnabled,jt->state->heading,jt->state->amount);break;
+ case 11:UpdateJtAttachCorrection(jt);break;
+ case 12:UpdateGaitBlend(At(jt,0x1C30),jt->state->amount);func_00204660(jt,jt->state->heading);break;
+ case 5:switch(jt->submode){
+  case 4:if(jt->owner)FaceStepToward(jt,jt->owner);break;
+  case 5:UpdateDirectionalAcceleration(jt,At(jt,0x13D0),jt->axesAEnabled,jt->state->heading,jt->state->amount);break;
+  case 8:case 9:phase.direction=SetVectorCylind(jt->state->heading+3.14159265f,jt->state->amount*D_002BF3C0,0.0f);jt->velocity=ConvertAloVec(0,jt,phase.direction);break;
  }break;
  case 16:
-  if(FPowerupAcquired(0x1C))func_0018E1E0(p);
-  else if(p->enabled){struct BINDING*b=func_0012FF10(p->table,p,(void*)1,1);if(b){ReadBinding(b,p->model,&phase.direction);p->velocity=SecondNegative(&phase.direction,&scalar,-1.0f);}}
+  if(FPowerupAcquired(0x1C))UpdateJtFaceTarget(jt);
+  else if(jt->enabled){struct BINDING*b=func_0012FF10(jt->table,jt,(void*)1,1);if(b){ReadBinding(b,jt->model,&phase.direction);jt->velocity=SecondNegative(&phase.direction,&scalar,-1.0f);}}
   break;
- case 19:p->velocity=NegativeModelNative(p,&phase.scalar);break;
- case 20:{struct MODEL*model;struct STATE*state;PrepareAnimation(p,&phase.scalar,&model,&state);SetAsegaSpeed__FP5ASEGAf(model,state->amount);func_00204660(p,p->state->heading);break;}
- case 17:{struct STATE*state;float zero;p->velocity=NegativeWithState(p,&phase.scalar,&state,&zero);if(zero<state->amount)func_00204660(p,state->heading);break;}
+ case 19:jt->velocity=NegativeModelNative(jt,&phase.scalar);break;
+ case 20:{struct MODEL*model;struct STATE*state;PrepareAnimation(jt,&phase.scalar,&model,&state);SetAsegaSpeed__FP5ASEGAf(model,state->amount);func_00204660(jt,jt->state->heading);break;}
+ case 17:{struct STATE*state;float zero;jt->velocity=NegativeWithState(jt,&phase.scalar,&state,&zero);if(zero<state->amount)func_00204660(jt,state->heading);break;}
  case 24:{
   register float one __asm__("$f20");register float weight __asm__("$f1");qword velocity;struct VTE*entry;
-  DrainStepplayerMp(p,D_002BF3C4);
-  if(p->submode==12){float angle=RadNormalize__Ff(RadStepHeading(p)-p->heading);if(__builtin_fabsf(angle)<D_002BF3C8)SetJtJts__FP2JT3JTS4JTBS(p,24,13);}
-  else func_00204660(p,p->state->heading);
-  one=1.0f;entry=&p->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)p+entry->delta);
-  weight=D_002BF3CC*GLimitAbs__Fff(Z(velocity)/(p->factor*D_002BF35C),one);
-  {register float zero __asm__("$f2")=0.0f;register float magnitude __asm__("$f3");register float left __asm__("$f0");__asm__("abs.s %0,%2\n\tmax.s %1,%3,%2\n\tneg.s %2,%2":"=f"(magnitude),"=f"(left),"+f"(weight):"f"(zero));__asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3":"=m"(p->left),"+f"(one),"+f"(zero),"=m"(p->right):"f"(left),"f"(magnitude),"f"(weight));p->middle=one;}
-  func_001384C0(p->blend);break;
+  DrainStepplayerMp(jt,D_002BF3C4);
+  if(jt->submode==12){float angle=RadNormalize__Ff(RadStepHeading(jt)-jt->heading);if(__builtin_fabsf(angle)<D_002BF3C8)SetJtState__FP2JT3JTS4JTBS(jt,24,13);}
+  else func_00204660(jt,jt->state->heading);
+  one=1.0f;entry=&jt->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)jt+entry->delta);
+  weight=D_002BF3CC*GLimitAbs__Fff(Z(velocity)/(jt->factor*D_002BF35C),one);
+  {register float zero __asm__("$f2")=0.0f;register float magnitude __asm__("$f3");register float left __asm__("$f0");__asm__("abs.s %0,%2\n\tmax.s %1,%3,%2\n\tneg.s %2,%2":"=f"(magnitude),"=f"(left),"+f"(weight):"f"(zero));__asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3":"=m"(jt->left),"+f"(one),"+f"(zero),"=m"(jt->right):"f"(left),"f"(magnitude),"f"(weight));jt->middle=one;}
+  func_001384C0(jt->blend);break;
  }
  case 0:case 1:break;
  }
- UpdateJtActiveZap(At(p,0xDF0));UpdateJtPlaces(p);
- if(p->animation&&FAsegaRetracted(p->animation)){func_001306A8(&p->animation);p->animationKind=-1;}
+ UpdateJtActiveZap(At(jt,0xDF0));UpdateJtPlaces(jt);
+ if(jt->animation&&FAsegaRetracted(jt->animation)){func_001306A8(&jt->animation);jt->animationKind=-1;}
 }
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
@@ -2971,20 +3007,20 @@ extern void UpdateJtPre(void *p);
 extern void func_00204660(void *p, float g);
 extern void UpdateGaitBlend(void *p, float g);
 extern void UpdateGaitFootsteps(void *p);
-extern void func_001A0450(void *p, void *a, void *animation);
+extern void UpdateDirectionalBlend(void *p, void *a, void *animation);
 extern void UpdateJtStand(void *p);
 extern void UpdateJtHangIkGoals__FP2JT(void *p);
 extern void func_00185E40(void *p);
-extern void func_0018DF60(void *p);
+extern void UpdateJtSmoothing(void *p);
 
 extern void RebuildJtXmg(void *p, void *a, float g, void *geometry, void *response, void *d);
 #define C40(p,a,b,c,d,g) RebuildJtXmg(p,a,g,b,c,d)
 
-extern int FMatchJtXmg(void *p, void *a, void *response);
+extern int TryMatchJtXmg(void *p, void *a, void *response);
 extern void UpdateJtCane__FP2JT(void *p);
 extern int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 extern void FindShapeClosestPointFromS(void *p, qword q, void *metric, qword *point, qword *direction, float *normalized, float *distance, float g);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern qword GetLoWorldPos(void *p);
 extern void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword d, float *parameters, float *distance, qword *direction);
 extern void UpdateJtLean__FP2JT(void *p);
@@ -2999,6 +3035,7 @@ static __inline__ qword VMulX(qword a, qword s) { qword r; __asm__("vmulx.xyzw %
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// JT Update (slot 16): STEPPLAYER update, UpdateJtPre, actuators and animation, UpdateJtStand, feet, cane, lean.
 void UpdateJt(char *p)
 {
     VU u;
@@ -3006,7 +3043,7 @@ void UpdateJt(char *p)
     VU w;
     float ag[4];
     int i;
-    struct X1854 *po;
+    struct X1854 *object;
 
     UpdateStepplayer(p);
     if ((uchar)((struct LO *)p)->f == 0)
@@ -3036,7 +3073,7 @@ void UpdateJt(char *p)
     case 5:
         if (F(int, 0x18D0) == 5) {
             qword s, motion;
-            func_001A0450(p, A(0x13D0), F(void *, 0x14D0));
+            UpdateDirectionalBlend(p, A(0x13D0), F(void *, 0x14D0));
             {
                 unsigned page;
                 __asm__("lui %0,%%hi(%3)\n\tlqc2 %1,%4\n\tlw %0,%%lo(%3)(%0)\n\tqmtc2.ni %0,%2"
@@ -3050,7 +3087,7 @@ void UpdateJt(char *p)
         }
         break;
     case 0xA:
-        func_001A0450(p, A(0x1AC0), F(void *, 0x1BC0));
+        UpdateDirectionalBlend(p, A(0x1AC0), F(void *, 0x1BC0));
         break;
     case 0:
         UpdateJtStand(p);
@@ -3065,14 +3102,14 @@ void UpdateJt(char *p)
         func_00185E40(p);
         break;
     case 0x16:
-        func_0018DF60(p);
+        UpdateJtSmoothing(p);
         break;
     case 0x18:
         if (F(void *, 0x19F0)) {
             C40(p, F(void *, 0x19D8), F(void *, 0x19E0), F(void *, 0x19F0), A(0x1520), D_002BF3DC);
             C40(p, F(void *, 0x19D4), F(void *, 0x19DC), F(void *, 0x19F4), A(0x1620), D_002BF3DC);
-            (void)FMatchJtXmg(p, A(0x1520), F(void *, 0x19F0));
-            (void)FMatchJtXmg(p, A(0x1620), F(void *, 0x19F4));
+            (void)TryMatchJtXmg(p, A(0x1520), F(void *, 0x19F0));
+            (void)TryMatchJtXmg(p, A(0x1620), F(void *, 0x19F4));
         }
         break;
     }
@@ -3084,7 +3121,7 @@ void UpdateJt(char *p)
                 FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, F(float, 0x1858));
             goto loop;
         L16:
-            SetJtJts__FP2JT3JTS4JTBS(p, 0x16, -1);
+            SetJtState__FP2JT3JTS4JTBS(p, 0x16, -1);
             goto end;
         } else {
             qword q;
@@ -3103,15 +3140,15 @@ void UpdateJt(char *p)
 
             if (ag[0] < F(float, 0x19AC)) {
                 if (FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0x13)) {
-                    po = F(struct X1854 *, 0x1854);
-                    F(struct X1854 *, 0x18C4) = po;
-                    if (po->x124 == 3)
+                    object = F(struct X1854 *, 0x1854);
+                    F(struct X1854 *, 0x18C4) = object;
+                    if (object->x124 == 3)
                         goto L16;
-                    SetJtJts__FP2JT3JTS4JTBS(p, 3, 1);
+                    SetJtState__FP2JT3JTS4JTBS(p, 3, 1);
                 } else {
                     F(void *, 0xF5C) = F(void *, 0x1854);
                     F(float, 0xF60) = F(float, 0x1858);
-                    SetJtJts__FP2JT3JTS4JTBS(p, 8, -1);
+                    SetJtState__FP2JT3JTS4JTBS(p, 8, -1);
                 }
                 break;
             }
@@ -3141,10 +3178,10 @@ typedef char layout_TARGET_kind[((unsigned)&((struct X1854*)0)->x124==0x124)?1:-
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018C060 { extern "C" {
-struct S { char pad[0x2C0]; char x2c0[0x200]; char x4c0[0x60]; void *x520; char p1[0x8CC]; char xdf0[0x930]; void *a1720[0x6A]; int n; };
-void *func_001944C8(void *p, int *pn);
-void *func_001A23F8(void *p, int *pn);
-void *func_0019C870(void *p, int *pn);
+struct S { char pad[0x2C0]; char air[0x200]; char grab[0x60]; void *x520; char p1[0x8CC]; char hurt[0x930]; void *a1720[0x6A]; int n; };
+void *GetJtGrabAdjustRecord(void *p, int *pn);
+void *GetJtHurtAdjustRecord(void *p, int *pn);
+void *GetJtAirAdjustRecord(void *p, int *pn);
 void SetStepPhys(struct S *p, void *pv, int n);
 /** @sly2-annot addr=0x18C060
  * Purpose: JT vt90 (pure virtual in STEPPLAYER): get state-specific array from jts 7/4/2 sub-objects and pass
@@ -3153,19 +3190,20 @@ void SetStepPhys(struct S *p, void *pv, int n);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018C060(struct S *p)
+// JT slot 90: takes the per-state STEP parameter array from the grab/hurt/air components and applies it.
+void ApplyJtStateStepParams(struct S *jt)
 {
     int n = 0;
     void *pv;
-    switch (p->n) {
-    case 7: pv = func_001944C8(p->x4c0, &n); break;
-    case 4: pv = func_001A23F8(p->xdf0, &n); break;
-    case 2: pv = func_0019C870(p->x2c0, &n); break;
-    case 21: case 22: pv = p->x520; break;
-    default: pv = p->a1720[p->n]; break;
+    switch (jt->n) {
+    case 7: pv = GetJtGrabAdjustRecord(jt->grab, &n); break;
+    case 4: pv = GetJtHurtAdjustRecord(jt->hurt, &n); break;
+    case 2: pv = GetJtAirAdjustRecord(jt->air, &n); break;
+    case 21: case 22: pv = jt->x520; break;
+    default: pv = jt->a1720[jt->n]; break;
     }
-    if (!pv) pv = p->a1720[0];
-    SetStepPhys(p, pv, n);
+    if (!pv) pv = jt->a1720[0];
+    SetStepPhys(jt, pv, n);
 }
 } } // namespace M_func_0018C060
 
@@ -3176,26 +3214,27 @@ void func_0018C060(struct S *p)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 /* Shows (bit set) or hides each of the seven act5s by the bits of grf (bit 0x20 is +0x19FC, 0x40 +0x19F8). */
-extern "C" void func_0018C120(JT *pjt, int grf)
+// Enables or disables the five lean actuators (x19E4..x19F4).
+extern "C" void EnableJtLeanActs(JT *jt, int grf)
 {
-    if (pjt->pact5Unk19e4 != 0) {
-        if (grf & 1) func_0012CFE0(pjt->pact5Unk19e4); else func_0012D020(pjt->pact5Unk19e4);
-        if (grf & 2) func_0012CFE0(pjt->pact5Unk19e8); else func_0012D020(pjt->pact5Unk19e8);
-        if (grf & 4) func_0012CFE0(pjt->pact5Unk19ec); else func_0012D020(pjt->pact5Unk19ec);
-        if (grf & 8) func_0012CFE0(pjt->pact5Unk19f0); else func_0012D020(pjt->pact5Unk19f0);
-        if (grf & 0x10) func_0012CFE0(pjt->pact5Unk19f4); else func_0012D020(pjt->pact5Unk19f4);
-        if (grf & 0x20) func_0012CFE0(pjt->pact5Unk19fc); else func_0012D020(pjt->pact5Unk19fc);
+    if (jt->pact5Unk19e4 != 0) {
+        if (grf & 1) func_0012CFE0(jt->pact5Unk19e4); else func_0012D020(jt->pact5Unk19e4);
+        if (grf & 2) func_0012CFE0(jt->pact5Unk19e8); else func_0012D020(jt->pact5Unk19e8);
+        if (grf & 4) func_0012CFE0(jt->pact5Unk19ec); else func_0012D020(jt->pact5Unk19ec);
+        if (grf & 8) func_0012CFE0(jt->pact5Unk19f0); else func_0012D020(jt->pact5Unk19f0);
+        if (grf & 0x10) func_0012CFE0(jt->pact5Unk19f4); else func_0012D020(jt->pact5Unk19f4);
+        if (grf & 0x20) func_0012CFE0(jt->pact5Unk19fc); else func_0012D020(jt->pact5Unk19fc);
         if (grf & 0x40) {
-            func_0012CFE0(pjt->pact5Unk19f8);
+            func_0012CFE0(jt->pact5Unk19f8);
             return;
         }
-        func_0012D020(pjt->pact5Unk19f8);
+        func_0012D020(jt->pact5Unk19f8);
     }
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtJts__FP2JT3JTS4JTBS {
-// SetJtJts__FP2JT3JTS4JTBS: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
+// SetJtState: ported from Lilly's personal Sly 2 decomp (src/P2/jtstate.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002BF358 (D_002BF358), D_002BF35C (D_002BF35C), D_002BF3E0 (D_002BF3E0), D_002BF3E4 (D_002BF3E4), D_002BF3E8 (D_002BF3E8), D_002DDED0 (g_clock), D_002DEB30 (g_game), D_002A2DD0 (g_qwZero), D_003DD490 (g_sw)
 // 0x0018C250 SetJtJts
@@ -3259,28 +3298,28 @@ void ExplodeExpl(EXPL *pexpl) __asm__("func_0015C150");
 void OnGameEvent(GAME *pgame, int nEvent, LO *plo) __asm__("BroadcastGameEvent");
 void CalculateJtHangAccel(JT *pjt) __asm__("CalculateJtHangAccel__FP2JT");
 extern "C" {
-void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtJtcs__FP2JTi");
+void SetJtAnimState(JT *pjt, int jtas) __asm__("SetJtCaneState__FP2JTi");
 }
 extern "C" {
 void SetJtHurtState(JTHURT *pjthurt, int nState);
 }
 extern "C" {
-void SetJtthrowState(JTTHROW *pjtthrow, int nState);
+void SetJtThrowState(JTTHROW *pjtthrow, int nState);
 }
 extern "C" {
 void SetJtGrabKind(JTGRAB *pjtgrab, int nPhase);
 }
 extern "C" {
-void UpdateJtPounceArc(JT *pjt) __asm__("func_0018E1E0");
+void UpdateJtPounceArc(JT *pjt) __asm__("UpdateJtFaceTarget");
 }
 extern "C" {
 void JtHangFrame(JT *pjt, float *prad) __asm__("GetJtHangHeading__FP2JTPf");
 }
 extern "C" {
-int GrfJtLeanMask(STEPPLAYER *pstepplayer) __asm__("func_001430C8");
+int GrfJtLeanMask(STEPPLAYER *pstepplayer) __asm__("GetStepplayerLeanFlags");
 }
 extern "C" {
-void RollHeroIdleTimer(STEPPLAYER *pstepplayer) __asm__("func_00142880");
+void RollHeroIdleTimer(STEPPLAYER *pstepplayer) __asm__("ScheduleIdleTimer");
 }
 extern "C" {
 int FPowerUpAcquired(int ipowerup) __asm__("FPowerupAcquired");
@@ -3295,7 +3334,7 @@ extern "C" {
 void UpdateJtHangPlace(JT *pjt) __asm__("UpdateJtHangIkGoals__FP2JT");
 }
 extern "C" {
-qword func_00190C58(JT *pjt);
+qword GetJtHangHandlePosition(JT *pjt);
 }
 extern "C" {
 void SetSndSourcePos(SND *psnd, qword qwPos);
@@ -3304,13 +3343,13 @@ extern "C" {
 void GuardCapVelocityForPounce(STEPGUARD *pguard) __asm__("func_00209EE0");
 }
 extern "C" {
-void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind) __asm__("func_00142868");
+void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind) __asm__("InitIdleTimer");
 }
 extern "C" {
-void SetJtUnk1d30(JT *pjt, int n) __asm__("func_0018DF50");
+void SetJtUnk1d30(JT *pjt, int n) __asm__("SetJtUnknown1D30");
 }
 extern "C" {
-void ClearGaitFootDown(GAIT *pgait) __asm__("func_0020BD68");
+void ClearGaitFootDown(GAIT *pgait) __asm__("ResetGaitFeet");
 }
 extern "C" {
 void PredictAsegEffect(float t, float svt, ASEG *paseg, ALO *palo, XF *pxfPart, XF *pxfRoot, MATRIX4 *pmat, int n) __asm__("func_001300B8");
@@ -3334,16 +3373,16 @@ static inline void ClearXyz(VECTOR *pvec)
     pvec->y = 0.0f;
     pvec->x = 0.0f;
 }
-static inline qword QwScale(qword qwVec, VU_FLOAT gScale)
+static inline qword QwScale(qword vec, VU_FLOAT scale)
 {
     qword qw;
-    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(gScale.qw));
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(vec), "j"(scale.qw));
     return qw;
 }
-static inline qword QwDivide(qword qwVec, VU_FLOAT g)
+static inline qword QwDivide(qword vec, VU_FLOAT g)
 {
     qword qw;
-    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
+    __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(qw) : "j"(vec), "j"(g.qw));
     return qw;
 }
 static inline VU_FLOAT VuFloatBits(float g)
@@ -3358,26 +3397,26 @@ static inline qword QwAddVelocity(VU_FLOAT t, qword pos, qword vel)
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(qw) : "j"(pos), "j"(t.qw), "j"(vel));
     return qw;
 }
-static inline qword QwRotateVecRows(qword qwRow0, qword qwRow1, qword qwRow2, qword qwVec)
+static inline qword QwRotateVecRows(qword qwRow0, qword qwRow1, qword qwRow2, qword vec)
 {
-    qword qwResult;
+    qword result;
     __asm__("vmulax.xyz $ACC, %1, %4x\n\tvmadday.xyz $ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
-            : "=j"(qwResult)
-            : "j"(qwRow0), "j"(qwRow1), "j"(qwRow2), "j"(qwVec));
-    return qwResult;
+            : "=j"(result)
+            : "j"(qwRow0), "j"(qwRow1), "j"(qwRow2), "j"(vec));
+    return result;
 }
-static inline qword QwRotateVecV(qword qwVec, MATRIX3 *pmat)
+static inline qword QwRotateVecV(qword vec, MATRIX3 *matrix)
 {
-    qword qwResult;
+    qword result;
     __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"
-            : "=j"(qwResult)
-            : "j"(qwVec), "j"(*(qword *)pmat->mat[0]), "j"(*(qword *)pmat->mat[1]), "j"(*(qword *)pmat->mat[2]));
-    return qwResult;
+            : "=j"(result)
+            : "j"(vec), "j"(*(qword *)matrix->mat[0]), "j"(*(qword *)matrix->mat[1]), "j"(*(qword *)matrix->mat[2]));
+    return result;
 }
 void ChooseJtRushTarget(JT *pjt) __asm__("ChooseJtRushTarget__FP2JT");
 void ChooseJtSmashTarget(JT *pjt) __asm__("ChooseJtSmashTarget__FP2JT");
-void SetJtChannelMask(JT *pjt, uint grf) __asm__("func_0018C120");
-void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtJts__FP2JT3JTS4JTBS");
+void SetJtChannelMask(JT *pjt, uint grf) __asm__("EnableJtLeanActs");
+void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtState__FP2JT3JTS4JTBS");
 /** @sly2-annot addr=0x18C250
  * Purpose: Set Sly's state (jts x18C8) and sub-state (jtbs x18D0): exit/enter logic for every state
  * Info: proposed name SetJtJts (T1); TU jt
@@ -3388,42 +3427,44 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs) __asm__("SetJtJts__FP2JT3JTS4JTBS");
  * See: docs/engine/overview.md#6-subsystem-map, docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
-void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
+// Sets Sly's state (jts, x18C8) and sub-state (jtbs, x18D0): exit and enter logic for every state (clips, physics
+// flags, components). The central state switch of the player.
+void SetJtJts(JT *jt, JTS jts, JTBS jtbs)
 {
-    ASEG *paseg = 0;
+    ASEG *aseg = 0;
     uint grf = 0;
     int sfxid = -1;
     OID oid = OID_Nil;
     int grfapl = 1;
     float tStart = 0.0f;
     float svt = 1.0f;
-    SM *psm = 0;
+    SM *stateMachine = 0;
     int grfRoute = 0xFFFC;
     int fKeep = 0;
-    if (pjt->jts == jts && pjt->jtbs == jtbs)
+    if (jt->jts == jts && jt->jtbs == jtbs)
         return;
-    if (pjt->jts != jts)
+    if (jt->jts != jts)
     {
         if (jts == JTS_Air)
         {
-            switch (pjt->jts)
+            switch (jt->jts)
             {
                 case JTS_Hang:
                 case JTS_HangFollow:
-                    pjt->jtair.ploUnk37c = (LO *)pjt->phndHang;
+                    jt->jtair.ploUnk37c = (LO *)jt->phndHang;
                     break;
                 case JTS_Unk08:
-                    pjt->jtair.ploUnk37c = (LO *)pjt->jtpipe.pshape;
+                    jt->jtair.ploUnk37c = (LO *)jt->jtpipe.pshape;
                     break;
                 case JTS_SurfaceClimb:
-                    pjt->jtair.ploUnk37c = pjt->ploUnk1f18;
+                    jt->jtair.ploUnk37c = jt->ploUnk1f18;
                     break;
                 default:
-                    pjt->jtair.ploUnk37c = 0;
+                    jt->jtair.ploUnk37c = 0;
                     break;
             }
         }
-        switch (pjt->jts)
+        switch (jt->jts)
         {
             case JTS_Air:
                 switch (jts)
@@ -3433,38 +3474,38 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                     case JTS_Unk12:
                         break;
                     case JTS_Grab:
-                        if (pjt->jtgrab.nState == 1)
+                        if (jt->jtgrab.nState == 1)
                             break;
                     default:
                     {
-                        SND *psnd = PsndStartSound(0x3D);
-                        SetSndSourceLo(psnd, pjt);
-                        SetSndVolume(psnd, 0.7f);
-                        SetSndRange(psnd, 500.0f, 1000.0f);
+                        SND *sound = PsndStartSound(0x3D);
+                        SetSndSourceLo(sound, jt);
+                        SetSndVolume(sound, 0.7f);
+                        SetSndRange(sound, 500.0f, 1000.0f);
                     }
                     break;
                 }
-                if (pjt->jtas == 0)
+                if (jt->jtas == 0)
                 {
                     if (jts != JTS_Unk08 && jts != JTS_Hang && jts != JTS_HangFollow)
-                        SetJtAnimState(pjt, -1);
+                        SetJtAnimState(jt, -1);
                 }
-                if (pjt->nUnk108c == 0)
+                if (jt->nUnk108c == 0)
                 {
                     EXPL *pexpl = 0;
                     switch (jts)
                     {
                         case JTS_Grab:
-                            switch (pjt->jtgrab.nState)
+                            switch (jt->jtgrab.nState)
                             {
                                 case 1:
                                     break;
                                 case 3:
                                 case 4:
-                                    pexpl = pjt->pexplDustGrab;
+                                    pexpl = jt->pexplDustGrab;
                                     break;
                                 default:
-                                    pexpl = pjt->pexplDustLand;
+                                    pexpl = jt->pexplDustLand;
                                     break;
                             }
                             break;
@@ -3473,7 +3514,7 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                         case JTS_Unk05:
                         case JTS_Unk09:
                         case JTS_Unk18:
-                            pexpl = pjt->pexplDustLand;
+                            pexpl = jt->pexplDustLand;
                             break;
                     }
                     if (pexpl != 0)
@@ -3483,127 +3524,127 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                         pexpl->Remove();
                     }
                 }
-                SetJtAirState(&pjt->jtair, -1, 0);
+                SetJtAirState(&jt->jtair, -1, 0);
                 break;
             case JTS_Hang:
-                pjt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
-                UnsubscribeLoObject(pjt->phndHang, pjt);
-                SetJtAnimState(pjt, -1);
-                RemoveNodeBySlot(pjt, (XF *)pjt->precUnk19c0, (ACT *)pjt->nUnk1a00);
-                if (pjt->janim.pxaHang != 0)
+                jt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
+                UnsubscribeLoObject(jt->phndHang, jt);
+                SetJtAnimState(jt, -1);
+                RemoveNodeBySlot(jt, (XF *)jt->precUnk19c0, (ACT *)jt->nUnk1a00);
+                if (jt->janim.pxaHang != 0)
                 {
-                    RemoveSoXa(pjt->janim.pxaHang->pso, pjt->janim.pxaHang);
-                    FreeSwXaList(&D_003DD490, pjt->janim.pxaHang);
-                    pjt->janim.pxaHang = 0;
+                    RemoveSoXa(jt->janim.pxaHang->pso, jt->janim.pxaHang);
+                    FreeSwXaList(&D_003DD490, jt->janim.pxaHang);
+                    jt->janim.pxaHang = 0;
                 }
-                SetPlayerTn(pjt, 0);
+                SetPlayerTn(jt, 0);
                 break;
             case JTS_Unk08:
             {
-                SetJtPipeState(&pjt->jtpipe, -1);
+                SetJtPipeState(&jt->jtpipe, -1);
                 int jtas = -1;
-                if (jts == JTS_Air && pjt->pasegUnk14d8 != 0)
+                if (jts == JTS_Air && jt->pasegUnk14d8 != 0)
                     jtas = 0xB;
-                SetJtAnimState(pjt, jtas);
+                SetJtAnimState(jt, jtas);
             }
             break;
             case JTS_Grab:
-                SetJtGrabKind(&pjt->jtgrab, -1);
+                SetJtGrabKind(&jt->jtgrab, -1);
                 break;
             case JTS_Unk04:
-                SetJtHurtState(&pjt->jthurt, -1);
+                SetJtHurtState(&jt->jthurt, -1);
                 break;
             case JTS_Throw:
-                SetJtthrowState(&pjt->jtthrow, -1);
+                SetJtThrowState(&jt->jtthrow, -1);
                 break;
             case JTS_Interact:
-                SetJtRecState((JTREC *)&pjt->unk_0x1ff0, -1);
+                SetJtRecState((JTREC *)&jt->unk_0x1ff0, -1);
                 break;
             case JTS_Unk09:
-                pjt->ploAttached = 0;
-                ShowSoPart(pjt, pjt->precUnk1a90);
+                jt->ploAttached = 0;
+                ShowSoPart(jt, jt->precUnk1a90);
                 break;
             case JTS_Stand:
-                SlotSetRole(pjt, pjt->pxfUnk58, 2);
-                SlotSetRole(pjt, pjt->pxfUnk5c, 2);
-                switch (pjt->jtas)
+                SlotSetRole(jt, jt->pxfUnk58, 2);
+                SlotSetRole(jt, jt->pxfUnk5c, 2);
+                switch (jt->jtas)
                 {
                     case 6:
-                        SetJtAnimState(pjt, 4);
+                        SetJtAnimState(jt, 4);
                         break;
                     case 7:
-                        SetJtAnimState(pjt, 5);
+                        SetJtAnimState(jt, 5);
                         break;
                     case 8:
                     case 9:
-                        SetJtAnimState(pjt, -1);
+                        SetJtAnimState(jt, -1);
                         break;
                     case 0xC:
                         if (jtbs != JTBS_6)
-                            SetJtAnimState(pjt, 0xE);
+                            SetJtAnimState(jt, 0xE);
                         break;
                     case 0xD:
                         if (jtbs != JTBS_7)
-                            SetJtAnimState(pjt, 0xF);
+                            SetJtAnimState(jt, 0xF);
                         break;
                 }
-                RollHeroIdleTimer(pjt);
+                RollHeroIdleTimer(jt);
                 break;
             case JTS_Pickpocket:
-                pjt->grfUnk10e0 &= ~2;
+                jt->grfUnk10e0 &= ~2;
                 break;
             case JTS_Run:
             case JTS_Unk0A:
             case JTS_Gait2:
-                pjt->uGait = pjt->pasegaUnk1030->tLocal / pjt->pasegaUnk1030->paseg->tMax;
+                jt->uGait = jt->pasegaUnk1030->tLocal / jt->pasegaUnk1030->paseg->tMax;
                 break;
             case JTS_Pounce:
-                if (pjt->pasegaUnk1030 != 0 && !FAsegaStopped(pjt->pasegaUnk1030))
-                    GuardCapVelocityForPounce((STEPGUARD *)pjt->ploInteract);
-                pjt->nUnk1d2c = 0;
-                pjt->grfUnk10e0 &= ~4;
+                if (jt->pasegaUnk1030 != 0 && !FAsegaStopped(jt->pasegaUnk1030))
+                    GuardCapVelocityForPounce((STEPGUARD *)jt->ploInteract);
+                jt->nUnk1d2c = 0;
+                jt->grfUnk10e0 &= ~4;
                 break;
             case JTS_Unk12:
             case JTS_Unk13:
             case JTS_Unk14:
-                SlotSetRole(pjt, pjt->pxfUnk58, 2);
-                SlotSetRole(pjt, pjt->pxfUnk5c, 2);
+                SlotSetRole(jt, jt->pxfUnk58, 2);
+                SlotSetRole(jt, jt->pxfUnk5c, 2);
                 break;
             case JTS_SurfaceClimb:
-                SetSoCnstrForce(pjt, 0);
-                pjt->ploUnk1f18->HandleSpliceEvent(6, 0, 0, 0, 0);
-                if (pjt->ptnUnk1024 == *(TN **)((char *)pjt->ploUnk1f18 + 0x110))
-                    SetPlayerTn(pjt, 0);
-                pjt->ploUnk1f18 = 0;
+                SetSoCnstrForce(jt, 0);
+                jt->ploUnk1f18->HandleSpliceEvent(6, 0, 0, 0, 0);
+                if (jt->ptnUnk1024 == *(TN **)((char *)jt->ploUnk1f18 + 0x110))
+                    SetPlayerTn(jt, 0);
+                jt->ploUnk1f18 = 0;
                 break;
             case JTS_HangFollow:
-                SetSoCnstrForce(pjt, 0);
-                pjt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
-                UnsubscribeLoObject(pjt->phndHang, pjt);
-                pjt->phndHang = 0;
-                SetPlayerTn(pjt, 0);
+                SetSoCnstrForce(jt, 0);
+                jt->phndHang->HandleSpliceEvent(6, 0, 0, 0, 0);
+                UnsubscribeLoObject(jt->phndHang, jt);
+                jt->phndHang = 0;
+                SetPlayerTn(jt, 0);
                 break;
             case JTS_Unk11:
-                pjt->nUnk1d30 = 0;
-                OnGameEvent(&D_002DEB30, 0x38, pjt);
+                jt->nUnk1d30 = 0;
+                OnGameEvent(&D_002DEB30, 0x38, jt);
                 break;
             case JTS_Unk18:
-                pjt->rUnk200 = 1.0f;
-                pjt->pctl->radLeft = pjt->radTarget;
+                jt->rUnk200 = 1.0f;
+                jt->pctl->radLeft = jt->radTarget;
                 break;
             case JTS_Unk0D:
-                pjt->ploAttached = 0;
+                jt->ploAttached = 0;
                 break;
         }
         switch (jts)
         {
             case JTS_Stand:
             {
-                psm = pjt->psmUnk1028;
-                SlotSetRole(pjt, pjt->pxfUnk58, 1);
-                SlotSetRole(pjt, pjt->pxfUnk5c, 1);
-                pjt->nUnk1514 = 0;
-                switch (pjt->jts)
+                stateMachine = jt->psmUnk1028;
+                SlotSetRole(jt, jt->pxfUnk58, 1);
+                SlotSetRole(jt, jt->pxfUnk5c, 1);
+                jt->nUnk1514 = 0;
+                switch (jt->jts)
                 {
                     case JTS_Unk0A:
                         oid = (OID)0x177;
@@ -3613,9 +3654,9 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                         break;
                     case JTS_Air:
                     {
-                        int fHigh = pjt->janim.nUnk10;
+                        int fHigh = jt->janim.nUnk10;
                         if (fHigh == -1)
-                            fHigh = D_002BF3E0 < pjt->jtair.zStart - GZOfQw(PosLoWorld(pjt));
+                            fHigh = D_002BF3E0 < jt->jtair.zStart - GZOfQw(PosLoWorld(jt));
                         oid = (fHigh == 1) ? (OID)0x179 : (OID)0x178;
                     }
                     break;
@@ -3623,234 +3664,234 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
                         oid = (OID)0x175;
                         break;
                 }
-                if (IsmsFindSmOptional(psm, oid) < 0)
+                if (IsmsFindSmOptional(stateMachine, oid) < 0)
                     oid = OID_Nil;
-                grfRoute = GrfJtLeanMask(pjt);
-                ClearXyz(&pjt->vUnk190);
-                if (pjt->pasegblUnk1a54 != 0 && pjt->pasegblUnk1a70 != 0)
+                grfRoute = GrfJtLeanMask(jt);
+                ClearXyz(&jt->vUnk190);
+                if (jt->pasegblUnk1a54 != 0 && jt->pasegblUnk1a70 != 0)
                 {
-                    switch (pjt->jtas)
+                    switch (jt->jtas)
                     {
                         case 4:
-                            SetJtAnimState(pjt, 6);
+                            SetJtAnimState(jt, 6);
                             break;
                         case 5:
-                            SetJtAnimState(pjt, 7);
+                            SetJtAnimState(jt, 7);
                             break;
                     }
                 }
                 grf = 0x1F;
-                ClearHeroIdleTimer(pjt, 1);
+                ClearHeroIdleTimer(jt, 1);
             }
             break;
             case JTS_Run:
-                paseg = ((GAIT *)pjt->unk_0x1320)->pasegbl;
+                aseg = ((GAIT *)jt->unk_0x1320)->pasegbl;
                 grfapl = 9;
-                tStart = pjt->uGait * paseg->tMax;
-                ClearGaitFootDown((GAIT *)pjt->unk_0x1320);
+                tStart = jt->uGait * aseg->tMax;
+                ClearGaitFootDown((GAIT *)jt->unk_0x1320);
                 break;
             case JTS_Interact:
                 fKeep = 1;
-                SetJtRecState((JTREC *)&pjt->unk_0x1ff0, NJtRecSide((JTREC *)&pjt->unk_0x1ff0));
+                SetJtRecState((JTREC *)&jt->unk_0x1ff0, NJtRecSide((JTREC *)&jt->unk_0x1ff0));
                 break;
             case JTS_Hang:
             {
-                pjt->janim.nUnk18 = -1;
-                pjt->gUnk199c = 1.0f;
-                pjt->gUnk1998 = 1.0f;
-                ACT1 *pact1 = (ACT1 *)pjt->nUnk1a00;
+                jt->janim.nUnk18 = -1;
+                jt->gUnk199c = 1.0f;
+                jt->gUnk1998 = 1.0f;
+                ACT1 *pact1 = (ACT1 *)jt->nUnk1a00;
                 svt = 0.0f;
-                pjt->janim.tHang = D_002DDED0.t;
-                paseg = pjt->pasegHang;
+                jt->janim.tHang = D_002DDED0.t;
+                aseg = jt->pasegHang;
                 ClearXyz((VECTOR *)&pact1->qwRest);
                 tStart = 0.5f;
-                AddXfAct(pjt, (XF *)pjt->precUnk19c0, (ACT *)pjt->nUnk1a00);
-                qword posHand = PosLoWorld(pjt->psoUnk19a4);
-                pjt->janim.dposHang = QwSub(posHand, func_00190C58(pjt));
-                UpdateJtHangPlace(pjt);
-                pjt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
-                SubscribeLoObject(pjt->phndHang, pjt);
+                AddXfAct(jt, (XF *)jt->precUnk19c0, (ACT *)jt->nUnk1a00);
+                qword posHand = PosLoWorld(jt->psoUnk19a4);
+                jt->janim.dposHang = QwSub(posHand, GetJtHangHandlePosition(jt));
+                UpdateJtHangPlace(jt);
+                jt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
+                SubscribeLoObject(jt->phndHang, jt);
                 float radFrame;
-                JtHangFrame(pjt, &radFrame);
+                JtHangFrame(jt, &radFrame);
                 float radBack = RadNormalize(radFrame + 3.1415927f);
-                int nKind = 1;
-                if (pjt->phndHang != 0)
-                    nKind = pjt->phndHang->nHangKind;
-                switch (nKind)
+                int kind = 1;
+                if (jt->phndHang != 0)
+                    kind = jt->phndHang->nHangKind;
+                switch (kind)
                 {
                     case 1:
-                        SetStepRadTarget(pjt, radFrame);
-                        pjt->janim.fHangBack = 0;
+                        SetStepRadTarget(jt, radFrame);
+                        jt->janim.fHangBack = 0;
                         break;
                     case 2:
-                        SetStepRadTarget(pjt, radBack);
-                        pjt->janim.fHangBack = 1;
+                        SetStepRadTarget(jt, radBack);
+                        jt->janim.fHangBack = 1;
                         break;
                     case 0:
-                        if (fabsf(RadNormalize(radFrame - pjt->pctl->radLeft)) < 1.5707964f)
+                        if (fabsf(RadNormalize(radFrame - jt->pctl->radLeft)) < 1.5707964f)
                         {
-                            SetStepRadTarget(pjt, radFrame);
-                            pjt->janim.fHangBack = 0;
+                            SetStepRadTarget(jt, radFrame);
+                            jt->janim.fHangBack = 0;
                         }
                         else
                         {
-                            SetStepRadTarget(pjt, radBack);
-                            pjt->janim.fHangBack = 1;
+                            SetStepRadTarget(jt, radBack);
+                            jt->janim.fHangBack = 1;
                         }
                         break;
                 }
-                sfxid = pjt->phndHang->sfxidHangStart;
-                SetJtAnimState(pjt, 1);
-                ClearXyz(&pjt->vUnk190);
-                CalculateJtHangAccel(pjt);
-                SetPlayerTn(pjt, pjt->phndHang->ptn);
+                sfxid = jt->phndHang->sfxidHangStart;
+                SetJtAnimState(jt, 1);
+                ClearXyz(&jt->vUnk190);
+                CalculateJtHangAccel(jt);
+                SetPlayerTn(jt, jt->phndHang->ptn);
             }
             break;
             case JTS_Unk08:
-                SetJtPipeState(&pjt->jtpipe, 0);
+                SetJtPipeState(&jt->jtpipe, 0);
                 fKeep = 1;
                 break;
             case JTS_Unk04:
-                SetJtModeState(&pjt->jtmode, -1);
-                SetJtUnk1d30(pjt, 0);
+                SetJtModeState(&jt->jtmode, -1);
+                SetJtUnk1d30(jt, 0);
                 break;
             case JTS_Grab:
-                if (pjt->jtgrab.nState < 5)
-                    grf = (pjt->jtgrab.nState < 3) ? 0 : 7;
+                if (jt->jtgrab.nState < 5)
+                    grf = (jt->jtgrab.nState < 3) ? 0 : 7;
                 break;
             case JTS_Throw:
                 fKeep = 1;
                 break;
             case JTS_Unk09:
-                SetJtAnimState(pjt, -1);
-                ChooseJtRushTarget(pjt);
-                paseg = pjt->pasegUnk1a7c;
+                SetJtAnimState(jt, -1);
+                ChooseJtRushTarget(jt);
+                aseg = jt->pasegUnk1a7c;
                 break;
             case JTS_Unk0D:
-                SetJtAnimState(pjt, -1);
-                ClearXyz(&pjt->vUnk190);
-                ChooseJtSmashTarget(pjt);
-                paseg = pjt->pasegUnk1a80;
-                pjt->tUnk19b0 = D_002DDED0.t + D_002BF3E4;
+                SetJtAnimState(jt, -1);
+                ClearXyz(&jt->vUnk190);
+                ChooseJtSmashTarget(jt);
+                aseg = jt->pasegUnk1a80;
+                jt->tUnk19b0 = D_002DDED0.t + D_002BF3E4;
                 break;
             case JTS_Unk0E:
-                SetJtAnimState(pjt, -1);
-                ClearXyz(&pjt->vUnk190);
-                paseg = pjt->pasegUnk1a84;
+                SetJtAnimState(jt, -1);
+                ClearXyz(&jt->vUnk190);
+                aseg = jt->pasegUnk1a84;
                 break;
             case JTS_Unk0A:
-                paseg = pjt->pasegblUnk1bc0;
+                aseg = jt->pasegblUnk1bc0;
                 grfapl = 9;
-                tStart = pjt->uGait * paseg->tMax;
-                pjt->nUnk1038 = -1;
+                tStart = jt->uGait * aseg->tMax;
+                jt->nUnk1038 = -1;
                 break;
             case JTS_Pickpocket:
-                paseg = pjt->pasegPickpocket;
-                *(qword *)&pjt->vUnk190 = D_002A2DD0;
-                pjt->grfUnk10e0 |= 2;
+                aseg = jt->pasegPickpocket;
+                *(qword *)&jt->vUnk190 = D_002A2DD0;
+                jt->grfUnk10e0 |= 2;
                 grf = 100;
-                pjt->nUnk1bd4 = 0;
+                jt->nUnk1bd4 = 0;
                 break;
             case JTS_Gait2:
-                paseg = ((GAIT *)pjt->unk_0x1c30)->pasegbl;
+                aseg = ((GAIT *)jt->unk_0x1c30)->pasegbl;
                 grfapl = 9;
-                tStart = pjt->uGait * paseg->tMax;
-                ClearGaitFootDown((GAIT *)pjt->unk_0x1c30);
+                tStart = jt->uGait * aseg->tMax;
+                ClearGaitFootDown((GAIT *)jt->unk_0x1c30);
                 break;
             case JTS_Pounce:
-                pjt->grfUnk10e0 |= 4;
+                jt->grfUnk10e0 |= 4;
                 if (FPowerUpAcquired(0x1C))
                 {
-                    paseg = pjt->pasegPouncePowerUp;
-                    UpdateJtPounceArc(pjt);
-                    MATRIX3 *pmat = &pjt->matTarget;
-                    qword qwVel = QwRotateVecRows(*(qword *)pmat->mat[0], *(qword *)pmat->mat[1], *(qword *)pmat->mat[2], QwScale(*(qword *)&pjt->vUnk190, VuFloat(-1.0f)));
-                    pjt->SetVelocity(qwVel);
-                    FixStepAngularVelocity(pjt);
+                    aseg = jt->pasegPouncePowerUp;
+                    UpdateJtPounceArc(jt);
+                    MATRIX3 *matrix = &jt->matTarget;
+                    qword velocity = QwRotateVecRows(*(qword *)matrix->mat[0], *(qword *)matrix->mat[1], *(qword *)matrix->mat[2], QwScale(*(qword *)&jt->vUnk190, VuFloat(-1.0f)));
+                    jt->SetVelocity(velocity);
+                    FixStepAngularVelocity(jt);
                 }
                 else
                 {
-                    paseg = pjt->pasegUnk1d1c;
-                    qword posTarget = PosLoWorld(pjt->ploInteract);
+                    aseg = jt->pasegUnk1d1c;
+                    qword targetPos = PosLoWorld(jt->ploInteract);
                     float gZero = 0.0f;
-                    qword dpos = QwSub(posTarget, PosLoWorld(pjt));
-                    SetStepRadTargetVec(pjt, QwScale(dpos, VuFloat(-1.0f)));
-                    FixStepAngularVelocity(pjt);
-                    float tLabel = TFindAsegLabel(paseg, (OID)0x173);
+                    qword dpos = QwSub(targetPos, PosLoWorld(jt));
+                    SetStepRadTargetVec(jt, QwScale(dpos, VuFloat(-1.0f)));
+                    FixStepAngularVelocity(jt);
+                    float tLabel = TFindAsegLabel(aseg, (OID)0x173);
                     MATRIX4 matHand;
-                    PredictAsegEffect(tLabel, gZero, paseg, (ALO *)pjt, pjt->psoUnk19a4->pxfRoot, pjt->pxfRoot, &matHand, 0);
-                    tLabel /= paseg->svtMaster;
-                    qword posHold = PosLoWorld(pjt->ploInteract);
-                    qword posAim = QwSub(QwAddVelocity(VuFloatBits(tLabel), posHold, pjt->ploInteract->GetVelocity()), QwRotateVecV(*(qword *)&matHand.mat[3], &pjt->matTarget));
-                    *(qword *)&pjt->vUnk190 = QwDivide(QwSub(posAim, PosLoWorld(pjt)), VuFloatBits(tLabel));
-                    pjt->vUnk190.z = gZero;
-                    pjt->SetVelocity(*(qword *)&pjt->vUnk190);
+                    PredictAsegEffect(tLabel, gZero, aseg, (ALO *)jt, jt->psoUnk19a4->pxfRoot, jt->pxfRoot, &matHand, 0);
+                    tLabel /= aseg->svtMaster;
+                    qword posHold = PosLoWorld(jt->ploInteract);
+                    qword posAim = QwSub(QwAddVelocity(VuFloatBits(tLabel), posHold, jt->ploInteract->GetVelocity()), QwRotateVecV(*(qword *)&matHand.mat[3], &jt->matTarget));
+                    *(qword *)&jt->vUnk190 = QwDivide(QwSub(posAim, PosLoWorld(jt)), VuFloatBits(tLabel));
+                    jt->vUnk190.z = gZero;
+                    jt->SetVelocity(*(qword *)&jt->vUnk190);
                 }
                 break;
             case JTS_Unk12:
-                psm = pjt->psmUnk102c;
-                SlotSetRole(pjt, pjt->pxfUnk58, 1);
-                SlotSetRole(pjt, pjt->pxfUnk5c, 1);
-                ClearXyz(&pjt->vUnk190);
-                SetJtAnimState(pjt, -1);
+                stateMachine = jt->psmUnk102c;
+                SlotSetRole(jt, jt->pxfUnk58, 1);
+                SlotSetRole(jt, jt->pxfUnk5c, 1);
+                ClearXyz(&jt->vUnk190);
+                SetJtAnimState(jt, -1);
             case JTS_Unk13:
-                SlotSetRole(pjt, pjt->pxfUnk58, 1);
-                SlotSetRole(pjt, pjt->pxfUnk5c, 1);
-                ClearXyz(&pjt->vUnk190);
-                SetJtAnimState(pjt, -1);
+                SlotSetRole(jt, jt->pxfUnk58, 1);
+                SlotSetRole(jt, jt->pxfUnk5c, 1);
+                ClearXyz(&jt->vUnk190);
+                SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk14:
-                SlotSetRole(pjt, pjt->pxfUnk58, 2);
-                SlotSetRole(pjt, pjt->pxfUnk5c, 2);
-                ClearXyz(&pjt->vUnk190);
-                SetJtAnimState(pjt, -1);
+                SlotSetRole(jt, jt->pxfUnk58, 2);
+                SlotSetRole(jt, jt->pxfUnk5c, 2);
+                ClearXyz(&jt->vUnk190);
+                SetJtAnimState(jt, -1);
                 break;
             case JTS_Unk11:
-                paseg = pjt->pasegUnk1d34;
+                aseg = jt->pasegUnk1d34;
                 grfapl = 9;
-                OnGameEvent(&D_002DEB30, 0x37, pjt);
+                OnGameEvent(&D_002DEB30, 0x37, jt);
                 break;
             case JTS_SurfaceClimb:
-                ((CLIMBSURF *)pjt->ploUnk1f18)->FindClosestPoint(PosLoWorld(pjt), 0, (SURFLOC *)&pjt->unk_0x1f1c, 0, 0);
-                SetSoCnstrForce(pjt, 1);
-                pjt->SetVelocity(D_002A2DD0);
-                pjt->SetAngularVelocity(D_002A2DD0);
-                ClearXyz(&pjt->vUnk190);
-                pjt->ploUnk1f18->HandleSpliceEvent(5, 0, 0, 0, 0);
-                if (*(TN **)((char *)pjt->ploUnk1f18 + 0x110) != 0)
-                    SetPlayerTn(pjt, *(TN **)((char *)pjt->ploUnk1f18 + 0x110));
+                ((CLIMBSURF *)jt->ploUnk1f18)->FindClosestPoint(PosLoWorld(jt), 0, (SURFLOC *)&jt->unk_0x1f1c, 0, 0);
+                SetSoCnstrForce(jt, 1);
+                jt->SetVelocity(D_002A2DD0);
+                jt->SetAngularVelocity(D_002A2DD0);
+                ClearXyz(&jt->vUnk190);
+                jt->ploUnk1f18->HandleSpliceEvent(5, 0, 0, 0, 0);
+                if (*(TN **)((char *)jt->ploUnk1f18 + 0x110) != 0)
+                    SetPlayerTn(jt, *(TN **)((char *)jt->ploUnk1f18 + 0x110));
                 break;
             case JTS_HangFollow:
-                paseg = pjt->pasegblUnk1f90;
+                aseg = jt->pasegblUnk1f90;
                 grfapl = 9;
-                SetJtAnimState(pjt, -1);
-                SetSoCnstrForce(pjt, 1);
-                pjt->SetVelocity(D_002A2DD0);
-                pjt->SetAngularVelocity(D_002A2DD0);
-                ClearXyz(&pjt->vUnk190);
-                pjt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
-                SubscribeLoObject(pjt->phndHang, pjt);
-                SetPlayerTn(pjt, pjt->phndHang->ptn);
+                SetJtAnimState(jt, -1);
+                SetSoCnstrForce(jt, 1);
+                jt->SetVelocity(D_002A2DD0);
+                jt->SetAngularVelocity(D_002A2DD0);
+                ClearXyz(&jt->vUnk190);
+                jt->phndHang->HandleSpliceEvent(5, 0, 0, 0, 0);
+                SubscribeLoObject(jt->phndHang, jt);
+                SetPlayerTn(jt, jt->phndHang->ptn);
                 break;
             case JTS_Unk18:
             {
                 float gZero = 0.0f;
                 grfapl = 9;
                 grf = 0x18;
-                pjt->ablLean[2].gWeight = gZero;
-                pjt->ablLean[0].gWeight = gZero;
-                pjt->ablLean[1].gWeight = 1.0f;
-                ReblendAsegbl(pjt->pasegblUnk2038);
-                paseg = pjt->pasegblUnk2038;
-                SetStepRadTarget(pjt, pjt->pctl->radLeft);
-                qword qwVel = SetVectorCylind(pjt->radTarget, D_002BF3E8, gZero);
-                pjt->SetVelocity(qwVel);
-                ClearXyz(&pjt->vUnk190);
+                jt->ablLean[2].gWeight = gZero;
+                jt->ablLean[0].gWeight = gZero;
+                jt->ablLean[1].gWeight = 1.0f;
+                ReblendAsegbl(jt->pasegblUnk2038);
+                aseg = jt->pasegblUnk2038;
+                SetStepRadTarget(jt, jt->pctl->radLeft);
+                qword velocity = SetVectorCylind(jt->radTarget, D_002BF3E8, gZero);
+                jt->SetVelocity(velocity);
+                ClearXyz(&jt->vUnk190);
             }
             break;
         }
     }
-    if (pjt->jtbs != jtbs)
+    if (jt->jtbs != jtbs)
     {
         switch (jtbs)
         {
@@ -3860,114 +3901,114 @@ void SetJtJts(JT *pjt, JTS jts, JTBS jtbs)
             case JTBS_1:
             case JTBS_2:
             {
-                ASEG *pasegHang = pjt->pasegHang;
-                if (pjt->pasegaUnk1030 != 0 && pjt->pasegaUnk1030->paseg == pasegHang)
+                ASEG *pasegHang = jt->pasegHang;
+                if (jt->pasegaUnk1030 != 0 && jt->pasegaUnk1030->paseg == pasegHang)
                 {
                     fKeep = 1;
                 }
                 else
                 {
-                    paseg = pasegHang;
+                    aseg = pasegHang;
                     svt = 0.0f;
-                    tStart = paseg->tMax * 0.5f;
+                    tStart = aseg->tMax * 0.5f;
                 }
             }
             break;
             case JTBS_3:
-                psm = pjt->janim.psmHang;
+                stateMachine = jt->janim.psmHang;
                 break;
             case JTBS_4:
-                psm = pjt->psmUnk1bc4;
-                ClearXyz(&pjt->vUnk190);
+                stateMachine = jt->psmUnk1bc4;
+                ClearXyz(&jt->vUnk190);
                 break;
             case JTBS_5:
-                pjt->nUnk1038 = -1;
-                paseg = pjt->pasegblUnk14d0;
-                ClearXyz(&pjt->vUnk190);
+                jt->nUnk1038 = -1;
+                aseg = jt->pasegblUnk14d0;
+                ClearXyz(&jt->vUnk190);
                 grfapl = 9;
                 break;
             case JTBS_6:
-                SetJtAnimState(pjt, -1);
-                paseg = pjt->apasegSwing[10];
-                ClearXyz(&pjt->vUnk190);
-                pjt->janim.fLandAlt = 0;
-                pjt->janim.fInputOpen = 0;
+                SetJtAnimState(jt, -1);
+                aseg = jt->apasegSwing[10];
+                ClearXyz(&jt->vUnk190);
+                jt->janim.fLandAlt = 0;
+                jt->janim.fInputOpen = 0;
                 break;
             case JTBS_7:
-                SetJtAnimState(pjt, -1);
-                paseg = pjt->apasegSwing[11];
-                ClearXyz(&pjt->vUnk190);
-                pjt->janim.fLandAlt = 0;
-                pjt->janim.fInputOpen = 0;
+                SetJtAnimState(jt, -1);
+                aseg = jt->apasegSwing[11];
+                ClearXyz(&jt->vUnk190);
+                jt->janim.fLandAlt = 0;
+                jt->janim.fInputOpen = 0;
                 break;
             case JTBS_8:
             case JTBS_9:
                 if (jtbs == JTBS_8)
-                    paseg = pjt->apasegSwing[12];
+                    aseg = jt->apasegSwing[12];
                 else
-                    paseg = pjt->pasegUnk1fe8;
-                pjt->janim.fInputOpen = 0;
-                ClearXyz(&pjt->vUnk190);
+                    aseg = jt->pasegUnk1fe8;
+                jt->janim.fInputOpen = 0;
+                ClearXyz(&jt->vUnk190);
                 break;
             case JTBS_10:
-                psm = pjt->psmUnk1f14;
+                stateMachine = jt->psmUnk1f14;
                 break;
             case JTBS_11:
-                paseg = pjt->pasegblUnk1f10;
+                aseg = jt->pasegblUnk1f10;
                 grfapl = 9;
                 break;
             case JTBS_12:
-                pjt->rUnk200 = D_002BF358;
+                jt->rUnk200 = D_002BF358;
                 grf = 0x18;
                 break;
             case JTBS_13:
                 fKeep = 1;
-                pjt->rUnk200 = D_002BF35C;
+                jt->rUnk200 = D_002BF35C;
                 grf = 0x18;
                 break;
         }
     }
-    if (jts != pjt->jts)
+    if (jts != jt->jts)
     {
-        pjt->jts = jts;
-        pjt->tJts = D_002DDED0.t;
+        jt->jts = jts;
+        jt->tJts = D_002DDED0.t;
     }
-    if (jtbs != pjt->jtbs)
+    if (jtbs != jt->jtbs)
     {
-        pjt->jtbs = jtbs;
-        pjt->tJtbs = D_002DDED0.t;
+        jt->jtbs = jtbs;
+        jt->tJtbs = D_002DDED0.t;
     }
-    pjt->VUnk89();
-    SetJtChannelMask(pjt, grf);
+    jt->VUnk89();
+    SetJtChannelMask(jt, grf);
     if (sfxid != -1)
     {
-        SND *psnd = PsndStartSound(sfxid);
-        SetSndSourceLo(psnd, 0);
-        SetSndSourcePos(psnd, PosLoWorld(pjt));
+        SND *sound = PsndStartSound(sfxid);
+        SetSndSourceLo(sound, 0);
+        SetSndSourcePos(sound, PosLoWorld(jt));
     }
     if (!fKeep)
     {
-        if (pjt->pasegaUnk1030 != 0)
+        if (jt->pasegaUnk1030 != 0)
         {
-            RetractAsega(pjt->pasegaUnk1030);
-            pjt->pasegaUnk1030->VUnk01();
-            pjt->pasegaUnk1030 = 0;
+            RetractAsega(jt->pasegaUnk1030);
+            jt->pasegaUnk1030->VUnk01();
+            jt->pasegaUnk1030 = 0;
         }
-        else if (pjt->psmaUnk1034 != 0)
+        else if (jt->psmaUnk1034 != 0)
         {
-            RetractSma(pjt->psmaUnk1034);
-            pjt->psmaUnk1034->VUnk01();
-            pjt->psmaUnk1034 = 0;
+            RetractSma(jt->psmaUnk1034);
+            jt->psmaUnk1034->VUnk01();
+            jt->psmaUnk1034 = 0;
         }
-        if (paseg != 0)
+        if (aseg != 0)
         {
-            ApplyAseg(paseg, (ALO *)pjt, tStart, svt, grfapl, &pjt->pasegaUnk1030);
-            pjt->pasegaUnk1030->VUnk00();
+            ApplyAseg(aseg, (ALO *)jt, tStart, svt, grfapl, &jt->pasegaUnk1030);
+            jt->pasegaUnk1030->VUnk00();
         }
-        else if (psm != 0)
+        else if (stateMachine != 0)
         {
-            pjt->psmaUnk1034 = PsmaApplySm(psm, (ALO *)pjt, oid, grfapl, grfRoute);
-            pjt->psmaUnk1034->VUnk00();
+            jt->psmaUnk1034 = PsmaApplySm(stateMachine, (ALO *)jt, oid, grfapl, grfRoute);
+            jt->psmaUnk1034->VUnk00();
         }
     }
 }
@@ -3983,10 +4024,11 @@ int FActiveCplcy__FP5CPLCY(void *p);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_0018D500(struct S *p)
+// JT slot 106: 0 if in state 1 or the camera check says so, else 1 (meaning not identified).
+int JtVirtual106(struct S *jt)
 {
     int r = 1;
-    if (p->n == r) return 0;
+    if (jt->n == r) return 0;
     if (FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0))) r = 0;
     return r;
 }
@@ -3998,33 +4040,35 @@ int func_0018D500(struct S *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// JT slot 91: cancels the cane state (SetJtCaneState(-1)).
 void JT::VUnk90()
 {
-    JT *pjt = (JT *)this;
-    SetJtJtcs(pjt, -1);
+    JT *jt = (JT *)this;
+    SetJtJtcs(jt, -1);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_SetJtPlayerState { extern "C" {
-void SetJtJts__FP2JT3JTS4JTBS(void *p, int n, int m);
+void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m);
 /** @sly2-annot addr=0x18D568
  * Purpose: JT vt88: map generic player state 0..8 -> SetJtJts(0,2,7,4,0x12,0x13,0x14,0x17,8)
  * Info: proposed name SetJtPlayerState (T1); class JT slot88; TU jt
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// JT slot 88: maps a generic player state 0..8 to SetJtState (0, 2, 7, 4, 0x12, 0x13, 0x14, 0x17, 8).
 void SetJtPlayerState(void *p, int n)
 {
     switch (n) {
-    case 0: SetJtJts__FP2JT3JTS4JTBS(p, 0, -1); break;
-    case 1: SetJtJts__FP2JT3JTS4JTBS(p, 2, -1); break;
-    case 2: SetJtJts__FP2JT3JTS4JTBS(p, 7, -1); break;
-    case 3: SetJtJts__FP2JT3JTS4JTBS(p, 4, -1); break;
-    case 4: SetJtJts__FP2JT3JTS4JTBS(p, 0x12, -1); break;
-    case 5: SetJtJts__FP2JT3JTS4JTBS(p, 0x13, -1); break;
-    case 6: SetJtJts__FP2JT3JTS4JTBS(p, 0x14, -1); break;
-    case 7: SetJtJts__FP2JT3JTS4JTBS(p, 0x17, -1); break;
-    case 8: SetJtJts__FP2JT3JTS4JTBS(p, 8, -1); break;
+    case 0: SetJtState__FP2JT3JTS4JTBS(p, 0, -1); break;
+    case 1: SetJtState__FP2JT3JTS4JTBS(p, 2, -1); break;
+    case 2: SetJtState__FP2JT3JTS4JTBS(p, 7, -1); break;
+    case 3: SetJtState__FP2JT3JTS4JTBS(p, 4, -1); break;
+    case 4: SetJtState__FP2JT3JTS4JTBS(p, 0x12, -1); break;
+    case 5: SetJtState__FP2JT3JTS4JTBS(p, 0x13, -1); break;
+    case 6: SetJtState__FP2JT3JTS4JTBS(p, 0x14, -1); break;
+    case 7: SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1); break;
+    case 8: SetJtState__FP2JT3JTS4JTBS(p, 8, -1); break;
     }
 }
 } } // namespace M_SetJtPlayerState
@@ -4038,9 +4082,10 @@ struct S { char pad[0x18C8]; int n; };
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int GetJtPlayerState(struct S *p)
+// JT slot 89: the inverse map, jts -> generic state 0..8 or -1.
+int GetJtPlayerState(struct S *jt)
 {
-    switch (p->n) {
+    switch (jt->n) {
     case 0: return 0;
     case 2: return 1;
     case 7: return 2;
@@ -4062,17 +4107,18 @@ int GetJtPlayerState(struct S *p)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 /* Moves a pocket's subscription from its current object (+8) to plo. */
-extern "C" void func_0018D698(JT *pjt, JTPOCKET *ppocket, LO *plo)
+// Releases the gadget record's object, stores the new one and registers it.
+extern "C" void SetGadgetRecordObject(JT *jt, JTPOCKET *ppocket, LO *lo)
 {
     LO *ploOld;
     ploOld = (LO *)ppocket->pcid100;
     if (ploOld != 0) {
-        UnsubscribeLoObject(ploOld, pjt);
+        UnsubscribeLoObject(ploOld, jt);
         ppocket->pcid100 = 0;
     }
-    if (plo != 0) {
-        ppocket->pcid100 = (CID100 *)plo;
-        SubscribeLoObject(plo, pjt);
+    if (lo != 0) {
+        ppocket->pcid100 = (CID100 *)lo;
+        SubscribeLoObject(lo, jt);
     }
 }
 
@@ -4080,11 +4126,12 @@ extern "C" void func_0018D698(JT *pjt, JTPOCKET *ppocket, LO *plo)
 namespace M_PgadrecFromJtGadget { extern "C" {
 /** @sly2-annot addr=0x18D6F8
  * Purpose: Return JT gadget record for gadget id 0x1A/0x25/0x26/0x29 (x1FB0/x1FBC/x1FC8/x1FD4)
- * Info: proposed name PgadrecFromJtGadget (T1); TU jt
+ * Info: proposed name GetJtGadgetRecord (T1); TU jt
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void *PgadrecFromJtGadget(char *p, int n)
+// Sly's gadget record for gadget ids 0x1A/0x25/0x26/0x29, or null.
+void *GetJtGadgetRecord(char *p, int n)
 {
     switch (n) {
     case 0x1A: return p + 0x1FB0;
@@ -4128,7 +4175,7 @@ extern CM D_002DDF40;
 extern float D_002BF3EC;
 extern float D_002BF3F0;
 int FPocketItemCarried(CID100 *pcid100) __asm__("func_00224590");
-extern "C" JTPOCKET *PgadrecFromJtGadget(JT *pjt, int idGadget);
+extern "C" JTPOCKET *GetJtGadgetRecord(JT *pjt, int idGadget);
 /** @sly2-annot addr=0x18D760
  * Purpose: Can Sly use gadget id now (per-state allow lists; aiming state 0x17 allows only carried pocket
  *   item)
@@ -4136,34 +4183,36 @@ extern "C" JTPOCKET *PgadrecFromJtGadget(JT *pjt, int idGadget);
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int JT::FCanUseGadget(int idGadget)
+// JT slot 99: whether Sly can use the gadget now (per-state allow lists; the aiming state allows only the carried
+// gadget).
+int JT::FCanUseGadget(int gadgetId)
 {
     if (FJtModeActive(this))
         return 0;
-    if (idGadget == 0x1D || idGadget == 0x2A)
+    if (gadgetId == 0x1D || gadgetId == 0x2A)
     {
         if (jts == JTS_Unk04)
             return 0;
         if (D_002DDED0.art[CRK_PowerUp] == 1.0f)
             return 1;
-        return D_002DDED0.art[CRK_PowerUp] == (idGadget == 0x1D ? D_002BF3EC : D_002BF3F0);
+        return D_002DDED0.art[CRK_PowerUp] == (gadgetId == 0x1D ? D_002BF3EC : D_002BF3F0);
     }
     switch (jts)
     {
         case JTS_Air:
-            if (!FJtairCanUseGadget(&jtair, idGadget))
+            if (!FJtairCanUseGadget(&jtair, gadgetId))
                 return 0;
             break;
         case JTS_Grab:
-            if (!FJtgrabCanUseGadget(&jtgrab, idGadget))
+            if (!FJtgrabCanUseGadget(&jtgrab, gadgetId))
                 return 0;
             break;
         case 8:
-            if (!FJtpipeCanUseGadget(&jtpipe, idGadget))
+            if (!FJtpipeCanUseGadget(&jtpipe, gadgetId))
                 return 0;
             break;
         case 3:
-            if (idGadget != 3)
+            if (gadgetId != 3)
                 return 0;
             break;
         case 0:
@@ -4175,13 +4224,13 @@ int JT::FCanUseGadget(int idGadget)
         case JTS_Throw:
             if (jtthrow.nState - 4U < 3)
             {
-                switch (idGadget)
+                switch (gadgetId)
                 {
                     case 0x1A:
                     case 0x25:
                     case 0x26:
                     case 0x29:
-                        if (((CID100 *)jtthrow.ploCarried)->idGadget == idGadget)
+                        if (((CID100 *)jtthrow.ploCarried)->idGadget == gadgetId)
                             return 1;
                 }
             }
@@ -4189,7 +4238,7 @@ int JT::FCanUseGadget(int idGadget)
         default:
             return 0;
     }
-    switch (idGadget)
+    switch (gadgetId)
     {
         case 0x17:
             return pproxyUnk2010 != 0 && FCanAcquireProxy(pproxyUnk2010);
@@ -4202,7 +4251,7 @@ int JT::FCanUseGadget(int idGadget)
         case 0x26:
         case 0x29:
         {
-            JTPOCKET *ppocket = PgadrecFromJtGadget(this, idGadget);
+            JTPOCKET *ppocket = GetJtGadgetRecord(this, gadgetId);
             if (ppocket->pcid100)
             {
                 if (FPocketItemCarried(ppocket->pcid100))
@@ -4268,17 +4317,17 @@ extern void func_0014D1D0(void *p, int n, float g);
 extern void *PsndStartSound(int n);
 extern void SetSndSourceLo(void *p, int n);
 extern void RcPtr_Assign(void *p, void *pv);
-extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
-extern void func_00195FB8(void *p, int a, int b);
-extern REC *PgadrecFromJtGadget(void *p, int n);
-extern void SetJtthrowState(void *p, int n);
+extern void SetJtState__FP2JT3JTS4JTBS(void *p, int a, int b);
+extern void SetJtAirState(void *p, int a, int b);
+extern REC *GetJtGadgetRecord(void *p, int n);
+extern void SetJtThrowState(void *p, int n);
 extern void SetJtGrabState(void *p, int a, int b, int c);
 extern OBJ *AcquireProxyObject(int oid, int n);
 extern int func_00224610(OBJ *p);
-extern void func_0018D698(void *p, REC *prec, OBJ *pobj);
-extern void GrfbtnGadget(void *p, int n);
+extern void SetGadgetRecordObject(void *p, REC *prec, OBJ *pobj);
+extern void GetGadgetButtonMask(void *p, int n);
 extern void func_0015C150(int x);
-extern void func_00195A00(void *p, int a, int b, int c);
+extern void SetJtAirJump(void *p, int a, int b, int c);
 extern void StartStepplayerGadget(void *p, int n);
 
 /** @sly2-annot addr=0x18DA48
@@ -4289,6 +4338,7 @@ extern void StartStepplayerGadget(void *p, int n);
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// JT slot 100: per-gadget action (slow motion through the clock rate and sounds, decoys, throws ...).
 void UseJtGadget(char *p, int n)
 {
     D_002DEB30.xC = n;
@@ -4316,38 +4366,38 @@ void UseJtGadget(char *p, int n)
     }
     case 0x21:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 9, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, 9, -1);
         break;
     case 0x1B:
         ChargeGadgetMp(p, n);
-        func_00195FB8(A(0x2C0), 0x13, 0);
+        SetJtAirState(A(0x2C0), 0x13, 0);
         break;
     case 0x1A:
     case 0x25:
     case 0x26:
     case 0x29: {
-        REC *prec = PgadrecFromJtGadget(p, n);
+        REC *record = GetJtGadgetRecord(p, n);
         OBJ *pobj;
         if ((unsigned int)(F(int, 0x11B4) - 4) < 3) {
-            SetJtthrowState(A(0x11B0), 7);
+            SetJtThrowState(A(0x11B0), 7);
             break;
         }
-        if (prec->x8) {
-            SetJtGrabState(A(0x4C0), 0xB, prec->x8, 0);
+        if (record->x8) {
+            SetJtGrabState(A(0x4C0), 0xB, record->x8, 0);
             break;
         }
-        pobj = AcquireProxyObject(prec->x4, 0);
+        pobj = AcquireProxyObject(record->x4, 0);
         if (!pobj)
             break;
-        pobj->x15C = prec->x0;
+        pobj->x15C = record->x0;
         if (func_00224610(pobj)) {
             pobj->x16C = p;
-            func_0018D698(p, prec, pobj);
+            SetGadgetRecordObject(p, record, pobj);
         }
         F(OBJ *, 0x11C0) = pobj;
-        GrfbtnGadget(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 0x17, -1);
-        SetJtthrowState(A(0x11B0), 4);
+        GetGadgetButtonMask(p, n);
+        SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1);
+        SetJtThrowState(A(0x11B0), 4);
         break;
     }
     case 0x22:
@@ -4361,15 +4411,15 @@ void UseJtGadget(char *p, int n)
         break;
     case 0x18:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 6, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, 6, -1);
         break;
     case 0x19:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 0x18, 0xC);
+        SetJtState__FP2JT3JTS4JTBS(p, 0x18, 0xC);
         break;
     case 0x27:
         ChargeGadgetMp(p, n);
-        SetJtJts__FP2JT3JTS4JTBS(p, 5, 9);
+        SetJtState__FP2JT3JTS4JTBS(p, 5, 9);
         break;
     case 0x28:
         ChargeGadgetMp(p, n);
@@ -4379,11 +4429,11 @@ void UseJtGadget(char *p, int n)
         if (F(int, 0x204C))
             func_0015C150(F(int, 0x204C));
         ChargeGadgetMp(p, n);
-        func_00195A00(A(0x2C0), 9, 0, 0);
+        SetJtAirJump(A(0x2C0), 9, 0, 0);
         break;
     case 0x1E:
         ChargeGadgetMp(p, n);
-        func_00195A00(A(0x2C0), 0xE, 0, 0);
+        SetJtAirJump(A(0x2C0), 0xE, 0, 0);
         break;
     default:
         StartStepplayerGadget(p, n);
@@ -4407,19 +4457,20 @@ void StopStepplayerGadget(struct S *p, int n);
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018DD78(struct S *p, int n)
+// JT slot 102: for gadgets 0x1D/0x2A restores the clock rate 1.0 and stops the sound, else the STEPPLAYER base.
+void EndJtGadget(struct S *jt, int n)
 {
     if (n == 0x1D || n == 0x2A) {
         void **pp;
         func_0014D1D0(&D_002DDED0, 1, 1.0f);
-        pp = &p->p2044;
+        pp = &jt->p2044;
         if (*pp) {
             StopSnd(*pp, 0.0f);
             RcPtr_Assign(pp, 0);
         }
         (*(int *)&g_sw.gUnk475c) = 0;
     } else {
-        StopStepplayerGadget(p, n);
+        StopStepplayerGadget(jt, n);
     }
 }
 } } // namespace M_func_0018DD78
@@ -4430,7 +4481,8 @@ void func_0018DD78(struct S *p, int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" char *func_0018DE08()
+// JT slot 103: the save-variable namespace string for Sly (D_002A5EF0). (inferred, as Bentley's "bentley")
+extern "C" char *GetJtSaveVarRoot()
 {
     return (char *)D_002A5EF0;
 }
@@ -4443,14 +4495,15 @@ extern "C" char *func_0018DE08()
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 /* Grabs plo as a carried object (grab state 6), or drops what is carried (STEPPLAYER slot 87 with 0). */
-extern "C" void func_0018DE18(JT *pjt, LO *plo)
+// With an object: marks it and enters grab kind 6 on it; null releases it.
+extern "C" void SetJtGrabObject(JT *jt, LO *lo)
 {
-    if (plo != 0) {
-        pjt->jtgrab.fUnk500 = 1;
-        SetJtGrabState(&pjt->jtgrab, 6, plo, 0);
-    } else if (pjt->jtgrab.nState == 6) {
-        VTEJ *pvte = &PVTJ(pjt)[88];
-        ((void (*)(void *, int))pvte->pfn)((char *)pjt + pvte->d, 0);
+    if (lo != 0) {
+        jt->jtgrab.fUnk500 = 1;
+        SetJtGrabState(&jt->jtgrab, 6, lo, 0);
+    } else if (jt->jtgrab.nState == 6) {
+        VTEJ *entry = &PVTJ(jt)[88];
+        ((void (*)(void *, int))entry->pfn)((char *)jt + entry->d, 0);
     }
 }
 
@@ -4468,10 +4521,11 @@ void GetStepplayerStunHold(struct S *p, int *pf);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018DE80(struct S *p, int *pf)
+// JT slot 96: base, then sets the flag for states 0, 1, 5, 10, 12.
+void GetJtStunHold(struct S *jt, int *pf)
 {
-    GetStepplayerStunHold(p, pf);
-    switch (p->n) {
+    GetStepplayerStunHold(jt, pf);
+    switch (jt->n) {
     case 0: case 1: case 5: case 10: case 12:
         *pf = 1;
     }
@@ -4481,14 +4535,15 @@ void func_0018DE80(struct S *p, int *pf)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_0018DEE0 { extern "C" {
 struct S { char pad[0x204]; int x204; char p1[0x16C0]; int n; };
-int func_00143C78(struct S *p);
+int GetStepplayerModeCode(struct S *p);
 /** @sly2-annot addr=0x18DEE0
  * Purpose: JT vt85: 0 if x204 or jts 3/8/21/22; 1 for 13/14; 0xF for 24; else base 0x143C78
  * Info: proposed name JT_vt85 (T2); class JT slot85; TU jt
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-int func_0018DEE0(struct S *p)
+// JT slot 85: 0 if x204 or states 3/8/21/22; 1 for 13/14; 0xF for 24; else the STEPPLAYER base.
+int GetJtModeCode(struct S *p)
 {
     if (p->x204) return 0;
     switch (p->n) {
@@ -4499,7 +4554,7 @@ int func_0018DEE0(struct S *p)
     case 24:
         return 0xF;
     }
-    return func_00143C78(p);
+    return GetStepplayerModeCode(p);
 }
 } } // namespace M_func_0018DEE0
 
@@ -4509,9 +4564,10 @@ int func_0018DEE0(struct S *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0018DF50(JT *pjt, int n)
+// Stores an int at x1D30 (meaning not identified).
+extern "C" void SetJtUnknown1D30(JT *jt, int n)
 {
-    pjt->nUnk1d30 = n;
+    jt->nUnk1d30 = n;
 }
 
 /** @sly2-annot addr=0x18DF58
@@ -4520,9 +4576,10 @@ extern "C" void func_0018DF50(JT *pjt, int n)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0018DF58(JT *pjt, qword qw)
+// Stores a vector at x1FA0 (meaning not identified).
+extern "C" void SetJtUnknown1FA0(JT *jt, qword qw)
 {
-    QW1FA0(pjt) = qw;
+    QW1FA0(jt) = qw;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -4607,30 +4664,31 @@ static inline float SmoothInputs(M4*source,const CLOCK*clock,float factor,unsign
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0018DF60(P*p){
- M4 m=*((M4*(*)(void*))p->object->vt[31].fn)((char*)p->object+p->object->vt[31].delta);
+// Smooths Sly's matrix and position and updates the directional animation weight.
+extern "C" void UpdateJtSmoothing(P*jt){
+ M4 m=*((M4*(*)(void*))jt->object->vt[31].fn)((char*)jt->object+jt->object->vt[31].delta);
  U direction,position,scratch,negative;
- *(M3*)&p->matrix=*(M3*)&m;
- M4*current=GetLoWorldMatrix(p);
+ *(M3*)&jt->matrix=*(M3*)&m;
+ M4*current=GetLoWorldMatrix(jt);
  CLOCK*clock=&D_002DDED0;
  float factor=0.5f;
  unsigned samplePage=SmoothSamplePage();M3*receiver,*optional;SMP*sample;float smoothDt=SmoothInputs(current,clock,factor,samplePage,receiver,optional,sample);
- SmoothMatrix(receiver,&p->matrix,sample,optional,&direction.q,smoothDt);
- ((void(*)(void*,qword))p->vt[36].fn)((char*)p+p->vt[36].delta,direction.q);
- U target;P*owner=NegativeTarget(m,p->offset,&negative,&scratch,&target,p);
+ SmoothMatrix(receiver,&jt->matrix,sample,optional,&direction.q,smoothDt);
+ ((void(*)(void*,qword))jt->vt[36].fn)((char*)jt+jt->vt[36].delta,direction.q);
+ U target;P*owner=NegativeTarget(m,jt->offset,&negative,&scratch,&target,jt);
  (void)PosSmooth(GetLoWorldPos(owner),target.q,&D_002BF408,&position.q,clock->dt*factor);
- ((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,position.q);
+ ((void(*)(void*,qword))jt->vt[35].fn)((char*)jt+jt->vt[35].delta,position.q);
  qword relative;
  {
   register PARAM*params __asm__("$3");register M3*camera __asm__("$2");register float zero __asm__("$f2");
-  __asm__("lw %0,%3\n\tlui %1,%%hi(%4)\n\tmtc1 $zero,%2\n\taddiu %1,%1,%%lo(%4)":"=&r"(params),"=r"(camera),"=f"(zero):"m"(p->params),"i"(&(*(M3 *)&g_cm.mat)));
+  __asm__("lw %0,%3\n\tlui %1,%%hi(%4)\n\tmtc1 $zero,%2\n\taddiu %1,%1,%%lo(%4)":"=&r"(params),"=r"(camera),"=f"(zero):"m"(jt->params),"i"(&(*(M3 *)&g_cm.mat)));
   register float y __asm__("$f0"),z __asm__("$f1");register O*root __asm__("$4");register qword axis2 __asm__("vf3");
   __asm__("lwc1 %0,%4\n\tdaddu %1,$zero,$zero\n\tlwc1 %2,%5\n\tneg.s %0,%0\n\tlqc2 %3,%6":"=f"(y),"=&r"(root),"=f"(z),"=j"(axis2):"m"(params->y),"m"(params->z),"m"(camera->r[2]));
   qword local=Make(zero,y,z);
   register qword axis0 __asm__("vf2"),axis1 __asm__("vf1"),rotated __asm__("vf4");
   __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %5,%2":"=j"(axis0),"=j"(axis1),"=j"(rotated):"m"(camera->r[0]),"m"(camera->r[1]),"r"(local));
   register O*object __asm__("$5");
-  __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2":"+j"(rotated),"=&r"(object),"=m"(scratch.q):"j"(axis0),"j"(axis1),"j"(axis2),"m"(p->object),"r"(local));
+  __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2":"+j"(rotated),"=&r"(object),"=m"(scratch.q):"j"(axis0),"j"(axis1),"j"(axis2),"m"(jt->object),"r"(local));
   relative=ConvertAloVec(root,object,rotated);
  }
  qword normalized=Normalize(relative,&negative,&scratch);
@@ -4640,11 +4698,11 @@ extern "C" void func_0018DF60(P*p){
  register float right __asm__("$f4")=Max(amount,zero);
  register float left __asm__("$f1")=-amount;
  register float middle __asm__("$f3");register PARAM*params __asm__("$2");
- __asm__("sub.s %3,%7,%8\n\tlw %0,%4\n\tswc1 %5,%1\n\tmax.s %2,%2,%6":"=&r"(params),"=m"(p->amount),"+f"(left),"=&f"(middle):"m"(p->params),"f"(amount),"f"(zero),"f"(one),"f"(right));
+ __asm__("sub.s %3,%7,%8\n\tlw %0,%4\n\tswc1 %5,%1\n\tmax.s %2,%2,%6":"=&r"(params),"=m"(jt->amount),"+f"(left),"=&f"(middle):"m"(jt->params),"f"(amount),"f"(zero),"f"(one),"f"(right));
  register ANIM*animation __asm__("$4");register float weight __asm__("$f0");
- __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4":"=&r"(animation),"+&f"(middle),"=f"(weight),"+f"(left),"=m"(p->weight):"m"(p->anim),"m"(params->weight));
- __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3":"+&f"(one),"+&f"(right),"+&f"(middle),"=m"(p->left):"f"(weight),"f"(left));
- p->right=right;p->middle=middle;p->base=one;
+ __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4":"=&r"(animation),"+&f"(middle),"=f"(weight),"+f"(left),"=m"(jt->weight):"m"(jt->anim),"m"(params->weight));
+ __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3":"+&f"(one),"+&f"(right),"+&f"(middle),"=m"(jt->left):"f"(weight),"f"(left));
+ jt->right=right;jt->middle=middle;jt->base=one;
  func_001384C0(animation);
 }
 
@@ -4705,7 +4763,7 @@ namespace M_func_0018E1E0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } VU;
 typedef struct { qword r[3]; } M3;
-struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *p10DC; };
+struct O { char pad[0x190]; qword v190; char pad1[0x1B0 - 0x1A0]; M3 m1B0; char pad2[0x10DC - 0x1E0]; void *interactTarget; };
 extern qword GetLoWorldPos(void *p);
 extern void SetStepRadTargetVec(struct O *p, qword v);
 extern float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pg);
@@ -4729,7 +4787,8 @@ static __inline__ qword VLen(qword c)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018E1E0(struct O *p)
+// Turns Sly toward the interact target (x10DC) with smoothing.
+void UpdateJtFaceTarget(struct O *jt)
 {
     VU n;
     M3 ms, m;
@@ -4738,7 +4797,7 @@ void func_0018E1E0(struct O *p)
     qword d, l, s, r;
     float gl, gLen;
     qword *pk;
-    d = VSub(GetLoWorldPos(p->p10DC), GetLoWorldPos(p));
+    d = VSub(GetLoWorldPos(jt->interactTarget), GetLoWorldPos(jt));
     pk = &D_002A2DA0;
     l = VLen(d);
     n.q = d;
@@ -4750,9 +4809,9 @@ void func_0018E1E0(struct O *p)
         n.q = r;
     }
     __asm__("qmfc2.ni %0, %1" : "=r"(gLen) : "j"(l));
-    SetStepRadTargetVec(p, n.q);
+    SetStepRadTargetVec(jt, n.q);
     GSmooth__FfffP3SMPPf(gLen, D_002BF414, D_002DDED0.dt * 0.5f, D_002BF418, &g);
-    InvertMatrix3Cofactor(&m, &p->m1B0);
+    InvertMatrix3Cofactor(&m, &jt->m1B0);
     __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(*(int *)&g));
     u.q = s;
     { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(m.r[0]), "j"(s)); ms.r[0] = r; }
@@ -4760,7 +4819,7 @@ void func_0018E1E0(struct O *p)
     { qword r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(m.r[2]), "j"(s)); ms.r[2] = r; }
     __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
         : "=j"(r) : "j"(ms.r[0]), "j"(ms.r[1]), "j"(ms.r[2]), "j"(n.q));
-    p->v190 = r;
+    jt->v190 = r;
 }
 } } // namespace M_func_0018E1E0
 
@@ -4775,7 +4834,8 @@ void UpdateStepguardPickpocket(void *p);
  * Notes: descriptive only: (JT callback: notify objects) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
  * @end-sly2-annot */
-void func_0018E330(void)
+// World callback registered by OnJtActive: runs UpdateStepguardPickpocket on every guard (CID 0x38, at most 32).
+void UpdateAllGuardsPickpocket(void)
 {
     void *ap[32];
     int c, i;
@@ -4798,7 +4858,8 @@ void EnsureSwCallback(void *, void *, long, int);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-void func_0018E3A0(void *p)
+// JT slot 78 (becomes active): STEPPLAYER base, then registers the guard pickpocket callback.
+void OnJtActive(void *p)
 {
     OnStepplayerActive(p);
     EnsureSwCallback(D_003DD490, p, D_002A5F98.l, 0);
@@ -4826,7 +4887,7 @@ LO *D_002E1E40;   /* g_pjt */
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes
 // {delta 0, index -1, pfn}; the definitions sit in their own namespace so no declaration above has to agree.
 namespace ANPTR_jt {
-void p_func_0018E330() __asm__("func_0018E330");
+void p_func_0018E330() __asm__("UpdateAllGuardsPickpocket");
 extern "C" {
 extern const unsigned int D_002A5F98[2] = {0xFFFF0000, (unsigned int)p_func_0018E330};
 }

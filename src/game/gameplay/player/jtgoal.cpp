@@ -1,5 +1,7 @@
-// jtgoal.cpp -- the player's goal point (JTGOAL): set a goal position, then walk the player to it and clear the
-// way (fade out carried objects). VU0 macro-mode asm (distance helpers).
+// jtgoal.cpp -- the player's scripted walk-to goal (JTGOAL) and its anti-stuck logic: when a script walks the player
+// to a point and the player stops making progress (blocked by guards or geometry), clear the way (fade out blocking
+// guards) or warp the player to the goal snapped onto the ground. VU0 macro-mode asm (distance helpers).
+// Entry points: InitJtgoal, SetJtgoal (new goal), UpdateJtgoal (per frame), IsJtgoalHolding.
 // TU 0x144638..0x144B28 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_jtgoal
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00144B08
@@ -13,28 +15,28 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef int qword __attribute__((mode(TI)));
 
 /* Views of the objects UpdateJtgoal walks (field names from the per-function file). */
-struct LO { int k; };
-struct Q4 { char pad[0x40]; LO *x40; };
-struct E { int pad[2]; void *x8; void *pxC; char pad2[0x30]; };
-struct SO { E ae[2]; char pad[0xAC - 0x80]; SO *pnext; };
-struct LN { SO *pso; LN *pnext; };
-struct X { char pad[0x64]; LN *x64; };
-struct PO { char pad[0xEC]; X *xEC; char pad2[0x2DC - 0xF0]; int x2DC; char pad3[0x1084 - 0x2E0]; Q4 *x1084; };
-struct T { char pad[0x130]; float x130; };
-struct R { char pad[0x4C]; int x4C; };
+struct LO { int cid; };
+struct Q4 { char pad[0x40]; LO *lo; };
+struct E { int pad[2]; void *object; void *otherObject; char pad2[0x30]; };
+struct SO { E ends[2]; char pad[0xAC - 0x80]; SO *next; };
+struct LN { SO *contact; LN *next; };
+struct X { char pad[0x64]; LN *contactList; };
+struct PO { char pad[0xEC]; X *contacts; char pad2[0x2DC - 0xF0]; int airState; char pad3[0x1084 - 0x2E0]; Q4 *unknown1084; };
+struct T { char pad[0x130]; float unknown130; };
+struct R { char pad[0x4C]; int value; };
 
-/* The goal state. d20 is the last distance to the goal: UpdateJtgoal reads it as a float, SetJtgoal stores the raw
+/* The goal state. lastDistance is the last distance to the goal: UpdateJtgoal reads it as a float, SetJtgoal stores the raw
    bits of its integer-typed distance helper (as the original did). */
 struct JTGOAL
 {
-    PO *p0;             /* +0x00 the player */
+    PO *player;         /* +0x00 the player */
     char pad[0xC];
-    qword pos;          /* +0x10 goal position */
-    union { float d20; int d20bits; };
-    float t24;          /* +0x24 next check time */
-    int f28;            /* +0x28 holding (goal reached, waiting for the player to be free) */
+    qword goalPos;      /* +0x10 goal position */
+    union { float lastDistance; int lastDistanceBits; };
+    float nextCheckTime; /* +0x24 next check time */
+    int isHolding;      /* +0x28 holding (goal reached, waiting for the player to be free) */
 };
-typedef char assert_JTGOAL_f28[(unsigned int)&((JTGOAL *)0)->f28 == 0x28 ? 1 : -1];
+typedef char assert_JTGOAL_f28[(unsigned int)&((JTGOAL *)0)->isHolding == 0x28 ? 1 : -1];
 
 extern CLOCK D_002DDED0;
 float D_002BD2D0 = 1.0f;    /* jtgoal's .data (address order): anti-stuck check period (s) */
@@ -43,7 +45,7 @@ float D_002BD2D8 = 10.0f;   /* already-near distance (the next word is 0: alignm
 extern char D_003DD490[];
 extern char D_002DEB30[];
 extern "C" {
-int func_00144068(PO *);
+int IsStepplayerPushing(PO *);
 int IsSwHandsOff(void *);
 R *func_00205458(void *, int);
 void BroadcastGameEvent(void *, int, T *);
@@ -51,7 +53,7 @@ void FadeSoOut(T *, float);
 qword GetLoWorldPos(void *p);
 int func_00173610(float, float, qword *, int, int);
 int FSnapPosToSurfaceAbove(qword *);
-void func_0019F540(PO *, qword);
+void ReturnJtToPosition(PO *, qword);
 }
 struct BASIC;
 enum CID { CID_38 = 0x38 };
@@ -65,27 +67,28 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);   /* FIsBasicDerivedFrom__FP5BA
  * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
  *   docs/engine/player.md#10-source-files, docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
-extern "C" void InitJtgoal(JTGOAL *p, PO *p0)
+// Binds the goal state to its owning player.
+extern "C" void InitJtgoal(JTGOAL *goal, PO *player)
 {
-    p->p0 = p0;
+    goal->player = player;
 }
 
-static __inline__ float GDist(qword a, qword b)
+static __inline__ float GetDistance(qword from, qword to)
 {
-    qword d;
-    float g;
-    d = VuSub(a, b);
-    d = VuDot(d, d);
+    qword delta;
+    float distance;
+    delta = VuSub(from, to);
+    delta = VuDot(delta, delta);
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
-        "vaddq.x %0, $vf0, Q" : "+j"(d));
-    g = VuToFloat(d);
-    return g;
+        "vaddq.x %0, $vf0, Q" : "+j"(delta));
+    distance = VuToFloat(delta);
+    return distance;
 }
 
-static inline int IOther(PO *p0, SO *pso)
+static inline int GetPlayerEndIndex(PO *player, SO *contact)
 {
-    return p0 == pso->ae[0].x8 ? 0 : 1;
+    return player == contact->ends[0].object ? 0 : 1;
 }
 
 /** @sly2-annot addr=0x144640
@@ -97,80 +100,84 @@ static inline int IOther(PO *p0, SO *pso)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
  * @end-sly2-annot */
-extern "C" void UpdateJtgoal(JTGOAL *p)
+// Per-frame anti-stuck check for a scripted walk to the goal, run every D_002BD2D0 seconds while the player is being
+// driven. In hands-off mode it first fades out guards touching the player (broadcasting event 0x17 for visible ones);
+// otherwise, if the distance to the goal shrank by less than D_002BD2D4 per second, it snaps the goal onto the ground
+// and warps the player there, then holds until the player's state clears. (inferred)
+extern "C" void UpdateJtgoal(JTGOAL *goal)
 {
-    if (p->f28) {
-        if (p->p0->x2DC == -1)
-            p->f28 = 0;
+    if (goal->isHolding) {
+        if (goal->player->airState == -1)
+            goal->isHolding = 0;
         return;
     }
-    if (!func_00144068(p->p0))
+    if (!IsStepplayerPushing(goal->player))
         return;
-    if (D_002DDED0.t < p->t24)
+    if (D_002DDED0.t < goal->nextCheckTime)
         return;
-    p->t24 = D_002DDED0.t + D_002BD2D0;
+    goal->nextCheckTime = D_002DDED0.t + D_002BD2D0;
     if (IsSwHandsOff(D_003DD490)) {
-        int fAny = 0;
-        LN *pln;
-        for (pln = p->p0->xEC->x64; pln; pln = pln->pnext) {
-            SO *pso;
-            for (pso = pln->pso; pso; pso = pso->pnext) {
-                int i = IOther(p->p0, pso);
-                T *po = (T *)pso->ae[1 - i].x8;
-                if (FIsBasicDerivedFrom((BASIC *)po, CID_38)) {
-                    R *pr = func_00205458(po, 0xA9);
-                    if (!pr || !pr->x4C) {
-                        if (0.0f <= po->x130)
-                            BroadcastGameEvent(D_002DEB30, 0x17, po);
-                        FadeSoOut(po, 0.5f);
-                        fAny = 1;
+        int pushedAny = 0;
+        LN *link;
+        for (link = goal->player->contacts->contactList; link; link = link->next) {
+            SO *contact;
+            for (contact = link->contact; contact; contact = contact->next) {
+                int i = GetPlayerEndIndex(goal->player, contact);
+                T *object = (T *)contact->ends[1 - i].object;
+                if (FIsBasicDerivedFrom((BASIC *)object, CID_38)) {
+                    R *behavior = func_00205458(object, 0xA9);
+                    if (!behavior || !behavior->value) {
+                        if (0.0f <= object->unknown130)
+                            BroadcastGameEvent(D_002DEB30, 0x17, object);
+                        FadeSoOut(object, 0.5f);
+                        pushedAny = 1;
                     }
                 }
             }
         }
-        if (fAny)
+        if (pushedAny)
             return;
     }
-    if (p->p0->x1084) {
-        if (p->p0->x1084->x40->k != 0x24)
+    if (goal->player->unknown1084) {
+        if (goal->player->unknown1084->lo->cid != 0x24)
             return;
     } else {
-        R *pr = func_00205458(p->p0, 0xA8);
-        if (!pr)
+        R *behavior = func_00205458(goal->player, 0xA8);
+        if (!behavior)
             return;
         {
-            int k = pr->x4C;
-            if (k >= 2)
+            int behaviorState = behavior->value;
+            if (behaviorState >= 2)
                 return;
-            if (k < 0)
+            if (behaviorState < 0)
                 return;
         }
     }
     {
-        qword r = GetLoWorldPos(p->p0);
-        float g = GDist(r, p->pos);
-        if (p->d20 - g < D_002BD2D4 * D_002BD2D0) {
-            qword v = p->pos;
-            if (func_00173610(100.0f, -150.0f, &v, 0, 0) || FSnapPosToSurfaceAbove(&v)) {
-                func_0019F540(p->p0, v);
-                p->f28 = 1;
+        qword playerPos = GetLoWorldPos(goal->player);
+        float distance = GetDistance(playerPos, goal->goalPos);
+        if (goal->lastDistance - distance < D_002BD2D4 * D_002BD2D0) {
+            qword snappedPos = goal->goalPos;
+            if (func_00173610(100.0f, -150.0f, &snappedPos, 0, 0) || FSnapPosToSurfaceAbove(&snappedPos)) {
+                ReturnJtToPosition(goal->player, snappedPos);
+                goal->isHolding = 1;
             }
         }
-        p->d20 = g;
+        goal->lastDistance = distance;
     }
 }
 
-static __inline__ int IDist(qword a, qword b)
+static __inline__ int GetDistanceBits(qword from, qword to)
 {
-    qword d;
-    int g;
-    d = VuSub(a, b);
-    d = VuDot(d, d);
+    qword delta;
+    int distanceBits;
+    delta = VuSub(from, to);
+    delta = VuDot(delta, delta);
     __asm__("vsqrt Q, %0x\n"
         "vwaitq\n"
-        "vaddq.x %0, $vf0, Q" : "+j"(d));
-    __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
-    return g;
+        "vaddq.x %0, $vf0, Q" : "+j"(delta));
+    __asm__("qmfc2.ni %0, %1" : "=r"(distanceBits) : "j"(delta));
+    return distanceBits;
 }
 
 /** @sly2-annot addr=0x1448F0
@@ -181,26 +188,29 @@ static __inline__ int IDist(qword a, qword b)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r2b_rest
  * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
  * @end-sly2-annot */
-extern "C" void SetJtgoal(JTGOAL *p, qword pos)
+// Sets a new goal position unless the goal is holding or the new point is within D_002BD2D8 of the current goal;
+// records the current distance and schedules the next progress check.
+extern "C" void SetJtgoal(JTGOAL *goal, qword newGoalPos)
 {
-    if (p->f28 == 0) {
-        qword r;
-        int fNear = GDist(p->pos, pos) < D_002BD2D8;
-        if (fNear) return;
-        p->pos = pos;
-        r = GetLoWorldPos(p->p0);
-        p->d20bits = IDist(r, p->pos);
-        p->t24 = D_002DDED0.t + D_002BD2D0;
+    if (goal->isHolding == 0) {
+        qword playerPos;
+        int isNear = GetDistance(goal->goalPos, newGoalPos) < D_002BD2D8;
+        if (isNear) return;
+        goal->goalPos = newGoalPos;
+        playerPos = GetLoWorldPos(goal->player);
+        goal->lastDistanceBits = GetDistanceBits(playerPos, goal->goalPos);
+        goal->nextCheckTime = D_002DDED0.t + D_002BD2D0;
     }
 }
 
 /** @sly2-annot addr=0x1449C8
  * Purpose: returns fHold (+0x28)
- * Info: proposed name FJtgoalHold (T1); TU jtgoal
+ * Info: proposed name IsJtgoalHolding (T1); TU jtgoal
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#jtgoal-0x144638-0x144b28
  * @end-sly2-annot */
-extern "C" int FJtgoalHold(JTGOAL *p)
+// Returns nonzero while the goal has warped the player and waits for the player to be free again.
+extern "C" int IsJtgoalHolding(JTGOAL *goal)
 {
-    return p->f28;
+    return goal->isHolding;
 }

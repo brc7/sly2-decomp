@@ -180,14 +180,14 @@ struct LM
 };
 
 /* RAW8: eight raw bytes: a placeholder for an 8-byte member whose type is not recovered.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (17 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (17 copies in Lilly ports) */
 struct RAW8
 {
     char ach[8];
 };
 
 /* SLE: the link of a singly linked intrusive list (SL): pointer to the next element, embedded in the element.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (28 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct SLE
 {
     void *next;   /* next element (the element itself, not its SLE) */
@@ -195,7 +195,7 @@ struct SLE
 
 /* DL: a doubly linked intrusive list header: first and last element and the offset of the DLE link inside each
    element.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (28 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct DL
 {
     void *head;   /* first element */
@@ -204,7 +204,7 @@ struct DL
 };
 
 /* DLE: the link of a doubly linked intrusive list (DL), embedded in each element.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (29 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (29 copies in Lilly ports) */
 struct DLE
 {
     void *next;   /* next element (the element itself) */

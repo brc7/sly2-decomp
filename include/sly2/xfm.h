@@ -214,7 +214,7 @@ inline void *func_00259B10(RAIL *prail) { return (char *)prail + sizeof(SHAPE); 
 inline void *func_00259C10(CID39 *p) { return (char *)p + sizeof(XFM); }      /* CID39 : XFM */
 
 /* The GRABSPOT owner getters: slot 6 of each class's GRABSPOT vtable (the entry's delta brings `this` back to the
- * object's start) returns the object itself; GRABSPOT's own slot 6 (func_00182E78) returns 0. In the linkonce area
+ * object's start) returns the object itself; GRABSPOT's own slot 6 (GrabspotSlotFDefault) returns 0. In the linkonce area
  * each sits right before its class's ensure accessor above (BARREL's in sly2/so.h). HYPOTHESIS: inline virtual
  * overrides in the original; free inline functions here, emitted by the key TU of each class, whose vtable names
  * them through classes.h's VtF labels (a label equal to the mangled name makes g++ emit the inline function). */

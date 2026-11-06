@@ -2,6 +2,8 @@
 // list: init/load/add/remove/clone, its range, closest point and a random point/direction on it. VU0 and EE asm.
 // TU 0x1CB908..0x1CBEB0 (11 functions, address order); RAIL's GRABSPOT owner getter func_00259B08 is an inline
 // function in sly2/xfm.h.
+// Entry points: InitRail/PostRailLoad/CloneRail, the world rail list (RAIL::Unfreeze, OnRailRemove) and the
+// GRABSPOT virtuals (GetRailWrapRange, GetRailClosestParam, GetRailGrabPosition, GetRailSparklePosition).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_rail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CBE90
 #include "sly2/slotheap.h"
@@ -19,17 +21,17 @@ struct K { int a, b; };
 struct RAILV
 {
     char pad0[0x38];
-    float g38;              /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C1EC0 */
+    float length;           /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C1EC0 */
     char pad3C[0xA8];
-    int fE4;                /* +0x0E4 non-zero: a closed shape, no range clamp */
+    int isClosed;           /* +0x0E4 non-zero: a closed shape, no range clamp */
     char pad0E8[0xA8];
     char grabspot[0x24];    /* +0x190 GRABSPOTDATA */
     K k;                    /* +0x1B4 kept across CloneShape */
     char pad1BC[4];
-    float g1C0;             /* +0x1C0 1000 at init */
-    float g1C4;             /* +0x1C4 1 at init */
+    float unknown1C0;       /* +0x1C0 1000 at init */
+    float unknown1C4;       /* +0x1C4 1 at init */
 };
-typedef char assert_RAIL_g1C4[(unsigned int)&((RAILV *)0)->g1C4 == 0x1C4 ? 1 : -1];
+typedef char assert_RAIL_unknown1C4[(unsigned int)&((RAILV *)0)->unknown1C4 == 0x1C4 ? 1 : -1];
 /* The object a closest point is measured from (+0x218) and a position is measured from (+0x240). */
 struct T { char pad[0x218]; qword *pq; };
 struct P { char pad[0x240]; VECTORV v; };
@@ -63,12 +65,14 @@ void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
  * See: docs/engine/object-model.md#8-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" void InitRail(RAILV *p)
+// RAIL::Init (vtable slot 7): shape init, then its GRABSPOT part; sets the two rail tuning values (+0x1C4 = 1,
+// +0x1C0 = 1000; meaning not identified).
+extern "C" void InitRail(RAILV *rail)
 {
-    InitShape(p);
-    InitGrabspot(p->grabspot);
-    p->g1C4 = 1.0f;
-    p->g1C0 = 1000.0f;
+    InitShape(rail);
+    InitGrabspot(rail->grabspot);
+    rail->unknown1C4 = 1.0f;
+    rail->unknown1C0 = 1000.0f;
 }
 
 /** @sly2-annot addr=0x1CB950
@@ -77,10 +81,12 @@ extern "C" void InitRail(RAILV *p)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" void PostRailLoad(RAILV *p)
+// RAIL post-load (slot 15): if the level left the length at the 1e10 sentinel, uses the shape's length plus
+// D_002C1EC0 (1250).
+extern "C" void PostRailLoad(RAILV *rail)
 {
-    PostLoLoad(p);
-    if (p->g38 == 1e10f) p->g38 = func_001E7D90(p) + D_002C1EC0;
+    PostLoLoad(rail);
+    if (rail->length == 1e10f) rail->length = func_001E7D90(rail) + D_002C1EC0;
 }
 
 /** @sly2-annot addr=0x1CB9B0
@@ -91,11 +97,13 @@ extern "C" void PostRailLoad(RAILV *p)
  * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
+// RAIL slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's rail list
+// (g_sw.dlCid13) so the player's grab search sees it.
 void RAIL::Unfreeze()
 {
-    RAILV *p = (RAILV *)this;
-    OnLoAdd(p);
-    AppendDlEntry(&g_sw.dlCid13, p);
+    RAILV *rail = (RAILV *)this;
+    OnLoAdd(rail);
+    AppendDlEntry(&g_sw.dlCid13, rail);
 }
 
 /** @sly2-annot addr=0x1CB9E8
@@ -106,10 +114,11 @@ void RAIL::Unfreeze()
  * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_A2+verify_side
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" void OnRailRemove(RAILV *p)
+// RAIL slot 22 (OnRemove): LO base, then leaves the world's rail list.
+extern "C" void OnRailRemove(RAILV *rail)
 {
-    OnLoRemove(p);
-    RemoveDlEntry(&g_sw.dlCid13, p);
+    OnLoRemove(rail);
+    RemoveDlEntry(&g_sw.dlCid13, rail);
 }
 
 /** @sly2-annot addr=0x1CBA20
@@ -119,11 +128,12 @@ extern "C" void OnRailRemove(RAILV *p)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" void CloneRail(RAILV *p)
+// RAIL::Clone (slot 41): clones the shape but keeps this rail's own 8-byte link at +0x1B4.
+extern "C" void CloneRail(RAILV *rail)
 {
-    K k = p->k;
-    CloneShape(p);
-    p->k = k;
+    K k = rail->k;
+    CloneShape(rail);
+    rail->k = k;
 }
 
 /** @sly2-annot addr=0x1CBA68
@@ -133,9 +143,11 @@ extern "C" void CloneRail(RAILV *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" int func_001CBA68(RAILV *p, float *pg)
+// GRABSPOT interface: for a closed (looping) rail returns 1 and the [min, max] shape distance range a grab position
+// wraps around; open rails return 0.
+extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
 {
-    if (p->fE4) { pg[0] = SMinShape(p); pg[1] = SMaxShape(p); return 1; } return 0;
+    if (rail->isClosed) { pg[0] = SMinShape(rail); pg[1] = SMaxShape(rail); return 1; } return 0;
 }
 
 /** @sly2-annot addr=0x1CBAC0
@@ -144,13 +156,15 @@ extern "C" int func_001CBA68(RAILV *p, float *pg)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" void func_001CBAC0(RAILV *p, T *q, float *pf)
+// GRABSPOT interface: the shape distance of the rail point closest to the player; on open rails clamped to
+// [50, length - 50] so the player never grabs the very end.
+extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
 {
     qword buf;
     float g, v;
-    FindShapeClosestPoint(p, *q->pq, 0, &buf, 0, 0, pf);
-    if (p->fE4 == 0) {
-        g = SMaxShape(p) - 50.0f;
+    FindShapeClosestPoint(rail, *q->pq, 0, &buf, 0, 0, pf);
+    if (rail->isClosed == 0) {
+        g = SMaxShape(rail) - 50.0f;
         v = *pf;
         if (v < 50.0f) v = 50.0f;
         else if (g < v) v = g;
@@ -165,7 +179,8 @@ extern "C" void func_001CBAC0(RAILV *p, T *q, float *pf)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-extern "C" void func_001CBB58(RAILV *a, float g, P *p, VECTORV *pv)
+// GRABSPOT interface: the rail point at distance `distance`; optionally the offset from the player's position to it.
+extern "C" void GetRailGrabPosition(RAILV *a, float g, P *p, VECTORV *pv)
 {
     VECTORV v;
     qword diff;
@@ -189,7 +204,7 @@ extern qword D_002A2DC0,D_002A2DA0;
 extern "C" {
 float SRandomShapeRange(RAILV*,float,float);
 float GRandInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
-void func_001CBBA8(RAILV*,qword*,qword*,float);
+void GetRailSparklePosition(RAILV*,qword*,qword*,float);
 }
 static inline qword CrossKeepSecond(qword a,const qword *pb){qword b;__asm__("lqc2 %0,%1":"=j"(b):"m"(*pb));qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"0"(b));return r;}
 static inline qword Dir(const M3 &m,qword a){__asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m.a),"j"(m.b),"j"(m.c));return a;}
@@ -202,9 +217,9 @@ static inline qword NormalizeOr(qword value,const qword*fallbackAddress,float ep
  if(scalar<epsilon)return fallback;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(result):"j"(length),"j"(value));return result;
 }
 static inline qword LocalDirection(qword v){register qword q __asm__("vf4");__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(v));return q;}
-static inline void SamplerArguments(RAILV*p,float time,RAILV**receiverOut,float*timeOut){
+static inline void SamplerArguments(RAILV*rail,float time,RAILV**receiverOut,float*timeOut){
  register RAILV*receiver __asm__("$4");register float parameter __asm__("$f12");
- __asm__("mov.s %1,%3\n\tdaddu %0,%2,$zero":"=r"(receiver),"=f"(parameter):"r"(p),"f"(time));
+ __asm__("mov.s %1,%3\n\tdaddu %0,%2,$zero":"=r"(receiver),"=f"(parameter):"r"(rail),"f"(time));
  *receiverOut=receiver;*timeOut=parameter;
 }
 static inline qword CrossAndFallbackAddress(qword a,const qword&b,const qword**addressOut,float*epsilonOut){
@@ -226,12 +241,14 @@ static inline qword DisplacementValue(const qword&start,const qword&direction,fl
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
-void func_001CBBA8(RAILV*p,qword*posOut,qword*dirOut,float g){
+// GRABSPOT interface: a random point near the rail around `distance` and a random outward direction, used to place the
+// grab-hint sparkle effect. (inferred from the grabspot sparkle pattern)
+void GetRailSparklePosition(RAILV*rail,qword*posOut,qword*dirOut,float g){
  U pos;
  M3 basis;
  U scalar,moved,out;
- float x=SRandomShapeRange(p,g,D_002C1EC4);
- RAILV*sampleReceiver;float sampleTime;SamplerArguments(p,x,&sampleReceiver,&sampleTime);
+ float x=SRandomShapeRange(rail,g,D_002C1EC4);
+ RAILV*sampleReceiver;float sampleTime;SamplerArguments(rail,x,&sampleReceiver,&sampleTime);
  EvaluateShapeS(sampleReceiver,sampleTime,&pos.q,&basis.c);
  const qword*fallbackAddress;float epsilon;
  qword cross=CrossAndFallbackAddress(basis.c,D_002A2DC0,&fallbackAddress,&epsilon);

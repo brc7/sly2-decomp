@@ -1841,7 +1841,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010A6D8)
 #include "../../generated/splicewrap/func_0010A6D8.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_00141968(void *p, qword, float, float);
+extern "C" void LaunchStepplayer(void *p, qword, float, float);
 /** @sly2-annot addr=0x10A790
  * Purpose: Splice option thunk: optid 720 on STEPPLAYER (g_aeopid[730] thunkFn, returns Void, crefReq 3);
  *   unpacks 3 args (Vector, Float, Float) -> Void via RefSetArgsFromSplice then calls LaunchStepplayer
@@ -1861,7 +1861,7 @@ extern "C" CRef func_0010A790(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00141968(p, v0.q, v1, v2);
+    LaunchStepplayer(p, v0.q, v1, v2);
     return ref;
 }
 
@@ -1924,7 +1924,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010ADB8)
 #include "../../generated/splicewrap/func_0010ADB8.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_00143090(void *p, void *, void *, void *);
+extern "C" void SetStepplayerIdleParams(void *p, void *, void *, void *);
 /** @sly2-annot addr=0x10AE28
  * Purpose: Splice option thunk: optid 249 on STEPPLAYER (g_aeopid[743] thunkFn, returns Void, crefReq 3);
  *   unpacks 3 args (Lm, Lm, Lm) -> Void via RefSetArgsFromSplice then calls SetStepplayerIdleParams
@@ -1944,7 +1944,7 @@ extern "C" CRef func_0010AE28(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00143090(p, &v0, &v1, &v2);
+    SetStepplayerIdleParams(p, &v0, &v1, &v2);
     return ref;
 }
 
@@ -1967,7 +1967,7 @@ SLY2_SPLICEWRAP_BEGIN(func_0010B1B8)
 #include "../../generated/splicewrap/func_0010B1B8.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_00142310(void *p, float, float, void *, float, float, qword, qword);
+extern "C" void SetStepplayerThrowParams(void *p, float, float, void *, float, float, qword, qword);
 /** @sly2-annot addr=0x10B230
  * Purpose: Splice option thunk: optid 743 on STEPPLAYER (g_aeopid[760] thunkFn/thunkUser, returns Void,
  *   crefReq 7); unpacks 7 args (Float, Float, Lm, Float, Float, Vector, Vector) -> Void via
@@ -1991,11 +1991,11 @@ extern "C" CRef func_0010B230(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(7, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6);
     ref.Decref();
     ref.InitTag(0x24);
-    func_00142310(p, v0, v1, &v2, v3, v4, v5.q, v6.q);
+    SetStepplayerThrowParams(p, v0, v1, &v2, v3, v4, v5.q, v6.q);
     return ref;
 }
 
-extern "C" void func_0019EAA0(void *p, qword a, qword b);
+extern "C" void SetJtPipeVectors(void *p, qword a, qword b);
 /** @sly2-annot addr=0x10B340
  * Purpose: Splice option thunk: optid 749 on STEPPLAYER (g_aeopid[766] thunkFn/thunkUser, returns Void,
  *   crefReq 2); unpacks 2 args (Vector, Vector) -> Void via RefSetArgsFromSplice then calls SetJtPipeVectors
@@ -2014,7 +2014,7 @@ extern "C" CRef func_0010B340(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &u, &v);
     ref.Decref();
     ref.InitTag(0x24);
-    func_0019EAA0((char *)p + 0xF50, u.q, v.q);
+    SetJtPipeVectors((char *)p + 0xF50, u.q, v.q);
     return ref;
 }
 
@@ -2055,7 +2055,7 @@ extern "C" CRef func_0010B618(void *p, int c, void *aref)
     return ref;
 }
 
-extern "C" void func_0018DF58(void *p, qword q);
+extern "C" void SetJtUnknown1FA0(void *p, qword q);
 /** @sly2-annot addr=0x10B6D0
  * Purpose: Splice option thunk: optid 755 on JT (g_aeopid[772] thunkFn/thunkUser, returns Void, crefReq 1);
  *   unpacks 1 args (Vector) -> Void via RefSetArgsFromSplice then calls SetJtX1FA0 (0x18DF58)
@@ -2072,7 +2072,7 @@ extern "C" CRef func_0010B6D0(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    func_0018DF58(p, u.q);
+    SetJtUnknown1FA0(p, u.q);
     return ref;
 }
 
@@ -2873,7 +2873,7 @@ SLY2_SPLICEWRAP_END
 // real virtual layouts, so the factories' inline constructors store the real vtables (_vt$<len><NAME>, named in
 // config/symbol_addrs.txt). Construction as the game does it: BASIC clears its two counted pointers in member
 // constructors, then each class stores its vptr; members with constructors (SO's GLOBSET, PO's +0x174, BLIP,
-// PATHLINKEND, BHVGUARDREC) and the out-of-line constructors (SW_ctor, JT_ctor, LEAP_ctor, ...) as declared there.
+// PATHLINKEND, BHVGUARDREC) and the out-of-line constructors (SW_ctor, JT_ctor, ConstructLeap, ...) as declared there.
 // SW comes from sly2/sw.h (types/views-3): its constructor is SW_ctor, out of line in world/scene/sw.cpp.
 
 
@@ -4279,7 +4279,7 @@ extern "C" CIRCLER *NewCircler() { return new CIRCLER; }
 
 /** @sly2-annot addr=0x112F58
  * Purpose: pfnNew factory for LEAP (cid 145): allocates 0x70 bytes (operator new 0x1AE4F8), calls ctor
- *   LEAP_ctor
+ *   ConstructLeap
  * Info: proposed name NewLeap (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)

@@ -21,7 +21,7 @@ struct LORUN
 
 /* LOROOT: the record shared by an object hierarchy: its topmost object and the links of the world's root list and
    busy list.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (28 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (28 copies in Lilly ports) */
 struct LOROOT
 {
       LO *plo;   /* the topmost ancestor of the hierarchy */

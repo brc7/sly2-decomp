@@ -42,9 +42,9 @@ void FIsPoActive() __asm__("FIsPoActive");
 void FIsPoCur() __asm__("FIsPoCur");
 void IsJobComplete() __asm__("IsJobComplete");
 void FPausedEmitter__FP7EMITTER() __asm__("FPausedEmitter__FP7EMITTER");
-void FReconTargetDone() __asm__("FReconTargetDone");
+void IsReconTargetDone() __asm__("IsReconTargetDone");
 void FRelayFiring() __asm__("FRelayFiring");
-void FStepplayerInJtmode() __asm__("FStepplayerInJtmode");
+void IsStepplayerInJtMode() __asm__("IsStepplayerInJtMode");
 void IsSwHandsOff() __asm__("IsSwHandsOff");
 void IsTaskComplete() __asm__("IsTaskComplete");
 void GetCmRotDeg() __asm__("GetCmRotDeg");
@@ -57,7 +57,7 @@ void GetSoIgnoreLocked() __asm__("GetSoIgnoreLocked");
 void GetTnFocusX() __asm__("GetTnFocusX");
 void GetWrWavelength() __asm__("GetWrWavelength");
 void IdBootyCur() __asm__("IdBootyCur");
-void MpStepplayerCur() __asm__("MpStepplayerCur");
+void GetStepplayerMp() __asm__("GetStepplayerMp");
 void GetTaskStateGoalOid() __asm__("GetTaskStateGoalOid");
 void GetLoProxyOid() __asm__("GetLoProxyOid");
 void PdetectorGetStepguard() __asm__("PdetectorGetStepguard");
@@ -560,10 +560,10 @@ void func_0012EE78() __asm__("func_0012EE78");
 void GetBasicSelf() __asm__("GetBasicSelf");
 void func_0013BC60() __asm__("func_0013BC60");
 void func_0013C4D8() __asm__("func_0013C4D8");
-void func_00144068() __asm__("func_00144068");
-void func_001443E8() __asm__("func_001443E8");
-void func_001443F8() __asm__("func_001443F8");
-void func_00144408() __asm__("func_00144408");
+void IsStepplayerPushing() __asm__("IsStepplayerPushing");
+void IsStepplayerJtModeBinocucom() __asm__("IsStepplayerJtModeBinocucom");
+void IsStepplayerJtModeRecon() __asm__("IsStepplayerJtModeRecon");
+void IsStepplayerJtModeKind2() __asm__("IsStepplayerJtModeKind2");
 void func_00149248() __asm__("func_00149248");
 void func_001497E0() __asm__("func_001497E0");
 void func_00149848() __asm__("func_00149848");
@@ -577,8 +577,8 @@ void func_00173398() __asm__("func_00173398");
 void func_001733C8() __asm__("func_001733C8");
 void func_001813C0() __asm__("func_001813C0");
 void func_001813F0() __asm__("func_001813F0");
-void func_00184028() __asm__("func_00184028");
-void func_00184040() __asm__("func_00184040");
+void AddGrabspotPlayerMask() __asm__("AddGrabspotPlayerMask");
+void SetGrabspotPlayerClass() __asm__("SetGrabspotPlayerClass");
 void func_001A35F0() __asm__("func_001A35F0");
 void func_001A3610() __asm__("func_001A3610");
 void func_001A3630() __asm__("func_001A3630");
@@ -601,7 +601,7 @@ void func_001BEAA8() __asm__("func_001BEAA8");
 void func_001BEAD0() __asm__("func_001BEAD0");
 void func_001C20E8() __asm__("func_001C20E8");
 void func_001C2148() __asm__("func_001C2148");
-void func_001C3C08() __asm__("func_001C3C08");
+void SetPipeGrabEnabled() __asm__("SetPipeGrabEnabled");
 void func_001C4098() __asm__("func_001C4098");
 void func_001C4A60() __asm__("func_001C4A60");
 void func_001C7A40() __asm__("func_001C7A40");
@@ -1459,7 +1459,7 @@ EOPIDROW D_002AC880[1449] = {
     {5, 0x92, EOPID_INT(0xDFC), EOPID_INT(0xDFC), EOPID_INT(0xDFC), EOPID_NONE}, /* [726] opt 380, STEPPLAYER (+3) */
     {5, 0x24, EOPID_PMFI(func_00258280), EOPID_PMF(SetStepplayerHp), EOPID_NONE, EOPID_NONE}, /* [727] opt 381, STEPPLAYER (+3) */
     {5, 0x92, EOPID_INT(0x1300), EOPID_INT(0x1300), EOPID_INT(0x1300), EOPID_NONE}, /* [728] opt 718, STEPPLAYER (+3) */
-    {5, 0x24, EOPID_PMF(MpStepplayerCur), EOPID_PMF(SetStepplayerMp), EOPID_NONE, EOPID_NONE}, /* [729] opt 719, STEPPLAYER (+3) */
+    {5, 0x24, EOPID_PMF(GetStepplayerMp), EOPID_PMF(SetStepplayerMp), EOPID_NONE, EOPID_NONE}, /* [729] opt 719, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010A790), EOPID_INT(3), EOPID_NONE}, /* [730] opt 720, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010A848), EOPID_INT(1), EOPID_NONE}, /* [731] opt 667, STEPPLAYER (+3) */
     {0, 1, EOPID_NONE, EOPID_FN(func_0010A8D0), EOPID_NONE, EOPID_NONE}, /* [732] opt 721, STEPPLAYER (+3) */
@@ -1489,13 +1489,13 @@ EOPIDROW D_002AC880[1449] = {
     {0x2038, 2, EOPID_INT(0x10DC), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [756] opt 739, STEPPLAYER (+3) */
     {0x1053, 2, EOPID_INT(0x10E4), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [757] opt 740, STEPPLAYER (+3) */
     {0, 0x92, EOPID_INT(0x11AC), EOPID_INT(0x11AC), EOPID_INT(0x11AC), EOPID_NONE}, /* [758] opt 741, STEPPLAYER (+3) */
-    {0, 4, EOPID_PMF(func_00144068), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [759] opt 742, STEPPLAYER (+3) */
+    {0, 4, EOPID_PMF(IsStepplayerPushing), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [759] opt 742, STEPPLAYER (+3) */
     {0x12, 0x401, EOPID_FN(func_0010B230), EOPID_FN(func_0010B230), EOPID_INT(7), EOPID_NONE}, /* [760] opt 743, STEPPLAYER (+3) */
     {0, 0x92, EOPID_INT(0x12F0), EOPID_INT(0x12F0), EOPID_INT(0x12F0), EOPID_NONE}, /* [761] opt 744, STEPPLAYER (+3) */
-    {0, 4, EOPID_PMF(FStepplayerInJtmode), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [762] opt 745, STEPPLAYER (+3) */
-    {0, 4, EOPID_PMF(func_001443E8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [763] opt 746, STEPPLAYER (+3) */
-    {0, 4, EOPID_PMF(func_001443F8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [764] opt 747, STEPPLAYER (+3) */
-    {0, 4, EOPID_PMF(func_00144408), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [765] opt 748, STEPPLAYER (+3) */
+    {0, 4, EOPID_PMF(IsStepplayerInJtMode), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [762] opt 745, STEPPLAYER (+3) */
+    {0, 4, EOPID_PMF(IsStepplayerJtModeBinocucom), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [763] opt 746, STEPPLAYER (+3) */
+    {0, 4, EOPID_PMF(IsStepplayerJtModeRecon), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [764] opt 747, STEPPLAYER (+3) */
+    {0, 4, EOPID_PMF(IsStepplayerJtModeKind2), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [765] opt 748, STEPPLAYER (+3) */
     {0x12, 0x401, EOPID_FN(func_0010B340), EOPID_FN(func_0010B340), EOPID_INT(2), EOPID_NONE}, /* [766] opt 749, STEPPLAYER (+3) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetStepplayerGadget), EOPID_INT(2), EOPID_NONE}, /* [767] opt 750, STEPPLAYER (+3) */
     {5, 1, EOPID_NONE, EOPID_FN(RefThunk_IGadgetSlotFromId), EOPID_INT(1), EOPID_NONE}, /* [768] opt 751, STEPPLAYER (+3) */
@@ -1571,7 +1571,7 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x92, EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_INT(0x1C0), EOPID_NONE}, /* [838] opt 788, PIPE */
     {0xE, 0x92, EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_INT(0x1D0), EOPID_NONE}, /* [839] opt 789, PIPE */
     {0xE, 0x92, EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_INT(0x1D4), EOPID_NONE}, /* [840] opt 790, PIPE */
-    {0, 0x120, EOPID_NONE, EOPID_PMF(func_001C3C08), EOPID_PMF(func_001C3C08), EOPID_NONE}, /* [841] opt 791, PIPE */
+    {0, 0x120, EOPID_NONE, EOPID_PMF(SetPipeGrabEnabled), EOPID_PMF(SetPipeGrabEnabled), EOPID_NONE}, /* [841] opt 791, PIPE */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(func_00259B00)}, /* [842] opt 776, PIPE */
     {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(func_00259B00)}, /* [843] opt 777, PIPE */
     {1, 0x2092, EOPID_INT(8), EOPID_INT(8), EOPID_INT(8), EOPID_PMFI(func_00259B00)}, /* [844] opt 778, PIPE */
@@ -1803,8 +1803,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x2072, 0x92, EOPID_INT(0x114), EOPID_INT(0x114), EOPID_INT(0x114), EOPID_NONE}, /* [1070] opt 531, CID35 (+2) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010D5D0), EOPID_INT(1), EOPID_NONE}, /* [1071] opt 235, CID35 (+2) */
     {0, 1, EOPID_NONE, EOPID_FN(func_0010D660), EOPID_INT(1), EOPID_NONE}, /* [1072] opt 949, CID35 (+2) */
-    {0x2002, 0x120, EOPID_NONE, EOPID_PMF(func_00184028), EOPID_PMF(func_00184028), EOPID_NONE}, /* [1073] opt 519, CID35 (+2) */
-    {7, 0x120, EOPID_NONE, EOPID_PMF(func_00184040), EOPID_PMF(func_00184040), EOPID_NONE}, /* [1074] opt 520, CID35 (+2) */
+    {0x2002, 0x120, EOPID_NONE, EOPID_PMF(AddGrabspotPlayerMask), EOPID_PMF(AddGrabspotPlayerMask), EOPID_NONE}, /* [1073] opt 519, CID35 (+2) */
+    {7, 0x120, EOPID_NONE, EOPID_PMF(SetGrabspotPlayerClass), EOPID_PMF(SetGrabspotPlayerClass), EOPID_NONE}, /* [1074] opt 520, CID35 (+2) */
     {0x12, 0x401, EOPID_FN(func_0010D6E0), EOPID_FN(func_0010D6E0), EOPID_INT(3), EOPID_NONE}, /* [1075] opt 526, CID35 (+2) */
     {0x12, 0x401, EOPID_FN(func_0010D798), EOPID_FN(func_0010D798), EOPID_INT(2), EOPID_NONE}, /* [1076] opt 527, CID35 (+2) */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(func_00259A38)}, /* [1077] opt 776, CID35 (+2) */
@@ -1934,7 +1934,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2085, 0x92, EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_INT(0xEC), EOPID_NONE}, /* [1201] opt 827, CID46 */
     {0x206B, 0x92, EOPID_INT(0x100), EOPID_INT(0x100), EOPID_INT(0x100), EOPID_NONE}, /* [1202] opt 1037, CID46 */
     {1, 0x92, EOPID_INT(0x104), EOPID_INT(0x104), EOPID_INT(0x104), EOPID_NONE}, /* [1203] opt 1038, CID46 */
-    {0, 4, EOPID_PMF(FReconTargetDone), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1204] opt 1039, CID46 */
+    {0, 4, EOPID_PMF(IsReconTargetDone), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1204] opt 1039, CID46 */
     {0, 0x92, EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_INT(0x10C), EOPID_NONE}, /* [1205] opt 1040, CID46 */
     {0x10, 0x92, EOPID_INT(0x110), EOPID_INT(0x110), EOPID_INT(0x110), EOPID_NONE}, /* [1206] opt 1041, CID46 */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010E4A8), EOPID_INT(2), EOPID_NONE}, /* [1207] opt 235, CID104 */

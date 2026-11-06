@@ -63,7 +63,7 @@ void SetPoCtlState(SAFEHOUSEV *ppo, int n);
 void ReplaceSma(SMV *psm, SAFEHOUSEV *plo, int isms, int n, SMA **ppsma);
 void FailJob(SUBV *p);
 int CploFindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
-void func_001433C8(SOV *pso);
+void DeliverStepplayerBooty(SOV *pso);
 void BindStepplayerHpMp(SOV *pso, int n);
 CRef RefGetSaveVarV(const char *pchz, ...);
 int OidFromSmIsms(SMV *psm, int isms);
@@ -215,7 +215,7 @@ extern "C" void func_001D7480(SAFEHOUSEV *psh, int state)
         n = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, aso0);
         for (int i0 = 0; i0 < n; i0++) {
             SOV *pso = aso0[i0];
-            func_001433C8(pso);
+            DeliverStepplayerBooty(pso);
             BindStepplayerHpMp(pso, 1);
         }
         n = CploFindSwObjectsByClass(&D_003DD490, 0x105, 0x64, 0, 0x20, aso1);

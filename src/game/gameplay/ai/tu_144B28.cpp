@@ -76,7 +76,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(SO *pso, int cid);
 CID17 *PpathzoneFromPos(qword pos, int n);
 qword GetLoWorldPos(SO *pso);
 void SetMurrayState(MURRAY *pmurray, int nState);
-void func_001B8D30(MURRAY *pmurray, int n);
+void SetMurrayPowerSubstate(MURRAY *pmurray, int n);
 }
 
 /** @sly2-annot addr=0x144B28
@@ -661,7 +661,7 @@ namespace M_func_001457A8 {
 // func_001457A8 MATCH (Claude agent for Lilly, T1647, 2026-10-25), from v6 (14).
 // Branch 1: VU_FLOAT has a user copy ctor (so the temporary lives at 0x40) and its qmtc2 ctor writes a plain qword
 // local first, then copies it into q (an asm output straight into the member goes through a second stack temp).
-// Branch 2: the VU_FLOAT is loaded with an asm lw from "m"(f) (VU_FLOATM, as in func_001375D0), and AddScaled takes
+// Branch 2: the VU_FLOAT is loaded with an asm lw from "m"(f) (VU_FLOATM, as in SetBentleyHelperState), and AddScaled takes
 // its operands in (a, s, b) order.
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
@@ -860,7 +860,7 @@ struct O *func_00205438(void *p, int oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 void func_001457A8(struct P *p);
-void func_0019F540(void *p, qword v);
+void ReturnJtToPosition(void *p, qword v);
 int GetBasicCid(void *p);
 static __inline__ void Activate(struct P *p, int oid)
 {
@@ -897,7 +897,7 @@ void SetBhvfollowState(struct P *p, int state)
         break;
     }
     case 1:
-        func_0019F540(p->p10, p->v80);
+        ReturnJtToPosition(p->p10, p->v80);
         break;
     case 2:
         switch (GetBasicCid(p->p10)) {
@@ -1708,7 +1708,7 @@ void BHV198::Start()
     StartBhv(pbhv);
     ((MURRAY *)pbhv->pstepguard)->unk_0x1ac0 = 1;
     SetMurrayState((MURRAY *)pbhv->pstepguard, 0xC);
-    func_001B8D30((MURRAY *)pbhv->pstepguard, 0);
+    SetMurrayPowerSubstate((MURRAY *)pbhv->pstepguard, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).

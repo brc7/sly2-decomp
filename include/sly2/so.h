@@ -14,7 +14,7 @@
 
 /* GLOB: one model piece of a GLOBSET: its oid, the transform it is drawn with, render flags and its shader
    animations.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (7 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (7 copies in Lilly ports) */
 struct GLOB
 {
       OID oid;   /* oid of the piece */
@@ -45,7 +45,7 @@ struct GLOB
 };
 
 /* SUBGLOB: one sub-mesh of a GLOB (one draw batch): bounds count, lighting data and the bone matrices it uses.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (8 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (8 copies in Lilly ports) */
 struct SUBGLOB
 {
       char bUnk00;
@@ -59,7 +59,7 @@ struct SUBGLOB
 };
 
 /* POSE: a pose sample of a model piece: position and the indices that select a GLOB (inferred).
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct POSE
 {
       VECTOR pos;   /* position */
@@ -75,14 +75,14 @@ struct POSE
 };
 
 /* POSESET: four POSE records.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct POSESET
 {
     POSE apose[4];
 };
 
 /* GLOBSET: an SO's model: its GLOBs and sub-meshes, poses, shader animations and bounding sphere.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct GLOBSET
 {
       SO *pso;   /* the owning solid object */
@@ -122,7 +122,7 @@ struct GLOBSET
 };
 
 /* CONSTR: a motion constraint: a direction (normal) and the kind of constraint along it.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct CONSTR
 {
       qword vecNormal;   /* constraint direction */
@@ -130,7 +130,7 @@ struct CONSTR
 };
 
 /* SOPHYS: the rigid-body state of a physical SO: inertia, velocities, gravity, constraints and mass.
-   Layout from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/stepplayer/GetHeroInteractDistance.cpp (23 copies in Lilly ports) */
 struct SOPHYS
 {
       MATRIX3 momintLocal;   /* moment of inertia (local frame) */
@@ -158,7 +158,7 @@ struct REGENT
 };
 
 /* SO: the solid object: an LO with transforms, a model, collision parts and (optionally) physics.
-   Layout from src/game/gameplay/player/jt/JtChooseGroundState.cpp (23 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/jt/ChooseJtGroundState.cpp (23 copies in Lilly ports) */
 struct SO : public LO
 {
       int cxf;   /* number of transforms */
@@ -407,7 +407,7 @@ struct XF
 };
 
 /* XA: an attachment between two SOs, kept in two lists: the source's and the target's (inferred from the links).
-   Layout from src/game/gameplay/player/jt/SetJtJts__FP2JT3JTS4JTBS.cpp (4 copies in Lilly ports) */
+   Layout from src/game/gameplay/player/jt/SetJtState__FP2JT3JTS4JTBS.cpp (4 copies in Lilly ports) */
 struct XA
 {
       uint32_t   _pad_409    [ 1 ] ;
