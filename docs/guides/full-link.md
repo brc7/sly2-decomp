@@ -8,7 +8,42 @@ tools/link.py links the image (since link/real-link a real link: one section per
 the ELF the way the original build did is "End state" at the end. The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (link/eopid-real-refs on integrate/round8, 2026-11-06)
+## Status (integrate/round9, 2026-11-06)
+
+(Measurements pending.)
+
+### Status (link/linkonce-rest on integrate/round8 e344ef63, 2026-11-06; superseded above)
+
+link/linkonce-rest (from integrate/round8 e344ef63): the last 18 linkonce copies back in linkonce form ("Linkonce
+copies rehomed" below; tu-merging.md "The container family"), the scraps that this exposed in bis and tu_119BC8 as
+`SLY2_SCRAP`, and link.py's handling of a failed compile (a failing source's stale object is deleted and the run
+exits 1, listing the sources; before, the previous object was linked silently). Every object now links whole: the
+per-function fallback is empty. Values of `python3 tools/link.py` from freshly built objects (build/link deleted
+first); integrate/round8's values in brackets where different.
+
+| measure | value | tool |
+|---|---|---|
+| functions matching | 6,662 / 6,662 (100%; 857 sources, 329 SDK sources carried over, verified on the Mac; config/matched.csv content unchanged by the run) | `tools/progress.py`, cache deleted first |
+| files touched (tu_119BC8, bis, blend, eopid_linkonce, bif, tu_1553F0, class_registry) and every includer of a touched header (arrayv.h: tu_119BC8 only) | all functions and data MATCH (tu_119BC8 17, bis 34, blend 12, eopid_linkonce 74, bif 155, tu_1553F0 30, class_registry 829 lines) | `tools/matchtool.py check` |
+| nm symbol sets (all 528 TU objects against e344ef63's) | differ only by the 12 container renames (func_ to the template members' mangled names, bis's copy moved to tu_119BC8), blend's func_002581B8 moved to eopid_linkonce (plus its `g_eopidref_002581B8`), and T -> W for operator*, VecCombo and the three constructors | scratch nm compare |
+| undefined references not in config (210 merged objects) | 41 (unchanged) | scratch symcheck.py |
+| duplicate strong definitions | 0 | scratch symcheck.py |
+| relocations checked against the ELF | 29,602 OK, 0 mismatched | scratch relverify.py with config/link_aliases.txt |
+| link objects | 528: 528 whole, 0 in per-function fallback [522 / 6]; build/link/tutext.txt is empty | `tools/link.py` |
+| ld.lld | 0 errors; 983 [2,019] sections placed, 4 unplaced (468 [464] bytes: eopid_linkonce's `.data` 296, one address reference more), 2 `.bss` overlapping another bound to their address (tn, cplcy) | `tools/link.py` |
+| differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; .text from objects 1,295,844 [1,295,772] | `tools/link.py` |
+| blob bytes | 1,066,184 [1,066,256]: junk.csv 1,576 [1,620], padding / not in config 1,036 [1,064]; the rest as on integrate/round8 | `tools/link.py` |
+| config names at their config address | 7,402 / 7,402 | `tools/link.py` |
+| docs links | 0 broken (12,627 checked) | `tools/docs/linkcheck.py` |
+
+Representation compromises, each recorded in tu-merging.md "The container family": five copies are plain
+definitions with `__attribute__((weak, section(".gnu.linkonce.t.<symbol>")))` instead of their inline form (bif's
+operator*, tu_1553F0's VecCombo, class_registry's three constructors), and CHash<char *, int>::Resize is an explicit
+specialization with the same attributes. Merging with data/vtables: tu_1553F0 (both branches change the lines around
+VecCombo's definition) and class_registry (only the three constructors and the comment above them here); once
+data/vtables gives STEPGUARD/JT/MURRAY key TUs, their constructors can become inline members emitted there.
+
+### Status (integrate/round8 with link/eopid-real-refs, 2026-11-06; superseded above)
 
 Authoritative numbers for integrate/round8: main f674c97e + link/real-link (with link/crt0-block: the crt0_splicewrap
 TU as one object, the real-link mode as tools/link.py's default) + link/junk-padding (the junk.csv scraps as
@@ -296,7 +331,10 @@ key-TU extras discarded.
 
 `python3 tools/link.py [--no-compile] [--per-function]` or `--sdk-only`; tools/verify.sh runs it without options. Needs
 the same tools as before (`ld.lld`, `llvm-objcopy`, disc/SCUS_973.16; "Prototype link" below says where they come
-from). A full run is about 5 min here (528 sources, 2 cores, plus the fallback objects); `--no-compile` about 5 s.
+from). A full run is about 3 to 5 min here (528 sources, 2 cores, plus the fallback objects); `--no-compile` about 5 s.
+A source that fails to compile loses its object (a stale one is deleted, never linked), the link still runs (its
+bytes come from the ELF as blobs) and prints its summary, and link.py exits 1 listing the failing sources, so
+verify.sh's link step fails (link/linkonce-rest; before, the previous object was kept and the link passed).
 
 1. **Objects as the original build made them.** Every buildable source of config/matched.csv through matchtool's
    `compile_src`, without `-ffunction-sections` (build/link/obj-tu/): one `.text`, `.data`, `.rodata`, `.bss` per
@@ -640,6 +678,24 @@ eval, frame, sidebag, ref, spliceutils, splicemap, spliceobj, proc, varb, proxy,
 bis, blend, tu_1553F0. All 932 objects were rebuilt from scratch: their section bytes change only by the moved copies
 (compared section by section against the objects of f674c97e) and their nm symbol sets only by the renames.
 
+### Linkonce copies rehomed (link/linkonce-rest, 2026-11-06)
+
+From integrate/round8 e344ef63 (522 objects whole, 6 in fallback for 18 linkonce copies kept as plain functions). The
+details, the template shape and what each form needed are in tu-merging.md "The container family (link/linkonce-rest)".
+
+| copies | home | form |
+|---|---|---|
+| tu_119BC8's 11 and bis's 0x2566B0 (0x2564E0..0x256AF0) | sly2/arrayv.h, instantiated by tu_119BC8.cpp | members of CDynArrayV<char *>, CHashIndex<char *> and CHash<char *, int> (vtables 0x2CA660, 0x2CA620; listener base 0x2CA640), explicitly instantiated; Resize an explicit specialization with weak/section attributes |
+| blend 0x2581B8 (return 5, vtable 0x2CB5A8 slot 4) | app/eopid_linkonce.cpp | an inline function whose address eopid_linkonce takes, as for the GRABSPOT getters |
+| bif's operator* 0x256D28, tu_1553F0's VecCombo 0x258480 | their files | plain definitions with `weak` + `section(".gnu.linkonce.t.<symbol>")` |
+| class_registry's STEPGUARD_ctor, JT_ctor, MURRAY_ctor | class_registry.cpp | the same attributes on the three constructor definitions |
+
+| measure | before | after | tool |
+|---|---:|---:|---|
+| objects whole / in per-function fallback | 522 / 6 | 528 / 0 | `tools/link.py` |
+| fallback reasons | linkonce copies 6 | none (bis and tu_119BC8 showed junk.csv scraps once their copies left: emitted with `SLY2_SCRAP`) | `tools/link.py` |
+| differing bytes | 0 | 0 | `tools/link.py` |
+
 ### Data order (data/bss-order on integrate/round5 before types/views-2/-3, 2026-11-05; superseded by Status)
 
 Numbers of the branch alone: integrate/round5 (round 4 + build/rtti-palettes (`-fno-rtti`, palette section attributes)
@@ -676,8 +732,8 @@ No source change was needed under `-fno-rtti`: the two data branches' code match
    (link/crt0-block; the link now differs from the ELF in no byte).
 3. ~~Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU~~ (done, link/crt0-block).
 4. ~~A real-link mode~~ (done, link/real-link: one section per object, per-function fallback). The rest is "End
-   state" below: the 6 fallback objects (the last 18 linkonce copies; link/junk-padding, link/linkonce-pools and
-   link/linkonce-misc are merged), the data no object defines, the SDK objects.
+   state" below: ~~the 6 fallback objects~~ (none since link/linkonce-rest), the data no object defines, the SDK
+   objects.
 
 ## End state
 
@@ -686,14 +742,14 @@ once, its sections whole, the linkonce sections where the linker puts them, and 
 not source (the IOP modules, the VU microcode). Planned on link/real-link, counts updated on integrate/round8; three
 work lists stand between it and today's link.
 
-### 1. Drop the per-function fallback (6 objects)
+### 1. Drop the per-function fallback (6 objects; 0 since link/linkonce-rest)
 
 build/link/tutext.txt is the list; when it is empty, every object links whole, build/link/obj/ is not needed and
 `--per-function` can go.
 
 | reason | objects | branch |
 |---|---:|---|
-| linkonce copies kept as plain functions (18 functions left of 127: tu_119BC8 11 and bis 1, the container family, mostly reached only through vtables; class_registry's STEPGUARD_ctor/JT_ctor/MURRAY_ctor; blend 0x2581B8 (vtable-only); bif's `operator*` and tu_1553F0's VecCombo, reverted on link/linkonce-misc) | 6 | back to templates/inline functions so they are emitted as `.gnu.linkonce.t.*`; the Splice GC pools (58, link/linkonce-pools) and four more families (51, link/linkonce-misc) are done |
+| ~~linkonce copies kept as plain functions (18 functions left of 127: tu_119BC8 11 and bis 1, the container family, mostly reached only through vtables; class_registry's STEPGUARD_ctor/JT_ctor/MURRAY_ctor; blend 0x2581B8 (vtable-only); bif's `operator*` and tu_1553F0's VecCombo, reverted on link/linkonce-misc)~~ | ~~6~~ 0 | done: the Splice GC pools (58, link/linkonce-pools), four more families (51, link/linkonce-misc), the last 18 (link/linkonce-rest, "Linkonce copies rehomed"); `--per-function` and build/link/obj/ are no longer needed for the link |
 | ~~junk.csv dead-code scraps inside the object's range~~ | ~~33~~ 0 | done: link/junk-padding (`SLY2_SCRAP`), ref and splicemap on integrate/round8 |
 | ~~scraps and 8 zero bytes before a function~~ | ~~3 (language, mat, joy)~~ 0 | done: link/junk-padding (nop scraps, not alignment) |
 | ~~8 zero bytes before a function~~ | ~~1 (so 0x1F6A68)~~ 0 | done: link/junk-padding |

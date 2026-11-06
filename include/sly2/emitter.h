@@ -10,8 +10,8 @@
  * 0x258F40..0x2599C8): function templates as well, instantiated by emitter.cpp.
  *
  * The accessors exist twice in the binary, once per class (EMITTER 0x258898..0x258EC8, EXPLO 0x259330..0x259960),
- * with the same code; they are written once as function templates over the emitter-bearing class, and
- * src/game/app/eopid_linkonce.cpp instantiates both sets by taking their addresses as the option table g_aeopid does.
+ * with the same code; they are written once as function templates over the emitter-bearing class, and the option
+ * table g_aeopid (src/game/app/class_registry_options.inc, EOPID_PMFT) instantiates both sets by taking their addresses.
  * See docs/guides/tu-merging.md "Inline functions and linkonce copies". Names are placeholders: each template is
  * named after its EMITTER copy's name (the EXPLO copy is the other instantiation of the same template). */
 #ifndef SLY2_EMITTER_H

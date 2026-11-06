@@ -724,14 +724,16 @@ extern "C" qwordV func_00155FB0(void *p, qwordV pos)
 }
 
 /* Linkonce instance 0x258480 (an out-of-line copy of an inline helper, homed in this TU): r = v1 * f1.x + v2 * f2.x.
-   Kept a plain function (link/linkonce-misc): as an inline defined after its caller g++ does not emit it, because
-   the caller reaches it only through VecComboQ (a differently typed, asm-labelled declaration), which does not mark
-   the inline used; calling VecCombo itself would change func_00155FB0's code. */
+   A plain definition (link/linkonce-misc): as an inline defined after its caller g++ does not emit it, because the
+   caller reaches it only through VecComboQ (a differently typed, asm-labelled declaration), which does not mark the
+   inline used; calling VecCombo itself would change func_00155FB0's code. The attributes give it what g++ gives an
+   inline function's out-of-line copy (link/linkonce-rest): a weak symbol in .gnu.linkonce.t.<symbol>. */
 /** @sly2-annot addr=0x258480
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+__attribute__((weak, section(".gnu.linkonce.t.VecCombo__FG8VU_FLOATG9VU_VECTORT0T1")))
 qwordV VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qwordV r;

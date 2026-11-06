@@ -1,7 +1,7 @@
 // blend.cpp -- ASEGBL, an animation segment that blends several segments: building one from a set of segments
 // (EnsureAsegBlendDynamic), per-segment MRSG timing tables, the dominant segment, and evaluating blended channels
-// (positions/rotations with VU0 asm, scalars). TU 0x137A30..0x138F08 (11 functions, address order) and the linkonce
-// instance func_002581B8.
+// (positions/rotations with VU0 asm, scalars). TU 0x137A30..0x138F08 (11 functions, address order), and the linkonce
+// copy func_002581B8 (an inline virtual of a class whose vtable belongs to this TU; at the end).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_blend
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00138EE8
 #include "sly2/slotheap.h"
@@ -721,15 +721,19 @@ extern "C" void func_00138BA0(BLCHNF *p, float t, float r, float *pa, float *pb)
         *pb = sb;
 }
 
-// 0x2581B8 func_002581B8: linkonce instance homed in this TU (returns 5; HYPOTHESIS an inline virtual returning a
-// kind constant). Kept as a C-linkage function under its current symbol.
+// The kind-5 animation channel's vtable 0x2CB5A8 (slots: 0x138660 and EvaluateBlendChnPosVel above, slot 4 the
+// function below; act.cpp constructs the class, M_PacNewKind2::C5) sits right before blip's _vt$5BLIPG in .data, so
+// this is the class's key TU and the vtable's emitter, and its inline virtuals come out of line here. That vtable is
+// not emitted yet (act.cpp's curve classes are views; tu-merging.md "Vtables emitted"), so the address reference
+// below stands in for its slot and makes g++ emit the function weak in .gnu.linkonce.t.func_002581B8. It is a
+// non-const file-scope pointer (4 bytes of .data that tools/link.py leaves unplaced): a const one is discarded before
+// it references the function, and then the copy is not emitted. C linkage keeps the config name (HYPOTHESIS: in the
+// original an in-class `virtual int Kind() { return 5; }` of that class).
 /** @sly2-annot addr=0x2581B8
  * Purpose: virtual returning constant 5 [game linkonce (inline/template)]
  * Info: proposed name GetKind5 (T2); TU game_linkonce
  * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-extern "C" int func_002581B8(void)
-{
-    return 5;
-}
+extern "C" inline int func_002581B8(void) { return 5; }
+static int (*s_pfnKind5)(void) = &func_002581B8;

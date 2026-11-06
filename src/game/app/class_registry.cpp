@@ -6871,8 +6871,13 @@ extern "C" CLASSINFO *GetBhv198ClassDesc() { return &D_002BAAE8[198]; }
 // ---- Out-of-line constructors from the linkonce area (0x256360..0x256498) ----
 // The constructors of STEPGUARD, JT and MURRAY: inline in the game (their copies sit in the linkonce area) but
 // called, not inlined, by the factories (HYPOTHESIS: too big for g++'s inliner). Defined here as the constructors
-// they are, under their current symbols (the asm labels in the views above); here they are ordinary global
-// functions, in the game weak linkonce copies.
+// they are, under their current symbols (the asm labels in the views above). The real form, inline in the class, is
+// not emitted here: g++ 2.95 emits a polymorphic class's inline members only in the TU that emits its vtable (the
+// key TU: stepguard.cpp for STEPGUARD since data/vtables). Defined inline in sly2/classes.h, the key TU does emit
+// STEPGUARD_ctor (MATCH, weak in .gnu.linkonce.t.), but every factory here then inlines it (NewStepguard and the ten
+// guard factories differ), so the HYPOTHESIS above is wrong for this compiler: these factories must not see an inline
+// definition. Left as is (integrate/round9): the definitions' attributes give them what an out-of-line inline copy
+// gets, a weak symbol in .gnu.linkonce.t.<symbol>, emitted by this object only.
 
 /** @sly2-annot addr=0x256360
  * Purpose: inline constructor (SO base vtable 0x2D9978 -> STEPGUARD vtable 0x2DA568, LEAP sub-object) [game
@@ -6881,6 +6886,7 @@ extern "C" CLASSINFO *GetBhv198ClassDesc() { return &D_002BAAE8[198]; }
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+__attribute__((weak, section(".gnu.linkonce.t.STEPGUARD_ctor")))
 STEPGUARD::STEPGUARD() {}
 
 /** @sly2-annot addr=0x2563E8
@@ -6889,6 +6895,7 @@ STEPGUARD::STEPGUARD() {}
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+__attribute__((weak, section(".gnu.linkonce.t.JT_ctor")))
 JT::JT() : psndGadget(refptrNull) { unk_0x2048 = 0; }
 
 /** @sly2-annot addr=0x256440
@@ -6897,6 +6904,7 @@ JT::JT() : psndGadget(refptrNull) { unk_0x2048 = 0; }
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+__attribute__((weak, section(".gnu.linkonce.t.MURRAY_ctor")))
 MURRAY::MURRAY() {}
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
