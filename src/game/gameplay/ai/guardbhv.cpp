@@ -7,6 +7,7 @@
 // "Representation decisions"); the former m2c bodies (mostly the Init/Start/Close/Done members of each behaviour)
 // are written at file scope on step.h's BHV, guard.h's STEPGUARD and the TU-private derived behaviour views below.
 #include "sly2/basic.h"
+#include "sly2/scrap.h"
 #include "sly2/lo.h"
 #include "sly2/step.h"
 #include "sly2/guard.h"
@@ -3141,6 +3142,9 @@ extern "C" void SetBhvpathState(BHVPATH *pbhv, int nState)
         pbhv->tState = D_002DDED0.t;
     }
 }
+
+// 0x178CF8: dead-code scrap, a nop unit (sly2/scrap.h)
+SLY2_SCRAP("nop");
 
 // 0x178D00 FBhvpathAtEnd
 namespace M_FBhvpathAtEnd { extern "C" {

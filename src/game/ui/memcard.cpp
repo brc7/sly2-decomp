@@ -15,6 +15,7 @@
 // SLY2_ALIAS: _GLOBAL_$D$*=func_001AE130
 
 #include "sly2/basic.h"
+#include "sly2/scrap.h"
 #include "sly2/sw.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
@@ -832,6 +833,9 @@ extern "C" int McJobFormat(SAVE *psave)
     return nResult;
 }
 
+// 0x1AB748: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0x20");
+
 namespace M_FOpenSaveIconFile {
 struct S { int x0; int x4; char pad[0x2C]; int x34; int x38; int x3C; };
 struct K;
@@ -1235,6 +1239,10 @@ int ReadMcDirWrapper(int a, int b, int c)
     return n == 1 ? 0 : 0xE;
 }
 } } // namespace M_ReadMcDirWrapper
+
+// 0x1ABFF8..0x1AC004: 2 dead-code scraps (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0x10");
+SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // .rodata order (tu-merging.md "Phase 5: data order"): the pointer-to-member records are defined where the ELF has
 // them among the functions' literals, under asm labels. 0x2A6C80 "/%s/%s" is a literal no code in the ELF
@@ -1675,6 +1683,9 @@ extern "C" void McClose(SAVE *psave, int fd)
 {
     McSyncResult(&psave->memcard, sceMcClose(fd), 3, 0);
 }
+
+// 0x1AC848: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
 namespace M_McRead { extern "C" {
 int sceMcRead(int a, int b, int c);

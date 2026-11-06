@@ -14,6 +14,7 @@
 // SLY2_ALIAS: _GLOBAL_$D$*=func_0014FAA8
 
 #include "sly2/basic.h"
+#include "sly2/scrap.h"
 #include "sly2/cm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
@@ -754,6 +755,9 @@ void BuildCmFgfn(struct P *p, float *af, float f)
 }
 } } // namespace M_BuildCmFgfn
 
+// 0x14E320: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("daddu $2, $0, $0");
+
 namespace M_SetCmPolicy { extern "C" {
 /* Insert an entry into a priority-sorted array of 8 (Claude agent). memmove goes through an inline helper: its
    parameters get their own pseudos, giving the target's (p + i*16) base copied into a1 then +0x320 / +0x310. */
@@ -1455,6 +1459,9 @@ qword ConvertCmWorldToScreen(struct CM *p, qword v)
     return r.q;
 }
 } } // namespace M_ConvertCmWorldToScreen
+
+// 0x14F3C0: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0x40");
 
 namespace M_SetCmPos { extern "C" {
 typedef int qword __attribute__((mode(TI)));

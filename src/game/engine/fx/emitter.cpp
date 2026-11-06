@@ -14,6 +14,7 @@
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0015CD48
 
 #include "sly2/basic.h"
+#include "sly2/scrap.h"
 #include "sly2/xfm.h"
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
@@ -1836,6 +1837,9 @@ void func_0015BE28(qword q0, qword q1, void *p, M4 *pm, B7 *pb7, int n1, int n2,
     EmitParticles__FiP5EMITBP5EMITG(p, &x, &y);
 }
 } } // namespace M_func_0015BE28
+
+// 0x15BF38: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0x1b0");
 
 namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB { extern "C" {
 typedef int qword __attribute__((mode(TI)));
