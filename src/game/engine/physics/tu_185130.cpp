@@ -566,7 +566,7 @@ static inline qword AddScaled2H(qword a, qword b, VUFQ sb, qword c, VUFQ sc, voi
  *   docs/reference/functions/player.md#air-0x195950-0x19cbf8
  * @end-sly2-annot */
 // Projects a ballistic point (pos + v t + a t^2 / 2) onto the mesh: returns the landing point (offset along the
-// normal) and the velocity there. Used to predict where a jump meets the mesh.
+// normal) and the velocity there. Used to predict where a jump meets the mesh. (inferred)
 extern "C" int PredictMeshContact(MESH *mesh, qword pos, qword velocity, qword acceleration, TRIREF *triangle, qword *posOut, qword *velocityOut, float offset, float time)
 {
     TRIREF tr;
