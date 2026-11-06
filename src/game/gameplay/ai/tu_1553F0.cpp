@@ -308,7 +308,12 @@ static inline qwordV Dot(qwordV v)
     return d;
 }
 // Square root.
-static inline qwordV Sqrt(qwordV v) { qwordV d; __asm__ __volatile__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(d) : "j"(v)); return d; }
+static inline qwordV Sqrt(qwordV v)
+{
+    qwordV d;
+    __asm__ __volatile__("vsqrt Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, Q" : "=j"(d) : "j"(v));
+    return d;
+}
 // VU0 helper: x of a VU register as a float.
 static inline float GFromQ(qwordV v) { float g; __asm__ __volatile__("qmfc2.ni %0, %1" : "=r"(g) : "j"(v)); return g; }
 
@@ -540,13 +545,33 @@ static inline qwordV AddScaled(VU_VECTOR a, VU_VECTOR b, VU_FLOAT s)
     return r;
 }
 // VU0 helper: vector scaled by a VU float.
-static inline qwordV Scale(VU_VECTOR v, VU_FLOAT s) { qwordV r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q), "j"(v.q)); /* extra operand: allocation only */ return r; }
+static inline qwordV Scale(VU_VECTOR v, VU_FLOAT s)
+{
+    qwordV r;
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q), "j"(v.q)); /* extra operand: allocation only */
+    return r;
+}
 // VU0 helper: vector scaled by a VU float (register operand variant).
-static inline qwordV ScaleR(VU_VECTOR v, const VUV &s) { qwordV r; __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q), "j"(v.q)); return r; }
+static inline qwordV ScaleR(VU_VECTOR v, const VUV &s)
+{
+    qwordV r;
+    __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v.q), "j"(s.q), "j"(v.q));
+    return r;
+}
 // VU0 helper: vector difference (alternate pattern for the match).
-static inline qwordV Sub2(qwordV a, qwordV b) { qwordV d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b) : "vf4"); /* clobber of dead vf4 */ return d; }
+static inline qwordV Sub2(qwordV a, qwordV b)
+{
+    qwordV d;
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b) : "vf4"); /* clobber of dead vf4 */
+    return d;
+}
 // VU0 helper: vector sum.
-static inline qwordV Add(qwordV a, qwordV b) { qwordV d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b), "j"(a)); /* extra operand: allocation only */ return d; }
+static inline qwordV Add(qwordV a, qwordV b)
+{
+    qwordV d;
+    __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b), "j"(a)); /* extra operand: allocation only */
+    return d;
+}
 // VU0 helper: length of a vector.
 static inline float Len(qwordV a)
 {
