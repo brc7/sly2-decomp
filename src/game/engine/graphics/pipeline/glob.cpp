@@ -147,20 +147,18 @@ struct SWALLOC
 };
 
 /** @sly2-annot addr=0x167310
- * Purpose: CRef default constructor emitted (weak) at the start of the glob TU
- * Info: proposed name __4CRef (EXISTING); class CRef; TU glob
+ * Purpose: GLOBSET constructor, at the start of the glob TU
+ * Info: GLOBSET::GLOBSET() (was __4CRef); class GLOBSET; TU glob
  * Notes: agent/verifier proposes CRef_ctor for this existing name (see existing_name_changes.csv)
  * Confidence: high [EXISTING 0.60] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r3_1539A8
  * See: docs/engine/rendering.md#12-source-files,
  *   docs/reference/functions/rendering.md#glob-0x167310-0x16f148,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-/* Kept under its literal symbol (C linkage): it is not CRef's constructor; it stores -1 at +0x4C of its object
-   (HYPOTHESIS: the constructor of a record whose CRef member sits at +0x4C, i.e. that CRef's own constructor inlined). */
-extern "C" void *__4CRef(void *pv)
+/* GLOBSET's constructor (sly2/so.h; it was kept as a C function under the symbol __4CRef before). */
+GLOBSET::GLOBSET()
 {
-    *(int *)((char *)pv + 0x4C) = -1;
-    return pv;
+    nUnk4c = -1;
 }
 
 // LoadGlobsetFromBrx: ported from Lilly's personal Sly 2 decomp (src/P2/glob.c), reduced to the declarations it needs.
