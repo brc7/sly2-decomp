@@ -5417,16 +5417,16 @@ extern "C" void UpdateBhvshoot(BHVSTATE *behavior)
 // 0x17B690 HandleBhvshootMessage
 namespace M_BHVSHOOT_FHandleMessage { extern "C" {
 struct M; struct U; struct T; struct S;
-struct M { int n0; int n4; int n8; };
-struct U { char pad[0x40]; void *p40; };
+struct M { int animation; int n4; int event; };
+struct U { char pad[0x40]; void *binding; };
 struct T { char pad[0xF60]; int firingWindow; };
 struct S { char pad[0x10]; struct T *guard; int pad2; struct U *child; char pad3[0x14]; int state; };
 int GetAnimBindingInstance(void *p);
 int HandleBhvMessage(struct S *p, int msg, struct M *pm);
 // 0x17B690: BHVSHOOT vtable slot 13 (HandleMessage): ASEG events 0x31/0x32 open/close the firing window (+0xF60).
 int HandleBhvshootMessage(struct S *behavior, int msg, struct M *pm) {
-    if (msg == 9 && !behavior->state && behavior->child->p40 && GetAnimBindingInstance(behavior->child->p40) == pm->n0) {
-        switch (pm->n8) {
+    if (msg == 9 && !behavior->state && behavior->child->binding && GetAnimBindingInstance(behavior->child->binding) == pm->animation) {
+        switch (pm->event) {
         case 0x31: behavior->guard->firingWindow = 1; return 1;
         case 0x32: behavior->guard->firingWindow = 0; return 1;
         }
@@ -5441,9 +5441,9 @@ struct CLOCK; struct VTE; struct O; struct T; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int lookAt; int sgf; };
 struct T { char pad[0xF60]; int firingWindow; };
-struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int n38; };
+struct S { char pad[0x10]; struct T *guard; int pad2; char childSlot[0x18]; int state; float stateTime; int target; };
 void PopBhv(void *p);
 struct O *PushStepBhv(void *p, int n);
 // 0x17B750: BHVSHOOT state change: 0 pushes the shooting animation (flag 0x11) aimed at the target and opens the
@@ -5458,8 +5458,8 @@ void SetBhvshootState(struct S *behavior, int n) {
         return;
     struct O *o = PushStepBhv(behavior->guard, CID_BHVANIM);
     struct VTE *entry;
-    o->n3C = 0x11;
-    o->n38 = behavior->n38;
+    o->sgf = 0x11;
+    o->lookAt = behavior->target;
     entry = &o->vt[8];
     entry->pfn((char *)o + entry->d);
     behavior->guard->firingWindow = 1;
@@ -5507,7 +5507,7 @@ struct CLOCK; struct VTE; struct O; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; int n30; char pad3[8]; int n3C; int n40; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; int target; char pad3[8]; int sgf; int unknown40; };
 struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x18]; int state; float stateTime; char pad3[8]; int chosenTarget; };
 void PopBhv(void *p);
 struct O *PushStepBhv(void *p, int n);
@@ -5532,15 +5532,15 @@ void SetBhvTargetsState(struct S *behavior, int n)
     case 1: {
         struct O *o = PushStepBhv(behavior->guard, CID_BHVCOMBAT);
         struct VTE *entry;
-        o->n30 = behavior->chosenTarget;
-        o->n40 = 1;
+        o->target = behavior->chosenTarget;
+        o->unknown40 = 1;
         entry = &o->vt[8];
         entry->pfn((char *)o + entry->d);
     } break;
     case 2: {
         struct O *o = PushStepBhv(behavior->guard, CID_BHVIDLE);
         struct VTE *entry;
-        o->n3C = 1;
+        o->sgf = 1;
         entry = &o->vt[8];
         entry->pfn((char *)o + entry->d);
     } break;
@@ -5740,7 +5740,7 @@ typedef char CLOCK_Size[sizeof(CLOCK)==8?1:-1];
 // 0x17BD78 UpdateBhvTargets
 namespace M_func_0017BD78 { extern "C" {
 struct T; struct S;
-struct T { char pad[0x30]; int n30; };
+struct T { char pad[0x30]; int target; };
 struct S { char pad[0x10]; void *guard; int pad2; struct T *child; char pad3[0x14]; int state; char pad4[0xC]; int chosenTarget; };
 void UpdateBhv(struct S *p);
 int IsStepguardHandsOff(void *p);
@@ -5765,7 +5765,7 @@ void UpdateBhvTargets(struct S *behavior) {
         case 1:
             if (f) SetBhvTargetsState(behavior, 2);
             else if (!behavior->chosenTarget) SetBhvTargetsState(behavior, 0);
-            else if (behavior->chosenTarget != behavior->child->n30) { SetBhvTargetsState(behavior, -1); SetBhvTargetsState(behavior, 1); }
+            else if (behavior->chosenTarget != behavior->child->target) { SetBhvTargetsState(behavior, -1); SetBhvTargetsState(behavior, 1); }
             else if (IsBhvcombatDone(behavior->child)) SetBhvTargetsState(behavior, 0);
             break;
         case 2:
@@ -5792,8 +5792,8 @@ void InitBhvCircle(struct S *behavior) { InitBhv(behavior); AddStepguardSgf(beha
 namespace M_func_0017BF08 { extern "C" {
 struct C; struct B; struct T; struct S;
 typedef int qword __attribute__((mode(TI)));
-struct C { char pad[0x10]; void *p10; };
-struct B { char pad[0xDC]; struct C *pDC; };
+struct C { char pad[0x10]; void *pathzone; };
+struct B { char pad[0xDC]; struct C *unknownDC; };
 struct T { char pad[0xE8]; struct B *unknownE8; char pad2[0x294 - 0xEC]; int path; char pad3[0xFE8 - 0x298]; int capabilities; };
 struct S { char pad[0x10]; struct T *guard; };
 void StartBhv(struct S *p);
@@ -5805,8 +5805,8 @@ void SetBhvCircleState(struct S *p, int n);
 void StartBhvCircle(struct S *behavior) {
     StartBhv(behavior);
     if (behavior->guard->capabilities & 4) {
-        struct C *c = behavior->guard->unknownE8 ? behavior->guard->unknownE8->pDC : 0;
-        void *pv = c ? c->p10 : 0;
+        struct C *c = behavior->guard->unknownE8 ? behavior->guard->unknownE8->unknownDC : 0;
+        void *pv = c ? c->pathzone : 0;
         qword q = func_001A62E8(behavior->guard);
         func_001C02D0(pv, q, func_001A62E8(behavior->guard), behavior->guard->path);
         SetBhvCircleState(behavior, 1);
