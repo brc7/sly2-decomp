@@ -2546,53 +2546,53 @@ extern "C" void AddRelayClearSubtitle(RELAYV *relay)
     AddRelayCommand(relay, RELAYCK_ClearSubtitle, 1);
 }
 
-// 0x1E1670 AddRelayCommand47
+// 0x1E1670 AddRelayStepHold
 namespace M_func_001E1670 { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x47 (Unk47) command to the relay (AddRelayCommand(prelay,0x47,fAsync)) and fill
-// its args. (inferred)
-void AddRelayCommand47(void *pq, int a, int b, int c)
+// Splice builder, relay command 0x47: the actor holds a step (AddJsgStepHold with two parameters) while the script
+// runs. (inferred from NextJsgCommand)
+void AddRelayStepHold(void *pq, int a, int b, int c)
 {
     struct CMD *p = AddRelayCommand(pq, 0x47, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_func_001E1670
 
-// 0x1E16C0 AddRelayCommand48
+// 0x1E16C0 AddRelayStepRelease
 namespace M_func_001E16C0 { extern "C" {
 struct CMD; struct CMDF;
 struct CMD { int kind; int b; int n8; int nC; int n10; int n14; int n18; int n1C; };
 struct CMDF { int kind; int b; int n8; int nC; int n10; int n14; float g18; int n1C; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x48 (Unk48) command to the relay (AddRelayCommand(prelay,0x48,fAsync)) and fill
-// its args. (inferred)
-void AddRelayCommand48(void *pq, int a, int b, int c)
+// Splice builder, relay command 0x48: releases a step hold taken by command 0x47 (RemoveJsgStepHold). (inferred from
+// NextJsgCommand)
+void AddRelayStepRelease(void *pq, int a, int b, int c)
 {
     struct CMD *p = AddRelayCommand(pq, 0x48, 1);
     p->n10 = a; p->n14 = b; p->n18 = c;
 }
 } } // namespace M_func_001E16C0
 
-// 0x1E1710 AddRelayCommand49
-// Splice builtin: append a RELAYCK 0x49 (Unk49) command to the relay (AddRelayCommand(prelay,0x49,fAsync)) and fill
-// its args. (inferred)
-extern "C" void AddRelayCommand49(RELAYV *relay, int n)
+// 0x1E1710 AddRelayRhythmSequence
+// Splice builder, relay command 0x49: starts a rhythm-game sequence on the rhythm manager (D_002DE570) from the 0x4A
+// cue commands that follow it in the block. (inferred from NextJsgCommand)
+extern "C" void AddRelayRhythmSequence(RELAYV *relay, int n)
 {
     AddRelayCommand(relay, RELAYCK_Unk49, 1)->unk49.nUnk4 = n;
 }
 
-// 0x1E1740 AddRelayCommand4A
+// 0x1E1740 AddRelayRhythmCue
 namespace M_func_001E1740 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
 struct CMD { int kind; int b; int n8; int nC; union U a[4]; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x4A (Unk4A) command to the relay (AddRelayCommand(prelay,0x4A,fAsync)) and fill
-// its args. (inferred)
-void AddRelayCommand4A(void *pq, int a, int b, int c, float g)
+// Splice builder, relay command 0x4A: one rhythm cue (time, move) for a DANCER actor, collected by the preceding 0x49.
+// (inferred from NextJsgCommand)
+void AddRelayRhythmCue(void *pq, int a, int b, int c, float g)
 {
     struct CMD *p = AddRelayCommand(pq, 0x4A, 0);
     p->a[0].g = g; p->a[1].n = a; p->a[2].n = b; p->a[3].n = c;
@@ -2634,15 +2634,15 @@ extern "C" void AddRelayWaitTimer(RELAYV *relay, float dtWait)
     AddRelayCommand(relay, RELAYCK_WaitTimer, 0)->waitTimer.dtWait = dtWait;
 }
 
-// 0x1E1870 AddRelayCommand4F
+// 0x1E1870 AddRelayMurrayApplySma
 namespace M_func_001E1870 { extern "C" {
 union U; struct CMD;
 union U { int n; float g; };
 struct CMD { int kind; int b; int n8; int nC; union U a[6]; };
 struct CMD *AddRelayCommand(void *pq, int kind, int b);
-// Splice builtin: append a RELAYCK 0x4F (Unk4F) command to the relay (AddRelayCommand(prelay,0x4F,fAsync)) and fill
-// its args. (inferred)
-void AddRelayCommand4F(void *pq, int a, int b, int c, int d, int e, int x)
+// Splice builder, relay command 0x4F: Murray applies an SMA found on the named object (func_001B9C00). (inferred from
+// NextJsgCommand)
+void AddRelayMurrayApplySma(void *pq, int a, int b, int c, int d, int e, int x)
 {
     struct CMD *p = AddRelayCommand(pq, 0x4F, x);
     p->a[1].n = a;
@@ -2726,10 +2726,10 @@ extern "C" void AddRelayCommand57(RELAYV *relay, OID oidActor)
     AddRelayCommand(relay, RELAYCK_Unk57, 1)->unk57.oidActor = oidActor;
 }
 
-// 0x1E1A90 AddRelayCommand58
-// Splice builtin: append a RELAYCK 0x58 (Unk58) command to the relay (AddRelayCommand(prelay,0x58,fAsync)) and fill
-// its args. (inferred)
-extern "C" void AddRelayCommand58(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
+// 0x1E1A90 AddRelayBentleyJumpOnMurray
+// Splice builder, relay command 0x58: Bentley jumps onto Murray (the named object) and the script takes control of him
+// until he lands. (inferred from NextJsgCommand)
+extern "C" void AddRelayBentleyJumpOnMurray(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk58, fAsync);
@@ -2737,10 +2737,10 @@ extern "C" void AddRelayCommand58(RELAYV *relay, OID oidShip, OID oidActor, int 
     prelaycmd->unk58.oidActor = oidActor;
 }
 
-// 0x1E1AD0 AddRelayCommand59
-// Splice builtin: append a RELAYCK 0x59 (Unk59) command to the relay (AddRelayCommand(prelay,0x59,fAsync)) and fill
-// its args. (inferred)
-extern "C" void AddRelayCommand59(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
+// 0x1E1AD0 AddRelayMurrayMoveTo
+// Splice builder, relay command 0x59: Murray moves to the named object (his move record, when in a movable state).
+// (inferred from NextJsgCommand)
+extern "C" void AddRelayMurrayMoveTo(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk59, fAsync);
@@ -2748,10 +2748,10 @@ extern "C" void AddRelayCommand59(RELAYV *relay, OID oidShip, OID oidActor, int 
     prelaycmd->unk59.oidActor = oidActor;
 }
 
-// 0x1E1B10 AddRelayCommand5A
-// Splice builtin: append a RELAYCK 0x5A (Unk5A) command to the relay (AddRelayCommand(prelay,0x5A,fAsync)) and fill
-// its args. (inferred)
-extern "C" void AddRelayCommand5A(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
+// 0x1E1B10 AddRelayMurrayMoveToAndControl
+// Splice builder, relay command 0x5A: like 0x59, and the script keeps control of Murray until he arrives. (inferred
+// from NextJsgCommand)
+extern "C" void AddRelayMurrayMoveToAndControl(RELAYV *relay, OID oidShip, OID oidActor, int fAsync)
 {
     RELAYCMD *prelaycmd;
     prelaycmd = AddRelayCommand(relay, RELAYCK_Unk5A, fAsync);

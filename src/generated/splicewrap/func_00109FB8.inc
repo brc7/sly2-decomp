@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-void AddRelayCommand4F(s32, s32, s32, s32, s32, s32, s32);          /* extern */
+void AddRelayMurrayApplySma(s32, s32, s32, s32, s32, s32, s32);          /* extern */
 CRef *func_00109FB8(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
     OTYP aotyp[6] = { 6, 6, 4193, 0, 6, 0 };
@@ -13,7 +13,7 @@ CRef *func_00109FB8(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 6, aref, aotyp, &arg0_v, &arg1_v, &arg2_v, &arg3_v, &arg4_v, &arg5_v);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    AddRelayCommand4F(pbasic, arg0_v, arg1_v, arg2_v, arg3_v, arg4_v, arg5_v);
+    AddRelayMurrayApplySma(pbasic, arg0_v, arg1_v, arg2_v, arg3_v, arg4_v, arg5_v);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

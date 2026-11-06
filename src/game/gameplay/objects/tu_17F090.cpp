@@ -1973,7 +1973,7 @@ void AdjustHackwallNewXp(struct S *p, struct E *ae, int i)
 }
 } } // namespace M_func_00182700
 
-// vtable slot 63: 8-byte override. (inferred)
+// HACKWALL vtable slot 63 (CpartExtra): one extra collision part, for the wall segments. (inferred)
 /* HACKWALL slot 63. */
 extern "C" int GetHackwallExtraPartCount()
 {
@@ -1987,8 +1987,9 @@ struct S { char pad[0x1C8]; int c; struct E ae[4]; };
 void UpdateSoTreeBounds(struct S *p);
 void func_001E7BB8(int n, qword *pa, qword *pb);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
-// vtable slot 49 override. (inferred)
-void HackwallSlot49(struct S *p)
+// HACKWALL vtable slot 49 (tree bounds update): the SO bounds, extended to cover both ends of every wall segment
+// (with the segment radius).
+void UpdateHackwallTreeBounds(struct S *p)
 {
     int i;
     UpdateSoTreeBounds(p);

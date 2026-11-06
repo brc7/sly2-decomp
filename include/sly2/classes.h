@@ -1116,7 +1116,7 @@ struct HACKWALL : HACK
     virtual void VUnk14() __asm__("PostHackwallLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateHackwall");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderHackwallSelf");   /* slot 19 */
-    virtual void VUnk48() __asm__("HackwallSlot49");   /* slot 49 */
+    virtual void VUnk48() __asm__("UpdateHackwallTreeBounds");   /* slot 49 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("AdjustHackwallNewXp");   /* slot 55 */
     virtual void VUnk59(SOPART *ppart, int n2, int n3, void *pvGeom, XP **ppxpFirst) __asm__("AddHackwallXps");   /* slot 60 */
     virtual int CpartExtra() __asm__("GetHackwallExtraPartCount");   /* slot 63 */
