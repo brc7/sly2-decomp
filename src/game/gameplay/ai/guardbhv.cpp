@@ -2606,7 +2606,7 @@ int IsBhvguardModeSame(struct S *a, struct S *b) {
 // 0x177E80 InitBhvpath
 namespace M_InitBhvpath { extern "C" {
 struct S;
-struct S { char pad[0x34]; float pathParam; char pad2[0x10]; float startParamHint; int state; char pad3[0x8]; int isBlocked; char pad4[0x8]; float arrivalRadius; float nearRadius; float farRadius; char pad5[0x30]; int nA0; };
+struct S { char pad[0x34]; float pathParam; char pad2[0x10]; float startParamHint; int state; char pad3[0x8]; int isBlocked; char pad4[0x8]; float arrivalRadius; float nearRadius; float farRadius; char pad5[0x30]; int unknownA0; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
 void InitBhv(struct S *p);
 } } // namespace M_InitBhvpath
@@ -2622,7 +2622,7 @@ void BHVPATH::OnPush()
     p->farRadius = D_002BE628;
     p->state = -1;
     p->isBlocked = 0;
-    p->nA0 = 1;
+    p->unknownA0 = 1;
 }
 
 // 0x177EF0 StartBhvpath
@@ -3207,13 +3207,13 @@ typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
 struct VTE { short d; short pad; void *pfn; };
-struct Y { char pad[0x10]; void *p10; char pad2[0x0C]; char a20[1]; };
-struct X { char pad[0xDC]; struct Y *pDC; };
+struct Y { char pad[0x10]; void *pathzone; char pad2[0x0C]; char unknown20[1]; };
+struct X { char pad[0xDC]; struct Y *unknownDC; };
 struct A { char pad[0xE8]; struct X *unknownE8; };
-struct T { char pad[0x28]; unsigned long fl; char pad2[0x1D8 - 0x30]; int n1D8; };
+struct T { char pad[0x28]; unsigned long loFlags; char pad2[0x1D8 - 0x30]; int unknown1D8; };
 struct S {
     char pad[0xC]; struct VTE *vt; struct A *guard; char pad1[0x30 - 0x14];
-    void *shape; float pathParam; int isReversed; char pad2[4]; int n40; char pad3[8]; int state;
+    void *shape; float pathParam; int isReversed; char pad2[4]; int ignoresBlockers; char pad3[8]; int state;
     char pad4[4]; struct T *blocker; int isBlocked; float blockerParam; float blockerRange; char pad5[4]; float nearRadius; float farRadius;
     char pad6[0x80 - 0x70]; qword startPosition;
 };
@@ -3253,10 +3253,10 @@ void UpdateBhvpath(struct S *behavior) {
         case 0:
         case 2:
         case 3:
-            if (!behavior->n40) {
+            if (!behavior->ignoresBlockers) {
                 struct X *x = behavior->guard->unknownE8;
-                struct Y *y = x ? x->pDC : 0;
-                int n = func_001BD718(pos, y ? y->p10 : 0, x->pDC->a20, behavior->shape, behavior->isReversed == 0, &behavior->blocker, &behavior->blockerRange, behavior->pathParam);
+                struct Y *y = x ? x->unknownDC : 0;
+                int n = func_001BD718(pos, y ? y->pathzone : 0, x->unknownDC->unknown20, behavior->shape, behavior->isReversed == 0, &behavior->blocker, &behavior->blockerRange, behavior->pathParam);
                 behavior->isBlocked = n;
                 switch (n) {
                 case 0:
@@ -3287,7 +3287,7 @@ void UpdateBhvpath(struct S *behavior) {
             break;
         case 1:
         case 4:
-            if ((((int)(behavior->blocker->fl >> 60) & 1) == 0) || behavior->blocker->n1D8) {
+            if ((((int)(behavior->blocker->loFlags >> 60) & 1) == 0) || behavior->blocker->unknown1D8) {
                 Set(behavior, 0);
             } else if (__builtin_fabsf(func_001E7B38(behavior->blocker, behavior->blockerParam, behavior->blockerRange)) < 80.0f) {
                 Set(behavior, 0);
@@ -3363,32 +3363,32 @@ struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
-struct O { char pad[0xE4]; int nE4; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *po; float pathParam; int isReversed; int hasEnd; int pad3; float endParam; float startParamHint; char pad4[0xB0 - 0x4C]; char endPoint[0x10]; };
+struct O { char pad[0xE4]; int isClosed; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *shape; float pathParam; int isReversed; int hasEnd; int pad3; float endParam; float startParamHint; char pad4[0xB0 - 0x4C]; char endPoint[0x10]; };
 qword func_001A62E8(void *p);
-void FindShapeClosestPointFromS(struct O *po, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-void FindShapeClosestPoint(struct O *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
-float SMinShape(struct O *po);
-float SMaxShape(struct O *po);
-void EvaluateShapeS(struct O *po, float g, void *pv, int n);
+void FindShapeClosestPointFromS(struct O *shape, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+void FindShapeClosestPoint(struct O *shape, qword q, struct G *pg, void *pv, int b, int c, float *pf);
+float SMinShape(struct O *shape);
+float SMaxShape(struct O *shape);
+void EvaluateShapeS(struct O *shape, float g, void *pv, int n);
 // 0x178D90: Sets the shape to follow and the direction: finds the start parameter (closest point) and, for open
 // shapes, the end point.
-void SetBhvpathShape(struct S *behavior, struct O *po, int n) {
+void SetBhvpathShape(struct S *behavior, struct O *shape, int n) {
     behavior->isReversed = n;
-    behavior->po = po;
+    behavior->shape = shape;
     if (behavior->startParamHint >= 0.0f) {
-        FindShapeClosestPointFromS(po, behavior->startParamHint, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
+        FindShapeClosestPointFromS(shape, behavior->startParamHint, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
         behavior->startParamHint = -1.0f;
     } else {
-        FindShapeClosestPoint(po, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
+        FindShapeClosestPoint(shape, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
     }
-    if (po->nE4) {
+    if (shape->isClosed) {
         behavior->hasEnd = 0;
     } else {
         behavior->hasEnd = 1;
-        if (behavior->isReversed) behavior->endParam = SMinShape(po);
-        else behavior->endParam = SMaxShape(po);
-        EvaluateShapeS(po, behavior->endParam, behavior->endPoint, 0);
+        if (behavior->isReversed) behavior->endParam = SMinShape(shape);
+        else behavior->endParam = SMaxShape(shape);
+        EvaluateShapeS(shape, behavior->endParam, behavior->endPoint, 0);
     }
 }
 } } // namespace M_SetBhvpathShape
@@ -3396,7 +3396,7 @@ void SetBhvpathShape(struct S *behavior, struct O *po, int n) {
 // 0x178E98 InitBhvwalkpath
 namespace M_InitBhvwalkpath { extern "C" {
 struct S;
-struct S { char pad[0xC0]; int nC0; float gC4; char pad2[0x18]; float gE0; };
+struct S { char pad[0xC0]; int animSgf; float animRate; char pad2[0x18]; float unknownE0; };
 extern float D_002BE694;
 void InitBhvpath(struct S *p);
 } } // namespace M_InitBhvwalkpath
@@ -3406,9 +3406,9 @@ void BHVWALKPATH::OnPush()
     using namespace M_InitBhvwalkpath;
     M_InitBhvwalkpath::S *p = (M_InitBhvwalkpath::S *)this;
     InitBhvpath(p);
-    p->gE0 = D_002BE694;
-    p->gC4 = 1.0f;
-    p->nC0 = 9;
+    p->unknownE0 = D_002BE694;
+    p->animRate = 1.0f;
+    p->animSgf = 9;
 }
 
 // 0x178EE0 UpdateBhvwalkpath
@@ -6687,7 +6687,7 @@ typedef int qword __attribute__((mode(TI)));
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int a, b, lookAt; } s; } u30; union { int isDirect; qword goalPos; } u40; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x20]; union { int pathlink; qword goalRef; struct { int a, b, lookAt; } s; } u30; union { int ignoresBlockers; qword goalPos; } u40; char pad5[0xC0 - 0x50]; int animSgf; int pad6; int lookAtTarget; };
 struct A { char pad[0x294]; int pathShape; char pad2[0xFE8 - 0x298]; int capabilities; };
 struct S {
     char pad[0x10]; struct A *guard; int pad2; struct O *child; char pad3[0x14]; int state; float stateTime;
@@ -6718,7 +6718,7 @@ void SetBhvgotoState(struct S *behavior, int n) {
                 struct VTE *entry;
                 o = PushStepBhv(behavior->guard, CID_BHVWALKPATH);
                 o->lookAtTarget = behavior->lookAtTarget;
-                o->u40.isDirect = behavior->isDirect;
+                o->u40.ignoresBlockers = behavior->isDirect;
                 if (!behavior->lookAtTarget || behavior->unknownAC || !(behavior->guard->capabilities & 4)) o->animSgf = 9; else o->animSgf = 8;
                 SetBhvpathShape(o, behavior->guard->pathShape, 0);
                 entry = &o->vt[8]; entry->pfn((char *)o + entry->d);
