@@ -2,6 +2,8 @@
 // toward it, the climb range, the per-frame climb (stick to up/down speed, turning around at the pipe's slope, the
 // blend weights) and the climb states (attach, idle, climb up/down, turn, release with their animations and sounds).
 // VU0 and EE asm, register-pinned. TU 0x19DE10..0x19F0A8 (15 functions, address order).
+// Entry points: InitJtPipe/PostJtLoadPipe (setup), SetJtPipeState (mount/leave), UpdateJtActivePipe and
+// PresetJtAccelPipe (per frame), UpdateJtInternalXpsPipe (physics constraint), CanJtUseGadgetOnPipe.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_pipe_jt
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0019F088
 #include "sly2/slotheap.h"
@@ -96,6 +98,8 @@ int FActiveCplcy__FP5CPLCY(void *);
  * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
  *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Initializes the player's pipe-climbing context (STEPPLAYER+0xF50): owner, state -1 (not on a pipe) and the default
+// climb tuning (45 / 40 ...).
 extern "C" void InitJtPipe(JTPIPE *p, JT *actor)
 {
     U *poffset = &p->offset;
@@ -118,6 +122,8 @@ extern "C" void InitJtPipe(JTPIPE *p, JT *actor)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Post-load: measures the per-cycle climb speed of the two climb clips (root displacement over a cycle) and builds
+// the dynamic blend between them.
 extern "C" void PostJtLoadPipe(JTPIPE *p)
 {
     int i;
@@ -145,6 +151,8 @@ static inline qword Scale(qword v,float g){U u;register qword s __asm__("vf2");q
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Physics preset while on a pipe: in the mount and climb states (0, 4) accelerates Sly toward the pipe's climbing
+// frame (GetPipeGoalMatrix) at the current distance.
 extern "C" void PresetJtAccelPipe(JTPIPE *p)
 {
     M3 m, m2, m4;
@@ -175,6 +183,8 @@ extern "C" void PresetJtAccelPipe(JTPIPE *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// The distance range the player may climb on the current pipe: unbounded on a closed pipe, else from the bottom
+// (+35, or +100 depending on the pipe) to 100 below the top.
 extern "C" void GetJtPipeDistanceRange(JTPIPE *p, LMV *ag) {
     if (p->path->cyclic) {
         ag->low = -3.40282346638528859812e+38f;
@@ -214,6 +224,9 @@ static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Per-frame pipe climbing: smooths the hand offset, X jumps off (SetJtAirJump kind 2), the mode button enters
+// binocucom/recon mode, and stick input climbs up/down or spins around the pipe within GetJtPipeDistanceRange,
+// with climb sounds.
 extern "C" void UpdateJtActivePipe(JTPIPE*p){
  WORK w;float lowSpeed,highSpeed;JT*actor=p->actor;actor->offset.q=PosSmooth(actor->offset.q,D_002A2DD0.q,D_002DDED0.dt,&D_002BF928,0);
  register float amount __asm__("$f4"),dot __asm__("$f3"),zero __asm__("$f2");register int previous __asm__("$5");
@@ -289,6 +302,8 @@ extern "C" void UpdateJtActivePipe(JTPIPE*p){
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Adds the pipe contact constraint for the physics step: the curve point and tangent at the current distance,
+// passed to the owner's constraint slot (vt82, kind 7).
 extern "C" void UpdateJtInternalXpsPipe(JTPIPE *p) {
     U a, b, u;
     EvaluateShapeS(p->path, p->distance, &a, &b);
@@ -304,6 +319,7 @@ extern "C" void UpdateJtInternalXpsPipe(JTPIPE *p) {
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Clears the two adjust values (+0x94, +0x98) of the given contact adjust record while on a pipe. (inferred)
 extern "C" void ResetJtPipeAdjust(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 0; }
 
 /** @sly2-annot addr=0x19E9D8
@@ -312,6 +328,7 @@ extern "C" void ResetJtPipeAdjust(void *p, int *s) { s[0x94/4] = 0; s[0x98/4] = 
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Writes the pipe curve's point at the player's current distance.
 extern "C" void GetJtPipePosition(JTPIPE *s, U *ppos) { EvaluateShapeS(s->path, s->distance, ppos, 0); }
 
 struct Q { char pad[0x20]; qword v20; char pad2[4]; int n34; };
@@ -322,6 +339,7 @@ struct Q { char pad[0x20]; qword v20; char pad2[4]; int n34; };
  * See: docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Writes the player's velocity along the pipe: the curve tangent at the current distance scaled by the climb speed.
 extern "C" void GetJtPipeVelocity(JTPIPE *p, Q *q)
 {
     U v;
@@ -343,6 +361,8 @@ extern "C" void GetJtPipeVelocity(JTPIPE *p, Q *q)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// If the pipe allows it, records the current pipe and distance in the player's safe-place table (AddJtPlaceOnCurve)
+// so a fall can return the player here.
 extern "C" void RecordJtPipePlace(JTPIPE *p)
 {
     PATH *ppath = p->path;
@@ -356,6 +376,7 @@ extern "C" void RecordJtPipePlace(JTPIPE *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Stores two vectors in the pipe context (meaning not identified). (inferred)
 extern "C" void SetJtPipeVectors(JTPIPE *s, qword a, qword b) { s->offset.q = a; s->offset2.q = b; }
 
 static inline void PathState(PATH*p,int state){VE&v=p->vt[3];((void(*)(void*,int,void*,void*,void*,void*))v.fn)((char*)p+v.delta,state,0,0,0,0);}
@@ -395,6 +416,8 @@ static inline void Clear(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Pipe sub-state switch: from -1 mounts the pipe (subscribe, register, find the curve distance within +-50 of the
+// grab point); each state picks its clips and sounds; reaching uses the cane state (SetJtCaneState).
 extern "C" void SetJtPipeState(JTPIPE*p,int next){
  int old=p->state;if(next==old)return;
  WORKB w;
@@ -451,6 +474,8 @@ extern "C" void SetJtPipeState(JTPIPE*p,int next){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
+// Gadget check while on a pipe: only gadget kind 3 is considered, allowed when the owner's gadget flag (x12F0) and the
+// global flag are set and no camera policy is active.
 extern "C" int CanJtUseGadgetOnPipe(JTPIPE *p, int k) {
     if (k == 3) {
         int r = 0;

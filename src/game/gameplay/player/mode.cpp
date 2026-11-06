@@ -2,6 +2,8 @@
 // ending a mode, the mode states (camera policy, hold of the hero's animation, sound bus volume), the per-frame update,
 // and the overlay (HUD widgets, recon selector, task tags). One empty asm helper with register pins.
 // TU 0x19CBF8..0x19DE10 (14 functions, address order).
+// Entry points: StartJtMode/EndJtMode (requests), SetJtModeState, UpdateJtMode (per frame), the HUD functions
+// (InitJtModeHud .. SetJtModeHudOverride). Kinds: 0 binocucom, 1 recon.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_mode
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0019DDF0
 #include "sly2/basic.h"
@@ -218,6 +220,8 @@ extern char D_004435F0[];
  * See: docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
  *   docs/engine/player.md#10-source-files, docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Initializes the player's look/recon mode context (STEPPLAYER+0xF00): owner, state -1, requested kind -1, then its
+// HUD. Kinds: 0 binocucom, 1 recon (runtime-verified), 2 another look mode.
 extern "C" void InitJtMode(JTMODE *p, STEPPLAYER *pstepplayer)
 {
     p->pstepplayer = pstepplayer;
@@ -233,6 +237,7 @@ extern "C" void InitJtMode(JTMODE *p, STEPPLAYER *pstepplayer)
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Post-load: binds the mode HUD widgets.
 extern "C" void PostLoadJtMode(JTMODE *p)
 {
     PostLoadJtModeHud(&p->hud);
@@ -247,6 +252,8 @@ extern "C" void PostLoadJtMode(JTMODE *p)
  * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Requests mode `kind`: if a mode is running and the request is recon (1), ends and resets the current one first;
+// stores the kind and enters state 0 (starting).
 extern "C" void StartJtMode(JTMODE *p, int nKind, STEP *pstepOther, WIDGET *pwidget)
 {
     if (p->nState != -1) {
@@ -272,6 +279,7 @@ start:
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Leaves the mode (state 2, ending) unless the owner is in state 0, 8, 9 or 10.
 extern "C" void EndJtMode(JTMODE *p) {
     if (p->hud.pnUnk14) {
         switch (*p->hud.pnUnk14) {
@@ -298,6 +306,8 @@ extern "C" void EndJtMode(JTMODE *p) {
  * Confidence: high [T1 0.80] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Mode state change: -1 off, 0 starting, 1 running (pushes the look camera policy at priority 7 for kinds 0/2 or the
+// recon camera at priority 8 for kind 1, stops the hero and ducks sound buses 0/1 to 0.6), 2 ending; the HUD follows.
 void SetJtModeState(JTMODE *pjtmode, int nState)
 {
     ASEG *paseg;
@@ -445,6 +455,8 @@ void SetJtModeState(JTMODE *pjtmode, int nState)
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Per-frame mode state machine: state 0 waits for the start clip then runs, state 1 turns the player toward the look
+// direction, state 2 waits for the end clip then turns the mode off; updates the HUD.
 extern "C" void UpdateJtMode(JTMODE *p)
 {
     int n;
@@ -496,6 +508,7 @@ extern "C" void UpdateJtMode(JTMODE *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r4b_rest+runtime
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Initializes the mode HUD record: owner, state -1; for Sly (CID 0x35) also binds the recon selector at JT+0x1D40.
 extern "C" void InitJtModeHud(JTMODEHUD *p, JTMODE *pjtmode)
 {
     p->pjtmode = pjtmode;
@@ -516,6 +529,7 @@ extern "C" void InitJtModeHud(JTMODEHUD *p, JTMODE *pjtmode)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Finds the per-character HUD widgets by oid (Sly 0x35F/0x368, Bentley 0x360/0x369, Murray 0x361/...).
 extern "C" void PostLoadJtModeHud(JTMODEHUD *p)
 {
     if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pjtmode->pstepplayer, 0x35)) {
@@ -540,6 +554,8 @@ extern "C" void PostLoadJtModeHud(JTMODEHUD *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// HUD state change: on first use gathers the world's tag list; state 0 broadcasts game event 0xC for recon and starts
+// the timers and speaker labels.
 extern "C" void SetJtModeHudState(JTMODEHUD *p, int st)
 {
     int old;
@@ -625,6 +641,7 @@ typedef char Alignment_5[__alignof__(GTASK)==4?1:-1];
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Collects the world's tag ids from the game record and sorts them (qsort) for the HUD. (inferred)
 extern "C" void GatherJtModeHudTags(JTMODEHUD*p){
  WIDGET*pt=p->pwidgetHud;
  if(!pt)return;
@@ -658,6 +675,7 @@ static inline void Equal(int&value,WIDGET*q){value=0;if(!q||q->nState==2)value=1
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Per-frame HUD update for the current mode state (widget update, timers).
 extern "C" void UpdateJtModeHud(JTMODEHUD *p)
 {
 
@@ -713,4 +731,5 @@ store:
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
+// Makes the given widget the active HUD widget, or the default one when null.
 extern "C" void SetJtModeHudOverride(JTMODEHUD *s, WIDGET *a) { if (a) s->pwidgetCur = a; else s->pwidgetCur = s->pwidgetDefault; }

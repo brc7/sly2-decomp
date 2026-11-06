@@ -63,6 +63,8 @@ void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
  * See: docs/engine/object-model.md#8-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
+// RAIL::Init (vtable slot 7): shape init, then its GRABSPOT part; sets the two rail tuning values (+0x1C4 = 1,
+// +0x1C0 = 1000; meaning not identified).
 extern "C" void InitRail(RAILV *p)
 {
     InitShape(p);
@@ -77,6 +79,8 @@ extern "C" void InitRail(RAILV *p)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
+// RAIL post-load (slot 15): if the level left the length at the 1e10 sentinel, uses the shape's length plus
+// D_002C1EC0 (1250).
 extern "C" void PostRailLoad(RAILV *p)
 {
     PostLoLoad(p);
@@ -91,6 +95,8 @@ extern "C" void PostRailLoad(RAILV *p)
  * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
+// RAIL slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's rail list
+// (g_sw.dlCid13) so the player's grab search sees it.
 void RAIL::Unfreeze()
 {
     RAILV *p = (RAILV *)this;
@@ -106,6 +112,7 @@ void RAIL::Unfreeze()
  * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23+verdicts_A2+verify_side
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
+// RAIL slot 22 (OnRemove): LO base, then leaves the world's rail list.
 extern "C" void OnRailRemove(RAILV *p)
 {
     OnLoRemove(p);
@@ -119,6 +126,7 @@ extern "C" void OnRailRemove(RAILV *p)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
+// RAIL::Clone (slot 41): clones the shape but keeps this rail's own 8-byte link at +0x1B4.
 extern "C" void CloneRail(RAILV *p)
 {
     K k = p->k;
@@ -165,6 +173,7 @@ extern "C" void ClampRailGrabDistance(RAILV *p, T *q, float *pf)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#rail-0x1cb908-0x1cbeb0
  * @end-sly2-annot */
+// GRABSPOT interface: the rail point at distance `distance`; optionally the offset from the player's position to it.
 extern "C" void GetRailGrabPosition(RAILV *a, float g, P *p, VECTORV *pv)
 {
     VECTORV v;

@@ -79,6 +79,8 @@ void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/player.md#10-source-files,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
+// PIPE::Init (vtable slot 7): shape init, its GRABSPOT part, grabbing enabled, the default reference axis and two
+// grab parameters (8 and 9, as HND uses).
 extern "C" void InitPipe(PIPEV *p)
 {
     InitShape(p);
@@ -97,6 +99,7 @@ extern "C" void InitPipe(PIPEV *p)
  * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
+// PIPE slot 23 (OnAdd: the object enters the active world): LO base, then joins the world's pipe list (g_sw.dlCid11).
 void PIPE::Unfreeze()
 {
     PIPEV *p = (PIPEV *)this;
@@ -112,6 +115,7 @@ void PIPE::Unfreeze()
  * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
+// PIPE slot 22 (OnRemove): LO base, then leaves the world's pipe list.
 extern "C" void OnPipeRemove(PIPEV *p)
 {
     OnLoRemove(p);
@@ -125,6 +129,8 @@ extern "C" void OnPipeRemove(PIPEV *p)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
+// PIPE post-load (slot 15): if the level left the length at the 1e10 sentinel, uses the shape's length plus
+// D_002C0D00 (1250).
 extern "C" void PostPipeLoad(PIPEV *p)
 {
     PostLoLoad(p);
@@ -137,6 +143,7 @@ extern "C" void PostPipeLoad(PIPEV *p)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
+// PIPE::Clone (slot 41): clones the shape but keeps this pipe's own 8-byte link at +0x1B4.
 extern "C" void ClonePipe(PIPEV *p)
 {
     K k = p->k;
@@ -209,6 +216,10 @@ struct WORK { M3 basis; qword tangent, first, direction; };
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8,
  *   docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
+// The climbing frame at `distance` along the pipe: searches sample distances around it until the local direction
+// agrees with the start tangent, rotates the pipe's reference axis accordingly and builds an orthonormal basis
+// (side, up, along). With forward == 0 the side and up rows are flipped (climbing the other way). Used by the
+// player's pipe state to orient Sly and by the grab-spot interface.
 extern "C" void GetPipeGoalMatrix(PIPEV *p, float distance, int forward, M3 *out)
 {
     WORK w;
@@ -358,6 +369,7 @@ extern "C" int GetPipeGrabRange(PIPEV *p, float *pg)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/player.md#pipe-0x1c3390-0x1c3d70
  * @end-sly2-annot */
+// Enables or disables grabbing this pipe (+0x1AC holds the inverted flag). (inferred)
 extern "C" void SetPipeGrabEnabled(PIPEV *p, int f)
 {
     p->n1ac = (f == 0);

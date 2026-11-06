@@ -1,6 +1,8 @@
 // hang.cpp -- the player hanging and swinging from a hang point (JT): the swing blend, the pendulum acceleration
 // (CalculateJtHangAccel, AnticipateJtForce for a moving anchor), the hang states, heading and IK goals. VU0 and EE asm,
 // register-pinned. TU 0x18F908..0x191090 (12 functions, address order).
+// Entry points: PostJtLoadSwing (setup), UpdateJtActiveHang__FP2JT (per frame), PresetJtAccelHang__FP2JT and
+// AddJtExternalAccelerations (physics), RenderJtHangIk/UpdateJtHangIkGoals (hand IK). Ported from Sly 1 stephang.c.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_hang
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00191070
 #include "sly2/slotheap.h"
@@ -132,6 +134,8 @@ void CroutSolve(int,float*,float*,float*);
  * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Creates the 3-entry dynamic swing blend (forward, backward, idle) over the swing clips and returns it through the
+// out pointer (Sly 1: PostJtLoadSwing).
 extern "C" void PostJtLoadSwing(void *p, void *q, int *pn)
 {
     int n;
@@ -187,6 +191,8 @@ static inline const qword&Ref(const qword&q){return q;}
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Solves a 3x3 linear system (Crout decomposition) of the per-axis impulse responses of Sly and the hang object to
+// find the force pair that produces the requested relative velocity; stores it for AddJtExternalAccelerations.
 extern "C" void AnticipateJtForce(NODE*p,NODE*other,qword*point,float*input,DELTA*out){
  int axisIndex=0,side;
  OBJ objects[2];U points[2];/* initializer only marks axis addressable at its declaration (keeps slot 0x30) */qword axis=(sizeof(&axis),axis);
@@ -264,6 +270,8 @@ static inline qword QwAddScaled2Q(qword base,qword a,qword b,qword k){qword r;__
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Swing physics while hanging from a hook: pendulum motion around the hand-hold, smoothed swing angle, then
+// AnticipateJtForce for the resulting acceleration.
 extern "C" void CalculateJtHangAccel__FP2JT(JT*p){
  U anchor,displacement,anchorVelocity,axis;
  anchor.q=func_001A62E8(p->target);
@@ -346,6 +354,8 @@ static inline M3P Mul(const M3P &a, const M3P &b) return r
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Physics preset while hanging: applies the hang force, then turns Sly toward the tilt (toward the hook) times the
+// target spin (radTarget).
 extern "C" void PresetJtAccelHang__FP2JT(JT *p)
 {
     U v, d;
@@ -369,6 +379,7 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *p)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Physics callback: applies the stored force pair as velocity and angular velocity to the hung-from object.
 extern "C" void AddJtExternalAccelerations(JT *s) { AddSoAcceleration(s->link->object, s->response[1].first.q); func_001FAC98(s->link->object, s->response[1].second.q); }
 
 // Update target-facing movement modes and animation weights.
@@ -429,6 +440,8 @@ typedef char WORK_target_Offset[FIELD_OFFSET(WORK,target)==160?1:-1];
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Per-frame hang update (a close port of Sly 1's UpdateJtActiveHang): heading from the hook, stick forward/back
+// detection (60/120 degree cones), swing animation weights, jump-off/drop via SetJtState, then CalculateJtHangAccel.
 extern "C" void UpdateJtActiveHang__FP2JT(JT*p){
  WORK w;int near=0,far=0;
  GetJtHangHeading__FP2JTPf(p,&w.heading);
@@ -544,6 +557,7 @@ typedef char final_alignment_11[__alignof__(SMP)==4?1:-1];
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Writes the heading of the hook object (x18C4): atan2 of its world matrix's first row.
 extern "C" void GetJtHangHeading__FP2JTPf(JT *p, float *pg) {
     float *a, *b;
     { NODE *o = p->target; VTE *e = &o->vt[31]; a = ((float *(*)(void *))e->fn)((char *)o + e->delta); }
@@ -566,6 +580,8 @@ typedef char DataPointer_Size[sizeof(NODE*)==4?1:-1];
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// The point on the hook's surface nearest the hand: hook position plus the normalized hook-to-hand direction times
+// the hook radius.
 extern "C" qword GetJtHangHandlePosition(JT *p)
 {
     qword q, d, dir, r;
@@ -608,6 +624,8 @@ extern "C" qword GetJtHangHandlePosition(JT *p)
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Render-time fix-up while hanging: moves the hand child transform so the hand reaches GetJtHangHandlePosition (plus
+// the smoothed hand offset), refreshes its matrix, then renders.
 extern "C" void RenderJtHangIk(JT *p)
 {
     IKJ *t;
@@ -641,6 +659,8 @@ extern "C" void RenderJtHangIk(JT *p)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#hang-0x18f908-0x191090
  * @end-sly2-annot */
+// Orients the hand toward the hook (fixed wrist angle D_002BF594), sets the wrist actuator from the Euler angles and
+// smooths the hand offset toward zero.
 extern "C" void UpdateJtHangIkGoals__FP2JT(JT *p)
 {
     M3P m;

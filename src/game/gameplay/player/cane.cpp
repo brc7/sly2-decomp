@@ -1,6 +1,8 @@
 // cane.cpp -- the player's cane attacks (JT): attack state changes with their animations, sounds and timing
 // (SetJtJtcs), per-frame input, sweep direction, and choosing the attack/sweep/rush/smash target. VU0 and EE asm,
 // register-pinned. TU 0x18E540..0x18F908 (12 functions, address order).
+// Entry points: SetJtCaneState__FP2JTi (cane state machine), UpdateJtActiveCane__FP2JT (input),
+// ChooseJtAttackTarget and its sweep/rush/smash wrappers.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cane
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0018F8E8
 #include "sly2/slotheap.h"
@@ -155,6 +157,9 @@ extern U D_002BF4E0;
  * See: docs/engine/player.md#5-sly-jt-jtcpp-0x188488--component-tus, docs/engine/player.md#10-source-files,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
+// Sets Sly's cane state (JT+0x18D8, jtcs): leaves the old one (removes the sweep effect unless continuing, stops the
+// reach tracker), resolves the generic sweep state 3 to a fore/back sweep (4/5 or 6/7), and enters the new one
+// (blend clip, contact deadline, sounds). -1 ends any cane action.
 extern "C" void SetJtCaneState__FP2JTi(JT*p,int state){
  if(p->state==state)return;
  int compatible=0;
@@ -401,6 +406,7 @@ typedef char layout_WORK_first[((unsigned long)&((WORK*)0)->first==0x20)?1:-1];
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// In the reach cane state (0) runs the hand reach tracker (UpdateJtHands on JT+0x17D0).
 extern "C" void UpdateJtCane__FP2JT(JT *p)
 {
     if (p->state == 0)
@@ -416,6 +422,8 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// True if the target lies behind Sly: the midpoint of the hook child and the right-hand transform has y > 0 in Sly's
+// local frame, so a back sweep is used.
 extern "C" int ShouldJtSweepBack(JT *p)
 {
     union { qword q; float f[4]; } u;
@@ -443,6 +451,8 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// Picks the cane attack state: takedown (jts 0x10) if a nearby target (within D_002BF4AC) has its takedown behaviour
+// (0xB1) pointing at Sly; from a sidestep, 0xE/0x10/0x12/0x14 by heading quadrant; else 0xE, or 0xC on the ground.
 extern "C" int ChooseJtAttackCaneState(JT *p)
 {
     int n;
@@ -508,6 +518,7 @@ extern "C" int ChooseJtAttackCaneState(JT *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// The next sweep cane state: alternates 0x16 and 0x17, otherwise 0x17 for a back sweep (ShouldJtSweepBack) or 0x16.
 extern "C" int ChooseJtSweepCaneState(JT *p)
 {
     int r;
@@ -530,6 +541,8 @@ extern "C" int ChooseJtSweepCaneState(JT *p)
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// Per-frame cane input: per-state allow lists (in hang states square (0x80) launches a jump through SetJtAirJump;
+// sidestep sub-cases), then a buffered attack button (0x10/0x80) within 0.35 s restarts the swing.
 extern "C" void UpdateJtActiveCane__FP2JT(JT *p)
 {
     int f;
@@ -615,6 +628,8 @@ static inline int IsBonus(ALO*const &n){return PloFindSwObjectByClass__FP2SWi3CI
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// Searches the world's target list for the best TARGET matching `flags` within 300 units of Sly's predicted position
+// (pos + velocity * dt + a rotated offset) and inside the heading cone `maxAngle`; outputs the target and its data.
 extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtInput,U*offset,ALO**out,qword*outvector,float cone){
  register float heading __asm__("$f21")=headingInput; float dt=dtInput; // the one pin: heading in f21 (else f20/f21 swap)
  M3 rotation;
@@ -661,6 +676,8 @@ extern "C" void ChooseJtAttackTarget(ALO*p,float headingInput,int mask,float dtI
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// Finds a sweep target (flags 2, dt 0.15, cone 3.15 rad when standing else 1.6), blends the two sweep clips by the
+// target's height ((z + 50) / 110, clamped) and faces the target when standing.
 extern "C" void ChooseJtSweepTarget(JT *p, BLEND *pblend, ASEG *paseg)
 {
     U v;
@@ -688,6 +705,7 @@ extern "C" void ChooseJtSweepTarget(JT *p, BLEND *pblend, ASEG *paseg)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_B
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// Finds a rush target (flags 8, dt 0.25, cone 1.0 rad) and turns Sly toward it.
 extern "C" void ChooseJtRushTarget__FP2JT(JT *p)
 {
     U v;
@@ -710,6 +728,7 @@ extern "C" void ChooseJtRushTarget__FP2JT(JT *p)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/player.md#cane-0x18e540-0x18f908
  * @end-sly2-annot */
+// Finds a smash target (flags 4, dt 0.25, cone 3.15 rad) and faces it.
 extern "C" void ChooseJtSmashTarget__FP2JT(JT *p)
 {
     U v;

@@ -1,6 +1,7 @@
 // throw.cpp -- JTTHROW, the player carrying and throwing an object: init/load, aiming (the hold point follows the
 // stick within a range around the player), the predicted arc and its marker, the throw states with their animations,
 // and the launch. VU0 and EE asm, register-pinned. TU 0x21F2E0..0x220D40 (12 functions, address order).
+// Entry points: InitThrow/PostJtThrowLoad (setup), UpdateJtThrow (per frame), SetJtThrowState, ReleaseJtThrowObject.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_throw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00220D20
 #include "sly2/slotheap.h"
@@ -147,6 +148,8 @@ static inline void SetV(V3 *pv, float x, float y, float z) { pv->x = x; pv->y = 
  *   docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc,
  *   docs/engine/player.md#10-source-files
  * @end-sly2-annot */
+// Initializes the player's carry/throw controller (JTTHROW): owner, state -1, aim ranges 500/1500, timing and the
+// default launch vectors.
 extern "C" void InitThrow(JTTHROW *p, O *a)
 {
     p->owner = a;
@@ -171,6 +174,7 @@ extern "C" void InitThrow(JTTHROW *p, O *a)
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// Post-load: builds the three aim blends (2-clip, 4-clip and 2-clip).
 extern "C" void PostJtThrowLoad(JTTHROW *p)
 {
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p->owner, 0xC, 2, &p->blend0, 0, 0, 0, &p->animation0);
@@ -284,6 +288,8 @@ static inline void CopyRange(RANGE &destination,const RANGE &source){
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// Per-frame carry/aim controller: target selection, aim angles (limited), the predicted arc (UpdateJtThrowArc) and
+// state transitions (SetJtThrowState).
 extern "C" void UpdateJtThrow(JTTHROW *s){
  WORK w;
  register CONTROL *control asm("$19")=s->owner->control;
@@ -401,6 +407,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s){
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// Object filter for the arc's box search: rejects objects with flag 0x59, otherwise defers to the default filter.
 extern "C" int FilterJtThrowArcObject(void *a, SOPAIR *b)
 {
     if (FIsBasicDerivedFrom__FP5BASIC3CID(b->p, 0x59))
@@ -469,6 +476,8 @@ namespace RO_ORDER { extern const float r_D_002A96A0 __asm__("D_002A96A0") = 3.4
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// Predicts the arc of the held object, line-tests 28 samples against the world, writes up to 30 points into the aim
+// marker ring and updates the aim blends.
 extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
 {
  qword posLaunch=ConvertAloPos(pjtthrow->owner,0,pjtthrow->secondary.q);
@@ -597,6 +606,7 @@ float D_002C410C = 300.0f;   /* a plain float: 4-aligned in the ELF, where the F
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// In states 4..6 moves the hold point toward its goal (gain D_002C4108). (inferred)
 extern "C" void UpdateJtThrowHoldPosition(JTTHROW *owner,Q *value){
  V plane,scratch;
  register float gain asm("$f1");register G *movementAddress asm("$3");register qword prior asm("vf2"),position asm("vf5");
@@ -635,6 +645,8 @@ extern "C" void UpdateJtThrowHoldPosition(JTTHROW *owner,Q *value){
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// Intersection-flag hook: for the carried object while carrying (state >= 3, or the player in state 0x12) adds the
+// ignore flags so the player does not collide with it; otherwise returns the flags unchanged.
 extern "C" int AdjustJtThrowFindFlags(JTTHROW *p, O *po, int n)
 {
     if (po == p->selected) {
@@ -660,6 +672,8 @@ static inline int Enabled(void){register int value asm("$3");asm("addiu %0,$zero
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// In states 4..6: stores the launch and target points, flight time = distance / speed, start time = now, and marks
+// the flight active.
 extern "C" void StartJtThrowFlight(JTTHROW *p, void *q)
 {
     int k = p->state;
@@ -688,6 +702,7 @@ extern "C" void StartJtThrowFlight(JTTHROW *p, void *q)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// Detaches the carried object and gives it its launch linear and angular velocity; removes the arc marker.
 extern "C" void ReleaseJtThrowObject(JTTHROW *p)
 {
     O *po;
@@ -789,6 +804,7 @@ static inline qword SavedPlayerAndOwnerS(qword position,const JTTHROW*state,O*&r
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// State transitions of the carry/throw controller and selection of the matching animation.
 extern "C" void SetJtThrowState(JTTHROW *s,int state){
  WORKS w;
  int old=s->state;
