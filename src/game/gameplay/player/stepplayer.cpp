@@ -23,6 +23,7 @@
 #include "sly2/slotheap.h"
 #include "sly2/stackscope.h"
 #include "sly2/cm.h"
+#include "player_input.h"
 
 // The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
 // the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views below only declare the words they read.
@@ -297,8 +298,8 @@ extern struct G D_002DFC00;
 extern char D_003DA0F0[];
 void UpdateStep(struct P *p);
 void UpdateStepplayerGadgets(struct P *p);
-int GrfConsumePressed__5POCTLUif(struct Q *q, float g, int n);
-int GrfPressedWithin__5POCTLUif(struct Q *q, float g, int n);
+int GrfConsumePressed__5POCTLUif(struct Q *q, int grf, float g);
+int GrfPressedWithin__5POCTLUif(struct Q *q, int grf, float g);
 void AcknowledgeStepplayerHint(struct P *p);
 void UpdateJtgoal(int *pl);
 int IsJtgoalHolding(int *pl);
@@ -330,7 +331,7 @@ void UpdateStepplayer(struct P *player)
     int *pl;
     UpdateStep(player);
     UpdateStepplayerGadgets(player);
-    if (GrfConsumePressed__5POCTLUif(player->controller, 0.0f, 0x200))
+    if (GrfConsumePressed__5POCTLUif(player->controller, BUTTON_HINT, 0.0f))
         AcknowledgeStepplayerHint(player);
     pl = &player->xFD0;
     if (player->xDF4 == -1) {
@@ -351,10 +352,11 @@ void UpdateStepplayer(struct P *player)
     PickHeroInteractTarget(player);
     if (player->xEFC && FAsegaRetracted(player->xEFC))
         func_001306A8(&player->xEFC);
-    if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GrfPressedWithin__5POCTLUif(player->controller, 0.0f, 0x100)) {
+    if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GrfPressedWithin__5POCTLUif(player->controller, BUTTON_GADGET_MENU, 0.0f)) {
+
         struct G *pg = &D_002DFC00;
-        if ((pg->x10B4 & 0x108) == 0x100) {
-            SetJoyBtnHandled(pg, 0x100);
+        if ((pg->x10B4 & (BUTTON_GADGET_MENU | BUTTON_RUN)) == BUTTON_GADGET_MENU) {
+            SetJoyBtnHandled(pg, BUTTON_GADGET_MENU);
             OpenGadgetMenuForHero(D_003DA0F0);
         }
     }
