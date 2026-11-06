@@ -255,7 +255,7 @@ extern "C" int MergeSegmentLists(int count1, struct LSG *list1, int count2, stru
 // 0x14CC50: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");
 
-/* Keeps its literal symbol: the C++ signature it names takes VECTOR pointers, the code takes qwords. */
+/* Sly 1's PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG took VECTOR pointers; this one takes qwords, hence a plain name. */
 /** @sly2-annot addr=0x14CC58
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Info: proposed name FindFirstObjectHitByLine (EXISTING); TU clip

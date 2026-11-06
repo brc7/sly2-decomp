@@ -105,8 +105,8 @@ extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int nu
     return group;
 }
 
-/* AppendDzgDz: the symbol is Sly 1's two-argument signature; this one also takes the new row's DZX, so it stays a
-   C-linkage function under that symbol until renamed. */
+/* AppendDzgDz: Sly 1's symbol was AppendDzgDz__FP3DZGP2DZ (two arguments); this one also takes the new row's DZX,
+   so it is a plain C-linkage name. */
 /** @sly2-annot addr=0x158668
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Info: proposed name AppendDzgDz (EXISTING); TU dzg
@@ -205,8 +205,8 @@ extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
     return &group->adzx[row - group->adz];
 }
 
-/* SolveDzg: the symbol is Sly 1's signature (the contacts and objects were arguments there; here they are in the
-   DZGXP), so it stays a C-linkage function under that symbol until renamed. Rows of kind 1 are filled and made
+/* SolveDzg: Sly 1's symbol was SolveDzg__FP3DZGiiPP2XPPiPPP2SO (the contacts and objects were arguments there;
+   here they are in the DZGXP), so it is a plain C-linkage name. Rows of kind 1 are filled and made
    active, then the most violated free row is enforced until none is below -0.01. */
 /** @sly2-annot addr=0x158988
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
