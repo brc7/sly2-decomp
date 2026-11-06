@@ -57,14 +57,17 @@ extern "C" {
 DISPENV D_002DEB80[2];      /* gs' .bss starts here (medium: by layout; menu, save and others read it) */
 extern DISPENVW D_002DEB80W[2] __asm__("D_002DEB80");   /* StartupGs's view of the same array */
 /* The rest of the libgraph double buffer (sceGsDBuff after its two display environments, 0x1E0 bytes): per
- * buffer a GIF tag, the draw environment and its clear packet. Defined as one block so that .bss after it keeps the
- * ELF's addresses. The other three names stay separate extern symbols (address names at +0x10/+0xF0/+0x100): spelled
- * as offsets into the block, g++ shares the base between the two arms of the buffer selects and
- * RestoreGsBuffers/BlastAqwGifsBothFrames no longer match. This TU's DRAWENV view spans a draw environment, its
- * clear packet and the next tag (0xF0, the stride of current+1/current-1). */
-QW D_002DEBD0[30];                      /* buffer 0's GIF tag first */
+ * buffer a GIF tag (0x10) and the draw environment with its clear packet (0xE0), defined as four objects in address
+ * order. The code reads them through separate symbols: spelled as offsets into one block, g++ shares the base
+ * between the two arms of the buffer selects and RestoreGsBuffers/BlastAqwGifsBothFrames no longer match. This TU's
+ * DRAWENV view spans a draw environment, its clear packet and the next tag (0xF0, the stride of
+ * current+1/current-1), so the definitions are qword arrays under the same symbols. */
+QW D_002DEBD0[1];                       /* buffer 0's GIF tag */
+QW D_002DEBE0_def[14] __asm__("D_002DEBE0");   /* buffer 0's draw environment and clear packet */
+QW D_002DECC0_def[1] __asm__("D_002DECC0");    /* buffer 1's GIF tag */
+QW D_002DECD0_def[14] __asm__("D_002DECD0");   /* buffer 1's draw environment and clear packet */
 extern DRAWENV D_002DEBE0, D_002DECD0;
-extern QW D_002DECC0;                   /* buffer 1's GIF tag */
+extern QW D_002DECC0;
 /* gs' .data. */
 int D_002BE590 = 0xF, D_002BE594 = 0, D_002BE598 = 0xFFFF00, D_002BE59C = 0xFF;
 /* gs' .bss after the double buffer, in address order (plain objects are emitted at the end of the file in

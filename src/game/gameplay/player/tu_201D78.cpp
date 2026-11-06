@@ -99,7 +99,7 @@ extern char D_003DD040[], D_002DEB30[];
 
 extern int D_002C3588[];
 #undef D_002DDFA0
-extern qword D_002DDFA0[3];   /* kept: the base+offset form changes UpdateReconTargetVisibility (offset folding) */
+extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");   /* g_cm+0x60, a separate symbol to g++: the base+offset form changes UpdateReconTargetVisibility (offset folding) */
 extern const float D_002A8550;   /* defined below where the ELF has it (.rodata order) */
 
 int CploFindSwObjectsByClass(SW *psw, int grf, CID cid, LOV *ploCtx, int c, RECONTGT **apl);

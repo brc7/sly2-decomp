@@ -66,7 +66,7 @@ extern char D_002DF4B0[];
 extern char D_002DFB00[];
 extern char D_002DFB20[];
 extern float D_002BD398[];
-extern float D_002BD39C[];
+extern float D_002BD39C[] __asm__("D_002BD398+4");   /* D_002BD398[1..]: a separate symbol to g++ (one base changes func_001477D8) */
 extern VECTOR4F D_002BD3B0[4];   /* quad corners */
 extern float D_002BD3F0[8];   /* corner UVs */
 union M4F { float af[16]; M4 m; };   /* floats first, so the matrix can be initialized */

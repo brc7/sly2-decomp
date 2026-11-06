@@ -141,7 +141,7 @@ extern char D_002DEB30[];       /* the game */
 extern SAVE D_002E65E0;   /* the save manager */
 extern int D_004425D8;
 extern char D_003D9ED0[];       /* the pause menu */
-extern MEMCARD D_002F633C;      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
+extern MEMCARD D_002F633C __asm__("D_002E65E0+0xFD5C");      /* the save manager's worker (D_002E65E0 + 0xFD5C) */
 extern CLOCK D_002DDED0;
 extern void *D_002D3750[];      /* CMemcardDialog vtable */
 extern char D_002A38E8[];   /* the icon file */
@@ -1954,7 +1954,7 @@ extern struct MC D_002E65E0;
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
 extern char D_003D9ED0[];
-extern char D_002F633C[];
+extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 extern const struct LONGU D_002A6D88;
 int func_0020E040(void *g);
 int func_001ACC80(struct S *s);
@@ -2171,7 +2171,7 @@ struct LONGU { long l; } __attribute__((packed));   /* B4: the 8-byte struct pas
 struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { char pad[0x40]; int x40; };
 extern const struct LONGU D_002A6E88, D_002A6D88, D_002A6E90;
-extern char D_002F633C[];
+extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 void func_001AD3E0(void);
 void CreateMemcardThread(void *t, long pmf);
 void SetMcDialogState(struct S *s, int n);
@@ -2366,7 +2366,7 @@ struct E { char pad[0x14]; int x14; int pad2[1]; };
 struct H { char pad[0x24]; int x24; };
 extern "C" {
 extern struct G D_002E65E0;
-extern struct B D_002E6604[];
+extern struct B D_002E6604[] __asm__("D_002E65E0+0x24");
 extern char D_002E6550[];
 extern struct GD D_003DD490;
 extern struct H D_003D9ED0;
@@ -2565,7 +2565,7 @@ extern struct G D_003D9ED0;
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct GD D_003DD490;
-extern struct B D_002E6604[];
+extern struct B D_002E6604[] __asm__("D_002E65E0+0x24");
 int func_001B0108(struct G *g);
 int IdPauseTopPage(struct G *g);
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
@@ -2651,7 +2651,7 @@ struct G{char pad[0x3A18];char object[0x104];void*primary;int pad20[2];void*fall
 struct B{char data[0x5464];};
 extern "C" {
  extern G D_003DD490;
- extern B D_002E6604[];
+ extern B D_002E6604[] __asm__("D_002E65E0+0x24");
  extern char D_003D9ED0[];
  void*RefGetGlobalSaveVar(REF*,void*,void*);
  void Decref__4CRef(REF*);

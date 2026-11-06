@@ -83,7 +83,7 @@ extern GSV D_002DEB80;
 #define D_003DD18C (*(float *)((char *)base_D_003DD040 + 0x14C))   /* the sound manager (SNDMGRG)+0x14C */
 extern SNDMGR D_003DD040;
 extern char D_002BBB60[];
-extern CONTEXT D_002E6604[];
+extern CONTEXT D_002E6604[] __asm__("D_002E65E0+0x24");   /* the save manager's contexts (+0x24) */
 extern MCDLG D_002E6550;
 extern GSAVE D_002E65E0;
 #undef D_003DD050

@@ -286,9 +286,9 @@ extern struct G D_003DD490;
 struct F { int id; char pad[0x1C]; };
 struct E { int c; struct F *af; char pad[0xC]; int x14; char pad2[4]; };
 #undef D_003D9EDC
-extern struct E D_003D9EDC[];   /* kept: the base+offset form changes func_00211298 (CSE of the base) */
+extern struct E D_003D9EDC[] __asm__("D_003D9ED0+0xC");   /* screen's object+0xC, a separate symbol to g++: the base+offset form changes func_00211298 (CSE of the base) */
 #undef D_003D9EF4
-extern int D_003D9EF4;   /* kept: see D_003D9EDC */
+extern int D_003D9EF4 __asm__("D_003D9ED0+0x24");   /* screen's object+0x24; see D_003D9EDC */
 const char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
 char *strcpy(char *dst, const char *src);
 /** @sly2-annot addr=0x211298
@@ -427,7 +427,7 @@ extern "C" { extern QW D_004425A0[3]; }
 extern "C" { extern QW D_004424F0[3]; }
 extern "C" { extern QW D_00442520[4]; }
 extern "C" { extern int D_002DEDB0; }
-extern "C" { extern ulong D_002DECE0,D_002DEBF0; }
+extern "C" { extern ulong D_002DEBE0[] __asm__("D_002DEBE0"), D_002DECD0[] __asm__("D_002DECD0"); }   /* gs.cpp's draw environments (sceGsDrawEnv1) */
 /** @sly2-annot addr=0x211528
  * Purpose: startup-table entry: builds the static GIF register packets used by sprite/HUD rendering
  * Info: proposed name StartupScreen (T2); TU hud
@@ -455,7 +455,7 @@ extern "C" void func_00211528(){
  tiles.PackAD(0x4A,0);tiles.PackAD(0x42,0x44);tiles.PackAD(0x47,0x50000);
  tiles.AddPrimEnd();
  GIFS frame;
- ulong *active=(D_002DEDB0&1)?&D_002DECE0:&D_002DEBF0;
+ ulong *active=(D_002DEDB0&1)?&D_002DECD0[2]:&D_002DEBE0[2];   /* the draw environment's zbuf (+0x10) */
  ulong frameWord=*active;
  frame.AllocStatic(3,D_00442210);
  frame.AddPrimPack(0,1,0xE);frame.PackAD(0x3F,0);frame.PackAD(0x4E,0x3A000000L|(frameWord&0x1FF));
