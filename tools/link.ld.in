@@ -1,6 +1,8 @@
 /* Template for build/link/sly2.ld, written by tools/link.py (docs/guides/full-link.md).
    SECTIONS below: one output section per allocated section of the ELF, at its address, holding the object sections
-   placed there in address order and blobs cut from the ELF for every byte no object covers.
+   placed there in address order (whole .text/.data/.rodata/.bss per object, per function for the objects in
+   fallback), blobs cut from the ELF for the bytes no object covers, and an address assignment only where the
+   linker's own layout would not land (gaps in .bss/.sbss); padding filled with zeros.
    After it: _gp from the ELF's .reginfo, tools/linkaliases.py's aliases, and the absolute addresses of names that
    only unbuilt code or data defines. */
 ENTRY(_start)
