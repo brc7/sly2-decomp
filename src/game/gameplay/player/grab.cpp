@@ -804,7 +804,7 @@ void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void UpdateJtHands(void *);
 void func_001A0450(ACTOR *, ENTRY *, void *);
 void func_00205910(ACTOR *, HEIGHT *, int, U *);
-BINDING *func_0012FF10(void *, ACTOR *, int, int);
+BINDING *FindAsegChannel(void *, ACTOR *, int, int);
 void FaceStepToward(ACTOR *, FOCUS *);
 void FixStepAngularVelocity(ACTOR *);
 void RebuildJtXmg(ACTOR *, void *, void *, void *, float, void *);
@@ -1132,7 +1132,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         ACTOR *actor = ctx->actor;
         ANIM *anim = actor->anim;
         if (anim) {
-            BINDING *b = func_0012FF10(anim->table, actor, 1, 1);
+            BINDING *b = FindAsegChannel(anim->table, actor, 1, 1);
             if (b) {
                 ReadBinding(b, anim, &v);
                 v.q = QwScale(v.q, VuFloat(-1.0f));

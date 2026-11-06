@@ -418,7 +418,7 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkAsegAPPLY (was src/game/app/splice_thunks/RefThunkAsegAPPLY.cpp) ----
 namespace T_RefThunkAsegAPPLY {
-extern "C" { void * func_00130488(void *p, int, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
+extern "C" { void * ApplyAsegToObject(void *p, int, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x101910
  * Purpose: Splice option thunk: optid 214 on ASEG (g_aeopid[106] thunkFn, returns 0x2086, crefReq 4); unpacks
  *   4 args (0x2030, Float, Float, 0x100B) -> 0x2086 via RefSetArgsFromSplice then calls PasegaApplyAseg
@@ -436,7 +436,7 @@ CRef RefThunkAsegAPPLY(void *p, int c, void *aref)
     float v2;
     int v3;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, aref, ak, &v0, &v1, &v2, &v3);
-    ref = func_00130488(p, v0, v1, v2, v3);
+    ref = ApplyAsegToObject(p, v0, v1, v2, v3);
     return ref;
 }
 } // namespace T_RefThunkAsegAPPLY

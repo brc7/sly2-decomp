@@ -544,7 +544,7 @@ struct U { int n0; int n4; };
 struct S { int pad0; char a4[8]; struct VTE *vt; char pad[8]; char a18[0x18]; struct T *pt; int n34; int n38; int pad3; int n40; struct U *pu; int pad4; int n4C; };
 void PopBhv(void *p);
 void FramePtr_Assign(struct S *p, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *p, int n);
+void AssignSidebagRef(void *p, int n);
 /** @sly2-annot addr=0x171258
  * Purpose: Switches the script (cid 0x71) a BHV169 runs: stops the old one (message 3), starts the new
  *   (message 2) at its first command or a saved resume point
@@ -558,7 +558,7 @@ void func_00171258(struct S *p, struct T *t, int a, struct U *u) {
         PopBhv(p->a18);
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 3, 0, 0, 0, 0);
         FramePtr_Assign(p, 0);
-        func_002580A8(p->a4, 0);
+        AssignSidebagRef(p->a4, 0);
         p->n34 = 0;
         p->n38 = 0;
         p->n40 = 0;
@@ -745,7 +745,7 @@ extern "C" { void func_002562A8(struct X *x); }
 inline X::X() { func_002562A8(this); }
 extern "C" { int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n); }
 extern "C" { void SetBhvgotoGoal(void *o, struct X *x); }
-extern "C" { void func_0012F9B8(void *o, int a, int b, void *c, float f, float g); }
+extern "C" { void ApplyAsegCore(void *o, int a, int b, void *c, float f, float g); }
 extern "C" { void *func_001711F0(void *p, int id); }
 extern "C" { void SetBhvBusy(struct S *p); }
 extern "C" { void ClearBhvBusy(struct S *p); }
@@ -877,7 +877,7 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
         break;
     }
     case 8: {
-        func_0012F9B8(func_001715B8(p, c->n4), 0, 0, &t, 0.0f, 1.0f);
+        ApplyAsegCore(func_001715B8(p, c->n4), 0, 0, &t, 0.0f, 1.0f);
         break;
     }
     case 9:

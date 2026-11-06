@@ -62,8 +62,8 @@ struct MRSGC
       int cmrsg;
       MRSG *amrsg;
 };
-void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("func_0012FE58");
-CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("func_0012FF10");
+void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("ResolveAsegChannelTarget");
+CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("FindAsegChannel");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 void FillBlAmrsg(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
 void ReblendAsegbl(ASEGBL *pasegbl) __asm__("RecalculateAsegBlend");
@@ -158,8 +158,8 @@ qword func_001A62E8(void *p);
 void SetSndSourcePos(void *p, qword q);
 void SetSndRange(void *p, float a, float b);
 void func_001FB1F8(void *p, float t);
-EA *func_0012F938(ASEG *paseg, int n);
-CHN *func_0012FF10(ASEG *paseg, ALO *palo, int kind, int check);
+EA *FindAsegLabel(ASEG *paseg, int n);
+CHN *FindAsegChannel(ASEG *paseg, ALO *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
 qword GetSoDvGravity(ALO *);
@@ -171,7 +171,7 @@ qword ConvertXfVec(XF *,XF *,qword);
 ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
 void SetSoDvGravity(ALO *,qword);
-void func_00130D30(ASEGA *,int,float,float);
+void SeekAsega(ASEGA *,int,float,float);
 void func_0020B2A8(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
 int FAsegaRetracted(ASEGA *);
@@ -451,13 +451,13 @@ extern "C" void func_0020BD88(BLCURVE *p, ALO *arg)
         if (!p->paseg)
             return;
     }
-    pa = func_0012F938(p->paseg, 0x22);
+    pa = FindAsegLabel(p->paseg, 0x22);
     if (!pa)
         return;
-    pb = func_0012F938(p->paseg, 0x23);
+    pb = FindAsegLabel(p->paseg, 0x23);
     if (!pb)
         return;
-    pc = func_0012F938(p->paseg, 0x24);
+    pc = FindAsegLabel(p->paseg, 0x24);
     if (!pc)
         return;
     p->a = pa->tLocal;
@@ -465,7 +465,7 @@ extern "C" void func_0020BD88(BLCURVE *p, ALO *arg)
     p->c = pc->tLocal;
     p->cb = p->c - p->b;
     p->ca = p->c - p->a;
-    c = func_0012FF10(p->paseg, arg, 1, 1);
+    c = FindAsegChannel(p->paseg, arg, 1, 1);
     if (!c)
         goto initialized;
     CURVECALL((CV *)c->pkey, &v0.q, 0, p->a, 1.0f);
@@ -690,9 +690,9 @@ void SetLeapState(LEAPV *p,int state)
         SetSoDvGravity(p->subject,acceleration.q);
         break;
     }
-    case 2:func_00130D30(p->job,0,p->tuning->afterStart,1.0f);break;
+    case 2:SeekAsega(p->job,0,p->tuning->afterStart,1.0f);break;
     case 3:
-        func_00130D30(p->job,0,p->tuning->afterEnd,1.0f);
+        SeekAsega(p->job,0,p->tuning->afterEnd,1.0f);
         if(p->related)func_0020B2A8(p->subject,p->related,p->kind);
         break;
     case 4:
@@ -778,7 +778,7 @@ extern "C" void func_0020C7E0(DIRBL *p,ALO *arg)
         e->animation = o;
         if (!o)
             continue;
-        c = func_0012FF10(o,arg,1,1);
+        c = FindAsegChannel(o,arg,1,1);
         ((VECKEY *)c->pkey)->GetValue(0.0f,1.0f,&v0.q,0);
         ((VECKEY *)c->pkey)->GetValue(o->tMax,1.0f,&v1.q,0);
         { register int bits __asm__("$17")=*(int *)&o->tMax;
@@ -942,7 +942,7 @@ extern "C" void func_0020CB28(DIRSEL*p,qword v)
    int id;
    if(p->forward){id=0x17D;animation=best->animation;}
    else {id=0x17F;animation=best->animation;}
-   tag=func_0012F938(animation,id);
+   tag=FindAsegLabel(animation,id);
    if(tag)time=tag->tLocal;
    ApplyAsegCur(best->animation,p->root,time,1.0f,p->flags,&p->active);
    SubscribeLoObject(p->active,p);

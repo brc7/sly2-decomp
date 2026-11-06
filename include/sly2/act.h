@@ -177,8 +177,8 @@ struct ACTSEG : ACT
 {
     char pad1C[0x2C - 0x1C];
     virtual void VSlot1() __asm__("func_00131C40");   /* slot 1 */
-    virtual void VSlot2() __asm__("func_00131C90");   /* slot 2 */
-    virtual void Update() __asm__("func_00131CD8");   /* slot 4 */
+    virtual void VSlot2() __asm__("DetachActseg");   /* slot 2 */
+    virtual void Update() __asm__("UpdateActseg");   /* slot 4 */
     virtual void GetGoal(qword *ppos, VECTOR *pdvec) __asm__("GetActsegGoal");   /* slot 5 */
 };
 

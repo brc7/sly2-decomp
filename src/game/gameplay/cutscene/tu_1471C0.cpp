@@ -75,7 +75,7 @@ void InitSo(P *p);
 void SetLoBusyk(P *p, int n);
 void PostSoLoad(P *p);
 void BindLoOidTable(P *p, int n, void *q);
-void func_001306A8(ASEGA **ppasega);
+void DropAsegaRef(ASEGA **ppasega);
 int FAsegaRetracted(ASEGA *pasega);
 int func_001FE848(void *p, int n);
 void HandleBasicMessage(P *p, int kind, MSG *pmsg);
@@ -163,7 +163,7 @@ extern "C" void func_00147278(P *p)
     case 2:
         ASEGA *pasega = p->pasega;
         if (pasega == 0 || FAsegaRetracted(pasega) != 0) {
-            func_001306A8(&p->pasega);
+            DropAsegaRef(&p->pasega);
             func_00147410(p, -1);
         }
         break;

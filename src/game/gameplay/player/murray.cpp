@@ -457,7 +457,7 @@ struct P {
 };
 void UpdateStepplayer(struct P *p);
 int FAsegaRetracted(struct O *p);
-void func_001306A8(struct O **pp);
+void DropAsegaRef(struct O **pp);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, struct P *p, int n);
 void func_001B5038(struct P *p);
 void UpdateMurrayStateMachine(struct P *p);
@@ -557,7 +557,7 @@ void UpdateMurray(struct P *p)
     if ((((int)(p->x28 >> 60) & 1) == 0))
         return;
     if (p->x190C && FAsegaRetracted(p->x190C))
-        func_001306A8(&p->x190C);
+        DropAsegaRef(&p->x190C);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, p, 0xF8FA);
     func_001B5038(p);
     UpdateMurrayStateMachine(p);
@@ -1236,8 +1236,8 @@ void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
-ENTRY *func_0012F938(ASEG *, int);
-void func_00131A90(ASEGA *, float);
+ENTRY *FindAsegLabel(ASEG *, int);
+void SetAsegaChannelWeight(ASEGA *, float);
 }
 static inline void *Block(P *p, int offset) { return (void *)((char *)p + offset); }
 // virtual call through slot `index` of an object whose vptr is at +0xC
@@ -1342,8 +1342,8 @@ extern "C" void SetMurrayState(P *p, int next)
         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, p, position, 1.0f, flags, animation);
         ReplaceSmaEx(source, p, id, flags, mode, component);
         if (clip || source) {
-            if (clip) { if (duration == position) { ENTRY *e = func_0012F938(clip, 0x1AC); if (e) duration = e->value; } }
-            if (duration != 0.0f) func_00131A90(p->asega, D_002DDED0.t + duration / p->asega->rate);
+            if (clip) { if (duration == position) { ENTRY *e = FindAsegLabel(clip, 0x1AC); if (e) duration = e->value; } }
+            if (duration != 0.0f) SetAsegaChannelWeight(p->asega, D_002DDED0.t + duration / p->asega->rate);
         }
     }
     Call((OBJ *)p, 90);
@@ -1674,9 +1674,9 @@ void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
 void *func_001F7530(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *func_001F7598(struct MSG *pmsg);
-float *func_0012F938(void *p, int n);
-void func_00130D30(struct Q *p, int n, float g, float h);
-void func_00130B18(struct Q *p);
+float *FindAsegLabel(void *p, int n);
+void SeekAsega(struct Q *p, int n, float g, float h);
+void RetractAsega(struct Q *p);
 static inline void Zero(struct V3 *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
@@ -1784,11 +1784,11 @@ void SetMurrayFlopSubstate(struct P *p, int s)
         FreeSwXpList__FP2SWP2XP(D_003DD490, p->plink);
         p->plink = 0;
         {
-            float *pg = func_0012F938(p->p1030->x14, 0x1A5);
+            float *pg = FindAsegLabel(p->p1030->x14, 0x1A5);
             if (pg)
-                func_00130D30(p->p1030, 0, *pg, 1.0f);
+                SeekAsega(p->p1030, 0, *pg, 1.0f);
             else
-                func_00130B18(p->p1030);
+                RetractAsega(p->p1030);
         }
         break;
     }
@@ -2053,7 +2053,7 @@ extern qword D_002A2DC0;
 extern float D_002C09C8;
 qword ConvertXfVec(struct LO*,struct LO*,qword);
 int CSolveQuadratic__FfffPf(float,float,float,float*);
-void func_00130D30(struct ANIM*,int,float,float);
+void SeekAsega(struct ANIM*,int,float,float);
 static inline float Clamp(float inputValue,float inputLower,const float*upper){register float value __asm__("$f0")=inputValue;register float lower __asm__("$f12")=inputLower;float limit=*upper;if(value<lower)return lower;if(limit<value)return limit;return value;}
 static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
 static inline qword FinalLaunchScale(const qword*up,int bits,U*scalar){register qword factor __asm__("vf2"),source __asm__("vf1"),result __asm__("vf3");__asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tvmulx.xyzw %2,%1,%0x\n\tsqc2 %0,%3":"=j"(factor),"=j"(source),"=j"(result),"=m"(scalar->q):"r"(bits),"m"(*up));return result;}
@@ -2139,7 +2139,7 @@ void func_001B7700(struct P*p,qword goal,float*animation,float*duration,qword*ou
   }
   if(!count)t=D_002C09C8;
   else t=Clamp(roots.f[count-1],D_002C09C8,duration);
-  func_00130D30(owner->anim,0,*animation-t*owner->anim->rate,owner->anim->rate);
+  SeekAsega(owner->anim,0,*animation-t*owner->anim->rate,owner->anim->rate);
   {
    register qword actualAcceleration __asm__("vf3");register qword qt __asm__("vf1");
    register float averageTime __asm__("$f0")=0.5f;register int bits __asm__("$2");
@@ -2807,9 +2807,9 @@ void func_00204660(struct P *p, float g);
 void FixStepAngularVelocity(struct P *p);
 void ReleaseSma(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
-float *func_0012F938(void *q, int n);
-void func_00131A90(struct ANIM *pa, float t);
-struct R *func_0012FF10(struct S14 *p, struct P *pp, int a, int b);
+float *FindAsegLabel(void *q, int n);
+void SetAsegaChannelWeight(struct ANIM *pa, float t);
+struct R *FindAsegChannel(struct S14 *p, struct P *pp, int a, int b);
 void func_001431D0(struct P *p);
 static inline qword MulM3(qword *m, qword v)
 {
@@ -2854,14 +2854,14 @@ void SetMurrayAttack(struct P *p, int k)
     ReleaseSma(p->x1034);
     ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(q, p, g, 1.0f, 1, &p->panim);
     if (q) {
-        float *pg = func_0012F938(q, 0x1AC);
+        float *pg = FindAsegLabel(q, 0x1AC);
         if (pg)
             g = *pg;
     }
     if (g != 0.0f)
-        func_00131A90(p->panim, D_002DDED0.t + g / p->panim->g40);
+        SetAsegaChannelWeight(p->panim, D_002DDED0.t + g / p->panim->g40);
     if (p->panim) {
-        struct R *r = func_0012FF10(p->panim->p14, p, 1, 1);
+        struct R *r = FindAsegChannel(p->panim->p14, p, 1, 1);
         if (r) {
             qword a, b, pos, t, v;
             ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &a, 0.0f, 0.0f, 0);
@@ -2882,7 +2882,7 @@ void SetMurrayAttack(struct P *p, int k)
 namespace M_func_001B8938 { extern "C" {
 struct S { char pad[0x1030]; void *p; char pad2[0x190C - 0x1034]; void *q; };
 extern char D_002C09F8[];
-void func_00131B60(void *a, struct S *p, int n, void *s);
+void DetachSoActsMatching(void *a, struct S *p, int n, void *s);
 void SetMurrayState(struct S *p, int n);
 /** @sly2-annot addr=0x1B8938
  * Purpose: Fade the attack overlay (0x131B60), clear it and return to idle
@@ -2892,7 +2892,7 @@ void SetMurrayState(struct S *p, int n);
  * @end-sly2-annot */
 void func_001B8938(struct S *p)
 {
-    func_00131B60(p->p, p, 5, D_002C09F8);
+    DetachSoActsMatching(p->p, p, 5, D_002C09F8);
     p->q = p->p;
     p->p = 0;
     SetMurrayState(p, 0);
@@ -2979,7 +2979,7 @@ struct P {
 extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
 qword func_00204E38(struct P*,struct Q*,float);
-struct PARAM *func_0012F938(void*,int);
+struct PARAM *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertAloVec(void*,void*,qword);
 void FaceStepToward(struct P*,void*);
@@ -3044,8 +3044,8 @@ void func_001B8B70(struct P*p){
         {
             register int active __asm__("$3")=p->blend;
             if(active){
-            struct PARAM *start=func_0012F938(p->source->table,0x240);
-            struct PARAM *end=func_0012F938(p->source->table,0x242);
+            struct PARAM *start=FindAsegLabel(p->source->table,0x240);
+            struct PARAM *end=FindAsegLabel(p->source->table,0x242);
             float t=(p->source->time-start->value)/(end->value-start->value);
             float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
             qword desired=OrbitVector(p);
@@ -3492,7 +3492,7 @@ extern "C" void ReleaseAct(MOTION**);
 extern "C" void SetSoCnstrForce(OWNER*,int);
 extern "C" void SetLoParent_1A58D0(OWNER*,int,int);
 extern "C" void func_001F6860(OWNER*,int);
-extern "C" EVENT*func_0012F938(ASEG*,int);
+extern "C" EVENT*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertAloMat4(void*,void*,M4*);
 extern "C" void func_001B72B0(P*,NODE*,const M4*,qword*,qword*);
@@ -3535,7 +3535,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   func_001F6860(owner,1);
   M4 predicted;
   float duration;
-  EVENT*event=func_0012F938(p->anim->clip,0x1C7);
+  EVENT*event=FindAsegLabel(p->anim->clip,0x1C7);
   duration=(event->time-p->anim->time)/p->anim->rate;
   LoadIdentityMatrix4(p->root->node,p->node,&predicted,0,duration);
   M4 work=ConvertAloMat4(p,0,&predicted);
@@ -3852,7 +3852,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int pad[3]; struct VTE *vt; int pad1[6]; unsigned long f28; };
 struct P { char pad[0x1AD0]; struct O *po; int n1AD4; };
 int FPowerupAcquired(int n);
-void func_0012F9B8(int n, struct O *po, int a, int b, float g0, float g1);
+void ApplyAsegCore(int n, struct O *po, int a, int b, float g0, float g1);
 /** @sly2-annot addr=0x1B9D28
  * Purpose: If power-up 0x11 owned: position effect object (vt29) at given point and play its anim
  * Info: proposed name SpawnMurrayHitEffect (T2); TU murray
@@ -3866,7 +3866,7 @@ void func_001B9D28(struct P *p, qword q)
         if ((((po->f28 >> 60) & 1) == 0)) {
             struct VTE *e = &po->vt[29];
             ((void (*)(void *, qword))e->pfn)((char *)po + e->d, q);
-            func_0012F9B8(p->n1AD4, p->po, 0, 0, 0.0f, 1.0f);
+            ApplyAsegCore(p->n1AD4, p->po, 0, 0, 0.0f, 1.0f);
         }
     }
 }
@@ -3876,7 +3876,7 @@ namespace M_func_001B9DB8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; char pad[0x18]; unsigned long fl; };
 struct S { char pad[0x1AD8]; struct O *po; void *pv; };
-void func_0012F9B8(void *a, struct O *po, int c, int d, float f, float g);
+void ApplyAsegCore(void *a, struct O *po, int c, int d, float f, float g);
 /** @sly2-annot addr=0x1B9DB8
  * Purpose: Same without the power-up check (event 0x40000 from Murray)
  * Info: proposed name SpawnMurrayHitEffect2 (T2); TU murray
@@ -3888,7 +3888,7 @@ void func_001B9DB8(struct S *p, int x)
     if ((((int)(p->po->fl >> 60) & 1) == 0)) {
         struct VTE *e = &p->po->vt[29];
         ((void (*)(void *, int))e->pfn)((char *)p->po + e->d, x);
-        func_0012F9B8(p->pv, p->po, 0, 0, 0.0f, 1.0f);
+        ApplyAsegCore(p->pv, p->po, 0, 0, 0.0f, 1.0f);
     }
 }
 } } // namespace M_func_001B9DB8

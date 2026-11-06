@@ -109,7 +109,7 @@ int FAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
 void func_00136530(O *,int);
-TRACKREF *func_0012FF10(ASEG *,O *,void *,int);
+TRACKREF *FindAsegChannel(ASEG *,O *,void *,int);
 int FFilterSoPair(void *a, SOPAIR *b);
 qword ConvertAloPos(void *,void *,qword);
 qword func_001D6848(qword,qword,qword,float); // CalculateLaunchVelocity
@@ -387,7 +387,7 @@ extern "C" void UpdateJtthrow(JTTHROW *s){
  O *owner=s->owner;
  if(owner->movement!=1)return;
  ASEGAV *animation=owner->animation;
- TRACKREF *reference=animation?func_0012FF10(animation->definition,owner,(void *)6,1):0;
+ TRACKREF *reference=animation?FindAsegChannel(animation->definition,owner,(void *)6,1):0;
  if(reference){
   Evaluate(reference->track,0,&w.scratch.vector,animation->time,animation->scale);
   V *direction=&s->owner->direction;float height=w.scratch.vector.f[2];direction->f[0]=0.0f;direction->f[2]=height;direction->f[1]=0.0f;

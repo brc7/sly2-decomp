@@ -62,7 +62,7 @@ struct PIPE;
 extern "C"{
 extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;SMPV D_002BF928={1500.0f,0.0f,0.5f};extern JT*D_002E1E40;
 extern int D_002DFBC0;
-TRACKREF *func_0012FF10(ASEGV *o, JT *a, int b, int c);
+TRACKREF *FindAsegChannel(ASEGV *o, JT *a, int b, int c);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(JT *a, int b, int c, void *d, int e, int f, int g, void *h);
 void GetPipeGoalMat(PATH *a, float g, int b, M3 *pm);
 M3 *func_001A6318(JT *o);
@@ -126,7 +126,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *p)
     for (i = 0, e = (PIPEBL *)&p->weight0; i < 2; i++, e++) {
         ASEGV *o = e->paseg;
         if (o) {
-            TRACKREF *r = func_0012FF10(o, p->actor, 1, 1);
+            TRACKREF *r = FindAsegChannel(o, p->actor, 1, 1);
             if (r) {
                 r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, 0.0f, 1.0f, &v0, 0);
                 r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, o->duration, 1.0f, &v1, 0);

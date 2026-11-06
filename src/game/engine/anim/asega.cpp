@@ -98,18 +98,18 @@ void func_001F81E0(ALO *, int);
 void func_00143090(ALO *, char *, char *, char *);
 float fmodf(float a, float b);
 
-void func_0012F9B8(ASEG *paseg, ALO *palo, int grfapl, float t, float svt, ASEGA **ppasega);   /* ApplyAseg */
+void ApplyAsegCore(ASEG *paseg, ALO *palo, int grfapl, float t, float svt, ASEGA **ppasega);   /* ApplyAseg */
 void HandleAsegaEvents(ASEGA *p);
 void HandleAsegaEventsFF(ASEGA *p);
 void HandleAsegaEvent(ASEGA *p, EA *pea);
-void func_00130B18(ASEGA *p);
-void func_00130D30(ASEGA *p, int k, float g, float s);
-LO *func_00131270(ASEGA *p);
+void RetractAsega(ASEGA *p);
+void SeekAsega(ASEGA *p, int k, float g, float s);
+LO *GetAsegaEventTarget(ASEGA *p);
 int FWrapAsegaTime(ASEGA *p, float *pt, float *pdt);
 int FAsegaRetracted(ASEGA *p);
 void SetAsegaHandsOff(ASEGA *p, int f);
-void func_00131B10(void *pvId, SO *pso, XF *pxf);
-void func_002580A8(struct R4 **pp, struct R4 *p);
+void DetachXfActById(void *pvId, SO *pso, XF *pxf);
+void AssignSidebagRef(struct R4 **pp, struct R4 *p);
 }
 void UpdateAsegaIeaCur(ASEGA *pasega);
 int FFindDlEntry(DL *pdl, void *pv);                    /* FFindDlEntry__FP2DLPv */
@@ -147,7 +147,7 @@ extern "C" void DecrefAsega(ASEGA *p)
     p->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(p, 0);
-        func_002580A8((struct R4 **)&p->psidebag, 0);
+        AssignSidebagRef((struct R4 **)&p->psidebag, 0);
         UnsubscribeLoAll(p);
         func_0011CD98(&g_sw.slotheapAsega, p);
     }
@@ -195,7 +195,7 @@ extern "C" void UpdateAsega(ASEGA *p)
         if (FAsegaRetracted(p))
             { End(&g); return; }
         if (f && !(p->grfapl & 0x38))
-            func_00130B18(p);
+            RetractAsega(p);
         for (pl = p->povraFirst; pl; pl = pl->povraNext)
             ((void (*)(void *, int, int, float, float))(*(VTE **)pl->pac)[2].pfn)((char *)pl->pac + (*(VTE **)pl->pac)[2].d, pl->x4, 0, p->tLocal, p->svt);
         End(&g);
@@ -210,7 +210,7 @@ extern "C" void UpdateAsega(ASEGA *p)
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/functions/cutscenes.md#relay-0x1dfad8-0x1e5d80
  * @end-sly2-annot */
-void func_00130B18(ASEGA *p)
+void RetractAsega(ASEGA *p)
 {
     if (FAsegaRetracted(p))
         return;
@@ -262,7 +262,7 @@ struct R80 { char pad[0x80]; float gMin; float gMax; float *pg; };
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-void func_00130D30(ASEGA *p, int k, float g, float s)
+void SeekAsega(ASEGA *p, int k, float g, float s)
 {
     float t;
     if (FAsegaRetracted(p))
@@ -405,7 +405,7 @@ void HandleAsegaEventsFF(ASEGA *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-LO *func_00131270(ASEGA *p) { if (p->paloRoot) return (LO *)p->paloRoot; return p->paseg; }
+LO *GetAsegaEventTarget(ASEGA *p) { if (p->paloRoot) return (LO *)p->paloRoot; return p->paseg; }
 
 struct MSG { ASEGA *p; float g; int n; };
 /** @sly2-annot addr=0x131290
@@ -431,7 +431,7 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
         f = pev < pq->aeaFrame + pq->ceaFrame;
     switch ((unsigned int)pev->eak) {
     case 0: {
-        LO *v = func_00131270(p);
+        LO *v = GetAsegaEventTarget(p);
         EASND *pa = pev->pesnd;
         StartSwAsegSound(&D_003DD490, pa->x0, pa->x4, pa->x8, pa->xC, p->paloRoot, v, pq, &p->psnd, pa->g10, pa->g14, pa->g18);
         break;
@@ -446,11 +446,11 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
         TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, pev->pesnd, pev->gC);
         break;
     case 4: {
-        LO *po = PloFindSwObject(&D_003DD490, 4, pev->oid, func_00131270(p));
+        LO *po = PloFindSwObject(&D_003DD490, 4, pev->oid, GetAsegaEventTarget(p));
         if (po) {
             switch (CidBasic(po)) {
             case 0x6D:
-                func_0012F9B8((ASEG *)po, 0, 0, 0.0f, 1.0f, 0);
+                ApplyAsegCore((ASEG *)po, 0, 0, 0.0f, 1.0f, 0);
                 break;
             case 0x72:
                 FireRelay(po, 0);
@@ -460,10 +460,10 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
         break;
     }
     case 5:
-        func_00130D30(p, 0, pev->g8, pev->gC);
+        SeekAsega(p, 0, pev->g8, pev->gC);
         break;
     case 6:
-        func_00130B18(p);
+        RetractAsega(p);
         break;
     case 9:
     case 10:
@@ -477,7 +477,7 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
     case 8: {
         int fT = (pev->eak == 7);
         fT ^= f;
-        ShowSwAsegObject(&D_003DD490, fT, pev->pesnd, func_00131270(p), pq, pev->gC);
+        ShowSwAsegObject(&D_003DD490, fT, pev->pesnd, GetAsegaEventTarget(p), pq, pev->gC);
         break;
     }
     case 11: {
@@ -493,21 +493,21 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
     }
     case 17: {
         EA17 *pa = pev->pea17;
-        func_00210538(&D_003DD490, pa->x0, pa->x4, pa->x8, func_00131270(p), pq, pa->gC);
+        func_00210538(&D_003DD490, pa->x0, pa->x4, pa->x8, GetAsegaEventTarget(p), pq, pa->gC);
         break;
     }
     case 13:
     case 14: {
         int fT = (pev->eak == 13);
         fT ^= f;
-        func_00210408(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, func_00131270(p), pq);
+        func_00210408(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, GetAsegaEventTarget(p), pq);
         break;
     }
     case 15:
     case 16: {
         int fT = (pev->eak == 15);
         fT ^= f;
-        func_002104A0(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, func_00131270(p), pq);
+        func_002104A0(&D_003DD490, fT, pev->pesnd, pev->nC, p->paloRoot, GetAsegaEventTarget(p), pq);
         break;
     }
     case 18:
@@ -518,7 +518,7 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
         break;
     case 20: {
         EA20 *pa = pev->pea20;
-        func_00210678(&D_003DD490, pa->x0, pa->x4, func_00131270(p), pq, pa->g8);
+        func_00210678(&D_003DD490, pa->x0, pa->x4, GetAsegaEventTarget(p), pq, pa->g8);
         break;
     }
     case 21:
@@ -546,7 +546,7 @@ struct GVOL { ASEGA *po; };
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-extern "C" void func_00131738(ASEGA *p, int a, ASEGA *b) {
+extern "C" void SendAsegaMessage(ASEGA *p, int a, ASEGA *b) {
     GVOL volatile g;
     g.po = p;
     ((void (*)(void *))PVT(p)[1].pfn)((char *)p + PVT(p)[1].d);
@@ -691,7 +691,7 @@ void SetAsegaPriority(ASEGA *p, int n)
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-extern "C" void func_00131A90(ASEGA *p, float g) {
+extern "C" void SetAsegaChannelWeight(ASEGA *p, float g) {
     ACTSEGV *pn;
     for (pn = (ACTSEGV *)p->pactsegFirst; pn; pn = pn->pactsegNext) {
         if (func_0012CEE0(pn) && pn->pxf->nRole == 7) {
@@ -707,7 +707,7 @@ extern "C" void func_00131A90(ASEGA *p, float g) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-void func_00131B10(void *pvId, SO *pso, XF *pxf) {
+void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
     ACTV *pn = pxf->pactFirst;
     for (;;) {
         if (!pn) return;
@@ -724,14 +724,14 @@ struct OIDXFK { int oid; int xfk; };
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-extern "C" void func_00131B60(void *pv, SO *p, int cp, OIDXFK *ap) {
+extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
     int i, j;
     for (i = 0; i < p->cxf; i++) {
         XF *pe = &p->axf[i];
         for (j = 0; j < cp; j++) {
             OIDXFK *pp = &ap[j];
             if ((pe->oid == pp->oid || pp->oid == -1) && (pe->xfk == pp->xfk || pp->xfk == -1)) {
-                func_00131B10(pv, p, pe);
+                DetachXfActById(pv, p, pe);
                 break;
             }
         }
@@ -763,7 +763,7 @@ void ACTSEG::VSlot1() {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-extern "C" void func_00131C90(ACTSEGV *p) {
+extern "C" void DetachActseg(ACTSEGV *p) {
     if (p->pacRot != 0) {
         p->pxf->pxfRef->nD0 = 0;
         p->pxf->pxfRef->pgD4 = 0;
@@ -778,7 +778,7 @@ extern "C" void func_00131C90(ACTSEGV *p) {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-extern "C" void func_00131CD8(ACTSEGV *p) {
+extern "C" void UpdateActseg(ACTSEGV *p) {
     if (p->pac) {
         ACV *pc;
         p->pxf->pgUnk88 = &p->pasega->tLocal;
@@ -853,7 +853,7 @@ static inline void Release4(R4 *r)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
-inline void func_002580A8(R4 **pp, R4 *p)
+inline void AssignSidebagRef(R4 **pp, R4 *p)
 {
     if (p)
         p->cref++;

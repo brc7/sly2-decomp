@@ -28,7 +28,7 @@ extern SW D_003DD490;
 extern "C" {
 void InitLo(LO *plo);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");   /* the counted CFrame store (linkonce, proxy.cpp) */
-void func_002580A8(void *ppsidebag, CSidebag *psidebag);   /* the counted sidebag store */
+void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);   /* the counted sidebag store */
 void UnsubscribeLoAll(BASIC *pbasic);
 OID OidFromSmIsms(SM *psm, int isms);
 void NotifySmaSpliceOnEnterState(SMA *psma, int ismsFrom, int ismsTo);
@@ -624,7 +624,7 @@ extern "C" void DecrefSma(SMA *psma)
     psma->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(&psma->pframe, 0);
-        func_002580A8(&psma->psidebag, 0);
+        AssignSidebagRef(&psma->psidebag, 0);
         UnsubscribeLoAll(psma);
         func_0011CD98(&D_003DD490.slotheapSma, psma);
     }
@@ -638,7 +638,7 @@ struct Q { char pad[0x68]; char dl[1]; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0x24 - 0x10]; struct Q *pq; char pad3[0x30 - 0x28]; void *p30; };
 struct DL;
 int FSmaRetracted(struct P *);
-void func_00130B18(void *);
+void RetractAsega(void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 /** @sly2-annot addr=0x1F0598
  * Purpose: If live: drop the current ASEGA, unlink from the SM list and the live list g_sw.dlSma, send
@@ -655,7 +655,7 @@ void func_001F0598(struct P *p)
         void *pv = p->p30;
         if (pv) {
             p->p30 = 0;
-            func_00130B18(pv);
+            RetractAsega(pv);
         }
         RemoveDlEntry__FP2DLPv(p->pq->dl, p);
         RemoveDlEntry__FP2DLPv(&g_sw.dlSma, p);
@@ -687,7 +687,7 @@ struct F { int pad[3]; int fl; };
 struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x30 - 0x28]; void *p30; char pad4[0x3C - 0x34]; int n3C; F *pf; };
 extern "C" int FSmaRetracted(P *);
 extern "C" int func_001F0438(void *, int);
-extern "C" void func_00130B18(void *);
+extern "C" void RetractAsega(void *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
     P *p;
@@ -709,7 +709,7 @@ extern "C" void SetSmaGoal(P *p, int n)
         Lock l(p);
         p->n3C = n;
         if (p->p30) {
-            if (p->pf->fl & 2) func_00130B18(p->p30);
+            if (p->pf->fl & 2) RetractAsega(p->p30);
         } else ChooseSmaTransition(p, 0);
     }
 }
@@ -817,8 +817,8 @@ extern "C" void SetSmaSvt(P *p, float g)
 namespace M_AbortSmaTransition { extern "C" {
 struct O { char pad[0x40]; float g; };
 struct P { char pad[0x30]; struct O *po; };
-void func_00130D30(struct O *, int, float, float);
-void func_00130B18(struct O *);
+void SeekAsega(struct O *, int, float, float);
+void RetractAsega(struct O *);
 void EndSmaTransition(struct P *);
 /** @sly2-annot addr=0x1F08D0
  * Purpose: Detach the ASEGA, seek it to the start or end depending on speed sign, retract, then
@@ -832,9 +832,9 @@ void AbortSmaTransition(struct P *p)
     struct O *po = p->po;
     if (po) {
         p->po = 0;
-        if (po->g < 0.0f) func_00130D30(po, 0, 0.0f, po->g);
-        else func_00130D30(po, 2, 0.0f, po->g);
-        func_00130B18(po);
+        if (po->g < 0.0f) SeekAsega(po, 0, 0.0f, po->g);
+        else SeekAsega(po, 2, 0.0f, po->g);
+        RetractAsega(po);
         EndSmaTransition(p);
     }
 }
@@ -879,7 +879,7 @@ struct VT { VTE a[3]; };
 struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x30 - 0x28]; void *p30; int n34; int n38; int n3C; };
 extern "C" int FSmaRetracted(P *);
 extern "C" int func_001F0438(void *, int);
-extern "C" void func_00130B18(void *);
+extern "C" void RetractAsega(void *);
 extern "C" void NotifySmaSpliceOnEnterState(P *, int, int);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
@@ -904,7 +904,7 @@ extern "C" void SnapSma(P *p, int n)
             int old;
             if (pv) {
                 p->p30 = 0;
-                func_00130B18(pv);
+                RetractAsega(pv);
             }
             old = p->n34;
             p->n38 = -1; p->n3C = m; p->n34 = m;
@@ -1016,9 +1016,9 @@ struct P { char pad[0x24]; struct G *pg; int n28; int n2C; struct ANIMATION *n30
 int FSmaRetracted(struct P *);
 struct A *PsmtChooseFrom(struct G *, int, int, int);
 struct A *PsmtChooseTowardGoal(struct G *, int, int, int, int);
-void func_0012F9B8(struct T *, int, float, float, int, struct ANIMATION **);
+void ApplyAsegCore(struct T *, int, float, float, int, struct ANIMATION **);
 void SubscribeLoObject(struct ANIMATION *, struct P *);
-void func_00130B18(struct ANIMATION *);
+void RetractAsega(struct ANIMATION *);
 void NotifySmaSpliceOnEnterState(struct P *, int, int);
 static inline struct P *Receiver(struct P *p){register struct P *r __asm__("$4");__asm__("daddu %0,%1,$zero":"=r"(r):"r"(p));return r;}
 static inline unsigned EntryOffset(int index){register unsigned bytes __asm__("$3");__asm__("sll %0,%1,3":"=r"(bytes):"r"(index));return bytes;}
@@ -1072,7 +1072,7 @@ apply:
             } else if (pa->pt->f74 == 0.0f) {
                 fl = 1;
             }
-            func_0012F9B8(pa->pt, p->n28, a, b, f, &p->n30);
+            ApplyAsegCore(pa->pt, p->n28, a, b, f, &p->n30);
         }
         {
             int oldArgument,newArgument;
@@ -1092,7 +1092,7 @@ apply:
                 old=p->n34;
                 p->n34=fl;
                 p->n38=finished;
-                func_00130B18(p->n30);
+                RetractAsega(p->n30);
                 p->n30=0;
                 oldArgument=old;
                 newArgument=fl;
@@ -1225,8 +1225,8 @@ struct A { char pad[0x74]; float g74; };
 struct Q { char pad[0x14]; A *pa; int pad2; float g1C; };
 struct P { char pad[0xC]; VT *pvt; char pad2[0x30 - 0x10]; Q *pq; };
 extern "C" int FSmaRetracted(P *);
-extern "C" void func_00130B18(Q *);
-extern "C" void func_00130D30(Q *, int, float, float);
+extern "C" void RetractAsega(Q *);
+extern "C" void SeekAsega(Q *, int, float, float);
 struct Lock {
     P *p;
     Lock(P *pp) { p = pp; p->pvt->a[1].pfn((char *)p + p->pvt->a[1].d); }
@@ -1246,11 +1246,11 @@ extern "C" void SkipSma(P *p, float t)
         while ((q = p->pq) != 0) {
             float d = q->pa->g74 - q->g1C;
             if (t < d) {
-                func_00130D30(q, 1, t, 1.0f);
+                SeekAsega(q, 1, t, 1.0f);
                 break;
             }
             t -= d;
-            func_00130B18(q);
+            RetractAsega(q);
         }
     }
 }

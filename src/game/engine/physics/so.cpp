@@ -210,7 +210,7 @@ void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void func_0020A5F8(void *ptargetrec, LO *plo);
 STEPREC *func_001F8300(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *ppsidebag, CSidebag *psidebag);
+void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);
 void UnsubscribeLoAll(XFH *pxfh);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
 }
@@ -5324,7 +5324,7 @@ extern "C" void DecrefXfh(XFH *pxfh)
     pxfh->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(&pxfh->pframe, 0);
-        func_002580A8(&pxfh->psidebag, 0);
+        AssignSidebagRef(&pxfh->psidebag, 0);
         UnsubscribeLoAll(pxfh);
         func_0011CD98(&g_sw.slotheapXfh, pxfh);
     }

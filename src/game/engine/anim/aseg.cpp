@@ -17,7 +17,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 struct AREQV { int cb; int cbAlign; };
-/* The by-reference form func_001300B8 builds as a temporary. */
+/* The by-reference form PredictAsegTransform builds as a temporary. */
 struct AREQT : AREQV { AREQT(int c, int a) { cb = c; cbAlign = a; } };
 
 /* An animation curve object (PacNewKind/PacNewKind2), loaded and evaluated through its vtable (pointer at +0). */
@@ -45,11 +45,11 @@ struct CHN
 /* ASEG::aovr entry: value, target OID, curve. */
 struct OVR { int x0; int oid; union { AC *pac; int x8; }; };
 
-/* What ASEGA::pactsegFirst / povraFirst link (built by func_0012F9B8). */
+/* What ASEGA::pactsegFirst / povraFirst link (built by ApplyAsegCore). */
 struct ACTSEG { int x0; LO *plo; void *pv; int xC; int pad10; int x14; VTE *pvt; int x1C; int x20; ASEGA *pasega; ACTSEG *pactsegNext; };
 struct OVRA { int x0; int x4; LO *plo; int xC; OVRA *povraNext; };
 
-/* The XF a channel animates, as func_001300B8 reads it. */
+/* The XF a channel animates, as PredictAsegTransform reads it. */
 struct M4 { qword a[4]; };
 struct XFV { M4 m; char pad[0x94 - 0x40]; int x94; int pad98[2]; XFV *pxfNext; };
 
@@ -96,15 +96,15 @@ M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
 M4 func_0022C8C0(XFV *pxf, qword q);
 M4 func_0022CB90(XFV *pxf, M4 *pm, qword q1, qword q2);
 M4 func_0022CC00(XFV *pxf, qword q);
-void func_00130B18(ASEGA *pasega);
-void func_00130D30(ASEGA *pasega, SEEK seek, float t, float svt);          /* SeekAsega */
+void RetractAsega(ASEGA *pasega);
+void SeekAsega(ASEGA *pasega, SEEK seek, float t, float svt);          /* SeekAsega */
 void SetAsegaMasterSpeed(ASEGA *pasega, float svt);
 
 void LoadAsegFromBrx(ASEG *paseg, CBinaryInputStream *pbis);
-EA *func_0012F938(ASEG *paseg, int n);
-void func_0012F9B8(ASEG *paseg, ALO *palo, int grfapl, float t, float svt, ASEGA **ppasega);   /* ApplyAseg */
-void func_0012FE58(ASEG *paseg, ALO *palo, CHN *pchn, LO **pplo, void **ppv);
-void func_00130010(ASEG *paseg, ALO *palo, OVR *povr, LO **pplo, int *pn);
+EA *FindAsegLabel(ASEG *paseg, int n);
+void ApplyAsegCore(ASEG *paseg, ALO *palo, int grfapl, float t, float svt, ASEGA **ppasega);   /* ApplyAseg */
+void ResolveAsegChannelTarget(ASEG *paseg, ALO *palo, CHN *pchn, LO **pplo, void **ppv);
+void ResolveAsegOverrideTarget(ASEG *paseg, ALO *palo, OVR *povr, LO **pplo, int *pn);
 }
 void InitDl(DL *pdl, int ibDle);                                                /* InitDl__FP2DLi */
 void AppendDlEntry(DL *pdl, void *pv);                                          /* AppendDlEntry__FP2DLPv */
@@ -112,8 +112,8 @@ void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);                    
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                     /* PloFindSwObject__FP2SWi3OIDP2LO */
 void LoadAsegEventsFromBrx(ASEG *paseg, CBinaryInputStream *pbis, int fTime, int *pcea, EA **paea);
 ASEGA *PasegaFindAseg(ASEG *paseg, ALO *palo);
-/* func_0012F9B8 with the parameter order ApplyAsegCur and PostAsegLoadCallback pass (the floats first) */
-extern "C" void ApplyAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega) __asm__("func_0012F9B8");
+/* ApplyAsegCore with the parameter order ApplyAsegCur and PostAsegLoadCallback pass (the floats first) */
+extern "C" void ApplyAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega) __asm__("ApplyAsegCore");
 void EnsureAseg(ASEG *paseg, ALO *paloRoot, SEEK seek, float t, float svt, int grfapl, ASEGA **ppasega);
 extern "C" void ReleaseAsega(ASEGA **ppasega);
 
@@ -251,7 +251,7 @@ void ASEG::VUnk14()
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-EA *func_0012F938(ASEG *paseg, int n)
+EA *FindAsegLabel(ASEG *paseg, int n)
 {
     int i;
     EA *pea;
@@ -270,11 +270,11 @@ EA *func_0012F938(ASEG *paseg, int n)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" float func_0012F990(ASEG *paseg, int n)
+extern "C" float GetAsegLabelTime(ASEG *paseg, int n)
 {
     EA *pea;
     float g;
-    pea = func_0012F938(paseg, n);
+    pea = FindAsegLabel(paseg, n);
     g = 0.0f;
     if (pea != 0) {
         g = pea->tLocal;
@@ -299,7 +299,7 @@ static inline float GEval(CLQ *pclq, float t) { return pclq->g0 + t * (pclq->g1 
  *   docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
  *   docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
-void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
+void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
 {
     ASEGA *p = (ASEGA *)PvAllocSlotheapClear(&g_sw.slotheapAsega);
     int i, j, k;
@@ -329,7 +329,7 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         if (!(pe->grf & 0x40000000)) {
             LO *a;
             void *b;
-            func_0012FE58(pt, x, pe, &a, &b);
+            ResolveAsegChannelTarget(pt, x, pe, &a, &b);
             if (b) {
                 func_001F8668(a, 0);
                 ACTSEG *pn = (ACTSEG *)func_0012E1F0(0x2C);
@@ -354,7 +354,7 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         OVR *pe = &pt->aovr[j];
         LO *a;
         int b;
-        func_00130010(pt, x, pe, &a, &b);
+        ResolveAsegOverrideTarget(pt, x, pe, &a, &b);
         if (b) {
             OVRA *pn = (OVRA *)func_0012CE50(0x14);
             pn->x0 = pe->x8;
@@ -389,7 +389,7 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" void func_0012FDE8(ASEG *paseg, int grfapl, float t, float svt)
+extern "C" void SetAsegAutoStart(ASEG *paseg, int grfapl, float t, float svt)
 {
     AREQV req;
     ASEGSTART *p;
@@ -410,7 +410,7 @@ extern "C" void func_0012FDE8(ASEG *paseg, int grfapl, float t, float svt)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-void func_0012FE58(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
+void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
         *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pk->s.id, (LO *)b);
@@ -435,7 +435,7 @@ void func_0012FE58(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
  *   docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" CHN *func_0012FF10(ASEG *t, LO *po, void *pv, int fCheck)
+extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
 {
     int i;
     for (i = 0; i < t->cchn; i++) {
@@ -461,7 +461,7 @@ extern "C" CHN *func_0012FF10(ASEG *t, LO *po, void *pv, int fCheck)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-void func_00130010(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
+void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
     if (q) *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pa->oid, (LO *)q);
     else *ppo = PloFindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
     if (!*ppo) *pn = 0;
@@ -487,7 +487,7 @@ static inline M4 AddM4(const M4 &a, const M4 &b) return m
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float f, float g, M4 *pm1, M4 *pm2)
+extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float f, float g, M4 *pm1, M4 *pm2)
 {
     M4 mA;
     M4 mB;
@@ -512,7 +512,7 @@ extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float
             apy[i] = 0;
         } else {
             LO *n;
-            func_0012FE58(px, p, pe, &n, (void **)&apy[i]);
+            ResolveAsegChannelTarget(px, p, pe, &n, (void **)&apy[i]);
         }
     }
     for (py = pyFirst; py != pyLast; py = py->pxfNext) {
@@ -556,10 +556,10 @@ extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float
  * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
  *   docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" ASEGA *func_00130488(ASEG *paseg, ALO *palo, int grf, float t, float svt)
+extern "C" ASEGA *ApplyAsegToObject(ASEG *paseg, ALO *palo, int grf, float t, float svt)
 {
     ASEGA *pasega;
-    func_0012F9B8(paseg, palo, grf, t, svt, &pasega);
+    ApplyAsegCore(paseg, palo, grf, t, svt, &pasega);
     return pasega;
 }
 
@@ -589,8 +589,8 @@ void EnsureAseg(ASEG *paseg, ALO *paloRoot, SEEK seek, float t, float svt, int g
     if (!ppasega) ppasega = &pasega;
     pasega = PasegaFindAseg(paseg, paloRoot);
     if (pasega) *ppasega = pasega;
-    else func_0012F9B8(paseg, paloRoot, grfapl, 0.0f, 1.0f, ppasega);
-    func_00130D30(*ppasega, seek, t, svt);
+    else ApplyAsegCore(paseg, paloRoot, grfapl, 0.0f, 1.0f, ppasega);
+    SeekAsega(*ppasega, seek, t, svt);
 }
 
 /** @sly2-annot addr=0x130598
@@ -631,7 +631,7 @@ void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, AS
 void ReleaseAsega(ASEGA **pp) {
     if (*pp) {
         ASEGA *p; VTE *vt;
-        func_00130B18(*pp);
+        RetractAsega(*pp);
         p = *pp; vt = PVT(p); ((void (*)(void *))vt[2].pfn)((char *)p + vt[2].d); *pp = 0;
     }
 }
@@ -643,7 +643,7 @@ void ReleaseAsega(ASEGA **pp) {
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" void func_001306A8(ASEGA **pp) {
+extern "C" void DropAsegaRef(ASEGA **pp) {
     ASEGA *p = *pp;
     if (p) { VTE *vt = PVT(p); ((void (*)(void *))vt[2].pfn)((char *)p + vt[2].d); *pp = 0; }
 }

@@ -214,7 +214,7 @@ struct MRSGC
       MRSG *amrsg;
 };
 
-ASEGA *PasegaApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl) __asm__("func_00130488");
+ASEGA *PasegaApplyAseg(ASEG *paseg, ALO *paloAsegRoot, float tLocal, float svtLocal, GRFAPL grfapl) __asm__("ApplyAsegToObject");
 
 void TriggerJoyRumbleRumk(JOY *pjoy, RUMK rumk, float dt);
 
@@ -1234,7 +1234,7 @@ RELAYCMD *PrelaycmdAddRelay(RELAYV *prelay, int relayck, int fAsync);
 void EndJtMode(JTMODE *pjtmode);
 void UnsubscribeLoAll(JSGV *pjsg);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *ppsidebag, CSidebag *psidebag);
+void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
 void func_00143DE8(LO *pjt, JSGV *pjsg);
 }
@@ -3385,7 +3385,7 @@ extern "C" void ReleaseJsg(JSGV *pjsg)
     pjsg->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(&pjsg->pframe, 0);
-        func_002580A8(&pjsg->psidebag, 0);
+        AssignSidebagRef(&pjsg->psidebag, 0);
         UnsubscribeLoAll(pjsg);
         func_0011CD98(&g_sw.slotheapJsg, pjsg);
     }
@@ -6063,7 +6063,7 @@ struct VTE; struct O; struct S;
 struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x4C]; struct O *po; int n50; void *pv; };
-void func_00130B18(struct O *po);
+void RetractAsega(struct O *po);
 void func_00143FF8(void *pv);
 /** @sly2-annot addr=0x1E5370
  * Purpose: Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8)
@@ -6074,7 +6074,7 @@ void func_00143FF8(void *pv);
 void ClearJsgAseg(struct S *p)
 {
     if (p->po) {
-        func_00130B18(p->po);
+        RetractAsega(p->po);
         { struct O *po = p->po; po->vt[2].pf((char *)po + po->vt[2].d); }
         p->po = 0;
     }

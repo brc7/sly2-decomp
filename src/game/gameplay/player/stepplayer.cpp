@@ -297,7 +297,7 @@ void func_001A2460(struct P *p);
 void func_00140750(struct P *p);
 void func_00142AF8(struct P *p);
 int FAsegaRetracted(int x);
-void func_001306A8(int *px);
+void DropAsegaRef(int *px);
 int FActiveCplcy__FP5CPLCY(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
 void OpenGadgetMenuForHero(void *p);
@@ -338,7 +338,7 @@ void UpdateStepplayer(struct P *p)
     func_00140750(p);
     func_00142AF8(p);
     if (p->xEFC && FAsegaRetracted(p->xEFC))
-        func_001306A8(&p->xEFC);
+        DropAsegaRef(&p->xEFC);
     if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && p->x150->x80 == 1 && GrfPressedWithin__5POCTLUif(p->x150, 0.0f, 0x100)) {
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & 0x108) == 0x100) {

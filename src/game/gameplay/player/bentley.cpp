@@ -1857,7 +1857,7 @@ namespace M_func_00136ED0 { extern "C" {
 struct L { char pad[0x10b8]; void *f10b8; };
 struct S { struct L *pl; int pad[2]; int fc; int f10; char pad2[0xe0 - 0x14]; int fe0; };
 struct M { int id; int f4; int f8; };
-void func_00131B10(int, struct L *, void *);
+void DetachXfActById(int, struct L *, void *);
 /** @sly2-annot addr=0x136ED0
  * Purpose: msg 9 kinds 0x16E/0x242 for the helper struct
  * Info: proposed name HandleBentleyHelperMessage (T2); TU bentley
@@ -1867,7 +1867,7 @@ void func_00131B10(int, struct L *, void *);
 void func_00136ED0(struct S *p, int msg, struct M *pm) {
     if (msg == 9 && pm->id == p->fe0) {
         switch (pm->f8) {
-        case 0x16e: func_00131B10(pm->id, p->pl, p->pl->f10b8); p->f10 = 1; break;
+        case 0x16e: DetachXfActById(pm->id, p->pl, p->pl->f10b8); p->f10 = 1; break;
         case 0x242: p->fc = 1; break;
         }
     }
@@ -1890,8 +1890,8 @@ void SetStepRadTargetVec(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
 void RecalculateAsegBlend(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
-void func_00131B10(void *, struct PO *, int);
-void func_00131A90(void *, float);
+void DetachXfActById(void *, struct PO *, int);
+void SetAsegaChannelWeight(void *, float);
 static __inline__ float Clamp(float g, float gMin, float gMax)
 {
     if (g < gMin)
@@ -1959,9 +1959,9 @@ void func_00136F48(struct S *ps, int state)
     if (!ps->pvE0)
         return;
     if (ps->x10)
-        func_00131B10(ps->pvE0, ps->po, ps->po->x10B8);
+        DetachXfActById(ps->pvE0, ps->po, ps->po->x10B8);
     if (ps->pvE0 && dt != 0.0f)
-        func_00131A90(ps->pvE0, D_002DDED0.t + dt);
+        SetAsegaChannelWeight(ps->pvE0, D_002DDED0.t + dt);
 }
 } } // namespace M_func_00136F48
 
@@ -2295,7 +2295,7 @@ extern CLOCK D_002DDED0;
 extern float D_002BC9B4;   /* contact friction */
 extern float D_002BC9B8;
 void FaceStepToward(P *p, int n);
-R *func_0012FF10(X *px, P *p, int a, int b);
+R *FindAsegChannel(X *px, P *p, int a, int b);
 void ReleaseSma(void *pv);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
 }
@@ -2330,7 +2330,7 @@ extern "C" void func_001375D0(S *s, int k)
         else
             px = s->px1;
         FaceStepToward(s->p, PXOF(s->p)->x10DC);
-        func_0012FF10(px, s->p, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->g78);
+        FindAsegChannel(px, s->p, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->g78);
         s->p->SetVel(PXOF(s->p)->m1B0 * VU_VECTOR(v.q));
         PXOF(s->p)->v190 = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
         s->kCur = k;

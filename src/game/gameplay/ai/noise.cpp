@@ -85,7 +85,7 @@ extern VTE D_002CE2B8[] __asm__("_vt$6CID147");          /* NOISE's (CID147's) v
 void InitLo(NOISETYPE *p);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(NOISE *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *pv, int n);
+void AssignSidebagRef(void *pv, int n);
 void UnsubscribeLoAll(NOISE *pnoise);
 int FCheckLm__FP2LMf(void *p, float z);
 NOISETYPE *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
@@ -209,7 +209,7 @@ extern "C" void func_001566C8(NOISE *pnoise)
     pnoise->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(pnoise, 0);
-        func_002580A8(&pnoise->psidebag, 0);
+        AssignSidebagRef(&pnoise->psidebag, 0);
         UnsubscribeLoAll(pnoise);
         func_0011CD98(&g_sw.slotheapStimulus, pnoise);
     }

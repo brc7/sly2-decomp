@@ -121,7 +121,7 @@ qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
 void func_00154E10(void *, qwordV, int, int, CID96V *);
 M3 func_0011B500(qwordV v, float g);
 float atan2f(float y, float x);
-E96 *func_0012FF10(LOV *plo, CID96V *p, int a, int b);
+E96 *FindAsegChannel(LOV *plo, CID96V *p, int a, int b);
 
 void func_001B0D90(CID96V *p);
 void func_001B1160(CID96V *p);
@@ -649,7 +649,7 @@ void func_001B1A38(CID96V *p, LOV *px, float *pf)
     Y96 *py;
     C96 *pc;
     if (!px) return;
-    py = (Y96 *)func_0012FF10(px, p, 1, 1);
+    py = (Y96 *)FindAsegChannel(px, p, 1, 1);
     if (!py) return;
     pc = py->pc;
     ((void (*)(void *, V *, int, float, float))pc->vt[3].pfn)((char *)pc + pc->vt[3].d, &v0, 0, 0.0f, 1.0f);

@@ -62,8 +62,8 @@ extern "C"{
 void InitStepguard(NEELAV *p);
 void PostStepguardLoad(NEELAV *p);
 void BindLoOidTable(NEELAV *p, int n, void *pv);
-float *func_0012F938(void *p, int n);
-void func_001300B8(void *p, NEELAV *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
+float *FindAsegLabel(void *p, int n);
+void PredictAsegTransform(void *p, NEELAV *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
 void SetSoMass(NEELAV *p, float g);
 void ResetStepguardToHome(NEELAV *p);
 int CidBasic(void *pv);
@@ -79,11 +79,11 @@ M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword func_0011BFF0(M3*);
 int func_001BA100(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
-void func_00130B18(ASEGA *o);
+void RetractAsega(ASEGA *o);
 void ReleaseAct(MOTION **p);
 O *func_00205458(NEELAV *p, int n);
 void func_00204D48(NEELAV *p, float f);
-void func_0012F9B8(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
+void ApplyAsegCore(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
 MOTION *func_0012DC18(NEELAV *p, NODE *a, int b, int c, int d, qword q);
 void InitBhv(NBHV *p);
 void StartBhv(NBHV *p);
@@ -156,8 +156,8 @@ extern "C" void PostNeelaLoad(NEELAV *p)
     float *pg;
     PostStepguardLoad(p);
     BindLoOidTable(p, 3, D_002C0A50);
-    pg = func_0012F938(p->id, 0x5DB);
-    func_001300B8(p->id, p, p->pv1030, p->node->space, &l, 0, *pg, 1.0f);
+    pg = FindAsegLabel(p->id, 0x5DB);
+    PredictAsegTransform(p->id, p, p->pv1030, p->node->space, &l, 0, *pg, 1.0f);
     a = l.q30;
     b = p->node->position;
     d = VuSub(a, b);
@@ -285,7 +285,7 @@ extern "C" void func_001BA408(NEELAV *p, int st)
 {
     if (st == p->state) return;
     if (p->state == 1) {
-        func_00130B18(p->animation);
+        RetractAsega(p->animation);
         VCALL0((O *)p->animation, 2);
         p->animation = 0;
         ReleaseAct(&p->motion);
@@ -297,7 +297,7 @@ extern "C" void func_001BA408(NEELAV *p, int st)
     p->state = st;
     p->changed = D_002DDED0.t;
     if (st != 1) return;
-    func_0012F9B8(p->id, p, 1, &p->animation, 0.0f, 1.0f);
+    ApplyAsegCore(p->id, p, 1, &p->animation, 0.0f, 1.0f);
     VCALL0((O *)p->animation, 1);
     p->motion = func_0012DC18(p, p->node, 5, 8, 3, D_002A2DD0);
     if (FStepguardHasSgf(p, 2)) {

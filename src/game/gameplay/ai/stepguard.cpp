@@ -1112,7 +1112,7 @@ void func_0020D1F8(void *p);
 void UpdateBhvstk(void *p);
 void func_002097E0(void *p);
 int FAsegaRetracted(int h);
-void func_001306A8(int *ph);
+void DropAsegaRef(int *ph);
 
 /** @sly2-annot addr=0x207350
  * Purpose: STEPGUARD vt16: UpdateStep; if in world and not time-frozen: special timeouts, detect targets,
@@ -1143,7 +1143,7 @@ void UpdateStepguard(struct S *p)
     UpdateBhvstk(p->x26C);
     func_002097E0(p->xFD0);
     if (p->h34C && FAsegaRetracted(p->h34C))
-        func_001306A8(&p->h34C);
+        DropAsegaRef(&p->h34C);
     if (p->n4A4 && p->n208)
         p->q4B0 = *p->pq218;
 }
@@ -2526,7 +2526,7 @@ void func_0020BD88(struct H *, void *);
 void func_0020C7E0(struct DIRECTION_STATE *, void *);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
 int CidBasic(void *);
-struct MARKER *func_0012F938(void *, int);
+struct MARKER *FindAsegLabel(void *, int);
 struct H *func_0020C010(int);
 void func_0020BD78(struct H *);
 
@@ -2558,7 +2558,7 @@ void ResolveAnimBinding(struct E *e, void *context)
     }
     switch (CidBasic(resource)) {
     case 0x6D:
-        if (func_0012F938(resource, 0x22)) {
+        if (FindAsegLabel(resource, 0x22)) {
             e->kind = 2;
             e->value.curvature = func_0020C010(0x40);
             func_0020BD78(e->value.curvature);
@@ -2592,7 +2592,7 @@ struct O; struct E;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct E { int k; int h; struct O *po; };
-void func_0012F9B8(int h, char *p, int fl, struct O **ppo, float g, float f);
+void ApplyAsegCore(int h, char *p, int fl, struct O **ppo, float g, float f);
 void PsmaApplySmOut(int h, char *p, int a, int fl, struct O **ppo);
 void StartLeap(int h, char *p, int fl, struct O *po);
 void func_0020C948(int h, char *p, int fl, struct O *po);
@@ -2610,7 +2610,7 @@ void StartAnimBinding(struct E *pe, char *p, int fl, float g)
     case -1:
         break;
     case 0:
-        func_0012F9B8(pe->h, p, fl, &pe->po, g, 1.0f);
+        ApplyAsegCore(pe->h, p, fl, &pe->po, g, 1.0f);
         VC1(pe->po);
         break;
     case 1:
@@ -2637,7 +2637,7 @@ struct O; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct S { int k; int pad; struct O *po; };
-void func_00130B18(struct O *po);
+void RetractAsega(struct O *po);
 void func_001F0598(struct O *po);
 void func_0020C080(struct O *po);
 void func_0020CA48(struct O *po);
@@ -2655,7 +2655,7 @@ void StopAnimBinding(struct S *p)
         break;
     case 0:
         if (p->po) {
-            func_00130B18(p->po);
+            RetractAsega(p->po);
             VDEL(p->po);
             p->po = 0;
         }
@@ -4135,8 +4135,8 @@ void PostLoLoad(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
 void ResolveAnimBinding(void *pe, struct O *o);
 void *PxfFindSo(struct O *o, int a, int b);
-float *func_0012F938(int h, int a);
-void func_001300B8(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
+float *FindAsegLabel(int h, int a);
+void PredictAsegTransform(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
 /** @sly2-annot addr=0x20AE18
  * Purpose: cid 0x78 vt15: PostLoLoad, find owning STEPGUARD up parent chain, resolve binding, precompute ASEG
  *   effect (0x1300B8)
@@ -4162,8 +4162,8 @@ void func_0020AE18(struct S *p)
         p->pa = (__typeof__(p->pa))PxfFindSo(p->pAC, p->a, 6);
         p->nA4 = (int)PxfFindSo(p->pAC, p->b, 6);
         h = p->hB4;
-        pf = func_0012F938(h, p->c);
-        func_001300B8(h, p->pAC, p->nA4, p->pa->nA0, &l, 0, *pf, 1.0f);
+        pf = FindAsegLabel(h, p->c);
+        PredictAsegTransform(h, p->pAC, p->nA4, p->pa->nA0, &l, 0, *pf, 1.0f);
         p->v90 = l.v;
     }
 }

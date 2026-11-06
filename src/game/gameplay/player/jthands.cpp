@@ -92,7 +92,7 @@ qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword vec);
 qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);
 qword func_0011BFF0(const M3 *pmat);
 void SetActPositionGoal(ACT *pact, qword pos);
-void func_00130D30(ASEGA *pasega, int n, float t, float g);
+void SeekAsega(ASEGA *pasega, int n, float t, float g);
 void RecalculateAsegBlend(ASEGBL *pasegbl);
 void SetStepRadTargetVec(LO *plo, qword vec);
 void FixStepAngularVelocity(LO *plo);
@@ -105,8 +105,8 @@ qword func_0022CA18(XF *pxfA, XF *pxfB);
 ACT *func_0012DC18(LO *plo, XF *pxf, int a, int b, int c, qword qw);
 ACT *func_0012DE58(LO *plo, XF *pxf, int n, float t, qword pos, qword vel);
 void EnsureSwCallback(SW *psw, SO *pso, long pmf, JTHANDS *phands);
-float func_0012F990(ASEG *paseg, int n);
-void func_001300B8(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
+float GetAsegLabelTime(ASEG *paseg, int n);
+void PredictAsegTransform(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
 qword *VECTOR_opAssign(qword *pdst, qword src);
 void SetLoParent_1A58D0(LO *plo, int a, int b);
 float func_00196928(qword dpos, qword vel, float a, float b, float c, float d);
@@ -307,7 +307,7 @@ extern "C" void UpdateJtHands(JTHANDS *p)
         MinimizeRange((float (*)(void *, float))func_001CC288, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
         func_001CC168(p, w.stage.late.context.pos, &w.projection, 0, w.t);
     }
-    func_00130D30(*p->ppasega, 0, w.t * p->pasegbl->tMax, 0.0f);
+    SeekAsega(*p->ppasega, 0, w.t * p->pasegbl->tMax, 0.0f);
     p->abl[1].uWeight = w.projection;
     p->abl[0].uWeight = 1.0f - w.projection;
     RecalculateAsegBlend(p->pasegbl);
@@ -351,7 +351,7 @@ struct SWALLOC
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
-extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("func_001300B8");
+extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 extern "C" void MeasureShape(SHAPE *pshape);
 inline void *PvAllocSw(int cb, int cbAlign)
 {
@@ -573,9 +573,9 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  CARRYWORK work;
  ReleaseAct(&p->pactPos);register float zero __asm__("$f21")=0.0f;ReleaseAct(&p->pactHold);ReleaseAct(&p->pactTurn);
  ASEGA *anim=((JTV *)p->pso)->pasegaCur;ASEG *motion=anim->paseg;
- float time=func_0012F990(motion,0x1C7),phase=(time-anim->tLocal)/anim->svt;
+ float time=GetAsegLabelTime(motion,0x1C7),phase=(time-anim->tLocal)/anim->svt;
  XF *space=SourceMatrix(p->ploHand,&work.original);register M4*workingBase __asm__("$19")=&work.sample;
- func_001300B8(motion,time,zero,p->pso,space,p->pso->pxfRoot,SampleOutput(workingBase),0);
+ PredictAsegTransform(motion,time,zero,p->pso,space,p->pso->pxfRoot,SampleOutput(workingBase),0);
  JTV *owner=(JTV *)p->pso;
  M4 *start=&work.start;M3 *basis=&owner->matRot;register M4*product __asm__("$21");
  qword location=func_001A62E8(owner);

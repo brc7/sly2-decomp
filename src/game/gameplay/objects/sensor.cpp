@@ -270,8 +270,8 @@ qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one X
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEOMV *pgeom, const M4 *pmat, GEOMV *pgeomOut);
 void CploFindSwObjectsByClass(SW *psw, int grffso, CID cid, ALO *palo, int cploMax, ASEGV **apaseg);
 ASEGAV *func_001F6788(ALO *palo, OID oid);
-ASEGAV *func_00130488(ASEGV *paseg, ALO *palo, int grf, float t, float svt);
-CHNV *func_0012FF10(ASEGV *paseg, ALO *palo, int n, int f);
+ASEGAV *ApplyAsegToObject(ASEGV *paseg, ALO *palo, int grf, float t, float svt);
+CHNV *FindAsegChannel(ASEGV *paseg, ALO *palo, int n, int f);
 void func_001F5988(void);
 void FreeSwXpList__FP2SWP2XP(SW *psw, XP *pxp);
 void EnsureSwCallback(SW *psw, LASENV *plasen, PFNLASEN pfn, int n);
@@ -685,11 +685,11 @@ extern "C" void func_001DEDB0(LASENV *plasen)
             continue;
         pcap->pasega = func_001F6788(palo, paseg->oid);
         if (pcap->pasega == 0) {
-            pcap->pasega = func_00130488(paseg, palo, 8, 0.0f, 1.0f);
+            pcap->pasega = ApplyAsegToObject(paseg, palo, 8, 0.0f, 1.0f);
             if (pcap->pasega == 0)
                 continue;
         }
-        pchn = func_0012FF10(paseg, palo, 0xC, 1);
+        pchn = FindAsegChannel(paseg, palo, 0xC, 1);
         if (pchn)
             pcap->pscaler = pchn->pscaler;
     }

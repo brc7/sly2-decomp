@@ -99,12 +99,12 @@ void *func_001AE378(const AREQ &req);
 void *func_001AE2A0(const AREQ &req);
 OBJ *PacNewKind(int id);
 OBJ *PacNewKind2(int id);
-void func_0012FE58(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
+void ResolveAsegChannelTarget(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
 qword func_0022CA18(void *pa, void *pb);
 void FramePtr_Assign(ASEG *px, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void RecalculateAsegBlend(ASEG *px);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, ASEG **ppx);
-float func_0012F990(ASEG *paseg, OID oid);
+float GetAsegLabelTime(ASEG *paseg, OID oid);
 float GModPositive__Fff(float, float);
 int func_0012CEE0(CHNE *);
 void SetAsegblDominantBl(ASEG *p, int n);
@@ -207,7 +207,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             if (!pentNew->pobj) {
             int a; void *pv;
             pobj = PacNewKind(5);
-            func_0012FE58(pxNew, p, pentNew, &a, &pv);
+            ResolveAsegChannelTarget(pxNew, p, pentNew, &a, &pv);
             pobj->q10 = func_0022CA18(pv, pv);
             pobj->px = pxNew;
             pobj->ae3 = pxNew->ae3;
@@ -265,7 +265,7 @@ void FillBlAmrsg(int cbBl, int cbl, void *pbl, int ibAmrsg, int coid, OID *aoid)
             int i;
             pmrsg = amrsg;
             for (i = 0; i < coid; i++, pmrsg++)
-                pmrsg->t = func_0012F990(palo, aoid[i]);
+                pmrsg->t = GetAsegLabelTime(palo, aoid[i]);
             pmrsg = amrsg;
             pmrsgPrev = &pmrsg[coid - 1];
             for (i = 0; i < coid; i++, pmrsg++) {

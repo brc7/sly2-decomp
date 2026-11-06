@@ -5004,8 +5004,8 @@ int func_00209518(struct C *c);
 int FAnimBindingDone(struct C *c);
 void StopAnimBinding(struct C *c);
 void StartAnimBinding(struct C *c, struct A *a, int fl, float g);
-float *func_0012F938(void *p, void *q);
-void func_00130D30(void *p, float a, float b, int n);
+float *FindAsegLabel(void *p, void *q);
+void SeekAsega(void *p, float a, float b, int n);
 void SetBhvjuggledState(struct S *p, int n);
 struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
@@ -5047,11 +5047,11 @@ int BHVJUGGLED_FHandleMessage(struct S *p, int msg, struct M *pm) {
             g = 0.0f;
             i = 4; if (p->n58 <= 3) i = p->n58;
             while (i > 0) {
-                float *r = func_0012F938(p->p40->p4, D_002BE6D0[i]);
+                float *r = FindAsegLabel(p->p40->p4, D_002BE6D0[i]);
                 if (r) { g = *r; break; }
                 i--;
             }
-            func_00130D30(p->p40->p8, g, 1.0f, 0);
+            SeekAsega(p->p40->p8, g, 1.0f, 0);
             SetBhvjuggledState(p, 0);
             o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
             if (o) {
@@ -5120,7 +5120,7 @@ extern "C"{
  extern U D_002A2DC0;
  extern char D_003DD490[],D_002DFC00[];
  void SetSoMass(P*,float);
- void func_00130D30(ASEGA*,int,float,float);
+ void SeekAsega(ASEGA*,int,float,float);
  void ReleaseAct(DELTA**);
  void func_002303A0(P*,GROUP*,int);
  void RecalcSwOxfFilterForObject(void*,P*);
@@ -5133,7 +5133,7 @@ extern "C"{
  DELTA*func_0012DE58(P*,GROUP*,void*,float,qword,qword);
  P*PpoHero(void*);
  void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float);
- ENTRY*func_0012F938(void*,int);
+ ENTRY*FindAsegLabel(void*,int);
 }
 static inline void Request(P*p,REQUEST*r,float duration){VE*v=&p->vt[96];((void(*)(P*,REQUEST*,float))v->fn)((P*)((char*)p+v->delta),r,duration);}
 static inline void BlendSet(C*p,qword current,U*desired,U*scale,U*scratch){
@@ -5228,7 +5228,7 @@ extern "C" void SetBhvjuggledState(C*p,int next){
  if(next==p->mode)return;
  switch(p->mode){
  case -1:SetSoMass(p->actor,D_002BE6FC*p->actor->tuning->speed);break;
- case 3:if(next!=-1)func_00130D30(p->control->asega,0,0.0f,1.0f);break;
+ case 3:if(next!=-1)SeekAsega(p->control->asega,0,0.0f,1.0f);break;
  }
  if((unsigned)p->mode<2&&(unsigned)next>=2){
   ReleaseAct(&p->delta);func_002303A0(p->actor,p->actor->first,2);func_002303A0(p->actor,p->actor->second,2);
@@ -5278,9 +5278,9 @@ extern "C" void SetBhvjuggledState(C*p,int next){
   if(p->actor->attention){P*focus=PpoHero(D_003DD490);if(focus&&p->target==focus)TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00,3,0.15f);}
   break;
  }
- case 3:{ENTRY*entry=func_0012F938(p->control->curves,0x3C);if(entry)func_00130D30(p->control->asega,0,entry->value,1.0f);break;}
+ case 3:{ENTRY*entry=FindAsegLabel(p->control->curves,0x3C);if(entry)SeekAsega(p->control->asega,0,entry->value,1.0f);break;}
  case 4:case 5:
-  if(p->mode==4){ENTRY*entry=func_0012F938(p->control->curves,0x173);if(entry)func_00130D30(p->control->asega,0,entry->value,1.0f);}
+  if(p->mode==4){ENTRY*entry=FindAsegLabel(p->control->curves,0x173);if(entry)SeekAsega(p->control->asega,0,entry->value,1.0f);}
   break;
  case 1:case 2:break;
  }

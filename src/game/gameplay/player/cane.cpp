@@ -109,7 +109,7 @@ EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourceP
 qword func_001A62E8(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int IsmsFindSmOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void func_00131A90(ASEGA*,float);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
 }
 static __inline__ void Emit(JT*p,int id){if(id!=-1){EFFECT*effect=PsndStartSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,func_001A62E8(p));}}
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
@@ -321,7 +321,7 @@ extern "C" void SetJtJtcs__FP2JTi(JT*p,int state){
  ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clipArgument,p,startArgument,rateArgument,1,&p->current);
  if(stopDelay!=0.0f){register ASEGA*current __asm__("$4");register float stopTime __asm__("$f12");
   __asm__ __volatile__("lui $3,%%hi(%2)\n\tlw %0,%3\n\tlwc1 %1,%%lo(%2)($3)":"=r"(current),"=f"(stopTime):"i"(&D_002DDED0),"m"(p->current):"$3","memory");
-  func_00131A90(current,stopTime+stopDelay);
+  SetAsegaChannelWeight(current,stopTime+stopDelay);
  }
  Emit(p,enterEffect);
 }

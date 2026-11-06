@@ -20,7 +20,7 @@ struct VT { short delta, pad; void *fn; };
 
 /* A directional clip (only its duration, +0x74, is read). */
 struct CLIP { char pad[0x74]; WORD x74; };
-/* An animation segment object returned by func_0012FF10 (+4) and its vtable (slot 3 samples a position). */
+/* An animation segment object returned by FindAsegChannel (+4) and its vtable (slot 3 samples a position). */
 struct ASEGV;
 typedef struct { short d; short pad; void (*pfn)(ASEGV *, float, float, qword *, void *); } ASEGVT;
 struct ASEGV { ASEGVT *vt; };
@@ -64,7 +64,7 @@ typedef char assert_PLAYERV_side[(unsigned int)&((PLAYERV *)0)->side == 0x1038 ?
 typedef char assert_PLAYERV_target[(unsigned int)&((PLAYERV *)0)->targetMode == 0x10E4 ? 1 : -1];
 
 extern "C" {
-ASEGREF *func_0012FF10(CLIP *pclip, ACTOR *p, void *a, int b);
+ASEGREF *FindAsegChannel(CLIP *pclip, ACTOR *p, void *a, int b);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(ACTOR *p, int cb, int c, DIRAXIS *ae, int count, int *keys, int *counts, MULTI **pn);
 void RecalculateAsegBlend(void *prequest);
 void FaceStepToward(PLAYERV *p, TARGETV *ptarget);
@@ -90,7 +90,7 @@ extern "C" void func_001A0300(struct ACTOR *p, DIRAXIS *ae, MULTI **pn)
     MULTI *n;
     for (i = 0; i < 8; i++, e++) {
         if (e->pclip) {
-            ASEGREF *o = func_0012FF10(e->pclip, p, (void *)1, 1);
+            ASEGREF *o = FindAsegChannel(e->pclip, p, (void *)1, 1);
             if (o) {
                 o->x4->vt[3].pfn((ASEGV *)((char *)o->x4 + o->x4->vt[3].d), 0.0f, 1.0f, &v0.q, 0);
                 o->x4->vt[3].pfn((ASEGV *)((char *)o->x4 + o->x4->vt[3].d), e->pclip->x74.value, 1.0f, &v1.q, 0);

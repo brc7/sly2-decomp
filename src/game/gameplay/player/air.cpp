@@ -164,7 +164,7 @@ struct MRSGC
 
 void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
 
-float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("func_0012F990");
+float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
 
 struct LOREF
 {
