@@ -22,45 +22,45 @@ struct VE { short d; short pad; void (*pfn)(void *); };
 struct GUARDV
 {
     char pad[0xE6C];
-    float gLookMin;          /* +0xE6C look duration range */
-    float gLookMax;
-    struct LOV *ploTarget;   /* +0xE74 */
-    int nE78;                /* 1: second (give-up) timer; 2: the target counts as reached */
+    float lookTimeMin;          /* +0xE6C look duration range */
+    float lookTimeMax;
+    struct LOV *target;   /* +0xE74 */
+    int searchMode;                /* 1: second (give-up) timer; 2: the target counts as reached */
     char padE7C[0xFD0 - 0xE7C];
-    char moverFD0[0x18];     /* +0xFD0 the guard's mover (SetStepguardMoverRadTarget) */
-    int grfFE8;              /* bit 1: can search */
+    char mover[0x18];     /* +0xFD0 the guard's mover (SetStepguardMoverRadTarget) */
+    int capabilities;              /* bit 1: can search */
 };
-typedef char assert_GUARDV_grfFE8[(unsigned int)&((GUARDV *)0)->grfFE8 == 0xFE8 ? 1 : -1];
+typedef char assert_GUARDV_capabilities[(unsigned int)&((GUARDV *)0)->capabilities == 0xFE8 ? 1 : -1];
 
 /* A sub-behaviour started by SetBhvSearchState (func_00205438 finds it on the guard; vtable slot 8 starts it). */
-struct BHVO { char pad[0xC]; VE *pvt; char pad10[0x2C]; int n3C; char pad40[0xC0 - 0x40]; int nC0; };
+struct BHVO { char pad[0xC]; VE *vt; char pad10[0x2C]; int animFlag; char pad40[0xC0 - 0x40]; int walkAnimFlag; };
 /* The watched perception record (+0x44; vtable slots 1/2 are incref/decref). */
-struct WATCH { char pad[0xC]; VE *pvt; char pad10[0x10]; qword pos20; qword pos30; char pad40[4]; GUARDV *pguard; char pad48[0xC]; int n54; };
+struct WATCH { char pad[0xC]; VE *vt; char pad10[0x10]; qword firstPosition; qword secondPosition; char pad40[4]; GUARDV *guard; char pad48[0xC]; int mode; };
 
 /* One search point: the candidate (pulled 200 out from the guard) and the original hiding place. */
 typedef struct PAIR { U candidate, original; } PAIR;
 struct BHV171V
 {
     char pad0[0x10];
-    GUARDV *pguard;
+    GUARDV *guard;
     int pad14;
     union
     {
-        void *pbhvCur;       /* +0x18 the running sub-behaviour (IsBhvanimDone, HasBhvgotoArrived...) */
-        char abhvstk[0x18];  /* the sub-behaviour stack (PopBhv) */
+        void *currentChild;       /* +0x18 the running sub-behaviour (IsBhvanimDone, HasBhvgotoArrived...) */
+        char childSlot[0x18];  /* the sub-behaviour stack (PopBhv) */
     };
     int state;               /* +0x30 -1 idle, 0..5 (UpdateBhvSearch) */
-    float tState;
-    float tLook;             /* +0x38 */
-    float tNext;             /* +0x3C give-up time in state 2, next search point time in state 3 */
-    float g40;
-    WATCH *pwatch;           /* +0x44 */
-    int fReplan;             /* +0x48 */
+    float stateTime;
+    float lookEndTime;             /* +0x38 */
+    float nextTime;             /* +0x3C give-up time in state 2, next search point time in state 3 */
+    float unknown40;
+    WATCH *watched;           /* +0x44 */
+    int needsReplan;             /* +0x48 */
     int pad4C;
-    PAIR apair[4];           /* +0x50 */
-    unsigned int ipair;      /* +0xD0 */
+    PAIR searchPoints[4];           /* +0x50 */
+    unsigned int searchPointIndex;      /* +0xD0 */
 };
-typedef char assert_BHV171_ipair[(unsigned int)&((BHV171V *)0)->ipair == 0xD0 ? 1 : -1];
+typedef char assert_BHV171_ipair[(unsigned int)&((BHV171V *)0)->searchPointIndex == 0xD0 ? 1 : -1];
 
 /* Candidate list built by ChooseBhvSearchPoints (TryAddSearchCandidate adds one). */
 typedef struct ROW { U point; float angle; } ROW;
@@ -121,12 +121,14 @@ int FCheckLm(LMV *plm, float g) __asm__("FCheckLm__FP2LMf");   /* LMV: this file
 float RadNormalize(float rad);
 int FIsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
 // 0x171F58: Search behaviour (BHV171) vtable slot 7 (OnPush): base, raises guard flag 0x1F, state -1, both look
 // timers off (FLT_MAX).
-extern "C" void InitBhvSearch(BHV171V *behavior) { InitBhv(behavior); AddStepguardSgf(behavior->pguard, 0x1F); behavior->state = -1; behavior->g40 = behavior->tLook = 3.40282346638528859812e+38f; }
+extern "C" void InitBhvSearch(BHV171V *behavior) { InitBhv(behavior); AddStepguardSgf(behavior->guard, 0x1F); behavior->state = -1; behavior->unknown40 = behavior->lookEndTime = 3.40282346638528859812e+38f; }
 
 // 0x171FA0: Search behaviour vtable slot 8 (Start): base, then state 0 (react).
 void BHV171::Start()
@@ -142,7 +144,7 @@ extern "C" void CloseBhvSearch(BHV171V *behavior)
 {
     CloseBhv(behavior);
     SetBhvSearchState(behavior, -1);
-    RemoveStepguardSgf(behavior->pguard, 0x1F);
+    RemoveStepguardSgf(behavior->guard, 0x1F);
     SetBhvSearchWatched(behavior, 0);
 }
 
@@ -155,12 +157,12 @@ extern "C" void UpdateBhvSearch(BHV171V *behavior) {
         s = behavior->state;
         switch (s) {
         case 0:
-            if (IsBhvanimDone(behavior->pbhvCur)) SetBhvSearchState(behavior, 1);
+            if (IsBhvanimDone(behavior->currentChild)) SetBhvSearchState(behavior, 1);
             break;
         case 1:
-            if (IsStepguardHandsOff(behavior->pguard)) {
+            if (IsStepguardHandsOff(behavior->guard)) {
                 SetBhvSearchState(behavior, 5);
-            } else if (behavior->fReplan) {
+            } else if (behavior->needsReplan) {
                 if (HasBhvSearchReachedTarget(behavior)) {
                     SetBhvSearchState(behavior, 2);
                 } else {
@@ -168,63 +170,63 @@ extern "C" void UpdateBhvSearch(BHV171V *behavior) {
                     GOAL goal;
                     ClearPointerPair(&goal);
                     goal.v = v;
-                    SetBhvgotoGoal(behavior->pbhvCur, &goal);
+                    SetBhvgotoGoal(behavior->currentChild, &goal);
                 }
-                behavior->fReplan = 0;
-            } else if (HasBhvSearchReachedTarget(behavior) || HasBhvgotoArrived(behavior->pbhvCur) || IsBhvgotoPathFinished(behavior->pbhvCur)) {
+                behavior->needsReplan = 0;
+            } else if (HasBhvSearchReachedTarget(behavior) || HasBhvgotoArrived(behavior->currentChild) || IsBhvgotoPathFinished(behavior->currentChild)) {
                 SetBhvSearchState(behavior, 2);
             }
             break;
         case 2:
-            if (IsStepguardHandsOff(behavior->pguard)) {
+            if (IsStepguardHandsOff(behavior->guard)) {
                 SetBhvSearchState(behavior, 5);
-            } else if (behavior->fReplan) {
+            } else if (behavior->needsReplan) {
                 if (HasBhvSearchReachedTarget(behavior)) {
                     SetBhvSearchLookTimers(behavior);
                 } else {
                     SetBhvSearchState(behavior, 1);
                 }
-                behavior->fReplan = 0;
-            } else if (behavior->tLook < D_002DDED0.t || IsBhvanimDone(behavior->pbhvCur)) {
+                behavior->needsReplan = 0;
+            } else if (behavior->lookEndTime < D_002DDED0.t || IsBhvanimDone(behavior->currentChild)) {
                 SetBhvSearchState(behavior, 4);
-            } else if (D_002DDED0.t > behavior->tNext) {
+            } else if (D_002DDED0.t > behavior->nextTime) {
                 SetBhvSearchState(behavior, 3);
             } else {
                 qword a = GetBhvSearchLastKnownPosition(behavior);
-                qword b = func_001A62E8(behavior->pguard);
+                qword b = func_001A62E8(behavior->guard);
                 qword d;
                 d = VuSub(a, b);
-                SetStepguardMoverRadTarget(behavior->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
+                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
             }
             break;
         case 3:
-            if (IsStepguardHandsOff(behavior->pguard)) {
+            if (IsStepguardHandsOff(behavior->guard)) {
                 SetBhvSearchState(behavior, 5);
-            } else if (behavior->fReplan) {
+            } else if (behavior->needsReplan) {
                 if (HasBhvSearchReachedTarget(behavior)) {
                     SetBhvSearchState(behavior, 2);
                 } else {
                     SetBhvSearchState(behavior, 1);
                 }
-                behavior->fReplan = 0;
-            } else if (behavior->tLook < D_002DDED0.t) {
+                behavior->needsReplan = 0;
+            } else if (behavior->lookEndTime < D_002DDED0.t) {
                 SetBhvSearchState(behavior, 4);
             } else {
                 StepBhvSearchPoint(behavior);
             }
             break;
         case 5:
-            if (!IsStepguardHandsOff(behavior->pguard)) SetBhvSearchState(behavior, 1);
+            if (!IsStepguardHandsOff(behavior->guard)) SetBhvSearchState(behavior, 1);
             break;
         case 4:
-            if (behavior->fReplan) {
+            if (behavior->needsReplan) {
                 if (HasBhvSearchReachedTarget(behavior)) {
                     SetBhvSearchState(behavior, 2);
                 } else {
                     SetBhvSearchState(behavior, 1);
                 }
-                behavior->fReplan = 0;
-            } else if (IsBhvanimDone(behavior->pbhvCur)) {
+                behavior->needsReplan = 0;
+            } else if (IsBhvanimDone(behavior->currentChild)) {
                 SetBhvSearchState(behavior, -1);
             }
             break;
@@ -242,56 +244,56 @@ namespace RO_ORDER { extern const float r_D_002A5398 __asm__("D_002A5398") = 3.4
 // travel, a look-at) and arming its timers.
 extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
     if (n == behavior->state) return;
-    PopBhv(behavior->abhvstk);
+    PopBhv(behavior->childSlot);
     behavior->state = n;
-    behavior->tState = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.t;
     switch (n) {
     case 0:
-        { BHVO *child = func_00205438(behavior->pguard, 0x9D); VE *entry; child->n3C = 0xC; entry = &child->pvt[8]; entry->pfn((char *)child + entry->d); }
+        { BHVO *child = func_00205438(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xC; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         break;
     case 1:
         {
-            BHVO *child = func_00205438(behavior->pguard, 0xBA);
+            BHVO *child = func_00205438(behavior->guard, 0xBA);
             GOAL goal;
             VE *entry;
             qword v;
-            child->nC0 = 1;
+            child->walkAnimFlag = 1;
             v = GetBhvSearchLastKnownPosition(behavior);
             ClearPointerPair(&goal);
             goal.v = v;
             SetBhvgotoGoal(child, &goal);
-            entry = &child->pvt[8]; entry->pfn((char *)child + entry->d);
-            behavior->tLook = D_002A5398;
+            entry = &child->vt[8]; entry->pfn((char *)child + entry->d);
+            behavior->lookEndTime = D_002A5398;
         }
         break;
     case 2:
         {
             qword a = GetBhvSearchLastKnownPosition(behavior);
-            qword b = func_001A62E8(behavior->pguard);
+            qword b = func_001A62E8(behavior->guard);
             qword d;
             d = VuSub(a, b);
-            SetStepguardMoverRadTarget(behavior->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
-            { BHVO *child = func_00205438(behavior->pguard, 0x9E); VE *entry = &child->pvt[8]; entry->pfn((char *)child + entry->d); }
+            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
+            { BHVO *child = func_00205438(behavior->guard, 0x9E); VE *entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
             SetBhvSearchLookTimers(behavior);
         }
         break;
     case 3:
         {
-            BHVO *child = func_00205438(behavior->pguard, 0xBA);
+            BHVO *child = func_00205438(behavior->guard, 0xBA);
             VE *entry;
-            child->nC0 = 1;
+            child->walkAnimFlag = 1;
             ChooseBhvSearchPoints(behavior);
             StepBhvSearchPoint(behavior);
-            entry = &child->pvt[8]; entry->pfn((char *)child + entry->d);
+            entry = &child->vt[8]; entry->pfn((char *)child + entry->d);
         }
         break;
     case 4:
-        { BHVO *child = func_00205438(behavior->pguard, 0x9D); VE *entry; child->n3C = 0xE; entry = &child->pvt[8]; entry->pfn((char *)child + entry->d); }
+        { BHVO *child = func_00205438(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xE; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         SetBhvSearchWatched(behavior, 0);
-        behavior->fReplan = 0;
+        behavior->needsReplan = 0;
         break;
     case 5:
-        { BHVO *child = func_00205438(behavior->pguard, 0x9E); VE *entry; child->n3C = 1; entry = &child->pvt[8]; entry->pfn((char *)child + entry->d); }
+        { BHVO *child = func_00205438(behavior->guard, 0x9E); VE *entry; child->animFlag = 1; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         break;
     }
 }
@@ -306,19 +308,19 @@ extern "C" int IsBhvSearchIdle(BHV171V *behavior)
 // (give-up) timer only for guards with +0xE78 == 1.
 extern "C" void SetBhvSearchLookTimers(BHV171V *behavior) {
     float t = D_002DDED0.t;
-    behavior->tLook = t + GRandInRange(behavior->pguard->gLookMin, behavior->pguard->gLookMax);
-    if (behavior->pguard->nE78 == 1) behavior->tNext = D_002DDED0.t + D_002BE5A0;
-    else behavior->tNext = 3.40282346638528859812e+38f;
+    behavior->lookEndTime = t + GRandInRange(behavior->guard->lookTimeMin, behavior->guard->lookTimeMax);
+    if (behavior->guard->searchMode == 1) behavior->nextTime = D_002DDED0.t + D_002BE5A0;
+    else behavior->nextTime = 3.40282346638528859812e+38f;
 }
 
 // 0x1725E0: Replaces the watched stimulus (a refcounted object at +0x44, via its add/drop reference slots) and
 // flags a re-plan.
 extern "C" void SetBhvSearchWatched(BHV171V *behavior, WATCH *o) {
-    if (o == behavior->pwatch) return;
-    if (behavior->pwatch) { VE *entry = &behavior->pwatch->pvt[2]; entry->pfn((char *)behavior->pwatch + entry->d); }
-    behavior->pwatch = o;
-    if (o) { VE *entry = &o->pvt[1]; entry->pfn((char *)o + entry->d); }
-    behavior->fReplan = 1;
+    if (o == behavior->watched) return;
+    if (behavior->watched) { VE *entry = &behavior->watched->vt[2]; entry->pfn((char *)behavior->watched + entry->d); }
+    behavior->watched = o;
+    if (o) { VE *entry = &o->vt[1]; entry->pfn((char *)o + entry->d); }
+    behavior->needsReplan = 1;
 }
 
 // VU0 helper: distance between two points.
@@ -334,20 +336,20 @@ static inline float Dist(qword a, qword b) {
 // 0x172658: True if the guard cannot search any more or its last known position is nearer than the target object +
 // 50.
 extern "C" int HasBhvSearchReachedTarget(BHV171V *behavior) {
-    GUARDV *guard = behavior->pguard;
+    GUARDV *guard = behavior->guard;
     struct LOV *t;
     float d;
-    if (!(guard->grfFE8 & 2) || guard->nE78 == 2) return 1;
-    t = guard->ploTarget;
+    if (!(guard->capabilities & 2) || guard->searchMode == 2) return 1;
+    t = guard->target;
     if (!t) return 0;
-    d = Dist(func_001A62E8(t), func_001A62E8(behavior->pguard));
-    if (Dist(GetBhvSearchLastKnownPosition(behavior), func_001A62E8(behavior->pguard)) < d + 50.0f) return 1;
+    d = Dist(func_001A62E8(t), func_001A62E8(behavior->guard));
+    if (Dist(GetBhvSearchLastKnownPosition(behavior), func_001A62E8(behavior->guard)) < d + 50.0f) return 1;
     return 0;
 }
 
 // 0x172760: Returns the last known target position from the shared target record (its first position when this
 // guard is in mode 4 for it, else its second).
-extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *behavior) { WATCH *t = behavior->pwatch; if (t->n54 == 4 && t->pguard == behavior->pguard) return t->pos20; return behavior->pwatch->pos30; }
+extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *behavior) { WATCH *t = behavior->watched; if (t->mode == 4 && t->guard == behavior->guard) return t->firstPosition; return behavior->watched->secondPosition; }
 
 // 0x172798: Adds a candidate point to a 64-entry list if its pitch and distance from the guard are within limits,
 // recording its heading relative to the guard.
@@ -373,8 +375,11 @@ extern "C" int TryAddSearchCandidate(QUERY *p) {
 extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->angle; }
 
 struct VU_FLOAT{qword qw;};
+// VU0 helper: vector difference.
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: vector sum.
 static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: length of a vector (in x).
 static inline qword QwLength(qword v){qword qw,qwLen;
  qw = VuDot(v, v);
  __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qw));return qwLen;}
@@ -382,19 +387,27 @@ static inline qword QwLength(qword v){qword qw,qwLen;
 static inline qword QwLengthOne(qword v){qword qw,vfOne,qwLen;
  __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z":"=j"(qw),"=j"(vfOne):"j"(v));
  __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qw),"0"(vfOne));return qwLen;}
+// VU0 helper: horizontal (xy) length of a vector.
 static inline qword QwLengthXY(qword v){qword qw;
  __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y":"=j"(qw):"j"(v));
  __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qw):"0"(qw));return qw;}
+// VU0 helper: x of a VU register as a float.
 static inline float GFromVf(qword qw){float g;__asm__("qmfc2 %0, %1":"=r"(g):"j"(qw));return g;}
+// VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1, %0":"=f"(x):"r"(qw));return x;}
 // allocation-only second "j"(b): the extra reference raises b's local-alloc priority, so b gets vf1 and the dot vf2 as in the target
 static inline qword QwDot(qword a,qword b){qword qw,vfOne;
  __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z":"=j"(vfOne),"=j"(qw):"j"(a),"j"(b),"j"(b));return qw;}
+// VU0 helper: vector scaled by the x of g.
 static inline qword QwScaleX(qword v,qword g){qword qw;__asm__("vmulx.xyzw %0, %1, %2x":"=j"(qw):"j"(v),"0"(g));return qw;}
+// VU0 helper: v divided by g.
 static inline qword QwDivide(qword v,qword g){qword qw;__asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q":"=j"(qw):"j"(v),"j"(g));return qw;}
+// VU0 helper: base + vector * scale.
 static inline qword QwAddScaled(qword base,qword vec,qword g){qword qw;
  __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x":"=j"(qw):"j"(base),"j"(vec),"j"(g));return qw;}
+// VU0 helper: loads a float constant from a .data word into a VU register.
 static inline qword VuFloatFromMemWord(int n){qword v;__asm__("qmtc2 %1, %0":"=j"(v):"rV"(n));return v;}
+// VU0 helper: broadcasts a constant into a VU register (volatile so it is not hoisted, as in the target).
 static inline qword VuFloatVolatile(float g){qword v;
  // volatile: the target re-broadcasts the constant inside the loop (loop.c must not hoist it)
  __asm__ __volatile__("qmtc2 %1, %0":"=j"(v):"r"(g));return v;}
@@ -409,8 +422,8 @@ namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.
 // the guard.
 extern "C" void ChooseBhvSearchPoints(BHV171V*behavior){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
- w.query.point.q=func_001A62E8(behavior->pguard);
- w.query.heading=RadStepHeading(behavior->pguard);w.query.count=0;
+ w.query.point.q=func_001A62E8(behavior->guard);
+ w.query.heading=RadStepHeading(behavior->guard);w.query.count=0;
  for(object=(*(NODE * *)&g_sw.dlCid34);object;object=object->next104){
   qword posObj=func_001A62E8(object);
   qword qwFallback=D_002A2DA0;
@@ -460,7 +473,7 @@ extern "C" void ChooseBhvSearchPoints(BHV171V*behavior){
    // the one register pin: the vsub consumes a copy of target in vf2, made before the previous test (target: vmove in the beqz slot)
    register qword probe __asm__("vf2")=target;
    if(previous){qword d;QW_SUB_T(d,probe,previous->candidate.q);if(GXOfQw(QwLengthXY(d))<150.0f)continue;}
-   previous=&behavior->apair[accepted++];lastAngle=row->angle;previous->original.q=original;previous->candidate.q=target;
+   previous=&behavior->searchPoints[accepted++];lastAngle=row->angle;previous->original.q=original;previous->candidate.q=target;
   }
  }
  qword origin=w.query.point.q;
@@ -471,9 +484,9 @@ extern "C" void ChooseBhvSearchPoints(BHV171V*behavior){
   angle=lastAngle+w.query.heading;
   length=GRandInRange(D_002BE5B0.low,D_002BE5B0.high);
   point=QwAdd(anchor,SetVectorCylind(angle,length,0.0f));
-  {PAIR*pair=&behavior->apair[accepted];pair->candidate.q=point;pair->original.q=point;}accepted++;
+  {PAIR*pair=&behavior->searchPoints[accepted];pair->candidate.q=point;pair->original.q=point;}accepted++;
  }
- behavior->ipair=0;behavior->tNext=D_002A53D0;
+ behavior->searchPointIndex=0;behavior->nextTime=D_002A53D0;
 }
 
 namespace RO_ORDER { extern const float r_D_002A53D4 __asm__("D_002A53D4") = 3.40282347e+38f; }
@@ -482,16 +495,16 @@ extern "C" void StepBhvSearchPoint(BHV171V *behavior) {
     void *pbhvCur;
     PAIR *pe;
     GOAL goal;
-    if (behavior->ipair >= 4) return;
-    pbhvCur = behavior->pbhvCur;
-    if (behavior->tNext == D_002A53D4) {
-        if (HasBhvgotoArrived(pbhvCur)) behavior->tNext = D_002DDED0.t + 1.0f;
+    if (behavior->searchPointIndex >= 4) return;
+    pbhvCur = behavior->currentChild;
+    if (behavior->nextTime == D_002A53D4) {
+        if (HasBhvgotoArrived(pbhvCur)) behavior->nextTime = D_002DDED0.t + 1.0f;
     }
-    if (D_002DDED0.t < behavior->tNext) return;
-    pe = &behavior->apair[behavior->ipair++];
-    if (behavior->ipair >= 4) behavior->ipair = 0;
+    if (D_002DDED0.t < behavior->nextTime) return;
+    pe = &behavior->searchPoints[behavior->searchPointIndex++];
+    if (behavior->searchPointIndex >= 4) behavior->searchPointIndex = 0;
     ClearPointerPair(&goal);
     goal.v = pe->candidate.q;
     SetBhvgotoGoal(pbhvCur, &goal);
-    behavior->tNext = D_002A53D4;
+    behavior->nextTime = D_002A53D4;
 }
