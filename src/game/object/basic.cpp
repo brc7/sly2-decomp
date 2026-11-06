@@ -44,8 +44,8 @@ struct SWCB { float t; BASICV *pbasic; CPAIR *ppair; int id; SWCB *pnext; };
 extern "C" {
 extern CIDDESC D_002BAAE8[];
 extern CLOCK D_002DDED0;
-extern int D_0027A1D8[];
-extern int D_0027A10C[];
+extern int D_0027A1D8[];   /* s_aiEvtParm (class_registry_options.inc) */
+extern int D_0027A108[];   /* s_aotypEvtParm, read from its second word */
 
 SIDEBAG *PvNewSidebag(void);
 void func_002580A8(SIDEBAG **pp, SIDEBAG *p);
@@ -419,7 +419,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
     if (p->pframe && PrefFindBinding__6CFrameUii(p->pframe, k, 1)) {
         CREFV ref;
         SPAIR sp;
-        func_00200DA0(&ref, x, &D_0027A10C[D_0027A1D8[k]], y);
+        func_00200DA0(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
         func_00132ED8(&sp, p, k, &ref);
         if (f)
             ScheduleSwSpliceCallback(&g_sw, p, sp.p, D_002DDED0.t);
