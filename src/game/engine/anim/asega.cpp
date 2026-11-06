@@ -62,7 +62,7 @@ extern SW D_003DD490;
 extern char D_002DDF40[];
 extern char D_002DFC00[];
 
-void FramePtr_Assign(ASEGA *p, CFrame *pframe);
+void FramePtr_Assign(ASEGA *p, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void UnsubscribeLoAll(ASEGA *p);
 void RcPtr_Assign(CRefPtr<SND> *pref, int n);
 void SendLoMessage(ASEGA *p, int msg, ASEGA *pasega);
@@ -816,7 +816,7 @@ extern "C" void GetActsegGoal(ACTSEG *p, qword *pq1, qword *pq2, float g) {
 typedef struct R1 { int cref; int x4; int x8; int xC[2]; int x14[1]; } R1;
 typedef struct R4 { int cref; int x4; R1 *p8; } R4;
 extern "C" {
-void func_00257250(void *, int) __asm__("_$_8CVarbPtr");
+void func_00257250(void *, int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Unlink__t6CGcObj1Z5CVarb(void *);
 void Unlink__t6CGcObj1Z8CSidebag(void *);
 }

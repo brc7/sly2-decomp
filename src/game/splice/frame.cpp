@@ -1,7 +1,7 @@
 // frame.cpp -- CFrame, a Splice environment frame: up to four parent frames and a list of variable bindings (CVarb),
-// with lookup, binding and cloning. TU 0x127B18..0x128138 (10 functions, address order) plus two linkonce instances
-// of the counted-pointer helpers homed here (0x257058, 0x257450). The binding pool's GC members are CGcObj<CVarb>'s
-// (sly2/gc.h, emitted by splice/gc.cpp).
+// with lookup, binding and cloning. TU 0x127B18..0x128138 (10 functions, address order). The binding pool's GC
+// members are CGcObj<CVarb>'s (sly2/gc.h) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by
+// splice/gc.cpp.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_frame
 // SLY2_ALIAS: _GLOBAL_$I$*=_GLOBAL_$I$g_gc
 #include "sly2/cref.h"
@@ -19,7 +19,7 @@ struct CFrame;
 extern "C" {
 CVarb *PtNew__t6CGcObj1Z5CVarb();
 CFrame *PtNew__t6CGcObj1Z6CFrame();
-void FramePtr_Assign(void *pspframe, CFrame *pframe);   /* the parent-pointer store (out of line, 0x256EE0) */
+void FramePtr_Assign(void *pspframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");   /* the parent-pointer store (out of line, 0x256EE0) */
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 }
 
@@ -29,7 +29,7 @@ struct SPZ
 {
     CFrame *p;
     ~SPZ();
-    void operator=(CFrame *pframe) __asm__("FramePtr_Assign");
+    void operator=(CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 };
 
 
@@ -251,22 +251,6 @@ SPO CFrame_CloneTo(CFrame *src, void *a)
     if (src->pbindingFirst.p)
         sp->SetPbinding(CVarb_CloneTo(src->pbindingFirst.p, sp.p, a).p);
     return SPO(sp.p);
-}
-
-/* Linkonce instances (0x257058, 0x257450): out-of-line copies of counted-pointer helpers, homed in this TU. Kept as
-   plain functions under their current symbols. */
-
-
-
-/* 0x257450 func_00257450: CVarbPtr::operator= (sly2/varb.h) (counted store into a binding link; the old binding is deleted when its count drops to 0). */
-void CVarbPtr::operator=(CVarb *pvarb)
-{
-    if (pvarb)
-        pvarb->cref++;
-    CVarb *pvarbOld = p;
-    if (pvarbOld && --pvarbOld->cref == 0)
-        delete pvarbOld;
-    p = pvarb;
 }
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or

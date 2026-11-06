@@ -81,7 +81,7 @@ void PostSwCallback(SW *psw, ASEG *paseg, long pmf, ASEGSTART *pasegstart);
 void *func_002333B4(void *, int, int) __asm__("memset");
 float GGetDifficulty(void *);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float);
-void FramePtr_Assign(ASEGA *, CFrame *);
+void FramePtr_Assign(ASEGA *, CFrame *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_001F8668(LO *plo, long);
 void *func_0012E1F0(unsigned int);
 void AddXfAct(LO *plo, void *pv, ACTSEG *pactseg);

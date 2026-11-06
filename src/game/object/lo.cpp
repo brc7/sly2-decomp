@@ -1254,14 +1254,14 @@ extern "C"{
 extern char g_gc[],D_004520D0[],D_00452148[];
 extern G D_003DD490;
 void CGc_UpdateRecyclable(void*);
-void func_00257250(void*,int) __asm__("_$_8CVarbPtr");
+void func_00257250(void*,int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Decref__4CRef(void*);
 void Unlink__t6CGcObj1Z5CVarb(void*);
 void Unlink__t6CGcObj1Z8CSidebag(void*);
 void func_0011CD98(void*,void*);
 void func_00257078(ROOT*,int) __asm__("_$_6CFrame");
 void func_002580A8(FIELD**,FIELD*);
-void FramePtr_Assign(ROOT**,ROOT*);
+void FramePtr_Assign(ROOT**,ROOT*) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 int MakeRoot__t6CGcObj1Z8CSidebag(FIELD*);
 int MakeRoot__t6CGcObj1Z6CFrame(ROOT*);
 RF CSidebag_CloneTo(FIELD*,P*);

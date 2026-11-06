@@ -2,7 +2,7 @@
  *
  * A binding is {count, GC link word, symbol, value, next} (0x18 bytes, the second engine slot pool); frames and side
  * bags keep their variables as a list of bindings. The next link is a counted pointer: assigning it (0x257450) takes a
- * reference on the new binding and releases the old one; destroying it (0x257250, _$_8CVarbPtr) releases the binding,
+ * reference on the new binding and releases the old one; destroying it (0x257250, _$_t7CRefPtr1Z5CVarb) releases the binding,
  * which destroys the binding's own link in turn. Both are linkonce copies, homed in splice/frame.cpp and
  * splice/sidebag.cpp.
  *
@@ -24,7 +24,7 @@ struct CVarbPtr
 {
       CVarb *p;
       ~CVarbPtr();
-      void operator=(CVarb *pvarb) __asm__("func_00257450");
+      void operator=(CVarb *pvarb) __asm__("__as__t7CRefPtr1Z5CVarbP5CVarb");
 };
 
 struct CVarb

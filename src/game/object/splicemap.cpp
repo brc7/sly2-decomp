@@ -45,7 +45,7 @@ struct FRAMEV
 };
 
 extern "C" {
-void PairPtr_Release(void *pv, int n) __asm__("_$_8CPairPtr");
+void PairPtr_Release(void *pv, int n) __asm__("_$_t7CRefPtr1Z5CPair");
 void Unlink__t6CGcObj1Z5CPair(PAIRV *ppair);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
 void func_00257078(FRAMEV *pframe, int n) __asm__("_$_6CFrame");
@@ -89,7 +89,7 @@ extern char g_gc[];
 
 extern "C" {
 void *PtNew__t6CGcObj1Z6CFrame(void);
-void FramePtr_Assign(void *ppframe, void *pframe);
+void FramePtr_Assign(void *ppframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void ShutdownSplice(void);
 int U32Read__18CBinaryInputStream(void *pbis);
 SPLCS *func_001AE2A0(SZ *psz);

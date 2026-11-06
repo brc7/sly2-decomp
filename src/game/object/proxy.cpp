@@ -1075,7 +1075,7 @@ void func_00118500(STREAM *,void *,void *,int);
 short S16Read__18CBinaryInputStream(STREAM *);
 void LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(P *,DESC *,int,STREAM *);
 void CFrame_AddParent(void *,void *);
-void FramePtr_Assign(void **,void *);
+void FramePtr_Assign(void **,void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void CMemInputStream_ctor(STREAM *,int);
 }
 static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.delta);}
@@ -1454,35 +1454,6 @@ int FindProxysrc(SW *psw, int id)
     return -1;
 }
 
-/** @sly2-annot addr=0x256EE0
- * Purpose: Intrusive ref-pointer assignment for CFrame: incref new, decref old (DeleteFrame(p,3) at 0), store
- * Info: proposed name FramePtr_Assign (T1); TU game_linkonce
- * Notes: top50_round (0.60): Body: ++*new; --*old==0 -> 0x257078(old,3); *pp=new. 0x257078 is the CFrame
- *   destructor (frees from pool D_004520F8). Callers CFrame_SetSingleParent/AddParent/RemoveParent (frame TU,
- *   T1) store parent frames; ApplyAseg/New
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: sdk_names+top50_round
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
- *   docs/reference/functions/splice-scripting.md#frame-0x127b18-0x128138,
- *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
- * @end-sly2-annot */
-// 0x256EE0: out-of-line counted CFrame pointer store (linkonce): references the new frame, releases the old one
-// (~CFrame, func_00257078, deleting) and stores the new one.
-extern "C" void FramePtr_Assign(CFrame **ppframe, CFrame *pframe)
-{
-    CFrame *pframeOld;
-    if (pframe != 0) {
-        pframe->m_cref += 1;
-    }
-    pframeOld = *ppframe;
-    if (pframeOld != 0) {
-        int cref = pframeOld->m_cref - 1;
-        pframeOld->m_cref = cref;
-        if (cref == 0) {
-            func_00257078(pframeOld, 3);
-        }
-    }
-    *ppframe = pframe;
-}
 
 // ---- Pointer constants and records, by address name (docs/guides/tu-merging.md "Data"): words as the ELF has
 // them, pointers through asm-labelled declarations. Non-virtual pointer-to-member constants are 8 bytes

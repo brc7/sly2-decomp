@@ -148,7 +148,7 @@ extern const char D_002A4BE0[] = "";   /* the empty string (a zero-filled .rodat
 extern VE D_002CBE38[];      /* CLoadCollectorProxy vtable */
 extern VE D_002CBE50[];      /* CLoadCollectorArray vtable */
 extern "C" {
-void FramePtr_Assign(void *pspframe, void *pframe);
+void FramePtr_Assign(void *pspframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void *func_001FFA40(SW *psw, int isplice, LO *plo);
 DL *PdlFromSwOid(SW *psw, OID oid);
 DL *PdlFromSwCid(SW *psw, CID cid);

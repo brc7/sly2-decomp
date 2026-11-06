@@ -1,5 +1,5 @@
 // bif.cpp -- the Splice builtin functions (RefOp*: list, arithmetic, comparison, vector/matrix, world queries).
-// TU 0x11F440..0x1258F0 (161 functions, address order; the last six are linkonce copies at 0x256C38..0x256D40).
+// TU 0x11F440..0x1258F0 (155 functions, address order; then the three linkonce VU math copies 0x256CE8..0x256D28).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bif
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001258D0
 // Every builtin is `CRef RefOpX(int cref, CRef *aref, CFrame *pframe)` (the mangled symbols say so); the per-function
@@ -1401,7 +1401,7 @@ struct CRef;
 typedef struct CRef { int m_tagk; void *m_p; } CRef;
 void SetTag__4CRef4TAGK(CRef *pref, int tagk);
 void func_00129658(CRef *pref, CRef *prefSrc) __asm__("__as__4CRefRC4CRef");
-void PairPtr_Assign(void *p, void *q);
+void PairPtr_Assign(void *p, void *q) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 /** @sly2-annot addr=0x120C48
  * Purpose: Shared body of set-car!/set-cdr!: bifk 0x23 sets node->ref, else node->pnext; returns Void
  * Info: proposed name RefOpSetCadr (T1); TU bif
@@ -1600,7 +1600,7 @@ struct SPN {
     CPair *p;
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
     int pad[3];
 };
@@ -1693,7 +1693,7 @@ struct SP {
     SP() { p = 0; }
     SP(const SP &);
     ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
 };
 extern "C" SP CPair_CloneTo(CPair *src, void *a, void *b);
@@ -1822,7 +1822,7 @@ struct SP {
     SP() { p = 0; }
     SP(const SP &);
     ~SP() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
 };
 struct SPN {
@@ -3980,7 +3980,7 @@ struct O;
 struct NODE { int cref; int pad; CRef ref; NODE *pnext; };
 extern "C" {
 NODE *PtNew__t6CGcObj1Z5CPair();
-void PairPtr_Assign(NODE **pp, NODE *p);
+void PairPtr_Assign(NODE **pp, NODE *p) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 CRef RefPairFromAplo__FiPP2LO(int c, O **apo);
 }
 /** @sly2-annot addr=0x124078
@@ -4464,7 +4464,7 @@ struct SPN {
     void Set(CPair *pn) __asm__("Attach__t7CRefPtr1Z5CPairP5CPair");
     SPN(CPair *pn) { Set(pn); }
     ~SPN() { CPair *pn = p; if (pn && --pn->cref == 0) delete pn; }
-    void operator=(CPair *pn) __asm__("PairPtr_Assign");
+    void operator=(CPair *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
     CPair *operator->() { return p; }
     int pad;
 };
@@ -5134,18 +5134,6 @@ CRef *RefOpSetPowerUpAcquired(CRef *ret, void *pbasic, CRef *aref)
 
 
 
-// 0x256C58 PairPtr_Assign (CPairPtr::operator=)
-/* CPairPtr::operator= (sly2/pair.h): takes a reference on the new pair, then releases the old one. */
-void CPairPtr::operator=(CPair *ppair)
-{
-    if (ppair)
-        ppair->cref++;
-    CPair *ppairOld = p;
-    if (ppairOld && --ppairOld->cref == 0)
-        delete ppairOld;
-    p = ppair;
-}
-
 // 0x256CE8 __8VU_FLOATf
 /** @sly2-annot addr=0x256CE8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -5178,14 +5166,6 @@ qword operator*(VU_FLOAT f, VU_VECTOR v)
     return r;
 }
 
-// 0x256D40 _$_8CPairPtr (~CPairPtr)
-/* ~CPairPtr (sly2/pair.h): releases the pair; deleting it destroys its own link (the recursive call) and value. */
-CPairPtr::~CPairPtr()
-{
-    CPair *ppair = p;
-    if (ppair && --ppair->cref == 0)
-        delete ppair;
-}
 
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

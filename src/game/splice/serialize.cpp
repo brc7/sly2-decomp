@@ -41,7 +41,7 @@ unsigned int U32Read__18CBinaryInputStream(BIS *pbis);
 struct CPairPtr {
     NODE *p;
     ~CPairPtr();
-    void operator=(NODE *pn) __asm__("PairPtr_Assign");
+    void operator=(NODE *pn) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 };
 struct NODE {
     int cref;

@@ -93,7 +93,8 @@ extern "C" PVREC *PeopidFind(BASIC *pbasic, int opid)
    with the object, thunk and argument count). Bit 2: the member is read directly at pv + ib; else its getter, called
    on the object (pv itself or, with grf bit 0x2000, what pmfObj(1) returns). Then by type; the case order is the
    code's. Match notes: the getter is called through the typed PMF members without a cast (see sly2/eopid.h);
-   `CRef ref;` is a plain store of -1; the new method is attached in two statements; the matrix pointer is read once. */
+   `CRef ref;` is a plain store of -1; the method pointer is constructed from the new method (CRefPtr(T *) calls Attach;
+   CRefPtr() clears, so a default construction and a separate Attach would add a store); the matrix pointer is read once. */
 /** @sly2-annot addr=0x1FFD98
  * Purpose: Splice value of an object option (method, direct member or getter; by type
  *   bool/float/vector/matrix/int/clq/lm/smp)
@@ -107,9 +108,8 @@ CRef RefGetPeopid(void *pv, PVREC *ppvrec)
     uint grf = ppvrec->grfeopid;
     if (grf & 1)
     {
-        CRefPtr<CMethod> pmethod;
         CMethod *pmethodNew = CGcObj<CMethod>::PtNew();
-        pmethod.Attach(pmethodNew);
+        CRefPtr<CMethod> pmethod(pmethodNew);
         pmethod->m_pbasic = (BASIC *)pv;
         pmethod->m_pfnthunk = ppvrec->pfnthunk;
         pmethod->m_crefReq = ppvrec->crefReq;
@@ -396,7 +396,7 @@ CRef RefEnsureOption(BASIC *pbasic, int opid, CRef *pref)
 }
 
 /* A Splice list node (CPair, pool 0) and the counted pointer to one (SPPAIR) as the list builders below use them:
-   the store and the release are out of line (Attach__t7CRefPtr1Z5CPairP5CPair / PairPtr_Assign, _$_8CPairPtr), the destructor's
+   the store and the release are out of line (Attach__t7CRefPtr1Z5CPairP5CPair / PairPtr_Assign, _$_t7CRefPtr1Z5CPair), the destructor's
    release inline. SPPAIR is 16-byte aligned: the original frame has its list pointers in 16-byte slots, so this form
    exists to reproduce the original codegen. */
 struct CPair;
@@ -412,8 +412,8 @@ public:
 struct CPair { int cref; int link; CRef ref; SPPAIR next; };
 extern "C" {
 void Attach__t7CRefPtr1Z5CPairP5CPair(SPPAIR *psp, CPair *ppair);
-void PairPtr_Assign(SPPAIR *psp, CPair *ppair);
-void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_8CPairPtr");
+void PairPtr_Assign(SPPAIR *psp, CPair *ppair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
+void PairPtr_Release(SPPAIR *psp, int grf) __asm__("_$_t7CRefPtr1Z5CPair");
 CPair *PtNew__t6CGcObj1Z5CPair(void);
 void Unlink__t6CGcObj1Z5CPair(CPair *ppair);
 }

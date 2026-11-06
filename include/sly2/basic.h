@@ -198,7 +198,7 @@ class CRefPtr
 {
 public:
     T *m_p;
-    CRefPtr() {}
+    CRefPtr() { m_p = 0; }   /* clears (the PtNew instances, sly2/gc.h, show it in the nodes' constructors) */
     CRefPtr(REFPTRNULL) { m_p = 0; }   /* the clearing constructor of the classes' counted pointers (BASIC) */
     void Attach(T *p);
     CRefPtr(T *p) { Attach(p); }

@@ -2,7 +2,7 @@
  *
  * A pair is {count, GC link word, value, next} (0x14 bytes, the first engine slot pool). The next link is a counted
  * pointer: assigning it (0x256C58 PairPtr_Assign) takes a reference on the new pair and releases the old one;
- * destroying it (0x256D40, _$_8CPairPtr) releases the pair, which destroys the pair's own link in turn (the release is
+ * destroying it (0x256D40, _$_t7CRefPtr1Z5CPair) releases the pair, which destroys the pair's own link in turn (the release is
  * recursive down the list). Both functions are linkonce copies (0x254F00..0x259DE4), homed in app/bif.cpp.
  *
  * Names: CPairPtr is a placeholder. HYPOTHESIS: it is the out-of-line instance of a counted-pointer template
@@ -24,7 +24,7 @@ struct CPairPtr
 {
       CPair *p;
       ~CPairPtr();
-      void operator=(CPair *ppair) __asm__("PairPtr_Assign");
+      void operator=(CPair *ppair) __asm__("__as__t7CRefPtr1Z5CPairP5CPair");
 };
 
 struct CPair

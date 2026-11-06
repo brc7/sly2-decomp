@@ -1,6 +1,6 @@
-// sidebag.cpp -- CSidebag, a Splice object's side bag of variable bindings (CVarb): add, set, find, clone, plus two
-// linkonce instances of the counted-pointer helpers homed here (0x257250, 0x257E68). The sidebag pool's GC members
-// are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp).
+// sidebag.cpp -- CSidebag, a Splice object's side bag of variable bindings (CVarb): add, set, find, clone. The
+// sidebag pool's GC members are CGcObj<CSidebag>'s (sly2/gc.h) and its counted-pointer copies CRefPtr<T>'s
+// (sly2/basic.h), all emitted by splice/gc.cpp.
 // TU 0x12A980..0x12AE18 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sidebag
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012ADF8
@@ -46,7 +46,7 @@ struct SPW
     SPW(const SPW &);
     void Set(CVarb *pvarb) __asm__("Attach__t7CRefPtr1Z5CVarbP5CVarb");
     ~SPW() { CVarb *pvarb = p; if (pvarb && --pvarb->cref == 0) delete pvarb; }
-    void operator=(CVarb *pvarb) __asm__("func_00257450");
+    void operator=(CVarb *pvarb) __asm__("__as__t7CRefPtr1Z5CVarbP5CVarb");
     CVarb *operator->() { return p; }
     operator CVarb *() { return p; }
 };
@@ -161,18 +161,6 @@ extern "C" SPS CSidebag_CloneTo(CSidebag *psbSrc, void *q)
         sp->SetBinding(CVarb_CloneTo(psbSrc->pbindingFirst.p, 0, q).p);
     return SPS(sp.p);
 }
-
-/* Linkonce instances homed in this TU (C-linkage functions under their current symbols). */
-
-// 0x257250 _$_8CVarbPtr: ~CVarbPtr (sly2/varb.h): releases the binding; deleting it destroys its own link (the
-// recursive call) and value.
-CVarbPtr::~CVarbPtr()
-{
-    CVarb *pvarb = p;
-    if (pvarb && --pvarb->cref == 0)
-        delete pvarb;
-}
-
 
 // ---- Common symbols defined here (docs/guides/tu-merging.md "Data", address names): g++ 2.95 emits a class or
 // template static data member as COMMON (C: a tentative definition), and the linker allocates commons at the end

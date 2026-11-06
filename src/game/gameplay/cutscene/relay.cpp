@@ -1221,7 +1221,7 @@ void StopRelay(RELAY *prelay);
 RELAYCMD *PrelaycmdAddRelay(RELAY *prelay, int relayck, int fAsync);
 void EndJtMode(JTMODE *pjtmode);
 void UnsubscribeLoAll(JSG *pjsg);
-void FramePtr_Assign(void *ppframe, CFrame *pframe);
+void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
 void func_00143DE8(LO *pjt, JSG *pjsg);

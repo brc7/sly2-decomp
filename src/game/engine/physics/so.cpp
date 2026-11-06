@@ -208,7 +208,7 @@ int func_001F8240(LO *plo);
 void *func_001AE4F8(int cb);
 void func_0020A5F8(void *ptargetrec, LO *plo);
 STEPREC *func_001F8300(STEP *pstep);
-void FramePtr_Assign(void *ppframe, CFrame *pframe);
+void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void UnsubscribeLoAll(XFH *pxfh);
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);

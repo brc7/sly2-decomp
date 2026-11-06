@@ -838,7 +838,7 @@ struct PAIRNODE { int cref; int x4; int ref[2]; int pnext[1]; };
 struct FRAMENODE { int cref; };
 struct PROCNODE { int x0; int x4; FRAMENODE *pframe; int cargMin; int fRest; PAIRNODE *pparams; PAIRNODE *pbody; };
 extern "C" {
-void PairPtr_Release(void *psp, int flags) __asm__("_$_8CPairPtr");
+void PairPtr_Release(void *psp, int flags) __asm__("_$_t7CRefPtr1Z5CPair");
 void Decref__4CRef(void *pref);
 void func_00257078(void *pframe, int flags) __asm__("_$_6CFrame");
 }

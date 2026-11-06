@@ -93,6 +93,8 @@ public:
                   delete (T *)this;
             }
       }
+      /* a node's slot goes back to its kind's pool (its destructor has unlinked it) */
+      void operator delete(void *pv) { func_0011CD98(Pslotheap(), pv); }
       void PushFront(T **pptHead);
       void Unlink();
       void MakeRoot();

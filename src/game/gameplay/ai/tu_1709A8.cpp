@@ -540,7 +540,7 @@ struct T { int n0; char pad[0x4C]; int n50; };
 struct U { int n0; int n4; };
 struct S { int pad0; char a4[8]; struct VTE *vt; char pad[8]; char a18[0x18]; struct T *pt; int n34; int n38; int pad3; int n40; struct U *pu; int pad4; int n4C; };
 void PopBhv(void *p);
-void FramePtr_Assign(struct S *p, int n);
+void FramePtr_Assign(struct S *p, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *p, int n);
 /** @sly2-annot addr=0x171258
  * Purpose: Switches the script (cid 0x71) a BHV169 runs: stops the old one (message 3), starts the new

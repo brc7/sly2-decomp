@@ -10,25 +10,19 @@
 #include "sly2/gc.h"
 
 /* The six collected node kinds as the collector sees them (views: the fields it reads, at their offsets; the sizes
-   are the pools' slot sizes, which CGcObj<T>'s block arithmetic divides by). The counted links are GCPTR, cleared
-   by their constructors as the PtNew instances show (CRefPtr's own default constructor does not clear, see
-   sly2/basic.h). */
-template <class T>
-struct GCPTR
-{
-    T *p;
-    GCPTR() : p(0) {}
-    operator T *() { return p; }
-    T *operator->() { return p; }
-};
-
+   are the pools' slot sizes, which CGcObj<T>'s block arithmetic divides by). The counted links are CRefPtr<T>
+   (sly2/basic.h); the nodes' destructors are the implicit ones.
+   Order matters for the counted-pointer instances below (CONFIRMED by match, see docs/guides/tu-merging.md "Linkonce
+   copies by family"): CRefPtr<CPair>'s and CRefPtr<CVarb>'s destructor and assignment are instantiated before CFrame
+   is defined, so that ~CFrame inlines the binding release but calls ~CRefPtr<CFrame> for its parents, and
+   ~CRefPtr<CFrame> and the frame assignment call ~CFrame (0x257078) instead of inlining it. */
 struct CVarb;
 
 /* Pair (pool 0). */
 struct CPair : CGcObj<CPair>
 {
     CRef car;
-    GCPTR<CPair> pnNext;
+    CRefPtr<CPair> pnNext;
 };
 
 /* Binding (pool 1). */
@@ -36,34 +30,52 @@ struct CVarb : CGcObj<CVarb>
 {
     int sym;
     CRef ref;
-    GCPTR<CVarb> pbNext;
+    CRefPtr<CVarb> pbNext;
 };
+
+/* CRefPtr<T>::operator= (declared in sly2/basic.h): defined here, where its instances are emitted, so that the files
+   that call it (object/proxy.cpp, through sly2/cframe.h's CFrame) keep calling it. Not inline: one linkonce copy per
+   pointee type. */
+template <class T> void CRefPtr<T>::operator=(T *p)
+{
+    if (p)
+        p->m_cref++;
+    if (m_p)
+        m_p->Release();
+    m_p = p;
+}
+template CRefPtr<CPair>::~CRefPtr();                 /* 0x256D40 */
+template void CRefPtr<CPair>::operator=(CPair *);    /* 0x256C58 */
+template CRefPtr<CVarb>::~CRefPtr();                 /* 0x257250 */
+template void CRefPtr<CVarb>::operator=(CVarb *);    /* 0x257450 */
 
 /* Frame (pool 2). */
 class CFrame : public CGcObj<CFrame>
 {
 public:
     int c;
-    GCPTR<CFrame> apf[4];
-    GCPTR<CVarb> pbFirst;
+    CRefPtr<CFrame> apf[4];
+    CRefPtr<CVarb> pbFirst;
     int fBusy;
     int x24;
 };
+template CRefPtr<CFrame>::~CRefPtr();                /* 0x2572E0; its ~CFrame call is 0x257078 */
+template void CRefPtr<CFrame>::operator=(CFrame *);  /* 0x256EE0 */
 
 /* Proc / closure (pool 3): its frame, the parameter list and the body. */
 struct CProc : CGcObj<CProc>
 {
-    GCPTR<CFrame> pf;
+    CRefPtr<CFrame> pf;
     int xC;
     int x10;
-    GCPTR<CPair> pl;
-    GCPTR<CPair> pn;
+    CRefPtr<CPair> pl;
+    CRefPtr<CPair> pn;
 };
 
 /* Sidebag (pool 4). */
 struct CSidebag : CGcObj<CSidebag>
 {
-    GCPTR<CVarb> pbFirst;
+    CRefPtr<CVarb> pbFirst;
 };
 
 /* Method (pool 5; object/spliceobj.cpp's CMethod). */
@@ -212,7 +224,7 @@ void CGc::MarkLiveObjects()
             pcRef = (pgc->cClo > 0) ? pgc->apClo[--pgc->cClo] : 0;
             if (pcRef)
             {
-                for (pn = pcRef->pl.p; pn; pn = pn->pnNext)
+                for (pn = pcRef->pl.m_p; pn; pn = pn->pnNext)
                 {
                     if (pn->m_fMark != g_gc.fMark)
                         pn->m_fMark = g_gc.fMark;
