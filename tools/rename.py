@@ -44,6 +44,8 @@ IDC = 'A-Za-z0-9_$'          # gcc accepts '$' in identifiers (used by _$_ destr
 # --------------------------------------------------------------------------------------------------------------------
 # lexing: split C/C++ text into code / comment / string / char segments
 # --------------------------------------------------------------------------------------------------------------------
+_ASM_OPEN = re.compile(r'(?<![A-Za-z0-9_$])(?:__asm__|__asm|asm)(?:\s+(?:__volatile__|volatile))?\s*\(\s*\Z')
+
 def segments(text):
     """List of (kind, start, end) covering text; kind in code|comment|string|char."""
     out = []; n = len(text); i = 0; cs = 0
@@ -63,8 +65,12 @@ def segments(text):
             flush(i); k = text.find('*/', i + 2); k = n if k == -1 else k + 2
             out.append(('comment', i, k)); i = cs = k
         elif c == '"' or c == "'":
+            # gcc 2.95 accepts raw newlines inside string literals; the code base uses them in multi-line asm
+            # templates (`__asm__("mfc1 %0,%2<newline>\tmfc1 ...")`). Only a string that is an asm template
+            # (directly after `asm(` / `asm volatile(`) may span lines, so a stray quote elsewhere cannot swallow code.
             flush(i); j = i + 1
-            while j < n and text[j] != c and text[j] != '\n':
+            multiline = c == '"' and _ASM_OPEN.search(text, max(0, i - 40), i) is not None
+            while j < n and text[j] != c and (multiline or text[j] != '\n'):
                 j += 2 if text[j] == '\\' else 1
             j = min(j + 1, n)
             out.append(('string' if c == '"' else 'char', i, j)); i = cs = j
@@ -557,15 +563,21 @@ class Engine:
             depth.append(d)
             if ch == '{': d += 1
             elif ch == '}': d = max(0, d - 1)
+        # extern "C" { ... } and namespace N { ... } blocks do not count as nesting. A definition inside a namespace
+        # only counts when an extern "C" block also encloses it (the merged-file pattern
+        # `namespace M_Func { extern "C" { ... } }`): otherwise its symbol carries the namespace and is not OLD.
         ext = {m.end() - 1 for m in re.finditer(r'extern\s*"C"\s*\{', text)}
-        # extern "C" { ... } blocks do not count as nesting
-        adj = [0] * len(code); k = 0; stack = []
+        nsp = {m.end() - 1 for m in re.finditer(r'(?<![%s])namespace(?:\s+[A-Za-z_]\w*)?\s*\{' % IDC, code)}
+        adj = [0] * len(code); in_ns = [False] * len(code); k = 0; stack = []
         for i, ch in enumerate(code):
-            if ch == '{': stack.append(i in ext); k += i in ext
+            if ch == '{':
+                kind = 'C' if i in ext else 'ns' if i in nsp else ''
+                stack.append(kind); k += bool(kind)
             adj[i] = k
-            if ch == '}' and stack: k -= stack.pop()
+            in_ns[i] = 'ns' in stack and 'C' not in stack
+            if ch == '}' and stack: k -= bool(stack.pop())
         for m in re.finditer(r'(?<![%s])(%s)\s*\(' % (IDC, _alts(aliases)), code):
-            if depth[m.start()] - adj[m.start()] != 0: continue
+            if depth[m.start()] - adj[m.start()] != 0 or in_ns[m.start()]: continue
             i = m.end(); n = 1
             while i < len(code) and n:
                 n += {'(': 1, ')': -1}.get(code[i], 0); i += 1

@@ -257,19 +257,18 @@ extern "C" void PostLoadJtMode(JTMODE *jtMode)
 extern "C" void StartJtMode(JTMODE *jtMode, int kind, STEP *otherStep, WIDGET *widget)
 {
     if (jtMode->nState != -1) {
-        if (jtMode->nKind != 1 && kind == 1) {
-            SetJtModeState(jtMode, 2);
-            SetJtModeState(jtMode, -1);
-            goto start;
-        }
-    } else {
-start:
-        jtMode->nKind = kind;
-        jtMode->pstepOther = otherStep;
-        jtMode->ploHudOverride = widget;
-        SetJtModeState(jtMode, 0);
+        // A running mode only gives way to a recon request: end and reset it first.
+        if (jtMode->nKind == 1 || kind != 1)
+            return;
+        SetJtModeState(jtMode, 2);
+        SetJtModeState(jtMode, -1);
     }
+    jtMode->nKind = kind;
+    jtMode->pstepOther = otherStep;
+    jtMode->ploHudOverride = widget;
+    SetJtModeState(jtMode, 0);
 }
+
 
 /** @sly2-annot addr=0x19CCE8
  * Purpose: Leave the mode (SetJtModeState 2) unless the owner state is 0/8/9/10
@@ -490,14 +489,14 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             break;
         }
     } while (n != jtMode->nState);
-    if (jtMode->nKind == 0) {
-        POCTL *v = jtMode->pstepplayer->pctl;
-        if (v->nState == 1) {
-            v->dxLeft = v->dyLeft = v->radLeft = v->sLeft = 0.0f;
-            v->dyRight = v->radRight = v->sRight = 0.0f;
-            v->dxRight = 0.0f;
-        }
-    }
+    if (jtMode->nKind != 0)
+        return;
+    POCTL *v = jtMode->pstepplayer->pctl;
+    if (v->nState != 1)
+        return;
+    v->dxLeft = v->dyLeft = v->radLeft = v->sLeft = 0.0f;
+    v->dyRight = v->radRight = v->sRight = 0.0f;
+    v->dxRight = 0.0f;
 }
 
 /** @sly2-annot addr=0x19D4D0
@@ -642,27 +641,30 @@ typedef char Alignment_5[__alignof__(GTASK)==4?1:-1];
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
 // Collects the world's tag ids from the game record and sorts them (qsort) for the HUD. (inferred)
-extern "C" void GatherJtModeHudTags(JTMODEHUD*hud){
- WIDGET*pt=hud->pwidgetHud;
- if(!pt)return;
- pt->tags[0]=pt->tags[1]=-1;
- GTASK*pg=(GTASK*)&D_003DD490;
- if(!pg->currentTask || pg->currentTask->headerTagId==-1)return;
- hud->pwidgetHud->tags[0]=pg->currentTask->headerTagId;
- int n=1,i=0;
- GTASK*pgLoop=CopyGame(pg);
- STACKSCOPE fr;
- int c;
- X**ap;
- SortTasksTopologically(&c,&ap);
- qsort(ap,c,4,CompareTasks);
- for(;i<c;i++){
-  X*x=ap[i];
-  if(pgLoop->currentTask==x->parent && x->tagId!=-1 && !IsTaskComplete(x)){
-   hud->pwidgetHud->tags[n++]=x->tagId;
-   break;
-  }
- }
+extern "C" void GatherJtModeHudTags(JTMODEHUD *hud)
+{
+    WIDGET *pt = hud->pwidgetHud;
+    if (!pt)
+        return;
+    pt->tags[0] = pt->tags[1] = -1;
+    GTASK *pg = (GTASK *)&D_003DD490;
+    if (!pg->currentTask || pg->currentTask->headerTagId == -1)
+        return;
+    hud->pwidgetHud->tags[0] = pg->currentTask->headerTagId;
+    int n = 1, i = 0;
+    GTASK *pgLoop = CopyGame(pg);
+    STACKSCOPE fr;
+    int c;
+    X **ap;
+    SortTasksTopologically(&c, &ap);
+    qsort(ap, c, 4, CompareTasks);
+    for (; i < c; i++) {
+        X *x = ap[i];
+        if (pgLoop->currentTask == x->parent && x->tagId != -1 && !IsTaskComplete(x)) {
+            hud->pwidgetHud->tags[n++] = x->tagId;
+            break;
+        }
+    }
 }
 #undef FIELD_OFFSET
 
@@ -682,26 +684,25 @@ extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
     if (hud->pnUnk14)
         UpdateReconSel((SELECTOR *)hud->pnUnk14);
     switch (hud->nState) {
-    case -1:
-        return;
-    case 2:{
-        int a,b;
-        Below(a,hud->pwidgetHud);
+    case -1: return;
+    case 2: {
+        int a, b;
+        Below(a, hud->pwidgetHud);
         b = 1;
         if (hud->pjtmode->nKind == 1) {
-            Below(b,hud->pwidgetCur);
+            Below(b, hud->pwidgetCur);
         }
         if (a && b)
             SetJtModeHudState(hud, -1);
         return;
     }
-    case 0:{
-        int a,b;
-        Equal(a,hud->pwidgetHud);
+    case 0: {
+        int a, b;
+        Equal(a, hud->pwidgetHud);
         D_002BF920 = -1;
         b = 1;
         if (hud->pjtmode->nKind == 1) {
-            Equal(b,hud->pwidgetCur);
+            Equal(b, hud->pwidgetCur);
         }
         if (a && b)
             SetJtModeHudState(hud, 1);
@@ -711,19 +712,20 @@ extern "C" void UpdateJtModeHud(JTMODEHUD *hud)
     if (!hud->pwidgetHud)
         return;
     if (hud->nState) {
-        int previous=hud->pjtmode->pstepplayer->nInteractMode;
-        if(previous==4){
-            if(D_002BF920!=previous)PlayWidgetAnim(hud->pwidgetHud,0x353);
-            if(hud->pjtmode->pstepplayer->nInteractMode==previous)goto store;
+        int previous = hud->pjtmode->pstepplayer->nInteractMode;
+        // Interact mode 4 (engaged with a guard) shows the alert animation 0x353 on the HUD.
+        if (previous == 4) {
+            if (D_002BF920 != previous)
+                PlayWidgetAnim(hud->pwidgetHud, 0x353);
         }
-        if(D_002BF920==4)StopWidgetAnim(hud->pwidgetHud,0x353);
-store:
-        D_002BF920=hud->pjtmode->pstepplayer->nUnk10e4;
+        if ((previous != 4 || hud->pjtmode->pstepplayer->nInteractMode != previous) && D_002BF920 == 4)
+            StopWidgetAnim(hud->pwidgetHud, 0x353);
+        D_002BF920
+ = hud->pjtmode->pstepplayer->nUnk10e4;
     }
     SetWidgetAnimPhase(hud->pwidgetHud, 0x352, (hud->pjtmode->pstepplayer->radTarget + 3.14159265f) * 0.15915494f);
     SetWidgetAnimPhase(hud->pwidgetHud, 0x351, hud->pjtmode->hud.uZoom);
 }
-
 
 /** @sly2-annot addr=0x19DCA0
  * Purpose: Set active HUD widget to arg or default (field c)

@@ -584,107 +584,196 @@ struct __attribute__((packed)) BASIS_TAIL { float firstW; qword row1, row2; };
  * @end-sly2-annot */
 // Creates position and orientation jobs that carry the selected animated object along the predicted clip path to the
 // hand (ballistic time, reparenting).
-extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other){
- register JTHANDS*p __asm__("$22");register SO*object __asm__("$20");
- __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));
- __asm__("daddu %0,%1,$zero":"=r"(object):"r"(other));
- CARRYWORK work;
- ReleaseAct(&p->pactPos);register float zero __asm__("$f21")=0.0f;ReleaseAct(&p->pactHold);ReleaseAct(&p->pactTurn);
- ASEGA *anim=((JTV *)p->pso)->pasegaCur;ASEG *motion=anim->paseg;
- float time=GetAsegLabelTime(motion,0x1C7),phase=(time-anim->tLocal)/anim->svt;
- XF *space=SourceMatrix(p->ploHand,&work.original);register M4*workingBase __asm__("$19")=&work.sample;
- PredictAsegTransform(motion,time,zero,p->pso,space,p->pso->pxfRoot,SampleOutput(workingBase),0);
- JTV *owner=(JTV *)p->pso;
- M4 *start=&work.start;M3 *basis=&owner->matRot;register M4*product __asm__("$21");
- qword location=GetLoWorldPos(owner);
- VECTOR_opAssign(TranslationSlot(work),location);
- {
- register qword firstRow __asm__("$2");register M4*intermediate __asm__("$16");register float homogeneous __asm__("$f0");
- __asm__("lq %0,%2\n\taddiu %1,%3,0x140":"=&r"(firstRow),"=r"(product):"m"(owner->matRot.r[0]),"r"(&work));
- __asm__(".set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%0\n\t.set at\n\taddiu %1,%3,0x100\n\tsq %4,%2":"=f"(homogeneous),"=&r"(intermediate),"=m"(work.start.r[0]):"r"(&work),"r"(firstRow):"$1");
- register const M4*left __asm__("$5"),*right __asm__("$6");register M4*destination __asm__("$4");
- __asm__("daddu %0,%3,$zero\n\tdaddu %1,%4,$zero\n\tdaddu %2,%5,$zero":"=&r"(left),"=&r"(right),"=r"(destination):"r"(start),"r"(workingBase),"r"(product));
- register qword row1 __asm__("$3"),row2 __asm__("$2");
- __asm__("lq %0,16(%4)\n\tdaddu %2,%6,$zero\n\tsq %0,16(%5)\n\tlq %1,32(%4)\n\tsq %1,32(%5)\n\tswc1 %7,%3\n\tswc1 %7,32+%3\n\tswc1 %7,16+%3"
-  :"=&r"(row1),"=&r"(row2),"=&r"(workingBase),"=m"(*(BASIS_TAIL*)((char*)&work.start+12)):"r"(basis),"r"(start),"r"(intermediate),"f"(zero));
- ((U *)&start->r[3])->f[3]=homogeneous;MulMatrix4Ret(destination,left,right);
- register const M4*originalArgument __asm__("$6");register M4*secondDestination __asm__("$4");
- __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=r"(originalArgument),"=r"(secondDestination):"r"(&work.original),"r"(intermediate));
- MulMatrix4Ret(secondDestination,product,originalArgument);
- }
- CID20*counterpart;
- {
- register qword first __asm__("$7"),row1 __asm__("$2"),row2 __asm__("$3"),row3 __asm__("$6");register SO*objectArgument __asm__("$5");register JTV*ownerArgument __asm__("$4");
- __asm__("lq %0,%2\n\tdaddu %1,%3,$zero":"=&r"(first),"=r"(objectArgument):"m"(work.views.matrices.intermediate.r[0]),"r"(object));
- __asm__("lq %0,%6\n\tlq %1,%7\n\tlq %2,%8\n\tlw %3,%9\n\tsq %5,%4\n\tsq %0,16+%4\n\tsq %1,32+%4"
-  :"=&r"(row1),"=&r"(row2),"=&r"(row3),"=&r"(ownerArgument),"=m"(*(M3*)&work.final):"r"(first),"m"(work.views.matrices.intermediate.r[1]),"m"(work.views.matrices.intermediate.r[2]),"m"(work.views.matrices.intermediate.r[3]),"m"(p->pso));
- work.final.r[3]=row3;counterpart=FindJtHandsTarget(ownerArgument,objectArgument);
- }
- register M4*finalMatrix __asm__("$17")=&work.final;
- if(counterpart){
-  M4*counterMatrix=WorldMatrix(counterpart);register const M4*counterArgument __asm__("$7");register SO*counterSpace __asm__("$6");
-  __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero":"=&r"(counterArgument),"=r"(counterSpace):"r"(counterMatrix),"r"(object));
-  new(product)M4(ConvertAloMat4(0,counterSpace,counterArgument));
-  register M4*inverse __asm__("$16");
-  {
-  register qword row1 __asm__("$6"),row2 __asm__("$3"),row3 __asm__("$2"),row0 __asm__("$7");register M4*inverseArgument __asm__("$4");register const M4*sourceArgument __asm__("$5");
-  __asm__("lq %0,%4\n\taddiu %1,%5,0x180\n\tlq %2,%6\n\tdaddu %3,%1,$zero":"=&r"(row1),"=&r"(inverse),"=r"(row2),"=r"(inverseArgument):"m"(work.views.matrices.product.r[1]),"r"(&work),"m"(work.views.matrices.product.r[2]));
-  __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\tlq %2,%6\n\tsq %7,%3\n\tsq %8,16+%3\n\tsq %0,32+%3"
-   :"=&r"(row3),"=&r"(sourceArgument),"=&r"(row0),"=m"(*(M3*)&work.views.matrices.intermediate.r[1]):"m"(work.views.matrices.product.r[3]),"r"(workingBase),"m"(work.views.matrices.product.r[0]),"r"(row1),"r"(row2));
-  work.views.matrices.intermediate.r[0]=row0;new(inverseArgument)M4(InvertMatrix4RigidP(sourceArgument));
-  }
-  MulMatrix4Ret(product,finalMatrix,inverse);
-  {
-  register qword row0 __asm__("$2"),row1 __asm__("$3"),row2 __asm__("$4"),row3 __asm__("$5");
-  __asm__("lq %0,%5\n\tlq %1,%6\n\tlq %2,%7\n\tlq %3,%8\n\tsq %0,%4\n\tsq %1,16+%4\n\tsq %2,32+%4\n\tsq %3,48+%4"
-   :"=&r"(row0),"=&r"(row1),"=&r"(row2),"=&r"(row3),"=m"(work.final):"m"(work.views.matrices.product.r[0]),"m"(work.views.matrices.product.r[1]),"m"(work.views.matrices.product.r[2]),"m"(work.views.matrices.product.r[3]));
-  }
- }
- SetLoParent(object,0,15);
- const qword*velocityAddress=object->psophys?(const qword *)&object->psophys->dvGravity:&D_002C1EE0.q;register float unit __asm__("$f20");register SO*initialOwner __asm__("$4");{register qword initialVelocity __asm__("$2");
- __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\t.set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%2\n\t.set at\n\tsq %0,%3":"=r"(initialVelocity),"=r"(initialOwner),"=f"(unit),"=m"(work.velocity):"m"(*velocityAddress),"r"(object):"$1");}
- {register qword destination __asm__("$2");__asm__("lq %0,%1":"=r"(destination):"m"(work.final.r[3]));work.destination=destination;}
- float limit;qword initialSpeed;DeltaForDuration(work,GetLoWorldPos(initialOwner),limit,initialSpeed);
- register float negativeLimit __asm__("$f13"),minimum __asm__("$f15"),maximum __asm__("$f14");
- __asm__("neg.s %0,%3\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%1\n\t.set at\n\tmov.s %2,%4":"=f"(negativeLimit),"=f"(minimum),"=f"(maximum):"f"(limit),"f"(unit):"$1");
- float duration=Max(phase,ComputeMaxBallisticTime(work.delta,initialSpeed,limit,negativeLimit,maximum,minimum));
- float speed=phase/duration;phase=duration;
- SetAsegaSpeed__FP5ASEGAf(anim,speed);
- {
- register float negativeTime __asm__("$f0"),positiveTime __asm__("$f1");
- register qword first __asm__("vf4"),speedVector __asm__("vf5");
- __asm__("div.s %4,%4,%5\n\t.set noat\n\tlui $at,0xBF00\n\tmtc1 $at,%0\n\tlui $at,0x3F00\n\tmtc1 $at,%1\n\t.set at\n\tmul.s %0,%5,%0\n\tlqc2 %2,%6\n\tmul.s %1,%5,%1\n\tlqc2 %3,%7"
-  :"=&f"(negativeTime),"=&f"(positiveTime),"=j"(speedVector),"=j"(first),"+&f"(unit):"f"(phase),"m"(work.velocity),"m"(work.delta):"$1");
- register qword negativeOrEnd __asm__("vf2"),inverse __asm__("vf3");register int positiveBits __asm__("$3");register VTE*table __asm__("$2");
- __asm__("mfc1 %2,%4\n\tmfc1 %3,%5\n\tqmtc2.ni %2,%0\n\tqmtc2.ni %3,%1\n\tmfc1 %2,%6\n\tlw %3,%7"
-  :"=j"(negativeOrEnd),"=j"(inverse),"=&r"(positiveBits),"=&r"(table):"f"(negativeTime),"f"(unit),"f"(positiveTime),"m"(PVT(object)));
- __asm__("vmulax.xyzw $ACC,%0,%2x\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %2,%1":"+j"(first),"=m"(work.views.scalar.q):"j"(inverse),"j"(speedVector),"j"(negativeOrEnd));
- register qword positive __asm__("vf1"),callbackVelocity __asm__("$5");
- __asm__("qmtc2.ni %4,%0\n\tsqc2 %1,%3\n\tlqc2 %1,%5\n\tvmulax.xyzw $ACC,%1,%6x\n\tvmaddx.xyzw %1,%7,%0x\n\tqmfc2.ni %2,%8"
-  :"=&j"(positive),"+&j"(negativeOrEnd),"=r"(callbackVelocity),"=m"(work.views.scalar.q):"r"(positiveBits),"m"(work.delta),"j"(inverse),"j"(speedVector),"j"(first));
- typedef void(*APPLY)(LO*,qword);register APPLY apply __asm__("$6");register LO*receiver __asm__("$4");
- __asm__("lh %0,%4\n\tlw %1,%5\n\tsqc2 %6,%2\n\taddu %0,%8,%0\n\tsqc2 %7,%3"
-  :"=&r"(receiver),"=&r"(apply),"=m"(work.views.scalar.q),"=m"(work.endVelocity):"m"(table[35].delta),"m"(table[35].pfn),"j"(inverse),"j"(negativeOrEnd),"r"(object));   /* LO slot 35, SetVelocity */
- work.views.scalar.q=positive;apply(receiver,callbackVelocity);
- }
- float endTime=D_002DDED0.t+phase;
- qword position=TransformXfPos(0,object->pxfUnk58->pxfParent,work.final.r[3]);
- qword endVelocity=ConvertXfVec(0,object->pxfUnk58->pxfParent,work.endVelocity);
- {
- register XF*channel __asm__("$5");register qword velocityArgument __asm__("$8"),positionArgument __asm__("$7");register float timeArgument __asm__("$f12");register SO*receiver __asm__("$4");
- __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
-  :"=&r"(channel),"=&r"(velocityArgument),"=f"(timeArgument),"=&r"(positionArgument),"=r"(receiver):"m"(object->pxfUnk58),"r"(endVelocity),"f"(endTime),"r"(position),"r"(object));
- p->pactPos=NewBezierAct(receiver,channel,5,timeArgument,positionArgument,velocityArgument);
- }
- ConvertXfMat(&work.views.basis.converted,0,object->pxfUnk5c->pxfParent,(M3*)finalMatrix);
- work.views.basis.angles=work.views.basis.converted;
- qword angles=DecomposeRotationMatrixToEuler((M3*)workingBase);
- register XF*orientationChannel __asm__("$5");register SO*orientationOwner __asm__("$4");register qword anglesArgument __asm__("$9");
- __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tpor %2,$zero,%5":"=&r"(orientationChannel),"=&r"(orientationOwner),"=r"(anglesArgument):"m"(object->pxfUnk5c),"r"(object),"r"(angles));
- ACT *job=NewPositionAct(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;
- XFACT *pxfact=(XFACT *)object->pxfUnk5c;
- if(pxfact->pactCur==job)pxfact->tEnd=endTime;
- SetSoTreeFlag2(object,1);
+extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other)
+{
+    register JTHANDS *p __asm__("$22");
+    register SO *object __asm__("$20");
+    __asm__("daddu %0,%1,$zero" : "=r"(p) : "r"(input));
+    __asm__("daddu %0,%1,$zero" : "=r"(object) : "r"(other));
+    CARRYWORK work;
+    ReleaseAct(&p->pactPos);
+    register float zero __asm__("$f21") = 0.0f;
+    ReleaseAct(&p->pactHold);
+    ReleaseAct(&p->pactTurn);
+    ASEGA *anim = ((JTV *)p->pso)->pasegaCur;
+    ASEG *motion = anim->paseg;
+    float time = GetAsegLabelTime(motion, 0x1C7), phase = (time - anim->tLocal) / anim->svt;
+    XF *space = SourceMatrix(p->ploHand, &work.original);
+    register M4 *workingBase __asm__("$19") = &work.sample;
+    PredictAsegTransform(motion, time, zero, p->pso, space, p->pso->pxfRoot, SampleOutput(workingBase), 0);
+    JTV *owner = (JTV *)p->pso;
+    M4 *start = &work.start;
+    M3 *basis = &owner->matRot;
+    register M4 *product __asm__("$21");
+    qword location = GetLoWorldPos(owner);
+    VECTOR_opAssign(TranslationSlot(work), location);
+    {
+        register qword firstRow __asm__("$2");
+        register M4 *intermediate __asm__("$16");
+        register float homogeneous __asm__("$f0");
+        __asm__("lq %0,%2\n\taddiu %1,%3,0x140" : "=&r"(firstRow), "=r"(product) : "m"(owner->matRot.r[0]), "r"(&work));
+        __asm__(".set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%0\n\t.set at\n\taddiu %1,%3,0x100\n\tsq %4,%2"
+                : "=f"(homogeneous), "=&r"(intermediate), "=m"(work.start.r[0])
+                : "r"(&work), "r"(firstRow)
+                : "$1");
+        register const M4 *left __asm__("$5"), *right __asm__("$6");
+        register M4 *destination __asm__("$4");
+        __asm__("daddu %0,%3,$zero\n\tdaddu %1,%4,$zero\n\tdaddu %2,%5,$zero"
+                : "=&r"(left), "=&r"(right), "=r"(destination)
+                : "r"(start), "r"(workingBase), "r"(product));
+        register qword row1 __asm__("$3"), row2 __asm__("$2");
+        __asm__("lq %0,16(%4)\n\tdaddu %2,%6,$zero\n\tsq %0,16(%5)\n\tlq %1,32(%4)\n\tsq %1,32(%5)\n\tswc1 "
+                "%7,%3\n\tswc1 %7,32+%3\n\tswc1 %7,16+%3"
+                : "=&r"(row1), "=&r"(row2), "=&r"(workingBase), "=m"(*(BASIS_TAIL *)((char *)&work.start + 12))
+                : "r"(basis), "r"(start), "r"(intermediate), "f"(zero));
+        ((U *)&start->r[3])->f[3] = homogeneous;
+        MulMatrix4Ret(destination, left, right);
+        register const M4 *originalArgument __asm__("$6");
+        register M4 *secondDestination __asm__("$4");
+        __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero"
+                : "=r"(originalArgument), "=r"(secondDestination)
+                : "r"(&work.original), "r"(intermediate));
+        MulMatrix4Ret(secondDestination, product, originalArgument);
+    }
+    CID20 *counterpart;
+    {
+        register qword first __asm__("$7"), row1 __asm__("$2"), row2 __asm__("$3"), row3 __asm__("$6");
+        register SO *objectArgument __asm__("$5");
+        register JTV *ownerArgument __asm__("$4");
+        __asm__("lq %0,%2\n\tdaddu %1,%3,$zero"
+                : "=&r"(first), "=r"(objectArgument)
+                : "m"(work.views.matrices.intermediate.r[0]), "r"(object));
+        __asm__("lq %0,%6\n\tlq %1,%7\n\tlq %2,%8\n\tlw %3,%9\n\tsq %5,%4\n\tsq %0,16+%4\n\tsq %1,32+%4"
+                : "=&r"(row1), "=&r"(row2), "=&r"(row3), "=&r"(ownerArgument), "=m"(*(M3 *)&work.final)
+                : "r"(first), "m"(work.views.matrices.intermediate.r[1]), "m"(work.views.matrices.intermediate.r[2]),
+                  "m"(work.views.matrices.intermediate.r[3]), "m"(p->pso));
+        work.final.r[3] = row3;
+        counterpart = FindJtHandsTarget(ownerArgument, objectArgument);
+    }
+    register M4 *finalMatrix __asm__("$17") = &work.final;
+    if (counterpart) {
+        M4 *counterMatrix = WorldMatrix(counterpart);
+        register const M4 *counterArgument __asm__("$7");
+        register SO *counterSpace __asm__("$6");
+        __asm__("daddu %0,%2,$zero\n\tdaddu %1,%3,$zero"
+                : "=&r"(counterArgument), "=r"(counterSpace)
+                : "r"(counterMatrix), "r"(object));
+        new (product) M4(ConvertAloMat4(0, counterSpace, counterArgument));
+        register M4 *inverse __asm__("$16");
+        {
+            register qword row1 __asm__("$6"), row2 __asm__("$3"), row3 __asm__("$2"), row0 __asm__("$7");
+            register M4 *inverseArgument __asm__("$4");
+            register const M4 *sourceArgument __asm__("$5");
+            __asm__("lq %0,%4\n\taddiu %1,%5,0x180\n\tlq %2,%6\n\tdaddu %3,%1,$zero"
+                    : "=&r"(row1), "=&r"(inverse), "=r"(row2), "=r"(inverseArgument)
+                    : "m"(work.views.matrices.product.r[1]), "r"(&work), "m"(work.views.matrices.product.r[2]));
+            __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\tlq %2,%6\n\tsq %7,%3\n\tsq %8,16+%3\n\tsq %0,32+%3"
+                    : "=&r"(row3), "=&r"(sourceArgument), "=&r"(row0),
+                      "=m"(*(M3 *)&work.views.matrices.intermediate.r[1])
+                    : "m"(work.views.matrices.product.r[3]), "r"(workingBase), "m"(work.views.matrices.product.r[0]),
+                      "r"(row1), "r"(row2));
+            work.views.matrices.intermediate.r[0] = row0;
+            new (inverseArgument) M4(InvertMatrix4RigidP(sourceArgument));
+        }
+        MulMatrix4Ret(product, finalMatrix, inverse);
+        {
+            register qword row0 __asm__("$2"), row1 __asm__("$3"), row2 __asm__("$4"), row3 __asm__("$5");
+            __asm__(
+                "lq %0,%5\n\tlq %1,%6\n\tlq %2,%7\n\tlq %3,%8\n\tsq %0,%4\n\tsq %1,16+%4\n\tsq %2,32+%4\n\tsq %3,48+%4"
+                : "=&r"(row0), "=&r"(row1), "=&r"(row2), "=&r"(row3), "=m"(work.final)
+                : "m"(work.views.matrices.product.r[0]), "m"(work.views.matrices.product.r[1]),
+                  "m"(work.views.matrices.product.r[2]), "m"(work.views.matrices.product.r[3]));
+        }
+    }
+    SetLoParent(object, 0, 15);
+    const qword *velocityAddress = object->psophys ? (const qword *)&object->psophys->dvGravity : &D_002C1EE0.q;
+    register float unit __asm__("$f20");
+    register SO *initialOwner __asm__("$4");
+    {
+        register qword initialVelocity __asm__("$2");
+        __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\t.set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%2\n\t.set at\n\tsq %0,%3"
+                : "=r"(initialVelocity), "=r"(initialOwner), "=f"(unit), "=m"(work.velocity)
+                : "m"(*velocityAddress), "r"(object)
+                : "$1");
+    }
+    {
+        register qword destination __asm__("$2");
+        __asm__("lq %0,%1" : "=r"(destination) : "m"(work.final.r[3]));
+        work.destination = destination;
+    }
+    float limit;
+    qword initialSpeed;
+    DeltaForDuration(work, GetLoWorldPos(initialOwner), limit, initialSpeed);
+    register float negativeLimit __asm__("$f13"), minimum __asm__("$f15"), maximum __asm__("$f14");
+    __asm__("neg.s %0,%3\n\t.set noat\n\tlui $at,0xBF80\n\tmtc1 $at,%1\n\t.set at\n\tmov.s %2,%4"
+            : "=f"(negativeLimit), "=f"(minimum), "=f"(maximum)
+            : "f"(limit), "f"(unit)
+            : "$1");
+    float duration =
+        Max(phase, ComputeMaxBallisticTime(work.delta, initialSpeed, limit, negativeLimit, maximum, minimum));
+    float speed = phase / duration;
+    phase = duration;
+    SetAsegaSpeed__FP5ASEGAf(anim, speed);
+    {
+        register float negativeTime __asm__("$f0"), positiveTime __asm__("$f1");
+        register qword first __asm__("vf4"), speedVector __asm__("vf5");
+        __asm__("div.s %4,%4,%5\n\t.set noat\n\tlui $at,0xBF00\n\tmtc1 $at,%0\n\tlui $at,0x3F00\n\tmtc1 $at,%1\n\t.set "
+                "at\n\tmul.s %0,%5,%0\n\tlqc2 %2,%6\n\tmul.s %1,%5,%1\n\tlqc2 %3,%7"
+                : "=&f"(negativeTime), "=&f"(positiveTime), "=j"(speedVector), "=j"(first), "+&f"(unit)
+                : "f"(phase), "m"(work.velocity), "m"(work.delta)
+                : "$1");
+        register qword negativeOrEnd __asm__("vf2"), inverse __asm__("vf3");
+        register int positiveBits __asm__("$3");
+        register VTE *table __asm__("$2");
+        __asm__("mfc1 %2,%4\n\tmfc1 %3,%5\n\tqmtc2.ni %2,%0\n\tqmtc2.ni %3,%1\n\tmfc1 %2,%6\n\tlw %3,%7"
+                : "=j"(negativeOrEnd), "=j"(inverse), "=&r"(positiveBits), "=&r"(table)
+                : "f"(negativeTime), "f"(unit), "f"(positiveTime), "m"(PVT(object)));
+        __asm__("vmulax.xyzw $ACC,%0,%2x\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %2,%1"
+                : "+j"(first), "=m"(work.views.scalar.q)
+                : "j"(inverse), "j"(speedVector), "j"(negativeOrEnd));
+        register qword positive __asm__("vf1"), callbackVelocity __asm__("$5");
+        __asm__("qmtc2.ni %4,%0\n\tsqc2 %1,%3\n\tlqc2 %1,%5\n\tvmulax.xyzw $ACC,%1,%6x\n\tvmaddx.xyzw "
+                "%1,%7,%0x\n\tqmfc2.ni %2,%8"
+                : "=&j"(positive), "+&j"(negativeOrEnd), "=r"(callbackVelocity), "=m"(work.views.scalar.q)
+                : "r"(positiveBits), "m"(work.delta), "j"(inverse), "j"(speedVector), "j"(first));
+        typedef void (*APPLY)(LO *, qword);
+        register APPLY apply __asm__("$6");
+        register LO *receiver __asm__("$4");
+        __asm__("lh %0,%4\n\tlw %1,%5\n\tsqc2 %6,%2\n\taddu %0,%8,%0\n\tsqc2 %7,%3"
+                : "=&r"(receiver), "=&r"(apply), "=m"(work.views.scalar.q), "=m"(work.endVelocity)
+                : "m"(table[35].delta), "m"(table[35].pfn), "j"(inverse), "j"(negativeOrEnd),
+                  "r"(object)); /* LO slot 35, SetVelocity */
+        work.views.scalar.q = positive;
+        apply(receiver, callbackVelocity);
+    }
+    float endTime = D_002DDED0.t + phase;
+    qword position = TransformXfPos(0, object->pxfUnk58->pxfParent, work.final.r[3]);
+    qword endVelocity = ConvertXfVec(0, object->pxfUnk58->pxfParent, work.endVelocity);
+    {
+        register XF *channel __asm__("$5");
+        register qword velocityArgument __asm__("$8"), positionArgument __asm__("$7");
+        register float timeArgument __asm__("$f12");
+        register SO *receiver __asm__("$4");
+        __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
+                : "=&r"(channel), "=&r"(velocityArgument), "=f"(timeArgument), "=&r"(positionArgument), "=r"(receiver)
+                : "m"(object->pxfUnk58), "r"(endVelocity), "f"(endTime), "r"(position), "r"(object));
+        p->pactPos = NewBezierAct(receiver, channel, 5, timeArgument, positionArgument, velocityArgument);
+    }
+    ConvertXfMat(&work.views.basis.converted, 0, object->pxfUnk5c->pxfParent, (M3 *)finalMatrix);
+    work.views.basis.angles = work.views.basis.converted;
+    qword angles = DecomposeRotationMatrixToEuler((M3 *)workingBase);
+    register XF *orientationChannel __asm__("$5");
+    register SO *orientationOwner __asm__("$4");
+    register qword anglesArgument __asm__("$9");
+    __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tpor %2,$zero,%5"
+            : "=&r"(orientationChannel), "=&r"(orientationOwner), "=r"(anglesArgument)
+            : "m"(object->pxfUnk5c), "r"(object), "r"(angles));
+    ACT *job = NewPositionAct(orientationOwner, orientationChannel, 5, 9, 2, anglesArgument);
+    p->pactTurn = job;
+    XFACT *pxfact = (XFACT *)object->pxfUnk5c;
+    if (pxfact->pactCur == job)
+        pxfact->tEnd = endTime;
+    SetSoTreeFlag2(object, 1);
 }
 
 /* Attach the held object to the hand: parent it to the hand's XF, place it at the hand (relative to a CID 0x14
@@ -741,12 +830,12 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
 // Frees the three hand acts that are active.
 extern "C" void ReleaseJtHandsActs(JTHANDS *hands)
 {
-    if (hands->psoHeld != 0) {
-        ReleaseAct(&hands->pactPos);
-        ReleaseAct(&hands->pactHold);
-        ReleaseAct(&hands->pactTurn);
-        hands->psoHeld = 0;
-    }
+    if (hands->psoHeld == 0)
+        return;
+    ReleaseAct(&hands->pactPos);
+    ReleaseAct(&hands->pactHold);
+    ReleaseAct(&hands->pactTurn);
+    hands->psoHeld = 0;
 }
 
 /* Release the held object onto po (its parent, or the world) and move it there with acts; then target po. */

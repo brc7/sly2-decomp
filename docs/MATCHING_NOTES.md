@@ -522,22 +522,42 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
   the earlier padded func_001A87F0).
 
 ## 2026-11 readability pass 2: what the compiler does not let go
-Patterns from the second readability pass over each subsystem. Free everywhere: enum constants for magic numbers (Splice tags,
-parser states, buffer sizes, slot and bit constants, result codes), whitespace/layout (clang-format on a function range),
-renaming locals/fields of TU-private views, and switching a type name of a view used only under C linkage or by a global
-variable.
+Patterns from the second readability pass over each subsystem (every rewrite checked by matchtool, section bytes and the
+object's nm set; in the player pass ~120 rewrites were kept and ~20 reverted).
 
-- **Single-exit gotos often stay.** Replacing `goto done;` with an early `return` changed codegen in FInvertMatrix (the
-  return duplicates STACKSCOPE's cleanup), func_0011F198, OSTRM::CbWrite and RefOpFindBindingOrNoop (a second copy of the
-  return expression changes allocation/layout). Goto layouts that share tails across switch cases or jump into a common
-  cleanup/`done` label (MsgFromMcError, McJobCreateSave, load_file_from_disc) do not survive a structured rewrite either:
-  `break` + a re-test of the result, or per-case `return`s, reorder blocks (40-90% differ). A goto *back* to a loop head
-  (FindBspLeafContainingPointFast) and a goto *into* a case (RefOpMult's int/float multiply) did become a `for (;;)` and two
-  plain cases.
-- **`again: ... goto again` search loops keep their shape** (FindProxyRefPath, BindLoOidTable's part search): `while (--j >= 0)`
-  or a reset of the iterator moves the loop test.
-- **A `goto skip` around one call becomes an `if` only with the assignment in the condition**
+**Free** (same object):
+- Enum constants for magic numbers (Splice tags, parser states, buffer sizes, slot and bit constants, result codes, states,
+  pad buttons); renaming locals/fields of TU-private views; switching a type name of a view used only under C linkage or by
+  a global variable.
+- Whitespace/layout (clang-format on a function range; there are no debug sections, but mind `#line` pins).
+- Field access through the real layout instead of `(char *)p + 0x2C0` or `*(T *)((char *)p + off)` with the same type.
+- An early `return` for a trailing `if` without else; merging `if (A) { if (B) {...} }` into `&&`.
+- `goto L` over a block -> `if/else` (MeasureJtJumpToTargetAtTime, leap init); a `goto` into the else branch of the same `if`
+  (StartJtMode); a goto *back* to a loop head -> `for (;;)` (FindBspLeafContainingPointFast); a goto *into* a case -> plain
+  cases (RefOpMult's int/float multiply).
+- A goto into a shared tail **between if-branches** -> the tail written twice (cross-jumping merges it again:
+  UpdateBentleySubState).
+- `(unsigned)x - 8u < 5u` -> `x >= 8 && x <= 12` when x is a plain field or local (via a local when it came from a macro read).
+- A `goto skip` around one call becomes an `if` when the skipped condition is assigned in the condition
   (`if (!parent || (bit = (parent->bits >> 60) & 1) != 0)`, AddLo); the plain `(... & 1)` form changes allocation.
-- **`*(*pp)++ = x` is not `T **slot = (*pp)++; *slot = x;`** (CollectBspSurfacesTouchingPolygon): the temp form fixes the
-  evaluation order the target has; keep it.
-- **Register-pinned constants** (Startup's colours) do not survive as plain stores.
+- Declaring a helper as `(..., float, int)` instead of `(..., int, float)`: float and int arguments go to separate register
+  files, so fixing a view's argument order is free.
+
+**Not free** (reverted):
+- Single-exit gotos and shared return labels (`goto done;`, `ret0:`/`ret1:`) -> early/separate `return`s: the return
+  duplicates STACKSCOPE's cleanup (FInvertMatrix) or a second copy of the return expression changes allocation/layout
+  (func_0011F198, OSTRM::CbWrite, RefOpFindBindingOrNoop).
+- Gotos that share tails across switch cases or jump into a common cleanup label (MsgFromMcError, McJobCreateSave,
+  load_file_from_disc, SetBentleyState, ChooseJtGroundState): `break` + a re-test of the result, per-case `return`s or a
+  duplicated tail reorder blocks (40-90% differ). Case-tail sharing is a layout decision.
+- Merging switch cases with identical bodies (9/12/13 in ComputeJtJumpGoal: one jump-table target instead of three blocks).
+- `if (a) goto L; if (b) goto L;` -> `if (a || b) goto L` (CanJtUseGadgetInAir).
+- `again: ... goto again` search loops (FindProxyRefPath, BindLoOidTable's part search): `while (--j >= 0)` or a reset of the
+  iterator moves the loop test.
+- A `do { ... goto end; } while (0)` tail -> `if/else` (SetMurrayLiftSubstate).
+- `*(*pp)++ = x` -> `T **slot = (*pp)++; *slot = x;` (CollectBspSurfacesTouchingPolygon): the temp form fixes the evaluation
+  order the target has.
+- Inverting a float compare (`!(x > 0.1f)`: NaN-safe c.le vs c.lt) or rewriting a 64-bit flag bit test `(int)(f >> 60) & 1`;
+  dropping the `(uchar)` cast on a 1-bit bitfield test (UpdateJt).
+- Anything near register-pinned asm or register-pinned constants (Startup's colours, cane, SetMurrayCarrySubstate,
+  SmoothJtCameraCurveTarget).

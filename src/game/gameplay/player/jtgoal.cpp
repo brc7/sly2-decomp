@@ -192,15 +192,15 @@ static __inline__ int GetDistanceBits(qword from, qword to)
 // records the current distance and schedules the next progress check.
 extern "C" void SetJtgoal(JTGOAL *goal, qword newGoalPos)
 {
-    if (goal->isHolding == 0) {
-        qword playerPos;
-        int isNear = GetDistance(goal->goalPos, newGoalPos) < D_002BD2D8;
-        if (isNear) return;
-        goal->goalPos = newGoalPos;
-        playerPos = GetLoWorldPos(goal->player);
-        goal->lastDistanceBits = GetDistanceBits(playerPos, goal->goalPos);
-        goal->nextCheckTime = D_002DDED0.t + D_002BD2D0;
-    }
+    if (goal->isHolding != 0)
+        return;
+    qword playerPos;
+    int isNear = GetDistance(goal->goalPos, newGoalPos) < D_002BD2D8;
+    if (isNear) return;
+    goal->goalPos = newGoalPos;
+    playerPos = GetLoWorldPos(goal->player);
+    goal->lastDistanceBits = GetDistanceBits(playerPos, goal->goalPos);
+    goal->nextCheckTime = D_002DDED0.t + D_002BD2D0;
 }
 
 /** @sly2-annot addr=0x1449C8

@@ -356,13 +356,13 @@ void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
 {
     struct V v;
     FindShapeClosestPoint(wall, *t->pq, 0, &v, 0, 0, pg);
-    if (!wall->isClosed) {
-        float lim = SMaxShape(wall) - 30.0f;
-        float g = *pg;
-        if (g < 30.0f) g = 30.0f;
-        else if (lim < g) g = lim;
-        *pg = g;
-    }
+    if (wall->isClosed)
+        return;
+    float lim = SMaxShape(wall) - 30.0f;
+    float g = *pg;
+    if (g < 30.0f) g = 30.0f;
+    else if (lim < g) g = lim;
+    *pg = g;
 }
 } } // namespace M_func_00183040
 
@@ -435,14 +435,14 @@ void GetWallGrabspotGrabPosition(void *p, float g, struct J *pj, qword *pv, floa
         u.q = s;
         *pv = a;
     }
-    if (pg) {
-        if (pj->unknown1040 == 1) {
-            float m = -1.0f;
-            qword s = Bc(*(int *)&m);
-            __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(n), "j"(s));
-        }
-        *pg = atan2f(GetY(n), GetX(n));
+    if (!pg)
+        return;
+    if (pj->unknown1040 == 1) {
+        float m = -1.0f;
+        qword s = Bc(*(int *)&m);
+        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(n) : "j"(n), "j"(s));
     }
+    *pg = atan2f(GetY(n), GetX(n));
 }
 } } // namespace M_func_001830D8
 
@@ -943,11 +943,11 @@ void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b
 void PresetBarrelAccel(struct S *barrel)
 {
     PresetSoAccel(barrel);
-    if (barrel->isFree && !barrel->carryState) {
-        struct M m;
-        TiltMatUpright(GetLoWorldMatrix(barrel), 0, &m);
-        AccelSoTowardMatSpring(barrel, &m, D_002BE8D0, D_002A2DD0, D_002BE8E0);
-    }
+    if (!barrel->isFree || barrel->carryState)
+        return;
+    struct M m;
+    TiltMatUpright(GetLoWorldMatrix(barrel), 0, &m);
+    AccelSoTowardMatSpring(barrel, &m, D_002BE8D0, D_002A2DD0, D_002BE8E0);
 }
 } } // namespace M_func_00183B00
 
@@ -1380,7 +1380,7 @@ int IsLoSelfOrDescendantOf(struct T *q, int x);
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r4b_rest+verdicts_followups
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
-// 1 if the ids differ, else whether the object is a parent of the spot (FFindLoParent). (inferred)
+// 1 if the ids differ, else whether the object is a parent of the spot (IsLoSelfOrDescendantOf). (inferred)
 int ShouldTriggerGrabspotSkipTarget(struct S *trigger, struct T *q)
 {
     if (q->n != trigger->n) return 1;
@@ -1494,14 +1494,14 @@ static __inline__ float GetZ(qword q)
 // The hold position (the debug flag D_002DFB84 uses a child's position plus an offset).
 void GetTableGrabspotGrabPosition(struct S *table, int unused, UV *pv)
 {
-    if (pv) {
-        if (D_002DFB84) {
-            pv->q = GetLoWorldPos(table->p15c);
-            pv->v.z = pv->v.z + D_002BE908;
-        } else {
-            pv->q = ConvertAloPos(table, 0, table->q110);
-            pv->v.z = GetZ(GetLoWorldPos(table->p15c)) + D_002BE908;
-        }
+    if (!pv)
+        return;
+    if (D_002DFB84) {
+        pv->q = GetLoWorldPos(table->p15c);
+        pv->v.z = pv->v.z + D_002BE908;
+    } else {
+        pv->q = ConvertAloPos(table, 0, table->q110);
+        pv->v.z = GetZ(GetLoWorldPos(table->p15c)) + D_002BE908;
     }
 }
 } } // namespace M_func_00184510

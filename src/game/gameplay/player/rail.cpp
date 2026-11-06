@@ -147,7 +147,12 @@ extern "C" void CloneRail(RAILV *rail)
 // wraps around; open rails return 0.
 extern "C" int GetRailWrapRange(RAILV *rail, float *pg)
 {
-    if (rail->isClosed) { pg[0] = SMinShape(rail); pg[1] = SMaxShape(rail); return 1; } return 0;
+    if (rail->isClosed) {
+        pg[0] = SMinShape(rail);
+        pg[1] = SMaxShape(rail);
+        return 1;
+    }
+    return 0;
 }
 
 /** @sly2-annot addr=0x1CBAC0
@@ -163,13 +168,13 @@ extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
     qword buf;
     float g, v;
     FindShapeClosestPoint(rail, *q->pq, 0, &buf, 0, 0, pf);
-    if (rail->isClosed == 0) {
-        g = SMaxShape(rail) - 50.0f;
-        v = *pf;
-        if (v < 50.0f) v = 50.0f;
-        else if (g < v) v = g;
-        *pf = v;
-    }
+    if (rail->isClosed != 0)
+        return;
+    g = SMaxShape(rail) - 50.0f;
+    v = *pf;
+    if (v < 50.0f) v = 50.0f;
+    else if (g < v) v = g;
+    *pf = v;
 }
 
 /** @sly2-annot addr=0x1CBB58
@@ -192,15 +197,30 @@ extern "C" void GetRailGrabPosition(RAILV *a, float g, P *p, VECTORV *pv)
 }
 
 union U {qword q;float f;};
-struct BOUND_PAGE {unsigned char unknown_0000[0x1ECC];float bound;};
-struct START {qword q;START(const U&source,float zero,float*lowOut,float*highOut){
- register BOUND_PAGE*page __asm__("$2");
- __asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002C1ECC));
- register qword point __asm__("$2");register float low __asm__("$f12"),high __asm__("$f13");
- __asm__("mov.s %1,%3\n\tlwc1 %2,%%lo(%4)(%6)\n\tlq %0,%5":"=r"(point),"=f"(low),"=f"(high):"f"(zero),"i"(&D_002C1ECC),"m"(source.q),"r"(page),"m"(page->bound));
- q=point;*lowOut=low;*highOut=high;
-}};struct M3 {qword a,b,c;};
-extern qword D_002A2DC0,D_002A2DA0;
+struct BOUND_PAGE {
+    unsigned char unknown_0000[0x1ECC];
+    float bound;
+};
+struct START {
+    qword q;
+    START(const U &source, float zero, float *lowOut, float *highOut)
+    {
+        register BOUND_PAGE *page __asm__("$2");
+        __asm__("lui %0,%%hi(%1)" : "=r"(page) : "i"(&D_002C1ECC));
+        register qword point __asm__("$2");
+        register float low __asm__("$f12"), high __asm__("$f13");
+        __asm__("mov.s %1,%3\n\tlwc1 %2,%%lo(%4)(%6)\n\tlq %0,%5"
+                : "=r"(point), "=f"(low), "=f"(high)
+                : "f"(zero), "i"(&D_002C1ECC), "m"(source.q), "r"(page), "m"(page->bound));
+        q = point;
+        *lowOut = low;
+        *highOut = high;
+    }
+};
+struct M3 {
+    qword a, b, c;
+};
+extern qword D_002A2DC0, D_002A2DA0;
 extern "C" {
 float SRandomShapeRange(RAILV*,float,float);
 float GRandInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
@@ -209,30 +229,57 @@ void GetRailSparklePosition(RAILV*,qword*,qword*,float);
 static inline qword CrossKeepSecond(qword a,const qword *pb){qword b;__asm__("lqc2 %0,%1":"=j"(b):"m"(*pb));qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"j"(a),"0"(b));return r;}
 static inline qword Dir(const M3 &m,qword a){__asm__("vmulax.xyz $ACC,%1,%0x\n\tvmadday.xyz $ACC,%2,%0y\n\tvmaddz.xyz %0,%3,%0z":"+j"(a):"j"(m.a),"j"(m.b),"j"(m.c));return a;}
 static inline qword AddScaled(qword a,qword b,qword s){register qword r __asm__("vf2");__asm__("vadda.xyzw $ACC,%1,$vf0\n\tvmaddx.xyzw %0,%2,%3x":"=j"(r):"j"(a),"j"(b),"j"(s));return r;}
-static inline qword NormalizeOr(qword value,const qword*fallbackAddress,float epsilon){
- register qword length __asm__("vf1");register qword one __asm__("vf2");register qword result __asm__("vf2");float scalar;register qword fallback __asm__("$3");
- __asm__("vmul.xyz %0,%3,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tlq %2,%4":"=j"(length),"=&j"(one),"=r"(fallback):"j"(value),"m"(*fallbackAddress));
- __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q":"=j"(length):"j"(length));
- __asm__("mtc1 %1,%0":"=f"(scalar):"r"(length));
- if(scalar<epsilon)return fallback;__asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q":"=j"(result):"j"(length),"j"(value));return result;
+static inline qword NormalizeOr(qword value, const qword *fallbackAddress, float epsilon)
+{
+    register qword length __asm__("vf1");
+    register qword one __asm__("vf2");
+    register qword result __asm__("vf2");
+    float scalar;
+    register qword fallback __asm__("$3");
+    __asm__("vmul.xyz %0,%3,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tlq %2,%4"
+            : "=j"(length), "=&j"(one), "=r"(fallback)
+            : "j"(value), "m"(*fallbackAddress));
+    __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(length) : "j"(length));
+    __asm__("mtc1 %1,%0" : "=f"(scalar) : "r"(length));
+    if (scalar < epsilon)
+        return fallback;
+    __asm__("vdiv $Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,$Q" : "=j"(result) : "j"(length), "j"(value));
+    return result;
 }
 static inline qword LocalDirection(qword v){register qword q __asm__("vf4");__asm__("qmtc2.ni %1,%0":"=j"(q):"r"(v));return q;}
-static inline void SamplerArguments(RAILV*rail,float time,RAILV**receiverOut,float*timeOut){
- register RAILV*receiver __asm__("$4");register float parameter __asm__("$f12");
- __asm__("mov.s %1,%3\n\tdaddu %0,%2,$zero":"=r"(receiver),"=f"(parameter):"r"(rail),"f"(time));
- *receiverOut=receiver;*timeOut=parameter;
+static inline void SamplerArguments(RAILV *rail, float time, RAILV **receiverOut, float *timeOut)
+{
+    register RAILV *receiver __asm__("$4");
+    register float parameter __asm__("$f12");
+    __asm__("mov.s %1,%3\n\tdaddu %0,%2,$zero" : "=r"(receiver), "=f"(parameter) : "r"(rail), "f"(time));
+    *receiverOut = receiver;
+    *timeOut = parameter;
 }
-static inline qword CrossAndFallbackAddress(qword a,const qword&b,const qword**addressOut,float*epsilonOut){
- register qword result __asm__("vf3"),axis __asm__("vf1");register const qword*address __asm__("$3");register float epsilon __asm__("$f1");
- /* VOPMSUB preserves the actual VF3.W left by the sampler. */
- __asm__ volatile("li.s %2,0.0001\n\tlqc2 %3,%5\n\tlui %1,%%hi(%6)\n\tvopmula.xyz $ACC,%4,%3\n\tvopmsub.xyz %0,%3,%4\n\taddiu %1,%1,%%lo(%6)":"=&j"(result),"=r"(address),"=f"(epsilon),"=&j"(axis):"j"(a),"m"(b),"i"(&D_002A2DA0):"$1");
- *addressOut=address;*epsilonOut=epsilon;return result;
+static inline qword CrossAndFallbackAddress(qword a, const qword &b, const qword **addressOut, float *epsilonOut)
+{
+    register qword result __asm__("vf3"), axis __asm__("vf1");
+    register const qword *address __asm__("$3");
+    register float epsilon __asm__("$f1");
+    /* VOPMSUB preserves the actual VF3.W left by the sampler. */
+    __asm__ volatile("li.s %2,0.0001\n\tlqc2 %3,%5\n\tlui %1,%%hi(%6)\n\tvopmula.xyz $ACC,%4,%3\n\tvopmsub.xyz "
+                     "%0,%3,%4\n\taddiu %1,%1,%%lo(%6)"
+                     : "=&j"(result), "=r"(address), "=f"(epsilon), "=&j"(axis)
+                     : "j"(a), "m"(b), "i"(&D_002A2DA0)
+                     : "$1");
+    *addressOut = address;
+    *epsilonOut = epsilon;
+    return result;
 }
-static inline qword DisplacementValue(const qword&start,const qword&direction,float distance,U&scalar){
- register qword point __asm__("vf3"),vector __asm__("vf4"),scale __asm__("vf1");register int word __asm__("$2");
- __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tmfc1 %2,%5":"=j"(point),"=j"(vector),"=r"(word):"m"(start),"m"(direction),"f"(distance));
- scale = VuFromFloat<qword>(word);scalar.q=scale;
- return AddScaled(point,vector,scalar.q);
+static inline qword DisplacementValue(const qword &start, const qword &direction, float distance, U &scalar)
+{
+    register qword point __asm__("vf3"), vector __asm__("vf4"), scale __asm__("vf1");
+    register int word __asm__("$2");
+    __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tmfc1 %2,%5"
+            : "=j"(point), "=j"(vector), "=r"(word)
+            : "m"(start), "m"(direction), "f"(distance));
+    scale = VuFromFloat<qword>(word);
+    scalar.q = scale;
+    return AddScaled(point, vector, scalar.q);
 }
 /** @sly2-annot addr=0x1CBBA8
  * Purpose: GRABSPOT iface: orientation basis along rail at distance
@@ -243,28 +290,39 @@ static inline qword DisplacementValue(const qword&start,const qword&direction,fl
  * @end-sly2-annot */
 // GRABSPOT interface: a random point near the rail around `distance` and a random outward direction, used to place the
 // grab-hint sparkle effect. (inferred from the grabspot sparkle pattern)
-void GetRailSparklePosition(RAILV*rail,qword*posOut,qword*dirOut,float g){
- U pos;
- M3 basis;
- U scalar,moved,out;
- float x=SRandomShapeRange(rail,g,D_002C1EC4);
- RAILV*sampleReceiver;float sampleTime;SamplerArguments(rail,x,&sampleReceiver,&sampleTime);
- EvaluateShapeS(sampleReceiver,sampleTime,&pos.q,&basis.c);
- const qword*fallbackAddress;float epsilon;
- qword cross=CrossAndFallbackAddress(basis.c,D_002A2DC0,&fallbackAddress,&epsilon);
- qword right=NormalizeOr(cross,fallbackAddress,epsilon);
- basis.a=CrossKeepSecond(right,&basis.c);basis.b=right;
- float r=GRandInRange__Fff(-1.0f,1.0f);register float zero __asm__("$f22")=0.0f;float ar=__builtin_fabsf(r);
- qword local=SetVectorCylind(r*ar*D_002C1EC8,1.0f,zero);
- qword dir=Dir(basis,LocalDirection(local));
- qword cpu;__asm__("qmfc2.ni %0,%1":"=r"(cpu):"j"(dir));
- out.q=dir;moved.q=cpu;
- if(posOut){
-  float low,high;START start(pos,zero,&low,&high);
-  float distance=ar*GRandInRange__Fff(low,high);
-  *posOut=DisplacementValue(start.q,moved.q,distance,scalar);
- }
- if(dirOut)*dirOut=out.q;
+void GetRailSparklePosition(RAILV *rail, qword *posOut, qword *dirOut, float g)
+{
+    U pos;
+    M3 basis;
+    U scalar, moved, out;
+    float x = SRandomShapeRange(rail, g, D_002C1EC4);
+    RAILV *sampleReceiver;
+    float sampleTime;
+    SamplerArguments(rail, x, &sampleReceiver, &sampleTime);
+    EvaluateShapeS(sampleReceiver, sampleTime, &pos.q, &basis.c);
+    const qword *fallbackAddress;
+    float epsilon;
+    qword cross = CrossAndFallbackAddress(basis.c, D_002A2DC0, &fallbackAddress, &epsilon);
+    qword right = NormalizeOr(cross, fallbackAddress, epsilon);
+    basis.a = CrossKeepSecond(right, &basis.c);
+    basis.b = right;
+    float r = GRandInRange__Fff(-1.0f, 1.0f);
+    register float zero __asm__("$f22") = 0.0f;
+    float ar = __builtin_fabsf(r);
+    qword local = SetVectorCylind(r * ar * D_002C1EC8, 1.0f, zero);
+    qword dir = Dir(basis, LocalDirection(local));
+    qword cpu;
+    __asm__("qmfc2.ni %0,%1" : "=r"(cpu) : "j"(dir));
+    out.q = dir;
+    moved.q = cpu;
+    if (posOut) {
+        float low, high;
+        START start(pos, zero, &low, &high);
+        float distance = ar * GRandInRange__Fff(low, high);
+        *posOut = DisplacementValue(start.q, moved.q, distance, scalar);
+    }
+    if (dirOut)
+        *dirOut = out.q;
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)

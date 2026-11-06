@@ -26,6 +26,14 @@
 #include "sly2/stackscope.h"
 #include "sly2/sw.h"
 #include "sly2/scrap.h"
+#include "player_input.h"
+
+// Fields of the real JT layout (sly2/jt.h) for the per-function views that address the player as raw bytes.
+static inline JT *AsJt(void *p) { return (JT *)p; }
+
+// The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
+// the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
+static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
 
 /* .bss (tu-merging.md "Data": .bss gaps): D_002E1E00, the word whose bit 0 makes the player invulnerable (po's
    IsPoInvulnerable, hurt, tu_17F090; InitGame clears it), at the head of jt's .bss before g_pjt D_002E1E40; sized
@@ -653,7 +661,7 @@ void PostJtLoad(char *p)
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 3, A(0x2014), 0, 0, 0, A(0x2038));
     F(int, 0x1804) = F(int, 0x19A4);
     InitJtHands__FP7JTHANDSP2SOPP5ASEGA(A(0x17D0), p, A(0x18E0));
-    SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+    SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
     SetLoBusyk(p, 1);
     if (F(int, 0x1D24))
         F(int, 0x1D28) = ApplySmToObject(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
@@ -711,49 +719,65 @@ SLY2_SCRAP("addiu $sp, $sp, 0x80");
  * @end-sly2-annot */
 // JT physics preset (slot 70): the base preset (SO for states 3/8, else STEP), then the per-state handler (air, grab,
 // hang, pipe, hurt ...).
-extern "C" void PresetJtAccel(P*jt){
- WORK w;
- switch(jt->mode){case 3:case 8:PresetSoAccel(jt);break;case 21:case 22:break;default:PresetStepAccel(jt);break;}
- switch(jt->mode){
- case 3:PresetJtAccelHang__FP2JT(jt);break;
- case 8:PresetJtAccelPipe((char*)jt+0xF50);break;
- case 2:PresetJtAccelJump((char*)jt+0x2C0);break;
- case 4:PresetJtAccelZap((char*)jt+0xDF0);break;
- case 7:PresetJtAccelHide((char*)jt+0x4C0);break;
- case 6:CorrectBentleyRideVelocity((char*)jt+0x1FF0);break;
- case 14:{
-  VTE*e=&jt->vt[33];
-  w.a.q=((qword(*)(void*))e->fn)((char*)jt+e->delta);
-  w.b.q=GetStepAsegaTranslation(jt,jt->model,jt->model->base);
-  float cap=GetAsegLabelTime(jt->lookup,0x16D);
-  if(jt->model->base<cap){
-   qword resp=jt->actor->response;
-   AddSoAcceleration(jt,QwScaleX(resp,VuFloat(-1.0f)));
-  }else w.b.f[2]=w.a.f[2];
-  AddSoAcceleration(jt,LimitVectorLength(QwDivide(QwSub(w.b.q,w.a.q),VuFloatFromMemWord(*(int*)&D_002DDED0.dt)),D_002BF288));
-  break;
- }
- case 24:
-  if(jt->submode==13){
-   VTE*e=&jt->vt[33];qword position=((qword(*)(void*))e->fn)((char*)jt+e->delta);
-   e=&jt->vt[34];qword direction=((qword(*)(void*))e->fn)((char*)jt+e->delta);
-   M4*m=GetLoWorldMatrix(jt);M3 basis;basis.r[0]=m->r[0];basis.r[1]=m->r[1];basis.r[2]=m->r[2];
-   float projection=func_0011E290(position,basis.r[0].q,&w.a.q,&w.b.q);
-   float dt=D_002DDED0.dt;
-   float gAlong=projection-D_002BF290*dt;
-   float gPerp=1.0f-D_002BF294*dt;
-   float angle=GZOfQw(direction)*dt;
-   w.a.q=QwScaleX(basis.r[0].q,VuFloat(gAlong));
-   w.b.q=QwScaleX(w.b.q,VuFloat(gPerp));
-   M3 rotation;
-   rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
-   qword sum=QwAdd(w.a.q,w.b.q);
-   qword moved=QwSub(QwRotateVecAt(&rotation,&sum),position);
-   qword velocity=QwDivide(moved,VuFloatFromMemWord(*(int*)&D_002DDED0.dt));
-   AddSoAcceleration(jt,LimitVectorLength(QwProjectOut(velocity,D_002A2DC0),D_002BF28C));
-  }
-  break;
- }
+extern "C" void PresetJtAccel(P *jt)
+{
+    WORK w;
+    switch (jt->mode) {
+    case 3:
+    case 8: PresetSoAccel(jt); break;
+    case 21:
+    case 22: break;
+    default: PresetStepAccel(jt); break;
+    }
+    switch (jt->mode) {
+    case 3: PresetJtAccelHang__FP2JT(jt); break;
+    case 8: PresetJtAccelPipe(&AsStepplayer(jt)->jtpipe); break;
+    case 2: PresetJtAccelJump(&AsStepplayer(jt)->jtair); break;
+    case 4: PresetJtAccelZap(&AsStepplayer(jt)->jthurt); break;
+    case 7: PresetJtAccelHide(&AsStepplayer(jt)->jtgrab); break;
+    case 6: CorrectBentleyRideVelocity((char *)jt + 0x1FF0); break;
+    case 14: {
+        VTE *e = &jt->vt[33];
+        w.a.q = ((qword(*)(void *))e->fn)((char *)jt + e->delta);
+        w.b.q = GetStepAsegaTranslation(jt, jt->model, jt->model->base);
+        float cap = GetAsegLabelTime(jt->lookup, 0x16D);
+        if (jt->model->base < cap) {
+            qword resp = jt->actor->response;
+            AddSoAcceleration(jt, QwScaleX(resp, VuFloat(-1.0f)));
+        } else
+            w.b.f[2] = w.a.f[2];
+        AddSoAcceleration(
+            jt,
+            LimitVectorLength(QwDivide(QwSub(w.b.q, w.a.q), VuFloatFromMemWord(*(int *)&D_002DDED0.dt)), D_002BF288));
+        break;
+    }
+    case 24:
+        if (jt->submode == 13) {
+            VTE *e = &jt->vt[33];
+            qword position = ((qword(*)(void *))e->fn)((char *)jt + e->delta);
+            e = &jt->vt[34];
+            qword direction = ((qword(*)(void *))e->fn)((char *)jt + e->delta);
+            M4 *m = GetLoWorldMatrix(jt);
+            M3 basis;
+            basis.r[0] = m->r[0];
+            basis.r[1] = m->r[1];
+            basis.r[2] = m->r[2];
+            float projection = func_0011E290(position, basis.r[0].q, &w.a.q, &w.b.q);
+            float dt = D_002DDED0.dt;
+            float gAlong = projection - D_002BF290 * dt;
+            float gPerp = 1.0f - D_002BF294 * dt;
+            float angle = GZOfQw(direction) * dt;
+            w.a.q = QwScaleX(basis.r[0].q, VuFloat(gAlong));
+            w.b.q = QwScaleX(w.b.q, VuFloat(gPerp));
+            M3 rotation;
+            rotation = BuildAxisAngleRotationMatrix(D_002A2DC0, angle);
+            qword sum = QwAdd(w.a.q, w.b.q);
+            qword moved = QwSub(QwRotateVecAt(&rotation, &sum), position);
+            qword velocity = QwDivide(moved, VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
+            AddSoAcceleration(jt, LimitVectorLength(QwProjectOut(velocity, D_002A2DC0), D_002BF28C));
+        }
+        break;
+    }
 }
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
@@ -884,12 +908,12 @@ void AdjustJtXpVelocity(void *p, struct E *ae, int i)
     AdjustStepXpVelocity(p, ae, i);
     pe = &ae[i];
     object = pe->po;
-    if (object == p) {
-        qword v = pe->v30;
-        qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
-        qword x = pe->v10;
-        pe->v30 = VSub(v, VCross(w, VSub(x, GetLoWorldPos(object))));
-    }
+    if (object != p)
+        return;
+    qword v = pe->v30;
+    qword w = object->pvt->a[34].pfn((char *)object + object->pvt->a[34].d);
+    qword x = pe->v10;
+    pe->v30 = VSub(v, VCross(w, VSub(x, GetLoWorldPos(object))));
 }
 } } // namespace M_func_00188E78
 
@@ -945,8 +969,8 @@ void HandleJtMessage(char *p, int msg, void *pv)
     HandleStepplayerMessage(p, msg, pv);
     switch (msg) {
     case 3:
-        if (pv == F(void *, 0x18E0)) {
-            if (F(int, 0x18D8) == 10)
+        if (pv == AsJt(p)->janim.pasega) {
+            if (AsJt(p)->jtas == 10)
                 SetJtCaneState__FP2JTi(p, 2);
             else
                 SetJtCaneState__FP2JTi(p, -1);
@@ -954,18 +978,17 @@ void HandleJtMessage(char *p, int msg, void *pv)
         }
         if (pv != F(void *, 0x1030))
             break;
-        switch (F(int, 0x18C8)) {
+        switch (AsJt(p)->jts) {
         case 9:
-        case 0xB:
-            SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
-            break;
-        case 7:
-        case 0x15:
-            F(int, 0x1038) = -1;
-            break;
+        case JTS_Pickpocket: SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1); break;
+        case JTS_Grab:
+        case JTS_SurfaceClimb: F(int, 0x1038) = -1; break;
         case 5:
 
-            if (F(int, 0x18D0) < 10) { if (F(int, 0x18D0) >= 8) SetJtState__FP2JT3JTS4JTBS(p, 5, 4); }
+            if (AsJt(p)->jtbs < 10) {
+                if (AsJt(p)->jtbs >= 8)
+                    SetJtState__FP2JT3JTS4JTBS(p, 5, 4);
+            }
 
             break;
         }
@@ -973,40 +996,34 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 9: {
         MSG9 *pm = (MSG9 *)pv;
         void *x = pm->x0;
-        if (x == F(void *, 0x1030) || x == F(void *, 0x18E0) ||
-            (F(O1034 *, 0x1034) && x == F(O1034 *, 0x1034)->x30)) {
+        if (x == F(void *, 0x1030) || x == AsJt(p)->janim.pasega || (F(O1034 *, 0x1034) && x == F(O1034 *, 0x1034)->x30)) {
             switch (pm->x8) {
-            case 0x16E:
-                DetachXfActById(F(void *, 0x18E0), p, F(int, 0x10B8));
-                break;
-            case 0x16F:
-                DetachSoActsMatching(F(void *, 0x18E0), p, 3, D_002BF2A0);
-                break;
-            case 0x170:
-                DetachSoActsMatching(F(void *, 0x18E0), p, 3, D_002BF2B8);
-                break;
-            case 0x164:
-                F(int, 0x18E4) = 1;
-                break;
-            case 0x166:
-                F(int, 0x18E8) = 1;
-                break;
+            case 0x16E: DetachXfActById(AsJt(p)->janim.pasega, p, F(int, 0x10B8)); break;
+            case 0x16F: DetachSoActsMatching(AsJt(p)->janim.pasega, p, 3, D_002BF2A0); break;
+            case 0x170: DetachSoActsMatching(AsJt(p)->janim.pasega, p, 3, D_002BF2B8); break;
+            case 0x164: AsJt(p)->janim.fInputOpen = 1; break;
+            case 0x166: AsJt(p)->janim.fLandAlt = 1; break;
             case 0x165:
                 if (F(int, 0x18EC)) {
-                    switch (F(int, 0x18D8)) {
-                    case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
-                        SetJtState__FP2JT3JTS4JTBS(p, 5, 6);
-                        break;
-                    case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
-                        SetJtState__FP2JT3JTS4JTBS(p, 5, 7);
-                        break;
+                    switch (AsJt(p)->jtas) {
+                    case 0xC:
+                    case 0xE:
+                    case 0x10:
+                    case 0x12:
+                    case 0x14: SetJtState__FP2JT3JTS4JTBS(p, 5, 6); break;
+                    case 0xD:
+                    case 0xF:
+                    case 0x11:
+                    case 0x13:
+                    case 0x15: SetJtState__FP2JT3JTS4JTBS(p, 5, 7); break;
                     }
                 }
                 break;
             case 0x167:
-                if (F(void *, 0x10DC) && F(int, 0x1BD4)) {
-                    void *object = PickpocketStepguard(F(void *, 0x10DC), GetLoWorldPos(p));
-                    if (object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) && !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
+                if (AsJt(p)->ploInteract && F(int, 0x1BD4)) {
+                    void *object = PickpocketStepguard(AsJt(p)->ploInteract, GetLoWorldPos(p));
+                    if (object && !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5B) &&
+                        !FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5D)) {
                         int oid = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 1, 0x282, p);
                         F(void *, 0x1BCC) = object;
                         StartStepplayerGrabStateC(p, oid, object, -1);
@@ -1019,21 +1036,22 @@ void HandleJtMessage(char *p, int msg, void *pv)
                 F(int, 0x1D2C) = 1;
                 ClearX((CLR *)A(0x190));
 
-                { struct VTE *e = &F(struct VTE *, 0xC)[35]; ((void (*)(void *, qword))e->pfn)(p + e->d, F(qword, 0x190)); }
-                px = FindStepBehavior(F(void *, 0x10DC), 0xB1);
+                {
+                    struct VTE *e = &F(struct VTE *, 0xC)[35];
+                    ((void (*)(void *, qword))e->pfn)(p + e->d, F(qword, 0x190));
+                }
+                px = FindStepBehavior(AsJt(p)->ploInteract, 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 4);
                 break;
             }
             case 0x174: {
-                void *px = FindStepBehavior(F(void *, 0x10DC), 0xB1);
+                void *px = FindStepBehavior(AsJt(p)->ploInteract, 0xB1);
                 if (px)
                     SetBhvjuggledState(px, 6);
                 break;
             }
-            case 0x16D:
-                EmitSwNoise(D_003DD490, 0, GetLoWorldPos(p), p);
-                break;
+            case 0x16D: EmitSwNoise(D_003DD490, 0, GetLoWorldPos(p), p); break;
             }
         }
         break;
@@ -1041,15 +1059,17 @@ void HandleJtMessage(char *p, int msg, void *pv)
     case 1: {
         E *pe;
         int i;
-        switch (F(int, 0x18C8)) {
-        case 3:
-        case 0x16:
-            if (F(void *, 0x18C4) == pv)
+        switch (AsJt(p)->jts) {
+        case JTS_Hang:
+        case JTS_HangFollow:
+            if (AsJt(p)->phndHang == pv)
                 SetJtAirJump(A(0x2C0), 0, 0, 0);
             break;
-        case 7:
-            if (F(int, 0x4C8) < 5) { if (F(int, 0x4C8) >= 3 && F(void *, 0x4D4) == pv)
-                SetJtAirJump(A(0x2C0), 0, 0, 0); }
+        case JTS_Grab:
+            if (AsJt(p)->jtgrab.nState < 5) {
+                if (AsJt(p)->jtgrab.nState >= 3 && AsJt(p)->jtgrab.plo == pv)
+                    SetJtAirJump(A(0x2C0), 0, 0, 0);
+            }
             break;
         }
         pe = (E *)A(0x1FB0);
@@ -1068,18 +1088,30 @@ void HandleJtMessage(char *p, int msg, void *pv)
             break;
         k = pm->x8->xC;
         if (k & 2) {
-            switch (F(int, 0x18D8)) {
-            case 4: case 6: case 0xC: case 0xE: case 0x10: case 0x12: case 0x14:
-                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+            switch (AsJt(p)->jtas) {
+            case 4:
+            case 6:
+            case 0xC:
+            case 0xE:
+            case 0x10:
+            case 0x12:
+            case 0x14:
+                SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
                 SetJtCaneState__FP2JTi(p, 8);
                 break;
-            case 5: case 7: case 0xD: case 0xF: case 0x11: case 0x13: case 0x15:
-                SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+            case 5:
+            case 7:
+            case 0xD:
+            case 0xF:
+            case 0x11:
+            case 0x13:
+            case 0x15:
+                SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
                 SetJtCaneState__FP2JTi(p, 9);
                 break;
             }
         } else if (k & 4) {
-            SetJtState__FP2JT3JTS4JTBS(p, 0, -1);
+            SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1);
             SetJtCaneState__FP2JTi(p, 8);
         }
         break;
@@ -1396,47 +1428,38 @@ void UpdateJtLean(JT *jt)
         return;
     if (!FFindInOwnerChain(jt->pact5Unk19e4))
         return;
-    if (FJtModeActive(jt))
-    {
+    if (FJtModeActive(jt)) {
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e4, D_002A2DD0);
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e8, D_002A2DD0);
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, D_002A2DD0);
         return;
     }
-    switch (jt->jts)
-    {
+    switch (jt->jts) {
     case JTS_Stand:
         if (jt->pxpFloor)
             lo = jt->pxpFloor->axpd[1].psoLeaf;
         break;
     case JTS_Grab:
-        if (jt->jtgrab.nKind == 0)
-        {
-            switch (jt->jtgrab.nState)
-            {
+        if (jt->jtgrab.nKind == 0) {
+            switch (jt->jtgrab.nState) {
             case 4:
                 lo = jt->jtgrab.plo;
                 *(qword *)&vecPos = PosLoWorld(lo);
                 break;
-            case 3:
-            {
+            case 3: {
                 SHAPE *shape = (SHAPE *)jt->jtgrab.plo;
                 EvaluateShapeU(shape, jt->jtgrab.uParam, (qword *)&vecPos, (qword *)&vecDir);
                 lo = shape;
-                if (((CID12 *)lo)->nUnk1bc)
-                {
+                if (((CID12 *)lo)->nUnk1bc) {
                     *(qword *)&vecDir = QwNormalizeDot(*(qword *)&vecDir);
                     qword velocity = jt->GetVelocity();
                     float gSpeed = GFromVf(QwDot(velocity, *(qword *)&vecDir));
                     *(qword *)&vecLean = QwScale(*(qword *)&vecDir, VuFloat(gSpeed));
                     float sAhead = jt->jtgrab.sParam + gSpeed * D_002BF2D0;
                     float sMax = SMaxShape((SHAPE *)lo);
-                    if (((SHAPE *)lo)->fClosed)
-                    {
+                    if (((SHAPE *)lo)->fClosed) {
                         sAhead = GModPositive(sAhead, sMax);
-                    }
-                    else
-                    {
+                    } else {
                         float sMin = SMinShape((SHAPE *)lo);
                         if (sAhead < sMin)
                             sAhead = sMin;
@@ -1446,15 +1469,15 @@ void UpdateJtLean(JT *jt)
                     EvaluateShapeS(shape, sAhead, 0, (qword *)&vecDir);
                     *(qword *)&vecLocal = QwScale(QwNormalize(*(qword *)&vecDir), VuFloat(gSpeed));
                     *(qword *)&vecDv = QwSub(*(qword *)&vecLocal, *(qword *)&vecLean);
-                    if (jt->jtgrab.pasegblC)
-                    {
+                    if (jt->jtgrab.pasegblC) {
                         VECTOR4 vecAcross;
                         *(qword *)&vecAcross = QwNormalizeDot(QwCross(D_002A2DC0, *(qword *)&vecDir));
                         float gAcross = SProjectVector(*(qword *)&vecDv, *(qword *)&vecAcross, 0, (qword *)&vecDv);
                         float g = GLimitG(gAcross / D_002BF2D4, -1.0f, 1.0f);
                         if (jt->jtgrab.fFlip)
                             g = -g;
-                        float gLean = GSmoothA(jt->jtgrab.gLean, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)), D_002DDED0.dt, &D_002BF320, &jt->jtgrab.dgLean);
+                        float gLean = GSmoothA(jt->jtgrab.gLean, jt->jtgrab.dgLean, g * (2.0f - fabsf(g)),
+                                               D_002DDED0.dt, &D_002BF320, &jt->jtgrab.dgLean);
                         jt->jtgrab.gLean = gLean;
                         float gZero = 0.0f;
                         float gOne = 1.0f;
@@ -1477,19 +1500,20 @@ lComputeLean:
     *(qword *)&vecDir = GetXfVelocity(lo->PxfLocal(0), 0, *(qword *)&vecPos);
     *(qword *)&vecLocal = QwDotRowsMatP(&jt->matTarget, *(qword *)&vecDir);
     float gLen = GLengthXY(*(qword *)&vecLocal);
-    if (gLen > 0.0001f)
-    {
+    if (gLen > 0.0001f) {
         float k = GLimitG(GEvaluateClq(&D_002BF310, GMinOf(gLen / D_002BF300, 1.0f)), D_002BBB60.gMin, D_002BBB60.gMax);
         float gX = vecLocal.x * D_002BF2D8 * k / gLen;
         float gY = vecLocal.y * D_002BF2D8 * k / gLen;
-        float gR = ({ float __result; __asm__ volatile("sqrt.s %0, %1" : "=&f"(__result) : "f"( 1.0f - k * k ) : "memory"); __result; }) ;
+        float gR = ({
+            float __result;
+            __asm__ volatile("sqrt.s %0, %1" : "=&f"(__result) : "f"(1.0f - k * k) : "memory");
+            __result;
+        });
         float gZ = D_002BF2DC * gR;
         vecLean.x = gX;
         vecLean.y = gY;
         vecLean.z = gZ;
-    }
-    else
-    {
+    } else {
         vecLean.z = 0.0f;
         vecLean.y = 0.0f;
         vecLean.x = 0.0f;
@@ -1503,13 +1527,10 @@ lComputeLean:
         gFootR = gFootL;
     SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e4, QwFromXyzV(vecLean.x, vecLean.y, gFootR));
     qword qwHalf = QwScale(*(qword *)&vecLean, VuFloatFromMemWord(*(int *)&D_002BF2E0));
-    if (jt->jtas == -1)
-    {
+    if (jt->jtas == -1) {
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, qwHalf);
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e8, qwHalf);
-    }
-    else
-    {
+    } else {
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19ec, D_002A2DD0);
         SetAct1ValueKeepOffset((ACT1 *)jt->pact5Unk19e8, D_002A2DD0);
     }
@@ -1627,37 +1648,36 @@ void RebuildJtXmg(JT *jt, ALO *paloExtrem, float sRadius, ALO *paloHip, ACT5 *pa
         else
             asega = jt->pasegaUnk1030;
     }
-    if (asega->paseg != pxmg->paseg)
+    if (asega->paseg == pxmg->paseg)
+        return;
+    pxmg->paseg = asega->paseg;
+    float tLocal = 0.0f;
+    EA *pea = PeaFindAsegLabel(asega->paseg, (OID)0x16A);
+    if (pea != 0)
     {
-        pxmg->paseg = asega->paseg;
-        float tLocal = 0.0f;
-        EA *pea = PeaFindAsegLabel(asega->paseg, (OID)0x16A);
-        if (pea != 0)
-        {
-            tLocal = pea->tLocal;
-        }
-        MATRIX4 matExtrem;
-        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->pxfRoot, &matExtrem, 0);
-        qword posExtrem = QwAddScaled(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
-        MATRIX4 matHip;
-        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->pxfRoot, &matHip, 0);
-        MATRIX4 matIkh;
-        PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
-        qword posIkh = QwTransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
-        qword posSphereCenter = QwAdd(*(qword *)matHip.mat[3], QwSub(posExtrem, posIkh));
-        pxmg->posSphere = posSphereCenter;
-        pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sUpper + ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sLower + 10.0f;
-        VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
-        VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
-        LSG lsgClip;
-        qword posLineUp = QwAddScaled(posExtrem, D_002A2DC0, vfUp);
-        qword posLineDown = QwAddScaled(posExtrem, D_002A2DC0, vfDown);
-        pxmg->fValid = ClsgClipEdgeToSphere(posSphereCenter, pxmg->sSphere, posLineUp, posLineDown, 1, &lsgClip) > 0;
-        pxmg->posExtrem = posExtrem;
-        pxmg->posUp = lsgClip.apos[0];
-        pxmg->posDown = lsgClip.apos[1];
-        pxmg->posSphereLow = QwAddScaled(pxmg->posSphere, D_002A2DC0, VuFloat(-pxmg->sSphere));
+        tLocal = pea->tLocal;
     }
+    MATRIX4 matExtrem;
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloExtrem, jt->pxfRoot, &matExtrem, 0);
+    qword posExtrem = QwAddScaled(*(qword *)matExtrem.mat[3], D_002A2DC0, VuFloat(-sRadius));
+    MATRIX4 matHip;
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, (XF *)paloHip, jt->pxfRoot, &matHip, 0);
+    MATRIX4 matIkh;
+    PredictAsegEffect(asega->paseg, jt, tLocal, 0.0f, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->pxfGoal, jt->pxfRoot, &matIkh, 0);
+    qword posIkh = QwTransformPos(&matIkh, ((IKREC *)((XF *)( paloHip ))->pxfRef) ->qwPosIkh);
+    qword posSphereCenter = QwAdd(*(qword *)matHip.mat[3], QwSub(posExtrem, posIkh));
+    pxmg->posSphere = posSphereCenter;
+    pxmg->sSphere = ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sUpper + ((IKREC *)((XF *)( paloHip ))->pxfRef) ->sLower + 10.0f;
+    VU_FLOAT vfUp = VuFloatFromMemWord(D_002BF340);
+    VU_FLOAT vfDown = VuFloatFromMemWord(D_002BF344);
+    LSG lsgClip;
+    qword posLineUp = QwAddScaled(posExtrem, D_002A2DC0, vfUp);
+    qword posLineDown = QwAddScaled(posExtrem, D_002A2DC0, vfDown);
+    pxmg->fValid = ClsgClipEdgeToSphere(posSphereCenter, pxmg->sSphere, posLineUp, posLineDown, 1, &lsgClip) > 0;
+    pxmg->posExtrem = posExtrem;
+    pxmg->posUp = lsgClip.apos[0];
+    pxmg->posDown = lsgClip.apos[1];
+    pxmg->posSphereLow = QwAddScaled(pxmg->posSphere, D_002A2DC0, VuFloat(-pxmg->sSphere));
 }
 } // namespace M_RebuildJtXmg
 
@@ -1694,14 +1714,18 @@ int TryMatchJtXmg(O *jt, M *pm, void *px)
     if (pm->x4) {
         HIT hit;
         STACKSCOPE cls;
-        union { qword q; } u;
+        union {
+            qword q;
+        } u;
         int n0, n1;
         qword a, b, c;
         a = ConvertAloPos(jt, 0, pm->v30);
         b = ConvertAloPos(jt, 0, pm->v40);
         c = ConvertAloPos(jt, 0, pm->v50);
-        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC, &n0, &n1);
-        if ((FindFirstObjectHitByLine(0, a, b, n0, n1, &hit) || FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&
+        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, jt->xEC,
+                               &n0, &n1);
+        if ((FindFirstObjectHitByLine(0, a, b, n0, n1, &hit) ||
+             FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
             hit.v0 = VSub(hit.v0, D_002A2DC0);
@@ -1763,14 +1787,14 @@ void UpdateJtStand(struct S *jt)
         u.v.z = GLimitAbs__Fff(u.v.z, 10.0f);
         SetStepTargetHeading(jt, jt->g1a8 + u.v.z * D_002DDED0.dt);
     }
-    if (jt->x19f0) {
-        RebuildJtXmg(jt, jt->x19d8, jt->x19e0, jt->x19f0, 5.0f, jt->x1520);
-        RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
-        if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
-            !jt->x1514 && jt->x1028) {
-            if (IsmsFindSmOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
-            jt->x1514 = 1;
-        }
+    if (!jt->x19f0)
+        return;
+    RebuildJtXmg(jt, jt->x19d8, jt->x19e0, jt->x19f0, 5.0f, jt->x1520);
+    RebuildJtXmg(jt, jt->x19d4, jt->x19dc, jt->x19f4, 5.0f, jt->x1620);
+    if ((!TryMatchJtXmg(jt, jt->x1520, jt->x19f0) || !TryMatchJtXmg(jt, jt->x1620, jt->x19f4)) &&
+        !jt->x1514 && jt->x1028) {
+        if (IsmsFindSmOptional__FP2SM3OID(jt->x1028, 0x17C) >= 0) SnapSma(jt->x1034, 0x17C);
+        jt->x1514 = 1;
     }
 }
 } } // namespace M_UpdateJtStand
@@ -1949,13 +1973,21 @@ extern "C" float GSmooth__FfffP3SMPPf(SMP *p, float a, float b, float c, float *
 static __inline__ float GMin(float a,float b){return a<b?a:b;}
 static __inline__ float GMax(float a,float b){return a>b?a:b;}
 
-static __inline__ qword OffsetAdd(const M*m,const VU*scalar,const VU*base){
- register qword value __asm__("vf1"),row __asm__("vf2");
- __asm__("lqc2 %1,%2\n\tlqc2 %0,%3\n\tvmulx.xyzw %0,%1,%0x\n\tlqc2 %1,%4\n\tvadd.xyzw %0,%1,%0":"=&j"(value),"=&j"(row):"m"(m->r[1]),"m"(scalar->q),"m"(base->q));return value;
+static __inline__ qword OffsetAdd(const M *m, const VU *scalar, const VU *base)
+{
+    register qword value __asm__("vf1"), row __asm__("vf2");
+    __asm__("lqc2 %1,%2\n\tlqc2 %0,%3\n\tvmulx.xyzw %0,%1,%0x\n\tlqc2 %1,%4\n\tvadd.xyzw %0,%1,%0"
+            : "=&j"(value), "=&j"(row)
+            : "m"(m->r[1]), "m"(scalar->q), "m"(base->q));
+    return value;
 }
-static __inline__ qword OffsetSub(const M*m,const VU*scalar,const VU*base){
- register qword value __asm__("vf1"),row __asm__("vf2");
- __asm__("lqc2 %1,%2\n\tlqc2 %0,%3\n\tvmulx.xyzw %0,%1,%0x\n\tlqc2 %1,%4\n\tvsub.xyzw %0,%1,%0":"=&j"(value),"=&j"(row):"m"(m->r[1]),"m"(scalar->q),"m"(base->q));return value;
+static __inline__ qword OffsetSub(const M *m, const VU *scalar, const VU *base)
+{
+    register qword value __asm__("vf1"), row __asm__("vf2");
+    __asm__("lqc2 %1,%2\n\tlqc2 %0,%3\n\tvmulx.xyzw %0,%1,%0x\n\tlqc2 %1,%4\n\tvsub.xyzw %0,%1,%0"
+            : "=&j"(value), "=&j"(row)
+            : "m"(m->r[1]), "m"(scalar->q), "m"(base->q));
+    return value;
 }
 /** @sly2-annot addr=0x18A4E8
  * Purpose: VU-heavy helper called by STEPPLAYER 0x141640: smoothed curve target (GSmooth, SMaxCrv)
@@ -1966,7 +1998,8 @@ static __inline__ qword OffsetSub(const M*m,const VU*scalar,const VU*base){
 // VU helper of GetStepplayerCpdefi: the smoothed camera curve target. (inferred)
 extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
 {
-    float g;register float lift __asm__("$f1"),height __asm__("$f0");
+    float g;
+    register float lift __asm__("$f1"), height __asm__("$f0");
     WORK w;
 
     if (ps->x8 != 0)
@@ -1975,16 +2008,19 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
     if (ps->p0->x1024 != ps->p68)
         return;
     pr->x34 = 0;
-    if (ps->x2C >= 3) goto tail;
-    if (ps->x2C > 0) goto a12;
-    if (ps->x2C == 0) goto c0;
+    if (ps->x2C >= 3)
+        goto tail;
+    if (ps->x2C > 0)
+        goto a12;
+    if (ps->x2C == 0)
+        goto c0;
     goto tail;
     {
     a12:
         if (FIsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC)) {
             B *pb = ps->p14;
             if (ps->x2C == 1) {
-                g = ps->g20 + (ps->g50*125.0f)*ps->g50;
+                g = ps->g20 + (ps->g50 * 125.0f) * ps->g50;
                 if (pb->xE4 == 0) {
                     float h = SMaxShape(pb);
                     if (pb->x1BC & 2)
@@ -1992,7 +2028,7 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
                     g = GMin(g, h);
                 }
             } else {
-                g = ps->g20 - (ps->g50*125.0f)*ps->g50;
+                g = ps->g20 - (ps->g50 * 125.0f) * ps->g50;
                 if (pb->xE4 == 0) {
                     float h = SMinShape(pb);
                     if (pb->x1BC & 1)
@@ -2001,56 +2037,94 @@ extern "C" void SmoothJtCameraCurveTarget(S *ps, R *pr)
                 }
             }
             EvaluateShapeS(pb, &ps->v40, 0, g);
-            lift=125.0f;height=((float*)&ps->v40)[2];goto liftValue;
+            lift = 125.0f;
+            height = ((float *)&ps->v40)[2];
+            goto liftValue;
         } else if (ps->x2C == 1) {
-            {register qword position __asm__("$2")=GetLoWorldPos(ps->p0),scalar __asm__("vf1");register A*receiver __asm__("$4");
-             __asm__("lwc1 $f1,%5\n\tli.s $f0,125.0\n\tsq %0,%2\n\tmul.s $f0,$f1,$f0\n\tlw %3,%6\n\tmul.s $f1,$f1,$f0\n\tmfc1 %0,$f1\n\tqmtc2.ni %0,%1\n\tsqc2 %1,%4"
-              :"+r"(position),"=j"(scalar),"=m"(w.forward.q),"=r"(receiver),"=m"(w.scalar.q):"m"(ps->g50),"m"(ps->p0):"$f0","$f1");
-             w.kept.q=scalar;
-             ps->v40=OffsetAdd(GetLoWorldMatrix(receiver),&w.kept,&w.forward);
+            {
+                register qword position __asm__("$2") = GetLoWorldPos(ps->p0), scalar __asm__("vf1");
+                register A *receiver __asm__("$4");
+                __asm__("lwc1 $f1,%5\n\tli.s $f0,125.0\n\tsq %0,%2\n\tmul.s $f0,$f1,$f0\n\tlw %3,%6\n\tmul.s "
+                        "$f1,$f1,$f0\n\tmfc1 %0,$f1\n\tqmtc2.ni %0,%1\n\tsqc2 %1,%4"
+                        : "+r"(position), "=j"(scalar), "=m"(w.forward.q), "=r"(receiver), "=m"(w.scalar.q)
+                        : "m"(ps->g50), "m"(ps->p0)
+                        : "$f0", "$f1");
+                w.kept.q = scalar;
+                ps->v40 = OffsetAdd(GetLoWorldMatrix(receiver), &w.kept, &w.forward);
             }
             goto lift50;
         } else {
-            {register qword position __asm__("$2")=GetLoWorldPos(ps->p0),scalar __asm__("vf1");register A*receiver __asm__("$4");
-             __asm__("lwc1 $f1,%5\n\tli.s $f0,125.0\n\tsq %0,%2\n\tmul.s $f0,$f1,$f0\n\tlw %3,%6\n\tmul.s $f1,$f1,$f0\n\tmfc1 %0,$f1\n\tqmtc2.ni %0,%1\n\tsqc2 %1,%4"
-              :"+r"(position),"=j"(scalar),"=m"(w.reverse.q),"=r"(receiver),"=m"(w.scalar.q):"m"(ps->g50),"m"(ps->p0):"$f0","$f1");
-             w.kept.q=scalar;
-             ps->v40=OffsetSub(GetLoWorldMatrix(receiver),&w.kept,&w.reverse);
+            {
+                register qword position __asm__("$2") = GetLoWorldPos(ps->p0), scalar __asm__("vf1");
+                register A *receiver __asm__("$4");
+                __asm__("lwc1 $f1,%5\n\tli.s $f0,125.0\n\tsq %0,%2\n\tmul.s $f0,$f1,$f0\n\tlw %3,%6\n\tmul.s "
+                        "$f1,$f1,$f0\n\tmfc1 %0,$f1\n\tqmtc2.ni %0,%1\n\tsqc2 %1,%4"
+                        : "+r"(position), "=j"(scalar), "=m"(w.reverse.q), "=r"(receiver), "=m"(w.scalar.q)
+                        : "m"(ps->g50), "m"(ps->p0)
+                        : "$f0", "$f1");
+                w.kept.q = scalar;
+                ps->v40 = OffsetSub(GetLoWorldMatrix(receiver), &w.kept, &w.reverse);
             }
             goto lift50;
         }
     }
     goto tail;
 lift50:
-        lift=50.0f;height=((float*)&ps->v40)[2];goto liftValue;
+    lift = 50.0f;
+    height = ((float *)&ps->v40)[2];
+    goto liftValue;
 c0:
-        ps->v40=GetLoWorldPos(ps->p0);
-        lift=50.0f;__asm__("lwc1 %0,%1":"=f"(height):"m"(((float*)&ps->v40)[2]));
-        liftValue:((float*)&ps->v40)[2]=height+lift;
+    ps->v40 = GetLoWorldPos(ps->p0);
+    lift = 50.0f;
+    __asm__("lwc1 %0,%1" : "=f"(height) : "m"(((float *)&ps->v40)[2]));
+liftValue:
+    ((float *)&ps->v40)[2] = height + lift;
 tail:
     if (FIsBasicDerivedFrom__FP5BASIC3CID(ps->p14, 0xC) && ps->p14->xE4 == 0) {
         float k;
         float c = 30.0f;
-        register float h __asm__("$f0")=SMaxShape(ps->p14)-c;
-        register float half __asm__("$f3")=0.5f,width __asm__("$f1")=h-c,d __asm__("$f2")=300.0f;
-        __asm__("mul.s %0,%0,%1":"+f"(width):"f"(half));
-        __asm__("min.s %0,%1,%0":"+f"(d):"f"(width));
-        register float e __asm__("$f1")=d+c;
-        register float x __asm__("$f4")=ps->g20;
+        register float h __asm__("$f0") = SMaxShape(ps->p14) - c;
+        register float half __asm__("$f3") = 0.5f, width __asm__("$f1") = h - c, d __asm__("$f2") = 300.0f;
+        __asm__("mul.s %0,%0,%1" : "+f"(width) : "f"(half));
+        __asm__("min.s %0,%1,%0" : "+f"(d) : "f"(width));
+        register float e __asm__("$f1") = d + c;
+        register float x __asm__("$f4") = ps->g20;
         h = h - d;
         if (x < e) {
-            register float ratio __asm__("$f0"),low __asm__("$f1")=e,high __asm__("$f3"),t __asm__("$f2");
-            __asm__("sub.s %0,%1,%3\n\tli.s %2,1.0\n\tmtc1 $zero,%1\n\tdiv.s %0,%0,%4":"=&f"(ratio),"+&f"(low),"=&f"(high):"f"(x),"f"(d):"at");
-            if(ratio<low)t=low;else if(high<ratio)t=high;else t=ratio;
-            {register float value __asm__("$f0"),scale __asm__("$f1");
-             __asm__("neg.s %0,%2\n\tli.s %1,150.0\n\tmul.s %0,%0,%2":"=&f"(value),"=&f"(scale):"f"(t):"at");k=value*scale;}
+            register float ratio __asm__("$f0"), low __asm__("$f1") = e, high __asm__("$f3"), t __asm__("$f2");
+            __asm__("sub.s %0,%1,%3\n\tli.s %2,1.0\n\tmtc1 $zero,%1\n\tdiv.s %0,%0,%4"
+                    : "=&f"(ratio), "+&f"(low), "=&f"(high)
+                    : "f"(x), "f"(d)
+                    : "at");
+            if (ratio < low)
+                t = low;
+            else if (high < ratio)
+                t = high;
+            else
+                t = ratio;
+            {
+                register float value __asm__("$f0"), scale __asm__("$f1");
+                __asm__("neg.s %0,%2\n\tli.s %1,150.0\n\tmul.s %0,%0,%2" : "=&f"(value), "=&f"(scale) : "f"(t) : "at");
+                k = value * scale;
+            }
 
         } else if (h < x) {
-            register float ratio __asm__("$f0")=h,low __asm__("$f1"),high __asm__("$f3"),t __asm__("$f2");
-            __asm__("sub.s %0,%3,%0\n\tli.s %2,1.0\n\tmtc1 $zero,%1\n\tdiv.s %0,%0,%4":"+&f"(ratio),"=&f"(low),"=&f"(high):"f"(x),"f"(d):"at");
-            if(ratio<low)t=low;else if(high<ratio)t=high;else t=ratio;
-            {register float value __asm__("$f1"),scale __asm__("$f0");
-             __asm__("mul.s %0,%2,%2\n\tli.s %1,150.0":"=f"(value),"=f"(scale):"f"(t):"at");k=value*scale;}
+            register float ratio __asm__("$f0") = h, low __asm__("$f1"), high __asm__("$f3"), t __asm__("$f2");
+            __asm__("sub.s %0,%3,%0\n\tli.s %2,1.0\n\tmtc1 $zero,%1\n\tdiv.s %0,%0,%4"
+                    : "+&f"(ratio), "=&f"(low), "=&f"(high)
+                    : "f"(x), "f"(d)
+                    : "at");
+            if (ratio < low)
+                t = low;
+            else if (high < ratio)
+                t = high;
+            else
+                t = ratio;
+            {
+                register float value __asm__("$f1"), scale __asm__("$f0");
+                __asm__("mul.s %0,%2,%2\n\tli.s %1,150.0" : "=f"(value), "=f"(scale) : "f"(t) : "at");
+                k = value * scale;
+            }
 
         } else {
             k = 0.0f;
@@ -2059,16 +2133,11 @@ tail:
     }
     switch (ps->x8) {
     case 0:
-    case 0xD:
-        pr->x3C = 1;
-        break;
+    case 0xD: pr->x3C = 1; break;
     case 1:
     case 3:
-    case 4:
-        break;
-    default:
-        pr->x0 |= 1;
-        break;
+    case 4: break;
+    default: pr->x0 |= 1; break;
     }
 }
 
@@ -2299,9 +2368,9 @@ extern "C" void ChooseJtGroundState(JT *jt)
                     }
                     if (!jt->FCanUseGadget(2))
                         break;
-                    if (jt->pctl->GrfConsumePressed(0x80, 0.0f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0D, JTBS_Nil);
-                    else if (jt->pctl->GrfConsumePressed(0x10, 0.0f))
+                    else if (jt->pctl->GrfConsumePressed(BUTTON_ALT_ATTACK, 0.0f))
                         SetJtState(jt, JTS_Unk0E, JTBS_Nil);
                     break;
                 case JTS_Grab:
@@ -2333,34 +2402,28 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         if (!jt->janim.fInputOpen)
                             break;
                     }
-                    if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (!(jt->pctl->grfbtn & 8))
+                    if (!(jt->pctl->grfbtn & 8) && FFightStanceInRange(jt, 0))
                     {
-                        if (FFightStanceInRange(jt, 0))
-                        {
-                            SetJtState(jt, JTS_Unk05, JTBS_4);
-                            break;
-                        }
+                        SetJtState(jt, JTS_Unk05, JTBS_4);
+                        break;
                     }
-                    if (jt->pctl->GrfPressedWithin(0x400, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
                     {
-                        jt->pctl->ClearJoyPressed(0x400);
+                        jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->nUnk10e4 == 3)
+                    if (jt->nUnk10e4 == 3 && jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.15f))
                     {
-                        if (jt->pctl->GrfConsumePressed(0x20, 0.15f))
-                        {
-                            SetJtState(jt, JTS_Pickpocket, JTBS_Nil);
-                            break;
-                        }
+                        SetJtState(jt, JTS_Pickpocket, JTBS_Nil);
+                        break;
                     }
-                    if (jt->pctl->GrfConsumePressed(0x20, 0.2f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
@@ -2391,7 +2454,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
@@ -2427,18 +2490,18 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(0x40, 0.1f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.1f))
                     {
                         SetJtAirJump(&jt->jtair, 1, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GrfPressedWithin(0x400, 0.15f) && jt->FCanUseGadget(3))
+                    if (jt->pctl->GrfPressedWithin(BUTTON_LOOK, 0.15f) && jt->FCanUseGadget(3))
                     {
-                        jt->pctl->ClearJoyPressed(0x400);
+                        jt->pctl->ClearJoyPressed(BUTTON_LOOK);
                         StartJtMode(&jt->jtmode, 0, 0, 0);
                         break;
                     }
-                    if (jt->pctl->GrfConsumePressed(0x20, 0.2f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_ACTION, 0.2f))
                     {
                         ChooseJtGrabTarget(&jt->jtgrab, 0xFFFF, 0);
                         break;
@@ -2451,7 +2514,7 @@ extern "C" void ChooseJtGroundState(JT *jt)
                 case JTS_Hang:
                     if (D_002DDED0.t - jt->tJts > 0.25f)
                     {
-                        if (jt->pctl->GrfConsumePressed(0x40, 0.25f))
+                        if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
                             SetJtAirJump(&jt->jtair, 2, 0, 0);
                     }
                     break;
@@ -2461,13 +2524,10 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtAirJump(&jt->jtair, 0xB, 0, 0);
                         break;
                     }
-                    if (jt->pxpFloor)
+                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z)
                     {
-                        if (0.7f < jt->pxpFloor->normal.z)
-                        {
-                            if (D_002DDED0.t - jt->tJts > 0.4f)
-                                SetJtState(jt, JTS_Stand, JTBS_Nil);
-                        }
+                        if (D_002DDED0.t - jt->tJts > 0.4f)
+                            SetJtState(jt, JTS_Stand, JTBS_Nil);
                     }
                     break;
                 case JTS_Unk0E:
@@ -2476,18 +2536,12 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                         break;
                     }
-                    if (jt->pxpFloor)
+                    if (jt->pxpFloor && 0.7f < jt->pxpFloor->normal.z && D_002DDED0.t - jt->tJts > 0.4f)
                     {
-                        if (0.7f < jt->pxpFloor->normal.z)
-                        {
-                            if (D_002DDED0.t - jt->tJts > 0.4f)
-                            {
-                                float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
-                                ASEGA *asega = jt->pasegaUnk1030;
-                                if (asega->tLocal < tLabel)
-                                    SeekAsega(asega, SEEK_Start, tLabel, asega->svt);
-                            }
-                        }
+                        float tLabel = TFindAsegLabel(jt->pasegUnk1a84, (OID)0x16D);
+                        ASEGA *asega = jt->pasegaUnk1030;
+                        if (asega->tLocal < tLabel)
+                            SeekAsega(asega, SEEK_Start, tLabel, asega->svt);
                     }
                     break;
                 case JTS_Pounce:
@@ -2511,11 +2565,11 @@ extern "C" void ChooseJtGroundState(JT *jt)
                         SetJtState(jt, JTS_Stand, JTBS_Nil);
                     break;
                 case JTS_SurfaceClimb:
-                    if (jt->pctl->GrfConsumePressed(0x40, 0.25f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
                         SetJtAirJump(&jt->jtair, 0x12, 0, 0);
                     break;
                 case JTS_HangFollow:
-                    if (jt->pctl->GrfConsumePressed(0x40, 0.25f))
+                    if (jt->pctl->GrfConsumePressed(BUTTON_JUMP, 0.25f))
                     {
                         VECTOR4 vTarget;
                         LO *ploTarget = jt->phndHang->ploUnk138;
@@ -2565,12 +2619,12 @@ void UpdateJtMode(void *p);
 // If the player can act and the mode buttons (0x410/0x4F0) are pressed, toggles the look/recon mode (x0F00).
 void UpdateJtModeInput(struct S *p)
 {
-    if (IsStepplayerInJtMode(p)) {
-        if (p->jtModeState == 1 && !p->jtModeKind &&
-            GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
-            EndJtMode(&p->xf00);
-        UpdateJtMode(&p->xf00);
-    }
+    if (!IsStepplayerInJtMode(p))
+        return;
+    if (p->jtModeState == 1 && !p->jtModeKind &&
+        GrfConsumePressed__5POCTLUif(p->controller, p->x1d40 == 7 ? 0x410 : 0x4F0, 0.25f))
+        EndJtMode(&p->xf00);
+    UpdateJtMode(&p->xf00);
 }
 } } // namespace M_func_0018B2C0
 
@@ -2606,19 +2660,19 @@ void CacheJtRestPose(struct O *jt)
 {
     MATRIX4 m0, m1, m2, mi;
     float z;
-    if (jt->p1BC8) {
-        z = 0.0f;
-        jt->g1BD8 = GetAsegLabelTime(jt->p1BC8, 0x167);
-        PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
-        jt->v1BE0 = m0.r[3];
-        PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
-        jt->v1BF0 = m1.r[3];
-        PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
-        jt->v1C00 = m2.r[3];
-        jt->v1C10 = DecomposeRotationMatrixToEuler(&m2);
-        InvertMatrix4Rigid(&mi, &m2);
-        jt->v1C20 = Mul(&mi, jt->v1BE0);
-    }
+    if (!jt->p1BC8)
+        return;
+    z = 0.0f;
+    jt->g1BD8 = GetAsegLabelTime(jt->p1BC8, 0x167);
+    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->hookChild->p60, jt->p60, &m0, 0);
+    jt->v1BE0 = m0.r[3];
+    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19CC, jt->p60, &m1, 0);
+    jt->v1BF0 = m1.r[3];
+    PredictAsegTransform(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
+    jt->v1C00 = m2.r[3];
+    jt->v1C10 = DecomposeRotationMatrixToEuler(&m2);
+    InvertMatrix4Rigid(&mi, &m2);
+    jt->v1C20 = Mul(&mi, jt->v1BE0);
 }
 } } // namespace M_func_0018B348
 
@@ -2644,23 +2698,64 @@ extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLO
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
 qword TransformXfPos(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
 float atan2f(float,float);float GLimitLm__FP2LMf(struct LM*,float);
-struct M3*LoadRotateMatrixEuler(struct M3*,qword);qword*VECTOR_opAssign(qword*,qword);void SetActRotationGoal(struct DV*,qword);
-static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword Point(const struct M4*m,const qword*a,struct SPACE**source){
- register qword r __asm__("vf6"),row0 __asm__("vf5")=m->r[0].q;register struct SPACE*sourceValue __asm__("$4");const int nullSource=0;
- __asm__ volatile("lqc2 $vf4,%3\n\tlqc2 $vf2,%4\n\tdaddu %1,%z7,$zero\n\tlqc2 $vf1,%5\n\tlqc2 $vf3,%6\n\tvmulax.xyz $ACC,%2,$vf3x\n\tvmadday.xyz $ACC,$vf4,$vf3y\n\tvmaddaz.xyz $ACC,$vf2,$vf3z\n\tvmaddw.xyz %0,$vf1,$vf0w"
- :"=&j"(r),"=&r"(sourceValue):"j"(row0),"m"(m->r[1].q),"m"(m->r[2].q),"m"(m->r[3].q),"m"(*a),"rJ"(nullSource):"vf1","vf2","vf3","vf4");
- *source=sourceValue;return r;
+struct M3 *LoadRotateMatrixEuler(struct M3 *, qword);
+qword *VECTOR_opAssign(qword *, qword);
+void SetActRotationGoal(struct DV *, qword);
+static inline qword Add(qword a, qword b)
+{
+    qword r;
+    __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b));
+    return r;
 }
-static inline float X(qword q){float x;__asm__("mtc1 %1,%0":"=f"(x):"r"(q));return x;}
-static inline qword Pack(float x,float y,float z){qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));return q;}
-static inline float CorrectionDistance(struct P*p,qword correction){
- register qword d __asm__("vf1");register float result __asm__("$3");
- __asm__ __volatile__("lqc2 %0,%1":"=j"(d):"m"(p->position));
- {register qword c __asm__("vf2")=correction;__asm__("vadd.xyzw %0,%0,%1":"+j"(d):"j"(c));}
- {register qword a __asm__("vf2")=p->anchor;__asm__("vsub.xyzw %0,%0,%1":"+j"(d):"j"(a));}
- {register qword one __asm__("vf2");__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(d),"=&j"(one));}
- __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(d));__asm__("qmfc2.ni %0,%1":"=r"(result):"j"(d));return result;
+static inline qword Point(const struct M4 *m, const qword *a, struct SPACE **source)
+{
+    register qword r __asm__("vf6"), row0 __asm__("vf5") = m->r[0].q;
+    register struct SPACE *sourceValue __asm__("$4");
+    const int nullSource = 0;
+    __asm__ volatile(
+        "lqc2 $vf4,%3\n\tlqc2 $vf2,%4\n\tdaddu %1,%z7,$zero\n\tlqc2 $vf1,%5\n\tlqc2 $vf3,%6\n\tvmulax.xyz "
+        "$ACC,%2,$vf3x\n\tvmadday.xyz $ACC,$vf4,$vf3y\n\tvmaddaz.xyz $ACC,$vf2,$vf3z\n\tvmaddw.xyz %0,$vf1,$vf0w"
+        : "=&j"(r), "=&r"(sourceValue)
+        : "j"(row0), "m"(m->r[1].q), "m"(m->r[2].q), "m"(m->r[3].q), "m"(*a), "rJ"(nullSource)
+        : "vf1", "vf2", "vf3", "vf4");
+    *source = sourceValue;
+    return r;
+}
+static inline float X(qword q)
+{
+    float x;
+    __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q));
+    return x;
+}
+static inline qword Pack(float x, float y, float z)
+{
+    qword q, t;
+    __asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0"
+            : "=&r"(q), "=&r"(t)
+            : "f"(x), "f"(y), "f"(z));
+    return q;
+}
+static inline float CorrectionDistance(struct P *p, qword correction)
+{
+    register qword d __asm__("vf1");
+    register float result __asm__("$3");
+    __asm__ __volatile__("lqc2 %0,%1" : "=j"(d) : "m"(p->position));
+    {
+        register qword c __asm__("vf2") = correction;
+        __asm__("vadd.xyzw %0,%0,%1" : "+j"(d) : "j"(c));
+    }
+    {
+        register qword a __asm__("vf2") = p->anchor;
+        __asm__("vsub.xyzw %0,%0,%1" : "+j"(d) : "j"(a));
+    }
+    {
+        register qword one __asm__("vf2");
+        __asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z"
+                : "+j"(d), "=&j"(one));
+    }
+    __asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(d));
+    __asm__("qmfc2.ni %0,%1" : "=r"(result) : "j"(d));
+    return result;
 }
 /** @sly2-annot addr=0x18B460
  * Purpose: jts 11 handler: attachment correction, decays inactive responses
@@ -2669,229 +2764,457 @@ static inline float CorrectionDistance(struct P*p,qword correction){
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // State 11 handler: corrects the attachment and decays inactive responses. (inferred)
-void UpdateJtAttachCorrection(struct P*jt){
- struct WORK w;register float ratio __asm__("$f20");{register float height __asm__("$f0")=jt->height,base __asm__("$f1")=jt->model->base,scale __asm__("$f2")=jt->model->scale;height=height-base;__asm__("div.s %0,%1,%2":"=f"(ratio):"f"(height),"f"(scale));}
- if(jt->owner&&jt->owner->aim){
- float zero=0.0f;
- if(zero<ratio){
-  register qword mapped __asm__("$17");qword tilt,axis,residual;register float limit __asm__("$f1");struct SPACE*space;register struct SPACE*relativeDestination __asm__("$5");struct M4*frame;float heading;
-  FaceStepToward(jt,jt->owner->aim);
-  {register struct OWNER*predictionOwner __asm__("$2")=jt->owner;
-   register float capped __asm__("$f12");register struct M4*request __asm__("$6"),*optionalOutput __asm__("$7");
-   register struct AIM*aim __asm__("$3");register struct SPACE*sourceSpace __asm__("$5");const int nullValue=0;
-   __asm__("lwc1 %0,%6\n\tdaddu %1,%7,$zero\n\tlw %2,%8\n\tdaddu %3,%z9,$zero\n\tmin.s %0,%5,%0\n\tdaddu %4,%z9,$zero"
-    :"=&f"(capped),"=&r"(request),"=&r"(aim),"=r"(optionalOutput),"=r"(sourceSpace)
-    :"f"(ratio),"m"(D_002BF380),"r"(&w.phase.predicted),"m"(predictionOwner->aim),"rJ"(nullValue));
-   LoadIdentityMatrix4(aim->frame,sourceSpace,request,optionalOutput,capped);
-  }
-  {struct SPACE*sourceSpace;qword predictedPoint=Point(&w.phase.predicted,&D_002BF390,&sourceSpace);register unsigned page __asm__("$3");
-   __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(TransformXfPos(sourceSpace,jt->space,predictedPoint)),"i"(&D_002BF3A0));
-   {register int zBits __asm__("$2");register float z __asm__("$f12"),x __asm__("$f13"),coefficient __asm__("$f0");
-    __asm__("pextuw %0,$zero,%4\n\tlwc1 %3,%%lo(%6)(%5)\n\tmtc1 %0,%1\n\tmtc1 %4,%2":"=&r"(zBits),"=f"(z),"=f"(x),"=f"(coefficient):"r"(mapped),"r"(page),"i"(&D_002BF3A0):"memory");
-    heading=atan2f(-z,coefficient*x);}}
-  heading=GLimitLm__FP2LMf(&D_002BF3A8,heading);
-  tilt=Pack(zero,heading,zero);w.axis.q=tilt;
-  LoadRotateMatrixEuler(&w.rotation,Add(jt->euler,w.axis.q));
-  frame=&w.transform;
-  VECTOR_opAssign(&frame->r[3].q,jt->position);
-  {
-   register qword row0 __asm__("$3"),row1 __asm__("$2"),mappedVector __asm__("vf6");
-   __asm__("lq %2,%5\n\tqmtc2.ni %8,%4\n\tlq %3,%6\n\tsq %2,%0\n\tsq %3,0x10(%7)"
-   :"=m"(w.transform.r[0].q),"=m"(w.transform.r[1].q),"=&r"(row0),"=&r"(row1),"=j"(mappedVector)
-   :"m"(w.rotation.r[0].q),"m"(w.rotation.r[1].q),"r"(frame),"r"(mapped));
-   {
-    register float one __asm__("$f0")=1.0f;register qword row2 __asm__("$2");register struct FOCUS*focus __asm__("$3");register struct GROUP*group __asm__("$2");
-    __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(row2),"=r"(focus):"m"(w.rotation.r[2].q),"m"(jt->focus));
-    __asm__("sq %1,0x20(%2)":"=m"(w.transform.r[2].q):"r"(row2),"r"(frame));
-    __asm__("swc1 %5,%0\n\tswc1 %5,%1\n\tswc1 %5,%2\n\tswc1 %6,0x3c(%7)\n\tlw %4,0x58(%8)"
-    :"=m"(w.transform.r[2].f[3]),"=m"(w.transform.r[1].f[3]),"=m"(w.transform.r[0].f[3]),"=m"(w.transform.r[3].f[3]),"=r"(group)
-    :"f"(zero),"f"(one),"r"(frame),"r"(focus),"m"(focus->group));
+void UpdateJtAttachCorrection(struct P *jt)
+{
+    struct WORK w;
+    register float ratio __asm__("$f20");
     {
-     register qword point __asm__("vf4"),axis2 __asm__("vf2"),axis0 __asm__("vf5"),axis1 __asm__("vf3"),origin __asm__("vf1");
-     __asm__("lqc2 %0,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\tlqc2 %3,%8\n\tlqc2 %4,%9"
-     :"=j"(point),"=j"(axis2),"=j"(axis0),"=j"(axis1),"=j"(origin)
-     :"m"(jt->localPoint),"m"(w.transform.r[2].q),"m"(w.transform.r[0].q),"m"(w.transform.r[1].q),"m"(w.transform.r[3].q));
-     __asm__("vmulax.xyz ACC,%2,%5x\n\tvmadday.xyz ACC,%3,%5y\n\tvmaddaz.xyz ACC,%4,%5z\n\tvmaddw.xyz %0,%0,$vf0w\n\tlw %1,%6":"+j"(origin),"=r"(space):"j"(axis0),"j"(axis1),"j"(axis2),"j"(point),"m"(group->space));
-     __asm__("vsub.xyzw %0,%0,%1":"+j"(mappedVector):"j"(origin));
-     __asm__("sqc2 %2,%0\n\tdaddu %1,%3,$zero":"=m"(w.relative.q),"=r"(relativeDestination):"j"(mappedVector),"r"(space));
+        register float height __asm__("$f0") = jt->height, base __asm__("$f1") = jt->model->base,
+                              scale __asm__("$f2") = jt->model->scale;
+        height = height - base;
+        __asm__("div.s %0,%1,%2" : "=f"(ratio) : "f"(height), "f"(scale));
     }
-   }
-  }
-  heading=X(ConvertXfVec(jt->space,relativeDestination,w.relative.q));heading=GLimitLm__FP2LMf(&D_002BF3B0,heading);
-  axis=Pack(heading,zero,zero);w.axis.q=axis;
-  {
-   register qword returned __asm__("vf2")=ConvertXfVec(space,jt->space,w.axis.q),relative __asm__("vf1");register unsigned page __asm__("$2");
-   __asm__("lqc2 %0,%2\n\tlui %1,%%hi(%3)":"=j"(relative),"=r"(page):"m"(w.relative.q),"i"(&D_002BF3B8));
-   __asm__("vsub.xyzw %0,%1,%0":"+j"(returned):"j"(relative));
-   __asm__("lwc1 %0,%%lo(%4)(%2)\n\tsqc2 %3,%1":"=f"(limit),"=m"(w.residual.q):"r"(page),"j"(returned),"i"(&D_002BF3B8):"memory");
-   residual=returned;
-  }
-  {register int near __asm__("$2")=1;float distance=CorrectionDistance(jt,residual);if(distance<limit){}else near=0;if(near){
-   SetActRotationGoal(jt->dvYaw,tilt);SetActRotationGoal(jt->dvResidual,w.residual.q);SetActRotationGoal(jt->dvX,axis);
-   jt->valid=1;jt->time=D_002DDED0.time;return;
-  }}
- }}
- {register float remaining __asm__("$f0")=jt->time,after __asm__("$f2"),gain __asm__("$f3");
-  {register float life __asm__("$f1")=D_002BF3BC,now __asm__("$f3")=D_002DDED0.time;remaining=remaining+life;after=D_002DDED0.dt;remaining=remaining-now;after=remaining-after;}
-  {register float zero __asm__("$f1")=0.0f;if(zero<after)gain=after/remaining;else gain=zero;}
-  {register qword bits __asm__("$2");__asm__("mfc1 %0,%2\n\tsq %0,%1":"=&r"(bits),"=m"(w.gain.q):"f"(gain));}
-  {
-   register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
-   __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(source),"=r"(raw):"m"(jt->dvYaw),"m"(w.gain.q));
-   __asm__("daddu %0,%3,$zero\n\tsq %4,%1\n\tqmtc2.ni %4,%2":"=&r"(receiver),"=m"(w.phase.scalar.q),"=j"(scalar):"r"(source),"r"(raw));
-   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));SetActRotationGoal(receiver,scalar);
-  }
-  {
-   register qword raw __asm__("$2"),scalar __asm__("vf2");register struct DV*receiver __asm__("$4");
-   __asm__("lq %0,%1":"=r"(raw):"m"(w.gain.q));
-   __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"m"(jt->dvResidual));
-   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(receiver->value));SetActRotationGoal(receiver,scalar);
-  }
-  {
-   register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
-   __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(raw),"=r"(source):"m"(w.gain.q),"m"(jt->dvX));
-   __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tdaddu %2,%4,$zero":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"r"(source));
-   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));SetActRotationGoal(receiver,scalar);
-  }
-  jt->valid=0;
- }
+    if (jt->owner && jt->owner->aim) {
+        float zero = 0.0f;
+        if (zero < ratio) {
+            register qword mapped __asm__("$17");
+            qword tilt, axis, residual;
+            register float limit __asm__("$f1");
+            struct SPACE *space;
+            register struct SPACE *relativeDestination __asm__("$5");
+            struct M4 *frame;
+            float heading;
+            FaceStepToward(jt, jt->owner->aim);
+            {
+                register struct OWNER *predictionOwner __asm__("$2") = jt->owner;
+                register float capped __asm__("$f12");
+                register struct M4 *request __asm__("$6"), *optionalOutput __asm__("$7");
+                register struct AIM *aim __asm__("$3");
+                register struct SPACE *sourceSpace __asm__("$5");
+                const int nullValue = 0;
+                __asm__("lwc1 %0,%6\n\tdaddu %1,%7,$zero\n\tlw %2,%8\n\tdaddu %3,%z9,$zero\n\tmin.s %0,%5,%0\n\tdaddu "
+                        "%4,%z9,$zero"
+                        : "=&f"(capped), "=&r"(request), "=&r"(aim), "=r"(optionalOutput), "=r"(sourceSpace)
+                        : "f"(ratio), "m"(D_002BF380), "r"(&w.phase.predicted), "m"(predictionOwner->aim),
+                          "rJ"(nullValue));
+                LoadIdentityMatrix4(aim->frame, sourceSpace, request, optionalOutput, capped);
+            }
+            {
+                struct SPACE *sourceSpace;
+                qword predictedPoint = Point(&w.phase.predicted, &D_002BF390, &sourceSpace);
+                register unsigned page __asm__("$3");
+                __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)"
+                        : "=r"(mapped), "=r"(page)
+                        : "r"(TransformXfPos(sourceSpace, jt->space, predictedPoint)), "i"(&D_002BF3A0));
+                {
+                    register int zBits __asm__("$2");
+                    register float z __asm__("$f12"), x __asm__("$f13"), coefficient __asm__("$f0");
+                    __asm__("pextuw %0,$zero,%4\n\tlwc1 %3,%%lo(%6)(%5)\n\tmtc1 %0,%1\n\tmtc1 %4,%2"
+                            : "=&r"(zBits), "=f"(z), "=f"(x), "=f"(coefficient)
+                            : "r"(mapped), "r"(page), "i"(&D_002BF3A0)
+                            : "memory");
+                    heading = atan2f(-z, coefficient * x);
+                }
+            }
+            heading = GLimitLm__FP2LMf(&D_002BF3A8, heading);
+            tilt = Pack(zero, heading, zero);
+            w.axis.q = tilt;
+            LoadRotateMatrixEuler(&w.rotation, Add(jt->euler, w.axis.q));
+            frame = &w.transform;
+            VECTOR_opAssign(&frame->r[3].q, jt->position);
+            {
+                register qword row0 __asm__("$3"), row1 __asm__("$2"), mappedVector __asm__("vf6");
+                __asm__("lq %2,%5\n\tqmtc2.ni %8,%4\n\tlq %3,%6\n\tsq %2,%0\n\tsq %3,0x10(%7)"
+                        : "=m"(w.transform.r[0].q), "=m"(w.transform.r[1].q), "=&r"(row0), "=&r"(row1),
+                          "=j"(mappedVector)
+                        : "m"(w.rotation.r[0].q), "m"(w.rotation.r[1].q), "r"(frame), "r"(mapped));
+                {
+                    register float one __asm__("$f0") = 1.0f;
+                    register qword row2 __asm__("$2");
+                    register struct FOCUS *focus __asm__("$3");
+                    register struct GROUP *group __asm__("$2");
+                    __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(row2), "=r"(focus) : "m"(w.rotation.r[2].q), "m"(jt->focus));
+                    __asm__("sq %1,0x20(%2)" : "=m"(w.transform.r[2].q) : "r"(row2), "r"(frame));
+                    __asm__("swc1 %5,%0\n\tswc1 %5,%1\n\tswc1 %5,%2\n\tswc1 %6,0x3c(%7)\n\tlw %4,0x58(%8)"
+                            : "=m"(w.transform.r[2].f[3]), "=m"(w.transform.r[1].f[3]), "=m"(w.transform.r[0].f[3]),
+                              "=m"(w.transform.r[3].f[3]), "=r"(group)
+                            : "f"(zero), "f"(one), "r"(frame), "r"(focus), "m"(focus->group));
+                    {
+                        register qword point __asm__("vf4"), axis2 __asm__("vf2"), axis0 __asm__("vf5"),
+                            axis1 __asm__("vf3"), origin __asm__("vf1");
+                        __asm__("lqc2 %0,%5\n\tlqc2 %1,%6\n\tlqc2 %2,%7\n\tlqc2 %3,%8\n\tlqc2 %4,%9"
+                                : "=j"(point), "=j"(axis2), "=j"(axis0), "=j"(axis1), "=j"(origin)
+                                : "m"(jt->localPoint), "m"(w.transform.r[2].q), "m"(w.transform.r[0].q),
+                                  "m"(w.transform.r[1].q), "m"(w.transform.r[3].q));
+                        __asm__("vmulax.xyz ACC,%2,%5x\n\tvmadday.xyz ACC,%3,%5y\n\tvmaddaz.xyz "
+                                "ACC,%4,%5z\n\tvmaddw.xyz %0,%0,$vf0w\n\tlw %1,%6"
+                                : "+j"(origin), "=r"(space)
+                                : "j"(axis0), "j"(axis1), "j"(axis2), "j"(point), "m"(group->space));
+                        __asm__("vsub.xyzw %0,%0,%1" : "+j"(mappedVector) : "j"(origin));
+                        __asm__("sqc2 %2,%0\n\tdaddu %1,%3,$zero"
+                                : "=m"(w.relative.q), "=r"(relativeDestination)
+                                : "j"(mappedVector), "r"(space));
+                    }
+                }
+            }
+            heading = X(ConvertXfVec(jt->space, relativeDestination, w.relative.q));
+            heading = GLimitLm__FP2LMf(&D_002BF3B0, heading);
+            axis = Pack(heading, zero, zero);
+            w.axis.q = axis;
+            {
+                register qword returned __asm__("vf2") = ConvertXfVec(space, jt->space, w.axis.q),
+                                        relative __asm__("vf1");
+                register unsigned page __asm__("$2");
+                __asm__("lqc2 %0,%2\n\tlui %1,%%hi(%3)"
+                        : "=j"(relative), "=r"(page)
+                        : "m"(w.relative.q), "i"(&D_002BF3B8));
+                __asm__("vsub.xyzw %0,%1,%0" : "+j"(returned) : "j"(relative));
+                __asm__("lwc1 %0,%%lo(%4)(%2)\n\tsqc2 %3,%1"
+                        : "=f"(limit), "=m"(w.residual.q)
+                        : "r"(page), "j"(returned), "i"(&D_002BF3B8)
+                        : "memory");
+                residual = returned;
+            }
+            {
+                register int near __asm__("$2") = 1;
+                float distance = CorrectionDistance(jt, residual);
+                if (distance < limit) {
+                } else
+                    near = 0;
+                if (near) {
+                    SetActRotationGoal(jt->dvYaw, tilt);
+                    SetActRotationGoal(jt->dvResidual, w.residual.q);
+                    SetActRotationGoal(jt->dvX, axis);
+                    jt->valid = 1;
+                    jt->time = D_002DDED0.time;
+                    return;
+                }
+            }
+        }
+    }
+    {
+        register float remaining __asm__("$f0") = jt->time, after __asm__("$f2"), gain __asm__("$f3");
+        {
+            register float life __asm__("$f1") = D_002BF3BC, now __asm__("$f3") = D_002DDED0.time;
+            remaining = remaining + life;
+            after = D_002DDED0.dt;
+            remaining = remaining - now;
+            after = remaining - after;
+        }
+        {
+            register float zero __asm__("$f1") = 0.0f;
+            if (zero < after)
+                gain = after / remaining;
+            else
+                gain = zero;
+        }
+        {
+            register qword bits __asm__("$2");
+            __asm__("mfc1 %0,%2\n\tsq %0,%1" : "=&r"(bits), "=m"(w.gain.q) : "f"(gain));
+        }
+        {
+            register struct DV *source __asm__("$2"), *receiver __asm__("$4");
+            register qword raw __asm__("$3"), scalar __asm__("vf2");
+            __asm__("lw %0,%2\n\tlq %1,%3" : "=&r"(source), "=r"(raw) : "m"(jt->dvYaw), "m"(w.gain.q));
+            __asm__("daddu %0,%3,$zero\n\tsq %4,%1\n\tqmtc2.ni %4,%2"
+                    : "=&r"(receiver), "=m"(w.phase.scalar.q), "=j"(scalar)
+                    : "r"(source), "r"(raw));
+            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(source->value));
+            SetActRotationGoal(receiver, scalar);
+        }
+        {
+            register qword raw __asm__("$2"), scalar __asm__("vf2");
+            register struct DV *receiver __asm__("$4");
+            __asm__("lq %0,%1" : "=r"(raw) : "m"(w.gain.q));
+            __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4"
+                    : "=m"(w.phase.scalar.q), "=j"(scalar), "=r"(receiver)
+                    : "r"(raw), "m"(jt->dvResidual));
+            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(receiver->value));
+            SetActRotationGoal(receiver, scalar);
+        }
+        {
+            register struct DV *source __asm__("$2"), *receiver __asm__("$4");
+            register qword raw __asm__("$3"), scalar __asm__("vf2");
+            __asm__("lq %0,%2\n\tlw %1,%3" : "=&r"(raw), "=r"(source) : "m"(w.gain.q), "m"(jt->dvX));
+            __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tdaddu %2,%4,$zero"
+                    : "=m"(w.phase.scalar.q), "=j"(scalar), "=r"(receiver)
+                    : "r"(raw), "r"(source));
+            __asm__("vmulx.xyzw %0,%1,%0x" : "+j"(scalar) : "j"(source->value));
+            SetActRotationGoal(receiver, scalar);
+        }
+        jt->valid = 0;
+    }
 }
 
-typedef char qword_Size[(sizeof(qword)==16)?1:-1];
-typedef char U_Size[(sizeof(U)==16)?1:-1];
-typedef char M3_Size[(sizeof(struct M3)==48)?1:-1];
-typedef char M4_Size[(sizeof(struct M4)==64)?1:-1];
-typedef char LM_Size[(sizeof(struct LM)==8)?1:-1];
-typedef char CLOCK_Size[(sizeof(struct CLOCK)==8)?1:-1];
-typedef char DV_Size[(sizeof(struct DV)==48)?1:-1];
-typedef char WORK_Size[(sizeof(struct WORK)==240)?1:-1];
-typedef char MODEL_base_Offset[((unsigned)&((struct MODEL*)0)->base==28)?1:-1];
-typedef char MODEL_scale_Offset[((unsigned)&((struct MODEL*)0)->scale==64)?1:-1];
-typedef char AIM_frame_Offset[((unsigned)&((struct AIM*)0)->frame==336)?1:-1];
-typedef char OWNER_aim_Offset[((unsigned)&((struct OWNER*)0)->aim==1172)?1:-1];
-typedef char GROUP_space_Offset[((unsigned)&((struct GROUP*)0)->space==160)?1:-1];
-typedef char FOCUS_group_Offset[((unsigned)&((struct FOCUS*)0)->group==88)?1:-1];
-typedef char DV_value_Offset[((unsigned)&((struct DV*)0)->value==32)?1:-1];
-typedef char P_space_Offset[((unsigned)&((struct P*)0)->space==96)?1:-1];
-typedef char P_model_Offset[((unsigned)&((struct P*)0)->model==4144)?1:-1];
-typedef char P_owner_Offset[((unsigned)&((struct P*)0)->owner==4316)?1:-1];
-typedef char P_focus_Offset[((unsigned)&((struct P*)0)->focus==6560)?1:-1];
-typedef char P_dvResidual_Offset[((unsigned)&((struct P*)0)->dvResidual==6636)?1:-1];
-typedef char P_dvYaw_Offset[((unsigned)&((struct P*)0)->dvYaw==6648)?1:-1];
-typedef char P_dvX_Offset[((unsigned)&((struct P*)0)->dvX==6652)?1:-1];
-typedef char P_valid_Offset[((unsigned)&((struct P*)0)->valid==7124)?1:-1];
-typedef char P_height_Offset[((unsigned)&((struct P*)0)->height==7128)?1:-1];
-typedef char P_time_Offset[((unsigned)&((struct P*)0)->time==7132)?1:-1];
-typedef char P_anchor_Offset[((unsigned)&((struct P*)0)->anchor==7152)?1:-1];
-typedef char P_position_Offset[((unsigned)&((struct P*)0)->position==7168)?1:-1];
-typedef char P_euler_Offset[((unsigned)&((struct P*)0)->euler==7184)?1:-1];
-typedef char P_localPoint_Offset[((unsigned)&((struct P*)0)->localPoint==7200)?1:-1];
-typedef char WORK_phase_Offset[((unsigned)&((struct WORK*)0)->phase==0)?1:-1];
-typedef char WORK_transform_Offset[((unsigned)&((struct WORK*)0)->transform==64)?1:-1];
-typedef char WORK_axis_Offset[((unsigned)&((struct WORK*)0)->axis==128)?1:-1];
-typedef char WORK_rotation_Offset[((unsigned)&((struct WORK*)0)->rotation==144)?1:-1];
-typedef char WORK_relative_Offset[((unsigned)&((struct WORK*)0)->relative==192)?1:-1];
-typedef char WORK_residual_Offset[((unsigned)&((struct WORK*)0)->residual==208)?1:-1];
-typedef char WORK_gain_Offset[((unsigned)&((struct WORK*)0)->gain==224)?1:-1];
-typedef char CLOCK_time_Offset[((unsigned)&((struct CLOCK*)0)->time==0)?1:-1];
-typedef char CLOCK_dt_Offset[((unsigned)&((struct CLOCK*)0)->dt==4)?1:-1];
-typedef char LM_low_Offset[((unsigned)&((struct LM*)0)->low==0)?1:-1];
-typedef char LM_high_Offset[((unsigned)&((struct LM*)0)->high==4)?1:-1];
+typedef char qword_Size[(sizeof(qword) == 16) ? 1 : -1];
+typedef char U_Size[(sizeof(U) == 16) ? 1 : -1];
+typedef char M3_Size[(sizeof(struct M3) == 48) ? 1 : -1];
+typedef char M4_Size[(sizeof(struct M4) == 64) ? 1 : -1];
+typedef char LM_Size[(sizeof(struct LM) == 8) ? 1 : -1];
+typedef char CLOCK_Size[(sizeof(struct CLOCK) == 8) ? 1 : -1];
+typedef char DV_Size[(sizeof(struct DV) == 48) ? 1 : -1];
+typedef char WORK_Size[(sizeof(struct WORK) == 240) ? 1 : -1];
+typedef char MODEL_base_Offset[((unsigned)&((struct MODEL *)0)->base == 28) ? 1 : -1];
+typedef char MODEL_scale_Offset[((unsigned)&((struct MODEL *)0)->scale == 64) ? 1 : -1];
+typedef char AIM_frame_Offset[((unsigned)&((struct AIM *)0)->frame == 336) ? 1 : -1];
+typedef char OWNER_aim_Offset[((unsigned)&((struct OWNER *)0)->aim == 1172) ? 1 : -1];
+typedef char GROUP_space_Offset[((unsigned)&((struct GROUP *)0)->space == 160) ? 1 : -1];
+typedef char FOCUS_group_Offset[((unsigned)&((struct FOCUS *)0)->group == 88) ? 1 : -1];
+typedef char DV_value_Offset[((unsigned)&((struct DV *)0)->value == 32) ? 1 : -1];
+typedef char P_space_Offset[((unsigned)&((struct P *)0)->space == 96) ? 1 : -1];
+typedef char P_model_Offset[((unsigned)&((struct P *)0)->model == 4144) ? 1 : -1];
+typedef char P_owner_Offset[((unsigned)&((struct P *)0)->owner == 4316) ? 1 : -1];
+typedef char P_focus_Offset[((unsigned)&((struct P *)0)->focus == 6560) ? 1 : -1];
+typedef char P_dvResidual_Offset[((unsigned)&((struct P *)0)->dvResidual == 6636) ? 1 : -1];
+typedef char P_dvYaw_Offset[((unsigned)&((struct P *)0)->dvYaw == 6648) ? 1 : -1];
+typedef char P_dvX_Offset[((unsigned)&((struct P *)0)->dvX == 6652) ? 1 : -1];
+typedef char P_valid_Offset[((unsigned)&((struct P *)0)->valid == 7124) ? 1 : -1];
+typedef char P_height_Offset[((unsigned)&((struct P *)0)->height == 7128) ? 1 : -1];
+typedef char P_time_Offset[((unsigned)&((struct P *)0)->time == 7132) ? 1 : -1];
+typedef char P_anchor_Offset[((unsigned)&((struct P *)0)->anchor == 7152) ? 1 : -1];
+typedef char P_position_Offset[((unsigned)&((struct P *)0)->position == 7168) ? 1 : -1];
+typedef char P_euler_Offset[((unsigned)&((struct P *)0)->euler == 7184) ? 1 : -1];
+typedef char P_localPoint_Offset[((unsigned)&((struct P *)0)->localPoint == 7200) ? 1 : -1];
+typedef char WORK_phase_Offset[((unsigned)&((struct WORK *)0)->phase == 0) ? 1 : -1];
+typedef char WORK_transform_Offset[((unsigned)&((struct WORK *)0)->transform == 64) ? 1 : -1];
+typedef char WORK_axis_Offset[((unsigned)&((struct WORK *)0)->axis == 128) ? 1 : -1];
+typedef char WORK_rotation_Offset[((unsigned)&((struct WORK *)0)->rotation == 144) ? 1 : -1];
+typedef char WORK_relative_Offset[((unsigned)&((struct WORK *)0)->relative == 192) ? 1 : -1];
+typedef char WORK_residual_Offset[((unsigned)&((struct WORK *)0)->residual == 208) ? 1 : -1];
+typedef char WORK_gain_Offset[((unsigned)&((struct WORK *)0)->gain == 224) ? 1 : -1];
+typedef char CLOCK_time_Offset[((unsigned)&((struct CLOCK *)0)->time == 0) ? 1 : -1];
+typedef char CLOCK_dt_Offset[((unsigned)&((struct CLOCK *)0)->dt == 4) ? 1 : -1];
+typedef char LM_low_Offset[((unsigned)&((struct LM *)0)->low == 0) ? 1 : -1];
+typedef char LM_high_Offset[((unsigned)&((struct LM *)0)->high == 4) ? 1 : -1];
 
-typedef char Float_Size[(sizeof(float)==4)?1:-1];
-typedef char Int_Size[(sizeof(int)==4)?1:-1];
-typedef char UInt_Size[(sizeof(unsigned)==4)?1:-1];
-typedef char Pointer_Size[(sizeof(void*)==4)?1:-1];
-typedef char U_Alignment[(__alignof__(U)==16)?1:-1];
-typedef char M3_Alignment[(__alignof__(struct M3)==16)?1:-1];
-typedef char M4_Alignment[(__alignof__(struct M4)==16)?1:-1];
-typedef char WORK_Alignment[(__alignof__(struct WORK)==16)?1:-1];
-typedef char U_Qword_Offset[((unsigned)&((U*)0)->q==0)?1:-1];
-typedef char U_Float_Offset[((unsigned)&((U*)0)->f==0)?1:-1];
-typedef char M3_Rows_Offset[((unsigned)&((struct M3*)0)->r==0)?1:-1];
-typedef char M4_Rows_Offset[((unsigned)&((struct M4*)0)->r==0)?1:-1];
-typedef char M3_Row_Count[(sizeof(((struct M3*)0)->r)/sizeof(U)==3)?1:-1];
-typedef char M4_Row_Count[(sizeof(((struct M4*)0)->r)/sizeof(U)==4)?1:-1];
-typedef char PHASE_Size[(sizeof(((struct WORK*)0)->phase)==64)?1:-1];
-typedef char PHASE_Predicted_Offset[((unsigned)&((struct WORK*)0)->phase.predicted==0)?1:-1];
-typedef char PHASE_Scalar_Offset[((unsigned)&((struct WORK*)0)->phase.scalar==0)?1:-1];
-} } // namespace M_func_0018B460
+typedef char Float_Size[(sizeof(float) == 4) ? 1 : -1];
+typedef char Int_Size[(sizeof(int) == 4) ? 1 : -1];
+typedef char UInt_Size[(sizeof(unsigned) == 4) ? 1 : -1];
+typedef char Pointer_Size[(sizeof(void *) == 4) ? 1 : -1];
+typedef char U_Alignment[(__alignof__(U) == 16) ? 1 : -1];
+typedef char M3_Alignment[(__alignof__(struct M3) == 16) ? 1 : -1];
+typedef char M4_Alignment[(__alignof__(struct M4) == 16) ? 1 : -1];
+typedef char WORK_Alignment[(__alignof__(struct WORK) == 16) ? 1 : -1];
+typedef char U_Qword_Offset[((unsigned)&((U *)0)->q == 0) ? 1 : -1];
+typedef char U_Float_Offset[((unsigned)&((U *)0)->f == 0) ? 1 : -1];
+typedef char M3_Rows_Offset[((unsigned)&((struct M3 *)0)->r == 0) ? 1 : -1];
+typedef char M4_Rows_Offset[((unsigned)&((struct M4 *)0)->r == 0) ? 1 : -1];
+typedef char M3_Row_Count[(sizeof(((struct M3 *)0)->r) / sizeof(U) == 3) ? 1 : -1];
+typedef char M4_Row_Count[(sizeof(((struct M4 *)0)->r) / sizeof(U) == 4) ? 1 : -1];
+typedef char PHASE_Size[(sizeof(((struct WORK *)0)->phase) == 64) ? 1 : -1];
+typedef char PHASE_Predicted_Offset[((unsigned)&((struct WORK *)0)->phase.predicted == 0) ? 1 : -1];
+typedef char PHASE_Scalar_Offset[((unsigned)&((struct WORK *)0)->phase.scalar == 0) ? 1 : -1];
+}
+} // namespace M_func_0018B460
 
 // Keeps its per-function views in a namespace of its own (see the file header).
-namespace M_UpdateJtPre { extern "C" {
+namespace M_UpdateJtPre {
+extern "C" {
 
 typedef int qword __attribute__((mode(TI)));
-typedef union{qword q;float f[4];}U;
-struct VTE{short delta,pad;void*fn;};
-struct STATE{char pad[0x18];float heading,amount;};
-struct MODEL{char pad14[0x14];void*table;char pad18[4];float base;char pad20[0x20];float scale;};
-struct COMPONENT{struct VTE*vt;};struct BINDING{int key;struct COMPONENT*component;};
-struct P{
- char padC[0xC];struct VTE*vt;
- char pad10[0x150-0x10];struct STATE*state;
- char pad154[0x190-0x154];qword velocity;
- char pad1A0[8];float heading;
- char pad1AC[0x1F4-0x1AC];float factor;
- char pad1F8[0x1030-0x1F8];struct MODEL*model;
- char pad1034[0x10DC-0x1034];void*owner;
- char pad10E0[0x1310-0x10E0];void*animation;int animationKind;
- char pad1318[0x14D0-0x1318];int axesAEnabled;
- char pad14D4[0x18C8-0x14D4];int mode;char pad18CC[4];int submode;
- char pad18D4[0x1BC0-0x18D4];int axesBEnabled;
- char pad1BC4[0x1D1C-0x1BC4];void*table;
- char pad1D20[0xC];int enabled;
- char pad1D30[0x2014-0x1D30];float left;
- char pad2018[8];float middle;char pad2024[8];float right;
- char pad2030[8];void*blend;
+typedef union {
+    qword q;
+    float f[4];
+} U;
+struct VTE {
+    short delta, pad;
+    void *fn;
 };
-union PHASE{qword direction;U scalar;};
-extern qword D_002A2DD0;extern char D_003DD490[];
+struct STATE {
+    char pad[0x18];
+    float heading, amount;
+};
+struct MODEL {
+    char pad14[0x14];
+    void *table;
+    char pad18[4];
+    float base;
+    char pad20[0x20];
+    float scale;
+};
+struct COMPONENT {
+    struct VTE *vt;
+};
+struct BINDING {
+    int key;
+    struct COMPONENT *component;
+};
+struct P {
+    char padC[0xC];
+    struct VTE *vt;
+    char pad10[0x150 - 0x10];
+    struct STATE *state;
+    char pad154[0x190 - 0x154];
+    qword velocity;
+    char pad1A0[8];
+    float heading;
+    char pad1AC[0x1F4 - 0x1AC];
+    float factor;
+    char pad1F8[0x1030 - 0x1F8];
+    struct MODEL *model;
+    char pad1034[0x10DC - 0x1034];
+    void *owner;
+    char pad10E0[0x1310 - 0x10E0];
+    void *animation;
+    int animationKind;
+    char pad1318[0x14D0 - 0x1318];
+    int axesAEnabled;
+    char pad14D4[0x18C8 - 0x14D4];
+    int mode;
+    char pad18CC[4];
+    int submode;
+    char pad18D4[0x1BC0 - 0x18D4];
+    int axesBEnabled;
+    char pad1BC4[0x1D1C - 0x1BC4];
+    void *table;
+    char pad1D20[0xC];
+    int enabled;
+    char pad1D30[0x2014 - 0x1D30];
+    float left;
+    char pad2018[8];
+    float middle;
+    char pad2024[8];
+    float right;
+    char pad2030[8];
+    void *blend;
+};
+union PHASE {
+    qword direction;
+    U scalar;
+};
+extern qword D_002A2DD0;
+extern char D_003DD490[];
 extern float D_002BF3C0;
 extern float D_002BF3C4;
 extern float D_002BF3C8;
 extern float D_002BF3CC;
 extern float D_002BF35C;
-float GetStepHeading(struct P*);float RadNormalize__Ff(float);
-void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void*,struct P*,unsigned int);
-void UpdateJtModeInput(struct P*);void ChooseJtGroundState(struct P*);void UpdateJtActiveCane__FP2JT(struct P*);
-struct BINDING*FindAsegChannel(void*,struct P*,void*,int);
-void UpdateJtActiveHang__FP2JT(struct P*);void UpdateJtActiveJump(void*);void UpdateJtActiveHide(void*);void FaceBentleyInteractTarget(void*);
-void UpdateDirectionalAcceleration(struct P*,void*,int,float,float);void UpdateJtAttachCorrection(struct P*);
-void UpdateGaitBlend(void*,float);void FaceStepToward(struct P*,void*);
-qword SetVectorCylind(float,float,float);qword ConvertAloVec(void*,void*,qword);
-int FPowerupAcquired(int);void UpdateJtFaceTarget(struct P*);qword GetStepAsegaTranslation(struct P*,struct MODEL*,float);
-void SetAsegaSpeed__FP5ASEGAf(struct MODEL*,float);void SetStepTargetHeading(struct P*,float);
-void DrainStepplayerMp(struct P*,float);void SetJtState__FP2JT3JTS4JTBS(struct P*,int,int);
-float GLimitAbs__Fff(float,float);void RecalculateAsegBlend(void*);
-void UpdateJtActiveZap(void*);void UpdateJtPlaces(struct P*);int FAsegaRetracted(void*);void DropAsegaRef(void**);
-static inline void*At(struct P*p,int offset){return(char*)p+offset;}
-static inline void ReadBinding(struct BINDING*b,struct MODEL*m,qword*out){
- struct COMPONENT*c=b->component;struct VTE*entry=&c->vt[3];
- ((void(*)(void*,int,qword*,float,float))entry->fn)((char*)c+entry->delta,0,out,m->base,m->scale);
+float GetStepHeading(struct P *);
+float RadNormalize__Ff(float);
+void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(void *, struct P *, unsigned int);
+void UpdateJtModeInput(struct P *);
+void ChooseJtGroundState(struct P *);
+void UpdateJtActiveCane__FP2JT(struct P *);
+struct BINDING *FindAsegChannel(void *, struct P *, void *, int);
+void UpdateJtActiveHang__FP2JT(struct P *);
+void UpdateJtActiveJump(void *);
+void UpdateJtActiveHide(void *);
+void FaceBentleyInteractTarget(void *);
+void UpdateDirectionalAcceleration(struct P *, void *, int, float, float);
+void UpdateJtAttachCorrection(struct P *);
+void UpdateGaitBlend(void *, float);
+void FaceStepToward(struct P *, void *);
+qword SetVectorCylind(float, float, float);
+qword ConvertAloVec(void *, void *, qword);
+int FPowerupAcquired(int);
+void UpdateJtFaceTarget(struct P *);
+qword GetStepAsegaTranslation(struct P *, struct MODEL *, float);
+void SetAsegaSpeed__FP5ASEGAf(struct MODEL *, float);
+void SetStepTargetHeading(struct P *, float);
+void DrainStepplayerMp(struct P *, float);
+void SetJtState__FP2JT3JTS4JTBS(struct P *, int, int);
+float GLimitAbs__Fff(float, float);
+void RecalculateAsegBlend(void *);
+void UpdateJtActiveZap(void *);
+void UpdateJtPlaces(struct P *);
+int FAsegaRetracted(void *);
+void DropAsegaRef(void **);
+static inline void *At(struct P *p, int offset)
+{
+    return (char *)p + offset;
 }
-static inline qword ScaleIn(qword a,qword b){__asm__("vmulx.xyzw %0,%0,%1x":"+j"(a):"j"(b));return a;}
-static inline qword FirstNegative(const qword*input,U*out,float g){qword a,s;register qword bits __asm__("$2");__asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tqmtc2.ni %1,%2":"=j"(a),"=&r"(bits),"=j"(s):"m"(*input),"f"(g));out->q=s;return ScaleIn(a,out->q);}
-static inline qword SecondNegative(const qword*input,U*out,float g){qword a,s;register qword bits __asm__("$3");__asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tqmtc2.ni %1,%2":"=j"(a),"=&r"(bits),"=j"(s):"m"(*input),"f"(g));out->q=s;return ScaleIn(a,out->q);}
-static inline qword Scale(qword a,qword b){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(b));return r;}
-static inline qword NegativeModelNative(struct P*p,U*u){qword v=GetStepAsegaTranslation(p,p->model,p->model->base),s;register qword bits __asm__("$4");__asm__("mfc1 %0,%1":"=r"(bits):"f"(-1.0f));__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(bits));u->q=s;return Scale(v,u->q);}
-
-static inline qword NegativeWithState(struct P*p,U*u,struct STATE**stateOut,float*zeroOut){
- qword input=GetStepAsegaTranslation(p,p->model,p->model->base);register qword v __asm__("vf3");register qword s __asm__("vf1");register qword result __asm__("vf2");register float zero __asm__("$f1");register qword bits __asm__("$4");register struct STATE*state __asm__("$3");
- __asm__("qmtc2.ni %3,%0\n\tlw %1,%4\n\tmfc1 %2,%5":"=j"(v),"=r"(state),"=&r"(bits):"r"(input),"m"(p->state),"f"(-1.0f));
- __asm__("qmtc2.ni %2,%0\n\tmtc1 $zero,%1":"=j"(s),"=f"(zero):"r"(bits));u->q=s;*stateOut=state;*zeroOut=zero;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(result):"j"(v),"j"(u->q));return result;
+static inline void ReadBinding(struct BINDING *b, struct MODEL *m, qword *out)
+{
+    struct COMPONENT *c = b->component;
+    struct VTE *entry = &c->vt[3];
+    ((void (*)(void *, int, qword *, float, float))entry->fn)((char *)c + entry->delta, 0, out, m->base, m->scale);
+}
+static inline qword ScaleIn(qword a, qword b)
+{
+    __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(a) : "j"(b));
+    return a;
+}
+static inline qword FirstNegative(const qword *input, U *out, float g)
+{
+    qword a, s;
+    register qword bits __asm__("$2");
+    __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tqmtc2.ni %1,%2" : "=j"(a), "=&r"(bits), "=j"(s) : "m"(*input), "f"(g));
+    out->q = s;
+    return ScaleIn(a, out->q);
+}
+static inline qword SecondNegative(const qword *input, U *out, float g)
+{
+    qword a, s;
+    register qword bits __asm__("$3");
+    __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tqmtc2.ni %1,%2" : "=j"(a), "=&r"(bits), "=j"(s) : "m"(*input), "f"(g));
+    out->q = s;
+    return ScaleIn(a, out->q);
+}
+static inline qword Scale(qword a, qword b)
+{
+    qword r;
+    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(a), "j"(b));
+    return r;
+}
+static inline qword NegativeModelNative(struct P *p, U *u)
+{
+    qword v = GetStepAsegaTranslation(p, p->model, p->model->base), s;
+    register qword bits __asm__("$4");
+    __asm__("mfc1 %0,%1" : "=r"(bits) : "f"(-1.0f));
+    __asm__("qmtc2.ni %1,%0" : "=j"(s) : "r"(bits));
+    u->q = s;
+    return Scale(v, u->q);
 }
 
-static inline void WriteVectorPair(qword value,qword*destination,qword scalar,qword*scalarOut){__asm__("sqc2 %2,%0\n\tsqc2 %3,%1":"=m"(*destination),"=m"(*scalarOut):"j"(value),"j"(scalar));}
-static inline void PrepareAnimation(struct P*p,U*u,struct MODEL**modelOut,struct STATE**stateOut){
- qword input=GetStepAsegaTranslation(p,p->model,p->model->base);register qword v __asm__("vf3");register qword scalar __asm__("vf2");register qword result __asm__("vf1");
- register qword bits __asm__("$3");register struct MODEL*model __asm__("$4");register struct STATE*state __asm__("$3");
- __asm__("qmtc2.ni %3,%0\n\tlw %1,%4\n\tmfc1 %2,%5":"=j"(v),"=r"(model),"=&r"(bits):"r"(input),"m"(p->model),"f"(-1.0f));
- __asm__("qmtc2.ni %1,%0":"=j"(scalar):"r"(bits));
- __asm__("vmulx.xyzw %0,%2,%3x\n\tlw %1,%4":"=j"(result),"=r"(state):"j"(v),"j"(scalar),"m"(p->state));
- WriteVectorPair(result,&p->velocity,scalar,&u->q);*modelOut=model;*stateOut=state;
+static inline qword NegativeWithState(struct P *p, U *u, struct STATE **stateOut, float *zeroOut)
+{
+    qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
+    register qword v __asm__("vf3");
+    register qword s __asm__("vf1");
+    register qword result __asm__("vf2");
+    register float zero __asm__("$f1");
+    register qword bits __asm__("$4");
+    register struct STATE *state __asm__("$3");
+    __asm__("qmtc2.ni %3,%0\n\tlw %1,%4\n\tmfc1 %2,%5"
+            : "=j"(v), "=r"(state), "=&r"(bits)
+            : "r"(input), "m"(p->state), "f"(-1.0f));
+    __asm__("qmtc2.ni %2,%0\n\tmtc1 $zero,%1" : "=j"(s), "=f"(zero) : "r"(bits));
+    u->q = s;
+    *stateOut = state;
+    *zeroOut = zero;
+    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(result) : "j"(v), "j"(u->q));
+    return result;
 }
 
-static inline float Z(qword q){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(q));return r;}
+static inline void WriteVectorPair(qword value, qword *destination, qword scalar, qword *scalarOut)
+{
+    __asm__("sqc2 %2,%0\n\tsqc2 %3,%1" : "=m"(*destination), "=m"(*scalarOut) : "j"(value), "j"(scalar));
+}
+static inline void PrepareAnimation(struct P *p, U *u, struct MODEL **modelOut, struct STATE **stateOut)
+{
+    qword input = GetStepAsegaTranslation(p, p->model, p->model->base);
+    register qword v __asm__("vf3");
+    register qword scalar __asm__("vf2");
+    register qword result __asm__("vf1");
+    register qword bits __asm__("$3");
+    register struct MODEL *model __asm__("$4");
+    register struct STATE *state __asm__("$3");
+    __asm__("qmtc2.ni %3,%0\n\tlw %1,%4\n\tmfc1 %2,%5"
+            : "=j"(v), "=r"(model), "=&r"(bits)
+            : "r"(input), "m"(p->model), "f"(-1.0f));
+    __asm__("qmtc2.ni %1,%0" : "=j"(scalar) : "r"(bits));
+    __asm__("vmulx.xyzw %0,%2,%3x\n\tlw %1,%4" : "=j"(result), "=r"(state) : "j"(v), "j"(scalar), "m"(p->state));
+    WriteVectorPair(result, &p->velocity, scalar, &u->q);
+    *modelOut = model;
+    *stateOut = state;
+}
+
+static inline float Z(qword q)
+{
+    float r;
+    __asm__("pextuw %0,$zero,%1" : "=r"(r) : "r"(q));
+    return r;
+}
 /** @sly2-annot addr=0x18B7E8
  * Purpose: Per-frame active movement: gather grab candidates (0x194A40 g_sw,mask 0xFFFF), mode input,
  *   ChooseJtGroundState, then per-jts dispatch (3,2,7,6,10,11,12,4,5,8/9,17,20...) to state files
@@ -2901,51 +3224,128 @@ static inline float Z(qword q){float r;__asm__("pextuw %0,$zero,%1":"=r"(r):"r"(
  * @end-sly2-annot */
 // Per-frame active movement before the base update: grab candidates, mode input, ChooseJtGroundState, component
 // input.
-void UpdateJtPre(struct P*jt){
- union PHASE phase;U scalar;float initialHeading;
- initialHeading=GetStepHeading(jt);(void)RadNormalize__Ff(jt->state->heading-initialHeading);
- GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490,jt,0xFFFF);
- UpdateJtModeInput(jt);ChooseJtGroundState(jt);UpdateJtActiveCane__FP2JT(jt);
- switch(jt->mode){
- case 4:case 9:{
-  struct MODEL*m=jt->model;struct BINDING*b;jt->velocity=D_002A2DD0;
-  if(m){b=FindAsegChannel(m->table,jt,(void*)1,1);
-   if(b){ReadBinding(b,m,&phase.direction);jt->velocity=FirstNegative(&phase.direction,&scalar,-1.0f);}
-  }break;
- }
- case 3:UpdateJtActiveHang__FP2JT(jt);break;
- case 2:UpdateJtActiveJump(At(jt,0x2C0));break;
- case 7:UpdateJtActiveHide(At(jt,0x4C0));break;
- case 6:FaceBentleyInteractTarget(At(jt,0x1FF0));break;
- case 10:UpdateDirectionalAcceleration(jt,At(jt,0x1AC0),jt->axesBEnabled,jt->state->heading,jt->state->amount);break;
- case 11:UpdateJtAttachCorrection(jt);break;
- case 12:UpdateGaitBlend(At(jt,0x1C30),jt->state->amount);SetStepTargetHeading(jt,jt->state->heading);break;
- case 5:switch(jt->submode){
-  case 4:if(jt->owner)FaceStepToward(jt,jt->owner);break;
-  case 5:UpdateDirectionalAcceleration(jt,At(jt,0x13D0),jt->axesAEnabled,jt->state->heading,jt->state->amount);break;
-  case 8:case 9:phase.direction=SetVectorCylind(jt->state->heading+3.14159265f,jt->state->amount*D_002BF3C0,0.0f);jt->velocity=ConvertAloVec(0,jt,phase.direction);break;
- }break;
- case 16:
-  if(FPowerupAcquired(0x1C))UpdateJtFaceTarget(jt);
-  else if(jt->enabled){struct BINDING*b=FindAsegChannel(jt->table,jt,(void*)1,1);if(b){ReadBinding(b,jt->model,&phase.direction);jt->velocity=SecondNegative(&phase.direction,&scalar,-1.0f);}}
-  break;
- case 19:jt->velocity=NegativeModelNative(jt,&phase.scalar);break;
- case 20:{struct MODEL*model;struct STATE*state;PrepareAnimation(jt,&phase.scalar,&model,&state);SetAsegaSpeed__FP5ASEGAf(model,state->amount);SetStepTargetHeading(jt,jt->state->heading);break;}
- case 17:{struct STATE*state;float zero;jt->velocity=NegativeWithState(jt,&phase.scalar,&state,&zero);if(zero<state->amount)SetStepTargetHeading(jt,state->heading);break;}
- case 24:{
-  register float one __asm__("$f20");register float weight __asm__("$f1");qword velocity;struct VTE*entry;
-  DrainStepplayerMp(jt,D_002BF3C4);
-  if(jt->submode==12){float angle=RadNormalize__Ff(GetStepHeading(jt)-jt->heading);if(__builtin_fabsf(angle)<D_002BF3C8)SetJtState__FP2JT3JTS4JTBS(jt,24,13);}
-  else SetStepTargetHeading(jt,jt->state->heading);
-  one=1.0f;entry=&jt->vt[34];velocity=((qword(*)(void*))entry->fn)((char*)jt+entry->delta);
-  weight=D_002BF3CC*GLimitAbs__Fff(Z(velocity)/(jt->factor*D_002BF35C),one);
-  {register float zero __asm__("$f2")=0.0f;register float magnitude __asm__("$f3");register float left __asm__("$f0");__asm__("abs.s %0,%2\n\tmax.s %1,%3,%2\n\tneg.s %2,%2":"=f"(magnitude),"=f"(left),"+f"(weight):"f"(zero));__asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3":"=m"(jt->left),"+f"(one),"+f"(zero),"=m"(jt->right):"f"(left),"f"(magnitude),"f"(weight));jt->middle=one;}
-  RecalculateAsegBlend(jt->blend);break;
- }
- case 0:case 1:break;
- }
- UpdateJtActiveZap(At(jt,0xDF0));UpdateJtPlaces(jt);
- if(jt->animation&&FAsegaRetracted(jt->animation)){DropAsegaRef(&jt->animation);jt->animationKind=-1;}
+void UpdateJtPre(struct P *jt)
+{
+    union PHASE phase;
+    U scalar;
+    float initialHeading;
+    initialHeading = GetStepHeading(jt);
+    (void)RadNormalize__Ff(jt->state->heading - initialHeading);
+    GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(D_003DD490, jt, 0xFFFF);
+    UpdateJtModeInput(jt);
+    ChooseJtGroundState(jt);
+    UpdateJtActiveCane__FP2JT(jt);
+    switch (jt->mode) {
+    case 4:
+    case 9: {
+        struct MODEL *m = jt->model;
+        struct BINDING *b;
+        jt->velocity = D_002A2DD0;
+        if (m) {
+            b = FindAsegChannel(m->table, jt, (void *)1, 1);
+            if (b) {
+                ReadBinding(b, m, &phase.direction);
+                jt->velocity = FirstNegative(&phase.direction, &scalar, -1.0f);
+            }
+        }
+        break;
+    }
+    case 3: UpdateJtActiveHang__FP2JT(jt); break;
+    case 2: UpdateJtActiveJump(&AsStepplayer(jt)->jtair); break;
+    case 7: UpdateJtActiveHide(&AsStepplayer(jt)->jtgrab); break;
+    case 6: FaceBentleyInteractTarget(At(jt, 0x1FF0)); break;
+    case 10:
+        UpdateDirectionalAcceleration(jt, At(jt, 0x1AC0), jt->axesBEnabled, jt->state->heading, jt->state->amount);
+        break;
+    case 11: UpdateJtAttachCorrection(jt); break;
+    case 12:
+        UpdateGaitBlend(At(jt, 0x1C30), jt->state->amount);
+        SetStepTargetHeading(jt, jt->state->heading);
+        break;
+    case 5:
+        switch (jt->submode) {
+        case 4:
+            if (jt->owner)
+                FaceStepToward(jt, jt->owner);
+            break;
+        case 5:
+            UpdateDirectionalAcceleration(jt, At(jt, 0x13D0), jt->axesAEnabled, jt->state->heading, jt->state->amount);
+            break;
+        case 8:
+        case 9:
+            phase.direction = SetVectorCylind(jt->state->heading + 3.14159265f, jt->state->amount * D_002BF3C0, 0.0f);
+            jt->velocity = ConvertAloVec(0, jt, phase.direction);
+            break;
+        }
+        break;
+    case 16:
+        if (FPowerupAcquired(0x1C))
+            UpdateJtFaceTarget(jt);
+        else if (jt->enabled) {
+            struct BINDING *b = FindAsegChannel(jt->table, jt, (void *)1, 1);
+            if (b) {
+                ReadBinding(b, jt->model, &phase.direction);
+                jt->velocity = SecondNegative(&phase.direction, &scalar, -1.0f);
+            }
+        }
+        break;
+    case 19: jt->velocity = NegativeModelNative(jt, &phase.scalar); break;
+    case 20: {
+        struct MODEL *model;
+        struct STATE *state;
+        PrepareAnimation(jt, &phase.scalar, &model, &state);
+        SetAsegaSpeed__FP5ASEGAf(model, state->amount);
+        SetStepTargetHeading(jt, jt->state->heading);
+        break;
+    }
+    case 17: {
+        struct STATE *state;
+        float zero;
+        jt->velocity = NegativeWithState(jt, &phase.scalar, &state, &zero);
+        if (zero < state->amount)
+            SetStepTargetHeading(jt, state->heading);
+        break;
+    }
+    case 24: {
+        register float one __asm__("$f20");
+        register float weight __asm__("$f1");
+        qword velocity;
+        struct VTE *entry;
+        DrainStepplayerMp(jt, D_002BF3C4);
+        if (jt->submode == 12) {
+            float angle = RadNormalize__Ff(GetStepHeading(jt) - jt->heading);
+            if (__builtin_fabsf(angle) < D_002BF3C8)
+                SetJtState__FP2JT3JTS4JTBS(jt, 24, 13);
+        } else
+            SetStepTargetHeading(jt, jt->state->heading);
+        one = 1.0f;
+        entry = &jt->vt[34];
+        velocity = ((qword(*)(void *))entry->fn)((char *)jt + entry->delta);
+        weight = D_002BF3CC * GLimitAbs__Fff(Z(velocity) / (jt->factor * D_002BF35C), one);
+        {
+            register float zero __asm__("$f2") = 0.0f;
+            register float magnitude __asm__("$f3");
+            register float left __asm__("$f0");
+            __asm__("abs.s %0,%2\n\tmax.s %1,%3,%2\n\tneg.s %2,%2"
+                    : "=f"(magnitude), "=f"(left), "+f"(weight)
+                    : "f"(zero));
+            __asm__("swc1 %4,%0\n\tsub.s %1,%1,%5\n\tmax.s %2,%2,%6\n\tswc1 %2,%3"
+                    : "=m"(jt->left), "+f"(one), "+f"(zero), "=m"(jt->right)
+                    : "f"(left), "f"(magnitude), "f"(weight));
+            jt->middle = one;
+        }
+        RecalculateAsegBlend(jt->blend);
+        break;
+    }
+    case 0:
+    case 1: break;
+    }
+    UpdateJtActiveZap(&AsStepplayer(jt)->jthurt);
+    UpdateJtPlaces(jt);
+    if (jt->animation && FAsegaRetracted(jt->animation)) {
+        DropAsegaRef(&jt->animation);
+        jt->animationKind = -1;
+    }
 }
 
 typedef char qword_Size[(sizeof(qword)==16)?1:-1];
@@ -2982,7 +3382,8 @@ typedef char P_left_Offset[((unsigned)&((struct P*)0)->left==8212)?1:-1];
 typedef char P_middle_Offset[((unsigned)&((struct P*)0)->middle==8224)?1:-1];
 typedef char P_right_Offset[((unsigned)&((struct P*)0)->right==8236)?1:-1];
 typedef char P_blend_Offset[((unsigned)&((struct P*)0)->blend==8248)?1:-1];
-} } // namespace M_UpdateJtPre
+}
+} // namespace M_UpdateJtPre
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateJt { extern "C" {
@@ -3046,12 +3447,12 @@ void UpdateJt(char *p)
     struct X1854 *object;
 
     UpdateStepplayer(p);
-    if ((uchar)((struct LO *)p)->f == 0)
+    if ((uchar)((struct LO *)p)->f == 0)   // the (uchar) is needed for the match (byte-sized test of the bit)
         return;
     if (F(void *, 0x150))
         UpdateJtPre(p);
-    switch (F(int, 0x18C8)) {
-    case 1: {
+    switch (AsJt(p)->jts) {
+    case JTS_Run: {
         qword s, motion;
         SetStepTargetHeading(p, F(struct X150 *, 0x150)->g18);
         UpdateGaitBlend(A(0x1320), 1.0f);
@@ -3061,9 +3462,7 @@ void UpdateJt(char *p)
             __asm__("lui %0,%%hi(%2)\n\tlqc2 %1,%3"
                     : "=&r"(page), "=j"(motion)
                     : "i"(&D_002BF3D4), "m"(F(qword, 0x190)));
-            __asm__("lw %0,%%lo(%2)(%0)\n\tqmtc2.ni %0,%1"
-                    : "+r"(page), "=j"(s)
-                    : "i"(&D_002BF3D4) : "memory");
+            __asm__("lw %0,%%lo(%2)(%0)\n\tqmtc2.ni %0,%1" : "+r"(page), "=j"(s) : "i"(&D_002BF3D4) : "memory");
         }
         u.q = s;
         F(qword, 0x190) = VMulX(motion, s);
@@ -3071,14 +3470,15 @@ void UpdateJt(char *p)
         break;
     }
     case 5:
-        if (F(int, 0x18D0) == 5) {
+        if (AsJt(p)->jtbs == 5) {
             qword s, motion;
             UpdateDirectionalBlend(p, A(0x13D0), F(void *, 0x14D0));
             {
                 unsigned page;
                 __asm__("lui %0,%%hi(%3)\n\tlqc2 %1,%4\n\tlw %0,%%lo(%3)(%0)\n\tqmtc2.ni %0,%2"
                         : "=&r"(page), "=j"(motion), "=j"(s)
-                        : "i"(&D_002BF3D8), "m"(F(qword, 0x190)) : "memory");
+                        : "i"(&D_002BF3D8), "m"(F(qword, 0x190))
+                        : "memory");
             }
             u.q = s;
             F(qword, 0x190) = VMulX(motion, s);
@@ -3086,24 +3486,12 @@ void UpdateJt(char *p)
             F(float, 0x180) = 1.0f;
         }
         break;
-    case 0xA:
-        UpdateDirectionalBlend(p, A(0x1AC0), F(void *, 0x1BC0));
-        break;
-    case 0:
-        UpdateJtStand(p);
-        break;
-    case 3:
-        UpdateJtHangIkGoals__FP2JT(p);
-        break;
-    case 0xC:
-        UpdateGaitFootsteps(A(0x1C30));
-        break;
-    case 0x15:
-        UpdateJtMeshAttachment(p);
-        break;
-    case 0x16:
-        UpdateJtSmoothing(p);
-        break;
+    case 0xA: UpdateDirectionalBlend(p, A(0x1AC0), F(void *, 0x1BC0)); break;
+    case JTS_Stand: UpdateJtStand(p); break;
+    case JTS_Hang: UpdateJtHangIkGoals__FP2JT(p); break;
+    case JTS_Gait2: UpdateGaitFootsteps(A(0x1C30)); break;
+    case JTS_SurfaceClimb: UpdateJtMeshAttachment(p); break;
+    case JTS_HangFollow: UpdateJtSmoothing(p); break;
     case 0x18:
         if (F(void *, 0x19F0)) {
             C40(p, F(void *, 0x19D8), F(void *, 0x19E0), F(void *, 0x19F0), A(0x1520), D_002BF3DC);
@@ -3114,40 +3502,36 @@ void UpdateJt(char *p)
         break;
     }
     UpdateJtCane__FP2JT(p);
-    if (F(int, 0x18D8) == 0) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0xB)) {
-            void *po2 = F(void *, 0x1854);
+    if (AsJt(p)->jtas == 0) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0xB)) {
+            void *po2 = AsJt(p)->hands.ploTarget;
             for (i = 0; i < 3; i++)
-                FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, F(float, 0x1858));
-            goto loop;
-        L16:
-            SetJtState__FP2JT3JTS4JTBS(p, 0x16, -1);
-            goto end;
+                FindShapeClosestPointFromS(po2, ((qword *)A(0x1890))[i], 0, &av[i], 0, 0, 0, AsJt(p)->hands.sParam);
         } else {
             qword q;
-            if (!FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0x13))
+            if (!FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13))
                 goto end;
-            q = GetLoWorldPos(F(void *, 0x1854));
+            q = GetLoWorldPos(AsJt(p)->hands.ploTarget);
             av[2] = q;
             av[1] = q;
             av[0] = q;
         }
-    loop:
-
         for (i = 1; i < F(int, 0x1880); i++) {
             qword *aq = (qword *)A(0x1890);
             FindClosestPointBetweenLineSegments(aq[i - 1], aq[i], av[i - 1], av[i], u.f, ag, &w.q);
 
             if (ag[0] < F(float, 0x19AC)) {
-                if (FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, 0x1854), 0x13)) {
+                if (FIsBasicDerivedFrom__FP5BASIC3CID(AsJt(p)->hands.ploTarget, 0x13)) {
                     object = F(struct X1854 *, 0x1854);
                     F(struct X1854 *, 0x18C4) = object;
                     if (object->x124 == 3)
-                        goto L16;
-                    SetJtState__FP2JT3JTS4JTBS(p, 3, 1);
+                        SetJtState__FP2JT3JTS4JTBS(p, JTS_HangFollow, -1);
+                    else
+                        SetJtState__FP2JT3JTS4JTBS(p, JTS_Hang, 1);
+
                 } else {
                     F(void *, 0xF5C) = F(void *, 0x1854);
-                    F(float, 0xF60) = F(float, 0x1858);
+                    AsJt(p)->jtpipe.s = AsJt(p)->hands.sParam;
                     SetJtState__FP2JT3JTS4JTBS(p, 8, -1);
                 }
                 break;
@@ -3217,19 +3601,37 @@ void ApplyJtStateStepParams(struct S *jt)
 // Enables or disables the five lean actuators (x19E4..x19F4).
 extern "C" void EnableJtLeanActs(JT *jt, int grf)
 {
-    if (jt->pact5Unk19e4 != 0) {
-        if (grf & 1) AttachAct(jt->pact5Unk19e4); else DetachAct(jt->pact5Unk19e4);
-        if (grf & 2) AttachAct(jt->pact5Unk19e8); else DetachAct(jt->pact5Unk19e8);
-        if (grf & 4) AttachAct(jt->pact5Unk19ec); else DetachAct(jt->pact5Unk19ec);
-        if (grf & 8) AttachAct(jt->pact5Unk19f0); else DetachAct(jt->pact5Unk19f0);
-        if (grf & 0x10) AttachAct(jt->pact5Unk19f4); else DetachAct(jt->pact5Unk19f4);
-        if (grf & 0x20) AttachAct(jt->pact5Unk19fc); else DetachAct(jt->pact5Unk19fc);
-        if (grf & 0x40) {
-            AttachAct(jt->pact5Unk19f8);
-            return;
-        }
-        DetachAct(jt->pact5Unk19f8);
+    if (jt->pact5Unk19e4 == 0)
+        return;
+    if (grf & 1)
+        AttachAct(jt->pact5Unk19e4);
+    else
+        DetachAct(jt->pact5Unk19e4);
+    if (grf & 2)
+        AttachAct(jt->pact5Unk19e8);
+    else
+        DetachAct(jt->pact5Unk19e8);
+    if (grf & 4)
+        AttachAct(jt->pact5Unk19ec);
+    else
+        DetachAct(jt->pact5Unk19ec);
+    if (grf & 8)
+        AttachAct(jt->pact5Unk19f0);
+    else
+        DetachAct(jt->pact5Unk19f0);
+    if (grf & 0x10)
+        AttachAct(jt->pact5Unk19f4);
+    else
+        DetachAct(jt->pact5Unk19f4);
+    if (grf & 0x20)
+        AttachAct(jt->pact5Unk19fc);
+    else
+        DetachAct(jt->pact5Unk19fc);
+    if (grf & 0x40) {
+        AttachAct(jt->pact5Unk19f8);
+        return;
     }
+    DetachAct(jt->pact5Unk19f8);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -3986,30 +4388,29 @@ void SetJtState(JT *jt, JTS jts, JTBS jtbs)
         SetSndSourceLo(sound, 0);
         SetSndSourcePos(sound, PosLoWorld(jt));
     }
-    if (!fKeep)
+    if (fKeep)
+        return;
+    if (jt->pasegaUnk1030 != 0)
     {
-        if (jt->pasegaUnk1030 != 0)
-        {
-            RetractAsega(jt->pasegaUnk1030);
-            jt->pasegaUnk1030->VUnk01();
-            jt->pasegaUnk1030 = 0;
-        }
-        else if (jt->psmaUnk1034 != 0)
-        {
-            RetractSma(jt->psmaUnk1034);
-            jt->psmaUnk1034->VUnk01();
-            jt->psmaUnk1034 = 0;
-        }
-        if (aseg != 0)
-        {
-            ApplyAseg(aseg, (ALO *)jt, tStart, svt, grfapl, &jt->pasegaUnk1030);
-            jt->pasegaUnk1030->VUnk00();
-        }
-        else if (stateMachine != 0)
-        {
-            jt->psmaUnk1034 = PsmaApplySm(stateMachine, (ALO *)jt, oid, grfapl, grfRoute);
-            jt->psmaUnk1034->VUnk00();
-        }
+        RetractAsega(jt->pasegaUnk1030);
+        jt->pasegaUnk1030->VUnk01();
+        jt->pasegaUnk1030 = 0;
+    }
+    else if (jt->psmaUnk1034 != 0)
+    {
+        RetractSma(jt->psmaUnk1034);
+        jt->psmaUnk1034->VUnk01();
+        jt->psmaUnk1034 = 0;
+    }
+    if (aseg != 0)
+    {
+        ApplyAseg(aseg, (ALO *)jt, tStart, svt, grfapl, &jt->pasegaUnk1030);
+        jt->pasegaUnk1030->VUnk00();
+    }
+    else if (stateMachine != 0)
+    {
+        jt->psmaUnk1034 = PsmaApplySm(stateMachine, (ALO *)jt, oid, grfapl, grfRoute);
+        jt->psmaUnk1034->VUnk00();
     }
 }
 } // namespace M_SetJtJts__FP2JT3JTS4JTBS
@@ -4060,14 +4461,14 @@ void SetJtState__FP2JT3JTS4JTBS(void *p, int n, int m);
 void SetJtPlayerState(void *p, int n)
 {
     switch (n) {
-    case 0: SetJtState__FP2JT3JTS4JTBS(p, 0, -1); break;
-    case 1: SetJtState__FP2JT3JTS4JTBS(p, 2, -1); break;
-    case 2: SetJtState__FP2JT3JTS4JTBS(p, 7, -1); break;
+    case 0: SetJtState__FP2JT3JTS4JTBS(p, JTS_Stand, -1); break;
+    case 1: SetJtState__FP2JT3JTS4JTBS(p, JTS_Air, -1); break;
+    case 2: SetJtState__FP2JT3JTS4JTBS(p, JTS_Grab, -1); break;
     case 3: SetJtState__FP2JT3JTS4JTBS(p, 4, -1); break;
     case 4: SetJtState__FP2JT3JTS4JTBS(p, 0x12, -1); break;
     case 5: SetJtState__FP2JT3JTS4JTBS(p, 0x13, -1); break;
     case 6: SetJtState__FP2JT3JTS4JTBS(p, 0x14, -1); break;
-    case 7: SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1); break;
+    case 7: SetJtState__FP2JT3JTS4JTBS(p, JTS_Throw, -1); break;
     case 8: SetJtState__FP2JT3JTS4JTBS(p, 8, -1); break;
     }
 }
@@ -4211,15 +4612,15 @@ int JT::FCanUseGadget(int gadgetId)
             if (!FJtpipeCanUseGadget(&jtpipe, gadgetId))
                 return 0;
             break;
-        case 3:
+        case JTS_Hang:
             if (gadgetId != 3)
                 return 0;
             break;
-        case 0:
-        case 1:
+        case JTS_Stand:
+        case JTS_Run:
         case 5:
         case 10:
-        case 12:
+        case JTS_Gait2:
             break;
         case JTS_Throw:
             if (jtthrow.nState - 4U < 3)
@@ -4278,10 +4679,10 @@ int JT::FCanUseGadget(int gadgetId)
                 return 0;
             switch (jts)
             {
-                case 0:
-                case 1:
+                case JTS_Stand:
+                case JTS_Run:
                 case 10:
-                case 12:
+                case JTS_Gait2:
                     return 1;
             }
             return 0;
@@ -4378,7 +4779,7 @@ void UseJtGadget(char *p, int n)
     case 0x29: {
         REC *record = GetJtGadgetRecord(p, n);
         OBJ *pobj;
-        if ((unsigned int)(F(int, 0x11B4) - 4) < 3) {
+        if ((unsigned int)(AsJt(p)->jtthrow.nState - 4) < 3) {
             SetJtThrowState(A(0x11B0), 7);
             break;
         }
@@ -4396,7 +4797,7 @@ void UseJtGadget(char *p, int n)
         }
         F(OBJ *, 0x11C0) = pobj;
         GetGadgetButtonMask(p, n);
-        SetJtState__FP2JT3JTS4JTBS(p, 0x17, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, JTS_Throw, -1);
         SetJtThrowState(A(0x11B0), 4);
         break;
     }
@@ -4411,7 +4812,7 @@ void UseJtGadget(char *p, int n)
         break;
     case 0x18:
         ChargeGadgetMp(p, n);
-        SetJtState__FP2JT3JTS4JTBS(p, 6, -1);
+        SetJtState__FP2JT3JTS4JTBS(p, JTS_Interact, -1);
         break;
     case 0x19:
         ChargeGadgetMp(p, n);
@@ -4608,53 +5009,88 @@ extern "C" qword ConvertAloVec(O*,O*,qword);
 extern "C" void RecalculateAsegBlend(ANIM*);
 static inline qword Make(float x,float y,float z){qword q,t;__asm__("mfc1 %0,%2\n\tmfc1 %1,%3\n\tpextlw %0,%1,%0\n\tmfc1 %1,%4\n\tpcpyld %0,%1,%0":"=&r"(q),"=&r"(t):"f"(x),"f"(y),"f"(z));return q;}
 static inline float Max(float a,float b){float r;__asm__("max.s %0,%1,%2":"=f"(r):"f"(a),"f"(b));return r;}
-static inline qword Normalize(qword vin,const U*negative,U*u){
- register qword v __asm__("vf3")=vin;
- register qword fallback __asm__("vf4");
- qword d;register qword one __asm__("vf2");
- float len;
- __asm__("vmul.xyz %0,%3,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tlqc2 %2,%4":"=j"(d),"=&j"(one),"=j"(fallback):"j"(v),"m"(negative->q));
- __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(one):"j"(d));
- register int lenBits __asm__("$3");register unsigned page __asm__("$2");register qword up __asm__("vf1");
- __asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\taddiu %0,%0,%%lo(%5)\n\tmtc1 %1,%2\n\tlqc2 %3,0(%0)":"=&r"(page),"=&r"(lenBits),"=f"(len),"=j"(up):"j"(one),"i"(&D_002A2DC0):"memory");
- qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(up),"j"(fallback));register qword bits __asm__("$2");__asm__("qmfc2.ni %0,%1":"=r"(bits):"j"(fallback));u->q=bits;
- if(len<0.0001f)return r;
- __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q":"=j"(r):"j"(one),"j"(v));
- return r;
+static inline qword Normalize(qword vin, const U *negative, U *u)
+{
+    register qword v __asm__("vf3") = vin;
+    register qword fallback __asm__("vf4");
+    qword d;
+    register qword one __asm__("vf2");
+    float len;
+    __asm__("vmul.xyz %0,%3,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z\n\tlqc2 %2,%4"
+            : "=j"(d), "=&j"(one), "=j"(fallback)
+            : "j"(v), "m"(negative->q));
+    __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "+j"(one) : "j"(d));
+    register int lenBits __asm__("$3");
+    register unsigned page __asm__("$2");
+    register qword up __asm__("vf1");
+    __asm__("lui %0,%%hi(%5)\n\tqmfc2.ni %1,%4\n\taddiu %0,%0,%%lo(%5)\n\tmtc1 %1,%2\n\tlqc2 %3,0(%0)"
+            : "=&r"(page), "=&r"(lenBits), "=f"(len), "=j"(up)
+            : "j"(one), "i"(&D_002A2DC0)
+            : "memory");
+    qword r;
+    __asm__("vmulx.xyzw %0,%1,%2x" : "=j"(r) : "j"(up), "j"(fallback));
+    register qword bits __asm__("$2");
+    __asm__("qmfc2.ni %0,%1" : "=r"(bits) : "j"(fallback));
+    u->q = bits;
+    if (len < 0.0001f)
+        return r;
+    __asm__("vdiv Q,$vf0w,%1x\n\tvwaitq\n\tvmulq.xyzw %0,%2,Q" : "=j"(r) : "j"(one), "j"(v));
+    return r;
 }
 
-static inline P*NegativeTarget(const M4&m,const qword&offset,U*negative,U*scratch,U*target,P*p){
- register float minus __asm__("$f0")=-1.0f;register qword raw __asm__("$2");
- register qword axis1 __asm__("vf4"),axis2 __asm__("vf3"),scaled __asm__("vf2");register P*owner __asm__("$4");
- {
-  register qword scalar __asm__("vf1");
-  __asm__("daddu %0,%3,$zero\n\tmfc1 %1,%4\n\tlqc2 %2,%5":"=&r"(owner),"=&r"(raw),"=j"(axis1):"r"(p),"f"(minus),"m"(m.r[1]));
-  __asm__("sq %4,%0\n\tqmtc2.ni %4,%1\n\tlqc2 %2,%5\n\tlqc2 %3,%6":"=m"(negative->q),"=j"(scalar),"=j"(axis2),"=j"(scaled):"r"(raw),"m"(m.r[2]),"m"(offset));
-  __asm__("vmulx.xyzw %0,%0,%1x":"+j"(scaled):"j"(scalar));
- }
- register qword axis0 __asm__("vf5"),origin __asm__("vf1"),result __asm__("vf6");/* Preserve the inherited VF6.W after the direction callback. */
- __asm__("lqc2 %0,%2\n\tlqc2 %1,%3":"=j"(axis0),"=j"(origin):"m"(m.r[0]),"m"(m.r[3]));
- __asm__ volatile("vmulax.xyz ACC,%2,%6x\n\tvmadday.xyz ACC,%3,%6y\n\tvmaddaz.xyz ACC,%4,%6z\n\tvmaddw.xyz %0,%5,$vf0w\n\tsq %7,%1"
- :"=&j"(result),"=m"(scratch->q):"j"(axis0),"j"(axis1),"j"(axis2),"j"(origin),"j"(scaled),"r"(raw));
- target->q=result;return owner;
+static inline P *NegativeTarget(const M4 &m, const qword &offset, U *negative, U *scratch, U *target, P *p)
+{
+    register float minus __asm__("$f0") = -1.0f;
+    register qword raw __asm__("$2");
+    register qword axis1 __asm__("vf4"), axis2 __asm__("vf3"), scaled __asm__("vf2");
+    register P *owner __asm__("$4");
+    {
+        register qword scalar __asm__("vf1");
+        __asm__("daddu %0,%3,$zero\n\tmfc1 %1,%4\n\tlqc2 %2,%5"
+                : "=&r"(owner), "=&r"(raw), "=j"(axis1)
+                : "r"(p), "f"(minus), "m"(m.r[1]));
+        __asm__("sq %4,%0\n\tqmtc2.ni %4,%1\n\tlqc2 %2,%5\n\tlqc2 %3,%6"
+                : "=m"(negative->q), "=j"(scalar), "=j"(axis2), "=j"(scaled)
+                : "r"(raw), "m"(m.r[2]), "m"(offset));
+        __asm__("vmulx.xyzw %0,%0,%1x" : "+j"(scaled) : "j"(scalar));
+    }
+    register qword axis0 __asm__("vf5"), origin __asm__("vf1"),
+        result __asm__("vf6"); /* Preserve the inherited VF6.W after the direction callback. */
+    __asm__("lqc2 %0,%2\n\tlqc2 %1,%3" : "=j"(axis0), "=j"(origin) : "m"(m.r[0]), "m"(m.r[3]));
+    __asm__ volatile("vmulax.xyz ACC,%2,%6x\n\tvmadday.xyz ACC,%3,%6y\n\tvmaddaz.xyz ACC,%4,%6z\n\tvmaddw.xyz "
+                     "%0,%5,$vf0w\n\tsq %7,%1"
+                     : "=&j"(result), "=m"(scratch->q)
+                     : "j"(axis0), "j"(axis1), "j"(axis2), "j"(origin), "j"(scaled), "r"(raw));
+    target->q = result;
+    return owner;
 }
 
-
-static inline float WeightAmount(qword normalized,float&zero){
- register qword raw __asm__("$2");register int bits __asm__("$3");register float z __asm__("$f2"),amount __asm__("$f0");
- __asm__("qmfc2.ni %0,%4\n\tprot3w %1,%0\n\tmtc1 $zero,%2\n\tmtc1 %1,%3":"=&r"(raw),"=&r"(bits),"=f"(z),"=f"(amount):"j"(normalized));
- zero=z;return amount;
+static inline float WeightAmount(qword normalized, float &zero)
+{
+    register qword raw __asm__("$2");
+    register int bits __asm__("$3");
+    register float z __asm__("$f2"), amount __asm__("$f0");
+    __asm__("qmfc2.ni %0,%4\n\tprot3w %1,%0\n\tmtc1 $zero,%2\n\tmtc1 %1,%3"
+            : "=&r"(raw), "=&r"(bits), "=f"(z), "=f"(amount)
+            : "j"(normalized));
+    zero = z;
+    return amount;
 }
-
-
-
-
 
 static inline unsigned SmoothSamplePage(){register unsigned page __asm__("$6");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002BF3F8));return page;}
-static inline float SmoothInputs(M4*source,const CLOCK*clock,float factor,unsigned page,M3*&current,M3*&optional,SMP*&sample){
- register M3*receiver __asm__("$4"),*out __asm__("$7");register float dt __asm__("$f12");register unsigned address __asm__("$6")=page;
- __asm__("lwc1 %0,%4\n\tdaddu %1,%5,$zero\n\taddiu %3,%3,%%lo(%7)\n\tdaddu %2,$zero,$zero\n\tmul.s %0,%0,%6":"=&f"(dt),"=r"(receiver),"=r"(out),"+r"(address):"m"(clock->dt),"r"(source),"f"(factor),"i"(&D_002BF3F8));
- current=receiver;optional=out;sample=(SMP*)address;return dt;
+static inline float SmoothInputs(M4 *source, const CLOCK *clock, float factor, unsigned page, M3 *&current,
+                                 M3 *&optional, SMP *&sample)
+{
+    register M3 *receiver __asm__("$4"), *out __asm__("$7");
+    register float dt __asm__("$f12");
+    register unsigned address __asm__("$6") = page;
+    __asm__("lwc1 %0,%4\n\tdaddu %1,%5,$zero\n\taddiu %3,%3,%%lo(%7)\n\tdaddu %2,$zero,$zero\n\tmul.s %0,%0,%6"
+            : "=&f"(dt), "=r"(receiver), "=r"(out), "+r"(address)
+            : "m"(clock->dt), "r"(source), "f"(factor), "i"(&D_002BF3F8));
+    current = receiver;
+    optional = out;
+    sample = (SMP *)address;
+    return dt;
 }
 
 /** @sly2-annot addr=0x18DF60
@@ -4665,45 +5101,72 @@ static inline float SmoothInputs(M4*source,const CLOCK*clock,float factor,unsign
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
 // Smooths Sly's matrix and position and updates the directional animation weight.
-extern "C" void UpdateJtSmoothing(P*jt){
- M4 m=*((M4*(*)(void*))jt->object->vt[31].fn)((char*)jt->object+jt->object->vt[31].delta);
- U direction,position,scratch,negative;
- *(M3*)&jt->matrix=*(M3*)&m;
- M4*current=GetLoWorldMatrix(jt);
- CLOCK*clock=&D_002DDED0;
- float factor=0.5f;
- unsigned samplePage=SmoothSamplePage();M3*receiver,*optional;SMP*sample;float smoothDt=SmoothInputs(current,clock,factor,samplePage,receiver,optional,sample);
- SmoothMatrix(receiver,&jt->matrix,sample,optional,&direction.q,smoothDt);
- ((void(*)(void*,qword))jt->vt[36].fn)((char*)jt+jt->vt[36].delta,direction.q);
- U target;P*owner=NegativeTarget(m,jt->offset,&negative,&scratch,&target,jt);
- (void)PosSmooth(GetLoWorldPos(owner),target.q,&D_002BF408,&position.q,clock->dt*factor);
- ((void(*)(void*,qword))jt->vt[35].fn)((char*)jt+jt->vt[35].delta,position.q);
- qword relative;
- {
-  register PARAM*params __asm__("$3");register M3*camera __asm__("$2");register float zero __asm__("$f2");
-  __asm__("lw %0,%3\n\tlui %1,%%hi(%4)\n\tmtc1 $zero,%2\n\taddiu %1,%1,%%lo(%4)":"=&r"(params),"=r"(camera),"=f"(zero):"m"(jt->params),"i"(&(*(M3 *)&g_cm.mat)));
-  register float y __asm__("$f0"),z __asm__("$f1");register O*root __asm__("$4");register qword axis2 __asm__("vf3");
-  __asm__("lwc1 %0,%4\n\tdaddu %1,$zero,$zero\n\tlwc1 %2,%5\n\tneg.s %0,%0\n\tlqc2 %3,%6":"=f"(y),"=&r"(root),"=f"(z),"=j"(axis2):"m"(params->y),"m"(params->z),"m"(camera->r[2]));
-  qword local=Make(zero,y,z);
-  register qword axis0 __asm__("vf2"),axis1 __asm__("vf1"),rotated __asm__("vf4");
-  __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %5,%2":"=j"(axis0),"=j"(axis1),"=j"(rotated):"m"(camera->r[0]),"m"(camera->r[1]),"r"(local));
-  register O*object __asm__("$5");
-  __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2":"+j"(rotated),"=&r"(object),"=m"(scratch.q):"j"(axis0),"j"(axis1),"j"(axis2),"m"(jt->object),"r"(local));
-  relative=ConvertAloVec(root,object,rotated);
- }
- qword normalized=Normalize(relative,&negative,&scratch);
- register float zero __asm__("$f2");
- register float amount __asm__("$f0")=WeightAmount(normalized,zero);
- register float one __asm__("$f5")=1.0f;
- register float right __asm__("$f4")=Max(amount,zero);
- register float left __asm__("$f1")=-amount;
- register float middle __asm__("$f3");register PARAM*params __asm__("$2");
- __asm__("sub.s %3,%7,%8\n\tlw %0,%4\n\tswc1 %5,%1\n\tmax.s %2,%2,%6":"=&r"(params),"=m"(jt->amount),"+f"(left),"=&f"(middle):"m"(jt->params),"f"(amount),"f"(zero),"f"(one),"f"(right));
- register ANIM*animation __asm__("$4");register float weight __asm__("$f0");
- __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4":"=&r"(animation),"+&f"(middle),"=f"(weight),"+f"(left),"=m"(jt->weight):"m"(jt->anim),"m"(params->weight));
- __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3":"+&f"(one),"+&f"(right),"+&f"(middle),"=m"(jt->left):"f"(weight),"f"(left));
- jt->right=right;jt->middle=middle;jt->base=one;
- RecalculateAsegBlend(animation);
+extern "C" void UpdateJtSmoothing(P *jt)
+{
+    M4 m = *((M4 * (*)(void *)) jt->object->vt[31].fn)((char *)jt->object + jt->object->vt[31].delta);
+    U direction, position, scratch, negative;
+    *(M3 *)&jt->matrix = *(M3 *)&m;
+    M4 *current = GetLoWorldMatrix(jt);
+    CLOCK *clock = &D_002DDED0;
+    float factor = 0.5f;
+    unsigned samplePage = SmoothSamplePage();
+    M3 *receiver, *optional;
+    SMP *sample;
+    float smoothDt = SmoothInputs(current, clock, factor, samplePage, receiver, optional, sample);
+    SmoothMatrix(receiver, &jt->matrix, sample, optional, &direction.q, smoothDt);
+    ((void (*)(void *, qword))jt->vt[36].fn)((char *)jt + jt->vt[36].delta, direction.q);
+    U target;
+    P *owner = NegativeTarget(m, jt->offset, &negative, &scratch, &target, jt);
+    (void)PosSmooth(GetLoWorldPos(owner), target.q, &D_002BF408, &position.q, clock->dt * factor);
+    ((void (*)(void *, qword))jt->vt[35].fn)((char *)jt + jt->vt[35].delta, position.q);
+    qword relative;
+    {
+        register PARAM *params __asm__("$3");
+        register M3 *camera __asm__("$2");
+        register float zero __asm__("$f2");
+        __asm__("lw %0,%3\n\tlui %1,%%hi(%4)\n\tmtc1 $zero,%2\n\taddiu %1,%1,%%lo(%4)"
+                : "=&r"(params), "=r"(camera), "=f"(zero)
+                : "m"(jt->params), "i"(&(*(M3 *)&g_cm.mat)));
+        register float y __asm__("$f0"), z __asm__("$f1");
+        register O *root __asm__("$4");
+        register qword axis2 __asm__("vf3");
+        __asm__("lwc1 %0,%4\n\tdaddu %1,$zero,$zero\n\tlwc1 %2,%5\n\tneg.s %0,%0\n\tlqc2 %3,%6"
+                : "=f"(y), "=&r"(root), "=f"(z), "=j"(axis2)
+                : "m"(params->y), "m"(params->z), "m"(camera->r[2]));
+        qword local = Make(zero, y, z);
+        register qword axis0 __asm__("vf2"), axis1 __asm__("vf1"), rotated __asm__("vf4");
+        __asm__("lqc2 %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %5,%2"
+                : "=j"(axis0), "=j"(axis1), "=j"(rotated)
+                : "m"(camera->r[0]), "m"(camera->r[1]), "r"(local));
+        register O *object __asm__("$5");
+        __asm__("lw %1,%6\n\tvmulax.xyz ACC,%3,%0x\n\tvmadday.xyz ACC,%4,%0y\n\tvmaddz.xyz %0,%5,%0z\n\tsq %7,%2"
+                : "+j"(rotated), "=&r"(object), "=m"(scratch.q)
+                : "j"(axis0), "j"(axis1), "j"(axis2), "m"(jt->object), "r"(local));
+        relative = ConvertAloVec(root, object, rotated);
+    }
+    qword normalized = Normalize(relative, &negative, &scratch);
+    register float zero __asm__("$f2");
+    register float amount __asm__("$f0") = WeightAmount(normalized, zero);
+    register float one __asm__("$f5") = 1.0f;
+    register float right __asm__("$f4") = Max(amount, zero);
+    register float left __asm__("$f1") = -amount;
+    register float middle __asm__("$f3");
+    register PARAM *params __asm__("$2");
+    __asm__("sub.s %3,%7,%8\n\tlw %0,%4\n\tswc1 %5,%1\n\tmax.s %2,%2,%6"
+            : "=&r"(params), "=m"(jt->amount), "+f"(left), "=&f"(middle)
+            : "m"(jt->params), "f"(amount), "f"(zero), "f"(one), "f"(right));
+    register ANIM *animation __asm__("$4");
+    register float weight __asm__("$f0");
+    __asm__("lw %0,%5\n\tsub.s %1,%1,%3\n\tlwc1 %2,%6\n\tmul.s %3,%3,%2\n\tswc1 %2,%4"
+            : "=&r"(animation), "+&f"(middle), "=f"(weight), "+f"(left), "=m"(jt->weight)
+            : "m"(jt->anim), "m"(params->weight));
+    __asm__("sub.s %0,%0,%4\n\tmul.s %1,%1,%4\n\tmul.s %2,%2,%4\n\tswc1 %5,%3"
+            : "+&f"(one), "+&f"(right), "+&f"(middle), "=m"(jt->left)
+            : "f"(weight), "f"(left));
+    jt->right = right;
+    jt->middle = middle;
+    jt->base = one;
+    RecalculateAsegBlend(animation);
 }
 
 typedef char Qword_Size[(sizeof(qword)==16)?1:-1];

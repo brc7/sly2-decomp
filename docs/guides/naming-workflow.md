@@ -116,6 +116,11 @@ Policies:
 - **Safety**: name validation (C identifiers; a gcc 2.95 mangling grammar that accepts all 379 existing mangled names); collision checks (config, code tokens, case-insensitive
   file names, in-batch chains); **every touched file is rebuilt before and after and compared per address** (a rename can change codegen through gcse's symbol-hash order);
   on failure the offending renames are pulled out and retried one at a time. Idempotent and resumable (state is derived from the repo).
+- **Namespaces** (2026-11): `namespace N { ... }` blocks are transparent like `extern "C" { ... }`, so definitions in the merged-file
+  pattern `namespace M_Func { extern "C" { ... } }` are found and renamed. A definition inside a namespace with no enclosing
+  `extern "C"` is not treated as OLD's definition (its symbol carries the namespace) and is refused for a hand rename.
+- **Multi-line asm strings**: gcc 2.95 accepts raw newlines in string literals and a few files use them in asm templates
+  (`lo.cpp`, `cm.cpp`); the lexer lets a string span lines only when it directly follows `asm(` / `__asm__ volatile(`.
 - Files that cannot be built here (51, mostly src/lib needing native ee-gcc 2.96 binutils) are refused unless `--allow-unverifiable`.
 
 **Trial** (152 verifier-CORRECT rows): 148 applied (100 mangled + 48 plain) across 438 files, all verified MATCH; 3 refused (names already declared with C++ linkage in callers:
