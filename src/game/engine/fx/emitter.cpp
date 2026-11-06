@@ -74,6 +74,15 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct RIPG;
 struct BLIPG;
 struct SFX;
+/* EMITTER emission modes (EMITTER+0xF0; Sly 1's EMITRK has the same four values; the names here follow what Sly 2's
+   update does with them). */
+enum EMIT_MODE {
+    EMIT_MODE_UNSET = -1,           /* PostEmitterLoad infers one */
+    EMIT_MODE_CONTINUOUS = 0,       /* `rate` particles per second until the count runs out */
+    EMIT_MODE_CONSTANT_COUNT = 1,   /* keep `constantCount` particles alive */
+    EMIT_MODE_BURST = 2,            /* `rate` particles at once, then maybe pause */
+    EMIT_MODE_INTERMITTENT = 3,     /* `rate` particles per minute(?) as a stream, pausing at random (inferred) */
+};
 /* EMITB and EMITTER (CID 0x1D : XFM, cb 0x160): sly2/emitter.h. The V names data/vtables gave the file-scope views
    (classes.h is included) stay as aliases of the real types, so the mangled names do not change. */
 typedef EMITB EMITBV;
@@ -126,26 +135,44 @@ void InitEmitBlock(struct S *p)
 } } // namespace M_InitEmitBlock
 
 namespace M_InitEmitter { extern "C" {
-struct S { char pad[0x40]; unsigned int fl; char pad2[0xF0 - 0x44]; int nF0; int nF4; float gF8; float gFC; char pad3[0x118 - 0x100]; int n118; char dl[0x148 - 0x11C]; float g148; };
+/* EMITTER as Init writes it (field meanings from Sly 1's EMITTER, which has the same members in the same order) */
+struct S {
+    char pad[0x40];
+    unsigned int flags40;       /* +0x40 LO flag word, or (bit 0 clear) a pointer to the shared one */
+    char pad44[0xF0 - 0x44];
+    int emitMode;               /* +0xF0 EMITRK: continuous / constant count / burst (-1: infer at post-load) */
+    int particleCount;          /* +0xF4 particles left to emit (-1: unlimited) */
+    float rateMin, rateMax;     /* +0xF8 particles per second (burst modes: per burst) */
+    char pad100[0x118 - 0x100];
+    int groupOid;               /* +0x118 OID of the group emitter this one is slaved to (-1: none) */
+    char groupList[0x128 - 0x11C];   /* +0x11C DL of the emitters slaved to this one */
+    char groupLink[0x148 - 0x128];   /* +0x128 this emitter's DLE in its group's list, and timing fields */
+    float unpauseTime;          /* +0x148 */
+};
 void InitXfm(void *p);
 void InitDl__FP2DLi(void *pdl, int ib);
 void SetLoBusyk(void *p, int n);
-// EMITTER::Init: XFM init, default indices -1, g=10.0, ClearDl of particle list, register for update, flag 2.
 } } // namespace M_InitEmitter
-void EMITTER::Init() { using namespace M_InitEmitter; M_InitEmitter::S *p = (M_InitEmitter::S *)this;
-    unsigned int v;
-    InitXfm(p);
-    p->nF4 = -1;
-    p->nF0 = -1;
-    p->n118 = -1;
-    p->gFC = 10.0f;
-    p->gF8 = 10.0f;
-    p->g148 = -1.0f;
-    InitDl__FP2DLi(p->dl, 0x128);
-    SetLoBusyk(p, 0);
-    v = p->fl;
-    if ((v ^ 1) & 1) *(int *)v |= 2;
-    else p->fl = v | 2;
+// EMITTER::Init: XFM init, then "unset" defaults (mode and count -1, no group, 10 particles per second, not paused),
+// an empty slaved-emitter list linked through +0x128, busy level 0, and LO flag bit 2 set.
+void EMITTER::Init()
+{
+    M_InitEmitter::S *emitter = (M_InitEmitter::S *)this;
+    unsigned int flags;
+    M_InitEmitter::InitXfm(emitter);
+    emitter->particleCount = -1;
+    emitter->emitMode = -1;
+    emitter->groupOid = -1;
+    emitter->rateMax = 10.0f;
+    emitter->rateMin = 10.0f;
+    emitter->unpauseTime = -1.0f;
+    M_InitEmitter::InitDl__FP2DLi(emitter->groupList, 0x128);
+    M_InitEmitter::SetLoBusyk(emitter, 0);
+    flags = emitter->flags40;
+    if ((flags ^ 1) & 1)
+        *(int *)flags |= 2;     /* bit 0 clear: the word points at the shared flags */
+    else
+        emitter->flags40 = flags | 2;
 }
 
 namespace M_LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream {
@@ -242,13 +269,41 @@ struct K { short a; short b; int c; };
 struct LM { float gMin; float gMax; };
 struct BOX { float xMin, yMin, zMin, pad; float xMax, yMax, zMax; };
 struct EMITO { void *palo; };
-struct EMITBV { int n0; int pad4; struct EMITO *pemito; int padC; int kind; char pad14[0x20 - 0x14]; int n20; char pad24[0x30 - 0x24]; struct BOX *pbox; };
+struct EMITBV {
+    int cref;                   /* +0x00 share count */
+    int pad4;
+    struct EMITO *pemito;       /* +0x08 the origin record (its first word: the object emitted from) */
+    int padC;
+    int originKind;             /* +0x10 EMITOK: 1 = box */
+    char pad14[0x20 - 0x14];
+    int originOid;              /* +0x20 */
+    char pad24[0x30 - 0x24];
+    struct BOX *pbox;           /* +0x30 the origin box (box kind) */
+};
 struct VTE { short delta; short pad; void (*pfn)(void *, void *); };
+/* EMITTER (field meanings from Sly 1's EMITTER, same members in the same order) */
 struct EMITTERV {
-    char pad0[0xC]; struct VTE *pvt; char pad10[0x40 - 0x10]; int grf40; char pad44[0xE0 - 0x44];
-    int nE0; struct EMITBV *pemitb; char padE8[0xF0 - 0xE8];
-    int kind; int nF4; struct LM lmF8; int n100; float g104; struct LM lm108; float g110; int n114; int oid118;
-    char pad11C[0x130 - 0x11C]; float g130; float g134; float g138; float g13C; float g140;
+    char pad0[0xC]; struct VTE *pvt; char pad10[0x40 - 0x10];
+    int flags40;                /* +0x40 LO flags, or (bit 0 clear) a pointer to them */
+    char pad44[0xE0 - 0x44];
+    int isDirty;                /* +0xE0 */
+    struct EMITBV *pemitb;      /* +0xE4 */
+    char padE8[0xF0 - 0xE8];
+    int emitMode;               /* +0xF0 EMITRK */
+    int particleCount;          /* +0xF4 */
+    struct LM rate;             /* +0xF8 particles per second (burst modes: per burst) */
+    int isCountDensity;         /* +0x100 scale the rate by the origin box (volume for constant count, else area) */
+    float pauseChance;          /* +0x104 probability of a pause after a burst */
+    struct LM pauseTime;        /* +0x108 pause duration range */
+    float constantCount;        /* +0x110 particles to keep alive (constant-count mode) */
+    int autoPause;              /* +0x114 */
+    int groupOid;               /* +0x118 */
+    char pad11C[0x130 - 0x11C]; /* +0x11C group list, +0x128 group link */
+    float currentRate;          /* +0x130 rate drawn from `rate` */
+    float rateRedrawInterval;   /* +0x134 */
+    float rateRedrawTime;       /* +0x138 */
+    float density;              /* +0x13C rate multiplier (box volume or area when isCountDensity) */
+    float boxRadius;            /* +0x140 half the largest box extent */
 };
 struct ALLOCREQ { int cb; int kind; };
 extern char D_003DD490[];
@@ -277,46 +332,48 @@ static __inline__ void *PvAllocCopy(int cb, void *pv)
 static __inline__ int FPtr(int n) { return !(n & 1); }
 
 // Post-load setup of an EMITTER: runs the shared emitter template, schedules a callback when it emits from an object,
-// infers the emission mode when the level left it unset (-1: 3 when it has a rate or count, 1 when it has a period,
-// else 0), then sets up the mode.
+// infers the emission mode when the level left it unset (intermittent when it can pause, constant count when it has
+// one, else continuous), draws the first rate and pause, computes the box density / radius, and when the emitter
+// belongs to a group (groupOid) links it into the group emitter, creating that emitter from this one's settings if
+// the level has none.
 void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
 {
     ::func_002586D8((::EMITTER *)pemitter);   /* sly2/emitter.h template (the EMITTER instance) */
     if (pemitter->pemitb->pemito->palo)
         PostSwCallback(D_003DD490, pemitter, D_002A5140.l, 0);
-    if (pemitter->kind == -1) {
-        if (pemitter->g104 != 0.0f || pemitter->n114)
-            pemitter->kind = 3;
-        else if (pemitter->g110 != 0.0f)
-            pemitter->kind = 1;
+    if (pemitter->emitMode == EMIT_MODE_UNSET) {
+        if (pemitter->pauseChance != 0.0f || pemitter->autoPause)
+            pemitter->emitMode = EMIT_MODE_INTERMITTENT;
+        else if (pemitter->constantCount != 0.0f)
+            pemitter->emitMode = EMIT_MODE_CONSTANT_COUNT;
         else
-            pemitter->kind = 0;
+            pemitter->emitMode = EMIT_MODE_CONTINUOUS;
     }
-    switch (pemitter->kind) {
-    case 2:
-        pemitter->g138 = D_002A5148;
-        pemitter->g130 = GRandInRange__Fff(pemitter->lmF8.gMin, pemitter->lmF8.gMax);
-        if (pemitter->n114)
+    switch (pemitter->emitMode) {
+    case EMIT_MODE_BURST:
+        pemitter->rateRedrawTime = D_002A5148;
+        pemitter->currentRate = GRandInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
+        if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
-        else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->g104)
-            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->lm108.gMin, pemitter->lm108.gMax));
+        else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
+            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
         break;
-    case 3:
-        pemitter->g138 = D_002A5148;
-        pemitter->g130 = GRandInRange__Fff(pemitter->lmF8.gMin, pemitter->lmF8.gMax) * 60.0f;
-        if (pemitter->n114)
+    case EMIT_MODE_INTERMITTENT:
+        pemitter->rateRedrawTime = D_002A5148;
+        pemitter->currentRate = GRandInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax) * 60.0f;
+        if (pemitter->autoPause)
             PauseEmitterIndefinite__FP7EMITTER(pemitter);
-        else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->g104)
-            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->lm108.gMin, pemitter->lm108.gMax));
+        else if (GRandInRange__Fff(0.0f, 1.0f) <= pemitter->pauseChance)
+            PauseEmitter__FP7EMITTERf(pemitter, GRandInRange__Fff(pemitter->pauseTime.gMin, pemitter->pauseTime.gMax));
         break;
-    case 0:
-    case 1:
-        pemitter->g134 = pemitter->g138 = 1.0f;
-        pemitter->g130 = GRandInRange__Fff(pemitter->lmF8.gMin, pemitter->lmF8.gMax);
+    case EMIT_MODE_CONTINUOUS:
+    case EMIT_MODE_CONSTANT_COUNT:
+        pemitter->rateRedrawInterval = pemitter->rateRedrawTime = 1.0f;
+        pemitter->currentRate = GRandInRange__Fff(pemitter->rate.gMin, pemitter->rate.gMax);
         break;
     }
-    pemitter->g13C = 1.0f;
-    if (pemitter->pemitb->kind == 1) {
+    pemitter->density = 1.0f;
+    if (pemitter->pemitb->originKind == 1) {
         struct BOX *pbox = pemitter->pemitb->pbox;
         if (pemitter->pemitb->pemito->palo) {
             float dx = __builtin_fabsf(pbox->xMax - pbox->xMin);
@@ -329,47 +386,47 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
                 g = dy;
             else
                 g = dz;
-            pemitter->g140 = g * 0.5f;
+            pemitter->boxRadius = g * 0.5f;
         }
-        if (pemitter->n100) {
-            if (pemitter->g110 != 0.0f)
-                pemitter->g13C = (pbox->xMax - pbox->xMin) * (pbox->yMax - pbox->yMin) * (pbox->zMax - pbox->zMin) * 1e-6f;
+        if (pemitter->isCountDensity) {
+            if (pemitter->constantCount != 0.0f)
+                pemitter->density = (pbox->xMax - pbox->xMin) * (pbox->yMax - pbox->yMin) * (pbox->zMax - pbox->zMin) * 1e-6f;
             else
-                pemitter->g13C = (pbox->yMax - pbox->yMin) * (pbox->zMax - pbox->zMin) * 1e-4f;
+                pemitter->density = (pbox->yMax - pbox->yMin) * (pbox->zMax - pbox->zMin) * 1e-4f;
         }
     }
-    if (pemitter->oid118 != -1) {
-        struct EMITTERV *pemitterNew = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, pemitter->oid118, 0);
-        if (!pemitterNew) {
+    if (pemitter->groupOid != -1) {
+        struct EMITTERV *group = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490 /* g_sw */, 5, pemitter->groupOid, 0);
+        if (!group) {
             struct VTE *pvte;
             void *pthis;
-            pemitterNew = PloNew__F3CIDP2SO3OIDi(0x1D, 0, pemitter->oid118, -1);
-            pemitterNew->pemitb = (__typeof__(pemitterNew->pemitb))PvAllocCopy(0x100, pemitter->pemitb);
-            pemitterNew->pemitb->n0 = 1;
+            group = PloNew__F3CIDP2SO3OIDi(0x1D /* CID_EMITTER */, 0, pemitter->groupOid, -1);
+            group->pemitb = (__typeof__(group->pemitb))PvAllocCopy(0x100, pemitter->pemitb);
+            group->pemitb->cref = 1;
             if (pemitter->pemitb->pemito->palo) {
-                pemitterNew->pemitb->pemito = (__typeof__(pemitterNew->pemitb->pemito))PvAllocCopy(0x14, pemitter->pemitb->pemito);
-                pemitterNew->pemitb->n20 = -1;
-                pemitterNew->pemitb->pemito->palo = 0;
+                group->pemitb->pemito = (__typeof__(group->pemitb->pemito))PvAllocCopy(0x14, pemitter->pemitb->pemito);
+                group->pemitb->originOid = -1;
+                group->pemitb->pemito->palo = 0;
             }
-            pemitterNew->kind = pemitter->kind;
-            pemitterNew->nF4 = pemitter->nF4;
-            pemitterNew->lmF8 = pemitter->lmF8;
-            pemitterNew->n100 = pemitter->n100;
-            pemitterNew->g104 = pemitter->g104;
-            pemitterNew->lm108 = pemitter->lm108;
-            pemitterNew->g110 = pemitter->g110;
-            pemitterNew->n114 = pemitter->n114;
-            SetLoBusyk(pemitterNew, 1);
-            pvte = &pemitterNew->pvt[30];
-            pthis = (char *)pemitterNew + pvte->delta;
+            group->emitMode = pemitter->emitMode;
+            group->particleCount = pemitter->particleCount;
+            group->rate = pemitter->rate;
+            group->isCountDensity = pemitter->isCountDensity;
+            group->pauseChance = pemitter->pauseChance;
+            group->pauseTime = pemitter->pauseTime;
+            group->constantCount = pemitter->constantCount;
+            group->autoPause = pemitter->autoPause;
+            SetLoBusyk(group, 1);
+            pvte = &group->pvt[30];     /* place it at this emitter's transform (func_001A6318) */
+            pthis = (char *)group + pvte->delta;
             pvte->pfn(pthis, func_001A6318(pemitter));
         }
-        pemitter->nE0 = 0;
-        AppendDlEntry__FP2DLPv((char *)pemitterNew + 0x11C, pemitter);
-        if (FPtr(pemitter->grf40))
-            *(int *)pemitter->grf40 &= ~2;
+        pemitter->isDirty = 0;
+        AppendDlEntry__FP2DLPv((char *)group + 0x11C /* group list */, pemitter);
+        if (FPtr(pemitter->flags40))
+            *(int *)pemitter->flags40 &= ~2;
         else
-            pemitter->grf40 &= ~2;
+            pemitter->flags40 &= ~2;
     }
 }
 } } // namespace M_PostEmitterLoad__FP7EMITTER
@@ -478,21 +535,47 @@ namespace M_UpdateEmitter__FP7EMITTERf {
 typedef int qword __attribute__((mode(TI)));
 struct ALO;
 extern "C" { extern CLOCK D_002DDED0; }
-struct CM { char pad[0x1C]; float g1C; char pad2[0x90 - 0x20]; qword pos; };
-extern "C" { extern CM D_002DDF40; }
-struct EMITO { void *palo; int f4; };
-struct EMITBV { int pad0; int f4; EMITO *pemito; };
-struct RIPG { char pad[0x15C]; int dl; };
-struct PRG { char pad[0x444]; int cpart; };
+struct CM { char pad[0x1C]; float lodScale; char pad2[0x90 - 0x20]; qword pos; };   /* lodScale (inferred): scales
+                                                                                        an object's busy radius */
+extern "C" { extern CM D_002DDF40; }   /* g_cm, the main camera */
+struct EMITO { void *referenceObject; void *shapeObject; };   /* the EMITB's resolved objects */
+struct EMITBV { int pad0; int particleKind; EMITO *pemito; };   /* particleKind: 0 blips, 1 rips */
+struct RIPG { char pad[0x15C]; int ripList; };
+struct BLIPG { char pad[0x444]; int numBlips; };
+/* EMITTER (see PostEmitterLoad's view) */
 struct EMITTERV {
-    char pad0[0x10]; int x10; char pad1[0x38 - 0x14]; float g38;
-    char pad2[0xE0 - 0x3C]; int fChanged; EMITBV *pemitb; char padE8[8]; int k; int c;
-    float gF8, gFC; char pad3[0x104 - 0x100]; float g104, g108, g10C, g110; int f114; int x118;
-    int dl11C; char pad4[0x128 - 0x120]; EMITTERV *pNext;
-    char pad5[0x130 - 0x12C]; float g130, g134, g138, g13C; char pad6[0x144 - 0x140]; float g144;
-    char pad7[0x14C - 0x148]; RIPG *pripg; PRG *pprg;
+    char pad0[0x10];
+    int psoParent;              /* +0x10 LO */
+    char pad1[0x38 - 0x14];
+    float sBusy;                /* +0x38 LO: the radius within which the object counts as near the camera */
+    char pad2[0xE0 - 0x3C];
+    int isDirty;                /* +0xE0 */
+    EMITBV *pemitb;             /* +0xE4 */
+    char padE8[8];
+    int emitMode;               /* +0xF0 */
+    int particleCount;          /* +0xF4 */
+    float rateMin, rateMax;     /* +0xF8 */
+    char pad3[0x104 - 0x100];
+    float pauseChance;          /* +0x104 */
+    float pauseTimeMin, pauseTimeMax;   /* +0x108 */
+    float constantCount;        /* +0x110 */
+    int autoPause;              /* +0x114 */
+    int groupOid;               /* +0x118 */
+    int groupList;              /* +0x11C DL head: the first slaved emitter */
+    char pad4[0x128 - 0x120];
+    EMITTERV *nextInGroup;      /* +0x128 */
+    char pad5[0x130 - 0x12C];
+    float currentRate;          /* +0x130 */
+    float rateRedrawInterval;   /* +0x134 */
+    float rateRedrawTime;       /* +0x138 */
+    float density;              /* +0x13C */
+    char pad6[0x144 - 0x140];
+    float particleFraction;     /* +0x144 fractional particle carried to the next frame */
+    char pad7[0x14C - 0x148];
+    RIPG *pripg;                /* +0x14C */
+    BLIPG *pblipg;              /* +0x150 */
 };
-struct EMITX { PRG **ppprg; RIPG **ppripg; EMITTERV *pemitter; };
+struct EMITX { BLIPG **ppblipg; RIPG **ppripg; EMITTERV *pemitter; };   /* EMITG */
 extern "C" {
 void UpdateLo(EMITTERV *p);
 int FIsDlEmpty__FP2DL(int *pdl);
@@ -520,128 +603,130 @@ static inline float Dist2(qword a, qword b)
 }
 static inline int FLess(float a, float b) { return a < b; }
 
-// Per-frame emitter update: applies changed values, updates the LO, then (when the emitter is not slaved) decides from
-// its linked emitters and pause state whether to emit this frame and emits through its EMITB.
-extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *p, float dt)
+// Per-frame emitter update: applies changed values and updates the LO; a slaved emitter (groupOid set) stops there.
+// Otherwise it emits only when near the camera (a group: any active member within its busy radius) and not paused;
+// the mode decides how many particles this frame (see EMIT_MODE), which go out through EmitParticles with the
+// emitter as the fallback origin. Finally it redraws the rate when due and wraps particles into the box modifier.
+extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *emitter, float dt)
 {
-    if (p->fChanged)
-        OnEmitterValuesChanged(p);
-    UpdateLo(p);
-    if (p->x118 != -1)
+    if (emitter->isDirty)
+        OnEmitterValuesChanged(emitter);
+    UpdateLo(emitter);
+    if (emitter->groupOid != -1)
         return;
-    if (!FIsDlEmpty__FP2DL(&p->dl11C)) {
-        EMITTERV *pe;
-        for (pe = (EMITTERV *)p->dl11C; pe; pe = pe->pNext) {
-            if (!func_001A61A0(pe))
+    if (!FIsDlEmpty__FP2DL(&emitter->groupList)) {
+        EMITTERV *member;
+        for (member = (EMITTERV *)emitter->groupList; member; member = member->nextInGroup) {
+            if (!func_001A61A0(member))
                 continue;
-            if (!pe->x10)
+            if (!member->psoParent)
                 goto LActive;
-            float r = pe->g38 * D_002DDF40.g1C;
-            qword pos = func_001A62E8(pe);
-            r = r * r;
-            if (FLess(Dist2(pos, D_002DDF40.pos), r))
+            float radius = member->sBusy * D_002DDF40.lodScale;
+            qword pos = func_001A62E8(member);
+            radius = radius * radius;
+            if (FLess(Dist2(pos, D_002DDF40.pos), radius))
                 goto LActive;
         }
         return;
-    } else if (p->x10) {
-        float r = p->g38 * D_002DDF40.g1C;
-        qword pos = func_001A62E8(p);
-        r = r * r;
-        if (FLess(r, Dist2(pos, D_002DDF40.pos)))
+    } else if (emitter->psoParent) {
+        float radius = emitter->sBusy * D_002DDF40.lodScale;
+        qword pos = func_001A62E8(emitter);
+        radius = radius * radius;
+        if (FLess(radius, Dist2(pos, D_002DDF40.pos)))
             return;
     }
-LActive:
-    if (FPausedEmitter(p))
+LActive:   /* near the camera (or not tied to a parent) */
+    if (FPausedEmitter(emitter))
         return;
 
-    int c = 0;
-    switch (p->k) {
-    case 3: {
-        float g = p->g144 + p->g130 * p->g13C * D_002DDED0.dt;
-        c = (int)g;
-        p->g144 = g - (float)c;
-        if (1.0f < (float)c) {
-            int cLeft = p->c;
-            if (cLeft >= 0) {
-                if (cLeft <= c)
-                    c = cLeft;
-                p->c = cLeft - c;
+    int numToEmit = 0;
+    switch (emitter->emitMode) {
+    case EMIT_MODE_INTERMITTENT: {
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.dt;
+        numToEmit = (int)accumulated;
+        emitter->particleFraction = accumulated - (float)numToEmit;
+        if (1.0f < (float)numToEmit) {
+            int remaining = emitter->particleCount;
+            if (remaining >= 0) {
+                if (remaining <= numToEmit)
+                    numToEmit = remaining;
+                emitter->particleCount = remaining - numToEmit;
             }
-            if (p->f114) {
-                PauseEmitterIndefinite(p);
-                p->g130 = GRandInRange__Fff(p->gF8, p->gFC) * 60.0f;
-            } else if (GRandInRange__Fff(0.0f, 1.0f) <= p->g104) {
-                PauseEmitter(p, GRandInRange__Fff(p->g108, p->g10C));
-                p->g130 = GRandInRange__Fff(p->gF8, p->gFC) * 60.0f;
-            }
-        }
-        break;
-    }
-    case 2: {
-        c = (int)p->g130;
-        int cLeft = p->c;
-        if (cLeft >= 0) {
-            if (cLeft <= c)
-                c = cLeft;
-            p->c = cLeft - c;
-        }
-        if (p->f114)
-            PauseEmitterIndefinite(p);
-        else if (GRandInRange__Fff(0.0f, 1.0f) <= p->g104)
-            PauseEmitter(p, GRandInRange__Fff(p->g108, p->g10C));
-        p->g130 = GRandInRange__Fff(p->gF8, p->gFC);
-        break;
-    }
-    case 0: {
-        float g = p->g144 + p->g130 * p->g13C * D_002DDED0.dt;
-        c = (int)g;
-        p->g144 = g - (float)c;
-        if (c != 0) {
-            int cLeft = p->c;
-            if (cLeft >= 0) {
-                if (cLeft <= c)
-                    c = cLeft;
-                p->c = cLeft - c;
+            if (emitter->autoPause) {
+                PauseEmitterIndefinite(emitter);
+                emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
+            } else if (GRandInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance) {
+                PauseEmitter(emitter, GRandInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
+                emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax) * 60.0f;
             }
         }
         break;
     }
-    case 1: {
-        int cWant = (int)(p->g110 * p->g13C);
-        int cCur;
-        if (!p->pemitb->f4)
-            cCur = p->pprg ? p->pprg->cpart : 0;
+    case EMIT_MODE_BURST: {
+        numToEmit = (int)emitter->currentRate;
+        int remaining = emitter->particleCount;
+        if (remaining >= 0) {
+            if (remaining <= numToEmit)
+                numToEmit = remaining;
+            emitter->particleCount = remaining - numToEmit;
+        }
+        if (emitter->autoPause)
+            PauseEmitterIndefinite(emitter);
+        else if (GRandInRange__Fff(0.0f, 1.0f) <= emitter->pauseChance)
+            PauseEmitter(emitter, GRandInRange__Fff(emitter->pauseTimeMin, emitter->pauseTimeMax));
+        emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax);
+        break;
+    }
+    case EMIT_MODE_CONTINUOUS: {
+        float accumulated = emitter->particleFraction + emitter->currentRate * emitter->density * D_002DDED0.dt;
+        numToEmit = (int)accumulated;
+        emitter->particleFraction = accumulated - (float)numToEmit;
+        if (numToEmit != 0) {
+            int remaining = emitter->particleCount;
+            if (remaining >= 0) {
+                if (remaining <= numToEmit)
+                    numToEmit = remaining;
+                emitter->particleCount = remaining - numToEmit;
+            }
+        }
+        break;
+    }
+    case EMIT_MODE_CONSTANT_COUNT: {
+        int numWanted = (int)(emitter->constantCount * emitter->density);
+        int numAlive;
+        if (!emitter->pemitb->particleKind)
+            numAlive = emitter->pblipg ? emitter->pblipg->numBlips : 0;
         else
-            cCur = p->pripg ? CPvDl__FP2DL(&p->pripg->dl) : 0;
-        int d = cWant - cCur;
-        c = 0;
-        int f = 0 < d;
-        if (f)
-            c = d;
+            numAlive = emitter->pripg ? CPvDl__FP2DL(&emitter->pripg->ripList) : 0;
+        int shortfall = numWanted - numAlive;
+        numToEmit = 0;
+        int hasShortfall = 0 < shortfall;   /* a flag temp: `if (shortfall > 0)` compiles differently */
+        if (hasShortfall)
+            numToEmit = shortfall;
         break;
     }
     }
 
-    if (c) {
+    if (numToEmit) {
         int unused[4];
-        EMITX x;
-        func_002333B4(&x, 0, sizeof(x));
-        x.pemitter = p;
-        x.ppprg = &p->pprg;
-        x.ppripg = &p->pripg;
-        EMITO *pemito = p->pemitb->pemito;
-        void *palo = pemito->palo;
-        if (!palo && !pemito->f4)
-            pemito->palo = p;
-        EmitParticles__FiP5EMITBP5EMITG(c, p->pemitb, &x);
-        p->pemitb->pemito->palo = palo;
+        EMITX emitg;
+        func_002333B4(&emitg, 0, sizeof(emitg));
+        emitg.pemitter = emitter;
+        emitg.ppblipg = &emitter->pblipg;
+        emitg.ppripg = &emitter->pripg;
+        EMITO *pemito = emitter->pemitb->pemito;
+        void *savedReference = pemito->referenceObject;
+        if (!savedReference && !pemito->shapeObject)
+            pemito->referenceObject = emitter;
+        EmitParticles__FiP5EMITBP5EMITG(numToEmit, emitter->pemitb, &emitg);
+        emitter->pemitb->pemito->referenceObject = savedReference;
     }
 
-    if (D_002DDED0.t >= p->g138) {
-        p->g130 = GRandInRange__Fff(p->gF8, p->gFC);
-        p->g138 = D_002DDED0.t + p->g134;
+    if (D_002DDED0.t >= emitter->rateRedrawTime) {
+        emitter->currentRate = GRandInRange__Fff(emitter->rateMin, emitter->rateMax);
+        emitter->rateRedrawTime = D_002DDED0.t + emitter->rateRedrawInterval;
     }
-    ModifyEmitterParticles(p);
+    ModifyEmitterParticles(emitter);
 }
 } // namespace M_UpdateEmitter__FP7EMITTERf
 
