@@ -20,7 +20,7 @@ vtables config names and emits them from their key TUs ([tu-merging.md, "Vtables
 
 | measure | value | tool |
 |---|---|---|
-| functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac) | `JOBS=3 tools/progress.py`, cache deleted, run alone |
+| functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac); config/matched.csv content unchanged by the run | `JOBS=3 tools/progress.py`, cache deleted, run alone |
 | all game sources (210) | functions 6,017 / 6,017, data symbols 2,187 / 2,187 [2,118] MATCH | `tools/matchtool.py check` |
 | vtables from objects | 284 `.gnu.linkonce.d._vt$*` sections [228], each MATCH against the ELF and emitted in ascending ELF order per object; 2 left in the linkonce data area (EMITTER's/EXPLO's template-instance tables 0x2CE680, 0x2CED18: tu-merging.md) | `tools/matchtool.py check`, llvm-readelf |
 | absolute symbols | 274 [492]: SDK functions the SDK objects define (Mac) 109, SDK data and SDK-only references 53, SDK name mismatches 8, commons 69 [84], VU-memory/scratchpad offsets 26, game objects not defined 9 [78]; plus 17 labels on the `.vutext`/`.irx` blobs (not absolute since this branch) | `tools/link.py` (build/link/absolute.txt) |
