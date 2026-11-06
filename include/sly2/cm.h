@@ -4,7 +4,6 @@
 #ifndef SLY2_CM_H
 #define SLY2_CM_H
 #include "sly2/basic.h"
-#include "sly2/aseg.h"
 
 /* CPDEFI: from src/game/engine/camera/cm/UpdateCmMat4__FP2CM.cpp (12 copies in Lilly ports) */
 struct CPDEFI

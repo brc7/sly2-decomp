@@ -21,10 +21,36 @@
  * docs/guides/tu-merging.md, "Views unified". */
 #ifndef SLY2_CLASSES_H
 #define SLY2_CLASSES_H
+/* The headers and the first classes in the order class_registry (their key TU) emits its vtables, the reverse of
+   0x2C8940..0x2CA550's order: CID152, CM, CID154, ASEGBL, CID149 and CID150 (so.h), POCTL (po.h), EXPLO
+   (emitter.h), then GUARD and the rest below. */
+#include "sly2/basic.h"
+#include "sly2/lo.h"
+
+/* 152 CID152 (0x250): sound manager (find-sound-object~); vtable 0x2CA510, 6 slots */
+struct CID152 : BASIC
+{
+    char pad10[0x250 - 0x10];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid152ClassDesc");   /* slot 6 */
+};
+typedef char assert_CID152_size[sizeof(CID152) == 0x250 ? 1 : -1];
+
+#include "sly2/cm.h"
+
+/* 154 CID154 (0x30): ticker / hint box (find-ticker-object~); vtable 0x2CA490, 6 slots */
+struct CID154 : BASIC
+{
+    char pad10[0x30 - 0x10];
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid154ClassDesc");   /* slot 6 */
+};
+typedef char assert_CID154_size[sizeof(CID154) == 0x30 ? 1 : -1];
+
+#include "sly2/aseg.h"
+#include "sly2/so.h"
+#include "sly2/po.h"
+#include "sly2/emitter.h"
 #include "sly2/players.h"
 #include "sly2/guard.h"
-#include "sly2/cm.h"
-#include "sly2/emitter.h"
 #include "sly2/task.h"
 
 extern "C" void *memset(void *pv, int b, unsigned int cb);
@@ -132,15 +158,6 @@ struct WIDGET : LO
 };
 typedef char assert_WIDGET_size[sizeof(WIDGET) == 0x110 ? 1 : -1];
 
-/* 130 WIDGET130 (0x130); vtable 0x2C9670, 50 slots */
-struct WIDGET130 : WIDGET
-{
-    char pad110[0x130 - 0x110];
-    WIDGET130() __asm__("func_00211C58");     /* out of line: presentation/hud/func_00211C58.cpp */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget130ClassDesc");   /* slot 6 */
-};
-typedef char assert_WIDGET130_size[sizeof(WIDGET130) == 0x130 ? 1 : -1];
-
 /* 138 SAA (0x50); vtable 0x2D9420, 10 slots */
 struct SAAF;   /* the shader-animation parameters (Sly 1 symbols InitShuffle__FP7SHUFFLEP4SAAF...) */
 struct SAA : BASIC
@@ -164,14 +181,6 @@ struct CID147 : BASIC
 };
 typedef char assert_CID147_size[sizeof(CID147) == 0x60 ? 1 : -1];
 
-/* 149 CID149 (0x30): Splice XF handle; vtable 0x2CA2C0, 6 slots */
-struct CID149 : CID148
-{
-    char pad20[0x30 - 0x20];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid149ClassDesc");   /* slot 6 */
-};
-typedef char assert_CID149_size[sizeof(CID149) == 0x30 ? 1 : -1];
-
 /* 151 CID151 (0x60): SND (sound instance); vtable not known */
 struct CID151 : BASIC
 {
@@ -179,22 +188,6 @@ struct CID151 : BASIC
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid151ClassDesc");   /* slot 6 (vtable not known) */
 };
 typedef char assert_CID151_size[sizeof(CID151) == 0x60 ? 1 : -1];
-
-/* 152 CID152 (0x250): sound manager (find-sound-object~); vtable 0x2CA510, 6 slots */
-struct CID152 : BASIC
-{
-    char pad10[0x250 - 0x10];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid152ClassDesc");   /* slot 6 */
-};
-typedef char assert_CID152_size[sizeof(CID152) == 0x250 ? 1 : -1];
-
-/* 154 CID154 (0x30): ticker / hint box (find-ticker-object~); vtable 0x2CA490, 6 slots */
-struct CID154 : BASIC
-{
-    char pad10[0x30 - 0x10];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid154ClassDesc");   /* slot 6 */
-};
-typedef char assert_CID154_size[sizeof(CID154) == 0x30 ? 1 : -1];
 
 /* 58 GUARD (0x1010): plain guard; vtable 0x2C9DC0, 89 slots */
 struct GUARD : STEPGUARD
@@ -1916,6 +1909,15 @@ struct CID101 : CID100
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid101ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID101_size[sizeof(CID101) == 0x1B0 ? 1 : -1];
+
+/* 130 WIDGET130 (0x130); vtable 0x2C9670, 50 slots */
+struct WIDGET130 : WIDGET
+{
+    char pad110[0x130 - 0x110];
+    WIDGET130() __asm__("func_00211C58");     /* out of line: presentation/hud/func_00211C58.cpp */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetWidget130ClassDesc");   /* slot 6 */
+};
+typedef char assert_WIDGET130_size[sizeof(WIDGET130) == 0x130 ? 1 : -1];
 
 /* 118 CID118 (0x60); vtable 0x2C94E0, 48 slots */
 struct CID118 : LO
