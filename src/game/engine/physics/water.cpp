@@ -1,7 +1,11 @@
-// water.cpp -- WATER (an SO): the objects inside it (a node list at +0x150, mirrored into each object's XA list at
-// +0x138 so it gets the water's accelerations), the splash event when something falls in fast, the vertical span
-// of an object under the surface (GetWaterSubmergedFraction), the current at a point, and the per-contact buoyancy, friction,
-// righting torque and wake (AddSoWaterAcceleration). VU0 macro-mode and EE asm; UpdateWater, GetWaterSubmergedFraction and
+// water.cpp -- WATER (an SO): a body of water that pushes, drags and rights the objects floating in it.
+// Role: keeps the list of objects inside the water (nodes at +0x150, each mirrored into the object's external-
+// acceleration (XA) list at +0x138 so the solver asks the water for forces every step), emits the splash event
+// when something falls in fast, measures how much of an object is submerged, evaluates the current at a point and
+// applies per-object buoyancy, current drag, righting torque and wake (AddSoWaterAcceleration).
+// Entry points: InitWater, UpdateWater (slot 16), AddWaterExternalAccelerations (slot 71), HandleWaterMessage,
+// GetWaterSubmergedFraction, CalculateWaterCurrent; AddSoXa / RemoveSoXa / ApplySoExternalAccelerations are the
+// SO-side XA list used by solve.cpp. VU0 macro-mode and EE asm; UpdateWater, GetWaterSubmergedFraction and
 // AddSoWaterAcceleration are hand-tuned (register pins, allocation-only operands, a memory clobber).
 // TU 0x228B48..0x229EF0 (22 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_water
@@ -180,6 +184,7 @@ void func_001F72F8(SOW *p);
  * See: docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/engine/physics-collision.md#6-source-files, docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
+// Slot 7 (Init): InitSo, then the water's defaults (spring 1, gravity-like -10 and the other tuning values).
 extern "C" void InitWater(SOW *p)
 {
     int f;
@@ -198,6 +203,8 @@ extern "C" void InitWater(SOW *p)
  * Notes: descriptive only: water slot override (constraints) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88+verdicts_B
  * @end-sly2-annot */
+// Slot 64: resets the SO physics defaults (InitSoPhysics), sets bit 48 on every part (SetSoPartsBit48) and gives
+// the water friction and spring factors of 1. (inferred: physics init override)
 extern "C" void InitWaterPhysics(SOW *p)
 {
     func_001F3590(p);
@@ -213,6 +220,7 @@ extern "C" void InitWaterPhysics(SOW *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Slot 15 (PostLoad): only the SO post-load.
 void WATER::VUnk14()
 {
     SOW *p = (SOW *)this;
@@ -225,6 +233,8 @@ void WATER::VUnk14()
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Converts a world position into the water's local space and evaluates the current there, returning the linear
+// velocity in *ppos and the angular velocity in *prot (both world space).
 extern "C" void CalculateWaterCurrent(SOW *p, qwordV v, qwordV *ppos, qwordV *prot)
 {
     V q;
@@ -262,6 +272,9 @@ extern "C" void CalculateWaterCurrent(SOW *p, qwordV v, qwordV *ppos, qwordV *pr
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Walks an XA node list and syncs each node with its object's in-water flags: nodes whose object entered get added
+// to the object's XA list, those that left are removed; nodes whose object is no longer inside are unlinked and
+// returned to the world's XA pool. The pending flags are cleared. Sly 1 name.
 extern "C" void UpdateSwXaList(SOW *pv, N **ppn)
 {
     N *pn = *ppn;
@@ -305,6 +318,8 @@ static inline void Signal(SOW *o,int event,PAIR *pair){VE *v=o->vt;v[4].f.signal
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Slot 16 (Update): UpdateSo, then rebuilds the set of objects overlapping the water, sends contact messages for
+// newcomers and an impact (splash) event for objects that hit the surface fast, and syncs the XA nodes.
 extern "C" void UpdateWater(SOW *p){
  WORK work;N *n;COLL **objects;LINK *link;
  UpdateSo(p);
@@ -370,6 +385,8 @@ extern "C" void UpdateWater(SOW *p){
  * Notes: descriptive only: water: call other vt72 (contact) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
+// Slot 71: called by the solver for each object in the water; forwards to the object's slot 72
+// (AddSoWaterAcceleration by default) with the water as argument. Sly 1 name.
 extern "C" void AddWaterExternalAccelerations(SOW *p, PAIR *b)
 {
     SOW *po = b->object;
@@ -383,6 +400,7 @@ extern "C" void AddWaterExternalAccelerations(SOW *p, PAIR *b)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Slot 12 (RemoveHierarchy): SO base, then detaches every XA node from its object and frees the whole list.
 extern "C" void RemoveWaterHierarchy(SOW *p)
 {
     N *n;
@@ -399,6 +417,8 @@ extern "C" void RemoveWaterHierarchy(SOW *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Slot 5 (HandleMessage): on message 1 from another object, drops that object's XA node and sends it message 5
+// (left the water); then the base message handler.
 extern "C" void HandleWaterMessage(SOW *p, int k, SOW *q)
 {
     if (k == 1 && q != p) {
@@ -450,6 +470,9 @@ static inline int NearZ(qwordV d,qwordV n){int z=WordZ(d);float e=Epsilon();retu
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Returns the fraction (0..1) of an object's vertical extent that is under the water surface, found by casting a
+// vertical line through the object's position against the water; optionally returns the surface point and normal.
+// Objects derived from class 0x33 are probed at their own position. Sly 1 name: UGetWaterSubmerged.
 extern "C" float GetWaterSubmergedFraction(SOW *p, SOW *pj, qwordV *ppos, qwordV *pnormal)
 {
     WORK468 work;
@@ -505,6 +528,7 @@ extern "C" float GetWaterSubmergedFraction(SOW *p, SOW *pj, qwordV *ppos, qwordV
  *   slot49 | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r8_21BB88
  * @end-sly2-annot */
+// Slot 49: recomputes the water's tree bounds (UpdateSoTreeBounds). Sly 1 name.
 extern "C" void UpdateWaterBounds(SOW *p)
 {
     UpdateSoTreeBounds(p);
@@ -517,6 +541,7 @@ extern "C" void UpdateWaterBounds(SOW *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Allocates a cleared XA node from the world's pool (Sly 1 PxaAllocSw).
 extern "C" N *AllocSwXa(WORLD *pg)
 {
     return (N *)PvAllocSlotheapClear(&pg->slotheapN);
@@ -528,6 +553,7 @@ extern "C" N *AllocSwXa(WORLD *pg)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Returns every node of an XA list to the world's pool. Sly 1 name.
 extern "C" void FreeSwXaList(WORLD *p, N *n)
 {
     while (n) {
@@ -544,6 +570,7 @@ extern "C" void FreeSwXaList(WORLD *p, N *n)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Pushes an XA node on the object's external-acceleration list and wakes the object.
 extern "C" void AddSoXa(SOW *p, N *pn)
 {
     pn->nextXa = p->firstXa;
@@ -558,6 +585,7 @@ extern "C" void AddSoXa(SOW *p, N *pn)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Unlinks an XA node from the object's external-acceleration list and wakes the object.
 extern "C" void RemoveSoXa(SOW *p, N *n)
 {
     N **pp;
@@ -574,6 +602,8 @@ extern "C" void RemoveSoXa(SOW *p, N *n)
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Asks each owner in the object's XA list for its accelerations (owner slot 71); called by the solver before
+// integration.
 extern "C" void ApplySoExternalAccelerations(SOW *p)
 {
     N *n;
@@ -591,6 +621,7 @@ extern "C" void ApplySoExternalAccelerations(SOW *p)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#water-0x228b48-0x229ef0
  * @end-sly2-annot */
+// Default slot 71 for an SO: no external accelerations.
 extern "C" void AddSoExternalAccelerations()
 {
 }
@@ -619,6 +650,10 @@ static inline void Clear(EMITTER **emitter){if(emitter&&*emitter){StopSnd(*emitt
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/player.md#hurt-0x1a0b18-0x1a2bd0
  * @end-sly2-annot */
+// Default slot 72: the water's effect on one object (a). Buoyancy pushes along the object's direction in
+// proportion to the submerged fraction; linear and angular velocities are pulled toward the water's current with
+// spring gains scaled by friction; a righting torque turns the object upright; a wake is spawned while it floats
+// on a near-horizontal surface, and class 0x32 objects lose their emitter sound otherwise. Sly 1 name.
 extern "C" void AddSoWaterAcceleration(SOW *a,SOW *b){
  WORK7F8 w;
  int i;
@@ -678,6 +713,8 @@ extern "C" void AddSoWaterAcceleration(SOW *a,SOW *b){
  * Notes: descriptive only: water predicate: !(grf bit50) | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
  * @end-sly2-annot */
+// Returns 1 unless the contact's flag bit 50 is set: whether the water may inflict its zap through this contact
+// (inferred from Sly 1 FInflictWaterZap).
 extern "C" int CanWaterInflictZap(void *p, COLL *q)
 {
     return ((q->flags >> 50) & 1) == 0;
@@ -689,6 +726,7 @@ extern "C" int CanWaterInflictZap(void *p, COLL *q)
  * Notes: descriptive only: water wrapper -> ExtendSoBounds | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
+// Slot 73: point-in-object test, forwarded to IsPosInSo with the same position argument.
 extern "C" void EnsureWaterZapData(SOW *p)
 {
     func_001F72F8(p);
