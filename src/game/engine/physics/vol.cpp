@@ -11,10 +11,11 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 #include "sly2/sw.h"
+#include "sly2/classes.h"
 typedef union { qword q; float f[4]; } VU;
 
 /* View of VOL : XFM (fields from 0xE0; names from sly2/xfm.h's BSPC and GEOM, points as qwords). */
-struct VOL
+struct VOLV
 {
     char pad[0xE0];
     struct { int cbsp; int cbspFull; int nUnk08; int absp; } bspc;   /* +0xE0 */
@@ -23,27 +24,27 @@ struct VOL
     qword posCenter;    /* +0x110 centre of the bounding sphere */
     float sRadius;      /* +0x120 its radius (squared length is computed, then overwritten by D_002A9880) */
 };
-typedef char assert_VOL_sRadius[(unsigned int)&((VOL *)0)->sRadius == 0x120 ? 1 : -1];
+typedef char assert_VOL_sRadius[(unsigned int)&((VOLV *)0)->sRadius == 0x120 ? 1 : -1];
 
 typedef struct MSG { int cb; int nKind; } MSG;
 typedef struct MARK { int a[4]; } MARK;
 struct DL;
 extern const float D_002A9880;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
-void LoadXfmFromBrx(VOL *p, void *pbis);
+void LoadXfmFromBrx(VOLV *p, void *pbis);
 void ReadGeom__18CBinaryInputStreamP4GEOM(void *pbis, void *pgeom);   /* linker name of CBinaryInputStream::ReadGeom */
 void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 qword VecMinArray(int c, qword *points);
 qword VecMaxArray(int c, qword *points);
-qword ConvertAloPos(int a, VOL *p, qword q);
+qword ConvertAloPos(int a, VOLV *p, qword q);
 int PbspPointInBspQuick(int a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
 void *func_001AE318(MSG *pmsg);
 int func_00118A88(void *p, int n, qword v, int *pc, void **ppv, float g);
-void OnLoAdd(VOL *p);
-void OnLoRemove(VOL *p);
-int FCheckVolPoint(VOL *p, qword q);
+void OnLoAdd(VOLV *p);
+void OnLoRemove(VOLV *p);
+int FCheckVolPoint(VOLV *p, qword q);
 }
 void AppendDlEntry(DL *pdl, void *pv);   /* AppendDlEntry__FP2DLPv */
 void RemoveDlEntry(DL *pdl, void *pv);   /* RemoveDlEntry__FP2DLPv */
@@ -62,8 +63,10 @@ namespace RO_ORDER { extern const float r_D_002A9880 __asm__("D_002A9880") = -3.
  * See: docs/engine/physics-collision.md#4-geometry-and-queries,
  *   docs/engine/physics-collision.md#6-source-files, docs/engine/physics-collision.md#7-key-functions
  * @end-sly2-annot */
-extern "C" void LoadVolFromBrx(VOL *p, void *pbis)
+void VOL::LoadFromBrx(CBinaryInputStream *pbis_m)
 {
+    VOLV *p = (VOLV *)this;
+    void *pbis = (void *)pbis_m;
     LoadXfmFromBrx(p, pbis);
     ReadGeom__18CBinaryInputStreamP4GEOM(pbis, &p->geom);
     CBinaryInputStream_ReadBspc(pbis, &p->geom, &p->bspc);
@@ -95,7 +98,7 @@ extern "C" void LoadVolFromBrx(VOL *p, void *pbis)
  *   docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int FCheckVolPoint(VOL *p, qword q)
+extern "C" int FCheckVolPoint(VOLV *p, qword q)
 {
     qword a = ConvertAloPos(0, p, q), d, r;
     float f;
@@ -115,7 +118,7 @@ extern "C" int FCheckVolPoint(VOL *p, qword q)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" int func_00227D20(VOL *p, qword v, float g)
+extern "C" int func_00227D20(VOLV *p, qword v, float g)
 {
     if (g <= 1.0f) {
         return FCheckVolPoint(p, v);
@@ -153,8 +156,9 @@ extern "C" int func_00227D20(VOL *p, qword v, float g)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" void func_00227E20(VOL *p)
+void CID23::Unfreeze()
 {
+    VOLV *p = (VOLV *)this;
     OnLoAdd(p);
     AppendDlEntry(&g_sw.dlCid23, p);
 }
@@ -168,7 +172,7 @@ extern "C" void func_00227E20(VOL *p)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#vol-0x227bb8-0x227fe8
  * @end-sly2-annot */
-extern "C" void func_00227E58(VOL *p)
+extern "C" void func_00227E58(VOLV *p)
 {
     OnLoRemove(p);
     RemoveDlEntry(&g_sw.dlCid23, p);

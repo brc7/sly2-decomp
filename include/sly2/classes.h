@@ -1992,9 +1992,9 @@ typedef char assert_CID5_size[sizeof(CID5) == 0x120 ? 1 : -1];
 struct CID23 : VOL
 {
     char pad130[0x140 - 0x130];
+    virtual void Unfreeze() __asm__("func_00227E20");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid23ClassDesc");   /* slot 6 */
     virtual void Freeze() __asm__("func_00227E58");   /* slot 22 */
-    virtual void Unfreeze() __asm__("func_00227E20");   /* slot 23 */
 };
 typedef char assert_CID23_size[sizeof(CID23) == 0x140 ? 1 : -1];
 

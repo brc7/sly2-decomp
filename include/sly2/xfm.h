@@ -109,8 +109,8 @@ struct VOL : public XFM
       qword posCenter;
       float sRadius2;
       undefined4 unk_0x124[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetVolClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVolFromBrx");   /* slot 14 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetVolClassDesc");   /* slot 6 */
 };
 typedef char assert_VOL_size[sizeof(VOL) == 0x130 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
