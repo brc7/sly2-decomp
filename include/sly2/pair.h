@@ -1,15 +1,16 @@
 /* include/sly2/pair.h -- CPair, the Splice cons cell, and CPairPtr, the counted pointer that links pairs.
  *
  * A pair is {count, GC link word, value, next} (0x14 bytes, the first engine slot pool). The next link is a counted
- * pointer: assigning it (0x256C58 PairPtr_Assign) takes a reference on the new pair and releases the old one;
- * destroying it (0x256D40, _$_t7CRefPtr1Z5CPair) releases the pair, which destroys the pair's own link in turn (the release is
- * recursive down the list). Both functions are linkonce copies (0x254F00..0x259DE4), homed in app/bif.cpp.
+ * pointer: assigning it (0x256C58) takes a reference on the new pair and releases the old one; destroying it
+ * (0x256D40) releases the pair, which destroys the pair's own link in turn (the release is recursive down the list).
  *
- * Names: CPairPtr is a placeholder. HYPOTHESIS: it is the out-of-line instance of a counted-pointer template
- * (sly2/basic.h's CRefPtr<CPair>; the alias table binds CRefPtr<CFrame>::operator= to FramePtr_Assign the same way).
- * Not modelled as the template: the template's inline destructor would be inlined where the game calls it out of
- * line. Callers that release a pair inline (the "SPW"/"SPN" owners of CPair_CloneTo and the list builtins) keep
- * their own views. See docs/guides/tu-merging.md, "Representation decisions" and "Views unified". */
+ * CPairPtr is a view of sly2/basic.h's CRefPtr<CPair> (CONFIRMED by match: splice/gc.cpp emits both functions as the
+ * instances __as__t7CRefPtr1Z5CPairP5CPair and _$_t7CRefPtr1Z5CPair, linkonce, with the real template). The view
+ * stays for its includers: they call both out of line, where the template's inline destructor would be inlined
+ * unless instantiated in gc.cpp's order. The assignment is bound by asm label; the destructor cannot be (g++ drops
+ * the call), so its includers reference _$_8CPairPtr, which config/link_aliases.txt binds to the instance. Callers
+ * that release a pair inline (the "SPW"/"SPN" owners of CPair_CloneTo and the list builtins) keep their own views.
+ * See docs/guides/tu-merging.md, "Linkonce copies by family" and "Views unified". */
 #ifndef SLY2_PAIR_H
 #define SLY2_PAIR_H
 #include "sly2/cref.h"
