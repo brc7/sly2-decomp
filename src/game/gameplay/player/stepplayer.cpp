@@ -925,10 +925,12 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         if (pv == F(void *, player, 0x1030) ||
             (F(void *, player, 0x1034) != 0 && pv == F(void *, F(void *, player, 0x1034), 0x30))) {
             F(int, player, 0x1038) = -1;
-            if ((unsigned)(F(int, player, 0xDF4) - 8) < 5) {
+            int hurtState = AsStepplayer(player)->jthurt.nState;
+            if (hurtState >= 8 && hurtState <= 12) {   // hurt states with a pending callback (inferred)
+
                 RunJtHurtCallback(&AsStepplayer(player)->jthurt);
             } else {
-                switch (F(int, player, 0x11B4)) {
+                switch (AsStepplayer(player)->jtthrow.nState) {
                 case 5:
                 case 6: SetJtThrowState(&AsStepplayer(player)->jtthrow, 4); break;
                 case 1:
@@ -978,29 +980,29 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             break;
         }
         case 0x27B:
-            if (F(int, player, 0x11B4) != -1)
+            if (AsStepplayer(player)->jtthrow.nState != -1)
                 ReleaseJtThrowObject(&AsStepplayer(player)->jtthrow);
             break;
         case 0x27C:
-            if (F(int, player, 0x4C8) == 0xB) {
+            if (AsStepplayer(player)->jtgrab.nState == 0xB) {
                 void *object;
                 int n;
-                if (F(void *, player, 0x4D4) != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(F(void *, player, 0x4D4), 100)) {
-                    object = F(void *, player, 0x4D4);
+                if (AsStepplayer(player)->jtgrab.plo != 0 && FIsBasicDerivedFrom__FP5BASIC3CID(AsStepplayer(player)->jtgrab.plo, 100)) {
+                    object = AsStepplayer(player)->jtgrab.plo;
                     if (func_00224590(object))
                         func_002245B8(object);
                 }
                 n = F(int, player, 0x9BC);
                 if (F(void *, player, 0x130C) != 0) {
                     __asm__("" : : : "$3", "$4"); /* clobber of dead v1/a0 (Claude agent): target keeps n in a1 */
-                    if (F(int, player, 0x1314) == n) {
+                    if (AsStepplayer(player)->idGadgetOverlay == n) {
                         ReleaseAsega(&AsStepplayer(player)->pasegaGadgetOverlay);
-                        F(int, player, 0x1314) = -1;
+                        AsStepplayer(player)->idGadgetOverlay = -1;
                     } else {
                         ChargeGadgetMp(player);
                         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(F(void *, player, 0x130C), player, 0.0f, 8, 1.0f,
                                                               &AsStepplayer(player)->pasegaGadgetOverlay);
-                        F(int, player, 0x1314) = F(int, player, 0x9BC);
+                        AsStepplayer(player)->idGadgetOverlay = F(int, player, 0x9BC);
                     }
                 } else if (n != -1) {
                     ChargeGadgetMp(player);
@@ -1029,13 +1031,13 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             }
             break;
         case 0x1C8:
-            if (F(int, player, 0x4C8) == 0xC)
-                StartJtHandsCarry(&AsStepplayer(player)->jtgrab.hands, F(void *, player, 0x4D4));
+            if (AsStepplayer(player)->jtgrab.nState == 0xC)
+                StartJtHandsCarry(&AsStepplayer(player)->jtgrab.hands, AsStepplayer(player)->jtgrab.plo);
             break;
         case 0x1C7:
-            if (F(int, player, 0x4C8) == 0xC) {
+            if (AsStepplayer(player)->jtgrab.nState == 0xC) {
                 SetAsegaSpeed__FP5ASEGAf(F(void *, player, 0x1030), 1.0f);
-                AttachJtHandsObject(&AsStepplayer(player)->jtgrab.hands, F(void *, player, 0x4D4));
+                AttachJtHandsObject(&AsStepplayer(player)->jtgrab.hands, AsStepplayer(player)->jtgrab.plo);
             }
             break;
         }
@@ -1069,15 +1071,15 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         break;
     }
     case 1:
-        if (F(int, player, 0x4C8) == 0xB && F(void *, player, 0x4D4) == pv) {
+        if (AsStepplayer(player)->jtgrab.nState == 0xB && AsStepplayer(player)->jtgrab.plo == pv) {
             UnsubscribeLoObject(pv, player);
-            F(void *, player, 0x4D4) = 0;
+            AsStepplayer(player)->jtgrab.plo = 0;
         }
         break;
     case 11:
         if (((struct MSGB *)pv)->p4 == player) {
             ReleaseAsega(&AsStepplayer(player)->pasegaGadgetOverlay);
-            F(int, player, 0x1314) = -1;
+            AsStepplayer(player)->idGadgetOverlay = -1;
         }
         break;
     }
