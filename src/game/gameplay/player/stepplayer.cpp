@@ -926,13 +926,9 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             } else {
                 switch (F(int, player, 0x11B4)) {
                 case 5:
-                case 6:
-                    SetJtThrowState((char *)player + 0x11B0, 4);
-                    break;
+                case 6: SetJtThrowState((char *)player + 0x11B0, 4); break;
                 case 1:
-                case 2:
-                    SetJtThrowState((char *)player + 0x11B0, 0);
-                    break;
+                case 2: SetJtThrowState((char *)player + 0x11B0, 0); break;
                 }
             }
         }
@@ -945,7 +941,10 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
         case 0x15E: {
             qword v = func_00204E38(player, message->pso, message->g);
             qword *pm = &F(qword, player, 0x1B0);
-            union { qword q; float f[4]; } s; /* home of the -1.0f VU_FLOAT: stored, never read */
+            union {
+                qword q;
+                float f[4];
+            } s; /* home of the -1.0f VU_FLOAT: stored, never read */
             qword sv, r;
             struct VT *vtable;
             void *pthis;
@@ -960,14 +959,13 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
             pthis = (char *)player + vtable->a[35].d;
             function = (void (*)(void *, qword))vtable->a[35].pfn;
             __asm__("vmulax.xyz ACC, %1, %2x\n\tvmadday.xyz ACC, %3, %2y\n\tvmaddz.xyz %0, %4, %2z"
-                : "=&j"(r) : "j"(pm[0]), "j"(v), "j"(pm[1]), "j"(pm[2]));
+                    : "=&j"(r)
+                    : "j"(pm[0]), "j"(v), "j"(pm[1]), "j"(pm[2]));
             s.q = sv;
             function(pthis, r);
             break;
         }
-        case 0x161:
-            F(int, player, 0x1044) = 1;
-            break;
+        case 0x161: F(int, player, 0x1044) = 1; break;
         case 0x162: {
             qword v = F(qword, player, 0x1060);
             F(int, player, 0x1044) = 0;
@@ -996,18 +994,15 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                         F(int, player, 0x1314) = -1;
                     } else {
                         ChargeGadgetMp(player);
-                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(F(void *, player, 0x130C), player, 0.0f, 8, 1.0f, (char *)player + 0x1310);
+                        ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(F(void *, player, 0x130C), player, 0.0f, 8, 1.0f,
+                                                              (char *)player + 0x1310);
                         F(int, player, 0x1314) = F(int, player, 0x9BC);
                     }
                 } else if (n != -1) {
                     ChargeGadgetMp(player);
                     switch (F(int, player, 0x9BC)) {
-                    case 0xE:
-                        SetGuardOverride(&D_003DD490, 1);
-                        break;
-                    case 0x15:
-                        SetAllGuardsSpecialState(&D_003DD490, 0x15);
-                        break;
+                    case 0xE: SetGuardOverride(&D_003DD490, 1); break;
+                    case 0x15: SetAllGuardsSpecialState(&D_003DD490, 0x15); break;
                     case 0x17: {
                         DLI dli;
                         void *po2;
