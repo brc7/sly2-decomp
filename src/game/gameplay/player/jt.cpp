@@ -28,6 +28,10 @@
 #include "sly2/scrap.h"
 #include "player_input.h"
 
+// The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
+// the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
+static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
+
 /* .bss (tu-merging.md "Data": .bss gaps): D_002E1E00, the word whose bit 0 makes the player invulnerable (po's
    FInvulnerablePo, hurt, tu_17F090; InitGame clears it), at the head of jt's .bss before g_pjt D_002E1E40; sized
    0x40 by the layout (one word code names, then 0x3C bytes no code names). Ownership is a choice: the gap lies
@@ -724,10 +728,10 @@ extern "C" void PresetJtAccel(P *jt)
     }
     switch (jt->mode) {
     case 3: PresetJtAccelHang__FP2JT(jt); break;
-    case 8: PresetJtAccelPipe((char *)jt + 0xF50); break;
-    case 2: PresetJtAccelJump((char *)jt + 0x2C0); break;
-    case 4: PresetJtAccelZap((char *)jt + 0xDF0); break;
-    case 7: PresetJtAccelHide((char *)jt + 0x4C0); break;
+    case 8: PresetJtAccelPipe(&AsStepplayer(jt)->jtpipe); break;
+    case 2: PresetJtAccelJump(&AsStepplayer(jt)->jtair); break;
+    case 4: PresetJtAccelZap(&AsStepplayer(jt)->jthurt); break;
+    case 7: PresetJtAccelHide(&AsStepplayer(jt)->jtgrab); break;
     case 6: CorrectBentleyRideVelocity((char *)jt + 0x1FF0); break;
     case 14: {
         VTE *e = &jt->vt[33];

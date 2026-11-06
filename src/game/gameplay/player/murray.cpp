@@ -20,6 +20,10 @@
 #include "sly2/classes.h"
 #include "player_input.h"
 
+// The embedded movement components of a player (JTAIR at +0x2C0, JTGRAB +0x4C0, ... JTTHROW +0x11B0) are taken from
+// the real STEPPLAYER layout in sly2/stepplayer.h; the per-function views only declare the words they read.
+static inline STEPPLAYER *AsStepplayer(void *player) { return (STEPPLAYER *)player; }
+
 // Murray's state (MURRAY +0x13D0), switched by SetMurrayState and run by UpdateMurrayStateMachine. Meanings from
 // runtime observation (docs/engine/player.md section 6) except where marked.
 enum MurrayState {
@@ -1643,7 +1647,7 @@ void GetMurrayCpdefi(struct S *murray, int *pf)
         *pf |= 1;
         break;
     case MURRAY_AIMED_THROW: UpdateJtThrowHoldPosition((char *)murray + 0x1910, pf); break;
-    case MURRAY_PIPE: GetJtPipeVelocity((char *)murray + 0xF50, pf); break;
+    case MURRAY_PIPE: GetJtPipeVelocity(&AsStepplayer(murray)->jtpipe, pf); break;
     }
 }
 } } // namespace M_GetMurrayCpdefi
@@ -2766,11 +2770,11 @@ void ApplyMurrayStateStepParams(struct P *murray)
     int k = 0;
     int v;
     switch (murray->k) {
-    case MURRAY_GRAB: v = GetJtGrabAdjustRecord((char *)murray + 0x4C0, &k); break;
-    case MURRAY_HURT: v = GetJtHurtAdjustRecord((char *)murray + 0xDF0, &k); break;
+    case MURRAY_GRAB: v = GetJtGrabAdjustRecord(&AsStepplayer(murray)->jtgrab, &k); break;
+    case MURRAY_HURT: v = GetJtHurtAdjustRecord(&AsStepplayer(murray)->jthurt, &k); break;
     case MURRAY_JUMP:
         if (murray->carried) v = murray->x1ABC;
-        else v = GetJtAirAdjustRecord((char *)murray + 0x2C0, &k);
+        else v = GetJtAirAdjustRecord(&AsStepplayer(murray)->jtair, &k);
         break;
     case MURRAY_CARRY: v = murray->a1AB0[murray->carrySubstate]; break;
     default: v = murray->a1A58[murray->k]; break;
@@ -2912,10 +2916,10 @@ void UpdateMurrayPlaces(struct S *murray)
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_LIFT: case MURRAY_CARRY: case MURRAY_THROW: case MURRAY_TOSS: case MURRAY_STRAFE: case MURRAY_WALK: case MURRAY_SCRIPT_SMA: case MURRAY_TURNBUCKLE:
         pq = murray->pq;
         if (pq && pq->f88 > 0.7f && !(pq->pm->f148 & 0x20000000) && !murray->x108C)
-            AddJtPlaceAtPosition((char *)murray + 0x9E0, pq->x40, pq->q60);
+            AddJtPlaceAtPosition(&AsStepplayer(murray)->jtplaces, pq->x40, pq->q60);
         break;
-    case MURRAY_GRAB: RecordJtGrabPlace((char *)murray + 0x4C0); break;
-    case MURRAY_PIPE: RecordJtPipePlace((char *)murray + 0xF50); break;
+    case MURRAY_GRAB: RecordJtGrabPlace(&AsStepplayer(murray)->jtgrab); break;
+    case MURRAY_PIPE: RecordJtPipePlace(&AsStepplayer(murray)->jtpipe); break;
     }
 }
 } } // namespace M_func_001B82A0
@@ -3978,13 +3982,13 @@ int FCanUseGadget__6MURRAYi(struct P *p, int k)
     case MURRAY_IDLE: case MURRAY_RUN: case MURRAY_STRAFE: case MURRAY_WALK:
         break;
     case MURRAY_JUMP:
-        if (!CanJtUseGadgetInAir((char *)p + 0x2C0, k)) return 0;
+        if (!CanJtUseGadgetInAir(&AsStepplayer(p)->jtair, k)) return 0;
         break;
     case MURRAY_GRAB:
-        if (!CanJtUseGadgetInGrab((char *)p + 0x4C0, k)) return 0;
+        if (!CanJtUseGadgetInGrab(&AsStepplayer(p)->jtgrab, k)) return 0;
         break;
     case MURRAY_PIPE:
-        if (!CanJtUseGadgetOnPipe((char *)p + 0xF50, k)) return 0;
+        if (!CanJtUseGadgetOnPipe(&AsStepplayer(p)->jtpipe, k)) return 0;
         break;
     case MURRAY_CARRY:
         if (k == 3) return 1;
@@ -4049,7 +4053,7 @@ void UseMurrayGadget(struct P *murray, int k)
     case 15:
         murray->x9BC = k;
         murray->x130C = murray->x1AC4;
-        SetJtGrabState((char *)murray + 0x4C0, 0xB, 0, 0);
+        SetJtGrabState(&AsStepplayer(murray)->jtgrab, 0xB, 0, 0);
         break;
     case 19:
         ChargeGadgetMp(murray, k);
@@ -4063,7 +4067,7 @@ void UseMurrayGadget(struct P *murray, int k)
         break;
     case 21:
         murray->x9BC = 0x15;
-        SetJtGrabState((char *)murray + 0x4C0, 0xB, murray->interactTarget, 0);
+        SetJtGrabState(&AsStepplayer(murray)->jtgrab, 0xB, murray->interactTarget, 0);
         break;
     case 16:
         SetMurrayState(murray, MURRAY_TURNBUCKLE);
