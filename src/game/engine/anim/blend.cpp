@@ -100,13 +100,13 @@ void *func_001AE2A0(const AREQ &req);
 OBJ *PacNewKind(int id);
 OBJ *PacNewKind2(int id);
 void ResolveAsegChannelTarget(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
-qword func_0022CA18(void *pa, void *pb);
+qword GetXfValueFromMatrix(void *pa, void *pb);
 void FramePtr_Assign(ASEG *px, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void RecalculateAsegBlend(ASEG *px);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, ASEG **ppx);
 float GetAsegLabelTime(ASEG *paseg, OID oid);
 float GModPositive__Fff(float, float);
-int func_0012CEE0(CHNE *);
+int IsActCurrent(CHNE *);
 void SetAsegblDominantBl(ASEG *p, int n);
 void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *amrsg, float *pf);
 void *func_002333B4(void *, int, int) __asm__("memset");
@@ -208,7 +208,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             int a; void *pv;
             pobj = PacNewKind(5);
             ResolveAsegChannelTarget(pxNew, p, pentNew, &a, &pv);
-            pobj->q10 = func_0022CA18(pv, pv);
+            pobj->q10 = GetXfValueFromMatrix(pv, pv);
             pobj->px = pxNew;
             pobj->ae3 = pxNew->ae3;
             pobj->apobj = (OBJ **)func_001AE2A0(AREQ(c * 4));
@@ -387,7 +387,7 @@ extern "C" void SetAsegblDominantBl(ASEG *p, int n) {
     p->xD4 = n;
     for (pa = p->plinkFirst; pa; pa = pa->pnext) {
         for (pc = pa->pcFirst; pc; pc = pc->pnext) {
-            if (pc->f1c && func_0012CEE0(pc)) {
+            if (pc->f1c && IsActCurrent(pc)) {
                 CHN *px = pc->px;
                 px->x80 = px->x84 = D_002A4AF0; px->x88 = px->x8C = (float *)D_002C44E0; px->x9A = 0;
             }

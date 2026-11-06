@@ -52,7 +52,7 @@ int S16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
 void *func_001AE2A0(MSG *pmsg);
 void InitIkRecord(IKREC *q);
-void func_0012DD28(SOIK *p, void *pv, int n, IKREC *q);
+void NewIkAct(SOIK *p, void *pv, int n, IKREC *q);
 float RadBetweenVectors(qwordV a, qwordV b, qwordV *pv);
 qwordV ConvertXfVec(void *space, void *p, qwordV v);
 }
@@ -126,8 +126,8 @@ extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
         ikRecord->primary = PvLookup(so, stream);
         ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->localPoint);
         InitIkRecord(ikRecord);
-        func_0012DD28(so, ikRecord->current, -1, ikRecord);
-        func_0012DD28(so, ikRecord->output, -1, ikRecord);
+        NewIkAct(so, ikRecord->current, -1, ikRecord);
+        NewIkAct(so, ikRecord->output, -1, ikRecord);
     }
 }
 

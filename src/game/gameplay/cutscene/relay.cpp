@@ -1042,7 +1042,7 @@ extern "C" void func_0020FFF0(SW *psw, OID *aoid, LO *ploContext, int grf, JSGV 
 
 extern "C" int func_00210B68();
 
-extern "C" void func_001DD820(void *pv);
+extern "C" void ShowTitleScreen(void *pv);
 
 extern "C" void func_001531A8(LO *plo, int n, int cent, void *aent);
 
@@ -3539,7 +3539,7 @@ inline int GrfUpdateLo(LO *plo)
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 SMA *PsmaFindOnAlo(ALO *paloRoot, OID oidSm) __asm__("func_001F67E0");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
-OID GetSmaCur(SMA *psma) __asm__("func_001F07E8");
+OID GetSmaCur(SMA *psma) __asm__("GetSmaCurrentState");
 
 
 
@@ -3615,7 +3615,7 @@ extern "C" void RespawnAtSafeSpot(STEPPLAYER *pstepplayer, JTPLACE *pplace) __as
 extern "C" void PlayJtAsegDefault(LO *plo, LO *ploOther, int n) __asm__("ApplyDancerAseg");
 extern "C" int StartDialogueLine(SNDMGR *psndmgr, int idLine, int fWait) __asm__("StartDialog");
 extern "C" void StartMusic(SNDMGR *psndmgr, int idMusic) __asm__("PushMusic");
-extern "C" void StopMusic(SNDMGR *psndmgr, int idMusic) __asm__("func_001FE310");
+extern "C" void StopMusic(SNDMGR *psndmgr, int idMusic) __asm__("StopMusic");
 extern "C" void SetHintBoxText(HINTBOX *phintbox, int idText, float dt) __asm__("PostNotice");
 extern "C" void ClearIfSlotId(HINTBOX *phintbox, int idText) __asm__("CancelNotice");
 extern "C" { extern SNDMGR D_003DD040; }
@@ -4506,7 +4506,7 @@ void NextJsgCommand(JSGV *pjsg)
         D_004435F0.grfbtnPrompt = prelaycmd->buttonPrompt.grfbtn & 0xF0;
         break;
     case RELAYCK_StopLine:
-        func_001DD820(D_003DA530);
+        ShowTitleScreen(D_003DA530);
         break;
     case RELAYCK_Line:
         StartDialogueLine(&D_003DD040, prelaycmd->line.idLine, prelaycmd->line.fWait);
@@ -4775,7 +4775,7 @@ inline int GrfUpdateLo(LO *plo)
 }
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 int FIsSmaRetracted(SMA *psma) __asm__("FSmaRetracted");
-OID GetSmaCur(SMA *psma) __asm__("func_001F07E8");
+OID GetSmaCur(SMA *psma) __asm__("GetSmaCurrentState");
 int FFloatsNear(float g1, float g2, float gEpsilon) __asm__("FFloatsNear__Ffff");
 float GLimitLm(LM *plm, float g) __asm__("GLimitLm__FP2LMf");
 
@@ -4867,12 +4867,12 @@ extern "C" { extern SNDMGR D_003DD040; }
 extern "C" { extern char D_003DA530[]; }
 extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
 extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("FMatchesLoName");
-extern "C" int func_002121C8(LO *plo);
+extern "C" int IsWidgetIdle(LO *plo);
 extern "C" void func_001E5468(JSGV *pjsg);
 extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
 extern "C" int FScreenShown(void *pv);
-extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("func_001FE848");
-extern "C" float func_001FE888(SNDMGR *psndmgr);
+extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("IsDialogPlaying");
+extern "C" float GetDialogTime(SNDMGR *psndmgr);
 extern "C" float GetFirstTimerSeconds(SNDMGR *psndmgr) __asm__("TMusicCur");
 extern "C" void ClearBhvstk(BHVSTK *pbhvstk) __asm__("ClearBhvstk__FP6BHVSTK");
 extern "C" { extern float D_002BD850; }
@@ -4958,7 +4958,7 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         fComplete = pjsg->psmaCur == 0;
         break;
     case RELAYCK_WidgetShow:
-        if (pjsg->ploWidget && func_002121C8(pjsg->ploWidget))
+        if (pjsg->ploWidget && IsWidgetIdle(pjsg->ploWidget))
         {
             func_001E5468(pjsg);
         }
@@ -5322,7 +5322,7 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
         }
         else
         {
-            fComplete = 0.0f <= func_001FE888(&D_003DD040) - prelaycmd->unk52.dtWait;
+            fComplete = 0.0f <= GetDialogTime(&D_003DD040) - prelaycmd->unk52.dtWait;
         }
         break;
     }
@@ -5469,7 +5469,7 @@ float GGetDifficulty(struct G *pg);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
 void *func_001F67E0(void *p, int n);
 float DtSmaToState(void *p, int n);
-float func_001FCFD0(struct G *pg, int n);
+float GetDialogStreamDuration(struct G *pg, int n);
 static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return lo; if (g > hi) return hi; return g; }
 /** @sly2-annot addr=0x1E4530
  * Purpose: Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
@@ -5510,7 +5510,7 @@ float func_001E4530(struct C *pc, struct P *p)
         g = p->u10.g;
         break;
     case 0x45:
-        g = func_001FCFD0(&D_003DD040, p->u10.n);
+        g = GetDialogStreamDuration(&D_003DD040, p->u10.n);
         break;
     case 0x2C:
     case 0x2D:

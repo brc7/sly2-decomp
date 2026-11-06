@@ -56,7 +56,7 @@ void PostSoLoad(SAFEHOUSEV *pso);
 void UpdateSo(SAFEHOUSEV *pso);
 int DxSelectionJoy(void *pjoy);
 int GrfHandleJoyBtn(void *pjoy, int grf);
-void *func_001F07E8(SMA *psma);
+void *GetSmaCurrentState(SMA *psma);
 void SetThiefnetTab(void *pv, int n);
 void FireRelay(SAFEHOUSEV *prelay, int n);
 void SetPoCtlState(SAFEHOUSEV *ppo, int n);
@@ -69,7 +69,7 @@ CRef RefGetSaveVarV(const char *pchz, ...);
 int OidFromSmIsms(SMV *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
 CRef func_002013D8(void *pv, int a, int b, int *pc, void **apv);
-int func_001F0438(SMV *psm, void *pv);
+int FindSmStateRequired(SMV *psm, void *pv);
 void SetSmaGoal(SMA *psma, void *pv);
 void func_001D7480(SAFEHOUSEV *psh, int state);
 void func_001D77D0(SAFEHOUSEV *psh, int d);
@@ -146,7 +146,7 @@ extern "C" void func_001D72A8(SAFEHOUSEV *psh)
             pe = &psh->aentry[i];
             if (i >= (int)psh->centry)
                 return;
-            if (pe->pvState != func_001F07E8(psh->psma))
+            if (pe->pvState != GetSmaCurrentState(psh->psma))
                 continue;
             if (!GrfHandleJoyBtn(pjoy, pe->grfBtn))
                 continue;
@@ -285,7 +285,7 @@ extern "C" void func_001D77D0(SAFEHOUSEV *psh, int d)
     int i;
     if (psh->psma == 0)
         return;
-    i = func_001F0438(psh->psm, func_001F07E8(psh->psma));
+    i = FindSmStateRequired(psh->psm, GetSmaCurrentState(psh->psma));
     i0 = i;
     for (;;) {
         void *pv;

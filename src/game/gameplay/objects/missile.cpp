@@ -123,7 +123,7 @@ void LoadSoFromBrx(SO *pso, CBinaryInputStream *pbis);
 void BindLoOidTable(LO *plo, int c, void *aoid);
 void RemoveSoHierarchy(SO *pso);
 void ReleaseAct(ACT **ppact);
-ACT *func_0012DCA0(MISSILE *pmissile, XF *pxf, int a, int b, float g0, float g1);
+ACT *NewPathAct(MISSILE *pmissile, XF *pxf, int a, int b, float g0, float g1);
 void ApplyBombThrow(BOMB *pbomb);
 int FIgnoreBombIntersection(BOMB *pbomb, SO *pso);
 int func_00134310(int r, int n);
@@ -209,7 +209,7 @@ extern "C" void FireMissile(MISSILE *pmissile, LO *ploTarget, V *ppos)
     *(V *)&pmissile->qwTarget = v;
     ApplyAsegCur(pmissile->paseg, (ALO *)pmissile, 0.0f, 1.0f, 8, &pmissile->pasega);
     if (pmissile->fAct)
-        pmissile->pact = func_0012DCA0(pmissile, pmissile->pxfUnk5c, 0, 5, pmissile->gAct, 0.0f);
+        pmissile->pact = NewPathAct(pmissile, pmissile->pxfUnk5c, 0, 5, pmissile->gAct, 0.0f);
 }
 
 /** @sly2-annot addr=0x1B1F10

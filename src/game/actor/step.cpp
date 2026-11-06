@@ -106,7 +106,7 @@ struct S { char pad[0x58]; int n58; int n5C; char pad2[0x294 - 0x60]; int x294; 
 struct O { char pad[0x264]; int oid; void *p268; char x26C[0x28]; int x294; };
 void PostSoLoad(struct O *p);
 int func_001E94B0(int a, int b);
-void func_002303A0(struct O *p, int n, int f);
+void SetXfRole(struct O *p, int n, int f);
 void *PsopartFindSo(struct O *p, int oid);
 void func_00203AF0(struct O *p, void *pv);
 void HideSoPart(struct O *p, void *pv);
@@ -124,8 +124,8 @@ void PostStepLoad(struct O *p)
 {
     PostSoLoad(p);
     p->x294 = func_001E94B0(0x2C9, 0x10);
-    func_002303A0(p, ((struct S *)p)->n58, 1);
-    func_002303A0(p, ((struct S *)p)->n5C, 1);
+    SetXfRole(p, ((struct S *)p)->n58, 1);
+    SetXfRole(p, ((struct S *)p)->n5C, 1);
     if (p->oid != -1) {
         p->p268 = PsopartFindSo(p, p->oid);
         if (p->p268) {
@@ -1546,7 +1546,7 @@ namespace M_func_00205478 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
-int func_001FD0C0(void *p, int i);
+int GetDialogRoleSmOid(void *p, int i);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *PsmaFindSm__FP2SMP3ALO(void *x, struct S *ps);
 void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
@@ -1567,7 +1567,7 @@ void func_00205478(struct S *p, int mask)
         if (!f) bit = 0;
         if (mask & bit) {
             if (++p->a[i] < 2) {
-                int id = func_001FD0C0(D_003DD040, i);
+                int id = GetDialogRoleSmOid(D_003DD040, i);
                 void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, p);
                 if (x) {
                     void *y = PsmaFindSm__FP2SMP3ALO(x, p);
@@ -1585,10 +1585,10 @@ namespace M_func_00205588 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
-int func_001FD0C0(void *p, int i);
+int GetDialogRoleSmOid(void *p, int i);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *PsmaFindSm__FP2SMP3ALO(void *x, struct S *ps);
-void func_001F0598(void *y);
+void RetractSma(void *y);
 /** @sly2-annot addr=0x205588
  * Purpose: STEP vt84: inverse of 0x205478: --refcount, at 0 retract the SMA (0x1F0598)
  * Info: proposed name RemoveStepDialogSmRefs (T2); class STEP slot84; TU step
@@ -1606,12 +1606,12 @@ void func_00205588(struct S *p, int mask)
         if (mask & bit) {
             if (p->a[i] != 0) {
                 if (--p->a[i] <= 0) {
-                    int id = func_001FD0C0(D_003DD040, i);
+                    int id = GetDialogRoleSmOid(D_003DD040, i);
                     void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, p);
                     if (x) {
                         void *y = PsmaFindSm__FP2SMP3ALO(x, p);
                         if (y)
-                            func_001F0598(y);
+                            RetractSma(y);
                     }
                 }
             }

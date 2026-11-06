@@ -128,7 +128,7 @@ struct SMA : public BASIC
     virtual void VUnk00() __asm__("IncrefSma");   /* slot 1 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSmaClassDesc");   /* slot 6 */
     virtual void VUnk01() __asm__("DecrefSma");   /* slot 2 */
-    virtual void SendMessage(MSGID msgid, void *pv) __asm__("func_001F0FD8");   /* slot 4 */
+    virtual void SendMessage(MSGID msgid, void *pv) __asm__("SendSmaMessage");   /* slot 4 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleSmaMessage");   /* slot 5 */
 };
 typedef char assert_SMA_size[sizeof(SMA) == 0x50 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

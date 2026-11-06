@@ -78,9 +78,9 @@ float F32Read__18CBinaryInputStream(void *);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *,qword *);
 int S16Read__18CBinaryInputStream(void *);
 void *func_001AE2A0(struct Alloc *);
-struct Hook *func_0012E1F0(int);
+struct Hook *AllocAct(int);
 void AddXfAct(struct S *,struct O *,struct Hook *);
-qword func_0022FC48(struct O *,struct O *,qword);
+qword TransformXfPos(struct O *,struct O *,qword);
 qword ConvertXfVec(struct O *,struct O *,qword);
 }
 static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return func_001AE2A0(&req); }
@@ -122,7 +122,7 @@ extern "C" void LoadSoChainsFromBrx(struct S *p,void *stream) {
             e->node=n;
             { struct VE *ve=&p->vt[51]; e->object=ve->get((char *)p+ve->d,S16Read__18CBinaryInputStream(stream)); }
             e->mat=e->object->mat;
-            h=func_0012E1F0(0x20);
+            h=AllocAct(0x20);
             h->vt=D_002DB338;
             h->kind=3;
             h->owner=p;
@@ -135,12 +135,12 @@ extern "C" void LoadSoChainsFromBrx(struct S *p,void *stream) {
         }
         for(j=0;j<n->count;j++) {
             e=&n->entries[j];
-            if(j<n->count-1) e->pos=func_0022FC48(0,e->object,n->entries[j+1].object->pos);
+            if(j<n->count-1) e->pos=TransformXfPos(0,e->object,n->entries[j+1].object->pos);
             /* the previous entry through integer arithmetic: as C++, (char *)e - 0x70 and e[-1] give a split -0x8000 + 0x7FF4
                address (39/165 differ); n->entries[j-1] differs as much */
             else if(j>0) e->pos=ConvertXfVec(((struct E *)((int)e-0x70))->object,e->object,((struct E *)((int)e-0x70))->pos);
             else e->pos=n->q30;
-            e->world=func_0022FC48(e->object,0,e->pos);
+            e->world=TransformXfPos(e->object,0,e->pos);
         }
     }
 }
@@ -200,7 +200,7 @@ struct ACTV
     ACTV(int ack) : ack(ack) {}
 };
 extern CLOCK D_002DDED0;
-qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("func_0022FC48");
+qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("TransformXfPos");
 extern SW D_003DD490;
 struct CHAINLINK
 {

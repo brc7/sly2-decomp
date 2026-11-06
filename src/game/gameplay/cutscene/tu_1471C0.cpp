@@ -77,9 +77,9 @@ void PostSoLoad(P *p);
 void BindLoOidTable(P *p, int n, void *q);
 void DropAsegaRef(ASEGA **ppasega);
 int FAsegaRetracted(ASEGA *pasega);
-int func_001FE848(void *p, int n);
+int IsDialogPlaying(void *p, int n);
 void HandleBasicMessage(P *p, int kind, MSG *pmsg);
-void func_001FE5B8(void *p, int a, int b);
+void SetSoundManagerFlags(void *p, int a, int b);
 void func_0014D1D0(CLOCKV *p, int a, float g);
 void IncrementSwHandsOff(void *p, int a);
 void DecrementSwHandsOff(void *p, int a);
@@ -95,7 +95,7 @@ void AddDmaRefs__4DMASiP2QW(GIFS *pgifs, int n, void *pv);
 void AddDmaCnt__4DMAS(GIFS *pgifs);
 void AddPrimPack__4GIFSiiUl(GIFS *pgifs, int a, int b, ulong c);
 void PackAD__4GIFSll(GIFS *pgifs, int reg, ulong val);
-void func_0022FF40(M4 *pm, int n, void *p, void *q);
+void GetRelativeXfMatrix(M4 *pm, int n, void *p, void *q);
 qwordV __ml__FRC7MATRIX4G10VU_VECTOR4(M4 *pm, qwordV v);
 void Force__FPv(void *pv);
 void PackSTQ__4GIFSfff(GIFS *pgifs, float s, float t, float q);
@@ -155,7 +155,7 @@ extern "C" void func_00147278(P *p)
         func_00147410(p, 1);
         return;
     case 3:
-        if (func_001FE848(D_003DD040, p->n170) == 0) {
+        if (IsDialogPlaying(D_003DD040, p->n170) == 0) {
             func_00147410(p, 2);
             return;
         }
@@ -211,7 +211,7 @@ extern "C" void func_00147410(P *p, int state)
     switch (p->state) {
     case -1:
         D_002DD644 = p;
-        func_001FE5B8(D_003DD040, 2, 0);
+        SetSoundManagerFlags(D_003DD040, 2, 0);
         func_0014D1D0(&D_002DDED0, 8, 0.0f);
         IncrementSwHandsOff(D_003DD490, 0);
         p->vt[8].pfn((char *)p + p->vt[8].d);
@@ -232,7 +232,7 @@ extern "C" void func_00147410(P *p, int state)
     case -1:
         D_002DD644 = 0;
         func_0014D1D0(&D_002DDED0, 8, 1.0f);
-        func_001FE5B8(D_003DD040, 2, 1);
+        SetSoundManagerFlags(D_003DD040, 2, 1);
         DecrementSwHandsOff(D_003DD490, 0);
         p->vt[9].pfn((char *)p + p->vt[9].d);
         break;
@@ -359,7 +359,7 @@ extern "C" void func_001477D8(P *p)
     PackAD__4GIFSll(&D_002DEA00, 8, 0x3800080000AUL);
     for (i = 0; i < 2; i++) {
         M4 m;
-        func_0022FF40(&m, 0, p->p60, p->ap158[i] + 0x40);
+        GetRelativeXfMatrix(&m, 0, p->p60, p->ap158[i] + 0x40);
         am[i] = m;
     }
     state = 0;

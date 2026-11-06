@@ -107,7 +107,7 @@ int FCheckVolPoint(LOV *pvol, qword v);
 qword func_001A62E8(void *p);
 void FadeSoIn(LOV *plo, float f);
 void FadeSoOut(LOV *plo, float f);
-void func_00213BD8(WIDGETV *pw, int id, int v);
+void PlayWidgetAnimWithArg(WIDGETV *pw, int id, int v);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
 RECONTGT *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, RECONTGT **, LSG *);
 int FInsideCmFrustum(CMV *, qword, qword);
@@ -116,9 +116,9 @@ void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
 void StopWidgetAnim(WIDGETV *, int);
 void PlayWidgetAnim(WIDGETV *, int);
-void func_00214300(WIDGETV *, int);
+void SetWidgetExclusive(WIDGETV *, int);
 void func_0014D1D0(void *, int, float);
-void func_001FE5B8(void *, int, int);
+void SetSoundManagerFlags(void *, int, int);
 void func_0014FE28(void *);
 void *StartDialog(void *, int, int);
 void func_00147C20(void *, int, int);
@@ -314,9 +314,9 @@ void UpdateReconChecklist(RECONSEL *p)
         RECONTGT *a = p->apending[i];
         v = D_002C3588[i];
         if (FReconTargetDone(a))
-            func_00213BD8(p->primary, 0x33A, v);
+            PlayWidgetAnimWithArg(p->primary, 0x33A, v);
         else
-            func_00213BD8(p->primary, 0x33B, v);
+            PlayWidgetAnimWithArg(p->primary, 0x33B, v);
     }
 }
 
@@ -560,12 +560,12 @@ void SetReconSelState(RECONSEL *p,int nextState)
     case 8:
         Restore(p->model->plo,p->savedFlags);
         func_0014D1D0(&D_002DDED0,0,1.0f);
-        func_001FE5B8(D_003DD040,1,1);
+        SetSoundManagerFlags(D_003DD040,1,1);
         StopWidgetAnim(p->primary,0x358);
         break;
     case 9:
         func_0014FE28(&g_cm.cplook);
-        func_00214300(p->primary,-1);
+        SetWidgetExclusive(p->primary,-1);
         Post(p->primary,0x310);
         if(p->resource){
             if(p->actor->key!=-1)StartDialog(D_003DD040,p->actor->key,0);
@@ -631,14 +631,14 @@ void SetReconSelState(RECONSEL *p,int nextState)
             register uint inlineWord __asm__("v0")=raw|0x102;
             __asm__("sw %1,%0" : "=m"(updated->grf40) : "r"(inlineWord));
         }
-        func_001FE5B8(D_003DD040,1,0);
+        SetSoundManagerFlags(D_003DD040,1,0);
         func_0014D1D0(&D_002DDED0,0,0.0f);
         break;
     }
     case 9:
         Post(p->secondary,0x339);
         Post(p->primary,0x35C);
-        func_00214300(p->primary,0);
+        SetWidgetExclusive(p->primary,0);
         break;
     case 3:case 4:
         p->secondary->actor=p->actor;

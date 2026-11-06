@@ -1830,7 +1830,7 @@ struct WIDGET129 : WIDGET
     char pad110[0x220 - 0x110];
     virtual void VUnk14() __asm__("func_00211EC0");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget129ClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("func_00211F90");   /* slot 16 */
+    virtual void VUnk15() __asm__("UpdateItemCounterWidget");   /* slot 16 */
 };
 typedef char assert_WIDGET129_size[sizeof(WIDGET129) == 0x220 ? 1 : -1];
 
@@ -1840,8 +1840,8 @@ struct WIDGET127 : WIDGET
     char pad110[0x120 - 0x110];
     virtual void Init() __asm__("func_00211D08");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget127ClassDesc");   /* slot 6 */
-    virtual void VUnk15() __asm__("func_00211D38");   /* slot 16 */
-    virtual void VSlot49() __asm__("func_00211CA8");   /* slot 49 */
+    virtual void VUnk15() __asm__("UpdateModalBoxWidget");   /* slot 16 */
+    virtual void VSlot49() __asm__("ShowModalBoxWidget");   /* slot 49 */
 };
 typedef char assert_WIDGET127_size[sizeof(WIDGET127) == 0x120 ? 1 : -1];
 

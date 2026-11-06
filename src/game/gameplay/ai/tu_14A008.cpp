@@ -127,8 +127,8 @@ void CloseBhv(BHVRT *p);
 void UpdateBhv(BHVRT *p);
 int FBhvBusyAbove(BHVRT *p);
 void PopBhv(void *pbhvstk);
-void func_001FEE90(void *p);
-void func_001FEEA0(void *p);
+void AddMusicLayer2Request(void *p);
+void RemoveMusicLayer2Request(void *p);
 void AddStepguardSgf(GUARDV *p, int n);
 void RemoveStepguardSgf(GUARDV *p, int n);
 int func_00209098(GUARDV *p);
@@ -257,7 +257,7 @@ extern "C" void func_0014A178(ROUTE *p, int k, int oid)
 extern "C" void func_0014A1B0(BHVRT *p)
 {
     InitBhv(p);
-    func_001FEE90(D_003DD040);
+    AddMusicLayer2Request(D_003DD040);
     AddStepguardSgf(p->pguard, 0x24);
     p->state = -1;
     p->iTarget = -1;
@@ -293,7 +293,7 @@ extern "C" void func_0014A248(BHVRT *p)
     CloseBhv(p);
     func_0014AE38(p, -1);
     RemoveStepguardSgf(p->pguard, 0x24);
-    func_001FEEA0(D_003DD040);
+    RemoveMusicLayer2Request(D_003DD040);
     p->pguard->n4A4 = 1;
 }
 

@@ -619,7 +619,7 @@ void func_001E7968() __asm__("func_001E7968");
 void func_001E79A0() __asm__("func_001E79A0");
 void func_001E79F0() __asm__("func_001E79F0");
 void func_001E7FF0() __asm__("func_001E7FF0");
-void func_001F07E8() __asm__("func_001F07E8");
+void GetSmaCurrentState() __asm__("GetSmaCurrentState");
 void func_001F1EB8() __asm__("func_001F1EB8");
 void func_001F2688() __asm__("func_001F2688");
 void func_001F2718() __asm__("func_001F2718");
@@ -660,8 +660,8 @@ void func_001F8830() __asm__("func_001F8830");
 void func_001F8870() __asm__("func_001F8870");
 void func_001F8898() __asm__("func_001F8898");
 void func_001F88D8() __asm__("func_001F88D8");
-void func_001FB1F8() __asm__("func_001FB1F8");
-void func_001FE888() __asm__("func_001FE888");
+void SetSndVolume() __asm__("SetSndVolume");
+void GetDialogTime() __asm__("GetDialogTime");
 void func_00203FA0() __asm__("func_00203FA0");
 void func_00204D48() __asm__("func_00204D48");
 void func_00204DA8() __asm__("func_00204DA8");
@@ -860,7 +860,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00101E18), EOPID_NONE, EOPID_NONE}, /* [127] opt 256, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResumeSnd), EOPID_NONE, EOPID_NONE}, /* [128] opt 257, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopSnd), EOPID_INT(1), EOPID_NONE}, /* [129] opt 258, CID151 */
-    {1, 0x22, EOPID_INT(0x10), EOPID_PMF(func_001FB1F8), EOPID_NONE, EOPID_NONE}, /* [130] opt 212, CID151 */
+    {1, 0x22, EOPID_INT(0x10), EOPID_PMF(SetSndVolume), EOPID_NONE, EOPID_NONE}, /* [130] opt 212, CID151 */
     {5, 0x22, EOPID_INT(0x14), EOPID_PMF(SetSndPan), EOPID_NONE, EOPID_NONE}, /* [131] opt 259, CID151 */
     {1, 0x22, EOPID_INT(0x18), EOPID_PMF(SetSndPitch), EOPID_NONE, EOPID_NONE}, /* [132] opt 213, CID151 */
     {0x2002, 0x22, EOPID_INT(0x1C), EOPID_PMF(SetSndSourceLo), EOPID_NONE, EOPID_NONE}, /* [133] opt 260, CID151 */
@@ -870,7 +870,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2097, 1, EOPID_NONE, EOPID_FN(RefThunk_StartDialog), EOPID_INT(2), EOPID_NONE}, /* [137] opt 264, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopDialog), EOPID_NONE, EOPID_NONE}, /* [138] opt 265, CID152 */
     {0, 1, EOPID_NONE, EOPID_FN(func_00102150), EOPID_INT(1), EOPID_NONE}, /* [139] opt 266, CID152 */
-    {1, 4, EOPID_PMF(func_001FE888), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [140] opt 267, CID152 */
+    {1, 4, EOPID_PMF(GetDialogTime), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [140] opt 267, CID152 */
     {1, 1, EOPID_NONE, EOPID_FN(func_001021D0), EOPID_INT(1), EOPID_NONE}, /* [141] opt 268, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00102250), EOPID_NONE, EOPID_NONE}, /* [142] opt 269, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_001022C8), EOPID_NONE, EOPID_NONE}, /* [143] opt 270, CID152 */
@@ -1105,7 +1105,7 @@ EOPIDROW D_002AC880[1449] = {
     {6, 0x24, EOPID_PMF(GetSmaGoal), EOPID_PMF(SetSmaGoal), EOPID_NONE, EOPID_NONE}, /* [372] opt 478, SMA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSmaGoalIfReachable), EOPID_INT(1), EOPID_NONE}, /* [373] opt 479, SMA */
     {1, 1, EOPID_NONE, EOPID_FN(RefThunk_DtSmaToState), EOPID_INT(1), EOPID_NONE}, /* [374] opt 480, SMA */
-    {6, 4, EOPID_PMF(func_001F07E8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [375] opt 481, SMA */
+    {6, 4, EOPID_PMF(GetSmaCurrentState), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [375] opt 481, SMA */
     {6, 4, EOPID_PMF(GetSmaNext), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [376] opt 482, SMA */
     {1, 0x22, EOPID_INT(0x44), EOPID_PMF(SetSmaSvt), EOPID_NONE, EOPID_NONE}, /* [377] opt 483, SMA */
     {0x2086, 2, EOPID_INT(0x30), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [378] opt 182, SMA */

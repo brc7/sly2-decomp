@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void SetF32__4CReff(void *, f32);                 /* extern */
-f32 func_001FCFD0(s32, s32);                        /* extern */
+f32 GetDialogStreamDuration(s32, s32);                        /* extern */
 
 CRef *func_001021D0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
@@ -9,7 +9,7 @@ CRef *func_001021D0(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 0x10;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    SetF32__4CReff(&ref, func_001FCFD0(pbasic, arg0_v));
+    SetF32__4CReff(&ref, GetDialogStreamDuration(pbasic, arg0_v));
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

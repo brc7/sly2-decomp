@@ -102,7 +102,7 @@ void RemoveSoHierarchy(DANCERV *p);
 void PostStepLoad(DANCERV *o);
 void UpdateStep(DANCERV *p);
 int FAsegaRetracted(ASEGAV *pa);
-void func_002303A0(DANCERV *p, void *pv, int n);
+void SetXfRole(DANCERV *p, void *pv, int n);
 qwordV func_00204E38(DANCERV *p, void *pa, float g);
 void HandlePoMessage(DANCERV *p, int msgk, struct MSGD *pmsg);
 void GetSoCpdefi(DANCERV *p, struct CPDEFIV *pc);
@@ -199,8 +199,8 @@ extern "C" void func_00152148(DANCERV *p)
     int k;
     UpdateStep(p);
     if (!p->pa408 || FAsegaRetracted(p->pa408)) {
-        func_002303A0(p, p->p58, 1);
-        func_002303A0(p, p->p5C, 1);
+        SetXfRole(p, p->p58, 1);
+        SetXfRole(p, p->p5C, 1);
         p->f40C = 0;
         ApplyDancerAseg(p, p->pasegIdle, 8);
     }
@@ -287,8 +287,8 @@ void func_00152390(DANCERV *p, int id, int idNew, int j)
                 if (r)
                     pe->ar[0].res = r;
             }
-            func_002303A0(p, p->p58, 2);
-            func_002303A0(p, p->p5C, 2);
+            SetXfRole(p, p->p58, 2);
+            SetXfRole(p, p->p5C, 2);
             ApplyDancerAseg(p, pe->ar[j].res, pe->ar[j].x);
             return;
         }
@@ -613,7 +613,7 @@ extern const SZ D_002A5018 = {"&2T&."};
 void RenderLoSelf(RHYTHMMGR *p);
 FONT *CRichText_ctor(FONT *pf, const char *sz, float scale);
 float CRichText_Dx(FONT *pf);
-void func_002163B0(FONT *pf, TB *ptb, int grf);
+void DrawRichText2(FONT *pf, TB *ptb, int grf);
 void EvaluateBezierPos(float dt, float t, float dtScale, qwordV p0, qwordV v0, qwordV p1, qwordV v1, qwordV *ppos, qwordV *pvel, qwordV *pacc);
 }
 static inline float GMaxR(float a, float b) { return a < b ? b : a; }
@@ -677,12 +677,12 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
                     CRichText_ctor(&fontBig, u.s.a, scale);
                     tb.x = x;
                     tb.y = y;
-                    func_002163B0(&fontBig, &tb, 0xC);
+                    DrawRichText2(&fontBig, &tb, 0xC);
                 }
             } else {
                 tb.x = ((float *)&pe->pos)[0] - dxA * 0.5f;
                 tb.y = ((float *)&pe->pos)[1] - dyA;
-                func_002163B0(&fontA, &tb, 0xC);
+                DrawRichText2(&fontA, &tb, 0xC);
             }
         }
         if (p->iHint < p->c) {
@@ -707,7 +707,7 @@ extern "C" void DrawRhythmMgr(RHYTHMMGR *p)
         }
         tb.x = ((float *)&p->pos)[0] - dxB * 0.5f;
         tb.y = ((float *)&p->pos)[1] - dySmall * 3.0f - dyB - 7.0f;
-        func_002163B0(&fontB, &tb, 0xC);
+        DrawRichText2(&fontB, &tb, 0xC);
         }
     }
 }

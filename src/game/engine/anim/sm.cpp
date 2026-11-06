@@ -40,7 +40,7 @@ int IsmsFindSmOptional(SM *psm, OID oid);
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 extern "C" {
 void PostLoLoad(LO *plo);
-void func_001F0380(SM *psm, ALO *palo, OID oid, GRFAPL grfapl);   /* PsmaApplySm */
+void ApplySmToObject(SM *psm, ALO *palo, OID oid, GRFAPL grfapl);   /* PsmaApplySm */
 }
 
 struct SMRT
@@ -174,7 +174,7 @@ void InitDl(DL *pdl, int ibDle);
 
 
 
-int IsmsFindSmRequired(SM *psm, OID oid) __asm__("func_001F0438");
+int IsmsFindSmRequired(SM *psm, OID oid) __asm__("FindSmStateRequired");
 
 
 void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("func_001AE238");
@@ -366,14 +366,14 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
  * See: docs/engine/animation.md#5-state-machines-sm-and-sma-smcpp-0x1efa90-0x1f1768,
  *   docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
-/* After load: with an init record, applies the machine to its root object in its initial state (func_001F0380). */
+/* After load: with an init record, applies the machine to its root object in its initial state (ApplySmToObject). */
 void SM::VUnk14()
 {
     SM *psm = (SM *)this;
     PostLoLoad(psm);
     if (psm->psminit) {
         LO *plo = PloFindSwObject(&D_003DD490, 4, psm->psminit->oidRoot, psm);
-        func_001F0380(psm, (ALO *)plo, psm->psminit->oidInitialState, psm->psminit->grfapl);
+        ApplySmToObject(psm, (ALO *)plo, psm->psminit->oidInitialState, psm->psminit->grfapl);
     }
 }
 
@@ -429,7 +429,7 @@ void *func_002333B4(void *, int, int) __asm__("memset");
 void AppendDlEntry__FP2DLPv(void *, S *);
 void FramePtr_Assign(S *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 int FSmaRetracted(S *);
-int func_001F0438(P *, int);
+int FindSmStateRequired(P *, int);
 void NotifySmaSpliceOnEnterState(S *, int, int);
 void ChooseSmaTransition(S *, int);
 }
@@ -467,7 +467,7 @@ extern "C" void ApplySmCore(P *p, int a, int b, int c, int d, S **pps)
     ps->pvt->a3.pfn((char *)ps + ps->pvt->a3.d, 2, 0, 0, 0, 0);
     if (FSmaRetracted(ps)) return;
     if (b != -1) {
-        int v = func_001F0438(p, b);
+        int v = FindSmStateRequired(p, b);
         ps->n34 = v;
         ps->n3C = v;
         NotifySmaSpliceOnEnterState(ps, -1, v);
@@ -485,7 +485,7 @@ void ApplySmCore(int, int, int, int, int, int *);
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
-int func_001F0380(int a, int b, int c, int d) { int r; ApplySmCore(a, b, c, d, 4, &r); return r; }
+int ApplySmToObject(int a, int b, int c, int d) { int r; ApplySmCore(a, b, c, d, 4, &r); return r; }
 } } // namespace M_func_001F0380
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -540,7 +540,7 @@ int IsmsFindSmOptional(SM *psm, OID oid)
  * Confidence: high [T1 0.85] - evidence: semantic review; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
-extern "C" void func_001F0438(SM *psm, OID oid)
+extern "C" void FindSmStateRequired(SM *psm, OID oid)
 {
     IsmsFindSmOptional(psm, oid);
 }
@@ -649,7 +649,7 @@ void RemoveDlEntry__FP2DLPv(void *, void *);
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_001F0598(struct P *p)
+void RetractSma(struct P *p)
 {
     if (!FSmaRetracted(p)) {
         void *pv = p->p30;
@@ -686,7 +686,7 @@ struct VT { VTE a[3]; };
 struct F { int pad[3]; int fl; };
 struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x30 - 0x28]; void *p30; char pad4[0x3C - 0x34]; int n3C; F *pf; };
 extern "C" int FSmaRetracted(P *);
-extern "C" int func_001F0438(void *, int);
+extern "C" int FindSmStateRequired(void *, int);
 extern "C" void RetractAsega(void *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
@@ -704,7 +704,7 @@ struct Lock {
 extern "C" void SetSmaGoal(P *p, int n)
 {
     if (FSmaRetracted(p)) return;
-    n = n == -1 ? -1 : func_001F0438(p->p24, n);
+    n = n == -1 ? -1 : FindSmStateRequired(p->p24, n);
     if (n != p->n3C) {
         Lock l(p);
         p->n3C = n;
@@ -758,7 +758,7 @@ extern "C" OID GetSmaGoal(SMA *psma)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* The oid of the current state. */
-extern "C" OID func_001F07E8(SMA *psma)
+extern "C" OID GetSmaCurrentState(SMA *psma)
 {
     return OidFromSmIsms(psma->psm, psma->ismsCur);
 }
@@ -846,7 +846,7 @@ struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
 struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x3C - 0x28]; int n3C; };
 extern "C" int FSmaRetracted(P *);
-extern "C" int func_001F0438(void *, int);
+extern "C" int FindSmStateRequired(void *, int);
 extern "C" void AbortSmaTransition(P *);
 extern "C" void ChooseSmaTransition(P *, int);
 struct Lock {
@@ -865,7 +865,7 @@ extern "C" void SeekSma(P *p, int n)
 {
     if (!FSmaRetracted(p)) {
         Lock l(p);
-        p->n3C = func_001F0438(p->p24, n);
+        p->n3C = FindSmStateRequired(p->p24, n);
         AbortSmaTransition(p);
         ChooseSmaTransition(p, 1);
     }
@@ -878,7 +878,7 @@ struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { VTE a[3]; };
 struct P { char pad[0xC]; VT *pvt; char pad2[0x24 - 0x10]; void *p24; char pad3[0x30 - 0x28]; void *p30; int n34; int n38; int n3C; };
 extern "C" int FSmaRetracted(P *);
-extern "C" int func_001F0438(void *, int);
+extern "C" int FindSmStateRequired(void *, int);
 extern "C" void RetractAsega(void *);
 extern "C" void NotifySmaSpliceOnEnterState(P *, int, int);
 extern "C" void ChooseSmaTransition(P *, int);
@@ -897,7 +897,7 @@ extern "C" void SnapSma(P *p, int n)
 {
     if (!FSmaRetracted(p)) {
         Lock l(p);
-        int m = func_001F0438(p->p24, n);
+        int m = FindSmStateRequired(p->p24, n);
         if (p->n34 == m && (p->n3C == m || p->n3C == -1)) return;
         {
             void *pv = p->p30;
@@ -1180,7 +1180,7 @@ struct Lock {
  *   semantic_tu_docs/sm
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
-extern "C" void func_001F0FD8(P *p, int a, int b)
+extern "C" void SendSmaMessage(P *p, int a, int b)
 {
     Lock l(p);
     Q *q = p->pq;
@@ -1265,7 +1265,7 @@ struct Q { char pad[0x14]; struct T *pt; char pad2[0x1C - 0x18]; float f1C; char
 struct P { char pad[0x24]; void *p24; char pad2[0x30 - 0x28]; struct Q *pq; int n34; char pad3[0x40 - 0x38]; struct A *pa; char pad4[0x48 - 0x44]; int n48; };
 extern char D_002DE578[];
 int FSmaRetracted(struct P *);
-int func_001F0438(void *, int);
+int FindSmStateRequired(void *, int);
 struct A *PsmtChooseTowardGoal(void *, int, int, int, int);
 float GGetDifficulty(void *);
 static inline float Eval(struct V3 *pv, float t)
@@ -1285,7 +1285,7 @@ float DtSmaToState(struct P *p, int k)
     int end, cur;
     struct A *pa;
     if (FSmaRetracted(p)) return r;
-    end = func_001F0438(p->p24, k);
+    end = FindSmStateRequired(p->p24, k);
     if (!p->pq) {
         cur = p->n34;
     } else {
@@ -1367,8 +1367,8 @@ namespace M_ReplaceSma { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[3]; };
 struct X { char pad[0xC]; struct VT *pvt; };
-void func_001F0598(struct X *);
-struct X *func_001F0380(void *, int, int, int);
+void RetractSma(struct X *);
+struct X *ApplySmToObject(void *, int, int, int);
 /** @sly2-annot addr=0x1F1448
  * Purpose: Retract and Decref *ppsma; if a new SM is given, PsmaApplySm, Incref, store
  * Info: proposed name ReplaceSma (T1); TU sm
@@ -1380,12 +1380,12 @@ struct X *func_001F0380(void *, int, int, int);
 void ReplaceSma(void *pv, int a, int b, int c, struct X **ppx)
 {
     if (*ppx) {
-        func_001F0598(*ppx);
+        RetractSma(*ppx);
         (*ppx)->pvt->a[2].pfn((char *)*ppx + (*ppx)->pvt->a[2].d);
         *ppx = 0;
     }
     if (pv) {
-        struct X *px = func_001F0380(pv, a, b, c);
+        struct X *px = ApplySmToObject(pv, a, b, c);
         *ppx = px;
         px->pvt->a[1].pfn((char *)px + px->pvt->a[1].d);
     }
@@ -1397,7 +1397,7 @@ namespace M_ReplaceSmaEx { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[3]; };
 struct X { char pad[0xC]; struct VT *pvt; };
-void func_001F0598(struct X *);
+void RetractSma(struct X *);
 struct X *PsmaApplySmEx(void *, int, int, int, int);
 /** @sly2-annot addr=0x1F14F8
  * Purpose: Same with explicit kind
@@ -1408,7 +1408,7 @@ struct X *PsmaApplySmEx(void *, int, int, int, int);
 void ReplaceSmaEx(void *pv, int a, int b, int c, int d, struct X **ppx)
 {
     if (*ppx) {
-        func_001F0598(*ppx);
+        RetractSma(*ppx);
         (*ppx)->pvt->a[2].pfn((char *)*ppx + (*ppx)->pvt->a[2].d);
         *ppx = 0;
     }
@@ -1425,7 +1425,7 @@ namespace M_ReleaseSma { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { int a[3]; struct VTE *vt; };
 struct S { struct O *po; };
-void func_001F0598(struct O *);
+void RetractSma(struct O *);
 /** @sly2-annot addr=0x1F15B8
  * Purpose: Retract, Decref, null
  * Info: proposed name ReleaseSma (T1); TU sm
@@ -1436,7 +1436,7 @@ void func_001F0598(struct O *);
 void ReleaseSma(struct S *p)
 {
     if (p->po) {
-        func_001F0598(p->po);
+        RetractSma(p->po);
         { struct O *po = p->po; po->vt[2].pfn((char *)po + po->vt[2].d); }
         p->po = 0;
     }

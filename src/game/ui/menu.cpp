@@ -126,14 +126,14 @@ ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
 POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *psw, int a, int b, int c);
-void func_001D98A8(PMENU *p, int f);
+void ScreenSlot9Default(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
-void func_001D98B0(void);
+void ShowScreen(void);
 void func_0014D1D0(void *p, int n, float g);
 void IncrementSwHandsOff(SWM *p, int n);
 void DecrementSwHandsOff(SWM *p, int n);
 void BroadcastGameEvent(void *p, int n, int m);
-void func_001D9910(PMENU *p);
+void HideScreen(PMENU *p);
 void PlayWidgetAnim(POOL *, int);
 void SetWidgetAnimPhase(POOL *, int, float);
 void func_001D9870();
@@ -153,7 +153,7 @@ int func_0020E040(SWM *g);
 char *PpoHero(SWM *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
-int func_002127C8(void);
+int AreWidgetLoadsIdle(void);
 int NWorldCur(void);
 int CidBasic(void *p);
 void SetJobListPage(void *p, int f);
@@ -211,7 +211,7 @@ extern "C" void func_001AE970(PMENU *p) {
  * See: docs/reference/functions/hud-ui.md#menu-0x1ae928-0x1b0b78
  * @end-sly2-annot */
 extern "C" void func_001AE9A8(PMENU *p, int f) {
-    func_001D98A8(p, f);
+    ScreenSlot9Default(p, f);
     if (f != 0) {
         StartJoySelection__FP3JOY(p->input);
     }
@@ -226,7 +226,7 @@ extern "C" void func_001AE9A8(PMENU *p, int f) {
  * @end-sly2-annot */
 void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here */
 {
-    func_001D98B0();
+    ShowScreen();
     func_0014D1D0(D_002DDED0, 0, 0.0f);
     IncrementSwHandsOff(&D_003DD490, 0);
     BroadcastGameEvent(D_002DEB30, 0x28, 0);
@@ -240,7 +240,7 @@ void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here *
  * @end-sly2-annot */
 extern "C" void HidePausemenu(PMENU *p)
 {
-    func_001D9910(p);
+    HideScreen(p);
     p->depth = 0;
     func_0014D1D0(D_002DDED0, 0, 1.0f);
     DecrementSwHandsOff(&D_003DD490, 0);
@@ -887,7 +887,7 @@ extern "C" int func_001B0290(ITEM *px)
     if (FScreenShown(&D_002E6550)) return 0;
     pl = PpoHero(&D_003DD490);
     if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
-    if (!func_002127C8()) return 0;
+    if (!AreWidgetLoadsIdle()) return 0;
     psrc = D_002C00E8;
     pdst = D_002F65D0;
     for (i = 0; i < 7; i++) {

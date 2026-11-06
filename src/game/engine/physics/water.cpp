@@ -129,7 +129,7 @@ void func_001F3590(SOW *p);
 void func_001F68A8(SOW *p, int a);
 qwordV ConvertAloPos(int a, SOW *p, qwordV q);
 V *VECTOR_opAssign(V *pv, qwordV q);
-void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
+void AccumulateXfChainVelocityStub(void *p, int a, M4 *pm1, M4 *pm2);
 qwordV func_0011BFB8(M4 *pm);
 MARK *STACKSCOPE_ctor(MARK *);
 void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
@@ -137,7 +137,7 @@ void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
 int func_00229D60(void *, COLL *);
 int func_001F7E08(SOW *, int (*)(void *, COLL *), void *, COLL **);
 int func_001F6838(SOW *);
-int func_00230380(int);
+int IsXfRoleVelocity(int);
 float func_00229468(SOW *, SOW *, qwordV *, qwordV *);
 N *func_002296A0(WORLD *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOW *, int);
@@ -145,7 +145,7 @@ int ClsgClipEdgeToObjects(qwordV, qwordV, int, COLL **, int, LSG *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, SOW *);
 void SetSndRange(void *, float, float);
-void func_001FB1F8(void *, float);
+void SetSndVolume(void *, float);
 void func_00228D20(SOW *, N **);
 qwordV func_001A62E8(void *p);
 int FFloatsNear__Ffff(float a, float b, float eps);
@@ -249,7 +249,7 @@ extern "C" void CalculateWaterCurrent(SOW *p, qwordV v, qwordV *ppos, qwordV *pr
         m2.r[3].f[0] = p->posCurrent.x;
         m2.r[3].f[1] = p->posCurrent.y;
         m2.r[3].f[2] = p->posCurrent.z;
-        func_00230CD0(p->motion, 0, pm, pm2);
+        AccumulateXfChainVelocityStub(p->motion, 0, pm, pm2);
         if (ppos) *ppos = m2.r[3].q;
         if (prot) *prot = func_0011BFB8(pm2);
     }
@@ -317,7 +317,7 @@ extern "C" void UpdateWater(SOW *p){
  work.count=func_001F7E08(p,func_00229D60,0,objects);
  for(link=p->state->first;link;link=link->next){
   SOW *o=link->object;
-  if(!o->physics||o->physics->spring<1e-4f||func_001F6838(o)||!func_00230380(o->body->kind))continue;
+  if(!o->physics||o->physics->spring<1e-4f||func_001F6838(o)||!IsXfRoleVelocity(o->body->kind))continue;
   if(func_00229468(p,o,0,0)==0.0f)continue;
   o->flags|=0x100000000L;
   if(o->flags&0x80000000L)continue;
@@ -342,7 +342,7 @@ extern "C" void UpdateWater(SOW *p){
     void *effect=PsndStartSound(0x13);
     SetSndSourceLo(effect,o);
     SetSndRange(effect,100.0f,1000.0f);
-    func_001FB1F8(effect,fall);
+    SetSndVolume(effect,fall);
     func_002333B4(&work.event,0,sizeof(work.event));
     normal=D_002A2DC0;
     work.event.position.q=Add(work.intervals[0].first.q,work.origin.q);
@@ -638,14 +638,14 @@ extern "C" void func_002297F8(SOW *a,SOW *b){
   qwordV linear=Get(a,33);qwordV relative=VuSub(w.velocity.q,linear);
   float dot=func_0011E290(relative,w.normal.q,&w.phase.vectors[1].q,&w.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;
-  if(func_00230380(a->body->kind)){
+  if(IsXfRoleVelocity(a->body->kind)){
    COEF *coefficients=&w.axis.coefficients;
    GAIN2(D_002C4470,factor,friction);
    AccelSoTowardPosSpring(a,D_002A2DD0,0,AddNormal(linear,w.phase.vectors[1]),coefficients);
    GAIN2(D_002C4470,span,friction);
    AccelSoTowardPosSpring(a,D_002A2DD0,0,AddTangent(linear,w.phase.vectors[2]),coefficients);
   }
-  if(func_00230380(a->rotation->kind)){
+  if(IsXfRoleVelocity(a->rotation->kind)){
    qwordV angular=Get(a,34);
    qwordV k;
    qwordV negative=NegativeAngular(angular,-1.0f,k);

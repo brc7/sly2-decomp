@@ -331,9 +331,9 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void SetLoVisMask(LO *plo, uint grfvis) __asm__("func_001A6D28");
 
 
-XF *PxfFromIxf(int ixf, SO *psoParent, SO *pso) __asm__("func_0022D6B0");
-void PushXf(XF *pxf) __asm__("func_0022D670");
-void PopXf(XF *pxf) __asm__("func_0022D698");
+XF *PxfFromIxf(int ixf, SO *psoParent, SO *pso) __asm__("ResolveXfId");
+void PushXf(XF *pxf) __asm__("PushXfContext");
+void PopXf(XF *pxf) __asm__("PopXfContext");
 void InvalidateXfmWorld(XFM *pxfm) __asm__("func_002313F0");
 
 

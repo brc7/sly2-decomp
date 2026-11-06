@@ -266,7 +266,7 @@ float SMaxShape(SHAPEV *pshape);
 void EvaluateShapeS(SHAPEV *pshape, qword *ppos, qword *pdir, float s);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
 qword func_001A62E8(void *pso);   /* object position */
-qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one XF space to another (0: world) */
+qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);   /* position from one XF space to another (0: world) */
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEOMV *pgeom, const M4 *pmat, GEOMV *pgeomOut);
 void CploFindSwObjectsByClass(SW *psw, int grffso, CID cid, ALO *palo, int cploMax, ASEGV **apaseg);
 ASEGAV *func_001F6788(ALO *palo, OID oid);
@@ -622,7 +622,7 @@ extern "C" void func_001DE5D8(LASENV *p)
             case 0:
                 minimum = Min(minimum, end->pos);
                 maximum = Max(maximum, end->pos);
-                end->pos = func_0022FC48(0, p->pxfRoot, end->pos);
+                end->pos = TransformXfPos(0, p->pxfRoot, end->pos);
                 break;
             case 1: {
                 // the matrix callback may change the endpoint's path, so it is re-read
@@ -656,8 +656,8 @@ extern "C" void func_001DE5D8(LASENV *p)
         CloneGeom__FP4GEOMP7MATRIX4T0(&part->geomLocal, 0, &part->geomWorld);
         part->geomWorld.apos[0].q = minimum;
         part->geomWorld.apos[1].q = maximum;
-        { U *out = part->geomLocal.apos; out[0].q = func_0022FC48(0, p->pxfRoot, minimum); }
-        { U *out = part->geomLocal.apos; out[1].q = func_0022FC48(0, p->pxfRoot, maximum); }
+        { U *out = part->geomLocal.apos; out[0].q = TransformXfPos(0, p->pxfRoot, minimum); }
+        { U *out = part->geomLocal.apos; out[1].q = TransformXfPos(0, p->pxfRoot, maximum); }
     }
     if ((int)(p->grfLo >> 60) & 1) AddSoParts(p);
 }
@@ -740,7 +740,7 @@ extern "C" void GetLasenBeamEnds(LASENV *plasen, BEAMEND *aend, qword *apos, flo
     for (i = 0; i < 2; i++, end++) {
         switch (end->kind) {
         case 0:
-            apos[i] = func_0022FC48(plasen->pxfRoot, 0, end->pos);
+            apos[i] = TransformXfPos(plasen->pxfRoot, 0, end->pos);
             break;
         case 1:
             EvaluateShapeS(end->track.path, &apos[i], 0, end->track.cursor);

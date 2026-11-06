@@ -44,10 +44,10 @@ RGBA RgbaFromSpeakerCid(int k);
 void ClearSubtitle(SPEAKERLABEL *plabel);
 char *strcpy(char *pchDst, const char *pchSrc);
 void strcpy1(void *p, const void *s);
-float func_001FCFD0(void *p, int id);
+float GetDialogStreamDuration(void *p, int id);
 int CRichText_Cch(CRichText *prt);
-int func_001FE848(void *p, int id);
-float func_001FE888(void *p);
+int IsDialogPlaying(void *p, int id);
+float GetDialogTime(void *p);
 void CRichText_Trim(CRichText *prt, int n);
 int sprintf(char *pch, const char *fmt, ...);
 }
@@ -141,12 +141,12 @@ extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *t
     int length, visibleLength, showCursor;
     if (subtitle->textId == -1) return;
     soundSystem = D_003DD040;
-    duration = func_001FCFD0(soundSystem, subtitle->textId) - 0.5f;
+    duration = GetDialogStreamDuration(soundSystem, subtitle->textId) - 0.5f;
     length = CRichText_Cch(text);
-    if (duration <= 0.0f || !func_001FE848(soundSystem, subtitle->textId))
+    if (duration <= 0.0f || !IsDialogPlaying(soundSystem, subtitle->textId))
         visibleLength = length;
     else
-        visibleLength = (int)(func_001FE888(soundSystem) / duration * (float)length);
+        visibleLength = (int)(GetDialogTime(soundSystem) / duration * (float)length);
     if (visibleLength < length) {
         CRichText_Trim(text, visibleLength);
         showCursor = 1;

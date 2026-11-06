@@ -297,7 +297,7 @@ extern qword D_002A2DE0;
 void PostStepLoad(struct S *p);
 void BindLoOidTable(struct S *p, int n, void *pv);
 void func_00204DA8(struct S *p, float f);
-void func_002303A0(struct S *p, int n, int m);
+void SetXfRole(struct S *p, int n, int m);
 void ResolveStepguardAnimBindings(struct S *p);
 void func_0020AAA8(struct S *p);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
@@ -307,7 +307,7 @@ void PostSwCallback(void *g, struct S *p, long k, int n);
 struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void func_00170C90(struct O *po, int a, int b, float f);
 void *PxfFindSo(struct S *p, int n, int m);
-void *func_0012DC18(struct S *p, void *x, int a, int b, int c, qword q);
+void *NewPositionAct(struct S *p, void *x, int a, int b, int c, qword q);
 
 /** @sly2-annot addr=0x2061D8
  * Purpose: STEPGUARD vt15: PostStepLoad, bind oid table, SetStepGravityRatio(+0x260), attach children,
@@ -324,8 +324,8 @@ void PostStepguardLoad(struct S *p)
     PostStepLoad(p);
     BindLoOidTable(p, 1, D_002C3CF8);
     func_00204DA8(p, p->f260);
-    func_002303A0(p, p->n58, 2);
-    func_002303A0(p, p->n5C, 2);
+    SetXfRole(p, p->n58, 2);
+    SetXfRole(p, p->n5C, 2);
     ResolveStepguardAnimBindings(p);
     func_0020AAA8(p);
     p->p498 = func_001AE4F8(0x10);
@@ -344,7 +344,7 @@ void PostStepguardLoad(struct S *p)
         p->p3F8->vt[9].pf((char *)p->p3F8 + p->p3F8->vt[9].d);
     x = PxfFindSo(p, p->n18, 0xC);
     if (x)
-        p->pFC4 = func_0012DC18(p, x, 0, 7, 2, D_002A2DE0);
+        p->pFC4 = NewPositionAct(p, x, 0, 7, 2, D_002A2DE0);
 }
 } } // namespace M_PostStepguardLoad
 
@@ -2638,7 +2638,7 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct S { int k; int pad; struct O *po; };
 void RetractAsega(struct O *po);
-void func_001F0598(struct O *po);
+void RetractSma(struct O *po);
 void func_0020C080(struct O *po);
 void func_0020CA48(struct O *po);
 #define VDEL(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
@@ -2662,7 +2662,7 @@ void StopAnimBinding(struct S *p)
         break;
     case 1:
         if (p->po) {
-            func_001F0598(p->po);
+            RetractSma(p->po);
             VDEL(p->po);
             p->po = 0;
         }
@@ -4023,7 +4023,7 @@ extern qword D_002A2DD0;
 struct A { char pad[0xA0]; int nA0; };
 struct S { char pad[0xF08]; struct A *pa; int h; int n; char pad2[0xC]; qword v; };
 void ReleaseAct(int *ph);
-int func_0012DC18(struct S *p, int a, int b, int c, int d, qword q);
+int NewPositionAct(struct S *p, int a, int b, int c, int d, qword q);
 /** @sly2-annot addr=0x20AC28
  * Purpose: Release/create an aim act (PactNewVector) for the attack
  * Info: proposed name SetStepguardAimAct (T2); TU stepguard
@@ -4039,7 +4039,7 @@ void func_0020AC28(struct S *p, struct A *pa, int n, qword v)
     }
     p->pa = pa;
     if (pa && pa->nA0) {
-        p->h = func_0012DC18(p, pa->nA0, 5, 8, 3, D_002A2DD0);
+        p->h = NewPositionAct(p, pa->nA0, 5, 8, 3, D_002A2DD0);
         p->n = n;
         p->v = v;
     }
@@ -4055,7 +4055,7 @@ struct A { char pad[0x30]; qword pos; char pad2[0x60]; int nA0; };
 struct B { char pad[0x90]; qword v; struct A *pa; };
 struct D { char pad[0x20]; qword v; };
 struct S { char pad[0xF08]; struct B *pb; struct D *pd; int nF10; char pad2[0xC]; qword vF20; };
-qword func_0022FC48(int a, int b, qword v);
+qword TransformXfPos(int a, int b, qword v);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *pm, qword a, qword b);
 qword func_0011BFF0(MATRIX3 *pm);
 /** @sly2-annot addr=0x20ACC0
@@ -4068,7 +4068,7 @@ void func_0020ACC0(struct S *p)
 {
     MATRIX3 m;
     qword v, d;
-    v = func_0022FC48(p->nF10, p->pb->pa->nA0, p->vF20);
+    v = TransformXfPos(p->nF10, p->pb->pa->nA0, p->vF20);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(p->pb->pa->pos));
     BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, p->pb->v, d);
     { struct D *pd = p->pd; pd->v = func_0011BFF0(&m); }

@@ -157,7 +157,7 @@ void SetSndSourceLo(void *p, void *source);
 qword func_001A62E8(void *p);
 void SetSndSourcePos(void *p, qword q);
 void SetSndRange(void *p, float a, float b);
-void func_001FB1F8(void *p, float t);
+void SetSndVolume(void *p, float t);
 EA *FindAsegLabel(ASEG *paseg, int n);
 CHN *FindAsegChannel(ASEG *paseg, ALO *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
@@ -166,9 +166,9 @@ qword GetSoDvGravity(ALO *);
 void func_0020B210(ALO *);
 void func_0020D178(void *);
 float func_00196928(qword,qword,float,float,float,float);
-qword func_0022FC48(XF *,XF *,qword);
+qword TransformXfPos(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
-ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
+ACT *NewBezierAct(ALO *,XF *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
 void SetSoDvGravity(ALO *,qword);
 void SeekAsega(ASEGA *,int,float,float);
@@ -177,7 +177,7 @@ void EnableStuckWatch(void *);
 int FAsegaRetracted(ASEGA *);
 int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
 void ReleaseAct(ACT **);
-void func_002303A0(ALO *o, XF *pxf, int m);
+void SetXfRole(ALO *o, XF *pxf, int m);
 
 ASEGA *func_0020BB48(GAIT *p);
 qword func_0020BAD8(GAIT *p);
@@ -400,7 +400,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *p)
             SetSndSourceLo(h, 0);
             SetSndSourcePos(h, func_001A62E8(x->paloRoot));
             SetSndRange(h, 500.0f, 2000.0f);
-            func_001FB1F8(h, t);
+            SetSndVolume(h, t);
         }
         p->afFootDown[i] = f;
     }
@@ -681,9 +681,9 @@ void SetLeapState(LEAPV *p,int state)
             __asm__("sqc2 %4,%0\n\tlw %1,%5\n\tsqc2 %3,%2"
               :"=m"(finalVelocity.q),"=r"(parentSpace),"=m"(scalar.q)
               :"j"(timeScalar),"j"(motionVelocity),"m"(launchSubject->space));
-            qword position=func_0022FC48(0,parentSpace->pxfParent,target);
+            qword position=TransformXfPos(0,parentSpace->pxfParent,target);
             qword speed=ConvertXfVec(0,p->subject->space->pxfParent,finalVelocity.q);
-            p->constraint=func_0012DE58(p->subject,p->subject->space,5,position,speed,p->arrival);
+            p->constraint=NewBezierAct(p->subject,p->subject->space,5,position,speed,p->arrival);
             p->subject->flags|=0x04000000ul;
             RecalcSwOxfFilterForObject(&D_003DD490,p->subject);
         }
@@ -715,7 +715,7 @@ extern "C" void func_0020C6F8(LEAPV *p, qword v)
     switch (p->state) {
     case 0: p->target.q = v; break;
     case 1: case 2:
-        if (p->ballistic) { ACTPOS *pd = (ACTPOS *)p->constraint; pd->v = func_0022FC48(0, p->subject->space->pxfParent, v); }
+        if (p->ballistic) { ACTPOS *pd = (ACTPOS *)p->constraint; pd->v = TransformXfPos(0, p->subject->space->pxfParent, v); }
         break;
     }
 }
@@ -732,7 +732,7 @@ void func_0020C760(LEAPV *p)
         p->ballistic = 0;
         if (p->constraint) {
             ReleaseAct(&p->constraint);
-            func_002303A0(p->subject, p->subject->space, 2);
+            SetXfRole(p->subject, p->subject->space, 2);
             p->subject->flags &= ~(1L << 26);
             RecalcSwOxfFilterForObject(&D_003DD490, p->subject);
         }

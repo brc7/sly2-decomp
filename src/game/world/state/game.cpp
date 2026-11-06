@@ -72,7 +72,7 @@ int sceScfGetLanguage();
 void BroadcastGameEvent(void *pgame, int nEvent, LO *plo);
 void func_001A4E08(void *pq);
 void func_00154A80(void *pdifficulty);
-void func_00212A30(WIDGETV *pwidget);
+void ResetWidgetVisibleTime(WIDGETV *pwidget);
 void InitLo(LO *plo);
 void func_0011A050(DL *pdl, int ibDle);
 void EndCurrentJob(JOBV *pjob);
@@ -364,7 +364,7 @@ extern "C" void func_00161868(SW *psw)
     if (pwidget != 0) {
         VTEW *pvt = pwidget->pvt;
         pvt[49].pfn((char *)pwidget + pvt[49].d, -1);
-        func_00212A30(pwidget);
+        ResetWidgetVisibleTime(pwidget);
     }
 }
 
@@ -382,7 +382,7 @@ extern "C" void func_001618B0(SW *psw)
     if (pwidget != 0) {
         VTEW *pvt = pwidget->pvt;
         pvt[49].pfn((char *)pwidget + pvt[49].d, -1);
-        func_00212A30(pwidget);
+        ResetWidgetVisibleTime(pwidget);
     }
 }
 

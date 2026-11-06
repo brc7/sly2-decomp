@@ -8,7 +8,7 @@
 // symbol (CompareSaves__FP4SAVET0) as a C-linkage definition: it compares two SAVEINFO records, not SAVEs.
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does).
 // The two dialogs D_002E6550 / D_002E65A0 are defined here with inline constructors (CMemcardDialog_ctor,
-// func_001ADDF0) and destructors (func_00258348, in-charge flag 2): g++ generates the 93-instruction
+// func_001ADDF0) and destructors (DestroyBasic, in-charge flag 2): g++ generates the 93-instruction
 // construct-and-destruct StaticInit_memcard and the _GLOBAL_$D$ stub func_001AE130 (cm.cpp's g_cm pattern).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_memcard
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001AE110
@@ -28,7 +28,7 @@ struct MCDLG;
 extern "C" {
 MCDLG *CMemcardDialog_ctor(MCDLG *pdlg);
 void *func_001ADDF0(void *pv);        /* CMcStatus constructor */
-void func_00258348(MCDLGG *pv, int grfDelete);
+void DestroyBasic(MCDLGG *pv, int grfDelete);
 }
 struct MCDLGG
 {
@@ -37,13 +37,13 @@ struct MCDLGG
     int nUnk44;             /* +0x44 draft: the dialog's state (1, 3 tested; SetMcDialogState); was D_002E6594 */
     char ab48[8];
     MCDLGG() { CMemcardDialog_ctor((MCDLG *)this); }
-    ~MCDLGG() { func_00258348(this, 2); }
+    ~MCDLGG() { DestroyBasic(this, 2); }
 };
 struct MCSTATUSG
 {
     char ab[0x40];
     MCSTATUSG() { func_001ADDF0(this); }
-    ~MCSTATUSG() { func_00258348((MCDLGG *)this, 2); }
+    ~MCSTATUSG() { DestroyBasic((MCDLGG *)this, 2); }
 };
 /* memcard's .bss, in the ELF's order: the thread stack, the sceMcGetDir table, the directory path, the dialog (0x50),
    the status widget (0x40), the save manager. g++ 2.95 emits an object with a constructor at its definition and
@@ -175,11 +175,11 @@ void SetMcDialogState(void *pdlg, int nState);
 void HideMcDialogWidget(void *pdlg);
 void load_file_from_disc(int n0, int n1, char *pchzFile, char *pchzCard);
 void ResetGsIfSchemaChanged(int *pn);
-MCDLG *func_001DA728(MCDLG *pdlg);   /* the widget base constructor (returns the widget) */
-int func_001DA7D0(MCDLG *pdlg);
+MCDLG *ConstructScreen(MCDLG *pdlg);   /* the widget base constructor (returns the widget) */
+int ResetScreenMode(MCDLG *pdlg);
 void func_001DA770(MCDLG *pdlg);
-void func_001DA7B0(MCDLG *pdlg);
-void func_001DA808(MCDLG *pdlg);
+void ResetScreen(MCDLG *pdlg);
+void UpdateTimedScreen(MCDLG *pdlg);
 int IdPauseTopPage(void *pmenu);
 }
 void InitSave(SAVE *psave, int n0, int n1);
@@ -1806,11 +1806,11 @@ extern "C" int McDelete(SAVE *psave, const char *pchz)
  * @end-sly2-annot */
 extern "C" MCDLG *CMemcardDialog_ctor(MCDLG *pdlg)
 {
-    func_001DA728(pdlg);
+    ConstructScreen(pdlg);
     pdlg->pvt = D_002D3750;
     pdlg->id = 0x52C;
     pdlg->nState = -1;
-    func_001DA7D0(pdlg);
+    ResetScreenMode(pdlg);
     return pdlg;
 }
 
@@ -1844,7 +1844,7 @@ void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes
 /* CMemcardDialog slot 13. */
 extern "C" void func_001ACB38(MCDLG *pdlg)
 {
-    func_001DA7B0(pdlg);
+    ResetScreen(pdlg);
 }
 
 namespace M_SetMcDialogState { extern "C" {
@@ -2773,7 +2773,7 @@ extern "C" int func_001ADEA8(S *p)
 extern "C" void func_001ADEE8(MCDLG *pdlg)
 {
     MCCHILD *pchild;
-    func_001DA808(pdlg);
+    UpdateTimedScreen(pdlg);
     pchild = pdlg->pchild;
     if (pchild != 0) {
         if (pchild->n58 == 2 && pchild->n64 == pchild->n58 && D_002DDED0.tReal - pchild->t5C > 1.0f &&

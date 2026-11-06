@@ -61,7 +61,7 @@ extern XFV D_002C44F0;
 
 extern "C" {
 void *func_001AE2A0(ALLOCREQ *preq);
-void func_002303A0(LOBase *p, XFV *plo, int n);
+void SetXfRole(LOBase *p, XFV *plo, int n);
 M4 InvertMatrix4Rigid(const M4 *m);
 M3 InvertMatrix3Cofactor(const M3 *m);
 void NormalizeRotateMatrix3__FP7MATRIX3(M3 *m);
@@ -95,7 +95,7 @@ extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream
         constraint->position = stream->S8Read();
         constraint->rotation = stream->S8Read();
         constraint->dest->constraint = constraint;
-        func_002303A0(lo, constraint->dest, 0xF);
+        SetXfRole(lo, constraint->dest, 0xF);
     }
 }
 

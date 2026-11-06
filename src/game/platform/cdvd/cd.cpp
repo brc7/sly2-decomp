@@ -35,9 +35,9 @@ int sceCdGetError(void);
 int sceCdMmode(int n);
 int sceCdSync(int n);
 int sceCdRead(unsigned int lsn, unsigned int c, void *buf, void *mode);
-void func_001DD6C8(void *p);
-int func_001DD780(void *p);
-void func_001DD728(void *p);
+void ShowScreen52D(void *p);
+int IsScreen52DShown(void *p);
+void HideScreen52D(void *p);
 }
 int FValidCdMmode();
 int FCdCompleted(int f);
@@ -176,12 +176,12 @@ void UpdateCd(void)
     switch (cds) {
     case 3:
         if (D_003DD0E4 && !FValidCdMmode()) {
-            func_001DD6C8(D_003DA4F0);
+            ShowScreen52D(D_003DA4F0);
             D_002BD4C0 = 1;
         }
         break;
     case 1:
-        if (func_001DD780(D_003DA4F0)) {
+        if (IsScreen52DShown(D_003DA4F0)) {
             int lsn = D_002A2E5C;
             lsn += 0xCA0;
             if (FValidCdMmode() && sceCdRead(lsn, 1, D_002DD680, (void *)D_002A2E50) == cds)
@@ -193,7 +193,7 @@ void UpdateCd(void)
             if (UCrc(D_002DD680, 0x800) != D_002A2E60) {
                 D_002BD4C0 = 1;
             } else {
-                func_001DD728(D_003DA4F0);
+                HideScreen52D(D_003DA4F0);
                 D_002BD4C0 = 3;
             }
         }

@@ -43,15 +43,15 @@ void InitLo(LO *plo);
 void CloneLo(LO *plo, LO *ploBase);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 void func_00147E88(SW *psw, LOROOT *ploroot);
-qword func_0022FC48(int a, XF *pxf, qword pos);
+qword TransformXfPos(int a, XF *pxf, qword pos);
 void VECTOR_opAssign(void *pv, qword q);
 M3 ConvertXfMat(int a, XF *pxf, MATRIX4 *pmat);
 qword GetXfVelocity(XF *pxf, int a, qword pos);
-M4 func_0022D148(XF *pxf, int a);
+M4 GetXfAngularVelocity(XF *pxf, int a);
 void func_001A5900(LO *plo, SO *psoParent, XF *pxfParent, int grf);
 void func_001A6D28(LO *plo, uint grf);
-void func_0022D670(XF *pxf);
-void func_0022D698(XF *pxf);
+void PushXfContext(XF *pxf);
+void PopXfContext(XF *pxf);
 void LoadXfmXfFromBrx(XFM *pxfm, CBinaryInputStream *pbis);
 void UpdateXfmMatWorld(XFM *pxfm);
 void func_002313F0(XFM *pxfm);
@@ -130,7 +130,7 @@ extern "C" void func_00231220(XFM *pxfm, XFM *pxfmBase, XF **ppxf)
 extern "C" void TranslateXfmToPos(XFM *p, qword v)
 {
     float *m = &p->mat.mat[0][0];
-    qword r = func_0022FC48(0, p->pxfParent, v);
+    qword r = TransformXfPos(0, p->pxfParent, v);
     VECTOR_opAssign(&p->mat.mat[3][0], r);
     m[15] = 1.0f;
     func_002313F0(p);
@@ -239,7 +239,7 @@ extern "C" qword func_002314D0(XFM *p)
     {
         MATRIX4 m;
         {
-            M4 t = func_0022D148(p->pxfParent, 0);
+            M4 t = GetXfAngularVelocity(p->pxfParent, 0);
             m = *(MATRIX4 *)&t;
         }
         {
@@ -334,9 +334,9 @@ extern "C" void LoadXfmXfFromBrx(XFM *p, CBinaryInputStream *q)
 extern "C" void LoadXfmChildObjectsFromBrx(XFM *p, CBinaryInputStream *pbis, CLoadCollectorArray *pl)
 {
     int i;
-    func_0022D670(p->pxfParent);
+    PushXfContext(p->pxfParent);
     LoadSwObjectsFromBrx(p->psoParent, pbis, pl);
-    func_0022D698(p->pxfParent);
+    PopXfContext(p->pxfParent);
     for (i = 0; i < pl->c; i++) {
         LO *lo = pl->aplo[i];
         lo->ApplyProxy(&p->mat);

@@ -41,14 +41,14 @@ void *func_001AE238(AREQV *preq, void *pv);
 void **func_001AE2A0(AREQV *preq);
 void LoadXfmFromBrx(XFM *pxfm, void *pbis);
 void PostLoLoad(LO *plo);
-void *func_001FE990(G *pg, int id);
-void func_001FC408(float g, void *p, void *q, AMB *pamb, float *pv);
+void *FindStreamGroupIndex(G *pg, int id);
+void AddStreamGroupSource(float g, void *p, void *q, AMB *pamb, float *pv);
 void OnLoAdd(LO *plo);
 void OnLoRemove(LO *plo);
 void *PsndStartSound(int id);
 void SetSndSourceLo(void *psnd, LO *plo);
 void SetSndRange(void *psnd, float sMin, float sMax);
-void func_001FB1F8(void *psnd, float uVol);
+void SetSndVolume(void *psnd, float uVol);
 void SetSndPitch(void *psnd, float uPitch);
 void StopSnd(void *psnd, float g);
 void RcPtr_Assign(void **pp, void *p);
@@ -122,7 +122,7 @@ extern "C" void PostAmbLoad(AMB *amb)
         int i;
         for (i = 0; i < amb->linkedCount; i++) {
             AMBREC *link = &amb->linkedSounds[i];
-            func_001FC408(link->gain, soundGroup, func_001FE990(&D_003DD040, link->soundId), amb, link->range);
+            AddStreamGroupSource(link->gain, soundGroup, FindStreamGroupIndex(&D_003DD040, link->soundId), amb, link->range);
         }
     }
 }
@@ -146,7 +146,7 @@ extern "C" void OnAmbAdd(AMB *amb)
         void *playing = PsndStartSound(sound->soundId);
         SetSndSourceLo(playing, amb);
         SetSndRange(playing, sound->minDistance, sound->maxDistance);
-        func_001FB1F8(playing, sound->volume);
+        SetSndVolume(playing, sound->volume);
         SetSndPitch(playing, sound->pitch);
         RcPtr_Assign((void **)(i * 4 + (int)amb->playingSounds), playing);
     }

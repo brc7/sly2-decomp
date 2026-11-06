@@ -61,7 +61,7 @@ extern char D_002DEB30[];   /* a game counter */
 void LoadSoFromBrx(SO *pso, CBinaryInputStream *pbis);
 void PostSoLoad(SO *pso);
 void *func_001F7B98(SO *pso);
-void func_002303A0(SO *pso, XF *pxf, int n);
+void SetXfRole(SO *pso, XF *pxf, int n);
 void BindLoOidTable(LO *plo, int coid, OIDT *aoidt);
 int func_00161798(void *pv);
 void func_001617E0(void *pv, int n);
@@ -123,8 +123,8 @@ extern "C" void LoadDprizeFromBrx(DPRIZEV *pdprize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(pdprize, pbis);
     *(int *)((char *)func_001F7B98(pdprize) + 0xF0) = 1;
-    func_002303A0(pdprize, pdprize->pxfUnk58, 0x15);
-    func_002303A0(pdprize, pdprize->pxfUnk5c, 0x15);
+    SetXfRole(pdprize, pdprize->pxfUnk58, 0x15);
+    SetXfRole(pdprize, pdprize->pxfUnk5c, 0x15);
     BindLoOidTable(pdprize, 1, D_002C0D40);
 }
 
@@ -878,10 +878,10 @@ extern float D_002A773C;
 void SetLoParent_1A58D0(struct S *p, int a, int b);
 struct LO *func_001CB658(struct S *p);
 void UnlockProxyPlo(struct LO *q, struct S *p);
-struct LO *func_001F0380(void *a, struct S *p, int anim, int z);
+struct LO *ApplySmToObject(void *a, struct S *p, int anim, int z);
 void SkipSma(struct LO *q, float g);
 void SetSmaGoal(struct LO *q, int anim);
-void func_001F0598(struct LO *q);
+void RetractSma(struct LO *q);
 /** @sly2-annot addr=0x1C60B8
  * Purpose: DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps)
  * Info: proposed name SetDprizeDprizes (T1); class DPRIZE slot76; TU prize
@@ -937,7 +937,7 @@ void SetDprizeDprizes(struct S *p, int n)
     p->x154 = D_002DDED0.t;
     if (anim != -1) {
         if (!p->x168) {
-            p->x168 = func_001F0380(p->x164, p, anim, 0);
+            p->x168 = ApplySmToObject(p->x164, p, anim, 0);
             ((void (*)(void *))p->x168->vt[1].pf)((char *)p->x168 + p->x168->vt[1].d);
             if (p->x160 > 0.0f)
                 SkipSma(p->x168, p->x160);
@@ -945,7 +945,7 @@ void SetDprizeDprizes(struct S *p, int n)
             SetSmaGoal(p->x168, anim);
         }
     } else if (p->x168) {
-        func_001F0598(p->x168);
+        RetractSma(p->x168);
         ((void (*)(void *))p->x168->vt[2].pf)((char *)p->x168 + p->x168->vt[2].d);
         p->x168 = 0;
     }
@@ -2726,8 +2726,8 @@ void func_00142140(void *p, void *q);
 qword ConvertAloVec(void *p, void *frame, qword q);
 qword ConvertXfVec(void *frame, void *p, qword q);
 qword func_001A62E8(void *p);
-qword func_0022FC48(void *frame, void *p, qword q);
-void func_002303A0(struct S *p, struct X *px, int n);
+qword TransformXfPos(void *frame, void *p, qword q);
+void SetXfRole(struct S *p, struct X *px, int n);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
 static inline void Selection(const struct S*p,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
@@ -2763,12 +2763,12 @@ void func_001C8918(struct S *p, int n)
         q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1080));
         px->xB0 = q;
         {int selected;Selection(p,&selected,&px);
-        q=func_0022FC48(0,px->xA0,func_001A62E8(p->a1A8[selected]));}
+        q=TransformXfPos(0,px->xA0,func_001A62E8(p->a1A8[selected]));}
         px->xC0 = q;
         px = p->x204;
         q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1090));
         px->xD0 = q;
-        func_002303A0(p, p->x204, 0x11);
+        SetXfRole(p, p->x204, 0x11);
         break;
     case 2:
         func_00142140(p->x190, p->a1A8[p->x194]);

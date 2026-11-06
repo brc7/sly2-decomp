@@ -86,18 +86,18 @@ float GGetDifficulty(void *);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float);
 void FramePtr_Assign(ASEGA *, CFrame *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_001F8668(LO *plo, long);
-void *func_0012E1F0(unsigned int);
+void *AllocAct(unsigned int);
 void AddXfAct(LO *plo, void *pv, ACTSEG *pactseg);
-void *func_0012CE50(unsigned int);
+void *AllocOvra(unsigned int);
 void SetAsegaHandsOff(ASEGA *, int);
 void HandleAsegaEvent(ASEGA *, EA *);
-void func_00230CF0(ASEGA *, int);
+void EvaluateXfSlotValue(ASEGA *, int);
 void HandleAsegaEventsFF(ASEGA *);
 void UpdateAsegaIeaCur__FP5ASEGA(ASEGA *);
 M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
-M4 func_0022C8C0(XFV *pxf, qword q);
+M4 BuildXfValueMatrix(XFV *pxf, qword q);
 M4 func_0022CB90(XFV *pxf, M4 *pm, qword q1, qword q2);
-M4 func_0022CC00(XFV *pxf, qword q);
+M4 BuildXfValueDerivativeMatrix(XFV *pxf, qword q);
 void RetractAsega(ASEGA *pasega);
 void SeekAsega(ASEGA *pasega, SEEK seek, float t, float svt);          /* SeekAsega */
 void SetAsegaMasterSpeed(ASEGA *pasega, float svt);
@@ -348,7 +348,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
             ResolveAsegChannelTarget(pt, x, pe, &a, &b);
             if (b) {
                 func_001F8668(a, 0);
-                ACTSEG *pn = (ACTSEG *)func_0012E1F0(0x2C);
+                ACTSEG *pn = (ACTSEG *)AllocAct(0x2C);
                 pn->pvt = D_002CAF08;
                 pn->x0 = 0;
                 if (pe->grf & 0x80000000)
@@ -372,7 +372,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         int b;
         ResolveAsegOverrideTarget(pt, x, pe, &a, &b);
         if (b) {
-            OVRA *pn = (OVRA *)func_0012CE50(0x14);
+            OVRA *pn = (OVRA *)AllocOvra(0x14);
             pn->x0 = pe->x8;
             pn->x4 = b;
             pn->plo = a;
@@ -388,7 +388,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     for (k = 0; k < pt->ceaStart; k++)
         HandleAsegaEvent(p, &pt->aeaStart[k]);
     p->tLocal = p->tPrev;
-    func_00230CF0(p, (grf >> 2) & 1);
+    EvaluateXfSlotValue(p, (grf >> 2) & 1);
     if (grf & 2) {
         if (p->svt < 0.0f)
             p->iea = pt->ceaFrame;
@@ -544,13 +544,13 @@ extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast
             pe = &px->achn[i];
             if (py == apy[i] && !pe->u.f31) {
                 pe->pac->Eval(f, g, &aq[0], &aq[1]);
-                mA = func_0022C8C0(py, aq[0]);
+                mA = BuildXfValueMatrix(py, aq[0]);
                 switch (py->x94) {
                 case 6: case 7:
                     mB = func_0022CB90(py, &mA, aq[0], aq[1]);
                     break;
                 default:
-                    mB = func_0022CC00(py, aq[1]);
+                    mB = BuildXfValueDerivativeMatrix(py, aq[1]);
                     break;
                 }
                 goto found;

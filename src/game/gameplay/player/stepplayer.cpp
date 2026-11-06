@@ -1937,8 +1937,8 @@ struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F
 struct SO *PxfFindSo(struct P *p, int x, int n);
 void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
 qword func_0011BFF0(M3 *pm);
-void *func_0012DC18(struct P *p, struct SO *pso, int a, int b, int c, qword q);
-void func_0012D020(void *pv);
+void *NewPositionAct(struct P *p, struct SO *pso, int a, int b, int c, qword q);
+void DetachAct(void *pv);
 static __inline__ qword MulV(M3 *pm, qword v)
 {
     qword o;
@@ -1975,8 +1975,8 @@ void func_001426E8(struct P *p, int x)
             m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
             p->mat = t;
         }
-        p->p10F4 = func_0012DC18(p, pso, 3, 7, 2, func_0011BFF0(&p->mat));
-        func_0012D020(p->p10F4);
+        p->p10F4 = NewPositionAct(p, pso, 3, 7, 2, func_0011BFF0(&p->mat));
+        DetachAct(p->p10F4);
     }
 }
 } } // namespace M_func_001426E8
@@ -2312,8 +2312,8 @@ void func_00142880(P *p);
 void SetStepplayerLeanTarget(P *p, int n, S *ps);
 void HeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
 int FCheckLm__FP2LMf(void *p, float g);
-void func_0012CFE0(Q *pq);
-void func_0012D020(Q *pq);
+void AttachAct(Q *pq);
+void DetachAct(Q *pq);
 qword func_001A62E8(void *p);
 qword ConvertAloPos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
@@ -2420,16 +2420,16 @@ void func_00142AF8(P *p)
         }
     }
     if (p->n1104 != 0) {
-        func_0012CFE0(p->pq);
+        AttachAct(p->pq);
         pan = p->g1110;
         tilt = p->g1114;
         g = p->g1118;
     } else {
         if (p->p10F8 == 0 || p->n1148 == 0 || !f) {
-            func_0012D020(p->pq);
+            DetachAct(p->pq);
             return;
         }
-        func_0012CFE0(p->pq);
+        AttachAct(p->pq);
         CalculateVectorPanTilt(ConvertAloPos(0, p, func_001A62E8(p->p10F8)), &pan, &tilt);
         pan = RadLimitLm(&p->lmPan, pan);
         tilt = RadLimitLm(&p->lmTilt, tilt);

@@ -214,7 +214,7 @@ void func_0020BD88(void *p, struct S *s);
 void PostJtthrowLoad(void *p);
 void func_001426E8(struct S *p, int n);
 void *PxfFindSo(struct S *p, int a, int b);
-int func_0012DC18(struct S *p, void *a, int b, int c, int d, qword q);
+int NewPositionAct(struct S *p, void *a, int b, int c, int d, qword q);
 void SetMurrayState(struct S *p, int n);
 /** @sly2-annot addr=0x1B49E0
  * Purpose: MURRAY vt15: STEPPLAYER PostLoad, post-load the 4 locomotion blends, strafe direction table
@@ -239,7 +239,7 @@ void PostMurrayLoad(struct S *p)
     func_001426E8(p, 0x16);
     v = PxfFindSo(p, p->x18, 0xC);
     if (v) {
-        *(int *)(b + 0x1ACC) = func_0012DC18(p, v, 0, 7, 2, D_002A2DE0);
+        *(int *)(b + 0x1ACC) = NewPositionAct(p, v, 0, 7, 2, D_002A2DE0);
     }
     SetMurrayState(p, 0);
 }
@@ -766,7 +766,7 @@ typedef char P_x1464_Offset[FIELD_OFFSET(P,x1464)==5220?1:-1];
 typedef char P_x1510_Offset[FIELD_OFFSET(P,x1510)==5392?1:-1];
 typedef char P_x151C_Offset[FIELD_OFFSET(P,x151C)==5404?1:-1];
 extern qword D_002A2DD0;
-void func_002303A0(P *p, void *x, int k);
+void SetXfRole(P *p, void *x, int k);
 void func_0020BD68(void *p);
 void ReleaseAsega(A *pa);
 void ReleaseSma(C *pc);
@@ -790,8 +790,8 @@ void SetMurrayCarrySubstate(P *p, int k)
     if (k == p->x1458) return;
     switch (p->x1458) {
     case 0:
-        func_002303A0(p, p->x58, 2);
-        func_002303A0(p, p->x5C, 2);
+        SetXfRole(p, p->x58, 2);
+        SetXfRole(p, p->x5C, 2);
         p->x1458 = k;
         break;
     case 1:
@@ -808,8 +808,8 @@ void SetMurrayCarrySubstate(P *p, int k)
     if(k==2)goto state2;
     goto done;
 state0:
-    func_002303A0(p,p->x58,1);
-    func_002303A0(p,p->x5C,1);
+    SetXfRole(p,p->x58,1);
+    SetXfRole(p,p->x5C,1);
     pv=p->x1510;
     p->x190=D_002A2DD0;
     goto done;
@@ -841,7 +841,7 @@ extern float D_002C0900;
 struct P { char pad[0x150]; int x150; char pad1[0x1034 - 0x154]; int x1034; char pad2[0x1524 - 0x1038]; float f1524; float f1528; int x152C; int x1530; int x1534; };
 struct P *PpoHero(void *g);
 int FSwHandsOff(void *g);
-int func_001F07E8(int a);
+int GetSmaCurrentState(int a);
 int GetSmaGoal(int a);
 int GrfConsumePressed__5POCTLUif(int a, int b, float f);
 void SetSmaGoal(int a, int b);
@@ -858,7 +858,7 @@ void func_001B5820(struct P *p)
     int a;
     if (PpoHero(D_003DD490) != p) return;
     if (FSwHandsOff(D_003DD490)) return;
-    a = func_001F07E8(p->x1034);
+    a = GetSmaCurrentState(p->x1034);
     if (a != GetSmaGoal(p->x1034)) return;
     if (a >= 0x1D0) return;
     if (a < 0x1CB) return;
@@ -1011,7 +1011,7 @@ struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char x1030[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int x17F4; float f17F8; };
-void func_002303A0(struct P *p, int a, int b);
+void SetXfRole(struct P *p, int a, int b);
 void func_0020BD68(void *p);
 void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
@@ -1029,8 +1029,8 @@ void func_001B5D30(struct P *p, int st)
     int x, n;
     if (st == p->x17F4) return;
     if (p->x17F4 == 0) {
-        func_002303A0(p, p->x58, 2);
-        func_002303A0(p, p->x5C, 2);
+        SetXfRole(p, p->x58, 2);
+        SetXfRole(p, p->x5C, 2);
     }
     p->x17F4 = st;
     p->f17F8 = D_002DDED0.t;
@@ -1039,8 +1039,8 @@ void func_001B5D30(struct P *p, int st)
     n = 1;
     switch (st) {
     case 0:
-        func_002303A0(p, p->x58, 1);
-        func_002303A0(p, p->x5C, 1);
+        SetXfRole(p, p->x58, 1);
+        SetXfRole(p, p->x5C, 1);
         x = p->x16E0;
         p->q190 = D_002A2DD0;
         break;
@@ -1208,7 +1208,7 @@ struct CLOCK { float t, dt; };
 extern CLOCK D_002DDED0;
 extern U D_002A2DD0;
 extern int D_002DD5BC;
-void func_002303A0(P *, void *, int);
+void SetXfRole(P *, void *, int);
 void func_00142880(P *);
 void SetMurrayFlopSubstate(P *, int);
 void func_0015C150(OBJ *);
@@ -1259,9 +1259,9 @@ extern "C" void SetMurrayState(P *p, int next)
     // leave the old state
     switch (p->state) {
     case 0:
-        func_002303A0(p, p->first, 2); func_002303A0(p, p->second, 2); func_00142880(p); break;
+        SetXfRole(p, p->first, 2); SetXfRole(p, p->second, 2); func_00142880(p); break;
     case 16: case 17: case 18:
-        func_002303A0(p, p->first, 2); func_002303A0(p, p->second, 2); break;
+        SetXfRole(p, p->first, 2); SetXfRole(p, p->second, 2); break;
     case 3: SetMurrayFlopSubstate(p, -1); break;
     case 2: {
         if (!p->retain) {
@@ -1299,7 +1299,7 @@ extern "C" void SetMurrayState(P *p, int next)
     // enter the new state
     switch (next) {
     case 0:
-        func_002303A0(p, p->first, 1); func_002303A0(p, p->second, 1);
+        SetXfRole(p, p->first, 1); SetXfRole(p, p->second, 1);
         source = p->template0; p->velocity = D_002A2DD0;
         if (old != 2) { id = (old != 10) ? 0x175 : 0x176; } else id = 0x178;
         if (IsmsFindSmOptional__FP2SM3OID(source, id) < 0) id = -1;
@@ -1330,7 +1330,7 @@ extern "C" void SetMurrayState(P *p, int next)
         Call(p->object15, 8); p->stamp15 = D_002DD5BC; SetJtthrowState(Block(p, 0x1910), 0); SetSoCnstrForce(p, 1); SetVelocity(p, D_002A2DD0.q); return;
     case 16: source = p->template16;
     case 17: case 18:
-        func_002303A0(p, p->first, 1); func_002303A0(p, p->second, 1);
+        SetXfRole(p, p->first, 1); SetXfRole(p, p->second, 1);
     clear_velocity: p->velocity = D_002A2DD0; break;
     case 20: func_0019EAB0(Block(p, 0xF50), 0); return;
     case 21: { clip = p->clip21; U *velocity = &p->velocity; velocity->i[2] = 0; flags = 9; velocity->i[1] = 0; p->velocity.i[0] = 0; break; }
@@ -1936,7 +1936,7 @@ int FTryMurrayTakedown(struct P *p)
 namespace M_func_001B72B0 {
 // func_001B72B0: rotation (quaternion) and position of `stop` relative to the owner's two end nodes of p->link.
 //  - No pose: transform the input basis into the right parent's frame (ConvertXfMat) and take its rotation
-//    (func_0011BFF0); transform the input position through the left parent (func_0022FC48).
+//    (func_0011BFF0); transform the input position through the left parent (TransformXfPos).
 //  - With a pose: collect the parent chain from pose->first up to `stop` (at most 16 nodes) and the indices of the
 //    owner's left/right nodes in it, build the relative frame replace = inverse(from * pose * inverse(input) * to)
 //    (rotation re-orthonormalised through the quaternion, position = the right node's local position), then
@@ -1967,8 +1967,8 @@ typedef struct { char pad[0x180]; OWNER *owner; int pad184; POSE *pose; } LINK;
 typedef struct { char pad[0x13F0]; LINK *link; } P;
 extern "C" M4 D_002A2D30;   // identity matrix
 extern "C" M3 ConvertXfMat(NODE *, NODE *, const M3 &);
-extern "C" M4 func_0022FF40(NODE *, NODE *, const M4 &);
-extern "C" VU_VECTOR func_0022FC48(NODE *, NODE *, VU_VECTOR);
+extern "C" M4 GetRelativeXfMatrix(NODE *, NODE *, const M4 &);
+extern "C" VU_VECTOR TransformXfPos(NODE *, NODE *, VU_VECTOR);
 extern "C" VU_VECTOR func_0011BFF0(const M3 *);
 extern "C" void LoadRotateMatrixEuler(M3 *, VU_VECTOR);
 extern "C" qword *VECTOR_opAssign(qword *, VU_VECTOR);
@@ -1988,7 +1988,7 @@ extern "C" void func_001B72B0(P *const p, NODE *stop, const M4 *input, VU_VECTOR
         M3 basis;
         basis = ConvertXfMat(stop, p->link->owner->right->parent, input->basis);
         *outRotation = func_0011BFF0(&basis);
-        *outPosition = func_0022FC48(stop, p->link->owner->left->parent, input->position.q);
+        *outPosition = TransformXfPos(stop, p->link->owner->left->parent, input->position.q);
         return;
     }
     {
@@ -2006,8 +2006,8 @@ extern "C" void func_001B72B0(P *const p, NODE *stop, const M4 *input, VU_VECTOR
             if (node == owner->right) right = count;
             count++;
         }
-        M4 from = func_0022FF40(p->link->pose->first, owner->right, D_002A2D30);
-        M4 to = func_0022FF40(owner->right->parent, stop, D_002A2D30);
+        M4 from = GetRelativeXfMatrix(p->link->pose->first, owner->right, D_002A2D30);
+        M4 to = GetRelativeXfMatrix(owner->right->parent, stop, D_002A2D30);
         from = __ml__FRC7MATRIX4T0(from, p->link->pose->transform);
         M4 replace;
         M4 result = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(from, inverse), to);
@@ -2357,7 +2357,7 @@ struct X { char pad[0x58]; int x58; int x5C; };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
 struct P { char pad[0x13F0]; struct O *x13F0; int a13F4[4]; int x1404; int x1408; char pad2[0x1430 - 0x140C]; struct X *x1430; float f1434; char pad3[0x1600 - 0x1438]; int a1600[4]; int x1610, x1614; int a1618[4]; };
 void ReleaseAct(int *p);
-void func_002303A0(struct X *x, int a, int b);
+void SetXfRole(struct X *x, int a, int b);
 void func_001F6860(struct X *x, int a);
 void SetLoParent_1A58D0(struct X *x, int a, int b);
 void RecalcSwOxfFilterForObject(void *g, struct P *p);
@@ -2388,8 +2388,8 @@ void DetachMurrayCarried(struct P *p)
     if (!o) return;
     ((void (*)())o->vt[3].pfn)((char *)o + o->vt[3].d, 6, 0, 0, 0, 0);
     x = p->x13F0->x180;
-    func_002303A0(x, x->x58, p->x1404);
-    func_002303A0(x, x->x5C, p->x1408);
+    SetXfRole(x, x->x58, p->x1404);
+    SetXfRole(x, x->x5C, p->x1408);
     func_001F6860(x, 0);
     SetLoParent_1A58D0(x, 0, 0xF);
     p->x1430 = x;
@@ -3500,11 +3500,11 @@ extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
 extern "C" void func_00209E28(OWNER*,int);
 extern "C" void func_00209E88(OWNER*);
 extern "C" void func_001B7700(P*,qword,float*,float*,qword*,qword*);
-extern "C" MOTION*func_0012DE58(void*,void*,void*,float,qword,qword);
+extern "C" MOTION*NewBezierAct(void*,void*,void*,float,qword,qword);
 extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
-extern "C" MOTION*func_0012DC18(void*,void*,void*,int,int,qword);
-extern "C" MOTION*func_0012DD28(void*,void*,void*,STRETCH*);
-extern "C" MOTION*func_0012DDB0(void*,void*,void*,void*,int,M4*);
+extern "C" MOTION*NewPositionAct(void*,void*,void*,int,int,qword);
+extern "C" MOTION*NewIkAct(void*,void*,void*,STRETCH*);
+extern "C" MOTION*NewMatrixAct(void*,void*,void*,void*,int,M4*);
 extern "C" void DetachMurrayCarried(P*);
 extern "C" void SetMurrayState(P*,int);
 static inline void ClearXYZ(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
@@ -3543,12 +3543,12 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   func_001B72B0(p,0,&predicted,&work.row[0].q,&work.row[1].q);
   if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))func_00209E28(owner,(int)p);
   func_001B7700(p,work.row[1].q,&event->time,&duration,&work.row[2].q,&work.row[3].q);
-  p->m13FC=func_0012DE58(owner,owner->left,(void*)5,D_002DDED0.time+duration,work.row[1].q,work.row[3].q);
+  p->m13FC=NewBezierAct(owner,owner->left,(void*)5,D_002DDED0.time+duration,work.row[1].q,work.row[3].q);
   VTE*entry=&owner->vt[35];
   void*receiver=(char*)owner+entry->delta;
   qword velocity=ConvertXfVec(owner->left->parent,0,work.row[2].q);
   ((void(*)(void*,qword))entry->fn)(receiver,velocity);
-  p->m1400=func_0012DC18(owner,owner->right,(void*)5,7,2,work.row[0].q);
+  p->m1400=NewPositionAct(owner,owner->right,(void*)5,7,2,work.row[0].q);
   break;
  }
  case 2:{
@@ -3567,17 +3567,17 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   U position,rotation;
   M4 frame;
   func_001B72B0(p,root->node,&D_002A2D30,&rotation.q,&position.q);
-  p->m13F8=func_0012DC18(owner,owner->right,(void*)5,7,2,rotation.q);
-  p->m13F4=func_0012DC18(owner,owner->left,(void*)5,7,2,position.q);
+  p->m13F8=NewPositionAct(owner,owner->right,(void*)5,7,2,rotation.q);
+  p->m13F4=NewPositionAct(owner,owner->left,(void*)5,7,2,position.q);
   if(p->link->first){
    GOAL*goal=p->link->first;
    STRETCH*stretch=p->first;
    stretch->frame=((void*(*)(void*,M4*))goal->vt[32].fn)((char*)goal+goal->vt[32].delta,&frame);
    stretch->position=frame.row[3];
    stretch->tuning=D_002C0A3C;
-   p->m1618=func_0012DD28(p,stretch->first,(void*)5,stretch);
-   p->m161C=func_0012DD28(p,stretch->second,(void*)5,stretch);
-   p->m1604=func_0012DDB0(p,p->targetFirst,(void*)5,(void*)5,(int)stretch->frame,&frame);
+   p->m1618=NewIkAct(p,stretch->first,(void*)5,stretch);
+   p->m161C=NewIkAct(p,stretch->second,(void*)5,stretch);
+   p->m1604=NewMatrixAct(p,p->targetFirst,(void*)5,(void*)5,(int)stretch->frame,&frame);
   }
   if(p->link->second){
    GOAL*goal=p->link->second;
@@ -3585,9 +3585,9 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
    stretch->frame=((void*(*)(void*,M4*))goal->vt[32].fn)((char*)goal+goal->vt[32].delta,&frame);
    stretch->position=frame.row[3];
    stretch->tuning=D_002C0A40;
-   p->m1620=func_0012DD28(p,stretch->first,(void*)5,stretch);
-   p->m1624=func_0012DD28(p,stretch->second,(void*)5,stretch);
-   p->m160C=func_0012DDB0(p,p->targetSecond,(void*)5,(void*)5,(int)stretch->frame,&frame);
+   p->m1620=NewIkAct(p,stretch->first,(void*)5,stretch);
+   p->m1624=NewIkAct(p,stretch->second,(void*)5,stretch);
+   p->m160C=NewMatrixAct(p,p->targetSecond,(void*)5,(void*)5,(int)stretch->frame,&frame);
   }
   if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))func_00209E88(owner);
   ClearXYZ(&p->velocity);

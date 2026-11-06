@@ -113,8 +113,8 @@ extern "C" qword D_002A2DD0;
 
 extern "C" {
 void RecalcSwXpAll(SW *psw);
-int func_00230348(int);
-int func_00230380(int);
+int IsXfRoleAtRest(int);
+int IsXfRoleVelocity(int);
 int FFloatsNear__Ffff(float, float, float);
 void func_00229798(SO *pso);
 void SlotUnsettle(SO *pso, XF *pxf);
@@ -126,7 +126,7 @@ void NormalizeRotateMatrix3__FP7MATRIX3(M3C *);
 void UpdateSoPartMatrices(SO *);
 void UpdateSoPartGeom(NODE *);
 void func_001F4D50(SO *);
-void func_00230630(SO *, XF *);
+void SettleXfSlot(SO *, XF *);
 M3 *InvertMatrix3Cofactor(M3 *pd, const M3 *ps);
 qword func_001A62E8(SO *pso);
 
@@ -218,10 +218,10 @@ void func_001F8F80(SW *p, int k)
         {
             register SO *receiver asm("a1")=po;
             if(k&1){
-                int first=func_00230348(po->pxfPos->nRole);
+                int first=IsXfRoleAtRest(po->pxfPos->nRole);
                 receiver=po;
                 if(first){
-                    int second=func_00230348(po->pxfRot->nRole);
+                    int second=IsXfRoleAtRest(po->pxfRot->nRole);
                     if(second)continue;
                     receiver=po;
                 }
@@ -523,8 +523,8 @@ void func_001F9C48(SO *p)
     CLOCK *clock;
     SW *global;
     NODE *node;
-    func_00230630(p,position);
-    func_00230630(p,rotation);
+    SettleXfSlot(p,position);
+    SettleXfSlot(p,rotation);
     clock=&D_002DDED0;
     {qword point=position->pos.q;
     qword k=Scalar(clock->dt*coefficient,&scalar);
@@ -940,7 +940,7 @@ extern "C" void func_001FAB78(SO *p, qword a, qword b)
  * @end-sly2-annot */
 void AddSoAcceleration(SO *p, qword v)
 {
-    if (func_00230380(p->pxfPos->nRole)) {
+    if (IsXfRoleVelocity(p->pxfPos->nRole)) {
         XF *po = p->pxfPos;
         qword a = po->a.q;
         qword r = ConvertXfVec(0, po->pxfParent, v);
@@ -958,7 +958,7 @@ void AddSoAcceleration(SO *p, qword v)
  * @end-sly2-annot */
 extern "C" void func_001FAC98(SO *p, qword v)
 {
-    if (func_00230380(p->pxfRot->nRole)) {
+    if (IsXfRoleVelocity(p->pxfRot->nRole)) {
         XF *po = p->pxfRot;
         qword a = po->a.q;
         qword r = ConvertXfVec(0, po->pxfParent, v);

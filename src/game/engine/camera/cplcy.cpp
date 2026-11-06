@@ -400,7 +400,7 @@ void UpdateCplcy(struct X *p, void *pv, struct JOY *pjoy);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext);
 float GLimitLm__FP2LMf(void *p, float g);
 void SetSndPitch(struct SND *p, float g);
-void func_001FB1F8(struct SND *p, float g);
+void SetSndVolume(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
 void SetCmFov__FP2CMf(struct CM *p, float g);
@@ -447,7 +447,7 @@ void UpdateCplook(struct X *p, void *pv, struct JOY *pjoy)
         struct SND *ps = p->p34;
         SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->g24)));
         ps = p->p34;
-        func_001FB1F8(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->g24) * 0.5f + 0.5f));
+        SetSndVolume(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->g24) * 0.5f + 0.5f));
         if (p->p34->c4E > 0)
             ResumeSnd(p->p34);
     } else {
@@ -727,7 +727,7 @@ void UpdateCplcy(struct X *p);
 float GSmooth__FfffP3SMPPf(void *p, float *pdg, float g, float gTarget, float dt);
 float GLimitLm__FP2LMf(void *p, float g);
 void SetSndPitch(struct SND *p, float g);
-void func_001FB1F8(struct SND *p, float g);
+void SetSndVolume(struct SND *p, float g);
 void ResumeSnd(struct SND *p);
 void PauseSnd(struct SND *p);
 qword PosSmooth(qword a, qword b, float g, void *p, int n);
@@ -779,7 +779,7 @@ void UpdateCpzoom(struct X *p)
         struct SND *ps = p->pC0;
         SetSndPitch(ps, GLimitLm__FP2LMf(D_002BBB68, __builtin_fabsf(p->gB0)));
         ps = p->pC0;
-        func_001FB1F8(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->gB0) * 0.5f + 0.5f));
+        SetSndVolume(ps, GLimitLm__FP2LMf(D_002BBB60, __builtin_fabsf(p->gB0) * 0.5f + 0.5f));
         if (p->pC0->c4E > 0)
             ResumeSnd(p->pC0);
     } else {
@@ -1087,7 +1087,7 @@ struct A { int n0; int pad[3]; void *pb; int n14; float g18; };
 void ActivateCplcy(struct A *a, int n, void *b);
 void SetCmNearClip__FP2CMf(void *pg, float g);
 void SetCmFov__FP2CMf(void *pg, float g);
-int func_0012DC18(int n, void *pb, int a, int b, int c, qword q);
+int NewPositionAct(int n, void *pb, int a, int b, int c, qword q);
 /** @sly2-annot addr=0x151240
  * Purpose: Store pv (+0x10), near clip 25, fov 1.15, +0x14 = 0x12DC18(owner, pv, 1, 8, 3, 0), tNext=-1
  * Info: proposed name ActivateCphang (T1); TU cplcy
@@ -1102,7 +1102,7 @@ void ActivateCphang(struct A *a, int n, void *b)
     pg = D_002DDF40;
     SetCmNearClip__FP2CMf(pg, 25.0f);
     SetCmFov__FP2CMf(pg, 1.15f);
-    a->n14 = func_0012DC18(a->n0, a->pb, 1, 8, 3, D_002A2DD0);
+    a->n14 = NewPositionAct(a->n0, a->pb, 1, 8, 3, D_002A2DD0);
     a->g18 = -1.0f;
 }
 } } // namespace M_ActivateCphang

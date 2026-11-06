@@ -69,20 +69,20 @@ void FramePtr_Assign(ASEGA *p, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrame
 void UnsubscribeLoAll(ASEGA *p);
 void RcPtr_Assign(CRefPtr<SND> *pref, int n);
 void SendLoMessage(ASEGA *p, int msg, ASEGA *pasega);
-void func_00230100(LO *plo, XF *pxf, ACTSEGV *pactseg);
-void func_0012E210(ACTSEGV *pactseg);
-void func_0012CE70(OVRA *povra);
-int func_0012CEE0(ACTSEGV *pactseg);
+void RemoveXfAct(LO *plo, XF *pxf, ACTSEGV *pactseg);
+void FreeAct(ACTSEGV *pactseg);
+void FreeOvra(OVRA *povra);
+int IsActCurrent(ACTSEGV *pactseg);
 void SlotUnsettle(LO *plo, XF *pxf);
-void func_00230CF0(ASEGA *p, int n);
+void EvaluateXfSlotValue(ASEGA *p, int n);
 void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
-void func_002301D0(SO *pso, XF *pxf);
-void func_002303A0(LO *plo, XF *pxf, int n);
-void func_0022C818(LO *plo, XF *pxf);
+void SortXfActs(SO *pso, XF *pxf);
+void SetXfRole(LO *plo, XF *pxf, int n);
+void ResetXfValueRef(LO *plo, XF *pxf);
 void func_0012CE98(ACTSEGV *pactseg, ACTSEGV *p);
-void func_0012CED8(ACTSEGV *pactseg);
-void func_0012CF30(ACTSEGV *pactseg, qword *pq1, qword *pq2);
+void DetachActBase(ACTSEGV *pactseg);
+void GetActGoalDefault(ACTSEGV *pactseg, qword *pq1, qword *pq2);
 void StartSwAsegSound(SW *, int, int, int, int, ALO *, LO *, ASEG *, CRefPtr<SND> *, float, float, float);
 void StopSwAsegSound(SW *, EASND *, ASEG *, CRefPtr<SND> *);
 void func_0014F750(void *, void *);
@@ -240,15 +240,15 @@ void RetractAsega(ASEGA *p)
         RemoveDlEntry(&p->paseg->dlAsega, p);
         for (pl1 = (ACTSEGV *)p->pactsegFirst; pl1; pl1 = pl1Next) {
             pl1Next = pl1->pactsegNext;
-            func_00230100(pl1->plo, pl1->pxf, pl1);
-            func_0012E210(pl1);
+            RemoveXfAct(pl1->plo, pl1->pxf, pl1);
+            FreeAct(pl1);
         }
         p->pactsegFirst = 0;
         for (pl2 = p->povraFirst; pl2; pl2 = pl2Next) {
             LO *po = pl2->plo;
             pl2Next = pl2->povraNext;
             ((void (*)(void *, int))PVT(po)[45].pfn)((char *)po + PVT(po)[45].d, pl2->xC);
-            func_0012CE70(pl2);
+            FreeOvra(pl2);
         }
         p->povraFirst = 0;
         RcPtr_Assign(&p->psnd, 0);
@@ -289,7 +289,7 @@ void SeekAsega(ASEGA *p, int k, float g, float s)
         FWrapAsegaTime(p, &p->tLocal, &p->svt);
         UpdateAsegaIeaCur(p);
         for (ps = (ACTSEGV *)p->pactsegFirst; ps; ps = ps->pactsegNext) {
-            if (func_0012CEE0(ps)) {
+            if (IsActCurrent(ps)) {
                 R80 *pr = (R80 *)ps->pxf;
                 float v = *pr->pg;
                 if (v < pr->gMin || pr->gMax < v)
@@ -297,7 +297,7 @@ void SeekAsega(ASEGA *p, int k, float g, float s)
                 SlotUnsettle(ps->plo, ps->pxf);
             }
         }
-        func_00230CF0(p, 0);
+        EvaluateXfSlotValue(p, 0);
     }
     p->tPrev = p->tLocal;
 }
@@ -538,7 +538,7 @@ void HandleAsegaEvent(ASEGA *p, EA *pev)
         break;
     }
     case 21:
-        func_00230CF0(p, pev->n8);
+        EvaluateXfSlotValue(p, pev->n8);
         break;
     case 22:
         func_001F81E0(p->paloRoot, pev->n8);
@@ -703,7 +703,7 @@ void SetAsegaPriority(ASEGA *p, int n)
     if (pactseg != 0) {
         do {
             pactseg->nPriority = n;
-            func_002301D0((SO *)pactseg->plo, pactseg->pxf);
+            SortXfActs((SO *)pactseg->plo, pactseg->pxf);
             pactseg = pactseg->pactsegNext;
         } while (pactseg != 0);
     }
@@ -722,8 +722,8 @@ void SetAsegaPriority(ASEGA *p, int n)
 extern "C" void SetAsegaChannelWeight(ASEGA *p, float g) {
     ACTSEGV *pn;
     for (pn = (ACTSEGV *)p->pactsegFirst; pn; pn = pn->pactsegNext) {
-        if (func_0012CEE0(pn) && pn->pxf->nRole == 7) {
-            func_002303A0(pn->plo, pn->pxf, 9);
+        if (IsActCurrent(pn) && pn->pxf->nRole == 7) {
+            SetXfRole(pn->plo, pn->pxf, 9);
             pn->pxf->gA8 = g;
         }
     }
@@ -740,7 +740,7 @@ void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
     ACTV *pn = pxf->pactFirst;
     for (;;) {
         if (!pn) return;
-        if (pn->x0 == 0 && pn->pvId == pvId) { pn->nPriority = -1; func_002301D0(pso, pxf); return; }
+        if (pn->x0 == 0 && pn->pvId == pvId) { pn->nPriority = -1; SortXfActs(pso, pxf); return; }
         pn = pn->pactNext;
     }
 }
@@ -802,7 +802,7 @@ extern "C" void DetachActseg(ACTSEGV *p) {
         p->pxf->pxfRef->pgD4 = 0;
         return;
     }
-    func_0012CED8(p);
+    DetachActBase(p);
 }
 
 /** @sly2-annot addr=0x131CD8
@@ -822,8 +822,8 @@ extern "C" void UpdateActseg(ACTSEGV *p) {
         ((void (*)(void *, XF *))(*(VTE **)pc)[2].pfn)((char *)pc + (*(VTE **)pc)[2].d, p->pxf);
     } else {
         p->pxf->nPhase = 0;
-        func_002303A0(p->plo, p->pxf, 0);
-        func_0022C818(p->plo, p->pxf);
+        SetXfRole(p->plo, p->pxf, 0);
+        ResetXfValueRef(p->plo, p->pxf);
     }
 }
 
@@ -848,7 +848,7 @@ extern "C" void GetActsegGoal(ACTSEGV *p, qword *pq1, qword *pq2, float g) {
         FWrapAsegaTime(po, &t, &dt);
         p->pac->Eval(t, dt, pq1, pq2);
     } else {
-        func_0012CF30(p, pq1, pq2);
+        GetActGoalDefault(p, pq1, pq2);
     }
 }
 

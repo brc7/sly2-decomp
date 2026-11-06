@@ -569,7 +569,7 @@ struct P {
 };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void func_002303A0(struct P *, void *, int);
+void SetXfRole(struct P *, void *, int);
 void func_00142880(struct P *);
 void func_0015C150(struct VO *);
 void func_00195FB8(void *, int, int);
@@ -617,15 +617,15 @@ void SetBentleyState(struct P *p, int k)
         return;
     switch (p->state) {
     case 0:
-        func_002303A0(p, p->p58, 2);
-        func_002303A0(p, p->p5C, 2);
+        SetXfRole(p, p->p58, 2);
+        SetXfRole(p, p->p5C, 2);
         func_00142880(p);
         break;
     case 9:
     case 10:
     case 11:
-        func_002303A0(p, p->p58, 2);
-        func_002303A0(p, p->p5C, 2);
+        SetXfRole(p, p->p58, 2);
+        SetXfRole(p, p->p5C, 2);
         break;
     case 2:
         if (p->x108C == 0) {
@@ -695,8 +695,8 @@ void SetBentleyState(struct P *p, int k)
     p->t13D4 = D_002DDED0.t;
     switch (k) {
     case 0:
-        func_002303A0(p, p->p58, 1);
-        func_002303A0(p, p->p5C, 1);
+        SetXfRole(p, p->p58, 1);
+        SetXfRole(p, p->p5C, 1);
         if (p->x181C) {
             pasega = p->p1820;
             n = 9;
@@ -745,8 +745,8 @@ void SetBentleyState(struct P *p, int k)
         pjt = p->p102C;
     case 10:
     case 11:
-        func_002303A0(p, p->p58, 1);
-        func_002303A0(p, p->p5C, 1);
+        SetXfRole(p, p->p58, 1);
+        SetXfRole(p, p->p5C, 1);
         p->q190 = D_002A2DD0;
         break;
     case 14:
@@ -1434,13 +1434,13 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetLoParent_1A58D0(struct P *, int, int);
 void ReleaseAct(void *);
-void func_002303A0(struct P *, struct O *, int);
+void SetXfRole(struct P *, struct O *, int);
 float RadStepHeading(struct P *);
 void func_00204660(struct P *, float);
 void FixStepAngularVelocity(struct P *);
 void SetJtthrowState(void *, int);
-M4 func_0022FF40(void *, void *, M4 *);
-void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
+M4 GetRelativeXfMatrix(void *, void *, M4 *);
+void *NewPositionAct(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword func_0011BFF0(M4 *pm);
 void ReleaseSma(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
@@ -1463,8 +1463,8 @@ void func_00136530(struct P *p, int k)
         p->x9E4 = save;
         ReleaseAct(&p->pv1810);
         ReleaseAct(&p->pv1814);
-        func_002303A0(p, p->p58, 2);
-        func_002303A0(p, p->p5C, 2);
+        SetXfRole(p, p->p58, 2);
+        SetXfRole(p, p->p5C, 2);
         break;
     }
     case 1:
@@ -1491,7 +1491,7 @@ void func_00136530(struct P *p, int k)
         int n;
         struct Q *pq = D_002F7900->pq;
         n = ((int (*)(void *, M4 *))pq->vt[32].f)((char *)pq + pq->vt[32].d, &m);
-        { M4 t = func_0022FF40(p->p54->xA0, p->p58->xA0, &m); m = t; }
+        { M4 t = GetRelativeXfMatrix(p->p54->xA0, p->p58->xA0, &m); m = t; }
         {
             int save = p->x9E4;
             ((void (*)(void *, struct G *, int, int))p->vt[10].f)((char *)p + p->vt[10].d, D_002F7900, n, 3);
@@ -1499,8 +1499,8 @@ void func_00136530(struct P *p, int k)
         }
         ((void (*)(void *, qword))p->vt[35].f)((char *)p + p->vt[35].d, D_002A2DD0);
         ((void (*)(void *, qword))p->vt[36].f)((char *)p + p->vt[36].d, D_002A2DD0);
-        p->pv1810 = func_0012DC18(p, p->p58, 1, 7, 2, m.pos);
-        p->pv1814 = func_0012DC18(p, p->p5C, 1, 7, 2, func_0011BFF0(&m));
+        p->pv1810 = NewPositionAct(p, p->p58, 1, 7, 2, m.pos);
+        p->pv1814 = NewPositionAct(p, p->p5C, 1, 7, 2, func_0011BFF0(&m));
         break;
     }
     case 1:

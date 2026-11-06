@@ -56,7 +56,7 @@ struct ACT8 : public ACT
       qword qwGoalPos;
       qword qwGoalVel;
     ACT8() { ack = 8; }
-    void SetGoal(qword qwPos, qword qwVel) __asm__("func_0012E0F0");
+    void SetGoal(qword qwPos, qword qwVel) __asm__("SetRestActPose");
 };
 
 struct SUBGLOBX
@@ -67,7 +67,7 @@ struct SUBGLOBX
       uint grfUnk14;
 };
 
-qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("func_0022FC48");
+qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("TransformXfPos");
 
 struct GRABSPOTDATA
 {
@@ -582,8 +582,8 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
-qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+void func_00204F78(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void func_00183B80(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void func_001CCAC0(SECONDARY*,int);void SetJtJtcs__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void func_001F6860(ACTOR*,int);
+qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword func_001A62E8(ACTOR*);void func_00204DA8(ACTOR*,float);qword func_0019A750(CONTEXT*,int);void func_00204660(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword func_0019F3F8(ACTOR*,QUERY*,float);float func_00196928(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepRadTargetVec(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -727,12 +727,12 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  switch(p->mode){
  case 17:func_00204F78(p->actor,p->link->target,0);p->link=0;break;
  case 7:{SOURCE*old=p->source;p->source=0;RecalcSwOxfFilterForObject(&D_003DD490,old);break;}
- case 6:{SOURCE*old=p->source;p->source=0;if(p->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)func_00183B80(old,0);}func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;break;}
+ case 6:{SOURCE*old=p->source;p->source=0;if(p->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)func_00183B80(old,0);}SetXfRole(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;break;}
  case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:case 16:case 18:
-  func_002303A0(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;
+  SetXfRole(p->actor,p->actor->body,2);p->actor->velocity.q=D_002A2DD0.q;
   if(Less(p->mode,16)&&!Less(p->mode,14)){if(p->actor!=D_002E1E40)func_001CCAC0((SECONDARY*)p->actor->secondary,-1);else SetJtJtcs__FP2JTi(p->actor,-1);}break;
  case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F8);SetStepplayerTnOverride(p->actor,0);break;
- case 21:ReleaseAct(&p->event);func_002303A0(p->actor,p->actor->body,2);func_001F6860(p->actor,0);break;
+ case 21:ReleaseAct(&p->event);SetXfRole(p->actor,p->actor->body,2);func_001F6860(p->actor,0);break;
  }
  register unsigned clockHigh __asm__("$3"),savedClockHigh __asm__("$21");
  __asm__("lui %0,%%hi(%1)":"=r"(clockHigh):"i"(&D_002DDED0));
@@ -740,7 +740,7 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
  ANIMATION*active=p->actor->animation;CLIP*clip=0;p->mode=newMode;p->source=source;
  float entryTime,blend;__asm__("mtc1 $zero,%1\n\tlwc1 %0,%%lo(%3)(%2)":"=f"(entryTime),"=f"(blend):"r"(clockHigh),"i"(&D_002DDED0):"memory");p->time=entryTime;int flags=1;float weight=1.0f;
  switch(newMode){
- case 17:{flags=9;Notify(p->actor,91);func_00204F78(p->actor,p->link->target,1);qword point=func_0022FC48(p->link->space,0,p->relative.q);
+ case 17:{flags=9;Notify(p->actor,91);func_00204F78(p->actor,p->link->target,1);qword point=TransformXfPos(p->link->space,0,p->relative.q);
   register qword direction __asm__("vf1"),negative __asm__("vf2"),upArg __asm__("$5");register U*axisAddress __asm__("$4");
   float negativeScalar=-1.0f;
   __asm__("lui $3,%%hi(%6)\n\tlui %3,%%hi(%7)\n\tlqc2 %0,%4\n\tmfc1 %2,%5\n\taddiu $3,$3,%%lo(%6)\n\tqmtc2.ni %2,%1\n\taddiu %3,%3,%%lo(%7)\n\tlq %2,0($3)\n\tvmulx.xyzw %0,%0,%1x"
@@ -768,12 +768,12 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
   switch(p->state){case 13:clip=p->special148;break;case 14:clip=p->special158;break;case 16:clip=p->actor->clip1514;break;case 15:clip=p->actor->clip1518;break;}
   if(!clip)clip=p->base[p->variant];if(!clip)clip=p->base[0];break;
  case 2:case 3:if(p->state==14)clip=p->special15C;if(!clip)clip=p->alternate[p->variant];if(!clip)clip=p->alternate[0];if(!clip)clip=p->base[0];p->flags28=0;break;
- case 6:func_002303A0(p->actor,p->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);func_00183B80(source,1);ClearVelocity(p->actor);clip=p->actor->animation->clip;break;
- case 8:func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);clip=active->clip;break;
+ case 6:SetXfRole(p->actor,p->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);func_00183B80(source,1);ClearVelocity(p->actor);clip=p->actor->animation->clip;break;
+ case 8:SetXfRole(p->actor,p->actor->body,17);ClearVelocity(p->actor);clip=active->clip;break;
  case 11:case 12:case 13:case 14:case 15:
-  func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;p->variant=0;clip=p->base[0];
+  SetXfRole(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;p->variant=0;clip=p->base[0];
   if(Less(p->mode,16)&&!Less(p->mode,14)){ACTOR*actor=p->actor;if(actor==D_002E1E40){actor->primaryFocus=p->source;SetJtJtcs__FP2JTi(actor,0);}else{actor->secondaryFocus=p->source;weight=0.0f;func_001CCAC0((SECONDARY*)p->actor->secondary,0);clip=p->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
- case 9:case 10:case 16:case 18:{func_002303A0(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;ACTOR*actor=p->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=func_0019A750(p,4);((void(*)(void*,qword))v.fn)(receiver,velocity);p->variant=0;if(p->mode==16)clip=p->special14C;else clip=p->special148;active=0;break;}
+ case 9:case 10:case 16:case 18:{SetXfRole(p->actor,p->actor->body,17);ClearVelocity(p->actor);p->flags28=0;ACTOR*actor=p->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=func_0019A750(p,4);((void(*)(void*,qword))v.fn)(receiver,velocity);p->variant=0;if(p->mode==16)clip=p->special14C;else clip=p->special148;active=0;break;}
  case -1:if(p->focused){func_00204DA8(p->actor,p->oldScale);SetStepplayerTnOverride(p->actor,0);p->focused=0;}p->fieldBC=0;p->state=-1;break;
  case 19:func_00204660(p->actor,p->actor->heading-D_002BF780[p->variant]);p->flags28=0;clip=p->scripted;SetStepplayerTnOverride(p->actor,p->scriptFocus);p->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(p->actor->effect)SetSmaGoal(p->actor->effect,0x5F7);break;
  case 20:p->tracks[0].control.bits=0;p->tracks[1].control.bits=0;p->tracks[2].control.bits=0;p->tracks[3].control.bits=0;p->scriptedGain=1.0f;RecalculateAsegBlend(p->multi);clip=p->multi;flags=9;break;
@@ -823,8 +823,8 @@ extern "C" void func_00195FB8(CONTEXT*p,int newMode,SOURCE*source){WORK w;
    :"=&f"(deadline),"=m"(w.endVelocity.q),"=r"(goalArg):"r"(savedClockHigh),"i"(&D_002DDED0),"j"(endVelocity),"m"(w.goal.q),"f"(maximum):"memory");
   register BODY*coordinateBody __asm__("$2");
   __asm__ volatile("lw $3,%2\n\tlw %0,0x58($3)\n\tsqc2 %3,%1":"=&r"(coordinateBody),"=m"(w.temp.q):"m"(p->actor),"j"(fullAfter):"$3","memory");
-  qword localGoal=func_0022FC48(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,p->actor->body->frame,w.endVelocity.q);
-  p->event=func_0012DE58(p->actor,p->actor->body,5,deadline,localGoal,localEnd);func_001F6860(p->actor,1);
+  qword localGoal=TransformXfPos(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,p->actor->body->frame,w.endVelocity.q);
+  p->event=NewBezierAct(p->actor,p->actor->body,5,deadline,localGoal,localEnd);func_001F6860(p->actor,1);
   {register ACTOR*cleared __asm__("$3");register qword directionArg __asm__("$5");
    __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(p->actor),"m"(w.delta.q));
    ClearVelocity(cleared);SetStepRadTargetVec(p->actor,directionArg);}clip=p->base[0];break;}
@@ -1697,7 +1697,7 @@ qword func_001A62E8(void *);
 void MeasureJtJumpToTarget(CONTEXT *, qword, void *, qword, qword, float *, float *, qword *, qword *);
 void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
 qword GetXfVelocity(SPACE *, SPACE *, qword);
-qword func_0022FC48(SPACE *, SPACE *, qword);
+qword TransformXfPos(SPACE *, SPACE *, qword);
 qword ConvertXfVec(SPACE *, SPACE *, qword);
 void func_00195FB8(CONTEXT *, int, void *);
 void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *);
@@ -1912,7 +1912,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         if (srcBest || objBest) {
             BODY *body = p->actor->body;
             body->deadline = D_002DDED0.t + tBest;
-            body->goal.q = func_0022FC48(0, body->frame, posBest.q);
+            body->goal.q = TransformXfPos(0, body->frame, posBest.q);
             SPACE *frame = body->frame;
             U v;
             ACTOR *actor = p->actor;
@@ -1939,8 +1939,8 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         SPACE *frame = GetFrame(p->source);
         M4 forecast, derivative;
         LoadIdentityMatrix4(frame, 0, &forecast, dt, &derivative);
-        qword local = func_0022FC48(0, frame, point.q);
-        body->goal.q = func_0022FC48(0, body->frame, Transform(forecast, local));
+        qword local = TransformXfPos(0, frame, point.q);
+        body->goal.q = TransformXfPos(0, body->frame, Transform(forecast, local));
         if (p->mode != 10) {
             U v;
             v.q = Transform(derivative, local);
@@ -2152,7 +2152,7 @@ struct P {
 extern qword D_002A2DB0;
 extern qword D_002A2DC0;
 qword func_001A62E8(void *p);
-qword func_0022FC48(int n, int m, qword q);
+qword TransformXfPos(int n, int m, qword q);
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 /** @sly2-annot addr=0x1991A0
  * Purpose: If air kind 0x11 (wall run) build a constraint frame against the wall (GetNormalVectors) and add
@@ -2170,7 +2170,7 @@ void func_001991A0(struct P *p)
         U s;
         qword neg, v;
         q.q = func_001A62E8(p->x0);
-        r.q = func_0022FC48(p->xc8->x0, 0, p->xd0);
+        r.q = TransformXfPos(p->xc8->x0, 0, p->xd0);
         qword sq;
         __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
         s.q = sq;

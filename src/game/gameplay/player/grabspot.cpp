@@ -926,7 +926,7 @@ extern qword D_002A2DD0;
 extern qword D_002BE8F0;
 extern char D_003DD490[];
 void SetLoParent_1A58D0(struct O *p, int a, int b);
-void func_002303A0(struct O *p, struct X *px, int n);
+void SetXfRole(struct O *p, struct X *px, int n);
 void SetSoCnstrForce(struct O *p, int n);
 void SetSoCnstrTorque(struct O *p, int n);
 void func_001F68A8(struct O *p, int n);
@@ -935,7 +935,7 @@ void *func_001A6318(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
 qword func_0011BFF0(MATRIX3 *pm);
-qword func_0022FC48(void *pv, void *pvA0, qword v);
+qword TransformXfPos(void *pv, void *pvA0, qword v);
 void func_00183B80(struct O *p, int n);
 }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -958,9 +958,9 @@ void func_00183B80(struct O *p, int n)
     if (p->n17C == 2) {
         if (p->n18C != 0) {
             SetLoParent_1A58D0(p, 0, 0xF);
-            func_002303A0(p, p->p58, 1);
+            SetXfRole(p, p->p58, 1);
             p->p58->n9A = 0;
-            func_002303A0(p, p->p5C, 1);
+            SetXfRole(p, p->p5C, 1);
             p->p5C->n9A = 0;
             { struct VTE *e = &p->pvt[35]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
             SetSoCnstrForce(p, 0);
@@ -986,7 +986,7 @@ void func_00183B80(struct O *p, int n)
             m = ConvertXfMat(0, p->p5C->pA0, &m);
 
             q = func_0011BFF0(&m);
-            func_002303A0(p, p->p5C, 7);
+            SetXfRole(p, p->p5C, 7);
             {
 
                 struct XV *pv = (struct XV *)&p->p5C->vC0;
@@ -997,8 +997,8 @@ void func_00183B80(struct O *p, int n)
             p->p5C->n9A = n;
 
             {
-            qword q2 = func_0022FC48(0, p->p58->pA0, VAdd(ps->v70, D_002BE8F0));
-            func_002303A0(p, p->p58, 7);
+            qword q2 = TransformXfPos(0, p->p58->pA0, VAdd(ps->v70, D_002BE8F0));
+            SetXfRole(p, p->p58, 7);
             p->p58->vC0 = q2;
             }
 

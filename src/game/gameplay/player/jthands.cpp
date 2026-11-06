@@ -89,7 +89,7 @@ qword ConvertAloPos(LO *ploFrom, LO *ploTo, qword pos);
 M4 ConvertAloMat4(LO *ploFrom, LO *ploTo, const M4 *pmat);
 M3 *ConvertXfMat(M3 *pmatOut, XF *pxfFrom, XF *pxfTo, const M3 *pmat);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword vec);
-qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);
+qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);
 qword func_0011BFF0(const M3 *pmat);
 void SetActPositionGoal(ACT *pact, qword pos);
 void SeekAsega(ASEGA *pasega, int n, float t, float g);
@@ -101,9 +101,9 @@ SO *PsoFromLo(LO *plo);
 int func_00134310(int grf, int n);   /* NMaxIgnore */
 int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
-qword func_0022CA18(XF *pxfA, XF *pxfB);
-ACT *func_0012DC18(LO *plo, XF *pxf, int a, int b, int c, qword qw);
-ACT *func_0012DE58(LO *plo, XF *pxf, int n, float t, qword pos, qword vel);
+qword GetXfValueFromMatrix(XF *pxfA, XF *pxfB);
+ACT *NewPositionAct(LO *plo, XF *pxf, int a, int b, int c, qword qw);
+ACT *NewBezierAct(LO *plo, XF *pxf, int n, float t, qword pos, qword vel);
 void EnsureSwCallback(SW *psw, SO *pso, long pmf, JTHANDS *phands);
 float GetAsegLabelTime(ASEG *paseg, int n);
 void PredictAsegTransform(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
@@ -131,8 +131,8 @@ void func_001CCAC0(JTHANDS *phands, int nMode);
    extern "C" declaration of the literal mangled name next to the C++ operator* hits ICE 378). */
 extern "C" M4 *MulMatrix4Ret(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");
 extern "C" void MulMatrix4RetV(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");   /* as func_001CD098 calls it */
-/* the same ABI as func_0012DE58 (the float goes to $f12 either way); the order decides argument evaluation */
-extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, float t) __asm__("func_0012DE58");
+/* the same ABI as NewBezierAct (the float goes to $f12 either way); the order decides argument evaluation */
+extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, float t) __asm__("NewBezierAct");
 extern "C" M4 InvertMatrix4RigidP(const M4 *pmat) __asm__("InvertMatrix4Rigid");
 extern "C" M4 InvertMatrix4RigidV(M4 mat) __asm__("InvertMatrix4Rigid");
 extern "C" M3 ConvertXfMatR(XF *pxfFrom, XF *pxfTo, void *pmat) __asm__("ConvertXfMat");
@@ -518,7 +518,7 @@ extern "C" void func_001CCAC0(JTHANDS *p, int nMode)
             }
         }
         if (p->nKind == 2)
-            p->pact1Euler = func_0012DC18(p->pso, p->pxf, 5, 7, 3, func_0022CA18(p->pxf, p->pxf));
+            p->pact1Euler = NewPositionAct(p->pso, p->pxf, 5, 7, 3, GetXfValueFromMatrix(p->pxf, p->pxf));
         p->abl[1].uWeight = p->abl[0].uWeight = 0.5f;
         RecalculateAsegBlend(p->pasegbl);
         EnsureSwCallback(&D_003DD490, p->pso, D_002A77C8.l, p);
@@ -650,20 +650,20 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
  work.views.scalar.q=positive;apply(receiver,callbackVelocity);
  }
  float endTime=D_002DDED0.t+phase;
- qword position=func_0022FC48(0,object->pxfUnk58->pxfParent,work.final.r[3]);
+ qword position=TransformXfPos(0,object->pxfUnk58->pxfParent,work.final.r[3]);
  qword endVelocity=ConvertXfVec(0,object->pxfUnk58->pxfParent,work.endVelocity);
  {
  register XF*channel __asm__("$5");register qword velocityArgument __asm__("$8"),positionArgument __asm__("$7");register float timeArgument __asm__("$f12");register SO*receiver __asm__("$4");
  __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
   :"=&r"(channel),"=&r"(velocityArgument),"=f"(timeArgument),"=&r"(positionArgument),"=r"(receiver):"m"(object->pxfUnk58),"r"(endVelocity),"f"(endTime),"r"(position),"r"(object));
- p->pactPos=func_0012DE58(receiver,channel,5,timeArgument,positionArgument,velocityArgument);
+ p->pactPos=NewBezierAct(receiver,channel,5,timeArgument,positionArgument,velocityArgument);
  }
  ConvertXfMat(&work.views.basis.converted,0,object->pxfUnk5c->pxfParent,(M3*)finalMatrix);
  work.views.basis.angles=work.views.basis.converted;
  qword angles=func_0011BFF0((M3*)workingBase);
  register XF*orientationChannel __asm__("$5");register SO*orientationOwner __asm__("$4");register qword anglesArgument __asm__("$9");
  __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tpor %2,$zero,%5":"=&r"(orientationChannel),"=&r"(orientationOwner),"=r"(anglesArgument):"m"(object->pxfUnk5c),"r"(object),"r"(angles));
- ACT *job=func_0012DC18(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;
+ ACT *job=NewPositionAct(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;
  XFACT *pxfact=(XFACT *)object->pxfUnk5c;
  if(pxfact->pactCur==job)pxfact->tEnd=endTime;
  func_001F6860(object,1);
@@ -705,9 +705,9 @@ extern "C" void func_001CD098(JTHANDS *p, SO *po)
         SetSoCnstrTorque(po, 1);
     }
     XF *pxfAct = po->pxfUnk58;
-    p->pactHold = func_0012DC18(po, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
+    p->pactHold = NewPositionAct(po, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
     pxfAct = po->pxfUnk5c;
-    p->pactTurn = func_0012DC18(po, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
+    p->pactTurn = NewPositionAct(po, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
     FadeSoIn(po, 0.25f);
     p->psoHeld = po;
 }
@@ -753,10 +753,10 @@ extern "C" void func_001CD308(JTHANDS *p, SO *po)
         SetLoParent_1A58D0(p->psoHeld, 0, 0xF);
     }
     XF *pxfAct = p->psoHeld->pxfUnk58;
-    p->pactPos = func_0012DE58Q(p->psoHeld, pxfAct, 5, func_0022FC48(0, pxfAct->pxfParent, func_001A62E8(po)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
+    p->pactPos = func_0012DE58Q(p->psoHeld, pxfAct, 5, TransformXfPos(0, pxfAct->pxfParent, func_001A62E8(po)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
     pxfAct = p->psoHeld->pxfUnk5c;
     mat = ConvertXfMatR(0, pxfAct->pxfParent, func_001A6318(po));
-    p->pactTurn = func_0012DC18(p->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
+    p->pactTurn = NewPositionAct(p->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
     p->ploTarget = p->psoHeld;
     func_001CCAC0(p, 1);
     p->psoHeld = 0;

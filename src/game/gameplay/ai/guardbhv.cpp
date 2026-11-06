@@ -557,7 +557,7 @@ void StartBhvanim(struct S *p);
 int FStepguardHasSgf(struct T *t, int n);
 void func_0020AB68(struct T *t, int a, int b, qword q);
 void func_00153FF8(void *p);
-void func_002303A0(struct T *t, int a, int b);
+void SetXfRole(struct T *t, int a, int b);
 /** @sly2-annot addr=0x174FF8
  * Purpose: BHVIDLE Start: BHVANIM Start; if flag 1 (hands-off) also cancel attack and reset detector targets;
  *   set XF roles
@@ -574,8 +574,8 @@ void StartBhvidle(struct S *p) {
         func_00153FF8(p->pt->pF64);
         if (p->pt->nFCC) p->n38 = p->pt->nFCC;
     }
-    func_002303A0(p->pt, p->pt->n58, 1);
-    if (!p->n38) func_002303A0(p->pt, p->pt->n5C, 1);
+    SetXfRole(p->pt, p->pt->n58, 1);
+    if (!p->n38) SetXfRole(p->pt, p->pt->n5C, 1);
 }
 } } // namespace M_StartBhvidle
 
@@ -585,7 +585,7 @@ struct T; struct S;
 struct T { char pad[0x58]; int n58; int n5C; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x24]; int n38; };
 void CloseBhvanim(struct S *p);
-void func_002303A0(struct T *t, int a, int b);
+void SetXfRole(struct T *t, int a, int b);
 /** @sly2-annot addr=0x175090
  * Purpose: BHVIDLE Close: BHVANIM Close and restore XF roles
  * Info: proposed name CloseBhvidle (T1); class BHVIDLE slot9; TU guardbhv
@@ -594,7 +594,7 @@ void func_002303A0(struct T *t, int a, int b);
  *   r9_bhv_screen+runtime(class role)
  * See: docs/reference/functions/guards-ai.md#guardbhv-0x174898-0x17f090
  * @end-sly2-annot */
-void CloseBhvidle(struct S *p) { CloseBhvanim(p); func_002303A0(p->pt, p->pt->n58, 2); if (!p->n38) func_002303A0(p->pt, p->pt->n5C, 2); }
+void CloseBhvidle(struct S *p) { CloseBhvanim(p); SetXfRole(p->pt, p->pt->n58, 2); if (!p->n38) SetXfRole(p->pt, p->pt->n5C, 2); }
 } } // namespace M_CloseBhvidle
 
 // 0x1750E0 BHVIDLE_FHandleMessage
@@ -605,7 +605,7 @@ struct T { char pad[0x5C]; int n5C; char pad2[0x1A4 - 0x60]; int n1A4; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x24]; int n38; char pad3[4]; void *p40; };
 int func_00209518(void *p);
 int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm);
-void func_002303A0(struct T *t, int a, int b);
+void SetXfRole(struct T *t, int a, int b);
 /** @sly2-annot addr=0x1750E0
  * Purpose: BHVIDLE message handler: ASEG events 0x29/0x2A toggle ground flag and XF role, else BHVANIM
  *   handler
@@ -618,8 +618,8 @@ void func_002303A0(struct T *t, int a, int b);
 int BHVIDLE_FHandleMessage(struct S *p, int msg, struct M *pm) {
     if (msg == 9 && p->p40 && func_00209518(p->p40) == pm->n0) {
         switch (pm->n8) {
-        case 0x29: p->pt->n1A4 = 1; func_002303A0(p->pt, p->pt->n5C, 2); return 1;
-        case 0x2A: p->pt->n1A4 = 0; if (!p->n38) func_002303A0(p->pt, p->pt->n5C, 1); return 1;
+        case 0x29: p->pt->n1A4 = 1; SetXfRole(p->pt, p->pt->n5C, 2); return 1;
+        case 0x2A: p->pt->n1A4 = 0; if (!p->n38) SetXfRole(p->pt, p->pt->n5C, 1); return 1;
         }
     }
     return BHVANIM_FHandleMessage(p, msg, pm);
@@ -4811,9 +4811,9 @@ struct W { char pad[0xA0]; int nA0; };
 struct T { char pad[0x58]; struct W *p58; };
 struct S { char pad[0x10]; struct T *pt; char pad2[0x48]; struct O *p5C; int n60; struct U *p64; };
 void func_0017AA78(struct S *p, struct R *r, qword *a, qword *b);
-qword func_0022FC48(int a, int b, qword q);
+qword TransformXfPos(int a, int b, qword q);
 qword ConvertXfVec(int a, int b, qword q);
-void func_0012E0F0(struct U *u, qword a, qword b);
+void SetRestActPose(struct U *u, qword a, qword b);
 /** @sly2-annot addr=0x17ABC8
  * Purpose: Re-query the holder and update the attach ACT target
  * Info: proposed name UpdateBhvjuggledHoldAct (T2); TU guardbhv
@@ -4834,8 +4834,8 @@ void func_0017ABC8(struct S *p) {
     if (!r.n0) { p->n60 = 0; return; }
     w = p->pt->p58;
     func_0017AA78(p, &r, &q30, &q40);
-    a = func_0022FC48(0, w->nA0, q30);
-    func_0012E0F0(p->p64, a, ConvertXfVec(0, w->nA0, q40));
+    a = TransformXfPos(0, w->nA0, q30);
+    SetRestActPose(p->p64, a, ConvertXfVec(0, w->nA0, q40));
 }
 } } // namespace M_func_0017ABC8
 
@@ -5122,15 +5122,15 @@ extern "C"{
  void SetSoMass(P*,float);
  void SeekAsega(ASEGA*,int,float,float);
  void ReleaseAct(DELTA**);
- void func_002303A0(P*,GROUP*,int);
+ void SetXfRole(P*,GROUP*,int);
  void RecalcSwOxfFilterForObject(void*,P*);
  void func_001F4E28(P*);
  void SetBhvanimState(C*,int);
  void func_0017AA78(C*,REQUEST*,U*,U*);
  qword func_001A62E8(P*);
- qword func_0022FC48(void*,void*,qword);
+ qword TransformXfPos(void*,void*,qword);
  qword ConvertXfVec(void*,void*,qword);
- DELTA*func_0012DE58(P*,GROUP*,void*,float,qword,qword);
+ DELTA*NewBezierAct(P*,GROUP*,void*,float,qword,qword);
  P*PpoHero(void*);
  void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float);
  ENTRY*FindAsegLabel(void*,int);
@@ -5231,7 +5231,7 @@ extern "C" void SetBhvjuggledState(C*p,int next){
  case 3:if(next!=-1)SeekAsega(p->control->asega,0,0.0f,1.0f);break;
  }
  if((unsigned)p->mode<2&&(unsigned)next>=2){
-  ReleaseAct(&p->delta);func_002303A0(p->actor,p->actor->first,2);func_002303A0(p->actor,p->actor->second,2);
+  ReleaseAct(&p->delta);SetXfRole(p->actor,p->actor->first,2);SetXfRole(p->actor,p->actor->second,2);
  }
  int was=Still(p->mode),now=Still(next);
  p->mode=next;
@@ -5270,9 +5270,9 @@ extern "C" void SetBhvjuggledState(C*p,int next){
   GROUP*first=p->actor->first;
   if(!p->delta){
    float end=*(float*)(clockCarrier+(short)(clockAddress&0xffff))+D_002BE700;
-   qword localPoint=func_0022FC48(0,first->space,point.q);
+   qword localPoint=TransformXfPos(0,first->space,point.q);
    qword localDirection=ConvertXfVec(0,first->space,direction.q);
-   p->delta=func_0012DE58(p->actor,first,0,end,localPoint,localDirection);
+   p->delta=NewBezierAct(p->actor,first,0,end,localPoint,localDirection);
   }
   int owned=0;if(request.flag)owned=p->target->owner==p->actor;p->owned=owned;
   if(p->actor->attention){P*focus=PpoHero(D_003DD490);if(focus&&p->target==focus)TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00,3,0.15f);}

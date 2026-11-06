@@ -47,8 +47,8 @@ extern "C" {
 extern const char D_002A5EF0[];
 void func_00190D10V() __asm__("func_00190D10");   /* takes (JT *, CM *): passed through */
 void RenderStepplayerSelf1(STEPPLAYER *pstepplayer) __asm__("RenderStepplayerSelf");   /* called with the player only */
-void func_0012CFE0(ACT5 *pact5);
-void func_0012D020(ACT5 *pact5);
+void AttachAct(ACT5 *pact5);
+void DetachAct(ACT5 *pact5);
 void UnsubscribeLoObject(LO *plo, LO *ploSubscriber);
 void SubscribeLoObject(LO *plo, LO *ploSubscriber);
 void SetJtGrabState(JTGRAB *pjtgrab, int nState, LO *plo, int n);
@@ -388,13 +388,13 @@ struct ACT1 : public ACT
 
 extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
-void RemoveNodeBySlot(SO *pso, XF *pxf, ACT *pact) __asm__("func_00230100");
+void RemoveNodeBySlot(SO *pso, XF *pxf, ACT *pact) __asm__("RemoveXfAct");
 
 extern "C" SND *PsndStartSound(int sfxid);
 
 extern "C" void SetSndSourceLo(SND *psnd, LO *ploOwner);
 
-void SetSndVolume(SND *psnd, float gVolume) __asm__("func_001FB1F8");
+void SetSndVolume(SND *psnd, float gVolume) __asm__("SetSndVolume");
 
 extern "C" void SetSndRange(SND *psnd, float sNear, float sFar);
 
@@ -458,9 +458,9 @@ struct CLIMBSURF : public XFM
 
 void RetractAsega(ASEGA *pasega) __asm__("RetractAsega");
 
-int FFindInOwnerChain(ACT *pact) __asm__("func_0012D058");
+int FFindInOwnerChain(ACT *pact) __asm__("IsActAttached");
 
-void SetAct1ValueKeepOffset(ACT1 *pact1, qword qwNew) __asm__("func_0012DA30");
+void SetAct1ValueKeepOffset(ACT1 *pact1, qword qwNew) __asm__("SetActRotationGoal");
 
 struct XPLIST
 {
@@ -583,16 +583,16 @@ extern int PxfFindSo(void *p, int a, int b);
 extern void PostJtLoadGait(void *p);
 extern void func_001A0300(void *p, void *a, void *b);
 extern void PostJtLoadSwing(void *p, void *a, void *b);
-extern int func_0012DBB0(void *p, int a, int b);
-extern int func_0012DC18(void *p, int a, int b, int c, int d, qword q);
-extern void func_00230100(void *p, int a, int b);
+extern int NewOffsetAct(void *p, int a, int b);
+extern int NewPositionAct(void *p, int a, int b, int c, int d, qword q);
+extern void RemoveXfAct(void *p, int a, int b);
 extern void func_001426E8(void *p, int a);
 extern void func_0018B348(void *p);
 extern void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int a, int b, void *c, int d, int e, int f, void *g);
 extern void InitJtHands__FP7JTHANDSP2SOPP5ASEGA(void *a, void *p, void *b);
 extern void SetJtJts__FP2JT3JTS4JTBS(void *p, int a, int b);
 extern void SetLoBusyk(void *p, int a);
-extern int func_001F0380(int a, int b, int c, int d);
+extern int ApplySmToObject(int a, int b, int c, int d);
 extern char D_002BF1B0[];
 extern qword D_002A2DD0;
 
@@ -625,16 +625,16 @@ void PostJtLoad(char *p)
     func_001A0300(p, A(0x1AC0), A(0x1BC0));
     PostJtLoadSwing(p, A(0x1970), A(0x1994));
     func_001A0300(p, A(0x1E10), A(0x1F10));
-    F(int, 0x19E4) = func_0012DBB0(p, F(int, 0x10B8), 5);
-    F(int, 0x19E8) = func_0012DBB0(p, F(int, 0x19C8), 5);
-    F(int, 0x19EC) = func_0012DBB0(p, F(int, 0x19C4), 5);
-    F(int, 0x19F0) = func_0012DBB0(p, F(int, 0x19D8), 7);
-    F(int, 0x19F4) = func_0012DBB0(p, F(int, 0x19D4), 7);
-    F(int, 0x19FC) = func_0012DBB0(F(char *, 0x19A0), *(int *)(F(char *, 0x19A0) + 0x58), 5);
-    F(int, 0x19F8) = func_0012DBB0(p, F(int, 0x19C0), 5);
-    n = func_0012DC18(p, F(int, 0x19C0), 5, 5, 2, D_002A2DD0);
+    F(int, 0x19E4) = NewOffsetAct(p, F(int, 0x10B8), 5);
+    F(int, 0x19E8) = NewOffsetAct(p, F(int, 0x19C8), 5);
+    F(int, 0x19EC) = NewOffsetAct(p, F(int, 0x19C4), 5);
+    F(int, 0x19F0) = NewOffsetAct(p, F(int, 0x19D8), 7);
+    F(int, 0x19F4) = NewOffsetAct(p, F(int, 0x19D4), 7);
+    F(int, 0x19FC) = NewOffsetAct(F(char *, 0x19A0), *(int *)(F(char *, 0x19A0) + 0x58), 5);
+    F(int, 0x19F8) = NewOffsetAct(p, F(int, 0x19C0), 5);
+    n = NewPositionAct(p, F(int, 0x19C0), 5, 5, 2, D_002A2DD0);
     F(int, 0x1A00) = n;
-    func_00230100(p, F(int, 0x19C0), n);
+    RemoveXfAct(p, F(int, 0x19C0), n);
     func_001426E8(p, 0x17);
     func_0018B348(p);
     EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(p, 0xC, 2, A(0x1A04), 0, 0, 0, A(0x1A1C));
@@ -649,7 +649,7 @@ void PostJtLoad(char *p)
     SetJtJts__FP2JT3JTS4JTBS(p, 0, -1);
     SetLoBusyk(p, 1);
     if (F(int, 0x1D24))
-        F(int, 0x1D28) = func_001F0380(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
+        F(int, 0x1D28) = ApplySmToObject(F(int, 0x1D24), F(int, 0x1D20), -1, 1);
 }
 } } // namespace M_PostJtLoad
 
@@ -1651,7 +1651,7 @@ extern "C" {
 qword ConvertAloPos(void *p, void *q, qword v);
 void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, int n, int *pn0, int *pn1);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int n0, int n1, HIT *phit);
-void func_0012DA30(void *p, qword v);
+void SetActRotationGoal(void *p, qword v);
 void FFilterSoPair();
 extern char D_003DD490[];
 extern qword D_002A2DC0;
@@ -1685,10 +1685,10 @@ int FMatchJtXmg(O *p, M *pm, void *px)
             hit.v0 = VSub(hit.v0, D_002A2DC0);
             w = ConvertAloPos(0, p, hit.v0);
             u.q = w;
-            func_0012DA30(px, VSub(w, pm->v10));
+            SetActRotationGoal(px, VSub(w, pm->v10));
             return 1;
         } else {
-            func_0012DA30(px, D_002A2DD0);
+            SetActRotationGoal(px, D_002A2DD0);
             if (p->x208 && ((float *)&pm->v40)[2] < -85.0f)
                 return 0;
             return 1;
@@ -2609,9 +2609,9 @@ extern float D_002BF3B8;
 extern float D_002BF3BC;
 extern qword D_002BF390;extern struct LM D_002BF3A8,D_002BF3B0;extern struct CLOCK D_002DDED0;
 void FaceStepToward(struct P*,struct AIM*);void LoadIdentityMatrix4(struct SPACE*,struct SPACE*,struct M4*,struct M4*,float);
-qword func_0022FC48(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
+qword TransformXfPos(struct SPACE*,struct SPACE*,qword);qword ConvertXfVec(struct SPACE*,struct SPACE*,qword);
 float atan2f(float,float);float GLimitLm__FP2LMf(struct LM*,float);
-struct M3*LoadRotateMatrixEuler(struct M3*,qword);qword*VECTOR_opAssign(qword*,qword);void func_0012DA30(struct DV*,qword);
+struct M3*LoadRotateMatrixEuler(struct M3*,qword);qword*VECTOR_opAssign(qword*,qword);void SetActRotationGoal(struct DV*,qword);
 static inline qword Add(qword a,qword b){qword r;__asm__("vadd.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline qword Point(const struct M4*m,const qword*a,struct SPACE**source){
  register qword r __asm__("vf6"),row0 __asm__("vf5")=m->r[0].q;register struct SPACE*sourceValue __asm__("$4");const int nullSource=0;
@@ -2651,7 +2651,7 @@ void func_0018B460(struct P*p){
    LoadIdentityMatrix4(aim->frame,sourceSpace,request,optionalOutput,capped);
   }
   {struct SPACE*sourceSpace;qword predictedPoint=Point(&w.phase.predicted,&D_002BF390,&sourceSpace);register unsigned page __asm__("$3");
-   __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(func_0022FC48(sourceSpace,p->space,predictedPoint)),"i"(&D_002BF3A0));
+   __asm__("por %0,$zero,%2\n\tlui %1,%%hi(%3)":"=r"(mapped),"=r"(page):"r"(TransformXfPos(sourceSpace,p->space,predictedPoint)),"i"(&D_002BF3A0));
    {register int zBits __asm__("$2");register float z __asm__("$f12"),x __asm__("$f13"),coefficient __asm__("$f0");
     __asm__("pextuw %0,$zero,%4\n\tlwc1 %3,%%lo(%6)(%5)\n\tmtc1 %0,%1\n\tmtc1 %4,%2":"=&r"(zBits),"=f"(z),"=f"(x),"=f"(coefficient):"r"(mapped),"r"(page),"i"(&D_002BF3A0):"memory");
     heading=atan2f(-z,coefficient*x);}}
@@ -2693,7 +2693,7 @@ void func_0018B460(struct P*p){
    residual=returned;
   }
   {register int near __asm__("$2")=1;float distance=CorrectionDistance(p,residual);if(distance<limit){}else near=0;if(near){
-   func_0012DA30(p->dvYaw,tilt);func_0012DA30(p->dvResidual,w.residual.q);func_0012DA30(p->dvX,axis);
+   SetActRotationGoal(p->dvYaw,tilt);SetActRotationGoal(p->dvResidual,w.residual.q);SetActRotationGoal(p->dvX,axis);
    p->valid=1;p->time=D_002DDED0.time;return;
   }}
  }}
@@ -2705,19 +2705,19 @@ void func_0018B460(struct P*p){
    register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
    __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(source),"=r"(raw):"m"(p->dvYaw),"m"(w.gain.q));
    __asm__("daddu %0,%3,$zero\n\tsq %4,%1\n\tqmtc2.ni %4,%2":"=&r"(receiver),"=m"(w.phase.scalar.q),"=j"(scalar):"r"(source),"r"(raw));
-   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));func_0012DA30(receiver,scalar);
+   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));SetActRotationGoal(receiver,scalar);
   }
   {
    register qword raw __asm__("$2"),scalar __asm__("vf2");register struct DV*receiver __asm__("$4");
    __asm__("lq %0,%1":"=r"(raw):"m"(w.gain.q));
    __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tlw %2,%4":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"m"(p->dvResidual));
-   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(receiver->value));func_0012DA30(receiver,scalar);
+   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(receiver->value));SetActRotationGoal(receiver,scalar);
   }
   {
    register struct DV*source __asm__("$2"),*receiver __asm__("$4");register qword raw __asm__("$3"),scalar __asm__("vf2");
    __asm__("lq %0,%2\n\tlw %1,%3":"=&r"(raw),"=r"(source):"m"(w.gain.q),"m"(p->dvX));
    __asm__("sq %3,%0\n\tqmtc2.ni %3,%1\n\tdaddu %2,%4,$zero":"=m"(w.phase.scalar.q),"=j"(scalar),"=r"(receiver):"r"(raw),"r"(source));
-   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));func_0012DA30(receiver,scalar);
+   __asm__("vmulx.xyzw %0,%1,%0x":"+j"(scalar):"j"(source->value));SetActRotationGoal(receiver,scalar);
   }
   p->valid=0;
  }
@@ -3179,17 +3179,17 @@ void func_0018C060(struct S *p)
 extern "C" void func_0018C120(JT *pjt, int grf)
 {
     if (pjt->pact5Unk19e4 != 0) {
-        if (grf & 1) func_0012CFE0(pjt->pact5Unk19e4); else func_0012D020(pjt->pact5Unk19e4);
-        if (grf & 2) func_0012CFE0(pjt->pact5Unk19e8); else func_0012D020(pjt->pact5Unk19e8);
-        if (grf & 4) func_0012CFE0(pjt->pact5Unk19ec); else func_0012D020(pjt->pact5Unk19ec);
-        if (grf & 8) func_0012CFE0(pjt->pact5Unk19f0); else func_0012D020(pjt->pact5Unk19f0);
-        if (grf & 0x10) func_0012CFE0(pjt->pact5Unk19f4); else func_0012D020(pjt->pact5Unk19f4);
-        if (grf & 0x20) func_0012CFE0(pjt->pact5Unk19fc); else func_0012D020(pjt->pact5Unk19fc);
+        if (grf & 1) AttachAct(pjt->pact5Unk19e4); else DetachAct(pjt->pact5Unk19e4);
+        if (grf & 2) AttachAct(pjt->pact5Unk19e8); else DetachAct(pjt->pact5Unk19e8);
+        if (grf & 4) AttachAct(pjt->pact5Unk19ec); else DetachAct(pjt->pact5Unk19ec);
+        if (grf & 8) AttachAct(pjt->pact5Unk19f0); else DetachAct(pjt->pact5Unk19f0);
+        if (grf & 0x10) AttachAct(pjt->pact5Unk19f4); else DetachAct(pjt->pact5Unk19f4);
+        if (grf & 0x20) AttachAct(pjt->pact5Unk19fc); else DetachAct(pjt->pact5Unk19fc);
         if (grf & 0x40) {
-            func_0012CFE0(pjt->pact5Unk19f8);
+            AttachAct(pjt->pact5Unk19f8);
             return;
         }
-        func_0012D020(pjt->pact5Unk19f8);
+        DetachAct(pjt->pact5Unk19f8);
     }
 }
 
@@ -3204,7 +3204,7 @@ extern "C" qword SetVectorCylind(float rad, float sXY, float sZ);
 qword PosLoWorld(LO *plo) __asm__("func_001A62E8");
 SMA *PsmaApplySm(SM *psm, ALO *paloRoot, OID oidInitialState, GRFAPL grfapl, int grfRoute) __asm__("PsmaApplySmEx");
 int IsmsFindSmOptional(SM *psm, OID oid) __asm__("IsmsFindSmOptional__FP2SM3OID");
-void RetractSma(SMA *psma) __asm__("func_001F0598");
+void RetractSma(SMA *psma) __asm__("RetractSma");
 float RadNormalize(float rad) __asm__("RadNormalize__Ff");
 
 
@@ -3321,7 +3321,7 @@ void SetSoCnstrForce(SO *pso, int fOn);
 extern "C" {
 void FixStepAngularVelocity(STEP *pstep);
 }
-void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("func_002303A0");
+void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("SetXfRole");
 void SetPlayerTn(STEPPLAYER *pstepplayer, TN *ptn) __asm__("SetStepplayerTnOverride");
 extern "C" float D_002BF3E0;
 extern "C" float D_002BF3E4;

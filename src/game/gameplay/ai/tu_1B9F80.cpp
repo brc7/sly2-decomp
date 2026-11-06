@@ -74,7 +74,7 @@ qword ConvertAloPos(NEELAV*,void*,qword);
 int FCheckVolPoint(VOLUME*,qword);
 void func_001BA408(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
-qword func_0022FC48(SPACE*,SPACE*,qword);
+qword TransformXfPos(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword func_0011BFF0(M3*);
 int func_001BA100(void*,ROW*);
@@ -84,7 +84,7 @@ void ReleaseAct(MOTION **p);
 O *func_00205458(NEELAV *p, int n);
 void func_00204D48(NEELAV *p, float f);
 void ApplyAsegCore(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
-MOTION *func_0012DC18(NEELAV *p, NODE *a, int b, int c, int d, qword q);
+MOTION *NewPositionAct(NEELAV *p, NODE *a, int b, int c, int d, qword q);
 void InitBhv(NBHV *p);
 void StartBhv(NBHV *p);
 void CloseBhv(NBHV *p);
@@ -262,7 +262,7 @@ extern "C" void UpdateNeela(NEELAV*p){
   if(FAsegaRetracted(p->animation)){func_001BA408(p,0);break;}
   NODE*node=p->node;
   qword position=func_001A62E8(p->target);
-  qword local=func_0022FC48(0,node->space,position);
+  qword local=TransformXfPos(0,node->space,position);
   qword direction=VuSub(local,p->node->position);
   M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,p->axis,direction);
   MOTION*motion=p->motion;
@@ -299,7 +299,7 @@ extern "C" void func_001BA408(NEELAV *p, int st)
     if (st != 1) return;
     ApplyAsegCore(p->id, p, 1, &p->animation, 0.0f, 1.0f);
     VCALL0((O *)p->animation, 1);
-    p->motion = func_0012DC18(p, p->node, 5, 8, 3, D_002A2DD0);
+    p->motion = NewPositionAct(p, p->node, 5, 8, 3, D_002A2DD0);
     if (FStepguardHasSgf(p, 2)) {
         func_00205458(p, 0x9E)->ptarget = p->target;
         func_00204D48(p, 4.0f);

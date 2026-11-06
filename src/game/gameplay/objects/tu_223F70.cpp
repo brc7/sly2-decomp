@@ -159,7 +159,7 @@ void RecalcSwOxfFilterForObject(SW *, CID100V *);
 void SetSoCnstrForce(CID100V *, int);
 void SetSoCnstrTorque(CID100V *, int);
 qwordV func_0011BFF0(const void *);
-ACT *func_0012DC18(CID100V *, XFV *, int, int, int, qwordV);
+ACT *NewPositionAct(CID100V *, XFV *, int, int, int, qwordV);
 qwordV ConvertXfVec(XFV *, XFV *, qwordV);
 M3 *BuildOrthonormalMatrixZP(M3 *, qwordV, qwordV) __asm__("BuildOrthonormalMatrixZ");   /* hidden result pointer by hand */
 int CploFindSwObjectsByClass(SW *, int, int, int, int, SOV **);
@@ -743,8 +743,8 @@ void func_00224EC8(CID100V *p,int state){
   ZeroVelocity(p->pxfPos);ZeroVelocity(p->pxfRot);
   qwordV position=p->pxfPos->orientation;
   qwordV rotation=func_0011BFF0(p->pxfRot);
-  p->positionJob=func_0012DC18(p,p->pxfPos,0,7,2,position);
-  p->rotationJob=func_0012DC18(p,p->pxfRot,0,7,2,rotation);
+  p->positionJob=NewPositionAct(p,p->pxfPos,0,7,2,position);
+  p->rotationJob=NewPositionAct(p,p->pxfRot,0,7,2,rotation);
   RecalcSwOxfFilterForObject(&D_003DD490,p);
   break;
  }
@@ -755,7 +755,7 @@ void func_00224EC8(CID100V *p,int state){
    qwordV direction=Normalize(ToVFN(ConvertXfVec(0,p->pxfRot->parent,p->direction)));
    qwordV rawUp=ConvertXfVec(0,p->pxfRot->parent,D_002A2DC0);
    M3 basis;basis=MakeBasis(direction,rawUp);
-   p->rotationJob=func_0012DC18(p,p->pxfRot,0,7,2,func_0011BFF0(&basis));
+   p->rotationJob=NewPositionAct(p,p->pxfRot,0,7,2,func_0011BFF0(&basis));
   }
   break;
  }

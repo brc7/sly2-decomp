@@ -44,7 +44,7 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");   /* memset */
 int CploFindSwObjectsByClass(SW *p, int a, int b, int c, int d, LO **ap);
 void SubmitGlobsetRelight(void *p);
 void PrepareSwLights(SW *p);
-void func_001DAC58(void *p);
+void DrawGadgetMenuSlotLabels(void *p);
 }
 
 /** @sly2-annot addr=0x1CD5F0
@@ -88,7 +88,7 @@ extern "C" qword ConvertCmWorldToScreen(CM *,qword);
 extern "C" float GLimitLm__FP2LMf(LM *,float);
 extern "C" RT *CRichText_ctor(RT *,const char *,float);
 extern "C" void CRichText_GetExtents(RT *,float *,float *);
-extern "C" void func_002163B0(RT *,CONFIG *,int);
+extern "C" void DrawRichText2(RT *,CONFIG *,int);
 static inline float SavedHeight(float value){register float height __asm__("$f20");__asm__("mov.s %0,%1":"=f"(height):"f"(value));return height;}
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
@@ -121,7 +121,7 @@ extern "C" void func_001CD780(qword position,const char *text,const RGBA *unused
     config.height=h+2*marginY;
     config.x+=marginX;config.y+=marginY;
     RGBA rgba=*color;config.color=rgba;
-    func_002163B0(&rt,&config,6);
+    DrawRichText2(&rt,&config,6);
 }
 
 /** @sly2-annot addr=0x1CD998
@@ -189,7 +189,7 @@ extern "C" void RenderSw(SW *p)
             ((void (*)(void *))pe->plo->vt[19].fn)((char *)pe->plo + pe->plo->vt[19].delta);
     }
     p->pi = 0;
-    func_001DAC58(D_003DA0F0);
+    DrawGadgetMenuSlotLabels(D_003DA0F0);
     D_002DEA00.Flush();
     D_002DEA28.Flush();
 }

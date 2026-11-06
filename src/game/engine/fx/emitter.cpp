@@ -881,7 +881,7 @@ extern char D_003DD490[];
 float GRandInRange__Fff(float lo, float hi);
 int NRandInRange__Fii(int lo, int hi);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *p, int n);
-void func_001FB1F8(void *p, float g);
+void SetSndVolume(void *p, float g);
 void StopSnd(void *p, float g);
 void *PsndStartSound(int id);
 void SetSndSourceLo(void *p, SO *pso);
@@ -945,12 +945,12 @@ extern "C" void WakeSoWater__FP2SOP5WATERfP6VECTORT3ff(SO *p, WATER *pwater, qwo
             void **pp = &psnd->psnd;
             g = t * 0.9f + 0.1f;
             if (psnd->psnd) {
-                func_001FB1F8(psnd->psnd, g);
+                SetSndVolume(psnd->psnd, g);
             } else {
                 void *ps = PsndStartSound(D_002BDEB0[NRandInRange__Fii(0, 3)]);
                 SetSndSourceLo(ps, (SO *)psnd);
                 SetSndRange(ps, 100.0f, 1000.0f);
-                func_001FB1F8(ps, g);
+                SetSndVolume(ps, g);
                 RcPtr_Assign(pp, ps);
             }
         }
@@ -2267,7 +2267,7 @@ extern void *PsndStartSound(int id);
 extern void SetSndSourceLo(void *p, void *pso);
 extern void SetSndSourcePos(void *p, qword v);
 extern void SetSndRange(void *p, float a, float b);
-extern void func_001FB1F8(void *p, float g);
+extern void SetSndVolume(void *p, float g);
 extern void SetSndPitch(void *p, float g);
 
 /** @sly2-annot addr=0x15C690
@@ -2392,7 +2392,7 @@ void FireExplsExplso(EMITTERV *p, EMITO *po)
         SetSndSourceLo(ps, 0);
         SetSndSourcePos(ps, pos.q);
         SetSndRange(ps, p->psnd->g4, p->psnd->g8);
-        func_001FB1F8(ps, p->psnd->gC);
+        SetSndVolume(ps, p->psnd->gC);
         SetSndPitch(ps, p->psnd->g10);
     }
 }
