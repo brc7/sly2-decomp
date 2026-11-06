@@ -3857,7 +3857,8 @@ extern "C" CREFV *RefOpGetDifficulty(CREFV *pref)
  *   builtin 104)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// S32 = 0x210B68() which always returns 0.
+// Splice builtin slot 104: returns func_00210B68() as an integer, which is 0 in the retail build. Scripts gate extra
+// HUD hint tickers on it, so it reads as a development/build flag (name inferred).
 extern "C" CREFV *RefOpGetDevFlag(CREFV *pref)
 {
     pref->u.n = func_00210B68();
@@ -5222,7 +5223,8 @@ extern char D_003DA0C0[];
  *   r1_116918+top50_round(splice builtin 137)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-// CRef(BASIC*) of static object D_003DA0C0 (used by save TU 0x1D94B0).
+// Splice builtin slot 137: returns a reference to the static object D_003DA0C0, which Lilly-derived code treats as a
+// HINTBOX (ClearIfSlotId) and the save TU uses; hence the name (inferred).
 CRef *RefOpFindHintboxObject(CRef *ret)
 {
     CRef ref;
