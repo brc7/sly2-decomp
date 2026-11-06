@@ -22,45 +22,45 @@ typedef struct { qword r[4]; } M4;
 struct JT;
 struct SPACE;
 /* g++ 2.95 vtable entry. */
-struct VTE { short d; short pad; void *pfn; };
+struct VTE { short delta; short pad; void *function; };
 /* The object a place is on (vtable +0xC: slot 32 its space; flags +0x28, bit 59 "has places"). */
 struct LO { char pad[0xC]; VTE *vt; char pad10[0x18]; unsigned long fl; };
 /* A shape a place lies on (vtable at +0x20: slot 3 evaluates a point, slot 6 its object). */
 struct PLACESO { char pad[0x20]; VTE *vt; };
 /* A spot on an object: its space, its object, flags +0x10 (bit 51 "has places"). */
-struct PLACESPOT { SPACE *pspace; LO *plo; int pad[2]; unsigned long grf; };
+struct PLACESPOT { SPACE *space; LO *lo; int pad[2]; unsigned long flags; };
 /* One remembered place (0x20 bytes): object, shape, spot, time, then the shape parameter or the position. */
-struct PLACE { LO *plo; PLACESO *pso; PLACESPOT *pspot; float t; U v; };
+struct PLACE { LO *lo; PLACESO *shape; PLACESPOT *spot; float t; U v; };
 typedef char assert_PLACE_size[sizeof(PLACE) == 0x20 ? 1 : -1];
-struct JTPLACES { JT *pjt; int c; int pad[2]; PLACE ae[32]; };
-struct XF58 { char pad[0x70]; qword x70; };
-struct ACCEL { char pad[0x80]; qword x80; };
+struct JTPLACES { JT *jt; int count; int pad[2]; PLACE entries[32]; };
+struct XF58 { char pad[0x70]; qword position; };
+struct ACCEL { char pad[0x80]; qword gravity; };   /* SO physics: dvGravity (as in hang.cpp) */
 struct S4C { char pad[0x148]; unsigned long fl; };
 /* The surface the player stands on (+0x208). */
-struct GROUND { char pad[0x40]; PLACESPOT *pspot; char pad44[0x8]; S4C *x4c; char pad50[0x10]; qword pos; char pad70[0x18]; float x88; };
-struct B { char pad[0x10C]; int x10c; };
+struct GROUND { char pad[0x40]; PLACESPOT *spot; char pad44[0x8]; S4C *surface; char pad50[0x10]; qword pos; char pad70[0x18]; float normalZ; };
+struct B { char pad[0x10C]; int unknown10C; };
 /* View of the player (JT) as the places code reads it. */
 struct JT {
     char pad0[0xC]; VTE *vt;            /* +0x00C slot 29 put at, slot 30 */
-    char pad10[0x48]; XF58 *x58;        /* +0x058 */
-    char pad5C[0x8C]; ACCEL *xe8; void *pvFilter;   /* +0x0E8 */
-    char padF0[0xC0]; char x1b0[0x58];  /* +0x1B0 */
-    GROUND *x208;                       /* +0x208 */
-    char pad20C[0x34]; qword x240;      /* +0x240 */
-    char pad250[0x70]; char x2c0[0x1D0];/* +0x2C0 the JTBS state machine */
-    qword x490; qword x4a0;             /* +0x490 the place being returned to */
-    char pad4B0[0x10]; char x4c0[0x520];/* +0x4C0 */
+    char pad10[0x48]; XF58 *rootXf;     /* +0x058 */
+    char pad5C[0x8C]; ACCEL *physics; void *pvFilter;   /* +0x0E8 */
+    char padF0[0xC0]; char orientation[0x58];  /* +0x1B0 */
+    GROUND *ground;                     /* +0x208 the surface he stands on */
+    char pad20C[0x34]; qword pivotOffset; /* +0x240 (0, 0, -75) from LoadJtFromBrx (inferred: pivot to feet) */
+    char pad250[0x70]; char air[0x1D0];/* +0x2C0 the air component (JTAIR) */
+    qword returnPlaceHeader; qword returnPlaceValue; /* +0x490 the place being returned to */
+    char pad4B0[0x10]; char grab[0x520];/* +0x4C0 the grab component */
     JTPLACES places;                    /* +0x9E0 */
-    char padDF0[0x160]; char xf50[0x13C];   /* +0xF50 */
-    int x108c;                          /* +0x108C */
-    char pad1090[0x834]; B *x18c4; int x18c8;   /* +0x18C4 */
+    char padDF0[0x160]; char pipe[0x13C];   /* +0xF50 the pipe component */
+    int unknown108C;                    /* +0x108C */
+    char pad1090[0x834]; B *hangHandle; int state;   /* +0x18C4 current hang object, +0x18C8 jts */
 };
 typedef char assert_JT_places[(unsigned int)&((JT *)0)->places == 0x9E0 ? 1 : -1];
-typedef char assert_JT_x18c8[(unsigned int)&((JT *)0)->x18c8 == 0x18C8 ? 1 : -1];
-struct G { char pad[0x3E60]; int x3e60; };
-struct D { char pad[0x60]; qword x60; };
-struct LO2 { char pad[0x218]; qword *x218; };
-struct HIT { qword pos; char pad[0x18]; float x28; char pad2[0x14]; float x40; char pad3[0x1C]; };
+typedef char assert_JT_state[(unsigned int)&((JT *)0)->state == 0x18C8 ? 1 : -1];
+struct G { char pad[0x3E60]; int unknown3E60; };
+struct D { char pad[0x60]; qword unknown60; };
+struct LO2 { char pad[0x218]; qword *position; };
+struct HIT { qword pos; char pad[0x18]; float normalZ; char pad2[0x14]; float unknown40; char pad3[0x1C]; };
 typedef struct { float g, gFirst, gSecond; } CLQ;
 typedef struct { float gMin, gMax; } LM;
 
@@ -118,7 +118,7 @@ void RemoveJtPlacesOf(JTPLACES *p, LO *a, PLACESPOT *b);
 // Initializes the player's safe-place table (STEPPLAYER+0x9E0): stores the owner.
 extern "C" void InitJtPlaces(JTPLACES *places, JT *jt)
 {
-    places->pjt = jt;
+    places->jt = jt;
 }
 
 /** @sly2-annot addr=0x19F3F0
@@ -148,13 +148,13 @@ extern "C" qword GetJtPlacePosition(JT *jt, PLACE *q, float g)
     void *o;
     qword v;
     qword r;
-    if (q->pso) {
-        PLACESO *s = q->pso;
-        ((void (*)(void *, JT *, U *, int, float))s->vt[3].pfn)((char *)s + s->vt[3].d, jt, &t, 0, q->v.f[0]);
-        o = ((void *(*)(void *, int))q->plo->vt[32].pfn)((char *)q->plo + q->plo->vt[32].d, 0);
+    if (q->shape) {
+        PLACESO *s = q->shape;
+        ((void (*)(void *, JT *, U *, int, float))s->vt[3].function)((char *)s + s->vt[3].delta, jt, &t, 0, q->v.f[0]);
+        o = ((void *(*)(void *, int))q->lo->vt[32].function)((char *)q->lo + q->lo->vt[32].delta, 0);
         v = func_0022FC48(0, o, t.q);
     } else {
-        o = q->pspot ? q->pspot->pspace : 0;
+        o = q->spot ? q->spot->space : 0;
         v = q->v.q;
     }
     if (o && 0.0f < g) {
@@ -163,8 +163,8 @@ extern "C" qword GetJtPlacePosition(JT *jt, PLACE *q, float g)
     } else {
         r = func_0022FC48(o, 0, v);
     }
-    if (!q->pso)
-        r = VuSub(r, jt->x240);
+    if (!q->shape)
+        r = VuSub(r, jt->pivotOffset);
     return r;
 }
 
@@ -198,31 +198,31 @@ extern "C" void ReturnJtToSafePlace(JT *jt, PLACE *q)
         q = &e;
         if (jt == PpoHero(&D_003DD490)) {
             qword r = GetJtPlacePosition(jt, &e, 0.0f);
-            float g = ComputeMaxBallisticTime(VuSub(r, jt->x58->x70), jt->xe8->x80, 1000.0f, -1000.0f, 1.0f, -1.0f);
+            float g = ComputeMaxBallisticTime(VuSub(r, jt->rootXf->position), jt->physics->gravity, 1000.0f, -1000.0f, 1.0f, -1.0f);
             if (D_002BF940 < g) {
-                int save = jt->places.c;
-                ((void (*)(void *, qword))jt->vt[29].pfn)((char *)jt + jt->vt[29].d, VuSub(r, jt->x240));
-                jt->places.c = save;
-                SetStepRadTargetVec(jt, D_002DDF40.x60);
-                ((void (*)(void *, void *))jt->vt[30].pfn)((char *)jt + jt->vt[30].d, jt->x1b0);
+                int save = jt->places.count;
+                ((void (*)(void *, qword))jt->vt[29].function)((char *)jt + jt->vt[29].delta, VuSub(r, jt->pivotOffset));
+                jt->places.count = save;
+                SetStepRadTargetVec(jt, D_002DDF40.unknown60);
+                ((void (*)(void *, void *))jt->vt[30].function)((char *)jt + jt->vt[30].delta, jt->orientation);
                 CutCm__FP2CM(&D_002DDF40);
-                SetJtAirJump(jt->x2c0, 0xB, 0, 0);
-                if (e.pso) {
-                    if (FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xD) ||
-                        FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x27) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xC) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x22) ||
-                        FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x26)) {
-                        func_00148300(&D_003DD490, e.plo);
-                        ChooseJtLanding(jt->x2c0, e.plo);
+                SetJtAirJump(jt->air, 0xB, 0, 0);
+                if (e.shape) {
+                    if (FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xD) ||
+                        FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x27) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0xC) || FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x22) ||
+                        FIsBasicDerivedFrom__FP5BASIC3CID(e.lo, 0x26)) {
+                        func_00148300(&D_003DD490, e.lo);
+                        ChooseJtLanding(jt->air, e.lo);
                     }
                 }
-                func_0015E1D8(D_003DD490.x3e60);
+                func_0015E1D8(D_003DD490.unknown3E60);
                 return;
             }
         }
     }
-    jt->x490 = *(qword *)q;
-    jt->x4a0 = q->v.q;
-    SetJtAirJump(jt->x2c0, 0xA, 0, 0);
+    jt->returnPlaceHeader = *(qword *)q;
+    jt->returnPlaceValue = q->v.q;
+    SetJtAirJump(jt->air, 0xA, 0, 0);
 }
 
 static inline float GFromClq(CLQ *clq, float g) { return clq->g + g * (clq->gFirst + g * clq->gSecond); }
@@ -237,18 +237,18 @@ static inline float GFromClq(CLQ *clq, float g) { return clq->g + g * (clq->gFir
 extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
 {
     float g = 0.0f;
-    qword pos = GetJtPlacePosition(places->pjt, q, g);
-    if (q->pspot) {
+    qword pos = GetJtPlacePosition(places->jt, q, g);
+    if (q->spot) {
         STACKSCOPE frame;
         U a, b;
         HIT hit;
         int i0, i1;
-        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)FFilterSoPair, places->pjt->pvFilter, &i0, &i1, D_002BF944);
+        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)FFilterSoPair, places->jt->pvFilter, &i0, &i1, D_002BF944);
         a.q = pos;
         b.q = pos;
         a.f[2] += 125.0f;
         b.f[2] -= 175.0f;
-        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit) || hit.x40 == 0.0f || hit.x28 < 0.7f)
+        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit) || hit.unknown40 == 0.0f || hit.normalZ < 0.7f)
             g = GMax(g, 2000.0f);
         else
             pos = hit.pos;
@@ -273,10 +273,10 @@ extern "C" float ScoreJtPlace(JTPLACES *places, PLACE *q, int n, LO2 **apo)
     }
     for (int i = 0; i < n; i++) {
         LO2 *lo = apo[i];
-        if (lo == (LO2 *)places->pjt) continue;
+        if (lo == (LO2 *)places->jt) continue;
         qword d;
         float dist;
-        d = VuSub(*lo->x218, *(qword *)(void *)&pos);
+        d = VuSub(*lo->position, *(qword *)(void *)&pos);
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         dist = VuToFloat(d);
@@ -304,9 +304,9 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
     PLACE *e;
     c = CploFindSwObjectsByClass(&D_003DD490, 0x505, 0x33, 0, 0x10, apv);
     best = D_002A66A0;
-    for (i = 0; i < places->c; i++) {
+    for (i = 0; i < places->count; i++) {
         float g;
-        e = &places->ae[i];
+        e = &places->entries[i];
         g = ScoreJtPlace(places, e, c, apv);
         if (g < best) {
             best = g;
@@ -318,7 +318,7 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
     if (best == D_002A66A0) {
         qword r;
         func_002333B4(pe, 0, 0x20);
-        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(places->pjt)), "j"(places->pjt->x240));
+        __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(func_001A62E8(places->jt)), "j"(places->jt->pivotOffset));
         pe->v.q = r;
     }
 }
@@ -335,27 +335,27 @@ extern "C" void ChooseJtSafePlace(JTPLACES *places, PLACE *pe)
 extern "C" void UpdateJtPlaces(JT *jt)
 {
     VECTOR v = D_002A2DD0;
-    switch (jt->x18c8) {
+    switch (jt->state) {
     case 0: case 1: case 5: case 6: case 9: case 10: case 11: case 12:
     case 15: case 16: case 17: case 20: case 23: case 24:
     {
-        GROUND *pa = jt->x208;
-        if (pa && pa->x88 > 0.7f && !(pa->x4c->fl & 0x20000000) && !jt->x108c)
-            AddJtPlaceAtPosition(&jt->places, pa->pspot, pa->pos);
+        GROUND *pa = jt->ground;
+        if (pa && pa->normalZ > 0.7f && !(pa->surface->fl & 0x20000000) && !jt->unknown108C)
+            AddJtPlaceAtPosition(&jt->places, pa->spot, pa->pos);
         break;
     }
     case 3: case 22:
     {
-        B *pb = jt->x18c4;
-        if (!pb->x10c)
+        B *pb = jt->hangHandle;
+        if (!pb->unknown10C)
             AddJtPlaceOnCurve(&jt->places, pb ? (PLACESO *)((char *)pb + 0x100) : 0, 0.0f);
         break;
     }
     case 7:
-        RecordJtGrabPlace(jt->x4c0);
+        RecordJtGrabPlace(jt->grab);
         break;
     case 8:
-        RecordJtPipePlace(jt->xf50);
+        RecordJtPipePlace(jt->pipe);
         break;
     }
 }
@@ -373,29 +373,29 @@ extern "C" void AddJtPlaceOnCurve(JTPLACES *places, PLACESO *s, float g)
 {
     int i;
     PLACE *e;
-    for (i = 1; i < places->c; i++) {
-        e = &places->ae[i];
-        if (s == e->pso && __builtin_fabsf(g - e->v.f[0]) < 50.0f) {
+    for (i = 1; i < places->count; i++) {
+        e = &places->entries[i];
+        if (s == e->shape && __builtin_fabsf(g - e->v.f[0]) < 50.0f) {
             if (i != 1) {
                 PLACE t = *e;
-                memmove(&places->ae[2], &places->ae[1], (i - 1) * sizeof(PLACE));
-                places->ae[1] = t;
+                memmove(&places->entries[2], &places->entries[1], (i - 1) * sizeof(PLACE));
+                places->entries[1] = t;
             }
             break;
         }
     }
-    if (i >= places->c) {
-        if ((unsigned int)places->c < 32)
-            places->c++;
-        memmove(&places->ae[1], &places->ae[0], places->c * sizeof(PLACE) - sizeof(PLACE));
+    if (i >= places->count) {
+        if ((unsigned int)places->count < 32)
+            places->count++;
+        memmove(&places->entries[1], &places->entries[0], places->count * sizeof(PLACE) - sizeof(PLACE));
     }
-    e = &places->ae[0];
+    e = &places->entries[0];
     func_002333B4(e, 0, sizeof(PLACE));
-    places->ae[0].plo = ((LO *(*)(void *))s->vt[6].pfn)((char *)s + s->vt[6].d);
-    e->pso = s;
+    places->entries[0].lo = ((LO *(*)(void *))s->vt[6].function)((char *)s + s->vt[6].delta);
+    e->shape = s;
     e->v.f[0] = g;
     e->t = D_002DDED0.t;
-    places->ae[0].plo->fl |= 1L << 59;
+    places->entries[0].lo->fl |= 1L << 59;
 }
 
 static __inline__ float Dist(qword a, qword b)
@@ -421,30 +421,30 @@ extern "C" void AddJtPlaceAtPosition(JTPLACES *places, PLACESPOT *s, qword q)
 {
     int i;
     PLACE *e;
-    for (i = 1; i < places->c; i++) {
-        e = &places->ae[i];
-        if (s == e->pspot && Dist(q, e->v.q) < 50.0f) {
+    for (i = 1; i < places->count; i++) {
+        e = &places->entries[i];
+        if (s == e->spot && Dist(q, e->v.q) < 50.0f) {
             if (i != 1) {
                 PLACE t = *e;
-                memmove(&places->ae[2], &places->ae[1], (i - 1) * sizeof(PLACE));
-                places->ae[1] = t;
+                memmove(&places->entries[2], &places->entries[1], (i - 1) * sizeof(PLACE));
+                places->entries[1] = t;
             }
             break;
         }
     }
-    if (i >= places->c) {
-        if ((unsigned int)places->c < 32)
-            places->c++;
-        memmove(&places->ae[1], &places->ae[0], places->c * sizeof(PLACE) - sizeof(PLACE));
+    if (i >= places->count) {
+        if ((unsigned int)places->count < 32)
+            places->count++;
+        memmove(&places->entries[1], &places->entries[0], places->count * sizeof(PLACE) - sizeof(PLACE));
     }
-    e = &places->ae[0];
+    e = &places->entries[0];
     func_002333B4(e, 0, sizeof(PLACE));
     if (s) {
-        places->ae[0].plo = s->plo;
-        e->pspot = s;
-        s->grf |= 1L << 51;
+        places->entries[0].lo = s->lo;
+        e->spot = s;
+        s->flags |= 1L << 51;
     }
-    places->ae[0].v.q = q;
+    places->entries[0].v.q = q;
     e->t = D_002DDED0.t;
 }
 
@@ -457,19 +457,19 @@ extern "C" void AddJtPlaceAtPosition(JTPLACES *places, PLACESPOT *s, qword q)
 // Compacts the place table, dropping entries that reference the given object.
 extern "C" void RemoveJtPlacesOf(JTPLACES *s, LO *p0, PLACESPOT *p8)
 {
-    PLACE *dst = s->ae;
+    PLACE *dst = s->entries;
     PLACE *src = dst;
-    PLACE *end = &s->ae[s->c];
+    PLACE *end = &s->entries[s->count];
     for (; src < end; src++) {
-        if (p0 && p0 == src->plo)
+        if (p0 && p0 == src->lo)
             continue;
-        if (p8 && p8 == src->pspot)
+        if (p8 && p8 == src->spot)
             continue;
         if (src != dst)
             *dst = *src;
         dst++;
     }
-    s->c = dst - s->ae;
+    s->count = dst - s->entries;
 }
 
 /** @sly2-annot addr=0x1A00D0
@@ -493,5 +493,5 @@ extern "C" void RemoveSwPlacesOf(void *g, LO *a, PLACESPOT *b)
     if (a)
         a->fl &= ~0x0800000000000000UL;
     if (b)
-        b->grf &= ~0x0008000000000000UL;
+        b->flags &= ~0x0008000000000000UL;
 }
