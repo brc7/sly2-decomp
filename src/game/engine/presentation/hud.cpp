@@ -16,6 +16,7 @@
 #include "vifs.h"
 #include "sly2/cm.h"
 #include "sly2/sw.h"
+#include "sly2/scrap.h"
 extern "C" char base_D_003DA0C0[] __asm__("D_003DA0C0");   /* base of the address names below: see docs/guides/tu-merging.md "Data" */
 
 /* The WIDGET (CID 0x7E, an LO, 0x110 bytes) as the file-scope functions read it. */
@@ -99,6 +100,9 @@ extern char D_002A8AA0[];
 void RefGetGlobalSaveVar(struct CRef *r, int *p, void *q);
 void Decref__4CRef(struct CRef *r);
 void fiprintf(void *f, const char *fmt, ...);
+// 0x210ED0: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0x10");
+
 /** @sly2-annot addr=0x210ED8
  * Purpose: STRINGGEN id 0x2CF: sprintf("%d", saved var loot.ccoin) = HUD coin counter text
  * Info: proposed name BuildCoinCountText (T1); TU hud
@@ -1451,6 +1455,9 @@ struct A { unsigned short c; unsigned short c2; struct E *ae; struct H *ah; char
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
 void func_00218038(struct A *pa, float g);
 void func_00218060(struct A *pa, int l, float g, int z);
+// 0x212F78: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0xb0");
+
 /** @sly2-annot addr=0x212F80
  * Purpose: like SetWidgetAnimPhase but absolute time
  * Info: proposed name SetWidgetAnimTime (T2); TU hud
@@ -1499,6 +1506,9 @@ static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
 static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
+// 0x2130B8: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("addiu $sp, $sp, 0xb0");
+
 /** @sly2-annot addr=0x2130C0
  * Purpose: DMA packet with render init payloads (frame/mask GIF data) before widget sprites
  * Info: proposed name QueueWidgetRenderSetup (T1); TU hud
@@ -3744,6 +3754,9 @@ namespace M_func_00217BA0 { extern "C" {
 struct E { char pad[0x14]; int id; };
 struct S { unsigned short c; short pad; struct E *a; char pad8[0x20]; int x28; };
 void func_00217C20(struct S *p, int i);
+// 0x217B98: dead-code scrap (sly2/scrap.h)
+SLY2_SCRAP("sd $zero, 0x10($4)");
+
 /** @sly2-annot addr=0x217BA0
  * Purpose: find anim index by id (0x314 -> 0) and start
  * Info: proposed name StartSpriteAnimById (T2); TU hud
