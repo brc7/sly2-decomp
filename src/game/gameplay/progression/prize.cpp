@@ -1,5 +1,10 @@
 // prize.cpp -- prizes (DPRIZE : SO and its classes: loot, clue bottles, vaults, medicine...): init and load, the
-// prize states and pickup, the loot lists, and the vault. TU 0x1C4E50..0x1C8CC0 (61 functions, address order).
+// prize states and pickup, the loot lists, and the vault. Coins (CID91) and medicine (CID93) are "sprayed" out of
+// smashed objects and guards (SprayDprizes); clue bottles (CLUE) record their pickup in the save (afClue bits, 30 per
+// level); the vault (VAULT) is the safe whose three-digit combination is dialled with the stick. Entry points: the
+// DPRIZE/CID91/CID92/CID93/LOOT/CLUE/CLUEPROXY/VAULT vtables, SprayDprizes, the save queries (IsClueCollected,
+// CountCollectedClues, IsVaultOpened) and the Splice setters (AddLootEntry*, TriggerVault, SetDprizeParams).
+// TU 0x1C4E50..0x1C8CC0 (61 functions, address order).
 //
 // Types: TU-private views over sly2/so.h's SO for the m2c bodies (DPRIZE, LOOT, CLUE, VAULT: the fields they use).
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does),
@@ -105,13 +110,13 @@ void InitDprize(struct S *p)
 } } // namespace M_InitDprize
 
 // DPRIZE::LoadFromBrx (vt14): LoadSoFromBrx + snip objects (0x1A64E8).
-extern "C" void LoadDprizeFromBrx(DPRIZEV *pdprize, CBinaryInputStream *pbis)
+extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 {
-    LoadSoFromBrx(pdprize, pbis);
-    *(int *)((char *)func_001F7B98(pdprize) + 0xF0) = 1;
-    func_002303A0(pdprize, pdprize->pxfUnk58, 0x15);
-    func_002303A0(pdprize, pdprize->pxfUnk5c, 0x15);
-    BindLoOidTable(pdprize, 1, D_002C0D40);
+    LoadSoFromBrx(prize, pbis);
+    *(int *)((char *)func_001F7B98(prize) + 0xF0) = 1;
+    func_002303A0(prize, prize->pxfUnk58, 0x15);
+    func_002303A0(prize, prize->pxfUnk5c, 0x15);
+    BindLoOidTable(prize, 1, D_002C0D40);
 }
 
 namespace M_PostDprizeLoad { extern "C" {
@@ -227,30 +232,35 @@ struct VU_VECTOR {
     qword q;
     VU_VECTOR(const qword &v) { q = v; }
 };
+// Weighted sum f1*v1 + f2*v2.
 static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v2)
 {
     qword r;
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %4, %3x" : "=j"(r) : "j"(f1.q), "j"(v1.q), "j"(f2.q), "j"(v2.q));
     return r;
 }
+// value + velocity * time.
 static inline qword Advance(qword value, qword velocity, VU_FLOAT time)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(value), "j"(velocity), "j"(time.q));
     return r;
 }
+// Vector difference.
 static inline qword Difference(qword a, qword b)
 {
     qword r;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// Vector sum.
 static inline qword Add(qword a, qword b)
 {
     qword r;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b));
     return r;
 }
+// 3x3 matrix times vector.
 static inline qword RotateVec(const M3 &m, qword value)
 {
     __asm__("vmulax.xyz $ACC, %1, %0x\n\tvmadday.xyz $ACC, %2, %0y\n\tvmaddz.xyz %0, %3, %0z"
@@ -272,11 +282,13 @@ static inline M3 operator*(const M3 &matL, const M3 &matR) return mat
             : "=j"(v2) : "j"(qwL0), "j"(qwL1), "j"(qwL2), "j"(matR.rows[2]));
     t.rows[2] = v2; mat.rows[2] = v2;
 }
-static inline CHANNEL *GetChannel(P *p, int channel)
+// Motion channel of the prize (vtable slot 51).
+static inline CHANNEL *GetChannel(P *prize, int channel)
 {
-    VTE &e = p->vt[51];
-    return ((CHANNEL *(*)(P *, int))e.fn)((P *)((char *)p + e.delta), channel);
+    VTE &e = prize->vt[51];
+    return ((CHANNEL *(*)(P *, int))e.fn)((P *)((char *)prize + e.delta), channel);
 }
+// Samples a motion curve at the animation time: value and velocity (motion vtable slot 3).
 static inline void Sample(MOTION *motion, const ANIM *animation, qword *value, qword *velocity)
 {
     VTE &e = motion->vt[3];
@@ -284,22 +296,22 @@ static inline void Sample(MOTION *motion, const ANIM *animation, qword *value, q
 }
 
 // DPRIZE vt17: damped spring/hover integration of the prize position (state 6 -> base). (inferred)
-extern "C" void ProjectDprizeTransform(P *p)
+extern "C" void ProjectDprizeTransform(P *prize)
 {
-    if (p->state == 6) { func_001F3980(p); return; }
+    if (prize->state == 6) { func_001F3980(prize); return; }
     float factor;
-    if (p->state == 0 || p->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.dt.value;
+    if (prize->state == 0 || prize->state == 5) factor = 1.0f + D_002C0D4C * D_002DDED0.dt.value;
     else factor = 1.0f;
-    p->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(p->velocity), VU_FLOAT(D_002DDED0.dt.bits), VU_VECTOR(p->acceleration));
-    qword newPosition = Advance(p->coordinate, p->velocity, VU_FLOAT(D_002DDED0.dt.bits));
-    CHANNEL *channel = p->position;
-    p->coordinate = newPosition;
+    prize->velocity = VecCombo(VU_FLOAT(factor), VU_VECTOR(prize->velocity), VU_FLOAT(D_002DDED0.dt.bits), VU_VECTOR(prize->acceleration));
+    qword newPosition = Advance(prize->coordinate, prize->velocity, VU_FLOAT(D_002DDED0.dt.bits));
+    CHANNEL *channel = prize->position;
+    prize->coordinate = newPosition;
     VECTOR_opAssign(&channel->position, newPosition);
     *(float *)((char *)channel + 0x3C) = 1.0f;
-    p->position->velocity = p->velocity;
-    { int stamp = ++D_003DD490.stamp; p->position->stamp = stamp; }
-    if (p->holder && p->holder->animation) {
-        ANIM *animation = p->holder->animation;
+    prize->position->velocity = prize->velocity;
+    { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
+    if (prize->holder && prize->holder->animation) {
+        ANIM *animation = prize->holder->animation;
         ACTION *action = animation->action;
         MOTION *positionMotion = 0, *orientationMotion = 0;
         int i = 0;
@@ -307,42 +319,42 @@ extern "C" void ProjectDprizeTransform(P *p)
             ENTRY *entry = &action->entries[i];
             unsigned int key = entry->key;
             if (!(key & 0x40000000U)) continue;
-            if (((int)(key << 12) >> 12) != p->id) continue;
+            if (((int)(key << 12) >> 12) != prize->id) continue;
             {
-                CHANNEL *selected = GetChannel(p, (int)(key << 2) >> 22);
-                if (selected == p->position) positionMotion = entry->motion;
-                else if (selected == p->orientation) orientationMotion = entry->motion;
+                CHANNEL *selected = GetChannel(prize, (int)(key << 2) >> 22);
+                if (selected == prize->position) positionMotion = entry->motion;
+                else if (selected == prize->orientation) orientationMotion = entry->motion;
             }
             if (positionMotion && orientationMotion) break;
         }
         if (positionMotion || orientationMotion) {
             U dir, position, velocity, angles, angularVelocity;
             M3 frame, rot;
-            dir.q = Difference(D_002DDF40.position, p->position->position);
+            dir.q = Difference(D_002DDF40.position, prize->position->position);
             dir.words[2] = 0;
             frame = BuildOrthonormalMatrixZ(dir.q, D_002A2DC0);
             if (positionMotion) {
                 Sample(positionMotion, animation, &position.q, &velocity.q);
-                channel = p->position;
+                channel = prize->position;
                 VECTOR_opAssign(&channel->position, Add(channel->position, RotateVec(frame, position.q)));
                 *(float *)((char *)channel + 0x3C) = 1.0f;
-                CHANNEL *current = p->position;
+                CHANNEL *current = prize->position;
                 current->velocity = Add(current->velocity, RotateVec(frame, velocity.q));
-                { int stamp = ++D_003DD490.stamp; p->position->stamp = stamp; }
+                { int stamp = ++D_003DD490.stamp; prize->position->stamp = stamp; }
             }
             if (orientationMotion) {
                 Sample(orientationMotion, animation, &angles.q, &angularVelocity.q);
                 rot = LoadRotateMatrixEuler(angles.q);
-                CHANNEL *current = p->orientation;
+                CHANNEL *current = prize->orientation;
                 current->matrix = frame * rot;
                 current->matrix.values[3] = 0.0f; current->matrix.values[7] = 0.0f; current->matrix.values[11] = 0.0f;
-                CHANNEL *spin = p->orientation;
+                CHANNEL *spin = prize->orientation;
                 spin->velocity = RotateVec(frame, angularVelocity.q);
-                { int stamp = ++D_003DD490.stamp; p->orientation->stamp = stamp; }
+                { int stamp = ++D_003DD490.stamp; prize->orientation->stamp = stamp; }
             }
         }
     }
-    func_001F3980(p);
+    func_001F3980(prize);
 }
 } // namespace M_ProjectDprizeTransform
 
@@ -407,12 +419,14 @@ static inline float GFromQw(qword q) { float g; __asm__("qmfc2.ni %0, %1" : "=r"
 /* the second "j"(q) is allocation-only: it keeps the length qword in a VU register (the "r" use alone ties the class
    costs and puts it in a GPR), so gcc reloads it with its own qmfc2 into v1 like the target. */
 static inline float GFromVf(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : "r"(q), "j"(q)); return g; }
+// base + vec * scale.
 static inline qword QwAddScaled(qword base, qword dir, qword g)
 {
     qword r;
     __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(base), "j"(dir), "j"(g));
     return r;
 }
+// Weighted sum of two vectors.
 static inline qword QwCombo(VU_FLOAT g1, qword v1, VU_FLOAT g2, qword v2)
 {
     qword r;
@@ -420,6 +434,7 @@ static inline qword QwCombo(VU_FLOAT g1, qword v1, VU_FLOAT g2, qword v2)
     return r;
 }
 static inline qword QwSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Length of a vector, in lane x.
 static inline qword QwLength(qword v)
 {
     qword d, one, len;
@@ -427,12 +442,14 @@ static inline qword QwLength(qword v)
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(len) : "j"(d));
     return len;
 }
+// Vector divided by its length.
 static inline qword QwUnit(qword v, qword len)
 {
     qword r;
     __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(v), "j"(len));
     return r;
 }
+// Unit vector (or fallback for a near-zero vector).
 static inline qword QwNormalize(qword v, qword fallback)
 {
     qword len = QwLength(v);
@@ -440,6 +457,7 @@ static inline qword QwNormalize(qword v, qword fallback)
         return fallback;
     return QwUnit(v, len);
 }
+// Unit vector stored through a pointer.
 static inline qword QwNormalizeInto(qword *pv, const qword &fallback)
 {
     register qword g asm("$2") = *(volatile qword *)pv; /* the one pin (as in ProjectLeafTransform): the target reads the vector into $v0, then qmtc2 */
@@ -451,6 +469,7 @@ static inline qword QwNormalizeInto(qword *pv, const qword &fallback)
         *pv = QwUnit(v, len);
     return len;
 }
+// Dot product as a float.
 static inline float GDot(qword a, qword b)
 {
     qword d, one;
@@ -460,15 +479,15 @@ static inline float GDot(qword a, qword b)
 static inline float GMin(float a, float b) { return (b < a) ? b : a; }
 
 // query nearby solids (0x20FAA0) and resolve deepest contact (bounce). (inferred)
-extern "C" void CheckDprizeBounce(P *p)
+extern "C" void CheckDprizeBounce(P *prize)
 {
     STACKSCOPE frame;
     U vec;
     float gDeepest = 0.0f;
-    qword pos = func_001A62E8(p);
-    qword posMin = (vec.qw = VuFloat(-p->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
-    qword posMax = func_001A62E8(p);
-    vec.qw = VuFloatBits(p->sRadius.bits);
+    qword pos = func_001A62E8(prize);
+    qword posMin = (vec.qw = VuFloat(-prize->sRadius.g), QwAddScaled(pos, D_002A2DE0, vec.qw));
+    qword posMax = func_001A62E8(prize);
+    vec.qw = VuFloatBits(prize->sRadius.bits);
     posMax = QwAddScaled(posMax, D_002A2DE0, vec.qw);
     int cpart;
     SOPART **appart;
@@ -479,21 +498,21 @@ extern "C" void CheckDprizeBounce(P *p)
         SOPART *ppart = appart[i];
         if (ppart->grf & (1UL << 49)) {
             qword center = ppart->pxf->pos;
-            qword posCur = func_001A62E8(p);
-            float g = GFromQw(QwLength(QwSub(center, posCur))) - ppart->sRadius - p->sRadius.g;
+            qword posCur = func_001A62E8(prize);
+            float g = GFromQw(QwLength(QwSub(center, posCur))) - ppart->sRadius - prize->sRadius.g;
             if (g < gDeepest) {
-                vec.qw = QwNormalize(QwSub(p->pos, ppart->pxf->pos), D_002A2DA0);
-                if (GDot(p->v, vec.qw) < 0.0f) {
+                vec.qw = QwNormalize(QwSub(prize->pos, ppart->pxf->pos), D_002A2DA0);
+                if (GDot(prize->v, vec.qw) < 0.0f) {
                     gDeepest = g;
                     normal.qw = vec.qw;
                 }
             }
         } else if (ppart->cplane) {
-            int ccontact = CsbiIntersectSphereBsp(func_001A62E8(p), p->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
+            int ccontact = CsbiIntersectSphereBsp(func_001A62E8(prize), prize->sRadius.g, ppart, (void *)0x7FFFFFFF, 0, 0, 8, acontact);
             for (int j = 0; j < ccontact; j++) {
                 CMCONTACT *pcontact = &acontact[j];
                 float g = GDot(pcontact->pos, pcontact->plane.qw) - pcontact->plane.g[3];
-                if (g < gDeepest && GDot(p->v, pcontact->plane.qw) < 0.0f) {
+                if (g < gDeepest && GDot(prize->v, pcontact->plane.qw) < 0.0f) {
                     normal.qw = pcontact->plane.qw;
                     gDeepest = g;
                 }
@@ -504,27 +523,27 @@ extern "C" void CheckDprizeBounce(P *p)
         U response;
         {
             U primary;
-            if (normal.g[2] > 0.7f && p->state == 4) {
-                float gNormal = func_0011E290(p->v, D_002A2DC0, 0, &primary.qw);
+            if (normal.g[2] > 0.7f && prize->state == 4) {
+                float gNormal = func_0011E290(prize->v, D_002A2DC0, 0, &primary.qw);
                 float gSpeed = GFromVf(QwNormalizeInto(&primary.qw, D_002A2DD0));
-                float gTangent = GMin(p->gTangentResponse.g * gSpeed, D_002C0D74);
-                gNormal = GMin(-p->gNormalResponse * gNormal, D_002C0D78);
+                float gTangent = GMin(prize->gTangentResponse.g * gSpeed, D_002C0D74);
+                gNormal = GMin(-prize->gNormalResponse * gNormal, D_002C0D78);
                 response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(gNormal), D_002A2DC0);
-                if (!p->fRaised) {
-                    int fTrigger = GDot(response.qw, normal.qw) < p->gThreshold;
+                if (!prize->fRaised) {
+                    int fTrigger = GDot(response.qw, normal.qw) < prize->gThreshold;
                     if (fTrigger) {
-                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(p->gBoost.bits), D_002A2DC0);
-                        p->fRaised = 1;
+                        response.qw = QwCombo(VU_FLOAT(gTangent), primary.qw, VU_FLOAT(prize->gBoost.bits), D_002A2DC0);
+                        prize->fRaised = 1;
                     }
                 }
             } else {
                 U secondary;
-                func_0011E290(p->v, normal.qw, &primary.qw, &secondary.qw);
-                response.qw = QwCombo(VU_FLOAT(-p->gNormalResponse), primary.qw, VU_FLOAT(p->gTangentResponse.bits), secondary.qw);
+                func_0011E290(prize->v, normal.qw, &primary.qw, &secondary.qw);
+                response.qw = QwCombo(VU_FLOAT(-prize->gNormalResponse), primary.qw, VU_FLOAT(prize->gTangentResponse.bits), secondary.qw);
             }
         }
-        p->pos = QwAddScaled(p->pos, normal.qw, VU_FLOAT(-gDeepest).qw);
-        p->v = response.qw;
+        prize->pos = QwAddScaled(prize->pos, normal.qw, VU_FLOAT(-gDeepest).qw);
+        prize->v = response.qw;
     }
 }
 } // namespace M_CheckDprizeBounce
@@ -543,23 +562,27 @@ struct Q { int enabled,pad4; float radius; struct SO *so; };
 extern float D_002C0D7C;
 qword func_001A62E8(void *);
 int CsbiIntersectSphereBsp(qword,struct SHAPE *,int mask,int triangleCount,void *triangles,int capacity,void *contacts,float radius);
+// Sets the prize to state 1 through vtable slot 76 (SetDprizes); used when a zap collects it. (inferred)
 static inline void Trigger(struct S *p)
 {
     struct VTE *m=&p->vt[76];
     m->fn((char *)p+m->d,1);
 }
+// Moves a 128-bit EE register into a VU register.
 static inline qword ToVu(qword a)
 {
     qword b;
     __asm__("qmtc2 %1,%0":"=j"(b):"r"(a));
     return b;
 }
+// Vector difference.
 static inline qword Sub(qword a,qword b)
 {
     qword d;
     __asm__("vsub.xyzw %0,%1,%2":"=j"(d):"j"(a),"j"(b));
     return d;
 }
+// Squared length of a vector.
 static inline float LenSq(qword a)
 {
     qword d,one;
@@ -701,6 +724,7 @@ void CheckDprizeBounce(P *p);
 void CheckDprizeCollect(P *p);
 void UpdateDprize(P *p);
 }
+// Squared length of a vector.
 static inline float LenSq(qword v)
 {
     float r;
@@ -710,30 +734,30 @@ static inline float LenSq(qword v)
     return r;
 }
 // DPRIZE vt16 Update: base update, sparkle (0x1C6308), bounce, collect.
-void UpdateDprize(P *p)
+void UpdateDprize(P *prize)
 {
-    UpdateSo(p);
-    EmitDprizeGlint(p);
-    switch (p->state) {
+    UpdateSo(prize);
+    EmitDprizeGlint(prize);
+    switch (prize->state) {
     case 0:
-        if (LenSq(p->pos) > 10000.0f)
-            CheckDprizeBounce(p);
+        if (LenSq(prize->pos) > 10000.0f)
+            CheckDprizeBounce(prize);
     case 5:
-        CheckDprizeCollect(p);
+        CheckDprizeCollect(prize);
         break;
     case 3:
-        if (*(float *)((char *)&p->pos + 8) < 0.0f)
-            p->SetState(4);
+        if (*(float *)((char *)&prize->pos + 8) < 0.0f)
+            prize->SetState(4);
         break;
     case 4:
-        if (p->f1c4 && *(float *)((char *)&p->pos + 8) < 25.0f) {
-            p->f1c4 = 0;
-            p->SetState(0);
-        } else if (D_002C0D50 < D_002DDED0.t - p->t154) {
-            p->SetState(2);
+        if (prize->f1c4 && *(float *)((char *)&prize->pos + 8) < 25.0f) {
+            prize->f1c4 = 0;
+            prize->SetState(0);
+        } else if (D_002C0D50 < D_002DDED0.t - prize->t154) {
+            prize->SetState(2);
         } else {
-            CheckDprizeBounce(p);
-            CheckDprizeCollect(p);
+            CheckDprizeBounce(prize);
+            CheckDprizeCollect(prize);
         }
         break;
     case 1:
@@ -897,6 +921,7 @@ qword ConvertAloVec(struct S *,void *,qword);
 float GRandInRange__Fff(float,float);
 struct Q *PripNewRipg(struct G *,void *,void *);
 qword func_001A62E8(void *);
+// Dot product.
 static inline float Dot(qword a,qword b)
 {
     qword d,one;
@@ -906,6 +931,7 @@ static inline float Dot(qword a,qword b)
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
 }
+// Larger of two floats.
 static inline float Max(float a,float b)
 {
     __asm__("max.s %0,%0,%1":"+f"(a):"f"(b));
@@ -1182,7 +1208,7 @@ void SetMedicineDprizes(struct S *p, int n)
 }
 } } // namespace M_func_001C68F0
 
-// 8-byte helper. (inferred)
+// Empty callback: nothing to do when the medicine pickup's smack animation ends.
 extern "C" void OnMedicineSmackDone()
 {
 }
@@ -1235,6 +1261,7 @@ extern const float D_002A7758;
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x58 - 0x10]; struct X *x58; struct X *x5C; char p2[0x160 - 0x60]; float x160;
     char p3[0x180 - 0x164]; qword x180; char p4[0x1C4 - 0x190]; int x1C4; int x1C8; float x1CC; };
 void SetLoParent_1A58D0(struct S *p, int a, int b);
+// Zeroes a 3-float vector.
 static inline void Zero(struct V3 *pv)
 {
     pv->z = 0.0f;
@@ -1453,12 +1480,14 @@ static inline float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z)
 static inline float GFromVf(qword v) { float g; __asm__("mtc1 %1,%0" : "=f"(g) : "r"(v)); return g; }
 static inline qword Add(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
+// Dot product.
 static inline qword Dot(qword a, qword b)
 {
     qword d, one;
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x $ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(d), "=&j"(one) : "j"(a), "j"(b));
     return d;
 }
+// Length of a vector as a float.
 static inline qword Length(qword v)
 {
     qword d, one, l;
@@ -1466,6 +1495,7 @@ static inline qword Length(qword v)
     __asm__("vsqrt $Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,$Q" : "=j"(l) : "j"(d));
     return l;
 }
+// Length of the xy part of a vector.
 static inline qword LengthXY(qword v)
 {
     qword d, l;
@@ -1474,6 +1504,7 @@ static inline qword LengthXY(qword v)
     return l;
 }
 static inline qword Div(qword v, qword l) { qword r; __asm__("vdiv $Q,$vf0w,%2x\n\tvwaitq\n\tvmulq.xyzw %0,%1,$Q" : "=j"(r) : "j"(v), "j"(l)); return r; }
+// Unit vector of v.
 static inline qword Normalize(qword v)
 {
     qword fallback = D_002A2DA0;
@@ -1487,6 +1518,7 @@ static inline qword Normalize(qword v)
 static inline qword Scale(qword g, qword v) { qword r; __asm__("vmulx.xyzw %0,%2,%1x" : "=j"(r) : "j"(g), "j"(v)); return r; }
 // base + v * g
 struct VV { qword q; VV() {} VV(const qword &v) { q = v; } operator qword() const { return q; } };
+// base + vec * scale.
 static inline qword AddScaled(VV base, VU_FLOAT g, qword v)
 {
     qword r;
@@ -1503,6 +1535,7 @@ static inline qword Combine(qword a, VU_FLOAT ga, qword b, VU_FLOAT gb)
 static inline float GFromClq(const CLQ &clq, float g) { return clq.g0 + g * (clq.g1 + g * clq.g2); }
 static inline float GClampR(float g, float gMin, float gMax) { if (g < gMin) return gMin; if (gMax < g) return gMax; return g; }
 static inline float GClamp(float g, const LM &lm) { return GClampR(g, lm.gMin, lm.gMax); }
+// The region an object stands in, through its extension's link (or null).
 static inline REGION *PregionFromLo(LO *plo)
 {
     EXT *pext = plo->pext;
@@ -1706,16 +1739,16 @@ void SetLootDprizes(S *p, int n)
 } // namespace M_SetLootDprizes
 
 // calls 0x1C7A08 stub. (inferred)
-extern "C" void AddLootEntry(LOOTV *ploot, int n0, int n4)
+extern "C" void AddLootEntry(LOOTV *loot, int n0, int n4)
 {
     int c;
     LOOTE *plootE;
-    ClearCurrentLootEntry(ploot);
-    c = ploot->clootE;
+    ClearCurrentLootEntry(loot);
+    c = loot->clootE;
     if (c < 0x20) {
-        ploot->clootE = c + 1;
-        plootE = &ploot->alootE[c];
-        ploot->plooteCur = plootE;
+        loot->clootE = c + 1;
+        plootE = &loot->alootE[c];
+        loot->plooteCur = plootE;
         plootE->n0 = n0;
         plootE->n4 = n4;
         plootE->n14 = -1;
@@ -1724,10 +1757,10 @@ extern "C" void AddLootEntry(LOOTV *ploot, int n0, int n4)
     }
 }
 
-// 8-byte stub. (inferred)
-extern "C" void ClearCurrentLootEntry(LOOTV *ploot)
+// Forgets the loot's current entry.
+extern "C" void ClearCurrentLootEntry(LOOTV *loot)
 {
-    ploot->plooteCur = 0;
+    loot->plooteCur = 0;
 }
 
 namespace M_AddAlarmSensor__FP5ALARM3OID {
@@ -1742,10 +1775,10 @@ extern "C" void AddLootEntryObject(ALARM *palarm, OID oid)
 }
 } // namespace M_AddAlarmSensor__FP5ALARM3OID
 
-// small setter. (inferred)
-extern "C" int GetCurrentLootEntryId(LOOTV *ploot)
+// Id of the loot's current entry, or -1.
+extern "C" int GetCurrentLootEntryId(LOOTV *loot)
 {
-    LOOTE *plootE = ploot->plooteCur;
+    LOOTE *plootE = loot->plooteCur;
     int n = -1;
     if (plootE != 0) {
         n = plootE->n0;
@@ -1782,10 +1815,10 @@ void SelectLootEntry(struct S *p, int id)
 }
 } } // namespace M_func_001C7A58
 
-// UNKNOWN - no analysis recorded yet (byte-matched only). (inferred)
-extern "C" LOOTE *GetCurrentLootEntry(LOOTV *ploot)
+// The loot's current entry (or null).
+extern "C" LOOTE *GetCurrentLootEntry(LOOTV *loot)
 {
-    return ploot->plooteCur;
+    return loot->plooteCur;
 }
 
 namespace M_FClueCollected { extern "C" {
@@ -1883,7 +1916,7 @@ void SetClueCollected(int n, int f)
 }
 } // namespace M_func_001C7C30
 
-// 8-byte stub. (inferred)
+// Number of clue bottles per level: 30.
 extern "C" int GetMaxClueCount()
 {
     return 0x1E;
@@ -2161,11 +2194,11 @@ void InitVault(struct S *p)
 /* VAULT::PostLoad (slot 15). */
 void VAULT::VUnk14()
 {
-    VAULTV *pvault = (VAULTV *)this;
-    PostSoLoad(pvault);
-    BindLoOidTable(pvault, 0x18, D_002C0EC8);
-    pvault->pxf204 = PxfFindSo(pvault, 0x645, 1);
-    SetVaultState(pvault, (IsVaultOpened() == 0) ? 0 : 5);
+    VAULTV *vault = (VAULTV *)this;
+    PostSoLoad(vault);
+    BindLoOidTable(vault, 0x18, D_002C0EC8);
+    vault->pxf204 = PxfFindSo(vault, 0x645, 1);
+    SetVaultState(vault, (IsVaultOpened() == 0) ? 0 : 5);
 }
 
 namespace M_func_001C8350 { extern "C" {
@@ -2235,7 +2268,9 @@ static inline float ClockTime(){float t;__asm__("lwc1 %0,%1":"=f"(t):"m"(D_002DD
 static inline char*MinimumPage(){register char*page __asm__("$6");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002A7798));return page;}
 static inline char*SelectionTablePage(){register char*page __asm__("$5");__asm__("lui %0,%%hi(%1)":"=r"(page):"i"(D_002C0FF0));return page;}
 static inline qword*TableWithMinimum(char*minimumPage,char*tablePage,float*out){register float minimum __asm__("$f1");register qword*table __asm__("$5");__asm__ volatile("lwc1 %0,%%lo(%4)(%2)\n\taddiu %1,%3,%%lo(%5)":"=f"(minimum),"=r"(table):"r"(minimumPage),"r"(tablePage),"i"(&D_002A7798),"i"(D_002C0FF0),"m"(*(const float*)(minimumPage+0x7798)));*out=minimum;return table;}
-// read POCTL presses (GrfConsumePressed) to dial the safe combination; EnsureSggAlarm. (inferred)
+// Dial input: the stick picks the nearest of nine dial positions (with hysteresis for the current one), a button
+// enters it as the next digit (code = code*10 % 1000 + digit + 1), and when the entered code equals the vault's
+// combination the vault opens; another button aborts. Runs until the sub-state stops changing.
 extern "C" void UpdateVaultInput(struct S*p){
  union U point;
  int old;
@@ -2382,12 +2417,15 @@ qword func_001A62E8(void *p);
 qword func_0022FC48(void *frame, void *p, qword q);
 void func_002303A0(struct S *p, struct X *px, int n);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
+// Loads the vault dial's selected index and its timer object (register-pinned for the match).
 static inline void Selection(const struct S*p,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
  __asm__("lw %0,0x194(%2)\n\tlw %1,0x204(%2)":"=&r"(selected),"=r"(receiver):"r"(p),"m"(p->x194),"m"(p->x204));
  *index=selected;*timer=receiver;
 }
-// dial/handle orientation update. (inferred)
+// Dial sub-state change (-1 off, 0 choosing, 1 turning to the chosen digit, 2 entering it, 3 done): starts the dial
+// animation and timer for the new sub-state. Despite the name it is a state setter (a better name would be
+// SetVaultDialState; not renamed yet). (inferred)
 void UpdateVaultDial(struct S *p, int n)
 {
     struct X *px;
