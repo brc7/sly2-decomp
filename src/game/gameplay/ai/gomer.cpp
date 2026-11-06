@@ -1,4 +1,5 @@
-// gomer.cpp -- GOMER, a named guard (STEPGUARD subclass). TU 0x16F148..0x16F2D0 (3 functions, address order).
+// gomer.cpp -- GOMER, a named guard (STEPGUARD subclass) whose only override is Init.
+// TU 0x16F148..0x16F2D0 (3 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gomer
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0016F2B0
 #include "sly2/guard.h"
@@ -9,16 +10,8 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 
-/** @sly2-annot addr=0x16F148
- * Purpose: GOMER::Init: calls STEPGUARD::Init (0x205EB8) then sets a GOMER flag at +0xE78
- * Info: proposed name InitGomer__FP5GOMER (EXISTING); class GOMER slot7; TU gomer
- * Notes: agent/verifier proposes InitGomer for this existing name (see existing_name_changes.csv) | RENAME
- *   proposed -> InitGomer__FP5GOMER (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.85] - evidence: arbitration; pre-existing symbol in symbol_addrs.txt; sources:
- *   r3_1539A8+arbitration
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/guards-ai.md#9-key-functions,
- *   docs/engine/rendering.md#12-source-files
- * @end-sly2-annot */
+// 0x16F148: GOMER vtable slot 7 (Init): STEPGUARD Init, then sets the GOMER flag at +0xE78 (read by the search
+// behaviour as "use the second look timer", inferred).
 /* GOMER::Init, the key function (sly2/classes.h: its slot 7, labelled with the function's config symbol, which
    carries a draft signature); the base call is STEPGUARD::Init, InitStepguard. */
 void GOMER::Init()

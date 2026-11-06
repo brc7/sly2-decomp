@@ -1,4 +1,6 @@
-// tu_1CBEB0.cpp -- RAJAN, a boss guard (STEPGUARD subclass). TU 0x1CBEB0..0x1CC158 (5 functions, address order).
+// tu_1CBEB0.cpp -- RAJAN (cid 0x3D), a boss guard (STEPGUARD subclass): Init, a stimulus-sensing override that
+// doubles his hearing for one stimulus source, and a camera policy that frames him with Murray.
+// TU 0x1CBEB0..0x1CC158 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1CBEB0
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CC138
 #include "sly2/guard.h"
@@ -10,14 +12,14 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct RAJANV : public STEPGUARD
 {
-      int fCmPolicy;            /* +0x1010 camera policy 6 is set (func_001CBF90) */
+      int hasCameraPolicy;            /* +0x1010 camera policy 6 is set (SetRajanCameraFocus) */
 };
 
-/* Stimulus as func_001CBEE0 sees it (HYPOTHESIS: a noise/sense stimulus with a range). */
-struct RANGE { float lo, hi; };
-struct STIMSRC { byte pad[0x50]; int n50; float g54; RANGE range; };
-struct STIMOWNER { byte pad[0x18]; int cid; };
-struct STIMULUS { byte pad[0x14]; STIMSRC *psrc; byte pad1[0x40 - 0x18]; STIMOWNER *powner; };
+/* Stimulus as CanRajanSenseStimulus sees it (HYPOTHESIS: a noise/sense stimulus with a range). */
+struct RANGE { float min, max; };
+struct STIMSRC { byte pad[0x50]; int isMuted; float range; RANGE heightRange; };
+struct STIMOWNER { byte pad[0x18]; int id; };
+struct STIMULUS { byte pad[0x14]; STIMSRC *noiseType; byte pad1[0x40 - 0x18]; STIMOWNER *emitter; };
 
 /* Camera manager as seen here (g_cm, 0x2DDF40). */
 struct CMVIEW { byte pad[0x600]; int a600; };
@@ -25,74 +27,54 @@ extern CMVIEW D_002DDF40;
 extern int D_002F7900;
 
 extern "C" {
-void InitStepguard(STEPGUARD *pstepguard);
-int FStepguardSenseStimulus(void *p, STIMULUS *pstim);
+void InitStepguard(STEPGUARD *guard);
+int CanStepguardSenseStimulus(void *p, STIMULUS *pstim);
 void SetCmPolicy(CMVIEW *pcm, int n, void *pv, int m, void *p);
 void RevokeCmPolicy(CMVIEW *pcm, int a, int b, void *c, void *d, int e);
 }
 
-/** @sly2-annot addr=0x1CBEB0
- * Purpose: CID 61 vt7: InitStepguard + one field
- * Info: proposed name InitRajan (T1); class RAJAN slot7; TU tu_1CBEB0
- * Notes: class identity from whole_game WE names/object strings: InitCid61Guard -> InitRajan
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/engine/bosses.md#32-rajan-m3_boss-l12-temple-exterior, docs/engine/guards-ai.md#8-source-files,
- *   docs/engine/player.md#10-source-files
- * @end-sly2-annot */
+// 0x1CBEB0: RAJAN vtable slot 7 (Init): STEPGUARD Init, then sets +0x4A4 (as other named guards do).
 void RAJAN::Init()
 {
-    RAJANV *prajan = (RAJANV *)this;
-      InitStepguard(prajan);
-      prajan->unk_0x488[(0x4A4 - 0x488) / 4] = 1;   /* +0x4A4 (STEPGUARD padding; gomer/tu_14FAC8 set it too) */
+    RAJANV *rajan = (RAJANV *)this;
+      InitStepguard(rajan);
+      rajan->unk_0x488[(0x4A4 - 0x488) / 4] = 1;   /* +0x4A4 (STEPGUARD padding; gomer/tu_14FAC8 set it too) */
 }
 
-/** @sly2-annot addr=0x1CBEE0
- * Purpose: CID 61 vt89: for stimulus 0x246 temporarily double the sense range/arc, then STEPGUARD
- *   FStepguardSenseStimulus 0x208BE0
- * Info: proposed name Rajan_FSenseStimulus (T2); class RAJAN slot89; TU tu_1CBEB0
- * Notes: class identity from whole_game WE names/object strings: Cid61Guard_FSenseStimulus ->
- *   Rajan_FSenseStimulus
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_1cbeb0-0x1cbeb0-0x1cc158
- * @end-sly2-annot */
-extern "C" int func_001CBEE0(void *p, STIMULUS *pstim)
+// 0x1CBEE0: RAJAN vtable slot 89 (sense a stimulus): for an audible noise whose emitter has id 0x246 at +0x18
+// (inferred: an oid), temporarily doubles its noise type's range and height window (about its centre), asks the
+// STEPGUARD test, then restores them.
+extern "C" int CanRajanSenseStimulus(void *guard, STIMULUS *stimulus)
 {
-      STIMSRC *psrc = pstim->psrc;
-      RANGE range = psrc->range;
-      float g = psrc->g54;
-      int ret;
+      STIMSRC *noiseType = stimulus->noiseType;
+      RANGE savedHeightRange = noiseType->heightRange;
+      float savedRange = noiseType->range;
+      int result;
 
-      if (psrc->n50 == 0 && pstim->powner && pstim->powner->cid == 0x246) {
-            float d, c;
-            d = (range.hi - range.lo) * 0.5f;
-            c = range.lo + d;
-            psrc->g54 = g + g;
-            d = d + d;
-            psrc->range.hi = c + d;
-            psrc->range.lo = c - d;
+      if (noiseType->isMuted == 0 && stimulus->emitter && stimulus->emitter->id == 0x246) {
+            float halfHeight, centre;
+            halfHeight = (savedHeightRange.max - savedHeightRange.min) * 0.5f;
+            centre = savedHeightRange.min + halfHeight;
+            noiseType->range = savedRange + savedRange;
+            halfHeight = halfHeight + halfHeight;
+            noiseType->heightRange.max = centre + halfHeight;
+            noiseType->heightRange.min = centre - halfHeight;
       }
-      ret = FStepguardSenseStimulus(p, pstim);
-      psrc->range = range;
-      psrc->g54 = g;
-      return ret;
+      result = CanStepguardSenseStimulus(guard, stimulus);
+      noiseType->heightRange = savedHeightRange;
+      noiseType->range = savedRange;
+      return result;
 }
 
-/** @sly2-annot addr=0x1CBF90
- * Purpose: Toggle camera policy 6 framing g_pmurray (D_002F7900) and this guard (SetCmPolicy/RevokeCmPolicy)
- * Info: proposed name SetRajanCameraFocus (T2); class RAJAN slot90; TU tu_1CBEB0
- * Notes: class identity from whole_game WE names/object strings: SetCid61GuardCameraFocus ->
- *   SetRajanCameraFocus
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/engine/bosses.md#32-rajan-m3_boss-l12-temple-exterior,
- *   docs/reference/functions/guards-ai.md#tu_1cbeb0-0x1cbeb0-0x1cc158
- * @end-sly2-annot */
-extern "C" void func_001CBF90(RAJANV *prajan, int f)
+// 0x1CBF90: Turns on or off camera policy 6 framing Murray and this guard (SetCmPolicy / RevokeCmPolicy),
+// remembering the state at +0x1010.
+extern "C" void SetRajanCameraFocus(RAJANV *rajan, int enable)
 {
-      if (prajan->fCmPolicy == f)
+      if (rajan->hasCameraPolicy == enable)
             return;
-      prajan->fCmPolicy = f;
-      if (f)
-            SetCmPolicy(&D_002DDF40, 6, &D_002DDF40.a600, D_002F7900, prajan);
+      rajan->hasCameraPolicy = enable;
+      if (enable)
+            SetCmPolicy(&D_002DDF40, 6, &D_002DDF40.a600, D_002F7900, rajan);
       else
             RevokeCmPolicy(&D_002DDF40, 1, 6, 0, 0, 0);
 }

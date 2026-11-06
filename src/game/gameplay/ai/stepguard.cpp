@@ -1,10 +1,16 @@
-// stepguard.cpp -- STEPGUARD (CID 0x38), the guard step object: load, update, hp, targets, animation bindings, the
-// mover and target records. TU 0x205E70..0x20B840 (158 functions, address order).
-// SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepguard
-// SLY2_ALIAS: _GLOBAL_$I$*=func_0020B820
+// stepguard.cpp -- STEPGUARD (cid 0x38), the guard: the step object every guard and named enemy derives from. Load
+// and post-load (detector, components, animation bindings, attacks), the per-frame update (special states, target
+// detection, aim, pickpocket, behaviour stack, mover), damage and zap reactions, the guard flags (SGF: one bit per
+// guard condition, mirrored into animation choice), animation bindings (a flag set -> an ASEG/SM to play), target
+// choice and the detector's watched/ignored/forced class lists, stimulus perception, the mover (which behaviour
+// drives the guard's motion), the shared per-target engagement records, attack objects (cid 0x78) and the guard
+// manager (cid 0x7D).
+// TU 0x205E70..0x20B840 (158 functions, address order).
 // The per-function files keep their views in namespaces named after the function (docs/guides/tu-merging.md
 // "Representation decisions"); the former m2c bodies are written at file scope on sly2/guard.h's STEPGUARD,
 // DETECTOR, ANIMBINDING and BHV156 and the TU-private views below.
+// SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stepguard
+// SLY2_ALIAS: _GLOBAL_$I$*=func_0020B820
 #include "sly2/basic.h"
 #include "sly2/lo.h"
 #include "sly2/step.h"
@@ -43,14 +49,14 @@ struct TARGETREC
     int cpstepguard;        /* +0x28 */
     STEPGUARD *apstepguard[1];  /* +0x2C */
 };
-/* An object with an animation binding at +0xB0 for its guard at +0xAC (func_0020ADE8..func_0020B060). */
+/* An object with an animation binding at +0xB0 for its guard at +0xAC (CloneGuardAttack..SetAndResolveGuardAttackBindingKind2). */
 struct ANIMLO
 {
     char pad0[0xAC];
     STEPGUARD *pstepguard;  /* +0xAC */
     ANIMBINDING binding;    /* +0xB0 */
 };
-/* The sub-behaviour of the guard's root behaviour in mode 0x10, as func_0020A100 fills it. */
+/* The sub-behaviour of the guard's root behaviour in mode 0x10, as SetStepguardEscortPoint fills it. */
 struct BHVARG : public BHV
 {
     int n;                  /* +0x30 */
@@ -67,58 +73,51 @@ LO *PloNew(CID cid, SO *psoParent, OID oid, int n);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 void AppendDlEntry(DL *pdl, void *pv);
 void CopyAb(void *pvDst, void *pvSrc, unsigned int cb);
-void ClearBhvstk(BHVSTK *pbhvstk);
+void ClearBhvstk(BHVSTK *stack);
 extern "C" {
-void CloneStep(STEPGUARD *pstepguard, STEPGUARD *pstepguardBase);
+void CloneStep(STEPGUARD *guard, STEPGUARD *pstepguardBase);
 void CloneLoV() __asm__("CloneLo");                      /* a0/a1 passed through */
 void RemoveSoHierarchyV() __asm__("RemoveSoHierarchy");  /* a0 passed through */
 void ReleaseAsega(ASEGA **ppasega);
-void SetLoBusyk(STEPGUARD *pstepguard, int busyk);
-int FGrfHasSgf(unsigned long grfsg, int sgf);
-void UpdateStepguardPickpocket(STEPGUARD *pstepguard);
-int FAddStepguardDetectTarget(STEPGUARD *pstepguard, LO *plo, int n);
-void *func_00205458(STEPGUARD *pstepguard, int cid);
-void func_0017A8C8(void *pbhv, int n);
-BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int cid);
-int func_0020A298(LO *plo, LO *ploOther, int n);
-int func_0020A658(TARGETREC *ptargetrec, STEPGUARD *pstepguard);
-void func_0020A9A8(TARGETREC *ptargetrec, int n);
-TARGETREC *func_001F8278(LO *plo);
-void func_001F5078(STEPGUARD *pstepguard);
-void func_00204660(STEPGUARD *pstepguard);
-int func_00207B10(int n);
-ANIMBINDING *func_00209C18(STEPGUARD *pstepguard, int i);
-void ResolveAnimBinding(ANIMBINDING *pbinding, STEPGUARD *pstepguard);
-void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *pstepguard);
-void func_00209590(ANIMBINDING *pbinding);
-void func_00208208(STEPGUARD *pstepguard, ANIMBINDING *abinding);
+void SetLoBusyk(STEPGUARD *guard, int busyk);
+int MaskHasSgf(unsigned long grfsg, int sgf);
+void UpdateStepguardPickpocket(STEPGUARD *guard);
+int TryAddStepguardDetectTarget(STEPGUARD *guard, LO *object, int n);
+void *func_00205458(STEPGUARD *guard, int cid);
+void SetBhvThrownState(void *behavior, int n);
+BHV *FindBhvInBhvstk(BHVSTK *stack, int cid);
+int IsStepguardTargetValid(LO *object, LO *ploOther, int n);
+int FindTargetRecordGuardIndex(TARGETREC *ptargetrec, STEPGUARD *guard);
+void SetTargetRecordState(TARGETREC *ptargetrec, int n);
+TARGETREC *func_001F8278(LO *object);
+void func_001F5078(STEPGUARD *guard);
+void func_00204660(STEPGUARD *guard);
+int GetSgfMaskFromSpliceList(int n);
+ANIMBINDING *EnsureAnimBinding(STEPGUARD *guard, int i);
+void ResolveAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard);
+void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard);
+void CloneAnimBinding(ANIMBINDING *pbinding);
+void CloneZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
 void FreeLeap(int h);
 void FreeDirAnim(int h);
-void func_0020AA40(STEPGUARD *pstepguard);
-void func_0020AAA8(STEPGUARD *pstepguard);
-void func_0020AFF0(ANIMLO *panimlo);
-void func_00207B70(STEPGUARD *pstepguard, int n, int h, int nC);
-void ResolveZapReactions(STEPGUARD *pstepguard, ANIMBINDING *abinding);
-void func_00208178(STEPGUARD *pstepguard, ANIMBINDING *abinding);
-void CloneStepguardAnimBindings(STEPGUARD *pstepguard);
-void SetStepguardTarget(STEPGUARD *pstepguard, LO *ploTarget);
-void func_002089E8(STEPGUARD *pstepguard);
-void func_00208B30(STEPGUARD *pstepguard);
-void func_00209770(GUARDMOVER *pmover, STEPGUARD *pstepguard);
-int FStepguardHasSgf(STEPGUARD *pstepguard, int sgf);
-void func_0020A790(TARGETREC *ptargetrec, STEPGUARD *pstepguard);
-void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *pstepguard);
+void AddStepguardAttackOid(STEPGUARD *guard);
+void ResolveStepguardAttacks(STEPGUARD *guard);
+void SetGuardAttackBindingKind2(ANIMLO *panimlo);
+void SetStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC);
+void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
+void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *abinding);
+void CloneStepguardAnimBindings(STEPGUARD *guard);
+void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget);
+void ClearStepguardIgnoreClasses(STEPGUARD *guard);
+void ClearStepguardForceClasses(STEPGUARD *guard);
+void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard);
+int StepguardHasSgf(STEPGUARD *guard, int sgf);
+void RemoveTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
+void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard);
 }
 
 // 0x205E70 EnsureStepguardManager
-/** @sly2-annot addr=0x205E70
- * Purpose: Create the global guard-manager singleton (cid 0x7D, oid 0x656) into D_003DD48C once
- * Info: proposed name EnsureStepguardManager (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
+// 0x205E70: Creates the world's guard manager (cid 0x7D, oid 0x656) once and stores it in D_003DD48C.
 /* Creates the guard manager object (CID 0x7D, oid 0x656) once. */
 extern "C" void EnsureStepguardManager(void)
 {
@@ -136,16 +135,16 @@ struct BLOCK {char unknown[0xC];struct S *owner;char tail[0x14];};
 struct F64 { char pad[0x40]; int u40; };
 struct S {
     char pad0[0x148]; unsigned long u148_lo : 16; unsigned long u148_f : 4; unsigned long u148_hi : 44;
-    char pad1[0x260 - 0x150]; float f260; char pad2[0x2CC - 0x264]; float f2CC; float f2D0;
+    char pad1[0x260 - 0x150]; float gravityRatio; char pad2[0x2CC - 0x264]; float f2CC; float f2D0;
     char pad3[0x314 - 0x2D4]; float f314; float f318; float f31C; float f320; float f324; float f328;
-    char pad4[0x350 - 0x32C]; int n350; int n354; int n358; int pad35C; float f360; int n364; char pad5[0x370 - 0x368];
-    float f370; float f374; float f378; int n37C; float f380; float f384; float f388;
+    char pad4[0x350 - 0x32C]; int n350; int n354; int n358; int pad35C; float pulseStartTime; int unknown364; char pad5[0x370 - 0x368];
+    float f370; float f374; float closeRange; int canInteract; float f380; float f384; float interactRange;
     char pad6[0x3D8 - 0x38C]; int n3D8; char pad7[0x3F0 - 0x3DC]; int n3F0; char pad8[0x3FC - 0x3F4]; int n3FC;
-    char pad9[0x4A0 - 0x400]; int n4A0; char padA[0xE64 - 0x4A4]; int nE64; int nE68; float fE6C; float fE70;
-    char padB[0xE78 - 0xE74]; int nE78; float fE7C; float fE80; int nE84; char padC[0xF40 - 0xE88]; int nF40; int padF44;
-    float fF48; float fF4C; float fF50; float fF54; float fF58; float fF5C; char padD[0xF64 - 0xF60]; struct F64 *pF64;
-    char padE[0xF80 - 0xF68]; int nF80; char padF[0xFBC - 0xF84]; int nFBC; char padG[0xFD0 - 0xFC0]; struct BLOCK block;
-    float fFF4; char padH[0x1000 - 0xFF8]; int n1000;
+    char pad9[0x4A0 - 0x400]; int unknown4A0; char padA[0xE64 - 0x4A4]; int sensesEnabled; int minStimulusLevel; float fE6C; float fE70;
+    char padB[0xE78 - 0xE74]; int searchMode; float fE7C; float fE80; int nE84; char padC[0xF40 - 0xE88]; int nF40; int padF44;
+    float fF48; float fF4C; float fF50; float fF54; float fF58; float fF5C; char padD[0xF64 - 0xF60]; struct F64 *detector;
+    char padE[0xF80 - 0xF68]; int attachKind; char padF[0xFBC - 0xF84]; int specialState; char padG[0xFD0 - 0xFC0]; struct BLOCK block;
+    float unknownFF4; char padH[0x1000 - 0xFF8]; int removalMode;
 };
 extern float D_002A8600;
 extern float D_002A8604;
@@ -154,104 +153,91 @@ void InitStep(struct S *p);
 void EnsureStepguardManager(void);
 struct F64 *PloNew__F3CIDP2SO3OIDi(int a, void *b, int c, int d);
 void SetLoBusyk(struct F64 *p, int n);
-void func_002081C8(struct S *p);
-void func_00209768(struct BLOCK *p, struct S *s);
+void ReleaseStepguardZapReactions(struct S *p);
+void InitStepguardMover(struct BLOCK *p, struct S *s);
 
-/** @sly2-annot addr=0x205EB8
- * Purpose: STEPGUARD vt7 Init: InitStep, ensure guard manager, create the vision detector (PloNew cid 0x10
- *   oid 0x288 -> +0xF64), default ranges/angles (+-45deg, +-75deg, 300/800/1200/3000...), HP 0x338.., masks,
- *   release anim/zap tables, init mover +0xFD0
- * Info: proposed name InitStepguard (T1); class STEPGUARD slot7; TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8,
- *   docs/reference/functions/guards-ai.md#gomer-0x16f148-0x16f2d0
- * @end-sly2-annot */
-void InitStepguard(struct S *p)
+// 0x205EB8: STEPGUARD vtable slot 7 (Init): step Init, ensures the guard manager, creates the vision detector (cid
+// 0x10) and sets the default vision ranges and angles, hit points, flag masks and the behaviour stack.
+void InitStepguard(struct S *guard)
 {
     int v;
     float a, b, limit, medium, high, extent;
-    InitStep(p);
+    InitStep(guard);
     EnsureStepguardManager();
-    p->pF64 = PloNew__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
-    SetLoBusyk(p->pF64, 2);
-    v = p->pF64->u40;
+    guard->detector = PloNew__F3CIDP2SO3OIDi(0x10, 0, 0x288, -1);
+    SetLoBusyk(guard->detector, 2);
+    v = guard->detector->u40;
     if ((v ^ 1) & 1)
         *(int *)v &= -3;
     else
-        p->pF64->u40 = v & -3;
+        guard->detector->u40 = v & -3;
     a = 0.785398245f; b = 1.30899704f; limit = D_002A8600; medium = 300.0f; high = 1200.0f; extent = 800.0f;
-    p->fF50 = -a;
-    p->fF54 = a;
-    p->fF58 = -b;
-    p->fF5C = b;
-    p->fF48 = medium;
-    p->fF4C = high;
-    p->f314 = extent;
-    p->f31C = medium;
-    p->f2CC = D_002A8600;
-    p->f318 = high;
-    p->f320 = 450.0f;
-    p->f324 = medium;
-    p->f328 = 600.0f;
-    p->f2D0 = limit;
-    p->f370 = -100.0f;
-    p->f374 = 350.0f;
-    p->f378 = 1000.0f;
-    p->f380 = -800.0f;
-    p->f384 = extent;
-    p->f388 = 3000.0f;
-    p->fE7C = 16.0f;
-    p->fE80 = 20.0f;
-    p->nE84 = 50;
-    p->fE6C = 5.5f;
-    p->fE70 = 6.5f;
-    p->n354 = 0x29FF7E;
-    p->n364 = 1;
-    p->n37C = 1;
-    p->nE64 = 1;
-    p->nF40 = 1;
-    p->nE68 = -1;
-    p->nE78 = 0;
-    p->n350 = 0x20F800;
-    p->n358 = 0xF800;
-    p->f360 = -10.0f;
-    p->n4A0 = 1;
-    p->f260 = 1.5f;
-    p->u148_f = 2;
-    p->n3F0 = -200;
-    p->n3D8 = -1;
-    p->nF80 = -1;
-    p->n3FC = -1;
-    p->nFBC = -1;
-    p->fFF4 = D_002A8604;
-    p->n1000 = D_002C3CF0;
-    func_002081C8(p);
-    func_00209768(&p->block, p);
+    guard->fF50 = -a;
+    guard->fF54 = a;
+    guard->fF58 = -b;
+    guard->fF5C = b;
+    guard->fF48 = medium;
+    guard->fF4C = high;
+    guard->f314 = extent;
+    guard->f31C = medium;
+    guard->f2CC = D_002A8600;
+    guard->f318 = high;
+    guard->f320 = 450.0f;
+    guard->f324 = medium;
+    guard->f328 = 600.0f;
+    guard->f2D0 = limit;
+    guard->f370 = -100.0f;
+    guard->f374 = 350.0f;
+    guard->closeRange = 1000.0f;
+    guard->f380 = -800.0f;
+    guard->f384 = extent;
+    guard->interactRange = 3000.0f;
+    guard->fE7C = 16.0f;
+    guard->fE80 = 20.0f;
+    guard->nE84 = 50;
+    guard->fE6C = 5.5f;
+    guard->fE70 = 6.5f;
+    guard->n354 = 0x29FF7E;
+    guard->unknown364 = 1;
+    guard->canInteract = 1;
+    guard->sensesEnabled = 1;
+    guard->nF40 = 1;
+    guard->minStimulusLevel = -1;
+    guard->searchMode = 0;
+    guard->n350 = 0x20F800;
+    guard->n358 = 0xF800;
+    guard->pulseStartTime = -10.0f;
+    guard->unknown4A0 = 1;
+    guard->gravityRatio = 1.5f;
+    guard->u148_f = 2;
+    guard->n3F0 = -200;
+    guard->n3D8 = -1;
+    guard->attachKind = -1;
+    guard->n3FC = -1;
+    guard->specialState = -1;
+    guard->unknownFF4 = D_002A8604;
+    guard->removalMode = D_002C3CF0;
+    ReleaseStepguardZapReactions(guard);
+    InitStepguardMover(&guard->block, guard);
 }
 } } // namespace M_InitStepguard
 
 // 0x206100 CloneStepguard
-/** @sly2-annot addr=0x206100
- * Purpose: STEPGUARD vt41: CloneStep keeping own detector, re-own mover, copy detector state through its vt
- *   (slot 41), deep-copy bindings (0x208250)
- * Info: proposed name CloneStepguard (T1); class STEPGUARD slot41; TU stepguard
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x206100: STEPGUARD vtable slot 41 (Clone): step clone keeping its own detector, re-owning the mover, copying the
+// detector state and deep-copying the animation bindings.
 /* Clones the guard but keeps its own vision detector, which clones the other guard's detector (LO slot 41). */
-extern "C" void CloneStepguard(STEPGUARD *pstepguard, STEPGUARD *pstepguardBase)
+extern "C" void CloneStepguard(STEPGUARD *guard, STEPGUARD *pstepguardBase)
 {
-    DETECTOR *pdetector;
-    pdetector = pstepguard->pdetector;
-    CloneStep(pstepguard, pstepguardBase);
-    func_00209770(PMOVER(pstepguard), pstepguard);
-    pstepguard->pdetector = pdetector;
-    pdetector->Clone(pstepguardBase->pdetector);
-    CloneStepguardAnimBindings(pstepguard);
+    DETECTOR *detector;
+    detector = guard->pdetector;
+    CloneStep(guard, pstepguardBase);
+    CloneStepguardMover(PMOVER(guard), guard);
+    guard->pdetector = detector;
+    detector->Clone(pstepguardBase->pdetector);
+    CloneStepguardAnimBindings(guard);
 }
 
-// 0x206170 func_00206170
+// 0x206170 ResetStepguardFromScript
 namespace M_func_00206170 {
 class OBase; class O;
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int msg, int a, int c, void **apv, int x); };
@@ -259,20 +245,15 @@ class O : public OBase { public: virtual void V4(); virtual void V5(); virtual v
  virtual void V10(); virtual void V11(); virtual void V12(); virtual void V13(); virtual void V14(); virtual void V15(); virtual void V16();
  virtual void V17(); virtual void V18(); virtual void V19(); virtual void V20(); virtual void V21(); virtual void V22(); virtual void V23();
  virtual void V24(); virtual void V25(); virtual void V26(int n); };
-/** @sly2-annot addr=0x206170
- * Purpose: vt26(0) then send message 0xE (arg 0) to self: script-callable 'reset to home' action
- * Info: proposed name StepguardResetOptionFn (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00206170(O *p)
+// 0x206170: Script action: reset to home (vtable slot 26), then send itself message 0xE.
+extern "C" void ResetStepguardFromScript(O *guard)
 {
     int n;
     void *apv[1];
-p->V26(0);
+guard->V26(0);
 n = 0;
 apv[0] = &n;
-    p->Msg(0xE, 1, 1, apv, 0);
+    guard->Msg(0xE, 1, 1, apv, 0);
 }
 } // namespace M_func_00206170
 
@@ -286,9 +267,9 @@ struct C3 { char pad[0x24]; int n24; };
 struct K { long l; } __attribute__((packed));
 struct S {
     char pad0[0x18]; int n18; char pad1[0x3C - 0x1C]; struct C3 *p3C; char pad2[0x58 - 0x40]; int n58; int n5C;
-    char pad3[0x260 - 0x60]; float f260; char pad4[0x2EC - 0x264]; struct O *p2EC; int n2F0;
-    char pad5[0x3F4 - 0x2F4]; struct O *p3F4; struct O *p3F8; char pad6[0x498 - 0x3FC]; void *p498; void *p49C;
-    char pad7[0xFC4 - 0x4A0]; void *pFC4;
+    char pad3[0x260 - 0x60]; float gravityRatio; char pad4[0x2EC - 0x264]; struct O *alternatePatrolScript; int n2F0;
+    char pad5[0x3F4 - 0x2F4]; struct O *pickpocketIndicator0; struct O *pickpocketIndicator1; char pad6[0x498 - 0x3FC]; void *helperComponent; void *attachComponent;
+    char pad7[0xFC4 - 0x4A0]; void *unknownFC4;
 };
 extern char D_002C3CF8[];
 extern char D_003DD490[];
@@ -299,94 +280,78 @@ void BindLoOidTable(struct S *p, int n, void *pv);
 void func_00204DA8(struct S *p, float f);
 void func_002303A0(struct S *p, int n, int m);
 void ResolveStepguardAnimBindings(struct S *p);
-void func_0020AAA8(struct S *p);
+void ResolveStepguardAttacks(struct S *p);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
-void func_0020CE28(void *pv, struct S *p);
-void func_0020D1B0(void *pv, struct S *p);
+void InitStuckWatch(void *pv, struct S *p);
+void InitHazardWatch(void *pv, struct S *p);
 void PostSwCallback(void *g, struct S *p, long k, int n);
 struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
-void func_00170C90(struct O *po, int a, int b, float f);
+void AddGuardScriptLookAt(struct O *po, int a, int b, float f);
 void *PxfFindSo(struct S *p, int n, int m);
 void *func_0012DC18(struct S *p, void *x, int a, int b, int c, qword q);
 
-/** @sly2-annot addr=0x2061D8
- * Purpose: STEPGUARD vt15: PostStepLoad, bind oid table, SetStepGravityRatio(+0x260), attach children,
- *   resolve anim bindings (0x2080F0) and attack oids (0x20AAA8), create the two helper components
- *   +0x498/+0x49C (next TU 0x20CE28/0x20D1B0), create cid 0x71 object (oid 0x2CB), remove pickpocket glints
- *   from world, create scale act +0xFC4
- * Info: proposed name PostStepguardLoad (T1); class STEPGUARD slot15; TU stepguard
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void PostStepguardLoad(struct S *p)
+// 0x2061D8: STEPGUARD vtable slot 15 (PostLoad): step post-load, binds its oid table, gravity ratio, attaches
+// children, resolves animation bindings and attack oids, and creates its two helper components (+0x498/+0x49C).
+void PostStepguardLoad(struct S *guard)
 {
     void *x;
-    PostStepLoad(p);
-    BindLoOidTable(p, 1, D_002C3CF8);
-    func_00204DA8(p, p->f260);
-    func_002303A0(p, p->n58, 2);
-    func_002303A0(p, p->n5C, 2);
-    ResolveStepguardAnimBindings(p);
-    func_0020AAA8(p);
-    p->p498 = func_001AE4F8(0x10);
-    func_0020CE28(p->p498, p);
-    p->p49C = func_001AE4F8(0x14);
-    func_0020D1B0(p->p49C, p);
-    if (!p->p3C->n24)
-        PostSwCallback(D_003DD490, p, D_002A8608.l, 0);
-    p->p2EC = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
-    func_00170C90(p->p2EC, -1, -1, 40.0f);
-    p->n2F0 = p->p2EC->n50;
-    p->p2EC->vt[9].pf((char *)p->p2EC + p->p2EC->vt[9].d);
-    if (p->p3F4)
-        p->p3F4->vt[9].pf((char *)p->p3F4 + p->p3F4->vt[9].d);
-    if (p->p3F8)
-        p->p3F8->vt[9].pf((char *)p->p3F8 + p->p3F8->vt[9].d);
-    x = PxfFindSo(p, p->n18, 0xC);
+    PostStepLoad(guard);
+    BindLoOidTable(guard, 1, D_002C3CF8);
+    func_00204DA8(guard, guard->gravityRatio);
+    func_002303A0(guard, guard->n58, 2);
+    func_002303A0(guard, guard->n5C, 2);
+    ResolveStepguardAnimBindings(guard);
+    ResolveStepguardAttacks(guard);
+    guard->helperComponent = func_001AE4F8(0x10);
+    InitStuckWatch(guard->helperComponent, guard);
+    guard->attachComponent = func_001AE4F8(0x14);
+    InitHazardWatch(guard->attachComponent, guard);
+    if (!guard->p3C->n24)
+        PostSwCallback(D_003DD490, guard, D_002A8608.l, 0);
+    guard->alternatePatrolScript = PloNew__F3CIDP2SO3OIDi(0x71, 0, 0x2CB, -1);
+    AddGuardScriptLookAt(guard->alternatePatrolScript, -1, -1, 40.0f);
+    guard->n2F0 = guard->alternatePatrolScript->n50;
+    guard->alternatePatrolScript->vt[9].pf((char *)guard->alternatePatrolScript + guard->alternatePatrolScript->vt[9].d);
+    if (guard->pickpocketIndicator0)
+        guard->pickpocketIndicator0->vt[9].pf((char *)guard->pickpocketIndicator0 + guard->pickpocketIndicator0->vt[9].d);
+    if (guard->pickpocketIndicator1)
+        guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
+    x = PxfFindSo(guard, guard->n18, 0xC);
     if (x)
-        p->pFC4 = func_0012DC18(p, x, 0, 7, 2, D_002A2DE0);
+        guard->unknownFC4 = func_0012DC18(guard, x, 0, 7, 2, D_002A2DE0);
 }
 } } // namespace M_PostStepguardLoad
 
-// 0x206378 PdetectorGetStepguard
-/** @sly2-annot addr=0x206378
- * Purpose: Return the guard's vision detector (+0xF64)
- * Info: proposed name PdetectorGetStepguard (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" DETECTOR *PdetectorGetStepguard(STEPGUARD *pstepguard)
+// 0x206378 GetStepguardDetector
+// 0x206378: Returns the guard's vision detector.
+extern "C" DETECTOR *GetStepguardDetector(STEPGUARD *guard)
 {
-    return pstepguard->pdetector;
+    return guard->pdetector;
 }
 
-// 0x206380 FIgnoreStepguardIntersection
+// 0x206380 ShouldStepguardIgnoreIntersection
 namespace M_FIgnoreStepguardIntersection { extern "C" {
 struct Q; struct T; struct O; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct Q { char pad[0xC]; VTE *vt; char pad2[0xEC - 0x10]; void *pEC; };
 struct T { char pad[0xEC]; void *pEC; };
 struct O { char pad[0x50]; int k; char pad2[8]; struct T *pt; };
-struct S { char pad[0x26C]; char x26C[4]; };
+struct S { char pad[0x26C]; char behaviorStack[4]; };
 int FIgnoreSoIntersection(struct S *p, struct Q *q);
-int FStepguardHasSgf(struct S *p, int n);
-struct O *PbhvFindBhvstk(void *p, int n);
+int StepguardHasSgf(struct S *p, int n);
+struct O *FindBhvInBhvstk(void *p, int n);
 int func_00134310(int a, int b);
-/** @sly2-annot addr=0x206380
- * Purpose: STEPGUARD vt61: base test, plus ignore non-fixed objects while flag 7 (dead), or BHV177
- *   (stunned/carried, cid 0xB1) states 0/4/5 vs its holder group
- * Info: proposed name FIgnoreStepguardIntersection (T1); class STEPGUARD slot61; TU stepguard
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int FIgnoreStepguardIntersection(struct S *p, struct Q *q)
+// 0x206380: STEPGUARD vtable slot 61 (should an intersection with `q` be ignored): the step test, plus, while dead
+// (flag 7), objects whose vtable slot 62 test fails, and, while juggled/carried (flag 0x17), objects of its holder's
+// group in juggled states 0/4/5.
+int ShouldStepguardIgnoreIntersection(struct S *guard, struct Q *q)
 {
-    int r = FIgnoreSoIntersection(p, q);
-    if (FStepguardHasSgf(p, 7)) {
+    int r = FIgnoreSoIntersection(guard, q);
+    if (StepguardHasSgf(guard, 7)) {
         if (!((int (*)(void *))q->vt[62].pfn)((char *)q + q->vt[62].d))
             r = func_00134310(r, 1);
-    } else if (FStepguardHasSgf(p, 0x17)) {
-        struct O *o = PbhvFindBhvstk(p->x26C, 0xB1);
+    } else if (StepguardHasSgf(guard, 0x17)) {
+        struct O *o = FindBhvInBhvstk(guard->behaviorStack, 0xB1);
         if (q->pEC == o->pt->pEC) {
             switch (o->k) {
             case 0:
@@ -401,80 +366,50 @@ int FIgnoreStepguardIntersection(struct S *p, struct Q *q)
 }
 } } // namespace M_FIgnoreStepguardIntersection
 
-// 0x206458 func_00206458
-/** @sly2-annot addr=0x206458
- * Purpose: Splice getter: (+0x338 - 1)/10 clamped >= 0 (max hit count)
- * Info: proposed name GetStepguardHitPoints (T2); TU stepguard
- * Notes: runtime4 CORRECTION: guard +0x338 = max hp, +0x33C = current hp
- * Confidence: low (draft) [T2 0.40] - evidence: runtime (save-state RAM); sources:
- *   r7b_guard+runtime-corrected
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x206458 GetStepguardMaxHitPoints
+// 0x206458: Splice getter: maximum hit points as the level sees them ((hpMax - 1) / 10, at least 0).
 /* The max-hp level: (hpMax - 1) / 10, at least 0. */
-extern "C" int func_00206458(STEPGUARD *pstepguard)
+extern "C" int GetStepguardMaxHitPoints(STEPGUARD *guard)
 {
     int hp;
-    hp = pstepguard->hpMax - 1;
+    hp = guard->hpMax - 1;
     return ((hp <= -1) ? 0 : hp) / 10;
 }
 
-// 0x206488 func_00206488
-/** @sly2-annot addr=0x206488
- * Purpose: Splice setter: +0x338 = (n+1)*10
- * Info: proposed name SetStepguardHitPoints (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00206488(STEPGUARD *pstepguard, int nLevel)
+// 0x206488 SetStepguardMaxHitPoints
+// 0x206488: Splice setter: maximum hit points (stored as (n + 1) * 10).
+extern "C" void SetStepguardMaxHitPoints(STEPGUARD *guard, int nLevel)
 {
-    pstepguard->hpMax = (nLevel + 1) * 10;
+    guard->hpMax = (nLevel + 1) * 10;
 }
 
-// 0x2064A0 func_002064A0
-/** @sly2-annot addr=0x2064A0
- * Purpose: Splice getter for +0x33C: max(v-1,0)+1
- * Info: proposed name GetStepguardHitPoints2 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x2064A0 GetStepguardHpLevel
+// 0x2064A0: Splice getter: the current hit points level (max(hp - 1, 0) + 1, inferred).
 /* The hp level: hp - 1 (at least 0) plus 1. */
-extern "C" int func_002064A0(STEPGUARD *pstepguard)
+extern "C" int GetStepguardHpLevel(STEPGUARD *guard)
 {
     int hp;
-    hp = pstepguard->hp - 1;
+    hp = guard->hp - 1;
     return ((hp <= -1) ? 0 : hp) + 1;
 }
 
 // 0x2064C0 SetStepguardHpLevel
-/** @sly2-annot addr=0x2064C0
- * Purpose: Splice setter: +0x33C = (n+1)*10
- * Info: proposed name SetStepguardHpLevel (T1); TU stepguard
- * Notes: superseded: SetStepguardHitPoints2 (r7b_guard) | runtime4: splice setter writes (n+1)*10 to guard
- *   +0x33C (current hp; +0x338 = max hp)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r7b_guard+runtime
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void SetStepguardHpLevel(STEPGUARD *pstepguard, int nLevel)
+// 0x2064C0: Splice setter: the current hit points (stored as (n + 1) * 10).
+extern "C" void SetStepguardHpLevel(STEPGUARD *guard, int nLevel)
 {
-    pstepguard->hp = (nLevel + 1) * 10;
+    guard->hp = (nLevel + 1) * 10;
 }
 
 // 0x2064D8 RemoveStepguardHierarchy
-/** @sly2-annot addr=0x2064D8
- * Purpose: STEPGUARD vt12: base, clear target (0x208540(0)), clear BHV stack, retract held ASEGA +0x34C
- * Info: proposed name RemoveStepguardHierarchy (T1); class STEPGUARD slot12; TU stepguard
- * Notes: slot 12 is RemoveHierarchy (CONFLICTS#5: LO base 0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy;
- *   OnAdd/OnRemove are slots 23/22 per arbitration); was OnStepguardRemove
- * Confidence: mid (draft) [T1 0.60] - evidence: arbitration; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x2064D8: STEPGUARD vtable slot 12 (RemoveHierarchy): base, clears the target and the behaviour stack and
+// retracts its held animation.
 void STEPGUARD::RemoveHierarchy()
 {
-    STEPGUARD *pstepguard = (STEPGUARD *)this;
+    STEPGUARD *guard = (STEPGUARD *)this;
     RemoveSoHierarchyV();
-    SetStepguardTarget(pstepguard, 0);
-    ClearBhvstk(&pstepguard->bhvstk);
-    ReleaseAsega(&pstepguard->pasega);
+    SetStepguardTarget(guard, 0);
+    ClearBhvstk(&guard->bhvstk);
+    ReleaseAsega(&guard->pasega);
 }
 
 // 0x206518 ResetStepguardToHome
@@ -487,86 +422,79 @@ struct P2F0 { char pad[8]; qword *pq; float f; };
 struct F64 { char pad[0xE0]; void *pE0; void *pE4; };
 struct S {
     char pad0[0xEC]; void *pEC; char pad1[0x26C - 0xF0]; char a26C[0x2F0 - 0x26C]; struct P2F0 *p2F0;
-    char pad2[0x300 - 0x2F4]; qword q300; float f310; char pad3[0x338 - 0x314]; int n338; int n33C; int n340; int n344;
-    char pad4[0x494 - 0x348]; int n494; void *p498; void *p49C; char pad5[0xE78 - 0x4A0]; int nE78; char pad6[0xE84 - 0xE7C];
-    int nE84; int nE88; char pad7[0xF64 - 0xE8C]; struct F64 *pF64; char pad8[0xFD0 - 0xF68]; char aFD0[0xFE8 - 0xFD0];
-    int flFE8; struct O *pFEC;
+    char pad2[0x300 - 0x2F4]; qword homePosition; float homeHeading; char pad3[0x338 - 0x314]; int hpMax; int hp; int n340; int n344;
+    char pad4[0x494 - 0x348]; int n494; void *helperComponent; void *attachComponent; char pad5[0xE78 - 0x4A0]; int searchMode; char pad6[0xE84 - 0xE7C];
+    int nE84; int nE88; char pad7[0xF64 - 0xE8C]; struct F64 *detector; char pad8[0xFD0 - 0xF68]; char aFD0[0xFE8 - 0xFD0];
+    int capabilities; struct O *knockdownHelper;
 };
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648;
 void SO_ResetForProxy(struct S *p);
 void ClearBhvstk__FP6BHVSTK(void *p);
-void func_00209778(void *p);
+void ClearStepguardMover(void *p);
 void SetStepguardGrfsgf(struct S *p, int n);
-void func_0020CE40(void *p);
-void func_0020D1C8(void *p);
+void ResetStuckWatch(void *p);
+void ResetHazardWatch(void *p);
 void EnableStuckWatch(void *p);
 qword GetLoWorldPos(void *p);
 float RadStepHeading(struct S *p);
 void func_00204660(struct S *p, float f);
-unsigned long GrfFromSgf(int n);
-void *PanimbindBest(struct S *p, unsigned long m);
-void func_00153EF8(struct F64 *pf, struct S *p, int n);
+unsigned long GetSgfMask(int n);
+void *FindBestAnimBinding(struct S *p, unsigned long m);
+void UpdateDetectorTrackedObject(struct F64 *pf, struct S *p, int n);
 void GenerateStepguardLoot(struct S *p);
 void StageStepguardLoot(struct S *p);
 struct O *func_00205438(struct S *p, int n);
 void SetLoParent(struct F64 *pf, struct S *p, int n);
 
-/** @sly2-annot addr=0x206518
- * Purpose: STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and
- *   flags, re-cache home pos/heading (+0x300/+0x310), capability bits +0xFE8 from anim bindings for flags
- *   9/8/0xF/0x11, add the 4 player characters as detector targets, roll loot, push root behaviour BHV156 (cid
- *   0x9C)
- * Info: proposed name ResetStepguardToHome (T1); class STEPGUARD slot26; TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void ResetStepguardToHome(struct S *p)
+// 0x206518: STEPGUARD vtable slot 26 (reset to home, used by proxies and spawners): restores maximum values (hit
+// points etc.), clears behaviours, mover and flags, re-caches the home position and heading, and derives walk/run
+// capability bits from the animation bindings.
+void ResetStepguardToHome(struct S *guard)
 {
     struct O *o;
     qword *pq;
-    SO_ResetForProxy(p);
-    pq = &p->q300;
-    p->n33C = p->n338;
-    p->nE88 = p->nE84;
-    p->n344 = p->n340;
-    ClearBhvstk__FP6BHVSTK(p->a26C);
-    func_00209778(p->aFD0);
-    SetStepguardGrfsgf(p, 0);
-    func_0020CE40(p->p498);
-    func_0020D1C8(p->p49C);
-    EnableStuckWatch(p->p498);
-    p->q300 = GetLoWorldPos(p);
-    p->f310 = RadStepHeading(p);
-    p->p2F0->pq = pq;
-    p->p2F0->f = p->f310;
-    func_00204660(p, p->f310);
-    p->flFE8 = 0;
-    if (PanimbindBest(p, GrfFromSgf(9)))
-        p->flFE8 |= 2;
+    SO_ResetForProxy(guard);
+    pq = &guard->homePosition;
+    guard->hp = guard->hpMax;
+    guard->nE88 = guard->nE84;
+    guard->n344 = guard->n340;
+    ClearBhvstk__FP6BHVSTK(guard->a26C);
+    ClearStepguardMover(guard->aFD0);
+    SetStepguardGrfsgf(guard, 0);
+    ResetStuckWatch(guard->helperComponent);
+    ResetHazardWatch(guard->attachComponent);
+    EnableStuckWatch(guard->helperComponent);
+    guard->homePosition = GetLoWorldPos(guard);
+    guard->homeHeading = RadStepHeading(guard);
+    guard->p2F0->pq = pq;
+    guard->p2F0->f = guard->homeHeading;
+    func_00204660(guard, guard->homeHeading);
+    guard->capabilities = 0;
+    if (FindBestAnimBinding(guard, GetSgfMask(9)))
+        guard->capabilities |= 2;
     else
-        p->nE78 = 2;
-    if (PanimbindBest(p, GrfFromSgf(8)))
-        p->flFE8 |= 4;
-    if (PanimbindBest(p, GrfFromSgf(0xF)))
-        p->flFE8 |= 1;
-    if (PanimbindBest(p, GrfFromSgf(0x11)))
-        p->flFE8 |= 8;
-    func_00153EF8(p->pF64, p, D_002E1E40);
-    func_00153EF8(p->pF64, p, D_002F7900);
-    func_00153EF8(p->pF64, p, D_002DD5BC);
-    func_00153EF8(p->pF64, p, D_002DD648);
-    if (p->n494) {
-        GenerateStepguardLoot(p);
-        StageStepguardLoot(p);
+        guard->searchMode = 2;
+    if (FindBestAnimBinding(guard, GetSgfMask(8)))
+        guard->capabilities |= 4;
+    if (FindBestAnimBinding(guard, GetSgfMask(0xF)))
+        guard->capabilities |= 1;
+    if (FindBestAnimBinding(guard, GetSgfMask(0x11)))
+        guard->capabilities |= 8;
+    UpdateDetectorTrackedObject(guard->detector, guard, D_002E1E40);
+    UpdateDetectorTrackedObject(guard->detector, guard, D_002F7900);
+    UpdateDetectorTrackedObject(guard->detector, guard, D_002DD5BC);
+    UpdateDetectorTrackedObject(guard->detector, guard, D_002DD648);
+    if (guard->n494) {
+        GenerateStepguardLoot(guard);
+        StageStepguardLoot(guard);
     }
-    if (p->pFEC)
-        p->pFEC->vt[9].pf((char *)p->pFEC + p->pFEC->vt[9].d);
-    o = func_00205438(p, 0x9C);
+    if (guard->knockdownHelper)
+        guard->knockdownHelper->vt[9].pf((char *)guard->knockdownHelper + guard->knockdownHelper->vt[9].d);
+    o = func_00205438(guard, 0x9C);
     o->vt[8].pf((char *)o + o->vt[8].d);
-    SetLoParent(p->pF64, p, 0xF);
-    p->pF64->pE0 = p;
-    p->pF64->pE4 = p->pEC;
+    SetLoParent(guard->detector, guard, 0xF);
+    guard->detector->pE0 = guard;
+    guard->detector->pE4 = guard->pEC;
 }
 } } // namespace M_ResetStepguardToHome
 
@@ -577,101 +505,80 @@ extern float D_002A8610;
 extern int D_002C3CF0;
 struct F { char pad[0xF0]; int a; int b; };
 struct S {
-    char p0[0x2DC]; int a2DC[3]; int n2E8; char p1[0x330 - 0x2EC]; int n330; char p2[0x360 - 0x334]; float f360;
-    char p3[0x390 - 0x364]; int n390; char p4[0x484 - 0x394]; int n484, n488, n48C, n490; char p5[0x4A0 - 0x494]; int n4A0;
-    char p6[0xE94 - 0x4A4]; int nE94; char p7[0xF64 - 0xE98]; struct F *pf; int nF68; char p8[0xF94 - 0xF6C]; int nF94;
-    char p9[0xFA8 - 0xF98]; int nFA8; char p10[0xFC8 - 0xFAC]; int nFC8, nFCC; char p11[0xFF4 - 0xFD0]; float fFF4;
-    char p12[0x1000 - 0xFF8]; int n1000;
+    char p0[0x2DC]; int unknown2DC[3]; int patrolScript; char p1[0x330 - 0x2EC]; int isKnockedOut; char p2[0x360 - 0x334]; float pulseStartTime;
+    char p3[0x390 - 0x364]; int forcedTarget; char p4[0x484 - 0x394]; int n484, n488, isLootStaged, n490; char p5[0x4A0 - 0x494]; int unknown4A0;
+    char p6[0xE94 - 0x4A4]; int nE94; char p7[0xF64 - 0xE98]; struct F *pf; int nF68; char p8[0xF94 - 0xF6C]; int designatedTargetCount;
+    char p9[0xFA8 - 0xF98]; int avoidObjectCount; char p10[0xFC8 - 0xFAC]; int isHandsOff, unknownFCC; char p11[0xFF4 - 0xFD0]; float unknownFF4;
+    char p12[0x1000 - 0xFF8]; int removalMode;
 };
 void SO_Slot27(struct S *p);
-void func_0020B210(struct S *p);
+void DetachStepguard(struct S *p);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetStepguardTarget(struct S *p, int n);
-void func_002088E0(struct S *p);
+void ClearStepguardTargetLists(struct S *p);
 void SetStepguardPickpocketState(struct S *p, int a);
 void SetStepguardSpecial(struct S *p, int n);
-/** @sly2-annot addr=0x206748
- * Purpose: STEPGUARD vt27: base, detach (0x20B210), clear counters, targets and target lists, special state
- *   -1, pickpocket state -1
- * Info: proposed name ClearStepguardState (T1); class STEPGUARD slot27; TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void ClearStepguardState(struct S *p)
+// 0x206748: STEPGUARD vtable slot 27 (clear state): base, detaches, clears counters, targets and target lists,
+// special state and pickpocket state.
+void ClearStepguardState(struct S *guard)
 {
     int one;
-    SO_Slot27(p);
-    func_0020B210(p);
-    p->n2E8 = 0;
-    func_002333B4(p->a2DC, 0, 0xC);
-    p->nE94 = 0;
-    p->pf->a = 0;
-    p->pf->b = 0;
-    p->n484 = 0;
-    p->n488 = 0;
-    p->n48C = 0;
-    p->n490 = 0;
-    p->nF94 = 0;
-    p->nFA8 = 0;
-    p->n390 = 0;
-    SetStepguardTarget(p, 0);
-    func_002088E0(p);
+    SO_Slot27(guard);
+    DetachStepguard(guard);
+    guard->patrolScript = 0;
+    func_002333B4(guard->unknown2DC, 0, 0xC);
+    guard->nE94 = 0;
+    guard->pf->a = 0;
+    guard->pf->b = 0;
+    guard->n484 = 0;
+    guard->n488 = 0;
+    guard->isLootStaged = 0;
+    guard->n490 = 0;
+    guard->designatedTargetCount = 0;
+    guard->avoidObjectCount = 0;
+    guard->forcedTarget = 0;
+    SetStepguardTarget(guard, 0);
+    ClearStepguardTargetLists(guard);
     one = 1;
-    p->n330 = 0;
-    p->nF68 = 0;
-    p->nFC8 = 0;
-    p->nFCC = 0;
-    p->f360 = -10.0f;
-    p->n4A0 = one;
-    p->fFF4 = D_002A8610;
-    p->n1000 = D_002C3CF0;
-    SetStepguardPickpocketState(p, -1);
-    SetStepguardSpecial(p, -1);
+    guard->isKnockedOut = 0;
+    guard->nF68 = 0;
+    guard->isHandsOff = 0;
+    guard->unknownFCC = 0;
+    guard->pulseStartTime = -10.0f;
+    guard->unknown4A0 = one;
+    guard->unknownFF4 = D_002A8610;
+    guard->removalMode = D_002C3CF0;
+    SetStepguardPickpocketState(guard, -1);
+    SetStepguardSpecial(guard, -1);
 }
 } } // namespace M_ClearStepguardState
 
-// 0x206820 func_00206820
+// 0x206820 RestartStepguard
 namespace M_func_00206820 { extern "C" {
 struct S; struct REQUEST;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct S { char pad[0xC]; VTE *vt; };
 #define VT(p, n, T) ((T)(p)->vt[n].pfn)
 struct REQUEST { int value; int *pointer; };
-/** @sly2-annot addr=0x206820
- * Purpose: vt27(0), message 0xF, vt26(0), message 0xE
- * Info: proposed name RestartStepguard (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00206820(struct S *p)
+// 0x206820: Restarts the guard: clear state (slot 27), message 0xF, reset to home (slot 26), message 0xE.
+void RestartStepguard(struct S *guard)
 {
     struct REQUEST request;
     register VTE *initialTable __asm__("$3");
     request.pointer=&request.value;
-    initialTable=p->vt;
+    initialTable=guard->vt;
     request.value=0;
-    ((void (*)(void*,int))initialTable[27].pfn)((char*)p+initialTable[27].d,0);
-    VT(p, 3, void (*)(void *, int, int, int, int **, int))((char *)p + p->vt[3].d, 0xF, 0, 1, &request.pointer, 0);
-    VT(p, 26, void (*)(void *, int))((char *)p + p->vt[26].d, 0);
-    VT(p, 3, void (*)(void *, int, int, int, int **, int))((char *)p + p->vt[3].d, 0xE, 0, 1, &request.pointer, 0);
+    ((void (*)(void*,int))initialTable[27].pfn)((char*)guard+initialTable[27].d,0);
+    VT(guard, 3, void (*)(void *, int, int, int, int **, int))((char *)guard + guard->vt[3].d, 0xF, 0, 1, &request.pointer, 0);
+    VT(guard, 26, void (*)(void *, int))((char *)guard + guard->vt[26].d, 0);
+    VT(guard, 3, void (*)(void *, int, int, int, int **, int))((char *)guard + guard->vt[3].d, 0xE, 0, 1, &request.pointer, 0);
 }
 } } // namespace M_func_00206820
 
-// 0x2068D8 NCmpGuardCandidateDist
-/** @sly2-annot addr=0x2068D8
- * Purpose: qsort comparator on a leading float (-1 if a<b else 1)
- * Info: proposed name NCmpGuardCandidateDist (EXISTING); TU stepguard
- * Notes: names_v2 C proposed SgnCompareSdprize__FPCvT0 (0.200) | verifier PLAUSIBLE: Existing name carried
- *   forward: 'FUN_00148910' names a different address, so it is a misleading placeholder. Body: -1 if *a < *b
- *   else 1 (float comparator). No direct callers (passed as a function point | RENAME proposed ->
- *   NCmpGuardCandidateDist (existing_name_changes.csv)
- * Confidence: high [EXISTING 0.55] - evidence: arbitration; static naming pass; pre-existing symbol in
- *   symbol_addrs.txt; sources: r7b_guard+verdicts_followups+arbitration
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x2068D8 CompareGuardCandidateDistance
+// 0x2068D8: qsort comparator for guard candidates on their leading distance (-1 if a < b, else 1).
 /* qsort comparison of guard candidates by distance (their first word). */
-extern "C" int NCmpGuardCandidateDist(float *pg1, float *pg2)
+extern "C" int CompareGuardCandidateDistance(float *pg1, float *pg2)
 {
     int n;
     n = 1;
@@ -699,19 +606,24 @@ extern int D_003DD488;
 extern ulong D_003DD480;
 extern float D_002A8614;
 extern float D_002C3D04,D_002C3D08,D_002C3D0C;
-ulong GrfFromSgf(int);
+ulong GetSgfMask(int);
 int CploFindSwObjectsByClass(struct GAME *,int,int,int,int,struct P **);
 qword GetLoWorldPos(struct P *);
 void qsort(void *,unsigned int,unsigned int,int (*)(const void *,const void *));
-int NCmpGuardCandidateDist(const void *,const void *);
-int FAddStepguardDetectTarget(struct P *,struct P *,int);
+int CompareGuardCandidateDistance(const void *,const void *);
+int TryAddStepguardDetectTarget(struct P *,struct P *,int);
 void UpdateDetectorTargets(struct MANAGER *);
-struct ENTRY *PdteFindDetectorTarget(struct MANAGER *,struct P *);
-void func_0020A9A8(struct ANCHOR *,int);
+struct ENTRY *FindDetectorTarget(struct MANAGER *,struct P *);
+void SetTargetRecordState(struct ANCHOR *,int);
+// VU0 helper: vector difference.
 static __inline__ qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LengthXY(qword a){qword r;float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(r):"j"(a));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(r));__asm__("mtc1 %1,%0":"=f"(f):"r"(r));return f;}
+// z component of a quadword vector.
 static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
+// Absolute value.
 static __inline__ float Abs(float f){return __builtin_fabsf(f);}
+// True if a difference vector is within the horizontal and vertical .data limits.
 static __inline__ int Near(qword difference){return LengthXY(difference)<D_002C3D08 && Abs(Z(difference))<D_002C3D0C;}
 /* Two empty-asm tricks for the nearby-object collection loop (T1592); neither emits an instruction:
    OPAQUE_COUNT: an empty asm that "sets" the candidate count. loop.c then sees no basic induction variable, so
@@ -723,48 +635,42 @@ static __inline__ int Near(qword difference){return LengthXY(difference)<D_002C3
 #define PAD1 __asm__ volatile("");
 #define PAD4 PAD1 PAD1 PAD1 PAD1
 #define LOOP_SIZE_PAD PAD4 PAD4 PAD4 PAD4 PAD4 PAD4
-/** @sly2-annot addr=0x206900
- * Purpose: Unless in a blind state, collect objects of the watched classes (+0x394) within 1500 xy, sort by
- *   distance, re-add them as detector targets keeping previous state; UpdateDetectorTargets; update shared
- *   target record from detector (seen=1, lost-and-near=2)
- * Info: proposed name UpdateStepguardDetectTargets (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void UpdateStepguardDetectTargets(struct P *p)
+// 0x206900: Per-frame target detection: unless blind, collects objects of the preferred classes within 1500
+// horizontally, sorts them by distance and re-adds them as detector targets (keeping their states), updates the
+// detector, then the shared target records.
+void UpdateStepguardDetectTargets(struct P *guard)
 {
     struct CANDIDATE candidates[64];
     struct P *objects[256];
     qword anchorPosition,ownerPosition;
     if(!D_003DD488){
-        ulong a=GrfFromSgf(5);
-        ulong b=GrfFromSgf(6);
-        ulong c=GrfFromSgf(23);
-        ulong d=GrfFromSgf(7);
-        ulong e=GrfFromSgf(16);
-        ulong f=GrfFromSgf(1);
-        ulong g=GrfFromSgf(22);
-        ulong h=GrfFromSgf(42);
+        ulong a=GetSgfMask(5);
+        ulong b=GetSgfMask(6);
+        ulong c=GetSgfMask(23);
+        ulong d=GetSgfMask(7);
+        ulong e=GetSgfMask(16);
+        ulong f=GetSgfMask(1);
+        ulong g=GetSgfMask(22);
+        ulong h=GetSgfMask(42);
         D_003DD488=1;
         D_003DD480=a|b|c|d|e|f|g|h;
     }
-    if(p->flags&D_003DD480)return;
-    if(p->kindCount){
+    if(guard->flags&D_003DD480)return;
+    if(guard->kindCount){
         int candidateCount=0;
         int kind;
-        for(kind=0;kind<p->kindCount;kind++){
-            int *source=&p->kinds[kind];
+        for(kind=0;kind<guard->kindCount;kind++){
+            int *source=&guard->kinds[kind];
             int objectCount=CploFindSwObjectsByClass(&D_003DD490,0x505,*source,0,256,objects);
             int i=0;
             if(objectCount>0){
                 float initialStamp=D_002A8614;
                 do{
                     struct P *object=objects[i];
-                    if(object!=p){
+                    if(object!=guard){
                         qword otherPosition;
                         float distance;
-                        ownerPosition=GetLoWorldPos(p);
+                        ownerPosition=GetLoWorldPos(guard);
                         otherPosition=GetLoWorldPos(object);
                         distance=LengthXY(Subtract(ownerPosition,otherPosition));
                         if(distance<D_002C3D04 && (unsigned int)candidateCount<64){
@@ -777,8 +683,8 @@ void UpdateStepguardDetectTargets(struct P *p)
                             record->object=object;
                             record->stamp=initialStamp;
                             candidateCount++;
-                            for(old=p->manager->count-p->generated;old<p->manager->count;old++){
-                                struct ENTRY *entry=&p->manager->entries[old];
+                            for(old=guard->manager->count-guard->generated;old<guard->manager->count;old++){
+                                struct ENTRY *entry=&guard->manager->entries[old];
                                 if(entry->object==record->object){
                                     record->mode=entry->mode;
                                     record->stamp=entry->stamp;
@@ -792,17 +698,17 @@ void UpdateStepguardDetectTargets(struct P *p)
                 }while(++i<objectCount);
             }
         }
-        qsort(candidates,candidateCount,sizeof(struct CANDIDATE),NCmpGuardCandidateDist);
-        p->manager->count-=p->generated;
-        p->generated=0;
+        qsort(candidates,candidateCount,sizeof(struct CANDIDATE),CompareGuardCandidateDistance);
+        guard->manager->count-=guard->generated;
+        guard->generated=0;
         if(candidateCount>0){
             int absentMode=-1;
             struct CANDIDATE *record=candidates;
             do{
-                if(FAddStepguardDetectTarget(p,record->object,(int)record->source)){
-                    p->generated++;
+                if(TryAddStepguardDetectTarget(guard,record->object,(int)record->source)){
+                    guard->generated++;
                     if(record->mode!=absentMode){
-                        struct ENTRY *entry=&p->manager->entries[p->manager->count-1];
+                        struct ENTRY *entry=&guard->manager->entries[guard->manager->count-1];
                         entry->mode=record->mode;
                         entry->stamp=record->stamp;
                     }
@@ -811,17 +717,17 @@ void UpdateStepguardDetectTargets(struct P *p)
             }while(--candidateCount);
         }
     }
-    UpdateDetectorTargets(p->manager);
-    if(p->anchor){
-        struct ENTRY *entry=PdteFindDetectorTarget(p->manager,p->anchor->object);
+    UpdateDetectorTargets(guard->manager);
+    if(guard->anchor){
+        struct ENTRY *entry=FindDetectorTarget(guard->manager,guard->anchor->object);
         if(entry){
-            switch(entry->mode){case 1:func_0020A9A8(p->anchor,1);break;
+            switch(entry->mode){case 1:SetTargetRecordState(guard->anchor,1);break;
             case 2:{
                 qword ownPosition,difference;
-                anchorPosition=GetLoWorldPos(p->anchor->object);
-                ownPosition=GetLoWorldPos(p);
+                anchorPosition=GetLoWorldPos(guard->anchor->object);
+                ownPosition=GetLoWorldPos(guard);
                 difference=Subtract(anchorPosition,ownPosition);
-                if(Near(difference))func_0020A9A8(p->anchor,2);
+                if(Near(difference))SetTargetRecordState(guard->anchor,2);
             }break;
             }
         }
@@ -830,53 +736,39 @@ void UpdateStepguardDetectTargets(struct P *p)
 }
 } // namespace M_UpdateStepguardDetectTargets
 
-// 0x206D48 func_00206D48
+// 0x206D48 IsStepguardRageImmune
 namespace M_func_00206D48 { extern "C" {
 extern int D_002C3D10[];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-/** @sly2-annot addr=0x206D48
- * Purpose: True if the guard derives from any of cids D_002C3D10 = {0x3B,0x40,0x3D,0x3E,0x41}
- * Info: proposed name FIsStepguardRageImmune (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_00206D48(void *p) { unsigned int i; for (i = 0; i < 5; i++) if (FIsBasicDerivedFrom__FP5BASIC3CID(p, D_002C3D10[i])) return 1; return 0; }
+// 0x206D48: True if the guard derives from one of the five boss classes (cids 0x3B, 0x40, 0x3D, 0x3E, 0x41) that
+// rage does not affect.
+int IsStepguardRageImmune(void *p) { unsigned int i; for (i = 0; i < 5; i++) if (FIsBasicDerivedFrom__FP5BASIC3CID(p, D_002C3D10[i])) return 1; return 0; }
 } } // namespace M_func_00206D48
 
-// 0x206DB0 func_00206DB0
+// 0x206DB0 AddStepguardRageIgnoreClasses
 namespace M_func_00206DB0 { extern "C" {
 extern int D_002C3D10[];
 extern char D_003DD490[];
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
-void func_00208920(void *p, int n);
-/** @sly2-annot addr=0x206DB0
- * Purpose: Add those 5 guard cids (when present in the world) to the ignore-class list +0x3A8
- * Info: proposed name AddStepguardRageIgnoreClasses (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00206DB0(void *p)
+void AddStepguardIgnoreClass(void *p, int n);
+// 0x206DB0: Adds those five boss classes (when present in the world) to the ignored-class list.
+void AddStepguardRageIgnoreClasses(void *p)
 {
     unsigned int i;
     for (i = 0; i < 5; i++) {
         int n = D_002C3D10[i];
         if (CploFindSwObjectsByClass(D_003DD490, 0x605, n, 0, 0, 0))
-            func_00208920(p, n);
+            AddStepguardIgnoreClass(p, n);
     }
 }
 } } // namespace M_func_00206DB0
 
-// 0x206E50 func_00206E50
+// 0x206E50 RemoveStepguardRageIgnoreClasses
 namespace M_func_00206E50 { extern "C" {
 extern int D_002C3D10[];
-void func_00208948(void *p, int n);
-/** @sly2-annot addr=0x206E50
- * Purpose: Remove the 5 guard cids from +0x3A8
- * Info: proposed name RemoveStepguardRageIgnoreClasses (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00206E50(void *p) { unsigned int i; for (i = 0; i < 5; i++) func_00208948(p, D_002C3D10[i]); }
+void RemoveStepguardIgnoreClass(void *p, int n);
+// 0x206E50: Removes those five boss classes from the ignored-class list.
+void RemoveStepguardRageIgnoreClasses(void *p) { unsigned int i; for (i = 0; i < 5; i++) RemoveStepguardIgnoreClass(p, D_002C3D10[i]); }
 } } // namespace M_func_00206E50
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -885,33 +777,28 @@ void func_00206E50(void *p) { unsigned int i; for (i = 0; i < 5; i++) func_00208
 namespace RO_ORDER { extern const float r_D_002A8600 __asm__("D_002A8600") = 3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A8604 __asm__("D_002A8604") = -3.40282347e+38f; }
 namespace RO_ORDER {   /* a non-virtual pointer-to-member constant {delta 0, index -1, pfn} */
-void p_func_00206170() __asm__("func_00206170");
+void p_func_00206170() __asm__("ResetStepguardFromScript");
 extern const unsigned int r_D_002A8608[2] __asm__("D_002A8608") = {0xFFFF0000, (unsigned int)p_func_00206170};
 }
 namespace RO_ORDER { extern const float r_D_002A8610 __asm__("D_002A8610") = -3.40282347e+38f; }
 namespace RO_ORDER { extern const float r_D_002A8614 __asm__("D_002A8614") = -3.40282347e+38f; }
-// 0x206EB0 func_00206EB0
+// 0x206EB0 CanSetStepguardSpecial
 namespace M_func_00206EB0 { extern "C" {
 struct X;
 struct X { char pad[0x4C]; int n4C; };
-int FStepguardHasSgf(void *p, int n);
+int StepguardHasSgf(void *p, int n);
 struct X *func_00205458(void *p, int n);
-int func_00206D48(void *p);
+int IsStepguardRageImmune(void *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 
-/** @sly2-annot addr=0x206EB0
- * Purpose: Whether special state k is allowed: -1 always; never while dead (flag 7) or BHV169 busy; 8/0xD/0xE
- *   yes; 0x15 not for cids 0x3E/0x42/0x43; 0x22/0x25 not for rage-immune; 0xB only for plain guards
- * Info: proposed name FCanSetStepguardSpecial (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_00206EB0(void *p, int k)
+// 0x206EB0: True if special state `special` may be entered now (rules per state: never while dead or script-busy;
+// some states not for bosses or rage-immune guards).
+int CanSetStepguardSpecial(void *p, int k)
 {
     struct X *x;
     if (k == -1)
         return 1;
-    if (FStepguardHasSgf(p, 7))
+    if (StepguardHasSgf(p, 7))
         return 0;
     x = func_00205458(p, 0xA9);
     if (x && x->n4C)
@@ -925,7 +812,7 @@ int func_00206EB0(void *p, int k)
         return !(FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x3E) || FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x42) || FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x43));
     case 0x22:
     case 0x25:
-        return !func_00206D48(p);
+        return !IsStepguardRageImmune(p);
     case 0xB:
         return !(FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x3B) || FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x3D) || FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x40) ||
                  FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x3E) || FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x41) || FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x3F) ||
@@ -945,65 +832,58 @@ struct Y14 { char pad[0x78]; float f78; };
 struct Y { char pad[0x14]; struct Y14 *p14; };
 struct X { char pad[0x40]; void *p40; };
 struct Z { char pad[0x30]; int k30; char pad2[0x40 - 0x34]; int n40; float f44; };
-struct S { char pad[0x190]; struct V3 v190; char pad2[0xFBC - 0x19C]; int k; float t; void *pFC4; };
+struct S { char pad[0x190]; struct V3 desiredVelocity; char pad2[0xFBC - 0x19C]; int k; float t; void *unknownFC4; };
 extern struct { float t; float dt; } D_002DDED0;
 extern qword D_002A2DE0;
 extern qword D_002C3D30;
 extern float D_002A8698;
 extern char D_003DD490[];
-int func_00206EB0(struct S *p, int k);
+int CanSetStepguardSpecial(struct S *p, int k);
 void SetActPositionGoal(void *p, qword q);
-void func_00208728(struct S *p, int n);
-void func_00206E50(struct S *p);
-void func_00208700(struct S *p, int n);
-void func_00206DB0(struct S *p);
+void RemoveStepguardPreferClass(struct S *p, int n);
+void RemoveStepguardRageIgnoreClasses(struct S *p);
+void AddStepguardPreferClass(struct S *p, int n);
+void AddStepguardRageIgnoreClasses(struct S *p);
 void *func_00205458(struct S *p, int n);
-struct Y *func_00209518(void *p);
+struct Y *GetAnimBindingInstance(void *p);
 void SetAsegaMasterSpeed(struct Y *y, float f);
 int PpoHero(void *p);
 void ResumeBhvguard(struct Z *z);
 
-/** @sly2-annot addr=0x207030
- * Purpose: Gadget/status override state +0xFBC (time +0xFC0): 8/0xD shrink (scale act -> 0.5), 0xE
- *   time-frozen (BHV157 ASEGA speed 0, velocity 0), 0x22/0x25 rage (target other guards: prefer cid 0x38,
- *   ignore 5 cids), 0x15 (BHV156 sub-states); undoes the old state
- * Info: proposed name SetStepguardSpecial (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns, docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void SetStepguardSpecial(struct S *p, int k)
+// 0x207030: Sets the gadget/status special state (+0xFBC, time +0xFC0): 8/0xD shrink, 0xE time-frozen, 0x22/0x25
+// rage (attack other guards), 0x15 and 0xB others; leaving a state undoes it.
+void SetStepguardSpecial(struct S *guard, int k)
 {
     int old;
-    if (k == p->k)
+    if (k == guard->k)
         return;
-    if (!func_00206EB0(p, k))
+    if (!CanSetStepguardSpecial(guard, k))
         return;
-    old = p->k;
-    p->k = k;
-    p->t = D_002DDED0.t;
+    old = guard->k;
+    guard->k = k;
+    guard->t = D_002DDED0.t;
     switch (old) {
     case 8:
     case 0xD:
-        if (p->pFC4)
-            SetActPositionGoal(p->pFC4, D_002A2DE0);
+        if (guard->unknownFC4)
+            SetActPositionGoal(guard->unknownFC4, D_002A2DE0);
         break;
     case 0x22:
     case 0x25:
-        func_00208728(p, 0x38);
-        func_00206E50(p);
+        RemoveStepguardPreferClass(guard, 0x38);
+        RemoveStepguardRageIgnoreClasses(guard);
         break;
     case 0xE: {
-        struct X *x = (__typeof__(x))func_00205458(p, 0x9D);
+        struct X *x = (__typeof__(x))func_00205458(guard, 0x9D);
         if (x) {
-            struct Y *y = func_00209518(x->p40);
+            struct Y *y = GetAnimBindingInstance(x->p40);
             if (y)
                 SetAsegaMasterSpeed(y, y->p14->f78);
         }
         break;
     }
     case 0x15: {
-        struct Z *z = (__typeof__(z))func_00205458(p, 0x9C);
+        struct Z *z = (__typeof__(z))func_00205458(guard, 0x9C);
         if (z && z->k30 == 0x12 && z->n40 == PpoHero(D_003DD490) && z->f44 == D_002A8698)
             ResumeBhvguard(z);
         break;
@@ -1012,23 +892,23 @@ void SetStepguardSpecial(struct S *p, int k)
     switch (k) {
     case 8:
     case 0xD:
-        if (p->pFC4)
-            SetActPositionGoal(p->pFC4, D_002C3D30);
+        if (guard->unknownFC4)
+            SetActPositionGoal(guard->unknownFC4, D_002C3D30);
         break;
     case 0x22:
     case 0x25:
-        func_00208700(p, 0x38);
-        func_00206DB0(p);
+        AddStepguardPreferClass(guard, 0x38);
+        AddStepguardRageIgnoreClasses(guard);
         break;
     case 0xE: {
-        struct X *x = (__typeof__(x))func_00205458(p, 0x9D);
+        struct X *x = (__typeof__(x))func_00205458(guard, 0x9D);
         if (x) {
-            struct Y *y = func_00209518(x->p40);
+            struct Y *y = GetAnimBindingInstance(x->p40);
             if (y)
                 SetAsegaMasterSpeed(y, 0.0f);
         }
         {
-            struct V3 *pv = &p->v190;
+            struct V3 *pv = &guard->desiredVelocity;
             pv->z = 0;
             pv->y = 0;
             pv->x = 0;
@@ -1036,7 +916,7 @@ void SetStepguardSpecial(struct S *p, int k)
         break;
     }
     case 0x15: {
-        struct Z *z = (__typeof__(z))func_00205458(p, 0x9C);
+        struct Z *z = (__typeof__(z))func_00205458(guard, 0x9C);
         if (z) {
             switch (z->k30) {
             case 1: case 2: case 3: case 4:
@@ -1058,28 +938,23 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3D40[3];
 struct S { char pad[0xFBC]; int k; float t; };
 void SetStepguardSpecial(struct S *p, int n);
-/** @sly2-annot addr=0x207288
- * Purpose: End the special state after D_002C3D40 = 10 s (8/0xD), 30 s (0x22/0x25), 5 s (0x15)
- * Info: proposed name UpdateStepguardSpecial (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void UpdateStepguardSpecial(struct S *p)
+// 0x207288: Ends the special state after its duration (10 s shrink, 30 s rage, 5 s state 0x15).
+void UpdateStepguardSpecial(struct S *guard)
 {
-    switch (p->k) {
+    switch (guard->k) {
     case 8:
     case 13:
-        if (D_002DDED0.t - p->t > D_002C3D40[0])
-            SetStepguardSpecial(p, -1);
+        if (D_002DDED0.t - guard->t > D_002C3D40[0])
+            SetStepguardSpecial(guard, -1);
         break;
     case 34:
     case 37:
-        if (D_002DDED0.t - p->t > D_002C3D40[1])
-            SetStepguardSpecial(p, -1);
+        if (D_002DDED0.t - guard->t > D_002C3D40[1])
+            SetStepguardSpecial(guard, -1);
         break;
     case 21:
-        if (D_002DDED0.t - p->t > D_002C3D40[2])
-            SetStepguardSpecial(p, -1);
+        if (D_002DDED0.t - guard->t > D_002C3D40[2])
+            SetStepguardSpecial(guard, -1);
         break;
     }
 }
@@ -1093,8 +968,8 @@ struct O { char pad[0xC0]; void *pc; };
 struct S {
     char pad0[0x28]; unsigned long fl28;
     char pad1[0x208 - 0x30]; int n208; char pad1b[0x218 - 0x20C]; qword *pq218;
-    char pad2[0x26C - 0x21C]; char x26C[0x34C - 0x26C]; int h34C;
-    char pad3[0x48C - 0x350]; int n48C; char pad4[0x498 - 0x490]; void *p498; void *p49C;
+    char pad2[0x26C - 0x21C]; char behaviorStack[0x34C - 0x26C]; int heldAnimation;
+    char pad3[0x48C - 0x350]; int isLootStaged; char pad4[0x498 - 0x490]; void *helperComponent; void *attachComponent;
     char pad5[0x4A4 - 0x4A0]; int n4A4; char pad6[0x4B0 - 0x4A8]; qword q4B0;
     char pad7[0xF00 - 0x4C0]; struct O *po; char pad8[0xF0C - 0xF04]; int hF0C;
     char pad9[0xFBC - 0xF10]; int kFBC; char padA[0xFD0 - 0xFC0]; char xFD0[0x10];
@@ -1103,112 +978,91 @@ extern qword D_002A2DD0;
 void UpdateStep(struct S *p);
 void UpdateStepguardSpecial(struct S *p);
 void UpdateStepguardDetectTargets(struct S *p);
-int FAnimBindingDone(void *pc);
-void func_0020AB68(struct S *p, struct O *po, int n, qword v);
-void func_0020ACC0(struct S *p);
+int IsAnimBindingDone(void *pc);
+void SetStepguardAttack(struct S *p, struct O *po, int n, qword v);
+void UpdateStepguardAim(struct S *p);
 void StageStepguardLoot(struct S *p);
-void func_0020CE70(void *p);
-void func_0020D1F8(void *p);
+void UpdateStuckWatch(void *p);
+void UpdateHazardWatch(void *p);
 void UpdateBhvstk(void *p);
-void func_002097E0(void *p);
+void UpdateStepguardMover(void *p);
 int FAsegaRetracted(int h);
 void func_001306A8(int *ph);
 
-/** @sly2-annot addr=0x207350
- * Purpose: STEPGUARD vt16: UpdateStep; if in world and not time-frozen: special timeouts, detect targets,
- *   finish attack anim, aim, pickpocket, update components, BHV stack (0x1EED10), mover, release finished
- *   ASEGA, track base position
- * Info: proposed name UpdateStepguard (T1); class STEPGUARD slot16; TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void UpdateStepguard(struct S *p)
+// 0x207350: STEPGUARD vtable slot 16 (Update): step update; while in the world and not time-frozen: special-state
+// timeouts, target detection, attack animation, aim, pickpocket, components, the behaviour stack, the mover and
+// finished animations.
+void UpdateStepguard(struct S *guard)
 {
-    UpdateStep(p);
-    if (((p->fl28 >> 60) & 1) == 0)
+    UpdateStep(guard);
+    if (((guard->fl28 >> 60) & 1) == 0)
         return;
-    if (p->kFBC == 0xE)
+    if (guard->kFBC == 0xE)
         return;
-    UpdateStepguardSpecial(p);
-    UpdateStepguardDetectTargets(p);
-    if (p->po && FAnimBindingDone(p->po->pc))
-        func_0020AB68(p, 0, 0, D_002A2DD0);
-    if (p->hF0C)
-        func_0020ACC0(p);
-    if (p->n48C)
-        StageStepguardLoot(p);
-    func_0020CE70(p->p498);
-    func_0020D1F8(p->p49C);
-    UpdateBhvstk(p->x26C);
-    func_002097E0(p->xFD0);
-    if (p->h34C && FAsegaRetracted(p->h34C))
-        func_001306A8(&p->h34C);
-    if (p->n4A4 && p->n208)
-        p->q4B0 = *p->pq218;
+    UpdateStepguardSpecial(guard);
+    UpdateStepguardDetectTargets(guard);
+    if (guard->po && IsAnimBindingDone(guard->po->pc))
+        SetStepguardAttack(guard, 0, 0, D_002A2DD0);
+    if (guard->hF0C)
+        UpdateStepguardAim(guard);
+    if (guard->isLootStaged)
+        StageStepguardLoot(guard);
+    UpdateStuckWatch(guard->helperComponent);
+    UpdateHazardWatch(guard->attachComponent);
+    UpdateBhvstk(guard->behaviorStack);
+    UpdateStepguardMover(guard->xFD0);
+    if (guard->heldAnimation && FAsegaRetracted(guard->heldAnimation))
+        func_001306A8(&guard->heldAnimation);
+    if (guard->n4A4 && guard->n208)
+        guard->q4B0 = *guard->pq218;
 }
 } } // namespace M_UpdateStepguard
 
-// 0x207468 FTakeStepguardDamage
+// 0x207468 TakeStepguardDamage
 namespace M_FTakeStepguardDamage { extern "C" {
 struct T; struct A; struct Q; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct T { char pad[0x14]; int n14; };
 struct A { char pad[0x200]; struct T *pt; };
 struct Q { struct A *pa; int pad[2]; int nC; };
-struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char x26C[4]; };
+struct S { char pad[0xC]; VTE *vt; char pad2[4]; int n14; char pad3[0x26C - 0x18]; char behaviorStack[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
 int func_001F7588(struct S *p, struct Q *q);
 void HandleBhvstkMessage(void *p, int k, struct Q *q);
-/** @sly2-annot addr=0x207468
- * Purpose: STEPGUARD vt75: unless the zap is lethal (vt86): ignore if invulnerable (vt76), own-team bomb (cid
- *   0x4F), or base says no; then forward the zap to the BHV stack (message 0xC)
- * Info: proposed name FTakeStepguardDamage (T1); class STEPGUARD slot75; TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int FTakeStepguardDamage(struct S *p, struct Q *q)
+// 0x207468: STEPGUARD vtable slot 75 (take damage): unless the zap is lethal, ignores it when invulnerable, from
+// its own team's bomb (cid 0x4F) or rejected by the base; then forwards it to the behaviour stack (message 0xC).
+int TakeStepguardDamage(struct S *guard, struct Q *q)
 {
-    if (!((int (*)(void *))p->vt[86].pfn)((char *)p + p->vt[86].d)) {
-        if (((int (*)(void *, int))p->vt[76].pfn)((char *)p + p->vt[76].d, q->nC))
+    if (!((int (*)(void *))guard->vt[86].pfn)((char *)guard + guard->vt[86].d)) {
+        if (((int (*)(void *, int))guard->vt[76].pfn)((char *)guard + guard->vt[76].d, q->nC))
             return 1;
-        if (q->pa && FIsBasicDerivedFrom__FP5BASIC3CID(q->pa, 0x4F) && q->pa->pt->n14 == p->n14)
+        if (q->pa && FIsBasicDerivedFrom__FP5BASIC3CID(q->pa, 0x4F) && q->pa->pt->n14 == guard->n14)
             return 1;
-        if (!func_001F7588(p, q))
+        if (!func_001F7588(guard, q))
             return 0;
     }
-    HandleBhvstkMessage(p->x26C, 0xC, q);
+    HandleBhvstkMessage(guard->behaviorStack, 0xC, q);
     return 1;
 }
 } } // namespace M_FTakeStepguardDamage
 
-// 0x207530 func_00207530
+// 0x207530 IsStepguardZapLethal
 namespace M_func_00207530 { extern "C" {
 struct Q; struct S;
 struct Q { char pad[0xC]; int k; int n; };
 struct S { char pad[0x338]; int n; };
-/** @sly2-annot addr=0x207530
- * Purpose: STEPGUARD vt86: true if zap damage >= +0x338 and zap kind not in {0,1,0x80000,0x100000}
- * Info: proposed name FLethalStepguardZap (T2); class STEPGUARD slot86; TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_00207530(struct S *p, struct Q *q) { if (-q->n < p->n) return 0; switch (q->k) { case 0: case 1: case 0x80000: case 0x100000: return 0; } return 1; }
+// 0x207530: STEPGUARD vtable slot 86: true if the zap's damage reaches the maximum hit points and its kind is not
+// one of the harmless kinds (0, 1, 0x80000, 0x100000).
+int IsStepguardZapLethal(struct S *guard, struct Q *q) { if (-q->n < guard->n) return 0; switch (q->k) { case 0: case 1: case 0x80000: case 0x100000: return 0; } return 1; }
 } } // namespace M_func_00207530
 
-// 0x207598 FInvulnerableStepguard
+// 0x207598 IsStepguardInvulnerable
 namespace M_FInvulnerableStepguard { extern "C" {
 struct S;
 struct S { char pad[0x298]; int a; char pad2[0x90]; int b; };
-int FStepguardHasSgf(struct S *p, int n);
-/** @sly2-annot addr=0x207598
- * Purpose: STEPGUARD vt76: +0x32C or +0x298 set, or flag 0x2A
- * Info: proposed name FInvulnerableStepguard (T1); class STEPGUARD slot76; TU stepguard
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int FInvulnerableStepguard(struct S *p) { if (p->b || p->a) return 1; return FStepguardHasSgf(p, 0x2A) != 0; }
+int StepguardHasSgf(struct S *p, int n);
+// 0x207598: STEPGUARD vtable slot 76: true while invulnerable (+0x32C or +0x298 set, or flag 0x2A).
+int IsStepguardInvulnerable(struct S *guard) { if (guard->b || guard->a) return 1; return StepguardHasSgf(guard, 0x2A) != 0; }
 } } // namespace M_FInvulnerableStepguard
 
 // 0x2075D0 HandleStepguardMessage
@@ -1217,31 +1071,26 @@ struct A; struct B; struct Q; struct S;
 struct A { char pad[0x184]; int n184; };
 struct B { char pad[0xC]; struct A *pa; };
 struct Q { struct A *pa; void *p; };
-struct S { char pad[0x26C]; char x26C[0x49C - 0x26C]; struct B *pb; };
+struct S { char pad[0x26C]; char behaviorStack[0x49C - 0x26C]; struct B *pb; };
 void HandlePoMessage(struct S *p, int k, struct Q *q);
-void func_0020D460(struct B *pb, struct A *pa);
+void SetHazardWatchTarget(struct B *pb, struct A *pa);
 void HandleBhvstkMessage(void *p, int k, struct Q *q);
-/** @sly2-annot addr=0x2075D0
- * Purpose: STEPGUARD vt5: HandlePoMessage; msgs 4/5 attach/detach an object on component +0x49C; forward
- *   every message to the BHV stack (0x1EED78)
- * Info: proposed name HandleStepguardMessage (T1); class STEPGUARD slot5; TU stepguard
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void HandleStepguardMessage(struct S *p, int k, struct Q *q)
+// 0x2075D0: STEPGUARD vtable slot 5 (HandleMessage): PO handler; messages 4/5 attach/detach an object on component
+// +0x49C; every message is then offered to the behaviour stack.
+void HandleStepguardMessage(struct S *guard, int k, struct Q *q)
 {
-    HandlePoMessage(p, k, q);
+    HandlePoMessage(guard, k, q);
     switch (k) {
     case 4:
-        if (q->p == p && q->pa->n184)
-            func_0020D460(p->pb, q->pa);
+        if (q->p == guard && q->pa->n184)
+            SetHazardWatchTarget(guard->pb, q->pa);
         break;
     case 5:
-        if (q->p == p && q->pa == p->pb->pa)
-            func_0020D460(p->pb, 0);
+        if (q->p == guard && q->pa == guard->pb->pa)
+            SetHazardWatchTarget(guard->pb, 0);
         break;
     }
-    HandleBhvstkMessage(p->x26C, k, q);
+    HandleBhvstkMessage(guard->behaviorStack, k, q);
 }
 } } // namespace M_HandleStepguardMessage
 
@@ -1275,37 +1124,34 @@ qword *VECTOR_opAssign(qword *,qword);
 M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 }
+// VU0 helper: vector difference.
 static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: length of a vector.
 static inline float Length(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(a));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
-/** @sly2-annot addr=0x207690
- * Purpose: STEPGUARD vt19: draw the globset; when the camera policy is active, apply a 0.85 s squash/stretch
- *   pulse after +0x360 (pivot +0x240) and distance-based scale
- * Info: proposed name RenderStepguardSelf (T1); class STEPGUARD slot19; TU stepguard
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void RenderStepguardSelf(P *p)
+// 0x207690: STEPGUARD vtable slot 19 (render): draws the guard; while the camera policy is active, applies a 0.85 s
+// squash/stretch pulse and a distance-based scale.
+extern "C" void RenderStepguardSelf(P *guard)
 {
     M4 local;
     U offset;
     M4 basis,matrix,product,inverse;
     CAMERA *camera=&D_002DDF40;
-    if(p->flags.bytes[5]&camera->mask){
-        func_001F3C10(p);
+    if(guard->flags.bytes[5]&camera->mask){
+        func_001F3C10(guard);
         if(!FActiveCplcy__FP5CPLCY((char *)camera+0x3B0)){
-            RenderSoGlobset((EFFECT *)((char *)p+0x80),0,p->material,p->opacity,p->opacity);
+            RenderSoGlobset((EFFECT *)((char *)guard+0x80),0,guard->material,guard->opacity,guard->opacity);
         }else{
             func_002333B4(&local,0,sizeof(M4));
             local.rows[3].f[3]=1.0f;
             local.rows[2].f[2]=1.0f;
             local.rows[1].f[1]=1.0f;
             local.rows[0].f[0]=1.0f;
-            float distance=Length(Subtract(GetLoWorldPos(p),camera->position.q));
+            float distance=Length(Subtract(GetLoWorldPos(guard),camera->position.q));
             PROFILE *profile=&(*(PROFILE *)&g_sw.clqGuardScale);
             float gain=profile->a+distance*(profile->b+distance*profile->c);
             float min=profile->min,max=profile->max;
             if(gain<min)gain=min;else if(max<gain)gain=max;
-            float elapsed=D_002DDED0.time-p->start;
+            float elapsed=D_002DDED0.time-guard->start;
             float along=gain,across=gain;
             if(elapsed<0.85f){
                 float wave=sinf(elapsed*D_002C3D4C);
@@ -1322,23 +1168,23 @@ extern "C" void RenderStepguardSelf(P *p)
             local.rows[0].f[0]=across;
             local.rows[1].f[1]=across;
             local.rows[2].f[2]=along;
-            offset.f[0]=(1.0f-across)*p->pivot[0];
-            offset.f[2]=(1.0f-along)*p->pivot[2];
-            offset.f[1]=(1.0f-across)*p->pivot[1];
+            offset.f[0]=(1.0f-across)*guard->pivot[0];
+            offset.f[2]=(1.0f-along)*guard->pivot[2];
+            offset.f[1]=(1.0f-across)*guard->pivot[1];
             VECTOR_opAssign(&local.rows[3].q,offset.q);
             local.rows[3].f[3]=1.0f;
             M4 *productPointer=&product;
             M4 *basisPointer=&basis;
             M4 *matrixPointer=&matrix;
-            basis.rows[0]=p->space->matrix.rows[0];
-            basis.rows[1]=p->space->matrix.rows[1];
-            basis.rows[2]=p->space->matrix.rows[2];
-            basis.rows[3]=p->space->matrix.rows[3];
+            basis.rows[0]=guard->space->matrix.rows[0];
+            basis.rows[1]=guard->space->matrix.rows[1];
+            basis.rows[2]=guard->space->matrix.rows[2];
+            basis.rows[3]=guard->space->matrix.rows[3];
             __ml__FRC7MATRIX4T0(productPointer,basisPointer,&local);
             M4 *inversePointer=&inverse;
             InvertMatrix4Rigid(inversePointer,basisPointer);
             __ml__FRC7MATRIX4T0(matrixPointer,productPointer,inversePointer);
-            RenderSoGlobset((EFFECT *)((char *)p+0x80),matrixPointer,p->material,p->opacity,p->opacity);
+            RenderSoGlobset((EFFECT *)((char *)guard+0x80),matrixPointer,guard->material,guard->opacity,guard->opacity);
         }
     }
 }
@@ -1352,17 +1198,9 @@ struct DL { void *a, *b; int c; };
 struct S { char pad[0xFF8]; float t; };
 void OnSoRemove(struct S *p);
 void RemoveDlEntry__FP2DLPv(struct DL *pdl, void *pv);
-/** @sly2-annot addr=0x2079A0
- * Purpose: STEPGUARD vt22: base (0x1F3E00), unlink from global guard list g_sw.dlStepguard, stamp +0xFF8
- * Info: proposed name OnStepguardRemove (T1); class STEPGUARD slot22; TU stepguard
- * Notes: slot 22 OnRemove resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world,
- *   incl. proximity activation) (was OnStepguardRemoveFromWorld)
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/guards-ai.md#1-stepguard-stepguardcpp-0x205e70-0x20b840-and-its-subclasses,
- *   docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void OnStepguardRemove(struct S *p) { OnSoRemove(p); RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlStepguard, p); p->t = D_002DDED0.t; }
+// 0x2079A0: STEPGUARD vtable slot 22 (OnRemove): base, unlinks from the world's guard list and stamps the removal
+// time (+0xFF8).
+void OnStepguardRemove(struct S *guard) { OnSoRemove(guard); RemoveDlEntry__FP2DLPv((DL *)&g_sw.dlStepguard, guard); guard->t = D_002DDED0.t; }
 } } // namespace M_OnStepguardRemove
 
 // 0x2079E0 OnStepguardAdd
@@ -1373,120 +1211,75 @@ struct DL { void *a, *b; int c; };
 struct S { char pad[0xFF8]; float t; };
 void OnSoAdd(struct S *p);
 void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv);
-/** @sly2-annot addr=0x2079E0
- * Purpose: STEPGUARD vt23: base (0x1F3EA8), append to guard list g_sw.dlStepguard, +0xFF8 = FLT_MAX
- * Info: proposed name OnStepguardAdd (T1); class STEPGUARD slot23; TU stepguard
- * Notes: slot 23 OnAdd resolved by arbitration (OnRemove/OnAdd = object leaves/enters the active world, incl.
- *   proximity activation) (was OnStepguardAddToWorld)
- * Confidence: high [T1 0.85] - evidence: arbitration; sources: arbitration_slots22_23
- * See: docs/engine/guards-ai.md#1-stepguard-stepguardcpp-0x205e70-0x20b840-and-its-subclasses,
- *   docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void OnStepguardAdd(struct S *p) { OnSoAdd(p); AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, p); p->t = D_002A8868; }
+// 0x2079E0: STEPGUARD vtable slot 23 (OnAdd): base, links on the world's guard list, removal time FLT_MAX.
+void OnStepguardAdd(struct S *guard) { OnSoAdd(guard); AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard); guard->t = D_002A8868; }
 } } // namespace M_OnStepguardAdd
 
-// 0x207A20 GrfFromSgf
+// 0x207A20 GetSgfMask
 namespace M_GrfFromSgf { extern "C" {
-/** @sly2-annot addr=0x207A20
- * Purpose: Bit mask of guard flag n (1<<n, 0 for -1)
- * Info: proposed name GrfFromSgf (T1); TU stepguard
- * Notes: runtime: 0x207A20 returns 1<<n (dsllv) confirmed
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r7b_guard+runtime
- * See: docs/engine/guards-ai.md#2-the-guard-flag-word-0x2c0, docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-unsigned long GrfFromSgf(int n) { if (n == -1) return 0; return 1L << n; }
+// 0x207A20: Returns the bit mask of guard flag `sgf` (0 for -1).
+unsigned long GetSgfMask(int n) { if (n == -1) return 0; return 1L << n; }
 } } // namespace M_GrfFromSgf
 
-// 0x207A40 GrfFromSgfArray
+// 0x207A40 GetSgfArrayMask
 namespace M_GrfFromSgfArray { extern "C" {
-unsigned long GrfFromSgf(int n);
-/** @sly2-annot addr=0x207A40
- * Purpose: OR of GrfFromSgf over an array
- * Info: proposed name GrfFromSgfArray (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-unsigned long GrfFromSgfArray(int c, int *a) { unsigned long m = 0; int i; for (i = 0; i < c; i++) m |= GrfFromSgf(a[i]); return m; }
+unsigned long GetSgfMask(int n);
+// 0x207A40: Returns the OR of the masks of an array of guard flags.
+unsigned long GetSgfArrayMask(int c, int *a) { unsigned long m = 0; int i; for (i = 0; i < c; i++) m |= GetSgfMask(a[i]); return m; }
 } } // namespace M_GrfFromSgfArray
 
-// 0x207AA0 CsgfFromGrf
+// 0x207AA0 ListSgfsInMask
 namespace M_CsgfFromGrf { extern "C" {
-unsigned long GrfFromSgf(int n);
-/** @sly2-annot addr=0x207AA0
- * Purpose: List the set flag numbers (46..0) of a mask into an array, return count
- * Info: proposed name CsgfFromGrf (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int CsgfFromGrf(unsigned long m, int *a) { int c = 0; int i; for (i = 0x2E; i >= 0; i--) if (m & GrfFromSgf(i)) { *a++ = i; c++; } return c; }
+unsigned long GetSgfMask(int n);
+// 0x207AA0: Lists the guard flags set in a mask (from 46 down to 0) into an array; returns the count.
+int ListSgfsInMask(unsigned long m, int *a) { int c = 0; int i; for (i = 0x2E; i >= 0; i--) if (m & GetSgfMask(i)) { *a++ = i; c++; } return c; }
 } } // namespace M_CsgfFromGrf
 
-// 0x207B10 func_00207B10
+// 0x207B10 GetSgfMaskFromSpliceList
 namespace M_func_00207B10 { extern "C" {
 struct CRef;
 struct CRef { int tagk; int tag; };
 void SetValuesFromSpliceList(struct CRef *pref, void *p, int a, int b, int *pn, int *an);
-unsigned long GrfFromSgfArray(int c, int *a);
+unsigned long GetSgfArrayMask(int c, int *a);
 void Decref__4CRef(struct CRef *pref);
-/** @sly2-annot addr=0x207B10
- * Purpose: Convert a Splice list argument of guard-flag enums (type 0x1010) to a mask
- * Info: proposed name GrfFromSpliceSgfList (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-unsigned long func_00207B10(void *p) { int an[16]; struct CRef ref; int c; unsigned long m; SetValuesFromSpliceList(&ref, p, 0x1010, 0x10, &c, an); m = GrfFromSgfArray(c, an); Decref__4CRef(&ref); return m; }
+// 0x207B10: Converts a Splice list of guard-flag enums (type 0x1010) to a mask.
+unsigned long GetSgfMaskFromSpliceList(void *p) { int an[16]; struct CRef ref; int c; unsigned long m; SetValuesFromSpliceList(&ref, p, 0x1010, 0x10, &c, an); m = GetSgfArrayMask(c, an); Decref__4CRef(&ref); return m; }
 } } // namespace M_func_00207B10
 
-// 0x207B70 func_00207B70
-/** @sly2-annot addr=0x207B70
- * Purpose: Splice: ensure the anim binding for a flag set and set its oid/arg (+4/+0xC)
- * Info: proposed name SetStepguardAnimBinding (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00207B70(STEPGUARD *pstepguard, int n, int h, int nC)
+// 0x207B70 SetStepguardAnimBinding
+// 0x207B70: Splice option: sets the animation (oid, argument) bound to a guard-flag set, creating the binding if
+// needed.
+extern "C" void SetStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC)
 {
     ANIMBINDING *pbinding;
-    pbinding = func_00209C18(pstepguard, func_00207B10(n));
+    pbinding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(n));
     pbinding->h = h;
     pbinding->nC = nC;
 }
 
-// 0x207BC8 func_00207BC8
-/** @sly2-annot addr=0x207BC8
- * Purpose: Same as 0x207B70 then resolve it (0x209130)
- * Info: proposed name SetStepguardAnimBindingResolve (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00207BC8(STEPGUARD *pstepguard, int n, int h, int nC)
+// 0x207BC8 SetAndResolveStepguardAnimBinding
+// 0x207BC8: SetStepguardAnimBinding, then resolves the binding.
+extern "C" void SetAndResolveStepguardAnimBinding(STEPGUARD *guard, int n, int h, int nC)
 {
     ANIMBINDING *pbinding;
-    pbinding = func_00209C18(pstepguard, func_00207B10(n));
-    func_00207B70(pstepguard, n, h, nC);
-    ResolveAnimBinding(pbinding, pstepguard);
+    pbinding = EnsureAnimBinding(guard, GetSgfMaskFromSpliceList(n));
+    SetStepguardAnimBinding(guard, n, h, nC);
+    ResolveAnimBinding(pbinding, guard);
 }
 
-// 0x207C48 func_00207C48
+// 0x207C48 SetStepguardAnimBindingKind3
 namespace M_func_00207C48 { extern "C" {
 struct X; struct E;
 struct X { int a; char p0[0x2C]; int b; char p1[0x2C]; int c; char p2[0x2C]; int d; };
 struct E { int k; struct X *px; int pad; int n; };
-long func_00207B10(int a);
-struct E *func_00209C18(void *p, long id);
+long GetSgfMaskFromSpliceList(int a);
+struct E *EnsureAnimBinding(void *p, long id);
 struct X *AllocDirAnim(int cb);
 void InvalidateDirAnims(struct X *px);
-/** @sly2-annot addr=0x207C48
- * Purpose: Splice: binding of kind 3 (new 0xD0 object 0x20CA00 with 4 params), n=8
- * Info: proposed name SetStepguardAnimBindingK3 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00207C48(void *p, int id, int a, int b, int c, int d)
+// 0x207C48: Splice option: binds a flag set to a kind-3 payload (a new 0xD0-byte object with four parameters).
+void SetStepguardAnimBindingKind3(void *p, int id, int a, int b, int c, int d)
 {
-    struct E *pe = func_00209C18(p, func_00207B10(id));
+    struct E *pe = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(id));
     pe->k = 3;
     pe->px = AllocDirAnim(0xD0);
     InvalidateDirAnims(pe->px);
@@ -1498,44 +1291,34 @@ void func_00207C48(void *p, int id, int a, int b, int c, int d)
 }
 } } // namespace M_func_00207C48
 
-// 0x207CF8 func_00207CF8
+// 0x207CF8 SetAndResolveStepguardAnimBindingKind3
 namespace M_func_00207CF8 { extern "C" {
-long func_00207B10(int a);
-void *func_00209C18(void *p, long id);
-void func_00207C48(void *p, int a, int b, int c, int d, int e);
+long GetSgfMaskFromSpliceList(int a);
+void *EnsureAnimBinding(void *p, long id);
+void SetStepguardAnimBindingKind3(void *p, int a, int b, int c, int d, int e);
 void ResolveAnimBinding(void *pe, void *p);
-/** @sly2-annot addr=0x207CF8
- * Purpose: 0x207C48 then resolve
- * Info: proposed name SetStepguardAnimBindingK3Resolve (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00207CF8(void *p, int a, int b, int c, int d, int e)
+// 0x207CF8: SetStepguardAnimBindingKind3, then resolves the binding.
+void SetAndResolveStepguardAnimBindingKind3(void *p, int a, int b, int c, int d, int e)
 {
-    void *pe = func_00209C18(p, func_00207B10(a));
-    func_00207C48(p, a, b, c, d, e);
+    void *pe = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(a));
+    SetStepguardAnimBindingKind3(p, a, b, c, d, e);
     ResolveAnimBinding(pe, p);
 }
 } } // namespace M_func_00207CF8
 
-// 0x207D98 func_00207D98
+// 0x207D98 SetStepguardAnimBindingKind2
 namespace M_func_00207D98 { extern "C" {
 struct X; struct S;
 struct X { int a; };
 struct S { int n; struct X *px; int b; int c; };
-unsigned long func_00207B10(void *p);
-struct S *func_00209C18(void *p, unsigned long m);
+unsigned long GetSgfMaskFromSpliceList(void *p);
+struct S *EnsureAnimBinding(void *p, unsigned long m);
 struct X *AllocLeap(int cb);
 void InitAsegArc(struct X *px);
-/** @sly2-annot addr=0x207D98
- * Purpose: Splice: binding of kind 2 (new 0x40 object 0x20C010 with one param)
- * Info: proposed name SetStepguardAnimBindingK2 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00207D98(void *p, void *q, int a)
+// 0x207D98: Splice option: binds a flag set to a kind-2 payload (a new 0x40-byte object with one parameter).
+void SetStepguardAnimBindingKind2(void *p, void *q, int a)
 {
-    struct S *s = func_00209C18(p, func_00207B10(q));
+    struct S *s = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(q));
     s->n = 2;
     s->px = AllocLeap(0x40);
     InitAsegArc(s->px);
@@ -1544,38 +1327,28 @@ void func_00207D98(void *p, void *q, int a)
 }
 } } // namespace M_func_00207D98
 
-// 0x207E08 func_00207E08
+// 0x207E08 SetAndResolveStepguardAnimBindingKind2
 namespace M_func_00207E08 { extern "C" {
-long func_00207B10(int a);
-void *func_00209C18(void *p, long id);
-void func_00207D98(void *p, int a, int b, float c, float d, float e, float f);
+long GetSgfMaskFromSpliceList(int a);
+void *EnsureAnimBinding(void *p, long id);
+void SetStepguardAnimBindingKind2(void *p, int a, int b, float c, float d, float e, float f);
 void ResolveAnimBinding(void *pe, void *p);
-/** @sly2-annot addr=0x207E08
- * Purpose: 0x207D98 then resolve
- * Info: proposed name SetStepguardAnimBindingK2Resolve (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00207E08(void *p, int a, int b, float c, float d, float e, float f)
+// 0x207E08: SetStepguardAnimBindingKind2, then resolves the binding.
+void SetAndResolveStepguardAnimBindingKind2(void *p, int a, int b, float c, float d, float e, float f)
 {
-    void *pe = func_00209C18(p, func_00207B10(a));
-    func_00207D98(p, a, b, c, d, e, f);
+    void *pe = EnsureAnimBinding(p, GetSgfMaskFromSpliceList(a));
+    SetStepguardAnimBindingKind2(p, a, b, c, d, e, f);
     ResolveAnimBinding(pe, p);
 }
 } } // namespace M_func_00207E08
 
-// 0x207EB8 func_00207EB8
+// 0x207EB8 SetZapReactionBindings
 namespace M_func_00207EB8 { extern "C" {
 struct E;
 struct E { int a; int b; int c; int d; };
 void ReleaseAnimBinding(struct E *pe, void *p);
-/** @sly2-annot addr=0x207EB8
- * Purpose: For each of 26 zap-kind bits in mask: release entry, set oid/arg
- * Info: proposed name SetZapReactionBindings (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00207EB8(void *p, int mask, int b, int d, struct E *pe)
+// 0x207EB8: Sets the binding (oid, argument) of every zap kind in `mask` (26 kinds) in a zap-reaction table.
+void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *pe)
 {
     int i;
     int bit = 1;
@@ -1591,19 +1364,14 @@ void func_00207EB8(void *p, int mask, int b, int d, struct E *pe)
 }
 } } // namespace M_func_00207EB8
 
-// 0x207F50 func_00207F50
+// 0x207F50 SetAndResolveZapReactionBindings
 namespace M_func_00207F50 { extern "C" {
 struct E;
 struct E { int a; int b; int c; int d; };
 void ReleaseAnimBinding(struct E *pe, void *p);
 void ResolveAnimBinding(struct E *pe, void *p);
-/** @sly2-annot addr=0x207F50
- * Purpose: Same and resolve each
- * Info: proposed name SetZapReactionBindingsResolve (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00207F50(void *p, int mask, int b, int d, struct E *pe)
+// 0x207F50: SetZapReactionBindings, then resolves each binding.
+void SetAndResolveZapReactionBindings(void *p, int mask, int b, int d, struct E *pe)
 {
     int i;
     int bit = 1;
@@ -1620,90 +1388,63 @@ void func_00207F50(void *p, int mask, int b, int d, struct E *pe)
 }
 } } // namespace M_func_00207F50
 
-// 0x207FF8 func_00207FF8
+// 0x207FF8 SetStepguardKoReactions
 namespace M_func_00207FF8 { extern "C" {
 struct E;
 struct E { int a, b, c, d; };
-void func_00207EB8(void *p, int mask, int b, int d, struct E *records);
-/** @sly2-annot addr=0x207FF8
- * Purpose: 0x207EB8 on table +0xC10
- * Info: proposed name SetStepguardZapReactionsC10 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00207FF8(char *p, int mask, int b, int d)
+void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+// 0x207FF8: Splice option: sets KO reactions (table +0xC10, used by the KO behaviour).
+void SetStepguardKoReactions(char *p, int mask, int b, int d)
 {
-    func_00207EB8(p, mask, b, d, (struct E *)(p + 0xC10));
+    SetZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xC10));
 }
 } } // namespace M_func_00207FF8
 
-// 0x208018 func_00208018
+// 0x208018 SetAndResolveStepguardKoReactions
 namespace M_func_00208018 { extern "C" {
 struct E;
 struct E { int a, b, c, d; };
-void func_00207F50(void *p, int mask, int b, int d, struct E *records);
-/** @sly2-annot addr=0x208018
- * Purpose: 0x207F50 on table +0xC10
- * Info: proposed name SetStepguardZapReactionsC10Resolve (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208018(char *p, int mask, int b, int d)
+void SetAndResolveZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+// 0x208018: Splice option: sets and resolves KO reactions.
+void SetAndResolveStepguardKoReactions(char *p, int mask, int b, int d)
 {
-    func_00207F50(p, mask, b, d, (struct E *)(p + 0xC10));
+    SetAndResolveZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xC10));
 }
 } } // namespace M_func_00208018
 
-// 0x208038 func_00208038
+// 0x208038 SetStepguardHurtReactions
 namespace M_func_00208038 { extern "C" {
 struct E;
 struct E { int a, b, c, d; };
-void func_00207EB8(void *p, int mask, int b, int d, struct E *records);
-/** @sly2-annot addr=0x208038
- * Purpose: 0x207EB8 on table +0xA70
- * Info: proposed name SetStepguardZapReactionsA70 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208038(char *p, int mask, int b, int d)
+void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+// 0x208038: Splice option: sets hurt reactions (table +0xA70).
+void SetStepguardHurtReactions(char *p, int mask, int b, int d)
 {
-    func_00207EB8(p, mask, b, d, (struct E *)(p + 0xA70));
+    SetZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xA70));
 }
 } } // namespace M_func_00208038
 
-// 0x208058 func_00208058
+// 0x208058 SetAndResolveStepguardHurtReactions
 namespace M_func_00208058 { extern "C" {
 struct E;
 struct E { int a, b, c, d; };
-void func_00207F50(void *p, int mask, int b, int d, struct E *records);
-/** @sly2-annot addr=0x208058
- * Purpose: 0x207F50 on table +0xA70
- * Info: proposed name SetStepguardZapReactionsA70Resolve (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208058(char *p, int mask, int b, int d)
+void SetAndResolveZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+// 0x208058: Splice option: sets and resolves hurt reactions.
+void SetAndResolveStepguardHurtReactions(char *p, int mask, int b, int d)
 {
-    func_00207F50(p, mask, b, d, (struct E *)(p + 0xA70));
+    SetAndResolveZapReactionBindings(p, mask, b, d, (struct E *)(p + 0xA70));
 }
 } } // namespace M_func_00208058
 
-// 0x208078 func_00208078
+// 0x208078 SetStepguardKnockdownReactions
 namespace M_func_00208078 { extern "C" {
 struct E;
 struct E { int a, b, c, d; };
-void func_00207EB8(void *p, int mask, int b, int d, struct E *records);
-/** @sly2-annot addr=0x208078
- * Purpose: 0x207EB8 on table +0x8D0
- * Info: proposed name SetStepguardZapReactions8D0 (T2); TU stepguard
- * Notes: verifier PLAUSIBLE: Offset-suffixed placeholder. SetZapReactionBindings(p, mask, b, d, p+0x8D0);
- *   caller splice wrapper. | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208078(char *p, int mask, int b, int d)
+void SetZapReactionBindings(void *p, int mask, int b, int d, struct E *records);
+// 0x208078: Splice option: sets knockdown reactions (table +0x8D0).
+void SetStepguardKnockdownReactions(char *p, int mask, int b, int d)
 {
-    func_00207EB8(p, mask, b, d, (struct E *)(p + 0x8D0));
+    SetZapReactionBindings(p, mask, b, d, (struct E *)(p + 0x8D0));
 }
 } } // namespace M_func_00208078
 
@@ -1711,125 +1452,94 @@ void func_00208078(char *p, int mask, int b, int d)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
 // 0x2080A0 ResolveZapReactions
-/** @sly2-annot addr=0x2080A0
- * Purpose: Resolve all 26 entries of a table (0x209130)
- * Info: proposed name ResolveZapReactions (T1); TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void ResolveZapReactions(STEPGUARD *pstepguard, ANIMBINDING *abinding)
+// 0x2080A0: Resolves all 26 entries of a zap-reaction table.
+extern "C" void ResolveZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
 {
     ANIMBINDING *pbinding;
     int i;
     pbinding = abinding;
     i = 25;
     do {
-        ResolveAnimBinding(pbinding, pstepguard);
+        ResolveAnimBinding(pbinding, guard);
         i -= 1;
         pbinding++;
     } while (i >= 0);
 }
 
 // 0x2080F0 ResolveStepguardAnimBindings
-/** @sly2-annot addr=0x2080F0
- * Purpose: Resolve all anim bindings (+0x4C0 count, +0x4D0 entries) and the 3 zap tables
- * Info: proposed name ResolveStepguardAnimBindings (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void ResolveStepguardAnimBindings(STEPGUARD *pstepguard)
+// 0x2080F0: Resolves all of the guard's animation bindings and its three zap-reaction tables.
+extern "C" void ResolveStepguardAnimBindings(STEPGUARD *guard)
 {
     int i;
     ANIMBINDINGREC *prec;
     i = 0;
-    if (pstepguard->cbindingrec > 0) {
-        prec = pstepguard->abindingrec;
+    if (guard->cbindingrec > 0) {
+        prec = guard->abindingrec;
         do {
-            ResolveAnimBinding(&prec->binding, pstepguard);
+            ResolveAnimBinding(&prec->binding, guard);
             i += 1;
             prec++;
-        } while (i < pstepguard->cbindingrec);
+        } while (i < guard->cbindingrec);
     }
-    ResolveZapReactions(pstepguard, pstepguard->aabindingZap[2]);
-    ResolveZapReactions(pstepguard, pstepguard->aabindingZap[0]);
-    ResolveZapReactions(pstepguard, pstepguard->aabindingZap[1]);
+    ResolveZapReactions(guard, guard->aabindingZap[2]);
+    ResolveZapReactions(guard, guard->aabindingZap[0]);
+    ResolveZapReactions(guard, guard->aabindingZap[1]);
 }
 
-// 0x208178 func_00208178
-/** @sly2-annot addr=0x208178
- * Purpose: Release all 26 entries of a table (0x2090D0)
- * Info: proposed name ReleaseZapReactions (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00208178(STEPGUARD *pstepguard, ANIMBINDING *abinding)
+// 0x208178 ReleaseZapReactions
+// 0x208178: Releases all 26 entries of a zap-reaction table.
+extern "C" void ReleaseZapReactions(STEPGUARD *guard, ANIMBINDING *abinding)
 {
     ANIMBINDING *pbinding;
     int i;
     pbinding = abinding;
     i = 25;
     do {
-        ReleaseAnimBinding(pbinding, pstepguard);
+        ReleaseAnimBinding(pbinding, guard);
         i -= 1;
         pbinding++;
     } while (i >= 0);
 }
 
-// 0x2081C8 func_002081C8
-/** @sly2-annot addr=0x2081C8
- * Purpose: Release the 3 zap tables
- * Info: proposed name ReleaseStepguardZapReactions (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_002081C8(STEPGUARD *pstepguard)
+// 0x2081C8 ReleaseStepguardZapReactions
+// 0x2081C8: Releases the guard's three zap-reaction tables.
+extern "C" void ReleaseStepguardZapReactions(STEPGUARD *guard)
 {
-    func_00208178(pstepguard, pstepguard->aabindingZap[2]);
-    func_00208178(pstepguard, pstepguard->aabindingZap[0]);
-    func_00208178(pstepguard, pstepguard->aabindingZap[1]);
+    ReleaseZapReactions(guard, guard->aabindingZap[2]);
+    ReleaseZapReactions(guard, guard->aabindingZap[0]);
+    ReleaseZapReactions(guard, guard->aabindingZap[1]);
 }
 
-// 0x208208 func_00208208
+// 0x208208 CloneZapReactions
 namespace M_func_00208208 { extern "C" {
 struct E;
 struct E { int a[4]; };
-void func_00209590(struct E *pe);
-/** @sly2-annot addr=0x208208
- * Purpose: Deep-copy all 26 entries (0x209590)
- * Info: proposed name CloneZapReactions (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208208(void *p, struct E *pe) { int i; for (i = 25; i >= 0; i--) { func_00209590(pe); pe++; } }
+void CloneAnimBinding(struct E *pe);
+// 0x208208: Deep-copies all 26 entries of a zap-reaction table.
+void CloneZapReactions(void *p, struct E *pe) { int i; for (i = 25; i >= 0; i--) { CloneAnimBinding(pe); pe++; } }
 } } // namespace M_func_00208208
 
 // 0x208250 CloneStepguardAnimBindings
-/** @sly2-annot addr=0x208250
- * Purpose: Deep-copy anim bindings and zap tables after a clone
- * Info: proposed name CloneStepguardAnimBindings (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void CloneStepguardAnimBindings(STEPGUARD *pstepguard)
+// 0x208250: Deep-copies the animation bindings and zap-reaction tables after a clone.
+extern "C" void CloneStepguardAnimBindings(STEPGUARD *guard)
 {
     int i;
     ANIMBINDINGREC *prec;
     i = 0;
-    if (pstepguard->cbindingrec > 0) {
-        prec = pstepguard->abindingrec;
+    if (guard->cbindingrec > 0) {
+        prec = guard->abindingrec;
         do {
             i += 1;
-            func_00209590(&prec->binding);
+            CloneAnimBinding(&prec->binding);
             prec++;
-        } while (i < pstepguard->cbindingrec);
+        } while (i < guard->cbindingrec);
     }
-    func_00208208(pstepguard, pstepguard->aabindingZap[2]);
-    func_00208208(pstepguard, pstepguard->aabindingZap[0]);
-    func_00208208(pstepguard, pstepguard->aabindingZap[1]);
+    CloneZapReactions(guard, guard->aabindingZap[2]);
+    CloneZapReactions(guard, guard->aabindingZap[0]);
+    CloneZapReactions(guard, guard->aabindingZap[1]);
 }
 
-// 0x2082D0 PloChooseStepguardTarget
+// 0x2082D0 ChooseStepguardTarget
 namespace M_PloChooseStepguardTarget {
 union U; struct O; struct ENTRY; struct GROUP; struct P;
 // Choose an eligible actor using lock state, priority and weighted distance.
@@ -1843,14 +1553,16 @@ struct P {char pad38C[0x38C];O *previous,*current;char pad394[0xBD0];GROUP *grou
 extern "C" { extern float D_002A886C,D_002C3D70[3],D_002C3D80[3]; }
 extern "C" qword GetLoWorldPos(void *);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(O *,int);
-extern "C" int func_002089F0(P *,O *);
-extern "C" int func_00208B38(P *,O *);
-extern "C" int func_002087E8(P *,O *);
+extern "C" int IsStepguardIgnoreClass(P *,O *);
+extern "C" int IsStepguardForceClass(P *,O *);
+extern "C" int IsStepguardPreferClass(P *,O *);
+// VU0 helper: vector difference.
 static inline qword Sub(const qword&a,qword b){
     qword d,bv,av;
     __asm__("lqc2 %2,%4\n\tqmtc2.ni %3,%1\n\tvsub.xyzw %0,%2,%1":"=&j"(d),"=&j"(bv),"=&j"(av):"r"(b),"m"(a));
     return d;
 }
+// VU0 helper: length of a vector.
 static inline float Length(qword d){
     qword one;float f;
     __asm__ __volatile__("vmul.xyz %0,%0,%0":"+j"(d));
@@ -1860,36 +1572,32 @@ static inline float Length(qword d){
     __asm__("mtc1 %1,%0":"=f"(f):"r"(d));
     return f;
 }
+// Quadratic weight k0 + d (k1 + d k2).
 static inline float Weight(float distance,const float *k){return k[0]+distance*(k[1]+distance*k[2]);}
-/** @sly2-annot addr=0x2082D0
- * Purpose: STEPGUARD vt88: keep forced target +0x390 if in world; else among detector entries pick: forced
- *   classes (+0x3C0) first, skip ignored classes (+0x3A8), prefer classes +0x394, hysteresis for current
- *   target (+0x38C, CLQ -400+0.8d), rage weighting for guards
- * Info: proposed name PloChooseStepguardTarget (T1); class STEPGUARD slot88; TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" O *PloChooseStepguardTarget(P*p)
+// 0x2082D0: STEPGUARD vtable slot 88 (choose target): keeps the forced target while it is in the world; else picks
+// among the detector's targets, forced classes first, skipping ignored classes, preferring preferred classes, with
+// hysteresis for the current target.
+extern "C" O *ChooseStepguardTarget(P*guard)
 {
     O *best=0;
-    if(p->current&&(((unsigned int)(p->current->flags>>60))&1)){best=p->current;goto done;}
+    if(guard->current&&(((unsigned int)(guard->current->flags>>60))&1)){best=guard->current;goto done;}
     {
         float bestDistance=D_002A886C;
-        U origin;origin.q=GetLoWorldPos(p);
-        for(int i=0;i<p->group->count;i++){
-            ENTRY *entry=&p->group->entries[i];
+        U origin;origin.q=GetLoWorldPos(guard);
+        for(int i=0;i<guard->group->count;i++){
+            ENTRY *entry=&guard->group->entries[i];
             O *candidate=entry->object;
             if(!candidate)continue;
-            if(!entry->available&&(!(p->mode==0x22||p->mode==0x25)||!FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38)))continue;
-            if(func_002089F0(p,candidate))continue;
-            if(func_00208B38(p,candidate))return candidate;
-            qword delta=Sub(origin.q,GetLoWorldPos(candidate));O *previous=p->previous;
+            if(!entry->available&&(!(guard->mode==0x22||guard->mode==0x25)||!FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38)))continue;
+            if(IsStepguardIgnoreClass(guard,candidate))continue;
+            if(IsStepguardForceClass(guard,candidate))return candidate;
+            qword delta=Sub(origin.q,GetLoWorldPos(candidate));O *previous=guard->previous;
             float distance=Length(delta);
             if(candidate==previous)distance=Weight(distance,D_002C3D70);
-            if((p->mode==0x22||p->mode==0x25)&&FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38))distance=Weight(distance,D_002C3D80);
-            if(func_002087E8(p,candidate)){
-                if(best&&!func_002087E8(p,best)){bestDistance=distance;goto take;}
-            }else if(best&&func_002087E8(p,best))continue;
+            if((guard->mode==0x22||guard->mode==0x25)&&FIsBasicDerivedFrom__FP5BASIC3CID(candidate,0x38))distance=Weight(distance,D_002C3D80);
+            if(IsStepguardPreferClass(guard,candidate)){
+                if(best&&!IsStepguardPreferClass(guard,best)){bestDistance=distance;goto take;}
+            }else if(best&&IsStepguardPreferClass(guard,best))continue;
             if(distance<bestDistance){bestDistance=distance;take:best=candidate;}
         }
     }
@@ -1897,100 +1605,77 @@ extern "C" O *PloChooseStepguardTarget(P*p)
 }
 } // namespace M_PloChooseStepguardTarget
 
-// 0x208538 func_00208538
-/** @sly2-annot addr=0x208538
- * Purpose: Splice setter: +0x390 = plo (option getter reads +0x38C)
- * Info: proposed name SetStepguardForcedTarget (T2); TU stepguard
- * Notes: verifier PLAUSIBLE: +0x390 = arg (splice property setter, data ref 0x2AF134); ClearStepguardState
- *   zeroes +0x390. 'Forced target' is not demonstrated. | T2 forced: verifier: role word not supported by the
- *   code
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00208538(STEPGUARD *pstepguard, int n)
+// 0x208538 SetStepguardForcedTarget
+// 0x208538: Splice setter: sets the forced target (+0x390).
+extern "C" void SetStepguardForcedTarget(STEPGUARD *guard, int n)
 {
-    pstepguard->nUnk390 = n;
+    guard->nUnk390 = n;
 }
 
 // 0x208540 SetStepguardTarget
-/** @sly2-annot addr=0x208540
- * Purpose: Change current target +0x38C: leave the old target's shared engagement record +0x3CC, join the new
- *   one's (EnsureGlobalById 0x1F8278 / 0x20A730)
- * Info: proposed name SetStepguardTarget (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#tu_1553f0-0x1553f0-0x1564e8,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x208540: Changes the current target: leaves the old target's shared engagement record and joins (creating if
+// needed) the new one's.
 /* Sets the guard's target, moving the guard from the old target's record (func_001F8278) to the new one's. */
-extern "C" void SetStepguardTarget(STEPGUARD *pstepguard, LO *ploTarget)
+extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
 {
     LO *ploOld;
     TARGETREC *ptargetrec;
-    ploOld = pstepguard->ploTarget;
+    ploOld = guard->ploTarget;
     if (ploTarget != ploOld) {
         if (ploOld != 0) {
-            func_0020A790((TARGETREC *)pstepguard->pvEngage, pstepguard);
-            pstepguard->pvEngage = 0;
+            RemoveTargetRecordGuard((TARGETREC *)guard->pvEngage, guard);
+            guard->pvEngage = 0;
         }
-        pstepguard->ploTarget = ploTarget;
+        guard->ploTarget = ploTarget;
         if (ploTarget != 0) {
             ptargetrec = func_001F8278(ploTarget);
-            pstepguard->pvEngage = ptargetrec;
-            AddTargetRecordGuard(ptargetrec, pstepguard);
+            guard->pvEngage = ptargetrec;
+            AddTargetRecordGuard(ptargetrec, guard);
         }
     }
 }
 
-// 0x2085B0 func_002085B0
-/** @sly2-annot addr=0x2085B0
- * Purpose: 0x2085D0(this,plo,0)
- * Info: proposed name FAddStepguardDetectTargetBack (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_002085B0(STEPGUARD *pstepguard, LO *plo)
+// 0x2085B0 AddStepguardDetectTargetBack
+// 0x2085B0: Adds a detector target in the generated (back) part of the list.
+extern "C" void AddStepguardDetectTargetBack(STEPGUARD *guard, LO *object)
 {
-    FAddStepguardDetectTarget(pstepguard, plo, 0);
+    TryAddStepguardDetectTarget(guard, object, 0);
 }
 
-// 0x2085D0 FAddStepguardDetectTarget
+// 0x2085D0 TryAddStepguardDetectTarget
 namespace M_FAddStepguardDetectTarget {
 struct E; struct T; struct S;
+// Placement new.
 inline void *operator new(unsigned int,void *storage){return storage;}
 struct S;
 struct E { struct S *object; int n4; float t8; int pad; E(S *source,const CLOCK&clock):object(source),n4(0),t8(clock.t){} };
 struct T { char pad[0xFC]; unsigned int c; struct E a[8]; };
-struct S { char pad[0x3A4]; int c3A4; char pad2[0xF64 - 0x3A8]; struct T *pt; };
+struct S { char pad[0x3A4]; int generatedTargetCount; char pad2[0xF64 - 0x3A8]; struct T *pt; };
 extern "C" CLOCK D_002DDED0;
-extern "C" struct E *PdteFindDetectorTarget(struct T *pt, struct S *object);
+extern "C" struct E *FindDetectorTarget(struct T *pt, struct S *object);
 extern "C" void *memmove(void *d, void *s, int n);
 
-/** @sly2-annot addr=0x2085D0
- * Purpose: Insert plo into the detector target list (8 max): fFront appends; else inserts before the
- *   generated tail (+0x3A4), evicting the oldest generated entry when full
- * Info: proposed name FAddStepguardDetectTarget (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" int FAddStepguardDetectTarget(struct S *p, struct S *object, int fFront)
+// 0x2085D0: Inserts an object into the detector's target list (at most eight): `atFront` appends it as a designated
+// target; otherwise it goes before the generated tail, evicting the oldest generated entry when full.
+extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, int fFront)
 {
     struct E *e;
     struct T *pt;
     register unsigned int n __asm__("$16");
-    if (!object || object == p)
+    if (!object || object == guard)
         return 0;
     e = 0;
     if (!fFront)
-        e = PdteFindDetectorTarget(p->pt, object);
+        e = FindDetectorTarget(guard->pt, object);
     if (!e) {
-        pt = p->pt;
+        pt = guard->pt;
         n = pt->c;
         if (n >= 8) {
             int c;
             if (!fFront) {
-                c = p->c3A4;
+                c = guard->generatedTargetCount;
                 if (c > 0) {
-                    p->c3A4 = c - 1;
+                    guard->generatedTargetCount = c - 1;
                     n=8; n-=c; n*=16; n+=0x100;
                     e=(struct E*)((char*)pt+n);
                     memmove(e + 1, e, (c - 1) * 16);
@@ -2002,14 +1687,14 @@ extern "C" int FAddStepguardDetectTarget(struct S *p, struct S *object, int fFro
                 register unsigned int offset __asm__("$2")=n*16+0x100;
                 e=(struct E*)((char*)pt+offset);
             } else {
-                int c = p->c3A4;
+                int c = guard->generatedTargetCount;
                 n-=c; n*=16; n+=0x100;
                 e=(struct E*)((char*)pt+n);
                 memmove(e + 1, e, c * 16);
             }
         fill:
             new(e) E(object,D_002DDED0);
-            p->pt->c++;
+            guard->pt->c++;
             return 1;
         }
     }
@@ -2017,277 +1702,201 @@ extern "C" int FAddStepguardDetectTarget(struct S *p, struct S *object, int fFro
 }
 } // namespace M_FAddStepguardDetectTarget
 
-// 0x208700 func_00208700
+// 0x208700 AddStepguardPreferClass
 namespace M_func_00208700 { extern "C" {
 struct S;
-struct S { char pad[0x394]; unsigned int c; int a[3]; };
-/** @sly2-annot addr=0x208700
- * Purpose: Append cid to +0x394 list (max 3)
- * Info: proposed name AddStepguardPreferClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208700(struct S *p, int n) { unsigned int c = p->c; if (c < 3) { int *pn = &p->a[c]; p->c = c + 1; *pn = n; } }
+struct S { char pad[0x394]; unsigned int classCount; int classes[3]; };
+// 0x208700: Adds a class to the preferred-class list (at most 3).
+void AddStepguardPreferClass(struct S *guard, int cid) { unsigned int c = guard->classCount; if (c < 3) { int *pn = &guard->classes[c]; guard->classCount = c + 1; *pn = cid; } }
 } } // namespace M_func_00208700
 
-// 0x208728 func_00208728
+// 0x208728 RemoveStepguardPreferClass
 namespace M_func_00208728 { extern "C" {
 struct S;
-struct S { char pad[0x394]; int n; int a[1]; };
+struct S { char pad[0x394]; int classCount; int classes[1]; };
 void *memmove(void *d, void *s, int n);
-/** @sly2-annot addr=0x208728
- * Purpose: Remove cid from +0x394 list
- * Info: proposed name RemoveStepguardPreferClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208728(struct S *p, int x)
+// 0x208728: Removes a class from the preferred-class list.
+void RemoveStepguardPreferClass(struct S *guard, int cid)
 {
     int i;
-    for (i = 0; i < p->n; i++) {
-        if (p->a[i] == x) {
-            memmove(p->a + i, p->a + i + 1, (p->n - i) * 4 - 4);
-            p->n--;
+    for (i = 0; i < guard->classCount; i++) {
+        if (guard->classes[i] == cid) {
+            memmove(guard->classes + i, guard->classes + i + 1, (guard->classCount - i) * 4 - 4);
+            guard->classCount--;
         }
     }
 }
 } } // namespace M_func_00208728
 
-// 0x2087C8 func_002087C8
-/** @sly2-annot addr=0x2087C8
- * Purpose: Drop generated detector entries and clear prefer list
- * Info: proposed name ClearStepguardGeneratedTargets (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x2087C8 ClearStepguardGeneratedTargets
+// 0x2087C8: Drops the generated detector targets and clears the preferred-class list.
 /* Takes the guard's contribution back out of its detector's total. */
-extern "C" void func_002087C8(STEPGUARD *pstepguard)
+extern "C" void ClearStepguardGeneratedTargets(STEPGUARD *guard)
 {
-    DETECTOR *pdetector;
-    pdetector = pstepguard->pdetector;
-    pdetector->cUnkFC = pdetector->cUnkFC - pstepguard->cUnk3A4;
-    pstepguard->nUnk394 = 0;
-    pstepguard->cUnk3A4 = 0;
+    DETECTOR *detector;
+    detector = guard->pdetector;
+    detector->cUnkFC = detector->cUnkFC - guard->cUnk3A4;
+    guard->nUnk394 = 0;
+    guard->cUnk3A4 = 0;
 }
 
-// 0x2087E8 func_002087E8
+// 0x2087E8 IsStepguardPreferClass
 namespace M_func_002087E8 { extern "C" {
 struct S;
-struct S { char pad[0x394]; int c; int a[1]; };
+struct S { char pad[0x394]; int classCount; int classes[1]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-/** @sly2-annot addr=0x2087E8
- * Purpose: plo derives from a cid in +0x394
- * Info: proposed name FStepguardPreferClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_002087E8(struct S *p, void *o)
+// 0x2087E8: True if the object derives from a preferred class.
+int IsStepguardPreferClass(struct S *guard, void *object)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(o, p->a[i])) return 1;
+    for (i = 0; i < guard->classCount; i++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
 } } // namespace M_func_002087E8
 
-// 0x208860 func_00208860
+// 0x208860 RemoveStepguardDetectTarget
 namespace M_func_00208860 { extern "C" {
 struct QW; struct O; struct S;
 typedef struct QW { int a[4]; } QW;
 struct O { char pad[0xFC]; int c; QW a[1]; };
 struct S { char pad[0x3A4]; int n; char p2[0xF64 - 0x3A8]; struct O *o; };
-QW *PdteFindDetectorTarget(struct O *o);
+QW *FindDetectorTarget(struct O *o);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-/** @sly2-annot addr=0x208860
- * Purpose: Remove a non-generated detector entry (compact)
- * Info: proposed name RemoveStepguardDetectTarget (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208860(struct S *p)
+// 0x208860: Removes a designated (non-generated) detector target, compacting the list.
+void RemoveStepguardDetectTarget(struct S *guard)
 {
-    QW *pq = PdteFindDetectorTarget(p->o);
-    struct O *o = p->o;
+    QW *pq = FindDetectorTarget(guard->o);
+    struct O *o = guard->o;
     int c = o->c;
-    QW *pqEnd = &o->a[c - p->n];
+    QW *pqEnd = &o->a[c - guard->n];
     if (pq && pq < pqEnd) {
         int i;
         o->c = c - 1;
         i = pq - o->a;
-        CopyAb__FPvT0Ui(pq, pq + 1, (p->o->c - i) * 16);
+        CopyAb__FPvT0Ui(pq, pq + 1, (guard->o->c - i) * 16);
     }
 }
 } } // namespace M_func_00208860
 
-// 0x2088E0 func_002088E0
-/** @sly2-annot addr=0x2088E0
- * Purpose: Detector count=0, clear +0x394/+0x3A4/+0x3A8/+0x3C0
- * Info: proposed name ClearStepguardTargetLists (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_002088E0(STEPGUARD *pstepguard)
+// 0x2088E0 ClearStepguardTargetLists
+// 0x2088E0: Clears the detector targets and the preferred, generated, ignored and forced lists.
+extern "C" void ClearStepguardTargetLists(STEPGUARD *guard)
 {
-    pstepguard->pdetector->cUnkFC = 0;
-    pstepguard->nUnk394 = 0;
-    pstepguard->cUnk3A4 = 0;
-    func_002089E8(pstepguard);
-    func_00208B30(pstepguard);
+    guard->pdetector->cUnkFC = 0;
+    guard->nUnk394 = 0;
+    guard->cUnk3A4 = 0;
+    ClearStepguardIgnoreClasses(guard);
+    ClearStepguardForceClasses(guard);
 }
 
-// 0x208920 func_00208920
+// 0x208920 AddStepguardIgnoreClass
 namespace M_func_00208920 { extern "C" {
 struct S;
-struct S { char pad[0x3A8]; unsigned int c; int a[5]; };
-/** @sly2-annot addr=0x208920
- * Purpose: Append cid to +0x3A8 list (max 5)
- * Info: proposed name AddStepguardIgnoreClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208920(struct S *p, int n) { if (p->c < 5) p->a[p->c++] = n; }
+struct S { char pad[0x3A8]; unsigned int classCount; int classes[5]; };
+// 0x208920: Adds a class to the ignored-class list (at most 5).
+void AddStepguardIgnoreClass(struct S *guard, int cid) { if (guard->classCount < 5) guard->classes[guard->classCount++] = cid; }
 } } // namespace M_func_00208920
 
-// 0x208948 func_00208948
+// 0x208948 RemoveStepguardIgnoreClass
 namespace M_func_00208948 { extern "C" {
 struct S;
-struct S { char pad[0x3A8]; int n; int a[1]; };
+struct S { char pad[0x3A8]; int classCount; int classes[1]; };
 void *memmove(void *d, void *s, int n);
-/** @sly2-annot addr=0x208948
- * Purpose: Remove cid from +0x3A8
- * Info: proposed name RemoveStepguardIgnoreClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208948(struct S *p, int x)
+// 0x208948: Removes a class from the ignored-class list.
+void RemoveStepguardIgnoreClass(struct S *guard, int cid)
 {
     int i;
-    for (i = 0; i < p->n; i++) {
-        if (p->a[i] == x) {
-            memmove(p->a + i, p->a + i + 1, (p->n - i) * 4 - 4);
-            p->n--;
+    for (i = 0; i < guard->classCount; i++) {
+        if (guard->classes[i] == cid) {
+            memmove(guard->classes + i, guard->classes + i + 1, (guard->classCount - i) * 4 - 4);
+            guard->classCount--;
         }
     }
 }
 } } // namespace M_func_00208948
 
-// 0x2089E8 func_002089E8
-/** @sly2-annot addr=0x2089E8
- * Purpose: +0x3A8 count = 0
- * Info: proposed name ClearStepguardIgnoreClasses (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_002089E8(STEPGUARD *pstepguard)
+// 0x2089E8 ClearStepguardIgnoreClasses
+// 0x2089E8: Clears the ignored-class list.
+extern "C" void ClearStepguardIgnoreClasses(STEPGUARD *guard)
 {
-    pstepguard->nUnk3A8 = 0;
+    guard->nUnk3A8 = 0;
 }
 
-// 0x2089F0 func_002089F0
+// 0x2089F0 IsStepguardIgnoreClass
 namespace M_func_002089F0 { extern "C" {
 struct S;
-struct S { char pad[0x3A8]; int c; int a[1]; };
+struct S { char pad[0x3A8]; int classCount; int classes[1]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-/** @sly2-annot addr=0x2089F0
- * Purpose: plo derives from a cid in +0x3A8
- * Info: proposed name FStepguardIgnoreClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_002089F0(struct S *p, void *o)
+// 0x2089F0: True if the object derives from an ignored class.
+int IsStepguardIgnoreClass(struct S *guard, void *object)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(o, p->a[i])) return 1;
+    for (i = 0; i < guard->classCount; i++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
 } } // namespace M_func_002089F0
 
-// 0x208A68 func_00208A68
+// 0x208A68 AddStepguardForceClass
 namespace M_func_00208A68 { extern "C" {
 struct S;
-struct S { char pad[0x3C0]; unsigned int c; int a[2]; };
-/** @sly2-annot addr=0x208A68
- * Purpose: Append cid to +0x3C0 list (max 2)
- * Info: proposed name AddStepguardForceClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208A68(struct S *p, int n) { if (p->c < 2) p->a[p->c++] = n; }
+struct S { char pad[0x3C0]; unsigned int classCount; int classes[2]; };
+// 0x208A68: Adds a class to the forced-class list (at most 2).
+void AddStepguardForceClass(struct S *guard, int cid) { if (guard->classCount < 2) guard->classes[guard->classCount++] = cid; }
 } } // namespace M_func_00208A68
 
-// 0x208A90 func_00208A90
+// 0x208A90 RemoveStepguardForceClass
 namespace M_func_00208A90 { extern "C" {
 struct S;
-struct S { char pad[0x3C0]; int n; int a[1]; };
+struct S { char pad[0x3C0]; int classCount; int classes[1]; };
 void *memmove(void *d, void *s, int n);
-/** @sly2-annot addr=0x208A90
- * Purpose: Remove cid from +0x3C0
- * Info: proposed name RemoveStepguardForceClass (T2); TU stepguard
- * Notes: names_v2 C proposed UpdateBusyLasenSenseTimes__Fv (0.438)
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00208A90(struct S *p, int x)
+// 0x208A90: Removes a class from the forced-class list.
+void RemoveStepguardForceClass(struct S *guard, int cid)
 {
     int i;
-    for (i = 0; i < p->n; i++) {
-        if (p->a[i] == x) {
-            memmove(p->a + i, p->a + i + 1, (p->n - i) * 4 - 4);
-            p->n--;
+    for (i = 0; i < guard->classCount; i++) {
+        if (guard->classes[i] == cid) {
+            memmove(guard->classes + i, guard->classes + i + 1, (guard->classCount - i) * 4 - 4);
+            guard->classCount--;
         }
     }
 }
 } } // namespace M_func_00208A90
 
-// 0x208B30 func_00208B30
-/** @sly2-annot addr=0x208B30
- * Purpose: +0x3C0 count = 0
- * Info: proposed name ClearStepguardForceClasses (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00208B30(STEPGUARD *pstepguard)
+// 0x208B30 ClearStepguardForceClasses
+// 0x208B30: Clears the forced-class list.
+extern "C" void ClearStepguardForceClasses(STEPGUARD *guard)
 {
-    pstepguard->nUnk3C0 = 0;
+    guard->nUnk3C0 = 0;
 }
 
-// 0x208B38 func_00208B38
+// 0x208B38 IsStepguardForceClass
 namespace M_func_00208B38 { extern "C" {
 struct S;
-struct S { char pad[0x3C0]; int c; int a[1]; };
+struct S { char pad[0x3C0]; int classCount; int classes[1]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-/** @sly2-annot addr=0x208B38
- * Purpose: plo derives from a cid in +0x3C0
- * Info: proposed name FStepguardForceClass (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_00208B38(struct S *p, void *o)
+// 0x208B38: True if the object derives from a forced class.
+int IsStepguardForceClass(struct S *guard, void *object)
 {
     int i;
-    for (i = 0; i < p->c; i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(o, p->a[i])) return 1;
+    for (i = 0; i < guard->classCount; i++) {
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, guard->classes[i])) return 1;
     }
     return 0;
 }
 } } // namespace M_func_00208B38
 
-// 0x208BB0 func_00208BB0
+// 0x208BB0 GetRandomStepguardDelay
 namespace M_func_00208BB0 { extern "C" {
 float GRandInRange__Fff(float a, float b);
-/** @sly2-annot addr=0x208BB0
- * Purpose: GRandInRange(5,7)
- * Info: proposed name GRandStepguardDelay (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-float func_00208BB0(void) { return GRandInRange__Fff(5.0f, 7.0f); }
+// 0x208BB0: Returns a random delay of 5..7 seconds.
+float GetRandomStepguardDelay(void) { return GRandInRange__Fff(5.0f, 7.0f); }
 } } // namespace M_func_00208BB0
 
-// 0x208BE0 FStepguardSenseStimulus
+// 0x208BE0 CanStepguardSenseStimulus
 namespace M_FStepguardSenseStimulus {
 struct L; struct T; struct F64; struct S2; struct O;
 typedef int qword __attribute__((mode(TI)));
@@ -2298,33 +1907,27 @@ struct O;
 struct S2 { char pad[0xEC]; void *pEC; char pad2[0xE68 - 0xF0]; int nE68; char pad3[0xF64 - 0xE6C]; F64 *pF64; };
 struct O { char pad[0x14]; T *pt; char pad1[0x20 - 0x18]; qword pos; char pad2[0x40 - 0x30]; S2 *p40; void *p44; char pad3[0x54 - 0x48]; int k54; };
 extern "C" {
-int FStepguardSensesEnabled(S2 *p);
-void *PdteFindDetectorTarget(F64 *p, void *x);
+int AreStepguardSensesEnabled(S2 *p);
+void *FindDetectorTarget(F64 *p, void *x);
 qword GetLoWorldPos(void *p);
-int func_00156918(O *o, qword q);
+int IsPositionInNoise(O *o, qword q);
 int FCheckVolPoint(L *pl, qword q);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, void *phit);
 void ShouldKeepSoNotSelf();
 extern char D_003DD490[];
-int FStepguardSenseStimulus(S2 *p, O *o);
+int CanStepguardSenseStimulus(S2 *p, O *o);
 }
 
-/** @sly2-annot addr=0x208BE0
- * Purpose: STEPGUARD vt89: can this guard perceive stimulus o (noise TU objects): senses enabled, level >=
- *   +0xE68, not own; kind 0 radius test (0x156918), kind 1 inner volume of detector + clear line
- *   (PsoHitTestLineObjects)
- * Info: proposed name FStepguardSenseStimulus (T1); class STEPGUARD slot89; TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#tu_1cbeb0-0x1cbeb0-0x1cc158,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int FStepguardSenseStimulus(S2 *p, O *o)
+// 0x208BE0: STEPGUARD vtable slot 89 (sense a stimulus): senses enabled, the stimulus loud enough (>= +0xE68) and
+// not its own; kind 0 noises by range test, kind 1 inside the detector's near volume with a clear line, and so on
+// per kind.
+int CanStepguardSenseStimulus(S2 *p, O *o)
 {
     int k;
     T *pt;
     qword pos, tpos;
-    if (!FStepguardSensesEnabled(p))
+    if (!AreStepguardSensesEnabled(p))
         return 0;
     if (o->k54 < p->nE68)
         return 0;
@@ -2332,7 +1935,7 @@ int FStepguardSenseStimulus(S2 *p, O *o)
         return 0;
     if (o->k54 == 4) {
         void *x = o->p44;
-        void *e = PdteFindDetectorTarget(p->pF64, x);
+        void *e = FindDetectorTarget(p->pF64, x);
         if (x != p && !e)
             return 0;
     }
@@ -2341,7 +1944,7 @@ int FStepguardSenseStimulus(S2 *p, O *o)
     tpos = o->pos;
     switch (pt->k) {
     case 0:
-        return func_00156918(o, GetLoWorldPos(p));
+        return IsPositionInNoise(o, GetLoWorldPos(p));
     case 1: {
         L *pl = p->pF64->pl;
         if (!pl || ((pl->fl28 >> 60) & 1) == 0)
@@ -2362,26 +1965,20 @@ int FStepguardSenseStimulus(S2 *p, O *o)
 }
 } // namespace M_FStepguardSenseStimulus
 
-// 0x208D70 FStepguardSensesEnabled
+// 0x208D70 AreStepguardSensesEnabled
 namespace M_FStepguardSensesEnabled { extern "C" {
 struct S;
-struct S { char pad[0x2C0]; long fl; char pad2[0xE64 - 0x2C8]; int nE64; };
-long GrfFromSgf(int n);
-/** @sly2-annot addr=0x208D70
- * Purpose: +0xE64 unless any of flags {0xB,0x1D,7,5,6,0x10,1,0x16,0x2A} is set
- * Info: proposed name FStepguardSensesEnabled (T1); TU stepguard
- * Notes: names_v2 C proposed SetCamsenCsdts__FP6CAMSEN5CSDTS (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7b_guard
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int FStepguardSensesEnabled(struct S *p)
+struct S { char pad[0x2C0]; long fl; char pad2[0xE64 - 0x2C8]; int sensesEnabled; };
+long GetSgfMask(int n);
+// 0x208D70: True if the guard's senses are on (+0xE64) and none of the flags that blind it (alerted, hurt, dead,
+// stunned, thrown, ...) is set.
+int AreStepguardSensesEnabled(struct S *guard)
 {
-    long m = GrfFromSgf(0xB) | GrfFromSgf(0x1D) | GrfFromSgf(7) | GrfFromSgf(5) | GrfFromSgf(6)
-           | GrfFromSgf(0x10) | GrfFromSgf(1) | GrfFromSgf(0x16) | GrfFromSgf(0x2A);
-    if (m & p->fl)
+    long m = GetSgfMask(0xB) | GetSgfMask(0x1D) | GetSgfMask(7) | GetSgfMask(5) | GetSgfMask(6)
+           | GetSgfMask(0x10) | GetSgfMask(1) | GetSgfMask(0x16) | GetSgfMask(0x2A);
+    if (m & guard->fl)
         return 0;
-    return p->nE64;
+    return guard->sensesEnabled;
 }
 } } // namespace M_FStepguardSensesEnabled
 
@@ -2393,50 +1990,42 @@ struct L { char pad[0x28]; unsigned long fl28; };
 struct Y { char pad[0x50]; void *p50; char pad2[0x5C - 0x54]; void *p5C; };
 struct X { char pad[0x10DC]; void *p10DC; int pad2; int n10E4; char pad3[0x10F0 - 0x10E8]; int n10F0; };
 struct S {
-    char pad0[0x2C0]; unsigned long fl2C0; char pad1[0x364 - 0x2C8]; int n364; char a368[8]; char a370[8]; float f378; int n37C;
-    char a380[8]; float f388; void *p38C; char pad2[0x3F4 - 0x390]; struct L *p3F4; struct L *p3F8;
+    char pad0[0x2C0]; unsigned long guardFlags; char pad1[0x364 - 0x2C8]; int unknown364; char closeAngleRangeHeld[8]; char closeAngleRange[8]; float closeRange; int canInteract;
+    char interactAngleRange[8]; float interactRange; void *target; char pad2[0x3F4 - 0x390]; struct L *pickpocketIndicator0; struct L *pickpocketIndicator1;
 };
 extern float D_002C3D90;
 extern float D_002C3D94;
 void GetHeroInteractDistance(struct X *x, struct S *p, void *pv, float *pd, float *pa);
-unsigned long GrfFromSgf(int n);
-int FStepguardHasSgf(struct S *p, int n);
+unsigned long GetSgfMask(int n);
+int StepguardHasSgf(struct S *p, int n);
 struct Y *func_00205458(struct S *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *po, int n);
 qword GetLoWorldPos(void *p);
 int FCheckVolPoint(struct L *pl, qword q);
 int FCheckLm__FP2LMf(void *p, float f);
 
-/** @sly2-annot addr=0x208E70
- * Purpose: Rank how the hero can interact with this guard: 4 engaged with hero, 3 hero in pickpocket glint
- *   volume (+0x3F4/+0x3F8), 2 close (d<=0.7*f378, dz in LM +0x370/+0x368), 1 in range (d<=+0x388, dz in LM
- *   +0x380), 0
- * Info: proposed name GuardEvalInteractMode (T1); TU stepguard
- * Notes: names_v2 C proposed UpdatePrsen__FP5PRSENf (0.380)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7b_guard
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
-int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
+// 0x208E70: Ranks how the hero can interact with this guard: 4 the guard is engaged with (attacking, hurt by,
+// holding) the hero, 3 the hero is inside a pickpocket glint volume, 2 close (distance and angle window), 1 in
+// interaction range, 0 none. Also returns the distance through `pout`.
+int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
 {
     float d, ang;
     void *o;
     struct L *pl;
     void *pv;
-    GetHeroInteractDistance(x, p, &x->p10DC, &d, &ang);
+    GetHeroInteractDistance(x, guard, &x->p10DC, &d, &ang);
     if (pout)
         *pout = d;
-    if (!(p->fl2C0 & GrfFromSgf(1))) {
-        if (p->n364 && x->n10F0) {
-            if (FStepguardHasSgf(p, 0x1D))
-                o = p->p38C;
-            else if (FStepguardHasSgf(p, 5))
-                o = func_00205458(p, 0xA1)->p50;
-            else if (FStepguardHasSgf(p, 6))
-                o = func_00205458(p, 0xA2)->p50;
-            else if (FStepguardHasSgf(p, 0x17)) {
-                o = func_00205458(p, 0xB1)->p5C;
+    if (!(guard->guardFlags & GetSgfMask(1))) {
+        if (guard->unknown364 && x->n10F0) {
+            if (StepguardHasSgf(guard, 0x1D))
+                o = guard->target;
+            else if (StepguardHasSgf(guard, 5))
+                o = func_00205458(guard, 0xA1)->p50;
+            else if (StepguardHasSgf(guard, 6))
+                o = func_00205458(guard, 0xA2)->p50;
+            else if (StepguardHasSgf(guard, 0x17)) {
+                o = func_00205458(guard, 0xB1)->p5C;
                 if (o == x)
                     *pout += D_002C3D90;
             } else
@@ -2448,49 +2037,37 @@ int GuardEvalInteractMode(struct S *p, struct X *x, float *pout)
                     return 4;
             }
         }
-        if (p == x->p10DC && x->n10E4 == 3)
-            pl = p->p3F8;
+        if (guard == x->p10DC && x->n10E4 == 3)
+            pl = guard->pickpocketIndicator1;
         else
-            pl = p->p3F4;
+            pl = guard->pickpocketIndicator0;
         if (pl && !!((pl->fl28 >> 60) & 1) && FCheckVolPoint(pl, GetLoWorldPos(x)))
             return 3;
     }
-    pv = FStepguardHasSgf(p, 0x17) ? p->a368 : p->a370;
-    if (d <= p->f378 * D_002C3D94 && FCheckLm__FP2LMf(pv, ang) && p->n364)
+    pv = StepguardHasSgf(guard, 0x17) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
+    if (d <= guard->closeRange * D_002C3D94 && FCheckLm__FP2LMf(pv, ang) && guard->unknown364)
         return 2;
-    if (d <= p->f388 && FCheckLm__FP2LMf(p->a380, ang) && p->n37C)
+    if (d <= guard->interactRange && FCheckLm__FP2LMf(guard->interactAngleRange, ang) && guard->canInteract)
         return 1;
     return 0;
 }
 } } // namespace M_GuardEvalInteractMode
 
-// 0x209098 func_00209098
+// 0x209098 IsStepguardHandsOff
 namespace M_func_00209098 { extern "C" {
 struct S;
 struct G;
 extern struct G D_003DD490;
 struct S { char pad[0xFC8]; int n; };
 int IsSwInputLocked(struct G *p);
-/** @sly2-annot addr=0x209098
- * Purpose: +0xFC8 or FSwInputLock(g_sw)
- * Info: proposed name FStepguardHandsOff (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_00209098(struct S *p) { if (p->n != 0) return 1; return IsSwInputLocked(&D_003DD490); }
+// 0x209098: True while the guard is hands-off (+0xFC8) or world input is locked.
+int IsStepguardHandsOff(struct S *guard) { if (guard->n != 0) return 1; return IsSwInputLocked(&D_003DD490); }
 } } // namespace M_func_00209098
 
 // 0x2090D0 ReleaseAnimBinding
-/** @sly2-annot addr=0x2090D0
- * Purpose: Free kind-2/3 payload objects (0x20C030/0x20CA20) and mark binding empty (-1)
- * Info: proposed name ReleaseAnimBinding (T1); TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x2090D0: Releases an animation binding: frees its kind-2/3 payload and marks it empty (-1).
 /* Releases the binding's handle by kind (2 or 3) and marks the binding empty. */
-extern "C" void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *pstepguard)
+extern "C" void ReleaseAnimBinding(ANIMBINDING *pbinding, STEPGUARD *guard)
 {
     int kind;
     kind = pbinding->kind;
@@ -2530,15 +2107,8 @@ struct MARKER *func_0012F938(void *, int);
 struct H *AllocLeap(int);
 void InitAsegArc(struct H *);
 
-/** @sly2-annot addr=0x209130
- * Purpose: Resolve oid -> ASEG (cid 0x6D; kind 2 wrapper if it has label 0x22) or SM (cid 0x6F, kind 1); else
- *   -1
- * Info: proposed name ResolveAnimBinding (T1); TU stepguard
- * Notes: names_v2 C proposed SetPrsenSensors__FP5PRSEN7SENSORS (0.181)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7b_guard
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x209130: Resolves a binding's oid: an ASEG (cid 0x6D; kind 2 if it has label 0x22) or an SM (cid 0x6F, kind 1);
+// else empty.
 void ResolveAnimBinding(struct E *e, void *context)
 {
     void *resource;
@@ -2597,13 +2167,7 @@ void PsmaApplySmOut(int h, char *p, int a, int fl, struct O **ppo);
 void StartLeap(int h, char *p, int fl, struct O *po);
 void StartDirAnim(int h, char *p, int fl, struct O *po);
 #define VC1(o) ((void (*)(void *))(o)->vt[1].pfn)((char *)(o) + (o)->vt[1].d)
-/** @sly2-annot addr=0x209278
- * Purpose: Start the bound animation: ASEG apply (ApplyAsegOvr 0x12F9B8), SM -> SMA (0x1F0198), kind 2 at
- *   +0xDB0, kind 3 at +0xE20
- * Info: proposed name StartAnimBinding (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x209278: Starts the bound animation: applies the ASEG, makes an SMA for an SM, or starts the kind-2/3 payload.
 void StartAnimBinding(struct E *pe, char *p, int fl, float g)
 {
     switch (pe->k) {
@@ -2642,12 +2206,7 @@ void func_001F0598(struct O *po);
 void StopLeap(struct O *po);
 void StopDirAnim(struct O *po);
 #define VDEL(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
-/** @sly2-annot addr=0x209360
- * Purpose: Stop/release the running instance per kind (RetractAsega, RetractSma, ...) and Decref
- * Info: proposed name StopAnimBinding (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x209360: Stops the running animation instance per kind (retract the ASEGA or SMA, ...) and drops it.
 void StopAnimBinding(struct S *p)
 {
     switch (p->k) {
@@ -2685,7 +2244,7 @@ void StopAnimBinding(struct S *p)
 }
 } } // namespace M_StopAnimBinding
 
-// 0x209430 FAnimBindingDone
+// 0x209430 IsAnimBindingDone
 namespace M_FAnimBindingDone { extern "C" {
 struct O; struct E;
 struct O { char pad[0x30]; int n30; };
@@ -2694,13 +2253,8 @@ int FAsegaRetracted(struct O *po);
 int FSmaRetracted(struct O *po);
 int IsLeapDone(struct O *po);
 int IsDirAnimStopped(struct O *po);
-/** @sly2-annot addr=0x209430
- * Purpose: True if the running instance finished/retracted (or none)
- * Info: proposed name FAnimBindingDone (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int FAnimBindingDone(struct E *pe)
+// 0x209430: True if the binding's animation instance finished or was retracted (or none is running).
+int IsAnimBindingDone(struct E *pe)
 {
     int f;
     switch (pe->k) {
@@ -2733,7 +2287,7 @@ int FAnimBindingDone(struct E *pe)
 }
 } } // namespace M_FAnimBindingDone
 
-// 0x209518 func_00209518
+// 0x209518 GetAnimBindingInstance
 namespace M_func_00209518 { extern "C" {
 struct B; struct S;
 struct ANIMATION;
@@ -2747,13 +2301,8 @@ struct B {
 };
 struct S { int n; int a; struct B *pb; };
 
-/** @sly2-annot addr=0x209518
- * Purpose: Return the animation instance pointer for a binding kind
- * Info: proposed name PasegaFromAnimBinding (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-struct ANIMATION *func_00209518(struct S *p)
+// 0x209518: Returns the binding's running animation instance for its kind.
+struct ANIMATION *GetAnimBindingInstance(struct S *p)
 {
     switch (p->n) {
     case 0: return (struct ANIMATION *)p->pb;
@@ -2765,20 +2314,15 @@ struct ANIMATION *func_00209518(struct S *p)
 }
 } } // namespace M_func_00209518
 
-// 0x209590 func_00209590
+// 0x209590 CloneAnimBinding
 namespace M_func_00209590 { extern "C" {
 struct S;
 struct S { int k; void *pv; };
 void *AllocLeap(int cb);
 void *AllocDirAnim(int cb);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
-/** @sly2-annot addr=0x209590
- * Purpose: Deep-copy kind-2 (0x40) / kind-3 (0xD0) payloads
- * Info: proposed name CloneAnimBinding (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00209590(struct S *p)
+// 0x209590: Deep-copies a binding's kind-2 (0x40) or kind-3 (0xD0) payload.
+void CloneAnimBinding(struct S *p)
 {
     void *pv;
     switch (p->k) {
@@ -2796,7 +2340,7 @@ void func_00209590(struct S *p)
 }
 } } // namespace M_func_00209590
 
-// 0x209618 func_00209618
+// 0x209618 DriveStepguardFromAnim
 namespace M_func_00209618 { extern "C" {
 struct E; struct A; struct B; struct Entry; union FLOATWORD; struct Param; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -2812,14 +2356,9 @@ extern qword D_002A2DD0;
 qword func_00204E38(struct S *, struct E *, float);
 qword func_00204ED8(struct S *, struct E *, float);
 void UpdateLeap(struct B *);
-/** @sly2-annot addr=0x209618
- * Purpose: Set desired velocity +0x190 (= -translation*scale) and angular +0x1E0 from the binding's
- *   ASEG/object (VecStepAsegaTranslation/Rotation)
- * Info: proposed name DriveStepguardFromAnim (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00209618(struct Entry *entry, struct S *s)
+// 0x209618: Drives the guard from its animation: sets the desired velocity and angular velocity from the binding's
+// root motion.
+void DriveStepguardFromAnim(struct Entry *entry, struct S *s)
 {
     U factor, value;
     register qword scalar __asm__("vf1");
@@ -2882,67 +2421,42 @@ void func_00209618(struct Entry *entry, struct S *s)
 }
 } } // namespace M_func_00209618
 
-// 0x209768 func_00209768
-/** @sly2-annot addr=0x209768
- * Purpose: mover(+0xFD0)->owner(+0xC) = guard
- * Info: proposed name InitStepguardMover (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00209768(GUARDMOVER *pmover, STEPGUARD *pstepguard)
+// 0x209768 InitStepguardMover
+// 0x209768: Initializes the guard's mover (+0xFD0): owner = guard.
+extern "C" void InitStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
 {
-    pmover->pstepguard = pstepguard;
+    pmover->pstepguard = guard;
 }
 
-// 0x209770 func_00209770
-/** @sly2-annot addr=0x209770
- * Purpose: mover->owner = guard
- * Info: proposed name CloneStepguardMover (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00209770(GUARDMOVER *pmover, STEPGUARD *pstepguard)
+// 0x209770 CloneStepguardMover
+// 0x209770: Clone fix-up of the mover: owner = guard.
+extern "C" void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
 {
-    pmover->pstepguard = pstepguard;
+    pmover->pstepguard = guard;
 }
 
-// 0x209778 func_00209778
+// 0x209778 ClearStepguardMover
 namespace M_func_00209778 { extern "C" {
-/** @sly2-annot addr=0x209778
- * Purpose: zero mover words 0..2
- * Info: proposed name ClearStepguardMover (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00209778(int *p) { p[0] = 0; p[1] = 0; p[2] = 0; }
+// 0x209778: Clears the mover (driver, lock, third word).
+void ClearStepguardMover(int *p) { p[0] = 0; p[1] = 0; p[2] = 0; }
 } } // namespace M_func_00209778
 
-// 0x209788 func_00209788
-/** @sly2-annot addr=0x209788
- * Purpose: mover[0] = driver object
- * Info: proposed name SetStepguardMoverDriver (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00209788(int *pn, int n)
+// 0x209788 SetStepguardMoverDriver
+// 0x209788: Sets the mover's driver: the behaviour whose motion update moves the guard.
+extern "C" void SetStepguardMoverDriver(int *pn, int n)
 {
     *pn = n;
 }
 
-// 0x209790 func_00209790
-/** @sly2-annot addr=0x209790
- * Purpose: clear driver/lock, zero owner's desired velocity +0x190, 0x1F5078
- * Info: proposed name ResetStepguardMover (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00209790(GUARDMOVER *pmover)
+// 0x209790 ResetStepguardMover
+// 0x209790: Resets the mover: no driver, unlocked, zero desired velocity.
+extern "C" void ResetStepguardMover(GUARDMOVER *pmover)
 {
-    STEPGUARD *pstepguard;
+    STEPGUARD *guard;
     pmover->n0 = 0;
-    pstepguard = pmover->pstepguard;
+    guard = pmover->pstepguard;
     pmover->fLocked = 0;
-    VECTOR *pv = &pstepguard->vUnk190;
+    VECTOR *pv = &guard->vUnk190;
     pv->z = 0.0f;
     pv->y = 0.0f;
     pv->x = 0.0f;
@@ -2950,52 +2464,30 @@ extern "C" void func_00209790(GUARDMOVER *pmover)
 }
 
 // 0x2097C8 LockStepguardMover
-/** @sly2-annot addr=0x2097C8
- * Purpose: mover[1] = 1 (heading locked)
- * Info: proposed name LockStepguardMover (T1); TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x2097C8: Locks the mover's heading.
 extern "C" void LockStepguardMover(GUARDMOVER *pmover)
 {
     pmover->fLocked = 1;
 }
 
-// 0x2097D8 func_002097D8
-/** @sly2-annot addr=0x2097D8
- * Purpose: mover[1] = 0
- * Info: proposed name UnlockStepguardMover (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_002097D8(GUARDMOVER *pmover)
+// 0x2097D8 UnlockStepguardMover
+// 0x2097D8: Unlocks the mover's heading.
+extern "C" void UnlockStepguardMover(GUARDMOVER *pmover)
 {
     pmover->fLocked = 0;
 }
 
-// 0x2097E0 func_002097E0
+// 0x2097E0 UpdateStepguardMover
 namespace M_func_002097E0 { extern "C" {
 struct VTE; struct O;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { int a, b, c; struct VTE *vt; };
-/** @sly2-annot addr=0x2097E0
- * Purpose: call driver vt11
- * Info: proposed name UpdateStepguardMover (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_002097E0(struct O **pp) { struct O *o = *pp; if (o) { struct VTE *e = &o->vt[11]; e->pfn((char *)o + e->d); } }
+// 0x2097E0: Per-frame mover update: calls the driver's motion update (vtable slot 11).
+void UpdateStepguardMover(struct O **pp) { struct O *o = *pp; if (o) { struct VTE *entry = &o->vt[11]; entry->pfn((char *)o + entry->d); } }
 } } // namespace M_func_002097E0
 
 // 0x209818 SetStepguardMoverRadTarget
-/** @sly2-annot addr=0x209818
- * Purpose: unless locked, SetStepRadTarget(owner, rad)
- * Info: proposed name SetStepguardMoverRadTarget (T1); TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x209818: Unless the heading is locked, sets the guard's target heading.
 extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *pmover)
 {
     if (pmover->fLocked == 0) {
@@ -3003,34 +2495,24 @@ extern "C" void SetStepguardMoverRadTarget(GUARDMOVER *pmover)
     }
 }
 
-// 0x209840 func_00209840
-/** @sly2-annot addr=0x209840
- * Purpose: unless locked, copy a 3x3 into owner's matTarget +0x1B0
- * Info: proposed name SetStepguardMoverMatTarget (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x209840 SetStepguardMoverTargetMatrix
+// 0x209840: Unless the heading is locked, sets the guard's target orientation matrix.
 /* Sets the guard's target orientation unless the mover is locked. */
-extern "C" void func_00209840(GUARDMOVER *pmover, MATRIX3 *pmat)
+extern "C" void SetStepguardMoverTargetMatrix(GUARDMOVER *pmover, MATRIX3 *pmat)
 {
-    STEPGUARD *pstepguard;
+    STEPGUARD *guard;
     if (pmover->fLocked == 0) {
-        pstepguard = pmover->pstepguard;
-        pstepguard->matTarget = *pmat;
+        guard = pmover->pstepguard;
+        guard->matTarget = *pmat;
     }
 }
 
 // 0x209870 SetStepguardGrfsgf
-/** @sly2-annot addr=0x209870
- * Purpose: Store flag word +0x2C0 and re-evaluate pickpocket state (0x1F1900)
- * Info: proposed name SetStepguardGrfsgf (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void SetStepguardGrfsgf(STEPGUARD *pstepguard, unsigned long grfsg)
+// 0x209870: Stores the guard flag word and re-evaluates the pickpocket state.
+extern "C" void SetStepguardGrfsgf(STEPGUARD *guard, unsigned long grfsg)
 {
-    pstepguard->grfsg = grfsg;
-    UpdateStepguardPickpocket(pstepguard);
+    guard->grfsg = grfsg;
+    UpdateStepguardPickpocket(guard);
 }
 
 // 0x209890 AddStepguardSgf
@@ -3042,33 +2524,26 @@ extern struct T D_002C3D98[2];
 extern char D_002DEB30[];
 struct S { char pad[0xC]; VTE *vt; char pad2[0x2C0 - 0x10]; long fl; };
 struct L { int *pa; int *pb; };
-long GrfFromSgf(int n);
+long GetSgfMask(int n);
 void SetStepguardGrfsgf(struct S *p, long fl);
-int FGrfHasSgf(long m, int a);
+int MaskHasSgf(long m, int a);
 void BroadcastGameEvent(void *p, int b, struct S *ps);
-/** @sly2-annot addr=0x209890
- * Purpose: Set guard flag n, send message 7 (n,-1) to self, broadcast game event for flags in D_002C3D98
- *   (3->0x14, 0xC->0x16)
- * Info: proposed name AddStepguardSgf (T1); TU stepguard
- * Notes: runtime: guard flag word +0x2C0 == union of BHV-raised flags in every state
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r7b_guard+runtime
- * See: docs/engine/guards-ai.md#2-the-guard-flag-word-0x2c0, docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void AddStepguardSgf(struct S *p, int n)
+// 0x209890: Raises guard flag `sgf`: sends itself message 7 (raised, -1) and broadcasts the game event tied to some
+// flags (attacking 0x14, flag 0xC 0x16).
+void AddStepguardSgf(struct S *guard, int n)
 {
-    long m = GrfFromSgf(n);
+    long m = GetSgfMask(n);
     struct L l;
     int b;
     unsigned int i;
-    SetStepguardGrfsgf(p, p->fl | m);
+    SetStepguardGrfsgf(guard, guard->fl | m);
     b = -1;
     l.pa = &n;
     l.pb = &b;
-    ((void (*)(void *, int, int, int, struct L *, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 7, 0, 2, &l, 0);
+    ((void (*)(void *, int, int, int, struct L *, int))guard->vt[3].pfn)((char *)guard + guard->vt[3].d, 7, 0, 2, &l, 0);
     for (i = 0; i < 2; i++) {
-        if (FGrfHasSgf(m, D_002C3D98[i].a))
-            BroadcastGameEvent(D_002DEB30, D_002C3D98[i].b, p);
+        if (MaskHasSgf(m, D_002C3D98[i].a))
+            BroadcastGameEvent(D_002DEB30, D_002C3D98[i].b, guard);
     }
 }
 } } // namespace M_AddStepguardSgf
@@ -3078,49 +2553,32 @@ namespace M_RemoveStepguardSgf {
 class OBase; class O;
 class OBase { public: int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int msg, int a, int c, void **apv, int x); };
 class O : public OBase { public: char pad[0x2C0 - 0x10]; unsigned long fl; };
-extern "C" unsigned long GrfFromSgf(int n);
+extern "C" unsigned long GetSgfMask(int n);
 extern "C" void SetStepguardGrfsgf(O *p, unsigned long fl);
-/** @sly2-annot addr=0x209970
- * Purpose: Clear guard flag n, message 7 (-1,n)
- * Info: proposed name RemoveStepguardSgf (T1); TU stepguard
- * Notes: runtime: guard flag word +0x2C0 == union of BHV-raised flags in every state
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r7b_guard+runtime
- * See: docs/engine/guards-ai.md#2-the-guard-flag-word-0x2c0, docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void RemoveStepguardSgf(O *p, int n)
+// 0x209970: Lowers guard flag `sgf` and sends itself message 7 (-1, lowered).
+extern "C" void RemoveStepguardSgf(O *guard, int n)
 {
     int m;
     void *apv[2];
-    SetStepguardGrfsgf(p, p->fl & ~GrfFromSgf(n));
+    SetStepguardGrfsgf(guard, guard->fl & ~GetSgfMask(n));
     m = -1;
     apv[0] = &m;
     apv[1] = &n;
-    p->Msg(7, 0, 2, apv, 0);
+    guard->Msg(7, 0, 2, apv, 0);
 }
 } // namespace M_RemoveStepguardSgf
 
-// 0x2099F0 FGrfHasSgf
+// 0x2099F0 MaskHasSgf
 namespace M_FGrfHasSgf { extern "C" {
-unsigned long GrfFromSgf(int n);
-/** @sly2-annot addr=0x2099F0
- * Purpose: (grf & bit n) != 0
- * Info: proposed name FGrfHasSgf (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int FGrfHasSgf(unsigned long fl, int n) { return (fl & GrfFromSgf(n)) != 0; }
+unsigned long GetSgfMask(int n);
+// 0x2099F0: True if flag `sgf` is set in a mask.
+int MaskHasSgf(unsigned long fl, int n) { return (fl & GetSgfMask(n)) != 0; }
 } } // namespace M_FGrfHasSgf
 
-// 0x209A28 func_00209A28
+// 0x209A28 CountSgfMatch
 namespace M_func_00209A28 { extern "C" {
-/** @sly2-annot addr=0x209A28
- * Purpose: popcount(a) if a is a subset of b, else 0
- * Info: proposed name CsgfMatch (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_00209A28(unsigned long a, unsigned long b) {
+// 0x209A28: Returns the number of flags in `subset` if it is a subset of `mask`, else 0.
+int CountSgfMatch(unsigned long a, unsigned long b) {
     unsigned long x = a & b;
     int c;
     if (x != a) return 0;
@@ -3129,50 +2587,34 @@ int func_00209A28(unsigned long a, unsigned long b) {
 }
 } } // namespace M_func_00209A28
 
-// 0x209A68 FStepguardHasSgf
-/** @sly2-annot addr=0x209A68
- * Purpose: flag n set in +0x2C0
- * Info: proposed name FStepguardHasSgf (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840,
- *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
- * @end-sly2-annot */
-extern "C" int FStepguardHasSgf(STEPGUARD *pstepguard, int sgf)
+// 0x209A68 StepguardHasSgf
+// 0x209A68: True if the guard has flag `sgf` set.
+extern "C" int StepguardHasSgf(STEPGUARD *guard, int sgf)
 {
-    return FGrfHasSgf(pstepguard->grfsg, sgf);
+    return MaskHasSgf(guard->grfsg, sgf);
 }
 
-// 0x209A88 func_00209A88
+// 0x209A88 GetStepguardSgfRefList
 namespace M_func_00209A88 { extern "C" {
 struct CRef; struct S;
 struct CRef { int tagk; int tag; };
 struct S { char pad[0x2C0]; long n; };
-void *CsgfFromGrf(long n, char *ab);
+void *ListSgfsInMask(long n, char *ab);
 void BuildSpliceListFromUniformValues(struct CRef *ret, void *p, int n, char *ab);
-/** @sly2-annot addr=0x209A88
- * Purpose: Splice getter: list of set flags
- * Info: proposed name RefGetStepguardSgfs (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-struct CRef *func_00209A88(struct CRef *ret, struct S *p) { char ab[0xC0]; BuildSpliceListFromUniformValues(ret, CsgfFromGrf(p->n, ab), 0x1010, ab); return ret; }
+// 0x209A88: Splice getter: the guard's set flags as a list.
+struct CRef *GetStepguardSgfRefList(struct CRef *ret, struct S *p) { char ab[0xC0]; BuildSpliceListFromUniformValues(ret, ListSgfsInMask(p->n, ab), 0x1010, ab); return ret; }
 } } // namespace M_func_00209A88
 
-// 0x209AD0 PanimbindBest
+// 0x209AD0 FindBestAnimBinding
 namespace M_PanimbindBest { extern "C" {
 struct E; struct S;
 struct E { char pad[0x10]; long id; char pad2[8]; };
 struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
-long GrfFromSgf(int n);
-int func_00209A28(long id, long mask);
-/** @sly2-annot addr=0x209AD0
- * Purpose: Binding whose flag set is the largest subset of mask and contains its lowest flag
- * Info: proposed name PanimbindBest (T1); TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-struct E *PanimbindBest(struct S *p, long mask)
+long GetSgfMask(int n);
+int CountSgfMatch(long id, long mask);
+// 0x209AD0: Finds the animation binding whose flag set is the largest subset of `mask` and contains its lowest
+// flag.
+struct E *FindBestAnimBinding(struct S *p, long mask)
 {
     int i;
     int k = 0;
@@ -3181,14 +2623,14 @@ struct E *PanimbindBest(struct S *p, long mask)
     struct E *pbest = 0;
     struct E *pe;
     for (; k < 0x30; k++) {
-        m = GrfFromSgf(k);
+        m = GetSgfMask(k);
         if (mask & m)
             break;
     }
     for (i = 0; i < p->c; i++) {
         int r;
         pe = &p->a[i];
-        r = func_00209A28(pe->id, mask);
+        r = CountSgfMatch(pe->id, mask);
         if (r && (pe->id & m) && best < r) {
             best = r;
             pbest = pe;
@@ -3198,54 +2640,39 @@ struct E *PanimbindBest(struct S *p, long mask)
 }
 } } // namespace M_PanimbindBest
 
-// 0x209BC0 func_00209BC0
+// 0x209BC0 FindCurrentAnimBinding
 namespace M_func_00209BC0 { extern "C" {
 struct S;
 struct ENTRY;
 struct S { char pad[0x2C0]; long mask; };
-struct ENTRY *PanimbindBest(struct S *p, long mask);
-/** @sly2-annot addr=0x209BC0
- * Purpose: PanimbindBest for the current flags
- * Info: proposed name PanimbindCur (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-struct ENTRY *func_00209BC0(struct S *p)
+struct ENTRY *FindBestAnimBinding(struct S *p, long mask);
+// 0x209BC0: Finds the best animation binding for the guard's current flags.
+struct ENTRY *FindCurrentAnimBinding(struct S *p)
 {
-    return PanimbindBest(p, p->mask);
+    return FindBestAnimBinding(p, p->mask);
 }
 } } // namespace M_func_00209BC0
 
-// 0x209BE0 func_00209BE0
+// 0x209BE0 FindAnimBinding
 namespace M_func_00209BE0 { extern "C" {
 struct E; struct S;
 struct E { char pad[0x10]; long id; char pad2[8]; };
 struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
-/** @sly2-annot addr=0x209BE0
- * Purpose: Binding with exactly this flag set
- * Info: proposed name PanimbindFind (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-struct E *func_00209BE0(struct S *p, long id) { int i; for (i = 0; i < p->c; i++) { struct E *pe = &p->a[i]; if (pe->id == id) return pe; } return 0; }
+// 0x209BE0: Finds the animation binding with exactly this flag set.
+struct E *FindAnimBinding(struct S *p, long id) { int i; for (i = 0; i < p->c; i++) { struct E *pe = &p->a[i]; if (pe->id == id) return pe; } return 0; }
 } } // namespace M_func_00209BE0
 
-// 0x209C18 func_00209C18
+// 0x209C18 EnsureAnimBinding
 namespace M_func_00209C18 { extern "C" {
 struct E; struct S;
 struct E { char pad[0x10]; long id; char pad2[8]; };
 struct S { char pad[0x4C0]; int c; char pad2[0xC]; struct E a[1]; };
-struct E *func_00209BE0(struct S *p, long id);
+struct E *FindAnimBinding(struct S *p, long id);
 void ReleaseAnimBinding(struct E *pe, struct S *p);
-/** @sly2-annot addr=0x209C18
- * Purpose: Find or append binding for a flag set, released
- * Info: proposed name PanimbindEnsure (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-struct E *func_00209C18(struct S *p, long id)
+// 0x209C18: Finds or appends (released) the animation binding for a flag set.
+struct E *EnsureAnimBinding(struct S *p, long id)
 {
-    struct E *pe = func_00209BE0(p, id);
+    struct E *pe = FindAnimBinding(p, id);
     if (!pe) {
         struct E *pn = &p->a[p->c++];
         pn->id = id;
@@ -3256,91 +2683,76 @@ struct E *func_00209C18(struct S *p, long id)
 }
 } } // namespace M_func_00209C18
 
-// 0x209C88 func_00209C88
+// 0x209C88 AddStepguardAttachContacts
 namespace M_func_00209C88 { extern "C" {
 struct VE; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct S;
 struct VE { short d; short pad; void (*pf)(void *, int, void *, qword, qword, qword); };
-struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; char pad3[0xF80 - 0x21C]; int k; void *pF84; float fF88; int pad4; void *pF90; };
+struct S { char pad[0xC]; struct VE *vt; char pad2[0x218 - 0x10]; qword *p218; char pad3[0xF80 - 0x21C]; int k; void *attachObject; float attachParam; int pad4; void *pF90; };
 extern qword D_002A2DA0;
 void func_001F4FA8(struct S *p);
 void EvaluateShapeS(void *po, qword *pa, qword *pb, float f);
 qword GetLoWorldPos(void *p);
 qword *GetLoWorldMatrix(void *p);
 
-/** @sly2-annot addr=0x209C88
- * Purpose: STEPGUARD vt59: when attached (+0xF80 0..3) add constraint contacts via vt82 against the attach
- *   object (rail/pipe closest point 0x1E6F10, target pos, fixed axis)
- * Info: proposed name AddStepguardAttachXps (T2); class STEPGUARD slot59; TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00209C88(struct S *p)
+// 0x209C88: STEPGUARD vtable slot 59: while attached (rail, pipe, ...), adds constraint contacts toward the attach
+// object.
+void AddStepguardAttachContacts(struct S *guard)
 {
     qword a, b;
-    func_001F4FA8(p);
-    switch (p->k) {
+    func_001F4FA8(guard);
+    switch (guard->k) {
     case 0:
-        EvaluateShapeS(p->pF84, &a, &b, p->fF88);
-        p->vt[82].pf((char *)p + p->vt[82].d, 0x22, p->pF84, a, b, *p->p218);
+        EvaluateShapeS(guard->attachObject, &a, &b, guard->attachParam);
+        guard->vt[82].pf((char *)guard + guard->vt[82].d, 0x22, guard->attachObject, a, b, *guard->p218);
         break;
     case 1: {
-        struct VE *pe;
+        struct VE *entry;
         void *pthis;
-        EvaluateShapeS(p->pF84, &a, &b, p->fF88);
-        pe = &p->vt[82];
-        pthis = (char *)p + pe->d;
-        pe->pf(pthis, 7, p->pF84, a, b, GetLoWorldPos(p->pF90));
+        EvaluateShapeS(guard->attachObject, &a, &b, guard->attachParam);
+        entry = &guard->vt[82];
+        pthis = (char *)guard + entry->d;
+        entry->pf(pthis, 7, guard->attachObject, a, b, GetLoWorldPos(guard->pF90));
         break;
     }
     case 2: {
-        struct VE *pe = &p->vt[82];
-        void *pthis = (char *)p + pe->d;
-        pe->pf(pthis, 7, p->pF84, GetLoWorldPos(p->pF84), *GetLoWorldMatrix(p->pF84), GetLoWorldPos(p->pF90));
+        struct VE *entry = &guard->vt[82];
+        void *pthis = (char *)guard + entry->d;
+        entry->pf(pthis, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), *GetLoWorldMatrix(guard->attachObject), GetLoWorldPos(guard->pF90));
         break;
     }
     case 3: {
-        struct VE *pe = &p->vt[82];
-        void *pthis = (char *)p + pe->d;
-        pe->pf(pthis, 7, p->pF84, GetLoWorldPos(p->pF84), D_002A2DA0, *p->p218);
+        struct VE *entry = &guard->vt[82];
+        void *pthis = (char *)guard + entry->d;
+        entry->pf(pthis, 7, guard->attachObject, GetLoWorldPos(guard->attachObject), D_002A2DA0, *guard->p218);
         break;
     }
     }
 }
 } } // namespace M_func_00209C88
 
-// 0x209E28 func_00209E28
+// 0x209E28 SendStepguardRootBhvMode6
 namespace M_func_00209E28 { extern "C" {
 struct F;
 struct F { int a[0x1C]; };
 void *func_00205458(void *p, int oid);
 void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
-/** @sly2-annot addr=0x209E28
- * Purpose: Send record {k=6, a[4]=n} to root behaviour BHV156 (0x176750)
- * Info: proposed name SendStepguardRootBhv6 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00209E28(void *p, int n) { void *o = func_00205458(p, 0x9C); struct F f; func_002333B4(&f, 0, sizeof f); f.a[0] = 6; f.a[4] = n; SetBhvguardMode(o, &f); }
+// 0x209E28: Sends mode record 6 with `value` to the guard's root behaviour (BHVGUARD).
+void SendStepguardRootBhvMode6(void *p, int n) { void *o = func_00205458(p, 0x9C); struct F f; func_002333B4(&f, 0, sizeof f); f.a[0] = 6; f.a[4] = n; SetBhvguardMode(o, &f); }
 } } // namespace M_func_00209E28
 
-// 0x209E88 func_00209E88
-/** @sly2-annot addr=0x209E88
- * Purpose: If flag 0x16 or 0x12: BHV176 (cid 0xB0) op 1
- * Info: proposed name StunStepguardBhv176A (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00209E88(STEPGUARD *pstepguard)
+// 0x209E88 StunStepguardThrownOp1
+// 0x209E88: Thrown-behaviour operation 1 (when thrown or flag 0x12) (inferred).
+extern "C" void StunStepguardThrownOp1(STEPGUARD *guard)
 {
-    if ((FStepguardHasSgf(pstepguard, 0x16) != 0) || (FStepguardHasSgf(pstepguard, 0x12) != 0)) {
-        func_0017A8C8(func_00205458(pstepguard, 0xB0), 1);
+    if ((StepguardHasSgf(guard, 0x16) != 0) || (StepguardHasSgf(guard, 0x12) != 0)) {
+        SetBhvThrownState(func_00205458(guard, 0xB0), 1);
     }
 }
 
-// 0x209EE0 func_00209EE0
+// 0x209EE0 StunStepguardThrownOp2
 namespace M_func_00209EE0 { extern "C" {
 struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -3348,68 +2760,53 @@ typedef struct { short d; short pad; void *pfn; } VTE;
 extern float D_002C3DA8;
 struct O { char pad[0x50]; int k; };
 struct S { char pad[0xC]; VTE *vt; };
-int FStepguardHasSgf(struct S *p, int n);
+int StepguardHasSgf(struct S *p, int n);
 struct O *func_00205458(struct S *p, int n);
-void func_0017A8C8(struct O *o, int n);
+void SetBhvThrownState(struct O *o, int n);
 void SetBhvjuggledState(struct O *o, int n);
 qword LimitVectorLength(qword v, float g);
-/** @sly2-annot addr=0x209EE0
- * Purpose: Flags 0x12/0x13: BHV176 op 2; else stunned (0x17): BHV177 op 2; then scale velocity (0x11E9F8,
- *   800)
- * Info: proposed name StunStepguardBhv176B (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_00209EE0(struct S *p)
+// 0x209EE0: Thrown-behaviour operation 2 (flags 0x12/0x13), or juggled-behaviour operation 2 while stunned; then
+// scales the velocity (inferred).
+void StunStepguardThrownOp2(struct S *guard)
 {
-    if (FStepguardHasSgf(p, 0x12) || FStepguardHasSgf(p, 0x13)) {
-        func_0017A8C8(func_00205458(p, 0xB0), 2);
+    if (StepguardHasSgf(guard, 0x12) || StepguardHasSgf(guard, 0x13)) {
+        SetBhvThrownState(func_00205458(guard, 0xB0), 2);
     } else {
         struct O *o;
-        if (!FStepguardHasSgf(p, 0x17))
+        if (!StepguardHasSgf(guard, 0x17))
             return;
-        o = func_00205458(p, 0xB1);
+        o = func_00205458(guard, 0xB1);
         if (o->k != 3 && o->k != 6)
             SetBhvjuggledState(o, 2);
     }
     {
-        qword v = ((qword (*)(void *))p->vt[33].pfn)((char *)p + p->vt[33].d);
+        qword v = ((qword (*)(void *))guard->vt[33].pfn)((char *)guard + guard->vt[33].d);
         v = LimitVectorLength(v, D_002C3DA8);
-        ((void (*)(void *, qword))p->vt[35].pfn)((char *)p + p->vt[35].d, v);
+        ((void (*)(void *, qword))guard->vt[35].pfn)((char *)guard + guard->vt[35].d, v);
     }
 }
 } } // namespace M_func_00209EE0
 
-// 0x209FB8 func_00209FB8
-/** @sly2-annot addr=0x209FB8
- * Purpose: Flag 0x16 or 0x13: BHV176 op 3
- * Info: proposed name StunStepguardBhv176C (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_00209FB8(STEPGUARD *pstepguard)
+// 0x209FB8 StunStepguardThrownOp3
+// 0x209FB8: Thrown-behaviour operation 3 (flags 0x16/0x13) (inferred).
+extern "C" void StunStepguardThrownOp3(STEPGUARD *guard)
 {
-    if ((FStepguardHasSgf(pstepguard, 0x16) != 0) || (FStepguardHasSgf(pstepguard, 0x13) != 0)) {
-        func_0017A8C8(func_00205458(pstepguard, 0xB0), 3);
+    if ((StepguardHasSgf(guard, 0x16) != 0) || (StepguardHasSgf(guard, 0x13) != 0)) {
+        SetBhvThrownState(func_00205458(guard, 0xB0), 3);
     }
 }
 
-// 0x20A010 func_0020A010
+// 0x20A010 GetStepguardJuggledValue
 namespace M_func_0020A010 { extern "C" {
 struct O;
 struct O { char pad[0x58]; int n; };
-int FStepguardHasSgf(void *p, int n);
+int StepguardHasSgf(void *p, int n);
 struct O *func_00205458(void *p, int oid);
-/** @sly2-annot addr=0x20A010
- * Purpose: BHV177 +0x58 while stunned (flag 0x17), else 0
- * Info: proposed name GetStepguardStunField (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_0020A010(void *p) { if (FStepguardHasSgf(p, 0x17)) return func_00205458(p, 0xB1)->n; return 0; }
+// 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
+int GetStepguardJuggledValue(void *p) { if (StepguardHasSgf(p, 0x17)) return func_00205458(p, 0xB1)->n; return 0; }
 } } // namespace M_func_0020A010
 
-// 0x20A058 func_0020A058
+// 0x20A058 SetStepguardTargetLists
 namespace M_func_0020A058 { extern "C" {
 struct S;
 typedef struct { int tagk; int tag; } CRef;
@@ -3417,57 +2814,44 @@ void SetValuesFromSpliceList(CRef *pr, int a, int b, int c, void *d, void *e);
 void func_00129658(CRef *pd, CRef *ps) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pr);
 struct S { char pad[0xF94]; int a; int b; char pad2[0xFA8 - 0xF9C]; int c; int d; };
-/** @sly2-annot addr=0x20A058
- * Purpose: Splice: fetch two typed CRefs (0x2002) into +0xF94/+0xF98 and +0xFA8/+0xFAC
- * Info: proposed name SetStepguardCRefPair (T2); TU stepguard
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020A058(struct S *p, int x, int y)
+// 0x20A058: Splice option: sets the designated target list and the avoid-object list (two typed reference lists).
+void SetStepguardTargetLists(struct S *guard, int x, int y)
 {
     CRef r;
     CRef t;
     r.tagk = -1;
-    SetValuesFromSpliceList(&t, x, 0x2002, 4, &p->a, &p->b);
+    SetValuesFromSpliceList(&t, x, 0x2002, 4, &guard->a, &guard->b);
     func_00129658(&r, &t);
     Decref__4CRef(&t);
-    SetValuesFromSpliceList(&t, y, 0x2002, 4, &p->c, &p->d);
+    SetValuesFromSpliceList(&t, y, 0x2002, 4, &guard->c, &guard->d);
     func_00129658(&r, &t);
     Decref__4CRef(&t);
     Decref__4CRef(&r);
 }
 } } // namespace M_func_0020A058
 
-// 0x20A100 func_0020A100
-/** @sly2-annot addr=0x20A100
- * Purpose: Store (+0xF68,+0xF70) and pass to BHV156 when it is in sub-state 0x10
- * Info: proposed name SetStepguardRootBhvPoint (T2); TU stepguard
- * Notes: runtime6 N2: optid 446 label SetStepguardRootBhvPoint* is the STEPGUARD variant only (Murray +0xF68
- *   = 0); STEPPLAYER variant is StartStepplayerFollow 0x142540
- * Confidence: low (draft) [T2 0.25] - evidence: runtime (save-state RAM); sources: r7b_guard
- * See: docs/engine/player.md#8-look-mode-recon-mode-and-the-ai-partner,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x20A100 SetStepguardEscortPoint
+// 0x20A100: Stores an escort point/object pair and passes it to the root behaviour when it is in mode 0x10.
 /* Stores n and a point; when the root behaviour (CID 0x9C) is in mode 0x10, also hands them to its sub-behaviour. */
-extern "C" void func_0020A100(STEPGUARD *pstepguard, int n, qword qw)
+extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, int n, qword qw)
 {
-    BHV156 *pbhv;
+    BHV156 *behavior;
     int nCur;
     BHVARG *pbhvSub;
-    pstepguard->nUnkF68 = n;
-    pstepguard->qwUnkF70 = qw;
-    pbhv = (BHV156 *)PbhvFindBhvstk(&pstepguard->bhvstk, 0x9C);
-    if (pbhv != 0) {
-        nCur = pstepguard->nUnkF68;
-        if ((nCur != 0) && (pbhv->nMode == 0x10)) {
-            pbhvSub = (BHVARG *)pbhv->pbhvNext;
+    guard->nUnkF68 = n;
+    guard->qwUnkF70 = qw;
+    behavior = (BHV156 *)FindBhvInBhvstk(&guard->bhvstk, 0x9C);
+    if (behavior != 0) {
+        nCur = guard->nUnkF68;
+        if ((nCur != 0) && (behavior->nMode == 0x10)) {
+            pbhvSub = (BHVARG *)behavior->pbhvNext;
             pbhvSub->n = nCur;
-            pbhvSub->qw = pstepguard->qwUnkF70;
+            pbhvSub->qw = guard->qwUnkF70;
         }
     }
 }
 
-// 0x20A168 func_0020A168
+// 0x20A168 CompareStepguardStimuli
 namespace M_func_0020A168 { extern "C" {
 struct K; struct E; struct E2;
 typedef int qword __attribute__((mode(TI)));
@@ -3476,6 +2860,7 @@ struct E { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char
 struct E2 { char pad[0x14]; struct K *pk; char pad2[0x20 - 0x18]; qword pos; char pad3[0x4C - 0x30]; float f4C; char pad4[4]; int n54; char pad5[0x60 - 0x58]; };
 qword GetLoWorldPos(void *p);
 
+// VU0 helper: squared distance from an object's position to a point.
 static inline float DistSq(void *p, qword *pq)
 {
     qword a = GetLoWorldPos(p), d, r, t;
@@ -3486,13 +2871,8 @@ static inline float DistSq(void *p, qword *pq)
     return f;
 }
 
-/** @sly2-annot addr=0x20A168
- * Purpose: Compare stimuli: template priority, level, time, then distance
- * Info: proposed name IcmpStepguardStimulus (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_0020A168(void *p, struct E2 *a, struct E2 *b)
+// 0x20A168: Compares two stimuli for priority: type priority, loudness, time, then distance.
+int CompareStepguardStimuli(void *p, struct E2 *a, struct E2 *b)
 {
     int n;
     float d, d2;
@@ -3516,35 +2896,31 @@ int func_0020A168(void *p, struct E2 *a, struct E2 *b)
 }
 } } // namespace M_func_0020A168
 
-// 0x20A298 func_0020A298
+// 0x20A298 IsStepguardTargetValid
 namespace M_func_0020A298 { extern "C" {
 struct X; struct S;
 extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DAC;
 struct X { int pad; int n4; int pad2; float tC; };
-struct S { char pad[0x2C0]; long fl; char pad2[0x3D0 - 0x2C8]; int n3D0; char pad3[0xF64 - 0x3D4]; void *pF64; };
+struct S { char pad[0x2C0]; long fl; char pad2[0x3D0 - 0x2C8]; int n3D0; char pad3[0xF64 - 0x3D4]; void *detector; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-long GrfFromSgf(int n);
-struct X *PdteFindDetectorTarget(void *p, void *q);
-/** @sly2-annot addr=0x20A298
- * Purpose: Target check with MURRAY special case, detector entry age D_002C3DAC and mask
- * Info: proposed name FStepguardTargetValid (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_0020A298(struct S *p, void *q, long mask)
+long GetSgfMask(int n);
+struct X *FindDetectorTarget(void *p, void *q);
+// 0x20A298: True if a target is still valid for this guard (Murray special case, detector entry age and mask)
+// (inferred).
+int IsStepguardTargetValid(struct S *guard, void *q, long mask)
 {
     struct X *x;
-    if (p->n3D0)
+    if (guard->n3D0)
         goto ret0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x36) && !FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x3A) && !(p->fl & GrfFromSgf(6)))
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x36) && !FIsBasicDerivedFrom__FP5BASIC3CID(guard, 0x3A) && !(guard->fl & GetSgfMask(6)))
         goto ret1;
-    x = PdteFindDetectorTarget(p->pF64, q);
+    x = FindDetectorTarget(guard->detector, q);
     if (!x)
         goto ret1;
     if (!x->n4 || D_002DDED0.t - x->tC < D_002C3DAC)
         goto ret1;
-    if (!(p->fl & mask))
+    if (!(guard->fl & mask))
         goto ret0;
 ret1:
     return 1;
@@ -3553,26 +2929,18 @@ ret0:
 }
 } } // namespace M_func_0020A298
 
-// 0x20A378 func_0020A378
-/** @sly2-annot addr=0x20A378
- * Purpose: 0x20A298 with extra MURRAY/cid 0x3A/0x3D case
- * Info: proposed name FStepguardTargetValid2 (T2); TU stepguard
- * Notes: verifier PLAUSIBLE: Numeric-suffix placeholder. Returns 1 when target is MURRAY (cid 0x36) and guard
- *   is not cid 0x3A/0x3D and not D_002DD648, else FStepguardTargetValid. | T2 forced: verifier: placeholder
- *   name
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" int func_0020A378(LO *plo, LO *ploOther, int n)
+// 0x20A378 IsStepguardTargetValidEx
+// 0x20A378: IsStepguardTargetValid with extra cases for Murray and cids 0x3A/0x3D.
+extern "C" int IsStepguardTargetValidEx(LO *object, LO *ploOther, int n)
 {
-    if ((FIsBasicDerivedFrom((BASIC *)ploOther, (CID)0x36) != 0) && (FIsBasicDerivedFrom((BASIC *)plo, (CID)0x3A) == 0) &&
-        (FIsBasicDerivedFrom((BASIC *)plo, (CID)0x3D) == 0) && (plo != D_002DD648)) {
+    if ((FIsBasicDerivedFrom((BASIC *)ploOther, (CID)0x36) != 0) && (FIsBasicDerivedFrom((BASIC *)object, (CID)0x3A) == 0) &&
+        (FIsBasicDerivedFrom((BASIC *)object, (CID)0x3D) == 0) && (object != D_002DD648)) {
         return 1;
     }
-    return func_0020A298(plo, ploOther, n);
+    return IsStepguardTargetValid(object, ploOther, n);
 }
 
-// 0x20A408 func_0020A408
+// 0x20A408 ChooseStepguardStimulus
 namespace M_func_0020A408 { extern "C" {
 struct O; struct S; struct VE; struct VT; struct X;
 struct O { char pad[0x44]; int n44; char pad2[0x54 - 0x48]; int k54; struct O *next; };
@@ -3584,33 +2952,28 @@ struct X { int a; int b; };
 struct STIMLIST_VIEW { char pad[0x148C]; struct O *first; };   /* first at g_sw+0x3FFC */
 extern float D_002DDED0;
 extern float D_002C3DB0;
-int FStepguardSensesEnabled(struct S *p);
-int func_0020A168(struct S *p, struct O *a, struct O *b);
-struct X *PdteFindDetectorTarget(void *p, int n);
+int AreStepguardSensesEnabled(struct S *p);
+int CompareStepguardStimuli(struct S *p, struct O *a, struct O *b);
+struct X *FindDetectorTarget(void *p, int n);
 void SetDetectorTargetState(void *p, struct X *x, int n);
 
-/** @sly2-annot addr=0x20A408
- * Purpose: Best perceivable stimulus (vt89) from list (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]) by IcmpStepguardStimulus; a stimulus of kind
- *   4 already tracked just re-marks the detector entry lost and returns the default
- * Info: proposed name PstimChooseStepguard (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-struct O *func_0020A408(struct S *p, struct O *def)
+// 0x20A408: Chooses the most important stimulus this guard can sense from the world's stimulus list; a stimulus
+// already tracked re-marks the detector entry lost.
+struct O *ChooseStepguardStimulus(struct S *p, struct O *def)
 {
     struct O *o, *best;
     int unused[4];
-    if (!FStepguardSensesEnabled(p))
+    if (!AreStepguardSensesEnabled(p))
         return def;
     best = def;
     for (o = (*(struct STIMLIST_VIEW *)&g_sw.aslPxrOid[410]).first; o; o = o->next) {
         if (p->vt->e[89].pf((char *)p + p->vt->e[89].d, o)) {
-            if (!best || func_0020A168(p, o, best) < 0)
+            if (!best || CompareStepguardStimuli(p, o, best) < 0)
                 best = o;
         }
     }
     if (best && best->k54 == 4) {
-        struct X *x = PdteFindDetectorTarget(p->pF64, best->n44);
+        struct X *x = FindDetectorTarget(p->pF64, best->n44);
         if (x) {
             if (!x->b) {
                 SetDetectorTargetState(p->pF64, x, 2);
@@ -3623,41 +2986,31 @@ struct O *func_0020A408(struct S *p, struct O *def)
 }
 } } // namespace M_func_0020A408
 
-// 0x20A518 func_0020A518
+// 0x20A518 AddStepguardClassE94
 namespace M_func_0020A518 { extern "C" {
 struct S;
 struct S { char pad[0xE94]; unsigned int c; int a[8]; };
-/** @sly2-annot addr=0x20A518
- * Purpose: Append cid to +0xE94 list (max 8)
- * Info: proposed name AddStepguardClassE94 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020A518(struct S *p, int n) { if (p->c < 8) p->a[p->c++] = n; }
+// 0x20A518: Adds a class to the +0xE94 list (at most 8; meaning unknown).
+void AddStepguardClassE94(struct S *guard, int n) { if (guard->c < 8) guard->a[guard->c++] = n; }
 } } // namespace M_func_0020A518
 
-// 0x20A540 func_0020A540
+// 0x20A540 SetStepguardPatrolScript
 namespace M_func_0020A540 { extern "C" {
 struct O; struct L; struct S;
 struct O { char pad[0x30]; int n30; };
 struct L { int k; int rest[27]; };
-struct S { char pad[0x26C]; char x26C[0x2DC - 0x26C]; int a2DC[3]; int n2E8; };
+struct S { char pad[0x26C]; char behaviorStack[0x2DC - 0x26C]; int unknown2DC[3]; int patrolScript; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-struct O *PbhvFindBhvstk(void *p, int n);
+struct O *FindBhvInBhvstk(void *p, int n);
 void SetBhvguardMode(struct O *po, struct L *pl);
-/** @sly2-annot addr=0x20A540
- * Purpose: Set +0x2E8; restart BHV156 when it is in sub-state 1
- * Info: proposed name SetStepguardMode2E8 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020A540(struct S *p, int n)
+// 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
+void SetStepguardPatrolScript(struct S *guard, int n)
 {
-    if (p->n2E8 != n) {
+    if (guard->patrolScript != n) {
         struct O *po;
-        p->n2E8 = n;
-        func_002333B4(p->a2DC, 0, 0xC);
-        po = PbhvFindBhvstk(p->x26C, 0x9C);
+        guard->patrolScript = n;
+        func_002333B4(guard->unknown2DC, 0, 0xC);
+        po = FindBhvInBhvstk(guard->behaviorStack, 0x9C);
         if (po) {
             int k = po->n30;
             if (k == 1) {
@@ -3665,7 +3018,7 @@ void func_0020A540(struct S *p, int n)
                 func_002333B4(&l, 0, sizeof(l));
                 l.k = -1;
                 SetBhvguardMode(po, &l);
-                func_002333B4(p->a2DC, 0, 0xC);
+                func_002333B4(guard->unknown2DC, 0, 0xC);
                 l.k = k;
                 SetBhvguardMode(po, &l);
             }
@@ -3674,19 +3027,12 @@ void func_0020A540(struct S *p, int n)
 }
 } } // namespace M_func_0020A540
 
-// 0x20A5F8 func_0020A5F8
-/** @sly2-annot addr=0x20A5F8
- * Purpose: Init a shared per-target engagement record (0xAC): target +0xC, 1.0, 2.0, -1s, append to
- *   g_sw.dlTargetrec
- * Info: proposed name InitTargetRecord (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840,
- *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
- * @end-sly2-annot */
+// 0x20A5F8 InitTargetRecord
+// 0x20A5F8: Initializes a shared per-target engagement record (0xAC bytes) and links it on the world's list.
 /* Initialises a target record for plo and appends it to the record list g_sw.dlTargetrec. */
-extern "C" TARGETREC *func_0020A5F8(TARGETREC *ptargetrec, LO *plo)
+extern "C" TARGETREC *InitTargetRecord(TARGETREC *ptargetrec, LO *object)
 {
-    ptargetrec->plo = plo;
+    ptargetrec->plo = object;
     ptargetrec->g14 = 1.0f;
     ptargetrec->g18 = 2.0f;
     ptargetrec->n10 = -1;
@@ -3695,20 +3041,15 @@ extern "C" TARGETREC *func_0020A5F8(TARGETREC *ptargetrec, LO *plo)
     return ptargetrec;
 }
 
-// 0x20A658 func_0020A658
+// 0x20A658 FindTargetRecordGuardIndex
 namespace M_func_0020A658 { extern "C" {
 struct S;
 struct S { char pad[0x28]; int c; int a[1]; };
-/** @sly2-annot addr=0x20A658
- * Purpose: Index of guard in the record's guard list (+0x28 count, +0x2C)
- * Info: proposed name IguardFindTargetRecord (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_0020A658(struct S *p, int n) { int i; for (i = 0; i < p->c; i++) if (n == p->a[i]) return i; return -1; }
+// 0x20A658: Returns the guard's index in an engagement record's guard list (-1 if absent).
+int FindTargetRecordGuardIndex(struct S *guard, int n) { int i; for (i = 0; i < guard->c; i++) if (n == guard->a[i]) return i; return -1; }
 } } // namespace M_func_0020A658
 
-// 0x20A690 func_0020A690
+// 0x20A690 GetTargetRecordFacing
 namespace M_func_0020A690 { extern "C" {
 struct O; struct S; struct G;
 typedef struct { short d; short pad; void *pfn; } VTE;
@@ -3718,13 +3059,8 @@ struct G { char pad[0x60]; float x; float y; };
 extern struct G D_002DDF40;
 float atan2f(float y, float x);
 #define VCALL31(o) ((float *(*)(void *))(o)->vt[31].pfn)((char *)(o) + (o)->vt[31].d)
-/** @sly2-annot addr=0x20A690
- * Purpose: Heading reference: camera (kind 0) or target facing (kind 1)
- * Info: proposed name RadTargetRecordFacing (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-float func_0020A690(struct S *p)
+// 0x20A690: Heading reference of an engagement record: the camera's (kind 0) or the target's facing (kind 1).
+float GetTargetRecordFacing(struct S *p)
 {
     float r = 0.0f;
     switch (p->k) {
@@ -3745,62 +3081,46 @@ float func_0020A690(struct S *p)
 } } // namespace M_func_0020A690
 
 // 0x20A730 AddTargetRecordGuard
-/** @sly2-annot addr=0x20A730
- * Purpose: Append guard to record (stamp time and reset state on first)
- * Info: proposed name AddTargetRecordGuard (T1); TU stepguard
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x20A730: Adds a guard to an engagement record (the first one stamps the time and resets the state).
 /* Adds a guard to a target record (stamping the time when it is the first). */
-extern "C" void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *pstepguard)
+extern "C" void AddTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard)
 {
     int c;
     if (ptargetrec->cpstepguard == 0) {
         ptargetrec->t = D_002DDED0.t;
-        func_0020A9A8(ptargetrec, 0);
+        SetTargetRecordState(ptargetrec, 0);
     }
     c = ptargetrec->cpstepguard;
-    ptargetrec->apstepguard[c] = pstepguard;
+    ptargetrec->apstepguard[c] = guard;
     ptargetrec->cpstepguard = c + 1;
 }
 
-// 0x20A790 func_0020A790
-/** @sly2-annot addr=0x20A790
- * Purpose: Remove guard from record
- * Info: proposed name RemoveTargetRecordGuard (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-/* Removes a guard from a target record (func_0020A658 finds its index). */
-extern "C" void func_0020A790(TARGETREC *ptargetrec, STEPGUARD *pstepguard)
+// 0x20A790 RemoveTargetRecordGuard
+// 0x20A790: Removes a guard from an engagement record.
+/* Removes a guard from a target record (FindTargetRecordGuardIndex finds its index). */
+extern "C" void RemoveTargetRecordGuard(TARGETREC *ptargetrec, STEPGUARD *guard)
 {
     int i;
     int c;
     STEPGUARD **ppstepguard;
-    i = func_0020A658(ptargetrec, pstepguard);
+    i = FindTargetRecordGuardIndex(ptargetrec, guard);
     c = ptargetrec->cpstepguard - 1;
     ppstepguard = &ptargetrec->apstepguard[i];
     ptargetrec->cpstepguard = c;
     CopyAb(ppstepguard, ppstepguard + 1, (c - i) * 4);
 }
 
-// 0x20A7E0 func_0020A7E0
+// 0x20A7E0 IsTargetRecordStale
 namespace M_func_0020A7E0 { extern "C" {
 struct S;
 extern struct CLOCK D_002DDED0;
 extern float D_002C3DB4;
 struct S { int a; float t; };
-/** @sly2-annot addr=0x20A7E0
- * Purpose: time since record stamp > D_002C3DB4
- * Info: proposed name FTargetRecordStale (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_0020A7E0(struct S *p) { return D_002DDED0.t - p->t > D_002C3DB4; }
+// 0x20A7E0: True if the engagement record has not been refreshed for longer than the timeout.
+int IsTargetRecordStale(struct S *p) { return D_002DDED0.t - p->t > D_002C3DB4; }
 } } // namespace M_func_0020A7E0
 
-// 0x20A818 func_0020A818
+// 0x20A818 DoesTargetRecordAllowGuard
 namespace M_func_0020A818 {
 union U; struct Actor; struct P; struct Camera;
 // Test actor availability, camera eligibility and heading tolerance.
@@ -3814,9 +3134,10 @@ extern "C" {
 qword GetLoWorldPos(Actor *);
 int FInsideCmFrustum(Camera *,qword,qword);
 void GetVectorCylind(qword,float *,float *,float *);
-float func_0020A690(P *);
+float GetTargetRecordFacing(P *);
 float RadNormalize__Ff(float);
 }
+// Matching helper (register-pinned asm): prepares the plane-test operands (threshold bits, camera-relative point).
 static inline void PlaneArguments(qword *threshold,qword *point,U *scalar,float f,const qword *camera,const qword *position){
  register qword view asm("vf1"),bits asm("$2"),local asm("vf2"),value asm("$6");
  __asm__("lqc2 %0,%3\n\tmfc1 %1,%4\n\tlqc2 %2,%5":"=j"(view),"=&r"(bits),"=j"(local):"m"(*camera),"f"(f),"m"(*position));
@@ -3824,27 +3145,23 @@ static inline void PlaneArguments(qword *threshold,qword *point,U *scalar,float 
  __asm__("por %0,$zero,%2\n\tvsub.xyzw %1,%1,%3":"=r"(value),"+j"(local):"r"(scalar->q),"j"(view));
  *threshold=value;*point=local;
 }
+// VU0 helper: loads a quadword into a VU register.
 static inline qword Load(const qword *p){qword r;__asm__("lqc2 %0,%1":"=j"(r):"m"(*p));return r;}
+// VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){__asm__("vsub.xyzw %0,%0,%1":"=j"(a):"j"(b),"0"(a));return a;}
-/** @sly2-annot addr=0x20A818
- * Purpose: Engagement token: fail if disabled or another engaged guard is busy (+0xF3C); kind 0 requires
- *   guard ready or inside camera frustum within heading tolerance of the camera
- * Info: proposed name FTargetRecordAllowsGuard (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns, docs/engine/guards-ai.md#9-key-functions,
- *   docs/open-questions.md#guards
- * @end-sly2-annot */
-extern "C" int func_0020A818(P*p,Actor*a)
+// 0x20A818: Engagement token: true if this guard may attack the record's target now (not disabled, no other engaged
+// guard busy; kind 0 also requires the guard ready or in view of the camera).
+extern "C" int DoesTargetRecordAllowGuard(P*guard,Actor*a)
 {
     U scalar;
     float angle[2];
     U position0,position1;
-    if(p->disabled)goto fail;
+    if(guard->disabled)goto fail;
     if(!a->blocked){
-        int i,n=p->count;
-        for(i=0;i<n;i++)if(p->actors[i]->busy)goto fail;
+        int i,n=guard->count;
+        for(i=0;i<n;i++)if(guard->actors[i]->busy)goto fail;
     }
-    switch(p->kind){
+    switch(guard->kind){
     case 0:{
         if(a->ready)return 1;
         qword returned;returned=GetLoWorldPos(a);
@@ -3853,16 +3170,16 @@ extern "C" int func_0020A818(P*p,Actor*a)
         qword threshold,point;
         PlaneArguments(&threshold,&point,&scalar,0.0f,&camera->position,&position0.q);
         if(!FInsideCmFrustum(camera,point,threshold))goto fail;
-        qword other;other=GetLoWorldPos(p->target);
+        qword other;other=GetLoWorldPos(guard->target);
         GetVectorCylind(Sub(position0.q,other),&angle[0],0,0);
-        if(p->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[0]-func_0020A690(p)))){fail:return 0;}
+        if(guard->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[0]-GetTargetRecordFacing(guard)))){fail:return 0;}
         return 1;
     }
     case 1:{
         position1.q=GetLoWorldPos(a);
-        qword other;other=GetLoWorldPos(p->target);
+        qword other;other=GetLoWorldPos(guard->target);
         GetVectorCylind(Sub(position1.q,other),&angle[1],0,0);
-        if(p->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[1]-func_0020A690(p))))return 0;
+        if(guard->tolerance<__builtin_fabsf(RadNormalize__Ff(angle[1]-GetTargetRecordFacing(guard))))return 0;
         return 1;
     }
     case -1:break;
@@ -3872,111 +3189,82 @@ extern "C" int func_0020A818(P*p,Actor*a)
 }
 } // namespace M_func_0020A818
 
-// 0x20A9A8 func_0020A9A8
+// 0x20A9A8 SetTargetRecordState
 namespace M_func_0020A9A8 { extern "C" {
 struct S;
 extern struct CLOCK D_002DDED0;
 struct S { int a; float t; int n; };
-/** @sly2-annot addr=0x20A9A8
- * Purpose: record state + time
- * Info: proposed name SetTargetRecordState (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020A9A8(struct S *p, int n) { p->t = D_002DDED0.t; p->n = n; }
+// 0x20A9A8: Sets an engagement record's state and its time.
+void SetTargetRecordState(struct S *p, int n) { p->t = D_002DDED0.t; p->n = n; }
 } } // namespace M_func_0020A9A8
 
-// 0x20A9C0 func_0020A9C0
+// 0x20A9C0 GetStepguardDefaultAttack
 namespace M_func_0020A9C0 { extern "C" {
 struct S;
 struct S { char pad[0xEB8]; int aEB8[8]; int cED8; int aEDC[8]; int cEFC; };
 int PloNew__F3CIDP2SO3OIDi(int a, struct S *p, int b, int c);
+// Appends an attack (oid and resolved object) to the guard's two attack lists.
 static __inline__ void Push(struct S *p, int id, int v)
 {
     p->aEDC[p->cEFC++] = v;
     p->aEB8[p->cED8++] = id;
 }
-/** @sly2-annot addr=0x20A9C0
- * Purpose: Return first attack object; if none create default cid 0x78 (oid 0x2CC)
- * Info: proposed name PattackDefaultStepguard (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_0020A9C0(struct S *p)
+// 0x20A9C0: Returns the guard's first attack object, creating the default one (cid 0x78, oid 0x2CC) if it has none.
+int GetStepguardDefaultAttack(struct S *guard)
 {
     int v;
-    if (p->cED8 == 0) {
-        v = PloNew__F3CIDP2SO3OIDi(0x78, p, 0x2CC, -1);
-        Push(p, 0x2CC, v);
+    if (guard->cED8 == 0) {
+        v = PloNew__F3CIDP2SO3OIDi(0x78, guard, 0x2CC, -1);
+        Push(guard, 0x2CC, v);
     } else {
-        v = p->aEDC[0];
+        v = guard->aEDC[0];
     }
     return v;
 }
 } } // namespace M_func_0020A9C0
 
-// 0x20AA40 func_0020AA40
+// 0x20AA40 AddStepguardAttackOid
 namespace M_func_0020AA40 { extern "C" {
 struct S;
 struct S { char pad[0xEB8]; int a[8]; unsigned int c; };
-/** @sly2-annot addr=0x20AA40
- * Purpose: Append attack oid (max 8) to +0xEB8
- * Info: proposed name AddStepguardAttackOid (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AA40(struct S *p, int n) { if (n != -1) { if (p->c < 8) p->a[p->c++] = n; } }
+// 0x20AA40: Splice option: adds an attack oid (at most 8).
+void AddStepguardAttackOid(struct S *guard, int n) { if (n != -1) { if (guard->c < 8) guard->a[guard->c++] = n; } }
 } } // namespace M_func_0020AA40
 
-// 0x20AA78 func_0020AA78
-/** @sly2-annot addr=0x20AA78
- * Purpose: 0x20AA40 then 0x20AAA8
- * Info: proposed name AddStepguardAttackOidResolve (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_0020AA78(STEPGUARD *pstepguard)
+// 0x20AA78 AddAndResolveStepguardAttackOid
+// 0x20AA78: Adds an attack oid and resolves the attacks.
+extern "C" void AddAndResolveStepguardAttackOid(STEPGUARD *guard)
 {
-    func_0020AA40(pstepguard);
-    func_0020AAA8(pstepguard);
+    AddStepguardAttackOid(guard);
+    ResolveStepguardAttacks(guard);
 }
 
-// 0x20AAA8 func_0020AAA8
+// 0x20AAA8 ResolveStepguardAttacks
 namespace M_func_0020AAA8 { extern "C" {
 struct S;
 extern char D_003DD490[];
 struct S { char pad[0xEB8]; int a[8]; int n; int b[8]; int c; };
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int x, struct S *ps);
-/** @sly2-annot addr=0x20AAA8
- * Purpose: Resolve attack oids into objects +0xEDC
- * Info: proposed name ResolveStepguardAttacks (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AAA8(struct S *p)
+// 0x20AAA8: Resolves the attack oids into attack objects.
+void ResolveStepguardAttacks(struct S *guard)
 {
     int i;
-    p->c = 0;
-    for (i = 0; i < p->n; i++) {
-        int r = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->a[i], p);
+    guard->c = 0;
+    for (i = 0; i < guard->n; i++) {
+        int r = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, guard->a[i], guard);
         if (r)
-            p->b[p->c++] = r;
+            guard->b[guard->c++] = r;
     }
 }
 } } // namespace M_func_0020AAA8
 
-// 0x20AB58 func_0020AB58
+// 0x20AB58 ClearStepguardAttacks
 namespace M_func_0020AB58 { extern "C" {
-/** @sly2-annot addr=0x20AB58
- * Purpose: clear both attack lists
- * Info: proposed name ClearStepguardAttacks (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AB58(char *p) { *(int *)(p + 0xED8) = 0; *(int *)(p + 0xEFC) = 0; }
+// 0x20AB58: Clears both attack lists.
+void ClearStepguardAttacks(char *p) { *(int *)(p + 0xED8) = 0; *(int *)(p + 0xEFC) = 0; }
 } } // namespace M_func_0020AB58
 
-// 0x20AB68 func_0020AB68
+// 0x20AB68 SetStepguardAttack
 namespace M_func_0020AB68 { extern "C" {
 struct C; struct O; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -3988,34 +3276,29 @@ struct S { char pad[0xF00]; struct O *po; float t; };
 void StopAnimBinding(struct C *pc);
 float GRandInRange__Fff(float a, float b);
 void StartAnimBinding(struct C *pc, struct S *p, int fl, float g);
-void func_0020AC28(struct S *p, struct O *po, int n, qword v);
-/** @sly2-annot addr=0x20AB68
- * Purpose: Switch current attack +0xF00: stop old anim, cooldown +0xF04 = now+GRandInRange(lm), start new
- *   anim, then aim (0x20AC28)
- * Info: proposed name SetStepguardAttack (T2); TU stepguard
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AB68(struct S *p, struct O *po, int n, qword v)
+void SetStepguardAimAct(struct S *p, struct O *po, int n, qword v);
+// 0x20AB68: Switches the current attack: stops the old animation, sets the cooldown (now + random in the attack's
+// range), starts the new animation and its aim.
+void SetStepguardAttack(struct S *guard, struct O *po, int n, qword v)
 {
-    if (p->po) {
+    if (guard->po) {
         float t;
-        StopAnimBinding(p->po->pc);
+        StopAnimBinding(guard->po->pc);
         t = D_002DDED0.t;
-        t += GRandInRange__Fff(p->po->f60, p->po->f64);
-        p->po = 0;
-        p->t = t;
+        t += GRandInRange__Fff(guard->po->f60, guard->po->f64);
+        guard->po = 0;
+        guard->t = t;
     }
-    p->po = po;
+    guard->po = po;
     if (po) {
-        StartAnimBinding(po->pc, p, po->pc->fl | 1, 0.0f);
-        p->t = D_002A88C4;
+        StartAnimBinding(po->pc, guard, po->pc->fl | 1, 0.0f);
+        guard->t = D_002A88C4;
     }
-    func_0020AC28(p, po, n, v);
+    SetStepguardAimAct(guard, po, n, v);
 }
 } } // namespace M_func_0020AB68
 
-// 0x20AC28 func_0020AC28
+// 0x20AC28 SetStepguardAimAct
 namespace M_func_0020AC28 { extern "C" {
 struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4024,29 +3307,24 @@ struct A { char pad[0xA0]; int nA0; };
 struct S { char pad[0xF08]; struct A *pa; int h; int n; char pad2[0xC]; qword v; };
 void ReleaseAct(int *ph);
 int func_0012DC18(struct S *p, int a, int b, int c, int d, qword q);
-/** @sly2-annot addr=0x20AC28
- * Purpose: Release/create an aim act (PactNewVector) for the attack
- * Info: proposed name SetStepguardAimAct (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AC28(struct S *p, struct A *pa, int n, qword v)
+// 0x20AC28: Releases and re-creates the aim act of the current attack.
+void SetStepguardAimAct(struct S *guard, struct A *pa, int n, qword v)
 {
-    if (p->pa) {
-        ReleaseAct(&p->h);
-        p->h = 0;
-        p->pa = 0;
+    if (guard->pa) {
+        ReleaseAct(&guard->h);
+        guard->h = 0;
+        guard->pa = 0;
     }
-    p->pa = pa;
+    guard->pa = pa;
     if (pa && pa->nA0) {
-        p->h = func_0012DC18(p, pa->nA0, 5, 8, 3, D_002A2DD0);
-        p->n = n;
-        p->v = v;
+        guard->h = func_0012DC18(guard, pa->nA0, 5, 8, 3, D_002A2DD0);
+        guard->n = n;
+        guard->v = v;
     }
 }
 } } // namespace M_func_0020AC28
 
-// 0x20ACC0 func_0020ACC0
+// 0x20ACC0 UpdateStepguardAim
 namespace M_func_0020ACC0 { extern "C" {
 struct MATRIX3; struct A; struct B; struct D; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4058,20 +3336,15 @@ struct S { char pad[0xF08]; struct B *pb; struct D *pd; int nF10; char pad2[0xC]
 qword func_0022FC48(int a, int b, qword v);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *pm, qword a, qword b);
 qword func_0011BFF0(MATRIX3 *pm);
-/** @sly2-annot addr=0x20ACC0
- * Purpose: Aim rotation toward predicted point (0x22FC48) as Euler
- * Info: proposed name UpdateStepguardAim (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020ACC0(struct S *p)
+// 0x20ACC0: Aims the attack: rotation toward the predicted target point, as Euler angles.
+void UpdateStepguardAim(struct S *guard)
 {
     MATRIX3 m;
     qword v, d;
-    v = func_0022FC48(p->nF10, p->pb->pa->nA0, p->vF20);
-    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(p->pb->pa->pos));
-    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, p->pb->v, d);
-    { struct D *pd = p->pd; pd->v = func_0011BFF0(&m); }
+    v = func_0022FC48(guard->nF10, guard->pb->pa->nA0, guard->vF20);
+    __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(guard->pb->pa->pos));
+    BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, guard->pb->v, d);
+    { struct D *pd = guard->pd; pd->v = func_0011BFF0(&m); }
 }
 } } // namespace M_func_0020ACC0
 
@@ -4082,15 +3355,9 @@ extern float D_002A88C8;
 struct S { char pad[0x50]; int n50; float f54, f58, f5C, f60, f64, f68, f6C; char pad2[0x7C - 0x70]; int n7C; int n80; int n84; char pad3[0xA8 - 0x88]; int nA8; void *pAC; char eB0[4]; };
 void InitLo(struct S *p);
 void ReleaseAnimBinding(void *pe, void *p);
-/** @sly2-annot addr=0x20AD38
- * Purpose: cid 0x78 vt7: InitLo, range LM [0,300], height LM [-5000,5000], cooldown LM [0.2,0.5], angle
- *   10deg, 3 oids -1, release binding
- * Info: proposed name InitCid120Attack (T2); class CID120 slot7; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, vtable)
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
 } } // namespace M_func_0020AD38
+// 0x20AD38: Guard attack (CID120, cid 0x78) vtable slot 7 (Init): LO Init, range 0..300, height -5000..5000,
+// cooldown 0.2..0.5 s, angle 10 degrees, no oids, empty binding.
 void CID120::Init() { using namespace M_func_0020AD38; M_func_0020AD38::S *p = (M_func_0020AD38::S *)this;
     InitLo(p);
     p->n50 = 0;
@@ -4108,21 +3375,15 @@ void CID120::Init() { using namespace M_func_0020AD38; M_func_0020AD38::S *p = (
     ReleaseAnimBinding(p->eB0, p->pAC);
 }
 
-// 0x20ADE8 func_0020ADE8
-/** @sly2-annot addr=0x20ADE8
- * Purpose: cid 0x78 vt41: CloneLo + clone binding
- * Info: proposed name CloneCid120Attack (T2); class CID120 slot41; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, vtable)
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_0020ADE8(ANIMLO *panimlo)
+// 0x20ADE8 CloneGuardAttack
+// 0x20ADE8: Guard attack vtable slot 41 (Clone): LO clone plus a copy of its binding.
+extern "C" void CloneGuardAttack(ANIMLO *panimlo)
 {
     CloneLoV();
-    func_00209590(&panimlo->binding);
+    CloneAnimBinding(&panimlo->binding);
 }
 
-// 0x20AE18 func_0020AE18
+// 0x20AE18 PostGuardAttackLoad
 namespace M_func_0020AE18 { extern "C" {
 struct A; struct O; struct L; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4137,89 +3398,60 @@ void ResolveAnimBinding(void *pe, struct O *o);
 void *PxfFindSo(struct O *o, int a, int b);
 float *func_0012F938(int h, int a);
 void func_001300B8(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
-/** @sly2-annot addr=0x20AE18
- * Purpose: cid 0x78 vt15: PostLoLoad, find owning STEPGUARD up parent chain, resolve binding, precompute ASEG
- *   effect (0x1300B8)
- * Info: proposed name PostCid120AttackLoad (T2); class CID120 slot15; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, vtable)
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AE18(struct S *p)
+// 0x20AE18: Guard attack vtable slot 15 (PostLoad): LO post-load, finds its owning guard up the parent chain,
+// resolves its binding and precomputes its animation effect.
+void PostGuardAttackLoad(struct S *guard)
 {
     struct O *o;
-    PostLoLoad(p);
-    for (o = p->pParent; o && !FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x38); o = o->pParent)
+    PostLoLoad(guard);
+    for (o = guard->pParent; o && !FIsBasicDerivedFrom__FP5BASIC3CID(o, 0x38); o = o->pParent)
         ;
-    p->pAC = o;
-    ResolveAnimBinding(p->eB0, o);
-    if (p->cid != 0x2CC)
-        p->pC0 = p->eB0;
-    if (p->a != -1) {
+    guard->pAC = o;
+    ResolveAnimBinding(guard->eB0, o);
+    if (guard->cid != 0x2CC)
+        guard->pC0 = guard->eB0;
+    if (guard->a != -1) {
         struct L l;
         int h;
         float *pf;
-        p->pa = (__typeof__(p->pa))PxfFindSo(p->pAC, p->a, 6);
-        p->nA4 = (int)PxfFindSo(p->pAC, p->b, 6);
-        h = p->hB4;
-        pf = func_0012F938(h, p->c);
-        func_001300B8(h, p->pAC, p->nA4, p->pa->nA0, &l, 0, *pf, 1.0f);
-        p->v90 = l.v;
+        guard->pa = (__typeof__(guard->pa))PxfFindSo(guard->pAC, guard->a, 6);
+        guard->nA4 = (int)PxfFindSo(guard->pAC, guard->b, 6);
+        h = guard->hB4;
+        pf = func_0012F938(h, guard->c);
+        func_001300B8(h, guard->pAC, guard->nA4, guard->pa->nA0, &l, 0, *pf, 1.0f);
+        guard->v90 = l.v;
     }
 }
 } } // namespace M_func_0020AE18
 
-// 0x20AF08 func_0020AF08
+// 0x20AF08 SetGuardAttackAngleDegrees
 namespace M_func_0020AF08 { extern "C" {
 struct S;
 struct S { char pad[0x68]; float g; };
-/** @sly2-annot addr=0x20AF08
- * Purpose: +0x68 = deg*pi/180
- * Info: proposed name SetDegAngle68 (T2); TU stepguard
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AF08(struct S *p, float g) { p->g = g * 0.01745329424738884f; }
+// 0x20AF08: Splice option: sets the attack angle (given in degrees, stored in radians).
+void SetGuardAttackAngleDegrees(struct S *guard, float g) { guard->g = g * 0.01745329424738884f; }
 } } // namespace M_func_0020AF08
 
-// 0x20AF28 func_0020AF28
+// 0x20AF28 SetGuardAttackOids
 namespace M_func_0020AF28 { extern "C" {
 struct S;
 struct S { char pad[0x7C]; int a, b, c; };
-/** @sly2-annot addr=0x20AF28
- * Purpose: +0x7C/+0x80/+0x84
- * Info: proposed name SetCid120AttackOids (T2); class CID120; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, agent-default(hex))
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AF28(struct S *p, int a, int b, int c) { p->a = a; p->b = b; p->c = c; }
+// 0x20AF28: Splice option: sets the attack's three oids.
+void SetGuardAttackOids(struct S *guard, int a, int b, int c) { guard->a = a; guard->b = b; guard->c = c; }
 } } // namespace M_func_0020AF28
 
-// 0x20AF38 func_0020AF38
-/** @sly2-annot addr=0x20AF38
- * Purpose: release binding then set oid/arg
- * Info: proposed name SetCid120AttackBinding (T2); class CID120; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, agent-default(hex))
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_0020AF38(ANIMLO *panimlo, int h, int nC)
+// 0x20AF38 SetGuardAttackBinding
+// 0x20AF38: Splice option: sets the attack's animation binding.
+extern "C" void SetGuardAttackBinding(ANIMLO *panimlo, int h, int nC)
 {
     ReleaseAnimBinding(&panimlo->binding, panimlo->pstepguard);
     panimlo->binding.h = h;
     panimlo->binding.nC = nC;
 }
 
-// 0x20AF88 func_0020AF88
-/** @sly2-annot addr=0x20AF88
- * Purpose: same then resolve
- * Info: proposed name SetCid120AttackBindingResolve (T2); class CID120; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, agent-default(hex))
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_0020AF88(ANIMLO *panimlo, int h, int nC)
+// 0x20AF88 SetAndResolveGuardAttackBinding
+// 0x20AF88: Sets and resolves the attack's animation binding.
+extern "C" void SetAndResolveGuardAttackBinding(ANIMLO *panimlo, int h, int nC)
 {
     ANIMBINDING *pbinding;
     pbinding = &panimlo->binding;
@@ -4229,7 +3461,7 @@ extern "C" void func_0020AF88(ANIMLO *panimlo, int h, int nC)
     ResolveAnimBinding(pbinding, panimlo->pstepguard);
 }
 
-// 0x20AFF0 func_0020AFF0
+// 0x20AFF0 SetGuardAttackBindingKind2
 namespace M_func_0020AFF0 { extern "C" {
 struct X; struct E; struct S;
 struct X { int a; };
@@ -4238,18 +3470,12 @@ struct S { char pad[0xAC]; int nAC; struct E e; };
 void ReleaseAnimBinding(struct E *pe, int n);
 struct X *AllocLeap(int cb);
 void InitAsegArc(struct X *px);
-/** @sly2-annot addr=0x20AFF0
- * Purpose: binding kind 2 (0x40 payload)
- * Info: proposed name SetCid120AttackBindingK2 (T2); class CID120; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, agent-default(hex))
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020AFF0(struct S *p, int a)
+// 0x20AFF0: Splice option: sets the attack's binding to a kind-2 payload.
+void SetGuardAttackBindingKind2(struct S *guard, int a)
 {
-    struct E *pe = &p->e;
-    ReleaseAnimBinding(pe, p->nAC);
-    p->e.n = 2;
+    struct E *pe = &guard->e;
+    ReleaseAnimBinding(pe, guard->nAC);
+    guard->e.n = 2;
     pe->px = AllocLeap(0x40);
     InitAsegArc(pe->px);
     pe->px->a = a;
@@ -4257,49 +3483,39 @@ void func_0020AFF0(struct S *p, int a)
 }
 } } // namespace M_func_0020AFF0
 
-// 0x20B060 func_0020B060
-/** @sly2-annot addr=0x20B060
- * Purpose: same then resolve
- * Info: proposed name SetCid120AttackBindingK2Resolve (T2); class CID120; TU stepguard
- * Notes: Cid78->Cid120 (CID 0x78=120, agent-default(hex))
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_0020B060(ANIMLO *panimlo)
+// 0x20B060 SetAndResolveGuardAttackBindingKind2
+// 0x20B060: Sets and resolves the attack's kind-2 binding.
+extern "C" void SetAndResolveGuardAttackBindingKind2(ANIMLO *panimlo)
 {
-    func_0020AFF0(panimlo);
+    SetGuardAttackBindingKind2(panimlo);
     ResolveAnimBinding(&panimlo->binding, panimlo->pstepguard);
 }
 
-// 0x20B090 func_0020B090
+// 0x20B090 GetStepguardGroundProbeFlags
 namespace M_func_0020B090 { extern "C" {
 struct O; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct S { char pad[0x2C0]; long fl; char pad2[0xFD0 - 0x2C8]; struct O *po; };
-long GrfFromSgf(int n);
+long GetSgfMask(int n);
 int func_002040F8(struct S *p);
-/** @sly2-annot addr=0x20B090
- * Purpose: STEPGUARD vt85: 1 if flag 0x14; 0 if flags 0x12/0x13/0x16; else mover driver vt12 or STEP base
- * Info: proposed name GrfStepguardGroundProbe (T2); class STEPGUARD slot85; TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int func_0020B090(struct S *p)
+// 0x20B090: STEPGUARD vtable slot 85 (ground-probe flags): 1 with flag 0x14, 0 while thrown (flags 0x12/0x13/0x16),
+// else the mover driver's or the step's.
+int GetStepguardGroundProbeFlags(struct S *guard)
 {
     long m;
-    if (p->fl & GrfFromSgf(0x14))
+    if (guard->fl & GetSgfMask(0x14))
         return 1;
-    m = GrfFromSgf(0x12) | GrfFromSgf(0x13) | GrfFromSgf(0x16);
-    if (p->fl & m)
+    m = GetSgfMask(0x12) | GetSgfMask(0x13) | GetSgfMask(0x16);
+    if (guard->fl & m)
         return 0;
-    if (p->po)
-        return ((int (*)(void *))p->po->vt[12].pfn)((char *)p->po + p->po->vt[12].d);
-    return func_002040F8(p);
+    if (guard->po)
+        return ((int (*)(void *))guard->po->vt[12].pfn)((char *)guard->po + guard->po->vt[12].d);
+    return func_002040F8(guard);
 }
 } } // namespace M_func_0020B090
 
-// 0x20B140 func_0020B140
+// 0x20B140 EmitStepguardStimulus
 namespace M_func_0020B140 { extern "C" {
 struct X; struct S;
 typedef int qword __attribute__((mode(TI)));
@@ -4307,159 +3523,124 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002C3DB8;
 extern struct { char pad[0x4030]; int n4030; } D_003DD490;
 struct X { char pad[0x30]; qword v; char pad2[4]; void *p44; char pad3[0xC]; int n54; };
-struct S { char pad[0xE60]; int nE60; char pad2[0xF44 - 0xE64]; float t; };
+struct S { char pad[0xE60]; int noiseType; char pad2[0xF44 - 0xE64]; float t; };
 qword GetLoWorldPos(void *p);
-void func_00156548(int a, qword v, struct S *p, struct X **ppx);
-struct X *func_00156698(int a, qword v, struct S *p);
-/** @sly2-annot addr=0x20B140
- * Purpose: Emit a stimulus (NewNoise 0x156548 from template +0xE60 or world default) at the guard, aimed at q
- *   (kind 4), +0xF44 = now + D_002C3DB8
- * Info: proposed name EmitStepguardStimulus (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#4-combat-ko-and-takedowns,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020B140(struct S *p, void *q)
+void CreateNoise(int a, qword v, struct S *p, struct X **ppx);
+struct X *NewNoise(int a, qword v, struct S *p);
+// 0x20B140: Emits a stimulus at the guard aimed at `target` (kind 4) from its own noise type or the world default,
+// and remembers when (+0xF44).
+void EmitStepguardStimulus(struct S *guard, void *q)
 {
     struct X *px;
     qword v = GetLoWorldPos(q);
     px = 0;
-    if (p->nE60)
-        func_00156548(p->nE60, GetLoWorldPos(p), p, &px);
+    if (guard->noiseType)
+        CreateNoise(guard->noiseType, GetLoWorldPos(guard), guard, &px);
     else
-        px = func_00156698(D_003DD490.n4030, GetLoWorldPos(p), p);
+        px = NewNoise(D_003DD490.n4030, GetLoWorldPos(guard), guard);
     px->v = v;
     px->p44 = q;
     px->n54 = 4;
-    p->t = D_002DDED0.t + D_002C3DB8;
+    guard->t = D_002DDED0.t + D_002C3DB8;
 }
 } } // namespace M_func_0020B140
 
-// 0x20B210 func_0020B210
+// 0x20B210 DetachStepguard
 namespace M_func_0020B210 { extern "C" {
 struct S;
 struct S { char pad[0xF80]; int state; int arg; };
 void func_00204F78(struct S *p, int a, int b);
-/** @sly2-annot addr=0x20B210
- * Purpose: Unlink attachment (LinkStepAttachment f=0) and clear +0xF80/+0xF84
- * Info: proposed name DetachStepguard (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020B210(struct S *p)
+// 0x20B210: Detaches the guard from what it is attached to (no attach kind or object).
+void DetachStepguard(struct S *guard)
 {
-    switch (p->state) {
+    switch (guard->state) {
     case 0:
-        func_00204F78(p, p->arg, 0);
+        func_00204F78(guard, guard->arg, 0);
         break;
     case 1:
-        func_00204F78(p, p->arg, 0);
+        func_00204F78(guard, guard->arg, 0);
         break;
     case 2:
-        func_00204F78(p, p->arg, 0);
+        func_00204F78(guard, guard->arg, 0);
         break;
     case 3:
-        func_00204F78(p, p->arg, 0);
+        func_00204F78(guard, guard->arg, 0);
         break;
     }
-    p->arg = 0;
-    p->state = -1;
+    guard->arg = 0;
+    guard->state = -1;
 }
 } } // namespace M_func_0020B210
 
-// 0x20B2A8 func_0020B2A8
+// 0x20B2A8 AttachStepguard
 namespace M_func_0020B2A8 { extern "C" {
 struct A; struct S;
 typedef int qword __attribute__((mode(TI)));
 struct A { char pad[0x124]; int k124; };
-struct S { char pad[0xF80]; int kF80; struct A *pF84; int xF88; int nF8C; void *pF90; };
+struct S { char pad[0xF80]; int attachKind; struct A *attachObject; int attachParam; int nF8C; void *pF90; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct A *pa, int n);
 qword GetLoWorldPos(void *p);
 void FindShapeClosestPoint(struct A *pa, qword q, int a, int b, int c, int d, int *pn);
 void func_00204F78(struct S *p, struct A *pa, int n);
 
-/** @sly2-annot addr=0x20B2A8
- * Purpose: Attach to object by class: CID11 pipe?, CID13 rail?, CID19 (k124==3), CID39 -> +0xF80 kind 0..3
- * Info: proposed name AttachStepguard (T2); TU stepguard
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020B2A8(struct S *p, struct A *pa, int n)
+// 0x20B2A8: Attaches the guard to an object, choosing the attach kind by class: pipe (cid 0xB), rail (cid 0xD), cid
+// 0x13, cid 0x27 (inferred nouns).
+void AttachStepguard(struct S *guard, struct A *pa, int n)
 {
-    p->pF84 = pa;
-    p->nF8C = n;
+    guard->attachObject = pa;
+    guard->nF8C = n;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pa, 0xB)) {
-        p->kF80 = 1;
-        FindShapeClosestPoint(p->pF84, GetLoWorldPos(p->pF90), 0, 0, 0, 0, &p->xF88);
-        func_00204F78(p, p->pF84, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0xD)) {
-        p->kF80 = 0;
-        FindShapeClosestPoint(p->pF84, GetLoWorldPos(p), 0, 0, 0, 0, &p->xF88);
-        func_00204F78(p, p->pF84, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0x13) && p->pF84->k124 == 3) {
-        p->kF80 = 2;
-        func_00204F78(p, p->pF84, 1);
-    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pF84, 0x27)) {
-        p->kF80 = 3;
-        func_00204F78(p, p->pF84, 1);
+        guard->attachKind = 1;
+        FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard->pF90), 0, 0, 0, 0, &guard->attachParam);
+        func_00204F78(guard, guard->attachObject, 1);
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, 0xD)) {
+        guard->attachKind = 0;
+        FindShapeClosestPoint(guard->attachObject, GetLoWorldPos(guard), 0, 0, 0, 0, &guard->attachParam);
+        func_00204F78(guard, guard->attachObject, 1);
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, 0x13) && guard->attachObject->k124 == 3) {
+        guard->attachKind = 2;
+        func_00204F78(guard, guard->attachObject, 1);
+    } else if (FIsBasicDerivedFrom__FP5BASIC3CID(guard->attachObject, 0x27)) {
+        guard->attachKind = 3;
+        func_00204F78(guard, guard->attachObject, 1);
     } else {
-        p->pF84 = 0;
+        guard->attachObject = 0;
     }
 }
 } } // namespace M_func_0020B2A8
 
-// 0x20B3D0 JthsCurrentStepguard
+// 0x20B3D0 GetStepguardHealthState
 namespace M_JthsCurrentStepguard { extern "C" {
 struct S;
-unsigned long GrfFromSgf(int n);
+unsigned long GetSgfMask(int n);
 struct S { char pad[0x2C0]; unsigned long m; };
-/** @sly2-annot addr=0x20B3D0
- * Purpose: STEPGUARD vt77: 2 (dead) if flag 7, 1 (damaged) if flags 5/6, else 0
- * Info: proposed name JthsCurrentStepguard (T1); class STEPGUARD slot77; TU stepguard
- * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-int JthsCurrentStepguard(struct S *p) { if (p->m & GrfFromSgf(7)) return 2; if (p->m & (GrfFromSgf(5) | GrfFromSgf(6))) return 1; return 0; }
+// 0x20B3D0: STEPGUARD vtable slot 77 (health state): 2 dead (flag 7), 1 hurt (flags 5/6), else 0.
+int GetStepguardHealthState(struct S *guard) { if (guard->m & GetSgfMask(7)) return 2; if (guard->m & (GetSgfMask(5) | GetSgfMask(6))) return 1; return 0; }
 } } // namespace M_JthsCurrentStepguard
 
-// 0x20B438 func_0020B438
-/** @sly2-annot addr=0x20B438
- * Purpose: ++ +0xFFC; first makes it busy (SetLoBusyk 1)
- * Info: proposed name IncrementStepguardBusy (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
+// 0x20B438 IncrementStepguardBusy
+// 0x20B438: Increments the guard's busy count; the first one marks it busy (busy level 1).
 /* Busy count up; the first marks the guard busy. */
-extern "C" int func_0020B438(STEPGUARD *pstepguard)
+extern "C" int IncrementStepguardBusy(STEPGUARD *guard)
 {
     int c;
-    if (pstepguard->cBusy == 0) {
-        SetLoBusyk(pstepguard, 1);
+    if (guard->cBusy == 0) {
+        SetLoBusyk(guard, 1);
     }
-    c = pstepguard->cBusy + 1;
-    pstepguard->cBusy = c;
+    c = guard->cBusy + 1;
+    guard->cBusy = c;
     return c;
 }
 
-// 0x20B478 func_0020B478
-/** @sly2-annot addr=0x20B478
- * Purpose: -- +0xFFC; at 0 SetLoBusyk 0
- * Info: proposed name DecrementStepguardBusy (T2); TU stepguard
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#bhvstk-0x1eec60-0x1ef850,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_0020B478(STEPGUARD *pstepguard)
+// 0x20B478 DecrementStepguardBusy
+// 0x20B478: Decrements the busy count; at 0 it is no longer busy.
+extern "C" void DecrementStepguardBusy(STEPGUARD *guard)
 {
     int c;
-    c = pstepguard->cBusy - 1;
-    pstepguard->cBusy = c;
+    c = guard->cBusy - 1;
+    guard->cBusy = c;
     if (c == 0) {
-        SetLoBusyk(pstepguard, 0);
+        SetLoBusyk(guard, 0);
     }
 }
 
@@ -4469,15 +3650,8 @@ struct S;
 struct S { char pad[0x40]; int fl; };
 void InitLo(struct S *p);
 void SetLoBusyk(struct S *p, int n);
-/** @sly2-annot addr=0x20B4A8
- * Purpose: cid 0x7D vt7: InitLo, flag 2, register for update
- * Info: proposed name InitCid125GuardMgr (T2); class CID125 slot7; TU stepguard
- * Notes: Cid7D->Cid125 (CID 0x7D=125, hex-literal) | T2 forced: verifier: coined class word without
- *   descriptor
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r7b_guard
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
 } } // namespace M_func_0020B4A8
+// 0x20B4A8: Guard manager (CID125, cid 0x7D) vtable slot 7 (Init): LO Init, flag 2, registered for updates.
 void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *p = (M_func_0020B4A8::S *)this;
     int v;
     InitLo(p);
@@ -4486,7 +3660,7 @@ void CID125::Init() { using namespace M_func_0020B4A8; M_func_0020B4A8::S *p = (
     SetLoBusyk(p, 1);
 }
 
-// 0x20B500 func_0020B500
+// 0x20B500 PostGuardManagerLoad
 namespace M_func_0020B500 { extern "C" {
 struct ALLOCREQ; struct S;
 struct G;
@@ -4496,29 +3670,20 @@ struct S { char pad[0x50]; int c; void **apv; };
 void PostLoLoad(struct S *p);
 int CploFindSwObjectsByClass(struct G *pg, int a, int b, int c, int cMax, void **apv);
 void *func_001AE1D0(ALLOCREQ *preq);
-/** @sly2-annot addr=0x20B500
- * Purpose: cid 0x7D vt15: list all STEPGUARD objects (cid 0x38)
- * Info: proposed name PostCid125GuardMgrLoad (T2); class CID125 slot15; TU stepguard
- * Notes: Cid7D->Cid125 (CID 0x7D=125, hex-literal) | verifier PLAUSIBLE: Placeholder class (CID 0x7D vtable
- *   slot 15); 'GuardMgr' is a role guess. PostLoLoad, count STEPGUARDs (cid 0x38) via
- *   CploFindSwObjectsByClass, alloc array, fill it. | T2 forced: verifier: placeholder name; verifier: coined
- *   class word without descriptor
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r7b_guard+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020B500(struct S *p)
+// 0x20B500: Guard manager vtable slot 15 (PostLoad): lists every guard (cid 0x38) in the world.
+void PostGuardManagerLoad(struct S *guard)
 {
     ALLOCREQ req;
-    PostLoLoad(p);
-    p->c = CploFindSwObjectsByClass(&D_003DD490, 0x605, 0x38, 0, 0, 0);
-    req.cb = p->c * 4;
+    PostLoLoad(guard);
+    guard->c = CploFindSwObjectsByClass(&D_003DD490, 0x605, 0x38, 0, 0, 0);
+    req.cb = guard->c * 4;
     req.nKind = 0x10;
-    p->apv = (__typeof__(p->apv))func_001AE1D0(&req);
-    CploFindSwObjectsByClass(&D_003DD490, 0x405, 0x38, 0, p->c, p->apv);
+    guard->apv = (__typeof__(guard->apv))func_001AE1D0(&req);
+    CploFindSwObjectsByClass(&D_003DD490, 0x405, 0x38, 0, guard->c, guard->apv);
 }
 } } // namespace M_func_0020B500
 
-// 0x20B590 func_0020B590
+// 0x20B590 UpdateGuardManager
 namespace M_func_0020B590 { extern "C" {
 struct VE; struct O; struct S; struct L;
 struct VE { short d; short pad; void (*pf)(void *); };
@@ -4535,25 +3700,17 @@ void UpdateLo(struct S *p);
 void *func_00205458(struct O *po, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct L *pl);
-void func_00153FF8(void *p);
+void ResetDetectorTargets(void *p);
 
-/** @sly2-annot addr=0x20B590
- * Purpose: cid 0x7D vt16: guards out of the list for > 0.25 s (+0xFF8): mode +0x1000 1 = RemoveLo, 2 =
- *   restart BHV156 and reset detector
- * Info: proposed name UpdateCid125GuardMgr (T2); class CID125 slot16; TU stepguard
- * Notes: Cid7D->Cid125 (CID 0x7D=125, hex-literal) | T2 forced: verifier: coined class word without
- *   descriptor
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
- * See: docs/engine/guards-ai.md#1-stepguard-stepguardcpp-0x205e70-0x20b840-and-its-subclasses,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-void func_0020B590(struct S *p)
+// 0x20B590: Guard manager vtable slot 16 (Update): for guards removed from the world for more than 0.25 s: mode 1
+// removes them, mode 2 restarts their root behaviour and resets their detector.
+void UpdateGuardManager(struct S *guard)
 {
     int i, c;
     struct O **apo;
-    UpdateLo(p);
-    c = p->c;
-    apo = p->apo;
+    UpdateLo(guard);
+    c = guard->c;
+    apo = guard->apo;
     for (i = 0; i < c; i++) {
         struct O *o = apo[i];
         if (((int)(o->fl28 >> 60) & 1) && D_002DDED0.t - o->tFF8 > D_002C3DBC) {
@@ -4572,7 +3729,7 @@ void func_0020B590(struct S *p)
                     SetBhvguardMode(x, &l);
                 }
                 if (o->pF64)
-                    func_00153FF8(o->pF64);
+                    ResetDetectorTargets(o->pF64);
                 break;
             }
             }

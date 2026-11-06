@@ -1,8 +1,9 @@
-// tu_1709A8.cpp -- guard scripts: the script object (SSG, an LO holding a list of commands), the commands (SSGE: set
-// the context object, wait, follow a path, go to a point, labels, animations...) appended by the script-building
-// calls, and the script-running guard behaviour (BHVSSG) that steps through them.
+// tu_1709A8.cpp -- guard scripts. The script object (SSG, cid 0x71, an LO) holds a list of commands (SSGE: set the
+// context object, set walk/pause times, teleport, message, wait, go to / follow a path, look at, animation, labels
+// and jumps, busy on/off, relay alarm) appended by its Splice options; the script-running guard behaviour (BHVSSG,
+// BHV169, guard flag 0x21) steps through them, spawning child behaviours for the commands that take time. Entry
+// points: AddGuardScript* (Splice), StartGuardScript, SetBhvScriptScript, UpdateBhvScript, ExecuteBhvScriptCommand.
 // TU 0x1709A8..0x171F58 (42 functions, address order).
-//
 // Types: SSGE (with a kind-selected argument union), SSG, BHVSSG and BHVGUARD are TU-private views written for the
 // 26 m2c bodies and a few small functions; the other functions keep the per-function views they were matched with,
 // each in a namespace named after it (as vec.cpp and mark.cpp do).
@@ -33,14 +34,14 @@ struct SSGE
     int nC;                 /* +0x0C */
     int n10;                /* +0x10 */
     float g14;              /* +0x14 */
-    SSGE *pssgeNext;        /* +0x18 */
-    SSGE *pssgePrev;
+    SSGE *next;        /* +0x18 */
+    SSGE *previous;
 };
 /* The guard script object (an LO): its commands from +0x50. */
 struct SSG
 {
     char pad0[0x50];
-    DL dlSsge;              /* +0x50 */
+    DL commands;              /* +0x50 */
 };
 /* Behaviour vtable entries (g++ 2.95 {delta, pfn}). */
 struct VTE { short d; short pad; void (*pfn)(); };
@@ -48,80 +49,62 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct BHVSSG
 {
     char pad0[0xC];
-    VTE *pvt;               /* +0x0C */
-    STEPGUARD *pstepguard;  /* +0x10 */
+    VTE *vt;               /* +0x0C */
+    STEPGUARD *guard;  /* +0x10 */
     char pad14[4];
-    char bhvSub[0x18];      /* +0x18 the running sub-behaviour */
-    SSG *pssg;              /* +0x30 */
+    char childSlot[0x18];      /* +0x18 the running sub-behaviour */
+    SSG *script;              /* +0x30 */
     int n34;
-    SSGE *pssgeCur;         /* +0x38 */
+    SSGE *currentCommand;         /* +0x38 */
     float t3C;
-    int fBusy;              /* +0x40 */
+    int isCommandBusy;              /* +0x40 */
 };
-/* The guard behaviour (CID 0x9C) as func_00171DA8 reads it: its mode and the mode's argument. */
-struct BHVGUARDV { char pad0[0x30]; int nMode; char pad34[0xC]; int nArg; };
+/* The guard behaviour (CID 0x9C) as IsGuardRunningScript reads it: its mode and the mode's argument. */
+struct BHVGUARDV { char pad0[0x30]; int mode; char pad34[0xC]; int argument; };
 
 extern SW D_003DD490;
 extern "C" {
-void InitLo(SSG *pssg);
-void PostLoLoad(SSG *pssg);
+void InitLo(SSG *script);
+void PostLoLoad(SSG *script);
 void func_0011A050(DL *pdl, int ibDle);       /* InitDl */
 void func_0011A070(DL *pdl, void *pv);        /* AppendDlEntry */
-void func_00170A58(SSG *pssg);
-SSGE *PssgeAppend(SSG *pssg, int kind, int id) __asm__("func_00170E00");
-void func_00171CF8(LO *plo, SSG *pssg);
-void InitBhv(BHVSSG *pbhv);
-void CloseBhv(BHVSSG *pbhv);
-void UpdateBhv(BHVSSG *pbhv);
-void ClearBhvBusy(BHVSSG *pbhv);
-void PopBhv(void *pbhv);
-void AddStepguardSgf(STEPGUARD *pstepguard, int sgf);
-void RemoveStepguardSgf(STEPGUARD *pstepguard, int sgf);
-void func_00171258(BHVSSG *pbhv, SSG *pssg, int n, void *pv);
-int func_00171468(BHVSSG *pbhv);
-SSGE *func_001711F0(SSG *pssg, int id);
-void *func_00205458(LO *plo, int cid);
+void PrepareGuardScriptTargets(SSG *script);
+SSGE *PssgeAppend(SSG *script, int kind, int id) __asm__("AddGuardScriptCommand");
+void StartGuardScript(LO *object, SSG *script);
+void InitBhv(BHVSSG *behavior);
+void CloseBhv(BHVSSG *behavior);
+void UpdateBhv(BHVSSG *behavior);
+void ClearBhvBusy(BHVSSG *behavior);
+void PopBhv(void *behavior);
+void AddStepguardSgf(STEPGUARD *guard, int sgf);
+void RemoveStepguardSgf(STEPGUARD *guard, int sgf);
+void SetBhvScriptScript(BHVSSG *behavior, SSG *script, int n, void *pv);
+int IsBhvScriptCommandBusy(BHVSSG *behavior);
+SSGE *FindGuardScriptLabel(SSG *script, int id);
+void *func_00205458(LO *object, int cid);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001709A8 { extern "C" {
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-/** @sly2-annot addr=0x1709A8
- * Purpose: Classifies a script target: 0 if cid 0xD (CID13, rail?), 1 if cid 0xB (CID11, pipe?), else -1
- * Info: proposed name NShapeMoveKind (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-int func_001709A8(void *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) return 0; if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return 1; return -1; }
+// 0x1709A8: Classifies a script target for moving along it: 0 for a rail-like object (cid 0xD), 1 for a pipe-like
+// object (cid 0xB), else -1 (inferred nouns).
+int GetShapeMoveKind(void *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) return 0; if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xB)) return 1; return -1; }
 } } // namespace M_func_001709A8
 
-/** @sly2-annot addr=0x1709F8
- * Purpose: cid 0x71 (LO child, 0x60) Init: LO Init, then InitDl of the command list at +0x50 (link +0x18)
- * Info: proposed name InitCid113 (T2); class CID113 slot7; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, vtable)
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3b_rest+verdicts_tu_r3r5
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_001709F8(SSG *pssg)
+// 0x1709F8: Guard script (cid 0x71) vtable slot 7 (Init): LO Init, then an empty command list.
+extern "C" void InitGuardScript(SSG *script)
 {
-    InitLo(pssg);
-    func_0011A050(&pssg->dlSsge, 0x18);
+    InitLo(script);
+    func_0011A050(&script->commands, 0x18);
 }
 
-/** @sly2-annot addr=0x170A28
- * Purpose: cid 0x71 PostLoad: LO PostLoad then PrepareCid71Targets
- * Info: proposed name PostCid113Load (T2); class CID113 slot15; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, vtable)
- * Confidence: low (draft) [T2 0.65] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
+// 0x170A28: Guard script vtable slot 15 (PostLoad): LO post-load, then prepares its targets.
 void CID113::VUnk14()
 {
-    SSG *pssg = (SSG *)this;
-    PostLoLoad(pssg);
-    func_00170A58(pssg);
+    SSG *script = (SSG *)this;
+    PostLoLoad(script);
+    PrepareGuardScriptTargets(script);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -131,276 +114,155 @@ extern struct G D_003DD490;
 struct N { int k; int b; char pad[0x10]; struct N *next; };
 struct S { char pad[0x50]; struct N *pn; };
 struct S *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
-int func_001709A8(struct S *p);
+int GetShapeMoveKind(struct S *p);
 void func_001E9C30(struct S *p);
-/** @sly2-annot addr=0x170A58
- * Purpose: Walks the command list: context commands (kind 0) change the lookup context; for move-along-shape
- *   commands (kind 6) whose target is a plain SHAPE it calls 0x1E9C30 on it
- * Info: proposed name PrepareCid113Targets (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00170A58(struct S *p) {
+// 0x170A58: Walks the command list resolving targets: set-context commands (kind 0) change the lookup context;
+// move-along-shape commands (kind 6) prepare their target shape.
+void PrepareGuardScriptTargets(struct S *guard) {
     struct N *pn;
-    for (pn = p->pn; pn; pn = pn->next) {
+    for (pn = guard->pn; pn; pn = pn->next) {
         switch (pn->k) {
         case 6: {
-            struct S *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pn->b, p);
-            if (o && func_001709A8(o) == -1) func_001E9C30(o);
+            struct S *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pn->b, guard);
+            if (o && GetShapeMoveKind(o) == -1) func_001E9C30(o);
             break;
         }
         case 0:
-            p = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, p ? 4 : 5, pn->b, p);
+            guard = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, guard ? 4 : 5, pn->b, guard);
             break;
         }
     }
 }
 } } // namespace M_func_00170A58
 
-/** @sly2-annot addr=0x170B40
- * Purpose: Splice: append command kind 0 (set lookup context oid)
- * Info: proposed name AddCid113CmdContext (T2); class CID113; TU tu_1709A8
- * Notes: names_v2 C proposed SetCmMat__FP2CMP7MATRIX3 (0.200) | Cid71->Cid113 (CID 0x71=113,
- *   agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170B40(SSG *pssg, int id)
+// 0x170B40: Splice option: appends command kind 0, set the lookup context object (oid).
+extern "C" void AddGuardScriptSetContext(SSG *script, int id)
 {
-    PssgeAppend(pssg, 0, id);
+    PssgeAppend(script, 0, id);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00170B60 { extern "C" {
 struct K { int a, b; };
 struct R { int x, y; struct K k; };
-struct R *func_00170E00(void *p, int a, int b);
-/** @sly2-annot addr=0x170B60
- * Purpose: Splice: append command kind 1 with an 8-byte payload (copied to guard +0x2CC on execute)
- * Info: proposed name AddCid113CmdSetK2CC (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00170B60(void *p, struct K *pk) { func_00170E00(p, 1, -1)->k = *pk; }
+struct R *AddGuardScriptCommand(void *p, int a, int b);
+// 0x170B60: Splice option: appends command kind 1, set the guard's walk-time range (copied to guard +0x2CC).
+void AddGuardScriptSetWalkTimes(void *p, struct K *pk) { AddGuardScriptCommand(p, 1, -1)->k = *pk; }
 } } // namespace M_func_00170B60
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00170BA0 { extern "C" {
 struct K { int a, b; };
 struct R { int x, y; struct K k; };
-struct R *func_00170E00(void *p, int a, int b);
-/** @sly2-annot addr=0x170BA0
- * Purpose: Splice: append command kind 2 with an 8-byte payload (guard +0x2D4)
- * Info: proposed name AddCid113CmdSetK2D4 (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00170BA0(void *p, struct K *pk) { func_00170E00(p, 2, -1)->k = *pk; }
+struct R *AddGuardScriptCommand(void *p, int a, int b);
+// 0x170BA0: Splice option: appends command kind 2, set the guard's pause-time range (guard +0x2D4).
+void AddGuardScriptSetPauseTimes(void *p, struct K *pk) { AddGuardScriptCommand(p, 2, -1)->k = *pk; }
 } } // namespace M_func_00170BA0
 
-/** @sly2-annot addr=0x170BE0
- * Purpose: Splice: append command kind 3 (teleport guard to target oid)
- * Info: proposed name AddCid113CmdTeleport (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170BE0(SSG *pssg, int id)
+// 0x170BE0: Splice option: appends command kind 3, teleport the guard to a target (oid).
+extern "C" void AddGuardScriptTeleport(SSG *script, int id)
 {
-    PssgeAppend(pssg, 3, id);
+    PssgeAppend(script, 3, id);
 }
 
-/** @sly2-annot addr=0x170C00
- * Purpose: Splice: append command kind 4 (send message 4 with arg)
- * Info: proposed name AddCid113CmdMessage (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170C00(SSG *pssg, int id)
+// 0x170C00: Splice option: appends command kind 4, send the guard message 4 with an argument.
+extern "C" void AddGuardScriptMessage(SSG *script, int id)
 {
-    PssgeAppend(pssg, 4, id);
+    PssgeAppend(script, 4, id);
 }
 
-/** @sly2-annot addr=0x170C20
- * Purpose: Splice: append command kind 5 with a float (wait time / idle)
- * Info: proposed name AddCid113CmdWait (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170C20(SSG *pssg, float g)
+// 0x170C20: Splice option: appends command kind 5, wait/idle for a time.
+extern "C" void AddGuardScriptWait(SSG *script, float g)
 {
-    PssgeAppend(pssg, 5, -1)->g = g;
+    PssgeAppend(script, 5, -1)->g = g;
 }
 
-/** @sly2-annot addr=0x170C50
- * Purpose: Append command kind 6 (move to target oid, with two args)
- * Info: proposed name AddCid113CmdGoto (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170C50(SSG *pssg, int id, int n8, int nC)
+// 0x170C50: Appends command kind 6, go to / follow a target (oid) with two arguments.
+extern "C" void AddGuardScriptGoto(SSG *script, int id, int n8, int nC)
 {
-    SSGE *pssge;
-    pssge = PssgeAppend(pssg, 6, id);
-    pssge->n = n8;
-    pssge->nC = nC;
+    SSGE *command;
+    command = PssgeAppend(script, 6, id);
+    command->n = n8;
+    command->nC = nC;
 }
 
-/** @sly2-annot addr=0x170C90
- * Purpose: Append command kind 7 (target oid, int, float)
- * Info: proposed name AddCid113CmdLookAt (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170C90(SSG *pssg, int id, int n10, float g14)
+// 0x170C90: Appends command kind 7, face/look at a target (oid, int, float).
+extern "C" void AddGuardScriptLookAt(SSG *script, int id, int n10, float g14)
 {
-    SSGE *pssge;
-    pssge = PssgeAppend(pssg, 7, id);
-    pssge->g14 = g14;
-    pssge->n10 = n10;
+    SSGE *command;
+    command = PssgeAppend(script, 7, id);
+    command->g14 = g14;
+    command->n10 = n10;
 }
 
-/** @sly2-annot addr=0x170CD0
- * Purpose: Splice: append command kind 8 (apply animation segment of target oid)
- * Info: proposed name AddCid113CmdAnim (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170CD0(SSG *pssg, int id)
+// 0x170CD0: Splice option: appends command kind 8, play the animation of a target (oid).
+extern "C" void AddGuardScriptAnim(SSG *script, int id)
 {
-    PssgeAppend(pssg, 8, id);
+    PssgeAppend(script, 8, id);
 }
 
-/** @sly2-annot addr=0x170CF0
- * Purpose: Splice: append command kind 9 (label id)
- * Info: proposed name AddCid113CmdLabel (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170CF0(SSG *pssg, int id)
+// 0x170CF0: Splice option: appends command kind 9, a label.
+extern "C" void AddGuardScriptLabel(SSG *script, int id)
 {
-    PssgeAppend(pssg, 9, id);
+    PssgeAppend(script, 9, id);
 }
 
-/** @sly2-annot addr=0x170D10
- * Purpose: Splice: append command kind 10 (jump to label)
- * Info: proposed name AddCid113CmdJump (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170D10(SSG *pssg, int id)
+// 0x170D10: Splice option: appends command kind 10, jump to a label.
+extern "C" void AddGuardScriptJump(SSG *script, int id)
 {
-    PssgeAppend(pssg, 10, id);
+    PssgeAppend(script, 10, id);
 }
 
-/** @sly2-annot addr=0x170D30
- * Purpose: Splice: append command kind 11 (SetBhvBusy; also suspends target selection)
- * Info: proposed name AddCid113CmdBusyOn (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170D30(SSG *pssg, int n1, int n2)
+// 0x170D30: Splice option: appends command kind 11, behaviour busy on (also suspends target selection and
+// nearest-command resume).
+extern "C" void AddGuardScriptBusyOn(SSG *script, int n1, int n2)
 {
-    PssgeAppend(pssg, 0xB, -1);
+    PssgeAppend(script, 0xB, -1);
 }
 
-/** @sly2-annot addr=0x170D50
- * Purpose: Splice: append command kind 12 (ClearBhvBusy)
- * Info: proposed name AddCid113CmdBusyOff (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170D50(SSG *pssg, int n1, int n2)
+// 0x170D50: Splice option: appends command kind 12, behaviour busy off.
+extern "C" void AddGuardScriptBusyOff(SSG *script, int n1, int n2)
 {
-    PssgeAppend(pssg, 0xC, -1);
+    PssgeAppend(script, 0xC, -1);
 }
 
-/** @sly2-annot addr=0x170D70
- * Purpose: Splice: append command kind 13 (target + int; runs BHV172 0xAC)
- * Info: proposed name AddCid113CmdKind13 (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex)) | verifier PLAUSIBLE: Placeholder (kind number).
- *   Appends kind 13; executor 0x1715F0 case 13 drives behaviour 0xAC (BHV172) on target with int arg. | T2
- *   forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170D70(SSG *pssg, int id, int n)
+// 0x170D70: Splice option: appends command kind 13 (target + int; runs BHV172, cid 0xAC).
+extern "C" void AddGuardScriptKind13(SSG *script, int id, int n)
 {
-    PssgeAppend(pssg, 0xD, id)->n = n;
+    PssgeAppend(script, 0xD, id)->n = n;
 }
 
-/** @sly2-annot addr=0x170DA0
- * Purpose: Splice: append command kind 14 (two ints; runs BHV157 0x9D with a sensor block)
- * Info: proposed name AddCid113CmdKind14 (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170DA0(SSG *pssg, int id, int n)
+// 0x170DA0: Splice option: appends command kind 14 (two ints; runs an animation behaviour, cid 0x9D, with a sensor
+// block).
+extern "C" void AddGuardScriptKind14(SSG *script, int id, int n)
 {
-    PssgeAppend(pssg, 0xE, id)->n = n;
+    PssgeAppend(script, 0xE, id)->n = n;
 }
 
-/** @sly2-annot addr=0x170DD0
- * Purpose: Splice: append command kind 15 (EnsureRelayAlarm on target)
- * Info: proposed name AddCid113CmdEnsureRelayAlarm (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex)) | superseded: AddCid113CmdRelayAlarm
- *   (verdicts_followups) | verifier better_name (PLAUSIBLE row): Placeholder class. Appends kind 15; executor
- *   0x1715F0 case 15 calls EnsureSggAlarm(target, arg) (0x1E0020, existing name: adds an ALARM to an SGG's
- *   apalarm[8]).
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170DD0(SSG *pssg, int id, int n)
+// 0x170DD0: Splice option: appends command kind 15, ensure the relay alarm of a target.
+extern "C" void AddGuardScriptEnsureRelayAlarm(SSG *script, int id, int n)
 {
-    PssgeAppend(pssg, 0xF, id)->n = n;
+    PssgeAppend(script, 0xF, id)->n = n;
 }
 
-/** @sly2-annot addr=0x170E00
- * Purpose: Allocate a script command node from pool D_003E1548 (PvAllocSlotheapClear), set kind (+0) and arg
- *   (+4), append to the CID113 script list (+0x50), return it
- * Info: proposed name PcmdAddCid113 (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex)) | v3: superseded PcmdAppendCid113 | top50_round
- *   (0.55): Body. All 16 callers are AddCid113Cmd* builders (Context, Teleport, Message, Wait, Goto, LookAt,
- *   Anim, BusyOn/Off, EnsureRelayAlarm). Sly-style analogue of PrelaycmdAddRelay (relay TU). Class still a
- *   placeholder (CID113 | T2: placeholder token Cid113
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: r3b_rest+top50_round
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
+// 0x170E00: Allocates a command node from the script pool, sets its kind and argument and appends it to the
+// script's list; returns it.
 /* Appends a command of the given kind (and target id, -1 for none) to the script; returns it. */
-extern "C" SSGE *func_00170E00(SSG *pssg, int kind, int id)
+extern "C" SSGE *AddGuardScriptCommand(SSG *script, int kind, int id)
 {
-    SSGE *pssge;
-    pssge = (SSGE *)PvAllocSlotheapClear(&D_003DD490.slotheapSsge);
-    pssge->kind = kind;
-    pssge->id = id;
-    func_0011A070(&pssg->dlSsge, pssge);
-    return pssge;
+    SSGE *command;
+    command = (SSGE *)PvAllocSlotheapClear(&D_003DD490.slotheapSsge);
+    command->kind = kind;
+    command->id = id;
+    func_0011A070(&script->commands, command);
+    return command;
 }
 
-/** @sly2-annot addr=0x170E68
- * Purpose: If a guard is given, StartGuardScript(guard, this)
- * Info: proposed name StartGuardCid113 (T2); class CID113; TU tu_1709A8
- * Notes: names_v2 C proposed AddJsgUnknown__FP3JSG (0.438) | Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00170E68(SSG *pssg, LO *plo)
+// 0x170E68: Starts this script on a guard, if one is given.
+extern "C" void StartGuardScriptOnGuard(SSG *script, LO *object)
 {
-    if (plo != 0) {
-        func_00171CF8(plo, pssg);
+    if (object != 0) {
+        StartGuardScript(object, script);
     }
 }
 
@@ -418,21 +280,17 @@ struct CHOICE{struct N*node;struct P*object;float value;};
 extern char D_003DD490[];
 extern const float D_002A52B0;   /* defined below where the ELF has it (.rodata order) */
 struct P*PloFindSwObject__FP2SWi3OIDP2LO(void*,int,int,struct P*);
-void func_001710F8(struct P*,qword,struct P*,qword*,float*);
+void GetGuardScriptTargetPose(struct P*,qword,struct P*,qword*,float*);
 void FindShapeClosestPoint(struct P*,qword,void*,qword*,qword*,float*,float*);
 void FindShapeClosestPointFromS(struct P*,qword,void*,qword*,qword*,float*,float*,float);
+// VU0 helper: vector difference.
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: length of a vector.
 static inline float Length(qword v){qword d,one;float f;__asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(d),"=&j"(one):"0"(v));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));__asm__("qmfc2.ni %0,%1":"=r"(f):"j"(d));return f;}
 // Choose the closest eligible point while walking the selector chain.
-/** @sly2-annot addr=0x170E90
- * Purpose: Walks the command list and picks the command (kind 3/7 point, kind 6 shape) whose point is closest
- *   to a position, honouring kind 11/12 disable brackets
- * Info: proposed name ChooseCid113NearestPoint (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00170E90(struct P*root,qword pos,struct CHOICE*out){
+// 0x170E90: Picks the command (kind 3/7 point or kind 6 shape) whose point is closest to a position, skipping
+// commands inside busy-on/off brackets; used to resume a script near the guard.
+void ChooseGuardScriptNearestCommand(struct P*root,qword pos,struct CHOICE*out){
  struct CHOICE choice;
  U hit;
  float value;
@@ -446,7 +304,7 @@ void func_00170E90(struct P*root,qword pos,struct CHOICE*out){
   case 12:stopped=0;break;
   case 3:case 7:
    if(stopped)break;
-   if(node->tag!=-1){struct P*object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,4,node->tag,current);func_001710F8(root,pos,object,&hit.q,0);}
+   if(node->tag!=-1){struct P*object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,4,node->tag,current);GetGuardScriptTargetPose(root,pos,object,&hit.q,0);}
    else if(node->position)hit.q=*node->position;
    {float d=Length(Sub(pos,hit.q));if(d<best){best=d;choice.node=node;choice.object=current;}}
    break;
@@ -476,15 +334,9 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int n);
 void FindShapeClosestPoint(struct O *po, qword pos, int a, qword *pq, struct VEC *pv, int b, int c);
 float atan2f(float y, float x);
 qword GetLoWorldPos(struct O *po);
-/** @sly2-annot addr=0x1710F8
- * Purpose: Position and heading of a target: closest point/tangent on a SHAPE (cid 0xA) or the LO position
- *   and yaw
- * Info: proposed name GetCid113TargetPose (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_001710F8(void *pv, qword pos, struct O *po, qword *ppos, float *pg) {
+// 0x1710F8: Position and heading of a target: the closest point and tangent on a SHAPE (cid 0xA), else the object's
+// position and yaw.
+void GetGuardScriptTargetPose(void *pv, qword pos, struct O *po, qword *ppos, float *pg) {
     union { qword q; } u;
 #define q u.q
     struct VEC v;
@@ -510,29 +362,16 @@ void func_001710F8(void *pv, qword pos, struct O *po, qword *ppos, float *pg) {
 } } // namespace M_func_001710F8
 #undef q
 
-/** @sly2-annot addr=0x1711F0
- * Purpose: Finds the kind-9 (label) command with the given id
- * Info: proposed name FindCid113Label (T2); class CID113; TU tu_1709A8
- * Notes: Cid71->Cid113 (CID 0x71=113, agent-default(hex))
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
+// 0x1711F0: Finds the label command (kind 9) with the given id.
 /* The label command (kind 9) with the given id. The unused array is part of the original frame. */
-extern "C" SSGE *func_001711F0(SSG *pssg, int id) { int unused[4]; SSGE *pssge; for (pssge = (SSGE *)pssg->dlSsge.head; pssge; pssge = pssge->pssgeNext) if (pssge->kind == 9 && pssge->id == id) break; return pssge; }
+extern "C" SSGE *FindGuardScriptLabel(SSG *script, int id) { int unused[4]; SSGE *command; for (command = (SSGE *)script->commands.head; command; command = command->next) if (command->kind == 9 && command->id == id) break; return command; }
 
-/** @sly2-annot addr=0x171228
- * Purpose: BHV169 slot 7: base slot 7, then flag 0x21 on the guard (0x209890)
- * Info: proposed name InitBhv169 (T2); class BHV169 slot7; TU tu_1709A8
- * Notes: superseded: OnBhv169Push (r3b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv169Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
+// 0x171228: Script behaviour (BHV169) vtable slot 7 (OnPush): base, then raises guard flag 0x21.
 void BHV169::OnPush()
 {
-    BHVSSG *pbhv = (BHVSSG *)this;
-    InitBhv(pbhv);
-    AddStepguardSgf(pbhv->pstepguard, 0x21);
+    BHVSSG *behavior = (BHVSSG *)this;
+    InitBhv(behavior);
+    AddStepguardSgf(behavior->guard, 0x21);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -541,108 +380,86 @@ struct S;
 struct VTE { short d; short pad; void (*pfn)(); };
 struct T { int n0; char pad[0x4C]; int n50; };
 struct U { int n0; int n4; };
-struct S { int pad0; char a4[8]; struct VTE *vt; char pad[8]; char a18[0x18]; struct T *pt; int n34; int n38; int pad3; int n40; struct U *pu; int pad4; int n4C; };
+struct S { int pad0; char a4[8]; struct VTE *vt; char pad[8]; char a18[0x18]; struct T *pt; int context; int currentCommand; int pad3; int isCommandBusy; struct U *pu; int pad4; int unknown4C; };
 void PopBhv(void *p);
 void FramePtr_Assign(struct S *p, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *p, int n);
-/** @sly2-annot addr=0x171258
- * Purpose: Switches the script (cid 0x71) a BHV169 runs: stops the old one (message 3), starts the new
- *   (message 2) at its first command or a saved resume point
- * Info: proposed name SetBhv169Script (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00171258(struct S *p, struct T *t, int a, struct U *u) {
-    if (t == p->pt) return;
-    if (p->pt) {
-        PopBhv(p->a18);
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 3, 0, 0, 0, 0);
-        FramePtr_Assign(p, 0);
-        func_002580A8(p->a4, 0);
-        p->n34 = 0;
-        p->n38 = 0;
-        p->n40 = 0;
-        p->n4C = 0;
+// 0x171258: Switches the script a script behaviour runs: stops the old one (message 3), starts the new one (message
+// 2) at its first command or at a saved resume point.
+void SetBhvScriptScript(struct S *behavior, struct T *t, int a, struct U *u) {
+    if (t == behavior->pt) return;
+    if (behavior->pt) {
+        PopBhv(behavior->a18);
+        ((void (*)(void *, int, int, int, int, int))behavior->vt[3].pfn)((char *)behavior + behavior->vt[3].d, 3, 0, 0, 0, 0);
+        FramePtr_Assign(behavior, 0);
+        func_002580A8(behavior->a4, 0);
+        behavior->context = 0;
+        behavior->currentCommand = 0;
+        behavior->isCommandBusy = 0;
+        behavior->unknown4C = 0;
     }
-    p->pt = t;
+    behavior->pt = t;
     if (!t) return;
-    FramePtr_Assign(p, t->n0);
-    ((void (*)(void *, int, int, int, int, int))p->vt[3].pfn)((char *)p + p->vt[3].d, 2, 0, 0, 0, 0);
-    p->n4C = a;
+    FramePtr_Assign(behavior, t->n0);
+    ((void (*)(void *, int, int, int, int, int))behavior->vt[3].pfn)((char *)behavior + behavior->vt[3].d, 2, 0, 0, 0, 0);
+    behavior->unknown4C = a;
     if (!u || !u->n0) {
-        struct T *x = p->pt;
+        struct T *x = behavior->pt;
         int n = x->n50;
-        p->n34 = (int)x;
-        p->n38 = n;
+        behavior->context = (int)x;
+        behavior->currentCommand = n;
     } else {
-        p->n38 = u->n0;
-        p->pu = u;
-        p->n34 = u->n4;
+        behavior->currentCommand = u->n0;
+        behavior->pu = u;
+        behavior->context = u->n4;
     }
-    if (p->n38) ((void (*)(void *, int))p->vt[15].pfn)((char *)p + p->vt[15].d, p->n38);
-    p->pu = 0;
+    if (behavior->currentCommand) ((void (*)(void *, int))behavior->vt[15].pfn)((char *)behavior + behavior->vt[15].d, behavior->currentCommand);
+    behavior->pu = 0;
 }
 } } // namespace M_func_00171258
 
-/** @sly2-annot addr=0x171398
- * Purpose: BHV169 slot 9: base pop, ClearBhvBusy, clear the script, drop flag 0x21
- * Info: proposed name CloseBhv169 (T2); class BHV169 slot9; TU tu_1709A8
- * Notes: superseded: OnBhv169Pop (r3b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv169Pop
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_00171398(BHVSSG *pbhv)
+// 0x171398: Script behaviour vtable slot 9 (Close): base, clears busy, drops the script and lowers flag 0x21.
+extern "C" void CloseBhvScript(BHVSSG *behavior)
 {
-    CloseBhv(pbhv);
-    ClearBhvBusy(pbhv);
-    func_00171258(pbhv, 0, 0, 0);
-    RemoveStepguardSgf(pbhv->pstepguard, 0x21);
+    CloseBhv(behavior);
+    ClearBhvBusy(behavior);
+    SetBhvScriptScript(behavior, 0, 0, 0);
+    RemoveStepguardSgf(behavior->guard, 0x21);
 }
 
-/** @sly2-annot addr=0x1713E8
- * Purpose: BHV169 slot 10: executes script commands (vt slot 15) until one is still busy or the script ends
- * Info: proposed name UpdateBhv169 (T2); class BHV169 slot10; TU tu_1709A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-/* Runs the script: while a command is current and done (func_00171468), steps to the next one and starts it
+// 0x1713E8: Script behaviour vtable slot 10 (Update): executes commands until one is still busy or the script ends.
+/* Runs the script: while a command is current and done (IsBhvScriptCommandBusy), steps to the next one and starts it
    (behaviour slot 15). Returns the current command (0 at the end). */
-extern "C" SSGE *func_001713E8(BHVSSG *pbhv)
+extern "C" SSGE *UpdateBhvScript(BHVSSG *behavior)
 {
     SSGE *pssgeNext;
-    SSGE *pssge;
-    UpdateBhv(pbhv);
-    pssge = pbhv->pssgeCur;
-    if (pssge != 0) {
+    SSGE *command;
+    UpdateBhv(behavior);
+    command = behavior->currentCommand;
+    if (command != 0) {
 loop:
-        pssge = (SSGE *)func_00171468(pbhv);
-        if (pssge == 0) {
-            pssge = pbhv->pssgeCur;
-            pssgeNext = pssge->pssgeNext;
-            pbhv->pssgeCur = pssgeNext;
+        command = (SSGE *)IsBhvScriptCommandBusy(behavior);
+        if (command == 0) {
+            command = behavior->currentCommand;
+            pssgeNext = command->next;
+            behavior->currentCommand = pssgeNext;
             if (pssgeNext != 0) {
-                VTE *pvt = pbhv->pvt;
-                ((void (*)(BHVSSG *, SSGE *))pvt[15].pfn)((BHVSSG *)((char *)pbhv + pvt[15].d), pssgeNext);
-                pssge = pbhv->pssgeCur;
-                if (pssge != 0) {
+                VTE *entry = behavior->vt;
+                ((void (*)(BHVSSG *, SSGE *))entry[15].pfn)((BHVSSG *)((char *)behavior + entry[15].d), pssgeNext);
+                command = behavior->currentCommand;
+                if (command != 0) {
                     goto loop;
                 }
             }
         }
     }
-    return pssge;
+    return command;
 }
 
-/** @sly2-annot addr=0x171458
- * Purpose: True when no current command (+0x38 == 0)
- * Info: proposed name FBhv169ScriptDone (T2); TU tu_1709A8
- * Notes: v2: demoted to T2 (placeholder token in name: 169)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" int func_00171458(BHVSSG *pbhv)
+// 0x171458: True when the script has no current command (finished).
+extern "C" int IsBhvScriptDone(BHVSSG *behavior)
 {
-    return pbhv->pssgeCur == 0;
+    return behavior->currentCommand == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -650,69 +467,58 @@ namespace M_func_00171468 { extern "C" {
 extern struct CLOCK D_002DDED0;
 struct E { int k; int pad; float g8; };
 struct O { char pad[0xF80]; int nF80; char pad2[0xFD0 - 0xF84]; char aFD0[4]; };
-struct S { char pad[0x10]; struct O *p10; int pad2; void *p18; char pad3[0x1C]; struct E *pe; float g3C; int n40; int pad4; float g48; };
-int FBhvpatrolpathDone(void *p);
-int FBhvrailArrived(void *p);
-int FBhvpipeArrived(void *p);
-int FBhvgotoArrived(void *p);
-int FBhvanimDone(void *p);
+struct S { char pad[0x10]; struct O *guard; int pad2; void *child; char pad3[0x1C]; struct E *pe; float commandStartTime; int isCommandBusy; int pad4; float heading; };
+int IsBhvpatrolpathDone(void *p);
+int HasBhvrailArrived(void *p);
+int HasBhvpipeArrived(void *p);
+int HasBhvgotoArrived(void *p);
+int IsBhvanimDone(void *p);
 void SetStepguardMoverRadTarget(void *p, float g);
 void PopBhv(void *p);
-/** @sly2-annot addr=0x171468
- * Purpose: Whether the running command's sub-behaviour is still active (goto/look/wait/13/14 kinds); pops it
- *   when done
- * Info: proposed name FBhv169CmdBusy (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-int func_00171468(struct S *p) {
-    if (!p->n40) return 0;
-    switch (p->pe->k) {
+// 0x171468: True while the running command's child behaviour (goto, look, wait, kinds 13/14) is still active; pops
+// it when done.
+int IsBhvScriptCommandBusy(struct S *behavior) {
+    if (!behavior->isCommandBusy) return 0;
+    switch (behavior->pe->k) {
     case 6:
-        switch (p->p10->nF80) {
+        switch (behavior->guard->nF80) {
         case -1:
-            if (FBhvpatrolpathDone(p->p18)) p->n40 = 0;
+            if (IsBhvpatrolpathDone(behavior->child)) behavior->isCommandBusy = 0;
             break;
         case 0:
-            if (FBhvrailArrived(p->p18)) p->n40 = 0;
+            if (HasBhvrailArrived(behavior->child)) behavior->isCommandBusy = 0;
             break;
         case 1:
-            if (FBhvpipeArrived(p->p18)) p->n40 = 0;
+            if (HasBhvpipeArrived(behavior->child)) behavior->isCommandBusy = 0;
             break;
         }
         break;
     case 7:
-        if (FBhvgotoArrived(p->p18)) {
-            p->n40 = 0;
-            SetStepguardMoverRadTarget(p->p10->aFD0, p->g48);
+        if (HasBhvgotoArrived(behavior->child)) {
+            behavior->isCommandBusy = 0;
+            SetStepguardMoverRadTarget(behavior->guard->aFD0, behavior->heading);
         }
         break;
     case 5:
-        if (p->pe->g8 < D_002DDED0.t - p->g3C) p->n40 = 0;
+        if (behavior->pe->g8 < D_002DDED0.t - behavior->commandStartTime) behavior->isCommandBusy = 0;
         break;
     case 13: case 14:
-        if (FBhvanimDone(p->p18)) p->n40 = 0;
+        if (IsBhvanimDone(behavior->child)) behavior->isCommandBusy = 0;
         break;
     }
-    if (!p->n40) PopBhv(&p->p18);
-    return p->n40;
+    if (!behavior->isCommandBusy) PopBhv(&behavior->child);
+    return behavior->isCommandBusy;
 }
 } } // namespace M_func_00171468
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001715B8 { extern "C" {
-struct S { char pad[0x34]; int n34; };
+struct S { char pad[0x34]; int context; };
 struct G { int a; };
 extern struct G D_003DD490;
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int kind, int oid, int owner);
-/** @sly2-annot addr=0x1715B8
- * Purpose: PloFindSwObject relative to the script's current context object
- * Info: proposed name PloFindBhv169Target (T2); TU tu_1709A8
- * Notes: v2: demoted to T2 (placeholder token in name: 169)
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void *func_001715B8(struct S *p, int oid) { int o = p->n34; int k = o ? 4 : 5; return PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, k, oid, o); }
+// 0x1715B8: Finds a world object by oid relative to the script's current context object.
+void *FindBhvScriptTarget(struct S *behavior, int oid) { int o = behavior->context; int k = o ? 4 : 5; return PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, k, oid, o); }
 } } // namespace M_func_001715B8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -728,25 +534,26 @@ struct X50 { int n50; int n54; int n58; int n5C; };
 struct P44 { int a, b; float g8; };
 struct SB { int a, b, c; virtual void V1(); virtual void V2(); virtual void Msg(int, int, int, void **, int); };
 struct S : SB {
-    struct A *p10; char pad1[0x30 - 0x14];
-    void *p30; void *n34; struct P38 *p38; float g3C; int n40; struct P44 *p44; float g48; int n4C;
+    struct A *guard; char pad1[0x30 - 0x14];
+    void *script; void *context; struct P38 *currentCommand; float commandStartTime; int isCommandBusy; struct P44 *unknown44; float heading; int unknown4C;
     struct X50 x50;
 };
 struct X { void *p0; void *p4; int pad[2]; qword q; X(); };
 extern "C" { extern struct CLOCK D_002DDED0; }
-extern "C" { void *func_001715B8(struct S *p, int oid); }
-extern "C" { void func_00171AF8(struct S *p, void *o, qword *pq, float *pg); }
-extern "C" { void func_00171B60(struct S *p, qword q, float g); }
+extern "C" { void *FindBhvScriptTarget(struct S *p, int oid); }
+extern "C" { void GetBhvScriptTargetPose(struct S *p, void *o, qword *pq, float *pg); }
+extern "C" { void TeleportBhvScriptGuard(struct S *p, qword q, float g); }
 extern "C" { void *func_00205438(struct A *a, int k); }
 extern "C" { void func_001E9C30(void *o); }
 extern "C" { void SetBhvrailGoal(void *o, int n); }
 extern "C" { void SetBhvpipeGoal(void *o, int n); }
-extern "C" { void func_002562A8(struct X *x); }
-inline X::X() { func_002562A8(this); }
+extern "C" { void ClearPointerPair(struct X *x); }
+// Default constructor: both pointers cleared (ClearPointerPair).
+inline X::X() { ClearPointerPair(this); }
 extern "C" { int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n); }
 extern "C" { void SetBhvgotoGoal(void *o, struct X *x); }
 extern "C" { void func_0012F9B8(void *o, int a, int b, void *c, float f, float g); }
-extern "C" { void *func_001711F0(void *p, int id); }
+extern "C" { void *FindGuardScriptLabel(void *p, int id); }
 extern "C" { void SetBhvBusy(struct S *p); }
 extern "C" { void ClearBhvBusy(struct S *p); }
 extern "C" { void ReleaseAnimBinding(struct X50 *x, struct A *a); }
@@ -760,15 +567,9 @@ struct O5 : O { char pad1[0x40 - 0x10]; struct X50 *p40; };
 
 #define VCALL8(o) { struct O *oo = (struct O *)(o); oo->V8(); }
 
-/** @sly2-annot addr=0x1715F0
- * Purpose: Executes one script command (kinds 0-15): set context, teleport, message, spawn sub-behaviours
- *   BHV157/158/172/184-188/192, jump, busy on/off, relay alarm
- * Info: proposed name ExecuteBhv169Cmd (T2); class BHV169 slot15; TU tu_1709A8
- * Notes: BHV slot 15 role is SetState per r9; name kept (descriptive)
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-extern "C" void func_001715F0(struct S *p, struct CMD *c)
+// 0x1715F0: Executes one script command (kinds 0-15): set context, set times, teleport, message, spawn child
+// behaviours, label/jump, busy on/off, relay alarm.
+extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
 {
     union { qword q; } q;
     float g;
@@ -777,25 +578,25 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
     int n;
     switch (c->op) {
     case 0:
-        p->n34 = func_001715B8(p, c->n4);
+        behavior->context = FindBhvScriptTarget(behavior, c->n4);
         break;
     case 1:
-        p->p10->k2CC = c->u.k8;
+        behavior->guard->k2CC = c->u.k8;
         break;
     case 2:
-        p->p10->k2D4 = c->u.k8;
+        behavior->guard->k2D4 = c->u.k8;
         break;
     case 3: {
-        func_00171AF8(p, func_001715B8(p, c->n4), &q.q, &g);
-        func_00171B60(p, q.q, g);
+        GetBhvScriptTargetPose(behavior, FindBhvScriptTarget(behavior, c->n4), &q.q, &g);
+        TeleportBhvScriptGuard(behavior, q.q, g);
         break;
     }
     case 4:
         apv = &c->n4;
-        p->Msg(4, 0, 1, &apv, 0);
+        behavior->Msg(4, 0, 1, &apv, 0);
         break;
     case 5: {
-        struct A *a = p->p10;
+        struct A *a = behavior->guard;
         int k;
         switch (a->nF80) {
         case 2:
@@ -810,132 +611,127 @@ extern "C" void func_001715F0(struct S *p, struct CMD *c)
             ((struct O *)func_00205438(a, 0x9E))->V8();
             break;
         }
-        p->n40 = 1;
+        behavior->isCommandBusy = 1;
         break;
     }
     case 6: {
-        void *o = func_001715B8(p, p->p38->n4);
+        void *o = FindBhvScriptTarget(behavior, behavior->currentCommand->n4);
         struct A *a;
         if (!o) break;
-        a = p->p10;
+        a = behavior->guard;
         n = a->nF80;
         switch (n) {
         case -1: {
             struct O2 *o2 = (struct O2 *)func_00205438(a, 0xC0);
             o2->p30 = o;
             o2->n34 = c->u.s.n8;
-            o2->n58 = p->n4C;
-            if (!p->n4C) func_001E9C30(o);
-            if (p->p44) o2->g38 = p->p44->g8;
-            if (c->u.s.nC != -1) o2->n50 = func_001715B8(p, c->u.s.nC);
+            o2->n58 = behavior->unknown4C;
+            if (!behavior->unknown4C) func_001E9C30(o);
+            if (behavior->unknown44) o2->g38 = behavior->unknown44->g8;
+            if (c->u.s.nC != -1) o2->n50 = FindBhvScriptTarget(behavior, c->u.s.nC);
             VCALL8(o2);
             break;
         }
         case 0: {
             struct O *o2 = (struct O *)func_00205438(a, 0xB8);
-            SetBhvrailGoal(o2, (int)p->p38->p8);
+            SetBhvrailGoal(o2, (int)behavior->currentCommand->p8);
             VCALL8(o2);
             break;
         }
         case 1: {
             struct O *o2 = (struct O *)func_00205438(a, 0xB9);
-            SetBhvpipeGoal(o2, (int)p->p38->p8);
+            SetBhvpipeGoal(o2, (int)behavior->currentCommand->p8);
             VCALL8(o2);
             break;
         }
         }
-        p->n40 = 1;
+        behavior->isCommandBusy = 1;
         break;
     }
     case 7: {
         struct P38 *qq;
         struct A *a;
         X x;
-        qq = p->p38;
+        qq = behavior->currentCommand;
         if (qq->n4 == -1) {
             x.q = *(qword *)qq->p8;
-            p->g48 = qq->gC;
+            behavior->heading = qq->gC;
         } else {
-            void *o = func_001715B8(p, qq->n4);
+            void *o = FindBhvScriptTarget(behavior, qq->n4);
             if (o) {
-                func_00171AF8(p, o, 0, &p->g48);
+                GetBhvScriptTargetPose(behavior, o, 0, &behavior->heading);
                 if (FIsBasicDerivedFrom__FP5BASIC3CID(o, 10)) x.p0 = o;
                 else x.p4 = o;
             }
         }
-        a = p->p10;
+        a = behavior->guard;
         n = a->nF80;
         if (n == -1) {
             struct O3 *o3 = (struct O3 *)func_00205438(a, 0xBA);
             SetBhvgotoGoal(o3, &x);
-            if (c->n10 != -1) o3->nA8 = func_001715B8(p, c->n10);
+            if (c->n10 != -1) o3->nA8 = FindBhvScriptTarget(behavior, c->n10);
             o3->gB0 = c->g14;
-            o3->nBC = p->n4C;
+            o3->nBC = behavior->unknown4C;
             VCALL8(o3);
         }
-        p->n40 = 1;
+        behavior->isCommandBusy = 1;
         break;
     }
     case 8: {
-        func_0012F9B8(func_001715B8(p, c->n4), 0, 0, &t, 0.0f, 1.0f);
+        func_0012F9B8(FindBhvScriptTarget(behavior, c->n4), 0, 0, &t, 0.0f, 1.0f);
         break;
     }
     case 9:
         break;
     case 10: {
-        void *o = func_001711F0(p->p30, c->n4);
-        if (o) p->p38 = (struct P38 *)o;
+        void *o = FindGuardScriptLabel(behavior->script, c->n4);
+        if (o) behavior->currentCommand = (struct P38 *)o;
         break;
     }
     case 11:
-        SetBhvBusy(p);
+        SetBhvBusy(behavior);
         break;
     case 12:
-        ClearBhvBusy(p);
+        ClearBhvBusy(behavior);
         break;
     case 13: {
-        void *o = func_001715B8(p, p->p38->n4);
-        struct O4 *o4 = (struct O4 *)func_00205438(p->p10, 0xAC);
+        void *o = FindBhvScriptTarget(behavior, behavior->currentCommand->n4);
+        struct O4 *o4 = (struct O4 *)func_00205438(behavior->guard, 0xAC);
         o4->p60 = o;
         o4->n68 = 1;
         o4->n64 = c->u.s.n8;
         VCALL8(o4);
-        p->n40 = 1;
+        behavior->isCommandBusy = 1;
         break;
     }
     case 14:
-        ReleaseAnimBinding(&p->x50, p->p10);
-        p->x50.n54 = c->n4;
-        p->x50.n5C = c->u.s.n8;
-        ResolveAnimBinding(&p->x50, p->p10);
-        if (p->p10->nF80 == -1) {
-            struct O5 *o5 = (struct O5 *)func_00205438(p->p10, 0x9D);
-            o5->p40 = &p->x50;
+        ReleaseAnimBinding(&behavior->x50, behavior->guard);
+        behavior->x50.n54 = c->n4;
+        behavior->x50.n5C = c->u.s.n8;
+        ResolveAnimBinding(&behavior->x50, behavior->guard);
+        if (behavior->guard->nF80 == -1) {
+            struct O5 *o5 = (struct O5 *)func_00205438(behavior->guard, 0x9D);
+            o5->p40 = &behavior->x50;
             VCALL8(o5);
-            p->n40 = 1;
+            behavior->isCommandBusy = 1;
         }
         break;
     case 15:
-        func_001E0020(func_001715B8(p, c->n4), c->u.s.n8);
+        func_001E0020(FindBhvScriptTarget(behavior, c->n4), c->u.s.n8);
         break;
     }
-    p->g3C = D_002DDED0.t;
+    behavior->commandStartTime = D_002DDED0.t;
 }
 } // namespace M_func_001715F0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00171AF8 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x10]; void *p10; char pad2[0x1C]; void *p30; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; void *script; };
 qword GetLoWorldPos(void *p);
-void func_001710F8(void *p, qword q, int a, int b, int c);
-/** @sly2-annot addr=0x171AF8
- * Purpose: GetCid71TargetPose relative to the guard position
- * Info: proposed name GetBhv169TargetPose (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00171AF8(struct S *p, int a, int b, int c) { func_001710F8(p->p30, GetLoWorldPos(p->p10), a, b, c); }
+void GetGuardScriptTargetPose(void *p, qword q, int a, int b, int c);
+// 0x171AF8: Target pose (GetGuardScriptTargetPose) taken relative to the guard's position.
+void GetBhvScriptTargetPose(struct S *behavior, int a, int b, int c) { GetGuardScriptTargetPose(behavior->script, GetLoWorldPos(behavior->guard), a, b, c); }
 } } // namespace M_func_00171AF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -945,23 +741,18 @@ extern qword D_002A2DD0;
 struct VTE { short d; short pad; void (*pfn)(); };
 struct T { char pad[0xC]; struct VTE *vt; char pad2[0x1A0]; char a1B0[0x10]; };
 struct S { char pad[0x10]; struct T *pt; };
-void func_0020B210(struct T *t);
+void DetachStepguard(struct T *t);
 void func_00204660(struct T *t, float g);
-/** @sly2-annot addr=0x171B60
- * Purpose: Places the guard at a position and heading and zeroes its velocities
- * Info: proposed name TeleportBhv169Guard (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00171B60(struct S *p, qword q, float g) {
-    struct T *t = p->pt;
-    struct VTE *e;
-    func_0020B210(t);
-    e = &t->vt[0x1D]; ((void (*)(void *, qword))e->pfn)((char *)t + e->d, q);
+// 0x171B60: Places the guard at a position and heading and zeroes its velocities.
+void TeleportBhvScriptGuard(struct S *behavior, qword q, float g) {
+    struct T *t = behavior->pt;
+    struct VTE *entry;
+    DetachStepguard(t);
+    entry = &t->vt[0x1D]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, q);
     func_00204660(t, g);
-    e = &t->vt[0x1E]; ((void (*)(void *, void *))e->pfn)((char *)t + e->d, t->a1B0);
-    e = &t->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)t + e->d, D_002A2DD0);
-    e = &t->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)t + e->d, D_002A2DD0);
+    entry = &t->vt[0x1E]; ((void (*)(void *, void *))entry->pfn)((char *)t + entry->d, t->a1B0);
+    entry = &t->vt[0x23]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, D_002A2DD0);
+    entry = &t->vt[0x24]; ((void (*)(void *, qword))entry->pfn)((char *)t + entry->d, D_002A2DD0);
 }
 } } // namespace M_func_00171B60
 
@@ -971,20 +762,15 @@ struct K { int k; };
 struct R { struct K *pk; int n; float g; };
 struct U { char pad[0x38]; float g38; };
 struct T { char pad[0xF80]; int nF80; };
-struct S { char pad[0x10]; struct T *pt; int pad1; struct U *p18; char pad2[0x18]; int n34; struct K *p38; };
+struct S { char pad[0x10]; struct T *pt; int pad1; struct U *child; char pad2[0x18]; int context; struct K *currentCommand; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-/** @sly2-annot addr=0x171C18
- * Purpose: Saves current command/context (and wait time) for later resumption
- * Info: proposed name GetBhv169ResumeState (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00171C18(struct S *p, struct R *r) {
-    switch (p->pt->nF80) {
+// 0x171C18: Saves the current command and context (and remaining wait) so the script can resume later.
+void SaveBhvScriptResumeState(struct S *behavior, struct R *r) {
+    switch (behavior->pt->nF80) {
     case -1:
-        r->pk = p->p38;
-        r->n = p->n34;
-        if (r->pk && r->pk->k == 6) r->g = p->p18->g38;
+        r->pk = behavior->currentCommand;
+        r->n = behavior->context;
+        if (r->pk && r->pk->k == 6) r->g = behavior->child->g38;
         break;
     case 0: case 1:
         func_002333B4(r, 0, sizeof(*r));
@@ -993,21 +779,16 @@ void func_00171C18(struct S *p, struct R *r) {
 }
 } } // namespace M_func_00171C18
 
-/** @sly2-annot addr=0x171C98
- * Purpose: Pops any running sub-behaviour and jumps the script to a label
- * Info: proposed name JumpBhv169ToLabel (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
+// 0x171C98: Pops any running child behaviour and jumps the script to a label.
 /* Jumps to the label command id of the running script (popping a running sub-behaviour first). */
-extern "C" void func_00171C98(BHVSSG *pbhv, int id)
+extern "C" void JumpBhvScriptToLabel(BHVSSG *behavior, int id)
 {
-    if (pbhv->pssg != 0) {
-        if (pbhv->fBusy != 0) {
-            PopBhv(&pbhv->bhvSub);
-            pbhv->fBusy = 0;
+    if (behavior->script != 0) {
+        if (behavior->isCommandBusy != 0) {
+            PopBhv(&behavior->childSlot);
+            behavior->isCommandBusy = 0;
         }
-        pbhv->pssgeCur = func_001711F0(pbhv->pssg, id);
+        behavior->currentCommand = FindGuardScriptLabel(behavior->script, id);
     }
 }
 
@@ -1017,15 +798,8 @@ struct F { int a[0x1C]; };
 void *func_00205458(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
-/** @sly2-annot addr=0x171CF8
- * Purpose: Sets the guard's BHV156 to mode 5 with the given script
- * Info: proposed name StartGuardScript (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/engine/guards-ai.md#3-the-behaviour-stack-and-the-guard-modes,
- *   docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00171CF8(void *p, int n) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[4] = n; f.a[0] = 5; SetBhvguardMode(o, &f); } }
+// 0x171CF8: Puts the guard's root behaviour (BHVGUARD) in mode 5 running the given script.
+void StartGuardScript(void *p, int n) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[4] = n; f.a[0] = 5; SetBhvguardMode(o, &f); } }
 } } // namespace M_func_00171CF8
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1034,33 +808,20 @@ struct F { int a[0x1C]; };
 void *func_00205458(void *p, int n);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetBhvguardMode(void *p, struct F *pf);
-/** @sly2-annot addr=0x171D58
- * Purpose: Sets the guard's BHV156 to mode 1 (probably back to normal routine)
- * Info: proposed name SetGuardBhvguardMode1 (T2); TU tu_1709A8
- * Notes: BHV class word normalised: SetGuardBhv156Mode1 -> SetGuardBhvguardMode1 | runtime2/4 confirmed the
- *   BHVGUARD role on live guards (S02-S41)
- * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r3b_rest+runtime(class
- *   role)
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
-void func_00171D58(void *p) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[0] = 1; SetBhvguardMode(o, &f); } }
+// 0x171D58: Puts the guard's root behaviour back in mode 1 (its normal routine, inferred).
+void SetGuardRoutineMode(void *p) { struct F f; void *o = func_00205458(p, 0x9C); if (o) { func_002333B4(&f, 0, sizeof(f)); f.a[0] = 1; SetBhvguardMode(o, &f); } }
 } } // namespace M_func_00171D58
 
-/** @sly2-annot addr=0x171DA8
- * Purpose: True if the guard's BHV156 is in mode 5 with this script
- * Info: proposed name FGuardRunningScript (T2); TU tu_1709A8
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1709a8-0x1709a8-0x171f58
- * @end-sly2-annot */
+// 0x171DA8: True if the guard's root behaviour is in mode 5 running this script.
 /* Whether plo's guard behaviour (CID 0x9C) is in mode 5 on script command id. */
-extern "C" int func_00171DA8(LO *plo, int id)
+extern "C" int IsGuardRunningScript(LO *object, int id)
 {
     BHVGUARDV *pbhvguard;
     int f;
-    pbhvguard = (BHVGUARDV *)func_00205458(plo, 0x9C);
+    pbhvguard = (BHVGUARDV *)func_00205458(object, 0x9C);
     f = 0;
-    if ((pbhvguard != 0) && (pbhvguard->nMode == 5)) {
-        f = pbhvguard->nArg == id;
+    if ((pbhvguard != 0) && (pbhvguard->mode == 5)) {
+        f = pbhvguard->argument == id;
     }
     return f;
 }

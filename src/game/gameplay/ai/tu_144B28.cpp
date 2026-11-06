@@ -1,8 +1,8 @@
-// tu_144B28.cpp -- guard behaviours: walk to a goal (BHVWALKGOAL, a path behaviour), follow an object (BHVFOLLOW,
-// with its state machine and path zones), three behaviours of the same shape (init, start, close, done, update,
-// set state: 0x145CD0.., 0x146158.., 0x146650..) and one of Murray's.
+// tu_144B28.cpp -- more step behaviours: walk to a goal (BHVWALKGOAL, BHV168, a path behaviour steering along a
+// jt-goal), walk-to with path planning (BHV193), follow an object (BHVFOLLOW, BHV194, with its distance-band state
+// machine and path zones), three approach-and-interact behaviours of the same shape (BHV195/196/197: approach a
+// target, then interact through SetPlayerInteractMode) and one of Murray's (BHV198).
 // TU 0x144B28..0x1471C0 (43 functions, address order).
-//
 // Types: guard.h STEPGUARD, players.h MURRAY, so.h SO/SOPHYS/REGENT; BHVB and its derived views (BHVSTATE,
 // BHVWALKGOAL, BHV144E20, BHVFOLLOWV) are TU-private, written for the 18 m2c bodies; the other functions keep the
 // per-function views they were matched with, each in a namespace named after it (as vec.cpp and mark.cpp do).
@@ -24,23 +24,23 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct BHVB
 {
     char pad0[0xC];
-    VTE *pvt;               /* +0x0C */
-    STEPGUARD *pstepguard;  /* +0x10 */
+    VTE *vt;               /* +0x0C */
+    STEPGUARD *owner;  /* +0x10 */
 };
 /* The behaviours with a state machine at +0x30 (state, time it was entered). */
 struct BHVSTATE : public BHVB
 {
     char pad14[0x30 - 0x14];
-    int nState;             /* +0x30 */
-    float tState;           /* +0x34 */
+    int state;             /* +0x30 */
+    float stateTime;           /* +0x34 */
 };
 /* The walk-to-goal behaviour (a path behaviour): its goal and a speed factor. */
 struct BHVWALKGOALV : public BHVB
 {
     char pad14[0x80 - 0x14];
-    qword qwGoal;           /* +0x80 */
+    qword goal;           /* +0x80 */
     char pad90[0xD0 - 0x90];
-    float gD0;              /* +0xD0 */
+    float speedScale;              /* +0xD0 */
 };
 struct BHV144E20 : public BHVB
 {
@@ -57,76 +57,48 @@ struct BHVFOLLOWV : public BHVB
 };
 /* Guard words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and a flag
    word (+0x10E0). */
-#define PJTGOAL(pstepguard) ((JTGOAL *)((char *)(pstepguard) + 0xFD0))
-#define GRFSG(pstepguard) (*(int *)((char *)(pstepguard) + 0x10E0))
+#define PJTGOAL(guard) ((JTGOAL *)((char *)(guard) + 0xFD0))
+#define GRFSG(guard) (*(int *)((char *)(guard) + 0x10E0))
 
 extern CLOCK D_002DDED0;
 extern "C" {
-void InitBhv(BHVB *pbhv);
-void StartBhv(BHVB *pbhv);
-void CloseBhv(BHVB *pbhv);
-void SetBhvBusy(BHVB *pbhv);
-void ClearBhvBusy(BHVB *pbhv);
-void InitBhvpath(BHVB *pbhv);
-void StartBhvpath(BHVB *pbhv);
-void UpdateBhvpath(BHVB *pbhv);
+void InitBhv(BHVB *behavior);
+void StartBhv(BHVB *behavior);
+void CloseBhv(BHVB *behavior);
+void SetBhvBusy(BHVB *behavior);
+void ClearBhvBusy(BHVB *behavior);
+void InitBhvpath(BHVB *behavior);
+void StartBhvpath(BHVB *behavior);
+void UpdateBhvpath(BHVB *behavior);
 void SetJtgoal(JTGOAL *pjtgoal, qword pos);
-void SetBhvfollowState(BHVB *pbhv, int nState);
-int FIsBasicDerivedFrom__FP5BASIC3CID(SO *pso, int cid);
+void SetBhvfollowState(BHVB *behavior, int state);
+int FIsBasicDerivedFrom__FP5BASIC3CID(SO *object, int cid);
 CID17 *PpathzoneFromPos(qword pos, int n);
-qword GetLoWorldPos(SO *pso);
-void SetMurrayState(MURRAY *pmurray, int nState);
-void SetMurrayPowerSubstate(MURRAY *pmurray, int n);
+qword GetLoWorldPos(SO *object);
+void SetMurrayState(MURRAY *murray, int state);
+void SetMurrayPowerSubstate(MURRAY *murray, int n);
 }
 
-/** @sly2-annot addr=0x144B28
- * Purpose: BHV168 slot 7: BHV166 base (0x177E80), speed scale +0xD0 = 1
- * Info: proposed name InitBhvwalkgoal (T1); class BHVWALKGOAL slot7; TU tu_144B28
- * Notes: superseded: OnBhv168Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv168Push | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): InitBhv168
- *   -> InitBhvwalkgoal | runtime6 P2: class role confirmed (walk-to-goal child)
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/engine/player.md#10-source-files, docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
+// 0x144B28: Walk-goal behaviour (BHVWALKGOAL, BHV168) vtable slot 7 (OnPush): path behaviour base, speed scale 1.
 void BHVWALKGOAL::OnPush()
 {
-    BHVWALKGOALV *pbhv = (BHVWALKGOALV *)this;
-    InitBhvpath(pbhv);
-    pbhv->gD0 = 1.0f;
+    BHVWALKGOALV *behavior = (BHVWALKGOALV *)this;
+    InitBhvpath(behavior);
+    behavior->speedScale = 1.0f;
 }
 
-/** @sly2-annot addr=0x144B58
- * Purpose: BHV168 slot 8: base, then SetJtgoal(owner+0xFD0, goal +0x80)
- * Info: proposed name StartBhvwalkgoal (T1); class BHVWALKGOAL slot8; TU tu_144B28
- * Notes: superseded: OnBhv168Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv168Resume | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child):
- *   StartBhv168 -> StartBhvwalkgoal | runtime6 P2: goal +0x80 = (13803,-6465) passed to SetJtgoal (S62)
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-extern "C" void StartBhvwalkgoal(BHVWALKGOALV *pbhv)
+// 0x144B58: Walk-goal behaviour vtable slot 8 (Start): base, then sets the mover's jt-goal to the behaviour's goal.
+extern "C" void StartBhvwalkgoal(BHVWALKGOALV *behavior)
 {
-    StartBhvpath(pbhv);
-    SetJtgoal(PJTGOAL(pbhv->pstepguard), pbhv->qwGoal);
+    StartBhvpath(behavior);
+    SetJtgoal(PJTGOAL(behavior->owner), behavior->goal);
 }
 
-/** @sly2-annot addr=0x144B90
- * Purpose: BHV168 slot 10: BHV166 update (0x1789F8), then refresh SetJtgoal
- * Info: proposed name UpdateBhvwalkgoal (T1); class BHVWALKGOAL slot10; TU tu_144B28
- * Notes: BHV slot 10 (Update): canonical form would be UpdateBhv168 | v3 BHV class word (runtime6 P2: BHV194
- *   = follow, BHV168 = walk-to-goal child): UpdateBhv168Goal -> UpdateBhvwalkgoal | runtime6 P2: walk-to-goal
- *   update; state +0x4C = 2 (arrived) in S62
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *pbhv)
+// 0x144B90: Walk-goal behaviour vtable slot 10 (Update): path behaviour update, then refreshes the jt-goal.
+extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *behavior)
 {
-    UpdateBhvpath(pbhv);
-    SetJtgoal(PJTGOAL(pbhv->pstepguard), pbhv->qwGoal);
+    UpdateBhvpath(behavior);
+    SetJtgoal(PJTGOAL(behavior->owner), behavior->goal);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -136,9 +108,9 @@ typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct O;
 struct VT { char pad[0x2C8]; short d; short pad2; int (*pfn)(struct O *); };
-struct O { char pad[0xC]; struct VT *pvt; char pad2[0x30 - 0x10]; int x30; char pad3[0x7C - 0x34]; struct O *x7C; };
+struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int x30; char pad3[0x7C - 0x34]; struct O *x7C; };
 struct P {
-    char pad[0x10]; void *p10; char pad1[0x4C - 0x14]; int x4C; float x50; char pad2[0x80 - 0x54];
+    char pad[0x10]; void *guard; char pad1[0x4C - 0x14]; int x4C; float x50; char pad2[0x80 - 0x54];
     qword q80; char pad3[0xC0 - 0x90]; struct O *xC0; int xC4; float xC8; int xCC; float xD0;
 };
 extern struct CLOCK D_002DDED0;
@@ -146,14 +118,17 @@ extern qword D_002A2DC0;
 float D_002BD2E0[3] = {0.0f, 0.01f, 0.0f};
 extern float D_002BBB60[2];
 float D_002BD2F0 __attribute__((aligned(16))) = 500.0f;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int k);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
+// VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LenXY(qword d)
 {
     float g;
@@ -164,6 +139,7 @@ static __inline__ float LenXY(qword d)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// VU0 helper: horizontal (xy) length of a vector (second instruction pattern for the match).
 static __inline__ float LenXY2(qword d)
 {
     float g;
@@ -177,59 +153,55 @@ static __inline__ float LenXY2(qword d)
     return g;
 }
 
+// Clamps g into a range.
 static __inline__ float GClampR(float g, float lo, float hi) { if (g < lo) return lo; if (hi < g) return hi; return g; }
+// True if two points are farther apart (horizontally) than the .data limit.
 static __inline__ int FFar(qword a, qword b) { qword d; float lim = D_002BD2F0; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return lim < LenXY2(d); }
+// VU0 helper: dot product.
 static __inline__ qword Dot(qword a, qword b) { register qword r __asm__("vf2"); register qword t __asm__("vf4");
         __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z"
                 : "=&j"(t), "=&j"(r) : "j"(a), "j"(b)); return r; }
+// VU0 helper: component of d perpendicular to an axis.
 static __inline__ qword Perp(qword d, qword axis) { qword v, r;
         v = Dot(d, axis);
         __asm__("vmulx.xyzw %0, %1, %0x" : "+j"(v) : "j"(axis));
         __asm__("vsub.xyzw %0, %1, %0" : "+j"(v) : "j"(d)); return v; }
+// Evaluates a quadratic a0 + g (a1 + g a2).
 static __inline__ float GPoly(float *a, float g) { return a[0] + g * (a[1] + g * a[2]); }
-/** @sly2-annot addr=0x144BC8
- * Purpose: BHV168 slot 14: base fills the drive record (0x1EF0C0), then while in states 0/1 sets speed (CLQ
- *   of xy distance, scaled by +0xD0) and heading toward the goal
- * Info: proposed name UpdateBhvwalkgoalPoctl (T1); class BHVWALKGOAL slot14; TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): Bhv168_VUnk14 ->
- *   UpdateBhvwalkgoalPoctl | runtime6 P1: slot 14 called by UpdateStepplayer 0x1403D0 with the POCTL; writes
- *   POCTL +0x18 heading = atan2 to goal, +0x1C speed 0 when arrived
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
+// 0x144BC8: Walk-goal behaviour vtable slot 14 (steering): base fills the steering record, then while travelling
+// (states 0/1) sets the speed from the horizontal distance to the goal (scaled) and the heading toward it.
+void UpdateBhvwalkgoalPoctl(struct P *behavior, struct Q *q)
 {
-    func_001EF0C0(p, q);
-    if (p->x4C < 2) if (p->x4C >= 0) {
+    ResetBhvSteering(behavior, q);
+    if (behavior->x4C < 2) if (behavior->x4C >= 0) {
         qword pos;
         qword d, v, t, axis;
         float g, s;
-        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(p->q80));
-        v = GetLoWorldPos(p->p10);
+        __asm__("lqc2 %0, %1" : "=j"(pos) : "m"(behavior->q80));
+        v = GetLoWorldPos(behavior->guard);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(v));
         axis = D_002A2DC0;
         v = Perp(d, axis);
         g = GPoly(D_002BD2E0, LenXY(v));
         s = GClampR(g, D_002BBB60[0], D_002BBB60[1]);
         if (0.0f < s) {
-            q->x1C = s * p->xD0;
+            q->x1C = s * behavior->xD0;
             q->x18 = atan2f(GetY(v), GetX(v));
         }
-        if (p->xCC)
+        if (behavior->xCC)
             q->x30 |= 8;
-        if (p->xC0 && p->xC8 < D_002DDED0.t - p->x50) {
+        if (behavior->xC0 && behavior->xC8 < D_002DDED0.t - behavior->x50) {
             int f = 1;
-            struct O *po = p->xC0->x7C;
+            struct O *po = behavior->xC0->x7C;
             qword a, b;
-            __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(GetLoWorldPos(p->p10)));
+            __asm__("qmtc2.ni %1, %0" : "=j"(a) : "r"(GetLoWorldPos(behavior->guard)));
             __asm__("qmtc2.ni %1, %0" : "=j"(b) : "r"(GetLoWorldPos(po)));
             if (FFar(a, b))
                 q->x30 |= 8;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34))
-                f = po->pvt->pfn((struct O *)((char *)po + po->pvt->d)) != 0;
+                f = po->vt->pfn((struct O *)((char *)po + po->vt->d)) != 0;
             if (f) {
-                q->x30 |= p->xC0->x30 & p->xC4;
+                q->x30 |= behavior->xC0->x30 & behavior->xC4;
                 UpdatePoctlPressed(q);
             }
         }
@@ -237,71 +209,53 @@ void UpdateBhvwalkgoalPoctl(struct P *p, struct Q *q)
 }
 } } // namespace M_UpdateBhvwalkgoalPoctl
 
-/** @sly2-annot addr=0x144E20
- * Purpose: BHV193 slot 7: base, defaults 40.0 / 1 / 1.0
- * Info: proposed name InitBhv193 (T2); class BHV193 slot7; TU tu_144B28
- * Notes: superseded: OnBhv193Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv193Push
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x144E20: Walk-to behaviour (BHV193) vtable slot 7 (OnPush): base, defaults (arrival radius 40, flags 1, speed
+// scale 1).
 void BHV193::OnPush()
 {
-    BHV144E20 *pbhv = (BHV144E20 *)this;
-    InitBhv(pbhv);
-    pbhv->g34 = 40.0f;
-    pbhv->n38 = 1;
-    pbhv->g3C = 1.0f;
+    BHV144E20 *behavior = (BHV144E20 *)this;
+    InitBhv(behavior);
+    behavior->g34 = 40.0f;
+    behavior->n38 = 1;
+    behavior->g3C = 1.0f;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144E68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float gD0; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float speedScale; };
 struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34; int n38; float g3C; qword q40; };
 void StartBhv(void *p);
 struct O *func_00205438(void *p, int n);
-void func_00144F48(struct P *p, qword q);
-/** @sly2-annot addr=0x144E68
- * Purpose: BHV193 slot 8: push a BHV168 (0x205438(owner,0xA8)) with own parameters and goal, start it
- * Info: proposed name StartBhv193 (T2); class BHV193 slot8; TU tu_144B28
- * Notes: superseded: OnBhv193Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv193Resume
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00144E68(struct P *p)
+void SetBhvWalkToGoal(struct P *p, qword q);
+// 0x144E68: Walk-to behaviour vtable slot 8 (Start): pushes a walk-goal child (cid 0xA8) with its parameters and
+// goal and starts it.
+void StartBhvWalkTo(struct P *behavior)
 {
     struct O *o;
-    struct VTE *e;
-    StartBhv(p);
-    o = func_00205438(p->o10, 0xA8);
-    o->n40 = p->n30;
-    o->g64 = p->g34;
-    o->nCC = p->n38;
-    o->gD0 = p->g3C;
-    func_00144F48(p, p->q40);
-    e = &o->vt[8];
-    ((void (*)(void *))e->pfn)((char *)o + e->d);
+    struct VTE *entry;
+    StartBhv(behavior);
+    o = func_00205438(behavior->o10, 0xA8);
+    o->n40 = behavior->n30;
+    o->g64 = behavior->g34;
+    o->nCC = behavior->n38;
+    o->speedScale = behavior->g3C;
+    SetBhvWalkToGoal(behavior, behavior->q40);
+    entry = &o->vt[8];
+    ((void (*)(void *))entry->pfn)((char *)o + entry->d);
 }
 } } // namespace M_func_00144E68
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00144EE8 { extern "C" {
-int FBhvpathAtEnd(void *p);
-/** @sly2-annot addr=0x144EE8
- * Purpose: true if the child behaviour finished (0x178D00) or its state == 2
- * Info: proposed name FBhv193Done (T2); TU tu_144B28
- * Notes: names_v2 C proposed EnsureAloFader__FP3ALO (0.438)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-int func_00144EE8(char *p)
+int IsBhvpathAtEnd(void *p);
+// 0x144EE8: True if the walk-to child has reached the end of its path or its state is 2.
+int IsBhvWalkToDone(char *p)
 {
     char *q = *(char **)(p + 0x18);
     int r = 0;
-    if (FBhvpathAtEnd(q) || *(int *)(q + 0x4C) == 2) r = 1;
+    if (IsBhvpathAtEnd(q) || *(int *)(q + 0x4C) == 2) r = 1;
     return r;
 }
 } } // namespace M_func_00144EE8
@@ -314,7 +268,7 @@ struct D { char pad[0x10]; struct E *pe; };
 struct C { char pad[0xDC]; struct D *pd; };
 struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
 struct A { char pad[0xE8]; struct C *pc; char pad2[0x294 - 0xEC]; struct B *pb; };
-struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *p18; char pad2[0x30 - 0x1C]; int f30; char pad3[0x40 - 0x34]; qword v; };
+struct P { char pad[0x10]; struct A *pa; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; int f30; char pad3[0x40 - 0x34]; qword v; };
 qword GetLoWorldPos(struct A *pa);
 void func_001C02D0(struct E *pe, qword r, qword v, struct B *pb);
 void MeasureShape(struct B *pb);
@@ -322,30 +276,26 @@ void SetBhvpathShape(void *p, struct B *pb, int n);
 // 0x144F40: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
-/** @sly2-annot addr=0x144F48
- * Purpose: store goal; build a path (straight or via nav graph 0x1C02D0) into the child's route
- * Info: proposed name SetBhv193Goal (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00144F48(struct P *p, qword v)
+// 0x144F48: Stores the goal and builds the child's route to it: a straight line, or a path through the navigation
+// graph.
+void SetBhvWalkToGoal(struct P *behavior, qword v)
 {
-    p->v = v;
-    if (p->p18) {
-        struct A *pa = p->pa;
+    behavior->v = v;
+    if (behavior->child) {
+        struct A *pa = behavior->pa;
         struct B *pb = pa->pb;
         struct D *pd = pa->pc ? pa->pc->pd : 0;
         struct E *pe = pd ? pd->pe : 0;
         qword r = GetLoWorldPos(pa);
-        if (!pe || p->f30) {
+        if (!pe || behavior->f30) {
             pb->k = 2;
             pb->pq[0] = r;
-            pb->pq[1] = p->v;
+            pb->pq[1] = behavior->v;
             MeasureShape(pb);
         } else {
-            func_001C02D0(pe, r, p->v, pb);
+            func_001C02D0(pe, r, behavior->v, pb);
         }
-        SetBhvpathShape(p->p18, pb, 0);
+        SetBhvpathShape(behavior->child, pb, 0);
     }
 }
 } } // namespace M_func_00144F48
@@ -354,17 +304,8 @@ void func_00144F48(struct P *p, qword v)
 namespace M_InitBhvfollow { extern "C" {
 void InitBhv(void *p);
 struct X { char pad[0x60]; int n; int pad2; float a, b, c, d, e; };
-/** @sly2-annot addr=0x145010
- * Purpose: BHV194 slot 7: base, state -1, follow distances 0.25/250/350/1.0/1.2
- * Info: proposed name InitBhvfollow (T1); class BHVFOLLOW slot7; TU tu_144B28
- * Notes: superseded: OnBhv194Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv194Push | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): InitBhv194
- *   -> InitBhvfollow | runtime6 P2: InitBhv194 defaults 0.25/250/350/1.0/1.2 seen at +0x68 on live Murray
- *   (S62)
- * Confidence: mid (draft) [T1 0.65] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145010: Follow behaviour (BHVFOLLOW, BHV194) vtable slot 7 (OnPush): base, state -1, follow distances and speed
+// factors (0.25/250/350/1.0/1.2).
 void InitBhvfollow(struct X *p)
 {
     InitBhv(p);
@@ -377,37 +318,19 @@ void InitBhvfollow(struct X *p)
 }
 } } // namespace M_InitBhvfollow
 
-/** @sly2-annot addr=0x145080
- * Purpose: BHV194 slot 8: SetBhv194State(0)
- * Info: proposed name StartBhvfollow (T1); class BHVFOLLOW slot8; TU tu_144B28
- * Notes: superseded: OnBhv194Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv194Resume | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child):
- *   StartBhv194 -> StartBhvfollow | runtime6 P2: state +0x60 = 0 after Start (S62)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145080: Follow behaviour vtable slot 8 (Start): state 0.
 void BHVFOLLOW::Start()
 {
-    BHVB *pbhv = (BHVB *)this;
-    StartBhv(pbhv);
-    SetBhvfollowState(pbhv, 0);
+    BHVB *behavior = (BHVB *)this;
+    StartBhv(behavior);
+    SetBhvfollowState(behavior, 0);
 }
 
-/** @sly2-annot addr=0x1450B0
- * Purpose: BHV194 slot 9: SetBhv194State(-1)
- * Info: proposed name CloseBhvfollow (T1); class BHVFOLLOW slot9; TU tu_144B28
- * Notes: superseded: OnBhv194Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv194Pop
- *   | v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): CloseBhv194 ->
- *   CloseBhvfollow | runtime6 P2: class role confirmed (follow)
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources:
- *   r2b_rest+bhv-slot-canon(r9)+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-extern "C" void CloseBhvfollow(BHVB *pbhv)
+// 0x1450B0: Follow behaviour vtable slot 9 (Close): state -1.
+extern "C" void CloseBhvfollow(BHVB *behavior)
 {
-    CloseBhv(pbhv);
-    SetBhvfollowState(pbhv, -1);
+    CloseBhv(behavior);
+    SetBhvfollowState(behavior, -1);
 }
 
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
@@ -428,10 +351,11 @@ struct CLQ D_002BD300 __attribute__((aligned(16))) = {-200.0f, 0.8f, 0.0f, 0.0f}
 struct CLQ D_002BD310 = {200.0f, 1.0f, 0.0f, 0.0f};
 struct CLQ D_002BD320 = {-400.0f, 1.0f, 0.0f, 0.0f};
 qword GetLoWorldPos(void *p);
-ulong GrfFromSgf(int n);
-int FStepguardHasSgf(struct SO *p, int n);
+ulong GetSgfMask(int n);
+int StepguardHasSgf(struct SO *p, int n);
 struct LIST *func_001F8240(void *p);
 
+// VU0 helper: distance between two points.
 static __inline__ float GDist(qword a, qword b)
 {
     qword d, t;
@@ -447,18 +371,12 @@ static __inline__ float GDist(qword a, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Evaluates a CLQ quadratic at g.
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
 
-/** @sly2-annot addr=0x1450E0
- * Purpose: Pick the nearest SO of several guard-state classes around the followed object
- * Info: proposed name PsoBhvfollowPickTarget (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): PsoBhv194PickTarget
- *   -> PsoBhvfollowPickTarget | runtime6: BHV194 class role confirmed
- * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-struct SO *func_001450E0(struct P *p)
+// 0x1450E0: Picks the nearest object of several guard-state classes around the followed object (its current threat,
+// inferred).
+struct SO *PickBhvfollowTarget(struct P *p)
 {
     struct SO *psoBest = 0;
     float gBest = D_002A4E30;
@@ -468,8 +386,8 @@ struct SO *func_001450E0(struct P *p)
     int i;
     GetLoWorldPos(p->p10);
     pos = GetLoWorldPos(p->p30);
-    grf = GrfFromSgf(7) | GrfFromSgf(0x10) | GrfFromSgf(0x16) | GrfFromSgf(0x17) |
-          GrfFromSgf(0x2A) | GrfFromSgf(0x2B);
+    grf = GetSgfMask(7) | GetSgfMask(0x10) | GetSgfMask(0x16) | GetSgfMask(0x17) |
+          GetSgfMask(0x2A) | GetSgfMask(0x2B);
     plist = p->p10->plist;
     for (i = 0; i < plist->c; i++) {
         struct SO *pso = plist->a[i];
@@ -479,7 +397,7 @@ struct SO *func_001450E0(struct P *p)
         g = GDist(pos, GetLoWorldPos(pso));
         if (pso == p->p90)
             g = GFromClq(g, &D_002BD300);
-        if (FStepguardHasSgf(pso, 3))
+        if (StepguardHasSgf(pso, 3))
             g = GFromClq(g, &D_002BD320);
         if (g < gBest) {
             psoBest = pso;
@@ -497,7 +415,7 @@ struct SO *func_001450E0(struct P *p)
             g = GFromClq(g, &D_002BD310);
             if (pso == p->p90)
                 g = GFromClq(g, &D_002BD300);
-            if (FStepguardHasSgf(pso, 3))
+            if (StepguardHasSgf(pso, 3))
                 g = GFromClq(g, &D_002BD320);
             if (g < gBest) {
                 psoBest = pso;
@@ -512,7 +430,7 @@ struct SO *func_001450E0(struct P *p)
 namespace RO_ORDER { extern const float r_D_002A4E34 __asm__("D_002A4E34") = 3.40282347e+38f; }
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_UpdateBhvfollow { extern "C" {
-// UpdateBhvfollow: camera/AI state update. Keys: `f = func_001459C0(p) != 0; if (f)` (stops loop.c hoisting constant 1), inline GClamp.
+// UpdateBhvfollow: camera/AI state update. Keys: `f = IsBhvfollowLeaderOnNewGround(p) != 0; if (f)` (stops loop.c hoisting constant 1), inline GClamp.
 typedef int qword __attribute__((mode(TI)));
 struct LM { float gMin, gMax; };
 struct D { char pad[0x10]; void *p10; };
@@ -521,7 +439,7 @@ struct PO { char pad[0xE8]; struct C *pc; char pad2[0x2DC - 0xEC]; int x2DC; cha
 struct X { char pad[0x40]; int x40; };
 struct SO;
 struct P {
-    char pad[0x10]; struct PO *p10; char pad1[4]; struct X *p18; char pad2[0x30 - 0x1C]; void *p30; char pad3[0x50 - 0x34];
+    char pad[0x10]; struct PO *guard; char pad1[4]; struct X *child; char pad2[0x30 - 0x1C]; void *leader; char pad3[0x50 - 0x34];
     qword q50; int x60; char pad4[0x6C - 0x64]; float g6C; float g70; float g74; float g78; char pad5[0x90 - 0x7C]; struct SO *p90;
 };
 extern const float D_002A4E34;   /* defined below where the ELF has it (.rodata order) */
@@ -529,19 +447,20 @@ struct LM D_002BD330 = {0.0f, 600.0f};
 struct LM D_002BD338 = {0.0f, 1200.0f};
 float D_002BD340 = 200.0f;
 void UpdateBhv(struct P *p);
-int FBhvBusyAbove(struct P *p);
+int IsBhvBusyAbove(struct P *p);
 qword GetLoWorldPos(void *p);
-struct SO *func_001450E0(struct P *p);
-int func_001459C0(struct P *p);
+struct SO *PickBhvfollowTarget(struct P *p);
+int IsBhvfollowLeaderOnNewGround(struct P *p);
 int FCheckLm__FP2LMf(struct LM *plm, float g);
 void SetBhvfollowState(struct P *p, int n);
 int GetBasicCid(void *p);
-int func_00145DA0(struct X *px);
-int func_00146298(struct X *px);
-int func_00146790(struct X *px);
-void func_001457A8(struct P *p);
+int IsBhvInteractIdle(struct X *px);
+int IsBhvInteract2Idle(struct X *px);
+int IsBhvInteract3Idle(struct X *px);
+void UpdateBhvfollowPosition(struct P *p);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
 
+// VU0 helper: horizontal (xy) length of a vector.
 static __inline__ float LenXY(qword d)
 {
     float g;
@@ -551,7 +470,9 @@ static __inline__ float LenXY(qword d)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(t));
     return g;
 }
+// VU0 helper: vector difference.
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+// VU0 helper: length of a vector.
 static __inline__ float Len(qword d)
 {
     qword t;
@@ -561,96 +482,90 @@ static __inline__ float Len(qword d)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
+// Clamps *pg into [lo, hi].
 static __inline__ void GClamp(float *pg, float lo, float hi) { if (*pg < lo) *pg = lo; else if (hi < *pg) *pg = hi; }
+// True if two points are farther apart (horizontally) than the .data limit.
 static __inline__ int FFar(qword a, qword b) { float lim = D_002BD340; return lim < LenXY(Sub(a, b)); }
 
-/** @sly2-annot addr=0x1453F0
- * Purpose: BHV194 slot 10: follow/escort another object (+0x30): distance bands switch states, re-path when
- *   far
- * Info: proposed name UpdateBhvfollow (T1); class BHVFOLLOW slot10; TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): UpdateBhv194 ->
- *   UpdateBhvfollow | runtime6 P2: distance bands/leader +0x30 = JT confirmed (S62)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void UpdateBhvfollow(struct P *p)
+// 0x1453F0: Follow behaviour vtable slot 10 (Update): follows the leader (+0x30); distance bands switch between
+// standing, walking and running, re-pathing when far.
+void UpdateBhvfollow(struct P *behavior)
 {
     struct PO *po;
     qword a, b;
     float gXY, g;
-    struct SO *pso;
+    struct SO *object;
     void *pv30;
-    UpdateBhv(p);
-    po = p->p10;
-    pv30 = p->p30;
+    UpdateBhv(behavior);
+    po = behavior->guard;
+    pv30 = behavior->leader;
     a = GetLoWorldPos(po);
     b = GetLoWorldPos(pv30);
     gXY = LenXY(Sub(a, b));
-    pso = func_001450E0(p);
-    if (pso) {
-        qword c = GetLoWorldPos(pso);
+    object = PickBhvfollowTarget(behavior);
+    if (object) {
+        qword c = GetLoWorldPos(object);
         float dA = Len(Sub(c, a));
         float dB = Len(Sub(c, b));
         g = dA < dB ? dA : dB;
     } else {
         g = D_002A4E34;
     }
-    while (!FBhvBusyAbove(p)) {
-        int state = p->x60;
+    while (!IsBhvBusyAbove(behavior)) {
+        int state = behavior->x60;
         int f;
         switch (state) {
         case 0:
-            f = func_001459C0(p) != 0;
+            f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
             if (f)
-                SetBhvfollowState(p, 1);
+                SetBhvfollowState(behavior, 1);
             else if (FCheckLm__FP2LMf(&D_002BD330, g)) {
-                p->p90 = pso;
-                SetBhvfollowState(p, 2);
+                behavior->p90 = object;
+                SetBhvfollowState(behavior, 2);
             }
             break;
         case 1:
-            if (p->p10->x2DC == -1)
-                SetBhvfollowState(p, 0);
+            if (behavior->guard->x2DC == -1)
+                SetBhvfollowState(behavior, 0);
             break;
         case 2:
-            f = func_001459C0(p) != 0;
+            f = IsBhvfollowLeaderOnNewGround(behavior) != 0;
             if (f)
-                SetBhvfollowState(p, 1);
+                SetBhvfollowState(behavior, 1);
             else if (!FCheckLm__FP2LMf(&D_002BD338, g))
-                SetBhvfollowState(p, 0);
+                SetBhvfollowState(behavior, 0);
             else {
-                switch (GetBasicCid(p->p10)) {
+                switch (GetBasicCid(behavior->guard)) {
                 case 0x36:
-                    if (func_00145DA0(p->p18))
-                        SetBhvfollowState(p, 0);
+                    if (IsBhvInteractIdle(behavior->child))
+                        SetBhvfollowState(behavior, 0);
                     break;
                 case 0x37:
-                    if (func_00146298(p->p18))
-                        SetBhvfollowState(p, 0);
+                    if (IsBhvInteract2Idle(behavior->child))
+                        SetBhvfollowState(behavior, 0);
                     break;
                 case 0x35:
-                    if (func_00146790(p->p18))
-                        SetBhvfollowState(p, 0);
+                    if (IsBhvInteract3Idle(behavior->child))
+                        SetBhvfollowState(behavior, 0);
                     break;
                 }
             }
             break;
         }
-        if (p->x60 == state)
+        if (behavior->x60 == state)
             break;
     }
-    if (p->x60 == 0) {
-        struct D *pd = p->p10->pc ? p->p10->pc->pd : 0;
+    if (behavior->x60 == 0) {
+        struct D *pd = behavior->guard->pc ? behavior->guard->pc->pd : 0;
         void *pv = pd ? pd->p10 : 0;
         if (!pv)
-            p->p18->x40 = 1;
-        if (FFar(p->q50, b))
-            func_001457A8(p);
+            behavior->child->x40 = 1;
+        if (FFar(behavior->q50, b))
+            UpdateBhvfollowPosition(behavior);
         if (po->p1030) {
-            float t = (gXY - p->g6C) / (p->g70 - p->g6C);
+            float t = (gXY - behavior->g6C) / (behavior->g70 - behavior->g6C);
             GClamp(&t, 0.0f, 1.0f);
-            SetAsegaSpeed__FP5ASEGAf(po->p1030, (1.0f - t) * p->g74 + t * p->g78);
+            SetAsegaSpeed__FP5ASEGAf(po->p1030, (1.0f - t) * behavior->g74 + t * behavior->g78);
         }
     }
 }
@@ -658,7 +573,7 @@ void UpdateBhvfollow(struct P *p)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001457A8 {
-// func_001457A8 MATCH (Claude agent for Lilly, T1647, 2026-10-25), from v6 (14).
+// UpdateBhvfollowPosition MATCH (Claude agent for Lilly, T1647, 2026-10-25), from v6 (14).
 // Branch 1: VU_FLOAT has a user copy ctor (so the temporary lives at 0x40) and its qmtc2 ctor writes a plain qword
 // local first, then copies it into q (an asm output straight into the member goes through a second stack temp).
 // Branch 2: the VU_FLOAT is loaded with an asm lw from "m"(f) (VU_FLOATM, as in SetBentleyHelperState), and AddScaled takes
@@ -673,9 +588,9 @@ struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
 struct A { char pad[0xE8]; C *pc; char pad2[0x294 - 0xEC]; B *pb; };
 struct O;
 struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };
-struct O { char pad[0xC]; VT *pvt; char pad2[0x190 - 0x10]; qword q190; char pad3[0x1A8 - 0x1A0]; float g1A8; };
+struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword q190; char pad3[0x1A8 - 0x1A0]; float g1A8; };
 struct P {
-    char pad[0x10]; A *pa; char pad1[4]; void *p18; char pad2[0x30 - 0x1C]; O *po; char pad3[0x40 - 0x34];
+    char pad[0x10]; A *pa; char pad1[4]; void *child; char pad2[0x30 - 0x1C]; O *po; char pad3[0x40 - 0x34];
     qword q40; qword q50; char pad4[0x68 - 0x60]; float g68;
 };
 extern "C" {
@@ -684,16 +599,17 @@ qword GetLoWorldPos(void *p);
 M3 *GetLoWorldMatrix(void *p);
 M3 func_0011B500(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-E *func_00145AA8(P *p);
+E *GetBhvfollowLeaderGround(P *p);
 int func_001C02D0(E *pe, qword r, qword v, B *pb);
 void MeasureShape(B *pb);
 void SetBhvpathShape(void *p, B *pb, int n);
-void func_001457A8(P *p);
+void UpdateBhvfollowPosition(P *p);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(const VU_FLOAT &s) { q = s.q; } VU_FLOAT(float f) { qword t; __asm__("qmtc2.ni %1, %0" : "=j"(t) : "r"(f)); q = t; } };
 struct VU_VECTOR { qword q; VU_VECTOR(const qword &v) { q = v; } };
 struct VU_FLOATM { qword q; VU_FLOATM(const float &f) { __asm__("lw %0, %1" : "=r"(q) : "m"(f)); } };
 
+// VU0 helper: a + b scaled by a VU float (multiply-add).
 static inline qword AddScaled(VU_VECTOR a, VU_FLOATM s, VU_VECTOR b)
 {
     qword r;
@@ -701,6 +617,7 @@ static inline qword AddScaled(VU_VECTOR a, VU_FLOATM s, VU_VECTOR b)
     return r;
 }
 
+// VU0 helper: a + b scaled by a VU float (multiply-add).
 static inline qword AddScaled(VU_VECTOR a, VU_FLOAT s, VU_VECTOR b)
 {
     qword r;
@@ -708,6 +625,7 @@ static inline qword AddScaled(VU_VECTOR a, VU_FLOAT s, VU_VECTOR b)
     return r;
 }
 
+// VU0 helper: 3x3 matrix times vector.
 static inline qword MulM3(const M3 &m, qword v)
 {
     qword r;
@@ -716,6 +634,7 @@ static inline qword MulM3(const M3 &m, qword v)
     return r;
 }
 
+// VU0 helper: vector sum a + b.
 static inline qword Add(qword a, qword b)
 {
     qword r;
@@ -723,32 +642,24 @@ static inline qword Add(qword a, qword b)
     return r;
 }
 
-/** @sly2-annot addr=0x1457A8
- * Purpose: compute follow target position behind the leader (uses its facing if STEP)
- * Info: proposed name UpdateBhvfollowPos (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): UpdateBhv194FollowPos
- *   -> UpdateBhvfollowPos | runtime6 P2: follow point +0x50
- * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_001457A8(P *p)
+// 0x1457A8: Computes the follow position behind the leader (using its facing when it is a step).
+void UpdateBhvfollowPosition(P *behavior)
 {
     union { M4 m4; struct { M3 m; qword pos; } s; } u;
-    p->q50 = GetLoWorldPos(p->po);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x33)) {
-        O *po = p->po;
+    behavior->q50 = GetLoWorldPos(behavior->po);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->po, 0x33)) {
+        O *po = behavior->po;
         u.s.m = func_0011B500(D_002A2DC0, po->g1A8);
-        u.s.pos = AddScaled(p->q50, VU_FLOAT(-p->g68), MulM3(u.s.m, po->q190));
+        u.s.pos = AddScaled(behavior->q50, VU_FLOAT(-behavior->g68), MulM3(u.s.m, po->q190));
     } else {
         O *po;
-        u.s.m = *GetLoWorldMatrix(p->po);
-        po = p->po;
-        u.s.pos = AddScaled(p->q50, VU_FLOATM(p->g68), po->pvt->pfn((O *)((char *)po + po->pvt->d)));
+        u.s.m = *GetLoWorldMatrix(behavior->po);
+        po = behavior->po;
+        u.s.pos = AddScaled(behavior->q50, VU_FLOATM(behavior->g68), po->vt->pfn((O *)((char *)po + po->vt->d)));
     }
-    u.s.pos = Add(u.s.pos, MulM3(u.s.m, p->q40));
+    u.s.pos = Add(u.s.pos, MulM3(u.s.m, behavior->q40));
     {
-        A *pa = p->pa;
+        A *pa = behavior->pa;
         B *pb = pa->pb;
         D *pd = pa->pc ? pa->pc->pd : 0;
         E *pe = pd ? pd->pe : 0;
@@ -758,12 +669,12 @@ void func_001457A8(P *p)
             pb->pq[0] = r;
             pb->pq[1] = u.s.pos;
             MeasureShape(pb);
-        } else if (func_00145AA8(p) != pe) {
+        } else if (GetBhvfollowLeaderGround(behavior) != pe) {
             func_001C02D0(pe, r, r, pb);
         } else if (!func_001C02D0(pe, r, u.s.pos, pb)) {
             func_001C02D0(pe, r, r, pb);
         }
-        SetBhvpathShape(p->p18, pb, 0);
+        SetBhvpathShape(behavior->child, pb, 0);
     }
 }
 } // namespace M_func_001457A8
@@ -777,59 +688,43 @@ struct C { char pad[0xDC]; struct D *pd; };
 struct A { char pad[0xE8]; struct C *pc; };
 struct SO { char pad[0x18]; int k; };
 struct X30 { char pad[0x2DC]; int x2DC; };
-struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *p30; char pad3[0x80 - 0x34]; qword pos; };
-struct SO *func_00145AA8(struct P *p);
+struct P { char pad[0x10]; struct A *pa; char pad2[0x30 - 0x14]; struct X30 *leader; char pad3[0x80 - 0x34]; qword pos; };
+struct SO *GetBhvfollowLeaderGround(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 qword GetLoWorldPos(void *p);
-int func_001C09A0(struct SO *pso, qword pos, int n);
-int func_00173610(qword *ppos, float a, float b, int c, int d);
-/** @sly2-annot addr=0x1459C0
- * Purpose: checks the leader's ground object vs own
- * Info: proposed name FBhvfollowLeaderOnNewGround (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child):
- *   FBhv194LeaderOnNewGround -> FBhvfollowLeaderOnNewGround | runtime6: BHV194 class role confirmed
- * Confidence: low (draft) [T2 0.30] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2b_rest+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-int func_001459C0(struct P *p)
+int func_001C09A0(struct SO *object, qword pos, int n);
+int SnapToGround(qword *ppos, float a, float b, int c, int d);
+// 0x1459C0: True if the leader stands on a different ground object than the follower.
+int IsBhvfollowLeaderOnNewGround(struct P *behavior)
 {
-    struct SO *pso = func_00145AA8(p);
+    struct SO *object = GetBhvfollowLeaderGround(behavior);
     struct D *pd;
     struct E *pe;
     qword pos;
-    if (!pso) return 0;
-    pd = p->pa->pc ? p->pa->pc->pd : 0;
+    if (!object) return 0;
+    pd = behavior->pa->pc ? behavior->pa->pc->pd : 0;
     pe = pd ? pd->pe : 0;
-    if ((struct E *)pso == pe) return 0;
-    if (pso->k == 0x2CA) return 0;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x34) && p->p30->x2DC != -1) return 0;
-    pos = GetLoWorldPos(p->p30);
-    if (!func_001C09A0(pso, pos, 0)) return 0;
-    if (!func_00173610(&pos, 100.0f, -150.0f, 0, 0)) return 0;
-    p->pos = pos;
+    if ((struct E *)object == pe) return 0;
+    if (object->k == 0x2CA) return 0;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, 0x34) && behavior->leader->x2DC != -1) return 0;
+    pos = GetLoWorldPos(behavior->leader);
+    if (!func_001C09A0(object, pos, 0)) return 0;
+    if (!SnapToGround(&pos, 100.0f, -150.0f, 0, 0)) return 0;
+    behavior->pos = pos;
     return 1;
 }
 } } // namespace M_func_001459C0
 
-/** @sly2-annot addr=0x145AA8
- * Purpose: leader's ground/standing object if any
- * Info: proposed name PsoBhvfollowLeaderGround (T2); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): PsoBhv194LeaderGround
- *   -> PsoBhvfollowLeaderGround | runtime6: BHV194 class role confirmed
- * Confidence: low (draft) [T2 0.30] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2b_rest+runtime(class role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145AA8: Returns the object the leader is standing on, if any.
 /* The path zone of the followed object: a CID 0x30 object's region (SO::psophys->pregent->pcid17), else the zone
    at its position. */
-extern "C" CID17 *func_00145AA8(BHVFOLLOWV *pbhv)
+extern "C" CID17 *GetBhvfollowLeaderGround(BHVFOLLOWV *behavior)
 {
     CID17 *pcid17;
     SOPHYS *psophys;
     REGENT *pregent;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pbhv->pso, 0x30) != 0) {
-        psophys = pbhv->pso->psophys;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->pso, 0x30) != 0) {
+        psophys = behavior->pso->psophys;
         pregent = 0;
         if (psophys != 0) {
             pregent = psophys->pregent;
@@ -840,7 +735,7 @@ extern "C" CID17 *func_00145AA8(BHVFOLLOWV *pbhv)
         }
         return pcid17;
     }
-    pcid17 = PpathzoneFromPos(GetLoWorldPos(pbhv->pso), 1);
+    pcid17 = PpathzoneFromPos(GetLoWorldPos(behavior->pso), 1);
     return pcid17;
 }
 
@@ -851,59 +746,51 @@ struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad1[0x38 - 0x10]; int x38; char pad2[0xC0 - 0x3C]; int xC0; int xC4; float gC8; };
 struct X30 { char pad[0x150]; int x150; };
 struct P {
-    char pad[0x10]; void *p10; char pad1[4]; char m18[0x30 - 0x18]; struct X30 *p30; char pad2[0x60 - 0x34];
-    int state; float tState; char pad3[0x80 - 0x68]; qword v80; int x90;
+    char pad[0x10]; void *guard; char pad1[4]; char m18[0x30 - 0x18]; struct X30 *leader; char pad2[0x60 - 0x34];
+    int state; float stateTime; char pad3[0x80 - 0x68]; qword v80; int x90;
 };
 extern struct CLOCK D_002DDED0;
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
-void func_001457A8(struct P *p);
+void UpdateBhvfollowPosition(struct P *p);
 void ReturnJtToPosition(void *p, qword v);
 int GetBasicCid(void *p);
+// Matching helper: pushes the behaviour of class `oid` on the owner, hands it the goal at +0x90 and starts it (vtable slot 8).
 static __inline__ void Activate(struct P *p, int oid)
 {
-    struct O *po = func_00205438(p->p10, oid);
+    struct O *po = func_00205438(p->guard, oid);
     po->x38 = p->x90;
     po->vt[8].pfn((char *)po + po->vt[8].d);
 }
-/** @sly2-annot addr=0x145B18
- * Purpose: state change; state 0 pushes a BHV168 walk-to-goal child
- * Info: proposed name SetBhvfollowState (T1); TU tu_144B28
- * Notes: v3 BHV class word (runtime6 P2: BHV194 = follow, BHV168 = walk-to-goal child): SetBhv194State ->
- *   SetBhvfollowState | runtime6 P2: state 0 pushes the BHV168 walk-to-goal child (live stack [BHV194,
- *   BHV168], child +0x18)
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r2b_rest+runtime(class
- *   role)+runtime
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void SetBhvfollowState(struct P *p, int state)
+// 0x145B18: Follow behaviour state change; state 0 pushes a walk-goal child toward the follow position.
+void SetBhvfollowState(struct P *behavior, int state)
 {
-    if (state == p->state) return;
-    PopBhv(p->m18);
-    p->state = state;
-    p->tState = D_002DDED0.t;
+    if (state == behavior->state) return;
+    PopBhv(behavior->m18);
+    behavior->state = state;
+    behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
-        struct O *po = func_00205438(p->p10, 0xA8);
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(p->p30, 0x32)) {
-            po->xC0 = p->p30->x150;
+        struct O *po = func_00205438(behavior->guard, 0xA8);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->leader, 0x32)) {
+            po->xC0 = behavior->leader->x150;
             po->xC4 = 8;
             po->gC8 = GRandInRange__Fff(0.1f, 0.3f);
         }
-        func_001457A8(p);
+        UpdateBhvfollowPosition(behavior);
         po->vt[8].pfn((char *)po + po->vt[8].d);
         break;
     }
     case 1:
-        ReturnJtToPosition(p->p10, p->v80);
+        ReturnJtToPosition(behavior->guard, behavior->v80);
         break;
     case 2:
-        switch (GetBasicCid(p->p10)) {
-        case 0x36: Activate(p, 0xC3); break;
-        case 0x37: Activate(p, 0xC4); break;
-        case 0x35: Activate(p, 0xC5); break;
+        switch (GetBasicCid(behavior->guard)) {
+        case 0x36: Activate(behavior, 0xC3); break;
+        case 0x37: Activate(behavior, 0xC4); break;
+        case 0x35: Activate(behavior, 0xC5); break;
         }
         break;
     }
@@ -913,15 +800,8 @@ void SetBhvfollowState(struct P *p, int state)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00145CD0 { extern "C" {
 void InitBhv(void *p);
-/** @sly2-annot addr=0x145CD0
- * Purpose: BHV195 slot 7: base, state -1
- * Info: proposed name InitBhv195 (T2); class BHV195 slot7; TU tu_144B28
- * Notes: names_v2 C proposed InitCamsen__FP6CAMSEN (0.438) | superseded: OnBhv195Push (r2b_rest) | BHV vtable
- *   slot 7 role per r9 (CONFLICTS #15); was OnBhv195Push
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00145CD0(char *p)
+// 0x145CD0: Interact behaviour (BHV195) vtable slot 7 (OnPush): base, state -1.
+void InitBhvInteract(char *p)
 {
     InitBhv(p);
     *(int *)(p + 0x30) = -1;
@@ -933,51 +813,34 @@ namespace M_func_00145D00 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 void StartBhv(void *p);
-void func_00146158(void *p, int n);
-/** @sly2-annot addr=0x145D00
- * Purpose: BHV195 slot 8: state 0, SetPlayerInteractMode(4, target, 4, target), set owner +0x10E0 bit 1
- * Info: proposed name StartBhv195 (T2); class BHV195 slot8; TU tu_144B28
- * Notes: superseded: OnBhv195Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv195Resume
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00145D00(char *p)
+void SetBhvInteractState(void *p, int n);
+// 0x145D00: Interact behaviour vtable slot 8 (Start): state 0, starts interact mode 4 with the target
+// (SetPlayerInteractMode) and sets the owner's +0x10E0 bit 1.
+void StartBhvInteract(char *p)
 {
     struct O *o;
-    struct VTE *e;
+    struct VTE *entry;
     StartBhv(p);
-    func_00146158(p, 0);
+    SetBhvInteractState(p, 0);
     o = *(struct O **)(p + 0x10);
-    e = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))e->pfn)((char *)o + e->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
+    entry = &o->vt[95];
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
     *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
 }
 } } // namespace M_func_00145D00
 
-/** @sly2-annot addr=0x145D68
- * Purpose: BHV195 slot 9: clear owner +0x10E0 bit 1
- * Info: proposed name CloseBhv195 (T2); class BHV195 slot9; TU tu_144B28
- * Notes: superseded: OnBhv195Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv195Pop
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x145D68: Interact behaviour vtable slot 9 (Close): clears the owner's +0x10E0 bit 1.
 void BHV195::VSlot9()
 {
-    BHVB *pbhv = (BHVB *)this;
-    CloseBhv(pbhv);
-    GRFSG(pbhv->pstepguard) &= ~1;
+    BHVB *behavior = (BHVB *)this;
+    CloseBhv(behavior);
+    GRFSG(behavior->owner) &= ~1;
 }
 
-/** @sly2-annot addr=0x145DA0
- * Purpose: state == -1
- * Info: proposed name FBhv195Idle (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-extern "C" int func_00145DA0(BHVSTATE *pbhv)
+// 0x145DA0: True if the interact behaviour is idle (state -1).
+extern "C" int IsBhvInteractIdle(BHVSTATE *behavior)
 {
-    return ~pbhv->nState == 0;
+    return ~behavior->state == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -990,33 +853,29 @@ struct { float a; float b; } D_002BD348 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
 struct Q { char pad[0x330]; int x330; };
 struct R { char pad[0xDF4]; int xDF4; char pad2[0x1810 - 0xDF8]; int x1810; };
-struct P { char pad[0x10]; struct R *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct Q *p38; };
+struct P { char pad[0x10]; struct R *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct Q *target; };
 void UpdateBhv(struct P *);
 int IsLoInWorld(struct Q *);
 qword GetLoWorldPos(void *);
 qword *GetLoWorldMatrix(void *);
-void func_00146158(struct P *, int);
+void SetBhvInteractState(struct P *, int);
 
-/** @sly2-annot addr=0x145DB0
- * Purpose: BHV195 slot 10: approach target (+0x38) and interact; abort when hurt or target gone
- * Info: proposed name UpdateBhv195 (T2); class BHV195 slot10; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00145DB0(struct P *p)
+// 0x145DB0: Interact behaviour vtable slot 10 (Update): approaches the target (+0x38) and interacts; aborts when
+// hurt or the target is gone.
+void UpdateBhvInteract(struct P *behavior)
 {
     VU d;
     qword a, b, c, l, one, n;
     float g;
-    UpdateBhv(p);
-    if (p->x30 == -1)
+    UpdateBhv(behavior);
+    if (behavior->state == -1)
         return;
-    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
-        func_00146158(p, -1);
+    if (behavior->owner->xDF4 != -1 || !IsLoInWorld(behavior->target) || behavior->target->x330) {
+        SetBhvInteractState(behavior, -1);
         return;
     }
-    a = GetLoWorldPos(p->p38);
-    b = GetLoWorldPos(p->p10);
+    a = GetLoWorldPos(behavior->target);
+    b = GetLoWorldPos(behavior->owner);
     { qword *pk = &D_002A2DA0;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
     d.q = c;
@@ -1040,11 +899,11 @@ void func_00145DB0(struct P *p)
     }
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l)); /* gcc emits the qmfc2 and schedules it */
     for (;;) {
-        int state = p->x30;
+        int state = behavior->state;
         switch (state) {
         case 0:
             if (g < D_002BD344) {
-                qword *pm = GetLoWorldMatrix(p->p10);
+                qword *pm = GetLoWorldMatrix(behavior->owner);
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
@@ -1053,21 +912,21 @@ void func_00145DB0(struct P *p)
                 __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one2), "+j"(t));
                 __asm__("qmfc2.ni %0, %1" : "=r"(dot) : "j"(t));
                 if (0.8f < dot)
-                    func_00146158(p, 2);
+                    SetBhvInteractState(behavior, 2);
             } else if (D_002BD348.b < g) {
-                func_00146158(p, 1);
+                SetBhvInteractState(behavior, 1);
             }
             break;
         case 1:
             if (g < D_002BD348.a)
-                func_00146158(p, 0);
+                SetBhvInteractState(behavior, 0);
             break;
         case 2:
-            if (p->p10->x1810 == -1 && 0.1f < D_002DDED0.t - p->x34)
-                func_00146158(p, -1);
+            if (behavior->owner->x1810 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+                SetBhvInteractState(behavior, -1);
             break;
         }
-        if (p->x30 == state)
+        if (behavior->state == state)
             break;
     }
 }
@@ -1078,34 +937,31 @@ namespace M_func_00146068 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
-struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
+struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-/** @sly2-annot addr=0x146068
- * Purpose: BHV195 slot 14: drive toward target (slow in state 0)
- * Info: proposed name Bhv195_VUnk14 (T2); class BHV195 slot14; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00146068(struct P *p, struct Q *q)
+// 0x146068: Interact behaviour vtable slot 14 (steering): drives toward the target (slowly in state 0).
+void SteerBhvInteract(struct P *behavior, struct Q *q)
 {
-    func_001EF0C0(p, q);
-    if (p->x30 < 3) if (p->x30 >= 0) {
+    ResetBhvSteering(behavior, q);
+    if (behavior->state < 3) if (behavior->state >= 0) {
         qword a, b, d;
         float g;
-        a = GetLoWorldPos(p->p38);
-        b = GetLoWorldPos(p->p10);
+        a = GetLoWorldPos(behavior->target);
+        b = GetLoWorldPos(behavior->owner);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         g = 1.0f;
-        if (p->x30 == 0) g = 0.1f;
+        if (behavior->state == 0) g = 0.1f;
         q->x1C = g;
         q->x18 = atan2f(GetY(d), GetX(d));
-        if (p->x30 == 2 && D_002DDED0.t - p->x34 < 0.1f) {
+        if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
             q->x30 |= 0x80;
             UpdatePoctlPressed(q);
         }
@@ -1113,25 +969,20 @@ void func_00146068(struct P *p, struct Q *q)
 }
 } } // namespace M_func_00146068
 
-/** @sly2-annot addr=0x146158
- * Purpose: state change with busy push/pop on state 2
- * Info: proposed name SetBhv195State (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146158: Interact behaviour state change; state 2 is busy.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
-extern "C" void func_00146158(BHVSTATE *pbhv, int nState)
+extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
 {
     int nStatePrev;
-    nStatePrev = pbhv->nState;
-    if (nState != nStatePrev) {
+    nStatePrev = behavior->state;
+    if (state != nStatePrev) {
         if (nStatePrev == 2) {
-            ClearBhvBusy(pbhv);
+            ClearBhvBusy(behavior);
         }
-        pbhv->nState = nState;
-        pbhv->tState = D_002DDED0.t;
-        if (nState == 2) {
-            SetBhvBusy(pbhv);
+        behavior->state = state;
+        behavior->stateTime = D_002DDED0.t;
+        if (state == 2) {
+            SetBhvBusy(behavior);
         }
     }
 }
@@ -1139,15 +990,8 @@ extern "C" void func_00146158(BHVSTATE *pbhv, int nState)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001461C8 { extern "C" {
 void InitBhv(void *p);
-/** @sly2-annot addr=0x1461C8
- * Purpose: BHV196 slot 7 (same shape as BHV195)
- * Info: proposed name InitBhv196 (T2); class BHV196 slot7; TU tu_144B28
- * Notes: superseded: OnBhv196Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv196Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_001461C8(char *p)
+// 0x1461C8: Second interact behaviour (BHV196, the same shape as BHV195) vtable slot 7 (OnPush).
+void InitBhvInteract2(char *p)
 {
     InitBhv(p);
     *(int *)(p + 0x30) = -1;
@@ -1159,51 +1003,33 @@ namespace M_func_001461F8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 void StartBhv(void *p);
-void func_00146650(void *p, int n);
-/** @sly2-annot addr=0x1461F8
- * Purpose: BHV196 slot 8
- * Info: proposed name StartBhv196 (T2); class BHV196 slot8; TU tu_144B28
- * Notes: superseded: OnBhv196Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv196Resume
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_001461F8(char *p)
+void SetBhvInteract2State(void *p, int n);
+// 0x1461F8: Second interact behaviour vtable slot 8 (Start).
+void StartBhvInteract2(char *p)
 {
     struct O *o;
-    struct VTE *e;
+    struct VTE *entry;
     StartBhv(p);
-    func_00146650(p, 0);
+    SetBhvInteract2State(p, 0);
     o = *(struct O **)(p + 0x10);
-    e = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))e->pfn)((char *)o + e->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
+    entry = &o->vt[95];
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
     *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
 }
 } } // namespace M_func_001461F8
 
-/** @sly2-annot addr=0x146260
- * Purpose: BHV196 slot 9
- * Info: proposed name CloseBhv196 (T2); class BHV196 slot9; TU tu_144B28
- * Notes: superseded: OnBhv196Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv196Pop
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146260: Second interact behaviour vtable slot 9 (Close).
 void BHV196::VSlot9()
 {
-    BHVB *pbhv = (BHVB *)this;
-    CloseBhv(pbhv);
-    GRFSG(pbhv->pstepguard) &= ~1;
+    BHVB *behavior = (BHVB *)this;
+    CloseBhv(behavior);
+    GRFSG(behavior->owner) &= ~1;
 }
 
-/** @sly2-annot addr=0x146298
- * Purpose: state == -1
- * Info: proposed name FBhv196Idle (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.85] - evidence: static analysis; sources: r2b_rest+verdicts_followups
- * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-extern "C" int func_00146298(BHVSTATE *pbhv)
+// 0x146298: True if the second interact behaviour is idle (state -1).
+extern "C" int IsBhvInteract2Idle(BHVSTATE *behavior)
 {
-    return ~pbhv->nState == 0;
+    return ~behavior->state == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1216,33 +1042,28 @@ struct { float a; float b; } D_002BD358 = {250.0f, 350.0f};
 extern qword D_002A2DA0;
 struct Q { char pad[0x330]; int x330; };
 struct R { char pad[0xDF4]; int xDF4; char pad2[0x1714 - 0xDF8]; int x1714; };
-struct P { char pad[0x10]; struct R *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct Q *p38; };
+struct P { char pad[0x10]; struct R *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct Q *target; };
 void UpdateBhv(struct P *);
 int IsLoInWorld(struct Q *);
 qword GetLoWorldPos(void *);
 qword *GetLoWorldMatrix(void *);
-void func_00146650(struct P *, int);
+void SetBhvInteract2State(struct P *, int);
 
-/** @sly2-annot addr=0x1462A8
- * Purpose: BHV196 slot 10 (BHV195 variant)
- * Info: proposed name UpdateBhv196 (T2); class BHV196 slot10; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_001462A8(struct P *p)
+// 0x1462A8: Second interact behaviour vtable slot 10 (Update): the BHV195 approach with its own conditions.
+void UpdateBhvInteract2(struct P *behavior)
 {
     VU d;
     qword a, b, c, l, one, n;
     float g;
-    UpdateBhv(p);
-    if (p->x30 == -1)
+    UpdateBhv(behavior);
+    if (behavior->state == -1)
         return;
-    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
-        func_00146650(p, -1);
+    if (behavior->owner->xDF4 != -1 || !IsLoInWorld(behavior->target) || behavior->target->x330) {
+        SetBhvInteract2State(behavior, -1);
         return;
     }
-    a = GetLoWorldPos(p->p38);
-    b = GetLoWorldPos(p->p10);
+    a = GetLoWorldPos(behavior->target);
+    b = GetLoWorldPos(behavior->owner);
     { qword *pk = &D_002A2DA0;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(c) : "j"(a), "j"(b));
     d.q = c;
@@ -1266,11 +1087,11 @@ void func_001462A8(struct P *p)
     }
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l)); /* gcc emits the qmfc2 and schedules it */
     for (;;) {
-        int state = p->x30;
+        int state = behavior->state;
         switch (state) {
         case 0:
             if (g < D_002BD350) {
-                qword *pm = GetLoWorldMatrix(p->p10);
+                qword *pm = GetLoWorldMatrix(behavior->owner);
                 register qword t __asm__("vf2");
                 qword one2;
                 float dot;
@@ -1279,21 +1100,21 @@ void func_001462A8(struct P *p)
                 __asm__("vaddw.x %0, $vf0, $vf0w\n\tvadday.x ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z" : "=&j"(one2), "+j"(t));
                 __asm__("qmfc2.ni %0, %1" : "=r"(dot) : "j"(t));
                 if (0.8f < dot)
-                    func_00146650(p, 2);
+                    SetBhvInteract2State(behavior, 2);
             } else if (D_002BD358.b < g) {
-                func_00146650(p, 1);
+                SetBhvInteract2State(behavior, 1);
             }
             break;
         case 1:
             if (g < D_002BD358.a)
-                func_00146650(p, 0);
+                SetBhvInteract2State(behavior, 0);
             break;
         case 2:
-            if (p->p10->x1714 == -1 && 0.1f < D_002DDED0.t - p->x34)
-                func_00146650(p, -1);
+            if (behavior->owner->x1714 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+                SetBhvInteract2State(behavior, -1);
             break;
         }
-        if (p->x30 == state)
+        if (behavior->state == state)
             break;
     }
 }
@@ -1304,34 +1125,31 @@ namespace M_func_00146560 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef union { qword q; float f[4]; } U;
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
-struct P { char pad[0x10]; void *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
+struct P { char pad[0x10]; void *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 extern struct CLOCK D_002DDED0;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-/** @sly2-annot addr=0x146560
- * Purpose: BHV196 slot 14
- * Info: proposed name Bhv196_VUnk14 (T2); class BHV196 slot14; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00146560(struct P *p, struct Q *q)
+// 0x146560: Second interact behaviour vtable slot 14 (steering).
+void SteerBhvInteract2(struct P *behavior, struct Q *q)
 {
-    func_001EF0C0(p, q);
-    if (p->x30 < 3) if (p->x30 >= 0) {
+    ResetBhvSteering(behavior, q);
+    if (behavior->state < 3) if (behavior->state >= 0) {
         qword a, b, d;
         float g;
-        a = GetLoWorldPos(p->p38);
-        b = GetLoWorldPos(p->p10);
+        a = GetLoWorldPos(behavior->target);
+        b = GetLoWorldPos(behavior->owner);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
         g = 1.0f;
-        if (p->x30 == 0) g = 0.1f;
+        if (behavior->state == 0) g = 0.1f;
         q->x1C = g;
         q->x18 = atan2f(GetY(d), GetX(d));
-        if (p->x30 == 2 && D_002DDED0.t - p->x34 < 0.1f) {
+        if (behavior->state == 2 && D_002DDED0.t - behavior->stateTime < 0.1f) {
             q->x30 |= 0x80;
             UpdatePoctlPressed(q);
         }
@@ -1339,25 +1157,20 @@ void func_00146560(struct P *p, struct Q *q)
 }
 } } // namespace M_func_00146560
 
-/** @sly2-annot addr=0x146650
- * Purpose: state setter
- * Info: proposed name SetBhv196State (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146650: Second interact behaviour state change.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
-extern "C" void func_00146650(BHVSTATE *pbhv, int nState)
+extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
 {
     int nStatePrev;
-    nStatePrev = pbhv->nState;
-    if (nState != nStatePrev) {
+    nStatePrev = behavior->state;
+    if (state != nStatePrev) {
         if (nStatePrev == 2) {
-            ClearBhvBusy(pbhv);
+            ClearBhvBusy(behavior);
         }
-        pbhv->nState = nState;
-        pbhv->tState = D_002DDED0.t;
-        if (nState == 2) {
-            SetBhvBusy(pbhv);
+        behavior->state = state;
+        behavior->stateTime = D_002DDED0.t;
+        if (state == 2) {
+            SetBhvBusy(behavior);
         }
     }
 }
@@ -1365,15 +1178,8 @@ extern "C" void func_00146650(BHVSTATE *pbhv, int nState)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_001466C0 { extern "C" {
 void InitBhv(void *p);
-/** @sly2-annot addr=0x1466C0
- * Purpose: BHV197 slot 7
- * Info: proposed name InitBhv197 (T2); class BHV197 slot7; TU tu_144B28
- * Notes: superseded: OnBhv197Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv197Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_001466C0(char *p)
+// 0x1466C0: Third interact behaviour (BHV197) vtable slot 7 (OnPush).
+void InitBhvInteract3(char *p)
 {
     InitBhv(p);
     *(int *)(p + 0x30) = -1;
@@ -1385,51 +1191,33 @@ namespace M_func_001466F0 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; struct VTE *vt; };
 void StartBhv(void *p);
-void func_00146E18(void *p, int n);
-/** @sly2-annot addr=0x1466F0
- * Purpose: BHV197 slot 8
- * Info: proposed name StartBhv197 (T2); class BHV197 slot8; TU tu_144B28
- * Notes: superseded: OnBhv197Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv197Resume
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_001466F0(char *p)
+void SetBhvInteract3State(void *p, int n);
+// 0x1466F0: Third interact behaviour vtable slot 8 (Start).
+void StartBhvInteract3(char *p)
 {
     struct O *o;
-    struct VTE *e;
+    struct VTE *entry;
     StartBhv(p);
-    func_00146E18(p, 0);
+    SetBhvInteract3State(p, 0);
     o = *(struct O **)(p + 0x10);
-    e = &o->vt[95];
-    ((void (*)(void *, int, int, int, int))e->pfn)((char *)o + e->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
+    entry = &o->vt[95];
+    ((void (*)(void *, int, int, int, int))entry->pfn)((char *)o + entry->d, 4, *(int *)(p + 0x38), 4, *(int *)(p + 0x38));
     *(int *)(*(char **)(p + 0x10) + 0x10E0) |= 1;
 }
 } } // namespace M_func_001466F0
 
-/** @sly2-annot addr=0x146758
- * Purpose: BHV197 slot 9
- * Info: proposed name CloseBhv197 (T2); class BHV197 slot9; TU tu_144B28
- * Notes: superseded: OnBhv197Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv197Pop
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146758: Third interact behaviour vtable slot 9 (Close).
 void BHV197::VSlot9()
 {
-    BHVB *pbhv = (BHVB *)this;
-    CloseBhv(pbhv);
-    GRFSG(pbhv->pstepguard) &= ~1;
+    BHVB *behavior = (BHVB *)this;
+    CloseBhv(behavior);
+    GRFSG(behavior->owner) &= ~1;
 }
 
-/** @sly2-annot addr=0x146790
- * Purpose: state == -1
- * Info: proposed name FBhv197Idle (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-extern "C" int func_00146790(BHVSTATE *pbhv)
+// 0x146790: True if the third interact behaviour is idle (state -1).
+extern "C" int IsBhvInteract3Idle(BHVSTATE *behavior)
 {
-    return ~pbhv->nState == 0;
+    return ~behavior->state == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1438,7 +1226,7 @@ typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
 struct PO { char pad[0x2DC]; int x2DC; float g2E0; char pad2[0xDF4 - 0x2E4]; int xDF4; char pad3[0x18C8 - 0xDF8]; int x18C8; char pad4[0x18D8 - 0x18CC]; int x18D8; };
 struct T { char pad[0x330]; int x330; };
-struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct T *p38; };
+struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; struct T *target; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DA0;
 float D_002BD360 = 450.0f;
@@ -1449,9 +1237,10 @@ void UpdateBhv(struct P *p);
 int IsLoInWorld(struct T *p);
 qword GetLoWorldPos(void *p);
 struct M3 *GetLoWorldMatrix(void *p);
-void func_00146E18(struct P *p, int n);
+void SetBhvInteract3State(struct P *p, int n);
 float GRandInRange__Fff(float gMin, float gMax);
 
+// VU0 helper: dot product.
 static __inline__ float Dot(qword a, qword b)
 {
     qword r, t;
@@ -1462,6 +1251,7 @@ static __inline__ float Dot(qword a, qword b)
     return g;
 }
 
+// VU0 helper: normalizes *pv in place (or uses the default for a zero vector) and returns the length.
 static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
 {
     register qword v __asm__("vf3") = *pv;
@@ -1483,27 +1273,22 @@ static __inline__ float SafeNormalize(qword *pv, qword *pvDefault)
     return g;
 }
 
-/** @sly2-annot addr=0x1467A0
- * Purpose: BHV197 slot 10: approach target with extra states 3/4
- * Info: proposed name UpdateBhv197 (T2); class BHV197 slot10; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_001467A0(struct P *p)
+// 0x1467A0: Third interact behaviour vtable slot 10 (Update): the approach with two extra states (3/4).
+void UpdateBhvInteract3(struct P *behavior)
 {
     union { qword q; float f[4]; } d;
     float g;
     int state;
-    UpdateBhv(p);
-    if (p->x30 == -1)
+    UpdateBhv(behavior);
+    if (behavior->state == -1)
         return;
-    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
-        func_00146E18(p, -1);
+    if (behavior->owner->xDF4 != -1 || !IsLoInWorld(behavior->target) || behavior->target->x330) {
+        SetBhvInteract3State(behavior, -1);
         return;
     }
     {
-        qword a = GetLoWorldPos(p->p38);
-        qword b = GetLoWorldPos(p->p10);
+        qword a = GetLoWorldPos(behavior->target);
+        qword b = GetLoWorldPos(behavior->owner);
         qword dq;
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(dq) : "j"(a), "j"(b));
         d.q = dq;
@@ -1511,47 +1296,47 @@ void func_001467A0(struct P *p)
         g = SafeNormalize(&d.q, &D_002A2DA0);
     }
     do {
-        state = p->x30;
+        state = behavior->state;
         switch (state) {
         case 0:
             if (g < D_002BD360) {
-                struct M3 *pm = GetLoWorldMatrix(p->p10);
+                struct M3 *pm = GetLoWorldMatrix(behavior->owner);
                 if (0.8f < Dot(pm->r[0], d.q)) {
                     if (GRandInRange__Fff(0.0f, 1.0f) < 0.3f)
-                        func_00146E18(p, 3);
+                        SetBhvInteract3State(behavior, 3);
                     else
-                        func_00146E18(p, 2);
+                        SetBhvInteract3State(behavior, 2);
                 }
             } else if (D_002BD36C < g) {
-                func_00146E18(p, 1);
+                SetBhvInteract3State(behavior, 1);
             }
             break;
         case 1:
             if (g < D_002BD368)
-                func_00146E18(p, 0);
+                SetBhvInteract3State(behavior, 0);
             break;
         case 2:
-            if (p->p10->x18D8 == -1 && 0.1f < D_002DDED0.t - p->x34)
-                func_00146E18(p, -1);
+            if (behavior->owner->x18D8 == -1 && 0.1f < D_002DDED0.t - behavior->stateTime)
+                SetBhvInteract3State(behavior, -1);
             break;
         case 3: {
             float t = D_002DDED0.t;
-            if (0.1f < t - p->x34) {
-                struct PO *po = p->p10;
+            if (0.1f < t - behavior->stateTime) {
+                struct PO *po = behavior->owner;
                 if (po->x2DC != -1) {
                     if (po->x2DC == 1 && D_002BD370 < t - po->g2E0)
-                        func_00146E18(p, 4);
+                        SetBhvInteract3State(behavior, 4);
                 } else
-                    func_00146E18(p, -1);
+                    SetBhvInteract3State(behavior, -1);
             }
             break;
         }
         case 4:
-            if (0.1f < D_002DDED0.t - p->x34 && p->p10->x18C8 != 13)
-                func_00146E18(p, -1);
+            if (0.1f < D_002DDED0.t - behavior->stateTime && behavior->owner->x18C8 != 13)
+                SetBhvInteract3State(behavior, -1);
             break;
         }
-    } while (p->x30 != state);
+    } while (behavior->state != state);
 }
 } } // namespace M_func_001467A0
 
@@ -1563,16 +1348,19 @@ namespace M_func_00146B18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct PO { char pad[0x2DC]; int x2DC; };
-struct P { char pad[0x10]; struct PO *p10; char pad2[0x30 - 0x14]; int x30; float x34; void *p38; };
+struct P { char pad[0x10]; struct PO *owner; char pad2[0x30 - 0x14]; int state; float stateTime; void *target; };
 struct CLQ { float g0, g1, g2, gPad; } __attribute__((aligned(16)));
 struct LM { float gMin, gMax; };
 extern struct CLOCK D_002DDED0;
-void func_001EF0C0(struct P *p, struct Q *q);
+void ResetBhvSteering(struct P *p, struct Q *q);
 qword GetLoWorldPos(void *p);
 float atan2f(float y, float x);
 void UpdatePoctlPressed(struct Q *q);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: vector difference.
 static __inline__ qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
+// VU0 helper: square root through the Q register.
 static __inline__ float SqrtQ(qword t)
 {
     float g;
@@ -1580,7 +1368,9 @@ static __inline__ float SqrtQ(qword t)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(t));
     return g;
 }
+// Evaluates a CLQ quadratic at g.
 static __inline__ float GFromClq(float g, struct CLQ *pclq) { return pclq->g0 + g * (pclq->g1 + g * pclq->g2); }
+// Clamps g to an LM range.
 static __inline__ float GLimitLm(struct LM *plm, float g)
 {
     float gMin = plm->gMin, gMax = plm->gMax;
@@ -1602,35 +1392,31 @@ static __inline__ float GAtanR(qword d)
     __asm__("mtc1 %1,%0" : "=f"(fy) : "r"(y));
     return atan2f(fy, GetX(d));
 }
-/** @sly2-annot addr=0x146B18
- * Purpose: BHV197 slot 14: speed GLimitLm(CLQ(|d.xy|)), heading atan2 toward target
- * Info: proposed name Bhv197_VUnk14 (T2); class BHV197 slot14; TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00146B18(struct P *p, struct Q *q)
+// 0x146B18: Third interact behaviour vtable slot 14 (steering): speed limited from the horizontal distance, heading
+// toward the target.
+void SteerBhvInteract3(struct P *behavior, struct Q *q)
 {
-    func_001EF0C0(p, q);
-    switch (p->x30) {
+    ResetBhvSteering(behavior, q);
+    switch (behavior->state) {
     case 1: {
-        qword d = Sub(GetLoWorldPos(p->p38), GetLoWorldPos(p->p10));
+        qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         q->x1C = 1.0f;
         q->x18 = GAtanR(d);
         break;
     }
     case 2: {
-        qword d = Sub(GetLoWorldPos(p->p38), GetLoWorldPos(p->p10));
+        qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         q->x1C = 1.0f;
         q->x18 = GAtanR(d);
-        if (D_002DDED0.t - p->x34 < 0.1f) {
+        if (D_002DDED0.t - behavior->stateTime < 0.1f) {
             q->x30 |= 0x80;
             UpdatePoctlPressed(q);
         }
         break;
     }
     case 3: {
-        qword a = GetLoWorldPos(p->p38);
-        qword b = GetLoWorldPos(p->p10);
+        qword a = GetLoWorldPos(behavior->target);
+        qword b = GetLoWorldPos(behavior->owner);
         struct CLQ clq = {-0.25f, 0.00156249990686774f};
         qword d;
         float s;
@@ -1646,17 +1432,17 @@ void func_00146B18(struct P *p, struct Q *q)
         }
         q->x1C = s;
         q->x18 = GAtanXY2(d, b);
-        if (D_002DDED0.t - p->x34 < 0.1f && p->p10->x2DC == -1) {
+        if (D_002DDED0.t - behavior->stateTime < 0.1f && behavior->owner->x2DC == -1) {
             q->x30 |= 0x40;
             UpdatePoctlPressed(q);
         }
         break;
     }
     case 4: {
-        qword d = Sub(GetLoWorldPos(p->p38), GetLoWorldPos(p->p10));
+        qword d = Sub(GetLoWorldPos(behavior->target), GetLoWorldPos(behavior->owner));
         q->x1C = 1.0f;
         q->x18 = GAtanR(d);
-        if (D_002DDED0.t - p->x34 < 0.1f) {
+        if (D_002DDED0.t - behavior->stateTime < 0.1f) {
             q->x30 |= 0x80;
             UpdatePoctlPressed(q);
         }
@@ -1669,60 +1455,42 @@ void func_00146B18(struct P *p, struct Q *q)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146E18 { extern "C" {
 extern struct CLOCK D_002DDED0;
-struct P { char pad[0x30]; int state; float tState; };
+struct P { char pad[0x30]; int state; float stateTime; };
 void ClearBhvBusy(struct P *p);
 void SetBhvBusy(struct P *p);
-/** @sly2-annot addr=0x146E18
- * Purpose: state setter (busy in 2..4)
- * Info: proposed name SetBhv197State (T2); TU tu_144B28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00146E18(struct P *p, int state)
+// 0x146E18: Third interact behaviour state change (busy in states 2..4).
+void SetBhvInteract3State(struct P *behavior, int state)
 {
-    if (state == p->state) return;
-    switch (p->state) {
+    if (state == behavior->state) return;
+    switch (behavior->state) {
     case 2: case 3: case 4:
-        ClearBhvBusy(p);
+        ClearBhvBusy(behavior);
     }
-    p->state = state;
-    p->tState = D_002DDED0.t;
+    behavior->state = state;
+    behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 2: case 3: case 4:
-        SetBhvBusy(p);
+        SetBhvBusy(behavior);
     }
 }
 } } // namespace M_func_00146E18
 
-/** @sly2-annot addr=0x146E98
- * Purpose: BHV198 slot 8: MURRAY flag +0x1AC0=1, Murray state 0xC (0x1B6078), 0x1B8D30(0)
- * Info: proposed name StartBhv198 (T2); class BHV198 slot8; TU tu_144B28
- * Notes: superseded: OnBhv198Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv198Resume
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
+// 0x146E98: Murray behaviour (BHV198) vtable slot 8 (Start): sets MURRAY +0x1AC0, Murray state 0xC.
 void BHV198::Start()
 {
-    BHVB *pbhv = (BHVB *)this;
-    StartBhv(pbhv);
-    ((MURRAY *)pbhv->pstepguard)->unk_0x1ac0 = 1;
-    SetMurrayState((MURRAY *)pbhv->pstepguard, 0xC);
-    SetMurrayPowerSubstate((MURRAY *)pbhv->pstepguard, 0);
+    BHVB *behavior = (BHVB *)this;
+    StartBhv(behavior);
+    ((MURRAY *)behavior->owner)->unk_0x1ac0 = 1;
+    SetMurrayState((MURRAY *)behavior->owner, 0xC);
+    SetMurrayPowerSubstate((MURRAY *)behavior->owner, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146EE0 { extern "C" {
 void CloseBhv(void *p);
 void SetMurrayState(void *p, int n);
-/** @sly2-annot addr=0x146EE0
- * Purpose: BHV198 slot 9: clear +0x1AC0, Murray state 0
- * Info: proposed name CloseBhv198 (T2); class BHV198 slot9; TU tu_144B28
- * Notes: superseded: OnBhv198Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv198Pop
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00146EE0(char *p)
+// 0x146EE0: Murray behaviour vtable slot 9 (Close): clears +0x1AC0, Murray state 0.
+void CloseBhvMurray(char *p)
 {
     CloseBhv(p);
     *(int *)(*(char **)(p + 0x10) + 0x1AC0) = 0;
@@ -1746,40 +1514,37 @@ float RadNormalize__Ff(float g);
 float RadStepHeading(struct X *px);
 float GLimitAbs__Fff(float g, float dg);
 void func_00204660(struct X *px, float g);
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
-/** @sly2-annot addr=0x146F18
- * Purpose: BHV198 slot 10: Murray sub-state machine (+0x1840) relative to the current player D_002E1E40
- * Info: proposed name UpdateBhv198 (T2); class BHV198 slot10; TU tu_144B28
- * Notes: names_v2 C proposed SetAloPoseCombo__FP3ALO3OID (0.438)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r2b_rest
- * See: docs/reference/functions/player.md#tu_144b28-0x144b28-0x1471c0
- * @end-sly2-annot */
-void func_00146F18(struct P *p)
+// 0x146F18: Murray behaviour vtable slot 10 (Update): Murray's sub-state machine (+0x1840) relative to the current
+// player.
+void UpdateBhvMurray(struct P *behavior)
 {
-    UpdateBhv(p);
-    switch (p->px->x1840) {
+    UpdateBhv(behavior);
+    switch (behavior->px->x1840) {
     case 0:
         if (D_002E1E40) {
             qword a, b, d;
             a = GetLoWorldPos(D_002E1E40);
-            b = GetLoWorldPos(p->px);
+            b = GetLoWorldPos(behavior->px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-            SetStepRadTargetVec(p->px, d);
+            SetStepRadTargetVec(behavior->px, d);
         }
-        p->g30 = p->px->g1A8;
+        behavior->g30 = behavior->px->g1A8;
         break;
     case 1:
         if (D_002E1E40) {
             qword a, b, d;
             float g, gCur;
             a = GetLoWorldPos(D_002E1E40);
-            b = GetLoWorldPos(p->px);
+            b = GetLoWorldPos(behavior->px);
             __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
             g = atan2f(GetY(d), GetX(d));
-            if (__builtin_fabsf(RadNormalize__Ff(g - p->g30)) < D_002BD374) {
-                gCur = RadStepHeading(p->px);
-                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; func_00204660(p->px, gCur + GLimitAbs__Fff(d, k * dt)); }
+            if (__builtin_fabsf(RadNormalize__Ff(g - behavior->g30)) < D_002BD374) {
+                gCur = RadStepHeading(behavior->px);
+                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; func_00204660(behavior->px, gCur + GLimitAbs__Fff(d, k * dt)); }
             }
         }
         break;

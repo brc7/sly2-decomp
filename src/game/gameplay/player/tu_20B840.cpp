@@ -165,8 +165,8 @@ CHN *func_0012FF10(ASEG *paseg, ALO *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
 qword GetSoDvGravity(ALO *);
-void func_0020B210(ALO *);
-void func_0020D178(void *);
+void DetachStepguard(ALO *);
+void DisableStuckWatch(void *);
 float ComputeMaxBallisticTime(qword,qword,float,float,float,float);
 qword func_0022FC48(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
@@ -174,7 +174,7 @@ ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
 void SetSoDvGravity(ALO *,qword);
 void func_00130D30(ASEGA *,int,float,float);
-void func_0020B2A8(ALO *,ALO *,int);
+void AttachStepguard(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
 int FAsegaRetracted(ASEGA *);
 int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
@@ -647,8 +647,8 @@ void SetLeapState(LEAPV *leap,int state)
     case 1:{
         if(FIsBasicDerivedFrom((BASIC *)leap->subject,(CID)0x38)){
             ALO *subject=leap->subject;
-            func_0020B210(subject);
-            func_0020D178(subject->control);
+            DetachStepguard(subject);
+            DisableStuckWatch(subject->control);
         }
         float playbackRate=leap->job->svt;
         register ALO *motionSubject __asm__("$3")=leap->subject;
@@ -714,7 +714,7 @@ void SetLeapState(LEAPV *leap,int state)
     case 2:func_00130D30(leap->job,0,leap->tuning->afterStart,1.0f);break;
     case 3:
         func_00130D30(leap->job,0,leap->tuning->afterEnd,1.0f);
-        if(leap->related)func_0020B2A8(leap->subject,leap->related,leap->kind);
+        if(leap->related)AttachStepguard(leap->subject,leap->related,leap->kind);
         break;
     case 4:
         if(leap->ballistic)ReleaseLeapConstraint(leap);

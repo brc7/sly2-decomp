@@ -1896,10 +1896,10 @@ struct S { char pad[0x50]; int x50; char pad2[0x5C - 0x54]; void *x5C; };
 struct P { char pad[0x150]; void *pl; char pad2[0x10DC - 0x154]; struct O *interactTarget; char pad3[0x180C - 0x10E0]; int x180C; };
 extern float D_002C09AC, D_002C09B8;
 extern char D_002C09B0[], D_002C09C0[];
-int FStepguardHasSgf(struct O *po, int n);
+int StepguardHasSgf(struct O *po, int n);
 int GrfPressedWithin__5POCTLUif(void *pl, int k, float g);
 int GrfConsumePressed__5POCTLUif(void *pl, int k, float g);
-struct S *PbhvFindBhvstk(void *p, int n);
+struct S *FindBhvInBhvstk(void *p, int n);
 qword GetLoWorldPos(void *p);
 int FCheckLm__FP2LMf(void *p, float g);
 void SetBhvjuggledState(struct S *p, int n);
@@ -1934,9 +1934,9 @@ int TryMurrayTakedown(struct P *murray)
     struct S *ps;
     if (!murray->interactTarget)
         return 0;
-    if (!FStepguardHasSgf(murray->interactTarget, 0x17) || !GrfPressedWithin__5POCTLUif(murray->pl, 0xA0, 0.15f))
+    if (!StepguardHasSgf(murray->interactTarget, 0x17) || !GrfPressedWithin__5POCTLUif(murray->pl, 0xA0, 0.15f))
         goto ret0;
-    ps = PbhvFindBhvstk(murray->interactTarget->x26C, 0xB1);
+    ps = FindBhvInBhvstk(murray->interactTarget->x26C, 0xB1);
     if (ps->x50 >= 3)
         return 0;
     if (ps->x5C != murray) {
@@ -2226,7 +2226,7 @@ struct T { char pad[0x180]; struct LO *po; };
 struct P { char pad[0x13F0]; struct T *carried; char pad2[0x1414 - 0x13F4]; float g1414; char pad3[0x1420 - 0x1418]; qword throwGoal; };
 void DetachMurrayCarried(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int k);
-void func_00209FB8(struct LO *p);
+void StunStepguardThrownOp3(struct LO *p);
 qword GetLoWorldPos(struct LO *p);
 qword GetSoDvGravity(struct LO *p);
 qword func_001D69F0(qword a, qword b, qword c, float t);
@@ -2261,7 +2261,7 @@ void ThrowMurrayCarried(struct P *murray)
         float t;
         qword v;
         if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x38))
-            func_00209FB8(object);
+            StunStepguardThrownOp3(object);
         t = Dist(GetLoWorldPos(object), murray->throwGoal) / murray->g1414;
         v = func_001D69F0(GetLoWorldPos(object), murray->throwGoal, GetSoDvGravity(object), t);
         ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, v);
@@ -2307,7 +2307,7 @@ struct S { char pad[0x13F0]; struct T *pt; };
 extern qword D_002C09D0, D_002A2DD0;
 void DetachMurrayCarried(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *p, int n);
-void func_00209FB8(struct O *p);
+void StunStepguardThrownOp3(struct O *p);
 qword ConvertAloVec(struct S *p, int n, qword q);
 void func_001F7A68(struct O *p, int n);
 /** @sly2-annot addr=0x1B7AE8
@@ -2326,7 +2326,7 @@ void TossMurrayCarried(struct S *murray)
     object = murray->pt->po;
     murray->pt = 0;
     if ((int)(object->f28 >> 60) & 1) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) func_00209FB8(object);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x38)) StunStepguardThrownOp3(object);
         q = ConvertAloVec(murray, 0, D_002C09D0);
         ((void (*)(void *, qword))object->vt[35].pfn)((char *)object + object->vt[35].d, q);
         ((void (*)(void *, qword))object->vt[36].pfn)((char *)object + object->vt[36].d, D_002A2DD0);
@@ -2345,7 +2345,7 @@ extern qword D_002C09E0, D_002A2DD0;
 void SetSmaGoal(int a, int b);
 void DetachMurrayCarried(struct P *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct X *x, int n);
-void func_00209EE0(struct X *x);
+void StunStepguardThrownOp2(struct X *x);
 void func_001F7A68(struct X *x, int n);
 qword ConvertAloVec(struct P *p, int n, qword q);
 /** @sly2-annot addr=0x1B7BA8
@@ -2374,7 +2374,7 @@ void DropMurrayCarried(struct P *murray)
     }
     DetachMurrayCarried(murray);
     x = murray->carried->x180;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) func_00209EE0(x);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(x, 0x38)) StunStepguardThrownOp2(x);
     else func_001F7A68(x, 1);
     switch (murray->state) {
     case 5: {
@@ -3570,8 +3570,8 @@ extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertAloMat4(void*,void*,M4*);
 extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
 extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
-extern "C" void func_00209E28(OWNER*,int);
-extern "C" void func_00209E88(OWNER*);
+extern "C" void SendStepguardRootBhvMode6(OWNER*,int);
+extern "C" void StunStepguardThrownOp1(OWNER*);
 extern "C" void ComputeMurrayLiftLaunch(P*,qword,float*,float*,qword*,qword*);
 extern "C" MOTION*func_0012DE58(void*,void*,void*,float,qword,qword);
 extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
@@ -3615,7 +3615,7 @@ extern "C" void SetMurrayLiftSubstate(P*murray,int state) {
   M4 work=ConvertAloMat4(murray,0,&predicted);
   predicted=work;
   GetMurrayGripFrame(murray,0,&predicted,&work.row[0].q,&work.row[1].q);
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))func_00209E28(owner,(int)murray);
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))SendStepguardRootBhvMode6(owner,(int)murray);
   ComputeMurrayLiftLaunch(murray,work.row[1].q,&event->time,&duration,&work.row[2].q,&work.row[3].q);
   murray->m13FC=func_0012DE58(owner,owner->left,(void*)5,D_002DDED0.time+duration,work.row[1].q,work.row[3].q);
   VTE*entry=&owner->vt[35];
@@ -3663,7 +3663,7 @@ extern "C" void SetMurrayLiftSubstate(P*murray,int state) {
    murray->m1624=func_0012DD28(murray,stretch->second,(void*)5,stretch);
    murray->m160C=func_0012DDB0(murray,murray->targetSecond,(void*)5,(void*)5,(int)stretch->frame,&frame);
   }
-  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))func_00209E88(owner);
+  if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))StunStepguardThrownOp1(owner);
   ClearXYZ(&murray->velocity);
   break;
  }

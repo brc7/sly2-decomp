@@ -1875,7 +1875,7 @@ extern char D_004435F0[];
 void snd_StopAllStreams(void);
 void func_00233048(int, int, int, int, int, int, int);
 int snd_FlushSoundCommands(void);
-void func_00156BE0(int, qword, int, void *);
+void ReplaceHeldNoise(int, qword, int, void *);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void func_00227788(void *);
 void func_00259B48(void *, void *);
@@ -1907,7 +1907,7 @@ void ResetSndmgr(struct P *p)
     p->aEC[3] = 0;
     p->aEC[4] = 0;
     p->aEC[5] = 0;
-    func_00156BE0(0, D_002A2DD0, 0, p->s74);
+    ReplaceHeldNoise(0, D_002A2DD0, 0, p->s74);
     func_002333B4(p->s108, 0, 0xC);
     func_00227788(D_004435F0);
     func_00259B48(&p->r200, 0);
@@ -2009,7 +2009,7 @@ void func_002330D0(int, int, int, int, int, int, int, void (*)(void), long);
 void *PpoHero(struct SW *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 qword GetLoWorldPos(void *);
-void func_00156BE0(struct O *, qword, void *, void *);
+void ReplaceHeldNoise(struct O *, qword, void *, void *);
 static inline float Eval(struct V3 *pv, float t)
 {
     return pv->x + t * (pv->y + t * pv->z);
@@ -2042,7 +2042,7 @@ void func_001FDA48(struct P *p)
         po->f5C = y;
         po->f58 = -y;
     }
-    func_00156BE0(po, q, pv, p->x74);
+    ReplaceHeldNoise(po, q, pv, p->x74);
 }
 } } // namespace M_func_001FDA48
 

@@ -1,8 +1,10 @@
-// tu_173158.cpp -- CID119 (cid 0x77, an LO of 0xB0 bytes): a guard spawner. It keeps spawn selectors (an LO spot,
-// a small spot, or a curve sampled along its length), guard templates and test offsets, and up to its capacity of
+// tu_173158.cpp -- the guard spawner (CID119, cid 0x77, an LO of 0xB0 bytes). It keeps spawn selectors (an LO spot,
+// a small spot, or a curve sampled along its length), guard templates and test offsets, and a fixed number of
 // spawned-guard slots; every few seconds it picks a free slot and a spawn point the camera cannot see (screen
-// rectangle, distance, line of sight from the camera) and clones a guard there. VU0 and EE asm; func_00173768,
-// func_00173A68, func_00173D18 and func_00173F18 are hand-tuned (register pins, allocation-only operands).
+// rectangle, distance, line of sight from the camera) and clones a guard there. Entry points: the CID119 slots
+// (Init, LoadSpawnerFromBrx, PostSpawnerLoad, UpdateSpawner, RemoveSpawnerHierarchy) and the Splice options
+// AddSpawner*. VU0 and EE asm; GetSpawnPointConcealment, UpdateSpawner, UpdateSpawnerEntries and
+// ChooseSpawnerSpawnPoint are hand-tuned (register pins, allocation-only operands).
 // TU 0x173158..0x174898 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_173158
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00174878
@@ -28,13 +30,13 @@ struct AI { int cb; int align; };
 struct CMV { char pad[0x40]; float sx, sy; char pad48[0x18]; M4 mat; };
 
 /* An LO view: vtable, flags word (fInWorld = bit 60), radius (+0x38), the curve's path data (+0x180). */
-struct LOV { char pad0[0xC]; VTE *vt; char pad10[0x18]; unsigned long fl; char pad30[8]; float sRadius; char pad3C[0x144]; void *pv180; };
-typedef char assert_LOV_pv180[(unsigned int)&((LOV *)0)->pv180 == 0x180 ? 1 : -1];
+struct LOV { char pad0[0xC]; VTE *vt; char pad10[0x18]; unsigned long flags; char pad30[8]; float radius; char pad3C[0x144]; void *curveData; };
+typedef char assert_LOV_curveData[(unsigned int)&((LOV *)0)->curveData == 0x180 ? 1 : -1];
 /* The script object created for a curve selector (cid 0x71). */
-struct Q8 { int pad[2]; int n8; };
-struct SCRIPTV { char pad[0x54]; Q8 *pq54; };
+struct Q8 { int pad[2]; int isReversed; };
+struct SCRIPTV { char pad[0x54]; Q8 *firstCommand; };
 /* A spawn selector (0x1C bytes): kind 0 LO spot, 1 curve, 2 small LO spot. */
-struct SEL { int kind; int oid; LOV *plo; SCRIPTV *pscript; Q8 *pq; int fBusy; float tUntil; };
+struct SEL { int kind; int oid; LOV *object; SCRIPTV *script; Q8 *scriptCommand; int isBusy; float busyUntil; };
 typedef char assert_SEL_size[sizeof(SEL) == 0x1C ? 1 : -1];
 /* A spawned guard (a STEPGUARD view). */
 struct DETV;
@@ -42,55 +44,55 @@ struct GUARDV
 {
     char pad0[0xC]; VTE *vt;
     char pad10[0x18];
-    unsigned long fl;          /* +0x28 fInWorld = bit 60 */
+    unsigned long flags;          /* +0x28 fInWorld = bit 60 */
     char pad30[0x84 - 0x30];
-    float g84;
+    float unknown84;
     char pad88[0x2E8 - 0x88];
-    SCRIPTV *pscript;          /* +0x2E8 */
+    SCRIPTV *script;          /* +0x2E8 */
     char pad2EC[0x330 - 0x2EC];
-    int n330;                  /* +0x330 knocked out */
+    int isKnockedOut;                  /* +0x330 knocked out */
     char pad334[0xF64 - 0x334];
-    DETV *pdetector;           /* +0xF64 */
+    DETV *detector;           /* +0xF64 */
     char padF68[0x1000 - 0xF68];
-    int n1000;
+    int removalMode;
 };
-typedef char assert_GUARDV_n1000[(unsigned int)&((GUARDV *)0)->n1000 == 0x1000 ? 1 : -1];
+typedef char assert_GUARDV_removalMode[(unsigned int)&((GUARDV *)0)->removalMode == 0x1000 ? 1 : -1];
 /* A spawned-guard slot (0x30 bytes). */
-struct ENTRY { GUARDV *pguard; float tActive; float tReady; SEL *psel; int status; char pad14[12]; qwordV pos; };
+struct ENTRY { GUARDV *guard; float activeTime; float readyTime; SEL *selector; int status; char pad14[12]; qwordV position; };
 typedef char assert_ENTRY_size[sizeof(ENTRY) == 0x30 ? 1 : -1];
 /* The spawner. */
 struct CID119V
 {
     char pad0[0xC]; VTE *vt;
     char pad10[0x30];
-    unsigned int grfUnk40;
+    unsigned int objectFlags;
     char pad44[0xC];
-    int csel;                  /* +0x50 */
-    SEL *asel;
-    int cent;                  /* +0x58 slots in use */
-    int centMax;
-    ENTRY *aent;               /* +0x60 */
+    int selectorCount;                  /* +0x50 */
+    SEL *selectors;
+    int entryCount;                  /* +0x58 slots in use */
+    int entryCapacity;
+    ENTRY *entries;               /* +0x60 */
     char pad64[0xC];
-    qwordV posLast;             /* +0x70 where the last guard was spawned */
-    float sPlanar;             /* +0x80 5500: farther points do not count */
-    int fEdge;
-    int fRange;
-    int fOcclusion;
-    int ctmpl;                 /* +0x90 guard templates (max 8) */
-    LOV **atmpl;
-    int cpos;                  /* +0x98 test offsets (max 16) */
-    qwordV *apos;
-    float dtRespawn;           /* +0xA0 */
-    float dtRespawn2;
-    float tNext;               /* +0xA8 */
+    qwordV lastSpawnPosition;             /* +0x70 where the last guard was spawned */
+    float planarRange;             /* +0x80 5500: farther points do not count */
+    int useEdgeTest;
+    int useRangeTest;
+    int useOcclusionTest;
+    int templateCount;                 /* +0x90 guard templates (max 8) */
+    LOV **templates;
+    int offsetCount;                  /* +0x98 test offsets (max 16) */
+    qwordV *offsets;
+    float respawnDelay;           /* +0xA0 */
+    float respawnDelay2;
+    float nextSpawnTime;               /* +0xA8 */
     int mode;
 };
-typedef char assert_CID119_size[sizeof(CID119V) == 0xB0 ? 1 : -1];
-/* func_00173A68's event record (the hero's last noise) and the message argument it sends. */
+typedef char assert_CID119V_size[sizeof(CID119V) == 0xB0 ? 1 : -1];
+/* UpdateSpawner's event record (the hero's last noise) and the message argument it sends. */
 struct EVENT{float time;char pad4[8];LOV*tag;char pad10[0x10];EVENT*next;char pad24[4];int kind;LOV*previous;};
 struct LINK{LOV**pp;};
 struct CRefV{int tag;void*value;};
-/* func_00173610's line hit. */
+/* SnapToGround's line hit. */
 struct HITY { qwordV v; char pad[0x18]; float f28; char pad2[0x14]; float f40; char pad3[0x1C]; };
 struct VU_FLOAT { qwordV qw; };
 /* SetBhvguardMode's argument (cleared by its constructor). */
@@ -126,7 +128,7 @@ void *PvAllocSlot__FP8ALLOCREQ(AI *pa);
 void *func_001AE238(AI *pa, void *pv);
 void *func_001AE2A0(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
-void func_00170C50(SCRIPTV *o, int a, int b, int c);
+void AddGuardScriptGoto(SCRIPTV *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
@@ -134,10 +136,10 @@ qwordV ConvertCmWorldToScreen(CMV*,qwordV);
 LOV *PpoHero(void *g);
 qwordV GetLoWorldPos(void *p);
 M4 *GetLoWorldMatrix(void *p);
-EVENT *func_001F8240(LOV *plo);
+EVENT *func_001F8240(LOV *object);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
-void SetDetectorTargetStateById(DETV *pdet,LOV *plo,int k);
+void SetDetectorTargetStateById(DETV *pdet,LOV *object,int k);
 void func_001B44D8(int *, void ***);
 float SMaxShape(LOV *);
 int func_001EA3B0(void *, float);
@@ -147,188 +149,132 @@ M3 func_0011B500(float, qwordV);
 GUARDV *AcquireProxyObject(void *p, int n);
 void *func_00205458(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
-void func_001733C8(CID119V *p, qwordV q);
-int func_00173588(qwordV v, float r);
-int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void));
-int func_00173768(CID119V *p, qwordV pos, int count, void **objects, float distance);
-void func_00173928(CID119V *p, ENTRY *pe, int k, int f);
-qwordV func_00173A18(CID119V *p);
-void func_00173D18(CID119V *p, qwordV pos);
-ENTRY *func_00173E78(CID119V *p, LOV *plo);
-SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip);
-GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip);
+void AddSpawnerOffset(CID119V *p, qwordV q);
+int IsInScreenRect(qwordV v, float r);
+int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void));
+int GetSpawnPointConcealment(CID119V *p, qwordV pos, int count, void **objects, float distance);
+void ReleaseSpawnerEntry(CID119V *p, ENTRY *pe, int k, int f);
+qwordV GetSpawnerFocusPosition(CID119V *p);
+void UpdateSpawnerEntries(CID119V *p, qwordV pos);
+ENTRY *FindFreeSpawnerEntry(CID119V *p, LOV *object);
+SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip);
+GUARDV *SpawnGuardFromSpawner(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip);
 }
 float GRandInRange(float gMin, float gMax);
 int NRandInRange(int nMin, int nMax);
 SCRIPTV *PloNew(int cid, void *psoParent, int oid, int isplice) __asm__("PloNew__F3CIDP2SO3OIDi");
 
-/** @sly2-annot addr=0x173158
- * Purpose: cid 0x77 (LO child, 0xB0) Init: LO Init, defaults 5500/1/1/1, respawn delays 30 and 50 s
- * Info: proposed name InitCid119 (T2); class CID119 slot7; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable) | verifier PLAUSIBLE: Placeholder class (CID 0x77 vtable slot
- *   7). Body InitLo, +0x80=5500, +0x84/88/8C=1, +0xA0=30, +0xA4=50: matches; calling 30/50 'respawn delays'
- *   is not supported by this body. | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-void CID119::Init() { CID119V *p = (CID119V *)this; InitLo(p); p->sPlanar = 5500.0f; p->fEdge = p->fOcclusion = p->fRange = 1; p->dtRespawn = 30.0f; p->dtRespawn2 = 50.0f; }
+// 0x173158: Spawner (CID119) vtable slot 7 (Init): LO Init, then the defaults: spawn distance 5500, capacity/counts
+// 1, respawn delays 30 and 50 s.
+void CID119::Init() { CID119V *spawner = (CID119V *)this; InitLo(spawner); spawner->planarRange = 5500.0f; spawner->useEdgeTest = spawner->useOcclusionTest = spawner->useRangeTest = 1; spawner->respawnDelay = 30.0f; spawner->respawnDelay2 = 50.0f; }
 
+// Fills an allocation request (size, alignment).
 static inline AI *SetAi(AI *pa, int cb, int align) { pa->cb = cb; pa->align = align; return pa; }
-/** @sly2-annot addr=0x1731B8
- * Purpose: Preallocates spawn-point (0x1C each), template and offset arrays, LO load, shrinks
- * Info: proposed name LoadCid119FromBrx (T2); class CID119 slot14; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable) | level_parser CONFIRMED-parse: payload layout followed by the
- *   parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r3b_rest+parse-verified
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_001731B8(CID119V *p, void *pv) {
+// 0x1731B8: Spawner vtable slot 14 (LoadFromBrx): preallocates the selector, template and offset arrays at their
+// maximum sizes, loads the LO (Splice options fill them), then shrinks them.
+extern "C" void LoadSpawnerFromBrx(CID119V *spawner, void *pv) {
     SCOPE mk;
     AI ai;
     STACKSCOPE_ctor(&mk);
-    p->asel = (SEL *)func_001AE378(SetAi(&ai, 0xE00, 0x10));
-    p->apos = (qwordV *)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x100, 0x10));
-    p->atmpl = (LOV **)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x20, 0x10));
-    func_001733C8(p, D_002A2DD0);
-    LoadLoFromBrx(p, pv);
-    p->asel = (SEL *)func_001AE238(SetAi(&ai, p->csel * 0x1C, 0x10), p->asel);
-    { void *pv9C = func_001AE238(SetAi(&ai, p->cpos << 4, 0x10), p->apos); void *pv94 = p->atmpl; p->apos = (qwordV *)pv9C; p->atmpl = (LOV **)func_001AE238(SetAi(&ai, 0x20, 0x10), pv94); }
+    spawner->selectors = (SEL *)func_001AE378(SetAi(&ai, 0xE00, 0x10));
+    spawner->offsets = (qwordV *)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x100, 0x10));
+    spawner->templates = (LOV **)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x20, 0x10));
+    AddSpawnerOffset(spawner, D_002A2DD0);
+    LoadLoFromBrx(spawner, pv);
+    spawner->selectors = (SEL *)func_001AE238(SetAi(&ai, spawner->selectorCount * 0x1C, 0x10), spawner->selectors);
+    { void *pv9C = func_001AE238(SetAi(&ai, spawner->offsetCount << 4, 0x10), spawner->offsets); void *pv94 = spawner->templates; spawner->offsets = (qwordV *)pv9C; spawner->templates = (LOV **)func_001AE238(SetAi(&ai, 0x20, 0x10), pv94); }
     STACKSCOPE_ctor_1AE4A0(&mk, 2);
 }
 
-/** @sly2-annot addr=0x1732E0
- * Purpose: Appends spawn selector kind 0 (an LO spot) with oid (max 128)
- * Info: proposed name AddCid119SpawnLo (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_001732E0(CID119V *p, int oid)
+// 0x1732E0: Splice option: appends a spawn selector of kind 0 (an LO spot) by oid (at most 128).
+extern "C" void AddSpawnerLoSpot(CID119V *spawner, int oid)
 {
-    int c = p->csel;
+    int c = spawner->selectorCount;
     if (c < 0x80) {
         SEL *psel;
-        p->csel = c + 1;
-        psel = &p->asel[c];
+        spawner->selectorCount = c + 1;
+        psel = &spawner->selectors[c];
         psel->oid = oid;
         psel->kind = 0;
     }
 }
 
-/** @sly2-annot addr=0x173318
- * Purpose: Appends spawn selector kind 1 (a curve, sampled)
- * Info: proposed name AddCid119SpawnCurve (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex)) | verifier PLAUSIBLE: Placeholder class. Appends
- *   {kind=1, arg} to 0x1C-stride array +0x54 (max 128); data-ref only (splice). 'spawn'/'curve' not shown by
- *   this body. | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_00173318(CID119V *p, int oid)
+// 0x173318: Splice option: appends a spawn selector of kind 1 (a curve, sampled along its length).
+extern "C" void AddSpawnerCurve(CID119V *spawner, int oid)
 {
-    int c = p->csel;
+    int c = spawner->selectorCount;
     if (c < 0x80) {
         SEL *psel;
-        p->csel = c + 1;
-        psel = &p->asel[c];
+        spawner->selectorCount = c + 1;
+        psel = &spawner->selectors[c];
         psel->kind = 1;
         psel->oid = oid;
     }
 }
 
-/** @sly2-annot addr=0x173358
- * Purpose: Appends spawn selector kind 2 (an LO spot using the minimum radius)
- * Info: proposed name AddCid119SpawnLoSmall (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_00173358(CID119V *p, int oid)
+// 0x173358: Splice option: appends a spawn selector of kind 2 (an LO spot tested with the minimum radius).
+extern "C" void AddSpawnerSmallLoSpot(CID119V *spawner, int oid)
 {
-    int c = p->csel;
+    int c = spawner->selectorCount;
     if (c < 0x80) {
         SEL *psel;
-        p->csel = c + 1;
-        psel = &p->asel[c];
+        spawner->selectorCount = c + 1;
+        psel = &spawner->selectors[c];
         psel->kind = 2;
         psel->oid = oid;
     }
 }
 
-/** @sly2-annot addr=0x173398
- * Purpose: Appends a guard template object (max 8) at +0x90/+0x94
- * Info: proposed name AddCid119Template (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_00173398(CID119V *p, LOV *x) { if (p->ctmpl < 8) { p->atmpl[p->ctmpl++] = x; } }
+// 0x173398: Splice option: appends a guard template object (at most 8).
+extern "C" void AddSpawnerTemplate(CID119V *spawner, LOV *x) { if (spawner->templateCount < 8) { spawner->templates[spawner->templateCount++] = x; } }
 
-/** @sly2-annot addr=0x1733C8
- * Purpose: Appends a test offset vector (max 16) at +0x98/+0x9C
- * Info: proposed name AddCid119Offset (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex)) | verifier PLAUSIBLE: Placeholder class. Appends a
- *   qword to array +0x9C (count +0x98, max 16); caller LoadCid119FromBrx. 'test offset' not supported. | T2
- *   forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest+verdicts_followups
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_001733C8(CID119V *p, qwordV x) { register int n __asm__("$3"); register int i __asm__("$6"); i = p->cpos; if (i < 16) { register qwordV *a __asm__("$4"); register int off __asm__("$2"); a = p->apos; off = i * 16; n = i + 1; p->cpos = n; *(qwordV *)(off + (int)a) = x; } }
+// 0x1733C8: Splice option: appends a test offset (at most 16): points around a spawn point that must also be hidden
+// from the camera.
+extern "C" void AddSpawnerOffset(CID119V *spawner, qwordV x) { register int n __asm__("$3"); register int i __asm__("$6"); i = spawner->offsetCount; if (i < 16) { register qwordV *a __asm__("$4"); register int off __asm__("$2"); a = spawner->offsets; off = i * 16; n = i + 1; spawner->offsetCount = n; *(qwordV *)(off + (int)a) = x; } }
 
-/** @sly2-annot addr=0x1733F8
- * Purpose: Resolves selector oids; for kind 1 creates a cid 0x71 script with a goto; allocates per-slot
- *   entries; marks busy
- * Info: proposed name PostCid119Load (T2); class CID119 slot15; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable)
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_001733F8(CID119V *p) {
+// 0x1733F8: Spawner vtable slot 15 (PostLoad): resolves the selector oids; for curves creates a guard script (cid
+// 0x71) with a goto; allocates the per-slot entries and registers for updates.
+extern "C" void PostSpawnerLoad(CID119V *spawner) {
     int i;
     AI al;
     unsigned int f;
-    PostLoLoad(p);
-    for (i = 0; i < p->csel; i++) {
-        SEL *e = &p->asel[i];
+    PostLoLoad(spawner);
+    for (i = 0; i < spawner->selectorCount; i++) {
+        SEL *e = &spawner->selectors[i];
         switch (e->kind) {
         case 1:
             {
                 SCRIPTV *o;
-                e->plo = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, e->oid, 0);
+                e->object = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, e->oid, 0);
                 o = PloNew(0x71, 0, 0x2CB, -1);
-                func_00170C50(o, e->oid, 1, -1);
-                e->pq = o->pq54;
-                e->pscript = o;
+                AddGuardScriptGoto(o, e->oid, 1, -1);
+                e->scriptCommand = o->firstCommand;
+                e->script = o;
             }
             break;
         case 0:
         case 2:
-            e->plo = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, e->oid, 0);
+            e->object = (LOV *)PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 5, e->oid, 0);
             break;
         }
     }
-    al.cb = p->centMax * 0x30;
+    al.cb = spawner->entryCapacity * 0x30;
     al.align = 0x10;
-    p->aent = (ENTRY *)func_001AE2A0(&al);
-    SetLoBusyk(p, 1);
-    f = p->grfUnk40;
+    spawner->entries = (ENTRY *)func_001AE2A0(&al);
+    SetLoBusyk(spawner, 1);
+    f = spawner->objectFlags;
     if ((f ^ 1) & 1) *(int *)f |= 2;
-    else p->grfUnk40 = f | 2;
+    else spawner->objectFlags = f | 2;
 }
 
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qwordV q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qwordV q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
+// VU0 helper: z component of a vector.
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0,$0,%1" : "=r"(z) : "r"(q)); return z; }
-/** @sly2-annot addr=0x173588
- * Purpose: True if a projected point is in front (z>1e-4) and within +/-r in x and y
- * Info: proposed name FInScreenRect (T2); TU tu_173158
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" int func_00173588(qwordV v, float r) {
+// 0x173588: True if a projected point is in front of the camera (z > 1e-4) and within +-`extent` in x and y.
+extern "C" int IsInScreenRect(qwordV v, float r) {
     int f = 0;
     if (GetZ(v) > 0.0001f) {
         float x = GetX(v);
@@ -340,6 +286,7 @@ extern "C" int func_00173588(qwordV v, float r) {
     return f;
 }
 
+// VU0 helper: p + up * s.
 static __inline__ qwordV MAdd(qwordV p, qwordV up, float s) {
     U u;
     qwordV uq;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
@@ -350,19 +297,9 @@ static __inline__ qwordV MAdd(qwordV p, qwordV up, float s) {
     return r;
 }
 
-/** @sly2-annot addr=0x173610
- * Purpose: Cast a line along the up axis from pos+a*up to pos+b*up against SW objects (IntersectSwBoundingBox
- *   + PsoHitTestLineObjects, default filter FFilterSoNotSelfVt62); on a hit with a walkable normal (z>=0.7
- *   unless k) move *ppos to it
- * Info: proposed name FSnapToGround (T2); TU tu_173158
- * Notes: top50_round (0.55): Body (STACKSCOPE). Callers FStepplayerWillLand, FitStepToTerrain, StartBhvleap,
- *   SpawnCid119Guard, FGuardStuck
- * Confidence: low (draft) [T2 0.55] - evidence: semantic review; sources: r3b_rest+top50_round
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898,
- *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
- *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
- * @end-sly2-annot */
-extern "C" int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void)) {
+// 0x173610: Casts a line along the up axis (from pos + `top` to pos + `bottom`) against the world's objects; on a
+// hit with a walkable normal (z >= 0.7) moves the position to the hit and returns true.
+extern "C" int SnapToGround(qwordV *pv, float a, float b, int k, int (*fn)(void)) {
     SCOPE x;
     int na, nb;
     qwordV va, vb;
@@ -383,23 +320,23 @@ extern "C" int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void
     return 1;
 }
 
+// Loads a quadword into a CPU register (register-pinned for the match).
 static inline qwordV LoadCpu(const U&u){register qwordV q asm("$5");__asm__("lq %0,%1":"=r"(q):"m"(u.q));return q;}
+// VU0 helper: loads a quadword into a VU register.
 static inline qwordV Load(const U&u){register qwordV q asm("vf3");__asm__("lqc2 %0,%1":"=j"(q):"m"(u.q));return q;}
+// VU0 helper: length of a vector (third instruction pattern for the match).
 static inline float Len3(qwordV a,const U&u){qwordV b=Load(u);register qwordV d asm("vf1");float f;d = VuDot(a, b);__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+// VU0 helper: length of a vector (alternate instruction pattern for the match).
 static inline float Len2(qwordV input){register qwordV a asm("vf2")=input,d asm("vf1");float f;__asm__("vmul.xy %0,%1,%1\n\tvaddy.x %0,%0,%0y":"=j"(d):"j"(a));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
+// Loads the camera and position operands (register-pinned asm for the match).
 static inline void ReadInputs(CMV*source,const U&position,qwordV&cpu,qwordV&point,qwordV&vector){register CMV*p asm("$2")=source;register qwordV r asm("$5"),v asm("vf1"),o asm("vf2");__asm__("lq %0,%3\n\tlqc2 %1,%4\n\tqmtc2.ni %0,%2":"=r"(r),"=j"(v),"=j"(o):"m"(p->mat.r[3]),"m"(position.q));cpu=r;point=v;vector=o;}
+// z component of a quadword vector.
 static inline float Z(qwordV a){register int bits asm("$5");union{int n;float f;}value;__asm__("pextuw %0,$0,%1":"=r"(bits):"r"(a));value.n=bits;return value.f;}
+// True if a vector is longer than `limit`.
 static inline int TooFar(qwordV a,float limit){return limit<Len2(a);}
-/** @sly2-annot addr=0x173768
- * Purpose: Camera check for a spawn point: 0 if too far, behind or off screen; else 1 at screen edge, 2 out
- *   of planar range, 3 occluded (0 if plainly visible)
- * Info: proposed name KCid119PointConcealed (T2); class CID119; TU tu_173158
- * Notes: names_v2 C proposed PostFlameEmit__FP5FLAMEP5EMITB (0.200) | Cid77->Cid119 (CID 0x77=119,
- *   agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" int func_00173768(CID119V*p,qwordV pos,int count,void**objects,float distance){
+// 0x173768: Camera concealment of a spawn point: 0 if it is visible (or too far / behind / off screen: unusable),
+// else 1 at the screen edge, 2 out of the planar range, 3 occluded.
+extern "C" int GetSpawnPointConcealment(CID119V*spawner,qwordV pos,int count,void**objects,float distance){
  register int cso asm("$19")=count;register void**apso asm("$18")=objects;
  U raised,origin,position,difference;
  register CMV*camera asm("$2")=&D_002DDF40;
@@ -410,63 +347,45 @@ extern "C" int func_00173768(CID119V*p,qwordV pos,int count,void**objects,float 
  qwordV screen=ConvertCmWorldToScreen(camera,LoadCpu(position));
  register float zLimit asm("$f1")=D_002BE5BC;
  if(Z(screen)<zLimit)return 0;
- if(!func_00173588(screen,D_002BE5C0))return 0;
- if(p->fEdge&&!func_00173588(screen,D_002BE5C4))return 1;
- if(p->fRange&&TooFar(difference.q,p->sPlanar))return 2;
- if(p->fOcclusion){
+ if(!IsInScreenRect(screen,D_002BE5C0))return 0;
+ if(spawner->useEdgeTest&&!IsInScreenRect(screen,D_002BE5C4))return 1;
+ if(spawner->useRangeTest&&TooFar(difference.q,spawner->planarRange))return 2;
+ if(spawner->useOcclusionTest){
   {register qwordV copied asm("$5")=position.q;raised.q=copied;}raised.f[2]+=D_002BE5C8;
   if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,origin.q,raised.q,cso,apso,0))return 3;
  }
  return 0;
 }
 
-/** @sly2-annot addr=0x173928
- * Purpose: Ends a spawned-guard slot: kind 0 removes the guard (vt9 RemoveLo), kind 1 sets a respawn delay;
- *   decrements count
- * Info: proposed name ReleaseCid119Entry (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_00173928(CID119V *p, ENTRY *pe, int k, int f) {
-    pe->status = k;
+// 0x173928: Ends a spawned-guard slot: kind 0 removes the guard (vtable slot 9, RemoveLo), kind 1 arms a respawn
+// delay; decrements the live count.
+extern "C" void ReleaseSpawnerEntry(CID119V *spawner, ENTRY *slot, int k, int f) {
+    slot->status = k;
     switch (k) {
     case 0:
-        { GUARDV *o = pe->pguard; VTE *e; pe->tReady = D_002DDED0.t; e = &o->vt[9]; ((void (*)(void *))e->pfn)((char *)o + e->d); }
-        if ((f ^ 1) & 1) pe->psel->tUntil = D_002DDED0.t;
+        { GUARDV *guard = slot->guard; VTE *entry; slot->readyTime = D_002DDED0.t; entry = &guard->vt[9]; ((void (*)(void *))entry->pfn)((char *)guard + entry->d); }
+        if ((f ^ 1) & 1) slot->selector->busyUntil = D_002DDED0.t;
         break;
     case 1:
-        pe->tReady = D_002DDED0.t + p->dtRespawn;
-        pe->pos = func_00173A18(p);
-        if ((f ^ 1) & 1) pe->psel->tUntil = D_002DDED0.t + p->dtRespawn2;
+        slot->readyTime = D_002DDED0.t + spawner->respawnDelay;
+        slot->position = GetSpawnerFocusPosition(spawner);
+        if ((f ^ 1) & 1) slot->selector->busyUntil = D_002DDED0.t + spawner->respawnDelay2;
         break;
     }
-    pe->pguard = 0;
-    pe->psel->fBusy = 0;
-    pe->psel = 0;
-    p->cent--;
+    slot->guard = 0;
+    slot->selector->isBusy = 0;
+    slot->selector = 0;
+    spawner->entryCount--;
 }
 
-/** @sly2-annot addr=0x173A18
- * Purpose: Current player position (PpoCur) or the camera position
- * Info: proposed name PosCid119Focus (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" qwordV func_00173A18(CID119V *p) { void *g = D_003DD490; if (PpoHero(g)) return GetLoWorldPos(PpoHero(g)); return D_002DDF40.mat.r[3]; }
+// 0x173A18: Returns the focus position the spawner works from: the current player's position, or the camera's.
+extern "C" qwordV GetSpawnerFocusPosition(CID119V *spawner) { void *g = D_003DD490; if (PpoHero(g)) return GetLoWorldPos(PpoHero(g)); return D_002DDF40.mat.r[3]; }
 
 // g_clock (D_002DDED0) must be a struct: a scalar float global is assumed not to alias the struct-field stores, which lets gcc CSE the clock reloads.
 static inline float DistanceXY(qwordV a,qwordV b){qwordV d;float f;d = VuSub(a, b);__asm__("vmul.xy %0,%0,%0\n\tvaddy.x %0,%0,%0y":"+j"(d));__asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"=j"(d):"0"(d));f = VuToFloat(d);return f;}
-/** @sly2-annot addr=0x173A68
- * Purpose: Periodically spawns a guard at a concealed spawn point when a slot is free (gated by the player's
- *   last alert event), aims it and sends message 0x19
- * Info: proposed name UpdateCid119 (T2); class CID119 slot16; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable)
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r3b_rest+verdicts_tu_r3r5
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_00173A68(CID119V*p){
+// 0x173A68: Spawner vtable slot 16 (Update): periodically, when a slot is free (and gated by the player's last
+// alert event), spawns a guard at a concealed spawn point, aims it at the player and sends it message 0x19.
+extern "C" void UpdateSpawner(CID119V*spawner){
  U point;
  M3 rotation;
  int flag;
@@ -477,19 +396,19 @@ extern "C" void func_00173A68(CID119V*p){
  ENTRY*entry;
  SEL*selector;
  LOV*context;
- UpdateLo(p);
- pos=func_00173A18(p);
- func_00173D18(p,pos);
- if(D_002DDED0.t<p->tNext)return;
- p->tNext=D_002DDED0.t+D_002BE5D0;
- if(p->cent==p->centMax){int close=DistanceXY(pos,p->posLast)<D_002BE5D4;if(close)return;}
+ UpdateLo(spawner);
+ pos=GetSpawnerFocusPosition(spawner);
+ UpdateSpawnerEntries(spawner,pos);
+ if(D_002DDED0.t<spawner->nextSpawnTime)return;
+ spawner->nextSpawnTime=D_002DDED0.t+D_002BE5D0;
+ if(spawner->entryCount==spawner->entryCapacity){int close=DistanceXY(pos,spawner->lastSpawnPosition)<D_002BE5D4;if(close)return;}
  event=0;context=PpoHero(&D_003DD490);
  {
  if(context){
   event=func_001F8240(context);
   if(event){
    if(!event->kind)event=0;
-   else switch(p->mode){
+   else switch(spawner->mode){
    case 0:return;
    case 1:if(D_002DDED0.t-event->time>D_002BE5CC)return;break;
    case 2:break;
@@ -497,99 +416,95 @@ extern "C" void func_00173A68(CID119V*p){
   }
  }
  }
- entry=func_00173E78(p,event&&event->kind==1?event->previous:0);
+ entry=FindFreeSpawnerEntry(spawner,event&&event->kind==1?event->previous:0);
  if(!entry)return;
- selector=func_00173F18(p,pos,&point.q,&rotation,&flag);
+ selector=ChooseSpawnerSpawnPoint(spawner,pos,&point.q,&rotation,&flag);
  if(!selector)return;
- p->posLast=pos;
- if(entry->pguard)func_00173928(p,entry,0,1);
- object=func_00174490(p,selector,&point.q,&rotation,flag);
+ spawner->lastSpawnPosition=pos;
+ if(entry->guard)ReleaseSpawnerEntry(spawner,entry,0,1);
+ object=SpawnGuardFromSpawner(spawner,selector,&point.q,&rotation,flag);
  if(!object)return;
  SetSoAlpha(object,0.01f);
  FadeSoIn(object,0.5f);
- if(event)SetDetectorTargetStateById(object->pdetector,event->tag,2);
- entry->pguard=object;
- entry->tActive=D_002DDED0.t;
- entry->psel=selector;
- p->cent++;
- selector->fBusy=1;
+ if(event)SetDetectorTargetStateById(object->detector,event->tag,2);
+ entry->guard=object;
+ entry->activeTime=D_002DDED0.t;
+ entry->selector=selector;
+ spawner->entryCount++;
+ selector->isBusy=1;
  link.pp=(LOV**)&object;
- p->tNext=D_002DDED0.t+D_002BE5D8;
- ((void(*)(void*,int,int,int,void*const*,CRefV*))p->vt[3].pfn)((char*)p+p->vt[3].d,0x19,0,1,(void*const*)&link,0);
+ spawner->nextSpawnTime=D_002DDED0.t+D_002BE5D8;
+ ((void(*)(void*,int,int,int,void*const*,CRefV*))spawner->vt[3].pfn)((char*)spawner+spawner->vt[3].d,0x19,0,1,(void*const*)&link,0);
 }
 
-// func_00173D18 (Claude agent, 2026-10-25): MATCH. Updates the per-entry state of an array of 0x30-byte records (e->po object,
+// UpdateSpawnerEntries (Claude agent, 2026-10-25): MATCH. Updates the per-entry state of an array of 0x30-byte records (e->po object,
 // e->k state, g4 max, g8 clock stamp). The VU helper layers (VsubXyzw, operator-, LengthXY, DistXYImpl, DistXY) pass VU_VECTORs
 // by value; they add ~30 RTL insns to the loop (pass 1: 90, pass 2: 81 > threshold) so loop.c hoists the clock's %hi only in
 // the second pass, giving the target's preheader order (1, hi BE5DC, giv 0, hi clock). Fewer layers (86) or more (94+) differ.
 struct VU_VECTOR { qwordV q; VU_VECTOR() {} VU_VECTOR(qwordV a) { q = a; } };
+// VU0 helper: vector difference.
 static inline VU_VECTOR VsubXyzw(VU_VECTOR a, VU_VECTOR b) { qwordV d; d = VuSub(a.q, b.q); return VU_VECTOR(d); }
+// VU0 helper: x*x + y*y of a vector.
 static inline VU_VECTOR SumXY(VU_VECTOR a) { qwordV d; __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
+// VU0 helper: square root of a VU vector's x.
 static inline VU_VECTOR SqrtV(VU_VECTOR a) { qwordV d; __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a.q)); return VU_VECTOR(d); }
 static inline VU_VECTOR operator-(VU_VECTOR a, VU_VECTOR b) { return VsubXyzw(a, b); }
+// VU0 helper: horizontal (xy) length as a VU vector.
 static inline VU_VECTOR LengthXYV(VU_VECTOR a) { return SqrtV(SumXY(a)); }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline float LengthXY(VU_VECTOR a) { return VuToFloat(LengthXYV(a).q); }
+// VU0 helper: horizontal (xy) distance between two points.
 static inline float DistXYImpl(VU_VECTOR a, VU_VECTOR b) { return LengthXY(a - b); }
+// VU0 helper: horizontal (xy) distance.
 static inline float DistXY(VU_VECTOR a, VU_VECTOR b) { return DistXYImpl(a, b); }
-/** @sly2-annot addr=0x173D18
- * Purpose: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough
- * Info: proposed name UpdateCid119Entries (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_00173D18(CID119V *p, qwordV pos) {
+// 0x173D18: Releases slots whose guard died or was disabled and re-arms slots once the player is far enough away.
+extern "C" void UpdateSpawnerEntries(CID119V *spawner, qwordV pos) {
     int i;
-    for (i = 0; i < p->centMax; i++) {
-        ENTRY *e = &p->aent[i];
-        GUARDV *o = e->pguard;
-        if (!o) {
+    for (i = 0; i < spawner->entryCapacity; i++) {
+        ENTRY *e = &spawner->entries[i];
+        GUARDV *guard = e->guard;
+        if (!guard) {
             if (e->status == 1) {
-                int f = D_002BE5DC < DistXY(VU_VECTOR(e->pos), VU_VECTOR(pos));
+                int f = D_002BE5DC < DistXY(VU_VECTOR(e->position), VU_VECTOR(pos));
                 if (f) {
                     e->status = 0;
-                    e->tReady = D_002DDED0.t;
+                    e->readyTime = D_002DDED0.t;
                 }
             }
-        } else if (o->n330) {
-            func_00173928(p, e, 1, 0);
-        } else if (((int)(o->fl >> 60) & 1) == 0 || ((int)(e->psel->plo->fl >> 60) & 1) == 0) {
-            func_00173928(p, e, 0, 0);
+        } else if (guard->isKnockedOut) {
+            ReleaseSpawnerEntry(spawner, e, 1, 0);
+        } else if (((int)(guard->flags >> 60) & 1) == 0 || ((int)(e->selector->object->flags >> 60) & 1) == 0) {
+            ReleaseSpawnerEntry(spawner, e, 0, 0);
         } else {
-            e->tActive = (e->tActive > o->g84) ? e->tActive : o->g84;
+            e->activeTime = (e->activeTime > guard->unknown84) ? e->activeTime : guard->unknown84;
         }
     }
 }
 
-/** @sly2-annot addr=0x173E78
- * Purpose: Picks the oldest free slot (or the oldest occupied one past the timeout)
- * Info: proposed name PentryCid119Free (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" ENTRY *func_00173E78(CID119V *p, LOV *plo) {
+// 0x173E78: Picks the slot to use: the oldest free one, or the oldest occupied one past the timeout.
+extern "C" ENTRY *FindFreeSpawnerEntry(CID119V *spawner, LOV *object) {
     float t4 = D_002DDED0.t - D_002BE5E0;
     float t8 = D_002DDED0.t;
     ENTRY *peBest = 0;
-    ENTRY *pe;
+    ENTRY *slot;
     int i;
-    for (i = 0; i < p->centMax; i++) {
-        pe = &p->aent[i];
-        if (pe->pguard != 0) {
-            if ((LOV *)pe->pguard == plo) continue;
-            if (peBest && peBest->pguard == 0) continue;
-            if (t4 <= pe->tActive) continue;
-            t4 = pe->tActive;
+    for (i = 0; i < spawner->entryCapacity; i++) {
+        slot = &spawner->entries[i];
+        if (slot->guard != 0) {
+            if ((LOV *)slot->guard == object) continue;
+            if (peBest && peBest->guard == 0) continue;
+            if (t4 <= slot->activeTime) continue;
+            t4 = slot->activeTime;
         } else {
-            if (t8 <= pe->tReady) continue;
-            t8 = pe->tReady;
+            if (t8 <= slot->readyTime) continue;
+            t8 = slot->readyTime;
         }
-        peBest = pe;
+        peBest = slot;
     }
     return peBest;
 }
 
+// VU0 helper: loads a float constant from a .data word into a VU register.
 static inline VU_FLOAT VuFloatFromMemWord(int n)
 {
     VU_FLOAT v;
@@ -597,30 +512,35 @@ static inline VU_FLOAT VuFloatFromMemWord(int n)
     __asm__ __volatile__("qmtc2 %1, %0" : "=j"(v.qw) : "rV"(n));
     return v;
 }
+// VU0 helper: vector difference qw0 - qw1.
 static inline qwordV QwSubFrom(const qwordV &qw0, qwordV qw1)
 {
     qwordV qw;
     qw = VuSub(qw0, qw1);
     return qw;
 }
+// VU0 helper: vector sum.
 static inline qwordV QwAdd(qwordV qw0, qwordV qw1)
 {
     qwordV qw;
     __asm__("vadd.xyzw %0, %1, %2" : "=j"(qw) : "j"(qw0), "j"(qw1));
     return qw;
 }
+// VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qwordV qw)
 {
     float x;
     __asm__("mtc1 %1, %0" : "=f"(x) : "r"(qw));
     return x;
 }
+// VU0 helper: vector scaled by the x of a VU float.
 static inline qwordV QwScaleX(qwordV qwVec, const VU_FLOAT &g)
 {
     qwordV qw;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(g.qw));
     return qw;
 }
+// VU0 helper: rotates a vector by a 3x3 matrix.
 static inline qwordV QwRotateVecAt(M3 *pmat, qwordV *pqwVec)
 {
     qwordV qwResult;
@@ -629,6 +549,7 @@ static inline qwordV QwRotateVecAt(M3 *pmat, qwordV *pqwVec)
             : "j"(*pqwVec), "j"(pmat->row[0]), "j"(pmat->row[1]), "j"(pmat->row[2]));
     return qwResult;
 }
+// VU0 helper: horizontal (xy) length of a vector.
 static inline float SLengthXY(qwordV qw)
 {
     qwordV qwT;
@@ -641,15 +562,9 @@ static inline float SLengthXY(qwordV qw)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A53E0 __asm__("D_002A53E0") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x173F18
- * Purpose: Picks the nearest usable spawn selector (LO spot or curve sample) where every offset point is
- *   concealed from the camera
- * Info: proposed name ChooseCid119SpawnPoint (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip)
+// 0x173F18: Picks the nearest usable spawn selector (LO spot or curve sample) where every test offset point is
+// concealed from the camera; returns its position.
+extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pmatOut, int *pfFlip)
 {
     SCOPE frame;
     union { VECTOR4V v; qwordV q; } posBest;
@@ -658,9 +573,9 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
     void **aplo;
 
     float sRadiusMin = D_002A53E0;
-    for (int i = 0; i < pset->ctmpl; i++)
+    for (int i = 0; i < pset->templateCount; i++)
     {
-        float s = pset->atmpl[i]->sRadius;
+        float s = pset->templates[i]->radius;
         sRadiusMin = sRadiusMin < s ? sRadiusMin : s;
     }
     SEL *pselBest;
@@ -670,19 +585,19 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
     pselBest = 0;
     float sBest = D_002A53E0;
 
-    for (int i = 0; i < pset->csel; i++)
+    for (int i = 0; i < pset->selectorCount; i++)
     {
-        SEL *psel = &pset->asel[i];
-        LOV *plo;
-        if (psel->fBusy)
+        SEL *psel = &pset->selectors[i];
+        LOV *object;
+        if (psel->isBusy)
             goto next;
-        if (D_002DDED0.t < psel->tUntil)
+        if (D_002DDED0.t < psel->busyUntil)
             goto next;
-        plo = psel->plo;
-        if (!plo)
+        object = psel->object;
+        if (!object)
             goto next;
         {
-            int fEnabled = (int)(plo->fl >> 60) & 1;
+            int fEnabled = (int)(object->flags >> 60) & 1;
             if (!fEnabled)
                 goto next;
         }
@@ -697,22 +612,22 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
             switch (psel->kind)
             {
             case 0:
-                posObj = GetLoWorldPos(psel->plo);
-                mat = *(M3 *)GetLoWorldMatrix(psel->plo);
-                sRadius = psel->plo->sRadius;
+                posObj = GetLoWorldPos(psel->object);
+                mat = *(M3 *)GetLoWorldMatrix(psel->object);
+                sRadius = psel->object->radius;
                 break;
             case 2:
                 sRadius = sRadiusMin;
-                posObj = GetLoWorldPos(psel->plo);
-                mat = *(M3 *)GetLoWorldMatrix(psel->plo);
+                posObj = GetLoWorldPos(psel->object);
+                mat = *(M3 *)GetLoWorldMatrix(psel->object);
                 break;
             }
             float sDist = SLengthXY(QwSubFrom(pos, posObj));
             if (sDist < D_002BE5E4 || sBest < sDist)
                 goto next;
-            for (int j = 0; j < pset->cpos; j++)
+            for (int j = 0; j < pset->offsetCount; j++)
             {
-                if (!func_00173768(pset, QwAdd(posObj, QwRotateVecAt(&mat, &pset->apos[j])), cplo, aplo, sRadius))
+                if (!GetSpawnPointConcealment(pset, QwAdd(posObj, QwRotateVecAt(&mat, &pset->offsets[j])), cplo, aplo, sRadius))
                     goto next;
             }
             sBest = sDist;
@@ -724,15 +639,15 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
         case 1:
         {
             union { VECTOR4V v; qwordV q; } posCurve, dirCurve;
-            int c = (int)(SMaxShape(plo) / D_002BE5E8);
+            int c = (int)(SMaxShape(object) / D_002BE5E8);
             for (int k = 0; k < c; )
             {
                 int kNext = k + 1;
                 float u = D_002BE5E8 * ((float)k + GRandInRange(D_002BBB60.gMin, D_002BBB60.gMax));
-                if (func_001EA3B0(plo->pv180, u))
+                if (func_001EA3B0(object->curveData, u))
                     goto nextSample;
                 {
-                    EvaluateShapeS(plo, &posCurve.q, &dirCurve.q, u);
+                    EvaluateShapeS(object, &posCurve.q, &dirCurve.q, u);
                     float sDist = SLengthXY(QwSubFrom(pos, posCurve.q));
                     if (sDist < D_002BE5E4 || sBest < sDist)
                         goto nextSample;
@@ -745,12 +660,12 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
                         }
                         M3 matCurve = func_0011B500(atan2f(dirCurve.v.y, dirCurve.v.x), D_002A2DC0);
                         int j;
-                        for (j = 0; j < pset->cpos; j++)
+                        for (j = 0; j < pset->offsetCount; j++)
                         {
-                            if (!func_00173768(pset, QwAdd(posCurve.q, QwRotateVecAt(&matCurve, &pset->apos[j])), cplo, aplo, sRadiusMin))
+                            if (!GetSpawnPointConcealment(pset, QwAdd(posCurve.q, QwRotateVecAt(&matCurve, &pset->offsets[j])), cplo, aplo, sRadiusMin))
                                 break;
                         }
-                        if (j >= pset->cpos)
+                        if (j >= pset->offsetCount)
                         {
                             sBest = sDist;
                             fFlip = fFlipT;
@@ -775,77 +690,62 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
     return pselBest;
 }
 
-/** @sly2-annot addr=0x174490
- * Purpose: Clones/activates a guard from a template at the chosen point (0x1CB250), optionally sets its
- *   BHV156 mode
- * Info: proposed name SpawnCid119Guard (T2); class CID119; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, agent-default(hex))
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/engine/guards-ai.md#open-questions, docs/open-questions.md#guards,
- *   docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int fFlip) {
+// 0x174490: Spawns a guard from a template at the chosen point (clone and activate) and optionally sets its root
+// behaviour mode.
+extern "C" GUARDV *SpawnGuardFromSpawner(CID119V *spawner, SEL *m, qwordV *pv, M3 *pmat, int fFlip) {
     GUARDV *r = 0;
     int k;
     switch (m->kind) {
     case 0:
-        r = AcquireProxyObject(m->plo, 0);
+        r = AcquireProxyObject(m->object, 0);
         break;
     case 1:
     case 2:
       {
         int idx[8];
         int i, j, l;
-        func_00173610(pv, D_002BE5F0[1], D_002BE5F0[0], 1, 0);
-        for (l = 0; l < p->ctmpl; l++) idx[l] = l;
-        for (j = 0; j < p->ctmpl; j++) {
-            int i = NRandInRange(0, p->ctmpl - 1);
+        SnapToGround(pv, D_002BE5F0[1], D_002BE5F0[0], 1, 0);
+        for (l = 0; l < spawner->templateCount; l++) idx[l] = l;
+        for (j = 0; j < spawner->templateCount; j++) {
+            int i = NRandInRange(0, spawner->templateCount - 1);
             int t = idx[j];
             idx[j] = *(i + idx); *(i + idx) = t;
         }
-        for (i = 0; i < p->ctmpl; i++) {
-            LOV *o = p->atmpl[idx[i]];
-            { VTE *e = &o->vt[0x1D]; ((void (*)(void *, qwordV))e->pfn)((char *)o + e->d, *pv); }
-            { VTE *e = &o->vt[0x1E]; ((void (*)(void *, M3 *))e->pfn)((char *)o + e->d, pmat); }
-            r = AcquireProxyObject(o, 0);
+        for (i = 0; i < spawner->templateCount; i++) {
+            LOV *object = spawner->templates[idx[i]];
+            { VTE *entry = &object->vt[0x1D]; ((void (*)(void *, qwordV))entry->pfn)((char *)object + entry->d, *pv); }
+            { VTE *entry = &object->vt[0x1E]; ((void (*)(void *, M3 *))entry->pfn)((char *)object + entry->d, pmat); }
+            r = AcquireProxyObject(object, 0);
             if (r) break;
         }
       }
     k = m->kind;
         if (k == 1) {
-            void *o;
+            void *object;
             if (r) {
-            m->pq->n8 = fFlip;
-            r->pscript = m->pscript;
-            o = func_00205458(r, 0x9C);
+            m->scriptCommand->isReversed = fFlip;
+            r->script = m->script;
+            object = func_00205458(r, 0x9C);
             F f;
             f.a = -1;
-            SetBhvguardMode(o, &f);
+            SetBhvguardMode(object, &f);
             f.a = k;
-            SetBhvguardMode(o, &f);
+            SetBhvguardMode(object, &f);
             }
         }
     
         break;
     }
-    if (r) r->n1000 = 1;
+    if (r) r->removalMode = 1;
     return r;
 }
 
-/** @sly2-annot addr=0x1746B8
- * Purpose: Base remove then releases all active slots
- * Info: proposed name RemoveCid119Hierarchy (T2); class CID119 slot12; TU tu_173158
- * Notes: Cid77->Cid119 (CID 0x77=119, vtable) | slot 12 is RemoveHierarchy (CONFLICTS#5: LO base
- *   0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy; OnAdd/OnRemove are slots 23/22 per arbitration); was
- *   OnCid119Remove
- * Confidence: low (draft) [T2 0.55] - evidence: arbitration; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_173158-0x173158-0x174898
- * @end-sly2-annot */
-extern "C" void func_001746B8(CID119V *p) {
+// 0x1746B8: Spawner vtable slot 12 (RemoveHierarchy): LO base, then releases every active slot.
+extern "C" void RemoveSpawnerHierarchy(CID119V *spawner) {
     int i;
-    RemoveLoHierarchy(p);
-    if (!p->aent) return;
-    for (i = 0; i < p->centMax; i++) {
-        ENTRY *pe = &p->aent[i]; if (pe->pguard) func_00173928(p, pe, 0, 0);
+    RemoveLoHierarchy(spawner);
+    if (!spawner->entries) return;
+    for (i = 0; i < spawner->entryCapacity; i++) {
+        ENTRY *slot = &spawner->entries[i]; if (slot->guard) ReleaseSpawnerEntry(spawner, slot, 0, 0);
     }
 }

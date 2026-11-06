@@ -1,6 +1,7 @@
-// tu_20CE28.cpp -- two guard watchers driven by their guard's update: a stuck watch (the guard cannot reach any of
-// five probe points around it for a while: sends a 0x4000 event) and a volume watch (the guard falls inside a volume
-// object for a while: sends an event with its position and velocity). One EE asm (pextuw).
+// tu_20CE28.cpp -- two watchdogs driven by their guard's update: a stuck watch (all five probe points around the
+// guard are blocked for a while: the guard zaps itself with kind 0x4000 so it gets relocated) and a hazard (volume)
+// watch (the guard falls inside a hazard volume for a while: zap with the volume's parameters). One EE asm
+// (pextuw).
 // TU 0x20CE28..0x20D5D0 (15 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_20CE28
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0020D5B0
@@ -13,19 +14,19 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 typedef int qword __attribute__((mode(TI)));
 /* g++ 2.95 vtable entry. */
-struct VE { short d; short pad; void *pf; };
+struct VE { short d; short pad; void *function; };
 /* View of the watched guard (a STEPGUARD; vtable slots 33 velocity, 76 a test). */
-struct GUARDV { char pad[0xC]; VE *vt; char pad10[0x1F8]; int n208; char pad20C[0x294]; int n4A0; char pad4A4[0xADC]; int nF80; };
-typedef char assert_GUARDV_nF80[(unsigned int)&((GUARDV *)0)->nF80 == 0xF80 ? 1 : -1];
+struct GUARDV { char pad[0xC]; VE *vt; char pad10[0x1F8]; int isOnGround; char pad20C[0x294]; int unknown4A0; char pad4A4[0xADC]; int attachKind; };
+typedef char assert_GUARDV_attachKind[(unsigned int)&((GUARDV *)0)->attachKind == 0xF80 ? 1 : -1];
 /* The volume object a volume watch looks at (vtable slot 73 point test; +0x184/+0x188 event parameters). */
-struct WVOL { char pad[0xC]; VE *vt; char pad10[0x174]; int n184; int n188; };
-struct STUCKWATCH { GUARDV *po; int state; float t; int fEnabled; };
-struct VOLWATCH { GUARDV *po; int state; float t; WVOL *pvol; int fEnabled; };
+struct WVOL { char pad[0xC]; VE *vt; char pad10[0x174]; int zapAmount; int zapKind; };
+struct STUCKWATCH { GUARDV *guard; int state; float stateTime; int isEnabled; };
+struct VOLWATCH { GUARDV *guard; int state; float stateTime; WVOL *volume; int isEnabled; };
 /* The event both watchers send (0x60 bytes). */
-struct WMSG { WVOL *pvol; int pad; GUARDV *po; int nC; int n10; int pad14[3]; qword v20; qword v30; char pad40[0x20]; };
+struct WMSG { WVOL *volume; int pad; GUARDV *guard; int kind; int damage; int pad14[3]; qword position; qword velocity; char pad40[0x20]; };
 typedef char assert_WMSG_size[sizeof(WMSG) == 0x60 ? 1 : -1];
 /* The filter's argument (an object and its flags; bit 48 tested). */
-struct FPAIR { int a; void *o; char pad[8]; long fl; };
+struct FPAIR { int a; void *object; char pad[8]; long flags; };
 
 extern CLOCK D_002DDED0;
 /* tu_20CE28's .data (address order): the blocked-time limit, the five probe offsets around the guard (16-byte
@@ -38,247 +39,183 @@ float D_002C3E50 = 100.0f;
 float D_002C3E54 = -600.0f;
 float D_002C3E58 = 0.0f;
 extern "C" {
-int func_0020D020(STUCKWATCH *p);
-void func_0020D108(STUCKWATCH *p, int n);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-int ShouldKeepSoNotSelfSlot62(void *pv, FPAIR *p);
-int func_0020CFC0(void *pv, FPAIR *p);
-int FStepguardHasSgf(GUARDV *o, int n);
-qword ConvertAloPos(GUARDV *o, int a, qword v);
-int func_00173610(qword *pv, float f, float g, int a, int (*pfn)(void *, FPAIR *));
-void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
-void func_001F7598(WMSG *pmsg);
-qword GetLoWorldPos(void *p);
-void func_0020D3C0(VOLWATCH *p, int k);
+int IsGuardStuck(STUCKWATCH *watch);
+void SetStuckWatchState(STUCKWATCH *watch, int state);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int state);
+int ShouldKeepSoNotSelfSlot62(void *context, FPAIR *watch);
+int FilterStuckProbe(void *context, FPAIR *watch);
+int StepguardHasSgf(GUARDV *object, int state);
+qword ConvertAloPos(GUARDV *object, int a, qword v);
+int SnapToGround(qword *context, float f, float g, int a, int (*pfn)(void *, FPAIR *));
+void *func_002333B4(void *context, int c, int cb) __asm__("memset");
+void func_001F7598(WMSG *zap);
+qword GetLoWorldPos(void *watch);
+void SetHazardWatchState(VOLWATCH *watch, int state);
 }
 
-/** @sly2-annot addr=0x20CE28
- * Purpose: po, state -1, enabled
- * Info: proposed name InitStuckWatch (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud+verdicts_A2
- * See: docs/engine/animation.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void func_0020CE28(STUCKWATCH *p, GUARDV *po) { p->po = po; p->state = -1; p->fEnabled = 1; }
+// 0x20CE28: Initializes a stuck watch for `guard`: idle (state -1), enabled.
+extern "C" void InitStuckWatch(STUCKWATCH *watch, GUARDV *guard) { watch->guard = guard; watch->state = -1; watch->isEnabled = 1; }
 
-/** @sly2-annot addr=0x20CE40
- * Purpose: state -1, enabled, state 0
- * Info: proposed name ResetStuckWatch (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020CE40(STUCKWATCH *p) { p->state = -1; p->fEnabled = 1; func_0020D108(p, 0); }
+// 0x20CE40: Resets a stuck watch: enabled, state 0 (watching).
+extern "C" void ResetStuckWatch(STUCKWATCH *watch) { watch->state = -1; watch->isEnabled = 1; SetStuckWatchState(watch, 0); }
 
-/** @sly2-annot addr=0x20CE70
- * Purpose: if all 5 probe points blocked for > D_002C3DF0 s -> InflictZap kind 0x4000 on self
- * Info: proposed name UpdateStuckWatch (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020CE70(STUCKWATCH *p)
+// 0x20CE70: Per-frame stuck test: while the guard is on the ground and not attached, tracks how long it has been
+// stuck (IsGuardStuck); past the time limit, goes to state 2 (zap).
+extern "C" void UpdateStuckWatch(STUCKWATCH *watch)
 {
-    int f, k;
-    if (!p->fEnabled)
+    int isStuck, state;
+    if (!watch->isEnabled)
         return;
-    f = func_0020D020(p);
+    isStuck = IsGuardStuck(watch);
     do {
-        k = p->state;
-        switch (k) {
+        state = watch->state;
+        switch (state) {
         case 0:
-            if (f)
-                func_0020D108(p, 1);
+            if (isStuck)
+                SetStuckWatchState(watch, 1);
             break;
         case 1:
-            if (!f)
-                func_0020D108(p, 0);
-            else if (D_002DDED0.t - p->t > D_002C3DF0 && !((int (*)(void *, int))p->po->vt[76].pf)((char *)p->po + p->po->vt[76].d, 0x4000))
-                func_0020D108(p, 2);
+            if (!isStuck)
+                SetStuckWatchState(watch, 0);
+            else if (D_002DDED0.t - watch->stateTime > D_002C3DF0 && !((int (*)(void *, int))watch->guard->vt[76].function)((char *)watch->guard + watch->guard->vt[76].d, 0x4000))
+                SetStuckWatchState(watch, 2);
             break;
         case 2:
-            if (!f)
-                func_0020D108(p, 0);
+            if (!isStuck)
+                SetStuckWatchState(watch, 0);
             break;
         }
-    } while (p->state != k);
+    } while (watch->state != state);
 }
 
-/** @sly2-annot addr=0x20CFC0
- * Purpose: probe filter: ignore cid 0x59 (water?) when flagged
- * Info: proposed name FFilterStuckProbe (T2); TU tu_20CE28
- * Notes: names_v2 C proposed PumpHost__18CBinaryInputStream (0.638)
- * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" int func_0020CFC0(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(p->o, 0x59)) return 1; return ShouldKeepSoNotSelfSlot62(pv, p); }
+// 0x20CFC0: Line-test filter for the stuck probes: ignores non-blocking hits and, when flagged, cid 0x59 objects.
+extern "C" int FilterStuckProbe(void *context, FPAIR *hit) { if ((hit->flags & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(hit->object, 0x59)) return 1; return ShouldKeepSoNotSelfSlot62(context, hit); }
 
-/** @sly2-annot addr=0x20D020
- * Purpose: 5 probe offsets D_002C3E00 around guard all blocked
- * Info: proposed name FGuardStuck (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" int func_0020D020(STUCKWATCH *p)
+// 0x20D020: True if the line test to each of the five probe offsets around the guard hits something (the guard is
+// boxed in).
+extern "C" int IsGuardStuck(STUCKWATCH *watch)
 {
-    GUARDV *o = p->po;
-    unsigned int i;
-    if (o->n208 || o->nF80 != -1 || !o->n4A0 || FStepguardHasSgf(o, 0x13))
+    GUARDV *guard = watch->guard;
+    unsigned int probeIndex;
+    if (guard->isOnGround || guard->attachKind != -1 || !guard->unknown4A0 || StepguardHasSgf(guard, 0x13))
         return 0;
-    i = 0;
+    probeIndex = 0;
     do {
-        qword v = ConvertAloPos(p->po, 0, D_002C3E00[i].q);
-        if (func_00173610(&v, D_002C3E50, D_002C3E54, 1, func_0020CFC0))
+        qword probe = ConvertAloPos(watch->guard, 0, D_002C3E00[probeIndex].q);
+        if (SnapToGround(&probe, D_002C3E50, D_002C3E54, 1, FilterStuckProbe))
             break;
-        i++;
-    } while (i < 5);
-    return !(i < 5);
+        probeIndex++;
+    } while (probeIndex < 5);
+    return !(probeIndex < 5);
 }
 
-/** @sly2-annot addr=0x20D108
- * Purpose: state 2 -> InflictZap 0x4000
- * Info: proposed name SetStuckWatchState (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020D108(STUCKWATCH *p, int n)
+// 0x20D108: Sets the stuck watch state; state 2 zaps the guard (kind 0x4000) with its position and velocity.
+extern "C" void SetStuckWatchState(STUCKWATCH *watch, int state)
 {
-    if (p->state == n) return;
-    p->state = n;
-    p->t = D_002DDED0.t;
-    if (n == 2) {
-        WMSG f;
-        func_002333B4(&f, 0, sizeof f);
-        f.nC = 0x4000;
-        f.pvol = (WVOL *)p->po;
-        f.po = p->po;
-        f.n10 = 0;
-        func_001F7598(&f);
+    if (watch->state == state) return;
+    watch->state = state;
+    watch->stateTime = D_002DDED0.t;
+    if (state == 2) {
+        WMSG zap;
+        func_002333B4(&zap, 0, sizeof zap);
+        zap.kind = 0x4000;
+        zap.volume = (WVOL *)watch->guard;
+        zap.guard = watch->guard;
+        zap.damage = 0;
+        func_001F7598(&zap);
     }
 }
 
-/** @sly2-annot addr=0x20D178
- * Purpose: enabled = 0, state 0
- * Info: proposed name DisableStuckWatch (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020D178(STUCKWATCH *p)
+// 0x20D178: Disables a stuck watch (state 0).
+extern "C" void DisableStuckWatch(STUCKWATCH *watch)
 {
-    p->fEnabled = 0;
-    func_0020D108(p, 0);
+    watch->isEnabled = 0;
+    SetStuckWatchState(watch, 0);
 }
 
-/** @sly2-annot addr=0x20D1A0
- * Purpose: enabled = 1
- * Info: proposed name EnableStuckWatch (T1); TU tu_20CE28
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void EnableStuckWatch(STUCKWATCH *p)
+// 0x20D1A0: Enables a stuck watch.
+extern "C" void EnableStuckWatch(STUCKWATCH *watch)
 {
-    p->fEnabled = 1;
+    watch->isEnabled = 1;
 }
 
-/** @sly2-annot addr=0x20D1B0
- * Purpose: po, state -1, enabled
- * Info: proposed name InitHazardWatch (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020D1B0(VOLWATCH *p, GUARDV *po) { p->po = po; p->state = -1; p->fEnabled = 1; }
+// 0x20D1B0: Initializes a hazard watch for `guard`: idle (state -1), enabled.
+extern "C" void InitHazardWatch(VOLWATCH *watch, GUARDV *guard) { watch->guard = guard; watch->state = -1; watch->isEnabled = 1; }
 
-/** @sly2-annot addr=0x20D1C8
- * Purpose: state 0
- * Info: proposed name ResetHazardWatch (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020D1C8(VOLWATCH *p) { p->state = -1; p->fEnabled = 1; func_0020D3C0(p, 0); }
+// 0x20D1C8: Resets a hazard watch to state 0.
+extern "C" void ResetHazardWatch(VOLWATCH *watch) { watch->state = -1; watch->isEnabled = 1; SetHazardWatchState(watch, 0); }
 
-/** @sly2-annot addr=0x20D1F8
- * Purpose: inside hazard object (vt73) while falling for > D_002C3E58 s -> zap with hazard params
- * Info: proposed name UpdateHazardWatch (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020D1F8(VOLWATCH *p)
+// 0x20D1F8: Per-frame hazard test: while the guard is inside the watched volume (its vtable slot 73) and falling,
+// counts time; past the limit, goes to state 2.
+extern "C" void UpdateHazardWatch(VOLWATCH *watch)
 {
-    int k;
-    if (!p->fEnabled)
+    int state;
+    if (!watch->isEnabled)
         return;
     do {
-        k = p->state;
-        switch (k) {
+        state = watch->state;
+        switch (state) {
         case 0: {
-            WVOL *x = p->pvol;
-            int f;
-            VE *pe;
-            void *pthis;
-            if (!x)
+            WVOL *volume = watch->volume;
+            int isFalling;
+            VE *entry;
+            void *self;
+            if (!volume)
                 break;
-            f = 0;
-            pe = &x->vt[73];
-            pthis = (char *)x + pe->d;
-            if (((int (*)(void *, qword))pe->pf)(pthis, GetLoWorldPos(p->po))) {
-                qword v = ((qword (*)(void *))p->po->vt[33].pf)((char *)p->po + p->po->vt[33].d);
-                float z;
-                __asm__("pextuw %0, $zero, %1" : "=r"(z) : "r"(v));
-                if (z < 0.0f)
-                    f = 1;
+            isFalling = 0;
+            entry = &volume->vt[73];
+            self = (char *)volume + entry->d;
+            if (((int (*)(void *, qword))entry->function)(self, GetLoWorldPos(watch->guard))) {
+                qword velocity = ((qword (*)(void *))watch->guard->vt[33].function)((char *)watch->guard + watch->guard->vt[33].d);
+                float verticalSpeed;
+                __asm__("pextuw %0, $zero, %1" : "=r"(verticalSpeed) : "r"(velocity));
+                if (verticalSpeed < 0.0f)
+                    isFalling = 1;
             }
-            if (f)
-                func_0020D3C0(p, 1);
+            if (isFalling)
+                SetHazardWatchState(watch, 1);
             break;
         }
         case 1:
-            if (!p->pvol)
-                func_0020D3C0(p, 0);
-            else if (D_002DDED0.t - p->t > D_002C3E58 &&
-                     !((int (*)(void *, void *))p->po->vt[76].pf)((char *)p->po + p->po->vt[76].d, (void *)p->pvol->n188))
-                func_0020D3C0(p, 2);
+            if (!watch->volume)
+                SetHazardWatchState(watch, 0);
+            else if (D_002DDED0.t - watch->stateTime > D_002C3E58 &&
+                     !((int (*)(void *, void *))watch->guard->vt[76].function)((char *)watch->guard + watch->guard->vt[76].d, (void *)watch->volume->zapKind))
+                SetHazardWatchState(watch, 2);
             break;
         case 2:
-            if (!p->pvol || ((int (*)(void *, void *))p->po->vt[76].pf)((char *)p->po + p->po->vt[76].d, (void *)p->pvol->n188))
-                func_0020D3C0(p, 0);
+            if (!watch->volume || ((int (*)(void *, void *))watch->guard->vt[76].function)((char *)watch->guard + watch->guard->vt[76].d, (void *)watch->volume->zapKind))
+                SetHazardWatchState(watch, 0);
             break;
         }
-    } while (p->state != k);
+    } while (watch->state != state);
 }
 
-/** @sly2-annot addr=0x20D3C0
- * Purpose: state 2 -> InflictZap with hazard +0x184/+0x188
- * Info: proposed name SetHazardWatchState (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020D3C0(VOLWATCH *p, int state)
+// 0x20D3C0: Sets the hazard watch state; state 2 zaps the guard with the volume's zap kind and amount
+// (+0x188/+0x184).
+extern "C" void SetHazardWatchState(VOLWATCH *watch, int state)
 {
-    if (state != p->state) {
-        p->state = state;
-        p->t = D_002DDED0.t;
+    if (state != watch->state) {
+        watch->state = state;
+        watch->stateTime = D_002DDED0.t;
         if (state == 2) {
-            WMSG l;
-            func_002333B4(&l, 0, sizeof(l));
-            l.pvol = p->pvol;
-            l.po = p->po;
-            l.nC = p->pvol->n188;
-            l.n10 = p->pvol->n184;
-            l.v20 = GetLoWorldPos(p->po);
-            l.v30 = ((qword (*)(void *))p->po->vt[33].pf)((char *)p->po + p->po->vt[33].d);
-            func_001F7598(&l);
+            WMSG zap;
+            func_002333B4(&zap, 0, sizeof(zap));
+            zap.volume = watch->volume;
+            zap.guard = watch->guard;
+            zap.kind = watch->volume->zapKind;
+            zap.damage = watch->volume->zapAmount;
+            zap.position = GetLoWorldPos(watch->guard);
+            zap.velocity = ((qword (*)(void *))watch->guard->vt[33].function)((char *)watch->guard + watch->guard->vt[33].d);
+            func_001F7598(&zap);
         }
     }
 }
 
-/** @sly2-annot addr=0x20D460
- * Purpose: +0xC = hazard object
- * Info: proposed name SetHazardWatchTarget (T2); TU tu_20CE28
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
- * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
- * @end-sly2-annot */
-extern "C" void func_0020D460(VOLWATCH *p, WVOL *pvol)
+// 0x20D460: Sets the hazard volume to watch.
+extern "C" void SetHazardWatchTarget(VOLWATCH *watch, WVOL *volume)
 {
-    p->pvol = pvol;
+    watch->volume = volume;
 }
 
 // 0x20D468..0x20D474: 2 dead-code scraps (sly2/scrap.h)

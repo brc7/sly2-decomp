@@ -1,4 +1,7 @@
-// tu_14FAC8.cpp -- a STEPGUARD subclass (init and update overrides). TU 0x14FAC8..0x14FCA8 (4 functions, address order).
+// tu_14FAC8.cpp -- CONTESSA (cid 0x40), a boss guard (STEPGUARD subclass): Init and Update overrides. While she is
+// not attached to anything and stands on ground, her update fits her body to the terrain with three crawl probes
+// (func_00205910).
+// TU 0x14FAC8..0x14FCA8 (4 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_14FAC8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014FC88
 #include "sly2/slotheap.h"
@@ -11,11 +14,11 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct GUARDV
 {
       byte pad0[0x208];
-      int n208;                 /* +0x208 (STEP) */
+      int isOnGround;                 /* +0x208 (STEP) */
       byte pad1[0x4A4 - 0x20C];
-      int n4A4;                 /* +0x4A4 set on init */
+      int unknown4A4;                 /* +0x4A4 set on init */
       byte pad2[0xF80 - 0x4A8];
-      int nF80;                 /* +0xF80 */
+      int attachKind;                 /* +0xF80 */
 };
 
 /* The Contessa's crawl probes for func_00205910 (step.cpp's terrain fit): three local probe points (16-byte vectors,
@@ -25,41 +28,26 @@ struct HEIGHT { float min, max; };
 VECTOR4V D_002BD910[3] = {{150.0f, 0.0f, -140.0f, 0.0f}, {-75.0f, 130.0f, -140.0f, 0.0f}, {-75.0f, -130.0f, -140.0f, 0.0f}};
 HEIGHT D_002BD940 = {-200.0f, 200.0f};
 extern "C" {
-void InitStepguard(GUARDV *pguard);
-void UpdateStepguard(GUARDV *pguard, float dt);
-void func_00205910(GUARDV *pguard, HEIGHT *pheight, int cpos, const VECTOR4V *apos);
+void InitStepguard(GUARDV *contessa);
+void UpdateStepguard(GUARDV *contessa, float dt);
+void func_00205910(GUARDV *contessa, HEIGHT *heightRange, int probeCount, const VECTOR4V *probes);
 }
 
-/** @sly2-annot addr=0x14FAC8
- * Purpose: vt7 Init override of guard class cid 0x40: base STEPGUARD Init (0x205EB8) then +0x4A4 = 1
- * Info: proposed name InitContessa (T2); class CONTESSA slot7; TU tu_14FAC8
- * Notes: class identity from whole_game WE names/object strings: InitCid64Guard -> InitContessa
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; sources: r2_131F70+whole_game(class
- *   identity)
- * See: docs/engine/bosses.md#33-the-contessa-m5_heist-boss-tasks-l17-castle-exterior,
- *   docs/engine/camera.md#1-cm-the-camera-singleton, docs/engine/camera.md#4-source-files
- * @end-sly2-annot */
+// 0x14FAC8: CONTESSA vtable slot 7 (Init): STEPGUARD Init, then sets +0x4A4 (also set by other named guards;
+// meaning unknown).
 void CONTESSA::Init()
 {
-      GUARDV *pguard = (GUARDV *)this;
-      InitStepguard(pguard);
-      pguard->n4A4 = 1;
+      GUARDV *contessa = (GUARDV *)this;
+      InitStepguard(contessa);
+      contessa->unknown4A4 = 1;
 }
 
-/** @sly2-annot addr=0x14FAF8
- * Purpose: vt16 override of cid 0x40: base slot-16 (0x207350) then, if +0xF80 == -1 and +0x208 != 0,
- *   0x205910(this, D_002BD940, 3, D_002BD910)
- * Info: proposed name UpdateContessa (T2); class CONTESSA slot16; TU tu_14FAC8
- * Notes: class identity from whole_game WE names/object strings: UpdateCid64Guard -> UpdateContessa
- * Confidence: low (draft) [T2 0.35] - evidence: semantic review; sources: r2_131F70+whole_game(class
- *   identity)
- * See: docs/engine/bosses.md#33-the-contessa-m5_heist-boss-tasks-l17-castle-exterior,
- *   docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8
- * @end-sly2-annot */
-extern "C" void func_0014FAF8(GUARDV *pguard, float dt)
+// 0x14FAF8: CONTESSA vtable slot 16 (Update): STEPGUARD update; then, when not attached (+0xF80 == -1) and on the
+// ground (+0x208), fits her to the terrain with three probe points and a +-200 height window (inferred).
+extern "C" void UpdateContessa(GUARDV *contessa, float dt)
 {
-      UpdateStepguard(pguard, dt);
-      if (pguard->nF80 == -1 && pguard->n208 != 0)
-            func_00205910(pguard, &D_002BD940, 3, D_002BD910);
+      UpdateStepguard(contessa, dt);
+      if (contessa->attachKind == -1 && contessa->isOnGround != 0)
+            func_00205910(contessa, &D_002BD940, 3, D_002BD910);
 }
 

@@ -724,7 +724,7 @@ void SelectSwMainMs(struct S *p);
 void ClearSwSpliceTable(struct S *p);
 void InitSwProxySpares(struct S *p);
 void BindSwTimerHud(struct S *p);
-void func_001569B8(struct S *p);
+void CreateSwNoiseTypes(struct S *p);
 void EnsureSwDefaultLight(struct S *p);
 void PostLoadSwPathzones(struct S *p);
 void BindSwBootyProxy(struct S *p);
@@ -758,7 +758,7 @@ void PostSwLoad(struct S *world)
     ClearSwSpliceTable(world);
     InitSwProxySpares(world);
     BindSwTimerHud(world);
-    func_001569B8(world);
+    CreateSwNoiseTypes(world);
     EnsureSwDefaultLight(world);
     PostLoadSwPathzones(world);
     BindSwBootyProxy(world);

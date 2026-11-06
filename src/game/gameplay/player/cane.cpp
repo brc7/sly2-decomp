@@ -126,7 +126,7 @@ float RadNormalize__Ff(float);
 void UpdateJtHands(void *);
 int FCheckLm__FP2LMf(void *, float);
 struct BHV { char pad[0x50]; int kind; char pad54[8]; void *subject; };
-BHV *PbhvFindBhvstk(void *, int);
+BHV *FindBhvInBhvstk(void *, int);
 void SetJtState__FP2JT3JTS4JTBS(JT *, int, int);
 int ShouldJtSweepBack(JT *);
 int ChooseJtSweepCaneState(JT *);
@@ -468,7 +468,7 @@ extern "C" int ChooseJtAttackCaneState(JT *jt)
         if (g < D_002BF4AC)
             f = FCheckLm__FP2LMf(D_002BF4B0, GetZ(d)) != 0;
         if (f) {
-            BHV *pt = PbhvFindBhvstk(jt->interactTarget + 0x26C, 0xB1);
+            BHV *pt = FindBhvInBhvstk(jt->interactTarget + 0x26C, 0xB1);
             if (pt && pt->subject == jt) {
                 int k = pt->kind;
                 if (k < 2) {

@@ -57,7 +57,7 @@ void SetJtAirJump(JTAIR *pjtair, int jtas, int n, LO *plo);
 void AttachJtHandsObject(JTHANDS *pjthands, LO *plo);
 void ReleaseJtHandsActs(JTHANDS *pjthands);
 void SetJtHandsTargetAttached(JTHANDS *pjthands, LO *plo);
-BHV *PbhvFindBhvstk(BHVSTK *pbhvstk, int n);
+BHV *FindBhvInBhvstk(BHVSTK *pbhvstk, int n);
 void UpdateStepplayerBootySave(STEPPLAYER *pstepplayer, int n0, int n1);
 void SetBootyState(LO *pbooty, int nState);
 void TranslateStepToPos(STEP *pstep, qword pos);
@@ -459,7 +459,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern float D_002BCC6C, D_002BCC70, D_002BCC74, D_002BCC78;
 int TestStepplayerHidden(struct P *p);
 qword GetLoWorldPos(struct P *p);
-void func_00156548(void *a, qword pos, struct P *p, int n);
+void CreateNoise(void *a, qword pos, struct P *p, int n);
 
 static inline float GClamp(float g, float lo, float hi)
 {
@@ -514,7 +514,7 @@ void UpdateStepplayerHideBlend(struct P *player)
         { float dt = D_002DDED0.dt; player->x10D0 = GClamp(player->x10D0 + D_002BCC78 * dt, 0.0f, 1.0f); }
         break;
     }
-    if (player->x10D0 == 1.0f) func_00156548(player->hideVolumes, GetLoWorldPos(player), player, 0);
+    if (player->x10D0 == 1.0f) CreateNoise(player->hideVolumes, GetLoWorldPos(player), player, 0);
 }
 } } // namespace M_func_00140750
 
@@ -540,10 +540,10 @@ struct X { char pad[0x104]; struct X *pxNext; };
 struct P { char pad[0x10C4]; void *hideVolumes; };
 int IsStepplayerInJtMode(struct P *p);
 qword GetLoWorldPos(struct P *p);
-void *func_00156698(void *a, qword pos, struct P *p);
-int FStepguardHasSgf(struct SO *pso, int n);
-int func_00156FE8(struct X *px, void *q);
-void func_00156780(void *q);
+void *NewNoise(void *a, qword pos, struct P *p);
+int StepguardHasSgf(struct SO *pso, int n);
+int CanListenerHearNoise(struct X *px, void *q);
+void RemoveNoise(void *q);
 /** @sly2-annot addr=0x1409E8
  * Purpose: Returns 2 if in jtmode<3 or no query from 0x156698; else 1 if any guard ((*(struct SO * *)&g_sw.dlStepguard)) answers
  *   vt89(query) or any (*(struct X * *)&g_sw.dlCid47) entry 0x156FE8 matches, 0 otherwise; guard states 0x1D/0xB force 2
@@ -561,21 +561,21 @@ int TestStepplayerHidden(struct P *player)
     struct X *px;
     if (IsStepplayerInJtMode(player)) return 2;
     q = 0;
-    if (player->hideVolumes) q = func_00156698(player->hideVolumes, GetLoWorldPos(player), player);
+    if (player->hideVolumes) q = NewNoise(player->hideVolumes, GetLoWorldPos(player), player);
     if (!q) return 2;
     r = 0;
     so = (*(struct SO * *)&g_sw.dlStepguard);
     for (;;) {
         if (!so) break;
-        if (FStepguardHasSgf(so, 0x1D) || FStepguardHasSgf(so, 0xB)) { r = 2; break; }
+        if (StepguardHasSgf(so, 0x1D) || StepguardHasSgf(so, 0xB)) { r = 2; break; }
         if (so->vt[89].pfn((char *)so + so->vt[89].d, q)) { r = 1; break; }
         so = so->psoNext;
     }
     if (r == 0) {
         for (px = (*(struct X * *)&g_sw.dlCid47); px; px = px->pxNext)
-            if (func_00156FE8(px, q)) { r = 1; break; }
+            if (CanListenerHearNoise(px, q)) { r = 1; break; }
     }
-    func_00156780(q);
+    RemoveNoise(q);
     return r;
 }
 } } // namespace M_func_001409E8
@@ -875,7 +875,7 @@ void SetGuardOverride(void *p, int n);
 void SetAllGuardsSpecialState(void *p, int n);
 void *AcquireProxyObject(void *p, int n);
 void SetLoParent(void *p, int a, int b);
-void func_00156780(void *p);
+void RemoveNoise(void *p);
 void StartJtHandsCarry(void *p, void *q);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
 void AttachJtHandsObject(void *p, void *q);
@@ -1017,7 +1017,7 @@ void HandleStepplayerMessage(void *player, int msg, void *pv)
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
                         while ((po2 = PvNextDli(&dli)) != 0) {
                             if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == player)
-                                func_00156780(po2);
+                                RemoveNoise(po2);
                         }
                         D_002DD2FC = dli.m_pdliNext;
                         D_003DD490.g4758 = D_002DDED0.t + D_002BCC94;
@@ -2596,7 +2596,7 @@ extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 {
     BHV *pbhv;
     if (player->ploInteract != 0) {
-        pbhv = PbhvFindBhvstk((BHVSTK *)((char *)player->ploInteract + 0x26C), 0xB1);
+        pbhv = FindBhvInBhvstk((BHVSTK *)((char *)player->ploInteract + 0x26C), 0xB1);
         if (pbhv != 0 && *(STEPPLAYER **)((char *)pbhv + 0x5C) == player) {
             *(int *)((char *)pbhv + 0x60) = 0;
         }
@@ -3075,7 +3075,7 @@ typedef struct { short d; short pad; qword (*pfn)(struct SO *); } VT;
 struct G { char pad[0x88]; float g; };
 struct SO { int x0, x4, x8; VT *vt; char pad[0xE8 - 0x10]; struct G *pg; char pad2[0x248 - 0xEC]; float z; };
 qword GetLoWorldPos(struct SO *p);
-int func_00173610(qword *ppos, int a, int b, float f, float g);
+int SnapToGround(qword *ppos, int a, int b, float f, float g);
 /** @sly2-annot addr=0x143D20
  * Purpose: Predict height after dt under gravity; if <=0 test ground 0x173610 at pos
  * Info: proposed name FStepplayerWillLand (T2); TU stepplayer
@@ -3092,7 +3092,7 @@ int WillStepplayerLand(struct SO *so, float dt)
     if (h > 0.0f)
         return 0;
     pos.q = GetLoWorldPos(so);
-    return func_00173610(&pos.q, 0, 0, 0.0f, h);
+    return SnapToGround(&pos.q, 0, 0, 0.0f, h);
 }
 } } // namespace M_func_00143D20
 

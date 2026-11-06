@@ -3340,7 +3340,7 @@ extern "C" {
 void SetSndSourcePos(SND *psnd, qword qwPos);
 }
 extern "C" {
-void GuardCapVelocityForPounce(STEPGUARD *pguard) __asm__("func_00209EE0");
+void GuardCapVelocityForPounce(STEPGUARD *pguard) __asm__("StunStepguardThrownOp2");
 }
 extern "C" {
 void ClearHeroIdleTimer(STEPPLAYER *pstepplayer, int nIdleKind) __asm__("InitIdleTimer");

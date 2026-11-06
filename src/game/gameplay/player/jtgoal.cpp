@@ -51,8 +51,8 @@ R *func_00205458(void *, int);
 void BroadcastGameEvent(void *, int, T *);
 void FadeSoOut(T *, float);
 qword GetLoWorldPos(void *p);
-int func_00173610(float, float, qword *, int, int);
-int FSnapPosToSurfaceAbove(qword *);
+int SnapToGround(float, float, qword *, int, int);
+int SnapPositionToSurfaceAbove(qword *);
 void ReturnJtToPosition(PO *, qword);
 }
 struct BASIC;
@@ -158,7 +158,7 @@ extern "C" void UpdateJtgoal(JTGOAL *goal)
         float distance = GetDistance(playerPos, goal->goalPos);
         if (goal->lastDistance - distance < D_002BD2D4 * D_002BD2D0) {
             qword snappedPos = goal->goalPos;
-            if (func_00173610(100.0f, -150.0f, &snappedPos, 0, 0) || FSnapPosToSurfaceAbove(&snappedPos)) {
+            if (SnapToGround(100.0f, -150.0f, &snappedPos, 0, 0) || SnapPositionToSurfaceAbove(&snappedPos)) {
                 ReturnJtToPosition(goal->player, snappedPos);
                 goal->isHolding = 1;
             }

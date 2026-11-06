@@ -1,5 +1,7 @@
-// tu_1B9F80.cpp -- NEELA, a guard (STEPGUARD) that picks a target inside one of two volumes and turns an animated part
-// toward it, and its behaviour (a BHV with three states: target in the near volume, outside, timed out). VU0 asm.
+// tu_1B9F80.cpp -- NEELA (cid 0x3C, a STEPGUARD): she picks a target inside one of two volumes (another guard, or a
+// cid 0x62 object) and turns her animated prop toward it; and her chase behaviour (BHV174, flag 0x25) with three
+// states: player inside the near volume (resume her script), outside (chase the player), timed out (give up, game
+// event 0x33). VU0 asm.
 // TU 0x1B9F80..0x1BAB50 (14 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1B9F80
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001BAB30
@@ -24,39 +26,39 @@ struct NODE{char pad[0x30];qword position;char pad40[0x60];SPACE*space;};
 struct MOTION{char pad[0x20];qword angles;};
 struct VOLUME;
 struct ASEGA;
-struct L { char pad[0x30]; qword q30; };
+struct L { char pad[0x30]; qword unknown30; };
 /* g++ 2.95 vtable entry and a behaviour/part object called through it. */
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; VTE *vt; char pad1[0x38 - 0x10]; void *ptarget; char pad3C[4]; void *pv40; };
+struct O { char pad[0xC]; VTE *vt; char pad1[0x38 - 0x10]; void *target; char pad3C[4]; void *unknown40; };
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 /* The guard's vision detector: near and far volumes. */
-struct DETECTORV { char pad[0xE8]; VOLUME *pvolNear; VOLUME *pvolFar; char padF0[8]; int nF8; };
+struct DETECTORV { char pad[0xE8]; VOLUME *nearVolume; VOLUME *farVolume; char padF0[8]; int options; };
 /* Distance curve of the guard (clamped quadratic) and the behaviour's timeout. */
 struct POLY { float c0, c1, c2; float pad; float gMin, gMax; float dt; };
 /* View of the guard (a STEPGUARD, sly2/guard.h; the fields from +0x1010 on are NEELA's). */
 struct NEELAV{
- char pad0[0x364];int n364;             /* +0x364 */
- char pad368[0x13C];int n4A4;           /* +0x4A4 */
- char pad4A8[0x9BC];int nE64;           /* +0xE64 */
- char padE68[0xFC];DETECTORV*pdetector;  /* +0xF64 STEPGUARD::pdetector */
+ char pad0[0x364];int unknown364;             /* +0x364 */
+ char pad368[0x13C];int unknown4A4;           /* +0x4A4 */
+ char pad4A8[0x9BC];int sensesEnabled;           /* +0xE64 */
+ char padE68[0xFC];DETECTORV*detector;  /* +0xF64 STEPGUARD::pdetector */
  char padF68[0x78];NEELAV*next;          /* +0xFE0 STEPGUARD::dleGuard */
  char padFE4[0x2C];VOLUME*first,*second;/* +0x1010 */
- int state;float changed;               /* +0x1018 */
+ int state;float stateTime;               /* +0x1018 */
  void*id;ASEGA*animation;NEELAV*target;MOTION*motion;   /* +0x1020 */
- void*pv1030;NODE*node;                 /* +0x1030 */
+ void*unknown1030;NODE*node;                 /* +0x1030 */
  char pad1038[8];qword axis;            /* +0x1040 */
- O*po;                                  /* +0x1050 */
- char pad1054[0xC];int n1060;int pad1064[2];int n106C;   /* +0x1060 */
+ O*prop;                                  /* +0x1050 */
+ char pad1054[0xC];int unknown1060;int pad1064[2];int unknown106C;   /* +0x1060 */
  POLY poly;                             /* +0x1070 */
- int n108C;char ab[0xC];                /* +0x108C */
+ int useChaseBehavior;char resumeState[0xC];                /* +0x108C */
 };
-typedef char NEELA_ab_Offset[FIELD_OFFSET(NEELAV,ab)==0x1090?1:-1];
+typedef char NEELA_resumeState_Offset[FIELD_OFFSET(NEELAV,resumeState)==0x1090?1:-1];
 /* NEELA's behaviour (a BHV): the guard, the behaviour stack link, state and time, a mode. */
-struct NBHV { char pad[0x10]; NEELAV *po; char pad14[4]; int x18; char pad1C[0x14]; int state; float changed; void *pv38; };
+struct NBHV { char pad[0x10]; NEELAV *guard; char pad14[4]; int childSlot; char pad1C[0x14]; int state; float stateTime; void *script; };
 struct ROW{int key;NEELAV*object;};
 struct GAME;
-struct Q1 { char pad[0xC4]; float gC4; };
-struct Q2 { char pad[0x38]; float g38; };
+struct Q1 { char pad[0xC4]; float unknownC4; };
+struct Q2 { char pad[0x38]; float unknown38; };
 struct MODE { int a[0x1C]; };
 extern "C"{
 void InitStepguard(NEELAV *p);
@@ -68,16 +70,16 @@ void SetSoMass(NEELAV *p, float g);
 void ResetStepguardToHome(NEELAV *p);
 int GetBasicCid(void *pv);
 void UpdateStepguard(NEELAV*);
-int FStepguardHasSgf(NEELAV*,int);
+int StepguardHasSgf(NEELAV*,int);
 qword GetLoWorldPos(void*);
 qword ConvertAloPos(NEELAV*,void*,qword);
 int FCheckVolPoint(VOLUME*,qword);
-void func_001BA408(NEELAV*,int);
+void SetNeelaState(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword func_0011BFF0(M3*);
-int func_001BA100(void*,ROW*);
+int FilterCid98(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 void func_00130B18(ASEGA *o);
 void ReleaseAct(MOTION **p);
@@ -89,14 +91,14 @@ void InitBhv(NBHV *p);
 void StartBhv(NBHV *p);
 void CloseBhv(NBHV *p);
 void UpdateBhv(NBHV *p);
-int FBhvBusyAbove(NBHV *p);
+int IsBhvBusyAbove(NBHV *p);
 void AddStepguardSgf(NEELAV *p, int n);
 void RemoveStepguardSgf(NEELAV *p, int n);
-void func_001BA828(NBHV *p, int n);
-void func_00171C18(int a, void *b);
+void SetBhvNeelaChaseState(NBHV *p, int n);
+void SaveBhvScriptResumeState(int a, void *b);
 void PopBhv(int *p);
 O *func_00205438(NEELAV *p, int b);
-void func_00171258(O *o, void *a, int b, void *c);
+void SetBhvScriptScript(O *o, void *a, int b, void *c);
 void BroadcastGameEvent(void *p, int a, NEELAV *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(O *p, MODE *pf);
@@ -114,89 +116,66 @@ extern void *D_002E1E40;    /* the player */
 extern qword D_002A2DD0;
 extern char D_002DEB30[];
 
-/** @sly2-annot addr=0x1B9F80
- * Purpose: CID 60 vt7: InitStepguard + tuning (1.35, -0.0003, 0.9, 1.2, 7.0), flags
- * Info: proposed name InitNeela (T1); class NEELA slot7; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: InitCid60Guard -> InitNeela
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
- *   docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1B9F80: NEELA vtable slot 7 (Init): STEPGUARD Init plus her movement tuning constants and flags.
 void NEELA::Init()
 {
-    NEELAV *p = (NEELAV *)this;
-    InitStepguard(p);
-    POLY *ppoly = &p->poly;
+    NEELAV *neela = (NEELAV *)this;
+    InitStepguard(neela);
+    POLY *ppoly = &neela->poly;
     ppoly->c0 = 1.35f;
     ppoly->c1 = -0.0003f;
     ppoly->c2 = 0.0f;
-    p->poly.gMin = 0.9f;
-    p->poly.gMax = 1.2f;
-    p->poly.dt = 7.0f;
-    p->n364 = 0;
-    p->nE64 = 0;
-    p->pdetector->nF8 = 3;
-    p->n4A4 = 1;
+    neela->poly.gMin = 0.9f;
+    neela->poly.gMax = 1.2f;
+    neela->poly.dt = 7.0f;
+    neela->unknown364 = 0;
+    neela->sensesEnabled = 0;
+    neela->detector->options = 3;
+    neela->unknown4A4 = 1;
 }
 
-/** @sly2-annot addr=0x1BA018
- * Purpose: CID 60 vt15: PostStepguardLoad, BindLoOidTable(3), predict ASEG effect offset (label 0x5DB) for
- *   the held prop, SetSoMass 0.25
- * Info: proposed name PostNeelaLoad (T1); class NEELA slot15; TU tu_1B9F80
- * Notes: names_v2 C proposed FadeAloIn__FP3ALOf (0.253) | class identity from whole_game WE names/object
- *   strings: PostCid60GuardLoad -> PostNeelaLoad
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r5b_rest+whole_game(class
- *   identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void PostNeelaLoad(NEELAV *p)
+// 0x1BA018: NEELA vtable slot 15 (PostLoad): STEPGUARD post-load, binds her oid table, precomputes the prop
+// animation's effect offset (label 0x5DB) and sets her mass to 0.25.
+extern "C" void PostNeelaLoad(NEELAV *neela)
 {
     L l;
     qword a, b, d;
     float *pg;
-    PostStepguardLoad(p);
-    BindLoOidTable(p, 3, D_002C0A50);
-    pg = func_0012F938(p->id, 0x5DB);
-    func_001300B8(p->id, p, p->pv1030, p->node->space, &l, 0, *pg, 1.0f);
-    a = l.q30;
-    b = p->node->position;
+    PostStepguardLoad(neela);
+    BindLoOidTable(neela, 3, D_002C0A50);
+    pg = func_0012F938(neela->id, 0x5DB);
+    func_001300B8(neela->id, neela, neela->unknown1030, neela->node->space, &l, 0, *pg, 1.0f);
+    a = l.unknown30;
+    b = neela->node->position;
     d = VuSub(a, b);
-    p->n1060 = 0;
-    p->axis = d;
-    p->n106C = 1;
-    SetSoMass(p, 0.25f);
+    neela->unknown1060 = 0;
+    neela->axis = d;
+    neela->unknown106C = 1;
+    SetSoMass(neela, 0.25f);
 }
 
-/** @sly2-annot addr=0x1BA0B8
- * Purpose: CID 60 vt26: ResetStepguardToHome then vt9 on attached prop
- * Info: proposed name Neela_VUnk26Proxy (T2); class NEELA slot26; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: Cid60Guard_VUnk26Proxy -> Neela_VUnk26Proxy
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void func_001BA0B8(NEELAV *p)
+// 0x1BA0B8: NEELA vtable slot 26 (reset to home): ResetStepguardToHome, then hides her attached prop (its vtable
+// slot 9).
+extern "C" void ResetNeelaToHome(NEELAV *neela)
 {
     O *po;
-    ResetStepguardToHome(p);
-    po = p->po;
+    ResetStepguardToHome(neela);
+    po = neela->prop;
     if (po) {
-        VTE *e = &po->vt[9];
-        ((void (*)(void *))e->pfn)((char *)po + e->d);
+        VTE *entry = &po->vt[9];
+        ((void (*)(void *))entry->pfn)((char *)po + entry->d);
     }
 }
 
-/** @sly2-annot addr=0x1BA100
- * Purpose: Box-query filter: object class == 0x62 (CID 98)
- * Info: proposed name FFilterCid98 (T2); class CID98; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" int func_001BA100(void *pv, ROW *prow)
+// 0x1BA100: Box-query filter: accepts only cid 0x62 objects.
+extern "C" int FilterCid98(void *pv, ROW *prow)
 {
     return GetBasicCid(prow->object) == 0x62;
 }
 
+// VU0 helper: moves a CPU quadword into a VU register.
 static inline qword Vector(qword r){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(r));return v;}
+// VU0 helper: squared length of a vector.
 static inline float Square(qword a){float f;a = VuDot(a, a);f = VuToFloat(a);return f;}
 typedef char U_Size[sizeof(U)==16?1:-1];
 typedef char M3_Size[sizeof(M3)==48?1:-1];
@@ -218,54 +197,49 @@ typedef char NEELA_axis_Offset[FIELD_OFFSET(NEELAV,axis)==4160?1:-1];
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A7620 __asm__("D_002A7620") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x1BA128
- * Purpose: CID 60 vt16: UpdateStepguard; state 0: when flag 0x25 and mode 9/2, find nearest other guard in a
- *   volume or a CID-98 object in a box -> state 1; state 1: aim a node at the target until anim ends
- * Info: proposed name UpdateNeela (T1); class NEELA slot16; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: UpdateCid60Guard -> UpdateNeela
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void UpdateNeela(NEELAV*p){
- UpdateStepguard(p);
- switch(p->state){
+// 0x1BA128: NEELA vtable slot 16 (Update): STEPGUARD update; state 0: with flag 0x25 in modes 9/2, looks for the
+// nearest other guard in a volume or a cid 0x62 object in a box and goes to state 1; state 1: aims her prop at the
+// target until its animation ends.
+extern "C" void UpdateNeela(NEELAV*neela){
+ UpdateStepguard(neela);
+ switch(neela->state){
  case 0:{
-  if(!FStepguardHasSgf(p,0x25))break;
+  if(!StepguardHasSgf(neela,0x25))break;
   VOLUME*volume;
-  if(FStepguardHasSgf(p,9)){volume=p->first;p->target=0;}
-  else if(FStepguardHasSgf(p,2)){volume=p->second;p->target=0;}
+  if(StepguardHasSgf(neela,9)){volume=neela->first;neela->target=0;}
+  else if(StepguardHasSgf(neela,2)){volume=neela->second;neela->target=0;}
   else break;
   float nearest=D_002A7620;
   for(NEELAV*node=(*(NEELAV * *)&g_sw.dlStepguard);node;node=node->next){
-   if(node==p||FStepguardHasSgf(node,7))continue;
-   qword origin=Vector(GetLoWorldPos(p));
+   if(node==neela||StepguardHasSgf(node,7))continue;
+   qword origin=Vector(GetLoWorldPos(neela));
    float distance=Square(VuSub(origin,GetLoWorldPos(node)));
    if(nearest<distance)continue;
-   if(FCheckVolPoint(volume,GetLoWorldPos(node))){p->target=node;nearest=distance;}
+   if(FCheckVolPoint(volume,GetLoWorldPos(node))){neela->target=node;nearest=distance;}
   }
-  if(!p->target&&!FStepguardHasSgf(p,2)){
-   qword position=Vector(ConvertAloPos(p,0,D_002C0A80.q));
+  if(!neela->target&&!StepguardHasSgf(neela,2)){
+   qword position=Vector(ConvertAloPos(neela,0,D_002C0A80.q));
    qword low=VuAdd(position,D_002C0A90.q);
    qword high=VuAdd(position,D_002C0AA0.q);
    STACKSCOPE arena;
    int count;ROW**rows;
-   IntersectSwBoundingBox(&D_003DD490,low,high,func_001BA100,0,&count,&rows);
+   IntersectSwBoundingBox(&D_003DD490,low,high,FilterCid98,0,&count,&rows);
    for(int i=0;i<count;i++){
     ROW*row=rows[i];
-    if(FCheckVolPoint(volume,GetLoWorldPos(row->object))){p->target=row->object;break;}
+    if(FCheckVolPoint(volume,GetLoWorldPos(row->object))){neela->target=row->object;break;}
    }
   }
-  if(p->target)func_001BA408(p,1);
+  if(neela->target)SetNeelaState(neela,1);
   break;
  }
  case 1:{
-  if(FAsegaRetracted(p->animation)){func_001BA408(p,0);break;}
-  NODE*node=p->node;
-  qword position=GetLoWorldPos(p->target);
+  if(FAsegaRetracted(neela->animation)){SetNeelaState(neela,0);break;}
+  NODE*node=neela->node;
+  qword position=GetLoWorldPos(neela->target);
   qword local=func_0022FC48(0,node->space,position);
-  qword direction=VuSub(local,p->node->position);
-  M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,p->axis,direction);
-  MOTION*motion=p->motion;
+  qword direction=VuSub(local,neela->node->position);
+  M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,neela->axis,direction);
+  MOTION*motion=neela->motion;
   motion->angles=func_0011BFF0(&matrix);
   break;
  }
@@ -273,78 +247,58 @@ extern "C" void UpdateNeela(NEELAV*p){
  }
 }
 
-/** @sly2-annot addr=0x1BA408
- * Purpose: State 1 starts prop animation (0x12F9B8), constraint to target (0x12DC18), behaviour 0x9E target,
- *   speed x4; leaving restores
- * Info: proposed name SetNeelaState (T2); class NEELA; TU tu_1B9F80
- * Notes: class identity from whole_game WE names/object strings: SetCid60GuardState -> SetNeelaState
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void func_001BA408(NEELAV *p, int st)
+// 0x1BA408: Neela state change: state 1 starts the prop animation, constrains it toward the target, points her
+// chase behaviour at it and speeds it up 4x; leaving state 1 restores them.
+extern "C" void SetNeelaState(NEELAV *neela, int st)
 {
-    if (st == p->state) return;
-    if (p->state == 1) {
-        func_00130B18(p->animation);
-        VCALL0((O *)p->animation, 2);
-        p->animation = 0;
-        ReleaseAct(&p->motion);
-        p->motion = 0;
-        p->target = 0;
-        if (FStepguardHasSgf(p, 2)) func_00205458(p, 0x9E)->ptarget = D_002E1E40;
-        func_00204D48(p, 1.0f);
+    if (st == neela->state) return;
+    if (neela->state == 1) {
+        func_00130B18(neela->animation);
+        VCALL0((O *)neela->animation, 2);
+        neela->animation = 0;
+        ReleaseAct(&neela->motion);
+        neela->motion = 0;
+        neela->target = 0;
+        if (StepguardHasSgf(neela, 2)) func_00205458(neela, 0x9E)->target = D_002E1E40;
+        func_00204D48(neela, 1.0f);
     }
-    p->state = st;
-    p->changed = D_002DDED0.t;
+    neela->state = st;
+    neela->stateTime = D_002DDED0.t;
     if (st != 1) return;
-    func_0012F9B8(p->id, p, 1, &p->animation, 0.0f, 1.0f);
-    VCALL0((O *)p->animation, 1);
-    p->motion = func_0012DC18(p, p->node, 5, 8, 3, D_002A2DD0);
-    if (FStepguardHasSgf(p, 2)) {
-        func_00205458(p, 0x9E)->ptarget = p->target;
-        func_00204D48(p, 4.0f);
+    func_0012F9B8(neela->id, neela, 1, &neela->animation, 0.0f, 1.0f);
+    VCALL0((O *)neela->animation, 1);
+    neela->motion = func_0012DC18(neela, neela->node, 5, 8, 3, D_002A2DD0);
+    if (StepguardHasSgf(neela, 2)) {
+        func_00205458(neela, 0x9E)->target = neela->target;
+        func_00204D48(neela, 4.0f);
     }
 }
 
-/** @sly2-annot addr=0x1BA560
- * Purpose: BHV174 s7: base, state -1, AddStepguardSgf(0x25)
- * Info: proposed name InitBhv174 (T2); class BHV174 slot7; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void func_001BA560(NBHV *p)
+// 0x1BA560: Neela chase behaviour (BHV174) vtable slot 7 (OnPush): base, state -1, raises guard flag 0x25.
+extern "C" void InitBhvNeelaChase(NBHV *behavior)
 {
-    InitBhv(p);
-    p->state = -1;
-    AddStepguardSgf(p->po, 0x25);
+    InitBhv(behavior);
+    behavior->state = -1;
+    AddStepguardSgf(behavior->guard, 0x25);
 }
 
-/** @sly2-annot addr=0x1BA598
- * Purpose: BHV174 s8: StartBhv then state 0
- * Info: proposed name StartBhv174 (T2); class BHV174 slot8; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
+// 0x1BA598: Neela chase behaviour vtable slot 8 (Start): base, then state 0.
 void BHV174::Start()
 {
-    NBHV *p = (NBHV *)this;
-    StartBhv(p);
-    func_001BA828(p, 0);
+    NBHV *behavior = (NBHV *)this;
+    StartBhv(behavior);
+    SetBhvNeelaChaseState(behavior, 0);
 }
 
-/** @sly2-annot addr=0x1BA5C8
- * Purpose: BHV174 s9: state -1, CloseBhv, RemoveStepguardSgf(0x25)
- * Info: proposed name CloseBhv174 (T2); class BHV174 slot9; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void func_001BA5C8(NBHV *p)
+// 0x1BA5C8: Neela chase behaviour vtable slot 9 (Close): state -1, base, lowers flag 0x25.
+extern "C" void CloseBhvNeelaChase(NBHV *behavior)
 {
-    func_001BA828(p, -1);
-    CloseBhv(p);
-    RemoveStepguardSgf(p->po, 0x25);
+    SetBhvNeelaChaseState(behavior, -1);
+    CloseBhv(behavior);
+    RemoveStepguardSgf(behavior->guard, 0x25);
 }
 
+// VU0 helper: distance between two points.
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -354,108 +308,95 @@ static inline float Dist(qword a, qword b) {
     f = VuToFloat(d);
     return f;
 }
+// Evaluates a quadratic c0 + x (c1 + x c2).
 static inline float GEval(POLY *pp, float x) { return pp->c0 + x * (pp->c1 + x * pp->c2); }
-/** @sly2-annot addr=0x1BA608
- * Purpose: BHV174 s10: state 0 while player (g_pjt) inside volume xEC, 1 when outside, back when inside xE8,
- *   2 after timeout; scales a behaviour parameter by distance to player
- * Info: proposed name UpdateBhv174 (T2); class BHV174 slot10; TU tu_1B9F80
- * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void func_001BA608(NBHV *p)
+// 0x1BA608: Neela chase behaviour vtable slot 10 (Update): state 0 while the player is inside the outer volume, 1
+// once outside, back to 0 inside the inner volume, 2 after a timeout; scales a child parameter by the distance to
+// the player.
+extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
 {
     int s;
-    UpdateBhv(p);
+    UpdateBhv(behavior);
     for (;;) {
-        if (FBhvBusyAbove(p))
+        if (IsBhvBusyAbove(behavior))
             break;
-        s = p->state;
+        s = behavior->state;
         switch (s) {
         case 0: {
-            DETECTORV *ps = p->po->pdetector;
-            if (!FCheckVolPoint(ps->pvolFar, GetLoWorldPos(D_002E1E40)))
-                func_001BA828(p, 1);
+            DETECTORV *detector = behavior->guard->detector;
+            if (!FCheckVolPoint(detector->farVolume, GetLoWorldPos(D_002E1E40)))
+                SetBhvNeelaChaseState(behavior, 1);
             break;
         }
         case 1: {
-            DETECTORV *ps = p->po->pdetector;
-            if (FCheckVolPoint(ps->pvolNear, GetLoWorldPos(D_002E1E40)))
-                func_001BA828(p, 0);
-            else if (p->po->poly.dt < D_002DDED0.t - p->changed)
-                func_001BA828(p, 2);
+            DETECTORV *detector = behavior->guard->detector;
+            if (FCheckVolPoint(detector->nearVolume, GetLoWorldPos(D_002E1E40)))
+                SetBhvNeelaChaseState(behavior, 0);
+            else if (behavior->guard->poly.dt < D_002DDED0.t - behavior->stateTime)
+                SetBhvNeelaChaseState(behavior, 2);
             break;
         }
         case 2:
             break;
         }
-        if (s == p->state)
+        if (s == behavior->state)
             break;
     }
-    if (p->state == 0 && FStepguardHasSgf(p->po, 9)) {
-        float d = Dist(GetLoWorldPos(p->po), GetLoWorldPos(D_002E1E40));
-        NEELAV *po = p->po;
-        float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);
-        Q1 *q1 = (Q1 *)func_00205458(p->po, 0xA7);
-        Q2 *q2 = (Q2 *)func_00205458(p->po, 0xB8);
+    if (behavior->state == 0 && StepguardHasSgf(behavior->guard, 9)) {
+        float d = Dist(GetLoWorldPos(behavior->guard), GetLoWorldPos(D_002E1E40));
+        NEELAV *neela = behavior->guard;
+        float r = GClamp(GEval(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
+        Q1 *q1 = (Q1 *)func_00205458(behavior->guard, 0xA7);
+        Q2 *q2 = (Q2 *)func_00205458(behavior->guard, 0xB8);
         if (q1)
-            q1->gC4 = r;
+            q1->unknownC4 = r;
         else if (q2)
-            q2->g38 = r;
+            q2->unknown38 = r;
     }
 }
 
-/** @sly2-annot addr=0x1BA828
- * Purpose: BHV174 state: 0 resume script (0xA9), 1 chase player (0x9E target=g_pjt), 2 behaviour 0x9D +
- *   BroadcastGameEvent 0x33
- * Info: proposed name SetBhv174State (T2); TU tu_1B9F80
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
- * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
- * @end-sly2-annot */
-extern "C" void func_001BA828(NBHV *p, int st)
+// 0x1BA828: Neela chase state change: 0 resumes the patrol script (BHV169), 1 chases the player (cid 0x9E), 2 plays
+// an animation (cid 0x9D) and broadcasts game event 0x33.
+extern "C" void SetBhvNeelaChaseState(NBHV *behavior, int st)
 {
-    if (st == p->state) return;
-    if (p->state == 0) func_00171C18(p->x18, p->po->ab);
-    PopBhv(&p->x18);
-    p->state = st;
-    p->changed = D_002DDED0.t;
+    if (st == behavior->state) return;
+    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->childSlot, behavior->guard->resumeState);
+    PopBhv(&behavior->childSlot);
+    behavior->state = st;
+    behavior->stateTime = D_002DDED0.t;
     switch (st) {
     case 0: {
-        O *o = func_00205438(p->po, 0xA9);
-        func_00171258(o, p->pv38, 0, p->po->ab);
+        O *o = func_00205438(behavior->guard, 0xA9);
+        SetBhvScriptScript(o, behavior->script, 0, behavior->guard->resumeState);
         VCALL0(o, 8);
         break;
     }
     case 1: {
-        O *o = func_00205438(p->po, 0x9E);
-        o->ptarget = D_002E1E40;
+        O *o = func_00205438(behavior->guard, 0x9E);
+        o->target = D_002E1E40;
         VCALL0(o, 8);
         break;
     }
     case 2: {
-        O *o = func_00205438(p->po, 0x9D);
-        o->pv40 = &p->po->n1060;
+        O *o = func_00205438(behavior->guard, 0x9D);
+        o->unknown40 = &behavior->guard->unknown1060;
         VCALL0(o, 8);
-        BroadcastGameEvent(D_002DEB30, 0x33, p->po);
+        BroadcastGameEvent(D_002DEB30, 0x33, behavior->guard);
         break;
     }
     }
 }
 
-/** @sly2-annot addr=0x1BA980
- * Purpose: Clear 3 words, store n, send record 0xF to child behaviour 0x9C (0x176750)
- * Info: TU tu_1B9F80
- * Notes: names_v2 C proposed SetAloRealClock__FP3ALOi (0.242) | agent qualifier: splice: CID 60 command
- * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r5b_rest
- * @end-sly2-annot */
-extern "C" void func_001BA980(NEELAV *p, int n)
+// 0x1BA980: Sends mode record 0xF with `value` to the guard's root behaviour (BHVGUARD, cid 0x9C).
+extern "C" void SendRootBhvMode15(NEELAV *neela, int n)
 {
     MODE f;
     O *po;
-    func_002333B4(p->ab, 0, 0xC);
-    p->n108C = n;
+    func_002333B4(neela->resumeState, 0, 0xC);
+    neela->useChaseBehavior = n;
     func_002333B4(&f, 0, sizeof(f));
     f.a[0] = 0xF;
-    po = func_00205458(p, 0x9C);
+    po = func_00205458(neela, 0x9C);
     if (po) SetBhvguardMode(po, &f);
 }
 #undef FIELD_OFFSET

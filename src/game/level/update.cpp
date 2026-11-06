@@ -47,7 +47,7 @@ void UpdatePoctl(LOPOCTL *pl);
 void ExpireSwZapRecords(SWVIEW *p);
 void UpdateSwGuardOverride(SWVIEW *p);
 void UpdateAsega(void *pv);   /* takes an ASEGA* */
-void func_00156728(void *pv);
+void ExpireNoise(void *pv);
 void SolveSw(SWVIEW *p);
 void func_001BE1E8(void);
 void UpdateShaders(void);
@@ -99,7 +99,7 @@ void SW::Update()
             UpdateAsega(pv);
         InitDli(&dli2, &p->dl3FFC);
         while ((pv = PvNextDli(&dli2)) != 0)
-            func_00156728(pv);
+            ExpireNoise(pv);
         ProcessSwCallbacks(p);
         SolveSw(p);
         func_001BE1E8();

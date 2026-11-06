@@ -1,5 +1,8 @@
-// pickpocket.cpp -- a guard's pickpocket loot (STEPGUARD +0x3F4..+0x494): the loot list, its generation from the
-// per-world tables, staging the next item and handing it out, and the pickpocket state with its indicator objects.
+// pickpocket.cpp -- a guard's pickpocket loot (STEPGUARD +0x3F4..+0x494): the loot list (up to eight entries of
+// coins or an item), its generation from per-world tables at load, staging the next entry into the guard's loot
+// pouch, handing it to Sly when he pickpockets the guard, and the pickpocket state (-1 nothing to steal, 0 guard
+// alert, 1 coins only, 2 item ready) shown through two glint indicator objects and the pouch's state machine. Entry
+// points: GenerateStepguardLoot, StageStepguardLoot, PickpocketStepguard, UpdateStepguardPickpocket.
 // TU 0x1F1768..0x1F2108 (11 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_pickpocket
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001F20E8
@@ -24,37 +27,37 @@ struct OWNER
     char pad0[0xC];
     VTE *pvt;           /* +0x00C */
     char pad10[0x148];
-    int n158;           /* +0x158 non-zero: pickpocketing possible */
+    int canPickpocket;           /* +0x158 non-zero: pickpocketing possible */
     char pad15C[0x10];
-    void *psma;         /* +0x16C */
+    void *stateMachine;         /* +0x16C */
 };
-typedef char assert_OWNER_psma[(unsigned int)&((OWNER *)0)->psma == 0x16C ? 1 : -1];
+typedef char assert_OWNER_stateMachine[(unsigned int)&((OWNER *)0)->stateMachine == 0x16C ? 1 : -1];
 
 /* One loot entry (sly2/guard.h GUARDLOOT, 16 bytes). */
-struct ITEM { int kind, flags, key, count; };
+struct ITEM { int oid, flags, key, count; };
 
 /* View of the guard (a STEPGUARD, sly2/guard.h; the fields from +0x3F4 on are this TU's). */
 struct P
 {
     char pad0[0x2C0];
-    ulong grfsg;        /* +0x2C0 STEPGUARD::grfsg */
+    ulong guardFlags;        /* +0x2C0 STEPGUARD::grfsg */
     char pad2C8[0x12C];
-    VO *pvoInd0;        /* +0x3F4 indicator objects (slot 8 on, slot 9 off) */
-    VO *pvoInd1;        /* +0x3F8 */
-    int nState;         /* +0x3FC pickpocket state (-1..2) */
-    float tState;       /* +0x400 time the state was entered */
-    ITEM items[8];      /* +0x404 STEPGUARD::aloot */
-    int count;          /* +0x484 STEPGUARD::cloot */
-    int iitem;          /* +0x488 next item to hand out */
-    int fStaged;        /* +0x48C the next item is staged */
-    int busy;           /* +0x490 loot fixed (no generation) */
-    OWNER *owner;       /* +0x494 */
+    VO *indicator0;        /* +0x3F4 indicator objects (slot 8 on, slot 9 off) */
+    VO *indicator1;        /* +0x3F8 */
+    int pickpocketState;         /* +0x3FC pickpocket state (-1..2) */
+    float stateTime;       /* +0x400 time the state was entered */
+    ITEM loot[8];      /* +0x404 STEPGUARD::aloot */
+    int lootCount;          /* +0x484 STEPGUARD::cloot */
+    int nextLoot;          /* +0x488 next item to hand out */
+    int isStaged;        /* +0x48C the next item is staged */
+    int isLootFixed;           /* +0x490 loot fixed (no generation) */
+    OWNER *pouch;       /* +0x494 */
 };
-typedef char assert_P_owner[(unsigned int)&((P *)0)->owner == 0x494 ? 1 : -1];
+typedef char assert_P_pouch[(unsigned int)&((P *)0)->pouch == 0x494 ? 1 : -1];
 
 struct TABLE { int minimum, maximum; float chance; struct PICK { int weight, key; } picks[6]; };
 typedef TABLE::PICK PICK;
-struct OBJECT { char pad[0x230]; struct OSTATE { char pad[0x54]; int n54; } *state; };
+struct OBJECT { char pad[0x230]; struct OSTATE { char pad[0x54]; int taskState; } *state; };
 struct G;
 
 extern CLOCK D_002DDED0;
@@ -88,7 +91,7 @@ TABLE D_002C3968[9] = {
 };
 extern "C" {
 void SetSmaGoalIfReachable(void *psma, int n);
-ulong GrfFromSgf(int);
+ulong GetSgfMask(int);
 int PpoHero(G *);
 void func_001C2DB8(OWNER *);
 int func_001C2DC8(OWNER *, OBJECT *, int, int);
@@ -103,126 +106,97 @@ int NRandInRange__Fii(int, int);
 void BroadcastGameEvent(G *, int, P *);
 void BuildSpliceListFromUniformValues(void *, int, int, int *);
 void func_00205D10(P *, int);
-void SetStepguardPickpocketState(P *p, int k);
-void UpdateStepguardPickpocket(P *p);
-void StageStepguardLoot(P *p);
+void SetStepguardPickpocketState(P *guard, int state);
+void UpdateStepguardPickpocket(P *guard);
+void StageStepguardLoot(P *guard);
 }
 
-/** @sly2-annot addr=0x1F1768
- * Purpose: If loot editing enabled (+0x490): append loot entry {oid 0x2B3 (coin), -, -1, count=x}
- * Info: proposed name AddStepguardLootCoins (T2); TU pickpocket
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/engine/animation.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" void func_001F1768(P *p, int x)
+// 0x1F1768: Splice option: appends a coin entry (oid 0x2B3) worth `count` coins, when the guard's loot is fixed by
+// the level (+0x490).
+extern "C" void AddStepguardLootCoins(P *guard, int count)
 {
-    if (p->busy) {
-        ITEM *pe = &p->items[p->count++];
-        pe->kind = 0x2B3; pe->key = -1; pe->flags = 0; pe->count = x;
+    if (guard->isLootFixed) {
+        ITEM *entry = &guard->loot[guard->lootCount++];
+        entry->oid = 0x2B3; entry->key = -1; entry->flags = 0; entry->count = count;
     }
 }
 
-/** @sly2-annot addr=0x1F17B0
- * Purpose: If list empty or editing enabled: append loot entry {oid=x, 0, -1, count=1}
- * Info: proposed name AddStepguardLootItem (T2); TU pickpocket
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" void func_001F17B0(P *p, int x)
+// 0x1F17B0: Splice option: appends an item entry (object oid `itemOid`, count 1) when the list is empty or the loot
+// is fixed by the level.
+extern "C" void AddStepguardLootItem(P *guard, int itemOid)
 {
-    if (p->count <= 0 || p->busy) {
-        ITEM *pe = &p->items[p->count++];
-        pe->kind = x;
-        pe->flags = 0;
-        pe->key = -1;
-        pe->count = 1;
+    if (guard->lootCount <= 0 || guard->isLootFixed) {
+        ITEM *entry = &guard->loot[guard->lootCount++];
+        entry->oid = itemOid;
+        entry->flags = 0;
+        entry->key = -1;
+        entry->count = 1;
     }
 }
 
-/** @sly2-annot addr=0x1F17F8
- * Purpose: Change pickpocket display state k (-1..2): record time, hide (vt9) or show (vt8) the two glint
- *   objects +0x3F4/+0x3F8, and drive the pouch's SMA (+0x494->+0x16C) to state oid D_002C3738[k+1] via
- *   SetSmaGoalIfReachable
- * Info: proposed name SetStepguardPickpocketState (T1); TU pickpocket
- * Notes: runtime: pickpocket pouch is CID99 (SO child), not a PO
- * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" void SetStepguardPickpocketState(P *p, int k)
+// 0x1F17F8: Sets the pickpocket state (-1..2): records the time, hides (vtable slot 9) or shows (slot 8) the two
+// glint indicators, and moves the pouch's state machine to the matching state.
+extern "C" void SetStepguardPickpocketState(P *guard, int state)
 {
-    void *pv;
-    if (k == p->nState) return;
-    p->nState = k;
-    p->tState = D_002DDED0.t;
-    switch (k) {
+    void *stateMachine;
+    if (state == guard->pickpocketState) return;
+    guard->pickpocketState = state;
+    guard->stateTime = D_002DDED0.t;
+    switch (state) {
     case -1: case 0:
-        if (p->pvoInd0) VF(p->pvoInd0, 9);
-        if (p->pvoInd1) VF(p->pvoInd1, 9);
+        if (guard->indicator0) VF(guard->indicator0, 9);
+        if (guard->indicator1) VF(guard->indicator1, 9);
         break;
     case 1: case 2:
-        if (p->pvoInd0) VF(p->pvoInd0, 8);
-        if (p->pvoInd1) VF(p->pvoInd1, 8);
+        if (guard->indicator0) VF(guard->indicator0, 8);
+        if (guard->indicator1) VF(guard->indicator1, 8);
         break;
     }
-    pv = p->owner->psma;
-    if (pv) SetSmaGoalIfReachable(pv, D_002C3738[p->nState + 1]);
+    stateMachine = guard->pouch->stateMachine;
+    if (stateMachine) SetSmaGoalIfReachable(stateMachine, D_002C3738[guard->pickpocketState + 1]);
 }
 
-/** @sly2-annot addr=0x1F1900
- * Purpose: Compute pickpocket state: -1 no item staged in pouch; 0 guard in an alert state (guard flag word
- *   +0x2C0 bits 5/6 damaged, 7 dead, 0x16 held, 0x17 stunned, 0x1D/0x20 alert -- flag meanings from r7b
- *   stepguard.md); 1 coins / not the right player; 2 non-coin loot and current PO is Sly (D_002E1E40)
- * Info: proposed name UpdateStepguardPickpocket (T1); TU pickpocket
- * Notes: runtime: pickpocket pouch is CID99 (SO child), not a PO
- * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108,
- *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
- * @end-sly2-annot */
-extern "C" void UpdateStepguardPickpocket(P *p)
+// 0x1F1900: Recomputes the pickpocket state: -1 with no pouch or pickpocketing disabled; 0 while the guard is
+// alerted, hurt, dead, stunned or thrown; 1 when only coins are left (or the hero is not the current player); 2
+// when an item is ready.
+extern "C" void UpdateStepguardPickpocket(P *guard)
 {
-    ulong m;
-    int k;
-    if (!p->owner) return;
-    k = -1;
-    if (p->owner->n158) {
-        m = GrfFromSgf(0x1D) | GrfFromSgf(0x20) | GrfFromSgf(5) | GrfFromSgf(6)
-            | GrfFromSgf(7) | GrfFromSgf(0x17) | GrfFromSgf(0x16);
-        if (p->grfsg & m) k = 0;
-        else if (!p->count || p->items[p->count - 1].kind == 0x2B3 || !PpoHero(&D_003DD490) || PpoHero(&D_003DD490) != D_002E1E40) k = 1;
-        else k = 2;
+    ulong alertMask;
+    int state;
+    if (!guard->pouch) return;
+    state = -1;
+    if (guard->pouch->canPickpocket) {
+        alertMask = GetSgfMask(0x1D) | GetSgfMask(0x20) | GetSgfMask(5) | GetSgfMask(6)
+            | GetSgfMask(7) | GetSgfMask(0x17) | GetSgfMask(0x16);
+        if (guard->guardFlags & alertMask) state = 0;
+        else if (!guard->lootCount || guard->loot[guard->lootCount - 1].oid == 0x2B3 || !PpoHero(&D_003DD490) || PpoHero(&D_003DD490) != D_002E1E40) state = 1;
+        else state = 2;
     }
-    SetStepguardPickpocketState(p, k);
+    SetStepguardPickpocketState(guard, state);
 }
 
-/** @sly2-annot addr=0x1F1A40
- * Purpose: Roll the guard's loot at load: per-world table (D_002C3968 for cid 0x3A guards, else D_002C3748,
- *   indexed by NWorldCur): random coin total split into 2-3 coin entries (oid 0x2B3) plus, with probability
- *   chance, one weighted-random loot entry (oid 0x2B5, key from 6 weighted picks)
- * Info: proposed name GenerateStepguardLoot (T1); TU pickpocket
- * Notes: names_v2 C proposed StartSound__F5SFXIDPP3AMBP3ALOP6VECTORfffffP2LMT9 (0.438)
- * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
+// 0x1F1A40: Rolls the guard's loot at load (unless the level fixed it): picks the per-world table (richer for cid
+// 0x3A guards), keeps a level-given first entry unless its task is complete, otherwise rolls a weighted item reward
+// with the table's chance; then splits a random coin total into 2-3 coin entries and appends the reward.
 // Choose a weighted reward and distribute the remaining pickup count.
-extern "C" void GenerateStepguardLoot(P *p)
+extern "C" void GenerateStepguardLoot(P *guard)
 {
     TABLE *table;
     ITEM reward;
-    int id,total,remaining,slots;unsigned int i;
-    func_001C2DB8(p->owner);
-    if(p->busy)return;
-    id=NWorldCur();if(id==-1)id=1;
-    if(FIsBasicDerivedFrom__FP5BASIC3CID(p,0x3A))table=&D_002C3968[id];else table=&D_002C3748[id];
+    int world,total,remaining,slots;unsigned int i;
+    func_001C2DB8(guard->pouch);
+    if(guard->isLootFixed)return;
+    world=NWorldCur();if(world==-1)world=1;
+    if(FIsBasicDerivedFrom__FP5BASIC3CID(guard,0x3A))table=&D_002C3968[world];else table=&D_002C3748[world];
     func_002333B4(&reward,0,sizeof(reward));
-    if(p->count>0){
-        OBJECT *object=PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490,4,p->items[0].kind,p->owner);
-        if(object && FIsBasicDerivedFrom__FP5BASIC3CID(object,0x5C) && object->state && IsTaskComplete(object->state))p->count=0;
-        if(p->count>0){reward=p->items[0];}
+    if(guard->lootCount>0){
+        OBJECT *object=PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490,4,guard->loot[0].oid,guard->pouch);
+        if(object && FIsBasicDerivedFrom__FP5BASIC3CID(object,0x5C) && object->state && IsTaskComplete(object->state))guard->lootCount=0;
+        if(guard->lootCount>0){reward=guard->loot[0];}
         else goto choose_reward;
     }else{
 choose_reward:
-        if(GRandInRange__Fff(0.0f,1.0f)>table->chance){reward.key=-1;reward.kind=-1;}
+        if(GRandInRange__Fff(0.0f,1.0f)>table->chance){reward.key=-1;reward.oid=-1;}
         else{
             total=0;for(i=0;i<6;i++)total+=table->picks[i].weight;
             int choice=NRandInRange__Fii(0,total-1);
@@ -239,107 +213,84 @@ test_pick:
             if(choice>=weight)goto next_pick;
             reward.key=pick->key;
 selected_pick:;
-            reward.count=1;reward.kind=0x2B5;
+            reward.count=1;reward.oid=0x2B5;
         }
     }
-    p->count=0;
+    guard->lootCount=0;
     remaining=NRandInRange__Fii(table->minimum,table->maximum);
     slots=NRandInRange__Fii(2,3);
     int j=0;
     if(slots>0){do{
-        ITEM *item=&p->items[p->count++];
-        item->kind=0x2B3;item->flags=0;
+        ITEM *item=&guard->loot[guard->lootCount++];
+        item->oid=0x2B3;item->flags=0;
         int amount=remaining/(slots-j);
         if(amount<1)amount=1;
         remaining-=amount;item->count=amount;
         if(!remaining)break;j++;
     }while(j<slots);}
-    if(reward.count>0)p->items[p->count++]=reward;
+    if(reward.count>0)guard->loot[guard->lootCount++]=reward;
 }
 
-/** @sly2-annot addr=0x1F1CF8
- * Purpose: From the next loot entry on, find its template object (PloFindSwObject oid) and load it into the
- *   pouch launcher (0x1C2DC8, kind 0x2B0, or 0x2B1 for cid-0x5C objects); then refresh pickpocket state
- * Info: proposed name StageStepguardLoot (T1); TU pickpocket
- * Notes: runtime: pickpocket pouch is CID99 (SO child), not a PO
- * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" void StageStepguardLoot(P *p)
+// 0x1F1CF8: Stages the next loot entry: from the current index on, finds the entry's object and loads it into the
+// pouch launcher (skipping finished task items); then refreshes the pickpocket state.
+extern "C" void StageStepguardLoot(P *guard)
 {
-    p->fStaged = 0;
-    for (; p->iitem < p->count; p->iitem++) {
-        ITEM *pe = &p->items[p->iitem];
-        OBJECT *po = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->kind, p->owner);
-        int key, k;
-        if (!po) continue;
-        key = pe->key;
-        k = 0x2B0;
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x5C)) {
-            OBJECT::OSTATE *px = po->state;
-            if (px) {
-                int n = px->n54;
-                if (n == -1 || n == 0) { p->fStaged = 1; break; }
-                if (n != 1) continue;
+    guard->isStaged = 0;
+    for (; guard->nextLoot < guard->lootCount; guard->nextLoot++) {
+        ITEM *entry = &guard->loot[guard->nextLoot];
+        OBJECT *object = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, entry->oid, guard->pouch);
+        int key, launchKind;
+        if (!object) continue;
+        key = entry->key;
+        launchKind = 0x2B0;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x5C)) {
+            OBJECT::OSTATE *objectState = object->state;
+            if (objectState) {
+                int taskState = objectState->taskState;
+                if (taskState == -1 || taskState == 0) { guard->isStaged = 1; break; }
+                if (taskState != 1) continue;
             }
-            k = 0x2B1;
+            launchKind = 0x2B1;
         }
-        if (func_001C2DC8(p->owner, po, key, k) == 1) p->fStaged = 1;
+        if (func_001C2DC8(guard->pouch, object, key, launchKind) == 1) guard->isStaged = 1;
         break;
     }
-    UpdateStepguardPickpocket(p);
+    UpdateStepguardPickpocket(guard);
 }
 
-/** @sly2-annot addr=0x1F1E20
- * Purpose: Sly pickpockets the guard: BroadcastGameEvent(0x19), launch the staged loot (count) from the pouch
- *   toward the player (0x1C2EF0), state -1, advance to next entry, stage it; returns the launched object
- * Info: proposed name PickpocketStepguard (T1); TU pickpocket
- * Notes: runtime: pickpocket pouch is CID99 (SO child), not a PO
- * Confidence: mid (draft) [T1 0.60] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" void *PickpocketStepguard(P *p)
+// 0x1F1E20: Sly pickpockets the guard: broadcasts game event 0x19, launches the staged entry's count from the
+// pouch, resets the state, advances to the next entry and stages it. Returns the launched object, or NULL when
+// nothing is left.
+extern "C" void *PickpocketStepguard(P *guard)
 {
-    void *r;
-    if (p->iitem >= p->count) return 0;
+    void *launched;
+    if (guard->nextLoot >= guard->lootCount) return 0;
     {
-        BroadcastGameEvent(&D_002DEB30, 0x19, p);
-        r = func_001C2EF0(p->owner, (p->items + p->iitem)->count);
-        SetStepguardPickpocketState(p, -1);
-        p->iitem++;
-        StageStepguardLoot(p);
+        BroadcastGameEvent(&D_002DEB30, 0x19, guard);
+        launched = func_001C2EF0(guard->pouch, (guard->loot + guard->nextLoot)->count);
+        SetStepguardPickpocketState(guard, -1);
+        guard->nextLoot++;
+        StageStepguardLoot(guard);
     }
-    return r;
+    return launched;
 }
 
-/** @sly2-annot addr=0x1F1EB8
- * Purpose: Splice property getter: return the remaining loot oids (entries i488..c484) as a CRef list
- *   (RefSetArgListFromPvs kind 6)
- * Info: proposed name RefGetStepguardLoot (T2); TU pickpocket
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r6b_rest
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" void *func_001F1EB8(void *r, P *p)
+// 0x1F1EB8: Splice property getter: returns the oids of the loot entries not yet handed out as a list (kind 6).
+extern "C" void *GetStepguardLootRefList(void *result, P *guard)
 {
-    int buf[8];
-    int n = 0;
+    int oids[8];
+    int count = 0;
     int i;
-    for (i = p->iitem; i < p->count; i++) buf[n++] = p->items[i].kind;
-    BuildSpliceListFromUniformValues(r, n, 6, buf);
-    return r;
+    for (i = guard->nextLoot; i < guard->lootCount; i++) oids[count++] = guard->loot[i].oid;
+    BuildSpliceListFromUniformValues(result, count, 6, oids);
+    return result;
 }
 
-/** @sly2-annot addr=0x1F1F38
- * Purpose: STEPGUARD vt87(f): STEP base (empty 0x205D10), then pouch(+0x494)->vt21(!f)
- * Info: proposed name SetStepguardPlayable (T2); class STEPGUARD slot87; TU pickpocket
- * Notes: superseded r6_1D5150 proposal: STEPGUARD::vt87 (0.3) | agent qualifier: (vt87) | runtime: pickpocket
- *   pouch is CID99 (SO child), not a PO
- * Confidence: low (draft) [T2 0.35] - evidence: runtime (save-state RAM); sources: r6b_rest+runtime-corrected
- * See: docs/reference/functions/guards-ai.md#pickpocket-0x1f1768-0x1f2108
- * @end-sly2-annot */
-extern "C" void func_001F1F38(P *p, int f)
+// 0x1F1F38: STEPGUARD vtable slot 87 (set playable/active, inferred): STEP base, then enables the loot pouch (its
+// vtable slot 21) only while the guard is not in this mode.
+extern "C" void SetStepguardPlayable(P *guard, int isPlayable)
 {
-    func_00205D10(p, f);
-    if (f) { if (p->owner) VFN(p->owner, 21, 0); }
-    else if (p->owner) VFN(p->owner, 21, 1);
+    func_00205D10(guard, isPlayable);
+    if (isPlayable) { if (guard->pouch) VFN(guard->pouch, 21, 0); }
+    else if (guard->pouch) VFN(guard->pouch, 21, 1);
 }

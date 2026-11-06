@@ -1,6 +1,7 @@
-// tu_171F58.cpp -- BHV171, a guard's search behaviour: after losing its target the guard goes to the last known
-// position, looks around, then visits up to four search points picked from nearby hiding places (several global
-// object lists and three object classes) and gives up after a timeout. VU0 macro-mode asm.
+// tu_171F58.cpp -- the guard search behaviour (BHV171, guard flag 0x1F). After losing its target the guard reacts,
+// goes to the last known position, faces it, looks around, then visits up to four search points picked from nearby
+// hiding places (several global object lists and three object classes) and gives up after a timeout. Entry points:
+// the BHV slots (InitBhvSearch, Start, CloseBhvSearch, UpdateBhvSearch) and SetBhvSearchState. VU0 macro-mode asm.
 // TU 0x171F58..0x173158 (16 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_171F58
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00173138
@@ -21,51 +22,51 @@ struct VE { short d; short pad; void (*pfn)(void *); };
 struct GUARDV
 {
     char pad[0xE6C];
-    float gLookMin;          /* +0xE6C look duration range */
-    float gLookMax;
-    struct LOV *ploTarget;   /* +0xE74 */
-    int nE78;                /* 1: second (give-up) timer; 2: the target counts as reached */
+    float lookTimeMin;          /* +0xE6C look duration range */
+    float lookTimeMax;
+    struct LOV *target;   /* +0xE74 */
+    int searchMode;                /* 1: second (give-up) timer; 2: the target counts as reached */
     char padE7C[0xFD0 - 0xE7C];
-    char moverFD0[0x18];     /* +0xFD0 the guard's mover (SetStepguardMoverRadTarget) */
-    int grfFE8;              /* bit 1: can search */
+    char mover[0x18];     /* +0xFD0 the guard's mover (SetStepguardMoverRadTarget) */
+    int capabilities;              /* bit 1: can search */
 };
-typedef char assert_GUARDV_grfFE8[(unsigned int)&((GUARDV *)0)->grfFE8 == 0xFE8 ? 1 : -1];
+typedef char assert_GUARDV_capabilities[(unsigned int)&((GUARDV *)0)->capabilities == 0xFE8 ? 1 : -1];
 
-/* A sub-behaviour started by func_00172320 (func_00205438 finds it on the guard; vtable slot 8 starts it). */
-struct BHVO { char pad[0xC]; VE *pvt; char pad10[0x2C]; int n3C; char pad40[0xC0 - 0x40]; int nC0; };
+/* A sub-behaviour started by SetBhvSearchState (func_00205438 finds it on the guard; vtable slot 8 starts it). */
+struct BHVO { char pad[0xC]; VE *vt; char pad10[0x2C]; int animFlag; char pad40[0xC0 - 0x40]; int walkAnimFlag; };
 /* The watched perception record (+0x44; vtable slots 1/2 are incref/decref). */
-struct WATCH { char pad[0xC]; VE *pvt; char pad10[0x10]; qword pos20; qword pos30; char pad40[4]; GUARDV *pguard; char pad48[0xC]; int n54; };
+struct WATCH { char pad[0xC]; VE *vt; char pad10[0x10]; qword firstPosition; qword secondPosition; char pad40[4]; GUARDV *guard; char pad48[0xC]; int mode; };
 
 /* One search point: the candidate (pulled 200 out from the guard) and the original hiding place. */
 typedef struct PAIR { U candidate, original; } PAIR;
 struct BHV171V
 {
     char pad0[0x10];
-    GUARDV *pguard;
+    GUARDV *guard;
     int pad14;
     union
     {
-        void *pbhvCur;       /* +0x18 the running sub-behaviour (FBhvanimDone, FBhvgotoArrived...) */
-        char abhvstk[0x18];  /* the sub-behaviour stack (PopBhv) */
+        void *currentChild;       /* +0x18 the running sub-behaviour (IsBhvanimDone, HasBhvgotoArrived...) */
+        char childSlot[0x18];  /* the sub-behaviour stack (PopBhv) */
     };
-    int state;               /* +0x30 -1 idle, 0..5 (func_00172018) */
-    float tState;
-    float tLook;             /* +0x38 */
-    float tNext;             /* +0x3C give-up time in state 2, next search point time in state 3 */
-    float g40;
-    WATCH *pwatch;           /* +0x44 */
-    int fReplan;             /* +0x48 */
+    int state;               /* +0x30 -1 idle, 0..5 (UpdateBhvSearch) */
+    float stateTime;
+    float lookEndTime;             /* +0x38 */
+    float nextTime;             /* +0x3C give-up time in state 2, next search point time in state 3 */
+    float unknown40;
+    WATCH *watched;           /* +0x44 */
+    int needsReplan;             /* +0x48 */
     int pad4C;
-    PAIR apair[4];           /* +0x50 */
-    unsigned int ipair;      /* +0xD0 */
+    PAIR searchPoints[4];           /* +0x50 */
+    unsigned int searchPointIndex;      /* +0xD0 */
 };
-typedef char assert_BHV171_ipair[(unsigned int)&((BHV171V *)0)->ipair == 0xD0 ? 1 : -1];
+typedef char assert_BHV171_ipair[(unsigned int)&((BHV171V *)0)->searchPointIndex == 0xD0 ? 1 : -1];
 
-/* Candidate list built by func_001728B0 (func_00172798 adds one). */
+/* Candidate list built by ChooseBhvSearchPoints (TryAddSearchCandidate adds one). */
 typedef struct ROW { U point; float angle; } ROW;
 typedef struct QUERY { U point; float heading; unsigned count; ROW row[64]; U candidate, delta, scalar; } QUERY;
 typedef char assert_QUERY_candidate[(unsigned int)&((QUERY *)0)->candidate == 0x820 ? 1 : -1];
-/* An object of one of the global lists func_001728B0 searches (next links at several offsets). */
+/* An object of one of the global lists ChooseBhvSearchPoints searches (next links at several offsets). */
 typedef struct NODE{char pad0[0xE0];struct NODE*nextE0;char padE4[4];unsigned flags;char padEC[0x18];struct NODE*next104;char pad108[4];float reach;char pad110[0x64];struct NODE*next174;char pad178[0x3C];struct NODE*next1B4;}NODE;
 typedef struct WORK{QUERY query;NODE*result256[256];NODE*result32[32];NODE*result128[128];}WORK;
 typedef struct LMV{float low,high;}LMV;
@@ -81,35 +82,35 @@ extern qword D_002A2DA0,D_002A2DC0;
 extern const float D_002A53D0;   /* defined below where the ELF has it (.rodata order) */
 LMV D_002BE5A8 = {-0.7f, -0.5f}, D_002BE5B0 = {300.0f, 400.0f};
 extern "C" {
-void InitBhv(BHV171V *pbhv);
-void StartBhv(BHV171V *pbhv);
-void CloseBhv(BHV171V *pbhv);
-void UpdateBhv(BHV171V *pbhv);
-int FBhvBusyAbove(BHV171V *pbhv);
-void PopBhv(void *pbhvstk);
-void AddStepguardSgf(GUARDV *pguard, int sgf);
-void RemoveStepguardSgf(GUARDV *pguard, int sgf);
-int FBhvanimDone(void *pbhv);
-int func_00209098(GUARDV *pguard);
-BHVO *func_00205438(GUARDV *pguard, int n);
-qword GetLoWorldPos(void *plo);
-void func_002562A8(GOAL *pgoal);
-void SetBhvgotoGoal(void *pbhv, GOAL *pgoal);
-int FBhvgotoArrived(void *pbhv);
-int FBhvgotoPathFinished(void *pbhv);
+void InitBhv(BHV171V *behavior);
+void StartBhv(BHV171V *behavior);
+void CloseBhv(BHV171V *behavior);
+void UpdateBhv(BHV171V *behavior);
+int IsBhvBusyAbove(BHV171V *behavior);
+void PopBhv(void *stack);
+void AddStepguardSgf(GUARDV *guard, int sgf);
+void RemoveStepguardSgf(GUARDV *guard, int sgf);
+int IsBhvanimDone(void *behavior);
+int IsStepguardHandsOff(GUARDV *guard);
+BHVO *func_00205438(GUARDV *guard, int n);
+qword GetLoWorldPos(void *object);
+void ClearPointerPair(GOAL *goal);
+void SetBhvgotoGoal(void *behavior, GOAL *goal);
+int HasBhvgotoArrived(void *behavior);
+int IsBhvgotoPathFinished(void *behavior);
 float atan2f(float y, float x);
 void SetStepguardMoverRadTarget(void *pmover, float rad);
-void func_00172320(BHV171V *pbhv, int state);
-void func_00172560(BHV171V *pbhv);
-void func_001725E0(BHV171V *pbhv, WATCH *pwatch);
-int func_00172658(BHV171V *pbhv);
-qword func_00172760(BHV171V *pbhv);
-int func_00172798(QUERY *pquery);
-int func_00172888(ROW *a, ROW *b);
-void func_001728B0(BHV171V *pbhv);
-void func_00172F10(BHV171V *pbhv);
+void SetBhvSearchState(BHV171V *behavior, int state);
+void SetBhvSearchLookTimers(BHV171V *behavior);
+void SetBhvSearchWatched(BHV171V *behavior, WATCH *pwatch);
+int HasBhvSearchReachedTarget(BHV171V *behavior);
+qword GetBhvSearchLastKnownPosition(BHV171V *behavior);
+int TryAddSearchCandidate(QUERY *pquery);
+int CompareSearchCandidates(ROW *a, ROW *b);
+void ChooseBhvSearchPoints(BHV171V *behavior);
+void StepBhvSearchPoint(BHV171V *behavior);
 void GetVectorSphere(qword v, float *pa, float *pb, float *pc);
-float RadStepHeading(void *plo);
+float RadStepHeading(void *object);
 void FindShapeClosestPoint(NODE*,qword,void*,qword*,qword*,float*,float*);
 int CploFindSwObjectsByClass(void*,int,int,NODE*,int,NODE**);
 void qsort(void*,unsigned,unsigned,int(*)(ROW*,ROW*));
@@ -120,141 +121,117 @@ int FCheckLm(LMV *plm, float g) __asm__("FCheckLm__FP2LMf");   /* LMV: this file
 float RadNormalize(float rad);
 int FIsBasicDerivedFrom(NODE *pbasic, int cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 
+// VU0 helper: x component of a vector.
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1,%0" : "=f"(x) : "r"(q)); return x; }
+// VU0 helper: y component of a vector.
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y) : "r"(q)); return y; }
 
-/** @sly2-annot addr=0x171F58
- * Purpose: BHV171 slot 7: base, guard flag 0x1F, state -1, timers = FLT_MAX
- * Info: proposed name InitBhv171 (T2); class BHV171 slot7; TU tu_171F58
- * Notes: superseded: OnBhv171Push (r3b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv171Push
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/engine/guards-ai.md#8-source-files,
- *   docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
-extern "C" void func_00171F58(BHV171V *pbhv) { InitBhv(pbhv); AddStepguardSgf(pbhv->pguard, 0x1F); pbhv->state = -1; pbhv->g40 = pbhv->tLook = 3.40282346638528859812e+38f; }
+// 0x171F58: Search behaviour (BHV171) vtable slot 7 (OnPush): base, raises guard flag 0x1F, state -1, both look
+// timers off (FLT_MAX).
+extern "C" void InitBhvSearch(BHV171V *behavior) { InitBhv(behavior); AddStepguardSgf(behavior->guard, 0x1F); behavior->state = -1; behavior->unknown40 = behavior->lookEndTime = 3.40282346638528859812e+38f; }
 
-/** @sly2-annot addr=0x171FA0
- * Purpose: BHV171 slot 8: base, SetBhv171State(0)
- * Info: proposed name StartBhv171 (T2); class BHV171 slot8; TU tu_171F58
- * Notes: superseded: OnBhv171Resume (r3b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv171Resume
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
+// 0x171FA0: Search behaviour vtable slot 8 (Start): base, then state 0 (react).
 void BHV171::Start()
 {
-    BHV171V *pbhv = (BHV171V *)this;
-    StartBhv(pbhv);
-    func_00172320(pbhv, 0);
+    BHV171V *behavior = (BHV171V *)this;
+    StartBhv(behavior);
+    SetBhvSearchState(behavior, 0);
 }
 
-/** @sly2-annot addr=0x171FD0
- * Purpose: BHV171 slot 9: base, state -1, clear flag 0x1F, clear watched object
- * Info: proposed name CloseBhv171 (T2); class BHV171 slot9; TU tu_171F58
- * Notes: superseded: OnBhv171Pop (r3b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv171Pop
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" void func_00171FD0(BHV171V *pbhv)
+// 0x171FD0: Search behaviour vtable slot 9 (Close): base, state -1, lowers flag 0x1F and drops the watched
+// stimulus.
+extern "C" void CloseBhvSearch(BHV171V *behavior)
 {
-    CloseBhv(pbhv);
-    func_00172320(pbhv, -1);
-    RemoveStepguardSgf(pbhv->pguard, 0x1F);
-    func_001725E0(pbhv, 0);
+    CloseBhv(behavior);
+    SetBhvSearchState(behavior, -1);
+    RemoveStepguardSgf(behavior->guard, 0x1F);
+    SetBhvSearchWatched(behavior, 0);
 }
 
-/** @sly2-annot addr=0x172018
- * Purpose: Search state machine: 0 react, 1 go to last-known position, 2 face it, 3 visit search points, 4
- *   give up, 5 hold while 0x209098
- * Info: proposed name UpdateBhv171 (T2); class BHV171 slot10; TU tu_171F58
- * Notes: names_v2 C proposed CalculateAloTransform__FP3ALOT0iP6VECTORP7MATRIX3T3T3 (0.438)
- * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" void func_00172018(BHV171V *p) {
+// 0x172018: Search behaviour vtable slot 10 (Update): state machine 0 react, 1 go to the last known position, 2
+// face it and look, 3 visit the search points, 4 give up, 5 hold while the guard is hands-off.
+extern "C" void UpdateBhvSearch(BHV171V *behavior) {
     int s;
-    UpdateBhv(p);
-    while (!FBhvBusyAbove(p)) {
-        s = p->state;
+    UpdateBhv(behavior);
+    while (!IsBhvBusyAbove(behavior)) {
+        s = behavior->state;
         switch (s) {
         case 0:
-            if (FBhvanimDone(p->pbhvCur)) func_00172320(p, 1);
+            if (IsBhvanimDone(behavior->currentChild)) SetBhvSearchState(behavior, 1);
             break;
         case 1:
-            if (func_00209098(p->pguard)) {
-                func_00172320(p, 5);
-            } else if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172320(p, 2);
+            if (IsStepguardHandsOff(behavior->guard)) {
+                SetBhvSearchState(behavior, 5);
+            } else if (behavior->needsReplan) {
+                if (HasBhvSearchReachedTarget(behavior)) {
+                    SetBhvSearchState(behavior, 2);
                 } else {
-                    qword v = func_00172760(p);
-                    GOAL x;
-                    func_002562A8(&x);
-                    x.v = v;
-                    SetBhvgotoGoal(p->pbhvCur, &x);
+                    qword v = GetBhvSearchLastKnownPosition(behavior);
+                    GOAL goal;
+                    ClearPointerPair(&goal);
+                    goal.v = v;
+                    SetBhvgotoGoal(behavior->currentChild, &goal);
                 }
-                p->fReplan = 0;
-            } else if (func_00172658(p) || FBhvgotoArrived(p->pbhvCur) || FBhvgotoPathFinished(p->pbhvCur)) {
-                func_00172320(p, 2);
+                behavior->needsReplan = 0;
+            } else if (HasBhvSearchReachedTarget(behavior) || HasBhvgotoArrived(behavior->currentChild) || IsBhvgotoPathFinished(behavior->currentChild)) {
+                SetBhvSearchState(behavior, 2);
             }
             break;
         case 2:
-            if (func_00209098(p->pguard)) {
-                func_00172320(p, 5);
-            } else if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172560(p);
+            if (IsStepguardHandsOff(behavior->guard)) {
+                SetBhvSearchState(behavior, 5);
+            } else if (behavior->needsReplan) {
+                if (HasBhvSearchReachedTarget(behavior)) {
+                    SetBhvSearchLookTimers(behavior);
                 } else {
-                    func_00172320(p, 1);
+                    SetBhvSearchState(behavior, 1);
                 }
-                p->fReplan = 0;
-            } else if (p->tLook < D_002DDED0.t || FBhvanimDone(p->pbhvCur)) {
-                func_00172320(p, 4);
-            } else if (D_002DDED0.t > p->tNext) {
-                func_00172320(p, 3);
+                behavior->needsReplan = 0;
+            } else if (behavior->lookEndTime < D_002DDED0.t || IsBhvanimDone(behavior->currentChild)) {
+                SetBhvSearchState(behavior, 4);
+            } else if (D_002DDED0.t > behavior->nextTime) {
+                SetBhvSearchState(behavior, 3);
             } else {
-                qword a = func_00172760(p);
-                qword b = GetLoWorldPos(p->pguard);
+                qword a = GetBhvSearchLastKnownPosition(behavior);
+                qword b = GetLoWorldPos(behavior->guard);
                 qword d;
                 d = VuSub(a, b);
-                SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
+                SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
             }
             break;
         case 3:
-            if (func_00209098(p->pguard)) {
-                func_00172320(p, 5);
-            } else if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172320(p, 2);
+            if (IsStepguardHandsOff(behavior->guard)) {
+                SetBhvSearchState(behavior, 5);
+            } else if (behavior->needsReplan) {
+                if (HasBhvSearchReachedTarget(behavior)) {
+                    SetBhvSearchState(behavior, 2);
                 } else {
-                    func_00172320(p, 1);
+                    SetBhvSearchState(behavior, 1);
                 }
-                p->fReplan = 0;
-            } else if (p->tLook < D_002DDED0.t) {
-                func_00172320(p, 4);
+                behavior->needsReplan = 0;
+            } else if (behavior->lookEndTime < D_002DDED0.t) {
+                SetBhvSearchState(behavior, 4);
             } else {
-                func_00172F10(p);
+                StepBhvSearchPoint(behavior);
             }
             break;
         case 5:
-            if (!func_00209098(p->pguard)) func_00172320(p, 1);
+            if (!IsStepguardHandsOff(behavior->guard)) SetBhvSearchState(behavior, 1);
             break;
         case 4:
-            if (p->fReplan) {
-                if (func_00172658(p)) {
-                    func_00172320(p, 2);
+            if (behavior->needsReplan) {
+                if (HasBhvSearchReachedTarget(behavior)) {
+                    SetBhvSearchState(behavior, 2);
                 } else {
-                    func_00172320(p, 1);
+                    SetBhvSearchState(behavior, 1);
                 }
-                p->fReplan = 0;
-            } else if (FBhvanimDone(p->pbhvCur)) {
-                func_00172320(p, -1);
+                behavior->needsReplan = 0;
+            } else if (IsBhvanimDone(behavior->currentChild)) {
+                SetBhvSearchState(behavior, -1);
             }
             break;
         }
-        if (p->state != s) continue;
+        if (behavior->state != s) continue;
         break;
     }
 }
@@ -263,108 +240,90 @@ extern "C" void func_00172018(BHV171V *p) {
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A5398 __asm__("D_002A5398") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x172320
- * Purpose: Enters a search state, starting the matching sub-behaviour (BHV157 anim 0xC/0xE/1, BHV186 goto,
- *   BHV158 look) and timers
- * Info: proposed name SetBhv171State (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" void func_00172320(BHV171V *p, int n) {
-    if (n == p->state) return;
-    PopBhv(p->abhvstk);
-    p->state = n;
-    p->tState = D_002DDED0.t;
+// 0x172320: Enters a search state, pushing its child behaviour (an animation for react/look/give-up, a goto for
+// travel, a look-at) and arming its timers.
+extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
+    if (n == behavior->state) return;
+    PopBhv(behavior->childSlot);
+    behavior->state = n;
+    behavior->stateTime = D_002DDED0.t;
     switch (n) {
     case 0:
-        { BHVO *o = func_00205438(p->pguard, 0x9D); VE *e; o->n3C = 0xC; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
+        { BHVO *child = func_00205438(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xC; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         break;
     case 1:
         {
-            BHVO *o = func_00205438(p->pguard, 0xBA);
-            GOAL x;
-            VE *e;
+            BHVO *child = func_00205438(behavior->guard, 0xBA);
+            GOAL goal;
+            VE *entry;
             qword v;
-            o->nC0 = 1;
-            v = func_00172760(p);
-            func_002562A8(&x);
-            x.v = v;
-            SetBhvgotoGoal(o, &x);
-            e = &o->pvt[8]; e->pfn((char *)o + e->d);
-            p->tLook = D_002A5398;
+            child->walkAnimFlag = 1;
+            v = GetBhvSearchLastKnownPosition(behavior);
+            ClearPointerPair(&goal);
+            goal.v = v;
+            SetBhvgotoGoal(child, &goal);
+            entry = &child->vt[8]; entry->pfn((char *)child + entry->d);
+            behavior->lookEndTime = D_002A5398;
         }
         break;
     case 2:
         {
-            qword a = func_00172760(p);
-            qword b = GetLoWorldPos(p->pguard);
+            qword a = GetBhvSearchLastKnownPosition(behavior);
+            qword b = GetLoWorldPos(behavior->guard);
             qword d;
             d = VuSub(a, b);
-            SetStepguardMoverRadTarget(p->pguard->moverFD0, atan2f(GetY(d), GetX(d)));
-            { BHVO *o = func_00205438(p->pguard, 0x9E); VE *e = &o->pvt[8]; e->pfn((char *)o + e->d); }
-            func_00172560(p);
+            SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
+            { BHVO *child = func_00205438(behavior->guard, 0x9E); VE *entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+            SetBhvSearchLookTimers(behavior);
         }
         break;
     case 3:
         {
-            BHVO *o = func_00205438(p->pguard, 0xBA);
-            VE *e;
-            o->nC0 = 1;
-            func_001728B0(p);
-            func_00172F10(p);
-            e = &o->pvt[8]; e->pfn((char *)o + e->d);
+            BHVO *child = func_00205438(behavior->guard, 0xBA);
+            VE *entry;
+            child->walkAnimFlag = 1;
+            ChooseBhvSearchPoints(behavior);
+            StepBhvSearchPoint(behavior);
+            entry = &child->vt[8]; entry->pfn((char *)child + entry->d);
         }
         break;
     case 4:
-        { BHVO *o = func_00205438(p->pguard, 0x9D); VE *e; o->n3C = 0xE; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
-        func_001725E0(p, 0);
-        p->fReplan = 0;
+        { BHVO *child = func_00205438(behavior->guard, 0x9D); VE *entry; child->animFlag = 0xE; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+        SetBhvSearchWatched(behavior, 0);
+        behavior->needsReplan = 0;
         break;
     case 5:
-        { BHVO *o = func_00205438(p->pguard, 0x9E); VE *e; o->n3C = 1; e = &o->pvt[8]; e->pfn((char *)o + e->d); }
+        { BHVO *child = func_00205438(behavior->guard, 0x9E); VE *entry; child->animFlag = 1; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
         break;
     }
 }
 
-/** @sly2-annot addr=0x172550
- * Purpose: True if state == -1
- * Info: proposed name FBhv171Idle (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" int func_00172550(BHV171V *pbhv)
+// 0x172550: True if the search behaviour is idle (state -1).
+extern "C" int IsBhvSearchIdle(BHV171V *behavior)
 {
-    return ~pbhv->state == 0;
+    return ~behavior->state == 0;
 }
 
-/** @sly2-annot addr=0x172560
- * Purpose: Random look duration from guard +0xE6C..+0xE70; second timer only if guard +0xE78 == 1
- * Info: proposed name SetBhv171LookTimers (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" void func_00172560(BHV171V *p) {
+// 0x172560: Arms the look timers: a random look duration from the guard's range (+0xE6C..+0xE70); the second
+// (give-up) timer only for guards with +0xE78 == 1.
+extern "C" void SetBhvSearchLookTimers(BHV171V *behavior) {
     float t = D_002DDED0.t;
-    p->tLook = t + GRandInRange(p->pguard->gLookMin, p->pguard->gLookMax);
-    if (p->pguard->nE78 == 1) p->tNext = D_002DDED0.t + D_002BE5A0;
-    else p->tNext = 3.40282346638528859812e+38f;
+    behavior->lookEndTime = t + GRandInRange(behavior->guard->lookTimeMin, behavior->guard->lookTimeMax);
+    if (behavior->guard->searchMode == 1) behavior->nextTime = D_002DDED0.t + D_002BE5A0;
+    else behavior->nextTime = 3.40282346638528859812e+38f;
 }
 
-/** @sly2-annot addr=0x1725E0
- * Purpose: Swaps a watched refcounted object (+0x44) via its vt1/vt2 (incref/decref) and flags a re-plan
- * Info: proposed name SetBhv171Watched (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/engine/guards-ai.md#5-perception,
- *   docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" void func_001725E0(BHV171V *p, WATCH *o) {
-    if (o == p->pwatch) return;
-    if (p->pwatch) { VE *e = &p->pwatch->pvt[2]; e->pfn((char *)p->pwatch + e->d); }
-    p->pwatch = o;
-    if (o) { VE *e = &o->pvt[1]; e->pfn((char *)o + e->d); }
-    p->fReplan = 1;
+// 0x1725E0: Replaces the watched stimulus (a refcounted object at +0x44, via its add/drop reference slots) and
+// flags a re-plan.
+extern "C" void SetBhvSearchWatched(BHV171V *behavior, WATCH *watched) {
+    if (watched == behavior->watched) return;
+    if (behavior->watched) { VE *entry = &behavior->watched->vt[2]; entry->pfn((char *)behavior->watched + entry->d); }
+    behavior->watched = watched;
+    if (watched) { VE *entry = &watched->vt[1]; entry->pfn((char *)watched + entry->d); }
+    behavior->needsReplan = 1;
 }
 
+// VU0 helper: distance between two points.
 static inline float Dist(qword a, qword b) {
     qword d;
     float f;
@@ -374,69 +333,53 @@ static inline float Dist(qword a, qword b) {
     f = VuToFloat(d);
     return f;
 }
-/** @sly2-annot addr=0x172658
- * Purpose: True if the guard can't search or the last-known position is nearer than the target object + 50
- * Info: proposed name FBhv171TargetReached (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" int func_00172658(BHV171V *p) {
-    GUARDV *o = p->pguard;
+// 0x172658: True if the guard cannot search any more or its last known position is nearer than the target object +
+// 50.
+extern "C" int HasBhvSearchReachedTarget(BHV171V *behavior) {
+    GUARDV *guard = behavior->guard;
     struct LOV *t;
     float d;
-    if (!(o->grfFE8 & 2) || o->nE78 == 2) return 1;
-    t = o->ploTarget;
+    if (!(guard->capabilities & 2) || guard->searchMode == 2) return 1;
+    t = guard->target;
     if (!t) return 0;
-    d = Dist(GetLoWorldPos(t), GetLoWorldPos(p->pguard));
-    if (Dist(func_00172760(p), GetLoWorldPos(p->pguard)) < d + 50.0f) return 1;
+    d = Dist(GetLoWorldPos(t), GetLoWorldPos(behavior->guard));
+    if (Dist(GetBhvSearchLastKnownPosition(behavior), GetLoWorldPos(behavior->guard)) < d + 50.0f) return 1;
     return 0;
 }
 
-/** @sly2-annot addr=0x172760
- * Purpose: Last-known target position from the perception record (q20 if mode 4 for this guard, else q30)
- * Info: proposed name PosBhv171LastKnown (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" qword func_00172760(BHV171V *p) { WATCH *t = p->pwatch; if (t->n54 == 4 && t->pguard == p->pguard) return t->pos20; return p->pwatch->pos30; }
+// 0x172760: Returns the last known target position from the shared target record (its first position when this
+// guard is in mode 4 for it, else its second).
+extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *behavior) { WATCH *t = behavior->watched; if (t->mode == 4 && t->guard == behavior->guard) return t->firstPosition; return behavior->watched->secondPosition; }
 
-/** @sly2-annot addr=0x172798
- * Purpose: Adds a candidate point to a 64-entry list if its pitch and distance are within limits, storing its
- *   relative heading
- * Info: proposed name FAddSearchCandidate (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" int func_00172798(QUERY *p) {
+// 0x172798: Adds a candidate point to a 64-entry list if its pitch and distance from the guard are within limits,
+// recording its heading relative to the guard.
+extern "C" int TryAddSearchCandidate(QUERY *query) {
     float a, b, c;
     qword d;
-    ROW *pe;
+    ROW *row;
     float f;
-    d = VuSub(p->candidate.q, p->point.q);
+    d = VuSub(query->candidate.q, query->point.q);
     GetVectorSphere(d, &a, &b, &c);
     if (!FCheckLm((LMV *)&D_002A53C0, c)) return 0;
     if (!FCheckLm((LMV *)&D_002A53C8, b)) return 0;
-    if (p->count >= 0x40) return 0;
-    pe = &p->row[p->count++];
-    pe->point.q = p->candidate.q;
-    f = RadNormalize(a - p->heading);
-    pe->angle = f;
-    if (f < 0.0f) pe->angle = 6.28318530718f - f;
+    if (query->count >= 0x40) return 0;
+    row = &query->row[query->count++];
+    row->point.q = query->candidate.q;
+    f = RadNormalize(a - query->heading);
+    row->angle = f;
+    if (f < 0.0f) row->angle = 6.28318530718f - f;
     return 1;
 }
 
-/** @sly2-annot addr=0x172888
- * Purpose: Sort predicate on heading
- * Info: proposed name FCompareSearchCandidates (T2); TU tu_171F58
- * Notes: names_v2 C proposed GetAloThrobInColor__FP3ALOP6VECTOR (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" int func_00172888(ROW *a, ROW *b) { return a->angle < b->angle; }
+// 0x172888: Sort predicate for search candidates: by relative heading.
+extern "C" int CompareSearchCandidates(ROW *a, ROW *b) { return a->angle < b->angle; }
 
 struct VU_FLOAT{qword qw;};
+// VU0 helper: vector difference.
 static inline qword QwSub(qword a,qword b){qword r;__asm__("vsub.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: vector sum.
 static inline qword QwAdd(qword a,qword b){qword r;__asm__("vadd.xyzw %0, %1, %2":"=j"(r):"j"(a),"j"(b));return r;}
+// VU0 helper: length of a vector (in x).
 static inline qword QwLength(qword v){qword qw,qwLen;
  qw = VuDot(v, v);
  __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qw));return qwLen;}
@@ -444,19 +387,27 @@ static inline qword QwLength(qword v){qword qw,qwLen;
 static inline qword QwLengthOne(qword v){qword qw,vfOne,qwLen;
  __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z":"=j"(qw),"=j"(vfOne):"j"(v));
  __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qwLen):"j"(qw),"0"(vfOne));return qwLen;}
+// VU0 helper: horizontal (xy) length of a vector.
 static inline qword QwLengthXY(qword v){qword qw;
  __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y":"=j"(qw):"j"(v));
  __asm__("vsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q":"=j"(qw):"0"(qw));return qw;}
+// VU0 helper: x of a VU register as a float.
 static inline float GFromVf(qword qw){float g;__asm__("qmfc2 %0, %1":"=r"(g):"j"(qw));return g;}
+// VU0 helper: x component of a quadword vector.
 static inline float GXOfQw(qword qw){float x;__asm__("mtc1 %1, %0":"=f"(x):"r"(qw));return x;}
 // allocation-only second "j"(b): the extra reference raises b's local-alloc priority, so b gets vf1 and the dot vf2 as in the target
 static inline qword QwDot(qword a,qword b){qword qw,vfOne;
  __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddz.x %1, %0, %1z":"=j"(vfOne),"=j"(qw):"j"(a),"j"(b),"j"(b));return qw;}
+// VU0 helper: vector scaled by the x of g.
 static inline qword QwScaleX(qword v,qword g){qword qw;__asm__("vmulx.xyzw %0, %1, %2x":"=j"(qw):"j"(v),"0"(g));return qw;}
+// VU0 helper: v divided by g.
 static inline qword QwDivide(qword v,qword g){qword qw;__asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q":"=j"(qw):"j"(v),"j"(g));return qw;}
+// VU0 helper: base + vector * scale.
 static inline qword QwAddScaled(qword base,qword vec,qword g){qword qw;
  __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x":"=j"(qw):"j"(base),"j"(vec),"j"(g));return qw;}
+// VU0 helper: loads a float constant from a .data word into a VU register.
 static inline qword VuFloatFromMemWord(int n){qword v;__asm__("qmtc2 %1, %0":"=j"(v):"rV"(n));return v;}
+// VU0 helper: broadcasts a constant into a VU register (volatile so it is not hoisted, as in the target).
 static inline qword VuFloatVolatile(float g){qword v;
  // volatile: the target re-broadcasts the constant inside the loop (loop.c must not hoist it)
  __asm__ __volatile__("qmtc2 %1, %0":"=j"(v):"r"(g));return v;}
@@ -466,17 +417,13 @@ static inline qword VuFloatVolatile(float g){qword v;
 namespace RO_ORDER { extern const LMV r_D_002A53C0 __asm__("D_002A53C0") = {200.0f, 1200.0f}; }
 namespace RO_ORDER { extern const LMV r_D_002A53C8 __asm__("D_002A53C8") = {-0.785398185f, 0.785398185f}; }
 namespace RO_ORDER { extern const float r_D_002A53D0 __asm__("D_002A53D0") = -3.40282347e+38f; }
-/** @sly2-annot addr=0x1728B0
- * Purpose: Gathers candidate hiding places (several global object lists, cids 0x23/0x67/0x1B), sorts by
- *   heading, keeps up to 4 spread points, fills the rest randomly behind the guard
- * Info: proposed name ChooseBhv171SearchPoints (T2); TU tu_171F58
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" void func_001728B0(BHV171V*p){
+// 0x1728B0: Chooses up to four search points: gathers candidate hiding places (several global object lists, cids
+// 0x23/0x67/0x1B), sorts them by heading, keeps up to four well-spread points and fills the rest randomly behind
+// the guard.
+extern "C" void ChooseBhvSearchPoints(BHV171V*behavior){
  WORK w;NODE*object;NODE**cursor;int remaining,i;unsigned accepted;float lastAngle;
- w.query.point.q=GetLoWorldPos(p->pguard);
- w.query.heading=RadStepHeading(p->pguard);w.query.count=0;
+ w.query.point.q=GetLoWorldPos(behavior->guard);
+ w.query.heading=RadStepHeading(behavior->guard);w.query.count=0;
  for(object=(*(NODE * *)&g_sw.dlCid34);object;object=object->next104){
   qword posObj=GetLoWorldPos(object);
   qword qwFallback=D_002A2DA0;
@@ -488,26 +435,26 @@ extern "C" void func_001728B0(BHV171V*p){
   if(GXOfQw(len)<0.0001f){w.query.scalar.q=g;n=qwFallback;}
   else{w.query.scalar.q=g;n=QwDivide(w.query.delta.q,len);}
   w.query.candidate.q=QwAddScaled(posObj,n,g);
-  func_00172798(&w.query);
+  TryAddSearchCandidate(&w.query);
  }
- for(object=(*(NODE * *)&g_sw.dlCid12);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid38);object;object=object->next104){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid88);object;object=object->next174){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid11);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid39);object;object=object->next104){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
- for(object=(*(NODE * *)&g_sw.dlCid13);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);func_00172798(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid12);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid38);object;object=object->next104){w.query.candidate.q=GetLoWorldPos(object);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid88);object;object=object->next174){w.query.candidate.q=GetLoWorldPos(object);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid11);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid39);object;object=object->next104){w.query.candidate.q=GetLoWorldPos(object);TryAddSearchCandidate(&w.query);}
+ for(object=(*(NODE * *)&g_sw.dlCid13);object;object=object->next1B4){FindShapeClosestPoint(object,w.query.point.q,0,&w.query.candidate.q,0,0,0);TryAddSearchCandidate(&w.query);}
  for(object=(*(NODE * *)&g_sw.dlTarget);object;object=object->nextE0){
-  if((object->flags&1)&&FIsBasicDerivedFrom(object,0x13)){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
+  if((object->flags&1)&&FIsBasicDerivedFrom(object,0x13)){w.query.candidate.q=GetLoWorldPos(object);TryAddSearchCandidate(&w.query);}
  }
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x23,0,0x100,w.result256);
- if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);func_00172798(&w.query);}while(remaining);}}
+ if(count>0){cursor=w.result256;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x67,0,0x20,w.result32);
- if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);func_00172798(&w.query);}while(remaining);}}
+ if(count>0){cursor=w.result32;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
  {int count=CploFindSwObjectsByClass(&D_003DD490,0x505,0x1B,0,0x80,w.result128);
- if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);func_00172798(&w.query);}while(remaining);}}
- for(object=(*(NODE * *)&g_sw.dlCid98);object;object=object->next174){w.query.candidate.q=GetLoWorldPos(object);func_00172798(&w.query);}
+ if(count>0){cursor=w.result128;remaining=count;do{NODE*item=*cursor++;--remaining;w.query.candidate.q=GetLoWorldPos(item);TryAddSearchCandidate(&w.query);}while(remaining);}}
+ for(object=(*(NODE * *)&g_sw.dlCid98);object;object=object->next174){w.query.candidate.q=GetLoWorldPos(object);TryAddSearchCandidate(&w.query);}
  lastAngle=0.0f;
- qsort(w.query.row,w.query.count,sizeof(ROW),func_00172888);
+ qsort(w.query.row,w.query.count,sizeof(ROW),CompareSearchCandidates);
  accepted=0;
  {
   PAIR*previous=0;
@@ -526,7 +473,7 @@ extern "C" void func_001728B0(BHV171V*p){
    // the one register pin: the vsub consumes a copy of target in vf2, made before the previous test (target: vmove in the beqz slot)
    register qword probe __asm__("vf2")=target;
    if(previous){qword d;QW_SUB_T(d,probe,previous->candidate.q);if(GXOfQw(QwLengthXY(d))<150.0f)continue;}
-   previous=&p->apair[accepted++];lastAngle=row->angle;previous->original.q=original;previous->candidate.q=target;
+   previous=&behavior->searchPoints[accepted++];lastAngle=row->angle;previous->original.q=original;previous->candidate.q=target;
   }
  }
  qword origin=w.query.point.q;
@@ -537,33 +484,27 @@ extern "C" void func_001728B0(BHV171V*p){
   angle=lastAngle+w.query.heading;
   length=GRandInRange(D_002BE5B0.low,D_002BE5B0.high);
   point=QwAdd(anchor,SetVectorCylind(angle,length,0.0f));
-  {PAIR*pair=&p->apair[accepted];pair->candidate.q=point;pair->original.q=point;}accepted++;
+  {PAIR*pair=&behavior->searchPoints[accepted];pair->candidate.q=point;pair->original.q=point;}accepted++;
  }
- p->ipair=0;p->tNext=D_002A53D0;
+ behavior->searchPointIndex=0;behavior->nextTime=D_002A53D0;
 }
 
 namespace RO_ORDER { extern const float r_D_002A53D4 __asm__("D_002A53D4") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x172F10
- * Purpose: Every ~1 s after arriving, moves BHV186 to the next of the 4 search points
- * Info: proposed name StepBhv171SearchPoint (T2); TU tu_171F58
- * Notes: names_v2 C proposed anticrack_itm_firewall (0.638)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3b_rest
- * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158
- * @end-sly2-annot */
-extern "C" void func_00172F10(BHV171V *p) {
+// 0x172F10: About once a second after arriving, sends the goto child to the next of the four search points.
+extern "C" void StepBhvSearchPoint(BHV171V *behavior) {
     void *pbhvCur;
     PAIR *pe;
-    GOAL q;
-    if (p->ipair >= 4) return;
-    pbhvCur = p->pbhvCur;
-    if (p->tNext == D_002A53D4) {
-        if (FBhvgotoArrived(pbhvCur)) p->tNext = D_002DDED0.t + 1.0f;
+    GOAL goal;
+    if (behavior->searchPointIndex >= 4) return;
+    pbhvCur = behavior->currentChild;
+    if (behavior->nextTime == D_002A53D4) {
+        if (HasBhvgotoArrived(pbhvCur)) behavior->nextTime = D_002DDED0.t + 1.0f;
     }
-    if (D_002DDED0.t < p->tNext) return;
-    pe = &p->apair[p->ipair++];
-    if (p->ipair >= 4) p->ipair = 0;
-    func_002562A8(&q);
-    q.v = pe->candidate.q;
-    SetBhvgotoGoal(pbhvCur, &q);
-    p->tNext = D_002A53D4;
+    if (D_002DDED0.t < behavior->nextTime) return;
+    pe = &behavior->searchPoints[behavior->searchPointIndex++];
+    if (behavior->searchPointIndex >= 4) behavior->searchPointIndex = 0;
+    ClearPointerPair(&goal);
+    goal.v = pe->candidate.q;
+    SetBhvgotoGoal(pbhvCur, &goal);
+    behavior->nextTime = D_002A53D4;
 }
