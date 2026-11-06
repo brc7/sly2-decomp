@@ -112,6 +112,7 @@ extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
  * @end-sly2-annot */
+// Creates the world's root Splice frame and keeps a reference to it. Called when a level body is loaded.
 extern "C" void func_001FF7E8(SW *psw)
 {
     psw->fUnk3a14 = 1;
@@ -125,6 +126,7 @@ extern "C" void func_001FF7E8(SW *psw)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
+// Clears the world's Splice table pointer before a level load. (inferred)
 extern "C" void func_001FF828(SW *psw)
 {
     psw->fUnk3a14 = 0;
@@ -137,6 +139,7 @@ extern "C" void func_001FF828(SW *psw)
  * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
  *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
+// Releases the world's root Splice frame and shuts the Splice VM down. Called when the world is deleted.
 extern "C" void func_001FF830(SW *psw)
 {
     FramePtr_Assign(psw, 0);
@@ -154,6 +157,8 @@ extern "C" void func_001FF830(SW *psw)
  *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx
  * @end-sly2-annot */
+// Reads the level's Splice section: the entry count, then each entry's frame and value (LoadSpliceEntryFromBrx), into
+// a table on the world heap.
 extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
 {
     int c = U32Read__18CBinaryInputStream(pbis);
@@ -202,6 +207,7 @@ extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
  *   docs/formats/splice-scripts.md#1-where-the-scripts-live-cstatic--cparse,
  *   docs/formats/world-file.md#4-per-world-entry-data-after-the-head
  * @end-sly2-annot */
+// Returns the Splice frame of table entry index (null for -1); objects get their frame from it at creation.
 extern "C" FRAMEV *func_001FFA40(SW *psw, int i)
 {
     if (i == -1) return 0;
@@ -219,6 +225,8 @@ SLY2_SCRAP("daddu $2, $0, $0");
  * See: docs/formats/splice-scripts.md#1-where-the-scripts-live-cstatic--cparse,
  *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
+// Builds one Splice table entry: a new frame under the root frame, the expression read from the stream evaluated
+// once in it.
 extern "C" CRef LoadSpliceEntryFromBrx(SW *psw, SPLCS *psplcs, int i)
 {
     CRef r;

@@ -58,6 +58,7 @@ void InsertDlEntryBefore(DL *pdl, void *pvBefore, void *pv);  /* InsertDlEntryBe
  * See: docs/engine/cutscenes.md#4-source-files, docs/engine/object-model.md#8-source-files,
  *   docs/engine/object-model.md#9-key-functions
  * @end-sly2-annot */
+// Removes a root record from the world's busy list, moving the incremental-pass cursor past it first.
 extern "C" void func_00147E20(SWBUSY *p, ITEM *pitem)
 {
     if (FFindDlEntry(&p->dl, pitem)) {
@@ -75,6 +76,8 @@ extern "C" void func_00147E20(SWBUSY *p, ITEM *pitem)
  *   docs/reference/functions/object-model.md#busy-0x147e20-0x148620,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// Re-sorts a root record: removes it and inserts it just before the incremental-pass cursor, so the next pass checks
+// it soon.
 extern "C" void func_00147E88(SWBUSY *p, ITEM *pitem)
 {
     func_00147E20(p, pitem);
@@ -87,6 +90,7 @@ extern "C" void func_00147E88(SWBUSY *p, ITEM *pitem)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#busy-0x147e20-0x148620
  * @end-sly2-annot */
+// Unlinks an entry from the world's busy list without touching the cursor.
 extern "C" void func_00147EC8(SWBUSY *p, void *pv)
 {
     RemoveDlEntry(&p->dl, pv);
@@ -98,6 +102,7 @@ extern "C" void func_00147EC8(SWBUSY *p, void *pv)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#busy-0x147e20-0x148620
  * @end-sly2-annot */
+// Moves an entry to the end of the busy list (it becomes the cursor when the cursor is unset).
 extern "C" void func_00147EE8(SWBUSY *p, void *pv)
 {
     RemoveDlEntry(&p->dl, pv);
@@ -141,6 +146,8 @@ static inline void *PvNextDli(DLI *pdli)
  * See: docs/engine/object-model.md#4-activation-onadd--onremove-slots-23--22,
  *   docs/engine/object-model.md#9-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
  * @end-sly2-annot */
+// Per-frame busy update: from where the last pass stopped, checks a limited number of objects against the camera and
+// the hero and moves them in or out of the "in zone" list (enter = vtable slot 23, leave = slot 22).
 extern "C" void UpdateSwBusyList(SWBUSY *p)
 {
     DLI dli;
@@ -235,6 +242,9 @@ static __inline__ float GDistSq(qword a, qword b)
  *   docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#busy-0x147e20-0x148620
  * @end-sly2-annot */
+// Decides whether one object is in its activity zone (busy kind: always, never, within its busy distance of the camera
+// or of the hero, gated by the camera's zone mask) and sends the enter (slot 23) or leave (slot 22) notification
+// when that changed.
 extern "C" void func_00148300(SWBUSY *p, SO *pso)
 {
     int grf;

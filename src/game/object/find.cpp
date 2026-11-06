@@ -69,6 +69,7 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/object-model.md#8-source-files,
  *   docs/engine/object-model.md#9-key-functions
  * @end-sly2-annot */
+// Returns the world's hash bucket for an oid (512 buckets, hash (oid * 0x95675) & 0x1FF).
 extern "C" SLV *PdlFromSwOid(char *psw, int oid)
 {
     return &((SLV *)(psw + 0x38))[(oid * 0x95675) & 0x1FF];
@@ -84,6 +85,7 @@ extern "C" SLV *PdlFromSwOid(char *psw, int oid)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
+// Returns the world's list of objects of a class.
 extern "C" SLV *PdlFromSwCid(char *psw, int cid)
 {
     return &((SLV *)(psw + 0x3038))[cid];
@@ -97,6 +99,7 @@ extern "C" SLV *PdlFromSwCid(char *psw, int cid)
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
+// Returns the bucket for an oid in the world's second hash table (proxy references, same hash).
 extern "C" SLV *PdlFromSwPxrOid(char *psw, int oid)
 {
     return &((SLV *)(psw + 0x1838))[(oid * 0x95675) & 0x1FF];
@@ -109,6 +112,8 @@ extern "C" SLV *PdlFromSwPxrOid(char *psw, int oid)
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
+// Tests one candidate object against the search flags, the context object and the optional name list, and records it
+// in the result array (keeping the closest matches when the array is full).
 extern "C" void MatchSwObject(void *pv, LO *plo, CH *pch, unsigned int grf, LO *ploCtx, CH *pchList, int cMax, int *pc,
                               LO **aplo, int *pips)
 {
@@ -194,6 +199,7 @@ extern "C" void MatchSwObject(void *pv, LO *plo, CH *pch, unsigned int grf, LO *
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
+// Finds up to maxCount objects with an oid, relative to a context object; returns the count (no name list).
 extern "C" int CploFindSwObjects_15E650(void *psw, int grf, int oid, LO *ploCtx, int cMax, LO **aplo)
 {
     return func_0015E678(psw, grf, oid, ploCtx, 0, cMax, aplo);
@@ -207,6 +213,8 @@ extern "C" int CploFindSwObjects_15E650(void *psw, int grf, int oid, LO *ploCtx,
  * See: docs/engine/object-model.md#9-key-functions, docs/engine/splice-scripting.md#7-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
+// The object search: walks the oid hash buckets (and the proxy-ref table) and matches each candidate (MatchSwObject)
+// with an optional name list (new in Sly 2). Returns the number found.
 extern "C" int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cMax, LO **aplo)
 {
     volatile int unused; /* unreferenced stack slot at 0x10 in the original */
@@ -276,6 +284,7 @@ extern "C" int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchL
  * See: docs/engine/object-model.md#6-finding-objects, docs/engine/object-model.md#9-key-functions,
  *   docs/engine/overview.md#6-subsystem-map
  * @end-sly2-annot */
+// Returns the first object matching the flags and oid relative to a context object, or null.
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx)
 {
     return PloFindSwObject_15E958(psw, grf, oid, ploCtx, 0);
@@ -291,6 +300,7 @@ LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx)
  * See: docs/reference/functions/object-model.md#find-0x15e380-0x15ef00,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
+// FindSwObject with a name list: the first match, or null.
 extern "C" LO *PloFindSwObject_15E958(SW *psw, int grf, int oid, LO *ploCtx, void *pchList)
 {
     LO *plo;
@@ -308,6 +318,7 @@ extern "C" LO *PloFindSwObject_15E958(SW *psw, int grf, int oid, LO *ploCtx, voi
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
+// True when class cid is cidBase or derives from it (walks the class-descriptor parent chain).
 extern "C" int FIsCidDerivedFrom(int cid, int cidBase)
 {
     CLASSDESC *pcd;
@@ -324,6 +335,7 @@ extern "C" int FIsCidDerivedFrom(int cid, int cidBase)
  * See: docs/engine/camera.md#5-key-functions, docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
  * @end-sly2-annot */
+// Collects up to maxCount objects of a class (or a derived class) relative to a context object; returns the count.
 extern "C" int CploFindSwObjectsByClass(void *psw, int grf, int cid, LO *ploCtx, int cMax, LO **aplo)
 {
     volatile int unused;
@@ -419,6 +431,7 @@ extern "C" int CploFindSwObjectsByClass(void *psw, int grf, int cid, LO *ploCtx,
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
+// Returns the first object of a class relative to a context object, or null.
 LO *PloFindSwObjectByClass(SW *psw, int grf, CID cid, LO *ploCtx)
 {
     LO *plo;
