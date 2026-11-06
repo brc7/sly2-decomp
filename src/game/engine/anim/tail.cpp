@@ -32,8 +32,8 @@ void func_0012CE98(ACTCHAINV *pact);
  * See: docs/engine/animation.md#4-xf-slots-and-transforms-xfcpp-0x22c818-lilly-xfc,
  *   docs/engine/animation.md#6-source-files, docs/engine/particles-effects.md#5-source-files
  * @end-sly2-annot */
-// Clones a chain action onto a new transform (ACT vtable "clone" slot, inferred): runs the generic CloneAct, then
-// remembers the chain link the target transform already pointed at (+0xA8) so Retract can restore it.
+// Clones a chain action onto a new transform (ACT slot 6): runs the generic CloneAct, then takes over the chain link
+// the target transform points at (+0xA8).
 extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
 {
     CloneAct(pact, a1, a2, pxf);
@@ -49,8 +49,9 @@ extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
  * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
 /* ACT3's slot 1, its key function (sly2/act.h). */
-// Retracts a chain action (inferred: the inverse of CloneChainAct): runs the base act retract (unlinks it from the
-// transform's action list) and writes the saved chain link back into the transform's +0xA8 back-pointer.
+// Attaches a chain action to its transform (ACT slot 1, inferred from ACTSEG's slot 1, which binds its curve there):
+// runs the base slot 1 (sets the transform's update mode and refreshes it), then points the transform's +0xA8 at
+// this action's chain link. (An older draft called this RetractChainAct.)
 void ACT3::VSlot1()
 {
     ACTCHAINV *pact = (ACTCHAINV *)this;

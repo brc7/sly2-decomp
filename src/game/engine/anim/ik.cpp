@@ -64,8 +64,8 @@ qwordV ConvertXfVec(void *space, void *p, qwordV v);
  * See: docs/engine/animation.md#6-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/animation.md#ik-0x186610-0x187030
  * @end-sly2-annot */
-// Clones an IK action onto a transform (ACT "clone" slot, inferred): generic CloneAct, then saves the IK record the
-// transform's +0xA8 back-pointer held so the retract slot can restore it.
+// Clones an IK action onto a transform (ACT slot 6): generic CloneAct, then takes over the IK record the transform's
+// +0xA8 points at.
 extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
 {
     CloneAct(pact, a1, a2, a3);
@@ -79,8 +79,8 @@ extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
  * See: docs/reference/functions/animation.md#ik-0x186610-0x187030
  * @end-sly2-annot */
 /* ACT7's slot 1, its key function (sly2/act.h). */
-// Retracts an IK action (inferred: inverse of CloneIkAct): base act retract, then restores the transform's +0xA8
-// back-pointer to the saved IK record.
+// Attaches an IK action to its transform (ACT slot 1, inferred as for ACTSEG): base slot 1 (sets the transform's
+// update mode), then points the transform's +0xA8 at this action's IK record.
 void ACT7::VSlot1()
 {
     ACTIKV *pact = (ACTIKV *)this;
