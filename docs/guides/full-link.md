@@ -19,7 +19,7 @@ first); integrate/round8's values in brackets where different.
 
 | measure | value | tool |
 |---|---|---|
-| functions matching | @PROGRESS@ | `tools/progress.py`, cache deleted first |
+| functions matching | 6,662 / 6,662 (100%; 857 sources, 329 SDK sources carried over, verified on the Mac; config/matched.csv content unchanged by the run) | `tools/progress.py`, cache deleted first |
 | files touched (tu_119BC8, bis, blend, eopid_linkonce, bif, tu_1553F0, class_registry) and every includer of a touched header (arrayv.h: tu_119BC8 only) | all functions and data MATCH (tu_119BC8 17, bis 34, blend 12, eopid_linkonce 74, bif 155, tu_1553F0 30, class_registry 829 lines) | `tools/matchtool.py check` |
 | nm symbol sets (all 528 TU objects against e344ef63's) | differ only by the 12 container renames (func_ to the template members' mangled names, bis's copy moved to tu_119BC8), blend's func_002581B8 moved to eopid_linkonce (plus its `g_eopidref_002581B8`), and T -> W for operator*, VecCombo and the three constructors | scratch nm compare |
 | undefined references not in config (210 merged objects) | 41 (unchanged) | scratch symcheck.py |
@@ -30,7 +30,7 @@ first); integrate/round8's values in brackets where different.
 | differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; .text from objects 1,295,844 [1,295,772] | `tools/link.py` |
 | blob bytes | 1,066,184 [1,066,256]: junk.csv 1,576 [1,620], padding / not in config 1,036 [1,064]; the rest as on integrate/round8 | `tools/link.py` |
 | config names at their config address | 7,402 / 7,402 | `tools/link.py` |
-| docs links | @LINKCHECK@ | `tools/docs/linkcheck.py` |
+| docs links | 0 broken (12,627 checked) | `tools/docs/linkcheck.py` |
 
 Representation compromises, each recorded in tu-merging.md "The container family": five copies are plain
 definitions with `__attribute__((weak, section(".gnu.linkonce.t.<symbol>")))` instead of their inline form (bif's
