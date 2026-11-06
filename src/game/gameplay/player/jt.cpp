@@ -1650,7 +1650,7 @@ struct O { char pad[0xEC]; int xEC; char pad1[0x208 - 0xF0]; int x208; };
 extern "C" {
 qword ConvertAloPos(void *p, void *q, qword v);
 void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, int n, int *pn0, int *pn1);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int n0, int n1, HIT *phit);
+int FindFirstObjectHitByLine(int n, qword a, qword b, int n0, int n1, HIT *phit);
 void func_0012DA30(void *p, qword v);
 void FFilterSoPair();
 extern char D_003DD490[];
@@ -1679,7 +1679,7 @@ int FMatchJtXmg(O *p, M *pm, void *px)
         b = ConvertAloPos(p, 0, pm->v40);
         c = ConvertAloPos(p, 0, pm->v50);
         IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)FFilterSoPair, p->xEC, &n0, &n1);
-        if ((PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, n0, n1, &hit) || PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, b, c, n0, n1, &hit)) &&
+        if ((FindFirstObjectHitByLine(0, a, b, n0, n1, &hit) || FindFirstObjectHitByLine(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
             hit.v0 = VSub(hit.v0, D_002A2DC0);

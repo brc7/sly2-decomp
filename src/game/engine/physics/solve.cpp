@@ -22,7 +22,7 @@ union FLOATWORD { float value; int bits; };
 /* Hand-made virtual calls: the vtable pointer of an object is at +0xC. */
 struct VTE { short d; short pad; void (*pfn)(void *); };
 
-/* POD matrix rows, and the class form with user-written copies that IntegrateSoGroupTransforms / ApplySoQueuedForces need. */
+/* POD matrix rows, and the class form with user-written copies that IntegrateSoGroupTransforms / ApplySoRestingContactVelocity need. */
 struct M3 { qword r[3]; };
 struct M3C { U r[3]; M3C() {} M3C(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; }
     M3C &operator=(const M3C &m) { r[0] = m.r[0]; r[1] = m.r[1]; r[2] = m.r[2]; return *this; } };
@@ -346,8 +346,8 @@ applyFlags:
 
 extern "C" {
 DZGXP *InitDzgXp(DZGXP *,int,XP **,int,SO **);
-void AppendDzgDz__FP3DZGP2DZ(DZGXP *,DZ *,DZX *);
-void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *,int);
+void AppendDzgDz(DZGXP *,DZ *,DZX *);
+void SolveDzg(DZGXP *,int);
 void ApplyDzg(DZGXP *,float,float);
 void RecalcSwXpPos(SW *,int,XP **);
 void RecalcSwXpMovement(SW *,int,XP **);
@@ -410,7 +410,7 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
             row->gMax=FLT_MAX;
             break;
         }
-        AppendDzgDz__FP3DZGP2DZ(&group,row,state);
+        AppendDzgDz(&group,row,state);
     }
     float maximum;
     if(flags&4){
@@ -422,7 +422,7 @@ void SolveSwGroup(SW *game,int flags,int objectCount,SO **objects,int contactCou
             float magnitude=__builtin_fabsf(contact->value);
             if(maximum<magnitude)maximum=magnitude;
         }
-        SolveDzg__FP3DZGiiPP2XPPiPPP2SO(&group,4);
+        SolveDzg(&group,4);
         ApplyDzg(&group,maximum+maximum,6.2831855f);
         {int j;for(j=0;j<objectCount;j++){}
         for(j=0;j<objectCount;j++)Callback(objects[j],67);}
@@ -592,7 +592,7 @@ static inline float HalfAndDelta(float dt,float half,const qword&source,qword*de
 // Slot 65, called by SolveSwGroup after a resting-contact solve: adds the solver's velocity changes (qwDv/qwDw,
 // accumulated by ApplyDzg) to the position and rotation XFs' velocities and advances the position and rotation by
 // half a step with them, then clears the deltas.
-extern "C" void ApplySoQueuedForces(SO *input)
+extern "C" void ApplySoRestingContactVelocity(SO *input)
 {
     register SO *p __asm__("$18");
     __asm__("daddu %0,%1,$zero":"=r"(p):"r"(input));
@@ -665,14 +665,14 @@ static __inline__ void AddTo(U *out,qword q)
 }
 /** @sly2-annot addr=0x1FA328
  * Purpose: If SO has data and nonzero force0, project/apply it through 0x230598/0x22FCC8; no direct callers
- * Info: proposed name ProjectSoForce (T2); class SO slot66; TU solve
+ * Info: proposed name ApplySoImpactVelocity (T2); class SO slot66; TU solve
  * Notes: names_v2 v1 proposed ProjectSoLvo__FP2SOf (0.608)
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
 // Slot 66, called by SolveSwGroup after an impact (bouncing) solve: adds the solver's velocity changes to the
 // position and rotation XFs' velocities (converted into their parent space) and clears them.
-extern "C" void ProjectSoForce(SO *object)
+extern "C" void ApplySoImpactVelocity(SO *object)
 {
     if(object->psophys){
         qword value=object->qwDv.q;
@@ -715,14 +715,14 @@ static inline M3 Mul(const M3&a,const M3&b) return r {
 static inline qword Consume(SO*p,XF*object,U&pending){SlotUnsettle(p,object);qword world=ConvertXfVec(0,object->pxfParent,pending.q);pending.i[2]=0;pending.i[1]=0;return world;}
 /** @sly2-annot addr=0x1FA528
  * Purpose: Apply queued translation and rotation (shift/turn) to SO then refresh changed objects
- * Info: proposed name ApplySoQueuedMotion (T2); class SO slot67; TU solve
+ * Info: proposed name ApplySoContactShift (T2); class SO slot67; TU solve
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
 // Slot 67, called by SolveSwGroup after the penetration (position) pass: applies the solver's deltas directly as
 // a translation and a rotation of the XFs (pushing interpenetrating objects apart), then updates the transform
 // hierarchy and the broad-phase box.
-extern "C" void ApplySoQueuedMotion(SO*object)
+extern "C" void ApplySoContactShift(SO*object)
 {
     M3 final;
     int changed=0;

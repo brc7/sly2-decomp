@@ -159,7 +159,7 @@ FRAME *STACKSCOPE_ctor(FRAME *pf);
 void STACKSCOPE_ctor_1AE4A0(FRAME *pf, int n) __asm__("_$_10STACKSCOPE");
 void func_001B44D8(int *pc, void **pa);
 qwordV SetVectorSphere(float pan, float tilt, float s);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *pv, qwordV *phit);
+int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *pv, qwordV *phit);
 }
 float GRandInRange(float gMin, float gMax);
 float RadNormalize(float rad);
@@ -702,7 +702,7 @@ extern "C" qwordV func_00155FB0(void *p, qwordV pos)
         float g;
         float panT = RadNormalize(pan + D_002BDCA0[i]);
         test = Add(pos, SetVectorSphere(panT, tilt, s));
-        int f = PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pos, test, c, av, &hit.q);
+        int f = FindFirstObjectHitByLine(0, pos, test, c, av, &hit.q);
         if (f)
             test = hit.q;
         __asm__ __volatile__(""); /* emulates the original compiler not threading this jump */

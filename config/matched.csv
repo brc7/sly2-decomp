@@ -1968,7 +1968,7 @@ ClipEdgeToObject,0x14C6A0,14,match,src/game/engine/physics/clip.cpp
 ClipEdgeToObjectPruned,0x14C6D8,28,match,src/game/engine/physics/clip.cpp
 ClipEdgeToSphere,0x14C748,172,match,src/game/engine/physics/clip.cpp
 MergeSegmentLists,0x14C9F8,150,match,src/game/engine/physics/clip.cpp
-PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG,0x14CC58,85,match,src/game/engine/physics/clip.cpp
+FindFirstObjectHitByLine,0x14CC58,85,match,src/game/engine/physics/clip.cpp
 ClipEdgeToObjects,0x14CDB0,54,match,src/game/engine/physics/clip.cpp
 StaticInit_clip,0x14CE88,77,match,src/game/engine/physics/clip.cpp
 func_0014CFC0,0x14CFC0,8,match,src/game/engine/physics/clip.cpp
@@ -2222,10 +2222,10 @@ DrawSw,0x157FA0,312,match,src/game/engine/graphics/pipeline/draw.cpp
 StaticInit_draw,0x158480,77,match,src/game/engine/graphics/pipeline/draw.cpp
 func_001585B8,0x1585B8,8,match,src/game/engine/graphics/pipeline/draw.cpp
 InitDzgXp,0x1585D8,36,match,src/game/engine/physics/dzg.cpp
-AppendDzgDz__FP3DZGP2DZ,0x158668,47,match,src/game/engine/physics/dzg.cpp
+AppendDzgDz,0x158668,47,match,src/game/engine/physics/dzg.cpp
 FillDzgDz,0x158728,139,match,src/game/engine/physics/dzg.cpp
 GetDzgExtraForDz,0x158958,11,match,src/game/engine/physics/dzg.cpp
-SolveDzg__FP3DZGiiPP2XPPiPPP2SO,0x158988,102,match,src/game/engine/physics/dzg.cpp
+SolveDzg,0x158988,102,match,src/game/engine/physics/dzg.cpp
 SolveDzgFriction,0x158B20,191,match,src/game/engine/physics/dzg.cpp
 ApplyDzg,0x158E20,103,match,src/game/engine/physics/dzg.cpp
 StaticInit_dzg,0x158FC0,77,match,src/game/engine/physics/dzg.cpp
@@ -4873,9 +4873,9 @@ SplitSwGroup,0x1F9240,115,match,src/game/engine/physics/solve.cpp
 SolveSwGroup,0x1F9410,451,match,src/game/engine/physics/solve.cpp
 PresetSoAccel,0x1F9B20,74,match,src/game/engine/physics/solve.cpp
 IntegrateSoGroupTransforms,0x1F9C48,137,match,src/game/engine/physics/solve.cpp
-ApplySoQueuedForces,0x1F9E70,301,match,src/game/engine/physics/solve.cpp
-ProjectSoForce,0x1FA328,128,match,src/game/engine/physics/solve.cpp
-ApplySoQueuedMotion,0x1FA528,185,match,src/game/engine/physics/solve.cpp
+ApplySoRestingContactVelocity,0x1F9E70,301,match,src/game/engine/physics/solve.cpp
+ApplySoImpactVelocity,0x1FA328,128,match,src/game/engine/physics/solve.cpp
+ApplySoContactShift,0x1FA528,185,match,src/game/engine/physics/solve.cpp
 ApplyConstr,0x1FA810,88,match,src/game/engine/physics/solve.cpp
 ApplyConstrNoTransform,0x1FA970,35,match,src/game/engine/physics/solve.cpp
 GetSoImpulseLinearDelta,0x1FAA00,18,match,src/game/engine/physics/solve.cpp

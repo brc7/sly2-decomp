@@ -137,7 +137,7 @@ void TiltMatUpright(M3 *, M3 *, M3 *);
 void AccelSoTowardMatSpring(CID100V *, M3 *, void *, qwordV, void *);
 struct COLL { void *source; SOV *object; };
 struct LSG { qwordV point; char remainder[0x50]; };
-COLL *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qwordV, qwordV, int, COLL **, LSG *);
+COLL *FindFirstObjectHitByLine(int, qwordV, qwordV, int, COLL **, LSG *);
 SOV *FindZapResponder(SOV *, int);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 qwordV GetXfVelocity(XFV *, XFV *, qwordV);
@@ -588,7 +588,7 @@ static inline SOV *Pin(SOV *p){register SOV *r asm("$21");asm("daddu %0,%1,$zero
  * @end-sly2-annot */
 void func_00224820(SOV *ownerIn,int filter,int channel,qwordV start,qwordV end,int queryCount,COLL **objects,int capacity,int *count,HIT *records){
  SOV *owner=Pin(ownerIn);LSG hit;int bits;
- COLL *collider=PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,start,end,queryCount,objects,&hit);
+ COLL *collider=FindFirstObjectHitByLine(0,start,end,queryCount,objects,&hit);
  if(!collider)return;
  qwordV normal;
  SOV *chain=collider->object;

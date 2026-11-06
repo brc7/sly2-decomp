@@ -129,7 +129,7 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void func_00170C50(SCRIPTV *o, int a, int b, int c);
 int func_0020FA50(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
+int FindFirstObjectHitByLine(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CMV*,qwordV);
 LOV *GetHeroPo(void *g);
 qwordV func_001A62E8(void *p);
@@ -373,7 +373,7 @@ extern "C" int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void
     {
     HITY y;
     IntersectSwBoundingBox(&D_003DD490, va, vb, fn, 0, &na, &nb);
-    if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, va, vb, na, (void *)nb, &y) || y.f40 == 0.0f || (!k && y.f28 < 0.7f)) {
+    if (!FindFirstObjectHitByLine(1, va, vb, na, (void *)nb, &y) || y.f40 == 0.0f || (!k && y.f28 < 0.7f)) {
         STACKSCOPE_ctor_1AE4A0(&x, 2);
         return 0;
     }
@@ -415,7 +415,7 @@ extern "C" int func_00173768(CID119V*p,qwordV pos,int count,void**objects,float 
  if(p->fRange&&TooFar(difference.q,p->sPlanar))return 2;
  if(p->fOcclusion){
   {register qwordV copied asm("$5")=position.q;raised.q=copied;}raised.f[2]+=D_002BE5C8;
-  if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,origin.q,raised.q,cso,apso,0))return 3;
+  if(FindFirstObjectHitByLine(0,origin.q,raised.q,cso,apso,0))return 3;
  }
  return 0;
 }

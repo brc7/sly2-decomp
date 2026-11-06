@@ -784,7 +784,7 @@ struct C *STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void func_0020FA10();
 void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, ti128, ti128, int, int, struct LSG *);
+int FindFirstObjectHitByLine(int, ti128, ti128, int, int, struct LSG *);
 /** @sly2-annot addr=0x1356E8
  * Purpose: Ray from two screen points (ConvertCmScreenToWorld) through the world (IntersectSwBoundingBox +
  *   PsoHitTestLineObjects); store hit (or far point) at +0x16F0
@@ -802,7 +802,7 @@ void func_001356E8(struct S *p) {
     ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
     IntersectSwBoundingBox(D_003DD490, v1, v2, func_0020FA10, p->fec, &cso, &aso);
-    if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, v1, v2, cso, aso, &lsg)) p->v16f0 = lsg.pos;
+    if (FindFirstObjectHitByLine(1, v1, v2, cso, aso, &lsg)) p->v16f0 = lsg.pos;
     else p->v16f0 = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
 }

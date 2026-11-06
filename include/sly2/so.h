@@ -233,9 +233,9 @@ struct SO : public LO
       virtual int VUnk61() __asm__("IsSoFixed");
       virtual int CpartExtra() __asm__("GetSoExtraPartCount");
       virtual void InitPhys() __asm__("InitSoPhysics");
-      virtual void VUnk64() __asm__("ApplySoQueuedForces");
-      virtual void VUnk65() __asm__("ProjectSoForce");
-      virtual void VUnk66() __asm__("ApplySoQueuedMotion");
+      virtual void VUnk64() __asm__("ApplySoRestingContactVelocity");
+      virtual void VUnk65() __asm__("ApplySoImpactVelocity");
+      virtual void VUnk66() __asm__("ApplySoContactShift");
       virtual void VUnk67(DZ *pdz, DZX *pdzx, int grfsg, int ixpd) __asm__("CalculateSoContactResponse");
       virtual void VUnk68(FX *pfx, qword qwPos, VECTOR4 *pvecDv) __asm__("GetSoVelocityAtPos");
       virtual void VUnk69() __asm__("PresetSoAccel");

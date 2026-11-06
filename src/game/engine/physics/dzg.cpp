@@ -59,8 +59,8 @@ qword LimitVectorLength(qword v, float g);
 
 DZX *GetDzgExtraForDz(DZGXP *pdzgxp, DZ *pdz);
 void FillDzgDz(DZGXP *pdzgxp, int grf, DZ *pdz, DZX *pdzx);
-void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *pdzgxp, int grf);
-void AppendDzgDz__FP3DZGP2DZ(DZGXP *pdzgxp, DZ *pdz, DZX *pdzx);
+void SolveDzg(DZGXP *pdzgxp, int grf);
+void AppendDzgDz(DZGXP *pdzgxp, DZ *pdz, DZX *pdzx);
 }
 void AppendDlEntry(DL *pdl, void *pv);
 void RemoveDlEntry(DL *pdl, void *pv);
@@ -109,12 +109,12 @@ extern "C" DZGXP *InitDzgXp(DZGXP *group, int numContacts, XP **contacts, int nu
    C-linkage function under that symbol until renamed. */
 /** @sly2-annot addr=0x158668
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name AppendDzgDz__FP3DZGP2DZ (EXISTING); TU dzg
+ * Info: proposed name AppendDzgDz (EXISTING); TU dzg
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
 // Appends one constraint row (DZ) and its contact record (DZX) to the group. Sly 1 name.
-extern "C" void AppendDzgDz__FP3DZGP2DZ(DZGXP *group, DZ *row, DZX *rowContact)
+extern "C" void AppendDzgDz(DZGXP *group, DZ *row, DZX *rowContact)
 {
     int i;
     int contactIndex = rowContact->pxp->groupIndex;
@@ -218,7 +218,7 @@ extern "C" DZX *GetDzgExtraForDz(DZGXP *group, DZ *row)
  *   docs/reference/functions/core-library.md#dzg-0x1585d8-0x159118
  * @end-sly2-annot */
 // Solves the group's constraint rows for the impulses that stop interpenetration (grf selects the pass). Sly 1 name.
-extern "C" void SolveDzg__FP3DZGiiPP2XPPiPPP2SO(DZGXP *group, int flags)
+extern "C" void SolveDzg(DZGXP *group, int flags)
 {
     DLI dli;
     DLI dliUnused;          /* unused, but part of the frame */
@@ -322,7 +322,7 @@ union VEC4 { qword q; float f[4]; };
 extern "C" void SolveDzgFriction(DZGXP *group, int flags)
 {
     for (;;) {
-        SolveDzg__FP3DZGiiPP2XPPiPPP2SO(group, flags);
+        SolveDzg(group, flags);
         int bestIndex = -1;
         float bestPushSquared = 0.01f;
         XP *bestContact = 0;
@@ -385,7 +385,7 @@ extern "C" void SolveDzgFriction(DZGXP *group, int flags)
             row->gMax = __builtin_fabsf(row->pdzOther->gC) * bestContact->friction;
         }
         row->gMin = -row->gMax;
-        AppendDzgDz__FP3DZGP2DZ(group, row, rowContact);
+        AppendDzgDz(group, row, rowContact);
     }
 }
 

@@ -97,7 +97,7 @@ int func_0020FA10(void *pv, HITV *phit);
 int CidBasic(OV *po);
 void *PvAllocSlot__FP8ALLOCREQ(AL *pal);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, int k);
 VECTORQ *func_001A6318(SOV *p);
 void UpdateDetectorTargets(DETECTORV *p);
 qword func_00153E60(DETECTORV *p);
@@ -475,7 +475,7 @@ extern "C" int func_001545F0(DETECTORV *p, SOV *pso)
     IntersectSwBoundingBox(D_003DD490, vmin, vmax, pfn, p, &ii, &jj);
     bool f;
     for (i = 0; (f = i < 1); i++)
-        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, q, apos[i], ii, jj, 0)) break;
+        if (!FindFirstObjectHitByLine(0, q, apos[i], ii, jj, 0)) break;
     return !f;
 }
 

@@ -115,7 +115,7 @@ qword ConvertAloPos(void *,void *,qword);
 qword CalculateBallisticLaunchVelocity(qword,qword,qword,float); // CalculateLaunchVelocity
 void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SOPAIR *),void *,int *,SO ***); // FindSwObjectsInBox
 int func_0021FB18(void *,SOPAIR *);
-SO *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int,qword,qword,int,SO **,HIT *);
+SO *FindFirstObjectHitByLine(int,qword,qword,int,SO **,HIT *);
 int CSolveQuadratic__FfffPf(float,float,float,float *);
 M3 *BuildOrthonormalMatrixZ(M3 *,qword,qword);
 V *VECTOR_opAssign(V *,qword);
@@ -499,7 +499,7 @@ extern "C" void UpdateJtThrowArc(JTTHROW *pjtthrow,int fUpdateBlends)
   t=(float)(int)i*dt;
   qword pos=PosOnArc(posLaunch,vAccel,vLaunch,t,0.5f);
   HIT hit;
-  if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1,posPrev,pos,cso,apso,&hit)){
+  if(FindFirstObjectHitByLine(1,posPrev,pos,cso,apso,&hit)){
    V at;
    int ct=CSolveQuadratic__FfffPf(GZOfQw(vAccel)*0.5f,GZOfQw(vLaunch),GZOfQw(posLaunch)-hit.pos.f[2],at.f);
    float tBest=0.0f,sBest=D_002A96A0;

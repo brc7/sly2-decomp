@@ -1500,7 +1500,7 @@ extern "C" {
 int FFilterDprizeObjects(void *, CANDIDATE *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, CANDIDATE *), void *, int *, CANDIDATE ***);
 CANDIDATE *PsoHitTestLineObjects(int, qword, qword, int, CANDIDATE **, LSG *)
-    __asm__("PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG");
+    __asm__("FindFirstObjectHitByLine");
 extern char D_003DD490[];
 extern qword D_002A2DC0;
 }

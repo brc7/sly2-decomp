@@ -1089,7 +1089,7 @@ qword ConvertAloPos(P *, P *, qword);
 float atan2f(float, float);
 int func_00175820(void *, void *);
 void IntersectSwBoundingBox(void *, qword, qword, int (*)(void *, void *), void *, int *, void ***);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, void **, LSG *);
+int FindFirstObjectHitByLine(int, qword, qword, int, void **, LSG *);
 void func_0020AB68(P *, ENTRY *, void *, qword);
 void func_0020A9A8(void *, int);
 }
@@ -1231,7 +1231,7 @@ extern "C" ENTRY *PentryChooseStepguardAttack(P *p, P *target, void *gate)
             line.start.q = from;
             line.end.q = to;
             IntersectSwBoundingBox(D_003DD490, from, to, func_00175820, entry, &count, &objects);
-            if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, line.start.q, line.end.q, count, objects, &line.hit) &&
+            if (FindFirstObjectHitByLine(0, line.start.q, line.end.q, count, objects, &line.hit) &&
                 Blocked(&line, entry->minHit))
                 continue;
         }
@@ -1290,7 +1290,7 @@ void STACKSCOPE_ctor(struct X *x);
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
 int func_0020FA10(void);
 void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
-struct R *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, int d, struct Y *y);
+struct R *FindFirstObjectHitByLine(int n, qword a, qword b, int c, int d, struct Y *y);
 /** @sly2-annot addr=0x175D00
  * Purpose: Ranged-attack test: guard has capability bit 3, no attack running, target within the guard's
  *   range/pan/tilt limits (+0xF48/F50/F58) and visible; immediate if target is out of melee reach (hanging,
@@ -1363,7 +1363,7 @@ int FBhvcombatCanShoot(struct S *p) {
         struct R *r;
         STACKSCOPE_ctor(&x);
         IntersectSwBoundingBox(&D_003DD490, pa, pb, func_0020FA10, p->p10->nEC, &na, &nb);
-        r = PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pa, pb, na, nb, &y);
+        r = FindFirstObjectHitByLine(0, pa, pb, na, nb, &y);
         if (r && r->p4->p14->p0 != p->p30) {
             STACKSCOPE_ctor_1AE4A0(&x, 2);
             return 0;
@@ -6831,7 +6831,7 @@ extern "C" {
 void func_001B44D8(int *pcpso, SOPART ***papso);
 }
 extern "C" {
-SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG");
+SOPART *PsoHitTestLineObjects(int grfhtl, qword pos0, qword pos1, int cpso, SOPART **apso, LSG *plsgBest) __asm__("FindFirstObjectHitByLine");
 }
 static inline qword QwAddScaled(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {

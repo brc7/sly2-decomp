@@ -109,7 +109,7 @@ void FadeSoIn(LOV *plo, float f);
 void FadeSoOut(LOV *plo, float f);
 void func_00213BD8(WIDGETV *pw, int id, int v);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
-RECONTGT *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, qword, qword, int, RECONTGT **, LSG *);
+RECONTGT *FindFirstObjectHitByLine(int, qword, qword, int, RECONTGT **, LSG *);
 int FInsideCmFrustum(CMV *, qword, qword);
 int FInsideCmMrd(CMV *, qword, float, float *);
 void IncrementSwHandsOff(SW *, int);
@@ -414,7 +414,7 @@ void UpdateReconTargetVisibility(RECONSEL *p,RECONTGT *other)
     }
     point=points;
     for(;i<4;++i){
-        if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,p->position.q,point->q,query.count,query.objects,0))++cHit;
+        if(FindFirstObjectHitByLine(0,p->position.q,point->q,query.count,query.objects,0))++cHit;
         ++point;
     }
     {

@@ -86,7 +86,7 @@ void func_00148300(G *g, LO *a);
 void JtbsChooseJtLanding(void *p, LO *a);
 void func_0015E1D8(int a);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
+int FindFirstObjectHitByLine(int z, qword a, qword b, int i, int j, HIT *phit);
 void FFilterSoPair(void);
 /* VQ: a 16-byte vector that can be initialized (floats first), read as a qword (.q). */
 union VQ { float af[4]; qword q; };
@@ -236,7 +236,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
         b.q = pos;
         a.f[2] += 125.0f;
         b.f[2] -= 175.0f;
-        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit) || hit.x40 == 0.0f || hit.x28 < 0.7f)
+        if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit) || hit.x40 == 0.0f || hit.x28 < 0.7f)
             g = GMax(g, 2000.0f);
         else
             pos = hit.pos;
@@ -244,7 +244,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
         a.q = pos;
         a.f[2] += 180.0f;
         b.f[2] += 5.0f;
-        if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit))
+        if (FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit))
             g = GMax(g, 2000.0f);
         for (unsigned k = 0; k < 8; k++) {
             qword v;
@@ -253,7 +253,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
             a.q = v;
             a.f[2] += 50.0f;
             b.f[2] -= 30.0f;
-            if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a.q, b.q, i0, i1, &hit)) {
+            if (!FindFirstObjectHitByLine(0, a.q, b.q, i0, i1, &hit)) {
                 g = GMax(g, 1500.0f);
                 break;
             }
