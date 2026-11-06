@@ -1,5 +1,5 @@
 // tu_223F70.cpp -- CID100..102 (0x64..0x66), the gadget objects (docs/engine/gameplay-objects.md): tossables, Bentley's
-// trigger bomb / mines (SetCid100State 0x224EC8: -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health
+// trigger bomb / mines (SetCid100State SetTossableState: -1 pooled, 0 held, 1 flight, 2 stuck, 3 detonate, 5 health
 // extractor) and the guard trap; the blast probe that pushes the bodies around it. Entry points: the CID100 and
 // CID102 vtables, TriggerTossable (gadget button) and the predicates IsThrowableGadget / IsHealthExtractor. TU 0x223F70..0x2259D8 (28 functions,
 // address order).
@@ -220,14 +220,14 @@ extern "C" void LoadTossableFromBrx(CID100V *gadget, void *pbis) {
     }
 }
 
-// SO slot11 then, if bound SM, 0x1F1448(sm,this,-1,0,goal). (inferred)
+// SO slot11 then, if bound SM, ReplaceSma(sm,this,-1,0,goal). (inferred)
 extern "C" void AddTossableHierarchy(CID100V *gadget)
 {
     AddSoHierarchy(gadget);
     if (gadget->psm) ReplaceSma(gadget->psm, gadget, -1, 0, &gadget->psma);
 }
 
-// SO slot12, SetState(-1) via vtable slot 76, release SM handle 0x1F15B8. (inferred)
+// SO slot12, SetState(-1) via vtable slot 76, release SM handle ReleaseSma. (inferred)
 void CID100::RemoveHierarchy()
 {
     CID100V *gadget = (CID100V *)this;
@@ -236,7 +236,7 @@ void CID100::RemoveHierarchy()
     ReleaseSma(&gadget->psma);
 }
 
-// CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (0x224258); if the owner +0x16C is
+// CID100 (Bentley gadget object) update: SO update; state 1 with link -> stick (StickTossable); if the owner +0x16C is
 // farther than +0x170 (3000) -> vtable slot 75 -> state 3 (auto-fire). (inferred)
 void UpdateTossable(CID100V *gadget)
 {
@@ -267,7 +267,7 @@ extern "C" int TakeTossableDamage(CID100V *gadget)
 }
 
 struct MSG100 { int a; CID100V *o; };
-// base HandleLoMessage 0x133590; on msg 4 from self in state 1/2 -> SetState(3). (inferred)
+// base HandleLoMessage HandleBasicMessage; on msg 4 from self in state 1/2 -> SetState(3). (inferred)
 extern "C" void HandleTossableMessage(CID100V *gadget, int k, MSG100 *q)
 {
     HandleBasicMessage(gadget, k, q);
@@ -288,7 +288,7 @@ void StickTossable(CID100V *gadget, SOV *q)
     }
 }
 
-// base 0x1F4FC8; in states 0/4 and other is STEPPLAYER (flag 0x34) add flag via 0x134310. (inferred)
+// base FIgnoreSoIntersection; in states 0/4 and other is STEPPLAYER (flag 0x34) add flag via 0x134310. (inferred)
 extern "C" int FIgnoreTossableIntersection(CID100V *gadget, BASIC *q)
 {
     int v = FIgnoreSoIntersection(gadget, q);
@@ -314,7 +314,7 @@ static inline qwordV ScaleS(const qwordV &direction,const SCALAR &scalar){qwordV
 static inline SOV *Neighbor(const SIDE &side){register SOV *value asm("$16");asm("lw %0,%1":"=r"(value):"m"(side.pOther));return value;}
 static inline const SIDE *SideAt(const EDGE *edge,int index){const SIDE *side;int bytes=index*sizeof(SIDE);asm("addu %0,%1,%2":"=r"(side):"r"(edge),"r"(bytes));return side;}
 static inline const float *CoefficientAt(const float *table,int index){const float *value;asm("sll %0,%1,2\n\taddu %0,%0,%2":"=&r"(value):"r"(index),"r"(table));return value;}
-// walks contact edges, picks neighbouring actor (0x224638, 0x224508). (inferred)
+// walks contact edges, picks neighbouring actor (IsTossableStateBlocking, IsTossableChainFree). (inferred)
 extern "C" void UpdateTossableContacts(CID100V *gadget)
 {
     SOV *q;
@@ -522,7 +522,7 @@ void ProbeTossableHit(SOV *ownerIn,int filter,int channel,qwordV start,qwordV en
 static __inline__ qwordV VAdd(qwordV a, qwordV b) { qwordV r; __asm__("vadd.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 static __inline__ qwordV VSub(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(b)); return r; }
 struct COLLA { XFV *pb; };
-// builds probe sphere set and calls 0x224820 per probe. (inferred)
+// builds probe sphere set and calls ProbeTossableHit per probe. (inferred)
 void SweepTossableProbes(CID100V *gadget, int a, int b, qwordV pos, float r)
 {
     STACKSCOPEMK mark;
@@ -550,7 +550,7 @@ void SweepTossableProbes(CID100V *gadget, int a, int b, qwordV pos, float r)
     STACKSCOPE_ctor_1AE4A0(&mark, 2);
 }
 
-// SetLoParent(this,0,1) then 0x224BF8 at world pos. (inferred)
+// SetLoParent(this,0,1) then SweepTossableProbes at world pos. (inferred)
 extern "C" void DropTossable(CID100V *gadget, float f)
 {
     SetLoParent_1A58D0(gadget, 0, 1);
@@ -718,7 +718,7 @@ extern "C" void UpdateGuardTrap(CID100V *gadget) {
 }
 
 struct MSGO { int a; SOV *o; };
-// negated vector -> 0x1FAC30. (inferred)
+// negated vector -> AddSoAcceleration. (inferred)
 extern "C" void PushGuardTrapAway(CID100V *gadget, MSGO *q)
 {
     SOV *o = q->o;

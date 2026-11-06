@@ -5246,7 +5246,7 @@ struct P { char pad[0x24]; void *p24; char pad2[0x6C - 0x28]; struct O *po; int 
 void SetTnTnsOverride(struct O *po, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *PpoCur(struct G *pg);
-// Switch the script's active tunnel (ptnCur +0x6C): release/hide old (0x221268(tn,-1), vt9), attach/show new (vt8)
+// Switch the script's active tunnel (ptnCur +0x6C): release/hide old (SetTnTnsOverride(tn,-1), vt9), attach/show new (vt8)
 // with owner = actor or current PO. (inferred)
 void SetJsgTunnel(struct P *script, struct O *po)
 {
@@ -5317,7 +5317,7 @@ void func_0020F0F0(struct G *pg);
 void IncrementSwHandsOff(struct G *pg, int id);
 void func_0020F0C0(struct G *pg);
 // Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
-// (0x20EFC0/0x20F030) + 0x20F0C0/0x20F0F0. (inferred)
+// (IncrementSwHandsOff/DecrementSwHandsOff) + 0x20F0C0/0x20F0F0. (inferred)
 void SetRelayScriptHandsOff(struct P *script, int fOn, int id)
 {
 if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == script->id) return; DecrementSwHandsOff(&D_003DD490, script->id); func_0020F0F0(&D_003DD490); } IncrementSwHandsOff(&D_003DD490, id); func_0020F0C0(&D_003DD490); script->fOn = fOn; script->id = id; return; } DecrementSwHandsOff(&D_003DD490, script->id); func_0020F0F0(&D_003DD490); script->fOn = fOn; script->id = id;
@@ -5460,7 +5460,7 @@ void ClearJsgWidget(struct S *script)
 } } // namespace M_func_001E5468
 
 // 0x1E54B0 ClearJsgJtMode
-// End the STEPPLAYER mode started by StartJtMode (+0xA0 pstepplayerMode -> 0x19CCE8(+0xF00)). (inferred)
+// End the STEPPLAYER mode started by StartJtMode (+0xA0 pstepplayerMode -> EndJtMode(+0xF00)). (inferred)
 /* Ends the JT mode the script started on its player. */
 extern "C" void ClearJsgJtMode(JSGV *script)
 {
@@ -5664,7 +5664,7 @@ struct S;
 struct S { char pad[0x84]; int a84[3]; int n90; int n94; int n98; int n9C; };
 extern char D_002DDF40[];
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
-// Stop the camera blend (0x14E4C8 on g_cm). (inferred)
+// Stop the camera blend (RevokeCmPolicy on g_cm). (inferred)
 void EndJsgCamBlend(struct S *script, int n)
 {
     script->n90 = n;

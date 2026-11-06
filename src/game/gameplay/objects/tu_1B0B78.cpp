@@ -507,7 +507,7 @@ static inline float Length(qwordV v)
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
     return f;
 }
-// Look at nearest player (0x1C4AF8): flee/turn decision and heading. (inferred)
+// Look at nearest player (PpoClosestSw): flee/turn decision and heading. (inferred)
 int ChooseCritterStateFromPlayer(CID96V *critter)
 {
     int r = critter->state;

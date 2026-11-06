@@ -334,7 +334,7 @@ void CID98::VUnk57()
     }
 }
 
-// Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (0x1BB648), stimulus
+// Callback: classify instigator (player 0xE, zap kinds -> 8), run current stage actions (RunBreakableStageActions), stimulus
 // 0x156B98, BroadcastGameEvent, advance stage. (inferred)
 void TRIG::Action()
 {
@@ -380,7 +380,7 @@ void TRIG::Action()
 
 typedef struct MSGS { int a; SOX *ps; char pad[0x38]; } MSGS;
 // Execute recorded actions of a stage: show/hide globs and parts by id, JoltCm, TriggerJoyRumbleRumk, sound 0x154E10,
-// spawn 0x161F48. (inferred)
+// spawn ApplyTaskStates. (inferred)
 void RunBreakableStageActions(TRIG *breakable, E *pe)
 {
     int i;

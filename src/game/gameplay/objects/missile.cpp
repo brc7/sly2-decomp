@@ -158,14 +158,14 @@ void MISSILE::Init()
     missile->gAct = 1.0f;
 }
 
-// MISSILE::LoadFromBrx (vtable slot 14): base load (0x1F31E0) + SnipLoObjects(this,1, s_asnipMissile).
+// MISSILE::LoadFromBrx (vtable slot 14): base load (LoadSoFromBrx) + SnipLoObjects(this,1, s_asnipMissile).
 void LoadMissileFromBrx(MISSILE *missile, CBinaryInputStream *stream)
 {
     LoadSoFromBrx(missile, stream);
     BindLoOidTable(missile, 1, s_asnipMissile);
 }
 
-// MISSILE::OnRemove (vtable slot 12): OnSoRemove (0x1F2D48) then retract current asega.
+// MISSILE::OnRemove (vtable slot 12): OnSoRemove (RemoveSoHierarchy) then retract current asega.
 void OnMissileRemove(MISSILE *missile)
 {
     RemoveSoHierarchy(missile);

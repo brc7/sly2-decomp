@@ -179,7 +179,7 @@ extern "C" void InitBomb(BOMBV *bomb) {
     bomb->owner = bomb;
 }
 
-// BOMB vtable slot 76: SO Clone then reset owner to self (0x13BC60). (inferred)
+// BOMB vtable slot 76: SO Clone then reset owner to self (SetBombOwner). (inferred)
 extern "C" void CloneBomb(BOMBV *bomb, BOMBV *source)
 {
     CloneSo(bomb, source);

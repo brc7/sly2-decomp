@@ -153,7 +153,7 @@ extern "C" void RemoveDancerHierarchy(DANCERV *dancer) {
     ApplyDancerAseg(dancer, 0, 0);
 }
 
-// DANCER (cid 0x44) vtable slot 15: base 0x203A38, BindDancerMoves (resolve aseg oids), vtable slot 79(0). (inferred)
+// DANCER (cid 0x44) vtable slot 15: base PostStepLoad, BindDancerMoves (resolve aseg oids), vtable slot 79(0). (inferred)
 void DANCER::VUnk14()
 {
     DANCERV *o = (DANCERV *)this;
@@ -175,7 +175,7 @@ static inline qwordV VecMul(qwordV v, float g)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
     return r;
 }
-// cid 0x44 vt16 per-frame: base 0x203FC0; when its aseg finished, return to idle; react to the rhythm manager's state
+// cid 0x44 vt16 per-frame: base UpdateStep; when its aseg finished, return to idle; react to the rhythm manager's state
 // (D_002DE570->+0x50: 0 idle move, 2 JudgeRhythmPress); keep +0x190 velocity from aseg. (inferred)
 extern "C" void UpdateDancer(DANCERV *dancer)
 {
@@ -203,7 +203,7 @@ extern "C" void UpdateDancer(DANCERV *dancer)
 
 struct SOM { char pad[0x18]; DANCERV *p18; };
 struct MSGD { SOM *pso; float g; int k; };
-// cid 0x44 vt5: base handler 0x1C3E20; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived
+// cid 0x44 vt5: base handler HandlePoMessage; for msg 9 about itself: 0x27 set +0x40C, 0x28 clear, 0x15E apply aseg-derived
 // velocity via vtable slot 35. (inferred)
 extern "C" void HandleDancerMessage(DANCERV *dancer, int msgk, MSGD *pmsg)
 {
@@ -292,7 +292,7 @@ void *FindDancerMoveObject(DANCERV *dancer, int id) {
     return po;
 }
 
-// Resolve every move entry's 3 oids to objects via 0x152520. (inferred)
+// Resolve every move entry's 3 oids to objects via FindDancerMoveObject. (inferred)
 void BindDancerMoves(DANCERV *dancer)
 {
     int i, j;
@@ -329,7 +329,7 @@ int OidFromGradeIndex(int k)
 
 // Claude agent (lane D37): writing the range through a pointer to the 0x234 pair keeps cse from folding
 // gMax - gMin, like the target (no asm, no volatile).
-// cid 0x79 vtable slot 7 Init: base 0x1A5270; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows
+// cid 0x79 vtable slot 7 Init: base InitLo; D_002DE570 = this (singleton); score range lm(+0x234)=[-1.5,1.0], windows
 // 0.4/0.4, 8-sample average, grade thresholds. (inferred)
 extern "C" void InitRhythmMgr(RHYTHMMGR *manager)
 {
@@ -368,7 +368,7 @@ void CID121::VUnk14()
     PostSwCallback(&D_003DD490, manager, D_002A5010.l, 0);
 }
 
-// Callback: for each entry find object by oid and its child 0x625, bind with 0x1F1448, pick 3 random grade thresholds
+// Callback: for each entry find object by oid and its child 0x625, bind with ReplaceSma, pick 3 random grade thresholds
 // across the score range. (inferred)
 extern "C" void BindRhythmManagerGrades(RHYTHMMGR *manager)
 {
@@ -684,7 +684,7 @@ extern "C" void PushRhythmManagerCue(RHYTHMMGR *manager, DANCERV *a, int b, int 
 }
 
 // Judge a dancer's press against the current cue: too early -> fail move + score g298; repeat -> g2A0; correct button
-// (0x1C4700) -> success move + timing score; wrong -> g29C. (inferred)
+// (POCTL_FConsumePressed) -> success move + timing score; wrong -> g29C. (inferred)
 void JudgeRhythmPress(RHYTHMMGR *manager, DANCERV *po)
 {
     void *pv = po->ppoctl;

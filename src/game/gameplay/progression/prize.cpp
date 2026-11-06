@@ -109,7 +109,7 @@ void InitDprize(struct S *prize)
 }
 } } // namespace M_InitDprize
 
-// DPRIZE::LoadFromBrx (vtable slot 14): LoadSoFromBrx + snip objects (0x1A64E8).
+// DPRIZE::LoadFromBrx (vtable slot 14): LoadSoFromBrx + snip objects (BindLoOidTable).
 extern "C" void LoadDprizeFromBrx(DPRIZEV *prize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(prize, pbis);
@@ -159,7 +159,7 @@ struct A { int c; void *pv; int pad[14]; };
 struct M { int x0; int x4; int x8; };
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x168 - 0x10]; int x168; char p2[0x218 - 0x16C]; struct LO *x218; };
 void HandleBasicMessage(struct S *p, int n, struct M *pm);
-// DPRIZE vtable slot 5 HandleMessage: base 0x133590 + prize-specific msgs. (inferred)
+// DPRIZE vtable slot 5 HandleMessage: base HandleBasicMessage + prize-specific msgs. (inferred)
 void HandleDprizeMessage(struct S *prize, int n, struct M *pm)
 {
     struct A a;
@@ -478,7 +478,7 @@ static inline float GDot(qword a, qword b)
 }
 static inline float GMin(float a, float b) { return (b < a) ? b : a; }
 
-// query nearby solids (0x20FAA0) and resolve deepest contact (bounce). (inferred)
+// query nearby solids (IntersectSwBoundingBox) and resolve deepest contact (bounce). (inferred)
 extern "C" void CheckDprizeBounce(P *prize)
 {
     STACKSCOPE frame;
@@ -733,7 +733,7 @@ static inline float LenSq(qword v)
     __asm__("qmfc2.ni %0, %1" : "=r"(r) : "j"(t));
     return r;
 }
-// DPRIZE vtable slot 16 Update: base update, sparkle (0x1C6308), bounce, collect.
+// DPRIZE vtable slot 16 Update: base update, sparkle (EmitDprizeGlint), bounce, collect.
 void UpdateDprize(P *prize)
 {
     UpdateSo(prize);
@@ -1047,7 +1047,7 @@ void SetSndSourceLo(void *p, int n);
 void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
-// CID 91 state setter: on collect play sound, emit rip, award (0x1C67A0). (inferred)
+// CID 91 state setter: on collect play sound, emit rip, award (AwardCoin). (inferred)
 void SetCoinDprizes(struct S *coin, int n)
 {
     if (coin->x150 == n) return;
@@ -1269,7 +1269,7 @@ static inline void Zero(struct V3 *pv)
     pv->x = 0.0f;
 }
 #define VT(o, n) (o)->vt[n]
-// re-parent spawned prize (0x1A58D0) and init motion. (inferred)
+// re-parent spawned prize (SetLoParent_1A58D0) and init motion. (inferred)
 void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2)
 {
     ((void (*)(void *))VT(prize, 8).pf)((char *)prize + VT(prize, 8).d);
@@ -1738,7 +1738,7 @@ void SetLootDprizes(S *loot, int n)
 }
 } // namespace M_SetLootDprizes
 
-// calls 0x1C7A08 stub. (inferred)
+// calls ClearCurrentLootEntry stub. (inferred)
 extern "C" void AddLootEntry(LOOTV *loot, int n0, int n4)
 {
     int c;
@@ -1791,7 +1791,7 @@ struct E { int id; char pad[0x18]; int c; void *a[3]; };
 struct S { char pad[0x23C]; int c; struct E *ae; struct E *pe; };
 void func_001F6A68(struct S *p);
 void ShowSoGlobsById(struct S *p, void *pv);
-// helper used by 0x1C2DC8 (calls SO 0x1F6A68/0x1F6978). (inferred)
+// helper used by StageLootPouchLoot (calls SO 0x1F6A68/ShowSoGlobsById). (inferred)
 void SelectLootEntry(struct S *loot, int id)
 {
     int i, n;

@@ -140,7 +140,7 @@ typedef char native_layout_12[(OFF(OBJ,c)==0x4F8)?1:-1];
 typedef char native_layout_13[(OFF(OBJ,a)==0x4FC)?1:-1];
 } // namespace M_CloneRobottank
 
-// health x560 = max x55C, refresh health meter (0x1D4C88), reset body SMA, SetRcCarState(0). (inferred)
+// health x560 = max x55C, refresh health meter (UpdateRobottankHealthMeter), reset body SMA, SetRcCarState(0). (inferred)
 /* Full health, the meter updated, the animation machine back to its first state, state 0. */
 extern "C" void ResetRobottankHealth(ROBOTTANKV *tank)
 {
@@ -931,7 +931,7 @@ namespace M_UpdateRobottankAi {
 // UpdateRobottank): pick a ready attachment (FindReadyRobottankWeapon) or a target object (FindNearestRobottankPickup), run the state machine
 // (0 approach/orbit the target, 1 attack in place, 2 pursue the object, 3 back away) until the state is stable, steer
 // for the current state, then let every ready attachment fire once its aim error is small enough.
-// Callees: 0x2456F0 acosf, 0x2458F0 atan2f, 0x11D910 FCheckLm, 0x11CF60 RadNormalize, 0x11D448 GRandInRange,
+// Callees: acosf acosf, atan2f atan2f, 0x11D910 FCheckLm, 0x11CF60 RadNormalize, 0x11D448 GRandInRange,
 // 0x11B500 rotation matrix about an axis.
 // How it matches (fresh rewrite; notes in build/lane_notes/w4lane7.md):
 // - position/target/delta/goal/offset are VU-class pseudos that live across calls, so reload spills them to
@@ -1410,7 +1410,7 @@ namespace M_func_001D3450 {
 //  2. ray pass: six segments around the wheel profile are clipped to the BSP (ClsgClipEdgeToBsp); both ends of every
 //     piece give support points;
 //  3. two support passes pair points by surface, find the deepest tangency of the wheel circle with each support plane,
-//     and post the best one as a kind-10 contact (PxpAdd 0x1A7C18).
+//     and post the best one as a kind-10 contact (PxpAdd PxpAdd).
 // Names follow Lilly's CsbiIntersectSphereBsp port (SURF/EDGE/BSP/LSG/GEOM/STACKSCOPE/PvAllocStack). Notes: notes/190000-1F0000_lanes.md.
 /* #line: gcc 2.95 hashes the file name into the gcse order of asm expressions (see VU_FLOAT below). Pinning it
    to the repo path makes the output independent of the path/cwd the compiler is run with. Keep it accurate. */
@@ -1568,7 +1568,7 @@ static inline VU_VECTOR Blend(const qword &a, const VU_FLOAT &sa, const qword &b
 }
 
 // Wheel/suspension support contacts against a part's pruned BSP: edge pass, 6-ray pass (ClsgClipEdgeToBsp), post
-// deepest tangency as kind-10 contact (PxpAdd 0x1A7C18). (inferred)
+// deepest tangency as kind-10 contact (PxpAdd PxpAdd). (inferred)
 extern "C" void func_001D3450(OWNER *owner, WHEEL *wheel, SOPART *ppart, int unused3, int unused4, BSP *pbspRoot, CONTACT **ppcontact)
 {
     int csupport = 0;

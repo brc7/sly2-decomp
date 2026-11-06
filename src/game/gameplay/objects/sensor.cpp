@@ -370,7 +370,7 @@ extern "C" void CloneLasen(LASENV *laser)
 }
 
 // LASEN::PostLoad (vtable slot 15): PostSoLoad, build beam endpoints/bounds (0x1DE5D8), bind beam animations (0x1DEDB0),
-// initial zap pass (0x1DF260). (inferred)
+// initial zap pass (ZapLasenBeams). (inferred)
 void LASEN::VUnk14()
 {
     LASENV *laser = (LASENV *)this;
