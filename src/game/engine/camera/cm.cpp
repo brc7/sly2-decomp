@@ -59,15 +59,8 @@ void UpdateCmMat4(CM *pcm);
 void RecalcCmFrustrum(CM *pcm);
 void SetCmNearClip(CM *pcm, float sNearClip);
 
-/** @sly2-annot addr=0x14D3D8
- * Purpose: CM constructor: BASIC header, vptr D_002CA4D0 (CM vtable), then constructs the 9 embedded camera
- *   policies at +0x3A0..+0x600
- * Info: proposed name CM_ctor (T1); class CM; TU cm
- * Notes: mangled dropped (base does not match final name): __2CM
- * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#4-source-files, docs/engine/camera.md#5-key-functions,
- *   docs/engine/main-loop-startup.md#7-source-files
- * @end-sly2-annot */
+// CM constructor: BASIC header, vptr D_002CA4D0 (CM vtable), then constructs the 9 embedded camera policies at
+// +0x3A0..+0x600.
 extern "C" CM *CM_ctor(CM *pcm)
 {
     CPTWOSHOT *pcptwoshot = &pcm->part600;
@@ -87,15 +80,7 @@ extern "C" CM *CM_ctor(CM *pcm)
     return pcm;
 }
 
-/** @sly2-annot addr=0x14D470
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name SetupCm__FP2CM (EXISTING); TU cm
- * Notes: DISPUTED (see disputed.csv) | RENAME proposed -> SetupCm__FP2CM (existing_name_changes.csv)
- * Confidence: name high [EXISTING 0.90]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/engine/camera.md#5-key-functions, docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
- *   docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8
- * @end-sly2-annot */
+// Camera setup hook called once at startup by main (after the CM constructor has run); empty in the shipped game.
 void SetupCm(CM *pcm)
 {
 }
@@ -123,14 +108,9 @@ void SetCmFov__FP2CMf(struct CM *p, float g);
 float GSmoothA__FffffP4SMPAPf(float g, float h, float i, float dt, float *pa, float *pb);
 void RecalcCmFrustrum__FP2CM(struct CM *p);
 float GSmooth__FfffP3SMPPf(float g, float gTarget, float dt, void *pv, float *pr);
-/** @sly2-annot addr=0x14D478
- * Purpose: Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50
- *   GetCpdefi into cm+0x270, ResetCmAdjust/AdjustCmCpdefi, then policy vt6 Update(pcpdefi, joy); then fov
- *   smoothing (SetCmFov if nCut else GSmoothA+RecalcCmFrustrum); clears nCut; smooths +0x620
- * Info: proposed name UpdateCmLast (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Per-frame camera update: for the top policy of acpr[] (+0x310), fetch focus CPDEFI via focus->vt50 GetCpdefi into
+// cm+0x270, ResetCmAdjust/AdjustCmCpdefi, then policy vt6 Update(pcpdefi, joy); then fov smoothing (SetCmFov if nCut
+// else GSmoothA+RecalcCmFrustrum); clears nCut; smooths +0x620.
 void UpdateCmLast__FP2CM(struct CM *p)
 {
     struct O *po;
@@ -184,12 +164,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct E { struct O *po; int pad[3]; };
 struct P { char pad[0x30C]; int c; int pad2; struct E ae[1]; };
-/** @sly2-annot addr=0x14D650
- * Purpose: Calls vt7 (unknown 'reset/close' slot) on every policy in acpr[], then rUnk620=0, rUnk624=10.0
- * Info: proposed name ResetCmPolicies (T2); TU cm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70+verdicts_A1
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Calls vt7 (unknown 'reset/close' slot) on every policy in acpr[], then rUnk620=0, rUnk624=10.0. (inferred)
 void func_0014D650(struct P *p)
 {
     int i;
@@ -225,21 +200,14 @@ void RecalcCmFrustrum__FP2CM(CM *p);
 void func_0014E1A8(CM *p, qword pos, qword tgt, float da, float db);
 void CutCm__FP2CM(CM *p);
 void InitCmpart1(void *p);
-void func_002219C8(void *p);
+void InitCptn(void *p);
 void InitCplcy(void *p);
 void SetCmPolicy(CM *p, int prio, void *po, int a, int b);
 }
 static inline void SetNF(CM *p, float n, float f) { p->g4C = n; p->g50 = f; }
 static inline void InitLm(LM *plm, float g0, float g8, float gC) { plm->g0 = g0; plm->gC = gC; plm->g8 = g8; plm->n4 = 0; }
-/** @sly2-annot addr=0x14D6D8
- * Purpose: Camera init: rgba fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat,
- *   RecalcCmFrustrum, SetCmLookAt, CutCm, Init on each embedded policy, push default policy (+0x3A0) with
- *   SetCmPolicy(prio 0), tJolt=-10
- * Info: proposed name InitCm (T1); TU cm
- * Notes: names_v2 v1 proposed AdjustCmCpdefi__FP2CMP2SOfP6CPDEFI (0.638)
- * Confidence: high [T1 0.90] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Camera init: rgba fog 0x80303030, aspect 1.2987, near/far 100/100000, identity mat, RecalcCmFrustrum, SetCmLookAt,
+// CutCm, Init on each embedded policy, push default policy (+0x3A0) with SetCmPolicy(prio 0), tJolt=-10.
 extern "C" void InitCm__FP2CM(CM *p)
 {
     static RGBA s_rgba(0x80303030);
@@ -265,7 +233,7 @@ extern "C" void InitCm__FP2CM(CM *p)
     CutCm__FP2CM(p);
     p->c30C = 0;
     InitCmpart1(p->x3A0);
-    func_002219C8(p->x3B0);
+    InitCptn(p->x3B0);
     InitCplcy(p->x450);
     InitCplcy(p->x4A8);
     InitCplcy(p->x4C0);
@@ -281,13 +249,7 @@ extern "C" void InitCm__FP2CM(CM *p)
 } // namespace M_InitCm__FP2CM
 
 namespace M_CutCm__FP2CM { extern "C" {
-/** @sly2-annot addr=0x14D8C0
- * Purpose: nCut(+0x300) = max(nCut,1): request a camera cut (no smoothing) this frame
- * Info: proposed name CutCm (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// NCut(+0x300) = max(nCut,1): request a camera cut (no smoothing) this frame.
 void CutCm__FP2CM(char *p)
 {
     int n = *(int *)(p + 0x300);
@@ -299,12 +261,7 @@ void CutCm__FP2CM(char *p)
 
 namespace M_SetCmCut { extern "C" {
 struct CMX { char pad[0x300]; int n; float a; float b; };
-/** @sly2-annot addr=0x14D8D8
- * Purpose: Cut with explicit pan/tilt: radCutPan(+0x304)/radCutTilt(+0x308) = args, nCut = max(nCut,2)
- * Info: proposed name SetCmCut (T1); TU cm
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Cut with explicit pan/tilt: radCutPan(+0x304)/radCutTilt(+0x308) = args, nCut = max(nCut,2) (inferred)
 void SetCmCut(struct CMX *p, float a, float b)
 {
     int m = 2;
@@ -322,13 +279,8 @@ typedef struct { qword r[4]; } M4;
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void InvertMatrix4Rigid(M4F *pmOut, M4F *pm);
 void __ml__FRC7MATRIX4T0(M4 *pmOut, M4F *pa, M4F *pb);
-/** @sly2-annot addr=0x14D8F8
- * Purpose: matViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x)
- * Info: proposed name CombineEyeLookAtProj (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
-void func_0014D8F8(M4F *pm, M4F *pproj, M4 *pmOut)
+// MatViewProj = proj * inverse(eye matrix with game->camera axis swap: x=-y, y=-z, z=x)
+void CombineEyeLookAtProj(M4F *pm, M4F *pproj, M4 *pmOut)
 {
     M4F m;
     M4 r;
@@ -396,11 +348,9 @@ static inline qword Normalize1(qword v)
     return r;
 }
 
-/** @sly2-annot addr=0x14DA08
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/camera.md#2-the-policy-stack, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Builds the four side planes of a view frustum from a camera matrix (row 0 forward, rows 1/2 the side axes) and the
+// tangents of the half field of view gx, gy: each normal is the cross product of a side axis and the normalized edge
+// direction. UpdateCmMat4 calls it for the real and the widened culling frustum.
 void BuildFrustrum(MATRIX3 *pmat, float gx, float gy, qword *anormal)
 {
     anormal[0] = Cross(pmat->r[2], Normalize1(AddScaled(pmat->r[0], pmat->r[1], VU_FLOAT(gx))));
@@ -419,11 +369,9 @@ void BuildProj(void *p, float a, float b, float c, float d, float e, float f) __
 void SetCmLookAt(CM *p, float g, void *pv) __asm__("BuildCmFgfn");
 void RecalcCm(CM *p) __asm__("UpdateCmMat4__FP2CM");
 static inline float GMax(float a, float b) { return a > b ? a : b; }
-/** @sly2-annot addr=0x14DB70
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
- * See: docs/engine/camera.md#2-the-policy-stack, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Recomputes everything that depends on the field of view: the half-fov tangents, the cull scale, the near-plane
+// corner distance, the projection matrix (512x224 half-screen, near/far clip), the fog/LOD fit coefficients
+// (BuildCmFgfn), then the view matrices (UpdateCmMat4).
 extern "C" void RecalcCmFrustrum__FP2CM(CM *pcm)
 {
     float t = tanf(pcm->fov * 0.5f);
@@ -486,7 +434,7 @@ struct CAMMOVE
       CAMEVENT *pevent;
       int nUnk18;
 };
-extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("func_0014D8F8");
+extern "C" void CombineEyeLookAtProj(MATRIX4 *pmatEye, MATRIX4 *pmatProj, MATRIX4 *pmatOut) __asm__("CombineEyeLookAtProj");
 extern "C" void BuildFrustrum(float gTanX, float gTanY, MATRIX4 *pmat, qword *paplane);
 void UpdateCmVisZone(CM *pcm) __asm__("UpdateCmVisZone__FP2CM");
 struct VU_FLOAT
@@ -532,14 +480,8 @@ static inline float GEvaluateClqLm(CLQ *pclq, LM *plm, float x)
     return g;
 }
 void UpdateCmMat4(CM *pcm) __asm__("UpdateCmMat4__FP2CM");
-/** @sly2-annot addr=0x14DC58
- * Purpose: Recomputes matViewProj (+jolt shake for 0.5 s), its inverse, frustum side planes (normal and wide)
- *   and transposed VU0 cull rows, then UpdateCmVisZone
- * Info: proposed name UpdateCmMat4 (T1); TU cm
- * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#2-the-policy-stack, docs/engine/camera.md#5-key-functions,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Recomputes matViewProj (+jolt shake for 0.5 s), its inverse, frustum side planes (normal and wide) and transposed
+// VU0 cull rows, then UpdateCmVisZone.
 extern "C" void UpdateCmMat4__FP2CM(CM *pcm)
 {
     MATRIX4 matEye;
@@ -613,13 +555,7 @@ extern "C" void UpdateCmMat4__FP2CM(CM *pcm)
 
 namespace M_func_0014E000 { extern "C" {
 struct T { char pad[0xE4]; int nE4; char pad2[0x110 - 0xE8]; int n110; float g114; char pad3[0x120 - 0x118]; };
-/** @sly2-annot addr=0x14E000
- * Purpose: qsort comparator for vis-zone candidates: by +0x110 desc, +0xE4 desc, then +0x114 (distance) asc
- * Info: proposed name ICompareCmVisZone (T2); TU cm
- * Notes: names_v2 B proposed DrawCm__FP2CM (0.856)
- * Confidence: low (draft) [T2 0.45] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Qsort comparator for vis-zone candidates: by +0x110 desc, +0xE4 desc, then +0x114 (distance) asc. (inferred)
 int func_0014E000(struct T **ppa, struct T **ppb)
 {
     struct T *a = *ppa;
@@ -644,13 +580,8 @@ void UpdateVisInside(struct O *po, qword pos);
 void qsort(void *base, int n, int cb, int (*cmp)(const void *, const void *));
 int func_0014E000(const void *a, const void *b);
 void SetCmVisZone(struct CM *p, struct O *po);
-/** @sly2-annot addr=0x14E078
- * Purpose: Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and
- *   selects the best via SetCmVisZone if its kind==1
- * Info: proposed name UpdateCmVisZone (T1); TU cm
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Gathers up to 32 zone objects (0x15E9C8 query), scores each against cm pos (0x2273F0), sorts, and selects the best
+// via SetCmVisZone if its kind==1.
 void UpdateCmVisZone__FP2CM(struct CM *p)
 {
     struct O *apo[32];
@@ -665,13 +596,7 @@ void UpdateCmVisZone__FP2CM(struct CM *p)
 }
 } } // namespace M_UpdateCmVisZone__FP2CM
 
-/** @sly2-annot addr=0x14E148
- * Purpose: If changed: pzonVis(+0x10)=pzon, grfvis(+0x14)=pzon->+0xE0
- * Info: proposed name SetCmVisZone (T1); TU cm
- * Notes: names_v2 v1 proposed SetCmUFogMax__FP2CMf (0.001)
- * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// If changed: pzonVis(+0x10)=pzon, grfvis(+0x14)=pzon->+0xE0. (inferred)
 extern "C" void SetCmVisZone(CM *pcm, VISZONE *pzon)
 {
     if (pzon != pcm->pzonVis) {
@@ -680,13 +605,7 @@ extern "C" void SetCmVisZone(CM *pcm, VISZONE *pzon)
     }
 }
 
-/** @sly2-annot addr=0x14E168
- * Purpose: Copies a 4x4 placement into CM::mat (+0x60..0x9F) then UpdateCmMat4
- * Info: proposed name SetCmMat4 (T1); TU cm
- * Notes: names_v2 B proposed ResetCmAdjust__FP2CMP2SOP6CPDEFI (0.856)
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Copies a 4x4 placement into CM::mat (+0x60..0x9F) then UpdateCmMat4. (inferred)
 extern "C" void SetCmMat4(CM *pcm, qword *pmat)
 {
     ((qword *)&pcm->mat)[0] = pmat[0];
@@ -715,14 +634,8 @@ static __inline__ void LoadM4(M4 *pm, M3 m, qword pos)
     pm->m.r[0].w = 0;
     pm->pos.w = 1.0f;
 }
-/** @sly2-annot addr=0x14E1A8
- * Purpose: Place camera at pos looking at target, with extra pan/tilt offsets: pan/tilt from (tgt-pos)
- *   (0x11EFB0), rotation 0x11B720, pos row, UpdateCmMat4
- * Info: proposed name SetCmLookAt (T1); TU cm
- * Notes: names_v2 B proposed GetCmCpdefi__FP2CMP2SOfP6CPDEFI (0.985)
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Place camera at pos looking at target, with extra pan/tilt offsets: pan/tilt from (tgt-pos) (0x11EFB0), rotation
+// 0x11B720, pos row, UpdateCmMat4. (inferred)
 void func_0014E1A8(struct CM *p, qword pos, qword tgt, float da, float db)
 {
     qword d;
@@ -738,13 +651,8 @@ namespace M_BuildCmFgfn { extern "C" {
 extern float D_002A4FF8;
 void FitRecipFunction__FffffPfT4(float a, float b, float c, float d, float *pa, float *pb);
 struct P { char pad[0x240]; float g240, g244, g248; };
-/** @sly2-annot addr=0x14E270
- * Purpose: Builds the GS fog function (FGFN) from sNearFog/sFarFog/uFogMax (+0x240..0x248): linear map to
- *   0..4080, +8417280 bias
- * Info: proposed name BuildCmFgfn (T1); TU cm
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Builds the GS fog function (FGFN) from sNearFog/sFarFog/uFogMax (+0x240..0x248): linear map to 0..4080, +8417280
+// bias.
 void BuildCmFgfn(struct P *p, float *af, float f)
 {
     if (f == D_002A4FF8) f = 1.0f;
@@ -768,16 +676,8 @@ struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; flo
 extern struct CLOCK D_002DDED0;
 void *memmove(void *dst, void *src, int cb);
 static inline void Move(void *pvDst, void *pvSrc, int cb) { memmove(pvDst, pvSrc, cb); }
-/** @sly2-annot addr=0x14E328
- * Purpose: Insert {cpp,pcplcy,psoFocus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4
- *   Set(pv); if new top: prev vt3 Deactivate, tModeStart=clock.t, vt2 Activate
- * Info: proposed name SetCmPolicy (T1); TU cm
- * Notes: runtime: CM policy stack acpr[8] at +0x310 sorted by priority confirmed
- * Confidence: high [T1 0.95] - evidence: runtime (save-state RAM); semantic review; sources:
- *   r2_131F70+runtime
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Insert {cpp,pcplcy,psoFocus,pv} into priority-sorted acpr[8] (+0x30C count); call pcplcy vt4 Set(pv); if new top:
+// prev vt3 Deactivate, tModeStart=clock.t, vt2 Activate.
 void SetCmPolicy(struct P *p, int prio, struct O *po, int a, int b)
 {
     int i;
@@ -819,14 +719,8 @@ struct O { int pad[3]; struct VTE *vt; };
 struct E { int prio; struct O *po; int a; int b; };
 struct P { char pad[0x30C]; int c; struct E ae[8]; char pad2[0x390 - 0x390]; float t; };
 extern struct CLOCK D_002DDED0;
-/** @sly2-annot addr=0x14E4C8
- * Purpose: Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if
- *   top removed: Deactivate it and Activate new top
- * Info: proposed name RevokeCmPolicy (T1); TU cm
- * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Remove acpr[] entries matching grf mask (1 cpp, 2 pcplcy, 4 psoFocus, 8 pv), vt5 Revoke each; if top removed:
+// Deactivate it and Activate new top.
 void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
 {
     struct E *peOut;
@@ -876,12 +770,7 @@ void RevokeCmPolicy(struct P *p, int grf, int prio, struct O *po, int a, int b)
 
 namespace M_CalcCmAdjust { extern "C" {
 void SetVectorCylind(void *a, void *b, float x, float y, float z);
-/** @sly2-annot addr=0x14E698
- * Purpose: dposAdjust = cylindrical vector (radHome+PI, sAdjust) from CPDEFI +0x30/+0x34 via 0x11E1A0
- * Info: proposed name CalcCmAdjust (T1); TU cm
- * Confidence: mid (draft) [T1 0.70] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// DposAdjust = cylindrical vector (radHome+PI, sAdjust) from CPDEFI +0x30/+0x34 via 0x11E1A0. (inferred)
 void CalcCmAdjust(void *a, char *b)
 {
     SetVectorCylind(a, b, *(float *)(b + 0x30) + 3.14159265f, *(float *)(b + 0x34), 0.0f);
@@ -895,14 +784,8 @@ typedef union { qword q; float f[4]; } VU;
 struct CLOCK { float t; union { float g; int n; } dt; };
 extern struct CLOCK D_002DDED0;
 struct P { char pad[0x300]; int f300; };
-/** @sly2-annot addr=0x14E6D0
- * Purpose: Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps
- *   and zeroes v when nCut
- * Info: proposed name SpringCm (T1); TU cm
- * Notes: names_v2 v1 proposed RemoveCmFadeObject__FP2CMP3ALO (0.167)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Critically-damped spring of *ppos/ *pv toward target with (rSpring,rDamping) and clock dt; snaps and zeroes v when
+// nCut.
 void func_0014E6D0(struct P *p, qword *ppos, float *pvel, qword target, float k1, float k2)
 {
     register struct CLOCK *pclock __asm__("v0");
@@ -953,13 +836,8 @@ extern qword D_002A2DD0;
 qword CalcCmAdjust(struct P *p, struct S *ps);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int k);
 void func_0014E6D0(struct P *p, qword *ppos, qword *pvel, qword target, float k1, float k2);
-/** @sly2-annot addr=0x14E768
- * Purpose: Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4
- *   (0/1/2) different gains; writes cpdefi.posAdjust = posBase + dposAdjust
- * Info: proposed name AdjustCmCpdefi (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Springs dposAdjust/dposFocus (+0x2C0/+0x2E0) toward CalcCmAdjust; per STEPPLAYER mode +0x4F4 (0/1/2) different
+// gains; writes cpdefi.posAdjust = posBase + dposAdjust.
 void AdjustCmCpdefi(struct P *p, struct O *po, struct S *ps)
 {
     qword q = CalcCmAdjust(p, ps);
@@ -989,12 +867,7 @@ void AdjustCmCpdefi(struct P *p, struct O *po, struct S *ps)
 }
 } } // namespace M_AdjustCmCpdefi
 
-/** @sly2-annot addr=0x14E920
- * Purpose: dposAdjust = CalcCmAdjust(); zero vAdjust (+0x2D0) and vFocus (+0x2F0)
- * Info: proposed name ResetCmAdjust (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// DposAdjust = CalcCmAdjust(); zero vAdjust (+0x2D0) and vFocus (+0x2F0)
 static inline void ZeroVector(VECTOR *pv)
 {
     pv->z = 0.0f;
@@ -1015,13 +888,8 @@ struct VTE { short d; short pad; void (*pfn)(void *, struct S *); };
 struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0x260]; struct O *po; int pad2[3]; struct S s; };
 qword CalcCmAdjust(struct P *p, struct S *ps);
-/** @sly2-annot addr=0x14E968
- * Purpose: If pso == psoAdjust(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and posAdjust =
- *   posBase + CalcCmAdjust
- * Info: proposed name GetCmCpdefi (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// If pso == psoAdjust(+0x260) copy cached cpdefi (+0x270) else pso->vt50 GetCpdefi and posAdjust = posBase +
+// CalcCmAdjust.
 void GetCmCpdefi(struct P *p, struct O *po, struct S *ps)
 {
     if (po == p->po) {
@@ -1045,13 +913,8 @@ struct O { char pad[0x70]; int c; struct T *at; };
 struct HIT { char pad[0x40]; float g40; float g44; char pad2[0x18]; };
 int func_00118668(struct T *pBegin, struct T *pEnd, qword pos, qword dir, int c, struct HIT *ahit);
 int ClsgMergeAlsg(int c, struct HIT *ahit, int cNew, struct HIT *ahitNew, int cMax, struct HIT *ahitOut, int f);
-/** @sly2-annot addr=0x14EA08
- * Purpose: Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8),
- *   returns first clear gap > duMin in *puFrom/ *puTo
- * Info: proposed name FFindCmClearInterval (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Clips segment pos->dir against each SO's camera BSP (0x118668), merges intervals (0x14C9F8), returns first clear gap
+// > duMin in *puFrom/ *puTo.
 int FFindCmClearInterval(int n, struct O **apo, qword pos, qword dir, float *pgMin, float *pgMax, float g)
 {
     struct HIT ahit[0x40];
@@ -1116,13 +979,7 @@ static inline qword VecCombo(VU_FLOAT f1, VU_VECTOR v1, VU_FLOAT f2, VU_VECTOR v
     return r;
 }
 
-/** @sly2-annot addr=0x14EB70
- * Purpose: Samples 9 tilts x D_002BD8B0[i] pans at radius g, padding 5/g, returns closest clear position
- * Info: proposed name FindCmClosestClearPos (T1); TU cm
- * Notes: names_v2 v1 proposed UpdateCmFade (0.200)
- * Confidence: high [T1 0.90] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Samples 9 tilts x D_002BD8B0[i] pans at radius g, padding 5/g, returns closest clear position.
 qword FindCmClosestClearPos(void *p, void *x, qword pos, float g)
 {
     float t, u;
@@ -1187,13 +1044,8 @@ static inline void *PvAlloc(int cb, int cbAlign)
     return PvAllocSlot__FP8ALLOCREQ(&al);
 }
 
-/** @sly2-annot addr=0x14EDA0
- * Purpose: Collects sphere-vs-BSP contacts (0x1A93C8) for the eye, builds n x n normal dot matrix +
- *   constraint values via pfn, solves (0x11AD30) and returns v + sum of normal impulses
- * Info: proposed name SquishCmEye (T1); TU cm
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Collects sphere-vs-BSP contacts (0x1A93C8) for the eye, builds n x n normal dot matrix + constraint values via pfn,
+// solves (0x11AD30) and returns v + sum of normal impulses.
 qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, qword, struct X *),
                     qword pos, qword v, float g, float h)
 {
@@ -1252,12 +1104,7 @@ qword SquishCmEye(void *p, int c, struct LO **apo, float (*pfn)(void *, qword, q
 }
 } } // namespace M_SquishCmEye
 
-/** @sly2-annot addr=0x14F030
- * Purpose: Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0)
- * Info: proposed name FFilterCamera (T1); TU cm
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Filter callback: true if SO has camera-BSP nodes (+0x70 count > 0) (inferred)
 /* Camera filter callback: accepts objects whose +0x70 word is positive. */
 extern "C" int FFilterCamera(void *pv, LO *plo)
 {
@@ -1301,13 +1148,7 @@ static __inline__ float GDot(const qword *pa, qword b)
     __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(d));
     return g;
 }
-/** @sly2-annot addr=0x14F040
- * Purpose: Constraint for SquishCmEye: GSmooth(dist-to-plane, sNearCorner(+0x48) - k) ; return dot(vEye,
- *   normal) - smoothed
- * Info: proposed name SvSquishCmEyeConstraint (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Constraint for SquishCmEye: GSmooth(dist-to-plane, sNearCorner(+0x48) - k) ; return dot(vEye, normal) - smoothed.
 float SvSquishCmEyeConstraint(struct P *p, int unused, qword vIn, struct PL *pl)
 {
     float r;
@@ -1359,14 +1200,7 @@ static inline qword QwSqrt(const qword &a) { qword r; __asm__("vsqrt $Q, %1x\n\t
 static inline float GXOfQw(const qword &q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static inline float Length(const qword &v) { return GXOfQw(QwSqrt(QwDot(v, v))); }
 
-/** @sly2-annot addr=0x14F110
- * Purpose: vEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return
- *   prev + vClip*dt
- * Info: proposed name ClipCmEye (T1); TU cm
- * Notes: names_v2 v1 proposed SetupCmRotateToCam (0.005)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// VEye=(next-prev)/dtPrev; gather camera-colliding SOs in a box around prev; SquishCmEye; return prev + vClip*dt.
 qword func_0014F110(void *p, qword pos, qword posTarget)
 {
     CLOCK *pclock = &D_002DDED0;
@@ -1397,12 +1231,7 @@ static __inline__ qword Mul(M4 *pm, qword v)
             : "=j"(o) : "j"(v), "j"(pm->r[0]), "j"(pm->r[1]), "j"(pm->r[2]), "j"(pm->r[3]));
     return o;
 }
-/** @sly2-annot addr=0x14F268
- * Purpose: Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat
- * Info: proposed name ConvertCmScreenToWorld (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Screen (x,y,depth) -> world: axis swap, scale by tanHalfX/Y (+0x40/+0x44), multiply by CM::mat.
 qword ConvertCmScreenToWorld(struct CM *p, qword v)
 {
     union { qword q; float f[4]; } r;
@@ -1428,12 +1257,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { qword r[4]; } M4;
 struct CM { char pad[0x40]; float sx, sy; char pad2[0x18]; M4 mat; };
 void InvertMatrix4Rigid(M4 *pm, M4 *pn);
-/** @sly2-annot addr=0x14F308
- * Purpose: World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4)
- * Info: proposed name ConvertCmWorldToScreen (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// World -> screen: inverse(CM::mat) * pos, axis swap, divide by tanHalf and depth (if > 1e-4)
 qword ConvertCmWorldToScreen(struct CM *p, qword v)
 {
     union { qword q; float f[4]; } r;
@@ -1469,13 +1293,7 @@ typedef union { struct { qword r[4]; } q; float af[4][4]; } M4;
 struct CM { char pad[0x60]; M4 mat; };
 qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(struct CM *p, M4 *m);
-/** @sly2-annot addr=0x14F3C8
- * Purpose: Option setter (g_aeopid[171], otyp 2 vector): keep rotation, set CM::mat pos row, SetCmMat4
- * Info: proposed name SetCmPos (T1); TU cm
- * Notes: names_v2 v1 proposed SetupCm__FP2CM (0.438)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Option setter (g_aeopid[171], otyp 2 vector): keep rotation, set CM::mat pos row, SetCmMat4.
 void SetCmPos(struct CM *p, qword pos)
 {
     M4 m = p->mat;
@@ -1489,13 +1307,7 @@ namespace M_SetCmMat { extern "C" {
 #include "mat.h"
 struct CM { char pad[0x90]; struct VECTOR pos; };
 void SetCmMat4(struct CM *p, struct MATRIX4 *m);
-/** @sly2-annot addr=0x14F428
- * Purpose: Set rotation from MATRIX3, keep pos, SetCmMat4
- * Info: proposed name SetCmMat (T1); TU cm
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
+// Set rotation from MATRIX3, keep pos, SetCmMat4. (inferred)
 void SetCmMat(struct CM *p, struct MATRIX3 *pmat)
 {
     struct MATRIX4 m;
@@ -1525,14 +1337,7 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 qword func_0011BFF0(void *p);
-/** @sly2-annot addr=0x14F478
- * Purpose: Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees
- * Info: proposed name GetCmRotDeg (T1); TU cm
- * Notes: names_v2 v1 proposed SetCmPosMat__FP2CMP6VECTORP7MATRIX3 (0.167)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources:
- *   r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Option getter (g_aeopid[173]): euler angles of CM::mat (0x11BFF0) in degrees.
 qword GetCmRotDeg(char *p)
 {
     union { qword q; float f; } r;
@@ -1563,13 +1368,7 @@ typedef union { struct { qword r[4]; } q; M3 m3; float af[4][4]; } M4;
 struct CM { char pad[0x60]; M4 mat; };
 void LoadRotateMatrixEuler(M3 *pm, qword v);
 void SetCmMat4(struct CM *p, M4 *m);
-/** @sly2-annot addr=0x14F4E0
- * Purpose: Option setter (g_aeopid[173]): degrees -> radians, rotation matrix 0x11B628, keep pos, SetCmMat4
- * Info: proposed name SetCmRotDeg (T1); TU cm
- * Notes: names_v2 v1 proposed ConvertCylindToWorldVelocity (0.200)
- * Confidence: mid (draft) [T1 0.60] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Option setter (g_aeopid[173]): degrees -> radians, rotation matrix 0x11B628, keep pos, SetCmMat4. (inferred)
 void SetCmRotDeg(struct CM *p, qword v)
 {
     M4 mat = p->mat;
@@ -1588,12 +1387,7 @@ void SetCmRotDeg(struct CM *p, qword v)
 namespace M_SetCmFov__FP2CMf { extern "C" {
 struct CM { char pad[0x20]; float a, b; int c; };
 void RecalcCmFrustrum__FP2CM(struct CM *p);
-/** @sly2-annot addr=0x14F5A0
- * Purpose: fov(+0x20)=fovTarget(+0x24)=f, dfov=0; RecalcCmFrustrum if changed > 1e-4
- * Info: proposed name SetCmFov (T1); TU cm
- * Confidence: high [T1 0.90] - evidence: semantic review; sources: r2_131F70+verdicts_tu_r1r2
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Fov(+0x20)=fovTarget(+0x24)=f, dfov=0; RecalcCmFrustrum if changed > 1e-4.
 void SetCmFov__FP2CMf(struct CM *p, float f)
 {
     int fChanged = __builtin_fabsf(f - p->a) > 0.0001f;
@@ -1604,13 +1398,8 @@ void SetCmFov__FP2CMf(struct CM *p, float f)
 }
 } } // namespace M_SetCmFov__FP2CMf
 
-/** @sly2-annot addr=0x14F5F8
- * Purpose: Option setter g_aeopid[162] (field +0x24): fovTarget=f and the active policy's saved fov
- *   (acpr[0].pcplcy+4) so Deactivate restores it
- * Info: proposed name SetCmBaseFovTarget (T1); TU cm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Option setter g_aeopid[162] (field +0x24): fovTarget=f and the active policy's saved fov (acpr[0].pcplcy+4) so
+// Deactivate restores it. (inferred)
 extern "C" void SetCmBaseFovTarget(CM *pcm, float fovTarget)
 {
     CPLCY *pcplcy = pcm->acpr[0].pcplcy;
@@ -1620,24 +1409,14 @@ extern "C" void SetCmBaseFovTarget(CM *pcm, float fovTarget)
     }
 }
 
-/** @sly2-annot addr=0x14F610
- * Purpose: sNearClip(+0x4C)=f; RecalcCmFrustrum
- * Info: proposed name SetCmNearClip (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// SNearClip(+0x4C)=f; RecalcCmFrustrum.
 void SetCmNearClip(CM *pcm, float sNearClip)
 {
     pcm->sNearClip = sNearClip;
     RecalcCmFrustrum(pcm);
 }
 
-/** @sly2-annot addr=0x14F630
- * Purpose: Option setter g_aeopid[164]: SetCmNearClip and the active policy's saved near clip (pcplcy+8)
- * Info: proposed name SetCmBaseNearClip (T1); TU cm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Option setter g_aeopid[164]: SetCmNearClip and the active policy's saved near clip (pcplcy+8) (inferred)
 extern "C" void SetCmBaseNearClip(CM *pcm, float sNearClip)
 {
     CPLCY *pcplcy;
@@ -1648,49 +1427,28 @@ extern "C" void SetCmBaseNearClip(CM *pcm, float sNearClip)
     }
 }
 
-/** @sly2-annot addr=0x14F670
- * Purpose: sFarClip(+0x50)=f; RecalcCmFrustrum
- * Info: proposed name SetCmFarClip (T1); TU cm
- * Notes: names_v2 v1 proposed SetCmCut__FP2CMPf (0.000)
- * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// SFarClip(+0x50)=f; RecalcCmFrustrum.
 void SetCmFarClip(CM *pcm, float g)
 {
     pcm->sFarClip = g;
     RecalcCmFrustrum(pcm);
 }
 
-/** @sly2-annot addr=0x14F690
- * Purpose: sNearFog(+0x240)=f; RecalcCmFrustrum
- * Info: proposed name SetCmNearFog (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// SNearFog(+0x240)=f; RecalcCmFrustrum.
 void SetCmNearFog(CM *pcm, float g)
 {
     pcm->sNearFog = g;
     RecalcCmFrustrum(pcm);
 }
 
-/** @sly2-annot addr=0x14F6B0
- * Purpose: sFarFog(+0x244)=f; RecalcCmFrustrum
- * Info: proposed name SetCmFarFog (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70+verdicts_B
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// SFarFog(+0x244)=f; RecalcCmFrustrum.
 void SetCmFarFog(CM *pcm, float g)
 {
     pcm->sFarFog = g;
     RecalcCmFrustrum(pcm);
 }
 
-/** @sly2-annot addr=0x14F6D0
- * Purpose: uFogMax(+0x248)=f; RecalcCmFrustrum
- * Info: proposed name SetCmUFogMax (T1); TU cm
- * Confidence: high [T1 0.85] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// UFogMax(+0x248)=f; RecalcCmFrustrum.
 void SetCmUFogMax(CM *pcm, float g)
 {
     pcm->uFogMax = g;
@@ -1702,12 +1460,7 @@ struct S4 { char a[4]; };
 struct CM { char pad[0x24C]; struct S4 s; };
 void ColorCorrectRgba(void *p);
 void RecalcCmFrustrum__FP2CM(struct CM *p);
-/** @sly2-annot addr=0x14F6F0
- * Purpose: rgbaFog(+0x24C)=*prgba; 0x1ED278 on it; RecalcCmFrustrum
- * Info: proposed name SetCmRgbaFog (T1); TU cm
- * Confidence: high [T1 0.80] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// RgbaFog(+0x24C)=*prgba; 0x1ED278 on it; RecalcCmFrustrum.
 void SetCmRgbaFog__FP2CMP4RGBA(struct CM *p, struct S4 *s)
 {
     p->s = *s;
@@ -1716,13 +1469,7 @@ void SetCmRgbaFog__FP2CMP4RGBA(struct CM *p, struct S4 *s)
 }
 } } // namespace M_SetCmRgbaFog__FP2CMP4RGBA
 
-/** @sly2-annot addr=0x14F730
- * Purpose: rMRD ratio (+0x18)=f; RecalcCmFrustrum (which derives +0x1C = max(r/fov,1))
- * Info: proposed name SetCmMrdRatio (T1); TU cm
- * Notes: names_v2 v1 proposed ClearCmCut__FP2CM (0.000)
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// RMRD ratio (+0x18)=f; RecalcCmFrustrum (which derives +0x1C = max(r/fov,1)) (inferred)
 void SetCmMrdRatio(CM *pcm, float g)
 {
     pcm->rFovCullRef = g;
@@ -1731,13 +1478,7 @@ void SetCmMrdRatio(CM *pcm, float g)
 
 namespace M_func_0014F750 { extern "C" {
 extern float D_002DDED0;
-/** @sly2-annot addr=0x14F750
- * Purpose: tJolt(+0x618)=clock.t, nUnk61c=arg: starts the 0.5 s camera shake applied by UpdateCmMat4
- * Info: proposed name JoltCm (T1); TU cm
- * Notes: names_v2 v1 proposed FUN_00145dd8__FPvP2SO (0.000)
- * Confidence: high [T1 0.80] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// TJolt(+0x618)=clock.t, nUnk61c=arg: starts the 0.5 s camera shake applied by UpdateCmMat4.
 void func_0014F750(char *p, int a)
 {
     *(float *)(p + 0x618) = D_002DDED0;
@@ -1752,7 +1493,7 @@ typedef struct { qword r[3]; } M3;
 typedef struct { qword r[4]; } M4;
 struct CM { char pad[0x60]; M3 mat; qword pos; char pad2[0x100 - 0xA0]; char m100[0x520]; float x620; };
 void VECTOR_opAssign(qword *p, qword v);
-void func_0014D8F8(M4 *pm, void *pv, int n);
+void CombineEyeLookAtProj(M4 *pm, void *pv, int n);
 static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 {
     pm->r[0] = pmat->r[0];
@@ -1763,15 +1504,8 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
     ((int *)&pm->r[0])[3] = 0;
     ((float *)&pm->r[3])[3] = 1.0f;
 }
-/** @sly2-annot addr=0x14F768
- * Purpose: Builds a view-proj from CM::mat with pos offset along the right axis by +/- rUnk620 (k=1/2) via
- *   CombineEyeLookAtProj into pm (proj = pv or matProj)
- * Info: proposed name BuildCmEyeViewProj (T2); TU cm
- * Confidence: low (draft) [T2 0.40] - evidence: semantic review; sources: r2_131F70
- * See: docs/engine/rendering.md#8-blips-hud-screen-effects,
- *   docs/guides/port-plan.md#54-native-overrides-of-game-functions-when-and-how,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// Builds a view-proj from CM::mat with pos offset along the right axis by +/- rUnk620 (k=1/2) via CombineEyeLookAtProj
+// into pm (proj = pv or matProj) (inferred)
 void func_0014F768(struct CM *p, int k, void *pv, int n, M4 *pm)
 {
     U r, g;
@@ -1792,20 +1526,15 @@ void func_0014F768(struct CM *p, int k, void *pv, int n, M4 *pm)
     }
     VECTOR_opAssign(&pm->r[3], r.q);
     LoadM4(pm, &p->mat);
-    func_0014D8F8(pm, pv ? pv : p->m100, n);
+    CombineEyeLookAtProj(pm, pv ? pv : p->m100, n);
 }
 } } // namespace M_func_0014F768
 
 namespace M_FInsideCmFrustum { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct X { char pad[0xA0]; qword r[3]; };
-/** @sly2-annot addr=0x14F850
- * Purpose: True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0)
- *   and VU clip flags
- * Info: proposed name FInsideCmFrustum (T1); TU cm
- * Confidence: mid (draft) [T1 0.50] - evidence: semantic review; sources: r2_131F70
- * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// True if point/sphere is inside all 4 frustum side planes using the transposed cull rows (+0xA0) and VU clip flags.
+// (inferred)
 int FInsideCmFrustum(struct X *p, qword v, qword w)
 {
     qword one;
@@ -1820,14 +1549,7 @@ int FInsideCmFrustum(struct X *p, qword v, qword w)
 namespace M_FInsideCmMrd { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct P { int pad[7]; float g1C; };
-/** @sly2-annot addr=0x14F898
- * Purpose: True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale)
- * Info: proposed name FInsideCmMrd (T1); TU cm
- * Notes: names_v2 v1 proposed FUN_00145de8 (0.000)
- * Confidence: mid (draft) [T1 0.75] - evidence: semantic review; static naming pass; sources: r2_131F70
- * See: docs/engine/rendering.md#10-models-globset-at-render-time-cstatic,
- *   docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8
- * @end-sly2-annot */
+// True if |dpos| < s*rCullScale; *pu = fade fraction between outer radius and (r-400*rCullScale) (inferred)
 int FInsideCmMrd(struct P *p, qword v, float g, float *pu)
 {
     qword l, one;

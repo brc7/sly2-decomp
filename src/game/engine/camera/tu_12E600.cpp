@@ -1,6 +1,8 @@
-// tu_12E600.cpp -- a camera object (an XFM placed in the level; +0x100/+0x110 two axes) and CPCAMERA, the camera
-// policy that puts the camera manager at it (matrix, look-at target, field of view). VU0 asm (one function).
-// TU 0x12E600..0x12EB48 (13 functions, address order).
+// tu_12E600.cpp -- CAMERA (class cid 0x2C), a camera placed in the level by the designers (an XFM with an optional
+// look-at target, a focal length and a field of view), and CPCAMERA, the camera policy that puts the camera manager at
+// such a camera. A camera pushes the policy when it enters the world hierarchy (or at load, flag bit 60) and revokes
+// it when it leaves. Entry points: CID44::Init, PostCameraLoad, Add/RemoveCameraHierarchy, CPCAMERA::Activate,
+// DeactivateCpcamera, UpdateCpcamera (VU0 asm). TU 0x12E600..0x12EB48 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_12E600
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012EB28
 #include "sly2/slotheap.h"
@@ -20,21 +22,21 @@ typedef struct { qwordV r[4]; } M4;
 struct CAMERA
 {
     char pad0[0x28];
-    unsigned long fl;       /* +0x028 bit 60: policy on at load */
+    unsigned long flags;    /* +0x028 bit 60: policy on at load */
     char pad30[0xB0];
-    CAMERA *psoTarget;      /* +0x0E0 look-at target (0: use the object's matrix) */
+    CAMERA *lookAtTarget;   /* +0x0E0 look-at target (0: use the object's matrix) */
     char padE4[0x1C];
-    qwordV q100;             /* +0x100 */
-    qwordV q110;             /* +0x110 */
-    int fCut;               /* +0x120 cut the camera when the policy ends */
-    int fPolicy;            /* +0x124 the policy is set while in the hierarchy */
-    float g128;             /* +0x128 focal length (field of view = 2 atan(18 / g)) */
-    int cFov;               /* +0x12C > 0: set the field of view from g128 */
-    float gFov;             /* +0x130 */
+    qwordV axis100;          /* +0x100 initialized to D_002A2DA0 (meaning unknown) */
+    qwordV axis110;          /* +0x110 initialized to D_002A2DC0 (meaning unknown) */
+    int cutOnEnd;           /* +0x120 cut the camera when the policy ends */
+    int hasPolicy;          /* +0x124 the policy is set while in the hierarchy */
+    float focalLength;      /* +0x128 focal length (field of view = 2 atan(18 / focalLength)) */
+    int fovRequests;        /* +0x12C > 0: set the field of view from focalLength */
+    float fov;              /* +0x130 field of view set on activation (0: keep) */
 };
-typedef char assert_CAMERA_gFov[(unsigned int)&((CAMERA *)0)->gFov == 0x130 ? 1 : -1];
+typedef char assert_CAMERA_fov[(unsigned int)&((CAMERA *)0)->fov == 0x130 ? 1 : -1];
 /* CPCAMERA: a camera policy (CPLCY, vtable at +0xC) and the camera it uses. */
-struct CPCAMERAV { char pad[0xC]; void *vt; CAMERA *pcamera; };
+struct CPCAMERAV { char pad[0xC]; void *vtable; CAMERA *camera; };
 
 extern char D_002DDF40[];   /* g_cm */
 extern U D_002A2DA0, D_002A2DC0;
@@ -59,150 +61,93 @@ void SetCmMat4(void *pcm, M4 *pm);
 float atanf(float g);
 }
 
-/** @sly2-annot addr=0x12E600
- * Purpose: vtable slot 7 (Init) of class cid 0x2C (XFM child, 0x140 B): InitXfm (0x231100) then field init
- * Info: proposed name InitCid44 (T2); class CID44 slot7; TU tu_12E600
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/engine/animation.md#6-source-files, docs/engine/animation.md#open-questions,
- *   docs/engine/camera.md#4-source-files
- * @end-sly2-annot */
+// Initializes a camera object (class cid 0x2C, vtable slot 7): XFM init, then the two vectors at +0x100/+0x110.
 void CID44::Init()
 {
-    CAMERA *p = (CAMERA *)this;
-    InitXfm(p);
-    p->q100 = D_002A2DA0.q;
-    p->q110 = D_002A2DC0.q;
+    CAMERA *camera = (CAMERA *)this;
+    InitXfm(camera);
+    camera->axis100 = D_002A2DA0.q;
+    camera->axis110 = D_002A2DC0.q;
 }
 
-/** @sly2-annot addr=0x12E648
- * Purpose: slot 15: PostLoLoad then SetCmPolicy (0x14E328) with its embedded camera policy
- * Info: proposed name PostCid44Load (T2); class CID44 slot15; TU tu_12E600
- * Confidence: low (draft) [T2 0.55] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" void func_0012E648(CAMERA *t)
+// Post-load (vtable slot 15): LO post-load, marks the camera as policy-bearing, and if its flags say so (bit 60) pushes
+// the camera manager's CPCAMERA policy (g_cm+0x4A8, priority 10) with this camera right away.
+extern "C" void PostCameraLoad(CAMERA *camera)
 {
-    PostLoLoad(t);
-    t->fPolicy = 1;
-    if ((int)(t->fl >> 60) & 1)
-        SetCmPolicy(D_002DDF40, 10, D_002DDF40 + 0x4A8, 0, t);
+    PostLoLoad(camera);
+    camera->hasPolicy = 1;
+    if ((int)(camera->flags >> 60) & 1)
+        SetCmPolicy(D_002DDF40, 10, D_002DDF40 + 0x4A8, 0, camera);
 }
 
-/** @sly2-annot addr=0x12E6A0
- * Purpose: slot 11: AddLoHierarchy (0x1A5800) + SetCmPolicy
- * Info: proposed name AddCid44Hierarchy (T2); class CID44 slot11; TU tu_12E600
- * Notes: slot 11 is AddHierarchy (CONFLICTS#5: LO base 0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy;
- *   OnAdd/OnRemove are slots 23/22 per arbitration); was OnCid44Add
- * Confidence: low (draft) [T2 0.45] - evidence: arbitration; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" void func_0012E6A0(CAMERA *t)
+// Added to the world hierarchy (vtable slot 11): pushes the CPCAMERA policy with this camera.
+extern "C" void AddCameraHierarchy(CAMERA *camera)
 {
-    AddLoHierarchy(t);
-    if (t->fPolicy)
-        SetCmPolicy(D_002DDF40, 10, D_002DDF40 + 0x4A8, 0, t);
+    AddLoHierarchy(camera);
+    if (camera->hasPolicy)
+        SetCmPolicy(D_002DDF40, 10, D_002DDF40 + 0x4A8, 0, camera);
 }
 
-/** @sly2-annot addr=0x12E6E8
- * Purpose: slot 12: RemoveLoHierarchy (0x1A5848) + RevokeCmPolicy (0x14E4C8)
- * Info: proposed name RemoveCid44Hierarchy (T2); class CID44 slot12; TU tu_12E600
- * Notes: slot 12 is RemoveHierarchy (CONFLICTS#5: LO base 0x1A5800/0x1A5848 AddLoHierarchy/RemoveLoHierarchy;
- *   OnAdd/OnRemove are slots 23/22 per arbitration); was OnCid44Remove
- * Confidence: low (draft) [T2 0.45] - evidence: arbitration; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" void func_0012E6E8(CAMERA *t)
+// Removed from the world hierarchy (vtable slot 12): revokes the CPCAMERA policy it pushed.
+extern "C" void RemoveCameraHierarchy(CAMERA *camera)
 {
-    RemoveLoHierarchy(t);
-    if (t->fPolicy)
-        RevokeCmPolicy(D_002DDF40, 15, 10, D_002DDF40 + 0x4A8, 0, t);
+    RemoveLoHierarchy(camera);
+    if (camera->hasPolicy)
+        RevokeCmPolicy(D_002DDF40, 15, 10, D_002DDF40 + 0x4A8, 0, camera);
 }
 
-/** @sly2-annot addr=0x12E738
- * Purpose: slot 43: 8-byte stub
- * Info: proposed name CID44_Slot43 (T2); class CID44 slot43; TU tu_12E600
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" float *func_0012E738(CAMERA *p)
+// Vtable slot 43: returns the address of the focal length (lets the property/animation system drive it) (inferred).
+extern "C" float *GetCameraFocalLengthField(CAMERA *camera)
 {
-    return &p->g128;
+    return &camera->focalLength;
 }
 
-/** @sly2-annot addr=0x12E740
- * Purpose: slot 44: 16-byte accessor
- * Info: proposed name CID44_Slot44 (T2); class CID44 slot44; TU tu_12E600
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" void func_0012E740(CAMERA *p)
+// Vtable slot 44: one more request to derive the field of view from the focal length (see UpdateCpcamera) (inferred).
+extern "C" void IncrementCameraFovRequests(CAMERA *camera)
 {
-    p->cFov = p->cFov + 1;
+    camera->fovRequests = camera->fovRequests + 1;
 }
 
-/** @sly2-annot addr=0x12E750
- * Purpose: slot 45: 16-byte accessor
- * Info: proposed name CID44_Slot45 (T2); class CID44 slot45; TU tu_12E600
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" void func_0012E750(CAMERA *p)
+// Vtable slot 45: drops one such request (inferred).
+extern "C" void DecrementCameraFovRequests(CAMERA *camera)
 {
-    p->cFov = p->cFov - 1;
+    camera->fovRequests = camera->fovRequests - 1;
 }
 
-/** @sly2-annot addr=0x12E760
- * Purpose: Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr)
- * Info: proposed name CPCAMERA_ctor (T1); class CPCAMERA; TU tu_12E600
- * Notes: verifier PLAUSIBLE: CplcyCid44::CplcyCid44 -> CPCAMERA::CPCAMERA | verifier: purpose partly wrong:
- *   CPLCY ctor then vtable 0x2CAB90. The CM ctor 0x14D3D8 calls it for CM+0x4A8 = Lilly 'CPCAMERA part4a8'
- *   (CPCAMERA : CPLCY {CID44 *pcamera}). It is embedded in CM
- * Confidence: mid (draft) [T1 0.60] - evidence: Sly 1 / Lilly reference; sources: r1_116918+verdicts_tu_r1r2
- * See: docs/engine/camera.md#3-camera-policies-cplcycpp-0x14fca8-0x1520c8-plus-tncpp,
- *   docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" CPCAMERAV *CPCAMERA_ctor(CPCAMERAV *p)
+// Constructs the CPLCY-derived camera policy embedded in this class (__5CPLCY 0x14FCA8 then vptr) (inferred)
+extern "C" CPCAMERAV *CPCAMERA_ctor(CPCAMERAV *policy)
 {
-    CPLCY_ctor(p);
-    p->vt = D_002CAB90;
-    return p;
+    CPLCY_ctor(policy);
+    policy->vtable = D_002CAB90;
+    return policy;
 }
 
-/** @sly2-annot addr=0x12E798
- * Purpose: CPLCY::Activate (0x14FCC8) then SetCmFov
- * Info: proposed name ActivateCpcamera (T2); class CPCAMERA; TU tu_12E600
- * Notes: verify r1r2: CplcyCid44 is Lilly CPCAMERA (CM+0x4A8)
- * Confidence: low (draft) [T2 0.40] - evidence: Sly 1 / Lilly reference; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
+// Activates the policy for a camera object: base activation, remembers the camera and applies its field of view if
+// it has one.
 void CPCAMERA::Activate(void *pvHero, void *pv)   /* key function: CPCAMERA's vtable comes out here */
 {
-    CPCAMERAV *t = (CPCAMERAV *)this;
-    void *b = pvHero;
-    CAMERA *s = (CAMERA *)pv;
-    ActivateCplcy(t, b, s);
-    t->pcamera = s;
-    if (s->gFov != 0.0f)
-        SetCmFov__FP2CMf(D_002DDF40, s->gFov);
+    CPCAMERAV *policy = (CPCAMERAV *)this;
+    void *hero = pvHero;
+    CAMERA *camera = (CAMERA *)pv;
+    ActivateCplcy(policy, hero, camera);
+    policy->camera = camera;
+    if (camera->fov != 0.0f)
+        SetCmFov__FP2CMf(D_002DDF40, camera->fov);
 }
 
-/** @sly2-annot addr=0x12E7F0
- * Purpose: CutCm (0x14D8C0) then CPLCY::Deactivate
- * Info: proposed name DeactivateCpcamera (T2); class CPCAMERA; TU tu_12E600
- * Notes: verify r1r2: CplcyCid44 is Lilly CPCAMERA (CM+0x4A8)
- * Confidence: low (draft) [T2 0.40] - evidence: Sly 1 / Lilly reference; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" void func_0012E7F0(CPCAMERAV *t, int b, CAMERA *s)
+// Deactivates the policy for a camera object: if it is the active camera, cuts (no blend) when the camera asks for it
+// and forgets it; then base deactivation.
+extern "C" void DeactivateCpcamera(CPCAMERAV *policy, int hero, CAMERA *camera)
 {
-    if (t->pcamera == s) {
-        if (s->fCut != 0)
+    if (policy->camera == camera) {
+        if (camera->cutOnEnd != 0)
             CutCm__FP2CM(D_002DDF40);
-        t->pcamera = 0;
+        policy->camera = 0;
     }
-    DeactivateCplcy(t, b, s);
+    DeactivateCplcy(policy, hero, camera);
 }
 
+// Copies the three rotation rows of a 3x3 matrix into a 4x4 one.
 static __inline__ void LoadM4(M4 *pm, M3 *pmat)
 {
     pm->r[0] = pmat->r[0];
@@ -210,22 +155,18 @@ static __inline__ void LoadM4(M4 *pm, M3 *pmat)
     pm->r[2] = pmat->r[2];
 }
 // (Claude agent) vmulx outputs into temps, then stores g, mT.r[0], mT.r[1] in that order.
-/** @sly2-annot addr=0x12E858
- * Purpose: Per-frame camera computation for this policy (positions, atanf -> SetCmFov)
- * Info: proposed name UpdateCpcamera (T2); class CPCAMERA; TU tu_12E600
- * Notes: verify r1r2: CplcyCid44 is Lilly CPCAMERA (CM+0x4A8)
- * Confidence: low (draft) [T2 0.35] - evidence: Sly 1 / Lilly reference; sources: r1_116918
- * See: docs/reference/functions/camera.md#tu_12e600-0x12e600-0x12eb48
- * @end-sly2-annot */
-extern "C" void func_0012E858(CPCAMERAV *p)
+// Per-frame update: places the camera at the camera object, looking at its target when it has one, otherwise along
+// the object's own axes (the game's camera space swaps them: forward = -x row, up = row 1). When field-of-view
+// requests are active, sets the fov from the focal length: 2*atan(18/focalLength), clamped to 0.01..3 rad.
+extern "C" void UpdateCpcamera(CPCAMERAV *policy)
 {
-    CAMERA *pso = p->pcamera;
-    if (pso->psoTarget) {
-        qwordV a = func_001A62E8(pso);
-        qwordV b = func_001A62E8(pso->psoTarget);
-        func_0014E1A8(D_002DDF40, a, b, 0.0f, 0.0f);
+    CAMERA *camera = policy->camera;
+    if (camera->lookAtTarget) {
+        qwordV eye = func_001A62E8(camera);
+        qwordV target = func_001A62E8(camera->lookAtTarget);
+        func_0014E1A8(D_002DDF40, eye, target, 0.0f, 0.0f);
     } else {
-        M3 m = *func_001A6318(pso);
+        M3 m = *func_001A6318(camera);
         M3 mT;
         M4 m4;
         U g;
@@ -243,7 +184,7 @@ extern "C" void func_0012E858(CPCAMERAV *p)
         mT.r[1] = t1;
         }
         mT.r[2] = m.r[1];
-        pos = func_001A62E8(pso);
+        pos = func_001A62E8(camera);
         VECTOR_opAssign(&m4.r[3], pos);
         LoadM4(pm, &mT);
         ((int *)&m4.r[2])[3] = 0;
@@ -252,8 +193,8 @@ extern "C" void func_0012E858(CPCAMERAV *p)
         ((float *)&pm->r[3])[3] = 1.0f;
         SetCmMat4(D_002DDF40, pm);
     }
-    if (pso->cFov > 0) {
-        float g = atanf(17.995901107788086f / pso->g128);
+    if (camera->fovRequests > 0) {
+        float g = atanf(17.995901107788086f / camera->focalLength);
         g = GClamp(g + g, 0.01f, 3.0f);
         SetCmFov__FP2CMf(D_002DDF40, g);
     }
