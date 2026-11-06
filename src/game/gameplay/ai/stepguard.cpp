@@ -52,6 +52,15 @@ enum {
     CID_BHV176 = 0xB0,
     CID_BHVJUGGLED = 0xB1,
 };
+/* Guard flags (STEPGUARD +0x2C0, bit n = flag n; each behaviour raises its own: docs/engine/guards-ai.md
+   section 2). Only the identified flags are named. */
+enum {
+    SGF_KO = 0x7,
+    SGF_MOVING = 0x9,
+    SGF_LEAP = 0xF,
+    SGF_JUGGLED = 0x17,
+    SGF_COMBAT = 0x1D,
+};
 
 /* The guard's mover (at STEPGUARD +0xFD0, which guard.h leaves unnamed; tu_144B28.cpp reads the same bytes as a
    JTGOAL): a lock flag and the owning guard at +0xC. */
@@ -376,10 +385,10 @@ int func_00134310(int a, int b);
 int ShouldStepguardIgnoreIntersection(struct S *guard, struct Q *q)
 {
     int r = FIgnoreSoIntersection(guard, q);
-    if (StepguardHasSgf(guard, 7)) {
+    if (StepguardHasSgf(guard, SGF_KO)) {
         if (!((int (*)(void *))q->vt[62].pfn)((char *)q + q->vt[62].d))
             r = func_00134310(r, 1);
-    } else if (StepguardHasSgf(guard, 0x17)) {
+    } else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
         struct O *o = FindBhvInBhvstk(guard->behaviorStack, CID_BHVJUGGLED);
         if (q->pEC == o->pt->pEC) {
             switch (o->k) {
@@ -499,13 +508,13 @@ void ResetStepguardToHome(struct S *guard)
     guard->p2F0->f = guard->homeHeading;
     func_00204660(guard, guard->homeHeading);
     guard->capabilities = 0;
-    if (FindBestAnimBinding(guard, GetSgfMask(9)))
+    if (FindBestAnimBinding(guard, GetSgfMask(SGF_MOVING)))
         guard->capabilities |= 2;
     else
         guard->searchMode = 2;
     if (FindBestAnimBinding(guard, GetSgfMask(8)))
         guard->capabilities |= 4;
-    if (FindBestAnimBinding(guard, GetSgfMask(0xF)))
+    if (FindBestAnimBinding(guard, GetSgfMask(SGF_LEAP)))
         guard->capabilities |= 1;
     if (FindBestAnimBinding(guard, GetSgfMask(0x11)))
         guard->capabilities |= 8;
@@ -683,8 +692,8 @@ void UpdateStepguardDetectTargets(struct P *guard)
     if (!D_003DD488) {
         ulong a = GetSgfMask(5);
         ulong b = GetSgfMask(6);
-        ulong c = GetSgfMask(23);
-        ulong d = GetSgfMask(7);
+        ulong c = GetSgfMask(SGF_JUGGLED);
+        ulong d = GetSgfMask(SGF_KO);
         ulong e = GetSgfMask(16);
         ulong f = GetSgfMask(1);
         ulong g = GetSgfMask(22);
@@ -852,7 +861,7 @@ int CanSetStepguardSpecial(void *p, int k)
     struct X *x;
     if (k == -1)
         return 1;
-    if (StepguardHasSgf(p, 7))
+    if (StepguardHasSgf(p, SGF_KO))
         return 0;
     x = func_00205458(p, CID_BHV169);
     if (x && x->n4C)
@@ -2115,7 +2124,7 @@ long GetSgfMask(int n);
 // stunned, thrown, ...) is set.
 int AreStepguardSensesEnabled(struct S *guard)
 {
-    long m = GetSgfMask(0xB) | GetSgfMask(0x1D) | GetSgfMask(7) | GetSgfMask(5) | GetSgfMask(6)
+    long m = GetSgfMask(0xB) | GetSgfMask(SGF_COMBAT) | GetSgfMask(SGF_KO) | GetSgfMask(5) | GetSgfMask(6)
            | GetSgfMask(0x10) | GetSgfMask(1) | GetSgfMask(0x16) | GetSgfMask(0x2A);
     if (m & guard->fl)
         return 0;
@@ -2159,13 +2168,13 @@ int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
         *pout = d;
     if (!(guard->guardFlags & GetSgfMask(1))) {
         if (guard->unknown364 && x->n10F0) {
-            if (StepguardHasSgf(guard, 0x1D))
+            if (StepguardHasSgf(guard, SGF_COMBAT))
                 o = guard->target;
             else if (StepguardHasSgf(guard, 5))
                 o = func_00205458(guard, CID_BHV161)->p50;
             else if (StepguardHasSgf(guard, 6))
                 o = func_00205458(guard, CID_BHV162)->p50;
-            else if (StepguardHasSgf(guard, 0x17)) {
+            else if (StepguardHasSgf(guard, SGF_JUGGLED)) {
                 o = func_00205458(guard, CID_BHVJUGGLED)->p5C;
                 if (o == x)
                     *pout += D_002C3D90;
@@ -2185,7 +2194,7 @@ int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
         if (pl && !!((pl->fl28 >> 60) & 1) && FCheckVolPoint(pl, func_001A62E8(x)))
             return 3;
     }
-    pv = StepguardHasSgf(guard, 0x17) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
+    pv = StepguardHasSgf(guard, SGF_JUGGLED) ? guard->closeAngleRangeHeld : guard->closeAngleRange;
     if (d <= guard->closeRange * D_002C3D94 && FCheckLm__FP2LMf(pv, ang) && guard->unknown364)
         return 2;
     if (d <= guard->interactRange && FCheckLm__FP2LMf(guard->interactAngleRange, ang) && guard->canInteract)
@@ -2920,7 +2929,7 @@ void StunStepguardThrownOp2(struct S *guard)
         SetBhvThrownState(func_00205458(guard, CID_BHV176), 2);
     } else {
         struct O *o;
-        if (!StepguardHasSgf(guard, 0x17))
+        if (!StepguardHasSgf(guard, SGF_JUGGLED))
             return;
         o = func_00205458(guard, CID_BHVJUGGLED);
         if (o->k != 3 && o->k != 6)
@@ -2950,7 +2959,7 @@ struct O { char pad[0x58]; int n; };
 int StepguardHasSgf(void *p, int n);
 struct O *func_00205458(void *p, int oid);
 // 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
-int GetStepguardJuggledValue(void *p) { if (StepguardHasSgf(p, 0x17)) return func_00205458(p, CID_BHVJUGGLED)->n; return 0; }
+int GetStepguardJuggledValue(void *p) { if (StepguardHasSgf(p, SGF_JUGGLED)) return func_00205458(p, CID_BHVJUGGLED)->n; return 0; }
 } } // namespace M_func_0020A010
 
 // 0x20A058 SetStepguardTargetLists
@@ -3791,7 +3800,7 @@ struct S { char pad[0x2C0]; unsigned long m; };
 // 0x20B3D0: STEPGUARD vtable slot 77 (health state): 2 dead (flag 7), 1 hurt (flags 5/6), else 0.
 int GetStepguardHealthState(struct S *guard)
 {
-    if (guard->m & GetSgfMask(7))
+    if (guard->m & GetSgfMask(SGF_KO))
         return 2;
     if (guard->m & (GetSgfMask(5) | GetSgfMask(6)))
         return 1;
