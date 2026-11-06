@@ -92,7 +92,7 @@ Totals on this page: EXISTING 92, T1 107, T2 72.
 
 | Addr | Name | Purpose | Conf | Tier | Evidence |
 |---|---|---|---|---|---|
-| [0x167310](../../../src/game/engine/graphics/pipeline/glob.cpp) | `__4CRef` | CRef default constructor emitted (weak) at the start of the glob TU | 0.60 | existing |  |
+| [0x167310](../../../src/game/engine/graphics/pipeline/glob.cpp) | `__7GLOBSET` | GLOBSET::GLOBSET() (stores -1 into nUnk4c; was `__4CRef`) | 0.60 | existing |  |
 | [0x167320](../../../src/game/engine/graphics/pipeline/glob.cpp) | `LoadGlobsetFromBrx` | Reads an SO model (GLOBSET): bounds, shader animations (SAA), sub-globs and their per-type geometry | 0.95 | T1 | parse, verified |
 | [0x167870](../../../src/game/engine/graphics/pipeline/glob.cpp) | `LoadPoseSetsFromBrx` | Reads groups of up to 4 distance/LOD records (kind, position, radius, limit<=1e10, count) per globset descriptor | 0.75 | T1 | parse, format-doc |
 | [0x167B68](../../../src/game/engine/graphics/pipeline/glob.cpp) | `BindGlobset` | Resolves globset bone references after load: finds each referenced LO by oid, its bone, and computes the relative bind matrix | 0.55 | T1 |  |

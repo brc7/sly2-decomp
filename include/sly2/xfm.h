@@ -182,7 +182,7 @@ struct TN : public XFM
 typedef char assert_TN_size[sizeof(TN) == 0x1C0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
- * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 /* The "ensure" accessors of these classes return the start of the class's own fields (the end of its base part); the
  * option records address fields relative to it. The classes have no header yet, so only their names are used. */
@@ -200,8 +200,8 @@ inline void *func_00259C10(CID39 *p) { return (char *)p + sizeof(XFM); }      /*
 /* The GRABSPOT owner getters: slot 6 of each class's GRABSPOT vtable (the entry's delta brings `this` back to the
  * object's start) returns the object itself; GRABSPOT's own slot 6 (func_00182E78) returns 0. In the linkonce area
  * each sits right before its class's ensure accessor above (BARREL's in sly2/so.h). HYPOTHESIS: inline virtual
- * overrides in the original; free inline functions here, emitted by src/game/app/eopid_linkonce.cpp's address
- * references like the accessors (a member of these polymorphic classes would only be emitted by their key TU). */
+ * overrides in the original; free inline functions here, emitted by the key TU of each class, whose vtable names
+ * them through classes.h's VtF labels (a label equal to the mangled name makes g++ emit the inline function). */
 inline void *func_002599F0(CID12 *p) { return p; }
 inline void *func_00259A00(CID34 *p) { return p; }
 inline void *func_00259A10(CID38 *p) { return p; }

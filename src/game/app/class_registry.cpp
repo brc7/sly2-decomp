@@ -3343,7 +3343,7 @@ extern "C" CID46 *NewCid46() { return new CID46; }
 extern "C" CID47 *NewCid47() { return new CID47; }
 
 /** @sly2-annot addr=0x111588
- * Purpose: pfnNew factory for SO (cid 48): allocates 0x150 bytes (operator new 0x1AE4F8), calls ctor __4CRef
+ * Purpose: pfnNew factory for SO (cid 48): allocates 0x150 bytes (operator new 0x1AE4F8), calls ctor GLOBSET
  * Info: proposed name NewSo (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3352,7 +3352,7 @@ extern "C" CID47 *NewCid47() { return new CID47; }
 extern "C" SO *NewSo() { return new SO; }
 
 /** @sly2-annot addr=0x1115D0
- * Purpose: pfnNew factory for MS (cid 49): allocates 0x150 bytes (operator new 0x1AE4F8), calls ctor __4CRef
+ * Purpose: pfnNew factory for MS (cid 49): allocates 0x150 bytes (operator new 0x1AE4F8), calls ctor GLOBSET
  * Info: proposed name NewMs (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3361,7 +3361,7 @@ extern "C" SO *NewSo() { return new SO; }
 extern "C" MS *NewMs() { return new MS; }
 
 /** @sly2-annot addr=0x111628
- * Purpose: pfnNew factory for PO (cid 50): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor __4CRef
+ * Purpose: pfnNew factory for PO (cid 50): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor GLOBSET
  * Info: proposed name NewPo (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3371,7 +3371,7 @@ extern "C" PO *NewPo() { return new PO; }
 
 /** @sly2-annot addr=0x111680
  * Purpose: pfnNew factory for STEP (cid 51): allocates 0x2C0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewStep (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3401,7 +3401,7 @@ extern "C" MURRAY *NewMurray() { return new MURRAY; }
 
 /** @sly2-annot addr=0x111728
  * Purpose: pfnNew factory for BENTLEY (cid 55): allocates 0x1880 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewBentley (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3541,7 +3541,7 @@ extern "C" BEARCUB *NewBearcub() { return new BEARCUB; }
 
 /** @sly2-annot addr=0x111A68
  * Purpose: pfnNew factory for CID68 (cid 68): allocates 0x410 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewDancer (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid68 -> NewDancer
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3552,7 +3552,7 @@ extern "C" DANCER *NewDancer() { return new DANCER; }
 
 /** @sly2-annot addr=0x111AC0
  * Purpose: pfnNew factory for CID69 (cid 69): allocates 0x1E0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewTurret (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid69 -> NewTurret
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3563,7 +3563,7 @@ extern "C" TURRET *NewTurret() { return new TURRET; }
 
 /** @sly2-annot addr=0x111B18
  * Purpose: pfnNew factory for CID70 (cid 70): allocates 0x240 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewSafehouse (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid70 -> NewSafehouse
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3574,7 +3574,7 @@ extern "C" SAFEHOUSE *NewSafehouse() { return new SAFEHOUSE; }
 
 /** @sly2-annot addr=0x111B70
  * Purpose: pfnNew factory for CID71 (cid 71): allocates 0x1C0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewHack (T1); TU crt0_splicewrap
  * Notes: v3 class identity: NewCid71 -> NewHack
  * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3585,7 +3585,7 @@ extern "C" HACK *NewHack() { return new HACK; }
 
 /** @sly2-annot addr=0x111BC8
  * Purpose: pfnNew factory for CID72 (cid 72): allocates 0x2B0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewHackship (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid72 -> NewHackship
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3596,7 +3596,7 @@ extern "C" HACKSHIP *NewHackship() { return new HACKSHIP; }
 
 /** @sly2-annot addr=0x111C28
  * Purpose: pfnNew factory for CID73 (cid 73): allocates 0x390 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewHackenemy (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid73 -> NewHackenemy
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3607,7 +3607,7 @@ extern "C" HACKENEMY *NewHackenemy() { return new HACKENEMY; }
 
 /** @sly2-annot addr=0x111C80
  * Purpose: pfnNew factory for CID74 (cid 74): allocates 0x1E0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewHackbullet (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid74 -> NewHackbullet
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3618,7 +3618,7 @@ extern "C" HACKBULLET *NewHackbullet() { return new HACKBULLET; }
 
 /** @sly2-annot addr=0x111CD8
  * Purpose: pfnNew factory for CID75 (cid 75): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewHacklock (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid75 -> NewHacklock
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3629,7 +3629,7 @@ extern "C" HACKLOCK *NewHacklock() { return new HACKLOCK; }
 
 /** @sly2-annot addr=0x111D30
  * Purpose: pfnNew factory for CID76 (cid 76): allocates 0x2A0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewHackwall (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid76 -> NewHackwall
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3640,7 +3640,7 @@ extern "C" HACKWALL *NewHackwall() { return new HACKWALL; }
 
 /** @sly2-annot addr=0x111D88
  * Purpose: pfnNew factory for CID77 (cid 77): allocates 0x5D0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewRobottank (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid77 -> NewRobottank
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3651,7 +3651,7 @@ extern "C" ROBOTTANK *NewRobottank() { return new ROBOTTANK; }
 
 /** @sly2-annot addr=0x111DE8
  * Purpose: pfnNew factory for CID78 (cid 78): allocates 0x230 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewVault (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid78 -> NewVault
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3662,7 +3662,7 @@ extern "C" VAULT *NewVault() { return new VAULT; }
 
 /** @sly2-annot addr=0x111E40
  * Purpose: pfnNew factory for BOMB (cid 79): allocates 0x210 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewBomb (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3672,7 +3672,7 @@ extern "C" BOMB *NewBomb() { return new BOMB; }
 
 /** @sly2-annot addr=0x111E98
  * Purpose: pfnNew factory for MISSILE (cid 80): allocates 0x270 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewMissile (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3682,7 +3682,7 @@ extern "C" MISSILE *NewMissile() { return new MISSILE; }
 
 /** @sly2-annot addr=0x111EF0
  * Purpose: pfnNew factory for ACCMISS (cid 81): allocates 0x280 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewAccmiss (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3692,7 +3692,7 @@ extern "C" ACCMISS *NewAccmiss() { return new ACCMISS; }
 
 /** @sly2-annot addr=0x111F48
  * Purpose: pfnNew factory for CID82 (cid 82): allocates 0x290 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid82 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3702,7 +3702,7 @@ extern "C" CID82 *NewCid82() { return new CID82; }
 
 /** @sly2-annot addr=0x111FA0
  * Purpose: pfnNew factory for CID83 (cid 83): allocates 0x300 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewButton (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid83 -> NewButton
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3713,7 +3713,7 @@ extern "C" BUTTON *NewButton() { return new BUTTON; }
 
 /** @sly2-annot addr=0x111FF8
  * Purpose: pfnNew factory for CID85 (cid 85): allocates 0x1D0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewLasen (T1); TU crt0_splicewrap
  * Notes: v3 class identity: NewCid85 -> NewLasen
  * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3724,7 +3724,7 @@ extern "C" LASEN *NewLasen() { return new LASEN; }
 
 /** @sly2-annot addr=0x112050
  * Purpose: pfnNew factory for BARRIER (cid 86): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewBarrier (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3734,7 +3734,7 @@ extern "C" BARRIER *NewBarrier() { return new BARRIER; }
 
 /** @sly2-annot addr=0x1120A8
  * Purpose: pfnNew factory for RIPG (cid 87): allocates 0x1B0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewRipg (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3744,7 +3744,7 @@ extern "C" RIPG *NewRipg() { return new RIPG; }
 
 /** @sly2-annot addr=0x112100
  * Purpose: pfnNew factory for CID88 (cid 88): allocates 0x1A0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewBarrel (T1); TU crt0_splicewrap
  * Notes: v3 class identity: NewCid88 -> NewBarrel
  * Confidence: high [T1 0.95] - evidence: static naming pass; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3755,7 +3755,7 @@ extern "C" BARREL *NewBarrel() { return new BARREL; }
 
 /** @sly2-annot addr=0x112160
  * Purpose: pfnNew factory for WATER (cid 89): allocates 0x190 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewWater (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3765,7 +3765,7 @@ extern "C" WATER *NewWater() { return new WATER; }
 
 /** @sly2-annot addr=0x1121B8
  * Purpose: pfnNew factory for COIN (cid 91): allocates 0x240 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCoin (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3775,7 +3775,7 @@ extern "C" COIN *NewCoin() { return new COIN; }
 
 /** @sly2-annot addr=0x112210
  * Purpose: pfnNew factory for CID92 (cid 92): allocates 0x240 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewKey (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid92 -> NewKey
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3786,7 +3786,7 @@ extern "C" KEY *NewKey() { return new KEY; }
 
 /** @sly2-annot addr=0x112268
  * Purpose: pfnNew factory for CID93 (cid 93): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewMedicine (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid93 -> NewMedicine
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3797,7 +3797,7 @@ extern "C" MEDICINE *NewMedicine() { return new MEDICINE; }
 
 /** @sly2-annot addr=0x1122C0
  * Purpose: pfnNew factory for LOOT (cid 94): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewLoot (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3807,7 +3807,7 @@ extern "C" LOOT *NewLoot() { return new LOOT; }
 
 /** @sly2-annot addr=0x112318
  * Purpose: pfnNew factory for CLUE (cid 95): allocates 0x230 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewClue (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3817,7 +3817,7 @@ extern "C" CLUE *NewClue() { return new CLUE; }
 
 /** @sly2-annot addr=0x112370
  * Purpose: pfnNew factory for CID96 (cid 96): allocates 0x250 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid96 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3827,7 +3827,7 @@ extern "C" CID96 *NewCid96() { return new CID96; }
 
 /** @sly2-annot addr=0x1123C8
  * Purpose: pfnNew factory for CID97 (cid 97): allocates 0x160 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewSky (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewCid97 -> NewSky
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3838,7 +3838,7 @@ extern "C" SKY *NewSky() { return new SKY; }
 
 /** @sly2-annot addr=0x112420
  * Purpose: pfnNew factory for CID98 (cid 98): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid98 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3848,7 +3848,7 @@ extern "C" CID98 *NewCid98() { return new CID98; }
 
 /** @sly2-annot addr=0x112478
  * Purpose: pfnNew factory for CID99 (cid 99): allocates 0x170 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid99 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3858,7 +3858,7 @@ extern "C" CID99 *NewCid99() { return new CID99; }
 
 /** @sly2-annot addr=0x1124D0
  * Purpose: pfnNew factory for CID100 (cid 100): allocates 0x1B0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid100 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3868,7 +3868,7 @@ extern "C" CID100 *NewCid100() { return new CID100; }
 
 /** @sly2-annot addr=0x112528
  * Purpose: pfnNew factory for CID101 (cid 101): allocates 0x1B0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid101 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3878,7 +3878,7 @@ extern "C" CID101 *NewCid101() { return new CID101; }
 
 /** @sly2-annot addr=0x112580
  * Purpose: pfnNew factory for CID102 (cid 102): allocates 0x1D0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid102 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3888,7 +3888,7 @@ extern "C" CID102 *NewCid102() { return new CID102; }
 
 /** @sly2-annot addr=0x1125D8
  * Purpose: pfnNew factory for ALARM (cid 103): allocates 0x190 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewBooty (T1); TU crt0_splicewrap
  * Notes: class identity from whole_game WE names/object strings: NewAlarm -> NewBooty
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
@@ -3899,7 +3899,7 @@ extern "C" BOOTY *NewBooty() { return new BOOTY; }
 
 /** @sly2-annot addr=0x112630
  * Purpose: pfnNew factory for CID104 (cid 104): allocates 0x180 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid104 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3909,7 +3909,7 @@ extern "C" CID104 *NewCid104() { return new CID104; }
 
 /** @sly2-annot addr=0x112688
  * Purpose: pfnNew factory for CID105 (cid 105): allocates 0x1A0 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid105 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3919,7 +3919,7 @@ extern "C" CID105 *NewCid105() { return new CID105; }
 
 /** @sly2-annot addr=0x1126E0
  * Purpose: pfnNew factory for CID106 (cid 106): allocates 0x160 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid106 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3929,7 +3929,7 @@ extern "C" CID106 *NewCid106() { return new CID106; }
 
 /** @sly2-annot addr=0x112738
  * Purpose: pfnNew factory for WAYPT (cid 107): allocates 0x190 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewWaypt (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)
@@ -3939,7 +3939,7 @@ extern "C" WAYPT *NewWaypt() { return new WAYPT; }
 
 /** @sly2-annot addr=0x112790
  * Purpose: pfnNew factory for CID108 (cid 108): allocates 0x170 bytes (operator new 0x1AE4F8), calls ctor
- *   __4CRef
+ *   GLOBSET
  * Info: proposed name NewCid108 (T1); TU crt0_splicewrap
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: r0_thunks+table-verified(D_002BAAE8
  *   pfnNew/size 185/185; vt slot6 199/199)

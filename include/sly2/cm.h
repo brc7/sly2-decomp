@@ -280,7 +280,7 @@ typedef char assert_CM_cplook_rZoomMax[SLY2_OFFSETOF(CM, cplook.rZoomMax) == 0x4
 typedef char assert_CM_cpzoom_rZoomMax[SLY2_OFFSETOF(CM, cpzoom.rZoomMax) == 0x5D4 ? 1 : -1];   /* match (hud.cpp) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
- * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 inline qword func_00256298(CM *pcm) { return *(qword *)&pcm->pos; }   /* get; its set is SetCmPos */
 inline MATRIX4 *func_002562A0(CM *pcm) { return &pcm->mat; }          /* get; its set is func_00256278 (SetCmMat) */

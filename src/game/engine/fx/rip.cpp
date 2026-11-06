@@ -86,7 +86,7 @@ extern struct VTE D_002D9978[];
 extern struct VTE D_002D77D8[];
 void *PvAllocSlotheapClear(void *pool);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
-void *func_00167310(void *p) __asm__("__4CRef");
+void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
 void *PdlFromSwCid(struct G *p, int n);
 void func_0011A070(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
@@ -108,7 +108,7 @@ struct O *PripgNew(struct G *p, int a)
     po->x0 = 0;
     po->x4 = 0;
     po->vt = D_002D9978;
-    func_00167310(po->x80);
+    ConstructGlobset(po->x80);
     po->x150 = a;
     po->vt = D_002D77D8;
     func_0011A070(PdlFromSwCid(p, 0x57), po);

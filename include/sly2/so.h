@@ -105,11 +105,9 @@ struct GLOBSET
     };
       WRBG *pwrbgFirst;
       void *pbatchrecsFirst;
-    /* Out of line at 0x167310 (stores -1 into the CRef tag at +0x4C: CRef's constructor inlined), current symbol
-       __4CRef. The label has a trailing space on purpose: the assembler drops it (the call still goes to __4CRef),
-       but g++ sees a different name; with the exact name, class_registry (whose thunks have an inline CRef::CRef())
-       emits a weak copy of CRef::CRef() under it. Renaming 0x167310 (__7GLOBSET) would remove the need. */
-    GLOBSET() __asm__("__4CRef ");
+    /* Out of line at 0x167310 (glob.cpp): stores -1 into nUnk4c. Called by every constructor of an SO-derived class
+       (the New<Class> factories of class_registry.cpp, rip.cpp's PripgNew). */
+    GLOBSET();
 };
 
 /* CONSTR: from src/game/gameplay/player/stepplayer/HeroInteractDistance.cpp (23 copies in Lilly ports) */
@@ -255,7 +253,7 @@ typedef char assert_SO_dlChild[SLY2_OFFSETOF(SO, dlChild) == 0x64 ? 1 : -1];   /
 typedef char assert_SO_gUnk13c[SLY2_OFFSETOF(SO, gUnk13c) == 0x13C ? 1 : -1];   /* holds 400.0f (CONFIRMED runtime) */
 
 /* Option accessors (inline). g_aeopid takes their addresses, which is why out-of-line copies of them exist in the
- * linkonce area; src/game/app/eopid_linkonce.cpp takes the same addresses to emit them. See docs/guides/tu-merging.md
+ * linkonce area; g_aeopid's TU (class_registry.cpp) emits them that way. See docs/guides/tu-merging.md
  * "Inline functions and linkonce copies". Free functions (not members): see there why. Names are placeholders. */
 inline CID17 *func_00259B20(SO *pso)   /* get */
 {
