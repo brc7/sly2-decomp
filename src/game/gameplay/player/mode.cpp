@@ -27,7 +27,7 @@ struct VTE { short d; short pad; void (*pfn)(void *, ...); };
 struct WIDGET { char pad[0xC]; VTE *vt; char pad10[0x48]; int nState; char pad5C[0x70]; int tags[2]; };
 typedef char assert_WIDGET_tags[SLY2_OFFSETOF(WIDGET, tags) == 0xCC ? 1 : -1];
 /* The camera manager's look and recon policy headings and zooms (CM +0x460/+0x470, +0x5C4/+0x5CC). */
-struct CMVIEW { char pad[0x460]; float x460; int p1[3]; float x470; char pad2[0x5C4-0x474]; float x5c4; int p2; float x5cc; };
+struct CMVIEW { char pad[0x460]; float lookHeading; int p1[3]; float lookZoom; char pad2[0x5C4-0x474]; float reconHeading; int p2; float reconZoom; };
 struct SELECTOR;
 extern qword D_002A2DD0;
 extern CLOCK D_002DDED0;
@@ -472,13 +472,13 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             *(qword *)&jtMode->pstepplayer->vUnk190 = D_002A2DD0;
             switch (jtMode->nKind) {
             case 0:
-                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->x460);
-                jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x470;
+                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->lookHeading);
+                jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->lookZoom;
                 UpdateJtModeHud(&jtMode->hud);
                 break;
             case 1:
-                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->x5c4);
-                jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->x5cc;
+                func_00204660(jtMode->pstepplayer, ((CMVIEW *)&D_002DDF40)->reconHeading);
+                jtMode->hud.uZoom = ((CMVIEW *)&D_002DDF40)->reconZoom;
                 UpdateJtModeHud(&jtMode->hud);
                 break;
             }
@@ -606,8 +606,8 @@ extern "C" void SetJtModeHudState(JTMODEHUD *hud, int st)
 }
 
 
-struct X {char pad0[0x5C];int x5C;char pad1[0x6C-0x60];int x6C;char pad2[0x7C-0x70];X*x7C;};
-struct GTASK {char pad[0x3B0C];X*x;};
+struct X {char pad0[0x5C];int tagId;char pad1[0x6C-0x60];int headerTagId;char pad2[0x7C-0x70];X*parent;};   /* a task (inferred) */
+struct GTASK {char pad[0x3B0C];X*currentTask;};
 extern "C" void SortTasksTopologically(int*,X***);
 extern "C" void qsort(void*,unsigned,unsigned,int(*)(const void*,const void*));
 extern "C" int func_00165C28(const void*,const void*);
@@ -615,12 +615,12 @@ extern "C" int FTaskComplete(X*);
 struct LOCAL_LAYOUT{STACKSCOPE frame;int count;X**array;};
 static inline GTASK*CopyGame(GTASK*source){register GTASK*input __asm__("$16")=source;register GTASK*result __asm__("$20");__asm__("daddu %0,%1,$zero":"=r"(result):"r"(input));return result;}
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0x10000)->m)-0x10000)
-typedef char Offset_0[FIELD_OFFSET(X,x5C)==92?1:-1];
-typedef char Offset_1[FIELD_OFFSET(X,x6C)==108?1:-1];
-typedef char Offset_2[FIELD_OFFSET(X,x7C)==124?1:-1];
+typedef char Offset_0[FIELD_OFFSET(X,tagId)==92?1:-1];
+typedef char Offset_1[FIELD_OFFSET(X,headerTagId)==108?1:-1];
+typedef char Offset_2[FIELD_OFFSET(X,parent)==124?1:-1];
 typedef char Offset_3[FIELD_OFFSET(WIDGET,tags)==204?1:-1];
 typedef char Offset_4[FIELD_OFFSET(JTMODEHUD,pwidgetHud)==8?1:-1];
-typedef char Offset_5[FIELD_OFFSET(GTASK,x)==15116?1:-1];
+typedef char Offset_5[FIELD_OFFSET(GTASK,currentTask)==15116?1:-1];
 typedef char Offset_6[FIELD_OFFSET(LOCAL_LAYOUT,frame)==0?1:-1];
 typedef char Offset_7[FIELD_OFFSET(LOCAL_LAYOUT,count)==4?1:-1];
 typedef char Offset_8[FIELD_OFFSET(LOCAL_LAYOUT,array)==8?1:-1];
@@ -647,8 +647,8 @@ extern "C" void GatherJtModeHudTags(JTMODEHUD*hud){
  if(!pt)return;
  pt->tags[0]=pt->tags[1]=-1;
  GTASK*pg=(GTASK*)&D_003DD490;
- if(!pg->x || pg->x->x6C==-1)return;
- hud->pwidgetHud->tags[0]=pg->x->x6C;
+ if(!pg->currentTask || pg->currentTask->headerTagId==-1)return;
+ hud->pwidgetHud->tags[0]=pg->currentTask->headerTagId;
  int n=1,i=0;
  GTASK*pgLoop=CopyGame(pg);
  STACKSCOPE fr;
@@ -658,8 +658,8 @@ extern "C" void GatherJtModeHudTags(JTMODEHUD*hud){
  qsort(ap,c,4,func_00165C28);
  for(;i<c;i++){
   X*x=ap[i];
-  if(pgLoop->x==x->x7C && x->x5C!=-1 && !FTaskComplete(x)){
-   hud->pwidgetHud->tags[n++]=x->x5C;
+  if(pgLoop->currentTask==x->parent && x->tagId!=-1 && !FTaskComplete(x)){
+   hud->pwidgetHud->tags[n++]=x->tagId;
    break;
   }
  }
