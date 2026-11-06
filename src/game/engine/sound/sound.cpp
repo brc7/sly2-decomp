@@ -926,6 +926,19 @@ extern "C" void FreeBanksnd(void *pv)
     func_0011CD98(&G_SNDMGR.bankSoundPool, pv);
 }
 
+/* The IOP stream module's RPC id ('SUKR') and the commands the stream sounds send (macros: an enum argument would
+   make g++ look the per-function declarations up in the global namespace too, an ambiguous overload). */
+#define SUKR_RPC 0x524B5553
+#define SUKR_INIT 0
+#define SUKR_START 1
+#define SUKR_STOP 2
+#define SUKR_PAUSE 3
+#define SUKR_CONTINUE 4
+#define SUKR_SET_PARAMS 5          /* volume / pan / pitch */
+#define SUKR_SET_GROUP_PARAMS 6    /* a sub-group's volume / pan */
+#define SUKR_QUERY_PLAYING 7       /* (inferred) */
+#define SUKR_QUERY_POSITION 8      /* (inferred) */
+
 namespace M_PstreamsndNew {
 struct A; struct B;
 struct X {
@@ -952,8 +965,12 @@ extern "C" X *PstreamsndNew(A *pa, B *pb)
 } // namespace M_PstreamsndNew
 
 namespace M_STREAMSND_ctor { extern "C" {
-struct P { char pad[0xC]; void *vtable; char pad2[0x60 - 0x10]; int n60; char pad3[0x70 - 0x64]; float a[6]; char pad4[0x3B8 - 0x88]; int n3B8; };
-struct G { char pad[0x58]; int n58; char pad2[0x15C - 0x5C]; float a[1]; };
+/* STREAMSND (0x3C0): SND, then the stream record (+0x60), play time (+0x68), six sub-groups' volumes (+0x70), pans
+   (+0x88), source counts (+0xA0) and sources (+0xB8, 8 each), the stream kind (+0x3B8) and the dirty sub-group mask
+   (+0x3BC). */
+struct P { char pad[0xC]; void *vtable; char pad2[0x60 - 0x10]; int streamRecord; char pad3[0x70 - 0x64]; float groupVolumes[6]; char pad4[0x3B8 - 0x88]; int streamKind; };
+/* SNDMGR: paused flag (+0x58), the per-channel stream volumes (+0x15C, row 2 of the volume table) */
+struct G { char pad[0x58]; int isPaused; char pad2[0x15C - 0x5C]; float streamChannelVolumes[1]; };
 extern struct G D_003DD040;
 extern char D_002D9BE0[] __asm__("_vt$9STREAMSND");
 void SND_ctor(struct P *);
@@ -967,25 +984,29 @@ void PauseSnd(struct P *);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-struct P *STREAMSND_ctor(struct P *p, int n, int m)
+struct P *STREAMSND_ctor(struct P *sound, int streamRecord, int streamKind)
 {
     int i;
-    struct G *pg;
-    SND_ctor(p);
-    p->n60 = n;
-    p->vtable = D_002D9BE0;
-    p->n3B8 = m;
-    for (i = 0; i < 6; i++) p->a[i] = 1.0f;
-    pg = &D_003DD040;
-    SetSndFlags(p, 0x801, 0x801);
-    if (*(pg->a + GetStreamVolumeChannel(pg, p->n60)) == 0.0f) PauseSnd(p);
-    if (pg->n58) PauseSnd(p);
-    return p;
+    struct G *soundManager;
+    SND_ctor(sound);
+    sound->streamRecord = streamRecord;
+    sound->vtable = D_002D9BE0;
+    sound->streamKind = streamKind;
+    for (i = 0; i < 6; i++)
+        sound->groupVolumes[i] = 1.0f;
+    soundManager = &D_003DD040;
+    SetSndFlags(sound, 0x801, 0x801);
+    /* start paused when its channel is silent or the manager is paused */
+    if (*(soundManager->streamChannelVolumes + GetStreamVolumeChannel(soundManager, sound->streamRecord)) == 0.0f)
+        PauseSnd(sound);
+    if (soundManager->isPaused)
+        PauseSnd(sound);
+    return sound;
 }
 } } // namespace M_STREAMSND_ctor
 
 namespace M_StartStreamsnd { extern "C" {
-struct P { char pad[0x40]; int n40; char pad2[0x50 - 0x44]; unsigned short fl; unsigned short c52; char pad3[0x68 - 0x54]; long l68; char pad4[0x3BC - 0x70]; int n3BC; };
+struct P { char pad[0x40]; int voiceHandle; char pad2[0x50 - 0x44]; unsigned short flags; unsigned short playState; char pad3[0x68 - 0x54]; long playTime; char pad4[0x3BC - 0x70]; int dirtyGroups; };
 void StartSnd(struct P *);
 /** @sly2-annot addr=0x1FC270
  * Purpose: vt7: base Start then reset play time and status mask 0xF
@@ -994,20 +1015,21 @@ void StartSnd(struct P *);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Starts a streamed sound (slot 7): base start, then resets its play time and status queries.
-void StartStreamsnd(struct P *p)
+void StartStreamsnd(struct P *sound)
 {
-    int f = 0; if (!p->n40) { f = p->c52 || (p->fl & 1); f ^= 1; } if (f) {
-        StartSnd(p);
-        p->l68 = 0;
-        p->n3BC = 0xF;
+    /* only when not already started: no voice, not playing, flag 1 clear */
+    int canStart = 0; if (!sound->voiceHandle) { canStart = sound->playState || (sound->flags & 1); canStart ^= 1; } if (canStart) {
+        StartSnd(sound);
+        sound->playTime = 0;
+        sound->dirtyGroups = 0xF;
     }
 }
 } } // namespace M_StartStreamsnd
 
 namespace M_SetStreamsndGroupVolume { extern "C" {
-struct P { char pad[0x70]; float a[6]; char pad2[0x3BC - 0x88]; int fl; };
+struct P { char pad[0x70]; float groupVolumes[6]; char pad2[0x3BC - 0x88]; int dirtyGroups; };
 struct S;
-extern struct S D_002BBB60;
+extern struct S D_002BBB60;   /* the volume limits (0..1) */
 float GLimitLm__FP2LMf(struct S *, float);
 void SetSndFlags(struct P *, int, int);
 /** @sly2-annot addr=0x1FC2E0
@@ -1017,23 +1039,24 @@ void SetSndFlags(struct P *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sets the volume of one of a stream's six sub-groups (channels of a multi-layer stream) and marks it dirty.
-void SetStreamsndGroupVolume(struct P *p, unsigned int k, float g)
+void SetStreamsndGroupVolume(struct P *sound, unsigned int group, float volume)
 {
-    if (k < 6) {
-        float f = GLimitLm__FP2LMf(&D_002BBB60, g);
-        if ((int)(f * 1024.0f) != (int)(p->a[k] * 1024.0f)) {
-            p->fl |= 1 << k;
-            p->a[k] = f;
-            SetSndFlags(p, 0x80, 0x80);
+    if (group < 6) {
+        float clamped = GLimitLm__FP2LMf(&D_002BBB60, volume);
+        /* compared at the IOP's 1/1024 resolution */
+        if ((int)(clamped * 1024.0f) != (int)(sound->groupVolumes[group] * 1024.0f)) {
+            sound->dirtyGroups |= 1 << group;
+            sound->groupVolumes[group] = clamped;
+            SetSndFlags(sound, 0x80, 0x80);
         }
     }
 }
 } } // namespace M_SetStreamsndGroupVolume
 
 namespace M_func_001FC380 { extern "C" {
-struct P { char pad[0x88]; int a[6]; char pad2[0x3BC - 0xA0]; int fl; };
+struct P { char pad[0x88]; int groupPans[6]; char pad2[0x3BC - 0xA0]; int dirtyGroups; };
 void SetSndFlags(struct P *, int, int);
-static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360; }
+static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360; }   /* to 0..359 */
 /** @sly2-annot addr=0x1FC380
  * Purpose: Set pan of sub-group k<6, dirty 0x100
  * Info: proposed name SetStreamsndGroupPan (T2); TU sound
@@ -1041,14 +1064,14 @@ static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sets the pan of one of a stream's six sub-groups and marks it dirty. (inferred)
-void SetStreamGroupPan(struct P *p, unsigned int k, int deg)
+void SetStreamGroupPan(struct P *sound, unsigned int group, int deg)
 {
-    if (k < 6) {
-        int n = Norm(deg);
-        if (n != p->a[k]) {
-            p->fl |= 1 << k;
-            p->a[k] = n;
-            SetSndFlags(p, 0x100, 0x100);
+    if (group < 6) {
+        int pan = Norm(deg);
+        if (pan != sound->groupPans[group]) {
+            sound->dirtyGroups |= 1 << group;
+            sound->groupPans[group] = pan;
+            SetSndFlags(sound, 0x100, 0x100);
         }
     }
 }
@@ -1056,8 +1079,8 @@ void SetStreamGroupPan(struct P *p, unsigned int k, int deg)
 
 namespace M_func_001FC408 { extern "C" {
 struct R { float lo, hi; };
-struct E { int n; struct R r; float g; };
-struct P { char pad[0xA0]; int c[6]; struct E ae[6][8]; };
+struct E { int object; struct R range; float gain; };
+struct P { char pad[0xA0]; int groupSourceCounts[6]; struct E groupSources[6][8]; };
 void SetSndFlags(struct P *, int, int);
 /** @sly2-annot addr=0x1FC408
  * Purpose: Append (object, volume, range) to sub-group k (max 8 per group); positional flag 0x200
@@ -1068,22 +1091,23 @@ void SetSndFlags(struct P *, int, int);
  * @end-sly2-annot */
 // Adds a positional source (object, volume, range) to a stream sub-group (at most 8 per group); the loudest audible
 // source drives the group's volume and pan. (inferred)
-void AddStreamGroupSource(struct P *p, unsigned int k, int n, struct R *pr, float g)
+void AddStreamGroupSource(struct P *sound, unsigned int group, int object, struct R *range, float gain)
 {
-    if (k < 6 && p->c[k] < 8) {
-        struct E *pe;
-        SetSndFlags(p, 0x200, 0x200);
-        pe = &p->ae[k][p->c[k]++];
-        pe->n = n;
-        pe->g = g;
-        pe->r = *pr;
-        if (pe->r.lo == pe->r.hi) pe->r.hi += 1.0f;
+    if (group < 6 && sound->groupSourceCounts[group] < 8) {
+        struct E *source;
+        SetSndFlags(sound, 0x200, 0x200);
+        source = &sound->groupSources[group][sound->groupSourceCounts[group]++];
+        source->object = object;
+        source->gain = gain;
+        source->range = *range;
+        if (source->range.lo == source->range.hi)
+            source->range.hi += 1.0f;   /* keep the falloff range non-empty */
     }
 }
 } } // namespace M_func_001FC408
 
 namespace M_func_001FC4F8 { extern "C" {
-struct S { char pad[0x3B8]; int fl; };
+struct S { char pad[0x3B8]; int streamKind; };   /* bit 2: looping */
 /** @sly2-annot addr=0x1FC4F8
  * Purpose: vt8: 2 if looping flag 4 else 1
  * Info: proposed name GetStreamsndKind (T2); class STREAMSND; TU sound
@@ -1091,16 +1115,18 @@ struct S { char pad[0x3B8]; int fl; };
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Kind of a streamed sound (slot 8): 2 when looping, else 1. (inferred)
-int GetStreamSoundKind(struct S *p) { return (p->fl & 4) ? 2 : 1; }
+int GetStreamSoundKind(struct S *sound) { return (sound->streamKind & 4) ? 2 : 1; }
 } } // namespace M_func_001FC4F8
 
 namespace M_PlayStreamsnd { extern "C" {
-struct K { int n0; int n4; int n8; char bC; char pad[0x110 - 0xD]; };
-struct X { int n0; int n4; char pad[0x34 - 8]; int n34; int n38; int n3C; char pad2[0x4C - 0x40]; int n4C; };
+struct K { int keyLo; int keyHi; int kind; char filename; char pad[0x110 - 0xD]; };   /* a file lookup key (as hud.cpp's) */
+/* the stream's file record: key words at +0, +4, +0x34, +0x3C */
+struct X { int key0; int key1; char pad[0x34 - 8]; int key2; int unknown38; int key3; char pad2[0x4C - 0x40]; int unknown4C; };
 struct VTE { short d; short p; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int n14; char pad2[0x44 - 0x18]; float f44; char pad3[0x52 - 0x48]; short h52; char pad4[0x60 - 0x54]; struct X *p60; char pad5[0x3B8 - 0x64]; int n3B8; };
-struct M { int n0; int n4; int n8; int nC; int n10; int n14; };
-struct G { char pad[0x10]; int n10; };
+struct P { char pad[0xC]; struct VTE *vtable; char pad1[0x14 - 0x10]; int panAngle; char pad2[0x44 - 0x18]; float effectiveVolume; char pad3[0x52 - 0x48]; short playState; char pad4[0x60 - 0x54]; struct X *streamRecord; char pad5[0x3B8 - 0x64]; int streamKind; };
+/* the 'SUKR' start command's 0x18-byte payload */
+struct M { int fileKey; int volume; int pan; int channel; int kind; int unknown14; };
+struct G { char pad[0x10]; int unknown10; };   /* SNDMGR */
 extern struct G D_003DD040;
 void func_00258248(struct K *);
 int GetStreamVolumeChannel(struct G *, struct X *);
@@ -1108,19 +1134,20 @@ void PauseSnd(struct P *);
 void SetSndFlags(struct P *, int, int);
 void OnStreamSoundStarted(void);
 void func_00233130(int, int, int, struct M *, void (*)(void), struct P *);
-static inline int FSet(struct K *pk, struct X *px)
+enum { STREAM_CHANNEL_MUSIC = 2 };   /* GetStreamVolumeChannel (inferred) */
+static inline int FSet(struct K *key, struct X *record)
 {
-    if (!px) return 0;
+    if (!record) return 0;
     {
-        int a = px->n34;
-        int c = px->n0;
-        int d = px->n3C;
-        int b = px->n4;
-        pk->n8 = 2;
-        pk->n4 = b ^ d;
-        pk->n0 = (c ^ a) + 0xCA0;
+        int k2 = record->key2;
+        int k0 = record->key0;
+        int k3 = record->key3;
+        int k1 = record->key1;
+        key->kind = 2;
+        key->keyHi = k1 ^ k3;
+        key->keyLo = (k0 ^ k2) + 0xCA0;
     }
-    return pk->n4 != 0;
+    return key->keyHi != 0;
 }
 /** @sly2-annot addr=0x1FC510
  * Purpose: vt9: resolve stream file key, send start to SUKR IOP module with vol/pan
@@ -1131,36 +1158,37 @@ static inline int FSet(struct K *pk, struct X *px)
  * @end-sly2-annot */
 // Starts a streamed sound (slot 9): resolves the stream's file and sends the start command to the IOP stream module
 // with volume and pan.
-void PlayStreamsnd(struct P *p)
+void PlayStreamsnd(struct P *sound)
 {
-    struct K k;
-    struct M m;
-    int n;
-    k.n8 = 2;
-    func_00258248(&k);
-    n = GetStreamVolumeChannel(&D_003DD040, p->p60);
-    if (FSet(&k, p->p60)) {
-        if (k.n8 != 2) {
-            SetSndFlags(p, 0x1FFF, 0);
+    struct K key;
+    struct M message;
+    int channel;
+    key.kind = 2;
+    func_00258248(&key);
+    channel = GetStreamVolumeChannel(&D_003DD040, sound->streamRecord);
+    if (FSet(&key, sound->streamRecord)) {
+        if (key.kind != 2) {
+            SetSndFlags(sound, 0x1FFF, 0);
             return;
         }
-        m.n0 = k.n0;
-        PauseSnd(p);
-        m.n4 = (int)(p->f44 * 1024.0f);
-        m.n8 = p->n14;
-        m.nC = n;
-        m.n10 = p->n3B8 | 1;
+        message.fileKey = key.keyLo;
+        PauseSnd(sound);
+        message.volume = (int)(sound->effectiveVolume * 1024.0f);
+        message.pan = sound->panAngle;
+        message.channel = channel;
+        message.kind = sound->streamKind | 1;
         {
-            int fl = 0;
-            if (D_003DD040.n10 && n == 2) fl = p->p60->n4C == 0;
-            m.n14 = fl;
+            int flag = 0;
+            if (D_003DD040.unknown10 && channel == STREAM_CHANNEL_MUSIC)
+                flag = sound->streamRecord->unknown4C == 0;
+            message.unknown14 = flag;
         }
-        p->h52 = 1;
-        p->vtable[1].pfn((char *)p + p->vtable[1].d);
-        func_00233130(0x524B5553, 1, 0x18, &m, OnStreamSoundStarted, p);
-        SetSndFlags(p, 0x3F, 0);
+        sound->playState = 1;
+        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);   /* Incref for the callback */
+        func_00233130(SUKR_RPC, SUKR_START, 0x18, &message, OnStreamSoundStarted, sound);
+        SetSndFlags(sound, 0x3F, 0);
     } else {
-        SetSndFlags(p, 0x1FFF, 0);
+        SetSndFlags(sound, 0x1FFF, 0);
     }
 }
 } } // namespace M_PlayStreamsnd
@@ -1175,7 +1203,7 @@ void PlayStreamsnd(struct P *p)
 // Stops a streamed sound on the IOP (slot 10). (inferred)
 extern "C" void StopStreamSound(SNDV *sound)
 {
-    func_00233088(0x524B5553, 2, sound->voiceHandle, 0, 0, 0, 0);
+    func_00233088(SUKR_RPC, SUKR_STOP, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 /** @sly2-annot addr=0x1FC6D0
@@ -1188,7 +1216,7 @@ extern "C" void StopStreamSound(SNDV *sound)
 // Pauses a streamed sound on the IOP (slot 11). (inferred)
 extern "C" void PauseStreamSound(SNDV *sound)
 {
-    func_00233088(0x524B5553, 3, sound->voiceHandle, 0, 0, 0, 0);
+    func_00233088(SUKR_RPC, SUKR_PAUSE, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 /** @sly2-annot addr=0x1FC708
@@ -1201,12 +1229,12 @@ extern "C" void PauseStreamSound(SNDV *sound)
 // Resumes a streamed sound on the IOP (slot 12). (inferred)
 extern "C" void ResumeStreamSound(SNDV *sound)
 {
-    func_00233088(0x524B5553, 4, sound->voiceHandle, 0, 0, 0, 0);
+    func_00233088(SUKR_RPC, SUKR_CONTINUE, sound->voiceHandle, 0, 0, 0, 0);
 }
 
 namespace M_ApplyStreamsndParams { extern "C" {
-struct P { char pad[0x14]; int n14; float f18; char pad2[0x40 - 0x1C]; int n40; float f44; char pad3[0x50 - 0x48]; unsigned short f50;
-    char pad4[0x70 - 0x52]; float af70[6]; int a88[6]; char pad5[0x3BC - 0xA0]; int n3BC; };
+struct P { char pad[0x14]; int panAngle; float pitchRatio; char pad2[0x40 - 0x1C]; int voiceHandle; float effectiveVolume; char pad3[0x50 - 0x48]; unsigned short flags;
+    char pad4[0x70 - 0x52]; float groupVolumes[6]; int groupPans[6]; char pad5[0x3BC - 0xA0]; int dirtyGroups; };
 void func_00233088(int, int, int, int, int, int, int);
 /** @sly2-annot addr=0x1FC740
  * Purpose: vt13: SUKR cmd 5 vol/pan/pitch, then per-group params
@@ -1215,38 +1243,40 @@ void func_00233088(int, int, int, int, int, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Sends a stream's changed volume, pan and pitch, then each sub-group's parameters (slot 13).
-void ApplyStreamsndParams(struct P *p)
+void ApplyStreamsndParams(struct P *sound)
 {
     int i;
-    if (p->f50 & 0x70) {
-        int fl = 0;
-        int vol, pitch;
-        if (p->f50 & 0x10) {
-            fl = 1;
-            vol = (int)(p->f44 * 1024.0f);
+    /* sound flags: 0x10 volume, 0x20 pan, 0x40 pitch dirty; 0x80 / 0x100 sub-group volume / pan dirty */
+    if (sound->flags & 0x70) {
+        int changed = 0;
+        int volume, pitch;
+        if (sound->flags & 0x10) {
+            changed = 1;
+            volume = (int)(sound->effectiveVolume * 1024.0f);
         }
-        if (p->f50 & 0x20) fl |= 4;
-        if (p->f50 & 0x40) {
-            fl |= 8;
-            pitch = (int)(p->f18 * 12.0f);
+        if (sound->flags & 0x20)
+            changed |= 4;
+        if (sound->flags & 0x40) {
+            changed |= 8;
+            pitch = (int)(sound->pitchRatio * 12.0f);
         }
-        func_00233088(0x524B5553, 5, p->n40, fl, vol, p->n14, pitch);
+        func_00233088(SUKR_RPC, SUKR_SET_PARAMS, sound->voiceHandle, changed, volume, sound->panAngle, pitch);
     }
-    if (p->f50 & 0x180) {
+    if (sound->flags & 0x180) {
         for (i = 0; i < 6; i++) {
-            int m = 1 << i;
-            if (p->n3BC & m)
-                func_00233088(0x524B5553, 6, p->n40, i, (int)(p->af70[i] * 1024.0f), p->a88[i], 0);
+            int mask = 1 << i;
+            if (sound->dirtyGroups & mask)
+                func_00233088(SUKR_RPC, SUKR_SET_GROUP_PARAMS, sound->voiceHandle, i, (int)(sound->groupVolumes[i] * 1024.0f), sound->groupPans[i], 0);
         }
-        p->n3BC = 0;
+        sound->dirtyGroups = 0;
     }
 }
 } } // namespace M_ApplyStreamsndParams
 
 namespace M_func_001FC878 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *); };
-struct P { char pad[0xC]; struct VTE *vtable; char pad2[0x40 - 0x10]; int n40; char pad3[0x4E - 0x44]; short n4E; unsigned short f50; unsigned short n52; char pad4[0x68 - 0x54]; long l68; };
-struct G { char pad[0x1F0]; long l1F0; long l1F8; };
+struct P { char pad[0xC]; struct VTE *vtable; char pad2[0x40 - 0x10]; int voiceHandle; char pad3[0x4E - 0x44]; short pauseCount; unsigned short flags; unsigned short playState; char pad4[0x68 - 0x54]; long playTime; };
+struct G { char pad[0x1F0]; long tickNow; long tickLast; };   /* SNDMGR: this and the last update's tick */
 extern struct G D_003DD040;
 void OnStreamsndStatus(void);
 void OnBankSoundStatus(void);
@@ -1260,21 +1290,22 @@ void SetSndFlags(struct P *, int, int);
  * @end-sly2-annot */
 // Queries a stream's play position and whether it is still playing (slot 14), with callbacks; accumulates paused time.
 // (inferred)
-void QueryStreamSoundStatus(struct P *p)
+void QueryStreamSoundStatus(struct P *sound)
 {
-    if (p->f50 & 0x1000) {
-        p->vtable[1].pfn((char *)p + p->vtable[1].d);
-        func_002330D0(0x524B5553, 7, p->n40, 0, 0, 0, 0, OnStreamsndStatus, (long)p);
-        SetSndFlags(p, 0x1000, 0);
+    if (sound->flags & 0x1000) {
+        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);   /* Incref for the callback */
+        func_002330D0(SUKR_RPC, SUKR_QUERY_PLAYING, sound->voiceHandle, 0, 0, 0, 0, OnStreamsndStatus, (long)sound);
+        SetSndFlags(sound, 0x1000, 0);
     }
-    if (p->n52) return;
-    if (p->f50 & 0x400) {
-        p->vtable[1].pfn((char *)p + p->vtable[1].d);
-        func_002330D0(0x524B5553, 8, p->n40, 0, 0, 0, 0, OnBankSoundStatus, (long)p);
-        SetSndFlags(p, 0x400, 0);
+    if (sound->playState)
+        return;
+    if (sound->flags & 0x400) {
+        sound->vtable[1].pfn((char *)sound + sound->vtable[1].d);
+        func_002330D0(SUKR_RPC, SUKR_QUERY_POSITION, sound->voiceHandle, 0, 0, 0, 0, OnBankSoundStatus, (long)sound);
+        SetSndFlags(sound, 0x400, 0);
     }
-    if ((p->f50 & 0x800) && p->n4E <= 0)
-        p->l68 += D_003DD040.l1F0 - D_003DD040.l1F8;
+    if ((sound->flags & 0x800) && sound->pauseCount <= 0)   /* playing: advance the play time */
+        sound->playTime += D_003DD040.tickNow - D_003DD040.tickLast;
 }
 } } // namespace M_func_001FC878
 
@@ -1350,7 +1381,7 @@ void UpdateStreamsndPositional(struct P *p)
 namespace M_func_001FCBA8 { extern "C" {
 struct VTE { short d; short p; void (*pfn)(void *); };
 struct VT { struct VTE a[8]; };
-struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; int f40; char pad3[0x50 - 0x44]; unsigned short fl; short s52; };
+struct X { char pad[0xC]; struct VT *vtable; char pad2[0x40 - 0x10]; int voiceHandle; char pad3[0x50 - 0x44]; unsigned short flags; short playState; };
 void ResumeSnd(struct X *);
 void SetSndFlags(struct X *, int, int);
 #define VF(q, n) (q)->vtable->a[n].pfn((char *)(q) + (q)->vtable->a[n].d)
@@ -1362,24 +1393,26 @@ void SetSndFlags(struct X *, int, int);
  * @end-sly2-annot */
 // Async callback when a stream started: stores its stream handle, or stops the sound if starting failed; drops the
 // callback's reference. (inferred)
-void OnStreamSoundStarted(int f, long l)
+void OnStreamSoundStarted(int handle, long context)
 {
-    struct X *px = (struct X *)l;
-    px->f40 = f;
-    if (f) SetSndFlags(px, 0x1000, 0x1000);
+    struct X *sound = (struct X *)context;
+    sound->voiceHandle = handle;
+    if (handle)
+        SetSndFlags(sound, 0x1000, 0x1000);
     else {
-        ResumeSnd(px);
-        px->s52 = 0;
-        if (!(px->fl & 8)) VF(px, 7);
+        ResumeSnd(sound);
+        sound->playState = 0;
+        if (!(sound->flags & 8))
+            VF(sound, 7);   /* slot 7 */
     }
-    VF(px, 2);
+    VF(sound, 2);   /* Decref */
 }
 } } // namespace M_func_001FCBA8
 #undef VF
 
 namespace M_OnStreamsndStatus { extern "C" {
 struct VT { int pad[4]; short d; short p; void (*pfn)(void *); };
-struct X { char pad[0xC]; struct VT *vtable; char pad2[0x52 - 0x10]; short s52; };
+struct X { char pad[0xC]; struct VT *vtable; char pad2[0x52 - 0x10]; short playState; };
 void ResumeSnd(struct X *);
 void SetSndFlags(struct X *, int, int);
 /** @sly2-annot addr=0x1FCC30
@@ -1390,12 +1423,16 @@ void SetSndFlags(struct X *, int, int);
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Async callback of the stream status query.
-void OnStreamsndStatus(int f, long l)
+void OnStreamsndStatus(int hasStopped, long context)
 {
-    struct X *px = (struct X *)l;
-    if (f) { px->s52 = 0; ResumeSnd(px); }
-    else SetSndFlags(px, 0x1000, 0x1000);
-    px->vtable->pfn((char *)px + px->vtable->d);
+    struct X *sound = (struct X *)context;
+    if (hasStopped) {
+        sound->playState = 0;
+        ResumeSnd(sound);
+    } else {
+        SetSndFlags(sound, 0x1000, 0x1000);   /* ask again */
+    }
+    sound->vtable->pfn((char *)sound + sound->vtable->d);   /* Decref */
 }
 } } // namespace M_OnStreamsndStatus
 
@@ -1413,7 +1450,7 @@ void STREAMSND::VUnk00()   /* key function: STREAMSND's vtable comes out here */
 }
 
 namespace M_DecrefStreamsnd { extern "C" {
-struct S { char pad[0x4C]; short c; };
+struct S { char pad[0x4C]; short refCount; };
 void DestroyBasic(struct S *, int);
 void FreeStreamsnd(struct S *);
 /** @sly2-annot addr=0x1FCCA0
@@ -1423,7 +1460,13 @@ void FreeStreamsnd(struct S *);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Drops a reference to a streamed sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
-void DecrefStreamsnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); FreeStreamsnd(p); } }
+void DecrefStreamsnd(struct S *sound)
+{
+    if (--sound->refCount == 0 && sound) {
+        DestroyBasic(sound, 0);
+        FreeStreamsnd(sound);
+    }
+}
 } } // namespace M_DecrefStreamsnd
 
 /** @sly2-annot addr=0x1FCCF0
@@ -1900,26 +1943,27 @@ extern "C" void LoadSoundSectionFromBrx(SNDMGR *soundManager, CBinaryInputStream
 } // namespace M_LoadSoundSectionFromBrx
 
 namespace M_PostSoundLoad { extern "C" {
-struct K { int n0; int n4; int n8; char bC; char pad[0x110 - 0xD]; };
-struct X { int n0; int n4; char pad[0x34 - 8]; int n34; int n38; int n3C; };
-struct P { char pad[0xA8]; struct X xA8; char pad2[0xE8 - 0xA8 - sizeof(struct X)]; int pE8; char pad3[0xF8 - 0xEC]; int nF8; int *aFC; };
+struct K { int keyLo; int keyHi; int kind; char filename; char pad[0x110 - 0xD]; };   /* a file lookup key */
+struct X { int key0; int key1; char pad[0x34 - 8]; int key2; int unknown38; int key3; };   /* a file record */
+struct P { char pad[0xA8]; struct X bankRecord; char pad2[0xE8 - 0xA8 - sizeof(struct X)]; int bank; char pad3[0xF8 - 0xEC]; int numSounds; int *soundKinds; };   /* SNDMGR */
 void func_00258248(struct K *);
 int snd_BankLoadByLoc(int, int);
 void snd_ResolveBankXREFS(void);
 int snd_IsSoundALooper(int, int);
-static inline int FSet(struct K *pk, struct X *px)
+enum { SOUND_KIND_LOOPING = 2 };
+static inline int FSet(struct K *key, struct X *record)
 {
-    if (!px) return 0;
+    if (!record) return 0;
     {
-        int a = px->n34;
-        int c = px->n0;
-        int d = px->n3C;
-        int b = px->n4;
-        pk->n8 = 2;
-        pk->n4 = b ^ d;
-        pk->n0 = (c ^ a) + 0xCA0;
+        int k2 = record->key2;
+        int k0 = record->key0;
+        int k3 = record->key3;
+        int k1 = record->key1;
+        key->kind = 2;
+        key->keyHi = k1 ^ k3;
+        key->keyLo = (k0 ^ k2) + 0xCA0;
     }
-    return pk->n4 != 0;
+    return key->keyHi != 0;
 }
 /** @sly2-annot addr=0x1FD5E8
  * Purpose: Load bank if needed, snd_ResolveBankXREFS, mark looping sounds (kind 2) via snd_IsSoundALooper
@@ -1929,19 +1973,22 @@ static inline int FSet(struct K *pk, struct X *px)
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // After loading: loads the sound bank if needed, resolves its cross references and marks which sounds loop.
-void PostSoundLoad(struct P *p)
+void PostSoundLoad(struct P *soundManager)
 {
     int i;
-    if (!p->pE8) {
-        struct K k;
-        k.n8 = 2;
-        func_00258248(&k);
-        if (FSet(&k, &p->xA8) && k.n8 == 2) p->pE8 = snd_BankLoadByLoc(k.n0, 0);
+    if (!soundManager->bank) {
+        struct K key;
+        key.kind = 2;
+        func_00258248(&key);
+        if (FSet(&key, &soundManager->bankRecord) && key.kind == 2)
+            soundManager->bank = snd_BankLoadByLoc(key.keyLo, 0);
         snd_ResolveBankXREFS();
     }
-    for (i = 0; i < p->nF8; i++) {
-        if (p->aFC[i] == 2) continue;
-        if (snd_IsSoundALooper(p->pE8, i)) p->aFC[i] = 2;
+    for (i = 0; i < soundManager->numSounds; i++) {
+        if (soundManager->soundKinds[i] == SOUND_KIND_LOOPING)
+            continue;
+        if (snd_IsSoundALooper(soundManager->bank, i))
+            soundManager->soundKinds[i] = SOUND_KIND_LOOPING;
     }
 }
 } } // namespace M_PostSoundLoad
