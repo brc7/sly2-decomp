@@ -14,6 +14,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((t*)0)->m))
 #include "sly2/sw.h"
+#include "sly2/classes.h"
 union U{float f[4];qword q;};   /* floats first, so a U global can be initialized */
 struct M3{qword rows[3];};
 struct SPACE;
@@ -29,19 +30,19 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct O { char pad[0xC]; VTE *vt; char pad1[0x38 - 0x10]; void *ptarget; char pad3C[4]; void *pv40; };
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pfn)((char *)(o) + (o)->vt[n].d)
 /* The guard's vision detector: near and far volumes. */
-struct DETECTOR { char pad[0xE8]; VOLUME *pvolNear; VOLUME *pvolFar; char padF0[8]; int nF8; };
+struct DETECTORV { char pad[0xE8]; VOLUME *pvolNear; VOLUME *pvolFar; char padF0[8]; int nF8; };
 /* Distance curve of the guard (clamped quadratic) and the behaviour's timeout. */
 struct POLY { float c0, c1, c2; float pad; float gMin, gMax; float dt; };
 /* View of the guard (a STEPGUARD, sly2/guard.h; the fields from +0x1010 on are NEELA's). */
-struct NEELA{
+struct NEELAV{
  char pad0[0x364];int n364;             /* +0x364 */
  char pad368[0x13C];int n4A4;           /* +0x4A4 */
  char pad4A8[0x9BC];int nE64;           /* +0xE64 */
- char padE68[0xFC];DETECTOR*pdetector;  /* +0xF64 STEPGUARD::pdetector */
- char padF68[0x78];NEELA*next;          /* +0xFE0 STEPGUARD::dleGuard */
+ char padE68[0xFC];DETECTORV*pdetector;  /* +0xF64 STEPGUARD::pdetector */
+ char padF68[0x78];NEELAV*next;          /* +0xFE0 STEPGUARD::dleGuard */
  char padFE4[0x2C];VOLUME*first,*second;/* +0x1010 */
  int state;float changed;               /* +0x1018 */
- void*id;ASEGA*animation;NEELA*target;MOTION*motion;   /* +0x1020 */
+ void*id;ASEGA*animation;NEELAV*target;MOTION*motion;   /* +0x1020 */
  void*pv1030;NODE*node;                 /* +0x1030 */
  char pad1038[8];qword axis;            /* +0x1040 */
  O*po;                                  /* +0x1050 */
@@ -49,29 +50,29 @@ struct NEELA{
  POLY poly;                             /* +0x1070 */
  int n108C;char ab[0xC];                /* +0x108C */
 };
-typedef char NEELA_ab_Offset[FIELD_OFFSET(NEELA,ab)==0x1090?1:-1];
+typedef char NEELA_ab_Offset[FIELD_OFFSET(NEELAV,ab)==0x1090?1:-1];
 /* NEELA's behaviour (a BHV): the guard, the behaviour stack link, state and time, a mode. */
-struct NBHV { char pad[0x10]; NEELA *po; char pad14[4]; int x18; char pad1C[0x14]; int state; float changed; void *pv38; };
-struct ROW{int key;NEELA*object;};
+struct NBHV { char pad[0x10]; NEELAV *po; char pad14[4]; int x18; char pad1C[0x14]; int state; float changed; void *pv38; };
+struct ROW{int key;NEELAV*object;};
 struct GAME;
 struct Q1 { char pad[0xC4]; float gC4; };
 struct Q2 { char pad[0x38]; float g38; };
 struct MODE { int a[0x1C]; };
 extern "C"{
-void InitStepguard(NEELA *p);
-void PostStepguardLoad(NEELA *p);
-void BindLoOidTable(NEELA *p, int n, void *pv);
+void InitStepguard(NEELAV *p);
+void PostStepguardLoad(NEELAV *p);
+void BindLoOidTable(NEELAV *p, int n, void *pv);
 float *func_0012F938(void *p, int n);
-void func_001300B8(void *p, NEELA *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
-void SetSoMass(NEELA *p, float g);
-void ResetStepguardToHome(NEELA *p);
+void func_001300B8(void *p, NEELAV *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
+void SetSoMass(NEELAV *p, float g);
+void ResetStepguardToHome(NEELAV *p);
 int CidBasic(void *pv);
-void UpdateStepguard(NEELA*);
-int FStepguardHasSgf(NEELA*,int);
+void UpdateStepguard(NEELAV*);
+int FStepguardHasSgf(NEELAV*,int);
 qword func_001A62E8(void*);
-qword ConvertAloPos(NEELA*,void*,qword);
+qword ConvertAloPos(NEELAV*,void*,qword);
 int FCheckVolPoint(VOLUME*,qword);
-void func_001BA408(NEELA*,int);
+void func_001BA408(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
@@ -80,23 +81,23 @@ int func_001BA100(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 void func_00130B18(ASEGA *o);
 void ReleaseAct(MOTION **p);
-O *func_00205458(NEELA *p, int n);
-void func_00204D48(NEELA *p, float f);
-void func_0012F9B8(void *a, NEELA *p, int n, ASEGA **ppo, float f1, float f2);
-MOTION *func_0012DC18(NEELA *p, NODE *a, int b, int c, int d, qword q);
+O *func_00205458(NEELAV *p, int n);
+void func_00204D48(NEELAV *p, float f);
+void func_0012F9B8(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
+MOTION *func_0012DC18(NEELAV *p, NODE *a, int b, int c, int d, qword q);
 void InitBhv(NBHV *p);
 void StartBhv(NBHV *p);
 void CloseBhv(NBHV *p);
 void UpdateBhv(NBHV *p);
 int FBhvBusyAbove(NBHV *p);
-void AddStepguardSgf(NEELA *p, int n);
-void RemoveStepguardSgf(NEELA *p, int n);
+void AddStepguardSgf(NEELAV *p, int n);
+void RemoveStepguardSgf(NEELAV *p, int n);
 void func_001BA828(NBHV *p, int n);
 void func_00171C18(int a, void *b);
 void PopBhv(int *p);
-O *func_00205438(NEELA *p, int b);
+O *func_00205438(NEELAV *p, int b);
 void func_00171258(O *o, void *a, int b, void *c);
-void BroadcastGameEvent(void *p, int a, NEELA *b);
+void BroadcastGameEvent(void *p, int a, NEELAV *b);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void SetBhvguardMode(O *p, MODE *pf);
 extern const float D_002A7620;   /* defined below where the ELF has it (.rodata order) */
@@ -121,8 +122,9 @@ extern char D_002DEB30[];
  * See: docs/engine/guards-ai.md#8-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void InitNeela(NEELA *p)
+void NEELA::Init()
 {
+    NEELAV *p = (NEELAV *)this;
     InitStepguard(p);
     POLY *ppoly = &p->poly;
     ppoly->c0 = 1.35f;
@@ -147,7 +149,7 @@ extern "C" void InitNeela(NEELA *p)
  *   identity)
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void PostNeelaLoad(NEELA *p)
+extern "C" void PostNeelaLoad(NEELAV *p)
 {
     L l;
     qword a, b, d;
@@ -172,7 +174,7 @@ extern "C" void PostNeelaLoad(NEELA *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA0B8(NEELA *p)
+extern "C" void func_001BA0B8(NEELAV *p)
 {
     O *po;
     ResetStepguardToHome(p);
@@ -203,15 +205,15 @@ typedef char NODE_position_Offset[FIELD_OFFSET(NODE,position)==48?1:-1];
 typedef char NODE_space_Offset[FIELD_OFFSET(NODE,space)==160?1:-1];
 typedef char MOTION_angles_Offset[FIELD_OFFSET(MOTION,angles)==32?1:-1];
 typedef char ROW_object_Offset[FIELD_OFFSET(ROW,object)==4?1:-1];
-typedef char NEELA_next_Offset[FIELD_OFFSET(NEELA,next)==4064?1:-1];
-typedef char NEELA_first_Offset[FIELD_OFFSET(NEELA,first)==4112?1:-1];
-typedef char NEELA_second_Offset[FIELD_OFFSET(NEELA,second)==4116?1:-1];
-typedef char NEELA_state_Offset[FIELD_OFFSET(NEELA,state)==4120?1:-1];
-typedef char NEELA_animation_Offset[FIELD_OFFSET(NEELA,animation)==4132?1:-1];
-typedef char NEELA_target_Offset[FIELD_OFFSET(NEELA,target)==4136?1:-1];
-typedef char NEELA_motion_Offset[FIELD_OFFSET(NEELA,motion)==4140?1:-1];
-typedef char NEELA_node_Offset[FIELD_OFFSET(NEELA,node)==4148?1:-1];
-typedef char NEELA_axis_Offset[FIELD_OFFSET(NEELA,axis)==4160?1:-1];
+typedef char NEELA_next_Offset[FIELD_OFFSET(NEELAV,next)==4064?1:-1];
+typedef char NEELA_first_Offset[FIELD_OFFSET(NEELAV,first)==4112?1:-1];
+typedef char NEELA_second_Offset[FIELD_OFFSET(NEELAV,second)==4116?1:-1];
+typedef char NEELA_state_Offset[FIELD_OFFSET(NEELAV,state)==4120?1:-1];
+typedef char NEELA_animation_Offset[FIELD_OFFSET(NEELAV,animation)==4132?1:-1];
+typedef char NEELA_target_Offset[FIELD_OFFSET(NEELAV,target)==4136?1:-1];
+typedef char NEELA_motion_Offset[FIELD_OFFSET(NEELAV,motion)==4140?1:-1];
+typedef char NEELA_node_Offset[FIELD_OFFSET(NEELAV,node)==4148?1:-1];
+typedef char NEELA_axis_Offset[FIELD_OFFSET(NEELAV,axis)==4160?1:-1];
 // .rodata order (docs/guides/tu-merging.md "Phase 5: data order"): a named constant is emitted where it is
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
@@ -224,7 +226,7 @@ namespace RO_ORDER { extern const float r_D_002A7620 __asm__("D_002A7620") = 3.4
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void UpdateNeela(NEELA*p){
+extern "C" void UpdateNeela(NEELAV*p){
  UpdateStepguard(p);
  switch(p->state){
  case 0:{
@@ -234,7 +236,7 @@ extern "C" void UpdateNeela(NEELA*p){
   else if(FStepguardHasSgf(p,2)){volume=p->second;p->target=0;}
   else break;
   float nearest=D_002A7620;
-  for(NEELA*node=(*(NEELA * *)&g_sw.dlStepguard);node;node=node->next){
+  for(NEELAV*node=(*(NEELAV * *)&g_sw.dlStepguard);node;node=node->next){
    if(node==p||FStepguardHasSgf(node,7))continue;
    qword origin=Vector(func_001A62E8(p));
    float distance=Square(VuSub(origin,func_001A62E8(node)));
@@ -279,7 +281,7 @@ extern "C" void UpdateNeela(NEELA*p){
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest+whole_game(class identity)
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA408(NEELA *p, int st)
+extern "C" void func_001BA408(NEELAV *p, int st)
 {
     if (st == p->state) return;
     if (p->state == 1) {
@@ -323,8 +325,9 @@ extern "C" void func_001BA560(NBHV *p)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/guards-ai.md#tu_1b9f80-0x1b9f80-0x1bab50
  * @end-sly2-annot */
-extern "C" void func_001BA598(NBHV *p)
+void BHV174::Start()
 {
+    NBHV *p = (NBHV *)this;
     StartBhv(p);
     func_001BA828(p, 0);
 }
@@ -369,13 +372,13 @@ extern "C" void func_001BA608(NBHV *p)
         s = p->state;
         switch (s) {
         case 0: {
-            DETECTOR *ps = p->po->pdetector;
+            DETECTORV *ps = p->po->pdetector;
             if (!FCheckVolPoint(ps->pvolFar, func_001A62E8(D_002E1E40)))
                 func_001BA828(p, 1);
             break;
         }
         case 1: {
-            DETECTOR *ps = p->po->pdetector;
+            DETECTORV *ps = p->po->pdetector;
             if (FCheckVolPoint(ps->pvolNear, func_001A62E8(D_002E1E40)))
                 func_001BA828(p, 0);
             else if (p->po->poly.dt < D_002DDED0.t - p->changed)
@@ -390,7 +393,7 @@ extern "C" void func_001BA608(NBHV *p)
     }
     if (p->state == 0 && FStepguardHasSgf(p->po, 9)) {
         float d = Dist(func_001A62E8(p->po), func_001A62E8(D_002E1E40));
-        NEELA *po = p->po;
+        NEELAV *po = p->po;
         float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);
         Q1 *q1 = (Q1 *)func_00205458(p->po, 0xA7);
         Q2 *q2 = (Q2 *)func_00205458(p->po, 0xB8);
@@ -444,7 +447,7 @@ extern "C" void func_001BA828(NBHV *p, int st)
  * Notes: names_v2 C proposed SetAloRealClock__FP3ALOi (0.242) | agent qualifier: splice: CID 60 command
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r5b_rest
  * @end-sly2-annot */
-extern "C" void func_001BA980(NEELA *p, int n)
+extern "C" void func_001BA980(NEELAV *p, int n)
 {
     MODE f;
     O *po;

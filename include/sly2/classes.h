@@ -1375,9 +1375,9 @@ typedef char assert_MS_size[sizeof(MS) == 0x150 ? 1 : -1];
 struct BHV174 : BHV
 {
     char pad30[0x40 - 0x30];
+    virtual void Start() __asm__("func_001BA598");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv174ClassDesc");   /* slot 6 */
     virtual void OnPush() __asm__("func_001BA560");   /* slot 7 */
-    virtual void Start() __asm__("func_001BA598");   /* slot 8 */
     virtual void VSlot9() __asm__("func_001BA5C8");   /* slot 9 */
     virtual void VSlot10() __asm__("func_001BA608");   /* slot 10 */
 };
@@ -1387,8 +1387,8 @@ typedef char assert_BHV174_size[sizeof(BHV174) == 0x40 ? 1 : -1];
 struct NEELA : STEPGUARD
 {
     char pad1010[0x10A0 - 0x1010];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetNeelaClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitNeela");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetNeelaClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("PostNeelaLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateNeela");   /* slot 16 */
     virtual void VUnk25(LO *plo) __asm__("func_001BA0B8");   /* slot 26 */
