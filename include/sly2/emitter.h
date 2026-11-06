@@ -109,7 +109,9 @@ extern char D_002DE750[];
 #define SLY2_STRUCT_AREQ
 struct AREQ { int cb; int cbAlign; };
 #endif
-extern "C" void *func_001AE2A0(AREQ *preq);   /* allocate from the level heap */
+/* allocate from the level heap (func_001AE2A0); a C++ name bound by label, so that the merged files' own extern "C"
+   declarations of func_001AE2A0 (on their AREQ copies) do not conflict with it where classes.h is included */
+void *PvAllocLevelHeap(AREQ *preq) __asm__("func_001AE2A0");
 
 /* ---- the accessors (g_aeopid records: get +0xC, set +0x14, setUser +0x1C, ensure +0x24) ---- */
 
@@ -170,9 +172,9 @@ template <class T> void func_00258A00(T *p, int k)
     pemitb->kEmito = k;
     switch (k)
     {
-    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->pvEmito = (int)func_001AE2A0(&req); } break;
+    case 1: { AREQ req; req.cb = 0x20; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
     case 2: pemitb->pvEmito = -1; break;
-    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->pvEmito = (int)func_001AE2A0(&req); } break;
+    case 3: { AREQ req; req.cb = 0x30; req.cbAlign = 0x10; pemitb->pvEmito = (int)PvAllocLevelHeap(&req); } break;
     }
 }
 
