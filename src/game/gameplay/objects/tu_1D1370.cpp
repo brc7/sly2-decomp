@@ -65,20 +65,20 @@ struct S { char p0[0x180]; int n180; char p1[0x51C-0x184]; float g51C; struct V 
 void InitPo(struct S *p);
 static inline void SetVector(struct V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
 // CID 77 vtable slot 7 Init: InitPo, health 100 (x55C), ranges 1500/-1000 and 1500/2500, timers 30, state -1. (inferred)
-void InitRobottank(struct S *p) {
-    InitPo(p);
-    p->g51C = 500.0f; //P
-    p->n180 = -1; //P
-    SetVector(&p->v520, 1500.0f, -1000.0f, 0.0f); //P
-    p->n59C = -1; //P
-    p->v534.x = 1500.0f;
-    p->v534.y = 2500.0f;
-    p->v534.z = 1.0f;
-    p->n55C = 100;
-    p->n590 = 30;
-    p->n584 = 30;
-    p->n578 = 30;
-    p->n530 = 0;
+void InitRobottank(struct S *tank) {
+    InitPo(tank);
+    tank->g51C = 500.0f; //P
+    tank->n180 = -1; //P
+    SetVector(&tank->v520, 1500.0f, -1000.0f, 0.0f); //P
+    tank->n59C = -1; //P
+    tank->v534.x = 1500.0f;
+    tank->v534.y = 2500.0f;
+    tank->v534.z = 1.0f;
+    tank->n55C = 100;
+    tank->n590 = 30;
+    tank->n584 = 30;
+    tank->n578 = 30;
+    tank->n530 = 0;
 }
 } } // namespace M_InitRobottank
 
@@ -110,15 +110,15 @@ void ClonePo(OBJ *);
 void CopyRobottankWeapon(X *, X *);
 // CID 77 vtable slot 41 Clone: ClonePo then deep-copy each weapon record (new 0xB0 object, vtable D_002C94A0, init 0x1D4D30,
 // copy 0x9C bytes). (inferred)
-void CloneRobottank(OBJ *p)
+void CloneRobottank(OBJ *tank)
 {
     int i;
-    ClonePo(p);
-    for (i = 0; i < p->c; i++) {
-        X *old = p->a[i];
-        X *n = new X(p);
+    ClonePo(tank);
+    for (i = 0; i < tank->c; i++) {
+        X *old = tank->a[i];
+        X *n = new X(tank);
         CopyRobottankWeapon(n, old);
-        p->a[i] = n;
+        tank->a[i] = n;
     }
 }
 }
@@ -187,28 +187,28 @@ static inline qword CPU(qword value){qword result;asm("qmfc2.ni %0,%1":"=r"(resu
 // CID 77 vtable slot 15 PostLoad: PostSoLoad; resolve wheel entries (XF ids, kind 13) and compute their normalized
 // layout/width; resolve child XF bindings; resolve weapon attachments (objects, meshes, SMA bindings), drop
 // unresolved ones; allocate nav path object (0x1E94B0(0x2C9,16)); ResetRcCarHealth. (inferred)
-extern "C" void PostRobottankLoad(P *p){
+extern "C" void PostRobottankLoad(P *tank){
  U scalar,maximum,minimum;
  register int i __asm__("$18")=0;CURRENT current;SCALE scale;
  register int count __asm__("$2");
  {qword zero=Zero();minimum.q=CPU(zero);maximum.q=zero;}
- PostSoLoad(p);
- if(p->count>0){
+ PostSoLoad(tank);
+ if(tank->count>0){
  int stride=0x60;
  scale.axis=&D_002A2DC0;
- E *next=p->entries+1,*cursor=p->entries;
+ E *next=tank->entries+1,*cursor=tank->entries;
  do {
   current.entry=cursor;
-  REF *reference=PxfFindSo(p,current.entry->id,13);
+  REF *reference=PxfFindSo(tank,current.entry->id,13);
   current.entry->reference=reference;
   if(!reference){
-   unsigned bytes=(p->count-i)*stride-sizeof(E);
+   unsigned bytes=(tank->count-i)*stride-sizeof(E);
    E*source=next;
    cursor=current.entry-1;--next;--i;
    memmove(current.entry,source,bytes);
-   --p->count;
+   --tank->count;
   }else{
-   qword returned=ConvertAloPos(0,p,reference->position);
+   qword returned=ConvertAloPos(0,tank,reference->position);
    register qword position __asm__("vf2");register int upper __asm__("$2");
    asm("qmtc2.ni %3,%0\n\tsqc2 %0,%1\n\tlw %2,%4":"=j"(position),"=m"(current.entry->position.q),"=r"(upper):"r"(returned),"m"(current.entry->upper.bits));
    register qword high __asm__("vf3"),low __asm__("vf4");
@@ -221,7 +221,7 @@ extern "C" void PostRobottankLoad(P *p){
    asm("vadda.xyzw $ACC,%2,$vf0\n\tvmaddx.xyzw %0,%3,%0x\n\tsqc2 %0,%1":"+j"(high),"=m"(current.entry->top):"j"(position),"j"(axis));
    asm("sqc2 %4,%1\n\tlqc2 %3,%5\n\tvadda.xyzw $ACC,%0,$vf0\n\tvmaddx.xyzw %0,%3,%4x\n\tsqc2 %0,%2":"+j"(position),"=m"(scalar.q),"=m"(current.entry->bottom),"=&j"(axis):"j"(low),"m"(*scale.axis));
   }
-  count=p->count;
+  count=tank->count;
   ++i;++next;++cursor;
   count=i<count;
  }while(count);}
@@ -230,16 +230,16 @@ extern "C" void PostRobottankLoad(P *p){
  asm("lq %0,%1":"=r"(maximumWord):"m"(maximum.q));
  i=0;
  register float maxX __asm__("$f3");
- asm("mtc1 %2,%0\n\tla %1,%a3":"=f"(maxX),"=r"(binding):"r"(maximumWord),"p"(&p->binding));
+ asm("mtc1 %2,%0\n\tla %1,%a3":"=f"(maxX),"=r"(binding):"r"(maximumWord),"p"(&tank->binding));
  register qword minimumWord __asm__("$2");register float minX __asm__("$f2");
  asm("lq %0,%2\n\tmtc1 %0,%1":"=r"(minimumWord),"=f"(minX):"m"(minimum.q));
  float width;
- asm("sub.s %0,%2,%3\n\tlw %1,%4":"=f"(width),"=r"(count):"f"(maxX),"f"(minX),"m"(p->count));
- p->width=width;
+ asm("sub.s %0,%2,%3\n\tlw %1,%4":"=f"(width),"=r"(count):"f"(maxX),"f"(minX),"m"(tank->count));
+ tank->width=width;
  if(count>0){
   register qword word __asm__("$2");register E*coordinate __asm__("$3");
   register float xScale __asm__("$f2")=minX,minY __asm__("$f0");
-  asm("lq %0,%4\n\tneg.s %1,%1\n\tprot3w %0,%0\n\tla %2,%a5\n\tmtc1 %0,%3":"=&r"(word),"+f"(xScale),"=&r"(coordinate),"=f"(minY):"m"(minimum.q),"p"(p->entries));
+  asm("lq %0,%4\n\tneg.s %1,%1\n\tprot3w %0,%0\n\tla %2,%a5\n\tmtc1 %0,%3":"=&r"(word),"+f"(xScale),"=&r"(coordinate),"=f"(minY):"m"(minimum.q),"p"(tank->entries));
   register float maxY __asm__("$f1"),yScale __asm__("$f3");
   asm("lq %0,%4\n\tmax.s %1,%1,%5\n\tprot3w %0,%0\n\tneg.s %2,%2\n\tmtc1 %0,%3":"=&r"(word),"+f"(xScale),"+f"(minY),"=f"(maxY):"m"(maximum.q),"f"(maxX));
   asm("max.s %0,%1,%2":"=f"(yScale):"f"(minY),"f"(maxY));
@@ -247,62 +247,62 @@ extern "C" void PostRobottankLoad(P *p){
    float x=coordinate->position.a[0];++i;
    float y=coordinate->position.a[1];
    coordinate->x=x/xScale;coordinate->y=y/yScale;
-   count=p->count;count=i<count;
+   count=tank->count;count=i<count;
    ++coordinate;
   }while(count);
  }
  i=0;
- if(p->sideCount>0){
+ if(tank->sideCount>0){
  scale.stride=0x14;
- SIDE*next=p->sides+1;current.side=p->sides;
+ SIDE*next=tank->sides+1;current.side=tank->sides;
  do {
-  REF *reference=PxfFindSo(p,current.side->id,6);
+  REF *reference=PxfFindSo(tank,current.side->id,6);
   current.side->reference=reference;
   if(!reference){
-   unsigned bytes=(p->sideCount-i)*scale.stride-sizeof(SIDE);
+   unsigned bytes=(tank->sideCount-i)*scale.stride-sizeof(SIDE);
    SIDE*destination=current.side;SIDE*source=next;
    --current.side;--next;--i;
    memmove(destination,source,bytes);
-   --p->sideCount;
-  }else current.side->binding=func_0012DC18(p,reference,1,7,3,D_002A2DD0);
-  count=p->sideCount;
+   --tank->sideCount;
+  }else current.side->binding=func_0012DC18(tank,reference,1,7,3,D_002A2DD0);
+  count=tank->sideCount;
   ++i;++next;++current.side;
   count=i<count;
  }while(count);}
  int j=0;
- if(p->attachCount>0){
+ if(tank->attachCount>0){
  int invalid=-1;
- ATTACH **cursor=p->attachments;int byteOffset=0;
+ ATTACH **cursor=tank->attachments;int byteOffset=0;
  do {
   current.attachment=*cursor;
-  current.attachment->object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,p);
+  current.attachment->object=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->id,tank);
   if(current.attachment->object){
-   current.attachment->mesh=PxfFindSo(p,current.attachment->meshId,6);
+   current.attachment->mesh=PxfFindSo(tank,current.attachment->meshId,6);
    if(current.attachment->mesh || current.attachment->meshId==invalid){
-    current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,p);
+    current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,tank);
     if(current.attachment->extra || current.attachment->extraId==invalid){
-     current.attachment->binding=func_001F0380(current.attachment->object,p,-1,0);
-     if(current.attachment->mesh)current.attachment->meshBinding=func_0012DC18(p,current.attachment->mesh,1,7,3,D_002A2DD0);
+     current.attachment->binding=func_001F0380(current.attachment->object,tank,-1,0);
+     if(current.attachment->mesh)current.attachment->meshBinding=func_0012DC18(tank,current.attachment->mesh,1,7,3,D_002A2DD0);
      goto attachment_next;
     }
    }
   }
   {ATTACH**destination=cursor;
   char*source;
-  asm("addu %0,%1,%2":"=r"(source):"r"(byteOffset),"r"(p));
+  asm("addu %0,%1,%2":"=r"(source):"r"(byteOffset),"r"(tank));
   source+=0x500;
-  int bytes=(p->attachCount-j)*4-4;
+  int bytes=(tank->attachCount-j)*4-4;
   --cursor;byteOffset-=4;--j;
   memmove(destination,source,bytes);
   register int remaining __asm__("$3");
-  asm("lw %0,%1\n\taddiu %0,%0,-1\n\tsw %0,%1":"=&r"(remaining),"+m"(p->attachCount));}
+  asm("lw %0,%1\n\taddiu %0,%0,-1\n\tsw %0,%1":"=&r"(remaining),"+m"(tank->attachCount));}
  attachment_next:
   ++j;++cursor;byteOffset+=4;
- }while(j<p->attachCount);}
+ }while(j<tank->attachCount);}
 
- p->path=func_001E94B0(0x2C9,16);
- ReplaceSma(p->asset,p,-1,0,binding);
- ResetRobottankHealth(p);
+ tank->path=func_001E94B0(0x2C9,16);
+ ReplaceSma(tank->asset,tank,-1,0,binding);
+ ResetRobottankHealth(tank);
 }
 
 #define OFF(T,F) ((unsigned int)&((T*)0)->F)
@@ -462,30 +462,30 @@ static inline qword GetVelocity(P *p){VENTRY &e=p->vt[33];return ((qword (*)(voi
 // CID 77 vt16 Update: UpdateSo; heading from world matrix; weapon ready SMAs; mode 2 player input / mode 1 AI / else
 // idle; steering and throttle from polynomial tables of heading error; turret/actuator goal; engine sound
 // volume/pitch. (inferred)
-extern "C" void UpdateRobottank(P *p)
+extern "C" void UpdateRobottank(P *tank)
 {
     U scalar,position,targetPosition,targetVelocity,shot;
     int i=0;
-    UpdateSo(p);
-    p->heading=atan2f(p->space->world.basis.rows[0].f[1],p->space->world.basis.rows[0].f[0]);
-    if(p->attachCount>0){
-        ATTACH **current=p->attachments;
+    UpdateSo(tank);
+    tank->heading=atan2f(tank->space->world.basis.rows[0].f[1],tank->space->world.basis.rows[0].f[0]);
+    if(tank->attachCount>0){
+        ATTACH **current=tank->attachments;
         do {
             ATTACH *attach=*current;
             if(!HasRobottankWeaponAmmo(attach))SetSmaGoal(attach->binding,0x65);
             ++i;++current;
-        }while(i<p->attachCount);
+        }while(i<tank->attachCount);
     }
-    switch(p->mode){
-    case 0:case 3:ResetDrive(p);break;
-    case 2:ReadRobottankInput(p);break;
-    case 1:UpdateRobottankAi(p);break;
+    switch(tank->mode){
+    case 0:case 3:ResetDrive(tank);break;
+    case 2:ReadRobottankInput(tank);break;
+    case 1:UpdateRobottankAi(tank);break;
     }
-    register float angle __asm__("$f0")=RadNormalize__Ff(p->goalHeading-p->heading);
-    p->steering=Clamp(Evaluate(D_002C2040,angle),D_002C2050.low,D_002C2050.high);
-    angle=Abs(RadNormalize__Ff(p->goalHeading-p->heading));
-    p->acceleration=Clamp(Evaluate(D_002C2060,angle),D_002C2070.low,D_002C2070.high);
-    angle=RadNormalize__Ff(p->goalHeading-p->heading);
+    register float angle __asm__("$f0")=RadNormalize__Ff(tank->goalHeading-tank->heading);
+    tank->steering=Clamp(Evaluate(D_002C2040,angle),D_002C2050.low,D_002C2050.high);
+    angle=Abs(RadNormalize__Ff(tank->goalHeading-tank->heading));
+    tank->acceleration=Clamp(Evaluate(D_002C2060,angle),D_002C2070.low,D_002C2070.high);
+    angle=RadNormalize__Ff(tank->goalHeading-tank->heading);
     struct LOWER_PAGE {char before[0x2090];LIMITS limits;};
     typedef char lower_page_low_offset[((unsigned)&((LOWER_PAGE*)0)->limits.low==0x2090)?1:-1];
     typedef char lower_page_view_size[(sizeof(LOWER_PAGE)==0x2098)?1:-1];
@@ -504,37 +504,37 @@ extern "C" void UpdateRobottank(P *p)
  response_done:;
     float limited=D_002C2030;VENTRY*table;
     asm("lwc1 $f3,%4\n\tmin.s %0,%0,%2\n\tlwc1 $f2,%5\n\tmul.s %0,%3,%0\n\tlw %1,%6\n\tmul.s %0,%0,$f3\n\tdiv.s %0,%0,$f2"
-        :"+f"(limited),"=r"(table):"f"(p->drive),"f"(turnFactor),"m"(p->steering),"m"(p->width),"m"(p->vt):"$f2","$f3");
-    p->turn=limited;
-    if(GetMatrixFrom(p,table)->basis.rows[2].f[2]>0.5f)p->lastCorrection=D_002DDED0.time;
+        :"+f"(limited),"=r"(table):"f"(tank->drive),"f"(turnFactor),"m"(tank->steering),"m"(tank->width),"m"(tank->vt):"$f2","$f3");
+    tank->turn=limited;
+    if(GetMatrixFrom(tank,table)->basis.rows[2].f[2]>0.5f)tank->lastCorrection=D_002DDED0.time;
     i=0;
-    if(p->sideCount>0){
-        LIMITS*limits=&p->sides[0].angleLimits;SIDE*side=p->sides;
+    if(tank->sideCount>0){
+        LIMITS*limits=&tank->sides[0].angleLimits;SIDE*side=tank->sides;
         do {
             ++i;
-            qword direction=SetVectorCylind(p->wheelAngle,1.0f,0.0f);
+            qword direction=SetVectorCylind(tank->wheelAngle,1.0f,0.0f);
             direction=ConvertXfVec(0,side->reference->parent,direction);
             float orientation=atan2f(Y(direction),X(direction));
             scalar.q=Pack(0.0f,0.0f,GLimitLm__FP2LMf(limits,orientation));
             limits=(LIMITS*)((char*)limits+sizeof(SIDE));
             SetActPositionGoal(side->binding,scalar.q);
             ++side;
-        }while(i<p->sideCount);
+        }while(i<tank->sideCount);
     }
-    for(int k=0;k<p->count;k++){
-        ENTRY *entry=&p->entries[k];
+    for(int k=0;k<tank->count;k++){
+        ENTRY *entry=&tank->entries[k];
         float desired;
-        if(p->drive!=0.0f)desired=entry->steering*p->steering;else desired=0.0f;
+        if(tank->drive!=0.0f)desired=entry->steering*tank->steering;else desired=0.0f;
         entry->tilt=RadSmooth__FfffP3SMPPf(entry->tilt,desired,D_002DDED0.dt,D_002C2098,0);
     }
     i=0;
-    qword currentPosition=func_001A62E8(p);
+    qword currentPosition=func_001A62E8(tank);
     asm("sq %1,%0":"=m"(position.q):"r"(currentPosition):"memory");
-    targetPosition.q=func_001A62E8(p->target);
-    qword returnedSpeed=GetVelocity(p->target);
+    targetPosition.q=func_001A62E8(tank->target);
+    qword returnedSpeed=GetVelocity(tank->target);
     register qword targetSpeed __asm__("$3");int attachmentCount;
     {register int loadedCount __asm__("$2");
-    asm("por %0,$zero,%2\n\tlw %1,%3":"=&r"(targetSpeed),"=r"(loadedCount):"r"(returnedSpeed),"m"(p->attachCount));
+    asm("por %0,$zero,%2\n\tlw %1,%3":"=&r"(targetSpeed),"=r"(loadedCount):"r"(returnedSpeed),"m"(tank->attachCount));
     attachmentCount=loadedCount;}
     if(attachmentCount>0){
         register qword targetVector __asm__("vf2")=targetPosition.q;
@@ -545,10 +545,10 @@ extern "C" void UpdateRobottank(P *p)
         float distance=DistanceAndVelocity(difference,targetSpeed,targetVelocity);
         do {
             P*slotBase;
-            asm("addu %0,%1,%2":"=r"(slotBase):"r"(p),"r"(i<<2));
+            asm("addu %0,%1,%2":"=r"(slotBase):"r"(tank),"r"(i<<2));
             ATTACH *attach=slotBase->attachments[0];
             if(!attach->mesh)goto aim_next;
-            if(p->drive!=0.0f || !HasRobottankWeaponAmmo(attach)){
+            if(tank->drive!=0.0f || !HasRobottankWeaponAmmo(attach)){
                 attach->active=0;attach->speed=attach->speedLimits.low;attach->angle=0.0f;
             }else{
                 float time=Clamp(Evaluate(attach->flightTime,distance),attach->flightLimits.low,attach->flightLimits.high);
@@ -591,16 +591,16 @@ extern "C" void UpdateRobottank(P *p)
             SetActPositionGoal(binding,scalar.q);}
         aim_next:
             ++i;
-        }while(i<p->attachCount);
+        }while(i<tank->attachCount);
     }
-    if(p->sound){
-        p->soundRate=GSmooth__FfffP3SMPPf(p->soundRate,p->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
-        float rate=Clamp(p->soundRate,0.2f,1.0f);
-        func_001FB1F8(p->sound,rate);
-        SetSndPitch(p->sound,rate*0.2f);
-        if(p->sound->references>0)ResumeSnd(p->sound);
+    if(tank->sound){
+        tank->soundRate=GSmooth__FfffP3SMPPf(tank->soundRate,tank->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
+        float rate=Clamp(tank->soundRate,0.2f,1.0f);
+        func_001FB1F8(tank->sound,rate);
+        SetSndPitch(tank->sound,rate*0.2f);
+        if(tank->sound->references>0)ResumeSnd(tank->sound);
     }
-    if(p->drive!=0.0f || p->turn!=0.0f)func_001F5078(p);
+    if(tank->drive!=0.0f || tank->turn!=0.0f)func_001F5078(tank);
 }
 
 #define OFF(T,m) ((unsigned long)&((T*)0)->m)
@@ -720,25 +720,25 @@ void SetSmaGoal(void *, int);
 int GrfConsumePressed__5POCTLUif(SUB *, int, float);
 // Mode 2 (player): throttle from POCTL stick, flag 0x40 selects alt values; per ready weapon: its button mask fires
 // (SMA goal 0x68) or held-flag variant (0x67). (inferred)
-void ReadRobottankInput(OBJ *p)
+void ReadRobottankInput(OBJ *tank)
 {
     int i;
-    SUB *ps = p->psub;
+    SUB *ps = tank->psub;
     float g = ps->g;
-    p->x544 = g;
+    tank->x544 = g;
     if (ps->fl & 0x40) {
-        p->x550 = p->x51C;
-        p->x54C = p->x540;
+        tank->x550 = tank->x51C;
+        tank->x54C = tank->x540;
     } else {
-        p->x54C = g;
-        p->x550 = 0.0f;
+        tank->x54C = g;
+        tank->x550 = 0.0f;
     }
-    for (i = 0; i < p->c; i++) {
-        ITEM *q = p->a[i];
+    for (i = 0; i < tank->c; i++) {
+        ITEM *q = tank->a[i];
         if (HasRobottankWeaponAmmo(q)) {
-            if (p->psub->fl & q->fl)
+            if (tank->psub->fl & q->fl)
                 SetSmaGoal(q->x20, 0x67);
-            else if (GrfConsumePressed__5POCTLUif(p->psub, q->x28, 0.0f))
+            else if (GrfConsumePressed__5POCTLUif(tank->psub, q->x28, 0.0f))
                 SetSmaGoal(q->x20, 0x68);
         }
     }
@@ -751,10 +751,10 @@ struct O { char pad[0x80]; int n80; };
 struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
 int HasRobottankWeaponAmmo(struct O *po);
 // First weapon with enough ammo whose state is not 4. (inferred)
-struct O *FindReadyRobottankWeapon(struct S *p) {
+struct O *FindReadyRobottankWeapon(struct S *tank) {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct O *po = p->ap[i];
+    for (i = 0; i < tank->c; i++) {
+        struct O *po = tank->ap[i];
         if (HasRobottankWeaponAmmo(po) && po->n80 != 4) return po;
     }
     return 0;
@@ -782,11 +782,11 @@ extern float D_002C20C0[3];
 qword func_001A62E8(void *);
 int CploFindSwObjectsByClass(void *, int, int, int, int, SO **);
 // Nearest object of class 0x6C (CID 108 ammo pickup) via CploFindSwObjectsByClass. (inferred)
-SO *FindNearestRobottankPickup(OBJ *p)
+SO *FindNearestRobottankPickup(OBJ *pickup)
 {
     SO *best = 0;
     SO *aso[16];
-    qword pos = func_001A62E8(p);
+    qword pos = func_001A62E8(pickup);
     int n = CploFindSwObjectsByClass(D_003DD490, 0x105, 0x6C, 0, 0x10, aso);
     float fMin = D_002A7810;
     int i;
@@ -798,9 +798,9 @@ SO *FindNearestRobottankPickup(OBJ *p)
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(pos));
         __asm__("vmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "+j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
-        if (so == p->x5B8)
+        if (so == pickup->x5B8)
             f = D_002C20C0[0] + f * (D_002C20C0[1] + f * D_002C20C0[2]);
-        f += p->a57C[so->x158].f;
+        f += pickup->a57C[so->x158].f;
         if (f < fMin) {
             fMin = f;
             best = so;
@@ -819,13 +819,13 @@ struct O { char pad[0xE8]; int c; int a, b; struct E *ae; };
 struct S { char pad[0x5AC]; struct O *po; int n5B0; };
 qword func_001A62E8(struct S *p);
 // Clear x5B0 and set every wheel record's z to the car's height. (inferred)
-void ResetRobottankWheelHeights(struct S *p) {
+void ResetRobottankWheelHeights(struct S *tank) {
     qword q;
     int i;
-    p->n5B0 = 0;
-    q = func_001A62E8(p);
-    for (i = 0; i < p->po->c; i++) {
-        p->po->ae[i].z = GetZ(q);
+    tank->n5B0 = 0;
+    q = func_001A62E8(tank);
+    for (i = 0; i < tank->po->c; i++) {
+        tank->po->ae[i].z = GetZ(q);
     }
 }
 } } // namespace M_func_001D2420
@@ -902,15 +902,15 @@ static inline qword NormalizeOr(qword value,qword fallback)
     return cpu;
 }
 // Steer toward the point at cursor x5B0 on the nav path x5AC (0x1E7380 sample), set goal heading/drive. (inferred)
-void SteerRobottankAlongPath(OBJ *p)
+void SteerRobottankAlongPath(OBJ *tank)
 {
     VECTOR va, vb;
     qword pos,v,dir,point;
     register qword w __asm__("vf4");
     register qword fallback __asm__("vf5");
     float f;
-    pos = func_001A62E8(p);
-    FindShapeClosestPointFromS(p->path,pos,0,(qword *)&va,(qword *)&vb,0,&p->cursor,p->cursor);
+    pos = func_001A62E8(tank);
+    FindShapeClosestPointFromS(tank->path,pos,0,(qword *)&va,(qword *)&vb,0,&tank->cursor,tank->cursor);
     {
         float dist = Dist2D(pos, *(qword *)&va);
         f = Clamp(D_002C20D0[0] + dist * (D_002C20D0[1] + dist * D_002C20D0[2]), D_002C20E0[0], D_002C20E0[1]);
@@ -920,8 +920,8 @@ void SteerRobottankAlongPath(OBJ *p)
     v=AddScaled(point,fallback,f);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(w) : "j"(v), "j"(pos));
     dir=NormalizeOr(w,fallback);
-    p->heading = atan2f(GetY(dir), GetX(dir));
-    p->drive = p->slip * 0.75f;
+    tank->heading = atan2f(GetY(dir), GetX(dir));
+    tank->drive = tank->slip * 0.75f;
 }
 } } // namespace M_func_001D2490
 
@@ -1041,54 +1041,54 @@ static inline float Abs(float f) { return __builtin_fabsf(f); }
 
 // Mode 1 (AI): pick ready weapon or pickup target, tactic state machine (0 approach/orbit, 1 attack in place, 2
 // pursue, 3 back away), steering, fire weapons when aim error is small. (inferred)
-extern "C" void UpdateRobottankAi(P *p)
+extern "C" void UpdateRobottankAi(P *tank)
 {
-    VV position = func_001A62E8(p);
-    VV target = func_001A62E8(p->target);
+    VV position = func_001A62E8(tank);
+    VV target = func_001A62E8(tank->target);
     VV delta = Sub(target, position);
     float distance = Length2D(delta);
-    p->selectedAttach = FindReadyRobottankWeapon(p);
-    if (!p->selectedAttach)
-        p->selectedObject = FindNearestRobottankPickup(p);
+    tank->selectedAttach = FindReadyRobottankWeapon(tank);
+    if (!tank->selectedAttach)
+        tank->selectedObject = FindNearestRobottankPickup(tank);
     else
-        p->selectedObject = 0;
+        tank->selectedObject = 0;
     int state;
     do {
-        state = p->state;
+        state = tank->state;
         switch (state) {
         case 0:
-            if (p->selectedAttach) {
-                if (FCheckLm__FP2LMf(&p->selectedAttach->enterRange, distance))
-                    SetRobottankTactic(p, 1);
-            } else if (p->selectedObject) {
-                SetRobottankTactic(p, 2);
+            if (tank->selectedAttach) {
+                if (FCheckLm__FP2LMf(&tank->selectedAttach->enterRange, distance))
+                    SetRobottankTactic(tank, 1);
+            } else if (tank->selectedObject) {
+                SetRobottankTactic(tank, 2);
             } else {
-                SetRobottankTactic(p, 3);
+                SetRobottankTactic(tank, 3);
             }
             break;
         case 1:
-            if (!p->selectedAttach || !FCheckLm__FP2LMf(&p->selectedAttach->exitRange, distance))
-                SetRobottankTactic(p, 0);
+            if (!tank->selectedAttach || !FCheckLm__FP2LMf(&tank->selectedAttach->exitRange, distance))
+                SetRobottankTactic(tank, 0);
             break;
         case 2:
-            if (!p->selectedObject)
-                SetRobottankTactic(p, 0);
+            if (!tank->selectedObject)
+                SetRobottankTactic(tank, 0);
             break;
         case 3:
-            if (p->selectedAttach || p->selectedObject)
-                SetRobottankTactic(p, 0);
+            if (tank->selectedAttach || tank->selectedObject)
+                SetRobottankTactic(tank, 0);
             break;
         }
-    } while (state != p->state);
+    } while (state != tank->state);
 
-    switch (p->state) {
+    switch (tank->state) {
     case 0: {
         // approach: a point at the attachment's radius from the target, rotated around it by the tactic
-        float radius = p->selectedAttach->radius;
+        float radius = tank->selectedAttach->radius;
         float angle = acosf(radius / Max(radius * D_002C20E8, distance));
         VV goal;
-        VV offset = VuFloatFromMemWord(*(int *)&p->selectedAttach->radius) * NormalizeSafe(Sub(position, target), D_002A2DA0);
-        switch (p->selectedAttach->tactic) {
+        VV offset = VuFloatFromMemWord(*(int *)&tank->selectedAttach->radius) * NormalizeSafe(Sub(position, target), D_002A2DA0);
+        switch (tank->selectedAttach->tactic) {
         case 0:
         case 1:
             goal = target;
@@ -1107,35 +1107,35 @@ extern "C" void UpdateRobottankAi(P *p)
             break;
         }
         HIT hits[4];
-        if (ClsgClipPathzone(p->navigator, position, goal, 4, hits, 2) == 1 &&
+        if (ClsgClipPathzone(tank->navigator, position, goal, 4, hits, 2) == 1 &&
             hits[0].startFraction == 0.0f && hits[0].endFraction == 1.0f) {
             // straight line to the goal
-            p->path->points[0].q = position;
-            p->path->points[1].q = goal;
-            p->path->count = 2;
-            MeasureShape(p->path);
-            ResetRobottankWheelHeights(p);
-        } else if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, target)) {
-            func_001C02D0(p->navigator, position, target, p->path);
-            ResetRobottankWheelHeights(p);
+            tank->path->points[0].q = position;
+            tank->path->points[1].q = goal;
+            tank->path->count = 2;
+            MeasureShape(tank->path);
+            ResetRobottankWheelHeights(tank);
+        } else if (tank->path->count < 2 || 50.0f < Dist2D(tank->path->points[tank->path->count - 1].q, target)) {
+            func_001C02D0(tank->navigator, position, target, tank->path);
+            ResetRobottankWheelHeights(tank);
         }
-        SteerRobottankAlongPath(p);
-        p->wheelAngle = p->heading;
+        SteerRobottankAlongPath(tank);
+        tank->wheelAngle = tank->heading;
         break;
     }
     case 1: {
         // attack: stop, turn the wheels towards the target, fire when the selected attachment is aimed
-        p->drive = 0.0f;
-        p->goalHeading = p->heading;
-        p->wheelAngle = atan2f(GetY(delta), GetX(delta));
-        if (p->nextAttack < D_002DDED0.t) {
-            ATTACH *attach = FindReadyRobottankWeapon(p);
+        tank->drive = 0.0f;
+        tank->goalHeading = tank->heading;
+        tank->wheelAngle = atan2f(GetY(delta), GetX(delta));
+        if (tank->nextAttack < D_002DDED0.t) {
+            ATTACH *attach = FindReadyRobottankWeapon(tank);
             if (attach) {
                 if (attach->mesh) {
                     M3 m = *func_001A6318(attach->anchor);
                     float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                     qword packed = func_0022CA18(attach->mesh, attach->mesh);
-                    float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
+                    float error = Abs(RadNormalize__Ff(aim - tank->wheelAngle));
                     float pitch = GetZ(packed) - attach->meshBinding->pitch;
                     if (error < D_002C20EC && Abs(pitch) < D_002C20F0)
                         goto fire;
@@ -1144,49 +1144,49 @@ extern "C" void UpdateRobottankAi(P *p)
             fire:
                 SetSmaGoal(attach->binding, 0x68);
                 float t = D_002DDED0.t;
-                p->nextAttack = t + GRandInRange__Fff(1.0f, 1.5f);
+                tank->nextAttack = t + GRandInRange__Fff(1.0f, 1.5f);
             }
         }
         break;
     }
     case 2: {
-        VV object = func_001A62E8(p->selectedObject);
-        if (p->path->count < 2 || 50.0f < Dist2D(p->path->points[p->path->count - 1].q, object)) {
-            func_001C02D0(p->navigator, position, object, p->path);
-            ResetRobottankWheelHeights(p);
+        VV object = func_001A62E8(tank->selectedObject);
+        if (tank->path->count < 2 || 50.0f < Dist2D(tank->path->points[tank->path->count - 1].q, object)) {
+            func_001C02D0(tank->navigator, position, object, tank->path);
+            ResetRobottankWheelHeights(tank);
         }
-        SteerRobottankAlongPath(p);
-        p->wheelAngle = p->heading;
+        SteerRobottankAlongPath(tank);
+        tank->wheelAngle = tank->heading;
         break;
     }
     case 3:
-        p->goalHeading = atan2f(-GetY(delta), -GetX(delta));
-        p->wheelAngle = p->heading;
-        p->drive = p->slip * 0.85f;
+        tank->goalHeading = atan2f(-GetY(delta), -GetX(delta));
+        tank->wheelAngle = tank->heading;
+        tank->drive = tank->slip * 0.85f;
         break;
     }
 
-    if (D_002DDED0.t > p->nextAttack) {
-        for (int i = 0; i < p->attachCount; i++) {
-            ATTACH *attach = p->attachments[i];
+    if (D_002DDED0.t > tank->nextAttack) {
+        for (int i = 0; i < tank->attachCount; i++) {
+            ATTACH *attach = tank->attachments[i];
             if (!HasRobottankWeaponAmmo(attach))
                 continue;
             if (attach->constraint && !FCheckVolPoint(attach->constraint, target))
                 continue;
-            if (0.0f < attach->enterRange.max && p->state != 1)
+            if (0.0f < attach->enterRange.max && tank->state != 1)
                 continue;
             if (attach->mesh) {
                 M3 m = *func_001A6318(attach->anchor);
                 float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
                 qword packed = func_0022CA18(attach->mesh, attach->mesh);
-                float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
+                float error = Abs(RadNormalize__Ff(aim - tank->wheelAngle));
                 float pitch = GetZ(packed) - attach->meshBinding->pitch;
                 if (D_002C20F4 < error || D_002C20F8 < Abs(pitch))
                     continue;
             }
             SetSmaGoal(attach->binding, 0x68);
             float t = D_002DDED0.t;
-            p->nextAttack = t + GRandInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
+            tank->nextAttack = t + GRandInRange__Fff(attach->fireInterval.min, attach->fireInterval.max);
         }
     }
 }
@@ -1323,13 +1323,13 @@ static inline float Abs(float f) { return __builtin_fabsf(f); }
 
 // CID 77 vtable slot 70: ApplySoPendingVelocity, upright correction every 3 s, sum wheel contact impulses, turn and drive
 // within traction budget. (inferred)
-extern "C" void PresetRobottankAccel(P *p)
+extern "C" void PresetRobottankAccel(P *tank)
 {
-    func_001F9B20(p);
-    if (D_002DDED0.time - p->lastCorrection > 3.0f) {
+    func_001F9B20(tank);
+    if (D_002DDED0.time - tank->lastCorrection > 3.0f) {
         M3 reset;
-        TiltMatUpright(func_001A6318(p), 0, &reset);
-        AccelSoTowardMatSpring(p, &reset, &D_002C2100, D_002A2DD0, 0);
+        TiltMatUpright(func_001A6318(tank), 0, &reset);
+        AccelSoTowardMatSpring(tank, &reset, &D_002C2100, D_002A2DD0, 0);
     }
     U scalar, velocity, localVelocity, torque, worldTorque;
     M3 basis;
@@ -1338,14 +1338,14 @@ extern "C" void PresetRobottankAccel(P *p)
     U dtv;
     int i = 0;
     float total = 0.0f;
-    if (p->count > 0) {
+    if (tank->count > 0) {
         do {
-            ENTRY *entry = &p->entries[i];
-            CONTACT *hit = FindDeepestRobottankWheelXp(p, entry);
+            ENTRY *entry = &tank->entries[i];
+            CONTACT *hit = FindDeepestRobottankWheelXp(tank, entry);
             if (hit) {
                 qword point = hit->point.q;
-                VV normal = func_001A6318(p)->rows[2].q;
-                qword previous = GetXfVelocity(p->space, 0, point);
+                VV normal = func_001A6318(tank)->rows[2].q;
+                qword previous = GetXfVelocity(tank->space, 0, point);
                 VV other = GetXfVelocity(hit->motion, 0, point);
                 float ratio = hit->depth / (entry->maximum - entry->minimum);
                 float fraction = Clamp(ratio, 0.0f, 1.0f);
@@ -1353,51 +1353,51 @@ extern "C" void PresetRobottankAccel(P *p)
                 float depthCurve = Evaluate(D_002C2130, fraction);
                 float response = Dot(Subtract(other, previous), normal) * velocityCurve * D_002C2110 + hit->depth * depthCurve * D_002C2114;
                 if (response < 0.0f) goto contactDone;
-                scalar.q = Scalar(response * p->physics->mass);
+                scalar.q = Scalar(response * tank->physics->mass);
                 qword force = Scale(normal, scalar.q);
-                func_001FAB78(p, point, force);
+                func_001FAB78(tank, point, force);
                 total += Dot(force, normal);
             }
         contactDone:;
-        } while (++i < p->count);
+        } while (++i < tank->count);
     }
-    float budget = Min(D_002C2140, p->contactScale * total / p->physics->mass);
+    float budget = Min(D_002C2140, tank->contactScale * total / tank->physics->mass);
     CLOCK *clock = &D_002DDED0;
-    qword origin = p->primary->velocity.q;
+    qword origin = tank->primary->velocity.q;
     velocity.q = ScalarBits(*(const int *)&clock->dt);
-    scalar.q = AddScaled(origin, p->primary->acceleration.q, velocity.q);
-    velocity.q = ConvertXfVec(p->primary->space, p->secondary, scalar.q);
-    localVelocity.q = InverseRotate(p->secondary->local.basis, p->secondary->velocity.q);
-    float acceleration = D_002C2144 * p->physics->mass * p->width / p->physics->inertia;
+    scalar.q = AddScaled(origin, tank->primary->acceleration.q, velocity.q);
+    velocity.q = ConvertXfVec(tank->primary->space, tank->secondary, scalar.q);
+    localVelocity.q = InverseRotate(tank->secondary->local.basis, tank->secondary->velocity.q);
+    float acceleration = D_002C2144 * tank->physics->mass * tank->width / tank->physics->inertia;
     torque.f[0] = torque.f[1] = 0.0f;
-    float turnImpulse = GLimitAbs__Fff((p->turn - localVelocity.f[2]) / clock->dt, acceleration * budget);
+    float turnImpulse = GLimitAbs__Fff((tank->turn - localVelocity.f[2]) / clock->dt, acceleration * budget);
     torque.f[2] = turnImpulse;
-    worldTorque.q = Rotate(p->secondary->world.basis, torque.q);
+    worldTorque.q = Rotate(tank->secondary->world.basis, torque.q);
     budget -= Abs(D_002C2148 * turnImpulse / acceleration);
-    func_001FAC98(p, worldTorque.q);
+    func_001FAC98(tank, worldTorque.q);
     float dt = clock->dt;
     float half = dt * 0.5f;
     func_0011B500(&phase.rotation, D_002A2DC0, (localVelocity.f[2] + torque.f[2] * half) * dt);
-    desired.f[0] = p->acceleration * p->drive;
+    desired.f[0] = tank->acceleration * tank->drive;
     desired.f[2] = desired.f[1] = 0.0f;
     basis = phase.rotation;
     desired.q = Rotate(basis, desired.q);
-    float fraction = velocity.f[0] / p->slip;
+    float fraction = velocity.f[0] / tank->slip;
     float minimum, maximum;
-    if (0.0f <= p->drive) {
-        minimum = -p->reverseLimit;
-        maximum = ClampTo(Evaluate(p->traction, Clamp(fraction, 0.0f, 1.0f)), p->limits);
+    if (0.0f <= tank->drive) {
+        minimum = -tank->reverseLimit;
+        maximum = ClampTo(Evaluate(tank->traction, Clamp(fraction, 0.0f, 1.0f)), tank->limits);
     } else {
-        minimum = -ClampTo(Evaluate(p->traction, Clamp(-fraction, 0.0f, 1.0f)), p->limits);
-        maximum = p->reverseLimit;
+        minimum = -ClampTo(Evaluate(tank->traction, Clamp(-fraction, 0.0f, 1.0f)), tank->limits);
+        maximum = tank->reverseLimit;
     }
     dtv.q = TimeStep(D_002DDED0);
     phase.impulse.acceleration.q = Divide(Subtract(desired.q, velocity.q), dtv.q);
     phase.impulse.acceleration.bits[2] = 0;
     phase.impulse.acceleration.f[0] = Clamp(phase.impulse.acceleration.f[0], minimum, maximum);
     phase.impulse.limited.q = LimitVectorLength(budget, phase.impulse.acceleration.q);
-    phase.impulse.world.q = ConvertXfVec(p->secondary, 0, phase.impulse.limited.q);
-    AddSoAcceleration(p, phase.impulse.world.q);
+    phase.impulse.world.q = ConvertXfVec(tank->secondary, 0, phase.impulse.limited.q);
+    AddSoAcceleration(tank, phase.impulse.world.q);
 }
 } // namespace M_PresetRobottankAccel
 
@@ -1768,15 +1768,15 @@ void func_001F5990(void);
 void func_001D3450(OBJ *, ENT *, A *, int, int, int, void *);
 // CID 77 vt60: SO base (no-op) then wheel contacts (0x1D3450) for every wheel if the other object passes its vt62
 // test. (inferred)
-void AddRobottankCustomXps(OBJ *p, A *pa, int x, int y, int z)
+void AddRobottankCustomXps(OBJ *tank, A *pa, int x, int y, int z)
 {
     int i;
     VOBJ *po;
     func_001F5990();
     po = pa->pb->pc->p;
     if (po->vt->a[62].pfn((char *)po + po->vt->a[62].d)) {
-        for (i = 0; i < p->c; i++)
-            func_001D3450(p, &p->ae[i], pa, x, y, z, p->ae[i].b);
+        for (i = 0; i < tank->c; i++)
+            func_001D3450(tank, &tank->ae[i], pa, x, y, z, tank->ae[i].b);
     }
 }
 } } // namespace M_AddRobottankCustomXps
@@ -1788,10 +1788,10 @@ struct S { char pad[0x190]; int c; int pad2[3]; struct E ae[8]; };
 void func_001F5988(struct S *p, void *q);
 void func_001F4DA8(struct S *p, void *q, void *pe);
 // CID 77 vtable slot 54(pso): SO base no-op then RemoveSoContactsWith for every wheel. (inferred)
-void RemoveRobottankContactsWith(struct S *p, void *q) {
+void RemoveRobottankContactsWith(struct S *tank, void *q) {
     int i;
-    func_001F5988(p, q);
-    for (i = 0; i < p->c; i++) func_001F4DA8(p, q, p->ae[i].b);
+    func_001F5988(tank, q);
+    for (i = 0; i < tank->c; i++) func_001F4DA8(tank, q, tank->ae[i].b);
 }
 } } // namespace M_func_001D3F30
 
@@ -1800,10 +1800,10 @@ namespace M_func_001D3FA8 { extern "C" {
 struct O { char pad[0x14]; int id; };
 struct S { char pad[0x4F8]; int c; struct O *ap[1]; };
 // Find weapon record by id. (inferred)
-struct O *FindRobottankWeapon(struct S *p, int id) {
+struct O *FindRobottankWeapon(struct S *tank, int id) {
     int i;
-    for (i = 0; i < p->c; i++) {
-        struct O *po = p->ap[i];
+    for (i = 0; i < tank->c; i++) {
+        struct O *po = tank->ap[i];
         if (po->id == id) return po;
     }
     return 0;
@@ -1819,12 +1819,12 @@ void SetRcPickupState(struct S *p, int n);
 static inline int Min(int a, int b) { return a < b ? a : b; }
 // Pickup callback: if pickup not yet used, add its ammo to the car's weapon slot (clamped to max) and set pickup
 // state 2. (inferred)
-void CollectRobottankPickup(struct Q *q, struct S *p) {
-    if (p->n150 != 2) {
-        struct E *pe = &q->ae[p->i];
-        int n = pe->n + p->d;
+void CollectRobottankPickup(struct Q *q, struct S *pickup) {
+    if (pickup->n150 != 2) {
+        struct E *pe = &q->ae[pickup->i];
+        int n = pe->n + pickup->d;
         pe->n = Min(pe->nMax, n);
-        SetRcPickupState(p, 2);
+        SetRcPickupState(pickup, 2);
     }
 }
 } } // namespace M_func_001D3FF0
@@ -1849,27 +1849,27 @@ void EnsureSwCallback(void *, void *, long, void *);
 static inline float GetZ(qword q) { float f; __asm__("pextuw %0, $0, %1" : "=r"(f) : "r"(q)); return f; }
 // CID 77 vt55(xp,i): SO base; set contact elasticity/friction by normal and other class (0x4D vehicle); touching CID
 // 0x6C pickup schedules CollectRcCarPickup. (inferred)
-void AdjustRobottankNewXp(void *a, OBJ *p, int n)
+void AdjustRobottankNewXp(void *a, OBJ *tank, int n)
 {
     void *e;
     qword v;
-    func_001F4FB0(a, p, n);
-    e = p->ab[1 - n].x8;
+    func_001F4FB0(a, tank, n);
+    e = tank->ab[1 - n].x8;
     if (n == 0) {
-        v = p->x80;
+        v = tank->x80;
     } else {
         U s;
         qword sq;
         __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
         s.q = sq;
-        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(p->x80), "j"(s.q));
+        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(tank->x80), "j"(s.q));
     }
     if (FIsBasicDerivedFrom__FP5BASIC3CID(e, 0x4D) || GetZ(v) < 0.7f) {
-        p->x94 = 0.0f;
-        p->x98 = 0.1f;
+        tank->x94 = 0.0f;
+        tank->x98 = 0.1f;
     } else {
-        p->x94 = 0.5f;
-        p->x98 = 0.1f;
+        tank->x94 = 0.5f;
+        tank->x98 = 0.1f;
     }
     if (FIsBasicDerivedFrom__FP5BASIC3CID(e, 0x6C))
         EnsureSwCallback(D_003DD490, a, D_002A7840.l, e);
@@ -1885,12 +1885,12 @@ void UpdateSoTreeBounds(struct S *p);
 qword ConvertAloPos(struct S *p, int n, qword q);
 void ExtendSoTreeBounds(struct S *p, qword q, float g);
 // CID 77 vtable slot 49: SO tree bounds then extend by each wheel sphere. (inferred)
-void UpdateRobottankBounds(struct S *p) {
+void UpdateRobottankBounds(struct S *tank) {
     int i;
-    UpdateSoTreeBounds(p);
-    for (i = 0; i < p->c; i++) {
-        struct E *pe = &p->ae[i];
-        ExtendSoTreeBounds(p, ConvertAloPos(p, 0, pe->q50), pe->g20);
+    UpdateSoTreeBounds(tank);
+    for (i = 0; i < tank->c; i++) {
+        struct E *pe = &tank->ae[i];
+        ExtendSoTreeBounds(tank, ConvertAloPos(tank, 0, pe->q50), pe->g20);
     }
 }
 } } // namespace M_UpdateRobottankBounds
@@ -1937,15 +1937,15 @@ static inline M3 Mul(const M3&a,const M3&b) return r{
 }
 // CID 77 vtable slot 19 RenderSelf: per wheel compute contact height and rolling rotation, update XF matrices, then
 // RenderSoSelf. (inferred)
-extern "C" void RenderRobottankSelf(P*p){
+extern "C" void RenderRobottankSelf(P*tank){
  V velocity,point;M3 basis;
- VE*method=&p->vt[33];
- velocity.q=ConvertAloVec(0,p,method->fn((P*)((char*)p+method->delta)));
- for(int i=0;i<p->count;i++){
-  ENTRY*e=&p->entries[i];
-  point.q=func_0022FC48(0,(NODE*)p->space,e->node->local.position.q);
+ VE*method=&tank->vt[33];
+ velocity.q=ConvertAloVec(0,tank,method->fn((P*)((char*)tank+method->delta)));
+ for(int i=0;i<tank->count;i++){
+  ENTRY*e=&tank->entries[i];
+  point.q=func_0022FC48(0,(NODE*)tank->space,e->node->local.position.q);
   point.f[0]=e->x;point.f[1]=e->y;
-  CONTACT*hit=FindDeepestRobottankWheelXp(p,e);
+  CONTACT*hit=FindDeepestRobottankWheelXp(tank,e);
   {
    float height;
    if(hit){float limit=e->height+hit->height;if(point.f[2]<limit){point.f[2]=limit;goto heightDone;}height=limit;}
@@ -1953,8 +1953,8 @@ extern "C" void RenderRobottankSelf(P*p){
    (void)GSmooth__FfffP3SMPPf(point.f[2],height,D_002DDED0.dt,D_002C21A0,0);point.f[2]=height;
   }
   heightDone:;
-  point.q=func_0022FC48(p->space,e->node->parent,point.q);
-  float desired;if(i<2)desired=0.0f;else desired=p->drive/e->radius;
+  point.q=func_0022FC48(tank->space,e->node->parent,point.q);
+  float desired;if(i<2)desired=0.0f;else desired=tank->drive/e->radius;
   if(hit){
    float current=velocity.f[0]/e->radius;
    if((0.0f<desired&&current<D_002C21CC*desired)||(desired<0.0f&&D_002C21CC*desired<current))
@@ -1979,7 +1979,7 @@ extern "C" void RenderRobottankSelf(P*p){
   register int generation=++D_003DD490.generation;
   e->node->generation=generation;
  }
- UpdateSoXfWorldMatrices(p);RenderSoSelf(p);
+ UpdateSoXfWorldMatrices(tank);RenderSoSelf(tank);
 }
 } // namespace M_RenderRobottankSelf
 
@@ -2075,17 +2075,17 @@ static inline void AddVector(P *p, int get, int set, const VU_VECTOR4 &delta)
 
 // CID 77 vtable slot 75(zap): base 0x1F7588 accept, subtract health (clamp 0), refresh meter, state 3 when dead, random or
 // sender-relative knock-back impulse. (inferred)
-int TakeRobottankDamage(P *p, EVENT *event)
+int TakeRobottankDamage(P *tank, EVENT *event)
 {
-    if (!func_001F7588(p, event))
+    if (!func_001F7588(tank, event))
         return 0;
-    int remaining = p->remaining + event->change;
+    int remaining = tank->remaining + event->change;
     if (remaining < 0)
         remaining = 0;
-    p->remaining = remaining;
-    UpdateRobottankHealthMeter(p);
-    if (!p->remaining)
-        SetRobottankState(p, 3);
+    tank->remaining = remaining;
+    UpdateRobottankHealthMeter(tank);
+    if (!tank->remaining)
+        SetRobottankState(tank, 3);
     VU_VECTOR4 linear, angular;
     linear = VecZero();
     angular = linear;
@@ -2102,7 +2102,7 @@ int TakeRobottankDamage(P *p, EVENT *event)
     }
     case 0x1000:
     {
-        VV position = func_001A62E8(p);
+        VV position = func_001A62E8(tank);
         VV delta = Sub(position, func_001A62E8(event->sender));
         VU_VECTOR4 direction;
         direction.q = NormalizeSafe(Sub(delta, ScaleV(Dot(delta, D_002A2DC0), D_002A2DC0)), D_002A2DA0);
@@ -2115,8 +2115,8 @@ int TakeRobottankDamage(P *p, EVENT *event)
         break;
     }
     }
-    AddVector(p, 33, 35, linear);
-    AddVector(p, 34, 36, angular);
+    AddVector(tank, 33, 35, linear);
+    AddVector(tank, 34, 36, angular);
     return 1;
 }
 } // namespace M_func_001D4568
@@ -2154,40 +2154,40 @@ void SetRobottankTactic(OBJ *, int);
 void SetSmaGoalIfReachable(void *, int);
 // Car state (x180): 0 idle (show meter, start engine sound), 1, 2 active, 3 destroyed (vtable slot 3 msg 5); drives body SMA
 // goal from D_002C2208[state]. (inferred)
-void SetRobottankState(OBJ *p, int n)
+void SetRobottankState(OBJ *tank, int n)
 {
     W *pw;
-    if (n == p->state)
+    if (n == tank->state)
         return;
-    switch (p->state) {
+    switch (tank->state) {
     case 0:
-        pw = p->pw;
+        pw = tank->pw;
         if (pw) {
             pw->vt->a[49].pfn((char *)pw + pw->vt->a[49].d, -1);
-            PlayWidgetAnim(p->pw, 0x34F);
-            UpdateRobottankHealthMeter(p);
+            PlayWidgetAnim(tank->pw, 0x34F);
+            UpdateRobottankHealthMeter(tank);
         }
-        if (p->x59C != -1) {
-            void *ps = PsndStartSound(p->x59C);
-            SetSndSourceLo(ps, p);
-            RcPtr_Assign(&p->x598, ps);
-            SetSndRange(p->x598, 500.0f, 1500.0f);
-            PauseSnd(p->x598);
+        if (tank->x59C != -1) {
+            void *ps = PsndStartSound(tank->x59C);
+            SetSndSourceLo(ps, tank);
+            RcPtr_Assign(&tank->x598, ps);
+            SetSndRange(tank->x598, 500.0f, 1500.0f);
+            PauseSnd(tank->x598);
         }
         break;
     case 1:
-        SetRobottankTactic(p, -1);
+        SetRobottankTactic(tank, -1);
         break;
     }
-    p->state = n;
-    p->t = D_002DDED0.t;
+    tank->state = n;
+    tank->t = D_002DDED0.t;
     switch (n) {
     case 0: {
-        W *pw2 = p->pw;
+        W *pw2 = tank->pw;
         if (pw2)
             ((void (*)(void *))pw2->vt->a[50].pfn)((char *)pw2 + pw2->vt->a[50].d);
         {
-            void **pps = &p->x598;
+            void **pps = &tank->x598;
             if (*pps) {
                 StopSnd(*pps, 0.0f);
                 RcPtr_Assign(pps, 0);
@@ -2196,14 +2196,14 @@ void SetRobottankState(OBJ *p, int n)
         break;
     }
     case 1:
-        SetRobottankTactic(p, 0);
+        SetRobottankTactic(tank, 0);
         break;
     case 3:
-        p->vt->a[3].pfn((char *)p + p->vt->a[3].d, 5, 0, 0, 0, 0);
+        tank->vt->a[3].pfn((char *)tank + tank->vt->a[3].d, 5, 0, 0, 0, 0);
         break;
     }
-    if (p->x570 && p->state != -1)
-        SetSmaGoalIfReachable(p->x570, D_002C2208[p->state]);
+    if (tank->x570 && tank->state != -1)
+        SetSmaGoalIfReachable(tank->x570, D_002C2208[tank->state]);
 }
 } } // namespace M_SetRobottankState
 
@@ -2223,9 +2223,9 @@ struct K { int a, b; };
 struct E { int n; int a[7]; float g; struct K k; int pad[13]; };
 struct S { char pad[0x190]; unsigned int c; int pad2[3]; struct E ae[8]; };
 // Append wheel record (id, radius, ...) if fewer than 8. (inferred)
-void AddRobottankWheel(struct S *p, int n, struct K *pk, float g) {
-    if (p->c < 8) {
-        struct E *pe = &p->ae[p->c++];
+void AddRobottankWheel(struct S *tank, int n, struct K *pk, float g) {
+    if (tank->c < 8) {
+        struct E *pe = &tank->ae[tank->c++];
         pe->n = n;
         pe->g = g;
         pe->k = *pk;
@@ -2271,17 +2271,17 @@ static inline X *CreateItem(OBJ *owner) {
  register X*receiver __asm__("$4");__asm__ __volatile__("daddu %0,%2,$zero\n\tsw $zero,%1":"=&r"(receiver),"=m"(item->x4):"r"(item));InitRobottankWeapon(receiver,owner);return item;
 }
 // Allocate and append weapon record (0xB0, vtable D_002C94A0) with ids/costs if fewer than 8. (inferred)
-extern "C" void AddRobottankWeapon(OBJ *p, int a, int b, int inputC, int inputD)
+extern "C" void AddRobottankWeapon(OBJ *tank, int a, int b, int inputC, int inputD)
 {
     register int c __asm__("$20")=inputC;
     register int d __asm__("$21")=inputD;
-    if (p->n < 8) {
-        X *it = CreateItem(p);
-        unsigned int index=p->n;
+    if (tank->n < 8) {
+        X *it = CreateItem(tank);
+        unsigned int index=tank->n;
         it->x14=a;
         it->x18=b;
-        p->a[index]=it;
-        p->n=index+1;
+        tank->a[index]=it;
+        tank->n=index+1;
         it->x38=d;
         it->x2C=c;
     }
@@ -2312,9 +2312,9 @@ struct K { int a, b; };
 struct E { int n; int a, b; struct K k; };
 struct S { char pad[0x4A4]; unsigned int c; struct E ae[4]; };
 // Append (id, data) record if fewer than 4. (inferred)
-void AddRobottankAttachment(struct S *p, int n, struct K *pk) {
-    if (p->c < 4) {
-        struct E *pe = &p->ae[p->c++];
+void AddRobottankAttachment(struct S *tank, int n, struct K *pk) {
+    if (tank->c < 4) {
+        struct E *pe = &tank->ae[tank->c++];
         pe->n = n;
         pe->k = *pk;
     }
@@ -2326,11 +2326,11 @@ namespace M_UpdateRobottankHealthMeter { extern "C" {
 struct S { char p0[0x55C]; int n55C, n560, f564; void *p568; };
 void SetWidgetAnimPhase(void *p, int n, float g);
 // Set meter value 0x34F = health/max (inverted if x564). (inferred)
-void UpdateRobottankHealthMeter(struct S *p) {
-    if (p->p568) {
-        float g = (float)p->n560 / (float)p->n55C;
-        if (p->f564) g = 1.0f - g;
-        SetWidgetAnimPhase(p->p568, 0x34F, g);
+void UpdateRobottankHealthMeter(struct S *tank) {
+    if (tank->p568) {
+        float g = (float)tank->n560 / (float)tank->n55C;
+        if (tank->f564) g = 1.0f - g;
+        SetWidgetAnimPhase(tank->p568, 0x34F, g);
     }
 }
 } } // namespace M_UpdateRobottankHealthMeter
@@ -2340,8 +2340,8 @@ namespace M_func_001D4CE0 { extern "C" {
 struct E { int a; int n; float g; };
 struct S { char pad[0x574]; struct E ae[1]; };
 // Set ammo slot i (count, max). (inferred)
-void SetRobottankAmmo(struct S *p, int i, float g, int n) {
-    struct E *pe = &p->ae[i];
+void SetRobottankAmmo(struct S *tank, int i, float g, int n) {
+    struct E *pe = &tank->ae[i];
     pe->n = n;
     pe->g = g;
 }
@@ -2386,20 +2386,20 @@ extern S8 D_002C2220;
 extern S8 D_002C2240;
 extern qword D_002C2230;
 // Weapon record defaults (owner, default vectors D_002C2218..) (inferred)
-void InitRobottankWeapon(OBJ *p, void *q)
+void InitRobottankWeapon(OBJ *tank, void *q)
 {
-    p->x10 = q;
-    p->x40 = D_002C2218;
-    p->x48 = D_002C2220;
-    p->x50 = D_002C2230;
-    p->x60 = D_002C2240;
-    p->x68 = -1750.0f;
-    p->x88 = 200.0f;
-    p->x8C = 400.0f;
-    p->x90 = 0;
-    p->x94 = 500.0f;
-    p->x98 = 1.0f;
-    p->x9C = 1.5f;
+    tank->x10 = q;
+    tank->x40 = D_002C2218;
+    tank->x48 = D_002C2220;
+    tank->x50 = D_002C2230;
+    tank->x60 = D_002C2240;
+    tank->x68 = -1750.0f;
+    tank->x88 = 200.0f;
+    tank->x8C = 400.0f;
+    tank->x90 = 0;
+    tank->x94 = 500.0f;
+    tank->x98 = 1.0f;
+    tank->x9C = 1.5f;
 }
 } } // namespace M_func_001D4D30
 
@@ -2416,8 +2416,8 @@ struct E { int n; int a; int b; };
 struct O { char pad[0x574]; struct E ae[1]; };
 struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
 // ammo of the weapon's slot >= its cost. (inferred)
-int HasRobottankWeaponAmmo(struct S *p) {
-    return p->po->ae[p->i].n >= p->n;
+int HasRobottankWeaponAmmo(struct S *tank) {
+    return tank->po->ae[tank->i].n >= tank->n;
 }
 } } // namespace M_func_001D4E08
 
@@ -2427,9 +2427,9 @@ struct E { int n; int a; int b; };
 struct O { char pad[0x574]; struct E ae[1]; };
 struct S { char p0[0x10]; struct O *po; char p1[0x6C-0x14]; int i; int n; };
 // Subtract weapon cost from its slot, clamp 0. (inferred)
-void UseRobottankWeaponAmmo(struct S *p) {
-    struct E *pe = &p->po->ae[p->i];
-    int n = pe->n - p->n;
+void UseRobottankWeaponAmmo(struct S *tank) {
+    struct E *pe = &tank->po->ae[tank->i];
+    int n = pe->n - tank->n;
     if (n < 0) n = 0;
     pe->n = n;
 }
@@ -2440,14 +2440,14 @@ namespace M_InitRcPickup { extern "C" {
 struct S { char p0[0x40]; int x40; char p1[0x150-0x44]; int n150; int a[2]; int n15C; };
 void InitSo(struct S *p);
 // CID 108 vtable slot 7 Init: InitSo, amount 30 (x15C), state -1. (inferred)
-void InitRcPickup(struct S *p) {
+void InitRcPickup(struct S *pickup) {
     int v;
-    InitSo(p);
-    p->n15C = 0x1E;
-    p->n150 = -1;
-    v = p->x40;
+    InitSo(pickup);
+    pickup->n15C = 0x1E;
+    pickup->n150 = -1;
+    v = pickup->x40;
     if ((v ^ 1) & 1) *(int *)v |= 2;
-    else p->x40 = v | 2;
+    else pickup->x40 = v | 2;
 }
 } } // namespace M_InitRcPickup
 
@@ -2458,10 +2458,10 @@ void PostSoLoad(struct S *p);
 void ReplaceSma(void *a, struct S *p, int b, int c, int *pn);
 void SetRcPickupState(struct S *p, int n);
 // CID 108 vtable slot 15: PostSoLoad, SMA binding, state 0. (inferred)
-void PostRcPickupLoad(struct S *p) {
-    PostSoLoad(p);
-    ReplaceSma(p->p160, p, -1, 0, &p->a164);
-    SetRcPickupState(p, 0);
+void PostRcPickupLoad(struct S *pickup) {
+    PostSoLoad(pickup);
+    ReplaceSma(pickup->p160, pickup, -1, 0, &pickup->a164);
+    SetRcPickupState(pickup, 0);
 }
 } } // namespace M_PostRcPickupLoad
 
@@ -2493,11 +2493,11 @@ extern int D_002C2248[];
 struct S { char p0[0x150]; int n150; float g154; char p1[0x164-0x158]; void *p164; };
 void SetSmaGoalIfReachable(void *p, int n);
 // Pickup state x150 with time; SMA goal from D_002C2248[state]. (inferred)
-void SetRcPickupState(struct S *p, int n) {
-    if (n == p->n150) return;
-    p->n150 = n;
-    p->g154 = D_002DDED0.t;
-    if (p->p164 && n != -1) SetSmaGoalIfReachable(p->p164, D_002C2248[n]);
+void SetRcPickupState(struct S *pickup, int n) {
+    if (n == pickup->n150) return;
+    pickup->n150 = n;
+    pickup->g154 = D_002DDED0.t;
+    if (pickup->p164 && n != -1) SetSmaGoalIfReachable(pickup->p164, D_002C2248[n]);
 }
 } } // namespace M_SetRcPickupState
 

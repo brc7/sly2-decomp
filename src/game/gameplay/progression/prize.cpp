@@ -86,26 +86,26 @@ void InitSo(struct S *p);
 void func_001F7918(struct S *p, int a, int b);
 static inline int FPtr(int v) { return !(v & 1); }
 // DPRIZE::Init (vtable slot 7): InitSo + 0x1F7918 setup.
-void InitDprize(struct S *p)
+void InitDprize(struct S *prize)
 {
     int v;
-    InitSo(p);
-    func_001F7918(p, 0x17E, 8);
-    v = p->x40;
-    p->x21C = 30.0f;
-    p->x1C8 = 1;
-    p->x1CC = D_002A7710;
-    p->x150 = -1;
-    p->x158 = 0;
-    p->x15C = -1;
-    p->x1A4 = -1;
-    p->x1AC = -1;
-    p->x1B4 = -1;
-    p->x204 = -1;
-    p->x20C = -1;
-    p->x214 = -1;
-    p->x224 = -1;
-    if (FPtr(v)) *(int *)v |= 2; else p->x40 = v | 2;
+    InitSo(prize);
+    func_001F7918(prize, 0x17E, 8);
+    v = prize->x40;
+    prize->x21C = 30.0f;
+    prize->x1C8 = 1;
+    prize->x1CC = D_002A7710;
+    prize->x150 = -1;
+    prize->x158 = 0;
+    prize->x15C = -1;
+    prize->x1A4 = -1;
+    prize->x1AC = -1;
+    prize->x1B4 = -1;
+    prize->x204 = -1;
+    prize->x20C = -1;
+    prize->x214 = -1;
+    prize->x224 = -1;
+    if (FPtr(v)) *(int *)v |= 2; else prize->x40 = v | 2;
 }
 } } // namespace M_InitDprize
 
@@ -134,21 +134,21 @@ void PostSoLoad(struct S *p);
 struct LO *PloFindSwObjectByClass__FP2SWi3CIDP2LO(void *pg, int a, int b, struct S *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int a, int b, struct S *p);
 // DPRIZE vtable slot 15 PostLoad: base + resolve linked objects via SW lookup.
-void PostDprizeLoad(struct S *p)
+void PostDprizeLoad(struct S *prize)
 {
     struct LO *plo;
-    PostSoLoad(p);
-    plo = PloFindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, p);
-    p->x16C = plo;
+    PostSoLoad(prize);
+    plo = PloFindSwObjectByClass__FP2SWi3CIDP2LO(D_003DD490, 1, 0x12, prize);
+    prize->x16C = plo;
     if (plo)
         ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
-    if (p->x1A4 != -1) p->x1A8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x1A4, p);
-    if (p->x1AC != -1) p->x1B0 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x1AC, p);
-    if (p->x1B4 != -1) p->x1B8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x1B4, p);
-    if (p->x204 != -1) p->x208 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x204, p);
-    if (p->x20C != -1) p->x210 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x20C, p);
-    if (p->x214 != -1) p->x218 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, p->x214, p);
-    ((void (*)(void *, int))p->vt[76].pf)((char *)p + p->vt[76].d, p->x158);
+    if (prize->x1A4 != -1) prize->x1A8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x1A4, prize);
+    if (prize->x1AC != -1) prize->x1B0 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x1AC, prize);
+    if (prize->x1B4 != -1) prize->x1B8 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x1B4, prize);
+    if (prize->x204 != -1) prize->x208 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x204, prize);
+    if (prize->x20C != -1) prize->x210 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x20C, prize);
+    if (prize->x214 != -1) prize->x218 = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, prize->x214, prize);
+    ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, prize->x158);
 }
 } } // namespace M_PostDprizeLoad
 
@@ -160,18 +160,18 @@ struct M { int x0; int x4; int x8; };
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x168 - 0x10]; int x168; char p2[0x218 - 0x16C]; struct LO *x218; };
 void HandleBasicMessage(struct S *p, int n, struct M *pm);
 // DPRIZE vtable slot 5 HandleMessage: base 0x133590 + prize-specific msgs. (inferred)
-void HandleDprizeMessage(struct S *p, int n, struct M *pm)
+void HandleDprizeMessage(struct S *prize, int n, struct M *pm)
 {
     struct A a;
-    HandleBasicMessage(p, n, pm);
-    if (n == 10 && pm->x0 == p->x168 && pm->x8 == 0x186) {
-        struct LO *plo = p->x218;
+    HandleBasicMessage(prize, n, pm);
+    if (n == 10 && pm->x0 == prize->x168 && pm->x8 == 0x186) {
+        struct LO *plo = prize->x218;
         if (plo) {
             a.c = 1;
-            a.pv = p;
+            a.pv = prize;
             ((void (*)(void *, struct A *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &a);
         }
-        ((void (*)(void *, int))p->vt[76].pf)((char *)p + p->vt[76].d, 2);
+        ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 2);
     }
 }
 } } // namespace M_HandleDprizeMessage
@@ -364,7 +364,7 @@ struct B { char pad[0xEC]; struct C *pc; };
 struct Q { int a; struct B *pb; int pad[2]; unsigned long fl; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 // collision filter callback (FIsCidDerived test). (inferred)
-int FFilterDprizeObjects(void *p, struct Q *q)
+int FFilterDprizeObjects(void *prize, struct Q *q)
 {
     void *s;
     /*B*/if (q->fl & (1UL << 48)) return 0; s = q->pb->pc->p60; if (FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x32) || FIsBasicDerivedFrom__FP5BASIC3CID(s, 0x4F)) return 0; return 1;/*E*/
@@ -592,35 +592,35 @@ static inline float LenSq(qword a)
     return f;
 }
 // test one collector (PZI) against the prize: in range -> collect. (inferred)
-int TryCollectDprize(struct S *p,struct Q *q)
+int TryCollectDprize(struct S *prize,struct Q *q)
 {
     char scratch[0x30] __attribute__((aligned(16)));
     qword pos;
     int i;
     float distance,maximum;
     if(!q->enabled||!q->so)return 0;
-    pos=ToVu(func_001A62E8(p));
+    pos=ToVu(func_001A62E8(prize));
     distance=LenSq(Sub(pos,func_001A62E8(q->so)));
     maximum=D_002C0D7C;
     if(maximum*maximum<distance)return 0;
     if(distance<q->radius*q->radius) {
-        Trigger(p);
+        Trigger(prize);
         return 1;
     }
     for(i=0;i<q->so->count;i++) {
         struct SHAPE *s=&q->so->shapes[i];
         if(s->flags&(1UL<<50))continue;
         if(s->flags&(1UL<<49)) {
-            float r=p->radius+s->radius;
-            qword here=func_001A62E8(p);
+            float r=prize->radius+s->radius;
+            qword here=func_001A62E8(prize);
             if(LenSq(Sub(here,s->pos->pos))<r*r) {
-                Trigger(p);
+                Trigger(prize);
                 return 1;
             }
         } else {
-            qword here=func_001A62E8(p);
-            if(CsbiIntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,p->radius)) {
-                Trigger(p);
+            qword here=func_001A62E8(prize);
+            if(CsbiIntersectSphereBsp(here,s,0x7FFFFFFF,0,0,1,scratch,prize->radius)) {
+                Trigger(prize);
                 return 1;
             }
         }
@@ -642,20 +642,20 @@ int func_001C4BD8(void *pg, int c, void **ap);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 int TryCollectDprize(struct S *p, void *pv);
 // for each collector PZI (CppziCur) check collection. (inferred)
-void CheckDprizeCollect(struct S *p)
+void CheckDprizeCollect(struct S *prize)
 {
     void *ap[0x10];
     int i, n;
-    if (!p->x1C8) return;
-    if (p->x1CC < D_002DDED0.t) {
-        ((void (*)(void *, int))p->vt[76].pf)((char *)p + p->vt[76].d, 1);
+    if (!prize->x1C8) return;
+    if (prize->x1CC < D_002DDED0.t) {
+        ((void (*)(void *, int))prize->vt[76].pf)((char *)prize + prize->vt[76].d, 1);
         return;
     }
     n = func_001C4BD8(D_003DD490, 0x10, ap);
     for (i = 0; ; i++) {
         if (i >= n) break;
-        if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x5B)) break;
-        if (TryCollectDprize(p, ap[i])) break;
+        if (i > 0 && !FIsBasicDerivedFrom__FP5BASIC3CID(prize, 0x5B)) break;
+        if (TryCollectDprize(prize, ap[i])) break;
     }
 }
 } } // namespace M_CheckDprizeCollect
@@ -788,25 +788,25 @@ void RenderDprizeSelf(LO *p);
 extern "C" { M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec); }
 extern "C" { void func_001A5EE8(LO *plo, M4 m, float a, float b); }
 // DPRIZE vtable slot 19 RenderSelf (bob/spin then SO render).
-void RenderDprizeSelf(LO *p)
+void RenderDprizeSelf(LO *prize)
 {
     Q *q;
     H *ph;
-    if (p->x150 == 2) return;
-    if (p->x168 && (q = p->x168->x30) != 0) {
-        ph = func_0012FF10(q->x14, p, 0xC, 1);
+    if (prize->x150 == 2) return;
+    if (prize->x168 && (q = prize->x168->x30) != 0) {
+        ph = func_0012FF10(q->x14, prize, 0xC, 1);
         if (ph) {
             V v;
             OBJ *pobj = ph->pobj;
             ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->x1C, q->x40);
             M4 m;
-            m = LoadMatrixFromPosRotScale(func_001A62E8(p), func_001A6318(p), &v);
-            func_001A5EE8(p, m, p->x12C, p->x12C);
+            m = LoadMatrixFromPosRotScale(func_001A62E8(prize), func_001A6318(prize), &v);
+            func_001A5EE8(prize, m, prize->x12C, prize->x12C);
         } else {
-            RenderSoSelf(p);
+            RenderSoSelf(prize);
         }
     } else {
-        RenderSoSelf(p);
+        RenderSoSelf(prize);
     }
 }
 } // namespace M_RenderDprizeSelf
@@ -836,65 +836,65 @@ void SkipSma(struct LO *q, float g);
 void SetSmaGoal(struct LO *q, int anim);
 void func_001F0598(struct LO *q);
 // DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps).
-void SetDprizeDprizes(struct S *p, int n)
+void SetDprizeDprizes(struct S *prize, int n)
 {
     int anim = -1;
     struct LO *q;
-    if (p->x150 == n) return;
+    if (prize->x150 == n) return;
     if (n != 0 && n != 5)
-        SetLoParent_1A58D0(p, 0, 0);
-    if (p->x150 == -1 || p->x150 == 2) {
-        struct O *o = p->x58;
-        p->q170 = o->q30;
-        p->q180 = o->qB0;
+        SetLoParent_1A58D0(prize, 0, 0);
+    if (prize->x150 == -1 || prize->x150 == 2) {
+        struct O *o = prize->x58;
+        prize->q170 = o->q30;
+        prize->q180 = o->qB0;
     }
     switch (n) {
     case 0:
-        anim = p->x15C != -1 ? p->x15C : 0x184;
-        p->q190 = D_002A2DD0;
+        anim = prize->x15C != -1 ? prize->x15C : 0x184;
+        prize->q190 = D_002A2DD0;
         break;
     case 3:
     case 4:
         anim = 0x183;
-        p->q190 = D_002C0D60;
+        prize->q190 = D_002C0D60;
         break;
     case 2:
-        p->x1CC = D_002A773C;
-        ((void (*)(void *))p->vt[9].pf)((char *)p + p->vt[9].d);
+        prize->x1CC = D_002A773C;
+        ((void (*)(void *))prize->vt[9].pf)((char *)prize + prize->vt[9].d);
         {
-            struct LO *r = func_001CB658(p);
+            struct LO *r = func_001CB658(prize);
             if (r)
-                UnlockProxyPlo(r, p);
+                UnlockProxyPlo(r, prize);
         }
         break;
     case 5:
         anim = 0x186;
-        p->q190 = D_002A2DD0;
+        prize->q190 = D_002A2DD0;
         break;
     }
     switch(n){
     case 0:case 4:case 5:
-        q=p->x16C;if(q)((void(*)(void*))q->vt[8].pf)((char*)q+q->vt[8].d);
+        q=prize->x16C;if(q)((void(*)(void*))q->vt[8].pf)((char*)q+q->vt[8].d);
         break;
     default:
-        q=p->x16C;if(q)((void(*)(void*))q->vt[9].pf)((char*)q+q->vt[9].d);
+        q=prize->x16C;if(q)((void(*)(void*))q->vt[9].pf)((char*)q+q->vt[9].d);
         break;
     }
-    p->x150 = n;
-    p->x154 = D_002DDED0.t;
+    prize->x150 = n;
+    prize->x154 = D_002DDED0.t;
     if (anim != -1) {
-        if (!p->x168) {
-            p->x168 = func_001F0380(p->x164, p, anim, 0);
-            ((void (*)(void *))p->x168->vt[1].pf)((char *)p->x168 + p->x168->vt[1].d);
-            if (p->x160 > 0.0f)
-                SkipSma(p->x168, p->x160);
+        if (!prize->x168) {
+            prize->x168 = func_001F0380(prize->x164, prize, anim, 0);
+            ((void (*)(void *))prize->x168->vt[1].pf)((char *)prize->x168 + prize->x168->vt[1].d);
+            if (prize->x160 > 0.0f)
+                SkipSma(prize->x168, prize->x160);
         } else {
-            SetSmaGoal(p->x168, anim);
+            SetSmaGoal(prize->x168, anim);
         }
-    } else if (p->x168) {
-        func_001F0598(p->x168);
-        ((void (*)(void *))p->x168->vt[2].pf)((char *)p->x168 + p->x168->vt[2].d);
-        p->x168 = 0;
+    } else if (prize->x168) {
+        func_001F0598(prize->x168);
+        ((void (*)(void *))prize->x168->vt[2].pf)((char *)prize->x168 + prize->x168->vt[2].d);
+        prize->x168 = 0;
     }
 }
 } } // namespace M_SetDprizeDprizes
@@ -938,25 +938,25 @@ static inline float Max(float a,float b)
     return a;
 }
 // spawn sparkle rip (PripNewRipg) at prize position periodically. (inferred)
-void EmitDprizeGlint(struct S *p)
+void EmitDprizeGlint(struct S *prize)
 {
     union U scale;
     qword direction;
     int side;
     void *emitter;
     struct Q *q;
-    if(!p->owner||p->probability<=0)return;
-    direction=ConvertAloVec(p,0,D_002C0D80);
+    if(!prize->owner||prize->probability<=0)return;
+    direction=ConvertAloVec(prize,0,D_002C0D80);
     side=Dot(direction,D_002DDF40.b)<0;
-    if(side!=p->previous) {
-        if(GRandInRange__Fff(0,1)<p->probability) {
-            if(D_002C0D90<D_002DDED0.t-p->last) {
-                if(Dot(direction,D_002DDF40.a)<0)emitter=p->left;
-                else emitter=p->right;
+    if(side!=prize->previous) {
+        if(GRandInRange__Fff(0,1)<prize->probability) {
+            if(D_002C0D90<D_002DDED0.t-prize->last) {
+                if(Dot(direction,D_002DDF40.a)<0)emitter=prize->left;
+                else emitter=prize->right;
                 if(!emitter)goto changed;
                 q=PripNewRipg(&D_003DD490,(void *)4,0);
                 if(!q)goto changed;
-                p->last=D_002DDED0.t;
+                prize->last=D_002DDED0.t;
                 {
                     struct VTE *method=&q->vt[1];
                     void *ctx=(char *)q+method->delta;
@@ -964,16 +964,16 @@ void EmitDprizeGlint(struct S *p)
                     method->fn(ctx,pos,1,0);
                 }
                 {
-                    void *owner=p->owner;
+                    void *owner=prize->owner;
                     q->emit=emitter;
                     q->owner=owner;
                 }
-                scale.q=p->lo->scale;
+                scale.q=prize->lo->scale;
                 q->duration=1.5f/Max(1,__builtin_fabsf(scale.f[2]));
             }
         }
 changed:
-        p->previous=side;
+        prize->previous=side;
     }
 }
 } } // namespace M_func_001C6308
@@ -988,18 +988,18 @@ namespace M_func_001C6508 { extern "C" {
 struct S { char pad[0x1A0]; float a1A0; char p1[0x1D0 - 0x1A4]; float a1D0, a1D4, a1D8, a1DC, a1E0, a1E4; char p2[0x230 - 0x1E8]; float a230, a234; };
 void InitDprize(struct S *p);
 // CID 91 Init (sprayable pickup; coin?). (inferred)
-void InitCoin(struct S *p)
+void InitCoin(struct S *coin)
 {
-    InitDprize(p);
-    p->a1D8 = 45.0f;
-    p->a1DC = 65.0f;
-    p->a1D0 = 250.0f;
-    p->a1D4 = 150.0f;
-    p->a1E0 = 0.5f;
-    p->a1E4 = 0.25f;
-    p->a1A0 = 0.25f;
-    p->a230 = 5.0f;
-    p->a234 = 5.0f;
+    InitDprize(coin);
+    coin->a1D8 = 45.0f;
+    coin->a1DC = 65.0f;
+    coin->a1D0 = 250.0f;
+    coin->a1D4 = 150.0f;
+    coin->a1E0 = 0.5f;
+    coin->a1E4 = 0.25f;
+    coin->a1A0 = 0.25f;
+    coin->a230 = 5.0f;
+    coin->a234 = 5.0f;
 }
 } } // namespace M_func_001C6508
 
@@ -1048,44 +1048,44 @@ void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
 // CID 91 state setter: on collect play sound, emit rip, award (0x1C67A0). (inferred)
-void SetCoinDprizes(struct S *p, int n)
+void SetCoinDprizes(struct S *coin, int n)
 {
-    if (p->x150 == n) return;
+    if (coin->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = GRandInRange__Fff(p->x230, p->x234);
+        coin->x238 = GRandInRange__Fff(coin->x230, coin->x234);
         break;
     case 1: {
         struct X *px = PripNewRipg(D_003DD490, 9, 0);
         struct LO *plo;
         if (px) {
             struct VTE *e;
-            px->xF4 = p;
+            px->xF4 = coin;
             px->xF0 = D_002C0DA0;
             px->xF8 = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, func_001A62E8(p), 0, 1.0f);
-            px->x1C = p;
-            px->mat = *func_001A6318(p);
+            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, func_001A62E8(coin), 0, 1.0f);
+            px->x1C = coin;
+            px->mat = *func_001A6318(coin);
         } else {
-            AwardCoin(p, 0);
+            AwardCoin(coin, 0);
         }
         SetSndSourceLo(PsndStartSound(0x29), 0);
-        plo = p->x210;
+        plo = coin->x210;
         if (plo) {
             struct M m;
             m.n = 1;
-            m.p = p;
+            m.p = coin;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))coin->vt[3].pf)((char *)coin + coin->vt[3].d, 5, 0, 0, 0, 0);
         func_00161868(D_003DD490);
-        BroadcastGameEvent(D_002DEB30, 0x12, p);
+        BroadcastGameEvent(D_002DEB30, 0x12, coin);
         break;
     }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(coin, n);
 }
 } } // namespace M_func_001C65F8
 
@@ -1100,20 +1100,20 @@ struct S { char p0[0x1A0]; float x1A0; char p1[0x1D0 - 0x1A4]; float x1D0, x1D4,
     char p2[0x230 - 0x1E8]; float x230, x234; int x238; int x23C; int x240; };
 void InitDprize(struct S *p);
 // CID 93 Init (sprayable pickup 0x5D). (inferred)
-void InitMedicine(struct S *p)
+void InitMedicine(struct S *medicine)
 {
-    InitDprize(p);
-    p->x1D8 = 45.0f;
-    p->x1DC = 75.0f;
-    p->x1D0 = 250.0f;
-    p->x1D4 = 50.0f;
-    p->x1E4 = 0.2f;
-    p->x1E0 = 0.65f;
-    p->x1A0 = 0.25f;
-    p->x23C = 10;
-    p->x240 = 20;
-    p->x230 = 4.0f;
-    p->x234 = 5.0f;
+    InitDprize(medicine);
+    medicine->x1D8 = 45.0f;
+    medicine->x1DC = 75.0f;
+    medicine->x1D0 = 250.0f;
+    medicine->x1D4 = 50.0f;
+    medicine->x1E4 = 0.2f;
+    medicine->x1E0 = 0.65f;
+    medicine->x1A0 = 0.25f;
+    medicine->x23C = 10;
+    medicine->x240 = 20;
+    medicine->x230 = 4.0f;
+    medicine->x234 = 5.0f;
 }
 } } // namespace M_func_001C67D8
 
@@ -1163,48 +1163,48 @@ void func_00161868(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
 // CID 93 setter (uses PpoCur - gives to current character). (inferred)
-void SetMedicineDprizes(struct S *p, int n)
+void SetMedicineDprizes(struct S *medicine, int n)
 {
-    if (p->x150 == n) return;
+    if (medicine->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = GRandInRange__Fff(p->x230, p->x234);
+        medicine->x238 = GRandInRange__Fff(medicine->x230, medicine->x234);
         break;
     case 1: {
         struct LO *q = PpoHero(D_003DD490);
         struct X *px;
         struct LO *plo;
         if (!((int (*)(void *))q->vt[80].pf)((char *)q + q->vt[80].d)) {
-            n = p->x150;
+            n = medicine->x150;
             break;
         }
         px = PripNewRipg(D_003DD490, 9, 0);
         if (px) {
             struct VTE *e;
-            px->xF4 = p;
+            px->xF4 = medicine;
             px->xF0 = D_002C0E10;
             px->xF8 = 0;
             e = &px->vt[1];
-            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, func_001A62E8(p), 0, 1.0f);
-            px->x1C = p;
-            px->mat = *func_001A6318(p);
+            ((void (*)(void *, qword, int, float))e->pf)((char *)px + e->d, func_001A62E8(medicine), 0, 1.0f);
+            px->x1C = medicine;
+            px->mat = *func_001A6318(medicine);
         } else {
-            OnMedicineSmackDone(p, 0);
+            OnMedicineSmackDone(medicine, 0);
         }
-        ((void (*)(void *, int, int))q->vt[81].pf)((char *)q + q->vt[81].d, p->x23C, p->x240);
-        plo = p->x210;
+        ((void (*)(void *, int, int))q->vt[81].pf)((char *)q + q->vt[81].d, medicine->x23C, medicine->x240);
+        plo = medicine->x210;
         if (plo) {
             struct M m;
             m.n = 1;
-            m.p = p;
+            m.p = medicine;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))medicine->vt[3].pf)((char *)medicine + medicine->vt[3].d, 5, 0, 0, 0, 0);
         break;
     }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(medicine, n);
 }
 } } // namespace M_func_001C68F0
 
@@ -1237,16 +1237,16 @@ void SetSndSourceLo(void *p, int n);
 void RequestTaskState(void *p, int n, struct LO *plo);
 void SetDprizeDprizes(struct LO *p, int n);
 // CID 92 setter (sound on collect). (inferred)
-void SetKeyDprizes(struct LO *p, int n)
+void SetKeyDprizes(struct LO *key, int n)
 {
-    if (p->x150 == n) return;
+    if (key->x150 == n) return;
     if (n == 1) {
         SetSndSourceLo(PsndStartSound(0), 0);
-        if (p->x230) RequestTaskState(p->x230, 2, p);
+        if (key->x230) RequestTaskState(key->x230, 2, key);
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))key->vt[3].pf)((char *)key + key->vt[3].d, 5, 0, 0, 0, 0);
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(key, n);
 }
 } } // namespace M_func_001C6B28
 
@@ -1270,19 +1270,19 @@ static inline void Zero(struct V3 *pv)
 }
 #define VT(o, n) (o)->vt[n]
 // re-parent spawned prize (0x1A58D0) and init motion. (inferred)
-void LaunchSprayedDprize(struct S *p, qword q1, qword q2, float f1, float f2)
+void LaunchSprayedDprize(struct S *prize, qword q1, qword q2, float f1, float f2)
 {
-    ((void (*)(void *))VT(p, 8).pf)((char *)p + VT(p, 8).d);
-    SetLoParent_1A58D0(p, 0, 0);
-    ((void (*)(void *, qword))VT(p, 29).pf)((char *)p + VT(p, 29).d, q1);
-    ((void (*)(void *, void *))VT(p, 30).pf)((char *)p + VT(p, 30).d, D_002A2D00);
-    Zero(&p->x58->v);
-    Zero(&p->x5C->v);
-    p->x160 = f1;
-    p->x1C4 = 0;
-    ((void (*)(void *, int))VT(p, 76).pf)((char *)p + VT(p, 76).d, 3);
-    p->x180 = q2;
-    p->x1CC = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.t + f2;
+    ((void (*)(void *))VT(prize, 8).pf)((char *)prize + VT(prize, 8).d);
+    SetLoParent_1A58D0(prize, 0, 0);
+    ((void (*)(void *, qword))VT(prize, 29).pf)((char *)prize + VT(prize, 29).d, q1);
+    ((void (*)(void *, void *))VT(prize, 30).pf)((char *)prize + VT(prize, 30).d, D_002A2D00);
+    Zero(&prize->x58->v);
+    Zero(&prize->x5C->v);
+    prize->x160 = f1;
+    prize->x1C4 = 0;
+    ((void (*)(void *, int))VT(prize, 76).pf)((char *)prize + VT(prize, 76).d, 3);
+    prize->x180 = q2;
+    prize->x1CC = (f2 == D_002A7758) ? D_002A7758 : D_002DDED0.t + f2;
 }
 } } // namespace M_LaunchSprayedDprize
 #undef VT
@@ -1294,7 +1294,7 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
 struct LO *PloAcquireProxy(void *pg, int n);
 void LockProxyPlo(void *pg, struct LO *plo);
 // make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo). (inferred)
-int NewSprayedDprize(void *p, int kind, int n, struct LO **aplo)
+int NewSprayedDprize(void *prize, int kind, int n, struct LO **aplo)
 {
     int id, i, c;
     void *pg;
@@ -1305,7 +1305,7 @@ int NewSprayedDprize(void *p, int kind, int n, struct LO **aplo)
     case 0x5D: id = 0x2B4; break;
     default: return 0;
     }
-    pg = PloFindSwObject__FP2SWi3OIDP2LO(p, 5, id, 0);
+    pg = PloFindSwObject__FP2SWi3OIDP2LO(prize, 5, id, 0);
     if (!pg) return 0;
     c = 0;
     for (i = 0; ; i++) {
@@ -1617,17 +1617,17 @@ namespace M_InitLoot { extern "C" {
 struct S { char pad[0x1A0]; float a1A0; char p1[0x1D0 - 0x1A4]; float a1D0, a1D4, a1D8, a1DC, a1E0, a1E4; char p2[0x230 - 0x1E8]; float a230, a234; };
 void InitDprize(struct S *p);
 // CID 94 Init. (inferred)
-void InitLoot(struct S *p)
+void InitLoot(struct S *loot)
 {
-    InitDprize(p);
-    p->a1D8 = 35.0f;
-    p->a1DC = 40.0f;
-    p->a1D0 = 250.0f;
-    p->a1D4 = 50.0f;
-    p->a1E4 = 0.6f;
-    p->a1E0 = 0.75f;
-    p->a230 = 8.0f;
-    p->a234 = 10.0f;
+    InitDprize(loot);
+    loot->a1D8 = 35.0f;
+    loot->a1DC = 40.0f;
+    loot->a1D0 = 250.0f;
+    loot->a1D4 = 50.0f;
+    loot->a1E4 = 0.6f;
+    loot->a1E0 = 0.75f;
+    loot->a230 = 8.0f;
+    loot->a234 = 10.0f;
 }
 } } // namespace M_InitLoot
 
@@ -1642,7 +1642,7 @@ void STACKSCOPE_ctor_1AE4A0(struct H *ph, int n) __asm__("_$_10STACKSCOPE");
 void LoadDprizeFromBrx(struct S *p, void *pv);
 void ClearCurrentLootEntry(struct S *p);
 // CID 94 LoadFromBrx (base + copies table on stack heap). (inferred)
-void LoadLootFromBrx(struct S *p, void *pv)
+void LoadLootFromBrx(struct S *loot, void *pv)
 {
     struct H h;
     struct AL al;
@@ -1651,12 +1651,12 @@ void LoadLootFromBrx(struct S *p, void *pv)
     pal = &al;
     pal->cb = 0x580;
     pal->cbAlign = 0x10;
-    p->x240 = PvAllocSlot__FP8ALLOCREQ(pal);
-    LoadDprizeFromBrx(p, pv);
-    ClearCurrentLootEntry(p);
-    pal->cb = p->x23C * 0x2C;
+    loot->x240 = PvAllocSlot__FP8ALLOCREQ(pal);
+    LoadDprizeFromBrx(loot, pv);
+    ClearCurrentLootEntry(loot);
+    pal->cb = loot->x23C * 0x2C;
     pal->cbAlign = 0x10;
-    p->x240 = func_001AE238(pal, p->x240);
+    loot->x240 = func_001AE238(pal, loot->x240);
     STACKSCOPE_ctor_1AE4A0(&h, 2);
 }
 } } // namespace M_LoadLootFromBrx
@@ -1709,32 +1709,32 @@ extern "C" { CRef RefGetSaveVarV(char *a, char *b, char *c, int n); }
 extern "C" { CRef RefSetSaveVarV(const CRef &r, char *a, char *b, char *c, int n); }
 extern "C" void SetLootDprizes(S *p, int n);
 // CID 94 setter: on collect format id and set save-game key 'mplootkc' (CRef tag 0x15). (inferred)
-void SetLootDprizes(S *p, int n)
+void SetLootDprizes(S *loot, int n)
 {
-    if (p->x150 == n) return;
+    if (loot->x150 == n) return;
     switch (n) {
     case 0:
-        p->x238 = GRandInRange__Fff(p->x230, p->x234);
+        loot->x238 = GRandInRange__Fff(loot->x230, loot->x234);
         break;
     case 1: {
         CRef ref;
         char buf[0x10];
-        sprintf(buf, D_002A7768, p->x244->x4);
+        sprintf(buf, D_002A7768, loot->x244->x4);
         ref = RefGetSaveVarV(D_002A7770, D_002A7778, buf, 0);
         RefSetSaveVarV(CRef(0x15, ref.m_tag + 1), D_002A7770, D_002A7778, buf, 0);
-        LO *plo = p->x210;
+        LO *plo = loot->x210;
         if (plo) {
             M m;
             m.n = n;
-            m.p = p;
+            m.p = loot;
             ((void (*)(void *, M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         }
         n = 2;
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
+        ((void (*)(void *, int, int, int, int, int))loot->vt[3].pf)((char *)loot + loot->vt[3].d, 5, 0, 0, 0, 0);
         break;
     }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(loot, n);
 }
 } // namespace M_SetLootDprizes
 
@@ -1792,26 +1792,26 @@ struct S { char pad[0x23C]; int c; struct E *ae; struct E *pe; };
 void func_001F6A68(struct S *p);
 void ShowSoGlobsById(struct S *p, void *pv);
 // helper used by 0x1C2DC8 (calls SO 0x1F6A68/0x1F6978). (inferred)
-void SelectLootEntry(struct S *p, int id)
+void SelectLootEntry(struct S *loot, int id)
 {
     int i, n;
     {
     int j; struct E *pe;
-    n = p->c;
+    n = loot->c;
     for (j = 0; ; j++) {
         if (j >= n) {
-            p->pe = p->ae;
+            loot->pe = loot->ae;
             break;
         }
-        pe = &p->ae[j];
+        pe = &loot->ae[j];
         if (id == pe->id) {
-            p->pe = pe;
+            loot->pe = pe;
             break;
         }
     }
     }
-    func_001F6A68(p);
-    for (i = 0; i < p->pe->c; i++) ShowSoGlobsById(p, p->pe->a[i]);
+    func_001F6A68(loot);
+    for (i = 0; i < loot->pe->c; i++) ShowSoGlobsById(loot, loot->pe->a[i]);
 }
 } } // namespace M_func_001C7A58
 
@@ -1866,10 +1866,10 @@ extern "C" void RefGetGlobalSaveVar(CRef *pref, void *pv, void *p);
 static inline int NFromPv(void *pv) { CRef ref; int n; RefGetGlobalSaveVar(&ref, pv, D_003D4A60); n = ref.m_tag; Decref__4CRef(&ref); return n; }
 extern "C" int IsClueCollected(void *p);
 // wrapper of GetClueSaveKey. (inferred)
-int IsClueCollected(void *p)
+int IsClueCollected(void *clue)
 {
     STACKSCOPE frame;
-    void *pv = GetClueSaveKey(p);
+    void *pv = GetClueSaveKey(clue);
     if (!pv) return 0;
     return NFromPv(pv);
 }
@@ -1983,10 +1983,10 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
 void func_001CB518(struct O *p);
 // CID 95 vtable slot 26: SO::VUnk26Proxy base + extra. (inferred)
-void ResetClue(struct O *p)
+void ResetClue(struct O *clue)
 {
-    func_001CB518(p);
-    { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 0); }
+    func_001CB518(clue);
+    { struct VTE *e = &clue->vt[76]; e->pfn((char *)clue + e->d, 0); }
 }
 } } // namespace M_func_001C7E68
 
@@ -1995,10 +1995,10 @@ struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
 void func_001CB5D0(struct O *p);
 // CID 95 vtable slot 27. (inferred)
-void ClearClueState(struct O *p)
+void ClearClueState(struct O *clue)
 {
-    func_001CB5D0(p);
-    { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, -1); }
+    func_001CB5D0(clue);
+    { struct VTE *e = &clue->vt[76]; e->pfn((char *)clue + e->d, -1); }
 }
 } } // namespace M_func_001C7EA8
 
@@ -2024,36 +2024,36 @@ void func_001618B0(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
 static inline int FTest(struct S *p) { struct LO *q = func_001CB658(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 // CID 95 setter: sound, proxy-copy value, mark clue collected. (inferred)
-void SetClueDprizes(struct S *p, int n)
+void SetClueDprizes(struct S *clue, int n)
 {
     struct LO *q;
     char *pg;
     qword qv;
-    if (n == p->x150) return;
+    if (n == clue->x150) return;
     if (n == 1) {
-        struct LO *plo = p->x210;
+        struct LO *plo = clue->x210;
         if (plo) {
             struct M m;
             m.n = n;
-            m.p = p;
+            m.p = clue;
             ((void (*)(void *, struct M *))plo->vt[51].pf)((char *)plo + plo->vt[51].d, &m);
         } else {
             SetSndSourceLo(PsndStartSound(0x29), 0);
         }
         pg = D_003DD490;
         n = 2;
-        qv = func_001A62E8(p);
-        EmitSwNoise(pg, 0, qv, p);
-        ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
-        q = func_001CB658(p);
+        qv = func_001A62E8(clue);
+        EmitSwNoise(pg, 0, qv, clue);
+        ((void (*)(void *, int, int, int, int, int))clue->vt[3].pf)((char *)clue + clue->vt[3].d, 5, 0, 0, 0, 0);
+        q = func_001CB658(clue);
         if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
-            struct LO *plo = func_001CB658(p);
+            struct LO *plo = func_001CB658(clue);
             SetClueCollected(plo->x100, 1);
             ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
             func_001618B0(pg);
         }
     }
-    SetDprizeDprizes(p, n);
+    SetDprizeDprizes(clue, n);
 }
 } } // namespace M_SetClueDprizes
 

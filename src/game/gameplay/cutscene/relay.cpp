@@ -1282,24 +1282,24 @@ static inline int Max(int a, int b) { return a < b ? b : a; }
 // RELAY vtable slot 14 (LoadFromBrx): collects the commands in a temporary buffer (room for 0x200), starting with an
 // implicit BlockBegin(-1) and asking for a closing BlockEnd; the LO load runs the object's Splice init, whose AddRelay*
 // calls append the commands; the result is copied into an exact-size world-heap array.
-extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
+extern "C" void LoadRelayFromBrx(OBJ *relay, void *x)
 {
     STACKSCOPE frame;
     MSG msg;
     MSG *pmsg = &msg;
     pmsg->cb = 0xA000;
     pmsg->nKind = 0x10;
-    p->ae = (ENT *)PvAllocSlot__FP8ALLOCREQ(pmsg);
-    AddRelayBlockBegin(p, -1);
-    p->f7C = 1;
-    LoadLoFromBrx(p, x);
+    relay->ae = (ENT *)PvAllocSlot__FP8ALLOCREQ(pmsg);
+    AddRelayBlockBegin(relay, -1);
+    relay->f7C = 1;
+    LoadLoFromBrx(relay, x);
     {
-        ENT *aeOld = p->ae;
-        p->cMax = Max(p->c, p->cMax) + 1;
-        pmsg->cb = p->cMax * sizeof(ENT);
+        ENT *aeOld = relay->ae;
+        relay->cMax = Max(relay->c, relay->cMax) + 1;
+        pmsg->cb = relay->cMax * sizeof(ENT);
         pmsg->nKind = 0x10;
-        p->ae = (ENT *)func_001AE1D0(pmsg);
-        CopyAb__FPvT0Ui(p->ae, aeOld, p->c * sizeof(ENT));
+        relay->ae = (ENT *)func_001AE1D0(pmsg);
+        CopyAb__FPvT0Ui(relay->ae, aeOld, relay->c * sizeof(ENT));
     }
 }
 } // namespace M_LoadRelayFromBrx
@@ -1314,10 +1314,10 @@ void *func_001AE238(struct MSG *pmsg, void *pv);
 static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
 // RELAY vtable slot 41 (Clone): copies the source LO; a relay with its own command limit gets its own copy of the
 // command array. (inferred)
-void CloneRelay(struct S *p) {
+void CloneRelay(struct S *relay) {
     struct MSG msg;
-    CloneLo(p);
-    if (p->f80) p->pv = PvReallocMsg(&msg, p->c * 0x50, 0x10, p->pv);
+    CloneLo(relay);
+    if (relay->f80) relay->pv = PvReallocMsg(&msg, relay->c * 0x50, 0x10, relay->pv);
 }
 } } // namespace M_CloneRelay
 
@@ -1359,26 +1359,26 @@ static inline void *PvNextDli(DLI *pdli)
 }
 // RELAY vtable slot 16 (Update): while firing, advances the fired time (real time when the relay runs unpaused,
 // update flag 0x100), steps every running script (UpdateRelayScript) and stops the relay when none remain.
-void UpdateRelay(OBJ *p)
+void UpdateRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
     unsigned int fl;
-    UpdateLo(p);
-    if (p->x74 == 0)
+    UpdateLo(relay);
+    if (relay->x74 == 0)
         return;
-    fl = p->x40;
+    fl = relay->x40;
     if ((fl ^ 1) & 1)
         fl = *(unsigned int *)fl;
     if (fl & 0x100)
-        p->t += D_002DDED0.a[16];
+        relay->t += D_002DDED0.a[16];
     else
-        p->t += D_002DDED0.a[1];
-    InitDli(&dli, &p->dl);
+        relay->t += D_002DDED0.a[1];
+    InitDli(&dli, &relay->dl);
     while ((pv = PvNextDli(&dli)) != 0)
         UpdateRelayScript(pv);
-    if (FIsDlEmpty__FP2DL(&p->dl))
-        StopRelay(p);
+    if (FIsDlEmpty__FP2DL(&relay->dl))
+        StopRelay(relay);
     D_002DD2FC = dli.pdliNext;
 }
 } } // namespace M_UpdateRelay
@@ -1414,39 +1414,39 @@ void SetLoBusyk(OBJ *, int);
 // Fires the relay unless it is already firing: remembers who fired it, tells itself (message 5), closes the command
 // list with a BlockEnd if asked, starts a script for the top block (NewRelayJsg) and runs it once; if the script is
 // still running afterwards the relay marks itself busy.
-void FireRelay(OBJ *p, int n)
+void FireRelay(OBJ *relay, int n)
 {
     int fl;
-    if (p->x74)
+    if (relay->x74)
         return;
-    p->x6C = n;
-    p->x74 = 1;
-    p->x78 = 0;
-    p->vt->a[3].pfn((char *)p + p->vt->a[3].d, 5, 0, 0, 0, 0);
-    if (!p->x74)
+    relay->x6C = n;
+    relay->x74 = 1;
+    relay->x78 = 0;
+    relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 5, 0, 0, 0, 0);
+    if (!relay->x74)
         return;
-    if (p->x7C) {
-        AddRelayBlockEnd(p);
-        p->x7C = 0;
+    if (relay->x7C) {
+        AddRelayBlockEnd(relay);
+        relay->x7C = 0;
     }
-    UpdateRelayScript(NewRelayJsg(p, p->x54, 0));
-    if (!p->x74)
+    UpdateRelayScript(NewRelayJsg(relay, relay->x54, 0));
+    if (!relay->x74)
         return;
-    if (FIsDlEmpty__FP2DL(&p->dl)) {
-        StopRelay(p);
+    if (FIsDlEmpty__FP2DL(&relay->dl)) {
+        StopRelay(relay);
         return;
     }
-    fl = p->x40;
+    fl = relay->x40;
     if ((fl ^ 1) & 1)
         fl = *(int *)fl;
     if (fl & 2)
         return;
-    SetLoBusyk(p, 1);
-    if ((p->x40 ^ 1) & 1)
-        *(int *)p->x40 |= 2;
+    SetLoBusyk(relay, 1);
+    if ((relay->x40 ^ 1) & 1)
+        *(int *)relay->x40 |= 2;
     else
-        p->x40 |= 2;
-    p->x78 = 1;
+        relay->x40 |= 2;
+    relay->x78 = 1;
 }
 } } // namespace M_FireRelay
 
@@ -1500,27 +1500,27 @@ static inline void *PvNextDli(DLI *pdli)
 }
 // Stops a firing relay: forgets the firer, removes every running script (RemoveJsg), clears its alarm list, releases
 // the busy mark and tells itself (message 6). (inferred)
-void StopRelay(OBJ *p)
+void StopRelay(OBJ *relay)
 {
     DLI dli;
     void *pv;
-    if (p->x74 == 0)
+    if (relay->x74 == 0)
         return;
-    p->x6C = 0;
-    p->x70 = 0;
-    p->x74 = 0;
-    InitDli(&dli, &p->dl);
+    relay->x6C = 0;
+    relay->x70 = 0;
+    relay->x74 = 0;
+    InitDli(&dli, &relay->dl);
     while ((pv = PvNextDli(&dli)) != 0)
         RemoveJsg(pv);
-    ClearRelayAlarms(p);
-    if (p->x78) {
-        SetLoBusyk(p, 2);
-        if ((p->x40 ^ 1) & 1)
-            *(int *)p->x40 &= ~2;
+    ClearRelayAlarms(relay);
+    if (relay->x78) {
+        SetLoBusyk(relay, 2);
+        if ((relay->x40 ^ 1) & 1)
+            *(int *)relay->x40 &= ~2;
         else
-            p->x40 &= ~2;
+            relay->x40 &= ~2;
     }
-    p->vt->a[3].pfn((char *)p + p->vt->a[3].d, 6, 0, 0, 0, 0);
+    relay->vt->a[3].pfn((char *)relay + relay->vt->a[3].d, 6, 0, 0, 0, 0);
     D_002DD2FC = dli.pdliNext;
 }
 } } // namespace M_StopRelay
@@ -1540,11 +1540,11 @@ void StopRelay(struct S *p);
 void AddRelayBlockBegin(struct S *p, int n);
 // Stops the relay and empties its command list back to the implicit BlockBegin(-1) (used before a script rebuilds
 // it). (inferred)
-void ResetRelay(struct S *p) {
-    StopRelay(p);
-    p->n50 = 0;
-    AddRelayBlockBegin(p, -1);
-    p->n7C = 1;
+void ResetRelay(struct S *relay) {
+    StopRelay(relay);
+    relay->n50 = 0;
+    AddRelayBlockBegin(relay, -1);
+    relay->n7C = 1;
 }
 } } // namespace M_ResetRelay
 
@@ -1648,12 +1648,12 @@ namespace M_func_001E01C8 { extern "C" {
 struct S;
 struct S { char pad[0x50]; int n50; int n54; int n58; char pad2[0x80-0x5C]; int n80; };
 // Splice: gives the relay its own command limit n (0 < n < 0x200), allowed only before commands are added. (inferred)
-void SetRelayCommandLimit(struct S *p, int n)
+void SetRelayCommandLimit(struct S *relay, int n)
 {
     if (n > 0) {
-        if (n < 0x200 && p->n50 < 2) {
-            p->n58 = n;
-            p->n80 = 1;
+        if (n < 0x200 && relay->n50 < 2) {
+            relay->n58 = n;
+            relay->n80 = 1;
         }
     }
 }
@@ -2094,9 +2094,9 @@ typedef struct S { char pad[0x10]; int a; float f; float g; int c; int d; int e;
 S *AddRelayCommand(void *p, int cb);
 // Splice builtin: append a RELAYCK 0x24 (GoTo) command to the relay (AddRelayCommand(prelay,0x24,fAsync)) and fill
 // its args. (inferred)
-void AddRelayGoTo(void *p, int a, int b, int c, int d, float f, float g)
+void AddRelayGoTo(void *relay, int a, int b, int c, int d, float f, float g)
 {
-    S *s = AddRelayCommand(p, 0x24);
+    S *s = AddRelayCommand(relay, 0x24);
     s->a = a;
     s->f = f;
     s->g = g;
@@ -2144,9 +2144,9 @@ typedef struct S { char pad[0x10]; int a; int b; int c; float f; int d; int e; }
 S *AddRelayCommand(void *p, int k, int n);
 // Splice builtin: append a RELAYCK 0x27 (FollowPath) command to the relay (AddRelayCommand(prelay,0x27,fAsync)) and
 // fill its args. (inferred)
-void AddRelayFollowPath(void *p, int a, int b, int c, int d, int e, float f)
+void AddRelayFollowPath(void *relay, int a, int b, int c, int d, int e, float f)
 {
-    S *s = AddRelayCommand(p, 0x27, 0);
+    S *s = AddRelayCommand(relay, 0x27, 0);
     s->a = a;
     s->b = b;
     s->c = c;
@@ -2163,9 +2163,9 @@ typedef struct S { char pad[0x10]; int a; float f; int b; float g; int c; int d;
 S *AddRelayCommand(void *p, int k, int n);
 // Splice builtin: append a RELAYCK 0x28 (WalkTo) command to the relay (AddRelayCommand(prelay,0x28,fAsync)) and fill
 // its args. (inferred)
-void AddRelayWalkTo(void *p, int a, float f, int b, float g, int c, int d)
+void AddRelayWalkTo(void *relay, int a, float f, int b, float g, int c, int d)
 {
-    S *s = AddRelayCommand(p, 0x28, 0);
+    S *s = AddRelayCommand(relay, 0x28, 0);
     s->a = a;
     s->f = f;
     s->b = b;
@@ -2793,10 +2793,10 @@ typedef struct S { char pad[0x30]; T *pt; char pad2[0x24]; int x58; int x5C; } S
 void HandleBasicMessage(S *p, int a, M *m);
 // BASIC HandleMessage then: msg 10 from psmaCur (+0x58) reaching the ApplySm target state -> fSmaReached(+0x5C)=1.
 // (inferred)
-void HandleJsgMessage(S *p, int a, M *m)
+void HandleJsgMessage(S *script, int a, M *m)
 {
-    HandleBasicMessage(p, a, m);
-    if (a == 10 && m->a == p->x58 && m->c == p->pt->x18) p->x5C = 1;
+    HandleBasicMessage(script, a, m);
+    if (a == 10 && m->a == script->x58 && m->c == script->pt->x18) script->x5C = 1;
 }
 } } // namespace M_HandleJsgMessage
 
@@ -2822,21 +2822,21 @@ void UpdateRelayScript(P *p);
 }
 // Run a script: start at prelaycmdFirst if not started, then keep stepping (NextJsgCommand) while the current command
 // is fAsync or complete (FIsJsgCommandComplete); release JT if done; remove the JSG past the block end.
-void UpdateRelayScript(P *p)
+void UpdateRelayScript(P *script)
 {
-    LOCK lock(p);
-    if (!p->peCur) {
-        p->peCur = p->peFirst;
-        NextJsgCommand__FP3JSG(p);
-        if (IsJsgRemoved(p)) return;
+    LOCK lock(script);
+    if (!script->peCur) {
+        script->peCur = script->peFirst;
+        NextJsgCommand__FP3JSG(script);
+        if (IsJsgRemoved(script)) return;
     }
-    while (p->peCur <= p->peMax && (p->peCur->n4 || IsJsgCommandComplete__FP3JSGP8RELAYCMD(p, p->peCur))) {
-        ReleaseJsgJtIfComplete(p);
-        NextJsgCommand__FP3JSG(p);
-        if (IsJsgRemoved(p)) return;
+    while (script->peCur <= script->peMax && (script->peCur->n4 || IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->peCur))) {
+        ReleaseJsgJtIfComplete(script);
+        NextJsgCommand__FP3JSG(script);
+        if (IsJsgRemoved(script)) return;
     }
-    ReleaseJsgJtIfComplete(p);
-    if (p->peCur > p->peMax) RemoveJsg(p);
+    ReleaseJsgJtIfComplete(script);
+    if (script->peCur > script->peMax) RemoveJsg(script);
 }
 } // namespace M_func_001E1C40
 
@@ -2849,12 +2849,12 @@ int IsJsgCommandComplete__FP3JSGP8RELAYCMD(struct S *p, struct O *po);
 void SetRelayScriptActor(struct S *p, int a, int b);
 // If the command holding the character (prelaycmdJt +0x40) is complete (StepCmd1D only when its goal is -1) release
 // it (SetJsgJt(p,0,0)). (inferred)
-void ReleaseJsgJtIfComplete(struct S *p)
+void ReleaseJsgJtIfComplete(struct S *script)
 {
-    if (p->po && IsJsgCommandComplete__FP3JSGP8RELAYCMD(p, p->po)) {
+    if (script->po && IsJsgCommandComplete__FP3JSGP8RELAYCMD(script, script->po)) {
         int f = 1;
-        if (p->po->n0 == 0x1D) f = (p->po->n10 == -1);
-        if (f) SetRelayScriptActor(p, 0, 0);
+        if (script->po->n0 == 0x1D) f = (script->po->n10 == -1);
+        if (f) SetRelayScriptActor(script, 0, 0);
     }
 }
 } } // namespace M_ReleaseJsgJtIfComplete
@@ -2869,13 +2869,13 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void *func_001CB2E0(void *p);
 // Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their current object.
 // (inferred)
-void *FindJsgObject(S *p, int id)
+void *FindJsgObject(S *script, int id)
 {
     void *q;
     if (id == -1) {
         q = 0;
     } else {
-        q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, p->x18);
+        q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, script->x18);
         if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = func_001CB2E0(q);
     }
     return q;
@@ -4847,13 +4847,13 @@ static __inline__ float GClamp(float g, float lo, float hi) { if (g < lo) return
 // Seconds a command takes: PlayAseg length/speed (difficulty-scaled), ApplySm ETA,
 // Face/Rumble/AddObject/RemoveObject/HintBox duration arg, Line = dialogue length, Unk32 constant; 0 if fAsync.
 // (inferred)
-float GetJsgCommandDuration(struct C *pc, struct P *p)
+float GetJsgCommandDuration(struct C *pc, struct P *script)
 {
     float g = 0.0f;
-    if (p->x4) return g;
-    switch (p->kind) {
+    if (script->x4) return g;
+    switch (script->kind) {
     case 0xA: {
-        struct O *po = FindJsgObject(pc, p->u10.n);
+        struct O *po = FindJsgObject(pc, script->u10.n);
         if (po) {
             float t = GGetDifficulty(&D_002DE578);
             float *pa = po->a; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->gMin, po->gMax);
@@ -4862,11 +4862,11 @@ float GetJsgCommandDuration(struct C *pc, struct P *p)
         break;
     }
     case 0xD:
-        if (p->x18 != -1) {
-            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, p->u10.n, pc->x18);
+        if (script->x18 != -1) {
+            void *px = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, script->u10.n, pc->x18);
             if (px) {
-                void *py = func_001F67E0(px, p->u14.n);
-                if (py) g = DtSmaToState(py, p->x18);
+                void *py = func_001F67E0(px, script->u14.n);
+                if (py) g = DtSmaToState(py, script->x18);
             }
         }
         break;
@@ -4875,15 +4875,15 @@ float GetJsgCommandDuration(struct C *pc, struct P *p)
         break;
     case 0x23:
     case 0x33:
-        g = p->u10.g;
+        g = script->u10.g;
         break;
     case 0x45:
-        g = func_001FCFD0(&D_003DD040, p->u10.n);
+        g = func_001FCFD0(&D_003DD040, script->u10.n);
         break;
     case 0x2C:
     case 0x2D:
     case 0x53:
-        g = p->u14.g;
+        g = script->u14.g;
         break;
     }
     return g;
@@ -4993,8 +4993,8 @@ static inline int NearZInputs(qword previous,qword current,float tolerance){
 }
 // Per-frame steering of a script-controlled player character: follow a path/curve or head to a target and write
 // stick/heading/speed into the step's control output. (inferred)
-extern "C" void UpdateJsgJtControl(P *p,OUTPUT *out){
- WORK work;PARAM *param=p->param;ACTOR *actor=p->actor;
+extern "C" void UpdateJsgJtControl(P *script,OUTPUT *out){
+ WORK work;PARAM *param=script->param;ACTOR *actor=script->actor;
  typedef char layout_local_work[(sizeof(work)==0x60)?1:-1];
  typedef char layout_local_work_align[(__alignof__(work)==16)?1:-1];
 
@@ -5010,10 +5010,10 @@ extern "C" void UpdateJsgJtControl(P *p,OUTPUT *out){
   out->heading=atan2f(y,x);out->x=x;out->y=y;
   if(actor->curve->cyclic){
    float forward,backward;
-   if(p->previousCurve<actor->curveTime){forward=actor->curveTime-p->previousCurve;backward=SMaxShape(actor->curve)+p->previousCurve-actor->curveTime;}
-   else {backward=p->previousCurve-actor->curveTime;forward=SMaxShape(actor->curve)+actor->curveTime-p->previousCurve;}
+   if(script->previousCurve<actor->curveTime){forward=actor->curveTime-script->previousCurve;backward=SMaxShape(actor->curve)+script->previousCurve-actor->curveTime;}
+   else {backward=script->previousCurve-actor->curveTime;forward=SMaxShape(actor->curve)+actor->curveTime-script->previousCurve;}
    if(forward<backward)reverse=1;
-  }else if(p->previousCurve<actor->curveTime)reverse=1;
+  }else if(script->previousCurve<actor->curveTime)reverse=1;
   if(reverse){out->heading=RadNormalize__Ff(out->heading+3.1415927f);out->x=-out->x;out->y=-out->y;}
   out->speed=1.0f;break;
  }
@@ -5021,16 +5021,16 @@ extern "C" void UpdateJsgJtControl(P *p,OUTPUT *out){
  stopped:
   out->speed=0.0f;if(actor->active!=-1)out->flags|=0x20;break;
  case 0x23:{
-  ACTOR *target=FindJsgObject(p,param->value.id);
+  ACTOR *target=FindJsgObject(script,param->value.id);
   if(!target)goto stopped;
-  GetJsgTargetPosHeading(p,target,0,&work.heading);
+  GetJsgTargetPosHeading(script,target,0,&work.heading);
   func_00204660(actor,work.heading);out->heading=work.heading;
   goto stopped;
  }
  case 0x24:{
   out->speed=__builtin_fabsf(param->value.gain);
   if(param->flag)out->flags|=8;
-  ACTOR *target=FindJsgObject(p,param->target);
+  ACTOR *target=FindJsgObject(script,param->target);
   if(!target)goto activityFlags;
   if(actor->active!=-1&&actor->mode==3){
    PATH *motion=actor->motion;
@@ -5040,13 +5040,13 @@ extern "C" void UpdateJsgJtControl(P *p,OUTPUT *out){
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
    if(motion->cyclic){
     float forward,backward;
-    if(p->previousMotion<actor->motionTime){forward=actor->motionTime-p->previousMotion;backward=UMaxShape(motion)+p->previousMotion-actor->motionTime;}
-    else {backward=p->previousMotion-actor->motionTime;forward=UMaxShape(motion)+actor->motionTime-p->previousMotion;}
+    if(script->previousMotion<actor->motionTime){forward=actor->motionTime-script->previousMotion;backward=UMaxShape(motion)+script->previousMotion-actor->motionTime;}
+    else {backward=script->previousMotion-actor->motionTime;forward=UMaxShape(motion)+actor->motionTime-script->previousMotion;}
     if(forward<backward)reverse=1;
-   }else if(p->previousMotion<actor->motionTime)reverse=1;
+   }else if(script->previousMotion<actor->motionTime)reverse=1;
    if(reverse)out->heading=RadNormalize__Ff(out->heading+3.1415927f);
   }else{
-   GetJsgTargetPosHeading(p,target,&work.from.q,0);
+   GetJsgTargetPosHeading(script,target,&work.from.q,0);
    work.first=work.from.q;
    TargetDisplacement(work.to,work.first,func_001A62E8(actor));
    out->heading=atan2f(work.to.f[1],work.to.f[0]);
@@ -5062,9 +5062,9 @@ extern "C" void UpdateJsgJtControl(P *p,OUTPUT *out){
   break;
  case 0x29:{
   out->speed=__builtin_fabsf(param->value.gain);
-  ACTOR *target=FindJsgObject(p,param->target);
+  ACTOR *target=FindJsgObject(script,param->target);
   if(!target||actor->active==-1||actor->mode!=8)break;
-  GetJsgTargetPosHeading(p,target,&work.from.q,0);
+  GetJsgTargetPosHeading(script,target,&work.from.q,0);
   {register qword captured __asm__("$3")=work.from.q;work.second=captured;}
   {
    qword actorPosition=func_001A62E8(actor);
@@ -5102,10 +5102,10 @@ extern "C" void UpdateJsgJtControl(P *p,OUTPUT *out){
   out->speed=0.0f;UpdatePoctlPressed(out);break;
  }
  case 0x2A:out->speed=0.0f;break;
- case 0x50:p->blocked=1;break;
- case 0x51:p->blocked=0;break;
+ case 0x50:script->blocked=1;break;
+ case 0x51:script->blocked=0;break;
  }
- if(p->blocked){out->flags|=0x10;if(param->kind==0x50)UpdatePoctlPressed(out);}
+ if(script->blocked){out->flags|=0x10;if(param->kind==0x50)UpdatePoctlPressed(out);}
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
@@ -5176,13 +5176,13 @@ void FindShapeClosestPoint(struct O *po, qword q, int a, qword *pv, float *pg, i
 float atan2f(float y, float x);
 // Position and heading of a target object for a movement command (shape -> closest point; STEPPLAYER -> pos+offset;
 // else object pos and its matrix heading). (inferred)
-void GetJsgTargetPosHeading(struct P *p, struct O *po, qword *pv, float *pg)
+void GetJsgTargetPosHeading(struct P *script, struct O *po, qword *pv, float *pg)
 {
     union { qword q; float a[4]; } uv;
     float ag[4];
     float g;
-    struct O *px = p->po24;
-    if (!px) px = p->po44;
+    struct O *px = script->po24;
+    if (!px) px = script->po44;
     if (po) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0xA)) {
             FindShapeClosestPoint(po, func_001A62E8(px), 0, &uv.q, ag, 0, 0);
@@ -5248,19 +5248,19 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *PpoCur(struct G *pg);
 // Switch the script's active tunnel (ptnCur +0x6C): release/hide old (0x221268(tn,-1), vt9), attach/show new (vt8)
 // with owner = actor or current PO. (inferred)
-void SetJsgTunnel(struct P *p, struct O *po)
+void SetJsgTunnel(struct P *script, struct O *po)
 {
-    if (p->po) {
-        SetTnTnsOverride(p->po, -1);
-        p->po->pvE0 = 0;
-        if (p->fActive) p->po->vt[9].pfn((char *)p->po + p->po->vt[9].d);
-        p->po = 0;
+    if (script->po) {
+        SetTnTnsOverride(script->po, -1);
+        script->po->pvE0 = 0;
+        if (script->fActive) script->po->vt[9].pfn((char *)script->po + script->po->vt[9].d);
+        script->po = 0;
     }
     if (!po) return;
-    p->po = po;
-    p->fActive = (uchar)po->fBit60 == 0;
-    if (p->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
-    po->pvE0 = (p->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(p->p24, 0x30)) ? p->p24 : PpoCur(&D_003DD490);
+    script->po = po;
+    script->fActive = (uchar)po->fBit60 == 0;
+    if (script->fActive) po->vt[8].pfn((char *)po + po->vt[8].d);
+    po->pvE0 = (script->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x30)) ? script->p24 : PpoCur(&D_003DD490);
     SetTnTnsOverride(po, 1);
 }
 } } // namespace M_SetJsgTunnel
@@ -5277,14 +5277,14 @@ qword func_001A62E8(struct X *);
 void GetJsgTargetPosHeading(struct P *, void *, qword *, int);
 // Set the script focus object (+0x74) and aim the STEPPLAYER actor's look target at it (STEPPLAYER
 // +0x1044/+0x1060/+0x1070). (inferred)
-void SetRelayScriptFocus(struct P *p, void *pv)
+void SetRelayScriptFocus(struct P *script, void *pv)
 {
     struct X *px;
-    if (p->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(p->p24, 0x34))
-        px = p->p24;
+    if (script->p24 && FIsBasicDerivedFrom__FP5BASIC3CID(script->p24, 0x34))
+        px = script->p24;
     else
         px = 0;
-    if (p->p74) {
+    if (script->p74) {
         if (px) {
             qword v = px->v1060, q, d;
             px->n1044 = 0;
@@ -5293,16 +5293,16 @@ void SetRelayScriptFocus(struct P *p, void *pv)
             px->v1070 = d;
             ((float *)&px->v1070)[2] = 0.0f;
         }
-        p->p74 = 0;
+        script->p74 = 0;
     }
     if (!pv) return;
     if (px) {
         px->n1044 = 1;
-        GetJsgTargetPosHeading(p, pv, &px->v1060, 0);
+        GetJsgTargetPosHeading(script, pv, &px->v1060, 0);
         ((float *)&px->v1060)[2] += px->f1048;
         px->v1070 = D_002A2DD0;
     }
-    p->p74 = pv;
+    script->p74 = pv;
 }
 } } // namespace M_func_001E5000
 
@@ -5318,9 +5318,9 @@ void IncrementSwHandsOff(struct G *pg, int id);
 void func_0020F0C0(struct G *pg);
 // Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
 // (0x20EFC0/0x20F030) + 0x20F0C0/0x20F0F0. (inferred)
-void SetRelayScriptHandsOff(struct P *p, int fOn, int id)
+void SetRelayScriptHandsOff(struct P *script, int fOn, int id)
 {
-if (!fOn) { if (!p->fOn) return; } else { if (p->fOn) { if (id == p->id) return; DecrementSwHandsOff(&D_003DD490, p->id); func_0020F0F0(&D_003DD490); } IncrementSwHandsOff(&D_003DD490, id); func_0020F0C0(&D_003DD490); p->fOn = fOn; p->id = id; return; } DecrementSwHandsOff(&D_003DD490, p->id); func_0020F0F0(&D_003DD490); p->fOn = fOn; p->id = id;
+if (!fOn) { if (!script->fOn) return; } else { if (script->fOn) { if (id == script->id) return; DecrementSwHandsOff(&D_003DD490, script->id); func_0020F0F0(&D_003DD490); } IncrementSwHandsOff(&D_003DD490, id); func_0020F0C0(&D_003DD490); script->fOn = fOn; script->id = id; return; } DecrementSwHandsOff(&D_003DD490, script->id); func_0020F0F0(&D_003DD490); script->fOn = fOn; script->id = id;
 }
 } } // namespace M_func_001E50E0
 
@@ -5332,17 +5332,17 @@ struct O { int pad[3]; struct VTE *vt; };
 struct P { char pad[0xA4]; int c; struct O *apo[4]; int aB8[4]; int aC8[4]; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 // Hold a STEP (max 4, +0xA4 cstepHold/apstepHold/anHold5/anHold6) and call its vtable slot 83(a,b). (inferred)
-void AddJsgStepHold(struct P *p, struct O *po, int a, int b)
+void AddJsgStepHold(struct P *script, struct O *po, int a, int b)
 {
     int i;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for (i = 0; i < p->c; i++)
-        if (p->apo[i] == po) return;
-    if ((unsigned)p->c >= 4) return;
-    p->aB8[p->c] = a;
-    p->aC8[p->c] = b;
-    p->apo[p->c] = po;
-    p->c++;
+    for (i = 0; i < script->c; i++)
+        if (script->apo[i] == po) return;
+    if ((unsigned)script->c >= 4) return;
+    script->aB8[script->c] = a;
+    script->aC8[script->c] = b;
+    script->apo[script->c] = po;
+    script->c++;
     po->vt[0x53].pfn((char *)po + po->vt[0x53].d, a, b);
 }
 } } // namespace M_AddJsgStepHold
@@ -5357,21 +5357,21 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int cid);
 void *memmove(void *pdst, const void *psrc, unsigned int cb);
 static inline unsigned ByteOffset(int index){register unsigned result __asm__("$4");__asm__("sll %0,%1,2":"=r"(result):"r"(index));return result;}
 // Remove a held STEP and call its vtable slot 84(a,b). (inferred)
-void RemoveJsgStepHold(struct P *p, struct O *po, int a, int b)
+void RemoveJsgStepHold(struct P *script, struct O *po, int a, int b)
 {
     int i;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x33)) return;
-    for(i=0;i<p->c;i++) {
-        if(p->apo[i]==po)break;
+    for(i=0;i<script->c;i++) {
+        if(script->apo[i]==po)break;
     }
-    if (i >= p->c) return;
+    if (i >= script->c) return;
     {
-        register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)p;
+        register unsigned int addr __asm__("$5") = ByteOffset(i)+(unsigned int)script;
         unsigned int dest;
         __asm__("daddu %0,%1,$zero":"=r"(dest):"r"(addr));
-        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(p->c-i)*4-4);
+        memmove((void *)(dest+0xA8),(void *)(addr+0xAC),(script->c-i)*4-4);
     }
-    p->c--;
+    script->c--;
     po->vt[0x54].pfn((char *)po + po->vt[0x54].d, a, b);
 }
 
@@ -5396,16 +5396,16 @@ struct S { char pad[0x4C]; struct O *po; int n50; void *pv; };
 void func_00130B18(struct O *po);
 void func_00143FF8(void *pv);
 // Release the running ASEGA (+0x4C: 0x130B18 + Release) and the aseg step hold (+0x54 -> 0x143FF8). (inferred)
-void ClearJsgAseg(struct S *p)
+void ClearJsgAseg(struct S *script)
 {
-    if (p->po) {
-        func_00130B18(p->po);
-        { struct O *po = p->po; po->vt[2].pf((char *)po + po->vt[2].d); }
-        p->po = 0;
+    if (script->po) {
+        func_00130B18(script->po);
+        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po = 0;
     }
-    if (p->pv) {
-        func_00143FF8(p->pv);
-        p->pv = 0;
+    if (script->pv) {
+        func_00143FF8(script->pv);
+        script->pv = 0;
     }
 }
 } } // namespace M_ClearJsgAseg
@@ -5431,13 +5431,13 @@ struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x58]; struct O *po; int n5C; };
 void UnsubscribeLoObject(struct O *po, struct S *p);
 // Unregister from and release psmaCur (+0x58), fSmaReached=0. (inferred)
-void ClearJsgSma(struct S *p)
+void ClearJsgSma(struct S *script)
 {
-    if (p->po) {
-        UnsubscribeLoObject(p->po, p);
-        { struct O *po = p->po; po->vt[2].pf((char *)po + po->vt[2].d); }
-        p->po = 0;
-        p->n5C = 0;
+    if (script->po) {
+        UnsubscribeLoObject(script->po, script);
+        { struct O *po = script->po; po->vt[2].pf((char *)po + po->vt[2].d); }
+        script->po = 0;
+        script->n5C = 0;
     }
 }
 } } // namespace M_ClearJsgSma
@@ -5449,12 +5449,12 @@ struct VTE { short d; short pad; void (*pf)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct S { char pad[0x64]; struct O *po; };
 // Call vtable slot 50 on ploWidget (+0x64) and clear it. (inferred)
-void ClearJsgWidget(struct S *p)
+void ClearJsgWidget(struct S *script)
 {
-    struct O *po = p->po;
+    struct O *po = script->po;
     if (po) {
         po->vt[50].pf((char *)po + po->vt[50].d);
-        p->po = 0;
+        script->po = 0;
     }
 }
 } } // namespace M_func_001E5468
@@ -5479,10 +5479,10 @@ struct O;
 struct S { char pad[0xA4]; int c; struct O *a[4]; int b[4]; int d[4]; };
 void RemoveJsgStepHold(struct S *p, struct O *object, int b, int d);
 // RemoveJsgStepHold for every held step. (inferred)
-void ClearJsgStepHolds(struct S *p)
+void ClearJsgStepHolds(struct S *script)
 {
-    while (p->c) {
-        RemoveJsgStepHold(p, p->a[p->c - 1], p->b[p->c - 1], p->d[p->c - 1]);
+    while (script->c) {
+        RemoveJsgStepHold(script, script->a[script->c - 1], script->b[script->c - 1], script->d[script->c - 1]);
     }
 }
 } } // namespace M_ClearJsgStepHolds
@@ -5496,15 +5496,15 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *po, int cid);
 void ClearBhvstk__FP6BHVSTK(void *p);
 // If the current command is FollowPath (0x27) or WalkTo (0x28) and the actor is a STEPPLAYER, ClearBhvstk on it.
 // (inferred)
-void AbortJsgMove(struct P *p)
+void AbortJsgMove(struct P *script)
 {
-    if (p->pnMin < p->pn && p->pn < p->pnMax) {
-        switch (*p->pn) {
+    if (script->pnMin < script->pn && script->pn < script->pnMax) {
+        switch (*script->pn) {
         case 0x27:
-            if (p->po && FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) ClearBhvstk__FP6BHVSTK(&p->po->a);
+            if (script->po && FIsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
             break;
         case 0x28:
-            if (p->po && FIsBasicDerivedFrom__FP5BASIC3CID(p->po, 0x34)) ClearBhvstk__FP6BHVSTK(&p->po->a);
+            if (script->po && FIsBasicDerivedFrom__FP5BASIC3CID(script->po, 0x34)) ClearBhvstk__FP6BHVSTK(&script->po->a);
             break;
         }
     }
@@ -5547,30 +5547,30 @@ void RemoveJsg(P *p);
 // Tear down a script: unlink from relay dlJsg and release every resource (aseg, relay wait, SMA, widget, JT mode,
 // step holds, move BHVs, clock rate reset, JT, tunnel, focus, hands-off, sound, camera blend), then drop the relay's
 // reference. (inferred)
-void RemoveJsg(P *p)
+void RemoveJsg(P *script)
 {
-    if (IsJsgRemoved(p)) return;
-    LOCK lock(p);
-    void **ppv = &p->pvEC;
-    RemoveDlEntry__FP2DLPv(&p->pq->dl, p);
-    ClearJsgAseg(p);
-    ClearJsgRelayWait(p);
-    ClearJsgSma(p);
-    ClearJsgWidget(p);
-    ClearJsgJtMode(p);
-    ClearJsgStepHolds(p);
-    AbortJsgMove(p);
+    if (IsJsgRemoved(script)) return;
+    LOCK lock(script);
+    void **ppv = &script->pvEC;
+    RemoveDlEntry__FP2DLPv(&script->pq->dl, script);
+    ClearJsgAseg(script);
+    ClearJsgRelayWait(script);
+    ClearJsgSma(script);
+    ClearJsgWidget(script);
+    ClearJsgJtMode(script);
+    ClearJsgStepHolds(script);
+    AbortJsgMove(script);
     func_0014D1D0(&D_002DDED0, 6, 1.0f);
-    SetRelayScriptActor(p, 0, 0);
-    SetJsgTunnel(p, 0);
-    SetRelayScriptFocus(p, 0);
-    SetRelayScriptHandsOff(p, 0, 0);
+    SetRelayScriptActor(script, 0, 0);
+    SetJsgTunnel(script, 0);
+    SetRelayScriptFocus(script, 0);
+    SetRelayScriptHandsOff(script, 0, 0);
     if (*ppv) {
         StopSnd(*ppv, 0.0f);
         RcPtr_Assign(ppv, 0);
     }
-    if (p->x9C) EndJsgCamBlend(p, 1);
-    p->vt[2].pfn((char *)p + p->vt[2].d);
+    if (script->x9C) EndJsgCamBlend(script, 1);
+    script->vt[2].pfn((char *)script + script->vt[2].d);
 }
 } // namespace M_RemoveJsg
 
@@ -5611,24 +5611,24 @@ static inline int FNear(qword a, qword b)
 }
 // Set up a camera blend between two CamBlendFrom/CamBlendTo commands (defaults from g_cm), tBlendEnd(+0x80)=now+t,
 // and push it into the camera's blend slot. (inferred)
-void StartRelayScriptCamBlend(struct P *p, struct A *pa, struct A *pb, float t)
+void StartRelayScriptCamBlend(struct P *script, struct A *pa, struct A *pb, float t)
 {
     float tBase;
     int i;
     float *pga, *pgb;
     if (pa->f40 == 0.0f) {
-        p->f80 = D_002A8124;
+        script->f80 = D_002A8124;
     } else {
         pb->n4 = 0;
-        p->f80 = D_002DDED0.t + t;
+        script->f80 = D_002DDED0.t + t;
     }
-    p->sub.apt[0] = &pa->t;
-    p->sub.apt[1] = &pb->t;
-    p->sub.f8C = t;
-    p->sub.n90 = 1;
-    p->sub.n94 = pa->n44;
-    p->sub.p98 = p;
-    p->sub.n9C = 1;
+    script->sub.apt[0] = &pa->t;
+    script->sub.apt[1] = &pb->t;
+    script->sub.f8C = t;
+    script->sub.n90 = 1;
+    script->sub.n94 = pa->n44;
+    script->sub.p98 = script;
+    script->sub.n9C = 1;
     pga = (float *)&pa->t.v10;
     pgb = (float *)&pb->t.v10;
     for (i = 2; i >= 0; i--) {
@@ -5637,7 +5637,7 @@ void StartRelayScriptCamBlend(struct P *p, struct A *pa, struct A *pb, float t)
         pgb++;
     }
     {
-        struct T **ppt = p->sub.apt;
+        struct T **ppt = script->sub.apt;
         unsigned j;
         qword *zero=&D_002A2DD0;
         for (j = 0; j < 2; j++, ppt++) {
@@ -5650,11 +5650,11 @@ void StartRelayScriptCamBlend(struct P *p, struct A *pa, struct A *pb, float t)
                 pt->f20 = D_002DDF40.f20;
         }
     }
-    if (p->sub.f8C == 0.0f)
-        p->sub.f8C = D_002A8124;
+    if (script->sub.f8C == 0.0f)
+        script->sub.f8C = D_002A8124;
     if (FActiveCplcy__FP5CPLCY(D_002DDF40.m500))
         RevokeCmPolicy(&D_002DDF40, 2, 10, D_002DDF40.m500, 0, D_002DDF40.n510);
-    SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &p->sub);
+    SetCmPolicy(&D_002DDF40, 10, D_002DDF40.m500, 0, &script->sub);
 }
 } } // namespace M_func_001E57A0
 
@@ -5665,11 +5665,11 @@ struct S { char pad[0x84]; int a84[3]; int n90; int n94; int n98; int n9C; };
 extern char D_002DDF40[];
 void RevokeCmPolicy(void *a, int b, int c, void *d, int e, void *f);
 // Stop the camera blend (0x14E4C8 on g_cm). (inferred)
-void EndJsgCamBlend(struct S *p, int n)
+void EndJsgCamBlend(struct S *script, int n)
 {
-    p->n90 = n;
-    p->n9C = 0;
-    RevokeCmPolicy(D_002DDF40, 2, 10, D_002DDF40 + 0x500, 0, p->a84);
+    script->n90 = n;
+    script->n9C = 0;
+    RevokeCmPolicy(D_002DDF40, 2, 10, D_002DDF40 + 0x500, 0, script->a84);
 }
 } } // namespace M_func_001E5A98
 
