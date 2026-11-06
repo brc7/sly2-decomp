@@ -1805,17 +1805,6 @@ struct CID46 : XFM
 };
 typedef char assert_CID46_size[sizeof(CID46) == 0x120 ? 1 : -1];
 
-/* 120 CID120 (0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
-struct CID120 : LO
-{
-    char pad50[0xD0 - 0x50];
-    virtual void Init() __asm__("func_0020AD38");   /* slot 7 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("func_0020AE18");   /* slot 15 */
-    virtual void Clone(LO *ploBase) __asm__("func_0020ADE8");   /* slot 41 */
-};
-typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
-
 /* 125 CID125 (0x60): guard manager (oid 0x656); vtable 0x2DA3D8, 48 slots */
 struct CID125 : LO
 {

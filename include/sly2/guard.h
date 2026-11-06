@@ -49,6 +49,19 @@ struct ANIMBINDINGREC
       undefined4 unk_0x10[4];
 };
 
+/* CID120 (classes.h's family, defined here): its vtable follows _vt$9STEPGUARD in stepguard.cpp's run, and g++
+   emits a TU's vtables in the reverse order of their classes' definitions. */
+/* 120 CID120 (0xD0): guard attack definition; vtable 0x2DA840, 48 slots */
+struct CID120 : LO
+{
+    char pad50[0xD0 - 0x50];
+    virtual void Init() __asm__("func_0020AD38");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid120ClassDesc");   /* slot 6 */
+    virtual void VUnk14() __asm__("func_0020AE18");   /* slot 15 */
+    virtual void Clone(LO *ploBase) __asm__("func_0020ADE8");   /* slot 41 */
+};
+typedef char assert_CID120_size[sizeof(CID120) == 0xD0 ? 1 : -1];
+
 /* STEPGUARD: class descriptor cb 0x1010, vtable 89 entries (types/cid_table.csv, CONFIRMED runtime) */
 struct STEPGUARD : public STEP
 {
