@@ -107,14 +107,14 @@ struct SW {
     DL exclusiveWidgetList;
     DL deferredWidgetList;
     char unknown3BE8[0x98];
-    int unknown3C80;
+    int loadFilter;
     char unknown3C84[0x4];
-    int unknown3C88;
-    int unknown3C8C;
+    int returnWarpOid;
+    int returnWarpContext;
     POOL pool3C90;
     DL list3CA8;
     POOL pool3CB4;
-    int unknown3CCC;
+    int aaoxUnsorted;
     char unknown3CD0[0x10];
     POOL pool3CE0;
     POOL pool3CF8;
@@ -130,12 +130,12 @@ struct SW {
     POOL pool3DC4;
     DL list3DDC;
     POOL pool3DE8;
-    int unknown3E00;
+    int clearColor;
     char unknown3E04[0xC];
     F3 illumHsv;
     char unknown3E1C[0x4];
     float fieldOfView;
-    int unknown3E24;
+    int midtone;
     char unknown3E28[0x1C];
     POOL pool3E44;
     char unknown3E5C[0x8];
@@ -145,7 +145,7 @@ struct SW {
     char unknown3E70[0x3C];
     DL poctlList;
     char unknown3EB8[0x58];
-    int unknown3F10;
+    int loadingProxySourceIndex;
     char unknown3F14[0x10];
     DL list3F24;
     DL list3F30;
@@ -196,9 +196,9 @@ struct SW {
     POOL leapPool;
     POOL diractPool;
     char unknown4678[0xC8];
-    int unknown4740;
+    int hintGrabId;
     char unknown4744[0xC];
-    float unknown4750;
+    float lookLastTime;
     float unknown4754;
 };
 extern "C" { extern char D_002DC018[] __asm__("_vt$2SW"); }   /* SW's vtable (sly2/sw.h) */
@@ -239,7 +239,7 @@ extern "C" SW *SW_ctor(SW *world)
     func_0011CCA8(&world->pool3DAC,0x80,0x400,0x10);
     func_0011CCA8(&world->pool3DC4,0x14,0x8,0x10);
     func_0011CCA8(&world->pool3DE8,0x50,0x80,0x10);
-    world->unknown3E00=0x80000000;
+    world->clearColor=0x80000000;
     func_0011CCA8(&world->pool3E44,0x30,0x40,0x10);
     func_0011CCA8(&world->pool4008,0x60,0x40,0x10);
     func_0011CCA8(&world->pool403C,0x1b0,0x10,0x10);
@@ -311,25 +311,25 @@ extern "C" SW *SW_ctor(SW *world)
     world->illumHsv.x=180.0f;
     hsv->y=255.0f;
     hsv->z=255.0f;
-    world->unknown3C80=-1;
+    world->loadFilter=-1;
     world->fieldOfView=90.0f;
     world->shadowLight0=128.0f;
     world->shadowLight1=96.0f;
     world->shadowLight2=160.0f;
-    world->unknown3C88=393;
-    world->unknown3C8C=-1;
-    world->unknown3CCC=1;
+    world->returnWarpOid=393;
+    world->returnWarpContext=-1;
+    world->aaoxUnsorted=1;
     world->fogRange.x=upper;
-    world->unknown3F10=-2;
-    world->unknown3E24=0;
+    world->loadingProxySourceIndex=-2;
+    world->midtone=0;
     range->y=lower;
     float slope=(upper-lower)/(end-start);
     float intercept=(end*lower-start*upper)/(end-start);
     world->fogCoefficients.x=intercept;
     coefficients->y=slope;
     coefficients->z=0.0f;
-    world->unknown4740=-1;
-    world->unknown4750=-60.0f;
+    world->hintGrabId=-1;
+    world->lookLastTime=-60.0f;
     world->unknown4754=-60.0f;
     world->unknown4554=1;
     func_002333B4(unknownBytes,-1,0x20);
@@ -715,7 +715,7 @@ struct O { char pad[0xC]; struct VE *vt; };
 struct S {
     char pad0[0x39D0]; int loadBuffer0; int pad39D4; int loadBuffer1; int pad39DC; struct O **ppoFirst; struct O **ppoLast;   /* the load-time buffers (LoadSwFromBrx), dropped here */
     char pad1[0x403C - 0x39E8]; char pool403C[0x18]; char pool4054[0x1C]; char pool4070[0x18]; char pool4088[4];
-    char pad2[0x45CC - 0x408C]; void *unknown45CC;
+    char pad2[0x45CC - 0x408C]; void *regionTree;   /* sw.h pregtree */
 };
 extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
 void func_0011CDD8(void *p);
@@ -773,7 +773,7 @@ void PostSwLoad(struct S *world)
     world->ppoFirst = 0;
     world->loadBuffer1 = 0;
     world->loadBuffer0 = 0;
-    func_001C1260(world->unknown45CC);
+    func_001C1260(world->regionTree);
     SetupCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30, 4, 0);
 }
@@ -1405,7 +1405,7 @@ extern char D_003DD490[];
 extern int D_002C3E70[4];
 struct L { float a; int b; int c; float d; int e[4]; };
 struct E { int widget; int pad[2]; };
-struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int unknown4768; };   /* sw.h cClue */
+struct S { char pad[0x3BA0]; struct E ae[4]; char pad2[0x4764 - 0x3BD0]; int clueCount; int clueTotal; };   /* sw.h cClue, cClueTotal */
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 int PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, int c);
 void SetWidgetXf(int x, struct L *pl);
@@ -1436,7 +1436,7 @@ void BindSwTimerHud(struct S *world)
         }
     }
     world->clueCount = CClueCollected();
-    world->unknown4768 = func_001C7D00();
+    world->clueTotal = func_001C7D00();
 }
 } } // namespace M_func_0020F710
 

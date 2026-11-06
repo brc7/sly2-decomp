@@ -27,7 +27,7 @@ struct SWVIEW
       LOPOCTL *firstPoctlObject; /* +0x3EAC */
       byte pad2[0x3F14 - 0x3EB0];
       int numEntries;           /* +0x3F14 */
-      int unknown3F18;
+      int numHoles;             /* +0x3F18 (sw.h cloupdHole) */
       int *currentIndex;        /* +0x3F1C the loop index while iterating (NULL otherwise) */
       SWENTRY *entries;         /* +0x3F20 */
       byte pad3[0x3FFC - 0x3F24];
