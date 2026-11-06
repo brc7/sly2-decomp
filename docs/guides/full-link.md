@@ -8,38 +8,73 @@ tools/link.py links the image (since link/real-link a real link: one section per
 the ELF the way the original build did is "End state" at the end. The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (integrate/round10, 2026-11-06)
+## Status (data/address-names-2, 2026-11-06)
 
 The one current table; the Status tables of the earlier branches and rounds are in this file's history (last at
-integrate/round9 f6ee7d76). integrate/round10 = integrate/round9 (f6ee7d76: link/eopid-real-refs,
-link/linkonce-rest, data/bss-gaps) + data/vtables-2 (44 more vtables emitted by their key TUs: class_registry's 19
-as Pclassinfo members, act.cpp's 17 through sly2/act.h, gomer, exit_warp's three, asega, tail, ik, memcard through
-sly2/screen.h; config/link_aliases.txt deleted, [tu-merging.md, "Vtables emitted, continued
-(data/vtables-2)"](tu-merging.md#vtables-emitted-continued-datavtables-2)) + two changes made in the merge:
-blend.cpp emits AC5's and ACG2's vtables (0x2CB5A8, 0x2CB588), so AC5's inline slot 4 func_002581B8 comes out with
-them and round9's file-scope pointer to it (4 unplaced `.data` bytes) is gone; tools/linkaliases.py is retired
-(link.py's `symbols()` binds every name no object defines; `ADDR_NAME` moved into link.py). Merge conflicts:
-config/matched.csv (line endings; the two renamed rows `__builtin_new` and `_$_10CStreamBis` applied) and this file;
-class_registry.cpp, bis.cpp and the other shared files merged cleanly. Every value from freshly built objects
-(build/link and build/progress_cache.json deleted first); integrate/round9's in brackets where different.
+integrate/round10 690b28cf). data/address-names-2 (from integrate/round10 690b28cf) takes the names link.py binds to
+absolute addresses from 492 to 274 and of those, what is left is SDK (Mac), commons, VU/scratchpad offsets that are
+not image addresses, and 9 game objects waiting for decisions ("Absolute symbols" right below); it gives 57 more
+vtables config names and emits them from their key TUs ([tu-merging.md, "Vtables emitted
+(data/address-names-2)"](tu-merging.md#vtables-emitted-dataaddress-names-2)). Every value from freshly built objects
+(build/link and build/progress_cache.json deleted first); integrate/round10's in brackets where different.
 
 | measure | value | tool |
 |---|---|---|
-| functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac); config/matched.csv content unchanged by the run | `JOBS=3 tools/progress.py`, cache deleted, run alone |
-| all game sources (210) | functions 6,017 / 6,017, data symbols 2,118 / 2,118 [2,072] MATCH | `tools/matchtool.py check` |
-| vtables from objects | 228 `.gnu.linkonce.d._vt$*` sections [182]: data/vtables-2's 44 and blend's 2 added, each MATCH against the ELF; every vtable with a config name is emitted (62 without a config name are not; "What is left") | `tools/matchtool.py check`, llvm-readelf |
-| nm symbol sets (527 objects) | against integrate/round9: exactly data/vtables-2's changes against its base link/eopid-real-refs (22 objects), plus blend.cpp's `_vt$3AC5`/`_vt$4ACG2` (V) and its references to AC's/ACG's slot-1 functions func_0012B4F0/func_0012CC60 (U) | scratch nmdef.py, nm3way.py |
-| definitions per symbol | every global or weak function symbol (6,127) is defined by exactly one object | nm over the 527 objects |
-| undefined references not in config (209 merged objects), duplicate strong definitions | 5 [39]: tn's `Init__5CPLCY` and four `_gp`; 0 | scratch symcheck.py |
-| relocations checked against the ELF | 52,051 [50,842] OK, 0 mismatched, without an alias file | scratch relverify.py |
-| link objects | 527: 527 whole, 0 in per-function fallback; build/link/tutext.txt is empty | `tools/link.py` |
-| ld.lld | 0 errors; 1,221 [1,175] object sections placed, 3 [4] unplaced (172 bytes: an SDK object's `.data` 100, bq's and tn's linkonce copies 40 + 32; blend's 4 gone), 2 `.bss` overlapping another bound to their address (tn, cplcy) | `tools/link.py` |
+| functions matching | 6,662 / 6,662 (100%; 856 sources, 329 SDK sources carried over, verified on the Mac) | `JOBS=3 tools/progress.py`, cache deleted, run alone |
+| all game sources (210) | functions 6,017 / 6,017, data symbols 2,187 / 2,187 [2,118] MATCH | `tools/matchtool.py check` |
+| vtables from objects | 284 `.gnu.linkonce.d._vt$*` sections [228], each MATCH against the ELF and emitted in ascending ELF order per object; 2 left in the linkonce data area (EMITTER's/EXPLO's template-instance tables 0x2CE680, 0x2CED18: tu-merging.md) | `tools/matchtool.py check`, llvm-readelf |
+| absolute symbols | 274 [492]: SDK functions the SDK objects define (Mac) 109, SDK data and SDK-only references 53, SDK name mismatches 8, commons 69 [84], VU-memory/scratchpad offsets 26, game objects not defined 9 [78]; plus 17 labels on the `.vutext`/`.irx` blobs (not absolute since this branch) | `tools/link.py` (build/link/absolute.txt) |
+| undefined references not in config (209 merged objects), duplicate strong definitions | 4 [5]: the four `_gp` (tn's `Init__5CPLCY` resolved); 0 | scratch symcheck.py |
+| relocations checked against the ELF | 52,803 [52,051] OK, 0 mismatched | scratch relverify.py |
+| link objects | 527: 527 whole, 0 in per-function fallback | `tools/link.py` |
+| ld.lld | 0 errors; 1,286 [1,221] object sections placed, 2 [3] unplaced (140 bytes: an SDK object's `.data` 100, bq's linkonce copy 40; tn's CMPART2 vtable is placed now), 2 `.bss` overlapping another bound to their address (tn, cplcy) | `tools/link.py` |
 | `.bss`/`.sbss` gaps no object defines | 60,772 bytes in 6 address assignments | `tools/link.py` |
-| differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; from objects .text 1,295,844, .rodata 128,176, .data 173,628 [163,220] | `tools/link.py` |
-| blob bytes | 830,480 [840,888]: IOP modules 474,176; data no object defines 201,352 [211,760]; text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,576; padding / not in config 1,036; `func_00100000` 4 | `tools/link.py` |
-| names no object defines | bound to absolute addresses by link.py (address names by the address in the name, config names by config); 47 [48] known to no config file, resolved from the ELF's relocated fields | `tools/link.py` |
-| config names at their config address | 7,982 / 7,982 [7,983]: +49 (data/vtables-2's and blend's vtables, `__builtin_new`, `_$_10CStreamBis`), -50: the address names that linkaliases.py bound to a config name (`D_002CB5D8 = _vt$5BLIPG;`...) were symbols of that name's type in the output and counted; as absolute assignments they are not | `tools/link.py` |
-| docs links | 0 broken (12,627 checked) | `tools/docs/linkcheck.py` |
+| differing bytes | 0; .text, .rodata, .data, .vutext, .irx equal; from objects .text 1,295,844, .rodata 128,544 [128,176], .data 180,852 [173,628] | `tools/link.py` |
+| blob bytes | 822,888 [830,480]: IOP modules 474,176; data no object defines 193,760 [201,352]; text of SDK sources that do not build here 118,224; VU microcode 34,112; junk.csv 1,576; padding / not in config 1,036; `func_00100000` 4 | `tools/link.py` |
+| config names at their config address | 8,066 / 8,066 [7,982]: the 57 vtables, 2 template statics, `_ctype_`; renamed rows (printf, sprintf, PvAllocSlot__FP8ALLOCREQ, __4CRefRC4CRef, the five syscall/libgraph names, sceSifLoadModuleBuffer) | `tools/link.py` |
+| docs links | 0 broken | `tools/docs/linkcheck.py` |
+
+## Absolute symbols (data/address-names-2)
+
+tools/link.py lists every name it binds to an absolute address in build/link/absolute.txt (address, ELF section,
+class, the referencing objects) and prints `absolute symbols: N` by class. A name no object defines is bound to its
+address (address names by the address in the name, config names by config, the rest by the ELF's relocated value),
+commons to the ELF's address; a name that points into the VU microcode or the IOP modules is defined by blobs.o as a
+symbol on its blob section instead (those two stay binary for good, "What stays a blob" below), so it moves with
+the blob. What changed, by class (start 492, integrate/round10):
+
+| class | before | after | how |
+|---|---:|---:|---|
+| reference to a name whose address an object defines under another name | 70 + 30 | 0 | asm labels to the defined symbol (58 vtable names, `__builtin_new`, `_$_10CStreamBis`, `g_pfrmOpen`, `CopyAb__FPvT0Ui`, `__pure_virtual`, ...), the defining object renamed where config names it so (`__4CRefRC4CRef`, `PvAllocSlot__FP8ALLOCREQ`, printf/sprintf, the GC pool words' template statics) |
+| interior of a defined object | 11 | 0 | gs's double buffer as four objects; elsewhere an asm label with an addend (`__asm__("D_002DDF40+0x60")`): a separate symbol to g++, the owner to the assembler (tu-merging.md, Phase 8) |
+| vtables no object emitted (address-named references) | 45 | 0 | emitted by their key TUs (57 with the unreferenced ones) |
+| other game objects not defined | 33 | 9 | bsp's sentinel planes/leaves, util's limits, mat's/vec's matrix and vector constants, hud's M23, grabspot's flag, emitter's empty reference blocks |
+| commons | 84 | 69 | the address-named duplicates of template statics merged into them; the rest stay (below) |
+| `.vutext`/`.irx` labels | 17 | 0 (17 blob labels) | link.py defines them on the blobs |
+| VU-memory / scratchpad offsets (0x0..0x3AB0) | 26 | 26 | not image addresses: absolute is right |
+| SDK | 179 | 170 | `_ctype_+1`, `_impure_ptr`, `get_eh_context` by name; five syscall/libgraph sources and sceSifLoadModuleBuffer define the names their callers use |
+
+Left, and who decides:
+
+- **Mac (SDK objects)**: 109 SDK function names resolve when `--sdk-only` objects link; 53 SDK data names and
+  SDK-only references come with the SDK objects (989snd's words and strings, libkernel/libgraph tables, newlib's
+  reent data, `_ctype_`). 8 SDK names do not match the defining source's name and stay absolute even then:
+  strtol (func_00234580.c), RemoveIntcHandler, sceSifGetReg, Deci2Call, GetMemorySize, `_InitTLB`, DisableIntc (the
+  syscall stubs func_002347xx..002351E0) and sceSifSetReg (0x23A920, which config calls sceSifExecNotifyHandler):
+  renames of SDK sources the naming pass deferred to the Mac (docs/reference/name-confidence.csv). Also to verify
+  on the Mac: func_00237B80.c and _sceMpegCscStoreRefImage.c (gnu-reorder) now call SignalSema / FlushCache by name.
+- **User decisions**: tu_1147D8's built-in font (D_0027A778, D_0029A790, font.cpp's D_0029A7A8/D_002A28E8) and
+  tu_114AE0's bitmap block (D_0029A8C0, D_002A28D0): game artwork, how image assets are kept in source. The commons
+  (69: the Splice GC pool words and pages, CSlotPool/CSpliceHeap's template statics and their counters, 989snd's
+  and libkernel's buffers, prog/hud/screen's words): g++ 2.95 emits class and template statics as COMMON and ld
+  allocates them at the end of `.bss`/`.sbss` in an order ld.lld does not reproduce, so link.py assigns each its
+  ELF address for byte identity. Without the assignments the link still works (ld places them), only not at the
+  ELF's addresses. Moving them under the link's control needs either a link.py rule that places each object's
+  COMMON input in order, or one source that defines them all (strong definitions win over the commons); a design
+  choice, not taken here.
+- **Owner not known (game)**: D_002BBB50 (one of three vectors 0x2BBB30..0x2BBB60 between bsp's leaves and util's
+  limits), class_registry's D_002DE720/D_002DE750 (`.bss` after emitter; likely guarded local statics of emitter.h's
+  inline accessors).
 
 ## The target: the ELF's layout
 
@@ -590,7 +625,7 @@ link/real-link's placement (gaps from the uncut section sizes: 437,324 bytes):
 | ~~crt0_splicewrap `.rodata`~~ | ~~98,000~~ | 0x262380..0x27A250 | class_registry.cpp | done (data/crt0-tables): the 199 class option arrays, g_mpcidarysplopt, HandleBasicSpliceEvent's event parameter types |
 | ~~crt0_splicewrap `.data`~~ | ~~57,960~~ | 0x2AC880..0x2BAAE8 | class_registry.cpp | done (data/crt0-tables): g_aeopid, the 1,449 option records |
 | tu_1147D8's built-in font | 132,464 | 0x27A250..0x29A7C0 | tu_1147D8 (head of its `.rodata`, before its palette D_0029A7C0) | font header {-1, 0x00290A19, 1.0f, 163} and 163 8-byte glyph records (0x27A250..0x27A778), the CLUT header D_0027A778 (16 colours: the palette D_0029A7C0), the 512x512 4-bit bitmap 0x27A790..0x29A790 (131,072 bytes, mostly 0xFF: these were "the tables filled with 0xFF"), the BMP header D_0029A790 and a font descriptor {header, glyphs, &D_002DD520 BMP, &D_002DD500 CLUT} at 0x29A7A8 (.data 0x2BE320 points at it). The structured parts are about 1.4 KB; the bitmap is an image and needs a decision on how image assets are kept in source |
-| registry vtables | 100,312 at link/real-link; 35,272 left after data/vtables (174 vtables, 65,040 bytes, emitted by their key TUs), 24,944 after data/vtables-2 (44 more, 10,328 bytes), 24,864 after integrate/round10 (blend's AC5/ACG2, 80 bytes) | the six gaps of link/real-link (0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520); left: the SDK `.data` at the head of the first gap (0x2C46E8.., newlib's reent data, libkernel's tables) and the linkonce area's vtables no object emits | left: 62 vtables without a config name (about 7,950 bytes: STEPPLAYER, the camera policies, the screens, the rips, GRABSPOT at 0x2D28D8, LEAP, WIDGET...) | real classes with the ELF's layout and a key function in each key TU, as data/vtables-2 did (tu-merging.md "Vtables emitted, continued") |
+| registry vtables | 100,312 at link/real-link; 35,272 left after data/vtables (174 vtables, 65,040 bytes, emitted by their key TUs), 24,944 after data/vtables-2 (44 more, 10,328 bytes), 24,864 after integrate/round10 (blend's AC5/ACG2, 80 bytes) | the six gaps of link/real-link (0x2C46E8 24,168; 0x2CA5E0 6,184; 0x2CBE38 9,808; 0x2CE4A0 4,200; 0x2CF520 18,432; 0x2D3FA0 37,520); left: the SDK `.data` at the head of the first gap (0x2C46E8.., newlib's reent data, libkernel's tables) and the linkonce area's vtables no object emits | left: 62 vtables without a config name (about 7,950 bytes); data/address-names-2 emitted 57 of them (tu-merging.md "Vtables emitted (data/address-names-2)"); left: EMITTER's and EXPLO's template-instance tables 0x2CE680 and 0x2CED18 (848 bytes) | real classes with the ELF's layout and a key function in each key TU, as data/vtables-2 did (tu-merging.md "Vtables emitted, continued") |
 | palette TUs' tables | 33,024 | 0x29A800 | tail of tu_1147D8 / head of tu_114AE0 | the bitmap/glyph tables after D_0029A7C0 (defined) and before D_002A2900 |
 | SDK `.rodata` | 10,084 | 0x2AA100 | SDK objects (sceSif error strings, libgcc's `__clz_tab`, libm tables, ...) | comes with the SDK objects (3 below) |
 | small gaps | about 5,480 | ~60 gaps of 4..1,536 bytes (`.rodata` 2,600, `.data` 2,880) | neighbours or a TU between (largest: `.rodata` 1,536 between cheat and clock, `.data` 928 after emitter, 840 near tu_14C548) | unreferenced or unnamed statics of game TUs |
@@ -604,7 +639,7 @@ reference); 4,416 at 0x2E0D00 (D_002E0D00, D_002E1E00); about 1,800 in small gap
 
 Order of work: ~~the crt0_splicewrap tables~~ (done, data/crt0-tables: 155,960 bytes), then the vtables (100,312,
 needs the key TUs' first virtuals; done in data/vtables, data/vtables-2 and integrate/round10 for every vtable with a config name), tu_1147D8's font (its bitmap waits for the asset decision), then the rest by TU. Each step lowers "data no object defines" and the list
-of names link.py binds to absolute addresses.
+of names link.py binds to absolute addresses (build/link/absolute.txt; "Absolute symbols" above).
 
 ### 3. SDK objects instead of blobs
 

@@ -683,6 +683,49 @@ definitions under their new names) and the `_GLOBAL_$D$`/`$I$` stubs' file hashe
 linkonce data area have no config name yet (about 7,950 bytes: STEPPLAYER's, the camera policies', the screens',
 the rips', GRABSPOT's, LEAP's, WIDGET's...), the next candidates.
 
+### Vtables emitted (data/address-names-2)
+
+data/address-names-2 (from integrate/round10 690b28cf) gives 57 of the 62 vtables without a config name a draft
+`_vt$` name (class names DRAFT where the comment says so; config/symbol_addrs.txt, the blocks after the data/vtables
+ones) and emits them from their key TUs with the mechanism above, so the address-named references to them (45 of
+the names link.py bound to absolute addresses) are gone. Each vtable MATCHes the ELF (matchtool's data check with
+the config size; link.py's comparison checks the relocated words), every object emits its vtables in ascending ELF
+order (scratch check over all objects: 287 config-named vtables in objects, 0 out of order), and every touched
+file and the includers of every touched header MATCH (functions and data). Per family:
+
+| family | vtables | key TU | key function (declared first, defined as the member) | notes |
+|---|---:|---|---|---|
+| camera policies (sly2/cm.h) | 8 + 1 | cplcy, tn | CPLCY::Init, CMPART1::Init, CPLOOK/CPZOOM::VSlot7, CPHANG::Deactivate, CPCAMBLEND/CPTURRET/CPTWOSHOT::Activate; tn's CMPART2::Update | CPLCY gets its seven slots (Init/Activate/Deactivate/Set/Revoke/Update/VSlot7); the classes in emission order; CMPART2's other overrides make tn's `_vt$7CMPART2` (an unreferenced extra before) the ELF's 0x2DB858; tn's unresolved `Init__5CPLCY` gone; CPCAMBLEND's unused `Enter` virtual removed |
+| CPCAMERA | 1 | tu_12E600 | Activate (func_0012E798) | |
+| registry classes whose getter is class_registry's | 10 | noise, asega, grabspot, sensor, so, tu_20B840, shdanim, prize, hud, stepplayer | CID147::VUnk00, ASEGA::VUnk00, GRABSPOT::FGetGrabRange, SENSOR::Init, CID148::VUnk00, LEAP::HandleMessage, SAA::VSlot7, DPRIZE::FTakeDamage, WIDGET::RenderSelf, STEPPLAYER::VUnk57 | Pclassinfo (the class_registry getter) is the first virtual otherwise; an override, or the class's first new virtual, moved in front of it |
+| sound instances (new sly2/snd.h) | 3 | sound | CID151::Start (StartSnd), BANKSND::VUnk00, STREAMSND::VUnk00 | CID151 moved out of classes.h (which includes snd.h at its place) with its 16 slots, 8 of them pure |
+| screens (sly2/screen.h) | 10 | screen, menu, memcard | SCREENBASE::Update, HUDMETER::Update, SCREEN::PostLoad, GADGETMENU/THIEFNET::VSlot13, JOBLIST/SCRN52D::PostLoad, TITLE::SetMode, PAUSEMENU::VSlot10, CMemcardDialog::PostLoad | the 11-slot base SCREENBASE (0x2D86D0) the HUD meter and the pause menu derive from; screen.cpp's views renamed SCREENV/GADGETMENUV |
+| RIP kinds | 11 | rip | RIP::Init, FLYING/SHRAPNEL::FBounce, STUCK/MATCH/SMACK/REMIT::Update, GLINT/RIPT1::Init, RIPT0::Touch, LEAF::PostEmit | rip.cpp's file-scope RIP view is the root class: its fields, then the eight VTRIP slots, so the vptr lands at +0xEC (sizeof 0xF0 asserted); RIPF for the two words past it |
+| load collectors | 2 | brx | CLoadCollectorArray::Add (already a member), CLoadCollectorProxy::Add | the hand-made vtable call became a virtual call and the local proxy's vptr store the implicit constructor's: same code |
+| byte-queue outputs | 2 | mpeg | CQueueOutputIop/Ipu::FAsyncDrain (the mangled names they had) | CMPEG's inline constructor gets the audio output's vptr from the member's implicit constructor |
+| heaps, streams | 3 | heap, bis, tu_1848A8 | CSwHeap::PvAlloc, CMemInputStream::Fill, CStreamBis::Fill | CSwHeap moved to heap.h; the level heap object's inline constructor is its own derived type's (CSwHeapG): an inline member of CSwHeap gets an out-of-line copy in the key TU; CStreamBis declared with just its two slots (tu_1848A8 reads the object through its private CBinaryInputStream view) |
+| relay's job-sequence instance | 1 | relay | RELAYJSG::VUnk00 (AddJsgRef) | DRAFT name; BASIC's class descriptor in slot 6, so not the registry's JSG |
+| arrays (sly2/arrayv.h) | 4 | tu_119BC8 | CDynArrayStr::Init (func_00119BD0) | explicit instantiations of CDynArrayV/CArrayListener/CHashIndex<char *> emit the three template vtables; the CHashIndex member of CDynArrayStr, instantiated before the class, gives the ELF's order |
+| EXPL | 1 | emitter | EXPL::VSlot51 (ExplodeExplExplso, empty) | |
+
+Rules found on the way:
+
+- **Emission order across includes**: a TU's vtables come out in the reverse order of the classes' definitions, so
+  the order of the headers matters, not only of the classes in one header. tn.cpp includes cm.h before xfm.h (TN's
+  vtable before CMPART2's); classes.h defines CID147 between CID117 and CID47 (noise emits CID47, CID147, CID117).
+  For class templates the point that counts is the instantiation (the base of a class, a member's type, an explicit
+  instantiation).
+- **A C function and a member with the same assembler name coexist** in one TU (the member labelled with the C
+  function's symbol, the C declaration kept for the callers): what InitCmpart1 calls through the C name is the
+  member CPLCY::Init. A view class with an *inline* member whose mangled name is that symbol does not (splicemap,
+  rumble, menu, booty: the copy constructor becomes a declaration).
+- **Implicit constructors of the base classes leave no trace** when the base's vtable is never needed (brx's local
+  CLoadCollectorProxy, CMPEG's audio output, the level heap): g++ 2.95 drops the base's vptr store, no reference to
+  the base's (non-existent) vtable remains.
+- Still not emitted: EMITTER's and EXPLO's template-instance tables (0x2CE680, 0x2CED18; their slot 6 is
+  `GetEmitterClassDesc_linkonce<T>`, a second table per class that needs the template class the header comment
+  mentions; 848 bytes).
+
 ## Path-hash quirk (asm functions)
 
 GCC 2.95 hashes the source file name and the line number into the gcse ordering of inline-asm expressions; in rare
@@ -1782,6 +1825,50 @@ Left (full-link.md, "Data no object defines"):
   table), 0x2A40F8 (40, FLT_MAX/"Nil"/"<unknown>" after class_registry's `.rodata`), 0x2A43A0 ("#DBG"/"%4d"),
   0x2A76D8 and 0x2A8140 (-FLT_MAX/FLT_MAX literals no function of ours emits), 0x2A81B0 (".Kanji"), 0x2BFC98 (8
   zero bytes after light).
+
+### Phase 8: absolute symbols (branch data/address-names-2, 2026-11-06)
+
+Goal: no name the link binds to an absolute address (full-link.md, "Absolute symbols"). tools/link.py now writes
+build/link/absolute.txt and prints `absolute symbols: N` by class. 492 -> 274 (the rest: SDK 170, commons 69,
+VU-memory offsets 26, 9 game objects waiting for decisions), plus the vtables of the section above. Every touched
+file MATCHes (functions and data), the includers of each touched header too; relverify 0 mismatched; link.py 0
+differing bytes after every step. What was done, by kind:
+
+- **Names an object defines under another name**: an asm label on the declaration (the sw.cpp pattern; the source
+  name stays): the 58 address-named vtable references, `func_001AE4F8` -> `__builtin_new`, `func_00184950` ->
+  `_$_10CStreamBis`, `D_002DEA4C` -> `g_pfrmOpen` (glob too: no codegen change this time), `CopyAb` ->
+  `CopyAb__FPvT0Ui` (bis.h, heap.h), `InitGeom__FP4GEOM` -> `Close__18CBinaryInputStream`, the pure slots
+  `func_0023C820` -> `__pure_virtual`. Where config named an address twice and the definition used the other name:
+  the definition renamed (tools/rename.py for `func_001291A8` -> `__4CRefRC4CRef` over 10 files and `func_001AE318`
+  -> `PvAllocSlot__FP8ALLOCREQ` over 43; text.cpp's kprintf/fiprintf -> printf/sprintf, symbol_addrs.txt's names).
+- **Commons under address names that were template statics**: the GC pool words (`_t6CGcObj1Z5CPair$s_ptFirst` ...,
+  30) relabelled; hud's and bif's duplicates of CSlotPool's `__sn_t9CSlotPool...$s_pool` / `_t9CSlotPool...$s_pool`
+  dropped (every object including slotheap.h defines those); gc.cpp's three 8-byte commons at +0x10 of the pools are
+  `CSlotPool<...>::s_pool.slotheap.cAlloc`.
+- **Interiors**: gs.cpp's double buffer is four objects (tags and draw environments) instead of one block, so frm,
+  tu_1471C0 and hud reference the draw environments directly. Where phase 3/4 kept an address name because a
+  base+offset spelling changes code (g++ shares or folds the base), the declaration is bound to its owner by an asm
+  label with an addend: `extern qword D_002DDFA0[3] __asm__("D_002DDF40+0x60");` (tu_201D78; also tu_1471C0's
+  D_002BD39C, hud's D_003D9EDC/EF4, memcard's and menu's D_002E6604/D_002F633C). g++ treats the label as a symbol
+  of its own; the assembler relocates against the owner. The same trick with `+0` names a symbol whose plain label
+  would make g++ emit the file's own inline member under it (splicemap's `__as__4CRefRC4CRef+0`, tu_1553F0's
+  `__8VU_FLOATf+0`).
+- **Objects defined** (owner by layout, phase rules): bsp's sentinel planes and leaves (0x2BBAD0..0x2BBB30),
+  util's limits {0, 1} / {-1, 1} (0x2BBB60, 0x2BBB68: Sly 1's g_lmZeroOne), mat's identity/zero matrices and vec's
+  axis/zero/one/FLT_MAX vectors (`.rodata` 0x2A2D00..0x2A2E50, "the first part of `.rodata`": TU order puts the
+  block between tu_114AE0 and cd, mat and vec are the math TUs in range, matrices before vectors as in Sly 1), hud's
+  identity M23 (0x2A3A10, `.rodata.early`), grabspot's flag D_002DFB84 (`.bss`), emitter.h's empty reference blocks
+  as template static data members (`EMITBREFS<T>::s_apvNull`, `.gnu.linkonce.d.`, 0x2CE4A0/0x2CE4B8). Each under
+  asm labels so that no other declaration has to agree with the definition's type.
+- **SDK names**: the game's ctype reads are `__asm__("_ctype_+1")` (libc's table; config name added), libc's
+  `_impure_ptr` and libgcc's `get_eh_context` by name where four sources used their address names; the syscall
+  stubs and sceGsResetPath define CreateSema/SignalSema/WaitSema/FlushCache/sceGsResetPath (were `s1_*`), and
+  0x239140 is sceSifLoadModuleBuffer calling `_sceSifLoadModuleBuffer` (was s1_sceSifLoadModule calling
+  `_sceSifLoadModule`, main.cpp loads the `.irx` images through it).
+- **Blob labels**: names in `.vutext` (14) and `.irx` (3) are symbols on their blob sections (link.py), not absolute.
+
+Left: full-link.md, "Absolute symbols". Nothing was reverted for changing codegen (tu_1471C0's D_002BD39C as an
+element of its owner did change func_001477D8: the addend label replaced that attempt).
 
 ## Linkage of namespace-scoped declarations
 
