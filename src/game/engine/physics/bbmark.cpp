@@ -1,6 +1,9 @@
-// bbmark.cpp -- the world's axis-aligned bounding-box sweep (SW +0x3CCC..+0x3D40): adding and removing an object's
-// AAOBR, the three sorted endpoint arrays and their insertion sort, the overlap pairs (POX links) and the
-// recalculation of contact points (XPs) for changed pairs. One register pin and allocation-only empty asms.
+// bbmark.cpp -- broad-phase collision: the world's sweep-and-prune over axis-aligned bounding boxes (SW +0x3CCC..
+// +0x3D40). Each solid object in the world owns an AAOBR (its world box plus list links); the box's min/max
+// endpoints sit in three per-axis arrays kept sorted by insertion sort, and whenever two boxes start or stop
+// overlapping an object pair link (POX) is created or destroyed. Once per solver step RecalcSwXpAll rebuilds the
+// contact points (XPs) of the pairs that changed. Entry points: AddSwAaobrObject / RemoveSwAaobrObject (an object
+// enters / leaves), UpdateSwAaox, RecalcSwXpAll, RecalcSwOxfFilterForObject. One register pin, allocation-only asms.
 // TU 0x1336F0..0x1344F0 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bbmark
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001344D0
@@ -89,6 +92,8 @@ void func_001F4BF8(LO *);
  * See: docs/engine/object-model.md#8-source-files, docs/engine/physics-collision.md#2-contacts-and-solving,
  *   docs/engine/physics-collision.md#6-source-files
  * @end-sly2-annot */
+// Adds an object to the broad phase: allocates its AAOBR from the world pool, links it into the world lists and
+// inserts its min/max endpoints into all three axis arrays (two more endpoints per axis). Returns the AAOBR.
 extern "C" X *AddSwAaobrObject(SW *pg, LO *p) {
     int i;
     X *pn = (X *)PvAllocSlotheapClear(&pg->poolAaobr);
@@ -125,6 +130,8 @@ extern "C" X *AddSwAaobrObject(SW *pg, LO *p) {
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// Removes an object's AAOBR from the broad phase: for every overlap pair both objects are notified (slot 54) and
+// the pair's contact lists freed, then the box leaves the world lists and its endpoints are deleted from the axes.
 extern "C" void RemoveSwAaobrObject(SW *p, X *px)
 {
     L *pl, *plNext;
@@ -192,6 +199,8 @@ extern "C" void RemoveSwAaobrObject(SW *p, X *px)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
+// Creates or destroys the pair link between two AAOBRs. k = 1 forces the pair on, 2 forces it off, 0 decides from
+// ShouldSwPairObjects; removing a pair wakes both objects and frees its contacts.
 extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
 {
     L *pl;
@@ -254,6 +263,7 @@ extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
  * See: docs/engine/physics-collision.md#7-key-functions,
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
+// Allocates a pair link from the world pool for px1 with px2 as the other side and pushes it on px1's pair list.
 extern "C" L *AddSwObjectPair(SW *p, X *px1, X *px2)
 {
     L *pl = (L *)PvAllocSlotheapClear(&p->poolPox);
@@ -269,6 +279,7 @@ extern "C" L *AddSwObjectPair(SW *p, X *px1, X *px2)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
+// Unlinks and returns px1's pair link whose other side is px2 (0 if none).
 extern "C" L *RemoveSwObjectPair(SW *unused, X *px1, X *px2) {
     LO *key = px2->plo;
     L *pn = px1->pl;
@@ -299,6 +310,8 @@ static __inline__ int Call(LO *po, LO *poOther)
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
+// Returns 1 when two AAOBRs overlap on all three axes and neither object asks to ignore the other: both objects'
+// ignore-intersection answers (slot 61) are combined with MaxInt and the pair is made unless the result is 1 or 3.
 extern "C" int ShouldSwPairObjects(SW *unused, X *pa, X *pb)
 {
     int n1, n2, r;
@@ -317,6 +330,8 @@ extern "C" int ShouldSwPairObjects(SW *unused, X *pa, X *pb)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
+// Drains the pending-bounds list: for each queued object calls its bounds update (slot 49, UpdateSoTreeBounds)
+// until the list is empty.
 extern "C" void FlushSwBoundsUpdates(SW *p) {
     X *pq;
     while ((pq = (X *)p->dlBounds.head) != 0) {
@@ -332,6 +347,8 @@ extern "C" void FlushSwBoundsUpdates(SW *p) {
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0
  * @end-sly2-annot */
+// If the endpoint arrays are dirty, insertion-sorts each axis; whenever a min and a max endpoint swap places the
+// pair is re-evaluated with UpdateSwPox(.., 0). This is the incremental sweep-and-prune step.
 extern "C" void UpdateSwAaox(SW *p)
 {
     int i;
@@ -377,6 +394,8 @@ extern "C" void UpdateSwAaox(SW *p)
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
  *   docs/reference/functions/physics-collision.md#solve-0x1f8dd8-0x1faf70
  * @end-sly2-annot */
+// Once per solver step: flushes bounds updates, re-sorts the axes, then walks the objects queued for contact
+// recalculation and rebuilds the XP lists of their pairs (AddSoXps), using a stack array of up to 0x300 objects.
 extern "C" void RecalcSwXpAll(SW *p)
 {
     C ctx;
@@ -452,6 +471,7 @@ extern "C" void RecalcSwXpAll(SW *p)
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
  *   docs/reference/functions/player.md#throw-0x21f2e0-0x220d40
  * @end-sly2-annot */
+// Returns the larger of two ints; kept out of line by the compiler. Used to merge ignore-intersection answers.
 extern "C" int MaxInt(int a, int b)
 {
     return (b >= a) ? b : a;
@@ -466,6 +486,8 @@ extern "C" int MaxInt(int a, int b)
  *   docs/reference/functions/physics-collision.md#bbmark-0x1336f0-0x1344f0,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// When an object's collision filter changed: if it has an AAOBR (+0xEC), invalidates its box and re-evaluates its
+// pair with every other AAOBR in the world.
 extern "C" void RecalcSwOxfFilterForObject(SW *pg, LO *pl) {
     X *po;
     if (pl->px) {
