@@ -1789,55 +1789,66 @@ struct E; struct T; struct S;
 // Placement new.
 inline void *operator new(unsigned int,void *storage){return storage;}
 struct S;
-struct E { struct S *object; int n4; float t8; int pad; E(S *source,const CLOCK&clock):object(source),n4(0),t8(clock.t){} };
-struct T { char pad[0xFC]; unsigned int c; struct E a[8]; };
-struct S { char pad[0x3A4]; int generatedTargetCount; char pad2[0xF64 - 0x3A8]; struct T *pt; };
+/* A detector target entry (DETECTOR's DTE) and the detector's target list. */
+struct E {
+    struct S *object;
+    int state;
+    float stateTime;
+    int pad;
+    E(S *source, const CLOCK &clock) : object(source), state(0), stateTime(clock.t) {}
+};
+struct T { char pad[0xFC]; unsigned int count; struct E targets[8]; };
+struct S { char pad[0x3A4]; int generatedTargetCount; char pad2[0xF64 - 0x3A8]; struct T *detector; };
 extern "C" CLOCK D_002DDED0;
-extern "C" struct E *FindDetectorTarget(struct T *pt, struct S *object);
+extern "C" struct E *FindDetectorTarget(struct T *detector, struct S *object);
 extern "C" void *memmove(void *d, void *s, int n);
 
 // 0x2085D0: Inserts an object into the detector's target list (at most eight): `atFront` appends it as a designated
 // target; otherwise it goes before the generated tail, evicting the oldest generated entry when full.
-extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, int fFront)
+// (The entry addresses are spelled as byte offsets into the detector, 0x100 = targets, in pinned registers: that
+// is what matches.)
+extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, int atFront)
 {
-    struct E *e;
-    struct T *pt;
+    struct E *entry;
+    struct T *detector;
     register unsigned int n __asm__("$16");
     if (!object || object == guard)
         return 0;
-    e = 0;
-    if (!fFront)
-        e = FindDetectorTarget(guard->pt, object);
-    if (!e) {
-        pt = guard->pt;
-        n = pt->c;
-        if (n >= 8) {
-            int c;
-            if (!fFront) {
-                c = guard->generatedTargetCount;
-                if (c > 0) {
-                    guard->generatedTargetCount = c - 1;
-                    n=8; n-=c; n*=16; n+=0x100;
-                    e=(struct E*)((char*)pt+n);
-                    memmove(e + 1, e, (c - 1) * 16);
-                    goto fill;
-                }
+    entry = 0;
+    if (!atFront)
+        entry = FindDetectorTarget(guard->detector, object);
+    if (entry)
+        return 0;   // already tracked
+    detector = guard->detector;
+    n = detector->count;
+    if (n >= 8) {
+        int numGenerated;
+        if (!atFront) {
+            numGenerated = guard->generatedTargetCount;
+            if (numGenerated > 0) {
+                // Full: drop the oldest generated entry (the last) and insert in front of the generated tail.
+                guard->generatedTargetCount = numGenerated - 1;
+                n = 8; n -= numGenerated; n *= 16; n += 0x100;
+                entry = (struct E *)((char *)detector + n);
+                memmove(entry + 1, entry, (numGenerated - 1) * 16);
+                new(entry) E(object, D_002DDED0);
+                guard->detector->count++;
+                return 1;
             }
-        } else {
-            if (fFront) {
-                register unsigned int offset __asm__("$2")=n*16+0x100;
-                e=(struct E*)((char*)pt+offset);
-            } else {
-                int c = guard->generatedTargetCount;
-                n-=c; n*=16; n+=0x100;
-                e=(struct E*)((char*)pt+n);
-                memmove(e + 1, e, c * 16);
-            }
-        fill:
-            new(e) E(object,D_002DDED0);
-            guard->pt->c++;
-            return 1;
         }
+    } else {
+        if (atFront) {
+            register unsigned int offset __asm__("$2") = n * 16 + 0x100;
+            entry = (struct E *)((char *)detector + offset);
+        } else {
+            int numGenerated = guard->generatedTargetCount;
+            n -= numGenerated; n *= 16; n += 0x100;
+            entry = (struct E *)((char *)detector + n);
+            memmove(entry + 1, entry, numGenerated * 16);
+        }
+        new(entry) E(object, D_002DDED0);
+        guard->detector->count++;
+        return 1;
     }
     return 0;
 }
