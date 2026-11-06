@@ -1,9 +1,8 @@
 // slotheap.cpp -- fixed-size slot allocator. TU 0x11CCA8..0x11CF60 (7 functions, address order).
 // A SLOTHEAP hands out slots of one size from a block of `count` slots allocated from the level heap on first use;
 // freed slots go on an intrusive free list. Every TU instantiates the six engine pools (sly2/slotheap.h), which is
-// why each file ends with the same static initializer. Entry points: InitSlotheap (init), PvAllocSlotheapClear,
-// FreeSlotheapSlot (free a slot), ResetSlotheap, PrimeSlotheap (prime). The three placeholders' names (InitSlotheap,
-// FreeSlotheapSlot, PrimeSlotheap) wait for a rename: sly2/slotheap.h declares them, so it rebuilds every TU.
+// why each file ends with the same static initializer. Entry points: InitSlotheap, PvAllocSlotheapClear,
+// FreeSlotheapSlot, ResetSlotheap, PrimeSlotheap.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_slotheap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011CF40
 #include "sly2/slotheap.h"

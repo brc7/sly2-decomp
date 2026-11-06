@@ -5,8 +5,8 @@
 // There is no general-purpose free: level data is bump-allocated from the SW heap and dropped wholesale by FreeSw at
 // level unload; per-frame scratch comes from the stack heap and is released by STACKSCOPE marks. The two heaps grow
 // toward each other and GetFreeMemorySize is the gap. Allocation requests (AREQ) carry a size and an alignment.
-// Entry points: StartupMemMgr, AllocFromWorldHeap and its copy/clear variants, FreeSw, AllocFromStack (the
-// stack allocator, misnamed), STACKSCOPE, operator new, CopyAb, CopyAqw. TU 0x1AE150..0x1AE7D0 (21 functions).
+// Entry points: StartupMemMgr, AllocFromWorldHeap and its copy/clear variants, FreeSw, AllocFromStack and
+// AllocClearedFromStack, STACKSCOPE, operator new, CopyAb, CopyAqw. TU 0x1AE150..0x1AE7D0 (21 functions).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_memory
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001AE7B0
 #include "sly2/slotheap.h"
@@ -169,7 +169,7 @@ void FreeSw()
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
 // Allocates request->size bytes (rounded up to 16) from the stack heap, which grows down, at request->alignment
-// alignment. The symbol says PvAllocSlot; the body is the stack allocator (PvAllocStackImpl in Sly 1 terms).
+// alignment (PvAllocStackImpl in Sly 1 terms; this symbol was misnamed PvAllocSlot__FP8ALLOCREQ before).
 extern "C" void *AllocFromStack(AREQ *request)
 {
     int cb = request->size;
