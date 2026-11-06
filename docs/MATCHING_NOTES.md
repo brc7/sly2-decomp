@@ -520,3 +520,8 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Measured gcse PRE hash:** `hash(plus (reg r) (const_int c)) = (13258 + r + c) mod S`, S = (insns/2)|1 (func_001A8B50 notes).
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
+- **Readability pass (names r2, anim / presentation / sound):** renaming fields, locals and parameters, enums in case labels and
+  calls, and splitting one-line bodies onto lines never changed codegen. Two loop shapes are compiler-imposed: a top-tested
+  `for (;;) { if (!p) return; ...; p = p->next; }` list walk cannot become `while (p)` / `for (; p; )` (loop.c rotates those to a
+  bottom test; DetachXfActById), and a loop entered at its test via `goto test` cannot become a `for (;;)` with the test first
+  (block order changes; ChooseSmaTransition).
