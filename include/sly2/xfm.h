@@ -123,8 +123,8 @@ struct PROXY : public XFM
       int cinit;
       PROXYINIT *ainit;
       undefined4 unk_0xf4[3];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetProxyClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitProxy");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetProxyClassDesc");   /* slot 6 */
     virtual void Unfreeze() __asm__("OnProxyAdd");   /* slot 23 */
     virtual void VUnk23() __asm__("func_001CB6D8");   /* slot 24 */
     virtual void Clone(LO *ploBase) __asm__("CloneProxy");   /* slot 41 */
