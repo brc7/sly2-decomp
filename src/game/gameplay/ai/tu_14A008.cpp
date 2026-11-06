@@ -326,8 +326,8 @@ extern "C" void UpdateBhvRoute(BHVRT *behavior)
     }
 }
 
-// 0x14A478: True if the guard is on the ground but no ground is found within 100 above / 250 below its position (it
-// walked off the route, inferred).
+// 0x14A478: True if the guard is in the air and no ground lies within 100 above / 250 below it (it fell off the
+// route, inferred).
 extern "C" int IsBhvRouteOffGround(BHVRT *behavior)
 {
     GUARDV *guard = behavior->guard;
@@ -481,7 +481,9 @@ static inline float GRemap(LMV *pr, float g)
         return 0.0f;
     return (g - pr->gMin) / (pr->gMax - pr->gMin);
 }
-// 0x14AA30: Returns the index of the route station best placed relative to the current player.
+// 0x14AA30: Returns the index of the route station best placed relative to the hero: each station is scored by its
+// distance along the route from the hero's closest point (weight 0.5), its depth on screen (0.15) and its distance
+// from the screen centre (0.35), each mapped through a .data range.
 extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
 {
     int iBest = -1;

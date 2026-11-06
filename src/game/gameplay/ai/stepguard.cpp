@@ -341,8 +341,9 @@ int FIgnoreSoIntersection(struct S *p, struct Q *q);
 int StepguardHasSgf(struct S *p, int n);
 struct O *FindBhvInBhvstk(void *p, int n);
 int func_00134310(int a, int b);
-// 0x206380: STEPGUARD vtable slot 61 (ignore an intersection?): the step test, plus ignoring non-fixed objects
-// while dead (flag 7) and its holder's objects while juggled/carried (BHV177 states 0/4/5).
+// 0x206380: STEPGUARD vtable slot 61 (should an intersection with `q` be ignored): the step test, plus, while dead
+// (flag 7), objects whose vtable slot 62 test fails, and, while juggled/carried (flag 0x17), objects of its holder's
+// group in juggled states 0/4/5.
 int ShouldStepguardIgnoreIntersection(struct S *guard, struct Q *q)
 {
     int r = FIgnoreSoIntersection(guard, q);
@@ -2003,8 +2004,9 @@ qword func_001A62E8(void *p);
 int FCheckVolPoint(struct L *pl, qword q);
 int FCheckLm__FP2LMf(void *p, float f);
 
-// 0x208E70: Ranks how the hero can interact with this guard: 4 engaged with the hero, 3 hero in the pickpocket
-// glint volume, 2 close behind, 1 in range, 0 none (inferred thresholds).
+// 0x208E70: Ranks how the hero can interact with this guard: 4 the guard is engaged with (attacking, hurt by,
+// holding) the hero, 3 the hero is inside a pickpocket glint volume, 2 close (distance and angle window), 1 in
+// interaction range, 0 none. Also returns the distance through `pout`.
 int GuardEvalInteractMode(struct S *guard, struct X *x, float *pout)
 {
     float d, ang;
