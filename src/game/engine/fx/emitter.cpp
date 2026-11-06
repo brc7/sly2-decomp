@@ -2001,9 +2001,7 @@ void ExplodeExplParams(struct O *o, int a, int b, float f, float g, qword q, qwo
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#emitter-0x159118-0x15cd68
  * @end-sly2-annot */
-struct EXPL;
-struct EXPLSO;
-void ExplodeExplExplso(EXPL *pexpl, EXPLSO *pexplso)
+void EXPL::VSlot51()   /* key function: EXPL's vtable comes out here (ExplodeExplExplso__FP4EXPLP6EXPLSO, empty) */
 {
 }
 

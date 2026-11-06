@@ -4372,3 +4372,4 @@ _vt$12CDynArrayStr = 0x2CA5E0; // type:data size:0x40
 _vt$t10CHashIndex1ZPc = 0x2CA620; // type:data size:0x20
 _vt$t14CArrayListener1ZPc = 0x2CA640; // type:data size:0x20
 _vt$t10CDynArrayV1ZPc = 0x2CA660; // type:data size:0x40
+_vt$4EXPL = 0x2CE9D0; // type:data size:0x1A8

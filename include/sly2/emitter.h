@@ -104,8 +104,8 @@ typedef char assert_EMITTER_size[sizeof(EMITTER) == 0x160 ? 1 : -1];   /* class 
 
 struct EXPL : public XFM
 {
+    virtual void VSlot51() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 (ExplodeExplso); key function (emitter.cpp) */
     virtual CLASSINFO *Pclassinfo() __asm__("GetExplClassDesc");   /* slot 6 */
-    virtual void VSlot51() __asm__("ExplodeExplExplso__FP4EXPLP6EXPLSO");   /* slot 51 */
 };
 typedef char assert_EXPL_size[sizeof(EXPL) == 0xE0 ? 1 : -1];   /* class descriptor cb */
 
