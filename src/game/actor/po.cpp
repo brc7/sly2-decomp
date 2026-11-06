@@ -707,7 +707,7 @@ POV *GetHeroPo(SWP *world) {
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// Adds an LO to the world's follower list (max 4) and gives it a 0x14-byte follower record.
+// Adds an LO to the world's follower list (max 4) and gives it a 0x14-byte follower record. (inferred)
 extern "C" void AddSwPoFollower(SWP *world, EMITX *follower)
 {
     if (world->uc < 4) {
@@ -731,7 +731,7 @@ extern "C" void AddSwPoFollower(SWP *world, EMITX *follower)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r5_1AE130+verdicts_tu_r3r5
  * See: docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-// For each follower: stores the current PO in its record and re-parents it to the current PO.
+// For each follower: stores the current PO in its record and re-parents it to the current PO. (inferred)
 void UpdateSwPoFollowers(SWP *world)
 {
     int i;
@@ -802,7 +802,7 @@ POV *GetCurrentPo(SWP *world) {
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-// Sets (or clears, with 0) the override PO, deactivating the old effective PO and activating the new one.
+// Sets (or clears, with 0) the override PO, deactivating the old effective PO and activating the new one. (inferred)
 extern "C" void SetSwPoOverride(SWP *world, POV *po)
 {
     POV *cur = GetCurrentPo(world);
