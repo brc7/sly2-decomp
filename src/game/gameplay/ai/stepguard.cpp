@@ -1698,8 +1698,8 @@ extern "C" O *ChooseStepguardTarget(P *guard)
 {
     O *best = 0;
     if (guard->current && (((unsigned int)(guard->current->flags >> 60)) & 1)) {
-        best = guard->current;
-        goto done;
+        best = guard->current;   // keep the current target while it is in the world
+        goto done;               // (single exit: a direct return does not match)
     }
     {
         float bestDistance = D_002A886C;
@@ -1728,14 +1728,15 @@ extern "C" O *ChooseStepguardTarget(P *guard)
                 distance = Weight(distance, D_002C3D80);
             if (IsStepguardPreferClass(guard, candidate)) {
                 if (best && !IsStepguardPreferClass(guard, best)) {
+                    // the first preferred candidate beats any non-preferred one, whatever the distance
                     bestDistance = distance;
-                    goto take;
+                    best = candidate;
+                    continue;
                 }
             } else if (best && IsStepguardPreferClass(guard, best))
                 continue;
             if (distance < bestDistance) {
                 bestDistance = distance;
-take:
                 best = candidate;
             }
         }
