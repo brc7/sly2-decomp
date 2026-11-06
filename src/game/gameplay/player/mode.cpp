@@ -489,14 +489,14 @@ extern "C" void UpdateJtMode(JTMODE *jtMode)
             break;
         }
     } while (n != jtMode->nState);
-    if (jtMode->nKind == 0) {
-        POCTL *v = jtMode->pstepplayer->pctl;
-        if (v->nState == 1) {
-            v->dxLeft = v->dyLeft = v->radLeft = v->sLeft = 0.0f;
-            v->dyRight = v->radRight = v->sRight = 0.0f;
-            v->dxRight = 0.0f;
-        }
-    }
+    if (jtMode->nKind != 0)
+        return;
+    POCTL *v = jtMode->pstepplayer->pctl;
+    if (v->nState != 1)
+        return;
+    v->dxLeft = v->dyLeft = v->radLeft = v->sLeft = 0.0f;
+    v->dyRight = v->radRight = v->sRight = 0.0f;
+    v->dxRight = 0.0f;
 }
 
 /** @sly2-annot addr=0x19D4D0
