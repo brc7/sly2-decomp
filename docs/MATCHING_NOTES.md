@@ -552,3 +552,12 @@ Measured while cleaning src/game/gameplay/ai/ (object compared byte-for-byte bef
   `goto take`, `goto spawn`) could be removed by duplicating the tail in every case tried (gcc cross-jumps it back).
 - `*(i + array)` and `array[i]` can differ (operand order of the address add): keep the index-first form where the
   match needs it and comment it.
+- **Free (guardbhv r3):** `goto finish` from several early cases into a shared tail -> an `if / else if` chain ending
+  in the tail (HandleBhvguardMessage; the nested `if (a) { if (b) {...} }` case folds into `else if (a && b)`).
+  Field renames, anonymous unions for per-class child fields (`union { int lookAt; int gotoSgf; };`), typed
+  `&p->segments[i]` / `p->mover` / `p->heldNoise` for `(char *)p + 0x60 + i * 32` style arithmetic, and a
+  `template <class T> static inline` helper for the vtable-slot-8 start call (StartPushedBhv) were all free.
+- **Not free:** `if (a > 0) if (a < 3)` -> `if (a > 0 && a < 3)` (PlanBhvgoto); `(struct SEG *)(i * 32 + (int)p)`
+  -> `&p->segments[i]` in SetBhvpathlinkState (address computed differently). A non-template `static inline`
+  helper (tu_171F58) and the template with a cast in tu_1553F0 were emitted out of line (a new local symbol in
+  `nm`): check the nm set, not only matchtool, after introducing a helper.
