@@ -1,6 +1,7 @@
 // bis.cpp -- CBinaryInputStream (LZSS-capable binary reader over Fill()ed blocks), its readers for strings, BSP
 // trees and collision geometry, and CMemInputStream (a stream over one memory buffer).
-// TU 0x1177A8..0x118668 (33 functions, address order) plus one linkonce instance (0x2566B0).
+// TU 0x1177A8..0x118668 (33 functions, address order). Its former linkonce copy 0x2566B0 is CDynArrayV<char *>::ReadElement
+// (sly2/arrayv.h, emitted by tu_119BC8.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bis
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00118648
 #include "bis.h"
@@ -762,16 +763,4 @@ extern "C" void func_00118500(CMemInputStream *pmis, int cb, byte *pb, int grfbi
     pmis->cbMem = cb;
     pmis->pbMem = pb;
     pmis->grfbis = grfbis;
-}
-
-/* Linkonce instance (0x2566B0, out-of-line copy of an inline helper homed in this TU): reads one 4-byte value. */
-/** @sly2-annot addr=0x2566B0
- * Purpose: virtual: read 4 bytes from binary stream (0x117968) [game linkonce (inline/template)]
- * Info: proposed name LoadS32FromBis_vt (T2); TU game_linkonce
- * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: sdk_names
- * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
- * @end-sly2-annot */
-extern "C" void func_002566B0(void *pvUnused, void *pv, CBinaryInputStream *pbis)
-{
-    pbis->Read(4, pv);
 }
