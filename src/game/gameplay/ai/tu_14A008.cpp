@@ -1,7 +1,9 @@
-// tu_14A008.cpp -- ROUTE (a list of stations along a path shape, loaded from oids) and the guard behaviour that
-// patrols it (BHVRT, flag 0x24): pick the best station to stand at (distance along the route, screen position),
-// walk/jump there, attack when the hero is close, and a hero-chasing position search (UpdateBhvRouteChase); plus the
-// guard's own init/post-load/message/target functions. VU0 and FPU asm; UpdateBhvRouteChase has one register pin.
+// tu_14A008.cpp -- CARMELITA (cid 0x3F, a STEPGUARD subclass) and her route behaviour. A ROUTE (cid 0x7B, an LO) is
+// a list of up to 256 stations along a path shape, loaded from Splice options. The route behaviour (BHV182, view
+// BHVRT, guard flag 0x24) keeps her at the station best placed relative to the hero (distance along the route,
+// screen position), walks or jumps between stations, attacks when the hero is in reach, and starts/stops a music
+// cue. Also Carmelita's own Init, post-load, message handler and target choice. VU0 and FPU asm;
+// UpdateBhvRouteChase has one register pin.
 // TU 0x14A008..0x14B660 (21 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_14A008
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014B640
@@ -180,16 +182,8 @@ static inline void InitS(ALLOCREQ *ps, int a, int b)
     ps->cb = a * 0xC;
     ps->cbAlign = b;
 }
-/** @sly2-annot addr=0x14A008
- * Purpose: cid 0x7B (LO, 0x60) vt14: stack-alloc a 256-entry point table, LoadLoFromBrx (Splice options fill
- *   it via 0x14A178), copy used part to the heap
- * Info: proposed name LoadRouteFromBrx (T1); class CID123 slot14; TU tu_14A008
- * Notes: level_parser CONFIRMED-code (layout read from the matched function; class absent from samples) |
- *   whole_game: loader read in all 43 levels (base reader only, nothing extra; CONFIRMED code+parse)
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r2b_rest+parse-code+parse-verified
- * See: docs/engine/guards-ai.md#8-source-files, docs/engine/guards-ai.md#9-key-functions,
- *   docs/engine/world-sw.md#9-source-files
- * @end-sly2-annot */
+// 0x14A008: ROUTE (cid 0x7B) vtable slot 14 (LoadFromBrx): loads into a 256-entry stack table filled by the
+// AddRoutePoint Splice option, then copies the used part to the heap.
 extern "C" void LoadRouteFromBrx(ROUTE *p, void *pbis)
 {
     SCOPE f;
@@ -203,12 +197,8 @@ extern "C" void LoadRouteFromBrx(ROUTE *p, void *pbis)
     STACKSCOPE_ctor_1AE4A0(&f, 2);
 }
 
-/** @sly2-annot addr=0x14A0A8
- * Purpose: vt15: PostLoLoad, build a path/curve object (0x1E94B0 kind 0x62C) from the points
- * Info: proposed name PostRouteLoad (T2); class CID123 slot15; TU tu_14A008
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A0A8: ROUTE vtable slot 15 (PostLoad): LO post-load, then builds the route's path shape (kind 0x62C) from its
+// points.
 void CID123::VUnk14()
 {
     ROUTE *p = (ROUTE *)this;
@@ -228,13 +218,7 @@ void CID123::VUnk14()
     MeasureShape(p->pshape);
 }
 
-/** @sly2-annot addr=0x14A178
- * Purpose: Splice: append {a, b, -1?} (max 256, 12 bytes)
- * Info: proposed name AddRoutePoint (T2); TU tu_14A008
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A178: Splice option: appends a route point {oid, kind} (at most 256).
 extern "C" void AddRoutePoint(ROUTE *p, int k, int oid)
 {
     int c = p->crte;
@@ -246,14 +230,8 @@ extern "C" void AddRoutePoint(ROUTE *p, int k, int oid)
     }
 }
 
-/** @sly2-annot addr=0x14A1B0
- * Purpose: BHV182 slot 7: base, start music/stream cue (0x1FEE90 on D_003DD040), guard flag 0x24, indices -1
- * Info: proposed name InitBhv182 (T2); class BHV182 slot7; TU tu_14A008
- * Notes: superseded: OnBhv182Push (r2b_rest) | BHV vtable slot 7 role per r9 (CONFLICTS #15); was
- *   OnBhv182Push
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A1B0: Route behaviour (BHV182) vtable slot 7 (OnPush): base, starts the music cue, raises guard flag 0x24, no
+// current or target station.
 extern "C" void InitBhvRoute(BHVRT *p)
 {
     InitBhv(p);
@@ -264,14 +242,7 @@ extern "C" void InitBhvRoute(BHVRT *p)
     p->iCur = -1;
 }
 
-/** @sly2-annot addr=0x14A200
- * Purpose: BHV182 slot 8: SetBhv182State(0), timestamp, guard +0x4A4 = 0
- * Info: proposed name StartBhv182 (T2); class BHV182 slot8; TU tu_14A008
- * Notes: superseded: OnBhv182Resume (r2b_rest) | BHV vtable slot 8 role per r9 (CONFLICTS #15); was
- *   OnBhv182Resume
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A200: Route behaviour vtable slot 8 (Start): state 0, start time, clears the guard's +0x4A4.
 void BHV182::Start()
 {
     BHVRT *p = (BHVRT *)this;
@@ -281,13 +252,8 @@ void BHV182::Start()
     p->pguard->n4A4 = 0;
 }
 
-/** @sly2-annot addr=0x14A248
- * Purpose: BHV182 slot 9: state -1, clear flag 0x24, stop cue, guard +0x4A4 = 1
- * Info: proposed name CloseBhv182 (T2); class BHV182 slot9; TU tu_14A008
- * Notes: superseded: OnBhv182Pop (r2b_rest) | BHV vtable slot 9 role per r9 (CONFLICTS #15); was OnBhv182Pop
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest+bhv-slot-canon(r9)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A248: Route behaviour vtable slot 9 (Close): state -1, lowers flag 0x24, stops the music cue, sets the
+// guard's +0x4A4 again.
 extern "C" void CloseBhvRoute(BHVRT *p)
 {
     CloseBhv(p);
@@ -297,13 +263,9 @@ extern "C" void CloseBhvRoute(BHVRT *p)
     p->pguard->n4A4 = 1;
 }
 
-/** @sly2-annot addr=0x14A2A0
- * Purpose: BHV182 slot 10: keep pace with the player along a route (distance-to-player logic 0x14A4D0, next
- *   point 0x14AD70, nearest point 0x14AA30)
- * Info: proposed name UpdateBhv182 (T2); class BHV182 slot10; TU tu_14A008
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A2A0: Route behaviour vtable slot 10 (Update): updates the chase position, then runs the state machine: 0 at
+// a station (attack the hero if it is the best station, else advance), 1 travelling (back to 0 at the path end), 2
+// falling/recovering animation, 3 attacking, 4 hands-off pause.
 extern "C" void UpdateBhvRoute(BHVRT *p)
 {
     int s;
@@ -364,16 +326,8 @@ extern "C" void UpdateBhvRoute(BHVRT *p)
     }
 }
 
-/** @sly2-annot addr=0x14A478
- * Purpose: true if guard not in air and no ground found within 100/-250
- * Info: proposed name FBhv182OffGround (T2); TU tu_14A008
- * Notes: verifier better_name (CORRECT row): Returns 0 if owner+0x208 set, else
- *   !FSnapToGround(PosLoWorld(owner),1,0,100,-250); sole caller UpdateBhv182. Drop the '?'. '+0x208 = in air'
- *   not independently c
- * Confidence: low (draft) [T2 0.85] - evidence: semantic review; sources: r2b_rest+verdicts_followups
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A478: True if the guard is on the ground but no ground is found within 100 above / 250 below its position (it
+// walked off the route, inferred).
 extern "C" int IsBhvRouteOffGround(BHVRT *p)
 {
     GUARDV *q = p->pguard;
@@ -422,12 +376,8 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
     return r;
 }
 
-/** @sly2-annot addr=0x14A4D0
- * Purpose: Compare player and guard positions/velocities to choose speed (lead the player)
- * Info: proposed name UpdateBhv182Pace (T2); TU tu_14A008
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14A4D0: Compares the hero's and the guard's positions and velocities along the route to pick the chase speed
+// and lead the hero (inferred).
 extern "C" void UpdateBhvRouteChase(BHVRT *p)
 {
     SW *pg = &D_003DD490;
@@ -520,12 +470,7 @@ static inline float GRemap(LMV *pr, float g)
         return 0.0f;
     return (g - pr->gMin) / (pr->gMax - pr->gMin);
 }
-/** @sly2-annot addr=0x14AA30
- * Purpose: route point index closest to the current player
- * Info: proposed name IBhv182NearestRoutePoint (T2); TU tu_14A008
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14AA30: Returns the index of the route station best placed relative to the current player.
 extern "C" int FindBhvRouteBestStation(BHVRT *p)
 {
     int iBest = -1;
@@ -570,12 +515,7 @@ extern "C" int FindBhvRouteBestStation(BHVRT *p)
     return iBest;
 }
 
-/** @sly2-annot addr=0x14AD70
- * Purpose: advance to next route point and act on its kind
- * Info: proposed name AdvanceBhv182RoutePoint (T2); TU tu_14A008
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14AD70: Advances one station toward the target station and starts the move its kind asks for (walk or leap).
 extern "C" void AdvanceBhvRouteStation(BHVRT *p)
 {
     int k;
@@ -596,24 +536,15 @@ extern "C" void AdvanceBhvRouteStation(BHVRT *p)
     }
 }
 
-/** @sly2-annot addr=0x14AE18
- * Purpose: kind field of the current route point
- * Info: proposed name KindBhv182RoutePoint (T2); TU tu_14A008
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14AE18: Returns the kind of the current route station.
 extern "C" void *GetBhvRouteStationKind(BHVRT *p)
 {
     return p->proute->arte[p->iCur].plo;
 }
 
 #define VCALL0(po, n) { VTE *e = &(po)->vt[n]; ((void (*)(void *))e->pfn)((char *)(po) + e->d); }
-/** @sly2-annot addr=0x14AE38
- * Purpose: BHV182 state change
- * Info: proposed name SetBhv182State (T2); TU tu_14A008
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14AE38: Route behaviour state change: pushes the child behaviour for the new state (path walk, leap, animation,
+// attack, idle).
 extern "C" void SetBhvRouteState(BHVRT *p, int state)
 {
     if (state == p->state)
@@ -711,14 +642,8 @@ extern "C" void SetBhvRouteState(BHVRT *p, int state)
 }
 #undef VCALL0
 
-/** @sly2-annot addr=0x14B1A0
- * Purpose: cid 0x3F (STEPGUARD child) vt7: STEPGUARD init, register as D_002DD648, +0x4A4=1
- * Info: proposed name InitCarmelita (T2); class CARMELITA slot7; TU tu_14A008
- * Notes: Cid3F->Cid63 (CID 0x3F=63, hex-literal) | class identity from whole_game WE names/object strings:
- *   InitCid63 -> InitCarmelita
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14B1A0: CARMELITA vtable slot 7 (Init): STEPGUARD Init, registers her as the world's Carmelita (D_002DD648),
+// sets +0x4A4.
 void CARMELITA::Init()
 {
     GUARDV *p = (GUARDV *)this;
@@ -727,31 +652,16 @@ void CARMELITA::Init()
     p->n4A4 = 1;
 }
 
-/** @sly2-annot addr=0x14B1D8
- * Purpose: vt15: STEPGUARD post-load, create helper object PloNew(3,0,0x62B,-1) at +0x1010
- * Info: proposed name PostCarmelitaLoad (T2); class CARMELITA slot15; TU tu_14A008
- * Notes: Cid3F->Cid63 (CID 0x3F=63, hex-literal) | verifier PLAUSIBLE: Placeholder class name. CID 0x3F
- *   (STEPGUARD subclass) vtable slot 15 PostLoad: PostStepguardLoad then +0x1010 = PloNew(3,0,0x62B,-1). |
- *   class identity from whole_game WE names/object strings: PostCid63Load -> PostCarmelitaLoad | T2 forced:
- *   verifier: placeholder name
- * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources:
- *   r2b_rest+verdicts_followups+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14B1D8: CARMELITA vtable slot 15 (PostLoad): STEPGUARD post-load, then creates her helper object (oid 0x62B) at
+// +0x1010.
 extern "C" void PostCarmelitaLoad(GUARDV *p)
 {
     PostStepguardLoad(p);
     p->ploMarker = PloNew(3, 0, 0x62B, -1);
 }
 
-/** @sly2-annot addr=0x14B218
- * Purpose: vt5: STEPGUARD handler; msg 0xB about itself when flag 0x24 clear -> 0x154038
- * Info: proposed name HandleCarmelitaMessage (T2); class CARMELITA slot5; TU tu_14A008
- * Notes: Cid3F->Cid63 (CID 0x3F=63, hex-literal) | class identity from whole_game WE names/object strings:
- *   HandleCid63Message -> HandleCarmelitaMessage
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14B218: CARMELITA vtable slot 5 (HandleMessage): STEPGUARD handler; message 0xB about herself while not on her
+// route (flag 0x24 clear) marks the hero as seen on her detector (inferred).
 extern "C" void HandleCarmelitaMessage(GUARDV *p, int msgid, void **ppv)
 {
     HandleStepguardMessage(p, msgid, ppv);
@@ -779,14 +689,7 @@ static __inline__ float GDist(qword a, qword b)
 // defined, a function's literals and jump tables with the function, so each constant is defined where the ELF
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.40282347e+38f; }
-/** @sly2-annot addr=0x14B290
- * Purpose: vt88 (STEPGUARD own slot): choose best candidate object by kind/distance
- * Info: proposed name Carmelita_VUnk88 (T2); class CARMELITA slot88; TU tu_14A008
- * Notes: agent qualifier: | Cid3F->Cid63 (CID 0x3F=63, hex-literal) | class identity from whole_game WE
- *   names/object strings: Cid63_VUnk88 -> Carmelita_VUnk88
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14B290: CARMELITA vtable slot 88 (choose target): picks the best candidate object by kind and distance.
 extern "C" LOV *ChooseCarmelitaTarget(GUARDV *p)
 {
     LOV *poBest;
@@ -830,30 +733,13 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *p)
     return poBest;
 }
 
-/** @sly2-annot addr=0x14B460
- * Purpose: vt86: returns 0
- * Info: proposed name Carmelita_VUnk86 (T2); class CARMELITA slot86; TU tu_14A008
- * Notes: agent qualifier: | Cid3F->Cid63 (CID 0x3F=63, hex-literal) | class identity from whole_game WE
- *   names/object strings: Cid63_VUnk86 -> Carmelita_VUnk86
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r2b_rest+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14B460: CARMELITA vtable slot 86 (is zap lethal): never.
 extern "C" int IsCarmelitaZapLethal()
 {
     return 0;
 }
 
-/** @sly2-annot addr=0x14B468
- * Purpose: Splice: send a value message to its behaviour 0x9C
- * Info: proposed name SetCarmelitaBhv9C (T2); class CARMELITA; TU tu_14A008
- * Notes: Cid3F->Cid63 (CID 0x3F=63, hex-literal) | verifier PLAUSIBLE: Placeholder (Cid3F/Bhv9C, master
- *   already 'Cid63'). Body: PbhvFindStep(p,0x9C); val!=0 -> msg kind 0xE carrying val; val==0 -> msg kind 1
- *   only if bhv 0xB6 exists. Purpose omits the val==0 / 0xB6 branch | class identity from whole_game WE
- *   names/object strings: SetCid63Bhv9C -> SetCarmelitaBhv9C | T2 forced: verifier: placeholder name
- * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources:
- *   r2b_rest+verdicts_followups+whole_game(class identity)
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660
- * @end-sly2-annot */
+// 0x14B468: Splice option: sends a value (mode record 0xF) to her root guard behaviour (BHVGUARD, cid 0x9C).
 extern "C" void SendCarmelitaRootBhvValue(GUARDV *p, int val)
 {
     MSG m;
