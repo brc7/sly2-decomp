@@ -168,13 +168,13 @@ extern "C" void GetRailClosestParam(RAILV *rail, T *q, float *pf)
     qword buf;
     float g, v;
     FindShapeClosestPoint(rail, *q->pq, 0, &buf, 0, 0, pf);
-    if (rail->isClosed == 0) {
-        g = SMaxShape(rail) - 50.0f;
-        v = *pf;
-        if (v < 50.0f) v = 50.0f;
-        else if (g < v) v = g;
-        *pf = v;
-    }
+    if (rail->isClosed != 0)
+        return;
+    g = SMaxShape(rail) - 50.0f;
+    v = *pf;
+    if (v < 50.0f) v = 50.0f;
+    else if (g < v) v = g;
+    *pf = v;
 }
 
 /** @sly2-annot addr=0x1CBB58
