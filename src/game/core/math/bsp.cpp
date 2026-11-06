@@ -668,3 +668,24 @@ extern "C" inline void *func_002564B8(void *p)
 {
     return p;
 }
+
+// ---- bsp's .data (0x2BBAD0..0x2BBB30): the two sentinel planes (normal 0, distance -1e8 / +1e8, each padded to 32
+// bytes) and the "inside" / "outside" leaves that point at them (BSP's third word; each leaf padded to 16 bytes). The
+// trees read from a level end in these leaves (bis.cpp's reader stores D_002BBAF0 as a leaf's plane, CloneBspc
+// compares against it, mark.cpp links to the outside leaf). Names by address; under asm labels so that no declaration
+// above has to agree with the definitions' types.
+namespace BSP_DATA {
+extern "C" {
+extern float d_D_002BBAD0[8] __asm__("D_002BBAD0");
+extern float d_D_002BBAF0[8] __asm__("D_002BBAF0");
+}
+float d_D_002BBAD0[8] __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, -1.0e8f, 0.0f, 0.0f, 0.0f, 0.0f};
+float d_D_002BBAF0[8] __attribute__((aligned(16))) = {0.0f, 0.0f, 0.0f, 1.0e8f, 0.0f, 0.0f, 0.0f, 0.0f};
+struct LEAF { void *pbspNeg; void *pbspPos; void *pplane; } __attribute__((aligned(16)));
+extern "C" {
+extern LEAF d_D_002BBB10 __asm__("D_002BBB10");
+extern LEAF d_D_002BBB20 __asm__("D_002BBB20");
+}
+LEAF d_D_002BBB10 = {0, 0, d_D_002BBAD0};
+LEAF d_D_002BBB20 = {0, 0, d_D_002BBAF0};
+}
