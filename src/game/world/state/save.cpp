@@ -96,7 +96,7 @@ int D_002C2D90[11] = {4, 4, 4, 4, 4, 16, 16, 8, 12, 4, 4};
 int D_002C2DC0[9] = {13, 86, 97, 147, 141, 160, 106, 182, 166};
 extern const char D_002A78F0[];   /* defined below where the ELF has it (.rodata order) */
 extern const char D_002A78F8[];   /* defined below where the ELF has it (.rodata order) */
-extern unsigned char D_002AA6A1[];  /* ctype table */
+extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");  /* ctype table */
 extern char D_003DD040[];       /* g_sndmgr */
 #undef D_003DD050
 #define D_003DD050 (*(int *)((char *)base_D_003DD040 + 0x10))   /* the sound manager (SNDMGRG)+0x10 */

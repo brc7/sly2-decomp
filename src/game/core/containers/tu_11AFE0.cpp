@@ -8,7 +8,7 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 extern const unsigned char D_002A4150[] = "";   /* the empty string (NULL hashes as "") */
-extern unsigned char D_002AA6A1[];
+extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
 
 #define toupper(c) ({ int __x = (c); (D_002AA6A1[__x] & 2) ? __x - 'a' + 'A' : __x; })
 

@@ -2994,7 +2994,7 @@ float CRichText_Dx(struct S *p)
 namespace M_func_00215F40 {
 extern "C" {
 struct S { unsigned char *start; unsigned char *cur; void *font; char pad[0x74-0xC]; float width; char pad1[0x88-0x78]; float scale; };
-extern unsigned char D_002AA6A1[];
+extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
 void func_00215CA8(struct S *,unsigned char *);
 unsigned char func_00215D40(struct S *);
 float func_00216B80(void *,unsigned char);

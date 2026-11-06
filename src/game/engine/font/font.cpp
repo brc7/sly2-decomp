@@ -144,7 +144,7 @@ unsigned short D_002BE338[256] = {
 CFontBrx *D_002DE760;
 CFontBrx D_002DE770[2];
 CFontBrx *D_002DE9F0[4];
-extern const unsigned char D_002AA6A1[];
+extern const unsigned char D_002AA6A1[] __asm__("_ctype_+1");
 extern GIFS D_002DEA00;
 extern FRM *D_002DEA4C __asm__("g_pfrmOpen");
 void func_001703F8(GSB *pgsb, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");

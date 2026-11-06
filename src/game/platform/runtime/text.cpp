@@ -39,7 +39,7 @@ typedef char *va_list;
 
 extern "C" {
 void *func_002333B4(void *, int, int) __asm__("memset");
-extern unsigned char D_002AA6A1[];   /* character class table: 1 upper, 2 lower */
+extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");   /* character class table: 1 upper, 2 lower */
 extern const char D_002A9370[];   /* defined before WriteTftPchz (.rodata order) */
 char D_002C40C8[] = "0123456789abcdef";   /* digits (text's .data, not const) */
 extern const char D_002A94F0[], D_002A94F8[];   /* defined before CchAchFromDouble (.rodata order) */
