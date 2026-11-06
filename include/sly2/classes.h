@@ -1566,11 +1566,11 @@ typedef char assert_VAULT_size[sizeof(VAULT) == 0x230 ? 1 : -1];
 struct RAIL : SHAPE, GRABSPOT
 {
     char pad1B4[0x1D0 - 0x1B4];
+    virtual void Unfreeze() __asm__("OnRailAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetRailClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitRail");   /* slot 7 */
     virtual void VUnk14() __asm__("PostRailLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnRailRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnRailAdd");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("CloneRail");   /* slot 41 */
     virtual int FGetGrabRange() __asm__("func_001CBA68");   /* GRABSPOT slot 1 (delta -400) */
     virtual void GetClosestParam() __asm__("func_001CBAC0");   /* GRABSPOT slot 2 (delta -400) */
