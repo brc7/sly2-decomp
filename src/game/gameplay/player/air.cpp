@@ -1217,7 +1217,7 @@ namespace M_func_00197370 { extern "C" {
 struct S60 { char pad[0x40]; float x40; float x44; };
 struct S150 { char pad[0x18]; float x18; };
 struct S1030 { char pad[0x1C]; float x1c; char pad2[0x40-0x20]; float x40; };
-struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *x150; char pad3[0x1030-0x154]; struct S1030 *x1030; char x1034[4]; };
+struct O { char pad[0x60]; struct S60 *x60; char pad2[0x150-0x64]; struct S150 *controller; char pad3[0x1030-0x154]; struct S1030 *action; char x1034[4]; };
 struct P { struct O *x0; int x4; int x8; int pad[4]; int x1c; char pad2[0x30-0x20]; int x30; char pad3[0x120-0x34]; void *a120[5]; void *a134[5]; };
 float atan2f(float y, float x);
 float RadNormalize__Ff(float g);
@@ -1238,7 +1238,7 @@ void StartJtAirTurn(struct P *p)
     struct S1030 *s;
     void *pv;
     p->x30 = 1;
-    d = RadNormalize__Ff(p->x0->x150->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
+    d = RadNormalize__Ff(p->x0->controller->x18 - atan2f(p->x0->x60->x44, p->x0->x60->x40));
     ad = __builtin_fabsf(d);
     if (ad < 1.0995574f)
         p->x8 = 3;
@@ -1248,14 +1248,14 @@ void StartJtAirTurn(struct P *p)
         p->x8 = 2;
     else
         p->x8 = 1;
-    s = p->x0->x1030;
+    s = p->x0->action;
     pv = Get(p, p->x8);
     if (!pv)
         pv = Get(p, 0);
     if (!pv)
         pv = p->a120[0];
     ReleaseSma(p->x0->x1034);
-    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->x1030, s->x1c, s->x40);
+    ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(pv, p->x0, 1, &p->x0->action, s->x1c, s->x40);
 }
 } } // namespace M_func_00197370
 
@@ -4352,8 +4352,8 @@ done:
 namespace M_func_0019C688 { extern "C" {
 typedef struct { short d; short pad; void (*pfn)(void *, int); } VT;
 struct C { char pad[0x10C]; int x10c; char pad2[0x124-0x110]; int x124; };
-struct O { char pad[0xC]; VT *vt; char pad2[0x4C0-0x10]; char x4c0[0xF5C-0x4C0]; struct C *xf5c; float xf60;
-    char pad3[0x18C4-0xF64]; struct C *x18c4; char pad4[0x1F18-0x18C8]; struct C *x1f18; };
+struct O { char pad[0xC]; VT *vt; char pad2[0x4C0-0x10]; char grab[0xF5C-0x4C0]; struct C *xf5c; float xf60;
+    char pad3[0x18C4-0xF64]; struct C *hangHandle; char pad4[0x1F18-0x18C8]; struct C *x1f18; };
 struct P { struct O *x0; int x4; int x8; struct C *xc; int x10; float x14; int x18; int x1c; };
 extern int D_002DD5BC;
 void SetJtGrabState(void *p, int n, struct C *c, void *b);
@@ -4374,28 +4374,28 @@ void GrabJtAirTarget(struct P *p)
 {
     switch (p->x1c) {
     case 6:
-        SetJtGrabState(p->x0->x4c0, 1, p->xc, B(p->xc, 0x150));
+        SetJtGrabState(p->x0->grab, 1, p->xc, B(p->xc, 0x150));
         break;
     case 11:
-        SetJtGrabState(p->x0->x4c0, 0, p->xc, B(p->xc, 0x190));
+        SetJtGrabState(p->x0->grab, 0, p->xc, B(p->xc, 0x190));
         break;
     case 12:
-        SetJtGrabState(p->x0->x4c0, 0, p->xc, B(p->xc, 0xE0));
+        SetJtGrabState(p->x0->grab, 0, p->xc, B(p->xc, 0xE0));
         break;
     case 13:
-        SetJtGrabState(p->x0->x4c0, p->xc->x10c, p->xc, B(p->xc, 0xE0));
+        SetJtGrabState(p->x0->grab, p->xc->x10c, p->xc, B(p->xc, 0xE0));
         break;
     case 9:
-        SetJtGrabState(p->x0->x4c0, 4, p->xc, B(p->xc, 0xE0));
+        SetJtGrabState(p->x0->grab, 4, p->xc, B(p->xc, 0xE0));
         break;
     case 10:
-        SetJtGrabState(p->x0->x4c0, 3, p->xc, B(p->xc, 0x190));
+        SetJtGrabState(p->x0->grab, 3, p->xc, B(p->xc, 0x190));
         break;
     case 14:
     {
         struct O *o = p->x0;
-        o->x18c4 = p->xc;
-        if (o->x18c4->x124 == 3)
+        o->hangHandle = p->xc;
+        if (o->hangHandle->x124 == 3)
             SetJtState__FP2JT3JTS4JTBS(o, 0x16, -1);
         else
             SetJtState__FP2JT3JTS4JTBS(o, 3, 1);
