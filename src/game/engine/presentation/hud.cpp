@@ -2847,7 +2847,7 @@ void RenderSpritePayload(struct S *sprite, int matrix, int params, int channel)
 
 // 0x215A50 IglyffFromCh__8CFontBrxc
 namespace M_IglyffFromCh__8CFontBrxc { extern "C" {
-struct CFontBrx { char pad[0x20]; int c; unsigned int *ach; };
+struct CFontBrx { char pad[0x20]; int numGlyphs; unsigned int *glyphChars; };   /* glyphChars sorted, for the binary search */
 /** @sly2-annot addr=0x215A50
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Info: proposed name IglyffFromCh__8CFontBrxc (EXISTING); TU hud
@@ -2860,10 +2860,10 @@ struct CFontBrx { char pad[0x20]; int c; unsigned int *ach; };
 int IglyffFromCh__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
 {
     int lo = 0;
-    int hi = p->c - 1;
+    int hi = p->numGlyphs - 1;
     while (lo <= hi) {
         int mid = (hi + lo) / 2;
-        int d = ch - p->ach[mid];
+        int d = ch - p->glyphChars[mid];
         if (d == 0)
             return mid + 1;
         if (d > 0)
@@ -2879,14 +2879,18 @@ int IglyffFromCh__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
 namespace M_CRichText_ctor {
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct Q { int a[4]; } __attribute__((aligned(16)));
-struct F { char pad[0x54]; char *p54; };
-struct G { char pad[0x3BE8]; F *pf; };
+struct F { char pad[0x54]; char *fonts; };   /* the HUD font object: 0x40-byte fonts */
+struct G { char pad[0x3BE8]; F *hudFont; };
 extern "C" G D_003DD490;
 extern "C" Q D_002A2E10;
 extern "C" Q D_002A2E20;
-struct S { int x0; int x4; char *x8; char *xC; char *x10; int x14; RGBA x18; char pad1c[0x24]; Q q40; Q q50;
-  char pad60[4]; float f64; float f68; int x6C; int x70; int x74; int x78; float f7C; float f80; float f84; float f88;
-  int x8C; int x90; int x94; };
+/* CRichText2 (0x98 bytes; the field names are the same in every view of this file):
+   text, cursor, current / base / alternate font, current / base / alternate colour, the two float colour vectors
+   the glyphs draw with and their base values, a style-change flag, the screen origin, the box (offset, size,
+   scale), line height, font scale, alignment (0 top/left, 1 centre, 2 bottom/right) and render priority. */
+struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; RGBA baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
+  char pad60[4]; float originX; float originY; int offsetX; int offsetY; int width; int height; float scaleX; float scaleY; float lineHeight; float fontScale;
+  int vAlign; int hAlign; int priority; };
 extern "C" void ResetRichText2(S *p, int i);
 /** @sly2-annot addr=0x215AC0
  * Purpose: rich-text ctor from string + font + scale (offsets 1792/1936)
@@ -2895,29 +2899,29 @@ extern "C" void ResetRichText2(S *p, int i);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Rich-text constructor from a string, a font and a scale.
-extern "C" S *CRichText_ctor(S *p, int a, float f)
+extern "C" S *CRichText_ctor(S *rt, int text, float fontScale)
 {
-    p->x0 = a;
-    p->f7C = 1.0f;
-    p->f80 = 1.0f;
-    p->f64 = 1792.0f;
-    p->f68 = 1936.0f;
-    p->f88 = f;
-    p->x6C = 0;
-    p->x70 = 0;
-    p->x74 = 0;
-    p->x78 = 0;
-    p->f84 = f * 51.2f;
-    p->x90 = 1;
-    p->x8C = 1;
-    p->x94 = 6;
-    p->x8 = p->xC = D_003DD490.pf->p54;
-    p->x10 = D_003DD490.pf->p54 + 0x40;
-    p->x18 = RGBA(0x80808080);
-    p->q40 = D_002A2E10;
-    p->q50 = D_002A2E20;
-    ResetRichText2(p, 0);
-    return p;
+    rt->text = text;
+    rt->scaleX = 1.0f;
+    rt->scaleY = 1.0f;
+    rt->originX = 1792.0f;   /* GS drawing area origin 2048 minus 256 / 112 */
+    rt->originY = 1936.0f;
+    rt->fontScale = fontScale;
+    rt->offsetX = 0;
+    rt->offsetY = 0;
+    rt->width = 0;
+    rt->height = 0;
+    rt->lineHeight = fontScale * 51.2f;   /* 51.2 units per line at scale 1 */
+    rt->hAlign = 1;
+    rt->vAlign = 1;
+    rt->priority = 6;
+    rt->font = rt->baseFont = D_003DD490.hudFont->fonts;
+    rt->altFont = D_003DD490.hudFont->fonts + 0x40;
+    rt->baseColor = RGBA(0x80808080);
+    rt->baseColor0 = D_002A2E10;
+    rt->baseColor1 = D_002A2E20;
+    ResetRichText2(rt, 0);
+    return rt;
 }
 } // namespace M_CRichText_ctor
 
@@ -2925,15 +2929,16 @@ extern "C" S *CRichText_ctor(S *p, int a, float f)
 namespace M_func_00215BA8 {
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct Q3 { Q a, b, c; };
-struct F { char pad[0x54]; char *p54; };
-struct G { char pad[0x3BE8]; F *pf; };
+struct F { char pad[0x54]; char *fonts; };
+struct G { char pad[0x3BE8]; F *hudFont; };
 extern "C" G D_003DD490;
-struct C8 { char pad[0x9C]; float f9C; float fA0; };
-struct P8 { char pad[0xA4]; int xA4; char padA8[0x20]; C8 *pC8; };
-struct R { char pad[8]; P8 *p8; char padc[0x10]; int x1C; float f20; float f24; float f28; int x2C; int x30; };
-struct S { int x0; int x4; char *x8; char *xC; char *x10; int x14; int x18; char pad1c[0x24]; Q q40; Q q50;
-  char pad60[4]; float f64; float f68; int x6C; int x70; float f74; float f78; float f7C; float f80; float f84; float f88;
-  int x8C; int x90; int x94; };
+struct C8 { char pad[0x9C]; float screenX; float screenY; };   /* the widget whose screen position text uses */
+struct P8 { char pad[0xA4]; int priority; char padA8[0x20]; C8 *ownerWidget; };   /* the owning widget */
+/* a text sprite descriptor (RenderSpriteText's S) */
+struct R { char pad[8]; P8 *owner; char padc[0x10]; int color; float scale; float width; float height; int hAlign; int vAlign; };
+struct S { int text; int cur; char *font; char *baseFont; char *altFont; int color; int baseColor; char pad1c[0x24]; Q baseColor0; Q baseColor1;
+  char pad60[4]; float originX; float originY; int offsetX; int offsetY; float width; float height; float scaleX; float scaleY; float lineHeight; float fontScale;
+  int vAlign; int hAlign; int priority; };
 extern "C" void ResetRichText2(S *p, int i);
 /** @sly2-annot addr=0x215BA8
  * Purpose: rich-text ctor from a sprite text element (width/height/colour)
@@ -2944,37 +2949,37 @@ extern "C" void ResetRichText2(S *p, int i);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Rich-text constructor from a sprite text element (width, height, colour). (inferred)
-extern "C" S *ConstructRichText2FromSprite(S *p, int a, R *r, Q3 *pq)
+extern "C" S *ConstructRichText2FromSprite(S *rt, int text, R *sprite, Q3 *style)
 {
-    Q3 t = *pq;
-    p->x0 = a;
-    p->x6C = 0;
-    p->x70 = 0;
-    p->f74 = r->f24;
-    p->f78 = r->f28;
-    p->f7C = 1.0f;
-    p->f80 = 1.0f;
-    p->x90 = r->x2C;
-    p->x8C = r->x30;
-    p->f64 = r->p8->pC8->f9C;
-    p->f68 = r->p8->pC8->fA0;
-    p->x94 = r->p8->xA4;
-    p->f84 = r->f20;
-    p->f88 = p->f84 * 0.01953125f;
-    p->x8 = p->xC = D_003DD490.pf->p54;
-    p->x10 = D_003DD490.pf->p54 + 0x40;
-    p->x18 = r->x1C;
-    p->q40 = t.b;
-    p->q50 = t.c;
-    ResetRichText2(p, 0);
-    return p;
+    Q3 styleCopy = *style;
+    rt->text = text;
+    rt->offsetX = 0;
+    rt->offsetY = 0;
+    rt->width = sprite->width;
+    rt->height = sprite->height;
+    rt->scaleX = 1.0f;
+    rt->scaleY = 1.0f;
+    rt->hAlign = sprite->hAlign;
+    rt->vAlign = sprite->vAlign;
+    rt->originX = sprite->owner->ownerWidget->screenX;
+    rt->originY = sprite->owner->ownerWidget->screenY;
+    rt->priority = sprite->owner->priority;
+    rt->lineHeight = sprite->scale;
+    rt->fontScale = rt->lineHeight * 0.01953125f;   /* 1 / 51.2 */
+    rt->font = rt->baseFont = D_003DD490.hudFont->fonts;
+    rt->altFont = D_003DD490.hudFont->fonts + 0x40;
+    rt->baseColor = sprite->color;
+    rt->baseColor0 = styleCopy.b;
+    rt->baseColor1 = styleCopy.c;
+    ResetRichText2(rt, 0);
+    return rt;
 }
 } // namespace M_func_00215BA8
 
 // 0x215CA8 ResetRichText2
 namespace M_func_00215CA8 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
-struct S { int x0; int x4; int x8; int xc; int x10; struct RGBA c1; struct RGBA c0; unsigned int x1c; };
+struct S { int text; int cur; int font; int baseFont; int altFont; struct RGBA color; struct RGBA baseColor; unsigned int altColor; };
 void UpdateRichText2Color(struct S *p);
 /** @sly2-annot addr=0x215CA8
  * Purpose: Reset the HUD rich-text cursor: optional new text, pchCur=achz, font cur=base, colour cur=base,
@@ -2990,23 +2995,23 @@ void UpdateRichText2Color(struct S *p);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Resets the rich-text cursor: optional new text, start of text, base font and colour. (inferred)
-void ResetRichText2(struct S *p, int a)
+void ResetRichText2(struct S *rt, int text)
 {
-    if (a)
-        p->x0 = a;
-    p->x4 = p->x0;
-    p->x8 = p->xc;
-    p->c1 = p->c0;
-    p->x1c = 0x80000000;
-    ((unsigned char *)&p->x1c)[3] = p->c1.a;
-    UpdateRichText2Color(p);
+    if (text)
+        rt->text = text;
+    rt->cur = rt->text;
+    rt->font = rt->baseFont;
+    rt->color = rt->baseColor;
+    rt->altColor = 0x80000000;                         /* black ... */
+    ((unsigned char *)&rt->altColor)[3] = rt->color.a;   /* ... at the current alpha */
+    UpdateRichText2Color(rt);
 }
 } } // namespace M_func_00215CA8
 
 // 0x215D00 SetRichText2BaseColor
 namespace M_func_00215D00 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
-struct S { char pad[0x14]; struct RGBA c1; struct RGBA c0; };
+struct S { char pad[0x14]; struct RGBA color; struct RGBA baseColor; };
 void UpdateRichText2Color(struct S *p);
 /** @sly2-annot addr=0x215D00
  * Purpose: set base and current colour
@@ -3021,11 +3026,11 @@ void UpdateRichText2Color(struct S *p);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Sets the rich text's base and current colour. (inferred)
-void SetRichText2BaseColor(struct S *p, struct RGBA *pc)
+void SetRichText2BaseColor(struct S *rt, struct RGBA *color)
 {
-    p->c0 = *pc;
-    p->c1 = p->c0;
-    UpdateRichText2Color(p);
+    rt->baseColor = *color;
+    rt->color = rt->baseColor;
+    UpdateRichText2Color(rt);
 }
 } } // namespace M_func_00215D00
 
@@ -3033,9 +3038,9 @@ void SetRichText2BaseColor(struct S *p, struct RGBA *pc)
 namespace M_func_00215D40 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct S {
-    int x0; unsigned char *pch; int x8; int xC; int x10;
-    struct RGBA c1; struct RGBA c0; struct RGBA c2;
-    char pad20[0x40]; int x60;
+    int text; unsigned char *cur; int font; int baseFont; int altFont;
+    struct RGBA color; struct RGBA baseColor; struct RGBA altColor;
+    char pad20[0x40]; int changed;
 };
 void UpdateRichText2Color(struct S *p);
 /** @sly2-annot addr=0x215D40
@@ -3051,35 +3056,35 @@ void UpdateRichText2Color(struct S *p);
  * @end-sly2-annot */
 // Returns the next printable character, processing '&' escape codes (colour, font, glyph changes) on the way.
 // (inferred)
-unsigned char GetRichText2NextChar(struct S *p)
+unsigned char GetRichText2NextChar(struct S *rt)
 {
-    int fDone = 0;
-    p->x60 = 0;
-    while (!fDone) {
-        unsigned char *pch = p->pch;
+    int isDone = 0;
+    rt->changed = 0;
+    while (!isDone) {
+        unsigned char *pch = rt->cur;
         unsigned char c = *pch;
         if (c == '&') {
-            if (pch[1] == c) {
-                p->pch = pch + 1;
-                fDone = 1;
-            } else if (pch[1] == '.') {
-                p->pch = pch + 2;
-                p->x8 = p->xC;
-                p->c1 = p->c0;
-                p->x60 = 1;
-                UpdateRichText2Color(p);
-            } else {
-                p->pch = pch + 2;
-                p->x8 = p->x10;
-                p->c1 = p->c2;
-                p->x60 = 1;
-                UpdateRichText2Color(p);
+            if (pch[1] == c) {            /* "&&": a literal '&' */
+                rt->cur = pch + 1;
+                isDone = 1;
+            } else if (pch[1] == '.') {   /* "&.": back to the base font and colour */
+                rt->cur = pch + 2;
+                rt->font = rt->baseFont;
+                rt->color = rt->baseColor;
+                rt->changed = 1;
+                UpdateRichText2Color(rt);
+            } else {                      /* "&x": the alternate font and colour */
+                rt->cur = pch + 2;
+                rt->font = rt->altFont;
+                rt->color = rt->altColor;
+                rt->changed = 1;
+                UpdateRichText2Color(rt);
             }
         } else {
-            fDone = 1;
+            isDone = 1;
         }
     }
-    return *p->pch++;
+    return *rt->cur++;
 }
 } } // namespace M_func_00215D40
 
@@ -3095,19 +3100,19 @@ int GetRichText2NextChar(void *p);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Number of printable characters in the rich text.
-int CRichText_Cch(void *p)
+int CRichText_Cch(void *rt)
 {
-    int n = 0;
-    ResetRichText2(p, 0);
-    while (GetRichText2NextChar(p))
-        n++;
-    return n;
+    int count = 0;
+    ResetRichText2(rt, 0);
+    while (GetRichText2NextChar(rt))
+        count++;
+    return count;
 }
 } } // namespace M_CRichText_Cch
 
 // 0x215E80 CRichText_Trim
 namespace M_CRichText_Trim { extern "C" {
-struct S { int a; char *pch; };
+struct S { int text; char *cur; };
 void ResetRichText2(struct S *p, int a);
 int GetRichText2NextChar(struct S *p);
 /** @sly2-annot addr=0x215E80
@@ -3117,18 +3122,18 @@ int GetRichText2NextChar(struct S *p);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Truncates the rich text after n printable characters.
-void CRichText_Trim(struct S *p, int n)
+void CRichText_Trim(struct S *rt, int n)
 {
-    ResetRichText2(p, 0);
-    while (GetRichText2NextChar(p) && n != 0)
+    ResetRichText2(rt, 0);
+    while (GetRichText2NextChar(rt) && n != 0)
         n--;
-    *p->pch = 0;
+    *rt->cur = 0;
 }
 } } // namespace M_CRichText_Trim
 
 // 0x215ED8 CRichText_Dx
 namespace M_CRichText_Dx { extern "C" {
-struct S { char pad[8]; void *x8; char pad2[0x7C]; float x88; };
+struct S { char pad[8]; void *font; char pad2[0x7C]; float fontScale; };
 void ResetRichText2(struct S *p, int a);
 int GetRichText2NextChar(struct S *p);
 float GetFontGlyphWidth2(void *p, int ch);
@@ -3145,7 +3150,7 @@ float CRichText_Dx(struct S *p)
     int ch;
     ResetRichText2(p, 0);
     while ((ch = GetRichText2NextChar(p)) != 0)
-        sum += GetFontGlyphWidth2(p->x8, ch) * p->x88;
+        sum += GetFontGlyphWidth2(p->font, ch) * p->fontScale;
     return sum;
 }
 } } // namespace M_CRichText_Dx
@@ -3153,7 +3158,7 @@ float CRichText_Dx(struct S *p)
 // 0x215F40 WrapRichText2Lines
 namespace M_func_00215F40 {
 extern "C" {
-struct S { unsigned char *start; unsigned char *cur; void *font; char pad[0x74-0xC]; float width; char pad1[0x88-0x78]; float scale; };
+struct S { unsigned char *text; unsigned char *cur; void *font; char pad[0x74-0xC]; float width; char pad1[0x88-0x78]; float fontScale; };
 extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
 void ResetRichText2(struct S *,unsigned char *);
 unsigned char GetRichText2NextChar(struct S *);
@@ -3181,11 +3186,11 @@ int WrapRichText2Lines(struct S *p) {
     while ((c=GetRichText2NextChar(p))!=0) {
         if(c=='\n') { width=0.0f; lines++; }
         else {
-            width+=GetFontGlyphWidth2(p->font,c)*p->scale;
+            width+=GetFontGlyphWidth2(p->font,c)*p->fontScale;
         }
         if(p->width!=0.0f && p->width<width) {
                 unsigned char *q=p->cur-1;
-                while(q>=p->start && *q!='\n') {
+                while(q>=p->text && *q!='\n') {
                     if((*q==' ' || *q=='\t') && !(D_002AA6A1[q[1]]&0x10)) {
                         p->cur=q+1;
                         StoreByte(q,newline);
@@ -3211,10 +3216,11 @@ int WrapRichText2Lines(struct S *p) {
 namespace M_func_002160D8 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct S {
-    char pad[0x14]; struct RGBA c1; struct RGBA c0;
+    char pad[0x14]; struct RGBA color; struct RGBA baseColor;
     char pad1c[4];
-    float r, g, b, a2C, x30, x34, x38, a;
-    float rA, gA, bA, x4C, x50, x54, x58, aA;
+    /* the two vectors the glyphs draw with (an offset and a scale, as RenderWidget's PARAM) and their bases */
+    float color0R, color0G, color0B, color0W, color1R, color1G, color1B, color1A;
+    float baseColor0R, baseColor0G, baseColor0B, baseColor0W, baseColor1R, baseColor1G, baseColor1B, baseColor1A;
 };
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GClamp(float g, float gMin, float gMax)
@@ -3230,25 +3236,25 @@ static inline float GClamp(float g, float gMin, float gMax)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Converts the current colour to clamped float colours for drawing. (inferred)
-void UpdateRichText2Color(struct S *p)
+void UpdateRichText2Color(struct S *rt)
 {
-    float k = p->aA * 0.007874016f;
-    float a;
-    a = k * (float)p->c1.a;
-    p->r = GMin(p->rA + (float)p->c1.r, 255.0f);
-    p->g = GMin(p->gA + (float)p->c1.g, 255.0f);
-    p->b = GMin(p->bA + (float)p->c1.b, 255.0f);
-    p->a2C = p->x4C;
-    p->x30 = p->x50;
-    p->x34 = p->x54;
-    p->x38 = p->x58;
-    p->a = GClamp(a, 0.0f, 1.0f);
+    float alphaScale = rt->baseColor1A * 0.007874016f;   /* 1 / 127 */
+    float alpha;
+    alpha = alphaScale * (float)rt->color.a;
+    rt->color0R = GMin(rt->baseColor0R + (float)rt->color.r, 255.0f);
+    rt->color0G = GMin(rt->baseColor0G + (float)rt->color.g, 255.0f);
+    rt->color0B = GMin(rt->baseColor0B + (float)rt->color.b, 255.0f);
+    rt->color0W = rt->baseColor0W;
+    rt->color1R = rt->baseColor1R;
+    rt->color1G = rt->baseColor1G;
+    rt->color1B = rt->baseColor1B;
+    rt->color1A = GClamp(alpha, 0.0f, 1.0f);
 }
 } } // namespace M_func_002160D8
 
 // 0x2161C8 GetRichText2MaxLineWidth
 namespace M_func_002161C8 { extern "C" {
-struct S { char pad[8]; void *x8; char padc[0x7C]; float f88; };
+struct S { char pad[8]; void *font; char padc[0x7C]; float fontScale; };
 void ResetRichText2(struct S *p, int i);
 int GetRichText2NextChar(struct S *p);
 float GetFontGlyphWidth2(void *p, int ch);
@@ -3265,28 +3271,28 @@ float GetFontGlyphWidth2(void *p, int ch);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Width of the widest line. (inferred)
-float GetRichText2MaxLineWidth(struct S *p)
+float GetRichText2MaxLineWidth(struct S *rt)
 {
-    float fMax = 0.0f;
-    float fCur = fMax;
+    float maxWidth = 0.0f;
+    float lineWidth = maxWidth;
     int ch;
-    ResetRichText2(p, 0);
-    while ((ch = GetRichText2NextChar(p)) != 0) {
-        if (ch == 10) {
-            fMax = (fMax > fCur) ? fMax : fCur;
-            fCur = 0.0f;
+    ResetRichText2(rt, 0);
+    while ((ch = GetRichText2NextChar(rt)) != 0) {
+        if (ch == '\n') {
+            maxWidth = (maxWidth > lineWidth) ? maxWidth : lineWidth;
+            lineWidth = 0.0f;
         } else {
-            fCur += GetFontGlyphWidth2(p->x8, ch) * p->f88;
+            lineWidth += GetFontGlyphWidth2(rt->font, ch) * rt->fontScale;
         }
     }
-    fMax = (fMax > fCur) ? fMax : fCur;
-    return fMax;
+    maxWidth = (maxWidth > lineWidth) ? maxWidth : lineWidth;
+    return maxWidth;
 }
 } } // namespace M_func_002161C8
 
 // 0x216260 CRichText_GetExtents
 namespace M_CRichText_GetExtents { extern "C" {
-struct S { char pad[0x84]; float x84; };
+struct S { char pad[0x84]; float lineHeight; };
 int WrapRichText2Lines(struct S *p);
 float GetRichText2MaxLineWidth(struct S *p);
 /** @sly2-annot addr=0x216260
@@ -3297,21 +3303,21 @@ float GetRichText2MaxLineWidth(struct S *p);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Width (widest line) and height (lines x line height) of the rich text.
-void CRichText_GetExtents(struct S *p, float *pa, float *pb)
+void CRichText_GetExtents(struct S *rt, float *width, float *height)
 {
-    int n = WrapRichText2Lines(p);
-    float f = GetRichText2MaxLineWidth(p);
-    float g = n * p->x84;
-    if (pa)
-        *pa = f;
-    if (pb)
-        *pb = g;
+    int numLines = WrapRichText2Lines(rt);
+    float maxWidth = GetRichText2MaxLineWidth(rt);
+    float totalHeight = numLines * rt->lineHeight;
+    if (width)
+        *width = maxWidth;
+    if (height)
+        *height = totalHeight;
 }
 } } // namespace M_CRichText_GetExtents
 
 // 0x2162D8 BuildRichTextMatrix
 namespace M_func_002162D8 { extern "C" {
-struct S { char pad[0x64]; float f64; float f68; };
+struct S { char pad[0x64]; float originX; float originY; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 /** @sly2-annot addr=0x2162D8
  * Purpose: glyph matrix from 2x3 transform (0.8 / 0.4545 pixel scales, GS offset 786432)
@@ -3321,15 +3327,16 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Builds a glyph matrix from a 2D transform (pixel aspect scales and the GS screen offset). (inferred)
-void BuildRichTextMatrix(struct S *p, float *m, float *v)
+void BuildRichTextMatrix(struct S *rt, float *m, float *xf)
 {
+    /* HUD units to GS pixels: x * 0.8 (640 -> 512), y / 2.2; 786432 (3 * 2^18) is the float-to-fixed bias */
     func_002333B4(m, 0, 0x40);
-    m[0] = v[0] * 0.8f;
-    m[1] = v[1] * 0.454545454545f;
-    m[4] = v[2] * 0.8f;
-    m[5] = v[3] * 0.454545454545f;
-    m[8] = v[4] * 0.8f + p->f64 + 786432.0f;
-    m[9] = v[5] * 0.454545454545f + p->f68 + 786432.0f;
+    m[0] = xf[0] * 0.8f;
+    m[1] = xf[1] * 0.454545454545f;
+    m[4] = xf[2] * 0.8f;
+    m[5] = xf[3] * 0.454545454545f;
+    m[8] = xf[4] * 0.8f + rt->originX + 786432.0f;
+    m[9] = xf[5] * 0.454545454545f + rt->originY + 786432.0f;
     m[10] = 1.0f;
     m[15] = 1.0f;
 }
@@ -3342,7 +3349,7 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
-struct RT {char pad[0x6C];float offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
+struct RT {char pad[0x6C];float offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct CONFIG {float offsetX,offsetY,width,height;RGBA color;int hAlign,vAlign;};
 extern "C" void *func_002333B4(void *,int,int) __asm__("memset");
 struct M23 {float a[8];enum INIT {Uninitialized,Zero};M23(INIT init=Uninitialized){if(init==Zero)func_002333B4(this,0,sizeof(*this));}} __attribute__((aligned(16)));
@@ -3387,10 +3394,10 @@ extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
     struct M23 matrix(M23::Zero);
     struct M4 world;
     struct DATA style;
-    matrix.a[0]=p->sx*p->fontScale;
-    matrix.a[3]=p->sy*p->fontScale;
+    matrix.a[0]=p->scaleX*p->fontScale;
+    matrix.a[3]=p->scaleY*p->fontScale;
     matrix.a[4]=p->offsetX;
-    matrix.a[5]=p->offsetY+p->lineHeight*p->sy;
+    matrix.a[5]=p->offsetY+p->lineHeight*p->scaleY;
     BuildRichTextMatrix(p,&world,&matrix);
     style.v10=D_002A2E10;style.v20=D_002A2E20;style.priority=16.0f;
     DrawRichText2Glyphs(p,&world,&style);
@@ -3414,12 +3421,12 @@ namespace M_func_002166B0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float a[6]; } __attribute__((aligned(16))) T;
 typedef struct { float a[16]; } __attribute__((aligned(16))) O;
-struct RT {char pad[8];void *font;char padC[0x14];qword color0,color1;char pad40[0x20];int changed;float cameraX,cameraY,offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
+struct RT {char pad[8];void *font;char padC[0x14];qword color0,color1;char pad40[0x20];int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct DATA {unsigned int color;int mode;float priority;unsigned int limit;qword color0,color1;};
 
 void BuildRichTextMatrix(struct RT *p, O *po, T *pt);
 void DrawRichText2Glyphs(struct RT *p, O *po, struct DATA *q);
-static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->sx):"f"(x));}
+static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->scaleX):"f"(x));}
 /** @sly2-annot addr=0x2166B0
  * Purpose: draw at a sprite transform (font scale, line height)
  * Info: proposed name CRichText_DrawXf (T2); class CRichText; TU hud
@@ -3432,10 +3439,10 @@ void DrawRichText2AtXf(struct RT *p, T *pt, struct DATA *q)
 {
     T t = *pt;
     O o;
-    float x=t.a[0],y=t.a[3],g=p->fontScale,shift=p->lineHeight;
-    p->sy=y; StoreX(p,x);
-    t.a[0] = x*g;
-    t.a[3] = y*g;
+    float x=t.a[0],y=t.a[3],fontScale=p->fontScale,shift=p->lineHeight;
+    p->scaleY=y; StoreX(p,x);
+    t.a[0] = x*fontScale;
+    t.a[3] = y*fontScale;
     t.a[5] += shift*y;
     BuildRichTextMatrix(p, &o, &t);
     DrawRichText2Glyphs(p, &o, q);
@@ -3448,7 +3455,7 @@ namespace M_func_00216750 { extern "C" {
 typedef unsigned int uint;
 typedef unsigned long ulong;
 typedef int qword __attribute__((mode(TI)));
-struct RT {char pad[8];void *font;char padc[0x14];qword color0,color1;char pad40[0x20];int changed;float cameraX,cameraY,offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
+struct RT {char pad[8];void *font;char padc[0x14];qword color0,color1;char pad40[0x20];int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;};
 union M4 {qword r[4];float a[16];};
 struct DATA {uint color;int mode;float priority;uint limit;qword color0,color1;};
 struct GLYPH {int a;void *data;char pad8[0xA];unsigned short mode;char pad14[8];void *address;char pad20[0x20];};
@@ -3478,7 +3485,7 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
     float widths[32];
     unsigned char *tag=D_002DEA28.cur;
     int line=0;
-    float lineHeight=p->lineHeight*p->sy*0.45454547f;
+    float lineHeight=p->lineHeight*p->scaleY*0.45454547f;
     float startX=matrix->a[8];
     style->color=0;
     func_002333B4(widths,0,sizeof(widths));
@@ -3490,7 +3497,7 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
     }
     }
     if(p->vAlign){
-        float extra=p->height*p->sy*0.45454547f-(line+1)*lineHeight;
+        float extra=p->height*p->scaleY*0.45454547f-(line+1)*lineHeight;
         if(p->vAlign==2)matrix->a[9]+=extra;
         else matrix->a[9]+=extra*0.5f;
     }
@@ -3507,8 +3514,8 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
                 if(newLine){
                     if(!p->hAlign)matrix->a[8]=startX;
                     else{
-                        float lineWidth=*width*p->sx*0.8f;
-                        float extent=p->width*p->sx*0.8f;
+                        float lineWidth=*width*p->scaleX*0.8f;
+                        float extent=p->width*p->scaleX*0.8f;
                         if(p->hAlign==2)matrix->a[8]=startX+(extent-lineWidth);
                         else matrix->a[8]=startX+(extent-lineWidth)*0.5f;
                     }
@@ -3523,7 +3530,7 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
                         drawCount++;
                         if(drawCount>=until)flags=0;
                     }
-                    matrix->a[8]+=GetFontGlyphWidth2(p->font,ch)*p->fontScale*p->sx*0.8f;
+                    matrix->a[8]+=GetFontGlyphWidth2(p->font,ch)*p->fontScale*p->scaleX*0.8f;
                 }
             }
         }
@@ -3540,7 +3547,7 @@ void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
 // 0x216B40 PglyffFromCh__8CFontBrxc
 namespace M_PglyffFromCh__8CFontBrxc { extern "C" {
 struct G { char pad[0x40]; };
-struct S { char pad[0x14]; struct G *ag; };
+struct S { char pad[0x14]; struct G *glyphs; };
 int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
 /** @sly2-annot addr=0x216B40
  * Purpose: GLYFF* = &glyphs[i] for i = 0x215A50(ch)
@@ -3557,13 +3564,13 @@ int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
 struct G *PglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch)
 {
     int i = IglyffFromCh__8CFontBrxc(p, ch);
-    return i ? &p->ag[i] : 0;
+    return i ? &p->glyphs[i] : 0;
 }
 } } // namespace M_PglyffFromCh__8CFontBrxc
 
 // 0x216B80 GetFontGlyphWidth2
 namespace M_func_00216B80 { extern "C" {
-struct S { char pad[0x1C]; float *ag; };
+struct S { char pad[0x1C]; float *glyphWidths; };
 int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
 /** @sly2-annot addr=0x216B80
  * Purpose: width of glyph for ch (widths[i-1])
@@ -3577,7 +3584,7 @@ int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
 float GetFontGlyphWidth2(struct S *p, unsigned char ch)
 {
     int i = IglyffFromCh__8CFontBrxc(p, ch);
-    return i ? p->ag[i - 1] : 0.0f;
+    return i ? p->glyphWidths[i - 1] : 0.0f;
 }
 } } // namespace M_func_00216B80
 
@@ -3589,8 +3596,8 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct {unsigned char r,g,b,a;} RGBA;
 typedef struct {float a[8];} __attribute__((aligned(16))) T;
 typedef union {qword q[3];struct {RGBA color;int mode;float priority;uint limit;char pad10[0x1C];float fade;};} DATA;
-typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float scale,width,height;int pad2c,pad30;} S;
-typedef struct {char *text,*cur;void *font,*basefont,*altfont;RGBA color,basecolor,altcolor;char pad20[0x20];qword q40,q50;int changed;float x,y;int hAlign,vAlign;float width,height,sx,sy,dy,fontScale;int field8C,field90,field94;} RT;
+typedef struct {int pad[2];void *owner;char padc[8];int kind,id;int color;float scale,width,height;int hAlign,vAlign;} S;   /* kind: 0 language string, 1 text table */
+typedef struct {char *text,*cur;void *font,*baseFont,*altFont;RGBA color,baseColor,altColor;char pad20[0x20];qword baseColor0,baseColor1;int changed;float originX,originY,offsetX,offsetY,width,height,scaleX,scaleY,lineHeight,fontScale;int vAlign,hAlign,priority;} RT;
 typedef struct {char pad[0x3BE8];void *font;} WORLD;
 typedef struct {int id;void (*get)(char *,void *,void *);void *context;} STRINGGEN;
 typedef struct {char pad10[0x10];int state;float time;int pad18;float finish;} SCROLL;
@@ -3617,6 +3624,8 @@ extern "C" float GModPositive__Fff(float,float);
 extern "C" void SetNoticeState(SCROLL *,int);
 extern "C" void DrawRichText2AtXf(RT *,T *,DATA *);
 static inline float Max(float a,float b){return a<b?b:a;}
+enum { TEXT_SOURCE_LANGSTR = 0, TEXT_SOURCE_TABLE = 1 };
+enum { TEXT_ID_SUBTITLE = 0x2EF, TEXT_ID_TICKER = 0x2F1 };   /* BuildSubtitleText, BuildTickerText */
 
 /** @sly2-annot addr=0x216BC8
  * Purpose: sprite text: STRINGGEN text (kind 1, 108-entry table D_003E1C88) or langstr (kind 0); subtitle
@@ -3633,15 +3642,15 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
     char marquee[2*sizeof(text)+3*5];
     if(!D_003DD490.font)return;
     text[0]=0;
-    if(p->kind==1){
+    if(p->kind==TEXT_SOURCE_TABLE){
         uint i;
         for(i=0;i<108;i++)if(D_003E1C88[i].id==p->id)break;
         if(i>=108)*(long *)text=*(const long *)D_002A8B80;
         else D_003E1C88[i].get(text,D_003E1C88[i].context,p->owner);
-    }else if(p->kind==0){
+    }else if(p->kind==TEXT_SOURCE_LANGSTR){
         strcpy(text,(const char *)PchzFindSwLangstr__FP2SWi(&D_003DD490,p->id));
     }
-    if(p->kind==1 && p->id==0x2EF){
+    if(p->kind==TEXT_SOURCE_TABLE && p->id==TEXT_ID_SUBTITLE){
         int lines=1,ch,visible;
         unsigned char *first;
         style=*data;
@@ -3661,7 +3670,7 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         style.color=D_004435F4;
         SetRichText2BaseColor(&rt,&style.color);
         DrawRichText2AtXf(&rt,t,data);
-    }else if(p->kind==1 && p->id==0x2F1 && D_003DA0C0.state==2){
+    }else if(p->kind==TEXT_SOURCE_TABLE && p->id==TEXT_ID_TICKER && D_003DA0C0.state==2){
         float scale,paddingWidth,textWidth,elapsed,period,position;
         style=*data;
         ConstructRichText2FromSprite(&rt,text,p,&style);
@@ -3799,8 +3808,8 @@ namespace M_RenderSpriteGeometry { extern "C" {
 // Queue transformed sprite parameters with optional fade limiting.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct CAMERA {char pad[0x9C];float x,y;};
-struct OWNER {char pad[0xA4];int priority;char pada8[0x20];struct CAMERA *camera;};
+struct POSITION {char pad[0x9C];float screenX,screenY;};   /* PostWidgetLoad's ownerWidget */
+struct OWNER {char pad[0xA4];int priority;char pada8[0x20];struct POSITION *ownerWidget;};
 struct S {char pad[8];struct OWNER *owner;char padc[6];unsigned short mode;int count;char pad18[4];int tag;};
 struct T {float a,b,c,d,x,y;};
 struct M4 {float a[16];};
@@ -3829,8 +3838,8 @@ void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     func_002333B4(&m,0,0x40);
     m.a[0]=t->a*0.8f;m.a[1]=t->b*0.45454547f;
     m.a[4]=t->c*0.8f;m.a[5]=t->d*0.45454547f;
-    m.a[8]=t->x*0.8f+p->owner->camera->x+786432.0f;
-    m.a[9]=t->y*0.45454547f+p->owner->camera->y+786432.0f;
+    m.a[8]=t->x*0.8f+p->owner->ownerWidget->screenX+786432.0f;
+    m.a[9]=t->y*0.45454547f+p->owner->ownerWidget->screenY+786432.0f;
     m.a[15]=m.a[10]=1.0f;
     if(p->mode>=2)data->mode=1;else data->mode=0;
     data->limit=0x7FFF;
@@ -3862,8 +3871,8 @@ namespace M_func_002177E0 { extern "C" {
 // Queue transformed sprite parameters and a direct GIF payload.
 typedef unsigned int uint;
 typedef unsigned long ulong;
-struct CAMERA {char pad[0x9C];float x,y;};
-struct OWNER {char pad[0xA4];int priority;char pada8[0x20];struct CAMERA *camera;};
+struct POSITION {char pad[0x9C];float screenX,screenY;};   /* PostWidgetLoad's ownerWidget */
+struct OWNER {char pad[0xA4];int priority;char pada8[0x20];struct POSITION *ownerWidget;};
 struct GEO {char pad[0x18];int count;void *data;};
 struct S {int pad,type;struct OWNER *owner;char padc[8];union {struct GEO *geo;int raw;};int rawtag;union {int tag;int count;};void *buffer;};
 struct T {float a,b,c,d,x,y;};
@@ -3894,22 +3903,22 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     unsigned char *tag;
     struct E *e;
     switch(p->type){
-    case 6:if(!p->geo)return;break;
-    case 7:if(!p->count)return;break;
+    case SPRITE_KIND_EFFECT:if(!p->geo)return;break;
+    case SPRITE_KIND_PICTURE:if(!p->count)return;break;
     default:return;
     }
     func_002333B4(&m,0,0x40);
     m.a[0]=t->a*0.8f;m.a[1]=t->b*0.45454547f;
     m.a[4]=t->c*0.8f;m.a[5]=t->d*0.45454547f;
-    m.a[8]=t->x*0.8f+p->owner->camera->x+786432.0f;
-    m.a[9]=t->y*0.45454547f+p->owner->camera->y+786432.0f;
+    m.a[8]=t->x*0.8f+p->owner->ownerWidget->screenX+786432.0f;
+    m.a[9]=t->y*0.45454547f+p->owner->ownerWidget->screenY+786432.0f;
     m.a[15]=m.a[10]=1.0f;
     data->mode=0;data->limit=0x7FFF;
     tag=D_002DEA28.cur;
     *(ulong *)tag=0x10000000UL;D_002DEA28.cur+=16;
     Unpack(&D_002DEA28,(const int *)&m,16,0x6C04C000);
     Unpack(&D_002DEA28,(const int *)data,12,0x6C03C004);
-    if(p->type==6)Direct(&D_002DEA28,p->geo->count,p->geo->data);
+    if(p->type==SPRITE_KIND_EFFECT)Direct(&D_002DEA28,p->geo->count,p->geo->data);
     else Direct(&D_002DEA28,p->count,p->buffer);
     Align(&D_002DEA28);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
@@ -3917,7 +3926,7 @@ void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     e=PrplAllocRpl();
     e->kind=0x15;e->priority=data->priority+(p->owner->priority<<18);
     e->address=(uint)tag&0x0FFFFFFF;
-    if(p->type==6)e->tag=p->tag;else e->tag=p->rawtag;
+    if(p->type==SPRITE_KIND_EFFECT)e->tag=p->tag;else e->tag=p->rawtag;
 }
 } } // namespace M_func_002177E0
 
