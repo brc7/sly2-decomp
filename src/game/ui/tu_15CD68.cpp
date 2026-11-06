@@ -86,7 +86,7 @@ void WipeToWorldWarp(SWV *psw, int a, int b, int c, int d, int e);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *psnd, int n);
 void SetExitExits(void *pexit, int n);
-void func_002283D0(void *pexit);
+void TakeExit(void *pexit);
 int PrecWorldEntry(int n);
 int FPowerupAcquired(void *p);
 void func_001ABD98(void *p, int n);
@@ -330,7 +330,7 @@ extern "C" void func_0015CF30(EPMENU *p)
                 void *pexit = PloFindSwObject((struct SW *)&D_003DD490, 5, D_002BE2A8[p->iep], 0);
                 if (pexit) {
                     SetExitExits(pexit, 3);
-                    func_002283D0(pexit);
+                    TakeExit(pexit);
                 } else
                     f = 0;
             }

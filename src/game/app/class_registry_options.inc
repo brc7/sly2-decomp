@@ -682,7 +682,7 @@ void func_00221948() __asm__("func_00221948");
 void func_00224610() __asm__("func_00224610");
 void func_00224638() __asm__("func_00224638");
 void func_00226370() __asm__("func_00226370");
-void func_00228518() __asm__("func_00228518");
+void GetExitTargetLevelIndex() __asm__("GetExitTargetLevelIndex");
 }
 
 /* The pointer types of the emitter.h function templates whose instances the records store (EOPID_PMFT): g++ 2.95
@@ -1519,7 +1519,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0x4001, EOPID_NONE, EOPID_FN(RefThunkExitTRIGGER), EOPID_NONE, EOPID_NONE}, /* [786] opt 235, EXIT */
     {0x1033, 0x22, EOPID_INT(0x13C), EOPID_PMF(SetExitExits), EOPID_NONE, EOPID_NONE}, /* [787] opt 770, EXIT */
     {0x12, 0x400, EOPID_FN(RefThunk_AddExitRsmg), EOPID_NONE, EOPID_INT(2), EOPID_NONE}, /* [788] opt 527, EXIT */
-    {0xF, 4, EOPID_PMF(func_00228518), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [789] opt 771, EXIT */
+    {0xF, 4, EOPID_PMF(GetExitTargetLevelIndex), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [789] opt 771, EXIT */
     {0x12, 0x400, EOPID_FN(func_0010B8F8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [790] opt 766, WARP */
     {0x12, 0x400, EOPID_FN(func_0010B970), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [791] opt 772, WARP */
     {0x12, 0x400, EOPID_FN(func_0010B9E8), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [792] opt 20, WARP */

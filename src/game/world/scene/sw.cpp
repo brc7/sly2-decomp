@@ -802,7 +802,7 @@ void CStreamBis_Close(STREAM *);
 void PostSwLoad(SW *);
 void func_001618F8(SW *,float);
 void ClearCheatItems(void);
-CONTEXT *PwarpFromOid(SW *,int,int);
+CONTEXT *FindWarpByOid(SW *,int,int);
 void TriggerWarp(CONTEXT *);
 ACTOR *PpoHero(SW *);
 ACTOR *PpoCur(SW *);
@@ -816,7 +816,7 @@ void UpdateCmLast__FP2CM(void *);
 void CutCm__FP2CM(void *);
 void BroadcastGameEvent(void *,int,void *);
 void ClearPhase(int);
-void func_0022B420(void *);
+void ResumeWipeAfterLoad(void *);
 void func_001A4E80(void *);
 }
 struct FRAME {FRAME(){}~FRAME(){}};
@@ -886,7 +886,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     PostSwLoad(p);
     if(resume>0.0f)func_001618F8(p,resume);
     if(changed||(p->request.flags&0x40))ClearCheatItems();
-    CONTEXT *context=PwarpFromOid(p,p->request.objectId,p->request.objectKey);
+    CONTEXT *context=FindWarpByOid(p,p->request.objectId,p->request.objectKey);
     if(context){TriggerWarp(context);p->objectId=p->request.objectId;p->objectKey=p->request.objectKey;}
     if(!PpoHero(p)&&!PpoCur(p)&&p->actorCount>0){
         ACTOR *selected=0;
@@ -918,7 +918,7 @@ extern "C" void ExecuteSwTransition(SW *p)
     CutCm__FP2CM(D_002DDF40);
     BroadcastGameEvent(D_002DEB30,5,0);
     ClearPhase(2);
-    func_0022B420(D_00443740);
+    ResumeWipeAfterLoad(D_00443740);
     if(!hasFile)func_001A4E80(D_002E1E88);
     func_00184950(reader,2);
     STACKSCOPE_ctor_1AE4A0(scope,2);

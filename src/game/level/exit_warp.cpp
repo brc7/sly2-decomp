@@ -1,6 +1,6 @@
 // exit_warp.cpp -- EXIT, a volume that sends the player to another world (it plays the queued movies, then wipes
 // to the target world), and WARP, a point the player is placed at on arrival (it moves the paired objects to their
-// targets, applies its rsmgs and task states, and resets every exit). TU 0x227FE8..0x228B48 (22 functions, address
+// targets, applies its rsmgs and task states, and resets every exit). Entry points: UpdateExit (per frame), TakeExit, TriggerWarp, FindWarpByOid. TU 0x227FE8..0x228B48 (22 functions, address
 // order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_exit_warp
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00228B28
@@ -113,18 +113,18 @@ qwordV ConvertAloPos(int a, EXITV *pexit, qwordV pos);
 int PbspPointInBspQuick(void *pbsp, int n, qwordV pos);
 void TriggerRsmg(SW *psw, int crsmg, RSMG *arsmg, WARPV *pwarp, int fOn);
 
-WARPV *PwarpFromOid(SW *psw, OID oid, OID oidContext);
-EXITV *PexitDefault(SW *psw);
+WARPV *FindWarpByOid(SW *psw, OID oid, OID oidContext);
+EXITV *FindDefaultExit(SW *psw);
 void LoadWarpBlobFromBrx(CBinaryInputStream *pbis, void **ppv);
 void SetExitExits(EXITV *pexit, int exits);
-void func_002283D0(EXITV *pexit);
-void func_00228988(WARPV *pwarp, OID oid);
+void TakeExit(EXITV *pexit);
+void AddWarpOidAlias(WARPV *pwarp, OID oid);
 }
 
 /** @sly2-annot addr=0x227FE8
  * Purpose: finds a WARP by oid (0x15E938) else searches class 0x2A (WARP) by id or alias list +0x16C
  *   (0x15E9C8(sw, a, 0x2A, ...)); Sly 1 WARP oidAlias lookup
- * Info: proposed name PwarpFromOid (T1); TU exit_warp
+ * Info: proposed name FindWarpByOid (T1); TU exit_warp
  * Notes: v3 purpose fix (class review): falls back over cid 0x2A WARP, not 0x1A
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources:
  *   r8_21BB88+class_review(master_names_v2_1)
@@ -132,7 +132,8 @@ void func_00228988(WARPV *pwarp, OID oid);
  *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
-extern "C" WARPV *PwarpFromOid(SW *psw, OID oid, OID oidContext)
+// Finds the WARP with the given oid, or else the WARP that lists oid among its aliases. (Sly 1: PwarpFromOid.)
+extern "C" WARPV *FindWarpByOid(SW *psw, OID oid, OID oidContext)
 {
     WARPV *apwarp[32];
     WARPV *pwarpRet;
@@ -167,15 +168,16 @@ extern "C" WARPV *PwarpFromOid(SW *psw, OID oid, OID oidContext)
 
 /** @sly2-annot addr=0x2280D0
  * Purpose: Return the last EXIT (cid 0x1A) whose +0x130 (Sly 1 EXIT.fDefault) is set
- * Info: proposed name PexitDefault (T1); TU exit_warp
+ * Info: proposed name FindDefaultExit (T1); TU exit_warp
  * Notes: names_v2 C proposed BindStepguard__FP9STEPGUARD (0.638) | v3: superseded PwarpDefault | CONFIRMED
- *   (fields): Sly 1 PexitDefault; v2 PwarpDefault
+ *   (fields): Sly 1 FindDefaultExit; v2 PwarpDefault
  * Confidence: mid (draft) [T1 0.75] - evidence: Sly 1 / Lilly reference; static naming pass; sources:
  *   r8_21BB88+class_review(master_names_v2_1)
  * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
-extern "C" EXITV *PexitDefault(SW *psw)
+// Returns the last EXIT whose "default" flag is set, or null. (Sly 1: PexitDefault.)
+extern "C" EXITV *FindDefaultExit(SW *psw)
 {
     EXITV *apexit[32];
     EXITV *pexitRet = 0;
@@ -197,6 +199,7 @@ extern "C" EXITV *PexitDefault(SW *psw)
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Loads the in-level teleport destination (cid 41) from the BRX: the XFM part, then skips a string.
 void CID41::LoadFromBrx(CBinaryInputStream *pbis)
 {
     WARPV *pwarp = (WARPV *)this;
@@ -217,7 +220,9 @@ void CID41::LoadFromBrx(CBinaryInputStream *pbis)
  * See: docs/reference/class-tree.md#class-tree-all-199-cids,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
-extern "C" void func_00228170(WARPV *pwarp)
+// Moves the hero onto this warp point (the hero's vtable slot 38) and sends the warp's Splice event 5. A Splice-callable
+// method; cutscene relays call it too.
+extern "C" void PutHeroAtWarp(WARPV *pwarp)
 {
     LO *ploHero = PpoHero(&D_003DD490);
     if (ploHero)
@@ -238,6 +243,7 @@ extern "C" void func_00228170(WARPV *pwarp)
  * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// EXIT initialization (vtable slot 7): XFM init, default target warp oid 0x189 and wipe oid -1, not busy.
 void EXIT::Init()
 {
     EXITV *pexit = (EXITV *)this;
@@ -262,6 +268,7 @@ void EXIT::Init()
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Reads a 0x40-byte warp blob header from the BRX and allocates a copy when it is not empty (the exit's target world).
 extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *pbis, void **ppv)
 {
     WARPBLOB blob;
@@ -294,6 +301,7 @@ extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *pbis, void **ppv)
  *   docs/engine/world-sw.md#10-key-functions,
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
  * @end-sly2-annot */
+// Loads an EXIT from the BRX: the VOL part, its target-world blob and the list of movies played before the wipe.
 extern "C" void LoadExitFromBrx(EXITV *pexit, CBinaryInputStream *pbis)
 {
     int i = 0;
@@ -321,6 +329,8 @@ extern "C" void LoadExitFromBrx(EXITV *pexit, CBinaryInputStream *pbis)
  * See: docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Changes the exit state (0 player inside, 1 left, 2 off, 3 armed, 4 warping) and stamps the time; entering state 4
+// takes control from the player (hands-off) and records the exit as the one being taken. (Sly 1: SetExitExits.)
 extern "C" void SetExitExits(EXITV *pexit, int exits)
 {
     if (exits != pexit->exits)
@@ -344,7 +354,9 @@ extern "C" void SetExitExits(EXITV *pexit, int exits)
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
-extern "C" void func_002283D0(EXITV *pexit)
+// Takes an armed exit: a redirecting exit hands over to the default exit; otherwise applies the exit's task states,
+// revokes two camera policies, switches to the warping state, schedules the wipe and sends Splice event 5.
+extern "C" void TakeExit(EXITV *pexit)
 {
     if (pexit->exits != 3)
         return;
@@ -352,9 +364,9 @@ extern "C" void func_002283D0(EXITV *pexit)
     {
         EXITV *pexitDefault;
         SetExitExits(pexit, 0);
-        pexitDefault = PexitDefault(&D_003DD490);
+        pexitDefault = FindDefaultExit(&D_003DD490);
         if (pexitDefault)
-            func_002283D0(pexitDefault);
+            TakeExit(pexitDefault);
         return;
     }
     ApplyTaskStates(D_002DEB30, pexit->ctaskstate, pexit->ataskstate, pexit);
@@ -367,14 +379,16 @@ extern "C" void func_002283D0(EXITV *pexit)
 
 /** @sly2-annot addr=0x2284E0
  * Purpose: Add an RSMG entry to the EXIT 4-slot list (+0x164 count/+0x168 array) via 0x161F10
- * Info: proposed name AddExitRsmg (T1); TU exit_warp
+ * Info: proposed name AddExitTaskState (T1); TU exit_warp
  * Notes: names_v2 C proposed SetStepguardSgsExternal__FP9STEPGUARD3SGSP4ASEG (0.200) | v3: superseded
  *   AddWarpRsmgSm | CONFIRMED (optid 527 on EXIT; fields inside the 0x190-byte EXIT); v2 AddWarpRsmgSm
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources:
  *   r8_21BB88+class_review(master_names_v2_1)
  * See: docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
-extern "C" void AddExitRsmg(EXITV *pexit, int d, int e)
+// Adds a task-state entry to the exit's four-entry list (applied when the exit is taken). Splice-callable; the name
+// was AddExitRsmg, but the list it fills is the task-state list.
+extern "C" void AddExitTaskState(EXITV *pexit, int d, int e)
 {
     func_00161F10(D_002DEB30, pexit->ataskstate, 4, &pexit->ctaskstate, d, e);
 }
@@ -386,7 +400,8 @@ extern "C" void AddExitRsmg(EXITV *pexit, int d, int e)
  *   field 0x144 | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" void func_00228518(EXITV *pexit)
+// Returns the index of the exit's target level in the level table (IlevelFromRec on its world blob). (inferred)
+extern "C" void GetExitTargetLevelIndex(EXITV *pexit)
 {
     func_002109D0(pexit->pvWorld);
 }
@@ -401,6 +416,9 @@ extern "C" void func_00228518(EXITV *pexit)
  * See: docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Per-frame EXIT update: after the LO update, tests whether the hero is inside the exit volume and steps the state
+// machine (re-arms after the hero has been out for dtRearm, takes the exit when entered while armed); in the warping
+// state, queues the movies and wipes to the target world when the wipe time arrives.
 extern "C" void UpdateExit(EXITV *pexit, float dt)
 {
     UpdateLo(pexit, dt);
@@ -431,7 +449,7 @@ extern "C" void UpdateExit(EXITV *pexit, float dt)
         {
         case 3:
             if (fInside)
-                func_002283D0(pexit);
+                TakeExit(pexit);
             break;
         case 1:
             if (fInside)
@@ -461,6 +479,7 @@ extern "C" void UpdateExit(EXITV *pexit, float dt)
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Loads a WARP from the BRX: the XFM part, then skips a string.
 void WARP::LoadFromBrx(CBinaryInputStream *pbis)
 {
     WARPV *pwarp = (WARPV *)this;
@@ -480,6 +499,8 @@ void WARP::LoadFromBrx(CBinaryInputStream *pbis)
  *   docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Triggers a warp on arrival: moves each paired object to its target, triggers the warp's rsmgs, applies its task
+// states, re-arms every exit that is not off, cuts the camera and sends Splice event 5. (Sly 1: TriggerWarp.)
 extern "C" void TriggerWarp(WARPV *pwarp)
 {
     EXITV *apexit[32];
@@ -519,6 +540,7 @@ extern "C" void TriggerWarp(WARPV *pwarp)
  * See: docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Adds a rsmg (a message sent when the warp triggers) to the warp's four-entry list when the trigger kind is set.
 extern "C" void SetWarpRsmg(WARPV *pwarp, int d, OID e, OID f, OID g)
 {
     if (d)
@@ -531,7 +553,8 @@ extern "C" void SetWarpRsmg(WARPV *pwarp, int d, OID e, OID f, OID g)
  * Notes: descriptive only: Add to 4-slot list at 0x124 | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" void func_00228920(WARPV *pwarp, int d, int e)
+// Adds a task-state entry to the warp's four-entry list (applied when the warp triggers).
+extern "C" void AddWarpTaskState(WARPV *pwarp, int d, int e)
 {
     func_00161F10(D_002DEB30, pwarp->ataskstate, 4, &pwarp->ctaskstate, d, e);
 }
@@ -546,6 +569,7 @@ extern "C" void func_00228920(WARPV *pwarp, int d, int e)
  * See: docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
+// Adds an (object, target) pair to the warp: on trigger the object is moved to the target. At most four pairs.
 extern "C" void AddWarpOidPair(WARPV *pwarp, OID oidObject, OID oidTarget)
 {
     unsigned int c = pwarp->cpair;
@@ -569,7 +593,8 @@ extern "C" void AddWarpOidPair(WARPV *pwarp, OID oidObject, OID oidTarget)
  * See: docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
-extern "C" void func_00228988(WARPV *pwarp, OID oid)
+// Adds an alias oid the warp also answers to in FindWarpByOid. At most four.
+extern "C" void AddWarpOidAlias(WARPV *pwarp, OID oid)
 {
     if ((unsigned int)pwarp->coidAlias < 4)
         pwarp->aoidAlias[pwarp->coidAlias++] = oid;
@@ -581,9 +606,10 @@ extern "C" void func_00228988(WARPV *pwarp, OID oid)
  * Notes: descriptive only: Add oid 0x189 | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" void func_002289B0(WARPV *pwarp)
+// Makes the warp answer to oid 0x189, the default start warp (the oid EXITs target by default). (inferred)
+extern "C" void AddWarpAliasStart(WARPV *pwarp)
 {
-    func_00228988(pwarp, (OID)0x189);
+    AddWarpOidAlias(pwarp, (OID)0x189);
 }
 
 /** @sly2-annot addr=0x2289D0
@@ -592,7 +618,8 @@ extern "C" void func_002289B0(WARPV *pwarp)
  * Notes: descriptive only: Add oid 0x18A | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" void func_002289D0(WARPV *pwarp)
+// Makes the warp answer to oid 0x18A, the second well-known warp oid (inferred: the "end" warp).
+extern "C" void AddWarpAliasEnd(WARPV *pwarp)
 {
-    func_00228988(pwarp, (OID)0x18A);
+    AddWarpOidAlias(pwarp, (OID)0x18A);
 }

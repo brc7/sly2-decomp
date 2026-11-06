@@ -1056,7 +1056,7 @@ void ReleaseJsgSma(JSGV *pjsg) __asm__("ClearJsgSma");
 
 extern "C" void func_00220508(MOVEREC *pmr, LO *plo);
 
-void PutSwHeroAtWarp(WARPV *pwarp) __asm__("func_00228170");
+void PutSwHeroAtWarp(WARPV *pwarp) __asm__("PutHeroAtWarp");
 
 MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
 

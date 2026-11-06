@@ -66,6 +66,8 @@ static __inline__ unsigned int GrfQ(ASEGQ *pq) { unsigned int x = pq->x40; retur
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#5-per-frame-update-and-render
  * @end-sly2-annot */
+// The per-frame world update (SW vtable slot 7): runs callbacks, updates the objects (UpdateSwObjects), lights, sound
+// and the camera. Called once per game frame by the main loop.
 void SW::Update()
 {
     SWVIEW *p = (SWVIEW *)this;
@@ -119,6 +121,7 @@ void SW::Update()
  * See: docs/engine/world-sw.md#10-key-functions,
  *   docs/reference/functions/world-sw.md#update-0x226550-0x226ab8
  * @end-sly2-annot */
+// Walks the world's list of objects that want updates and calls each one's update (and its animation segments).
 extern "C" void UpdateSwObjects(SWVIEW *p)
 {
     DLI dli;

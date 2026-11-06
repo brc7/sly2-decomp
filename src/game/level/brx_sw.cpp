@@ -1,4 +1,5 @@
-// brx_sw.cpp -- loading a level body (SW) from the BRX world file. TU 0x13DA18..0x13E368 (5 functions, address order).
+// brx_sw.cpp -- loading a level body (SW) from the BRX world file. Entry point: LoadSwFromBrx (called by the level
+// load); it reads the localized strings (LoadSwLangstrsFromBrx) and the cell BSP (LoadSwCellsFromBrx). TU 0x13DA18..0x13E368 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_brx_sw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013E348
 #include "sly2/slotheap.h"
@@ -110,6 +111,9 @@ static inline void *AllocS(AREQ *preq, int cb, int cbAlign) { preq->cb = cb; pre
  * See: docs/engine/core-library.md#6-source-files, docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/engine/overview.md#3-world--level-lifecycle
  * @end-sly2-annot */
+// Loads a level body from the BRX world file: the proxy-source table, sound banks, save variables, the level table,
+// the localized strings, the cell BSP and the world/camera options, then for each proxy source its references,
+// shader/texture blob and object list (cloned count-1 times). The top-level level loader, called by the level load.
 extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
 {
     union { AREQ req; RGBAPOD rgba; struct { int pad[2]; int c; LO **apo; } lol; } u;
@@ -239,6 +243,8 @@ extern char D_003E1C20[];
  * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
  * @end-sly2-annot */
+// Reads the localized string table (U8 language count and ids, then per string an S16 id and one string per language)
+// and keeps only the current language's strings (g_nLang) in the world's string array.
 extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbs)
 {
     SWLANG *p = (SWLANG *)psw;
@@ -283,6 +289,8 @@ struct SWCELLS { char pad[0x4558]; int c; CELL *ae; int n; void *p4564; };
  * See: docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file,
  *   docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#brx_sw-0x13da18-0x13e368
  * @end-sly2-annot */
+// Reads the cell BSP: per node a plane (VECTOR4) and front/back children (a negative child starts a new leaf).
+// Allocates the world's cell and leaf arrays (0x20 bytes each).
 extern "C" void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbs)
 {
     SWCELLS *p = (SWCELLS *)psw;

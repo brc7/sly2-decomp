@@ -1,4 +1,5 @@
 // wipe.cpp -- the level-transition wipe: plays the wipe widget, then hands the transition to the world.
+// Entry points: WipeToWorldWarp (request a transition), UpdateWipe (per frame), ResumeWipeAfterLoad (after a load).
 // TU 0x22B050..0x22B720 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_wipe
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0022B700
@@ -44,7 +45,7 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
 void SetSwTransition(SW *psw, TRANS *ptrans);
 int FWidgetAnimPlaying(WIDGETV *pwidget, int a);
 void SetWipeWipes(WIPE *pwipe, int k);
-void func_0022B220(WIPE *pwipe, TRANS *ptrans, int oid, int k);
+void ActivateWipe(WIPE *pwipe, TRANS *ptrans, int oid, int k);
 }
 LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
 
@@ -67,6 +68,7 @@ static inline int FSameFilerec(FILEREC *a, FILEREC *b)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
  * See: docs/engine/world-sw.md#10-key-functions, docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
  * @end-sly2-annot */
+// Initializes the wipe (the constructor of the global D_00443740): clears it and sets the idle state.
 extern "C" WIPE *InitWipe(WIPE *pwipe)
 {
     pwipe->pwidget = 0;
@@ -82,6 +84,8 @@ extern "C" WIPE *InitWipe(WIPE *pwipe)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
  * @end-sly2-annot */
+// Changes the wipe state (0 idle, 1 wiping out, 2 wiping in, 3 transition pending), clearing the stored transition
+// and restoring the checkpoint state as the state requires.
 extern "C" void SetWipeWipes(WIPE *pwipe, int k)
 {
     WIDGETV *pwidget;
@@ -115,6 +119,8 @@ extern "C" void SetWipeWipes(WIPE *pwipe, int k)
  * Confidence: mid (draft) [T1 0.55] - evidence: runtime (save-state RAM); sources: r8_21BB88+runtime
  * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
  * @end-sly2-annot */
+// Advances the wipe state machine each frame: wiping out becomes "transition pending" and wiping in becomes idle once
+// the wipe widget's animation has finished.
 extern "C" void UpdateWipe(WIPE *pwipe)
 {
     int k = pwipe->k;
@@ -132,7 +138,10 @@ extern "C" void UpdateWipe(WIPE *pwipe)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/world-sw.md#wipe-0x22b040-0x22b720
  * @end-sly2-annot */
-extern "C" void func_0022B220(WIPE *pwipe, TRANS *ptrans, int oid, int k)
+// Starts a wiped level transition: marks whether the destination is the current level, finds the wipe widget by oid
+// and stores the transition so it is handed to SetSwTransition after the wipe-out; without a widget the transition
+// starts at once. Ignored while a wipe-out or a pending transition is in progress. (Sly 1: ActivateWipe.)
+extern "C" void ActivateWipe(WIPE *pwipe, TRANS *ptrans, int oid, int k)
 {
     switch (pwipe->k) {
     case 0:
@@ -167,7 +176,9 @@ extern "C" void func_0022B220(WIPE *pwipe, TRANS *ptrans, int oid, int k)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/engine/world-sw.md#2-loading-a-level
  * @end-sly2-annot */
-extern "C" void func_0022B420(WIPE *pwipe)
+// After a level load, finds the wipe widget again and continues with the wipe-in when a transition was pending;
+// otherwise returns the wipe to idle. Called at the end of the world load (sw.cpp). (inferred)
+extern "C" void ResumeWipeAfterLoad(WIPE *pwipe)
 {
     pwipe->pwidget = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)pwipe->oidWidget, 0);
     if (!pwipe->pwidget || pwipe->k != 3) {
@@ -191,6 +202,9 @@ extern "C" void func_0022B420(WIPE *pwipe)
  * See: docs/engine/overview.md#3-world--level-lifecycle, docs/engine/world-sw.md#2-loading-a-level,
  *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue
  * @end-sly2-annot */
+// Requests a level transition: builds a TRANS for the target level (the current one when filerec is null) with the
+// warp arguments, marks "same level", then starts a wipe (when a wipe widget oid is given) or the transition directly.
+// The common entry point for warps, exits, cheats, job failure and the boot queue.
 extern "C" void WipeToWorldWarp(SW *psw, FILEREC *pfilerec, int a, int b, int grf, int oid)
 {
     TRANS trans;
@@ -202,7 +216,7 @@ extern "C" void WipeToWorldWarp(SW *psw, FILEREC *pfilerec, int a, int b, int gr
     trans.grf = grf;
     if (FSameFilerec(pfilerecTrans, pfilerecCur)) trans.grf |= 2;
     if (oid != -1)
-        func_0022B220(&D_00443740, &trans, oid, 1);
+        ActivateWipe(&D_00443740, &trans, oid, 1);
     else
         SetSwTransition(psw, &trans);
 }

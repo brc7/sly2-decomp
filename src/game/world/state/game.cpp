@@ -1503,7 +1503,7 @@ extern char D_002E1E88[];
 int func_001A4E70(void *p);
 void func_001A4E80(void *p);
 void RequestTaskState(void *p, int n, struct S *ps);
-void func_002283D0(struct LO *plo);
+void TakeExit(struct LO *plo);
 /** @sly2-annot addr=0x162FD0
  * Purpose: After a job: step the game sequence queue if non-empty; else activate the next task (+0xC0) or
  *   trigger the warp LO (+0xCC, 0x2283D0)
@@ -1525,7 +1525,7 @@ void func_00162FD0(struct S *p)
             *(int *)v |= 0x100;
         else
             plo->fl = v | 0x100;
-        func_002283D0(p->pcc);
+        TakeExit(p->pcc);
     }
 }
 } } // namespace M_func_00162FD0
@@ -2180,7 +2180,7 @@ extern "C" void BroadcastGameEvent(void *pv, int n, O *p);
 extern "C" void ApplyStateLoVisibility(O *p, int n, int c, int a);
 extern "C" void TriggerStateRsmgs(O *p, int n, int c, int a, int b);
 extern "C" void PostNotice(void *pv, int n, float g);
-extern "C" void func_002283D0(LO *plo);
+extern "C" void TakeExit(LO *plo);
 /** @sly2-annot addr=0x163D18
  * Purpose: Makes p the current task (and pending task if it has a warp), activates its job, if live: ++count,
  *   event 0x23, state-4 visuals, starts its music (+0x5C, 0x1DA4B8), SendMessage 0x13, triggers LO +0xC4
@@ -2212,7 +2212,7 @@ extern "C" void BeginTask(O *p)
                 *(int *)v |= 0x100;
             else
                 plo->fl = v | 0x100;
-            func_002283D0(p->fc4);
+            TakeExit(p->fc4);
         }
     }
 }
