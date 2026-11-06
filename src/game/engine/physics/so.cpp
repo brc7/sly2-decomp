@@ -1977,8 +1977,8 @@ struct VTE; struct VT; struct O; struct P;
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short p; void *pfn; };
 struct VT { struct VTE a[34]; };
-struct O { char pad[0x94]; int n94; short k; char pad2[0xA0 - 0x9A]; int nA0; char pad3[0xB0 - 0xA4]; union { qword q; int a[4]; } v; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0x58 - 0x10]; struct O *po; };
+struct O { char pad[0x94]; int kind; short role; char pad2[0xA0 - 0x9A]; int parent; char pad3[0xB0 - 0xA4]; union { qword q; int a[4]; } velocity; };
+struct P { char pad[0xC]; struct VT *pvt; char pad2[0x58 - 0x10]; struct O *positionXf; };
 int func_00230310(int);
 void func_002303A0(struct P *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
@@ -1996,14 +1996,14 @@ void SetSoBit35Hierarchy(struct P *, int);
 // Slot 35: sets the position XF's velocity so the world velocity becomes v, then refreshes and marks the physics.
 void SetSoVelocity(struct P *so, qword q)
 {
-    struct O *po = so->po;
+    struct O *po = so->positionXf;
     qword cur, d;
-    if (!po || po->n94 != 1) return;
-    if (!func_00230310(po->k)) func_002303A0(so, po, 1);
-    { float *pv = (float *)&po->v; pv[2] = 0.0f; pv[1] = 0.0f; pv[0] = 0.0f; }
+    if (!po || po->kind != 1) return;
+    if (!func_00230310(po->role)) func_002303A0(so, po, 1);
+    { float *pv = (float *)&po->velocity; pv[2] = 0.0f; pv[1] = 0.0f; pv[0] = 0.0f; }
     cur = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(cur));
-    po->v.q = ConvertXfVec(0, po->nA0, d);
+    po->velocity.q = ConvertXfVec(0, po->parent, d);
     SlotUnsettle(so, po);
     InvalidateSoAaox(so);
     WakeSo(so);
@@ -2172,9 +2172,9 @@ extern "C" void GetSoRotXfVelocityLocal(SO *so)
 namespace M_func_001F4898 { extern "C" {
 struct O; struct P; struct Q;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x98]; short k; char pad2[0xA0 - 0x9A]; int nA0; char pad3[0xB0 - 0xA4]; qword q; };
-struct P { char pad[0x58]; struct O *po; };
-struct Q { char pad[0x60]; int n60; };
+struct O { char pad[0x98]; short role; char pad2[0xA0 - 0x9A]; int parent; char pad3[0xB0 - 0xA4]; qword velocity; };
+struct P { char pad[0x58]; struct O *positionXf; };
+struct Q { char pad[0x60]; int rootTransform; };
 int func_00230310(int);
 void func_002303A0(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
@@ -2192,10 +2192,10 @@ void SetSoBit35Hierarchy(void *, int);
 void SetSoPosXfVelocityLocal(struct P *so, qword v)
 {
     struct O *po;
-    if (!func_00230310(so->po->k)) func_002303A0(so, so->po, 1);
-    po = so->po;
-    po->q = ConvertXfVec(((struct Q *)so)->n60, po->nA0, v);
-    SlotUnsettle(so, so->po);
+    if (!func_00230310(so->positionXf->role)) func_002303A0(so, so->positionXf, 1);
+    po = so->positionXf;
+    po->velocity = ConvertXfVec(((struct Q *)so)->rootTransform, po->parent, v);
+    SlotUnsettle(so, so->positionXf);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -2206,9 +2206,9 @@ void SetSoPosXfVelocityLocal(struct P *so, qword v)
 namespace M_func_001F4930 { extern "C" {
 struct O; struct P; struct Q;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x98]; short k; char pad2[0xA0 - 0x9A]; int nA0; char pad3[0xB0 - 0xA4]; qword q; };
-struct P { char pad[0x5C]; struct O *po; };
-struct Q { char pad[0x60]; int n60; };
+struct O { char pad[0x98]; short role; char pad2[0xA0 - 0x9A]; int parent; char pad3[0xB0 - 0xA4]; qword velocity; };
+struct P { char pad[0x5C]; struct O *rotationXf; };
+struct Q { char pad[0x60]; int rootTransform; };
 int func_00230310(int);
 void func_002303A0(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
@@ -2226,10 +2226,10 @@ void SetSoBit35Hierarchy(void *, int);
 void SetSoRotXfVelocityLocal(struct P *so, qword v)
 {
     struct O *po;
-    if (!func_00230310(so->po->k)) func_002303A0(so, so->po, 1);
-    po = so->po;
-    po->q = ConvertXfVec(((struct Q *)so)->n60, po->nA0, v);
-    SlotUnsettle(so, so->po);
+    if (!func_00230310(so->rotationXf->role)) func_002303A0(so, so->rotationXf, 1);
+    po = so->rotationXf;
+    po->velocity = ConvertXfVec(((struct Q *)so)->rootTransform, po->parent, v);
+    SlotUnsettle(so, so->rotationXf);
     InvalidateSoAaox(so);
     WakeSo(so);
     SetSoBit35Hierarchy(so, 0);
@@ -2283,7 +2283,7 @@ public:
 class X : public B {
 public:
     char pad[0xE8 - 0x10];
-    void *pE8;
+    void *physics;
 };
 extern "C" void func_001A6B88(X *, X *);
 /** @sly2-annot addr=0x1F49C8
@@ -2296,7 +2296,7 @@ extern "C" void func_001A6B88(X *, X *);
 extern "C" void MatchSoXf(X *so, X *q)
 {
     func_001A6B88(so, q);
-    if (so->pE8) {
+    if (so->physics) {
         so->Set35(q->Get33());
         so->Set36(q->Get34());
     }
@@ -2462,8 +2462,8 @@ struct E *FindSoXf(struct S *so, int a, int b)
 // 0x1F4CA0 CloneSoXfRef
 namespace M_func_001F4CA0 { extern "C" {
 struct T; struct S;
-struct T { char pad[0x80]; int a80; int a84; void *p88; void *p8C; char pad2[0x100 - 0x90]; };
-struct S { char pad[0x10]; struct S *next; char pad2[0x50 - 0x14]; int c; struct T *base; };
+struct T { char pad[0x80]; int unknown80; int unknown84; void *source88; void *source8C; char pad2[0x100 - 0x90]; };
+struct S { char pad[0x10]; struct S *parent; char pad2[0x50 - 0x14]; int numTransforms; struct T *transforms; };
 /** @sly2-annot addr=0x1F4CA0
  * Purpose: SO vt52: re-point an XF* from base SO's XF block to the clone's (also via parent)
  * Info: proposed name CloneXfRef (T1); class SO slot52; TU so
@@ -2479,16 +2479,16 @@ void CloneSoXfRef(struct S *pnew, struct S *pold, struct T **pp)
     int i;
     if (!t) return;
     n = 0;
-    i = t - pold->base;
-    if (i >= 0 && i < pnew->c) {
-        n = pnew->base + i;
+    i = t - pold->transforms;
+    if (i >= 0 && i < pnew->numTransforms) {
+        n = pnew->transforms + i;
     } else {
-        pold = pold->next;
-        i = t - pold->base;
-        if (i >= 0 && i < pold->c) n = pnew->next->base + i;
+        pold = pold->parent;
+        i = t - pold->transforms;
+        if (i >= 0 && i < pold->numTransforms) n = pnew->parent->transforms + i;
     }
-    if (n->p88 == &t->a80) n->p88 = &n->a80;
-    if (n->p8C == &t->a84) n->p88 = &n->a84;
+    if (n->source88 == &t->unknown80) n->source88 = &n->unknown80;
+    if (n->source8C == &t->unknown84) n->source88 = &n->unknown84;   /* sic: the game writes source88 here too */
     *pp = n;
 }
 } } // namespace M_func_001F4CA0
@@ -2559,9 +2559,9 @@ struct VTE; struct VT; struct X; struct N; struct E; struct P;
 struct VTE { short d; short p; void (*pfn)(void *, void *); };
 struct VT { struct VTE a[55]; };
 struct X { char pad[0xC]; struct VT *pvt; };
-struct N { void *pv0; struct N *next; int *pn8; struct X *px; };
-struct E { char pad[0x60]; struct X *p60; struct N *pn; void *p68; };
-struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct E *pe; };
+struct N { void *contacts; struct N *next; int *head; struct X *other; };
+struct E { char pad[0x60]; struct X *rootSo; struct N *contactLists; void *unknownContacts68; };
+struct P { char pad[0xC]; struct VT *pvt; char pad2[0xEC - 0x10]; struct E *tree; };
 struct G;
 extern struct G D_003DD490;
 void InvalidateSoAaox(struct P *);
@@ -2577,19 +2577,19 @@ void FreeSwXpList__FP2SWP2XP(struct G *, void *);
 void FreeSoContacts(struct P *so)
 {
     struct N *pn;
-    if (!so->pe) return;
+    if (!so->tree) return;
     InvalidateSoAaox(so);
-    for (pn = so->pe->pn; pn; pn = pn->next) {
-        struct X *q = so->pe->p60;
-        q->pvt->a[54].pfn((char *)q + q->pvt->a[54].d, pn->px);
-        pn->px->pvt->a[54].pfn((char *)pn->px + pn->px->pvt->a[54].d, so->pe->p60);
-        FreeSwXpList__FP2SWP2XP(&D_003DD490, pn->pv0);
-        *pn->pn8 = 0;
-        pn->pv0 = 0;
+    for (pn = so->tree->contactLists; pn; pn = pn->next) {
+        struct X *q = so->tree->rootSo;
+        q->pvt->a[54].pfn((char *)q + q->pvt->a[54].d, pn->other);
+        pn->other->pvt->a[54].pfn((char *)pn->other + pn->other->pvt->a[54].d, so->tree->rootSo);
+        FreeSwXpList__FP2SWP2XP(&D_003DD490, pn->contacts);
+        *pn->head = 0;
+        pn->contacts = 0;
     }
     so->pvt->a[54].pfn((char *)so + so->pvt->a[54].d, 0);
-    FreeSwXpList__FP2SWP2XP(&D_003DD490, so->pe->p68);
-    so->pe->p68 = 0;
+    FreeSwXpList__FP2SWP2XP(&D_003DD490, so->tree->unknownContacts68);
+    so->tree->unknownContacts68 = 0;
 }
 } } // namespace M_func_001F4E28
 
@@ -2598,9 +2598,9 @@ namespace M_func_001F4F10 { extern "C" {
 struct S8; struct N; struct E; struct P;
 typedef unsigned long ulong;
 struct S8 { long l; } __attribute__((packed));
-struct N { int n0; struct N *next; };
-struct E { char pad[0x64]; struct N *pn; int pad2; int n6C; };
-struct P { char pad[0xEC]; struct E *pe; char pad2[0x148 - 0xF0]; ulong fl; };
+struct N { int contacts; struct N *next; };
+struct E { char pad[0x64]; struct N *contactLists; int pad2; int unknown6C; };
+struct P { char pad[0xEC]; struct E *tree; char pad2[0x148 - 0xF0]; ulong flags; };
 struct G;
 extern struct G D_003DD490;
 extern const struct S8 D_002A8278;
@@ -2616,13 +2616,13 @@ void EnsureSwCallback(struct G *, struct P *, long, int);
 // (HandleSoTouchZaps). (inferred)
 void AdjustSoXps(struct P *so)
 {
-    struct E *pe = so->pe;
+    struct E *pe = so->tree;
     struct N *pn;
-    if (pe->n6C) {
+    if (pe->unknown6C) {
         EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
-    } else if (so->fl & 0x3000000) {
-        for (pn = pe->pn; pn; pn = pn->next) {
-            if (pn->n0) {
+    } else if (so->flags & 0x3000000) {
+        for (pn = pe->contactLists; pn; pn = pn->next) {
+            if (pn->contacts) {
                 EnsureSwCallback(&D_003DD490, so, D_002A8278.l, 0);
                 break;
             }
@@ -3067,8 +3067,8 @@ struct VTE; struct Q; struct O;
 typedef unsigned long ulong;
 struct VTE { short d; short pad; void *(*pfn)(void *); };
 struct O;
-struct Q { char pad[0x60]; struct O *p60; };
-struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong fl; char pad3[0xEC - 0x30]; struct Q *pq; };
+struct Q { char pad[0x60]; struct O *rootSo; };
+struct O { char pad[0xC]; struct VTE *pvt; char pad2[0x28 - 0x10]; ulong flags; char pad3[0xEC - 0x30]; struct Q *tree; };
 struct G;
 extern struct G D_003DD490;
 struct O *FindSoPhysRoot(struct O *);
@@ -3090,21 +3090,21 @@ void RebuildSoPhysHook(struct O *so)
     struct O *ap[64];
     int i;
     int n;
-    if (((so->fl >> 60) & 1) == 0) return;
-    if (FindSoPhysRoot(so) != so->pq->p60) {
+    if (((so->flags >> 60) & 1) == 0) return;
+    if (FindSoPhysRoot(so) != so->tree->rootSo) {
         n = CploFindSwObjectsByClass(&D_003DD490, 1, 0x30, so, 0x40, ap);
         for (i = 0; i < n; i++) {
             {
                 struct O *po = ap[i];
-                if (po->pq) {
+                if (po->tree) {
                     struct O *q = FindSoPhysRoot(po);
-                    if (q != po->pq->p60) {
+                    if (q != po->tree->rootSo) {
                         RemoveSoParts(po);
-                        if (!q->pq) {
-                            q->pq = (__typeof__(q->pq))q->pvt[53].pfn((char *)q + q->pvt[53].d);
+                        if (!q->tree) {
+                            q->tree = (__typeof__(q->tree))q->pvt[53].pfn((char *)q + q->pvt[53].d);
                             RecalcSwOxfFilterForObject(&D_003DD490, q);
                         }
-                        po->pq = q->pq;
+                        po->tree = q->tree;
                         AddSoParts(po);
                     }
                 }
@@ -3202,9 +3202,9 @@ qword GetSoGravity(struct S *p) { if (!p->pt) return D_002A2DD0; return p->pt->v
 namespace M_SetSoDvGravity { extern "C" {
 struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
-struct O { char pad[0x90]; int n90; char pad2[4]; short k; };
-struct E { char pad[0x80]; qword q; };
-struct P { char pad[0x58]; struct O *po; char pad2[0xE8 - 0x5C]; struct E *pe; };
+struct O { char pad[0x90]; int firstAct; char pad2[4]; short role; };
+struct E { char pad[0x80]; qword gravity; };
+struct P { char pad[0x58]; struct O *positionXf; char pad2[0xE8 - 0x5C]; struct E *physics; };
 void func_002303A0(struct P *, struct O *, int);
 void WakeSo(struct P *);
 /** @sly2-annot addr=0x1F5880
@@ -3216,10 +3216,10 @@ void WakeSo(struct P *);
 // Sets the object's gravity vector (making the position XF dynamic if needed) and invalidates its box.
 void SetSoGravity(struct P *so, qword q)
 {
-    if (so->pe) {
-        struct O *po = so->po;
-        if (po->n90 == 0 && po->k != 2) func_002303A0(so, po, 1);
-        so->pe->q = q;
+    if (so->physics) {
+        struct O *po = so->positionXf;
+        if (po->firstAct == 0 && po->role != 2) func_002303A0(so, po, 1);
+        so->physics->gravity = q;
         WakeSo(so);
     }
 }
@@ -3230,9 +3230,9 @@ namespace M_GetSoCpdefi { extern "C" {
 struct V; struct O; struct P; struct Out; 
 typedef int qword __attribute__((mode(TI)));
 struct V { float x, y, z, w; float pad[8]; };
-struct O { char pad[0x40]; char sub[0x30]; qword q70; };
-struct P { char pad[0x60]; struct O *po; };
-struct Out { int n0; int pad[3]; qword q10; qword q20; float g30; float g34; float g38; int n3C; };
+struct O { char pad[0x40]; char rotation[0x30]; qword position; };
+struct P { char pad[0x60]; struct O *rootTransform; };
+struct Out { int flags; int pad[3]; qword position; qword velocity; float heading; float adjustment; float lastMoveTime; int unknown3C; };
 extern struct CLOCK D_002DDED0;
 qword GetXfVelocity(struct O *, int, qword);
 void TiltMatUpright(void *, int, struct V *);
@@ -3250,15 +3250,15 @@ float atan2f(float, float);
 // matrix, adjustment 100, no flags, last-move time now.
 void GetSoCpdefi(struct P *so, struct Out *po)
 {
-    struct O *o = so->po;
+    struct O *o = so->rootTransform;
     struct V v;
     void *ps;
-    qword q = o->q70;
-    po->q10 = q;
-    ps = o->sub;
-    po->q20 = GetXfVelocity(o, 0, q);
+    qword q = o->position;
+    po->position = q;
+    ps = o->rotation;
+    po->velocity = GetXfVelocity(o, 0, q);
     TiltMatUpright(ps, 0, &v);
-    po->g30 = atan2f(-v.y, -v.x); po->g34 = 100.0f; po->n0 = 0; po->g38 = D_002DDED0.t; po->n3C = 0;
+    po->heading = atan2f(-v.y, -v.x); po->adjustment = 100.0f; po->flags = 0; po->lastMoveTime = D_002DDED0.t; po->unknown3C = 0;
 }
 } } // namespace M_GetSoCpdefi
 
@@ -3865,8 +3865,8 @@ extern "C" void SetSoTreeFlag2(SO *so, int f)
 namespace M_func_001F68A8 { extern "C" {
 struct E; struct P;
 typedef unsigned long ulong;
-struct E { char pad[0x10]; ulong lo : 48; ulong b48 : 1; ulong hi : 15; char pad2[0xB0 - 0x18]; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct E { char pad[0x10]; ulong lo : 48; ulong bit48 : 1; ulong hi : 15; char pad2[0xB0 - 0x18]; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 /** @sly2-annot addr=0x1F68A8
  * Purpose: Set bit48 of every SOPART flag word
  * Info: proposed name SetSoPartsFlag48 (T2); TU so
@@ -3877,7 +3877,7 @@ struct P { char pad[0xE0]; int c; struct E *ae; };
 void SetSoPartsBit48(struct P *so, int f)
 {
     int i;
-    for (i = 0; i < so->c; i++) so->ae[i].b48 = f;
+    for (i = 0; i < so->numParts; i++) so->parts[i].bit48 = f;
 }
 } } // namespace M_func_001F68A8
 
@@ -4052,8 +4052,8 @@ void HideSoPartsById(struct P *so, int k)
 // 0x1F6BC8 SetSoPartsZapKindsById
 namespace M_func_001F6BC8 { extern "C" {
 struct E; struct S;
-struct E { int a[3]; int n; int b[2]; int x18; char pad[0x94]; };
-struct S { char pad[0xE0]; int c; struct E *ae; };
+struct E { int a[3]; int oid; int b[2]; int zapKinds; char pad[0x94]; };
+struct S { char pad[0xE0]; int numParts; struct E *parts; };
 /** @sly2-annot addr=0x1F6BC8
  * Purpose: Set SOPART +0x18 (grfzpk) for parts with id n
  * Info: proposed name SetSoPartsField18ById (T2); TU so
@@ -4061,7 +4061,7 @@ struct S { char pad[0xE0]; int c; struct E *ae; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Sets the zap kinds (+0x18) of the parts whose id is n.
-void SetSoPartsZapKindsById(struct S *p, int n, int x) { int i; for (i = 0; i < p->c; i++) { struct E *pe = &p->ae[i]; if (pe->n == n) pe->x18 = x; } }
+void SetSoPartsZapKindsById(struct S *p, int n, int x) { int i; for (i = 0; i < p->numParts; i++) { struct E *pe = &p->parts[i]; if (pe->oid == n) pe->zapKinds = x; } }
 } } // namespace M_func_001F6BC8
 
 // 0x1F6C08 EnsureSoPartMesh
@@ -4257,7 +4257,7 @@ typedef int qword __attribute__((mode(TI)));
 union U {qword q;float f[4];};
 struct M4 {U rows[4];M4(){}M4(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];}M4&operator=(const M4&m){rows[0]=m.rows[0];rows[1]=m.rows[1];rows[2]=m.rows[2];rows[3]=m.rows[3];return *this;}};
 struct LO {char pad40[0x40];M4 matrix;};
-struct GEO {int count;qword *points;int planeCount;void *planes;int x10,x14;};
+struct GEO {int count;qword *points;int planeCount;void *planes;int unknown10,unknown14;};
 struct TREE {int count,flag,unused;void *nodes;};
 struct P {LO *owner;int flags;float radius;int material;char pad10[0xC];int pinnedCount;char pad20[0x48];TREE tree;GEO local,world;};
 struct FRAME {int pad[4];};
@@ -4313,8 +4313,8 @@ struct O; struct E; struct P;
 typedef int qword __attribute__((mode(TI)));
 typedef unsigned long ulong;
 struct O { char pad[0x70]; qword pos; };
-struct E { struct O *po; int pad; float r; int pad2; ulong fl; char pad3[0x74 - 0x18]; void *p74; char pad4[0xB0 - 0x78]; };
-struct P { char pad[0xE0]; int c; struct E *ae; };
+struct E { struct O *transform; int pad; float radius; int pad2; ulong flags; char pad3[0x74 - 0x18]; void *bsp; char pad4[0xB0 - 0x78]; };
+struct P { char pad[0xE0]; int numParts; struct E *parts; };
 int PbspPointInBspQuick(void *, int, qword);
 /** @sly2-annot addr=0x1F72F8
  * Purpose: SO vt73: true if pos is inside any visible sphere part or part BSP (0x118FB0)
@@ -4327,21 +4327,21 @@ int PbspPointInBspQuick(void *, int, qword);
 int IsPosInSo(struct P *so, qword pos)
 {
     int i;
-    for (i = 0; i < so->c; i++) {
-        struct E *pe = &so->ae[i];
-        if (pe->fl & (1L << 50)) continue;
-        if (pe->fl & (1L << 49)) {
+    for (i = 0; i < so->numParts; i++) {
+        struct E *pe = &so->parts[i];
+        if (pe->flags & (1L << 50)) continue;
+        if (pe->flags & (1L << 49)) {
             qword d, one;
             float r2, d2;
             int t;
-            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(pe->po->pos));
-            r2 = pe->r * pe->r;
+            __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(pos), "j"(pe->transform->pos));
+            r2 = pe->radius * pe->radius;
             __asm__("vmul.xyz %0, %2, %2\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddz.x %0, %1, %0z" : "=j"(d), "=&j"(one) : "0"(d));
             __asm__("qmfc2.ni %0, %1" : "=r"(t) : "j"(d));
             __asm__("mtc1 %1, %0" : "=f"(d2) : "r"(t));
             { int f = d2 < r2; if (f) return 1; }
         }
-        if (pe->p74 && PbspPointInBspQuick(pe->p74, 0x7FFFFFFF, pos)) return 1;
+        if (pe->bsp && PbspPointInBspQuick(pe->bsp, 0x7FFFFFFF, pos)) return 1;
     }
     return 0;
 }
