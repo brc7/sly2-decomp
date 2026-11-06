@@ -132,7 +132,8 @@ extern "C" CPLOOK *CPLOOK_ctor(CPLOOK *pcplook)
     return pcplook;
 }
 
-// UNKNOWN - no analysis recorded yet (byte-matched only). (inferred)
+// Resets the look policy's zoom: zoom amount and its speed to 0, and the camera field of view back to the policy's
+// zoom field of view (radFovZoom).
 extern "C" void ResetCplookZoom(CPLOOK *pcplook)
 {
     pcplook->uZoom = 0.0f;

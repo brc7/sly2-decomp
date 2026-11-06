@@ -581,7 +581,8 @@ int CRichText::ClineWrap(float dxMax)
     return cline;
 }
 
-// UNKNOWN - no analysis recorded yet (byte-matched only). (inferred)
+// Returns the height of the text when word-wrapped to width dx: base line height (scaled) times the wrapped line
+// count. Note it wraps the text in place (ClineWrap inserts newlines).
 extern "C" float GetRichTextWrappedHeight(CRichText *p, float dx)
 {
     float dy = (float)p->baseFont->lineHeight * p->baseFont->yScale;

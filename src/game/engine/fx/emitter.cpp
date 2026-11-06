@@ -81,14 +81,15 @@ typedef EMITTER EMITTERV;
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
 struct EXPLGV : public XFM
 {
-    int cplo;               /* +0xE0 */
-    LO **aplo;              /* +0xE4 */
+    int numChildren;        /* +0xE0 */
+    LO **children;          /* +0xE4 */
 };
-/* The object of EnsureExplsSfx (class unknown): a lazily created SFX at +0xF0. */
+/* The EXPLS (an explosion's sound-effect part; EnsureExplsSfx is registered as an EXPLS option accessor in the class
+   option table): its lazily created SFX at +0xF0. */
 struct SFXHOLDER : public XFM
 {
     char padE0[0x10];
-    SFX *psfx;              /* +0xF0 */
+    SFX *sfx;               /* +0xF0 */
 };
 
 extern SW D_003DD490;       /* g_sw */
@@ -1873,12 +1874,12 @@ void LoadExplgFromBrx(struct S *p, void *q)
 }
 } } // namespace M_LoadExplgFromBrx
 
-// EXPLG: returns child count (+0xE0) and child array (+0xE4) via out-param. (inferred)
-int EXPLG::CploChildren(LO ***paplo)
+// Returns an explosion group's children: the array through the out parameter, the count as the result.
+int EXPLG::CploChildren(LO ***childrenOut)
 {
-    EXPLGV *pexplg = (EXPLGV *)this;
-    *paplo = pexplg->aplo;
-    return pexplg->cplo;
+    EXPLGV *group = (EXPLGV *)this;
+    *childrenOut = group->children;
+    return group->numChildren;
 }
 
 namespace M_CloneExplg { extern "C" {
@@ -2010,13 +2011,14 @@ void ExplodeExplsExplso(struct O *o, int x)
 }
 } } // namespace M_ExplodeExplsExplso
 
-// UNKNOWN - no analysis recorded yet (byte-matched only). (inferred)
-extern "C" SFX *EnsureExplsSfx(SFXHOLDER *p)
+// Returns the EXPLS's sound effect, creating it on first use. Used by the class option table (five EXPLS options
+// point at it), so level data can set the explosion's sound properties.
+extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
 {
-    if (p->psfx == 0) {
-        p->psfx = NewSfx();
+    if (explosionSound->sfx == 0) {
+        explosionSound->sfx = NewSfx();
     }
-    return p->psfx;
+    return explosionSound->sfx;
 }
 
 namespace M_FireExplsExplso { extern "C" {
