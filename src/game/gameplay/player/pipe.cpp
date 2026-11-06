@@ -22,24 +22,24 @@ struct K { int a, b; };
 struct PIPEV
 {
     char pad0[0x38];
-    float g38;              /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C0D00 */
+    float length;           /* +0x038 1e10 at load: the shape's length (func_001E7D90) plus D_002C0D00 */
     char pad3C[0xA8];
-    int cyclic;             /* +0x0E4 closed shape: distances wrap, no range clamp */
+    int isCyclic;           /* +0x0E4 closed shape: distances wrap, no range clamp */
     char pad0E8[0xA8];
     char grabspot[0x1C];    /* +0x190 GRABSPOTDATA (its +0x1C, +0x24 follow) */
-    int n1ac;               /* +0x1AC 1 at init (SetPipeGrabEnabled sets it to !arg) */
+    int isGrabDisabled;     /* +0x1AC 1 at init (SetPipeGrabEnabled sets it to !arg) */
     char pad1B0[4];
     K k;                    /* +0x1B4 kept across CloneShape */
     char pad1BC[4];
     qword axis;             /* +0x1C0 the reference axis (D_002A2DA0 at init) */
-    int n1d0;               /* +0x1D0 8 at init */
-    int n1d4;               /* +0x1D4 9 at init */
+    int grabParamA;         /* +0x1D0 8 at init */
+    int grabParamB;         /* +0x1D4 9 at init */
 };
-typedef char assert_PIPE_n1d4[(unsigned int)&((PIPEV *)0)->n1d4 == 0x1D4 ? 1 : -1];
+typedef char assert_PIPE_grabParamB[(unsigned int)&((PIPEV *)0)->grabParamB == 0x1D4 ? 1 : -1];
 
 struct DL;
 /* The TU's .data (0x2C0D00..0x2C0D14, address order = definition order). Only pipe's code reads them. */
-float D_002C0D00 = 1250.0f;     /* added to the shape's length at load (PIPE::g38) */
+float D_002C0D00 = 1250.0f;     /* added to the shape's length at load (PIPE length) */
 float D_002C0D04 = -50.0f;      /* not read by the matched code; between pipe's own data, so pipe's */
 float D_002C0D08 = 1.8f;        /* random direction: radial scale */
 float D_002C0D0C = 25.0f;       /* random direction: magnitude range */
@@ -88,9 +88,9 @@ extern "C" void InitPipe(PIPEV *pipe)
     InitShape(pipe);
     InitGrabspot(pipe->grabspot);
     pipe->axis = D_002A2DA0;
-    pipe->n1d4 = 9;
-    pipe->n1d0 = 8;
-    pipe->n1ac = 1;
+    pipe->grabParamB = 9;
+    pipe->grabParamA = 8;
+    pipe->isGrabDisabled = 1;
 }
 
 /** @sly2-annot addr=0x1C33E8
@@ -136,7 +136,7 @@ extern "C" void OnPipeRemove(PIPEV *pipe)
 extern "C" void PostPipeLoad(PIPEV *pipe)
 {
     PostLoLoad(pipe);
-    if (pipe->g38 == 1e10f) pipe->g38 = func_001E7D90(pipe) + D_002C0D00;
+    if (pipe->length == 1e10f) pipe->length = func_001E7D90(pipe) + D_002C0D00;
 }
 
 /** @sly2-annot addr=0x1C34B8
@@ -237,7 +237,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
         for (int i = 0;; ++i) {
             float offset = (i & 1) ? 10.0f * (float)(i + 1) : (float)i * -10.0f;
             float sample = distance + offset;
-            if (!pipe->cyclic) {
+            if (!pipe->isCyclic) {
                 if (sample < low || high < distance)
                     continue;
             } else
@@ -284,7 +284,7 @@ extern "C" void GetPipeGoalMatrix(PIPEV *pipe, float distance, int forward, M3 *
 extern "C" void GetPipeClosestParam(PIPEV *pipe, void *q, float *pf)
 {
     FindShapeClosestPoint(pipe, func_001A62E8(q), 0, 0, 0, 0, pf);
-    if (pipe->cyclic == 0) {
+    if (pipe->isCyclic == 0) {
         *pf = GClamp(*pf, 100.0f, SMaxShape(pipe) - 35.0f);
     }
 }
@@ -370,7 +370,7 @@ extern "C" void GetPipeSparklePosition(PIPEV *pipe,qword *posOut,qword *dirOut,f
 // around; open pipes return 0.
 extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
 {
-    if (pipe->cyclic) { pg[0] = SMinShape(pipe); pg[1] = SMaxShape(pipe); return 1; } return 0;
+    if (pipe->isCyclic) { pg[0] = SMinShape(pipe); pg[1] = SMaxShape(pipe); return 1; } return 0;
 }
 
 /** @sly2-annot addr=0x1C3C08
@@ -382,6 +382,6 @@ extern "C" int GetPipeWrapRange(PIPEV *pipe, float *pg)
 // Enables or disables grabbing this pipe (+0x1AC holds the inverted flag). (inferred)
 extern "C" void SetPipeGrabEnabled(PIPEV *pipe, int f)
 {
-    pipe->n1ac = (f == 0);
+    pipe->isGrabDisabled = (f == 0);
 }
 
