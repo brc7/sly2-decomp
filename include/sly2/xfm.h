@@ -91,11 +91,11 @@ struct TARGET : public XFM
       int fHitTest;
       int nUnkF4;
       uint32_t   _pad_22    [ 2 ] ;
+    virtual void Unfreeze() __asm__("OnTargetAdd");   /* slot 23 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetTargetClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTarget");   /* slot 7 */
     virtual void VUnk14() __asm__("PostTargetLoad");   /* slot 15 */
     virtual void Freeze() __asm__("OnTargetRemove");   /* slot 22 */
-    virtual void Unfreeze() __asm__("OnTargetAdd");   /* slot 23 */
     virtual void Clone(LO *ploBase) __asm__("CloneTarget");   /* slot 41 */
 };
 typedef char assert_TARGET_size[sizeof(TARGET) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
