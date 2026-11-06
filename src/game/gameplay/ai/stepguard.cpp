@@ -1762,17 +1762,17 @@ extern "C" void SetStepguardTarget(STEPGUARD *guard, LO *ploTarget)
     LO *ploOld;
     TARGETREC *ptargetrec;
     ploOld = guard->ploTarget;
-    if (ploTarget != ploOld) {
-        if (ploOld != 0) {
-            RemoveTargetRecordGuard((TARGETREC *)guard->pvEngage, guard);
-            guard->pvEngage = 0;
-        }
-        guard->ploTarget = ploTarget;
-        if (ploTarget != 0) {
-            ptargetrec = func_001F8278(ploTarget);
-            guard->pvEngage = ptargetrec;
-            AddTargetRecordGuard(ptargetrec, guard);
-        }
+    if (ploTarget == ploOld)
+        return;
+    if (ploOld != 0) {
+        RemoveTargetRecordGuard((TARGETREC *)guard->pvEngage, guard);
+        guard->pvEngage = 0;
+    }
+    guard->ploTarget = ploTarget;
+    if (ploTarget != 0) {
+        ptargetrec = func_001F8278(ploTarget);
+        guard->pvEngage = ptargetrec;
+        AddTargetRecordGuard(ptargetrec, guard);
     }
 }
 
@@ -3007,13 +3007,13 @@ extern "C" void SetStepguardEscortPoint(STEPGUARD *guard, int n, qword qw)
     guard->nUnkF68 = n;
     guard->qwUnkF70 = qw;
     behavior = (BHV156 *)FindBhvInBhvstk(&guard->bhvstk, CID_BHVGUARD);
-    if (behavior != 0) {
-        nCur = guard->nUnkF68;
-        if ((nCur != 0) && (behavior->nMode == 0x10)) {
-            pbhvSub = (BHVARG *)behavior->pbhvNext;
-            pbhvSub->n = nCur;
-            pbhvSub->qw = guard->qwUnkF70;
-        }
+    if (behavior == 0)
+        return;
+    nCur = guard->nUnkF68;
+    if ((nCur != 0) && (behavior->nMode == 0x10)) {
+        pbhvSub = (BHVARG *)behavior->pbhvNext;
+        pbhvSub->n = nCur;
+        pbhvSub->qw = guard->qwUnkF70;
     }
 }
 
@@ -3173,22 +3173,22 @@ void SetBhvguardMode(struct O *po, struct L *pl);
 // 0x20A540: Sets the patrol script (+0x2E8) and restarts the root behaviour if it is patrolling.
 void SetStepguardPatrolScript(struct S *guard, int n)
 {
-    if (guard->patrolScript != n) {
-        struct O *po;
-        guard->patrolScript = n;
-        func_002333B4(guard->unknown2DC, 0, 0xC);
-        po = FindBhvInBhvstk(guard->behaviorStack, CID_BHVGUARD);
-        if (po) {
-            int k = po->n30;
-            if (k == 1) {
-                struct L l;
-                func_002333B4(&l, 0, sizeof(l));
-                l.k = -1;
-                SetBhvguardMode(po, &l);
-                func_002333B4(guard->unknown2DC, 0, 0xC);
-                l.k = k;
-                SetBhvguardMode(po, &l);
-            }
+    if (guard->patrolScript == n)
+        return;
+    struct O *po;
+    guard->patrolScript = n;
+    func_002333B4(guard->unknown2DC, 0, 0xC);
+    po = FindBhvInBhvstk(guard->behaviorStack, CID_BHVGUARD);
+    if (po) {
+        int k = po->n30;
+        if (k == 1) {
+            struct L l;
+            func_002333B4(&l, 0, sizeof(l));
+            l.k = -1;
+            SetBhvguardMode(po, &l);
+            func_002333B4(guard->unknown2DC, 0, 0xC);
+            l.k = k;
+            SetBhvguardMode(po, &l);
         }
     }
 }
