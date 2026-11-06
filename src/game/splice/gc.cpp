@@ -123,8 +123,6 @@ struct STACKSCOPE
 };
 
 extern "C" {
-/* Live-slot counts of the frame, pair and proc pools (their SLOTHEAPs' cAlloc), which size the mark stacks. */
-extern int D_00452108, D_004520B8, D_00452130;
 void STACKSCOPE_ctor(STACKSCOPE *pss);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pss, int grf) __asm__("_$_10STACKSCOPE");
 void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
@@ -336,9 +334,9 @@ void CGc::Collect()
     CGcObj<CSidebag>::ClearMarks();
     CGcObj<CMethod>::ClearMarks();
     STACKSCOPE_ctor(&ss);
-    InitMarkStack(&cFrame, (void ***)&apFrame, D_00452108);
-    InitMarkStack(&cNode, (void ***)&apNode, D_004520B8);
-    apClo = (CProc **)PvAllocMarkStack(D_00452130);
+    InitMarkStack(&cFrame, (void ***)&apFrame, CSlotPool<0x28, 0x200>::s_pool.slotheap.cAlloc);   /* live-slot counts of the */
+    InitMarkStack(&cNode, (void ***)&apNode, CSlotPool<0x14, 0x2000>::s_pool.slotheap.cAlloc);   /* frame, pair and proc pools */
+    apClo = (CProc **)PvAllocMarkStack(CSlotPool<0x1C, 0x800>::s_pool.slotheap.cAlloc);   /* size the mark stacks */
     cClo = 0;
     for (pn = CGcObj<CFrame>::s_ptRoot; pn;)
     {
@@ -423,15 +421,9 @@ struct COMMONS_gc {
     static int c_002DD2C0 __asm__("_t6CGcObj1Z8CSidebag$s_ptFirst");   /* .sbss 0x4 */
     static int c_002DD2C8 __asm__("_t6CGcObj1Z8CSidebag$s_ptRecycle");   /* .sbss 0x4 */
     static int c_002DD2D8 __asm__("_t6CGcObj1Z7CMethod$s_ptRecycle");   /* .sbss 0x4 */
-    static int c_004520B8[2] __asm__("D_004520B8");   /* .bss 0x8 */
-    static int c_00452108[2] __asm__("D_00452108");   /* .bss 0x8 */
-    static int c_00452130[2] __asm__("D_00452130");   /* .bss 0x8 */
 };
 int COMMONS_gc::c_002DD298;
 int COMMONS_gc::c_002DD2B8;
 int COMMONS_gc::c_002DD2C0;
 int COMMONS_gc::c_002DD2C8;
 int COMMONS_gc::c_002DD2D8;
-int COMMONS_gc::c_004520B8[2];
-int COMMONS_gc::c_00452108[2];
-int COMMONS_gc::c_00452130[2];
