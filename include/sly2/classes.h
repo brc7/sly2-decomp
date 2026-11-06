@@ -424,9 +424,9 @@ struct BHV180 : BHV
     char pad30[0x40 - 0x30];
     virtual void OnPush() __asm__("func_00155560");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv180ClassDesc");   /* slot 6 */
-    virtual void Start() __asm__("StartBhvDimitriRoot");   /* slot 8 */
-    virtual void VSlot9() __asm__("CloseBhvDimitriRoot");   /* slot 9 */
-    virtual void VSlot10() __asm__("UpdateBhvDimitriRoot");   /* slot 10 */
+    virtual void Start() __asm__("StartBhvDimitriEscape");   /* slot 8 */
+    virtual void VSlot9() __asm__("CloseBhvDimitriEscape");   /* slot 9 */
+    virtual void VSlot10() __asm__("UpdateBhvDimitriEscape");   /* slot 10 */
 };
 typedef char assert_BHV180_size[sizeof(BHV180) == 0x40 ? 1 : -1];
 
@@ -436,9 +436,9 @@ struct BHV181 : BHV
     char pad30[0x60 - 0x30];
     virtual void Start() __asm__("func_00155A38");   /* slot 8 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBhv181ClassDesc");   /* slot 6 */
-    virtual void OnPush() __asm__("InitBhvFlee");   /* slot 7 */
-    virtual void VSlot9() __asm__("CloseBhvFlee");   /* slot 9 */
-    virtual void VSlot10() __asm__("UpdateBhvFlee");   /* slot 10 */
+    virtual void OnPush() __asm__("InitBhvDimitriAttack");   /* slot 7 */
+    virtual void VSlot9() __asm__("CloseBhvDimitriAttack");   /* slot 9 */
+    virtual void VSlot10() __asm__("UpdateBhvDimitriAttack");   /* slot 10 */
 };
 typedef char assert_BHV181_size[sizeof(BHV181) == 0x60 ? 1 : -1];
 

@@ -1,9 +1,9 @@
-// tu_1553F0.cpp -- DIMITRI (cid 0x3B, a STEPGUARD with a table of escape routes) and his two behaviours: the root
-// (BHV180, flag 0x22) that, after a few frames, picks the route whose near end is farthest from the hero and flees
-// along it, or watches until the hero comes close; and the run/hide cycle (BHV181, flag 0x23) that runs to a route
-// end, follows the route's path and hides. Plus the escape-position search ChooseEscapePosition and the linkonce
-// VecCombo (a VU_FLOAT/VU_VECTOR weighted sum). VU0 asm; FindDimitriFarthestRoute and ChooseEscapePosition are
-// hand-tuned.
+// tu_1553F0.cpp -- DIMITRI (cid 0x3B, a STEPGUARD with a table of escape routes) and his two behaviours: the escape
+// behaviour (BHV180, view BHVESC, flag 0x22) that, after a few frames, picks the route whose near end is farthest
+// from the hero and runs the attack behaviour on it, or fights (BHVCOMBAT) when the hero comes close; and the
+// attack behaviour (BHV181, view BHVATK, flag 0x23) that moves him to a route end, faces the hero, attacks, and
+// moves on to the other end. Plus the escape-position search ChooseEscapePosition and the linkonce VecCombo (a
+// VU_FLOAT/VU_VECTOR weighted sum). VU0 asm; FindDimitriFarthestRoute and ChooseEscapePosition are hand-tuned.
 // TU 0x1553F0..0x1564E8 (18 functions, address order) and the linkonce instance 0x258480.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1553F0
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001564C8
@@ -24,15 +24,15 @@ typedef struct MSG { int cb; int nKind; } MSG;
 /* An escape route of Dimitri's table (0x24 bytes): four objects loaded as oids and resolved after load. */
 struct ESC
 {
-    int oidA; void *ploA;
-    int oidB; void *ploB;   /* +0x8 volume around A */
-    int oidC; void *ploC;
-    int oidD; void *ploD;   /* +0x18 volume around C */
-    int fUsed;
+    int oidFirst; void *first;
+    int oidFirstVolume; void *firstVolume;   /* +0x8 volume around A */
+    int oidSecond; void *second;
+    int oidSecondVolume; void *secondVolume;   /* +0x18 volume around C */
+    int isUsed;
 };
 typedef char assert_ESC_size[sizeof(ESC) == 0x24 ? 1 : -1];
 /* The path shape of the attack behaviour (+0x294 of the guard). */
-struct PATHV { char pad[0xE8]; int xE8; char pad1[0xF4 - 0xEC]; qwordV *pq; };
+struct PATHV { char pad[0xE8]; int pointCount; char pad1[0xF4 - 0xEC]; qwordV *points; };
 /* Dimitri (a STEPGUARD, which ends at +0x1010): view of the fields used. */
 struct DIMITRIV
 {
@@ -41,56 +41,56 @@ struct DIMITRIV
     char pad10[0x240 - 0x10];
     qwordV pos;                /* +0x240 */
     char pad250[0x294 - 0x250];
-    PATHV *ppath;             /* +0x294 */
+    PATHV *path;             /* +0x294 */
     char pad298[0x33C - 0x298];
-    int hp;                   /* +0x33C */
+    int hitPoints;                   /* +0x33C */
     char pad340[0xF04 - 0x340];
-    float tF04;
+    float attackCooldownEnd;
     char padF08[0xFD0 - 0xF08];
-    char moverFD0[0x40];      /* +0xFD0 the guard's mover */
-    int cesc;                 /* +0x1010 */
-    ESC *aesc;
-    int hpLast;               /* +0x1018 hp when the last escape started */
+    char mover[0x40];      /* +0xFD0 the guard's mover */
+    int routeCount;                 /* +0x1010 */
+    ESC *routes;
+    int hitPointsAtLastEscape;               /* +0x1018 hp when the last escape started */
 };
-typedef char assert_DIMITRI_hpLast[(unsigned int)&((DIMITRIV *)0)->hpLast == 0x1018 ? 1 : -1];
+typedef char assert_DIMITRI_hitPointsAtLastEscape[(unsigned int)&((DIMITRIV *)0)->hitPointsAtLastEscape == 0x1018 ? 1 : -1];
 /* A sub-behaviour found by func_00205438 (vtable slot 8 starts it). */
 struct BHVO { int a[3]; VTE *vt; char pad[0x20]; union { void *plo30; int x30; }; int pad34; union { void *p38; int x38; }; int x3C; int x40;
               char pad44[8]; void *n4C; char pad50[0xC0 - 0x50]; int xC0; int padC4; void *pC8; };
-typedef char assert_BHVO_xC8[(unsigned int)&((BHVO *)0)->pC8 == 0xC8 ? 1 : -1];
+typedef char assert_BHVO_pC8[(unsigned int)&((BHVO *)0)->pC8 == 0xC8 ? 1 : -1];
 struct BHVY { char pad[0x30]; int x30; };
 /* An attack entry chosen by ChooseStepguardAttack (+0x60 the hide time range). */
 struct LMV { float gMin, gMax; };
-struct ATKENTRY { char pad[0x60]; LMV lm; };
+struct ATKENTRY { char pad[0x60]; LMV cooldown; };
 /* The two behaviours (BHV header: +0x10 the guard, +0x18 the running sub-behaviour / the stack, +0x30 state). */
 struct BHVESC
 {
     char pad0[0x10];
-    DIMITRIV *pguard;
-    int x14;
-    union { void *pbhvCur; char abhvstk[0x18]; };
+    DIMITRIV *guard;
+    int unknown14;
+    union { void *currentChild; char childSlot[0x18]; };
     int state;
-    float tState;
-    void *ploTarget;          /* +0x38 */
-    ESC *pesc;                /* +0x3C the chosen route */
+    float stateTime;
+    void *target;          /* +0x38 */
+    ESC *route;                /* +0x3C the chosen route */
 };
 struct BHVATK
 {
     char pad0[0x10];
-    DIMITRIV *pguard;
-    int x14;
-    union { void *pbhvCur; char abhvstk[0x18]; };
+    DIMITRIV *guard;
+    int unknown14;
+    union { void *currentChild; char childSlot[0x18]; };
     int state;
-    float tState;
-    ESC *pesc;                /* +0x38 */
-    float g3C;
-    void *ploGoal;            /* +0x40 the route end to go to (ChooseBhvFleeRouteEnd) */
-    float t44;
-    float t48;
-    void *ploTarget;          /* +0x4C */
-    int cAttack;
-    ATKENTRY *pentry;         /* +0x54 */
+    float stateTime;
+    ESC *route;                /* +0x38 */
+    float unknown3C;
+    void *goal;            /* +0x40 the route end to go to (ChooseBhvDimitriAttackRouteEnd) */
+    float lastAttackTime;
+    float arrivalTime;
+    void *target;          /* +0x4C */
+    int attackCount;
+    ATKENTRY *attack;         /* +0x54 */
 };
-typedef char assert_BHVATK_pentry[(unsigned int)&((BHVATK *)0)->pentry == 0x54 ? 1 : -1];
+typedef char assert_BHVATK_attack[(unsigned int)&((BHVATK *)0)->attack == 0x54 ? 1 : -1];
 /* ChooseEscapePosition's types (the hero: vtable slot 33 at +0x108 is GetVelocity). */
 struct M3 { qwordV r[3]; };
 struct VECTORV { float x, y, z, w; };
@@ -135,10 +135,10 @@ int IsBhvanimDone(void *p);
 int IsBhvpathAtEnd(void *p);
 int IsBhvattackDone(void *p);
 int ChooseStepguardAttack(DIMITRIV *p, void *ploTarget, int z);
-void SetBhvDimitriRootState(BHVESC *p, int k);
+void SetBhvDimitriEscapeState(BHVESC *p, int k);
 ESC *FindDimitriFarthestRoute(BHVESC *p);
-void SetBhvFleeState(BHVATK *p, int k);
-void *ChooseBhvFleeRouteEnd(BHVATK *p);
+void SetBhvDimitriAttackState(BHVATK *p, int k);
+void *ChooseBhvDimitriAttackRouteEnd(BHVATK *p);
 extern qwordV g_normalZ __asm__("D_002A2DC0");
 extern VECTORV D_002BDC60;
 extern float D_002BDC70[2];
@@ -173,9 +173,9 @@ static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pm
 extern "C" void LoadDimitriFromBrx(DIMITRIV *p, void *pbis)
 {
     MSG msg;
-    p->aesc = (ESC *)PvAllocMsg(&msg, 0x480, 0x10);
+    p->routes = (ESC *)PvAllocMsg(&msg, 0x480, 0x10);
     LoadStepFromBrx(p, pbis);
-    p->hpLast = 0x7FFFFFFF;
+    p->hitPointsAtLastEscape = 0x7FFFFFFF;
 }
 
 // 0x155450: DIMITRI vtable slot 15 (PostLoad): STEPGUARD post-load, then resolves the four oids of each route
@@ -185,71 +185,71 @@ void DIMITRI::VUnk14()
     DIMITRIV *p = (DIMITRIV *)this;
     int i;
     PostStepguardLoad(p);
-    for (i = 0; i < p->cesc; i++) {
-        ESC *pe = &p->aesc[i];
-        pe->ploA = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidA, p);
-        pe->ploB = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidB, p);
-        pe->ploC = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidC, p);
-        pe->ploD = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidD, p);
+    for (i = 0; i < p->routeCount; i++) {
+        ESC *pe = &p->routes[i];
+        pe->first = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidFirst, p);
+        pe->firstVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidFirstVolume, p);
+        pe->second = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidSecond, p);
+        pe->secondVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidSecondVolume, p);
     }
 }
 
 // 0x155530: Splice option: appends a route record of four oids.
 extern "C" void AddDimitriRoute(DIMITRIV *p, int a, int b, int c, int d)
 {
-    ESC *pe = &p->aesc[p->cesc++];
-    pe->oidA = a;
-    pe->oidB = b;
-    pe->oidC = c;
-    pe->oidD = d;
+    ESC *pe = &p->routes[p->routeCount++];
+    pe->oidFirst = a;
+    pe->oidFirstVolume = b;
+    pe->oidSecond = c;
+    pe->oidSecondVolume = d;
 }
 
-// 0x155560: Dimitri root behaviour (BHV180) vtable slot 7 (OnPush): base, raises guard flag 0x22, state -1.
+// 0x155560: Dimitri escape behaviour (BHV180) vtable slot 7 (OnPush): base, raises guard flag 0x22, state -1.
 void BHV180::OnPush()
 {
     BHVESC *behavior = (BHVESC *)this;
     InitBhv(behavior);
-    AddStepguardSgf(behavior->pguard, 0x22);
+    AddStepguardSgf(behavior->guard, 0x22);
     behavior->state = -1;
 }
 
-// 0x155598: Dimitri root behaviour vtable slot 9 (Close): state -1, lowers flag 0x22, clears the guard's target.
-extern "C" void CloseBhvDimitriRoot(BHVESC *behavior)
+// 0x155598: Dimitri escape behaviour vtable slot 9 (Close): state -1, lowers flag 0x22, clears the guard's target.
+extern "C" void CloseBhvDimitriEscape(BHVESC *behavior)
 {
     CloseBhv(behavior);
-    SetBhvDimitriRootState(behavior, -1);
-    RemoveStepguardSgf(behavior->pguard, 0x22);
-    SetStepguardTarget(behavior->pguard, 0);
+    SetBhvDimitriEscapeState(behavior, -1);
+    RemoveStepguardSgf(behavior->guard, 0x22);
+    SetStepguardTarget(behavior->guard, 0);
 }
 
-// 0x1555E0: Dimitri root behaviour vtable slot 8 (Start): once enough frames have passed, picks a route and starts
+// 0x1555E0: Dimitri escape behaviour vtable slot 8 (Start): once enough frames have passed, picks a route and starts
 // fleeing (state 0) or watching (state 1).
-extern "C" void StartBhvDimitriRoot(BHVESC *behavior)
+extern "C" void StartBhvDimitriEscape(BHVESC *behavior)
 {
     StartBhv(behavior);
-    SetStepguardTarget(behavior->pguard, behavior->ploTarget);
-    if (behavior->pguard->hpLast - behavior->pguard->hp >= 90)
-        behavior->pesc = FindDimitriFarthestRoute(behavior);
-    if (behavior->pesc)
-        SetBhvDimitriRootState(behavior, 0);
+    SetStepguardTarget(behavior->guard, behavior->target);
+    if (behavior->guard->hitPointsAtLastEscape - behavior->guard->hitPoints >= 90)
+        behavior->route = FindDimitriFarthestRoute(behavior);
+    if (behavior->route)
+        SetBhvDimitriEscapeState(behavior, 0);
     else
-        SetBhvDimitriRootState(behavior, 1);
+        SetBhvDimitriEscapeState(behavior, 1);
 }
 
 // VU0 helper: z component of a vector.
 static __inline__ float GetZ(qwordV q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
-// 0x155660: Dimitri root behaviour update: while watching, switches state when the player comes within 850
+// 0x155660: Dimitri escape behaviour update: while watching, switches state when the player comes within 850
 // horizontally and 400 vertically.
-extern "C" void UpdateBhvDimitriRoot(BHVESC *behavior)
+extern "C" void UpdateBhvDimitriEscape(BHVESC *behavior)
 {
     UpdateBhv(behavior);
     while (!IsBhvBusyAbove(behavior)) {
         int s = behavior->state;
         switch (s) {
         case 0: {
-            BHVY *py = (BHVY *)behavior->pbhvCur;
-            qwordV a = func_001A62E8(behavior->pguard);
-            qwordV b = func_001A62E8(behavior->ploTarget);
+            BHVY *py = (BHVY *)behavior->currentChild;
+            qwordV a = func_001A62E8(behavior->guard);
+            qwordV b = func_001A62E8(behavior->target);
             qwordV d, l;
             float dist; int f;
             d = VuSub(a, b);
@@ -258,7 +258,7 @@ extern "C" void UpdateBhvDimitriRoot(BHVESC *behavior)
             dist = VuToFloat(l);
             f = 0;
             if (dist < 850.0f && __builtin_fabsf(GetZ(d)) < 400.0f && py->x30) f = 1;
-            if (f) SetBhvDimitriRootState(behavior, 1);
+            if (f) SetBhvDimitriEscapeState(behavior, 1);
             break;
         }
         }
@@ -266,32 +266,32 @@ extern "C" void UpdateBhvDimitriRoot(BHVESC *behavior)
     }
 }
 
-// 0x155788: Dimitri root behaviour state change: state 0 runs the run/hide behaviour (BHV181) on the chosen route;
-// state 1 runs BHV165.
-extern "C" void SetBhvDimitriRootState(BHVESC *behavior, int k)
+// 0x155788: Dimitri escape behaviour state change: state 0 runs the attack behaviour (BHV181) on the chosen route
+// (and remembers his hit points); state 1 fights the target (BHVCOMBAT, cid 0xA5).
+extern "C" void SetBhvDimitriEscapeState(BHVESC *behavior, int k)
 {
     if (k == behavior->state)
         return;
     if (behavior->state == 0)
-        behavior->pesc->fUsed = 1;
-    PopBhv(behavior->abhvstk);
+        behavior->route->isUsed = 1;
+    PopBhv(behavior->childSlot);
     behavior->state = k;
-    behavior->tState = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.t;
     switch (k) {
     case 0: {
-        BHVO *child = func_00205438(behavior->pguard, 0xB5);
+        BHVO *child = func_00205438(behavior->guard, 0xB5);
         VTE *entry;
-        child->p38 = behavior->pesc;
-        child->n4C = behavior->ploTarget;
+        child->p38 = behavior->route;
+        child->n4C = behavior->target;
         entry = &child->vt[8];
         ((void (*)(void *))entry->pfn)((char *)child + entry->d);
-        behavior->pguard->hpLast = behavior->pguard->hp;
+        behavior->guard->hitPointsAtLastEscape = behavior->guard->hitPoints;
         break;
     }
     case 1: {
-        BHVO *child = func_00205438(behavior->pguard, 0xA5);
+        BHVO *child = func_00205438(behavior->guard, 0xA5);
         VTE *entry;
-        child->plo30 = behavior->ploTarget;
+        child->plo30 = behavior->target;
         child->x40 = k;
         entry = &child->vt[8];
         ((void (*)(void *))entry->pfn)((char *)child + entry->d);
@@ -321,13 +321,13 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
 {
     ESC *peBest = 0;
     int i;
-    qwordV pos = func_001A62E8(behavior->ploTarget);
+    qwordV pos = func_001A62E8(behavior->target);
     float gBest = D_002A5130;
-    for (i = 0; i < behavior->pguard->cesc; i++) {
-        ESC *pe = &behavior->pguard->aesc[i];
-        if (D_002BDC50 || !pe->fUsed) {
-            qwordV a = func_001A62E8(pe->ploA);
-            qwordV b = func_001A62E8(pe->ploC);
+    for (i = 0; i < behavior->guard->routeCount; i++) {
+        ESC *pe = &behavior->guard->routes[i];
+        if (D_002BDC50 || !pe->isUsed) {
+            qwordV a = func_001A62E8(pe->first);
+            qwordV b = func_001A62E8(pe->second);
             qwordV da, db, la, lb;
             float g;
             {
@@ -353,39 +353,39 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
 }
 
 namespace RO_ORDER { extern const float r_D_002A5134 __asm__("D_002A5134") = 3.40282347e+38f; }
-// 0x1559B0: Run/hide behaviour (BHV181) vtable slot 7 (OnPush): base, raises guard flag 0x23, state -1.
-extern "C" void InitBhvFlee(BHVATK *behavior)
+// 0x1559B0: Dimitri attack behaviour (BHV181) vtable slot 7 (OnPush): base, raises guard flag 0x23, state -1.
+extern "C" void InitBhvDimitriAttack(BHVATK *behavior)
 {
     InitBhv(behavior);
-    AddStepguardSgf(behavior->pguard, 0x23);
+    AddStepguardSgf(behavior->guard, 0x23);
     behavior->state = -1;
-    behavior->g3C = D_002A5134;
+    behavior->unknown3C = D_002A5134;
 }
 
-// 0x1559F8: Run/hide behaviour vtable slot 9 (Close): state -1, lowers flag 0x23.
-extern "C" void CloseBhvFlee(BHVATK *behavior)
+// 0x1559F8: Dimitri attack behaviour vtable slot 9 (Close): state -1, lowers flag 0x23.
+extern "C" void CloseBhvDimitriAttack(BHVATK *behavior)
 {
     CloseBhv(behavior);
-    SetBhvFleeState(behavior, -1);
-    RemoveStepguardSgf(behavior->pguard, 0x23);
+    SetBhvDimitriAttackState(behavior, -1);
+    RemoveStepguardSgf(behavior->guard, 0x23);
 }
 
-// 0x155A38: Run/hide behaviour vtable slot 8 (Start): state 0.
+// 0x155A38: Dimitri attack behaviour vtable slot 8 (Start): state 0.
 void BHV181::Start()
 {
     BHVATK *behavior = (BHVATK *)this;
     StartBhv(behavior);
-    SetBhvFleeState(behavior, 0);
+    SetBhvDimitriAttackState(behavior, 0);
 }
 
 // 0x155A68: Picks which end of the route to run to (the one whose volume does not contain the player, inferred).
-extern "C" void *ChooseBhvFleeRouteEnd(BHVATK *behavior)
+extern "C" void *ChooseBhvDimitriAttackRouteEnd(BHVATK *behavior)
 {
-    if (FCheckVolPoint(behavior->pesc->ploB, func_001A62E8(behavior->ploTarget)))
-        return behavior->pesc->ploA;
-    if (FCheckVolPoint(behavior->pesc->ploD, func_001A62E8(behavior->ploTarget)))
-        return behavior->pesc->ploC;
-    return behavior->pesc->ploA;
+    if (FCheckVolPoint(behavior->route->firstVolume, func_001A62E8(behavior->target)))
+        return behavior->route->first;
+    if (FCheckVolPoint(behavior->route->secondVolume, func_001A62E8(behavior->target)))
+        return behavior->route->second;
+    return behavior->route->first;
 }
 
 // VU0 helper: x component of a vector.
@@ -403,125 +403,128 @@ static __inline__ float GetY(qwordV q)
     return y;
 }
 namespace RO_ORDER { extern const float r_D_002A5138 __asm__("D_002A5138") = 3.40282347e+38f; }
-// 0x155AE0: Run/hide state change: 0 face away and run, 1 wait, 2 follow the route path (BHV167), 3 hide (BHV164).
-extern "C" void SetBhvFleeState(BHVATK *behavior, int k)
+// 0x155AE0: Dimitri attack state change: 0 turn away from the chosen route end (alert animation), 1 face the
+// target, 2 walk a two-point path to the route end (BHV167), 3 attack (BHVATTACK with the chosen attack entry);
+// leaving state 3 arms the attack cooldown.
+extern "C" void SetBhvDimitriAttackState(BHVATK *behavior, int k)
 {
     if (k == behavior->state) return;
     switch (behavior->state) {
     case 1:
-        SetStepguardAimAct(behavior->pguard, 0, 0, D_002A2DD0);
+        SetStepguardAimAct(behavior->guard, 0, 0, D_002A2DD0);
         break;
     case 3:
         {
             float t = D_002DDED0.t;
-            behavior->pguard->tF04 = t + GRandInRange(behavior->pentry->lm.gMin, behavior->pentry->lm.gMax);
+            behavior->guard->attackCooldownEnd = t + GRandInRange(behavior->attack->cooldown.gMin, behavior->attack->cooldown.gMax);
         }
-        behavior->pentry = 0;
+        behavior->attack = 0;
         break;
     }
-    PopBhv(behavior->abhvstk);
+    PopBhv(behavior->childSlot);
     behavior->state = k;
-    behavior->tState = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.t;
     switch (k) {
     case 0: {
         BHVO *child;
         qwordV d;
-        behavior->ploGoal = ChooseBhvFleeRouteEnd(behavior);
-        child = func_00205438(behavior->pguard, 0x9D);
+        behavior->goal = ChooseBhvDimitriAttackRouteEnd(behavior);
+        child = func_00205438(behavior->guard, 0x9D);
         child->x3C = 0xB;
-        d = VuSub(func_001A62E8(behavior->ploGoal), func_001A62E8(behavior->pguard));
+        d = VuSub(func_001A62E8(behavior->goal), func_001A62E8(behavior->guard));
         {
             float g = atan2f(GetY(d), GetX(d)) + 3.1415927f;
-            SetStepguardMoverRadTarget(behavior->pguard->moverFD0, g);
+            SetStepguardMoverRadTarget(behavior->guard->mover, g);
         }
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
-        behavior->g3C = D_002A5138;
+        behavior->unknown3C = D_002A5138;
         break;
     }
     case 1: {
         BHVO *child;
-        child = func_00205438(behavior->pguard, 0x9E);
-        child->p38 = behavior->ploTarget;
+        child = func_00205438(behavior->guard, 0x9E);
+        child->p38 = behavior->target;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
         break;
     }
     case 2: {
         BHVO *child;
         PATHV *palo;
-        child = func_00205438(behavior->pguard, 0xA7);
-        palo = behavior->pguard->ppath;
-        palo->xE8 = k;
+        child = func_00205438(behavior->guard, 0xA7);
+        palo = behavior->guard->path;
+        palo->pointCount = k;
         {
-            qwordV *pq = palo->pq;
-            pq[0] = func_001A62E8(behavior->pguard);
+            qwordV *pq = palo->points;
+            pq[0] = func_001A62E8(behavior->guard);
         }
         {
-            qwordV *pq = palo->pq;
-            pq[1] = func_001A62E8(behavior->ploGoal);
+            qwordV *pq = palo->points;
+            pq[1] = func_001A62E8(behavior->goal);
         }
         MeasureShape(palo);
         SetBhvpathShape(child, palo, 0);
         child->xC0 = 8;
-        child->pC8 = behavior->ploTarget;
+        child->pC8 = behavior->target;
         child->x40 = 1;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
         break;
     }
     case 3: {
         BHVO *child;
-        child = func_00205438(behavior->pguard, 0xA4);
-        child->x3C = (int)behavior->pentry;
-        child->plo30 = behavior->ploTarget;
+        child = func_00205438(behavior->guard, 0xA4);
+        child->x3C = (int)behavior->attack;
+        child->plo30 = behavior->target;
         ((void (*)(void *))child->vt[8].pfn)((char *)child + child->vt[8].d);
-        behavior->pguard->tF04 = D_002A5138;
-        behavior->cAttack++;
+        behavior->guard->attackCooldownEnd = D_002A5138;
+        behavior->attackCount++;
         break;
     }
     }
 }
 
-// 0x155D90: Run/hide behaviour update: the state machine above, driven by the hero's distance and the child
-// behaviours finishing.
-extern "C" void UpdateBhvFlee(BHVATK *behavior)
+// 0x155D90: Dimitri attack behaviour update: after the turn, moves him to the route end (sets his position, zeroes
+// his velocities) and faces the target; attacks when an attack is available; after an attack, walks to the other
+// route end if the best end changed.
+extern "C" void UpdateBhvDimitriAttack(BHVATK *behavior)
 {
     UpdateBhv(behavior);
     while (!IsBhvBusyAbove(behavior)) {
         int s = behavior->state;
         switch (s) {
         case 0:
-            if (IsBhvanimDone(behavior->pbhvCur)) {
+            if (IsBhvanimDone(behavior->currentChild)) {
                 DIMITRIV *pso;
-                qwordV d = VuSub(func_001A62E8(behavior->ploGoal), behavior->pguard->pos);
-                pso = behavior->pguard;
+                qwordV d = VuSub(func_001A62E8(behavior->goal), behavior->guard->pos);
+                pso = behavior->guard;
                 ((void (*)(void *, qwordV))pso->vt[29].pfn)((char *)pso + pso->vt[29].d, d);
-                pso = behavior->pguard;
+                pso = behavior->guard;
                 ((void (*)(void *, qwordV))pso->vt[35].pfn)((char *)pso + pso->vt[35].d, D_002A2DD0);
-                pso = behavior->pguard;
+                pso = behavior->guard;
                 ((void (*)(void *, qwordV))pso->vt[36].pfn)((char *)pso + pso->vt[36].d, D_002A2DD0);
-                behavior->t48 = D_002DDED0.t;
-                SetBhvFleeState(behavior, 1);
+                behavior->arrivalTime = D_002DDED0.t;
+                SetBhvDimitriAttackState(behavior, 1);
             }
             break;
         case 2:
-            if (IsBhvpathAtEnd(behavior->pbhvCur))
-                SetBhvFleeState(behavior, 1);
+            if (IsBhvpathAtEnd(behavior->currentChild))
+                SetBhvDimitriAttackState(behavior, 1);
             break;
         case 1:
-            if (2.5f < D_002DDED0.t - behavior->t48 && 0.1f < D_002DDED0.t - behavior->tState) {
-                if ((behavior->pentry = (ATKENTRY *)ChooseStepguardAttack(behavior->pguard, behavior->ploTarget, 0)) != 0)
-                    SetBhvFleeState(behavior, 3);
+            if (2.5f < D_002DDED0.t - behavior->arrivalTime && 0.1f < D_002DDED0.t - behavior->stateTime) {
+                if ((behavior->attack = (ATKENTRY *)ChooseStepguardAttack(behavior->guard, behavior->target, 0)) != 0)
+                    SetBhvDimitriAttackState(behavior, 3);
             }
             break;
         case 3:
-            behavior->t44 = D_002DDED0.t;
-            if (IsBhvattackDone(behavior->pbhvCur)) {
+            behavior->lastAttackTime = D_002DDED0.t;
+            if (IsBhvattackDone(behavior->currentChild)) {
                 int k = 1;
-                void *n = ChooseBhvFleeRouteEnd(behavior);
-                if (n != behavior->ploGoal) {
-                    behavior->ploGoal = n;
+                void *n = ChooseBhvDimitriAttackRouteEnd(behavior);
+                if (n != behavior->goal) {
+                    behavior->goal = n;
                     k = 2;
                 }
-                SetBhvFleeState(behavior, k);
+                SetBhvDimitriAttackState(behavior, k);
             }
             break;
         }
