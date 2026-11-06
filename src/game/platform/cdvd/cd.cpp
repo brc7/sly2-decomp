@@ -1,5 +1,9 @@
 // cd.cpp -- CD/DVD access: ISO 9660 path tokenizing, the media-mode check, the disc-identity poll (a CRC of a
 // sector), cdrom0: paths and direct sector reads.
+// UpdateCd runs every frame: when the sound manager is up and the tray no longer reports a PS2 DVD, it pauses the
+// game's disc users and polls by reading one known sector and comparing its CRC-32 until the right disc is back.
+// Entry points: StartupCd, UpdateCd, CdPath (host path -> "cdrom0:\PATH\FILE.EXT;1"), ReadCdDirect,
+// FCdCompleted, FValidCdMmode / SetCdMmode.
 // TU 0x14B7F8..0x14BEA8 (10 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_cd
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014BE88
@@ -34,13 +38,13 @@ int sceCdGetDiskType(void);
 int sceCdGetError(void);
 int sceCdMmode(int n);
 int sceCdSync(int n);
-int sceCdRead(unsigned int lsn, unsigned int c, void *buf, void *mode);
+int sceCdRead(unsigned int sector, unsigned int sectorCount, void *buf, void *mode);
 void func_001DD6C8(void *p);
 int func_001DD780(void *p);
 void func_001DD728(void *p);
 }
 int FValidCdMmode();
-int FCdCompleted(int f);
+int FCdCompleted(int wait);
 
 /** @sly2-annot addr=0x14B7F8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -48,66 +52,69 @@ int FCdCompleted(int f);
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
  *   docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
-int CpchzTokenizePath(char *pchz)
+// Rewrites a path in place into ISO 9660 form: upper case, ';1' version appended to a file name, separators
+// become NULs (so the path turns into consecutive component strings), names cut to 8.3 and characters outside
+// [A-Z0-9] replaced by '_'. Returns the number of components.
+int CpchzTokenizePath(char *path)
 {
-    strupr(pchz);
-    int cch = strlen(pchz);
-    if (cch != 0 && ((unsigned char *)pchz)[cch - 1] != '\\' && ((unsigned char *)pchz)[cch - 1] != '/') {
-        strcat(pchz, ";1");
-        cch = strlen(pchz);
+    strupr(path);
+    int length = strlen(path);
+    if (length != 0 && ((unsigned char *)path)[length - 1] != '\\' && ((unsigned char *)path)[length - 1] != '/') {
+        strcat(path, ";1");
+        length = strlen(path);
     }
-    unsigned char *pchEnd = (unsigned char *)pchz + cch;
-    unsigned char *pchOut = (unsigned char *)pchz;
-    unsigned char *pch = (unsigned char *)pchz;
-    int cpchz = 0;
-    int cchCur = 0;
-    int cchMax = 8;
-    for (; pch < pchEnd; pch++) {
-        switch (*pch) {
+    unsigned char *end = (unsigned char *)path + length;
+    unsigned char *out = (unsigned char *)path;
+    unsigned char *in = (unsigned char *)path;
+    int componentCount = 0;
+    int componentLength = 0;
+    int maxComponentLength = 8;
+    for (; in < end; in++) {
+        switch (*in) {
         case '/':
         case '\\':
-            if (cchCur == 0)
+            if (componentLength == 0)
                 break;
-            *pchOut++ = 0;
-            cchCur = 0;
-            cchMax = 8;
-            cpchz++;
+            *out++ = 0;
+            componentLength = 0;
+            maxComponentLength = 8;
+            componentCount++;
             break;
         case '.':
-            if (cchCur == 0)
+            if (componentLength == 0)
                 break;
-            if (cchMax != 8)
+            if (maxComponentLength != 8)
                 break;
-            *pchOut++ = *pch;
-            cchCur = 0;
-            cchMax = 3;
+            *out++ = *in;
+            componentLength = 0;
+            maxComponentLength = 3;
             break;
         case ';':
-            if (cchCur != 0 && pch == pchEnd - 2 && pch[1] == '1') {
-                *pchOut++ = *pch++;
-                *pchOut++ = *pch;
-                cchCur += 2;
+            if (componentLength != 0 && in == end - 2 && in[1] == '1') {
+                *out++ = *in++;
+                *out++ = *in;
+                componentLength += 2;
                 break;
             }
         default:
-            if (cchCur < cchMax) {
+            if (componentLength < maxComponentLength) {
                 __asm__ __volatile__("" : : : "memory");
-                unsigned char ch = *pch;
-                if ((unsigned char)(ch - 'A') < 26 || (unsigned char)(ch - '0') < 10)
-                    *pchOut = ch;
+                unsigned char c = *in;
+                if ((unsigned char)(c - 'A') < 26 || (unsigned char)(c - '0') < 10)
+                    *out = c;
                 else
-                    *pchOut = '_';
-                pchOut++;
-                cchCur++;
+                    *out = '_';
+                out++;
+                componentLength++;
             }
             break;
         }
     }
-    if (cchCur != 0) {
-        *pchOut = 0;
-        cpchz++;
+    if (componentLength != 0) {
+        *out = 0;
+        componentCount++;
     }
-    return cpchz;
+    return componentCount;
 }
 
 // 0x14B9B8: dead-code scrap (sly2/scrap.h)
@@ -120,11 +127,12 @@ SLY2_SCRAP("addiu $2, $2, 0xb8");
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
+// Returns whether the drive holds a PS2 DVD (disk type 0x14), caching the last disk type seen in D_002BD4C4.
 int FValidCdMmode()
 {
-    int cdt = sceCdGetDiskType();
-    if (D_002BD4C4 != cdt) {
-        D_002BD4C4 = cdt;
+    int diskType = sceCdGetDiskType();
+    if (D_002BD4C4 != diskType) {
+        D_002BD4C4 = diskType;
     }
     return D_002BD4C4 == 0x14;
 }
@@ -134,6 +142,7 @@ int FValidCdMmode()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
+// Puts the drive in DVD media mode (sceCdMmode(2)) if the last disc seen was a PS2 DVD.
 void SetCdMmode()
 {
     if (D_002BD4C4 == 0x14) {
@@ -146,21 +155,22 @@ void SetCdMmode()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/engine/overview.md#1-boot, docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
+// Boot step for the CD layer; empty in the retail build.
 void StartupCd()
 {
 }
 
-// UpdateCd (Claude agent, 2026-10-17): matched. Keys: `int lsn = D_002A2E5C; lsn += 0xCA0;` (fixes s0/s1), CRC table via a local `unsigned int *tbl` with a byte offset `(char *)tbl + (idx << 2)` (gives addu v0,t1,v0).
+// UpdateCd (Claude agent, 2026-10-17): matched. Keys: `int sector = D_002A2E5C; sector += 0xCA0;` (fixes s0/s1), CRC table via a local `unsigned int *table` with a byte offset `(char *)table + (idx << 2)` (gives addu v0,t1,v0).
 extern int D_002BD4C0;
 #undef D_003DD0E4
 #define D_003DD0E4 (*(int *)((char *)base_D_003DD040 + 0xA4))   /* the sound manager (SNDMGRG)+0xA4 */
 extern char D_003DA4F0[];
-static inline unsigned int UCrc(unsigned char *pb, int cb)
+static inline unsigned int UCrc(unsigned char *data, int size)
 {
-    unsigned int *tbl = (unsigned int *)D_002A2E68;
+    unsigned int *table = (unsigned int *)D_002A2E68;
     unsigned int crc = 0xFFFFFFFF;
-    while (cb--)
-        crc = *(unsigned int *)((char *)tbl + (((crc ^ *pb++) & 0xFF) << 2)) ^ (crc >> 8);
+    while (size--)
+        crc = *(unsigned int *)((char *)table + (((crc ^ *data++) & 0xFF) << 2)) ^ (crc >> 8);
     return crc;
 }
 
@@ -170,10 +180,15 @@ static inline unsigned int UCrc(unsigned char *pb, int cb)
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
  *   docs/engine/overview.md#2-the-frame-loop-exact-order, docs/formats/disc-records.md#2-the-read-path
  * @end-sly2-annot */
+// Per-frame disc-identity poll (state D_002BD4C0: 3 idle, 1 read, 2 wait). Idle: if the sound manager exists
+// and the disc is not a PS2 DVD, pause the disc users (func_001DD6C8 on D_003DA4F0, inferred) and go to read. Read: once
+// func_001DD780 allows it, start reading the identity sector (LSN 0x132AA3 + 0xCA0) into D_002DD680. Wait: when
+// the read completes, compare the sector's CRC-32 to the expected value; on a match resume them (func_001DD728) and go
+// idle, otherwise read again.
 void UpdateCd(void)
 {
-    int cds = D_002BD4C0;
-    switch (cds) {
+    int pollState = D_002BD4C0;
+    switch (pollState) {
     case 3:
         if (D_003DD0E4 && !FValidCdMmode()) {
             func_001DD6C8(D_003DA4F0);
@@ -182,9 +197,9 @@ void UpdateCd(void)
         break;
     case 1:
         if (func_001DD780(D_003DA4F0)) {
-            int lsn = D_002A2E5C;
-            lsn += 0xCA0;
-            if (FValidCdMmode() && sceCdRead(lsn, 1, D_002DD680, (void *)D_002A2E50) == cds)
+            int sector = D_002A2E5C;
+            sector += 0xCA0;
+            if (FValidCdMmode() && sceCdRead(sector, 1, D_002DD680, (void *)D_002A2E50) == pollState)
                 D_002BD4C0 = 2;
         }
         break;
@@ -223,19 +238,21 @@ extern const char r_D_002A4FC0[] __asm__("D_002A4FC0") = "    %#x = %s\n";
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
-void CdPath(char *pchzOut, char *pchzIn, int fCdrom)
+// Builds the device path for a game file: ISO-tokenizes `path`, rejoins the components with a backslash and
+// prefixes "cdrom0:" when useCdromPrefix is set (otherwise a bare "\PATH" for the host). Writes to `out`.
+void CdPath(char *out, char *path, int useCdromPrefix)
 {
-    char achPath[256];
-    int c;
+    char isoPath[256];
+    int componentCount;
     int i;
-    strcpy(achPath, "\\");
-    strcat(achPath, pchzIn);
-    c = CpchzTokenizePath(achPath);
-    char *pch = achPath;
-    for (i = 1; i < c; i++) {
-        pch[strlen(pch)] = '\\';
+    strcpy(isoPath, "\\");
+    strcat(isoPath, path);
+    componentCount = CpchzTokenizePath(isoPath);
+    char *joined = isoPath;
+    for (i = 1; i < componentCount; i++) {
+        joined[strlen(joined)] = '\\';
     }
-    sprintf(pchzOut, "%s\\%s", fCdrom ? "cdrom0:" : "", achPath);
+    sprintf(out, "%s\\%s", useCdromPrefix ? "cdrom0:" : "", isoPath);
 }
 
 /** @sly2-annot addr=0x14BC78
@@ -246,13 +263,16 @@ void CdPath(char *pchzOut, char *pchzIn, int fCdrom)
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd,
  *   docs/engine/core-library.md#7-key-functions, docs/formats/disc-records.md#2-the-read-path
  * @end-sly2-annot */
-extern "C" void ReadCdDirect(unsigned int lsn, unsigned int c, void *buf, int fMode)
+// Starts an asynchronous read of sectorCount sectors at `sector` into `buffer`, retrying until the drive
+// accepts the command (sceCdRead returns 1); readMode 1 selects spindle mode 0, anything else mode 1. Records the
+// last result and error in D_002DDE80 / D_002DDE84.
+extern "C" void ReadCdDirect(unsigned int sector, unsigned int sectorCount, void *buffer, int readMode)
 {
-    void *mode;
-    if (fMode == 1) mode = (void *)D_002A2E50;
-    else mode = (void *)D_002A2E58;
+    void *cdReadMode;
+    if (readMode == 1) cdReadMode = (void *)D_002A2E50;
+    else cdReadMode = (void *)D_002A2E58;
     do {
-        D_002DDE80 = sceCdRead(lsn, c, buf, mode);
+        D_002DDE80 = sceCdRead(sector, sectorCount, buffer, cdReadMode);
         if (D_002DDE80 == 1) break;
         sceCdSync(0);
         D_002DDE84 = sceCdGetError();
@@ -264,9 +284,10 @@ extern "C" void ReadCdDirect(unsigned int lsn, unsigned int c, void *buf, int fM
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#cd-0x14b7f8-0x14bea8
  * @end-sly2-annot */
-int FCdCompleted(int f)
+// Returns whether the pending CD command has completed (wait != 0 blocks until it has).
+int FCdCompleted(int wait)
 {
-    return sceCdSync(f == 0) == 0;
+    return sceCdSync(wait == 0) == 0;
 }
 
 /* cd's .rodata (address order): the two sceCdRMode read modes {trycount, spindlctrl, datapattern, pad}, the identity
