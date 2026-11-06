@@ -23,6 +23,11 @@
 #include "sly2/guard.h"
 #include "sly2/emitter.h"
 
+// The accessors call PemitbEnsure; its instances are emitted by engine/fx/emitter.cpp (explicit instantiations), so
+// they are not instantiated here too (g++'s `extern template`).
+extern template EMITB *PemitbEnsure(EMITTER *, ENSK);
+extern template EMITB *PemitbEnsure(EXPLO *, ENSK);
+
 #define SLY2_EOPID_REF(addr, pfn) __typeof__(pfn) g_eopidref_##addr = pfn;
 // The same for a template instance (g++ 2.95 cannot take __typeof__ of a template-id's address): the pointer type is
 // spelled out, and the template argument is deduced from it.
