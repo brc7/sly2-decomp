@@ -273,11 +273,11 @@ typedef char assert_BOMB_size[sizeof(BOMB) == 0x210 ? 1 : -1];
 struct BOOTY : SO
 {
     char pad150[0x190 - 0x150];
+    virtual void VUnk14() __asm__("PostBootyLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetBootyClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleBootyMessage");   /* slot 5 */
     virtual void Init() __asm__("InitBooty");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadBootyFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostBootyLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateBooty");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderBootySelf");   /* slot 19 */
     virtual void VUnk26(LO *plo) __asm__("func_0013BF30");   /* slot 27 */
@@ -1211,9 +1211,9 @@ typedef char assert_CID35_size[sizeof(CID35) == 0x180 ? 1 : -1];
 struct CID37 : CID35
 {
     char pad180[0x1A0 - 0x180];
+    virtual void VUnk14() __asm__("func_0013CEF8");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid37ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_0013CEB8");   /* slot 7 */
-    virtual void VUnk14() __asm__("func_0013CEF8");   /* slot 15 */
     virtual void Unfreeze() __asm__("func_0013CFD8");   /* slot 23 */
     virtual void VSlot51() __asm__("func_0013D020");   /* slot 51 */
 };
