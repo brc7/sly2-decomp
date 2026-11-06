@@ -77,8 +77,8 @@ typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
    SHRAPNEL are the Sly 1 symbols' class names. Fields: only the two words a GLINT/RIPT1 body reads (RIPF). */
 struct RIPF : RIP
 {
-    LO *followObject;          /* +0xF0 */
-    int spawnCount;             /* +0xF4 */
+    LO *followObject;          /* +0xF0 (GLINT) */
+    int nextRenderObject;       /* +0xF4 (RIPT1): the EMITB's next-render object, what the rip leaves on touching */
 };
 struct FLYING : RIP   /* RIPT 3 */
 {
@@ -698,17 +698,18 @@ struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
 namespace M_InitRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a, b, c; };
-struct RIP { char pad[0x14]; float startTime; float duration; int followObject1C; float scale; char pad2[0xC]; qword alpha; struct M3 m; qword currentPosition; qword previousPosition; char pad3[0x50]; int unknownE0; };
+struct RIP { char pad[0x14]; float startTime; float duration; int renderObject; float scale; char pad2[0xC]; qword alpha; struct M3 m; qword currentPosition; qword previousPosition; char pad3[0x50]; int touchObject; };
 extern float D_002DDED0;
 extern qword D_002C1F50;
 extern struct M3 D_002A2D00;
-// RIP default Init (vt entry 1): tCreated=g_clock.t, scale=1, pos/posPrev, identity matrix.
+// RIP default Init (vt entry 1): touch object, 1 s life starting now, initial scale, default alpha curve, both
+// positions at `pos`, identity orientation.
 } } // namespace M_InitRip
 void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here (the namespace's views) */
 {
     using namespace M_InitRip;
     M_InitRip::RIP *p = (M_InitRip::RIP *)this;
-    /*B*/p->unknownE0 = n;
+    /*B*/p->touchObject = n;
     p->duration = 1.0f;
     p->startTime = D_002DDED0;
     p->scale = g;
@@ -1604,17 +1605,17 @@ namespace M_InitMatch__FP5MATCHP6VECTORfP2SO {
 typedef int qword __attribute__((mode(TI)));
 struct VECTOR;
 struct SO;
-struct MATCH { char pad[0x20]; float g20; float g24; int n28; int pad2; qword q30; };
+struct MATCH { char pad[0x20]; float scaleStart; float scaleSlope; int scaleCurve; int pad2; qword alpha; };
 extern "C" { extern qword D_002BBB50; }
 extern "C" void InitRip(MATCH *p, VECTOR *pv, float g, SO *pso);
-// MATCH (RIPT 6) Init.
+// MATCH (RIPT 6) Init: base init, then the scale curve g + (1 - g) t (grows to full size) and the default alpha.
 extern "C" void InitMatch__FP5MATCHP6VECTORfP2SO(MATCH *pmatch, VECTOR *pv, float g, SO *pso)
 {
     InitRip(pmatch, pv, g, pso);
-    pmatch->q30 = D_002BBB50;
-    pmatch->g20 = g;
-    pmatch->g24 = 1.0f - g;
-    pmatch->n28 = 0;
+    pmatch->alpha = D_002BBB50;
+    pmatch->scaleStart = g;
+    pmatch->scaleSlope = 1.0f - g;
+    pmatch->scaleCurve = 0;
 }
 } // namespace M_InitMatch__FP5MATCHP6VECTORfP2SO
 
@@ -1626,10 +1627,10 @@ union U { qword q; float g; };
 struct LO;
 struct LOV { int pad[18]; short d9; short p9; void (*pfn9)(LO *); };
 struct LO { int a[3]; LOV *pvt; };
-struct X { char pad[0x60]; void *p60; };
+struct X { char pad[0x60]; void *motion; };   /* the render object: its motion record (LoadIdentityMatrix4) */
 struct S {
     char pad[0x18]; float dt; X *px;
-    char pad2[0x40 - 0x20]; MAT3 mat; qword pos; qword x80; qword v; qword a;
+    char pad2[0x40 - 0x20]; MAT3 mat; qword pos; qword previousPos; qword v; qword a;
     char pad3[0xF0 - 0xB0]; qword axis; float rad; LO *plo;
 };
 extern "C" {
@@ -1656,7 +1657,7 @@ void LaunchMatch__FP5MATCH(S *p)
     qword d, s1, s2;
     p->pos = func_001A62E8(p->plo);
     p->mat = *func_001A6318(p->plo);
-    LoadIdentityMatrix4(p->px->p60, 0, &m4, 0, p->dt);
+    LoadIdentityMatrix4(p->px->motion, 0, &m4, 0, p->dt);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(m4.a[3]), "j"(p->pos));
     s1 = Bc(1.0f / p->dt);
     s2 = Bc(p->dt * -0.5f);
@@ -1748,18 +1749,19 @@ namespace M_UpdateMatch { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; };
 extern struct CLOCK { float t; } D_002DDED0;
-struct S { char p0[0x14]; float g14; float g18; struct O *po; char p1[0x104-0x20]; int f104; };
+struct S { char p0[0x14]; float startTime; float duration; struct O *renderObject; char p1[0x104-0x20]; int shouldLaunch; };
 void LaunchMatch__FP5MATCH(struct S *p);
 void RemoveRip__FP3RIP(struct S *p);
-// MATCH Update: LaunchMatch / RemoveRip.
+// MATCH Update: launches once its start time has come (when it should), and at the end of its life notifies the
+// render object (vtable slot 8) and removes itself.
 } } // namespace M_UpdateMatch
 void MATCH::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateMatch;
     M_UpdateMatch::S *p = (M_UpdateMatch::S *)this;
-    if (D_002DDED0.t >= p->g14 && p->f104) LaunchMatch__FP5MATCH(p);
-    if (D_002DDED0.t - p->g14 > p->g18) {
-        struct O *po = p->po;
+    if (D_002DDED0.t >= p->startTime && p->shouldLaunch) LaunchMatch__FP5MATCH(p);
+    if (D_002DDED0.t - p->startTime > p->duration) {
+        struct O *po = p->renderObject;
         struct VTE *e = &po->vt[8];
         ((void (*)(void *))e->pfn)((char *)po + e->d);
         RemoveRip__FP3RIP(p);
@@ -1768,11 +1770,11 @@ void MATCH::Update(float dt)   /* key function (the namespace's views) */
 
 namespace M_RenderMatch { extern "C" {
 extern struct CLOCK { float t; } D_002DDED0;
-struct S { char pad[0x14]; float g14; };
+struct S { char pad[0x14]; float startTime; };
 void RenderRip(struct S *p);
 // MATCH Render: wraps RenderRip. (inferred)
 void RenderMatch(struct S *p) {
-    if (D_002DDED0.t < p->g14) return;
+    if (D_002DDED0.t < p->startTime) return;
     RenderRip(p);
 }
 } } // namespace M_RenderMatch
@@ -1875,51 +1877,52 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct { float x, y, z; } V3;
 typedef struct {
     char pad0[0x20];
-    float x20[3];
+    float spinMin[3];       /* +0x20 */
     char pad2c[4];
-    float x30[3];
+    float spinMax[3];       /* +0x30 */
     char pad3c[0x50 - 0x3C];
-    qword x50;
-} DEF;
+    qword scale;            /* +0x50 the smack's scale curve */
+} DEF;   /* the SMACK's definition record (inferred) */
 typedef struct {
     char pad0[0x18];
-    float x18;
+    float duration;
     char pad1c[4];
-    qword x20;
-    qword x30;
+    qword scale;
+    qword alpha;
     char pad40[0x90 - 0x40];
-    V3 x90;
+    V3 velocity;
     char pad9c[0xF0 - 0x9C];
-    DEF *xF0;
+    DEF *def;
     char padf4[0x100 - 0xF4];
-    qword x100;
-} OBJ;
+    qword screenPos;        /* position in screen space */
+} OBJ;   /* SMACK */
 extern char D_002DDF40[];
 extern float D_002C2000;
 extern qword D_002BBB50;
 void InitRip(OBJ *, qword);
 qword ConvertCmWorldToScreen(void *, qword);
 float GRandInRange__Fff(float, float);
-// SMACK (RIPT 9) Init.
+// SMACK (RIPT 9) Init: base init, its position converted to screen space, a random velocity between the
+// definition's bounds, fixed duration, default alpha and the definition's scale curve.
 void InitSmack(OBJ *p, qword q)
 {
     DEF *d;
     float x, y;
     InitRip(p, q);
-    d = p->xF0;
-    p->x100 = ConvertCmWorldToScreen(D_002DDF40, q);
-    x = GRandInRange__Fff(d->x20[0], d->x30[0]);
-    y = GRandInRange__Fff(d->x20[1], d->x30[1]);
+    d = p->def;
+    p->screenPos = ConvertCmWorldToScreen(D_002DDF40, q);
+    x = GRandInRange__Fff(d->spinMin[0], d->spinMax[0]);
+    y = GRandInRange__Fff(d->spinMin[1], d->spinMax[1]);
     {
-        float z = GRandInRange__Fff(d->x20[2], d->x30[2]);
-        V3 *v = &p->x90;
+        float z = GRandInRange__Fff(d->spinMin[2], d->spinMax[2]);
+        V3 *v = &p->velocity;
         v->x = x;
         v->y = y;
         v->z = z;
     }
-    p->x18 = D_002C2000;
-    p->x30 = D_002BBB50;
-    p->x20 = d->x50;
+    p->duration = D_002C2000;
+    p->alpha = D_002BBB50;
+    p->scale = d->scale;
 }
 } } // namespace M_InitSmack
 
@@ -1930,26 +1933,27 @@ extern char D_002DDF40[];
 typedef struct { qword a; qword b; } Q2;
 typedef struct {
     char pad0[0x14];
-    float x14;
-    float x18;
+    float startTime;
+    float duration;
     char pad1c[0x70 - 0x1C];
-    qword x70;
-    qword x80;
-    qword x90;
+    qword position;
+    qword previousPosition;
+    qword velocity;
     char pada0[0xF0 - 0xA0];
-    Q2 *xF0;
+    Q2 *def;                /* the definition: Bezier end point / tangent (inferred) */
     char padf4[0x100 - 0xF4];
-    qword x100;
-} OBJ;
+    qword screenPos;
+} OBJ;   /* SMACK */
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, int);
 qword ConvertCmScreenToWorld(void *, qword);
 static inline float GMax(float a, float b) { return a < b ? b : a; }
-// SMACK Project.
+// SMACK Project: moves along a Bezier in screen space toward the definition's target, arriving at the end of its life,
+// and converts back to world space.
 void ProjectSmackTransform(OBJ *p)
 {
-    EvaluateBezierPos(GMax(p->x14 + p->x18 - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->x100, p->x90, p->xF0->a, p->xF0->b, &p->x100, &p->x90, 0);
-    p->x80 = p->x70;
-    p->x70 = ConvertCmScreenToWorld(D_002DDF40, p->x100);
+    EvaluateBezierPos(GMax(p->startTime + p->duration - D_002DDED0.t, D_002DDED0.dt), D_002DDED0.dt, 1.0f, p->screenPos, p->velocity, p->def->a, p->def->b, &p->screenPos, &p->velocity, 0);
+    p->previousPosition = p->position;
+    p->position = ConvertCmScreenToWorld(D_002DDF40, p->screenPos);
 }
 } } // namespace M_ProjectSmackTransform
 
@@ -1998,23 +2002,23 @@ typedef void (C::*PMF)(void *);
 struct D { char pad[0x60]; PMF pmf; };
 struct OBJ {
     char pad0[0x14];
-    float x14;
-    float x18;
+    float startTime;
+    float duration;
     char pad1c[0xF0 - 0x1C];
-    D *xF0;
-    C *xF4;
-    void *xF8;
-};
+    D *def;                 /* its +0x60: the member function to call when done */
+    C *target;
+    void *argument;
+};   /* SMACK */
 extern "C" void RemoveRip__FP3RIP(OBJ *);
-// SMACK Update (RemoveRip when done)
+// SMACK Update: at the end of its life calls the definition's completion member on the target, then removes itself.
 } // namespace M_UpdateSmack
 void SMACK::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateSmack;
     M_UpdateSmack::OBJ *p = (M_UpdateSmack::OBJ *)this;
-    if (p->x18 < D_002DDED0.t - p->x14) {
-        PMF pmf = p->xF0->pmf;
-        (p->xF4->*pmf)(p->xF8);
+    if (p->duration < D_002DDED0.t - p->startTime) {
+        PMF pmf = p->def->pmf;
+        (p->target->*pmf)(p->argument);
         RemoveRip__FP3RIP(p);
     }
 }
@@ -2026,7 +2030,7 @@ typedef struct { float x, y, z; } __attribute__((aligned(16))) VECTOR;
 typedef struct { float mat[3][4]; } __attribute__((aligned(16))) MATRIX3;
 typedef struct {
     char pad0[0x40];
-    MATRIX3 x40;
+    MATRIX3 orientation;
 } OBJ;
 extern "C" void PostRipEmit(OBJ *);
 extern "C" float GRandInRange__Fff(float, float);
@@ -2049,7 +2053,7 @@ void LEAF::PostEmit(void *pv)   /* key function (the namespace's views) */
     v.x = x;
     v.y = y;
     v.z = z + 0.1f;
-    p->x40 = MakeBasis(*(M_PostLeafEmit::qword *)&v);
+    p->orientation = MakeBasis(*(M_PostLeafEmit::qword *)&v);
 }
 
 namespace M_ProjectLeafTransform {
@@ -2173,24 +2177,25 @@ extern "C" void ProjectLeafTransform(P *p)
 namespace M_StickLeafOnBounce { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { qword a[3]; } M3;
-typedef struct { void *x0; void *x4; } S;
-typedef struct { char pad[0x40]; M3 m; } R;
-typedef struct { char pad[0x1C]; void *x1C; } OBJ;
+typedef struct { void *hitObject; void *hitBody; } S;   /* the bounce contact */
+typedef struct { char pad[0x40]; M3 orientation; } R;   /* the new STUCK */
+typedef struct { char pad[0x1C]; void *renderObject; } OBJ;   /* the LEAF */
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 R *CreateStuck(OBJ *, void *, void *, qword, qword);
 void ConvertAloMat(M3 *, int, void *, M3 *);
 void RemoveRip__FP3RIP(OBJ *);
-// LEAF FBounce: CreateStuck/RemoveRip on contact. (inferred)
+// LEAF FBounce: unless it hit a CID 0x33 body, sticks a copy (its own render object) to the hit object, with the
+// orientation taken into the hit body's space, and removes the leaf.
 int StickLeafOnBounce(OBJ *p, S *s, qword a, qword b)
 {
-    R *r;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(s->x4, 0x33))
+    R *stuck;
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(s->hitBody, 0x33))
         return 0;
-    r = CreateStuck(p, p->x1C, s->x0, a, b);
-    if (r) {
+    stuck = CreateStuck(p, p->renderObject, s->hitObject, a, b);
+    if (stuck) {
         M3 m;
-        ConvertAloMat(&m, 0, s->x4, &r->m);
-        r->m = m;
+        ConvertAloMat(&m, 0, s->hitBody, &stuck->orientation);
+        stuck->orientation = m;
     }
     RemoveRip__FP3RIP(p);
     return 1;
@@ -2214,7 +2219,7 @@ extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
     void *pvEmit;
     PostRipEmit(prip, pv);
     pvEmit = *(void **)((char *)pv + 8);
-    prip->spawnCount = *(int *)((char *)pvEmit + 0xC);
+    prip->nextRenderObject = *(int *)((char *)pvEmit + 0xC);   /* EMITB resolved objects [3] */
     return pvEmit;
 }
 
@@ -2223,52 +2228,54 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct VT { struct { short d; short pad; void (*pfn)(void *, float, qword, int); } a[4]; } VT;
 typedef struct {
     char pad[0x18];
-    float x18;
-    int x1C;
-    float x20;
-    float x24;
+    float duration;
+    int renderObject;
+    float scaleStart;
+    float scaleSlope;
     char pad28[0xEC - 0x28];
     VT *vt;
 } EMIT;
-typedef struct { char pad[0xE0]; int c; char *a; } Q;
+typedef struct { char pad[0xE0]; int numEdges; char *edges; } Q;   /* the touch object: its 0xB0-byte collision records (inferred) */
 typedef struct {
     char pad[0x70];
-    qword x70;
-    qword x80;
+    qword position;
+    qword previousPosition;
     char pad90[0xE0 - 0x90];
-    Q *q;
+    Q *q;                   /* +0xE0 touch object */
     char pade4[0xF4 - 0xE4];
-    int xF4;
+    int nextRenderObject;
 } OBJ;
 extern struct G D_003DD490;
 typedef struct { qword pos; char rest[0x50]; } HIT;
 int ClsgClipEdgeToObject(void *, qword, qword, int, HIT *);
 EMIT *PripNewRipg(struct G *, int, int);
 void TouchRip__FP3RIPi(OBJ *, int);
-// RIPT 1 Update: periodically spawns child rips (PripNewRipg) and touches/ends itself. (inferred)
-void UpdateRipt1(OBJ *p, int n)
+// RIPT 1 Touch (vtable slot 7): on touching, when it has a next-render object, finds where its last step crossed
+// the touch object (ClsgClipEdgeToObject; else its current position) and spawns a ripple (kind 7) there with that
+// render object; then the base TouchRip.
+void UpdateRipt1(OBJ *p, int isTouching)
 {
     HIT hit;
     int i;
-    EMIT *pe;
-    if (n == 0 || p->xF4 == 0)
+    EMIT *ripple;
+    if (isTouching == 0 || p->nextRenderObject == 0)
         goto done;
-    hit.pos = p->x70;
-    for (i = 0; i < p->q->c; i++) {
-        if (ClsgClipEdgeToObject(p->q->a + i * 0xB0, p->x80, p->x70, 1, &hit))
+    hit.pos = p->position;
+    for (i = 0; i < p->q->numEdges; i++) {
+        if (ClsgClipEdgeToObject(p->q->edges + i * 0xB0, p->previousPosition, p->position, 1, &hit))
             goto found;
     }
 found:
-    pe = PripNewRipg(&D_003DD490, 7, 0);
-    if (pe) {
-        pe->vt->a[1].pfn((char *)pe + pe->vt->a[1].d, 40.0f, hit.pos, 0);
-        pe->x18 = 0.75f;
-        pe->x20 = 40.0f;
-        pe->x24 = 30.0f;
-        pe->x1C = p->xF4;
+    ripple = PripNewRipg(&D_003DD490, 7, 0);
+    if (ripple) {
+        ripple->vt->a[1].pfn((char *)ripple + ripple->vt->a[1].d, 40.0f, hit.pos, 0);
+        ripple->duration = 0.75f;
+        ripple->scaleStart = 40.0f;
+        ripple->scaleSlope = 30.0f;
+        ripple->renderObject = p->nextRenderObject;
     }
 done:
-    TouchRip__FP3RIPi(p, n);
+    TouchRip__FP3RIPi(p, isTouching);
 }
 } } // namespace M_UpdateRipt1
 
@@ -2278,12 +2285,12 @@ union U { qword q; float a[4]; };
 struct S {
     char pad[0x20]; float scale;
     char pad2[0xA0 - 0x24]; qword acceleration;
-    char pad3[0xC4 - 0xB0]; float fC4;
+    char pad3[0xC4 - 0xB0]; float damping;
 };
 extern qword D_002C1F40;
 extern void InitRip(struct S *);
 
-// RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, accel -8. (inferred)
+// RIPT 0 Init: InitRip, scale 0.33, v = -0.2*D_002C1F40, damping -8.
 void InitBublet(struct S *p)
 {
     union U u;
@@ -2294,7 +2301,7 @@ void InitBublet(struct S *p)
     u.q = k;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(D_002C1F40), "j"(k));
     p->acceleration = r;
-    p->fC4 = -8.0f;
+    p->damping = -8.0f;
 }
 } } // namespace M_InitBublet
 
@@ -2430,51 +2437,52 @@ void RIPT0::Touch(int f)   /* key function: RIPT0's vtable comes out here */
 }
 
 namespace M_PostRemitEmit { extern "C" {
-struct O { char p0[8]; int *pn; char p1[0xF0-0xC]; int oid; float gF4; };
+struct O { char p0[8]; int *refs; char p1[0xF0-0xC]; int expls; float rate; };   /* the REMIT, and the EMITB (refs; +0xF0 the EXPLS OID, +0xF4 rate) */
 extern struct G D_003DD490;
 void PostRipEmit(struct O *p, struct O *q);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int oid, int n);
-// REMIT (RIPT 2) PostEmit: resolve target emitter oid via SW lookup, copy rate. (inferred)
+// REMIT (RIPT 2) PostEmit: finds the explosion it re-emits (by OID, near the reference object) and copies the rate.
 void PostRemitEmit(struct O *p, struct O *q) {
     PostRipEmit(p, q);
-    p->oid = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->oid, *q->pn);
-    p->gF4 = q->gF4;
+    p->expls = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, q->expls, *q->refs);
+    p->rate = q->rate;
 }
 } } // namespace M_PostRemitEmit
 
 namespace M_UpdateRemit { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 extern struct { float t; float dt; } D_002DDED0;
-typedef struct { int k; int pad[7]; qword q; int pad2[4]; } MSG;
+typedef struct { int flags; int pad[7]; qword origin; int pad2[4]; } MSG;   /* EXPLSO */
 struct TGT;
 typedef struct { short d; short pad; void (*pf)(struct TGT *, MSG *); } VTE;
 typedef struct TGT { char pad[0xC]; VTE *vt; } TGT;
 typedef struct {
     char pad0[0x70];
-    qword x70;
+    qword position;
     char pad80[0xF0 - 0x80];
-    TGT *xF0;
-    float xF4;
-    float xF8;
-} OBJ;
+    TGT *expls;
+    float rate;             /* explosions per second */
+    float accumulated;
+} OBJ;   /* REMIT */
 void UpdateRip(OBJ *);
-// REMIT Update: UpdateRip; accumulate rate*dt and send emit message (4) with position to target. (inferred)
+// REMIT Update: base update, then explodes its EXPLS (slot 51) at its position `rate` times per second (the EXPLSO
+// with only the origin set).
 } } // namespace M_UpdateRemit
 void REMIT::Update(float dt)   /* key function (the namespace's views) */
 {
     using namespace M_UpdateRemit;
     M_UpdateRemit::OBJ *p = (M_UpdateRemit::OBJ *)this;
     UpdateRip(p);
-    if (p->xF0) {
-        p->xF8 += D_002DDED0.dt * p->xF4;
-        while (p->xF8 >= 1.0f) {
+    if (p->expls) {
+        p->accumulated += D_002DDED0.dt * p->rate;
+        while (p->accumulated >= 1.0f) {
             MSG m;
             TGT *t;
-            m.k = 4;
-            m.q = p->x70;
-            t = p->xF0;
+            m.flags = 4;   /* EXPLSO has origin */
+            m.origin = p->position;
+            t = p->expls;
             t->vt[51].pf((TGT *)((char *)t + t->vt[51].d), &m);
-            p->xF8 -= 1.0f;
+            p->accumulated -= 1.0f;
         }
     }
 }
