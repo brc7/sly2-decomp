@@ -156,62 +156,65 @@ void TouchRip(RIP *prip, int fRemove);
 
 namespace M_PripgNew { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
-struct O { int x0; int x4; int x8; struct VTE *vt; char p1[0x80 - 0x10]; char x80[0xD0]; int x150; };
-struct G { char pad[0x403C]; char pool[0x30]; struct O *x406C; };
+struct O { int basic0; int basic4; int basic8; struct VTE *vt; char p1[0x80 - 0x10]; char globset[0xD0]; int groupKind; };   /* RIPG */
+struct G { char pad[0x403C]; char pool[0x30]; struct O *defaultRipGroup; };   /* SW: the RIPG slot pool and the shared kind-0 group */
 extern struct VTE D_002D9978[] __asm__("_vt$2SO");
 extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
 void *PvAllocSlotheapClear(void *pool);
-void *func_002333B4(void *p, int c, int cb) __asm__("memset");
+void *func_002333B4(void *sw, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
-void *PdlFromSwCid(struct G *p, int n);
+void *PdlFromSwCid(struct G *sw, int n);
 void func_0011A070(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
-// Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool (+0x403C), zero it,
-// construct (CRef), add to world. (inferred)
-struct O *PripgNew(struct G *p, int a)
+// Returns kind rip group of the given kind: kind 0 is one shared group per world (created on first use), any other
+// kind kind new one: taken from the SW's RIPG pool, zeroed, constructed as an SO then kind RIPG (its GLOBSET included),
+// linked into the class list (CID 0x57) and initialized / added through vtable slots 7, 11 and 15.
+struct O *PripgNew(struct G *sw, int kind)
 {
-    struct O *po;
-    if (!a && p->x406C) return p->x406C;
-    po = (__typeof__(po))PvAllocSlotheapClear(p->pool);
-    if (!po) return 0;
-    func_002333B4(po, 0, 0x1B0);
-    po->x0 = 0;
-    po->x4 = 0;
-    po->vt = D_002D9978;
-    ConstructGlobset(po->x80);
-    po->x150 = a;
-    po->vt = D_002D77D8;
-    func_0011A070(PdlFromSwCid(p, 0x57), po);
-    VCALL0(po, 7);
-    VCALL0(po, 11);
-    VCALL0(po, 15);
-    if (!a) p->x406C = po;
-    return po;
+    struct O *ripGroup;
+    if (!kind && sw->defaultRipGroup) return sw->defaultRipGroup;
+    ripGroup = (__typeof__(ripGroup))PvAllocSlotheapClear(sw->pool);
+    if (!ripGroup) return 0;
+    func_002333B4(ripGroup, 0, 0x1B0);
+    ripGroup->basic0 = 0;
+    ripGroup->basic4 = 0;
+    ripGroup->vt = D_002D9978;
+    ConstructGlobset(ripGroup->globset);
+    ripGroup->groupKind = kind;
+    ripGroup->vt = D_002D77D8;
+    func_0011A070(PdlFromSwCid(sw, 0x57), ripGroup);
+    VCALL0(ripGroup, 7);
+    VCALL0(ripGroup, 11);
+    VCALL0(ripGroup, 15);
+    if (!kind) sw->defaultRipGroup = ripGroup;
+    return ripGroup;
 }
 } } // namespace M_PripgNew
 #undef VCALL0
 
 namespace M_InitRipg__FP4RIPG { extern "C" {
-struct S { char p0[0x40]; int x40; char p1[0x148 - 0x44]; unsigned long x148; int x150; char p2[0x15C - 0x154]; char dl[4]; };
-void InitSo(struct S *p);
+struct S { char p0[0x40]; int flags40; char p1[0x148 - 0x44]; unsigned long renderFlags; int groupKind; char p2[0x15C - 0x154]; char ripList[4]; };   /* RIPG */
+void InitSo(struct S *ripGroup);
 void InitDl__FP2DLi(void *pdl, int n);
-void SetLoBusyk(struct S *p, int n);
-void func_001F27F0(struct S *p);
-void func_001F6860(struct S *p, int n);
-static inline int FPtr(int v) { return !(v & 1); }
-// RIPG::Init (vt slot 7): InitSo + init rip DL (+0x15C ib 0xC) + flags.
-void InitRipg__FP4RIPG(struct S *p)
+void SetLoBusyk(struct S *ripGroup, int n);
+void func_001F27F0(struct S *ripGroup);
+void func_001F6860(struct S *ripGroup, int n);
+static inline int FPtr(int flags) { return !(flags & 1); }
+// RIPG::Init (vt slot 7): InitSo, an empty rip list (linked at RIP+0xC), busy level 1, LO flag bits 1-3 set and
+// render flag bit 35 cleared; a kind-1 group also gets func_001F27F0 / func_001F6860(.., 1) (inferred: its own
+// world registration).
+void InitRipg__FP4RIPG(struct S *ripGroup)
 {
-    int v;
-    InitSo(p);
-    InitDl__FP2DLi(p->dl, 0xC);
-    SetLoBusyk(p, 1);
-    v = p->x40;
-    if (FPtr(v)) *(int *)v = (*(int *)v & 1) | 0xE; else p->x40 = (v & 1) | 0xE;
-    p->x148 &= ~(1UL << 35);
-    if (p->x150 == 1) {
-        func_001F27F0(p);
-        func_001F6860(p, 1);
+    int flags;
+    InitSo(ripGroup);
+    InitDl__FP2DLi(ripGroup->ripList, 0xC);
+    SetLoBusyk(ripGroup, 1);
+    flags = ripGroup->flags40;
+    if (FPtr(flags)) *(int *)flags = (*(int *)flags & 1) | 0xE; else ripGroup->flags40 = (flags & 1) | 0xE;
+    ripGroup->renderFlags &= ~(1UL << 35);
+    if (ripGroup->groupKind == 1) {
+        func_001F27F0(ripGroup);
+        func_001F6860(ripGroup, 1);
     }
 }
 } } // namespace M_InitRipg__FP4RIPG
@@ -228,11 +231,11 @@ struct DL { void *head; void *tail; int ibDle; };
 struct DLI { DL *m_pdl; void **m_ppv; int m_ibDle; DLI *m_pdliNext; };
 extern "C" { extern DLI *D_002DD2FC; }
 struct RIP;
-struct RIPGV { char pad[0x10]; int x10; char p1[0xEC - 0x14]; void *xEC; char p2[0x15C - 0xF0]; DL dl; };
-struct SW { char pad[0x403C]; char pool[0x30]; RIPGV *x406C; };
+struct RIPGV { char pad[0x10]; int psoParent; char p1[0xEC - 0x14]; void *aaobrEntry; char p2[0x15C - 0xF0]; DL dl; };
+struct SW { char pad[0x403C]; char pool[0x30]; RIPGV *defaultRipGroup; };
 extern "C" { extern SW D_003DD490; }
 extern "C" {
-void RemoveRip__FP3RIP(RIP *prip);
+void RemoveRip__FP3RIP(RIP *rip);
 void RemoveSoHierarchy(RIPGV *p);
 void RemoveSwAaobrObject(SW *psw, void *pv);
 void SnipLo(RIPGV *p);
@@ -255,24 +258,26 @@ static inline void *PvNextDli(DLI *pdli)
     pdli->m_ppv = (void **)((char *)pv + pdli->m_ibDle);
     return pv;
 }
-// RIPG vt slot 12 (OnRemove): release rips / clear SW default RIPG.
+// RIPG vt slot 12 (OnRemove): removes every rip, forgets the group if it is the world's shared one, takes it out of
+// the hierarchy, the SW's AAOBR (bounds) table and the class list, frees its LO root when unparented and returns it
+// to the pool.
 extern "C" void OnRipgRemove__FP4RIPG(RIPGV *ripGroup)
 {
     DLI dli;
-    RIP *prip;
+    RIP *rip;
     SW *psw;
     InitDli(&dli, &ripGroup->dl);
-    while ((prip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(prip);
+    while ((rip = (RIP *)PvNextDli(&dli)) != 0) RemoveRip__FP3RIP(rip);
     psw = &D_003DD490;
-    if (ripGroup == psw->x406C) psw->x406C = 0;
+    if (ripGroup == psw->defaultRipGroup) psw->defaultRipGroup = 0;
     RemoveSoHierarchy(ripGroup);
-    if (ripGroup->xEC) {
-        RemoveSwAaobrObject(psw, ripGroup->xEC);
-        ripGroup->xEC = 0;
+    if (ripGroup->aaobrEntry) {
+        RemoveSwAaobrObject(psw, ripGroup->aaobrEntry);
+        ripGroup->aaobrEntry = 0;
     }
     SnipLo(ripGroup);
     RemoveSlEntry(PdlFromSwCid(psw, 0x57), ripGroup);
-    if (!ripGroup->x10) FreeLoroot(ripGroup);
+    if (!ripGroup->psoParent) FreeLoroot(ripGroup);
     func_0011CD98(psw->pool, ripGroup);
     D_002DD2FC = dli.m_pdliNext;
 }
@@ -1198,28 +1203,30 @@ namespace M_UpdateRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
-struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long x28; char p2[0xE8 - 0x30]; int xE8; };
-struct G { char pad[0x150]; int x150; };
+struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long loBits; char p2[0xE8 - 0x30]; int unknownE8; };   /* loBits bit 60: LO::fInWorld */
+struct G { char pad[0x150]; int groupKind; };
 struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float startTime; float duration; char p1[0x70 - 0x1C]; qword currentPosition;
-    char p2[0xE0 - 0x80]; struct LO *unknownE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
+    char p2[0xE0 - 0x80]; struct LO *touchObject; char p3[0xEC - 0xE4]; struct VTE *vt; };
 void RemoveRip__FP3RIP(struct S *p);
-// RIP default Update (vt entry 5): fade/age and RemoveRip when expired. (inferred)
+// RIP default Update (vt entry 5): removes the rip when its life is over; otherwise (not in a kind-1 group) tests it
+// against its touch object (when that is in the world, through the object's point test, vtable slot 73) and
+// reports the result to Touch (slot 7).
 void UpdateRip(struct S *p)
 {
-    struct LO *plo;
-    int f;
+    struct LO *touch;
+    int isInside;
     if (D_002DDED0.t - p->startTime > p->duration) {
         RemoveRip__FP3RIP(p);
         return;
     }
-    if (p->pg->x150 == 1) return;
-    plo = p->unknownE0;
-    if (!plo) return;
-    if (!plo->xE8) return;
-    f = 0;
-    if ((int)(plo->x28 >> 60) & 1)
-        if (((int (*)(void *, qword))plo->vt[73].pf)((char *)plo + plo->vt[73].d, p->currentPosition)) f = 1;
-    ((void (*)(void *, int))p->vt[7].pf)((char *)p + p->vt[7].d, f);
+    if (p->pg->groupKind == 1) return;
+    touch = p->touchObject;
+    if (!touch) return;
+    if (!touch->unknownE8) return;
+    isInside = 0;
+    if ((int)(touch->loBits >> 60) & 1)
+        if (((int (*)(void *, qword))touch->vt[73].pf)((char *)touch + touch->vt[73].d, p->currentPosition)) isInside = 1;
+    ((void (*)(void *, int))p->vt[7].pf)((char *)p + p->vt[7].d, isInside);
 }
 } } // namespace M_UpdateRip
 
@@ -1271,7 +1278,7 @@ int FRenderRipPosMat(S*p,qword pos,const M3&mat)
 namespace M_RenderRip {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
-struct S { char pad[0x40]; M m; qword q70; };
+struct S { char pad[0x40]; M orientation; qword position; };   /* RIP */
 extern "C" {
 int FRenderRipPosMat(S *p, qword q, M m);
 void RemoveRip__FP3RIP(S *p);
@@ -1280,7 +1287,7 @@ void RenderRip(S *p);
 // RIP default Render (vt entry 6): FRenderRipPosMat, else RemoveRip.
 void RenderRip(S *p)
 {
-    if (!FRenderRipPosMat(p, p->q70, p->m)) RemoveRip__FP3RIP(p);
+    if (!FRenderRipPosMat(p, p->position, p->orientation)) RemoveRip__FP3RIP(p);
 }
 } // namespace M_RenderRip
 
@@ -1308,23 +1315,24 @@ extern "C" int GetMaxRipSize()
 }
 
 namespace M_PostFlyingEmit { extern "C" {
-struct B { int a[3]; int c; };
-struct S { int a[2]; struct B *pb; char pad[0xE4]; int f0; int f4; };
-void PostRipEmit(struct S *a, struct S *b);
-// FLYING (Sly2 RIPT 3) PostEmit: base PostRipEmit + setup. (inferred)
-void PostFlyingEmit(struct S *a, struct S *b)
+struct B { int reference, shape, render, nextRender; };   /* EMITB+0x08: the resolved objects */
+struct S { int rip[2]; struct B *pb; char pad[0xE4]; int stuckVisual; int facesCamera; };   /* the rip (+0xF0) and the EMITB (+0xF0) */
+void PostRipEmit(struct S *rip, struct S *emitb);
+// FLYING (RIPT 3) PostEmit: base PostRipEmit, then the object it becomes when it sticks (the EMITB's next-render
+// object) and its camera-facing flag.
+void PostFlyingEmit(struct S *rip, struct S *emitb)
 {
-    PostRipEmit(a, b);
-    a->f0 = b->pb->c;
-    a->f4 = b->f0;
+    PostRipEmit(rip, emitb);
+    rip->stuckVisual = emitb->pb->nextRender;
+    rip->facesCamera = emitb->stuckVisual;   /* EMITB+0xF0 */
 }
 } } // namespace M_PostFlyingEmit
 
 namespace M_RenderFlying {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
-struct S { char pad[0x70]; qword q70; char p1[0x90 - 0x80]; qword q90; char p2[0xF4 - 0xA0]; int f; };
-struct G { char pad[0x60]; qword q60; };
+struct S { char pad[0x70]; qword position; char p1[0x90 - 0x80]; qword velocity; char p2[0xF4 - 0xA0]; int facesCamera; };
+struct G { char pad[0x60]; qword matRow0; };   /* CM: first row of its matrix (inferred: the view axis) */
 extern "C" { extern G D_002DDF40; }
 extern "C" { extern qword D_002A2DC0; }
 extern "C" {
@@ -1332,21 +1340,21 @@ M BuildOrthonormalMatrixZ(qword a, qword b);
 int FRenderRipPosMat(S *p, qword q, M m);
 void RenderFlying(S *p);
 }
-// FLYING Render: oriented render via FRenderRipPosMat. (inferred)
+// FLYING Render: oriented along its velocity, with "up" toward the camera (facesCamera) or world +z.
 void RenderFlying(S *p)
 {
     qword v;
     M m;
-    if (p->f) {
+    if (p->facesCamera) {
         union { qword q; float f; } s; qword k;
         __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-1.0f));
         s.q = k;
-        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(D_002DDF40.q60), "j"(k));
+        __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(v) : "j"(D_002DDF40.matRow0), "j"(k));
     } else {
         v = D_002A2DC0;
     }
-    m = BuildOrthonormalMatrixZ(p->q90, v);
-    FRenderRipPosMat(p, p->q70, m);
+    m = BuildOrthonormalMatrixZ(p->velocity, v);
+    FRenderRipPosMat(p, p->position, m);
 }
 } // namespace M_RenderFlying
 
@@ -1418,13 +1426,14 @@ O *CreateStuck(EMIT*p,LO*visual,LO*space,qword position,qword direction){
 
 namespace M_FBounceLeaf { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct A { void *x0; void *x4; };
-struct S { char pad[0xF0]; void *xF0; };
+struct A { void *hitObject; void *hitBody; };   /* the bounce contact (inferred) */
+struct S { char pad[0xF0]; void *stuckVisual; };   /* FLYING */
 extern int D_002C1F70[1];
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void CreateStuck(struct S *p, void *a, void *b, qword q0, qword q1);
 void RemoveRip__FP3RIP(struct S *p);
-// FLYING FBounce: on contact CreateStuck then RemoveRip. (inferred)
+// FLYING FBounce: unless the hit body is of an excluded class, sticks (CreateStuck, except on CID 0x59) and removes
+// the flying rip.
 } } // namespace M_FBounceLeaf
 int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
@@ -1433,9 +1442,9 @@ int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the names
     M_FBounceLeaf::A *pa = (M_FBounceLeaf::A *)pa_m;
     unsigned int i;
     for (i = 0; i < sizeof(D_002C1F70) / sizeof(D_002C1F70[0]); i++) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->x4, D_002C1F70[i])) return 0;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, D_002C1F70[i])) return 0;
     }
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(pa->x4, 0x59)) CreateStuck(p, p->xF0, pa->x0, q0, q1);
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(pa->hitBody, 0x59)) CreateStuck(p, p->stuckVisual, pa->hitObject, q0, q1);
     RemoveRip__FP3RIP(p);
     return 1;
 }
@@ -1450,19 +1459,19 @@ void STUCK::Update(float dt)   /* key function: STUCK's vtable comes out here */
 namespace M_RenderStuck {
 typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
-struct S { char pad[0x40]; M m; qword q70; char pad2[0xF0 - 0x80]; void *p; };
+struct S { char pad[0x40]; M orientation; qword position; char pad2[0xF0 - 0x80]; void *host; };   /* STUCK: position / orientation in its host's space */
 extern "C" {
 qword func_0022FC48(void *p, int n, qword q);
 M ConvertXfMat(void *p, int n, M *pm);
 int FRenderRipPosMat(S *p, qword q, M m);
 void RenderStuck(S *p);
 }
-// STUCK Render: transform by host object's matrix, FRenderRipPosMat. (inferred)
+// STUCK Render: its position and orientation taken from the host object's space to world, then rendered.
 void RenderStuck(S *p)
 {
-    qword q = func_0022FC48(p->p, 0, p->q70);
+    qword q = func_0022FC48(p->host, 0, p->position);
     M m;
-    m = ConvertXfMat(p->p, 0, &p->m);
+    m = ConvertXfMat(p->host, 0, &p->orientation);
     FRenderRipPosMat(p, q, m);
 }
 } // namespace M_RenderStuck
