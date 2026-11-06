@@ -117,8 +117,8 @@ extern "C" qword D_002A2DD0;
 
 extern "C" {
 void RecalcSwXpAll(SW *psw);
-int func_00230348(int);
-int func_00230380(int);
+int IsXfRoleAtRest(int);
+int IsXfRoleVelocity(int);
 int FFloatsNear__Ffff(float, float, float);
 void ApplySoExternalAccelerations(SO *pso);
 void SlotUnsettle(SO *pso, XF *pxf);
@@ -130,7 +130,7 @@ void NormalizeRotateMatrix3__FP7MATRIX3(M3C *);
 void UpdateSoPartMatrices(SO *);
 void UpdateSoPartGeom(NODE *);
 void ClearSoTreeDirty(SO *);
-void func_00230630(SO *, XF *);
+void SettleXfSlot(SO *, XF *);
 M3 *InvertMatrix3Cofactor(M3 *pd, const M3 *ps);
 qword GetLoWorldPos(SO *pso);
 
@@ -228,10 +228,10 @@ void SolveSwContactGroups(SW *world, int flags)
         {
             register SO *receiver asm("a1")=root;
             if(flags&1){
-                int first=func_00230348(root->pxfPos->nRole);
+                int first=IsXfRoleAtRest(root->pxfPos->nRole);
                 receiver=root;
                 if(first){
-                    int second=func_00230348(root->pxfRot->nRole);
+                    int second=IsXfRoleAtRest(root->pxfRot->nRole);
                     if(second)continue;
                     receiver=root;
                 }
@@ -543,8 +543,8 @@ void IntegrateSoGroupTransforms(SO *p)
     CLOCK *clock;
     SW *global;
     NODE *node;
-    func_00230630(p,position);
-    func_00230630(p,rotation);
+    SettleXfSlot(p,position);
+    SettleXfSlot(p,rotation);
     clock=&D_002DDED0;
     {qword point=position->pos.q;
     qword k=Scalar(clock->dt*coefficient,&scalar);
@@ -979,7 +979,7 @@ extern "C" void ApplySoImpulse(SO *object, qword pos, qword impulse)
 // converted into the transform's parent space.
 void AddSoAcceleration(SO *object, qword acceleration)
 {
-    if (func_00230380(object->pxfPos->nRole)) {
+    if (IsXfRoleVelocity(object->pxfPos->nRole)) {
         XF *transform = object->pxfPos;
         qword current = transform->a.q;
         qword local = ConvertXfVec(0, transform->pxfParent, acceleration);
@@ -998,7 +998,7 @@ void AddSoAcceleration(SO *object, qword acceleration)
 // The rotational twin of AddSoAcceleration: adds an angular acceleration to the rotation transform.
 extern "C" void AddSoAngularAcceleration(SO *object, qword acceleration)
 {
-    if (func_00230380(object->pxfRot->nRole)) {
+    if (IsXfRoleVelocity(object->pxfRot->nRole)) {
         XF *transform = object->pxfRot;
         qword current = transform->a.q;
         qword local = ConvertXfVec(0, transform->pxfParent, acceleration);

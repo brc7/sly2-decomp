@@ -1,5 +1,7 @@
 // aseg.cpp -- animation segments: ASEG (a clip: channels, overrides, start/frame/end events) and the creation, lookup
 // and release of its ASEGA players. TU 0x12F248..0x1308A8 (23 functions, address order).
+// Entry points: LoadAsegFromBrx (level loading), ApplyAsegCore / ApplyAsegToObject / EnsureAseg / ApplyAsegCur (start a
+// segment on an object), FindAsegLabel / GetAsegLabelTime, ReleaseAsega, PredictAsegTransform.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_aseg
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00130888
 #include "sly2/slotheap.h"
@@ -17,7 +19,7 @@ struct VTE { short d; short pad; void (*pfn)(); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
 
 struct AREQV { int cb; int cbAlign; };
-/* The by-reference form func_001300B8 builds as a temporary. */
+/* The by-reference form PredictAsegTransform builds as a temporary. */
 struct AREQT : AREQV { AREQT(int c, int a) { cb = c; cbAlign = a; } };
 
 /* An animation curve object (PacNewKind/PacNewKind2), loaded and evaluated through its vtable (pointer at +0). */
@@ -45,11 +47,11 @@ struct CHN
 /* ASEG::aovr entry: value, target OID, curve. */
 struct OVR { int x0; int oid; union { AC *pac; int x8; }; };
 
-/* What ASEGA::pactsegFirst / povraFirst link (built by func_0012F9B8). */
+/* What ASEGA::pactsegFirst / povraFirst link (built by ApplyAsegCore). */
 struct ACTSEG { int x0; LO *plo; void *pv; int xC; int pad10; int x14; VTE *pvt; int x1C; int x20; ASEGA *pasega; ACTSEG *pactsegNext; };
 struct OVRA { int x0; int x4; LO *plo; int xC; OVRA *povraNext; };
 
-/* The XF a channel animates, as func_001300B8 reads it. */
+/* The XF a channel animates, as PredictAsegTransform reads it. */
 struct M4 { qword a[4]; };
 struct XFV { M4 m; char pad[0x94 - 0x40]; int x94; int pad98[2]; XFV *pxfNext; };
 
@@ -64,58 +66,58 @@ extern VTE D_002CAF48[] __asm__("_vt$5ASEGA");
 extern VTE D_002CAF08[] __asm__("_vt$6ACTSEG");
 extern char D_002DE578[];
 
-float F32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-int S16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-int S32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-int S8Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-int U8Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
+float F32Read__18CBinaryInputStream(CBinaryInputStream *stream);
+int S16Read__18CBinaryInputStream(CBinaryInputStream *stream);
+int S32Read__18CBinaryInputStream(CBinaryInputStream *stream);
+int S8Read__18CBinaryInputStream(CBinaryInputStream *stream);
+int U8Read__18CBinaryInputStream(CBinaryInputStream *stream);
+void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *stream, void *pv);
 void *AllocFromWorldHeap(AREQV *preq);
 void *AllocClearedFromWorldHeap(AREQV *preq);
 void *AllocCopyFromWorldHeap(AREQV *preq, void *pv);
 void *AllocFromStack(const AREQV &req);
 AC *PacNewKind(int id);
 AC *PacNewKind2(int id);
-void InitLo(ASEG *paseg);
-void PostLoLoad(ASEG *paseg);
-void PostSwCallback(SW *psw, ASEG *paseg, long pmf, ASEGSTART *pasegstart);
+void InitLo(ASEG *segment);
+void PostLoLoad(ASEG *segment);
+void PostSwCallback(SW *psw, ASEG *segment, long pmf, ASEGSTART *pasegstart);
 void *func_002333B4(void *, int, int) __asm__("memset");
 float GetDifficulty(void *);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *, float);
 void FramePtr_Assign(ASEGA *, CFrame *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void SetSoBit35Hierarchy(LO *plo, long);
-void *func_0012E1F0(unsigned int);
+void *AllocAct(unsigned int);
 void AddXfAct(LO *plo, void *pv, ACTSEG *pactseg);
-void *func_0012CE50(unsigned int);
+void *AllocOvra(unsigned int);
 void SetAsegaHandsOff(ASEGA *, int);
 void HandleAsegaEvent(ASEGA *, EA *);
-void func_00230CF0(ASEGA *, int);
+void EvaluateXfSlotValue(ASEGA *, int);
 void HandleAsegaEventsFF(ASEGA *);
 void UpdateAsegaIeaCur__FP5ASEGA(ASEGA *);
 M4 __ml__FRC7MATRIX4T0(M4 *pa, M4 *pb);
-M4 func_0022C8C0(XFV *pxf, qword q);
-M4 func_0022CB90(XFV *pxf, M4 *pm, qword q1, qword q2);
-M4 func_0022CC00(XFV *pxf, qword q);
-void func_00130B18(ASEGA *pasega);
-void func_00130D30(ASEGA *pasega, SEEK seek, float t, float svt);          /* SeekAsega */
-void SetAsegaMasterSpeed(ASEGA *pasega, float svt);
+M4 BuildXfValueMatrix(XFV *pxf, qword q);
+M4 BuildEulerDerivativeMatrix(XFV *pxf, M4 *pm, qword q1, qword q2);
+M4 BuildXfValueDerivativeMatrix(XFV *pxf, qword q);
+void RetractAsega(ASEGA *player);
+void SeekAsega(ASEGA *player, SEEK seek, float t, float svt);          /* SeekAsega */
+void SetAsegaMasterSpeed(ASEGA *player, float svt);
 
-void LoadAsegFromBrx(ASEG *paseg, CBinaryInputStream *pbis);
-EA *func_0012F938(ASEG *paseg, int n);
-void func_0012F9B8(ASEG *paseg, ALO *palo, int grfapl, float t, float svt, ASEGA **ppasega);   /* ApplyAseg */
-void func_0012FE58(ASEG *paseg, ALO *palo, CHN *pchn, LO **pplo, void **ppv);
-void func_00130010(ASEG *paseg, ALO *palo, OVR *povr, LO **pplo, int *pn);
+void LoadAsegFromBrx(ASEG *segment, CBinaryInputStream *stream);
+EA *FindAsegLabel(ASEG *segment, int n);
+void ApplyAsegCore(ASEG *segment, ALO *palo, int applyFlags, float t, float svt, ASEGA **playerSlot);   /* ApplyAseg */
+void ResolveAsegChannelTarget(ASEG *segment, ALO *palo, CHN *pchn, LO **pplo, void **ppv);
+void ResolveAsegOverrideTarget(ASEG *segment, ALO *palo, OVR *povr, LO **pplo, int *pn);
 }
 void InitDl(DL *pdl, int ibDle);                                                /* InitDl__FP2DLi */
 void AppendDlEntry(DL *pdl, void *pv);                                          /* AppendDlEntry__FP2DLPv */
-void LoadOptionsFromBrx(void *pv, CBinaryInputStream *pbis);                    /* LoadOptionsFromBrx__FPvP18CBinaryInputStream */
+void LoadOptionsFromBrx(void *pv, CBinaryInputStream *stream);                    /* LoadOptionsFromBrx__FPvP18CBinaryInputStream */
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                     /* PloFindSwObject__FP2SWi3OIDP2LO */
-void LoadAsegEventsFromBrx(ASEG *paseg, CBinaryInputStream *pbis, int fTime, int *pcea, EA **paea);
-ASEGA *PasegaFindAseg(ASEG *paseg, ALO *palo);
-/* func_0012F9B8 with the parameter order ApplyAsegCur and PostAsegLoadCallback pass (the floats first) */
-extern "C" void ApplyAseg(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega) __asm__("func_0012F9B8");
-void EnsureAseg(ASEG *paseg, ALO *paloRoot, SEEK seek, float t, float svt, int grfapl, ASEGA **ppasega);
-extern "C" void ReleaseAsega(ASEGA **ppasega);
+void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime, int *pcea, EA **paea);
+ASEGA *PasegaFindAseg(ASEG *segment, ALO *palo);
+/* ApplyAsegCore with the parameter order ApplyAsegCur and PostAsegLoadCallback pass (the floats first) */
+extern "C" void ApplyAseg(ASEG *segment, ALO *root, float t, float svt, int applyFlags, ASEGA **playerSlot) __asm__("ApplyAsegCore");
+void EnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags, ASEGA **playerSlot);
+extern "C" void ReleaseAsega(ASEGA **playerSlot);
 
 /** @sly2-annot addr=0x12F248
  * Purpose: InitLo (0x1A5270) then InitDl of the ASEGA list; two speed/weight fields = 1.0
@@ -124,19 +126,20 @@ extern "C" void ReleaseAsega(ASEGA **ppasega);
  * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
  *   docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions
  * @end-sly2-annot */
-extern "C" void InitAseg(ASEG *paseg)
+// Initializes an animation segment: base LO init, an empty list of its players (ASEGAs), unit master speed and weight.
+extern "C" void InitAseg(ASEG *segment)
 {
     CLQ *pclq;
-    InitLo(paseg);
-    InitDl(&paseg->dlAsega, 0x2C);
-    pclq = &paseg->clqMasterSuck;     /* the per-file stores go through this pointer (target: addiu v0, s0, 0x80) */
-    paseg->svtMaster = 1.0f;
-    paseg->clqMasterSuck.g0 = 1.0f;
+    InitLo(segment);
+    InitDl(&segment->dlAsega, 0x2C);
+    pclq = &segment->clqMasterSuck;     /* the per-file stores go through this pointer (target: addiu v0, s0, 0x80) */
+    segment->svtMaster = 1.0f;
+    segment->clqMasterSuck.g0 = 1.0f;
     *(int *)&pclq->g1 = 0;
     *(int *)&pclq->g2 = 0;
-    paseg->lmMasterSuck.gMax = 1.0f;
-    *(int *)&paseg->lmMasterSuck.gMin = 0;
-    paseg->grfUnk40 |= 0x40;
+    segment->lmMasterSuck.gMax = 1.0f;
+    *(int *)&segment->lmMasterSuck.gMin = 0;
+    segment->grfUnk40 |= 0x40;
 }
 
 /** @sly2-annot addr=0x12F2A8
@@ -147,35 +150,37 @@ extern "C" void InitAseg(ASEG *paseg)
  * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
  *   docs/engine/animation.md#animation-format-summary-anim_lab-v31, docs/engine/animation.md#7-key-functions
  * @end-sly2-annot */
-void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *pbis) { int i; AREQV req;
- px->tMax = F32Read__18CBinaryInputStream(pbis);
- px->cchn = S16Read__18CBinaryInputStream(pbis);
+// Loads an animation segment from the level stream: its channels (per channel kind, the curves for position, rotation,
+// scale and float values), its labels, and its start, per-frame and end event lists.
+void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *stream) { int i; AREQV req;
+ px->tMax = F32Read__18CBinaryInputStream(stream);
+ px->cchn = S16Read__18CBinaryInputStream(stream);
  req.cbAlign = 0x10; req.cb = px->cchn * 8;
  px->achn = (CHN *)AllocFromWorldHeap(&req);
  for (i = 0; i < px->cchn; i++) {
    CHN *pe = &px->achn[i];
-   pe->u.n = S32Read__18CBinaryInputStream(pbis);
-   pe->u.k = S16Read__18CBinaryInputStream(pbis);
-   int id = S8Read__18CBinaryInputStream(pbis);
-   if (id != -1) { pe->pac = PacNewKind(id); pe->pac->Load(pbis); pe->u.f31 = 0; }
-   id = S8Read__18CBinaryInputStream(pbis);
-   if (id != -1) { pe->pac = PacNewKind2(id); pe->pac->Load(pbis); pe->u.f31 = 1; }
-   pe->u.f30 = U8Read__18CBinaryInputStream(pbis) != 0;
+   pe->u.n = S32Read__18CBinaryInputStream(stream);
+   pe->u.k = S16Read__18CBinaryInputStream(stream);
+   int id = S8Read__18CBinaryInputStream(stream);
+   if (id != -1) { pe->pac = PacNewKind(id); pe->pac->Load(stream); pe->u.f31 = 0; }
+   id = S8Read__18CBinaryInputStream(stream);
+   if (id != -1) { pe->pac = PacNewKind2(id); pe->pac->Load(stream); pe->u.f31 = 1; }
+   pe->u.f30 = U8Read__18CBinaryInputStream(stream) != 0;
  }
- px->covr = U8Read__18CBinaryInputStream(pbis);
+ px->covr = U8Read__18CBinaryInputStream(stream);
  req.cbAlign = 0x10; req.cb = px->covr * 12;
  px->aovr = (OVR *)AllocClearedFromWorldHeap(&req);
  for (i = 0; i < px->covr; i++) {
    OVR *pe = &px->aovr[i];
-   pe->x0 = U8Read__18CBinaryInputStream(pbis);
-   pe->oid = S32Read__18CBinaryInputStream(pbis);
-   pe->pac = PacNewKind2(S8Read__18CBinaryInputStream(pbis));
-   pe->pac->Load(pbis);
+   pe->x0 = U8Read__18CBinaryInputStream(stream);
+   pe->oid = S32Read__18CBinaryInputStream(stream);
+   pe->pac = PacNewKind2(S8Read__18CBinaryInputStream(stream));
+   pe->pac->Load(stream);
  }
- LoadAsegEventsFromBrx(px, pbis, 0, &px->ceaStart, &px->aeaStart);
- LoadAsegEventsFromBrx(px, pbis, 1, &px->ceaFrame, &px->aeaFrame);
- LoadAsegEventsFromBrx(px, pbis, 0, &px->ceaEnd, &px->aeaEnd);
- LoadOptionsFromBrx(px, pbis); }
+ LoadAsegEventsFromBrx(px, stream, 0, &px->ceaStart, &px->aeaStart);
+ LoadAsegEventsFromBrx(px, stream, 1, &px->ceaFrame, &px->aeaFrame);
+ LoadAsegEventsFromBrx(px, stream, 0, &px->ceaEnd, &px->aeaEnd);
+ LoadOptionsFromBrx(px, stream); }
 
 /* Event payloads read into the EA unions. */
 struct L0 { int n; int a, b, c; float x, y, z; };
@@ -191,31 +196,33 @@ static __inline__ void *PvAlloc(int cb) { AREQV req; req.cb = cb; req.cbAlign = 
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-void LoadAsegEventsFromBrx(ASEG *paseg, CBinaryInputStream *pbis, int fTime, int *pc, EA **pa) { int i; int c; EA *aent;
- c = U8Read__18CBinaryInputStream(pbis);
+// Loads one event list of a segment: per event a time (or not, per fTime), a kind and its typed payload values; returns
+// the count and the array through pc / pa.
+void LoadAsegEventsFromBrx(ASEG *segment, CBinaryInputStream *stream, int fTime, int *pc, EA **pa) { int i; int c; EA *aent;
+ c = U8Read__18CBinaryInputStream(stream);
  *pc = c;
  aent = (EA *)PvAlloc(c * 16);
  *pa = aent;
  for (i = 0; i < c; i++) {
    EA *pe = &aent[i];
-   pe->eak = (EAK)S8Read__18CBinaryInputStream(pbis);
-   if (fTime) pe->tLocal = S16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
+   pe->eak = (EAK)S8Read__18CBinaryInputStream(stream);
+   if (fTime) pe->tLocal = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
    switch (pe->eak) {
-   case 0: { AREQV req; L0 l; l.n = S16Read__18CBinaryInputStream(pbis); l.a = S32Read__18CBinaryInputStream(pbis); l.b = S32Read__18CBinaryInputStream(pbis); l.c = S32Read__18CBinaryInputStream(pbis);
-       l.z = F32Read__18CBinaryInputStream(pbis); l.x = F32Read__18CBinaryInputStream(pbis); l.y = F32Read__18CBinaryInputStream(pbis);
+   case 0: { AREQV req; L0 l; l.n = S16Read__18CBinaryInputStream(stream); l.a = S32Read__18CBinaryInputStream(stream); l.b = S32Read__18CBinaryInputStream(stream); l.c = S32Read__18CBinaryInputStream(stream);
+       l.z = F32Read__18CBinaryInputStream(stream); l.x = F32Read__18CBinaryInputStream(stream); l.y = F32Read__18CBinaryInputStream(stream);
        req.cb = 0x1C; req.cbAlign = 0x10; pe->pesnd = (EASND *)AllocCopyFromWorldHeap(&req, &l); break; }
-   case 3: pe->gC = S16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f); pe->n8 = S16Read__18CBinaryInputStream(pbis); break;
-   case 5: pe->g8 = S16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f); pe->gC = F32Read__18CBinaryInputStream(pbis); break;
-   case 7: case 8: pe->n8 = S32Read__18CBinaryInputStream(pbis); pe->gC = F32Read__18CBinaryInputStream(pbis); break;
-   case 13: case 14: case 15: case 16: pe->n8 = S32Read__18CBinaryInputStream(pbis); pe->nC = S32Read__18CBinaryInputStream(pbis); break;
+   case 3: pe->gC = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->n8 = S16Read__18CBinaryInputStream(stream); break;
+   case 5: pe->g8 = S16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f); pe->gC = F32Read__18CBinaryInputStream(stream); break;
+   case 7: case 8: pe->n8 = S32Read__18CBinaryInputStream(stream); pe->gC = F32Read__18CBinaryInputStream(stream); break;
+   case 13: case 14: case 15: case 16: pe->n8 = S32Read__18CBinaryInputStream(stream); pe->nC = S32Read__18CBinaryInputStream(stream); break;
    case 17: { pe->pea17 = (EA17 *)PvAlloc(0x10);
-       ((int *)pe->pea17)[0] = S32Read__18CBinaryInputStream(pbis); ((int *)pe->pea17)[1] = S32Read__18CBinaryInputStream(pbis); ((int *)pe->pea17)[2] = S32Read__18CBinaryInputStream(pbis); ((float *)pe->pea17)[3] = F32Read__18CBinaryInputStream(pbis); break; }
-   case 20: { L20 t; AREQV req; AREQV *preq; t.a = S32Read__18CBinaryInputStream(pbis); t.b = S32Read__18CBinaryInputStream(pbis); t.g = F32Read__18CBinaryInputStream(pbis);
+       ((int *)pe->pea17)[0] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[1] = S32Read__18CBinaryInputStream(stream); ((int *)pe->pea17)[2] = S32Read__18CBinaryInputStream(stream); ((float *)pe->pea17)[3] = F32Read__18CBinaryInputStream(stream); break; }
+   case 20: { L20 t; AREQV req; AREQV *preq; t.a = S32Read__18CBinaryInputStream(stream); t.b = S32Read__18CBinaryInputStream(stream); t.g = F32Read__18CBinaryInputStream(stream);
        preq = &req; req.cb = 0xC; preq->cbAlign = 0x10; pe->pea20 = (EA20 *)AllocCopyFromWorldHeap(preq, &t); break; }
-   case 1: case 2: case 21: pe->n8 = S16Read__18CBinaryInputStream(pbis); break;
-   case 4: case 11: case 12: case 22: pe->n8 = S32Read__18CBinaryInputStream(pbis); break;
+   case 1: case 2: case 21: pe->n8 = S16Read__18CBinaryInputStream(stream); break;
+   case 4: case 11: case 12: case 22: pe->n8 = S32Read__18CBinaryInputStream(stream); break;
    case 24: { AREQV req; char *p; req.cb = 0x18; req.cbAlign = 0x10; p = (char *)AllocFromWorldHeap(&req);
-       ReadCb8__18CBinaryInputStreamPv(pbis, p); ReadCb8__18CBinaryInputStreamPv(pbis, p + 8); ReadCb8__18CBinaryInputStreamPv(pbis, p + 0x10); pe->pea24 = (EA24 *)p; break; }
+       ReadCb8__18CBinaryInputStreamPv(stream, p); ReadCb8__18CBinaryInputStreamPv(stream, p + 8); ReadCb8__18CBinaryInputStreamPv(stream, p + 0x10); pe->pea24 = (EA24 *)p; break; }
    }
  } }
 
@@ -225,9 +232,11 @@ void LoadAsegEventsFromBrx(ASEG *paseg, CBinaryInputStream *pbis, int fTime, int
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" void PostAsegLoadCallback(ASEG *paseg, ASEGSTART *pasegstart)
+// Deferred callback posted after load for segments flagged to start automatically: applies the segment with the start
+// time, speed and flags recorded by SetAsegAutoStart.
+extern "C" void PostAsegLoadCallback(ASEG *segment, ASEGSTART *pasegstart)
 {
-    ApplyAseg(paseg, 0, pasegstart->tLocal, pasegstart->svtLocal, pasegstart->grfapl, 0);
+    ApplyAseg(segment, 0, pasegstart->tLocal, pasegstart->svtLocal, pasegstart->grfapl, 0);
 }
 
 /** @sly2-annot addr=0x12F8F0
@@ -237,12 +246,14 @@ extern "C" void PostAsegLoadCallback(ASEG *paseg, ASEGSTART *pasegstart)
  * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
  *   docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
+// After-load hook (slot 15): base PostLoLoad, then, if the segment has an auto-start record, posts PostAsegLoadCallback
+// to the world's callback queue.
 void ASEG::VUnk14()
 {
-    ASEG *paseg = (ASEG *)this;
-    PostLoLoad(paseg);
-    if (paseg->pasegstart)
-        PostSwCallback(&D_003DD490, paseg, D_002A46C8.l, paseg->pasegstart);
+    ASEG *segment = (ASEG *)this;
+    PostLoLoad(segment);
+    if (segment->pasegstart)
+        PostSwCallback(&D_003DD490, segment, D_002A46C8.l, segment->pasegstart);
 }
 
 /** @sly2-annot addr=0x12F938
@@ -251,14 +262,15 @@ void ASEG::VUnk14()
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-EA *func_0012F938(ASEG *paseg, int n)
+// Returns the segment's label entry with the given id, or 0. (inferred)
+EA *FindAsegLabel(ASEG *segment, int n)
 {
     int i;
-    EA *pea;
-    for (i = 0; i < paseg->ceaFrame; i++) {
-        pea = &paseg->aeaFrame[i];
-        if ((pea->eak == 0xB) & (pea->n8 == n))
-            return pea;
+    EA *label;
+    for (i = 0; i < segment->ceaFrame; i++) {
+        label = &segment->aeaFrame[i];
+        if ((label->eak == 0xB) & (label->n8 == n))
+            return label;
     }
     return 0;
 }
@@ -270,14 +282,15 @@ EA *func_0012F938(ASEG *paseg, int n)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" float func_0012F990(ASEG *paseg, int n)
+// Returns the time of the segment's label with the given id (used to line up blends and seeks).
+extern "C" float GetAsegLabelTime(ASEG *segment, int n)
 {
-    EA *pea;
+    EA *label;
     float g;
-    pea = func_0012F938(paseg, n);
+    label = FindAsegLabel(segment, n);
     g = 0.0f;
-    if (pea != 0) {
-        g = pea->tLocal;
+    if (label != 0) {
+        g = label->tLocal;
     }
     return g;
 }
@@ -299,7 +312,10 @@ static inline float GEval(CLQ *pclq, float t) { return pclq->g0 + t * (pclq->g1 
  *   docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
  *   docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
-void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
+// Starts playing a segment on an object hierarchy (ALO root, or the segment's own objects): takes an ASEGA from the pool,
+// links it into the world's and the segment's player lists, binds every channel to its target transform as an
+// action, applies overrides, sets the speed, fast-forwards events up to the start time and returns the player.
+void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
 {
     ASEGA *p = (ASEGA *)PvAllocSlotheapClear(&g_sw.slotheapAsega);
     int i, j, k;
@@ -329,10 +345,10 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         if (!(pe->grf & 0x40000000)) {
             LO *a;
             void *b;
-            func_0012FE58(pt, x, pe, &a, &b);
+            ResolveAsegChannelTarget(pt, x, pe, &a, &b);
             if (b) {
                 SetSoBit35Hierarchy(a, 0);
-                ACTSEG *pn = (ACTSEG *)func_0012E1F0(0x2C);
+                ACTSEG *pn = (ACTSEG *)AllocAct(0x2C);
                 pn->pvt = D_002CAF08;
                 pn->x0 = 0;
                 if (pe->grf & 0x80000000)
@@ -354,9 +370,9 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
         OVR *pe = &pt->aovr[j];
         LO *a;
         int b;
-        func_00130010(pt, x, pe, &a, &b);
+        ResolveAsegOverrideTarget(pt, x, pe, &a, &b);
         if (b) {
-            OVRA *pn = (OVRA *)func_0012CE50(0x14);
+            OVRA *pn = (OVRA *)AllocOvra(0x14);
             pn->x0 = pe->x8;
             pn->x4 = b;
             pn->plo = a;
@@ -372,7 +388,7 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
     for (k = 0; k < pt->ceaStart; k++)
         HandleAsegaEvent(p, &pt->aeaStart[k]);
     p->tLocal = p->tPrev;
-    func_00230CF0(p, (grf >> 2) & 1);
+    EvaluateXfSlotValue(p, (grf >> 2) & 1);
     if (grf & 2) {
         if (p->svt < 0.0f)
             p->iea = pt->ceaFrame;
@@ -389,17 +405,18 @@ void func_0012F9B8(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" void func_0012FDE8(ASEG *paseg, int grfapl, float t, float svt)
+// Records that the segment should start by itself after loading, with the given flags, start time and speed. (inferred)
+extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float svt)
 {
     AREQV req;
     ASEGSTART *p;
     req.cb = 0xC;
     req.cbAlign = 0x10;
     p = (ASEGSTART *)AllocFromWorldHeap(&req);
-    paseg->pasegstart = p;
+    segment->pasegstart = p;
     p->tLocal = t;
     p->svtLocal = svt;
-    p->grfapl = grfapl;
+    p->grfapl = applyFlags;
 }
 
 /** @sly2-annot addr=0x12FE58
@@ -410,7 +427,9 @@ extern "C" void func_0012FDE8(ASEG *paseg, int grfapl, float t, float svt)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-void func_0012FE58(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
+// Resolves the object a channel animates: finds the OID under the root (or in the world), then asks that object for the
+// channel's sub-target (transform or value) through its vtable. (inferred)
+void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
         *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pk->s.id, (LO *)b);
@@ -435,7 +454,9 @@ void func_0012FE58(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
  *   docs/reference/functions/animation.md#dirblend-0x1a0300-0x1a0b18,
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
-extern "C" CHN *func_0012FF10(ASEG *t, LO *po, void *pv, int fCheck)
+// Finds the segment's channel that animates the given object and transform component; optionally only channels with the
+// "check" bit; skips disabled channels. (inferred)
+extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
 {
     int i;
     for (i = 0; i < t->cchn; i++) {
@@ -461,7 +482,8 @@ extern "C" CHN *func_0012FF10(ASEG *t, LO *po, void *pv, int fCheck)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-void func_00130010(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
+// Resolves the object an override (OVR) refers to, relative to the root or in the world. (inferred)
+void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
     if (q) *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pa->oid, (LO *)q);
     else *ppo = PloFindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
     if (!*ppo) *pn = 0;
@@ -487,7 +509,9 @@ static inline M4 AddM4(const M4 &a, const M4 &b) return m
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float f, float g, M4 *pm1, M4 *pm2)
+// Predicts the world transform the segment would give an object at a given time (evaluating its channels along the
+// transform chain from pyFirst to pyLast) without playing it; used to line up moves before they start. (inferred)
+extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float f, float g, M4 *pm1, M4 *pm2)
 {
     M4 mA;
     M4 mB;
@@ -512,7 +536,7 @@ extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float
             apy[i] = 0;
         } else {
             LO *n;
-            func_0012FE58(px, p, pe, &n, (void **)&apy[i]);
+            ResolveAsegChannelTarget(px, p, pe, &n, (void **)&apy[i]);
         }
     }
     for (py = pyFirst; py != pyLast; py = py->pxfNext) {
@@ -520,13 +544,13 @@ extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float
             pe = &px->achn[i];
             if (py == apy[i] && !pe->u.f31) {
                 pe->pac->Eval(f, g, &aq[0], &aq[1]);
-                mA = func_0022C8C0(py, aq[0]);
+                mA = BuildXfValueMatrix(py, aq[0]);
                 switch (py->x94) {
                 case 6: case 7:
-                    mB = func_0022CB90(py, &mA, aq[0], aq[1]);
+                    mB = BuildEulerDerivativeMatrix(py, &mA, aq[0], aq[1]);
                     break;
                 default:
-                    mB = func_0022CC00(py, aq[1]);
+                    mB = BuildXfValueDerivativeMatrix(py, aq[1]);
                     break;
                 }
                 goto found;
@@ -556,11 +580,12 @@ extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float
  * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
  *   docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" ASEGA *func_00130488(ASEG *paseg, ALO *palo, int grf, float t, float svt)
+// Starts a segment on an object (ApplyAsegCore) and returns the new player.
+extern "C" ASEGA *ApplyAsegToObject(ASEG *segment, ALO *palo, int grf, float t, float svt)
 {
-    ASEGA *pasega;
-    func_0012F9B8(paseg, palo, grf, t, svt, &pasega);
-    return pasega;
+    ASEGA *player;
+    ApplyAsegCore(segment, palo, grf, t, svt, &player);
+    return player;
 }
 
 // Walks paseg->dlAsega (ASEG+0x50) through ASEGA::dleAseg (+0x2C) looking for the ASEGA bound to palo (ASEGA::paloRoot, +0x18).
@@ -569,11 +594,12 @@ extern "C" ASEGA *func_00130488(ASEG *paseg, ALO *palo, int grf, float t, float 
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-ASEGA *PasegaFindAseg(ASEG *paseg, ALO *palo)
+// Returns the segment's player that is bound to the given root object, or 0.
+ASEGA *PasegaFindAseg(ASEG *segment, ALO *palo)
 {
     DLI dli;            /* unused, but it keeps the 16-byte frame of the target (an inlined iterator's slot) */
     ASEGA *p;
-    for (p = (ASEGA *)paseg->dlAsega.head; p; p = (ASEGA *)p->dleAseg.next)
+    for (p = (ASEGA *)segment->dlAsega.head; p; p = (ASEGA *)p->dleAseg.next)
         if (p->paloRoot == palo) return p;
     return 0;
 }
@@ -583,14 +609,16 @@ ASEGA *PasegaFindAseg(ASEG *paseg, ALO *palo)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-void EnsureAseg(ASEG *paseg, ALO *paloRoot, SEEK seek, float t, float svt, int grfapl, ASEGA **ppasega)
+// Makes sure the segment plays on the root object: reuses its existing player or starts a new one, then seeks it to the
+// requested time and speed.
+void EnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags, ASEGA **playerSlot)
 {
-    ASEGA *pasega;
-    if (!ppasega) ppasega = &pasega;
-    pasega = PasegaFindAseg(paseg, paloRoot);
-    if (pasega) *ppasega = pasega;
-    else func_0012F9B8(paseg, paloRoot, grfapl, 0.0f, 1.0f, ppasega);
-    func_00130D30(*ppasega, seek, t, svt);
+    ASEGA *player;
+    if (!playerSlot) playerSlot = &player;
+    player = PasegaFindAseg(segment, root);
+    if (player) *playerSlot = player;
+    else ApplyAsegCore(segment, root, applyFlags, 0.0f, 1.0f, playerSlot);
+    SeekAsega(*playerSlot, seek, t, svt);
 }
 
 /** @sly2-annot addr=0x130598
@@ -598,8 +626,9 @@ void EnsureAseg(ASEG *paseg, ALO *paloRoot, SEEK seek, float t, float svt, int g
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-ASEGA *PasegaEnsureAseg(ASEG *paseg, ALO *paloRoot, SEEK seek, float t, float svt, int grfapl)
-{ ASEGA *pasega; EnsureAseg(paseg, paloRoot, seek, t, svt, grfapl, &pasega); return pasega; }
+// EnsureAseg, returning the player.
+ASEGA *PasegaEnsureAseg(ASEG *segment, ALO *root, SEEK seek, float t, float svt, int applyFlags)
+{ ASEGA *player; EnsureAseg(segment, root, seek, t, svt, applyFlags, &player); return player; }
 
 /** @sly2-annot addr=0x1305B8
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
@@ -607,14 +636,16 @@ ASEGA *PasegaEnsureAseg(ASEG *paseg, ALO *paloRoot, SEEK seek, float t, float sv
  * See: docs/engine/animation.md#1-aseg-and-asega-asegcpp-0x12f248-asegacpp-0x1308a8,
  *   docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, ASEGA **ppasega)
+// Replaces a "current segment" slot: releases the player held in *ppasega and, if a segment is given, starts it and
+// takes a reference.
+void ApplyAsegCur(ASEG *segment, ALO *root, float t, float svt, int applyFlags, ASEGA **playerSlot)
 {
-    ReleaseAsega(ppasega);
-    if (paseg)
+    ReleaseAsega(playerSlot);
+    if (segment)
     {
-        ApplyAseg(paseg, paloRoot, t, svt, grfapl, ppasega);
-        ASEGA *pasega = *ppasega;
-        ((void (*)(void *))PVT(pasega)[1].pfn)((char *)pasega + PVT(pasega)[1].d);
+        ApplyAseg(segment, root, t, svt, applyFlags, playerSlot);
+        ASEGA *player = *playerSlot;
+        ((void (*)(void *))PVT(player)[1].pfn)((char *)player + PVT(player)[1].d);
     }
 }
 
@@ -628,10 +659,11 @@ void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float t, float svt, int grfapl, AS
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
+// Stops the player held in a slot (RetractAsega), drops the slot's reference and clears it.
 void ReleaseAsega(ASEGA **pp) {
     if (*pp) {
         ASEGA *p; VTE *vt;
-        func_00130B18(*pp);
+        RetractAsega(*pp);
         p = *pp; vt = PVT(p); ((void (*)(void *))vt[2].pfn)((char *)p + vt[2].d); *pp = 0;
     }
 }
@@ -643,7 +675,8 @@ void ReleaseAsega(ASEGA **pp) {
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-extern "C" void func_001306A8(ASEGA **pp) {
+// Drops the slot's reference to its player without stopping it, and clears the slot. (inferred)
+extern "C" void DropAsegaRef(ASEGA **pp) {
     ASEGA *p = *pp;
     if (p) { VTE *vt = PVT(p); ((void (*)(void *))vt[2].pfn)((char *)p + vt[2].d); *pp = 0; }
 }
@@ -655,6 +688,7 @@ extern "C" void func_001306A8(ASEGA **pp) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
+// Sets the segment's master speed and passes it to every player of the segment.
 extern "C" void SetAsegMasterSpeed(ASEG *p, float g) {
     DLI dli;            /* unused; keeps the target's frame size */
     ASEGA *pa;

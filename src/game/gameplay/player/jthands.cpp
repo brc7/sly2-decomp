@@ -91,11 +91,11 @@ qword ConvertAloPos(LO *ploFrom, LO *ploTo, qword pos);
 M4 ConvertAloMat4(LO *ploFrom, LO *ploTo, const M4 *pmat);
 M3 *ConvertXfMat(M3 *pmatOut, XF *pxfFrom, XF *pxfTo, const M3 *pmat);
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword vec);
-qword func_0022FC48(XF *pxfFrom, XF *pxfTo, qword pos);
+qword TransformXfPos(XF *pxfFrom, XF *pxfTo, qword pos);
 qword DecomposeRotationMatrixToEuler(const M3 *pmat);
 void SetActPositionGoal(ACT *pact, qword pos);
-void func_00130D30(ASEGA *pasega, int n, float t, float g);
-void func_001384C0(ASEGBL *pasegbl);
+void SeekAsega(ASEGA *pasega, int n, float t, float g);
+void RecalculateAsegBlend(ASEGBL *pasegbl);
 void SetStepTargetHeadingFromVector(LO *plo, qword vec);
 void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
@@ -103,12 +103,12 @@ SO *GetSoFromLo(LO *plo);
 int MaxInt(int grf, int n);   /* NMaxIgnore */
 int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
-qword func_0022CA18(XF *pxfA, XF *pxfB);
-ACT *func_0012DC18(LO *plo, XF *pxf, int a, int b, int c, qword qw);
-ACT *func_0012DE58(LO *plo, XF *pxf, int n, float t, qword pos, qword vel);
+qword GetXfValueFromMatrix(XF *pxfA, XF *pxfB);
+ACT *NewPositionAct(LO *plo, XF *pxf, int a, int b, int c, qword qw);
+ACT *NewBezierAct(LO *plo, XF *pxf, int n, float t, qword pos, qword vel);
 void EnsureSwCallback(SW *psw, SO *pso, long pmf, JTHANDS *phands);
-float func_0012F990(ASEG *paseg, int n);
-void func_001300B8(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
+float GetAsegLabelTime(ASEG *paseg, int n);
+void PredictAsegTransform(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
 qword *VECTOR_opAssign(qword *pdst, qword src);
 void SetLoParent(LO *plo, int a, int b);
 float ComputeMaxBallisticTime(qword dpos, qword vel, float a, float b, float c, float d);
@@ -133,8 +133,8 @@ void SetJtHandsTarget(JTHANDS *phands, int nMode);
    extern "C" declaration of the literal mangled name next to the C++ operator* hits ICE 378). */
 extern "C" M4 *MulMatrix4Ret(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");
 extern "C" void MulMatrix4RetV(M4 *pmatOut, const M4 *pmatL, const M4 *pmatR) __asm__("__ml__FRC7MATRIX4T0");   /* as AttachJtHandsObject calls it */
-/* the same ABI as func_0012DE58 (the float goes to $f12 either way); the order decides argument evaluation */
-extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, float t) __asm__("func_0012DE58");
+/* the same ABI as NewBezierAct (the float goes to $f12 either way); the order decides argument evaluation */
+extern "C" ACT *func_0012DE58Q(LO *plo, XF *pxf, int n, qword pos, qword vel, float t) __asm__("NewBezierAct");
 extern "C" M4 InvertMatrix4RigidP(const M4 *pmat) __asm__("InvertMatrix4Rigid");
 extern "C" M4 InvertMatrix4RigidV(M4 mat) __asm__("InvertMatrix4Rigid");
 extern "C" M3 ConvertXfMatR(XF *pxfFrom, XF *pxfTo, void *pmat) __asm__("ConvertXfMat");
@@ -316,10 +316,10 @@ extern "C" void UpdateJtHands(JTHANDS *hands)
         MinimizeRange((float (*)(void *, float))EvaluateJtHandsCurveA, cursor, 0.5f, 0.1f, 0.0f, 1.0f, &w.t, &w.result);
         GetClosestPointOnJtHandsCurveA(hands, w.stage.late.context.pos, &w.projection, 0, w.t);
     }
-    func_00130D30(*hands->ppasega, 0, w.t * hands->pasegbl->tMax, 0.0f);
+    SeekAsega(*hands->ppasega, 0, w.t * hands->pasegbl->tMax, 0.0f);
     hands->abl[1].uWeight = w.projection;
     hands->abl[0].uWeight = 1.0f - w.projection;
-    func_001384C0(hands->pasegbl);
+    RecalculateAsegBlend(hands->pasegbl);
     w.saved.q = w.position.q;
     SO *receiver;
     qword delta = DifferenceFromSaved(&w.saved, GetLoWorldPos(hands->pso), hands, receiver);
@@ -360,7 +360,7 @@ struct SWALLOC
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
-extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("func_001300B8");
+extern "C" void PredictAsegEffect(float tLocal, ASEG *paseg, SO *psoRoot, float svt, XF *pxfEffect, XF *pxfRef, MATRIX4 *pmatOut, int f) __asm__("PredictAsegTransform");
 extern "C" void MeasureShape(SHAPE *pshape);
 inline void *PvAllocSw(int cb, int alignment)
 {
@@ -534,9 +534,9 @@ extern "C" void SetJtHandsTarget(JTHANDS *hands, int nMode)
             }
         }
         if (hands->nKind == 2)
-            hands->pact1Euler = func_0012DC18(hands->pso, hands->pxf, 5, 7, 3, func_0022CA18(hands->pxf, hands->pxf));
+            hands->pact1Euler = NewPositionAct(hands->pso, hands->pxf, 5, 7, 3, GetXfValueFromMatrix(hands->pxf, hands->pxf));
         hands->abl[1].uWeight = hands->abl[0].uWeight = 0.5f;
-        func_001384C0(hands->pasegbl);
+        RecalculateAsegBlend(hands->pasegbl);
         EnsureSwCallback(&D_003DD490, hands->pso, D_002A77C8.l, hands);
         break;
     case -1:
@@ -591,9 +591,9 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other){
  CARRYWORK work;
  ReleaseAct(&p->pactPos);register float zero __asm__("$f21")=0.0f;ReleaseAct(&p->pactHold);ReleaseAct(&p->pactTurn);
  ASEGA *anim=((JTV *)p->pso)->pasegaCur;ASEG *motion=anim->paseg;
- float time=func_0012F990(motion,0x1C7),phase=(time-anim->tLocal)/anim->svt;
+ float time=GetAsegLabelTime(motion,0x1C7),phase=(time-anim->tLocal)/anim->svt;
  XF *space=SourceMatrix(p->ploHand,&work.original);register M4*workingBase __asm__("$19")=&work.sample;
- func_001300B8(motion,time,zero,p->pso,space,p->pso->pxfRoot,SampleOutput(workingBase),0);
+ PredictAsegTransform(motion,time,zero,p->pso,space,p->pso->pxfRoot,SampleOutput(workingBase),0);
  JTV *owner=(JTV *)p->pso;
  M4 *start=&work.start;M3 *basis=&owner->matRot;register M4*product __asm__("$21");
  qword location=GetLoWorldPos(owner);
@@ -668,20 +668,20 @@ extern "C" void StartJtHandsCarry(JTHANDS *input, SO *other){
  work.views.scalar.q=positive;apply(receiver,callbackVelocity);
  }
  float endTime=D_002DDED0.t+phase;
- qword position=func_0022FC48(0,object->pxfUnk58->pxfParent,work.final.r[3]);
+ qword position=TransformXfPos(0,object->pxfUnk58->pxfParent,work.final.r[3]);
  qword endVelocity=ConvertXfVec(0,object->pxfUnk58->pxfParent,work.endVelocity);
  {
  register XF*channel __asm__("$5");register qword velocityArgument __asm__("$8"),positionArgument __asm__("$7");register float timeArgument __asm__("$f12");register SO*receiver __asm__("$4");
  __asm__("lw %0,%5\n\tpor %1,$zero,%6\n\tmov.s %2,%7\n\tpor %3,$zero,%8\n\tdaddu %4,%9,$zero"
   :"=&r"(channel),"=&r"(velocityArgument),"=f"(timeArgument),"=&r"(positionArgument),"=r"(receiver):"m"(object->pxfUnk58),"r"(endVelocity),"f"(endTime),"r"(position),"r"(object));
- p->pactPos=func_0012DE58(receiver,channel,5,timeArgument,positionArgument,velocityArgument);
+ p->pactPos=NewBezierAct(receiver,channel,5,timeArgument,positionArgument,velocityArgument);
  }
  ConvertXfMat(&work.views.basis.converted,0,object->pxfUnk5c->pxfParent,(M3*)finalMatrix);
  work.views.basis.angles=work.views.basis.converted;
  qword angles=DecomposeRotationMatrixToEuler((M3*)workingBase);
  register XF*orientationChannel __asm__("$5");register SO*orientationOwner __asm__("$4");register qword anglesArgument __asm__("$9");
  __asm__("lw %0,%3\n\tdaddu %1,%4,$zero\n\tpor %2,$zero,%5":"=&r"(orientationChannel),"=&r"(orientationOwner),"=r"(anglesArgument):"m"(object->pxfUnk5c),"r"(object),"r"(angles));
- ACT *job=func_0012DC18(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;
+ ACT *job=NewPositionAct(orientationOwner,orientationChannel,5,9,2,anglesArgument);p->pactTurn=job;
  XFACT *pxfact=(XFACT *)object->pxfUnk5c;
  if(pxfact->pactCur==job)pxfact->tEnd=endTime;
  SetSoTreeFlag2(object,1);
@@ -724,9 +724,9 @@ extern "C" void AttachJtHandsObject(JTHANDS *hands, SO *object)
         SetSoCnstrTorque(object, 1);
     }
     XF *pxfAct = object->pxfUnk58;
-    hands->pactHold = func_0012DC18(object, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
+    hands->pactHold = NewPositionAct(object, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
     pxfAct = object->pxfUnk5c;
-    hands->pactTurn = func_0012DC18(object, pxfAct, 5, 0, 2, func_0022CA18(pxfAct, pxfAct));
+    hands->pactTurn = NewPositionAct(object, pxfAct, 5, 0, 2, GetXfValueFromMatrix(pxfAct, pxfAct));
     FadeSoIn(object, 0.25f);
     hands->psoHeld = object;
 }
@@ -774,10 +774,10 @@ extern "C" void SetJtHandsTargetAttached(JTHANDS *hands, SO *object)
         SetLoParent(hands->psoHeld, 0, 0xF);
     }
     XF *pxfAct = hands->psoHeld->pxfUnk58;
-    hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, func_0022FC48(0, pxfAct->pxfParent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
+    hands->pactPos = func_0012DE58Q(hands->psoHeld, pxfAct, 5, TransformXfPos(0, pxfAct->pxfParent, GetLoWorldPos(object)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);
     pxfAct = hands->psoHeld->pxfUnk5c;
     mat = ConvertXfMatR(0, pxfAct->pxfParent, GetLoWorldMatrix(object));
-    hands->pactTurn = func_0012DC18(hands->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
+    hands->pactTurn = NewPositionAct(hands->psoHeld, pxfAct, 5, 7, 2, func_0011BFF0V(mat));
     hands->ploTarget = hands->psoHeld;
     SetJtHandsTarget(hands, 1);
     hands->psoHeld = 0;

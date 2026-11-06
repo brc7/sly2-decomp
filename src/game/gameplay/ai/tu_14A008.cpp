@@ -129,8 +129,8 @@ void CloseBhv(BHVRT *p);
 void UpdateBhv(BHVRT *p);
 int IsBhvBusyAbove(BHVRT *p);
 void PopBhv(void *stack);
-void func_001FEE90(void *p);
-void func_001FEEA0(void *p);
+void AddMusicLayer2Request(void *p);
+void RemoveMusicLayer2Request(void *p);
 void AddStepguardSgf(GUARDV *p, int n);
 void RemoveStepguardSgf(GUARDV *p, int n);
 int IsStepguardHandsOff(GUARDV *p);
@@ -235,7 +235,7 @@ extern "C" void AddRoutePoint(ROUTE *route, int k, int oid)
 extern "C" void InitBhvRoute(BHVRT *behavior)
 {
     InitBhv(behavior);
-    func_001FEE90(D_003DD040);
+    AddMusicLayer2Request(D_003DD040);
     AddStepguardSgf(behavior->guard, 0x24);
     behavior->state = -1;
     behavior->targetStation = -1;
@@ -259,7 +259,7 @@ extern "C" void CloseBhvRoute(BHVRT *behavior)
     CloseBhv(behavior);
     SetBhvRouteState(behavior, -1);
     RemoveStepguardSgf(behavior->guard, 0x24);
-    func_001FEEA0(D_003DD040);
+    RemoveMusicLayer2Request(D_003DD040);
     behavior->guard->unknown4A4 = 1;
 }
 

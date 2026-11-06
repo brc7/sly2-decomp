@@ -115,7 +115,7 @@ struct S { char pad[0x58]; int childOid0; int childOid1; char pad2[0x294 - 0x60]
 struct O { char pad[0x264]; int oid; void *ownPart; char behaviorStack[0x28]; int sampledShape; };
 void PostSoLoad(struct O *p);
 int NewSampledShape(int a, int b);
-void func_002303A0(struct O *p, int n, int f);
+void SetXfRole(struct O *p, int n, int f);
 void *FindSoPart(struct O *p, int oid);
 void BuildStepPhysPart(struct O *p, void *pv);
 void HideSoPart(struct O *p, void *pv);
@@ -135,8 +135,8 @@ void PostStepLoad(struct O *step)
 {
     PostSoLoad(step);
     step->sampledShape = NewSampledShape(0x2C9, 0x10);
-    func_002303A0(step, ((struct S *)step)->childOid0, 1);
-    func_002303A0(step, ((struct S *)step)->childOid1, 1);
+    SetXfRole(step, ((struct S *)step)->childOid0, 1);
+    SetXfRole(step, ((struct S *)step)->childOid1, 1);
     if (step->oid != -1) {
         step->ownPart = FindSoPart(step, step->oid);
         if (step->ownPart) {
@@ -1308,7 +1308,7 @@ struct X { int a; struct O *po; };
 struct TABLE;
 struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float g40; };
 int FAsegaRetracted(struct Q *q);
-struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
+struct X *FindAsegChannel(struct TABLE *table, void *owner, int kind, int check);
 /** @sly2-annot addr=0x204E38
  * Purpose: If the ASEGA is live: find its translation channel for this object (PchnFindAseg kind 1, checked)
  *   and evaluate it (channel vt3) at t with the ASEGA effective speed (+0x40); else zero vector
@@ -1323,7 +1323,7 @@ qword GetStepAsegaTranslation(void *step, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !FAsegaRetracted(q)) {
-        struct X *x = func_0012FF10(q->table, step, 1, 1);
+        struct X *x = FindAsegChannel(q->table, step, 1, 1);
         if (x) {
             struct O *o = x->po;
             ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->g40);
@@ -1343,7 +1343,7 @@ struct X { int a; struct O *po; };
 struct TABLE;
 struct Q { char pad[0x14]; struct TABLE *table; char pad2[0x40 - 0x18]; float g40; };
 int FAsegaRetracted(struct Q *q);
-struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
+struct X *FindAsegChannel(struct TABLE *table, void *owner, int kind, int check);
 /** @sly2-annot addr=0x204ED8
  * Purpose: Same as 0x204E38 for channel kind 6 (rotation)
  * Info: proposed name VecStepAsegaRotation (T2); TU step
@@ -1355,7 +1355,7 @@ qword GetStepAsegaRotation(void *step, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
     if (q && !FAsegaRetracted(q)) {
-        struct X *x = func_0012FF10(q->table, step, 6, 1);
+        struct X *x = FindAsegChannel(q->table, step, 6, 1);
         if (x) {
             struct O *o = x->po;
             ((void (*)(void *, qword *, qword *, float, float))o->vt[3].pfn)((char *)o + o->vt[3].d, 0, &r, g, q->g40);
@@ -1605,7 +1605,7 @@ namespace M_func_00205478 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
-int func_001FD0C0(void *p, int i);
+int GetDialogRoleSmOid(void *p, int i);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *PsmaFindSm__FP2SMP3ALO(void *x, struct S *ps);
 void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
@@ -1628,7 +1628,7 @@ void AddStepDialogSmRefs(struct S *step, int mask)
         if (!f) bit = 0;
         if (mask & bit) {
             if (++step->a[i] < 2) {
-                int id = func_001FD0C0(D_003DD040, i);
+                int id = GetDialogRoleSmOid(D_003DD040, i);
                 void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                 if (x) {
                     void *y = PsmaFindSm__FP2SMP3ALO(x, step);
@@ -1646,10 +1646,10 @@ namespace M_func_00205588 { extern "C" {
 extern char D_003DD040[];
 extern char D_003DD490[];
 struct S { char pad[0x2A0]; int a[6]; };
-int func_001FD0C0(void *p, int i);
+int GetDialogRoleSmOid(void *p, int i);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int b, struct S *ps);
 void *PsmaFindSm__FP2SMP3ALO(void *x, struct S *ps);
-void func_001F0598(void *y);
+void RetractSma(void *y);
 /** @sly2-annot addr=0x205588
  * Purpose: STEP vt84: inverse of 0x205478: --refcount, at 0 retract the SMA (0x1F0598)
  * Info: proposed name RemoveStepDialogSmRefs (T2); class STEP slot84; TU step
@@ -1668,12 +1668,12 @@ void RemoveStepDialogSmRefs(struct S *step, int mask)
         if (mask & bit) {
             if (step->a[i] != 0) {
                 if (--step->a[i] <= 0) {
-                    int id = func_001FD0C0(D_003DD040, i);
+                    int id = GetDialogRoleSmOid(D_003DD040, i);
                     void *x = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, id, step);
                     if (x) {
                         void *y = PsmaFindSm__FP2SMP3ALO(x, step);
                         if (y)
-                            func_001F0598(y);
+                            RetractSma(y);
                     }
                 }
             }

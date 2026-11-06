@@ -581,7 +581,7 @@ struct P {
 };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void func_002303A0(struct P *, void *, int);
+void SetXfRole(struct P *, void *, int);
 void ScheduleIdleTimer(struct P *);
 void func_0015C150(struct VO *);
 void SetJtAirState(void *, int, int);
@@ -630,15 +630,15 @@ void SetBentleyState(struct P *p, int k)
         return;
     switch (p->state) {
     case 0:
-        func_002303A0(p, p->p58, 2);
-        func_002303A0(p, p->p5C, 2);
+        SetXfRole(p, p->p58, 2);
+        SetXfRole(p, p->p5C, 2);
         ScheduleIdleTimer(p);
         break;
     case 9:
     case 10:
     case 11:
-        func_002303A0(p, p->p58, 2);
-        func_002303A0(p, p->p5C, 2);
+        SetXfRole(p, p->p58, 2);
+        SetXfRole(p, p->p5C, 2);
         break;
     case 2:
         if (p->x108C == 0) {
@@ -708,8 +708,8 @@ void SetBentleyState(struct P *p, int k)
     p->t13D4 = D_002DDED0.t;
     switch (k) {
     case 0:
-        func_002303A0(p, p->p58, 1);
-        func_002303A0(p, p->p5C, 1);
+        SetXfRole(p, p->p58, 1);
+        SetXfRole(p, p->p5C, 1);
         if (p->x181C) {
             asega = p->p1820;
             n = 9;
@@ -758,8 +758,8 @@ void SetBentleyState(struct P *p, int k)
         jt = p->p102C;
     case 10:
     case 11:
-        func_002303A0(p, p->p58, 1);
-        func_002303A0(p, p->p5C, 1);
+        SetXfRole(p, p->p58, 1);
+        SetXfRole(p, p->p5C, 1);
         p->q190 = D_002A2DD0;
         break;
     case 14:
@@ -1475,13 +1475,13 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 void SetLoParent(struct P *, int, int);
 void ReleaseAct(void *);
-void func_002303A0(struct P *, struct O *, int);
+void SetXfRole(struct P *, struct O *, int);
 float GetStepHeading(struct P *);
 void SetStepTargetHeading(struct P *, float);
 void FixStepAngularVelocity(struct P *);
 void SetJtThrowState(void *, int);
-M4 func_0022FF40(void *, void *, M4 *);
-void *func_0012DC18(struct P *p, struct O *pso, int a, int b, int c, qword q);
+M4 GetRelativeXfMatrix(void *, void *, M4 *);
+void *NewPositionAct(struct P *p, struct O *pso, int a, int b, int c, qword q);
 qword DecomposeRotationMatrixToEuler(M4 *pm);
 void ReleaseSma(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct P *, int, void *, float, float);
@@ -1506,8 +1506,8 @@ void SetBentleyHoverState(struct P *bentley, int k)
         bentley->placeCount = save;
         ReleaseAct(&bentley->pv1810);
         ReleaseAct(&bentley->pv1814);
-        func_002303A0(bentley, bentley->p58, 2);
-        func_002303A0(bentley, bentley->p5C, 2);
+        SetXfRole(bentley, bentley->p58, 2);
+        SetXfRole(bentley, bentley->p5C, 2);
         break;
     }
     case 1:
@@ -1534,7 +1534,7 @@ void SetBentleyHoverState(struct P *bentley, int k)
         int n;
         struct Q *pq = D_002F7900->pq;
         n = ((int (*)(void *, M4 *))pq->vt[32].f)((char *)pq + pq->vt[32].d, &m);
-        { M4 t = func_0022FF40(bentley->p54->xA0, bentley->p58->xA0, &m); m = t; }
+        { M4 t = GetRelativeXfMatrix(bentley->p54->xA0, bentley->p58->xA0, &m); m = t; }
         {
             int save = bentley->placeCount;
             ((void (*)(void *, struct G *, int, int))bentley->vt[10].f)((char *)bentley + bentley->vt[10].d, D_002F7900, n, 3);
@@ -1542,8 +1542,8 @@ void SetBentleyHoverState(struct P *bentley, int k)
         }
         ((void (*)(void *, qword))bentley->vt[35].f)((char *)bentley + bentley->vt[35].d, D_002A2DD0);
         ((void (*)(void *, qword))bentley->vt[36].f)((char *)bentley + bentley->vt[36].d, D_002A2DD0);
-        bentley->pv1810 = func_0012DC18(bentley, bentley->p58, 1, 7, 2, m.pos);
-        bentley->pv1814 = func_0012DC18(bentley, bentley->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
+        bentley->pv1810 = NewPositionAct(bentley, bentley->p58, 1, 7, 2, m.pos);
+        bentley->pv1814 = NewPositionAct(bentley, bentley->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
         break;
     }
     case 1:
@@ -1910,7 +1910,7 @@ namespace M_func_00136ED0 { extern "C" {
 struct L { char pad[0x10b8]; void *f10b8; };
 struct S { struct L *pl; int pad[2]; int fc; int f10; char pad2[0xe0 - 0x14]; int fe0; };
 struct M { int id; int f4; int f8; };
-void func_00131B10(int, struct L *, void *);
+void DetachXfActById(int, struct L *, void *);
 /** @sly2-annot addr=0x136ED0
  * Purpose: msg 9 kinds 0x16E/0x242 for the helper struct
  * Info: proposed name HandleBentleyHelperMessage (T2); TU bentley
@@ -1921,7 +1921,7 @@ void func_00131B10(int, struct L *, void *);
 void HandleBentleyCrosshairMessage(struct S *bentley, int msg, struct M *pm) {
     if (msg == 9 && pm->id == bentley->fe0) {
         switch (pm->f8) {
-        case 0x16e: func_00131B10(pm->id, bentley->pl, bentley->pl->f10b8); bentley->f10 = 1; break;
+        case 0x16e: DetachXfActById(pm->id, bentley->pl, bentley->pl->f10b8); bentley->f10 = 1; break;
         case 0x242: bentley->fc = 1; break;
         }
     }
@@ -1942,10 +1942,10 @@ void ChooseJtAttackTarget(struct PO *, int, void *, int *, QF *, float, float, f
 qword ConvertAloPos(void *, struct PO *, qword);
 void SetStepTargetHeadingFromVector(struct PO *, qword);
 void FixStepAngularVelocity(struct PO *);
-void func_001384C0(void *);
+void RecalculateAsegBlend(void *);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *, struct PO *, int, void **, float, float);
-void func_00131B10(void *, struct PO *, int);
-void func_00131A90(void *, float);
+void DetachXfActById(void *, struct PO *, int);
+void SetAsegaChannelWeight(void *, float);
 static __inline__ float Clamp(float g, float minValue, float maxValue)
 {
     if (g < minValue)
@@ -2006,7 +2006,7 @@ void SetBentleyCrosshairState(struct S *ps, int state)
         pv = pe->p18;
         pe->fC = ps->g1C;
         dt = 0.06666667f;
-        func_001384C0(pv);
+        RecalculateAsegBlend(pv);
         break;
     }
     }
@@ -2014,9 +2014,9 @@ void SetBentleyCrosshairState(struct S *ps, int state)
     if (!ps->pvE0)
         return;
     if (ps->x10)
-        func_00131B10(ps->pvE0, ps->po, ps->po->x10B8);
+        DetachXfActById(ps->pvE0, ps->po, ps->po->x10B8);
     if (ps->pvE0 && dt != 0.0f)
-        func_00131A90(ps->pvE0, D_002DDED0.t + dt);
+        SetAsegaChannelWeight(ps->pvE0, D_002DDED0.t + dt);
 }
 } } // namespace M_func_00136F48
 
@@ -2357,7 +2357,7 @@ extern CLOCK D_002DDED0;
 extern float D_002BC9B4;   /* contact friction */
 extern float D_002BC9B8;
 void FaceStepToward(P *p, int n);
-R *func_0012FF10(X *px, P *p, int a, int b);
+R *FindAsegChannel(X *px, P *p, int a, int b);
 void ReleaseSma(void *pv);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(X *px, P *p, int n, void *pv, float g0, float g1);
 }
@@ -2393,7 +2393,7 @@ extern "C" void SetBentleyHelperState(S *s, int k)
         else
             px = s->px1;
         FaceStepToward(s->p, PXOF(s->p)->interactTarget);
-        func_0012FF10(px, s->p, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->g78);
+        FindAsegChannel(px, s->p, 1, 1)->pq->Eval(0, &v.q, 0.0f, px->g78);
         s->p->SetVel(PXOF(s->p)->m1B0 * VU_VECTOR(v.q));
         PXOF(s->p)->v190 = VU_VECTOR(v.q) * VU_FLOAT(-1.0f);
         s->kCur = k;

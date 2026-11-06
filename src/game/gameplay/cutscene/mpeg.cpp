@@ -141,7 +141,7 @@ int func_00233018(void);
 unsigned int snd_GetTransStatus(void);
 void snd_PauseAllSoundsInGroup(unsigned int m);
 void StopDialog(void *p);
-void func_00227788(void *p);
+void ClearSubtitle(void *p);
 void snd_StopAllStreams(void);
 int snd_FlushSoundCommands(void);
 void snd_StreamSafeCheckCDIdle(int n);
@@ -498,7 +498,7 @@ void Init__10CMpegAudio(CMpegAudio *p)
 {
     snd_PauseAllSoundsInGroup(0xFFFFFFFF);
     StopDialog(D_003DD040);
-    func_00227788(D_004435F0);
+    ClearSubtitle(D_004435F0);
     snd_StopAllStreams();
     while (snd_FlushSoundCommands()) ;
     snd_StreamSafeCheckCDIdle(1);

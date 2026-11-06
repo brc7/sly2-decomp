@@ -128,17 +128,17 @@ ITEM D_002F6470[11];
 ITEM D_002F65D0[7];
 
 POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
-void func_001D98A8(PMENU *p, int f);
+void ScreenSlot9Default(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
-void func_001D98B0(void);
+void ShowScreen(void);
 void SetClockRate(void *p, int n, float g);
 void IncrementSwHandsOff(SWM *p, int n);
 void DecrementSwHandsOff(SWM *p, int n);
 void BroadcastGameEvent(void *p, int n, int m);
-void func_001D9910(PMENU *p);
+void HideScreen(PMENU *p);
 void PlayWidgetAnim(POOL *, int);
 void SetWidgetAnimPhase(POOL *, int, float);
-void func_001D9870();
+void UpdateScreenDefault();
 int FWidgetAnimPlaying(POOL *, int);
 int GetJoySelectionStepY(JOY *);
 int GetJoySelectionStepX(JOY *);
@@ -155,7 +155,7 @@ int IsSwTransitionBusy(SWM *g);
 char *GetHeroPo(SWM *g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 void SetJtModeState__FP6JTMODEi(void *p, int k);
-int func_002127C8(void);
+int AreWidgetLoadsIdle(void);
 int NWorldCur(void);
 int GetBasicCid(void *p);
 void SetJobListPage(void *p, int f);
@@ -216,7 +216,7 @@ extern "C" void ResetPauseMenu(PMENU *menu) {
  * @end-sly2-annot */
 // PAUSEMENU's vtable slot 9: the screen base version, then resets the joystick repeat when the flag is set. (inferred)
 extern "C" void PAUSEMENU_Slot9(PMENU *p, int f) {
-    func_001D98A8(p, f);
+    ScreenSlot9Default(p, f);
     if (f != 0) {
         StartJoySelection__FP3JOY(p->input);
     }
@@ -232,7 +232,7 @@ extern "C" void PAUSEMENU_Slot9(PMENU *p, int f) {
 // Shows the pause menu (slot 10): screen base show, game clock stopped, hands-off, game event 0x28.
 void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here */
 {
-    func_001D98B0();
+    ShowScreen();
     SetClockRate(D_002DDED0, 0, 0.0f);
     IncrementSwHandsOff(&D_003DD490, 0);
     BroadcastGameEvent(D_002DEB30, 0x28, 0);
@@ -247,7 +247,7 @@ void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here *
 // Hides the pause menu: screen base hide, game clock running again, hands-off released, game event 0x2C.
 extern "C" void HidePauseMenu(PMENU *menu)
 {
-    func_001D9910(menu);
+    HideScreen(menu);
     menu->depth = 0;
     SetClockRate(D_002DDED0, 0, 1.0f);
     DecrementSwHandsOff(&D_003DD490, 0);
@@ -382,7 +382,7 @@ static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((c
 // items and the save-slot pages.
 extern "C" void UpdatePauseMenu(PMENU*menu){
  int direction;
- func_001D9870();
+ UpdateScreenDefault();
  if(menu->depth<=0)return;
  PAGE*group=(PAGE*)((char*)menu+0xC+menu->depth*sizeof(PAGE));
  int i=0;if(group->count>0){
@@ -918,7 +918,7 @@ extern "C" int TryOpenPauseMenu(ITEM *item)
     if (FScreenShown(&D_002E6550)) return 0;
     pl = GetHeroPo(&D_003DD490);
     if (pl && FIsBasicDerivedFrom__FP5BASIC3CID(pl, 0x34)) SetJtModeState__FP6JTMODEi(pl + 0xF00, -1);
-    if (!func_002127C8()) return 0;
+    if (!AreWidgetLoadsIdle()) return 0;
     psrc = D_002C00E8;
     pdst = D_002F65D0;
     for (i = 0; i < 7; i++) {

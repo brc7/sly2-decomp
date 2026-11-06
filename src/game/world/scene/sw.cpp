@@ -7,7 +7,7 @@
 // after each function (as jt.cpp does), their C++-named definitions as C-linkage definitions of their literal
 // symbols there. ResolveSwSaveVars (a Lilly port) is at file scope: it completes types basic.h only
 // forward-declares (SVPATH, SAVEDATA, LOUPD...), which sw.h's SW refers to.
-// g_sw is defined here with an inline constructor (SW_ctor) and destructor (func_00258348 with g++'s in-charge flag
+// g_sw is defined here with an inline constructor (SW_ctor) and destructor (DestroyBasic with g++'s in-charge flag
 // 2), and D_003E1C20 with an inline constructor: g++ generates the 96-instruction construct-and-destruct
 // StaticInit_sw and the _GLOBAL_$D$ stub func_00210E90 next to the _GLOBAL_$I$ one (as cm.cpp does for g_cm).
 // Entry points: SW_ctor (g_sw), ExecuteSwTransition (per frame: level loads), PostSwLoad, DeleteSw,
@@ -24,7 +24,7 @@
 #include "sly2/scrap.h"
 
 /* g_sw: a view of the SW bytes whose inline constructor and destructor call the C-named SW_ctor and the linkonce
-   destructor func_00258348 (cm.cpp's g_cm pattern). */
+   destructor DestroyBasic (cm.cpp's g_cm pattern). */
 struct SWG;
 struct LEVELLIST8;
 extern "C" {
@@ -37,14 +37,14 @@ extern LEVELLIST8 *D_003E1C4C;
 extern FILEREC *D_003E1C50;
 extern int D_003E1C54, D_003E1C58;
 SW *SW_ctor(SW *world);
-void func_00258348(SWG *world, int grfDelete);
+void DestroyBasic(SWG *world, int grfDelete);
 extern char D_002C3EB8[], D_003E1C60[];
 }
 struct SWG
 {
     char ab[sizeof(SW)];
     SWG() { SW_ctor((SW *)this); }
-    ~SWG() { func_00258348(this, 2); }
+    ~SWG() { DestroyBasic(this, 2); }
 } __attribute__((aligned(16)));
 SWG D_003DD490;
 /* D_003E1C20: four words built at startup (a table header {0, D_002C3EB8, 0, D_003E1C60}). */
@@ -380,7 +380,7 @@ extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648, D_003D4A54, D_002DE57
 extern int D_003E1C40, D_003E1C44, D_003E1C48, D_003E1C4C, D_003E1C50, D_003DD48C;
 void BroadcastGameEvent(void *p, int a, int b);
 void AbortJob(int h);
-void func_001D9408(void *p);
+void ResetScreens(void *p);
 void DeleteSwSplice(struct S *p);
 void ClearGameDifficulty(void *p);
 void func_0014D650(void *p);
@@ -408,7 +408,7 @@ void DeleteSw(struct S *world)
         AbortJob(world->h3B18);
         world->h3B18 = 0;
     }
-    func_001D9408(D_003D9E70);
+    ResetScreens(D_003D9E70);
     DeleteSwSplice(world);
     ClearGameDifficulty(pv);
     func_0014D650(D_002DDF40);
@@ -729,7 +729,7 @@ void EnsureSwDefaultLight(struct S *p);
 void PostLoadSwPathzones(struct S *p);
 void BindSwBootyProxy(struct S *p);
 void PostLoadGrabMarker(struct S *p);
-void func_001D9520(void *p);
+void PostLoadScreens(void *p);
 void ProcessSwCallbacks(struct S *p);
 void BuildPathzoneLinkLists(void *p);
 void SetupCm__FP2CM(void *p);
@@ -763,7 +763,7 @@ void PostSwLoad(struct S *world)
     PostLoadSwPathzones(world);
     BindSwBootyProxy(world);
     PostLoadGrabMarker(world);
-    func_001D9520(D_003D9E70);
+    PostLoadScreens(D_003D9E70);
     while (ProcessSwCallbacks(world), world->ppoLast != world->ppoFirst) {
         for (ppo = world->ppoFirst; ppo < world->ppoLast; ppo++)
             (*ppo)->vt[15].pf((char *)*ppo + (*ppo)->vt[15].d);
@@ -2184,9 +2184,9 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *, int);
 struct M *PsndStartSound(int);
 void SetSndSourceLo(struct M *, struct O *);
 void SetSndRange(struct M *, float, float);
-void func_001FB1F8(struct M *, float);
+void SetSndVolume(struct M *, float);
 void SetSndPitch(struct M *, float);
-void func_001FB520(struct M *, float);
+void SetSndDoppler(struct M *, float);
 void RcPtr_Assign(struct M **, struct M *);
 static inline struct O *SelectedValue(struct O *p){struct O *value;__asm__("daddu %0,%1,$zero":"=r"(value):"r"(p));return value;}
 /** @sly2-annot addr=0x210740
@@ -2218,9 +2218,9 @@ void StartSwAsegSound(float offset, float fade, float scale, struct G *p, int id
     m = PsndStartSound(id);
     SetSndSourceLo(m, o);
     SetSndRange(m, (float)x, (float)y);
-    func_001FB1F8(m, scale);
+    SetSndVolume(m, scale);
     SetSndPitch(m, offset);
-    func_001FB520(m, fade);
+    SetSndDoppler(m, fade);
     if (m->vt->kind((char *)m + m->vt->d) == 2)
         RcPtr_Assign(out, m);
 }

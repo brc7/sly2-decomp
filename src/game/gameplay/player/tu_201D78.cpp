@@ -109,7 +109,7 @@ int IsPointInVol(LOV *pvol, qword v);
 qword GetLoWorldPos(void *p);
 void FadeSoIn(LOV *plo, float f);
 void FadeSoOut(LOV *plo, float f);
-void func_00213BD8(WIDGETV *pw, int id, int v);
+void PlayWidgetAnimWithArg(WIDGETV *pw, int id, int v);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, RECONTGT *), void *, int *, RECONTGT ***);
 RECONTGT *FindFirstObjectHitByLine(int, qword, qword, int, RECONTGT **, LSG *);
 int FInsideCmFrustum(CMV *, qword, qword);
@@ -118,9 +118,9 @@ void IncrementSwHandsOff(SW *, int);
 void DecrementSwHandsOff(SW *, int);
 void StopWidgetAnim(WIDGETV *, int);
 void PlayWidgetAnim(WIDGETV *, int);
-void func_00214300(WIDGETV *, int);
+void SetWidgetExclusive(WIDGETV *, int);
 void SetClockRate(void *, int, float);
-void func_001FE5B8(void *, int, int);
+void SetSoundManagerFlags(void *, int, int);
 void func_0014FE28(void *);
 void *StartDialog(void *, int, int);
 void func_00147C20(void *, int, int);
@@ -325,9 +325,9 @@ void UpdateReconChecklist(RECONSEL *reconSel)
         RECONTGT *a = reconSel->apending[i];
         v = D_002C3588[i];
         if (IsReconTargetDone(a))
-            func_00213BD8(reconSel->primary, 0x33A, v);
+            PlayWidgetAnimWithArg(reconSel->primary, 0x33A, v);
         else
-            func_00213BD8(reconSel->primary, 0x33B, v);
+            PlayWidgetAnimWithArg(reconSel->primary, 0x33B, v);
     }
 }
 
@@ -580,12 +580,12 @@ void SetReconSelState(RECONSEL *reconSel,int nextState)
     case 8:
         Restore(reconSel->model->plo,reconSel->savedFlags);
         SetClockRate(&D_002DDED0,0,1.0f);
-        func_001FE5B8(D_003DD040,1,1);
+        SetSoundManagerFlags(D_003DD040,1,1);
         StopWidgetAnim(reconSel->primary,0x358);
         break;
     case 9:
         func_0014FE28(&g_cm.cplook);
-        func_00214300(reconSel->primary,-1);
+        SetWidgetExclusive(reconSel->primary,-1);
         Post(reconSel->primary,0x310);
         if(reconSel->resource){
             if(reconSel->actor->key!=-1)StartDialog(D_003DD040,reconSel->actor->key,0);
@@ -651,14 +651,14 @@ void SetReconSelState(RECONSEL *reconSel,int nextState)
             register uint inlineWord __asm__("v0")=raw|0x102;
             __asm__("sw %1,%0" : "=m"(updated->grf40) : "r"(inlineWord));
         }
-        func_001FE5B8(D_003DD040,1,0);
+        SetSoundManagerFlags(D_003DD040,1,0);
         SetClockRate(&D_002DDED0,0,0.0f);
         break;
     }
     case 9:
         Post(reconSel->secondary,0x339);
         Post(reconSel->primary,0x35C);
-        func_00214300(reconSel->primary,0);
+        SetWidgetExclusive(reconSel->primary,0);
         break;
     case 3:case 4:
         reconSel->secondary->actor=reconSel->actor;

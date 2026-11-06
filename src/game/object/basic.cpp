@@ -52,7 +52,7 @@ extern int D_0027A1D8[];   /* s_aiEvtParm (class_registry_options.inc) */
 extern int D_0027A108[];   /* s_aotypEvtParm, read from its second word */
 
 SIDEBAG *PtNew__t6CGcObj1Z8CSidebag(void);
-void func_002580A8(SIDEBAG **pp, SIDEBAG *p);
+void AssignSidebagRef(SIDEBAG **pp, SIDEBAG *p);
 void MakeRoot__t6CGcObj1Z8CSidebag(SIDEBAG *p);
 void RefEnsureOption__FP5BASICiP4CRef(CREFV *pref, LO *plo, int optid, CREFV *prefValue);
 void Decref__4CRef(CREFV *pref);
@@ -131,7 +131,7 @@ int FIsBasicDerivedFrom(BASICV *object, CIDV n) {
 // Gives the object a sidebag (its Splice variable bindings) when it has none.
 void EnsureBasicSidebag(BASICV *object) {
     SIDEBAG **pf = &object->psidebag;
-    if (object->psidebag == 0) { func_002580A8(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(object->psidebag); }
+    if (object->psidebag == 0) { AssignSidebagRef(pf, PtNew__t6CGcObj1Z8CSidebag()); MakeRoot__t6CGcObj1Z8CSidebag(object->psidebag); }
 }
 
 /* EnsureLoSidebag* (Sly 1 names); the C++ original inlined the CRef constructor/setter, ~CRef -> Decref. */

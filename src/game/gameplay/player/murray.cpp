@@ -175,7 +175,7 @@ void LoadStepFromBrx(struct P *p);
 void BindLoOidTable(struct P *p, int n, void *q);
 struct T *AllocClearedFromWorldHeap(struct REQ *r);
 void *FindSoXf(struct P *p, int a, int b);
-void func_00186930(struct T *t);
+void InitIkRecord(struct T *t);
 static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return AllocClearedFromWorldHeap(&req); }
 /** @sly2-annot addr=0x1B4888
  * Purpose: MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0
@@ -197,12 +197,12 @@ void LoadMurrayFromBrx(struct P *murray)
     murray->x1610->x4 = FindSoXf(murray, 0x200, 6);
     murray->x1610->x8 = FindSoXf(murray, 0x201, 6);
     murray->x1610->xC = FindSoXf(murray, 0x202, 1);
-    func_00186930(murray->x1610);
+    InitIkRecord(murray->x1610);
     murray->x1614 = NewT();
     murray->x1614->x4 = FindSoXf(murray, 0x203, 6);
     murray->x1614->x8 = FindSoXf(murray, 0x204, 6);
     murray->x1614->xC = FindSoXf(murray, 0x205, 1);
-    func_00186930(murray->x1614);
+    InitIkRecord(murray->x1614);
     murray->x15F0 = murray->x1610->xC;
     murray->x15F4 = FindSoXf(murray, 0x202, 6);
     murray->x15F8 = murray->x1614->xC;
@@ -221,7 +221,7 @@ void PostAsegArcLoad(void *p, struct S *s);
 void PostJtThrowLoad(void *p);
 void AttachStepplayerToStartMarker(struct S *p, int n);
 void *FindSoXf(struct S *p, int a, int b);
-int func_0012DC18(struct S *p, void *a, int b, int c, int d, qword q);
+int NewPositionAct(struct S *p, void *a, int b, int c, int d, qword q);
 void SetMurrayState(struct S *p, int n);
 /** @sly2-annot addr=0x1B49E0
  * Purpose: MURRAY vt15: STEPPLAYER PostLoad, post-load the 4 locomotion blends, strafe direction table
@@ -248,7 +248,7 @@ void PostMurrayLoad(struct S *murray)
     AttachStepplayerToStartMarker(murray, 0x16);
     v = FindSoXf(murray, murray->x18, 0xC);
     if (v) {
-        *(int *)(b + 0x1ACC) = func_0012DC18(murray, v, 0, 7, 2, D_002A2DE0);
+        *(int *)(b + 0x1ACC) = NewPositionAct(murray, v, 0, 7, 2, D_002A2DE0);
     }
     SetMurrayState(murray, 0);
 }
@@ -469,7 +469,7 @@ struct P {
 };
 void UpdateStepplayer(struct P *p);
 int FAsegaRetracted(struct O *p);
-void func_001306A8(struct O **pp);
+void DropAsegaRef(struct O **pp);
 void GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(struct G *pg, struct P *p, int n);
 void UpdateMurrayJtModeInput(struct P *p);
 void UpdateMurrayStateMachine(struct P *p);
@@ -570,7 +570,7 @@ void UpdateMurray(struct P *murray)
     if ((((int)(murray->x28 >> 60) & 1) == 0))
         return;
     if (murray->x190C && FAsegaRetracted(murray->x190C))
-        func_001306A8(&murray->x190C);
+        DropAsegaRef(&murray->x190C);
     GatherJtGrabCandidates__FP2SWP10STEPPLAYERUi(&D_003DD490, murray, 0xF8FA);
     UpdateMurrayJtModeInput(murray);
     UpdateMurrayStateMachine(murray);
@@ -781,7 +781,7 @@ typedef char P_x1464_Offset[FIELD_OFFSET(P,x1464)==5220?1:-1];
 typedef char P_x1510_Offset[FIELD_OFFSET(P,x1510)==5392?1:-1];
 typedef char P_x151C_Offset[FIELD_OFFSET(P,x151C)==5404?1:-1];
 extern qword D_002A2DD0;
-void func_002303A0(P *p, void *x, int k);
+void SetXfRole(P *p, void *x, int k);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(A *pa);
 void ReleaseSma(C *pc);
@@ -806,8 +806,8 @@ void SetMurrayCarrySubstate(P *murray, int k)
     if (k == murray->carrySubstate) return;
     switch (murray->carrySubstate) {
     case 0:
-        func_002303A0(murray, murray->x58, 2);
-        func_002303A0(murray, murray->x5C, 2);
+        SetXfRole(murray, murray->x58, 2);
+        SetXfRole(murray, murray->x5C, 2);
         murray->carrySubstate = k;
         break;
     case 1:
@@ -824,8 +824,8 @@ void SetMurrayCarrySubstate(P *murray, int k)
     if(k==2)goto state2;
     goto done;
 state0:
-    func_002303A0(murray,murray->x58,1);
-    func_002303A0(murray,murray->x5C,1);
+    SetXfRole(murray,murray->x58,1);
+    SetXfRole(murray,murray->x5C,1);
     pv=murray->x1510;
     murray->x190=D_002A2DD0;
     goto done;
@@ -857,7 +857,7 @@ extern float D_002C0900;
 struct P { char pad[0x150]; int controller; char pad1[0x1034 - 0x154]; int x1034; char pad2[0x1524 - 0x1038]; float f1524; float f1528; int x152C; int x1530; int x1534; };
 struct P *GetHeroPo(void *g);
 int IsSwHandsOff(void *g);
-int func_001F07E8(int a);
+int GetSmaCurrentState(int a);
 int GetSmaGoal(int a);
 int GrfConsumePressed__5POCTLUif(int a, int b, float f);
 void SetSmaGoal(int a, int b);
@@ -876,7 +876,7 @@ void UpdateMurrayStruggle(struct P *murray)
     int a;
     if (GetHeroPo(D_003DD490) != murray) return;
     if (IsSwHandsOff(D_003DD490)) return;
-    a = func_001F07E8(murray->x1034);
+    a = GetSmaCurrentState(murray->x1034);
     if (a != GetSmaGoal(murray->x1034)) return;
     if (a >= 0x1D0) return;
     if (a < 0x1CB) return;
@@ -1031,7 +1031,7 @@ struct CLOCK { float t; };
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 struct P { char pad[0x58]; int x58; int x5C; char pad0[0x190 - 0x60]; qword q190; char pad1[0x1030 - 0x1A0]; char action[4]; char x1034[4]; char pad2[0x1630 - 0x1038]; char x1630[4]; void *x1634; char pad3[0x16E0 - 0x1638]; int x16E0; char pad4[0x17F0 - 0x16E4]; void *x17F0; int strafeSubstate; float f17F8; };
-void func_002303A0(struct P *p, int a, int b);
+void SetXfRole(struct P *p, int a, int b);
 void ResetGaitFeet(void *p);
 void ReleaseAsega(void *p);
 void ReleaseSma(void *p);
@@ -1050,8 +1050,8 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
     int x, n;
     if (st == murray->strafeSubstate) return;
     if (murray->strafeSubstate == 0) {
-        func_002303A0(murray, murray->x58, 2);
-        func_002303A0(murray, murray->x5C, 2);
+        SetXfRole(murray, murray->x58, 2);
+        SetXfRole(murray, murray->x5C, 2);
     }
     murray->strafeSubstate = st;
     murray->f17F8 = D_002DDED0.t;
@@ -1060,8 +1060,8 @@ void SetMurrayStrafeSubstate(struct P *murray, int st)
     n = 1;
     switch (st) {
     case 0:
-        func_002303A0(murray, murray->x58, 1);
-        func_002303A0(murray, murray->x5C, 1);
+        SetXfRole(murray, murray->x58, 1);
+        SetXfRole(murray, murray->x5C, 1);
         x = murray->x16E0;
         murray->q190 = D_002A2DD0;
         break;
@@ -1230,7 +1230,7 @@ struct CLOCK { float t, dt; };
 extern CLOCK D_002DDED0;
 extern U D_002A2DD0;
 extern int D_002DD5BC;
-void func_002303A0(P *, void *, int);
+void SetXfRole(P *, void *, int);
 void ScheduleIdleTimer(P *);
 void SetMurrayFlopSubstate(P *, int);
 void func_0015C150(OBJ *);
@@ -1258,8 +1258,8 @@ void ReleaseAsega(ASEGA **);
 void ReleaseSma(COMPONENT **);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG *, P *, float, float, int, ASEGA **);
 void ReplaceSmaEx(void *, P *, int, int, int, COMPONENT **);
-ENTRY *func_0012F938(ASEG *, int);
-void func_00131A90(ASEGA *, float);
+ENTRY *FindAsegLabel(ASEG *, int);
+void SetAsegaChannelWeight(ASEGA *, float);
 }
 static inline void *Block(P *p, int offset) { return (void *)((char *)p + offset); }
 // virtual call through slot `index` of an object whose vptr is at +0xC
@@ -1283,9 +1283,9 @@ extern "C" void SetMurrayState(P *murray, int next)
     // leave the old state
     switch (murray->state) {
     case 0:
-        func_002303A0(murray, murray->first, 2); func_002303A0(murray, murray->second, 2); ScheduleIdleTimer(murray); break;
+        SetXfRole(murray, murray->first, 2); SetXfRole(murray, murray->second, 2); ScheduleIdleTimer(murray); break;
     case 16: case 17: case 18:
-        func_002303A0(murray, murray->first, 2); func_002303A0(murray, murray->second, 2); break;
+        SetXfRole(murray, murray->first, 2); SetXfRole(murray, murray->second, 2); break;
     case 3: SetMurrayFlopSubstate(murray, -1); break;
     case 2: {
         if (!murray->retain) {
@@ -1323,7 +1323,7 @@ extern "C" void SetMurrayState(P *murray, int next)
     // enter the new state
     switch (next) {
     case 0:
-        func_002303A0(murray, murray->first, 1); func_002303A0(murray, murray->second, 1);
+        SetXfRole(murray, murray->first, 1); SetXfRole(murray, murray->second, 1);
         source = murray->template0; murray->velocity = D_002A2DD0;
         if (old != 2) { id = (old != 10) ? 0x175 : 0x176; } else id = 0x178;
         if (IsmsFindSmOptional__FP2SM3OID(source, id) < 0) id = -1;
@@ -1354,7 +1354,7 @@ extern "C" void SetMurrayState(P *murray, int next)
         Call(murray->object15, 8); murray->stamp15 = D_002DD5BC; SetJtThrowState(Block(murray, 0x1910), 0); SetSoCnstrForce(murray, 1); SetVelocity(murray, D_002A2DD0.q); return;
     case 16: source = murray->template16;
     case 17: case 18:
-        func_002303A0(murray, murray->first, 1); func_002303A0(murray, murray->second, 1);
+        SetXfRole(murray, murray->first, 1); SetXfRole(murray, murray->second, 1);
     clear_velocity: murray->velocity = D_002A2DD0; break;
     case 20: SetJtPipeState(Block(murray, 0xF50), 0); return;
     case 21: { clip = murray->clip21; U *velocity = &murray->velocity; velocity->i[2] = 0; flags = 9; velocity->i[1] = 0; murray->velocity.i[0] = 0; break; }
@@ -1366,8 +1366,8 @@ extern "C" void SetMurrayState(P *murray, int next)
         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, murray, position, 1.0f, flags, animation);
         ReplaceSmaEx(source, murray, id, flags, mode, component);
         if (clip || source) {
-            if (clip) { if (duration == position) { ENTRY *e = func_0012F938(clip, 0x1AC); if (e) duration = e->value; } }
-            if (duration != 0.0f) func_00131A90(murray->asega, D_002DDED0.t + duration / murray->asega->rate);
+            if (clip) { if (duration == position) { ENTRY *e = FindAsegLabel(clip, 0x1AC); if (e) duration = e->value; } }
+            if (duration != 0.0f) SetAsegaChannelWeight(murray->asega, D_002DDED0.t + duration / murray->asega->rate);
         }
     }
     Call((OBJ *)murray, 90);
@@ -1705,9 +1705,9 @@ void FreeSwXpList__FP2SWP2XP(void *pg, struct LINK *pl);
 void *FindZapResponder(void *p, int n);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *DeliverZapToSo(struct MSG *pmsg);
-float *func_0012F938(void *p, int n);
-void func_00130D30(struct Q *p, int n, float g, float h);
-void func_00130B18(struct Q *p);
+float *FindAsegLabel(void *p, int n);
+void SeekAsega(struct Q *p, int n, float g, float h);
+void RetractAsega(struct Q *p);
 static inline void Zero(struct V3 *pv) { pv->z = 0.0f; pv->y = 0.0f; pv->x = 0.0f; }
 #define FIELD_OFFSET(t,m) ((unsigned int)&(((struct t*)0x10000)->m)-0x10000)
 typedef char qword_Size[sizeof(qword)==16?1:-1];
@@ -1816,11 +1816,11 @@ void SetMurrayFlopSubstate(struct P *murray, int s)
         FreeSwXpList__FP2SWP2XP(D_003DD490, murray->plink);
         murray->plink = 0;
         {
-            float *pg = func_0012F938(murray->action->x14, 0x1A5);
+            float *pg = FindAsegLabel(murray->action->x14, 0x1A5);
             if (pg)
-                func_00130D30(murray->action, 0, *pg, 1.0f);
+                SeekAsega(murray->action, 0, *pg, 1.0f);
             else
-                func_00130B18(murray->action);
+                RetractAsega(murray->action);
         }
         break;
     }
@@ -1972,7 +1972,7 @@ int TryMurrayTakedown(struct P *murray)
 namespace M_func_001B72B0 {
 // GetMurrayGripFrame: rotation (quaternion) and position of `stop` relative to the owner's two end nodes of p->link.
 //  - No pose: transform the input basis into the right parent's frame (ConvertXfMat) and take its rotation
-//    (DecomposeRotationMatrixToEuler); transform the input position through the left parent (func_0022FC48).
+//    (DecomposeRotationMatrixToEuler); transform the input position through the left parent (TransformXfPos).
 //  - With a pose: collect the parent chain from pose->first up to `stop` (at most 16 nodes) and the indices of the
 //    owner's left/right nodes in it, build the relative frame replace = inverse(from * pose * inverse(input) * to)
 //    (rotation re-orthonormalised through the quaternion, position = the right node's local position), then
@@ -2003,8 +2003,8 @@ typedef struct { char pad[0x180]; OWNER *owner; int pad184; POSE *pose; } LINK;
 typedef struct { char pad[0x13F0]; LINK *link; } P;
 extern "C" M4 D_002A2D30;   // identity matrix
 extern "C" M3 ConvertXfMat(NODE *, NODE *, const M3 &);
-extern "C" M4 func_0022FF40(NODE *, NODE *, const M4 &);
-extern "C" VU_VECTOR func_0022FC48(NODE *, NODE *, VU_VECTOR);
+extern "C" M4 GetRelativeXfMatrix(NODE *, NODE *, const M4 &);
+extern "C" VU_VECTOR TransformXfPos(NODE *, NODE *, VU_VECTOR);
 extern "C" VU_VECTOR DecomposeRotationMatrixToEuler(const M3 *);
 extern "C" void LoadRotateMatrixEuler(M3 *, VU_VECTOR);
 extern "C" qword *VECTOR_opAssign(qword *, VU_VECTOR);
@@ -2025,7 +2025,7 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
         M3 basis;
         basis = ConvertXfMat(stop, murray->link->owner->right->parent, input->basis);
         *outRotation = DecomposeRotationMatrixToEuler(&basis);
-        *outPosition = func_0022FC48(stop, murray->link->owner->left->parent, input->position.q);
+        *outPosition = TransformXfPos(stop, murray->link->owner->left->parent, input->position.q);
         return;
     }
     {
@@ -2043,8 +2043,8 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
             if (node == owner->right) right = count;
             count++;
         }
-        M4 from = func_0022FF40(murray->link->pose->first, owner->right, D_002A2D30);
-        M4 to = func_0022FF40(owner->right->parent, stop, D_002A2D30);
+        M4 from = GetRelativeXfMatrix(murray->link->pose->first, owner->right, D_002A2D30);
+        M4 to = GetRelativeXfMatrix(owner->right->parent, stop, D_002A2D30);
         from = __ml__FRC7MATRIX4T0(from, murray->link->pose->transform);
         M4 replace;
         M4 result = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(from, inverse), to);
@@ -2090,7 +2090,7 @@ extern qword D_002A2DC0;
 extern float D_002C09C8;
 qword ConvertXfVec(struct LO*,struct LO*,qword);
 int CSolveQuadratic__FfffPf(float,float,float,float*);
-void func_00130D30(struct ANIM*,int,float,float);
+void SeekAsega(struct ANIM*,int,float,float);
 static inline float Clamp(float inputValue,float inputLower,const float*upper){register float value __asm__("$f0")=inputValue;register float lower __asm__("$f12")=inputLower;float limit=*upper;if(value<lower)return lower;if(limit<value)return limit;return value;}
 static inline qword Scale(qword v,float f,U*u){qword s,r;__asm__("qmtc2.ni %1,%0":"=j"(s):"r"(f));u->q=s;__asm__("vmulx.xyzw %0,%1,%2x":"=&j"(r):"j"(v),"j"(u->q));return r;}
 static inline qword FinalLaunchScale(const qword*up,int bits,U*scalar){register qword factor __asm__("vf2"),source __asm__("vf1"),result __asm__("vf3");__asm__("qmtc2.ni %4,%0\n\tlqc2 %1,%5\n\tvmulx.xyzw %2,%1,%0x\n\tsqc2 %0,%3":"=j"(factor),"=j"(source),"=j"(result),"=m"(scalar->q):"r"(bits),"m"(*up));return result;}
@@ -2177,7 +2177,7 @@ void ComputeMurrayLiftLaunch(struct P*murray,qword goal,float*animation,float*du
   }
   if(!count)t=D_002C09C8;
   else t=Clamp(roots.f[count-1],D_002C09C8,duration);
-  func_00130D30(owner->anim,0,*animation-t*owner->anim->rate,owner->anim->rate);
+  SeekAsega(owner->anim,0,*animation-t*owner->anim->rate,owner->anim->rate);
   {
    register qword actualAcceleration __asm__("vf3");register qword qt __asm__("vf1");
    register float averageTime __asm__("$f0")=0.5f;register int bits __asm__("$2");
@@ -2401,7 +2401,7 @@ struct X { char pad[0x58]; int x58; int x5C; };
 struct O { char pad[0xC]; struct VE *vt; char pad1[0x180 - 0x10]; struct X *x180; };
 struct P { char pad[0x13F0]; struct O *carried; int a13F4[4]; int x1404; int x1408; char pad2[0x1430 - 0x140C]; struct X *x1430; float f1434; char pad3[0x1600 - 0x1438]; int a1600[4]; int x1610, x1614; int a1618[4]; };
 void ReleaseAct(int *p);
-void func_002303A0(struct X *x, int a, int b);
+void SetXfRole(struct X *x, int a, int b);
 void SetSoTreeFlag2(struct X *x, int a);
 void SetLoParent(struct X *x, int a, int b);
 void RecalcSwOxfFilterForObject(void *g, struct P *p);
@@ -2433,8 +2433,8 @@ void DetachMurrayCarried(struct P *murray)
     if (!o) return;
     ((void (*)())o->vt[3].pfn)((char *)o + o->vt[3].d, 6, 0, 0, 0, 0);
     x = murray->carried->x180;
-    func_002303A0(x, x->x58, murray->x1404);
-    func_002303A0(x, x->x5C, murray->x1408);
+    SetXfRole(x, x->x58, murray->x1404);
+    SetXfRole(x, x->x5C, murray->x1408);
     SetSoTreeFlag2(x, 0);
     SetLoParent(x, 0, 0xF);
     murray->x1430 = x;
@@ -2868,9 +2868,9 @@ void SetStepTargetHeading(struct P *p, float g);
 void FixStepAngularVelocity(struct P *p);
 void ReleaseSma(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *q, struct P *p, float g, float h, int n, struct ANIM **ppanim);
-float *func_0012F938(void *q, int n);
-void func_00131A90(struct ANIM *pa, float t);
-struct R *func_0012FF10(struct S14 *p, struct P *pp, int a, int b);
+float *FindAsegLabel(void *q, int n);
+void SetAsegaChannelWeight(struct ANIM *pa, float t);
+struct R *FindAsegChannel(struct S14 *p, struct P *pp, int a, int b);
 void ReleaseInteractTargetMark(struct P *p);
 static inline qword MulM3(qword *m, qword v)
 {
@@ -2917,14 +2917,14 @@ void SetMurrayAttack(struct P *murray, int k)
     ReleaseSma(murray->x1034);
     ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(q, murray, g, 1.0f, 1, &murray->panim);
     if (q) {
-        float *pg = func_0012F938(q, 0x1AC);
+        float *pg = FindAsegLabel(q, 0x1AC);
         if (pg)
             g = *pg;
     }
     if (g != 0.0f)
-        func_00131A90(murray->panim, D_002DDED0.t + g / murray->panim->g40);
+        SetAsegaChannelWeight(murray->panim, D_002DDED0.t + g / murray->panim->g40);
     if (murray->panim) {
-        struct R *r = func_0012FF10(murray->panim->p14, murray, 1, 1);
+        struct R *r = FindAsegChannel(murray->panim->p14, murray, 1, 1);
         if (r) {
             qword a, b, pos, t, v;
             ((void (*)(void *, qword *, float, float, int))r->po->vt[3].pfn)((char *)r->po + r->po->vt[3].d, &a, 0.0f, 0.0f, 0);
@@ -2945,7 +2945,7 @@ void SetMurrayAttack(struct P *murray, int k)
 namespace M_func_001B8938 { extern "C" {
 struct S { char pad[0x1030]; void *p; char pad2[0x190C - 0x1034]; void *q; };
 extern char D_002C09F8[];
-void func_00131B60(void *a, struct S *p, int n, void *s);
+void DetachSoActsMatching(void *a, struct S *p, int n, void *s);
 void SetMurrayState(struct S *p, int n);
 /** @sly2-annot addr=0x1B8938
  * Purpose: Fade the attack overlay (0x131B60), clear it and return to idle
@@ -2956,7 +2956,7 @@ void SetMurrayState(struct S *p, int n);
 // Fades the attack overlay, clears it and returns to idle.
 void CancelMurrayAttack(struct S *murray)
 {
-    func_00131B60(murray->p, murray, 5, D_002C09F8);
+    DetachSoActsMatching(murray->p, murray, 5, D_002C09F8);
     murray->q = murray->p;
     murray->p = 0;
     SetMurrayState(murray, 0);
@@ -3044,7 +3044,7 @@ struct P {
 extern struct POLY D_002C0A20;
 extern struct LIMIT D_002BBB60;
 qword GetStepAsegaTranslation(struct P*,struct Q*,float);
-struct PARAM *func_0012F938(void*,int);
+struct PARAM *FindAsegLabel(void*,int);
 qword SetVectorCylind(float,float,float);
 qword ConvertAloVec(void*,void*,qword);
 void FaceStepToward(struct P*,void*);
@@ -3110,8 +3110,8 @@ void UpdateMurrayAttackVelocity(struct P*murray){
         {
             register int active __asm__("$3")=murray->blend;
             if(active){
-            struct PARAM *start=func_0012F938(murray->source->table,0x240);
-            struct PARAM *end=func_0012F938(murray->source->table,0x242);
+            struct PARAM *start=FindAsegLabel(murray->source->table,0x240);
+            struct PARAM *end=FindAsegLabel(murray->source->table,0x242);
             float t=(murray->source->time-start->value)/(end->value-start->value);
             float blend=Clamp(Polynomial(&D_002C0A20,t),D_002BBB60.lo,D_002BBB60.hi);
             qword desired=OrbitVector(murray);
@@ -3565,7 +3565,7 @@ extern "C" void ReleaseAct(MOTION**);
 extern "C" void SetSoCnstrForce(OWNER*,int);
 extern "C" void SetLoParent(OWNER*,int,int);
 extern "C" void SetSoTreeFlag2(OWNER*,int);
-extern "C" EVENT*func_0012F938(ASEG*,int);
+extern "C" EVENT*FindAsegLabel(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
 extern "C" M4 ConvertAloMat4(void*,void*,M4*);
 extern "C" void GetMurrayGripFrame(P*,NODE*,const M4*,qword*,qword*);
@@ -3573,11 +3573,11 @@ extern "C" int FIsBasicDerivedFrom__FP5BASIC3CID(OWNER*,int);
 extern "C" void SendStepguardRootBhvMode6(OWNER*,int);
 extern "C" void StunStepguardThrownOp1(OWNER*);
 extern "C" void ComputeMurrayLiftLaunch(P*,qword,float*,float*,qword*,qword*);
-extern "C" MOTION*func_0012DE58(void*,void*,void*,float,qword,qword);
+extern "C" MOTION*NewBezierAct(void*,void*,void*,float,qword,qword);
 extern "C" qword ConvertXfVec(NODE*,NODE*,qword);
-extern "C" MOTION*func_0012DC18(void*,void*,void*,int,int,qword);
-extern "C" MOTION*func_0012DD28(void*,void*,void*,STRETCH*);
-extern "C" MOTION*func_0012DDB0(void*,void*,void*,void*,int,M4*);
+extern "C" MOTION*NewPositionAct(void*,void*,void*,int,int,qword);
+extern "C" MOTION*NewIkAct(void*,void*,void*,STRETCH*);
+extern "C" MOTION*NewMatrixAct(void*,void*,void*,void*,int,M4*);
 extern "C" void DetachMurrayCarried(P*);
 extern "C" void SetMurrayState(P*,int);
 static inline void ClearXYZ(U*v){v->i[0]=v->i[1]=v->i[2]=0;}
@@ -3609,7 +3609,7 @@ extern "C" void SetMurrayLiftSubstate(P*murray,int state) {
   SetSoTreeFlag2(owner,1);
   M4 predicted;
   float duration;
-  EVENT*event=func_0012F938(murray->anim->clip,0x1C7);
+  EVENT*event=FindAsegLabel(murray->anim->clip,0x1C7);
   duration=(event->time-murray->anim->time)/murray->anim->rate;
   LoadIdentityMatrix4(murray->root->node,murray->node,&predicted,0,duration);
   M4 work=ConvertAloMat4(murray,0,&predicted);
@@ -3617,12 +3617,12 @@ extern "C" void SetMurrayLiftSubstate(P*murray,int state) {
   GetMurrayGripFrame(murray,0,&predicted,&work.row[0].q,&work.row[1].q);
   if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))SendStepguardRootBhvMode6(owner,(int)murray);
   ComputeMurrayLiftLaunch(murray,work.row[1].q,&event->time,&duration,&work.row[2].q,&work.row[3].q);
-  murray->m13FC=func_0012DE58(owner,owner->left,(void*)5,D_002DDED0.time+duration,work.row[1].q,work.row[3].q);
+  murray->m13FC=NewBezierAct(owner,owner->left,(void*)5,D_002DDED0.time+duration,work.row[1].q,work.row[3].q);
   VTE*entry=&owner->vt[35];
   void*receiver=(char*)owner+entry->delta;
   qword velocity=ConvertXfVec(owner->left->parent,0,work.row[2].q);
   ((void(*)(void*,qword))entry->fn)(receiver,velocity);
-  murray->m1400=func_0012DC18(owner,owner->right,(void*)5,7,2,work.row[0].q);
+  murray->m1400=NewPositionAct(owner,owner->right,(void*)5,7,2,work.row[0].q);
   break;
  }
  case 2:{
@@ -3641,17 +3641,17 @@ extern "C" void SetMurrayLiftSubstate(P*murray,int state) {
   U position,rotation;
   M4 frame;
   GetMurrayGripFrame(murray,root->node,&D_002A2D30,&rotation.q,&position.q);
-  murray->m13F8=func_0012DC18(owner,owner->right,(void*)5,7,2,rotation.q);
-  murray->m13F4=func_0012DC18(owner,owner->left,(void*)5,7,2,position.q);
+  murray->m13F8=NewPositionAct(owner,owner->right,(void*)5,7,2,rotation.q);
+  murray->m13F4=NewPositionAct(owner,owner->left,(void*)5,7,2,position.q);
   if(murray->link->first){
    GOAL*goal=murray->link->first;
    STRETCH*stretch=murray->first;
    stretch->frame=((void*(*)(void*,M4*))goal->vt[32].fn)((char*)goal+goal->vt[32].delta,&frame);
    stretch->position=frame.row[3];
    stretch->tuning=D_002C0A3C;
-   murray->m1618=func_0012DD28(murray,stretch->first,(void*)5,stretch);
-   murray->m161C=func_0012DD28(murray,stretch->second,(void*)5,stretch);
-   murray->m1604=func_0012DDB0(murray,murray->targetFirst,(void*)5,(void*)5,(int)stretch->frame,&frame);
+   murray->m1618=NewIkAct(murray,stretch->first,(void*)5,stretch);
+   murray->m161C=NewIkAct(murray,stretch->second,(void*)5,stretch);
+   murray->m1604=NewMatrixAct(murray,murray->targetFirst,(void*)5,(void*)5,(int)stretch->frame,&frame);
   }
   if(murray->link->second){
    GOAL*goal=murray->link->second;
@@ -3659,9 +3659,9 @@ extern "C" void SetMurrayLiftSubstate(P*murray,int state) {
    stretch->frame=((void*(*)(void*,M4*))goal->vt[32].fn)((char*)goal+goal->vt[32].delta,&frame);
    stretch->position=frame.row[3];
    stretch->tuning=D_002C0A40;
-   murray->m1620=func_0012DD28(murray,stretch->first,(void*)5,stretch);
-   murray->m1624=func_0012DD28(murray,stretch->second,(void*)5,stretch);
-   murray->m160C=func_0012DDB0(murray,murray->targetSecond,(void*)5,(void*)5,(int)stretch->frame,&frame);
+   murray->m1620=NewIkAct(murray,stretch->first,(void*)5,stretch);
+   murray->m1624=NewIkAct(murray,stretch->second,(void*)5,stretch);
+   murray->m160C=NewMatrixAct(murray,murray->targetSecond,(void*)5,(void*)5,(int)stretch->frame,&frame);
   }
   if(FIsBasicDerivedFrom__FP5BASIC3CID(owner,0x38))StunStepguardThrownOp1(owner);
   ClearXYZ(&murray->velocity);
@@ -3935,7 +3935,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int pad[3]; struct VTE *vt; int pad1[6]; unsigned long f28; };
 struct P { char pad[0x1AD0]; struct O *po; int n1AD4; };
 int FPowerupAcquired(int n);
-void func_0012F9B8(int n, struct O *po, int a, int b, float g0, float g1);
+void ApplyAsegCore(int n, struct O *po, int a, int b, float g0, float g1);
 /** @sly2-annot addr=0x1B9D28
  * Purpose: If power-up 0x11 owned: position effect object (vt29) at given point and play its anim
  * Info: proposed name SpawnMurrayHitEffect (T2); TU murray
@@ -3950,7 +3950,7 @@ void SpawnMurrayHitEffect(struct P *murray, qword q)
         if ((((object->f28 >> 60) & 1) == 0)) {
             struct VTE *e = &object->vt[29];
             ((void (*)(void *, qword))e->pfn)((char *)object + e->d, q);
-            func_0012F9B8(murray->n1AD4, murray->po, 0, 0, 0.0f, 1.0f);
+            ApplyAsegCore(murray->n1AD4, murray->po, 0, 0, 0.0f, 1.0f);
         }
     }
 }
@@ -3960,7 +3960,7 @@ namespace M_func_001B9DB8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a, b, c; struct VTE *vt; char pad[0x18]; unsigned long fl; };
 struct S { char pad[0x1AD8]; struct O *po; void *pv; };
-void func_0012F9B8(void *a, struct O *po, int c, int d, float f, float g);
+void ApplyAsegCore(void *a, struct O *po, int c, int d, float f, float g);
 /** @sly2-annot addr=0x1B9DB8
  * Purpose: Same without the power-up check (event 0x40000 from Murray)
  * Info: proposed name SpawnMurrayHitEffect2 (T2); TU murray
@@ -3973,7 +3973,7 @@ void SpawnMurrayHitEffectUnchecked(struct S *murray, int x)
     if ((((int)(murray->po->fl >> 60) & 1) == 0)) {
         struct VTE *e = &murray->po->vt[29];
         ((void (*)(void *, int))e->pfn)((char *)murray->po + e->d, x);
-        func_0012F9B8(murray->pv, murray->po, 0, 0, 0.0f, 1.0f);
+        ApplyAsegCore(murray->pv, murray->po, 0, 0, 0.0f, 1.0f);
     }
 }
 } } // namespace M_func_001B9DB8

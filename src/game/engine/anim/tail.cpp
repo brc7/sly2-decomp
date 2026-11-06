@@ -1,5 +1,7 @@
 // tail.cpp -- chains of transforms that hang off an SO (tails, ropes): the chain actions, loading the chains from
 // the level, and the per-frame chain simulation (VU0 macro-mode asm).
+// Entry points: LoadSoChainsFromBrx (SO loading), UpdateChainLink (per-frame, from UpdateSoSlots' role-0x10 actions),
+// CloneChainAct / ACT3::VSlot1 (the chain action's clone and retract slots).
 // TU 0x21C820..0x21D278 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tail
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021D258
@@ -16,10 +18,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The chain action (ACTV role 0x10, built by LoadSoChainsFromBrx as `Hook`): the ACTV fields, its vtable pointer and
    the chain link it drives; the link's XF points back at it through +0xA8. */
-struct ACTCHAINV { int ack; void *pso; char *pxf; int nPriority; void *pactNext; int nRole; void *vt; void *plink; };
+struct ACTCHAINV { int ack; void *pso; char *pxf; int nPriority; void *pactNext; int nRole; void *vt; void *chainLink; };
 extern "C" {
 void CloneAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf);
-void func_0012CE98(ACTCHAINV *pact);
+void AttachActBase(ACTCHAINV *pact);
 }
 
 /** @sly2-annot addr=0x21C820
@@ -30,10 +32,12 @@ void func_0012CE98(ACTCHAINV *pact);
  * See: docs/engine/animation.md#4-xf-slots-and-transforms-xfcpp-0x22c818-lilly-xfc,
  *   docs/engine/animation.md#6-source-files, docs/engine/particles-effects.md#5-source-files
  * @end-sly2-annot */
-extern "C" void func_0021C820(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
+// Clones a chain action onto a new transform (ACT slot 6): runs the generic CloneAct, then takes over the chain link
+// the target transform points at (+0xA8). (inferred)
+extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
 {
     CloneAct(pact, a1, a2, pxf);
-    pact->plink = *(void **)(pxf + 0xA8);
+    pact->chainLink = *(void **)(pxf + 0xA8);
 }
 
 /** @sly2-annot addr=0x21C858
@@ -45,11 +49,14 @@ extern "C" void func_0021C820(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
  * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
 /* ACT3's slot 1, its key function (sly2/act.h). */
+// Attaches a chain action to its transform (ACT slot 1, inferred from ACTSEG's slot 1, which binds its curve there):
+// runs the base slot 1 (sets the transform's update mode and refreshes it), then points the transform's +0xA8 at
+// this action's chain link. (An older draft called this RetractChainAct.)
 void ACT3::VSlot1()
 {
     ACTCHAINV *pact = (ACTCHAINV *)this;
-    func_0012CE98(pact);
-    *(void **)(pact->pxf + 0xA8) = pact->plink;
+    AttachActBase(pact);
+    *(void **)(pact->pxf + 0xA8) = pact->chainLink;
 }
 
 struct M3 { qword r[3]; };
@@ -59,9 +66,9 @@ struct E;
 struct O { struct M3 mat; char pad[0x70-0x30]; qword pos; char pad1[0xA8-0x80]; struct E *entry; };
 struct VE { short d; short pad; struct O *(*get)(void *,int); };
 struct S { char pad[0xC]; struct VE *vt; };
-struct E { struct M3 mat; qword pos; qword world; qword x50; struct N *node; struct O *object; int x68; int x6C; };
-struct N { int count; struct E *entries; int x8; float xC; float x10; float x14; float x18; int x1C; qword q20; qword q30; qword q40; };
-struct Hook { int kind; struct S *owner; struct O *object; int xC; int x10; int flags; void *vt; struct E *entry; };
+struct E { struct M3 mat; qword pos; qword tipPosition; qword x50; struct N *chain; struct O *xf; int x68; int x6C; };
+struct N { int linkCount; struct E *links; int stepCount; float bendStiffness; float damping; float relativeDamping; float maxBendAngle; int lastUpdateTime; qword gravity; qword lastSegment; qword previousAnchor; };
+struct Hook { int kind; struct S *so; struct O *xf; int priority; int x10; int flags; void *vt; struct E *entry; };
 struct Alloc { int cb; int align; };
 extern char D_002DB338[] __asm__("_vt$4ACT3");
 extern "C" {
@@ -71,9 +78,9 @@ float F32Read__18CBinaryInputStream(void *);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *,qword *);
 int S16Read__18CBinaryInputStream(void *);
 void *AllocClearedFromWorldHeap(struct Alloc *);
-struct Hook *func_0012E1F0(int);
+struct Hook *AllocAct(int);
 void AddXfAct(struct S *,struct O *,struct Hook *);
-qword func_0022FC48(struct O *,struct O *,qword);
+qword TransformXfPos(struct O *,struct O *,qword);
 qword ConvertXfVec(struct O *,struct O *,qword);
 }
 static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return AllocClearedFromWorldHeap(&req); }
@@ -90,62 +97,66 @@ static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; r
  *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse,
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
-extern "C" void LoadSoChainsFromBrx(struct S *p,void *stream) {
+// Loads an SO's chains (tails, ropes) from the level stream. Per chain: step count, bend stiffness, damping, relative
+// damping, maximum bend angle, gravity and anchor vectors, then the links; each link resolves its transform through the
+// SO's vtable slot 51, gets a kind-3 chain action registered on that transform (AddXfAct), and finally the rest segments
+// from each link to the next (or the last one's continuation) are computed in link space and in world space.
+extern "C" void LoadSoChainsFromBrx(struct S *so,void *stream) {
     int count=S8Read__18CBinaryInputStream(stream);
     int i,j;
-    struct E *e;
+    struct E *link;
     for(i=0;i<count;i++) {
-        struct N *n=(struct N *)Alloc(0x50);
-        n->x8=U8Read__18CBinaryInputStream(stream);
-        n->xC=F32Read__18CBinaryInputStream(stream);
-        n->x10=F32Read__18CBinaryInputStream(stream);
-        n->x14=F32Read__18CBinaryInputStream(stream);
-        n->x18=F32Read__18CBinaryInputStream(stream);
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream,&n->q20);
-        ReadVector__18CBinaryInputStreamP6VECTOR(stream,&n->q30);
-        n->count=S8Read__18CBinaryInputStream(stream);
-        n->entries=(struct E *)Alloc(n->count*sizeof(struct E));
-        for(j=0;j<n->count;j++) {
-            struct Hook *h;
-            e=&n->entries[j];
-            e->node=n;
-            { struct VE *ve=&p->vt[51]; e->object=ve->get((char *)p+ve->d,S16Read__18CBinaryInputStream(stream)); }
-            e->mat=e->object->mat;
-            h=func_0012E1F0(0x20);
-            h->vt=D_002DB338;
-            h->kind=3;
-            h->owner=p;
-            h->object=e->object;
-            h->xC=-1;
-            h->entry=e;
-            h->flags=16;
-            AddXfAct(p,e->object,h);
-            e->object->entry=e;
+        struct N *chain=(struct N *)Alloc(0x50);
+        chain->stepCount=U8Read__18CBinaryInputStream(stream);
+        chain->bendStiffness=F32Read__18CBinaryInputStream(stream);
+        chain->damping=F32Read__18CBinaryInputStream(stream);
+        chain->relativeDamping=F32Read__18CBinaryInputStream(stream);
+        chain->maxBendAngle=F32Read__18CBinaryInputStream(stream);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream,&chain->gravity);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream,&chain->lastSegment);
+        chain->linkCount=S8Read__18CBinaryInputStream(stream);
+        chain->links=(struct E *)Alloc(chain->linkCount*sizeof(struct E));
+        for(j=0;j<chain->linkCount;j++) {
+            struct Hook *action;
+            link=&chain->links[j];
+            link->chain=chain;
+            { struct VE *ve=&so->vt[51]; link->xf=ve->get((char *)so+ve->d,S16Read__18CBinaryInputStream(stream)); }
+            link->mat=link->xf->mat;
+            action=AllocAct(0x20);
+            action->vt=D_002DB338;
+            action->kind=3;
+            action->so=so;
+            action->xf=link->xf;
+            action->priority=-1;
+            action->entry=link;
+            action->flags=16;
+            AddXfAct(so,link->xf,action);
+            link->xf->entry=link;
         }
-        for(j=0;j<n->count;j++) {
-            e=&n->entries[j];
-            if(j<n->count-1) e->pos=func_0022FC48(0,e->object,n->entries[j+1].object->pos);
+        for(j=0;j<chain->linkCount;j++) {
+            link=&chain->links[j];
+            if(j<chain->linkCount-1) link->pos=TransformXfPos(0,link->xf,chain->links[j+1].xf->pos);
             /* the previous entry through integer arithmetic: as C++, (char *)e - 0x70 and e[-1] give a split -0x8000 + 0x7FF4
                address (39/165 differ); n->entries[j-1] differs as much */
-            else if(j>0) e->pos=ConvertXfVec(((struct E *)((int)e-0x70))->object,e->object,((struct E *)((int)e-0x70))->pos);
-            else e->pos=n->q30;
-            e->world=func_0022FC48(e->object,0,e->pos);
+            else if(j>0) link->pos=ConvertXfVec(((struct E *)((int)link-0x70))->xf,link->xf,((struct E *)((int)link-0x70))->pos);
+            else link->pos=chain->lastSegment;
+            link->tipPosition=TransformXfPos(link->xf,0,link->pos);
         }
     }
 }
 
-// func_0021CB18: ported from Lilly's personal Sly 2 decomp (src/P2/chain.c), reduced to the declarations it needs.
+// UpdateChainLink: ported from Lilly's personal Sly 2 decomp (src/P2/chain.c), reduced to the declarations it needs.
 // Every global is named by its address; the function keeps its readable name and gets the team symbol through __asm__.
 // Globals: D_002A2DA0 (D_002A2DA0), D_002DDED0 (g_clock), D_003DD490 (g_sw)
 // 0x0021CB18 UpdateChainLink__FP2SOP9CHAINLINK (our name; role 0x10 of UpdateSoSlots 0x22DE88)
-// Runs for every link of a chain every frame. The first call of a frame (g_clock.t != tLast) simulates the links from this one to the end:
+// Runs for every link of a chain every frame. The first call of a frame (g_clock.t != lastUpdateTime) simulates the links from this one to the end:
 // the start point is the anchor (link 0: the XF's world position; its velocity is the finite difference over dt, or the XF's own velocity
-// (0x22D348) when update flag 0x10 is set) or the tip of the link before (earlier links are re-read from their XFs first). Then cstep steps
-// of dt / cstep: per link, the segment is turned back when it bends more than radBendMax against the one before; the tip velocity gets damping
-// (gDamp, gDampRel against the point it hangs from), a bend pull (gBend * angle, along normal x segment) and gravity; the tip moves, is put back
+// (0x22D348) when update flag 0x10 is set) or the tip of the link before (earlier links are re-read from their XFs first). Then stepCount steps
+// of dt / stepCount: per link, the segment is turned back when it bends more than maxBendAngle against the one before; the tip velocity gets damping
+// (damping, relativeDamping against the point it hangs from), a bend pull (bendStiffness * angle, along normal x segment) and gravity; the tip moves, is put back
 // at the segment's rest length from the base (unit direction, or (1,0,0) for a zero segment) and loses the stretch part of its velocity.
 // Every call then turns its XF so that its rest segment points at the simulated tip (BuildRotateVectorsMatrix 0x11BA08), in the parent's frame.
-// Matching notes: the anchor copy needs the flag read between `posAnchor` and `qwPos = posAnchor` (else cse swaps the copy and the anchor is
+// Matching notes: the anchor copy needs the flag read between `anchor` and `position = anchor` (else cse swaps the copy and the anchor is
 // reloaded from the stack); `MATRIX3 mat` at loop-body scope keeps the game's slot for the VU_FLOAT homes (sp+0x50); the default unit vector is a
 // plain qword copy in the then-arm (asm can't sit in the bc1t delay slot); gravity is read as `*(qword *)&` so it stays behind the VU_FLOAT homes.
 struct VU_VECTOR4
@@ -189,31 +200,31 @@ struct ACTV
     ACTV(int ack) : ack(ack) {}
 };
 extern CLOCK D_002DDED0;
-qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("func_0022FC48");
+qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("TransformXfPos");
 extern SW D_003DD490;
 struct CHAINLINK
 {
-      MATRIX3 matRest;
-      qword qwSeg;
-      qword posTip;
-      qword velTip;
-      CHAIN *pchain;
+      MATRIX3 restMatrix;
+      qword restSegment;
+      qword tipPosition;
+      qword tipVelocity;
+      CHAIN *chain;
       XF *pxf;
       undefined4 unk_0x68[2];
 };
 struct CHAIN
 {
-      int clink;
-      CHAINLINK *alink;
-      int cstep;
-      float gBend;
-      float gDamp;
-      float gDampRel;
-      float radBendMax;
-      float tLast;
-      qword qwGravity;
-      qword qwSegLast;
-      qword posAnchorPrev;
+      int linkCount;
+      CHAINLINK *links;
+      int stepCount;
+      float bendStiffness;
+      float damping;
+      float relativeDamping;
+      float maxBendAngle;
+      float lastUpdateTime;
+      qword gravity;
+      qword lastSegment;
+      qword previousAnchor;
 };
 struct VU_FLOAT
 {
@@ -280,18 +291,18 @@ static inline qword QwScaleX(qword qwVec, qword qwScale)
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(qw) : "j"(qwVec), "j"(qwScale));
     return qw;
 }
-static inline qword QwChainVel(qword qwVel, VU_FLOAT gA, qword qwVelRel, VU_FLOAT gB, qword qwPerp, VU_FLOAT gK, qword qwGravity, VU_FLOAT gDt)
+static inline qword QwChainVel(qword qwVel, VU_FLOAT gA, qword qwVelRel, VU_FLOAT gB, qword qwPerp, VU_FLOAT gK, qword gravity, VU_FLOAT gDt)
 {
     qword qw;
     __asm__("vmulax.xyzw $ACC, %1, %2x\n\tvmaddax.xyzw $ACC, %3, %4x\n\tvmaddax.xyzw $ACC, %5, %6x\n\tvmaddx.xyzw %0, %7, %8x"
-            : "=j"(qw) : "j"(qwVel), "j"(gA.qw), "j"(qwVelRel), "j"(gB.qw), "j"(qwPerp), "j"(gK.qw), "j"(qwGravity), "j"(gDt.qw));
+            : "=j"(qw) : "j"(qwVel), "j"(gA.qw), "j"(qwVelRel), "j"(gB.qw), "j"(qwPerp), "j"(gK.qw), "j"(gravity), "j"(gDt.qw));
     return qw;
 }
 static inline float GMaxOf(float a, float b)
 {
     return (a > b) ? a : b;
 }
-void UpdateChainLink(SO *pso, CHAINLINK *plink) __asm__("func_0021CB18");
+void UpdateChainLink(SO *pso, CHAINLINK *chainLink) __asm__("UpdateChainLink");
 /** @sly2-annot addr=0x21CB18
  * Purpose: per-frame chain-link simulation (damping, bend limit radBendMax, gravity, cstep substeps) then
  *   aims the XF at the simulated tip
@@ -299,130 +310,134 @@ void UpdateChainLink(SO *pso, CHAINLINK *plink) __asm__("func_0021CB18");
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
-void UpdateChainLink(SO *pso, CHAINLINK *plink)
+// Per-frame chain simulation, run for every link of a chain (action role 0x10). The first call in a frame simulates the
+// chain from this link to the tip in cstep substeps (bend limit, damping, bend spring, gravity, rest-length constraint);
+// every call then rotates its own transform so the rest segment points at the simulated tip. See the block comment above
+// for the full algorithm and matching notes.
+void UpdateChainLink(SO *so, CHAINLINK *chainLink)
 {
-    CHAIN *pchain = plink->pchain;
-    XF *pxf = plink->pxf;
-    XF *pxfParent = pxf->pxfParent;
-    VECTOR4 vecVel;
-    if (D_002DDED0.t != pchain->tLast)
+    CHAIN *chain = chainLink->chain;
+    XF *xf = chainLink->pxf;
+    XF *parentXf = xf->pxfParent;
+    VECTOR4 velocity;
+    if (D_002DDED0.t != chain->lastUpdateTime)
     {
-        qword qwPos;
-        qword qwDirPrev;
+        qword position;
+        qword previousDirection;
         int i;
-        CHAINLINK *plinkCur;
-        if (plink == pchain->alink)
+        CHAINLINK *link;
+        if (chainLink == chain->links)
         {
-            qword posAnchor = *(qword *)pxf->matWorld.mat[3];
-            uint grf = *(uint *)pso->grfUnk40;
-            qwPos = posAnchor;
-            if (grf & 0x10)
+            qword anchor = *(qword *)xf->matWorld.mat[3];
+            uint soFlags = *(uint *)so->grfUnk40;
+            position = anchor;
+            if (soFlags & 0x10)
             {
-                *(qword *)&vecVel = GetXfVelocity(pxfParent, 0, posAnchor);
+                *(qword *)&velocity = GetXfVelocity(parentXf, 0, anchor);
             }
             else
             {
-                *(qword *)&vecVel = QwDivVf(VuSub(qwPos, pchain->posAnchorPrev), VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
+                *(qword *)&velocity = QwDivVf(VuSub(position, chain->previousAnchor), VuFloatFromMemWord(*(int *)&D_002DDED0.dt));
             }
-            pchain->posAnchorPrev = posAnchor;
-            MATRIX3 matWorld3 = *(MATRIX3 *)&pxfParent->matWorld * plink->matRest;
-            qwDirPrev = QwRotateVec(&matWorld3, plink->qwSeg);
+            chain->previousAnchor = anchor;
+            MATRIX3 parentRotation = *(MATRIX3 *)&parentXf->matWorld * chainLink->restMatrix;
+            previousDirection = QwRotateVec(&parentRotation, chainLink->restSegment);
         }
         else
         {
-            for (i = 0; i < plink - pchain->alink; i++)
+            for (i = 0; i < chainLink - chain->links; i++)
             {
-                plinkCur = &pchain->alink[i];
-                plinkCur->posTip = ConvertXfPos(plinkCur->pxf, 0, plinkCur->qwSeg);
-                plinkCur->velTip = GetXfVelocity(plinkCur->pxf, 0, plinkCur->posTip);
+                link = &chain->links[i];
+                link->tipPosition = ConvertXfPos(link->pxf, 0, link->restSegment);
+                link->tipVelocity = GetXfVelocity(link->pxf, 0, link->tipPosition);
             }
-            *(qword *)&vecVel = plink[-1].velTip;
-            qword *pqwPosPrev = &plink[-1].posTip;
-            qwPos = *pqwPosPrev;
+            *(qword *)&velocity = chainLink[-1].tipVelocity;
+            qword *previousTip = &chainLink[-1].tipPosition;
+            position = *previousTip;
             if (i >= 2)
             {
-                qword *pqwPosPrev2 = &plink[-2].posTip;
-                qwDirPrev = VuSub(qwPos, *pqwPosPrev2);
+                qword *previousTip2 = &chainLink[-2].tipPosition;
+                previousDirection = VuSub(position, *previousTip2);
             }
             else
             {
-                qwDirPrev = VuSub(qwPos, *(qword *)pxfParent->matWorld.mat[3]);
+                previousDirection = VuSub(position, *(qword *)parentXf->matWorld.mat[3]);
             }
         }
-        float dtStep = D_002DDED0.dt / pchain->cstep;
-        int istep;
-        for (istep = 0; istep < pchain->cstep; istep++)
+        float stepDt = D_002DDED0.dt / chain->stepCount;
+        int step;
+        for (step = 0; step < chain->stepCount; step++)
         {
-            int j = plink - pchain->alink;
-            float tOff = (istep - pchain->cstep + 1) * dtStep;
-            qword posBase = QwAddScaledA(qwPos, *(qword *)&vecVel, VuFloat(tOff));
-            qword velBase = *(qword *)&vecVel;
-            qword qwDPrev = qwDirPrev;
-            for (; j < pchain->clink; j++)
+            int j = chainLink - chain->links;
+            float timeOffset = (step - chain->stepCount + 1) * stepDt;
+            qword basePosition = QwAddScaledA(position, *(qword *)&velocity, VuFloat(timeOffset));
+            qword baseVelocity = *(qword *)&velocity;
+            qword previousSegment = previousDirection;
+            for (; j < chain->linkCount; j++)
             {
-                VECTOR4 vecDir;
+                VECTOR4 direction;
                 MATRIX3 mat;
-                plinkCur = &pchain->alink[j];
-                qword qwTip = plinkCur->posTip;
-                qword qwVelTip = plinkCur->velTip;
-                qword qwD = VuSub(qwTip, posBase);
-                qword qwVelRel = VuSub(qwVelTip, velBase);
-                float rad = RadBetweenVectors(qwD, qwDPrev, (qword *)&vecDir);
-                if (pchain->radBendMax < rad)
+                link = &chain->links[j];
+                qword tip = link->tipPosition;
+                qword velocityAtTip = link->tipVelocity;
+                qword segment = VuSub(tip, basePosition);
+                qword relativeVelocity = VuSub(velocityAtTip, baseVelocity);
+                float bendAngle = RadBetweenVectors(segment, previousSegment, (qword *)&direction);
+                if (chain->maxBendAngle < bendAngle)
                 {
-                    mat = LoadRotateMatrixRad(rad - pchain->radBendMax, *(qword *)&vecDir);
-                    qwD = QwRotateVec(&mat, qwD);
-                    qwTip = VuAdd(posBase, qwD);
+                    mat = LoadRotateMatrixRad(bendAngle - chain->maxBendAngle, *(qword *)&direction);
+                    segment = QwRotateVec(&mat, segment);
+                    tip = VuAdd(basePosition, segment);
                 }
-                qword qwDefault = D_002A2DA0;
-                float gA = GMaxOf(-pchain->gDamp * dtStep, -1.0f) + 1.0f;
-                float gB = GMaxOf(-pchain->gDampRel * dtStep, -1.0f);
-                float gK = pchain->gBend * rad * dtStep;
-                VU_FLOAT vuA = VuFloat(gA);
-                VU_FLOAT vuB = VuFloat(gB);
-                VU_FLOAT vuK = VuFloat(gK);
-                VU_FLOAT vuDt = VuFloat(dtStep);
-                qword qwGravity = *(qword *)&pchain->qwGravity;
-                qword qwPerp = *(qword *)&vecDir;
-                qwPerp = QwCross(qwPerp, qwD);
-                qwVelTip = QwChainVel(qwVelTip, vuA, qwVelRel, vuB, qwPerp, vuK, qwGravity, vuDt);
-                qwTip = QwAddScaledA(qwTip, qwVelTip, vuDt);
-                qword qwD2 = VuSub(qwTip, posBase);
-                qword qwLen = QwLengthUntied(qwD2);
-                qword qwV;
-                if (GFromVf(qwLen) < 0.0001f)
+                qword defaultDirection = D_002A2DA0;
+                float dampingFactor = GMaxOf(-chain->damping * stepDt, -1.0f) + 1.0f;
+                float relativeDampingFactor = GMaxOf(-chain->relativeDamping * stepDt, -1.0f);
+                float bendFactor = chain->bendStiffness * bendAngle * stepDt;
+                VU_FLOAT dampingVu = VuFloat(dampingFactor);
+                VU_FLOAT relativeDampingVu = VuFloat(relativeDampingFactor);
+                VU_FLOAT bendVu = VuFloat(bendFactor);
+                VU_FLOAT stepDtVu = VuFloat(stepDt);
+                qword gravityVector = *(qword *)&chain->gravity;
+                qword bendDirection = *(qword *)&direction;
+                bendDirection = QwCross(bendDirection, segment);
+                velocityAtTip = QwChainVel(velocityAtTip, dampingVu, relativeVelocity, relativeDampingVu, bendDirection, bendVu, gravityVector, stepDtVu);
+                tip = QwAddScaledA(tip, velocityAtTip, stepDtVu);
+                qword newSegment = VuSub(tip, basePosition);
+                qword newLength = QwLengthUntied(newSegment);
+                qword unitSegment;
+                if (GFromVf(newLength) < 0.0001f)
                 {
-                    qwV = qwDefault;
+                    unitSegment = defaultDirection;
                 }
                 else
                 {
-                    __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(qwLen));
-                    __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(qwV) : "j"(qwD2));
+                    __asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq" : : "j"(newLength));
+                    __asm__("vmulq.xyzw %0, %1, $Q" : "=j"(unitSegment) : "j"(newSegment));
                 }
-                *(qword *)&vecDir = qwV;
-                qword qwAlong = VuDot(qwVelTip, qwV);
-                qword qwAlongBase = VuDot(velBase, qwV);
-                qwVelTip = VuAdd(QwScaleX(qwV, qwAlongBase), VuSub(qwVelTip, QwScaleX(qwV, qwAlong)));
-                plinkCur->velTip = qwVelTip;
-                qword qwSegLen = QwLength(plinkCur->qwSeg);
-                qwTip = VuAddScaled(posBase, qwV, qwSegLen);
-                velBase = qwVelTip;
-                plinkCur->posTip = qwTip;
-                posBase = qwTip;
-                qwDPrev = qwD;
+                *(qword *)&direction = unitSegment;
+                qword alongVelocity = VuDot(velocityAtTip, unitSegment);
+                qword alongBaseVelocity = VuDot(baseVelocity, unitSegment);
+                velocityAtTip = VuAdd(QwScaleX(unitSegment, alongBaseVelocity), VuSub(velocityAtTip, QwScaleX(unitSegment, alongVelocity)));
+                link->tipVelocity = velocityAtTip;
+                qword restLength = QwLength(link->restSegment);
+                tip = VuAddScaled(basePosition, unitSegment, restLength);
+                baseVelocity = velocityAtTip;
+                link->tipPosition = tip;
+                basePosition = tip;
+                previousSegment = segment;
             }
         }
-        pchain->tLast = D_002DDED0.t;
+        chain->lastUpdateTime = D_002DDED0.t;
     }
-    qword qwPosParent = ConvertXfPos(0, pxfParent, plink->posTip);
-    qword qwTo = VuSub(qwPosParent, *(qword *)pxf->mat.mat[3]);
-    qword qwFrom = QwRotateVec(&plink->matRest, plink->qwSeg);
-    MATRIX3 matRot;
-    matRot = BuildRotateVectorsMatrix(qwFrom, qwTo);
-    *(MATRIX3 *)&pxf->mat = matRot * plink->matRest;
-    pxf->mat.mat[1][3] = 0.0f;
-    pxf->mat.mat[2][3] = 0.0f;
-    pxf->mat.mat[0][3] = 0.0f;
-    int nStamp = ++D_003DD490.nStampXf;
-    pxf->nStampWorld = nStamp;
+    qword tipInParent = ConvertXfPos(0, parentXf, chainLink->tipPosition);
+    qword toTip = VuSub(tipInParent, *(qword *)xf->mat.mat[3]);
+    qword restDirection = QwRotateVec(&chainLink->restMatrix, chainLink->restSegment);
+    MATRIX3 rotation;
+    rotation = BuildRotateVectorsMatrix(restDirection, toTip);
+    *(MATRIX3 *)&xf->mat = rotation * chainLink->restMatrix;
+    xf->mat.mat[1][3] = 0.0f;
+    xf->mat.mat[2][3] = 0.0f;
+    xf->mat.mat[0][3] = 0.0f;
+    int stamp = ++D_003DD490.nStampXf;
+    xf->nStampWorld = stamp;
 }

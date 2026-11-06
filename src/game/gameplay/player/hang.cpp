@@ -81,7 +81,7 @@ M3P BuildAxisAngleRotationMatrix(qword,float);
 qword DecomposeRotationMatrixToEuler(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void SetStepTargetHeading(JT*,float);float atan2f(float,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void WakeSo(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
-float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001384C0(ANIMATION*);float GLimitAbs__Fff(float,float);
+float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void RecalculateAsegBlend(ANIMATION*);float GLimitAbs__Fff(float,float);
 qword ConvertXfVec(int,void*,qword);
 void VECTOR_opAssign(qword*,qword);
 void __ml__FRC7MATRIX4T0(M4*,void*,IKJ*);
@@ -514,7 +514,7 @@ extern "C" void UpdateJtActiveHang__FP2JT(JT*jt){
  activeTarget=zero;speedTarget=activeTarget;if(jt->speedBlend>half)speedTarget=1.0f;break;}}
  jt->activeBlend=GSmooth__FfffP3SMPPf(jt->activeBlend,activeTarget,D_002DDED0.dt,&D_002BF570,0);
  jt->speedBlend=GSmooth__FfffP3SMPPf(jt->speedBlend,speedTarget,D_002DDED0.dt,&D_002BF580,0);
- float active=jt->activeBlend,speed=jt->speedBlend;float idle=1.0f-active;float combined=active*speed;float activeOnly=active*(1.0f-speed);jt->combined=combined;jt->idle=idle;jt->activeOnly=activeOnly;func_001384C0(jt->animation);
+ float active=jt->activeBlend,speed=jt->speedBlend;float idle=1.0f-active;float combined=active*speed;float activeOnly=active*(1.0f-speed);jt->combined=combined;jt->idle=idle;jt->activeOnly=activeOnly;RecalculateAsegBlend(jt->animation);
  float steering=Clamp(angle/D_002BF58C,-1.0f,1.0f);
  float target=jt->animation->gain*(steering+1.0f);target*=0.5f;
  jt->curve->slope=GLimitAbs__Fff((target-jt->curve->value)/D_002DDED0.dt,D_002BF590);

@@ -1,5 +1,6 @@
 // letterbox.cpp -- cinematic letterbox bars, driven by a world TIMER object. TU 0x1A3020..0x1A3260 (6 functions,
-// address order).
+// address order). Entry points: InitLetterbox / ResetLetterbox (level setup and teardown), ShowLetterbox and
+// HideLetterbox (called around cutscenes and dialogs).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_letterbox
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A3240
 #include "sly2/lo.h"
@@ -19,15 +20,15 @@ struct TIMER : public LO
 
 struct LETTERBOX
 {
-      TIMER *ptimer;
+      TIMER *timer;
 };
 
 extern SW D_003DD490;               /* g_sw */
 extern char D_004435F0[];           /* speaker label (HYPOTHESIS) */
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
+LO *PloFindSwObject(SW *sw, int findFlags, OID oid, LO *context);
 extern "C" {
-void SetWidgetRequest(TIMER *ptimer, int n);                   /* SetTimerTimers (HYPOTHESIS) */
-void func_00227788(void *p);                                   /* InitSpeakerLabel (HYPOTHESIS) */
+void SetWidgetRequest(TIMER *timer, int n);                   /* SetTimerTimers (HYPOTHESIS) */
+void ClearSubtitle(void *p);                                   /* InitSpeakerLabel (HYPOTHESIS) */
 }
 
 /** @sly2-annot addr=0x1A3020
@@ -37,13 +38,15 @@ void func_00227788(void *p);                                   /* InitSpeakerLab
  * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files,
  *   docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260
  * @end-sly2-annot */
-extern "C" void func_001A3020(LETTERBOX *pletterbox)
+// Binds the letterbox to the level's letterbox timer object (OID 0x373, class 0x405) and sets its timer mode to 1
+// (SetWidgetRequest). A level without that object has no letterbox. (inferred)
+extern "C" void InitLetterbox(LETTERBOX *letterbox)
 {
-      TIMER *ptimer = (TIMER *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x373, 0);
+      TIMER *timer = (TIMER *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x373, 0);
 
-      pletterbox->ptimer = ptimer;
-      if (ptimer)
-            SetWidgetRequest(ptimer, 1);
+      letterbox->timer = timer;
+      if (timer)
+            SetWidgetRequest(timer, 1);
 }
 
 /** @sly2-annot addr=0x1A3070
@@ -52,9 +55,10 @@ extern "C" void func_001A3020(LETTERBOX *pletterbox)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260
  * @end-sly2-annot */
-extern "C" void func_001A3070(LETTERBOX *pletterbox)
+// Forgets the letterbox timer object (on level teardown, inferred).
+extern "C" void ResetLetterbox(LETTERBOX *letterbox)
 {
-      pletterbox->ptimer = 0;
+      letterbox->timer = 0;
 }
 
 /** @sly2-annot addr=0x1A3078
@@ -64,11 +68,13 @@ extern "C" void func_001A3070(LETTERBOX *pletterbox)
  * See: docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void ShowLetterbox(LETTERBOX *pletterbox)
+// Shows the letterbox bars: initializes the speaker label D_004435F0 (inferred) and starts the timer object with no time
+// limit (slot 49 with -1).
+extern "C" void ShowLetterbox(LETTERBOX *letterbox)
 {
-      if (pletterbox->ptimer) {
-            func_00227788(D_004435F0);
-            pletterbox->ptimer->VUnk48(-1);
+      if (letterbox->timer) {
+            ClearSubtitle(D_004435F0);
+            letterbox->timer->VUnk48(-1);
       }
 }
 
@@ -80,12 +86,13 @@ extern "C" void ShowLetterbox(LETTERBOX *pletterbox)
  *   docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260,
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
-extern "C" void HideLetterbox(LETTERBOX *pletterbox)
+// Hides the letterbox bars through the timer object's slot 50.
+extern "C" void HideLetterbox(LETTERBOX *letterbox)
 {
-      TIMER *ptimer = pletterbox->ptimer;
+      TIMER *timer = letterbox->timer;
 
-      if (ptimer)
-            ptimer->VUnk49();
+      if (timer)
+            timer->VUnk49();
 }
 
 // ---- letterbox's .bss (tu-merging.md "Data": .bss gaps): the letterbox object (0x2E1E60, between language's .bss

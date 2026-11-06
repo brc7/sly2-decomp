@@ -1,5 +1,6 @@
 // tu_1603B8.cpp -- transform constraints: one object's position and/or rotation follows another's (loaded from the
 // BRX, applied per frame). TU 0x1603B8..0x1607A0 (4 functions, address order).
+// Entry points: LoadXfmConstraintsFromBrx (object loading), ApplyXfmConstraint (per-frame transform update, mode 0xF).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1603B8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00160780
 #include "sly2/slotheap.h"
@@ -17,12 +18,12 @@ struct M4 { U r[4]; };
 struct XFMCONSTR;
 struct XFV
 {
-    M4 m;                   /* +0x0 local */
-    M4 m40;                 /* +0x40 world */
+    M4 local;                   /* +0x0 local */
+    M4 world;                 /* +0x40 world */
     char pad80[0xA0 - 0x80];
     XFV *parent;            /* +0xA0 */
     int stamp;              /* +0xA4 */
-    XFMCONSTR *pconstr;     /* +0xA8 */
+    XFMCONSTR *constraint;     /* +0xA8 */
 };
 
 /* One constraint: dest follows source (position and/or rotation). */
@@ -60,7 +61,7 @@ extern XFV D_002C44F0;
 
 extern "C" {
 void *AllocClearedFromWorldHeap(ALLOCREQ *preq);
-void func_002303A0(LOBase *p, XFV *plo, int n);
+void SetXfRole(LOBase *p, XFV *plo, int n);
 M4 InvertMatrix4Rigid(const M4 *m);
 M3 InvertMatrix3Cofactor(const M3 *m);
 void NormalizeRotateMatrix3__FP7MATRIX3(M3 *m);
@@ -76,28 +77,31 @@ qword *VECTOR_opAssign(qword *p, qword v);
  * See: docs/engine/hud-ui.md#4-source-files, docs/engine/object-model.md#7-xfm-and-transform-helpers,
  *   docs/engine/object-model.md#8-source-files
  * @end-sly2-annot */
-extern "C" void LoadXfmConstraintsFromBrx(LOBase *p, CBinaryInputStream *pbis)
+// Loads an object's transform constraints from the level stream: per record a source and a destination object (a
+// missing source falls back to the world origin transform D_002C44F0), and whether position and/or rotation follow. The
+// destination remembers its constraint (+0xA8) and its transform update mode is switched to "constrained" (0xF).
+extern "C" void LoadXfmConstraintsFromBrx(LOBase *lo, CBinaryInputStream *stream)
 {
-    int c = pbis->S8Read();
-    for (int i = 0; i < c; i++) {
+    int count = stream->S8Read();
+    for (int i = 0; i < count; i++) {
         ALLOCREQ req;
         req.cb = 0x10;
         req.nKind = 0x10;
-        XFMCONSTR *pe = (XFMCONSTR *)AllocClearedFromWorldHeap(&req);
-        pe->source = p->PloFind(pbis->S16Read());
-        if (!pe->source)
-            pe->source = &D_002C44F0;
-        pe->dest = p->PloFind(pbis->S16Read());
-        pe->position = pbis->S8Read();
-        pe->rotation = pbis->S8Read();
-        pe->dest->pconstr = pe;
-        func_002303A0(p, pe->dest, 0xF);
+        XFMCONSTR *constraint = (XFMCONSTR *)AllocClearedFromWorldHeap(&req);
+        constraint->source = lo->PloFind(stream->S16Read());
+        if (!constraint->source)
+            constraint->source = &D_002C44F0;
+        constraint->dest = lo->PloFind(stream->S16Read());
+        constraint->position = stream->S8Read();
+        constraint->rotation = stream->S8Read();
+        constraint->dest->constraint = constraint;
+        SetXfRole(lo, constraint->dest, 0xF);
     }
 }
 
-static inline qword Transform(const M4 &m,qword p) {
- qword r;
- r = VuMulMatrix4(m.r[0].q, m.r[1].q, m.r[2].q, m.r[3].q, p);return r;
+static inline qword Transform(const M4 &matrix,qword point) {
+ qword result;
+ result = VuMulMatrix4(matrix.r[0].q, matrix.r[1].q, matrix.r[2].q, matrix.r[3].q, point);return result;
 }
 static inline M3 Mul(const M3 &a,const M3 &b) return r
 {
@@ -116,24 +120,27 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
  * See: docs/engine/object-model.md#7-xfm-and-transform-helpers,
  *   docs/reference/functions/object-model.md#tu_1603b8-0x1603b8-0x1607a0
  * @end-sly2-annot */
-extern "C" void ApplyXfmConstraint(void *,XFMCONSTR *s)
+// Applies one transform constraint for the frame: the destination's local position and/or rotation are set so that its
+// world transform equals the source's (inverse of the destination parent's world matrix times the source world matrix;
+// the rotation is re-orthonormalized), then the global transform stamp is bumped so world matrices are recomputed.
+extern "C" void ApplyXfmConstraint(void *,XFMCONSTR *constraint)
 {
- M3 m;
- if(s->position) {
-  M4 inv=InvertMatrix4Rigid(&s->dest->parent->m40);
-  XFV *dest=s->dest;
-  VECTOR_opAssign(&dest->m.r[3].q,Transform(inv,s->source->m40.r[3].q));
-  dest->m.r[3].f[3]=1.0f;
+ M3 rotation;
+ if(constraint->position) {
+  M4 inv=InvertMatrix4Rigid(&constraint->dest->parent->world);
+  XFV *dest=constraint->dest;
+  VECTOR_opAssign(&dest->local.r[3].q,Transform(inv,constraint->source->world.r[3].q));
+  dest->local.r[3].f[3]=1.0f;
  }
- if(s->rotation) {
-  m=Mul(InvertMatrix3Cofactor((M3 *)&s->dest->parent->m40),*(M3 *)&s->source->m40);
-  NormalizeRotateMatrix3__FP7MATRIX3(&m);
-  XFV *dest=s->dest;
-  *(M3 *)&dest->m=m;
-  dest->m.r[0].i[3]=0;
-  dest->m.r[1].i[3]=0;
-  dest->m.r[2].i[3]=0;
+ if(constraint->rotation) {
+  rotation=Mul(InvertMatrix3Cofactor((M3 *)&constraint->dest->parent->world),*(M3 *)&constraint->source->world);
+  NormalizeRotateMatrix3__FP7MATRIX3(&rotation);
+  XFV *dest=constraint->dest;
+  *(M3 *)&dest->local=rotation;
+  dest->local.r[0].i[3]=0;
+  dest->local.r[1].i[3]=0;
+  dest->local.r[2].i[3]=0;
  }
  int stamp=++D_003DD490.counter;
- s->dest->stamp=stamp;
+ constraint->dest->stamp=stamp;
 }

@@ -1,13 +1,15 @@
 // xf.cpp -- object transforms (XF, so.h): loading an SO's transforms from the level file, the per-frame slot update
-// (UpdateSoSlots), world matrices and hierarchies, frame conversion of points/vectors/matrices (func_0022FC48,
+// (UpdateSoSlots), world matrices and hierarchies, frame conversion of points/vectors/matrices (TransformXfPos,
 // ConvertXfVec/Mat), velocities (GetXfVelocity), transform acts and slot settling, matrix blending.
 // TU 0x22C818..0x231100 (43 functions, address order) plus the inline VECTOR_opAssign (its linkonce copy 0x256D18),
 // defined after its callers.
+// Entry points: LoadSoXfsFromBrx (level loading), UpdateSoSlots (per frame), UpdateSoXfWorldMatrices /
+// UpdateSoXfWorldHierarchy, TransformXfPos / ConvertXfVec / ConvertXfMat, GetXfVelocity, AddXfAct / RemoveXfAct.
 //
 // Types: sly2 headers (basic.h, lo.h, so.h, sw.h); the file-scope types after the includes are UpdateSoSlots'
 // Lilly declarations. The m2c bodies are written on them; the other functions keep the per-function views they
 // were matched with, each in a namespace named after it (as vec.cpp and mark.cpp do). The SLY2_CC/-G0/-ffast-math
-// overrides of six per-function files were not needed. func_002303A0 keeps mat.h's 16-byte aligned VECTOR as a
+// overrides of six per-function files were not needed. SetXfRole keeps mat.h's 16-byte aligned VECTOR as a
 // local type (mat.h itself clashes with sly2/basic.h).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_xf
 // SLY2_ALIAS: _GLOBAL_$I$*=func_002310E0
@@ -25,7 +27,7 @@ typedef unsigned size_t;
 
 extern "C" {
 extern int D_004437A0;      /* transform stack depth */
-int func_0022D6B0(int grf, void *pv1, void *pv2);
+int ResolveXfId(int grf, void *pv1, void *pv2);
 }
 
 struct VU_VECTOR4
@@ -112,7 +114,9 @@ struct S { char pad[0x80]; int a; float b; int *pa; float *pb; };
  * See: docs/engine/animation.md#6-source-files, docs/reference/functions/animation.md#xf-0x22c818-0x231100,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-void func_0022C818(void *q, struct S *p)
+// Points a transform slot's value/speed references at its own storage (value 0, speed 1), detaching any animation that
+// was driving it. (inferred)
+void ResetXfValueRef(void *q, struct S *p)
 {
     p->b = 1.0f;
     p->a = 0;
@@ -140,7 +144,9 @@ extern char D_002C44E0[];
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_0022C840(struct O *p, struct Q *q)
+// If the transform slot's role is an active (moving) one, marks the owning SO awake so it gets per-frame updates.
+// (inferred)
+void WakeXfOwner(struct O *p, struct Q *q)
 {
     switch (q->k) {
     case 0: case 1: case 2: case 3: case 13: case 14: case 15: case 16: case 20: case 21:
@@ -177,7 +183,9 @@ VU *VECTOR_opAssign(VU *pv, qword q);
  * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-M4 *func_0022C8C0(M4 *pm, struct S *p, qword v)
+// Builds the local matrix a slot value produces for the slot's component kind: translation, Euler rotation, shear or
+// scale (an identity matrix with the value written in the right place). (inferred)
+M4 *BuildXfValueMatrix(M4 *pm, struct S *p, qword v)
 {
     switch (p->k) {
     case 0: case 8: case 13: case 14: case 15:
@@ -246,7 +254,9 @@ qword DecomposeRotationMatrixToEuler(float *m);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-qword func_0022CA18(struct S *p, float *m)
+// The inverse of BuildXfValueMatrix: extracts a slot's component value (translation, Euler angles, shear or scale)
+// from a matrix, by the slot's component kind. (inferred)
+qword GetXfValueFromMatrix(struct S *p, float *m)
 {
     qword v;
     union { qword q; float f; } r;
@@ -285,7 +295,8 @@ void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
  * Notes: descriptive only: xf: sin/cos basis helper | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-qword func_0022CAD0(qword a, qword b)
+// Converts Euler-angle rates (b) into an angular velocity vector at the Euler angles a (pitch in y, yaw in z) (inferred).
+qword ConvertEulerRatesToAngularVelocity(qword a, qword b)
 {
     float s0, c0, s1, c1;
     union { qword q; float f[4]; } r;
@@ -303,11 +314,13 @@ namespace M_func_0022CB90 {
 typedef int qword __attribute__((mode(TI)));
 struct V {qword q;};
 struct M4 { qword r[4];  };
-extern "C" qword func_0022CAD0(qword,qword);
-extern "C" M4 func_0022CCD0(void *,void *,V);
-extern "C" M4 func_0022CB90(void *a,void *b,qword c,qword d) return m {
-    V v;v.q=func_0022CAD0(c,d);
-    m=func_0022CCD0(a,b,v);
+extern "C" qword ConvertEulerRatesToAngularVelocity(qword,qword);
+extern "C" M4 BuildRotationDerivativeMatrix(void *,void *,V);
+// The time derivative of an Euler-rotation slot's matrix: converts the angle rates to an angular velocity and builds
+// the rotation-derivative matrix from it (inferred).
+extern "C" M4 BuildEulerDerivativeMatrix(void *a,void *b,qword c,qword d) return m {
+    V v;v.q=ConvertEulerRatesToAngularVelocity(c,d);
+    m=BuildRotationDerivativeMatrix(a,b,v);
 }
 } // namespace M_func_0022CB90
 
@@ -325,7 +338,9 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
  * Notes: descriptive only: xf: derivative matrix by kind | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-float *func_0022CC00(float *m, struct S *p, qword v)
+// The time derivative of a translation, shear or scale slot's matrix: the value's rate written where BuildXfValueMatrix
+// writes the value (rotation kinds are handled by BuildEulerDerivativeMatrix). (inferred)
+float *BuildXfValueDerivativeMatrix(float *m, struct S *p, qword v)
 {
     func_002333B4(m, 0, 0x40);
     switch (p->k) {
@@ -378,7 +393,8 @@ static inline void RetainMatrices(M4 *incomingDestination,const M3 *incomingBasi
  * Notes: descriptive only: xf: skew derivative matrix | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-extern "C" M4 *func_0022CCD0(M4 *destination, void *pv, const M3 *basis, qword v)
+// Builds the derivative of a rotation as skew(angular velocity) times the basis matrix (inferred).
+extern "C" M4 *BuildRotationDerivativeMatrix(M4 *destination, void *pv, const M3 *basis, qword v)
 {
     M4 *pm;const M3 *pmB;RetainMatrices(destination,basis,pm,pmB);func_002333B4(destination, 0, 0x40);
     M4 *result=PublishSkew(*pm,v);
@@ -408,10 +424,10 @@ struct O {
 extern "C" { extern qword D_002A2DD0; }
 extern "C" void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 extern "C" void *func_002333B4(void *p, int c, int n) __asm__("memset");
-extern "C" M4 *func_0022CCD0(M4 *pm, struct O *pa, const M3 *basis, qword v);
-extern "C" M4 *func_0022CB90(M4 *pr, struct O *pa, const M3 *basis, qword c, qword d);
-extern "C" M4 *func_0022CC00(M4 *pm, struct O *po, qword v);
-extern "C" qword func_0022CA18(struct O *pa, const M4 *matrix);
+extern "C" M4 *BuildRotationDerivativeMatrix(M4 *pm, struct O *pa, const M3 *basis, qword v);
+extern "C" M4 *BuildEulerDerivativeMatrix(M4 *pr, struct O *pa, const M3 *basis, qword c, qword d);
+extern "C" M4 *BuildXfValueDerivativeMatrix(M4 *pm, struct O *po, qword v);
+extern "C" qword GetXfValueFromMatrix(struct O *pa, const M4 *matrix);
 extern "C" qword DecomposeRotationMatrixToEuler(const M3 *rotation);
 extern "C" void EvaluateBezierPos(float g0, float g1, float g2, qword q0, qword q1, qword q2, qword q3, qword *pa, qword *pb, qword *pc);
 static __inline__ void Eval(struct O *po, qword *pa, qword *pb, qword *pc)
@@ -426,7 +442,8 @@ static inline qword DefaultPoint(){qword value;__asm__("lq %0,0(%1)":"=r"(value)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
+// Evaluates a transform slot's current local matrix, including its animation jobs and parent chain. (inferred)
+extern "C" M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po)
 {
     M4 m, m2;
     switch (po->k98) {
@@ -438,7 +455,7 @@ extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
         case 0: case 2: case 3: case 13: case 15:
             break;
         case 8: case 14: {
-            func_0022CDC0(&m, po->source.object);
+            EvaluateXfSlotMatrix(&m, po->source.object);
             func_0023320C(pr, &m, 0x40);
             pr->m[3][0] = -pr->m[3][0];
             pr->m[3][1] = -pr->m[3][1];
@@ -448,7 +465,7 @@ extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
         case 6: case 7:
             switch (po->k98) {
             case 1: case 2: case 7: case 8: case 9: case 11: case 17: case 18: case 20: case 21: {
-                func_0022CCD0(&m, po, &po->local.basis, po->qB0);
+                BuildRotationDerivativeMatrix(&m, po, &po->local.basis, po->qB0);
                 func_0023320C(pr, &m, 0x40);
                 break;
             }
@@ -460,7 +477,7 @@ extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
                     register qword initial __asm__("$2");
                     switch (po->k9A) {
                     case 0:
-                        initial = func_0022CA18(po, &po->local.matrix);
+                        initial = GetXfValueFromMatrix(po, &po->local.matrix);
                         break;
                     case 1:
                         Eval(po, &m.r[0], 0, 0);
@@ -489,7 +506,7 @@ extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
                         t = D_002A2DD0;
                         break;
                     }
-                    func_0022CB90(&m, po, &po->local.basis, q, t);
+                    BuildEulerDerivativeMatrix(&m, po, &po->local.basis, q, t);
                     func_0023320C(pr, &m, 0x40);
                 }
                 break;
@@ -518,7 +535,7 @@ extern "C" M4 *func_0022CDC0(M4 *pr, struct O *po)
                 }
                 break;
             }
-            func_0022CC00(&m2, po, m.r[0]);
+            BuildXfValueDerivativeMatrix(&m2, po, m.r[0]);
             func_0023320C(pr, &m2, 0x40);
             break;
         }
@@ -538,7 +555,7 @@ void InvertMatrix4Rigid(M4 *pmDst, M4 *pmSrc);
 void __ml__FRC7MATRIX4T0(M4 *pmDst, M4 *pmA, M4 *pmB);
 void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
-M4 *func_0022CDC0(M4 *pr, struct O *po);
+M4 *EvaluateXfSlotMatrix(M4 *pr, struct O *po);
 static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
 {
     int i;
@@ -555,7 +572,8 @@ static __inline__ void AddM4(M4 *pmDst, M4 *pmA, M4 *pmB)
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-M4 *func_0022D148(M4 *pm, struct O *po, struct O *poStop)
+// Angular velocity of a transform (up to poStop) by finite differences of its slot matrices. (inferred)
+M4 *GetXfAngularVelocity(M4 *pm, struct O *po, struct O *poStop)
 {
     M4 mB, mA, mE, mC, mD;
     struct O *p;
@@ -566,7 +584,7 @@ M4 *func_0022D148(M4 *pm, struct O *po, struct O *poStop)
             break;
         default: {
             
-            func_0022CDC0(&mA, p);
+            EvaluateXfSlotMatrix(&mA, p);
             { qword d = mA.r[3], a = mA.r[0], b = mA.r[1], c = mA.r[2]; mB.r[0] = a; mB.r[1] = b; mB.r[2] = c; mB.r[3] = d; }
             
             if (p->pParent) {
@@ -612,8 +630,8 @@ struct O {M4 local,world;float t0,t1;float *time,*dt;JOB *hook;int kind;short mo
 extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 M4 InvertMatrix4Rigid(const M4 *);
-M4 func_0022CDC0(O *);
-void func_0022DD00(void *,O *);
+M4 EvaluateXfSlotMatrix(O *);
+void UpdateXfJobRange(void *,O *);
 void EvaluateBezierPos(float,float,float,qword,qword,qword,qword,qword *,qword *,qword *);
 }
 static inline qword Zero() {qword r;__asm__("vsub.xyzw %0,$vf0,$vf0":"=j"(r));return r;}
@@ -643,6 +661,7 @@ static inline void Eval(O *p,qword *v) {EvaluateBezierPos(p->t1-p->t0,*p->time-p
  * See: docs/engine/animation.md#7-key-functions, docs/engine/player.md#3-step-stepcpp-0x203948,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Linear velocity of a point attached to a transform (relative to the transform 'stop', 0 = world).
 extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
     qword sum;
     qword delta;
@@ -658,7 +677,7 @@ extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
                 switch(p->mode) {
                 case 1:case 2:case 7:case 8:case 9:case 11:case 17:case 18:case 20:case 21:delta=p->velocity;break;
                 case 5:case 6:
-                    if(p->hook)func_0022DD00(p->hook->owner,p);
+                    if(p->hook)UpdateXfJobRange(p->hook->owner,p);
                     switch(p->state) {
                     case 3:case 4:delta=p->v1;break;
                     case 1:{V tmp;Eval(p,&tmp.q);delta=tmp.q;break;}
@@ -671,8 +690,8 @@ extern "C" qword GetXfVelocity(O *p,O *stop,qword in) {
                 break;
             }
             default: {
-                if(p->hook)func_0022DD00(p->hook->owner,p);
-                m=func_0022CDC0(p);
+                if(p->hook)UpdateXfJobRange(p->hook->owner,p);
+                m=EvaluateXfSlotMatrix(p);
                 O *parent=p->parent;
                 if(parent) {
                     M4 inverse=InvertMatrix4Rigid(&p->world);
@@ -702,7 +721,8 @@ extern int D_004437A8[];
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_0022D670(int v)
+// Pushes a transform table base onto the id-resolution context stack (used while loading nested objects). (inferred)
+void PushXfContext(int v)
 {
     D_004437A8[D_004437A0++] = v;
 }
@@ -714,8 +734,9 @@ void func_0022D670(int v)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-/* Pops the transform stack (D_004437A8[D_004437A0], pushed by func_0022D670). */
-extern "C" void func_0022D698()
+/* Pops the transform stack (D_004437A8[D_004437A0], pushed by PushXfContext). */
+// Pops the id-resolution context stack. (inferred)
+extern "C" void PopXfContext()
 {
     D_004437A0 -= 1;
 }
@@ -733,7 +754,9 @@ extern int D_004437A8[];
  *   docs/formats/meshes-scene.md#3-transforms-cstatic,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-int func_0022D6B0(int a, struct S *b, struct S *c)
+// Resolves a transform id to an address: the high bits choose the local table (c), the parent's table (b) or the top
+// of the context stack; the low bits index 0x100-byte transform records. (inferred)
+int ResolveXfId(int a, struct S *b, struct S *c)
 {
     int r = 0;
     switch (a & 0x3000) {
@@ -752,9 +775,10 @@ int func_0022D6B0(int a, struct S *b, struct S *c)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-extern "C" void func_0022D750(LO *plo, int grf)
+// Resolves a transform id against the object's parent table (the result is not used in this build, inferred).
+extern "C" void ResolveXfIdInParent(LO *plo, int grf)
 {
-    func_0022D6B0(grf, *(void **)((char *)plo + 0x10), 0);
+    ResolveXfId(grf, *(void **)((char *)plo + 0x10), 0);
 }
 
 /** @sly2-annot addr=0x22D778
@@ -764,9 +788,10 @@ extern "C" void func_0022D750(LO *plo, int grf)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-extern "C" void func_0022D778(LO *plo, int grf)
+// Resolves a transform id against the object's own and parent tables (the result is not used in this build, inferred).
+extern "C" void ResolveXfIdInSo(LO *plo, int grf)
 {
-    func_0022D6B0(grf, *(void **)((char *)plo + 0x10), plo);
+    ResolveXfId(grf, *(void **)((char *)plo + 0x10), plo);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -800,20 +825,20 @@ void ReadCb8__18CBinaryInputStreamPv(void *,V2 *);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *,V *);
 void ReadMatrix4__18CBinaryInputStreamP7MATRIX4(void *,M4 *);
 void *AllocClearedFromWorldHeap(REQ *);
-void *func_0012E1F0(int);
+void *AllocAct(int);
 void *func_002333B4(void *,int,int) __asm__("memset");
-qword func_0022CA18(E *,E *);
-void func_0022C818(S *,E *);
+qword GetXfValueFromMatrix(E *,E *);
+void ResetXfValueRef(S *,E *);
 void AddXfAct(S *,E *,JOB *);
 void UpdateSoXfWorldMatrices(S *);
 void LoadSoIkFromBrx(S *,void *);
 void LoadXfmConstraintsFromBrx(S *,void *);
 void LoadSoChainsFromBrx(S *,void *);
 }
-static inline J1 *CreateJ1(){J1 *j;j=(J1 *)func_0012E1F0(sizeof(J1));j->h.vt=D_002CA820;j->h.kind=1;j->selector=2;return j;}
-static inline J2 *CreateJ2(){J2 *j;j=(J2 *)func_0012E1F0(sizeof(J2));j->h.kind=2;j->h.vt=D_002CA7E0;return j;}
-static inline J4 *CreateJ4(){J4 *j;j=(J4 *)func_0012E1F0(sizeof(J4));j->h.kind=4;j->h.vt=D_002CA7A0;return j;}
-static inline J9 *CreateJ9(){J9 *j;j=(J9 *)func_0012E1F0(sizeof(J9));j->h.vt=D_002CA6A0;j->h.kind=9;j->h.id=20;return j;}
+static inline J1 *CreateJ1(){J1 *j;j=(J1 *)AllocAct(sizeof(J1));j->h.vt=D_002CA820;j->h.kind=1;j->selector=2;return j;}
+static inline J2 *CreateJ2(){J2 *j;j=(J2 *)AllocAct(sizeof(J2));j->h.kind=2;j->h.vt=D_002CA7E0;return j;}
+static inline J4 *CreateJ4(){J4 *j;j=(J4 *)AllocAct(sizeof(J4));j->h.kind=4;j->h.vt=D_002CA7A0;return j;}
+static inline J9 *CreateJ9(){J9 *j;j=(J9 *)AllocAct(sizeof(J9));j->h.vt=D_002CA6A0;j->h.kind=9;j->h.id=20;return j;}
 static inline RESOURCE *Lookup(S *p,int id){VE *ve=&p->vt[51];return ve->get((char *)p+ve->delta,id);}
 static inline int ToInt(float f){return (int)f;}
 static inline void Identity(M4 *m){func_002333B4(m,0,sizeof(*m));m->r[3].f[3]=1.0f;m->r[2].f[2]=1.0f;m->r[1].f[1]=1.0f;m->r[0].f[0]=1.0f;}
@@ -827,6 +852,8 @@ static inline void ClearFlag(S *p){int f=p->flags;if((f^1)&1)*(int *)f&=~0x20;el
  *   docs/engine/animation.md#7-key-functions,
  *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse
  * @end-sly2-annot */
+// Loads an SO's transforms from the level stream: per transform its kind, role, matrices and limits, plus optional
+// animation jobs (springs, chases, chains via LoadSoChainsFromBrx).
 extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
  int i=0;
  p->count=S16Read__18CBinaryInputStream(stream);
@@ -854,11 +881,11 @@ extern "C" void LoadSoXfsFromBrx(S *p,void *stream){
   case 0:case 13:case 15:ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->matrix);break;
   case 8:case 14:{Identity(&e->matrix);e->origin=Lookup(p,S16Read__18CBinaryInputStream(stream));e->matrix.r[3].f[0]=-e->origin->position[0];e->matrix.r[3].f[1]=-e->origin->position[1];e->matrix.r[3].f[2]=-e->origin->position[2];break;}
   case 1:case 2:case 3:case 4:case 5:case 6:case 7:case 9:case 10:case 11:case 12:default:
-   ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->matrix);e->current=e->previous=func_0022CA18(e,e);break;
+   ReadMatrix4__18CBinaryInputStreamP7MATRIX4(stream,&e->matrix);e->current=e->previous=GetXfValueFromMatrix(e,e);break;
   }
-  func_0022C818(p,e);
-  if(has1){j1->h.owner=p;j1->h.entry=e;j1->h.order=-1;j1->initial=func_0022CA18(e,e);AddXfAct(p,e,&j1->h);}
-  if(has2){j2->h.owner=p;j2->h.entry=e;j2->h.order=j2->b;j2->initial=func_0022CA18(e,e);AddXfAct(p,e,&j2->h);}
+  ResetXfValueRef(p,e);
+  if(has1){j1->h.owner=p;j1->h.entry=e;j1->h.order=-1;j1->initial=GetXfValueFromMatrix(e,e);AddXfAct(p,e,&j1->h);}
+  if(has2){j2->h.owner=p;j2->h.entry=e;j2->h.order=j2->b;j2->initial=GetXfValueFromMatrix(e,e);AddXfAct(p,e,&j2->h);}
   if(has4){j4->h.owner=p;j4->h.entry=e;j4->h.order=-1;AddXfAct(p,e,&j4->h);}
   if(flags){j9->h.owner=p;j9->h.entry=e;j9->h.order=-1;AddXfAct(p,e,&j9->h);}
  }
@@ -876,15 +903,17 @@ namespace M_func_0022DD00 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(...); };   /* the C file's unprototyped pointer */
 struct O { char pad[0x18]; struct VTE *vt; };
 struct S { char pad[0x80]; float gMin; float gMax; float *pg; int pad1; struct O *po; int pad2; short k; short state; };
-void func_0022C818(void *pa, struct S *p);
-void func_002303A0(void *pa, struct S *p, int state);
+void ResetXfValueRef(void *pa, struct S *p);
+void SetXfRole(void *pa, struct S *p, int state);
 /** @sly2-annot addr=0x22DD00
  * Purpose: limits/advances a job value against gMin/gMax
  * Info: proposed name UpdateXfJobRange (T2); TU xf
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_0022DD00(void *pa, struct S *p)
+// Keeps an animated slot value inside its [gMin, gMax] range: when it leaves the range (or the job is done) the job's
+// driver is notified and the slot switches to a settling role. (inferred)
+void UpdateXfJobRange(void *pa, struct S *p)
 {
     float g = *p->pg;
     if (g < p->gMin || p->gMax < g || p->state >= 3) {
@@ -892,23 +921,23 @@ void func_0022DD00(void *pa, struct S *p)
             p->po->vt[4].pfn((char *)p->po + p->po->vt[4].d);
             switch (p->k) {
             case 10:
-                if (p->state == 3 || p->state == 4) func_002303A0(pa, p, 7);
-                else if (p->state != 2) func_002303A0(pa, p, 6);
+                if (p->state == 3 || p->state == 4) SetXfRole(pa, p, 7);
+                else if (p->state != 2) SetXfRole(pa, p, 6);
                 break;
             case 6:
-                if (p->state == 3 || p->state == 4) func_002303A0(pa, p, 7);
+                if (p->state == 3 || p->state == 4) SetXfRole(pa, p, 7);
                 break;
             case 19:
-                if (p->state != 2) func_002303A0(pa, p, 0x12);
+                if (p->state != 2) SetXfRole(pa, p, 0x12);
                 break;
             case 12:
-                if (p->state != 2) func_002303A0(pa, p, 0xB);
+                if (p->state != 2) SetXfRole(pa, p, 0xB);
                 break;
             }
         } else {
             p->state = 0;
-            func_0022C818(pa, p);
-            func_002303A0(pa, p, 0);
+            ResetXfValueRef(pa, p);
+            SetXfRole(pa, p, 0);
         }
     }
 }
@@ -933,7 +962,7 @@ void func_0022DD00(void *pa, struct S *p)
 //   role 0x12   spring-damper to the rest value (xfk 1: kp = nUnkAc * 0.015, kd = nUnkAe * 0.0025; xfk 6 the same on the angle); settled (phase 2, small speed + distance) -> role 0x13
 //   role 0x15   only keeps the SO awake
 // After the switch the XF's world matrix is parent->matWorld * mat (VU0 microprogram 0x60, the T1025 recipe; the stamp is lifted to the parent's) or a copy of mat without a parent.
-// The SO's flag 4 (grfUnk40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then func_0022FA20.
+// The SO's flag 4 (grfUnk40) is cleared when no XF kept it awake (and the parent is not awake), flag 0x10 (snap: no smoothing this frame) is cleared, then RefreshSoAfterSlotUpdate.
 // HOW IT IS WRITTEN (T1113, each point verified on the diff; scratch decomp/build/scratch/t1113/, cmp.py = aligned diff + sp-offset score):
 //  - every 128-bit read through a cast (`*(qword *)&pxf->vUnkB0`, `*(qword *)&pxf->qwUnkF0`, the position row) is an alias-everything load that cannot move
 //    across the VU_FLOAT home stores: the game reads vUnkB0 / the position row BEFORE the VuFloat and qwUnkF0 after it (hence the qwV0 / qwPos0 locals);
@@ -1072,15 +1101,15 @@ static inline int FQwNearXyz(qword qwA, qword qwB)
 }
 extern qword D_002A2DD0;
 extern qword D_002A2DA0;
-qword SlotRestValue(XF *pxf, MATRIX4 *pmat) __asm__("func_0022CA18");
-void SlotRefresh(SO *pso, XF *pxf) __asm__("func_0022DD00");
-void SlotSetRole(SO *pso, XF *pxf, int nRole) __asm__("func_002303A0");
-MATRIX4 SlotStoreValue(XF *pxf, qword qwVal) __asm__("func_0022C8C0");
-qword QwRotRateFromEulerRate(qword qwEuler, qword qwEulerRate) __asm__("func_0022CAD0");
-extern "C" void func_0022FA20(SO *pso);
-extern "C" void SolveIk(SO *pso, void *pv);
-extern "C" void ApplyXfmConstraint(SO *pso, struct XFLOCK *pxflock);
-void UpdateChainLink(SO *pso, struct CHAINLINK *plink) __asm__("func_0021CB18");
+qword SlotRestValue(XF *xf, MATRIX4 *pmat) __asm__("GetXfValueFromMatrix");
+void SlotRefresh(SO *so, XF *xf) __asm__("UpdateXfJobRange");
+void SlotSetRole(SO *so, XF *xf, int nRole) __asm__("SetXfRole");
+MATRIX4 SlotStoreValue(XF *xf, qword qwVal) __asm__("BuildXfValueMatrix");
+qword QwRotRateFromEulerRate(qword qwEuler, qword qwEulerRate) __asm__("ConvertEulerRatesToAngularVelocity");
+extern "C" void RefreshSoAfterSlotUpdate(SO *so);
+extern "C" void SolveIk(SO *so, void *pv);
+extern "C" void ApplyXfmConstraint(SO *so, struct XFLOCK *pxflock);
+void UpdateChainLink(SO *so, struct CHAINLINK *plink) __asm__("UpdateChainLink");
 extern "C" float *VECTOR_opAssign(float *pg, qword qw);
 
 // ---- xf's .data, in address order (docs/guides/tu-merging.md "Data"; definition order is emission order, so the
@@ -1167,28 +1196,28 @@ static inline qword QwMulXMulX_P2134(qword q1, qword q2, qword q3, qword q4)
     __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddx.xyzw %0, %3, %4x" : "=j"(qw) : "j"(q2), "j"(q1), "j"(q3), "j"(q4));
     return qw;
 }
-static inline qword QwSlotValue(XF *pxf)
+static inline qword QwSlotValue(XF *xf)
 {
     qword qw;
-    switch (pxf->nPhase)
+    switch (xf->nPhase)
     {
         case 0:
-            qw = SlotRestValue(pxf, &pxf->mat);
+            qw = SlotRestValue(xf, &xf->mat);
             break;
         case 1:
         {
             VECTOR4 vec;
-            EvaluateBezierPos(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, &vec, 0, 0);
+            EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, &vec, 0, 0);
             qw = *(qword *)&vec;
             break;
         }
         case 2:
         case 3:
         case 4:
-            qw = pxf->qwRest;
+            qw = xf->qwRest;
             break;
         case 5:
-            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&pxf->qwRest);
+            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&xf->qwRest);
             break;
         default:
             qw = D_002A2DD0;
@@ -1196,49 +1225,49 @@ static inline qword QwSlotValue(XF *pxf)
     }
     return qw;
 }
-static inline qword QwHermitePos(XF *pxf)
+static inline qword QwHermitePos(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, &vec, 0, 0);
+    EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, &vec, 0, 0);
     return *(qword *)&vec;
 }
-static inline qword QwHermiteVel(XF *pxf)
+static inline qword QwHermiteVel(XF *xf)
 {
     VECTOR4 vec;
-    EvaluateBezierPos(pxf->gUnk84 - pxf->gUnk80, *pxf->pgUnk88 - pxf->gUnk80, *pxf->pgUnk8c, pxf->qwRest, pxf->qwUnkD0, pxf->qwRestUnkE0, pxf->qwUnkF0, 0, &vec, 0);
+    EvaluateBezierPos(xf->gUnk84 - xf->gUnk80, *xf->pgUnk88 - xf->gUnk80, *xf->pgUnk8c, xf->qwRest, xf->qwUnkD0, xf->qwRestUnkE0, xf->qwUnkF0, 0, &vec, 0);
     return *(qword *)&vec;
 }
 // The value / rate switches of an XF's actuator, open-coded (the game does not use a helper; see SlotCurrentMatrix in the personal xf.c).
-#define SLOT_VALUE_SWITCH(pxf, qw) \
-    switch ((pxf)->nPhase) \
+#define SLOT_VALUE_SWITCH(xf, qw) \
+    switch ((xf)->nPhase) \
     { \
         case 0: \
-            qw = SlotRestValue(pxf, &(pxf)->mat); \
+            qw = SlotRestValue(xf, &(xf)->mat); \
             break; \
         case 1: \
-            qw = QwHermitePos(pxf); \
+            qw = QwHermitePos(xf); \
             break; \
         case 2: \
         case 3: \
         case 4: \
-            qw = (pxf)->qwRest; \
+            qw = (xf)->qwRest; \
             break; \
         case 5: \
-            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&(pxf)->qwRest); \
+            qw = DecomposeRotateMatrixEuler((MATRIX3 *)&(xf)->qwRest); \
             break; \
         default: \
             qw = D_002A2DD0; \
             break; \
     }
-#define SLOT_RATE_SWITCH(pxf, qw, qwVel) \
-    switch ((pxf)->nPhase) \
+#define SLOT_RATE_SWITCH(xf, qw, qwVel) \
+    switch ((xf)->nPhase) \
     { \
         case 3: \
         case 4: \
-            qwVel = (pxf)->qwUnkD0; \
+            qwVel = (xf)->qwUnkD0; \
             break; \
         case 1: \
-            qwVel = QwHermiteVel(pxf); \
+            qwVel = QwHermiteVel(xf); \
             break; \
         case 0: \
         case 2: \
@@ -1256,70 +1285,72 @@ static inline void ClearXyz(VECTOR4 *pvec)
     pvec->y = 0.0f;
     pvec->x = 0.0f;
 }
-static inline void TurnSlotMat(XF *pxf, MATRIX3 *pmatFrom, qword qwTurn)
+static inline void TurnSlotMat(XF *xf, MATRIX3 *pmatFrom, qword qwTurn)
 {
     MATRIX3 matNew;
     matNew = LoadRotateMatrix(qwTurn) * *pmatFrom;
     NormalizeRotateMatrix3(&matNew);
-    *(MATRIX3 *)&pxf->mat = matNew;
-    pxf->mat.mat[2][3] = 0.0f;
-    pxf->mat.mat[1][3] = 0.0f;
-    pxf->mat.mat[0][3] = 0.0f;
+    *(MATRIX3 *)&xf->mat = matNew;
+    xf->mat.mat[2][3] = 0.0f;
+    xf->mat.mat[1][3] = 0.0f;
+    xf->mat.mat[0][3] = 0.0f;
 }
 MATRIX3 LoadRotateMatrixRad(float rad, qword qwAxis) __asm__("BuildAxisAngleRotationMatrix");
-void UpdateSoSlots(SO *pso) __asm__("UpdateSoSlots");
+void UpdateSoSlots(SO *so) __asm__("UpdateSoSlots");
 /** @sly2-annot addr=0x22DE88
  * Purpose: per-frame step of all XF slots of an SO (roles, chase, springs, chains)
  * Info: proposed name UpdateSoSlots (T1); TU xf
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void UpdateSoSlots(SO *pso)
+// Per-frame update of all transform slots of an SO: actions by role (chase, spring, curves, IK, chains, constraints),
+// value integration and settling, then world-matrix invalidation. The heart of object animation.
+void UpdateSoSlots(SO *so)
 {
     int fMoving;
     int ixf;
-    int fIdle = (pso->psoParent == 0 || !(*(uint *)pso->psoParent->grfUnk40 & 4));
-    int fSnap = *(uint *)pso->grfUnk40 & 0x10;
-    for (ixf = 0; ixf < pso->cxf; ixf++)
+    int fIdle = (so->psoParent == 0 || !(*(uint *)so->psoParent->grfUnk40 & 4));
+    int fSnap = *(uint *)so->grfUnk40 & 0x10;
+    for (ixf = 0; ixf < so->cxf; ixf++)
     {
-        XF *pxf = &pso->axf[ixf];
-        SlotRefresh(pso, pxf);
-        switch (pxf->nRole)
+        XF *xf = &so->axf[ixf];
+        SlotRefresh(so, xf);
+        switch (xf->nRole)
         {
             case 0:
                 break;
             case 1:
             case 2:
             {
-                switch (pxf->xfk)
+                switch (xf->xfk)
                 {
                 case 1:
                 {
                     float dt = D_002DDED0.dt;
-                    qword qwV0 = *(qword *)&pxf->vUnkB0;
+                    qword qwV0 = *(qword *)&xf->vUnkB0;
                     VU_FLOAT vfDt = VuFloat(dt);
-                    qword qwF0 = *(qword *)&pxf->qwUnkF0;
+                    qword qwF0 = *(qword *)&xf->qwUnkF0;
                     qword qwVel = QwMulAddX(qwV0, qwF0, vfDt.qw);
                     fMoving = 0;
-                    if (!(FQwNearXyz(D_002A2DD0, qwVel) && FQwNearXyz(D_002A2DD0, *(qword *)&pxf->vUnkB0)))
+                    if (!(FQwNearXyz(D_002A2DD0, qwVel) && FQwNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
                         fMoving = 1;
                     if (fMoving)
                     {
                         fIdle = 0;
-                        qword qwPos0 = *(qword *)pxf->mat.mat[3];
+                        qword qwPos0 = *(qword *)xf->mat.mat[3];
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = QwAdd(qwVel, *(qword *)&pxf->vUnkB0);
+                        qword qwSum = QwAdd(qwVel, *(qword *)&xf->vUnkB0);
                         qword qwPos = QwMulAddX(qwPos0, qwSum, vfHalf.qw);
-                        VECTOR_opAssign(pxf->mat.mat[3], qwPos);
-                        *(qword *)&pxf->vUnkB0 = qwVel;
-                        pxf->mat.mat[3][3] = 1.0f;
-                        pxf->nStampWorld = ++D_003DD490.nStampXf;
+                        VECTOR_opAssign(xf->mat.mat[3], qwPos);
+                        *(qword *)&xf->vUnkB0 = qwVel;
+                        xf->mat.mat[3][3] = 1.0f;
+                        xf->nStampWorld = ++D_003DD490.nStampXf;
                     }
                     else
                     {
-                        ClearXyz(&pxf->vUnkB0);
-                        if (pxf->nRole != 2)
-                            SlotSetRole(pso, pxf, 3);
+                        ClearXyz(&xf->vUnkB0);
+                        if (xf->nRole != 2)
+                            SlotSetRole(so, xf, 3);
                         else
                             fIdle = 0;
                     }
@@ -1328,27 +1359,27 @@ void UpdateSoSlots(SO *pso)
                 case 6:
                 {
                     float dt = D_002DDED0.dt;
-                    qword qwV0 = *(qword *)&pxf->vUnkB0;
+                    qword qwV0 = *(qword *)&xf->vUnkB0;
                     VU_FLOAT vfDt = VuFloat(dt);
-                    qword qwF0 = *(qword *)&pxf->qwUnkF0;
+                    qword qwF0 = *(qword *)&xf->qwUnkF0;
                     qword qwVel = QwMulAddX(qwV0, qwF0, vfDt.qw);
                     fMoving = 0;
-                    if (!(FQwNearXyz(D_002A2DD0, qwVel) && FQwNearXyz(D_002A2DD0, *(qword *)&pxf->vUnkB0)))
+                    if (!(FQwNearXyz(D_002A2DD0, qwVel) && FQwNearXyz(D_002A2DD0, *(qword *)&xf->vUnkB0)))
                         fMoving = 1;
                     if (fMoving)
                     {
                         fIdle = 0;
                         VU_FLOAT vfHalf = VuFloat(dt * 0.5f);
-                        qword qwSum = QwAdd(*(qword *)&pxf->vUnkB0, qwVel);
-                        TurnSlotMat(pxf, (MATRIX3 *)&pxf->mat, QwMulX(qwSum, vfHalf.qw));
-                        *(qword *)&pxf->vUnkB0 = qwVel;
-                        pxf->nStampWorld = ++D_003DD490.nStampXf;
+                        qword qwSum = QwAdd(*(qword *)&xf->vUnkB0, qwVel);
+                        TurnSlotMat(xf, (MATRIX3 *)&xf->mat, QwMulX(qwSum, vfHalf.qw));
+                        *(qword *)&xf->vUnkB0 = qwVel;
+                        xf->nStampWorld = ++D_003DD490.nStampXf;
                     }
                     else
                     {
-                        ClearXyz(&pxf->vUnkB0);
-                        if (pxf->nRole != 2)
-                            SlotSetRole(pso, pxf, 3);
+                        ClearXyz(&xf->vUnkB0);
+                        if (xf->nRole != 2)
+                            SlotSetRole(so, xf, 3);
                         else
                             fIdle = 0;
                     }
@@ -1358,44 +1389,44 @@ void UpdateSoSlots(SO *pso)
                 break;
             }
             case 0x14:
-                if (pxf->xfk == 6)
+                if (xf->xfk == 6)
                 {
                     fIdle = 0;
-                    float gAngle = RadNormalize(*(float *)&pxf->qwRestUnkE0 + D_002DDED0.dt * *(float *)&pxf->qwUnkD0);
-                    *(float *)&pxf->qwRestUnkE0 = gAngle;
-                    MATRIX3 matRot = LoadRotateMatrixRad(gAngle, pxf->qwRest);
-                    *(MATRIX3 *)&pxf->mat = matRot;
-                    pxf->mat.mat[1][3] = 0.0f;
-                    pxf->mat.mat[2][3] = 0.0f;
-                    pxf->mat.mat[0][3] = 0.0f;
-                    pxf->nStampWorld = ++D_003DD490.nStampXf;
+                    float gAngle = RadNormalize(*(float *)&xf->qwRestUnkE0 + D_002DDED0.dt * *(float *)&xf->qwUnkD0);
+                    *(float *)&xf->qwRestUnkE0 = gAngle;
+                    MATRIX3 matRot = LoadRotateMatrixRad(gAngle, xf->qwRest);
+                    *(MATRIX3 *)&xf->mat = matRot;
+                    xf->mat.mat[1][3] = 0.0f;
+                    xf->mat.mat[2][3] = 0.0f;
+                    xf->mat.mat[0][3] = 0.0f;
+                    xf->nStampWorld = ++D_003DD490.nStampXf;
                 }
                 break;
             case 4:
-                pxf->mat.mat[3][0] = -pxf->pxfRef->mat.mat[3][0];
-                pxf->mat.mat[3][1] = -pxf->pxfRef->mat.mat[3][1];
-                pxf->mat.mat[3][2] = -pxf->pxfRef->mat.mat[3][2];
-                pxf->nStampWorld = pxf->pxfRef->nStampWorld;
+                xf->mat.mat[3][0] = -xf->pxfRef->mat.mat[3][0];
+                xf->mat.mat[3][1] = -xf->pxfRef->mat.mat[3][1];
+                xf->mat.mat[3][2] = -xf->pxfRef->mat.mat[3][2];
+                xf->nStampWorld = xf->pxfRef->nStampWorld;
                 break;
             case 5:
             case 6:
             {
-                if (pxf->nPhase == 5)
+                if (xf->nPhase == 5)
                 {
-                    MATRIX3 *pmatTarget = (MATRIX3 *)&pxf->qwRest;
-                    *(MATRIX3 *)&pxf->mat = *pmatTarget;
-                    pxf->mat.mat[1][3] = 0.0f;
-                    pxf->mat.mat[2][3] = 0.0f;
-                    pxf->mat.mat[0][3] = 0.0f;
+                    MATRIX3 *pmatTarget = (MATRIX3 *)&xf->qwRest;
+                    *(MATRIX3 *)&xf->mat = *pmatTarget;
+                    xf->mat.mat[1][3] = 0.0f;
+                    xf->mat.mat[2][3] = 0.0f;
+                    xf->mat.mat[0][3] = 0.0f;
                 }
                 else
                 {
-                    qword qwVal = QwSlotValue(pxf);
-                    pxf->mat = SlotStoreValue(pxf, qwVal);
+                    qword qwVal = QwSlotValue(xf);
+                    xf->mat = SlotStoreValue(xf, qwVal);
                 }
-                pxf->nStampWorld = ++D_003DD490.nStampXf;
-                if (pxf->nRole == 6 && pxf->nPhase == 2)
-                    SlotSetRole(pso, pxf, 10);
+                xf->nStampWorld = ++D_003DD490.nStampXf;
+                if (xf->nRole == 6 && xf->nPhase == 2)
+                    SlotSetRole(so, xf, 10);
             }
             case 0x15:
                 fIdle = 0;
@@ -1405,50 +1436,50 @@ void UpdateSoSlots(SO *pso)
             case 9:
             case 0xb:
             {
-                switch (pxf->xfk)
+                switch (xf->xfk)
                 {
                 case 6:
                 case 7:
                 {
-                    MATRIX3 matOld = *(MATRIX3 *)&pxf->mat;
+                    MATRIX3 matOld = *(MATRIX3 *)&xf->mat;
                     qword qwRotRate;
                     MATRIX3 matDmat;
                     MATRIX3 matNew;
                     float gAngle;
                     VECTOR4 vecAxis;
-                    if (pxf->nPhase == 5)
+                    if (xf->nPhase == 5)
                     {
-                        MATRIX3 *pmatTarget = (MATRIX3 *)&pxf->qwRest;
-                        *(MATRIX3 *)&pxf->mat = *pmatTarget;
-                        pxf->mat.mat[1][3] = 0.0f;
-                        pxf->mat.mat[2][3] = 0.0f;
-                        pxf->mat.mat[0][3] = 0.0f;
+                        MATRIX3 *pmatTarget = (MATRIX3 *)&xf->qwRest;
+                        *(MATRIX3 *)&xf->mat = *pmatTarget;
+                        xf->mat.mat[1][3] = 0.0f;
+                        xf->mat.mat[2][3] = 0.0f;
+                        xf->mat.mat[0][3] = 0.0f;
                         qwRotRate = D_002A2DD0;
                     }
                     else
                     {
                         qword qw;
-                        SLOT_VALUE_SWITCH(pxf, qw)
+                        SLOT_VALUE_SWITCH(xf, qw)
                         qword qwEuler = qw;
                         qword qwEulerRate;
-                        SLOT_RATE_SWITCH(pxf, qw, qwEulerRate)
-                        pxf->mat = SlotStoreValue(pxf, qwEuler);
+                        SLOT_RATE_SWITCH(xf, qw, qwEulerRate)
+                        xf->mat = SlotStoreValue(xf, qwEuler);
                         qwRotRate = QwRotRateFromEulerRate(qwEuler, qwEulerRate);
                     }
-                    matDmat = MulMatrix3Matrix3(&matOld, (MATRIX3 *)&pxf->mat);
+                    matDmat = MulMatrix3Matrix3(&matOld, (MATRIX3 *)&xf->mat);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
                     float gRateAlong = GFromVf(QwDot(qwRotRate, *(qword *)&vecAxis));
                     SMP smp;
-                    if (pxf->nPhase == 3)
+                    if (xf->nPhase == 3)
                     {
-                        smp.svFast = (float)(ushort)pxf->nUnkAc * s_smpChaseRot.svFast;
-                        smp.svSlow = (float)(ushort)pxf->nUnkAc * s_smpChaseRot.svSlow;
+                        smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svFast;
+                        smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svSlow;
                         smp.dtFast = s_smpChaseRot.dtFast;
                     }
                     else
                     {
-                        smp.svFast = (float)(ushort)pxf->nUnkAc * s_smpChaseRot.svFast + fabsf(gRateAlong);
-                        smp.svSlow = (float)(ushort)pxf->nUnkAc * s_smpChaseRot.svSlow + fabsf(gRateAlong);
+                        smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svFast + fabsf(gRateAlong);
+                        smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChaseRot.svSlow + fabsf(gRateAlong);
                         smp.dtFast = s_smpChaseRot.dtFast;
                     }
                     float gOut;
@@ -1460,13 +1491,13 @@ void UpdateSoSlots(SO *pso)
                     else
                     {
                         gOut = GSmooth(0.0f, gAngle, D_002DDED0.dt, &smp, &dgNext);
-                        switch (pxf->nRole)
+                        switch (xf->nRole)
                         {
                             case 0xb:
                             {
-                                float gMax = (float)(ushort)pxf->nUnkAc * s_gAccelRot;
+                                float gMax = (float)(ushort)xf->nUnkAc * s_gAccelRot;
                                 qword qwNewOmega = QwSMulAddX(VuFloat(dgNext - gRateAlong).qw, *(qword *)&vecAxis, qwRotRate);
-                                qword qwV0 = *(qword *)&pxf->vUnkB0;
+                                qword qwV0 = *(qword *)&xf->vUnkB0;
                                 qword qwDOmega = QwSub(qwNewOmega, qwV0);
                                 float gNeed = GLength(qwDOmega) / D_002DDED0.dt;
                                 if (gMax < gNeed)
@@ -1474,14 +1505,14 @@ void UpdateSoSlots(SO *pso)
                                     qword qwLimited = QwMulAddX(qwV0, qwDOmega, VuFloat(gMax / gNeed).qw);
                                     MATRIX3 matRot;
                                     MATRIX3 matTurn;
-                                    matRot = LoadRotateMatrix(QwXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, QwAdd(*(qword *)&pxf->vUnkB0, qwLimited)));
+                                    matRot = LoadRotateMatrix(QwXMul(VuFloat(D_002DDED0.dt * 0.5f).qw, QwAdd(*(qword *)&xf->vUnkB0, qwLimited)));
                                     matTurn = matRot * matOld;
                                     NormalizeRotateMatrix3(&matTurn);
-                                    *(qword *)&pxf->vUnkB0 = qwLimited;
-                                    *(MATRIX3 *)&pxf->mat = matTurn;
-                                    pxf->mat.mat[2][3] = 0.0f;
-                                    pxf->mat.mat[1][3] = 0.0f;
-                                    pxf->mat.mat[0][3] = 0.0f;
+                                    *(qword *)&xf->vUnkB0 = qwLimited;
+                                    *(MATRIX3 *)&xf->mat = matTurn;
+                                    xf->mat.mat[2][3] = 0.0f;
+                                    xf->mat.mat[1][3] = 0.0f;
+                                    xf->mat.mat[0][3] = 0.0f;
                                     goto LChaseDone;
                                 }
                                 break;
@@ -1489,8 +1520,8 @@ void UpdateSoSlots(SO *pso)
                             case 9:
                             {
                                 float gMin;
-                                if (D_002DDED0.t < *(float *)&pxf->pxfRef)
-                                    gMin = gAngle * D_002DDED0.dt / ((*(float *)&pxf->pxfRef - D_002DDED0.t) + D_002DDED0.dt);
+                                if (D_002DDED0.t < *(float *)&xf->pxfRef)
+                                    gMin = gAngle * D_002DDED0.dt / ((*(float *)&xf->pxfRef - D_002DDED0.t) + D_002DDED0.dt);
                                 else
                                     gMin = gAngle;
                                 if (gOut < gMin)
@@ -1505,30 +1536,30 @@ void UpdateSoSlots(SO *pso)
                     {
                         if (gAngle <= gOut)
                         {
-                            if (pxf->nRole != 8)
+                            if (xf->nRole != 8)
                             {
-                                if (pxf->nRole == 0xb)
+                                if (xf->nRole == 0xb)
                                 {
-                                    if (pxf->nPhase == 2)
-                                        SlotSetRole(pso, pxf, 0xc);
+                                    if (xf->nPhase == 2)
+                                        SlotSetRole(so, xf, 0xc);
                                 }
-                                else if (pxf->nPhase == 1)
-                                    SlotSetRole(pso, pxf, 6);
-                                else if (pxf->nPhase == 2)
-                                    SlotSetRole(pso, pxf, 10);
+                                else if (xf->nPhase == 1)
+                                    SlotSetRole(so, xf, 6);
+                                else if (xf->nPhase == 2)
+                                    SlotSetRole(so, xf, 10);
                             }
-                            *(qword *)&pxf->vUnkB0 = qwRotRate;
+                            *(qword *)&xf->vUnkB0 = qwRotRate;
                         }
                         else
                         {
                             matNew = LoadRotateMatrixRad(gOut, *(qword *)&vecAxis) * matOld;
                             NormalizeRotateMatrix3(&matNew);
-                            *(MATRIX3 *)&pxf->mat = matNew;
-                            pxf->mat.mat[1][3] = 0.0f;
-                            pxf->mat.mat[2][3] = 0.0f;
-                            pxf->mat.mat[0][3] = 0.0f;
+                            *(MATRIX3 *)&xf->mat = matNew;
+                            xf->mat.mat[1][3] = 0.0f;
+                            xf->mat.mat[2][3] = 0.0f;
+                            xf->mat.mat[0][3] = 0.0f;
                             VU_FLOAT vfRate = VuFloat(dgNext - gRateAlong);
-                            *(qword *)&pxf->vUnkB0 = QwMulAddX(qwRotRate, *(qword *)&vecAxis, vfRate.qw);
+                            *(qword *)&xf->vUnkB0 = QwMulAddX(qwRotRate, *(qword *)&vecAxis, vfRate.qw);
                         }
                     }
                     break;
@@ -1536,14 +1567,14 @@ void UpdateSoSlots(SO *pso)
                 default:
                 {
                     qword qw;
-                    SLOT_VALUE_SWITCH(pxf, qw)
+                    SLOT_VALUE_SWITCH(xf, qw)
                     qword qwTarget = qw;
                     qword qwTargetVel;
                     qword qwR;
-                    SLOT_RATE_SWITCH(pxf, qw, qwR)
+                    SLOT_RATE_SWITCH(xf, qw, qwR)
                     qwTargetVel = PassQ(qwR);
                     __asm__("" : : ); // schedule only: puts the spill store ahead of the call's argument moves (no instruction)
-                    qword qwCur = SlotRestValue(pxf, &pxf->mat);
+                    qword qwCur = SlotRestValue(xf, &xf->mat);
                     qword qwDir = QwSub(qwTarget, qwCur);
                     float gDist = GXOfQwAct(QwLength(qwDir));
                     if (gDist > 0.0001f)
@@ -1556,25 +1587,25 @@ void UpdateSoSlots(SO *pso)
                     }
                     float gVelAlong = GFromVf(QwDot(qwTargetVel, qwDir));
                     SMP smp;
-                    if (pxf->xfk < 13)
+                    if (xf->xfk < 13)
                     {
-                        if (pxf->xfk >= 11)
+                        if (xf->xfk >= 11)
                         {
-                            smp.svFast = (float)(ushort)pxf->nUnkAc * s_smpChaseScale.svFast + fabsf(gVelAlong);
-                            smp.svSlow = (float)(ushort)pxf->nUnkAc * s_smpChaseScale.svSlow + fabsf(gVelAlong);
+                            smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChaseScale.svFast + fabsf(gVelAlong);
+                            smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChaseScale.svSlow + fabsf(gVelAlong);
                             smp.dtFast = s_smpChaseScale.dtFast;
                         }
                         else
                         {
-                            smp.svFast = (float)(ushort)pxf->nUnkAc * s_smpChasePos.svFast + fabsf(gVelAlong);
-                            smp.svSlow = (float)(ushort)pxf->nUnkAc * s_smpChasePos.svSlow + fabsf(gVelAlong);
+                            smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChasePos.svFast + fabsf(gVelAlong);
+                            smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChasePos.svSlow + fabsf(gVelAlong);
                             smp.dtFast = s_smpChasePos.dtFast;
                         }
                     }
                     else
                     {
-                        smp.svFast = (float)(ushort)pxf->nUnkAc * s_smpChasePos.svFast + fabsf(gVelAlong);
-                        smp.svSlow = (float)(ushort)pxf->nUnkAc * s_smpChasePos.svSlow + fabsf(gVelAlong);
+                        smp.svFast = (float)(ushort)xf->nUnkAc * s_smpChasePos.svFast + fabsf(gVelAlong);
+                        smp.svSlow = (float)(ushort)xf->nUnkAc * s_smpChasePos.svSlow + fabsf(gVelAlong);
                         smp.dtFast = s_smpChasePos.dtFast;
                     }
                     float gOut;
@@ -1586,33 +1617,33 @@ void UpdateSoSlots(SO *pso)
                     else
                     {
                         gOut = GSmooth(0.0f, gDist, D_002DDED0.dt, &smp, &dgNext);
-                        switch (pxf->nRole)
+                        switch (xf->nRole)
                         {
                             case 0xb:
                             {
                                 VU_FLOAT vfRate = VuFloat(dgNext - gVelAlong);
                                 qword qwDV = QwMulAddX(qwTargetVel, qwDir, vfRate.qw);
-                                qwDV = QwSub(qwDV, *(qword *)&pxf->vUnkB0);
+                                qwDV = QwSub(qwDV, *(qword *)&xf->vUnkB0);
                                 float gNeed = GLength(qwDV) / D_002DDED0.dt;
                                 float gMax;
-                                if (pxf->xfk < 13)
+                                if (xf->xfk < 13)
                                 {
-                                    if (pxf->xfk >= 11)
-                                        gMax = (float)(ushort)pxf->nUnkAc * s_gAccelScale;
+                                    if (xf->xfk >= 11)
+                                        gMax = (float)(ushort)xf->nUnkAc * s_gAccelScale;
                                     else
-                                        gMax = (float)(ushort)pxf->nUnkAc * s_gAccelPos;
+                                        gMax = (float)(ushort)xf->nUnkAc * s_gAccelPos;
                                 }
                                 else
-                                    gMax = (float)(ushort)pxf->nUnkAc * s_gAccelPos;
+                                    gMax = (float)(ushort)xf->nUnkAc * s_gAccelPos;
                                 if (gMax < gNeed)
                                 {
-                                    qword qwV0 = *(qword *)&pxf->vUnkB0;
+                                    qword qwV0 = *(qword *)&xf->vUnkB0;
                                     VU_FLOAT vfLimit = VuFloat(gMax / gNeed);
                                     VU_FLOAT vfHalf = VuFloat(D_002DDED0.dt * 0.5f);
                                     qwDV = QwMulAddX(qwV0, qwDV, vfLimit.qw);
-                                    qword qwSum = QwAdd(*(qword *)&pxf->vUnkB0, qwDV);
-                                    *(qword *)&pxf->vUnkB0 = qwDV;
-                                    pxf->mat = SlotStoreValue(pxf, QwMulAddX(qwCur, qwSum, vfHalf.qw));
+                                    qword qwSum = QwAdd(*(qword *)&xf->vUnkB0, qwDV);
+                                    *(qword *)&xf->vUnkB0 = qwDV;
+                                    xf->mat = SlotStoreValue(xf, QwMulAddX(qwCur, qwSum, vfHalf.qw));
                                     goto LChaseDone;
                                 }
                                 break;
@@ -1620,8 +1651,8 @@ void UpdateSoSlots(SO *pso)
                             case 9:
                             {
                                 float gMin;
-                                if (D_002DDED0.t < *(float *)&pxf->pxfRef)
-                                    gMin = gDist * D_002DDED0.dt / ((*(float *)&pxf->pxfRef - D_002DDED0.t) + D_002DDED0.dt);
+                                if (D_002DDED0.t < *(float *)&xf->pxfRef)
+                                    gMin = gDist * D_002DDED0.dt / ((*(float *)&xf->pxfRef - D_002DDED0.t) + D_002DDED0.dt);
                                 else
                                     gMin = gDist;
                                 if (gOut < gMin)
@@ -1635,22 +1666,22 @@ void UpdateSoSlots(SO *pso)
                     }
                     {
                         VU_FLOAT vfOut = VuFloat(gOut);
-                        pxf->mat = SlotStoreValue(pxf, QwMulAddX(qwCur, qwDir, vfOut.qw));
+                        xf->mat = SlotStoreValue(xf, QwMulAddX(qwCur, qwDir, vfOut.qw));
                         if (gDist <= gOut)
                         {
-                            if (pxf->nRole != 8)
+                            if (xf->nRole != 8)
                             {
-                                if (pxf->nPhase == 1)
-                                    SlotSetRole(pso, pxf, 6);
-                                else if (pxf->nPhase == 2)
-                                    SlotSetRole(pso, pxf, 10);
+                                if (xf->nPhase == 1)
+                                    SlotSetRole(so, xf, 6);
+                                else if (xf->nPhase == 2)
+                                    SlotSetRole(so, xf, 10);
                             }
-                            *(qword *)&pxf->vUnkB0 = qwTargetVel;
+                            *(qword *)&xf->vUnkB0 = qwTargetVel;
                         }
                         else
                         {
                             VU_FLOAT vfRate = VuFloat(dgNext - gVelAlong);
-                            *(qword *)&pxf->vUnkB0 = QwMulAddX(qwTargetVel, qwDir, vfRate.qw);
+                            *(qword *)&xf->vUnkB0 = QwMulAddX(qwTargetVel, qwDir, vfRate.qw);
                         }
                     }
                     break;
@@ -1658,59 +1689,59 @@ void UpdateSoSlots(SO *pso)
                 }
             LChaseDone:
                 fIdle = 0;
-                pxf->nStampWorld = ++D_003DD490.nStampXf;
+                xf->nStampWorld = ++D_003DD490.nStampXf;
                 break;
             }
             case 0xd:
-                SolveIk(pso, pxf->pxfRef);
+                SolveIk(so, xf->pxfRef);
                 break;
             case 0xf:
-                ApplyXfmConstraint(pso, (struct XFLOCK *)pxf->pxfRef);
+                ApplyXfmConstraint(so, (struct XFLOCK *)xf->pxfRef);
                 break;
             case 0x10:
-                UpdateChainLink(pso, (struct CHAINLINK *)pxf->pxfRef);
+                UpdateChainLink(so, (struct CHAINLINK *)xf->pxfRef);
                 break;
             case 0x11:
             {
                 VECTOR4 vecPos;
                 VECTOR4 vecVel;
-                if (*(float *)&pxf->pxfRef <= D_002DDED0.t)
+                if (*(float *)&xf->pxfRef <= D_002DDED0.t)
                 {
-                    *(qword *)&vecPos = pxf->qwRest;
+                    *(qword *)&vecPos = xf->qwRest;
                     ClearXyz(&vecVel);
                 }
                 else
                 {
-                    EvaluateBezierPos((*(float *)&pxf->pxfRef - D_002DDED0.t) + D_002DDED0.dt, D_002DDED0.dt, 1.0f, *(qword *)pxf->mat.mat[3], *(qword *)&pxf->vUnkB0, pxf->qwRest, pxf->qwUnkD0, &vecPos, &vecVel, 0);
+                    EvaluateBezierPos((*(float *)&xf->pxfRef - D_002DDED0.t) + D_002DDED0.dt, D_002DDED0.dt, 1.0f, *(qword *)xf->mat.mat[3], *(qword *)&xf->vUnkB0, xf->qwRest, xf->qwUnkD0, &vecPos, &vecVel, 0);
                 }
                 fIdle = 0;
-                VECTOR_opAssign(pxf->mat.mat[3], *(qword *)&vecPos);
-                pxf->mat.mat[3][3] = 1.0f;
-                *(qword *)&pxf->vUnkB0 = *(qword *)&vecVel;
-                pxf->nStampWorld = ++D_003DD490.nStampXf;
+                VECTOR_opAssign(xf->mat.mat[3], *(qword *)&vecPos);
+                xf->mat.mat[3][3] = 1.0f;
+                *(qword *)&xf->vUnkB0 = *(qword *)&vecVel;
+                xf->nStampWorld = ++D_003DD490.nStampXf;
                 break;
             }
             case 0x12:
             {
-                switch (pxf->xfk)
+                switch (xf->xfk)
                 {
                 case 1:
                 {
                     qword qw;
-                    SLOT_VALUE_SWITCH(pxf, qw)
+                    SLOT_VALUE_SWITCH(xf, qw)
                     qword qwTarget = qw;
                     qword qwTargetVel;
-                    SLOT_RATE_SWITCH(pxf, qw, qwTargetVel)
-                    float gKp = (float)(ushort)pxf->nUnkAc * s_gKpPos;
-                    float gKd = (float)(ushort)pxf->nUnkAe * s_gKdPos;
+                    SLOT_RATE_SWITCH(xf, qw, qwTargetVel)
+                    float gKp = (float)(ushort)xf->nUnkAc * s_gKpPos;
+                    float gKd = (float)(ushort)xf->nUnkAe * s_gKdPos;
                     float dt = D_002DDED0.dt;
-                    qword qwV0 = *(qword *)&pxf->vUnkB0;
+                    qword qwV0 = *(qword *)&xf->vUnkB0;
                     qword qwDV = QwSub(qwTargetVel, qwV0);
-                    qword qwDPos = QwSub(qwTarget, *(qword *)pxf->mat.mat[3]);
+                    qword qwDPos = QwSub(qwTarget, *(qword *)xf->mat.mat[3]);
                     qword qwAccel = QwMulXMulX(qwDPos, VuFloat(gKp).qw, qwDV, VuFloat(gKd).qw);
                     qword qwV1 = QwMulAddX(qwV0, qwAccel, VuFloat(dt).qw);
                     int fSettled = 0;
-                    if (pxf->nPhase == 2)
+                    if (xf->nPhase == 2)
                     {
                         if (GFromVf(QwDot(qwV1, qwV1)) < 25.0f)
                         {
@@ -1721,52 +1752,52 @@ void UpdateSoSlots(SO *pso)
                     if (fSettled)
                     {
                         qwV1 = QwZero();
-                        SlotSetRole(pso, pxf, 0x13);
+                        SlotSetRole(so, xf, 0x13);
                     }
-                    qword qwPos0 = *(qword *)pxf->mat.mat[3];
-                    VECTOR_opAssign(pxf->mat.mat[3], QwAddMulXMulX(qwPos0, qwV0, qwV1, VuFloat(dt * 0.5f).qw));
-                    *(qword *)&pxf->vUnkB0 = qwV1;
-                    pxf->mat.mat[3][3] = 1.0f;
+                    qword qwPos0 = *(qword *)xf->mat.mat[3];
+                    VECTOR_opAssign(xf->mat.mat[3], QwAddMulXMulX(qwPos0, qwV0, qwV1, VuFloat(dt * 0.5f).qw));
+                    *(qword *)&xf->vUnkB0 = qwV1;
+                    xf->mat.mat[3][3] = 1.0f;
                     break;
                 }
                 case 6:
                 {
                     float dt = D_002DDED0.dt;
-                    MATRIX3 matOld = *(MATRIX3 *)&pxf->mat;
+                    MATRIX3 matOld = *(MATRIX3 *)&xf->mat;
                     MATRIX3 matTarget;
                     MATRIX3 matDmat;
                     MATRIX3 matNew;
                     VECTOR4 vecAxis;
                     float gAngle;
                     qword qwRate;
-                    qword qwOmega0 = *(qword *)&pxf->vUnkB0;
-                    if (pxf->nPhase == 5)
+                    qword qwOmega0 = *(qword *)&xf->vUnkB0;
+                    if (xf->nPhase == 5)
                     {
-                        MATRIX3 *pmatTarget = (MATRIX3 *)&pxf->qwRest;
+                        MATRIX3 *pmatTarget = (MATRIX3 *)&xf->qwRest;
                         matTarget = *pmatTarget;
                         qwRate = D_002A2DD0;
                     }
                     else
                     {
                         qword qw;
-                        SLOT_VALUE_SWITCH(pxf, qw)
+                        SLOT_VALUE_SWITCH(xf, qw)
                         qword qwEuler = qw;
                         qword qwEulerRate;
-                        SLOT_RATE_SWITCH(pxf, qw, qwEulerRate)
-                        MATRIX4 matStored = SlotStoreValue(pxf, qwEuler);
+                        SLOT_RATE_SWITCH(xf, qw, qwEulerRate)
+                        MATRIX4 matStored = SlotStoreValue(xf, qwEuler);
                         MATRIX3 *pmatTarget = (MATRIX3 *)&matStored;
                         matTarget = *pmatTarget;
                         qwRate = QwRotRateFromEulerRate(qwEuler, qwEulerRate);
                     }
-                    matDmat = MulMatrix3Matrix3((MATRIX3 *)&pxf->mat, &matTarget);
+                    matDmat = MulMatrix3Matrix3((MATRIX3 *)&xf->mat, &matTarget);
                     DecomposeRotateMatrixRad(&matDmat, &gAngle, (VECTOR *)&vecAxis);
-                    float gKp = (float)(ushort)pxf->nUnkAc * s_gKpRot;
-                    float gKd = (float)(ushort)pxf->nUnkAe * s_gKdRot;
+                    float gKp = (float)(ushort)xf->nUnkAc * s_gKpRot;
+                    float gKd = (float)(ushort)xf->nUnkAe * s_gKdRot;
                     qword qwDV = QwSub(qwRate, qwOmega0);
                     qword qwAccel = QwMulXMulX_P2134(*(qword *)&vecAxis, VuFloat(gKp * gAngle).qw, qwDV, VuFloat(gKd).qw);
                     qword qwOmega1 = QwMulAddX(qwOmega0, qwAccel, VuFloat(dt).qw);
                     int fSettled = 0;
-                    if (pxf->nPhase == 2)
+                    if (xf->nPhase == 2)
                     {
                         if (GFromVf(QwDot(qwOmega1, qwOmega1)) < 0.0025000001f && gAngle < 0.01f)
                             fSettled = 1;
@@ -1774,38 +1805,38 @@ void UpdateSoSlots(SO *pso)
                     if (fSettled)
                     {
                         qwOmega1 = QwZero();
-                        SlotSetRole(pso, pxf, 0x13);
+                        SlotSetRole(so, xf, 0x13);
                     }
                     qword qwTurn = QwMulXAddMulX(qwOmega0, qwOmega1, VuFloat(dt * 0.5f).qw);
                     matNew = LoadRotateMatrix(qwTurn) * matOld;
                     NormalizeRotateMatrix3(&matNew);
-                    *(MATRIX3 *)&pxf->mat = matNew;
-                    pxf->mat.mat[1][3] = 0.0f;
-                    pxf->mat.mat[2][3] = 0.0f;
-                    pxf->mat.mat[0][3] = 0.0f;
-                    *(qword *)&pxf->vUnkB0 = qwOmega1;
+                    *(MATRIX3 *)&xf->mat = matNew;
+                    xf->mat.mat[1][3] = 0.0f;
+                    xf->mat.mat[2][3] = 0.0f;
+                    xf->mat.mat[0][3] = 0.0f;
+                    *(qword *)&xf->vUnkB0 = qwOmega1;
                     break;
                 }
                 }
                 fIdle = 0;
-                pxf->nStampWorld = ++D_003DD490.nStampXf;
+                xf->nStampWorld = ++D_003DD490.nStampXf;
                 break;
             }
         }
-        XF *pxfParent = pxf->pxfParent;
-        if (pxfParent != 0)
+        XF *parentXf = xf->pxfParent;
+        if (parentXf != 0)
         {
             // matWorld = parent->matWorld * mat through VU0 microprogram 0x60 (VU0 mem: parent rows in vf1-vf4, ours in vf5-vf8, result back in vf5-vf8).
             // The loads and vcallms are one asm WITHOUT outputs: a volatile asm with no outputs makes cse forget everything, so the stamp
             // compare below reads pxf->pxfParent again and gcse keeps the game's copy of the parent pointer ($a0).
-            MATRIX4 *pmatParent = &pxfParent->matWorld;
+            MATRIX4 *pmatParent = &parentXf->matWorld;
             __asm__ __volatile__("lqc2 vf1, 0x40(%0)\n\tlqc2 vf4, 0x30(%1)\n\tlqc2 vf2, 0x10(%1)\n\tlqc2 vf3, 0x20(%1)\n\t"
                                  "lqc2 vf5, 0x0(%2)\n\tlqc2 vf6, 0x10(%2)\n\tlqc2 vf7, 0x20(%2)\n\tlqc2 vf8, 0x30(%2)\n\tvcallms 0x60"
-                                 : : "r"(pxfParent), "r"(pmatParent), "r"(pxf));
-            int nStamp = pxf->nStampWorld;
-            if (nStamp <= pxf->pxfParent->nStampWorld)
-                nStamp = pxf->pxfParent->nStampWorld;
-            pxf->nStampWorld = nStamp;
+                                 : : "r"(parentXf), "r"(pmatParent), "r"(xf));
+            int nStamp = xf->nStampWorld;
+            if (nStamp <= xf->pxfParent->nStampWorld)
+                nStamp = xf->pxfParent->nStampWorld;
+            xf->nStampWorld = nStamp;
             // cfc2.i waits for the microprogram; its four "=j" outputs are the result rows still sitting in vf5-vf8 (vf1-vf4 are clobbered,
             // so the allocator hands out vf5 and up). Row 0 is the one pin: without it the row stored twice (stack temp and matWorld) lands in vf8.
             int nWait;
@@ -1817,36 +1848,36 @@ void UpdateSoSlots(SO *pso)
             *(qword *)matWorldNew.mat[1] = qwRow1;
             *(qword *)matWorldNew.mat[2] = qwRow2;
             *(qword *)matWorldNew.mat[3] = qwRow3;
-            pxf->matWorld = matWorldNew;
+            xf->matWorld = matWorldNew;
         }
         else
         {
-            pxf->matWorld = pxf->mat;
+            xf->matWorld = xf->mat;
         }
     }
     if (fIdle)
     {
-        if (!(pso->grfUnk40 & 1))
+        if (!(so->grfUnk40 & 1))
         {
-            *(int *)pso->grfUnk40 &= ~4;
+            *(int *)so->grfUnk40 &= ~4;
         }
         else
         {
-            pso->grfUnk40 &= ~4;
+            so->grfUnk40 &= ~4;
         }
     }
     if (fSnap)
     {
-        if (!(pso->grfUnk40 & 1))
+        if (!(so->grfUnk40 & 1))
         {
-            *(int *)pso->grfUnk40 &= ~0x10;
+            *(int *)so->grfUnk40 &= ~0x10;
         }
         else
         {
-            pso->grfUnk40 &= ~0x10;
+            so->grfUnk40 &= ~0x10;
         }
     }
-    func_0022FA20(pso);
+    RefreshSoAfterSlotUpdate(so);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1864,7 +1895,8 @@ void ResortSwBusyEntry(void *g, int b);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_0022FA20(struct S *p)
+// After a slot update: for objects with the "needs refresh" flag (bit 60), runs the class-specific refresh. (inferred)
+void RefreshSoAfterSlotUpdate(struct S *p)
 {
     if (!!((p->f >> 60) & 1)) {
         int k = p->k;
@@ -1882,7 +1914,7 @@ struct M4 {qword r[4];};
 struct X {M4 local,world;char pad80[0x20];X *parent;int priority;char pada8[0x58];};
 struct S {char pad[0x50];int count;X *array;};
 extern "C" { extern M4 D_002A2D30; }
-extern "C" void func_0022FA20(S *);
+extern "C" void RefreshSoAfterSlotUpdate(S *);
 /** @sly2-annot addr=0x22FAA0
  * Purpose: recomputes linked XF world matrices with the VU matrix microprogram
  * Info: proposed name UpdateSoXfWorldMatrices (T1); TU xf
@@ -1891,6 +1923,7 @@ extern "C" void func_0022FA20(S *);
  *   docs/engine/animation.md#animation-format-summary-anim_lab-v31,
  *   docs/formats/meshes-scene.md#3-transforms-cstatic
  * @end-sly2-annot */
+// Recomputes the world matrices of an SO's linked transforms (VU matrix microprogram).
 extern "C" void UpdateSoXfWorldMatrices(S *p) {
     if(p->count>0) {
         X *x=p->array,*last=p->array+p->count-1;
@@ -1919,7 +1952,7 @@ extern "C" void UpdateSoXfWorldMatrices(S *p) {
             v5=n0;v6=n1;v7=n2;v8=n3;
         }
     }
-    func_0022FA20(p);
+    RefreshSoAfterSlotUpdate(p);
 }
 } // namespace M_UpdateSoXfWorldMatrices
 
@@ -1930,6 +1963,7 @@ extern "C" void UpdateSoXfWorldMatrices(S *p) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Default (empty) world-hierarchy update for plain LOs.
 extern "C" void UpdateLoXfWorldHierarchy()
 {
 }
@@ -1947,6 +1981,7 @@ void UpdateSoXfWorldMatrices(struct S *p);
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Recomputes an SO's world matrices and then those of its children.
 void UpdateSoXfWorldHierarchy(struct S *p)
 {
     struct O *o;
@@ -1982,7 +2017,8 @@ static inline qword MulPos(const M4 *m, qword v)
  *   docs/reference/functions/gameplay-objects.md#sensor-0x1de2a0-0x1dfad8,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-qword func_0022FC48(struct O *a, struct O *b, qword v)
+// Converts a point from transform a's space to transform b's space (0 = world).
+qword TransformXfPos(struct O *a, struct O *b, qword v)
 {
     if (a) v = MulPos(&a->mat, v);
     if (b) {
@@ -2014,6 +2050,7 @@ static inline qword Mul3(const M3 *m, qword v)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#xf-0x22c818-0x231100,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// Converts a direction (no translation) from transform a's space to transform b's space (0 = world).
 qword ConvertXfVec(struct O *a, struct O *b, qword v)
 {
     if (a) v = Mul3(&a->mat, v);
@@ -2052,6 +2089,7 @@ static inline M3 Mul(const M3 &a, const M3 &b) return r
  *   r8_21BB88+top50_round
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
+// Converts a 3x3 matrix from transform a's space to transform b's space: inverse(b) * a * m.
 extern "C" M3 *ConvertXfMat(M3 *pr, O *pa, O *pb, const M3 *pm)
 {
     if (pa) {
@@ -2086,7 +2124,8 @@ void *func_0023320C(void *d, void *s, int n) __asm__("memcpy");
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-M4 *func_0022FF40(M4 *pr, struct O *pa, struct O *pb, M4 *pm)
+// Converts a 4x4 matrix from transform a's space to transform b's space. (inferred)
+M4 *GetRelativeXfMatrix(M4 *pr, struct O *pa, struct O *pb, M4 *pm)
 {
     M4 m, mT, mInv;
     if (pa) {
@@ -2117,7 +2156,7 @@ namespace M_AddXfAct { extern "C" {
 typedef struct VT { short d; short pad; void *pfn; } VT;
 typedef struct N { char pad[0xC]; int k; struct N *next; int x14; VT *vt; } N;
 typedef struct S { char pad[0x90]; N *first; } S;
-void func_0022C840(void *, S *);
+void WakeXfOwner(void *, S *);
 
 #define VCALL(o, k) ((void (*)(void *))(o)->vt[k].pfn)((char *)(o) + (o)->vt[k].d)
 
@@ -2133,6 +2172,8 @@ void func_0022C840(void *, S *);
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
+// Inserts an action into a transform slot's action list, sorted by priority; if it becomes the head (the action in
+// effect) the slot is woken and the old head detached / new head attached, else the head is told (slot 3).
 void AddXfAct(void *ctx, S *s, N *n)
 {
     N **pp = &s->first;
@@ -2143,7 +2184,7 @@ void AddXfAct(void *ctx, S *s, N *n)
     n->next = *pp;
     *pp = n;
     if (s->first != head) {
-        func_0022C840(ctx, s);
+        WakeXfOwner(ctx, s);
         if (head)
             VCALL(head, 2);
         VCALL(s->first, 1);
@@ -2158,7 +2199,7 @@ namespace M_func_00230100 { extern "C" {
 typedef struct VT { short d; short pad; void *pfn; } VT;
 typedef struct N { char pad[0x10]; struct N *next; int x14; VT *vt; } N;
 typedef struct S { char pad[0x90]; N *first; } S;
-void func_0022C840(void *, S *);
+void WakeXfOwner(void *, S *);
 
 #define VCALL(o, k) ((void (*)(void *))(o)->vt[k].pfn)((char *)(o) + (o)->vt[k].d)
 
@@ -2169,7 +2210,8 @@ void func_0022C840(void *, S *);
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_00230100(void *ctx, S *s, N *n)
+// Unlinks an action from a transform slot's list and wakes the slot. (inferred)
+void RemoveXfAct(void *ctx, S *s, N *n)
 {
     N *head = s->first;
     N **pp = &s->first;
@@ -2178,7 +2220,7 @@ void func_00230100(void *ctx, S *s, N *n)
         if (e == n) {
             *pp = e->next;
             if (s->first != head) {
-                func_0022C840(ctx, s);
+                WakeXfOwner(ctx, s);
                 VCALL(head, 2);
                 if (s->first)
                     VCALL(s->first, 1);
@@ -2199,7 +2241,7 @@ namespace M_func_002301D0 { extern "C" {
 typedef struct VT { short d; short pad; void *pfn; } VT;
 typedef struct N { char pad[0xC]; int k; struct N *next; int x14; VT *vt; } N;
 typedef struct S { char pad[0x90]; N *first; } S;
-void func_0022C840(void *, S *);
+void WakeXfOwner(void *, S *);
 
 #define VCALL(o, k) ((void (*)(void *))(o)->vt[k].pfn)((char *)(o) + (o)->vt[k].d)
 
@@ -2211,7 +2253,8 @@ void func_0022C840(void *, S *);
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_002301D0(void *ctx, S *s)
+// Re-sorts a slot's actions (up to 16) by priority after priorities changed, re-attaching the new head. (inferred)
+void SortXfActs(void *ctx, S *s)
 {
     N *a[16];
     int c = 0;
@@ -2238,7 +2281,7 @@ void func_002301D0(void *ctx, S *s)
         *pp = n;
     }
     if (s->first != head) {
-        func_0022C840(ctx, s);
+        WakeXfOwner(ctx, s);
         if (head)
             VCALL(head, 2);
         if (s->first)
@@ -2253,7 +2296,8 @@ void func_002301D0(void *ctx, S *s)
 namespace M_func_00230310 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
-int func_00230310(int n)
+// True for slot roles that move the value (1-3, 7-12, 17-21). (inferred)
+int IsXfRoleMoving(int n)
 {
     switch (n) {
     case 1: case 2: case 3: case 7: case 8: case 9: case 10: case 11: case 12: case 17: case 18: case 19: case 20: case 21:
@@ -2267,7 +2311,8 @@ int func_00230310(int n)
 namespace M_func_00230348 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
-int func_00230348(int n)
+// True for slot roles that are at rest (0, 3, 10, 12, 19). (inferred)
+int IsXfRoleAtRest(int n)
 {
     switch (n) {
     case 0: case 3: case 10: case 12: case 19:
@@ -2281,7 +2326,8 @@ int func_00230348(int n)
 namespace M_func_00230380 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
-int func_00230380(int n)
+// True for velocity-driven slot roles (1-3). (inferred)
+int IsXfRoleVelocity(int n)
 {
     switch (n) {
     case 1: case 2: case 3:
@@ -2307,17 +2353,17 @@ typedef struct P {
     V xF0;
 } P;
 static inline void SetV(V *pv, float x, float y, float z) { pv->x = x; pv->y = y; pv->z = z; }
-int func_00230310(int);
-int func_00230348(int);
-int func_00230380(int);
-M4 func_0022CDC0(P *);
+int IsXfRoleMoving(int);
+int IsXfRoleAtRest(int);
+int IsXfRoleVelocity(int);
+M4 EvaluateXfSlotMatrix(P *);
 M4 InvertMatrix4Rigid(P *);
 M4 __ml__FRC7MATRIX4T0(M4 *, M4 *);
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
-void func_0022CDC0P(M4 *pm, P *p) __asm__("func_0022CDC0");
+void func_0022CDC0P(M4 *pm, P *p) __asm__("EvaluateXfSlotMatrix");
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
-void func_0022C818(S *, P *);
+void ResetXfValueRef(S *, P *);
 
 /** @sly2-annot addr=0x2303A0
  * Purpose: Set the motion role (+0x98) of one XF slot of an SO; on leaving a static role capture the current
@@ -2333,11 +2379,13 @@ void func_0022C818(S *, P *);
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278,
  *   docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_002303A0(S *s, P *p, int n)
+// Sets a slot's motion role: leaving a static role captures the current value from the slot matrix, velocity roles
+// start from zero velocity, and the SO is woken unless the new role is at rest. (inferred)
+void SetXfRole(S *s, P *p, int n)
 {
     if (n == p->x98)
         return;
-    if (func_00230310(n) && !func_00230310(p->x98)) {
+    if (IsXfRoleMoving(n) && !IsXfRoleMoving(p->x98)) {
         M4 m;
         M4 t;
         func_0022CDC0P(&t, p);
@@ -2363,17 +2411,17 @@ void func_002303A0(S *s, P *p, int n)
     }
     switch (n) {
     case 1: case 2: case 3:
-        if (!func_00230380(p->x98)) {
+        if (!IsXfRoleVelocity(p->x98)) {
             { V *pv = &p->xF0; pv->z = 0; pv->y = 0; pv->x = 0; }
         }
-        func_0022C818(s, p);
+        ResetXfValueRef(s, p);
         break;
     case 0: case 13: case 14: case 15: case 16: case 17: case 20: case 21:
-        func_0022C818(s, p);
+        ResetXfValueRef(s, p);
         break;
     }
     p->x98 = n;
-    if (!func_00230348(n))
+    if (!IsXfRoleAtRest(n))
         s->vt[47].pfn((char *)s + s->vt[47].d, 4);
 }
 } } // namespace M_func_002303A0
@@ -2383,14 +2431,15 @@ namespace M_SlotUnsettle { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
 typedef struct { char pad[0x98]; unsigned short x98; } B;
-void func_002303A0(void *, B *, int);
+void SetXfRole(void *, B *, int);
+// Puts a settled slot back into motion (inferred: the counterpart of SettleXfSlot).
 void SlotUnsettle(void *a, B *b)
 {
     switch ((short)b->x98) {
-    case 6: case 10: func_002303A0(a, b, 7); break;
-    case 12: func_002303A0(a, b, 0xB); break;
-    case 19: func_002303A0(a, b, 0x12); break;
-    case 3: func_002303A0(a, b, 1); break;
+    case 6: case 10: SetXfRole(a, b, 7); break;
+    case 12: SetXfRole(a, b, 0xB); break;
+    case 19: SetXfRole(a, b, 0x12); break;
+    case 3: SetXfRole(a, b, 1); break;
     }
 }
 } } // namespace M_SlotUnsettle
@@ -2398,7 +2447,7 @@ void SlotUnsettle(void *a, B *b)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00230630 { extern "C" {
 typedef struct S { char pad[0x98]; short k; short x9A; } S;
-void func_002303A0(void *, S *, int);
+void SetXfRole(void *, S *, int);
 
 /** @sly2-annot addr=0x230630
  * Purpose: role/phase transitions via SlotSetRole
@@ -2406,26 +2455,27 @@ void func_002303A0(void *, S *, int);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_00230630(void *p, S *s)
+// Moves a slot whose motion has finished to the matching resting role (by kind and phase). (inferred)
+void SettleXfSlot(void *p, S *s)
 {
     switch (s->k) {
     case 7:
     case 9:
         if (s->x9A == 2)
-            func_002303A0(p, s, 10);
+            SetXfRole(p, s, 10);
         else if (s->x9A == 1)
-            func_002303A0(p, s, 6);
+            SetXfRole(p, s, 6);
         break;
     case 11:
         if (s->x9A == 2)
-            func_002303A0(p, s, 0xC);
+            SetXfRole(p, s, 0xC);
         break;
     case 18:
         if (s->x9A == 2)
-            func_002303A0(p, s, 0x13);
+            SetXfRole(p, s, 0x13);
         break;
     case 1:
-        func_002303A0(p, s, 3);
+        SetXfRole(p, s, 3);
         break;
     }
 }
@@ -2433,7 +2483,7 @@ void func_00230630(void *p, S *s)
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00230710 {
-// (Claude agent, lane E17) MATCH from fresh19: func_0022CC00 declared void here. With the M4* return, the call sets $v0, so the
+// (Claude agent, lane E17) MATCH from fresh19: BuildXfValueDerivativeMatrix declared void here. With the M4* return, the call sets $v0, so the
 // r3 store (v0) lost sched2's "more dependents" tie-break to the r2 store (v1, reused after the call). With void, plain *pm = t
 // matches and the old r1/$7 pin and qword temps are gone.
 // (Claude agent, lane E7) fresh18: aligned 2 (fresh17 3). SetM4 copies mat through explicit qword temps r0,r1,r2 stored r1,r2,r0.
@@ -2451,16 +2501,16 @@ struct O {
     M4 local; char pad40[0x90 - 0x40]; OB *pob; int k94; short k98; short k9A; char pad9C[0xB0 - 0x9C]; qword qB0;
 };
 extern "C" {
-int func_00230310(int);
-M4 *func_0022C8C0(M4 *pm, O *po, qword v);
-M4 *func_0022CB90(M4 *pr, O *pa, const M4 *basis, qword c, qword d);
-void func_0022CC00(M4 *pm, O *po, qword v);
-M4 *func_0022CCD0(M4 *pm, O *pa, const M4 *basis, qword v);
+int IsXfRoleMoving(int);
+M4 *BuildXfValueMatrix(M4 *pm, O *po, qword v);
+M4 *BuildEulerDerivativeMatrix(M4 *pr, O *pa, const M4 *basis, qword c, qword d);
+void BuildXfValueDerivativeMatrix(M4 *pm, O *po, qword v);
+M4 *BuildRotationDerivativeMatrix(M4 *pm, O *pa, const M4 *basis, qword v);
 M3 *BuildRotationMatrixFromVector(M3 *, qword);
-qword func_0022CA18(O *pa, const M4 *matrix);
+qword GetXfValueFromMatrix(O *pa, const M4 *matrix);
 qword *VECTOR_opAssign(qword *, qword);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void func_00230710(O *po, M4 *pm, M4 *pm2, float g);
+void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g);
 }
 struct VUF { qword q; VUF(float g) { float f = g; __asm__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 struct VUF2 { qword q; VUF2(float g) { float f = g; __asm__ __volatile__("" : "+f"(f)); __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } operator const VUF &() const { return *(const VUF *)this; } };
@@ -2489,9 +2539,9 @@ static inline void SetM4(M4 *pm, const M3 &mat, qword pos)
     pm->m[1][3] = 0.0f;
     pm->m[0][3] = 0.0f;
 }
-static inline M4 C8c0(O *po, const qword &v) return r { func_0022C8C0(&r, po, v); }
-static inline M4 Cc00(O *po, const qword &v) return r { func_0022CC00(&r, po, v); }
-static inline M4 Ccd0(O *po, const M4 *pm, qword v) return r { func_0022CCD0(&r, po, pm, v); }
+static inline M4 C8c0(O *po, const qword &v) return r { BuildXfValueMatrix(&r, po, v); }
+static inline M4 Cc00(O *po, const qword &v) return r { BuildXfValueDerivativeMatrix(&r, po, v); }
+static inline M4 Ccd0(O *po, const M4 *pm, qword v) return r { BuildRotationDerivativeMatrix(&r, po, pm, v); }
 static inline qword Scale(qword v, const VUF &f)
 {
     qword r;
@@ -2511,26 +2561,28 @@ static inline qword AddScale(qword a, qword v, const VUF &f)
  * Notes: descriptive only: xf: apply job override to matrix | no usable identifier; purpose only
  * Confidence: name low [T2 0.20]; purpose not reviewed - evidence: static analysis
  * @end-sly2-annot */
-void func_00230710(O *po, M4 *pm, M4 *pm2, float g)
+// A slot's current matrix and its time derivative, from its driving action's goal (value and rate) or its own
+// velocity role. (inferred)
+void GetXfSlotMatrixAndDerivative(O *po, M4 *pm, M4 *pm2, float g)
 {
     if (po->pob) {
         qword q[2];
         M4 t;
         OB *pob = po->pob;
         ((void (*)(void *, qword *, qword *))pob->vt[5].pfn)((char *)pob + pob->vt[5].d, &q[0], &q[1]);
-        func_0022C8C0(&t, po, q[0]);
+        BuildXfValueMatrix(&t, po, q[0]);
         *pm = t;
         switch (po->k94) {
         case 6: case 7:
-            func_0022CB90(&t, po, pm, q[0], q[1]);
+            BuildEulerDerivativeMatrix(&t, po, pm, q[0], q[1]);
             *pm2 = t;
             break;
         default:
-            func_0022CC00(&t, po, q[1]);
+            BuildXfValueDerivativeMatrix(&t, po, q[1]);
             *pm2 = t;
             break;
         }
-    } else if (func_00230310(po->k98)) {
+    } else if (IsXfRoleMoving(po->k98)) {
         switch (po->k94) {
         case 6: case 7: {
             M3 mat;
@@ -2541,11 +2593,11 @@ void func_00230710(O *po, M4 *pm, M4 *pm2, float g)
         }
         default: {
             qword v[1];
-            v[0] = AddScale(func_0022CA18(po, &po->local), po->qB0, VUF(g));
+            v[0] = AddScale(GetXfValueFromMatrix(po, &po->local), po->qB0, VUF(g));
             M4 t;
-            func_0022C8C0(&t, po, v[0]);
+            BuildXfValueMatrix(&t, po, v[0]);
             *pm = t;
-            func_0022CC00(&t, po, po->qB0);
+            BuildXfValueDerivativeMatrix(&t, po, po->qB0);
             *pm2 = t;
             break;
         }
@@ -2561,7 +2613,8 @@ void func_00230710(O *po, M4 *pm, M4 *pm2, float g)
 namespace M_LoadIdentityMatrix4 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31
-void *func_002333B4(void *, int, int) __asm__("memset"); void func_00230A98(void *, void *, float, float *, float *);
+void *func_002333B4(void *, int, int) __asm__("memset"); void AccumulateXfChainVelocity(void *, void *, float, float *, float *);
+// Helper of the chain velocity code: an identity matrix (the default when no matrix is given, inferred).
 void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
 {
     if (m) {
@@ -2569,7 +2622,7 @@ void LoadIdentityMatrix4(void *a, void *b, float *m, float *n, float f)
         m[0] = m[5] = m[10] = m[15] = 1.0f;
     }
     if (n) func_002333B4(n, 0, 0x40);
-    func_00230A98(a, b, f, m, n);
+    AccumulateXfChainVelocity(a, b, f, m, n);
 }
 } } // namespace M_LoadIdentityMatrix4
 
@@ -2579,7 +2632,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword r[4]; } M4;
 typedef struct P { char pad[0xA0]; struct P *xA0; } P;
 void *func_002333B4(void *, int, int) __asm__("memset");
-void func_00230710(P *, M4 *, M4 *, float);
+void GetXfSlotMatrixAndDerivative(P *, M4 *, M4 *, float);
 /* The C file assigned the struct results (hidden result pointer = the target); as C++ an assignment adds a
    temporary, so the results are passed by hand. This form exists to reproduce the original codegen. */
 void MulMatrix4P(M4 *pm, M4 *pm0, M4 *pm1) __asm__("__ml__FRC7MATRIX4T0");
@@ -2600,7 +2653,9 @@ static inline void AddM4(M4 *d, M4 *a, M4 *b)
  * Notes: descriptive only: xf: blend matrices | no usable identifier; purpose only
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
-void func_00230A98(P *first, P *end, M4 *pA, M4 *pB, float f)
+// Walks a chain of slots, accumulating the product matrix and its derivative by the product rule, i.e. the velocity of
+// the chain's end transform. (inferred)
+void AccumulateXfChainVelocity(P *first, P *end, M4 *pA, M4 *pB, float f)
 {
     M4 m1, m2, a, b, s, t1, t2;
     P *p;
@@ -2617,7 +2672,7 @@ void func_00230A98(P *first, P *end, M4 *pA, M4 *pB, float f)
         pf[0] = pf[5] = pf[10] = pf[15] = 1.0f;
     }
     for (p = first; p != end; p = p->xA0) {
-        func_00230710(p, &m1, &m2, f);
+        GetXfSlotMatrixAndDerivative(p, &m1, &m2, f);
         MulMatrix4P(&t1, &m1, &b);
         MulMatrix4P(&t2, &m2, &a);
         AddM4(&s, &t1, &t2);
@@ -2636,8 +2691,9 @@ void func_00230A98(P *first, P *end, M4 *pA, M4 *pB, float f)
 namespace M_func_00230CD0 { extern "C" {
 // SLY2_CC: tools/compilers/bundle/ee-gcc2.95.3-136
 // SLY2_CFLAGS: -O2 -G0
-void func_00230A98(float);
-void func_00230CD0(void) { func_00230A98(0.0f); }
+void AccumulateXfChainVelocity(float);
+// Calls AccumulateXfChainVelocity with only a zero float argument (an unprototyped C caller, inferred to be dead code).
+void AccumulateXfChainVelocityStub(void) { AccumulateXfChainVelocity(0.0f); }
 } } // namespace M_func_00230CD0
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -2670,11 +2726,11 @@ typedef struct G { char pad[0x3D58]; int x3D58; } G;
 extern G D_003DD490;
 extern qword D_002A2DD0;
 int FAsegaRetracted(A *);
-int func_0012CEE0(C *);
-void func_0022DD00(LO *, P *);
-qword func_0022CA18(P *, P *);
+int IsActCurrent(C *);
+void UpdateXfJobRange(LO *, P *);
+qword GetXfValueFromMatrix(P *, P *);
 qword DecomposeRotationMatrixToEuler(qword *);
-M4 func_0022C8C0(P *, qword);
+M4 BuildXfValueMatrix(P *, qword);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, int, int);
 
 /** @sly2-annot addr=0x230CF0
@@ -2683,7 +2739,8 @@ void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/animation.md#xf-0x22c818-0x231100
  * @end-sly2-annot */
-void func_00230CF0(A *a, int flag)
+// Evaluates a slot's actuator value for the frame (curves, limits) and stores it in the slot. (inferred)
+void EvaluateXfSlotValue(A *a, int flag)
 {
     LO *list[16];
     int n;
@@ -2698,11 +2755,11 @@ void func_00230CF0(A *a, int flag)
         P *p;
         LO *q;
         qword v;
-        if (!func_0012CEE0(c))
+        if (!IsActCurrent(c))
             continue;
         p = c->x8;
         q = c->x4;
-        func_0022DD00(q, p);
+        UpdateXfJobRange(q, p);
         switch (p->x98) {
         case 0: case 13:
             continue;
@@ -2718,7 +2775,7 @@ void func_00230CF0(A *a, int flag)
             list[n++] = q;
         switch (p->x9A) {
         case 0:
-            v = func_0022CA18(p, p);
+            v = GetXfValueFromMatrix(p, p);
             break;
         case 1: {
             EvaluateBezierPos(p->x84 - p->x80, *p->x88 - p->x80, *p->x8C, p->xC0[0], p->xC0[1], p->xC0[2], p->xC0[3], (qword *)&out, 0, 0);
@@ -2736,7 +2793,7 @@ void func_00230CF0(A *a, int flag)
             break;
         }
         {
-            M4 t = func_0022C8C0(p, v);
+            M4 t = BuildXfValueMatrix(p, v);
             *(M4 *)p->m = t;
         }
         p->xB0 = D_002A2DD0;

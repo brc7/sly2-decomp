@@ -64,11 +64,11 @@ struct MRSGC
       int cmrsg;
       MRSG *amrsg;
 };
-void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("func_0012FE58");
-CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("func_0012FF10");
+void FindAsegChannelTarget(ASEG *paseg, ALO *paloRoot, CHN *pchn, SO **ppso, XF **ppxf) __asm__("ResolveAsegChannelTarget");
+CHN *PchnFindAseg(ASEG *paseg, ALO *palo, int xfk, int fStripped) __asm__("FindAsegChannel");
 void EnsureAsegBlendDynamic(ALO *palo, int cbBl, int cbl, void *abl, int cmrsgc, int *mpimrsgcib, int *mpimrsgccmrsg, ASEGBL **ppasegbl);
 void FillBlAmrsg(int cbBl, int cbl, void *abl, int ibMrsg, int coid, OID *aoid);
-void ReblendAsegbl(ASEGBL *pasegbl) __asm__("func_001384C0");
+void ReblendAsegbl(ASEGBL *pasegbl) __asm__("RecalculateAsegBlend");
 struct VKBLEND : public VECKEY
 {
       ASEGBL *pasegbl;
@@ -152,34 +152,34 @@ extern const float D_002A8904;   /* defined below where the ELF has it (.rodata 
 extern void *D_002DAA10[] __asm__("_vt$4LEAP");
 extern void *D_002DA9D0[] __asm__("_vt$6CID146");
 
-void func_001384C0(ASEGBL *);
+void RecalculateAsegBlend(ASEGBL *);
 float GModPositive__Fff(float a, float b);
 void *PsndStartSound(int h);
 void SetSndSourceLo(void *p, void *source);
 qword GetLoWorldPos(void *p);
 void SetSndSourcePos(void *p, qword q);
 void SetSndRange(void *p, float a, float b);
-void func_001FB1F8(void *p, float t);
-EA *func_0012F938(ASEG *paseg, int n);
-CHN *func_0012FF10(ASEG *paseg, ALO *palo, int kind, int check);
+void SetSndVolume(void *p, float t);
+EA *FindAsegLabel(ASEG *paseg, int n);
+CHN *FindAsegChannel(ASEG *paseg, ALO *palo, int kind, int check);
 void *memset(void *, int, unsigned int);
 void SubscribeLoObject(ASEGA *, void *);
 qword GetSoGravity(ALO *);
 void DetachStepguard(ALO *);
 void DisableStuckWatch(void *);
 float ComputeMaxBallisticTime(qword,qword,float,float,float,float);
-qword func_0022FC48(XF *,XF *,qword);
+qword TransformXfPos(XF *,XF *,qword);
 qword ConvertXfVec(XF *,XF *,qword);
-ACT *func_0012DE58(ALO *,XF *,int,qword,qword,float);
+ACT *NewBezierAct(ALO *,XF *,int,qword,qword,float);
 void RecalcSwOxfFilterForObject(GAME *,ALO *);
 void SetSoGravity(ALO *,qword);
-void func_00130D30(ASEGA *,int,float,float);
+void SeekAsega(ASEGA *,int,float,float);
 void AttachStepguard(ALO *,ALO *,int);
 void EnableStuckWatch(void *);
 int FAsegaRetracted(ASEGA *);
 int HandleBasicMessage(void *p, int msg, struct MSGL *pm);
 void ReleaseAct(ACT **);
-void func_002303A0(ALO *o, XF *pxf, int m);
+void SetXfRole(ALO *o, XF *pxf, int m);
 
 ASEGA *GetGaitBlendValue(GAIT *p);
 qword GetGaitRootVelocity(GAIT *p);
@@ -371,7 +371,7 @@ extern "C" void UpdateGaitBlend(GAIT *gait, float g)
         gait->abl[1].gWeight = g;
         gait->abl[0].gWeight = 1.0f - g;
     }
-    func_001384C0(gait->pasegbl);
+    RecalculateAsegBlend(gait->pasegbl);
     pt = gait->pstepplayer;
     InitScalar(&a,*(int *)&GetGaitBlendValue(gait)->svt);
     b = a;
@@ -408,7 +408,7 @@ extern "C" void UpdateGaitFootsteps(GAIT *gait)
             SetSndSourceLo(h, 0);
             SetSndSourcePos(h, GetLoWorldPos(x->paloRoot));
             SetSndRange(h, 500.0f, 2000.0f);
-            func_001FB1F8(h, t);
+            SetSndVolume(h, t);
         }
         gait->afFootDown[i] = f;
     }
@@ -462,13 +462,13 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
         if (!p->paseg)
             return;
     }
-    pa = func_0012F938(p->paseg, 0x22);
+    pa = FindAsegLabel(p->paseg, 0x22);
     if (!pa)
         return;
-    pb = func_0012F938(p->paseg, 0x23);
+    pb = FindAsegLabel(p->paseg, 0x23);
     if (!pb)
         return;
-    pc = func_0012F938(p->paseg, 0x24);
+    pc = FindAsegLabel(p->paseg, 0x24);
     if (!pc)
         return;
     p->a = pa->tLocal;
@@ -476,7 +476,7 @@ extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
     p->c = pc->tLocal;
     p->cb = p->c - p->b;
     p->ca = p->c - p->a;
-    c = func_0012FF10(p->paseg, arg, 1, 1);
+    c = FindAsegChannel(p->paseg, arg, 1, 1);
     if (!c)
         goto initialized;
     CURVECALL((CV *)c->pkey, &v0.q, 0, p->a, 1.0f);
@@ -702,18 +702,18 @@ void SetLeapState(LEAPV *leap,int state)
             __asm__("sqc2 %4,%0\n\tlw %1,%5\n\tsqc2 %3,%2"
               :"=m"(finalVelocity.q),"=r"(parentSpace),"=m"(scalar.q)
               :"j"(timeScalar),"j"(motionVelocity),"m"(launchSubject->space));
-            qword position=func_0022FC48(0,parentSpace->pxfParent,target);
+            qword position=TransformXfPos(0,parentSpace->pxfParent,target);
             qword speed=ConvertXfVec(0,leap->subject->space->pxfParent,finalVelocity.q);
-            leap->constraint=func_0012DE58(leap->subject,leap->subject->space,5,position,speed,leap->arrival);
+            leap->constraint=NewBezierAct(leap->subject,leap->subject->space,5,position,speed,leap->arrival);
             leap->subject->flags|=0x04000000ul;
             RecalcSwOxfFilterForObject(&D_003DD490,leap->subject);
         }
         SetSoGravity(leap->subject,acceleration.q);
         break;
     }
-    case 2:func_00130D30(leap->job,0,leap->tuning->afterStart,1.0f);break;
+    case 2:SeekAsega(leap->job,0,leap->tuning->afterStart,1.0f);break;
     case 3:
-        func_00130D30(leap->job,0,leap->tuning->afterEnd,1.0f);
+        SeekAsega(leap->job,0,leap->tuning->afterEnd,1.0f);
         if(leap->related)AttachStepguard(leap->subject,leap->related,leap->kind);
         break;
     case 4:
@@ -737,7 +737,7 @@ extern "C" void SetLeapTarget(LEAPV *leap, qword v)
     switch (leap->state) {
     case 0: leap->target.q = v; break;
     case 1: case 2:
-        if (leap->ballistic) { ACTPOS *pd = (ACTPOS *)leap->constraint; pd->v = func_0022FC48(0, leap->subject->space->pxfParent, v); }
+        if (leap->ballistic) { ACTPOS *pd = (ACTPOS *)leap->constraint; pd->v = TransformXfPos(0, leap->subject->space->pxfParent, v); }
         break;
     }
 }
@@ -755,7 +755,7 @@ void ReleaseLeapConstraint(LEAPV *leap)
         leap->ballistic = 0;
         if (leap->constraint) {
             ReleaseAct(&leap->constraint);
-            func_002303A0(leap->subject, leap->subject->space, 2);
+            SetXfRole(leap->subject, leap->subject->space, 2);
             leap->subject->flags &= ~(1L << 26);
             RecalcSwOxfFilterForObject(&D_003DD490, leap->subject);
         }
@@ -803,7 +803,7 @@ extern "C" void InitDirAnims(DIRBL *dirAnims,ALO *arg)
         e->animation = o;
         if (!o)
             continue;
-        c = func_0012FF10(o,arg,1,1);
+        c = FindAsegChannel(o,arg,1,1);
         ((VECKEY *)c->pkey)->GetValue(0.0f,1.0f,&v0.q,0);
         ((VECKEY *)c->pkey)->GetValue(o->tMax,1.0f,&v1.q,0);
         { register int bits __asm__("$17")=*(int *)&o->tMax;
@@ -974,7 +974,7 @@ extern "C" void SelectDirAnim(DIRSEL*dirAnims,qword v)
    int id;
    if(dirAnims->forward){id=0x17D;animation=best->animation;}
    else {id=0x17F;animation=best->animation;}
-   tag=func_0012F938(animation,id);
+   tag=FindAsegLabel(animation,id);
    if(tag)time=tag->tLocal;
    ApplyAsegCur(best->animation,dirAnims->root,time,1.0f,dirAnims->flags,&dirAnims->active);
    SubscribeLoObject(dirAnims->active,dirAnims);

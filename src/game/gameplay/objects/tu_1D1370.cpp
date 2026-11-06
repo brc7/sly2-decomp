@@ -198,9 +198,9 @@ void PostSoLoad(P *);
 REF *FindSoXf(P *,int,int);
 void *memmove(void *,const void *,int);
 qword ConvertAloPos(void *,P *,qword);
-void *func_0012DC18(P *,REF *,int,int,int,qword);
+void *NewPositionAct(P *,REF *,int,int,int,qword);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *,int,int,P *);
-void *func_001F0380(void *,P *,int,int);
+void *ApplySmToObject(void *,P *,int,int);
 void *NewSampledShape(int,int);
 void ReplaceSma(void *,P *,int,int,void **);
 void ResetRobottankHealth(P *);
@@ -295,7 +295,7 @@ extern "C" void PostRobottankLoad(P *p){
    --current.side;--next;--i;
    memmove(destination,source,bytes);
    --p->sideCount;
-  }else current.side->binding=func_0012DC18(p,reference,1,7,3,D_002A2DD0);
+  }else current.side->binding=NewPositionAct(p,reference,1,7,3,D_002A2DD0);
   count=p->sideCount;
   ++i;++next;++current.side;
   count=i<count;
@@ -312,8 +312,8 @@ extern "C" void PostRobottankLoad(P *p){
    if(current.attachment->mesh || current.attachment->meshId==invalid){
     current.attachment->extra=PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490,1,current.attachment->extraId,p);
     if(current.attachment->extra || current.attachment->extraId==invalid){
-     current.attachment->binding=func_001F0380(current.attachment->object,p,-1,0);
-     if(current.attachment->mesh)current.attachment->meshBinding=func_0012DC18(p,current.attachment->mesh,1,7,3,D_002A2DD0);
+     current.attachment->binding=ApplySmToObject(current.attachment->object,p,-1,0);
+     if(current.attachment->mesh)current.attachment->meshBinding=NewPositionAct(p,current.attachment->mesh,1,7,3,D_002A2DD0);
      goto attachment_next;
     }
    }
@@ -479,7 +479,7 @@ float RadSmooth__FfffP3SMPPf(float,float,float,void *,float *);
 qword GetLoWorldPos(P *);
 int FFloatsNear__Ffff(float,float,float);
 float GSmooth__FfffP3SMPPf(float,float,float,void *,float *);
-void func_001FB1F8(SOUND *,float);
+void SetSndVolume(SOUND *,float);
 void SetSndPitch(SOUND *,float);
 void ResumeSnd(SOUND *);
 void WakeSo(P *);
@@ -651,7 +651,7 @@ extern "C" void UpdateRobottank(P *p)
     if(p->sound){
         p->soundRate=GSmooth__FfffP3SMPPf(p->soundRate,p->drive/D_002C20A4,D_002DDED0.dt,D_002C20A8,0);
         float rate=Clamp(p->soundRate,0.2f,1.0f);
-        func_001FB1F8(p->sound,rate);
+        SetSndVolume(p->sound,rate);
         SetSndPitch(p->sound,rate*0.2f);
         if(p->sound->references>0)ResumeSnd(p->sound);
     }
@@ -1073,7 +1073,7 @@ void func_001D2420(P *);
 void FindPathzonePathCurve(void *, qword, qword, PATH *);
 float atan2f(float, float);
 M3 *GetLoWorldMatrix(P *);
-qword func_0022CA18(void *, void *);
+qword GetXfValueFromMatrix(void *, void *);
 float RadNormalize__Ff(float);
 void SetSmaGoal(void *, int);
 float GRandInRange__Fff(float, float);
@@ -1227,7 +1227,7 @@ extern "C" void UpdateRobottankAi(P *p)
                 if (attach->mesh) {
                     M3 m = *GetLoWorldMatrix(attach->anchor);
                     float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
-                    qword packed = func_0022CA18(attach->mesh, attach->mesh);
+                    qword packed = GetXfValueFromMatrix(attach->mesh, attach->mesh);
                     float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
                     float pitch = GetZ(packed) - attach->meshBinding->pitch;
                     if (error < D_002C20EC && Abs(pitch) < D_002C20F0)
@@ -1271,7 +1271,7 @@ extern "C" void UpdateRobottankAi(P *p)
             if (attach->mesh) {
                 M3 m = *GetLoWorldMatrix(attach->anchor);
                 float aim = atan2f(m.rows[0].f[1], m.rows[0].f[0]);
-                qword packed = func_0022CA18(attach->mesh, attach->mesh);
+                qword packed = GetXfValueFromMatrix(attach->mesh, attach->mesh);
                 float error = Abs(RadNormalize__Ff(aim - p->wheelAngle));
                 float pitch = GetZ(packed) - attach->meshBinding->pitch;
                 if (D_002C20F4 < error || D_002C20F8 < Abs(pitch))
@@ -2064,7 +2064,7 @@ extern "C" { extern char D_002C21A0[],D_002C21B0[],D_002C21C0[]; }
 extern "C" float D_002C21CC;
 extern "C" {
 qword ConvertAloVec(P*,P*,qword);
-qword func_0022FC48(P*,NODE*,qword);
+qword TransformXfPos(P*,NODE*,qword);
 CONTACT*func_001D2DD0(P*,ENTRY*);
 float GSmooth__FfffP3SMPPf(float,float,float,void*,float*);
 float RadNormalize__Ff(float);
@@ -2097,7 +2097,7 @@ extern "C" void RenderRobottankSelf(P*p){
  velocity.q=ConvertAloVec(0,p,method->fn((P*)((char*)p+method->delta)));
  for(int i=0;i<p->count;i++){
   ENTRY*e=&p->entries[i];
-  point.q=func_0022FC48(0,(NODE*)p->space,e->node->local.position.q);
+  point.q=TransformXfPos(0,(NODE*)p->space,e->node->local.position.q);
   point.f[0]=e->x;point.f[1]=e->y;
   CONTACT*hit=func_001D2DD0(p,e);
   {
@@ -2107,7 +2107,7 @@ extern "C" void RenderRobottankSelf(P*p){
    (void)GSmooth__FfffP3SMPPf(point.f[2],height,D_002DDED0.dt,D_002C21A0,0);point.f[2]=height;
   }
   heightDone:;
-  point.q=func_0022FC48(p->space,e->node->parent,point.q);
+  point.q=TransformXfPos(p->space,e->node->parent,point.q);
   float desired;if(i<2)desired=0.0f;else desired=p->drive/e->radius;
   if(hit){
    float current=velocity.f[0]/e->radius;

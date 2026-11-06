@@ -1569,7 +1569,7 @@ extern "C" { extern char D_003DD490[]; }
 extern "C" { extern qword D_002A2DA0,D_002A2DB0,D_002A2DC0; }
 extern "C" {
 O *PripNewRipg(void*,void*,void*);
-qword func_0022FC48(void*,LO*,qword);
+qword TransformXfPos(void*,LO*,qword);
 float GRandInRange__Fff(float,float);
 void GetNormalVectors(qword,qword,qword,qword*);
 M3 LoadRotateMatrixEuler(qword);
@@ -1600,7 +1600,7 @@ O *CreateStuck(EMIT*p,LO*visual,LO*space,qword position,qword direction){
   object=PripNewRipg(D_003DD490,(void*)10,0);
   if(object){
    float zero=0.0f;
-   U local;local.q=func_0022FC48(0,space,position);
+   U local;local.q=TransformXfPos(0,space,position);
    float size=Polynomial(&p->size,(D_002DDED0.t-p->start)/p->duration);
    size*=GRandInRange__Fff(0.8f,1.4f);
    object->vt[1].fn((char*)object+object->vt[1].delta,local.q,0,size);
@@ -1681,7 +1681,7 @@ typedef int qword __attribute__((mode(TI)));
 struct M { qword a, b, c; };
 struct S { char pad[0x40]; M m; qword q70; char pad2[0xF0 - 0x80]; void *p; };
 extern "C" {
-qword func_0022FC48(void *p, int n, qword q);
+qword TransformXfPos(void *p, int n, qword q);
 M ConvertXfMat(void *p, int n, M *pm);
 int FRenderRipPosMat(S *p, qword q, M m);
 void RenderStuck(S *p);
@@ -1695,7 +1695,7 @@ void RenderStuck(S *p);
  * @end-sly2-annot */
 void RenderStuck(S *p)
 {
-    qword q = func_0022FC48(p->p, 0, p->q70);
+    qword q = TransformXfPos(p->p, 0, p->q70);
     M m;
     m = ConvertXfMat(p->p, 0, &p->m);
     FRenderRipPosMat(p, q, m);

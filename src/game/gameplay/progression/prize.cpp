@@ -61,7 +61,7 @@ extern char D_002DEB30[];   /* a game counter */
 void LoadSoFromBrx(SO *pso, CBinaryInputStream *pbis);
 void PostSoLoad(SO *pso);
 void *EnsureSoInSwList187(SO *pso);
-void func_002303A0(SO *pso, XF *pxf, int n);
+void SetXfRole(SO *pso, XF *pxf, int n);
 void BindLoOidTable(LO *plo, int coid, OIDT *aoidt);
 int GetCoinCount(void *pv);
 void SetCoinCount(void *pv, int n);
@@ -123,8 +123,8 @@ extern "C" void LoadDprizeFromBrx(DPRIZEV *pdprize, CBinaryInputStream *pbis)
 {
     LoadSoFromBrx(pdprize, pbis);
     *(int *)((char *)EnsureSoInSwList187(pdprize) + 0xF0) = 1;
-    func_002303A0(pdprize, pdprize->pxfUnk58, 0x15);
-    func_002303A0(pdprize, pdprize->pxfUnk5c, 0x15);
+    SetXfRole(pdprize, pdprize->pxfUnk58, 0x15);
+    SetXfRole(pdprize, pdprize->pxfUnk5c, 0x15);
     BindLoOidTable(pdprize, 1, D_002C0D40);
 }
 
@@ -818,7 +818,7 @@ struct Q { char pad[0x14]; void *x14; char p1[0x1C - 0x18]; float x1C; char p2[0
 struct R { char pad[0x30]; Q *x30; };
 struct LO { char pad[0x12C]; float x12C; char p1[0x150 - 0x130]; int x150; char p2[0x168 - 0x154]; R *x168; };
 extern "C" {
-H *func_0012FF10(void *p, LO *plo, int a, int b);
+H *FindAsegChannel(void *p, LO *plo, int a, int b);
 qword GetLoWorldPos(LO *plo);
 void *GetLoWorldMatrix(LO *plo);
 void RenderSoSelf(LO *plo);
@@ -841,7 +841,7 @@ void RenderDprizeSelf(LO *p)
     H *ph;
     if (p->x150 == 2) return;
     if (p->x168 && (q = p->x168->x30) != 0) {
-        ph = func_0012FF10(q->x14, p, 0xC, 1);
+        ph = FindAsegChannel(q->x14, p, 0xC, 1);
         if (ph) {
             V v;
             OBJ *pobj = ph->pobj;
@@ -878,10 +878,10 @@ extern float D_002A773C;
 void SetLoParent(struct S *p, int a, int b);
 struct LO *GetProxyCopyValue(struct S *p);
 void UnlockProxyObject(struct LO *q, struct S *p);
-struct LO *func_001F0380(void *a, struct S *p, int anim, int z);
+struct LO *ApplySmToObject(void *a, struct S *p, int anim, int z);
 void SkipSma(struct LO *q, float g);
 void SetSmaGoal(struct LO *q, int anim);
-void func_001F0598(struct LO *q);
+void RetractSma(struct LO *q);
 /** @sly2-annot addr=0x1C60B8
  * Purpose: DPRIZE state machine setter (unlock proxy copy, attach/detach, state timestamps)
  * Info: proposed name SetDprizeDprizes (T1); class DPRIZE slot76; TU prize
@@ -937,7 +937,7 @@ void SetDprizeDprizes(struct S *p, int n)
     p->x154 = D_002DDED0.t;
     if (anim != -1) {
         if (!p->x168) {
-            p->x168 = func_001F0380(p->x164, p, anim, 0);
+            p->x168 = ApplySmToObject(p->x164, p, anim, 0);
             ((void (*)(void *))p->x168->vt[1].pf)((char *)p->x168 + p->x168->vt[1].d);
             if (p->x160 > 0.0f)
                 SkipSma(p->x168, p->x160);
@@ -945,7 +945,7 @@ void SetDprizeDprizes(struct S *p, int n)
             SetSmaGoal(p->x168, anim);
         }
     } else if (p->x168) {
-        func_001F0598(p->x168);
+        RetractSma(p->x168);
         ((void (*)(void *))p->x168->vt[2].pf)((char *)p->x168 + p->x168->vt[2].d);
         p->x168 = 0;
     }
@@ -2721,13 +2721,13 @@ struct S {
 extern struct CLOCK D_002DDED0;
 extern qword D_002C1080;
 extern qword D_002C1090;
-void func_001306A8(void *p);
+void DropAsegaRef(void *p);
 void SetStepplayerGrabTarget(void *p, void *q);
 qword ConvertAloVec(void *p, void *frame, qword q);
 qword ConvertXfVec(void *frame, void *p, qword q);
 qword GetLoWorldPos(void *p);
-qword func_0022FC48(void *frame, void *p, qword q);
-void func_002303A0(struct S *p, struct X *px, int n);
+qword TransformXfPos(void *frame, void *p, qword q);
+void SetXfRole(struct S *p, struct X *px, int n);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *clip, struct S *owner, float position, float speed, int flags, void *output);
 static inline void Selection(const struct S*p,int*index,struct X**timer){
  register int selected __asm__("$2");register struct X*receiver __asm__("s0");
@@ -2745,7 +2745,7 @@ void func_001C8918(struct S *p, int n)
     struct X *px;
     qword q;
     if (n == p->x188) return;
-    func_001306A8(p->x1A0);
+    DropAsegaRef(p->x1A0);
     p->x188 = n;
     p->x18C = D_002DDED0.t;
     switch (n) {
@@ -2763,12 +2763,12 @@ void func_001C8918(struct S *p, int n)
         q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1080));
         px->xB0 = q;
         {int selected;Selection(p,&selected,&px);
-        q=func_0022FC48(0,px->xA0,GetLoWorldPos(p->a1A8[selected]));}
+        q=TransformXfPos(0,px->xA0,GetLoWorldPos(p->a1A8[selected]));}
         px->xC0 = q;
         px = p->x204;
         q = ConvertXfVec(0, px->xA0, ConvertAloVec(p->x190, 0, D_002C1090));
         px->xD0 = q;
-        func_002303A0(p, p->x204, 0x11);
+        SetXfRole(p, p->x204, 0x11);
         break;
     case 2:
         SetStepplayerGrabTarget(p->x190, p->a1A8[p->x194]);

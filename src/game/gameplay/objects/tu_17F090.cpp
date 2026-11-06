@@ -330,7 +330,7 @@ void func_0017F4C0(struct S *p, struct R *r) {
 namespace M_func_0017F550 { extern "C" {
 struct S { char pad[0x194]; void *p194; void *p198; };
 int FAsegaRetracted(void *p);
-int func_001F07E8(void *p);
+int GetSmaCurrentState(void *p);
 int GetSmaGoal(void *p);
 /** @sly2-annot addr=0x17F550
  * Purpose: True when the current ASEGA retracted or the SM reached its end state
@@ -339,7 +339,7 @@ int GetSmaGoal(void *p);
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
  * @end-sly2-annot */
-int func_0017F550(struct S *p) { if (p->p194) return FAsegaRetracted(p->p194); { int f = 1; if (p->p198) f = func_001F07E8(p->p198) == GetSmaGoal(p->p198); return f; } }
+int func_0017F550(struct S *p) { if (p->p194) return FAsegaRetracted(p->p194); { int f = 1; if (p->p198) f = GetSmaCurrentState(p->p198) == GetSmaGoal(p->p198); return f; } }
 } } // namespace M_func_0017F550
 
 namespace M_func_0017F5B0 { extern "C" {
@@ -465,8 +465,8 @@ struct E { int a; int b; int c; int d; int e; int f; };
 struct S { char pad[0x230]; int c; struct E ae[1]; };
 int FindSoXf(struct S *p, int a, int b);
 int PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int b, struct S *p);
-int func_0012DC18(struct S *p, int c, int a, int b, int d, qword q);
-int func_001F0380(int e, struct S *p, int a, int b);
+int NewPositionAct(struct S *p, int c, int a, int b, int d, qword q);
+int ApplySmToObject(int e, struct S *p, int a, int b);
 /** @sly2-annot addr=0x17F770
  * Purpose: Look up child XFs / objects for entries and create vector actuators
  * Info: proposed name BindHackshipParts (T2); class HACKSHIP; TU tu_17F090
@@ -483,8 +483,8 @@ void func_0017F770(struct S *p) {
         struct E *pe = &p->ae[i];
         pe->c = FindSoXf(p, pe->a, 6);
         pe->e = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, pe->b, p);
-        if (pe->c) pe->d = func_0012DC18(p, pe->c, 0, 7, 2, D_002A2DD0);
-        if (pe->e) pe->f = func_001F0380(pe->e, p, -1, 0);
+        if (pe->c) pe->d = NewPositionAct(p, pe->c, 0, 7, 2, D_002A2DD0);
+        if (pe->e) pe->f = ApplySmToObject(pe->e, p, -1, 0);
     }
 }
 } } // namespace M_func_0017F770
@@ -493,7 +493,7 @@ namespace M_func_0017F850 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct S { char pad[0xC]; struct VTE *vt; char pad2[0x48]; int n58; int n5C; char pad3[0x168]; int a1C8[1]; };
 void func_0017F138(struct S *p);
-void func_002303A0(struct S *p, int a, int b);
+void SetXfRole(struct S *p, int a, int b);
 void func_0017F770(struct S *p);
 void func_0017F408(struct S *p, int n, void *pv);
 /** @sly2-annot addr=0x17F850
@@ -506,7 +506,7 @@ void func_0017F408(struct S *p, int n, void *pv);
  *   identity)
  * See: docs/reference/functions/gameplay-objects.md#tu_17f090-0x17f090-0x182c70
  * @end-sly2-annot */
-void func_0017F850(struct S *p) { struct VTE *e; func_0017F138(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); func_002303A0(p, p->n58, 2); func_002303A0(p, p->n5C, 2); func_0017F770(p); func_0017F408(p, 5, p->a1C8); }
+void func_0017F850(struct S *p) { struct VTE *e; func_0017F138(p); e = &p->vt[0x4F]; e->pfn((char *)p + e->d, 0); SetXfRole(p, p->n58, 2); SetXfRole(p, p->n5C, 2); func_0017F770(p); func_0017F408(p, 5, p->a1C8); }
 } } // namespace M_func_0017F850
 
 namespace M_func_0017F8C8 { extern "C" {
@@ -552,7 +552,7 @@ qword SetVectorCylind(float a, float b, float c);
 void SetActPositionGoal(void *p, qword q);
 void SetSmaGoal(void *p, int n);
 float GSmooth__FfffP3SMPPf(void *, int, float, float, float);
-void func_001FB1F8(struct M *p, float g);
+void SetSndVolume(struct M *p, float g);
 void ResumeSnd(struct M *p);
 void PauseSnd(struct M *p);
 struct V3 { float x, y, z; };
@@ -601,7 +601,7 @@ void func_0017F930(struct S *p) {
     if (p->p2A4) {
         float g = (p->n1C0 == 1) ? p->p150->g1C : 0.0f;
         p->g2AC = GSmooth__FfffP3SMPPf(D_002BE7F0, 0, p->g2AC, g, D_002DDED0.dt);
-        func_001FB1F8(p->p2A4, p->g2AC);
+        SetSndVolume(p->p2A4, p->g2AC);
         if (0.0f < p->g2AC) {
             if (p->p2A4->s4E > 0) ResumeSnd(p->p2A4);
         } else {
@@ -718,15 +718,15 @@ void SetSndSourceLo(void *p, int n);
 void RcPtr_Assign(void **pp, void *q);
 void PauseSnd(void *p);
 void ReleaseAct(int *p);
-void func_002303A0(struct S *p, struct N *n, int k);
+void SetXfRole(struct S *p, struct N *n, int k);
 void SetLoParent(struct S *p, int a, int b);
 void SetSoCnstrForce(struct S *p, int n);
 void SetSoCnstrTorque(struct S *p, int n);
 void SetSoPartsBit48(struct S *p, int n);
 void SetSmaGoal(void *p, int n);
 void StopSnd(void *p, float f);
-struct M4 func_0022FF40(int a, int b, struct M4 *pm);
-int func_0012DC18(struct S *p, struct N *n, int a, int b, int c, qword v);
+struct M4 GetRelativeXfMatrix(int a, int b, struct M4 *pm);
+int NewPositionAct(struct S *p, struct N *n, int a, int b, int c, qword v);
 qword DecomposeRotationMatrixToEuler(struct M4 *pm);
 void BroadcastGameEvent(void *a, int n, struct S *p);
 void func_0017F4C0(struct S *p, struct Q *q);
@@ -764,8 +764,8 @@ void func_0017FD08(struct S *p, int n) {
     case 3:
         ReleaseAct(&p->n298);
         ReleaseAct(&p->n29C);
-        func_002303A0(p, p->p58, 2);
-        func_002303A0(p, p->p5C, 2);
+        SetXfRole(p, p->p58, 2);
+        SetXfRole(p, p->p5C, 2);
         SetLoParent(p, 0, 0xF);
         SetSoCnstrForce(p, 5);
         SetSoCnstrTorque(p, 4);
@@ -801,12 +801,12 @@ void func_0017FD08(struct S *p, int n) {
             int r;
 
             { struct O *q = p->p294; struct VTE *e = &q->vt[0x20]; r = ((int (*)(void *, struct M4 *))e->pfn)((char *)q + e->d, &m); }
-            m = func_0022FF40(p->p54->nA0, p->p58->nA0, &m);
+            m = GetRelativeXfMatrix(p->p54->nA0, p->p58->nA0, &m);
             { struct VTE *e = &p->vt[0xA]; ((void (*)(void *, int, int, int))e->pfn)((char *)p + e->d, p->p294->n10, r, 3); }
             { struct VTE *e = &p->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
             { struct VTE *e = &p->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
-            p->n298 = func_0012DC18(p, p->p58, 1, 7, 2, m.r[3]);
-            p->n29C = func_0012DC18(p, p->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
+            p->n298 = NewPositionAct(p, p->p58, 1, 7, 2, m.r[3]);
+            p->n29C = NewPositionAct(p, p->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
             SetSoCnstrForce(p, 1);
             SetSoCnstrTorque(p, 1);
             SetSoPartsBit48(p, 1);
@@ -1094,7 +1094,7 @@ namespace M_func_001805C8 { extern "C" {
 struct S { char pad[0x58]; int a; int b; char p2[0x178]; int x1d8; char p3[0x44]; char x220[4]; };
 void func_0017F138(struct S *p);
 int NewSampledShape(int a, int b);
-void func_002303A0(struct S *p, int a, int b);
+void SetXfRole(struct S *p, int a, int b);
 void func_0017F408(struct S *p, int n, void *pv);
 /** @sly2-annot addr=0x1805C8
  * Purpose: vt15: PostCid47Load + bind entries
@@ -1109,8 +1109,8 @@ void func_001805C8(struct S *p)
 {
     func_0017F138(p);
     p->x1d8 = NewSampledShape(0x2C9, 0x10);
-    if (p->a) func_002303A0(p, p->a, 2);
-    if (p->b) func_002303A0(p, p->b, 2);
+    if (p->a) SetXfRole(p, p->a, 2);
+    if (p->b) SetXfRole(p, p->b, 2);
     func_0017F408(p, 5, p->x220);
 }
 } } // namespace M_func_001805C8

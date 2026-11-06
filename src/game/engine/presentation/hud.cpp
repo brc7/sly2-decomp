@@ -1,5 +1,9 @@
 // hud.cpp -- WIDGET HUD objects, sprite groups and the STRINGGEN text table (docs/engine/hud-ui.md section 1).
 // TU 0x210EB0..0x21BB88 (124 functions, address order).
+// Entry points: the WIDGET class slots (LoadWidgetFromBrx, PostWidgetLoad, UpdateWidget, ShowWidget / HideWidget,
+// WIDGET::RenderSelf), sprite-group loading and animation (LoadSpriteGroups, StartSpriteAnim, AdvanceSpriteAnim),
+// the rich-text layout used by text sprites, BeginRpHud / EndRpHud (the HUD render pass) and the Build*Text
+// callbacks of the STRINGGEN text table.
 // The per-function views of most functions are kept verbatim in namespaces named after the function (see
 // docs/guides/tu-merging.md "Representation decisions"); the former m2c bodies are written at file scope against
 // the views below.
@@ -25,28 +29,28 @@ extern "C" char base_D_004435F0[] __asm__("D_004435F0");   /* g_subtitle (tu_227
 struct WIDGETV : public LO
 {
     char pad50[0x8];
-    int nState;             /* +0x58 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing */
-    float tState;           /* +0x5C time of the last state change */
+    int state;             /* +0x58 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing */
+    float stateTime;           /* +0x5C time of the last state change */
     char pad60[0x4];
-    int nRequest;           /* +0x64 1 hide, 2 show */
-    float tRequest;         /* +0x68 */
+    int request;           /* +0x64 1 hide, 2 show */
+    float requestTime;         /* +0x68 */
     char pad6C[0x4];
-    int idAnimLoop;         /* +0x70 */
-    int idAnimShow;         /* +0x74 */
-    int idAnimHide;         /* +0x78 */
-    int idAnimMain;         /* +0x7C */
+    int loopAnimId;         /* +0x70 */
+    int showAnimId;         /* +0x74 */
+    int hideAnimId;         /* +0x78 */
+    int mainAnimId;         /* +0x7C */
     char pad80[0x28];
-    int fA8;                /* +0xA8 clear: kept on the exclusive list D_003E1060 */
+    int isNonExclusive;                /* +0xA8 clear: kept on the exclusive list D_003E1060 */
 };
-/* A sprite group as func_002185D0..func_00218738 read it: 0x18-byte items at +4, 0x18-byte entries at +8 (the
+/* A sprite group as DrawSprite..GetSpriteMainState read it: 0x18-byte items at +4, 0x18-byte entries at +8 (the
    entry's linked item index at +8), a count at +0x28. */
 struct SPRITEITEM { char pad0[0x18]; };
-struct SPRITEENTRY { char pad0[0x8]; short iItem; char padA[0x6]; int n10; int n14; };
+struct SPRITEENTRY { char pad0[0x8]; short itemIndex; char padA[0x6]; int n10; int n14; };
 struct SPRITEGRP
 {
     int n0;
-    SPRITEITEM *aitem;      /* +0x04 */
-    SPRITEENTRY *aentry;    /* +0x08 */
+    SPRITEITEM *spriteItems;      /* +0x04 */
+    SPRITEENTRY *spriteEntries;    /* +0x08 */
     char padC[0x1C];
     int n28;                /* +0x28 */
 };
@@ -67,15 +71,15 @@ char *strcpy(char *, const char *);
 PO *GetHeroPo(SW *psw);
 char *GetReconPendingText(int *pn);
 char *GetReconSelectedText(int *pn);
-void func_002277D0(char *pchz, int n);
-void func_00227940(char *pchz, int n);
-void SetWidgetRequest(WIDGETV *pwidget, int nRequest);
-void SetWidgetStateW(WIDGETV *pwidget, int nState) __asm__("SetWidgetState");
-int FWidgetObscured(WIDGETV *pwidget);
-void func_0021A998(SPRITEITEM *pitem, int i, int n);
-void func_00218660(SPRITEGRP *pgrp, int i);
-/* func_002185D0 returns what func_002185F8 leaves in v0 (its own body is void) */
-int func_002185F8I(SPRITEGRP *pgrp, int i, int n) __asm__("func_002185F8");
+void GetSubtitleText(char *pchz, int n);
+void FormatSubtitleButtonGlyphs(char *pchz, int n);
+void SetWidgetRequest(WIDGETV *widget, int request);
+void SetWidgetStateW(WIDGETV *widget, int state) __asm__("SetWidgetState");
+int FWidgetObscured(WIDGETV *widget);
+void DrawSpriteItems(SPRITEITEM *pitem, int i, int n);
+void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
+/* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
+int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
 void StaticInit_hud(int fInitialize, int nPriority);
 }
 
@@ -89,6 +93,7 @@ void StaticInit_hud(int fInitialize, int nPriority);
  *   docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
 /* STRINGGEN getter: the context is the text itself. */
+// Text-table getter: copies the context string given by the caller.
 extern "C" void BuildContextText(char *pchz, char *pchzContext)
 {
     strcpy(pchz, pchzContext);
@@ -112,6 +117,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown,
  *   docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// HUD text 0x2CF: the player's coin count.
 void BuildCoinCountText(void *f, int **pp)
 {
     int *p = *pp;
@@ -141,6 +147,7 @@ void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
  *   r7c_hud+runtime-corrected
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// HUD text 0x2D0: clue bottles collected / total in this level.
 void BuildClueCountText(void *f)
 {
     fiprintf(f, D_002A8AA8, D_003DD490.a, D_003DD490.b);
@@ -158,6 +165,7 @@ void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// HUD text 0x2D1: the mission countdown as minutes:seconds (never below zero).
 void BuildTimerText(void *f)
 {
     float t = -D_002DDED0.t + g_sw.tHudTimerEnd; int n; t = (t < 0.0f) ? 0.0f : t;
@@ -169,7 +177,7 @@ void BuildTimerText(void *f)
 }
 } } // namespace M_BuildTimerText
 
-// 0x210FE0 func_00210FE0
+// 0x210FE0 BuildBinocularReadoutText
 namespace M_func_00210FE0 { extern "C" {
 struct X { char pad[0xF20]; int xF20; char padf24[0x18]; float xF3C; };
 extern char D_003DD490[];
@@ -186,7 +194,9 @@ int fptodp(float);
  * See: docs/engine/player.md#8-look-mode-recon-mode-and-the-ai-partner,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00210FE0(char *pch)
+// HUD text 0x2DC: the binocucom readout, per character (Sly: zoom "x%d", Bentley: "x%5.3f", Murray: distance words).
+// (inferred)
+void BuildBinocularReadoutText(char *pch)
 {
     struct X *x = GetHeroPo(D_003DD490);
     float g;
@@ -225,6 +235,7 @@ void func_00210FE0(char *pch)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* STRINGGEN getter (context 0 selected, 1 pending): the recon text of the hero's mode HUD, if the hero is a JT. */
+// HUD texts 0x2DD / 0x2DE: the recon selector's selected item, or its pending caption.
 extern "C" void BuildReconSelectionText(char *pchz, int i)
 {
     JT *pjt;
@@ -266,6 +277,7 @@ void strcpy(char *dst, char *src);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// HUD texts 0x2DF-0x2E4: the name of recon target i, if there is one.
 void BuildReconTargetText(char *dst, int i)
 {
     struct G *g = &D_003DD490;
@@ -278,7 +290,7 @@ void BuildReconTargetText(char *dst, int i)
 }
 } } // namespace M_BuildReconTargetText
 
-// 0x211298 func_00211298
+// 0x211298 BuildMenuCarouselText
 namespace M_func_00211298 { extern "C" {
 struct RESOURCE { int id; const char *text; };
 struct G { char gap[0x4640]; int count; struct RESOURCE *resources; };
@@ -286,7 +298,7 @@ extern struct G D_003DD490;
 struct F { int id; char pad[0x1C]; };
 struct E { int c; struct F *af; char pad[0xC]; int x14; char pad2[4]; };
 #undef D_003D9EDC
-extern struct E D_003D9EDC[] __asm__("D_003D9ED0+0xC");   /* screen's object+0xC, a separate symbol to g++: the base+offset form changes func_00211298 (CSE of the base) */
+extern struct E D_003D9EDC[] __asm__("D_003D9ED0+0xC");   /* screen's object+0xC, a separate symbol to g++: the base+offset form changes BuildMenuCarouselText (CSE of the base) */
 #undef D_003D9EF4
 extern int D_003D9EF4 __asm__("D_003D9ED0+0x24");   /* screen's object+0x24; see D_003D9EDC */
 const char *PchzFindSwLangstr__FP2SWi(struct G *g, int id);
@@ -298,7 +310,9 @@ char *strcpy(char *dst, const char *src);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211298(char *dst, int k)
+// HUD texts 0x2D2-0x2DB: the name of the menu entry k places from the selection on the current menu page (wrapping).
+// (inferred)
+void BuildMenuCarouselText(char *dst, int k)
 {
     struct E *e = &D_003D9EDC[D_003D9EF4];
     if (e->c) {
@@ -325,13 +339,14 @@ void strcpy(void *p, int v);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7c_hud
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// HUD texts 0x2E5-0x2EE: the language string of the owning widget's argument i.
 void BuildWidgetArgText(void *p, int i, struct T *t)
 {
     strcpy(p, PchzFindSwLangstr__FP2SWi(&D_003DD490, t->a[i]));
 }
 } } // namespace M_BuildWidgetArgText
 
-// 0x211390 func_00211390
+// 0x211390 BuildSubtitleText
 /** @sly2-annot addr=0x211390
  * Purpose: STRINGGEN id 0x2EF: subtitle/speaker text from global D_004435F0 via 0x2277D0
  * Info: proposed name BuildSubtitleText (T2); TU hud
@@ -339,12 +354,13 @@ void BuildWidgetArgText(void *p, int i, struct T *t)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00211390(int n)
+// HUD text 0x2EF: the current subtitle's text. (inferred)
+extern "C" void BuildSubtitleText(int n)
 {
-    func_002277D0(D_004435F0, n);
+    GetSubtitleText(D_004435F0, n);
 }
 
-// 0x2113B8 func_002113B8
+// 0x2113B8 BuildSubtitleButtonText
 /** @sly2-annot addr=0x2113B8
  * Purpose: STRINGGEN id 0x2F0: 0x227940(&D_004435F0,pchz) (r8: one char per set flag bit)
  * Info: proposed name BuildSubtitleFlagsText (T2); TU hud
@@ -352,9 +368,10 @@ extern "C" void func_00211390(int n)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_002113B8(int n)
+// HUD text 0x2F0: the current subtitle's button glyphs. (inferred)
+extern "C" void BuildSubtitleButtonText(int n)
 {
-    func_00227940(D_004435F0, n);
+    FormatSubtitleButtonGlyphs(D_004435F0, n);
 }
 
 // 0x2113E0 BuildTickerText
@@ -365,12 +382,13 @@ extern "C" void func_002113B8(int n)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* STRINGGEN getter: the localized string D_003DA0D8 names. */
+// HUD text 0x2F1: the message of the scrolling ticker.
 extern "C" void BuildTickerText(char *pchz)
 {
     strcpy(pchz, PchzFindSwLangstr(&D_003DD490, D_003DA0D8));
 }
 
-// 0x211420 func_00211420
+// 0x211420 BuildOperatedObjectText
 namespace M_func_00211420 { extern "C" {
 struct E { int x0; int x4; int x8; };
 extern struct E D_002C3288[];
@@ -389,7 +407,8 @@ void strcpy(char *, char *);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211420(char *pch)
+// HUD text 0x2F4: the name of the object the player is operating (in the "operate" mode). (inferred)
+void BuildOperatedObjectText(char *pch)
 {
     int id = -1;
     struct X *x = GetHeroPo(D_003DD490);
@@ -414,7 +433,7 @@ void func_00211420(char *pch)
 }
 } } // namespace M_func_00211420
 
-// 0x211528 func_00211528
+// 0x211528 StartupHudGifPackets
 namespace M_func_00211528 {
 // Initialize the fixed GIF register packets.
 extern "C" { extern QW D_004421B0[7]; }
@@ -435,7 +454,8 @@ extern "C" { extern ulong D_002DEBE0[] __asm__("D_002DEBE0"), D_002DECD0[] __asm
  * See: docs/engine/main-loop-startup.md#open-questions, docs/engine/overview.md#1-boot,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00211528(){
+// Boot-time setup (startup table): builds the static GIF register packets used by sprite and HUD rendering. (inferred)
+extern "C" void StartupHudGifPackets(){
  GIFS setup;
  QW *data=D_004421B0;
  QW *header=(QW *)((int)data-0x10);
@@ -505,6 +525,7 @@ void EndDmaCnt__4DMAS(void *);
  *   docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Begins the HUD render pass: uploads the HUD VU1 microprogram and its constants and sets the GS state for HUD drawing.
 void BeginRpHud(void *p)
 {
     EnsureVu1Code__FP4VIFSPvT1(p, D_0025AFA0, D_0025B870);
@@ -540,6 +561,7 @@ void BeginRpHud(void *p)
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Ends the HUD render pass: run the VU1 microprogram at 0xC0, then FLUSHA. */
+// Ends the HUD render pass (starts the microprogram, flushes).
 extern "C" void EndRpHud(VIFS *pvifs)
 {
     pvifs->AddDmaCnt();
@@ -548,11 +570,12 @@ extern "C" void EndRpHud(VIFS *pvifs)
     pvifs->EndDmaCnt();
 }
 
-// 0x211C58 func_00211C58
+// 0x211C58 ConstructWidget130
 /* WIDGET130's constructor (sly2/classes.h): WIDGET_ctor, the vptr (_vt$9WIDGET130, class_registry's), the fields. */
+// Constructor of widget class 0x82: base widget, then four ids and one more field set to -1 (unused).
 WIDGET130::WIDGET130() { anUnk110[0] = -1; anUnk110[1] = -1; anUnk110[2] = -1; anUnk110[3] = -1; nUnk120 = -1; }
 
-// 0x211CA8 func_00211CA8
+// 0x211CA8 ShowModalBoxWidget
 namespace M_func_00211CA8 { extern "C" {
 struct S { char pad[0x7C]; int x7c; char pad2[0x90]; int x110; };
 extern struct G D_003DD490;
@@ -566,7 +589,9 @@ void PlayWidgetAnim(struct S *p, int a);
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211CA8(struct S *p, int k)
+// Shows the modal message box (class 0x7F, slot 49) if it is idle: shows the widget, takes player control and plays its
+// open animation. (inferred)
+void ShowModalBoxWidget(struct S *p, int k)
 {
     if (p->x7c == -1) {
         ShowWidget(p, k);
@@ -577,7 +602,7 @@ void func_00211CA8(struct S *p, int k)
 }
 } } // namespace M_func_00211CA8
 
-// 0x211D08 func_00211D08
+// 0x211D08 InitModalBoxWidget
 namespace M_func_00211D08 { extern "C" {
 struct S { char pad[0xB0]; int f; };
 void InitLo(struct S *p);
@@ -590,12 +615,13 @@ void InitLo(struct S *p);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 } } // namespace M_func_00211D08
+// Initializes the modal message box (class 0x7F): base init and its "font" flag.
 void WIDGET127::Init() { using namespace M_func_00211D08; M_func_00211D08::S *p = (M_func_00211D08::S *)this;
     InitLo(p);
     p->f = 1;
 }
 
-// 0x211D38 func_00211D38
+// 0x211D38 UpdateModalBoxWidget
 namespace M_func_00211D38 { extern "C" {
 // Actor update: commit completed state after every noninitial guard path.
 struct VT { char pad[0x190]; short d; short pd; void (*pf)(void *); };
@@ -603,7 +629,7 @@ struct S { char pad[0xC]; struct VT *pvt; char pad10[0x48]; int x58; float x5C; 
 extern struct G { char pad[0x3B0C]; void *x3B0C; } D_003DD490;
 extern int D_002DD318;
 extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
-int func_002121C8(struct S *p);
+int IsWidgetIdle(struct S *p);
 void UpdateWidget(struct S *p);
 int FScreenShown(void *);
 int HandleJoyButtons(void *, int);
@@ -617,9 +643,11 @@ void RestartJob(void *);
  * Confidence: low (draft) [T2 0.55] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211D38(struct S *p)
+// Per-frame modal message box: once visible for half a second, a face-button press releases player control, optionally
+// resumes the game and hides the box. (inferred)
+void UpdateModalBoxWidget(struct S *p)
 {
-    int r = func_002121C8(p);
+    int r = IsWidgetIdle(p);
     if (r)
         return;
     UpdateWidget(p);
@@ -637,7 +665,7 @@ void func_00211D38(struct S *p)
 }
 } } // namespace M_func_00211D38
 
-// 0x211E40 func_00211E40
+// 0x211E40 InitWidget128
 namespace M_func_00211E40 { extern "C" {
 struct S { char pad[0xB0]; int f; };
 void InitLo(struct S *p);
@@ -650,12 +678,13 @@ void InitLo(struct S *p);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 } } // namespace M_func_00211E40
+// Initializes widget class 0x80: base init and its "font" flag.
 void WIDGET128::Init() { using namespace M_func_00211E40; M_func_00211E40::S *p = (M_func_00211E40::S *)this;
     InitLo(p);
     p->f = 1;
 }
 
-// 0x211E70 func_00211E70
+// 0x211E70 AddItemCounterOidA
 namespace M_func_00211E70 { extern "C" {
 struct E { int a; int b; };
 struct S { char pad[0x110]; unsigned int c; struct E ae[16]; };
@@ -667,7 +696,8 @@ struct S { char pad[0x110]; unsigned int c; struct E ae[16]; };
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211E70(struct S *p, int v)
+// Adds an object to the item counter widget's first list (at most 16). (inferred)
+void AddItemCounterOidA(struct S *p, int v)
 {
     unsigned int c = p->c;
     if (c < 16) {
@@ -677,7 +707,7 @@ void func_00211E70(struct S *p, int v)
 }
 } } // namespace M_func_00211E70
 
-// 0x211E98 func_00211E98
+// 0x211E98 AddItemCounterOidB
 namespace M_func_00211E98 { extern "C" {
 struct E { int a; int b; };
 struct S { char pad[0x194]; unsigned int c; struct E ae[16]; };
@@ -689,7 +719,8 @@ struct S { char pad[0x194]; unsigned int c; struct E ae[16]; };
  * Confidence: low (draft) [T2 0.50] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211E98(struct S *p, int v)
+// Adds an object to the item counter widget's second list (at most 16). (inferred)
+void AddItemCounterOidB(struct S *p, int v)
 {
     unsigned int c = p->c;
     if (c < 16) {
@@ -699,7 +730,7 @@ void func_00211E98(struct S *p, int v)
 }
 } } // namespace M_func_00211E98
 
-// 0x211EC0 func_00211EC0
+// 0x211EC0 PostLoadItemCounterWidget
 namespace M_func_00211EC0 { extern "C" {
 struct G;
 extern struct G D_003DD490;
@@ -715,6 +746,7 @@ void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int z);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 } } // namespace M_func_00211EC0
+// Item counter widget post-load (class 0x81): base widget post-load, then resolves both OID lists to objects.
 void WIDGET129::VUnk14() { using namespace M_func_00211EC0; using M_func_00211EC0::D_003DD490; M_func_00211EC0::S *p = (M_func_00211EC0::S *)this;
     int i;
     PostWidgetLoad(p);
@@ -730,7 +762,7 @@ void WIDGET129::VUnk14() { using namespace M_func_00211EC0; using M_func_00211EC
     }
 }
 
-// 0x211F90 func_00211F90
+// 0x211F90 UpdateItemCounterWidget
 namespace M_func_00211F90 { extern "C" {
 struct VT {
     char pad[0x188]; short d49; short pd49; void (*f49)(void *,int);
@@ -758,7 +790,9 @@ int sprintf(char *,char *,...);
  * See: docs/engine/game-progression.md#6-objective-counters-job-markers-and-the-episode-menu,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00211F90(struct S *p)
+// Per-frame item counter: counts finished and active objects, writes done / total / remaining into the widget's item
+// texts, shows while any is active and hides when all are done. (inferred)
+void UpdateItemCounterWidget(struct S *p)
 {
     int i;
     int ready=0;
@@ -820,7 +854,7 @@ struct S *WIDGET_ctor(struct S *p)
 }
 } } // namespace M_WIDGET_ctor
 
-// 0x2121C8 func_002121C8
+// 0x2121C8 IsWidgetIdle
 /** @sly2-annot addr=0x2121C8
  * Purpose: state(+0x58)<2 && request(+0x64)<2
  * Info: proposed name FWidgetIdle (T2); TU hud
@@ -829,12 +863,13 @@ struct S *WIDGET_ctor(struct S *p)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Whether the widget is neither shown nor asked to show (state and request both below 2). */
-extern "C" int func_002121C8(WIDGETV *pwidget)
+// True when the widget is neither shown nor requested to show. (inferred)
+extern "C" int IsWidgetIdle(WIDGETV *widget)
 {
     int f;
     f = 0;
-    if (pwidget->nState < 2) {
-        f = pwidget->nRequest < 2;
+    if (widget->state < 2) {
+        f = widget->request < 2;
     }
     return f;
 }
@@ -844,7 +879,7 @@ namespace M_FWidgetAnimPlaying { extern "C" {
 struct E { char pad[0x14]; int id; };
 struct A { unsigned short c; short pad; struct E *ae; char pad8[0x28]; };
 struct S { char pad[0x7C]; int x7C; unsigned short c80; short pad82; struct A *aa; };
-int func_00218738(struct A *a);
+int GetSpriteMainState(struct A *a);
 int FSpriteAnimActive(struct A *a);
 /** @sly2-annot addr=0x2121E8
  * Purpose: is anim id (0x314=main track) still running on its sprite
@@ -853,6 +888,7 @@ int FSpriteAnimActive(struct A *a);
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// True while the widget animation with the given id (0x314 = main track) is still running.
 int FWidgetAnimPlaying(struct S *p, int k)
 {
     int j, l;
@@ -861,7 +897,7 @@ int FWidgetAnimPlaying(struct S *p, int k)
     if (p->x7C == -1)
         return 0;
     if (k == 0x314)
-        return func_00218738(p->aa) == 0;
+        return GetSpriteMainState(p->aa) == 0;
     for (j = 0; j < p->c80; j++) {
         struct A *a = &p->aa[j];
         for (l = 0; l < a->c; l++) {
@@ -903,6 +939,8 @@ void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Loads a widget: default animation ids, the LO part, whether its sprites are streamed, duration, size and font flag;
+// its sprites load now or later.
 void LoadWidgetFromBrx(struct S *p, void *pbis)
 {
     int f;
@@ -956,6 +994,8 @@ void SetLoBusyk(struct S *p, int);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Widget post-load: finds the font object, centres the widget on screen from its size, shows it if flagged, marks it
+// busy.
 void PostWidgetLoad(struct S *p)
 {
     unsigned int v;
@@ -1034,6 +1074,7 @@ struct WORK {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/formats/textures.md#7-open, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Loads a streamed widget's sprite file when the widget first leaves the unloaded state.
 extern "C" void LoadWidgetSprites(S *p) {
     WORK work;
     register BIS *bs asm("$17");asm("la %0,%a1":"=r"(bs):"p"(&work.stream));
@@ -1093,6 +1134,7 @@ void ClearSl(void *p);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Drops a widget's sprite tables and lists (on entering the unloaded state).
 void UnloadWidgetSprites(struct S *p)
 {
     struct C *pc;
@@ -1108,7 +1150,7 @@ void UnloadWidgetSprites(struct S *p)
 }
 } } // namespace M_UnloadWidgetSprites
 
-// 0x2127C8 func_002127C8
+// 0x2127C8 AreWidgetLoadsIdle
 namespace M_func_002127C8 { extern "C" {
 struct Q { char pad[0x58]; int k; int pad2; int a; int b; };
 struct S { char pad[0x40]; struct Q *q; char pad2[8]; struct S *next; };
@@ -1120,7 +1162,9 @@ extern int D_002BE538;
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-int func_002127C8(void)
+// True when no deferred widget sprite load is younger than two frames (used to wait for widgets before continuing).
+// (inferred)
+int AreWidgetLoadsIdle(void)
 {
     struct S *p;
     for (p = (*(struct S * *)&g_sw.slWidgetDeferred); p; p = p->next) {
@@ -1153,6 +1197,7 @@ void Decref__4CRef(struct CRef *r);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Shows a widget with argument ids taken from a splice list (at most 10).
 void ShowWidgetArgsFromSplice(struct S *p, void *a)
 {
     struct CRef r;
@@ -1173,6 +1218,7 @@ struct S { char pad[0xC]; struct VE *vt; char pad2[0xBC]; int a[10]; };
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Shows a widget with n argument ids (at most 10), e.g. the text ids it displays.
 void ShowWidgetArgs(struct S *p, int n, int *src)
 {
     int i;
@@ -1196,6 +1242,8 @@ struct S : B {
   int F(void *, int) __asm__("FSpriteHasAnim");
   void M(int) __asm__("ShowWidget");
 };
+// ShowWidget (widget slot 49): requests that a widget show, loading its sprites first if needed; k = the animation
+// argument (-1 = default).
 void S::M(int k)
 {
     if (!x58)
@@ -1230,15 +1278,16 @@ void S::M(int k)
  *   docs/reference/functions/game-progression.md#game-0x1613a8-0x166270,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void HideWidget(WIDGETV *pwidget)
+// Requests that a widget hide; without a disappear animation it goes straight to hidden.
+extern "C" void HideWidget(WIDGETV *widget)
 {
-    SetWidgetRequest(pwidget, 1);
-    if (pwidget->idAnimHide == -1) {
-        SetWidgetStateW(pwidget, 1);
+    SetWidgetRequest(widget, 1);
+    if (widget->hideAnimId == -1) {
+        SetWidgetStateW(widget, 1);
     }
 }
 
-// 0x212A30 func_00212A30
+// 0x212A30 ResetWidgetVisibleTime
 /** @sly2-annot addr=0x212A30
  * Purpose: if state==2, state time = g_clock.tReal (restarts the visible-duration timeout)
  * Info: proposed name ResetWidgetVisibleTime (T2); TU hud
@@ -1248,10 +1297,11 @@ extern "C" void HideWidget(WIDGETV *pwidget)
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Restarts the state timer of a visible widget. */
-extern "C" void func_00212A30(WIDGETV *pwidget)
+// Restarts a visible widget's display timeout. (inferred)
+extern "C" void ResetWidgetVisibleTime(WIDGETV *widget)
 {
-    if (pwidget->nState == 2) {
-        pwidget->tState = D_002DDED0.tReal;
+    if (widget->state == 2) {
+        widget->stateTime = D_002DDED0.tReal;
     }
 }
 
@@ -1266,11 +1316,12 @@ extern "C" void func_00212A30(WIDGETV *pwidget)
  *   docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Requests a state (1 hide, 2 show) and stamps the request time. */
-extern "C" void SetWidgetRequest(WIDGETV *pwidget, int nRequest)
+// Sets the widget's requested state (show / hide), acted on by UpdateWidget.
+extern "C" void SetWidgetRequest(WIDGETV *widget, int request)
 {
-    if (pwidget->nRequest != nRequest) {
-        pwidget->nRequest = nRequest;
-        pwidget->tRequest = D_002DDED0.tReal;
+    if (widget->request != request) {
+        widget->request = request;
+        widget->requestTime = D_002DDED0.tReal;
     }
 }
 
@@ -1312,6 +1363,8 @@ void StartWidgetMainAnim(struct S *,int);
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7c_hud
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// The widget state machine: 0 unloaded, 1 hidden, 2 visible, 3 appearing, 4 disappearing; keeps the world's visible
+// widget count and pauses the clock for pausing widgets.
 void SetWidgetState(struct S *p,int state) {
     if(p->state==state) return;
     if(p->flag>=16) {
@@ -1352,7 +1405,7 @@ void UpdateLo(struct S *);
 int FWidgetAnimPlaying(struct S *,int);
 void SetWidgetRequest(struct S *,int);
 void SetWidgetState(struct S *,int);
-void func_00218220(void *,float);
+void AdvanceWidgetSprite(void *,float);
 /** @sly2-annot addr=0x212C50
  * Purpose: WIDGET Update: drives SetWidgetState from request/anim completion and duration, advances main
  *   sprite
@@ -1363,6 +1416,8 @@ void func_00218220(void *,float);
  *   r7c_hud+runtime
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Per-frame widget update: advances the state machine from requests, animation completion and duration, and advances
+// the main sprite.
 void UpdateWidget(struct S *p) {
     int state;
     UpdateLo(p);
@@ -1398,7 +1453,7 @@ void UpdateWidget(struct S *p) {
     if(p->selected!=-1) {
         float dt=g_clock.dtReal;
         p->animtime+=dt;
-        func_00218220(p->sprite,dt);
+        AdvanceWidgetSprite(p->sprite,dt);
     }
 }
 } } // namespace M_UpdateWidget
@@ -1409,8 +1464,8 @@ struct E { char pad[0x14]; int id; };
 struct H { char pad[8]; short h; char pada[0xE]; };
 struct A { unsigned short c; unsigned short c2; struct E *ae; struct H *ah; char padc[0x24]; };
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void func_00217FB8(struct A *pa, float g);
-void func_00217FE0(struct A *pa, int l, float g, int z);
+void SetSpriteDefaultPhase(struct A *pa, float g);
+void SetSpriteAnimPhase(struct A *pa, int l, float g, int z);
 /** @sly2-annot addr=0x212E40
  * Purpose: seek anim id (0x314=main) to fraction g of its length (meters)
  * Info: proposed name SetWidgetAnimPhase (T1); TU hud
@@ -1418,11 +1473,12 @@ void func_00217FE0(struct A *pa, int l, float g, int z);
  * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown,
  *   docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Seeks a widget animation (0x314 = main) to a fraction of its length (meters and gauges).
 void SetWidgetAnimPhase(struct S *p, int k, float g)
 {
     int i, j;
     if (k == 0x314) {
-        func_00217FB8(p->aa, g);
+        SetSpriteDefaultPhase(p->aa, g);
         return;
     }
     for (i = 0; i < p->c80; i++) {
@@ -1436,21 +1492,21 @@ void SetWidgetAnimPhase(struct S *p, int k, float g)
                     if (a->ah[m].h != -1)
                         l = m;
                 if (l >= 0)
-                    func_00217FE0(a, l, g, 0);
+                    SetSpriteAnimPhase(a, l, g, 0);
             }
         }
     }
 }
 } } // namespace M_SetWidgetAnimPhase
 
-// 0x212F80 func_00212F80
+// 0x212F80 SetWidgetAnimTime
 namespace M_func_00212F80 { extern "C" {
 struct E { char pad[0x14]; int id; };
 struct H { char pad[8]; short h; char pada[0xE]; };
 struct A { unsigned short c; unsigned short c2; struct E *ae; struct H *ah; char padc[0x24]; };
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void func_00218038(struct A *pa, float g);
-void func_00218060(struct A *pa, int l, float g, int z);
+void SetSpriteDefaultTime(struct A *pa, float g);
+void SetSpriteAnimTime(struct A *pa, int l, float g, int z);
 // 0x212F78: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0xb0");
 
@@ -1460,11 +1516,12 @@ SLY2_SCRAP("addiu $sp, $sp, 0xb0");
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00212F80(struct S *p, int k, float g)
+// Seeks a widget animation to an absolute time. (inferred)
+void SetWidgetAnimTime(struct S *p, int k, float g)
 {
     int i, j;
     if (k == 0x314) {
-        func_00218038(p->aa, g);
+        SetSpriteDefaultTime(p->aa, g);
         return;
     }
     for (i = 0; i < p->c80; i++) {
@@ -1478,7 +1535,7 @@ void func_00212F80(struct S *p, int k, float g)
                     if (a->ah[m].h != -1)
                         l = m;
                 if (l >= 0)
-                    func_00218060(a, l, g, 0);
+                    SetSpriteAnimTime(a, l, g, 0);
             }
         }
     }
@@ -1511,6 +1568,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0xb0");
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Queues the DMA packet that sets up rendering before the widget sprites.
 void QueueWidgetRenderSetup(struct S *p){
     unsigned char *tag=D_002DEA28.cur;
     struct E *e;
@@ -1536,12 +1594,13 @@ void QueueWidgetRenderSetup(struct S *p){
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" int FWidgetVisible(WIDGETV *pwidget)
+// True when the widget's main animation is active and no higher-priority exclusive widget hides it.
+extern "C" int FWidgetVisible(WIDGETV *widget)
 {
-    if (pwidget->idAnimMain == -1) {
+    if (widget->mainAnimId == -1) {
         return 0;
     }
-    return FWidgetObscured(pwidget) == 0;
+    return FWidgetObscured(widget) == 0;
 }
 
 // 0x213300 RenderWidget
@@ -1562,10 +1621,10 @@ extern "C" { extern R D_002DEA28; }
 extern "C" {
 void RenderLoSelf(S *);
 int FWidgetVisible(S *);
-void func_002185D0(void *);
+void DrawSprite(void *);
 void QueueWidgetRenderSetup(S *);
-void func_00217298(S *,int,float);
-void func_002159E0(void *,void *,PARAM *,int);
+void QueueSpriteVuProgram(S *,int,float);
+void RenderSpritePayload(void *,void *,PARAM *,int);
 void ClearSl(LIST *);
 }
 static inline void Align(R *r){while((uint)r->cur&63){*(uint *)r->cur=0;r->cur+=4;}}
@@ -1585,39 +1644,40 @@ static inline void Finish(R *r,S *p){Align(r);uint c=(uint)r->cur,b=(uint)r->bas
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 } // namespace M_RenderWidget
+// Renders a widget: flushes its sprite render queue with the VU microprogram packets.
 void WIDGET::RenderSelf(){   /* key function: WIDGET's vtable comes out here (the namespace's views) */
     using namespace M_RenderWidget;
     S *p=(S *)this;
     RenderLoSelf(p);
     if(!FWidgetVisible(p))return;
-    func_002185D0(p->sprites);
+    DrawSprite(p->sprites);
     float priority=16.0f;
     Q *pending=Begin(p,&D_002DEA28);
     Q *q=p->queue.first;while(q){
         if(q->kind==1){
             PARAM param(priority);
-            func_00217298(p,1,priority-1.0f);
+            QueueSpriteVuProgram(p,1,priority-1.0f);
             pending=q;
-            func_002159E0(q->payload,q->matrix,&param,q->channel);
-            func_00217298(p,3,param.priority+1.0f);
+            RenderSpritePayload(q->payload,q->matrix,&param,q->channel);
+            QueueSpriteVuProgram(p,3,param.priority+1.0f);
         }else if(q->kind==4){
             float one=1.0f;
             PARAM param(priority);
-            func_00217298(p,2,priority-one);
-            func_002159E0(pending->payload,pending->matrix,&param,pending->channel);
+            QueueSpriteVuProgram(p,2,priority-one);
+            RenderSpritePayload(pending->payload,pending->matrix,&param,pending->channel);
             pending=0;
-            func_00217298(p,4,param.priority+one);
+            QueueSpriteVuProgram(p,4,param.priority+one);
             if(q->payload){
                 PARAM second;
                 SetOffset(second.offset,q->color0);
                 SetScale(second.scale,q,one);second.priority=priority+=1024.0f;second.mode=1;
-                func_002159E0(q->payload,q->matrix,&second,q->channel);
+                RenderSpritePayload(q->payload,q->matrix,&second,q->channel);
             }
         }else if(q->payload){
             PARAM param;
             SetOffset(param.offset,q->color0);
             SetScale(param.scale,q,1.0f);param.priority=priority;param.mode=1;
-            func_002159E0(q->payload,q->matrix,&param,q->channel);
+            RenderSpritePayload(q->payload,q->matrix,&param,q->channel);
         }
     q=q->next;priority+=1024.0f;
     }
@@ -1634,6 +1694,7 @@ struct S { char pad[0xA4]; int a; char pad2[0xC]; struct S *next; };
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// True when an exclusive widget of higher priority is shown.
 int FWidgetObscured(struct S *p)
 {
     struct S *q;
@@ -1650,27 +1711,28 @@ int FWidgetObscured(struct S *p)
 namespace M_StartWidgetMainAnim { extern "C" {
 struct VE { short d; short pad; void (*pf)(void *, int); };
 struct S { char pad[0xC]; struct VE *vt; char pad2[0x6C]; int x7c; char pad3[4]; void *x84; char pad4[0x24]; int xac; };
-void func_00217BA0(void *p);
-void func_00214300(struct S *p, int a);
+void StartSpriteAnimById(void *p);
+void SetWidgetExclusive(struct S *p, int a);
 /** @sly2-annot addr=0x213830
  * Purpose: start anim id on main sprite (+0x84), slot21(1), join exclusive list if flag, +0x7C = id
  * Info: proposed name StartWidgetMainAnim (T1); TU hud
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Starts an animation on the widget's main sprite and joins the exclusive list if the widget is exclusive.
 void StartWidgetMainAnim(struct S *p, int a)
 {
-    func_00217BA0(p->x84);
+    StartSpriteAnimById(p->x84);
     p->vt[21].pf((char *)p + p->vt[21].d, 1);
     if (p->xac)
-        func_00214300(p, 0);
+        SetWidgetExclusive(p, 0);
     p->x7c = a;
 }
 } } // namespace M_StartWidgetMainAnim
 
 // 0x213898 StopWidgetMainAnim
 namespace M_StopWidgetMainAnim {
-extern "C" void func_00218638(void *p);
+extern "C" void StopSprite(void *p);
 struct B { char pad[0xC];
   virtual void v1(); virtual void v2(); virtual void v3(int, int, int, int, int);
   virtual void v4(); virtual void v5(); virtual void v6(); virtual void v7(); virtual void v8();
@@ -1680,12 +1742,13 @@ struct B { char pad[0xC];
 };
 struct S : B {
   char pad10[0x6C]; int x7C; char pad80[4]; void *x84; int x88; char pad8C[0x20]; int xAC;
-  void F(int) __asm__("func_00214300");
+  void F(int) __asm__("SetWidgetExclusive");
   void M() __asm__("StopWidgetMainAnim");
 };
+// StopWidgetMainAnim: stops the widget's main sprite and leaves the exclusive list.
 void S::M()
 {
-    func_00218638(x84);
+    StopSprite(x84);
     if (xAC)
         F(-1);
     v21(0);
@@ -1701,13 +1764,14 @@ struct E { char pad[0x14]; int id; };
 struct C { char pad[8]; short h8; char pada[0xE]; };
 struct A { unsigned short c; unsigned short c2; struct E *ae; struct C *ac; char padc[0x14]; int x20; char pad24[0xC]; };
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void func_00213F70(struct S *p, int j, int l, int y, int z);
+void RestartNestedSprite(struct S *p, int j, int l, int y, int z);
 /** @sly2-annot addr=0x213928
  * Purpose: reset the sprite holding anim id back to its rest anim
  * Info: proposed name StopWidgetAnim (T1); TU hud
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Returns the sprite that plays an animation id to its rest animation.
 void StopWidgetAnim(struct S *p, int k)
 {
     int j, l, m;
@@ -1722,7 +1786,7 @@ void StopWidgetAnim(struct S *p, int k)
                         f = 1;
                 }
                 if (f)
-                    func_00213F70(p, j, 0, 0, 0);
+                    RestartNestedSprite(p, j, 0, 0, 0);
                 else
                     a->x20 = -1;
                 return;
@@ -1732,12 +1796,12 @@ void StopWidgetAnim(struct S *p, int k)
 }
 } } // namespace M_StopWidgetAnim
 
-// 0x213A08 func_00213A08
+// 0x213A08 PlayWidgetAnimsWithArg
 namespace M_func_00213A08 { extern "C" {
 struct E { char pad[0x14]; int id; };
 struct A { unsigned short c; short pad; struct E *ae; char pad8[0x28]; };
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void func_00214100(struct S *p, int j, int l, int x, int y, int z);
+void RestartNestedSpriteWithArg(struct S *p, int j, int l, int x, int y, int z);
 /** @sly2-annot addr=0x213A08
  * Purpose: start every sprite holding anim id with argument x
  * Info: proposed name PlayWidgetAnimsArg (T2); TU hud
@@ -1745,7 +1809,8 @@ void func_00214100(struct S *p, int j, int l, int x, int y, int z);
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00213A08(struct S *p, int k, int x)
+// Starts every sprite that has the animation id, with an argument. (inferred)
+void PlayWidgetAnimsWithArg(struct S *p, int k, int x)
 {
     int j, l;
     for (j = 0; j < p->c80; j++) {
@@ -1753,7 +1818,7 @@ void func_00213A08(struct S *p, int k, int x)
         for (l = 0; l < a->c; l++) {
             struct E *e = &a->ae[l];
             if (k == e->id)
-                func_00214100(p, j, 0, x, 0, 0);
+                RestartNestedSpriteWithArg(p, j, 0, x, 0, 0);
         }
     }
 }
@@ -1765,7 +1830,7 @@ struct E { char pad[0x14]; int id; };
 struct C { char pad[8]; short h8; char pada[0xE]; };
 struct A { unsigned short c; unsigned short c2; struct E *ae; struct C *ac; char padc[0x14]; int x20; char pad24[0xC]; };
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void func_00213F70(struct S *p, int j, int l, int y, int z);
+void RestartNestedSprite(struct S *p, int j, int l, int y, int z);
 /** @sly2-annot addr=0x213B00
  * Purpose: find sprite owning anim id and start it (restart in place if instanced)
  * Info: proposed name PlayWidgetAnim (T1); TU hud
@@ -1773,6 +1838,7 @@ void func_00213F70(struct S *p, int j, int l, int y, int z);
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Starts the animation id on the sprite that owns it (restarting in place if it is instanced).
 void PlayWidgetAnim(struct S *p, int k)
 {
     int j, l, m;
@@ -1789,7 +1855,7 @@ void PlayWidgetAnim(struct S *p, int k)
                         f = 1;
                 }
                 if (f)
-                    func_00213F70(p, j, l, 0, 0);
+                    RestartNestedSprite(p, j, l, 0, 0);
                 else
                     a->x20 = l;
                 return;
@@ -1799,12 +1865,12 @@ void PlayWidgetAnim(struct S *p, int k)
 }
 } } // namespace M_PlayWidgetAnim
 
-// 0x213BD8 func_00213BD8
+// 0x213BD8 PlayWidgetAnimWithArg
 namespace M_func_00213BD8 { extern "C" {
 struct E { char pad[0x14]; int id; };
 struct A { unsigned short c; short pad; struct E *ae; char pad8[0x28]; };
 struct S { char pad[0x80]; unsigned short c80; short pad82; struct A *aa; };
-void func_00214100(struct S *p, int j, int l, int x, int y, int z);
+void RestartNestedSpriteWithArg(struct S *p, int j, int l, int x, int y, int z);
 /** @sly2-annot addr=0x213BD8
  * Purpose: start first anim id match with argument x
  * Info: proposed name PlayWidgetAnimArg (T2); TU hud
@@ -1812,7 +1878,8 @@ void func_00214100(struct S *p, int j, int l, int x, int y, int z);
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00213BD8(struct S *p, int k, int x)
+// Starts the first sprite that has the animation id, with an argument. (inferred)
+void PlayWidgetAnimWithArg(struct S *p, int k, int x)
 {
     int j, l;
     for (j = 0; j < p->c80; j++) {
@@ -1820,7 +1887,7 @@ void func_00213BD8(struct S *p, int k, int x)
         for (l = 0; l < a->c; l++) {
             struct E *e = &a->ae[l];
             if (k == e->id) {
-                func_00214100(p, j, l, x, 0, 0);
+                RestartNestedSpriteWithArg(p, j, l, x, 0, 0);
                 return;
             }
         }
@@ -1842,6 +1909,7 @@ struct S { char pad[0xC4]; struct A *pa; char pad2[0x30]; struct M *pm; };
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Sets the widget's 2D transform override.
 void SetWidgetXf(struct S *p, struct M *src)
 {
     if (!p->pm) {
@@ -1865,6 +1933,7 @@ struct S { char pad[0x80]; unsigned short c80; short pad82; A *aa; char pad88[0x
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Sets the 2D transform of the sprite that plays an animation id.
 extern "C" void SetWidgetAnimXf(S *p, int k, M *pm)
 {
     int j, l;
@@ -1893,6 +1962,7 @@ void PlayWidgetAnim(void *p, int k);
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Stops the animation in *pk, plays the new one and stores its id.
 void SwitchWidgetAnim(void *p, int k, int *pk)
 {
     if (k == *pk)
@@ -1905,7 +1975,7 @@ void SwitchWidgetAnim(void *p, int k, int *pk)
 }
 } } // namespace M_SwitchWidgetAnim
 
-// 0x213E20 func_00213E20
+// 0x213E20 FindSpriteItemPose
 namespace M_func_00213E20 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned char r, g, b, a; };
@@ -1922,7 +1992,8 @@ struct S { char pad[0x84]; struct A *aa; };
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-int func_00213E20(struct S *p, int k, struct QQ *pq, struct RGBA *pc0, struct RGBA *pc1, int c, struct Y *ay)
+// Recursively finds nested sprite k and returns its 2D transform and colours. (inferred)
+int FindSpriteItemPose(struct S *p, int k, struct QQ *pq, struct RGBA *pc0, struct RGBA *pc1, int c, struct Y *ay)
 {
     int i;
     struct Y *y;
@@ -1943,14 +2014,14 @@ int func_00213E20(struct S *p, int k, struct QQ *pq, struct RGBA *pc0, struct RG
             *pc1 = y->c1;
             return 1;
         }
-        if (func_00213E20(p, k, pq, pc0, pc1, p->aa[z->id].ah[y->x58].c, p->aa[z->id].ah[y->x58].ay))
+        if (FindSpriteItemPose(p, k, pq, pc0, pc1, p->aa[z->id].ah[y->x58].c, p->aa[z->id].ah[y->x58].ay))
             return 1;
     }
     return 0;
 }
 } } // namespace M_func_00213E20
 
-// 0x213F70 func_00213F70
+// 0x213F70 RestartNestedSprite
 namespace M_func_00213F70 {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
@@ -1960,10 +2031,10 @@ struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int x58;
 struct H { int c; Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; A *aa; };
-extern "C" void func_00218660(A *pa, int i);
+extern "C" void StopSpriteSlot(A *pa, int i);
 extern "C" void ClearSle(int *p);
 extern "C" int IFreeSpriteSlot(A *pa);
-extern "C" void func_00217D98(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 /** @sly2-annot addr=0x213F70
  * Purpose: recursively find nested-sprite item k and restart it at anim z
  * Info: proposed name RestartNestedSprite (T2); TU hud
@@ -1971,7 +2042,8 @@ extern "C" void func_00217D98(A *pa, int i, int z, void *q, float f, const RGBA 
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" int func_00213F70(S *p, int k, int z, int c, Y *ay)
+// Recursively finds nested sprite item k and restarts it on animation z. (inferred)
+extern "C" int RestartNestedSprite(S *p, int k, int z, int c, Y *ay)
 {
     int i;
     Y *y;
@@ -1988,15 +2060,15 @@ extern "C" int func_00213F70(S *p, int k, int z, int c, Y *ay)
             continue;
         int oldframe=y->x58;
         if (pz->id == k) {
-            func_00218660(&p->aa[k], oldframe);
+            StopSpriteSlot(&p->aa[k], oldframe);
             ClearSle(&y->x68);
             y->x58 = IFreeSpriteSlot(&p->aa[k]);
-            func_00217D98(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+            StartSpriteAnimAt(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
             H *h = (H *)(oldframe * sizeof(H) + (int)p->aa[pz->id].ah);
-            if (func_00213F70(p, k, z, h->c, h->ay))
+            if (RestartNestedSprite(p, k, z, h->c, h->ay))
                 return 1;
         }
     }
@@ -2004,7 +2076,7 @@ extern "C" int func_00213F70(S *p, int k, int z, int c, Y *ay)
 }
 } // namespace M_func_00213F70
 
-// 0x214100 func_00214100
+// 0x214100 RestartNestedSpriteWithArg
 namespace M_func_00214100 {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
@@ -2014,10 +2086,10 @@ struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int x58;
 struct H { int c; Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; A *aa; };
-extern "C" void func_00218660(A *pa, int i);
+extern "C" void StopSpriteSlot(A *pa, int i);
 extern "C" void ClearSle(int *p);
 extern "C" int IFreeSpriteSlot(A *pa);
-extern "C" void func_00217D98(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void StartSpriteAnimAt(A *pa, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 /** @sly2-annot addr=0x214100
  * Purpose: as RestartNestedSprite with extra argument
  * Info: proposed name RestartNestedSpriteArg (T2); TU hud
@@ -2025,7 +2097,8 @@ extern "C" void func_00217D98(A *pa, int i, int z, void *q, float f, const RGBA 
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" int func_00214100(S *p, int k, int z, int x, int c, Y *ay)
+// RestartNestedSprite with an extra argument. (inferred)
+extern "C" int RestartNestedSpriteWithArg(S *p, int k, int z, int x, int c, Y *ay)
 {
     int i;
     Y *y;
@@ -2043,15 +2116,15 @@ extern "C" int func_00214100(S *p, int k, int z, int x, int c, Y *ay)
         int oldframe=y->x58;
         if (pz->id == k) {
             if(x != y->x64) continue;
-            func_00218660(&p->aa[k], oldframe);
+            StopSpriteSlot(&p->aa[k], oldframe);
             ClearSle(&y->x68);
             y->x58 = IFreeSpriteSlot(&p->aa[k]);
-            func_00217D98(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+            StartSpriteAnimAt(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
             H *h = (H *)(oldframe * sizeof(H) + (int)p->aa[pz->id].ah);
-            if (func_00214100(p, k, z, x, h->c, h->ay))
+            if (RestartNestedSpriteWithArg(p, k, z, x, h->c, h->ay))
                 return 1;
         }
     }
@@ -2070,6 +2143,7 @@ struct S { unsigned short c; short pad; struct E *ae; };
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// True when the sprite's animation list contains the id.
 int FSpriteHasAnim(void *pv, struct S *p, int id)
 {
     int i;
@@ -2083,7 +2157,7 @@ int FSpriteHasAnim(void *pv, struct S *p, int id)
 }
 } } // namespace M_FSpriteHasAnim
 
-// 0x214300 func_00214300
+// 0x214300 SetWidgetExclusive
 /** @sly2-annot addr=0x214300
  * Purpose: flag +0xA8; value 0 = in exclusive list g_sw.dlWidgetExclusive (suppresses lower-priority widgets)
  * Info: proposed name SetWidgetExclusive (T2); TU hud
@@ -2092,17 +2166,18 @@ int FSpriteHasAnim(void *pv, struct S *p, int id)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Sets the widget's +0xA8 flag; a widget with the flag clear is kept on the exclusive list g_sw.dlWidgetExclusive. */
-extern "C" void func_00214300(WIDGETV *pwidget, int f)
+// Sets whether the widget is exclusive (an exclusive widget hides lower-priority widgets while shown). (inferred)
+extern "C" void SetWidgetExclusive(WIDGETV *widget, int f)
 {
     int fOld;
-    fOld = pwidget->fA8;
+    fOld = widget->isNonExclusive;
     if (fOld != f) {
-        if ((fOld == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) != 0)) {
-            RemoveDlEntry(&g_sw.dlWidgetExclusive, pwidget);
+        if ((fOld == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, widget) != 0)) {
+            RemoveDlEntry(&g_sw.dlWidgetExclusive, widget);
         }
-        pwidget->fA8 = f;
-        if ((f == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, pwidget) == 0)) {
-            AppendDlEntry(&g_sw.dlWidgetExclusive, pwidget);
+        widget->isNonExclusive = f;
+        if ((f == 0) && (FFindDlEntry(&g_sw.dlWidgetExclusive, widget) == 0)) {
+            AppendDlEntry(&g_sw.dlWidgetExclusive, widget);
         }
     }
 }
@@ -2124,6 +2199,7 @@ void LoadSpriteDescriptor(struct S *p, void *a, void *b, int n, int m);
  *   docs/formats/level-objects.md#8-widget-payload-loadwidgetfrombrx-0x212298-cparse,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Loads a sprite table: the count, then each sprite descriptor.
 void LoadSpriteTable(struct S *p, void *a, void *b, int *pn, int *pm)
 {
     int i;
@@ -2184,6 +2260,7 @@ static inline void CopyXY(M23 *dst,const M3 &src){
  *   docs/formats/level-objects.md#8-widget-payload-loadwidgetfrombrx-0x212298-cparse,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Loads sprite groups, their reusable frames and animation keys.
 extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
  int i,j,k,m;
  root->groupCount=U16Read__18CBinaryInputStream(stream);
@@ -2253,7 +2330,7 @@ extern "C" void LoadSpriteGroups(OWNER *owner,BIS *stream,ROOT *root){
 } // namespace M_LoadSpriteGroups
 
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
-void p_func_002155C0() __asm__("func_002155C0");
+void p_func_002155C0() __asm__("BuildSpritePictureTexPacket");
 extern const unsigned int r_D_002A8B08[2] __asm__("D_002A8B08") = {0xFFFF0000, (unsigned int)p_func_002155C0};
 }
 // 0x2149D8 LoadSpriteDescriptor
@@ -2327,6 +2404,7 @@ static inline void CopyXY(M23 &dst,const M3 &src){
  *   docs/formats/level-objects.md#8-widget-payload-loadwidgetfrombrx-0x212298-cparse,
  *   docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Loads one sprite descriptor (geometry, polygon, shader, index, picture or nested sprite) and builds its packets.
 extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,int,SPRITE *sprites){
  STACKSCOPE outer;M3 raw;
  int id=U16Read__18CBinaryInputStream(stream);SPRITE *sprite=&sprites[id];sprite->root=root;sprite->id=id;
@@ -2452,7 +2530,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
 }
 } // namespace M_LoadSpriteDescriptor
 
-// 0x2155C0 func_002155C0
+// 0x2155C0 BuildSpritePictureTexPacket
 namespace M_func_002155C0 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
@@ -2469,14 +2547,15 @@ void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *) __asm__("Deta
 struct BUF { int a[12]; };
 struct P { char pad[0xC4]; int xC4; };
 struct Q { int x0; int x4; char pad8[8]; int x10; char pad14[8]; int x1C; int x20; };
-extern "C" void func_002155C0(P *p, Q *q);
+extern "C" void BuildSpritePictureTexPacket(P *p, Q *q);
 /** @sly2-annot addr=0x2155C0
  * Purpose: kind-7 picture callback: GIF TEX0/TEXA packet for the texture of q->x10
  * Info: proposed name BuildSpritePictureTexPacket (T2); TU hud
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002155C0(P *p, Q *q)
+// Picture-sprite callback: the GIF packet that selects its texture. (inferred)
+void BuildSpritePictureTexPacket(P *p, Q *q)
 {
     STACKSCOPE frame;
     if (q->x4 == 7) {
@@ -2511,6 +2590,7 @@ extern "C" void ClearSle(void *p);
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Sets a sprite item's defaults: neutral colours, identity transform, no ids.
 extern "C" void InitSpriteItem(S *p)
 {
     p->x44 = D_002A3A10;
@@ -2529,7 +2609,7 @@ extern "C" void InitSpriteItem(S *p)
 }
 } // namespace M_InitSpriteItem
 
-// 0x215730 func_00215730
+// 0x215730 SetSpriteItemSource
 namespace M_func_00215730 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
@@ -2540,7 +2620,7 @@ struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; L *pl; int xc; int i; void *x14; };
 struct T { char pad[0x30]; S *x30; char pad34[0x24]; int x58; };
 extern "C" int IFreeSpriteSlot(void *p);
-extern "C" void func_00217CA8(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
+extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
 extern "C" void *func_001BEED8(int);
 extern "C" void *func_001BEB28(void *);
 /** @sly2-annot addr=0x215730
@@ -2550,13 +2630,14 @@ extern "C" void *func_001BEB28(void *);
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00215730(S *p, T *t, void *q, RGBA c0, RGBA c1)
+// Binds a sprite item to its payload by kind (a nested sprite starts its main animation). (inferred)
+extern "C" void SetSpriteItemSource(S *p, T *t, void *q, RGBA c0, RGBA c1)
 {
     t->x30 = p;
     switch (p->k) {
     case 4:
         t->x58 = IFreeSpriteSlot(p->pl->pb + p->i * 0x30);
-        func_00217CA8(p->pl->pb + p->i * 0x30, 0x314, t->x58, q, c0, c1);
+        StartSpriteAnimSlot(p->pl->pb + p->i * 0x30, 0x314, t->x58, q, c0, c1);
         break;
     case 6:
         if (p->i != -1) {
@@ -2569,7 +2650,7 @@ extern "C" void func_00215730(S *p, T *t, void *q, RGBA c0, RGBA c1)
 }
 } // namespace M_func_00215730
 
-// 0x215850 func_00215850
+// 0x215850 UpdateSpriteItem
 namespace M_func_00215850 {
 // Forward a sprite frame update with its duration and colors.
 struct RGBA2 { unsigned char r, g, b, a; };
@@ -2580,7 +2661,7 @@ struct RGBA {
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; L *pl; int xc; int i; };
 struct T { char pad[0x58]; int x58; };
-extern "C" void func_002183E8(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
+extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x215850
  * Purpose: forward frame update (time, M23, colours) to nested sprite
  * Info: proposed name UpdateSpriteItem (T2); TU hud
@@ -2588,20 +2669,21 @@ extern "C" void func_002183E8(void *p, int a, void *b, float g, RGBA c0, RGBA c1
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00215850(float g, S *p, T *t, void *b, RGBA c0, RGBA c1)
+// Forwards a frame update (time, transform, colours) to a nested sprite item. (inferred)
+extern "C" void UpdateSpriteItem(float g, S *p, T *t, void *b, RGBA c0, RGBA c1)
 {
     if (p->k == 4)
-        func_002183E8(p->pl->pb + p->i * 0x30, t->x58, b, g, c0, c1);
+        UpdateSpriteSlot(p->pl->pb + p->i * 0x30, t->x58, b, g, c0, c1);
 }
 } // namespace M_func_00215850
 
-// 0x2158C0 func_002158C0
+// 0x2158C0 ReleaseSpriteItem
 namespace M_func_002158C0 { extern "C" {
 struct L { char pad[0x84]; char *pb; };
 struct Q { char pad[0x20]; void *x20; };
 struct S { int x0; int k; struct L *pl; int xc; int i; struct Q *x14; };
 struct T { char pad[0x58]; int x58; };
-void func_00218660(void *p, int a);
+void StopSpriteSlot(void *p, int a);
 void func_001BED18(void *p);
 void InitSpriteItem(struct T *t);
 /** @sly2-annot addr=0x2158C0
@@ -2610,11 +2692,12 @@ void InitSpriteItem(struct T *t);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002158C0(struct S *p, struct T *t)
+// Releases a sprite item's payload (stops a nested sprite, drops a texture reference) and resets it. (inferred)
+void ReleaseSpriteItem(struct S *p, struct T *t)
 {
     switch (p->k) {
     case 4:
-        func_00218660(p->pl->pb + p->i * 0x30, t->x58);
+        StopSpriteSlot(p->pl->pb + p->i * 0x30, t->x58);
         break;
     case 6:
         if (p->x14) {
@@ -2628,12 +2711,12 @@ void func_002158C0(struct S *p, struct T *t)
 }
 } } // namespace M_func_002158C0
 
-// 0x215960 func_00215960
+// 0x215960 QueueSpriteItem
 namespace M_func_00215960 { extern "C" {
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; struct L *pl; int xc; int i; };
 struct T { char pad[0x58]; int x58; char pad5c[5]; unsigned char b61; };
-void func_002185F8(void *p, int a, int b);
+void DrawSpriteSlot(void *p, int a, int b);
 void PrependSlEntry(void *p, struct T *t);
 /** @sly2-annot addr=0x215960
  * Purpose: draw item: nested sprite drawn recursively, other kinds prepended to draw list
@@ -2641,11 +2724,12 @@ void PrependSlEntry(void *p, struct T *t);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00215960(struct S *p, struct T *t, int b)
+// Queues a sprite item for drawing (nested sprites draw recursively). (inferred)
+void QueueSpriteItem(struct S *p, struct T *t, int b)
 {
     switch (p->k) {
     case 4:
-        func_002185F8(p->pl->pb + p->i * 0x30, t->x58, t->b61);
+        DrawSpriteSlot(p->pl->pb + p->i * 0x30, t->x58, t->b61);
         break;
     case 1:
     case 3:
@@ -2661,19 +2745,20 @@ void func_00215960(struct S *p, struct T *t, int b)
 }
 } } // namespace M_func_00215960
 
-// 0x2159E0 func_002159E0
+// 0x2159E0 RenderSpritePayload
 namespace M_func_002159E0 { extern "C" {
 struct S { int a; int k; };
 void RenderSpriteText(struct S *p, int a, int b, int c);
 void RenderSpriteGeometry(struct S *p, int a, int b, int c);
-void func_002177E0(struct S *p, int a, int b, int c);
+void RenderSpritePicture(struct S *p, int a, int b, int c);
 /** @sly2-annot addr=0x2159E0
  * Purpose: dispatch by kind: 3 text (0x216BC8), 1 geometry (0x2174C8), else picture (0x2177E0)
  * Info: proposed name RenderSpritePayload (T2); TU hud
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002159E0(struct S *p, int a, int b, int c)
+// Renders a queued sprite payload by kind: text, geometry or picture. (inferred)
+void RenderSpritePayload(struct S *p, int a, int b, int c)
 {
     switch (p->k) {
     case 3:
@@ -2684,7 +2769,7 @@ void func_002159E0(struct S *p, int a, int b, int c)
         break;
     case 6:
     case 7:
-        func_002177E0(p, a, b, c);
+        RenderSpritePicture(p, a, b, c);
         break;
     case 2:
     case 4:
@@ -2706,6 +2791,7 @@ struct CFontBrx { char pad[0x20]; int c; unsigned int *ach; };
  *   symbol_addrs.txt
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Glyph index of a character in a font (0 when the font has no glyph for it, inferred).
 int IglyffFromCh__8CFontBrxc(struct CFontBrx *p, unsigned char ch)
 {
     int lo = 0;
@@ -2736,13 +2822,14 @@ extern "C" Q D_002A2E20;
 struct S { int x0; int x4; char *x8; char *xC; char *x10; int x14; RGBA x18; char pad1c[0x24]; Q q40; Q q50;
   char pad60[4]; float f64; float f68; int x6C; int x70; int x74; int x78; float f7C; float f80; float f84; float f88;
   int x8C; int x90; int x94; };
-extern "C" void func_00215CA8(S *p, int i);
+extern "C" void ResetRichText2(S *p, int i);
 /** @sly2-annot addr=0x215AC0
  * Purpose: rich-text ctor from string + font + scale (offsets 1792/1936)
  * Info: proposed name CRichText_ctor (T1); class CRichText; TU hud
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Rich-text constructor from a string, a font and a scale.
 extern "C" S *CRichText_ctor(S *p, int a, float f)
 {
     p->x0 = a;
@@ -2764,12 +2851,12 @@ extern "C" S *CRichText_ctor(S *p, int a, float f)
     p->x18 = RGBA(0x80808080);
     p->q40 = D_002A2E10;
     p->q50 = D_002A2E20;
-    func_00215CA8(p, 0);
+    ResetRichText2(p, 0);
     return p;
 }
 } // namespace M_CRichText_ctor
 
-// 0x215BA8 func_00215BA8
+// 0x215BA8 ConstructRichText2FromSprite
 namespace M_func_00215BA8 {
 struct Q { int a[4]; } __attribute__((aligned(16)));
 struct Q3 { Q a, b, c; };
@@ -2782,7 +2869,7 @@ struct R { char pad[8]; P8 *p8; char padc[0x10]; int x1C; float f20; float f24; 
 struct S { int x0; int x4; char *x8; char *xC; char *x10; int x14; int x18; char pad1c[0x24]; Q q40; Q q50;
   char pad60[4]; float f64; float f68; int x6C; int x70; float f74; float f78; float f7C; float f80; float f84; float f88;
   int x8C; int x90; int x94; };
-extern "C" void func_00215CA8(S *p, int i);
+extern "C" void ResetRichText2(S *p, int i);
 /** @sly2-annot addr=0x215BA8
  * Purpose: rich-text ctor from a sprite text element (width/height/colour)
  * Info: proposed name CRichText_ctor_215BA8 (T2); class CRichText; TU hud
@@ -2791,7 +2878,8 @@ extern "C" void func_00215CA8(S *p, int i);
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" S *func_00215BA8(S *p, int a, R *r, Q3 *pq)
+// Rich-text constructor from a sprite text element (width, height, colour). (inferred)
+extern "C" S *ConstructRichText2FromSprite(S *p, int a, R *r, Q3 *pq)
 {
     Q3 t = *pq;
     p->x0 = a;
@@ -2813,16 +2901,16 @@ extern "C" S *func_00215BA8(S *p, int a, R *r, Q3 *pq)
     p->x18 = r->x1C;
     p->q40 = t.b;
     p->q50 = t.c;
-    func_00215CA8(p, 0);
+    ResetRichText2(p, 0);
     return p;
 }
 } // namespace M_func_00215BA8
 
-// 0x215CA8 func_00215CA8
+// 0x215CA8 ResetRichText2
 namespace M_func_00215CA8 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct S { int x0; int x4; int x8; int xc; int x10; struct RGBA c1; struct RGBA c0; unsigned int x1c; };
-void func_002160D8(struct S *p);
+void UpdateRichText2Color(struct S *p);
 /** @sly2-annot addr=0x215CA8
  * Purpose: Reset the HUD rich-text cursor: optional new text, pchCur=achz, font cur=base, colour cur=base,
  *   colour word 0x80000000|alpha, UpdateColor
@@ -2836,7 +2924,8 @@ void func_002160D8(struct S *p);
  *   sources: r7c_hud+top50_round
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00215CA8(struct S *p, int a)
+// Resets the rich-text cursor: optional new text, start of text, base font and colour. (inferred)
+void ResetRichText2(struct S *p, int a)
 {
     if (a)
         p->x0 = a;
@@ -2845,15 +2934,15 @@ void func_00215CA8(struct S *p, int a)
     p->c1 = p->c0;
     p->x1c = 0x80000000;
     ((unsigned char *)&p->x1c)[3] = p->c1.a;
-    func_002160D8(p);
+    UpdateRichText2Color(p);
 }
 } } // namespace M_func_00215CA8
 
-// 0x215D00 func_00215D00
+// 0x215D00 SetRichText2BaseColor
 namespace M_func_00215D00 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct S { char pad[0x14]; struct RGBA c1; struct RGBA c0; };
-void func_002160D8(struct S *p);
+void UpdateRichText2Color(struct S *p);
 /** @sly2-annot addr=0x215D00
  * Purpose: set base and current colour
  * Info: proposed name CRichText2_SetBaseColor (T2); class CRichText; TU hud
@@ -2866,15 +2955,16 @@ void func_002160D8(struct S *p);
  *   r7c_hud+verdicts_followups+top50_round(CRichText2 class split)
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00215D00(struct S *p, struct RGBA *pc)
+// Sets the rich text's base and current colour. (inferred)
+void SetRichText2BaseColor(struct S *p, struct RGBA *pc)
 {
     p->c0 = *pc;
     p->c1 = p->c0;
-    func_002160D8(p);
+    UpdateRichText2Color(p);
 }
 } } // namespace M_func_00215D00
 
-// 0x215D40 func_00215D40
+// 0x215D40 GetRichText2NextChar
 namespace M_func_00215D40 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct S {
@@ -2882,7 +2972,7 @@ struct S {
     struct RGBA c1; struct RGBA c0; struct RGBA c2;
     char pad20[0x40]; int x60;
 };
-void func_002160D8(struct S *p);
+void UpdateRichText2Color(struct S *p);
 /** @sly2-annot addr=0x215D40
  * Purpose: next printable char, processing &-escape codes
  * Info: proposed name CRichText2_ChNext (T2); class CRichText; TU hud
@@ -2894,7 +2984,9 @@ void func_002160D8(struct S *p);
  *   class split)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-unsigned char func_00215D40(struct S *p)
+// Returns the next printable character, processing '&' escape codes (colour, font, glyph changes) on the way.
+// (inferred)
+unsigned char GetRichText2NextChar(struct S *p)
 {
     int fDone = 0;
     p->x60 = 0;
@@ -2910,13 +3002,13 @@ unsigned char func_00215D40(struct S *p)
                 p->x8 = p->xC;
                 p->c1 = p->c0;
                 p->x60 = 1;
-                func_002160D8(p);
+                UpdateRichText2Color(p);
             } else {
                 p->pch = pch + 2;
                 p->x8 = p->x10;
                 p->c1 = p->c2;
                 p->x60 = 1;
-                func_002160D8(p);
+                UpdateRichText2Color(p);
             }
         } else {
             fDone = 1;
@@ -2928,8 +3020,8 @@ unsigned char func_00215D40(struct S *p)
 
 // 0x215E30 CRichText_Cch
 namespace M_CRichText_Cch { extern "C" {
-void func_00215CA8(void *p, int a);
-int func_00215D40(void *p);
+void ResetRichText2(void *p, int a);
+int GetRichText2NextChar(void *p);
 /** @sly2-annot addr=0x215E30
  * Purpose: count characters
  * Info: proposed name CRichText_Cch (T1); class CRichText; TU hud
@@ -2937,11 +3029,12 @@ int func_00215D40(void *p);
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r7c_hud
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Number of printable characters in the rich text.
 int CRichText_Cch(void *p)
 {
     int n = 0;
-    func_00215CA8(p, 0);
-    while (func_00215D40(p))
+    ResetRichText2(p, 0);
+    while (GetRichText2NextChar(p))
         n++;
     return n;
 }
@@ -2950,18 +3043,19 @@ int CRichText_Cch(void *p)
 // 0x215E80 CRichText_Trim
 namespace M_CRichText_Trim { extern "C" {
 struct S { int a; char *pch; };
-void func_00215CA8(struct S *p, int a);
-int func_00215D40(struct S *p);
+void ResetRichText2(struct S *p, int a);
+int GetRichText2NextChar(struct S *p);
 /** @sly2-annot addr=0x215E80
  * Purpose: truncate after n chars
  * Info: proposed name CRichText_Trim (T1); class CRichText; TU hud
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Truncates the rich text after n printable characters.
 void CRichText_Trim(struct S *p, int n)
 {
-    func_00215CA8(p, 0);
-    while (func_00215D40(p) && n != 0)
+    ResetRichText2(p, 0);
+    while (GetRichText2NextChar(p) && n != 0)
         n--;
     *p->pch = 0;
 }
@@ -2970,34 +3064,35 @@ void CRichText_Trim(struct S *p, int n)
 // 0x215ED8 CRichText_Dx
 namespace M_CRichText_Dx { extern "C" {
 struct S { char pad[8]; void *x8; char pad2[0x7C]; float x88; };
-void func_00215CA8(struct S *p, int a);
-int func_00215D40(struct S *p);
-float func_00216B80(void *p, int ch);
+void ResetRichText2(struct S *p, int a);
+int GetRichText2NextChar(struct S *p);
+float GetFontGlyphWidth2(void *p, int ch);
 /** @sly2-annot addr=0x215ED8
  * Purpose: sum of glyph widths * scale
  * Info: proposed name CRichText_Dx (T1); class CRichText; TU hud
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7c_hud
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Width of the rich text (glyph widths times scale).
 float CRichText_Dx(struct S *p)
 {
     float sum = 0.0f;
     int ch;
-    func_00215CA8(p, 0);
-    while ((ch = func_00215D40(p)) != 0)
-        sum += func_00216B80(p->x8, ch) * p->x88;
+    ResetRichText2(p, 0);
+    while ((ch = GetRichText2NextChar(p)) != 0)
+        sum += GetFontGlyphWidth2(p->x8, ch) * p->x88;
     return sum;
 }
 } } // namespace M_CRichText_Dx
 
-// 0x215F40 func_00215F40
+// 0x215F40 WrapRichText2Lines
 namespace M_func_00215F40 {
 extern "C" {
 struct S { unsigned char *start; unsigned char *cur; void *font; char pad[0x74-0xC]; float width; char pad1[0x88-0x78]; float scale; };
 extern unsigned char D_002AA6A1[] __asm__("_ctype_+1");
-void func_00215CA8(struct S *,unsigned char *);
-unsigned char func_00215D40(struct S *);
-float func_00216B80(void *,unsigned char);
+void ResetRichText2(struct S *,unsigned char *);
+unsigned char GetRichText2NextChar(struct S *);
+float GetFontGlyphWidth2(void *,unsigned char);
 static inline int NewlineValue(){int value;__asm__("addiu %0,$zero,10":"=r"(value));return value;}
 static inline void StoreByte(unsigned char *p,int c){*p=c;}
 /** @sly2-annot addr=0x215F40
@@ -3011,16 +3106,17 @@ static inline void StoreByte(unsigned char *p,int c){*p=c;}
  *   class split)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-int func_00215F40(struct S *p) {
+// Counts lines, inserting line breaks where a line would exceed the box width. (inferred)
+int WrapRichText2Lines(struct S *p) {
     float width=0.0f;
     int lines=1;
     unsigned char c;
     int newline=NewlineValue();
-    func_00215CA8(p,0);
-    while ((c=func_00215D40(p))!=0) {
+    ResetRichText2(p,0);
+    while ((c=GetRichText2NextChar(p))!=0) {
         if(c=='\n') { width=0.0f; lines++; }
         else {
-            width+=func_00216B80(p->font,c)*p->scale;
+            width+=GetFontGlyphWidth2(p->font,c)*p->scale;
         }
         if(p->width!=0.0f && p->width<width) {
                 unsigned char *q=p->cur-1;
@@ -3046,7 +3142,7 @@ int func_00215F40(struct S *p) {
 }
 } // namespace M_func_00215F40
 
-// 0x2160D8 func_002160D8
+// 0x2160D8 UpdateRichText2Color
 namespace M_func_002160D8 { extern "C" {
 struct RGBA { unsigned char r, g, b, a; };
 struct S {
@@ -3068,7 +3164,8 @@ static inline float GClamp(float g, float gMin, float gMax)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002160D8(struct S *p)
+// Converts the current colour to clamped float colours for drawing. (inferred)
+void UpdateRichText2Color(struct S *p)
 {
     float k = p->aA * 0.007874016f;
     float a;
@@ -3084,12 +3181,12 @@ void func_002160D8(struct S *p)
 }
 } } // namespace M_func_002160D8
 
-// 0x2161C8 func_002161C8
+// 0x2161C8 GetRichText2MaxLineWidth
 namespace M_func_002161C8 { extern "C" {
 struct S { char pad[8]; void *x8; char padc[0x7C]; float f88; };
-void func_00215CA8(struct S *p, int i);
-int func_00215D40(struct S *p);
-float func_00216B80(void *p, int ch);
+void ResetRichText2(struct S *p, int i);
+int GetRichText2NextChar(struct S *p);
+float GetFontGlyphWidth2(void *p, int ch);
 /** @sly2-annot addr=0x2161C8
  * Purpose: widest line
  * Info: proposed name CRichText2_DxMaxLine (T2); class CRichText; TU hud
@@ -3102,18 +3199,19 @@ float func_00216B80(void *p, int ch);
  *   r7c_hud+top50_round(CRichText2 class split)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-float func_002161C8(struct S *p)
+// Width of the widest line. (inferred)
+float GetRichText2MaxLineWidth(struct S *p)
 {
     float fMax = 0.0f;
     float fCur = fMax;
     int ch;
-    func_00215CA8(p, 0);
-    while ((ch = func_00215D40(p)) != 0) {
+    ResetRichText2(p, 0);
+    while ((ch = GetRichText2NextChar(p)) != 0) {
         if (ch == 10) {
             fMax = (fMax > fCur) ? fMax : fCur;
             fCur = 0.0f;
         } else {
-            fCur += func_00216B80(p->x8, ch) * p->f88;
+            fCur += GetFontGlyphWidth2(p->x8, ch) * p->f88;
         }
     }
     fMax = (fMax > fCur) ? fMax : fCur;
@@ -3124,8 +3222,8 @@ float func_002161C8(struct S *p)
 // 0x216260 CRichText_GetExtents
 namespace M_CRichText_GetExtents { extern "C" {
 struct S { char pad[0x84]; float x84; };
-int func_00215F40(struct S *p);
-float func_002161C8(struct S *p);
+int WrapRichText2Lines(struct S *p);
+float GetRichText2MaxLineWidth(struct S *p);
 /** @sly2-annot addr=0x216260
  * Purpose: dx = DxMaxLine, dy = lines*lineheight
  * Info: proposed name CRichText_GetExtents (T1); class CRichText; TU hud
@@ -3133,10 +3231,11 @@ float func_002161C8(struct S *p);
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r7c_hud
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Width (widest line) and height (lines x line height) of the rich text.
 void CRichText_GetExtents(struct S *p, float *pa, float *pb)
 {
-    int n = func_00215F40(p);
-    float f = func_002161C8(p);
+    int n = WrapRichText2Lines(p);
+    float f = GetRichText2MaxLineWidth(p);
     float g = n * p->x84;
     if (pa)
         *pa = f;
@@ -3145,7 +3244,7 @@ void CRichText_GetExtents(struct S *p, float *pa, float *pb)
 }
 } } // namespace M_CRichText_GetExtents
 
-// 0x2162D8 func_002162D8
+// 0x2162D8 BuildRichTextMatrix
 namespace M_func_002162D8 { extern "C" {
 struct S { char pad[0x64]; float f64; float f68; };
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
@@ -3156,7 +3255,8 @@ void *func_002333B4(void *p, int c, int n) __asm__("memset");
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002162D8(struct S *p, float *m, float *v)
+// Builds a glyph matrix from a 2D transform (pixel aspect scales and the GS screen offset). (inferred)
+void BuildRichTextMatrix(struct S *p, float *m, float *v)
 {
     func_002333B4(m, 0, 0x40);
     m[0] = v[0] * 0.8f;
@@ -3170,7 +3270,7 @@ void func_002162D8(struct S *p, float *m, float *v)
 }
 } } // namespace M_func_002162D8
 
-// 0x2163B0 func_002163B0
+// 0x2163B0 DrawRichText2
 namespace M_func_002163B0 {
 // Configure rich-text rendering and queue the standard render payloads.
 typedef unsigned int uint;
@@ -3194,9 +3294,9 @@ static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)W
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
 static inline void Direct(struct R *r,int n,void *source){Align(r,3);Word(r,0x50000000|n);Bulk(r,n,source);}
 
-extern "C" void func_00215D00(struct RT *,RGBA *);
-extern "C" void func_002162D8(struct RT *,struct M4 *,struct M23 *);
-extern "C" void func_00216750(struct RT *,struct M4 *,struct DATA *);
+extern "C" void SetRichText2BaseColor(struct RT *,RGBA *);
+extern "C" void BuildRichTextMatrix(struct RT *,struct M4 *,struct M23 *);
+extern "C" void DrawRichText2Glyphs(struct RT *,struct M4 *,struct DATA *);
 extern "C" { extern qword D_002A2E10,D_002A2E20; }
 /** @sly2-annot addr=0x2163B0
  * Purpose: configure box/alignment/colour and queue rich text
@@ -3210,14 +3310,15 @@ extern "C" { extern qword D_002A2E10,D_002A2E20; }
  *   r7c_hud+top50_round(CRichText2 class split)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_002163B0(struct RT *p,struct CONFIG *config,int priority){
+// Configures box, alignment and colour and queues the rich text for drawing. (inferred)
+extern "C" void DrawRichText2(struct RT *p,struct CONFIG *config,int priority){
     RGBA color;
     unsigned char *tag;
     struct E *e;
     if(!config)return;
     p->offsetX=config->offsetX;p->offsetY=config->offsetY;p->width=config->width;p->height=config->height;
     p->hAlign=config->hAlign;p->vAlign=config->vAlign;p->priority=priority;
-    color=config->color;func_00215D00(p,&color);
+    color=config->color;SetRichText2BaseColor(p,&color);
     struct M23 matrix(M23::Zero);
     struct M4 world;
     struct DATA style;
@@ -3225,9 +3326,9 @@ extern "C" void func_002163B0(struct RT *p,struct CONFIG *config,int priority){
     matrix.a[3]=p->sy*p->fontScale;
     matrix.a[4]=p->offsetX;
     matrix.a[5]=p->offsetY+p->lineHeight*p->sy;
-    func_002162D8(p,&world,&matrix);
+    BuildRichTextMatrix(p,&world,&matrix);
     style.v10=D_002A2E10;style.v20=D_002A2E20;style.priority=16.0f;
-    func_00216750(p,&world,&style);
+    DrawRichText2Glyphs(p,&world,&style);
     tag=D_002DEA28.cur;
     *(ulong *)tag=0x10000000UL;D_002DEA28.cur+=16;
     Word(&D_002DEA28,0x11000000);
@@ -3243,7 +3344,7 @@ extern "C" void func_002163B0(struct RT *p,struct CONFIG *config,int priority){
 }
 } // namespace M_func_002163B0
 
-// 0x2166B0 func_002166B0
+// 0x2166B0 DrawRichText2AtXf
 namespace M_func_002166B0 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct { float a[6]; } __attribute__((aligned(16))) T;
@@ -3251,8 +3352,8 @@ typedef struct { float a[16]; } __attribute__((aligned(16))) O;
 struct RT {char pad[8];void *font;char padC[0x14];qword color0,color1;char pad40[0x20];int changed;float cameraX,cameraY,offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
 struct DATA {unsigned int color;int mode;float priority;unsigned int limit;qword color0,color1;};
 
-void func_002162D8(struct RT *p, O *po, T *pt);
-void func_00216750(struct RT *p, O *po, struct DATA *q);
+void BuildRichTextMatrix(struct RT *p, O *po, T *pt);
+void DrawRichText2Glyphs(struct RT *p, O *po, struct DATA *q);
 static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=value;asm("swc1 %1,%0":"=m"(p->sx):"f"(x));}
 /** @sly2-annot addr=0x2166B0
  * Purpose: draw at a sprite transform (font scale, line height)
@@ -3261,7 +3362,8 @@ static inline void StoreX(struct RT *p,float value){register float x asm("$f2")=
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002166B0(struct RT *p, T *pt, struct DATA *q)
+// Draws rich text at a sprite transform (font scale, line height). (inferred)
+void DrawRichText2AtXf(struct RT *p, T *pt, struct DATA *q)
 {
     T t = *pt;
     O o;
@@ -3270,12 +3372,12 @@ void func_002166B0(struct RT *p, T *pt, struct DATA *q)
     t.a[0] = x*g;
     t.a[3] = y*g;
     t.a[5] += shift*y;
-    func_002162D8(p, &o, &t);
-    func_00216750(p, &o, q);
+    BuildRichTextMatrix(p, &o, &t);
+    DrawRichText2Glyphs(p, &o, q);
 }
 } } // namespace M_func_002166B0
 
-// 0x216750 func_00216750
+// 0x216750 DrawRichText2Glyphs
 namespace M_func_00216750 { extern "C" {
 // Align, clip, and queue rich-text glyphs with their current colors.
 typedef unsigned int uint;
@@ -3290,11 +3392,11 @@ struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 extern float D_002C40A8,D_002C40AC,D_002C40B0,D_002C40B4;
 void *func_002333B4(void *,int,int) __asm__("memset");
-void func_00215CA8(struct RT *,char *);
-int func_00215D40(struct RT *);
-float func_00216B80(void *,int);
+void ResetRichText2(struct RT *,char *);
+int GetRichText2NextChar(struct RT *);
+float GetFontGlyphWidth2(void *,int);
 struct GLYPH *PglyffFromCh__8CFontBrxc(void *,int);
-void func_00217058(struct GLYPH *,union M4 *,struct DATA *,int);
+void BuildGlyphPacket(struct GLYPH *,union M4 *,struct DATA *,int);
 struct E *PrplAllocRpl(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
@@ -3306,7 +3408,8 @@ static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
+// Aligns, clips and queues the glyphs with their colours. (inferred)
+void DrawRichText2Glyphs(struct RT *p,union M4 *matrix,struct DATA *style){
     float widths[32];
     unsigned char *tag=D_002DEA28.cur;
     int line=0;
@@ -3314,11 +3417,11 @@ void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
     float startX=matrix->a[8];
     style->color=0;
     func_002333B4(widths,0,sizeof(widths));
-    func_00215CA8(p,0);
+    ResetRichText2(p,0);
     {int ch;
-    while((ch=func_00215D40(p))!=0){
+    while((ch=GetRichText2NextChar(p))!=0){
         if(ch=='\n')line++;
-        else widths[line]+=func_00216B80(p->font,ch)*p->fontScale;
+        else widths[line]+=GetFontGlyphWidth2(p->font,ch)*p->fontScale;
     }
     }
     if(p->vAlign){
@@ -3326,11 +3429,11 @@ void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
         if(p->vAlign==2)matrix->a[9]+=extra;
         else matrix->a[9]+=extra*0.5f;
     }
-    func_00215CA8(p,0);
+    ResetRichText2(p,0);
     {
         int flags=3,newLine=1,drawCount=0,until=2,ch;
         float *width=widths;
-        while((ch=func_00215D40(p))!=0){
+        while((ch=GetRichText2NextChar(p))!=0){
             if(p->changed){until=drawCount+3;flags|=2;}
             if(ch=='\n'){
                 matrix->a[9]+=lineHeight;newLine=1;width++;
@@ -3351,11 +3454,11 @@ void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
                     int visible=Visible(matrix,&D_002C40A8);
                     if(glyph->data && visible){
                         if(flags&2){style->color0=p->color0;style->color1=p->color1;}
-                        func_00217058(glyph,matrix,style,flags);
+                        BuildGlyphPacket(glyph,matrix,style,flags);
                         drawCount++;
                         if(drawCount>=until)flags=0;
                     }
-                    matrix->a[8]+=func_00216B80(p->font,ch)*p->fontScale*p->sx*0.8f;
+                    matrix->a[8]+=GetFontGlyphWidth2(p->font,ch)*p->fontScale*p->sx*0.8f;
                 }
             }
         }
@@ -3393,7 +3496,7 @@ struct G *PglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch)
 }
 } } // namespace M_PglyffFromCh__8CFontBrxc
 
-// 0x216B80 func_00216B80
+// 0x216B80 GetFontGlyphWidth2
 namespace M_func_00216B80 { extern "C" {
 struct S { char pad[0x1C]; float *ag; };
 int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
@@ -3405,7 +3508,8 @@ int IglyffFromCh__8CFontBrxc(struct S *p, unsigned char ch);
  * Confidence: low (draft) [T3 0.65] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-float func_00216B80(struct S *p, unsigned char ch)
+// Width of a character's glyph in the font. (inferred)
+float GetFontGlyphWidth2(struct S *p, unsigned char ch)
 {
     int i = IglyffFromCh__8CFontBrxc(p, ch);
     return i ? p->ag[i - 1] : 0.0f;
@@ -3437,16 +3541,16 @@ extern "C" { extern const float D_002C40B8; }
 extern "C" void *PchzFindSwLangstr__FP2SWi(WORLD *,int);
 extern "C" char *strcpy(char *,const char *);
 extern "C" char *strcpy1(char *,const char *);
-extern "C" RT *func_00215BA8(RT *,char *,S *,DATA *);
-extern "C" int func_00215F40(RT *);
-extern "C" void func_00227820(void *,RT *);
-extern "C" void func_00215CA8(RT *,char *);
-extern "C" int func_00215D40(RT *);
-extern "C" void func_00215D00(RT *,RGBA *);
+extern "C" RT *ConstructRichText2FromSprite(RT *,char *,S *,DATA *);
+extern "C" int WrapRichText2Lines(RT *);
+extern "C" void TrimSubtitleToVoiceProgress(void *,RT *);
+extern "C" void ResetRichText2(RT *,char *);
+extern "C" int GetRichText2NextChar(RT *);
+extern "C" void SetRichText2BaseColor(RT *,RGBA *);
 extern "C" float CRichText_Dx(RT *);
 extern "C" float GModPositive__Fff(float,float);
 extern "C" void SetNoticeState(SCROLL *,int);
-extern "C" void func_002166B0(RT *,T *,DATA *);
+extern "C" void DrawRichText2AtXf(RT *,T *,DATA *);
 static inline float Max(float a,float b){return a<b?b:a;}
 
 /** @sly2-annot addr=0x216BC8
@@ -3456,6 +3560,7 @@ static inline float Max(float a,float b){return a<b?b:a;}
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Renders a text sprite: a text-table entry or a language string, with special cases for subtitles and the ticker.
 extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
     char text[0x400];
     RT rt;
@@ -3475,11 +3580,11 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
         int lines=1,ch,visible;
         unsigned char *first;
         style=*data;
-        func_00215BA8(&rt,text,p,&style);
-        func_00215F40(&rt);
-        func_00227820(D_004435F0,&rt);
-        func_00215CA8(&rt,0);
-        while((ch=func_00215D40(&rt))!=0)if(ch=='\n')lines++;
+        ConstructRichText2FromSprite(&rt,text,p,&style);
+        WrapRichText2Lines(&rt);
+        TrimSubtitleToVoiceProgress(D_004435F0,&rt);
+        ResetRichText2(&rt,0);
+        while((ch=GetRichText2NextChar(&rt))!=0)if(ch=='\n')lines++;
         visible=(int)(p->height/p->scale);
         first=(unsigned char *)rt.text;
         while(visible<lines && *first){
@@ -3487,20 +3592,20 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
             lines--;
             if(*first)first++;
         }
-        func_00215CA8(&rt,(char *)first);
+        ResetRichText2(&rt,(char *)first);
         style.color=D_004435F4;
-        func_00215D00(&rt,&style.color);
-        func_002166B0(&rt,t,data);
+        SetRichText2BaseColor(&rt,&style.color);
+        DrawRichText2AtXf(&rt,t,data);
     }else if(p->kind==1 && p->id==0x2F1 && D_003DA0C0.state==2){
         float scale,paddingWidth,textWidth,elapsed,period,position;
         style=*data;
-        func_00215BA8(&rt,text,p,&style);
+        ConstructRichText2FromSprite(&rt,text,p,&style);
         strcpy(marquee,D_002A8B88);
-        func_00215CA8(&rt,marquee);
+        ResetRichText2(&rt,marquee);
         scale=t->a[0];
         paddingWidth=CRichText_Dx(&rt)*scale;
         strcpy1(marquee,text);
-        func_00215CA8(&rt,marquee);
+        ResetRichText2(&rt,marquee);
         textWidth=CRichText_Dx(&rt)*scale;
         strcpy1(marquee,D_002A8B88);
         strcpy1(marquee,text);
@@ -3518,17 +3623,17 @@ extern "C" void RenderSpriteText(S *p,T *t,DATA *data,int unused){
             }
             t->a[4]-=position/period*textWidth;
         }
-        func_002166B0(&rt,t,data);
+        DrawRichText2AtXf(&rt,t,data);
     }else{
         style=*data;
-        func_00215BA8(&rt,text,p,&style);
-        func_00215F40(&rt);
-        func_002166B0(&rt,t,data);
+        ConstructRichText2FromSprite(&rt,text,p,&style);
+        WrapRichText2Lines(&rt);
+        DrawRichText2AtXf(&rt,t,data);
     }
 }
 } // namespace M_RenderSpriteText
 
-// 0x217058 func_00217058
+// 0x217058 BuildGlyphPacket
 namespace M_func_00217058 { extern "C" {
 // Build a matrix/parameter DMA packet ending in the supplied call tag.
 struct R { char pad[0xC]; unsigned char *cur; };
@@ -3555,7 +3660,8 @@ static inline void Unpack(struct R *r,const int *s,int n,unsigned int header){Wo
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00217058(struct S *p,const int *matrix,struct D *data,int flags) {
+// Builds the matrix / parameter DMA packet for a glyph run, ending in a call tag. (inferred)
+void BuildGlyphPacket(struct S *p,const int *matrix,struct D *data,int flags) {
     unsigned char *tag=D_002DEA28.cur;
     *(unsigned long *)tag=0x10000000UL;
     D_002DEA28.cur+=16;
@@ -3577,7 +3683,7 @@ void func_00217058(struct S *p,const int *matrix,struct D *data,int flags) {
 }
 } } // namespace M_func_00217058
 
-// 0x217298 func_00217298
+// 0x217298 QueueSpriteVuProgram
 namespace M_func_00217298 { extern "C" {
 // Queue the selected VU microprogram pair in a DMA packet.
 typedef unsigned int uint;
@@ -3598,7 +3704,8 @@ static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00217298(struct S *p,int mode,float priority){
+// Queues the VU microprogram pair for a sprite render mode. (inferred)
+void QueueSpriteVuProgram(struct S *p,int mode,float priority){
     unsigned char *tag=D_002DEA28.cur;
     struct E *e;
     *(ulong *)tag=0x10000000UL;
@@ -3649,6 +3756,7 @@ static inline void Unpack(struct R *r,const int *s,int n,uint header){Word(r,hea
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Renders a geometry sprite with its transform and optional fade.
 void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     struct M4 m;
     unsigned char *tag;
@@ -3684,7 +3792,7 @@ void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
 }
 } } // namespace M_RenderSpriteGeometry
 
-// 0x2177E0 func_002177E0
+// 0x2177E0 RenderSpritePicture
 namespace M_func_002177E0 { extern "C" {
 // Queue transformed sprite parameters and a direct GIF payload.
 typedef unsigned int uint;
@@ -3715,7 +3823,8 @@ static inline void Direct(struct R *r,int n,void *source){AlignTo(r,3);Word(r,0x
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002177E0(struct S *p,struct T *t,struct D *data,int unused){
+// Renders a picture sprite: transformed parameters plus a direct GIF payload. (inferred)
+void RenderSpritePicture(struct S *p,struct T *t,struct D *data,int unused){
     struct M4 m;
     unsigned char *tag;
     struct E *e;
@@ -3747,11 +3856,11 @@ void func_002177E0(struct S *p,struct T *t,struct D *data,int unused){
 }
 } } // namespace M_func_002177E0
 
-// 0x217BA0 func_00217BA0
+// 0x217BA0 StartSpriteAnimById
 namespace M_func_00217BA0 { extern "C" {
 struct E { char pad[0x14]; int id; };
 struct S { unsigned short c; short pad; struct E *a; char pad8[0x20]; int x28; };
-void func_00217C20(struct S *p, int i);
+void StartSpriteAnim(struct S *p, int i);
 // 0x217B98: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("sd $zero, 0x10($4)");
 
@@ -3761,7 +3870,8 @@ SLY2_SCRAP("sd $zero, 0x10($4)");
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00217BA0(struct S *p, int k)
+// Starts the sprite animation with the given id (0x314 = the first). (inferred)
+void StartSpriteAnimById(struct S *p, int k)
 {
     int i;
     if (p->x28) {
@@ -3771,19 +3881,19 @@ void func_00217BA0(struct S *p, int k)
                 if (k == p->a[i].id) break;
             if (i >= p->c) i = 0;
         }
-        func_00217C20(p, i);
+        StartSpriteAnim(p, i);
     }
 }
 } } // namespace M_func_00217BA0
 
-// 0x217C20 func_00217C20
+// 0x217C20 StartSpriteAnim
 namespace M_func_00217C20 {
 struct T { char pad[8]; short h8; };
 struct S { char pad[8]; T *pt; char padc[0x1C]; int x28; };
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 extern "C" char D_002A3A10[];
-extern "C" void func_00218638(S *p, int i);
-extern "C" void func_00217D98(S *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
+extern "C" void StopSprite(S *p, int i);
+extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, const RGBA &c0, const RGBA &c1);
 /** @sly2-annot addr=0x217C20
  * Purpose: stop if instanced, start anim i at t=0 with default colours
  * Info: proposed name StartSpriteAnim (T2); TU hud
@@ -3791,18 +3901,19 @@ extern "C" void func_00217D98(S *p, int i, int z, void *q, float f, const RGBA &
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00217C20(S *p, int i)
+// Starts sprite animation i from time 0 with default colours (stopping it first if instanced). (inferred)
+extern "C" void StartSpriteAnim(S *p, int i)
 {
     if (p->x28) {
         if (p->pt->h8 >= 0)
-            func_00218638(p, i);
+            StopSprite(p, i);
         RGBA c0(0x7F7F7F7F), c1(0xFFFFFFFF);
-        func_00217D98(p, i, 0, D_002A3A10, 0.0f, c0, c1);
+        StartSpriteAnimAt(p, i, 0, D_002A3A10, 0.0f, c0, c1);
     }
 }
 } // namespace M_func_00217C20
 
-// 0x217CA8 func_00217CA8
+// 0x217CA8 StartSpriteAnimSlot
 namespace M_func_00217CA8 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
@@ -3811,14 +3922,15 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct E { char pad[0x14]; int id; };
 struct S { unsigned short c; short pad; E *a; char pad8[8]; unsigned long ul10; float f18; int x1C; int x20; };
-extern "C" void func_00217D98(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
+extern "C" void StartSpriteAnimAt(S *p, int i, int z, void *q, float f, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x217CA8
  * Purpose: start anim k in a reuse slot
  * Info: proposed name StartSpriteAnimSlot (T2); TU hud
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
+// Starts animation k in a reusable sprite slot. (inferred)
+extern "C" void StartSpriteAnimSlot(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
 {
     float t = 0.0f;
     int i;
@@ -3839,11 +3951,11 @@ extern "C" void func_00217CA8(S *p, int k, int z, void *q, RGBA c0, RGBA c1)
             if (p->a[i].id == k) break;
         if (i >= p->c) return;
     }
-    func_00217D98(p, i, z, q, t, c0, c1);
+    StartSpriteAnimAt(p, i, z, q, t, c0, c1);
 }
 } // namespace M_func_00217CA8
 
-// 0x217D98 func_00217D98
+// 0x217D98 StartSpriteAnimAt
 namespace M_func_00217D98 {
 // Select the initial sprite frame/time, then forward that same F12 value for drawing.
 struct RGBA2 { unsigned char r, g, b, a; };
@@ -3875,7 +3987,8 @@ extern "C" void AdvanceSpriteAnim(float,F *pf, int z, M23 *pm, RGBA c0, RGBA c1)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00217D98(S *p, int i, int z, M23 *pm, float t, RGBA c0, RGBA c1)
+// Starts a sprite animation at a given frame / time and draws it. (inferred)
+extern "C" void StartSpriteAnimAt(S *p, int i, int z, M23 *pm, float t, RGBA c0, RGBA c1)
 {
     E *e = &p->ae[z];
     M23 m;
@@ -3904,6 +4017,7 @@ struct S { short a; unsigned short c; char pad[4]; struct E *ae; };
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// First free reusable sprite slot.
 int IFreeSpriteSlot(struct S *p)
 {
     int i;
@@ -3916,16 +4030,16 @@ int IFreeSpriteSlot(struct S *p)
 }
 } } // namespace M_IFreeSpriteSlot
 
-// 0x217F38 func_00217F38
+// 0x217F38 ResetSpriteSlotItems
 namespace M_func_00217F38 { extern "C" {
 struct Y { char pad[0x30]; void *x30; char pad2[0x3C]; };
 struct F { int c; struct Y *ay; char pad[0x10]; };
 struct S { int x0; int x4; struct F *af; };
-void func_002158C0(void *p, struct Y *y);
+void ReleaseSpriteItem(void *p, struct Y *y);
 void InitSpriteItem(struct Y *y);
 static inline void UpdateAy(int n, struct Y *ay)
 {
-    int k; for (k = 0; k < n; k++) { struct Y *y = &ay[k]; if (y->x30) func_002158C0(y->x30, y); else InitSpriteItem(y); }
+    int k; for (k = 0; k < n; k++) { struct Y *y = &ay[k]; if (y->x30) ReleaseSpriteItem(y->x30, y); else InitSpriteItem(y); }
 }
 /** @sly2-annot addr=0x217F38
  * Purpose: reinit / release every item of slot i
@@ -3933,42 +4047,45 @@ static inline void UpdateAy(int n, struct Y *ay)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00217F38(struct S *p, int i)
+// Resets / releases every item of sprite slot i. (inferred)
+void ResetSpriteSlotItems(struct S *p, int i)
 {
     UpdateAy(p->af[i].c, p->af[i].ay);
 }
 } } // namespace M_func_00217F38
 
-// 0x217FB8 func_00217FB8
+// 0x217FB8 SetSpriteDefaultPhase
 namespace M_func_00217FB8 { extern "C" {
 struct S { char pad[0x28]; int f; };
-void func_00217FE0(struct S *p, int a, int b);
+void SetSpriteAnimPhase(struct S *p, int a, int b);
 /** @sly2-annot addr=0x217FB8
  * Purpose: phase seek of default anim
  * Info: proposed name SetSpriteDefaultPhase (T2); TU hud
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00217FB8(struct S *p)
+// Seeks the default animation by phase. (inferred)
+void SetSpriteDefaultPhase(struct S *p)
 {
     if (p->f)
-        func_00217FE0(p, 0, 0);
+        SetSpriteAnimPhase(p, 0, 0);
 }
 } } // namespace M_func_00217FB8
 
-// 0x217FE0 func_00217FE0
+// 0x217FE0 SetSpriteAnimPhase
 namespace M_func_00217FE0 { extern "C" {
 struct E { char pad[8]; short h; char pad2[14]; };
 struct F { char pad[8]; float f; char pad2[12]; };
 struct S { int a; struct F *af; struct E *ae; };
-void func_00218060(struct S *p, int i, int j, float f);
+void SetSpriteAnimTime(struct S *p, int i, int j, float f);
 /** @sly2-annot addr=0x217FE0
  * Purpose: clamp g to [0,1], seek anim to g*duration
  * Info: proposed name SetSpriteAnimPhase (T2); TU hud
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00217FE0(struct S *p, int i, int j, float f)
+// Seeks a sprite animation to a fraction (clamped to 0..1) of its duration. (inferred)
+void SetSpriteAnimPhase(struct S *p, int i, int j, float f)
 {
     int h;
     float c = 0.0f;
@@ -3977,28 +4094,29 @@ void func_00217FE0(struct S *p, int i, int j, float f)
     c = (c < one) ? c : one;
     h = p->ae[i].h;
     if (h >= 0)
-        func_00218060(p, i, j, p->af[h].f * c);
+        SetSpriteAnimTime(p, i, j, p->af[h].f * c);
 }
 } } // namespace M_func_00217FE0
 
-// 0x218038 func_00218038
+// 0x218038 SetSpriteDefaultTime
 namespace M_func_00218038 { extern "C" {
 struct S { char pad[0x28]; int f; };
-void func_00218060(struct S *p, int a, int b);
+void SetSpriteAnimTime(struct S *p, int a, int b);
 /** @sly2-annot addr=0x218038
  * Purpose: time seek of default anim
  * Info: proposed name SetSpriteDefaultTime (T2); TU hud
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00218038(struct S *p)
+// Seeks the default animation by time. (inferred)
+void SetSpriteDefaultTime(struct S *p)
 {
     if (p->f)
-        func_00218060(p, 0, 0);
+        SetSpriteAnimTime(p, 0, 0);
 }
 } } // namespace M_func_00218038
 
-// 0x218060 func_00218060
+// 0x218060 SetSpriteAnimTime
 namespace M_func_00218060 {
 // Refresh a reused sprite at zero time, then at its clamped requested time.
 typedef int qword __attribute__((mode(TI)));
@@ -4016,11 +4134,11 @@ struct F { char pad[8]; float f8; char padc[0xC]; };
 struct S;
 struct A { int x0; F *af; E *ae; char padc[0x18]; S *ps; char pad28[8]; };
 struct S { char pad[0x84]; A *aa; };
-extern "C" int func_00213E20(S *p, int k, QQ *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
-extern "C" void func_00217F38(A *p, int i);
+extern "C" int FindSpriteItemPose(S *p, int k, QQ *pq, RGBA *pc0, RGBA *pc1, int c, void *ay);
+extern "C" void ResetSpriteSlotItems(A *p, int i);
 // F12 is independent of the integer slots. These pointers address real
 // independent caller copies of the nontrivial by-value colors (A3/T0).
-extern "C" void func_002183E8(float g, A *p, int i, QQ *pq, const RGBA *c0, const RGBA *c1);
+extern "C" void UpdateSpriteSlot(float g, A *p, int i, QQ *pq, const RGBA *c0, const RGBA *c1);
 static inline float GMin(float a, float b) { return b < a ? b : a; }
 static inline float GMax(float a, float b) { return a < b ? b : a; }
 /** @sly2-annot addr=0x218060
@@ -4029,7 +4147,8 @@ static inline float GMax(float a, float b) { return a < b ? b : a; }
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00218060(A *p, int i, Y *py, float g)
+// Seeks a reused sprite animation to a clamped time (refreshing it at time 0 first). (inferred)
+extern "C" void SetSpriteAnimTime(A *p, int i, Y *py, float g)
 {
     QQ q;
     RGBA c0, c1;
@@ -4041,24 +4160,24 @@ extern "C" void func_00218060(A *p, int i, Y *py, float g)
         q = py->q;
         *(RGBA2 *)&c0 = py->c0;
         *(RGBA2 *)&c1 = py->c1;
-    } else if (!func_00213E20(p->ps, p - p->ps->aa, &q, &c0, &c1, 0, 0)) {
+    } else if (!FindSpriteItemPose(p->ps, p - p->ps->aa, &q, &c0, &c1, 0, 0)) {
         return;
     }
-    func_00217F38(p, i);
+    ResetSpriteSlotItems(p, i);
     p->ae[i].fC = 0.0f;
     p->ae[i].hA = 0;
     p->ae[i].x10 = 0;
     // The primary argument object is copied again for the second call.
     RGBA argument0(c0),argument1(c1);
-    func_002183E8(0.0f, p, i, &q, &argument0, &argument1);
+    UpdateSpriteSlot(0.0f, p, i, &q, &argument0, &argument1);
     p->ae[i].x10 = 0;
     argument0=c0;RGBA argument2(c1);
-    func_002183E8(g, p, i, &q, &argument0, &argument2);
+    UpdateSpriteSlot(g, p, i, &q, &argument0, &argument2);
     p->ae[i].x10 = 1;
 }
 } // namespace M_func_00218060
 
-// 0x218220 func_00218220
+// 0x218220 AdvanceWidgetSprite
 namespace M_func_00218220 {
 typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) {u=x;} } __attribute__((aligned(16)));
@@ -4070,7 +4189,7 @@ struct G;
 extern "C" G D_002DDF40;
 extern "C" qword GetLoWorldPos(void *);
 extern "C" qword ConvertCmWorldToScreen(void *,qword);
-extern "C" void func_002183E8(S *,int,M23 *,float,const RGBA &,const RGBA &);
+extern "C" void UpdateSpriteSlot(S *,int,M23 *,float,const RGBA &,const RGBA &);
 static inline float GetX(qword q) {float f; __asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float GetY(qword q) {float f; __asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline M23 Mul(const M23 &q, const M23 &n)
@@ -4091,7 +4210,8 @@ static inline M23 Mul(const M23 &q, const M23 &n)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00218220(S *p,float dt) {
+// Advances the widget's main sprite by dt; a world-anchored widget follows its object's screen position. (inferred)
+extern "C" void AdvanceWidgetSprite(S *p,float dt) {
     if(p->enabled) {
         M23 m=D_002A3A10;
         if(p->owner->follow) {
@@ -4100,12 +4220,12 @@ extern "C" void func_00218220(S *p,float dt) {
             m.a[5] = GetY(q)*-246.40001f+246.40001f;
         }
         if(p->owner->pm) m=Mul(m,*p->owner->pm);
-        func_002183E8(p,0,&m,dt,RGBA(0x7F7F7F7F),RGBA(0xFFFFFFFF));
+        UpdateSpriteSlot(p,0,&m,dt,RGBA(0x7F7F7F7F),RGBA(0xFFFFFFFF));
     }
 }
 } // namespace M_func_00218220
 
-// 0x2183E8 func_002183E8
+// 0x2183E8 UpdateSpriteSlot
 namespace M_func_002183E8 {
 struct RGBA2 { unsigned char r, g, b, a; };
 struct RGBA {
@@ -4128,7 +4248,7 @@ static inline M23 Mul(const M23 &q, const M23 &n)
     r.a[5] = m4 * n.a[1] + m5 * n.a[3] + n.a[5];
     return r;
 }
-extern "C" void func_002188B0(float,F *,int,M23 *,RGBA,RGBA);
+extern "C" void InterpolateSpriteSlot(float,F *,int,M23 *,RGBA,RGBA);
 extern "C" void AdvanceSpriteAnim(float,F *,int,M23 *,RGBA,RGBA);
 /** @sly2-annot addr=0x2183E8
  * Purpose: forward update to 0x2188B0 or 0x219FE0
@@ -4136,7 +4256,8 @@ extern "C" void AdvanceSpriteAnim(float,F *,int,M23 *,RGBA,RGBA);
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_002183E8(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
+// Forwards a sprite slot's update to the reusable or the full animation path. (inferred)
+extern "C" void UpdateSpriteSlot(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
     E *e=&p->ae[i];
     int h=e->h8;
     if(h<0)return;
@@ -4147,7 +4268,7 @@ extern "C" void func_002183E8(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
         pmUse=&m;
     } else pmUse=pm;
     if(e->x10) {
-        func_002188B0(dt,&p->af[h],i,pmUse,c0,c1);
+        InterpolateSpriteSlot(dt,&p->af[h],i,pmUse,c0,c1);
     } else {
         if(p->af[h].duration <= e->fC) {
             e->fC=0.0f;
@@ -4158,24 +4279,25 @@ extern "C" void func_002183E8(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
 }
 } // namespace M_func_002183E8
 
-// 0x2185D0 func_002185D0
+// 0x2185D0 DrawSprite
 /** @sly2-annot addr=0x2185D0
  * Purpose: draw sprite (slot 0)
  * Info: proposed name DrawSprite (T2); TU hud
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" int func_002185D0(SPRITEGRP *pgrp)
+// Draws a sprite group (slot 0). (inferred)
+extern "C" int DrawSprite(SPRITEGRP *spriteGroup)
 {
     int n;
-    n = pgrp->n28;
+    n = spriteGroup->n28;
     if (n != 0) {
-        n = func_002185F8I(pgrp, 0, 0);
+        n = func_002185F8I(spriteGroup, 0, 0);
     }
     return n;
 }
 
-// 0x2185F8 func_002185F8
+// 0x2185F8 DrawSpriteSlot
 /** @sly2-annot addr=0x2185F8
  * Purpose: draw items of a slot
  * Info: proposed name DrawSpriteSlot (T2); TU hud
@@ -4183,37 +4305,39 @@ extern "C" int func_002185D0(SPRITEGRP *pgrp)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 /* Starts entry i's linked item (index at +8 of the 0x18-byte entry; negative for none). */
-extern "C" void func_002185F8(SPRITEGRP *pgrp, int i, int n)
+// Draws the items of a sprite slot. (inferred)
+extern "C" void DrawSpriteSlot(SPRITEGRP *spriteGroup, int i, int n)
 {
-    short iItem;
-    iItem = pgrp->aentry[i].iItem;
-    if (iItem >= 0) {
-        func_0021A998(&pgrp->aitem[iItem], i, n);
+    short itemIndex;
+    itemIndex = spriteGroup->spriteEntries[i].itemIndex;
+    if (itemIndex >= 0) {
+        DrawSpriteItems(&spriteGroup->spriteItems[itemIndex], i, n);
     }
 }
 
-// 0x218638 func_00218638
+// 0x218638 StopSprite
 /** @sly2-annot addr=0x218638
  * Purpose: stop slot 0
  * Info: proposed name StopSprite (T2); TU hud
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_00218638(SPRITEGRP *pgrp)
+// Stops a sprite group (slot 0). (inferred)
+extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 {
-    if (pgrp->n28 != 0) {
-        func_00218660(pgrp, 0);
+    if (spriteGroup->n28 != 0) {
+        StopSpriteSlot(spriteGroup, 0);
     }
 }
 
-// 0x218660 func_00218660
+// 0x218660 StopSpriteSlot
 namespace M_func_00218660 { extern "C" {
 struct E { char pad[8]; short h8; short pad2; float fC; int x10; void *x14; };
 struct S { char pad[8]; struct E *ae; char padc[4]; unsigned long ul10; float f18; int x1C; int x20; };
 struct CLOCK { unsigned long ticks; };
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
-void func_00217F38(struct S *p, int i);
+void ResetSpriteSlotItems(struct S *p, int i);
 static inline void Release(void **pp)
 {
     if (pp && *pp) {
@@ -4227,7 +4351,8 @@ static inline void Release(void **pp)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00218660(struct S *p, int i)
+// Stops a sprite slot's sounds and resets its items. (inferred)
+void StopSpriteSlot(struct S *p, int i)
 {
     struct E *e = (struct E*)(i*sizeof(struct E)+(int)p->ae);
     if (e->h8 >= 0) {
@@ -4240,7 +4365,7 @@ void func_00218660(struct S *p, int i)
         e->x10 = 0;
         Release(&e->x14);
     }
-    func_00217F38(p, i);
+    ResetSpriteSlotItems(p, i);
 }
 } } // namespace M_func_00218660
 
@@ -4254,6 +4379,7 @@ struct S { char pad[8]; struct B *pb; };
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// True while the sprite animation is running.
 int FSpriteAnimActive(struct S *p)
 {
     struct B *b = p->pb;
@@ -4263,19 +4389,20 @@ int FSpriteAnimActive(struct S *p)
 }
 } } // namespace M_FSpriteAnimActive
 
-// 0x218738 func_00218738
+// 0x218738 GetSpriteMainState
 /** @sly2-annot addr=0x218738
  * Purpose: returns pt(+8)->x10
  * Info: proposed name GetSpriteMainState (T2); TU hud
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" int func_00218738(SPRITEGRP *pgrp)
+// State of the sprite group's main animation. (inferred)
+extern "C" int GetSpriteMainState(SPRITEGRP *spriteGroup)
 {
-    return pgrp->aentry->n10;
+    return spriteGroup->spriteEntries->n10;
 }
 
-// 0x218748 func_00218748
+// 0x218748 FinishSpriteSoundEvent
 namespace M_func_00218748 { extern "C" {
 struct E { char pad[0x10]; int f; void *p; };
 struct S { char pad[8]; struct E *ae; };
@@ -4289,7 +4416,8 @@ static inline struct E *EntryAt(struct E *entries,int index){register struct E *
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_00218748(struct S *p, int i)
+// Marks a sprite sound event done and stops or pauses its sound. (inferred)
+void FinishSpriteSoundEvent(struct S *p, int i)
 {
     void *q;
     p->ae[i].f = 1;
@@ -4309,6 +4437,7 @@ static inline float GMax(float a, float b) { return a < b ? b : a; }
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Combines parent and child colours (additive and multiplicative).
 void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc, unsigned char *pd,
                    unsigned char *pout0, unsigned char *pout1)
 {
@@ -4324,10 +4453,10 @@ void CombineSpriteColors(unsigned char *pa, unsigned char *pb, unsigned char *pc
 }
 } } // namespace M_CombineSpriteColors
 
-// 0x2188B0 func_002188B0
+// 0x2188B0 InterpolateSpriteSlot
 namespace M_func_002188B0 {
 // Update reusable sprite entries at their cached animation time.
-// func_00215850's float (frame duration) is its THIRD argument in the source: that order of the call's argument moves is what matches.
+// UpdateSpriteItem's float (frame duration) is its THIRD argument in the source: that order of the call's argument moves is what matches.
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 struct RGBA_RAW {uchar r,g,b,a;};
@@ -4342,7 +4471,7 @@ struct ANIM {ushort count,pad2;void *keys;float duration;void *owner;GROUP *grou
 extern "C" {
 void ClearSle(int *);
 void CombineSpriteColors(RGBA *,RGBA *,RGBA *,RGBA *,RGBA *,RGBA *);
-void func_00215850(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA);
+void UpdateSpriteItem(SPRITE *,ITEM *,float,M23 *,RGBA,RGBA);
 }
 static inline int NLerp(float t,int previous,int next){
  if(previous==next)return next;
@@ -4369,7 +4498,8 @@ static inline M23 Mul(const M23 &q,const M23 &n){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-extern "C" void func_002188B0(float duration,ANIM *animation,int index,M23 *parent,RGBA additive,RGBA multiply){
+// Updates reusable sprite entries at the cached time. (inferred)
+extern "C" void InterpolateSpriteSlot(float duration,ANIM *animation,int index,M23 *parent,RGBA additive,RGBA multiply){
  int i=0;
  REUSE *reuse=(REUSE *)(index*sizeof(REUSE)+(int)animation->group->reuse);
  int count=reuse->count;ITEM *items=reuse->items;float time=reuse->time;
@@ -4389,7 +4519,7 @@ extern "C" void func_002188B0(float duration,ANIM *animation,int index,M23 *pare
    RGBA inputMultiply(multiply),inputAdditive(additive),localMultiply(currentMultiply),localAdditive(currentAdditive);
    CombineSpriteColors(&inputMultiply,&inputAdditive,&localMultiply,&localAdditive,&outputMultiply,&outputAdditive);
   }
-  if(item->sprite)func_00215850(item->sprite,item,duration,&matrix,outputAdditive,outputMultiply);
+  if(item->sprite)UpdateSpriteItem(item->sprite,item,duration,&matrix,outputAdditive,outputMultiply);
   item->cachedTime=time;item->matrix=matrix;
   item->additive=*(RGBA_RAW *)&outputAdditive;item->multiply=*(RGBA_RAW *)&outputMultiply;
   ClearSle(&item->flags);
@@ -4397,24 +4527,25 @@ extern "C" void func_002188B0(float duration,ANIM *animation,int index,M23 *pare
 }
 } // namespace M_func_002188B0
 
-// 0x2190F8 func_002190F8
+// 0x2190F8 FinishSpriteSoundEvents
 namespace M_func_002190F8 { extern "C" {
 struct E { char pad[7]; unsigned char c; unsigned char *pb; char padc[0x14]; };
 struct S { int x0; struct E *ae; char pad8[8]; void *x10; };
-void func_00218748(void *p, int k);
+void FinishSpriteSoundEvent(void *p, int k);
 /** @sly2-annot addr=0x2190F8
  * Purpose: for action bytes ==7 call 0x218748
  * Info: proposed name FinishSpriteSoundEvents (T2); TU hud
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_002190F8(struct S *p, int i, int k)
+// Finishes every sound event (action 7) of a sprite key. (inferred)
+void FinishSpriteSoundEvents(struct S *p, int i, int k)
 {
     struct E *e = &p->ae[i];
     int j;
     for (j = 0; j < e->c; j++) {
         if (e->pb[j] == 7)
-            func_00218748(p->x10, k);
+            FinishSpriteSoundEvent(p->x10, k);
     }
 }
 } } // namespace M_func_002190F8
@@ -4453,6 +4584,7 @@ static inline E *StopEntry(E *array,int offset){register E *value asm("$2");asm(
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Runs a sprite key's actions: start / stop sounds, start / stop dialog.
 extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
     struct F *f=&p->af[fi];
     int j=0;
@@ -4489,7 +4621,7 @@ struct F { int x0; struct Y *ay; char pad[0x10]; };
 struct Q { char pad[8]; struct F *af; };
 struct E { char pad[6]; unsigned char c; char pad7[0xD]; unsigned short *pi; char pad18[8]; };
 struct S { int x0; struct E *ae; char pad8[8]; struct Q *pq; };
-void func_002158C0(void *p, struct Y *y);
+void ReleaseSpriteItem(void *p, struct Y *y);
 void InitSpriteItem(struct Y *y);
 /** @sly2-annot addr=0x219348
  * Purpose: reset items referenced by a key
@@ -4497,6 +4629,7 @@ void InitSpriteItem(struct Y *y);
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7c_hud+verdicts_followups
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Resets the items a sprite key refers to.
 void ResetSpriteKeyItems(struct S *p, int i, int j)
 {
     struct E *e = &p->ae[i];
@@ -4505,7 +4638,7 @@ void ResetSpriteKeyItems(struct S *p, int i, int j)
     for (k = 0; k < e->c; k++) {
         struct Y *y = &ay[e->pi[k]];
         if (y->x30)
-            func_002158C0(y->x30, y);
+            ReleaseSpriteItem(y->x30, y);
         else
             InitSpriteItem(y);
     }
@@ -4518,8 +4651,8 @@ namespace M_ApplySpriteKeyPoses {
 // For every pose of key `phase`: reset the item's "previous" state (colours default to additive 0x7F7F7F7F / multiply
 // 0xFFFFFFFF unless the pose has a COLORS entry), look in the following keys for the same item to find its "next"
 // pose, then interpolate matrix and colours between them at the clamped time (GLimitLm), combine with the parent
-// matrix/colours (CombineSpriteColors) and draw through func_00215850 (same sprite) or replace the sprite (func_002158C0 +
-// func_00215730). Finally the item's matrix/colours/pose bytes are saved and the link kinds are set (1 for the
+// matrix/colours (CombineSpriteColors) and draw through UpdateSpriteItem (same sprite) or replace the sprite (ReleaseSpriteItem +
+// SetSpriteItemSource). Finally the item's matrix/colours/pose bytes are saved and the link kinds are set (1 for the
 // linking pose, 4 for the item it links to).
 //
 // STAND-IN (see LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream.cpp for the same trick): the spilled gcse reaching pseudos (j+1, &item->flags, &outputAdditive
@@ -4598,12 +4731,12 @@ struct ANIM { ushort count, pad2; KEY *keys; float duration; ROOT *owner; GROUP 
 extern "C" {
 void ClearSle(int *);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
-void func_00215730(SPRITE *, ITEM *, M23 *, RGBA, RGBA);
+void SetSpriteItemSource(SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
-void func_002158C0(SPRITE *, ITEM *);
+void ReleaseSpriteItem(SPRITE *, ITEM *);
 void CombineSpriteColors(RGBA *, RGBA *, RGBA *, RGBA *, RGBA *, RGBA *);
-void UpdateMatchingSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("func_00215850");
-void UpdateCurrentSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("func_00215850");
+void UpdateMatchingSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("UpdateSpriteItem");
+void UpdateCurrentSprite(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA) __asm__("UpdateSpriteItem");
 }
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
@@ -4661,6 +4794,7 @@ float GLimitLm(LM *, float) __asm__("GLimitLm__FP2LMf");
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Applies one animation key's poses (transforms, colours) to the sprite items.
 extern "C" void ApplySpriteKeyPoses(float time, float duration, ANIM *animation, int phase, int index, M23 *parent, const RGBA *additive, const RGBA *multiply)
 {
     int fNever = 0;
@@ -4755,11 +4889,11 @@ extern "C" void ApplySpriteKeyPoses(float time, float duration, ANIM *animation,
                 if (item->sprite->id == id) {
                     UpdateMatchingSprite(duration, item->sprite, item, &matrix, outputAdditive, outputMultiply);
                 } else {
-                    func_002158C0(item->sprite, item);
-                    func_00215730(&animation->owner->sprites[id], item, &matrix, outputAdditive, outputMultiply);
+                    ReleaseSpriteItem(item->sprite, item);
+                    SetSpriteItemSource(&animation->owner->sprites[id], item, &matrix, outputAdditive, outputMultiply);
                 }
             } else {
-                func_00215730(&animation->owner->sprites[id], item, &matrix, outputAdditive, outputMultiply);
+                SetSpriteItemSource(&animation->owner->sprites[id], item, &matrix, outputAdditive, outputMultiply);
             }
         } else {
             UpdateCurrentSprite(duration, item->sprite, item, &matrix, outputAdditive, outputMultiply);
@@ -4788,7 +4922,7 @@ namespace M_AdvanceSpriteAnim {
 // Advance a sprite animation to the reuse slot's time and redraw every item whose cached
 // time changed: run the due key (events + pose setup via ApplySpriteKeyPoses), then for each item
 // either reset it (first pass) or interpolate its matrix/colours between the previous and
-// next poses, combine with the parent matrix/colours and draw it through func_00215850.
+// next poses, combine with the parent matrix/colours and draw it through UpdateSpriteItem.
 typedef unsigned char uchar;
 typedef unsigned short ushort;
 struct RGBA_RAW { uchar r, g, b, a; };
@@ -4860,12 +4994,12 @@ struct ANIM { ushort count, pad2; KEY *keys; float duration; void *owner; GROUP 
 extern "C" {
 void ClearSle(int *);
 void HandleSpriteKeyEvents(ANIM *, int, int);
-void func_002190F8(ANIM *, int, int);
+void FinishSpriteSoundEvents(ANIM *, int, int);
 void ResetSpriteKeyItems(ANIM *, int, int);
 void ApplySpriteKeyPoses(float, float, ANIM *, int, int, M23 *, const RGBA *, const RGBA *);
-void func_002158C0(SPRITE *, ITEM *);
+void ReleaseSpriteItem(SPRITE *, ITEM *);
 void CombineSpriteColors(RGBA *, RGBA *, RGBA *, RGBA *, RGBA *, RGBA *);
-void func_00215850(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA);
+void UpdateSpriteItem(float, SPRITE *, ITEM *, M23 *, RGBA, RGBA);
 }
 
 // Lerp one colour channel; the +0.999 rounds towards the far end.
@@ -4915,6 +5049,7 @@ static inline M23 Mul(const M23 &q, const M23 &n)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
+// Advances a sprite animation to the slot time and redraws the items that changed.
 extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M23 *parent, RGBA additive, RGBA multiply)
 {
     // items is read last: that read carries the reuse pointer's REG_DEAD note, which is
@@ -4932,7 +5067,7 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
         if (phase < animation->count && animation->keys[phase].time <= time) {
             processed = animation->keys[phase].time;
             HandleSpriteKeyEvents(animation, phase, index);
-            func_002190F8(animation, phase, index);
+            FinishSpriteSoundEvents(animation, phase, index);
             ResetSpriteKeyItems(animation, phase, index);
             currentAdditive = additive;
             keyMultiply = multiply;
@@ -4946,7 +5081,7 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
             ITEM *item = &items[i];
             if (item->sprite && item->cachedTime != processed) {
                 if (first)
-                    func_002158C0(item->sprite, item);
+                    ReleaseSpriteItem(item->sprite, item);
                 else {
                     if (item->interpolate && item->nextMatrix) {
                         float fraction = (processed - item->previousTime) / (item->nextTime - item->previousTime);
@@ -4963,7 +5098,7 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
                         RGBA inputMultiply(multiply), inputAdditive(additive), localMultiply(currentMultiply), localAdditive(currentAdditive);
                         CombineSpriteColors(&inputMultiply, &inputAdditive, &localMultiply, &localAdditive, &outputMultiply, &outputAdditive);
                     }
-                    func_00215850(duration, item->sprite, item, &matrix, outputAdditive, outputMultiply);
+                    UpdateSpriteItem(duration, item->sprite, item, &matrix, outputAdditive, outputMultiply);
                     item->cachedTime = processed;
                     item->matrix = matrix;
                     item->additive = outputAdditive.Raw();
@@ -4977,13 +5112,13 @@ extern "C" void AdvanceSpriteAnim(float duration, ANIM *animation, int index, M2
 }
 } // namespace M_AdvanceSpriteAnim
 
-// 0x21A998 func_0021A998
+// 0x21A998 DrawSpriteItems
 namespace M_func_0021A998 { extern "C" {
 struct Y { char pad[0x30]; void *x30; int x34; char pad2[0x38]; };
 struct F { int c; struct Y *ay; char pad[0x10]; };
 struct Q { char pad[8]; struct F *af; };
 struct S { char pad[0xC]; char *pc; struct Q *pq; };
-void func_00215960(void *p, struct Y *y, int a);
+void QueueSpriteItem(void *p, struct Y *y, int a);
 void PrependSlEntry(void *p, struct Y *y);
 static inline void Draw(struct S *p, int n, struct Y *ay, int a)
 {
@@ -4991,7 +5126,7 @@ static inline void Draw(struct S *p, int n, struct Y *ay, int a)
     for (k = n - 1; k >= 0; k--) {
         struct Y *y = &ay[k];
         if (y->x30)
-            func_00215960(y->x30, y, a);
+            QueueSpriteItem(y->x30, y, a);
         else if (y->x34 == 4)
             PrependSlEntry(p->pc + 0xFC, y);
     }
@@ -5002,7 +5137,8 @@ static inline void Draw(struct S *p, int n, struct Y *ay, int a)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-void func_0021A998(struct S *p, int i, int a)
+// Queues a sprite's items for drawing in reverse order. (inferred)
+void DrawSpriteItems(struct S *p, int i, int a)
 {
     Draw(p, p->pq->af[i].c, p->pq->af[i].ay, a);
 }
@@ -5146,6 +5282,7 @@ extern "C" { extern const STRINGGEN D_002A9230; }
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r7c_hud
  * See: docs/engine/hud-ui.md#1-widget-hud-objects-hud-tu-0x210eb0-0x21bb88-file-name-unknown
  * @end-sly2-annot */
+// The TU's static initializer (generated by g++): the HUD linear heap, a level-heap object and the 108-entry text table.
 extern "C" void StaticInit_hud(int initialize,int priority){
  if(priority==0xFFFF&&initialize){
   __11CLinearHeapiPUc(&D_003E1C70,0x60000,D_003E21A0);
@@ -5278,6 +5415,7 @@ extern "C" void StaticInit_hud(int initialize,int priority){
  * Confidence: high [T1 0.95] - evidence: static analysis; sources: tu_map(structural)+r7c_hud
  * @end-sly2-annot */
 /* _GLOBAL_$I$ stub: runs the static initializer above. */
+// The _GLOBAL_$I$ stub g++ generates for this TU: runs StaticInit_hud.
 extern "C" void func_0021BB68(void)
 {
     StaticInit_hud(1, 0xFFFF);
@@ -5327,18 +5465,18 @@ void p_func_001AD980() __asm__("FormatSaveCompletionText");
 void p_func_001ADA20() __asm__("FormatSavePageTextB");
 void p_func_001ADBB8() __asm__("FormatSaveTimeText");
 void p_func_001ADC40() __asm__("FormatSaveSlotSummaryText");
-void p_func_001DC820() __asm__("func_001DC820");
-void p_func_001DC9C0() __asm__("func_001DC9C0");
-void p_func_001DCA30() __asm__("func_001DCA30");
-void p_func_001DDE10() __asm__("func_001DDE10");
-void p_func_001DDE58() __asm__("func_001DDE58");
-void p_func_001DDF60() __asm__("func_001DDF60");
-void p_func_00210FE0() __asm__("func_00210FE0");
-void p_func_00211298() __asm__("func_00211298");
-void p_func_00211390() __asm__("func_00211390");
-void p_func_002113B8() __asm__("func_002113B8");
-void p_func_00211420() __asm__("func_00211420");
-void p_func_002155C0() __asm__("func_002155C0");
+void p_func_001DC820() __asm__("BuildThiefnetPowerupCostText");
+void p_func_001DC9C0() __asm__("BuildThiefnetLootPriceText");
+void p_func_001DCA30() __asm__("BuildThiefnetPromptText");
+void p_func_001DDE10() __asm__("BuildJobDescriptionText");
+void p_func_001DDE58() __asm__("BuildJobNameText");
+void p_func_001DDF60() __asm__("BuildTitleScreenButtonText");
+void p_func_00210FE0() __asm__("BuildBinocularReadoutText");
+void p_func_00211298() __asm__("BuildMenuCarouselText");
+void p_func_00211390() __asm__("BuildSubtitleText");
+void p_func_002113B8() __asm__("BuildSubtitleButtonText");
+void p_func_00211420() __asm__("BuildOperatedObjectText");
+void p_func_002155C0() __asm__("BuildSpritePictureTexPacket");
 extern "C" char d_D_002C3EC0[] __asm__("D_002C3EC0");
 extern "C" char d_D_003DD490[] __asm__("D_003DD490");
 extern "C" {

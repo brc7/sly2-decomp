@@ -58,7 +58,7 @@ struct ACT8 : public ACT
       qword qwGoalPos;
       qword qwGoalVel;
     ACT8() { ack = 8; }
-    void SetGoal(qword qwPos, qword qwVel) __asm__("func_0012E0F0");
+    void SetGoal(qword qwPos, qword qwVel) __asm__("SetRestActPose");
 };
 
 struct SUBGLOBX
@@ -69,7 +69,7 @@ struct SUBGLOBX
       uint grfUnk14;
 };
 
-qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("func_0022FC48");
+qword ConvertXfPos(XF *pxfFrom, XF *pxfTo, qword qwPos) __asm__("TransformXfPos");
 
 struct GRABSPOTDATA
 {
@@ -166,7 +166,7 @@ struct MRSGC
 
 void ApplyAsegCur(ASEG *paseg, ALO *paloRoot, float tLocal, float svtLocal, GRFAPL grfapl, ASEGA **ppasega);
 
-float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("func_0012F990");
+float TFindAsegLabel(ASEG *paseg, OID oidLabel) __asm__("GetAsegLabelTime");
 
 struct LOREF
 {
@@ -590,8 +590,8 @@ struct CONTEXT{ACTOR*actor;int state,variant;SOURCE*source;char pad10[8];float s
 struct CLOCK{float time,dt;};struct RANGE{float low,high;};struct TWO_ROWS{U row[2];};
 struct WORK{U temp;M3 basis;U scalar,bodyPosition,goal,delta,acceleration,velocity,endVelocity,duration;};
 extern "C"{extern SCENE D_003DD490;extern CLOCK D_002DDED0;extern ACTOR*D_002E1E40;extern U D_002A2DB0,D_002A2DC0,D_002A2DD0;extern float D_002BF780[],D_002BF7A0;extern RANGE D_002BF798;
-void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void SetBarrelState(SOURCE*,int);void func_002303A0(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
-qword func_0022FC48(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void func_001384C0(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*func_0012DE58(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
+void LinkStepAttachment(ACTOR*,void*,int);void RecalcSwOxfFilterForObject(SCENE*,void*);void SetBarrelState(SOURCE*,int);void SetXfRole(ACTOR*,BODY*,int);void SetJtHandsTarget(SECONDARY*,int);void SetJtCaneState__FP2JTi(ACTOR*,int);void SetSmaGoal(EFFECT*,int);void SetStepplayerTnOverride(ACTOR*,void*);void ReleaseAct(EVENT**);void SetSoTreeFlag2(ACTOR*,int);
+qword TransformXfPos(SPACE*,SPACE*,qword);qword ConvertXfVec(SPACE*,SPACE*,qword);void GetNormalVectors(qword,qword,qword,TWO_ROWS*);qword GetLoWorldPos(ACTOR*);void SetStepGravityRatio(ACTOR*,float);qword PlanJtLaunchVelocity(CONTEXT*,int);void SetStepTargetHeading(ACTOR*,float);void RecalculateAsegBlend(CLIP*);int FIsBasicDerivedFrom__FP5BASIC3CID(OBJECT*,int);qword GetJtPlacePosition(ACTOR*,QUERY*,float);float ComputeMaxBallisticTime(qword,qword,float,float,float,float);EVENT*NewBezierAct(ACTOR*,BODY*,int,float,qword,qword);void SetStepTargetHeadingFromVector(ACTOR*,qword);void ReleaseSma(COMPONENT*);void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(CLIP*,ACTOR*,float,float,int,ANIMATION**);}
 static inline void Notify(ACTOR*p,int slot){VTE&v=p->vt[slot];((void(*)(void*))v.fn)((char*)p+v.delta);}
 static inline void ClearXYZ(U*v){v->i[2]=0;v->i[1]=0;v->i[0]=0;}
 static inline void ClearVelocity(ACTOR*p){ClearXYZ(&p->velocity);}
@@ -737,12 +737,12 @@ extern "C" void SetJtAirState(CONTEXT*air,int newMode,SOURCE*source){WORK w;
  switch(air->mode){
  case 17:LinkStepAttachment(air->actor,air->link->target,0);air->link=0;break;
  case 7:{SOURCE*old=air->source;air->source=0;RecalcSwOxfFilterForObject(&D_003DD490,old);break;}
- case 6:{SOURCE*old=air->source;air->source=0;if(air->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)SetBarrelState(old,0);}func_002303A0(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;break;}
+ case 6:{SOURCE*old=air->source;air->source=0;if(air->actor->category!=1){RecalcSwOxfFilterForObject(&D_003DD490,old);if(old->state==1)SetBarrelState(old,0);}SetXfRole(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;break;}
  case 8:case 9:case 10:case 11:case 12:case 13:case 14:case 15:case 16:case 18:
-  func_002303A0(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;
+  SetXfRole(air->actor,air->actor->body,2);air->actor->velocity.q=D_002A2DD0.q;
   if(Less(air->mode,16)&&!Less(air->mode,14)){if(air->actor!=D_002E1E40)SetJtHandsTarget((SECONDARY*)air->actor->secondary,-1);else SetJtCaneState__FP2JTi(air->actor,-1);}break;
  case 19:case 20:if(Less(newMode,21)&&!Less(newMode,19))break;if(air->actor->effect)SetSmaGoal(air->actor->effect,0x5F8);SetStepplayerTnOverride(air->actor,0);break;
- case 21:ReleaseAct(&air->event);func_002303A0(air->actor,air->actor->body,2);SetSoTreeFlag2(air->actor,0);break;
+ case 21:ReleaseAct(&air->event);SetXfRole(air->actor,air->actor->body,2);SetSoTreeFlag2(air->actor,0);break;
  }
  register unsigned clockHigh __asm__("$3"),savedClockHigh __asm__("$21");
  __asm__("lui %0,%%hi(%1)":"=r"(clockHigh):"i"(&D_002DDED0));
@@ -750,7 +750,7 @@ extern "C" void SetJtAirState(CONTEXT*air,int newMode,SOURCE*source){WORK w;
  ANIMATION*active=air->actor->animation;CLIP*clip=0;air->mode=newMode;air->source=source;
  float entryTime,blend;__asm__("mtc1 $zero,%1\n\tlwc1 %0,%%lo(%3)(%2)":"=f"(entryTime),"=f"(blend):"r"(clockHigh),"i"(&D_002DDED0):"memory");air->time=entryTime;int flags=1;float weight=1.0f;
  switch(newMode){
- case 17:{flags=9;Notify(air->actor,91);LinkStepAttachment(air->actor,air->link->target,1);qword point=func_0022FC48(air->link->space,0,air->relative.q);
+ case 17:{flags=9;Notify(air->actor,91);LinkStepAttachment(air->actor,air->link->target,1);qword point=TransformXfPos(air->link->space,0,air->relative.q);
   register qword direction __asm__("vf1"),negative __asm__("vf2"),upArg __asm__("$5");register U*axisAddress __asm__("$4");
   float negativeScalar=-1.0f;
   __asm__("lui $3,%%hi(%6)\n\tlui %3,%%hi(%7)\n\tlqc2 %0,%4\n\tmfc1 %2,%5\n\taddiu $3,$3,%%lo(%6)\n\tqmtc2.ni %2,%1\n\taddiu %3,%3,%%lo(%7)\n\tlq %2,0($3)\n\tvmulx.xyzw %0,%0,%1x"
@@ -778,15 +778,15 @@ extern "C" void SetJtAirState(CONTEXT*air,int newMode,SOURCE*source){WORK w;
   switch(air->state){case 13:clip=air->special148;break;case 14:clip=air->special158;break;case 16:clip=air->actor->clip1514;break;case 15:clip=air->actor->clip1518;break;}
   if(!clip)clip=air->base[air->variant];if(!clip)clip=air->base[0];break;
  case 2:case 3:if(air->state==14)clip=air->special15C;if(!clip)clip=air->alternate[air->variant];if(!clip)clip=air->alternate[0];if(!clip)clip=air->base[0];air->flags28=0;break;
- case 6:func_002303A0(air->actor,air->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);SetBarrelState(source,1);ClearVelocity(air->actor);clip=air->actor->animation->clip;break;
- case 8:func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);clip=active->clip;break;
+ case 6:SetXfRole(air->actor,air->actor->body,17);RecalcSwOxfFilterForObject(&D_003DD490,source);SetBarrelState(source,1);ClearVelocity(air->actor);clip=air->actor->animation->clip;break;
+ case 8:SetXfRole(air->actor,air->actor->body,17);ClearVelocity(air->actor);clip=active->clip;break;
  case 11:case 12:case 13:case 14:case 15:
-  func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;air->variant=0;clip=air->base[0];
+  SetXfRole(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;air->variant=0;clip=air->base[0];
   if(Less(air->mode,16)&&!Less(air->mode,14)){ACTOR*actor=air->actor;if(actor==D_002E1E40){actor->primaryFocus=air->source;SetJtCaneState__FP2JTi(actor,0);}else{actor->secondaryFocus=air->source;weight=0.0f;SetJtHandsTarget((SECONDARY*)air->actor->secondary,0);clip=air->actor->secondaryClip;blend=clip->duration*0.5f;}}break;
- case 9:case 10:case 16:case 18:{func_002303A0(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;ACTOR*actor=air->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=PlanJtLaunchVelocity(air,4);((void(*)(void*,qword))v.fn)(receiver,velocity);air->variant=0;if(air->mode==16)clip=air->special14C;else clip=air->special148;active=0;break;}
+ case 9:case 10:case 16:case 18:{SetXfRole(air->actor,air->actor->body,17);ClearVelocity(air->actor);air->flags28=0;ACTOR*actor=air->actor;VTE&v=actor->vt[35];void*receiver=(char*)actor+v.delta;qword velocity=PlanJtLaunchVelocity(air,4);((void(*)(void*,qword))v.fn)(receiver,velocity);air->variant=0;if(air->mode==16)clip=air->special14C;else clip=air->special148;active=0;break;}
  case -1:if(air->focused){SetStepGravityRatio(air->actor,air->oldScale);SetStepplayerTnOverride(air->actor,0);air->focused=0;}air->fieldBC=0;air->state=-1;break;
  case 19:SetStepTargetHeading(air->actor,air->actor->heading-D_002BF780[air->variant]);air->flags28=0;clip=air->scripted;SetStepplayerTnOverride(air->actor,air->scriptFocus);air->scriptFocus->data->amount=D_002BF798.low*0.5f+D_002BF798.high*0.5f;if(air->actor->effect)SetSmaGoal(air->actor->effect,0x5F7);break;
- case 20:air->tracks[0].control.bits=0;air->tracks[1].control.bits=0;air->tracks[2].control.bits=0;air->tracks[3].control.bits=0;air->scriptedGain=1.0f;func_001384C0(air->multi);clip=air->multi;flags=9;break;
+ case 20:air->tracks[0].control.bits=0;air->tracks[1].control.bits=0;air->tracks[2].control.bits=0;air->tracks[3].control.bits=0;air->scriptedGain=1.0f;RecalculateAsegBlend(air->multi);clip=air->multi;flags=9;break;
  case 21:{register float minimum __asm__("$f21"),maximum __asm__("$f20");register qword bodyPosition __asm__("$3");register OBJECT*queryObject __asm__("$4");
   __asm__("lw $2,0(%4)\n\tlw %1,0x1D0(%4)\n\tlw %0,0x58($2)\n\tli.s %2,-1.00000000000000000000e3\n\tlq %0,0x70(%0)\n\tli.s %3,-1.00000000000000000000e0"
    :"=&r"(bodyPosition),"=r"(queryObject),"=f"(minimum),"=f"(maximum):"r"(air),"m"(air->actor),"m"(air->query.object):"$2","at","memory");
@@ -833,8 +833,8 @@ extern "C" void SetJtAirState(CONTEXT*air,int newMode,SOURCE*source){WORK w;
    :"=&f"(deadline),"=m"(w.endVelocity.q),"=r"(goalArg):"r"(savedClockHigh),"i"(&D_002DDED0),"j"(endVelocity),"m"(w.goal.q),"f"(maximum):"memory");
   register BODY*coordinateBody __asm__("$2");
   __asm__ volatile("lw $3,%2\n\tlw %0,0x58($3)\n\tsqc2 %3,%1":"=&r"(coordinateBody),"=m"(w.temp.q):"m"(air->actor),"j"(fullAfter):"$3","memory");
-  qword localGoal=func_0022FC48(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,air->actor->body->frame,w.endVelocity.q);
-  air->event=func_0012DE58(air->actor,air->actor->body,5,deadline,localGoal,localEnd);SetSoTreeFlag2(air->actor,1);
+  qword localGoal=TransformXfPos(coordinateSpace,coordinateBody->frame,goalArg);qword localEnd=ConvertXfVec(0,air->actor->body->frame,w.endVelocity.q);
+  air->event=NewBezierAct(air->actor,air->actor->body,5,deadline,localGoal,localEnd);SetSoTreeFlag2(air->actor,1);
   {register ACTOR*cleared __asm__("$3");register qword directionArg __asm__("$5");
    __asm__("lw %0,%2\n\tlq %1,%3":"=&r"(cleared),"=r"(directionArg):"m"(air->actor),"m"(w.delta.q));
    ClearVelocity(cleared);SetStepTargetHeadingFromVector(air->actor,directionArg);}clip=air->base[0];break;}
@@ -1718,7 +1718,7 @@ qword GetLoWorldPos(void *);
 void MeasureJtJumpToTarget(CONTEXT *, qword, void *, qword, qword, float *, float *, qword *, qword *);
 void FindClosestPointOnLineSegment(qword, qword, qword, qword *, float *, float *);
 qword GetXfVelocity(SPACE *, SPACE *, qword);
-qword func_0022FC48(SPACE *, SPACE *, qword);
+qword TransformXfPos(SPACE *, SPACE *, qword);
 qword ConvertXfVec(SPACE *, SPACE *, qword);
 void SetJtAirState(CONTEXT *, int, void *);
 void LoadIdentityMatrix4(SPACE *, SPACE *, M4 *, float, M4 *);
@@ -1727,7 +1727,7 @@ float GetStepHeading(ACTOR *);
 float RadNormalize__Ff(float);
 void CalculateSinCos__FfPfT1(float, float *, float *);
 float GSmooth__FfffP3SMPPf(float, float, float, SMP *, float *);
-void func_001384C0(CLIP *);
+void RecalculateAsegBlend(CLIP *);
 void EvaluateShapeU(void *, float, qword *, qword *);
 void UpdateJtHands(void *);
 void SetStepTargetHeadingFromVector(ACTOR *, qword);
@@ -1935,7 +1935,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         if (srcBest || objBest) {
             BODY *body = p->actor->body;
             body->deadline = D_002DDED0.t + tBest;
-            body->goal.q = func_0022FC48(0, body->frame, posBest.q);
+            body->goal.q = TransformXfPos(0, body->frame, posBest.q);
             SPACE *frame = body->frame;
             U v;
             ACTOR *actor = p->actor;
@@ -1962,8 +1962,8 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
         SPACE *frame = GetFrame(p->source);
         M4 forecast, derivative;
         LoadIdentityMatrix4(frame, 0, &forecast, dt, &derivative);
-        qword local = func_0022FC48(0, frame, point.q);
-        body->goal.q = func_0022FC48(0, body->frame, Transform(forecast, local));
+        qword local = TransformXfPos(0, frame, point.q);
+        body->goal.q = TransformXfPos(0, body->frame, Transform(forecast, local));
         if (p->mode != 10) {
             U v;
             v.q = Transform(derivative, local);
@@ -2054,7 +2054,7 @@ extern "C" void UpdateJtActiveJump(CONTEXT *p)
             p->tracks[2].weight = 0.0f;
             p->tracks[3].weight = 0.0f;
         }
-        func_001384C0(p->multi);
+        RecalculateAsegBlend(p->multi);
         break;
     }
     case 14: case 15: {
@@ -2175,7 +2175,7 @@ struct P {
 extern qword D_002A2DB0;
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
-qword func_0022FC48(int n, int m, qword q);
+qword TransformXfPos(int n, int m, qword q);
 void GetNormalVectors(qword a, qword b, qword c, qword *pm);
 /** @sly2-annot addr=0x1991A0
  * Purpose: If air kind 0x11 (wall run) build a constraint frame against the wall (GetNormalVectors) and add
@@ -2194,7 +2194,7 @@ void AddJtWallRunXps(struct P *p)
         U s;
         qword neg, v;
         q.q = GetLoWorldPos(p->x0);
-        r.q = func_0022FC48(p->xc8->x0, 0, p->xd0);
+        r.q = TransformXfPos(p->xc8->x0, 0, p->xd0);
         qword sq;
         __asm__("qmtc2.ni %1, %0" : "=j"(sq) : "r"(-1.0f));
         s.q = sq;

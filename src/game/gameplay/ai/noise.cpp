@@ -88,7 +88,7 @@ extern VTE D_002CE2B8[] __asm__("_vt$6CID147");          /* NOISE's (CID147's) v
 void InitLo(NOISETYPE *object);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void FramePtr_Assign(NOISE *, int) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *pointer, int value);
+void AssignSidebagRef(void *pointer, int value);
 void UnsubscribeLoAll(NOISE *noise);
 int FCheckLm__FP2LMf(void *object, float z);
 NOISETYPE *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
@@ -182,7 +182,7 @@ extern "C" void ReleaseNoise(NOISE *noise)
     noise->refCount = refCount;
     if (refCount <= 0) {
         FramePtr_Assign(noise, 0);
-        func_002580A8(&noise->sidebag, 0);
+        AssignSidebagRef(&noise->sidebag, 0);
         UnsubscribeLoAll(noise);
         FreeSlotheapSlot(&g_sw.slotheapStimulus, noise);
     }

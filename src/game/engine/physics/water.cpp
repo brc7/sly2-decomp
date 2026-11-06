@@ -133,7 +133,7 @@ void InitSoPhysics(SOW *p);
 void SetSoPartsBit48(SOW *p, int a);
 qwordV ConvertAloPos(int a, SOW *p, qwordV q);
 V *VECTOR_opAssign(V *pv, qwordV q);
-void func_00230CD0(void *p, int a, M4 *pm1, M4 *pm2);
+void AccumulateXfChainVelocityStub(void *p, int a, M4 *pm1, M4 *pm2);
 qwordV DecomposeRotationMatrixToVector(M4 *pm);
 MARK *STACKSCOPE_ctor(MARK *);
 void STACKSCOPE_ctor_1AE4A0(MARK *, int) __asm__("_$_10STACKSCOPE");
@@ -141,7 +141,7 @@ void *AllocFromStack(const REQ *);
 int CanWaterInflictZap(void *, COLL *);
 int CollectSoParts(SOW *, int (*)(void *, COLL *), void *, COLL **);
 int GetSoTreeFlag2(SOW *);
-int func_00230380(int);
+int IsXfRoleVelocity(int);
 float GetWaterSubmergedFraction(SOW *, SOW *, qwordV *, qwordV *);
 N *AllocSwXa(WORLD *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SOW *, int);
@@ -149,7 +149,7 @@ int ClipEdgeToObjects(qwordV, qwordV, int, COLL **, int, LSG *);
 void *PsndStartSound(int);
 void SetSndSourceLo(void *, SOW *);
 void SetSndRange(void *, float, float);
-void func_001FB1F8(void *, float);
+void SetSndVolume(void *, float);
 void UpdateSwXaList(SOW *, N **);
 qwordV GetLoWorldPos(void *p);
 int FFloatsNear__Ffff(float a, float b, float eps);
@@ -259,7 +259,7 @@ extern "C" void CalculateWaterCurrent(SOW *water, qwordV pos, qwordV *velocityOu
         currentMatrix.r[3].f[0] = water->posCurrent.x;
         currentMatrix.r[3].f[1] = water->posCurrent.y;
         currentMatrix.r[3].f[2] = water->posCurrent.z;
-        func_00230CD0(water->motion, 0, localMatrixPtr, currentMatrixPtr);
+        AccumulateXfChainVelocityStub(water->motion, 0, localMatrixPtr, currentMatrixPtr);
         if (velocityOut) *velocityOut = currentMatrix.r[3].q;
         if (angularVelocityOut) *angularVelocityOut = DecomposeRotationMatrixToVector(currentMatrixPtr);
     }
@@ -332,7 +332,7 @@ extern "C" void UpdateWater(SOW *water){
  work.count=CollectSoParts(water,CanWaterInflictZap,0,objects);
  for(link=water->state->first;link;link=link->next){
   SOW *object=link->object;
-  if(!object->physics||object->physics->spring<1e-4f||GetSoTreeFlag2(object)||!func_00230380(object->body->kind))continue;
+  if(!object->physics||object->physics->spring<1e-4f||GetSoTreeFlag2(object)||!IsXfRoleVelocity(object->body->kind))continue;
   if(GetWaterSubmergedFraction(water,object,0,0)==0.0f)continue;
   object->flags|=0x100000000L;
   if(object->flags&0x80000000L)continue;
@@ -357,7 +357,7 @@ extern "C" void UpdateWater(SOW *water){
     void *effect=PsndStartSound(0x13);
     SetSndSourceLo(effect,object);
     SetSndRange(effect,100.0f,1000.0f);
-    func_001FB1F8(effect,fall);
+    SetSndVolume(effect,fall);
     func_002333B4(&work.event,0,sizeof(work.event));
     normal=D_002A2DC0;
     work.event.position.q=Add(work.intervals[0].first.q,work.origin.q);
@@ -673,14 +673,14 @@ extern "C" void AddSoWaterAcceleration(SOW *object,SOW *water){
   qwordV linear=Get(object,33);qwordV relative=VuSub(work.velocity.q,linear);
   float dot=func_0011E290(relative,work.normal.q,&work.phase.vectors[1].q,&work.phase.vectors[2].q);
   if(span==1.0f||0.0f<dot)factor=1.0f;else factor=span*0.5f+0.5f;
-  if(func_00230380(object->body->kind)){
+  if(IsXfRoleVelocity(object->body->kind)){
    COEF *coefficients=&work.axis.coefficients;
    GAIN2(D_002C4470,factor,friction);
    AccelSoTowardPosSpring(object,D_002A2DD0,0,AddNormal(linear,work.phase.vectors[1]),coefficients);
    GAIN2(D_002C4470,span,friction);
    AccelSoTowardPosSpring(object,D_002A2DD0,0,AddTangent(linear,work.phase.vectors[2]),coefficients);
   }
-  if(func_00230380(object->rotation->kind)){
+  if(IsXfRoleVelocity(object->rotation->kind)){
    qwordV angular=Get(object,34);
    qwordV k;
    qwordV negative=NegativeAngular(angular,-1.0f,k);

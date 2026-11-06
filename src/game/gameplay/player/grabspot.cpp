@@ -969,7 +969,7 @@ extern qword D_002A2DD0;
 extern qword D_002BE8F0;
 extern char D_003DD490[];
 void SetLoParent(struct O *p, int a, int b);
-void func_002303A0(struct O *p, struct X *px, int n);
+void SetXfRole(struct O *p, struct X *px, int n);
 void SetSoCnstrForce(struct O *p, int n);
 void SetSoCnstrTorque(struct O *p, int n);
 void SetSoPartsBit48(struct O *p, int n);
@@ -978,7 +978,7 @@ void *GetLoWorldMatrix(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
 qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
-qword func_0022FC48(void *pv, void *pvA0, qword v);
+qword TransformXfPos(void *pv, void *pvA0, qword v);
 void SetBarrelState(struct O *p, int n);
 }
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
@@ -1002,9 +1002,9 @@ void SetBarrelState(struct O *barrel, int n)
     if (barrel->carryState == 2) {
         if (barrel->isFree != 0) {
             SetLoParent(barrel, 0, 0xF);
-            func_002303A0(barrel, barrel->partA, 1);
+            SetXfRole(barrel, barrel->partA, 1);
             barrel->partA->partFlags = 0;
-            func_002303A0(barrel, barrel->partB, 1);
+            SetXfRole(barrel, barrel->partB, 1);
             barrel->partB->partFlags = 0;
             { struct VTE *e = &barrel->vtable[35]; ((void (*)(void *, qword))e->pfn)((char *)barrel + e->d, D_002A2DD0); }
             SetSoCnstrForce(barrel, 0);
@@ -1030,7 +1030,7 @@ void SetBarrelState(struct O *barrel, int n)
             m = ConvertXfMat(0, barrel->partB->pA0, &m);
 
             q = DecomposeRotationMatrixToEuler(&m);
-            func_002303A0(barrel, barrel->partB, 7);
+            SetXfRole(barrel, barrel->partB, 7);
             {
 
                 struct XV *pv = (struct XV *)&barrel->partB->vC0;
@@ -1041,8 +1041,8 @@ void SetBarrelState(struct O *barrel, int n)
             barrel->partB->partFlags = n;
 
             {
-            qword q2 = func_0022FC48(0, barrel->partA->pA0, VAdd(ps->v70, D_002BE8F0));
-            func_002303A0(barrel, barrel->partA, 7);
+            qword q2 = TransformXfPos(0, barrel->partA->pA0, VAdd(ps->v70, D_002BE8F0));
+            SetXfRole(barrel, barrel->partA, 7);
             barrel->partA->vC0 = q2;
             }
 

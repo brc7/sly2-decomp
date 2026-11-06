@@ -72,7 +72,7 @@ extern VECTOR D_002A2DD0;
 extern CLOCK D_002DDED0;
 extern JT *D_002E1E40, *D_002DD5BC, *D_002F7900;
 extern "C" {
-qword func_0022FC48(void *a, void *b, qword q);
+qword TransformXfPos(void *a, void *b, qword q);
 void LoadIdentityMatrix4(void *o, float g, int n, M4 *pm, int m);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void ReturnJtToSafePlace(JT *, PLACE *);
@@ -152,7 +152,7 @@ extern "C" qword GetJtPlacePosition(JT *jt, PLACE *q, float g)
         PLACESO *s = q->shape;
         ((void (*)(void *, JT *, U *, int, float))s->vt[3].function)((char *)s + s->vt[3].delta, jt, &t, 0, q->v.f[0]);
         o = ((void *(*)(void *, int))q->lo->vt[32].function)((char *)q->lo + q->lo->vt[32].delta, 0);
-        v = func_0022FC48(0, o, t.q);
+        v = TransformXfPos(0, o, t.q);
     } else {
         o = q->spot ? q->spot->space : 0;
         v = q->v.q;
@@ -161,7 +161,7 @@ extern "C" qword GetJtPlacePosition(JT *jt, PLACE *q, float g)
         LoadIdentityMatrix4(o, g, 0, &m, 0);
         r = VuMulMatrix4(m.r[0], m.r[1], m.r[2], m.r[3], v);
     } else {
-        r = func_0022FC48(o, 0, v);
+        r = TransformXfPos(o, 0, v);
     }
     if (!q->shape)
         r = VuSub(r, jt->pivotOffset);

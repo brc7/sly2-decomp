@@ -556,7 +556,7 @@ void func_001107B8() __asm__("func_001107B8");
 void func_00110838() __asm__("func_00110838");
 void func_001108E0() __asm__("func_001108E0");
 void func_00110998() __asm__("func_00110998");
-void func_0012EE78() __asm__("func_0012EE78");
+void EnsureCurrentAmbSound() __asm__("EnsureCurrentAmbSound");
 void GetBasicSelf() __asm__("GetBasicSelf");
 void func_0013BC60() __asm__("func_0013BC60");
 void func_0013C4D8() __asm__("func_0013C4D8");
@@ -619,7 +619,7 @@ void SetShapeChainEndObject() __asm__("SetShapeChainEndObject");
 void GetShapeChainLength() __asm__("GetShapeChainLength");
 void AddShapeChainSample() __asm__("AddShapeChainSample");
 void GetShapeChainMode() __asm__("GetShapeChainMode");
-void func_001F07E8() __asm__("func_001F07E8");
+void GetSmaCurrentState() __asm__("GetSmaCurrentState");
 void GetStepguardLootRefList() __asm__("GetStepguardLootRefList");
 void SetSoBoundsScale() __asm__("SetSoBoundsScale");
 void SetSoUnknownBits20() __asm__("SetSoUnknownBits20");
@@ -660,8 +660,8 @@ void SetXfHandleParamAE() __asm__("SetXfHandleParamAE");
 void GetXfHandleParamAC2() __asm__("GetXfHandleParamAC2");
 void SetXfHandleParamAC2() __asm__("SetXfHandleParamAC2");
 void GetXfFromHandle() __asm__("GetXfFromHandle");
-void func_001FB1F8() __asm__("func_001FB1F8");
-void func_001FE888() __asm__("func_001FE888");
+void SetSndVolume() __asm__("SetSndVolume");
+void GetDialogTime() __asm__("GetDialogTime");
 void SetStepNoBase() __asm__("SetStepNoBase");
 void ScaleStepSpinSpeed() __asm__("ScaleStepSpinSpeed");
 void SetStepGravityRatio() __asm__("SetStepGravityRatio");
@@ -831,11 +831,11 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x12, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE, EOPID_NONE}, /* [98] opt 172, CIRCLER */
     {0x12, 0x400, EOPID_FN(func_00101768), EOPID_NONE, EOPID_INT(5), EOPID_NONE}, /* [99] opt 207, CID43 */
     {0x12, 0x400, EOPID_FN(func_00101848), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [100] opt 208, CID43 */
-    {0xE, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_0012EE78)}, /* [101] opt 209, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(4), EOPID_PMF(func_0012EE78)}, /* [102] opt 210, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(8), EOPID_PMF(func_0012EE78)}, /* [103] opt 211, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0xC), EOPID_PMF(func_0012EE78)}, /* [104] opt 212, CID43 */
-    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x10), EOPID_PMF(func_0012EE78)}, /* [105] opt 213, CID43 */
+    {0xE, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMF(EnsureCurrentAmbSound)}, /* [101] opt 209, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(4), EOPID_PMF(EnsureCurrentAmbSound)}, /* [102] opt 210, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(8), EOPID_PMF(EnsureCurrentAmbSound)}, /* [103] opt 211, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0xC), EOPID_PMF(EnsureCurrentAmbSound)}, /* [104] opt 212, CID43 */
+    {1, 0x2080, EOPID_NONE, EOPID_NONE, EOPID_INT(0x10), EOPID_PMF(EnsureCurrentAmbSound)}, /* [105] opt 213, CID43 */
     {0x2086, 1, EOPID_NONE, EOPID_FN(RefThunkAsegAPPLY), EOPID_INT(4), EOPID_NONE}, /* [106] opt 214, ASEG (+1) */
     {0x12, 0x400, EOPID_FN(func_001019D0), EOPID_NONE, EOPID_INT(3), EOPID_NONE}, /* [107] opt 215, ASEG (+1) */
     {0x2086, 1, EOPID_NONE, EOPID_FN(RefThunkAsegENSURE), EOPID_INT(5), EOPID_NONE}, /* [108] opt 216, ASEG (+1) */
@@ -860,7 +860,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00101E18), EOPID_NONE, EOPID_NONE}, /* [127] opt 256, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResumeSnd), EOPID_NONE, EOPID_NONE}, /* [128] opt 257, CID151 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopSnd), EOPID_INT(1), EOPID_NONE}, /* [129] opt 258, CID151 */
-    {1, 0x22, EOPID_INT(0x10), EOPID_PMF(func_001FB1F8), EOPID_NONE, EOPID_NONE}, /* [130] opt 212, CID151 */
+    {1, 0x22, EOPID_INT(0x10), EOPID_PMF(SetSndVolume), EOPID_NONE, EOPID_NONE}, /* [130] opt 212, CID151 */
     {5, 0x22, EOPID_INT(0x14), EOPID_PMF(SetSndPan), EOPID_NONE, EOPID_NONE}, /* [131] opt 259, CID151 */
     {1, 0x22, EOPID_INT(0x18), EOPID_PMF(SetSndPitch), EOPID_NONE, EOPID_NONE}, /* [132] opt 213, CID151 */
     {0x2002, 0x22, EOPID_INT(0x1C), EOPID_PMF(SetSndSourceLo), EOPID_NONE, EOPID_NONE}, /* [133] opt 260, CID151 */
@@ -870,7 +870,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x2097, 1, EOPID_NONE, EOPID_FN(RefThunk_StartDialog), EOPID_INT(2), EOPID_NONE}, /* [137] opt 264, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_StopDialog), EOPID_NONE, EOPID_NONE}, /* [138] opt 265, CID152 */
     {0, 1, EOPID_NONE, EOPID_FN(func_00102150), EOPID_INT(1), EOPID_NONE}, /* [139] opt 266, CID152 */
-    {1, 4, EOPID_PMF(func_001FE888), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [140] opt 267, CID152 */
+    {1, 4, EOPID_PMF(GetDialogTime), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [140] opt 267, CID152 */
     {1, 1, EOPID_NONE, EOPID_FN(func_001021D0), EOPID_INT(1), EOPID_NONE}, /* [141] opt 268, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00102250), EOPID_NONE, EOPID_NONE}, /* [142] opt 269, CID152 */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_001022C8), EOPID_NONE, EOPID_NONE}, /* [143] opt 270, CID152 */
@@ -1105,7 +1105,7 @@ EOPIDROW D_002AC880[1449] = {
     {6, 0x24, EOPID_PMF(GetSmaGoal), EOPID_PMF(SetSmaGoal), EOPID_NONE, EOPID_NONE}, /* [372] opt 478, SMA */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetSmaGoalIfReachable), EOPID_INT(1), EOPID_NONE}, /* [373] opt 479, SMA */
     {1, 1, EOPID_NONE, EOPID_FN(RefThunk_DtSmaToState), EOPID_INT(1), EOPID_NONE}, /* [374] opt 480, SMA */
-    {6, 4, EOPID_PMF(func_001F07E8), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [375] opt 481, SMA */
+    {6, 4, EOPID_PMF(GetSmaCurrentState), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [375] opt 481, SMA */
     {6, 4, EOPID_PMF(GetSmaNext), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [376] opt 482, SMA */
     {1, 0x22, EOPID_INT(0x44), EOPID_PMF(SetSmaSvt), EOPID_NONE, EOPID_NONE}, /* [377] opt 483, SMA */
     {0x2086, 2, EOPID_INT(0x30), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [378] opt 182, SMA */

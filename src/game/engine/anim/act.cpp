@@ -2,9 +2,11 @@
 // pose...) and the animation curves they read (AC: constant, float, keyed and spline curves): load from BRX,
 // evaluation, attach / detach to the ALO's act list, the act pools and ReleaseAct.
 // TU 0x12B3B0..0x12E600 (72 functions, address order).
+// Entry points: PacNewKind / PacNewKind2 (curve factories, from ASEG loading), the New*Act creators (position, path,
+// IK, matrix, Bezier, offset acts), AttachAct / DetachAct / ReleaseAct, and the curve and act vtable slots.
 //
 // Types: TU-private views for the m2c bodies (ACT and two act kinds, two constant curves, the curve object of
-// func_0012E3F0), sly2/so.h's XF for the transform they drive, and the two CBinaryInputStream readers they call.
+// NewActFromParams), sly2/so.h's XF for the transform they drive, and the two CBinaryInputStream readers they call.
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does),
 // their C++-named definitions as C-linkage definitions of their literal symbols there.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_act
@@ -29,8 +31,8 @@ struct CBinaryInputStream
 struct ACTV
 {
     int n0;
-    ALO *palo;              /* +0x04 */
-    XF *pxf;                /* +0x08 */
+    ALO *object;              /* +0x04 */
+    XF *xf;                /* +0x08 */
     char padC[0x14 - 0xC];
     int n14;                /* +0x14 */
     char pad18[0x1C - 0x18];
@@ -52,7 +54,7 @@ struct ACTREST : public ACTV
 /* Constant curves: a vector or a float after one word. */
 struct ACVEC { int n0; VECTOR vec; };
 struct ACFLOAT { int n0; float g; };
-/* The curve object of func_0012E3F0: hand-made vtable at +0x18 ({delta, pfn} entries). */
+/* The curve object of NewActFromParams: hand-made vtable at +0x18 ({delta, pfn} entries). */
 struct VTEAC { short d; short pad; void (*pfn)(...); };
 struct ACOBJ { char pad0[0x18]; VTEAC *pvt; };
 
@@ -60,16 +62,16 @@ extern "C" {
 extern qword D_002A2DD0;    /* (0, 0, 0) */
 void *PvAllocSlotheapClear(SLOTHEAP *pslotheap);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* frees into the pool */
-void func_002303A0(ALO *palo, XF *pxf, int n);
-void func_0022C840(ALO *palo, XF *pxf);
-qword func_0022CA18(XF *pxf, XF *pxf2);
-int func_0012D058(ACTV *pact);
-void AddXfAct(ALO *palo, XF *pxf, ACTV *pact);
-void func_00230100(ALO *palo, XF *pxf, ACTV *pact);
-void func_0022C818(ALO *palo, XF *pxf);
-ACOBJ *func_0012E238(int n);
-void func_0012D020(ACTV *pact);
-void func_0012E210(void *pv);   /* frees an act record into its pool */
+void SetXfRole(ALO *object, XF *xf, int n);
+void WakeXfOwner(ALO *object, XF *xf);
+qword GetXfValueFromMatrix(XF *xf, XF *pxf2);
+int IsActAttached(ACTV *act);
+void AddXfAct(ALO *object, XF *xf, ACTV *act);
+void RemoveXfAct(ALO *object, XF *xf, ACTV *act);
+void ResetXfValueRef(ALO *object, XF *xf);
+ACOBJ *InitActOfKind(int n);
+void DetachAct(ACTV *act);
+void FreeAct(void *pv);   /* frees an act record into its pool */
 }
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 static inline void ZeroVector(VECTOR *pv)
@@ -97,6 +99,7 @@ extern "C" AC *PacNewKind(int k);
  * See: docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions,
  *   docs/engine/animation.md#open-questions
  * @end-sly2-annot */
+// Curve factory: creates a vector curve of kind 0..5 (constant, two keyed kinds, two per-component kinds, blended).
 AC *PacNewKind(int k)
 {
     switch (k) {
@@ -119,6 +122,7 @@ AC *PacNewKind(int k)
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* empty vtable slot */
+// Base curve loader (slot 1): nothing.
 void AC::LoadFromBrx(CBinaryInputStream *)
 {
 }
@@ -132,10 +136,11 @@ void AC::LoadFromBrx(CBinaryInputStream *)
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void AC0::LoadFromBrx(CBinaryInputStream *pbis)
+// Loads a constant vector curve: its three floats.
+void AC0::LoadFromBrx(CBinaryInputStream *stream)
 {
-    ACVEC *pac = (ACVEC *)this;
-    pbis->Read(0xC, &pac->vec);
+    ACVEC *curve = (ACVEC *)this;
+    stream->Read(0xC, &curve->vec);
 }
 
 namespace M_func_0012B520 { extern "C" {
@@ -163,7 +168,9 @@ static __inline__ void ClearVec(VECTOR *pv) { pv->x = pv->y = pv->z = 0; }
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012B520(S *s, T *t)
+// Prepares a transform slot's motion segment from a constant curve (slot 2): start and end value are the constant,
+// velocities zero, motion kind "still" (2). (inferred)
+void PrepareConstCurveSegment(S *s, T *t)
 {
     t->s = 2;
     t->g = 1.0f;
@@ -184,10 +191,11 @@ void func_0012B520(S *s, T *t)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* Evaluates a constant vector curve: the value, and a zero derivative. */
-extern "C" void func_0012B590(ACVEC *pac, VECTOR *pvec, VECTOR *pdvec)
+// Evaluates a constant vector curve (slot 3): the constant, and a zero derivative. (inferred)
+extern "C" void EvaluateConstCurve(ACVEC *curve, VECTOR *pvec, VECTOR *pdvec)
 {
     if (pvec != 0) {
-        CopyAb(pvec, &pac->vec, 0xC);
+        CopyAb(pvec, &curve->vec, 0xC);
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -199,8 +207,8 @@ typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef struct KEY { VECTOR3 pos; float t; VECTOR3 dpos; int pad; VECTOR3 dpos2; int pad2; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *pbis);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR3 *pv);
 KEY *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcVecAFromBrx
@@ -213,7 +221,8 @@ KEY *AllocClearedFromWorldHeap(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
+// Loads a keyed vector curve: the key count, then each key's time, value and in / out tangents.
+void AC1::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcVecAFromBrx;
     using M_LoadAcVecAFromBrx::AREQ;
@@ -222,9 +231,9 @@ void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcVecAFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcVecAFromBrx::AllocClearedFromWorldHeap;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     int i;
-    int c = U16Read__18CBinaryInputStream(pbis);
+    int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c * sizeof(KEY);
     req.cbAlign = 0x10;
@@ -232,10 +241,10 @@ void AC1::LoadFromBrx(CBinaryInputStream *pbisM)
     t->a = AllocClearedFromWorldHeap(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
-        pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->pos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos2);
+        pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->pos);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos2);
     }
 }
 
@@ -248,7 +257,8 @@ typedef struct T { int pad; int c; KEY *a; } T;
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-int func_0012B6D8(T *t, float g)
+// Index of the first key after time t (the key interval containing t ends there). (inferred)
+int FindVecCurveAKey(T *t, float g)
 {
     int i;
     for (i = 1; i < t->c - 1; i++) {
@@ -288,16 +298,18 @@ typedef struct OBJ {
     V3Q pos1;
     qword dpos1;
 } OBJ;
-int func_0012B6D8(T *t, float g);
+int FindVecCurveAKey(T *t, float g);
 /** @sly2-annot addr=0x12B738
  * Purpose: Evaluates the vector curve at t (inline Hermite)
  * Info: proposed name EvaluateAcVecA (T2); class AcVecA; TU act
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012B738(T *t, OBJ *po)
+// Prepares a transform slot's motion segment (slot 2) from the key interval containing the slot's time: start / end
+// values, tangents and times; marks the segment still when both ends match with zero tangents. (inferred)
+void PrepareVecCurveASegment(T *t, OBJ *po)
 {
-    int i = func_0012B6D8(t, *po->pt);
+    int i = FindVecCurveAKey(t, *po->pt);
     int f;
     po->t0 = t->a[i - 1].t;
     po->pos0.v = t->a[i - 1].pos;
@@ -317,7 +329,7 @@ typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef union V3Q { VECTOR3 v; qword q; } V3Q;
 typedef struct KEY { VECTOR3 pos; float t; qword dposIn; qword dposOut; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
-int func_0012B6D8(T *t, float g);
+int FindVecCurveAKey(T *t, float g);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n);
 /** @sly2-annot addr=0x12B9D0
  * Purpose: Evaluates via EvaluateBezierPos (value/velocity)
@@ -325,9 +337,11 @@ void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012B9D0(T *t, void *pv, void *pdv, float g, float dtScale)
+// Evaluates the keyed vector curve at time t (slot 3): value and derivative from the Bezier of its key interval.
+// (inferred)
+void EvaluateVecCurveA(T *t, void *pv, void *pdv, float g, float dtScale)
 {
-    int i = func_0012B6D8(t, g);
+    int i = FindVecCurveAKey(t, g);
     V3Q u0, u1;
     u0.v = t->a[i - 1].pos;
     u1.v = t->a[i].pos;
@@ -340,8 +354,8 @@ typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef struct KEY { VECTOR3 pos; float t; VECTOR3 dpos; int pad; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *pbis);
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, VECTOR3 *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, VECTOR3 *pv);
 KEY *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcVecBFromBrx
@@ -354,7 +368,8 @@ KEY *AllocClearedFromWorldHeap(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
+// Loads the second keyed vector curve kind (keys with a different tangent layout).
+void AC2::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcVecBFromBrx;
     using M_LoadAcVecBFromBrx::AREQ;
@@ -363,9 +378,9 @@ void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcVecBFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcVecBFromBrx::AllocClearedFromWorldHeap;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     int i;
-    int c = U16Read__18CBinaryInputStream(pbis);
+    int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c << 5;
     req.cbAlign = 0x10;
@@ -373,9 +388,9 @@ void AC2::LoadFromBrx(CBinaryInputStream *pbisM)
     t->a = AllocClearedFromWorldHeap(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
-        pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->pos);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pkey->dpos);
+        pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->pos);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &pkey->dpos);
     }
 }
 
@@ -388,7 +403,8 @@ typedef struct T { int pad; int c; KEY *a; } T;
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-int func_0012BB70(T *t, float g)
+// Key search for the second keyed vector curve kind. (inferred)
+int FindVecCurveBKey(T *t, float g)
 {
     int i;
     for (i = 1; i < t->c - 1; i++) {
@@ -428,16 +444,17 @@ typedef struct OBJ {
     V3Q pos1;
     qword dpos1;
 } OBJ;
-int func_0012BB70(T *t, float g);
+int FindVecCurveBKey(T *t, float g);
 /** @sly2-annot addr=0x12BBD0
  * Purpose: Evaluate at t
  * Info: proposed name EvaluateAcVecB (T2); class AcVecB; TU act
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012BBD0(T *t, OBJ *po)
+// Prepares a slot's motion segment from the second keyed vector curve kind (slot 2). (inferred)
+void PrepareVecCurveBSegment(T *t, OBJ *po)
 {
-    int i = func_0012BB70(t, *po->pt);
+    int i = FindVecCurveBKey(t, *po->pt);
     int f;
     po->t0 = t->a[i - 1].t;
     po->pos0.v = t->a[i - 1].pos;
@@ -457,7 +474,7 @@ typedef struct VECTOR3 { float x, y, z; } VECTOR3;
 typedef union V3Q { VECTOR3 v; qword q; } V3Q;
 typedef struct KEY { VECTOR3 pos; float t; qword dpos; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
-int func_0012BB70(T *t, float g);
+int FindVecCurveBKey(T *t, float g);
 void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b, qword vb, void *ppos, void *pv, int n);
 /** @sly2-annot addr=0x12BE68
  * Purpose: Evaluate via EvaluateBezierPos
@@ -465,9 +482,10 @@ void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b,
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012BE68(T *t, void *pv, void *pdv, float g, float dtScale)
+// Evaluates the second keyed vector curve kind at time t (slot 3). (inferred)
+void EvaluateVecCurveB(T *t, void *pv, void *pdv, float g, float dtScale)
 {
-    int i = func_0012BB70(t, g);
+    int i = FindVecCurveBKey(t, g);
     V3Q u0, u1; u0.v = t->a[i - 1].pos; u1.v = t->a[i].pos; EvaluateBezierPos(t->a[i].t - t->a[i - 1].t, g - t->a[i - 1].t, dtScale, u0.q, *(qword *)((char *)&t->a[i] - 0x10), u1.q, t->a[i].dpos, pv, pdv, 0);
 }
 } } // namespace M_func_0012BE68
@@ -476,10 +494,10 @@ namespace M_LoadAcFloatAFromBrx { extern "C" {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct KEY { float a, b, c; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; int v[4]; } T;
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
-int U16Read__18CBinaryInputStream(void *pbis);
-int U8Read__18CBinaryInputStream(void *pbis);
-float F32Read__18CBinaryInputStream(void *pbis);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+int U8Read__18CBinaryInputStream(void *stream);
+float F32Read__18CBinaryInputStream(void *stream);
 void *AllocFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcFloatAFromBrx
@@ -492,7 +510,8 @@ void *AllocFromWorldHeap(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
+// Loads a per-component curve: the key count, flags saying which components are animated, and float keys.
+void AC3::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatAFromBrx;
     using M_LoadAcFloatAFromBrx::AREQ;
@@ -503,19 +522,19 @@ void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatAFromBrx::U8Read__18CBinaryInputStream;
     using M_LoadAcFloatAFromBrx::AllocFromWorldHeap;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     AREQ req;
     int i, j, mask, grf;
     int c;
-    ReadVector__18CBinaryInputStreamP6VECTOR(pbis, t->v);
-    c = U16Read__18CBinaryInputStream(pbis);
+    ReadVector__18CBinaryInputStreamP6VECTOR(stream, t->v);
+    c = U16Read__18CBinaryInputStream(stream);
     req.cb = c * 4;
     req.cbAlign = 0x10;
     t->c = c;
     t->at = (__typeof__(t->at))AllocFromWorldHeap(&req);
     for (i = 0; i < t->c; i++)
-        t->at[i] = U16Read__18CBinaryInputStream(pbis) * 0.016666668f;
-    grf = U8Read__18CBinaryInputStream(pbis);
+        t->at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
+    grf = U8Read__18CBinaryInputStream(stream);
     for (j = 0, mask = 1; j < 3; j++, mask <<= 1) {
         if (mask & grf) {
             KEY *ak;
@@ -524,9 +543,9 @@ void AC3::LoadFromBrx(CBinaryInputStream *pbisM)
             ak = (__typeof__(ak))AllocFromWorldHeap(&req);
             t->ak[j] = ak;
             for (i = 0; i < t->c; i++) {
-                ak[i].a = F32Read__18CBinaryInputStream(pbis);
-                ak[i].b = F32Read__18CBinaryInputStream(pbis);
-                ak[i].c = F32Read__18CBinaryInputStream(pbis);
+                ak[i].a = F32Read__18CBinaryInputStream(stream);
+                ak[i].b = F32Read__18CBinaryInputStream(stream);
+                ak[i].c = F32Read__18CBinaryInputStream(stream);
             }
         }
     }
@@ -540,7 +559,8 @@ typedef struct T { int pad; int c; float *a; } T;
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-int func_0012C0E0(T *t, float g)
+// Key search for the per-component curve. (inferred)
+int FindFloatCurveAKey(T *t, float g)
 {
     int i;
     for (i = 1; i < t->c - 1; i++) {
@@ -580,20 +600,21 @@ typedef struct OBJ {
     VQ pos1;
     VQ dpos1;
 } OBJ;
-int func_0012C0E0(T *t, float g);
+int FindFloatCurveAKey(T *t, float g);
 /** @sly2-annot addr=0x12C140
  * Purpose: Evaluate at t
  * Info: proposed name EvaluateAcFloatA (T2); class AcFloatA; TU act
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012C140(T *t, OBJ *po)
+// Prepares a slot's motion segment from the per-component curve (slot 2). (inferred)
+void PrepareFloatCurveASegment(T *t, OBJ *po)
 {
     int i;
     unsigned int j;
     int f;
     if (t->c) {
-        i = func_0012C0E0(t, *po->pt0);
+        i = FindFloatCurveAKey(t, *po->pt0);
         po->t0 = t->at[i - 1];
         po->t1 = t->at[i];
     } else {
@@ -629,7 +650,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct VECTOR { float x, y, z, w; } VECTOR;
 typedef struct KEY { float g; float dgIn; float dgOut; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2; qword v; } T;
-int func_0012C0E0(T *t, float g);
+int FindFloatCurveAKey(T *t, float g);
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1);
 /** @sly2-annot addr=0x12C440
  * Purpose: Evaluate via EvaluateBezierFloat
@@ -637,7 +658,8 @@ void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012C440(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
+// Evaluates the per-component curve at time t, each component through its float Bezier (slot 3). (inferred)
+void EvaluateFloatCurveA(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)
         *(qword *)pv = t->v;
@@ -647,7 +669,7 @@ void func_0012C440(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
         pdv->x = 0;
     }
     if (t->c) {
-        int i = func_0012C0E0(t, g);
+        int i = FindFloatCurveAKey(t, g);
         unsigned int j;
         for (j = 0; j < 3; j++) {
             KEY *ak = t->ak[j];
@@ -669,10 +691,10 @@ namespace M_LoadAcFloatBFromBrx { extern "C" {
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
 typedef struct KEY { float a, b; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2[2]; int v[4]; } T;
-void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
-int U16Read__18CBinaryInputStream(void *pbis);
-int U8Read__18CBinaryInputStream(void *pbis);
-float F32Read__18CBinaryInputStream(void *pbis);
+void ReadVector__18CBinaryInputStreamP6VECTOR(void *stream, void *pv);
+int U16Read__18CBinaryInputStream(void *stream);
+int U8Read__18CBinaryInputStream(void *stream);
+float F32Read__18CBinaryInputStream(void *stream);
 void *AllocFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcFloatBFromBrx
@@ -685,7 +707,8 @@ void *AllocFromWorldHeap(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
+// Loads the second per-component curve kind.
+void AC4::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatBFromBrx;
     using M_LoadAcFloatBFromBrx::AREQ;
@@ -696,19 +719,19 @@ void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatBFromBrx::U8Read__18CBinaryInputStream;
     using M_LoadAcFloatBFromBrx::AllocFromWorldHeap;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     AREQ req;
     int i, j, mask, grf;
     int c;
-    ReadVector__18CBinaryInputStreamP6VECTOR(pbis, t->v);
-    c = U16Read__18CBinaryInputStream(pbis);
+    ReadVector__18CBinaryInputStreamP6VECTOR(stream, t->v);
+    c = U16Read__18CBinaryInputStream(stream);
     req.cb = c * 4;
     req.cbAlign = 0x10;
     t->c = c;
     t->at = (__typeof__(t->at))AllocFromWorldHeap(&req);
     for (i = 0; i < t->c; i++)
-        t->at[i] = U16Read__18CBinaryInputStream(pbis) * 0.016666668f;
-    grf = U8Read__18CBinaryInputStream(pbis);
+        t->at[i] = U16Read__18CBinaryInputStream(stream) * 0.016666668f;
+    grf = U8Read__18CBinaryInputStream(stream);
     for (j = 0, mask = 1; j < 3; j++, mask <<= 1) {
         if (mask & grf) {
             KEY *ak;
@@ -717,8 +740,8 @@ void AC4::LoadFromBrx(CBinaryInputStream *pbisM)
             ak = (__typeof__(ak))AllocFromWorldHeap(&req);
             t->ak[j] = ak;
             for (i = 0; i < t->c; i++) {
-                ak[i].a = F32Read__18CBinaryInputStream(pbis);
-                ak[i].b = F32Read__18CBinaryInputStream(pbis);
+                ak[i].a = F32Read__18CBinaryInputStream(stream);
+                ak[i].b = F32Read__18CBinaryInputStream(stream);
             }
         }
     }
@@ -732,7 +755,8 @@ typedef struct T { int pad; int c; float *a; } T;
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-int func_0012C708(T *t, float g)
+// Key search for the second per-component curve kind. (inferred)
+int FindFloatCurveBKey(T *t, float g)
 {
     int i;
     for (i = 1; i < t->c - 1; i++) {
@@ -772,20 +796,21 @@ typedef struct OBJ {
     VQ pos1;
     VQ dpos1;
 } OBJ;
-int func_0012C708(T *t, float g);
+int FindFloatCurveBKey(T *t, float g);
 /** @sly2-annot addr=0x12C768
  * Purpose: Evaluate at t
  * Info: proposed name EvaluateAcFloatB (T2); class AcFloatB; TU act
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012C768(T *t, OBJ *po)
+// Prepares a slot's motion segment from the second per-component curve kind (slot 2). (inferred)
+void PrepareFloatCurveBSegment(T *t, OBJ *po)
 {
     int i;
     unsigned int j;
     int f;
     if (t->c) {
-        i = func_0012C708(t, *po->pt0);
+        i = FindFloatCurveBKey(t, *po->pt0);
         po->t0 = t->at[i - 1];
         po->t1 = t->at[i];
     } else {
@@ -821,7 +846,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct VECTOR { float x, y, z, w; } VECTOR;
 typedef struct KEY { float g; float dg; } KEY;
 typedef struct T { int pad; int c; float *at; KEY *ak[3]; int pad2; qword v; } T;
-int func_0012C708(T *t, float g);
+int FindFloatCurveBKey(T *t, float g);
 void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale, float g0, float dg0, float g1, float dg1);
 /** @sly2-annot addr=0x12CA68
  * Purpose: Evaluate via EvaluateBezierFloat
@@ -829,7 +854,8 @@ void EvaluateBezierFloat(float *pg, float *pdg, float dt, float u, float dtScale
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012CA68(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
+// Evaluates the second per-component curve kind at time t (slot 3). (inferred)
+void EvaluateFloatCurveB(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
 {
     if (pv)
         *(qword *)pv = t->v;
@@ -839,7 +865,7 @@ void func_0012CA68(T *t, VECTOR *pv, VECTOR *pdv, float g, float dtScale)
         pdv->x = 0;
     }
     if (t->c) {
-        int i = func_0012C708(t, g);
+        int i = FindFloatCurveBKey(t, g);
         unsigned int j;
         for (j = 0; j < 3; j++) {
             KEY *ak = t->ak[j];
@@ -874,6 +900,7 @@ extern "C" ACG *PacNewKind2(int k);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
+// Float-curve factory: creates a float curve of kind 0..2 (constant, keyed, blended).
 ACG *PacNewKind2(int k)
 {
     switch (k) {
@@ -893,6 +920,7 @@ ACG *PacNewKind2(int k)
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* empty vtable slot */
+// Base float-curve loader: nothing.
 void ACG::LoadFromBrx(CBinaryInputStream *)
 {
 }
@@ -906,10 +934,11 @@ void ACG::LoadFromBrx(CBinaryInputStream *)
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void ACG0::LoadFromBrx(CBinaryInputStream *pbis)
+// Loads a constant float curve: one float.
+void ACG0::LoadFromBrx(CBinaryInputStream *stream)
 {
-    ACFLOAT *pac = (ACFLOAT *)this;
-    pac->g = pbis->F32Read();
+    ACFLOAT *curve = (ACFLOAT *)this;
+    curve->g = stream->F32Read();
 }
 
 /** @sly2-annot addr=0x12CC98
@@ -920,10 +949,11 @@ void ACG0::LoadFromBrx(CBinaryInputStream *pbis)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* Evaluates a constant float curve: the value, and a zero derivative. */
-extern "C" void func_0012CC98(ACFLOAT *pac, float *pg, int *pdg)
+// Evaluates a constant float curve: the value, and a zero derivative. (inferred)
+extern "C" void EvaluateConstFloatCurve(ACFLOAT *curve, float *pg, int *pdg)
 {
     if (pg != 0) {
-        *pg = pac->g;
+        *pg = curve->g;
     }
     if (pdg != 0) {
         *pdg = 0;
@@ -934,8 +964,8 @@ namespace M_LoadAcFloatKeysFromBrx { extern "C" {
 typedef struct KEY { float t; float g; float dgIn; float dgOut; } KEY;
 typedef struct T { int pad; int c; KEY *a; } T;
 typedef struct AREQ { int cb; int cbAlign; } AREQ;
-int U16Read__18CBinaryInputStream(void *pbis);
-float F32Read__18CBinaryInputStream(void *pbis);
+int U16Read__18CBinaryInputStream(void *stream);
+float F32Read__18CBinaryInputStream(void *stream);
 KEY *AllocClearedFromWorldHeap(AREQ *preq);
 
 } } // namespace M_LoadAcFloatKeysFromBrx
@@ -949,7 +979,8 @@ KEY *AllocClearedFromWorldHeap(AREQ *preq);
  *   docs/formats/level-objects.md#7-animation-segment-loadasegfrombrx-0x12f2a8-cparse,
  *   docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
+// Loads a keyed float curve: the key count and the float keys.
+void ACG1::LoadFromBrx(CBinaryInputStream *streamArg)
 {
     using namespace M_LoadAcFloatKeysFromBrx;
     using M_LoadAcFloatKeysFromBrx::AREQ;
@@ -958,9 +989,9 @@ void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
     using M_LoadAcFloatKeysFromBrx::U16Read__18CBinaryInputStream;
     using M_LoadAcFloatKeysFromBrx::AllocClearedFromWorldHeap;
     T *t = (T *)this;
-    void *pbis = pbisM;
+    void *stream = streamArg;
     int i;
-    int c = U16Read__18CBinaryInputStream(pbis);
+    int c = U16Read__18CBinaryInputStream(stream);
     AREQ req;
     req.cb = c << 4;
     req.cbAlign = 0x10;
@@ -968,10 +999,10 @@ void ACG1::LoadFromBrx(CBinaryInputStream *pbisM)
     t->a = AllocClearedFromWorldHeap(&req);
     for (i = 0; i < t->c; i++) {
         KEY *pkey = &t->a[i];
-        pkey->t = U16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f);
-        pkey->g = F32Read__18CBinaryInputStream(pbis);
-        pkey->dgIn = F32Read__18CBinaryInputStream(pbis);
-        pkey->dgOut = F32Read__18CBinaryInputStream(pbis);
+        pkey->t = U16Read__18CBinaryInputStream(stream) * (1.0f / 60.0f);
+        pkey->g = F32Read__18CBinaryInputStream(stream);
+        pkey->dgIn = F32Read__18CBinaryInputStream(stream);
+        pkey->dgOut = F32Read__18CBinaryInputStream(stream);
     }
 }
 
@@ -986,7 +1017,8 @@ void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, float dtScale
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012CDA0(T *t, float *pg, float *pdg, float g, float dtScale)
+// Evaluates a keyed float curve at time t (float Bezier of its key interval). (inferred)
+void EvaluateKeyedFloatCurve(T *t, float *pg, float *pdg, float g, float dtScale)
 {
     int i;
     KEY *k0, *k1;
@@ -1006,7 +1038,8 @@ void func_0012CDA0(T *t, float *pg, float *pdg, float g, float dtScale)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-extern "C" void *func_0012CE50()
+// Allocates an override application record (OVRA) from the world's pool, cleared. (inferred)
+extern "C" void *AllocOvra()
 {
     return PvAllocSlotheapClear(&g_sw.slotheapOvra);
 }
@@ -1017,7 +1050,8 @@ extern "C" void *func_0012CE50()
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-extern "C" void func_0012CE70(void *pv)
+// Returns an override application record to the world's pool. (inferred)
+extern "C" void FreeOvra(void *pv)
 {
     FreeSlotheapSlot(&g_sw.slotheapOvra, pv);
 }
@@ -1030,11 +1064,12 @@ extern "C" void func_0012CE70(void *pv)
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
 /* Common slot 1 of the act vtables: detach from the object. */
+// Base act attach (slot 1): sets the driven transform's role and wakes its owner so the act takes effect.
 void ACT::VSlot1()
 {
-    ACTV *pact = (ACTV *)this;
-    func_002303A0(pact->palo, pact->pxf, pact->n14);
-    func_0022C840(pact->palo, pact->pxf);
+    ACTV *act = (ACTV *)this;
+    SetXfRole(act->object, act->xf, act->n14);
+    WakeXfOwner(act->object, act->xf);
 }
 
 /** @sly2-annot addr=0x12CED8
@@ -1044,7 +1079,8 @@ void ACT::VSlot1()
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* empty vtable slot */
-extern "C" void func_0012CED8()
+// Base act detach (slot 2): nothing. (inferred)
+extern "C" void DetachActBase()
 {
 }
 
@@ -1058,7 +1094,9 @@ typedef struct T { int pad[2]; SW *psw; } T;
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-int func_0012CEE0(T *p)
+// True when the act is the one currently in effect on the world's active list (directly, or wrapped by an offset act).
+// (inferred)
+int IsActCurrent(T *p)
 {
     LO *q = p->psw->pfirst;
     if (q == (LO *)p)
@@ -1076,7 +1114,8 @@ int func_0012CEE0(T *p)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* empty vtable slot */
-extern "C" void func_0012CF20()
+// Base act slot 3: nothing. (inferred)
+extern "C" void ActSlot3Default()
 {
 }
 
@@ -1087,7 +1126,8 @@ extern "C" void func_0012CF20()
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* empty vtable slot */
-extern "C" void func_0012CF28()
+// Base act update (slot 4): nothing. (inferred)
+extern "C" void UpdateActDefault()
 {
 }
 
@@ -1097,11 +1137,12 @@ extern "C" void func_0012CF28()
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-extern "C" void func_0012CF30(ACTV *pact, qword *ppos, VECTOR *pdvec)
+// Base act goal (slot 5): the transform's current value, and zero velocity. (inferred)
+extern "C" void GetActGoalDefault(ACTV *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
-        XF *pxf = pact->pxf;
-        *ppos = func_0022CA18(pxf, pxf);
+        XF *xf = act->xf;
+        *ppos = GetXfValueFromMatrix(xf, xf);
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1118,6 +1159,7 @@ void CopyAb__FPvT0Ui(void *dst, void *src, unsigned int cb);
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/animation.md#tail-0x21c820-0x21d278
  * @end-sly2-annot */
+// Copies an act onto another object / transform: the header fields, then the class body.
 void CloneAct(T *t, T *src, int b, int c)
 {
     t->a = src->a;
@@ -1136,10 +1178,11 @@ void CloneAct(T *t, T *src, int b, int c)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0012CFE0(ACTV *pact)
+// Inserts the act into its transform's action list unless it is already there. (inferred)
+extern "C" void AttachAct(ACTV *act)
 {
-    if (func_0012D058(pact) == 0) {
-        AddXfAct(pact->palo, pact->pxf, pact);
+    if (IsActAttached(act) == 0) {
+        AddXfAct(act->object, act->xf, act);
     }
 }
 
@@ -1150,10 +1193,11 @@ extern "C" void func_0012CFE0(ACTV *pact)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0012D020(ACTV *pact)
+// Removes the act from its transform's action list if it is there. (inferred)
+extern "C" void DetachAct(ACTV *act)
 {
-    if (func_0012D058(pact) != 0) {
-        func_00230100(pact->palo, pact->pxf, pact);
+    if (IsActAttached(act) != 0) {
+        RemoveXfAct(act->object, act->xf, act);
     }
 }
 
@@ -1167,7 +1211,8 @@ typedef struct T { int pad[2]; SW *psw; } T;
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-int func_0012D058(T *p)
+// True when the act is on the world's act list (inferred: attached).
+int IsActAttached(T *p)
 {
     LO *q = p->psw->pfirst;
     while (q) {
@@ -1186,13 +1231,14 @@ int func_0012D058(T *p)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* vtable 0x2CA830 slot 4. */
+// Position act update (slot 4).
 void ACT1::Update()
 {
-    ACTPHASE *pact = (ACTPHASE *)this;
-    pact->pxf->qwRest = pact->pos;
-    pact->pxf->qwUnkD0 = D_002A2DD0;
-    pact->pxf->nPhase = pact->nPhase;
-    func_0022C818(pact->palo, pact->pxf);
+    ACTPHASE *act = (ACTPHASE *)this;
+    act->xf->qwRest = act->pos;
+    act->xf->qwUnkD0 = D_002A2DD0;
+    act->xf->nPhase = act->nPhase;
+    ResetXfValueRef(act->object, act->xf);
 }
 
 /** @sly2-annot addr=0x12D0D8
@@ -1202,10 +1248,11 @@ void ACT1::Update()
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* vtable 0x2CA830 slot 5. */
-extern "C" void func_0012D0D8(ACTPHASE *pact, qword *ppos, VECTOR *pdvec)
+// Position act goal (slot 5): its stored position, and zero velocity. (inferred)
+extern "C" void GetPhaseActGoal(ACTPHASE *act, qword *ppos, VECTOR *pdvec)
 {
     if (ppos != 0) {
-        *ppos = pact->pos;
+        *ppos = act->pos;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1239,6 +1286,8 @@ static __inline__ int FVecsNear(qword a, qword b)
  * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8
  * @end-sly2-annot */
+// Stores a new position goal; if this act drives its transform and the goal moved, copies it to the transform and puts
+// the slot back into motion.
 void SetActPositionGoal(struct P *p, qword v)
 {
     qword dv;
@@ -1259,7 +1308,8 @@ typedef struct T { char pad[0x70]; int a; int b; } T;
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012D210(T *p)
+// Look-at act detach (slot 2): clears its tracking state. (inferred)
+void DetachLookAtAct(T *p)
 {
     p->a = 0;
     p->b = 0;
@@ -1295,7 +1345,7 @@ extern struct CLOCK D_002DDED0;
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int k, int n, void *pv);
 void *FindClosestSwPo(void *pg, qword pos);
 qword GetLoWorldPos(void *po);
-void func_002301D0(void *a, struct X *b);
+void SortXfActs(void *a, struct X *b);
 qword ConvertXfVec(int n, int k, qword v);
 void CalculateVectorPanTilt(qword q, float *pa, float *pb);
 static __inline__ float GEval(struct POLY *pp, float t) { return pp->a + t * (pp->b + t * pp->c); }
@@ -1317,6 +1367,7 @@ static __inline__ float GLength(U *pv, qword a)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
+// Look-at act update: finds the target object and computes the pan / tilt that aims the transform at it.
 void UpdateActLookAt(struct P *p)
 {
     struct { qword pos; qword vel; } s;
@@ -1357,7 +1408,7 @@ void UpdateActLookAt(struct P *p)
     if (k != p->xC) {
         struct P *p90;
         p->xC = k;
-        func_002301D0(p->x4, p->x8);
+        SortXfActs(p->x4, p->x8);
         p90 = p->x8->p90;
         if (p90 != p) {
             struct O *po2 = (struct O *)p90;
@@ -1403,15 +1454,16 @@ void UpdateActLookAt(struct P *p)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* vtable 0x2CA7F0 slot 4. */
+// Look-at act goal (slot 5).
 void ACT2::GetGoal(qword *ppos, VECTOR *pdvec)
 {
-    ACTV *pact = (ACTV *)this;
+    ACTV *act = (ACTV *)this;
     qword *pv = (qword *)pdvec;
     if (ppos != 0) {
-        *ppos = pact->pxf->qwRest;
+        *ppos = act->xf->qwRest;
     }
     if (pv != 0) {
-        *pv = pact->pxf->qwUnkD0;
+        *pv = act->xf->qwUnkD0;
     }
 }
 
@@ -1420,7 +1472,7 @@ void ACT2::GetGoal(qword *ppos, VECTOR *pdvec)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const float r_D_002A45A8 __asm__("D_002A45A8") = 3.40282347e+38f; }
 namespace M_func_0012D508 {
-// func_0012D508 (Claude agent, 2026-10-23): MATCH. From hand_wip v5; the virtual at vtable slot 5 takes a float 4th
+// UpdatePathAct (Claude agent, 2026-10-23): MATCH. From hand_wip v5; the virtual at vtable slot 5 takes a float 4th
 // argument, and the caller passes p->g20 (that is why the target loads g20 into $f12 for the 0 < g20 test).
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword r[3]; };
@@ -1480,7 +1532,7 @@ struct P { int x0; void *x4; X *px8; int xC; int pad10[3]; float g1C; float g20;
 
 extern "C" {
 extern qword D_002A2DD0, D_002A2DC0, D_002BC380;
-void func_0022DD00(void *pv, X *px);
+void UpdateXfJobRange(void *pv, X *px);
 void EvaluateBezierPos(qword a, qword da, qword b, qword db, float dt, float t, float dtScale, void *pv, void *pdv, int n);
 M3 BuildOrthonormalMatrixZ(qword a, qword b);
 void ConvertXfMat(M3 *pm, int n, X *px, M3 *pmSrc);
@@ -1510,6 +1562,7 @@ static inline void Fin(P *p, M3 &mT, M3 m)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
+// Path act update (slot 4): evaluates the path's Bezier and builds an orthonormal frame along it.
 void ACT4::Update()
 {
     using namespace M_func_0012D508;
@@ -1528,7 +1581,7 @@ void ACT4::Update()
     using M_func_0012D508::VTE;
     using M_func_0012D508::VU_FLOAT;
     using M_func_0012D508::X;
-    using M_func_0012D508::func_0022DD00;
+    using M_func_0012D508::UpdateXfJobRange;
     using M_func_0012D508::qword;
     P *p = (P *)this;
     X *py;
@@ -1549,7 +1602,7 @@ void ACT4::Update()
     }
     py = p->px24;
     if (py->po90)
-        func_0022DD00(py->po90->x4, py);
+        UpdateXfJobRange(py->po90->x4, py);
     qword v;
     switch ((short)(p->px24->u98 - 1)) {
     case 0: case 1: case 6: case 7: case 8: case 10: case 16: case 17: case 19: case 20:
@@ -1608,6 +1661,7 @@ typedef struct T { int pad[4]; O *p; int pad2[2]; O *q; } T;
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
+// Offset act attach (slot 1): attaches the wrapped act.
 void ACT5::VSlot1()
 {
     using namespace M_func_0012D858;
@@ -1629,7 +1683,8 @@ typedef struct T { int pad[7]; O *q; } T;
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012D890(T *t)
+// Offset act detach (slot 2): detaches the wrapped act and forgets it. (inferred)
+void DetachOffsetAct(T *t)
 {
     O *p = t->q;
     if (p) {
@@ -1643,18 +1698,20 @@ namespace M_func_0012D8D8 { extern "C" {
 typedef struct VT { short d; short pad; void (*fn)(void *); } VT;
 typedef struct O { int pad[6]; VT *vt; } O;
 typedef struct T { int pad; void *a; void *b; int pad2; O *p; int pad3[2]; O *q; } T;
-void func_0022C840(void *a, void *b);
+void WakeXfOwner(void *a, void *b);
 /** @sly2-annot addr=0x12D8D8
  * Purpose: vtable 0x2CA758 slot 3
  * Info: proposed name ActUnk_2CA758_3 (T2); TU act
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012D8D8(T *t)
+// Offset act slot 3: when the act to wrap changed, wakes the transform, detaches the old wrapped act and attaches the
+// new one. (inferred)
+void SwitchOffsetActTarget(T *t)
 {
     O *p;
     if (t->q != t->p) {
-        func_0022C840(t->a, t->b);
+        WakeXfOwner(t->a, t->b);
         p = t->q;
         if (p)
             p->vt[2].fn((char *)p + p->vt[2].d);
@@ -1672,7 +1729,7 @@ typedef struct VT { short d; short pad; void (*pfn)(void *); } VT;
 typedef struct O { char pad[0x18]; VT *vt; } O;
 typedef struct SW { char pad[0xC0]; qword a; char pad2[0x10]; qword b; } SW;
 typedef struct T2 { char pad[8]; SW *psw; char pad1[0x10]; O *po; qword v; } T2;
-void func_0012CF28(T2 *p);
+void UpdateActDefault(T2 *p);
 static __inline__ void AddV(qword *pd, qword *ps)
 {
     register qword b __asm__("vf2") = *ps;
@@ -1686,7 +1743,9 @@ static __inline__ void AddV(qword *pd, qword *ps)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012D958(T2 *p)
+// Offset act update (slot 4): updates the wrapped act and adds the offset to the world's accumulators (falls back to
+// the default update when nothing is wrapped). (inferred)
+void UpdateOffsetAct(T2 *p)
 {
     O *po = p->po;
     if (po) {
@@ -1694,7 +1753,7 @@ void func_0012D958(T2 *p)
         AddV(&p->psw->a, &p->v);
         AddV(&p->psw->b, &p->v);
     } else {
-        func_0012CF28(p);
+        UpdateActDefault(p);
     }
 }
 } } // namespace M_func_0012D958
@@ -1710,7 +1769,8 @@ typedef struct T2 { char pad[0x1C]; O *po; qword v; } T2;
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012D9D0(T2 *p, qword *pv, void *x)
+// Offset act goal (slot 5): the wrapped act's goal plus the offset. (inferred)
+void GetOffsetActGoal(T2 *p, qword *pv, void *x)
 {
     O *po = p->po;
     ((void (*)(void *, qword *, void *))po->vt[5].pfn)((char *)po + po->vt[5].d, pv, x);
@@ -1749,7 +1809,9 @@ static __inline__ int FVecsNear(qword a, qword b)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012DA30(struct P *p, qword v)
+// Stores a new goal vector; if this act drives its transform and the goal moved, shifts the transform's goal values by
+// the change and puts the slot back into motion. (inferred)
+void SetActRotationGoal(struct P *p, qword v)
 {
     qword dv;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(dv) : "j"(v), "j"(p->v20));
@@ -1772,16 +1834,17 @@ void func_0012DA30(struct P *p, qword v)
 
 namespace M_func_0012DB50 { extern "C" {
 typedef struct T { int a; int b; int c; int d; int e; int f; } T;
-T *func_0012E238(void *p);
+T *InitActOfKind(void *p);
 /** @sly2-annot addr=0x12DB50
  * Purpose: Allocates/initialises an act record of a kind (0x12E238) for (alo, owner)
  * Info: proposed name PactNewKind (T2); TU act
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-T *func_0012DB50(void *p, int b, int c, int d, int f)
+// Creates an act of a kind for (object, transform, owner) with its priority / role, not yet attached. (inferred)
+T *NewActOfKind(void *p, int b, int c, int d, int f)
 {
-    T *t = func_0012E238(p);
+    T *t = InitActOfKind(p);
     t->b = b;
     t->c = c;
     t->d = d;
@@ -1791,7 +1854,7 @@ T *func_0012DB50(void *p, int b, int c, int d, int f)
 } } // namespace M_func_0012DB50
 
 namespace M_func_0012DBB0 { extern "C" {
-void *func_0012DB50(int k, void *a, void *b, void *c, int d);
+void *NewActOfKind(int k, void *a, void *b, void *c, int d);
 void AddXfAct(void *a, void *b, void *p);
 /** @sly2-annot addr=0x12DBB0
  * Purpose: Create act (variant A) and attach (0x230018)
@@ -1799,9 +1862,10 @@ void AddXfAct(void *a, void *b, void *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void *func_0012DBB0(void *a, void *b, void *c)
+// Creates an offset act (kind 5) and attaches it to its transform. (inferred)
+void *NewOffsetAct(void *a, void *b, void *c)
 {
-    void *p = func_0012DB50(5, a, b, c, -1);
+    void *p = NewActOfKind(5, a, b, c, -1);
     AddXfAct(a, b, p);
     return p;
 }
@@ -1810,7 +1874,7 @@ void *func_0012DBB0(void *a, void *b, void *c)
 namespace M_func_0012DC18 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct R { char pad[0x1C]; int x1C; qword v; } R;
-R *func_0012DB50(int k, void *a, void *b, void *c, int d);
+R *NewActOfKind(int k, void *a, void *b, void *c, int d);
 void AddXfAct(void *a, void *b, void *p);
 /** @sly2-annot addr=0x12DC18
  * Purpose: Create an ACT of kind 1 (PactNewKind) for (so, xf), store an int (+0x1C) and a vector goal
@@ -1824,9 +1888,10 @@ void AddXfAct(void *a, void *b, void *p);
  *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8,
  *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
  * @end-sly2-annot */
-R *func_0012DC18(void *a, void *b, void *c, int d, int e, qword v)
+// Creates a position act (kind 1) with a role and a goal vector and attaches it. (inferred)
+R *NewPositionAct(void *a, void *b, void *c, int d, int e, qword v)
 {
-    R *p = func_0012DB50(1, a, b, c, d);
+    R *p = NewActOfKind(1, a, b, c, d);
     p->x1C = e;
     p->v = v;
     AddXfAct(a, b, p);
@@ -1836,7 +1901,7 @@ R *func_0012DC18(void *a, void *b, void *c, int d, int e, qword v)
 
 namespace M_func_0012DCA0 { extern "C" {
 typedef struct T { int a[7]; float x; float y; } T;
-T *func_0012DB50(int k, void *a, void *b, void *c, void *d);
+T *NewActOfKind(int k, void *a, void *b, void *c, void *d);
 void AddXfAct(void *a, void *b, T *p);
 /** @sly2-annot addr=0x12DCA0
  * Purpose: Create act variant and attach
@@ -1844,9 +1909,10 @@ void AddXfAct(void *a, void *b, T *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-T *func_0012DCA0(void *a, void *b, void *c, void *d, float x, float y)
+// Creates a path act (kind 4) with its two parameters and attaches it. (inferred)
+T *NewPathAct(void *a, void *b, void *c, void *d, float x, float y)
 {
-    T *p = func_0012DB50(4, a, b, c, d);
+    T *p = NewActOfKind(4, a, b, c, d);
     p->x = x;
     p->y = y;
     AddXfAct(a, b, p);
@@ -1857,7 +1923,7 @@ T *func_0012DCA0(void *a, void *b, void *c, void *d, float x, float y)
 namespace M_func_0012DD28 { extern "C" {
 typedef struct T { int a[7]; void *q; } T;
 typedef struct Q { int pad[2]; void *b; } Q;
-T *func_0012DB50(int k, void *a, void *b, void *c, int d);
+T *NewActOfKind(int k, void *a, void *b, void *c, int d);
 void AddXfAct(void *a, void *b, T *p);
 /** @sly2-annot addr=0x12DD28
  * Purpose: Create act variant and attach
@@ -1865,9 +1931,11 @@ void AddXfAct(void *a, void *b, T *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-T *func_0012DD28(void *a, void *b, void *c, Q *q)
+// Creates an IK act (kind 7) for an IK record and attaches it (its role depends on whether the transform is the
+// record's first bone). (inferred)
+T *NewIkAct(void *a, void *b, void *c, Q *q)
 {
-    T *p = func_0012DB50(7, a, b, c, b == q->b ? 0xE : 0xD);
+    T *p = NewActOfKind(7, a, b, c, b == q->b ? 0xE : 0xD);
     p->q = q;
     AddXfAct(a, b, p);
     return p;
@@ -1877,7 +1945,7 @@ T *func_0012DD28(void *a, void *b, void *c, Q *q)
 namespace M_func_0012DDB0 { extern "C" {
 typedef struct M4 { int q[16]; } __attribute__((aligned(16))) M4;
 typedef struct T { int a[7]; int n; M4 mat; } T;
-T *func_0012DB50(int k, void *a, void *b, void *c, void *d);
+T *NewActOfKind(int k, void *a, void *b, void *c, void *d);
 void AddXfAct(void *a, void *b, T *p);
 /** @sly2-annot addr=0x12DDB0
  * Purpose: Create act variant and attach
@@ -1885,9 +1953,10 @@ void AddXfAct(void *a, void *b, T *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-T *func_0012DDB0(void *a, void *b, void *c, void *d, int n, M4 *pmat)
+// Creates a matrix act (kind 6) with a matrix and attaches it. (inferred)
+T *NewMatrixAct(void *a, void *b, void *c, void *d, int n, M4 *pmat)
 {
-    T *p = func_0012DB50(6, a, b, c, d);
+    T *p = NewActOfKind(6, a, b, c, d);
     p->n = n;
     p->mat = *pmat;
     AddXfAct(a, b, p);
@@ -1898,7 +1967,7 @@ T *func_0012DDB0(void *a, void *b, void *c, void *d, int n, M4 *pmat)
 namespace M_func_0012DE58 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct R { char pad[0x1C]; float g; qword v; qword w; } R;
-R *func_0012DB50(int k, void *a, void *b, void *c, int d);
+R *NewActOfKind(int k, void *a, void *b, void *c, int d);
 void AddXfAct(void *a, void *b, void *p);
 /** @sly2-annot addr=0x12DE58
  * Purpose: Create act variant and attach
@@ -1907,9 +1976,10 @@ void AddXfAct(void *a, void *b, void *p);
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
-R *func_0012DE58(void *a, void *b, void *c, float g, qword v, qword w)
+// Creates a Bezier act (kind 8, role 0x11) with a duration and two vectors and attaches it. (inferred)
+R *NewBezierAct(void *a, void *b, void *c, float g, qword v, qword w)
 {
-    R *p = func_0012DB50(8, a, b, c, 0x11);
+    R *p = NewActOfKind(8, a, b, c, 0x11);
     p->g = g;
     p->v = v;
     p->w = w;
@@ -1928,8 +1998,8 @@ extern "C" { extern qword D_002A2DD0; }
 extern "C" {
 MATRIX4 InvertMatrix4Rigid(const MATRIX4 &mat);
 MATRIX4 __ml__FRC7MATRIX4T0(const MATRIX4 &a, const MATRIX4 &b);
-qword func_0022CA18(Y *py, MATRIX4 mat);
-void func_0012DEF0(XX *x);
+qword GetXfValueFromMatrix(Y *py, MATRIX4 mat);
+void UpdateMatrixAct(XX *x);
 }
 /** @sly2-annot addr=0x12DEF0
  * Purpose: Matrix-based act update (InvertMatrix4Rigid, M4*M4)
@@ -1937,7 +2007,8 @@ void func_0012DEF0(XX *x);
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012DEF0(XX *x) { MATRIX4 m; if (x->py->pA0) m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(x->py->pA0->mat), x->p1C->mat), x->mat); else m = __ml__FRC7MATRIX4T0(x->p1C->mat, x->mat); Y *py = x->py; py->qC0 = func_0022CA18(py, m); x->py->qD0 = D_002A2DD0; x->py->s9A = 3; }
+// Matrix act update: the transform's local matrix from a world matrix relative to its parent. (inferred)
+void UpdateMatrixAct(XX *x) { MATRIX4 m; if (x->py->pA0) m = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(InvertMatrix4Rigid(x->py->pA0->mat), x->p1C->mat), x->mat); else m = __ml__FRC7MATRIX4T0(x->p1C->mat, x->mat); Y *py = x->py; py->qC0 = GetXfValueFromMatrix(py, m); x->py->qD0 = D_002A2DD0; x->py->s9A = 3; }
 } // namespace M_func_0012DEF0
 
 /** @sly2-annot addr=0x12DFE0
@@ -1946,11 +2017,12 @@ void func_0012DEF0(XX *x) { MATRIX4 m; if (x->py->pA0) m = __ml__FRC7MATRIX4T0(_
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
+// Matrix act goal (slot 5).
 void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
 {
-    ACTV *pact = (ACTV *)this;
+    ACTV *act = (ACTV *)this;
     if (ppos != 0) {
-        *ppos = pact->pxf->qwRest;
+        *ppos = act->xf->qwRest;
     }
     if (pdvec != 0) {
         ZeroVector(pdvec);
@@ -1964,14 +2036,15 @@ void ACT6::GetGoal(qword *ppos, VECTOR *pdvec)
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* vtable 0x2CA6F0 slot 4. */
+// Bezier act update (slot 4).
 void ACT8::Update()
 {
-    ACTREST *pact = (ACTREST *)this;
-    *(float *)&pact->pxf->pxfRef = pact->g1C;   /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
-    pact->pxf->qwRest = pact->pos;
-    pact->pxf->qwUnkD0 = pact->v;
-    pact->pxf->nPhase = 2;
-    func_0022C818(pact->palo, pact->pxf);
+    ACTREST *act = (ACTREST *)this;
+    *(float *)&act->xf->pxfRef = act->g1C;   /* XF +0xA8 holds a float here (so.h types it XF *; see jthands XFACT) */
+    act->xf->qwRest = act->pos;
+    act->xf->qwUnkD0 = act->v;
+    act->xf->nPhase = 2;
+    ResetXfValueRef(act->object, act->xf);
 }
 
 namespace M_func_0012E060 { extern "C" {
@@ -1987,7 +2060,8 @@ void EvaluateBezierPos(float tMax, float t, float s, qword a, qword va, qword b,
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-void func_0012E060(P *p, qword *pa, qword *pb, float t)
+// Bezier act goal (slot 5): position and velocity on its Bezier. (inferred)
+void GetBezierActGoal(P *p, qword *pa, qword *pb, float t)
 {
     float g = D_002DDED0.t;
     Q *pq = p->pq;
@@ -2006,14 +2080,15 @@ void func_0012E060(P *p, qword *pa, qword *pb, float t)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-extern "C" void func_0012E0F0(ACTREST *pact, qword pos, qword v)
+// Sets a rest act's pose and velocity; if it is in effect, also the transform's rest values. (inferred)
+extern "C" void SetRestActPose(ACTREST *act, qword pos, qword v)
 {
-    XF *pxf = pact->pxf;
-    pact->pos = pos;
-    pact->v = v;
-    if (pact == (ACTREST *)pxf->pactFirst) {
-        pxf->qwRest = pos;
-        pact->pxf->qwUnkD0 = v;
+    XF *xf = act->xf;
+    act->pos = pos;
+    act->v = v;
+    if (act == (ACTREST *)xf->pactFirst) {
+        xf->qwRest = pos;
+        act->xf->qwUnkD0 = v;
     }
 }
 
@@ -2023,7 +2098,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef struct Y { char pad[0xB0]; qword vB0; qword vC0; int nD0; char pad2[0xE0 - 0xD4]; int nE0; } Y;
 typedef struct X { char pad[8]; Y *py; char pad2[0x20 - 0xC]; qword v20; } X;
 extern qword D_002A2DA0;
-void func_0012CE98(X *x);
+void AttachActBase(X *x);
 static __inline__ qword VLen(qword c)
 {
     qword l, one;
@@ -2056,17 +2131,18 @@ static __inline__ qword Normalize1(qword *pv, qword *pdef)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
+// Attach of act kind 9 (slot 1).
 void ACT9::VSlot1()
 {
     using namespace M_func_0012E120;
     using M_func_0012E120::D_002A2DA0;
     using M_func_0012E120::Normalize1;
     using M_func_0012E120::Y;
-    using M_func_0012E120::func_0012CE98;
+    using M_func_0012E120::AttachActBase;
     using M_func_0012E120::qword;
     X *x = (X *)this;
     qword l;
-    func_0012CE98(x);
+    AttachActBase(x);
     x->py->vB0 = x->v20;
     x->py->vC0 = x->v20;
     l = Normalize1(&x->py->vC0, &D_002A2DA0);
@@ -2084,7 +2160,8 @@ void ACT9::VSlot1()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-extern "C" void *func_0012E1F0()
+// Allocates an act from the world's act pool, cleared. (inferred)
+extern "C" void *AllocAct()
 {
     return PvAllocSlotheapClear(&g_sw.slotheapAct);
 }
@@ -2095,45 +2172,47 @@ extern "C" void *func_0012E1F0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-extern "C" void func_0012E210(void *pv)
+// Returns an act to the world's act pool. (inferred)
+extern "C" void FreeAct(void *pv)
 {
     FreeSlotheapSlot(&g_sw.slotheapAct, pv);
 }
 
 namespace M_func_0012E238 {
-extern "C" void *func_0012E1F0(unsigned int cb);
+extern "C" void *AllocAct(unsigned int cb);
 extern "C" void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");
 struct MATRIX4 { float m[4][4]; };
 } // namespace M_func_0012E238
 namespace M_func_0012E238 {
-extern "C" ACT *func_0012E238(int k);
-#define SLY2_NEW_ACT(T) new (func_0012E1F0(sizeof(T))) T
+extern "C" ACT *InitActOfKind(int k);
+#define SLY2_NEW_ACT(T) new (AllocAct(sizeof(T))) T
 /** @sly2-annot addr=0x12E238
  * Purpose: Initialises an act record by kind
  * Info: proposed name InitActKind (T2); TU act
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
-ACT *func_0012E238(int k)
+// Act factory: allocates an act and constructs it by kind (0..9). (inferred)
+ACT *InitActOfKind(int k)
 {
     ACT *p;
     switch (k) {
-    case 0: { ACTSEG *pact = SLY2_NEW_ACT(ACTSEG); pact->ack = 0; p = pact; break; }
-    case 1: { ACT1 *pact = SLY2_NEW_ACT(ACT1); pact->ack = 1; pact->nPhase = 2; p = pact; break; }
-    case 2: { ACT2 *pact = SLY2_NEW_ACT(ACT2); pact->ack = 2; p = pact; break; }
-    case 3: { ACT3 *pact = SLY2_NEW_ACT(ACT3); pact->ack = 3; p = pact; break; }
-    case 4: { ACT4 *pact = SLY2_NEW_ACT(ACT4); pact->ack = 4; p = pact; break; }
-    case 5: { ACT5 *pact = SLY2_NEW_ACT(ACT5); pact->ack = 5; p = pact; break; }
+    case 0: { ACTSEG *act = SLY2_NEW_ACT(ACTSEG); act->ack = 0; p = act; break; }
+    case 1: { ACT1 *act = SLY2_NEW_ACT(ACT1); act->ack = 1; act->nPhase = 2; p = act; break; }
+    case 2: { ACT2 *act = SLY2_NEW_ACT(ACT2); act->ack = 2; p = act; break; }
+    case 3: { ACT3 *act = SLY2_NEW_ACT(ACT3); act->ack = 3; p = act; break; }
+    case 4: { ACT4 *act = SLY2_NEW_ACT(ACT4); act->ack = 4; p = act; break; }
+    case 5: { ACT5 *act = SLY2_NEW_ACT(ACT5); act->ack = 5; p = act; break; }
     case 6: {
-        ACT6 *pact = SLY2_NEW_ACT(ACT6); pact->ack = 6;
-        MATRIX4 *pm = (MATRIX4 *)pact->mat;
+        ACT6 *act = SLY2_NEW_ACT(ACT6); act->ack = 6;
+        MATRIX4 *pm = (MATRIX4 *)act->mat;
         func_002333B4(pm, 0, sizeof(*pm));
         pm->m[0][0] = pm->m[1][1] = pm->m[2][2] = pm->m[3][3] = 1.0f;
-        p = pact; break;
+        p = act; break;
     }
-    case 7: { ACT7 *pact = SLY2_NEW_ACT(ACT7); pact->ack = 7; p = pact; break; }
-    case 8: { ACT8 *pact = SLY2_NEW_ACT(ACT8); pact->ack = 8; p = pact; break; }
-    case 9: { ACT9 *pact = SLY2_NEW_ACT(ACT9); pact->ack = 9; pact->nRole = 0x14; p = pact; break; }
+    case 7: { ACT7 *act = SLY2_NEW_ACT(ACT7); act->ack = 7; p = act; break; }
+    case 8: { ACT8 *act = SLY2_NEW_ACT(ACT8); act->ack = 8; p = act; break; }
+    case 9: { ACT9 *act = SLY2_NEW_ACT(ACT9); act->ack = 9; act->nRole = 0x14; p = act; break; }
     default: p = 0; break;
     }
     return p;
@@ -2150,12 +2229,14 @@ ACT *func_0012E238(int k)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#act-0x12b3b0-0x12e600
  * @end-sly2-annot */
 /* Calls slot 6 of the curve object made for *pn (a callback; no direct callers). */
-extern "C" ACOBJ *func_0012E3F0(int *pn, int n1, int n2)
+// Creates an act of the kind given by a parameter record and lets it read the record (slot 6); no direct callers.
+// (inferred)
+extern "C" ACOBJ *NewActFromParams(int *pn, int n1, int n2)
 {
-    ACOBJ *pac = func_0012E238(*pn);
-    VTEAC *pvt = pac->pvt;
-    pvt[6].pfn((char *)pac + pvt[6].d, pn, n1, n2);
-    return pac;
+    ACOBJ *curve = InitActOfKind(*pn);
+    VTEAC *pvt = curve->pvt;
+    pvt[6].pfn((char *)curve + pvt[6].d, pn, n1, n2);
+    return curve;
 }
 
 /** @sly2-annot addr=0x12E460
@@ -2170,12 +2251,13 @@ extern "C" ACOBJ *func_0012E3F0(int *pn, int n1, int n2)
  *   docs/reference/functions/camera.md#cplcy-0x14fca8-0x1520c8,
  *   docs/reference/functions/gameplay-objects.md#turret-0x2259d8-0x226550
  * @end-sly2-annot */
+// Detaches and frees the act in a slot, and clears the slot.
 extern "C" void ReleaseAct(ACTV **ppact)
 {
-    ACTV *pact = *ppact;
-    if (pact != 0) {
-        func_0012D020(pact);
-        func_0012E210(pact);
+    ACTV *act = *ppact;
+    if (act != 0) {
+        DetachAct(act);
+        FreeAct(act);
         *ppact = 0;
     }
 }

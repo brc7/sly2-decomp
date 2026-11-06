@@ -27,7 +27,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* A contact (XP, 0xC0; SW::slotheapXp holds them) between two parts: per side the part, its transform, the root
    object of its tree, its object (told about the contact through SO slots 54..56), the contact point in world space,
-   the same point in the transform's frame (func_0022FC48) and its velocity (GetXfVelocity); then the normal (side 0
+   the same point in the transform's frame (TransformXfPos) and its velocity (GetXfVelocity); then the normal (side 0
    to side 1), the separation along it, friction and elasticity (defaults D_002BFD30/D_002BFD34), the kind (4..6
    sphere/BSP face, edge, vertex; 7 sphere/sphere; 8/9 swept vertex; 12 inside; 13 BSP/BSP fallback), the two
    features that made it (an EDGE, SURF or vertex per kind), the index in its group, the list link and the relative
@@ -69,7 +69,7 @@ struct VTE { short d; short pad; void (*pfn)(SO *, XP *, int); };
 extern "C" {
 float D_002BFD30 = 0.5f;    /* default contact friction (mark's .data) */
 float D_002BFD34 = 0.5f;    /* default contact elasticity */
-qword func_0022FC48(XF *pxfTo, XF *pxfFrom, qword pos);   /* converts a point between frames (0: world) */
+qword TransformXfPos(XF *pxfTo, XF *pxfFrom, qword pos);   /* converts a point between frames (0: world) */
 qword GetXfVelocity(XF *pxf, int n, qword pos);
 void RecalcSwXpMovement(SW *psw, int cxp, XP **apxp);
 void AppendXpList(SW *psw, XP *pxp, XP **ppxpFirst);
@@ -186,7 +186,7 @@ extern "C" void AddXp(SW *psw, SOPART *ppart0, SOPART *ppart1, qword pos, qword 
             pxps->pso = pxps->ppart->pso;
             pxps->psoRoot = pxps->pso->ptree->psoRoot;
         }
-        pxps->posLocal = func_0022FC48(0, pxps->pxf, pxps->pos);
+        pxps->posLocal = TransformXfPos(0, pxps->pxf, pxps->pos);
     }
     pxp->g = g;
     pxp->kind = kind;
@@ -284,7 +284,7 @@ extern "C" void RecalcSwXpPos(SW *world, int count, XP **contacts)
             continue;
             }
         def:
-            pxps->pos = func_0022FC48(pxf, 0, pxps->posLocal);
+            pxps->pos = TransformXfPos(pxf, 0, pxps->posLocal);
         }
         {
             qword d, r, one;

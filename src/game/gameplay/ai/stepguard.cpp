@@ -278,7 +278,7 @@ extern qword D_002A2DE0;
 void PostStepLoad(struct S *p);
 void BindLoOidTable(struct S *p, int n, void *pv);
 void SetStepGravityRatio(struct S *p, float f);
-void func_002303A0(struct S *p, int n, int m);
+void SetXfRole(struct S *p, int n, int m);
 void ResolveStepguardAnimBindings(struct S *p);
 void ResolveStepguardAttacks(struct S *p);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
@@ -288,7 +288,7 @@ void PostSwCallback(void *g, struct S *p, long k, int n);
 struct O *PloNew__F3CIDP2SO3OIDi(int a, int b, int c, int d);
 void AddGuardScriptLookAt(struct O *po, int a, int b, float f);
 void *FindSoXf(struct S *p, int n, int m);
-void *func_0012DC18(struct S *p, void *x, int a, int b, int c, qword q);
+void *NewPositionAct(struct S *p, void *x, int a, int b, int c, qword q);
 
 // 0x2061D8: STEPGUARD vtable slot 15 (PostLoad): step post-load, binds its oid table, gravity ratio, attaches
 // children, resolves animation bindings and attack oids, and creates its two helper components (+0x498/+0x49C).
@@ -298,8 +298,8 @@ void PostStepguardLoad(struct S *guard)
     PostStepLoad(guard);
     BindLoOidTable(guard, 1, D_002C3CF8);
     SetStepGravityRatio(guard, guard->gravityRatio);
-    func_002303A0(guard, guard->n58, 2);
-    func_002303A0(guard, guard->n5C, 2);
+    SetXfRole(guard, guard->n58, 2);
+    SetXfRole(guard, guard->n5C, 2);
     ResolveStepguardAnimBindings(guard);
     ResolveStepguardAttacks(guard);
     guard->helperComponent = func_001AE4F8(0x10);
@@ -318,7 +318,7 @@ void PostStepguardLoad(struct S *guard)
         guard->pickpocketIndicator1->vt[9].pf((char *)guard->pickpocketIndicator1 + guard->pickpocketIndicator1->vt[9].d);
     x = FindSoXf(guard, guard->n18, 0xC);
     if (x)
-        guard->unknownFC4 = func_0012DC18(guard, x, 0, 7, 2, D_002A2DE0);
+        guard->unknownFC4 = NewPositionAct(guard, x, 0, 7, 2, D_002A2DE0);
 }
 } } // namespace M_PostStepguardLoad
 
@@ -987,7 +987,7 @@ void UpdateHazardWatch(void *p);
 void UpdateBhvstk(void *p);
 void UpdateStepguardMover(void *p);
 int FAsegaRetracted(int h);
-void func_001306A8(int *ph);
+void DropAsegaRef(int *ph);
 
 // 0x207350: STEPGUARD vtable slot 16 (Update): step update; while in the world and not time-frozen: special-state
 // timeouts, target detection, attack animation, aim, pickpocket, components, the behaviour stack, the mover and
@@ -1012,7 +1012,7 @@ void UpdateStepguard(struct S *guard)
     UpdateBhvstk(guard->behaviorStack);
     UpdateStepguardMover(guard->xFD0);
     if (guard->heldAnimation && FAsegaRetracted(guard->heldAnimation))
-        func_001306A8(&guard->heldAnimation);
+        DropAsegaRef(&guard->heldAnimation);
     if (guard->n4A4 && guard->n208)
         guard->q4B0 = *guard->pq218;
 }
@@ -2103,7 +2103,7 @@ void PostAsegArcLoad(struct H *, void *);
 void InitDirAnims(struct DIRECTION_STATE *, void *);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
 int GetBasicCid(void *);
-struct MARKER *func_0012F938(void *, int);
+struct MARKER *FindAsegLabel(void *, int);
 struct H *AllocLeap(int);
 void InitAsegArc(struct H *);
 
@@ -2128,7 +2128,7 @@ void ResolveAnimBinding(struct E *e, void *context)
     }
     switch (GetBasicCid(resource)) {
     case 0x6D:
-        if (func_0012F938(resource, 0x22)) {
+        if (FindAsegLabel(resource, 0x22)) {
             e->kind = 2;
             e->value.curvature = AllocLeap(0x40);
             InitAsegArc(e->value.curvature);
@@ -2162,7 +2162,7 @@ struct O; struct E;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct E { int k; int h; struct O *po; };
-void func_0012F9B8(int h, char *p, int fl, struct O **ppo, float g, float f);
+void ApplyAsegCore(int h, char *p, int fl, struct O **ppo, float g, float f);
 void PsmaApplySmOut(int h, char *p, int a, int fl, struct O **ppo);
 void StartLeap(int h, char *p, int fl, struct O *po);
 void StartDirAnim(int h, char *p, int fl, struct O *po);
@@ -2174,7 +2174,7 @@ void StartAnimBinding(struct E *pe, char *p, int fl, float g)
     case -1:
         break;
     case 0:
-        func_0012F9B8(pe->h, p, fl, &pe->po, g, 1.0f);
+        ApplyAsegCore(pe->h, p, fl, &pe->po, g, 1.0f);
         VC1(pe->po);
         break;
     case 1:
@@ -2201,8 +2201,8 @@ struct O; struct S;
 typedef struct { short d; short pad; void *pfn; } VTE;
 struct O { char pad[0xC]; VTE *vt; };
 struct S { int k; int pad; struct O *po; };
-void func_00130B18(struct O *po);
-void func_001F0598(struct O *po);
+void RetractAsega(struct O *po);
+void RetractSma(struct O *po);
 void StopLeap(struct O *po);
 void StopDirAnim(struct O *po);
 #define VDEL(o) ((void (*)(void *))(o)->vt[2].pfn)((char *)(o) + (o)->vt[2].d)
@@ -2214,14 +2214,14 @@ void StopAnimBinding(struct S *p)
         break;
     case 0:
         if (p->po) {
-            func_00130B18(p->po);
+            RetractAsega(p->po);
             VDEL(p->po);
             p->po = 0;
         }
         break;
     case 1:
         if (p->po) {
-            func_001F0598(p->po);
+            RetractSma(p->po);
             VDEL(p->po);
             p->po = 0;
         }
@@ -3306,7 +3306,7 @@ extern qword D_002A2DD0;
 struct A { char pad[0xA0]; int nA0; };
 struct S { char pad[0xF08]; struct A *pa; int h; int n; char pad2[0xC]; qword v; };
 void ReleaseAct(int *ph);
-int func_0012DC18(struct S *p, int a, int b, int c, int d, qword q);
+int NewPositionAct(struct S *p, int a, int b, int c, int d, qword q);
 // 0x20AC28: Releases and re-creates the aim act of the current attack.
 void SetStepguardAimAct(struct S *guard, struct A *pa, int n, qword v)
 {
@@ -3317,7 +3317,7 @@ void SetStepguardAimAct(struct S *guard, struct A *pa, int n, qword v)
     }
     guard->pa = pa;
     if (pa && pa->nA0) {
-        guard->h = func_0012DC18(guard, pa->nA0, 5, 8, 3, D_002A2DD0);
+        guard->h = NewPositionAct(guard, pa->nA0, 5, 8, 3, D_002A2DD0);
         guard->n = n;
         guard->v = v;
     }
@@ -3333,7 +3333,7 @@ struct A { char pad[0x30]; qword pos; char pad2[0x60]; int nA0; };
 struct B { char pad[0x90]; qword v; struct A *pa; };
 struct D { char pad[0x20]; qword v; };
 struct S { char pad[0xF08]; struct B *pb; struct D *pd; int nF10; char pad2[0xC]; qword vF20; };
-qword func_0022FC48(int a, int b, qword v);
+qword TransformXfPos(int a, int b, qword v);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(MATRIX3 *pm, qword a, qword b);
 qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
 // 0x20ACC0: Aims the attack: rotation toward the predicted target point, as Euler angles.
@@ -3341,7 +3341,7 @@ void UpdateStepguardAim(struct S *guard)
 {
     MATRIX3 m;
     qword v, d;
-    v = func_0022FC48(guard->nF10, guard->pb->pa->nA0, guard->vF20);
+    v = TransformXfPos(guard->nF10, guard->pb->pa->nA0, guard->vF20);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(v), "j"(guard->pb->pa->pos));
     BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, guard->pb->v, d);
     { struct D *pd = guard->pd; pd->v = DecomposeRotationMatrixToEuler(&m); }
@@ -3396,8 +3396,8 @@ void PostLoLoad(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct O *o, int n);
 void ResolveAnimBinding(void *pe, struct O *o);
 void *FindSoXf(struct O *o, int a, int b);
-float *func_0012F938(int h, int a);
-void func_001300B8(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
+float *FindAsegLabel(int h, int a);
+void PredictAsegTransform(int h, struct O *o, int a, int b, struct L *pl, int c, float f, float g);
 // 0x20AE18: Guard attack vtable slot 15 (PostLoad): LO post-load, finds its owning guard up the parent chain,
 // resolves its binding and precomputes its animation effect.
 void PostGuardAttackLoad(struct S *guard)
@@ -3417,8 +3417,8 @@ void PostGuardAttackLoad(struct S *guard)
         guard->pa = (__typeof__(guard->pa))FindSoXf(guard->pAC, guard->a, 6);
         guard->nA4 = (int)FindSoXf(guard->pAC, guard->b, 6);
         h = guard->hB4;
-        pf = func_0012F938(h, guard->c);
-        func_001300B8(h, guard->pAC, guard->nA4, guard->pa->nA0, &l, 0, *pf, 1.0f);
+        pf = FindAsegLabel(h, guard->c);
+        PredictAsegTransform(h, guard->pAC, guard->nA4, guard->pa->nA0, &l, 0, *pf, 1.0f);
         guard->v90 = l.v;
     }
 }

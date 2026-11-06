@@ -1,7 +1,9 @@
 // blend.cpp -- ASEGBL, an animation segment that blends several segments: building one from a set of segments
 // (EnsureAsegBlendDynamic), per-segment MRSG timing tables, the dominant segment, and evaluating blended channels
 // (positions/rotations with VU0 asm, scalars). TU 0x137A30..0x138F08 (11 functions, address order), and the linkonce
-// copy func_002581B8 (an inline virtual of a class whose vtable belongs to this TU; at the end).
+// copy GetBlendCurveKind (an inline virtual of a class whose vtable belongs to this TU; at the end).
+// Entry points: EnsureAsegBlendDynamic (blend creation, from the animation code), RecalculateAsegBlend (after weight
+// changes), and the blended-channel curve slots called through AC5/ACG2 vtables.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_blend
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00138EE8
 #include "sly2/slotheap.h"
@@ -20,13 +22,13 @@ struct ASEG;
 /* One (time, duration) entry of a segment's timing table. */
 struct MRSG { float t; float dt; };
 /* Timing tables of a blend: byte offset of each element's table, table length, the blended table. */
-struct BLMRSG { int ib; int cmrsg; MRSG *amrsg; };
+struct BLMRSG { int ib; int syncCount; MRSG *syncTable; };
 /* One blend element: its weight and segment (elements are cb bytes apart; the timing tables follow at ib). */
 struct ELEM { union { float w; int iw; }; ASEG *paseg; };
 /* Entry of a segment's channel table (EnsureAsegBlendDynamic). */
 struct OBJ;
 struct ENT { unsigned n : 20; unsigned k : 10; unsigned f30 : 1; signed f31 : 1; OBJ *pobj; };
-struct OBJ { int x0; ASEG *px; BLMRSG *ae3; OBJ **apobj; qword q10; };
+struct OBJ { int x0; ASEG *px; BLMRSG *syncTables; OBJ **apobj; qword q10; };
 /* The value a channel is evaluated into (0x100 bytes). */
 struct CHN
 {
@@ -43,9 +45,9 @@ struct CHN
     VU xE0;
     VU xF0;
 };
-/* A segment's channel chain entry and the chain list (SetAsegblDominantBl, func_001384C0). */
-struct CHNE { int f0; int f4; CHN *px; char pad[0x1c - 0xc]; int f1c; char pad2[0x28 - 0x20]; CHNE *pnext; };
-struct LINK { char pad[0x1C]; float g1C; char pad20[0xC]; LINK *pnext; int f30; CHNE *pcFirst; };
+/* A segment's channel chain entry and the chain list (SetAsegblDominantBl, RecalculateAsegBlend). */
+struct CHNE { int f0; int f4; CHN *px; char pad[0x1c - 0xc]; int f1c; char pad2[0x28 - 0x20]; CHNE *next; };
+struct LINK { char pad[0x1C]; float relativeTime; char pad20[0xC]; LINK *next; int f30; CHNE *firstChannel; };
 struct KEY { float t; int x4; int x8; int xC; };
 struct XB {
     int x0; int pad4[2];
@@ -55,36 +57,36 @@ struct XB {
 /* View of an animation segment (ASEG; the fields from +0xC0 on are those of a blend, ASEGBL). */
 struct ASEG : XB {
     char pad10[0x40];
-    LINK *plinkFirst;       /* +0x50 */
+    LINK *links;       /* +0x50 */
     char pad54[0x5C - 0x54];
     int c;                  /* +0x5C */
-    ENT *aent;              /* +0x60 */
+    ENT *entries;              /* +0x60 */
     char pad64[0x6C - 0x64];
     int x6C;
     int x70;
     float tMax;             /* +0x74 duration */
     float g78;
     char pad7C[0x98 - 0x7C];
-    int x98, x9C, xA0;      /* xA0: number of keys */
-    KEY *xA4;               /* +0xA4 keys */
+    int x98, x9C, keyCount;      /* xA0: number of keys */
+    KEY *keys;               /* +0xA4 keys */
     int xA8, xAC;
     char padB0[0xC0 - 0xB0];
     int cb;                 /* +0xC0 element size */
-    int cElem;              /* +0xC4 */
-    ELEM *aelem;            /* +0xC8 */
+    int elementCount;              /* +0xC4 */
+    ELEM *elements;            /* +0xC8 */
     int n;                  /* +0xCC */
-    BLMRSG *ae3;            /* +0xD0 */
-    int xD4;                /* +0xD4 dominant element */
-    ASEG *pxD8;             /* +0xD8 */
+    BLMRSG *syncTables;            /* +0xD0 */
+    int dominantElement;                /* +0xD4 dominant element */
+    ASEG *linkedBlend;             /* +0xD8 */
 };
-typedef char assert_ASEG_pxD8[(unsigned int)&((ASEG *)0)->pxD8 == 0xD8 ? 1 : -1];
+typedef char assert_ASEG_pxD8[(unsigned int)&((ASEG *)0)->linkedBlend == 0xD8 ? 1 : -1];
 
 /* g++ 2.95 vtable entry, and the channel objects evaluated through it (vtable at +0). */
 struct VTE { short d; short pad; void *pfn; };
 struct CHNO { VTE *vt; };
 /* A blended channel: its blend, timing tables and per-element channel objects; then the default value. */
 struct BLCHNQ { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; qword q; };
-struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("func_0012B4F0"); virtual void VSlot2(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void VSlot2(CHN *pq) __asm__("func_00138660"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int VSlot4() __asm__("func_002581B8"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("func_0012CC60"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("func_00138BA0"); };
+struct BLCHNF { int x0; ASEG *paseg; BLMRSG *pblmrsg; CHNO **apo; float g; }; /* The curve classes of sly2/act.h whose vtables this TU emits (see the end of the file), on this line to keep the functions' line numbers. */ struct AC { virtual void LoadFromBrx(void *pbis) __asm__("LoadCurveFromBrxDefault"); virtual void VSlot2(CHN *pq) __asm__("__pure_virtual"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("__pure_virtual"); }; struct AC5 : AC { int an[7]; virtual void VSlot2(CHN *pq) __asm__("BlendChannelPose"); virtual void Evaluate(qword *ppos, qword *prot, float t, float rate) __asm__("EvaluateBlendChnPosVel"); virtual int VSlot4() __asm__("GetBlendCurveKind"); }; struct ACG { virtual void LoadFromBrx(void *pbis) __asm__("LoadFloatCurveFromBrxDefault"); virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("__pure_virtual"); }; struct ACG2 : ACG { int an[4]; virtual void Evaluate(float t, float r, float *pa, float *pb) __asm__("EvaluateBlendFloatCurve"); };
 
 extern const float D_002A4AF0;   /* defined below where the ELF has it (.rodata order) */
 extern char D_002C44E0[];
@@ -97,25 +99,25 @@ void *AllocClearedFromStack(const AREQ &req);
 void *AllocClearedFromWorldHeap(const AREQ &req);
 OBJ *PacNewKind(int id);
 OBJ *PacNewKind2(int id);
-void func_0012FE58(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
-qword func_0022CA18(void *pa, void *pb);
+void ResolveAsegChannelTarget(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
+qword GetXfValueFromMatrix(void *pa, void *pb);
 void FramePtr_Assign(ASEG *px, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_001384C0(ASEG *px);
-void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, ASEG **ppx);
-float func_0012F990(ASEG *paseg, OID oid);
+void RecalculateAsegBlend(ASEG *px);
+void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *elements, int n, int *pa, int *pb, ASEG **ppx);
+float GetAsegLabelTime(ASEG *paseg, OID oid);
 float GModPositive__Fff(float, float);
-int func_0012CEE0(CHNE *);
+int IsActCurrent(CHNE *);
 void SetAsegblDominantBl(ASEG *p, int n);
-void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *amrsg, float *pf);
+void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *syncTable, float *pf);
 void *func_002333B4(void *, int, int) __asm__("memset");
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, VU *, VU *, int);
 }
-int ImrsgLookUp(float t, float tMax, int cmrsg, MRSG *amrsg, float *pdt);
+int ImrsgLookUp(float t, float tMax, int syncCount, MRSG *syncTable, float *pdt);
 
 // EnsureAsegBlendDynamic (Claude agent laneBE2, 2026-10-23): MATCH. Built from build/hand_wip/EnsureAsegBlendDynamic.fresh14.cpp:
 // the E3-loop "r"(0x10) asm removed, one allocation-only empty asm on the i*4 giv, one register pin (mF31 in s5),
 // and the not-found slot written as `pentNew = &pxNew->aent[pxNew->c++];`.
-#define PELEM(i) ((ELEM *)((char *)aelem + (i) * cb))
+#define PELEM(i) ((ELEM *)((char *)elements + (i) * cb))
 /** @sly2-annot addr=0x137A30
  * Purpose: Create/extend the ASEGBL blending a set of asegs (cid 0x6E) and its MRSG tables
  * Info: proposed name EnsureAsegBlendDynamic (T1); TU blend
@@ -123,7 +125,10 @@ int ImrsgLookUp(float t, float tMax, int cmrsg, MRSG *amrsg, float *pdt);
  * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
  *   docs/engine/animation.md#6-source-files, docs/engine/animation.md#7-key-functions
  * @end-sly2-annot */
-extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *aelem, int n, int *pa, int *pb, ASEG **ppx)
+// Finds or creates the blend segment (ASEGBL, class 0x6E) that blends a given set of animation segments with the given
+// weights: reuses an existing blend over the same segments when there is one, otherwise builds a new one (channels per
+// blended object, MRSG timing tables for each sync point) and returns it through the last argument.
+extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb, int c, ELEM *elements, int n, int *pa, int *pb, ASEG **ppx)
 {
     ELEM *pe;
     ELEM *pel;
@@ -138,7 +143,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
         pe = PELEM(i);
         if (pe->paseg) {
             if (!pxFirst) pxFirst = pe->paseg;
-            if (!pxCopy && (pe->paseg->x98 || pe->paseg->xA8 || pe->paseg->xA0)) pxCopy = pe->paseg;
+            if (!pxCopy && (pe->paseg->x98 || pe->paseg->xA8 || pe->paseg->keyCount)) pxCopy = pe->paseg;
             if (!pxName) pxName = pe->paseg->x0 ? pe->paseg : 0;
         }
     }
@@ -148,24 +153,24 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
         ASEG *pxNew = PloNew__F3CIDP2SO3OIDi(0x6E, p, -1, -1);
         pxNew->Init();
         pxNew->cb = cb;
-        pxNew->cElem = c;
-        pxNew->aelem = aelem;
+        pxNew->elementCount = c;
+        pxNew->elements = elements;
         pxNew->n = n;
-        pxNew->ae3 = (BLMRSG *)AllocFromWorldHeap(AREQ(n * 12));
+        pxNew->syncTables = (BLMRSG *)AllocFromWorldHeap(AREQ(n * 12));
         for (int ie = 0; ie < n; ie++) {
-            BLMRSG *pe3 = &pxNew->ae3[ie];
+            BLMRSG *pe3 = &pxNew->syncTables[ie];
             pe3->ib = pa[ie];
             int b = pb[ie];
-            pe3->cmrsg = b;
-            pe3->amrsg = (MRSG *) AllocFromWorldHeap(AREQ(b * 8));
+            pe3->syncCount = b;
+            pe3->syncTable = (MRSG *) AllocFromWorldHeap(AREQ(b * 8));
         }
         
         if (pxCopy) {
-            pxNew->pxD8 = pxCopy;
+            pxNew->linkedBlend = pxCopy;
             pxNew->x98 = pxCopy->x98;
             pxNew->x9C = pxCopy->x9C;
-            pxNew->xA0 = pxCopy->xA0;
-            { void *pvOld = pxCopy->xA4; pxNew->xA4 = (KEY *)AllocCopyFromWorldHeap(AREQ(pxCopy->xA0 << 4), pvOld); }
+            pxNew->keyCount = pxCopy->keyCount;
+            { void *pvOld = pxCopy->keys; pxNew->keys = (KEY *)AllocCopyFromWorldHeap(AREQ(pxCopy->keyCount << 4), pvOld); }
             pxNew->xA8 = pxCopy->xA8;
             pxNew->xAC = pxCopy->xAC;
         }
@@ -174,26 +179,26 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             for (i = 0; i < c; i++) {
                 if (PELEM(i)->paseg) cTotal += PELEM(i)->paseg->c;
             }
-            pxNew->aent = (ENT *)AllocClearedFromStack(AREQ(cTotal * 8));
+            pxNew->entries = (ENT *)AllocClearedFromStack(AREQ(cTotal * 8));
             pxNew->c = 0;
         }
         for (i = 0; i < c; i++) {
             pel = PELEM(i);
             if (!pel->paseg) continue;
             for (j = 0; j < pel->paseg->c; j++) {
-                ENT *pent = &pel->paseg->aent[j];
+                ENT *pent = &pel->paseg->entries[j];
                 ENT *pentNew;
                 OBJ *pobj;
                 int k;
                 if (pent->f30) continue;
                 k = 0;
-                ENT *aent = pxNew->aent;
+                ENT *entries = pxNew->entries;
                 for (; k < pxNew->c; k++) {
-                    pentNew = &pxNew->aent[k];
-                    if ((*(unsigned *)pent & 0x3FFFFFFF) == (*(unsigned *)&aent[k] & 0x3FFFFFFF))
+                    pentNew = &pxNew->entries[k];
+                    if ((*(unsigned *)pent & 0x3FFFFFFF) == (*(unsigned *)&entries[k] & 0x3FFFFFFF))
                         goto found;
                 }
-                pentNew = &pxNew->aent[pxNew->c++];
+                pentNew = &pxNew->entries[pxNew->c++];
                 pentNew->n = (*(unsigned *)pent << 12) >> 12;
                 pentNew->k = pent->k;
             found:
@@ -202,10 +207,10 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             if (!pentNew->pobj) {
             int a; void *pv;
             pobj = PacNewKind(5);
-            func_0012FE58(pxNew, p, pentNew, &a, &pv);
-            pobj->q10 = func_0022CA18(pv, pv);
+            ResolveAsegChannelTarget(pxNew, p, pentNew, &a, &pv);
+            pobj->q10 = GetXfValueFromMatrix(pv, pv);
             pobj->px = pxNew;
-            pobj->ae3 = pxNew->ae3;
+            pobj->syncTables = pxNew->syncTables;
             pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
             pentNew->pobj = pobj;
             } else pobj = pentNew->pobj;
@@ -213,7 +218,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             if (!pentNew->pobj) {
             pobj = PacNewKind2(2);
             pobj->px = pxNew;
-            pobj->ae3 = pxNew->ae3;
+            pobj->syncTables = pxNew->syncTables;
             pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
             pentNew->pobj = pobj;
             *(unsigned *)pentNew |= mF31;
@@ -223,17 +228,17 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
                 __asm__("" : : "r"(i * 4));  /* empty asm, allocation only: one more ref on the i*4 giv */
             }
         }
-        { ENT *aentOld = pxNew->aent; pxNew->aent = (ENT *)AllocCopyFromWorldHeap(AREQ(pxNew->c * 8), aentOld); }
+        { ENT *aentOld = pxNew->entries; pxNew->entries = (ENT *)AllocCopyFromWorldHeap(AREQ(pxNew->c * 8), aentOld); }
         pxNew->x6C = pxFirst->x6C;
         pxNew->g78 = pxFirst->g78;
-        pxNew->xD4 = -1;
+        pxNew->dominantElement = -1;
         if (pxName) FramePtr_Assign(pxNew, pxName->x0);
-        pe = aelem;
+        pe = elements;
         for (i = 0; i < c; i++) {
             pe->w = (pe->paseg == pxFirst) ? 1.0f : 0.0f;
             pe = (ELEM *)((char *)pe + cb);
         }
-        func_001384C0(pxNew);
+        RecalculateAsegBlend(pxNew);
         *ppx = pxNew;
     }
 }
@@ -244,28 +249,31 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-void FillBlAmrsg(int cbBl, int cbl, void *pbl, int ibAmrsg, int coid, OID *aoid)
+// Fills each blended segment's MRSG timing table: for every sync-point OID, the time at which that segment reaches it and
+// the duration to the next sync point (wrapping around the segment's length). These tables let segments of different
+// lengths stay in step while blended.
+void FillBlAmrsg(int elementSize, int elementCount, void *elements, int tableOffset, int syncCount, OID *syncOids)
 {
-    int ibl;
-    for (ibl = 0; ibl < cbl; ibl++) {
-        ELEM *pblT = (ELEM *)((char *)pbl + ibl * cbBl);
-        ASEG *palo = pblT->paseg;
-        if (palo) {
-            MRSG *amrsg = (MRSG *)((char *)pblT + ibAmrsg);
-            MRSG *pmrsgPrev;
-            MRSG *pmrsg;
+    int elementIndex;
+    for (elementIndex = 0; elementIndex < elementCount; elementIndex++) {
+        ELEM *element = (ELEM *)((char *)elements + elementIndex * elementSize);
+        ASEG *segment = element->paseg;
+        if (segment) {
+            MRSG *syncTable = (MRSG *)((char *)element + tableOffset);
+            MRSG *previous;
+            MRSG *entry;
             int i;
-            pmrsg = amrsg;
-            for (i = 0; i < coid; i++, pmrsg++)
-                pmrsg->t = func_0012F990(palo, aoid[i]);
-            pmrsg = amrsg;
-            pmrsgPrev = &pmrsg[coid - 1];
-            for (i = 0; i < coid; i++, pmrsg++) {
-                float dt = pmrsg->t - pmrsgPrev->t;
-                pmrsgPrev->dt = dt;
+            entry = syncTable;
+            for (i = 0; i < syncCount; i++, entry++)
+                entry->t = GetAsegLabelTime(segment, syncOids[i]);
+            entry = syncTable;
+            previous = &entry[syncCount - 1];
+            for (i = 0; i < syncCount; i++, entry++) {
+                float dt = entry->t - previous->t;
+                previous->dt = dt;
                 if (dt < 0.0f)
-                    pmrsgPrev->dt = dt + palo->tMax;
-                pmrsgPrev = pmrsg;
+                    previous->dt = dt + segment->tMax;
+                previous = entry;
             }
         }
     }
@@ -276,61 +284,63 @@ void FillBlAmrsg(int cbBl, int cbl, void *pbl, int ibAmrsg, int coid, OID *aoid)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRSG *amrsg, float *pf)
+// Computes the blend's own timing table as the weight-averaged durations of the segments' tables (and, through pf, the
+// blend's total length); with no sync points the length is simply the weighted average of the segment lengths.
+extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *blend, int tableOffset, int count, MRSG *syncTable, float *totalLength)
 {
-    float gSum = 0.0f;
+    float sum = 0.0f;
     int i;
-    if (c == 0) {
-        if (pf) {
-            for (i = 0; i < p->cElem; i++) {
-                ELEM *pe = (ELEM *)((char *)p->aelem + i * p->cb);
-                if (pe->w != 0.0f)
-                    gSum += pe->paseg->tMax * pe->w;
+    if (count == 0) {
+        if (totalLength) {
+            for (i = 0; i < blend->elementCount; i++) {
+                ELEM *element = (ELEM *)((char *)blend->elements + i * blend->cb);
+                if (element->w != 0.0f)
+                    sum += element->paseg->tMax * element->w;
             }
-            *pf = gSum;
+            *totalLength = sum;
         }
         return;
     }
-    for (i = 0; i < c; i++) {
+    for (i = 0; i < count; i++) {
         int j;
-        amrsg[i].dt = 0.0f;
-        for (j = 0; j < p->cElem; j++) {
-            ELEM *pe = (ELEM *)((char *)p->aelem + j * p->cb);
-            if (pe->w != 0.0f)
-                amrsg[i].dt += ((MRSG *)((char *)pe + ib))[i].dt * pe->w;
+        syncTable[i].dt = 0.0f;
+        for (j = 0; j < blend->elementCount; j++) {
+            ELEM *element = (ELEM *)((char *)blend->elements + j * blend->cb);
+            if (element->w != 0.0f)
+                syncTable[i].dt += ((MRSG *)((char *)element + tableOffset))[i].dt * element->w;
         }
-        gSum += amrsg[i].dt;
+        sum += syncTable[i].dt;
     }
     {
         int fFirst = 1;
         float gAvg, gFirst;
-        for (i = 0; i < p->cElem; i++) {
-            ELEM *pe = (ELEM *)((char *)p->aelem + i * p->cb);
-            if (pe->w != 0.0f) {
+        for (i = 0; i < blend->elementCount; i++) {
+            ELEM *element = (ELEM *)((char *)blend->elements + i * blend->cb);
+            if (element->w != 0.0f) {
                 if (fFirst) {
                     fFirst = 0;
-                    gAvg = *(float *)((char *)pe + ib) / pe->paseg->tMax;
+                    gAvg = *(float *)((char *)element + tableOffset) / element->paseg->tMax;
                     gFirst = gAvg;
                 } else {
-                    float d = *(float *)((char *)pe + ib) / pe->paseg->tMax - gFirst;
+                    float d = *(float *)((char *)element + tableOffset) / element->paseg->tMax - gFirst;
                     if (d <= -0.5f)
                         d += 1.0f;
                     else if (0.5f < d)
                         d -= 1.0f;
-                    gAvg += d * pe->w;
+                    gAvg += d * element->w;
                 }
             }
         }
-        amrsg[0].t = GModPositive__Fff(gAvg, 1.0f) * gSum;
+        syncTable[0].t = GModPositive__Fff(gAvg, 1.0f) * sum;
     }
-    for (i = 1; i < c; i++) {
-        float g = amrsg[i - 1].t + amrsg[i - 1].dt;
-        amrsg[i].t = g;
-        if (gSum <= g)
-            amrsg[i].t = g - gSum;
+    for (i = 1; i < count; i++) {
+        float g = syncTable[i - 1].t + syncTable[i - 1].dt;
+        syncTable[i].t = g;
+        if (sum <= g)
+            syncTable[i].t = g - sum;
     }
-    if (pf)
-        *pf = gSum;
+    if (totalLength)
+        *totalLength = sum;
 }
 
 /** @sly2-annot addr=0x138370
@@ -338,18 +348,20 @@ extern "C" void CalculateBlendAmrsg__FiiPviiP4MRSGPf(ASEG *p, int ib, int c, MRS
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-int ImrsgLookUp(float t, float tMax, int cmrsg, MRSG *amrsg, float *pdt)
+// Finds which sync-point interval of an MRSG table contains time t (wrapping at tMax); returns its index and, through
+// pdt, the time elapsed since that sync point. Returns cmrsg when no interval matches.
+int ImrsgLookUp(float t, float duration, int syncCount, MRSG *syncTable, float *elapsed)
 {
     int i;
     float dt;
-    for (i = 0; ; amrsg++, i++) {
-        if (i >= cmrsg) goto done;
-        if (amrsg->dt == 0.0f) continue;
-        dt = t - amrsg->t;
-        if (dt < 0.0f) dt += tMax;
-        if (dt < amrsg->dt + 0.0001f) break;
+    for (i = 0; ; syncTable++, i++) {
+        if (i >= syncCount) goto done;
+        if (syncTable->dt == 0.0f) continue;
+        dt = t - syncTable->t;
+        if (dt < 0.0f) dt += duration;
+        if (dt < syncTable->dt + 0.0001f) break;
     }
-    if (pdt) *pdt = dt;
+    if (elapsed) *elapsed = dt;
 done:
     return i;
 }
@@ -366,16 +378,18 @@ namespace RO_ORDER { extern const float r_D_002A4AF0 __asm__("D_002A4AF0") = -3.
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-extern "C" void SetAsegblDominantBl(ASEG *p, int n) {
-    LINK *pa;
-    CHNE *pc;
-    if (n == p->xD4) return;
-    p->xD4 = n;
-    for (pa = p->plinkFirst; pa; pa = pa->pnext) {
-        for (pc = pa->pcFirst; pc; pc = pc->pnext) {
-            if (pc->f1c && func_0012CEE0(pc)) {
-                CHN *px = pc->px;
-                px->x80 = px->x84 = D_002A4AF0; px->x88 = px->x8C = (float *)D_002C44E0; px->x9A = 0;
+// Records which blended segment dominates (weight above 0.9999, or -1 for none); when it changes, resets the smoothing
+// state of every live action on the blend's channels so they do not interpolate across the switch.
+extern "C" void SetAsegblDominantBl(ASEG *blend, int dominant) {
+    LINK *link;
+    CHNE *channelEntry;
+    if (dominant == blend->dominantElement) return;
+    blend->dominantElement = dominant;
+    for (link = blend->links; link; link = link->next) {
+        for (channelEntry = link->firstChannel; channelEntry; channelEntry = channelEntry->next) {
+            if (channelEntry->f1c && IsActCurrent(channelEntry)) {
+                CHN *channel = channelEntry->px;
+                channel->x80 = channel->x84 = D_002A4AF0; channel->x88 = channel->x8C = (float *)D_002C44E0; channel->x9A = 0;
             }
         }
     }
@@ -390,37 +404,40 @@ extern "C" void SetAsegblDominantBl(ASEG *p, int n) {
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
-extern "C" void func_001384C0(ASEG *p)
+// Re-blends a blend segment after its weights changed (Sly 1: ReblendAsegbl): updates the dominant segment, recomputes the
+// blended timing tables and total length while keeping the links' relative times, and mirrors times onto a linked
+// blend (+0xD8) so paired blends stay in sync.
+extern "C" void RecalculateAsegBlend(ASEG *blend)
 {
     int unused[4];
     int i;
-    LINK *pl;
+    LINK *link;
     {
         int j;
-        j = p->cElem;
+        j = blend->elementCount;
         do {
             if (--j < 0)
                 break;
-            if (0.9999f < *(float *)((char *)p->aelem + j * p->cb))
+            if (0.9999f < *(float *)((char *)blend->elements + j * blend->cb))
                 break;
         } while (1);
-        SetAsegblDominantBl(p, j);
+        SetAsegblDominantBl(blend, j);
     }
-    for (pl = p->plinkFirst; pl; pl = pl->pnext)
-        pl->g1C = pl->g1C / p->tMax;
-    for (i = 0; i < p->n; i++) {
-        BLMRSG *pe = &p->ae3[i];
-        CalculateBlendAmrsg__FiiPviiP4MRSGPf(p, pe->ib, pe->cmrsg, pe->amrsg, &p->tMax);
+    for (link = blend->links; link; link = link->next)
+        link->relativeTime = link->relativeTime / blend->tMax;
+    for (i = 0; i < blend->n; i++) {
+        BLMRSG *syncInfo = &blend->syncTables[i];
+        CalculateBlendAmrsg__FiiPviiP4MRSGPf(blend, syncInfo->ib, syncInfo->syncCount, syncInfo->syncTable, &blend->tMax);
     }
-    if (p->n == 0)
-        CalculateBlendAmrsg__FiiPviiP4MRSGPf(p, 0, 0, 0, &p->tMax);
-    for (pl = p->plinkFirst; pl; pl = pl->pnext)
-        pl->g1C = pl->g1C * p->tMax;
-    if (p->pxD8) {
-        float r = p->tMax / p->pxD8->tMax;
+    if (blend->n == 0)
+        CalculateBlendAmrsg__FiiPviiP4MRSGPf(blend, 0, 0, 0, &blend->tMax);
+    for (link = blend->links; link; link = link->next)
+        link->relativeTime = link->relativeTime * blend->tMax;
+    if (blend->linkedBlend) {
+        float ratio = blend->tMax / blend->linkedBlend->tMax;
         int k;
-        for (k = 0; k < p->xA0; k++)
-            p->xA4[k].t = r * p->pxD8->xA4[k].t;
+        for (k = 0; k < blend->keyCount; k++)
+            blend->keys[k].t = ratio * blend->linkedBlend->keys[k].t;
     }
 }
 
@@ -449,6 +466,9 @@ static __inline__ qword MaddN(qword a, qword v, qword s)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Evaluates a blended pose channel (vtable label BlendChannelPose): with a dominant segment it forwards to that segment's
+// channel; otherwise it maps the blend time onto each weighted segment through the MRSG tables, evaluates each segment's
+// channel and weight-sums the positions and rotations into the output channel record.
 void AC5::VSlot2(CHN *pq)
 { BLCHNQ *p = (BLCHNQ *)this;
     VU c, d;
@@ -460,8 +480,8 @@ void AC5::VSlot2(CHN *pq)
     int iSeg, i;
     ASEG *pa = p->paseg;
 
-    if (pa->xD4 >= 0) {
-        CHNO *po = p->apo[pa->xD4];
+    if (pa->dominantElement >= 0) {
+        CHNO *po = p->apo[pa->dominantElement];
         if (po) {
             VTE *e = &po->vt[2];
             ((void (*)(void *, CHN *))e->pfn)((char *)po + e->d, pq);
@@ -492,15 +512,15 @@ void AC5::VSlot2(CHN *pq)
         if (!p->pblmrsg) {
             u = tCur / pa->tMax;
         } else {
-            iSeg = ImrsgLookUp(tCur, pa->tMax, p->pblmrsg->cmrsg, p->pblmrsg->amrsg, &t[0]);
-            u = t[0] / p->pblmrsg->amrsg[iSeg].dt;
+            iSeg = ImrsgLookUp(tCur, pa->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &t[0]);
+            u = t[0] / p->pblmrsg->syncTable[iSeg].dt;
         }
     }
     __asm__("vsub.xyzw %0, $vf0, $vf0" : "=j"(a));
     i = 0;
     b = a;
-    for (; i < p->paseg->cElem; i++) {
-        ELEM *pe = (ELEM *)((char *)p->paseg->aelem + i * p->paseg->cb);
+    for (; i < p->paseg->elementCount; i++) {
+        ELEM *pe = (ELEM *)((char *)p->paseg->elements + i * p->paseg->cb);
         CHNO *po;
         if (pe->w == 0.0f)
             continue;
@@ -523,7 +543,7 @@ void AC5::VSlot2(CHN *pq)
                 t[1] = ps->t + u * g4;
                 if (gMax < t[1])
                     t[1] -= gMax;
-                ratio = g4 / pb->amrsg[iSeg].dt;
+                ratio = g4 / pb->syncTable[iSeg].dt;
             }
             func_002333B4(&q, 0, 0x100);
             q.x88 = &t[1];
@@ -578,6 +598,8 @@ static __inline__ qword Madd(qword a, qword v, qword s)
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Evaluates a blended position/rotation curve at time t (rate = time scale): maps t into each weighted segment's time
+// through the MRSG tables, evaluates the segment curves and returns their weighted sum (VU0 asm).
 void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
 { BLCHNQ *p = (BLCHNQ *)this;
     float u;
@@ -591,20 +613,20 @@ void AC5::Evaluate(qword *ppos, qword *prot, float t, float rate)
         u = t / p->paseg->tMax;
     } else {
         float tLocal;
-        iSeg = ImrsgLookUp(t, p->paseg->tMax, p->pblmrsg->cmrsg, p->pblmrsg->amrsg, &tLocal);
-        pseg = &p->pblmrsg->amrsg[iSeg];
+        iSeg = ImrsgLookUp(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &tLocal);
+        pseg = &p->pblmrsg->syncTable[iSeg];
         u = tLocal / pseg->dt;
     }
     i = 0;
     pa = p->paseg;
     b.q = a.q = D_002A2DD0;
     do {
-    if (pa->cElem <= 0)
+    if (pa->elementCount <= 0)
         goto done;
 top:
     {
         int off = i * pa->cb;
-        char *base = (char *)pa->aelem;
+        char *base = (char *)pa->elements;
         ELEM *pe;
         CHNO *po;
         float zero = 0.0f;
@@ -650,7 +672,7 @@ top:
     }
 next:
     pa = p->paseg;
-    if (++i < pa->cElem)
+    if (++i < pa->elementCount)
         goto top;
     } while (0);
 done:
@@ -667,6 +689,8 @@ done:
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/animation.md#blend-0x137a30-0x138f08
  * @end-sly2-annot */
+// Evaluates a blended float curve (vtable label EvaluateBlendFloatCurve): weighted sum over the blended segments of each
+// segment's float curve value and its rate, at the MRSG-mapped time.
 void ACG2::Evaluate(float t, float r, float *pa, float *pb)
 { BLCHNF *p = (BLCHNF *)this;
     float g0;
@@ -681,14 +705,14 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
     if (p->pblmrsg == 0) {
         rate = t / p->paseg->tMax;
     } else {
-        idx = ImrsgLookUp(t, p->paseg->tMax, p->pblmrsg->cmrsg, p->pblmrsg->amrsg, &g0);
-        pe = &p->pblmrsg->amrsg[idx];
+        idx = ImrsgLookUp(t, p->paseg->tMax, p->pblmrsg->syncCount, p->pblmrsg->syncTable, &g0);
+        pe = &p->pblmrsg->syncTable[idx];
         rate = g0 / pe->dt;
     }
     sb = 0.0f;
     sa = sb;
-    for (i = 0; i < p->paseg->cElem; i++) {
-        ELEM *pw = (ELEM *)((char *)p->paseg->aelem + i * p->paseg->cb);
+    for (i = 0; i < p->paseg->elementCount; i++) {
+        ELEM *pw = (ELEM *)((char *)p->paseg->elements + i * p->paseg->cb);
         CHNO *pv;
         if (pw->w == 0.0f)
             continue;
@@ -722,9 +746,9 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
 }
 
 // AC5's vtable 0x2CB5A8 and ACG2's 0x2CB588 (sly2/act.h; act.cpp's PacNewKind/PacNewKind2 construct them) sit
-// right before blip's _vt$5BLIPG in .data: this is their key TU (AC5::VSlot2 = func_00138660 and ACG2::Evaluate =
-// func_00138BA0 above are the key functions), so g++ emits both vtables here, and AC5's inline slot 4 below comes
-// out of line with them, weak in .gnu.linkonce.t.func_002581B8. The asm label keeps the config name (HYPOTHESIS:
+// right before blip's _vt$5BLIPG in .data: this is their key TU (AC5::VSlot2 = BlendChannelPose and ACG2::Evaluate =
+// EvaluateBlendFloatCurve above are the key functions), so g++ emits both vtables here, and AC5's inline slot 4 below comes
+// out of line with them, weak in .gnu.linkonce.t.GetBlendCurveKind. The asm label keeps the config name (HYPOTHESIS:
 // in the original an in-class `virtual int Kind() { return 5; }`). The classes are declared on the BLCHNF line
 // near the top of the file, so that the functions above keep their line numbers.
 /** @sly2-annot addr=0x2581B8
@@ -733,4 +757,5 @@ void ACG2::Evaluate(float t, float r, float *pa, float *pb)
  * Confidence: low (draft) [T2 0.15] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// The blended curve's kind: always 5 (inferred: an in-class inline virtual; emitted out of line here as linkonce).
 inline int AC5::VSlot4() { return 5; }

@@ -111,7 +111,7 @@ EFFECT*PsndStartSound(int);void SetSndSourceLo(EFFECT*,void*);void SetSndSourceP
 qword GetLoWorldPos(void*);qword ConvertAloPos(void*,void*,qword);
 void ChooseJtSweepTarget(JT*,BLEND*,ASEG*);
 int IsmsFindSmOptional__FP2SM3OID(SM*,int);void SnapSma(COMPONENT*,int);
-void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void func_00131A90(ASEGA*,float);
+void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(ASEG*,JT*,float,float,int,ASEGA**);void SetAsegaChannelWeight(ASEGA*,float);
 }
 static __inline__ void Emit(JT*jt,int id){if(id!=-1){EFFECT*effect=PsndStartSound(id);SetSndSourceLo(effect,0);SetSndSourcePos(effect,GetLoWorldPos(jt));}}
 static __inline__ void Active(NODE*p){VE&v=p->vt[8];((void(*)(void*))v.fn)((char*)p+v.delta);}
@@ -135,7 +135,7 @@ int GrfConsumePressed__5POCTLUif(POCTL *, int, float);
 void SetJtAirJump(void *, int, int, int);
 void SetJtCaneState__FP2JTi(JT *, int);
 void ChooseJtAttackTarget(ALO *p, float heading, int mask, float dt, U *offset, ALO **out, qword *outvector, float cone);
-void func_001384C0(ASEG *);
+void RecalculateAsegBlend(ASEG *);
 void SetStepTargetHeadingFromVector(JT *, qword);
 void FixStepAngularVelocity(JT *);
 void SetStepTargetHeading(JT *, float);
@@ -326,7 +326,7 @@ extern "C" void SetJtCaneState__FP2JTi(JT*jt,int state){
  ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clipArgument,jt,startArgument,rateArgument,1,&jt->current);
  if(stopDelay!=0.0f){register ASEGA*current __asm__("$4");register float stopTime __asm__("$f12");
   __asm__ __volatile__("lui $3,%%hi(%2)\n\tlw %0,%3\n\tlwc1 %1,%%lo(%2)($3)":"=r"(current),"=f"(stopTime):"i"(&D_002DDED0),"m"(jt->current):"$3","memory");
-  func_00131A90(current,stopTime+stopDelay);
+  SetAsegaChannelWeight(current,stopTime+stopDelay);
  }
  Emit(jt,enterEffect);
 }
@@ -690,7 +690,7 @@ extern "C" void ChooseJtSweepTarget(JT *jt, BLEND *blend, ASEG *aseg)
     else t = 1.0f;
     blend->outgoing = t;
     blend->incoming = 1.0f - t;
-    func_001384C0(aseg);
+    RecalculateAsegBlend(aseg);
     jt->surface = alo;
     if (alo && jt->mode == 0) {
         SetStepTargetHeadingFromVector(jt, v.q);

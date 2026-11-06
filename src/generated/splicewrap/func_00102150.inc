@@ -1,6 +1,6 @@
 #include "splicewrap.h"
 void CRef_SetBool(void *, s32);                 /* extern */
-s32 func_001FE848(s32, s32);                        /* extern */
+s32 IsDialogPlaying(s32, s32);                        /* extern */
 
 CRef *func_00102150(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
@@ -9,7 +9,7 @@ CRef *func_00102150(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     s32 arg0_v;
     aotyp[0] = 0x10;
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 1, aref, aotyp, &arg0_v);
-    CRef_SetBool(&ref, func_001FE848(pbasic, arg0_v) != 0);
+    CRef_SetBool(&ref, IsDialogPlaying(pbasic, arg0_v) != 0);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

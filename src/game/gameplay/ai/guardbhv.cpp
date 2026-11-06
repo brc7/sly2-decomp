@@ -480,7 +480,7 @@ void StartBhvanim(struct S *p);
 int StepguardHasSgf(struct T *t, int n);
 void SetStepguardAttack(struct T *t, int a, int b, qword q);
 void ResetDetectorTargets(void *p);
-void func_002303A0(struct T *t, int a, int b);
+void SetXfRole(struct T *t, int a, int b);
 // 0x174FF8: BHVIDLE vtable slot 8 (Start): BHVANIM Start; with the hands-off flag (1) also cancels the attack and
 // resets the detector targets; sets the XF roles.
 void StartBhvidle(struct S *behavior) {
@@ -490,8 +490,8 @@ void StartBhvidle(struct S *behavior) {
         ResetDetectorTargets(behavior->guard->detector);
         if (behavior->guard->nFCC) behavior->n38 = behavior->guard->nFCC;
     }
-    func_002303A0(behavior->guard, behavior->guard->n58, 1);
-    if (!behavior->n38) func_002303A0(behavior->guard, behavior->guard->n5C, 1);
+    SetXfRole(behavior->guard, behavior->guard->n58, 1);
+    if (!behavior->n38) SetXfRole(behavior->guard, behavior->guard->n5C, 1);
 }
 } } // namespace M_StartBhvidle
 
@@ -501,9 +501,9 @@ struct T; struct S;
 struct T { char pad[0x58]; int n58; int n5C; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; int n38; };
 void CloseBhvanim(struct S *p);
-void func_002303A0(struct T *t, int a, int b);
+void SetXfRole(struct T *t, int a, int b);
 // 0x175090: BHVIDLE vtable slot 9 (Close): BHVANIM Close and restores the XF roles.
-void CloseBhvidle(struct S *behavior) { CloseBhvanim(behavior); func_002303A0(behavior->guard, behavior->guard->n58, 2); if (!behavior->n38) func_002303A0(behavior->guard, behavior->guard->n5C, 2); }
+void CloseBhvidle(struct S *behavior) { CloseBhvanim(behavior); SetXfRole(behavior->guard, behavior->guard->n58, 2); if (!behavior->n38) SetXfRole(behavior->guard, behavior->guard->n5C, 2); }
 } } // namespace M_CloseBhvidle
 
 // 0x1750E0 HandleBhvidleMessage
@@ -514,14 +514,14 @@ struct T { char pad[0x5C]; int n5C; char pad2[0x1A4 - 0x60]; int unknown1A4; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x24]; int n38; char pad3[4]; void *binding; };
 int GetAnimBindingInstance(void *p);
 int HandleBhvanimMessage(struct S *p, int msg, struct M *pm);
-void func_002303A0(struct T *t, int a, int b);
+void SetXfRole(struct T *t, int a, int b);
 // 0x1750E0: BHVIDLE vtable slot 13 (HandleMessage): ASEG events 0x29/0x2A toggle the ground flag and the XF role;
 // else the BHVANIM handler.
 int HandleBhvidleMessage(struct S *behavior, int msg, struct M *pm) {
     if (msg == 9 && behavior->binding && GetAnimBindingInstance(behavior->binding) == pm->n0) {
         switch (pm->n8) {
-        case 0x29: behavior->guard->unknown1A4 = 1; func_002303A0(behavior->guard, behavior->guard->n5C, 2); return 1;
-        case 0x2A: behavior->guard->unknown1A4 = 0; if (!behavior->n38) func_002303A0(behavior->guard, behavior->guard->n5C, 1); return 1;
+        case 0x29: behavior->guard->unknown1A4 = 1; SetXfRole(behavior->guard, behavior->guard->n5C, 2); return 1;
+        case 0x2A: behavior->guard->unknown1A4 = 0; if (!behavior->n38) SetXfRole(behavior->guard, behavior->guard->n5C, 1); return 1;
         }
     }
     return HandleBhvanimMessage(behavior, msg, pm);
@@ -4226,9 +4226,9 @@ struct W { char pad[0xA0]; int nA0; };
 struct T { char pad[0x58]; struct W *p58; };
 struct S { char pad[0x10]; struct T *guard; char pad2[0x48]; struct O *holder; int isHoldActive; struct U *holdAct; };
 void CalculateBhvjuggledHoldPoint(struct S *p, struct R *r, qword *a, qword *b);
-qword func_0022FC48(int a, int b, qword q);
+qword TransformXfPos(int a, int b, qword q);
 qword ConvertXfVec(int a, int b, qword q);
-void func_0012E0F0(struct U *u, qword a, qword b);
+void SetRestActPose(struct U *u, qword a, qword b);
 // 0x17ABC8: Re-queries the holder and updates the attach act's target.
 void UpdateBhvjuggledHoldAct(struct S *behavior) {
     struct R r;
@@ -4240,8 +4240,8 @@ void UpdateBhvjuggledHoldAct(struct S *behavior) {
     if (!r.n0) { behavior->isHoldActive = 0; return; }
     w = behavior->guard->p58;
     CalculateBhvjuggledHoldPoint(behavior, &r, &q30, &q40);
-    a = func_0022FC48(0, w->nA0, q30);
-    func_0012E0F0(behavior->holdAct, a, ConvertXfVec(0, w->nA0, q40));
+    a = TransformXfPos(0, w->nA0, q30);
+    SetRestActPose(behavior->holdAct, a, ConvertXfVec(0, w->nA0, q40));
 }
 } } // namespace M_func_0017ABC8
 
@@ -4404,8 +4404,8 @@ int GetAnimBindingInstance(struct C *c);
 int IsAnimBindingDone(struct C *c);
 void StopAnimBinding(struct C *c);
 void StartAnimBinding(struct C *c, struct A *a, int fl, float g);
-float *func_0012F938(void *p, void *q);
-void func_00130D30(void *p, float a, float b, int n);
+float *FindAsegLabel(void *p, void *q);
+void SeekAsega(void *p, float a, float b, int n);
 void SetBhvjuggledState(struct S *p, int n);
 struct O *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int a, int b, int c);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
@@ -4439,11 +4439,11 @@ int HandleBhvjuggledMessage(struct S *behavior, int msg, struct M *pm) {
             g = 0.0f;
             i = 4; if (behavior->hitCount <= 3) i = behavior->hitCount;
             while (i > 0) {
-                float *r = func_0012F938(behavior->binding->p4, D_002BE6D0[i]);
+                float *r = FindAsegLabel(behavior->binding->p4, D_002BE6D0[i]);
                 if (r) { g = *r; break; }
                 i--;
             }
-            func_00130D30(behavior->binding->p8, g, 1.0f, 0);
+            SeekAsega(behavior->binding->p8, g, 1.0f, 0);
             SetBhvjuggledState(behavior, 0);
             o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 5, D_002BE6E8[i], 0);
             if (o) {
@@ -4503,20 +4503,20 @@ extern "C"{
  extern U D_002A2DC0;
  extern char D_003DD490[],D_002DFC00[];
  void SetSoMass(P*,float);
- void func_00130D30(ASEGA*,int,float,float);
+ void SeekAsega(ASEGA*,int,float,float);
  void ReleaseAct(DELTA**);
- void func_002303A0(P*,GROUP*,int);
+ void SetXfRole(P*,GROUP*,int);
  void RecalcSwOxfFilterForObject(void*,P*);
  void FreeSoContacts(P*);
  void SetBhvanimState(C*,int);
  void CalculateBhvjuggledHoldPoint(C*,REQUEST*,U*,U*);
  qword GetLoWorldPos(P*);
- qword func_0022FC48(void*,void*,qword);
+ qword TransformXfPos(void*,void*,qword);
  qword ConvertXfVec(void*,void*,qword);
- DELTA*func_0012DE58(P*,GROUP*,void*,float,qword,qword);
+ DELTA*NewBezierAct(P*,GROUP*,void*,float,qword,qword);
  P*GetHeroPo(void*);
  void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void*,int,float);
- ENTRY*func_0012F938(void*,int);
+ ENTRY*FindAsegLabel(void*,int);
 }
 // Asks the holder for a hold request (its vtable slot 96).
 static inline void Request(P*p,REQUEST*r,float duration){VE*v=&p->vt[96];((void(*)(P*,REQUEST*,float))v->fn)((P*)((char*)p+v->delta),r,duration);}
@@ -4605,10 +4605,10 @@ extern "C" void SetBhvjuggledState(C*behavior,int next){
  if(next==behavior->mode)return;
  switch(behavior->mode){
  case -1:SetSoMass(behavior->guard,D_002BE6FC*behavior->guard->tuning->speed);break;
- case 3:if(next!=-1)func_00130D30(behavior->control->asega,0,0.0f,1.0f);break;
+ case 3:if(next!=-1)SeekAsega(behavior->control->asega,0,0.0f,1.0f);break;
  }
  if((unsigned)behavior->mode<2&&(unsigned)next>=2){
-  ReleaseAct(&behavior->delta);func_002303A0(behavior->guard,behavior->guard->first,2);func_002303A0(behavior->guard,behavior->guard->second,2);
+  ReleaseAct(&behavior->delta);SetXfRole(behavior->guard,behavior->guard->first,2);SetXfRole(behavior->guard,behavior->guard->second,2);
  }
  int was=Still(behavior->mode),now=Still(next);
  behavior->mode=next;
@@ -4647,17 +4647,17 @@ extern "C" void SetBhvjuggledState(C*behavior,int next){
   GROUP*first=behavior->guard->first;
   if(!behavior->delta){
    float end=*(float*)(clockCarrier+(short)(clockAddress&0xffff))+D_002BE700;
-   qword localPoint=func_0022FC48(0,first->space,point.q);
+   qword localPoint=TransformXfPos(0,first->space,point.q);
    qword localDirection=ConvertXfVec(0,first->space,direction.q);
-   behavior->delta=func_0012DE58(behavior->guard,first,0,end,localPoint,localDirection);
+   behavior->delta=NewBezierAct(behavior->guard,first,0,end,localPoint,localDirection);
   }
   int owned=0;if(request.flag)owned=behavior->target->owner==behavior->guard;behavior->owned=owned;
   if(behavior->guard->attention){P*focus=GetHeroPo(D_003DD490);if(focus&&behavior->target==focus)TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00,3,0.15f);}
   break;
  }
- case 3:{ENTRY*entry=func_0012F938(behavior->control->curves,0x3C);if(entry)func_00130D30(behavior->control->asega,0,entry->value,1.0f);break;}
+ case 3:{ENTRY*entry=FindAsegLabel(behavior->control->curves,0x3C);if(entry)SeekAsega(behavior->control->asega,0,entry->value,1.0f);break;}
  case 4:case 5:
-  if(behavior->mode==4){ENTRY*entry=func_0012F938(behavior->control->curves,0x173);if(entry)func_00130D30(behavior->control->asega,0,entry->value,1.0f);}
+  if(behavior->mode==4){ENTRY*entry=FindAsegLabel(behavior->control->curves,0x173);if(entry)SeekAsega(behavior->control->asega,0,entry->value,1.0f);}
   break;
  case 1:case 2:break;
  }

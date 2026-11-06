@@ -57,7 +57,7 @@ struct XFM : public LO
     virtual qword GetAngularVelocity() __asm__("GetXfmAngularVelocity");   /* slot 34 */
     virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("XFM_ApplyTransform");   /* slot 37 */
     virtual void Clone(LO *ploBase) __asm__("CloneXfm");   /* slot 41 */
-    virtual void VSlot49() __asm__("func_0022D750");   /* slot 49: not yet identified */
+    virtual void VSlot49() __asm__("ResolveXfIdInParent");   /* slot 49: not yet identified */
     virtual void VSlot50() __asm__("XFM_RemapClonedXf");   /* slot 50: not yet identified */
 };
 typedef char assert_XFM_size[sizeof(XFM) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

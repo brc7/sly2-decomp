@@ -1,4 +1,7 @@
-// tu_2275B8.cpp -- speaker labels: per-speaker colour, name lookup and the typed-out caption text.
+// tu_2275B8.cpp -- subtitles (the SPEAKERLABEL record, HYPOTHESIS name): the current line's language-string id, its
+// speaker colour, the typed-out caption text and button glyphs. The global subtitle is D_004435F0 (below).
+// Entry points: SetSubtitle / ClearSubtitle (relay, sound, mpeg, mode, letterbox), GetSubtitleText,
+// TrimSubtitleToVoiceProgress and FormatSubtitleButtonGlyphs (hud drawing).
 // TU 0x2275B8..0x227BB8 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_2275B8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00227B98
@@ -17,12 +20,12 @@ struct RGBA {
 };
 
 /* A speaker label (HYPOTHESIS: the name tag of a talking character): speaker kind or oid (-1 = none), its colour
-   and a flag word rendered as characters by func_00227940. */
+   and a flag word rendered as characters by FormatSubtitleButtonGlyphs. */
 struct SPEAKERLABEL
 {
-    int k;          /* +0x0 */
-    RGBA rgba;      /* +0x4 */
-    int grf;        /* +0x8 */
+    int textId;          /* +0x0 */
+    RGBA color;      /* +0x4 */
+    int buttonMask;        /* +0x8 */
 };
 
 struct CRichText { char *pch; };
@@ -38,13 +41,13 @@ extern const char D_002A9878[];
 
 extern "C" {
 RGBA RgbaFromSpeakerCid(int k);
-void func_00227788(SPEAKERLABEL *plabel);
+void ClearSubtitle(SPEAKERLABEL *plabel);
 char *strcpy(char *pchDst, const char *pchSrc);
 void strcpy1(void *p, const void *s);
-float func_001FCFD0(void *p, int id);
+float GetDialogStreamDuration(void *p, int id);
 int CRichText_Cch(CRichText *prt);
-int func_001FE848(void *p, int id);
-float func_001FE888(void *p);
+int IsDialogPlaying(void *p, int id);
+float GetDialogTime(void *p);
 void CRichText_Trim(CRichText *prt, int n);
 int sprintf(char *pch, const char *fmt, ...);
 }
@@ -58,18 +61,20 @@ char *PchzFindSwLangstr(struct SW *psw, int id);
  * See: docs/engine/rendering.md#12-source-files, docs/engine/sound.md#5-source-files,
  *   docs/engine/sound.md#6-key-functions
  * @end-sly2-annot */
-extern "C" RGBA RgbaFromSpeakerCid(int k)
+// The subtitle box colour for a speaker, by the speaker's class id (0x35/0x36/0x37/0x3C/0x3F get their own colours,
+// inferred to be the main characters; everyone else is grey), always half transparent.
+extern "C" RGBA RgbaFromSpeakerCid(int speakerCid)
 {
-    RGBA clr;
-    switch (k) {
-    case 0x35: clr = RGBA(0x33, 0x66, 0x99, 0x7F); break;
-    case 0x37: clr = RGBA(0x33, 0x99, 0x33, 0x7F); break;
-    case 0x36: clr = RGBA(0x99, 0x33, 0x66, 0x7F); break;
-    case 0x3F: clr = RGBA(0x99, 0x33, 0x33, 0x7F); break;
-    case 0x3C: clr = RGBA(0x99, 0x33, 0x99, 0x7F); break;
-    default: clr = RGBA(0x66, 0x66, 0x66, 0x7F); break;
+    RGBA color;
+    switch (speakerCid) {
+    case 0x35: color = RGBA(0x33, 0x66, 0x99, 0x7F); break;
+    case 0x37: color = RGBA(0x33, 0x99, 0x33, 0x7F); break;
+    case 0x36: color = RGBA(0x99, 0x33, 0x66, 0x7F); break;
+    case 0x3F: color = RGBA(0x99, 0x33, 0x33, 0x7F); break;
+    case 0x3C: color = RGBA(0x99, 0x33, 0x99, 0x7F); break;
+    default: color = RGBA(0x66, 0x66, 0x66, 0x7F); break;
     }
-    return clr;
+    return color;
 }
 
 /** @sly2-annot addr=0x227728
@@ -80,11 +85,13 @@ extern "C" RGBA RgbaFromSpeakerCid(int k)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8,
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227728(SPEAKERLABEL *plabel, int k, int b)
+// Sets the current subtitle: clears it, then stores the language-string id of the line and the colour of its speaker.
+// (inferred)
+extern "C" void SetSubtitle(SPEAKERLABEL *subtitle, int textId, int speakerCid)
 {
-    func_00227788(plabel);
-    plabel->k = k;
-    plabel->rgba = RgbaFromSpeakerCid(b);
+    ClearSubtitle(subtitle);
+    subtitle->textId = textId;
+    subtitle->color = RgbaFromSpeakerCid(speakerCid);
 }
 
 /** @sly2-annot addr=0x227788
@@ -93,11 +100,12 @@ extern "C" void func_00227728(SPEAKERLABEL *plabel, int k, int b)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227788(SPEAKERLABEL *plabel)
+// Clears a subtitle: no text (-1), default colour, no button glyphs. (inferred)
+extern "C" void ClearSubtitle(SPEAKERLABEL *subtitle)
 {
-    plabel->k = -1;
-    plabel->rgba = RgbaFromSpeakerCid(-1);
-    plabel->grf = 0;
+    subtitle->textId = -1;
+    subtitle->color = RgbaFromSpeakerCid(-1);
+    subtitle->buttonMask = 0;
 }
 
 /** @sly2-annot addr=0x2277D0
@@ -108,14 +116,16 @@ extern "C" void func_00227788(SPEAKERLABEL *plabel)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_002277D0(SPEAKERLABEL *plabel, char *pch)
+// Copies the subtitle's text from the world's language strings into buffer (empty when there is no subtitle).
+// (inferred)
+extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
 {
-    int k = plabel->k;
-    if (k == -1) {
-        *pch = 0;
+    int textId = subtitle->textId;
+    if (textId == -1) {
+        *buffer = 0;
         return;
     }
-    strcpy(pch, PchzFindSwLangstr((struct SW *)D_003DD490, k));
+    strcpy(buffer, PchzFindSwLangstr((struct SW *)D_003DD490, textId));
 }
 
 /** @sly2-annot addr=0x227820
@@ -124,26 +134,29 @@ extern "C" void func_002277D0(SPEAKERLABEL *plabel, char *pch)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227820(SPEAKERLABEL *plabel, CRichText *prt)
+// Typewriter effect: cuts the subtitle text to the fraction of the voice line played so far (playback position over the
+// line's duration minus half a second) and appends a "|" cursor; once the whole text shows, the cursor blinks at 2 Hz.
+// (inferred)
+extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *text)
 {
-    void *pv;
-    float f;
-    int c, n, fShow;
-    if (plabel->k == -1) return;
-    pv = D_003DD040;
-    f = func_001FCFD0(pv, plabel->k) - 0.5f;
-    c = CRichText_Cch(prt);
-    if (f <= 0.0f || !func_001FE848(pv, plabel->k))
-        n = c;
+    void *soundSystem;
+    float duration;
+    int length, visibleLength, showCursor;
+    if (subtitle->textId == -1) return;
+    soundSystem = D_003DD040;
+    duration = GetDialogStreamDuration(soundSystem, subtitle->textId) - 0.5f;
+    length = CRichText_Cch(text);
+    if (duration <= 0.0f || !IsDialogPlaying(soundSystem, subtitle->textId))
+        visibleLength = length;
     else
-        n = (int)(func_001FE888(pv) / f * (float)c);
-    if (n < c) {
-        CRichText_Trim(prt, n);
-        fShow = 1;
+        visibleLength = (int)(GetDialogTime(soundSystem) / duration * (float)length);
+    if (visibleLength < length) {
+        CRichText_Trim(text, visibleLength);
+        showCursor = 1;
     } else {
-        fShow = (int)(D_002DDED0.t * 4.0f) & 1;
+        showCursor = (int)(D_002DDED0.t * 4.0f) & 1;
     }
-    if (fShow) strcpy1(prt->pch, D_002A97F0);
+    if (showCursor) strcpy1(text->pch, D_002A97F0);
 }
 
 /** @sly2-annot addr=0x227940
@@ -153,14 +166,16 @@ extern "C" void func_00227820(SPEAKERLABEL *plabel, CRichText *prt)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-extern "C" void func_00227940(SPEAKERLABEL *plabel, char *pch)
+// Appends one rich-text glyph per pad button set in the subtitle's button mask (table D_002A97F8: X, O, triangle,
+// square, d-pad, shoulders...), for subtitles that tell the player which button to press. (inferred)
+extern "C" void FormatSubtitleButtonGlyphs(SPEAKERLABEL *subtitle, char *buffer)
 {
-    FLAGCHTABLE t = D_002A97F8;
+    FLAGCHTABLE glyphs = D_002A97F8;
     unsigned int i;
-    *pch = 0;
+    *buffer = 0;
     for (i = 0; i < 16; i++) {
-        if (plabel->grf & t.a[i].mask)
-            sprintf(pch, D_002A9878, t.a[i].ch);
+        if (subtitle->buttonMask & glyphs.a[i].mask)
+            sprintf(buffer, D_002A9878, glyphs.a[i].ch);
     }
 }
 

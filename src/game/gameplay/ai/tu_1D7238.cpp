@@ -60,7 +60,7 @@ void PostSoLoad(SAFEHOUSEV *object);
 void UpdateSo(SAFEHOUSEV *object);
 int GetJoySelectionStepX(void *pjoy);
 int HandleJoyButtons(void *pjoy, int grf);
-void *func_001F07E8(SMA *psma);
+void *GetSmaCurrentState(SMA *psma);
 void SetThiefnetTab(void *pv, int n);
 void FireRelay(SAFEHOUSEV *prelay, int n);
 void SetPoCtlState(SAFEHOUSEV *ppo, int n);
@@ -73,7 +73,7 @@ CRef RefGetSaveVarV(const char *pchz, ...);
 int OidFromSmIsms(SMV *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
 CRef SetValuesFromSpliceList(void *pv, int a, int b, int *pc, void **apv);
-int func_001F0438(SMV *psm, void *pv);
+int FindSmStateRequired(SMV *psm, void *pv);
 void SetSmaGoal(SMA *psma, void *pv);
 void SetCharSelectState(SAFEHOUSEV *safehouse, int state);
 void StepCharSelect(SAFEHOUSEV *safehouse, int d);
@@ -127,7 +127,7 @@ extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
             binding = &safehouse->bindings[i];
             if (i >= (int)safehouse->bindingCount)
                 return;
-            if (binding->state != func_001F07E8(safehouse->stateMachineAnim))
+            if (binding->state != GetSmaCurrentState(safehouse->stateMachineAnim))
                 continue;
             if (!HandleJoyButtons(joystick, binding->buttonMask))
                 continue;
@@ -235,7 +235,7 @@ extern "C" void StepCharSelect(SAFEHOUSEV *safehouse, int delta)
     int index;
     if (safehouse->stateMachineAnim == 0)
         return;
-    index = func_001F0438(safehouse->stateMachine, func_001F07E8(safehouse->stateMachineAnim));
+    index = FindSmStateRequired(safehouse->stateMachine, GetSmaCurrentState(safehouse->stateMachineAnim));
     startIndex = index;
     for (;;) {
         void *stateOid;

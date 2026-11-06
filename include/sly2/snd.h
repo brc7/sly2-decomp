@@ -38,7 +38,7 @@ struct BANKSND : CID151
     virtual void VSlot12() __asm__("ContinueBanksnd");   /* slot 12 */
     virtual void VSlot13() __asm__("ApplyBanksndParams");   /* slot 13 */
     virtual void VSlot14() __asm__("BANKSND_QueryStatus");   /* slot 14 */
-    virtual void VSlot15() __asm__("func_001FC018");   /* slot 15 */
+    virtual void VSlot15() __asm__("SetBankSoundCulled");   /* slot 15 */
 };
 
 /* STREAMSND: a sound streamed from disc (DRAFT name). */
@@ -47,14 +47,14 @@ struct STREAMSND : CID151
     virtual void VUnk00() __asm__("IncrefStreamsnd");   /* slot 1; key function (sound.cpp) */
     virtual void VUnk01() __asm__("DecrefStreamsnd");   /* slot 2 */
     virtual void Start() __asm__("StartStreamsnd");   /* slot 7 */
-    virtual void VSlot8() __asm__("func_001FC4F8");   /* slot 8 */
+    virtual void VSlot8() __asm__("GetStreamSoundKind");   /* slot 8 */
     virtual void VSlot9() __asm__("PlayStreamsnd");   /* slot 9 */
-    virtual void VSlot10() __asm__("func_001FC698");   /* slot 10 */
-    virtual void VSlot11() __asm__("func_001FC6D0");   /* slot 11 */
-    virtual void VSlot12() __asm__("func_001FC708");   /* slot 12 */
+    virtual void VSlot10() __asm__("StopStreamSound");   /* slot 10 */
+    virtual void VSlot11() __asm__("PauseStreamSound");   /* slot 11 */
+    virtual void VSlot12() __asm__("ResumeStreamSound");   /* slot 12 */
     virtual void VSlot13() __asm__("ApplyStreamsndParams");   /* slot 13 */
-    virtual void VSlot14() __asm__("func_001FC878");   /* slot 14 */
-    virtual void VSlot15() __asm__("func_001FC9A8");   /* slot 15 */
+    virtual void VSlot14() __asm__("QueryStreamSoundStatus");   /* slot 14 */
+    virtual void VSlot15() __asm__("SetStreamSoundCulled");   /* slot 15 */
     virtual void VSlot16() __asm__("UpdateStreamsndPositional");   /* slot 16 */
 };
 

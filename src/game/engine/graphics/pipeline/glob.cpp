@@ -427,7 +427,7 @@ extern "C" LO *PloFindSwObject__FP2SWi3OIDP2LO(G *pg, int kind, int oid, void *o
 extern "C" void InvertMatrix4Rigid(MATRIX4 *pmatDst, MATRIX4 *pmatSrc);
 extern "C" void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, MATRIX4 *pmatA, MATRIX4 *pmatB);
 extern "C" void *func_002333B4(void *pv, int n, int cb) __asm__("memset");
-extern "C" void func_0022B7A0(LO *plo, X *px);
+extern "C" void AddWrWarpGroup(LO *plo, X *px);
 /** @sly2-annot addr=0x167B68
  * Purpose: Resolves globset bone references after load: finds each referenced LO by oid, its bone, and
  *   computes the relative bind matrix
@@ -470,7 +470,7 @@ extern "C" void BindGlobset(S *p)
     for (X *px = p->pxFirst; px; px = px->pxNext) {
         LO *plo = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, px->oid, p->pvOwner);
         if (plo)
-            func_0022B7A0(plo, px);
+            AddWrWarpGroup(plo, px);
     }
 }
 } // namespace M_BindGlobset

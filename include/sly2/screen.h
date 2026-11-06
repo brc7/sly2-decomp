@@ -19,11 +19,11 @@ template <> CRefPtr<CSidebag>::~CRefPtr();
  * screen.cpp). The HUD meter and the pause menu derive from it directly, SCREEN adds slots 12..14. */
 struct SCREENBASE : BASIC
 {
-    virtual void Update() __asm__("func_001D9870");   /* slot 7 (empty); key function (screen.cpp) */
-    virtual void VSlot8() __asm__("func_001D9878");   /* slot 8 */
-    virtual void VSlot9() __asm__("func_001D98A8");   /* slot 9 */
-    virtual void VSlot10() __asm__("func_001D98B0");   /* slot 10 */
-    virtual void VSlot11() __asm__("func_001D9910");   /* slot 11 */
+    virtual void Update() __asm__("UpdateScreenDefault");   /* slot 7 (empty); key function (screen.cpp) */
+    virtual void VSlot8() __asm__("DrawScreen");   /* slot 8 */
+    virtual void VSlot9() __asm__("ScreenSlot9Default");   /* slot 9 */
+    virtual void VSlot10() __asm__("ShowScreen");   /* slot 10 */
+    virtual void VSlot11() __asm__("HideScreen");   /* slot 11 */
 };
 
 /* The HUD meter (DRAFT name; vtable 0x2D8668, screen.cpp). */
@@ -42,11 +42,11 @@ struct SCREEN : SCREENBASE
     void *pchild;           /* +0x24 the widget object */
     int nMode;              /* +0x28 screen mode (-1 after ResetMode) */
     float tMode;            /* +0x2C time the mode was entered */
-    SCREEN() __asm__("func_001DA728");        /* out of line: screen.cpp */
-    void ResetMode() __asm__("func_001DA7D0");   /* mode -1, time now (screen.cpp; DRAFT name ResetScreenMode) */
-    virtual void PostLoad() __asm__("func_001DA770");   /* slot 12 (screen.cpp: resolves the widget); key function (screen.cpp) */
-    virtual void Update() __asm__("func_001DA808");   /* slot 7 */
-    virtual void VSlot13() __asm__("func_001DA7B0");   /* slot 13 */
+    SCREEN() __asm__("ConstructScreen");        /* out of line: screen.cpp */
+    void ResetMode() __asm__("ResetScreenMode");   /* mode -1, time now (screen.cpp; DRAFT name ResetScreenMode) */
+    virtual void PostLoad() __asm__("PostLoadScreen");   /* slot 12 (screen.cpp: resolves the widget); key function (screen.cpp) */
+    virtual void Update() __asm__("UpdateTimedScreen");   /* slot 7 */
+    virtual void VSlot13() __asm__("ResetScreen");   /* slot 13 */
     virtual void SetMode(int nMode) __asm__("__pure_virtual");   /* slot 14 (pure) */
 };
 

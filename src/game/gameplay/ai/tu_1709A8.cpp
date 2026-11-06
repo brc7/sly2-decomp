@@ -383,7 +383,7 @@ struct U { int n0; int n4; };
 struct S { int pad0; char a4[8]; struct VTE *vt; char pad[8]; char a18[0x18]; struct T *pt; int context; int currentCommand; int pad3; int isCommandBusy; struct U *pu; int pad4; int unknown4C; };
 void PopBhv(void *p);
 void FramePtr_Assign(struct S *p, int n) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *p, int n);
+void AssignSidebagRef(void *p, int n);
 // 0x171258: Switches the script a script behaviour runs: stops the old one (message 3), starts the new one (message
 // 2) at its first command or at a saved resume point.
 void SetBhvScriptScript(struct S *behavior, struct T *t, int a, struct U *u) {
@@ -392,7 +392,7 @@ void SetBhvScriptScript(struct S *behavior, struct T *t, int a, struct U *u) {
         PopBhv(behavior->a18);
         ((void (*)(void *, int, int, int, int, int))behavior->vt[3].pfn)((char *)behavior + behavior->vt[3].d, 3, 0, 0, 0, 0);
         FramePtr_Assign(behavior, 0);
-        func_002580A8(behavior->a4, 0);
+        AssignSidebagRef(behavior->a4, 0);
         behavior->context = 0;
         behavior->currentCommand = 0;
         behavior->isCommandBusy = 0;
@@ -552,7 +552,7 @@ extern "C" { void ClearPointerPair(struct X *x); }
 inline X::X() { ClearPointerPair(this); }
 extern "C" { int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n); }
 extern "C" { void SetBhvgotoGoal(void *o, struct X *x); }
-extern "C" { void func_0012F9B8(void *o, int a, int b, void *c, float f, float g); }
+extern "C" { void ApplyAsegCore(void *o, int a, int b, void *c, float f, float g); }
 extern "C" { void *FindGuardScriptLabel(void *p, int id); }
 extern "C" { void SetBhvBusy(struct S *p); }
 extern "C" { void ClearBhvBusy(struct S *p); }
@@ -678,7 +678,7 @@ extern "C" void ExecuteBhvScriptCommand(struct S *behavior, struct CMD *c)
         break;
     }
     case 8: {
-        func_0012F9B8(FindBhvScriptTarget(behavior, c->n4), 0, 0, &t, 0.0f, 1.0f);
+        ApplyAsegCore(FindBhvScriptTarget(behavior, c->n4), 0, 0, &t, 0.0f, 1.0f);
         break;
     }
     case 9:

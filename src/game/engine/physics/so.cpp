@@ -92,7 +92,7 @@ struct ACT
 
 extern "C" void AddXfAct(SO *pso, XF *pxf, ACT *pact);
 
-ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf) __asm__("func_0012E3F0");
+ACT *PactNewClone(ACT *pactBase, SO *pso, XF *pxf) __asm__("NewActFromParams");
 
 struct SUBGLOBX
 {
@@ -209,7 +209,7 @@ void RenderSoGlobset(GLOBSET *pglobset, int n, float uAlpha1, float uAlpha2, SOB
 qword ConvertXfVec(XF *pxfFrom, XF *pxfTo, qword qw);
 void SlotUnsettle(SO *pso, XF *pxf);
 void AddSwAaobrObject(SW *psw, SO *pso);
-void func_002303A0(SO *pso, XF *pxf, int n);
+void SetXfRole(SO *pso, XF *pxf, int n);
 void GetSoConstraintAxis(SO *pso, XF *pxf, CONSTR *pconstr, CONSTR *pconstrSo);
 void RebuildSoPhysHook(SO *pso);
 void SetSoBit35Hierarchy(SO *pso, int n);
@@ -219,7 +219,7 @@ void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void InitTargetRecord(void *ptargetrec, LO *plo);
 STEPREC *EnsureSoPhysRegionRecord(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void func_002580A8(void *ppsidebag, CSidebag *psidebag);
+void AssignSidebagRef(void *ppsidebag, CSidebag *psidebag);
 void UnsubscribeLoAll(XFH *pxfh);
 void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 }
@@ -1438,7 +1438,7 @@ struct P { char pad[0xC]; struct VTE *pvt; char pad2[0x58 - 0x10]; struct Q *p58
 extern struct CLOCK D_002DDED0;
 void UpdateSoPartMatrices(struct P *);
 void UpdateSoPartMesh(struct E *, float);
-int func_00230380(int);
+int IsXfRoleVelocity(int);
 void UpdateSoSlots(struct P *);
 void UpdateSoPartGeom(struct E *);
 static inline void Clear(int *a)
@@ -1470,10 +1470,10 @@ void UpdateSoXfWorld(struct P *so)
         if (so->p58) so->pE8->v60 = so->p58->vB0;
         if (so->p5C) so->pE8->v70 = so->p5C->vB0;
         if ((unsigned short)(so->p58->h98 - 1) < 2 || so->p5C->h98 == 1 || so->p5C->h98 == 2) {
-            if (func_00230380(so->p58->h98)) {
+            if (IsXfRoleVelocity(so->p58->h98)) {
                 Clear(so->p58->aF0);
             }
-            if (func_00230380(so->p5C->h98)) {
+            if (IsXfRoleVelocity(so->p5C->h98)) {
                 Clear(so->p5C->aF0);
             }
             so->pvt[70].pfn((char *)so + so->pvt[70].d);
@@ -1779,7 +1779,7 @@ struct P { char pad[0xC]; struct VT *pvt; char pad2[0x54 - 0x10]; struct T *pt; 
 struct G { char pad[0x3D58]; int n; };
 extern struct G D_003DD490;
 struct M4 __ml__FRC7MATRIX4T0(void *, struct T *);
-void func_00186820(struct P *);
+void UpdateSoIkBoneLengths(struct P *);
 /** @sly2-annot addr=0x1F4010
  * Purpose: SO vt37: root XF matrix = proxy matrix * own, bump g_sw stamp, vt18, 0x186820
  * Info: proposed name ApplySoProxy (T2); class SO slot37; TU so
@@ -1794,7 +1794,7 @@ void ApplySoProxy(struct P *so, void *pv)
     pt->m = __ml__FRC7MATRIX4T0(pv, pt);
     { int n = ++D_003DD490.n; so->pt->nA4 = n; }
     so->pvt->a[18].pfn((char *)so + so->pvt->a[18].d);
-    func_00186820(so);
+    UpdateSoIkBoneLengths(so);
 }
 } } // namespace M_func_001F4010
 
@@ -1979,8 +1979,8 @@ struct VTE { short d; short p; void *pfn; };
 struct VT { struct VTE a[34]; };
 struct O { char pad[0x94]; int n94; short k; char pad2[0xA0 - 0x9A]; int nA0; char pad3[0xB0 - 0xA4]; union { qword q; int a[4]; } v; };
 struct P { char pad[0xC]; struct VT *pvt; char pad2[0x58 - 0x10]; struct O *po; };
-int func_00230310(int);
-void func_002303A0(struct P *, struct O *, int);
+int IsXfRoleMoving(int);
+void SetXfRole(struct P *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
 void SlotUnsettle(struct P *, struct O *);
 void InvalidateSoAaox(struct P *);
@@ -1999,7 +1999,7 @@ void SetSoVelocity(struct P *so, qword q)
     struct O *po = so->po;
     qword cur, d;
     if (!po || po->n94 != 1) return;
-    if (!func_00230310(po->k)) func_002303A0(so, po, 1);
+    if (!IsXfRoleMoving(po->k)) SetXfRole(so, po, 1);
     { float *pv = (float *)&po->v; pv[2] = 0.0f; pv[1] = 0.0f; pv[0] = 0.0f; }
     cur = ((qword (*)(void *))so->pvt->a[33].pfn)((char *)so + so->pvt->a[33].d);
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(q), "j"(cur));
@@ -2051,7 +2051,7 @@ inline MATRIX3 operator*(const MATRIX3 &matL, const MATRIX3 &matR) return mat
 
 extern qword D_002A2DD0;
 void NormalizeRotateMatrix3(MATRIX3 *pmat);
-MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) __asm__("func_0022D148");
+MATRIX4 MatDmatOfXfChain(XF *pxfFrom, XF *pxfTo) __asm__("GetXfAngularVelocity");
 // Slot 34: world-space angular velocity of the rotation XF (when it is dynamic), else zero (Lilly port).
 qword SO::GetAngularVelocity()
 {
@@ -2100,8 +2100,8 @@ static inline M3 Mul(const M3 &a,const M3 &b) return r
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[1].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[1].q));
     __asm__("vmulax.xyz ACC,%1,%4x\n\tvmadday.xyz ACC,%2,%4y\n\tvmaddz.xyz %0,%3,%4z":"=j"(r.r[2].q):"j"(a0),"j"(a1),"j"(a2),"j"(b.r[2].q));
 }
-extern "C" int func_00230310(int);
-extern "C" void func_002303A0(P *,LO *,int);
+extern "C" int IsXfRoleMoving(int);
+extern "C" void SetXfRole(P *,LO *,int);
 extern "C" qword ConvertXfVec(LO *,LO *,qword);
 extern "C" void InvalidateSoAaox(P *);
 extern "C" void WakeSo(P *);
@@ -2122,7 +2122,7 @@ extern "C" void SetSoAngularVelocity(P *so,qword position)
 {
     LO *object=so->object;
     if(!object || object->kind!=6)return;
-    if(!func_00230310(object->state))func_002303A0(so,object,1);
+    if(!IsXfRoleMoving(object->state))SetXfRole(so,object,1);
     const M3 *rotation=&object->rotation;
     Clear(&object->velocity);
     M3 normalized;
@@ -2175,8 +2175,8 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x98]; short k; char pad2[0xA0 - 0x9A]; int nA0; char pad3[0xB0 - 0xA4]; qword q; };
 struct P { char pad[0x58]; struct O *po; };
 struct Q { char pad[0x60]; int n60; };
-int func_00230310(int);
-void func_002303A0(void *, struct O *, int);
+int IsXfRoleMoving(int);
+void SetXfRole(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
 void SlotUnsettle(void *, struct O *);
 void InvalidateSoAaox(void *);
@@ -2192,7 +2192,7 @@ void SetSoBit35Hierarchy(void *, int);
 void SetSoPosXfVelocityLocal(struct P *so, qword v)
 {
     struct O *po;
-    if (!func_00230310(so->po->k)) func_002303A0(so, so->po, 1);
+    if (!IsXfRoleMoving(so->po->k)) SetXfRole(so, so->po, 1);
     po = so->po;
     po->q = ConvertXfVec(((struct Q *)so)->n60, po->nA0, v);
     SlotUnsettle(so, so->po);
@@ -2209,8 +2209,8 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x98]; short k; char pad2[0xA0 - 0x9A]; int nA0; char pad3[0xB0 - 0xA4]; qword q; };
 struct P { char pad[0x5C]; struct O *po; };
 struct Q { char pad[0x60]; int n60; };
-int func_00230310(int);
-void func_002303A0(void *, struct O *, int);
+int IsXfRoleMoving(int);
+void SetXfRole(void *, struct O *, int);
 qword ConvertXfVec(int, int, qword);
 void SlotUnsettle(void *, struct O *);
 void InvalidateSoAaox(void *);
@@ -2226,7 +2226,7 @@ void SetSoBit35Hierarchy(void *, int);
 void SetSoRotXfVelocityLocal(struct P *so, qword v)
 {
     struct O *po;
-    if (!func_00230310(so->po->k)) func_002303A0(so, so->po, 1);
+    if (!IsXfRoleMoving(so->po->k)) SetXfRole(so, so->po, 1);
     po = so->po;
     po->q = ConvertXfVec(((struct Q *)so)->n60, po->nA0, v);
     SlotUnsettle(so, so->po);
@@ -2313,8 +2313,8 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct A { char pad[0x70]; qword pos; };
 struct P { char pad[0xC]; struct VTE *pvt; char pad2[0xE8 - 0x10]; void *pe; };
 extern "C" void SetLoTransformFromXf(struct P *p, struct A *pa);
-extern "C" M4 *func_0022D148(M4 *,A *,A *);
-static inline M4 BuildVelocity(A *owner) return result { func_0022D148(&result,owner,0); }
+extern "C" M4 *GetXfAngularVelocity(M4 *,A *,A *);
+static inline M4 BuildVelocity(A *owner) return result { GetXfAngularVelocity(&result,owner,0); }
 static __inline__ qword Make(float x, float y, float z)
 {
     qword q, t;
@@ -3145,7 +3145,7 @@ extern "C" void SetSoCnstrForce(SO *so, CONSTR *pconstr)
     if (so->psophys != 0) {
         pxf = so->pxfUnk58;
         if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
-            func_002303A0(so, pxf, 1);
+            SetXfRole(so, pxf, 1);
         }
         GetSoConstraintAxis(so, pxf, pconstr, &so->psophys->constrForce);
         RebuildSoPhysHook(so);
@@ -3170,7 +3170,7 @@ extern "C" void SetSoCnstrTorque(SO *so, CONSTR *pconstr)
     if (so->psophys != 0) {
         pxf = so->pxfUnk5c;
         if ((pxf->pactFirst == 0) && (pxf->nRole != 2)) {
-            func_002303A0(so, pxf, 1);
+            SetXfRole(so, pxf, 1);
         }
         GetSoConstraintAxis(so, pxf, pconstr, &so->psophys->constrTorque);
         RebuildSoPhysHook(so);
@@ -3205,7 +3205,7 @@ typedef int qword __attribute__((mode(TI)));
 struct O { char pad[0x90]; int n90; char pad2[4]; short k; };
 struct E { char pad[0x80]; qword q; };
 struct P { char pad[0x58]; struct O *po; char pad2[0xE8 - 0x5C]; struct E *pe; };
-void func_002303A0(struct P *, struct O *, int);
+void SetXfRole(struct P *, struct O *, int);
 void WakeSo(struct P *);
 /** @sly2-annot addr=0x1F5880
  * Purpose: Make pos XF dynamic if needed and store gravity vector, invalidate
@@ -3218,7 +3218,7 @@ void SetSoGravity(struct P *so, qword q)
 {
     if (so->pe) {
         struct O *po = so->po;
-        if (po->n90 == 0 && po->k != 2) func_002303A0(so, po, 1);
+        if (po->n90 == 0 && po->k != 2) SetXfRole(so, po, 1);
         so->pe->q = q;
         WakeSo(so);
     }
@@ -5530,7 +5530,7 @@ extern "C" void DecrefXfHandle(XFH *pxfh)
     pxfh->cref = cref;
     if (cref <= 0) {
         FramePtr_Assign(&pxfh->pframe, 0);
-        func_002580A8(&pxfh->psidebag, 0);
+        AssignSidebagRef(&pxfh->psidebag, 0);
         UnsubscribeLoAll(pxfh);
         FreeSlotheapSlot(&g_sw.slotheapXfh, pxfh);
     }
@@ -5656,10 +5656,10 @@ struct E; struct Q; struct P;
 struct E { int k; int pad[2]; int nC; struct E *next; };
 struct Q { char pad[0x90]; struct E *pe; };
 struct P { char pad[0x20]; void *p20; struct Q *pq; };
-void func_00230100(void *, struct Q *, struct E *);
-void func_0012E210(struct E *);
-void func_002301D0(void *, struct Q *);
-void func_002303A0(void *, struct Q *, int);
+void RemoveXfAct(void *, struct Q *, struct E *);
+void FreeAct(struct E *);
+void SortXfActs(void *, struct Q *);
+void SetXfRole(void *, struct Q *, int);
 void SlotUnsettle(void *, struct Q *);
 /** @sly2-annot addr=0x1F8910
  * Purpose: Find XF actuator of kind k; remove if n==-1, else update and re-prioritize
@@ -5674,16 +5674,16 @@ struct E *FindXfHandleActuator(struct P *handle, int k, int n, int m)
     for (pe = handle->pq->pe; pe; pe = pe->next) {
         if (pe->k != k) continue;
         if (n == -1) {
-            func_00230100(handle->p20, handle->pq, pe);
-            func_0012E210(pe);
+            RemoveXfAct(handle->p20, handle->pq, pe);
+            FreeAct(pe);
             return 0;
         }
         if (m != pe->nC) {
             pe->nC = m;
-            func_002301D0(handle->p20, handle->pq);
+            SortXfActs(handle->p20, handle->pq);
         }
         if (pe == handle->pq->pe) {
-            func_002303A0(handle->p20, handle->pq, n);
+            SetXfRole(handle->p20, handle->pq, n);
             SlotUnsettle(handle->p20, handle->pq);
         }
         return pe;
@@ -5700,7 +5700,7 @@ struct R { char pad[0x14]; int n14; };
 struct P { char pad[0x20]; void *p20; void *p24; };
 struct R *FindXfHandleActuator(struct P *, int, int, int);
 void SetActPositionGoal(struct R *, qword);
-void func_0012DC18(void *, void *, int, int, int, qword);
+void NewPositionAct(void *, void *, int, int, int, qword);
 /** @sly2-annot addr=0x1F89E0
  * Purpose: Update/create kind-1 actuator with value n,m,q
  * Info: proposed name SetXfhActuator1 (T2); TU so
@@ -5715,7 +5715,7 @@ void SetXfHandleActuator1(struct P *handle, int n, int m, qword q)
         r->n14 = n;
         SetActPositionGoal(r, q);
     } else if (n != -1) {
-        func_0012DC18(handle->p20, handle->p24, m, n, 2, q);
+        NewPositionAct(handle->p20, handle->p24, m, n, 2, q);
     }
 }
 } } // namespace M_func_001F89E0
@@ -5726,7 +5726,7 @@ struct B; struct A;
 typedef int qword __attribute__((mode(TI)));
 struct B { char pad[0xA0]; int n; };
 struct A { char pad[0x24]; struct B *pb; };
-qword func_0022FC48(int a, int n, qword q);
+qword TransformXfPos(int a, int n, qword q);
 void SetXfHandleActuator1(struct A *p, int a, int b, qword q);
 /** @sly2-annot addr=0x1F8A78
  * Purpose: 0x1F89E0 with vector converted from XF parent space
@@ -5737,7 +5737,7 @@ void SetXfHandleActuator1(struct A *p, int a, int b, qword q);
 // SetXfHandleActuator1 with a vector converted from the XF's parent space.
 void SetXfHandleActuator1World(struct A *handle, int a, int b, qword q)
 {
-    SetXfHandleActuator1(handle, a, b, func_0022FC48(0, handle->pb->n, q));
+    SetXfHandleActuator1(handle, a, b, TransformXfPos(0, handle->pb->n, q));
 }
 } } // namespace M_func_001F8A78
 
@@ -5773,7 +5773,7 @@ struct R; struct P;
 struct R { char pad[0x14]; int n14; int pad2; float g1C; float g20; };
 struct P { char pad[0x20]; void *p20; void *p24; };
 struct R *FindXfHandleActuator(struct P *, int, int, int);
-void func_0012DCA0(void *, void *, int, int, float, float);
+void NewPathAct(void *, void *, int, int, float, float);
 /** @sly2-annot addr=0x1F8B58
  * Purpose: Update/create kind-4 actuator with two floats
  * Info: proposed name SetXfhActuator4 (T2); TU so
@@ -5790,7 +5790,7 @@ void SetXfHandleActuator4(struct P *handle, int n, int m, float f, float g)
         r->g1C = f;
         r->g20 = g;
     } else if (n != -1) {
-        func_0012DCA0(handle->p20, handle->p24, m, n, f, g);
+        NewPathAct(handle->p20, handle->p24, m, n, f, g);
     }
 }
 } } // namespace M_func_001F8B58

@@ -105,12 +105,12 @@ float atan2f(float,float);
 float GetStepHeading(O *);
 float RadNormalize__Ff(float);
 void SetJtThrowState(JTTHROW *,int);
-void func_001384C0(ASEG *);
+void RecalculateAsegBlend(ASEG *);
 int FAsegaRetracted(ASEGAV *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
 void SetBentleyHoverState(O *,int);
-TRACKREF *func_0012FF10(ASEG *,O *,void *,int);
+TRACKREF *FindAsegChannel(ASEG *,O *,void *,int);
 int ShouldKeepSoPair(void *a, SOPAIR *b);
 qword ConvertAloPos(void *,void *,qword);
 qword CalculateBallisticLaunchVelocity(qword,qword,qword,float); // CalculateLaunchVelocity
@@ -346,7 +346,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s){
    float threshold=s->idleThreshold;
    if(threshold<angle)SetJtThrowState(s,2);
    else if(angle<-threshold)SetJtThrowState(s,1);
-   else{s->blend1=angle/threshold*0.5f+0.5f;s->blend0=1.0f-s->blend1;func_001384C0(s->animation0);}
+   else{s->blend1=angle/threshold*0.5f+0.5f;s->blend0=1.0f-s->blend1;RecalculateAsegBlend(s->animation0);}
    break;
   }
   case 1:case 2:
@@ -393,7 +393,7 @@ extern "C" void UpdateJtThrow(JTTHROW *s){
  O *owner=s->owner;
  if(owner->movement!=1)return;
  ASEGAV *animation=owner->animation;
- TRACKREF *reference=animation?func_0012FF10(animation->definition,owner,(void *)6,1):0;
+ TRACKREF *reference=animation?FindAsegChannel(animation->definition,owner,(void *)6,1):0;
  if(reference){
   Evaluate(reference->track,0,&w.scratch.vector,animation->time,animation->scale);
   V *direction=&s->owner->direction;float height=w.scratch.vector.f[2];direction->f[0]=0.0f;direction->f[2]=height;direction->f[1]=0.0f;
@@ -587,10 +587,10 @@ extern "C" void UpdateJtThrowArc(JTTHROW *thrower,int fUpdateBlends)
  thrower->ablB[1].gWeight=uTurn*uNear;
  thrower->ablB[2].gWeight=uTurnOpp*uFar;
  thrower->ablB[3].gWeight=uTurn*uFar;
- func_001384C0(thrower->animation4);
+ RecalculateAsegBlend(thrower->animation4);
  thrower->ablC[0].gWeight=uNear;
  thrower->ablC[1].gWeight=uFar;
- func_001384C0(thrower->animation7);
+ RecalculateAsegBlend(thrower->animation7);
 }
 #include "sly2/vu0.h" // here, not at the top: declared before UpdateJtThrowArc, the helpers change its code (355 of 517 off)
 
@@ -855,7 +855,7 @@ extern "C" void SetJtThrowState(JTTHROW *s,int state){
   s->selected=0;
   return;
  case 0:
-  if(previous!=1&&previous!=2){s->blend0=s->blend1=0.5f;func_001384C0(s->animation0);}
+  if(previous!=1&&previous!=2){s->blend0=s->blend1=0.5f;RecalculateAsegBlend(s->animation0);}
   animation=s->animation0;flags=9;break;
  case 1:animation=s->animation1;break;
  case 2:animation=s->animation2;break;

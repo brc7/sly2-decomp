@@ -64,7 +64,7 @@ struct PIPE;
 extern "C"{
 extern CLOCK D_002DDED0;extern U D_002A2DD0,D_002A2DC0;SMPV D_002BF928={1500.0f,0.0f,0.5f};extern JT*D_002E1E40;
 extern int D_002DFBC0;
-TRACKREF *func_0012FF10(ASEGV *o, JT *a, int b, int c);
+TRACKREF *FindAsegChannel(ASEGV *o, JT *a, int b, int c);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(JT *a, int b, int c, void *d, int e, int f, int g, void *h);
 void GetPipeGoalMatrix(PATH *a, float g, int b, M3 *pm);
 M3 *GetLoWorldMatrix(JT *o);
@@ -77,7 +77,7 @@ qword PosSmooth(qword,qword,float,SMPV*,U*);
 void SetJtAirJump(void*,int,void*,void*);int GrfConsumePressed__5POCTLUif(INPUT*,int,float);int GrfPressedWithin__5POCTLUif(INPUT*,int,float);void ClearPoctlJoyPressed(INPUT*,int);
 void StartJtMode(void*,int,void*,void*);int FAsegaRetracted(ASEGAV*);void SetJtPipeState(JTPIPE*,int);
 float SClampShape(PATH*,float);void EvaluateShapeS(PATH*,float,U*,U*);qword GetPoctlLateralVector(INPUT*,qword);
-void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void func_001384C0(ASEGV*);
+void GetJtPipeDistanceRange(JTPIPE*,LMV*);float GSmooth__FfffP3SMPPf(float,float,float,SMPV*,float*);void InvalidateSoAaox(JT*);float GModPositive__Fff(float,float);void RecalculateAsegBlend(ASEGV*);
 float fabsf(float);
 qword ConvertAloPos(void*,void*,qword);qword GetLoWorldPos(void*);
 void AddJtPlaceOnCurve(void *pplaces, void *pso, float g);
@@ -132,7 +132,7 @@ extern "C" void PostJtLoadPipe(JTPIPE *pipe)
     for (i = 0, e = (PIPEBL *)&pipe->weight0; i < 2; i++, e++) {
         ASEGV *o = e->paseg;
         if (o) {
-            TRACKREF *r = func_0012FF10(o, pipe->actor, 1, 1);
+            TRACKREF *r = FindAsegChannel(o, pipe->actor, 1, 1);
             if (r) {
                 r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, 0.0f, 1.0f, &v0, 0);
                 r->x4->vt[3].pfn((char *)r->x4 + r->x4->vt[3].d, o->duration, 1.0f, &v1, 0);
@@ -289,7 +289,7 @@ extern "C" void UpdateJtActivePipe(JTPIPE*pipe){
   register ASEGV*animation __asm__("$4");register float complement __asm__("$f0");
   __asm__(".set noat\n\tlui $1,0x3f80\n\tmtc1 $1,%0\n\t.set at\n\tlw %1,0x70(%3)\n\tsub.s %0,%0,%4\n\tswc1 %4,%2":"=f"(complement),"=r"(animation),"=m"(pipe->weight1):"r"(pipe),"f"(weight):"$1","memory");
   pipe->weight0=complement;
-  func_001384C0(animation);
+  RecalculateAsegBlend(animation);
  }
  SetJtPipeState(pipe,mode);
 }

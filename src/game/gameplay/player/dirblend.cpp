@@ -24,7 +24,7 @@ struct VT { short delta, pad; void *fn; };
 
 /* A directional clip (only its duration, +0x74, is read). */
 struct CLIP { char pad[0x74]; WORD duration; };
-/* An animation segment object returned by func_0012FF10 (+4) and its vtable (slot 3 samples a position). */
+/* An animation segment object returned by FindAsegChannel (+4) and its vtable (slot 3 samples a position). */
 struct ASEGV;
 typedef struct { short delta; short pad; void (*sample)(ASEGV *, float, float, qword *, void *); } ASEGVT;
 struct ASEGV { ASEGVT *vt; };
@@ -68,9 +68,9 @@ typedef char assert_PLAYERV_side[(unsigned int)&((PLAYERV *)0)->side == 0x1038 ?
 typedef char assert_PLAYERV_target[(unsigned int)&((PLAYERV *)0)->targetMode == 0x10E4 ? 1 : -1];
 
 extern "C" {
-ASEGREF *func_0012FF10(CLIP *clip, ACTOR *actor, void *keyFlag, int keyMode);
+ASEGREF *FindAsegChannel(CLIP *clip, ACTOR *actor, void *keyFlag, int keyMode);
 void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(ACTOR *actor, int entrySize, int entryCount, DIRAXIS *entries, int count, int *keys, int *counts, MULTI **blendOut);
-void func_001384C0(void *blend);
+void RecalculateAsegBlend(void *blend);
 void FaceStepToward(PLAYERV *player, TARGETV *target);
 float RadNormalize__Ff(float);
 qword SetVectorCylind(float, float, float);
@@ -97,7 +97,7 @@ extern "C" void InitDirectionalBlend(struct ACTOR *actor, DIRAXIS *axes, MULTI *
     MULTI *blend;
     for (i = 0; i < 8; i++, axis++) {
         if (axis->clip) {
-            ASEGREF *segmentRef = func_0012FF10(axis->clip, actor, (void *)1, 1);
+            ASEGREF *segmentRef = FindAsegChannel(axis->clip, actor, (void *)1, 1);
             if (segmentRef) {
                 segmentRef->segment->vt[3].sample((ASEGV *)((char *)segmentRef->segment + segmentRef->segment->vt[3].delta), 0.0f, 1.0f, &startPos.q, 0);
                 segmentRef->segment->vt[3].sample((ASEGV *)((char *)segmentRef->segment + segmentRef->segment->vt[3].delta), axis->clip->duration.value, 1.0f, &endPos.q, 0);
@@ -186,7 +186,7 @@ extern "C" void UpdateDirectionalBlend(PLAYERV*player,DIRAXIS*axes,void*request)
   scalar.q=k;
   axes++;
  }
- {qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(total.q),"j"(rateVec));{register void*argument __asm__("$4")=request;scalar.q=rateVec;player->acceleration.q=q;func_001384C0(argument);}}
+ {qword q;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(q):"j"(total.q),"j"(rateVec));{register void*argument __asm__("$4")=request;scalar.q=rateVec;player->acceleration.q=q;RecalculateAsegBlend(argument);}}
 }
 
 static inline qword GetVel(PLAYERV*player){return ((qword(*)(void*))player->vt[33].fn)((char*)player+player->vt[33].delta);}

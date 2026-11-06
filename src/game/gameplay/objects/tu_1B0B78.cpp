@@ -99,9 +99,9 @@ void RenderSoSelf(CID96V *p);
 void AccelSoTowardMatBounded(CID96V *p, M3 *pmat, VECTOR3 *pspin);
 int CanSoTakeDamage(CID96V *p, struct A96 *pa);
 void UpdateSoXfWorld(CID96V *p);
-void func_002303A0(CID96V *, XFV *, int);
-void func_0022C840(CID96V *, XFV *);
-void func_0022C818(CID96V *, XFV *);
+void SetXfRole(CID96V *, XFV *, int);
+void WakeXfOwner(CID96V *, XFV *);
+void ResetXfValueRef(CID96V *, XFV *);
 float GRandInRange__Fff(float, float);
 void GetVectorSphere(qwordV, float *, float *, float *);
 qwordV GetLoWorldPos(void *p);
@@ -121,7 +121,7 @@ qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
 void SprayDifficultyPrizes(void *, qwordV, int, int, CID96V *);
 M3 BuildAxisAngleRotationMatrix(qwordV v, float g);
 float atan2f(float y, float x);
-E96 *func_0012FF10(LOV *plo, CID96V *p, int a, int b);
+E96 *FindAsegChannel(LOV *plo, CID96V *p, int a, int b);
 
 void func_001B0D90(CID96V *p);
 void func_001B1160(CID96V *p);
@@ -202,7 +202,7 @@ extern "C" void func_001B0CA8(CID96V *p, CBinaryInputStream *pbis)
     XFV *pxf;
     V3 *pa;
     LoadSoFromBrx(p, pbis);
-    func_002303A0(p, p->pxf58, 1);
+    SetXfRole(p, p->pxf58, 1);
     pxf = p->pxf58;
     pa = &pxf->a;
     pa->z = 0;
@@ -492,20 +492,20 @@ static inline M4*GetMatrix(CID96V*p){VTE&v=p->pvt[31];return ((M4*(*)(void*))v.p
  * @end-sly2-annot */
 void func_001B1328(CID96V*p,int next){
  int old=p->state;if(old==next)return;WORK w;
- switch(old){case -1:case 0:case 2:case 3:func_002303A0(p,p->pxf5C,p->oldMode);func_0022C840(p,p->pxf5C);break;}
+ switch(old){case -1:case 0:case 2:case 3:SetXfRole(p,p->pxf5C,p->oldMode);WakeXfOwner(p,p->pxf5C);break;}
  switch(next){
  case 0:
-  SetVelocity(p,D_002A2DD0.q);func_0022C818(p,p->pxf5C);{float now=D_002DDED0.t;p->randomDeadline=now+GRandInRange__Fff(p->low0,p->high0);}break;
+  SetVelocity(p,D_002A2DD0.q);ResetXfValueRef(p,p->pxf5C);{float now=D_002DDED0.t;p->randomDeadline=now+GRandInRange__Fff(p->low0,p->high0);}break;
  case 1:
   SetMode(p);{float now=D_002DDED0.t;p->randomDeadline=now+GRandInRange__Fff(p->low1,p->high1);}break;
  case 2:{
   p->du=-p->du;float negative=-1.0f;M4*m=GetMatrix(p);
   qwordV row=m->row[0].q;qwordV factor=SplatInto(negative,&w.first);qwordV scaled=ScaleX(row,factor);
-  GetVectorSphere(scaled,&w.angle,0,0);func_001B1818(p,w.angle);SetZeroVelocity(p);func_002303A0(p,p->pxf5C,1);func_0022C840(p,p->pxf5C);break;
+  GetVectorSphere(scaled,&w.angle,0,0);func_001B1818(p,w.angle);SetZeroVelocity(p);SetXfRole(p,p->pxf5C,1);WakeXfOwner(p,p->pxf5C);break;
  }
  case 3:
   SetZeroVelocity(p);SetStepSpinRatio((STEP*)p,p->ratio+p->ratio);
-  func_002303A0(p,p->pxf5C,1);func_0022C840(p,p->pxf5C);break;
+  SetXfRole(p,p->pxf5C,1);WakeXfOwner(p,p->pxf5C);break;
  case 4:{
   w.first.q=GetLoWorldPos(p);
   if(p->pshapeFlee){
@@ -649,7 +649,7 @@ void func_001B1A38(CID96V *p, LOV *px, float *pf)
     Y96 *py;
     C96 *pc;
     if (!px) return;
-    py = (Y96 *)func_0012FF10(px, p, 1, 1);
+    py = (Y96 *)FindAsegChannel(px, p, 1, 1);
     if (!py) return;
     pc = py->pc;
     ((void (*)(void *, V *, int, float, float))pc->vt[3].pfn)((char *)pc + pc->vt[3].d, &v0, 0, 0.0f, 1.0f);

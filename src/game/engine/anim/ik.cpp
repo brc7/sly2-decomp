@@ -1,5 +1,6 @@
 // ik.cpp -- two-bone IK: loading the IK records of an SO, measuring the bone lengths, keeping them current, the
 // chain actions, and SolveIk (VU0 macro-mode asm, most of it hand-scheduled).
+// Entry points: LoadSoIkFromBrx (SO loading), SolveIk (the IK action's per-frame solve), UpdateSoIkBoneLengths.
 // TU 0x186610..0x187030 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_ik
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00187010
@@ -15,43 +16,43 @@ typedef struct { qwordV r[4]; } MATRIX4V;
 struct VTE { short delta, pad; void *fn; };
 
 /* A bone frame (XF view: local matrix, world position at +0x70, parent at +0xA0) and the parent's world matrix. */
-struct A { MATRIX4V m; char pad[0x30]; qwordV v70; char pad2[0x20]; void *pA0; };
+struct A { MATRIX4V m; char pad[0x30]; qwordV worldPos; char pad2[0x20]; void *parent; };
 struct B { char pad[0x40]; MATRIX4V m; };
 /* An IK record (0xE0, allocated by LoadSoIkFromBrx): the target and the two bones with their parent, snapshots of
    their matrices, the bend axis, two points and the measured bone lengths and rest angle. */
 struct IKREC
 {
-    void *p0;               /* +0x00 */
-    A *p4;                  /* +0x04 first bone */
-    A *p8;                  /* +0x08 second bone */
-    B *pC;                  /* +0x0C parent */
-    MATRIX4V m10;            /* +0x10 */
-    MATRIX4V m50;            /* +0x50 */
-    qwordV v90;              /* +0x90 bend axis */
-    qwordV vA0;              /* +0xA0 */
-    qwordV vB0;              /* +0xB0 */
-    union { float value; int bits; } length0, length1;     /* +0xC0, +0xC4 */
-    float gC8;              /* +0xC8 rest angle */
+    void *primary;               /* +0x00 */
+    A *current;                  /* +0x04 first bone */
+    A *output;                  /* +0x08 second bone */
+    B *ancestor;                  /* +0x0C parent */
+    MATRIX4V snapshot;            /* +0x10 */
+    MATRIX4V rest;            /* +0x50 */
+    qwordV axis;              /* +0x90 bend axis */
+    qwordV localPoint;              /* +0xA0 */
+    qwordV mappedPoint;              /* +0xB0 */
+    union { float value; int bits; } firstLength, secondLength;     /* +0xC0, +0xC4 */
+    float referenceAngle;              /* +0xC8 rest angle */
 };
-typedef char assert_IKREC_gC8[(unsigned int)&((IKREC *)0)->gC8 == 0xC8 ? 1 : -1];
+typedef char assert_IKREC_gC8[(unsigned int)&((IKREC *)0)->referenceAngle == 0xC8 ? 1 : -1];
 /* The SO's action list entries (+0x90 of each 0x100 entry) and the SO view (vtable, entries, IK flag bit 36). */
-struct N { int k; char pad[0xC]; N *next; char pad2[8]; IKREC *ps; };
-struct E { char pad[0x90]; N *pn; char pad2[0x100 - 0x94]; };
-struct SOIK { char pad[0xC]; VTE *vt; char pad10[0x40]; int c; E *ae; char pad58[0x148 - 0x58]; unsigned long grf; };
-typedef char assert_SOIK_grf[(unsigned int)&((SOIK *)0)->grf == 0x148 ? 1 : -1];
+struct N { int kind; char pad[0xC]; N *next; char pad2[8]; IKREC *ikRecord; };
+struct E { char pad[0x90]; N *actions; char pad2[0x100 - 0x94]; };
+struct SOIK { char pad[0xC]; VTE *vt; char pad10[0x40]; int entryCount; E *entries; char pad58[0x148 - 0x58]; unsigned long flags; };
+typedef char assert_SOIK_grf[(unsigned int)&((SOIK *)0)->flags == 0x148 ? 1 : -1];
 /* The IK action (ACT fields, vtable, the IK record at +0x1C; the frame points back through +0xA8). */
 struct ACTIKV { int ack; void *pso; char *pxf; int nPriority; void *pactNext; int nRole; void *vt; void *pikrec; };
 
 struct MSG { int cb; int nKind; };
 extern "C" {
 void CloneAct(ACTIKV *pact, void *a1, void *a2, void *a3);
-void func_0012CE98(ACTIKV *pact);
+void AttachActBase(ACTIKV *pact);
 int U8Read__18CBinaryInputStream(void *pbis);
 int S16Read__18CBinaryInputStream(void *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *pbis, void *pv);
 void *AllocClearedFromWorldHeap(MSG *pmsg);
-void func_00186930(IKREC *q);
-void func_0012DD28(SOIK *p, void *pv, int n, IKREC *q);
+void InitIkRecord(IKREC *q);
+void NewIkAct(SOIK *p, void *pv, int n, IKREC *q);
 float RadBetweenVectors(qwordV a, qwordV b, qwordV *pv);
 qwordV ConvertXfVec(void *space, void *p, qwordV v);
 }
@@ -63,7 +64,9 @@ qwordV ConvertXfVec(void *space, void *p, qwordV v);
  * See: docs/engine/animation.md#6-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/animation.md#ik-0x186610-0x187030
  * @end-sly2-annot */
-extern "C" void func_00186610(ACTIKV *pact, void *a1, void *a2, void *a3)
+// Clones an IK action onto a transform (ACT slot 6): generic CloneAct, then takes over the IK record the transform's
+// +0xA8 points at. (inferred)
+extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
 {
     CloneAct(pact, a1, a2, a3);
     pact->pikrec = *(void **)(pact->pxf + 0xA8);
@@ -76,17 +79,19 @@ extern "C" void func_00186610(ACTIKV *pact, void *a1, void *a2, void *a3)
  * See: docs/reference/functions/animation.md#ik-0x186610-0x187030
  * @end-sly2-annot */
 /* ACT7's slot 1, its key function (sly2/act.h). */
+// Attaches an IK action to its transform (ACT slot 1, inferred as for ACTSEG): base slot 1 (sets the transform's
+// update mode), then points the transform's +0xA8 at this action's IK record.
 void ACT7::VSlot1()
 {
     ACTIKV *pact = (ACTIKV *)this;
-    func_0012CE98(pact);
+    AttachActBase(pact);
     *(void **)(pact->pxf + 0xA8) = pact->pikrec;
 }
 
-static __inline__ void *PvLookup(SOIK *p, void *pbis)
+static __inline__ void *PvLookup(SOIK *so, void *pbis)
 {
-    VTE *e = &p->vt[51];
-    return ((void *(*)(void *, int))e->fn)((char *)p + e->delta, S16Read__18CBinaryInputStream(pbis));
+    VTE *e = &so->vt[51];
+    return ((void *(*)(void *, int))e->fn)((char *)so + e->delta, S16Read__18CBinaryInputStream(pbis));
 }
 
 /** @sly2-annot addr=0x186670
@@ -99,32 +104,35 @@ static __inline__ void *PvLookup(SOIK *p, void *pbis)
  *   docs/engine/animation.md#7-key-functions,
  *   docs/formats/level-objects.md#6-so-payload-loadsofrombrx-0x1f31e0-cparse
  * @end-sly2-annot */
-extern "C" void LoadSoIkFromBrx(SOIK *p, void *pbis)
+// Loads an SO's two-bone IK records from the level stream: per record the first bone, second bone and parent transforms
+// (resolved through the SO's vtable slot 51), a local point, the target and a second vector; measures the record
+// (InitIkRecord) and attaches an IK action to both bones. Sets the SO's "has IK" flag (bit 36 of +0x148).
+extern "C" void LoadSoIkFromBrx(SOIK *so, void *stream)
 {
-    int c = U8Read__18CBinaryInputStream(pbis);
+    int count = U8Read__18CBinaryInputStream(stream);
     int i;
-    if (!c) return;
-    p->grf |= 1UL << 36;
-    for (i = 0; i < c; i++) {
+    if (!count) return;
+    so->flags |= 1UL << 36;
+    for (i = 0; i < count; i++) {
         MSG msg;
-        IKREC *q;
+        IKREC *ikRecord;
         msg.cb = 0xE0;
         msg.nKind = 0x10;
-        q = (IKREC *)AllocClearedFromWorldHeap(&msg);
-        q->p4 = (A *)PvLookup(p, pbis);
-        q->p8 = (A *)PvLookup(p, pbis);
-        q->pC = (B *)PvLookup(p, pbis);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &q->vB0);
-        q->p0 = PvLookup(p, pbis);
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &q->vA0);
-        func_00186930(q);
-        func_0012DD28(p, q->p4, -1, q);
-        func_0012DD28(p, q->p8, -1, q);
+        ikRecord = (IKREC *)AllocClearedFromWorldHeap(&msg);
+        ikRecord->current = (A *)PvLookup(so, stream);
+        ikRecord->output = (A *)PvLookup(so, stream);
+        ikRecord->ancestor = (B *)PvLookup(so, stream);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->mappedPoint);
+        ikRecord->primary = PvLookup(so, stream);
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, &ikRecord->localPoint);
+        InitIkRecord(ikRecord);
+        NewIkAct(so, ikRecord->current, -1, ikRecord);
+        NewIkAct(so, ikRecord->output, -1, ikRecord);
     }
 }
 
 // Paired-distance update; volatile on the first two VU asm groups keeps the p4 load between them (Claude agent).
-static inline N*Entry(SOIK*owner,int i){register E*entries asm("$2")=owner->ae;register int offset asm("$3")=i*256;entries=(E*)((int)entries+offset);return entries->pn;}
+static inline N*Entry(SOIK*owner,int i){register E*entries asm("$2")=owner->entries;register int offset asm("$3")=i*256;entries=(E*)((int)entries+offset);return entries->actions;}
 
 /** @sly2-annot addr=0x186820
  * Purpose: For SOs with bit 36, update each IK node's bone lengths/distances
@@ -133,26 +141,29 @@ static inline N*Entry(SOIK*owner,int i){register E*entries asm("$2")=owner->ae;r
  * See: docs/reference/functions/animation.md#ik-0x186610-0x187030,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
-extern "C" void func_00186820(SOIK*owner){
- if(!(owner->grf&(1UL<<36)))return;
- for(int i=0;i<owner->c;i++)for(N*node=Entry(owner,i);node;node=node->next)if(node->k==7){
-  register IKREC*p asm("$4")=node->ps;
-  register B*parent asm("$3")=p->pC;register A*rightOwner asm("$6")=p->p8;register const MATRIX4V*rows asm("$2")=&parent->m;
+// For an SO with IK records (flag bit 36), re-measures every IK record's two bone lengths from the current transforms
+// (the parent-space point to the second bone, and the second bone to the first), so animation that scales bones keeps
+// the solver consistent. Hand-scheduled VU0 asm. (inferred)
+extern "C" void UpdateSoIkBoneLengths(SOIK*so){
+ if(!(so->flags&(1UL<<36)))return;
+ for(int i=0;i<so->entryCount;i++)for(N*node=Entry(so,i);node;node=node->next)if(node->kind==7){
+  register IKREC*ikRecord asm("$4")=node->ikRecord;
+  register B*parent asm("$3")=ikRecord->ancestor;register A*rightOwner asm("$6")=ikRecord->output;register const MATRIX4V*rows asm("$2")=&parent->m;
   register qwordV transformed asm("vf2"),right asm("vf1");
-  asm volatile("lqc2 %0,%2\n\tlqc2 $vf4,0x20(%3)\n\tlqc2 $vf6,0x30(%3)\n\tlqc2 $vf5,0x10(%3)\n\tlqc2 $vf3,%5\n\tlqc2 %1,%6\n\tvmulax.xyz ACC,%0,$vf3x\n\tvmadday.xyz ACC,$vf5,$vf3y\n\tvmaddaz.xyz ACC,$vf4,$vf3z\n\tvmaddw.xyz %0,$vf6,$vf0w":"=j"(transformed),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(p->vB0),"m"(rightOwner->v70):"vf3","vf4","vf5","vf6");
-  register A*leftOwner asm("$5")=p->p4;
+  asm volatile("lqc2 %0,%2\n\tlqc2 $vf4,0x20(%3)\n\tlqc2 $vf6,0x30(%3)\n\tlqc2 $vf5,0x10(%3)\n\tlqc2 $vf3,%5\n\tlqc2 %1,%6\n\tvmulax.xyz ACC,%0,$vf3x\n\tvmadday.xyz ACC,$vf5,$vf3y\n\tvmaddaz.xyz ACC,$vf4,$vf3z\n\tvmaddw.xyz %0,$vf6,$vf0w":"=j"(transformed),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(ikRecord->mappedPoint),"m"(rightOwner->worldPos):"vf3","vf4","vf5","vf6");
+  register A*leftOwner asm("$5")=ikRecord->current;
   register qwordV one asm("vf4"),left asm("vf3");register int bits asm("$2");
   asm volatile("vsub.xyzw %0,%0,%2\n\tvmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(transformed),"=&j"(one):"j"(right));
-  asm("lqc2 %1,%2\n\tvsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(transformed),"=j"(left):"m"(leftOwner->v70));
+  asm("lqc2 %1,%2\n\tvsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(transformed),"=j"(left):"m"(leftOwner->worldPos));
   asm("vsub.xyzw %1,%1,%2\n\tqmfc2.ni %0,%3\n\tvmul.xyz %1,%1,%1\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z":"=r"(bits),"+j"(right),"+j"(left):"j"(transformed));
-  *(int*)&p->length1.value=bits;
+  *(int*)&ikRecord->secondLength.value=bits;
   asm("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %1,$vf0,Q\n\tqmfc2.ni %0,%1":"=r"(bits),"+j"(right));
-  *(int*)&p->length0.value=bits;
+  *(int*)&ikRecord->firstLength.value=bits;
  }
 }
 
 
-// (Claude agent) Matched: volatile point load after the first m10 store and a volatile addiu for the matrix-row pointer pin the scheduling (same idea as func_00186820).
+// (Claude agent) Matched: volatile point load after the first m10 store and a volatile addiu for the matrix-row pointer pin the scheduling (same idea as UpdateSoIkBoneLengths).
 /** @sly2-annot addr=0x186930
  * Purpose: Initialise an IK chain: rest lengths and bend axis from the two bone matrices (RadBetweenVectors)
  * Info: proposed name InitIkChain (T2); TU ik
@@ -160,25 +171,28 @@ extern "C" void func_00186820(SOIK*owner){
  * See: docs/engine/animation.md#devtools-findings-v3-2026-11-01, docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#ik-0x186610-0x187030
  * @end-sly2-annot */
-extern "C" void func_00186930(IKREC*p){
+// Measures a freshly loaded IK record: snapshots both bones' local matrices, computes the two bone lengths and the rest
+// angle between the bones (RadBetweenVectors, which also yields the bend axis), and stores the bend axis in the second
+// bone's parent space. (inferred)
+extern "C" void InitIkRecord(IKREC*ikRecord){
  register int bits asm("$2");
- qwordV*axis=&p->v90;
- register A*leftOwner asm("$5")=p->p4;register A*rightOwner asm("$4")=p->p8;register B*parent asm("$8")=p->pC;
- {register qwordV first asm("$2")=leftOwner->m.r[0];p->m10.r[0]=first;}register const MATRIX4V*rows asm("$7");asm volatile("addiu %0,%1,0x40":"=r"(rows):"r"(parent));register qwordV point asm("vf6");asm volatile("lqc2 %0,%1":"=j"(point):"m"(p->vB0));p->m10.r[1]=leftOwner->m.r[1];p->m10.r[2]=leftOwner->m.r[2];p->m10.r[3]=leftOwner->m.r[3];p->m50=rightOwner->m;
+ qwordV*axis=&ikRecord->axis;
+ register A*leftOwner asm("$5")=ikRecord->current;register A*rightOwner asm("$4")=ikRecord->output;register B*parent asm("$8")=ikRecord->ancestor;
+ {register qwordV first asm("$2")=leftOwner->m.r[0];ikRecord->snapshot.r[0]=first;}register const MATRIX4V*rows asm("$7");asm volatile("addiu %0,%1,0x40":"=r"(rows):"r"(parent));register qwordV point asm("vf6");asm volatile("lqc2 %0,%1":"=j"(point):"m"(ikRecord->mappedPoint));ikRecord->snapshot.r[1]=leftOwner->m.r[1];ikRecord->snapshot.r[2]=leftOwner->m.r[2];ikRecord->snapshot.r[3]=leftOwner->m.r[3];ikRecord->rest=rightOwner->m;
  
  register qwordV a asm("vf2"),right asm("vf1");
- asm volatile("lqc2 $vf5,0x30(%3)\n\tlqc2 $vf4,0x10(%3)\n\tlqc2 $vf3,0x20(%3)\n\tlqc2 %0,%2\n\tlqc2 %1,%5\n\tvmulax.xyz ACC,%0,%6x\n\tvmadday.xyz ACC,$vf4,%6y\n\tvmaddaz.xyz ACC,$vf3,%6z\n\tvmaddw.xyz %0,$vf5,$vf0w\n\tvsub.xyzw %0,%0,%1":"=j"(a),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(rightOwner->v70),"j"(point):"vf3","vf4","vf5");
+ asm volatile("lqc2 $vf5,0x30(%3)\n\tlqc2 $vf4,0x10(%3)\n\tlqc2 $vf3,0x20(%3)\n\tlqc2 %0,%2\n\tlqc2 %1,%5\n\tvmulax.xyz ACC,%0,%6x\n\tvmadday.xyz ACC,$vf4,%6y\n\tvmaddaz.xyz ACC,$vf3,%6z\n\tvmaddw.xyz %0,$vf5,$vf0w\n\tvsub.xyzw %0,%0,%1":"=j"(a),"=j"(right):"m"(parent->m.r[0]),"r"(rows),"m"(*rows),"m"(rightOwner->worldPos),"j"(point):"vf3","vf4","vf5");
  register qwordV left asm("vf4"),first asm("vf3"),one asm("vf5");
- asm("lqc2 %0,%4\n\tvmul.xyz %1,%5,%5\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tvsub.xyzw %3,%3,%0":"=j"(left),"=j"(first),"=&j"(one),"+j"(right):"m"(leftOwner->v70),"j"(a));
+ asm("lqc2 %0,%4\n\tvmul.xyz %1,%5,%5\n\tvaddw.x %2,$vf0,$vf0w\n\tvadday.x ACC,%1,%1y\n\tvmaddz.x %1,%2,%1z\n\tvsub.xyzw %3,%3,%0":"=j"(left),"=j"(first),"=&j"(one),"+j"(right):"m"(leftOwner->worldPos),"j"(a));
  asm("vsqrt Q,%0x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q":"+j"(first));
  register qwordV one2 asm("vf6");
  asm("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"=j"(left),"=&j"(one2):"j"(right));
  asm("qmfc2.ni %0,%2\n\tvsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %1,$vf0,Q":"=r"(bits),"+j"(left):"j"(first));
- p->length1.bits=bits;
+ ikRecord->secondLength.bits=bits;
  register qwordV arg0 asm("$4"),arg1 asm("$5");
  asm("qmfc2.ni %0,%3\n\tqmfc2.ni %1,%4\n\tqmfc2.ni %2,%5":"=r"(arg0),"=r"(bits),"=r"(arg1):"j"(right),"j"(left),"j"(a));
- *(volatile int*)&p->length0.bits=bits;p->gC8=RadBetweenVectors(arg0,arg1,axis);
- p->v90=ConvertXfVec(0,p->p8->pA0,p->v90);
+ *(volatile int*)&ikRecord->firstLength.bits=bits;ikRecord->referenceAngle=RadBetweenVectors(arg0,arg1,axis);
+ ikRecord->axis=ConvertXfVec(0,ikRecord->output->parent,ikRecord->axis);
 }
 
 
@@ -215,6 +229,10 @@ static inline float CopySnapshot(REQUEST*q){float high;register FRAME*d __asm__(
  *   docs/engine/animation.md#devtools-findings-v3-2026-11-01,
  *   docs/engine/animation.md#animation-format-summary-anim_lab-v31
  * @end-sly2-annot */
+// Two-bone IK solve (the IK action's update): restores the first bone's snapshot, finds the elbow angle from the bone
+// lengths and the distance to the target by the law of cosines (clamped acos), bends the joint about the bend axis,
+// then swings the chain so the end reaches the target and applies an optional twist curve; writes the resulting local
+// matrices and bumps the global transform stamp so world matrices are recomputed.
 extern "C" void SolveIk(void*context,REQUEST*request){
  register REQUEST*q __asm__("$17")=request;
  WORK w;

@@ -407,7 +407,7 @@ SLY2_SPLICEWRAP_BEGIN(RefThunk_SetScrollerMasterSpeeds)
 #include "../../generated/splicewrap/RefThunk_SetScrollerMasterSpeeds.inc"
 SLY2_SPLICEWRAP_END
 
-extern "C" void func_0012EEE0(void *p, int, int, int, float, float);
+extern "C" void AddAmbSound(void *p, int, int, int, float, float);
 /** @sly2-annot addr=0x101768
  * Purpose: Splice option thunk: optid 207 on CID43 (g_aeopid[99] thunkUser, returns Void, crefReq 5); unpacks
  *   5 args (0xE, Int, Int, Float, Float) -> Void via RefSetArgsFromSplice then calls SetCid43SoundParam
@@ -431,7 +431,7 @@ extern "C" CRef func_00101768(void *p, int c, void *aref)
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    func_0012EEE0(p, v0, v1, v2, v3, v4);
+    AddAmbSound(p, v0, v1, v2, v3, v4);
     return ref;
 }
 
@@ -441,7 +441,7 @@ SLY2_SPLICEWRAP_END
 
 // ---- splice thunk RefThunkAsegAPPLY (was src/game/app/splice_thunks/RefThunkAsegAPPLY.cpp) ----
 namespace T_RefThunkAsegAPPLY {
-extern "C" { void * func_00130488(void *p, int, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
+extern "C" { void * ApplyAsegToObject(void *p, int, float, float, int); CRef RefThunkAsegAPPLY(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x101910
  * Purpose: Splice option thunk: optid 214 on ASEG (g_aeopid[106] thunkFn, returns 0x2086, crefReq 4); unpacks
  *   4 args (0x2030, Float, Float, 0x100B) -> 0x2086 via RefSetArgsFromSplice then calls PasegaApplyAseg
@@ -461,7 +461,7 @@ CRef RefThunkAsegAPPLY(void *p, int c, void *aref)
     float v2;
     int v3;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, aref, ak, &v0, &v1, &v2, &v3);
-    ref = func_00130488(p, v0, v1, v2, v3);
+    ref = ApplyAsegToObject(p, v0, v1, v2, v3);
     return ref;
 }
 } // namespace T_RefThunkAsegAPPLY
@@ -1064,7 +1064,7 @@ extern "C" CRef func_001047A0(void *p, int c, void *aref)
 
 // ---- splice thunk RefThunkSmAPPLY (was src/game/app/splice_thunks/RefThunkSmAPPLY.cpp) ----
 namespace T_RefThunkSmAPPLY {
-extern "C" { void *func_001F0380(void *p, int a, int b, int c); CRef RefThunkSmAPPLY(void *p, int c, void *aref); }
+extern "C" { void *ApplySmToObject(void *p, int a, int b, int c); CRef RefThunkSmAPPLY(void *p, int c, void *aref); }
 /** @sly2-annot addr=0x104840
  * Purpose: Splice option thunk: optid 214 on SM (g_aeopid[368] thunkFn, returns 0x2088, crefReq 3); unpacks 3
  *   args (0x2030, Oid, 0x100B) -> 0x2088 via RefSetArgsFromSplice then calls PsmaApplySm (0x1F0380)
@@ -1080,7 +1080,7 @@ CRef RefThunkSmAPPLY(void *p, int c, void *aref)
     int ak[3] = {0x2030, 6, 0x100B};
     int a, b, d;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &a, &b, &d);
-    ref = func_001F0380(p, a, b, d);
+    ref = ApplySmToObject(p, a, b, d);
     return ref;
 }
 } // namespace T_RefThunkSmAPPLY

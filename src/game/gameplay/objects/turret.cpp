@@ -94,7 +94,7 @@ void *AcquireProxyObject(PROXYSRC *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
 void *ShouldSoIgnoreIntersection(TURRETV *p);
 void *MaxInt(void *v, int a);
-int func_0012DC18(TURRETV *p, int c, int a, int b, int d, qword q);
+int NewPositionAct(TURRETV *p, int c, int a, int b, int d, qword q);
 void ReleaseAct(void **ph);
 }
 
@@ -353,7 +353,7 @@ extern "C" void func_00226370(TURRETV *p, int k)
         if (k) {
             V v;
             v.q = Make(0.0f, -p->yaw, p->pitch);
-            p->pact = (void *)func_0012DC18(p, p->x5C, 1, 5, 3, v.q);
+            p->pact = (void *)NewPositionAct(p, p->x5C, 1, 5, 3, v.q);
         } else {
             ReleaseAct(&p->pact);
         }

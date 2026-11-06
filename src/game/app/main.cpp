@@ -25,7 +25,7 @@ void StartupGame(void);
 void ExecuteSwTransition(void *);
 void MarkClockTick(void *, int);
 void UpdateSw(void *);
-void func_001D9648(void *);
+void UpdateScreens(void *);
 int func_001477B0(void *);
 void RenderSw(void *);
 void DrawSw(void *);
@@ -74,7 +74,7 @@ extern "C" void GameMain(int argc, int argv)
         SetupCm(&D_002DDF40);
         MarkClockTick(D_002DDED0, 0);
         UpdateSw(D_003DD490);
-        func_001D9648(D_003D9E70);
+        UpdateScreens(D_003D9E70);
         OpenFrame();
         if (!D_002DD644 || func_001477B0(D_002DD644)) {
             RenderSw(D_003DD490);
@@ -353,12 +353,12 @@ void StartupVU0() __asm__("StartupVU0__Fv");
 void StartupVU1() __asm__("StartupVU1__Fv");
 void StartupSound() __asm__("StartupSound");
 void StartupBlips() __asm__("StartupBlips__Fv");
-void func_00211528() __asm__("func_00211528");
+void StartupHudGifPackets() __asm__("StartupHudGifPackets");
 void StartupMemcard() __asm__("StartupMemcard__Fv");
 void StartupMpeg() __asm__("StartupMpeg__Fv");
 extern "C" { void (*D_002BFCE0[20])(void) = {
     StartupDma, StartupThread, StartupSif, StartupGs, StartupMemMgr, StartupCd, SetCdPollStateIdle, StartupFont,
     StartupJoy, StartupFrame, StartupLoadingScreen, StartupClock, StartupVU0, StartupVU1, StartupSound, StartupBlips,
-    func_00211528, StartupMemcard, StartupMpeg, 0
+    StartupHudGifPackets, StartupMemcard, StartupMpeg, 0
 }; }
 }

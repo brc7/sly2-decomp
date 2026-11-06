@@ -64,8 +64,8 @@ extern "C"{
 void InitStepguard(NEELAV *p);
 void PostStepguardLoad(NEELAV *p);
 void BindLoOidTable(NEELAV *p, int n, void *pv);
-float *func_0012F938(void *p, int n);
-void func_001300B8(void *p, NEELAV *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
+float *FindAsegLabel(void *p, int n);
+void PredictAsegTransform(void *p, NEELAV *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
 void SetSoMass(NEELAV *p, float g);
 void ResetStepguardToHome(NEELAV *p);
 int GetBasicCid(void *pv);
@@ -76,17 +76,17 @@ qword ConvertAloPos(NEELAV*,void*,qword);
 int IsPointInVol(VOLUME*,qword);
 void SetNeelaState(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
-qword func_0022FC48(SPACE*,SPACE*,qword);
+qword TransformXfPos(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
 qword DecomposeRotationMatrixToEuler(M3*);
 int FilterCid98(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
-void func_00130B18(ASEGA *o);
+void RetractAsega(ASEGA *o);
 void ReleaseAct(MOTION **p);
 O *FindStepBehavior(NEELAV *p, int n);
 void ScaleStepSpinSpeed(NEELAV *p, float f);
-void func_0012F9B8(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
-MOTION *func_0012DC18(NEELAV *p, NODE *a, int b, int c, int d, qword q);
+void ApplyAsegCore(void *a, NEELAV *p, int n, ASEGA **ppo, float f1, float f2);
+MOTION *NewPositionAct(NEELAV *p, NODE *a, int b, int c, int d, qword q);
 void InitBhv(NBHV *p);
 void StartBhv(NBHV *p);
 void CloseBhv(NBHV *p);
@@ -143,8 +143,8 @@ extern "C" void PostNeelaLoad(NEELAV *neela)
     float *pg;
     PostStepguardLoad(neela);
     BindLoOidTable(neela, 3, D_002C0A50);
-    pg = func_0012F938(neela->id, 0x5DB);
-    func_001300B8(neela->id, neela, neela->unknown1030, neela->node->space, &l, 0, *pg, 1.0f);
+    pg = FindAsegLabel(neela->id, 0x5DB);
+    PredictAsegTransform(neela->id, neela, neela->unknown1030, neela->node->space, &l, 0, *pg, 1.0f);
     a = l.unknown30;
     b = neela->node->position;
     d = VuSub(a, b);
@@ -236,7 +236,7 @@ extern "C" void UpdateNeela(NEELAV*neela){
   if(FAsegaRetracted(neela->animation)){SetNeelaState(neela,0);break;}
   NODE*node=neela->node;
   qword position=GetLoWorldPos(neela->target);
-  qword local=func_0022FC48(0,node->space,position);
+  qword local=TransformXfPos(0,node->space,position);
   qword direction=VuSub(local,neela->node->position);
   M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,neela->axis,direction);
   MOTION*motion=neela->motion;
@@ -253,7 +253,7 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
 {
     if (st == neela->state) return;
     if (neela->state == 1) {
-        func_00130B18(neela->animation);
+        RetractAsega(neela->animation);
         VCALL0((O *)neela->animation, 2);
         neela->animation = 0;
         ReleaseAct(&neela->motion);
@@ -265,9 +265,9 @@ extern "C" void SetNeelaState(NEELAV *neela, int st)
     neela->state = st;
     neela->stateTime = D_002DDED0.t;
     if (st != 1) return;
-    func_0012F9B8(neela->id, neela, 1, &neela->animation, 0.0f, 1.0f);
+    ApplyAsegCore(neela->id, neela, 1, &neela->animation, 0.0f, 1.0f);
     VCALL0((O *)neela->animation, 1);
-    neela->motion = func_0012DC18(neela, neela->node, 5, 8, 3, D_002A2DD0);
+    neela->motion = NewPositionAct(neela, neela->node, 5, 8, 3, D_002A2DD0);
     if (StepguardHasSgf(neela, 2)) {
         FindStepBehavior(neela, 0x9E)->target = neela->target;
         ScaleStepSpinSpeed(neela, 4.0f);

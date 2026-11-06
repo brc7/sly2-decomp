@@ -812,7 +812,7 @@ void FindShapeClosestPoint(FOCUS *, qword, void *, void *, U *, void *, void *);
 void UpdateJtHands(void *);
 void UpdateDirectionalBlend(ACTOR *, ENTRY *, void *);
 void FitStepToTerrain(ACTOR *, HEIGHT *, int, U *);
-BINDING *func_0012FF10(void *, ACTOR *, int, int);
+BINDING *FindAsegChannel(void *, ACTOR *, int, int);
 void FaceStepToward(ACTOR *, FOCUS *);
 void FixStepAngularVelocity(ACTOR *);
 void RebuildJtXmg(ACTOR *, void *, void *, void *, float, void *);
@@ -1142,7 +1142,7 @@ extern "C" void UpdateJtActiveHide(CONTEXT *ctx)
         ACTOR *actor = ctx->actor;
         ANIM *anim = actor->anim;
         if (anim) {
-            BINDING *b = func_0012FF10(anim->table, actor, 1, 1);
+            BINDING *b = FindAsegChannel(anim->table, actor, 1, 1);
             if (b) {
                 ReadBinding(b, anim, &v);
                 v.q = QwScale(v.q, VuFloat(-1.0f));
@@ -1971,7 +1971,7 @@ struct Q { int x0; int x4; float x8; int xc; U x10; qword x20; };
 struct HIT { qword a; U b; qword c[4]; };
 struct P { char pad[0x4D4]; struct O *x4d4; int pad2[2]; float x4e0; int x4e4; };
 extern qword D_002A2DD0;
-void func_0012DA30(void *r, qword q);
+void SetActRotationGoal(void *r, qword q);
 float SMinShape(struct O *o);
 float SMaxShape(struct O *o);
 float GModPositive__Fff(float g, float hi);
@@ -2002,7 +2002,7 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
     struct HIT hit;
     qword d;
     if (!q->x4) {
-        func_0012DA30(r, D_002A2DD0);
+        SetActRotationGoal(r, D_002A2DD0);
         return;
     }
     o = grab->x4d4;
@@ -2019,7 +2019,7 @@ void ClampJtGrabCurveParam(struct P *grab, struct Q *q, void *r)
     v.q = ConvertAloPos(0, grab, v.q);
     if (ClipEdgeToSphere(q->x20, q->x8, q->x10.q, v.q, 1, &hit) > 0) {
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(hit.b.q), "j"(q->x10.q));
-        func_0012DA30(r, d);
+        SetActRotationGoal(r, d);
     }
 }
 } } // namespace M_func_00193C98
@@ -2775,7 +2775,7 @@ extern "C" {
 int IsPoCurrent(STEPPLAYER *pstepplayer);
 }
 extern "C" {
-int GetHintBoxTextId(HINTBOX *phintbox) __asm__("func_001DA5B0");
+int GetHintBoxTextId(HINTBOX *phintbox) __asm__("GetCurrentNoticeTextId");
 }
 extern "C" {
 void PostNotice(HINTBOX *phintbox, int idText, float dt);

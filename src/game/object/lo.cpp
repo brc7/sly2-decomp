@@ -1333,7 +1333,7 @@ void Unlink__t6CGcObj1Z5CVarb(void*);
 void Unlink__t6CGcObj1Z8CSidebag(void*);
 void FreeSlotheapSlot(void*,void*);
 void func_00257078(ROOT*,int) __asm__("_$_6CFrame");
-void func_002580A8(FIELD**,FIELD*);
+void AssignSidebagRef(FIELD**,FIELD*);
 void FramePtr_Assign(ROOT**,ROOT*) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 int MakeRoot__t6CGcObj1Z8CSidebag(FIELD*);
 int MakeRoot__t6CGcObj1Z6CFrame(ROOT*);
@@ -1367,7 +1367,7 @@ static inline META*Type(P*p){VE*v=&p->vt[6];return v->type((P*)((char*)p+v->delt
 extern "C" void CloneLo(P*object,const P*source){
     CGc_UpdateRecyclable(g_gc);
     if(source->field){
-        {RF r=CSidebag_CloneTo(source->field,object);func_002580A8(&object->field,r.p);}
+        {RF r=CSidebag_CloneTo(source->field,object);AssignSidebagRef(&object->field,r.p);}
         (void)MakeRoot__t6CGcObj1Z8CSidebag(object->field);
     }
     if(source->root){

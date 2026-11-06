@@ -234,7 +234,7 @@ struct SO : public LO
     virtual void VUnk47(int grf) __asm__("ClearSoGrf");   /* slot 48 */
       virtual void VUnk48() __asm__("UpdateSoTreeBounds");
       virtual void GetCpdefi(CPDEFI *pcpdefi) __asm__("GetSoCpdefi");
-      virtual XF *PxfFromIxf(int ixf) __asm__("func_0022D778");
+      virtual XF *PxfFromIxf(int ixf) __asm__("ResolveXfIdInSo");
       virtual void CloneXfRef(LO *ploBase, XF **ppxf) __asm__("CloneSoXfRef");
       virtual SOTREE *VUnk52() __asm__("NewSoTree");
       virtual void VUnk53(SO *pso) __asm__("OnSoContactFreed");

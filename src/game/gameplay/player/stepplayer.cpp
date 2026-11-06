@@ -304,7 +304,7 @@ void UpdateStepplayerWater(struct P *p);
 void UpdateStepplayerHideBlend(struct P *p);
 void PickHeroInteractTarget(struct P *p);
 int FAsegaRetracted(int x);
-void func_001306A8(int *px);
+void DropAsegaRef(int *px);
 int FActiveCplcy__FP5CPLCY(void *p);
 void SetJoyBtnHandled(struct G *pg, int n);
 void OpenGadgetMenuForHero(void *p);
@@ -346,7 +346,7 @@ void UpdateStepplayer(struct P *player)
     UpdateStepplayerHideBlend(player);
     PickHeroInteractTarget(player);
     if (player->xEFC && FAsegaRetracted(player->xEFC))
-        func_001306A8(&player->xEFC);
+        DropAsegaRef(&player->xEFC);
     if (!FActiveCplcy__FP5CPLCY((*(char (*)[])&g_cm.part3a0)) && player->controller->x80 == 1 && GrfPressedWithin__5POCTLUif(player->controller, 0.0f, 0x100)) {
         struct G *pg = &D_002DFC00;
         if ((pg->x10B4 & 0x108) == 0x100) {
@@ -1992,8 +1992,8 @@ struct P { char pad[0x60]; struct X60 *p60; char pad2[0x10F4 - 0x64]; void *p10F
 struct SO *FindSoXf(struct P *p, int x, int n);
 void InvertMatrix3CofactorP(M3 *pmOut, M3 *pm) __asm__("InvertMatrix3Cofactor");
 qword DecomposeRotationMatrixToEuler(M3 *pm);
-void *func_0012DC18(struct P *p, struct SO *pso, int a, int b, int c, qword q);
-void func_0012D020(void *pv);
+void *NewPositionAct(struct P *p, struct SO *pso, int a, int b, int c, qword q);
+void DetachAct(void *pv);
 static __inline__ qword MulV(M3 *pm, qword v)
 {
     qword o;
@@ -2031,8 +2031,8 @@ void AttachStepplayerToStartMarker(struct P *player, int x)
             m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
             player->mat = t;
         }
-        player->p10F4 = func_0012DC18(player, so, 3, 7, 2, DecomposeRotationMatrixToEuler(&player->mat));
-        func_0012D020(player->p10F4);
+        player->p10F4 = NewPositionAct(player, so, 3, 7, 2, DecomposeRotationMatrixToEuler(&player->mat));
+        DetachAct(player->p10F4);
     }
 }
 } } // namespace M_func_001426E8
@@ -2345,7 +2345,7 @@ extern "C" void GetHeroInteractDistance(STEPPLAYER *player, LO *lo, LO **pploCur
 
 namespace M_func_00142AF8 {
 // PickHeroInteractTarget (Claude agent, laneC38 2026-10-24): MATCH from fresh5 (aligned 18). Every matrix product is written with Lilly's
-// MATRIX3 operator* (the NRV helper from src/game/engine/anim/tail/func_0021CB18.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
+// MATRIX3 operator* (the NRV helper from src/game/engine/anim/tail/UpdateChainLink.cpp / GetSoAngularVelocity.cpp: rows read into qword locals, each
 // result row stored through a VU_VECTOR4 copy), and the first ConvertXfMat call is a plain assignment (no dead-copy wrapper).
 // The one remaining trick is fresh3's commented clobber of the dead a0 in the c4678 block.
 typedef int qword __attribute__((mode(TI)));
@@ -2374,8 +2374,8 @@ void ScheduleIdleTimer(P *p);
 void SetStepplayerLeanTarget(P *p, int n, S *ps);
 void GetHeroInteractDistance(P *p, S *ps, void **ppv, float *pg, float *pg2);
 int FCheckLm__FP2LMf(void *p, float g);
-void func_0012CFE0(Q *pq);
-void func_0012D020(Q *pq);
+void AttachAct(Q *pq);
+void DetachAct(Q *pq);
 qword GetLoWorldPos(void *p);
 qword ConvertAloPos(int n, P *p, qword q);
 void CalculateVectorPanTilt(qword v, float *pa, float *pb);
@@ -2483,16 +2483,16 @@ void PickHeroInteractTarget(P *p)
         }
     }
     if (p->n1104 != 0) {
-        func_0012CFE0(p->pq);
+        AttachAct(p->pq);
         pan = p->g1110;
         tilt = p->g1114;
         g = p->g1118;
     } else {
         if (p->leanTarget == 0 || p->n1148 == 0 || !f) {
-            func_0012D020(p->pq);
+            DetachAct(p->pq);
             return;
         }
-        func_0012CFE0(p->pq);
+        AttachAct(p->pq);
         CalculateVectorPanTilt(ConvertAloPos(0, p, GetLoWorldPos(p->leanTarget)), &pan, &tilt);
         pan = ClampAngleToRange(&p->lmPan, pan);
         tilt = ClampAngleToRange(&p->lmTilt, tilt);
