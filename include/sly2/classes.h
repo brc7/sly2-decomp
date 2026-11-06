@@ -304,13 +304,13 @@ typedef char assert_CID104_size[sizeof(CID104) == 0x180 ? 1 : -1];
 struct BUTTON : SO
 {
     char pad150[0x300 - 0x150];
+    virtual void Clone(LO *ploBase) __asm__("CloneButton");   /* slot 41 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetButtonClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitButton");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("func_001492B0");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadButtonFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostButtonLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateButton");   /* slot 16 */
-    virtual void Clone(LO *ploBase) __asm__("CloneButton");   /* slot 41 */
     virtual int FTakeDamage(ZPR *pzpr) __asm__("FAbsorbButtonWkr");   /* slot 75 */
 };
 typedef char assert_BUTTON_size[sizeof(BUTTON) == 0x300 ? 1 : -1];
@@ -319,13 +319,13 @@ typedef char assert_BUTTON_size[sizeof(BUTTON) == 0x300 ? 1 : -1];
 struct VOLBTN : VOL
 {
     char pad130[0x2D0 - 0x130];
+    virtual void Clone(LO *ploBase) __asm__("CloneVolbtn");   /* slot 41 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetVolbtnClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitVolbtn");   /* slot 7 */
     virtual void RemoveHierarchy() __asm__("func_00149880");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVolbtnFromBrx");   /* slot 14 */
     virtual void VUnk14() __asm__("PostVolbtnLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateVolbtn");   /* slot 16 */
-    virtual void Clone(LO *ploBase) __asm__("CloneVolbtn");   /* slot 41 */
 };
 typedef char assert_VOLBTN_size[sizeof(VOLBTN) == 0x2D0 ? 1 : -1];
 
