@@ -1515,7 +1515,7 @@ namespace M_EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3 {
 typedef int qword __attribute__((mode(TI)));
 struct EMITTERV;
 /* per-blip draw data (the third array of a frame) */
-struct PD { unsigned int frame; int color; float rollSpeed; float rollAngle; };
+struct PD { unsigned int color; int frame; float rollSpeed; float rollAngle; };
 struct PAIR { qword a; qword b; };
 struct FR { qword apos[43]; qword av[43]; qword apd[43]; qword pad[3]; };
 struct BLK {
@@ -1529,13 +1529,13 @@ struct PRG {
     char pad0[0xC]; PRGVT *pvt; char pad10[0x160 - 0x10];
     int motionKind;             /* +0x160 2: spline (each blip keeps two end points) */
     char pad164[0x1A0 - 0x164];
-    int numColors;              /* +0x1A0 */
+    int numFrames;              /* +0x1A0 texture animation frames */
     char pad1A4[0x3B0 - 0x1A4];
-    int numFrames;              /* +0x3B0 texture animation frames */
+    int numColors;              /* +0x3B0 */
     char pad3B4[0x434 - 0x3B4];
-    int evenFramesOnly;         /* +0x434 (inferred: start frames are rounded down to even) */
+    int hasColorRanges;         /* +0x434 colours come in (start, end) pairs: pick an even index */
     int pad438;
-    int orientKind;             /* +0x43C 2: rolling */
+    int renderKind;             /* +0x43C 2: rolling */
     int pad440;
     int numBlips;               /* +0x444 */
     BLK *pblkFirst;             /* +0x448 */
@@ -1544,7 +1544,7 @@ struct LM { float gMin, gMax; };
 /* EMITB, the blip-related fields (the record at +0xC0 as blips use it; Sly 1's EMITBLIP) */
 struct EMITTERV {
     char pad[0xC8];
-    int hasRandomColor;         /* +0xC8 */
+    int hasRandomFrame;         /* +0xC8 */
     char padCC[0xF0 - 0xCC];
     int rollKind;               /* +0xF0 0: mirror the roll for blips moving away from the camera */
     int hasRandomRoll;          /* +0xF4 random start angle */
@@ -1576,7 +1576,7 @@ static inline float Dot(qword a, qword b)
 static inline float GRand(LM *plm) { return GRandInRange__Fff(plm->gMin, plm->gMax); }
 
 // Spawns `c` blips into the emitter's BLIPG (creating it and handing it the subscriber on first use), filling the
-// blocks' free slots: position + birth time, velocity + death time, and the draw data (random start frame, color,
+// blocks' free slots: position + birth time, velocity + death time, and the draw data (random colour, start frame,
 // roll speed / angle for rolling blips), plus the spline end points for spline motion; each slot is mirrored into the
 // block's second frame buffer.
 void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c, qword *apos, qword *av, float *ag1, float *ag2, qword *aa, qword *ab)
@@ -1608,12 +1608,12 @@ void EmitBlips__FP5EMITBP5EMITGiP6VECTORT3PfT5T3T3(EMITTERV *p, EMITX *px, int c
             ((float *)&pfr->av[i])[3] = ag2[k];
 #define pd ((PD *)&pfr->apd[i])
             func_002333B4(pd, 0, sizeof(PD));
-            pd->frame = NRandInRange__Fii(0, pprg->numFrames - 1);
-            if (pprg->evenFramesOnly)
-                pd->frame &= ~1u;
-            if (p->hasRandomColor)
-                pd->color = NRandInRange__Fii(0, pprg->numColors - 1);
-            if (pprg->orientKind == 2) {
+            pd->color = NRandInRange__Fii(0, pprg->numColors - 1);
+            if (pprg->hasColorRanges)
+                pd->color &= ~1u;
+            if (p->hasRandomFrame)
+                pd->frame = NRandInRange__Fii(0, pprg->numFrames - 1);
+            if (pprg->renderKind == 2) {
                 float g = GRand(&p->rollSpeed);
                 pd->rollSpeed = g;
                 if (!p->rollKind && 0.0f < Dot(D_002DDF40.dir, pfr->av[i]))
