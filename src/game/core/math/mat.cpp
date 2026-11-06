@@ -964,6 +964,9 @@ void BuildSimpleProjectionMatrix(float rx, float ry, float dxOffset, float dyOff
     pmat->mat[3][2] = zTrans;
 }
 
+// 0x11C4F8: dead-code scrap, a nop unit (sly2/scrap.h)
+SLY2_SCRAP("nop");
+
 // Gauss-Jordan inverse with column pivoting. Sly 2 takes (stride c, size n, src, dst); the symbol name comes from Sly 1.
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE318(pmsg); }
 static inline float GAbs(float g) { return __builtin_fabsf(g); }

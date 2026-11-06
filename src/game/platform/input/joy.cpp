@@ -656,6 +656,9 @@ extern "C" int DySelectionJoy(JOY *p)
     return p->dirY;
 }
 
+// 0x188328: dead-code scrap, a nop unit (sly2/scrap.h)
+SLY2_SCRAP("nop");
+
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.
 int D_002DFBC0;   /* g_grfjoyt */

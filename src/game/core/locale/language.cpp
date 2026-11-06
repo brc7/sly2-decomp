@@ -128,6 +128,9 @@ extern "C" int FourccFromLanguage(unsigned int n)
     return 0;
 }
 
+// 0x1A2D98: dead-code scrap, a nop unit (sly2/scrap.h)
+SLY2_SCRAP("nop");
+
 /** @sly2-annot addr=0x1A2DA0
  * Purpose: Map the PS2 system language (sceScf code: 0 ja,1 en,2 fr,3 es,4 de,5 it,6 nl,7 pt) to a game
  *   language index and select it if the region offers it, else region default
