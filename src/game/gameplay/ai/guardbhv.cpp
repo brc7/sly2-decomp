@@ -3937,24 +3937,24 @@ void StartBhvko(struct S *behavior) {
     if (*pe == -1) behavior->binding = 0;
     StartBhvhit(behavior);
     a = behavior->guard;
-    if (a->n330 == 0) {
-        a->n330 = 1;
-        if (behavior->attacker == PpoHero(&D_003DD490))
-            BroadcastGameEvent(D_002DEB30, 0x18, behavior->guard);
-        else
-            BroadcastGameEvent(D_002DEB30, 0x17, behavior->guard);
-        n = Count(behavior->guard);
-        {
-            qword q = behavior->guard->v3E0;
-            qword v;
-            /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
-            __asm__ __volatile__("" : : : "memory");
-            v = ConvertAloPos(behavior->guard, 0, q);
-            func_00154E10(D_002DE578, v, n, behavior->guard->n3F0, behavior->guard);
-        }
-        RecalcSwOxfFilterForObject(&D_003DD490, behavior->guard);
-        ResetDetectorTargets(behavior->guard->detector);
+    if (a->n330 != 0)
+        return;
+    a->n330 = 1;
+    if (behavior->attacker == PpoHero(&D_003DD490))
+        BroadcastGameEvent(D_002DEB30, 0x18, behavior->guard);
+    else
+        BroadcastGameEvent(D_002DEB30, 0x17, behavior->guard);
+    n = Count(behavior->guard);
+    {
+        qword q = behavior->guard->v3E0;
+        qword v;
+        /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
+        __asm__ __volatile__("" : : : "memory");
+        v = ConvertAloPos(behavior->guard, 0, q);
+        func_00154E10(D_002DE578, v, n, behavior->guard->n3F0, behavior->guard);
     }
+    RecalcSwOxfFilterForObject(&D_003DD490, behavior->guard);
+    ResetDetectorTargets(behavior->guard->detector);
 }
 
 typedef char layout_pointer[(sizeof(void*)==4)?1:-1];
@@ -5417,15 +5417,15 @@ void SetBhvshootState(struct S *behavior, int n) {
     if (!behavior->state) behavior->guard->firingWindow = 0;
     behavior->state = n;
     behavior->stateTime = D_002DDED0.t;
-    if (!n) {
-        struct O *o = func_00205438(behavior->guard, CID_BHVANIM);
-        struct VTE *entry;
-        o->n3C = 0x11;
-        o->n38 = behavior->n38;
-        entry = &o->vt[8];
-        entry->pfn((char *)o + entry->d);
-        behavior->guard->firingWindow = 1;
-    }
+    if (n)
+        return;
+    struct O *o = func_00205438(behavior->guard, CID_BHVANIM);
+    struct VTE *entry;
+    o->n3C = 0x11;
+    o->n38 = behavior->n38;
+    entry = &o->vt[8];
+    entry->pfn((char *)o + entry->d);
+    behavior->guard->firingWindow = 1;
 }
 } } // namespace M_SetBhvshootState
 
@@ -6881,49 +6881,49 @@ void FindPathzoneClosestPoint(void *a, qword v, qword *pv, int n);
 void FindBhvgotoRoute(struct S *behavior) {
     behavior->nB4 = 0;
     behavior->u.v60 = behavior->v40;
-    if (behavior->nBC == 0) {
-        qword pos = func_001A62E8(behavior->guard);
-        qword v = func_001C1EC0(&behavior->v40, pos);
-        struct C *c = behavior->guard->unknownE8;
-        struct D *d = c ? c->pDC : 0;
-        void *q = d ? d->p10 : 0;
-        void *r;
-        int fail;
-        r = PpathzoneFromPos(v, 0);
-        fail = 0;
-        if (r == 0) {
-            fail = 1;
-        } else if (r != q) {
-            struct G *g = &D_003DD490;
-            int n;
-            if ((behavior->nB4 = FindPathlinkRoute(g->p45CC, behavior->guard, v, 1, 1, behavior->aB8)) <= 0) {
-                if (behavior->nC0 == 0) {
+    if (behavior->nBC != 0)
+        return;
+    qword pos = func_001A62E8(behavior->guard);
+    qword v = func_001C1EC0(&behavior->v40, pos);
+    struct C *c = behavior->guard->unknownE8;
+    struct D *d = c ? c->pDC : 0;
+    void *q = d ? d->p10 : 0;
+    void *r;
+    int fail;
+    r = PpathzoneFromPos(v, 0);
+    fail = 0;
+    if (r == 0) {
+        fail = 1;
+    } else if (r != q) {
+        struct G *g = &D_003DD490;
+        int n;
+        if ((behavior->nB4 = FindPathlinkRoute(g->p45CC, behavior->guard, v, 1, 1, behavior->aB8)) <= 0) {
+            if (behavior->nC0 == 0) {
+                fail = 1;
+            } else {
+                n = FindPathlinkRoute(g->p45CC, behavior->guard, v, 0, 1, behavior->aB8);
+                behavior->nB4 = n;
+                if (n == 0) {
                     fail = 1;
                 } else {
-                    n = FindPathlinkRoute(g->p45CC, behavior->guard, v, 0, 1, behavior->aB8);
-                    behavior->nB4 = n;
-                    if (n == 0) {
-                        fail = 1;
+                    void *a;
+                    if (behavior->aB8[0] == 0) {
+                        a = q;
+                        behavior->nB4 = 0;
                     } else {
-                        void *a;
-                        if (behavior->aB8[0] == 0) {
-                            a = q;
-                            behavior->nB4 = 0;
-                        } else {
-                            a = behavior->aB8[n - 1]->p128;
-                        }
-                        behavior->u.s.n60 = 0;
-                        behavior->u.s.n64 = 0;
-                        FindPathzoneClosestPoint(a, v, &behavior->u.s.v70, 1);
+                        a = behavior->aB8[n - 1]->p128;
                     }
+                    behavior->u.s.n60 = 0;
+                    behavior->u.s.n64 = 0;
+                    FindPathzoneClosestPoint(a, v, &behavior->u.s.v70, 1);
                 }
             }
         }
-        if (fail) {
-            behavior->u.s.n60 = 0;
-            behavior->u.s.n64 = 0;
-            behavior->u.s.v70 = pos;
-        }
+    }
+    if (fail) {
+        behavior->u.s.n60 = 0;
+        behavior->u.s.n64 = 0;
+        behavior->u.s.v70 = pos;
     }
 }
 } } // namespace M_FindBhvgotoRoute
