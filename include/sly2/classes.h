@@ -1439,8 +1439,8 @@ typedef char assert_CID45_size[sizeof(CID45) == 0x130 ? 1 : -1];
 struct PATHZONE : XFM
 {
     char padE0[0x130 - 0xE0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetPathzoneClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPathzone");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetPathzoneClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadPathzoneFromBrx");   /* slot 14 */
 };
 typedef char assert_PATHZONE_size[sizeof(PATHZONE) == 0x130 ? 1 : -1];
@@ -1451,8 +1451,8 @@ struct PATHLINK : LO
     char pad50[0x60 - 0x50];
     PATHLINKEND aend[6];
     char pad120[0x160 - 0x120];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetPathlinkClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitPathlink");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetPathlinkClassDesc");   /* slot 6 */
     virtual void AddHierarchy() __asm__("AddPathlinkHierarchy");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("RemovePathlinkHierarchy");   /* slot 12 */
     virtual void VUnk14() __asm__("PostPathlinkLoad");   /* slot 15 */
