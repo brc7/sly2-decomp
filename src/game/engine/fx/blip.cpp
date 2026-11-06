@@ -57,7 +57,7 @@ extern "C" VIFS D_002DEA28;
 struct BUF { VEC a[0x2B]; VEC b[0x2B]; VEC c[0x2B]; char pad[0x840 - 0x810]; };
 typedef char assert_BUF_size[sizeof(BUF) == 0x840 ? 1 : -1];
 
-/* Bezier tangents of a particle on a path (BLIPG::x160 == 2), allocated from the SW's third blip heap. */
+/* Bezier tangents of a particle on a path (BLIPG::motionKind == 2), allocated from the SW's third blip heap. */
 struct BEZ { qwordV v0; qwordV v10; };
 
 struct BLIPGV;
@@ -99,7 +99,7 @@ struct BLIPGV
     char pad44[0xE0 - 0x44];
     LOV *plo;                /* 0xE0 subscribed object (CID 0x1D) */
     char padE4[0xF0 - 0xE4];
-    qwordV vF0;              /* 0xF0 bounding sphere centre */
+    qwordV boundsCenter;              /* 0xF0 bounding sphere centre */
     float g100;             /* 0x100 radius */
     char pad104[0x110 - 0x104];
     POLY poly;              /* 0x110 */
@@ -112,19 +112,19 @@ struct BLIPGV
     char pad148[8];
     S150 s150;              /* 0x150 */
     int pad15C;
-    int x160;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
+    int motionKind;               /* 0x160 motion kind: 0 matrix, 1 plain, 2 bezier */
     int pad164[3];
     char ab170[0x30];       /* 0x170 EMITDV */
     int n1A0;               /* 0x1A0 */
     int pad1A4[3];
     GE age[0x20];           /* 0x1B0 */
-    int c3B0;               /* 0x3B0 colour count */
-    unsigned char aclr[0x20][4]; /* 0x3B4 */
+    int numColors;               /* 0x3B0 colour count */
+    unsigned char colors[0x20][4]; /* 0x3B4 */
     int x434;
-    void *p438;             /* 0x438 GIF packet (D_002DD5C0/D_002DD600) */
-    int x43C;               /* 0x43C render kind */
+    void *gifPacket;             /* 0x438 GIF packet (D_002DD5C0/D_002DD600) */
+    int renderKind;               /* 0x43C render kind */
     float g440;
-    int c444;               /* 0x444 live particles */
+    int numLiveParticles;               /* 0x444 live particles */
     DLV dl;                  /* 0x448 BLIPs */
     DLEV dle;                /* 0x454 on D_002DEAF0 */
 };
@@ -242,7 +242,7 @@ extern "C" BLIPV *NewBlip(SW *psw, BLIPGV *pblipg)
     SLOTHEAP *pslotheap = &psw->slotheapBlip;
     BLIPV *pblip = (BLIPV *)PvAllocSlotheapClear(pslotheap);
     if (!pblip) return 0;
-    if (pblipg->x160 == 2) {
+    if (pblipg->motionKind == 2) {
         pblip->ae = (BEZ *)PvAllocSlotheapClear(&psw->slotheapBez);
         if (!pblip->ae) { func_0011CD98(pslotheap, pblip); return 0; }
     }
@@ -332,11 +332,11 @@ extern "C" void PropagateBlipgShader(BLIPGV *p, void *pv)
     int cExtra;
     int c;
     GE *pge;
-    p->p438 = (px->x8 & 1) ? D_002DD600 : D_002DD5C0;
-    if (p->c3B0 == 0) {
-        p->c3B0 = 1;
+    p->gifPacket = (px->x8 & 1) ? D_002DD600 : D_002DD5C0;
+    if (p->numColors == 0) {
+        p->numColors = 1;
         for (j = 0; j < 4; j++)
-            p->aclr[0][j] = (px->ab[j] + 1) >> 1;
+            p->colors[0][j] = (px->ab[j] + 1) >> 1;
     }
     v = px->c;
     cExtra = 0;
@@ -385,18 +385,18 @@ extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
     int i, j, k;
     k = q->xC0;
     g = 1.0f;
-    p->x43C = k;
+    p->renderKind = k;
     if (k == 1)
         g = q->gF0;
     p->g440 = g;
     pclr = q->pclrDC;
     if (pclr) {
-        p->c3B0 = pclr->c;
-        for (i = 0; i < p->c3B0; i++)
+        p->numColors = pclr->c;
+        for (i = 0; i < p->numColors; i++)
         {
-            int iDst = p->c3B0 - i - 1;
+            int iDst = p->numColors - i - 1;
             for (j = 0; j < 4; j++)
-                p->aclr[iDst][j] = (pclr->ab[i][j] + 1) >> 1;
+                p->colors[iDst][j] = (pclr->ab[i][j] + 1) >> 1;
         }
         p->x434 = q->xCC;
     }
@@ -431,7 +431,7 @@ extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
     InitS(g, &p->s150);
     {
     int kC4 = q->xC4;
-    p->x160 = kC4;
+    p->motionKind = kC4;
     if (!kC4) {
         int fNear = FVecsNear(D_002A2DD0, q->v60);
         if (fNear && q->g58 == 0.0f && q->g80 == 0.0f)
@@ -439,9 +439,9 @@ extern "C" void SetBlipgEmitb(BLIPGV *p, EMITBV *q)
     }
     }
     if (f)
-        p->x160 = 1;
+        p->motionKind = 1;
     func_002333B4(p->ab170, 0, 0x30);
-    if (!p->x160)
+    if (!p->motionKind)
         SetEmitdvEmitb((EMITDV *)p->ab170, q);
 }
 
@@ -531,7 +531,7 @@ extern "C" int ProjectBlipTransformAccel(M4 *pm, qwordV dt, qwordV *pa, qwordV *
 
 // ProjectBlipgTransformAccel (0x139AB8): DMA-double-buffered VU particle update over the DLI list at p->dl (0x448), accumulating the
 // bounding box of every particle batch in vMin/vMax (ProjectBlipTransformAccel, microprogram), then sets the bounding sphere
-// p->vF0 = centre, p->g100 = radius + p->g120 (or calls virtual slot 9 when p->c444 drops to 0).
+// p->boundsCenter = centre, p->g100 = radius + p->g120 (or calls virtual slot 9 when p->numLiveParticles drops to 0).
 // MATCH (Claude agent for Lilly, T1675, 2026-10-25), built on lilly2 (T1663: arg block) and lilly1 (T1659: sceDmaSync returns int).
 // The prologue (hi $LC0 v0, zero v1, hi $LC1 v0, f0 stores then f1 stores) needs VECTOR = struct with an anonymous union:
 // store_constructor clears the struct (sq zero) and then ALWAYS emits a CLOBBER for the union member, even when already
@@ -604,24 +604,24 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
         func_00201998();
         pqNext = (BLIPV *)PvNextDli(&dli);
         if (pqNext) Kick(pqNext);
-        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, p->x43C, &vMin, &vMax);
+        n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, p->renderKind, &vMin, &vMax);
         i = (pq->i + 1) & 1;
         {
             BUF *pb = &pq->abuf[i];
             SaveSprBuf(pb, pb->b, pb->c, 0);
         }
         pq->c -= n;
-        p->c444 -= n;
+        p->numLiveParticles -= n;
         if (pq->c <= 0) RemoveBlip(pq);
         else pq->i = i;
         pq = pqNext;
     }
     sceDmaSync(D_002DE59C, 0, 0);
-    if (p->c444 <= 0) {
+    if (p->numLiveParticles <= 0) {
         p->pvt[9].pfn((char *)p + p->pvt[9].d);
     } else {
         qwordV c = QwMid(vMin.q, vMax.q, VU_FLOATA(0.5f));
-        p->vF0 = c;
+        p->boundsCenter = c;
         float g = GFromQw(QwLength(VuSubRef(c, vMax.q)));
         p->g100 = g + p->g120;
     }
@@ -629,11 +629,11 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
     }
 }
 
-// ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->x160 != 0 or D_002BC9C0 is set). For every particle
-// batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: x160 0 =
-// velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; x43C == 2 updates c.w through
-// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->vF0 = centre, p->g100 = radius + p->g120 (or calls
-// virtual slot 9 when p->c444 drops to 0).
+// ProjectBlipgTransform (0x139DC0): CPU fallback of ProjectBlipgTransformAccel (taken when p->motionKind != 0 or D_002BC9C0 is set). For every particle
+// batch in the DLI list at p->dl it copies the live particles (b.w > clock.t) from abuf[i] to abuf[(i + 1) & 1]: motionKind 0 =
+// velocity transformed by CalculateEmitdvMatrix's matrix, 1 = plain copy, 2 = EvaluateBezierPos path; renderKind == 2 updates c.w through
+// RadNormalize. It accumulates the bounding box in vMin/vMax and sets p->boundsCenter = centre, p->g100 = radius + p->g120 (or calls
+// virtual slot 9 when p->numLiveParticles drops to 0).
 // MATCH (Claude agent for Lilly, T1677, 2026-10-25): lilly5 (T1673) + the T1675 ProjectBlipgTransformAccel prologue fix: VECTOR is a
 // struct with an anonymous union, so store_constructor emits a sched1-only CLOBBER after the clear, which gives both pool
 // his $v0 and the zero reload $v1. Loop givs: the post-switch copies go through c-based pointers pcs/pcd (laneC2f).
@@ -665,7 +665,7 @@ static __inline__ qwordV MulPoint(M4 *pm, qwordV v)
 extern "C" void ProjectBlipgTransform(BLIPGV *p)
 {
     M4 m;
-    if (p->x160 == 0) {
+    if (p->motionKind == 0) {
         if (D_002BC9C0 == 0) {
             ProjectBlipgTransformAccel(p);
             return;
@@ -694,7 +694,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
                 cDead++;
                 continue;
             }
-            switch (p->x160) {
+            switch (p->motionKind) {
             case 0: {
                 qwordV v = MulPoint(&m, pb->b[i].q);
                 pbn->b[j].q = v;
@@ -722,7 +722,7 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
             CA(pcd)[0].v.w = CA(pcs)[0].v.w;
             CB(pcd)[0].v.w = CB(pcs)[0].v.w;
             *pcd = *pcs;
-            if (p->x43C == 2)
+            if (p->renderKind == 2)
                 pcd->v.w = RadNormalize(pcs->v.w + pcs->v.z * pclock->dt);
             *(qwordV *)&vMin = Min(*(qwordV *)&vMin, CA(pcd)[0].q);
             *(qwordV *)&vMax = Max(*(qwordV *)&vMax, CA(pcd)[0].q);
@@ -730,20 +730,20 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
             j++;
         }
         pq->c -= cDead;
-        p->c444 -= cDead;
+        p->numLiveParticles -= cDead;
         if (pq->c <= 0)
             RemoveBlip(pq);
         else
             pq->i = iNext;
     }
-    if (p->c444 <= 0) {
+    if (p->numLiveParticles <= 0) {
         VTE *pvt = p->pvt;
         pvt[9].pfn((char *)p + pvt[9].d);
     } else {
         qwordV c, d, l;
         float g;
         c = Mid(*(qwordV *)&vMin, *(qwordV *)&vMax, VU_FLOATT(0.5f));
-        p->vF0 = c;
+        p->boundsCenter = c;
         d = VuSub(c, *(qwordV *)&vMax);
         d = VuDot(d, d);
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
@@ -757,15 +757,15 @@ extern "C" void ProjectBlipgTransform(BLIPGV *p)
 #undef CB
 
 // RenderBlipgSelf: light-list VU upload (Claude agent for Lilly, T1676; built on the team's v2..v14 drafts).
-// Collects the lights of p->plo's list whose position (PosLoWorld 0x1A62E8 + PmatLoWorld 0x1A6318 rotating p->vF0)
+// Collects the lights of p->plo's list whose position (PosLoWorld 0x1A62E8 + PmatLoWorld 0x1A6318 rotating p->boundsCenter)
 // passes the camera tests FInsideCmFrustum / FInsideCmMrd, as LIGHTMs in a stack array (or the single D_002A2D30 when the
 // list check fails), then uploads each light per DMA queue through the VIF helpers.
 // Matching notes (gather loop, the last diffs; found with sched1/sched2/local-alloc dumps):
 //  * The g100 lw must issue after the &D_002DDF40 addiu in sched1 (else lw and lui overlap and the lui gets v1):
 //    the lw is written inside the VU_FLOATR asm with an allocation-only "r"(pcm) input.
-//  * The vF0 barrier is an operand-less volatile asm: a "+j"(v) one gives v 2 more refs, and local-alloc then
-//    ranks the vF0 chain above mat.r[2] (vF0 vf1 instead of vf2).
-//  * Plain VuSub (2 refs on pcm->pos): with SubE's duplicate operand the cm pos qty outranks the vF0 chain (vf2/vf3 swap).
+//  * The boundsCenter barrier is an operand-less volatile asm: a "+j"(v) one gives v 2 more refs, and local-alloc then
+//    ranks the boundsCenter chain above mat.r[2] (boundsCenter vf1 instead of vf2).
+//  * Plain VuSub (2 refs on pcm->pos): with SubE's duplicate operand the cm pos qty outranks the boundsCenter chain (vf2/vf3 swap).
 //  * The empty "=r"(z) asm only exists for sched2 (see the comment there).
 struct LIGHTM { qwordV r[3]; float x30, y30, z30, w30; };
 extern "C" LIGHTM D_002A2D30;
@@ -833,8 +833,8 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
                 else
                     mat = *pmId;
             }
-            qwordV v = p->vF0;
-            __asm__ volatile(""); /* barrier: the vF0 load issues first (an operand-less one adds no refs to v) */
+            qwordV v = p->boundsCenter;
+            __asm__ volatile(""); /* barrier: the boundsCenter load issues first (an operand-less one adds no refs to v) */
             CMV *pcm = &D_002DDF40;
             VU_FLOATR vf(&p->g100, pcm);
             /* empty asm, emits nothing: z depends on pcm and feeds the Rot and the Add, so in sched2 it takes the
@@ -864,8 +864,8 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
     done:;
     } else {
         register CMV *pcm asm("$4") = &D_002DDF40; /* register pin: the target builds &D_002DDF40 in a0 */
-        qwordV v = p->vF0;
-        __asm__("" : "+j"(v)); /* empty asm: keeps vF0 in a pseudo */
+        qwordV v = p->boundsCenter;
+        __asm__("" : "+j"(v)); /* empty asm: keeps boundsCenter in a pseudo */
         VU_FLOATR vf(p->g100);
         if (!FInsideCmFrustum(pcm, SubE(v, pcm->pos), vf))
             goto none;
@@ -898,12 +898,12 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
             AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 9, 1, as, 0, ten);
             AddVifUnpack__4VIFS3UPKiPvi(&D_002DEA28, 0xC, 4, &aLight[i], 7);
             AddVifStcycl__4VIFSii(&D_002DEA28, 1, 10);
-            if (p->x43C == 1)
+            if (p->renderKind == 1)
                 AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->b, as[0] + 1, 0);
             AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->c, as[0] + 2, 0);
             AddVifUnpackRefs__4VIFS3UPKiPviPPPv(&D_002DEA28, 0xC, pq->c, pb->a, as[0] + 3, 0);
             AddVifStcycl__4VIFSii(&D_002DEA28, 1, 1);
-            switch (p->x43C) {
+            switch (p->renderKind) {
             case 0: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000000); break;
             case 1: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000390); break;
             case 2: AddVifMscal__4VIFSPv(&D_002DEA28, D_00000870); break;
@@ -935,15 +935,15 @@ extern "C" void AddBlipgVuParams(BLIPGV *p)
     pn[0] = 0;
     if (p->x434)
         pn[0] |= 1;
-    pn[1] = p->c3B0;
+    pn[1] = p->numColors;
     pn[2] = p->n1A0;
     *(float *)&pn[3] = pclock->dtReal;
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, p->c3B0, p->aclr, 0x30 - p->c3B0);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xE, p->numColors, p->colors, 0x30 - p->numColors);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, p->ab130, 1);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &p->poly, 2);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, p->ab140, 3);
     AddVifUnpack__4VIFS3UPKiPvi(pdma, 8, 1, &p->s150, 4);
-    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, p->p438, 0x30);
+    AddVifUnpack__4VIFS3UPKiPvi(pdma, 0xC, 4, p->gifPacket, 0x30);
     AddVifUnpackRefs__4VIFS3UPKiPviPPPv(pdma, 0xC, p->n1A0, p->age, 0xF, 0);
 }
 
