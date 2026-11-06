@@ -2,6 +2,8 @@
 // markers of a blended clip, LEAP (a jump between two points: animation, ballistic or timed flight, landing), and the
 // direction blend that picks the clip best aligned with a velocity. TU 0x20B840..0x20CE28 (31 functions, address
 // order).
+// Entry points: InitGait/PostJtLoadGait/UpdateGaitBlend/UpdateGaitFootsteps, StartLeap/UpdateLeap/SetLeapState,
+// InitDirAnims/SelectDirAnim/StartDirAnim.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_20B840
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0020CE08
 #include "sly2/slotheap.h"
@@ -199,6 +201,7 @@ LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);                     
  * See: docs/engine/animation.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
  *   docs/engine/player.md#4-stepplayer-tu-0x13ff70-0x144638-file-name-unknown-lilly-stepplayer_rawc
  * @end-sly2-annot */
+// Initializes a gait record (walk/run locomotion): owner, footstep sound id, walk volume 0.6, run volume 1.0.
 extern "C" void InitGait(GAIT *p, STEPPLAYER *pstepplayer, int sfxid) {
   p->pstepplayer = pstepplayer;
   p->sfxidStep = sfxid;
@@ -229,32 +232,33 @@ void PostJtLoadGait(GAIT *pgait) __asm__("PostJtLoadGait");
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-void PostJtLoadGait(GAIT *pgait)
+// Gait post-load: foot markers, root velocity per clip and the dynamic walk/run blend.
+void PostJtLoadGait(GAIT *gait)
 {
-    if (pgait->abl[0].paseg == 0)
+    if (gait->abl[0].paseg == 0)
         return;
-    FillBlAmrsg(0x40, 2, pgait->abl, 0x20, 2, D_002C3DC0);
-    FillBlAmrsg(0x40, 2, pgait->abl, 0x30, 2, D_002C3DC8);
+    FillBlAmrsg(0x40, 2, gait->abl, 0x20, 2, D_002C3DC0);
+    FillBlAmrsg(0x40, 2, gait->abl, 0x30, 2, D_002C3DC8);
     for (uint ibl = 0; ibl < 2; ibl++)
     {
-        BLGAIT *pblgait = &pgait->abl[ibl];
-        ASEG *paseg = pblgait->paseg;
-        if (paseg != 0)
+        BLGAIT *pblgait = &gait->abl[ibl];
+        ASEG *aseg = pblgait->paseg;
+        if (aseg != 0)
         {
-            CHN *pchn = PchnFindAseg(paseg, (ALO *)pgait->pstepplayer, 1, 1);
+            CHN *pchn = PchnFindAseg(aseg, (ALO *)gait->pstepplayer, 1, 1);
             VECTOR4 vStart, vEnd;
             ((VECKEY *)pchn->pkey)->GetValue(0.0f, 1.0f, (qword *)&vStart, 0);
-            ((VECKEY *)pchn->pkey)->GetValue(paseg->tMax, 1.0f, (qword *)&vEnd, 0);
+            ((VECKEY *)pchn->pkey)->GetValue(aseg->tMax, 1.0f, (qword *)&vEnd, 0);
             qword qwDiff = QwSub(*(qword *)&vEnd, *(qword *)&vStart);
             VU_FLOAT vuT;
-            __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&paseg->tMax )) ;
+            __asm__("qmtc2 %1, %0" : "=j"( vuT.qw ) : "rV"(  *(int *)&aseg->tMax )) ;
             pblgait->vRoot = QwDivVu(qwDiff, vuT);
         }
     }
-    EnsureAsegBlendDynamic((ALO *)pgait->pstepplayer, 0x40, 2, pgait->abl, 2, D_002C3DD8, D_002C3DD0, &pgait->pasegbl);
-    for (int ichn = 0; ichn < pgait->pasegbl->cchn; ichn++)
+    EnsureAsegBlendDynamic((ALO *)gait->pstepplayer, 0x40, 2, gait->abl, 2, D_002C3DD8, D_002C3DD0, &gait->pasegbl);
+    for (int ichn = 0; ichn < gait->pasegbl->cchn; ichn++)
     {
-        CHN *pchn = &pgait->pasegbl->achn[ichn];
+        CHN *pchn = &gait->pasegbl->achn[ichn];
         VKBLEND *pvkblend;
         SKBLEND *pskblend;
         if (pchn->fScalar)
@@ -267,18 +271,18 @@ void PostJtLoadGait(GAIT *pgait)
             pvkblend = (VKBLEND *)pchn->pkey;
             pskblend = 0;
         }
-        SO *pso;
-        XF *pxf;
-        FindAsegChannelTarget(pgait->pasegbl, (ALO *)pgait->pstepplayer, pchn, &pso, &pxf);
-        switch (pxf->oid)
+        SO *so;
+        XF *xf;
+        FindAsegChannelTarget(gait->pasegbl, (ALO *)gait->pstepplayer, pchn, &so, &xf);
+        switch (xf->oid)
         {
             case 0x10:
             case 0x12:
             case 0x14:
                 if (pvkblend != 0)
-                    pvkblend->amrsgc = &pgait->pasegbl->amrsgc[1];
+                    pvkblend->amrsgc = &gait->pasegbl->amrsgc[1];
                 if (pskblend != 0)
-                    pskblend->amrsgc = &pgait->pasegbl->amrsgc[1];
+                    pskblend->amrsgc = &gait->pasegbl->amrsgc[1];
                 break;
             case 0x11:
             case 0x13:
@@ -292,7 +296,7 @@ void PostJtLoadGait(GAIT *pgait)
                 break;
         }
     }
-    ReblendAsegbl(pgait->pasegbl);
+    ReblendAsegbl(gait->pasegbl);
 }
 
 /** @sly2-annot addr=0x20BAD8
@@ -302,12 +306,13 @@ void PostJtLoadGait(GAIT *pgait)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-qword GetGaitRootVelocity(GAIT *p)
+// The weighted root velocity of the two gait clips.
+qword GetGaitRootVelocity(GAIT *gait)
 {
-    MRSGC *pb = p->pasegbl->amrsgc;
+    MRSGC *pb = gait->pasegbl->amrsgc;
     float denominator=pb->amrsg->dt;
     qword acc = D_002A2DD0;
-    BLGAIT *pe = p->abl;
+    BLGAIT *pe = gait->abl;
     unsigned int i;
     for (i = 0; i < 2; i++) {
         U u;
@@ -327,8 +332,9 @@ qword GetGaitRootVelocity(GAIT *p)
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-ASEGA *GetGaitBlendValue(GAIT *p) {
-    return (ASEGA *)p->pasegbl->dlAsega.head;
+// Returns the value at +0x50 of the gait's blend (+4). (inferred)
+ASEGA *GetGaitBlendValue(GAIT *gait) {
+    return (ASEGA *)gait->pasegbl->dlAsega.head;
 }
 
 static inline void InitScalar(U *value,int bits) {
@@ -352,23 +358,24 @@ static inline qword Negate(qword v,U *value) {
  * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void UpdateGaitBlend(GAIT *p, float g)
+// Sets the walk/run weights, reblends and writes the resulting root velocity.
+extern "C" void UpdateGaitBlend(GAIT *gait, float g)
 {
     STEPPLAYER *pt;
     U b, a;
     qword q, r1, r2;
-    if (p->abl[1].paseg == 0) {
-        p->abl[1].gWeight = 0.0f;
-        p->abl[0].gWeight = 1.0f;
+    if (gait->abl[1].paseg == 0) {
+        gait->abl[1].gWeight = 0.0f;
+        gait->abl[0].gWeight = 1.0f;
     } else {
-        p->abl[1].gWeight = g;
-        p->abl[0].gWeight = 1.0f - g;
+        gait->abl[1].gWeight = g;
+        gait->abl[0].gWeight = 1.0f - g;
     }
-    func_001384C0(p->pasegbl);
-    pt = p->pstepplayer;
-    InitScalar(&a,*(int *)&GetGaitBlendValue(p)->svt);
+    func_001384C0(gait->pasegbl);
+    pt = gait->pstepplayer;
+    InitScalar(&a,*(int *)&GetGaitBlendValue(gait)->svt);
     b = a;
-    q = GetGaitRootVelocity(p);
+    q = GetGaitRootVelocity(gait);
     r1=Negate(q,&b);
     __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(a.q), "j"(r1));
     *(qword *)&pt->vUnk190 = r2;
@@ -381,28 +388,29 @@ extern "C" void UpdateGaitBlend(GAIT *p, float g)
  * See: docs/engine/animation.md#3-blends-blendcpp-0x137a30-and-directional-blends,
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void UpdateGaitFootsteps(GAIT *p)
+// Plays the footstep sound when a foot goes down, volume interpolated between walk and run, audible range 500/2000.
+extern "C" void UpdateGaitFootsteps(GAIT *gait)
 {
-    ASEGA *x = (ASEGA *)p->pasegbl->dlAsega.head;
+    ASEGA *x = (ASEGA *)gait->pasegbl->dlAsega.head;
     float g = x->tLocal;
     int i;
     for (i = 0; i < 2; i++) {
-        ASEGBL *y = p->pasegbl;
+        ASEGBL *y = gait->pasegbl;
         MRSG *z = y->amrsgc[i].amrsg;
         int f = z->dt <= GModPositive__Fff(g - z->t, y->tMax);
-        if (f == p->afFootDown[i])
+        if (f == gait->afFootDown[i])
             continue;
         if (!f) {
-            float t = p->abl[1].gWeight;
+            float t = gait->abl[1].gWeight;
             void *h;
-            { float u = 1.0f - t; t *= p->gVolRun; t += u * p->gVolWalk; }
-            h = PsndStartSound(p->sfxidStep);
+            { float u = 1.0f - t; t *= gait->gVolRun; t += u * gait->gVolWalk; }
+            h = PsndStartSound(gait->sfxidStep);
             SetSndSourceLo(h, 0);
             SetSndSourcePos(h, func_001A62E8(x->paloRoot));
             SetSndRange(h, 500.0f, 2000.0f);
             func_001FB1F8(h, t);
         }
-        p->afFootDown[i] = f;
+        gait->afFootDown[i] = f;
     }
 }
 
@@ -412,7 +420,8 @@ extern "C" void UpdateGaitFootsteps(GAIT *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void ResetGaitFeet(GAIT *p) { p->afFootDown[1] = 0; p->afFootDown[0] = 0; }
+// Clears both foot-down flags.
+extern "C" void ResetGaitFeet(GAIT *gait) { gait->afFootDown[1] = 0; gait->afFootDown[0] = 0; }
 
 /** @sly2-annot addr=0x20BD78
  * Purpose: *p = -1
@@ -422,6 +431,7 @@ extern "C" void ResetGaitFeet(GAIT *p) { p->afFootDown[1] = 0; p->afFootDown[0] 
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Initializes an animation arc record (first word = -1).
 extern "C" void InitAsegArc(OID *p) {
     *p = (OID)-1;
 }
@@ -433,6 +443,7 @@ extern "C" void InitAsegArc(OID *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Arc timing from the animation labels 0x22/0x23/0x24: planar distance and curvature of the leap.
 extern "C" void PostAsegArcLoad(BLCURVE *p, ALO *arg)
 {
     EA *pa, *pb, *pc;
@@ -494,6 +505,7 @@ initialized:
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Constructs a leap object (CID 0x91) in place and enters state 0.
 extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
     if (ptune->animation != 0) {
         memset(p, 0, 0x70);
@@ -513,6 +525,7 @@ extern "C" void StartLeap(LEAPTUNE *ptune, ALO *psubject, int index, LEAPV *p) {
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
+// Allocates a leap object from the world's leap slot heap.
 extern "C" LEAPV *AllocLeap(void) {
     return (LEAPV *)PvAllocSlotheapClear(&g_sw.slotheapLeap);
 }
@@ -525,6 +538,7 @@ extern "C" LEAPV *AllocLeap(void) {
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
+// Returns a leap object to the world's leap slot heap.
 extern "C" void FreeLeap(LEAPV *p) {
     func_0011CD98(&g_sw.slotheapLeap, p);
 }
@@ -535,6 +549,7 @@ extern "C" void FreeLeap(LEAPV *p) {
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Leap (CID 0x91) constructor: sets its vtable.
 LEAPV *ConstructLeap(LEAPV *p) { p->pvt = D_002DAA10; p->state = -1; p->x0 = 0; p->x4 = 0; return p; }
 
 /** @sly2-annot addr=0x20C080
@@ -543,6 +558,7 @@ LEAPV *ConstructLeap(LEAPV *p) { p->pvt = D_002DAA10; p->state = -1; p->x0 = 0; 
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// If the leap is not finished: state 4 and clears its animation job.
 extern "C" void StopLeap(LEAPV *p) { if (!IsLeapDone(p)) { SetLeapState(p, 4); ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->job); } }
 
 /** @sly2-annot addr=0x20C0D8
@@ -551,6 +567,7 @@ extern "C" void StopLeap(LEAPV *p) { if (!IsLeapDone(p)) { SetLeapState(p, 4); A
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Whether the leap is in state 4 (done).
 int IsLeapDone(LEAPV *p) {
     return p->state == 4;
 }
@@ -561,6 +578,7 @@ int IsLeapDone(LEAPV *p) {
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Leap state machine for states 1..3.
 extern "C" void UpdateLeap(LEAPV *p)
 {
     int k;
@@ -598,6 +616,7 @@ struct MSGL { int a, b, n8; };
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Leap message handler (slot 5): animation label 0x22 launches the leap (state 1).
 void LEAP::HandleMessage(MSGID msg_m, void *pm_m)   /* key function: LEAP's vtable comes out here */
 { LEAPV *p = (LEAPV *)this; int msg = (int)msg_m; MSGL *pm = (MSGL *)pm_m; if (msg == 9 && pm->n8 == 0x22) SetLeapState(p, 1); HandleBasicMessage(p, msg, pm); }
 
@@ -611,6 +630,8 @@ static inline float MaxR(float a,float b){return a<b?b:a;}
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Leap states: 0 start animation; 1 launch (ballistic time or the given flight time) with a constraint; 2/3 seek the
+// target; 4 land.
 void SetLeapState(LEAPV *p,int state)
 {
     U scalar,delta,acceleration,velocity,finalVelocity;
@@ -710,6 +731,7 @@ struct ACTPOS { char pad[0x20]; qword v; };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Updates the leap's target and constraint target.
 extern "C" void SetLeapTarget(LEAPV *p, qword v)
 {
     switch (p->state) {
@@ -726,6 +748,7 @@ extern "C" void SetLeapTarget(LEAPV *p, qword v)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Drops the leap constraint and clears LO flag bit 26.
 void ReleaseLeapConstraint(LEAPV *p)
 {
     if (p->ballistic) {
@@ -746,6 +769,7 @@ void ReleaseLeapConstraint(LEAPV *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Marks the directional animations uninitialized.
 extern "C" void InvalidateDirAnims(DIRBL *p) {
     p->fInit = 0;
 }
@@ -757,6 +781,7 @@ extern "C" void InvalidateDirAnims(DIRBL *p) {
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Measures the root velocity and speed of the four directional animations.
 extern "C" void InitDirAnims(DIRBL *p,ALO *arg)
 {
     DIRE *e; unsigned int i;
@@ -804,19 +829,20 @@ extern "C" void InitDirAnims(DIRBL *p,ALO *arg)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
-extern "C" void StartDirAnim(DIROWNER *p, ALO *a, int b, DIRACT *po)
+// Initializes a directional-animation object (CID 0x92) and applies its animation.
+extern "C" void StartDirAnim(DIROWNER *p, ALO *a, int b, DIRACT *object)
 {
-    memset(po, 0, sizeof(*po));
-    memset(po, 0, sizeof(*po));
-    po->powner = p;
-    po->palo = a;
-    po->pvt = D_002DA9D0;
-    po->grfapl = b;
-    po->n0 = 0;
-    po->n4 = 0;
-    ApplyAsegCur(p->paseg, a, 0.0f, 1.0f, b, &po->pasega);
-    SubscribeLoObject(po->pasega, po);
-    po->ppaseg = &p->paseg;
+    memset(object, 0, sizeof(*object));
+    memset(object, 0, sizeof(*object));
+    object->powner = p;
+    object->palo = a;
+    object->pvt = D_002DA9D0;
+    object->grfapl = b;
+    object->n0 = 0;
+    object->n4 = 0;
+    ApplyAsegCur(p->paseg, a, 0.0f, 1.0f, b, &object->pasega);
+    SubscribeLoObject(object->pasega, object);
+    object->ppaseg = &p->paseg;
 }
 
 /** @sly2-annot addr=0x20CA00
@@ -827,6 +853,7 @@ extern "C" void StartDirAnim(DIROWNER *p, ALO *a, int b, DIRACT *po)
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
+// Allocates a directional-animation object from the world's slot heap.
 extern "C" DIRACT *AllocDirAnim(void) {
     return (DIRACT *)PvAllocSlotheapClear(&g_sw.slotheapDiract);
 }
@@ -840,6 +867,7 @@ extern "C" DIRACT *AllocDirAnim(void) {
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
+// Returns a directional-animation object to the world's slot heap.
 extern "C" void FreeDirAnim(DIRACT *p) {
     func_0011CD98(&g_sw.slotheapDiract, p);
 }
@@ -851,6 +879,7 @@ extern "C" void FreeDirAnim(DIRACT *p) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Clears the directional animation's job if active.
 extern "C" void StopDirAnim(DIRACT *p) { if (!IsDirAnimStopped(p)) ApplyAsegCur(0, 0, 0.0f, 1.0f, 0, &p->pasega); }
 
 /** @sly2-annot addr=0x20CA98
@@ -860,6 +889,7 @@ extern "C" void StopDirAnim(DIRACT *p) { if (!IsDirAnimStopped(p)) ApplyAsegCur(
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Whether the directional animation's job is cleared.
 int IsDirAnimStopped(DIRACT *p) {
     return p->pasega == 0;
 }
@@ -872,6 +902,7 @@ int IsDirAnimStopped(DIRACT *p) {
  * See: docs/engine/animation.md#7-key-functions,
  *   docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Directional-animation message handler (slot 5): labels 0x17D/0x17E set forward, 0x17F/0x180 backward.
 void CID146::HandleMessage(MSGID msg_m, void *pm_m)
 {
     DIRSEL *p = (DIRSEL *)this;
@@ -912,6 +943,7 @@ namespace RO_ORDER { extern const float r_D_002A8904 __asm__("D_002A8904") = -3.
  * Confidence: low (draft) [T2 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/animation.md#tu_20b840-0x20b840-0x20ce28
  * @end-sly2-annot */
+// Chooses the best of the four directional animations for the desired direction.
 extern "C" void SelectDirAnim(DIRSEL*p,qword v)
 {
  U scalar,direction;
