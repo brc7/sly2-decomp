@@ -1146,10 +1146,10 @@ void BuildBmpGifs(struct BMP *pbmp, int dbp, void *pgifs)
 namespace M_FBuildUploadBitmapGifs__FiP3GSBP4GIFS { extern "C" {
 struct BS { int n0; int n4; int n8; };
 struct X { char pad[0xC]; int c; };
-struct T1 { char pad[0x18]; long l18; };
-struct T2 { char pad[0x20]; long l20; };
-struct E1 { int n0; unsigned char b4; char pad5[5]; unsigned short hA; int nC; int n10; char pad14[4]; long l18; };
-struct E2 { int n0; unsigned char b4; char pad5[7]; unsigned char bC; char padD; unsigned short hE; char pad10[4]; int n14; int n18; char pad1C[4]; long l20; };
+struct T1 { char pad[0x18]; long tex2; };
+struct T2 { char pad[0x20]; long tex0; };
+struct E1 { int n0; unsigned char kind; char pad5[5]; unsigned short gsBlocks; int colors; int colorQwords; char pad14[4]; long tex2; };
+struct E2 { int n0; unsigned char kind; char pad5[7]; unsigned char psm; char padD; unsigned short gsBlocks; char pad10[4]; int pixels; int pixelQwords; char pad1C[4]; long tex0; };
 extern int D_003DCFF8;
 extern struct E1 *D_003DCFFC;
 extern int D_003DCFF0;
@@ -1165,58 +1165,58 @@ void AddDmaRefs__4DMASiP2QW(struct X *, int, int);
 void func_001ED560(struct E1 *);
 void func_001ED470(struct E2 *);
 // Upload CLUTs/BMPs of kind k into a GS block; returns whether anything was added.
-int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int k, struct BS *pbs, struct X *px)
+int FBuildUploadBitmapGifs__FiP3GSBP4GIFS(int kind, struct BS *gsb, struct X *gifs)
 {
-    int c0 = 0;
+    int countBefore = 0;
     int i, j;
-    if (px)
-        c0 = px->c;
+    if (gifs)
+        countBefore = gifs->c;
     for (i = 0; i < D_003DCFF8; i++) {
-        struct E1 *pe = &D_003DCFFC[i];
-        struct T1 *pt;
-        int v;
-        if (k != pe->b4)
+        struct E1 *entry = &D_003DCFFC[i];
+        struct T1 *cached;
+        int gsAddress;
+        if (kind != entry->kind)
             continue;
-        pt = func_001ED5D0(pe->n0);
-        if (pt) {
-            pe->l18 = pt->l18;
+        cached = func_001ED5D0(entry->n0);
+        if (cached) {
+            entry->tex2 = cached->tex2;
             continue;
         }
-        v = IgsAllocGsb__FP3GSBi(pbs, pe->hA);
-        BuildClutTex2__FP4CLUTi(pe, v);
-        if (px && pbs->n4 <= pbs->n8) {
-            BuildClutGifs__FP4CLUTiP4GIFS(pe, v, px);
-            AddDmaRefs__4DMASiP2QW(px, pe->n10, pe->nC);
+        gsAddress = IgsAllocGsb__FP3GSBi(gsb, entry->gsBlocks);
+        BuildClutTex2__FP4CLUTi(entry, gsAddress);
+        if (gifs && gsb->n4 <= gsb->n8) {
+            BuildClutGifs__FP4CLUTiP4GIFS(entry, gsAddress, gifs);
+            AddDmaRefs__4DMASiP2QW(gifs, entry->colorQwords, entry->colors);
         }
-        func_001ED560(pe);
+        func_001ED560(entry);
     }
     for (j = 0; j < D_003DCFF0; j++) {
-        struct E2 *pe = &D_003DCFF4[j];
-        struct T2 *pt;
-        int v;
-        if (k != pe->b4)
+        struct E2 *entry = &D_003DCFF4[j];
+        struct T2 *cached;
+        int gsAddress;
+        if (kind != entry->kind)
             continue;
-        pt = func_001ED4E0(pe->n0);
-        if (pt) {
-            pe->l20 = pt->l20;
+        cached = func_001ED4E0(entry->n0);
+        if (cached) {
+            entry->tex0 = cached->tex0;
             continue;
         }
-        if (!pe->bC) {
-            int r = pbs->n4 & 0x1F;
+        if (!entry->psm) {
+            int r = gsb->n4 & 0x1F;
             if (r)
-                IgsAllocGsb__FP3GSBi(pbs, 32 - r);
+                IgsAllocGsb__FP3GSBi(gsb, 32 - r);
         }
-        v = IgsAllocGsb__FP3GSBi(pbs, pe->hE);
-        BuildBmpTex0__FP3BMPi(pe, v);
-        if (px && pbs->n4 <= pbs->n8) {
-            BuildBmpGifs(pe, v, px);
-            AddDmaRefs__4DMASiP2QW(px, pe->n18, pe->n14);
+        gsAddress = IgsAllocGsb__FP3GSBi(gsb, entry->gsBlocks);
+        BuildBmpTex0__FP3BMPi(entry, gsAddress);
+        if (gifs && gsb->n4 <= gsb->n8) {
+            BuildBmpGifs(entry, gsAddress, gifs);
+            AddDmaRefs__4DMASiP2QW(gifs, entry->pixelQwords, entry->pixels);
         }
-        func_001ED470(pe);
+        func_001ED470(entry);
     }
-    if (!px)
+    if (!gifs)
         return 0;
-    return px->c != c0;
+    return gifs->c != countBefore;
 }
 } } // namespace M_FBuildUploadBitmapGifs__FiP3GSBP4GIFS
 
@@ -1228,8 +1228,8 @@ struct BS { int n0; int n4; int n8; };
 struct DMAS { int pad[3]; qword *pqw; int pad2[8]; };
 struct X { int pad[12]; };
 struct M { int pad[4]; };
-struct E1 { int n0; unsigned char b4; char pad5[5]; unsigned short hA; int nC; int n10; char pad14[0xC]; };
-struct E2 { int n0; unsigned char b4; char pad5[9]; unsigned short hE; char pad10[4]; int n14; int n18; char pad1C[0xC]; };
+struct E1 { int n0; unsigned char kind; char pad5[5]; unsigned short gsBlocks; int colors; int colorQwords; char pad14[0xC]; };
+struct E2 { int n0; unsigned char kind; char pad5[9]; unsigned short gsBlocks; char pad10[4]; int pixels; int pixelQwords; char pad1C[0xC]; };
 extern int D_003DCF98;
 extern int D_003DCF9C;
 extern int D_003DCFF8;
@@ -1281,32 +1281,32 @@ int UploadPermShaders(struct BS *pbs, int k)
     for (i = 0; i < D_003DCFF8; i++) {
         struct E1 *pe = &D_003DCFFC[i];
         int v;
-        if (pe->b4 != k)
+        if (pe->kind != k)
             continue;
         Reset__4DMAS(&dmas);
         AllocStatic__4DMASiP2QW(&dmas, 10, ab);
-        v = IgsAllocGsb__FP3GSBi(pbs, pe->hA);
+        v = IgsAllocGsb__FP3GSBi(pbs, pe->gsBlocks);
         BuildClutTex2__FP4CLUTi(pe, v);
         BuildClutGifs__FP4CLUTiP4GIFS(pe, v, &dmas);
         *(ulong *)((int)dmas.pqw - 0x10) |= 0x8000;   /* int arithmetic: C++ folds a negative pointer offset differently */
         Detach__4DMASPiPP2QW(&dmas, &cb, &pv);
         AddVifDirect__4VIFSiP2QWi(&x, cb, pv, 0);
-        AddVifDirectRefs__4VIFSiP2QWi(&x, pe->n10, pe->nC, 0);
+        AddVifDirectRefs__4VIFSiP2QWi(&x, pe->colorQwords, pe->colors, 0);
     }
     for (j = 0; j < D_003DCFF0; j++) {
         struct E2 *pe = &D_003DCFF4[j];
         int v;
-        if (k != pe->b4)
+        if (k != pe->kind)
             continue;
         Reset__4DMAS(&dmas);
         AllocStatic__4DMASiP2QW(&dmas, 10, ab);
-        v = IgsAllocGsb__FP3GSBi(pbs, pe->hE);
+        v = IgsAllocGsb__FP3GSBi(pbs, pe->gsBlocks);
         BuildBmpTex0__FP3BMPi(pe, v);
         BuildBmpGifs(pe, v, &dmas);
         *(ulong *)((int)dmas.pqw - 0x10) |= 0x8000;   /* int arithmetic: C++ folds a negative pointer offset differently */
         Detach__4DMASPiPP2QW(&dmas, &cb, &pv);
         AddVifDirect__4VIFSiP2QWi(&x, cb, pv, 0);
-        AddVifDirectRefs__4VIFSiP2QWi(&x, pe->n18, pe->n14, 0);
+        AddVifDirectRefs__4VIFSiP2QWi(&x, pe->pixelQwords, pe->pixels, 0);
     }
     if (n4 < pbs->n4) {
         Reset__4DMAS(&dmas);
