@@ -98,14 +98,14 @@ void SetLoBusyk(void *p, int n);
  * @end-sly2-annot */
 // Initializes the GRABSPOT mix-in (the part of an object the player can grab): no current grabber, default busy
 // value, player class mask 7 (all players), owner via slot 6, busy kind 3.
-void InitGrabspot(struct S *p)
+void InitGrabspot(struct S *grabspot)
 {
     struct VTE *e;
-    p->x14 = -1;
-    p->g = D_002A5680;
-    p->x1c = 7;
-    e = &p->vt[6];
-    SetLoBusyk(e->pfn((char *)p + e->d), 3);
+    grabspot->x14 = -1;
+    grabspot->g = D_002A5680;
+    grabspot->x1c = 7;
+    e = &grabspot->vt[6];
+    SetLoBusyk(e->pfn((char *)grabspot + e->d), 3);
 }
 } } // namespace M_InitGrabspot
 
@@ -160,14 +160,14 @@ struct S { char pad[0x20]; struct VTE *vt; };
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // The grab position nearest the player: closest parameter (slot 0xB), then the position at it (slot 0xC).
-void GetGrabspotPositionNear(struct S *p, int a, float *pg, int b, int c)
+void GetGrabspotPositionNear(struct S *grabspot, int a, float *pg, int b, int c)
 {
     float g;
     struct VTE *e;
-    e = &p->vt[2];
-    ((void (*)(void *, int, float *))e->pfn)((char *)p + e->d, a, &g);
-    e = &p->vt[3];
-    ((void (*)(void *, int, int, int, float))e->pfn)((char *)p + e->d, a, b, c, g);
+    e = &grabspot->vt[2];
+    ((void (*)(void *, int, float *))e->pfn)((char *)grabspot + e->d, a, &g);
+    e = &grabspot->vt[3];
+    ((void (*)(void *, int, int, int, float))e->pfn)((char *)grabspot + e->d, a, b, c, g);
     if (pg) *pg = g;
 }
 } } // namespace M_func_00182CD8
@@ -200,9 +200,9 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // GRABSPOT default sparkle position: a random point in a sphere around the owner, zero direction.
-void GetGrabspotSparklePosition(struct O *p, qword *pv, qword *pdv)
+void GetGrabspotSparklePosition(struct O *grabspot, qword *pv, qword *pdv)
 {
-    void *object = p->pvt->a[6].pfn((char *)p + p->pvt->a[6].d);
+    void *object = grabspot->pvt->a[6].pfn((char *)grabspot + grabspot->pvt->a[6].d);
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
     float t = GRandInRange__Fff(-1.0f, 1.0f);
     float gTilt = __builtin_fabsf(t) * t * 1.5707964f;
@@ -235,11 +235,11 @@ void InitGrabspot(void *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Wall grab spot (CID12, wall press) Init: shape init, its GRABSPOT part, busy kind 3.
-void InitWallGrabspot(struct S *p)
+void InitWallGrabspot(struct S *wall)
 {
-    InitShape(p);
-    InitGrabspot(p->sub);
-    p->n = 3;
+    InitShape(wall);
+    InitGrabspot(wall->sub);
+    wall->n = 3;
 }
 } } // namespace M_func_00182E80
 
@@ -287,11 +287,11 @@ float func_001E7D90(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Post-load: LO base, private TN override off, default busy radius = bounding radius + D_002BE8B4.
-void PostWallGrabspotLoad(struct S *p)
+void PostWallGrabspotLoad(struct S *wall)
 {
-    PostLoLoad(p);
-    if (p->p190) SetTnTnsOverride(p->p190, 0);
-    if (p->g == 1e10f) p->g = func_001E7D90(p) + D_002BE8B4;
+    PostLoLoad(wall);
+    if (wall->p190) SetTnTnsOverride(wall->p190, 0);
+    if (wall->g == 1e10f) wall->g = func_001E7D90(wall) + D_002BE8B4;
 }
 } } // namespace M_func_00182F28
 
@@ -306,11 +306,11 @@ void CloneShape(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Clone: clones the shape but keeps its own 8-byte field.
-void CloneWallGrabspot(struct S *p)
+void CloneWallGrabspot(struct S *wall)
 {
-    struct K k = p->k;
-    CloneShape(p);
-    p->k = k;
+    struct K k = wall->k;
+    CloneShape(wall);
+    wall->k = k;
 }
 } } // namespace M_func_00182FA0
 
@@ -327,11 +327,11 @@ float SMaxShape(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // For an open shape outputs [SMinShape, SMaxShape] and returns 1.
-int GetWallGrabspotWrapRange(struct S *p, float *pg)
+int GetWallGrabspotWrapRange(struct S *wall, float *pg)
 {
-    if (p->x) {
-        pg[0] = SMinShape(p);
-        pg[1] = SMaxShape(p);
+    if (wall->x) {
+        pg[0] = SMinShape(wall);
+        pg[1] = SMaxShape(wall);
         return 1;
     }
     return 0;
@@ -352,12 +352,12 @@ float SMaxShape(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // The shape distance closest to the player, clamped to [30, length - 30] on open shapes.
-void GetWallGrabspotClosestParam(struct S *p, struct T *t, float *pg)
+void GetWallGrabspotClosestParam(struct S *wall, struct T *t, float *pg)
 {
     struct V v;
-    FindShapeClosestPoint(p, *t->pq, 0, &v, 0, 0, pg);
-    if (!p->xe4) {
-        float lim = SMaxShape(p) - 30.0f;
+    FindShapeClosestPoint(wall, *t->pq, 0, &v, 0, 0, pg);
+    if (!wall->xe4) {
+        float lim = SMaxShape(wall) - 30.0f;
         float g = *pg;
         if (g < 30.0f) g = 30.0f;
         else if (lim < g) g = lim;
@@ -557,11 +557,11 @@ void SetTnTnsOverride(void *p, int n);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Post-load: LO base, TN override off, default busy radius = pole radius + D_002BE8C0.
-void PostPoleGrabspotLoad(struct S *p)
+void PostPoleGrabspotLoad(struct S *pole)
 {
-    PostLoLoad(p);
-    if (p->pe0) SetTnTnsOverride(p->pe0, 0);
-    if (p->g == 1e10f) p->g = p->g10c + D_002BE8C0;
+    PostLoLoad(pole);
+    if (pole->pe0) SetTnTnsOverride(pole->pe0, 0);
+    if (pole->g == 1e10f) pole->g = pole->g10c + D_002BE8C0;
 }
 } } // namespace M_func_001833E0
 
@@ -576,11 +576,11 @@ void CloneXfm(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Clone: clones the transform but keeps its own field.
-void ClonePoleGrabspot(struct S *p)
+void ClonePoleGrabspot(struct S *pole)
 {
-    struct K k = p->k;
-    CloneXfm(p);
-    p->k = k;
+    struct K k = pole->k;
+    CloneXfm(pole);
+    pole->k = k;
 }
 } } // namespace M_func_00183450
 
@@ -616,13 +616,13 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0,%1" : "=r"(y
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // The arc-length parameter of the player's angle around the pole axis.
-void GetPoleGrabspotClosestParam(struct P *p, struct Q *q, float *pg)
+void GetPoleGrabspotClosestParam(struct P *pole, struct Q *q, float *pg)
 {
     qword a = *q->p218;
-    qword b = func_001A62E8(p);
+    qword b = func_001A62E8(pole);
     qword d;
     __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b));
-    *pg = atan2f(GetY(d), GetX(d)) * p->f10C;
+    *pg = atan2f(GetY(d), GetX(d)) * pole->f10C;
 }
 } } // namespace M_func_001834D0
 
@@ -641,12 +641,12 @@ static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // The point at angle param / r on the circle of radius r + the player's radius.
-void GetPoleGrabspotGrabPosition(struct O *p, float g, struct J *pj, qword *pv, float *pg)
+void GetPoleGrabspotGrabPosition(struct O *pole, float g, struct J *pj, qword *pv, float *pg)
 {
-    float gPan = g / p->g10C;
-    float gR = p->g10C + pj->g103C;
+    float gPan = g / pole->g10C;
+    float gR = pole->g10C + pj->g103C;
     if (pv) {
-        *pv = VSub(VAdd(func_001A62E8(p), SetVectorCylind(gPan, gR, 0.0f)), pj->v240);
+        *pv = VSub(VAdd(func_001A62E8(pole), SetVectorCylind(gPan, gR, 0.0f)), pj->v240);
     }
     if (pg) {
         if (pj->n1040 == 1)
@@ -672,11 +672,11 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // A random point on a ring around the pole.
-void GetPoleGrabspotSparklePosition(struct O *p, qword *pv, qword *pdv)
+void GetPoleGrabspotSparklePosition(struct O *pole, qword *pv, qword *pdv)
 {
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
-    float gR = GRandInRange__Fff(0.0f, D_002BE8C4) + p->g10C;
-    *pv = VAdd(func_001A62E8(p), SetVectorCylind(gPan, gR, 0.0f));
+    float gR = GRandInRange__Fff(0.0f, D_002BE8C4) + pole->g10C;
+    *pv = VAdd(func_001A62E8(pole), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_00183600
@@ -737,11 +737,11 @@ void SetTnTnsOverride(void *p, int n);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Post-load: LO base, TN override off, default busy radius D_002BE8C8.
-void PostHoldGrabspotLoad(struct S *p)
+void PostHoldGrabspotLoad(struct S *hold)
 {
-    PostLoLoad(p);
-    if (p->pe0) SetTnTnsOverride(p->pe0, 0);
-    if (p->g == 1e10f) p->g = D_002BE8C8;
+    PostLoLoad(hold);
+    if (hold->pe0) SetTnTnsOverride(hold->pe0, 0);
+    if (hold->g == 1e10f) hold->g = D_002BE8C8;
 }
 } } // namespace M_func_00183768
 
@@ -756,11 +756,11 @@ void CloneXfm(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Clone: clones the transform but keeps its own field.
-void CloneHoldGrabspot(struct S *p)
+void CloneHoldGrabspot(struct S *hold)
 {
-    struct K k = p->k;
-    CloneXfm(p);
-    p->k = k;
+    struct K k = hold->k;
+    CloneXfm(hold);
+    hold->k = k;
 }
 } } // namespace M_func_001837D0
 
@@ -780,17 +780,17 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Hold position and heading from the object matrix, pushed out by the player's radius unless +0x10C is set.
-void GetHoldGrabspotGrabPosition(struct O *p, struct J *pj, qword *pv, float *pg)
+void GetHoldGrabspotGrabPosition(struct O *hold, struct J *pj, qword *pv, float *pg)
 {
     float g = 0.0f;
     qword d;
-    if (p->n10C == 0)
+    if (hold->n10C == 0)
         g = pj->g103C;
-    d = *func_001A6318(p);
+    d = *func_001A6318(hold);
     if (pv) {
         qword a, s, r;
         union { qword q; float f[4]; } u;
-        a = func_001A62E8(p);
+        a = func_001A62E8(hold);
         __asm__("vsub.xyzw %0, %1, %2" : "=j"(r) : "j"(a), "j"(pj->v240));
         __asm__("qmtc2.ni %1, %0" : "=j"(s) : "r"(g));
         u.q = s;
@@ -888,11 +888,11 @@ void CloneSo(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Clone: SO clone keeping its own field.
-void CloneBarrel(struct S *p)
+void CloneBarrel(struct S *barrel)
 {
-    struct K k = p->k;
-    CloneSo(p);
-    p->k = k;
+    struct K k = barrel->k;
+    CloneSo(barrel);
+    barrel->k = k;
 }
 } } // namespace M_CloneBarrel
 
@@ -940,13 +940,13 @@ void AccelSoTowardMatSpring(struct S *p, struct M *pm, void *a, qword q, void *b
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Physics preset (slot 70): pending velocity, and while free (state 0) springs the barrel upright.
-void PresetBarrelAccel(struct S *p)
+void PresetBarrelAccel(struct S *barrel)
 {
-    func_001F9B20(p);
-    if (p->x18c && !p->x17c) {
+    func_001F9B20(barrel);
+    if (barrel->x18c && !barrel->x17c) {
         struct M m;
-        TiltMatUpright(func_001A6318(p), 0, &m);
-        AccelSoTowardMatSpring(p, &m, D_002BE8D0, D_002A2DD0, D_002BE8E0);
+        TiltMatUpright(func_001A6318(barrel), 0, &m);
+        AccelSoTowardMatSpring(barrel, &m, D_002BE8D0, D_002A2DD0, D_002BE8E0);
     }
 }
 } } // namespace M_func_00183B00
@@ -994,65 +994,65 @@ static inline qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0, %1,
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Carry state switch (0 free .. 3): reparents to/from the carrier, force/torque constraints, part flags.
-void SetBarrelState(struct O *p, int n)
+void SetBarrelState(struct O *barrel, int n)
 {
 
-    if (p->n17C == n)
+    if (barrel->n17C == n)
         return;
-    if (p->n17C == 2) {
-        if (p->n18C != 0) {
-            SetLoParent_1A58D0(p, 0, 0xF);
-            func_002303A0(p, p->p58, 1);
-            p->p58->n9A = 0;
-            func_002303A0(p, p->p5C, 1);
-            p->p5C->n9A = 0;
-            { struct VTE *e = &p->pvt[35]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
-            SetSoCnstrForce(p, 0);
-            SetSoCnstrTorque(p, 0);
-            func_001F68A8(p, 0);
+    if (barrel->n17C == 2) {
+        if (barrel->n18C != 0) {
+            SetLoParent_1A58D0(barrel, 0, 0xF);
+            func_002303A0(barrel, barrel->p58, 1);
+            barrel->p58->n9A = 0;
+            func_002303A0(barrel, barrel->p5C, 1);
+            barrel->p5C->n9A = 0;
+            { struct VTE *e = &barrel->pvt[35]; ((void (*)(void *, qword))e->pfn)((char *)barrel + e->d, D_002A2DD0); }
+            SetSoCnstrForce(barrel, 0);
+            SetSoCnstrTorque(barrel, 0);
+            func_001F68A8(barrel, 0);
         }
-        { struct VTE *e = &p->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 6, 0, 0, 0, 0); }
+        { struct VTE *e = &barrel->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 6, 0, 0, 0, 0); }
         UpdateSwBusyList(D_003DD490);
-        p->p190 = 0;
+        barrel->p190 = 0;
     }
     if (n == 2) {
-        if (p->n18C != 0) {
+        if (barrel->n18C != 0) {
             struct S2 *ps;
             MATRIX3 m;
             qword q;
-            SetSoCnstrForce(p, 1);
-            SetSoCnstrTorque(p, 1);
-            ps = (struct S2 *)p->p190->p10BC;
+            SetSoCnstrForce(barrel, 1);
+            SetSoCnstrTorque(barrel, 1);
+            ps = (struct S2 *)barrel->p190->p10BC;
             if (!ps)
-                ps = (struct S2 *)p->p190->p60;
-            { struct VTE *e = &p->pvt[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)p + e->d, p->p190, ps, 3); }
-            TiltMatUpright(func_001A6318(p), 0, &m);
-            m = ConvertXfMat(0, p->p5C->pA0, &m);
+                ps = (struct S2 *)barrel->p190->p60;
+            { struct VTE *e = &barrel->pvt[10]; ((void (*)(void *, struct T *, void *, int))e->pfn)((char *)barrel + e->d, barrel->p190, ps, 3); }
+            TiltMatUpright(func_001A6318(barrel), 0, &m);
+            m = ConvertXfMat(0, barrel->p5C->pA0, &m);
 
             q = func_0011BFF0(&m);
-            func_002303A0(p, p->p5C, 7);
+            func_002303A0(barrel, barrel->p5C, 7);
             {
 
-                struct XV *pv = (struct XV *)&p->p5C->vC0;
+                struct XV *pv = (struct XV *)&barrel->p5C->vC0;
                 pv->x = 0;
                 pv->z = GetZ(q);
                 pv->y = 0;
             }
-            p->p5C->n9A = n;
+            barrel->p5C->n9A = n;
 
             {
-            qword q2 = func_0022FC48(0, p->p58->pA0, VAdd(ps->v70, D_002BE8F0));
-            func_002303A0(p, p->p58, 7);
-            p->p58->vC0 = q2;
+            qword q2 = func_0022FC48(0, barrel->p58->pA0, VAdd(ps->v70, D_002BE8F0));
+            func_002303A0(barrel, barrel->p58, 7);
+            barrel->p58->vC0 = q2;
             }
 
-            p->p58->n9A = n;
-            func_001F68A8(p, 1);
+            barrel->p58->n9A = n;
+            func_001F68A8(barrel, 1);
         }
-        { struct VTE *e = &p->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 5, 0, 0, 0, 0); }
+        { struct VTE *e = &barrel->pvt[3]; ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)barrel + e->d, 5, 0, 0, 0, 0); }
     }
-    p->n17C = n;
-    p->g180 = D_002DDED0.t;
+    barrel->n17C = n;
+    barrel->g180 = D_002DDED0.t;
 }
 } // namespace M_func_00183B80
 
@@ -1078,26 +1078,26 @@ void SetBarrelState(struct S *p, int n);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Barrel zap handler (own slot 75): on a qualifying zap, makes a noise event and drops/changes state.
-int HandleBarrelZap(struct S *p, struct Q *q)
+int HandleBarrelZap(struct S *barrel, struct Q *q)
 {
     struct M m;
     struct VTE *e;
-    if (!func_001F7588(p, q)) return 0;
-    if (p->x17c == 3) return 1;
+    if (!func_001F7588(barrel, q)) return 0;
+    if (barrel->x17c == 3) return 1;
     if (!(q->fl & 8)) return 1;
-    EmitSwNoise(D_003DD490, 0, func_001A62E8(p), p);
-    if (p->x190) {
+    EmitSwNoise(D_003DD490, 0, func_001A62E8(barrel), barrel);
+    if (barrel->x190) {
         struct O *o;
-        SetJtModeState__FP6JTMODEi(p->x190->xf00, -1);
-        o = p->x190;
+        SetJtModeState__FP6JTMODEi(barrel->x190->xf00, -1);
+        o = barrel->x190;
         e = &o->vt[88];
         ((void (*)(void *, int))e->pfn)((char *)o + e->d, 0);
     }
-    SetBarrelState(p, 3);
+    SetBarrelState(barrel, 3);
     m.q = q;
     m.pv = q->xc;
-    e = &p->vt[3];
-    ((void (*)(void *, int, int, int, struct M *, int))e->pfn)((char *)p + e->d, 0xB, 0, 2, &m, 0);
+    e = &barrel->vt[3];
+    ((void (*)(void *, int, int, int, struct M *, int))e->pfn)((char *)barrel + e->d, 0xB, 0, 2, &m, 0);
     return 1;
 }
 } } // namespace M_func_00183E08
@@ -1111,13 +1111,13 @@ int HandleBarrelZap(struct S *p, struct Q *q)
  * @end-sly2-annot */
 /* CID 35 Init. */
 // Mission trigger spot (CID35) Init: transform init, its GRABSPOT part, enabled, radius 200, player mask 0.
-extern "C" void InitTriggerGrabspot(GRABSPOT35 *p)
+extern "C" void InitTriggerGrabspot(GRABSPOT35 *trigger)
 {
-    InitXfm(p);
-    InitGrabspot((char *)p + 0xE0);
-    p->nF0 = 1;
-    p->sRadius = 200.0f;
-    p->grfPlayers = 0;
+    InitXfm(trigger);
+    InitGrabspot((char *)trigger + 0xE0);
+    trigger->nF0 = 1;
+    trigger->sRadius = 200.0f;
+    trigger->grfPlayers = 0;
 }
 
 namespace M_func_00183F50 { extern "C" {
@@ -1132,11 +1132,11 @@ void PostLoLoad(struct S *p);
  *   docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Post-load: LO base, player mask default 7, default busy radius D_002BE900.
-void PostTriggerGrabspotLoad(struct S *p)
+void PostTriggerGrabspotLoad(struct S *trigger)
 {
-    PostLoLoad(p);
-    if (!p->nfc) p->nfc = 7;
-    if (p->g == 1e10f) p->g = D_002BE900;
+    PostLoLoad(trigger);
+    if (!trigger->nfc) trigger->nfc = 7;
+    if (trigger->g == 1e10f) trigger->g = D_002BE900;
 }
 } } // namespace M_func_00183F50
 
@@ -1179,9 +1179,9 @@ extern "C" void OnTriggerGrabspotRemove(LO *lo)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Splice property op: ORs bits into the player class mask (+0xFC).
-extern "C" void AddGrabspotPlayerMask(GRABSPOT35 *p, STEPPLAYER *player)
+extern "C" void AddGrabspotPlayerMask(GRABSPOT35 *grabspot, STEPPLAYER *player)
 {
-    p->grfPlayers |= GRFPLAYER(player);
+    grabspot->grfPlayers |= GRFPLAYER(player);
 }
 
 namespace M_func_00184040 { extern "C" {
@@ -1193,13 +1193,13 @@ struct S { char pad[0xFC]; int fl; };
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Maps a player class to the mask: STEPPLAYER (0x34) -> 7 (everyone), JT (0x35) -> Sly only, ...
-void SetGrabspotPlayerClass(struct S *p, int n)
+void SetGrabspotPlayerClass(struct S *grabspot, int n)
 {
     switch (n) {
-    case 0x34: p->fl = 7; break;
-    case 0x35: p->fl |= 1; break;
-    case 0x37: p->fl |= 2; break;
-    case 0x36: p->fl |= 4; break;
+    case 0x34: grabspot->fl = 7; break;
+    case 0x35: grabspot->fl |= 1; break;
+    case 0x37: grabspot->fl |= 2; break;
+    case 0x36: grabspot->fl |= 4; break;
     }
 }
 } } // namespace M_func_00184040
@@ -1215,9 +1215,9 @@ void FAddRsmg__FP2SWP4RSMGiPii3OIDN25(void *g, void *pb, int n, void *pa, int x,
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Registers a state-machine message link (FAddRsmg) for the trigger spot.
-void AddTriggerGrabspotRsmg(struct S *p, int y, int z, int w)
+void AddTriggerGrabspotRsmg(struct S *trigger, int y, int z, int w)
 {
-    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &p->b, 4, &p->a, 1, y, z, w);
+    FAddRsmg__FP2SWP4RSMGiPii3OIDN25(D_003DD490, &trigger->b, 4, &trigger->a, 1, y, z, w);
 }
 } } // namespace M_func_001840B8
 
@@ -1232,9 +1232,9 @@ void func_00161F10(void *g, void *pb, int n, void *pa, int x, int y);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Registers a pair (FAddPair) for the trigger spot.
-void AddTriggerGrabspotPair(struct S *p, int x, int y)
+void AddTriggerGrabspotPair(struct S *trigger, int x, int y)
 {
-    func_00161F10(D_002DEB30, &p->b, 4, &p->a, x, y);
+    func_00161F10(D_002DEB30, &trigger->b, 4, &trigger->a, x, y);
 }
 } } // namespace M_func_001840F8
 
@@ -1256,17 +1256,17 @@ void FireRelay(void *p, int n);
  * @end-sly2-annot */
 // Fires the trigger: sets its state, sends message 6, triggers the linked state machines, applies task states and
 // fires its relay.
-void FireTriggerGrabspot(struct S *p, int n)
+void FireTriggerGrabspot(struct S *trigger, int n)
 {
     struct VTE *e;
-    p->x10c = n;
-    e = &p->vt[4];
-    ((void (*)(void *, int, struct S *))e->pfn)((char *)p + e->d, 6, p);
-    TriggerRsmg(D_003DD490, p->x118, &p->x11c, p, 1);
-    ApplyTaskStates(D_002DEB30, p->x15c, &p->x160, p);
-    e = &p->vt[3];
-    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)p + e->d, 5, 0, 0, 0, 0);
-    if (p->x114) FireRelay(p->x114, n);
+    trigger->x10c = n;
+    e = &trigger->vt[4];
+    ((void (*)(void *, int, struct S *))e->pfn)((char *)trigger + e->d, 6, trigger);
+    TriggerRsmg(D_003DD490, trigger->x118, &trigger->x11c, trigger, 1);
+    ApplyTaskStates(D_002DEB30, trigger->x15c, &trigger->x160, trigger);
+    e = &trigger->vt[3];
+    ((void (*)(void *, int, int, int, int, int))e->pfn)((char *)trigger + e->d, 5, 0, 0, 0, 0);
+    if (trigger->x114) FireRelay(trigger->x114, n);
 }
 } } // namespace M_func_00184130
 
@@ -1277,9 +1277,9 @@ void FireTriggerGrabspot(struct S *p, int n)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Whether the grab spot's player mask contains the player's class bit (+0x1000).
-extern "C" int CanGrabspotAcceptPlayer(GRABSPOT35 *p, STEPPLAYER *player)
+extern "C" int CanGrabspotAcceptPlayer(GRABSPOT35 *grabspot, STEPPLAYER *player)
 {
-    return (p->grfPlayers & GRFPLAYER(player)) != 0;
+    return (grabspot->grfPlayers & GRFPLAYER(player)) != 0;
 }
 
 namespace M_func_00184208 { extern "C" {
@@ -1305,9 +1305,9 @@ void GetTriggerGrabspotGrabPosition(void *a, void *b, qword *p)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Biases the candidate score by the spot's radius: score -= radius - (D_002BF660 - 150).
-extern "C" void AdjustTriggerGrabspotScore(GRABSPOT35 *p, float *pgScore)
+extern "C" void AdjustTriggerGrabspotScore(GRABSPOT35 *trigger, float *pgScore)
 {
-    *pgScore -= p->sRadius - (D_002BF660 - 150.0f);
+    *pgScore -= trigger->sRadius - (D_002BF660 - 150.0f);
 }
 
 namespace M_func_00184268 { extern "C" {
@@ -1320,15 +1320,15 @@ void InitTriggerGrabspot(struct S *p);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Carry grab spot (CID36, child of CID35) Init: CID35 init and four oids -1.
-void InitCarryGrabspot(struct S *p)
+void InitCarryGrabspot(struct S *carry)
 {
-    InitTriggerGrabspot(p);
-p->x184 = -1;
-p->x18c = -1;
-p->x194 = -1;
-p->x19c = -1;
-p->f0 = -1;
-p->fc = 4;
+    InitTriggerGrabspot(carry);
+carry->x184 = -1;
+carry->x18c = -1;
+carry->x194 = -1;
+carry->x19c = -1;
+carry->f0 = -1;
+carry->fc = 4;
 }
 } } // namespace M_func_00184268
 
@@ -1358,11 +1358,11 @@ void CID36::VUnk14()
  * @end-sly2-annot */
 /* CID 36 slot 51: on grab, start Murray's lift. */
 // Fires the trigger, then if the grabber is Murray starts his lift (StartMurrayLiftGrabspot).
-extern "C" void OnTriggerGrabspotGrabbed(GRABSPOT36 *p, LO *lo)
+extern "C" void OnTriggerGrabspotGrabbed(GRABSPOT36 *trigger, LO *lo)
 {
-    FireTriggerGrabspot(p, lo);
+    FireTriggerGrabspot(trigger, lo);
     if (FIsBasicDerivedFrom(lo, (CID)0x36) != 0) {
-        StartMurrayLiftGrabspot(lo, p);
+        StartMurrayLiftGrabspot(lo, trigger);
     }
 }
 
@@ -1381,10 +1381,10 @@ int FFindLoParent(struct T *q, int x);
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // 1 if the ids differ, else whether the object is a parent of the spot (FFindLoParent). (inferred)
-int ShouldTriggerGrabspotSkipTarget(struct S *p, struct T *q)
+int ShouldTriggerGrabspotSkipTarget(struct S *trigger, struct T *q)
 {
-    if (q->n != p->n) return 1;
-    return FFindLoParent(q, p->x);
+    if (q->n != trigger->n) return 1;
+    return FFindLoParent(q, trigger->x);
 }
 } } // namespace M_func_00184380
 
@@ -1427,11 +1427,11 @@ static __inline__ float GDist(qword a, qword b)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // Post-load: LO base; default busy radius = distance to its point + D_002BE904.
-void PostTableGrabspotLoad(struct O *p)
+void PostTableGrabspotLoad(struct O *table)
 {
-    PostLoLoad(p);
-    if (p->g38 == 1e10f) {
-        p->g38 = GDist(func_001A62E8(p), ConvertAloPos(p, 0, p->pos)) + D_002BE904;
+    PostLoLoad(table);
+    if (table->g38 == 1e10f) {
+        table->g38 = GDist(func_001A62E8(table), ConvertAloPos(table, 0, table->pos)) + D_002BE904;
     }
 }
 } } // namespace M_func_001843F0
@@ -1492,15 +1492,15 @@ static __inline__ float GetZ(qword q)
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // The hold position (the debug flag D_002DFB84 uses a child's position plus an offset).
-void GetTableGrabspotGrabPosition(struct S *p, int unused, UV *pv)
+void GetTableGrabspotGrabPosition(struct S *table, int unused, UV *pv)
 {
     if (pv) {
         if (D_002DFB84) {
-            pv->q = func_001A62E8(p->p15c);
+            pv->q = func_001A62E8(table->p15c);
             pv->v.z = pv->v.z + D_002BE908;
         } else {
-            pv->q = ConvertAloPos(p, 0, p->q110);
-            pv->v.z = GetZ(func_001A62E8(p->p15c)) + D_002BE908;
+            pv->q = ConvertAloPos(table, 0, table->q110);
+            pv->v.z = GetZ(func_001A62E8(table->p15c)) + D_002BE908;
         }
     }
 }
@@ -1522,11 +1522,11 @@ static __inline__ qword VAdd(qword a, qword b) { qword r; __asm__("vadd.xyzw %0,
  * See: docs/reference/functions/player.md#grabspot-0x182c70-0x1848a8
  * @end-sly2-annot */
 // A random point on a disc around its point.
-void GetTableGrabspotSparklePosition(struct O *p, qword *pv, qword *pdv)
+void GetTableGrabspotSparklePosition(struct O *table, qword *pv, qword *pdv)
 {
     float gPan = GRandInRange__Fff(-3.14159265f, 3.14159265f);
     float gR = GRandInRange__Fff(0.0f, D_002BE90C);
-    *pv = VAdd(ConvertAloPos(p, 0, p->pos), SetVectorCylind(gPan, gR, 0.0f));
+    *pv = VAdd(ConvertAloPos(table, 0, table->pos), SetVectorCylind(gPan, gR, 0.0f));
     *pdv = D_002A2DC0;
 }
 } } // namespace M_func_001845A0
