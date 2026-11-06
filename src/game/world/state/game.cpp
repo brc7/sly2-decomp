@@ -39,9 +39,9 @@ struct JOBV : public LO
     float tEase1;           /* +0x9C */
     float tEase2;           /* +0xA0 */
     char padA4[0xAC - 0xA4];
-    int nAC;                /* +0xAC */
-    int nB0;                /* +0xB0 */
-    int nB4;                /* +0xB4 */
+    int completionWidgetOid;    /* +0xAC (SetJobCompletionWidget) */
+    int introLabel;             /* +0xB0 */
+    int outroLabel;             /* +0xB4 */
     int fPhased;            /* +0xB8 completes in phases */
 };
 /* TASK (: LO): its job (+0x7C) and, if not -1, the task that becomes pending when it completes (+0xB8). */
@@ -894,9 +894,9 @@ void JOB::Init()
     job->tEase2 = 720.0f;
     job->id6C = -1;
     job->id70 = -1;
-    job->nAC = -1;
-    job->nB0 = -1;
-    job->nB4 = -1;
+    job->completionWidgetOid = -1;
+    job->introLabel = -1;
+    job->outroLabel = -1;
     func_0011A050(&job->dl, 0x84);
 }
 
@@ -992,7 +992,7 @@ void AddJobFailEvent(struct S *job, int n)
 } } // namespace M_func_00162630
 
 namespace M_func_00162660 { extern "C" {
-struct S { char pad[0xAC]; int a; int b; int c; };
+struct S { char pad[0xAC]; int completionWidgetOid; int introLabel; int outroLabel; };
 /** @sly2-annot addr=0x162660
  * Purpose: Splice: sets job +0xAC widget oid, +0xB0 intro label, +0xB4 outro label used by the completion
  *   sequence
@@ -1001,16 +1001,16 @@ struct S { char pad[0xAC]; int a; int b; int c; };
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: sets the job's completion widget oid and its intro and outro labels.
-void SetJobCompletionWidget(struct S *job, int a, int b, int c)
+void SetJobCompletionWidget(struct S *job, int widgetOid, int introLabel, int outroLabel)
 {
-    job->a = a;
-    job->b = b;
-    job->c = c;
+    job->completionWidgetOid = widgetOid;
+    job->introLabel = introLabel;
+    job->outroLabel = outroLabel;
 }
 } } // namespace M_func_00162660
 
 namespace M_FJobLive { extern "C" {
-struct S { char pad[0x50]; int f50; char pad2[0xF0 - 0x54]; int n; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0xF0 - 0x54]; int mode; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 /** @sly2-annot addr=0x162670
@@ -1024,15 +1024,15 @@ int IsSwTransitionBusy(void *p);
 // True when the job is enabled, not in mode 2/3 and no world transition is in progress.
 int IsJobLive(struct S *job)
 {
-    if (job->f50 == 0 && job->n != 2 && job->n != 3)
+    if (job->isDisabled == 0 && job->mode != 2 && job->mode != 3)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
 } } // namespace M_FJobLive
 
 namespace M_func_001626C0 { extern "C" {
-struct E { int a, b, c, d; };
-struct S { char pad[0x50]; int f50; char pad2[0x8C - 0x54]; int c; struct E *ae; };
+struct E { int object, context, stateMask, level; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0x8C - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateBit(int i);
 /** @sly2-annot addr=0x1626C0
  * Purpose: Splice: appends a {oidLo, oidContext, GetStateBit(state), level} visibility record to the job
@@ -1041,21 +1041,21 @@ int GetStateBit(int i);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a visibility record {object, context, state mask, level} to the job.
-void AddJobStateVisibility(struct S *job, int a, int i, int b, int d)
+void AddJobStateVisibility(struct S *job, int object, int state, int context, int level)
 {
-    if (job->f50 == 0 && job->c < 32) {
-        struct E *pe = &job->ae[job->c++];
-        pe->a = a;
-        pe->b = b;
-        pe->c = GetStateBit(i);
-        pe->d = d;
+    if (job->isDisabled == 0 && job->numVisibility < 32) {
+        struct E *pe = &job->visibility[job->numVisibility++];
+        pe->object = object;
+        pe->context = context;
+        pe->stateMask = GetStateBit(state);
+        pe->level = level;
     }
 }
 } } // namespace M_func_001626C0
 
 namespace M_func_00162728 { extern "C" {
-struct E { int a, b, c, d, e, f; };
-struct S { char pad[0x50]; int f50; char pad2[0x94 - 0x54]; int c; struct E *ae; };
+struct E { int state, root, stateMachine, goal, unknown10, level; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0x94 - 0x54]; int numRsmgs; struct E *rsmgs; };
 /** @sly2-annot addr=0x162728
  * Purpose: Splice: appends a 24-byte {state, oidRoot, oidSm, oidGoal, 0, level} RSMG record to the job
  * Info: proposed name AddJobStateRsmg (T2); TU game
@@ -1063,11 +1063,11 @@ struct S { char pad[0x50]; int f50; char pad2[0x94 - 0x54]; int c; struct E *ae;
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a state rsmg record {state, root, state machine, goal, level} to the job.
-void AddJobStateRsmg(struct S *job, int a, int b, int c, int d, int f)
+void AddJobStateRsmg(struct S *job, int state, int root, int stateMachine, int goal, int level)
 {
-    if (job->f50 == 0 && job->c < 32) {
-        struct E *pe = &job->ae[job->c++];
-        pe->f = f; pe->a = a; pe->b = b; pe->c = c; pe->d = d; pe->e = 0;
+    if (job->isDisabled == 0 && job->numRsmgs < 32) {
+        struct E *pe = &job->rsmgs[job->numRsmgs++];
+        pe->level = level; pe->state = state; pe->root = root; pe->stateMachine = stateMachine; pe->goal = goal; pe->unknown10 = 0;
     }
 }
 } } // namespace M_func_00162728
@@ -1075,16 +1075,16 @@ void AddJobStateRsmg(struct S *job, int a, int b, int c, int d, int f)
 namespace M_PostJobLoad { extern "C" {
 typedef struct CRef { int m_tagk; int m_tag; } CRef;
 struct S {
-    char pad[0x7C]; int f7c;
-    char pad1[0x8C - 0x80]; int f8c, f90, f94, f98;
-    char pad2[0xA4 - 0x9C]; float fa4; void *fa8; int fac;
-    char pad3[0xB8 - 0xB0]; void *fb8; void *fbc;
-    char pad4[0xD0 - 0xC0]; int fd0;
-    char pad5[0xE0 - 0xD4]; int fe0;
-    char pad6[0xE8 - 0xE4]; int fe8;
+    char pad[0x7C]; int startCount;
+    char pad1[0x8C - 0x80]; int numVisibility, visibility, numRsmgs, rsmgs;
+    char pad2[0xA4 - 0x9C]; float savedTime; void *stateSaveVar; int completionWidgetOid;
+    char pad3[0xB8 - 0xB0]; void *completionWidget; void *widget379;
+    char pad4[0xD0 - 0xC0]; int startCountKey;
+    char pad5[0xE0 - 0xD4]; int savedTimeKey;
+    char pad6[0xE8 - 0xE4]; int stateKey;
 };
 extern char D_003D4A60[];
-struct G { char pad[0x3A18]; char m3a18[0x10]; };
+struct G { char pad[0x3A18]; char saveVars[0x10]; };
 extern struct G D_003DD490;
 void PostLoLoad(struct S *p);
 int IsCurrentJob(struct S *p);
@@ -1112,29 +1112,29 @@ void PostJobLoad(struct S *job)
     int *pn;
     PostLoLoad(job);
     if (!IsCurrentJob(job) && IsJobLive(job)) {
-        ApplyStateLoVisibility(job, 5, job->f8c, job->f90);
-        TriggerStateRsmgs(job, 5, job->f94, job->f98, 1);
+        ApplyStateLoVisibility(job, 5, job->numVisibility, job->visibility);
+        TriggerStateRsmgs(job, 5, job->numRsmgs, job->rsmgs, 1);
     }
-    pn = &job->fd0;
+    pn = &job->startCountKey;
     if (*pn) {
         int n;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         n = ref.m_tag;
         Decref__4CRef(&ref);
-        job->f7c = n;
+        job->startCount = n;
     }
-    pn = &job->fe0;
+    pn = &job->savedTimeKey;
     if (*pn) {
         float g;
         RefGetGlobalSaveVar(&ref, pn, D_003D4A60);
         g = *(float *)&ref.m_tag;
         Decref__4CRef(&ref);
-        job->fa4 = g;
+        job->savedTime = g;
     }
-    job->fa8 = GetSaveVarAddress(D_003DD490.m3a18, &job->fe8, D_003D4A60);
-    if (job->fac != -1)
-        job->fb8 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->fac, 0);
-    job->fbc = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
+    job->stateSaveVar = GetSaveVarAddress(D_003DD490.saveVars, &job->stateKey, D_003D4A60);
+    if (job->completionWidgetOid != -1)
+        job->completionWidget = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, job->completionWidgetOid, 0);
+    job->widget379 = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 0x405, 0x379, 0);
 }
 } } // namespace M_PostJobLoad
 
@@ -1184,8 +1184,8 @@ extern "C" void EndCurrentJob(JOBV *job)
 }
 
 namespace M_ResetJobTasks { extern "C" {
-struct X { char pad[0x64]; int f64; char pad2[0x84 - 0x68]; struct X *pNext; };
-struct S { char pad[0x7C]; int f7c; struct X *pFirst; };
+struct X { char pad[0x64]; int startCount; char pad2[0x84 - 0x68]; struct X *pNext; };
+struct S { char pad[0x7C]; int startCount; struct X *pFirst; };
 void UpdateTaskSaveVars(struct X *p);
 void UpdateJobSaveVars(struct S *p);
 /** @sly2-annot addr=0x162940
@@ -1198,12 +1198,12 @@ void UpdateJobSaveVars(struct S *p);
 // Clears the start counts of the job's tasks and the job's own, and refreshes their save variables.
 void ResetJobTasks(struct S *job)
 {
-    struct X *px;
-    for (px = job->pFirst; px; px = px->pNext) {
-        px->f64 = 0;
-        UpdateTaskSaveVars(px);
+    struct X *task;
+    for (task = job->pFirst; task; task = task->pNext) {
+        task->startCount = 0;
+        UpdateTaskSaveVars(task);
     }
-    job->f7c = 0;
+    job->startCount = 0;
     UpdateJobSaveVars(job);
 }
 } } // namespace M_ResetJobTasks
@@ -1211,7 +1211,7 @@ void ResetJobTasks(struct S *job)
 namespace M_BeginJob {
 class OBase {
 public:
-    int a, b, c;
+    int frame, sidebag, firstRefNode;
     virtual void V1();
     virtual void V2();
     virtual void Msg(int msgid, int a, int c, void **apv, int d);
@@ -1219,11 +1219,11 @@ public:
 class O : public OBase {
 public:
     char pad[0x7C - 0x10];
-    int f7c;
+    int startCount;
     int pad80, pad84, pad88;
-    int f8c, f90, f94, f98;
+    int numVisibility, visibility, numRsmgs, rsmgs;
     char pad2[0xF0 - 0x9C];
-    int ff0;
+    int mode;
 };
 struct G;
 extern "C" { extern G D_003DD490; }
@@ -1247,11 +1247,11 @@ extern "C" void BeginJob(O *job)
 {
     SetSwJobCur(&D_003DD490, job);
     if (IsJobLive(job)) {
-        job->f7c++;
+        job->startCount++;
         UpdateJobSaveVars(job);
         BroadcastGameEvent(D_002DEB30, 0x21, job);
-        ApplyStateLoVisibility(job, 4, job->f8c, job->f90);
-        TriggerStateRsmgs(job, 4, job->f94, job->f98, job->ff0);
+        ApplyStateLoVisibility(job, 4, job->numVisibility, job->visibility);
+        TriggerStateRsmgs(job, 4, job->numRsmgs, job->rsmgs, job->mode);
         job->Msg(0x13, 0, 0, 0, 0);
     }
 }
@@ -1260,7 +1260,7 @@ extern "C" void BeginJob(O *job)
 namespace M_EndJob {
 class OBase {
 public:
-    int a, b, c;
+    int frame, sidebag, firstRefNode;
     virtual void V1();
     virtual void V2();
     virtual void Msg(int msgid, int a, int c, void **apv, int d);
@@ -1268,14 +1268,14 @@ public:
 class O : public OBase {
 public:
     char pad[0x7C - 0x10];
-    O *f7c;
+    O *job;   /* (as a task) its job */
     char pad2[0x8C - 0x80];
-    int f8c, f90, f94, f98;
+    int numVisibility, visibility, numRsmgs, rsmgs;
     char pad3[0xF0 - 0x9C];
-    int ff0;
+    int mode;
 };
-struct W { int a, b, f8; char pad[0x38 - 0xC]; int f38; };
-struct G { char pad[0x3B14]; O *f3b14; char pad2[0x3C88 - 0x3B18]; int f3c88; int f3c8c; };
+struct W { int unknown0, unknown4, sectorKey; char pad[0x38 - 0xC]; int sectorXor; };   /* a file record */
+struct G { char pad[0x3B14]; O *pendingTask; char pad2[0x3C88 - 0x3B18]; int unknown3C88; int unknown3C8C; };
 extern "C" { extern G D_003DD490; }
 extern "C" { extern char D_002DEB30[]; }
 extern "C" void SetSwJobCur(G *pg, O *p);
@@ -1291,7 +1291,7 @@ static inline int FSame(W *pw1, W *pw2)
 {
     if (pw1 == pw2) return 1;
     if (!pw1 || !pw2) return 0;
-    return (pw1->f8 ^ pw1->f38) == (pw2->f8 ^ pw2->f38);
+    return (pw1->sectorKey ^ pw1->sectorXor) == (pw2->sectorKey ^ pw2->sectorXor);
 }
 /** @sly2-annot addr=0x162A60
  * Purpose: Clears current job (and pending task if it belonged to p); resets the warp target when in the
@@ -1305,18 +1305,18 @@ static inline int FSame(W *pw1, W *pw2)
 extern "C" void EndJob(O *job)
 {
     SetSwJobCur(&D_003DD490, 0);
-    if (D_003DD490.f3b14 && D_003DD490.f3b14->f7c && D_003DD490.f3b14->f7c == job)
+    if (D_003DD490.pendingTask && D_003DD490.pendingTask->job && D_003DD490.pendingTask->job == job)
         SetSwTaskPending(&D_003DD490, 0);
     W *pw1 = GetCurrentWorldEntry();
     W *pw2 = GetLevelFileRecord(IlevelCur__Fv());
     if (FSame(pw1, pw2)) {
-        D_003DD490.f3c88 = 0x189;
-        D_003DD490.f3c8c = -1;
+        D_003DD490.unknown3C88 = 0x189;
+        D_003DD490.unknown3C8C = -1;
     }
     if (IsJobLive(job)) {
         BroadcastGameEvent(D_002DEB30, 0x22, job);
-        ApplyStateLoVisibility(job, 5, job->f8c, job->f90);
-        TriggerStateRsmgs(job, 5, job->f94, job->f98, job->ff0);
+        ApplyStateLoVisibility(job, 5, job->numVisibility, job->visibility);
+        TriggerStateRsmgs(job, 5, job->numRsmgs, job->rsmgs, job->mode);
         job->Msg(0x14, 0, 0, 0, 0);
     }
 }
