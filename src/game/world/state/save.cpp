@@ -844,3 +844,8 @@ extern "C" void ApplyGsSettings(SVSET *psvset)
 // has it among the functions, under an asm label (no function sees a definition under the name it reads).
 namespace RO_ORDER { extern const char r_D_002A78F0[] __asm__("D_002A78F0") = "fVault"; }
 namespace RO_ORDER { extern const char r_D_002A78F8[] __asm__("D_002A78F8") = "from_memcard"; }
+// ---- save's .bss (tu-merging.md "Data": .bss gaps): g_gs, the save blob with its schema version and checksum
+// (0x3D4A60..0x3D9E68, then screen's .bss at 0x3D9E70). 16-aligned on the definition, as the layout shows (0x3D4A60
+// after tu_1D7238's word at 0x3D4A54; SVSET itself is 8-aligned, and its 0x5408 bytes are what the copies in this
+// file move). Defined after the functions, so none sees a definition.
+SVSET D_003D4A60 __attribute__((aligned(16)));

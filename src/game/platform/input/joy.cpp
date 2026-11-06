@@ -664,3 +664,4 @@ SLY2_SCRAP("nop");
 int D_002DFBC0;   /* g_grfjoyt */
 int D_002DFBC4;   /* the users' grf */
 JOY D_002DFC00 __attribute__((aligned(64)));   /* g_joy (64-aligned by layout: 0x2DFC00 after the words at 0x2DFBC0) */
+JOY D_002E0D00;   /* the second JOY (joy.h), right after g_joy: read when g_grfjoyt bit 1 is clear */

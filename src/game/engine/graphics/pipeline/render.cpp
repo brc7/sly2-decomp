@@ -189,3 +189,8 @@ extern "C" void RenderSw(SW *p)
     D_002DEA00.Flush();
     D_002DEA28.Flush();
 }
+
+// ---- render's .bss (tu-merging.md "Data": .bss gaps): the first .bss after prog's in TU order, at 0x3D4A50: the
+// RPL allocation cursor (render, draw, rip and tu_1D57A8 advance it through phasemem's buffer D_003B3980). Defined
+// after the functions, so none sees a definition.
+RPL *D_003D4A50;
