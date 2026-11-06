@@ -180,6 +180,7 @@ struct JT : public STEPPLAYER
       ASEG *pasegPouncePowerUp;
       undefined4 unk_0x2054[3];
     JT() __asm__("JT_ctor");   /* inline in the game (linkonce copy at 0x2563E8), called by NewJt: defined in app/class_registry.cpp */
+    virtual void VUnk90() __asm__("func_0018D548");   /* slot 91 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetJtClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleJtMessage");   /* slot 5 */
     virtual void Init() __asm__("InitJt");   /* slot 7 */
@@ -200,7 +201,6 @@ struct JT : public STEPPLAYER
     virtual void VUnk87(int n) __asm__("SetJtPlayerState");   /* slot 88 */
     virtual int VUnk88() __asm__("GetJtPlayerState");   /* slot 89 */
     virtual void VUnk89() __asm__("func_0018C060");   /* slot 90 */
-    virtual void VUnk90() __asm__("func_0018D548");   /* slot 91 */
     virtual int VUnk91() __asm__("JT_FFaceTarget");   /* slot 92 */
     virtual void OnHeroDied() __asm__("func_001A2388");   /* slot 93 */
     virtual int VUnk93() __asm__("func_001894F8");   /* slot 94 */

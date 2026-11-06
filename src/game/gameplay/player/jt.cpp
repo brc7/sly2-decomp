@@ -3986,8 +3986,9 @@ int func_0018D500(struct S *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
-extern "C" void func_0018D548(JT *pjt)
+void JT::VUnk90()
 {
+    JT *pjt = (JT *)this;
     SetJtJtcs(pjt, -1);
 }
 
