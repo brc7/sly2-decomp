@@ -1249,8 +1249,8 @@ typedef char assert_CID27_size[sizeof(CID27) == 0x160 ? 1 : -1];
 struct HND : TARGET, GRABSPOT
 {
     char pad124[0x140 - 0x124];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetHndClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitHnd");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetHndClassDesc");   /* slot 6 */
     virtual void GetGrabPos() __asm__("func_00184F98");   /* GRABSPOT slot 3 (delta -256) */
     virtual void VtF() __asm__("func_00259A70");   /* GRABSPOT slot 6 (delta -256) */
 };
