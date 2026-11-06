@@ -459,8 +459,8 @@ typedef char assert_BHV181_size[sizeof(BHV181) == 0x60 ? 1 : -1];
 struct CID117 : LO
 {
     char pad50[0x70 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001564E8");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid117ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
 
@@ -468,9 +468,9 @@ typedef char assert_CID117_size[sizeof(CID117) == 0x70 ? 1 : -1];
 struct CID47 : XFM
 {
     char padE0[0x110 - 0xE0];
+    virtual void AddHierarchy() __asm__("func_00156D20");   /* slot 11 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid47ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00156CC8");   /* slot 7 */
-    virtual void AddHierarchy() __asm__("func_00156D20");   /* slot 11 */
     virtual void RemoveHierarchy() __asm__("func_00156D58");   /* slot 12 */
     virtual void VUnk15() __asm__("func_00156EB8");   /* slot 16 */
     virtual void Clone(LO *ploBase) __asm__("func_00156D98");   /* slot 41 */
