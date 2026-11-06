@@ -8,7 +8,6 @@
 
 # vtables of namespace-scoped view classes -> the real vtable (21 lines, 21 references; the class registry's 191 went with
 # types/views-2: its classes are real, sly2/classes.h, and config/symbol_addrs.txt names their vtables)
-_vt$Q215M_func_001ADDF04CDer = D_002D36D0;   # ui/memcard.cpp
 
 # destructors of view classes -> the C function they stand for (an asm label would drop the call) (3 lines)
 _$_8CPairPtr = _$_t7CRefPtr1Z5CPair;   # sly2/pair.h's CPairPtr: the CRefPtr<CPair> view whose destructor its includers call

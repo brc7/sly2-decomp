@@ -4060,6 +4060,7 @@ _vt$17CQueueInputMemory = 0x2CBE20; // type:data size:0x18
 _vt$4DMAS = 0x2CE488; // type:data size:0x18
 _vt$4GIFS = 0x2CF508; // type:data size:0x18
 _vt$4ACT7 = 0x2D2E58; // type:data size:0x40
+_vt$9CMcStatus = 0x2D36D0; // type:data size:0x80
 _vt$4ACT3 = 0x2DB338; // type:data size:0x40
 // vtables of the class registry's classes (app/class_registry.cpp, sly2/classes.h): referenced by the factories' inline
 // constructors; not emitted by any object but missile.cpp (_vt$7ACCMISS, which matches). size = (slots + 2) * 8: the
