@@ -1492,20 +1492,17 @@ typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindBitmapInHash { extern "C" {
-struct S { int n; };
+struct S { int id; };
 extern struct S **D_003DD010;
-// Look up a bitmap by id in the hash. (inferred)
-struct S *FindBitmapInHash(int n)
+enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
+// Look up a bitmap by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
+struct S *FindBitmapInHash(int id)
 {
-    int i;
-    struct S *p;
     if (!D_003DD010) return 0;
-    i = n % 0x3FFD;
-loop:
-    p = D_003DD010[i];
-    if (!p || p->n == n) return p;
-    i = (i + 1) % 0x3FFD;
-    goto loop;
+    for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
+        struct S *entry = D_003DD010[i];
+        if (!entry || entry->id == id) return entry;
+    }
 }
 } } // namespace M_FindBitmapInHash
 
@@ -1553,20 +1550,17 @@ typedef char Unsigned_Size[sizeof(unsigned)==4?1:-1];
 
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_FindClutInHash { extern "C" {
-struct S { int n; };
+struct S { int id; };
 extern struct S **D_003DD018;
-// Look up a clut by id. (inferred)
-struct S *FindClutInHash(int n)
+enum { HASH_TABLE_SIZE = 0x3FFD };   /* entries per texture hash table (prime) */
+// Look up a clut by id in its open-addressing hash (linear probing; an empty slot ends the search). (inferred)
+struct S *FindClutInHash(int id)
 {
-    int i;
-    struct S *p;
     if (!D_003DD018) return 0;
-    i = n % 0x3FFD;
-loop:
-    p = D_003DD018[i];
-    if (!p || p->n == n) return p;
-    i = (i + 1) % 0x3FFD;
-    goto loop;
+    for (int i = id % HASH_TABLE_SIZE;; i = (i + 1) % HASH_TABLE_SIZE) {
+        struct S *entry = D_003DD018[i];
+        if (!entry || entry->id == id) return entry;
+    }
 }
 } } // namespace M_FindClutInHash
 
