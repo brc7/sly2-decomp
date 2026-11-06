@@ -4414,11 +4414,11 @@ struct N { char pad[0x10]; struct N *next; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Returns the first LO in a chain whose zap response to the given kinds is nonzero.
-struct N *FindZapResponder(struct N *so, void *q)
+struct N *FindZapResponder(struct N *lo, void *q)
 {
-    for (; so; so = so->next) {
-        if (GetSoZapResponseFlags(so, q))
-            return so;
+    for (; lo; lo = lo->next) {
+        if (GetSoZapResponseFlags(lo, q))
+            return lo;
     }
     return 0;
 }
@@ -5664,23 +5664,23 @@ void SlotUnsettle(void *, struct Q *);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Finds the XF's actuator of kind k; n = -1 removes it, otherwise it is updated and re-prioritised.
-struct E *FindXfHandleActuator(struct P *so, int k, int n, int m)
+struct E *FindXfHandleActuator(struct P *handle, int k, int n, int m)
 {
     struct E *pe;
-    for (pe = so->pq->pe; pe; pe = pe->next) {
+    for (pe = handle->pq->pe; pe; pe = pe->next) {
         if (pe->k != k) continue;
         if (n == -1) {
-            func_00230100(so->p20, so->pq, pe);
+            func_00230100(handle->p20, handle->pq, pe);
             func_0012E210(pe);
             return 0;
         }
         if (m != pe->nC) {
             pe->nC = m;
-            func_002301D0(so->p20, so->pq);
+            func_002301D0(handle->p20, handle->pq);
         }
-        if (pe == so->pq->pe) {
-            func_002303A0(so->p20, so->pq, n);
-            SlotUnsettle(so->p20, so->pq);
+        if (pe == handle->pq->pe) {
+            func_002303A0(handle->p20, handle->pq, n);
+            SlotUnsettle(handle->p20, handle->pq);
         }
         return pe;
     }
@@ -5704,14 +5704,14 @@ void func_0012DC18(void *, void *, int, int, int, qword);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Updates or creates the XF's kind-1 actuator (a target vector) with its parameters.
-void SetXfHandleActuator1(struct P *so, int n, int m, qword q)
+void SetXfHandleActuator1(struct P *handle, int n, int m, qword q)
 {
-    struct R *r = FindXfHandleActuator(so, 1, n, m);
+    struct R *r = FindXfHandleActuator(handle, 1, n, m);
     if (r) {
         r->n14 = n;
         SetActPositionGoal(r, q);
     } else if (n != -1) {
-        func_0012DC18(so->p20, so->p24, m, n, 2, q);
+        func_0012DC18(handle->p20, handle->p24, m, n, 2, q);
     }
 }
 } } // namespace M_func_001F89E0
@@ -5731,9 +5731,9 @@ void SetXfHandleActuator1(struct A *p, int a, int b, qword q);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // SetXfHandleActuator1 with a vector converted from the XF's parent space.
-void SetXfHandleActuator1World(struct A *so, int a, int b, qword q)
+void SetXfHandleActuator1World(struct A *handle, int a, int b, qword q)
 {
-    SetXfHandleActuator1(so, a, b, func_0022FC48(0, so->pb->n, q));
+    SetXfHandleActuator1(handle, a, b, func_0022FC48(0, handle->pb->n, q));
 }
 } } // namespace M_func_001F8A78
 
@@ -5754,12 +5754,12 @@ void SetXfHandleActuator1(struct P *, int, int, qword);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // SetXfHandleActuator1 with the value taken from a matrix.
-void SetXfHandleActuator1Mat(struct P *so, int a, int b)
+void SetXfHandleActuator1Mat(struct P *handle, int a, int b)
 {
     struct M3 c, t;
-    ConvertXfMat(&t, 0, so->po->nA0);
+    ConvertXfMat(&t, 0, handle->po->nA0);
     c = t;
-    SetXfHandleActuator1(so, a, b, func_0011BFF0(&c));
+    SetXfHandleActuator1(handle, a, b, func_0011BFF0(&c));
 }
 } } // namespace M_func_001F8AD8
 
@@ -5778,15 +5778,15 @@ void func_0012DCA0(void *, void *, int, int, float, float);
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // Updates or creates the XF's kind-4 actuator with two floats.
-void SetXfHandleActuator4(struct P *so, int n, int m, float f, float g)
+void SetXfHandleActuator4(struct P *handle, int n, int m, float f, float g)
 {
-    struct R *r = FindXfHandleActuator(so, 4, n, m);
+    struct R *r = FindXfHandleActuator(handle, 4, n, m);
     if (r) {
         r->n14 = n;
         r->g1C = f;
         r->g20 = g;
     } else if (n != -1) {
-        func_0012DCA0(so->p20, so->p24, m, n, f, g);
+        func_0012DCA0(handle->p20, handle->p24, m, n, f, g);
     }
 }
 } } // namespace M_func_001F8B58
@@ -5807,8 +5807,8 @@ struct S { char pad[0x24]; struct T *pt; };
  * See: docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
 // For a kind-16 XF: sets its count, vector, angle (degrees to radians) and rate.
-void SetXfHandleKind16Params(struct S *so, int n, qword q, float x, float y, float z, float deg)
-{ struct T *pt = so->pt; if (pt->k == 16) { struct U *pu = pt->pv->pu; pu->n = n; pu->x = x; pu->y = y; pu->z = z; pu->r = deg * 0.01745329424738884f; pu->q = q; } }
+void SetXfHandleKind16Params(struct S *handle, int n, qword q, float x, float y, float z, float deg)
+{ struct T *pt = handle->pt; if (pt->k == 16) { struct U *pu = pt->pv->pu; pu->n = n; pu->x = x; pu->y = y; pu->z = z; pu->r = deg * 0.01745329424738884f; pu->q = q; } }
 } } // namespace M_func_001F8BF0
 
 
