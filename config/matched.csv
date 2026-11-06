@@ -5522,10 +5522,10 @@ PostTargetLoad,0x21D2C8,22,match,src/game/gameplay/objects/target.cpp
 OnTargetRemove,0x21D320,13,match,src/game/gameplay/objects/target.cpp
 OnTargetAdd,0x21D358,13,match,src/game/gameplay/objects/target.cpp
 CloneTarget,0x21D390,18,match,src/game/gameplay/objects/target.cpp
-func_0021D3D8,0x21D3D8,20,match,src/game/gameplay/objects/target.cpp
-func_0021D428,0x21D428,13,match,src/game/gameplay/objects/target.cpp
+InitLookTarget,0x21D3D8,20,match,src/game/gameplay/objects/target.cpp
+OnLookTargetRemove,0x21D428,13,match,src/game/gameplay/objects/target.cpp
 func_0021D460,0x21D460,13,match,src/game/gameplay/objects/target.cpp
-func_0021D498,0x21D498,18,match,src/game/gameplay/objects/target.cpp
+CloneLookTarget,0x21D498,18,match,src/game/gameplay/objects/target.cpp
 StaticInit_target,0x21D4E0,77,match,src/game/gameplay/objects/target.cpp
 func_0021D618,0x21D618,8,match,src/game/gameplay/objects/target.cpp
 CchParsePchzInt__FPcPi,0x21D638,30,match,src/game/platform/runtime/text.cpp
