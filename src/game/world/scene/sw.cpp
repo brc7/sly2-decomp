@@ -206,6 +206,12 @@ extern "C" void InitDl__FP2DLi(DL *,int);
 extern "C" void func_0011A050(DL *,int);
 extern "C" int CbMaxRip(void);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
+/* The world names (g_apchzWorld, the save-variable key of each world's progress), defined first: the strings are
+   the first of sw's .rodata (a definition's literals are emitted with it) and the table lies in the first part of
+   .rodata, with the objects' named constants in TU order (.rodata.early, tu-merging.md "Phase 6"). Asm-labelled:
+   the declaration below (non-const pointers) is what the functions see. */
+namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39E8") __attribute__((section(".rodata.early"))) =
+    {"intro", "nightclub", "palace", "temple", "prison", "castle", "train", "sawmill", "blimp"}; }
 /** @sly2-annot addr=0x20D9D0
  * Purpose: SW constructor: vt D_002DC018, ~30 CSplotheap pools, ~60 DLs, 512+199+512 hash buckets, illum HSV
  *   (180,255,255), fog/fov defaults
