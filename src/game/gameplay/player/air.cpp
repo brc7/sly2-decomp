@@ -1310,7 +1310,7 @@ extern "C" { extern float D_002BF81C; }
 extern "C" { extern SMP D_002BF820; }
 extern "C" { extern float D_002BF82C; }
 extern "C" { extern float D_002BF830; }
-void SetJtAirJump(JTAIR *pjtair, int nKind, int n2, LO *plo) __asm__("SetJtAirJump");
+// SetJtAirJump: the file-scope extern "C" declaration (line 32) is used; a second declaration here became ambiguous after the rename.
 void SteerJtAirClip(JTAIR *pjtair) __asm__("StartJtAirTurn");
 qword JtPlanLaunchVz(JTAIR *pjtair, int nKind) __asm__("PlanJtLaunchVelocity");
 void ReleaseJtAirObject(JTAIR *pjtair) __asm__("LandJtAir");
