@@ -1709,7 +1709,7 @@ struct P { char pad[0xC]; struct VT *pvt; char pad2[0x54 - 0x10]; struct T *pt; 
 struct G { char pad[0x3D58]; int n; };
 extern struct G D_003DD490;
 struct M4 __ml__FRC7MATRIX4T0(void *, struct T *);
-void func_00186820(struct P *);
+void UpdateSoIkBoneLengths(struct P *);
 /** @sly2-annot addr=0x1F4010
  * Purpose: SO vt37: root XF matrix = proxy matrix * own, bump g_sw stamp, vt18, 0x186820
  * Info: proposed name ApplySoProxy (T2); class SO slot37; TU so
@@ -1723,7 +1723,7 @@ void func_001F4010(struct P *p, void *pv)
     pt->m = __ml__FRC7MATRIX4T0(pv, pt);
     { int n = ++D_003DD490.n; p->pt->nA4 = n; }
     p->pvt->a[18].pfn((char *)p + p->pvt->a[18].d);
-    func_00186820(p);
+    UpdateSoIkBoneLengths(p);
 }
 } } // namespace M_func_001F4010
 

@@ -170,7 +170,7 @@ void LoadStepFromBrx(struct P *p);
 void BindLoOidTable(struct P *p, int n, void *q);
 struct T *func_001AE2A0(struct REQ *r);
 void *PxfFindSo(struct P *p, int a, int b);
-void func_00186930(struct T *t);
+void InitIkRecord(struct T *t);
 static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return func_001AE2A0(&req); }
 /** @sly2-annot addr=0x1B4888
  * Purpose: MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0
@@ -190,12 +190,12 @@ void LoadMurrayFromBrx(struct P *p)
     p->x1610->x4 = PxfFindSo(p, 0x200, 6);
     p->x1610->x8 = PxfFindSo(p, 0x201, 6);
     p->x1610->xC = PxfFindSo(p, 0x202, 1);
-    func_00186930(p->x1610);
+    InitIkRecord(p->x1610);
     p->x1614 = NewT();
     p->x1614->x4 = PxfFindSo(p, 0x203, 6);
     p->x1614->x8 = PxfFindSo(p, 0x204, 6);
     p->x1614->xC = PxfFindSo(p, 0x205, 1);
-    func_00186930(p->x1614);
+    InitIkRecord(p->x1614);
     p->x15F0 = p->x1610->xC;
     p->x15F4 = PxfFindSo(p, 0x202, 6);
     p->x15F8 = p->x1614->xC;

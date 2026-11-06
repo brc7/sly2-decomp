@@ -195,7 +195,7 @@ struct ACT7 : ACT
 {
     int n1C;
     virtual void VSlot1() __asm__("func_00186640");   /* slot 1 */
-    virtual void Clone() __asm__("func_00186610");   /* slot 6 */
+    virtual void Clone() __asm__("CloneIkAct");   /* slot 6 */
 };
 
 /* AC5 (0x20; vtable 0x2CB5A8, emitted by blend.cpp, which declares AC/AC5/ACG/ACG2 itself with its own parameter
