@@ -1,5 +1,7 @@
 // stream.cpp -- OSTRM, a buffered output stream into memory or a file descriptor (debug output when fd < 0).
-// TU 0x20D5D0..0x20D9D0 (7 functions, address order).
+// The formatted-text code (text.cpp) prints through it: into a caller's memory block (string formatting), to a
+// host file, or to the debug console via printf in 0x80-byte pieces. Entry points: the two constructors, CbWrite,
+// Flush (the destructor flushes). TU 0x20D5D0..0x20D9D0 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_stream
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0020D9B0
 #include "sly2/slotheap.h"
@@ -17,18 +19,18 @@ extern const char D_002A8910[] = "%s";
 class OSTRM
 {
 public:
-    char *m_pbMem;      /* +0x00 memory target (or 0) */
-    int m_cbMemMax;     /* +0x04 */
-    int m_cbMem;        /* +0x08 */
-    int m_fd;           /* +0x0C file target (-1: memory; < 0: debug output) */
-    int m_cbTotal;      /* +0x10 bytes written */
-    int m_cbBuf;        /* +0x14 bytes in m_ab */
-    char m_ab[0x400];   /* +0x18 */
-    OSTRM(int fd);
-    OSTRM(void *pv, int cb);
+    char *memTarget;        /* +0x00 memory target (or 0) */
+    int memCapacity;        /* +0x04 */
+    int memUsed;            /* +0x08 */
+    int fd;                 /* +0x0C file target (-1: memory; < 0: debug output) */
+    int totalWritten;       /* +0x10 bytes written */
+    int bufferedBytes;      /* +0x14 bytes in buffer */
+    char buffer[0x400];     /* +0x18 staging buffer for file / debug output */
+    OSTRM(int fileDescriptor);
+    OSTRM(void *data, int size);
     ~OSTRM();
     void Flush();
-    int CbWrite(void *pv, int cb);
+    int CbWrite(void *data, int size);
 };
 
 /** @sly2-annot addr=0x20D5D0
@@ -37,14 +39,15 @@ public:
  * See: docs/engine/core-library.md#6-source-files, docs/engine/guards-ai.md#8-source-files,
  *   docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
  * @end-sly2-annot */
-OSTRM::OSTRM(int fd)
+// Stream to a file descriptor (a negative fd sends the text to the debug console instead).
+OSTRM::OSTRM(int fileDescriptor)
 {
-    m_fd = fd;
-    m_pbMem = 0;
-    m_cbMemMax = 0;
-    m_cbMem = 0;
-    m_cbTotal = 0;
-    m_cbBuf = 0;
+    fd = fileDescriptor;
+    memTarget = 0;
+    memCapacity = 0;
+    memUsed = 0;
+    totalWritten = 0;
+    bufferedBytes = 0;
 }
 
 /** @sly2-annot addr=0x20D5F0
@@ -52,14 +55,15 @@ OSTRM::OSTRM(int fd)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
  * @end-sly2-annot */
-OSTRM::OSTRM(void *pv, int cb)
+// Stream into a caller's memory block of `size` bytes (writes past the end are truncated).
+OSTRM::OSTRM(void *data, int size)
 {
-    m_pbMem = (char *)pv;
-    m_cbMemMax = cb;
-    m_fd = -1;
-    m_cbMem = 0;
-    m_cbTotal = 0;
-    m_cbBuf = 0;
+    memTarget = (char *)data;
+    memCapacity = size;
+    fd = -1;
+    memUsed = 0;
+    totalWritten = 0;
+    bufferedBytes = 0;
 }
 
 /** @sly2-annot addr=0x20D618
@@ -67,6 +71,7 @@ OSTRM::OSTRM(void *pv, int cb)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
  * @end-sly2-annot */
+// Flushes whatever is still buffered.
 OSTRM::~OSTRM() { Flush(); }
 
 /** @sly2-annot addr=0x20D660
@@ -74,42 +79,45 @@ OSTRM::~OSTRM() { Flush(); }
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
  * @end-sly2-annot */
-int OSTRM::CbWrite(void *pv, int cb)
+// Writes `size` bytes. Memory streams copy straight into the block (clipped to the space left); file/debug
+// streams stage through the 0x400-byte buffer, flushing each time it fills. Returns the (possibly clipped) size
+// requested, and adds the bytes actually written to totalWritten.
+int OSTRM::CbWrite(void *data, int size)
 {
-    int cbWritten = 0;
-    if (m_pbMem && m_cbMemMax) {
-        int cbAvail;
-        if (cb == 0) {
-            cbWritten = 0;
+    int written = 0;
+    if (memTarget && memCapacity) {
+        int available;
+        if (size == 0) {
+            written = 0;
             goto fail;
         }
-        cbAvail = m_cbMemMax - m_cbMem;
-        if (cbAvail < cb) cb = cbAvail;
+        available = memCapacity - memUsed;
+        if (available < size) size = available;
     }
-    if (cb == 0) {
+    if (size == 0) {
 fail:
         return 0;
     }
-    if (m_pbMem) {
-        CopyAb(m_pbMem + m_cbMem, pv, cb);
-        cbWritten = cb;
-        m_cbMem += cb;
+    if (memTarget) {
+        CopyAb(memTarget + memUsed, data, size);
+        written = size;
+        memUsed += size;
     } else {
-        while (cbWritten < cb) {
-            int cbFree = 0x400 - m_cbBuf;
-            int cbRem = cb - cbWritten;
-            int cbCopy = cbFree < cbRem ? cbFree : cbRem;
-            if (cbCopy) {
-                CopyAb(m_ab + m_cbBuf, (char *)pv + cbWritten, cbCopy);
-                cbWritten += cbCopy;
-                m_cbBuf += cbCopy;
+        while (written < size) {
+            int freeInBuffer = 0x400 - bufferedBytes;
+            int remaining = size - written;
+            int chunk = freeInBuffer < remaining ? freeInBuffer : remaining;
+            if (chunk) {
+                CopyAb(buffer + bufferedBytes, (char *)data + written, chunk);
+                written += chunk;
+                bufferedBytes += chunk;
             }
-            if (m_cbBuf == 0x400)
+            if (bufferedBytes == 0x400)
                 Flush();
         }
     }
-    m_cbTotal += cbWritten;
-    return cb;
+    totalWritten += written;
+    return size;
 }
 
 /** @sly2-annot addr=0x20D798
@@ -117,27 +125,29 @@ fail:
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#stream-0x20d5d0-0x20d9d0
  * @end-sly2-annot */
+// Sends the staged bytes to the file (sceWrite) or, for fd < 0, to the debug console with printf("%s") in
+// NUL-terminated pieces of at most 0x80 bytes. Memory streams have nothing to flush.
 void OSTRM::Flush()
 {
-    if (m_cbBuf == 0 || m_pbMem)
+    if (bufferedBytes == 0 || memTarget)
         return;
-    if (m_fd < 0) {
-        char *pb = m_ab;
-        int ib;
-        for (ib = 0; ib < m_cbBuf; ) {
-            char ach[0x88];
-            int cbRem = m_cbBuf - ib;
-            int cb = 0x80;
-            if (cbRem < 0x80)
-                cb = cbRem;
-            CopyAb(ach, pb, cb);
-            ib += cb;
-            pb += cb;
-            ach[cb] = 0;
-            func_00236960(D_002A8910, ach);
+    if (fd < 0) {
+        char *src = buffer;
+        int offset;
+        for (offset = 0; offset < bufferedBytes; ) {
+            char line[0x88];
+            int remaining = bufferedBytes - offset;
+            int chunk = 0x80;
+            if (remaining < 0x80)
+                chunk = remaining;
+            CopyAb(line, src, chunk);
+            offset += chunk;
+            src += chunk;
+            line[chunk] = 0;
+            func_00236960(D_002A8910, line);
         }
     } else {
-        sceWrite(m_fd, m_ab, m_cbBuf);
+        sceWrite(fd, buffer, bufferedBytes);
     }
-    m_cbBuf = 0;
+    bufferedBytes = 0;
 }
