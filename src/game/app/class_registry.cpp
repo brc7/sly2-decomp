@@ -23,9 +23,9 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 // Each unpacks its Splice arguments with RefSetArgsFromSplice and calls the native function; the generated
 // wrappers of the same block do the same in C. 64 are hand-written: the 33 option thunks that were in this file
 // before the merge, and the 31 that had their own files in src/game/app/splice_thunks/, now verbatim in a namespace
-// T_<name> each (for their own prototypes) over this CRef. Their per-file CRef declarations named three members
-// differently; the references are now SetTag__4CRef4TAGK, CRef_SetBasic and CRef_SetBool (were InitTag__4CRefi,
-// __as__4CRefPv, __as__4CRefb, which no config file names), the same addresses.
+// T_<name> each (for their own prototypes) over this CRef. Their per-file CRef declarations named four members
+// differently; the references are now SetTag__4CRef4TAGK, CRef_SetBasic, CRef_SetBool and SetS32__4CRefi (were
+// InitTag__4CRefi, __as__4CRefPv, __as__4CRefb, __as__4CRefi, which no config file names), the same addresses.
 
 /* CRef as the thunks use it (the per-function files' declarations, merged): sly2/cref.h's CRef has the same layout
    and inline members, but not the assignments by payload type that the thunks call (operator=(void *), (qword),
@@ -44,7 +44,7 @@ struct CRef
     CRef &operator=(void *pv) __asm__("CRef_SetBasic");
     CRef &operator=(qword q) __asm__("CRef_SetVector_VU_VECTOR");
     CRef &operator=(bool f) __asm__("CRef_SetBool");
-    CRef &operator=(int n);
+    CRef &operator=(int n) __asm__("SetS32__4CRefi");
     CRef &operator=(float g);
 };
 extern "C" CRef RefSetArgsFromSplice__FiP4CRefP4OTYPe(int c, void *aref, int *ak, ...);
