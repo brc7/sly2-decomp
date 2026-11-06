@@ -1667,10 +1667,10 @@ typedef char assert_SAFEHOUSE_size[sizeof(SAFEHOUSE) == 0x240 ? 1 : -1];
 struct LASEN : SENSOR
 {
     char pad190[0x1D0 - 0x190];
+    virtual void VUnk14() __asm__("PostLasenLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetLasenClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_001DE400");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadLasenFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostLasenLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateLasen");   /* slot 16 */
     virtual void RenderSelf() __asm__("RenderLasenSelf");   /* slot 19 */
     virtual void Clone(LO *ploBase) __asm__("CloneLasen");   /* slot 41 */
