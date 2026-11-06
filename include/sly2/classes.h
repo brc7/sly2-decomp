@@ -4,9 +4,14 @@
  *
  * Each class: its parent (class-tree.md), its size (the descriptor's cb, asserted), what construction shows (the
  * members that are constructed, out-of-line constructors under their current symbols), and its real virtual layout
- * from the ELF vtable: the overrides of inherited slots (Pclassinfo, slot 6, first: no TU defines it as a member, so
- * no TU becomes a vtable's key TU and emits it) and its new slots, each declared as a member whose asm label is the
- * function the vtable holds at that slot. Members inherit the names and signatures of the slot's first declaration
+ * from the ELF vtable: the overrides of inherited slots and its new slots, each declared as a member whose asm label
+ * is the function the vtable holds at that slot. The first declared virtual is the class's key function (g++ 2.95:
+ * the first non-inline, non-pure virtual): its key TU defines it as a member and so emits the vtable
+ * (data/vtables; Pclassinfo stays first where class_registry, the key TU, defines only the getter as a C function).
+ * Only an override, or a new virtual preceded by nothing but overrides, may move to the front: new virtuals take
+ * their slots in declaration order. The classes are defined in emission order: g++ emits a TU's vtables in the
+ * reverse order of their classes' definitions, so each key TU's classes come in descending ELF address order
+ * (bases first). Members inherit the names and signatures of the slot's first declaration
  * (sly2/lo.h, so.h, ...); slots no header names are VSlot<n>() (n = 8-byte slot index; slot 0 is null). The ten
  * grab-spot classes override GRABSPOT's slots as their secondary vtables show (delta = -offset of GRABSPOT).
  * The classes the other headers define (BASIC, LO, XFM, PROXY, SHAPE, TN, TARGET, VOL, DETECTOR, EMITTER, EXPL,
