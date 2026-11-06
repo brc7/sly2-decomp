@@ -49,7 +49,9 @@ struct GUARDV
 typedef char assert_GUARDV_capabilities[(unsigned int)&((GUARDV *)0)->capabilities == 0xFE8 ? 1 : -1];
 
 /* A sub-behaviour started by SetBhvSearchState (PushStepBhv finds it on the guard; vtable slot 8 starts it). */
-struct BHVO { char pad[0xC]; VE *vt; char pad10[0x2C]; int animFlag; char pad40[0xC0 - 0x40]; int walkAnimFlag; };
+struct BHVO { char pad[0xC]; VE *vt; char pad10[0x2C]; int sgf; char pad40[0xC0 - 0x40]; int gotoAllowPartialRoute; };   // +0x3C BHVANIM/BHVIDLE guard flag; +0xC0 BHVGOTO allow partial routes
+// Starts a freshly pushed child behaviour: its Start (vtable slot 8) through the this-adjusting vtable entry.
+template <class T> static inline void StartPushedBhv(T *child) { child->vt[8].pfn((char *)child + child->vt[8].d); }
 /* The watched perception record (+0x44; vtable slots 1/2 are incref/decref). */
 struct WATCH { char pad[0xC]; VE *vt; char pad10[0x10]; qword firstPosition; qword secondPosition; char pad40[4]; GUARDV *guard; char pad48[0xC]; int mode; };
 
@@ -271,20 +273,23 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
     behavior->stateTime = D_002DDED0.t;
     switch (n) {
     case 0:
-        { BHVO *child = PushStepBhv(behavior->guard, CID_BHVANIM); VE *entry; child->animFlag = 0xC; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+        {
+            BHVO *child = PushStepBhv(behavior->guard, CID_BHVANIM);
+            child->sgf = 0xC;
+            StartPushedBhv(child);
+        }
         break;
     case 1:
         {
             BHVO *child = PushStepBhv(behavior->guard, CID_BHVGOTO);
             GOAL goal;
-            VE *entry;
             qword v;
-            child->walkAnimFlag = 1;
+            child->gotoAllowPartialRoute = 1;
             v = GetBhvSearchLastKnownPosition(behavior);
             ClearPointerPair(&goal);
             goal.v = v;
             SetBhvgotoGoal(child, &goal);
-            entry = &child->vt[8]; entry->pfn((char *)child + entry->d);
+            StartPushedBhv(child);
             behavior->lookEndTime = D_002A5398;
         }
         break;
@@ -295,27 +300,37 @@ extern "C" void SetBhvSearchState(BHV171V *behavior, int n) {
             qword d;
             d = VuSub(a, b);
             SetStepguardMoverRadTarget(behavior->guard->mover, atan2f(GetY(d), GetX(d)));
-            { BHVO *child = PushStepBhv(behavior->guard, CID_BHVIDLE); VE *entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+            {
+                BHVO *child = PushStepBhv(behavior->guard, CID_BHVIDLE);
+                StartPushedBhv(child);
+            }
             SetBhvSearchLookTimers(behavior);
         }
         break;
     case 3:
         {
             BHVO *child = PushStepBhv(behavior->guard, CID_BHVGOTO);
-            VE *entry;
-            child->walkAnimFlag = 1;
+            child->gotoAllowPartialRoute = 1;
             ChooseBhvSearchPoints(behavior);
             StepBhvSearchPoint(behavior);
-            entry = &child->vt[8]; entry->pfn((char *)child + entry->d);
+            StartPushedBhv(child);
         }
         break;
     case 4:
-        { BHVO *child = PushStepBhv(behavior->guard, CID_BHVANIM); VE *entry; child->animFlag = 0xE; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+        {
+            BHVO *child = PushStepBhv(behavior->guard, CID_BHVANIM);
+            child->sgf = 0xE;
+            StartPushedBhv(child);
+        }
         SetBhvSearchWatched(behavior, 0);
         behavior->needsReplan = 0;
         break;
     case 5:
-        { BHVO *child = PushStepBhv(behavior->guard, CID_BHVIDLE); VE *entry; child->animFlag = 1; entry = &child->vt[8]; entry->pfn((char *)child + entry->d); }
+        {
+            BHVO *child = PushStepBhv(behavior->guard, CID_BHVIDLE);
+            child->sgf = 1;
+            StartPushedBhv(child);
+        }
         break;
     }
 }
