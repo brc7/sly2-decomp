@@ -1606,12 +1606,10 @@ extern "C" void SetMurrayState(P *murray, int next)
         ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(clip, murray, position, 1.0f, flags, animation);
         ReplaceSmaEx(source, murray, id, flags, mode, component);
         if (clip || source) {
-            if (clip) {
-                if (duration == position) {
-                    ENTRY *e = func_0012F938(clip, 0x1AC);
-                    if (e)
-                        duration = e->value;
-                }
+            if (clip && duration == position) {
+                ENTRY *e = func_0012F938(clip, 0x1AC);
+                if (e)
+                    duration = e->value;
             }
             if (duration != 0.0f)
                 func_00131A90(murray->asega, D_002DDED0.t + duration / murray->asega->rate);
@@ -3658,24 +3656,20 @@ extern "C" void AdjustMurrayNewXp(P *murray, X *px, int i)
         n = murray->x1840;
         if (n == 1) {
             Q *pq = *(Q **)((char *)px + ((n - i) << 6) + 0xC);
-            if (((int (*)(void *))pq->vt[62].pfn)((char *)pq + pq->vt[62].d)) {
-                if (*(float *)((char *)px + 0x88) < 0.7f) {
-                    qword v = ((qword(*)(void *))murray->vt[33].pfn)((char *)murray + murray->vt[33].d);
-                    qword r = func_0011F198(v, px->x80);
-                    float g;
-                    __asm__("mtc1 %1,%0" : "=f"(g) : "r"(r));
-                    int f = g < D_002C0A38;
-                    if (f)
-                        murray->powerContactTrigger = n;
-                }
+            if (((int (*)(void *))pq->vt[62].pfn)((char *)pq + pq->vt[62].d) && *(float *)((char *)px + 0x88) < 0.7f) {
+                qword v = ((qword(*)(void *))murray->vt[33].pfn)((char *)murray + murray->vt[33].d);
+                qword r = func_0011F198(v, px->x80);
+                float g;
+                __asm__("mtc1 %1,%0" : "=f"(g) : "r"(r));
+                int f = g < D_002C0A38;
+                if (f)
+                    murray->powerContactTrigger = n;
             }
         }
         break;
     case MURRAY_FLOP:
-        if (murray->x13D8 == 1) {
-            if (D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
-                func_001A9FE0(D_003DD490, func_001AA020(D_003DD490, px), murray->x13E4);
-            }
+        if (murray->x13D8 == 1 && D_002C3C60[i] * *(float *)((char *)px + 0x88) > 0.7f) {
+            func_001A9FE0(D_003DD490, func_001AA020(D_003DD490, px), murray->x13E4);
         }
         break;
     case MURRAY_PIPE: ResetJtPipeAdjust(murray->pipe, px, i); break;
