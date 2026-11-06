@@ -17,7 +17,7 @@ enum CIDV { CID_Nil = -1 };
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VT { short d; short pad; void *pfn; };
 
-/* Contact graph of a solid object, as SendBarrierImpactMessages walks it (HYPOTHESIS: SO contact lists). */
+/* Contact graph of a solid object, as SendBarrierImpactMessages walks it (inferred: SO contact lists). */
 struct BARRIERV;
 struct CONTACTEND { int unknown0; int unknown4; BARRIERV *object; char pad[0x34]; };
 struct CONTACT { CONTACTEND ends[2]; char pad[0xAC - 0x80]; CONTACT *next; };
@@ -89,10 +89,8 @@ extern "C" void PostBarrierLoad(BARRIERV *barrier)
 extern "C" int FIgnoreBarrierIntersection(BARRIERV *barrier, void *other)
 {
     int i, j;
-    int isNamed;
-    i = 0;
-    isNamed = 0;
-    for (; i < barrier->numObjects; i++) {
+    int isNamed = 0;
+    for (i = 0; i < barrier->numObjects; i++) {
         if (FMatchesLoName(other, barrier->objects[i])) isNamed = 1;
     }
     for (j = 0; j < barrier->numClasses; j++) {
@@ -140,7 +138,7 @@ extern "C" void SendBarrierImpactMessages(BARRIERV *barrier)
             if (i >= numTouching) {
                 touching[numTouching++] = other;
                 if (numTouching >= sizeof(touching) / sizeof(touching[0]))
-                    goto done;
+                    goto done;   /* a helper returning the count here changes the registers */
             }
         }
     }
