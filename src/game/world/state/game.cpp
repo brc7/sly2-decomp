@@ -1333,7 +1333,7 @@ public:
 class O : public OBase {
 public:
     char pad[0x50 - 0x10];
-    int f50;
+    int isDisabled;
     int c54;
     int *a58;
     int c5C;
@@ -1376,7 +1376,7 @@ extern "C" void HandleJobGameEvent(O *job, int n, int m)
                 break;
             }
         }
-    } else if (n == 0x10 && job->f50 && !IsSwTransitionBusy(&D_003DD490)) {
+    } else if (n == 0x10 && job->isDisabled && !IsSwTransitionBusy(&D_003DD490)) {
         RestartJob(job);
     }
 }
@@ -1459,7 +1459,7 @@ extern "C" void RestartJob(JOBV *job)
 }
 
 namespace M_func_00162E38 { extern "C" {
-struct G { char pad[0x3B18]; int f3b18; char pad2[0x3C84 - 0x3B1C]; int f3c84; };
+struct G { char pad[0x3B18]; int jobToAbort; char pad2[0x3C84 - 0x3B1C]; int unknown3C84; };
 extern struct G D_003DD490;
 int IsSwTransitionBusy(struct G *p);
 int GetCurrentWorldEntry(void);
@@ -1474,11 +1474,11 @@ void WipeToWorldWarp(struct G *p, int n, int a, int b, int c, int d);
  * @end-sly2-annot */
 // Fails the current job: records it for abort and, unless a transition is busy, wipes back to the current world's
 // entry warp (0x189).
-void FailJob(int n)
+void FailJob(int job)
 {
     struct G *pg = &D_003DD490;
-    pg->f3b18 = n;
-    if (!IsSwTransitionBusy(pg) && !pg->f3c84)
+    pg->jobToAbort = job;
+    if (!IsSwTransitionBusy(pg) && !pg->unknown3C84)
         WipeToWorldWarp(pg, GetCurrentWorldEntry(), 0x189, -1, 0, -1);
 }
 } } // namespace M_func_00162E38
@@ -1532,7 +1532,7 @@ extern "C" void CompleteJob(JOBV *job, TASKV *task)
 }
 
 namespace M_FinishJob { extern "C" {
-struct S { char pad[0x68]; void *f68; char pad2[0x78 - 0x6C]; int f78; };
+struct S { char pad[0x68]; void *completeTask; char pad2[0x78 - 0x6C]; int isReplay; };   /* isReplay (inferred): skip completion and autosave */
 extern char D_002DEB30[];
 extern char D_002E65E0[];
 void SetTaskStateCascade(void *p, int n);
@@ -1549,18 +1549,18 @@ void AutosaveGame(void *p, int n);
 // Finishes the job: marks the end task complete, event 0x20, ends the job and autosaves.
 void FinishJob(struct S *job)
 {
-    if (!job->f78)
-        SetTaskStateCascade(job->f68, 3);
+    if (!job->isReplay)
+        SetTaskStateCascade(job->completeTask, 3);
     BroadcastGameEvent(D_002DEB30, 0x20, job);
     EndCurrentJob(job);
-    if (!job->f78)
+    if (!job->isReplay)
         AutosaveGame(D_002E65E0, 0);
 }
 } } // namespace M_FinishJob
 
 namespace M_func_00162FD0 { extern "C" {
-struct LO { char pad[0x40]; int fl; };
-struct S { char pad[0xC0]; void *pc0; char pad2[0xCC - 0xC4]; struct LO *pcc; };
+struct LO { char pad[0x40]; int flags; };
+struct S { char pad[0xC0]; void *nextTask; char pad2[0xCC - 0xC4]; struct LO *exitObject; };
 extern char D_002E1E88[];
 int func_001A4E70(void *p);
 void func_001A4E80(void *p);
@@ -1580,22 +1580,22 @@ void ContinueAfterJob(struct S *job)
     char *pv = D_002E1E88;
     if (func_001A4E70(pv)) {
         func_001A4E80(pv);
-    } else if (job->pc0) {
-        RequestTaskState(job->pc0, 4, job);
-    } else if (job->pcc) {
-        struct LO *plo = job->pcc;
-        int v = plo->fl;
+    } else if (job->nextTask) {
+        RequestTaskState(job->nextTask, 4, job);
+    } else if (job->exitObject) {
+        struct LO *plo = job->exitObject;
+        int v = plo->flags;
         if ((v ^ 1) & 1)
             *(int *)v |= 0x100;
         else
-            plo->fl = v | 0x100;
-        TakeExit(job->pcc);
+            plo->flags = v | 0x100;
+        TakeExit(job->exitObject);
     }
 }
 } } // namespace M_func_00162FD0
 
 namespace M_UpdateJob { extern "C" {
-struct S { char pad[0xB0]; int fb0; int fb4; void *fb8; void *fbc; void *fc0; int fc4; char pad2[0xCC - 0xC8]; void *fcc; };
+struct S { char pad[0xB0]; int introLabel; int outroLabel; void *completionWidget; void *widget379; void *nextTask; int completionPhase; char pad2[0xCC - 0xC8]; void *exitObject; };
 void UpdateLo(struct S *p);
 int FWidgetAnimPlaying(void *p, int n);
 void FinishJob(struct S *p);
@@ -1615,24 +1615,24 @@ void SetJobCompletionPhase(struct S *p, int n);
 void UpdateJob(struct S *job)
 {
     UpdateLo(job);
-    switch (job->fc4) {
+    switch (job->completionPhase) {
     case 1:
-        if (!FWidgetAnimPlaying(job->fb8, job->fb0)) {
+        if (!FWidgetAnimPlaying(job->completionWidget, job->introLabel)) {
             FinishJob(job);
-            if (job->fc0 || job->fcc)
+            if (job->nextTask || job->exitObject)
                 SetJobCompletionPhase(job, 3);
             else
                 SetJobCompletionPhase(job, 2);
         }
         break;
     case 2:
-        if (!FWidgetAnimPlaying(job->fb8, job->fb4)) {
+        if (!FWidgetAnimPlaying(job->completionWidget, job->outroLabel)) {
             ContinueAfterJob(job);
             SetJobCompletionPhase(job, 0);
         }
         break;
     case 3:
-        if (!FWidgetAnimPlaying(job->fbc, 0x30F))
+        if (!FWidgetAnimPlaying(job->widget379, 0x30F))
             ContinueAfterJob(job);
         break;
     }
@@ -1644,11 +1644,11 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { char pad[0xC]; struct VTE *vt; };
 struct X;
 struct X {
-    char pad[0x40]; int fl;
-    char pad1[0x68 - 0x44]; struct X *f68;
-    char pad2[0x94 - 0x6C]; int c94; struct X **a98;
-    char pad3[0xA0 - 0x9C]; int cA0; struct X **aA4;
-    char pad4[0xB0 - 0xA8]; int fB0; int fB4; struct O *pB8; struct O *pBC; struct X *fC0; int fC4; float fC8;
+    char pad[0x40]; int flags;
+    char pad1[0x68 - 0x44]; struct X *completeTask;
+    char pad2[0x94 - 0x6C]; int numPrerequisites; struct X **prerequisites;
+    char pad3[0xA0 - 0x9C]; int numFollowers; struct X **followers;
+    char pad4[0xB0 - 0xA8]; int introLabel; int outroLabel; struct O *completionWidget; struct O *widget379; struct X *nextTask; int completionPhase; float tCompletionPhase;   /* on a task, completionPhase != 0 marks it as the next task (inferred) */
 };
 extern struct CLOCK D_002DDED0;
 extern char D_003DD490[];
@@ -1680,60 +1680,60 @@ static __inline__ void VCall49(struct O *po, int n)
 void SetJobCompletionPhase(struct X *job, int n)
 {
     int i;
-    if (job->fC4 == n) return;
-    if (job->fC4 == 0) {
+    if (job->completionPhase == n) return;
+    if (job->completionPhase == 0) {
         int v;
-        job->fC0 = 0;
-        for (i = 0; i < job->f68->cA0; i++) {
-            struct X *px = job->f68->aA4[i];
-            if (px->fC4) {
-                job->fC0 = px;
+        job->nextTask = 0;
+        for (i = 0; i < job->completeTask->numFollowers; i++) {
+            struct X *px = job->completeTask->followers[i];
+            if (px->completionPhase) {
+                job->nextTask = px;
                 break;
             }
         }
-        if (job->fC0) {
+        if (job->nextTask) {
             int j;
-            for (j = 0; j < job->fC0->c94; j++) {
-                struct X *px = job->fC0->a98[j];
-                if (px != job->f68 && !IsTaskComplete(px)) {
-                    job->fC0 = 0;
+            for (j = 0; j < job->nextTask->numPrerequisites; j++) {
+                struct X *px = job->nextTask->prerequisites[j];
+                if (px != job->completeTask && !IsTaskComplete(px)) {
+                    job->nextTask = 0;
                     break;
                 }
             }
         }
         SetLoBusyk(job, 1);
-        v = job->fl;
+        v = job->flags;
         if ((v ^ 1) & 1)
             *(int *)v |= 0x102;
         else
-            job->fl = v | 0x102;
+            job->flags = v | 0x102;
         IncrementSwHandsOff(D_003DD490, 2);
     }
-    job->fC4 = n;
-    job->fC8 = D_002DDED0.t;
+    job->completionPhase = n;
+    job->tCompletionPhase = D_002DDED0.t;
     switch (n) {
     case 0: {
         int v;
-        if (job->pBC) VCall50(job->pBC);
-        if (job->pB8) VCall50(job->pB8);
+        if (job->widget379) VCall50(job->widget379);
+        if (job->completionWidget) VCall50(job->completionWidget);
         SetLoBusyk(job, 2);
-        v = job->fl;
+        v = job->flags;
         if ((v ^ 1) & 1)
             *(int *)v &= ~0x102;
         else
-            job->fl = v & ~0x102;
+            job->flags = v & ~0x102;
         DecrementSwHandsOff(D_003DD490, 2);
         break;
     }
     case 1:
-        VCall49(job->pB8, -1);
-        PlayWidgetAnim(job->pB8, job->fB0);
+        VCall49(job->completionWidget, -1);
+        PlayWidgetAnim(job->completionWidget, job->introLabel);
         break;
     case 3:
-        VCall49(job->pBC, -1);
+        VCall49(job->widget379, -1);
         break;
     case 2:
-        PlayWidgetAnim(job->pB8, job->fB4);
+        PlayWidgetAnim(job->completionWidget, job->outroLabel);
         break;
     }
 }
