@@ -125,15 +125,15 @@ extern "C" void SetStuckWatchState(STUCKWATCH *watch, int state)
     if (watch->state == state) return;
     watch->state = state;
     watch->stateTime = D_002DDED0.t;
-    if (state == 2) {
-        WMSG zap;
-        func_002333B4(&zap, 0, sizeof zap);
-        zap.kind = 0x4000;
-        zap.volume = (WVOL *)watch->guard;
-        zap.guard = watch->guard;
-        zap.damage = 0;
-        func_001F7598(&zap);
-    }
+    if (state != 2)
+        return;
+    WMSG zap;
+    func_002333B4(&zap, 0, sizeof zap);
+    zap.kind = 0x4000;
+    zap.volume = (WVOL *)watch->guard;
+    zap.guard = watch->guard;
+    zap.damage = 0;
+    func_001F7598(&zap);
 }
 
 // 0x20D178: Disables a stuck watch (state 0).
@@ -205,20 +205,20 @@ extern "C" void UpdateHazardWatch(VOLWATCH *watch)
 // (+0x188/+0x184).
 extern "C" void SetHazardWatchState(VOLWATCH *watch, int state)
 {
-    if (state != watch->state) {
-        watch->state = state;
-        watch->stateTime = D_002DDED0.t;
-        if (state == 2) {
-            WMSG zap;
-            func_002333B4(&zap, 0, sizeof(zap));
-            zap.volume = watch->volume;
-            zap.guard = watch->guard;
-            zap.kind = watch->volume->zapKind;
-            zap.damage = watch->volume->zapAmount;
-            zap.position = func_001A62E8(watch->guard);
-            zap.velocity = ((qword (*)(void *))watch->guard->vt[33].function)((char *)watch->guard + watch->guard->vt[33].d);
-            func_001F7598(&zap);
-        }
+    if (state == watch->state)
+        return;
+    watch->state = state;
+    watch->stateTime = D_002DDED0.t;
+    if (state == 2) {
+        WMSG zap;
+        func_002333B4(&zap, 0, sizeof(zap));
+        zap.volume = watch->volume;
+        zap.guard = watch->guard;
+        zap.kind = watch->volume->zapKind;
+        zap.damage = watch->volume->zapAmount;
+        zap.position = func_001A62E8(watch->guard);
+        zap.velocity = ((qword (*)(void *))watch->guard->vt[33].function)((char *)watch->guard + watch->guard->vt[33].d);
+        func_001F7598(&zap);
     }
 }
 
