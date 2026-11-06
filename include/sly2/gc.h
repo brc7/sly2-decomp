@@ -97,7 +97,7 @@ public:
             }
       }
       /* a node's slot goes back to its kind's pool (its destructor has unlinked it) */
-      void operator delete(void *pv) { func_0011CD98(Pslotheap(), pv); }
+      void operator delete(void *pv) { FreeSlotheapSlot(Pslotheap(), pv); }
       void PushFront(T **pptHead);
       void Unlink();
       void MakeRoot();
@@ -213,7 +213,7 @@ template <class T> T *CGcObj<T>::PtNew()
             {
                   void *pv = PvAllocSlotheapClear(Pslotheap());
                   if (s_cpage)
-                        func_0011CD98(Pslotheap(), pv);
+                        FreeSlotheapSlot(Pslotheap(), pv);
                   s_aptPage[s_cpage++] = (T *)pv;
             }
       }
@@ -246,7 +246,7 @@ template <class T> void CGcObj<T>::FreeGarbage()
             if (pgcCur->m_fMark != g_gc.fMark)
             {
                   pgcCur->Unlink();
-                  func_0011CD98(Pslotheap(), pgcCur);
+                  FreeSlotheapSlot(Pslotheap(), pgcCur);
             }
       }
 }

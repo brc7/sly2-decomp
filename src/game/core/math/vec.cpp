@@ -1,6 +1,9 @@
 // vec.cpp -- vector math on VU0 quadwords: building vectors from cylindrical/spherical coordinates and back, normals,
 // angles between vectors, closest points between lines, segments and points, a ray/triangle test, length limits,
 // PosSmooth, and componentwise min/max over arrays. VU0/EE asm throughout.
+// Vectors are VU0 quadwords (x, y, z, w; z up); angles are radians. The closest-point routines return line
+// parameters (0..1 along a segment) and optional distances/normals through out-pointers, so callers pass null for
+// what they do not need. Entry points: the functions below, used by physics, camera, AI and Splice builtins.
 // TU 0x11E198..0x11F440 (22 functions, address order).
 // Each function's private asm helpers are kept as matched, in a namespace named after the function: several have the
 // same name with different asm (operand order, allocation-only operands, clobbers), which matters to the match.
@@ -50,9 +53,10 @@ static __inline__ qword Make(float x, float y, float z)
  * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" qword SetVectorCylind(float rad, float r, float z)
+// Builds a vector from cylindrical coordinates: angle `rad` around z, `radius` in the xy plane, height z.
+extern "C" qword SetVectorCylind(float rad, float radius, float z)
 {
-    union { qword q; float f[4]; } v; float gA, gB; CalculateSinCos__FfPfT1(rad, &gA, &gB); v.q = Make(gB * r, gA * r, z); return v.q;
+    union { qword q; float f[4]; } v; float gA, gB; CalculateSinCos__FfPfT1(rad, &gA, &gB); v.q = Make(gB * radius, gA * radius, z); return v.q;
 }
 }
 
@@ -72,6 +76,7 @@ static __inline__ qword Make(float x, float y, float z)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
+// Builds a vector from spherical coordinates: pan around z, tilt above the xy plane, length r.
 extern "C" qword SetVectorSphere(float radPan, float radTilt, float r)
 {
     union { qword q; float f[4]; } v;
@@ -92,19 +97,21 @@ typedef int qword __attribute__((mode(TI)));
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" float func_0011E290(qword a, qword b, qword *ppar, qword *pperp)
+// Splits a along the unit vector b: returns a . b, and optionally the parallel part (a . b) b and the
+// perpendicular part a - (a . b) b.
+extern "C" float func_0011E290(qword a, qword b, qword *outParallel, qword *outPerpendicular)
 {
     qword d, p;
     float g;
     d = VuDot(a, b);
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(p) : "j"(b), "j"(d));
-    if (ppar) {
-        __asm__("sq %1, %0" : "=m"(*ppar) : "r"(p));
+    if (outParallel) {
+        __asm__("sq %1, %0" : "=m"(*outParallel) : "r"(p));
     }
-    if (pperp) {
+    if (outPerpendicular) {
         qword r;
         r = VuSub(a, p);
-        *pperp = r;
+        *outPerpendicular = r;
     }
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(d));
     return g;
@@ -125,7 +132,9 @@ static __inline__ float FloatQ(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *pm)
+// Builds two unit vectors perpendicular to `a` (outBasis[0] = normalize(b x a), or c x a when b is parallel to a;
+// outBasis[1] = normalize(a x outBasis[0])): a tangent frame around a normal.
+extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *outBasis)
 {
     register qword vb __asm__("vf1") = b;
     register qword va __asm__("vf3") = a;
@@ -155,8 +164,8 @@ extern "C" void GetNormalVectors(qword a, qword b, qword c, qword *pm)
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d1) : "j"(d1));
         __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r0) : "j"(d0), "j"(x));
         __asm__("vdiv $Q, $vf0w, %1x\n\tvwaitq\n\tvmulq.xyzw %0, %2, $Q" : "=j"(r1) : "j"(d1), "j"(y));
-        pm[0] = r0;
-        pm[1] = r1;
+        outBasis[0] = r0;
+        outBasis[1] = r1;
     }
 }
 }
@@ -198,6 +207,7 @@ static inline qword Normalize(qword v)
  * See: docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
+// Returns some unit vector perpendicular to v (crosses v with the axis of its smallest component).
 extern "C" qword GetNormalVector(qword v)
 {
     float x, y, z;
@@ -283,16 +293,18 @@ static inline qword Scale(qword v, qword g)
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-extern "C" float RadBetweenVectors(qword a, qword b, qword *paxis)
+// Returns the angle between a and b (acos of the normalised dot product) and optionally the unit rotation axis
+// a x b.
+extern "C" float RadBetweenVectors(qword a, qword b, qword *outAxis)
 {
     float la = Length(a);
     float lb = Length(b);
     if (la < 1e-4f || lb < 1e-4f) {
-        if (paxis)
-            *paxis = D_002A2DA0;
+        if (outAxis)
+            *outAxis = D_002A2DA0;
         return 0.0f;
     }
-    if (paxis) {
+    if (outAxis) {
         qword axis = Cross(a, b);
         qword dl = LenV(axis);
         float l;
@@ -301,7 +313,7 @@ extern "C" float RadBetweenVectors(qword a, qword b, qword *paxis)
             axis = Scale(axis, dl);
         else
             axis = GetNormalVector(a);
-        *paxis = axis;
+        *outAxis = axis;
     }
     return acosf(Dot(a, b) / (la * lb));
 }
@@ -342,7 +354,10 @@ static inline float DotG(qword a, qword b)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword pos, float *puv, float *pdist, qword *pnormal)
+// Closest points between the infinite lines through a, b and through c, pos: writes the two line parameters, the
+// distance between the lines (along the normal) and the unit common normal, oriented from the first line toward
+// the second. Parallel lines give parameters 0 and the normal of c - a. All three outputs are required.
+extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword pos, float *outParams, float *outDistance, qword *outNormal)
 {
     qword ca, ba, pc, n;
     float lenSq;
@@ -354,13 +369,13 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
     n = Cross(ba, pc);
     lenSq = Dot(n, n);
     if (lenSq < eps) {
-        puv[0] = puv[1] = 0.0f;
+        outParams[0] = outParams[1] = 0.0f;
         n = ca;
     } else {
         float u = DotG(Cross(ca, pc), n) / lenSq;
         float v = DotG(Cross(ca, ba), n) / lenSq;
-        puv[0] = u;
-        puv[1] = v;
+        outParams[0] = u;
+        outParams[1] = v;
         if (Dot(ca, n) < 0.0f) {
             U s;
             float m = -1.0f;
@@ -388,9 +403,9 @@ extern "C" void FindClosestPointBetweenLines(qword a, qword b, qword c, qword po
         int nd;
         d = VuDot(n, ca);
         __asm__("qmfc2.ni %0, %1" : "=r"(nd) : "j"(d));
-        *(int *)pdist = nd;
+        *(int *)outDistance = nd;
     }
-    *pnormal = n;
+    *outNormal = n;
 }
 }
 
@@ -418,32 +433,34 @@ static __inline__ float F(qword q) { float g; __asm__("mtc1 %1, %0" : "=f"(g) : 
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword pos, float *puv, float *pdist, qword *pnormal)
+// Closest points between two segments (the line solution clamped to the segments); outputs as for
+// FindClosestPointBetweenLines.
+extern "C" void FindClosestPointBetweenLineSegments(qword a, qword b, qword c, qword pos, float *outParams, float *outDistance, qword *outNormal)
 {
     float v;
     qword w0, w1, w2, w3, n, l;
     qword *pdef;
-    FindClosestPointBetweenLines(a, b, c, pos, puv, pdist, pnormal);
-    puv[0] = GClamp(puv[0], 0.0f, 1.0f);
-    v = GClamp(puv[1], 0.0f, 1.0f);
-    puv[1] = v;
-    w0 = VF(puv[0] - 1.0f);
-    w1 = VF(-puv[0]);
+    FindClosestPointBetweenLines(a, b, c, pos, outParams, outDistance, outNormal);
+    outParams[0] = GClamp(outParams[0], 0.0f, 1.0f);
+    v = GClamp(outParams[1], 0.0f, 1.0f);
+    outParams[1] = v;
+    w0 = VF(outParams[0] - 1.0f);
+    w1 = VF(-outParams[0]);
     w2 = VF(1.0f - v);
     w3 = VF(v);
     __asm__("vmulax.xyzw $ACC, %5, %1x\n\tvmaddax.xyzw $ACC, %6, %2x\n\tvmaddax.xyzw $ACC, %7, %3x\n\tvmaddx.xyzw %0, %8, %4x"
             : "=j"(n) : "j"(w0), "j"(w1), "j"(w2), "j"(w3), "j"(a), "j"(b), "j"(c), "j"(pos));
-    *pnormal = n;
+    *outNormal = n;
     pdef = &D_002A2DA0;
     l = Len(n);
     if (F(l) < 1e-4f) {
-        *pnormal = *pdef;
+        *outNormal = *pdef;
     } else {
         qword r;
         __asm__("vdiv $Q, $vf0w, %2x\n\tvwaitq\n\tvmulq.xyzw %0, %1, $Q" : "=j"(r) : "j"(n), "j"(l));
-        *pnormal = r;
+        *outNormal = r;
     }
-    { int nl; __asm__("qmfc2.ni %0, %1" : "=r"(nl) : "j"(l)); *(int *)pdist = nl; }
+    { int nl; __asm__("qmfc2.ni %0, %1" : "=r"(nl) : "j"(l)); *(int *)outDistance = nl; }
 }
 }
 
@@ -461,12 +478,13 @@ static inline float sqrtf_(float x) { float r; __asm__ __volatile__("sqrt.s %0, 
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void CalculateVectorPanTilt(qword v, float *pradPan, float *pradTilt)
+// Returns v's pan (atan2(y, x)) and tilt (atan2(z, |xy|)), each normalised to (-pi, pi]; both optional.
+extern "C" void CalculateVectorPanTilt(qword v, float *outPan, float *outTilt)
 {
-    if (pradPan)
-        *pradPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
-    if (pradTilt)
-        *pradTilt = RadNormalize__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
+    if (outPan)
+        *outPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+    if (outTilt)
+        *outTilt = RadNormalize__Ff(atan2f(GetZ(v), sqrtf_(GetX(v) * GetX(v) + GetY(v) * GetY(v))));
 }
 }
 
@@ -482,18 +500,19 @@ typedef union { qword q; float f; } U;
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-extern "C" qword LimitVectorLength(qword v, float gMax)
+// Returns v scaled down to maxLength if it is longer, else v.
+extern "C" qword LimitVectorLength(qword v, float maxLength)
 {
     qword d, l;
     float g;
     d = VuDot(v, v);
     __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
     __asm__("mtc1 %1, %0" : "=f"(g) : "r"(l));
-    if (gMax < g) {
+    if (maxLength < g) {
         U s;
         qword r;
         float q;
-        __asm__ __volatile__("div.s %0, %1, %2" : "=f"(q) : "f"(gMax), "f"(g));
+        __asm__ __volatile__("div.s %0, %1, %2" : "=f"(q) : "f"(maxLength), "f"(g));
         { qword s_q; s_q = VuFromFloat<qword>(q); s.q = s_q; }   /* asm output into a scalar, then the union (see the merge guide) */
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(v), "j"(s.q));
         return r;
@@ -553,7 +572,10 @@ static inline float DotS(qword a, qword b)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *puv, qword *pnormal)
+// Closest points of the infinite lines through a, b and c, d: writes the two line parameters to outParams[0..1]
+// and the unit common normal (oriented away from a towards c) to outNormal; returns 0 if the lines are parallel.
+// Used for edge/edge contacts (mark.cpp).
+extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *outParams, qword *outNormal)
 {
     qword ca = Sub(c, a);
     qword ba = VuSub(b, a);
@@ -573,24 +595,24 @@ extern "C" int func_0011EA60(qword a, qword b, qword c, qword d, float *puv, qwo
     }
     if (lenSq < 1e-6f)
         return 0;
-    if (puv) {
+    if (outParams) {
         qword du = VuDot(c2, n2);
         qword dv = VuDot(c1, n2);
-        puv[0] = F3(du) / lenSq;
-        puv[1] = F3(dv) / lenSq;
+        outParams[0] = F3(du) / lenSq;
+        outParams[1] = F3(dv) / lenSq;
     }
     g = DotS(ca, n2);
     s = 1.0f;
     if (g < 0.0f)
         s = -1.0f;
-    if (pnormal) {
+    if (outNormal) {
         float l;
         U t;
         qword r;
         __asm__("sqrt.s %0, %1" : "=&f"(l) : "f"(lenSq));
         { qword t_q; t_q = VuFromFloat<qword>(s / l); t.q = t_q; }   /* asm output into a scalar, then the union (see the merge guide) */
         __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(n), "j"(t.q));
-        *pnormal = r;
+        *outNormal = r;
     }
     return 1;
 }
@@ -635,7 +657,9 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" int FIntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, qword v2, float *pt, float *puv)
+// Ray/triangle intersection (Moller-Trumbore, determinant epsilon 1e-6): returns whether the ray from orig along
+// dir hits triangle v0 v1 v2, with the ray parameter in *outT and barycentrics in outUv.
+extern "C" int FIntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, qword v2, float *outT, float *outUv)
 {
     V e1, e2, pvec, tvec, qvec;
     float det, inv, u, v, t;
@@ -657,11 +681,11 @@ extern "C" int FIntersectRayTriangle(qword dir, qword orig, qword v0, qword v1, 
     t = Dot(e2.q, qvec.q) * inv;
     if (t < 0.0f)
         return 0;
-    if (pt)
-        *pt = t;
-    if (puv) {
-        puv[0] = u;
-        puv[1] = v;
+    if (outT)
+        *outT = t;
+    if (outUv) {
+        outUv[0] = u;
+        outUv[1] = v;
     }
     return 1;
 }
@@ -693,7 +717,8 @@ SLY2_SCRAP("addiu $sp, $sp, 0x60");
  * Confidence: mid (draft) [T1 0.65] - evidence: semantic review; sources: r1_116918+top50_round
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist)
+// Closest point to pos on the infinite line through p0 and p1: optional point, parameter (unclamped) and distance.
+extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *outPos, float *outT, float *outDistance)
 {
     register qword p0r __asm__("vf5") = p0; /* the one register pin: p0 copy shared by both Subs and the vadda */
     qword d = VuSub(p1, p0r);
@@ -703,26 +728,26 @@ extern "C" void FindClosestPointOnLine(qword pos, qword p0, qword p1, qword *ppo
     __asm__("" : "+j"(pos)); /* empty asm, scheduling only: raises the priority of pos's qmtc2 to tie with the d vsub */
     n = Dot(VuSub(pos, p0r), d2);
     t = n / Dot(d2, d2);
-    if (pt)
-        *pt = t;
-    if (ppos || pdist) {
+    if (outT)
+        *outT = t;
+    if (outPos || outDistance) {
         qword s, buf;
         qword c, q;
         s = VuFromFloat<qword>(t);
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(c) : "j"(p0r), "j"(d), "j"(s));
         __asm__ __volatile__("sqc2 %1, %0" : "=m"(buf) : "j"(s)); /* dead spill of s, as in the target */
-        if (ppos) {
+        if (outPos) {
             __asm__("" : "=r"(q) : "0"(c)); /* empty asm: qmfc2 c into a GPR for the store */
-            *ppos = q;
+            *outPos = q;
         }
-        if (pdist) {
+        if (outDistance) {
             qword e, l;
             int g;
             e = VuSub(pos, c);
             e = VuDot(e, e);
             __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(e));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-            *(int *)pdist = g;
+            *(int *)outDistance = g;
         }
     }
 }
@@ -759,33 +784,34 @@ static inline float GClamp(float g, float lo, float hi)
  * Confidence: high [T1 0.80] - evidence: semantic review; sources: r1_116918+top50_round
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *ppos, float *pt, float *pdist)
+// Closest point to pos on the segment p0-p1 (parameter clamped to 0..1): optional point, parameter and distance.
+extern "C" void FindClosestPointOnLineSegment(qword pos, qword p0, qword p1, qword *outPos, float *outT, float *outDistance)
 {
     qword d = VuSub(p1, p0);
     qword e0 = VuSub(pos, p0);
     qword vd = VuDot(d, d);
     qword vn = VuDot(e0, d);
     float t = GClamp(VuToFloat(vn) / VuToFloat(vd), 0.0f, 1.0f);
-    if (pt)
-        *pt = t;
-    if (ppos || pdist) {
+    if (outT)
+        *outT = t;
+    if (outPos || outDistance) {
         qword s, buf;
         qword c, q;
         s = VuFromFloat<qword>(t);
         __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(c) : "j"(p0), "j"(d), "j"(s));
         __asm__ __volatile__("sqc2 %1, %0" : "=m"(buf) : "j"(s));
-        if (ppos) {
+        if (outPos) {
             __asm__("" : "=r"(q) : "0"(c)); /* emits nothing: forces gcc movti vf->gpr (qmfc2.ni) */
-            *ppos = q;
+            *outPos = q;
         }
-        if (pdist) {
+        if (outDistance) {
             qword e, l;
             int g;
             e = VuSub(pos, c);
             e = VuDot(e, e);
             __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(e));
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-            *(int *)pdist = g;
+            *(int *)outDistance = g;
         }
     }
 }
@@ -806,22 +832,23 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void GetVectorCylind(qword v, float *prad, float *pr, float *pz)
+// Inverse of SetVectorCylind: v's angle around z, xy radius and height (each optional).
+extern "C" void GetVectorCylind(qword v, float *outAngle, float *outRadius, float *outZ)
 {
-    if (prad)
-        *prad = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
-    if (pr) {
+    if (outAngle)
+        *outAngle = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+    if (outRadius) {
         qword d, l;
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v));
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         {
             int g;
             __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-            *(int *)pr = g;
+            *(int *)outRadius = g;
         }
     }
-    if (pz)
-        *pz = GetZ(v);
+    if (outZ)
+        *outZ = GetZ(v);
 }
 }
 
@@ -839,20 +866,21 @@ static __inline__ float GetZ(qword q) { float z; __asm__("pextuw %0,$0,%0" : "=r
  * See: docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" void GetVectorSphere(qword v, float *pradPan, float *pradTilt, float *pr)
+// Inverse of SetVectorSphere: v's pan, tilt and length (each optional).
+extern "C" void GetVectorSphere(qword v, float *outPan, float *outTilt, float *outLength)
 {
-    if (pradPan) {
-        *pradPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
+    if (outPan) {
+        *outPan = RadNormalize__Ff(atan2f(GetY(v), GetX(v)));
     }
-    if (pradTilt) {
+    if (outTilt) {
         qword d, l;
         float g;
         __asm__("vmul.xy %0, %1, %1\n\tvaddy.x %0, %0, %0y" : "=j"(d) : "j"(v), "j"(v)); /* 2nd "j"(v) unused: allocation only (keeps v in memory) */
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         g = GetZ(v);
-        *pradTilt = RadNormalize__Ff(atan2f(g, GetX(l)));
+        *outTilt = RadNormalize__Ff(atan2f(g, GetX(l)));
     }
-    if (pr) {
+    if (outLength) {
         qword d, one, l, t;
         int g;
         __asm__("vmul.xyz %1, %2, %2\n\tvaddw.x %0, $vf0, $vf0w" : "=&j"(one), "=&j"(d) : "j"(v), "j"(v)); /* 2nd "j"(v) unused: allocation only */
@@ -860,7 +888,7 @@ extern "C" void GetVectorSphere(qword v, float *pradPan, float *pradTilt, float 
         d = t;
         __asm__("vsqrt $Q, %1x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(l) : "j"(d));
         __asm__("qmfc2.ni %0, %1" : "=r"(g) : "j"(l));
-        *(int *)pr = g;
+        *(int *)outLength = g;
     }
 }
 }
@@ -934,7 +962,9 @@ static inline VU_VECTOR4 SubPos(qword a, qword b)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, VECTOR *pv)
+// Moves posCur toward posTarget along the line between them by one GSmooth step (smoothParams over dt);
+// optionally returns the resulting velocity. Returns the target (velocity 0) when within 1e-4 of it.
+extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *smoothParams, VECTOR *outVelocity)
 {
     VU_VECTOR4 dpos = SubPos(posTarget, posCur);
     qword qwDpos = dpos.qw;
@@ -942,16 +972,16 @@ extern "C" qword PosSmooth(qword posCur, qword posTarget, float dt, SMP *psmp, V
     if (sDist > 0.0001f)
     {
         float svNext;
-        float sNext = GSmooth(0.0f, sDist, dt, psmp, &svNext);
-        if (pv != 0)
+        float sNext = GSmooth(0.0f, sDist, dt, smoothParams, &svNext);
+        if (outVelocity != 0)
         {
-            *(qword *)pv = QwMulX(qwDpos, VuFloat(svNext / sDist));
+            *(qword *)outVelocity = QwMulX(qwDpos, VuFloat(svNext / sDist));
         }
         return QwAddScaled(posCur, qwDpos, VuFloat(sNext / sDist));
     }
-    if (pv != 0)
+    if (outVelocity != 0)
     {
-        *(qword *)pv = D_002A2DD0;
+        *(qword *)outVelocity = D_002A2DD0;
     }
     return posTarget;
 }
@@ -985,6 +1015,8 @@ static inline qword QF(float g) { U u; qword u_q; __asm__("mfc1 %0, %1" : "=r"(u
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
+// Returns the cosine of the angle between a and b (dot / (|a| |b|)) as a quadword; 0 if either is shorter than
+// 1e-4.
 extern "C" qword func_0011F198(qword a, qword b)
 {
     float g, lb;
@@ -1017,12 +1049,13 @@ SLY2_SCRAP("addiu $sp, $sp, 0x90");
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" qword VecMinArray(int c, qword *p)
+// Componentwise minimum of `count` vectors.
+extern "C" qword VecMinArray(int count, qword *vectors)
 {
     qword m = D_002A2DF0;
     int i;
-    for (i = 0; i < c; i++) {
-        qword v = p[i];
+    for (i = 0; i < count; i++) {
+        qword v = vectors[i];
         __asm__("vmini.xyz %0, %1, %2" : "=j"(m) : "j"(v), "0"(m));
     }
     return m;
@@ -1039,12 +1072,13 @@ typedef int qword __attribute__((mode(TI)));
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#vec-0x11e198-0x11f440
  * @end-sly2-annot */
-extern "C" qword VecMaxArray(int c, qword *p)
+// Componentwise maximum of `count` vectors.
+extern "C" qword VecMaxArray(int count, qword *vectors)
 {
     qword m = D_002A2E00;
     int i;
-    for (i = 0; i < c; i++) {
-        qword v = p[i];
+    for (i = 0; i < count; i++) {
+        qword v = vectors[i];
         __asm__("vmax.xyz %0, %1, %2" : "=j"(m) : "j"(v), "0"(m));
     }
     return m;

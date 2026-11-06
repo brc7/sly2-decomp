@@ -489,7 +489,7 @@ void SetJtAirJump(void *, int, int, ACTOR *);
 void StartJtMode(void *, int, int, int);
 int FAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
-void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);                         // stack allocation in the current STACKSCOPE
+void *AllocFromStack(SWALLOC *);                         // stack allocation in the current STACKSCOPE
 qword GetLoWorldPos(ACTOR *);                           // world position
 int ShouldKeepSoPair(void *, SO *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
@@ -498,7 +498,7 @@ void UpdateSoPartGeom(SO *);
 qword VecMinArray(int, qword *);                      // min of points
 qword VecMaxArray(int, qword *);                      // max of points
 void MarkSoContactsSphereBsp(SW *, SO *, SO *, int, BSP *, XP **);
-int func_00118A88(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
+int PruneBspBySphere(BSP *, BSP *, float, qword, int *, BSP **);   // prune a BSP to a sphere
 void MarkSoContactsBspBsp(SW *, SO *, SO *, int, BSP *, BSP *, XP **);
 void AttachJtHandsObject(ATTACH *, ACTOR *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(ACTOR *, int);
@@ -511,7 +511,7 @@ void FreeSwXpList(SW *, XP *) __asm__("FreeSwXpList__FP2SWP2XP");
 static inline void SetControl(ACTOR *p, int n) { VTE &v = p->vt[88]; ((void (*)(void *, int))v.fn)((char *)p + v.delta, n); }
 static inline int CanAct(ACTOR *p, int n) { VTE &v = p->vt[99]; return ((int (*)(void *, int))v.fn)((char *)p + v.delta, n); }
 static inline void Notify(ACTOR *p, ACTOR *q) { VTE &v = p->vt[51]; ((void (*)(void *, ACTOR *))v.fn)((char *)p + v.delta, q); }
-static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return PvAllocSlot__FP8ALLOCREQ(&swalloc); }
+static inline void *PvAllocStack(int cb) { SWALLOC swalloc; swalloc.cb = cb; swalloc.cbAlign = 0x10; return AllocFromStack(&swalloc); }
 
 static inline VU_FLOAT VuFloat(float g) { VU_FLOAT v; __asm__("qmtc2.ni %1,%0" : "=j"(v.q) : "r"(g)); return v; }
 // The never-chosen "V" alternative is allocation-only: the word stays a MEM until reload (as in func_0014F110).
@@ -577,7 +577,7 @@ static inline void ProbeGround(CONTEXT *p)
         } else {
             int cbspLeft = cbspMax;
             BSP *pbsp = absp;
-            if (func_00118A88(so->absp, (BSP *)0x7FFFFFFF, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
+            if (PruneBspBySphere(so->absp, (BSP *)0x7FFFFFFF, sRadius, posMid, &cbspLeft, &pbsp) == 2) {
                 int cbsp = pbsp - absp;
                 pbsp--;
                 MarkSoContactsBspBsp(&D_003DD490, psoSelf, so, cbsp, so->absp, pbsp, &xp);

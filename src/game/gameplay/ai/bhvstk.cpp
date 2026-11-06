@@ -84,7 +84,7 @@ extern char D_002CFC20[] __asm__("_vt$6BHV191");
 extern char D_002CFDA0[] __asm__("_vt$13BHVPATROLPATH");
 extern "C" {
 int GetBhvSlotSize();
-void *func_001AE1D0(AREQV *request);
+void *AllocFromWorldHeap(AREQV *request);
 void *func_002333B4(void *, int, unsigned int) __asm__("memset");
 void ClearPointerPair(REFV *);
 BHVV *ConstructBhv(int kind, void *memory);
@@ -117,7 +117,7 @@ extern "C" void PostBhvstkLoad(BHVSTKV *stack)
     for (i = 0; i < 8; i++) {
         request.cb = GetBhvSlotSize();
         request.nKind = 0x10;
-        stack->slots[i] = (BHVV *)func_001AE1D0(&request);
+        stack->slots[i] = (BHVV *)AllocFromWorldHeap(&request);
     }
 }
 

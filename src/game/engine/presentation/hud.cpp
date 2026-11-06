@@ -606,7 +606,7 @@ extern char D_002E6550[], D_003DA4F0[], D_002DFC00[];
 int func_002121C8(struct S *p);
 void UpdateWidget(struct S *p);
 int FScreenShown(void *);
-int GrfHandleJoyBtn(void *, int);
+int HandleJoyButtons(void *, int);
 void DecrementSwHandsOff(struct G *, int);
 void RestartJob(void *);
 /** @sly2-annot addr=0x211D38
@@ -624,7 +624,7 @@ void func_00211D38(struct S *p)
         return;
     UpdateWidget(p);
     if (p->x58 == 2 && 0.5f < g_clock.tReal - p->x5C && !FScreenShown(D_002E6550)
-        && !FScreenShown(D_003DA4F0) && GrfHandleJoyBtn(D_002DFC00, 0xF0)) {
+        && !FScreenShown(D_003DA4F0) && HandleJoyButtons(D_002DFC00, 0xF0)) {
         DecrementSwHandsOff(&D_003DD490, 0);
         if (p->x114 == 0 && D_003DD490.x3B0C) {
             D_002DD318++;
@@ -799,7 +799,7 @@ void func_00211F90(struct S *p)
 namespace M_WIDGET_ctor { extern "C" {
 struct S { int x0; int x4; char pad[4]; void *vt; char pad2[0x6C]; int x7c; char pad3[0x4C]; int a[10]; char pad4[8]; char xfc[4]; };
 extern char D_002DAF30[] __asm__("_vt$6WIDGET");
-void func_0011A050(void *p, int n);
+void InitSl(void *p, int n);
 /** @sly2-annot addr=0x212158
  * Purpose: WIDGET ctor: vtable 0x2DAF30, idAnimMain(+0x7C)=-1, 10 arg ids -1, InitSl(+0xFC, 0x68)
  * Info: proposed name WIDGET_ctor (T1); class WIDGET; TU hud
@@ -815,7 +815,7 @@ struct S *WIDGET_ctor(struct S *p)
     p->x4 = 0;
     for (i = 0; i < 10; i++)
         p->a[i] = -1;
-    func_0011A050(p->xfc, 0x68);
+    InitSl(p->xfc, 0x68);
     return p;
 }
 } } // namespace M_WIDGET_ctor
@@ -887,9 +887,9 @@ void LoadLoFromBrx(struct S *p, void *pbis);
 int S8Read__18CBinaryInputStream(void *pbis);
 float F32Read__18CBinaryInputStream(void *pbis);
 int U32Read__18CBinaryInputStream(void *pbis);
-struct O *func_001AE2A0(AREQ *preq);
+struct O *AllocClearedFromWorldHeap(AREQ *preq);
 void CBinaryInputStream_ReadCb64(void *pbis, struct O *po);
-void func_0011A070(void *, struct O *po);
+void AppendSlEntry(void *, struct O *po);
 void LoadSpriteTable(struct S *p, void *pbis, struct S *p2, int *pa, int *pb);
 void LoadSpriteGroups(struct S *p, void *pbis, struct S *p2);
 /** @sly2-annot addr=0x212298
@@ -921,10 +921,10 @@ void LoadWidgetFromBrx(struct S *p, void *pbis)
         req.cb = 0x50;
         req.cbAlign = 0x10;
         p->xC4 = D_003E1C70;
-        p->xC0 = func_001AE2A0(&req);
+        p->xC0 = AllocClearedFromWorldHeap(&req);
         p->xC0->x40 = p;
         CBinaryInputStream_ReadCb64(pbis, p->xC0);
-        func_0011A070((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
+        AppendSlEntry((*(char (*)[])&g_sw.slWidgetDeferred), p->xC0);
     } else {
         p->x58 = 1;
         p->xC4 = D_003E1C80;
@@ -996,11 +996,11 @@ struct S {char pad[0x50];int count;void *data;int state;char pad5c[4];int tick;c
 typedef struct {char pad[0xC];int priority;} POOL;
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
-extern "C" BIS *func_001848A8(BIS *,int,void *,int);
+extern "C" BIS *CStreamBis_ctor(BIS *,int,void *,int);
 extern "C" void func_00184950(BIS *,int) __asm__("_$_10CStreamBis");
 extern "C" void InitFileKey(KEY *);
-extern "C" void *PvAllocSlot__FP8ALLOCREQ(MSG *);
-extern "C" int func_00184D60(BIS *,KEY *);
+extern "C" void *AllocFromStack(MSG *);
+extern "C" int OpenStreamFromFileKey(BIS *,KEY *);
 extern "C" void SetDecompress__18CBinaryInputStreamiPUc(BIS *,int,void *);
 extern "C" unsigned char U8Read__18CBinaryInputStream(BIS *);
 extern "C" unsigned short U16Read__18CBinaryInputStream(BIS *);
@@ -1057,10 +1057,10 @@ extern "C" void LoadWidgetSprites(S *p) {
     MSG *msg=&work.tmp.msg;
 
     msg->cb=0x10000;msg->alignment=0x40;
-    func_001848A8(bs,0x10000,PvAllocSlot__FP8ALLOCREQ(msg),0);
+    CStreamBis_ctor(bs,0x10000,AllocFromStack(msg),0);
     pk->kind=2;
     InitFileKey(pk);
-    if(!SetKey(&work.key,p->file)||!func_00184D60(bs,pk))goto fail;
+    if(!SetKey(&work.key,p->file)||!OpenStreamFromFileKey(bs,pk))goto fail;
     SetDecompress__18CBinaryInputStreamiPUc(bs,0x4000,(void *)0x70000000);
     work.tmp.magic[0]=U8Read__18CBinaryInputStream(bs);
     work.tmp.magic[1]=U8Read__18CBinaryInputStream(bs);
@@ -1300,7 +1300,7 @@ extern struct G D_003DD490;
 extern struct Clock D_002DDED0;
 extern int D_002DD318;
 extern int D_002BE538;
-void func_0014D1D0(struct Clock *,int,float);
+void SetClockRate(struct Clock *,int,float);
 void LoadWidgetSprites(struct S *);
 void UnloadWidgetSprites(struct S *);
 void StopWidgetMainAnim(struct S *);
@@ -1320,9 +1320,9 @@ void SetWidgetState(struct S *p,int state) {
     }
     if(p->pauses) {
         if(p->state<2 && state>=2) {
-            if(++D_002DD318==1) func_0014D1D0(&D_002DDED0,7,0.0f);
+            if(++D_002DD318==1) SetClockRate(&D_002DDED0,7,0.0f);
         } else if(state<2 && p->state>=2) {
-            if(--D_002DD318==0) func_0014D1D0(&D_002DDED0,7,1.0f);
+            if(--D_002DD318==0) SetClockRate(&D_002DDED0,7,1.0f);
         }
     }
     if(p->state==0) LoadWidgetSprites(p);
@@ -2303,7 +2303,7 @@ float F32Read__18CBinaryInputStream(BIS *);
 void ReadMatrix__18CBinaryInputStreamP7MATRIX3(BIS *,M3 *);
 void Read__18CBinaryInputStreamiPv(BIS *,int,void *);
 void *PvAllocClear__FP4HEAPii(HEAP *,int,int);
-void *func_001AE378(ALLOCREQ *);
+void *AllocClearedFromStack(ALLOCREQ *);
 void LoadSpriteTable(OWNER *,BIS *,ROOT *,int *,SPRITE **);
 void PostSwCallback(WORLD *,OWNER *,PMF,SPRITE *);
 }
@@ -2312,7 +2312,7 @@ extern "C" { extern PMF D_002A8B08; }
 extern "C" { extern WORLD D_003DD490; }
 extern "C" { extern QW D_002A2E10; }
 extern "C" { extern char D_00000650[],D_00000140[]; }
-static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return func_001AE378(request);}
+static inline void *Acquire(ALLOCREQ *request,int bytes,int alignment){request->cb=bytes;request->cbAlign=alignment;return AllocClearedFromStack(request);}
 static inline void CopyXY(M23 &dst,const M3 &src){
  const float *a=(const float *)&src.r[0],*b=(const float *)&src.r[1],*c=(const float *)&src.r[2];
  dst.a[0]=a[0];dst.a[1]=a[1];dst.a[2]=b[0];dst.a[3]=b[1];dst.a[4]=c[0];dst.a[5]=c[1];
@@ -5021,7 +5021,7 @@ struct STRINGGEN {
 };
 extern "C" {
 LINEAR *__11CLinearHeapiPUc(LINEAR *,int,void *);
-POOL *func_0011CCA8(POOL *,int,int,int);
+POOL *InitSlotheap(POOL *,int,int,int);
 void BuildContextText(char *,void *,void *);
 }
 extern "C" { extern LINEAR D_003E1C70; }
@@ -5261,12 +5261,12 @@ extern "C" void StaticInit_hud(int initialize,int priority){
   STRINGGEN special;
   special.id=0x5C1;special.get=BuildContextText;special.context=D_002C40A0;
   *destination=special;
-  if(++D_002DD2E0==1)func_0011CCA8(&D_004520A8,0x14,0x2000,0x10);
-  if(++D_002DD2E4==1)func_0011CCA8(&D_004520D0,0x18,0x800,0x10);
-  if(++D_002DD2E8==1)func_0011CCA8(&D_004520F8,0x28,0x200,0x10);
-  if(++D_002DD2EC==1)func_0011CCA8(&D_00452120,0x1C,0x800,0x10);
-  if(++D_002DD2F0==1)func_0011CCA8(&D_00452148,0xC,0xC8,0x10);
-  if(++D_002DD2F4==1)func_0011CCA8(&D_00452170,0x14,0x100,0x10);
+  if(++D_002DD2E0==1)InitSlotheap(&D_004520A8,0x14,0x2000,0x10);
+  if(++D_002DD2E4==1)InitSlotheap(&D_004520D0,0x18,0x800,0x10);
+  if(++D_002DD2E8==1)InitSlotheap(&D_004520F8,0x28,0x200,0x10);
+  if(++D_002DD2EC==1)InitSlotheap(&D_00452120,0x1C,0x800,0x10);
+  if(++D_002DD2F0==1)InitSlotheap(&D_00452148,0xC,0xC8,0x10);
+  if(++D_002DD2F4==1)InitSlotheap(&D_00452170,0x14,0x100,0x10);
  }
 }
 } // namespace M_StaticInit_hud

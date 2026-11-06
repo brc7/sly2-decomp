@@ -97,9 +97,9 @@ void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
 LO *PpoHero(SW *world);
 void InitXfm(EXITV *exitVolume);
 void SetLoBusyk(EXITV *exitVolume, int busyk);
-void *func_001AE238(MEMREQ *request, WARPBLOB *pblob);
+void *AllocCopyFromWorldHeap(MEMREQ *request, WARPBLOB *pblob);
 void LoadVolFromBrx(EXITV *exitVolume, CBinaryInputStream *stream);
-void *func_001AE1D0(MEMREQ *request);
+void *AllocFromWorldHeap(MEMREQ *request);
 void IncrementSwHandsOff(SW *world, int n);
 void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, void *object);
 void RevokeCmPolicy(void *pcm, int a, int b, void *pv, int c, int d);
@@ -110,7 +110,7 @@ void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
 void WipeToWorldWarp(SW *world, void *pvWorld, int a, int b, int grf, int c);
 qwordV GetLoWorldPos(LO *object);
 qwordV ConvertAloPos(int a, EXITV *exitVolume, qwordV pos);
-int PbspPointInBspQuick(void *pbsp, int n, qwordV pos);
+int FindBspLeafContainingPointFast(void *pbsp, int n, qwordV pos);
 void TriggerRsmg(SW *world, int crsmg, RSMG *arsmg, WARPV *warp, int fOn);
 
 WARPV *FindWarpByOid(SW *world, OID oid, OID contextOid);
@@ -281,7 +281,7 @@ extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *stream, void **blobOut)
             request->cb = 0x40;
             request->cbAlign = 0x10;
         }
-        *blobOut = func_001AE238(&memreq, &blob);
+        *blobOut = AllocCopyFromWorldHeap(&memreq, &blob);
     }
     else
         *blobOut = 0;
@@ -313,7 +313,7 @@ extern "C" void LoadExitFromBrx(EXITV *exitVolume, CBinaryInputStream *stream)
     memreq.cbAlign = 0x10;
     memreq.cb = c * 4;
     exitVolume->movieCount = c;
-    exitVolume->movies = (void **)func_001AE1D0(&memreq);
+    exitVolume->movies = (void **)AllocFromWorldHeap(&memreq);
     for (; i < exitVolume->movieCount; i++)
         LoadWarpBlobFromBrx(stream, &exitVolume->movies[i]);
 }
@@ -444,7 +444,7 @@ extern "C" void UpdateExit(EXITV *exitVolume, float dt)
         if (!hero)
             return;
         u.q = ConvertAloPos(0, exitVolume, GetLoWorldPos(hero));
-        isInside = PbspPointInBspQuick(exitVolume->bspTree, 0x7FFFFFFF, u.q) != 0;
+        isInside = FindBspLeafContainingPointFast(exitVolume->bspTree, 0x7FFFFFFF, u.q) != 0;
         switch (exitVolume->state)
         {
         case 3:

@@ -618,7 +618,7 @@ struct S { char pad[0x1C0]; int n1C0; char pad2[0x54]; float g218; int pad3; qwo
 extern "C" {
 extern qword D_002A2DC0, D_002A2DD0;
 extern char D_002BE800[], D_002BE810[];
-MATRIX3 func_0011B500(qword q, float g);
+MATRIX3 BuildAxisAngleRotationMatrix(qword q, float g);
 void func_001F59A0(S *p, MATRIX3 *pm, void *pv);
 void AccelSoTowardPosSpring(S *p, qword a, int b, qword c, void *pv);
 void func_0017FB50(S *p);
@@ -634,7 +634,7 @@ void func_0017FB50(S *p);
  * @end-sly2-annot */
 void func_0017FB50(S *p) {
     if (p->n1C0 == 3) return;
-    MATRIX3 m; m = func_0011B500(D_002A2DC0, p->g218);
+    MATRIX3 m; m = BuildAxisAngleRotationMatrix(D_002A2DC0, p->g218);
     func_001F59A0(p, &m, D_002BE800);
     AccelSoTowardPosSpring(p, D_002A2DD0, 0, p->q220, D_002BE810);
 }
@@ -727,7 +727,7 @@ void SetSmaGoal(void *p, int n);
 void StopSnd(void *p, float f);
 struct M4 func_0022FF40(int a, int b, struct M4 *pm);
 int func_0012DC18(struct S *p, struct N *n, int a, int b, int c, qword v);
-qword func_0011BFF0(struct M4 *pm);
+qword DecomposeRotationMatrixToEuler(struct M4 *pm);
 void BroadcastGameEvent(void *a, int n, struct S *p);
 void func_0017F4C0(struct S *p, struct Q *q);
 void func_0017FD08(struct S *p, int n);
@@ -806,7 +806,7 @@ void func_0017FD08(struct S *p, int n) {
             { struct VTE *e = &p->vt[0x23]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
             { struct VTE *e = &p->vt[0x24]; ((void (*)(void *, qword))e->pfn)((char *)p + e->d, D_002A2DD0); }
             p->n298 = func_0012DC18(p, p->p58, 1, 7, 2, m.r[3]);
-            p->n29C = func_0012DC18(p, p->p5C, 1, 7, 2, func_0011BFF0(&m));
+            p->n29C = func_0012DC18(p, p->p5C, 1, 7, 2, DecomposeRotationMatrixToEuler(&m));
             SetSoCnstrForce(p, 1);
             SetSoCnstrTorque(p, 1);
             func_001F68A8(p, 1);
@@ -929,7 +929,7 @@ extern "C" qword GetLoWorldPos(P*);
 extern "C" float atan2f(float,float);
 extern "C" float RadNormalize__Ff(float);
 extern "C" float GLimitAbs__Fff(float,float);
-extern "C" M3 func_0011B500(qword,float);
+extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 static inline qword Sub(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
 static inline float X(qword v){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(v));return f;}
 static inline float Y(qword v){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(v));return f;}
@@ -963,7 +963,7 @@ extern "C" void func_001801B8(P*p){
  qword direction=((qword(*)(void*))p->vt[33].fn)((char*)p+p->vt[33].delta);
  float current=atan2f(Y(direction),X(direction));
  float angle=GLimitAbs__Fff(RadNormalize__Ff(desired-current),p->turnRate*D_002DDED0.dt);
- rotation=func_0011B500(D_002A2DC0,angle);
+ rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
  ((void(*)(void*,qword))p->vt[35].fn)((char*)p+p->vt[35].delta,Transform(rotation,direction));
  // The original reads this local matrix before initialization.
  matrix=Mul(rotation,matrix);
@@ -1315,7 +1315,7 @@ struct X { char pad[0xA0]; void *pA0; };
 struct O { char pad[0xC]; struct VT *pvt; char pad1[0x5C - 0x10]; struct X *p5C; char pad2[0x1C0 - 0x60]; int n1C0;
     char pad3[0x204 - 0x1C4]; float g204; char pad4[0x210 - 0x208]; qword v210; char pad5[0x378 - 0x220]; char a378[0xC]; float g384; };
 extern "C" { extern qword D_002A2DC0; }
-extern "C" MATRIX3 func_0011B500(qword v, float g);
+extern "C" MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
 extern "C" MATRIX3 ConvertXfMat(void *pv, int n, MATRIX3 *pm);
 extern "C" void func_001F59A0(struct O *p, MATRIX3 *pm, void *pv);
 extern "C" void AddSoAcceleration(struct O *p, qword v);
@@ -1335,7 +1335,7 @@ void func_00180EE8(struct O *p)
 {
     if (p->n1C0 != 4) {
         MATRIX3 mat;
-        mat = func_0011B500(D_002A2DC0, p->g204);
+        mat = BuildAxisAngleRotationMatrix(D_002A2DC0, p->g204);
         if (p->n1C0 != 3)
             mat = ConvertXfMat(p->p5C->pA0, 0, &mat);
         func_001F59A0(p, &mat, p->a378);
@@ -1392,7 +1392,7 @@ struct O { char pad[0xC]; struct VT *pvt; char pad1[0x194 - 0x10]; ANIMATION *x1
     int x1C8; int x1CC; char pad3[0x204 - 0x1D0]; float g204; char pad4[0x210 - 0x208]; qword v210; };
 struct MSG { ANIMATION *animation; float time; int kind; };
 extern "C" void HandlePoMessage(struct O *p, int msg, struct MSG *pm);
-extern "C" MATRIX3 func_0011B500(qword v, float g);
+extern "C" MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
 extern "C" qword func_00204E38(struct O *p, ANIMATION *animation, float time);
 extern "C" qword D_002A2DC0;
 extern "C" void func_00181060(struct O *p, int msg, struct MSG *pm);
@@ -1413,7 +1413,7 @@ void func_00181060(struct O *p, int msg, struct MSG *pm)
             case 0x15E: {
                 MATRIX3 m;
                 qword v, r;
-                m = func_0011B500(D_002A2DC0, p->g204);
+                m = BuildAxisAngleRotationMatrix(D_002A2DC0, p->g204);
                 v = func_00204E38(p, pm->animation, pm->time);
                 __asm__("vmulax.xyz ACC, %1, %4x\n\tvmadday.xyz ACC, %2, %4y\n\tvmaddz.xyz %0, %3, %4z"
                     : "=&j"(r) : "j"(m.r[0]), "j"(m.r[1]), "j"(m.r[2]), "j"(v));
@@ -1902,7 +1902,7 @@ struct S { char pad[0x28]; unsigned long fl; char p0[0x30]; int x60; char p1[0x7
 extern char D_003DD490[];
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int n, int oid, struct S *p);
 void InitDl__FP2DLi(void *pdl, int ib);
-void *func_001AE2A0(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct MSG *pmsg);
 void AppendDlEntry__FP2DLPv(void *pdl, void *pv);
 void func_0017F138(struct S *p);
 void AddSoParts(struct S *p);
@@ -1933,7 +1933,7 @@ void func_00181840(struct S *p)
             struct Q *q;
             msg.cb = 0x70;
             msg.nKind = 0x10;
-            q = (struct Q *)func_001AE2A0(&msg);
+            q = (struct Q *)AllocClearedFromWorldHeap(&msg);
             q->pr = pe;
             q->n = -1;
             AppendDlEntry__FP2DLPv(pe->dl, q);
@@ -2260,7 +2260,7 @@ struct P {char pad[0x1C4];void*model;int count;E entries[1];};
 extern "C" { extern qword D_002A2DC0; }
 extern "C" void RenderSoSelf(P*);
 extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
-extern "C" M3 func_0011B500(qword,float);
+extern "C" M3 BuildAxisAngleRotationMatrix(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
 extern "C" void RenderLoAtMatrix(void*,M4*,float,float);
 static inline qword Load(const qword*p){return *p;}
@@ -2299,7 +2299,7 @@ extern "C" void func_001821C0(P*p){
    pos=Load(&n->pos);
    m=BuildOrthonormalMatrixZ(n->dir,D_002A2DC0);
    if(1.0f<__builtin_fabsf(n->lateral))pos=AddLateral(pos,n,n->lateral);
-   {float roll=n->roll;register float epsilon __asm__("$f1")=0.01f; /* the one pin */if(epsilon<__builtin_fabsf(roll))m=Mul(m,func_0011B500(D_002A2DC0,roll));}
+   {float roll=n->roll;register float epsilon __asm__("$f1")=0.01f; /* the one pin */if(epsilon<__builtin_fabsf(roll))m=Mul(m,BuildAxisAngleRotationMatrix(D_002A2DC0,roll));}
    VECTOR_opAssign(&mm.r[3].q,pos);
    pm->r[0].q=m.r[0];pm->r[1].q=m.r[1];pm->r[2].q=m.r[2];
    mm.r[0].i[3]=mm.r[1].i[3]=mm.r[2].i[3]=0;
@@ -2362,7 +2362,7 @@ typedef struct SEGMENT{qword a,b,plane;char pad30[0x30];}SEGMENT;
 typedef struct WORK{U direction,newEndpoint,oldEndpoint;SEGMENT segments[2];U scale,dot,one;}WORK;
 extern qword D_002A2DA0;extern int D_003DD490;
 extern void func_001F5990(P*,REQUEST*,int,int,int,CONTACT**);
-extern qword*func_002564B8(qword*);
+extern qword*InitVuTemp(qword*);
 extern int func_0014C748(qword,float,qword,qword,int,SEGMENT*);
 extern void PxpAdd(void*,CONTACT*,REQUEST*,qword,qword,int,NODE*,int,CONTACT**,float);
 
@@ -2426,7 +2426,7 @@ void func_001823C8(P*p,REQUEST*q,int unused2,int unused3,int unused4,CONTACT**po
       w.scale.q=BroadcastBits(*(int*)&q->radius);
       plane=w.segments[0].plane;point=w.oldEndpoint.q;
       result=MAdd2(point,plane,w.scale.q);
-      func_002564B8(&w.dot.q);func_002564B8(&w.one.q);
+      InitVuTemp(&w.dot.q);InitVuTemp(&w.one.q);
       distance=Distance(&w.dot,&w.one,plane,point)-q->radius;
       PxpAdd(&D_003DD490,&p->contacts[p->contactCount-1],q,result,plane,10,n,0,out,distance);
       break;

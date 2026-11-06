@@ -1,5 +1,8 @@
 // heap.cpp -- HEAP allocation helpers, the level heap object (CSwHeap) and CLinearHeap (bump allocator over a
 // fixed buffer). TU 0x116918..0x116CA0 (12 functions, address order).
+// HEAP is the allocator interface containers take (PvAlloc / PvRealloc / Free). Both implementations here are bump
+// allocators that never free, and their PvRealloc allocates a fresh block WITHOUT copying the old contents.
+// Entry points: PvAllocClear, PvAllocCopy, PchzAllocCopy, the CSwHeap object D_002DD590, CLinearHeap.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_heap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00116C80
 #include "heap.h"
@@ -11,12 +14,12 @@ typedef char assert_CSwHeap_size[sizeof(CSwHeap) == 8 ? 1 : -1];
 
 struct MSG
 {
-    int cb;
-    int nKind;
+    int size;
+    int alignment;
 };
 
 extern "C" {
-void *func_001AE1D0(MSG *pmsg);   /* SW bump allocator */
+void *AllocFromWorldHeap(MSG *request);   /* SW bump allocator */
 }
 
 /* 0x002DD590: the level heap object, constructed first in StaticInit_heap. Its constructor belongs to this
@@ -38,11 +41,12 @@ SLY2_INSTANTIATE_SLOT_POOLS()
  * See: docs/engine/core-library.md#core-library-memory-containers-math-streams-cd-threads-text,
  *   docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files
  * @end-sly2-annot */
-void *PvAllocClear(HEAP *pheap, int cb, int n)
+// Allocates `size` bytes from `heap` at `alignment` and zero-fills them.
+void *PvAllocClear(HEAP *heap, int size, int alignment)
 {
-    void *pv = pheap->PvAlloc(cb, n);
-    memset(pv, 0, cb);
-    return pv;
+    void *block = heap->PvAlloc(size, alignment);
+    memset(block, 0, size);
+    return block;
 }
 
 /** @sly2-annot addr=0x116970
@@ -50,11 +54,12 @@ void *PvAllocClear(HEAP *pheap, int cb, int n)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-void *PvAllocCopy(HEAP *pheap, int cb, void *pv, int n)
+// Allocates `size` bytes from `heap` at `alignment` and copies `source` into them.
+void *PvAllocCopy(HEAP *heap, int size, void *source, int alignment)
 {
-    void *pvNew = pheap->PvAlloc(cb, n);
-    CopyAb(pvNew, pv, cb);
-    return pvNew;
+    void *block = heap->PvAlloc(size, alignment);
+    CopyAb(block, source, size);
+    return block;
 }
 
 /** @sly2-annot addr=0x1169D8
@@ -62,9 +67,10 @@ void *PvAllocCopy(HEAP *pheap, int cb, void *pv, int n)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-char *PchzAllocCopy(HEAP *pheap, char *pchz, int n)
+// Duplicates a NUL-terminated string into `heap`.
+char *PchzAllocCopy(HEAP *heap, char *str, int alignment)
 {
-    return (char *)PvAllocCopy(pheap, strlen(pchz) + 1, pchz, n);
+    return (char *)PvAllocCopy(heap, strlen(str) + 1, str, alignment);
 }
 
 /** @sly2-annot addr=0x116A30
@@ -74,25 +80,28 @@ char *PchzAllocCopy(HEAP *pheap, char *pchz, int n)
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-void *CSwHeap::PvAlloc(int cb, int n)   /* key function: CSwHeap's vtable comes out here */
+// CSwHeap::PvAlloc: allocates from the SW (level) heap, always 16-aligned (the alignment argument is ignored).
+void *CSwHeap::PvAlloc(int size, int alignment)   /* key function: CSwHeap's vtable comes out here */
 {
-    MSG msg;
-    msg.cb = cb;
-    msg.nKind = 0x10;
-    return func_001AE1D0(&msg);
+    MSG request;
+    request.size = size;
+    request.alignment = 0x10;
+    return AllocFromWorldHeap(&request);
 }
 
 /** @sly2-annot addr=0x116A58
  * Purpose: vtable slot 2: ignores old pointer, re-dispatches to slot-1 PvAlloc with alignment = this->+4
  *   unless it is -1
- * Info: proposed name CSwHeap_PvRealloc (T1); class CSwHeap; TU heap
+ * Info: proposed name CSwHeap_Realloc (T1); class CSwHeap; TU heap
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-extern "C" void *CSwHeap_PvRealloc(CSwHeap *pswheap, void *pv, int cb, int n)
+// CSwHeap::PvRealloc: allocates a new block (at the heap's own alignment unless it is -1, then the caller's); the
+// old block is neither copied nor freed.
+extern "C" void *CSwHeap_Realloc(CSwHeap *swHeap, void *block, int size, int alignment)
 {
-    return ((HEAP *)pswheap)->PvAlloc(cb, pswheap->cbAlign != -1 ? pswheap->cbAlign : n);
+    return ((HEAP *)swHeap)->PvAlloc(size, swHeap->cbAlign != -1 ? swHeap->cbAlign : alignment);
 }
 
 /** @sly2-annot addr=0x116A90
@@ -102,7 +111,8 @@ extern "C" void *CSwHeap_PvRealloc(CSwHeap *pswheap, void *pv, int cb, int n)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-extern "C" void CSwHeap_Free(CSwHeap *pswheap, void *pv)
+// CSwHeap::Free: does nothing (the SW heap is released with the level).
+extern "C" void CSwHeap_Free(CSwHeap *swHeap, void *block)
 {
 }
 
@@ -112,7 +122,8 @@ extern "C" void CSwHeap_Free(CSwHeap *pswheap, void *pv)
  * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-CLinearHeap::CLinearHeap(int cbMax, byte *pbBase) : m_cbMax(cbMax), m_pbBase(pbBase)
+// Sets up a linear heap over the caller's buffer of maxSize bytes, empty.
+CLinearHeap::CLinearHeap(int maxSize, byte *buffer) : m_cbMax(maxSize), m_pbBase(buffer)
 {
     m_ib = 0;
 }
@@ -122,14 +133,15 @@ CLinearHeap::CLinearHeap(int cbMax, byte *pbBase) : m_cbMax(cbMax), m_pbBase(pbB
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-void *CLinearHeap::PvAlloc(int cb, int n)
+// Bump-allocates size bytes (rounded up to 16) from the buffer; null when it is full. The alignment is ignored.
+void *CLinearHeap::PvAlloc(int size, int alignment)
 {
-    int ib = m_ib;
-    int ibNew = ib + ((cb + 15) & ~15);
-    if (m_cbMax < ibNew)
+    int offset = m_ib;
+    int newOffset = offset + ((size + 15) & ~15);
+    if (m_cbMax < newOffset)
         return NULL;
-    m_ib = ibNew;
-    return m_pbBase + ib;
+    m_ib = newOffset;
+    return m_pbBase + offset;
 }
 
 /** @sly2-annot addr=0x116AF8
@@ -137,9 +149,10 @@ void *CLinearHeap::PvAlloc(int cb, int n)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-void *CLinearHeap::PvRealloc(void *pv, int cb, int n)
+// Allocates a new block; the old one is neither copied nor freed.
+void *CLinearHeap::PvRealloc(void *block, int size, int alignment)
 {
-    return PvAlloc(cb, n);
+    return PvAlloc(size, alignment);
 }
 
 /** @sly2-annot addr=0x116B28
@@ -149,6 +162,7 @@ void *CLinearHeap::PvRealloc(void *pv, int cb, int n)
  * Confidence: high [T1 0.80] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#heap-0x116918-0x116ca0
  * @end-sly2-annot */
-void CLinearHeap::Free(void *pv)
+// Does nothing (a linear heap frees only by being discarded).
+void CLinearHeap::Free(void *block)
 {
 }

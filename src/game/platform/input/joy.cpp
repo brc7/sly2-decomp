@@ -1,6 +1,11 @@
 // joy.cpp -- the controllers (JOY, sly2/joy.h): pad startup and the per-frame state machine (mode, actuators, pressure
 // mode), reading buttons and sticks with their deflection, the button pressed/handled masks, rumble, and the menu
-// selection repeat (DxSelectionJoy/DySelectionJoy). FPU asm (sqrt.s).
+// selection repeat (GetJoySelectionStepX/GetJoySelectionStepY). FPU asm (sqrt.s).
+// One JOY (g_joy, D_002DFC00) for pad port 0. UpdateJoy runs each frame: it follows the pad's connection state,
+// switches it to analog/DualShock mode and sets up its actuators and pressure mode, then reads it (ReadJoy). Game
+// code reads buttons as masks: held, pressed this frame, and "handled" (consumed so a press acts once).
+// Entry points: StartupJoy, UpdateJoy, GetJoyButtonsPressed / HandleJoyButtons / SetJoyBtnHandled / ClearJoyButtons,
+// TriggerJoyRumbleRumk, GetJoySelectionStepX / GetJoySelectionStepY, AddGrfusr / RemoveGrfusr.
 // TU 0x187030..0x188488 (19 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_joy
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00188468
@@ -15,7 +20,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* The four stick axes the deflection is measured against. */
 struct VEC2 { float x; float y; };
-/* The game state block at D_002DDF40 (a menu/script check of func_00187998), and the event timer at D_002DEB30. */
+/* The game state block at D_002DDF40 (a menu/script check of ReadJoy), and the event timer at D_002DEB30. */
 struct GSTATE { char pad[0x30C]; int x30c; int x310; void *x314; char pad318[0x3A0 - 0x318]; int x3a0; };
 struct SNDV { float t; };
 
@@ -46,16 +51,16 @@ int scePadRead(int port, int slot, unsigned char *pb);
 void _MatchCodes(void *p, JOY *pjoy, int grfbtn);
 int PpoHero(void *p);
 void BroadcastGameEvent(SNDV *p, int n, int a);
-int func_00187998(JOY *pjoy);
-int GrfJoyPressed(JOY *pjoy, int grf);
+int ReadJoy(JOY *pjoy);
+int GetJoyButtonsPressed(JOY *pjoy, int grf);
 void SetJoyBtnHandled(JOY *pjoy, int grf);
-int GrfHandleJoyBtn(JOY *pjoy, int grf);
+int HandleJoyButtons(JOY *pjoy, int grf);
 }
 void UpdateGrfjoytFromGrfusr();
-void InitJoy(JOY *pjoy, int nPort, int nSlot);
-void SetJoyJoys(JOY *pjoy, JOYS joys, JOYK joyk);
-void GetJoyXYDeflection(JOY *pjoy, uchar bX, uchar bY, float *px, float *py, float *pgDeflection,
-                        uchar *pbXPrev, uchar *pbYPrev, int *pfActive, LM *alm);
+void InitJoy(JOY *joy, int port, int slot);
+void SetJoyJoys(JOY *joy, JOYS state, JOYK kind);
+void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *outY, float *outDeflection,
+                        uchar *prevRawX, uchar *prevRawY, int *outActive, LM *ranges);
 void InitRumble(RUMBLE *prumble, int nPort, int nSlot);
 void UpdateRumble(RUMBLE *prumble);
 void TriggerRumbleRumk(RUMBLE *prumble, RUMK rumk, float dt);
@@ -70,6 +75,8 @@ void CopyAb(void *pvDst, void *pvSrc, uint cb);
  *   docs/engine/main-loop-startup.md#3-pad-input-joycpp-0x187030-0x188488,
  *   docs/engine/main-loop-startup.md#7-source-files
  * @end-sly2-annot */
+// Boot step: derives the input-type flags, initialises the pad library and g_joy on port 0 slot 0, and starts the
+// button-code (cheat) recogniser D_002DDEC0 (StartupCodes).
 void StartupJoy()
 {
     UpdateGrfjoytFromGrfusr();
@@ -85,9 +92,10 @@ void StartupJoy()
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-void AddGrfusr(int grf)
+// Sets user-state bits in g_grfusr (D_002DFBC4) and re-derives the input-type flags.
+void AddGrfusr(int mask)
 {
-    D_002DFBC4 |= grf;
+    D_002DFBC4 |= mask;
     UpdateGrfjoytFromGrfusr();
 }
 
@@ -98,9 +106,10 @@ void AddGrfusr(int grf)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-void RemoveGrfusr(int grf)
+// Clears user-state bits in g_grfusr and re-derives the input-type flags.
+void RemoveGrfusr(int mask)
 {
-    D_002DFBC4 &= ~grf;
+    D_002DFBC4 &= ~mask;
     UpdateGrfjoytFromGrfusr();
 }
 
@@ -112,6 +121,8 @@ void RemoveGrfusr(int grf)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
+// Derives g_grfjoyt (which input kinds are accepted) from the user-state bits; when bit 2 is clear, also resets
+// the latched-button mask.
 void UpdateGrfjoytFromGrfusr()
 {
     int v = D_002DFBC4;
@@ -130,14 +141,16 @@ void UpdateGrfjoytFromGrfusr()
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-void InitJoy(JOY *p, int nPort, int nSlot)
+// Initialises a controller: searching state, port and slot, opens the pad port (the JOY is the library's DMA
+// buffer), enables vibration and sets uDpad to 1.
+void InitJoy(JOY *joy, int port, int slot)
 {
-    SetJoyJoys(p, (JOYS)1, (JOYK)0);
-    p->nPort = nPort;
-    p->nSlot = nSlot;
-    scePadPortOpen(nPort, nSlot, p);
-    p->fRumbleEnabled = 1;
-    p->uDpad = 1.0f;
+    SetJoyJoys(joy, (JOYS)1, (JOYK)0);
+    joy->nPort = port;
+    joy->nSlot = slot;
+    scePadPortOpen(port, slot, joy);
+    joy->fRumbleEnabled = 1;
+    joy->uDpad = 1.0f;
 }
 
 /** @sly2-annot addr=0x1871C0
@@ -147,43 +160,46 @@ void InitJoy(JOY *p, int nPort, int nSlot)
  *   docs/engine/overview.md#2-the-frame-loop-exact-order,
  *   docs/guides/port-plan.md#11-known-facts-that-drive-the-design
  * @end-sly2-annot */
-void UpdateJoy(JOY *pjoy)
+// Per-frame controller update: tracks the pad library state (disconnect after 2 s without progress), then steps
+// the setup state machine (detect mode, switch to analog and lock it, query and enable the actuators, enable
+// pressure sensitivity) and, once ready, reads the pad and updates its rumble.
+void UpdateJoy(JOY *joy)
 {
 
-    int fReady;
+    int isReady;
     int x;
     int joys, joyk;
     int state;
 
 
 
-    fReady = 0;
+    isReady = 0;
 
-    if (pjoy->joys == 0)
+    if (joy->joys == 0)
         return;
 
-    state = scePadGetState_243388(pjoy->nPort, pjoy->nSlot);
+    state = scePadGetState_243388(joy->nPort, joy->nSlot);
     if (state == 6 || state == 2)
 
-        fReady = 1;
+        isReady = 1;
 
 
-    if (pjoy->joys != 3 && pjoy->joyk != 0) {
-        if (D_002DDED0.tReal - pjoy->tJoys >= 2.0f)
+    if (joy->joys != 3 && joy->joyk != 0) {
+        if (D_002DDED0.tReal - joy->tJoys >= 2.0f)
             state = 0;
     }
 
-    if (pjoy->joyk != 0 && state == 0)
-        SetJoyJoys(pjoy, (JOYS)1, (JOYK)0);
+    if (joy->joyk != 0 && state == 0)
+        SetJoyJoys(joy, (JOYS)1, (JOYK)0);
 
 
-    if (!fReady)
+    if (!isReady)
         return;
 
     x = 2;
 
-    joys = pjoy->joys;
-    joyk = pjoy->joyk;
+    joys = joy->joys;
+    joyk = joy->joyk;
 
     switch (joys) {
     case 1:
@@ -191,10 +207,10 @@ void UpdateJoy(JOY *pjoy)
         case 0: {
 
             int m;
-            int n = scePadInfoMode(pjoy->nPort, pjoy->nSlot, 1, 0);
+            int n = scePadInfoMode(joy->nPort, joy->nSlot, 1, 0);
             if (n == 0)
                 break;
-            m = scePadInfoMode(pjoy->nPort, pjoy->nSlot, 2, 0);
+            m = scePadInfoMode(joy->nPort, joy->nSlot, 2, 0);
             if (m > 0)
                 n = m;
             if (n == 4 || n == 7) {
@@ -206,7 +222,7 @@ void UpdateJoy(JOY *pjoy)
         }
         case 1:
 
-            if (scePadSetMainMode(pjoy->nPort, pjoy->nSlot, 1, 3) == 1)
+            if (scePadSetMainMode(joy->nPort, joy->nSlot, 1, 3) == 1)
                 joys = 2;
 
             break;
@@ -214,45 +230,45 @@ void UpdateJoy(JOY *pjoy)
             unsigned char ab[6];
             int i;
 
-            x = scePadInfoAct(pjoy->nPort, pjoy->nSlot, -1, 0);
+            x = scePadInfoAct(joy->nPort, joy->nSlot, -1, 0);
             if (x != 2 ||
 
-                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 0, 1) != 1 ||
-                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 0, 2) != 2 ||
-                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 0, 3) != 0 ||
-                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 1, 1) != 1 ||
-                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 1, 2) != 1 ||
-                scePadInfoAct(pjoy->nPort, pjoy->nSlot, 1, 3) != 1) {
+                scePadInfoAct(joy->nPort, joy->nSlot, 0, 1) != 1 ||
+                scePadInfoAct(joy->nPort, joy->nSlot, 0, 2) != 2 ||
+                scePadInfoAct(joy->nPort, joy->nSlot, 0, 3) != 0 ||
+                scePadInfoAct(joy->nPort, joy->nSlot, 1, 1) != 1 ||
+                scePadInfoAct(joy->nPort, joy->nSlot, 1, 2) != 1 ||
+                scePadInfoAct(joy->nPort, joy->nSlot, 1, 3) != 1) {
                 joys = 3;
                 break;
             }
             func_002333B4(ab, 0xFF, 6);
             for (i = 0; i < x; i++)
                 ab[i] = i;
-            if (scePadSetActAlign(pjoy->nPort, pjoy->nSlot, ab) == 1)
+            if (scePadSetActAlign(joy->nPort, joy->nSlot, ab) == 1)
                 joys = 2;
             break;
 #undef x
         }
         case 3:
-            if (scePadInfoPressMode(pjoy->nPort, pjoy->nSlot) != 1) {
+            if (scePadInfoPressMode(joy->nPort, joy->nSlot) != 1) {
                 joys = 3;
                 break;
             }
-            if (scePadEnterPressMode(pjoy->nPort, pjoy->nSlot) == 1)
+            if (scePadEnterPressMode(joy->nPort, joy->nSlot) == 1)
                 joys = x;
             break;
         }
         break;
     case 2:
-        switch (scePadGetState(pjoy->nPort, pjoy->nSlot)) {
+        switch (scePadGetState(joy->nPort, joy->nSlot)) {
         case 1:
             joys = 1;
             break;
         case 2:
             break;
         case 0:
-            switch (pjoy->joyk) {
+            switch (joy->joyk) {
             case 1:
                 joyk = 2;
                 joys = 1;
@@ -276,9 +292,9 @@ void UpdateJoy(JOY *pjoy)
         }
         break;
     case 3:
-        if (func_00187998(pjoy)) {
-            if (pjoy->fRumbleEnabled && pjoy->joyk >= 3)
-                UpdateRumble((RUMBLE *)&pjoy->rumble);
+        if (ReadJoy(joy)) {
+            if (joy->fRumbleEnabled && joy->joyk >= 3)
+                UpdateRumble((RUMBLE *)&joy->rumble);
         } else {
             joys = 1;
             joyk = 0;
@@ -286,7 +302,7 @@ void UpdateJoy(JOY *pjoy)
         break;
     }
 
-    SetJoyJoys(pjoy, (JOYS)joys, (JOYK)joyk);
+    SetJoyJoys(joy, (JOYS)joys, (JOYK)joyk);
 }
 
 /** @sly2-annot addr=0x1875B8
@@ -298,41 +314,43 @@ void UpdateJoy(JOY *pjoy)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-void SetJoyJoys(JOY *p, JOYS a, JOYK b)
+// Changes the controller state/kind: a DualShock (kind >= 3) gets its rumble initialised, kind-4 changes clear the
+// analog block, entering or leaving the ready state resets the button masks; records the time of the change.
+void SetJoyJoys(JOY *joy, JOYS state, JOYK kind)
 {
     unsigned int i;
-    if (a == p->joys && b == p->joyk) return;
-    if (b == 0) {
-        p->term = 0;
-        a = (JOYS)1;
+    if (state == joy->joys && kind == joy->joyk) return;
+    if (kind == 0) {
+        joy->term = 0;
+        state = (JOYS)1;
     }
-    if (p->joyk < 3 && b >= 3) InitRumble((RUMBLE *)&p->rumble, p->nPort, p->nSlot);
-    if (p->joyk == 4 ? b != 4 : b == 4) func_002333B4(p->mpbtnpb, 0, 0xC);
-    if (p->joys == 3 ? a != 3 : a == 3) {
-        p->grfbtnLatched = 0xFFFF;
-        p->tRead = 0.0f;
-        p->fStickMovedRight = 0;
-        p->fStickMovedLeft = 0;
-        p->grfbtnPressed = 0;
-        p->grfbtn = 0;
-        func_002333B4(p->mpbtnpb, 0, 0xC);
-        p->dirY = 0;
-        p->dxLeft = p->dyLeft = p->uDeflectLeft = 0.0f;
-        p->dxRight = p->dyRight = p->sRight = 0.0f;
-        p->dxdtLeft = p->dydtLeft = 0.0f;
-        p->dydtRight = 0.0f;
-        p->dxdtRight = 0.0f;
-        p->dirX = 0;
+    if (joy->joyk < 3 && kind >= 3) InitRumble((RUMBLE *)&joy->rumble, joy->nPort, joy->nSlot);
+    if (joy->joyk == 4 ? kind != 4 : kind == 4) func_002333B4(joy->mpbtnpb, 0, 0xC);
+    if (joy->joys == 3 ? state != 3 : state == 3) {
+        joy->grfbtnLatched = 0xFFFF;
+        joy->tRead = 0.0f;
+        joy->fStickMovedRight = 0;
+        joy->fStickMovedLeft = 0;
+        joy->grfbtnPressed = 0;
+        joy->grfbtn = 0;
+        func_002333B4(joy->mpbtnpb, 0, 0xC);
+        joy->dirY = 0;
+        joy->dxLeft = joy->dyLeft = joy->uDeflectLeft = 0.0f;
+        joy->dxRight = joy->dyRight = joy->sRight = 0.0f;
+        joy->dxdtLeft = joy->dydtLeft = 0.0f;
+        joy->dydtRight = 0.0f;
+        joy->dxdtRight = 0.0f;
+        joy->dirX = 0;
         for (i = 0; i < 4; i++) {
-            p->almDeflect2[i].gMin = -0.75f;
-            p->almDeflect[i].gMin = -0.75f;
-            p->almDeflect2[i].gMax = 0.75f;
-            p->almDeflect[i].gMax = 0.75f;
+            joy->almDeflect2[i].gMin = -0.75f;
+            joy->almDeflect[i].gMin = -0.75f;
+            joy->almDeflect2[i].gMax = 0.75f;
+            joy->almDeflect[i].gMax = 0.75f;
         }
     }
-    p->joys = a;
-    p->joyk = b;
-    p->tJoys = D_002DDED0.tReal;
+    joy->joys = state;
+    joy->joyk = kind;
+    joy->tJoys = D_002DDED0.tReal;
 }
 
 static inline float SqrtF(float g) { float r; __asm__ volatile("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
@@ -341,21 +359,23 @@ static inline float SqrtF(float g) { float r; __asm__ volatile("sqrt.s %0, %1" :
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-void GetJoyXYDeflection(JOY *pjoy, uchar bX, uchar bY, float *px, float *py, float *pgDeflection,
-                        uchar *pbXPrev, uchar *pbYPrev, int *pfActive, LM *alm)
+// Converts one stick's raw bytes into x/y in -1..1 with a dead zone, its deflection, and whether it moved (compared
+// with the previous bytes); the LM ranges shape the response.
+void GetJoyXYDeflection(JOY *joy, uchar rawX, uchar rawY, float *outX, float *outY, float *outDeflection,
+                        uchar *prevRawX, uchar *prevRawY, int *outActive, LM *ranges)
 {
     float x, y, gMax, g, r;
     unsigned int i;
-    if (!*pfActive) {
+    if (!*outActive) {
         int fActive = 0;
-        if (pjoy->tRead != 0.0f &&
-            (bX != *pbXPrev || bY != *pbYPrev || bX < 0x60 || bX > 0xA0 || bY < 0x60 || bY > 0xA0))
+        if (joy->tRead != 0.0f &&
+            (rawX != *prevRawX || rawY != *prevRawY || rawX < 0x60 || rawX > 0xA0 || rawY < 0x60 || rawY > 0xA0))
             fActive = 1;
-        *pfActive = fActive;
+        *outActive = fActive;
     }
-    if (*pfActive) {
-        x = 2.0f * (float)bX / 255.0f + -1.0f;
-        y = 1.0f - 2.0f * (float)bY / 255.0f;
+    if (*outActive) {
+        x = 2.0f * (float)rawX / 255.0f + -1.0f;
+        y = 1.0f - 2.0f * (float)rawY / 255.0f;
     } else {
         x = y = 0.0f;
     }
@@ -363,27 +383,27 @@ void GetJoyXYDeflection(JOY *pjoy, uchar bX, uchar bY, float *px, float *py, flo
     for (i = 0; i < 4; i++) {
         g = x * D_002BE950[i].x + y * D_002BE950[i].y;
         if (g >= 0.0f) {
-            if (alm[i].gMax < g) alm[i].gMax = g;
-            r = g / alm[i].gMax;
+            if (ranges[i].gMax < g) ranges[i].gMax = g;
+            r = g / ranges[i].gMax;
         } else {
-            if (g < alm[i].gMin) alm[i].gMin = g;
-            r = g / alm[i].gMin;
+            if (g < ranges[i].gMin) ranges[i].gMin = g;
+            r = g / ranges[i].gMin;
         }
         if (gMax < r) gMax = r;
     }
     r = GClamp((gMax - 0.35f) * 2.0f, 0.0f, 1.0f);
-    *pgDeflection = r;
+    *outDeflection = r;
     g = SqrtF(x * x + y * y);
     {
         if (g > 0.0001f) {
-            *px = r * x / g;
-            *py = r * y / g;
+            *outX = r * x / g;
+            *outY = r * y / g;
         } else {
-            *px = *py = 0.0f;
+            *outX = *outY = 0.0f;
         }
     }
-    *pbXPrev = bX;
-    *pbYPrev = bY;
+    *prevRawX = rawX;
+    *prevRawY = rawY;
 }
 
 static __inline__ float sqrtf(float g) { float r; __asm__ __volatile__("sqrt.s %0, %1" : "=&f"(r) : "f"(g)); return r; }
@@ -394,113 +414,118 @@ static __inline__ float sqrtf(float g) { float r; __asm__ __volatile__("sqrt.s %
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" int func_00187998(JOY *p)
+// Reads the pad (scePadRead): updates held/pressed/released masks, the stick and pressure values and their
+// deflection, and broadcasts a game event on activity. Returns 0 when the pad's terminal id changed (a different controller),
+// else 1.
+extern "C" int ReadJoy(JOY *joy)
 {
-    unsigned char ab[0x40];
-    int fRet = 1;
-    unsigned int old;
-    unsigned int btn;
+    unsigned char padData[0x40];
+    int result = 1;
+    unsigned int prevButtons;
+    unsigned int buttons;
     float x, y, x2, y2;
 
-    func_002333B4(ab, 0, 0x40);
-    if (scePadRead(p->nPort, p->nSlot, ab) > 0) {
-        btn = ((ab[2] << 8) | ab[3]) ^ 0xFFFF;
-        old = p->grfbtn;
-        p->grfbtnPressed = btn & ~old & ~p->grfbtnLatched;
-        p->grfbtnLatched = p->grfbtnLatched & btn;
-        p->grfbtn = btn;
-        if (p->term != 0 && p->term != ab[1])
-            fRet = 0;
-        p->term = ab[1];
-        if (p->joyk == 4)
-            CopyAb(p->mpbtnpb, &ab[8], 0xC);
-        x = p->dxLeft;
-        y = p->dyLeft;
-        x2 = p->dxRight;
-        y2 = p->dyRight;
-        if (p->joyk >= 2) {
-            GetJoyXYDeflection(p, ab[6], ab[7], &p->dxLeft, &p->dyLeft, &p->uDeflectLeft, &p->bXLeft, &p->bYLeft, &p->fStickMovedLeft, p->almDeflect);
-            GetJoyXYDeflection(p, ab[4], ab[5], &p->dxRight, &p->dyRight, &p->sRight, &p->bXRight, &p->bYRight, &p->fStickMovedRight, p->almDeflect2);
+    func_002333B4(padData, 0, 0x40);
+    if (scePadRead(joy->nPort, joy->nSlot, padData) > 0) {
+        buttons = ((padData[2] << 8) | padData[3]) ^ 0xFFFF;
+        prevButtons = joy->grfbtn;
+        joy->grfbtnPressed = buttons & ~prevButtons & ~joy->grfbtnLatched;
+        joy->grfbtnLatched = joy->grfbtnLatched & buttons;
+        joy->grfbtn = buttons;
+        if (joy->term != 0 && joy->term != padData[1])
+            result = 0;
+        joy->term = padData[1];
+        if (joy->joyk == 4)
+            CopyAb(joy->mpbtnpb, &padData[8], 0xC);
+        x = joy->dxLeft;
+        y = joy->dyLeft;
+        x2 = joy->dxRight;
+        y2 = joy->dyRight;
+        if (joy->joyk >= 2) {
+            GetJoyXYDeflection(joy, padData[6], padData[7], &joy->dxLeft, &joy->dyLeft, &joy->uDeflectLeft, &joy->bXLeft, &joy->bYLeft, &joy->fStickMovedLeft, joy->almDeflect);
+            GetJoyXYDeflection(joy, padData[4], padData[5], &joy->dxRight, &joy->dyRight, &joy->sRight, &joy->bXRight, &joy->bYRight, &joy->fStickMovedRight, joy->almDeflect2);
         } else {
 
 
-            p->dxLeft = p->dyLeft = p->uDeflectLeft = 0.0f;
-            p->dyRight = p->sRight = 0.0f;
-            p->dxRight = 0.0f;
+            joy->dxLeft = joy->dyLeft = joy->uDeflectLeft = 0.0f;
+            joy->dyRight = joy->sRight = 0.0f;
+            joy->dxRight = 0.0f;
 
 
         }
         if (D_002DDF40.x30c == 0 || D_002DDF40.x314 != &D_002DDF40.x3a0) {
-            if (p->grfbtn & 0xF000) {
+            if (joy->grfbtn & 0xF000) {
 
-                p->dxLeft = p->dyLeft = p->uDeflectLeft = 0.0f;
+                joy->dxLeft = joy->dyLeft = joy->uDeflectLeft = 0.0f;
 
-                if (p->grfbtn & 0x8000)
-                    p->dxLeft = -p->uDpad;
-                else if (p->grfbtn & 0x2000)
-                    p->dxLeft = p->uDpad;
-                if (p->grfbtn & 0x1000)
-                    p->dyLeft = p->uDpad;
-                else if (p->grfbtn & 0x4000)
-                    p->dyLeft = -p->uDpad;
-                if (p->dxLeft * p->dyLeft != 0.0f) {
+                if (joy->grfbtn & 0x8000)
+                    joy->dxLeft = -joy->uDpad;
+                else if (joy->grfbtn & 0x2000)
+                    joy->dxLeft = joy->uDpad;
+                if (joy->grfbtn & 0x1000)
+                    joy->dyLeft = joy->uDpad;
+                else if (joy->grfbtn & 0x4000)
+                    joy->dyLeft = -joy->uDpad;
+                if (joy->dxLeft * joy->dyLeft != 0.0f) {
 
-                    p->dxLeft = p->dxLeft * sqrtf(0.5f);
-                    p->dyLeft = p->dyLeft * sqrtf(0.5f);
+                    joy->dxLeft = joy->dxLeft * sqrtf(0.5f);
+                    joy->dyLeft = joy->dyLeft * sqrtf(0.5f);
 
                 }
-                p->uDeflectLeft = 1.0f;
+                joy->uDeflectLeft = 1.0f;
             }
         }
-        p->dxdtLeft = (p->dxLeft - x) / D_002DDED0.dtReal;
-        p->dydtLeft = (p->dyLeft - y) / D_002DDED0.dtReal;
-        p->dxdtRight = (p->dxRight - x2) / D_002DDED0.dtReal;
-        p->dydtRight = (p->dyRight - y2) / D_002DDED0.dtReal;
-        _MatchCodes(D_002DDEC0, p, old & 0xFFFF);
-        p->tRead = D_002DDED0.tReal;
-        if (p->grfbtn != 0 || p->uDeflectLeft != 0.0f || p->sRight != 0.0f) {
+        joy->dxdtLeft = (joy->dxLeft - x) / D_002DDED0.dtReal;
+        joy->dydtLeft = (joy->dyLeft - y) / D_002DDED0.dtReal;
+        joy->dxdtRight = (joy->dxRight - x2) / D_002DDED0.dtReal;
+        joy->dydtRight = (joy->dyRight - y2) / D_002DDED0.dtReal;
+        _MatchCodes(D_002DDEC0, joy, prevButtons & 0xFFFF);
+        joy->tRead = D_002DDED0.tReal;
+        if (joy->grfbtn != 0 || joy->uDeflectLeft != 0.0f || joy->sRight != 0.0f) {
 
-            p->tActive = D_002DDED0.tReal;
-            p->dtIdle = 0;
+            joy->tActive = D_002DDED0.tReal;
+            joy->dtIdle = 0;
 
             if (D_002DDED0.tReal - D_002DEB30.t > 15.0f) {
                 BroadcastGameEvent(&D_002DEB30, 0xE, PpoHero(D_003DD490));
                 D_002DEB30.t = D_002DDED0.tReal;
             }
         } else {
-            p->dtIdle = (int)(D_002DDED0.tReal - p->tActive);
+            joy->dtIdle = (int)(D_002DDED0.tReal - joy->tActive);
         }
     } else {
-        if (D_002DDED0.tReal - p->tRead >= 2.0f)
-            fRet = 0;
+        if (D_002DDED0.tReal - joy->tRead >= 2.0f)
+            result = 0;
     }
-    return fRet;
+    return result;
 }
 
 /** @sly2-annot addr=0x187D80
  * Purpose: Return pressed&mask and mark those buttons handled (SetJoyBtnHandled)
- * Info: proposed name GrfHandleJoyBtn (T1); TU joy
+ * Info: proposed name HandleJoyButtons (T1); TU joy
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488,
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
-extern "C" int GrfHandleJoyBtn(JOY *pjoy, int grf)
+// Returns the buttons in `mask` pressed this frame and marks them handled.
+extern "C" int HandleJoyButtons(JOY *joy, int mask)
 {
-    int grfPressed = GrfJoyPressed(pjoy, grf);
-    SetJoyBtnHandled(pjoy, grf);
+    int grfPressed = GetJoyButtonsPressed(joy, mask);
+    SetJoyBtnHandled(joy, mask);
     return grfPressed;
 }
 
 /** @sly2-annot addr=0x187DD0
  * Purpose: Return x10B8 (pressed this frame) & mask
- * Info: proposed name GrfJoyPressed (T1); TU joy
+ * Info: proposed name GetJoyButtonsPressed (T1); TU joy
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" int GrfJoyPressed(JOY *pjoy, int grf)
+// Returns the buttons in `mask` pressed this frame.
+extern "C" int GetJoyButtonsPressed(JOY *joy, int mask)
 {
-    return pjoy->grfbtnPressed & grf;
+    return joy->grfbtnPressed & mask;
 }
 
 /** @sly2-annot addr=0x187DE0
@@ -510,10 +535,11 @@ extern "C" int GrfJoyPressed(JOY *pjoy, int grf)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" void SetJoyBtnHandled(JOY *pjoy, int grf)
+// Marks the buttons in `mask` handled: clears them from the pressed mask and remembers them as held-and-handled.
+extern "C" void SetJoyBtnHandled(JOY *joy, int mask)
 {
-    pjoy->grfbtnPressed &= ~grf;
-    pjoy->grfbtnLatched |= pjoy->grfbtn & grf;
+    joy->grfbtnPressed &= ~mask;
+    joy->grfbtnLatched |= joy->grfbtn & mask;
 }
 
 /** @sly2-annot addr=0x187E08
@@ -523,11 +549,12 @@ extern "C" void SetJoyBtnHandled(JOY *pjoy, int grf)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" void func_00187E08(JOY *pjoy, int grf)
+// Forgets the buttons in `mask`: clears them from the held and handled masks.
+extern "C" void ClearJoyButtons(JOY *joy, int mask)
 {
-    int grfKeep = ~grf;
-    pjoy->grfbtn &= grfKeep;
-    pjoy->grfbtnLatched &= grfKeep;
+    int grfKeep = ~mask;
+    joy->grfbtn &= grfKeep;
+    joy->grfbtnLatched &= grfKeep;
 }
 
 /** @sly2-annot addr=0x187E28
@@ -539,10 +566,11 @@ extern "C" void func_00187E08(JOY *pjoy, int grf)
  * See: docs/engine/animation.md#7-key-functions, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-void TriggerJoyRumbleRumk(JOY *pjoy, RUMK rumk, float dt)
+// Plays a predefined rumble pattern on the controller if it is a ready DualShock and vibration is enabled.
+void TriggerJoyRumbleRumk(JOY *joy, RUMK kind, float duration)
 {
-    if (pjoy->fRumbleEnabled != 0 && pjoy->joyk >= 3 && pjoy->joys == 3) {
-        TriggerRumbleRumk((RUMBLE *)&pjoy->rumble, rumk, dt);
+    if (joy->fRumbleEnabled != 0 && joy->joyk >= 3 && joy->joys == 3) {
+        TriggerRumbleRumk((RUMBLE *)&joy->rumble, kind, duration);
     }
 }
 
@@ -557,104 +585,108 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-void StartJoySelection(JOY *p)
+// Resets the menu selection auto-repeat state.
+void StartJoySelection(JOY *joy)
 {
-    p->dirX = 0;
-    p->dirY = 0;
+    joy->dirX = 0;
+    joy->dirY = 0;
 }
 
 /** @sly2-annot addr=0x187E88
  * Purpose: Menu left/right with auto-repeat from d-pad 0x8000/0x2000 or stick (mag>=0.8,
- * Info: proposed name DxSelectionJoy (T1); TU joy
+ * Info: proposed name GetJoySelectionStepX (T1); TU joy
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" int DxSelectionJoy(JOY *p)
+// Menu left/right step with auto-repeat: returns -1, 0 or +1 from the d-pad left/right or the left stick (magnitude
+// >= 0.8), repeating while held.
+extern "C" int GetJoySelectionStepX(JOY *joy)
 {
     float g;
-    if (!p->dirX) {
-        int grf = GrfHandleJoyBtn(p, 0xA000);
-        if (grf & 0x8000) p->dirX = -1;
-        else if (grf & 0x2000) p->dirX = 1;
-        else if (p->uDeflectLeft >= 0.8f && __builtin_fabsf(p->dxLeft) > __builtin_fabsf(p->dyLeft)) {
-            if (p->dxLeft < 0.0f) p->dirX = -1;
-            else p->dirX = 1;
+    if (!joy->dirX) {
+        int grf = HandleJoyButtons(joy, 0xA000);
+        if (grf & 0x8000) joy->dirX = -1;
+        else if (grf & 0x2000) joy->dirX = 1;
+        else if (joy->uDeflectLeft >= 0.8f && __builtin_fabsf(joy->dxLeft) > __builtin_fabsf(joy->dyLeft)) {
+            if (joy->dxLeft < 0.0f) joy->dirX = -1;
+            else joy->dirX = 1;
         }
-        if (p->dirX) {
+        if (joy->dirX) {
             g = 0.3333f;
-            p->tRepX = g;
-            p->tNextX = D_002DDED0.tReal + g;
+            joy->tRepX = g;
+            joy->tNextX = D_002DDED0.tReal + g;
         }
     } else {
         int fHeld = 0;
-        if (p->dirX < 0) {
-            if (p->grfbtn & 0x8000) fHeld = 1;
-            else if (p->uDeflectLeft >= 0.25f && __builtin_fabsf(p->dxLeft) > __builtin_fabsf(p->dyLeft) && p->dxLeft < 0.0f)
+        if (joy->dirX < 0) {
+            if (joy->grfbtn & 0x8000) fHeld = 1;
+            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dxLeft) > __builtin_fabsf(joy->dyLeft) && joy->dxLeft < 0.0f)
                 fHeld = 1;
         } else {
-            if (p->grfbtn & 0x2000) fHeld = 1;
-            else if (p->uDeflectLeft >= 0.25f && __builtin_fabsf(p->dxLeft) > __builtin_fabsf(p->dyLeft) && 0.0f < p->dxLeft)
+            if (joy->grfbtn & 0x2000) fHeld = 1;
+            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dxLeft) > __builtin_fabsf(joy->dyLeft) && 0.0f < joy->dxLeft)
                 fHeld = 1;
         }
         if (!fHeld) {
-            p->dirX = 0;
-        } else if (p->tNextX <= D_002DDED0.tReal) {
-            g = GClamp(2.0f * p->tRepX / 3.0f, 0.1f, 0.3333f);
-            p->tRepX = g;
-            p->tNextX = D_002DDED0.tReal + g;
+            joy->dirX = 0;
+        } else if (joy->tNextX <= D_002DDED0.tReal) {
+            g = GClamp(2.0f * joy->tRepX / 3.0f, 0.1f, 0.3333f);
+            joy->tRepX = g;
+            joy->tNextX = D_002DDED0.tReal + g;
         } else {
             return 0;
         }
     }
-    return p->dirX;
+    return joy->dirX;
 }
 
 /** @sly2-annot addr=0x1880D8
  * Purpose: Menu up/down with auto-repeat from d-pad 0x1000/0x4000 or stick
- * Info: proposed name DySelectionJoy (T1); TU joy
+ * Info: proposed name GetJoySelectionStepY (T1); TU joy
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4b_rest
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#joy-0x187030-0x188488
  * @end-sly2-annot */
-extern "C" int DySelectionJoy(JOY *p)
+// Menu up/down step with auto-repeat: as GetJoySelectionStepX for the d-pad up/down or the stick.
+extern "C" int GetJoySelectionStepY(JOY *joy)
 {
     float g;
-    if (!p->dirY) {
-        int grf = GrfHandleJoyBtn(p, 0x5000);
-        if (grf & 0x1000) p->dirY = -1;
-        else if (grf & 0x4000) p->dirY = 1;
-        else if (p->uDeflectLeft >= 0.8f && __builtin_fabsf(p->dyLeft) > __builtin_fabsf(p->dxLeft)) {
-            if (0.0f < p->dyLeft) p->dirY = -1;
-            else p->dirY = 1;
+    if (!joy->dirY) {
+        int grf = HandleJoyButtons(joy, 0x5000);
+        if (grf & 0x1000) joy->dirY = -1;
+        else if (grf & 0x4000) joy->dirY = 1;
+        else if (joy->uDeflectLeft >= 0.8f && __builtin_fabsf(joy->dyLeft) > __builtin_fabsf(joy->dxLeft)) {
+            if (0.0f < joy->dyLeft) joy->dirY = -1;
+            else joy->dirY = 1;
         }
-        if (p->dirY) {
+        if (joy->dirY) {
             g = 0.3333f;
-            p->tRepY = g;
-            p->tNextY = D_002DDED0.tReal + g;
+            joy->tRepY = g;
+            joy->tNextY = D_002DDED0.tReal + g;
         }
     } else {
         int fHeld = 0;
-        if (p->dirY < 0) {
-            if (p->grfbtn & 0x1000) fHeld = 1;
-            else if (p->uDeflectLeft >= 0.25f && __builtin_fabsf(p->dyLeft) > __builtin_fabsf(p->dxLeft) && 0.0f < p->dyLeft)
+        if (joy->dirY < 0) {
+            if (joy->grfbtn & 0x1000) fHeld = 1;
+            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dyLeft) > __builtin_fabsf(joy->dxLeft) && 0.0f < joy->dyLeft)
                 fHeld = 1;
         } else {
-            if (p->grfbtn & 0x4000) fHeld = 1;
-            else if (p->uDeflectLeft >= 0.25f && __builtin_fabsf(p->dyLeft) > __builtin_fabsf(p->dxLeft) && p->dyLeft < 0.0f)
+            if (joy->grfbtn & 0x4000) fHeld = 1;
+            else if (joy->uDeflectLeft >= 0.25f && __builtin_fabsf(joy->dyLeft) > __builtin_fabsf(joy->dxLeft) && joy->dyLeft < 0.0f)
                 fHeld = 1;
         }
         if (!fHeld) {
-            p->dirY = 0;
-        } else if (p->tNextY <= D_002DDED0.tReal) {
-            g = GClamp(2.0f * p->tRepY / 3.0f, 0.1f, 0.3333f);
-            p->tRepY = g;
-            p->tNextY = D_002DDED0.tReal + g;
+            joy->dirY = 0;
+        } else if (joy->tNextY <= D_002DDED0.tReal) {
+            g = GClamp(2.0f * joy->tRepY / 3.0f, 0.1f, 0.3333f);
+            joy->tRepY = g;
+            joy->tNextY = D_002DDED0.tReal + g;
         } else {
             return 0;
         }
     }
-    return p->dirY;
+    return joy->dirY;
 }
 
 // 0x188328: dead-code scrap, a nop unit (sly2/scrap.h)

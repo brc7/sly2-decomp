@@ -130,8 +130,8 @@ void *func_002333B4(void *pv, int c, int cb) __asm__("memset");
 int func_00234820(ThreadParam *ptp);
 int func_002355E0(int id, void *arg) __asm__("StartThread_2355E0");
 int snd_InitMovieSound(int a, int b, int c, int d, int e, int f);
-char *PvAllocSlot__FP8ALLOCREQ(const AREQ &r);
-void *func_001AE378(const AREQ &r);
+char *AllocFromStack(const AREQ &r);
+void *AllocClearedFromStack(const AREQ &r);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void func_00234CA0(int n) __asm__("FlushCache");
 int func_00234DE0(void *r, int n);
@@ -159,13 +159,13 @@ void FreeDrain__10CByteQueuei(CByteQueue *p, int n);
 void snd_StartMovieSound(int a, int b, int c, int d, int e);
 void PushScaling__5CFontff(void *pf, float sx, float sy);
 void PopScaling__5CFont(void *pf);
-unsigned int CbFreeMem(int n);
-int func_00132600(CBinaryAsyncStream *ps, void *px);
+unsigned int GetFreeMemorySize(int n);
+int OpenBasFromFileKey(CBinaryAsyncStream *ps, void *px);
 int sceMpegIsEnd(MPEG *p);
 void MarkClockTick(CLOCK *p, int k);
 void UpdateJoy__FP3JOY(JOY *p);
 void UpdateSave__FP4SAVE(GSAVE *g);
-uint GrfHandleJoyBtn(JOY *p, uint k);
+uint HandleJoyButtons(JOY *p, uint k);
 void UpdateCd__Fv(void);
 void Close__18CBinaryAsyncStream(CBinaryAsyncStream *ps);
 int sceMpegInit(void);
@@ -309,7 +309,7 @@ void CQueueOutputIop::Reset()
     m_x2c = 0;
 }
 
-static inline char *Alloc(int cb, int align) { return PvAllocSlot__FP8ALLOCREQ(AREQ(cb, align)); }
+static inline char *Alloc(int cb, int align) { return AllocFromStack(AREQ(cb, align)); }
 /** @sly2-annot addr=0x1B2AA0
  * Purpose: Sly2 helper: for stereo-interleaved mode copy block into stack scratch (PvAllocStackImpl+CopyAb)
  *   before send
@@ -823,7 +823,7 @@ extern "C" void CMpeg_QueueMovie(CMPEG *p, K *pe)
 }
 
 /** @sly2-annot addr=0x1B3B08
- * Purpose: Play every queued movie (Execute until done), unless CbFreeMem<=0x41FC3F; called during level
+ * Purpose: Play every queued movie (Execute until done), unless GetFreeMemorySize<=0x41FC3F; called during level
  *   transition
  * Info: proposed name CMpeg_ExecuteOids (T1); class CMpeg; TU mpeg
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r5_1AE130
@@ -834,7 +834,7 @@ extern "C" int CMpeg_ExecuteOids(CMPEG *p)
 {
     int i;
     if (p->n <= 0) return 0;
-    if (CbFreeMem(1) <= 0x41FC3F) { p->n = 0; return 0; }
+    if (GetFreeMemorySize(1) <= 0x41FC3F) { p->n = 0; return 0; }
     for (i = 0; i < p->n; i++) {
         K *pe = &p->ae[i];
         p->psubt = func_001B2820(pe);
@@ -887,11 +887,11 @@ typedef char G_xFD50_Offset[FIELD_OFFSET(GSAVE,xFD50)==64848?1:-1];
 void Execute__5CMpegPv(CMPEG *p, K *k)
 {
     STACKSCOPE ctx;
-    p->pb = (char *)func_001AE378(AREQ(0x41FC00, 0x40));
+    p->pb = (char *)AllocClearedFromStack(AREQ(0x41FC00, 0x40));
     CBinaryAsyncStream strm(0x80000, p->pb);
     X x;
     bool ok = x.FSet(k);
-    if (ok && func_00132600(&strm, &x)) {
+    if (ok && OpenBasFromFileKey(&strm, &x)) {
         CMpeg_Start(p, &strm);
         while (!sceMpegIsEnd(&p->mpeg)) {
             int f;
@@ -903,7 +903,7 @@ void Execute__5CMpegPv(CMPEG *p, K *k)
             if (D_002C0268) f = 1;
             if (f) {
                 int fQuit = 0;
-                if (GrfHandleJoyBtn(&D_002DFC00, 0x91F)) fQuit = 1;
+                if (HandleJoyButtons(&D_002DFC00, 0x91F)) fQuit = 1;
                 if (fQuit) {
                     p->fRepeat = 0;
                     break;

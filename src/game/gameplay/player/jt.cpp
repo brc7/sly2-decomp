@@ -685,7 +685,7 @@ void PresetJtAccelZap(void*);void PresetJtAccelHide(void*);void CorrectBentleyRi
 qword func_00204E38(P*,MODEL*,float);float func_0012F990(void*,int);
 void AddSoAcceleration(P*,qword);qword LimitVectorLength(qword,float);
 M4*GetLoWorldMatrix(P*);float func_0011E290(qword,qword,qword*,qword*);
-M3 func_0011B500(qword,float);
+M3 BuildAxisAngleRotationMatrix(qword,float);
 }
 struct VU_FLOAT{qword qw;};
 static inline VU_FLOAT VuFloat(float g){VU_FLOAT v;__asm__("qmtc2.ni %1,%0":"=j"(v.qw):"r"(g));return v;}
@@ -746,7 +746,7 @@ extern "C" void PresetJtAccel(P*jt){
    w.a.q=QwScaleX(basis.r[0].q,VuFloat(gAlong));
    w.b.q=QwScaleX(w.b.q,VuFloat(gPerp));
    M3 rotation;
-   rotation=func_0011B500(D_002A2DC0,angle);
+   rotation=BuildAxisAngleRotationMatrix(D_002A2DC0,angle);
    qword sum=QwAdd(w.a.q,w.b.q);
    qword moved=QwSub(QwRotateVecAt(&rotation,&sum),position);
    qword velocity=QwDivide(moved,VuFloatFromMemWord(*(int*)&D_002DDED0.dt));
@@ -2208,7 +2208,7 @@ extern "C" {
 qword CalculateLaunchVelocity(float gArc, qword qwFrom, qword qwTo, qword dvGravity) __asm__("func_001D6848");
 }
 int ChooseJtGrabTarget(JTGRAB *pjtgrab, uint grf, int fUnk) __asm__("TryGrabJtNearestCandidate");
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 extern "C" float D_002BF354;
 extern "C" float D_002BF360;
 extern "C" float D_002BF364;
@@ -2584,7 +2584,7 @@ struct O { char pad[0x60]; void *p60; char pad1[0x19A4 - 0x64]; struct X *hookCh
 struct X { char pad[0x60]; void *p60; };
 extern float func_0012F990(void *p, int n);
 extern void func_001300B8(void *a, float g, struct O *p, float h, void *b, void *c, MATRIX4 *pm, int n);
-extern qword func_0011BFF0(MATRIX4 *pm);
+extern qword DecomposeRotationMatrixToEuler(MATRIX4 *pm);
 extern void InvertMatrix4Rigid(MATRIX4 *pmOut, MATRIX4 *pm);
 static __inline__ qword Mul(MATRIX4 *pm, qword v)
 {
@@ -2615,7 +2615,7 @@ void CacheJtRestPose(struct O *jt)
         jt->v1BF0 = m1.r[3];
         func_001300B8(jt->p1BC8, jt->g1BD8, jt, z, jt->p19C0, jt->p60, &m2, 0);
         jt->v1C00 = m2.r[3];
-        jt->v1C10 = func_0011BFF0(&m2);
+        jt->v1C10 = DecomposeRotationMatrixToEuler(&m2);
         InvertMatrix4Rigid(&mi, &m2);
         jt->v1C20 = Mul(&mi, jt->v1BE0);
     }
@@ -4313,7 +4313,7 @@ extern float D_002BF3F0;
 
 extern void BroadcastGameEvent(void *p, int n, void *pv);
 extern void ChargeGadgetMp(void *p, int n);
-extern void func_0014D1D0(void *p, int n, float g);
+extern void SetClockRate(void *p, int n, float g);
 extern void *PsndStartSound(int n);
 extern void SetSndSourceLo(void *p, int n);
 extern void RcPtr_Assign(void *p, void *pv);
@@ -4347,7 +4347,7 @@ void UseJtGadget(char *p, int n)
     case 0x1D: {
         void *pv;
         ChargeGadgetMp(p, n);
-        func_0014D1D0(D_002DDED0, 1, D_002BF3EC);
+        SetClockRate(D_002DDED0, 1, D_002BF3EC);
         g_sw.gUnk475c = -1.0f;
         pv = PsndStartSound(0x67);
         SetSndSourceLo(pv, 0);
@@ -4357,7 +4357,7 @@ void UseJtGadget(char *p, int n)
     case 0x2A: {
         void *pv;
         ChargeGadgetMp(p, n);
-        func_0014D1D0(D_002DDED0, 1, D_002BF3F0);
+        SetClockRate(D_002DDED0, 1, D_002BF3F0);
         g_sw.gUnk475c = 0.7f;
         pv = PsndStartSound(0x66);
         SetSndSourceLo(pv, 0);
@@ -4446,7 +4446,7 @@ void UseJtGadget(char *p, int n)
 namespace M_func_0018DD78 { extern "C" {
 struct S { char pad[0x2044]; void *p2044; };
 extern struct CLOCK D_002DDED0;
-void func_0014D1D0(struct CLOCK *pclock, int n, float g);
+void SetClockRate(struct CLOCK *pclock, int n, float g);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
 void StopStepplayerGadget(struct S *p, int n);
@@ -4462,7 +4462,7 @@ void EndJtGadget(struct S *jt, int n)
 {
     if (n == 0x1D || n == 0x2A) {
         void **pp;
-        func_0014D1D0(&D_002DDED0, 1, 1.0f);
+        SetClockRate(&D_002DDED0, 1, 1.0f);
         pp = &jt->p2044;
         if (*pp) {
             StopSnd(*pp, 0.0f);

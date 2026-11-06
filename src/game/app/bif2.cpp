@@ -1,4 +1,7 @@
 // bif2.cpp -- 29 stubbed Splice builtins: each returns a Nil CRef (the release build compiled their bodies out).
+// They fill slots 140..168 of the builtin table D_002BBB90 (bif.cpp), so scripts that still call them get nil;
+// their names are the slot numbers since the release build kept no hint of what they did (the table's minimum
+// argument counts are the only trace). Entry points: RefOpStub140..RefOpStub168, through the table.
 // TU 0x1258F0..0x126188 (31 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bif2
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00126168
@@ -20,7 +23,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
  *   docs/engine/splice-scripting.md#6-source-files,
  *   docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_001258F0()
+// Compiled-out Splice builtin, table slot 140 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub140()
 {
     CRef ref;
     return ref;
@@ -32,7 +36,8 @@ extern "C" CRef func_001258F0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125930()
+// Compiled-out Splice builtin, table slot 141 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub141()
 {
     CRef ref;
     return ref;
@@ -44,7 +49,8 @@ extern "C" CRef func_00125930()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125970()
+// Compiled-out Splice builtin, table slot 142 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub142()
 {
     CRef ref;
     return ref;
@@ -56,7 +62,8 @@ extern "C" CRef func_00125970()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_001259B0()
+// Compiled-out Splice builtin, table slot 143 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub143()
 {
     CRef ref;
     return ref;
@@ -68,7 +75,8 @@ extern "C" CRef func_001259B0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_001259F0()
+// Compiled-out Splice builtin, table slot 144 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub144()
 {
     CRef ref;
     return ref;
@@ -80,7 +88,8 @@ extern "C" CRef func_001259F0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125A30()
+// Compiled-out Splice builtin, table slot 145 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub145()
 {
     CRef ref;
     return ref;
@@ -92,7 +101,8 @@ extern "C" CRef func_00125A30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125A70()
+// Compiled-out Splice builtin, table slot 146 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub146()
 {
     CRef ref;
     return ref;
@@ -104,7 +114,8 @@ extern "C" CRef func_00125A70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125AB0()
+// Compiled-out Splice builtin, table slot 147 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub147()
 {
     CRef ref;
     return ref;
@@ -116,7 +127,8 @@ extern "C" CRef func_00125AB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125AF0()
+// Compiled-out Splice builtin, table slot 148 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub148()
 {
     CRef ref;
     return ref;
@@ -128,7 +140,8 @@ extern "C" CRef func_00125AF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125B30()
+// Compiled-out Splice builtin, table slot 149 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub149()
 {
     CRef ref;
     return ref;
@@ -140,7 +153,8 @@ extern "C" CRef func_00125B30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125B70()
+// Compiled-out Splice builtin, table slot 150 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub150()
 {
     CRef ref;
     return ref;
@@ -152,7 +166,8 @@ extern "C" CRef func_00125B70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125BB0()
+// Compiled-out Splice builtin, table slot 151 (takes at least 1 argument): returns nil.
+extern "C" CRef RefOpStub151()
 {
     CRef ref;
     return ref;
@@ -164,7 +179,8 @@ extern "C" CRef func_00125BB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125BF0()
+// Compiled-out Splice builtin, table slot 152 (takes at least 1 argument): returns nil.
+extern "C" CRef RefOpStub152()
 {
     CRef ref;
     return ref;
@@ -176,7 +192,8 @@ extern "C" CRef func_00125BF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125C30()
+// Compiled-out Splice builtin, table slot 153 (takes at least 1 argument): returns nil.
+extern "C" CRef RefOpStub153()
 {
     CRef ref;
     return ref;
@@ -188,7 +205,8 @@ extern "C" CRef func_00125C30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125C70()
+// Compiled-out Splice builtin, table slot 154 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub154()
 {
     CRef ref;
     return ref;
@@ -200,7 +218,8 @@ extern "C" CRef func_00125C70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125CB0()
+// Compiled-out Splice builtin, table slot 155 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub155()
 {
     CRef ref;
     return ref;
@@ -212,7 +231,8 @@ extern "C" CRef func_00125CB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125CF0()
+// Compiled-out Splice builtin, table slot 156 (takes at least 3 arguments): returns nil.
+extern "C" CRef RefOpStub156()
 {
     CRef ref;
     return ref;
@@ -224,7 +244,8 @@ extern "C" CRef func_00125CF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125D30()
+// Compiled-out Splice builtin, table slot 157 (takes at least 1 argument): returns nil.
+extern "C" CRef RefOpStub157()
 {
     CRef ref;
     return ref;
@@ -236,7 +257,8 @@ extern "C" CRef func_00125D30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125D70()
+// Compiled-out Splice builtin, table slot 158 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub158()
 {
     CRef ref;
     return ref;
@@ -248,7 +270,8 @@ extern "C" CRef func_00125D70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125DB0()
+// Compiled-out Splice builtin, table slot 159 (takes at least 1 argument): returns nil.
+extern "C" CRef RefOpStub159()
 {
     CRef ref;
     return ref;
@@ -260,7 +283,8 @@ extern "C" CRef func_00125DB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125DF0()
+// Compiled-out Splice builtin, table slot 160 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub160()
 {
     CRef ref;
     return ref;
@@ -272,7 +296,8 @@ extern "C" CRef func_00125DF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125E30()
+// Compiled-out Splice builtin, table slot 161 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub161()
 {
     CRef ref;
     return ref;
@@ -284,7 +309,8 @@ extern "C" CRef func_00125E30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125E70()
+// Compiled-out Splice builtin, table slot 162 (takes at least 3 arguments): returns nil.
+extern "C" CRef RefOpStub162()
 {
     CRef ref;
     return ref;
@@ -296,7 +322,8 @@ extern "C" CRef func_00125E70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125EB0()
+// Compiled-out Splice builtin, table slot 163 (takes at least 2 arguments): returns nil.
+extern "C" CRef RefOpStub163()
 {
     CRef ref;
     return ref;
@@ -308,7 +335,8 @@ extern "C" CRef func_00125EB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125EF0()
+// Compiled-out Splice builtin, table slot 164 (takes at least 1 argument): returns nil.
+extern "C" CRef RefOpStub164()
 {
     CRef ref;
     return ref;
@@ -320,7 +348,8 @@ extern "C" CRef func_00125EF0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125F30()
+// Compiled-out Splice builtin, table slot 165 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub165()
 {
     CRef ref;
     return ref;
@@ -332,7 +361,8 @@ extern "C" CRef func_00125F30()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125F70()
+// Compiled-out Splice builtin, table slot 166 (takes at least 2 arguments): returns nil.
+extern "C" CRef RefOpStub166()
 {
     CRef ref;
     return ref;
@@ -344,7 +374,8 @@ extern "C" CRef func_00125F70()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125FB0()
+// Compiled-out Splice builtin, table slot 167 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub167()
 {
     CRef ref;
     return ref;
@@ -356,7 +387,8 @@ extern "C" CRef func_00125FB0()
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/splice-scripting.md#bif2-0x1258f0-0x126188
  * @end-sly2-annot */
-extern "C" CRef func_00125FF0()
+// Compiled-out Splice builtin, table slot 168 (takes at least 0 arguments): returns nil.
+extern "C" CRef RefOpStub168()
 {
     CRef ref;
     return ref;

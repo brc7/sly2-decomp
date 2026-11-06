@@ -70,10 +70,10 @@ int S32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 int S8Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 int U8Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 void ReadCb8__18CBinaryInputStreamPv(CBinaryInputStream *pbis, void *pv);
-void *func_001AE1D0(AREQV *preq);
-void *func_001AE2A0(AREQV *preq);
-void *func_001AE238(AREQV *preq, void *pv);
-void *PvAllocSlot__FP8ALLOCREQ(const AREQV &req);
+void *AllocFromWorldHeap(AREQV *preq);
+void *AllocClearedFromWorldHeap(AREQV *preq);
+void *AllocCopyFromWorldHeap(AREQV *preq, void *pv);
+void *AllocFromStack(const AREQV &req);
 AC *PacNewKind(int id);
 AC *PacNewKind2(int id);
 void InitLo(ASEG *paseg);
@@ -151,7 +151,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *pbis) { int i; AREQV req;
  px->tMax = F32Read__18CBinaryInputStream(pbis);
  px->cchn = S16Read__18CBinaryInputStream(pbis);
  req.cbAlign = 0x10; req.cb = px->cchn * 8;
- px->achn = (CHN *)func_001AE1D0(&req);
+ px->achn = (CHN *)AllocFromWorldHeap(&req);
  for (i = 0; i < px->cchn; i++) {
    CHN *pe = &px->achn[i];
    pe->u.n = S32Read__18CBinaryInputStream(pbis);
@@ -164,7 +164,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *pbis) { int i; AREQV req;
  }
  px->covr = U8Read__18CBinaryInputStream(pbis);
  req.cbAlign = 0x10; req.cb = px->covr * 12;
- px->aovr = (OVR *)func_001AE2A0(&req);
+ px->aovr = (OVR *)AllocClearedFromWorldHeap(&req);
  for (i = 0; i < px->covr; i++) {
    OVR *pe = &px->aovr[i];
    pe->x0 = U8Read__18CBinaryInputStream(pbis);
@@ -180,7 +180,7 @@ void LoadAsegFromBrx(ASEG *px, CBinaryInputStream *pbis) { int i; AREQV req;
 /* Event payloads read into the EA unions. */
 struct L0 { int n; int a, b, c; float x, y, z; };
 struct L20 { int a, b; float g; };
-static __inline__ void *PvAlloc(int cb) { AREQV req; req.cb = cb; req.cbAlign = 0x10; return func_001AE2A0(&req); }
+static __inline__ void *PvAlloc(int cb) { AREQV req; req.cb = cb; req.cbAlign = 0x10; return AllocClearedFromWorldHeap(&req); }
 /** @sly2-annot addr=0x12F590
  * Purpose: Reads the ASEG event list (typed U8/S8/S16/S32/F32 payloads), allocates arrays
  * Info: proposed name LoadAsegEventsFromBrx (T1); TU aseg
@@ -203,7 +203,7 @@ void LoadAsegEventsFromBrx(ASEG *paseg, CBinaryInputStream *pbis, int fTime, int
    switch (pe->eak) {
    case 0: { AREQV req; L0 l; l.n = S16Read__18CBinaryInputStream(pbis); l.a = S32Read__18CBinaryInputStream(pbis); l.b = S32Read__18CBinaryInputStream(pbis); l.c = S32Read__18CBinaryInputStream(pbis);
        l.z = F32Read__18CBinaryInputStream(pbis); l.x = F32Read__18CBinaryInputStream(pbis); l.y = F32Read__18CBinaryInputStream(pbis);
-       req.cb = 0x1C; req.cbAlign = 0x10; pe->pesnd = (EASND *)func_001AE238(&req, &l); break; }
+       req.cb = 0x1C; req.cbAlign = 0x10; pe->pesnd = (EASND *)AllocCopyFromWorldHeap(&req, &l); break; }
    case 3: pe->gC = S16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f); pe->n8 = S16Read__18CBinaryInputStream(pbis); break;
    case 5: pe->g8 = S16Read__18CBinaryInputStream(pbis) * (1.0f / 60.0f); pe->gC = F32Read__18CBinaryInputStream(pbis); break;
    case 7: case 8: pe->n8 = S32Read__18CBinaryInputStream(pbis); pe->gC = F32Read__18CBinaryInputStream(pbis); break;
@@ -211,10 +211,10 @@ void LoadAsegEventsFromBrx(ASEG *paseg, CBinaryInputStream *pbis, int fTime, int
    case 17: { pe->pea17 = (EA17 *)PvAlloc(0x10);
        ((int *)pe->pea17)[0] = S32Read__18CBinaryInputStream(pbis); ((int *)pe->pea17)[1] = S32Read__18CBinaryInputStream(pbis); ((int *)pe->pea17)[2] = S32Read__18CBinaryInputStream(pbis); ((float *)pe->pea17)[3] = F32Read__18CBinaryInputStream(pbis); break; }
    case 20: { L20 t; AREQV req; AREQV *preq; t.a = S32Read__18CBinaryInputStream(pbis); t.b = S32Read__18CBinaryInputStream(pbis); t.g = F32Read__18CBinaryInputStream(pbis);
-       preq = &req; req.cb = 0xC; preq->cbAlign = 0x10; pe->pea20 = (EA20 *)func_001AE238(preq, &t); break; }
+       preq = &req; req.cb = 0xC; preq->cbAlign = 0x10; pe->pea20 = (EA20 *)AllocCopyFromWorldHeap(preq, &t); break; }
    case 1: case 2: case 21: pe->n8 = S16Read__18CBinaryInputStream(pbis); break;
    case 4: case 11: case 12: case 22: pe->n8 = S32Read__18CBinaryInputStream(pbis); break;
-   case 24: { AREQV req; char *p; req.cb = 0x18; req.cbAlign = 0x10; p = (char *)func_001AE1D0(&req);
+   case 24: { AREQV req; char *p; req.cb = 0x18; req.cbAlign = 0x10; p = (char *)AllocFromWorldHeap(&req);
        ReadCb8__18CBinaryInputStreamPv(pbis, p); ReadCb8__18CBinaryInputStreamPv(pbis, p + 8); ReadCb8__18CBinaryInputStreamPv(pbis, p + 0x10); pe->pea24 = (EA24 *)p; break; }
    }
  } }
@@ -395,7 +395,7 @@ extern "C" void func_0012FDE8(ASEG *paseg, int grfapl, float t, float svt)
     ASEGSTART *p;
     req.cb = 0xC;
     req.cbAlign = 0x10;
-    p = (ASEGSTART *)func_001AE1D0(&req);
+    p = (ASEGSTART *)AllocFromWorldHeap(&req);
     paseg->pasegstart = p;
     p->tLocal = t;
     p->svtLocal = svt;
@@ -505,7 +505,7 @@ extern "C" void func_001300B8(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float
         func_002333B4(pg, 0, sizeof(M4));
         pg[15] = 1.0f; pg[10] = 1.0f; pg[5] = 1.0f; pg[0] = 1.0f;
     }
-    apy = (XFV **)PvAllocSlot__FP8ALLOCREQ(AREQT(px->cchn * 4, 0x10));
+    apy = (XFV **)AllocFromStack(AREQT(px->cchn * 4, 0x10));
     for (i = 0; i < px->cchn; i++) {
         pe = &px->achn[i];
         if (pe->u.f30) {

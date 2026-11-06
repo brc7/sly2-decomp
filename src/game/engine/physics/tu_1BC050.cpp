@@ -69,8 +69,8 @@ struct AREQC { int cb; int align; };
 struct AREQV { int cb; int align; AREQV(int c, int a) { cb = c; align = a; } };
 
 struct VU_QWORD;
-extern "C" VU_QWORD *func_002564B8(VU_QWORD *);
-struct VU_QWORD { qword qw; VU_QWORD() { (void)func_002564B8(this); } };
+extern "C" VU_QWORD *InitVuTemp(VU_QWORD *);
+struct VU_QWORD { qword qw; VU_QWORD() { (void)InitVuTemp(this); } };
 struct VU_FLOAT { qword qw; };
 struct VU_VECTOR { qword qw; VU_VECTOR(const qword &q) { qw = q; } };
 
@@ -88,9 +88,9 @@ extern char D_003DD020[];
 void InitShape(CID14V *p);
 void InitDl__FP2DLi(DLV *pdl, int ib);
 void LoadShapeFromBrx(CID14V *p);
-void *func_001AE2A0(MSG *pmsg);
-void *func_001AE1D0(AREQC *preq);
-void *PvAllocSlot__FP8ALLOCREQ(const AREQV &r);
+void *AllocClearedFromWorldHeap(MSG *pmsg);
+void *AllocFromWorldHeap(AREQC *preq);
+void *AllocFromStack(const AREQV &r);
 void CloneShape(CID14V *p, int a);
 void AddLoHierarchy(CID14V *p);
 void RemoveLoHierarchy(CID14V *p);
@@ -145,8 +145,8 @@ void func_001BDE18(CID14V *p, CID14V *po);
 int func_001BCAC0F(CID14V *p, void *pv, float g0, float g1, int fRev) __asm__("func_001BCAC0");
 int func_001BD560F(CID14V *p, CID14V *s, float t, int fForward, qword *pq, float *pt) __asm__("func_001BD560");
 
-static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
-static inline void *Alloc(int cb) { return PvAllocSlot__FP8ALLOCREQ(AREQV(cb, 0x10)); }
+static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
+static inline void *Alloc(int cb) { return AllocFromStack(AREQV(cb, 0x10)); }
 static __inline__ float GetX(qword q) { float x; __asm__("mtc1 %1, %0" : "=f"(x) : "r"(q)); return x; }
 static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(y) : "r"(q)); return y; }
 /* The world matrix: virtual slot 31. */
@@ -499,8 +499,8 @@ static __inline__ float GDistPlane(qword plane, qword pos)
     UF d, one;
     qword td, tone;
     float dist;
-    func_002564B8((VU_QWORD *)&d);
-    func_002564B8((VU_QWORD *)&one);
+    InitVuTemp((VU_QWORD *)&d);
+    InitVuTemp((VU_QWORD *)&one);
     __asm__("vmul.xyz %0, %3, %4\n\tvaddw.x %1, $vf0, $vf0w\n\tvadday.x $ACC, %0, %0y\n\tvmaddaz.x $ACC, %1, %0z\n\tvmsubw.x %0, %1, %3w\n\tqmfc2.ni %2, %0" : "=j"(td), "=&j"(tone), "=r"(dist) : "j"(plane), "j"(pos));
     one.q = tone;
     d.q = td;
@@ -916,17 +916,17 @@ CID14V *func_001BDA00(void)
             pm[0] = 1.0f;
             req.cb = 0x80;
             req.align = 0x10;
-            q->ag = (float *)func_001AE1D0(&req);
+            q->ag = (float *)AllocFromWorldHeap(&req);
             for (j = 0; j < 32; j++) q->ag[j] = (float)j;
             req.cb = 0x80;
             req.align = 0x10;
-            q->xF0 = func_001AE1D0(&req);
+            q->xF0 = AllocFromWorldHeap(&req);
             req.cb = 0x200;
             req.align = 0x10;
-            q->apos = (qword *)func_001AE1D0(&req);
+            q->apos = (qword *)AllocFromWorldHeap(&req);
             req.cb = 0x1F0;
             req.align = 0x10;
-            q->aplane = (qword *)func_001AE1D0(&req);
+            q->aplane = (qword *)AllocFromWorldHeap(&req);
             ((void (*)(void *))q->vt[9].pfn)((char *)q + q->vt[9].d);
             AppendDlEntry__FP2DLPv((DLV *)&g_sw.dlCid14Free, q);
         }

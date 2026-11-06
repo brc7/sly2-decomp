@@ -131,7 +131,7 @@ POOL *PloFindSwObject__FP2SWi3OIDP2LO(SWM *world, int a, int b, int c);
 void func_001D98A8(PMENU *p, int f);
 void StartJoySelection__FP3JOY(JOY *pjoy);
 void func_001D98B0(void);
-void func_0014D1D0(void *p, int n, float g);
+void SetClockRate(void *p, int n, float g);
 void IncrementSwHandsOff(SWM *p, int n);
 void DecrementSwHandsOff(SWM *p, int n);
 void BroadcastGameEvent(void *p, int n, int m);
@@ -140,9 +140,9 @@ void PlayWidgetAnim(POOL *, int);
 void SetWidgetAnimPhase(POOL *, int, float);
 void func_001D9870();
 int FWidgetAnimPlaying(POOL *, int);
-int DySelectionJoy(JOY *);
-int DxSelectionJoy(JOY *);
-uint GrfHandleJoyBtn(JOY *, uint);
+int GetJoySelectionStepY(JOY *);
+int GetJoySelectionStepX(JOY *);
+uint HandleJoyButtons(JOY *, uint);
 CRef RefGetGlobalSaveVar(OPT *, CONTEXT *);
 CRef RefSetGlobalSaveVar(OPT *, const CRef &, void *);
 void SetMcDialogState(MCDLG *, int);
@@ -233,7 +233,7 @@ extern "C" void PAUSEMENU_Slot9(PMENU *p, int f) {
 void PAUSEMENU::VSlot10()   /* key function: PAUSEMENU's vtable comes out here */
 {
     func_001D98B0();
-    func_0014D1D0(D_002DDED0, 0, 0.0f);
+    SetClockRate(D_002DDED0, 0, 0.0f);
     IncrementSwHandsOff(&D_003DD490, 0);
     BroadcastGameEvent(D_002DEB30, 0x28, 0);
 }
@@ -249,7 +249,7 @@ extern "C" void HidePauseMenu(PMENU *menu)
 {
     func_001D9910(menu);
     menu->depth = 0;
-    func_0014D1D0(D_002DDED0, 0, 1.0f);
+    SetClockRate(D_002DDED0, 0, 1.0f);
     DecrementSwHandsOff(&D_003DD490, 0);
     BroadcastGameEvent(D_002DEB30, 0x2C, 0);
 }
@@ -372,7 +372,7 @@ void SetPauseMenuState(PMENU *menu, int st)
 static inline float Value(OPT*key,CONTEXT*context){CRef result=RefGetGlobalSaveVar(key,context);return result.f;}
 static inline void Select(CONTEXT*contexts,CONTEXT*context){BANK*bank=(BANK*)((char*)contexts-0x24);bank->current=context;}
 /** @sly2-annot addr=0x1AEEE0
- * Purpose: Screen vt7: per-frame menu input (DySelectionJoy, GrfHandleJoyBtn), item activation callbacks,
+ * Purpose: Screen vt7: per-frame menu input (GetJoySelectionStepY, HandleJoyButtons), item activation callbacks,
  *   volume/video item handling, save-slot pages
  * Info: proposed name UpdatePauseMenu (T1); TU menu
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r5b_rest
@@ -419,12 +419,12 @@ extern "C" void UpdatePauseMenu(PMENU*menu){
  activate:
   SetPauseMenuState(menu,7);
   if(!menu->input)break;
-  {JOY*input=menu->input;direction=DySelectionJoy(input);if(direction<0)goto up;goto positive;}
+  {JOY*input=menu->input;direction=GetJoySelectionStepY(input);if(direction<0)goto up;goto positive;}
  case 6:
   if(FWidgetAnimPlaying(group->pool,group->meta->reverse))break;goto activate;
  case 7:{
   if(!menu->input)break;
-  uint flags;flags=GrfHandleJoyBtn(menu->input,0x870);
+  uint flags;flags=HandleJoyButtons(menu->input,0x870);
   if(flags&0x800){PopPauseMenuToRoot(menu);break;}
   if((flags&0x10)||(group->count==0&&flags)){if(group->back)GoBackPauseMenuPage(menu);else PopPauseMenuPage(menu);break;}
   if(menu->depth>0&&(flags&0x40)){
@@ -447,7 +447,7 @@ extern "C" void UpdatePauseMenu(PMENU*menu){
   }
   if(!group)break;
  {
-   direction=DySelectionJoy(menu->input);
+   direction=GetJoySelectionStepY(menu->input);
    if(direction>=0)goto positive;
  up:SetPauseMenuState(menu,6);break;
  positive:if(direction<=0)break;SetPauseMenuState(menu,5);break;
@@ -463,7 +463,7 @@ extern "C" void UpdatePauseMenu(PMENU*menu){
  case 10:{
   if(!menu->input)break;
   ITEM*item;item=&group->items[group->index];
-  uint flags;flags=GrfHandleJoyBtn(menu->input,0x850);
+  uint flags;flags=HandleJoyButtons(menu->input,0x850);
   if(flags&0x800){ResetPauseMenuVideoOptions(menu,item);
 PopPauseMenuToRoot(menu);break;}
   if(flags&0x10)ResetPauseMenuVideoOptions(menu,item);
@@ -616,7 +616,7 @@ void EnterPauseMenuState11(PMENU *menu) {
 
 static __inline__ float GClampM(float g, float lo, float hi) { float r; if (g < lo) r = lo; else if (hi < g) r = hi; else r = g; return r; }
 /** @sly2-annot addr=0x1AF6D0
- * Purpose: Volume slider items 0x67/0x68 (music/sfx): left/right changes value (DxSelectionJoy),
+ * Purpose: Volume slider items 0x67/0x68 (music/sfx): left/right changes value (GetJoySelectionStepX),
  *   SetSndmgrChannelVolume, update meter
  * Info: proposed name AdjustPauseVolumeItem (T2); TU menu
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r5b_rest
@@ -628,7 +628,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
 {
     switch (pk->kind) {
     case 0x67: {
-        float f = (float)DxSelectionJoy(menu->input);
+        float f = (float)GetJoySelectionStepX(menu->input);
         float g;
         if (f == 0.0f)
             return;
@@ -638,7 +638,7 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         break;
     }
     case 0x68: {
-        float f = (float)DxSelectionJoy(menu->input);
+        float f = (float)GetJoySelectionStepX(menu->input);
         float g;
         if (f == 0.0f)
             return;
@@ -649,8 +649,8 @@ void AdjustPauseMenuVolumeItem(PMENU *menu, PAGE *p, ITEM *pk)
         break;
     }
     case 0x3F: {
-        float x = (float)DxSelectionJoy(menu->input);
-        float y = (float)DySelectionJoy(menu->input);
+        float x = (float)GetJoySelectionStepX(menu->input);
+        float y = (float)GetJoySelectionStepY(menu->input);
         float v;
         if (x == 0.0f && y == 0.0f)
             return;

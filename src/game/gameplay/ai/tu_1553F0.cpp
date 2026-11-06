@@ -110,7 +110,7 @@ extern const float D_002A5130;   /* defined below where the ELF has it (.rodata 
 extern const float D_002A5134;   /* defined below where the ELF has it (.rodata order) */
 extern const float D_002A5138;   /* defined below where the ELF has it (.rodata order) */
 extern "C" {
-void *func_001AE2A0(MSG *message);
+void *AllocClearedFromWorldHeap(MSG *message);
 void LoadStepFromBrx(DIMITRIV *p, void *pbis);
 void PostStepguardLoad(DIMITRIV *p);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int k, int oid, DIMITRIV *p);
@@ -167,7 +167,7 @@ float GRandInRange(float gMin, float gMax);
 float RadNormalize(float rad);
 
 // Fills an allocation request and allocates from the world heap.
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 // 0x1553F0: DIMITRI vtable slot 14 (LoadFromBrx): allocates room for the route records, STEPGUARD load, then sets
 // +0x1018 to INT_MAX.
 extern "C" void LoadDimitriFromBrx(DIMITRIV *dimitri, void *pbis)

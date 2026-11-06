@@ -167,10 +167,10 @@ extern char D_00000870[];
 extern char D_0025A0C0[];
 extern char D_0025AF90[];
 
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");              /* memset */
 DLV *GetSwClassList(SW *psw, CIDV cid);
-void func_0011A070(DLV *pdl, void *pv);
+void AppendSlEntry(DLV *pdl, void *pv);
 void RemoveSlEntry(DLV *pdl, void *pv);
 void InitXfm(BLIPGV *p);
 void SetLoBusyk(BLIPGV *p, int busyk);
@@ -183,7 +183,7 @@ void *func_001EC8D0(void *pv);
 M4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(void *p);
 void EvaluateBezierPos(float, float, float, qwordV, qwordV, qwordV, qwordV, qwordV *, qwordV *, int);
 void FlushCache(int);
-void func_00201998(void);
+void SwapSprBuffers(void);
 int sceDmaSync(void *pch, int mode, int timeout);
 void STACKSCOPE_ctor(void *pf);
 void STACKSCOPE_ctor_1AE4A0(void *pf, int n) __asm__("_$_10STACKSCOPE");
@@ -262,7 +262,7 @@ extern "C" BLIPV *PblipNew(SW *psw, BLIPGV *pblipg)
     if (!pblip) return 0;
     if (pblipg->x160 == 2) {
         pblip->ae = (BEZ *)PvAllocSlotheapClear(&psw->slotheapBez);
-        if (!pblip->ae) { func_0011CD98(pslotheap, pblip); return 0; }
+        if (!pblip->ae) { FreeSlotheapSlot(pslotheap, pblip); return 0; }
     }
     pblip->pblipg = pblipg;
     AppendDlEntry(&pblipg->dl, pblip);
@@ -303,7 +303,7 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     i = 31;
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
                                  `while (--i != -1) ;` loads 30 as C++ */
-    func_0011A070(GetSwClassList(psw, CID_1C), p);
+    AppendSlEntry(GetSwClassList(psw, CID_1C), p);
     p->pvt[7].pfn((char *)p + p->pvt[7].d);
     p->pvt[11].pfn((char *)p + p->pvt[11].d);
     p->pvt[15].pfn((char *)p + p->pvt[15].d);
@@ -365,7 +365,7 @@ void BLIPG::VUnk01()
 {
     BLIPGV *p = (BLIPGV *)this;
     RemoveSlEntry(GetSwClassList(&D_003DD490, CID_1C), p);
-    func_0011CD98(&D_003DD490.slotheapBlipg, p);
+    FreeSlotheapSlot(&D_003DD490.slotheapBlipg, p);
 }
 
 /* MATCH (Claude agent, laneC16 2026-10-23), from v6 (3): the c-copy empty asm made volatile. A non-volatile asm stayed between the li a0,1 and the branch, which stops reorg backward search; volatile it is a sched barrier so the li follows it. One pin (px) + two commented empty asms. */
@@ -683,7 +683,7 @@ extern "C" void ProjectBlipgTransformAccel(BLIPGV *p)
     while (pq) {
         BLIPV *pqNext;
         int n, i;
-        func_00201998();
+        SwapSprBuffers();
         pqNext = (BLIPV *)PvNextDli(&dli);
         if (pqNext) Kick(pqNext);
         n = CblipeProjectBlipTransformAccelM(&m, VuFloatDt(), PvSprBuf(0), PvSprBuf(1), PvSprBuf(2), pq->c, p->x43C, &vMin, &vMax);
@@ -869,7 +869,7 @@ struct VU_FLOATR {
 };
 struct DMA { int x0; int x4; int x8; int xC; };
 extern "C" {
-void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
+void *AllocFromStack(const AL &al);
 int IsLoInWorld(LOV *plo);
 qwordV GetLoWorldPos(LOV *plo);
 M3 *GetLoWorldMatrix(LOV *plo);
@@ -877,7 +877,7 @@ int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
 DMA *PrplAllocRpl(void);
 }
-static inline void *PvAllocStack(int cb) { return PvAllocSlot__FP8ALLOCREQ(AL(cb, 0x10)); }
+static inline void *PvAllocStack(int cb) { return AllocFromStack(AL(cb, 0x10)); }
 /* earlyclobber output (else branch: vsub vf3 distinct from its inputs); the 2nd "j"(b) is allocation-only */
 static inline qwordV SubE(qwordV a, qwordV b) { qwordV r; __asm__("vsub.xyzw %0, %1, %2" : "=&j"(r) : "j"(a), "j"(b), "j"(b)); return r; }
 /* "r"(z) inputs below are allocation-only: they only add scheduler dependences (see the comment in the gather loop) */

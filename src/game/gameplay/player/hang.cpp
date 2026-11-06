@@ -69,7 +69,7 @@ M4*GetLoWorldMatrix(void*);
 qword GetXfVelocity(void*,void*,qword);
 float func_0011E290(qword,qword,qword*,qword*);
 float GSmoothA__FffffP4SMPAPf(float,float,float,float,SMPA*,float*);
-M3 func_0011B570(qword);
+M3 BuildRotationMatrixFromVector(qword);
 void AnticipateJtForce(NODE*,NODE*,qword*,float*,DELTA*);
 qword func_001FAA00(NODE*,qword);
 qword func_001FAA48(NODE*,qword,qword);
@@ -77,8 +77,8 @@ void AddSoAcceleration(void*,qword);
 void func_001FAC98(void*,qword);
 void func_001F59A0(JT*,M3P*,float*);
 M3P BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
-M3P func_0011B500(qword,float);
-qword func_0011BFF0(M3P*);
+M3P BuildAxisAngleRotationMatrix(qword,float);
+qword DecomposeRotationMatrixToEuler(M3P*);
 void GetJtHangHeading__FP2JTPf(JT*,float*);float RadNormalize__Ff(float);void func_00204660(JT*,float);float atan2f(float,float);
 void SetJtState__FP2JT3JTS4JTBS(JT*,int,int);void CalculateJtHangAccel__FP2JT(JT*);void func_001F5078(NODE*);int GrfPressedWithin__5POCTLUif(PL*,uint,float);void ClearPoctlJoyPressed(PL*,int);void StartJtMode(void*,int,JT*,void*);
 float GSmooth__FfffP3SMPPf(float,float,float,SMP*,float*);void func_001384C0(ANIMATION*);float GLimitAbs__Fff(float,float);
@@ -121,8 +121,8 @@ extern float D_002BF594;
 extern float D_002BF598[3];
 extern G D_003DD490;
 }
-/* func_0011B500 with its hidden result pointer passed by hand (UpdateJtActiveHang loads it in asm). */
-extern "C" M3*func_0011B500_out(M3*,qword,float) __asm__("func_0011B500");
+/* BuildAxisAngleRotationMatrix with its hidden result pointer passed by hand (UpdateJtActiveHang loads it in asm). */
+extern "C" M3*func_0011B500_out(M3*,qword,float) __asm__("BuildAxisAngleRotationMatrix");
 void CroutDecomp(int,float*,float*);
 void CroutSolve(int,float*,float*,float*);
 
@@ -232,7 +232,7 @@ extern "C" void AnticipateJtForce(NODE*jt,NODE*other,qword*point,float*input,DEL
 #undef FIELD_OFFSET
 
 // CalculateJtHangAccel MATCH (Claude agent lane H15), from laneH15v4 + a "memory" clobber on the dt empty asm with base assigned after it (orders the point/spin loads after the dt spill store). laneH15v4: laneH14v1 + "0V" on the dt empty asm (input stays a MEM, reload lw goes straight into the output reg), allocation-only 2nd "j" on the radius scale, QwDivideBy(g first) for the final divide, and the 2nd clamp written out in the body (g=g0; g+=...; lo/hi locals; if/else-if in place): aligned 1.
-// CalculateJtHangAccel laneH14v1 (Claude agent lane H14): laneH11v1 with `state.rotation=func_0011B570(...)` assigned directly (no M3 rotation local) and QwRotateVec(&state.rotation,...): the 11B570 return temp at 0x190 is then freed and reused by the later VU_FLOAT temps like the target (0x1C0 before). Still aligned 30 (those stores still differ in vf number: rotation rows vf9/8/7 vs target vf10/9/8).
+// CalculateJtHangAccel laneH14v1 (Claude agent lane H14): laneH11v1 with `state.rotation=BuildRotationMatrixFromVector(...)` assigned directly (no M3 rotation local) and QwRotateVec(&state.rotation,...): the 11B570 return temp at 0x190 is then freed and reused by the later VU_FLOAT temps like the target (0x1C0 before). Still aligned 30 (those stores still differ in vf number: rotation rows vf9/8/7 vs target vf10/9/8).
 // CalculateJtHangAccel laneH11v1 (Claude agent lane H11): laneH10v3 + `speed*0.5f*speed`, p->other block dt as a GPR qword via an empty asm, QwAddScaled2Q(qword k) with allocation-only extra "j"(k), base declared before dt (47 -> 30).
 // CalculateJtHangAccel laneH10v3 (Claude agent lane H10): laneH10v2 + GMinOf/GMaxOf written (b<a)?b:a / (b>a)?b:a (min.s/max.s operand order): aligned 47.
 // CalculateJtHangAccel laneH9v1 (Claude agent lane H9): laneH8v1 + const-ref QwDivide, QwSub, QwProjectOut and QwCombo(a) (134 -> 75).
@@ -325,7 +325,7 @@ extern "C" void CalculateJtHangAccel__FP2JT(JT*jt){
   qword arm=VuSubRef(point,GetLoWorldPos(object));
   velocity.q=QwAddScaled2Q(base,spin,QwCross(spin,arm),dt);
  }else velocity=anchorVelocity;
- state.rotation=func_0011B570(QwScaleX(VuAdd(angularFirst.q,angular.q),VuFloat(Addr(&D_002DDED0)->dt*0.5f)));
+ state.rotation=BuildRotationMatrixFromVector(QwScaleX(VuAdd(angularFirst.q,angular.q),VuFloat(Addr(&D_002DDED0)->dt*0.5f)));
  state.direction.q=QwRotateVec(&state.rotation,axis.q);
  qword radius=QwScaleXK(state.direction.q,VuFloat(next));
  state.position.q=VuAdd(anchor.q,radius);
@@ -367,7 +367,7 @@ extern "C" void PresetJtAccelHang__FP2JT(JT *jt)
     a = VuSub(a, GetLoWorldPos(jt));
     d.q = a;
     m1 = BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DC0.q, a);
-    m2 = func_0011B500(D_002A2DC0.q, jt->angle);
+    m2 = BuildAxisAngleRotationMatrix(D_002A2DC0.q, jt->angle);
     m = Mul(m1, m2);
     func_001F59A0(jt, &m, D_002BF548);
 }
@@ -666,8 +666,8 @@ extern "C" void UpdateJtHangIkGoals__FP2JT(JT *jt)
     M3P m;
     qword d = VuSub(GetLoWorldPos(jt->target), jt->handXf->worldMatrix.r[3].q);
     qword q = ConvertXfVec(0, jt->wristXf->parent, d);
-    m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), func_0011B500(D_002A2DA0.q, D_002BF594));
-    SetActPositionGoal(jt->handAct, func_0011BFF0(&m));
+    m = Mul(BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(D_002A2DA0.q, q), BuildAxisAngleRotationMatrix(D_002A2DA0.q, D_002BF594));
+    SetActPositionGoal(jt->handAct, DecomposeRotationMatrixToEuler(&m));
     jt->handIkOffset = PosSmooth(jt->handIkOffset, D_002A2DD0.q, g_clock.dt, D_002BF598, 0);
 }
 

@@ -762,35 +762,35 @@ void CRef::Decref()
     {
         VALVECTOR *p = (VALVECTOR *)u.pv;
         if (--p->cref == 0)
-            func_0011CD98(HEAP_VECTOR, p);
+            FreeSlotheapSlot(HEAP_VECTOR, p);
         break;
     }
     case 0x1B:
     {
         VALMATRIX *p = (VALMATRIX *)u.pv;
         if (--p->cref == 0)
-            func_0011CD98(HEAP_MATRIX, p);
+            FreeSlotheapSlot(HEAP_MATRIX, p);
         break;
     }
     case 0x1C:
     {
         VALCLQ *p = (VALCLQ *)u.pv;
         if (--p->cref == 0)
-            func_0011CD98(HEAP_CLQ, p);
+            FreeSlotheapSlot(HEAP_CLQ, p);
         break;
     }
     case 0x1D:
     {
         VALLM *p = (VALLM *)u.pv;
         if (--p->cref == 0)
-            func_0011CD98(HEAP_LM, p);
+            FreeSlotheapSlot(HEAP_LM, p);
         break;
     }
     case 0x1E:
     {
         VALSMP *p = (VALSMP *)u.pv;
         if (--p->cref == 0)
-            func_0011CD98(HEAP_SMP, p);
+            FreeSlotheapSlot(HEAP_SMP, p);
         break;
     }
     case 0x1F:
@@ -820,7 +820,7 @@ void CRef::Decref()
         if (--p->cref == 0 && p)
         {
             Unlink__t6CGcObj1Z7CMethod((GCNODE *)p);
-            func_0011CD98(&CSlotPool<0x14, 0x100>::s_pool.slotheap, p);
+            FreeSlotheapSlot(&CSlotPool<0x14, 0x100>::s_pool.slotheap, p);
         }
         break;
     }

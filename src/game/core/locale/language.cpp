@@ -1,5 +1,9 @@
 // language.cpp -- language / region selection and the per-language localisation fourcc.
-// TU 0x1A2BD0..0x1A3020 (8 functions, address order).
+// Each of the 7 regions (america, europe1, europe5, europe11, japan, korea, china) offers a list of the 14 game
+// languages, the first being its default. Startup picks the region, then the language from the console's system
+// language when the region offers it. The fourcc ('FK$e', 'FK$f', ...) selects the localised text/asset set.
+// Entry points: SetRegion, SetLanguage, SetLanguageFromSystem, GetRegionLanguages, CountRegionLanguages,
+// FourccFromLanguage. TU 0x1A2BD0..0x1A3020 (8 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_language
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A3000
 #include "sly2/slotheap.h"
@@ -11,8 +15,8 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* One region: how many languages it offers and which (the first is the default). 7 regions at D_002BFBD0. */
 struct REGIONLANGS
 {
-    int c;
-    int *a;
+    int count;
+    int *languages;
 };
 
 /* The language and region names (.rodata, before the functions' literals: named constants are emitted where they
@@ -62,7 +66,7 @@ char *D_002BFC08[22] = {(char *)LANGNAMES::r_D_002A68A0, (char *)LANGNAMES::r_D_
 int D_002E1E54;                     /* current language */
 unsigned int D_002E1E58;            /* current region, 0..6 */
 
-extern "C" void GetRegionLanguages(int *pc, int **pa);
+extern "C" void GetRegionLanguages(int *outCount, int **outLanguages);
 
 /** @sly2-annot addr=0x1A2BD0
  * Purpose: Set current language D_002E1E54 = n, or for -1 the first language of the current region
@@ -71,15 +75,16 @@ extern "C" void GetRegionLanguages(int *pc, int **pa);
  * See: docs/engine/hud-ui.md#3-fonts-language-letterbox-loading-screen, docs/engine/hud-ui.md#4-source-files,
  *   docs/engine/player.md#10-source-files
  * @end-sly2-annot */
-extern "C" void SetLanguage(int n)
+// Selects a game language (0..13); -1 selects the current region's default (its first language).
+extern "C" void SetLanguage(int language)
 {
-    if (n == -1) {
-        int c;
-        int *a;
-        GetRegionLanguages(&c, &a);
-        D_002E1E54 = *a;
+    if (language == -1) {
+        int count;
+        int *languages;
+        GetRegionLanguages(&count, &languages);
+        D_002E1E54 = *languages;
     } else {
-        D_002E1E54 = n;
+        D_002E1E54 = language;
     }
 }
 
@@ -92,13 +97,14 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
  * @end-sly2-annot */
-extern "C" void SetRegion(int n)
+// Selects the region (0..6); -1 selects region 0 (america).
+extern "C" void SetRegion(int region)
 {
-    if (n == -1) {
+    if (region == -1) {
         D_002E1E58 = 0;
         return;
     }
-    D_002E1E58 = n;
+    D_002E1E58 = region;
 }
 
 // 0x1A2C40: dead-code scrap (sly2/scrap.h)
@@ -110,26 +116,29 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
  * @end-sly2-annot */
-extern "C" void GetRegionLanguages(int *pc, int **pa)
+// Returns the current region's language list through the optional out-pointers (count, array of language
+// indexes). An out-of-range region is reset to 0 first.
+extern "C" void GetRegionLanguages(int *outCount, int **outLanguages)
 {
-    REGIONLANGS *pe;
+    REGIONLANGS *regionLangs;
     if (D_002E1E58 >= 7) D_002E1E58 = 0;
-    pe = &D_002BFBD0[D_002E1E58];
-    if (pc) *pc = pe->c;
-    if (pa) *pa = pe->a;
+    regionLangs = &D_002BFBD0[D_002E1E58];
+    if (outCount) *outCount = regionLangs->count;
+    if (outLanguages) *outLanguages = regionLangs->languages;
 }
 
 /** @sly2-annot addr=0x1A2C98
  * Purpose: Return number of languages available in the region
- * Info: proposed name CLanguagesRegion (T1); TU language
+ * Info: proposed name CountRegionLanguages (T1); TU language
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
  * @end-sly2-annot */
-extern "C" int CLanguagesRegion(void)
+// Returns how many languages the current region offers.
+extern "C" int CountRegionLanguages(void)
 {
-    int c;
-    GetRegionLanguages(&c, 0);
-    return c;
+    int count;
+    GetRegionLanguages(&count, 0);
+    return count;
 }
 
 /** @sly2-annot addr=0x1A2CC0
@@ -140,9 +149,11 @@ extern "C" int CLanguagesRegion(void)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
  * @end-sly2-annot */
-extern "C" int FourccFromLanguage(unsigned int n)
+// Maps a game language index to its localisation fourcc 'FK$x' (x = e f i g s d p a h n w j k c, in index
+// order: English .. Chinese); 0 for an unknown index.
+extern "C" int FourccFromLanguage(unsigned int language)
 {
-    switch (n) {
+    switch (language) {
     case 0: return 0x65244B46;
     case 1: return 0x66244B46;
     case 2: return 0x69244B46;
@@ -171,18 +182,20 @@ SLY2_SCRAP("nop");
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/hud-ui.md#language-0x1a2bd0-0x1a3020
  * @end-sly2-annot */
-extern "C" void SetLanguageFromSystem(int key)
+// Selects the game language matching the console's system language (sceScf code: 0 ja, 1 en, 2 fr, 3 es, 4 de,
+// 5 it, 6 nl, 7 pt) if the current region offers it; otherwise the region default.
+extern "C" void SetLanguageFromSystem(int systemLanguage)
 {
-    int tbl[14] = { 1, 2, 5, 4, 3, 6, 7, -1, -1, -1, -1, 0, -1, -1 };
-    int i, j;
-    int n;
-    int *a;
-    for (i = 0; i < 14; i++) {
-        if (key == tbl[i]) {
-            GetRegionLanguages(&n, &a);
-            for (j = 0; j < n; j++) {
-                if (i == a[j]) {
-                    SetLanguage(i);
+    int gameLanguageToSystem[14] = { 1, 2, 5, 4, 3, 6, 7, -1, -1, -1, -1, 0, -1, -1 };
+    int language, j;
+    int count;
+    int *languages;
+    for (language = 0; language < 14; language++) {
+        if (systemLanguage == gameLanguageToSystem[language]) {
+            GetRegionLanguages(&count, &languages);
+            for (j = 0; j < count; j++) {
+                if (language == languages[j]) {
+                    SetLanguage(language);
                     return;
                 }
             }

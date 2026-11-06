@@ -17,10 +17,10 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 struct VTE { short d; short pad; void *pfn; };
 struct V3 { float x, y, z; };
 struct LMK { int a, b; };
-extern "C" void *func_002564B8(void *);            /* vector init, returns its receiver */
-/* 16-byte vector whose default constructor is the shared vector initialiser (func_002564B8). */
+extern "C" void *InitVuTemp(void *);            /* vector init, returns its receiver */
+/* 16-byte vector whose default constructor is the shared vector initialiser (InitVuTemp). */
 union UV { qword q; float f[4]; UV(); };
-inline UV::UV() { (void)func_002564B8(this); }
+inline UV::UV() { (void)InitVuTemp(this); }
 /* The 48-byte shader payload of a light (RebuildLight fills it; the packets copy it). */
 struct BLOCK { union { uint words[12]; struct { int kind; float coefficients[11]; } values; }; };
 struct LIGHTO { char pad[0xA4]; int xA4; };
@@ -545,8 +545,8 @@ void func_001A3B80(SWL *s, NODE *n, qword pos, float r, int bit)
     qword plane, td, tone;
     float dist;
     plane = n->plane;
-    func_002564B8(&d);
-    func_002564B8(&one);
+    InitVuTemp(&d);
+    InitVuTemp(&one);
     __asm__("vmul.xyz %1, %3, %4\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddaz.x $ACC, %0, %1z\n\tvmsubw.x %1, %0, %3w\n\tqmfc2.ni %2, %1"
             : "=&j"(tone), "=&j"(td), "=r"(dist) : "j"(plane), "j"(pos));
     one.q = tone;

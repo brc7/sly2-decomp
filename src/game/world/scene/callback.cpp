@@ -68,9 +68,9 @@ struct SW
 };
 
 extern "C" {
-void func_0011A070(SL *list, CALLBACK *callback);
+void AppendSlEntry(SL *list, CALLBACK *callback);
 void ClearSl(SL *list);
-int FIsSlEmpty(SL *list);
+int IsSlEmpty(SL *list);
 void RemoveSlEntry(SL *list, void *pv);
 int PtNew__t6CGcObj1Z6CFrame();
 SPF Attach__t7CRefPtr1Z6CFrameP6CFrame(int pv);
@@ -95,7 +95,7 @@ extern "C" void PostSwCallback(SW *world, CObj *object, PMFCB method, int arg)
     callback->object = object;
     callback->method = method;
     callback->argument = arg;
-    func_0011A070(&world->callbacks, callback);
+    AppendSlEntry(&world->callbacks, callback);
 }
 
 /** @sly2-annot addr=0x149AB8
@@ -139,7 +139,7 @@ extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *objec
         if ((matchFlags & 4) && arg != callback->argument)
             goto next;
         *link = callback->next;
-        func_0011CD98(&world->callbackPool, callback);
+        FreeSlotheapSlot(&world->callbackPool, callback);
         continue;
     next:
         link = &callback->next;
@@ -162,7 +162,7 @@ extern "C" void ClearSwCallbacks(SW *world, unsigned int matchFlags, CObj *objec
 // has come (EvalSpliceEventCallback), freeing each. Called once per frame by the world update.
 extern "C" void ProcessSwCallbacks(SW *world)
 {
-    while (!FIsSlEmpty(&world->callbacks))
+    while (!IsSlEmpty(&world->callbacks))
     {
         CALLBACK *callback = (CALLBACK *)world->callbacks.first;
         ClearSl(&world->callbacks);
@@ -171,7 +171,7 @@ extern "C" void ProcessSwCallbacks(SW *world)
             PMFCB method = callback->method;
             (callback->object->*method)(callback->argument);
             CALLBACK *next = callback->next;
-            func_0011CD98(&world->callbackPool, callback);
+            FreeSlotheapSlot(&world->callbackPool, callback);
             callback = next;
         }
     }
@@ -197,6 +197,6 @@ extern "C" void ProcessSwCallbacks(SW *world)
         CPair *ppair = spliceCallback->call;
         if (--ppair->cref == 0)
             delete ppair;
-        func_0011CD98(&world->spliceCallbackPool, spliceCallback);
+        FreeSlotheapSlot(&world->spliceCallbackPool, spliceCallback);
     }
 }

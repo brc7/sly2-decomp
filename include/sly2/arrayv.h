@@ -24,13 +24,13 @@
 struct CBinaryInputStream;
 
 extern "C" {
-void ArrayV_ListAppend(void *pdl, void *pv) __asm__("func_0011A070");          /* append pv to the list at pdl */
+void ArrayV_ListAppend(void *pdl, void *pv) __asm__("AppendSlEntry");          /* append pv to the list at pdl */
 void ArrayV_DynArrayAppend(void *pary, int cb, int c) __asm__("CDynArray_Append");
-unsigned int ArrayV_HashPchz(int pchz) __asm__("HashPchzCaseless");
+unsigned int ArrayV_HashPchz(int pchz) __asm__("HashStringCaseInsensitive");
 void *ArrayV_Memset(void *pv, int b, int cb) __asm__("memset");
 void *ArrayV_StackScopeCtor(void *pscope) __asm__("STACKSCOPE_ctor");
 void ArrayV_StackScopeDtor(void *pscope, int n) __asm__("_$_10STACKSCOPE");
-void *ArrayV_ScratchAlloc(void *pdesc) __asm__("PvAllocSlot__FP8ALLOCREQ");
+void *ArrayV_ScratchAlloc(void *pdesc) __asm__("AllocFromStack");
 int ArrayV_S32Read(void *pbis) __asm__("S32Read__18CBinaryInputStream");
 void ArrayV_Read(CBinaryInputStream *pbis, int cb, void *pv) __asm__("Read__18CBinaryInputStreamiPv");
 void ArrayV_Reserve(void *pary, int c) __asm__("Reserve__9CDynArrayi");
@@ -273,7 +273,7 @@ template <class T> void CHashIndex<T>::Clear()
 
 /* 0x2569F8: insert (key, value) under the key's caseless string hash (53 buckets on the first insert). */
 /** @sly2-annot addr=0x2569F8
- * Purpose: insert key/value (HashPchzCaseless of key), grow when empty [game linkonce (inline/template)]
+ * Purpose: insert key/value (HashStringCaseInsensitive of key), grow when empty [game linkonce (inline/template)]
  * Info: proposed name CHash_Insert (T2); TU game_linkonce
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4

@@ -115,8 +115,8 @@ extern LMV D_002BD4A0;
 extern float D_002BD4B0[3];
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
-RTE *func_001AE378(ALLOCREQ *preq);
-RTE *func_001AE238(ALLOCREQ *preq, RTE *pv);
+RTE *AllocClearedFromStack(ALLOCREQ *preq);
+RTE *AllocCopyFromWorldHeap(ALLOCREQ *preq, RTE *pv);
 void LoadLoFromBrx(ROUTE *proute, void *pbis);
 void PostLoLoad(ROUTE *proute);
 SHAPEV *func_001E94B0(int oid, int c);
@@ -190,10 +190,10 @@ extern "C" void LoadRouteFromBrx(ROUTE *route, void *pbis)
     ALLOCREQ s;
     STACKSCOPE_ctor(&f);
     InitS(&s, 0x100, 0x10);
-    route->stations = func_001AE378(&s);
+    route->stations = AllocClearedFromStack(&s);
     LoadLoFromBrx(route, pbis);
     InitS(&s, route->stationCount, 0x10);
-    route->stations = func_001AE238(&s, route->stations);
+    route->stations = AllocCopyFromWorldHeap(&s, route->stations);
     STACKSCOPE_ctor_1AE4A0(&f, 2);
 }
 

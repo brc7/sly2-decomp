@@ -123,10 +123,10 @@ void RemoveLoHierarchy(CID119V *p);
 void SetLoBusyk(CID119V *p, int n);
 SCOPE *STACKSCOPE_ctor(SCOPE *pscope);
 void STACKSCOPE_ctor_1AE4A0(SCOPE *pscope, int n) __asm__("_$_10STACKSCOPE");
-void *func_001AE378(AI *pa);
-void *PvAllocSlot__FP8ALLOCREQ(AI *pa);
-void *func_001AE238(AI *pa, void *pv);
-void *func_001AE2A0(AI *pa);
+void *AllocClearedFromStack(AI *pa);
+void *AllocFromStack(AI *pa);
+void *AllocCopyFromWorldHeap(AI *pa, void *pv);
+void *AllocClearedFromWorldHeap(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void AddGuardScriptGoto(SCRIPTV *o, int a, int b, int c);
 int ShouldKeepSoNotSelfSlot62(void);
@@ -145,7 +145,7 @@ float SMaxShape(LOV *);
 int func_001EA3B0(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
-M3 func_0011B500(float, qwordV);
+M3 BuildAxisAngleRotationMatrix(float, qwordV);
 GUARDV *AcquireProxyObject(void *p, int n);
 void *func_00205458(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
@@ -176,13 +176,13 @@ extern "C" void LoadSpawnerFromBrx(CID119V *spawner, void *pv) {
     SCOPE mk;
     AI ai;
     STACKSCOPE_ctor(&mk);
-    spawner->selectors = (SEL *)func_001AE378(SetAi(&ai, 0xE00, 0x10));
-    spawner->offsets = (qwordV *)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x100, 0x10));
-    spawner->templates = (LOV **)PvAllocSlot__FP8ALLOCREQ(SetAi(&ai, 0x20, 0x10));
+    spawner->selectors = (SEL *)AllocClearedFromStack(SetAi(&ai, 0xE00, 0x10));
+    spawner->offsets = (qwordV *)AllocFromStack(SetAi(&ai, 0x100, 0x10));
+    spawner->templates = (LOV **)AllocFromStack(SetAi(&ai, 0x20, 0x10));
     AddSpawnerOffset(spawner, D_002A2DD0);
     LoadLoFromBrx(spawner, pv);
-    spawner->selectors = (SEL *)func_001AE238(SetAi(&ai, spawner->selectorCount * 0x1C, 0x10), spawner->selectors);
-    { void *pv9C = func_001AE238(SetAi(&ai, spawner->offsetCount << 4, 0x10), spawner->offsets); void *pv94 = spawner->templates; spawner->offsets = (qwordV *)pv9C; spawner->templates = (LOV **)func_001AE238(SetAi(&ai, 0x20, 0x10), pv94); }
+    spawner->selectors = (SEL *)AllocCopyFromWorldHeap(SetAi(&ai, spawner->selectorCount * 0x1C, 0x10), spawner->selectors);
+    { void *pv9C = AllocCopyFromWorldHeap(SetAi(&ai, spawner->offsetCount << 4, 0x10), spawner->offsets); void *pv94 = spawner->templates; spawner->offsets = (qwordV *)pv9C; spawner->templates = (LOV **)AllocCopyFromWorldHeap(SetAi(&ai, 0x20, 0x10), pv94); }
     STACKSCOPE_ctor_1AE4A0(&mk, 2);
 }
 
@@ -260,7 +260,7 @@ extern "C" void PostSpawnerLoad(CID119V *spawner) {
     }
     al.cb = spawner->entryCapacity * 0x30;
     al.align = 0x10;
-    spawner->entries = (ENTRY *)func_001AE2A0(&al);
+    spawner->entries = (ENTRY *)AllocClearedFromWorldHeap(&al);
     SetLoBusyk(spawner, 1);
     f = spawner->objectFlags;
     if ((f ^ 1) & 1) *(int *)f |= 2;
@@ -658,7 +658,7 @@ extern "C" SEL *ChooseSpawnerSpawnPoint(CID119V *pset, qwordV pos, qwordV *pposO
                             VU_FLOAT gNeg = VuFloatFromMemWord(0xBF800000);
                             dirCurve.q = QwScaleX(dirCurve.q, gNeg);
                         }
-                        M3 matCurve = func_0011B500(atan2f(dirCurve.v.y, dirCurve.v.x), D_002A2DC0);
+                        M3 matCurve = BuildAxisAngleRotationMatrix(atan2f(dirCurve.v.y, dirCurve.v.x), D_002A2DC0);
                         int j;
                         for (j = 0; j < pset->offsetCount; j++)
                         {

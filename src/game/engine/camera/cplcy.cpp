@@ -733,7 +733,7 @@ void PauseSnd(struct SND *p);
 qword PosSmooth(qword a, qword b, float g, void *p, int n);
 void LoadRotateMatrixEuler(M3 *pm, qword v);
 void SmoothMatrix(M3 *a, M3 *b, void *p, M3 *out, int n, float g);
-qword func_0011BFF0(M3 *pm);
+qword DecomposeRotationMatrixToEuler(M3 *pm);
 float RadSmooth__FfffP3SMPPf(void *p, int n, float a, float b, float c);
 qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(struct CM *p, M4 *m);
@@ -796,7 +796,7 @@ void UpdateCpzoom(struct X *p)
         LoadRotateMatrixEuler(&m90, p->q90);
         m30 = m90;
         SmoothMatrix(&m0, &m30, D_002BD9D8, &m60, 0, D_002DDED0.dt);
-        p->q60 = func_0011BFF0(&m60);
+        p->q60 = DecomposeRotationMatrixToEuler(&m60);
         p->g70 = RadSmooth__FfffP3SMPPf(D_002BD9E8, 0, p->g70, p->gA0, D_002DDED0.dt);
         {
         M4 *pm4 = &m4;
@@ -1471,7 +1471,7 @@ void UpdateCplcy(X *p);
 M3 MulMatrix3Matrix3(M4 *pm, M3 *pm2);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3 *pm, float *pg, qword *pv);
 float GSmooth__FfffP3SMPPf(float gCur, float gTarget, float dt, void *psmp, float *pdgNext); /* GSmooth */
-M3 func_0011B500(qword v, float g);
+M3 BuildAxisAngleRotationMatrix(qword v, float g);
 qword *VECTOR_opAssign(qword *p, qword v);
 void SetCmMat4(CM *p, M4 *m);
 void SetCmFov__FP2CMf(CM *p, float g);
@@ -1531,7 +1531,7 @@ void UpdateCpturret(X *p)
             mNew = m.m3;
         } else {
             float g = GSmooth__FfffP3SMPPf(rad, 0.0f, D_002DDED0.dt, D_002BDAB0, 0);
-            mNew = Mul(func_0011B500(axis.q, g), m.m3);
+            mNew = Mul(BuildAxisAngleRotationMatrix(axis.q, g), m.m3);
         }
         qword d = Sub(D_002DDF40.pos, m.q.r[3]);
         float dist = Length(d);

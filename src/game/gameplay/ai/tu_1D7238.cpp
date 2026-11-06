@@ -58,8 +58,8 @@ extern "C" {
 void InitPo(SAFEHOUSEV *ppo);
 void PostSoLoad(SAFEHOUSEV *object);
 void UpdateSo(SAFEHOUSEV *object);
-int DxSelectionJoy(void *pjoy);
-int GrfHandleJoyBtn(void *pjoy, int grf);
+int GetJoySelectionStepX(void *pjoy);
+int HandleJoyButtons(void *pjoy, int grf);
 void *func_001F07E8(SMA *psma);
 void SetThiefnetTab(void *pv, int n);
 void FireRelay(SAFEHOUSEV *prelay, int n);
@@ -120,7 +120,7 @@ extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
         joystick = D_002DFC00;
     else
         joystick = D_002E0D00;
-    selectionDelta = DxSelectionJoy(joystick);
+    selectionDelta = GetJoySelectionStepX(joystick);
     if (selectionDelta == 0) {
         for (i = 0; ; i++) {
             SAFEHOUSEV *relay;
@@ -129,7 +129,7 @@ extern "C" void UpdateSafehouse(SAFEHOUSEV *safehouse)
                 return;
             if (binding->state != func_001F07E8(safehouse->stateMachineAnim))
                 continue;
-            if (!GrfHandleJoyBtn(joystick, binding->buttonMask))
+            if (!HandleJoyButtons(joystick, binding->buttonMask))
                 continue;
             if (binding->oid == -1)
                 continue;

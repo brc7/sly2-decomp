@@ -1,5 +1,7 @@
 // bez.cpp -- cubic Hermite ("bezier") evaluation of a scalar, a position and an orientation, VU0 macro-mode asm.
-// TU 0x117030..0x1177A8 (5 functions, address order).
+// Each segment runs from (value0, slope0) to (value1, slope1) over dt seconds; t is the time into the segment. The
+// animation and path code samples keyframe curves with these. Entry points: EvaluateBezierFloat,
+// EvaluateBezierPos, EvaluateBezierMat. TU 0x117030..0x1177A8 (5 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bez
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00117788
 #include "sly2/slotheap.h"
@@ -18,13 +20,13 @@ struct VU_FLOAT {
     VU_FLOAT(float f) { __asm__("mfc1 %0, %1" : "=r"(q) : "f"(f)); }
 };
 extern "C" {
-void func_0011B570(M3 *pm, qword v);
+void BuildRotationMatrixFromVector(M3 *pm, qword v);
 M3 *MulMatrix3Matrix3(M3 *pr, M3 *pa, M3 *pb);
-qword func_0011BFB8(M3 *pm);
+qword DecomposeRotationMatrixToVector(M3 *pm);
 }
 static inline M3 Rot(qword v) return m
 {
-    func_0011B570(&m, v);
+    BuildRotationMatrixFromVector(&m, v);
 }
 static inline qword VF(float g)
 {
@@ -68,24 +70,26 @@ static inline void MulP(M3 *pm, const M3 &a, const M3 *pb)
  *   docs/reference/functions/core-library.md#bez-0x117030-0x1177a8,
  *   docs/reference/tu-map.md#tu-map-address-range---source-file
  * @end-sly2-annot */
-extern "C" void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, float dtScale, float g0, float dg0, float g1, float dg1)
+// Evaluates a scalar Hermite segment from (value0, slope0) to (value1, slope1) over dt at time t: writes the
+// value and/or the slope (the slope multiplied by dtScale), each optional.
+extern "C" void EvaluateBezierFloat(float *outValue, float *outSlope, float dt, float t, float dtScale, float value0, float slope0, float value1, float slope1)
 {
-    float dg;
-    float v;
+    float delta;
+    float s;
     t = t / dt;
-    dg = g1 - g0;
-    v = 1.0f - t;
-    if (pg) {
-        float uv2 = t * v * v;
+    delta = value1 - value0;
+    s = 1.0f - t;
+    if (outValue) {
+        float uv2 = t * s * s;
         float u2 = t * t;
-        float u2v = u2 * v;
+        float u2v = u2 * s;
         float u3c = u2 * t;
-        *pg = (v * v * v + uv2 * 3.0f) * g0 + uv2 * dt * dg0 - u2v * dt * dg1 + (u3c + u2v * 3.0f) * g1;
+        *outValue = (s * s * s + uv2 * 3.0f) * value0 + uv2 * dt * slope0 - u2v * dt * slope1 + (u3c + u2v * 3.0f) * value1;
     }
-    if (pdg) {
-        float v6 = v * 6.0f;
+    if (outSlope) {
+        float v6 = s * 6.0f;
         float u3 = t * 3.0f;
-        *pdg = ((t * v6) / dt * dg + (1.0f - t * (4.0f - u3)) * dg0 + t * (u3 + -2.0f) * dg1) * dtScale;
+        *outSlope = ((t * v6) / dt * delta + (1.0f - t * (4.0f - u3)) * slope0 + t * (u3 + -2.0f) * slope1) * dtScale;
     }
 }
 
@@ -98,13 +102,15 @@ extern "C" void EvaluateBezierFloat(float *pg, float *pdg, float dt, float t, fl
  * See: docs/engine/animation.md#animation-format-summary-anim_lab-v31,
  *   docs/engine/core-library.md#7-key-functions, docs/MATCHING_NOTES.md#junk-list-correction
  * @end-sly2-annot */
-extern "C" void EvaluateBezierPos(qword p0, qword v0, qword p1, qword v1, float dt, float t, float dtScale, qword *ppos, qword *pvel, qword *pacc)
+// Evaluates a position Hermite segment from (pos0, vel0) to (pos1, vel1) over dt at time t; writes the position, velocity
+// and acceleration through the optional out-pointers.
+extern "C" void EvaluateBezierPos(qword pos0, qword vel0, qword pos1, qword vel1, float dt, float t, float dtScale, qword *outPos, qword *outVel, qword *outAcc)
 {
     float v;
     U tmp;
     t = t / dt;
     v = 1.0f - t;
-    if (ppos) {
+    if (outPos) {
         float uv2 = t * v * v;
         float u2 = t * t;
         float u2v = u2 * v;
@@ -117,33 +123,33 @@ extern "C" void EvaluateBezierPos(qword p0, qword v0, qword p1, qword v1, float 
         *(volatile qword *)&tmp.q = h00;
         *(volatile qword *)&tmp.q = h10;
         __asm__("vmulax.xyzw $ACC, %1, %5x\n\tvmaddax.xyzw $ACC, %2, %6x\n\tvmaddax.xyzw $ACC, %3, %7x\n\tvmaddx.xyzw %0, %4, %8x"
-                : "=j"(r) : "j"(p0), "j"(v0), "j"(v1), "j"(p1), "j"(h00), "j"(h10), "j"(h11), "j"(h01));
+                : "=j"(r) : "j"(pos0), "j"(vel0), "j"(vel1), "j"(pos1), "j"(h00), "j"(h10), "j"(h11), "j"(h01));
         *(volatile qword *)&tmp.q = h11;
-        *ppos = r;
+        *outPos = r;
         *(volatile qword *)&tmp.q = h01;
     }
-    if (pvel) {
+    if (outVel) {
         qword dp, s, w0, w1, w2, r, r2;
         float v6 = 6.0f - t * 6.0f;
         float u3 = t * 3.0f;
         s = VuFromFloat<qword>(dtScale);
-        dp = VuSub(p1, p0);
+        dp = VuSub(pos1, pos0);
         *(volatile qword *)&tmp.q = s;
         w2 = VuFromFloat<qword>(t * (u3 + -2.0f));
         w0 = VuFromFloat<qword>(t * v6 / dt);
         *(volatile qword *)&tmp.q = w0;
         w1 = VuFromFloat<qword>(1.0f - t * (4.0f - u3));
         __asm__("vmulax.xyzw $ACC, %4, %1x\n\tvmaddax.xyzw $ACC, %5, %2x\n\tvmaddx.xyzw %0, %6, %3x"
-                : "=j"(r) : "j"(w0), "j"(w1), "j"(w2), "j"(dp), "j"(v0), "j"(v1));
+                : "=j"(r) : "j"(w0), "j"(w1), "j"(w2), "j"(dp), "j"(vel0), "j"(vel1));
         *(volatile qword *)&tmp.q = w1;
         __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(s), "j"(r));
         *(volatile qword *)&tmp.q = w2;
-        *pvel = r2;
+        *outVel = r2;
     }
-    if (pacc) {
+    if (outAcc) {
         qword dp, s, w0, w1, w2, r, r2;
         float u6 = t * 6.0f;
-        dp = VuSub(p1, p0);
+        dp = VuSub(pos1, pos0);
         s = VuFromFloat<qword>(dtScale * dtScale / dt);
         w1 = VuFromFloat<qword>(u6 - 4.0f);
         *(volatile qword *)&tmp.q = s;
@@ -151,10 +157,10 @@ extern "C" void EvaluateBezierPos(qword p0, qword v0, qword p1, qword v1, float 
         w0 = VuFromFloat<qword>((6.0f - t * 12.0f) / dt);
         *(volatile qword *)&tmp.q = w0;
         __asm__("vmulax.xyzw $ACC, %4, %1x\n\tvmaddax.xyzw $ACC, %5, %2x\n\tvmaddx.xyzw %0, %6, %3x"
-                : "=j"(r) : "j"(w0), "j"(w1), "j"(w2), "j"(dp), "j"(v0), "j"(v1));
+                : "=j"(r) : "j"(w0), "j"(w1), "j"(w2), "j"(dp), "j"(vel0), "j"(vel1));
         __asm__("vmulx.xyzw %0, %2, %1x" : "=j"(r2) : "j"(s), "j"(r));
         *(volatile qword *)&tmp.q = w1;
-        *pacc = r2;
+        *outAcc = r2;
         *(volatile qword *)&tmp.q = w2;
     }
 }
@@ -173,47 +179,49 @@ extern "C" void EvaluateBezierPos(qword p0, qword v0, qword p1, qword v1, float 
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#bez-0x117030-0x1177a8
  * @end-sly2-annot */
-extern "C" void EvaluateBezierMat(float dt, float t, float gScale, M3 *pmat0, qword w0, M3 *pmat1, qword w1, M3 *pmatOut, qword *pwOut)
+// Interpolates an orientation from (mat0, angular velocity w0) to (mat1, w1) over dt at time t (Hermite in the
+// relative rotation's angle about its axis); writes the blended matrix and/or the angular velocity.
+extern "C" void EvaluateBezierMat(float dt, float t, float scale, M3 *mat0, qword w0, M3 *mat1, qword w1, M3 *outMatrix, qword *outAngularVelocity)
 {
     float u = t / dt;
     float v = 1.0f - u;
-    if (pmatOut) {
+    if (outMatrix) {
         float u2 = u * u;
         float h2 = u2 * v;
         float u3 = u2 * u;
         M3 a, b, rel, rot;
         qword w;
-        func_0011B570(&rot, Scale(w0, VF(u * v * v * dt)));
-        MulP(&rel, rot, pmat0);
+        BuildRotationMatrixFromVector(&rot, Scale(w0, VF(u * v * v * dt)));
+        MulP(&rel, rot, mat0);
         a = rel;
-        func_0011B570(&rot, Scale(w1, VF(-h2 * dt)));
-        MulP(&rel, rot, pmat1);
+        BuildRotationMatrixFromVector(&rot, Scale(w1, VF(-h2 * dt)));
+        MulP(&rel, rot, mat1);
         b = rel;
         MulMatrix3Matrix3(&rel, &a, &b);
-        w = func_0011BFB8(&rel);
-        func_0011B570(&rot, Scale(w, VF(h2 * (3.0f - dt) + u3)));
+        w = DecomposeRotationMatrixToVector(&rel);
+        BuildRotationMatrixFromVector(&rot, Scale(w, VF(h2 * (3.0f - dt) + u3)));
         MulP(&rel, rot, &a);
-        *pmatOut = rel;
+        *outMatrix = rel;
     }
-    if (pwOut) {
+    if (outAngularVelocity) {
         qword k = VU_FLOAT(u * (6.0f - u * 6.0f) / dt).q;
         qword w;
         {
             M3 rel;
-            MulMatrix3Matrix3(&rel, pmat0, pmat1);
-            w = func_0011BFB8(&rel);
+            MulMatrix3Matrix3(&rel, mat0, mat1);
+            w = DecomposeRotationMatrixToVector(&rel);
         }
         float h = u * 3.0f;
         M3 us;
         register qword sc __asm__("vf2"); /* pin */
-        sc = VuFromFloat<qword>(gScale);
+        sc = VuFromFloat<qword>(scale);
         us.r[0] = sc;
         qword kb = VuFromFloat<qword>(u * (h + -2.0f));
         qword ka = VF(1.0f - u * (4.0f - h));
         qword r;
         __asm__("vmulax.xyzw $ACC, %2, %1x\n\tvmaddax.xyzw $ACC, %3, %4x\n\tvmaddx.xyzw %0, %5, %6x"
                 : "=j"(r) : "j"(k), "j"(w), "j"(w0), "j"(ka), "j"(w1), "j"(kb), "j"(k)); /* last "j"(k): allocation-only operand */
-        *pwOut = ScaleT(r, sc);
+        *outAngularVelocity = ScaleT(r, sc);
         { U s2; s2.q = kb; }
     }
 }

@@ -194,13 +194,13 @@ extern "C" {
 void InitPlaneFromPositions(UQ *, qwordV, qwordV, qwordV);
 void InitPlaneFromNormalPos(UQ *, qwordV, qwordV);
 UQ *func_002564C0(UQ *);
-UQ *func_002564B8(UQ *);
+UQ *InitVuTemp(UQ *);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(REQ *);
+void *AllocFromStack(REQ *);
 int FFilterCamera(void *, O *);
 void IntersectSwBoundingBox(SW *, qwordV, qwordV, int (*)(void *, O *), void *, int *, O ***);
-int func_00118D08(NODE *, NODE *, int, UQ *, int *, FACE ***);
+int CollectBspSurfacesTouchingPolygon(NODE *, NODE *, int, UQ *, int *, FACE ***);
 }
 static inline qwordV QI(int i)
 { qwordV r; __asm__("qmtc2.ni %1,%0" : "=j"(r) : "rV"(i)); return r; }
@@ -235,8 +235,8 @@ static inline float LenXY(qwordV v)
 static inline float PlaneDistA(UQ &r, UQ &one, qwordV plane, qwordV pos)
 {
     qwordV g, o;
-    func_002564B8(&r);
-    func_002564B8(&one);
+    InitVuTemp(&r);
+    InitVuTemp(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
     float f = VuToFloat(g);
@@ -248,8 +248,8 @@ static inline float PlaneDistA(UQ &r, UQ &one, qwordV plane, qwordV pos)
 static inline float PlaneDistB(UQ &r, UQ &one, qwordV plane, qwordV pos)
 {
     qwordV g, o;
-    func_002564B8(&r);
-    func_002564B8(&one);
+    InitVuTemp(&r);
+    InitVuTemp(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
     float f = FQ(g);
@@ -262,8 +262,8 @@ static inline float PlaneDistB(UQ &r, UQ &one, qwordV plane, qwordV pos)
 static inline float PlaneDistS(UQ &r, UQ &one, qwordV plane, qwordV pos)
 {
     qwordV g, o;
-    func_002564B8(&r);
-    func_002564B8(&one);
+    InitVuTemp(&r);
+    InitVuTemp(&one);
     __asm__("vmul.xyz %0,%2,%3\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddaz.x ACC,%1,%0z\n\tvmsubw.x %0,%1,%2w"
             : "=j"(g), "=j"(o) : "j"(plane), "j"(pos));
     float f = FQ(g);
@@ -356,7 +356,7 @@ extern "C" void func_0022A220(O *po)
     REQ *preq = (REQ *)&tmp;
     preq->cb = 0x10000;
     preq->align = 16;
-    apface = (FACE **)PvAllocSlot__FP8ALLOCREQ(preq);
+    apface = (FACE **)AllocFromStack(preq);
     qwordV k2 = QI(D_002C4490);
     tmp.q = k2;
     IntersectSwBoundingBox(&D_003DD490, Min(posCam, posSrc), AddUp(Max(posCam, posSrc), D_002A2DC0, k2),
@@ -370,7 +370,7 @@ extern "C" void func_0022A220(O *po)
         cface = 0x4000;
         ppface = apface;
         TREE *ptree = &pso->tree;
-        int res = func_00118D08(ptree->anode, ptree->anode + ptree->cnode, 4, corner, &cface, &ppface);
+        int res = CollectBspSurfacesTouchingPolygon(ptree->anode, ptree->anode + ptree->cnode, 4, corner, &cface, &ppface);
         switch (res) { case 0: STACKSCOPE_ctor_1AE4A0(&frame, 2); return; case 1: continue; case 2: break; }
         c = ppface - apface;
         UQ d[6][2];

@@ -140,8 +140,8 @@ extern "C" void RemoveSwAaobrObject(SW *p, X *px)
             FreeSwXpList__FP2SWP2XP(p, pl->pv);
         }
         plNext = pl->pnext;
-        func_0011CD98(&p->poolPox, pl);
-        func_0011CD98(&p->poolPox, pl2);
+        FreeSlotheapSlot(&p->poolPox, pl);
+        FreeSlotheapSlot(&p->poolPox, pl2);
     }
     /* five empty asms: lengthen p's live range (global-alloc priority), emulating the original insn count here */
     __asm__ __volatile__("");
@@ -180,7 +180,7 @@ extern "C" void RemoveSwAaobrObject(SW *p, X *px)
     }
     }
     p->c -= 2;
-    func_0011CD98(&p->poolAaobr, px);
+    FreeSlotheapSlot(&p->poolAaobr, px);
 }
 
 /** @sly2-annot addr=0x133A38
@@ -237,8 +237,8 @@ extern "C" void UpdateSwPox(SW *p, X *px1, X *px2, int k)
             if (!VCALL(pl2->po, 62, int (*)(void *))))
                 func_001F5078(pl2->po);
         }
-        func_0011CD98(&p->poolPox, pl1);
-        func_0011CD98(&p->poolPox, pl2);
+        FreeSlotheapSlot(&p->poolPox, pl1);
+        FreeSlotheapSlot(&p->poolPox, pl2);
         pl = 0;
     }
     if (pl) {

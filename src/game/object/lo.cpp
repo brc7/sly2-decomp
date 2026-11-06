@@ -114,7 +114,7 @@ struct S { char pad[0x14]; void *pv; };
 int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
 void RemoveFromSwBusyList(void *, void *);
-void func_0011CD98(void *, void *);
+void FreeSlotheapSlot(void *, void *);
 /** @sly2-annot addr=0x1A53E0
  * Purpose: Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool
  *   g_sw+0x398C, clear x14
@@ -130,7 +130,7 @@ void FreeLoroot(struct S *p)
     if (FFindDlEntry__FP2DLPv(pdl, p->pv))
         RemoveDlEntry__FP2DLPv(pdl, p->pv);
     RemoveFromSwBusyList(D_003DD490, p->pv);
-    func_0011CD98(D_003DD490 + 0x398C, p->pv);
+    FreeSlotheapSlot(D_003DD490 + 0x398C, p->pv);
     p->pv = 0;
 }
 } } // namespace M_FreeLoroot
@@ -1074,7 +1074,7 @@ static __inline__ qword Make(float x, float y, float z)
     return q;
 }
 extern void *GetLoWorldMatrix(void);
-extern qword func_0011BFF0(void *p);
+extern qword DecomposeRotationMatrixToEuler(void *p);
 /** @sly2-annot addr=0x1A6340
  * Purpose: Decompose PmatLoWorld into Euler angles (0x11BFF0) and convert rad->deg (57.2958)
  * Info: proposed name GetLoEulerDeg (T2); TU lo
@@ -1085,7 +1085,7 @@ extern qword func_0011BFF0(void *p);
 qword GetLoEulerDegrees(void)
 {
     union { qword q; float f; } r;
-    qword v = func_0011BFF0(GetLoWorldMatrix());
+    qword v = DecomposeRotationMatrixToEuler(GetLoWorldMatrix());
     r.q = Make(GetX(v) * 57.2957763671875f, GetY(v) * 57.2957763671875f, GetZ(v) * 57.2957763671875f);
     return r.q;
 }
@@ -1331,7 +1331,7 @@ void func_00257250(void*,int) __asm__("_$_t7CRefPtr1Z5CVarb");
 void Decref__4CRef(void*);
 void Unlink__t6CGcObj1Z5CVarb(void*);
 void Unlink__t6CGcObj1Z8CSidebag(void*);
-void func_0011CD98(void*,void*);
+void FreeSlotheapSlot(void*,void*);
 void func_00257078(ROOT*,int) __asm__("_$_6CFrame");
 void func_002580A8(FIELD**,FIELD*);
 void FramePtr_Assign(ROOT**,ROOT*) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
@@ -1339,18 +1339,18 @@ int MakeRoot__t6CGcObj1Z8CSidebag(FIELD*);
 int MakeRoot__t6CGcObj1Z6CFrame(ROOT*);
 RF CSidebag_CloneTo(FIELD*,P*);
 RR CFrame_CloneTo(ROOT*,P*);
-void*func_001AE238(REQUEST*,void*);
+void*AllocCopyFromWorldHeap(REQUEST*,void*);
 void ClearSle(int*);
 void ClearSl(void*);
-void func_0011A070(void*,NODE*);
+void AppendSlEntry(void*,NODE*);
 void*GetSwProxyRefBucket(G*,int);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
-struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);Decref__4CRef(b->cref);Unlink__t6CGcObj1Z5CVarb(b);func_0011CD98(D_004520D0,b);}Unlink__t6CGcObj1Z8CSidebag(f);func_0011CD98(D_00452148,f);}}};
+struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);Decref__4CRef(b->cref);Unlink__t6CGcObj1Z5CVarb(b);FreeSlotheapSlot(D_004520D0,b);}Unlink__t6CGcObj1Z8CSidebag(f);FreeSlotheapSlot(D_00452148,f);}}};
 struct RR{ROOT*p;RR(){}RR(const RR&r):p(r.p){if(p)++p->refs;}~RR(){ROOT*r=p;if(r&&!--r->refs)func_00257078(r,3);}};
 typedef char FieldRefSize[sizeof(RF)==4?1:-1];
 typedef char RootRefSize[sizeof(RR)==4?1:-1];
-static inline NODE*CopyNode(int bytes,REQUEST*r,NODE*n){r->bytes=bytes;r->alignment=16;return(NODE*)func_001AE238(r,n);}
+static inline NODE*CopyNode(int bytes,REQUEST*r,NODE*n){r->bytes=bytes;r->alignment=16;return(NODE*)AllocCopyFromWorldHeap(r,n);}
 static inline META*Type(P*p){VE*v=&p->vt[6];return v->type((P*)((char*)p+v->delta));}
 /** @sly2-annot addr=0x1A6730
  * Purpose: LO vt41 Clone(ploBase): copy Splice frame/sidebag refs, scale, flag bits, tag word, x34; clone
@@ -1391,9 +1391,9 @@ extern "C" void CloneLo(P*object,const P*source){
             ClearSle(&copy->chain);
             ClearSle(&copy->link);
             ClearSl(copy->list);
-            func_0011A070(copy->next->list,copy);
+            AppendSlEntry(copy->next->list,copy);
             void*list=GetSwProxyRefBucket(&D_003DD490,copy->key);
-            func_0011A070(list,copy);
+            AppendSlEntry(list,copy);
         }
     }
     CopyAb__FPvT0Ui(dst,src,Type(object)->bytes-0x50);

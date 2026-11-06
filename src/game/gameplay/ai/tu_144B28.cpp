@@ -597,7 +597,7 @@ extern "C" {
 extern qword D_002A2DC0;
 qword GetLoWorldPos(void *p);
 M3 *GetLoWorldMatrix(void *p);
-M3 func_0011B500(qword axis, float g);
+M3 BuildAxisAngleRotationMatrix(qword axis, float g);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
 E *GetBhvfollowLeaderGround(P *p);
 int func_001C02D0(E *pe, qword r, qword v, B *pb);
@@ -649,7 +649,7 @@ void UpdateBhvfollowPosition(P *behavior)
     behavior->q50 = GetLoWorldPos(behavior->po);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(behavior->po, 0x33)) {
         O *po = behavior->po;
-        u.s.m = func_0011B500(D_002A2DC0, po->g1A8);
+        u.s.m = BuildAxisAngleRotationMatrix(D_002A2DC0, po->g1A8);
         u.s.pos = AddScaled(behavior->q50, VU_FLOAT(-behavior->g68), MulM3(u.s.m, po->q190));
     } else {
         O *po;

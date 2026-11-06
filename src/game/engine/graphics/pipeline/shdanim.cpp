@@ -68,10 +68,10 @@ void Read__18CBinaryInputStreamiPv(void *pbis, int cb, char *buf);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, int cb);
 void ClearSl(SLV *psl);
 void ClearSle(void *psle);
-void func_0011A050(SLV *psl, int ib);
-void func_0011A070(SLV *psl, void *pv);
+void InitSl(SLV *psl, int ib);
+void AppendSlEntry(SLV *psl, void *pv);
 void PrependSlEntry(SLV *psl, void *pv);
-int FIsSlEmpty(SLV *psl);
+int IsSlEmpty(SLV *psl);
 void UnpackHelper__4VIFS3UPKiiPiPPUi(void *a, int b, int c, void *d, SAIE *pe, int *pb);
 void func_001EC718(SAIE *pe);
 float GRandInRange__Fff(float gLow, float gHigh);
@@ -126,7 +126,7 @@ extern "C" SAAV *func_001ED850(SAAV *p) {
     CopyAb__FPvT0Ui(pNew, p, pcls->cb);
     ClearSl(&pNew->slsaie);
     ClearSle(&pNew->pnext);
-    func_0011A070((SLV *)&g_sw.slSaa, pNew);
+    AppendSlEntry((SLV *)&g_sw.slSaa, pNew);
     return pNew;
 }
 
@@ -144,9 +144,9 @@ void SAA::VSlot7(SAAF *q)   /* key function: SAA's vtable comes out here */
     p->n18 = q->b;
     p->n20 = q->c;
     p->cframe = q->d;
-    func_0011A050(&p->slsaie, 0x10);
+    InitSl(&p->slsaie, 0x10);
     if (p->powner == 0) PrependSlEntry((SLV *)&g_sw.slSaa, p);
-    else func_0011A070((SLV *)&g_sw.slSaa, p);
+    else AppendSlEntry((SLV *)&g_sw.slSaa, p);
 }
 
 /** @sly2-annot addr=0x1ED960
@@ -224,7 +224,7 @@ static inline int Clamp(int n, int lo, int hi)
 void SetSaiIframe(SAAV *p, int n)
 {
     unsigned short i;
-    if (FIsSlEmpty(&p->slsaie)) return;
+    if (IsSlEmpty(&p->slsaie)) return;
     i = Clamp(n, 0, p->cframe - 1);
     if (p->iframe != i) {
         p->iframe = i;
@@ -243,7 +243,7 @@ static inline int IFromG(float g) { return (int)(g * 4096.0f + 0.5f) & 0xFFF; }
 void SetSaiDuDv(SAAV *p, float du, float dv)
 {
     int u, v;
-    if (FIsSlEmpty(&p->slsaie)) return;
+    if (IsSlEmpty(&p->slsaie)) return;
     u = IFromG(du);
     v = IFromG(dv);
     if (p->du == u && p->dv == v) return;
@@ -294,7 +294,7 @@ void LOOP::VSlot7(SAAF *psaa)
 void UpdateLoop(LOOPV *ploop, float dt) __asm__("UpdateLoop__FP4LOOPf");
 void UpdateLoop(LOOPV *ploop, float dt)
 {
-    if (FIsSlEmpty(&ploop->slsaie))
+    if (IsSlEmpty(&ploop->slsaie))
         return;
     if (ploop->cframe < 2)
         return;
@@ -358,7 +358,7 @@ void PINGPONG::VSlot7(SAAF *psaa)
 void UpdatePingpong(PINGPONGV *ppingpong, float dt) __asm__("UpdatePingpong__FP8PINGPONGf");
 void UpdatePingpong(PINGPONGV *ppingpong, float dt)
 {
-    if (FIsSlEmpty(&ppingpong->slsaie) || ppingpong->cframe < 2)
+    if (IsSlEmpty(&ppingpong->slsaie) || ppingpong->cframe < 2)
         return;
     if (ppingpong->dtPauseRemaining > 0.0f)
     {
@@ -431,7 +431,7 @@ void SHUFFLE::VSlot7(SAAF *psaaf)
 void UpdateShuffle(SHUFFLEV *pshuffle, float dt) __asm__("UpdateShuffle__FP7SHUFFLEf");
 void UpdateShuffle(SHUFFLEV *pshuffle, float dt)
 {
-    if (FIsSlEmpty(&pshuffle->slsaie) || pshuffle->cframe < 2)
+    if (IsSlEmpty(&pshuffle->slsaie) || pshuffle->cframe < 2)
         return;
     if (pshuffle->dtPause > 0.0f)
     {
@@ -500,7 +500,7 @@ void SetEyesEyess(EYESV *peyes, EYESS eyess)
 void EYES::VSlot8()
 {
     EYESV *peyes = (EYESV *)this;
-    if (FIsSlEmpty(&peyes->slsaie) || peyes->cframe < 2)
+    if (IsSlEmpty(&peyes->slsaie) || peyes->cframe < 2)
         return;
     EYESS eyessNext = peyes->eyess;
     switch (peyes->eyess)
@@ -593,7 +593,7 @@ void SCROLLER::VSlot8()
 {
     SCROLLERV *p = (SCROLLERV *)this;
     float du, dv;
-    if (FIsSlEmpty(&p->slsaie)) return;
+    if (IsSlEmpty(&p->slsaie)) return;
     du = fmodf(p->du * (1.0f / 4096.0f) + p->duSpeed * p->su * D_002DDED0.dt, p->duMax);
     dv = fmodf(p->dv * (1.0f / 4096.0f) + p->dvSpeed * p->sv * D_002DDED0.dt, p->dvMax);
     SetSaiDuDv(p, du, dv);
@@ -653,7 +653,7 @@ void CIRCLER::VSlot7(SAAF *psaaf) { CIRCLERV *p = (CIRCLERV *)this;
 void UpdateCircler(CIRCLERV *pcircler, float dt) __asm__("UpdateCircler__FP7CIRCLERf");
 void UpdateCircler(CIRCLERV *pcircler, float dt)
 {
-    if (FIsSlEmpty(&pcircler->slsaie))
+    if (IsSlEmpty(&pcircler->slsaie))
         return;
     float angle = RadNormalize__Ff(D_002DDED0.t * pcircler->radsSpeed);
     float sinOut;

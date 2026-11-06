@@ -96,7 +96,7 @@ struct TASKPAIR
 
 void SetTaskStates(GAME *pgame, int ctaskpair, TASKPAIR *ataskpair, LO *ploContext) __asm__("ApplyTaskStates");
 
-void SetClockRate(CLOCK *pclock, CRK crk, float rt) __asm__("func_0014D1D0");
+void SetClockRate(CLOCK *pclock, CRK crk, float rt) __asm__("SetClockRate");
 
 struct EDGE
 {
@@ -1058,7 +1058,7 @@ extern "C" void StartJtThrowFlight(MOVEREC *pmr, LO *plo);
 
 void PutSwHeroAtWarp(WARPV *pwarp) __asm__("PutHeroAtWarp");
 
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 
 GRABSPOTV *PspotFromLo(LO *plo) __asm__("GetGrabspotFromLo");
 
@@ -1235,7 +1235,7 @@ void EndJtMode(JTMODE *pjtmode);
 void UnsubscribeLoAll(JSGV *pjsg);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);   /* FreeSlotheapPv */
 void SetStepplayerRide(LO *pjt, JSGV *pjsg);
 }
 
@@ -1274,8 +1274,8 @@ struct OBJ {
     char pad5c[0x7C - 0x5C];
     int f7C;
 };
-extern "C" { void *PvAllocSlot__FP8ALLOCREQ(MSG *); }
-extern "C" { void *func_001AE1D0(MSG *); }
+extern "C" { void *AllocFromStack(MSG *); }
+extern "C" { void *AllocFromWorldHeap(MSG *); }
 extern "C" { void CopyAb__FPvT0Ui(void *, void *, int); }
 extern "C" { void AddRelayBlockBegin(OBJ *, int); }
 extern "C" { void LoadLoFromBrx(OBJ *, void *); }
@@ -1299,7 +1299,7 @@ extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
     MSG *pmsg = &msg;
     pmsg->cb = 0xA000;
     pmsg->nKind = 0x10;
-    p->ae = (ENT *)PvAllocSlot__FP8ALLOCREQ(pmsg);
+    p->ae = (ENT *)AllocFromStack(pmsg);
     AddRelayBlockBegin(p, -1);
     p->f7C = 1;
     LoadLoFromBrx(p, x);
@@ -1308,7 +1308,7 @@ extern "C" void LoadRelayFromBrx(OBJ *p, void *x)
         p->cMax = Max(p->c, p->cMax) + 1;
         pmsg->cb = p->cMax * sizeof(ENT);
         pmsg->nKind = 0x10;
-        p->ae = (ENT *)func_001AE1D0(pmsg);
+        p->ae = (ENT *)AllocFromWorldHeap(pmsg);
         CopyAb__FPvT0Ui(p->ae, aeOld, p->c * sizeof(ENT));
     }
 }
@@ -1320,8 +1320,8 @@ struct MSG; struct S;
 struct MSG { int cb; int nKind; };
 struct S { char pad[0x54]; void *pv; int c; char p1[0x80-0x5C]; int f80; };
 void CloneLo(struct S *p);
-void *func_001AE238(struct MSG *pmsg, void *pv);
-static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
+void *AllocCopyFromWorldHeap(struct MSG *pmsg, void *pv);
+static inline void *PvReallocMsg(struct MSG *pmsg, int cb, int nKind, void *pv) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 /** @sly2-annot addr=0x1DFBF8
  * Purpose: RELAY::Clone (vt41): CloneLo; if the relay has a private command limit (+0x80) reallocate its own
  *   copy of the command array
@@ -3387,7 +3387,7 @@ extern "C" void ReleaseJsg(JSGV *pjsg)
         FramePtr_Assign(&pjsg->pframe, 0);
         func_002580A8(&pjsg->psidebag, 0);
         UnsubscribeLoAll(pjsg);
-        func_0011CD98(&g_sw.slotheapJsg, pjsg);
+        FreeSlotheapSlot(&g_sw.slotheapJsg, pjsg);
     }
 }
 
@@ -4869,7 +4869,7 @@ extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
 extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("HasLoOid");
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSGV *pjsg);
-extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
+extern "C" int HandleJoyButtons(JOY *pjoy, uint grfbtn);
 extern "C" int FScreenShown(void *pv);
 extern "C" int FCurrentIdMatches(SNDMGR *psndmgr, int idLine) __asm__("func_001FE848");
 extern "C" float func_001FE888(SNDMGR *psndmgr);
@@ -5258,7 +5258,7 @@ int FIsJsgCommandComplete(JSGV *pjsg, RELAYCMD *prelaycmd)
     case RELAYCK_ButtonPrompt:
         if (prelaycmd->buttonPrompt.oidWho == -1)
         {
-            fComplete = GrfHandleJoyBtn(&D_002DFC00, prelaycmd->buttonPrompt.grfbtn);
+            fComplete = HandleJoyButtons(&D_002DFC00, prelaycmd->buttonPrompt.grfbtn);
         }
         else
         {
@@ -6239,7 +6239,7 @@ void func_001E5468(P *p);
 void func_001E54B0(P *p);
 void ClearJsgStepHolds(P *p);
 void func_001E5570(P *p);
-void func_0014D1D0(CLOCK *pclock, int n, float g);
+void SetClockRate(CLOCK *pclock, int n, float g);
 void func_001E4EB8(P *p, int a, int b);
 void SetJsgTunnel(P *p, void *po);
 void func_001E5000(P *p, int a);
@@ -6271,7 +6271,7 @@ void RemoveJsg(P *p)
     func_001E54B0(p);
     ClearJsgStepHolds(p);
     func_001E5570(p);
-    func_0014D1D0(&D_002DDED0, 6, 1.0f);
+    SetClockRate(&D_002DDED0, 6, 1.0f);
     func_001E4EB8(p, 0, 0);
     SetJsgTunnel(p, 0);
     func_001E5000(p, 0);
@@ -6313,7 +6313,7 @@ extern struct { float t; float dt; } D_002DDED0;
 extern struct G D_002DDF40;
 int FFloatsNear__Ffff(float, float, float);
 float RadNormalize__Ff(float);
-qword func_0011BFF0(void *);
+qword DecomposeRotationMatrixToEuler(void *);
 int FActiveCplcy__FP5CPLCY(void *);
 void RevokeCmPolicy(void *, int, int, void *, int, int);
 void SetCmPolicy(void *, int, void *, int, void *);
@@ -6365,7 +6365,7 @@ void func_001E57A0(struct P *p, struct A *pa, struct A *pb, float t)
             if (FNear(pt->v0, *zero))
                 pt->v0 = (*(struct G2 *)&g_cm.mat).v30;
             if (FNear(pt->v10, *zero))
-                pt->v10 = func_0011BFF0(&(*(struct G2 *)&g_cm.mat));
+                pt->v10 = DecomposeRotationMatrixToEuler(&(*(struct G2 *)&g_cm.mat));
             if (pt->f20 == 0.0f)
                 pt->f20 = D_002DDF40.f20;
         }

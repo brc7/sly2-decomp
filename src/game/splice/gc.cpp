@@ -126,7 +126,7 @@ struct STACKSCOPE
 extern "C" {
 void STACKSCOPE_ctor(STACKSCOPE *pss);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPE *pss, int grf) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
+void *AllocFromStack(MSG *pmsg);
 void CGc_MarkRootRef(CGc *pgc, CRef *pref);
 void CGc_UpdateRecyclable();
 }
@@ -308,7 +308,7 @@ static inline void *PvAllocMarkStack(int c)
     MSG msg;
     msg.cb = c * 4;
     msg.nKind = 0x10;
-    return PvAllocSlot__FP8ALLOCREQ(&msg);
+    return AllocFromStack(&msg);
 }
 
 /* Through pointers, as in the original: stored as members directly, the count is cleared before the array pointer is

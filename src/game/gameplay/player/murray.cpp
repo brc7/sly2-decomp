@@ -173,10 +173,10 @@ struct P { char pad[0x15F0]; void *x15F0; void *x15F4; void *x15F8; void *x15FC;
 extern char D_002C0270[];
 void LoadStepFromBrx(struct P *p);
 void BindLoOidTable(struct P *p, int n, void *q);
-struct T *func_001AE2A0(struct REQ *r);
+struct T *AllocClearedFromWorldHeap(struct REQ *r);
 void *PxfFindSo(struct P *p, int a, int b);
 void func_00186930(struct T *t);
-static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return func_001AE2A0(&req); }
+static __inline__ struct T *NewT(void) { struct REQ req; req.cb = 0xE0; req.align = 0x10; return AllocClearedFromWorldHeap(&req); }
 /** @sly2-annot addr=0x1B4888
  * Purpose: MURRAY vt14: STEP LoadFromBrx 0x2039C0, BindLoOidTable(p,0x89,D_002C0270), allocates two 0xE0
  *   hand/grip records looking up child XFs 0x200-0x205 (PxfFindSo), caches grip XFs at x15F0..x15FC
@@ -1972,7 +1972,7 @@ int TryMurrayTakedown(struct P *murray)
 namespace M_func_001B72B0 {
 // GetMurrayGripFrame: rotation (quaternion) and position of `stop` relative to the owner's two end nodes of p->link.
 //  - No pose: transform the input basis into the right parent's frame (ConvertXfMat) and take its rotation
-//    (func_0011BFF0); transform the input position through the left parent (func_0022FC48).
+//    (DecomposeRotationMatrixToEuler); transform the input position through the left parent (func_0022FC48).
 //  - With a pose: collect the parent chain from pose->first up to `stop` (at most 16 nodes) and the indices of the
 //    owner's left/right nodes in it, build the relative frame replace = inverse(from * pose * inverse(input) * to)
 //    (rotation re-orthonormalised through the quaternion, position = the right node's local position), then
@@ -2005,7 +2005,7 @@ extern "C" M4 D_002A2D30;   // identity matrix
 extern "C" M3 ConvertXfMat(NODE *, NODE *, const M3 &);
 extern "C" M4 func_0022FF40(NODE *, NODE *, const M4 &);
 extern "C" VU_VECTOR func_0022FC48(NODE *, NODE *, VU_VECTOR);
-extern "C" VU_VECTOR func_0011BFF0(const M3 *);
+extern "C" VU_VECTOR DecomposeRotationMatrixToEuler(const M3 *);
 extern "C" void LoadRotateMatrixEuler(M3 *, VU_VECTOR);
 extern "C" qword *VECTOR_opAssign(qword *, VU_VECTOR);
 extern "C" void InvertMatrix4Rigid(M4 *, const M4 *);
@@ -2024,7 +2024,7 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
     if (!murray->link->pose) {
         M3 basis;
         basis = ConvertXfMat(stop, murray->link->owner->right->parent, input->basis);
-        *outRotation = func_0011BFF0(&basis);
+        *outRotation = DecomposeRotationMatrixToEuler(&basis);
         *outPosition = func_0022FC48(stop, murray->link->owner->left->parent, input->position.q);
         return;
     }
@@ -2049,7 +2049,7 @@ extern "C" void GetMurrayGripFrame(P *const murray, NODE *stop, const M4 *input,
         M4 replace;
         M4 result = __ml__FRC7MATRIX4T0(__ml__FRC7MATRIX4T0(from, inverse), to);
         InvertMatrix4Rigid(&replace, &result);
-        rotation.q = func_0011BFF0(&replace.basis);
+        rotation.q = DecomposeRotationMatrixToEuler(&replace.basis);
         LoadRotateMatrixEuler(&result.basis, rotation.q);
         VECTOR_opAssign(&replace.position.q, chain[right]->local.position.q);
         M4 *matrix = &replace;

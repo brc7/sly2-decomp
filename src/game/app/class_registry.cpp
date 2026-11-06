@@ -7,6 +7,11 @@
 // the ELF. See docs/guides/tu-merging.md "class_registry", docs/engine/object-model.md section 1 and
 // docs/reference/class-tree.md. The file keeps its old name (the registry part came first); renaming it to
 // crt0_splicewrap.cpp is a mechanical follow-up.
+// Entry points: the factories and descriptor getters (reached through the class descriptor table, one per class
+// id), the Splice thunks and wrappers (reached through the option table g_aeopid when a script reads or sets an
+// object option), and the crt0 fragments _start relies on. The factories' and getters' names (New<Class>,
+// Get<Class>ClassDesc) and the generated wrappers are kept as generated; only the hand-written functions below carry
+// doc comments.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_crt0_splicewrap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001147B8
 // SLY2_CFLAGS: -O2 -G0 -ffast-math -mvu0-use-vf0-vf31 -fno-exceptions -fno-rtti -fpermissive
@@ -90,16 +95,17 @@ extern "C" {
  * Confidence: none - unanalysed; anything inferred from the code here is a guess
  * See: docs/guides/port-plan.md#11-known-facts-that-drive-the-design
  * @end-sly2-annot */
+// crt0's _exit: jumps to the kernel Exit syscall wrapper (0x2398D0); libc exit() ends here. Never returns.
 __asm__(
     ".set noreorder\n"
     ".set noat\n"
     ".text\n"
-    ".globl func_00100218\n"
-    ".ent func_00100218\n"
-    "func_00100218:\n"
+    ".globl _exit\n"
+    ".ent _exit\n"
+    "_exit:\n"
     "j func_002398D0\n"
     "nop\n"
-    ".end func_00100218\n"
+    ".end _exit\n"
     ".set at\n"
     ".set reorder\n"
 );
@@ -111,16 +117,17 @@ __asm__(
  * Confidence: none - unanalysed; anything inferred from the code here is a guess
  * See: docs/guides/port-plan.md#11-known-facts-that-drive-the-design
  * @end-sly2-annot */
+// crt0's thread root (the entry SetupThread is given in _start): calls the ExitThread syscall (0x23).
 __asm__(
     ".set noreorder\n"
     ".set noat\n"
     ".text\n"
-    ".globl func_00100220\n"
-    ".ent func_00100220\n"
-    "func_00100220:\n"
+    ".globl _root\n"
+    ".ent _root\n"
+    "_root:\n"
     "addiu $3, $0, 0x23\n"
     "syscall 0\n"
-    ".end func_00100220\n"
+    ".end _root\n"
     ".set at\n"
     ".set reorder\n"
 );
@@ -141,6 +148,8 @@ CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 3 on BASIC (g_aeopid[2], thunkFn): unpacks the script's 1 argument (Cid) with
+// RefSetArgsFromSplice, calls FIsBasicDerivedFrom and returns a bool to the script.
 CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref)
 {
     int k = 7;
@@ -172,6 +181,8 @@ extern "C" { void EnsureLoSidebagClq__FP2LO5OPTIDP3CLQ(void *p, int n, void *pu)
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 7 on BASIC (g_aeopid[6], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
+// Clq) with RefSetArgsFromSplice, calls EnsureLoSidebagClq and returns nothing to the script.
 CRef RefThunkBasicCUSTOM_CLQ_PROPERTY(void *p, int c, void *aref)
 {
     int ak[2] = {0x15, 9};
@@ -196,6 +207,8 @@ extern "C" { void EnsureLoSidebagLm__FP2LO5OPTIDP2LM(void *p, int n, void *pu); 
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 8 on BASIC (g_aeopid[7], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
+// Lm) with RefSetArgsFromSplice, calls EnsureLoSidebagLm and returns nothing to the script.
 CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref)
 {
     int ak[2] = {0x15, 0xA};
@@ -225,6 +238,8 @@ extern "C" { void EnsureLoSidebagVector(void *p, int n, qword q); CRef RefThunkB
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 10 on BASIC (g_aeopid[9], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
+// Vector) with RefSetArgsFromSplice, calls EnsureLoSidebagVector and returns nothing to the script.
 CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *p, int c, void *aref)
 {
     int ak[2] = {0x15, 2};
@@ -283,6 +298,8 @@ extern "C" CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *p, int c, void *aref);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 108 on SO (g_aeopid[43], thunkFn): unpacks the script's 1 argument (Vector) with
+// RefSetArgsFromSplice, calls virtual and returns a bool to the script.
 CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *p, int c, void *aref)
 {
     union { qword q; } u;
@@ -347,6 +364,8 @@ extern "C" void *func_001F8510(void *p, int a, int b);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 194 on SO (g_aeopid[77], thunkFn): unpacks the script's 2 arguments (Oid, 0x104C) with
+// RefSetArgsFromSplice, calls PxfhNewSo and returns a value of type 0x2095 to the script.
 extern "C" CRef func_001014E8(void *p, int c, void *aref)
 {
     int ak[2] = {6, 0x104c};
@@ -370,6 +389,8 @@ extern "C" void func_001F82B8(void *p, int, void *);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 196 on SO (g_aeopid[79], thunkFn/thunkUser): unpacks the script's 2 arguments (0x104D,
+// Lm) with RefSetArgsFromSplice, calls SetSoSideRecordParams and returns nothing to the script.
 extern "C" CRef func_00101608(void *p, int c, void *aref)
 {
     int ak[2] = {0x104d, 0xa};
@@ -397,6 +418,8 @@ extern "C" void func_0012EEE0(void *p, int, int, int, float, float);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 207 on CID43 (g_aeopid[99], thunkUser): unpacks the script's 5 arguments (0xE, Int, Int,
+// Float, Float) with RefSetArgsFromSplice, calls SetCid43SoundParam and returns nothing to the script.
 extern "C" CRef func_00101768(void *p, int c, void *aref)
 {
     int ak[5] = {0xe, 0x5, 0x5, 0x1, 0x1};
@@ -428,6 +451,8 @@ extern "C" { void * func_00130488(void *p, int, float, float, int); CRef RefThun
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 214 on ASEG (g_aeopid[106], thunkFn): unpacks the script's 4 arguments (0x2030, Float,
+// Float, 0x100B) with RefSetArgsFromSplice, calls PasegaApplyAseg and returns a value of type 0x2086 to the script.
 CRef RefThunkAsegAPPLY(void *p, int c, void *aref)
 {
     int ak[4] = {0x2030, 0x1, 0x1, 0x100b};
@@ -457,6 +482,9 @@ extern "C" { void * PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(void *p, int, int, fl
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 216 on ASEG (g_aeopid[108], thunkFn): unpacks the script's 5 arguments (0x2030, 0x100C,
+// Float, Float, 0x100B) with RefSetArgsFromSplice, calls PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi and returns a value
+// of type 0x2086 to the script.
 CRef RefThunkAsegENSURE(void *p, int c, void *aref)
 {
     int ak[5] = {0x2030, 0x100c, 0x1, 0x1, 0x100b};
@@ -510,6 +538,8 @@ extern "C" { void *StartDialog(void *p, int a, int b); CRef RefThunk_StartDialog
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 264 on CID152 (g_aeopid[137], thunkFn): unpacks the script's 2 arguments (0x10, 0x105D)
+// with RefSetArgsFromSplice, calls StartDialog and returns a value of type 0x2097 to the script.
 CRef RefThunk_StartDialog(void *p, int c, void *aref)
 {
     int ak[2] = {0x10, 0x105D};
@@ -589,6 +619,8 @@ extern "C" void SetStepguardAnimBinding(void *p, void *, int, int);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 369 on STEPGUARD (g_aeopid[243], thunkUser): unpacks the script's 3 arguments (0x9010,
+// Oid, 0x100B) with RefSetArgsFromSplice, calls SetStepguardAnimBinding and returns nothing to the script.
 extern "C" CRef func_00102A88(void *p, int c, void *aref)
 {
     int ak[3] = {0x9010, 0x6, 0x100b};
@@ -613,6 +645,8 @@ extern "C" void SetAndResolveStepguardAnimBinding(void *p, void *, int, int);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 369 on STEPGUARD (g_aeopid[243], thunkFn): unpacks the script's 3 arguments (0x9010,
+// Oid, 0x100B) with RefSetArgsFromSplice, calls SetStepguardAnimBindingResolve and returns nothing to the script.
 extern "C" CRef func_00102B60(void *p, int c, void *aref)
 {
     int ak[3] = {0x9010, 0x6, 0x100b};
@@ -637,6 +671,8 @@ extern "C" void SetStepguardAnimBindingKind3(void *p, void *, int, int, int, int
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 370 on STEPGUARD (g_aeopid[244], thunkUser): unpacks the script's 5 arguments (0x9010,
+// Oid, Oid, Oid, Oid) with RefSetArgsFromSplice, calls SetStepguardAnimBindingK3 and returns nothing to the script.
 extern "C" CRef func_00102C38(void *p, int c, void *aref)
 {
     int ak[5] = {0x9010, 0x6, 0x6, 0x6, 0x6};
@@ -663,6 +699,9 @@ extern "C" void SetAndResolveStepguardAnimBindingKind3(void *p, void *, int, int
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 370 on STEPGUARD (g_aeopid[244], thunkFn): unpacks the script's 5 arguments (0x9010,
+// Oid, Oid, Oid, Oid) with RefSetArgsFromSplice, calls SetStepguardAnimBindingK3Resolve and returns nothing to the
+// script.
 extern "C" CRef func_00102D30(void *p, int c, void *aref)
 {
     int ak[5] = {0x9010, 0x6, 0x6, 0x6, 0x6};
@@ -689,6 +728,9 @@ extern "C" void SetStepguardAnimBindingKind2(void *p, void *, int, float, float,
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 371 on STEPGUARD (g_aeopid[245], thunkUser): unpacks the script's 6 arguments (0x9010,
+// Oid, Float, Float, Float, Float) with RefSetArgsFromSplice, calls SetStepguardAnimBindingK2 and returns nothing to
+// the script.
 extern "C" CRef func_00102E28(void *p, int c, void *aref)
 {
     int ak[6] = {0x9010, 0x6, 0x1, 0x1, 0x1, 0x1};
@@ -716,6 +758,9 @@ extern "C" void SetAndResolveStepguardAnimBindingKind2(void *p, void *, int, flo
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 371 on STEPGUARD (g_aeopid[245], thunkFn): unpacks the script's 6 arguments (0x9010,
+// Oid, Float, Float, Float, Float) with RefSetArgsFromSplice, calls SetStepguardAnimBindingK2Resolve and returns
+// nothing to the script.
 extern "C" CRef func_00102F38(void *p, int c, void *aref)
 {
     int ak[6] = {0x9010, 0x6, 0x1, 0x1, 0x1, 0x1};
@@ -801,6 +846,8 @@ extern "C" void SetStepguardTargetLists(void *p, void *, void *);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 426 on STEPGUARD (g_aeopid[302], thunkFn): unpacks the script's 2 arguments (0xA002,
+// 0xA002) with RefSetArgsFromSplice, calls SetStepguardCRefPair and returns nothing to the script.
 extern "C" CRef func_00103B38(void *p, int c, void *aref)
 {
     int ak[2] = {0xa002, 0xa002};
@@ -843,6 +890,8 @@ extern "C" void SetStepguardEscortPoint(void *p, int n, qword q);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 446 on STEPGUARD (g_aeopid[322], thunkFn): unpacks the script's 2 arguments (0x2002,
+// Vector) with RefSetArgsFromSplice, calls SetStepguardRootBhvPoint and returns nothing to the script.
 extern "C" CRef func_00103F40(void *p, int c, void *aref)
 {
     int ak[2] = {0x2002, 2};
@@ -877,6 +926,9 @@ extern "C" { int CalculateDetectorTargetState(void *p, int, int); CRef RefThunk_
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 466 on DETECTOR (g_aeopid[347], thunkFn): unpacks the script's 2 arguments (0x2002,
+// 0x106B) with RefSetArgsFromSplice, calls KCalculateDetectorTarget and returns a value of type 0x106B to the
+// script.
 CRef RefThunk_KCalculateDetectorTarget(void *p, int c, void *aref)
 {
     int ak[2] = {0x2002, 0x106b};
@@ -915,6 +967,8 @@ extern "C" void SetGuardAttackBindingKind2(void *p, int, float, float, float, fl
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 371 on CID120 (g_aeopid[365], thunkUser): unpacks the script's 5 arguments (Oid, Float,
+// Float, Float, Float) with RefSetArgsFromSplice, calls SetCid120AttackBindingK2 and returns nothing to the script.
 extern "C" CRef func_00104558(void *p, int c, void *aref)
 {
     int ak[5] = {0x6, 0x1, 0x1, 0x1, 0x1};
@@ -941,6 +995,9 @@ extern "C" void SetAndResolveGuardAttackBindingKind2(void *p, int, float, float,
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 371 on CID120 (g_aeopid[365], thunkFn): unpacks the script's 5 arguments (Oid, Float,
+// Float, Float, Float) with RefSetArgsFromSplice, calls SetCid120AttackBindingK2Resolve and returns nothing to the
+// script.
 extern "C" CRef func_00104638(void *p, int c, void *aref)
 {
     int ak[5] = {0x6, 0x1, 0x1, 0x1, 0x1};
@@ -971,6 +1028,8 @@ CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 108 on VOL (g_aeopid[366], thunkFn): unpacks the script's 1 argument (Vector) with
+// RefSetArgsFromSplice, calls FCheckVolPoint and returns a bool to the script.
 CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref)
 {
     int ak[1] = {2};
@@ -991,6 +1050,8 @@ extern "C" int func_00227D20(void *p, qword q, float g);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 474 on VOL (g_aeopid[367], thunkFn): unpacks the script's 2 arguments (Vector, Float)
+// with RefSetArgsFromSplice, calls FCheckVolSphere and returns a bool to the script.
 extern "C" CRef func_001047A0(void *p, int c, void *aref)
 {
     int ak[2] = {2, 0x1};
@@ -1012,6 +1073,8 @@ extern "C" { void *func_001F0380(void *p, int a, int b, int c); CRef RefThunkSmA
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 214 on SM (g_aeopid[368], thunkFn): unpacks the script's 3 arguments (0x2030, Oid,
+// 0x100B) with RefSetArgsFromSplice, calls PsmaApplySm and returns a value of type 0x2088 to the script.
 CRef RefThunkSmAPPLY(void *p, int c, void *aref)
 {
     int ak[3] = {0x2030, 6, 0x100B};
@@ -1033,6 +1096,8 @@ extern "C" { void * PsmaApplySmEx(void *p, int, int, int, int); CRef RefThunk_Ps
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 477 on SM (g_aeopid[369], thunkFn): unpacks the script's 4 arguments (0x2030, Oid,
+// 0x100B, 0x1054) with RefSetArgsFromSplice, calls PsmaApplySmEx and returns a value of type 0x2088 to the script.
 CRef RefThunk_PsmaApplySmEx(void *p, int c, void *aref)
 {
     int ak[4] = {0x2030, 0x6, 0x100b, 0x1054};
@@ -1088,6 +1153,8 @@ extern "C" { CRef RefThunk_FireMissile(LO *p, int c, void *aref); }
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 508 on MISSILE (g_aeopid[405], thunkFn): unpacks the script's 2 arguments (0x2030,
+// Vector) with RefSetArgsFromSplice, calls virtual and returns nothing to the script.
 CRef RefThunk_FireMissile(LO *p, int c, void *aref)
 {
     int ak[2] = {0x2030, 2};
@@ -1151,6 +1218,9 @@ extern "C" { void AddLasenBeam(void *p, int, float, float, float, int, int, floa
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 541 on CID85 (g_aeopid[455], thunkUser): unpacks the script's 10 arguments (Oid, Float,
+// Float, Float, 0x100B, Oid, Float, Float, Float, 0x100B) with RefSetArgsFromSplice, calls AddLasenBeam and returns
+// nothing to the script.
 CRef RefThunk_AddLasenBeam(void *p, int c, void *aref)
 {
     int ak[10] = {0x6, 0x1, 0x1, 0x1, 0x100b, 0x6, 0x1, 0x1, 0x1, 0x100b};
@@ -1209,6 +1279,9 @@ extern "C" { void ExplodeExplParams(void *p, int, int, qword, qword, float, floa
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 616 on EXPL (g_aeopid[535], thunkFn): unpacks the script's 6 arguments (0x1026, 0x2002,
+// Vector, Vector, Float, Float) with RefSetArgsFromSplice, calls ExplodeExplParams and returns nothing to the
+// script.
 CRef RefThunkExplEXPLODE_OVR(void *p, int c, void *aref)
 {
     int ak[6] = {0x1026, 0x2002, 0x2, 0x2, 0x1, 0x1};
@@ -1243,6 +1316,8 @@ extern "C" void AddGuardScriptSetWalkTimes(void *p, void *pv);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 623 on CID113 (g_aeopid[596], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
+// with RefSetArgsFromSplice, calls AddCid113CmdSetK2CC and returns nothing to the script.
 extern "C" CRef func_00105DE0(void *p, int c, void *aref)
 {
     union { qword q; } u;
@@ -1264,6 +1339,8 @@ extern "C" void AddGuardScriptSetPauseTimes(void *p, void *pv);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 624 on CID113 (g_aeopid[597], thunkFn/thunkUser): unpacks the script's 1 argument (Lm)
+// with RefSetArgsFromSplice, calls AddCid113CmdSetK2D4 and returns nothing to the script.
 extern "C" CRef func_00105E70(void *p, int c, void *aref)
 {
     union { qword q; } u;
@@ -1359,6 +1436,8 @@ extern "C" { void AddRelayWaitBlocks(void *p, CRef *pref); CRef RefThunk_AddRela
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 651 on RELAY (g_aeopid[628], thunkFn/thunkUser): unpacks the script's 1 argument
+// (0x8006) with RefSetArgsFromSplice, calls AddRelayWaitBlocks and returns nothing to the script.
 CRef RefThunk_AddRelayWaitBlocks(void *p, int c, void *aref)
 {
     int k = 0x8006;
@@ -1411,6 +1490,8 @@ extern "C" { void AddRelayApplySm(void *p, int, int, int, int, int); CRef RefThu
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 526 on RELAY (g_aeopid[638], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
+// Oid, Oid, Bool, Bool) with RefSetArgsFromSplice, calls AddRelayApplySm and returns nothing to the script.
 CRef RefThunkRelaySET_SM_GOAL(void *p, int c, void *aref)
 {
     int ak[5] = {0x6, 0x6, 0x6, 0x0, 0x0};
@@ -1524,6 +1605,8 @@ extern "C" { void AddRelayStepCmd29(void *p, int, float, float, int, int); CRef 
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 675 on RELAY (g_aeopid[667], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
+// Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayStepCmd29 and returns nothing to the script.
 CRef RefThunk_AddRelayStepCmd29(void *p, int c, void *aref)
 {
     int ak[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
@@ -1552,6 +1635,8 @@ extern "C" { void AddRelayRespawn(void *p, int, int, int, int, int); CRef RefThu
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 628 on RELAY (g_aeopid[668], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
+// 0x102E, 0x102F, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayRespawn and returns nothing to the script.
 CRef RefThunk_AddRelayRespawn(void *p, int c, void *aref)
 {
     int ak[5] = {0x6, 0x102e, 0x102f, 0x0, 0x6};
@@ -1580,6 +1665,8 @@ extern "C" { void AddRelayLaunchTo(void *p, int, float, float, int, int); CRef R
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 676 on RELAY (g_aeopid[669], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
+// Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayLaunchTo and returns nothing to the script.
 CRef RefThunk_AddRelayLaunchTo(void *p, int c, void *aref)
 {
     int ak[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
@@ -1639,6 +1726,9 @@ extern "C" { void AddRelaySound(void *p, int, int, int, int, float, float, float
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 231 on RELAY (g_aeopid[680], thunkFn/thunkUser): unpacks the script's 7 arguments (0xE,
+// Oid, Int, Int, Float, Float, Float) with RefSetArgsFromSplice, calls AddRelaySound and returns nothing to the
+// script.
 CRef RefThunk_AddRelaySound(void *p, int c, void *aref)
 {
     int ak[7] = {0xe, 0x6, 0x5, 0x5, 0x1, 0x1, 0x1};
@@ -1673,6 +1763,9 @@ extern "C" { void AddRelayCamBlendFrom(void *p, qword, qword, float, float, int)
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 677 on RELAY (g_aeopid[682], thunkFn/thunkUser): unpacks the script's 5 arguments
+// (Vector, Vector, Float, Float, 0x106D) with RefSetArgsFromSplice, calls AddRelayCamBlendFrom and returns nothing
+// to the script.
 CRef RefThunk_AddRelayCamBlendFrom(void *p, int c, void *aref)
 {
     int ak[5] = {0x2, 0x2, 0x1, 0x1, 0x106d};
@@ -1701,6 +1794,9 @@ extern "C" { void AddRelayCamBlendTo(void *p, qword, qword, float, int, int); CR
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 678 on RELAY (g_aeopid[683], thunkFn/thunkUser): unpacks the script's 5 arguments
+// (Vector, Vector, Float, Bool, Bool) with RefSetArgsFromSplice, calls AddRelayCamBlendTo and returns nothing to the
+// script.
 CRef RefThunk_AddRelayCamBlendTo(void *p, int c, void *aref)
 {
     int ak[5] = {0x2, 0x2, 0x1, 0x0, 0x0};
@@ -1745,6 +1841,8 @@ extern "C" { void AddRelayTweenTarget(void *p, qword, qword, float); CRef RefThu
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 684 on RELAY (g_aeopid[689], thunkFn/thunkUser): unpacks the script's 3 arguments
+// (Vector, Vector, Float) with RefSetArgsFromSplice, calls AddRelayTweenTarget and returns nothing to the script.
 CRef RefThunk_AddRelayTweenTarget(void *p, int c, void *aref)
 {
     int ak[3] = {0x2, 0x2, 0x1};
@@ -1852,6 +1950,8 @@ extern "C" void LaunchStepplayer(void *p, qword, float, float);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 720 on STEPPLAYER (g_aeopid[730], thunkFn): unpacks the script's 3 arguments (Vector,
+// Float, Float) with RefSetArgsFromSplice, calls LaunchStepplayer and returns nothing to the script.
 extern "C" CRef func_0010A790(void *p, int c, void *aref)
 {
     int ak[3] = {0x2, 0x1, 0x1};
@@ -1886,6 +1986,8 @@ extern "C" { void StartStepplayerFollow(void *p, int n, qword q); CRef RefThunk_
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 446 on STEPPLAYER (g_aeopid[733], thunkFn): unpacks the script's 2 arguments (0x2002,
+// Vector) with RefSetArgsFromSplice, calls StartStepplayerBhvC2 and returns nothing to the script.
 CRef RefThunk_StartStepplayerFollow(void *p, int c, void *aref)
 {
     int ak[2] = {0x2002, 2};
@@ -1935,6 +2037,8 @@ extern "C" void SetStepplayerIdleParams(void *p, void *, void *, void *);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 249 on STEPPLAYER (g_aeopid[743], thunkFn): unpacks the script's 3 arguments (Lm, Lm,
+// Lm) with RefSetArgsFromSplice, calls SetStepplayerIdleParams and returns nothing to the script.
 extern "C" CRef func_0010AE28(void *p, int c, void *aref)
 {
     int ak[3] = {0xa, 0xa, 0xa};
@@ -1978,6 +2082,9 @@ extern "C" void SetStepplayerThrowParams(void *p, float, float, void *, float, f
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 743 on STEPPLAYER (g_aeopid[760], thunkFn/thunkUser): unpacks the script's 7 arguments
+// (Float, Float, Lm, Float, Float, Vector, Vector) with RefSetArgsFromSplice, calls SetStepplayerThrowParams and
+// returns nothing to the script.
 extern "C" CRef func_0010B230(void *p, int c, void *aref)
 {
     int ak[7] = {0x1, 0x1, 0xa, 0x1, 0x1, 0x2, 0x2};
@@ -2006,6 +2113,8 @@ extern "C" void SetJtPipeVectors(void *p, qword a, qword b);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 749 on STEPPLAYER (g_aeopid[766], thunkFn/thunkUser): unpacks the script's 2 arguments
+// (Vector, Vector) with RefSetArgsFromSplice, calls SetJtPipeVectors and returns nothing to the script.
 extern "C" CRef func_0010B340(void *p, int c, void *aref)
 {
     int ak[2] = {2, 2};
@@ -2042,6 +2151,8 @@ extern "C" void func_00185E30(void *p, qword, qword, qword);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 754 on JT (g_aeopid[771], thunkFn/thunkUser): unpacks the script's 3 arguments (Vector,
+// Vector, Vector) with RefSetArgsFromSplice, calls SetMeshVectors and returns nothing to the script.
 extern "C" CRef func_0010B618(void *p, int c, void *aref)
 {
     int ak[3] = {0x2, 0x2, 0x2};
@@ -2065,6 +2176,8 @@ extern "C" void SetJtUnknown1FA0(void *p, qword q);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 755 on JT (g_aeopid[772], thunkFn/thunkUser): unpacks the script's 1 argument (Vector)
+// with RefSetArgsFromSplice, calls SetJtX1FA0 and returns nothing to the script.
 extern "C" CRef func_0010B6D0(void *p, int c, void *aref)
 {
     union { qword q; } u;
@@ -2134,6 +2247,8 @@ CRef RefThunk_PpoClosestSw(void *p, int c, void *aref);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 847 on SW (g_aeopid[929], thunkFn): unpacks the script's 1 argument (Vector) with
+// RefSetArgsFromSplice, calls PpoClosestSw and returns a value of type 0x2032 to the script.
 CRef RefThunk_PpoClosestSw(void *p, int c, void *aref)
 {
     union { qword q; } u;
@@ -2156,6 +2271,8 @@ extern "C" { void *EmitSwNoise(void *p, int a, qword q, int b); CRef RefThunk_Em
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 850 on SW (g_aeopid[932], thunkFn): unpacks the script's 3 arguments (0x1046, Vector,
+// 0x2002) with RefSetArgsFromSplice, calls EmitSwNoise and returns a value of type 0x2093 to the script.
 CRef RefThunk_EmitSwNoise(void *p, int c, void *aref)
 {
     int ak[3] = {0x1046, 2, 0x2002};
@@ -2306,6 +2423,8 @@ extern "C" void * NewNoise(void *p, qword, int);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 214 on CID117 (g_aeopid[1095], thunkFn): unpacks the script's 2 arguments (Vector,
+// 0x2002) with RefSetArgsFromSplice, calls PnoiseEmit and returns a value of type 0x2093 to the script.
 extern "C" CRef func_0010D840(void *p, int c, void *aref)
 {
     int ak[2] = {0x2, 0x2002};
@@ -2358,6 +2477,8 @@ extern "C" { void ShowWidgetArgsFromSplice(void *p, CRef *pref); CRef RefThunk_S
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 984 on WIDGET (g_aeopid[1132], thunkFn): unpacks the script's 1 argument (0x8010) with
+// RefSetArgsFromSplice, calls ShowWidgetArgsFromSplice and returns nothing to the script.
 CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref)
 {
     int k = 0x8010;
@@ -2417,6 +2538,8 @@ extern "C" qword func_001E77B0(void *p, qword q);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1057 on SHAPE (g_aeopid[1223], thunkFn): unpacks the script's 1 argument (Vector) with
+// RefSetArgsFromSplice, calls PosFindShapeClosest and returns a vector to the script.
 extern "C" CRef func_0010E550(void *p, int c, void *aref)
 {
     union { qword q; } u;
@@ -2437,6 +2560,8 @@ extern "C" void func_001F8A78(void *p, int, int, qword);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1060 on CID149 (g_aeopid[1228], thunkFn): unpacks the script's 3 arguments (0x100D, Int,
+// Vector) with RefSetArgsFromSplice, calls SetXfhActuator1World and returns nothing to the script.
 extern "C" CRef func_0010E5D8(void *p, int c, void *aref)
 {
     int ak[3] = {0x100d, 0x5, 0x2};
@@ -2462,6 +2587,8 @@ struct BIG { qword aq[4]; };
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1061 on CID149 (g_aeopid[1229], thunkFn): unpacks the script's 3 arguments (0x100D, Int,
+// 0x4) with RefSetArgsFromSplice, calls SetXfhActuator1Mat and returns nothing to the script.
 extern "C" CRef func_0010E690(void *p, int c, void *aref)
 {
     int ak[3] = {0x100D, 5, 4};
@@ -2489,6 +2616,9 @@ extern "C" void func_001F8BF0(void *p, int, float, float, float, float, qword);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1063 on CID149 (g_aeopid[1231], thunkFn): unpacks the script's 6 arguments (Int, Float,
+// Float, Float, Float, Vector) with RefSetArgsFromSplice, calls SetXfhKind16Params and returns nothing to the
+// script.
 extern "C" CRef func_0010E820(void *p, int c, void *aref)
 {
     int ak[6] = {0x5, 0x1, 0x1, 0x1, 0x1, 0x2};
@@ -2539,6 +2669,8 @@ extern "C" { void AddJobStateRsmg(void *p, int, int, int, int, int); CRef RefThu
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 526 on JOB (g_aeopid[1256], thunkUser): unpacks the script's 5 arguments (0x1050, Oid,
+// Oid, Oid, 0xF) with RefSetArgsFromSplice, calls AddJobStateRsmg and returns nothing to the script.
 CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref)
 {
     int ak[5] = {0x1050, 0x6, 0x6, 0x6, 0xf};
@@ -2579,6 +2711,8 @@ extern "C" void AddTaskStateVisibility(void *p, int, void *, int, int);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1108 on TASK (g_aeopid[1287], thunkUser): unpacks the script's 4 arguments (Oid, 0x9050,
+// Oid, 0xF) with RefSetArgsFromSplice, calls AddTaskStateLo and returns nothing to the script.
 extern "C" CRef func_0010F030(void *p, int c, void *aref)
 {
     int ak[4] = {0x6, 0x9050, 0x6, 0xf};
@@ -2632,6 +2766,8 @@ extern "C" { void SetPoChoices(void *p, CRef *pref); CRef RefThunk_SetPoChoices(
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1154 on CID70 (g_aeopid[1339], thunkFn/thunkUser): unpacks the script's 1 argument
+// (0x8006) with RefSetArgsFromSplice, calls SetPoChoices and returns nothing to the script.
 CRef RefThunk_SetPoChoices(void *p, int c, void *aref)
 {
     int k = 0x8006;
@@ -2658,6 +2794,8 @@ extern "C" qword ChooseEscapePosition(void *p, qword q);
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1156 on CID59 (g_aeopid[1341], thunkFn): unpacks the script's 1 argument (Vector) with
+// RefSetArgsFromSplice, calls PosChooseEscape and returns a vector to the script.
 extern "C" CRef func_0010F7B0(void *p, int c, void *aref)
 {
     union { qword q; } u;
@@ -2679,6 +2817,8 @@ extern "C" { void AddDancerMove(void *p, int, int, int, int, int); CRef RefThunk
  *   D_002AC880)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1158 on CID68 (g_aeopid[1343], thunkUser): unpacks the script's 5 arguments (0x103C,
+// Oid, 0x100B, Oid, Oid) with RefSetArgsFromSplice, calls AddDancerMove and returns nothing to the script.
 CRef RefThunk_AddDancerMove(void *p, int c, void *aref)
 {
     int ak[5] = {0x103c, 0x6, 0x100b, 0x6, 0x6};
@@ -2738,6 +2878,8 @@ extern "C" void func_00181330(void *p, int, void *, void *);
  *   D_002AC880)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1182 on CID73 (g_aeopid[1380], thunkFn/thunkUser): unpacks the script's 3 arguments
+// (0x105F, Lm, Lm) with RefSetArgsFromSplice, calls SetCid73EntryVectors and returns nothing to the script.
 extern "C" CRef func_0010FF18(void *p, int c, void *aref)
 {
     int ak[3] = {0x105f, 0xa, 0xa};
@@ -2763,6 +2905,8 @@ extern "C" void func_00181378(void *p, int, void *, void *);
  *   D_002AC880)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1183 on CID73 (g_aeopid[1381], thunkFn/thunkUser): unpacks the script's 3 arguments
+// (0x105F, Lm, Lm) with RefSetArgsFromSplice, calls SetCid73EntryVectors2 and returns nothing to the script.
 extern "C" CRef func_0010FFE8(void *p, int c, void *aref)
 {
     int ak[3] = {0x105f, 0xa, 0xa};
@@ -2809,6 +2953,8 @@ extern "C" void func_001D4B48(void *p, int n, void *pu, float g);
  *   D_002AC880)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1215 on CID77 (g_aeopid[1419], thunkUser): unpacks the script's 3 arguments (Oid, Float,
+// Lm) with RefSetArgsFromSplice, calls AddRcCarWheel and returns nothing to the script.
 extern "C" CRef func_001104F0(void *p, int c, void *aref)
 {
     int ak[3] = {6, 1, 0xa};
@@ -2837,6 +2983,8 @@ extern "C" void func_001D4C48(void *p, int n, void *pu);
  *   D_002AC880)+whole_game(class identity)
  * See: docs/reference/functions/crt0-thunks.md#crt0_splicewrap-0x100000-0x1147d8
  * @end-sly2-annot */
+// Splice binding for option 1178 on CID77 (g_aeopid[1421], thunkUser): unpacks the script's 2 arguments (Oid, Lm)
+// with RefSetArgsFromSplice, calls AddRcCarAttachment and returns nothing to the script.
 extern "C" CRef func_00110680(void *p, int c, void *aref)
 {
     int ak[2] = {6, 0xa};
@@ -6886,6 +7034,8 @@ extern "C" CLASSINFO *GetBhv198ClassDesc() { return &D_002BAAE8[198]; }
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// STEPGUARD's constructor (out-of-line copy of the inline one): base constructors, then the STEPGUARD vtable
+// and its LEAP sub-object.
 __attribute__((weak, section(".gnu.linkonce.t.STEPGUARD_ctor")))
 STEPGUARD::STEPGUARD() {}
 
@@ -6895,6 +7045,7 @@ STEPGUARD::STEPGUARD() {}
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// JT's (Sly's player class) constructor (out-of-line inline copy): clears the gadget sound reference and +0x2048.
 __attribute__((weak, section(".gnu.linkonce.t.JT_ctor")))
 JT::JT() : psndGadget(refptrNull) { unk_0x2048 = 0; }
 
@@ -6904,6 +7055,7 @@ JT::JT() : psndGadget(refptrNull) { unk_0x2048 = 0; }
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: sdk_names
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
+// MURRAY's constructor (out-of-line inline copy).
 __attribute__((weak, section(".gnu.linkonce.t.MURRAY_ctor")))
 MURRAY::MURRAY() {}
 

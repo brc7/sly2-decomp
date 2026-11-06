@@ -184,7 +184,7 @@ extern "C" void ReleaseNoise(NOISE *noise)
         FramePtr_Assign(noise, 0);
         func_002580A8(&noise->sidebag, 0);
         UnsubscribeLoAll(noise);
-        func_0011CD98(&g_sw.slotheapStimulus, noise);
+        FreeSlotheapSlot(&g_sw.slotheapStimulus, noise);
     }
 }
 

@@ -149,7 +149,7 @@ extern "C" void DecrefAsega(ASEGA *p)
         FramePtr_Assign(p, 0);
         func_002580A8((struct R4 **)&p->psidebag, 0);
         UnsubscribeLoAll(p);
-        func_0011CD98(&g_sw.slotheapAsega, p);
+        FreeSlotheapSlot(&g_sw.slotheapAsega, p);
     }
 }
 
@@ -832,7 +832,7 @@ static inline void Release1(R1 *r)
             func_00257250(r->x14, 2);
             Decref__4CRef(r->xC);
             Unlink__t6CGcObj1Z5CVarb(r);
-            func_0011CD98(&CSlotPool<0x18, 0x800>::s_pool.slotheap, r);
+            FreeSlotheapSlot(&CSlotPool<0x18, 0x800>::s_pool.slotheap, r);
         }
     }
 }
@@ -842,7 +842,7 @@ static inline void Release4(R4 *r)
         if (--r->cref == 0) {
             Release1(r->p8);
             Unlink__t6CGcObj1Z8CSidebag(r);
-            func_0011CD98(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, r);
+            FreeSlotheapSlot(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, r);
         }
     }
 }

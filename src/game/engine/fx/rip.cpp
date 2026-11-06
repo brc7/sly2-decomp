@@ -164,7 +164,7 @@ void *PvAllocSlotheapClear(void *pool);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
 void *GetSwClassList(struct G *p, int n);
-void func_0011A070(void *pl, void *pv);
+void AppendSlEntry(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
 /** @sly2-annot addr=0x1CDCD0
  * Purpose: Get/allocate a RIPG: if !fNew return cached default SW+0x406C, else take one from SW RIPG pool
@@ -187,7 +187,7 @@ struct O *PripgNew(struct G *p, int a)
     ConstructGlobset(po->x80);
     po->x150 = a;
     po->vt = D_002D77D8;
-    func_0011A070(GetSwClassList(p, 0x57), po);
+    AppendSlEntry(GetSwClassList(p, 0x57), po);
     VCALL0(po, 7);
     VCALL0(po, 11);
     VCALL0(po, 15);
@@ -260,7 +260,7 @@ void SnipLo(RIPGV *p);
 void *GetSwClassList(SW *psw, int n);
 void RemoveSlEntry(void *pl, RIPGV *p);
 void FreeLoroot(RIPGV *p);
-void func_0011CD98(void *pool, void *pv);
+void FreeSlotheapSlot(void *pool, void *pv);
 }
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -299,7 +299,7 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *pripg)
     SnipLo(pripg);
     RemoveSlEntry(GetSwClassList(psw, 0x57), pripg);
     if (!pripg->x10) FreeLoroot(pripg);
-    func_0011CD98(psw->pool, pripg);
+    FreeSlotheapSlot(psw->pool, pripg);
     D_002DD2FC = dli.m_pdliNext;
 }
 } // namespace M_OnRipgRemove__FP4RIPG
@@ -486,7 +486,7 @@ namespace M_BounceRipgRips__FP4RIPG {
  *  - the rip loop is a real for loop (loop depth weights the rip/hit allocation priorities);
  *  - the tree origin is read through a const-reference accessor: that load is not a struct-member MEM any more, so it may alias the
  *    `entries` store, which sched1 then issues right after the allocation call (the target's store order and $v0 for p->state);
- *  - func_00118A88 uses the matched callee's argument order (pos, eps, count, entries).
+ *  - PruneBspBySphere uses the matched callee's argument order (pos, eps, count, entries).
  */
 typedef int qword __attribute__((mode(TI)));
 struct DL { void *head, *tail; int offset; };
@@ -510,8 +510,8 @@ extern DLI *D_002DD2FC; /* innermost active list iterator */
 extern CLOCK D_002DDED0;
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(const REQ *);
-int func_00118A88(void *, int, qword, float, int *, ENTRY **);
+void *AllocFromStack(const REQ *);
+int PruneBspBySphere(void *, int, qword, float, int *, ENTRY **);
 int ClsgClipEdgeToObjectPruned(SHAPE *, ENTRY *, qword, qword, int, XP *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
 int FIsDlEmpty__FP2DL(DL *);
@@ -556,8 +556,8 @@ void BounceRipgRips__FP4RIPG(P *p)
                         remaining = Min(0x1555, shape->capacity);
                         phase.request.cb = remaining * 12;
                         SetAlign(&phase.request, 16);
-                        entries = (ENTRY *)PvAllocSlot__FP8ALLOCREQ(&phase.request);
-                        if (func_00118A88(shape->tree, 0x7FFFFFFF, Origin(p->state), p->state->radius, &remaining, &entries) != 2) {
+                        entries = (ENTRY *)AllocFromStack(&phase.request);
+                        if (PruneBspBySphere(shape->tree, 0x7FFFFFFF, Origin(p->state), p->state->radius, &remaining, &entries) != 2) {
                             STACKSCOPE_ctor_1AE4A0(&frame, 2);
                             continue;
                         }
@@ -840,7 +840,7 @@ struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
 struct N { struct LO *plo; int x4; struct N *pnNext; };
 struct S { int x0; int cRef; char p1[0xE8 - 0x8]; struct N *pn; struct VTE *vt; };
-void func_0011CD98(void *pool, void *pv);
+void FreeSlotheapSlot(void *pool, void *pv);
 /** @sly2-annot addr=0x1CE9D0
  * Purpose: Decref; at 0 call OnRemove virtual, notify subscribed LOs (msg 8) and free subscription nodes,
  *   free rip
@@ -858,10 +858,10 @@ void ReleaseRip__FP3RIP(struct S *p)
             struct LO *plo = pn->plo;
             ((void (*)(void *, int, struct S *))plo->vt[5].pf)((char *)plo + plo->vt[5].d, 8, p);
             pnNext = pn->pnNext;
-            func_0011CD98((*(char (*)[])&g_sw.slotheapRefnode), pn);
+            FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapRefnode), pn);
         }
         p->pn = 0;
-        func_0011CD98((*(char (*)[])&g_sw.slotheapUnk4054), p);
+        FreeSlotheapSlot((*(char (*)[])&g_sw.slotheapUnk4054), p);
     }
 }
 } } // namespace M_ReleaseRip__FP3RIP
@@ -1249,7 +1249,7 @@ struct S {char pad[0x40];M3 mat;qword pos,prev,vel;PHYS phys;qword omega;float g
 extern "C" { extern struct CLOCK {float time;union{float dt;int dtbits;};} D_002DDED0; }
 extern "C" {
 int func_001CF010(qword);int func_001CEFC8(qword);int func_001CF058(qword);
-M3*func_0011B500(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
+M3*BuildAxisAngleRotationMatrix(M3*,qword,float);M4 *CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(M4*,PHYS*);
 void ProjectRipTransform(S*);
 }
 static inline qword Scale(qword a,qword s){qword r;__asm__("vmulx.xyzw %0,%1,%2x":"=j"(r):"j"(a),"j"(s));return r;}
@@ -1295,7 +1295,7 @@ void ProjectRipTransform(S*p){
   float length=Float(Sqrt(Sq(omega)));
   if(0.0001f<length){
    w.shared.math.first.q=Normalize(omega,length,&w.shared.math.second);
-   func_0011B500((M3*)&w.rotation,w.shared.math.first.q,length*D_002DDED0.dt);
+   BuildAxisAngleRotationMatrix((M3*)&w.rotation,w.shared.math.first.q,length*D_002DDED0.dt);
    Multiply(&w.shared.math.scratch,&w.product,&w.rotation,p->mat);
    PublishBasisStart(p,w.product.r[0].q,w.product.r[1].q);p->mat.r[2]=w.shared.math.scratch.r[2];
   }
@@ -1946,11 +1946,11 @@ extern "C" { extern struct CLOCK { float t, dt; } D_002DDED0; }
 extern "C" {
 void LoadIdentityMatrix4(void *, int, M4 *, M4 *, float);
 void EvaluateBezierPos(float, float, float, qword, qword, qword, qword, qword *, qword *, qword *);
-M3 *func_0011B500(M3 *, qword, float);
+M3 *BuildAxisAngleRotationMatrix(M3 *, qword, float);
 void ProjectMatchTransform(S *);
 }
-// returns an M3 built by func_0011B500 straight into the (named) return slot
-static inline M3 Rotation(qword axis, float angle) return result { func_0011B500(&result, axis, angle); }
+// returns an M3 built by BuildAxisAngleRotationMatrix straight into the (named) return slot
+static inline M3 Rotation(qword axis, float angle) return result { BuildAxisAngleRotationMatrix(&result, axis, angle); }
 // broadcast a float into a VU register; the union local is the dead scratch store the original left on the stack
 static inline qword Splat(float f) { U u; qword q; __asm__("qmtc2.ni %1,%0" : "=j"(q) : "r"(f)); u.q = q; return q; }
 static inline qword Sub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a), "j"(b)); return r; }
@@ -2109,7 +2109,7 @@ extern "C" {
 void RemoveRip__FP3RIP(RIP *);
 int FInsideCmFrustum(CAMERA *,qword,qword);
 M3 BuildOrthonormalMatrixZ(qword,qword);
-M3 func_0011B500(qword,float);
+M3 BuildAxisAngleRotationMatrix(qword,float);
 M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
 void RenderLoAtMatrix(void *,const M4 &,float,float);
 }
@@ -2155,7 +2155,7 @@ extern "C" void RenderGlint(RIP *p)
     if(v<opacity){}else if(hi<v)opacity=hi;else opacity=v;
     opacity*=Clamp(Evaluate(D_002C1FD0,distance),D_002C1FE0[0],D_002C1FE0[1]);
     basis=BuildOrthonormalMatrixZ(direction,D_002A2DC0);
-    rotation=func_0011B500(D_002A2DA0,Evaluate(D_002C1FF0,time));
+    rotation=BuildAxisAngleRotationMatrix(D_002A2DA0,Evaluate(D_002C1FF0,time));
     product=Multiply(basis,rotation);
     transform=LoadMatrixFromPosRotScalar(p->position,product,size);
     RenderLoAtMatrix(p->material,transform,opacity,1.0f);
@@ -2270,7 +2270,7 @@ extern "C" {
 qword ConvertCmScreenToWorld(G*,qword);
 M3 MulMatrix3Matrix3(const M3&,const M3&);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(M3*,float*,qword*);
-M3 func_0011B500(qword,float);
+M3 BuildAxisAngleRotationMatrix(qword,float);
 int FRenderRipPosMat(S*,qword,const M3&);
 void RenderSmack(S*);
 }
@@ -2293,8 +2293,8 @@ void RenderSmack(S *p) {
  camera=MulMatrix3Matrix3(p->mat,pg->mat);
  DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&camera,&angle,&axis.q);
  float t=(D_002DDED0.t-p->start)/p->duration;
- fade=func_0011B500(axis.q,angle*t);
- spin=func_0011B500(p->spin->axis,(t+t)*3.14159274f);
+ fade=BuildAxisAngleRotationMatrix(axis.q,angle*t);
+ spin=BuildAxisAngleRotationMatrix(p->spin->axis,(t+t)*3.14159274f);
  render=Mul(Mul(fade,spin),p->mat);
  FRenderRipPosMat(p,view,render);
 }
@@ -2397,7 +2397,7 @@ extern "C" {
 extern CLOCK D_002DDED0;
 extern float D_002C2010[3], D_002C2020[2], D_002C2028, D_002C202C;
 extern qword D_002A2DA0;
-M3 func_0011B500(qword, float);
+M3 BuildAxisAngleRotationMatrix(qword, float);
 float func_0011E290(qword, qword, qword *, qword *);
 void ProjectRipTransform(P *);
 }
@@ -2478,7 +2478,7 @@ extern "C" void ProjectLeafTransform(P *p)
     qword axis = p->matrix.r[1];
     float g = Dot(p->vel, row0);
     float t = GClamp(D_002C2010[0] + g * (D_002C2010[1] + g * D_002C2010[2]), D_002C2020);
-    M3 rot = func_0011B500(axis, t * D_002DDED0.dt);
+    M3 rot = BuildAxisAngleRotationMatrix(axis, t * D_002DDED0.dt);
     p->vel = Rotate(rot, p->vel);
     p->matrix = Multiply(rot, p->matrix);
     float drag = p->drag;

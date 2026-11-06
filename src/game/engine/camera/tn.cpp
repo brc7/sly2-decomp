@@ -442,8 +442,8 @@ void ReadGeom__18CBinaryInputStreamP4GEOM(CBinaryInputStream *pbis, GEOM *pgeom)
 void CBinaryInputStream_ReadBspc(CBinaryInputStream *pbis, GEOM *pgeom, BSPC *pbspc);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(MSGA *pmsg);
-void *func_001AE238(MSGA *pmsg, void *pv);
+void *AllocFromStack(MSGA *pmsg);
+void *AllocCopyFromWorldHeap(MSGA *pmsg, void *pv);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(TN *p, CBinaryInputStream *pbis);
 void CLoadCollectorArray_ctor(MSGA *pmsg);
 void LoadXfmChildObjectsFromBrx(TN *p, CBinaryInputStream *pbis, MSGA *pmsg);
@@ -454,7 +454,7 @@ void RevokeCmPolicy(CM *pcm, int a, int b, int c, int d, TN *ptn);
 POX *PpoCur(SW *psw);
 qword GetLoWorldPos(void *plo);
 qword ConvertAloPos(void *source, void *p, qword q);
-BSP *PbspPointInBspQuick(BSP *p, unsigned int limit, qword v);
+BSP *FindBspLeafContainingPointFast(BSP *p, unsigned int limit, qword v);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void UpdateLo(TN *p);
 void OnLoRemove(TN *p);
@@ -482,7 +482,7 @@ qword ConvertCmScreenToWorld(CM *pcm, qword ndc);
 int FFindCmClearInterval(int cpsopart, SOPART **apsopart, qword posFrom, qword posTo, float duMin, float *puEnter, float *puExit);
 qword FindCmClosestClearPos(int, SOPART **, qword, float);
 qword SquishCmEye(CM *, int, SOPART **, float (*)(void *, qword, qword, PLANEREC *), qword, qword, float, float);
-void func_002564B8(void *p);
+void InitVuTemp(void *p);
 
 void func_00220D40(CPD *p);
 void func_00220DD8(CPD *p, CPDEFI *pa, qword *ppos, TN *ps);
@@ -624,7 +624,7 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
         MSGA *pm = &msg;
         pm->cb = 0x240;
         pm->nKind = 0x10;
-        p->acpd = (CPD *)PvAllocSlot__FP8ALLOCREQ(pm);
+        p->acpd = (CPD *)AllocFromStack(pm);
     }
     func_00221818(p, 0x30);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(p, pbis);
@@ -633,7 +633,7 @@ extern "C" void LoadTnFromBrx(TN *p, CBinaryInputStream *pbis)
         MSGA *pm = &msg;
         pm->cb = p->ccpd * 0x90;
         pm->nKind = 0x10;
-        pv = func_001AE238(pm, p->acpd);
+        pv = AllocCopyFromWorldHeap(pm, p->acpd);
     }
     p->fCpdsLoaded = 1;
     p->acpd = (CPD *)pv;
@@ -733,7 +733,7 @@ void UpdateTnCallback(TN *p)
     }
     int initial=p->tnsWant;
     int sentinel=AutomaticSentinel();
-    if(initial==sentinel) f=PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, GetLoWorldPos(po))) != 0;
+    if(initial==sentinel) f=FindBspLeafContainingPointFast(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, GetLoWorldPos(po))) != 0;
     else f=initial;
     if (p->nUnk124) goto set;
     if (!FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34)) goto set;
@@ -1824,8 +1824,8 @@ float GDistPlanePos(void *p, qword pos, qword b, PLANEREC *n)
     qword plane, td, tone;
     float dist;
     plane = n->plane;
-    func_002564B8(&d);
-    func_002564B8(&one);
+    InitVuTemp(&d);
+    InitVuTemp(&one);
     __asm__("vmul.xyz %1, %2, %3\n\tvaddw.x %0, $vf0, $vf0w\n\tvadday.x $ACC, %1, %1y\n\tvmaddaz.x $ACC, %0, %1z\n\tvmsubw.x %1, %0, %2w"
             : "=&j"(tone), "=&j"(td) : "j"(plane), "j"(pos));
     one.q = tone;

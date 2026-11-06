@@ -34,9 +34,9 @@ extern G D_003DD040;
 extern "C" {
 void InitXfm(XFM *pxfm);
 void SetLoBusyk(LO *plo, int busyk);
-void *func_001AE378(AREQV *preq);
-void *func_001AE238(AREQV *preq, void *pv);
-void **func_001AE2A0(AREQV *preq);
+void *AllocClearedFromStack(AREQV *preq);
+void *AllocCopyFromWorldHeap(AREQV *preq, void *pv);
+void **AllocClearedFromWorldHeap(AREQV *preq);
 void LoadXfmFromBrx(XFM *pxfm, void *pbis);
 void PostLoLoad(LO *plo);
 void *func_001FE990(G *pg, int id);
@@ -81,17 +81,17 @@ extern "C" void func_0012EB78(AMB *pamb, void *pbis)
     AREQV *preq = &req;
     req.cb = 0xA0;
     preq->cbAlign = 0x10;
-    pamb->aambsnd = (AMBSND *)func_001AE378(preq);
+    pamb->aambsnd = (AMBSND *)AllocClearedFromStack(preq);
     req.cb = 0x80;
     preq->cbAlign = 0x10;
-    pamb->aambrec = (AMBREC *)func_001AE378(preq);
+    pamb->aambrec = (AMBREC *)AllocClearedFromStack(preq);
     LoadXfmFromBrx(pamb, pbis);
     req.cb = pamb->cambsnd * 0x14;
     preq->cbAlign = 0x10;
-    pamb->aambsnd = (AMBSND *)func_001AE238(preq, pamb->aambsnd);
+    pamb->aambsnd = (AMBSND *)AllocCopyFromWorldHeap(preq, pamb->aambsnd);
     req.cb = pamb->cambrec * 0x10;
     preq->cbAlign = 0x10;
-    pamb->aambrec = (AMBREC *)func_001AE238(preq, pamb->aambrec);
+    pamb->aambrec = (AMBREC *)AllocCopyFromWorldHeap(preq, pamb->aambrec);
 }
 
 /** @sly2-annot addr=0x12EC50
@@ -109,7 +109,7 @@ extern "C" void func_0012EC50(AMB *pamb)
     PostLoLoad(pamb);
     req.cb = pamb->cambsnd * 4;
     req.cbAlign = 0x10;
-    pamb->apsnd = func_001AE2A0(&req);
+    pamb->apsnd = AllocClearedFromWorldHeap(&req);
     p = D_003DD040.p;
     if (p) {
         int i;

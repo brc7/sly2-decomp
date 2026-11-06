@@ -66,8 +66,8 @@ extern SW D_003DD490;
 extern "C" {
 void InitLo(SSG *script);
 void PostLoLoad(SSG *script);
-void func_0011A050(DL *pdl, int ibDle);       /* InitDl */
-void func_0011A070(DL *pdl, void *pv);        /* AppendDlEntry */
+void InitSl(DL *pdl, int ibDle);       /* InitDl */
+void AppendSlEntry(DL *pdl, void *pv);        /* AppendDlEntry */
 void PrepareGuardScriptTargets(SSG *script);
 SSGE *PssgeAppend(SSG *script, int kind, int id) __asm__("AddGuardScriptCommand");
 void StartGuardScript(LO *object, SSG *script);
@@ -96,7 +96,7 @@ int GetShapeMoveKind(void *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0xD)) r
 extern "C" void InitGuardScript(SSG *script)
 {
     InitLo(script);
-    func_0011A050(&script->commands, 0x18);
+    InitSl(&script->commands, 0x18);
 }
 
 // 0x170A28: Guard script vtable slot 15 (PostLoad): LO post-load, then prepares its targets.
@@ -254,7 +254,7 @@ extern "C" SSGE *AddGuardScriptCommand(SSG *script, int kind, int id)
     command = (SSGE *)PvAllocSlotheapClear(&D_003DD490.slotheapSsge);
     command->kind = kind;
     command->id = id;
-    func_0011A070(&script->commands, command);
+    AppendSlEntry(&script->commands, command);
     return command;
 }
 

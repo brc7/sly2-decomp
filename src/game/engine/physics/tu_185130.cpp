@@ -76,7 +76,7 @@ namespace TU_185130_DATA { float r_D_002BE918 __asm__("D_002BE918") = -300.0f; }
 SMPV D_002BE920={25.0f,0.0f,0.25f},D_002BE930={1000.0f,0.0f,0.25f},D_002BE940={250.0f,0.0f,0.5f};
 void InitXfm(MESH *pmesh);
 void LoadXfmXfFromBrx(MESH *pmesh, CBinaryInputStream *pbis);
-void *func_001AE1D0(MSG *pmsg);
+void *AllocFromWorldHeap(MSG *pmsg);
 void AddLoHierarchy(MESH *pmesh);
 void RemoveLoHierarchy(MESH *pmesh);
 void CloneXfm(MESH *pmesh);
@@ -114,7 +114,7 @@ void CID8::Init()
     InitXfm(pmesh);
 }
 
-static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind = nKind; pmsg->cb = cb; return func_001AE1D0(pmsg); }
+static __inline__ void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->nKind = nKind; pmsg->cb = cb; return AllocFromWorldHeap(pmsg); }
 /** @sly2-annot addr=0x185150
  * Purpose: CID 8/9 vt14: LoadXfmXfFromBrx, read vertex count + vectors (triangle mesh) into PvAllocSw,
  *   LoadOptionsFromBrx

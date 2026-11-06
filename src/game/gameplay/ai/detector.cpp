@@ -98,7 +98,7 @@ int func_00118668(void *object, int mask, qword a, qword b, int n, BUF *pbuf);
 int FCheckVolPoint(void *object, qword v);
 int ShouldKeepSoNotSelf(void *context, HITV *hit);
 int GetBasicCid(OV *po);
-void *PvAllocSlot__FP8ALLOCREQ(AL *request);
+void *AllocFromStack(AL *request);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int state);
 VECTORQ *GetLoWorldMatrix(SOV *object);
@@ -375,7 +375,7 @@ extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
     qword *localPoints = D_002BDBF0;
     qword eyePos = GetDetectorEyePosition(detector);
     AL request(0x10, 0x10);
-    qword *points = (qword *)PvAllocSlot__FP8ALLOCREQ(&request);
+    qword *points = (qword *)AllocFromStack(&request);
     int firstObject, objectCount;
     qword boxMax = eyePos;
     qword boxMin = eyePos;

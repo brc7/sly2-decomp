@@ -283,7 +283,7 @@ struct S { int x0; int pad[4]; int x14; struct E *x18; };
 struct D { int a; int b; };
 struct HURTZ { int n; float g; int x; };   /* (zap kind, duration, 0) records */
 extern HURTZ D_002BFA30[7];
-struct E *func_001AE238(struct D *d, void *p);
+struct E *AllocCopyFromWorldHeap(struct D *d, void *p);
 int PxfFindSo(int a, int b, int c);
 /** @sly2-annot addr=0x1A1098
  * Purpose: Allocate a 7-entry table (PvAllocSwCopyImpl 0x54 x 0x10) and look up hurt-related child XFs
@@ -301,7 +301,7 @@ void PostLoadJtHurt(struct S *s)
     s->x14 = 7;
     d.a = 0x54;
     d.b = 0x10;
-    s->x18 = func_001AE238(&d, D_002BFA30);
+    s->x18 = AllocCopyFromWorldHeap(&d, D_002BFA30);
     for (i = 0; i < s->x14; i++) {
         struct E *e = &s->x18[i];
         e->x8 = PxfFindSo(s->x0, e->x0, 6);
@@ -1229,7 +1229,7 @@ struct L { char pad[0xE0]; int xE0; };
 extern "C" {
 extern qword D_002A2DD0;
 qword GetLoWorldPos(void *p);
-void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
+void *AllocFromStack(MSG *pmsg);
 int func_001F7E08(L *pl, void *pfn, int n, void *pv);
 int ClsgClipEdgeToObjects(qword a, qword b, int n, void *pv, int c, HIT *phit);
 void func_00229D60(void);
@@ -1261,7 +1261,7 @@ int ProbeStepplayerSurface(O *object, L *pl, qword *pv)
     MSG *message = &msg;
     message->cb = pl->xE0 * 4;
     message->nKind = 0x10;
-    void *pbuf = PvAllocSlot__FP8ALLOCREQ(message);
+    void *pbuf = AllocFromStack(message);
     int n = func_001F7E08(pl, (void *)func_00229D60, 0, pbuf);
     if (!ClsgClipEdgeToObjects(a.q, b.q, n, pbuf, 0x10, &hit))
         return 0;

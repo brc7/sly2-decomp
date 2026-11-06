@@ -1,4 +1,8 @@
 // slotheap.cpp -- fixed-size slot allocator. TU 0x11CCA8..0x11CF60 (7 functions, address order).
+// A SLOTHEAP hands out slots of one size from a block of `count` slots allocated from the level heap on first use;
+// freed slots go on an intrusive free list. Every TU instantiates the six engine pools (sly2/slotheap.h), which is
+// why each file ends with the same static initializer. Entry points: InitSlotheap, PvAllocSlotheapClear,
+// FreeSlotheapSlot, ResetSlotheap, PrimeSlotheap.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_slotheap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011CF40
 #include "sly2/slotheap.h"
@@ -14,7 +18,7 @@ struct SLOT
 };
 
 extern "C" {
-void *func_001AE1D0(ALLOCREQ *preq);                        /* world heap allocator (PvAllocSwImpl) */
+void *AllocFromWorldHeap(ALLOCREQ *request);                        /* world heap allocator (PvAllocSwImpl) */
 void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");      /* memset; a prototype named memset becomes a builtin */
 }
 
@@ -26,13 +30,14 @@ void *func_002333B4(void *pv, int b, unsigned int cb) __asm__("memset");      /*
  * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
  *   docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
  * @end-sly2-annot */
-SLOTHEAP *func_0011CCA8(SLOTHEAP *pslotheap, int cb, int c, int cbAlign)
+// Initialises a pool of `count` slots of slotSize bytes at `alignment`; the storage is allocated lazily.
+SLOTHEAP *InitSlotheap(SLOTHEAP *pool, int slotSize, int count, int alignment)
 {
-      pslotheap->cb = cb;
-      pslotheap->c = c;
-      pslotheap->cbAlign = cbAlign;
-      pslotheap->pslotFree = 0;
-      return pslotheap;
+      pool->cb = slotSize;
+      pool->c = count;
+      pool->cbAlign = alignment;
+      pool->pslotFree = 0;
+      return pool;
 }
 
 /** @sly2-annot addr=0x11CCC0
@@ -44,32 +49,34 @@ SLOTHEAP *func_0011CCA8(SLOTHEAP *pslotheap, int cb, int c, int cbAlign)
  * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
  *   docs/reference/functions/splice-scripting.md#ref-0x1291a8-0x12a3d8
  * @end-sly2-annot */
-void *PvAllocSlotheapClear(SLOTHEAP *pslotheap)
+// Takes a zero-filled slot from the free list, allocating the pool's block from the level heap and threading the
+// free list through it on first use.
+void *PvAllocSlotheapClear(SLOTHEAP *pool)
 {
-      SLOT *pslot;
+      SLOT *slot;
 
-      if (pslotheap->pslotFree == 0) {
+      if (pool->pslotFree == 0) {
             // First allocation: carve one block into c slots linked through their first word.
-            ALLOCREQ req;
-            byte *ab;
+            ALLOCREQ request;
+            byte *block;
             int i;
 
-            req.cb = pslotheap->c * pslotheap->cb;
-            req.cbAlign = pslotheap->cbAlign;
-            ab = (byte *)func_001AE1D0(&req);
-            for (i = 1; i < pslotheap->c; i++) {
-                  ((SLOT *)(ab + (i - 1) * pslotheap->cb))->pslotNext = (SLOT *)(ab + i * pslotheap->cb);
+            request.cb = pool->c * pool->cb;
+            request.cbAlign = pool->cbAlign;
+            block = (byte *)AllocFromWorldHeap(&request);
+            for (i = 1; i < pool->c; i++) {
+                  ((SLOT *)(block + (i - 1) * pool->cb))->pslotNext = (SLOT *)(block + i * pool->cb);
             }
-            ((SLOT *)(ab + (i - 1) * pslotheap->cb))->pslotNext = 0;
-            pslotheap->pslotFree = (SLOT *)ab;
-            pslotheap->ab = ab;
+            ((SLOT *)(block + (i - 1) * pool->cb))->pslotNext = 0;
+            pool->pslotFree = (SLOT *)block;
+            pool->ab = block;
       }
 
-      pslot = pslotheap->pslotFree;
-      pslotheap->pslotFree = pslot->pslotNext;
-      func_002333B4(pslot, 0, pslotheap->cb);
-      pslotheap->cAlloc++;
-      return pslot;
+      slot = pool->pslotFree;
+      pool->pslotFree = slot->pslotNext;
+      func_002333B4(slot, 0, pool->cb);
+      pool->cAlloc++;
+      return slot;
 }
 
 /** @sly2-annot addr=0x11CD98
@@ -78,13 +85,14 @@ void *PvAllocSlotheapClear(SLOTHEAP *pslotheap)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
  * @end-sly2-annot */
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv)
+// Returns a slot to the pool's free list.
+void FreeSlotheapSlot(SLOTHEAP *pool, void *slotMemory)
 {
-      SLOT *pslot = (SLOT *)pv;
+      SLOT *slot = (SLOT *)slotMemory;
 
-      pslotheap->cAlloc--;
-      pslot->pslotNext = pslotheap->pslotFree;
-      pslotheap->pslotFree = pslot;
+      pool->cAlloc--;
+      slot->pslotNext = pool->pslotFree;
+      pool->pslotFree = slot;
 }
 
 /** @sly2-annot addr=0x11CDB8
@@ -98,11 +106,12 @@ void func_0011CD98(SLOTHEAP *pslotheap, void *pv)
  * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
  *   docs/reference/functions/splice-scripting.md#spliceutils-0x12ae18-0x12b0e8
  * @end-sly2-annot */
-void ResetSlotheap(SLOTHEAP *pslotheap)
+// Forgets the pool's block and free list (after the level heap was released) so the next allocation starts over.
+void ResetSlotheap(SLOTHEAP *pool)
 {
-      pslotheap->ab = 0;
-      pslotheap->cAlloc = 0;
-      pslotheap->pslotFree = 0;
+      pool->ab = 0;
+      pool->cAlloc = 0;
+      pool->pslotFree = 0;
 }
 
 // 0x11CDC8..0x11CDD4: 2 dead-code scraps (sly2/scrap.h)
@@ -115,7 +124,9 @@ SLY2_SCRAP("nop");
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60
  * @end-sly2-annot */
-void func_0011CDD8(SLOTHEAP *pslotheap)
+// Allocates and immediately frees one slot, forcing the pool's block to be allocated now (at a known point in the
+// level heap) rather than on first use.
+void PrimeSlotheap(SLOTHEAP *pool)
 {
-      func_0011CD98(pslotheap, PvAllocSlotheapClear(pslotheap));
+      FreeSlotheapSlot(pool, PvAllocSlotheapClear(pool));
 }

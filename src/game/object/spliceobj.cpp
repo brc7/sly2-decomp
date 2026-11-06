@@ -27,7 +27,7 @@ public:
     BASIC *m_pbasic;
     PFNTHUNK m_pfnthunk;
     int m_crefReq;
-    void operator delete(void *pv) { func_0011CD98(&CSlotPool<0x14, 0x100>::s_pool.slotheap, pv); }
+    void operator delete(void *pv) { FreeSlotheapSlot(&CSlotPool<0x14, 0x100>::s_pool.slotheap, pv); }
 };
 /* The method pool's members are emitted by splice/gc.cpp: declared as specializations here so that this file calls
    them without emitting its own (weak) copies. */
@@ -438,7 +438,7 @@ inline SPPAIR::~SPPAIR()
             PairPtr_Release(&q->next, 2);
             q->ref.Decref();
             Unlink__t6CGcObj1Z5CPair(q);
-            func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
+            FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
         }
     }
 }

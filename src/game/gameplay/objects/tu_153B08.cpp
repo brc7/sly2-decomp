@@ -9,8 +9,8 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct MSG { int cb; int nKind; };
-extern "C" void *func_001AE2A0(MSG *pmsg);
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
+extern "C" void *AllocClearedFromWorldHeap(MSG *pmsg);
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 struct E { char *pchz; int n4; int n8; int nC; char ab[0x40]; };
 struct S { char pad[0x50]; int c; struct E *ae; };
 extern char D_002DD590[];

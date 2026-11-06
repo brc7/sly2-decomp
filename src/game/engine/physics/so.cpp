@@ -101,7 +101,7 @@ struct XPLIST
       SO *psoOther;
 };
 
-void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("func_001AE238");
+void *PvAllocSwCopyImpl(struct SWALLOC *pswalloc, void *pvBase) __asm__("AllocCopyFromWorldHeap");
 
 struct SWALLOC
 {
@@ -109,7 +109,7 @@ struct SWALLOC
     int cbAlign;
 };
 
-void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("PvAllocSlot__FP8ALLOCREQ");
+void *PvAllocStackImpl(SWALLOC *pswalloc) __asm__("AllocFromStack");
 
 
 void EnsureSoBounds(SO *pso) __asm__("EnsureSoBounds");
@@ -212,7 +212,7 @@ STEPREC *func_001F8300(STEP *pstep);
 void FramePtr_Assign(void *ppframe, CFrame *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void func_002580A8(void *ppsidebag, CSidebag *psidebag);
 void UnsubscribeLoAll(XFH *pxfh);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 }
 
 // 0x1F2108 InitSo
@@ -337,7 +337,7 @@ struct R; struct L;
 struct R { int pad[2]; int c; };
 struct L { char pad[0x24]; struct L *next; char pad2[0x64 - 0x28]; struct L *first; char pad3[0x70 - 0x68]; struct L *end; char pad4[0x134 - 0x74]; struct R *pr; };
 struct Pool;
-void func_0011CD98(struct Pool *, struct R *);
+void FreeSlotheapSlot(struct Pool *, struct R *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct L *, int);
 /** @sly2-annot addr=0x1F2468
  * Purpose: Drop the shared bounds record (+0x134, refcounted, pool (*(struct Pool *)&g_sw.slotheapSobounds)) of this SO and all SO children
@@ -350,7 +350,7 @@ void ReleaseSoBoundsHierarchy(struct L *p)
     struct L *q;
     struct R *pr = p->pr;
     if (pr) {
-        if (--pr->c == 0) func_0011CD98(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
+        if (--pr->c == 0) FreeSlotheapSlot(&(*(struct Pool *)&g_sw.slotheapSobounds), pr);
         p->pr = 0;
     }
     for (q = p->first; q != p->end; q = q->next) {
@@ -1052,7 +1052,7 @@ void ReadGeom__18CBinaryInputStreamP4GEOM(void *,GEO *);
 void CBinaryInputStream_ReadBspc(void *,GEO *,TREE *);
 void ReadMatrix__18CBinaryInputStreamP7MATRIX3(void *,STATE *);
 void LoadGlobsetFromBrx__FP7GLOBSETP2SOP18CBinaryInputStream(DATA *,P *,void *);
-void *func_001AE2A0(MSG *);
+void *AllocClearedFromWorldHeap(MSG *);
 void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
 void AddSoParts(P *);
 void AdjustSoMomint(P *,float);
@@ -1084,7 +1084,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
     p->count=S16Read__18CBinaryInputStream(stream);
     MSG request;
     request.bytes=(p->count+extra)*sizeof(E);request.alignment=16;
-    p->entries=(E *)func_001AE2A0(&request);
+    p->entries=(E *)AllocClearedFromWorldHeap(&request);
     for(;i<p->count;i++){
         e=&p->entries[i];
         GEO *local=&e->local;
@@ -1110,7 +1110,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
     AddSoParts(p);
     if(p->count>0){
         request.bytes=sizeof(STATE);request.alignment=16;
-        STATE *state=(STATE *)func_001AE2A0(&request);
+        STATE *state=(STATE *)AllocClearedFromWorldHeap(&request);
         p->state=state;
         state->mass=F32Read__18CBinaryInputStream(stream);
         ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,state);
@@ -1177,7 +1177,7 @@ struct T { M3 m; qword v[3]; };
 struct X { char pad[0xE8]; struct T *pt; };
 void func_0023320C(void *d, const void *s, unsigned int cb) __asm__("memcpy");
 void *func_002333B4(void *d, int c, unsigned int cb) __asm__("memset");
-int FInvertMatrix3(struct T *pt, qword *pv);
+int InvertMatrix3(struct T *pt, qword *pv);
 /** @sly2-annot addr=0x1F35F8
  * Purpose: Scale SOPHYS inertia matrix by r and recompute its inverse (zero if singular)
  * Info: proposed name AdjustSoMomint (T1); TU so
@@ -1205,7 +1205,7 @@ void AdjustSoMomint(struct X *p, float s)
     r.r[2] = r2;
     func_0023320C(&m, &r, sizeof(M3));
     pt->m = m;
-    if (!FInvertMatrix3(p->pt, p->pt->v))
+    if (!InvertMatrix3(p->pt, p->pt->v))
         func_002333B4(p->pt->v, 0, 0x30);
 }
 } } // namespace M_AdjustSoMomint
@@ -3473,7 +3473,7 @@ inline int FIsLoInWorld(LO *plo)
 extern XF D_002C44F0;
 void AddSoParts(SO *pso) __asm__("AddSoParts");
 void CloneGlobset(GLOBSET *pglobset, SO *pso, LO *ploBase) __asm__("func_0016EA80");
-void CloneBspc(BSPC *pbspcBase, GEOM *pgeomBase, BSPC *pbspc, GEOM *pgeom) __asm__("func_001191E8");
+void CloneBspc(BSPC *pbspcBase, GEOM *pgeomBase, BSPC *pbspc, GEOM *pgeom) __asm__("CloneBspc");
 inline void *PvAllocSwCopy(int cb, void *pvBase)
 {
     SWALLOC swalloc;
@@ -3941,9 +3941,9 @@ extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 struct FRAME {FRAME(){}~FRAME(){}};
 struct MSG {int bytes,alignment;};
-extern "C" void *func_001AE1D0(MSG *);
-extern "C" void *func_001AE2A0(MSG *);
-extern "C" void *func_001AE378(MSG *);
+extern "C" void *AllocFromWorldHeap(MSG *);
+extern "C" void *AllocClearedFromWorldHeap(MSG *);
+extern "C" void *AllocClearedFromStack(MSG *);
 static inline qword Sub(qword a,qword b) {qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"0"(a),"j"(b));return r;}
 static inline qword Cross(qword a,qword b){qword r;__asm__("vopmula.xyz $ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1":"=j"(r):"0"(a),"j"(b));return r;}
 static inline float Dot(qword a,qword b){qword r,one;float f;
@@ -3967,15 +3967,15 @@ extern "C" void func_001F6C08(P *p)
     STACKSCOPE_ctor(&storage);
     MSG *allocation=&request;
     request.bytes=triBytes;allocation->alignment=alignment;
-    p->mesh=(MESH *)func_001AE1D0(allocation);
+    p->mesh=(MESH *)AllocFromWorldHeap(allocation);
     request.bytes=p->pointCount*16;allocation->alignment=alignment;
-    p->mesh->velocity=(qword *)func_001AE2A0(allocation);
+    p->mesh->velocity=(qword *)AllocClearedFromWorldHeap(allocation);
     request.bytes=p->pointCount*16;allocation->alignment=alignment;
-    p->mesh->acceleration=(qword *)func_001AE2A0(allocation);
+    p->mesh->acceleration=(qword *)AllocClearedFromWorldHeap(allocation);
     request.bytes=p->triCount*triBytes;allocation->alignment=alignment;
-    p->mesh->triangles=(TRI *)func_001AE2A0(allocation);
+    p->mesh->triangles=(TRI *)AllocClearedFromWorldHeap(allocation);
     request.bytes=p->triCount*4;allocation->alignment=alignment;
-    int *counts=(int *)func_001AE378(allocation);
+    int *counts=(int *)AllocClearedFromStack(allocation);
     int itri;
     TRI *ptri;
     for(int i=0;i<p->edgeCount;i++) {
@@ -4116,12 +4116,12 @@ struct FRAME {int pad[4];};
 extern "C" FRAME *STACKSCOPE_ctor(FRAME *);
 extern "C" void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 struct MSG {int bytes,alignment;};
-extern "C" void *func_001AE378(MSG *);
+extern "C" void *AllocClearedFromStack(MSG *);
 extern "C" void CopyAb__FPvT0Ui(void *,const void *,unsigned int);
 extern "C" M4 *InvertMatrix4Rigid(M4 *,const M4 *);
 extern "C" M4 *__ml__FRC7MATRIX4T0(M4 *,const M4 *,const M4 *);
 extern "C" void CloneGeom__FP4GEOMP7MATRIX4T0(GEO *,const M4 *,GEO *);
-extern "C" void func_001191E8(TREE *,GEO *,TREE *,GEO *);
+extern "C" void CloneBspc(TREE *,GEO *,TREE *,GEO *);
 
 static inline float SquaredLength(qword a){qword one;float f;__asm__("vmul.xyz %0,%0,%0\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z":"+j"(a),"=&j"(one));__asm__("mtc1 %1,%0":"=f"(f):"r"(a));return f;}
 /* volatile: the game's sqrt.s is a barrier for the scheduler (the radius store must precede the next constant). */
@@ -4145,7 +4145,7 @@ extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
     dest->radius=Sqrt(maximum);
     temporary=source->local;
     request.bytes=(temporary.count+inserted)*16;allocation->alignment=16;
-    qword *points=(qword *)func_001AE378(allocation);
+    qword *points=(qword *)AllocClearedFromStack(allocation);
     int pinned=source->pinnedCount;
     CopyAb__FPvT0Ui(points,temporary.points,pinned*16);
     CopyAb__FPvT0Ui(points+(pinned+inserted),temporary.points+pinned,(temporary.count-pinned)*16);
@@ -4153,7 +4153,7 @@ extern "C" void func_001F70C0(P *source,LO *space,int inserted,P *dest)
     {M4 product,inverse;__ml__FRC7MATRIX4T0(&product,(InvertMatrix4Rigid(&inverse,&space->matrix),&inverse),&source->owner->matrix);transform=product;}
     CloneGeom__FP4GEOMP7MATRIX4T0(&temporary,&transform,&dest->local);
     CloneGeom__FP4GEOMP7MATRIX4T0(&dest->local,&space->matrix,&dest->world);
-    func_001191E8(&source->tree,&source->world,&dest->tree,&dest->world);
+    CloneBspc(&source->tree,&source->world,&dest->tree,&dest->world);
     STACKSCOPE_ctor_1AE4A0(&frame,2);
 }
 } // namespace M_func_001F70C0
@@ -4166,7 +4166,7 @@ typedef unsigned long ulong;
 struct O { char pad[0x70]; qword pos; };
 struct E { struct O *po; int pad; float r; int pad2; ulong fl; char pad3[0x74 - 0x18]; void *p74; char pad4[0xB0 - 0x78]; };
 struct P { char pad[0xE0]; int c; struct E *ae; };
-int PbspPointInBspQuick(void *, int, qword);
+int FindBspLeafContainingPointFast(void *, int, qword);
 /** @sly2-annot addr=0x1F72F8
  * Purpose: SO vt73: true if pos is inside any visible sphere part or part BSP (0x118FB0)
  * Info: proposed name FPosInSo (T2); class SO slot73; TU so
@@ -4191,7 +4191,7 @@ int func_001F72F8(struct P *p, qword pos)
             __asm__("mtc1 %1, %0" : "=f"(d2) : "r"(t));
             { int f = d2 < r2; if (f) return 1; }
         }
-        if (pe->p74 && PbspPointInBspQuick(pe->p74, 0x7FFFFFFF, pos)) return 1;
+        if (pe->p74 && FindBspLeafContainingPointFast(pe->p74, 0x7FFFFFFF, pos)) return 1;
     }
     return 0;
 }
@@ -4381,7 +4381,7 @@ extern struct CLOCK D_002DDED0;
 struct E { char pad[0x4C]; float t; };
 struct P { char pad[0x4118]; char pool[0x18]; struct DL dl; };
 void RemoveDlEntry__FP2DLPv(struct DL *, void *);
-void func_0011CD98(void *, void *);
+void FreeSlotheapSlot(void *, void *);
 static inline void InitDli(struct DLI *pdli, struct DL *pdl)
 {
     pdli->pdl = pdl;
@@ -4412,7 +4412,7 @@ void ExpireSwZapRecords(struct P *p)
     while ((pe = (__typeof__(pe))PvNextDli(&dli)) != 0) {
         if (D_002DDED0.t < pe->t + 0.25f) continue;
         RemoveDlEntry__FP2DLPv(&p->dl, pe);
-        func_0011CD98(p->pool, pe);
+        FreeSlotheapSlot(p->pool, pe);
     }
     D_002DD2FC = dli.pdliNext;
 }
@@ -5041,9 +5041,9 @@ struct Q { void *p0; int pad; float g8; float gC; };
 struct E { char pad[0xDC]; struct Q *pq; };
 struct P { char pad[0xE8]; struct E *pe; };
 struct CB { int cb; int n; };
-void *func_001AE2A0(struct CB *);
+void *AllocClearedFromWorldHeap(struct CB *);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *, int);
-static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return func_001AE2A0(pcb); }
+static inline void *PvAllocMsg(struct CB *pcb, int cb, int n) { pcb->cb = cb; pcb->n = n; return AllocClearedFromWorldHeap(pcb); }
 /** @sly2-annot addr=0x1F8300
  * Purpose: Ensure 0x70-byte SOPHYS+0xDC record {pso, g4, g8=75 (150 for CID 0x34), gC=1}
  * Info: proposed name PsowaterEnsure (T2); TU so
@@ -5326,7 +5326,7 @@ extern "C" void DecrefXfh(XFH *pxfh)
         FramePtr_Assign(&pxfh->pframe, 0);
         func_002580A8(&pxfh->psidebag, 0);
         UnsubscribeLoAll(pxfh);
-        func_0011CD98(&g_sw.slotheapXfh, pxfh);
+        FreeSlotheapSlot(&g_sw.slotheapXfh, pxfh);
     }
 }
 
@@ -5533,7 +5533,7 @@ struct M3 { qword a[3]; };
 struct O { char pad[0xA0]; int nA0; };
 struct P { char pad[0x24]; struct O *po; };
 void ConvertXfMat(struct M3 *, int, int);
-qword func_0011BFF0(struct M3 *);
+qword DecomposeRotationMatrixToEuler(struct M3 *);
 void func_001F89E0(struct P *, int, int, qword);
 /** @sly2-annot addr=0x1F8AD8
  * Purpose: 0x1F89E0 with value from matrix
@@ -5546,7 +5546,7 @@ void func_001F8AD8(struct P *p, int a, int b)
     struct M3 c, t;
     ConvertXfMat(&t, 0, p->po->nA0);
     c = t;
-    func_001F89E0(p, a, b, func_0011BFF0(&c));
+    func_001F89E0(p, a, b, DecomposeRotationMatrixToEuler(&c));
 }
 } } // namespace M_func_001F8AD8
 

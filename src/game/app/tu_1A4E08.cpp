@@ -1,4 +1,7 @@
 // tu_1A4E08.cpp -- a queue of up to 16 front-end steps (play a movie, warp to a level, ...) run one after another.
+// The game state code (game.cpp) fills the queue D_002E1E88 and runs the next step whenever the previous one is done
+// (sw.cpp also advances it). At boot it holds: the intro movie, the memory-card check, then a warp to the first level.
+// Entry points: BeginStartupSequence, HasPendingStartupSteps, RunNextStartupStep, AddStartup{,Movie,Warp,Memcard}Step.
 // TU 0x1A4E08..0x1A5270 (9 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1A4E08
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A5250
@@ -9,30 +12,30 @@
 SLY2_INSTANTIATE_SLOT_POOLS()
 
 /* A level / movie reference checked by its two check words (+0x4 and +0x3C differ when it is set). */
-struct FILEREF { int x0; int x4; char pad[0x34]; int x3c; };
+struct FILEREF { int hash0; int checkA; char pad[0x34]; int checkB; };
 
 /* One step. k: 0 movie, 1 movie (flagged), 2 warp, 3 StartTaskByOid, 4 nothing, 5 SetMcDialogPhase then next step. */
 struct STEPE
 {
-    unsigned int k;     /* +0x0 */
-    void *pv;           /* +0x4 movie */
-    FILEREF *pfileref;  /* +0x8 warp destination */
-    int oid;            /* +0xC warp oid */
-    int grf;            /* +0x10 warp flags */
-    int a14;            /* +0x14 */
-    int a18;            /* +0x18 */
+    unsigned int kind;      /* +0x0 */
+    void *movie;            /* +0x4 kinds 0/1: the movie's file reference */
+    FILEREF *warpDest;      /* +0x8 kind 2: destination level */
+    int warpOid;            /* +0xC kind 2: destination object */
+    int warpFlags;          /* +0x10 kind 2 */
+    int taskArg0;           /* +0x14 kind 3: first argument of func_001651D8 */
+    int taskArg1;           /* +0x18 kind 3: second argument */
 };
 typedef char assert_STEPE_size[sizeof(STEPE) == 0x1C ? 1 : -1];
 
 struct STEPQ
 {
-    int c;              /* +0x0 queued */
-    STEPE ae[16];       /* +0x4 */
-    int iNext;          /* +0x1C4 next to run */
+    int count;              /* +0x0 queued */
+    STEPE steps[16];       /* +0x4 */
+    int next;          /* +0x1C4 next to run */
 };
 
-struct MPEGV { char pad[0x108]; int x108; };
-struct HV { char pad[0x44]; int x44; };
+struct MPEGV { char pad[0x108]; int unknown108; };   /* CMpeg: +0x108 set to 1 for a kind-1 movie */
+struct HV { char pad[0x44]; int unknown44; };   /* the memcard UI: +0x44 nonzero = already in a phase (inferred) */
 
 extern MPEGV D_002F66B0;
 extern HV D_002E6550;
@@ -51,22 +54,22 @@ extern const unsigned int D_002A38A8[16] __attribute__((section(".rodata.early")
 
 extern "C" {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
-void CMpeg_QueueMovie(MPEGV *pmpeg, void *pv);
-void WipeToWorldWarp(void *psw, void *pfilerec, int a, int b, int grf, int oid);
+void CMpeg_QueueMovie(MPEGV *mpeg, void *pv);
+void WipeToWorldWarp(void *psw, void *pfilerec, int a, int b, int flags, int oid);
 void StartTaskByOid(void *pv, int a, int b);
 void SetMcDialogPhase(HV *ph, int n);
-int func_001A4E70(STEPQ *pq);
-void func_001A4E80(STEPQ *pq);
-STEPE *func_001A4FB0(STEPQ *pq, int k);
-void func_001A5020(STEPQ *pq, FILEREF *pfileref);
-void func_001A5078(STEPQ *pq, FILEREF *pfileref, int oid, int grf);
-void func_001A50F8(STEPQ *pq);
+int HasPendingStartupSteps(STEPQ *queue);
+void RunNextStartupStep(STEPQ *queue);
+STEPE *AddStartupStep(STEPQ *queue, int k);
+void AddStartupMovieStep(STEPQ *queue, FILEREF *fileRef);
+void AddStartupWarpStep(STEPQ *queue, FILEREF *fileRef, int oid, int flags);
+void AddStartupMemcardStep(STEPQ *queue);
 }
 
-static inline int FFilerefSet(FILEREF *pfileref)
+static inline int IsFileRefSet(FILEREF *fileRef)
 {
-    if (!pfileref) return 0;
-    return pfileref->x4 != pfileref->x3c;
+    if (!fileRef) return 0;
+    return fileRef->checkA != fileRef->checkB;
 }
 
 /** @sly2-annot addr=0x1A4E08
@@ -78,14 +81,16 @@ static inline int FFilerefSet(FILEREF *pfileref)
  *   docs/engine/world-sw.md#4-transitions-warps-exits-wipes-boot-queue,
  *   docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
-extern "C" void func_001A4E08(STEPQ *pq)
+// Fills the queue with the boot sequence (intro movie D_002A3868, memory-card check, warp to the level
+// D_002A38A8 at object 0x189) and runs its first step.
+extern "C" void BeginStartupSequence(STEPQ *queue)
 {
-    pq->c = 0;
-    pq->iNext = 0;
-    func_001A5020(pq, (FILEREF *)D_002A3868);
-    func_001A50F8(pq);
-    func_001A5078(pq, (FILEREF *)D_002A38A8, 0x189, 1);
-    func_001A4E80(pq);
+    queue->count = 0;
+    queue->next = 0;
+    AddStartupMovieStep(queue, (FILEREF *)D_002A3868);
+    AddStartupMemcardStep(queue);
+    AddStartupWarpStep(queue, (FILEREF *)D_002A38A8, 0x189, 1);
+    RunNextStartupStep(queue);
 }
 
 // 0x1A4E68: dead-code scrap (sly2/scrap.h)
@@ -97,9 +102,10 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" int func_001A4E70(STEPQ *pq)
+// Returns whether steps remain to be run.
+extern "C" int HasPendingStartupSteps(STEPQ *queue)
 {
-    return pq->iNext < pq->c;
+    return queue->next < queue->count;
 }
 
 /** @sly2-annot addr=0x1A4E80
@@ -110,39 +116,42 @@ extern "C" int func_001A4E70(STEPQ *pq)
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A4E80(STEPQ *pq)
+// Runs the next step: a movie is queued on the movie player (kind 1 also sets its +0x108 flag) and the world warps
+// to the empty level that plays it; a warp wipes to its level; kind 3 calls func_001651D8 with the step's two
+// arguments; kind 5 puts the memory-card UI in phase 1 (unless it is busy) and runs the following step at once.
+extern "C" void RunNextStartupStep(STEPQ *queue)
 {
-    STEPE *pe;
-    MPEGV *pmpeg;
-    if (!func_001A4E70(pq))
+    STEPE *step;
+    MPEGV *mpeg;
+    if (!HasPendingStartupSteps(queue))
         return;
-    pe = &pq->ae[pq->iNext++];
-    switch (pe->k) {
+    step = &queue->steps[queue->next++];
+    switch (step->kind) {
     case 0:
     case 1:
-        pmpeg = &D_002F66B0;
-        CMpeg_QueueMovie(pmpeg, pe->pv);
-        if (pe->k == 1)
-            pmpeg->x108 = pe->k;
+        mpeg = &D_002F66B0;
+        CMpeg_QueueMovie(mpeg, step->movie);
+        if (step->kind == 1)
+            mpeg->unknown108 = step->kind;
         WipeToWorldWarp(D_003DD490, &D_002BFCA0, 0x189, -1, 0, -1);
         break;
     case 2:
-        WipeToWorldWarp(D_003DD490, pe->pfileref, pe->oid, -1, pe->grf, 0x30A);
+        WipeToWorldWarp(D_003DD490, step->warpDest, step->warpOid, -1, step->warpFlags, 0x30A);
         break;
     case 3:
-        StartTaskByOid(D_002DEB30, pe->a14, pe->a18);
+        StartTaskByOid(D_002DEB30, step->taskArg0, step->taskArg1);
         break;
     case 4:
         break;
     case 5:
-        if (!D_002E6550.x44)
+        if (!D_002E6550.unknown44)
             SetMcDialogPhase(&D_002E6550, 1);
-        func_001A4E80(pq);
+        RunNextStartupStep(queue);
         break;
     }
 }
 
-/* c is signed in func_001A4E70 (slt) and compared unsigned here (sltiu). */
+/* c is signed in HasPendingStartupSteps (slt) and compared unsigned here (sltiu). */
 /** @sly2-annot addr=0x1A4FB0
  * Purpose: Append a zeroed step of kind k to the 16-entry queue (overflow returns dummy D_002E1E68)
  * Info: proposed name PbootstepAdd (T2); TU tu_1A4E08
@@ -150,15 +159,16 @@ extern "C" void func_001A4E80(STEPQ *pq)
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" STEPE *func_001A4FB0(STEPQ *pq, int k)
+// Appends a zeroed step of `kind` and returns it; when the queue is full returns a dummy step instead.
+extern "C" STEPE *AddStartupStep(STEPQ *queue, int kind)
 {
-    STEPE *pe;
-    if ((unsigned int)pq->c >= 16)
+    STEPE *step;
+    if ((unsigned int)queue->count >= 16)
         return &D_002E1E68;
-    pe = &pq->ae[pq->c++];
-    func_002333B4(pe, 0, sizeof(STEPE));
-    pe->k = k;
-    return pe;
+    step = &queue->steps[queue->count++];
+    func_002333B4(step, 0, sizeof(STEPE));
+    step->kind = kind;
+    return step;
 }
 
 /** @sly2-annot addr=0x1A5020
@@ -167,9 +177,10 @@ extern "C" STEPE *func_001A4FB0(STEPQ *pq, int k)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A5020(STEPQ *pq, FILEREF *pfileref)
+// Queues a movie step if the file reference is set.
+extern "C" void AddStartupMovieStep(STEPQ *queue, FILEREF *fileRef)
 {
-    if (FFilerefSet(pfileref)) func_001A4FB0(pq, 0)->pv = pfileref;
+    if (IsFileRefSet(fileRef)) AddStartupStep(queue, 0)->movie = fileRef;
 }
 
 // 0x1A5070: dead-code scrap (sly2/scrap.h)
@@ -182,13 +193,14 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A5078(STEPQ *pq, FILEREF *pfileref, int oid, int grf)
+// Queues a warp step to the level fileRef (object oid, warp flags) if the file reference is set.
+extern "C" void AddStartupWarpStep(STEPQ *queue, FILEREF *fileRef, int oid, int flags)
 {
-    if (FFilerefSet(pfileref)) {
-        STEPE *pe = func_001A4FB0(pq, 2);
-        pe->pfileref = pfileref;
-        pe->oid = oid;
-        pe->grf = grf;
+    if (IsFileRefSet(fileRef)) {
+        STEPE *step = AddStartupStep(queue, 2);
+        step->warpDest = fileRef;
+        step->warpOid = oid;
+        step->warpFlags = flags;
     }
 }
 
@@ -203,9 +215,10 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/world-sw.md#tu_1a4e08-0x1a4e08-0x1a5270
  * @end-sly2-annot */
-extern "C" void func_001A50F8(STEPQ *pq)
+// Queues a memory-card step.
+extern "C" void AddStartupMemcardStep(STEPQ *queue)
 {
-    func_001A4FB0(pq, 5);
+    AddStartupStep(queue, 5);
 }
 
 // ---- .bss (tu-merging.md "Data": .bss gaps): the step queue itself (STEPQ, 0x1C8 bytes from 0x2E1E88 up to main's

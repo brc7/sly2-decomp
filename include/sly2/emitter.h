@@ -146,11 +146,11 @@ template <class T> struct EMITBREFS { static void *s_apvNull[5]; };
 #define SLY2_STRUCT_AREQ
 struct AREQ { int cb; int cbAlign; };
 #endif
-/* allocate from the level heap (func_001AE2A0); a C++ name bound by label, so that the merged files' own extern "C"
-   declarations of func_001AE2A0 (on their AREQ copies) do not conflict with it where classes.h is included */
-void *PvAllocLevelHeap(AREQ *preq) __asm__("func_001AE2A0");
-void *PvAllocLevelHeapUncleared(AREQ *preq) __asm__("func_001AE1D0");   /* allocate (uncleared); labelled as above */
-void *PvAllocLevelHeapCopy(AREQ *preq, void *pv) __asm__("func_001AE238");   /* allocate a copy of pv */
+/* allocate from the level heap (AllocClearedFromWorldHeap); a C++ name bound by label, so that the merged files' own extern "C"
+   declarations of AllocClearedFromWorldHeap (on their AREQ copies) do not conflict with it where classes.h is included */
+void *PvAllocLevelHeap(AREQ *preq) __asm__("AllocClearedFromWorldHeap");
+void *PvAllocLevelHeapUncleared(AREQ *preq) __asm__("AllocFromWorldHeap");   /* allocate (uncleared); labelled as above */
+void *PvAllocLevelHeapCopy(AREQ *preq, void *pv) __asm__("AllocCopyFromWorldHeap");   /* allocate a copy of pv */
 extern "C" void func_00159118(EMITB *pemitb); /* InitEmitb: zero the block, install the EMITO/EMITV defaults */
 extern "C" void ColorCorrectRgba(RGBA *prgba);
 /* CBinaryInputStream's readers by their symbols (the class is only forward-declared in the sly2 headers: bis.h's

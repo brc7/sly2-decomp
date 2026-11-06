@@ -55,7 +55,7 @@ struct NODE {
     int x4;
     CRef ref;
     CPairPtr pnext;
-    void operator delete(void *pv) { Unlink__t6CGcObj1Z5CPair(pv); func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
+    void operator delete(void *pv) { Unlink__t6CGcObj1Z5CPair(pv); FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pv); }
 };
 struct SPN {
     NODE *p;

@@ -78,7 +78,7 @@ void SetNeelaState(NEELAV*,int);
 int FAsegaRetracted(ASEGA*);
 qword func_0022FC48(SPACE*,SPACE*,qword);
 M3*BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3*,qword,qword);
-qword func_0011BFF0(M3*);
+qword DecomposeRotationMatrixToEuler(M3*);
 int FilterCid98(void*,ROW*);
 void IntersectSwBoundingBox(GAME*,qword,qword,int(*)(void*,ROW*),void*,int*,ROW***);
 void func_00130B18(ASEGA *o);
@@ -240,7 +240,7 @@ extern "C" void UpdateNeela(NEELAV*neela){
   qword direction=VuSub(local,neela->node->position);
   M3 matrix;BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&matrix,neela->axis,direction);
   MOTION*motion=neela->motion;
-  motion->angles=func_0011BFF0(&matrix);
+  motion->angles=DecomposeRotationMatrixToEuler(&matrix);
   break;
  }
  default:break;

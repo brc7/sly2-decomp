@@ -119,7 +119,7 @@ void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
 qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
 void SprayDifficultyPrizes(void *, qwordV, int, int, CID96V *);
-M3 func_0011B500(qwordV v, float g);
+M3 BuildAxisAngleRotationMatrix(qwordV v, float g);
 float atan2f(float y, float x);
 E96 *func_0012FF10(LOV *plo, CID96V *p, int a, int b);
 
@@ -576,7 +576,7 @@ void SetStepSpinRatio(STEP *pstep, float r)
 void func_001B1818(CID96V *p, float g)
 {
     p->heading = g;
-    p->basis = func_0011B500(D_002A2DC0.q, g);
+    p->basis = BuildAxisAngleRotationMatrix(D_002A2DC0.q, g);
 }
 
 /** @sly2-annot addr=0x1B1868

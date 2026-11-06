@@ -91,10 +91,10 @@ extern char D_002C44E0[];
 extern qword D_002A2DD0;
 extern "C" {
 ASEG *PloNew__F3CIDP2SO3OIDi(int a, void *p, int b, int c);
-void *func_001AE1D0(const AREQ &req);
-void *func_001AE238(const AREQ &req, void *pv);
-void *func_001AE378(const AREQ &req);
-void *func_001AE2A0(const AREQ &req);
+void *AllocFromWorldHeap(const AREQ &req);
+void *AllocCopyFromWorldHeap(const AREQ &req, void *pv);
+void *AllocClearedFromStack(const AREQ &req);
+void *AllocClearedFromWorldHeap(const AREQ &req);
 OBJ *PacNewKind(int id);
 OBJ *PacNewKind2(int id);
 void func_0012FE58(ASEG *px, void *p, ENT *pent, int *pa, void **ppb);
@@ -151,13 +151,13 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
         pxNew->cElem = c;
         pxNew->aelem = aelem;
         pxNew->n = n;
-        pxNew->ae3 = (BLMRSG *)func_001AE1D0(AREQ(n * 12));
+        pxNew->ae3 = (BLMRSG *)AllocFromWorldHeap(AREQ(n * 12));
         for (int ie = 0; ie < n; ie++) {
             BLMRSG *pe3 = &pxNew->ae3[ie];
             pe3->ib = pa[ie];
             int b = pb[ie];
             pe3->cmrsg = b;
-            pe3->amrsg = (MRSG *) func_001AE1D0(AREQ(b * 8));
+            pe3->amrsg = (MRSG *) AllocFromWorldHeap(AREQ(b * 8));
         }
         
         if (pxCopy) {
@@ -165,7 +165,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pxNew->x98 = pxCopy->x98;
             pxNew->x9C = pxCopy->x9C;
             pxNew->xA0 = pxCopy->xA0;
-            { void *pvOld = pxCopy->xA4; pxNew->xA4 = (KEY *)func_001AE238(AREQ(pxCopy->xA0 << 4), pvOld); }
+            { void *pvOld = pxCopy->xA4; pxNew->xA4 = (KEY *)AllocCopyFromWorldHeap(AREQ(pxCopy->xA0 << 4), pvOld); }
             pxNew->xA8 = pxCopy->xA8;
             pxNew->xAC = pxCopy->xAC;
         }
@@ -174,7 +174,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             for (i = 0; i < c; i++) {
                 if (PELEM(i)->paseg) cTotal += PELEM(i)->paseg->c;
             }
-            pxNew->aent = (ENT *)func_001AE378(AREQ(cTotal * 8));
+            pxNew->aent = (ENT *)AllocClearedFromStack(AREQ(cTotal * 8));
             pxNew->c = 0;
         }
         for (i = 0; i < c; i++) {
@@ -206,7 +206,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pobj->q10 = func_0022CA18(pv, pv);
             pobj->px = pxNew;
             pobj->ae3 = pxNew->ae3;
-            pobj->apobj = (OBJ **)func_001AE2A0(AREQ(c * 4));
+            pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
             pentNew->pobj = pobj;
             } else pobj = pentNew->pobj;
                 } else {
@@ -214,7 +214,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
             pobj = PacNewKind2(2);
             pobj->px = pxNew;
             pobj->ae3 = pxNew->ae3;
-            pobj->apobj = (OBJ **)func_001AE2A0(AREQ(c * 4));
+            pobj->apobj = (OBJ **)AllocClearedFromWorldHeap(AREQ(c * 4));
             pentNew->pobj = pobj;
             *(unsigned *)pentNew |= mF31;
             } else pobj = pentNew->pobj;
@@ -223,7 +223,7 @@ extern "C" void EnsureAsegBlendDynamic__FP3ALOiiPviPiT5PP6ASEGBL(void *p, int cb
                 __asm__("" : : "r"(i * 4));  /* empty asm, allocation only: one more ref on the i*4 giv */
             }
         }
-        { ENT *aentOld = pxNew->aent; pxNew->aent = (ENT *)func_001AE238(AREQ(pxNew->c * 8), aentOld); }
+        { ENT *aentOld = pxNew->aent; pxNew->aent = (ENT *)AllocCopyFromWorldHeap(AREQ(pxNew->c * 8), aentOld); }
         pxNew->x6C = pxFirst->x6C;
         pxNew->g78 = pxFirst->g78;
         pxNew->xD4 = -1;

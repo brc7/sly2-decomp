@@ -342,7 +342,7 @@ SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
             PairPtr_Release(&pt->sp, 2);
             Decref__4CRef(&pt->ref);
             Unlink__t6CGcObj1Z5CPair(pt);
-            func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pt);
+            FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pt);
         }
     }
     return ret;
@@ -418,9 +418,9 @@ extern "C" void CancelSwSpliceCallback(SW *world, int id) {
                 PairPtr_Release(&pr->sp, 2);
                 Decref__4CRef(&pr->ref);
                 Unlink__t6CGcObj1Z5CPair(pr);
-                func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pr);
+                FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pr);
             }
-            func_0011CD98(&world->slotheapEvent, pn);
+            FreeSlotheapSlot(&world->slotheapEvent, pn);
             return;
         }
     }
@@ -457,7 +457,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *object, int k, int f, int x, int 
                 PairPtr_Release(&pt->sp, 2);
                 Decref__4CRef(&pt->ref);
                 Unlink__t6CGcObj1Z5CPair(pt);
-                func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pt);
+                FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, pt);
             }
         }
         Decref__4CRef(&ref);
@@ -521,7 +521,7 @@ extern "C" void SubscribeLoObject(LO *object, LO *id) {
 extern "C" void UnsubscribeLoObject(LO *object, LO *id) {
     REFNODE **ppe;
     REFNODE *pe;
-    for (ppe = &object->prefnodeFirst; (pe = *ppe) != 0; ppe = &pe->pnext) { if (pe->plo == id) { if (--pe->cref <= 0) { *ppe = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); } break; } }
+    for (ppe = &object->prefnodeFirst; (pe = *ppe) != 0; ppe = &pe->pnext) { if (pe->plo == id) { if (--pe->cref <= 0) { *ppe = pe->pnext; FreeSlotheapSlot(&g_sw.slotheapRefnode, pe); } break; } }
 }
 
 /** @sly2-annot addr=0x1334A8
@@ -533,7 +533,7 @@ extern "C" void UnsubscribeLoObject(LO *object, LO *id) {
 // Frees the object's whole subscriber list.
 extern "C" void UnsubscribeLoAll(LO *object) {
     REFNODE *pe = object->prefnodeFirst;
-    while (pe) { REFNODE *pNext = pe->pnext; func_0011CD98(&g_sw.slotheapRefnode, pe); pe = pNext; }
+    while (pe) { REFNODE *pNext = pe->pnext; FreeSlotheapSlot(&g_sw.slotheapRefnode, pe); pe = pNext; }
     object->prefnodeFirst = 0;
 }
 

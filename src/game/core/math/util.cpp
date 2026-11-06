@@ -1,6 +1,9 @@
 // util.cpp -- math utilities (Sly 1 util.c): angle normalisation and limits, smoothing (SMP/SMPA), random numbers,
 // quadratics and CLQ curves, sine/cosine, truncation, range minimisation, colour conversions.
-// TU 0x11CF60..0x11E198 (28 functions, address order).
+// The smoothing functions (GSmooth and kin) are the engine's standard way to ease a value toward a target with an
+// SMP {spring, speed and acceleration limits} parameter block; LM is a {min, max} range and CLQ a quadratic
+// g2 u^2 + g1 u + g0. Many names keep Sly 1's Hungarian return-type prefixes (G float, N int, F bool, C count, Rad
+// angle); they are C++ symbols and wait for a C++ rename pass. TU 0x11CF60..0x11E198 (28 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_util
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0011E178
 #include "sly2/slotheap.h"
@@ -21,7 +24,7 @@ float GModPositive(float gDividend, float gDivisor);
 int CSolveQuadratic(float a, float b, float c, float *ax);
 float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext);
 float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext);
-extern "C" int NRand();
+extern "C" int GetRandomInt();
 
 /** @sly2-annot addr=0x11CF60
  * Purpose: Wraps an angle into [-pi, pi) using GModPositive
@@ -30,6 +33,7 @@ extern "C" int NRand();
  * See: docs/engine/core-library.md#6-source-files, docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
+// Wraps an angle into [-pi, pi).
 float RadNormalize(float rad)
 {
     if (rad < -3.14159265359f || 3.14159265359f < rad) {
@@ -44,14 +48,15 @@ float RadNormalize(float rad)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float GLimitAbs(float g, float gLimit)
+// Clamps value to [-limit, limit].
+float GLimitAbs(float value, float limit)
 {
-    if (g > gLimit) {
-        g = gLimit;
-    } else if (g < -gLimit) {
-        g = -gLimit;
+    if (value > limit) {
+        value = limit;
+    } else if (value < -limit) {
+        value = -limit;
     }
-    return g;
+    return value;
 }
 
 /* GSmooth (Sly 1 util.c). Code-identical except ONE toolchain nop: target has `sub.s; nop; div.s` at 0x11D0B8
@@ -63,59 +68,62 @@ float GLimitAbs(float g, float gLimit)
  * See: docs/engine/core-library.md#7-key-functions, docs/MATCHING_NOTES.md#gsmooth-prototype-2026-10-16,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float GSmooth(float gCur, float gTarget, float dt, SMP *psmp, float *pdgNext)
+// Moves `current` toward `target` over dt: at params->svFast while far away, then decelerating linearly to
+// params->svSlow over the final stretch (the distance covered while slowing for params->dtFast seconds), never
+// overshooting. Returns the new value and optionally its rate of change. The engine's standard easing.
+float GSmooth(float current, float target, float dt, SMP *params, float *outRate)
 {
-    float dg;
-    float gNew;
-    float dgNew;
-    float gThresh;
-    float ax[2];
-    int fNeg;
-    int c;
-    float t;
-    fNeg = 0;
-    if (psmp->svFast == 0.0f) {
-        if (pdgNext)
-            *pdgNext = 0.0f;
-        return gCur;
+    float distance;
+    float newDistance;
+    float newRate;
+    float slowdownDistance;
+    float roots[2];
+    int isBelowTarget;
+    int rootCount;
+    float timeLeft;
+    isBelowTarget = 0;
+    if (params->svFast == 0.0f) {
+        if (outRate)
+            *outRate = 0.0f;
+        return current;
     }
-    dg = gCur - gTarget;
-    if (dg < 0.0f) {
-        dg = -dg;
-        fNeg = 1;
+    distance = current - target;
+    if (distance < 0.0f) {
+        distance = -distance;
+        isBelowTarget = 1;
     }
-    gThresh = (psmp->svSlow + psmp->svFast) * psmp->dtFast * 0.5f;
-    if (gThresh <= dg) {
-        float dtT = (dg - gThresh) / psmp->svFast;
-        if (dt <= dtT) {
-            gNew = dg - psmp->svFast * dt;
-            dgNew = -psmp->svFast;
+    slowdownDistance = (params->svSlow + params->svFast) * params->dtFast * 0.5f;
+    if (slowdownDistance <= distance) {
+        float fastTime = (distance - slowdownDistance) / params->svFast;
+        if (dt <= fastTime) {
+            newDistance = distance - params->svFast * dt;
+            newRate = -params->svFast;
             goto LDone;
         }
-        dt -= dtT;
-        dg = gThresh;
+        dt -= fastTime;
+        distance = slowdownDistance;
     }
-    c = CSolveQuadratic((psmp->svFast - psmp->svSlow) / (psmp->dtFast + psmp->dtFast), psmp->svSlow, -dg, ax);
-    t = ax[c - 1] - dt;
-    if (0.0f < t) {
-        float b = psmp->svSlow;
-        gNew = (psmp->svFast - b) * t * t / (psmp->dtFast + psmp->dtFast) + b * t;
-        dgNew = -(b + (psmp->svFast - b) * t / psmp->dtFast);
+    rootCount = CSolveQuadratic((params->svFast - params->svSlow) / (params->dtFast + params->dtFast), params->svSlow, -distance, roots);
+    timeLeft = roots[rootCount - 1] - dt;
+    if (0.0f < timeLeft) {
+        float b = params->svSlow;
+        newDistance = (params->svFast - b) * timeLeft * timeLeft / (params->dtFast + params->dtFast) + b * timeLeft;
+        newRate = -(b + (params->svFast - b) * timeLeft / params->dtFast);
     } else {
-        gNew = 0.0f;
-        dgNew = -psmp->svSlow;
+        newDistance = 0.0f;
+        newRate = -params->svSlow;
     }
 LDone:
-    if (fNeg) {
-        gNew = gTarget - gNew;
-        if (pdgNext)
-            *pdgNext = -dgNew;
+    if (isBelowTarget) {
+        newDistance = target - newDistance;
+        if (outRate)
+            *outRate = -newRate;
     } else {
-        gNew = gNew + gTarget;
-        if (pdgNext)
-            *pdgNext = dgNew;
+        newDistance = newDistance + target;
+        if (outRate)
+            *outRate = newRate;
     }
-    return gNew;
+    return newDistance;
 }
 
 /** @sly2-annot addr=0x11D1C0
@@ -123,24 +131,26 @@ LDone:
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float GSmoothA(float gCur, float dgCur, float gTarget, float dt, SMPA *psmpa, float *pdgNext)
+// GSmooth with an acceleration limit: the new rate may differ from currentRate by at most smoothParams->sdvMax
+// * dt, and the value follows the constant-acceleration path when the limit applies.
+float GSmoothA(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
-    float dgNext;
-    float g = GSmooth(gCur, gTarget, dt, (SMP *)psmpa, &dgNext);
-    if (psmpa->sdvMax > 0.0f) {
-        float ddg = psmpa->sdvMax * dt;
-        float dgMax = dgCur + ddg;
-        float dgMin = dgCur - ddg;
-        if (dgNext > dgMax) {
-            dgNext = dgMax;
-            g = gCur + dgCur * dt + 0.5f * psmpa->sdvMax * dt * dt;
-        } else if (dgNext < dgMin) {
-            dgNext = dgMin;
-            g = gCur + dgCur * dt - 0.5f * psmpa->sdvMax * dt * dt;
+    float nextRate;
+    float g = GSmooth(current, target, dt, (SMP *)params, &nextRate);
+    if (params->sdvMax > 0.0f) {
+        float maxRateChange = params->sdvMax * dt;
+        float maxRate = currentRate + maxRateChange;
+        float minRate = currentRate - maxRateChange;
+        if (nextRate > maxRate) {
+            nextRate = maxRate;
+            g = current + currentRate * dt + 0.5f * params->sdvMax * dt * dt;
+        } else if (nextRate < minRate) {
+            nextRate = minRate;
+            g = current + currentRate * dt - 0.5f * params->sdvMax * dt * dt;
         }
     }
-    if (pdgNext)
-        *pdgNext = dgNext;
+    if (outRate)
+        *outRate = nextRate;
     return g;
 }
 
@@ -152,12 +162,13 @@ SLY2_SCRAP("addiu $sp, $sp, 0x40");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float RadSmooth(float radCur, float radTarget, float dt, SMP *psmp, float *pdradNext)
+// GSmooth for angles: eases along the shorter way round and keeps the result normalised.
+float RadSmooth(float current, float target, float dt, SMP *params, float *outRate)
 {
     float rad;
-    rad = RadNormalize(radTarget - radCur);
-    rad = GSmooth(0.0f, rad, dt, psmp, pdradNext);
-    rad = RadNormalize(radCur + rad);
+    rad = RadNormalize(target - current);
+    rad = GSmooth(0.0f, rad, dt, params, outRate);
+    rad = RadNormalize(current + rad);
     return rad;
 }
 
@@ -166,22 +177,24 @@ float RadSmooth(float radCur, float radTarget, float dt, SMP *psmp, float *pdrad
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float RadSmoothA(float radCur, float dradCur, float radTarget, float dt, SMPA *psmpa, float *pdradNext)
+// GSmoothA for angles (shorter way round, normalised result).
+float RadSmoothA(float current, float currentRate, float target, float dt, SMPA *params, float *outRate)
 {
     float rad;
-    rad = RadNormalize(radTarget - radCur);
-    rad = GSmoothA(0.0f, dradCur, rad, dt, psmpa, pdradNext);
-    rad = RadNormalize(radCur + rad);
+    rad = RadNormalize(target - current);
+    rad = GSmoothA(0.0f, currentRate, rad, dt, params, outRate);
+    rad = RadNormalize(current + rad);
     return rad;
 }
 
 /** @sly2-annot addr=0x11D3C0
  * Purpose: rand() % 905010707
- * Info: proposed name NRand (T1); TU util
+ * Info: proposed name GetRandomInt (T1); TU util
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-int NRand()
+// Returns a pseudo-random non-negative int (rand() mod 905010707).
+int GetRandomInt()
 {
     return rand() % 905010707;
 }
@@ -193,11 +206,12 @@ int NRand()
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
-int NRandInRange(int nLow, int nHi)
+// Returns a uniform random int in [low, high].
+int NRandInRange(int low, int high)
 {
-    int nRand = NRand();
-    int nBase = nLow - 1;
-    return nLow + nRand % (nHi - nBase);
+    int nRand = GetRandomInt();
+    int nBase = low - 1;
+    return low + nRand % (high - nBase);
 }
 
 /** @sly2-annot addr=0x11D448
@@ -207,11 +221,12 @@ int NRandInRange(int nLow, int nHi)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float GRandInRange(float gMin, float gMax)
+// Returns a uniform random float in [min, max].
+float GRandInRange(float min, float max)
 {
-    if (gMin == gMax)
-        return gMin;
-    return gMin + (gMax - gMin) * (float)(NRand() % 0x16A1B) * 1.078760305972537e-05f;
+    if (min == max)
+        return min;
+    return min + (max - min) * (float)(GetRandomInt() % 0x16A1B) * 1.078760305972537e-05f;
 }
 
 /** @sly2-annot addr=0x11D4D0
@@ -219,14 +234,15 @@ float GRandInRange(float gMin, float gMax)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-int FFloatsNear(float g1, float g2, float gEpsilon)
+// Returns whether a and b are equal within a relative tolerance: |a - b| / max(|a|, 1) < epsilon.
+int FFloatsNear(float a, float b, float epsilon)
 {
-    g2 = g1 - g2;
-    g1 = g1 > 0.0f ? g1 : -g1;
-    g2 = g2 > 0.0f ? g2 : -g2;
+    b = a - b;
+    a = a > 0.0f ? a : -a;
+    b = b > 0.0f ? b : -b;
     float x = 1.0f;
-    x = g1 > x ? g1 : x;
-    return (g2 / x) < gEpsilon;
+    x = a > x ? a : x;
+    return (b / x) < epsilon;
 }
 
 static inline float SqrtS(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r) : "f"(x)); return r; }
@@ -238,7 +254,8 @@ static inline float SqrtS(float x) { float r; __asm__("sqrt.s %0, %1" : "=&f"(r)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-int CSolveQuadratic(float a, float b, float c, float *ax)
+// Solves a x^2 + b x + c = 0 for real roots; writes them to roots[] and returns how many (0, 1 or 2).
+int CSolveQuadratic(float a, float b, float c, float *roots)
 {
     float alpha;
     float beta;
@@ -250,14 +267,14 @@ int CSolveQuadratic(float a, float b, float c, float *ax)
     alpha = SqrtS(alpha) / a;
     beta = b / a;
     if (GAbs(alpha) < 0.0001f) {
-        *ax = -beta;
+        *roots = -beta;
         return 1;
     }
-    ax[0] = -beta + alpha;
-    ax[1] = -beta - alpha;
-    if (ax[1] < ax[0]) {
-        ax[0] = -beta - alpha;
-        ax[1] = -beta + alpha;
+    roots[0] = -beta + alpha;
+    roots[1] = -beta - alpha;
+    if (roots[1] < roots[0]) {
+        roots[0] = -beta - alpha;
+        roots[1] = -beta + alpha;
     }
     return 2;
 }
@@ -267,11 +284,12 @@ int CSolveQuadratic(float a, float b, float c, float *ax)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-void PrescaleClq(CLQ *pclq, float g, float h, CLQ *pclqDst)
+// Rewrites a CLQ for a substituted argument: dst(u) = src(scale * u + offset).
+void PrescaleClq(CLQ *src, float scale, float offset, CLQ *dst)
 {
-    pclqDst->g2 = pclq->g2 * g * g;
-    pclqDst->g1 = (2.0f * pclq->g2 * g * h) + (pclq->g1 * g);
-    pclqDst->g0 = (pclq->g2 * h * h) + (pclq->g1 * h) + pclq->g0;
+    dst->g2 = src->g2 * scale * scale;
+    dst->g1 = (2.0f * src->g2 * scale * offset) + (src->g1 * scale);
+    dst->g0 = (src->g2 * offset * offset) + (src->g1 * offset) + src->g0;
 }
 
 /** @sly2-annot addr=0x11D608
@@ -283,7 +301,9 @@ void PrescaleClq(CLQ *pclq, float g, float h, CLQ *pclqDst)
  *   docs/reference/functions/core-library.md#mat-0x11b300-0x11cca8,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-void CalculateSinCos(float rad, float *psin, float *pcos)
+// Computes sine and cosine of an angle together (range reduction to [-pi/2, pi/2], a degree-9 polynomial for the
+// sine, the cosine from sqrt(1 - sin^2) with the right sign). The engine's fast sincos.
+void CalculateSinCos(float rad, float *outSin, float *outCos)
 {
     float g = (rad + 1.5707963705062866f) * 0.31830987334251404f;
     int n = (int)g;
@@ -307,8 +327,8 @@ void CalculateSinCos(float rad, float *psin, float *pcos)
     c = SqrtS(1.0f - s * s);
     if (n & 1)
         c = -c;
-    *pcos = c;
-    *psin = s;
+    *outCos = c;
+    *outSin = s;
 }
 
 union DBL {
@@ -324,6 +344,7 @@ union DBL {
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
+// Truncates a double toward zero by masking mantissa bits (with a carry fix when all masked bits are set).
 double GTrunc(double g)
 {
     DBL *pconv = (DBL *)&g;
@@ -353,6 +374,7 @@ double GTrunc(double g)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
+// Truncates a float toward zero by masking mantissa bits.
 float GTrunc(float g)
 {
     uint u = *(uint *)&g;
@@ -380,11 +402,12 @@ float GTrunc(float g)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float GModPositive(float gDividend, float gDivisor)
+// Returns dividend mod divisor in [0, divisor) (fmod made non-negative).
+float GModPositive(float dividend, float divisor)
 {
-    float result = fmodf(gDividend, gDivisor);
+    float result = fmodf(dividend, divisor);
     if (result < 0.0f) {
-        result += gDivisor;
+        result += divisor;
     }
     return result;
 }
@@ -394,15 +417,16 @@ float GModPositive(float gDividend, float gDivisor)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-void FitClq(float g0, float g1, float u, float g3, CLQ *pclq)
+// Fits a CLQ through value0 at u=0, value1 at u=1 and value3 at u=u3 (FitClq(g0, g1, u, g3)).
+void FitClq(float g0, float g1, float u, float g3, CLQ *outClq)
 {
     float dg;
     float g2;
     dg = g1 - g0;
-    pclq->g0 = g0;
+    outClq->g0 = g0;
     g2 = (((g3 - g0) / u) - dg) / (u - 1.0f);
-    pclq->g2 = g2;
-    pclq->g1 = dg - g2;
+    outClq->g2 = g2;
+    outClq->g1 = dg - g2;
 }
 
 /** @sly2-annot addr=0x11D910
@@ -410,14 +434,15 @@ void FitClq(float g0, float g1, float u, float g3, CLQ *pclq)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-int FCheckLm(LM *plm, float g)
+// Returns whether value lies strictly inside the range (min < value < max).
+int FCheckLm(LM *range, float value)
 {
-    int f;
-    f = 0;
-    if ((plm->gMin < g) && (g < plm->gMax)) {
-        f = 1;
+    int isInside;
+    isInside = 0;
+    if ((range->gMin < value) && (value < range->gMax)) {
+        isInside = 1;
     }
-    return f;
+    return isInside;
 }
 
 // 0x11D940: dead-code scrap (sly2/scrap.h)
@@ -428,28 +453,30 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-float GLimitLm(LM *plm, float g)
+// Clamps value into the range [min, max].
+float GLimitLm(LM *range, float value)
 {
-    if (g < plm->gMin) {
-        return plm->gMin;
+    if (value < range->gMin) {
+        return range->gMin;
     }
-    if (g > plm->gMax) {
-        return plm->gMax;
+    if (value > range->gMax) {
+        return range->gMax;
     }
-    return g;
+    return value;
 }
 
 /** @sly2-annot addr=0x11D978
  * Purpose: Clamps an angle into the angular range plm (around its midpoint, wrap-aware)
- * Info: proposed name RadLimitLm (T1); TU util
+ * Info: proposed name ClampAngleToRange (T1); TU util
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-extern "C" float RadLimitLm(LM *plm, float rad)
+// Clamps an angle into an angular range, measuring around the range's midpoint so wrap-around is handled.
+extern "C" float ClampAngleToRange(LM *range, float rad)
 {
-    float radMid = (plm->gMax + plm->gMin) * 0.5f;
-    float radHalf = (plm->gMax - plm->gMin) * 0.5f;
+    float radMid = (range->gMax + range->gMin) * 0.5f;
+    float radHalf = (range->gMax - range->gMin) * 0.5f;
     return RadNormalize(radMid + GLimitAbs(RadNormalize(rad - radMid), radHalf));
 }
 
@@ -460,6 +487,7 @@ extern "C" float RadLimitLm(LM *plm, float rad)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
+// Does nothing with its argument; calling it keeps a value alive or forces it to memory (a compiler barrier).
 void Force(void *pv)
 {
 }
@@ -474,57 +502,59 @@ static inline float GMinR(float a, float b) { return b < a ? b : a; }
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-void MinimizeRange(PFNGG pfn, void *pv, float g, float dg, float gMin, float gMax, float *pg, float *pgResult)
+// Minimises function(context, x) over [min, max] starting at x with step dx: walks downhill in steps of the
+// current bracket, then refines by halving (inferred from the loop); returns the best x and its value.
+void MinimizeRange(PFNGG function, void *context, float x, float dx, float min, float max, float *outX, float *outValue)
 {
-    GG agg[5];
+    GG samples[5];
     int i;
-    g = GClamp(g, gMin, gMax);
-    agg[0].g = GMaxR(gMin, g - dg);
-    agg[0].gResult = pfn(pv, agg[0].g);
-    agg[2].g = g;
-    agg[2].gResult = pfn(pv, g);
-    agg[4].g = GMinR(gMax, g + dg);
-    agg[4].gResult = pfn(pv, agg[4].g);
+    x = GClamp(x, min, max);
+    samples[0].g = GMaxR(min, x - dx);
+    samples[0].gResult = function(context, samples[0].g);
+    samples[2].g = x;
+    samples[2].gResult = function(context, x);
+    samples[4].g = GMinR(max, x + dx);
+    samples[4].gResult = function(context, samples[4].g);
     for (;;) {
-        if (agg[0].gResult < agg[2].gResult) {
-            agg[4] = agg[2];
-            agg[2] = agg[0];
-            agg[0].g = GMaxR(gMin, agg[2].g + agg[2].g - agg[4].g);
-            agg[0].gResult = pfn(pv, agg[0].g);
-        } else if (agg[4].gResult < agg[2].gResult) {
-            agg[0] = agg[2];
-            agg[2] = agg[4];
-            agg[4].g = GMinR(gMax, agg[2].g + agg[2].g - agg[0].g);
-            agg[4].gResult = pfn(pv, agg[4].g);
+        if (samples[0].gResult < samples[2].gResult) {
+            samples[4] = samples[2];
+            samples[2] = samples[0];
+            samples[0].g = GMaxR(min, samples[2].g + samples[2].g - samples[4].g);
+            samples[0].gResult = function(context, samples[0].g);
+        } else if (samples[4].gResult < samples[2].gResult) {
+            samples[0] = samples[2];
+            samples[2] = samples[4];
+            samples[4].g = GMinR(max, samples[2].g + samples[2].g - samples[0].g);
+            samples[4].gResult = function(context, samples[4].g);
         } else {
             break;
         }
     }
     for (i = 0; i < 10; i++) {
-        agg[1].g = (agg[0].g + agg[2].g) * 0.5f;
-        agg[1].gResult = pfn(pv, agg[1].g);
-        agg[3].g = (agg[2].g + agg[4].g) * 0.5f;
-        agg[3].gResult = pfn(pv, agg[3].g);
-        if (agg[1].gResult < agg[2].gResult) {
-            if (agg[1].gResult < agg[3].gResult) {
-                agg[4] = agg[2];
-                agg[2] = agg[1];
+        samples[1].g = (samples[0].g + samples[2].g) * 0.5f;
+        samples[1].gResult = function(context, samples[1].g);
+        samples[3].g = (samples[2].g + samples[4].g) * 0.5f;
+        samples[3].gResult = function(context, samples[3].g);
+        if (samples[1].gResult < samples[2].gResult) {
+            if (samples[1].gResult < samples[3].gResult) {
+                samples[4] = samples[2];
+                samples[2] = samples[1];
             } else {
-                agg[0] = agg[2];
-                agg[2] = agg[3];
+                samples[0] = samples[2];
+                samples[2] = samples[3];
             }
-        } else if (agg[2].gResult <= agg[3].gResult) {
-            agg[0] = agg[1];
-            agg[4] = agg[3];
+        } else if (samples[2].gResult <= samples[3].gResult) {
+            samples[0] = samples[1];
+            samples[4] = samples[3];
         } else {
-            agg[0] = agg[2];
-            agg[2] = agg[3];
+            samples[0] = samples[2];
+            samples[2] = samples[3];
         }
     }
-    if (pg)
-        *pg = agg[2].g;
-    if (pgResult)
-        *pgResult = agg[2].gResult;
+    if (outX)
+        *outX = samples[2].g;
+    if (outValue)
+        *outValue = samples[2].gResult;
 }
 
 // 0x11DCD0: dead-code scrap (sly2/scrap.h)
@@ -537,11 +567,12 @@ SLY2_SCRAP("addiu $sp, $sp, 0xc0");
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-extern "C" void func_0011DCD8(RGBA *prgba, float *pg)
+// Converts RGBA bytes to four floats in 0..1 (each byte / 255).
+extern "C" void ConvertRgbaToFloats(RGBA *rgba, float *outFloats)
 {
-    pg[0] = prgba->bRed * (1.0f / 255.0f);
-    pg[1] = prgba->bGreen * (1.0f / 255.0f);
-    pg[2] = prgba->bBlue * (1.0f / 255.0f);
+    outFloats[0] = rgba->bRed * (1.0f / 255.0f);
+    outFloats[1] = rgba->bGreen * (1.0f / 255.0f);
+    outFloats[2] = rgba->bBlue * (1.0f / 255.0f);
 }
 
 /** @sly2-annot addr=0x11DD30
@@ -552,12 +583,13 @@ extern "C" void func_0011DCD8(RGBA *prgba, float *pg)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-extern "C" void ConvertVectorToRgba(VECTOR *pvec, int a, RGBA *prgba)
+// Converts a float colour vector (0..1) to RGBA bytes (x 255, rounded), with the given alpha byte.
+extern "C" void ConvertVectorToRgba(VECTOR *color, int a, RGBA *outRgba)
 {
-    prgba->bRed = (int)(pvec->x * 255.0f + 0.5f);
-    prgba->bGreen = (int)(pvec->y * 255.0f + 0.5f);
-    prgba->bBlue = (int)(pvec->z * 255.0f + 0.5f);
-    prgba->bAlpha = a;
+    outRgba->bRed = (int)(color->x * 255.0f + 0.5f);
+    outRgba->bGreen = (int)(color->y * 255.0f + 0.5f);
+    outRgba->bBlue = (int)(color->z * 255.0f + 0.5f);
+    outRgba->bAlpha = a;
 }
 
 /** @sly2-annot addr=0x11DD90
@@ -567,17 +599,19 @@ extern "C" void ConvertVectorToRgba(VECTOR *pvec, int a, RGBA *prgba)
  * Confidence: mid (draft) [T1 0.70] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-void ConvertUserRgbToUserHsv(VECTOR *phsv, VECTOR *prgb)
+// Despite its (Sly 1) name, converts HSV to RGB: hsv = (hue in degrees 0..360, negative for none, saturation 0..1,
+// value 0..1) in, rgb (0..1) out. Its "Q" wrapper below is the 0..255 user-facing variant.
+void ConvertUserRgbToUserHsv(VECTOR *hsv, VECTOR *outRgb)
 {
     float h, s, v, f, p, q, t;
     int i;
-    h = (phsv->x >= 0.0f) ? GClamp(phsv->x, 0.0f, 360.0f) : -1.0f;
-    s = GClamp(phsv->y, 0.0f, 1.0f);
-    v = GClamp(phsv->z, 0.0f, 1.0f);
+    h = (hsv->x >= 0.0f) ? GClamp(hsv->x, 0.0f, 360.0f) : -1.0f;
+    s = GClamp(hsv->y, 0.0f, 1.0f);
+    v = GClamp(hsv->z, 0.0f, 1.0f);
     if (s == 0.0f) {
-        prgb->x = v;
-        prgb->y = v;
-        prgb->z = v;
+        outRgb->x = v;
+        outRgb->y = v;
+        outRgb->z = v;
         return;
     }
     if (h == 360.0f)
@@ -591,22 +625,22 @@ void ConvertUserRgbToUserHsv(VECTOR *phsv, VECTOR *prgb)
     switch (i) {
     case 0:
     case 6:
-        prgb->x = v; prgb->y = t; prgb->z = p;
+        outRgb->x = v; outRgb->y = t; outRgb->z = p;
         break;
     case 1:
-        prgb->x = q; prgb->y = v; prgb->z = p;
+        outRgb->x = q; outRgb->y = v; outRgb->z = p;
         break;
     case 2:
-        prgb->x = p; prgb->y = v; prgb->z = t;
+        outRgb->x = p; outRgb->y = v; outRgb->z = t;
         break;
     case 3:
-        prgb->x = p; prgb->y = q; prgb->z = v;
+        outRgb->x = p; outRgb->y = q; outRgb->z = v;
         break;
     case 4:
-        prgb->x = t; prgb->y = p; prgb->z = v;
+        outRgb->x = t; outRgb->y = p; outRgb->z = v;
         break;
     case 5:
-        prgb->x = v; prgb->y = p; prgb->z = q;
+        outRgb->x = v; outRgb->y = p; outRgb->z = q;
         break;
     }
 }
@@ -620,15 +654,17 @@ void ConvertUserHsvToUserRgbQ(VECTORQ *pvecHsv, VECTORQ *pvecRgb) __asm__("Conve
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#util-0x11cf60-0x11e198
  * @end-sly2-annot */
-void ConvertUserHsvToUserRgbQ(VECTORQ *pvecHsv, VECTORQ *pvecRgb)
+// Converts a user HSV colour (hue in degrees, saturation and value 0..255) to user RGB (0..255) through the
+// function above.
+void ConvertUserHsvToUserRgbQ(VECTORQ *hsv, VECTORQ *outRgb)
 {
-    VECTORQ vecHsv = *pvecHsv;
-    vecHsv.y *= 1.0f / 255.0f;
-    vecHsv.z *= 1.0f / 255.0f;
-    ConvertUserRgbToUserHsv((VECTOR *)&vecHsv, (VECTOR *)pvecRgb);
-    pvecRgb->x *= 255.0f;
-    pvecRgb->y *= 255.0f;
-    pvecRgb->z *= 255.0f;
+    VECTORQ hsvScaled = *hsv;
+    hsvScaled.y *= 1.0f / 255.0f;
+    hsvScaled.z *= 1.0f / 255.0f;
+    ConvertUserRgbToUserHsv((VECTOR *)&hsvScaled, (VECTOR *)outRgb);
+    outRgb->x *= 255.0f;
+    outRgb->y *= 255.0f;
+    outRgb->z *= 255.0f;
 }
 
 // 0x11E020..0x11E03C: 4 dead-code scraps (sly2/scrap.h)

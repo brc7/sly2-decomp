@@ -1,6 +1,10 @@
 // clock.cpp -- the game clock (CLOCK, g_clock D_002DDED0): COUNT-register ticks with wraparound, game/camera/real
 // time and the nine multiplied rate slots.
-// TU 0x14CFE0..0x14D3D8 (8 functions, address order).
+// Once per frame MarkClockTick turns the elapsed COUNT ticks into a frame time clamped to 1/60..1/30 s and derives
+// three clocks from it: camera time (scaled by rtCm = slot 8), real time (scaled by slot 3; runs during pause) and
+// game time (real time scaled by rt = the product of all nine slots; stops while paused). The slots let several
+// systems slow or stop the game independently (pause, slow-motion power-up, ...). Entry points: StartupClock,
+// ResetClock, MarkClockTick, SetClockRate, RecalcClockRate, TickNow. TU 0x14CFE0..0x14D3D8 (8 functions).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_clock
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0014D3B8
 #include "sly2/basic.h"
@@ -28,15 +32,17 @@ void UpdateGameTimers(void *p);
  * See: docs/engine/main-loop-startup.md#7-source-files, docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/engine/main-loop-startup.md#open-questions
  * @end-sly2-annot */
+// Boot step: seeds the tick history from the COUNT register, sets every rate slot and both rates to 1 and resets
+// the clock.
 extern "C" void StartupClock(void)
 {
-    unsigned long c[2];
+    unsigned long countHistory[2];
     unsigned int i;
     float *pf;
     unsigned long count;    /* as C++, an asm output straight into c[0] costs a second stack copy (33/36 differ) */
     __asm__ volatile ("mfc0 %0, $9" : "=r"(count));
-    c[0] = count;
-    D_002DDED0.tickLastRaw = c[0];
+    countHistory[0] = count;
+    D_002DDED0.tickLastRaw = countHistory[0];
     D_002DDED0.tickFrame = TickNow(&D_002DDED0);
     for (i = 0; i < 9; i++) D_002DDED0.art[i] = 1.0f;
     D_002DDED0.rt = 1.0f;
@@ -44,7 +50,7 @@ extern "C" void StartupClock(void)
     ResetClock(&D_002DDED0);
 }
 
-/* Clears pclock->t but resets the rate slots of g_clock (slot 3 is left alone), as the original did. */
+/* Clears clock->t but resets the rate slots of g_clock (slot 3 is left alone), as the original did. */
 /** @sly2-annot addr=0x14D068
  * Purpose: t = 0; resets slots 0,1,2,4-8 to 1.0 (**not slot 3**), recomputes the rate
  * Info: proposed name ResetClock (T1); TU clock
@@ -52,9 +58,11 @@ extern "C" void StartupClock(void)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#clock-0x14cfe0-0x14d3d8
  * @end-sly2-annot */
-extern "C" void ResetClock(CLOCK *pclock)
+// Resets `clock`'s game time to 0 and g_clock's rate slots to 1, except slot 3 (the real-time scale survives
+// resets), then recomputes the rates.
+extern "C" void ResetClock(CLOCK *clock)
 {
-    pclock->t = 0;
+    clock->t = 0;
     D_002DDED0.art[0] = 1.0f;
     D_002DDED0.art[1] = 1.0f;
     D_002DDED0.art[2] = 1.0f;
@@ -63,7 +71,7 @@ extern "C" void ResetClock(CLOCK *pclock)
     D_002DDED0.art[8] = 1.0f;
     D_002DDED0.art[7] = 1.0f;
     D_002DDED0.art[4] = 1.0f;
-    RecalcClockRate(pclock);
+    RecalcClockRate(clock);
 }
 
 
@@ -77,23 +85,26 @@ extern "C" void ResetClock(CLOCK *pclock)
  * See: docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8,
  *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#2-the-frame-loop-exact-order
  * @end-sly2-annot */
-extern "C" void MarkClockTick(CLOCK *p, int fPaused)
+// Advances the clock by one frame: frame time from the ticks since the last call (294.912 MHz COUNT, clamped to
+// 1/60..1/30 s); camera time scaled by rtCm; real time scaled by slot 3; unless paused, game time = real time x rt,
+// and the game timers (D_002DEB30) advance.
+extern "C" void MarkClockTick(CLOCK *clock, int isPaused)
 {
-    TICK tick = TickNow(p);
-    float dt = GClamp((float)(tick - p->tickFrame) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
-    p->dtCm = dt * p->rtCm;
-    p->tCm += p->dtCm;
+    TICK tick = TickNow(clock);
+    float dt = GClamp((float)(tick - clock->tickFrame) * 3.3908420e-9f, 1.0f / 60.0f, 1.0f / 30.0f);
+    clock->dtCm = dt * clock->rtCm;
+    clock->tCm += clock->dtCm;
     {
-    float dt2 = dt * p->art[3];
-    p->dtReal = dt2;
-    if (!fPaused) {
-        p->dt = dt2 * p->rt;
-        p->t += p->dt;
+    float dtReal = dt * clock->art[3];
+    clock->dtReal = dtReal;
+    if (!isPaused) {
+        clock->dt = dtReal * clock->rt;
+        clock->t += clock->dt;
         UpdateGameTimers(D_002DEB30);
     }
     }
-    p->tickFrame = tick;
-    p->tReal += p->dtReal;
+    clock->tickFrame = tick;
+    clock->tReal += clock->dtReal;
 }
 
 /** @sly2-annot addr=0x14D1D0
@@ -103,10 +114,11 @@ extern "C" void MarkClockTick(CLOCK *p, int fPaused)
  * See: docs/engine/main-loop-startup.md#2-clock-clockcpp-0x14cfe0-0x14d3d8,
  *   docs/engine/main-loop-startup.md#8-key-functions, docs/guides/live-pine.md#4-clock-experiment
  * @end-sly2-annot */
-extern "C" void func_0014D1D0(CLOCK *p, int i, float f)
+// Sets rate slot `slot` to `rate` and recomputes the combined rates.
+extern "C" void SetClockRate(CLOCK *clock, int slot, float rate)
 {
-    p->art[i] = f;
-    RecalcClockRate(p);
+    clock->art[slot] = rate;
+    RecalcClockRate(clock);
 }
 
 /** @sly2-annot addr=0x14D1F8
@@ -117,14 +129,15 @@ extern "C" void func_0014D1D0(CLOCK *p, int i, float f)
  *   docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/guides/live-pine.md#3-confirmed-addresses-2026-11-01
  * @end-sly2-annot */
-extern "C" void RecalcClockRate(CLOCK *p)
+// Recomputes the combined rates: rt = the product of all nine slots, rtCm = slot 8.
+extern "C" void RecalcClockRate(CLOCK *clock)
 {
     unsigned int i;
-    p->rt = 1.0f;
+    clock->rt = 1.0f;
     for (i = 0; i < 9; i++) {
-        p->rt *= p->art[i];
+        clock->rt *= clock->art[i];
     }
-    p->rtCm = p->art[8];
+    clock->rtCm = clock->art[8];
 }
 
 /** @sly2-annot addr=0x14D240
@@ -134,14 +147,15 @@ extern "C" void RecalcClockRate(CLOCK *p)
  * See: docs/engine/main-loop-startup.md#8-key-functions,
  *   docs/reference/functions/main-loop-startup.md#clock-0x14cfe0-0x14d3d8
  * @end-sly2-annot */
-extern "C" TICK TickNow(CLOCK *p)
+// Returns a 64-bit tick count from the 32-bit COUNT register, counting wraparounds.
+extern "C" TICK TickNow(CLOCK *clock)
 {
-    unsigned long c;
-    __asm__ volatile ("mfc0 %0, $9" : "=r"(c));
-    c &= 0xFFFFFFFF;
-    if (c < p->tickLastRaw) p->cWrapAround++;
-    p->tickLastRaw = c;
-    return ((unsigned long)p->cWrapAround << 32) | c;
+    unsigned long count;
+    __asm__ volatile ("mfc0 %0, $9" : "=r"(count));
+    count &= 0xFFFFFFFF;
+    if (count < clock->tickLastRaw) clock->cWrapAround++;
+    clock->tickLastRaw = count;
+    return ((unsigned long)clock->cWrapAround << 32) | count;
 }
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions

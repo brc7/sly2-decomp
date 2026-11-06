@@ -43,7 +43,7 @@ struct CVarb
       CVarbPtr pnext;         /* 0x14 the next binding */
       void SetNext(CVarb *pvarb) { pnext = pvarb; }
       /* Bindings live in the second engine slot pool (slot size 0x18 == sizeof(CVarb)). */
-      void operator delete(void *pv) { Unlink__t6CGcObj1Z5CVarb(pv); func_0011CD98(&CSlotPool<0x18, 0x800>::s_pool.slotheap, pv); }
+      void operator delete(void *pv) { Unlink__t6CGcObj1Z5CVarb(pv); FreeSlotheapSlot(&CSlotPool<0x18, 0x800>::s_pool.slotheap, pv); }
 };
 typedef char assert_CVarb_size[sizeof(CVarb) == 0x18 ? 1 : -1];
 

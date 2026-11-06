@@ -80,9 +80,9 @@ void SetWidgetState(EPMENU *widget, int n);
 void PlayWidgetAnim(EPMENU *widget, int n);
 int FWidgetAnimPlaying(EPMENU *widget, int n);
 int FScreenShown(void *pscreen);
-int DySelectionJoy(void *pjoy);
-int DxSelectionJoy(void *pjoy);
-int GrfHandleJoyBtn(void *pjoy, int grf);
+int GetJoySelectionStepY(void *pjoy);
+int GetJoySelectionStepX(void *pjoy);
+int HandleJoyButtons(void *pjoy, int grf);
 void CMpeg_QueueMovie(void *pmpeg, int n);
 void WipeToWorldWarp(SWV *world, int a, int b, int c, int d, int e);
 void *PsndStartSound(int n);
@@ -217,7 +217,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
     case -1:
         return;
     case 2: {
-        float g = DySelectionJoy(D_002DFC00);
+        float g = GetJoySelectionStepY(D_002DFC00);
         if (g < 0.0f && menu->iep <= 0) {
             PlaySound(0x36);
             return;
@@ -234,11 +234,11 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
             SetEpisodeMenuMode(menu, 0.0f < g ? 4 : 6, -1);
             return;
         }
-        if (GrfHandleJoyBtn(D_002DFC00, 0x40)) {
+        if (HandleJoyButtons(D_002DFC00, 0x40)) {
             SetEpisodeMenuMode(menu, 7, -1);
             return;
         }
-        if (menu->iep && GrfHandleJoyBtn(D_002DFC00, 0x10)) {
+        if (menu->iep && HandleJoyButtons(D_002DFC00, 0x10)) {
             menu->iepNext = 0;
             SetEpisodeMenuMode(menu, 6, -1);
             return;
@@ -263,7 +263,7 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
             return;
         }
         case 1:
-            if (GrfHandleJoyBtn(D_002DFC00, 0x80)) {
+            if (HandleJoyButtons(D_002DFC00, 0x80)) {
                 CMpeg_QueueMovie(D_002F66B0, D_002BE248[menu->iep]);
                 WipeToWorldWarp(&D_003DD490, 0, 0x189, -1, 0, -1);
                 PlaySound(0x34);
@@ -278,25 +278,25 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
     case 8:
         switch (menu->sub) {
         case -1:
-            if (GrfHandleJoyBtn(D_002DFC00, 0x40))
+            if (HandleJoyButtons(D_002DFC00, 0x40))
                 SetEpisodeMenuMode(menu, 10, -1);
-            else if (GrfHandleJoyBtn(D_002DFC00, 0x10))
+            else if (HandleJoyButtons(D_002DFC00, 0x10))
                 SetEpisodeMenuMode(menu, 9, -1);
             return;
         case 0: {
             float g;
-            if (GrfHandleJoyBtn(D_002DFC00, 0x40)) {
+            if (HandleJoyButtons(D_002DFC00, 0x40)) {
                 D_002BE270 = menu->ichapter;
                 CMpeg_QueueMovie(D_002F66B0, D_002BE200[menu->ichapter]);
                 WipeToWorldWarp(&D_003DD490, 0, 0x189, -1, 0, -1);
                 PlaySound(0x34);
                 return;
             }
-            if (GrfHandleJoyBtn(D_002DFC00, 0x10)) {
+            if (HandleJoyButtons(D_002DFC00, 0x10)) {
                 SetEpisodeMenuMode(menu, 9, -1);
                 return;
             }
-            g = DxSelectionJoy(D_002DFC00);
+            g = GetJoySelectionStepX(D_002DFC00);
             if (g < 0.0f && menu->ichapter <= 0) {
                 PlaySound(0x36);
                 return;

@@ -977,7 +977,7 @@ void UpdateSwBusyList(void *p);
 void *GetLoWorldMatrix(struct O *p);
 void TiltMatUpright(void *pv, int n, MATRIX3 *pm);
 MATRIX3 ConvertXfMat(void *pv, void *pvA0, MATRIX3 *pm);
-qword func_0011BFF0(MATRIX3 *pm);
+qword DecomposeRotationMatrixToEuler(MATRIX3 *pm);
 qword func_0022FC48(void *pv, void *pvA0, qword v);
 void SetBarrelState(struct O *p, int n);
 }
@@ -1029,7 +1029,7 @@ void SetBarrelState(struct O *barrel, int n)
             TiltMatUpright(GetLoWorldMatrix(barrel), 0, &m);
             m = ConvertXfMat(0, barrel->partB->pA0, &m);
 
-            q = func_0011BFF0(&m);
+            q = DecomposeRotationMatrixToEuler(&m);
             func_002303A0(barrel, barrel->partB, 7);
             {
 

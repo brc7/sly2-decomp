@@ -875,7 +875,7 @@ namespace M_FOpenSaveIconFile {
 struct S { int x0; int x4; char pad[0x2C]; int x34; int x38; int x3C; };
 struct K;
 extern "C" void InitFileKey(K *k);
-extern "C" int func_0014B670(K *k);
+extern "C" int GetFileKeySize(K *k);
 struct K { int a; int b; int c; char pad[0x104];
   K() { c = 2; InitFileKey(this); }
   bool FSet(S *p) { if (!p) return false; b = p->x4 ^ p->x3C; a = (p->x0 ^ p->x34) + 0xCA0; c = 2; return b != 0; }
@@ -893,7 +893,7 @@ struct K { int a; int b; int c; char pad[0x104];
  * @end-sly2-annot */
 // Opens the save icon file on the disc (a FLOC built from the file entry); returns false when the entry is not set.
 extern "C" int FOpenSaveIconFile(S *p)
-{ K k; bool f = k.FSet(p); if (f) return func_0014B670(&k); else return 0; }
+{ K k; bool f = k.FSet(p); if (f) return GetFileKeySize(&k); else return 0; }
 } // namespace M_FOpenSaveIconFile
 
 namespace M_CreateSaveDir { extern "C" {
@@ -1409,13 +1409,13 @@ struct X;
 extern "C" void InitFileKey(X *px);
 struct X { uint x0; uint x4; int x8; char pad[0x110 - 0xC]; X() { x8 = 2; InitFileKey(this); } };
 struct Y;extern "C" void func_00184950(Y*,int) __asm__("_$_10CStreamBis");
-struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("func_001848A8");~Y(){func_00184950(this,2);}};
+struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("CStreamBis_ctor");~Y(){func_00184950(this,2);}};
 struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
 extern "C" {
 int sprintf(char *buf, const char *fmt, ...);
 int McOpen(void *p, char *name, int mode, int *ph);
-void *PvAllocSlot__FP8ALLOCREQ(REQUEST *pmsg);
-int func_00184D60(Y *py, X *px);
+void *AllocFromStack(REQUEST *pmsg);
+int OpenStreamFromFileKey(Y *py, X *px);
 int McWrite(void *p, int h, char *buf, int n, int *pn);
 int CbRead__18CBinaryInputStreamiPv(Y *py, int cb, char *buf);
 void CStreamBis_Close(Y *py);
@@ -1501,9 +1501,9 @@ int load_file_from_disc(void *p, const char *a, K *k, const char *b)
         REQUEST *pmsg = &msg;
         pmsg->bytes = 0x403F;
         pmsg->alignment = 0x10;
-        void *pv = PvAllocSlot__FP8ALLOCREQ(pmsg);
+        void *pv = AllocFromStack(pmsg);
         Y y(0x403F, pv, 0);
-        if (!SetKey(&x, k) || !func_00184D60(&y, &x))
+        if (!SetKey(&x, k) || !OpenStreamFromFileKey(&y, &x))
             ret = 0x27;
         else {
             char buf[0x1000];
@@ -2034,7 +2034,7 @@ extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 extern const struct LONGU D_002A6D88;
 int IsSwTransitionBusy(void *g);
 int GetMcDialogButtonKind(struct S *s);
-int GrfHandleJoyBtn(void *p, int n);
+int HandleJoyButtons(void *p, int n);
 void ConfirmMcDialog(struct S *s);
 void OnMcDialogChoice(struct S *s);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
@@ -2072,17 +2072,17 @@ void CMemcardDialog_Update(struct S *dialog)
     r = GetMcDialogButtonKind(dialog);
     if (r != 1) {
         if (r == c) {
-            if (dialog->x10 && GrfHandleJoyBtn(dialog->x10, 0x80)) {
+            if (dialog->x10 && HandleJoyButtons(dialog->x10, 0x80)) {
                 ConfirmMcDialog(dialog);
                 return;
             }
-            if (dialog->x10 && GrfHandleJoyBtn(dialog->x10, 0x10)) {
+            if (dialog->x10 && HandleJoyButtons(dialog->x10, 0x10)) {
                 OnMcDialogChoice(dialog);
                 return;
             }
         }
     } else {
-        if (dialog->x10 && GrfHandleJoyBtn(dialog->x10, 0x80)) {
+        if (dialog->x10 && HandleJoyButtons(dialog->x10, 0x80)) {
             OnMcDialogChoice(dialog);
             return;
         }

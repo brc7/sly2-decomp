@@ -890,7 +890,7 @@ namespace M_func_00204660 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct MATRIX3 { qword a[3]; } MATRIX3;
 extern qword D_002A2DC0;
-MATRIX3 func_0011B500(qword v, float g);
+MATRIX3 BuildAxisAngleRotationMatrix(qword v, float g);
 struct S { char pad[0x1A8]; float g; int pad2; MATRIX3 m; };
 /** @sly2-annot addr=0x204660
  * Purpose: Set desired heading radTarget (+0x1A8) and rebuild matTarget (+0x1B0) = LoadRotateMatrixRad(Z,
@@ -900,7 +900,7 @@ struct S { char pad[0x1A8]; float g; int pad2; MATRIX3 m; };
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
-void func_00204660(struct S *p, float g) { p->g = g; p->m = func_0011B500(D_002A2DC0, g); }
+void func_00204660(struct S *p, float g) { p->g = g; p->m = BuildAxisAngleRotationMatrix(D_002A2DC0, g); }
 } } // namespace M_func_00204660
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1723,12 +1723,12 @@ namespace M_func_00205910 {
  * probe point is placed with matCur and snapped to the floor by the line test SnapToGround (height->max / height->min); a probe
  * that finds no floor is dropped by D_002C3CE0 along matCur's up row.  The plane through the three probes gives a normal (cross of
  * the two edges, D_002A2DC0 if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, DecomposeRotateMatrixRad
- * measures its angle, which is limited to D_002C3CE8 (func_0011B500 rebuilds the rotation about the same axis with the limit),
+ * measures its angle, which is limited to D_002C3CE8 (BuildAxisAngleRotationMatrix rebuilds the rotation about the same axis with the limit),
  * and matCur = adjustment * matOrig.  The final rotation is stored at p+0x1B0.
  * How it matches (everything came from the personal decomp's recipes, nothing from register pins):
  *  - M3 * M3 is the game's inline NRV operator* (three dead VU_VECTOR4 homes at +0x140), `pmatOrig` is a pointer declared in the loop
  *    so rows 1/2 of matOrig are read through a hoisted pointer register while row 0 is `0x40(sp)`.
- *  - the first rotation is an NRV wrapper over func_0011B500 (hidden pointer = plain `addiu a0,sp,0x80`); the loop's calls return
+ *  - the first rotation is an NRV wrapper over BuildAxisAngleRotationMatrix (hidden pointer = plain `addiu a0,sp,0x80`); the loop's calls return
  *    the matrix by value (hidden pointer = a hoisted pseudo, s7).  `adjustment`/`angle` are declared after the probe loop so their
  *    frame slots come after the VU_FLOAT home of the drop scale (0xD0).
  *  - normalise-or-fallback = QwLengthUntied form (the fallback is a pointer computed before the cross product, `lq` after it);
@@ -1758,8 +1758,8 @@ extern "C" float D_002C3CE0;   /* the probe drop along the up row */
 extern "C" int D_002C3CE4;
 extern "C" float D_002C3CE8;    /* the angle limit */
 extern "C" {
-MATRIX3 func_0011B500(qword,float);
-MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("func_0011B500");
+MATRIX3 BuildAxisAngleRotationMatrix(qword,float);
+MATRIX3 *func_0011B500r(MATRIX3 *,qword,float) __asm__("BuildAxisAngleRotationMatrix");
 MATRIX3 BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(qword,qword);
 qword GetLoWorldPos(P *);
 qword *VECTOR_opAssign(qword *,qword);
@@ -1853,7 +1853,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
         else{__asm__("vdiv $Q, $vf0w, %0x\n\tvwaitq": :"j"(qwLen));__asm__("vmulq.xyzw %0, %1, $Q":"=j"(normal):"j"(qwCross));}
         adjustment=BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(*(qword *)matOrig.mat[2],normal);
         DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(&adjustment,&angle,&point.q);
-        if(D_002C3CE8<angle)adjustment=func_0011B500(point.q,D_002C3CE8);
+        if(D_002C3CE8<angle)adjustment=BuildAxisAngleRotationMatrix(point.q,D_002C3CE8);
         const MATRIX3 *pmatOrig=(MATRIX3 *)&matOrig;
         *(MATRIX3 *)&matCur=adjustment**pmatOrig;
         matCur.mat[2][3]=0;matCur.mat[1][3]=0;matCur.mat[0][3]=0;

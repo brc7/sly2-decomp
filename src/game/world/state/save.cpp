@@ -109,16 +109,16 @@ extern "C" {
 unsigned short U16Read__18CBinaryInputStream(CBinaryInputStream *stream);
 void Read__18CBinaryInputStreamiPv(CBinaryInputStream *stream, int cb, void *pv);
 void CBinaryInputStream_ReadStringSw(CBinaryInputStream *stream, char **ppchz, void *pheap, int n);
-void *func_001AE1D0(MEMREQ *pmemreq);
-void *func_001AE238(MEMREQ *pmemreq, void *pv);
-void *PvAllocSlot__FP8ALLOCREQ(MEMREQ *pmemreq);
+void *AllocFromWorldHeap(MEMREQ *pmemreq);
+void *AllocCopyFromWorldHeap(MEMREQ *pmemreq, void *pv);
+void *AllocFromStack(MEMREQ *pmemreq);
 void *memset(void *pv, int c, unsigned int cb);
 int strcasecmp(const char *pchz1, const char *pchz2);
 int atoi(const char *pchz);
 CRef RefGetGlobalSaveVar(SVKEY *key, SVSET *saveSet);
 CRef RefSetGlobalSaveVar(SVKEY *key, const CRef &ref, SVSET *saveSet);
 void ResetRumbleSaveVar();
-int CLanguagesRegion();
+int CountRegionLanguages();
 void SetLanguage(int lang);
 void SetSndmgrPlaybackMode(void *psndmgr, int mode);
 void SetSndmgrChannelVolume(void *psndmgr, int ch, int n, float u);
@@ -137,7 +137,7 @@ void *GetSaveVarAddress(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
 CRef RefGetSaveVar(SVSTORE *schema, SVKEY *key, SVSET *saveSet);
 CRef RefSetSaveVar(SVSTORE *schema, SVKEY *key, const CRef &ref, SVSET *saveSet);
 void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym);
-unsigned int HashStringCaseInsensitive(const char *pchz);
+unsigned int HashSaveSymbolName(const char *pchz);
 void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid);
 int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz);
 void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key);
@@ -189,7 +189,7 @@ extern "C" void LoadSaveSchemaFromBrx(SVSTORE *schema, CBinaryInputStream *strea
     schema->cent = cent;
     memreq.cb = cent * 10;
     memreq.cbAlign = 0x10;
-    schema->aent = (SVENT *)func_001AE1D0(&memreq);
+    schema->aent = (SVENT *)AllocFromWorldHeap(&memreq);
     Read__18CBinaryInputStreamiPv(stream, cent * 10, schema->aent);
     ResetGsIfSchemaChanged(schema, &D_003D4A60);
 }
@@ -537,20 +537,20 @@ extern "C" void InitSaveSymbolTable(SVSYMTAB *symbolTable, int csym)
     symbolTable->csym = csym;
     memreq.cb = csym << 4;
     memreq.cbAlign = 0x10;
-    symbolTable->asym = (SVSYM *)func_001AE1D0(&memreq);
+    symbolTable->asym = (SVSYM *)AllocFromWorldHeap(&memreq);
 }
 
 static inline int ChUpper(int ch) { return (D_002AA6A1[ch] & 2) ? ch - 0x20 : ch; }
 
 /** @sly2-annot addr=0x1D8640
  * Purpose: Case-insensitive string hash h=h*33+toupper(c)
- * Info: proposed name HashStringCaseInsensitive (T1); TU save
+ * Info: proposed name HashSaveSymbolName (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-// Case-insensitive string hash (h = h * 33 + toupper(c)).
-extern "C" unsigned int HashStringCaseInsensitive(const char *pchz)
+// Save-name hash, save's copy of HashStringCaseInsensitive (core/containers) without the null check: h*33+toupper(c).
+extern "C" unsigned int HashSaveSymbolName(const char *pchz)
 {
     const unsigned char *pch = (const unsigned char *)pchz;
     int hash = 0;
@@ -573,7 +573,7 @@ extern "C" unsigned int HashStringCaseInsensitive(const char *pchz)
 // Adds a (name, symbol id) pair to the 53-bucket save symbol hash table.
 extern "C" void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid)
 {
-    unsigned int hash = HashStringCaseInsensitive(pchz);
+    unsigned int hash = HashSaveSymbolName(pchz);
     unsigned int ihash = hash % 0x35;
     SVSYM *psym = &symbolTable->asym[symbolTable->csym - 1];
     symbolTable->csym--;
@@ -594,7 +594,7 @@ extern "C" void AddSaveSymbol(SVSYMTAB *symbolTable, char *pchz, int symid)
 // Returns the symbol id of a name in the save symbol table, or -1.
 extern "C" int FindSaveSymbol(SVSYMTAB *symbolTable, const char *pchz)
 {
-    unsigned int hash = HashStringCaseInsensitive(pchz);
+    unsigned int hash = HashSaveSymbolName(pchz);
     SVSYM *psym;
     for (psym = symbolTable->apsym[hash % 0x35]; psym; psym = psym->psymNext)
     {
@@ -627,7 +627,7 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *key)
         MEMREQ memreq;
         memreq.cb = key->c * 2;
         memreq.cbAlign = 0x10;
-        key->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+        key->ash = (short *)AllocFromStack(&memreq);
         ap = apSave;
         for (pchzT = pchz, i = 0; pchzT; pchzT = VA_ARG_PCH(ap), i++)
         {
@@ -658,13 +658,13 @@ extern "C" SVKEY *NewSaveKey(const char *pchz, ...)
     VA_START(ap, pchz);
     pmemreq->cb = 8;
     pmemreq->cbAlign = 0x10;
-    key = (SVKEY *)func_001AE1D0(pmemreq);
+    key = (SVKEY *)AllocFromWorldHeap(pmemreq);
     BuildSaveKeyV(pchz, ap, key);
     {
         short *ashOld = key->ash;
         pmemreq->cb = key->c * 2;
         pmemreq->cbAlign = 0x10;
-        key->ash = (short *)func_001AE238(pmemreq, ashOld);
+        key->ash = (short *)AllocCopyFromWorldHeap(pmemreq, ashOld);
     }
     return key;
 }
@@ -684,7 +684,7 @@ extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
     VA_START(ap, pchz);
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    key = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    key = (SVKEY *)AllocFromStack(&memreq);
     BuildSaveKeyV(pchz, ap, key);
     return key;
 }
@@ -773,12 +773,12 @@ extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
     int c;
     memreq.cb = 8;
     memreq.cbAlign = 0x10;
-    key = (SVKEY *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    key = (SVKEY *)AllocFromStack(&memreq);
     c = pkey1->c + pkey2->c;
     key->c = c;
     memreq.cb = c * 2;
     memreq.cbAlign = 0x10;
-    key->ash = (short *)PvAllocSlot__FP8ALLOCREQ(&memreq);
+    key->ash = (short *)AllocFromStack(&memreq);
     CopyAb(key->ash, pkey1->ash, pkey1->c * 2);
     CopyAb(key->ash + pkey1->c, pkey2->ash, pkey2->c * 2);
     return key;
@@ -842,7 +842,7 @@ static inline float GGetGlobal(SVKEY *key, SVSET *saveSet) { return RefGetGlobal
 // Applies the settings variables: vibration, sound mode, music and effects volumes, a flag, and the screen offset.
 extern "C" void ApplyGsSettings(SVSET *saveSet)
 {
-    if ((SVKEY *)g_sw.psvpLang && CLanguagesRegion() >= 2)
+    if ((SVKEY *)g_sw.psvpLang && CountRegionLanguages() >= 2)
         SetLanguage(NGetGlobal((SVKEY *)g_sw.psvpLang, saveSet));
     if ((SVKEY *)g_sw.psvpMixerMode)
         SetSndmgrPlaybackMode(D_003DD040, NGetGlobal((SVKEY *)g_sw.psvpMixerMode, saveSet));

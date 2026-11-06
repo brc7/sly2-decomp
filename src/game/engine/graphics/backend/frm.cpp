@@ -288,9 +288,9 @@ void ClearPendingFrame(FRM *frame){
  if(!FIsDlEmpty__FP2DL(&frame->dl40)){
   DLI iter(&frame->dl40);
   for(Y*object=(Y*)iter.Next();object;object=(Y*)iter.Next()){
-   if(object->storage)func_0011CD98(&g_sw.slotheapUnk40a0,object->storage);
+   if(object->storage)FreeSlotheapSlot(&g_sw.slotheapUnk40a0,object->storage);
    RemoveDlEntry__FP2DLPv(&frame->dl40,object);
-   func_0011CD98(&g_sw.slotheapUnk4088,object);
+   FreeSlotheapSlot(&g_sw.slotheapUnk4088,object);
   }
   ClearDl__FP2DL(&frame->dl40);
  }

@@ -171,12 +171,12 @@ extern "C" {
 int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(CBinaryInputStream *pbis, qword *pv);
 float F32Read__18CBinaryInputStream(CBinaryInputStream *pbis);
-void *func_001AE1D0(AL *pal);
-void *func_001AE2A0(AL *pal);
+void *AllocFromWorldHeap(AL *pal);
+void *AllocClearedFromWorldHeap(AL *pal);
 }
 extern "C" { extern qword D_002A2DC0; }
-static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return func_001AE1D0(&al); }
-static inline void *PvAllocClear(int cb, int cbAlign) { AL al(cb, cbAlign); return func_001AE2A0(&al); }
+static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromWorldHeap(&al); }
+static inline void *PvAllocClear(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocClearedFromWorldHeap(&al); }
 static inline qword Sub(qword a, qword b) { qword d; __asm__("vsub.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 static inline qword Cross(qword a, qword b)
@@ -286,7 +286,7 @@ void PauseEmitterIndefinite__FP7EMITTER(struct EMITTERV *p);
 void PauseEmitter__FP7EMITTERf(struct EMITTERV *p, float g);
 struct EMITTERV *PloFindSwObject__FP2SWi3OIDP2LO(void *pg, int kind, int oid, int n);
 struct EMITTERV *PloNew__F3CIDP2SO3OIDi(int cid, void *p, int oid, int n);
-void *func_001AE238(struct ALLOCREQ *preq, void *pv);
+void *AllocCopyFromWorldHeap(struct ALLOCREQ *preq, void *pv);
 void SetLoBusyk(struct EMITTERV *p, int n);
 void *GetLoWorldMatrix(struct EMITTERV *p);
 void AppendDlEntry__FP2DLPv(void *pv, struct EMITTERV *p);
@@ -296,7 +296,7 @@ static __inline__ void *PvAllocCopy(int cb, void *pv)
     struct ALLOCREQ req;
     req.cb = cb;
     req.kind = 0x10;
-    return func_001AE238(&req, pv);
+    return AllocCopyFromWorldHeap(&req, pv);
 }
 
 static __inline__ int FPtr(int n) { return !(n & 1); }
@@ -1603,14 +1603,14 @@ struct EMITVX { int c; float dTilt; float dPan; float tiltBase; float panBase; }
 struct EMITTERV { char pad[0x1C]; XF *pxf; char pad1[0x84 - 0x20]; int x84; char pad2[0x90 - 0x88]; char x90[1]; };
 struct BUF { qword *apos; qword *av; float *ag; float *an; int f10; };
 extern "C" {
-void *PvAllocSlot__FP8ALLOCREQ(AL *pal);
+void *AllocFromStack(AL *pal);
 void CalculateEmitvx__FiP2LMiP6EMITVX(int n, void *p, int c, EMITVX *pvx);
 void ChooseEmitoPos__FP5EMITOiiP6VECTORT3(EMITTERV *pemit, int i, int c, qword *ppos, qword *pnormal);
 void ChooseEmitvVelocityAge__FP5EMITVP6EMITVXP5EMITOiP6VECTORN24PfT7(void *p, EMITVX *pvx, void *q, int n, qword *ppos, qword *pnormal, qword *pvel, float *ptBirth, float *ptDeath);
 void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(EMITTERV *pemit, qword *ppos, qword *pvel);
 void OriginateParticles__FiP5EMITBP7EMITGEN(int c, EMITTERV *pemit, BUF *pb);
 }
-static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return PvAllocSlot__FP8ALLOCREQ(&al); }
+static inline void *PvAlloc(int cb, int cbAlign) { AL al(cb, cbAlign); return AllocFromStack(&al); }
 static inline qword MulRow(const MATRIX3 &m, qword v)
 {
     qword r;
@@ -1903,7 +1903,7 @@ struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("" : "=r"(q) : "0"(*(int 
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
 struct X { float x, y, z, w; qword axis; float gRot; float gScale; };
-extern "C" { void func_0011B500(MATRIX3 *pm, float g, qword axis); }
+extern "C" { void BuildAxisAngleRotationMatrix(MATRIX3 *pm, float g, qword axis); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) __asm__("__ml__FRC7MATRIX4G8VU_FLOAT");
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
@@ -1933,7 +1933,7 @@ MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p)
     MATRIX4 *pmRot = &mRot;
     if (p->gRot != 0.0f) {
         MATRIX3 m3;
-        func_0011B500(&m3, p->gRot * D_002DDED0.dt, p->axis);
+        BuildAxisAngleRotationMatrix(&m3, p->gRot * D_002DDED0.dt, p->axis);
         *(MATRIX3 *)pmRot = m3;
     }
     MATRIX4 mD;
@@ -2007,8 +2007,8 @@ void EXPL::VSlot51()   /* key function: EXPL's vtable comes out here (ExplodeExp
 
 namespace M_LoadExplgFromBrx { extern "C" {
 typedef struct MSG { int cb; int nKind; } MSG;
-void *func_001AE2A0(MSG *pmsg);
-static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
+void *AllocClearedFromWorldHeap(MSG *pmsg);
+static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocClearedFromWorldHeap(pmsg); }
 struct C { int a[4]; };
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; int pad[6]; unsigned long fl; };
@@ -2069,8 +2069,8 @@ int EXPLG::CploChildren(LO ***paplo)
 
 namespace M_CloneExplg { extern "C" {
 typedef struct MSG { int cb; int nKind; } MSG;
-void *func_001AE238(MSG *pmsg, void *pv);
-static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
+void *AllocCopyFromWorldHeap(MSG *pmsg, void *pv);
+static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return AllocCopyFromWorldHeap(pmsg, pv); }
 struct S { int pad[4]; void *p10; char pad2[0xE0 - 0x14]; int c; void **apv; };
 void CloneXfm(struct S *p, void *pv);
 void *PloCloneLo__FP2LOP2SO(void *pv, void *p10);

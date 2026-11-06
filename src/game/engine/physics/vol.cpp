@@ -37,11 +37,11 @@ void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 qword VecMinArray(int c, qword *points);
 qword VecMaxArray(int c, qword *points);
 qword ConvertAloPos(int a, VOLV *p, qword q);
-int PbspPointInBspQuick(int a, int b, qword q);
+int FindBspLeafContainingPointFast(int a, int b, qword q);
 MARK *STACKSCOPE_ctor(MARK *pm);
 void STACKSCOPE_ctor_1AE4A0(MARK *pm, int n) __asm__("_$_10STACKSCOPE");
-void *PvAllocSlot__FP8ALLOCREQ(MSG *pmsg);
-int func_00118A88(void *p, int n, qword v, int *pc, void **ppv, float g);
+void *AllocFromStack(MSG *pmsg);
+int PruneBspBySphere(void *p, int n, qword v, int *pc, void **ppv, float g);
 void OnLoAdd(VOLV *p);
 void OnLoRemove(VOLV *p);
 int FCheckVolPoint(VOLV *p, qword q);
@@ -108,7 +108,7 @@ extern "C" int FCheckVolPoint(VOLV *p, qword q)
     f = VuToFloat(r);
     fFar = p->sRadius < f;
     if (fFar) return 0;
-    return PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, a) != 0;
+    return FindBspLeafContainingPointFast(p->bspc.absp, 0x7FFFFFFF, a) != 0;
 }
 
 
@@ -136,10 +136,10 @@ extern "C" int func_00227D20(VOLV *p, qword v, float g)
             c = cT;
             pm->cb = cT * 12;
             pm->nKind = 0x10;
-            pv = PvAllocSlot__FP8ALLOCREQ(pm);
+            pv = AllocFromStack(pm);
         }
         {
-            int r = func_00118A88((void *)p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, v), &c, &pv, g);
+            int r = PruneBspBySphere((void *)p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, v), &c, &pv, g);
             if (r == 0 || r == 2) f = 1;
         }
         STACKSCOPE_ctor_1AE4A0(&mark, 2);

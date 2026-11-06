@@ -2,7 +2,11 @@
 // stack heap that grows down from 32 MB (allocate, allocate cleared, reallocate-copy, free all), the stack scopes
 // that mark and release the stack heap (STACKSCOPE, under a critical section), the empty malloc/free/operator
 // delete, and the word/quadword copy routines.
-// TU 0x1AE150..0x1AE7D0 (21 functions, address order).
+// There is no general-purpose free: level data is bump-allocated from the SW heap and dropped wholesale by FreeSw at
+// level unload; per-frame scratch comes from the stack heap and is released by STACKSCOPE marks. The two heaps grow
+// toward each other and GetFreeMemorySize is the gap. Allocation requests (AREQ) carry a size and an alignment.
+// Entry points: StartupMemMgr, AllocFromWorldHeap and its copy/clear variants, FreeSw, AllocFromStack and
+// AllocClearedFromStack, STACKSCOPE, operator new, CopyAb, CopyAqw. TU 0x1AE150..0x1AE7D0 (21 functions).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_memory
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001AE7B0
 #include "sly2/slotheap.h"
@@ -15,7 +19,7 @@ typedef int qword __attribute__((mode(TI)));
 typedef unsigned int uint;
 typedef unsigned char uchar;
 /* An allocation request: size and alignment. */
-struct AREQ { int cb; int cbAlign; };
+struct AREQ { int size; int alignment; };
 struct CRITSECT { int a[3]; };
 
 extern char D_0047220F;           /* the last byte of the program image */
@@ -29,9 +33,9 @@ int D_002F639C;                   /* stack scope depth */
 uint D_002F63A0[50];              /* stack heap tops of the open scopes (to ui/menu's .bss at 0x2F6468) */
 extern "C" {
 void func_002333B4(void *p, int c, int n) __asm__("memset");
-void *func_001AE1D0(AREQ *preq);
-void *func_001AE2A0(AREQ *preq);
-void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq);
+void *AllocFromWorldHeap(AREQ *preq);
+void *AllocClearedFromWorldHeap(AREQ *preq);
+void *AllocFromStack(AREQ *preq);
 }
 void InitCritSect(CRITSECT *pcritsect);
 void EnterCritSect(CRITSECT *pcritsect);
@@ -46,12 +50,13 @@ void CopyAb(void *pvDst, void *pvSrc, uint cb);
 
 /** @sly2-annot addr=0x1AE150
  * Purpose: Bytes free between world heap top (D_002F6384) and stack heap bottom (D_002F6388)
- * Info: proposed name CbFreeMem (T1); TU memory
+ * Info: proposed name GetFreeMemorySize (T1); TU memory
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r5_1AE130
  * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#6-source-files,
  *   docs/engine/save-memcard.md#4-source-files
  * @end-sly2-annot */
-extern "C" int CbFreeMem()
+// Returns the bytes still free between the top of the SW heap and the bottom of the stack heap.
+extern "C" int GetFreeMemorySize()
 {
     return D_002F6388 - D_002F6384;
 }
@@ -62,6 +67,8 @@ extern "C" int CbFreeMem()
  * Confidence: high [EXISTING 0.98] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/engine/overview.md#1-boot, docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// Boot step: the SW heap starts at the 16-aligned end of the program image, the stack heap at 32 MB (the top of
+// EE RAM) with no marks pushed; initialises the critical section the stack scopes use.
 void StartupMemMgr()
 {
     uint end = (int)&D_0047220F & ~0x0f;
@@ -79,6 +86,7 @@ void StartupMemMgr()
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// Out-of-memory hook; empty in the retail build.
 void CheckForOutOfMemory()
 {
 }
@@ -91,14 +99,15 @@ void CheckForOutOfMemory()
  *   docs/reference/functions/core-library.md#slotheap-0x11cca8-0x11cf60,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-extern "C" void *func_001AE1D0(AREQ *p)
+// Bump-allocates request->size bytes (rounded up to 16) from the SW (level) heap at request->alignment alignment.
+extern "C" void *AllocFromWorldHeap(AREQ *request)
 {
     unsigned int pv;
-    if (!p->cb)
+    if (!request->size)
         return 0;
-    CheckForOutOfMemoryCb(p->cb);
-    pv = (D_002F6384 + (p->cbAlign - 1)) & -p->cbAlign;
-    D_002F6384 = pv + ((p->cb + 15) & -16);
+    CheckForOutOfMemoryCb(request->size);
+    pv = (D_002F6384 + (request->alignment - 1)) & -request->alignment;
+    D_002F6384 = pv + ((request->size + 15) & -16);
     return (void*)pv;
 }
 
@@ -109,11 +118,12 @@ extern "C" void *func_001AE1D0(AREQ *p)
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
-extern "C" void *func_001AE238(AREQ *preq, void *pvSrc)
+// AllocFromWorldHeap, then copies request->size bytes from source into the new block.
+extern "C" void *AllocCopyFromWorldHeap(AREQ *request, void *source)
 {
-    AREQ m = *preq;
-    void *p = func_001AE1D0(&m);
-    if (p) CopyAb(p, pvSrc, preq->cb);
+    AREQ m = *request;
+    void *p = AllocFromWorldHeap(&m);
+    if (p) CopyAb(p, source, request->size);
     return p;
 }
 
@@ -126,11 +136,12 @@ extern "C" void *func_001AE238(AREQ *preq, void *pvSrc)
  *   docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-extern "C" void *func_001AE2A0(AREQ *preq)
+// AllocFromWorldHeap, then zero-fills the block.
+extern "C" void *AllocClearedFromWorldHeap(AREQ *request)
 {
-    AREQ m = *preq;
-    void *p = func_001AE1D0(&m);
-    if (p) func_002333B4(p, 0, preq->cb);
+    AREQ m = *request;
+    void *p = AllocFromWorldHeap(&m);
+    if (p) func_002333B4(p, 0, request->size);
     return p;
 }
 
@@ -140,6 +151,7 @@ extern "C" void *func_001AE2A0(AREQ *preq)
  * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// Releases the whole SW heap (level unload): its top returns to its base.
 void FreeSw()
 {
     D_002F6384 = D_002F6380;
@@ -156,13 +168,15 @@ void FreeSw()
  * See: docs/engine/core-library.md#1-memory, docs/engine/core-library.md#7-key-functions,
  *   docs/engine/world-sw.md#10-key-functions
  * @end-sly2-annot */
-extern "C" void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq)
+// Allocates request->size bytes (rounded up to 16) from the stack heap, which grows down, at request->alignment
+// alignment (PvAllocStackImpl in Sly 1 terms; this symbol was misnamed PvAllocSlot__FP8ALLOCREQ before).
+extern "C" void *AllocFromStack(AREQ *request)
 {
-    int cb = preq->cb;
+    int cb = request->size;
     uint pv = 0;
     if (cb != 0) {
         CheckForOutOfMemoryCb(cb);
-        pv = (D_002F6388 - ((preq->cb + 0xF) & ~0xF)) & -preq->cbAlign;
+        pv = (D_002F6388 - ((request->size + 0xF) & ~0xF)) & -request->alignment;
         D_002F6388 = pv;
     }
     return (void *)pv;
@@ -175,11 +189,12 @@ extern "C" void *PvAllocSlot__FP8ALLOCREQ(AREQ *preq)
  * Confidence: high [T1 0.92] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-extern "C" void *func_001AE378(AREQ *preq)
+// Stack-heap allocation (AllocFromStack), then zero-fills the block.
+extern "C" void *AllocClearedFromStack(AREQ *request)
 {
-    AREQ m = *preq;
-    void *p = PvAllocSlot__FP8ALLOCREQ(&m);
-    if (p) func_002333B4(p, 0, preq->cb);
+    AREQ m = *request;
+    void *p = AllocFromStack(&m);
+    if (p) func_002333B4(p, 0, request->size);
     return p;
 }
 
@@ -189,6 +204,7 @@ extern "C" void *func_001AE378(AREQ *preq)
  * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// Opens a stack-heap scope: enters the memory critical section and pushes the current stack-heap position.
 void InitStackImpl()
 {
     EnterCritSect(&D_002F6390);
@@ -201,6 +217,8 @@ void InitStackImpl()
  * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// Closes a stack-heap scope: pops the saved position (freeing everything allocated since) and leaves the
+// critical section.
 void FreeStackImpl()
 {
     D_002F6388 = D_002F63A0[D_002F639C--];
@@ -215,6 +233,7 @@ void FreeStackImpl()
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// STACKSCOPE constructor: opens a stack-heap scope (InitStackImpl) for the object's lifetime.
 STACKSCOPE::STACKSCOPE()
 {
     InitStackImpl();
@@ -228,6 +247,7 @@ STACKSCOPE::STACKSCOPE()
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// STACKSCOPE destructor: closes the scope (FreeStackImpl); deletes the object when asked to (flag bit 0).
 STACKSCOPE::~STACKSCOPE()
 {
     FreeStackImpl();
@@ -239,6 +259,7 @@ STACKSCOPE::~STACKSCOPE()
  * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// libc malloc, disabled: always returns null (the game allocates through its own heaps).
 extern "C" void *malloc(unsigned int cb)
 {
     return 0;
@@ -250,6 +271,7 @@ extern "C" void *malloc(unsigned int cb)
  * Confidence: high [EXISTING 0.97] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// libc free, disabled: does nothing.
 extern "C" void free(void *pv)
 {
 }
@@ -262,8 +284,9 @@ extern "C" void free(void *pv)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// Global operator new: a zero-filled, 16-aligned block from the SW heap (freed only with the level).
 /* ::operator new (g++ 2.95's symbol for it is __builtin_new). */
-void *operator new(unsigned int cb) { AREQ m; m.cb = cb; m.cbAlign = 0x10; return func_001AE2A0(&m); }
+void *operator new(unsigned int cb) { AREQ m; m.size = cb; m.alignment = 0x10; return AllocClearedFromWorldHeap(&m); }
 
 /* ::operator delete (g++ 2.95's symbol for it is __builtin_delete): nothing to free. */
 /** @sly2-annot addr=0x1AE520
@@ -273,6 +296,7 @@ void *operator new(unsigned int cb) { AREQ m; m.cb = cb; m.cbAlign = 0x10; retur
  * See: docs/reference/functions/core-library.md#bis-0x1177a8-0x118668,
  *   docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
+// Global operator delete: does nothing (SW-heap blocks are released with the level).
 void operator delete(void *pv)
 {
 }
@@ -283,27 +307,28 @@ void operator delete(void *pv)
  * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-void CopyAqw(void *pvDst, void *pvSrc, int cqw)
+// Copies `count` quadwords (16 bytes each; the remainder first, then four at a time).
+void CopyAqw(void *dst, void *src, int count)
 {
-    qword *pqwdst = (qword *)pvDst;
-    qword *pqwsrc = (qword *)pvSrc;
-    int cRemain = cqw & 0x03;
-    int cBulk = cqw - cRemain;
+    qword *dstQwords = (qword *)dst;
+    qword *srcQwords = (qword *)src;
+    int remainder = count & 0x03;
+    int bulk = count - remainder;
     int i = 0;
-    for (; i < cRemain; i++)
-        *pqwdst++ = *pqwsrc++;
+    for (; i < remainder; i++)
+        *dstQwords++ = *srcQwords++;
     i = 0;
-    for (; i < cBulk; i += 4) {
-        qword qw0 = pqwsrc[0];
-        qword qw1 = pqwsrc[1];
-        qword qw2 = pqwsrc[2];
-        qword qw3 = pqwsrc[3];
-        pqwsrc += 4;
-        pqwdst[0] = qw0;
-        pqwdst[1] = qw1;
-        pqwdst[2] = qw2;
-        pqwdst[3] = qw3;
-        pqwdst += 4;
+    for (; i < bulk; i += 4) {
+        qword qw0 = srcQwords[0];
+        qword qw1 = srcQwords[1];
+        qword qw2 = srcQwords[2];
+        qword qw3 = srcQwords[3];
+        srcQwords += 4;
+        dstQwords[0] = qw0;
+        dstQwords[1] = qw1;
+        dstQwords[2] = qw2;
+        dstQwords[3] = qw3;
+        dstQwords += 4;
     }
 }
 
@@ -313,44 +338,45 @@ void CopyAqw(void *pvDst, void *pvSrc, int cqw)
  * Confidence: high [EXISTING 0.95] - evidence: pre-existing symbol in symbol_addrs.txt; sources: r5_1AE130
  * See: docs/reference/functions/core-library.md#memory-0x1ae150-0x1ae7d0
  * @end-sly2-annot */
-void CopyAb(void *pvDst, void *pvSrc, uint cb)
+// memcpy: byte loop for unaligned arguments, word loop for 4-aligned ones, CopyAqw for 16-aligned ones.
+void CopyAb(void *dst, void *src, uint size)
 {
-    if (((uint)pvDst | (uint)pvSrc | cb) & 0x03)
+    if (((uint)dst | (uint)src | size) & 0x03)
     {
-        uchar *pbDst = (uchar *)pvDst;
-        uchar *pbSrc = (uchar *)pvSrc;
-        for (uint i = 0; i < cb; i++)
+        uchar *dstBytes = (uchar *)dst;
+        uchar *srcBytes = (uchar *)src;
+        for (uint i = 0; i < size; i++)
         {
-            *pbDst++ = *pbSrc++;
+            *dstBytes++ = *srcBytes++;
         }
         return;
     }
-    if (((uint)pvDst | (uint)pvSrc | cb) & 0x0f)
+    if (((uint)dst | (uint)src | size) & 0x0f)
     {
-        uint *puDst = (uint *)pvDst;
-        uint *puSrc = (uint *)pvSrc;
-        int cRemain = (cb / sizeof(uint)) & 0x03;
-        int cBluk = (cb / sizeof(uint)) - cRemain;
+        uint *dstWords = (uint *)dst;
+        uint *srcWords = (uint *)src;
+        int remainder = (size / sizeof(uint)) & 0x03;
+        int bulk = (size / sizeof(uint)) - remainder;
         int i = 0;
-        for (; i < cRemain; i++)
+        for (; i < remainder; i++)
         {
-            *puDst++ = *puSrc++;
+            *dstWords++ = *srcWords++;
         }
         i = 0;
-        for (; i < cBluk; i += 4)
+        for (; i < bulk; i += 4)
         {
-            uint w0 = puSrc[0];
-            uint w1 = puSrc[1];
-            uint w2 = puSrc[2];
-            uint w3 = puSrc[3];
-            puSrc += 4;
-            puDst[0] = w0;
-            puDst[1] = w1;
-            puDst[2] = w2;
-            puDst[3] = w3;
-            puDst += 4;
+            uint w0 = srcWords[0];
+            uint w1 = srcWords[1];
+            uint w2 = srcWords[2];
+            uint w3 = srcWords[3];
+            srcWords += 4;
+            dstWords[0] = w0;
+            dstWords[1] = w1;
+            dstWords[2] = w2;
+            dstWords[3] = w3;
+            dstWords += 4;
         }
         return;
     }
-    CopyAqw(pvDst, pvSrc, cb >> 4);
+    CopyAqw(dst, src, size >> 4);
 }

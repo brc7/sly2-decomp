@@ -21,7 +21,7 @@ public:
     /* 0x04 */ int cbAlign;
 
     virtual void *PvAlloc(int cb, int n) __asm__("CSwHeap_PvAlloc");
-    virtual void *PvRealloc(void *pv, int cb, int n) __asm__("CSwHeap_PvRealloc");
+    virtual void *PvRealloc(void *pv, int cb, int n) __asm__("CSwHeap_Realloc");
     virtual void Free(void *pv) __asm__("CSwHeap_Free");
 };
 

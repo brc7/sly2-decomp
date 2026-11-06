@@ -22,7 +22,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* Declarations from LoadOptionFromBrx's per-function file (Lilly port): a private CBinaryInputStream view (S8Read and
    Skip added for LoadSwObjectsFromBrx). EOPID is sly2/eopid.h's, CRef sly2/cref.h's. Callees keep the names that file
    gave them. */
-MATRIX3 LoadRotateMatrix(qword vec) __asm__("func_0011B570");
+MATRIX3 LoadRotateMatrix(qword vec) __asm__("BuildRotationMatrixFromVector");
 extern "C" LORUN *AddLoDeferredCallback(LO *plo);
 class CBinaryStreamBase
 {
@@ -71,8 +71,8 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
-void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("func_001AE378");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
+void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromStack");
 CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 struct OIDFIELD
 {
@@ -154,12 +154,12 @@ void FramePtr_Assign(void *pspframe, void *frame) __asm__("__as__t7CRefPtr1Z6CFr
 void *GetSpliceFrame(SW *world, int isplice, LO *plo);
 DL *GetSwOidBucket(SW *world, OID oid);
 DL *GetSwClassList(SW *world, CID cid);
-void func_0011A070(DL *pdl, LO *plo);
+void AppendSlEntry(DL *pdl, LO *plo);
 int IsLoInWorld(LO *plo);
 void CRef_ctor_CLQ(CRef *pref, float *ag);
 void CRef_ctor_LM(CRef *pref, float *ag);
 void CRef_ctor_VECTOR(CRef *pref, float *ag);
-void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *pswalloc);
+void *AllocFromStack(SWALLOC *pswalloc);
 void SetLoParent(LO *plo, SO *psoParent, int grf);
 void SetLoTagHierarchy(LO *plo, int n);
 int IsCidDerivedFrom(CID cid, CID cidBase);
@@ -232,8 +232,8 @@ LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice)
     plo->oid = oid;
     world = &D_003DD490;
     FramePtr_Assign(plo, GetSpliceFrame(world, isplice, plo));
-    func_0011A070(GetSwOidBucket(world, oid), plo);
-    func_0011A070(GetSwClassList(world, cid), plo);
+    AppendSlEntry(GetSwOidBucket(world, oid), plo);
+    AppendSlEntry(GetSwClassList(world, cid), plo);
     plo->Init();
     if ((uchar)plo->fInWorld)   /* (uchar): extract the bit as the target does ((int) adds a sign extension) */
         plo->AddHierarchy();
@@ -800,7 +800,7 @@ void CLoadCollectorArray::Add(int cAdd, LO **aploAdd)
         } while (cMaxNew < c + cAdd);
         swalloc.cb = cMaxNew * 4;
         swalloc.cbAlign = 0x10;
-        aploNew = (LO **)PvAllocSlot__FP8ALLOCREQ(&swalloc);
+        aploNew = (LO **)AllocFromStack(&swalloc);
         CopyAb(aploNew, aplo, c * 4);
         cMax = cMaxNew;
         aplo = aploNew;

@@ -1,5 +1,9 @@
 // tu_1848A8.cpp -- CStreamBis, the file/CD-sector subclass of CBinaryInputStream (vtable D_002D2918): constructor,
 // destructor, spooled CD refill, file refill, Close, FOpenSector. TU 0x1848A8..0x184F50 (10 functions, address order).
+// A CD-sector stream splits its spool buffer into bufferCount sub-buffers (at least 2, one per MB of spool) and keeps
+// one CD read in flight into the next free sub-buffer while the reader consumes the oldest full one; a failed read is
+// reissued from where it stopped. Entry points: CStreamBis_ctor, OpenStreamFromFileKey / FOpenSector, Fill (vtable
+// slot 1: RefillStreamFromCd or RefillStreamFromFile), CStreamBis_Close, the destructor.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1848A8
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00184F30
 #include "sly2/slotheap.h"
@@ -16,31 +20,31 @@ typedef unsigned int uint;
 class CBinaryInputStream
 {
 public:
-    int FOpenSector(uint isector, uint cb);
+    int FOpenSector(uint sector, uint size);
 
-    int grf;                /* 0x00 m_grfbis */
+    int flags;                /* 0x00 m_grfbis */
     char pad04[0x0C];
-    char *pbRaw;            /* 0x10 next raw block (m_pbRaw) */
-    int cbRaw;              /* 0x14 */
+    char *rawData;            /* 0x10 next raw block (m_pbRaw) */
+    int rawSize;              /* 0x14 */
     char pad18[0x18];
-    void *vt;               /* 0x30 vptr */
-    int cbSpool;            /* 0x34 size of the spool buffer (multiple of 64) */
-    char *abSpool;          /* 0x38 64-byte aligned spool buffer */
-    int fd;                 /* 0x3C file descriptor (-1: not a file stream) */
-    int cbReadDone;         /* 0x40 bytes of the current CD read known complete */
-    int cbReadReq;          /* 0x44 bytes requested by the current CD read (0: none in flight) */
-    int cbFileLeft;         /* 0x48 bytes of the file not yet requested */
-    int cbReadReissued;     /* 0x4C offset at which the current read was reissued */
-    int isector;            /* 0x50 next sector to read (-1: not a sector stream) */
-    int cbuf;               /* 0x54 number of spool sub-buffers */
-    int cbufFull;           /* 0x58 sub-buffers holding data */
-    int ibufRead;           /* 0x5C sub-buffer being consumed */
-    int ibufFill;           /* 0x60 sub-buffer being filled */
+    void *vtable;             /* 0x30 vptr */
+    int spoolSize;            /* 0x34 size of the spool buffer (multiple of 64) */
+    char *spoolBuffer;        /* 0x38 64-byte aligned spool buffer */
+    int fd;                   /* 0x3C file descriptor (-1: not a file stream) */
+    int readDone;             /* 0x40 bytes of the current CD read known complete */
+    int readRequested;        /* 0x44 bytes requested by the current CD read (0: none in flight) */
+    int fileBytesLeft;        /* 0x48 bytes of the file not yet requested */
+    int reissueOffset;        /* 0x4C offset at which the current read was reissued */
+    int sector;               /* 0x50 next sector to read (-1: not a sector stream) */
+    int bufferCount;          /* 0x54 number of spool sub-buffers */
+    int fullBuffers;          /* 0x58 sub-buffers holding data */
+    int readBuffer;           /* 0x5C sub-buffer being consumed */
+    int fillBuffer;           /* 0x60 sub-buffer being filled */
 };
-typedef char assert_CBinaryInputStream_ibufFill[(uint)&((CBinaryInputStream *)0)->ibufFill == 0x60 ? 1 : -1];
+typedef char assert_CBinaryInputStream_ibufFill[(uint)&((CBinaryInputStream *)0)->fillBuffer == 0x60 ? 1 : -1];
 
-/* 0x10-byte sector key passed to func_00184D60 (KEY in engine/presentation/hud). */
-struct SECTORKEY { uint isector; uint cb; int kind; };
+/* 0x10-byte sector key passed to OpenStreamFromFileKey (KEY in engine/presentation/hud). */
+struct SECTORKEY { uint sector; uint size; int kind; };
 
 /* CStreamBis (DRAFT class name) is a CBinaryInputStream subclass (bis.h) with Fill and Close of its own, vtable 0x2D2918,
    emitted here. This TU reads the object through its private CBinaryInputStream view (above), so the class is declared
@@ -64,8 +68,8 @@ int func_00241E88(int) __asm__("sceCdSync");
 void ReadCdDirect(uint isector, uint csector, void *pv, int mode);
 void CBinaryInputStream_Close(CBinaryInputStream *p) __asm__("Close__18CBinaryInputStream");  /* the base Close (bis.cpp) */
 void CStreamBis_Close(CBinaryInputStream *p);
-void func_00184C60(CBinaryInputStream *p);
-void func_001849A0(CBinaryInputStream *p);
+void RefillStreamFromFile(CBinaryInputStream *p);
+void RefillStreamFromCd(CBinaryInputStream *p);
 }
 
 
@@ -79,20 +83,22 @@ void func_001849A0(CBinaryInputStream *p);
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
  *   docs/engine/player.md#10-source-files
  * @end-sly2-annot */
-extern "C" CBinaryInputStream *func_001848A8(CBinaryInputStream *p, int cb, char *pv, int grf)
+// Constructs a CStreamBis over the caller's memory (size bytes): base constructor, this vtable, the spool buffer
+// is the 64-byte aligned part of the memory rounded down to 64 bytes; neither a file nor a sector stream yet.
+extern "C" CBinaryInputStream *CStreamBis_ctor(CBinaryInputStream *stream, int size, char *memory, int flags)
 {
-    char *ab;
-    __18CBinaryInputStream(p);
-    ab = (char *)(((int)pv + 0x3F) & ~0x3F);
-    p->vt = D_002D2918;
-    p->grf = grf;
-    p->cbSpool = ((int)pv + cb - (int)ab) & ~0x3F;
-    p->isector = -1;
-    p->fd = -1;
-    p->abSpool = ab;
-    p->cbReadDone = p->cbReadReq = p->cbFileLeft = p->cbReadReissued = p->cbuf = p->cbufFull = p->ibufRead =
-        p->ibufFill = 0;
-    return p;
+    char *aligned;
+    __18CBinaryInputStream(stream);
+    aligned = (char *)(((int)memory + 0x3F) & ~0x3F);
+    stream->vtable = D_002D2918;
+    stream->flags = flags;
+    stream->spoolSize = ((int)memory + size - (int)aligned) & ~0x3F;
+    stream->sector = -1;
+    stream->fd = -1;
+    stream->spoolBuffer = aligned;
+    stream->readDone = stream->readRequested = stream->fileBytesLeft = stream->reissueOffset = stream->bufferCount = stream->fullBuffers = stream->readBuffer =
+        stream->fillBuffer = 0;
+    return stream;
 }
 
 /** @sly2-annot addr=0x184950
@@ -102,14 +108,15 @@ extern "C" CBinaryInputStream *func_001848A8(CBinaryInputStream *p, int cb, char
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
+// CStreamBis destructor: closes the stream and frees the object when asked to (flag bit 0).
 /* CStreamBis's destructor (in-charge flag grf; DRAFT class name), config symbol _$_10CStreamBis. */
 extern "C" void func_00184950(CBinaryInputStream *p, int grf) __asm__("_$_10CStreamBis");
-extern "C" void func_00184950(CBinaryInputStream *p, int grf)
+extern "C" void func_00184950(CBinaryInputStream *stream, int flags)
 {
-    p->vt = D_002D2918;
-    CStreamBis_Close(p);
-    if (grf & 1)
-        __builtin_delete(p);
+    stream->vtable = D_002D2918;
+    CStreamBis_Close(stream);
+    if (flags & 1)
+        __builtin_delete(stream);
 }
 
 /** @sly2-annot addr=0x1849A0
@@ -119,67 +126,70 @@ extern "C" void func_00184950(CBinaryInputStream *p, int grf)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" void func_001849A0(CBinaryInputStream *p)
+// Refills a CD-sector stream: retires the consumed sub-buffer, tracks the read in flight (completing it, or
+// reissuing the unread part after an error), starts the next read when a sub-buffer is free and file bytes remain,
+// and exposes up to 0x1000 bytes of the oldest full sub-buffer. Loops until data is available or the file ends.
+extern "C" void RefillStreamFromCd(CBinaryInputStream *stream)
 {
-    int cbuf;
-    int n;
-    p->pbRaw += p->cbRaw;
-    p->cbRaw = 0;
-    cbuf = p->cbSpool / p->cbuf;
-    if (cbuf > 0x8000) cbuf &= -0x8000; else cbuf &= -0x800;
-    if (p->cbufFull > 0) {
-        n = p->ibufRead + 1;
-        if (p->pbRaw == p->abSpool + n * cbuf) {
-            p->ibufRead = n % p->cbuf;
-            p->cbufFull--;
-            p->pbRaw = p->abSpool + p->ibufRead * cbuf;
+    int bufferSize;
+    int nextBuffer;
+    stream->rawData += stream->rawSize;
+    stream->rawSize = 0;
+    bufferSize = stream->spoolSize / stream->bufferCount;
+    if (bufferSize > 0x8000) bufferSize &= -0x8000; else bufferSize &= -0x800;
+    if (stream->fullBuffers > 0) {
+        nextBuffer = stream->readBuffer + 1;
+        if (stream->rawData == stream->spoolBuffer + nextBuffer * bufferSize) {
+            stream->readBuffer = nextBuffer % stream->bufferCount;
+            stream->fullBuffers--;
+            stream->rawData = stream->spoolBuffer + stream->readBuffer * bufferSize;
         }
     }
     do {
-        if (p->cbReadReq > 0) {
-            int t = NMin(sceCdGetReadPos() + p->cbReadReissued, p->cbReadReq);
-            if (p->cbReadDone < t) {
-                p->cbReadDone = t;
+        if (stream->readRequested > 0) {
+            int readPos = NMin(sceCdGetReadPos() + stream->reissueOffset, stream->readRequested);
+            if (stream->readDone < readPos) {
+                stream->readDone = readPos;
             } else if (func_00241E88(1) == 0) {
                 if (sceCdGetError() == 0) {
-                    int c = p->cbReadReq;
-                    p->cbReadDone = c;
-                    p->isector += c / 0x800;
-                    p->cbFileLeft -= c;
-                    p->cbReadReq = 0;
-                    p->cbReadReissued = 0;
+                    int size = stream->readRequested;
+                    stream->readDone = size;
+                    stream->sector += size / 0x800;
+                    stream->fileBytesLeft -= size;
+                    stream->readRequested = 0;
+                    stream->reissueOffset = 0;
                 } else {
-                    int c = p->cbReadDone;
+                    int size = stream->readDone;
                     register int mode __asm__("$7") = 0;
-                    register int index __asm__("$9") = p->ibufFill;
-                    char *buffer = p->abSpool + index * cbuf + c;
-                    unsigned int count = ((p->cbReadReq - c + 0x7FF) & -0x800) >> 11;
-                    unsigned int sector = p->isector + c / 0x800;
-                    p->cbReadReissued = c;
+                    register int index __asm__("$9") = stream->fillBuffer;
+                    char *buffer = stream->spoolBuffer + index * bufferSize + size;
+                    unsigned int count = ((stream->readRequested - size + 0x7FF) & -0x800) >> 11;
+                    unsigned int sector = stream->sector + size / 0x800;
+                    stream->reissueOffset = size;
                     ReadCdDirect(sector, count, buffer, mode);
                 }
             }
         }
-        if (p->cbufFull < p->cbuf && p->cbReadReq == 0 && p->cbFileLeft > 0) {
-            int c = NMin(p->cbFileLeft, cbuf);
-            p->cbReadDone = 0;
-            p->cbReadReq = c;
-            p->ibufFill = (p->ibufFill + 1) % p->cbuf;
+        if (stream->fullBuffers < stream->bufferCount && stream->readRequested == 0 && stream->fileBytesLeft > 0) {
+            int size = NMin(stream->fileBytesLeft, bufferSize);
+            stream->readDone = 0;
+            stream->readRequested = size;
+            stream->fillBuffer = (stream->fillBuffer + 1) % stream->bufferCount;
             {
-                unsigned int sector = p->isector;
-                char *buffer = p->abSpool + p->ibufFill * cbuf;
-                p->cbufFull++;
-                ReadCdDirect(sector, ((c + 0x7FF) & -0x800) >> 11, buffer, 0);
+                unsigned int sector = stream->sector;
+                char *buffer = stream->spoolBuffer + stream->fillBuffer * bufferSize;
+                stream->fullBuffers++;
+                ReadCdDirect(sector, ((size + 0x7FF) & -0x800) >> 11, buffer, 0);
             }
         }
-        if (p->cbufFull == 0) {
-            p->cbRaw = 0;
+        if (stream->fullBuffers == 0) {
+            stream->rawSize = 0;
         } else {
-            int c = (p->cbufFull == 1) ? p->cbReadDone : cbuf;
-            int v = c - (p->pbRaw - (p->abSpool + p->ibufRead * cbuf));
-            p->cbRaw = NMin(v, 0x1000);
+            int size = (stream->fullBuffers == 1) ? stream->readDone : bufferSize;
+            int v = size - (stream->rawData - (stream->spoolBuffer + stream->readBuffer * bufferSize));
+            stream->rawSize = NMin(v, 0x1000);
         }
-    } while (p->cbRaw == 0 && p->cbFileLeft > 0);
+    } while (stream->rawSize == 0 && stream->fileBytesLeft > 0);
 }
 
 /** @sly2-annot addr=0x184C60
@@ -188,11 +198,12 @@ extern "C" void func_001849A0(CBinaryInputStream *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" void func_00184C60(CBinaryInputStream *p)
+// Refills a host-file stream: one blocking sceRead of a whole spool buffer.
+extern "C" void RefillStreamFromFile(CBinaryInputStream *stream)
 {
-    char *ab = p->abSpool;
-    p->pbRaw = ab;
-    p->cbRaw = sceRead(p->fd, ab, p->cbSpool);
+    char *buffer = stream->spoolBuffer;
+    stream->rawData = buffer;
+    stream->rawSize = sceRead(stream->fd, buffer, stream->spoolSize);
 }
 
 /** @sly2-annot addr=0x184CA0
@@ -201,14 +212,15 @@ extern "C" void func_00184C60(CBinaryInputStream *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
+// CStreamBis::Fill (vtable slot 1): refills from the host file or the CD, or reports end of data.
 void CStreamBis::Fill()   /* key function: CStreamBis's vtable comes out here */
 {
-    CBinaryInputStream *p = (CBinaryInputStream *)this;
-    if (p->fd >= 0) func_00184C60(p);
-    else if (p->isector >= 0) func_001849A0(p);
+    CBinaryInputStream *stream = (CBinaryInputStream *)this;
+    if (stream->fd >= 0) RefillStreamFromFile(stream);
+    else if (stream->sector >= 0) RefillStreamFromCd(stream);
     else {
-        p->pbRaw = 0;
-        p->cbRaw = 0;
+        stream->rawData = 0;
+        stream->rawSize = 0;
     }
 }
 
@@ -218,19 +230,20 @@ void CStreamBis::Fill()   /* key function: CStreamBis's vtable comes out here */
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4b_rest
  * See: docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" void CStreamBis_Close(CBinaryInputStream *p)
+// Closes the stream: closes the host file, cancels a CD read in flight, then the base Close.
+extern "C" void CStreamBis_Close(CBinaryInputStream *stream)
 {
-    int fd = p->fd;
+    int fd = stream->fd;
     if (fd >= 0) {
         sceClose(fd);
-        p->fd = -1;
+        stream->fd = -1;
     }
-    if (p->isector >= 0) {
-        if (p->cbReadReq != 0)
+    if (stream->sector >= 0) {
+        if (stream->readRequested != 0)
             sceCdBreak();
-        p->isector = -1;
+        stream->sector = -1;
     }
-    CBinaryInputStream_Close(p);
+    CBinaryInputStream_Close(stream);
 }
 
 /** @sly2-annot addr=0x184D60
@@ -240,12 +253,13 @@ extern "C" void CStreamBis_Close(CBinaryInputStream *p)
  * See: docs/formats/disc-records.md#2-the-read-path,
  *   docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-extern "C" int func_00184D60(CBinaryInputStream *p, SECTORKEY *pkey)
+// Opens the stream on a file key if it names a disc file (kind 2: sector range); returns whether it did.
+extern "C" int OpenStreamFromFileKey(CBinaryInputStream *stream, SECTORKEY *key)
 {
-    int f = 0;
-    if (pkey->kind == 2)
-        f = p->FOpenSector(pkey->isector, pkey->cb);
-    return f;
+    int opened = 0;
+    if (key->kind == 2)
+        opened = stream->FOpenSector(key->sector, key->size);
+    return opened;
 }
 
 /** @sly2-annot addr=0x184D98
@@ -255,24 +269,26 @@ extern "C" int func_00184D60(CBinaryInputStream *p, SECTORKEY *pkey)
  *   docs/formats/disc-records.md#2-the-read-path,
  *   docs/reference/functions/core-library.md#tu_1848a8-0x1848a8-0x184f50
  * @end-sly2-annot */
-int CBinaryInputStream::FOpenSector(uint isectorFirst, uint cb)
+// Opens a CD-sector stream on `size` bytes from `firstSector`: resets the read state and divides the spool buffer
+// into max(2, spoolSize / 1 MB) sub-buffers. Returns 1.
+int CBinaryInputStream::FOpenSector(uint firstSector, uint size)
 {
-    isector = isectorFirst;
-    cbFileLeft = cb;
-    pbRaw = abSpool;
-    cbReadDone = 0;
-    cbReadReissued = 0;
-    cbReadReq = 0;
-    int cbSpoolT = cbSpool;
-    if (cbSpoolT < 0)
-        cbSpoolT += 0xfffff;
-    cbufFull = 0;
-    int cbufT = 2;
-    int shr = 20;
-    if ((cbSpoolT >> shr) > cbufT)
-        cbufT = cbSpoolT >> shr;
-    ibufRead = 0;
-    cbuf = cbufT;
-    ibufFill = cbufT - 1;
+    sector = firstSector;
+    fileBytesLeft = size;
+    rawData = spoolBuffer;
+    readDone = 0;
+    reissueOffset = 0;
+    readRequested = 0;
+    int spoolSizeTmp = spoolSize;
+    if (spoolSizeTmp < 0)
+        spoolSizeTmp += 0xfffff;
+    fullBuffers = 0;
+    int bufferCountTmp = 2;
+    int shift = 20;
+    if ((spoolSizeTmp >> shift) > bufferCountTmp)
+        bufferCountTmp = spoolSizeTmp >> shift;
+    readBuffer = 0;
+    bufferCount = bufferCountTmp;
+    fillBuffer = bufferCountTmp - 1;
     return 1;
 }

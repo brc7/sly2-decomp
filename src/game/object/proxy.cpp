@@ -275,11 +275,11 @@ struct DL { void *head; void *tail; int ibDle; };
 struct N { int id; struct N *pnParent; int x8; int xC; int x10; struct N *pnNext; struct DL dl; int pad; };
 struct AL { int cb; int cbAlign; };
 extern char D_003DD490[];
-void *func_001AE2A0(const struct AL *pal);
-void func_0011A050(struct DL *pdl, int ib);
+void *AllocClearedFromWorldHeap(const struct AL *pal);
+void InitSl(struct DL *pdl, int ib);
 int GetOidFromProxyId(int id);
 struct DL *GetSwProxyRefBucket(void *p, int id);
-void func_0011A070(struct DL *pl, void *pv);
+void AppendSlEntry(struct DL *pl, void *pv);
 /** @sly2-annot addr=0x1C99D8
  * Purpose: Find (or create, allocating from world heap) the PXR path of ids aid[0..c) under a parent PXR
  * Info: proposed name FindPxr (T1); TU proxy
@@ -306,16 +306,16 @@ again:
     }
     al.cb = c * sizeof(struct N);
     al.cbAlign = 0x10;
-    pnNew = (struct N *)func_001AE2A0(&al);
+    pnNew = (struct N *)AllocClearedFromWorldHeap(&al);
     pnParent = parentNode;
     for (i = 0; i < c; i++) {
         pn = &pnNew[i];
-        func_0011A050(&pn->dl, 0x14);
+        InitSl(&pn->dl, 0x14);
         pn->id = aid[i];
         pn->x8 = GetOidFromProxyId(pn->id);
-        func_0011A070(GetSwProxyRefBucket(D_003DD490, pn->x8), pn);
+        AppendSlEntry(GetSwProxyRefBucket(D_003DD490, pn->x8), pn);
         pn->pnParent = pnParent;
-        func_0011A070(&pnParent->dl, pn);
+        AppendSlEntry(&pnParent->dl, pn);
         pnParent = pn;
     }
     return pn;
@@ -366,8 +366,8 @@ PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("FindProxyRefPath");
 void AddProxyCopy(SW *world, int isrc, SO *psoParent, XF *pxfParent, OID oid, MATRIX4 *pmatProxy, CLoadCollector *pcollector) __asm__("AddProxyCopy");
 int CploFindSwObjects(SW *world, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("FindSwObjectsInProxyScope");
 
-void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
-void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 void InitStackImpl();
 void FreeStackImpl();
 CFrame *PframeFromIsplice(SW *world, int isplice, LO *plo) __asm__("GetSpliceFrame");
@@ -706,7 +706,7 @@ struct A { int cb; int align; };
 struct R { int n; struct LO **ap; int x8; int c; int x10; void *x14; void **ap18; char pad[0x64 - 0x1C]; struct X *x64; struct Z *x68; };
 struct G { char pad[0x3F04]; int c3F04; struct R *ar; };
 void *IdProxy__Fii(int i, int c);
-void *func_001AE2A0(struct A *pa);
+void *AllocClearedFromWorldHeap(struct A *pa);
 qword GetLoWorldPos(struct LO *p);
 struct MAT3 *GetLoWorldMatrix(struct LO *p);
 void NormalizeRotateMatrix3__FP7MATRIX3(struct MAT3 *pm);
@@ -742,7 +742,7 @@ void InitSwProxySpares(struct G *world)
         }
         a.cb = pr->n * 64;
         a.align = 0x10;
-        pr->x64 = (struct X *)func_001AE2A0(&a);
+        pr->x64 = (struct X *)AllocClearedFromWorldHeap(&a);
         for (k = 0; k < pr->n; k++) {
             px = &pr->x64[k];
             plo = pr->ap[pr->c * pr->n + k];
@@ -752,7 +752,7 @@ void InitSwProxySpares(struct G *world)
         }
         a.cb = (pr->x8 - pr->c) * 0x50;
         a.align = 0x10;
-        pr->x68 = (struct Z *)func_001AE2A0(&a);
+        pr->x68 = (struct Z *)AllocClearedFromWorldHeap(&a);
         for (j = pr->c; j < pr->x8; j++)
             SetIdent(&pr->x68[j - pr->c].mat);
     }
@@ -783,7 +783,7 @@ struct S { char pad[0xEC]; int c; struct E *ae; };
 struct AL { int cb; int cbAlign; };
 struct SP { struct RC *p; };
 void CloneXfm(struct S *p, struct S *q);
-struct E *func_001AE238(struct AL *pal, struct E *pv);
+struct E *AllocCopyFromWorldHeap(struct AL *pal, struct E *pv);
 void CFrame_CloneTo(struct SP *pret, struct RC *p, struct S *ps);
 void func_00257078(struct RC *p, int n) __asm__("_$_6CFrame");
 void MakeRoot__t6CGcObj1Z6CFrame(struct RC *p);
@@ -806,7 +806,7 @@ void CloneProxy(struct S *proxy, struct S *source)
         if (proxy->ae == source->ae) {
             u.al.cb = proxy->c * sizeof(struct E);
             u.al.cbAlign = 0x10;
-            proxy->ae = func_001AE238(&u.al, proxy->ae);
+            proxy->ae = AllocCopyFromWorldHeap(&u.al, proxy->ae);
             pe = &proxy->ae[i];
         }
         CFrame_CloneTo(&u.sp, pe->x8, proxy);
@@ -1097,13 +1097,13 @@ int IcopyFromPspare__FP5PROXYP10PROXYSPARE(P *,NODE *);
 int IdProxy__Fii(int,int);
 TREE *FindProxyRefPath(TREE *,int,int *);
 int FindSwObjectsInProxyScope(SW *,int,int,P *,void *,int,P **);
-STREAM *func_00118480(STREAM *);
-void func_00118500(STREAM *,void *,void *,int);
+STREAM *CMemInputStream_ctor(STREAM *);
+void SetMemInputStreamBuffer(STREAM *,void *,void *,int);
 short S16Read__18CBinaryInputStream(STREAM *);
 void LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(P *,DESC *,int,STREAM *);
 void CFrame_AddParent(void *,void *);
 void FramePtr_Assign(void **,void *) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void CMemInputStream_ctor(STREAM *,int);
+void CMemInputStream_dtor(STREAM *,int);
 }
 static inline P *Adjusted(P *p,const VTE &entry){return (P *)((char *)p+entry.delta);}
 static inline void Channel(P *p,void *context,void *channel){VTE &v=p->vt[10];((void(*)(P *,void *,void *,int))v.fn)(Adjusted(p,v),context,channel,0);}
@@ -1140,15 +1140,15 @@ extern "C" NODE *AcquireProxySpare(P *proxy,int minimum){
   if(bind->kind==6){work.found=tree->owner;if(!work.found)continue;}
   else if(FindSwObjectsInProxyScope(&D_003DD490,0xA05,bind->kind,0,tree,1,&work.found)!=1)continue;
   bind->object=work.found;
-  func_00118480(&stream);
-  func_00118500(&stream,bind->begin,bind->end,0);
+  CMemInputStream_ctor(&stream);
+  SetMemInputStreamBuffer(&stream,bind->begin,bind->end,0);
   int index;
   while((index=S16Read__18CBinaryInputStream(&stream))>=0){DESC *desc=&D_002AC880[index];LoadOptionFromBrx__FPvP5EOPIDiP18CBinaryInputStream(work.found,desc,desc->flags&0x2031,&stream);}
   if(bind->resource && !proxy->disabled){
    if(work.found->resource)CFrame_AddParent(bind->resource,work.found->resource);
    FramePtr_Assign(&work.found->resource,bind->resource);
   }
-  CMemInputStream_ctor(&stream,2);
+  CMemInputStream_dtor(&stream,2);
  }
  for(int i=0;i<proxy->table->count;i++){
  void **cursor=&work.cursor;

@@ -119,7 +119,7 @@ void DecrementSwHandsOff(SW *, int);
 void StopWidgetAnim(WIDGETV *, int);
 void PlayWidgetAnim(WIDGETV *, int);
 void func_00214300(WIDGETV *, int);
-void func_0014D1D0(void *, int, float);
+void SetClockRate(void *, int, float);
 void func_001FE5B8(void *, int, int);
 void func_0014FE28(void *);
 void *StartDialog(void *, int, int);
@@ -579,7 +579,7 @@ void SetReconSelState(RECONSEL *reconSel,int nextState)
         break;
     case 8:
         Restore(reconSel->model->plo,reconSel->savedFlags);
-        func_0014D1D0(&D_002DDED0,0,1.0f);
+        SetClockRate(&D_002DDED0,0,1.0f);
         func_001FE5B8(D_003DD040,1,1);
         StopWidgetAnim(reconSel->primary,0x358);
         break;
@@ -652,7 +652,7 @@ void SetReconSelState(RECONSEL *reconSel,int nextState)
             __asm__("sw %1,%0" : "=m"(updated->grf40) : "r"(inlineWord));
         }
         func_001FE5B8(D_003DD040,1,0);
-        func_0014D1D0(&D_002DDED0,0,0.0f);
+        SetClockRate(&D_002DDED0,0,0.0f);
         break;
     }
     case 9:

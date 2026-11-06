@@ -540,7 +540,7 @@ extern "C" LEAPV *AllocLeap(void) {
  * @end-sly2-annot */
 // Returns a leap object to the world's leap slot heap.
 extern "C" void FreeLeap(LEAPV *leap) {
-    func_0011CD98(&g_sw.slotheapLeap, leap);
+    FreeSlotheapSlot(&g_sw.slotheapLeap, leap);
 }
 
 /** @sly2-annot addr=0x20C058
@@ -869,7 +869,7 @@ extern "C" DIRACT *AllocDirAnim(void) {
  * @end-sly2-annot */
 // Returns a directional-animation object to the world's slot heap.
 extern "C" void FreeDirAnim(DIRACT *dirAnims) {
-    func_0011CD98(&g_sw.slotheapDiract, dirAnims);
+    FreeSlotheapSlot(&g_sw.slotheapDiract, dirAnims);
 }
 
 /** @sly2-annot addr=0x20CA48

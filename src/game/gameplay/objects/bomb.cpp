@@ -114,7 +114,7 @@ void InitSo(BOMBV *);
 void CloneSo(BOMBV *, BOMBV *);
 void PostSoLoad(BOMBV *);
 void UpdateSo(BOMBV *p);
-void *func_001AE1D0(AREQV *);
+void *AllocFromWorldHeap(AREQV *);
 void HandleBasicMessage(BOMBV *, int, void *);
 void UpdateSwPox(G *pg, XEC *pa, XEC *pb, int n);
 qword GetLoWorldPos(void *p);
@@ -136,7 +136,7 @@ void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
 void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), XEC *px, float g, int *pc, XAV ***paps);
-void *PvAllocSlot__FP8ALLOCREQ(AREQV *preq);
+void *AllocFromStack(AREQV *preq);
 int CsbiIntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
 void qsort(void *, int, int, int (*)(const void *, const void *));
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
@@ -204,7 +204,7 @@ extern "C" void func_0013AA70(BOMBV *p, BOMBV *pbombBase)
  * @end-sly2-annot */
 extern "C" void PostBombLoad(BOMBV *p) {
     PostSoLoad(p);
-    if (p->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; p->axp = (CXP *)func_001AE1D0(&k); }
+    if (p->fCustomXps) { AREQV k; k.cb = 0xc0; k.cbAlign = 0x10; p->axp = (CXP *)AllocFromWorldHeap(&k); }
 }
 
 /** @sly2-annot addr=0x13AAE8
@@ -700,7 +700,7 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
     }
     req.cb = c * 4;
     req.cbAlign = 0x10;
-    apo = (SOV **)PvAllocSlot__FP8ALLOCREQ(&req);
+    apo = (SOV **)AllocFromStack(&req);
     n = 0;
     for (i = 0; i < c; i++) {
         XAV *ps = aps[i];

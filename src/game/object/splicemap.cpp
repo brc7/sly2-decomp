@@ -50,7 +50,7 @@ struct FRAMEV
 extern "C" {
 void PairPtr_Release(void *pv, int n) __asm__("_$_t7CRefPtr1Z5CPair");
 void Unlink__t6CGcObj1Z5CPair(PAIRV *ppair);
-void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
+void FreeSlotheapSlot(SLOTHEAP *pslotheap, void *pv);
 void func_00257078(FRAMEV *pframe, int n) __asm__("_$_6CFrame");
 }
 
@@ -65,7 +65,7 @@ struct SPPAIR
             PairPtr_Release(q->sub, 2);
             Decref__4CRef(&q->ref);
             Unlink__t6CGcObj1Z5CPair(q);
-            func_0011CD98(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
+            FreeSlotheapSlot(&CSlotPool<0x14, 0x2000>::s_pool.slotheap, q);
         }
     }
 };
@@ -95,8 +95,8 @@ void *PtNew__t6CGcObj1Z6CFrame(void);
 void FramePtr_Assign(void *ppframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
 void ShutdownSplice(void);
 int U32Read__18CBinaryInputStream(void *stream);
-SPLCS *func_001AE2A0(SZ *psz);
-SPLCE *func_001AE1D0(SZ *psz);
+SPLCS *AllocClearedFromWorldHeap(SZ *psz);
+SPLCE *AllocFromWorldHeap(SZ *psz);
 SPPAIR PpairSerializeIn__FP18CBinaryInputStream(void *stream);
 void CBinaryInputStream_SkipStringSw(void *stream);
 CRef LoadSpliceEntryFromBrx(SW *world, SPLCS *psplcs, int i);
@@ -169,14 +169,14 @@ extern "C" void LoadSwSpliceFromBrx(SW *world, int a, void *stream)
     if (!c) return;
     {
         SZ sz(0x10, 0x10);
-        psplcs = func_001AE2A0(&sz);
+        psplcs = AllocClearedFromWorldHeap(&sz);
     }
     psplcs->a = a;
     CRef r;
     psplcs->c = c;
     {
         SZ sz(c * 8, 0x10);
-        psplcs->ae = func_001AE1D0(&sz);
+        psplcs->ae = AllocFromWorldHeap(&sz);
     }
     for (i = 0; i < c; i++) {
         SPLCE *pe = &psplcs->ae[i];

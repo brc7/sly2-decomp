@@ -70,13 +70,13 @@ int U8Read__18CBinaryInputStream(void *);
 float F32Read__18CBinaryInputStream(void *);
 void ReadVector__18CBinaryInputStreamP6VECTOR(void *,qword *);
 int S16Read__18CBinaryInputStream(void *);
-void *func_001AE2A0(struct Alloc *);
+void *AllocClearedFromWorldHeap(struct Alloc *);
 struct Hook *func_0012E1F0(int);
 void AddXfAct(struct S *,struct O *,struct Hook *);
 qword func_0022FC48(struct O *,struct O *,qword);
 qword ConvertXfVec(struct O *,struct O *,qword);
 }
-static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return func_001AE2A0(&req); }
+static inline void *Alloc(int cb) { struct Alloc req; req.cb=cb; req.align=16; return AllocClearedFromWorldHeap(&req); }
 /** @sly2-annot addr=0x21C888
  * Purpose: reads N chains: per chain S8 count, U8, 4 floats, 2 vectors, S16 count of links; per link resolves
  *   the XF via vt slot51, creates a kind-3 hook (vt D_002DB338) and registers it on the XF (0x230018);
@@ -260,7 +260,7 @@ static inline qword QwCross(qword a, qword b)
 }
 extern "C" qword GetXfVelocity(XF *pxfFrom, XF *pxfTo, qword qwPos);
 extern "C" float RadBetweenVectors(qword qwVec0, qword qwVec1, qword *pqwNormal);
-MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("func_0011B500");
+MATRIX3 LoadRotateMatrixRad(float rad, qword normal) __asm__("BuildAxisAngleRotationMatrix");
 extern qword D_002A2DA0;
 static inline qword QwAddScaledA(qword qwBase, qword qwVec, VU_FLOAT gScale)
 {

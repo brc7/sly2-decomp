@@ -203,9 +203,9 @@ struct SW {
 };
 extern "C" { extern char D_002DC018[] __asm__("_vt$2SW"); }   /* SW's vtable (sly2/sw.h) */
 extern "C" { extern float D_002C3E60,D_002C3E64,D_002C3E68,D_002C3E6C; }
-extern "C" POOL *func_0011CCA8(POOL *,int,int,int);
+extern "C" POOL *InitSlotheap(POOL *,int,int,int);
 extern "C" void InitDl__FP2DLi(DL *,int);
-extern "C" void func_0011A050(DL *,int);
+extern "C" void InitSl(DL *,int);
 extern "C" int CbMaxRip(void);
 extern "C" void *func_002333B4(void *,int,unsigned int) __asm__("memset");
 /* The world names (g_apchzWorld, the save-variable key of each world's progress), defined first: the strings are
@@ -228,34 +228,34 @@ namespace SW_WORLDS { extern const char *const r_D_002A39E8[9] __asm__("D_002A39
 extern "C" SW *SW_ctor(SW *p)
 {
     p->a=0;p->b=0;p->vt=D_002DC018;
-    func_0011CCA8(&p->pool398C,0x14,0x100,0x10);
-    func_0011CCA8(&p->pool39FC,0x14,0x100,0x10);
-    func_0011CCA8(&p->pool3C90,0x14,0x100,0x10);
-    func_0011CCA8(&p->pool3CB4,0xc,0x200,0x10);
-    func_0011CCA8(&p->pool3CE0,0x80,0x300,0x10);
-    func_0011CCA8(&p->pool3CF8,0x14,0x400,0x10);
-    func_0011CCA8(&p->pool3D40,0xc0,0x100,0x10);
-    func_0011CCA8(&p->pool3D94,0x60,0x100,0x10);
-    func_0011CCA8(&p->pool3DAC,0x80,0x400,0x10);
-    func_0011CCA8(&p->pool3DC4,0x14,0x8,0x10);
-    func_0011CCA8(&p->pool3DE8,0x50,0x80,0x10);
+    InitSlotheap(&p->pool398C,0x14,0x100,0x10);
+    InitSlotheap(&p->pool39FC,0x14,0x100,0x10);
+    InitSlotheap(&p->pool3C90,0x14,0x100,0x10);
+    InitSlotheap(&p->pool3CB4,0xc,0x200,0x10);
+    InitSlotheap(&p->pool3CE0,0x80,0x300,0x10);
+    InitSlotheap(&p->pool3CF8,0x14,0x400,0x10);
+    InitSlotheap(&p->pool3D40,0xc0,0x100,0x10);
+    InitSlotheap(&p->pool3D94,0x60,0x100,0x10);
+    InitSlotheap(&p->pool3DAC,0x80,0x400,0x10);
+    InitSlotheap(&p->pool3DC4,0x14,0x8,0x10);
+    InitSlotheap(&p->pool3DE8,0x50,0x80,0x10);
     p->n3E00=0x80000000;
-    func_0011CCA8(&p->pool3E44,0x30,0x40,0x10);
-    func_0011CCA8(&p->pool4008,0x60,0x40,0x10);
-    func_0011CCA8(&p->pool403C,0x1b0,0x10,0x10);
+    InitSlotheap(&p->pool3E44,0x30,0x40,0x10);
+    InitSlotheap(&p->pool4008,0x60,0x40,0x10);
+    InitSlotheap(&p->pool403C,0x1b0,0x10,0x10);
     int chosen=CbMaxRip();
     chosen=chosen?chosen:0xF0;
-    func_0011CCA8(&p->pool4054,chosen,0x80,0x10);
-    func_0011CCA8(&p->pool4070,0x460,0x28,0x10);
-    func_0011CCA8(&p->pool4088,0x10c0,0x80,0x40);
-    func_0011CCA8(&p->pool40A0,0x560,0x8,0x10);
-    func_0011CCA8(&p->pool40B8,0x1c,0x200,0x10);
-    func_0011CCA8(&p->pool40D0,0xf0,0x20,0x10);
-    func_0011CCA8(&p->pool40E8,0x10,0x10,0x10);
-    func_0011CCA8(&p->pool4118,0x60,0x20,0x10);
-    func_0011CCA8(&p->pool413C,0x30,0x10,0x10);
-    func_0011CCA8(&p->pool4648,0x40,0x10,0x10);
-    func_0011CCA8(&p->pool4660,0xd0,0x10,0x10);
+    InitSlotheap(&p->pool4054,chosen,0x80,0x10);
+    InitSlotheap(&p->pool4070,0x460,0x28,0x10);
+    InitSlotheap(&p->pool4088,0x10c0,0x80,0x40);
+    InitSlotheap(&p->pool40A0,0x560,0x8,0x10);
+    InitSlotheap(&p->pool40B8,0x1c,0x200,0x10);
+    InitSlotheap(&p->pool40D0,0xf0,0x20,0x10);
+    InitSlotheap(&p->pool40E8,0x10,0x10,0x10);
+    InitSlotheap(&p->pool4118,0x60,0x20,0x10);
+    InitSlotheap(&p->pool413C,0x30,0x10,0x10);
+    InitSlotheap(&p->pool4648,0x40,0x10,0x10);
+    InitSlotheap(&p->pool4660,0xd0,0x10,0x10);
     InitDl__FP2DLi(&p->list10,0x24);
     InitDl__FP2DLi(&p->list20,0x4);
     InitDl__FP2DLi(&p->list2C,0xC);
@@ -264,8 +264,8 @@ extern "C" SW *SW_ctor(SW *p)
     InitDl__FP2DLi(&p->list3D28,0x50);
     InitDl__FP2DLi(&p->list3D34,0x58);
     InitDl__FP2DLi(&p->list3D88,0x24);
-    func_0011A050(&p->list39F0,0x10);
-    func_0011A050(&p->list3CA8,0x10);
+    InitSl(&p->list39F0,0x10);
+    InitSl(&p->list3CA8,0x10);
     InitDl__FP2DLi(&p->list3F24,0xE0);
     InitDl__FP2DLi(&p->list3F30,0x1B4);
     InitDl__FP2DLi(&p->list3F3C,0x1B4);
@@ -282,9 +282,9 @@ extern "C" SW *SW_ctor(SW *p)
     InitDl__FP2DLi(&p->list3FFC,0x58);
     InitDl__FP2DLi(&p->list3FB4,0xFE0);
     InitDl__FP2DLi(&p->list3FC0,0x174);
-    func_0011A050(&p->list3EAC,0x84);
-    func_0011A050(&p->list4100,0x18);
-    func_0011A050(&p->list410C,0x40);
+    InitSl(&p->list3EAC,0x84);
+    InitSl(&p->list4100,0x18);
+    InitSl(&p->list410C,0x40);
     InitDl__FP2DLi(&p->list4130,0x50);
     InitDl__FP2DLi(&p->list3FCC,0x20);
     InitDl__FP2DLi(&p->list3FD8,0x104);
@@ -294,17 +294,17 @@ extern "C" SW *SW_ctor(SW *p)
     InitDl__FP2DLi(&p->list3FE4,0xE0);
     InitDl__FP2DLi(&p->list3FF0,0x130);
     InitDl__FP2DLi(&p->list3BD0,0xB4);
-    func_0011A050(&p->list3BDC,0x4C);
+    InitSl(&p->list3BDC,0x4C);
     unsigned int i=0;
-    for(;i<512;i++)func_0011A050(&p->first[i],0x1C);
+    for(;i<512;i++)InitSl(&p->first[i],0x1C);
     F3 *triple=&p->triple;
     F2 *range=&p->range;
     F3 *coefficients=&p->coefficients;
     char *tags=p->tags;
     DL *list=p->second;
-    for(int n=198;n>=0;n--,list++)func_0011A050(list,0x20);
+    for(int n=198;n>=0;n--,list++)InitSl(list,0x20);
     i=0;
-    for(;i<512;i++)func_0011A050(&p->third[i],12);
+    for(;i<512;i++)InitSl(&p->third[i],12);
     float upper=D_002C3E6C;
     float lower=D_002C3E68;
     float end=D_002C3E64,start=D_002C3E60;
@@ -445,9 +445,9 @@ struct S {
 };
 struct ZPR { char ab[0x630]; };
 extern char D_002DEB30[];
-void *func_001AE1D0(struct MSG *pmsg);
-void *func_001AE2A0(struct MSG *pmsg);
-void func_0011A050(void *p, int n);
+void *AllocFromWorldHeap(struct MSG *pmsg);
+void *AllocClearedFromWorldHeap(struct MSG *pmsg);
+void InitSl(void *p, int n);
 void func_001703F8(struct ZPR *pz, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void func_001BE398(void *p, struct ZPR *pz);
 void BroadcastGameEvent(void *p, int a, int b);
@@ -471,17 +471,17 @@ void InitSwLoadBuffers(struct S *world)
     for (i = 0; i < 3; i++) {
         msg.cb = 0x4800;
         msg.nKind = 0x10;
-        world->a3CD4[i] = func_001AE1D0(&msg);
+        world->a3CD4[i] = AllocFromWorldHeap(&msg);
     }
     msg.cb = 0x8000;
     msg.nKind = 0x10;
-    world->p3F20 = func_001AE2A0(&msg);
+    world->p3F20 = AllocClearedFromWorldHeap(&msg);
     msg.cb = 0x28;
     msg.nKind = 0x10;
-    world->ph = (__typeof__(world->ph))func_001AE2A0(&msg);
+    world->ph = (__typeof__(world->ph))AllocClearedFromWorldHeap(&msg);
     world->ph->a = -1;
     world->ph->c = -1;
-    func_0011A050(world->ph->dl, 0x14);
+    InitSl(world->ph->dl, 0x14);
     func_001703F8(&zpr, 0x1400, 0x1800);
     for (j = 0; j < 2; j++)
         func_001BE398(world->a45E8[j], &zpr);
@@ -718,7 +718,7 @@ struct S {
     char pad2[0x45CC - 0x408C]; void *p45CC;
 };
 extern char D_002DDF40[], D_002DEB30[], D_003D9E70[];
-void func_0011CDD8(void *p);
+void PrimeSlotheap(void *p);
 void CreateSwScreenTint(struct S *p);
 void SelectSwMainMs(struct S *p);
 void ClearSwSpliceTable(struct S *p);
@@ -749,10 +749,10 @@ void BroadcastGameEvent(void *p, int a, int b);
 void PostSwLoad(struct S *world)
 {
     struct O **ppo;
-    func_0011CDD8(world->a403C);
-    func_0011CDD8(world->a4054);
-    func_0011CDD8(world->a4070);
-    func_0011CDD8(world->a4088);
+    PrimeSlotheap(world->a403C);
+    PrimeSlotheap(world->a4054);
+    PrimeSlotheap(world->a4070);
+    PrimeSlotheap(world->a4088);
     CreateSwScreenTint(world);
     SelectSwMainMs(world);
     ClearSwSpliceTable(world);
@@ -802,8 +802,8 @@ FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void SetPhase__F5PHASE(int);
 void InitFileKey(KEY *);
-STREAM *func_001848A8(STREAM *,int,void *,int);
-int func_00184D60(STREAM *,KEY *);
+STREAM *CStreamBis_ctor(STREAM *,int,void *,int);
+int OpenStreamFromFileKey(STREAM *,KEY *);
 void func_00184950(STREAM *,int) __asm__("_$_10CStreamBis");
 void SetDecompress__18CBinaryInputStreamiPUc(STREAM *,int,void *);
 void CStreamBis_Refill(STREAM *);
@@ -835,7 +835,7 @@ void CutCm__FP2CM(void *);
 void BroadcastGameEvent(void *,int,void *);
 void ClearPhase(int);
 void ResumeWipeAfterLoad(void *);
-void func_001A4E80(void *);
+void RunNextStartupStep(void *);
 }
 struct FRAME {FRAME(){}~FRAME(){}};
 struct STREAM {int flags;char pad4[0x2C];void *vtable;int spoolBytes;char *spool;int fileHandle,position,writePosition,capacity,input,secondaryHandle,state54,state58,state5C,state60;};
@@ -888,8 +888,8 @@ extern "C" void ExecuteSwTransition(SW *world)
     register STREAM *argument __asm__("$4")=StreamHome(&stream);
     register STREAM *reader __asm__("$21");
     __asm__("daddu %0,%1,$zero":"=r"(reader):"r"(argument));
-    func_001848A8(argument,0xD8000,D_002F7980,0);
-    if(hasFile&&!func_00184D60(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
+    CStreamBis_ctor(argument,0xD8000,D_002F7980,0);
+    if(hasFile&&!OpenStreamFromFileKey(reader,&key)){func_00184950(reader,2);STACKSCOPE_ctor_1AE4A0(scope,2);return;}
     SetDecompress__18CBinaryInputStreamiPUc(reader,0x4000,(void *)0x70000000);
     CStreamBis_Refill(reader);
     DeleteSw(world);
@@ -940,7 +940,7 @@ extern "C" void ExecuteSwTransition(SW *world)
     BroadcastGameEvent(D_002DEB30,5,0);
     ClearPhase(2);
     ResumeWipeAfterLoad(D_00443740);
-    if(!hasFile)func_001A4E80(D_002E1E88);
+    if(!hasFile)RunNextStartupStep(D_002E1E88);
     func_00184950(reader,2);
     STACKSCOPE_ctor_1AE4A0(scope,2);
 }
@@ -974,7 +974,7 @@ struct S { char pad[0x3D78]; int n; };
 struct G;
 extern struct G D_002DFC00;
 void RemoveGrfusr__Fi(int n);
-void func_00187E08(struct G *pg, int n);
+void ClearJoyButtons(struct G *pg, int n);
 void ReleaseSwLetterbox(struct S *p);
 void DecrementSwInputLock(struct S *p);
 /** @sly2-annot addr=0x20F030
@@ -991,7 +991,7 @@ void DecrementSwHandsOff(struct S *world, int grf)
 {
     if (--world->n == 0) {
         RemoveGrfusr__Fi(2);
-        func_00187E08(&D_002DFC00, 8);
+        ClearJoyButtons(&D_002DFC00, 8);
     }
     if (grf & 1) ReleaseSwLetterbox(world);
     if (grf & 2) DecrementSwInputLock(world);
@@ -1259,8 +1259,8 @@ struct SWALLOC
     int cb;
     int cbAlign;
 };
-void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
-void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
+void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("AllocFromWorldHeap");
+void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("AllocClearedFromWorldHeap");
 inline void *PvAllocSwLoad(int cb, int cbAlign)
 {
     SWALLOC swalloc;
@@ -1359,7 +1359,7 @@ struct L { int a[4]; };
 struct M { int a; int b; int c[2]; };
 void Align__18CBinaryInputStreami(void *q, int n);
 void STACKSCOPE_ctor(struct L *pl);
-void *PvAllocSlot__FP8ALLOCREQ(struct M *pm);
+void *AllocFromStack(struct M *pm);
 void Read__18CBinaryInputStreamiPv(void *q, int a, void *x);
 void RelocateSharedColorTables(void *x);
 void UploadBitmaps__FP3GSB(void *p);
@@ -1388,7 +1388,7 @@ void LoadSwSharedDataFromBrx(void *world, void *q)
         { struct M *pm = &m;
         pm->a = D_003E1C30;
         pm->b = 0x10;
-        x = PvAllocSlot__FP8ALLOCREQ(pm); }
+        x = AllocFromStack(pm); }
         Read__18CBinaryInputStreamiPv(q, D_003E1C30, x);
         RelocateSharedColorTables(x);
         UploadBitmaps__FP3GSB(world);
@@ -1576,7 +1576,7 @@ struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { float mn[4]; float mx[3]; char pad[0x34 - 0x1C]; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 struct S { char pad[0x3D1C]; struct G *first; };
-void *PvAllocSlot__FP8ALLOCREQ(struct MSG *pmsg);
+void *AllocFromStack(struct MSG *pmsg);
 void FlushSwBoundsUpdates(struct S *p);
 void UpdateSwAaox(struct S *p);
 
@@ -1612,7 +1612,7 @@ void IntersectSwBoundingBox(struct S *p, qword a, qword b, int (*pfn)(void *, st
         pm->nKind = 0x10;
     }
     c = 0;
-    ap = (__typeof__(ap))PvAllocSlot__FP8ALLOCREQ(&msg);
+    ap = (__typeof__(ap))AllocFromStack(&msg);
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
     for (g = p->first; g; g = g->next) {
@@ -1639,7 +1639,7 @@ struct MSG { int cb; int nKind; };
 struct O { char pad[0x60]; struct O *next; };
 struct G { char pad[0x20]; qword pos; float r; struct O *first; char pad2[0x40 - 0x38]; struct G *next; };
 struct S { char pad[0x3D1C]; struct G *first; };
-void *PvAllocSlot__FP8ALLOCREQ(struct MSG *pmsg);
+void *AllocFromStack(struct MSG *pmsg);
 void FlushSwBoundsUpdates(struct S *p);
 void UpdateSwAaox(struct S *p);
 
@@ -1660,7 +1660,7 @@ void IntersectSwBoundingSphere(struct S *p, qword pos, float r, int (*pfn)(void 
     int c;
     msg.cb = 0x400;
     msg.nKind = 0x10;
-    ap = (__typeof__(ap))PvAllocSlot__FP8ALLOCREQ(&msg);
+    ap = (__typeof__(ap))AllocFromStack(&msg);
     c = 0;
     FlushSwBoundsUpdates(p);
     UpdateSwAaox(p);
@@ -1692,7 +1692,7 @@ namespace M_func_0020FDC8 { extern "C" {
 struct O { char pad[0x148]; long fl; };
 struct A { int pad; struct O *po; };
 struct M { int cb; int align; int pad[2]; };
-void *PvAllocSlot__FP8ALLOCREQ(struct M *pm);
+void *AllocFromStack(struct M *pm);
 /** @sly2-annot addr=0x20FDC8
  * Purpose: Deduplicate the SOs referenced by an array (mark 0x40000000), output count + slot array
  * Info: proposed name UniqueSwSoList (T2); TU sw
@@ -1709,7 +1709,7 @@ void BuildUniqueSoList(int n, struct A **apa, int *pc, struct O ***pppo)
     int i;
     m.cb = n * 4;
     m.align = 0x10;
-    apo = (struct O **)PvAllocSlot__FP8ALLOCREQ(&m);
+    apo = (struct O **)AllocFromStack(&m);
     for (i = 0; i < n; i++) {
         struct O *po = apa[i]->po;
         if (!(po->fl & 0x40000000)) {

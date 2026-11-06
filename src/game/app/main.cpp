@@ -1,5 +1,8 @@
 // main.cpp -- the game's main(): startup (IOP modules, VU microcode, the staged init with a progress bar) and the
 // frame loop.
+// crt0's _start calls GameMain, which never returns: Startup runs the 19 boot stages (table D_002BFCE0), then each
+// frame does world transitions, input, disc poll, camera, clock, world update, UI update, render and draw.
+// Entry points: GameMain, Startup, StartupSif, StartupVU0, StartupVU1.
 // TU 0x1A7518..0x1A7C18 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_main
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A7BF8
@@ -52,11 +55,16 @@ void StartupGs();
  * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
  *   docs/engine/main-loop-startup.md#7-source-files, docs/engine/main-loop-startup.md#8-key-functions
  * @end-sly2-annot */
-extern "C" void func_001A7518(int a, int b)
+// The program's main (crt0 calls it; naming it main would make g++ insert a second __main call, so it keeps
+// another name). Saves argc/argv, runs the boot stages and the game start-up, then loops forever, one iteration per
+// frame: pending world transition, pad, disc poll, camera setup, clock tick, world update, UI update (D_003D9E70),
+// then render and draw (skipped when the object at D_002DD644 exists and func_001477B0 says no; it is notified after
+// each frame) and the frame counter.
+extern "C" void GameMain(int argc, int argv)
 {
     __main();
-    D_002E2050 = a;
-    D_002E2054 = b;
+    D_002E2050 = argc;
+    D_002E2054 = argv;
     Startup();
     StartupGame();
     for (;;) {
@@ -118,12 +126,16 @@ static inline int CopyLimit(int value)
  * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
  *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
  * @end-sly2-annot */
+// Boot stage: brings up the IOP. Initialises SIF RPC and the CD (hanging if the disc is not a PS2 DVD), reboots
+// the IOP with cdrom0:\IOPRP300.IMG;1 (unless D_002E2058 is set) and re-initialises, then copies each IRX module
+// embedded in the ELF (table D_004E5D80..D_004E5E38) into an IOP heap buffer by SIF DMA in <= 0xFFC0-byte pieces
+// and loads it.
 void StartupSif()
 {
     union { char buf[0x100]; struct DMA dma; } u;
-    struct E *pe;
-    int cbMax;
-    void *h;
+    struct E *module;
+    int maxModuleSize;
+    void *iopBuffer;
     func_00236A60(0);
     sceSifLoadFileReset();
     sceCdInit(0);
@@ -150,44 +162,44 @@ void StartupSif()
     sceCdDiskReady_2425F0(0);
     (void)FCdCompleted(1);
     sceSifInitIopHeap();
-    cbMax = 0;
+    maxModuleSize = 0;
     {
-        struct E *p;
-        for (p = D_004E5D80; p < D_004E5E38; p++)
-            if (p->bytes >= cbMax)
-                cbMax = p->bytes;
+        struct E *entry;
+        for (entry = D_004E5D80; entry < D_004E5E38; entry++)
+            if (entry->bytes >= maxModuleSize)
+                maxModuleSize = entry->bytes;
     }
-    h = sceSifAllocIopHeap(cbMax);
-    for (pe = D_004E5D80; pe < D_004E5E38; pe++) {
-        int cb = pe->bytes;
-        int off = 0;
-        while (cb) {
+    iopBuffer = sceSifAllocIopHeap(maxModuleSize);
+    for (module = D_004E5D80; module < D_004E5E38; module++) {
+        int bytesLeft = module->bytes;
+        int offset = 0;
+        while (bytesLeft) {
             register int limit __asm__("$2") = 0xF0000;
-            int c;
+            int chunk;
             const int zeroOperation = 0, limitLow = 0xFFC0;
             register unsigned int destination __asm__("$5");
             register int operation __asm__("$4");
             __asm__("ori %0,%0,%1" : "+r"(limit) : "i"(limitLow));
-            __asm__("addu %0,%1,%2" : "=r"(destination) : "r"(h), "r"(off));
-            c = CopyLimit(limit);
-            __asm__("slt %0,%1,%0" : "+r"(limit) : "r"(cb));
-            __asm__("movn %0,%1,%2" : "+r"(c) : "r"(cb), "r"(limit));
-            u.dma.source = pe->source + off;
+            __asm__("addu %0,%1,%2" : "=r"(destination) : "r"(iopBuffer), "r"(offset));
+            chunk = CopyLimit(limit);
+            __asm__("slt %0,%1,%0" : "+r"(limit) : "r"(bytesLeft));
+            __asm__("movn %0,%1,%2" : "+r"(chunk) : "r"(bytesLeft), "r"(limit));
+            u.dma.source = module->source + offset;
             __asm__("daddu %0,%z3,$zero\n\tsw %2,%1"
                     : "=r"(operation), "=m"(u.dma.destination)
                     : "r"(destination), "rJ"(zeroOperation));
-            u.dma.bytes = c;
+            u.dma.bytes = chunk;
             u.dma.attributes = 0;
             func_00234CA0(operation);
             while (!func_00234DE0(&u.dma, 1))
                 ;
-            cb -= c;
-            off += c;
+            bytesLeft -= chunk;
+            offset += chunk;
         }
-        while (sceSifLoadModuleBuffer(h, pe->argumentBytes, pe->arguments) < 0)
+        while (sceSifLoadModuleBuffer(iopBuffer, module->argumentBytes, module->arguments) < 0)
             ;
     }
-    sceSifFreeIopHeap(h);
+    sceSifFreeIopHeap(iopBuffer);
 }
 
 typedef char offset_0_bytes[(unsigned)&((struct E*)0)->bytes==0?1:-1];
@@ -226,6 +238,7 @@ void sceDmaSync(int *pch, int a, int b);
  * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
  *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
  * @end-sly2-annot */
+// Boot stage: uploads the VU0 microcode by VIF0 DMA (chain D_00259DF0).
 void StartupVU0()
 {
     *D_002DE590 |= 0x40;
@@ -243,6 +256,7 @@ void StartupVU0()
  * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
  *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
  * @end-sly2-annot */
+// Boot stage: uploads the VU1 microcode by VIF1 DMA (chain D_0025E050).
 void StartupVU1()
 {
     *D_002DE594 |= 0x40;
@@ -283,37 +297,39 @@ void ClearPhase(int n);
  * See: docs/engine/main-loop-startup.md#1-maincpp-0x1a7518-0x1a7c18,
  *   docs/engine/main-loop-startup.md#8-key-functions, docs/engine/overview.md#1-boot
  * @end-sly2-annot */
+// Runs the 19 boot stages in order with a progress bar (shown once the GS is up, i.e. after StartupGs), ticking the
+// clock before each; prints the build banner ("P3: 0813.0032 america").
 void Startup()
 {
-    struct B b;
-    struct C c0, c1, c2, c3;
-    unsigned int i;
-    int f;
+    struct B progressBar;
+    struct C color0, color1, color2, color3;
+    unsigned int stage;
+    int showProgress;
     {
     register unsigned int a2 __asm__("$5")=0x80003F3F;
     register unsigned int a3 __asm__("$6")=0x8000003F;
     register unsigned int a0 __asm__("$3")=0x807F0000;
     register unsigned int a1 __asm__("$2")=0x803F3F3F;
-    c2.c=a2;
-    c3.c=a3;
-    c0.c=a0;
-    c1.c=a1;
+    color2.c=a2;
+    color3.c=a3;
+    color0.c=a0;
+    color1.c=a1;
     }
-    __5CProgP4RGBAN31(&b, &c0, &c1, &c2, &c3);
+    __5CProgP4RGBAN31(&progressBar, &color0, &color1, &color2, &color3);
     printf(D_002A6A58, D_002C46D8, D_002C46C0, 0x2B0);
     SetPhase(PHASE_1);
-    Begin__5CProg(&b);
-    f = 0;
-    for (i = 0; i < 19; i++) {
+    Begin__5CProg(&progressBar);
+    showProgress = 0;
+    for (stage = 0; stage < 19; stage++) {
         MarkClockTick(D_002DDED0, 1);
-        if (f)
-            SetRemain__5CProgi(&b, 19 - i);
-        else if (D_002BFCE0[i] == StartupGs)
-            f = 1;
-        D_002BFCE0[i]();
+        if (showProgress)
+            SetRemain__5CProgi(&progressBar, 19 - stage);
+        else if (D_002BFCE0[stage] == StartupGs)
+            showProgress = 1;
+        D_002BFCE0[stage]();
     }
-    SetRemain__5CProgi(&b, 0);
-    End__5CProg(&b);
+    SetRemain__5CProgi(&progressBar, 0);
+    End__5CProg(&progressBar);
     ClearPhase(1);
 }
 
@@ -327,7 +343,7 @@ void StartupSif() __asm__("StartupSif__Fv");
 void StartupGs() __asm__("StartupGs__Fv");
 void StartupMemMgr() __asm__("StartupMemMgr__Fv");
 void StartupCd() __asm__("StartupCd__Fv");
-void func_0014B660() __asm__("func_0014B660");
+void SetCdPollStateIdle() __asm__("SetCdPollStateIdle");
 void StartupFont() __asm__("StartupFont__Fv");
 void StartupJoy() __asm__("StartupJoy__Fv");
 void StartupFrame() __asm__("StartupFrame__Fv");
@@ -341,7 +357,7 @@ void func_00211528() __asm__("func_00211528");
 void StartupMemcard() __asm__("StartupMemcard__Fv");
 void StartupMpeg() __asm__("StartupMpeg__Fv");
 extern "C" { void (*D_002BFCE0[20])(void) = {
-    StartupDma, StartupThread, StartupSif, StartupGs, StartupMemMgr, StartupCd, func_0014B660, StartupFont,
+    StartupDma, StartupThread, StartupSif, StartupGs, StartupMemMgr, StartupCd, SetCdPollStateIdle, StartupFont,
     StartupJoy, StartupFrame, StartupLoadingScreen, StartupClock, StartupVU0, StartupVU1, StartupSound, StartupBlips,
     func_00211528, StartupMemcard, StartupMpeg, 0
 }; }
