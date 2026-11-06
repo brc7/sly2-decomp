@@ -1,5 +1,7 @@
 // thread.cpp -- EE thread and semaphore wrappers: critical sections and the render thread startup.
-// TU 0x21EFD0..0x21F2E0 (7 functions, address order).
+// The game runs two EE threads: the main (game logic) thread and a render thread (FrameRenderLoop) started at boot;
+// CRITSECT is the recursive lock they share data under. Entry points: StartupThread (boot), SemaCreate,
+// InitCritSect / EnterCritSect / LeaveCritSect. TU 0x21EFD0..0x21F2E0 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_thread
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0021F2C0
 #include "sly2/slotheap.h"
@@ -19,9 +21,9 @@ struct ThreadParam
 /* A recursive critical section: entry count, owning thread id (-1 = none), semaphore id. */
 struct CRITSECT
 {
-    int cEnter;     /* +0x0 */
-    int thread;     /* +0x4 */
-    int sema;       /* +0x8 */
+    int enterCount;     /* +0x0 */
+    int ownerThread;     /* +0x4 */
+    int semaphore;       /* +0x8 */
 };
 
 extern int D_004425D0[2];
@@ -30,13 +32,13 @@ extern char D_002E5270[] __asm__("_gp");   /* _gp (linker-defined), not an objec
 
 /* libkernel names in the comments are HYPOTHESIS (from the arguments and the neighbouring SignalSema). */
 extern "C" {
-void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
-int func_00234A20(SemaParam *sp) __asm__("CreateSema");               /* CreateSema */
+void *MemsetNoBuiltin(void *p, int c, int n) __asm__("memset");     /* memset */
+int CreateSema(SemaParam *semaParam) __asm__("CreateSema");               /* CreateSema */
 int func_00234910(void);                        /* GetThreadId */
-int func_00234A60(int sema) __asm__("WaitSema");                    /* WaitSema */
+int WaitSema(int semaphore) __asm__("WaitSema");                    /* WaitSema */
 int SignalSema(int sema);
 void func_002348B0(int tid, int prio);          /* ChangeThreadPriority */
-int func_00234820(ThreadParam *tp);             /* CreateThread */
+int func_00234820(ThreadParam *threadParam);             /* CreateThread */
 }
 void FrameRenderLoop(void *);
 
@@ -46,13 +48,14 @@ void FrameRenderLoop(void *);
  * See: docs/engine/core-library.md#6-source-files, docs/engine/main-loop-startup.md#6-threads,
  *   docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
  * @end-sly2-annot */
+// Creates a kernel semaphore with the given initial and maximum counts; returns its id.
 int SemaCreate(int initCount, int maxCount)
 {
-    SemaParam sp;
-    func_002333B4(&sp, 0, sizeof(sp));
-    sp.initCount = initCount;
-    sp.maxCount = maxCount;
-    return func_00234A20(&sp);
+    SemaParam semaParam;
+    MemsetNoBuiltin(&semaParam, 0, sizeof(semaParam));
+    semaParam.initCount = initCount;
+    semaParam.maxCount = maxCount;
+    return CreateSema(&semaParam);
 }
 
 // 0x21F020: dead-code scrap (sly2/scrap.h)
@@ -63,10 +66,11 @@ SLY2_SCRAP("addiu $sp, $sp, 0x50");
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
  * @end-sly2-annot */
-void InitCritSect(CRITSECT *pcritsect)
+// Initialises a recursive critical section: no owner, backed by a binary semaphore.
+void InitCritSect(CRITSECT *critSect)
 {
-    pcritsect->thread = -1;
-    pcritsect->sema = SemaCreate(1, 1);
+    critSect->ownerThread = -1;
+    critSect->semaphore = SemaCreate(1, 1);
 }
 
 /** @sly2-annot addr=0x21F060
@@ -74,18 +78,20 @@ void InitCritSect(CRITSECT *pcritsect)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
  * @end-sly2-annot */
-void EnterCritSect(CRITSECT *pcritsect)
+// Enters a recursive critical section: the owning thread just bumps the count, any other thread waits on the
+// semaphore and then takes ownership.
+void EnterCritSect(CRITSECT *critSect)
 {
     int threadId = func_00234910();
-    if (threadId != pcritsect->thread)
+    if (threadId != critSect->ownerThread)
     {
-        func_00234A60(pcritsect->sema);
-        pcritsect->thread = threadId;
-        pcritsect->cEnter = 1;
+        WaitSema(critSect->semaphore);
+        critSect->ownerThread = threadId;
+        critSect->enterCount = 1;
     }
     else
     {
-        pcritsect->cEnter++;
+        critSect->enterCount++;
     }
 }
 
@@ -96,12 +102,13 @@ void EnterCritSect(CRITSECT *pcritsect)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#thread-0x21efd0-0x21f2e0
  * @end-sly2-annot */
-void LeaveCritSect(CRITSECT *pcritsect)
+// Leaves a recursive critical section; the last leave clears the owner and signals the semaphore.
+void LeaveCritSect(CRITSECT *critSect)
 {
-    if (--pcritsect->cEnter == 0)
+    if (--critSect->enterCount == 0)
     {
-        pcritsect->thread = -1;
-        SignalSema(pcritsect->sema);
+        critSect->ownerThread = -1;
+        SignalSema(critSect->semaphore);
     }
 }
 
@@ -115,19 +122,22 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  * See: docs/engine/core-library.md#7-key-functions, docs/engine/main-loop-startup.md#open-questions,
  *   docs/engine/overview.md#1-boot
  * @end-sly2-annot */
+// Boot step: records the main thread id (D_004425D0), raises the main thread to priority 5 and creates the render
+// thread (FrameRenderLoop, 0x1000-byte stack D_004425F0, priority 2: a lower number is a higher EE priority, so
+// it preempts the main thread); its id goes to D_004425D4. The thread is only created here, not started.
 void StartupThread()
 {
-    ThreadParam tp;
-    int *ptid = D_004425D0;
-    *ptid = func_00234910();
-    func_002348B0(*ptid, 5);
-    func_002333B4(&tp, 0, sizeof(tp));
-    tp.stackSize = 0x1000;
-    tp.stack = D_004425F0;
-    tp.initPriority = 2;
-    tp.gpReg = D_002E5270;
-    tp.entry = (void *)FrameRenderLoop;
-    ptid[1] = func_00234820(&tp);
+    ThreadParam threadParam;
+    int *threadIds = D_004425D0;
+    *threadIds = func_00234910();
+    func_002348B0(*threadIds, 5);
+    MemsetNoBuiltin(&threadParam, 0, sizeof(threadParam));
+    threadParam.stackSize = 0x1000;
+    threadParam.stack = D_004425F0;
+    threadParam.initPriority = 2;
+    threadParam.gpReg = D_002E5270;
+    threadParam.entry = (void *)FrameRenderLoop;
+    threadIds[1] = func_00234820(&threadParam);
 }
 
 // ---- thread's .bss (tu-merging.md "Data": .bss gaps): 0x4425D0..0x4435F0, after hud's .bss in TU order. The
