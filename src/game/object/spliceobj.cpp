@@ -2,8 +2,7 @@
 // it as a CRef (method, direct member or getter/setter by type), the option entry points that fall back to the
 // object's sidebag, conversions between CRef lists/arrays and typed values, and the method pool (pool 6). TU
 // 0x1FFCF8..0x201620 (14 functions, address order) plus the linkonce CRefPtr<CMethod>::Attach (0x259CF8). The method
-// pool's GC members are CGcObj<CMethod>'s (sly2/gc.h, emitted by splice/gc.cpp; deleting a method here instantiates
-// its Unlink, a weak copy of gc.cpp's).
+// pool's GC members are CGcObj<CMethod>'s (sly2/gc.h, emitted by splice/gc.cpp).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_spliceobj
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00201600
 #include "sly2/basic.h"
@@ -30,6 +29,10 @@ public:
     int m_crefReq;
     void operator delete(void *pv) { func_0011CD98(&CSlotPool<0x14, 0x100>::s_pool.slotheap, pv); }
 };
+/* The method pool's members are emitted by splice/gc.cpp: declared as specializations here so that this file calls
+   them without emitting its own (weak) copies. */
+template <> CMethod *CGcObj<CMethod>::PtNew();
+template <> void CGcObj<CMethod>::Unlink();
 
 /* The sidebag calls (sidebag.cpp's CSidebag, by its linker names). */
 struct CSidebag

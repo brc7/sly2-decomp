@@ -18,9 +18,10 @@
  * (0x254F00..0x259DE4): the constructor (0x2550A0 for pairs), PushFront (0x254F00), Unlink (0x2550F8), PtNew
  * (0x256B48), the empty pre-collection hook ClearMarks (0x2574E0..), the sweep FreeGarbage (0x257510..), Shutdown
  * (0x257E88..) and MakeRoot (0x259A88, 0x258178). Being template members they are emitted per instance and are never
- * inlined into callers, which is what the original shows; splice/gc.cpp instantiates them (PtNew, which runs T's own
- * inline constructor, is instantiated where T is defined). Calls from other files use the mangled names as C
- * symbols, as before.
+ * inlined into callers, which is what the original shows. splice/gc.cpp instantiates them all over its views of the six
+ * node types (PtNew runs T's own inline constructor, so T's view decides what it stores); calls from other files use
+ * the mangled names as C symbols, as before (an identifier starting with __as__ cannot be declared: g++ reads it as
+ * operator=, so those callers use an asm label). See docs/guides/tu-merging.md, "The Splice GC pool family".
  * CONFIRMED by match: the code of every instance. HYPOTHESIS: the names (CGcObj is the name of Lilly's port; the
  * member names are ours), that PushFront/PtNew/... are members rather than free templates (the mangled names would
  * differ, the code would not), and the static data members: each kind's four list words and its block table are

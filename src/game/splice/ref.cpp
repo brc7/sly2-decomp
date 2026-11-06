@@ -84,6 +84,7 @@ struct CProc : CGcObj<CProc>
     SPREL<CPair> pbody;
     ~CProc();
 };
+template <> void CGcObj<CProc>::Unlink();   /* emitted by splice/gc.cpp (declared so this file emits no copy) */
 
 /* A native method (tag 0x22): counted, freed into the sixth engine pool. */
 struct CMethod
