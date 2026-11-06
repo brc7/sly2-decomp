@@ -45,35 +45,35 @@ struct BOMBV
     int grfUnk40;
     char pad44[0xE4 - 0x44];
     XE4 *pxa;                  /* +0xE4 */
-    int xE8;
+    int physics;               /* +0xE8 SO::psophys (non-zero: has physics) */
     XEC *pxp;                  /* +0xEC */
     char padF0[0x150 - 0xF0];
     int k;                     /* +0x150 0 armed, 1 absorbing... (0x13AEB0, FAbsorbBombWkr) */
     float tDetonate;           /* +0x154 */
-    float sv158;               /* +0x158 detonate when slower */
+    float detonateSpeed;       /* +0x158 detonates on impact above this speed (UpdateBomb) */
     float sRadius;             /* +0x15C blast radius */
     float sRadiusHero;         /* +0x160 blast radius against the hero (CID 0x34) */
-    int x164;                  /* no blast */
-    POV *p168;
-    float g16C;
-    int x170;                  /* detonation pose: 0/2 rotate to the hit normal, 1 face the velocity, 3 keep */
-    int x174;                  /* detonation prepared */
+    int noBlast;               /* +0x164 detonation without blast damage */
+    POV *unknown168;
+    float unknown16C;
+    int detonationPoseMode;    /* detonation pose: 0/2 rotate to the hit normal, 1 face the velocity, 3 keep */
+    int isDetonationPrepared;  /* +0x174 */
     int pad178[2];
     qword posDetonate;         /* +0x180 */
     M3 matDetonate;            /* +0x190 */
-    qword v1C0;                /* +0x1C0 velocity at detonation */
-    qword v1D0;                /* +0x1D0 angular velocity at detonation */
+    qword velocityAtDetonation;        /* +0x1C0 */
+    qword angularVelocityAtDetonation; /* +0x1D0 */
     int x1E0;
     int x1E4;
-    union { int x1E8; Q18 *pq1E8; };   /* +0x1E8 the thrower */
+    union { int x1E8; Q18 *thrower; };   /* +0x1E8 the thrower */
     int x1EC;
     int x1F0;
     int fCustomXps;            /* +0x1F4 */
     int cxp;
     CXP *axp;                  /* +0x1FC */
-    BOMBV *pbombOwner;          /* +0x200 */
+    BOMBV *owner;              /* +0x200 the bomb's owner (itself until thrown; contacts with its root are ignored) */
 };
-typedef char assert_BOMB_pbombOwner[(unsigned int)&((BOMBV *)0)->pbombOwner == 0x200 ? 1 : -1];
+typedef char assert_BOMB_pbombOwner[(unsigned int)&((BOMBV *)0)->owner == 0x200 ? 1 : -1];
 /* Objects of the SO list D_003E13B4 (UpdateBombCustomXps) and their marker LOs. */
 struct LOV { char pad[0x28]; int x28; signed char x2C; char x2D; long k:4; long :8; unsigned int f:1; char pad2[0xEC - 0x30]; XEC *pxp; };
 struct NV { char pad[0x60]; LOV *plo; };
@@ -176,7 +176,7 @@ extern "C" void InitBomb(BOMBV *bomb) {
     bomb->k = 0;
     if ((x ^ 1) & 1) *(int *)x |= 2;
     else bomb->grfUnk40 = x | 2;
-    bomb->pbombOwner = bomb;
+    bomb->owner = bomb;
 }
 
 // BOMB vt76: SO Clone then reset owner to self (0x13BC60). (inferred)
@@ -222,7 +222,7 @@ extern "C" void UpdateBomb(BOMBV *bomb)
         int f;
         vt = bomb->vt;   /* assignments, not initializers: C++ forbids the goto past initializations */
         v = ((qword (*)(void *))vt[33].pfn)((char *)bomb + vt[33].d);
-        f = GLength(v) < bomb->sv158;
+        f = GLength(v) < bomb->detonateSpeed;
         if (f) {
         out:
             DetonateBomb(bomb);
@@ -373,7 +373,7 @@ extern "C" void HandleBombContact(BOMBV *bomb)
     switch (bomb->k) {
     case 0:
     case 2:
-        if (bomb->x174)
+        if (bomb->isDetonationPrepared)
             return;
         break;
     case 1:
@@ -463,7 +463,7 @@ extern "C" int IsBombChainFreeOfExcludedClasses(BOMBV *bomb, SOV *pn) {
 // BOMB vt77: remember thrower (+0x1E8), reparent, zero velocities, lock force/torque constraints, fire Splice event
 // 0x1B. (inferred)
 extern "C" void ApplyBombThrow(BOMBV *bomb, Q18 *q) {
-    bomb->pq1E8 = q;
+    bomb->thrower = q;
     SetLoParent_1A58D0(bomb, q->f18 != 1 ? q : 0, 3);
     func_001F4898(bomb, D_002A2DD0);
     func_001F4930(bomb, D_002A2DD0);
@@ -537,25 +537,25 @@ static __inline__ void MulStore(BOMBV *bomb, M3 *pm)
 extern "C" void PrepareBombDetonation(BOMBV *bomb, qword pos, qword q)
 {
     M3 m;
-    if (bomb->x174)
+    if (bomb->isDetonationPrepared)
         return;
     bomb->posDetonate = pos;
-    bomb->x174 = 1;
+    bomb->isDetonationPrepared = 1;
     {
         VTE *e = &bomb->vt[33];
-        bomb->v1C0 = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
+        bomb->velocityAtDetonation = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
     }
     {
         VTE *e = &bomb->vt[34];
-        bomb->v1D0 = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
+        bomb->angularVelocityAtDetonation = ((qword (*)(void *))e->pfn)((char *)bomb + e->d);
     }
-    switch (bomb->x170) {
+    switch (bomb->detonationPoseMode) {
     case 0:
         BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(&m, func_001A6318(bomb)->r[2], q);
         MulStore(bomb, &m);
         break;
     case 1:
-        BuildOrthonormalMatrixZ(&m, bomb->v1C0, D_002A2DC0);
+        BuildOrthonormalMatrixZ(&m, bomb->velocityAtDetonation, D_002A2DC0);
         bomb->matDetonate = m;
         break;
     case 2:
@@ -640,7 +640,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         return;
     PrepareBombDetonation(bomb, func_001A62E8(bomb), D_002A2DC0);
     FRAME frame;
-    if (bomb->x164 == 0) {
+    if (bomb->noBlast == 0) {
         FrameInit(&frame);
         int c;
         SOV **apo;
@@ -685,19 +685,19 @@ extern "C" void DetonateBomb(BOMBV *bomb)
     }
     ((void (*)(BOMBV *, qword))bomb->vt[29].pfn)((BOMBV *)((char *)bomb + bomb->vt[29].d), bomb->posDetonate);
     ((void (*)(BOMBV *, void *))bomb->vt[30].pfn)((BOMBV *)((char *)bomb + bomb->vt[30].d), &bomb->matDetonate);
-    ((void (*)(BOMBV *, qword))bomb->vt[35].pfn)((BOMBV *)((char *)bomb + bomb->vt[35].d), bomb->v1C0);
-    ((void (*)(BOMBV *, qword))bomb->vt[36].pfn)((BOMBV *)((char *)bomb + bomb->vt[36].d), bomb->v1D0);
-    if (bomb->p168) {
+    ((void (*)(BOMBV *, qword))bomb->vt[35].pfn)((BOMBV *)((char *)bomb + bomb->vt[35].d), bomb->velocityAtDetonation);
+    ((void (*)(BOMBV *, qword))bomb->vt[36].pfn)((BOMBV *)((char *)bomb + bomb->vt[36].d), bomb->angularVelocityAtDetonation);
+    if (bomb->unknown168) {
         MSG2 msg2;
-        POV *po = bomb->p168;
+        POV *po = bomb->unknown168;
         msg2.k = 9;
-        msg2.g8 = bomb->g16C;
+        msg2.g8 = bomb->unknown16C;
         msg2.gC = bomb->sRadius;
         msg2.p = bomb;
         ((void (*)(POV *, MSG2 *))po->pvt[51].pfn)((POV *)((char *)po + po->pvt[51].d), &msg2);
     }
     if (bomb->x1E0) {
-        POV *po = (POV *)bomb->pbombOwner;
+        POV *po = (POV *)bomb->owner;
         void *pv = bomb;
         if (po != (POV *)bomb && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x70) && po->pp14) {
             POV *pT = *po->pp14;
@@ -706,7 +706,7 @@ extern "C" void DetonateBomb(BOMBV *bomb)
         func_00156698(D_003DD490.x402C, func_001A62E8(bomb), pv)[0x54 / 4] = 1;
     }
     ((void (*)(BOMBV *))bomb->vt[9].pfn)((BOMBV *)((char *)bomb + bomb->vt[9].d));
-    bomb->x174 = 0;
+    bomb->isDetonationPrepared = 0;
     bomb->tDetonate = D_002A4B1C;
     ((void (*)(BOMBV *, int, int, int, int, int))bomb->vt[3].pfn)((BOMBV *)((char *)bomb + bomb->vt[3].d), 5, 0, 0, 0, 0);
 }
@@ -715,7 +715,7 @@ namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.4
 // BOMB vt26: base, clear detonation, tDetonate=const, owner=self, unlock constraints, unparent. (inferred)
 extern "C" void ResetBomb(BOMBV *bomb) {
     func_001CB518(bomb);
-    bomb->x174 = 0;
+    bomb->isDetonationPrepared = 0;
     bomb->tDetonate = D_002A4B20;
     SetBombOwner(bomb, bomb);
     SetSoCnstrForce(bomb, 0);
@@ -729,7 +729,7 @@ extern "C" void ResetBomb(BOMBV *bomb) {
 extern "C" int FIgnoreBombIntersection(BOMBV *bomb, SOV *pso)
 {
     int r = FIgnoreSoIntersection(bomb, pso);
-    if (pso->ploroot->plo == bomb->pbombOwner->ploroot->plo) {
+    if (pso->ploroot->plo == bomb->owner->ploroot->plo) {
         r = func_00134310(r, 1);
     }
     return r;
@@ -738,8 +738,8 @@ extern "C" int FIgnoreBombIntersection(BOMBV *bomb, SOV *pso)
 // Set owner (+0x200) and RecalcSwOxfFilterForObject if changed. (inferred)
 extern "C" void SetBombOwner(BOMBV *bomb, BOMBV *pbombOwner)
 {
-    if (pbombOwner != bomb->pbombOwner) {
-        bomb->pbombOwner = pbombOwner;
+    if (pbombOwner != bomb->owner) {
+        bomb->owner = pbombOwner;
         RecalcSwOxfFilterForObject(&D_003DD490, bomb);
     }
 }
