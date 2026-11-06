@@ -1,6 +1,8 @@
 // tu_201D78.cpp -- recon selection: Sly's photo/recon prompt (RECONSEL: candidate targets, screen projection, the
 // selection state machine and its widgets) and the recon targets themselves (RECONTGT, CID 0x2E). TU 0x201D78..
 // 0x203948 (26 functions, address order).
+// Entry points: InitReconSel/PostReconSelLoad, UpdateReconSel (per frame), SetReconSelState, and the recon
+// target class (InitReconTarget .. IsReconTargetSelectable).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_201D78
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00203928
 #include "sly2/slotheap.h"
@@ -172,11 +174,12 @@ int FActiveCplcy(CPLCY *pcplcy);                                    /* FActiveCp
  * See: docs/engine/core-library.md#6-source-files, docs/engine/player.md#10-source-files,
  *   docs/reference/functions/player.md#mode-0x19cbf8-0x19de10
  * @end-sly2-annot */
-extern "C" void InitReconSel(RECONSEL *p, MODEL *pmodel)
+// Initializes the recon (camera snapshot) selector: owner, aim origin at the screen centre (320, 246.4), state -1.
+extern "C" void InitReconSel(RECONSEL *reconSel, MODEL *pmodel)
 {
-    VECTORV *pv = &p->vOrigin;
+    VECTORV *pv = &reconSel->vOrigin;
     float y;
-p->model = pmodel;
+reconSel->model = pmodel;
 pv->x = 0;
 pv->y = 0;
 pv->z = 0;
@@ -184,7 +187,7 @@ pv->z = 0;
     pv->x = pv->x * 320.0f + 320.0f;
     pv->y = 246.40000915527344f;
     pv->z = y;
-    p->state = -1;
+    reconSel->state = -1;
 }
 
 /** @sly2-annot addr=0x201DC8
@@ -193,15 +196,17 @@ pv->z = 0;
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-extern "C" void PostReconSelLoad(RECONSEL *p)
+// Post-load: finds the selector's HUD widgets (0x362/0x365, Sly only) and object 0x602, and collects every recon target
+// (CID 0x2E, at most 16).
+extern "C" void PostReconSelLoad(RECONSEL *reconSel)
 {
-    if (FIsBasicDerivedFrom((BASIC *)p->model->plo, CID_35)) {
-        p->primary = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x362, 0);
-        p->secondary = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x365, 0);
+    if (FIsBasicDerivedFrom((BASIC *)reconSel->model->plo, CID_35)) {
+        reconSel->primary = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x362, 0);
+        reconSel->secondary = (WIDGETV *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x365, 0);
     }
-    p->resource = PloFindSwObject(&D_003DD490, 0x405, (OID)0x602, 0);
-    p->count = CploFindSwObjectsByClass(&D_003DD490, 0x405, CID_2E, 0, 16, p->items);
-    ResetReconTargets(p);
+    reconSel->resource = PloFindSwObject(&D_003DD490, 0x405, (OID)0x602, 0);
+    reconSel->count = CploFindSwObjectsByClass(&D_003DD490, 0x405, CID_2E, 0, 16, reconSel->items);
+    ResetReconTargets(reconSel);
 }
 
 /** @sly2-annot addr=0x201E88
@@ -210,11 +215,12 @@ extern "C" void PostReconSelLoad(RECONSEL *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void ResetReconTargets(RECONSEL *p)
+// Calls virtual slot 9 on each target's companion object (+0x100). (inferred: resets its marker)
+void ResetReconTargets(RECONSEL *reconSel)
 {
     int i;
-    for (i = 0; i < p->count; i++) {
-        LOV *o = p->items[i]->plo100;
+    for (i = 0; i < reconSel->count; i++) {
+        LOV *o = reconSel->items[i]->plo100;
         if (o) { VTE *e = &o->pvt[9]; ((void (*)(void *))e->pfn)((char *)o + e->d); }
     }
 }
@@ -225,11 +231,12 @@ void ResetReconTargets(RECONSEL *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void NotifyReconTargets(RECONSEL *p)
+// Calls virtual slot 8 on the companion of each visible target. (inferred)
+void NotifyReconTargets(RECONSEL *reconSel)
 {
     int i;
-    for (i = 0; i < p->count; i++) {
-        RECONTGT *o = p->items[i];
+    for (i = 0; i < reconSel->count; i++) {
+        RECONTGT *o = reconSel->items[i];
         if (((int)(o->fl28 >> 60) & 1) && o->plo100) ((void (*)(void *))o->plo100->pvt[8].pfn)((char *)o->plo100 + o->plo100->pvt[8].d);
     }
 }
@@ -240,15 +247,16 @@ void NotifyReconTargets(RECONSEL *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void UpdateReconSelInVolume(RECONSEL *p)
+// Sets the in-volume flag (+0xB8) when the aim origin is inside any volume of class 0x19.
+void UpdateReconSelInVolume(RECONSEL *reconSel)
 {
     LOV *a[16];
     int n, i;
-    p->visible = 0;
+    reconSel->visible = 0;
     n = CploFindSwObjectsByClass(&D_003DD490, 0x505, CID_19, 0, 16, (RECONTGT **)a);
     for (i = 0; i < n; i++) {
-        if (FCheckVolPoint(a[i], p->position.q)) {
-            p->visible = 1;
+        if (FCheckVolPoint(a[i], reconSel->position.q)) {
+            reconSel->visible = 1;
             break;
         }
     }
@@ -260,16 +268,17 @@ void UpdateReconSelInVolume(RECONSEL *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void RefreshReconPendingTargets(RECONSEL *p)
+// Rebuilds the pending list (at most 5): targets with a name id whose task state is 1 or 2.
+void RefreshReconPendingTargets(RECONSEL *reconSel)
 {
     int i;
-    p->cPending = 0;
-    for (i = 0; i < p->count; i++) {
-        RECONTGT *o = p->items[i];
+    reconSel->cPending = 0;
+    for (i = 0; i < reconSel->count; i++) {
+        RECONTGT *o = reconSel->items[i];
         if (o->idPending != -1) {
             LINK *q = o->link;
             if (!q || q->state == 1 || q->state == 2) {
-                if (p->cPending < 5) p->apending[p->cPending++] = o;
+                if (reconSel->cPending < 5) reconSel->apending[reconSel->cPending++] = o;
             }
         }
     }
@@ -281,11 +290,12 @@ void RefreshReconPendingTargets(RECONSEL *p)
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void FadeReconTargetMarkers(RECONSEL *p)
+// Fades each target's marker in or out (0.25 s) by camera distance against its radius.
+void FadeReconTargetMarkers(RECONSEL *reconSel)
 {
     int i;
-    for (i = 0; i < p->count; i++) {
-        RECONTGT *o = p->items[i];
+    for (i = 0; i < reconSel->count; i++) {
+        RECONTGT *o = reconSel->items[i];
         qword a, d;
         float f, r;
         if (!o->plo100)
@@ -306,17 +316,18 @@ void FadeReconTargetMarkers(RECONSEL *p)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void UpdateReconChecklist(RECONSEL *p)
+// Per pending target plays the checklist animation on its widget: 0x33A when done, 0x33B otherwise.
+void UpdateReconChecklist(RECONSEL *reconSel)
 {
     int i;
-    for (i = 0; i < (int)p->cPending; i++) {
+    for (i = 0; i < (int)reconSel->cPending; i++) {
         int v;
-        RECONTGT *a = p->apending[i];
+        RECONTGT *a = reconSel->apending[i];
         v = D_002C3588[i];
         if (IsReconTargetDone(a))
-            func_00213BD8(p->primary, 0x33A, v);
+            func_00213BD8(reconSel->primary, 0x33A, v);
         else
-            func_00213BD8(p->primary, 0x33B, v);
+            func_00213BD8(reconSel->primary, 0x33B, v);
     }
 }
 
@@ -326,7 +337,8 @@ void UpdateReconChecklist(RECONSEL *p)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void ClearReconTargetMarks(RECONSEL *p) { int i; for (i = 0; i < p->count; i++) p->items[i]->state = 0; }
+// Clears each target's mark (+0x108).
+void ClearReconTargetMarks(RECONSEL *reconSel) { int i; for (i = 0; i < reconSel->count; i++) reconSel->items[i]->state = 0; }
 
 /** @sly2-annot addr=0x2022D8
  * Purpose: in-volume flag or any visible target
@@ -335,12 +347,13 @@ void ClearReconTargetMarks(RECONSEL *p) { int i; for (i = 0; i < p->count; i++) 
  * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-int IsReconSelAvailable(RECONSEL *p)
+// True when the aim origin is in a recon volume or any target is visible.
+int IsReconSelAvailable(RECONSEL *reconSel)
 {
     int i;
-    if (p->visible) return 1;
-    for (i = 0; i < p->count; i++) {
-        RECONTGT *o = p->items[i];
+    if (reconSel->visible) return 1;
+    for (i = 0; i < reconSel->count; i++) {
+        RECONTGT *o = reconSel->items[i];
         if (BIT60(o) && (!o->plo100 || BIT60(o->plo100) == 0)) return 1;
     }
     return 0;
@@ -353,7 +366,8 @@ struct SOF { char pad[0x10]; long fl; char pad2[0x58]; int n; };
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-int FilterReconOccluder(void *a, RECONTGT *po) { SOF *p = (SOF *)po; int r = 0; if (!(p->fl & 0x1000000000000L)) r = p->n > 0; return r; }
+// Filter callback for the occlusion box query.
+int FilterReconOccluder(void *a, RECONTGT *object) { SOF *p = (SOF *)object; int r = 0; if (!(p->fl & 0x1000000000000L)) r = p->n > 0; return r; }
 
 /* UpdateReconTargetVisibility (Lilly / Claude agent, T1560): four-ray visibility of an actor from the selector's origin (p+0x20, the caller
  * SelectReconTarget raises it by 20). Collects the objects between the two points (IntersectSwBoundingBox with the FilterReconOccluder filter),
@@ -385,7 +399,8 @@ static inline qword Normalize(qword v)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7c_hud+verdicts_followups
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void UpdateReconTargetVisibility(RECONSEL *p,RECONTGT *other)
+// Four-ray occlusion test from the origin to a target: state 1 clear, 2 blocked, 3 partly visible.
+void UpdateReconTargetVisibility(RECONSEL *reconSel,RECONTGT *other)
 {
     int cHit=0;
     unsigned i=0;
@@ -396,10 +411,10 @@ void UpdateReconTargetVisibility(RECONSEL *p,RECONTGT *other)
     V *point;
     qword origin=func_001A62E8(other);
     radius=other->sHead;
-    IntersectSwBoundingBox(&D_003DD490,origin,p->position.q,FilterReconOccluder,0,&query.count,&query.objects);
+    IntersectSwBoundingBox(&D_003DD490,origin,reconSel->position.q,FilterReconOccluder,0,&query.count,&query.objects);
     {
         qword up=D_002DDFA0[1];
-        qword direction=Normalize(VuSub(p->position.q,origin));
+        qword direction=Normalize(VuSub(reconSel->position.q,origin));
         qword k,side;
         __asm__("qmtc2.ni %1,%0":"=j"(k):"r"(radius));
         scale.q=k;
@@ -414,7 +429,7 @@ void UpdateReconTargetVisibility(RECONSEL *p,RECONTGT *other)
     }
     point=points;
     for(;i<4;++i){
-        if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,p->position.q,point->q,query.count,query.objects,0))++cHit;
+        if(PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0,reconSel->position.q,point->q,query.count,query.objects,0))++cHit;
         ++point;
     }
     {
@@ -455,18 +470,19 @@ namespace RO_ORDER { extern const float r_D_002A8550 __asm__("D_002A8550") = 3.4
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void SelectReconTarget(RECONSEL*p)
+// Chooses the closest unblocked target in the view frustum; on a change enters selector state 2.
+void SelectReconTarget(RECONSEL*reconSel)
 {
  V radius,screen,position;
  int i=0;
  register RECONTGT *best __asm__("$20")=0;
- LOV *owner=p->model->plo;
+ LOV *owner=reconSel->model->plo;
  float minimum;
  RECONTGT **slot;
- ((void(*)(void*,qword*))owner->pvt[97].pfn)((char*)owner+owner->pvt[97].d,&p->position.q);
- p->position.f[2]+=20.0f;
+ ((void(*)(void*,qword*))owner->pvt[97].pfn)((char*)owner+owner->pvt[97].d,&reconSel->position.q);
+ reconSel->position.f[2]+=20.0f;
  minimum=D_002A8550;
- if(p->count>0){slot=p->items;do{
+ if(reconSel->count>0){slot=reconSel->items;do{
    RECONTGT *o=*slot;
    CMV *camera;
    float distance; qword eye,threshold,point;
@@ -479,11 +495,11 @@ void SelectReconTarget(RECONSEL*p)
    if(!FInsideCmMrd(camera,func_001A62E8(o),o->height,&screen.f[0]))continue;
    distance=LengthXY(SubSecond(position.q,camera->v.position));
    if(distance<minimum){
-     UpdateReconTargetVisibility(p,o);
+     UpdateReconTargetVisibility(reconSel,o);
      if(o->state!=2){best=o;minimum=distance;}
    }
- }while(++slot,++i<p->count);}
- if(best!=p->actor){p->actor=best;SetReconSelState(p,2);}
+ }while(++slot,++i<reconSel->count);}
+ if(best!=reconSel->actor){reconSel->actor=best;SetReconSelState(reconSel,2);}
 }
 
 /** @sly2-annot addr=0x2026F8
@@ -494,7 +510,8 @@ void SelectReconTarget(RECONSEL*p)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
  *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-extern "C" const char *GetReconPendingText(RECONSEL *p) { if (p->pending == -1) return 0; return PchzFindSwLangstr(&D_003DD490, p->pending); }
+// The localized string of the pending-target label (+0xC0).
+extern "C" const char *GetReconPendingText(RECONSEL *reconSel) { if (reconSel->pending == -1) return 0; return PchzFindSwLangstr(&D_003DD490, reconSel->pending); }
 
 /** @sly2-annot addr=0x202730
  * Purpose: langstr of P+0xBC
@@ -504,7 +521,8 @@ extern "C" const char *GetReconPendingText(RECONSEL *p) { if (p->pending == -1) 
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88,
  *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-extern "C" const char *GetReconSelectedText(RECONSEL *p) { if (p->selected == -1) return 0; return PchzFindSwLangstr(&D_003DD490, p->selected); }
+// The localized string of the selected-target label (+0xBC).
+extern "C" const char *GetReconSelectedText(RECONSEL *reconSel) { if (reconSel->selected == -1) return 0; return PchzFindSwLangstr(&D_003DD490, reconSel->selected); }
 
 static inline void Post(WIDGETV *x,int n){VTE *entry=&x->pvt[49];((void (*)(void *,int))entry->pfn)((char *)x+entry->d,n);}
 static inline void Clear(WIDGETV *x){VTE *entry=&x->pvt[50];((void (*)(void *))entry->pfn)((char *)x+entry->d);}
@@ -528,100 +546,102 @@ static inline void Restore(LOV *x,uint mask){uint f=x->grf40;if((f^1)&1)*(uint *
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-void SetReconSelState(RECONSEL *p,int nextState)
+// Selector state machine (-1..10); 8 = snapshot (clock and sound paused, player flags 0x102), 9 = photo taken
+// (dialog, game event 10, target marked done).
+void SetReconSelState(RECONSEL *reconSel,int nextState)
 {
-    if(p->state==nextState)return;
-    if(!p->primary)return;
-    if(!p->secondary)return;
-    if(((uint)(p->state-8)<2)!=((uint)(nextState-8)<2)){
+    if(reconSel->state==nextState)return;
+    if(!reconSel->primary)return;
+    if(!reconSel->secondary)return;
+    if(((uint)(reconSel->state-8)<2)!=((uint)(nextState-8)<2)){
         if((uint)(nextState-8)<2)IncrementSwHandsOff(&D_003DD490,0);
         else DecrementSwHandsOff(&D_003DD490,0);
     }
-    switch(p->state){
+    switch(reconSel->state){
     case -1:case 0:case 2:case 3:case 10:break;
     case 1:
-        FadeReconTargetMarkers(p);
-        RefreshReconPendingTargets(p);
-        PlayWidgetAnim(p->primary,0x35D);
-        if((int)p->cPending>0)PlayWidgetAnim(p->primary,0x35E);
-        UpdateReconChecklist(p);
+        FadeReconTargetMarkers(reconSel);
+        RefreshReconPendingTargets(reconSel);
+        PlayWidgetAnim(reconSel->primary,0x35D);
+        if((int)reconSel->cPending>0)PlayWidgetAnim(reconSel->primary,0x35E);
+        UpdateReconChecklist(reconSel);
         break;
     case 4:
-        StopWidgetAnim(p->secondary,0x359);
+        StopWidgetAnim(reconSel->secondary,0x359);
         break;
     case 5:case 6:
-        StopWidgetAnim(p->secondary,0x35A);
+        StopWidgetAnim(reconSel->secondary,0x35A);
         break;
     case 7:
-        StopWidgetAnim(p->primary,0x356);
-        StopWidgetAnim(p->secondary,0x356);
-        StopWidgetAnim(p->secondary,0x357);
+        StopWidgetAnim(reconSel->primary,0x356);
+        StopWidgetAnim(reconSel->secondary,0x356);
+        StopWidgetAnim(reconSel->secondary,0x357);
         break;
     case 8:
-        Restore(p->model->plo,p->savedFlags);
+        Restore(reconSel->model->plo,reconSel->savedFlags);
         func_0014D1D0(&D_002DDED0,0,1.0f);
         func_001FE5B8(D_003DD040,1,1);
-        StopWidgetAnim(p->primary,0x358);
+        StopWidgetAnim(reconSel->primary,0x358);
         break;
     case 9:
         func_0014FE28(&g_cm.cplook);
-        func_00214300(p->primary,-1);
-        Post(p->primary,0x310);
-        if(p->resource){
-            if(p->actor->key!=-1)StartDialog(D_003DD040,p->actor->key,0);
-            func_00147C20(p->resource,0x608,p->actor->key);
+        func_00214300(reconSel->primary,-1);
+        Post(reconSel->primary,0x310);
+        if(reconSel->resource){
+            if(reconSel->actor->key!=-1)StartDialog(D_003DD040,reconSel->actor->key,0);
+            func_00147C20(reconSel->resource,0x608,reconSel->actor->key);
         }
-        SetReconTargetDone(p->actor,1);
+        SetReconTargetDone(reconSel->actor,1);
         BroadcastGameEvent(D_002DEB30,10,0);
-        p->actor=0;
-        if(IsReconSelAvailable(p)){
-            PlayWidgetAnim(p->primary,0x35D);
-            if((int)p->cPending>0)PlayWidgetAnim(p->primary,0x35E);
+        reconSel->actor=0;
+        if(IsReconSelAvailable(reconSel)){
+            PlayWidgetAnim(reconSel->primary,0x35D);
+            if((int)reconSel->cPending>0)PlayWidgetAnim(reconSel->primary,0x35E);
         }
-        UpdateReconChecklist(p);
+        UpdateReconChecklist(reconSel);
         break;
     }
-    int previous=p->state;
-    p->state=nextState;
+    int previous=reconSel->state;
+    reconSel->state=nextState;
     switch(nextState){
     case 0:
-        p->actor=0;p->selected=-1;p->pending=-1;
-        ClearReconTargetMarks(p);
-        Post(p->primary,-1);
-        ResetReconTargets(p);
-        UpdateReconSelInVolume(p);
+        reconSel->actor=0;reconSel->selected=-1;reconSel->pending=-1;
+        ClearReconTargetMarks(reconSel);
+        Post(reconSel->primary,-1);
+        ResetReconTargets(reconSel);
+        UpdateReconSelInVolume(reconSel);
         BroadcastGameEvent(D_002DEB30,9,0);
         break;
     case 1:
-        StopWidgetAnim(p->primary,0x35D);
-        Post(p->secondary,0x339);
+        StopWidgetAnim(reconSel->primary,0x35D);
+        Post(reconSel->secondary,0x339);
         break;
     case 5:
-        PlayWidgetAnim(p->secondary,0x35A);
-        SetWidgetAnimPhase(p->secondary,0x35A,0.0f);
+        PlayWidgetAnim(reconSel->secondary,0x35A);
+        SetWidgetAnimPhase(reconSel->secondary,0x35A,0.0f);
         break;
     case 6:
-        PlayWidgetAnim(p->secondary,0x35A);
-        SetWidgetAnimPhase(p->secondary,0x35A,0.0f);
+        PlayWidgetAnim(reconSel->secondary,0x35A);
+        SetWidgetAnimPhase(reconSel->secondary,0x35A,0.0f);
         break;
     case 7:
         SetSndSourceLo(PsndStartSound(0x52),0);
-        p->selected=p->actor->id;
-        PlayWidgetAnim(p->primary,0x356);
-        PlayWidgetAnim(p->secondary,0x356);
-        PlayWidgetAnim(p->secondary,0x357);
+        reconSel->selected=reconSel->actor->id;
+        PlayWidgetAnim(reconSel->primary,0x356);
+        PlayWidgetAnim(reconSel->secondary,0x356);
+        PlayWidgetAnim(reconSel->secondary,0x357);
         break;
     case 8: {
-        StopWidgetAnim(p->primary,0x35B);
-        PlayWidgetAnim(p->primary,0x358);
+        StopWidgetAnim(reconSel->primary,0x35B);
+        PlayWidgetAnim(reconSel->primary,0x358);
         register MODEL *model __asm__("a1");
         register LOV *widget __asm__("v0");
         register int flags __asm__("a0");
-        __asm__("lw %0,%1":"=r"(model):"m"(p->model));
+        __asm__("lw %0,%1":"=r"(model):"m"(reconSel->model));
         __asm__("lw %0,0(%1)":"=r"(widget):"r"(model),"m"(model->plo));
         __asm__("lw %0,64(%1)":"=r"(flags):"r"(widget),"m"(widget->grf40));
         if(IndirectWord(flags))flags=*(uint *)flags;
-        p->savedFlags=Untag(flags);
+        reconSel->savedFlags=Untag(flags);
         register LOV *updated __asm__("a0");
         register uint raw __asm__("v1");
         __asm__("lw %0,0(%1)":"=r"(updated):"r"(model),"m"(model->plo));
@@ -636,31 +656,31 @@ void SetReconSelState(RECONSEL *p,int nextState)
         break;
     }
     case 9:
-        Post(p->secondary,0x339);
-        Post(p->primary,0x35C);
-        func_00214300(p->primary,0);
+        Post(reconSel->secondary,0x339);
+        Post(reconSel->primary,0x35C);
+        func_00214300(reconSel->primary,0);
         break;
     case 3:case 4:
-        p->secondary->actor=p->actor;
-        Post(p->secondary,0x337);
-        PlayWidgetAnim(p->secondary,0x359);
-        SetWidgetAnimPhase(p->secondary,0x359,0.0f);
+        reconSel->secondary->actor=reconSel->actor;
+        Post(reconSel->secondary,0x337);
+        PlayWidgetAnim(reconSel->secondary,0x359);
+        SetWidgetAnimPhase(reconSel->secondary,0x359,0.0f);
         break;
     case 2:
-        Post(p->secondary,0x339);
+        Post(reconSel->secondary,0x339);
         break;
     case 10:
-        p->actor=0;p->selected=-1;p->pending=-1;
-        Clear(p->secondary);
-        Clear(p->primary);
-        NotifyReconTargets(p);
+        reconSel->actor=0;reconSel->selected=-1;reconSel->pending=-1;
+        Clear(reconSel->secondary);
+        Clear(reconSel->primary);
+        NotifyReconTargets(reconSel);
         BroadcastGameEvent(D_002DEB30,11,0);
         break;
     case -1:
         if(previous!=10){
             BroadcastGameEvent(D_002DEB30,11,0);
-            if(p->primary->shown){SetWidgetState(p->primary,1);SetWidgetRequest(p->primary,1);}
-            if(p->secondary->shown){SetWidgetState(p->secondary,1);SetWidgetRequest(p->secondary,1);}
+            if(reconSel->primary->shown){SetWidgetState(reconSel->primary,1);SetWidgetRequest(reconSel->primary,1);}
+            if(reconSel->secondary->shown){SetWidgetState(reconSel->secondary,1);SetWidgetRequest(reconSel->secondary,1);}
         }
         break;
     }
@@ -692,7 +712,7 @@ static inline VU_FLOAT ScreenFromProjected(qword q)
 }
 static inline float Min(float a,float b){return a<b?a:b;}
 static inline float Max(float a,float b){return a<b?b:a;}
-static inline float GClampMM(float g,float gMin,float gMax){return Max(gMin,Min(g,gMax));}
+static inline float GClampMM(float g,float minValue,float maxValue){return Max(minValue,Min(g,maxValue));}
 /** @sly2-annot addr=0x202D38
  * Purpose: per frame: project target head to screen, proximity to centre / size gain, drive states, shutter
  *   on button 10 (250 when locked)
@@ -701,124 +721,126 @@ static inline float GClampMM(float g,float gMin,float gMax){return Max(gMin,Min(
  * See: docs/reference/functions/player.md#mode-0x19cbf8-0x19de10,
  *   docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-extern "C" void UpdateReconSel(RECONSEL *p)
+// Per frame: projects the target's head to the screen, scores proximity to the centre and size, drives the states and
+// takes the photo on button 10 (250 when locked).
+extern "C" void UpdateReconSel(RECONSEL *reconSel)
 {
-    if(!p->primary)return;
-    if(!p->secondary)return;
-    if(p->refreshPending){p->refreshPending=0;EndJtMode(p->model);}
-    if(p->choiceTime+5.0f<D_002DDED0.t)StopWidgetAnim(p->primary,0x35B);
-    if(p->state<8)if(p->state>=2){
-        SelectReconTarget(p);
-        FadeReconTargetMarkers(p);
-        if(!IsReconSelAvailable(p))SetReconSelState(p,1);
+    if(!reconSel->primary)return;
+    if(!reconSel->secondary)return;
+    if(reconSel->refreshPending){reconSel->refreshPending=0;EndJtMode(reconSel->model);}
+    if(reconSel->choiceTime+5.0f<D_002DDED0.t)StopWidgetAnim(reconSel->primary,0x35B);
+    if(reconSel->state<8)if(reconSel->state>=2){
+        SelectReconTarget(reconSel);
+        FadeReconTargetMarkers(reconSel);
+        if(!IsReconSelAvailable(reconSel))SetReconSelState(reconSel,1);
     }
-    if(p->actor){
-        qword world=func_001A62E8(p->actor);
-        VU_FLOAT offset=VuFloatFromMemWord(*(int *)&p->actor->sHead);
+    if(reconSel->actor){
+        qword world=func_001A62E8(reconSel->actor);
+        VU_FLOAT offset=VuFloatFromMemWord(*(int *)&reconSel->actor->sHead);
         qword head=VuAdd(world,QwScaleX(QwUp(&D_002DDF40.mat),offset.qw));
         qword base=ConvertCmWorldToScreen(&D_002DDF40,world);
         qword top=ConvertCmWorldToScreen(&D_002DDF40,head);
         VU_FLOAT screen=ScreenFromProjected(base);
-        float distance=GXOfQw(QwLengthXY(VuSub(screen.qw,p->origin)));
+        float distance=GXOfQw(QwLengthXY(VuSub(screen.qw,reconSel->origin)));
         VU_FLOAT screenTop=ScreenFromProjected(top);
         float size=GXOfQw(QwLengthXY(VuSub(screen.qw,screenTop.qw)));
         float proximity=1.0f-(distance-128.0f)/128.0f;
         size=size/120.0f;
-        p->rising=1;
-        p->proximity=GClampMM(proximity,0.0f,1.0f);
-        p->sizeGain=size;
-        if(size>1.0f){p->rising=0;p->sizeGain=2.0f-size;}
-        p->sizeGain=Max(p->sizeGain,0.0f);
+        reconSel->rising=1;
+        reconSel->proximity=GClampMM(proximity,0.0f,1.0f);
+        reconSel->sizeGain=size;
+        if(size>1.0f){reconSel->rising=0;reconSel->sizeGain=2.0f-size;}
+        reconSel->sizeGain=Max(reconSel->sizeGain,0.0f);
     }
-    switch(p->state){
+    switch(reconSel->state){
     case -1:
         break;
     case 2:
-        if(p->actor&&p->actor->state!=2)SetReconSelState(p,4);
+        if(reconSel->actor&&reconSel->actor->state!=2)SetReconSelState(reconSel,4);
         break;
     case 4:
-        if(!p->actor)SetReconSelState(p,2);
-        else if(p->actor->state==3)SetReconSelState(p,3);
-        else if(p->proximity>=1.0f){
-            if(p->rising)SetReconSelState(p,5);
-            else SetReconSelState(p,6);
+        if(!reconSel->actor)SetReconSelState(reconSel,2);
+        else if(reconSel->actor->state==3)SetReconSelState(reconSel,3);
+        else if(reconSel->proximity>=1.0f){
+            if(reconSel->rising)SetReconSelState(reconSel,5);
+            else SetReconSelState(reconSel,6);
         }
         break;
     case 3:
-        if(!p->actor)SetReconSelState(p,2);
-        else if(p->actor->state!=3)SetReconSelState(p,4);
+        if(!reconSel->actor)SetReconSelState(reconSel,2);
+        else if(reconSel->actor->state!=3)SetReconSelState(reconSel,4);
         break;
     case 5:
-        if(!p->actor)SetReconSelState(p,2);
-        else if(p->proximity<1.0f)SetReconSelState(p,4);
-        else if(p->sizeGain>=1.0f-p->actor->threshold)SetReconSelState(p,7);
-        else SetWidgetAnimPhase(p->secondary,0x35A,p->sizeGain);
+        if(!reconSel->actor)SetReconSelState(reconSel,2);
+        else if(reconSel->proximity<1.0f)SetReconSelState(reconSel,4);
+        else if(reconSel->sizeGain>=1.0f-reconSel->actor->threshold)SetReconSelState(reconSel,7);
+        else SetWidgetAnimPhase(reconSel->secondary,0x35A,reconSel->sizeGain);
         break;
     case 6:
-        if(!p->actor)SetReconSelState(p,2);
-        else if(p->proximity<1.0f)SetReconSelState(p,4);
-        else if(p->sizeGain>=1.0f-p->actor->threshold)SetReconSelState(p,7);
-        else SetWidgetAnimPhase(p->secondary,0x35A,p->sizeGain);
+        if(!reconSel->actor)SetReconSelState(reconSel,2);
+        else if(reconSel->proximity<1.0f)SetReconSelState(reconSel,4);
+        else if(reconSel->sizeGain>=1.0f-reconSel->actor->threshold)SetReconSelState(reconSel,7);
+        else SetWidgetAnimPhase(reconSel->secondary,0x35A,reconSel->sizeGain);
         break;
     case 7:
-        if(p->actor){
-            if(p->proximity<1.0f||p->sizeGain<1.0f-p->actor->threshold){
-                if(p->rising)SetReconSelState(p,5);
-                else SetReconSelState(p,6);
+        if(reconSel->actor){
+            if(reconSel->proximity<1.0f||reconSel->sizeGain<1.0f-reconSel->actor->threshold){
+                if(reconSel->rising)SetReconSelState(reconSel,5);
+                else SetReconSelState(reconSel,6);
             }
         }
-        else SetReconSelState(p,2);
+        else SetReconSelState(reconSel,2);
         break;
     case 8:
-        if(!FWidgetAnimPlaying(p->primary,0x358)){
+        if(!FWidgetAnimPlaying(reconSel->primary,0x358)){
             int changed=0;
-            if(p->actor&&p->actor->state==1&&p->proximity>=1.0f&&p->sizeGain>=1.0f-p->actor->threshold){
-                if(!p->actor->mode)SetReconSelState(p,9);
-                else{p->pending=p->actor->choice;SetReconSelState(p,7);changed=1;}
+            if(reconSel->actor&&reconSel->actor->state==1&&reconSel->proximity>=1.0f&&reconSel->sizeGain>=1.0f-reconSel->actor->threshold){
+                if(!reconSel->actor->mode)SetReconSelState(reconSel,9);
+                else{reconSel->pending=reconSel->actor->choice;SetReconSelState(reconSel,7);changed=1;}
             }
             else{
-                if(p->actor&&p->actor->state!=1){p->pending=p->primary->actorChoice;SetReconSelState(p,3);}
-                else if(p->proximity>=1.0f&&p->rising){p->pending=p->primary->risingChoice;SetReconSelState(p,5);}
-                else if(p->proximity>=1.0f&&!p->rising){p->pending=p->primary->fallingChoice;SetReconSelState(p,6);}
-                else if(p->actor){p->pending=p->primary->nearChoice;SetReconSelState(p,4);}
-                else{p->pending=p->primary->emptyChoice;SetReconSelState(p,2);}
+                if(reconSel->actor&&reconSel->actor->state!=1){reconSel->pending=reconSel->primary->actorChoice;SetReconSelState(reconSel,3);}
+                else if(reconSel->proximity>=1.0f&&reconSel->rising){reconSel->pending=reconSel->primary->risingChoice;SetReconSelState(reconSel,5);}
+                else if(reconSel->proximity>=1.0f&&!reconSel->rising){reconSel->pending=reconSel->primary->fallingChoice;SetReconSelState(reconSel,6);}
+                else if(reconSel->actor){reconSel->pending=reconSel->primary->nearChoice;SetReconSelState(reconSel,4);}
+                else{reconSel->pending=reconSel->primary->emptyChoice;SetReconSelState(reconSel,2);}
                 changed=1;
             }
-            if(changed){PlayWidgetAnim(p->primary,0x35B);p->choiceTime=D_002DDED0.t;}
+            if(changed){PlayWidgetAnim(reconSel->primary,0x35B);reconSel->choiceTime=D_002DDED0.t;}
         }
         break;
     case 9:
-        if(!FWidgetAnimPlaying(p->primary,0x35C)){
+        if(!FWidgetAnimPlaying(reconSel->primary,0x35C)){
             int ready=1;
-            SetReconSelState(p,2);
-            for(int i=0;i<p->count;i++){
-                RECONTGT *actor=p->items[i];
+            SetReconSelState(reconSel,2);
+            for(int i=0;i<reconSel->count;i++){
+                RECONTGT *actor=reconSel->items[i];
                 int done=IsReconTargetDone(actor);
                 // an actor whose link is missing or in state 1 must be done before the refresh
                 int linkReady=!actor->link||actor->link->state==1;
                 if(!done&&linkReady){ready=0;break;}
             }
-            if(ready)p->refreshPending=1;
+            if(ready)reconSel->refreshPending=1;
         }
         break;
     case 10:
-        if(!FWidgetAnimPlaying(p->primary,0x314))SetReconSelState(p,-1);
+        if(!FWidgetAnimPlaying(reconSel->primary,0x314))SetReconSelState(reconSel,-1);
         break;
     case 0:
-        if(FWidgetAnimPlaying(p->primary,0x314))SetReconSelState(p,1);
+        if(FWidgetAnimPlaying(reconSel->primary,0x314))SetReconSelState(reconSel,1);
         break;
     case 1:
-        FadeReconTargetMarkers(p);
-        if(IsReconSelAvailable(p))SetReconSelState(p,2);
+        FadeReconTargetMarkers(reconSel);
+        if(IsReconSelAvailable(reconSel))SetReconSelState(reconSel,2);
         break;
     }
-    if(p->model->state!=1){
-        switch(p->state){
+    if(reconSel->model->state!=1){
+        switch(reconSel->state){
         case 2:case 3:case 4:case 5:case 6:
-            if(!FActiveCplcy(&g_cm.part3a0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,10,0.0f))SetReconSelState(p,8);
+            if(!FActiveCplcy(&g_cm.part3a0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,10,0.0f))SetReconSelState(reconSel,8);
             break;
         case 7:
-            if(!FActiveCplcy(&g_cm.part3a0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,250,0.0f))SetReconSelState(p,8);
+            if(!FActiveCplcy(&g_cm.part3a0)&&GrfConsumePressed__5POCTLUif(D_002E1E40->control,250,0.0f))SetReconSelState(reconSel,8);
             break;
         }
     }
@@ -830,6 +852,7 @@ extern "C" void UpdateReconSel(RECONSEL *p)
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
+// Recon target (CID 0x2E) Init: transform init, ids -1/-2.
 extern "C" void InitReconTarget(RECONTGT *p) { InitXfm(p);
 p->id = -1; //P
 p->choice = -1; //P
@@ -845,6 +868,7 @@ p->idPending = -2; //P
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7c_hud+parse-code+parse-verified
  * See: docs/engine/player.md#11-key-functions, docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
+// Recon target LoadFromBrx: defaults 75 / 0.25 / 5000, then the level's values.
 extern "C" void LoadReconTargetFromBrx(RECONTGT *p, void *pbis)
 {
     p->sHead = 0.0f;
@@ -863,14 +887,15 @@ extern "C" void LoadReconTargetFromBrx(RECONTGT *p, void *pbis)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
+// Recon target post-load: LO base and registration with its task (+0xEC).
 void CID46::VUnk14()
 {
     RECONTGT *p = (RECONTGT *)this;
-    LINK *plink;
+    LINK *link;
     PostLoLoad(p);
-    plink = p->link;
-    if (plink != 0) {
-        SubscribeLoObject(plink, p);
+    link = p->link;
+    if (link != 0) {
+        SubscribeLoObject(link, p);
     }
 }
 
@@ -880,6 +905,7 @@ void CID46::VUnk14()
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
+// Recon target message handler: on message 0x11 refreshes the player's recon list and checklist.
 extern "C" void HandleReconTargetMessage(RECONTGT *p, int msg, void *pm)
 {
     PLAYER *o;
@@ -899,6 +925,7 @@ extern "C" void HandleReconTargetMessage(RECONTGT *p, int msg, void *pm)
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
+// Marks the target photographed (in its task, or a local flag without one).
 void SetReconTargetDone(RECONTGT *p, int n)
 {
     if (p->link) {
@@ -915,6 +942,7 @@ void SetReconTargetDone(RECONTGT *p, int n)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
+// Whether the target was photographed (task done, or the local flag).
 int IsReconTargetDone(RECONTGT *p) { if (p->link) return FTaskComplete(p->link); return p->fDone; }
 
 /** @sly2-annot addr=0x203790
@@ -924,6 +952,7 @@ int IsReconTargetDone(RECONTGT *p) { if (p->link) return FTaskComplete(p->link);
  * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
+// Whether the target is visible and its task is in state 1.
 int IsReconTargetSelectable(RECONTGT *p)
 {
     LINK *o;
