@@ -82,16 +82,16 @@ struct T { char pad[0xC]; LEAF *aleaf; int cnode; NODE *anode; };
  * @end-sly2-annot */
 // Walks the graph's 2D BSP and returns the triangle containing pos, or 0 (Sly 1 PcgtPointInCbspQuick; the flags
 // argument is new in Sly 2).
-LEAF *FindNavTriangleQuick(struct T *p, qword pos, int fl)
+LEAF *FindNavTriangleQuick(struct T *graph, qword pos, int flags)
 {
     union { qword q; float f; } u;
     NODE *pn, *pnEnd, *anode;
     int mask;
     u.q = Make(GetX(pos), GetY(pos), -1.0f);
-    pn = p->anode;
-    pnEnd = &p->anode[p->cnode];
-    anode = p->anode;
-    mask = (fl & 1) ? 0x8000 : 0x4000;
+    pn = graph->anode;
+    pnEnd = &graph->anode[graph->cnode];
+    anode = graph->anode;
+    mask = (flags & 1) ? 0x8000 : 0x4000;
     for (; pn != pnEnd; ) {
         unsigned int k;
         /* The C file indexed a[cond ? 1 : 0]; C fused the scale into the arms (0 or 2 bytes) and added it to the
@@ -102,7 +102,7 @@ LEAF *FindNavTriangleQuick(struct T *p, qword pos, int fl)
             if ((k & mask) == 0)
                 return 0;
             k &= 0x3FFF;
-            return &p->aleaf[k];
+            return &graph->aleaf[k];
         }
         pn = anode + k;
     }
@@ -144,7 +144,7 @@ namespace PATH_DATA { float r_D_002C0C04 __asm__("D_002C0C04") = 50.0f; }   /* F
  * @end-sly2-annot */
 // Tolerant BSP walk: returns the triangle containing pos or, failing that, the nearest one (Sly 1
 // PcgtPointInCbspSafe).
-LEAF *FindNavTriangleSafe(struct T *p, NODE *pn, qword pos, int fl)
+LEAF *FindNavTriangleSafe(struct T *graph, NODE *node, qword pos, int flags)
 {
     union { qword q; float f; } u;
     NODE *pnEnd, *anode;
@@ -152,40 +152,40 @@ LEAF *FindNavTriangleSafe(struct T *p, NODE *pn, qword pos, int fl)
     qword q;
     q = Make(GetX(pos), GetY(pos), -1.0f);
     u.q = q;
-    pnEnd = &p->anode[p->cnode];
-    anode = p->anode;
-    mask = (fl & 1) ? 0x8000 : 0x4000;
-    while (pn != pnEnd) {
-        float d = Dot(pn->q, q);
+    pnEnd = &graph->anode[graph->cnode];
+    anode = graph->anode;
+    mask = (flags & 1) ? 0x8000 : 0x4000;
+    while (node != pnEnd) {
+        float d = Dot(node->q, q);
         unsigned int k;
         if (d < -D_002C0C00) {
-            k = pn->s.a[0];
+            k = node->s.a[0];
         } else if (D_002C0C00 < d) {
-            k = pn->s.a[1];
+            k = node->s.a[1];
         } else {
-            k = pn->s.a[1];
+            k = node->s.a[1];
             if (k & 0x8000) {
                 if (k & mask) {
                     k &= 0x3FFF;
-                    return &p->aleaf[k];
+                    return &graph->aleaf[k];
                 }
             } else {
                 NODE *pnT = anode + k;
                 if (pnT != pnEnd) {
-                    LEAF *pl = FindNavTriangleSafe(p, pnT, pos, fl);
+                    LEAF *pl = FindNavTriangleSafe(graph, pnT, pos, flags);
                     if (pl)
                         return pl;
                 }
             }
-            k = pn->s.a[0];
+            k = node->s.a[0];
         }
         if (k & 0x8000) {
             if (!(k & mask))
                 return 0;
             k &= 0x3FFF;
-            return &p->aleaf[k];
+            return &graph->aleaf[k];
         }
-        pn = anode + k;
+        node = anode + k;
     }
     return 0;
 }
@@ -201,11 +201,11 @@ namespace M_CbskFromG__Ff { extern "C" {
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Classifies a signed plane distance: 0 front, 1 back, 2 on the plane (within an epsilon). Sly 1 name.
-int CbskFromG__Ff(float x)
+int CbskFromG__Ff(float distance)
 {
 extern float D_002C0C00;
-    if (D_002C0C00 < x) return 0;
-    if (x < -D_002C0C00) return 1;
+    if (D_002C0C00 < distance) return 0;
+    if (distance < -D_002C0C00) return 1;
     return 2;
 }
 } } // namespace M_CbskFromG__Ff
@@ -441,9 +441,9 @@ int IsEdgeBlockedByCbsp(GRAPH*g,qword from,qword to,int flags){
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Index of a graph vertex from its pointer.
-int IcgvFromPcgv(CG *pcg, CGV *pcgv)
+int IcgvFromPcgv(CG *graph, CGV *vertex)
 {
-    return pcgv - pcg->acgv;
+    return vertex - graph->acgv;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -480,22 +480,22 @@ static inline float Dist2(const qword &a, const qword &b)
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // A* search over the graph's vertices from a start to a goal triangle; fills the predecessor chain. Sly 1 name.
-extern "C" void FindPathAStar(G *p, V *pvStart, V *pvGoal, int cMax, int *pc, V **apv)
+extern "C" void FindPathAStar(G *graph, V *start, V *goal, int maxVertices, int *count, V **path)
 {
     NODE node;
     STACKSCOPE ctx;
-    int *afClosed = (int *)AllocB(p->c << 2);
+    int *afClosed = (int *)AllocB(graph->c << 2);
     NODE *pnHead;
     NODE *pn;
-    apv[0] = pvStart;
+    path[0] = start;
     pnHead = 0;
     node.depth = 1;
-    node.pv = pvStart;
-    node.f = Dist2(pvStart->pos, pvGoal->pos);
+    node.pv = start;
+    node.f = Dist2(start->pos, goal->pos);
     node.g = 0.0f;
     node.parent = 0;
     pn = &node;
-    if (pvStart != pvGoal) {
+    if (start != goal) {
         do {
             V *pvCur = pn->pv;
             int i;
@@ -504,10 +504,10 @@ extern "C" void FindPathAStar(G *p, V *pvStart, V *pvGoal, int cMax, int *pc, V 
                 V *pv = pe->pv;
                 int fSkip;
                 NODE *pnNew, **ppn, *pnT;
-                if (pv == pvGoal) {
+                if (pv == goal) {
                     fSkip = 0;
                 } else {
-                    int iv = IcgvFromPcgv__FP2CGP3CGV(p, pv);
+                    int iv = IcgvFromPcgv__FP2CGP3CGV(graph, pv);
                     if (afClosed[iv] == 0) {
                         afClosed[iv] = 1;
                         fSkip = 0;
@@ -520,7 +520,7 @@ extern "C" void FindPathAStar(G *p, V *pvStart, V *pvGoal, int cMax, int *pc, V 
                 pnNew = (NODE *)Alloc(0x18);
                 pnNew->pv = pv;
                 pnNew->g = pn->g + pe->cost;
-                pnNew->f = pnNew->g + Dist2(pvCur->pos, pvGoal->pos);
+                pnNew->f = pnNew->g + Dist2(pvCur->pos, goal->pos);
                 pnNew->parent = pn;
                 pnNew->depth = pn->depth + 1;
                 ppn = &pnHead;
@@ -536,14 +536,14 @@ extern "C" void FindPathAStar(G *p, V *pvStart, V *pvGoal, int cMax, int *pc, V 
             if (!pn)
                 break;
             pnHead = pn->next;
-        } while (pn->pv != pvGoal);
+        } while (pn->pv != goal);
     }
     if (pn) {
-        *pc = pn->depth;
+        *count = pn->depth;
         for (; pn; pn = pn->parent)
-            apv[pn->depth - 1] = pn->pv;
+            path[pn->depth - 1] = pn->pv;
     } else {
-        *pc = 0;
+        *count = 0;
     }
 }
 } // namespace M_FindPathAStar
@@ -566,21 +566,21 @@ static __inline__ void *PvAllocReq(struct REQ *preq, int cb, int nKind) { preq->
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Drops intermediate path vertices that can be skipped with a clear line of sight (IsEdgeBlockedByCbsp).
-void SimplifyApcgvNeighbor(void *ctx, int *pc, qword **ap)
+void SimplifyApcgvNeighbor(void *ctx, int *count, qword **points)
 {
     struct CTX c;
     struct REQ req;
     qword **tmp, **prev, **cur, **next, **end;
     int n, k;
     STACKSCOPE_ctor(&c);
-    n = *pc;
-    end = ap + n;
+    n = *count;
+    end = points + n;
     tmp = (__typeof__(tmp))PvAllocReq(&req, n * 4, 0x10);
-    tmp[0] = ap[0];
+    tmp[0] = points[0];
     k = 1;
-    prev = ap;
-    cur = ap + 1;
-    next = ap + 2;
+    prev = points;
+    cur = points + 1;
+    next = points + 2;
     while (next < end) {
         if (IsEdgeBlockedByCbsp(ctx, **prev, **next, 0)) {
             tmp[k] = *cur;
@@ -591,11 +591,11 @@ void SimplifyApcgvNeighbor(void *ctx, int *pc, qword **ap)
             cur = next++;
         }
     }
-    tmp[k] = ap[n - 1];
+    tmp[k] = points[n - 1];
     k++;
     if (k < n && k >= 3) SimplifyApcgvNeighbor(ctx, &k, tmp);
-    CopyAb__FPvT0Ui(ap, tmp, k * 4);
-    *pc = k;
+    CopyAb__FPvT0Ui(points, tmp, k * 4);
+    *count = k;
     STACKSCOPE_ctor_1AE4A0(&c, 2);
 }
 } } // namespace M_SimplifyApcgvNeighbor
@@ -651,22 +651,22 @@ static inline qword AddScaled(qword a, qword b, float g)
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Closest point of a navigation triangle to p (clamped to an edge, or projected vertically inside it).
-qword ClosestPointOnCgt(T *t, qword p)
+qword ClosestPointOnCgt(T *triangle, qword pos)
 {
     U result;
-    qword a = *t->a, b = *t->b, c = *t->c;
+    qword a = *triangle->a, b = *triangle->b, c = *triangle->c;
     qword ab = Sub(b, a);
     VU_VECTOR va(a), vc(c);
-    if (0.0f < Z(Cross(Sub(p, a), ab))) FindClosestPointOnLineSegment(p, a, b, &result.q, 0, 0);
-    else if (0.0f < Z(Cross(Sub(p, b), Sub(c, b)))) FindClosestPointOnLineSegment(p, b, c, &result.q, 0, 0);
-    else if (0.0f < Z(Cross(Sub(p, c), Sub(a, c)))) FindClosestPointOnLineSegment(p, c, a, &result.q, 0, 0);
+    if (0.0f < Z(Cross(Sub(pos, a), ab))) FindClosestPointOnLineSegment(pos, a, b, &result.q, 0, 0);
+    else if (0.0f < Z(Cross(Sub(pos, b), Sub(c, b)))) FindClosestPointOnLineSegment(pos, b, c, &result.q, 0, 0);
+    else if (0.0f < Z(Cross(Sub(pos, c), Sub(a, c)))) FindClosestPointOnLineSegment(pos, c, a, &result.q, 0, 0);
     else {
         qword n = Cross(ab, Sub(vc.q, va.q));
-        qword dv = Dot(Sub(va.q, p), n);
+        qword dv = Dot(Sub(va.q, pos), n);
         float nz = ZOf(n);
         float dot = XOf(dv);
         float g = dot / nz;
-        result.q = AddScaled(p, D_002A2DC0, g);
+        result.q = AddScaled(pos, D_002A2DC0, g);
     }
     return result.q;
 }
@@ -748,12 +748,12 @@ static inline qword AddScaled(qword p, qword axis, VU_FLOAT s)
  * @end-sly2-annot */
 // Finds a route between two points over the graph: locates both triangles, runs A*, simplifies, copies at most
 // cposMax points out with a minimum spacing. Returns the point count (Sly 1 CposFindPath).
-int FindPathPoints(G *g, qword from, qword to, int capacity, U *out)
+int FindPathPoints(G *graph, qword from, qword to, int capacity, U *out)
 {
-    TRI *first = FindNavTriangleSafe(g, g->pbsp, from, 1);
+    TRI *first = FindNavTriangleSafe(graph, graph->pbsp, from, 1);
     if (!first) return 0;
     qword start = ClosestPointOnCgt(first, from);
-    TRI *last = FindNavTriangleSafe(g, g->pbsp, to, 1);
+    TRI *last = FindNavTriangleSafe(graph, graph->pbsp, to, 1);
     if (!last) return 0;
     qword finish = ClosestPointOnCgt(last, to);
     U *write;
@@ -796,8 +796,8 @@ int FindPathPoints(G *g, qword from, qword to, int capacity, U *out)
             e->cost = Dist2DI(v->pos.q, fv);
         }
         int found;
-        FindPathAStar(g, &initial, pg, 128, &found, path);
-        if (found >= 3) SimplifyApcgvNeighbor(g, &found, path);
+        FindPathAStar(graph, &initial, pg, 128, &found, path);
+        if (found >= 3) SimplifyApcgvNeighbor(graph, &found, path);
         int n = found; if (n > capacity) n = capacity; count = n;
         for (int i = 0; i < count; i++) out[i].q = path[i]->pos.q;
         for (int i = 0; i < 3; i++) last->apv[i]->cEdge--;
@@ -871,11 +871,11 @@ qword ClosestPointOnCgt(void *p, qword q);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Closest point of the graph to pos (nearest triangle, then the closest point on it); returns 1 when found.
-int FindClosestPointInCg(struct S *p, qword q, qword *pq)
+int FindClosestPointInCg(struct S *graph, qword pos, qword *closest)
 {
-    void *pv = FindNavTriangleSafe(p, p->n14, q);
+    void *pv = FindNavTriangleSafe(graph, graph->n14, pos);
     if (!pv) return 0;
-    *pq = ClosestPointOnCgt(pv, q);
+    *closest = ClosestPointOnCgt(pv, pos);
     return 1;
 }
 } } // namespace M_FindClosestPointInCg
@@ -926,52 +926,52 @@ void HookupCg(int *p);
  * @end-sly2-annot */
 // CID 17 slot 14 (LoadFromBrx): the XFM, the vertices (position + edge list), triangles and BSP nodes; then
 // HookupCg.
-void LoadPathzoneFromBrx(struct S *p, void *pbis)
+void LoadPathzoneFromBrx(struct S *zone, void *stream)
 {
     struct A a;
     int i, j, k;
-    LoadXfmFromBrx(p, pbis);
-    p->cE0 = U16Read__18CBinaryInputStream(pbis);
-    a.cb = p->cE0 * 32;
+    LoadXfmFromBrx(zone, stream);
+    zone->cE0 = U16Read__18CBinaryInputStream(stream);
+    a.cb = zone->cE0 * 32;
     a.align = 0x10;
-    p->aE4 = (__typeof__(p->aE4))func_001AE2A0(&a);
-    p->cE8 = U16Read__18CBinaryInputStream(pbis);
-    a.cb = p->cE8 * 12;
+    zone->aE4 = (__typeof__(zone->aE4))func_001AE2A0(&a);
+    zone->cE8 = U16Read__18CBinaryInputStream(stream);
+    a.cb = zone->cE8 * 12;
     a.align = 0x10;
-    p->aEC = (__typeof__(p->aEC))func_001AE2A0(&a);
-    for (i = 0; i < p->cE0; i++) {
-        struct V *pd = &p->aE4[i];
-        ReadVector__18CBinaryInputStreamP6VECTOR(pbis, pd);
-        pd->c = U8Read__18CBinaryInputStream(pbis);
+    zone->aEC = (__typeof__(zone->aEC))func_001AE2A0(&a);
+    for (i = 0; i < zone->cE0; i++) {
+        struct V *pd = &zone->aE4[i];
+        ReadVector__18CBinaryInputStreamP6VECTOR(stream, pd);
+        pd->c = U8Read__18CBinaryInputStream(stream);
         a.cb = pd->c * 8 + 8;
         a.align = 0x10;
         pd->ae = (__typeof__(pd->ae))func_001AE1D0(&a);
         for (j = 0; j < pd->c; j++) {
             struct E8 *pe = &pd->ae[j];
-            pe->pv = &p->aE4[U16Read__18CBinaryInputStream(pbis)];
+            pe->pv = &zone->aE4[U16Read__18CBinaryInputStream(stream)];
         }
     }
-    for (k = 0; k < p->cE8; k++) {
-        struct V **ppv = p->aEC[k].apv;
+    for (k = 0; k < zone->cE8; k++) {
+        struct V **ppv = zone->aEC[k].apv;
         for (i = 0; i < 3; i++)
-            *ppv++ = &p->aE4[U16Read__18CBinaryInputStream(pbis)];
+            *ppv++ = &zone->aE4[U16Read__18CBinaryInputStream(stream)];
     }
-    p->cF0 = U16Read__18CBinaryInputStream(pbis);
-    a.cb = p->cF0 * 16;
+    zone->cF0 = U16Read__18CBinaryInputStream(stream);
+    a.cb = zone->cF0 * 16;
     a.align = 0x10;
-    p->aF4 = (__typeof__(p->aF4))func_001AE2A0(&a);
-    for (i = 0; i < p->cF0; i++) {
-        struct P *pp = &p->aF4[i];
-        pp->x = F32Read__18CBinaryInputStream(pbis);
-        pp->y = F32Read__18CBinaryInputStream(pbis);
-        pp->z = F32Read__18CBinaryInputStream(pbis);
-        pp->c = U16Read__18CBinaryInputStream(pbis);
-        pp->d = U16Read__18CBinaryInputStream(pbis);
+    zone->aF4 = (__typeof__(zone->aF4))func_001AE2A0(&a);
+    for (i = 0; i < zone->cF0; i++) {
+        struct P *pp = &zone->aF4[i];
+        pp->x = F32Read__18CBinaryInputStream(stream);
+        pp->y = F32Read__18CBinaryInputStream(stream);
+        pp->z = F32Read__18CBinaryInputStream(stream);
+        pp->c = U16Read__18CBinaryInputStream(stream);
+        pp->d = U16Read__18CBinaryInputStream(stream);
     }
-    HookupCg(&p->cE0);
-    if (p->x18 == 0x2CA)
-        D_003DD490.x45C8 = p;
-    p->x114 = ++D_003DD490.x3D70;
+    HookupCg(&zone->cE0);
+    if (zone->x18 == 0x2CA)
+        D_003DD490.x45C8 = zone;
+    zone->x114 = ++D_003DD490.x3D70;
 }
 } } // namespace M_LoadPathzoneFromBrx
 
@@ -1010,50 +1010,50 @@ void HookupCg(int *p);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Builds a trivial graph for a level without zones: 4 vertices, 2 triangles and one diagonal BSP node from tables.
-void InitDefaultPathzoneCg(struct S *p)
+void InitDefaultPathzoneCg(struct S *zone)
 {
     struct A a;
     int i, j, k;
     struct P *pp;
     float g;
-    p->cE0 = 4;
+    zone->cE0 = 4;
     a.cb = 0x80;
     a.align = 0x10;
-    p->aE4 = (__typeof__(p->aE4))func_001AE2A0(&a);
-    for (i = 0; i < p->cE0; i++) {
+    zone->aE4 = (__typeof__(zone->aE4))func_001AE2A0(&a);
+    for (i = 0; i < zone->cE0; i++) {
         struct VS *ps = &D_002C0C10[i];
-        struct V *pd = &p->aE4[i];
+        struct V *pd = &zone->aE4[i];
         pd->pos = ps->pos.q;
         pd->c = ps->c;
         a.cb = pd->c * 8 + 8;
         a.align = 0x10;
         pd->ae = (__typeof__(pd->ae))func_001AE1D0(&a);
         for (j = 0; j < pd->c; j++)
-            { struct E8 *pe = &pd->ae[j]; pe->pv = &p->aE4[ps->ai[j]]; }
+            { struct E8 *pe = &pd->ae[j]; pe->pv = &zone->aE4[ps->ai[j]]; }
     }
-    p->cE8 = 2;
+    zone->cE8 = 2;
     a.cb = 0x18;
     a.align = 0x10;
-    p->aEC = (__typeof__(p->aEC))func_001AE2A0(&a);
-    for (k = 0; k < p->cE8; k++) {
-        struct V **ppv = p->aEC[k].apv;
+    zone->aEC = (__typeof__(zone->aEC))func_001AE2A0(&a);
+    for (k = 0; k < zone->cE8; k++) {
+        struct V **ppv = zone->aEC[k].apv;
         int *pi = D_002C0C90[k].ai;
         for (i = 0; i < 3; i++)
-            *ppv++ = &p->aE4[*pi++];
+            *ppv++ = &zone->aE4[*pi++];
     }
-    p->cF0 = 1;
+    zone->cF0 = 1;
     a.cb = 0x10;
     a.align = 0x10;
     pp = (__typeof__(pp))func_001AE2A0(&a);
-    p->aF4 = pp;
+    zone->aF4 = pp;
     g = sqrtf_(2.0f) * 0.5f;
     pp->c = 0xC001;
     pp->d = 0xC000;
     pp->z = 0;
     pp->x = g;
     pp->y = -g;
-    HookupCg(&p->cE0);
-    p->x114 = ++D_003DD490.x3D70;
+    HookupCg(&zone->cE0);
+    zone->x114 = ++D_003DD490.x3D70;
 }
 } } // namespace M_InitDefaultPathzoneCg
 
@@ -1082,11 +1082,11 @@ static inline int Dist(qword a, qword b)
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Computes the graph's edge costs (XY distance between connected vertices). Sly 1 name.
-void HookupCg(struct A *pa)
+void HookupCg(struct A *graph)
 {
     int i, j;
-    for (i = 0; i < pa->c; i++) {
-        struct E *pe = &pa->ae[i];
+    for (i = 0; i < graph->c; i++) {
+        struct E *pe = &graph->ae[i];
         for (j = 0; j < pe->c; j++) {
             register struct F *field __asm__("$3") = pe->af;
             field += j;
@@ -1104,9 +1104,9 @@ void HookupCg(struct A *pa)
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Returns 1 when pos lies on a walkable triangle of the zone.
-extern "C" int IsPosInPathzone(PATHZONEV *ppathzone, qword pos, int grf)
+extern "C" int IsPosInPathzone(PATHZONEV *zone, qword pos, int flags)
 {
-    return FindNavTriangleQuick(&ppathzone->cg, pos, grf) != 0;
+    return FindNavTriangleQuick(&zone->cg, pos, flags) != 0;
 }
 
 /** @sly2-annot addr=0x1C0940
@@ -1116,9 +1116,9 @@ extern "C" int IsPosInPathzone(PATHZONEV *ppathzone, qword pos, int grf)
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Closest walkable point of the zone to pos.
-extern "C" int FindPathzoneClosestPoint(PATHZONEV *ppathzone, qword pos, qword *ppos)
+extern "C" int FindPathzoneClosestPoint(PATHZONEV *zone, qword pos, qword *closest)
 {
-    return FindClosestPointInCg(&ppathzone->cg, pos, ppos);
+    return FindClosestPointInCg(&zone->cg, pos, closest);
 }
 
 /** @sly2-annot addr=0x1C0960
@@ -1128,9 +1128,9 @@ extern "C" int FindPathzoneClosestPoint(PATHZONEV *ppathzone, qword pos, qword *
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Clips a segment against the zone's walkable space (ClipEdgeToCbsp on the zone's graph).
-extern "C" int ClipEdgeToPathzone(PATHZONEV *ppathzone, qword posFrom, qword posTo, int clsgMax, void *alsg, int grf)
+extern "C" int ClipEdgeToPathzone(PATHZONEV *zone, qword from, qword to, int maxSegments, void *segments, int flags)
 {
-    return ClipEdgeToCbsp(&ppathzone->cg, posFrom, posTo, clsgMax, alsg, grf);
+    return ClipEdgeToCbsp(&zone->cg, from, to, maxSegments, segments, flags);
 }
 
 /** @sly2-annot addr=0x1C0980
@@ -1140,9 +1140,9 @@ extern "C" int ClipEdgeToPathzone(PATHZONEV *ppathzone, qword posFrom, qword pos
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Returns 1 when a segment leaves the zone's walkable space.
-extern "C" int IsEdgeBlockedByPathzone(PATHZONEV *ppathzone, qword posFrom, qword posTo, int grf)
+extern "C" int IsEdgeBlockedByPathzone(PATHZONEV *zone, qword from, qword to, int flags)
 {
-    return IsEdgeBlockedByCbsp(&ppathzone->cg, posFrom, posTo, grf);
+    return IsEdgeBlockedByCbsp(&zone->cg, from, to, flags);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1160,14 +1160,14 @@ int IsPosInCnvo(void *pv, qword q);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Returns 1 when a point is walkable in the zone and not inside any registered obstacle.
-int IsPosFreeInPathzone(struct S *p, qword q,int flags)
+int IsPosFreeInPathzone(struct S *zone, qword pos,int flags)
 {
     void *ap[0x80];
     int n, i;
-    if (!FindNavTriangleQuick(p->xE0,q,flags)) return 0;
-    n = FindPathzoneObstacles(p, 0, q, q, 0x80, ap);
+    if (!FindNavTriangleQuick(zone->xE0,pos,flags)) return 0;
+    n = FindPathzoneObstacles(zone, 0, pos, pos, 0x80, ap);
     for (i = 0; i < n; i++) {
-        if (IsPosInCnvo(ap[i], q)) return 0;
+        if (IsPosInCnvo(ap[i], pos)) return 0;
     }
     return 1;
 }
@@ -1188,17 +1188,17 @@ void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, in
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Clips a segment to the zone, then against its obstacles; returns the blocking obstacle (or 0) and the clipped end.
-void *FindPathzoneSegmentBlocker(void *p, qword a, qword b, int c, int d)
+void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
 {
     void *ap[0x80];
     struct S s;
     void *pv;
     int n, i;
-    pv = ClipEdgeToPathzone(p, a, b, c, d, 2);
+    pv = ClipEdgeToPathzone(zone, from, to, c, d, 2);
     if (!pv) return 0;
-    n = FindPathzoneObstacles(p, 0, a, b, 0x80, ap);
+    n = FindPathzoneObstacles(zone, 0, from, to, 0x80, ap);
     for (i = 0; i < n; i++) {
-        void *r = ClipEdgeToCnvo(ap[i], a, b, 2, &s);
+        void *r = ClipEdgeToCnvo(ap[i], from, to, 2, &s);
         pv = MergeSegmentLists(pv, d, r, &s, c, d, 1);
         if (!pv) goto out;
     }
@@ -1235,7 +1235,7 @@ static inline int InitialCount(const struct S*p){int value;__asm__("lw %0,%1":"=
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Closest point to pos that is walkable in the zone and outside every obstacle.
-int FindPathzoneClosestFreePoint(struct S*p,qword point,qword*out){
+int FindPathzoneClosestFreePoint(struct S*zone,qword point,qword*out){
  void*objects[128];
  union U a,b;
  union {qword q;int i[4];}best;
@@ -1246,11 +1246,11 @@ int FindPathzoneClosestFreePoint(struct S*p,qword point,qword*out){
  qword projected,first;
  int n,i;
  float z,bestDistance;
- leaf=FindNavTriangleQuick(p->bsp,point,1);
+ leaf=FindNavTriangleQuick(zone->bsp,point,1);
  if(!leaf)return 0;
  projected=ClosestPointOnCgt(leaf,point);poly=0;
  {int j=0;
- n=FindPathzoneObstacles(p,0,projected,projected,128,objects);
+ n=FindPathzoneObstacles(zone,0,projected,projected,128,objects);
  for(;j<n;j++){if(IsPosInCnvo(objects[j],point)){poly=(__typeof__(poly))objects[j];break;}}
  }
  if(!poly){*out=projected;return 1;}
@@ -1261,7 +1261,7 @@ int FindPathzoneClosestFreePoint(struct S*p,qword point,qword*out){
  i=1;if(i<InitialCount(poly)){do{
   int c;qword*h;
   b.q=ConvertAloPos(poly,0,poly->vertices[i]);b.f[2]=z;
-  c=ClipEdgeToPathzone(p,a.q,b.q,1,hits,2);
+  c=ClipEdgeToPathzone(zone,a.q,b.q,1,hits,2);
   {int k;h=&hits[0].pos[1];for(k=0;k<c;k++){
    FindClosestPointOnLineSegment(projected,h[-1],h[0],&nearest.q,0,&distance);
    if(distance<bestDistance){bestDistance=distance;*(qword*)&best=nearest.q;}
@@ -1269,7 +1269,7 @@ int FindPathzoneClosestFreePoint(struct S*p,qword point,qword*out){
   }}
   a=b;i++;
  }while(i<poly->count);}
- FindPathzoneClosestPoint(p,*(qword*)&best,out,0);
+ FindPathzoneClosestPoint(zone,*(qword*)&best,out,0);
  return 1;
 }
 
@@ -1314,7 +1314,7 @@ static __inline__ int ISide(qword plane, qword pos)
  *   docs/engine/physics-collision.md#7-key-functions, docs/engine/physics-collision.md#open-questions
  * @end-sly2-annot */
 // Walks the world's zone BSP (SW +0x45CC) to the path zone containing pos; falls back to the world's default zone.
-void *FindPathzoneAtPos(qword pos, int f)
+void *FindPathzoneAtPos(qword pos, int flags)
 {
     struct B *pb = D_003DD490.pbsp;
     struct N *pn, *pnEnd, *an;
@@ -1332,7 +1332,7 @@ void *FindPathzoneAtPos(qword pos, int f)
             goto leaf;
         pn = &an[c];
     }
-    if (!f && pb->x10)
+    if (!flags && pb->x10)
         return 0;
     return D_003DD490.x45C8;
 leaf:
@@ -1357,15 +1357,15 @@ void LoadZoneBspFromBrx(void *p, int n, void *pbis);
  *   docs/formats/level-objects.md#2-per-world-entry-header-loop-body-of-loadswfrombrx
  * @end-sly2-annot */
 // Reads the world's zone BSP from the level stream when present.
-void LoadSwZoneBspFromBrx(struct G *p, void *pbis)
+void LoadSwZoneBspFromBrx(struct G *world, void *stream)
 {
-    int n = U32Read__18CBinaryInputStream(pbis);
+    int n = U32Read__18CBinaryInputStream(stream);
     if (n) {
         struct MSG msg;
         msg.cb = 0x30;
         msg.nKind = 0x10;
-        p->p45cc = func_001AE2A0(&msg);
-        LoadZoneBspFromBrx(p->p45cc, n, pbis);
+        world->p45cc = func_001AE2A0(&msg);
+        LoadZoneBspFromBrx(world->p45cc, n, stream);
     }
 }
 } } // namespace M_LoadSwZoneBspFromBrx
@@ -1392,35 +1392,35 @@ void *func_001AE2A0(struct A *pa);
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Reads a zone BSP: nodes (plane index and two children), planes and leaf zone ids.
-void LoadZoneBspFromBrx(struct S *p, int c, void *pbis)
+void LoadZoneBspFromBrx(struct S *bsp, int count, void *stream)
 {
     struct A a;
     int i, j;
-    p->c0 = c;
-    p->c8 = U32Read__18CBinaryInputStream(pbis);
-    p->c10 = U32Read__18CBinaryInputStream(pbis);
-    a.cb = p->c0 * 8;
+    bsp->c0 = count;
+    bsp->c8 = U32Read__18CBinaryInputStream(stream);
+    bsp->c10 = U32Read__18CBinaryInputStream(stream);
+    a.cb = bsp->c0 * 8;
     a.align = 0x10;
-    p->ae = (__typeof__(p->ae))func_001AE1D0(&a);
-    a.cb = p->c8 * 16;
+    bsp->ae = (__typeof__(bsp->ae))func_001AE1D0(&a);
+    a.cb = bsp->c8 * 16;
     a.align = 0x10;
-    p->av = (__typeof__(p->av))func_001AE1D0(&a);
-    a.cb = p->c10 * 4;
+    bsp->av = (__typeof__(bsp->av))func_001AE1D0(&a);
+    a.cb = bsp->c10 * 4;
     a.align = 0x10;
-    p->x18 = func_001AE2A0(&a);
-    a.cb = p->c10 * 4;
+    bsp->x18 = func_001AE2A0(&a);
+    a.cb = bsp->c10 * 4;
     a.align = 0x10;
-    p->a14 = (__typeof__(p->a14))func_001AE1D0(&a);
-    for (i = 0; i < p->c0; i++) {
-        struct E *pe = &p->ae[i];
-        pe->pv = &p->av[U16Read__18CBinaryInputStream(pbis)];
-        pe->a = U16Read__18CBinaryInputStream(pbis);
-        pe->b = U16Read__18CBinaryInputStream(pbis);
+    bsp->a14 = (__typeof__(bsp->a14))func_001AE1D0(&a);
+    for (i = 0; i < bsp->c0; i++) {
+        struct E *pe = &bsp->ae[i];
+        pe->pv = &bsp->av[U16Read__18CBinaryInputStream(stream)];
+        pe->a = U16Read__18CBinaryInputStream(stream);
+        pe->b = U16Read__18CBinaryInputStream(stream);
     }
-    for (j = 0; j < p->c8; j++)
-        ReadVector4__18CBinaryInputStreamP7VECTOR4(pbis, &p->av[j]);
-    for (j = 0; j < p->c10; j++)
-        p->a14[j] = S32Read__18CBinaryInputStream(pbis);
+    for (j = 0; j < bsp->c8; j++)
+        ReadVector4__18CBinaryInputStreamP7VECTOR4(stream, &bsp->av[j]);
+    for (j = 0; j < bsp->c10; j++)
+        bsp->a14[j] = S32Read__18CBinaryInputStream(stream);
 }
 } } // namespace M_LoadZoneBspFromBrx
 
@@ -1441,17 +1441,17 @@ void BindSwPathzones(void *p);
  * @end-sly2-annot */
 // After level load: with no zone BSP creates a default path zone (oid 0x2CA) with the trivial graph; then binds the
 // zones and their links.
-void PostLoadSwPathzones(struct G *p)
+void PostLoadSwPathzones(struct G *world)
 {
-    if (!p->p45cc) {
+    if (!world->p45cc) {
         struct MSG msg;
-        p->p45c8 = PloNew__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
-        InitDefaultPathzoneCg(p->p45c8);
+        world->p45c8 = PloNew__F3CIDP2SO3OIDi(0x11, 0, 0x2CA, -1);
+        InitDefaultPathzoneCg(world->p45c8);
         msg.cb = 0x30;
         msg.nKind = 0x10;
-        p->p45cc = func_001AE2A0(&msg);
+        world->p45cc = func_001AE2A0(&msg);
     }
-    BindSwPathzones(p->p45cc);
+    BindSwPathzones(world->p45cc);
 }
 } } // namespace M_PostLoadSwPathzones
 
@@ -1476,27 +1476,27 @@ static __inline__ void*WorldAddress(char*page){void*world;__asm__("addiu %0,%1,%
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Resolves the BSP's leaf zone ids to PATHZONE objects and collects every path link (CID 124), numbering both.
-void BindSwPathzones(struct S *p)
+void BindSwPathzones(struct S *world)
 {
     int i,n;register int c __asm__("$6");
     struct LO *ap[0x400];
     struct AL al;
     char*worldPage=WorldPage();
-    for (i = 0; i < p->c; i++) {
-        struct LO *plo = PloFindSwObject__FP2SWi3OIDP2LO(WorldAddress(worldPage), 5, p->aid[i], 0);
+    for (i = 0; i < world->c; i++) {
+        struct LO *plo = PloFindSwObject__FP2SWi3OIDP2LO(WorldAddress(worldPage), 5, world->aid[i], 0);
         plo->x124 = i;
-        p->aplo[i] = plo;
+        world->aplo[i] = plo;
     }
     n = CploFindSwObjectsByClass(WorldAddress(worldPage), 0x205, 0x7C, QueryScope(), 0x400, ap);
     {register int alignment __asm__("$7")=0x10;
     c = 0x400;
     if (n < 0x400) c = n;
-    p->aplo2=(struct LO**)func_001AE238(PrepareRequest(&al,p,c,alignment),ap);}
+    world->aplo2=(struct LO**)func_001AE238(PrepareRequest(&al,world,c,alignment),ap);}
     {
         int j;
-        for (j = 0; j < p->c2; j++) p->aplo2[j]->x150 = j;
+        for (j = 0; j < world->c2; j++) world->aplo2[j]->x150 = j;
     }
-    p->x2C = 1;
+    world->x2C = 1;
 }
 
 #define OFF(t,m) ((int)&((t*)0)->m)
@@ -1524,32 +1524,32 @@ static inline void *Alloc2(struct A *pa) { pa->align = 0x10; return func_001AE1D
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Buckets the path links by the zone of their first endpoint, for FindPathlinkRoute.
-void BuildPathzoneLinkLists(struct S *p)
+void BuildPathzoneLinkLists(struct S *world)
 {
     struct H h;
     struct A a;
     int *ac;
     int i, j, k;
     STACKSCOPE_ctor(&h);
-    a.cb = p->c10 * 4;
+    a.cb = world->c10 * 4;
     ac = Alloc1(&a);
-    for (i = 0; i < p->c20; i++) {
-        struct Q *q = p->a24[i];
+    for (i = 0; i < world->c20; i++) {
+        struct Q *q = world->a24[i];
         if (q->x124 && q->x128)
             ac[q->x124->x124]++;
     }
-    a.cb = p->c10 * 8;
-    p->x1C = (__typeof__(p->x1C))Alloc2(&a);
-    for (j = 0; j < p->c10; j++) {
-        struct B *pb = &p->x1C[j];
+    a.cb = world->c10 * 8;
+    world->x1C = (__typeof__(world->x1C))Alloc2(&a);
+    for (j = 0; j < world->c10; j++) {
+        struct B *pb = &world->x1C[j];
         pb->c = 0;
         a.cb = ac[j] * 4;
         pb->p = (__typeof__(pb->p))Alloc2(&a);
     }
-    for (k = 0; k < p->c20; k++) {
-        struct Q *q = p->a24[k];
+    for (k = 0; k < world->c20; k++) {
+        struct Q *q = world->a24[k];
         if (q->x124 && q->x128) {
-            struct B *pb = &p->x1C[q->x124->x124];
+            struct B *pb = &world->x1C[q->x124->x124];
             pb->p[pb->c++] = k;
         }
     }
@@ -1567,18 +1567,18 @@ void BuildPathzoneLinkLists(struct S *p)
    its four index slots. */
 struct PATHSEARCH { int an[8]; int iNode; int i24; int i28; int i2C; int i30; int an34[3]; };
 // Resets a 0x40-byte sweep cursor over a zone's sorted obstacle events.
-extern "C" void InitObstacleQueryCursor(PATHZONEV *ppathzone, PATHSEARCH *psearch)
+extern "C" void InitObstacleQueryCursor(PATHZONEV *zone, PATHSEARCH *cursor)
 {
     int i;
     int i2;
-    memset(psearch, 0, 0x40);
-    i = ppathzone->cg.c20 - 2;
-    psearch->i28 = i;
-    psearch->i24 = i;
-    i2 = ppathzone->cg.c20 - 2;
-    psearch->iNode = -1;
-    psearch->i30 = i2;
-    psearch->i2C = i2;
+    memset(cursor, 0, 0x40);
+    i = zone->cg.c20 - 2;
+    cursor->i28 = i;
+    cursor->i24 = i;
+    i2 = zone->cg.c20 - 2;
+    cursor->iNode = -1;
+    cursor->i30 = i2;
+    cursor->i2C = i2;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1593,38 +1593,38 @@ struct E { float t; unsigned short k; unsigned short bit; };
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Moves the cursor through sorted begin/end events, toggling each obstacle's membership bit.
-int SweepObstacleEvents(struct E *ae, int i, float g, unsigned int *grf, int f)
+int SweepObstacleEvents(struct E *events, int index, float coordinate, unsigned int *membership, int f)
 {
-    if (g <= ae[i].t) {
+    if (coordinate <= events[index].t) {
         for (;;) {
-            struct E *pe = &ae[i];
-            if (pe->t < g) break;
+            struct E *pe = &events[index];
+            if (pe->t < coordinate) break;
             if (pe->k == f) {
                 unsigned int bit = pe->bit;
                 unsigned int w = bit / 32;
                 unsigned int b = bit - w * 32;
-                if (!f) *(unsigned int *)((int)grf + (w << 2)) |= 1U << b;
-                else *(unsigned int *)((int)grf + (w << 2)) -= 1U << b;
+                if (!f) *(unsigned int *)((int)membership + (w << 2)) |= 1U << b;
+                else *(unsigned int *)((int)membership + (w << 2)) -= 1U << b;
             }
-            i--;
+            index--;
         }
     } else {
-        i++;
+        index++;
         for (;;) {
-            struct E *pe = &ae[i];
-            if (g < pe->t) break;
+            struct E *pe = &events[index];
+            if (coordinate < pe->t) break;
             if (pe->k == f) {
                 unsigned int bit = pe->bit;
                 unsigned int w = bit / 32;
                 unsigned int b = bit - w * 32;
-                if (f) *(unsigned int *)((int)grf + (w << 2)) |= 1U << b;
-                else *(unsigned int *)((int)grf + (w << 2)) -= 1U << b;
+                if (f) *(unsigned int *)((int)membership + (w << 2)) |= 1U << b;
+                else *(unsigned int *)((int)membership + (w << 2)) -= 1U << b;
             }
-            i++;
+            index++;
         }
-        i--;
+        index--;
     }
-    return i;
+    return index;
 }
 } } // namespace M_func_001C14A8
 
@@ -1639,19 +1639,19 @@ int SweepObstacleEvents(struct E *a, int i, float g, void *p, int f);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Advances the min and max cursors of one axis to a new query range.
-void SweepObstacleRange(struct E *a, int *pi1, int *pi2, void *p, float g1, float g2)
+void SweepObstacleRange(struct E *events, int *minCursor, int *maxCursor, void *p, float rangeMin, float rangeMax)
 {
-    int i1 = *pi1;
-    int i2 = *pi2;
-    if (a[i1].f < g1) {
-        i2 = SweepObstacleEvents(a, i2, g2, p, 1);
-        i1 = SweepObstacleEvents(a, i1, g1, p, 0);
+    int i1 = *minCursor;
+    int i2 = *maxCursor;
+    if (events[i1].f < rangeMin) {
+        i2 = SweepObstacleEvents(events, i2, rangeMax, p, 1);
+        i1 = SweepObstacleEvents(events, i1, rangeMin, p, 0);
     } else {
-        i1 = SweepObstacleEvents(a, i1, g1, p, 0);
-        i2 = SweepObstacleEvents(a, i2, g2, p, 1);
+        i1 = SweepObstacleEvents(events, i1, rangeMin, p, 0);
+        i2 = SweepObstacleEvents(events, i2, rangeMax, p, 1);
     }
-    *pi1 = i1;
-    *pi2 = i2;
+    *minCursor = i1;
+    *maxCursor = i2;
 }
 } } // namespace M_func_001C15F8
 
@@ -1676,28 +1676,28 @@ static inline qword And(qword a,qword b){qword r;__asm__("pand %0,%1,%2":"=r"(r)
  *   docs/reference/functions/physics-collision.md#shape-0x1e5d80-0x1ea568
  * @end-sly2-annot */
 // Sweep-and-prune query: collects the obstacles whose x and y intervals overlap the segment's box; returns the count.
-int FindPathzoneObstacles(struct S*p,struct C*c,qword a,qword b,int max,void**out){
+int FindPathzoneObstacles(struct S*zone,struct C*cursor,qword from,qword to,int max,void**out){
  struct C local;
  union U mask,copy;
  qword hi,lo;
  int i,n;
  float hx,lx;
- if(!p->active)return 0;
- if(!c){c=&local;c->version=-1;}
- if(c->version!=p->version)InitObstacleQueryCursor(p,c);
- lo=Min(a,b);hi=Max(a,b);
- SweepObstacleRange(p->xs,&c->xmin,&c->xmax,&c->x,X(lo),X(hi));
- SweepObstacleRange(p->zs,&c->zmin,&c->zmax,&c->z,Z(lo),Z(hi));
- copy.q=And(c->x,c->z);mask=copy;
+ if(!zone->active)return 0;
+ if(!cursor){cursor=&local;cursor->version=-1;}
+ if(cursor->version!=zone->version)InitObstacleQueryCursor(zone,cursor);
+ lo=Min(from,to);hi=Max(from,to);
+ SweepObstacleRange(zone->xs,&cursor->xmin,&cursor->xmax,&cursor->x,X(lo),X(hi));
+ SweepObstacleRange(zone->zs,&cursor->zmin,&cursor->zmax,&cursor->z,Z(lo),Z(hi));
+ copy.q=And(cursor->x,cursor->z);mask=copy;
  {void**cursor=out;
- for(i=0,n=0;i<p->count;i++){
+ for(i=0,n=0;i<zone->count;i++){
   if(mask.words[i/32]&(1<<(i%32))){
    if(max<n)break;
-   *cursor++=p->objects[i];n++;
+   *cursor++=zone->objects[i];n++;
   }
  }
  }
- c->version=p->version;
+ cursor->version=zone->version;
  return n;
 }
 } } // namespace M_func_001C1700
@@ -1714,18 +1714,18 @@ void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Deletes the begin/end event pair of an obstacle from a sorted event array.
-void RemoveObstacleEvents(int n, struct E *a, int key)
+void RemoveObstacleEvents(int count, struct E *events, int key)
 {
     int i, iFirst, iLast;
     struct E *pe;
     i = 0;
-    pe = a;
+    pe = events;
     goto test;
     for (;;) {
         pe++;
         i++;
     test:
-        if (i >= n) break;
+        if (i >= count) break;
         if (pe->x6 == key) {
             if (pe->x4 != 0) {
                 iFirst = i;
@@ -1735,8 +1735,8 @@ void RemoveObstacleEvents(int n, struct E *a, int key)
             break;
         }
     }
-    CopyAb__FPvT0Ui(&a[iFirst], &a[iFirst] + 1, (iLast - iFirst - 1) * sizeof(struct E));
-    CopyAb__FPvT0Ui(&a[iLast] - 1, &a[iLast] + 1, (n - iLast - 1) * sizeof(struct E));
+    CopyAb__FPvT0Ui(&events[iFirst], &events[iFirst] + 1, (iLast - iFirst - 1) * sizeof(struct E));
+    CopyAb__FPvT0Ui(&events[iLast] - 1, &events[iLast] + 1, (count - iLast - 1) * sizeof(struct E));
 }
 } } // namespace M_func_001C18B8
 
@@ -1754,18 +1754,18 @@ void RemoveObstacleEvents(int n, struct E *a, int key);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Unregisters an obstacle from both axes of its zone and bumps the world's navigation version.
-void RemovePathzoneObstacle(struct S *p, int key)
+void RemovePathzoneObstacle(struct S *zone, int key)
 {
     int i;
-    for (i = 0; i < p->xFC; i++) {
-        if (p->x10C[i] == key) break;
+    for (i = 0; i < zone->xFC; i++) {
+        if (zone->x10C[i] == key) break;
     }
-    p->x10C[i] = 0;
-    RemoveObstacleEvents(p->x100, p->x104, i);
-    RemoveObstacleEvents(p->x100, p->x108, i);
-    p->xF8--;
-    p->x100 -= 2;
-    p->x114 = ++D_003DD490.x3D70;
+    zone->x10C[i] = 0;
+    RemoveObstacleEvents(zone->x100, zone->x104, i);
+    RemoveObstacleEvents(zone->x100, zone->x108, i);
+    zone->xF8--;
+    zone->x100 -= 2;
+    zone->x114 = ++D_003DD490.x3D70;
 }
 } } // namespace M_func_001C1968
 
@@ -1785,21 +1785,21 @@ static inline void Move(void *pvDst, void *pvSrc, unsigned cb) { memmove(pvDst, 
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Inserts an obstacle's begin/end events into a sorted event array.
-void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1)
+void InsertObstacleEvents(int count, struct E *events, int bit, float begin, float end)
 {
     int i, j;
-    for (i = 0; i < c; i++)
-        if (g0 <= ae[i].t) break;
-    for (j = i; j < c; j++)
-        if (g1 < ae[j].t) break;
-    Move(&ae[j + 2], &ae[j], (c - j) * 8U);
-    ae[j + 1].t = g1;
-    ae[j + 1].k = 0;
-    ae[j + 1].bit = bit;
-    Move(&ae[i + 1], &ae[i], (j - i) * 8U);
-    ae[i].bit = bit;
-    ae[i].t = g0;
-    ae[i].k = 1;
+    for (i = 0; i < count; i++)
+        if (begin <= events[i].t) break;
+    for (j = i; j < count; j++)
+        if (end < events[j].t) break;
+    Move(&events[j + 2], &events[j], (count - j) * 8U);
+    events[j + 1].t = end;
+    events[j + 1].k = 0;
+    events[j + 1].bit = bit;
+    Move(&events[i + 1], &events[i], (j - i) * 8U);
+    events[i].bit = bit;
+    events[i].t = begin;
+    events[i].k = 1;
 }
 } } // namespace M_func_001C1A38
 
@@ -1825,34 +1825,34 @@ void InsertObstacleEvents(int c, struct E *ae, int bit, float g0, float g1);
  * @end-sly2-annot */
 // Registers an obstacle in a zone unless it overlaps an existing one (then the polygon gets message 2 to merge),
 // growing the arrays as needed.
-void AddPathzoneObstacle(struct S *p, struct O *po)
+void AddPathzoneObstacle(struct S *zone, struct O *obstacle)
 {
     void *ap[0x20];
     int n, i;
-    n = FindPathzoneObstacles(p, 0, po->a.q, po->b.q, 0x20, ap);
+    n = FindPathzoneObstacles(zone, 0, obstacle->a.q, obstacle->b.q, 0x20, ap);
     for (i = 0; i < n; i++) {
-        if (DoCnvosOverlap(po, ap[i])) {
+        if (DoCnvosOverlap(obstacle, ap[i])) {
             struct M m;
-            m.po = po;
+            m.po = obstacle;
             m.pv = ap[i];
             MergeCid14Obstacles(2, &m);
             return;
         }
     }
-    if (p->xF8 >= p->xFC)
-        GrowPathzoneObstacleArrays(p);
+    if (zone->xF8 >= zone->xFC)
+        GrowPathzoneObstacleArrays(zone);
     {
         int j;
-        p->xF8++;
-        for (j = 0; j < p->xF8; j++)
-            if (!p->x10C[j]) break;
-        p->x10C[j] = po;
-        InsertObstacleEvents(p->x100, p->x104, j, po->a.g[0], po->b.g[0]);
-        InsertObstacleEvents(p->x100, p->x108, j, po->a.g[1], po->b.g[1]);
+        zone->xF8++;
+        for (j = 0; j < zone->xF8; j++)
+            if (!zone->x10C[j]) break;
+        zone->x10C[j] = obstacle;
+        InsertObstacleEvents(zone->x100, zone->x104, j, obstacle->a.g[0], obstacle->b.g[0]);
+        InsertObstacleEvents(zone->x100, zone->x108, j, obstacle->a.g[1], obstacle->b.g[1]);
     }
-    po->x1DC = p;
-    p->x100 += 2;
-    p->x114 = ++D_003DD490.x3D70;
+    obstacle->x1DC = zone;
+    zone->x100 += 2;
+    zone->x114 = ++D_003DD490.x3D70;
 }
 } } // namespace M_func_001C1BA0
 
@@ -1876,14 +1876,14 @@ void *func_002333B4(void *p, int c, int cb) __asm__("memset");
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Grows a zone's obstacle and event arrays (0 -> 16 -> 128) with sentinel events.
-void GrowPathzoneObstacleArrays(struct S *p)
+void GrowPathzoneObstacleArrays(struct S *zone)
 {
     struct A a;
     int n;
     int cb;
     struct E *ae1, *ae2;
     void **apv;
-    switch (p->xFC) {
+    switch (zone->xFC) {
     case 0: n = 0x10; break;
     case 0x10: n = 0x80; break;
     case 0x80: break;
@@ -1898,28 +1898,28 @@ void GrowPathzoneObstacleArrays(struct S *p)
     a.cb = n * 4;
     a.align = 0x10;
     apv = (__typeof__(apv))func_001AE1D0(&a);
-    CopyAb__FPvT0Ui(ae1, p->x104, p->x100 * 8);
-    CopyAb__FPvT0Ui(ae2, p->x108, p->x100 * 8);
-    CopyAb__FPvT0Ui(apv, p->x10C, p->xFC * 4);
-    { int cz = (n - p->xFC) * 4; func_002333B4((void *)(p->xFC * 4 + (int)apv), 0, cz); }
-    p->x108 = ae2;
-    p->x10C = apv;
-    p->xFC = n;
-    p->x104 = ae1;
-    if (p->x100 == 0) {
-        p->x104[0].t = D_002A76E0;
-        p->x104[0].k = 1;
-        p->x104[0].bit = 0xFF;
-        p->x104[1].t = D_002A76E4;
-        p->x104[1].k = 0;
-        p->x104[1].bit = 0xFF;
-        p->x108[0].t = D_002A76E0;
-        p->x108[0].k = 1;
-        p->x108[0].bit = 0xFF;
-        p->x108[1].t = D_002A76E4;
-        p->x108[1].k = 0;
-        p->x108[1].bit = 0xFF;
-        p->x100 = 2;
+    CopyAb__FPvT0Ui(ae1, zone->x104, zone->x100 * 8);
+    CopyAb__FPvT0Ui(ae2, zone->x108, zone->x100 * 8);
+    CopyAb__FPvT0Ui(apv, zone->x10C, zone->xFC * 4);
+    { int cz = (n - zone->xFC) * 4; func_002333B4((void *)(zone->xFC * 4 + (int)apv), 0, cz); }
+    zone->x108 = ae2;
+    zone->x10C = apv;
+    zone->xFC = n;
+    zone->x104 = ae1;
+    if (zone->x100 == 0) {
+        zone->x104[0].t = D_002A76E0;
+        zone->x104[0].k = 1;
+        zone->x104[0].bit = 0xFF;
+        zone->x104[1].t = D_002A76E4;
+        zone->x104[1].k = 0;
+        zone->x104[1].bit = 0xFF;
+        zone->x108[0].t = D_002A76E0;
+        zone->x108[0].k = 1;
+        zone->x108[0].bit = 0xFF;
+        zone->x108[1].t = D_002A76E4;
+        zone->x108[1].k = 0;
+        zone->x108[1].bit = 0xFF;
+        zone->x100 = 2;
     }
 }
 } } // namespace M_func_001C1D20
@@ -1942,15 +1942,15 @@ qword func_001A62E8(void *p);
  * @end-sly2-annot */
 // Position of a path-link endpoint: the closest point on its shape, else its object's position, else the stored
 // vector.
-qword GetPathlinkEndpointPos(struct S *p, qword a)
+qword GetPathlinkEndpointPos(struct S *endpoint, qword pos)
 {
     qword q;
-    if (p->p0) {
-        FindShapeClosestPoint(p->p0, a, D_003DD020, &q, 0, 0, 0);
-    } else if (p->p4) {
-        q = func_001A62E8(p->p4);
+    if (endpoint->p0) {
+        FindShapeClosestPoint(endpoint->p0, pos, D_003DD020, &q, 0, 0, 0);
+    } else if (endpoint->p4) {
+        q = func_001A62E8(endpoint->p4);
     } else {
-        q = p->q10;
+        q = endpoint->q10;
     }
     return q;
 }
@@ -1970,15 +1970,15 @@ qword func_001A62E8(void *p);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Position of a path-link endpoint using the shape's midpoint.
-qword GetPathlinkEndpointCenter(struct S *p)
+qword GetPathlinkEndpointCenter(struct S *endpoint)
 {
     qword q;
-    if (p->p0) {
-        EvaluateShapeS(p->p0, &q, 0, SMaxShape(p->p0) * 0.5f);
-    } else if (p->p4) {
-        q = func_001A62E8(p->p4);
+    if (endpoint->p0) {
+        EvaluateShapeS(endpoint->p0, &q, 0, SMaxShape(endpoint->p0) * 0.5f);
+    } else if (endpoint->p4) {
+        q = func_001A62E8(endpoint->p4);
     } else {
-        q = p->q10;
+        q = endpoint->q10;
     }
     return q;
 }
@@ -1997,16 +1997,16 @@ qword GetPathlinkEndpointPos(void *p, qword q);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Returns 1 when an object is within radius of an endpoint (always for class 0x40 objects).
-int IsNearPathlinkEndpoint(void *p, struct LO *plo, float r)
+int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 {
     qword a, b, d;
     float f;
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x40)) return 1;
-    a = *plo->pq;
-    b = GetPathlinkEndpointPos(p, a);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 0x40)) return 1;
+    a = *object->pq;
+    b = GetPathlinkEndpointPos(endpoint, a);
     __asm__("vsub.xyzw %0, %1, %2\n\tvmul.xy %0, %0, %0\n\tvaddy.x %0, %0, %0y\n\tvsqrt $Q, %0x\n\tvwaitq\n\tvaddq.x %0, $vf0, $Q" : "=j"(d) : "j"(a), "j"(b));
     __asm__("qmfc2.ni %0, %1" : "=r"(f) : "j"(d));
-    return f <= r;
+    return f <= radius;
 }
 } } // namespace M_func_001C1FA0
 
@@ -2038,11 +2038,11 @@ void AddLoHierarchy(void *p);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // CID 124 slot 11: AddLoHierarchy, then bumps the world's navigation version.
-void AddPathlinkHierarchy(void *p)
+void AddPathlinkHierarchy(void *pathlink)
 {
     struct G *pg;
     int c;
-    AddLoHierarchy(p);
+    AddLoHierarchy(pathlink);
     pg = &D_003DD490;
     c = pg->c + 1;
     pg->c = c;
@@ -2063,11 +2063,11 @@ void RemoveLoHierarchy(void *p);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // CID 124 slot 12: RemoveLoHierarchy, then bumps the world's navigation version.
-void RemovePathlinkHierarchy(void *p)
+void RemovePathlinkHierarchy(void *pathlink)
 {
     struct G *pg;
     int c;
-    RemoveLoHierarchy(p);
+    RemoveLoHierarchy(pathlink);
     pg = &D_003DD490;
     c = pg->c + 1;
     pg->c = c;
@@ -2087,11 +2087,11 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *q, int n);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Appends an endpoint to a path link (a shape for class 10, otherwise an object); max 6.
-void AddPathlinkEndpointObject(struct S *p, void *q)
+void AddPathlinkEndpointObject(struct S *pathlink, void *object)
 {
-    if ((unsigned)p->c < 6) {
-        struct E *pe = &p->a[p->c++];
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(q, 10)) pe->p0 = q; else pe->p4 = q;
+    if ((unsigned)pathlink->c < 6) {
+        struct E *pe = &pathlink->a[pathlink->c++];
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(object, 10)) pe->p0 = object; else pe->p4 = object;
     }
 }
 } } // namespace M_func_001C20E8
@@ -2108,9 +2108,9 @@ struct S { char pad[0x50]; int c; char pad2[0x1c]; struct E a[6]; };
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Appends a fixed-position endpoint to a path link; max 6.
-void AddPathlinkEndpointPos(struct S *p, qword q)
+void AddPathlinkEndpointPos(struct S *pathlink, qword pos)
 {
-    if ((unsigned)p->c < 6) { struct E *pe = &p->a[p->c++]; pe->q = q; }
+    if ((unsigned)pathlink->c < 6) { struct E *pe = &pathlink->a[pathlink->c++]; pe->q = pos; }
 }
 } } // namespace M_func_001C2148
 
@@ -2130,13 +2130,13 @@ int FindPathzoneAtPos(qword q, int n);
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // CID 124 slot 15 (PostLoad): PostLoLoad, caches the first and last endpoint positions and their path zones.
-void PostPathlinkLoad(struct S *p)
+void PostPathlinkLoad(struct S *pathlink)
 {
-    PostLoLoad(p);
-    p->q130 = GetPathlinkEndpointCenter(&p->a[0]);
-    p->n124 = FindPathzoneAtPos(p->q130, 0);
-    p->q140 = GetPathlinkEndpointCenter(/*B*/&p->a[p->c] - 1/*E*/);
-    p->n128 = FindPathzoneAtPos(p->q140, 0);
+    PostLoLoad(pathlink);
+    pathlink->q130 = GetPathlinkEndpointCenter(&pathlink->a[0]);
+    pathlink->n124 = FindPathzoneAtPos(pathlink->q130, 0);
+    pathlink->q140 = GetPathlinkEndpointCenter(/*B*/&pathlink->a[pathlink->c] - 1/*E*/);
+    pathlink->n128 = FindPathzoneAtPos(pathlink->q140, 0);
 }
 } } // namespace M_PostPathlinkLoad
 
@@ -2206,17 +2206,17 @@ static inline void StoreX(float *p, qword q) { __asm__("sw %1,%0" : "=m"(*p) : "
  *   docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // A* over path zones connected by path links, from an actor's zone to a goal; returns the chain of links.
-extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, int fExact, int cpedgeMax, EDGE **apedge)
+extern "C" int FindPathlinkRoute(GRAPH *graph, void *actor, qword goal, int isExact, int maxEdges, EDGE **edges)
 {
     STACKSCOPE scope;
     NODE *anode;
     int *afAllowed;
-    anode = (NODE *)PvAllocClear(pgraph->cnav * sizeof(NODE));
-    afAllowed = (int *)PvAlloc(pgraph->cedge * sizeof(int));
-    func_002333B4(afAllowed, 0xFF, pgraph->cedge * sizeof(int));
-    qword posStart = func_001A62E8(pvActor);
+    anode = (NODE *)PvAllocClear(graph->cnav * sizeof(NODE));
+    afAllowed = (int *)PvAlloc(graph->cedge * sizeof(int));
+    func_002333B4(afAllowed, 0xFF, graph->cedge * sizeof(int));
+    qword posStart = func_001A62E8(actor);
     NAV *pnavStart = PnavFind(posStart);
-    NAV *pnavGoal = PnavFind(posGoal);
+    NAV *pnavGoal = PnavFind(goal);
 
     if (!pnavStart || !pnavGoal) {
         return 0;
@@ -2230,17 +2230,17 @@ extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, in
     EMPTY e;
     NODE *pnode = &anode[pnavStart->index];
     pnode->pnav = pnavStart;
-    StoreX(&pnode->gEstimate, QwLength(QwSub(posStart, posGoal)));
+    StoreX(&pnode->gEstimate, QwLength(QwSub(posStart, goal)));
 
 
     pnode->state = 2;
     AppendNode(&dlOpen, pnode);
     while (!FIsDlEmpty__FP2DL(&dlOpen)) {
         pnode = (NODE *)dlOpen.pvFirst;
-        if (fExact) {
+        if (isExact) {
             if (pnode->pnav == pnavGoal)
                 break;
-        } else if (IsPosInPathzone(pnode->pnav, posGoal, 1)) {
+        } else if (IsPosInPathzone(pnode->pnav, goal, 1)) {
             break;
         }
         RemoveNode(&dlOpen, pnode);
@@ -2251,12 +2251,12 @@ extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, in
             posFrom = pnode->pedge->posEnd;
         else
             posFrom = posStart;
-        ADJ *padj = &pgraph->aadj[pnode->pnav->index];
+        ADJ *padj = &graph->aadj[pnode->pnav->index];
         for (int i = 0; i < padj->cedge; i++) {
             int iedge = padj->aiedge[i];
-            EDGE *pedge = pgraph->apedge[iedge];
+            EDGE *pedge = graph->apedge[iedge];
             if (afAllowed[iedge] == -1)
-                afAllowed[iedge] = CanUsePathlink(pgraph, pedge, pvActor);
+                afAllowed[iedge] = CanUsePathlink(graph, pedge, actor);
             if (!afAllowed[iedge])
                 continue;
 
@@ -2264,7 +2264,7 @@ extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, in
             NAV *pnavDest = pedge->pnavDest;
             float gCost = pnode->gCost + gDist;
             NODE *pnodeDest = &anode[pnavDest->index];
-            float gEstimate = gCost + GDistX(pedge->posEnd, posGoal);
+            float gEstimate = gCost + GDistX(pedge->posEnd, goal);
             if (pnodeDest->state && pnodeDest->gEstimate <= gEstimate)
                 continue;
             switch (pnodeDest->state) {
@@ -2293,21 +2293,21 @@ extern "C" int FindPathlinkRoute(GRAPH *pgraph, void *pvActor, qword posGoal, in
     }
     int c = 0;
     if (!FIsDlEmpty__FP2DL(&dlOpen)) {
-        if (!fExact && !pnode->pnodeParent) {
-            apedge[0] = 0;
+        if (!isExact && !pnode->pnodeParent) {
+            edges[0] = 0;
             c = 1;
         } else {
             int cpedge = 0;
             NODE *pnodeT;
             for (NODE *pnodeCount = pnode; pnodeCount->pnodeParent; pnodeCount = pnodeCount->pnodeParent)
                 cpedge++;
-            if (cpedge < cpedgeMax)
+            if (cpedge < maxEdges)
                 c = cpedge;
             else
-                c = cpedgeMax;
+                c = maxEdges;
             for (pnodeT = pnode; pnodeT->pnodeParent; pnodeT = pnodeT->pnodeParent) {
-                if (cpedge <= cpedgeMax)
-                    apedge[cpedge - 1] = pnodeT->pedge;
+                if (cpedge <= maxEdges)
+                    edges[cpedge - 1] = pnodeT->pedge;
                 cpedge--;
             }
         }
@@ -2328,11 +2328,11 @@ struct G { char pad[0xE94]; int c; int a[84]; int xFE8; };
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Returns 1 when the actor may traverse the path link.
-int CanUsePathlink(void *p, struct LO *plo, struct G *g)
+int CanUsePathlink(void *pathlink, struct LO *actor, struct G *g)
 {
     int m, i, f1, f2, c;
-    if (((plo->x28 >> 60) & 1) == 0) return 0;
-    m = (plo->x120 == 1) ? 3 : 2;
+    if (((actor->x28 >> 60) & 1) == 0) return 0;
+    m = (actor->x120 == 1) ? 3 : 2;
     if ((m & g->xFE8) != m) return 0;
     c = g->c;
     if (c > 0) {
@@ -2340,8 +2340,8 @@ int CanUsePathlink(void *p, struct LO *plo, struct G *g)
         f1 = 0; f2 = 0;
         for (i = 0; i < c; i++) {
             int id = ids[i];
-            if (plo->x124 == id) f1 = 1;
-            if (plo->x128 == id) f2 = 1;
+            if (actor->x124 == id) f1 = 1;
+            if (actor->x128 == id) f2 = 1;
             if (f1 && f2) break;
         }
         if (!f1 || !f2) return 0;
