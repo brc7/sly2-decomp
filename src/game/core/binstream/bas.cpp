@@ -1,5 +1,8 @@
 // bas.cpp -- CBinaryAsyncStream: double-buffered asynchronous reads from the host file system or the CD.
-// TU 0x132570..0x132B00 (13 functions, address order).
+// The spool buffer is used in two halves: one is being read by the consumer (current, currentSize, position currentPos) while the
+// next is read asynchronously into the other. When the consumer has used the current half, FinishSpooling swaps in the
+// completed one. Entry points: the constructor, OpenBasFromFileKey / FOpenSector, Close, StartSpooling, FSpooling,
+// FSpoolingComplete, FinishSpooling, Spool, Skip. TU 0x132570..0x132B00 (13 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bas
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00132AE0
 #include "sly2/slotheap.h"
@@ -13,22 +16,22 @@ typedef unsigned int uint;
 enum BASK { BASK_Nil = -1, BASK_Host = 0, BASK_Cd = 1 };
 
 /* A CD file record as OpenBasFromFileKey reads it. */
-struct CDFILE { uint isector; int cb; int k; };
+struct CDFILE { uint sector; int size; int kind; };
 
 class CBinaryAsyncStream {
 public:
-    BASK m_bask;        /* 0x00 */
-    int m_fd;           /* 0x04 */
-    uint m_isector;     /* 0x08 */
-    int m_cbSpooling;   /* 0x0c */
-    byte *m_pbSpooling; /* 0x10 */
-    int m_cbSpool;      /* 0x14 size of the spool buffer (two halves) */
-    byte *m_abSpool;    /* 0x18 spool buffer, 64-byte aligned */
-    int m_cb;           /* 0x1c */
-    byte *m_pb;         /* 0x20 */
-    int m_ibCur;        /* 0x24 */
-    int m_cbUnspooled;  /* 0x28 */
-    int m_cbFile;       /* 0x2c */
+    BASK kind;        /* 0x00 */
+    int fd;           /* 0x04 */
+    uint sector;     /* 0x08 */
+    int pendingSize;   /* 0x0c */
+    byte *pendingBuffer; /* 0x10 */
+    int spoolSize;      /* 0x14 size of the spool buffer (two halves) */
+    byte *spoolBuffer;    /* 0x18 spool buffer, 64-byte aligned */
+    int currentSize;           /* 0x1c */
+    byte *current;         /* 0x20 */
+    int currentPos;        /* 0x24 */
+    int bytesNotRead;  /* 0x28 */
+    int fileSize;       /* 0x2c */
     ~CBinaryAsyncStream();
     int FOpenSector(uint isector, uint cb);
     void Close();
@@ -58,20 +61,21 @@ void ReadCdDirect(uint isector, uint csector, void *pv, int n);
  * See: docs/engine/core-library.md#4-binary-input-streams-and-cd, docs/engine/core-library.md#6-source-files,
  *   docs/engine/gameplay-objects.md#source-files
  * @end-sly2-annot */
-extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *pbas, int cbSpool, void *pvSpool)
+// Constructs a closed stream over the caller's spool buffer (spoolSize bytes at spoolMemory).
+extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *stream, int spoolSize, void *spoolMemory)
 {
-    pbas->m_cbSpool = cbSpool;
-    pbas->m_fd = -1;
-    pbas->m_abSpool = (byte *)(((int)pvSpool + 0x3F) & ~0x3F);
-    pbas->m_isector = 0;
-    pbas->m_pbSpooling = 0;
-    pbas->m_pb = 0;
-    pbas->m_cbFile = 0;
-    pbas->m_cbUnspooled = 0;
-    pbas->m_cbSpooling = 0;
-    pbas->m_ibCur = 0;
-    pbas->m_cb = 0;
-    return pbas;
+    stream->spoolSize = spoolSize;
+    stream->fd = -1;
+    stream->spoolBuffer = (byte *)(((int)spoolMemory + 0x3F) & ~0x3F);
+    stream->sector = 0;
+    stream->pendingBuffer = 0;
+    stream->current = 0;
+    stream->fileSize = 0;
+    stream->bytesNotRead = 0;
+    stream->pendingSize = 0;
+    stream->currentPos = 0;
+    stream->currentSize = 0;
+    return stream;
 }
 
 /** @sly2-annot addr=0x1325B8
@@ -79,6 +83,7 @@ extern "C" CBinaryAsyncStream *__18CBinaryAsyncStreamPv(CBinaryAsyncStream *pbas
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
+// Destructor: closes the stream.
 CBinaryAsyncStream::~CBinaryAsyncStream() { Close(); }
 
 /** @sly2-annot addr=0x132600
@@ -89,12 +94,13 @@ CBinaryAsyncStream::~CBinaryAsyncStream() { Close(); }
  * See: docs/formats/disc-records.md#2-the-read-path,
  *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
-extern "C" int OpenBasFromFileKey(CBinaryAsyncStream *pbas, CDFILE *pcdfile)
+// Opens the stream on a file key if it names a disc file (kind 2: sector range); returns whether it did.
+extern "C" int OpenBasFromFileKey(CBinaryAsyncStream *stream, CDFILE *fileKey)
 {
-    int f = 0;
-    if (pcdfile->k == 2)
-        f = pbas->FOpenSector(pcdfile->isector, pcdfile->cb);
-    return f;
+    int opened = 0;
+    if (fileKey->kind == 2)
+        opened = stream->FOpenSector(fileKey->sector, fileKey->size);
+    return opened;
 }
 
 // 0x132638: dead-code scrap (sly2/scrap.h)
@@ -106,15 +112,16 @@ SLY2_SCRAP("addiu $sp, $sp, 0x30");
  * See: docs/formats/disc-records.md#2-the-read-path,
  *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
-int CBinaryAsyncStream::FOpenSector(uint isector, uint cb)
+// Opens the stream on `size` bytes starting at disc sector `sector` and starts the first read; returns 1.
+int CBinaryAsyncStream::FOpenSector(uint firstSector, uint size)
 {
-    m_isector = isector;
-    m_cbFile = cb;
-    m_cbUnspooled = cb;
-    m_bask = BASK_Cd;
-    m_pb = m_abSpool;
-    m_cb = 0;
-    m_ibCur = 0;
+    sector = firstSector;
+    fileSize = size;
+    bytesNotRead = size;
+    kind = BASK_Cd;
+    current = spoolBuffer;
+    currentSize = 0;
+    currentPos = 0;
     StartSpooling();
     return 1;
 }
@@ -124,23 +131,24 @@ int CBinaryAsyncStream::FOpenSector(uint isector, uint cb)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
+// Closes the stream: closes the host file, or waits out a CD read in flight.
 void CBinaryAsyncStream::Close()
 {
-    switch (m_bask) {
+    switch (kind) {
     case BASK_Host:
-        if (m_fd >= 0)
-            sceClose(m_fd);
-        m_fd = -1;
+        if (fd >= 0)
+            sceClose(fd);
+        fd = -1;
         break;
     case BASK_Cd:
         if (FSpooling()) {
             sceCdSync(0);
             FinishSpooling();
         }
-        m_isector = 0;
+        sector = 0;
         break;
     }
-    m_bask = BASK_Nil;
+    kind = BASK_Nil;
 }
 
 /** @sly2-annot addr=0x132710
@@ -149,20 +157,22 @@ void CBinaryAsyncStream::Close()
  * See: docs/formats/disc-records.md#2-the-read-path,
  *   docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
+// Starts reading the next piece (at most half the spool buffer) into the half the consumer is not using, unless a
+// read is in flight or the file is exhausted.
 void CBinaryAsyncStream::StartSpooling()
 {
-    int cbHalf = m_cbSpool / 2;
-    if (!FSpooling() && m_cbUnspooled != 0) {
-        int cb = m_cbUnspooled < cbHalf ? m_cbUnspooled : cbHalf;
-        byte *pb = (m_pb == m_abSpool) ? m_abSpool + cbHalf : m_abSpool;
-        m_cbSpooling = cb;
-        m_pbSpooling = pb;
-        switch (m_bask) {
+    int halfSize = spoolSize / 2;
+    if (!FSpooling() && bytesNotRead != 0) {
+        int size = bytesNotRead < halfSize ? bytesNotRead : halfSize;
+        byte *dest = (current == spoolBuffer) ? spoolBuffer + halfSize : spoolBuffer;
+        pendingSize = size;
+        pendingBuffer = dest;
+        switch (kind) {
         case BASK_Host:
-            sceRead(m_fd, pb, cb);
+            sceRead(fd, dest, size);
             return;
         case BASK_Cd:
-            ReadCdDirect(m_isector, (uint)(cb + 0x7FF) >> 11, pb, 1);
+            ReadCdDirect(sector, (uint)(size + 0x7FF) >> 11, dest, 1);
             break;
         }
     }
@@ -173,9 +183,10 @@ void CBinaryAsyncStream::StartSpooling()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
+// Returns whether a read is in flight.
 bool CBinaryAsyncStream::FSpooling()
 {
-    return m_cbSpooling != 0;
+    return pendingSize != 0;
 }
 
 /** @sly2-annot addr=0x1327E0
@@ -183,25 +194,27 @@ bool CBinaryAsyncStream::FSpooling()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
+// Returns whether the read in flight has completed, polled without blocking, and only once the consumer has used
+// the current half; a read error abandons the read (returns false).
 bool CBinaryAsyncStream::FSpoolingComplete()
 {
     int status = 0;
-    bool fComplete = false;
-    if (m_cb == m_ibCur && FSpooling())
+    bool isComplete = false;
+    if (currentSize == currentPos && FSpooling())
     {
-        switch (m_bask)
+        switch (kind)
         {
             case BASK_Host:
             {
-                int fExecuting;
-                status = sceIoctl(m_fd, 1, &fExecuting);
-                fComplete = (fExecuting == 0);
+                int isExecuting;
+                status = sceIoctl(fd, 1, &isExecuting);
+                isComplete = (isExecuting == 0);
                 break;
             }
             case BASK_Cd:
             {
-                fComplete = (sceCdSync(1) == 0);
-                if (fComplete)
+                isComplete = (sceCdSync(1) == 0);
+                if (isComplete)
                 {
                     status = sceCdGetError();
                 }
@@ -211,11 +224,11 @@ bool CBinaryAsyncStream::FSpoolingComplete()
     }
     if (status)
     {
-        m_cbSpooling = 0;
-        m_pbSpooling = 0;
-        fComplete = false;
+        pendingSize = 0;
+        pendingBuffer = 0;
+        isComplete = false;
     }
-    return fComplete;
+    return isComplete;
 }
 
 /** @sly2-annot addr=0x1328A8
@@ -223,29 +236,31 @@ bool CBinaryAsyncStream::FSpoolingComplete()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
+// If the read in flight has completed: makes it the current half (advancing the sector and the bytes left) and
+// rewinds the consumer to its start.
 void CBinaryAsyncStream::FinishSpooling()
 {
     if (!FSpoolingComplete())
         return;
-    if (m_bask == BASK_Cd)
+    if (kind == BASK_Cd)
     {
-        int n;
-        if (m_cbSpooling <= -1)
+        int bytes;
+        if (pendingSize <= -1)
         {
-            n = m_cbSpooling + 0x7ffu;
+            bytes = pendingSize + 0x7ffu;
         }
         else
         {
-            n = m_cbSpooling;
+            bytes = pendingSize;
         }
-        m_isector += n >> 0x0b;
+        sector += bytes >> 0x0b;
     }
-    m_cbUnspooled -= m_cbSpooling;
-    m_pb = m_pbSpooling;
-    m_cb = m_cbSpooling;
-    m_cbSpooling = 0;
-    m_pbSpooling = 0;
-    m_ibCur = 0;
+    bytesNotRead -= pendingSize;
+    current = pendingBuffer;
+    currentSize = pendingSize;
+    pendingSize = 0;
+    pendingBuffer = 0;
+    currentPos = 0;
 }
 
 /** @sly2-annot addr=0x132930
@@ -253,9 +268,11 @@ void CBinaryAsyncStream::FinishSpooling()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
+// Keeps the stream going (call regularly): host reads are started then completed; CD reads completed then the
+// next one started.
 void CBinaryAsyncStream::Spool()
 {
-    switch (m_bask) {
+    switch (kind) {
     case BASK_Host:
         StartSpooling();
         FinishSpooling();
@@ -272,7 +289,8 @@ void CBinaryAsyncStream::Spool()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bas-0x132570-0x132b00
  * @end-sly2-annot */
-void CBinaryAsyncStream::Skip(int cb)
+// Advances the consumer's position in the current half by `size` bytes.
+void CBinaryAsyncStream::Skip(int size)
 {
-    m_ibCur += cb;
+    currentPos += size;
 }
