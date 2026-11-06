@@ -1497,7 +1497,7 @@ struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 extern char D_00442210[],D_002DF010[];
 void CopyAqw__FPvT0i(void *,void *,int);
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
@@ -1522,7 +1522,7 @@ void QueueWidgetRenderSetup(struct S *p){
     Align(&D_002DEA28,0);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=p->priority<<18;
     e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
 }
@@ -3188,7 +3188,7 @@ struct E {int kind;float priority;uint address;int tag;};
 extern "C" { extern struct R D_002DEA28; }
 extern "C" { extern char D_00442210[],D_002DF010[]; }
 extern "C" void CopyAqw__FPvT0i(void *,void *,int);
-extern "C" struct E *PrplAllocRpl(void);
+extern "C" struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline void Bulk(struct R *r,int n,void *source){CopyAqw__FPvT0i(r->cur,source,n);r->cur+=n*16;}
@@ -3237,7 +3237,7 @@ extern "C" void func_002163B0(struct RT *p,struct CONFIG *config,int priority){
     Align(&D_002DEA28,0);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=p->priority<<18;
     e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
 }
@@ -3295,7 +3295,7 @@ int func_00215D40(struct RT *);
 float func_00216B80(void *,int);
 struct GLYPH *PglyffFromCh__8CFontBrxc(void *,int);
 void func_00217058(struct GLYPH *,union M4 *,struct DATA *,int);
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r,int word){while(((uint)r->cur&15)!=4*word)Word(r,0);}
 static inline int Visible(union M4 *matrix,const float *left){int visible=0;if(*left<=matrix->a[8] && matrix->a[8]<=D_002C40AC && D_002C40B0<=matrix->a[9] && matrix->a[9]<=D_002C40B4)visible=1;return visible;}
@@ -3363,7 +3363,7 @@ void func_00216750(struct RT *p,union M4 *matrix,struct DATA *style){
     Align(&D_002DEA28,0);
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
     {
-        struct E *e=PrplAllocRpl();
+        struct E *e=AllocRenderListEntry();
         e->kind=0x15;e->priority=style->priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->tag=0;
     }
 }
@@ -3587,7 +3587,7 @@ struct S {char pad[0xA4];int priority;};
 struct E {int kind;float priority;uint address;int pad;};
 extern struct R D_002DEA28;
 extern char D_00000000[],D_00000030[],D_00000060[],D_00000090[],D_000000C0[],D_00000100[];
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Mscal(struct R *r,void *entry){Word(r,0x14000000|((uint)entry>>3));}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
@@ -3617,7 +3617,7 @@ void func_00217298(struct S *p,int mode,float priority){
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;
     D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=priority+(p->priority<<18);e->address=(uint)tag&0x0FFFFFFF;e->pad=0;
 }
 } } // namespace M_func_00217298
@@ -3637,7 +3637,7 @@ struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline int Min(int a,int b){return a<b?a:b;}
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
@@ -3677,7 +3677,7 @@ void RenderSpriteGeometry(struct S *p,struct T *t,struct D *data,int fade){
     Align(&D_002DEA28);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=data->priority+(p->owner->priority<<18);
     e->address=(uint)tag&0x0FFFFFFF;
     e->tag=p->tag;
@@ -3700,7 +3700,7 @@ struct R {char pad[0xC];unsigned char *cur;};
 struct E {int kind;float priority;uint address;int tag;};
 extern struct R D_002DEA28;
 void *func_002333B4(void *,int,int) __asm__("memset");
-struct E *PrplAllocRpl(void);
+struct E *AllocRenderListEntry(void);
 static inline void Word(struct R *r,uint word){*(uint *)r->cur=word;r->cur+=4;}
 static inline void Align(struct R *r){while((uint)r->cur&15){*(uint *)r->cur=0;r->cur+=4;}}
 static inline void CopyWords(int *d,const int *s,int n){int rem=n&3,cBulk=n-rem,i;for(i=0;i<rem;i++)*d++=*s++;for(i=0;i<cBulk;i+=4){int a=s[0],b=s[1],c=s[2],e=s[3];s+=4;d[0]=a;d[1]=b;d[2]=c;d[3]=e;d+=4;}}
@@ -3740,7 +3740,7 @@ void func_002177E0(struct S *p,struct T *t,struct D *data,int unused){
     Align(&D_002DEA28);
     *(uint *)tag|=((D_002DEA28.cur-tag)>>4)-1;
     *(ulong *)D_002DEA28.cur=0x60000000UL;D_002DEA28.cur+=16;
-    e=PrplAllocRpl();
+    e=AllocRenderListEntry();
     e->kind=0x15;e->priority=data->priority+(p->owner->priority<<18);
     e->address=(uint)tag&0x0FFFFFFF;
     if(p->type==6)e->tag=p->tag;else e->tag=p->rawtag;

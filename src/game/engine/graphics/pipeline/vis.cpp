@@ -1,5 +1,7 @@
-// vis.cpp -- VIS, a visibility volume (an XFM with a BSP that tracks whether a point is inside). TU 0x227350..0x2275B8
-// (6 functions, address order).
+// vis.cpp -- VIS (class CID5), a camera visibility zone: an XFM carrying a BSP volume. Each frame the camera tests its
+// position against every zone (cm.cpp calls UpdateVisInside on each, sorts them, and makes the first one it is inside
+// the camera's vis zone, SetCmVisZone), which lets the renderer cull by zone. Entry points: CID5::Init,
+// LoadVisFromBrx, UpdateVisInside. TU 0x227350..0x2275B8 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_vis
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00227598
 #include "sly2/xfm.h"
@@ -11,18 +13,18 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct VIS : public XFM
 {
-      int nE0;                  /* +0xE0 read from the BRX */
-      int nE4;
+      int unknownE0;            /* +0xE0 read from the BRX */
+      int unknownE4;
       struct
       {
             byte pad[0xC];
-            int pbsp;           /* +0xF4 root BSP node (an address) */
+            int rootBsp;        /* +0xF4 root BSP node (an address) */
       } bspc;                   /* +0xE8 BSPC (CBinaryInputStream_ReadBspc) */
       byte geom[0x110 - 0xF8];  /* +0xF8 GEOM (ReadGeom) */
-      int fInside;              /* +0x110 -1 after init */
-      float tChange;            /* +0x114 g_clock.t when fInside last changed */
+      int isInside;             /* +0x110 -1 after init (unknown) */
+      float changeTime;            /* +0x114 g_clock.t when fInside last changed */
 };
-typedef char assert_VIS_fInside[SLY2_OFFSETOF(VIS, fInside) == 0x110 ? 1 : -1];
+typedef char assert_VIS_fInside[SLY2_OFFSETOF(VIS, isInside) == 0x110 ? 1 : -1];
 
 extern CLOCK D_002DDED0;          /* g_clock */
 extern "C" {
@@ -34,64 +36,40 @@ void CBinaryInputStream_ReadBspc(void *pbis, void *pgeom, void *pbspc);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *pv, void *pbis);
 qword ConvertAloPos(int a, VIS *pvis, qword pos);
 int PbspPointInBspQuick(int pbsp, int n, qword pos);
-void func_00227440(VIS *pvis, int fInside);
+void SetVisInside(VIS *vis, int isInside);
 }
 
-/** @sly2-annot addr=0x227350
- * Purpose: InitXfm; state 0x110 = -1
- * Info: proposed name InitCid5 (T2); class CID5 slot7; TU vis
- * Notes: verifier PLAUSIBLE: InitCid5Zone -> InitCid5
- * Confidence: low (draft) [T2 0.60] - evidence: static analysis; sources: r8_21BB88+verdicts_tu_r7r8
- * See: docs/engine/rendering.md#12-source-files, docs/engine/rendering.md#13-key-functions,
- *   docs/reference/functions/rendering.md#vis-0x227350-0x2275b8
- * @end-sly2-annot */
+// Initializes the zone: XFM init, then marks the inside state unknown (-1) so the first test always records a change.
 void CID5::Init()
 {
-    VIS *pvis = (VIS *)this;
-      InitXfm(pvis);
-      pvis->fInside = -1;
+    VIS *vis = (VIS *)this;
+      InitXfm(vis);
+      vis->isInside = -1;
 }
 
-/** @sly2-annot addr=0x227380
- * Purpose: XFM XF read 0x231768, U32, ReadGeom, ReadBspc, LoadOptionsFromBrx
- * Info: proposed name LoadCid5ZoneFromBrx (T2); class CID5 slot14; TU vis
- * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
- * Confidence: low (draft) [T2 0.75] - evidence: static analysis; sources: r8_21BB88+parse-verified
- * See: docs/engine/rendering.md#13-key-functions,
- *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14,
- *   docs/reference/functions/rendering.md#vis-0x227350-0x2275b8
- * @end-sly2-annot */
-extern "C" void func_00227380(VIS *pvis, void *pbis)
+// Reads a zone from the level file (vtable slot 14): transform, a 32-bit value, the volume geometry, its BSP and the
+// object options. The payload layout is parse-verified; the meaning of the 32-bit value is not known.
+extern "C" void LoadVisFromBrx(VIS *vis, void *stream)
 {
-      LoadXfmXfFromBrx(pvis, pbis);
-      pvis->nE0 = U32Read__18CBinaryInputStream(pbis);
-      ReadGeom__18CBinaryInputStreamP4GEOM(pbis, pvis->geom);
-      CBinaryInputStream_ReadBspc(pbis, pvis->geom, &pvis->bspc);
-      LoadOptionsFromBrx__FPvP18CBinaryInputStream(pvis, pbis);
+      LoadXfmXfFromBrx(vis, stream);
+      vis->unknownE0 = U32Read__18CBinaryInputStream(stream);
+      ReadGeom__18CBinaryInputStreamP4GEOM(stream, vis->geom);
+      CBinaryInputStream_ReadBspc(stream, vis->geom, &vis->bspc);
+      LoadOptionsFromBrx__FPvP18CBinaryInputStream(vis, stream);
 }
 
-/** @sly2-annot addr=0x2273F0
- * Purpose: BSP point test of a world position (converted to local) -> SetCid5ZoneInside
- * Info: proposed name UpdateCid5ZoneInside (T2); class CID5; TU vis
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/engine/camera.md#5-key-functions, docs/reference/functions/camera.md#cm-0x14d3d8-0x14fac8,
- *   docs/reference/functions/rendering.md#vis-0x227350-0x2275b8
- * @end-sly2-annot */
-extern "C" void func_002273F0(VIS *pvis, qword pos)
+// Tests a world position (the camera's) against the zone's BSP volume, in the zone's local space, and records the
+// result with SetVisInside. Called by the camera for every zone each frame.
+extern "C" void UpdateVisInside(VIS *vis, qword worldPos)
 {
-      func_00227440(pvis, PbspPointInBspQuick(pvis->bspc.pbsp, 0x7FFFFFFF, ConvertAloPos(0, pvis, pos)) != 0);
+      SetVisInside(vis, PbspPointInBspQuick(vis->bspc.rootBsp, 0x7FFFFFFF, ConvertAloPos(0, vis, worldPos)) != 0);
 }
 
-/** @sly2-annot addr=0x227440
- * Purpose: if changed: store flag 0x110, time 0x114 = g_clock.t
- * Info: proposed name SetCid5ZoneInside (T2); class CID5; TU vis
- * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r8_21BB88
- * See: docs/reference/functions/rendering.md#vis-0x227350-0x2275b8
- * @end-sly2-annot */
-extern "C" void func_00227440(VIS *pvis, int fInside)
+// Stores the zone's inside state; on a change also stamps the time (g_clock.t) it changed.
+extern "C" void SetVisInside(VIS *vis, int isInside)
 {
-      if (fInside != pvis->fInside) {
-            pvis->fInside = fInside;
-            pvis->tChange = D_002DDED0.t;
+      if (isInside != vis->isInside) {
+            vis->isInside = isInside;
+            vis->changeTime = D_002DDED0.t;
       }
 }

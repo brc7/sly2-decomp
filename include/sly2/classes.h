@@ -1993,7 +1993,7 @@ struct CID5 : XFM
     char padE0[0x120 - 0xE0];
     virtual void Init() __asm__("func_00227350");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid5ClassDesc");   /* slot 6 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_00227380");   /* slot 14 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadVisFromBrx");   /* slot 14 */
 };
 typedef char assert_CID5_size[sizeof(CID5) == 0x120 ? 1 : -1];
 

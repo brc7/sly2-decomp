@@ -1,5 +1,9 @@
-// draw.cpp -- frame draw: render-list (RPL) sorting and the per-frame VIF1 chain (DrawSw).
-// TU 0x157A50..0x1585D8 (7 functions, address order).
+// draw.cpp -- frame draw: turns the frame's render list into the VIF1 DMA chain. Objects append RPL entries (pass kind,
+// sort depth, DMA CALL addresses) while rendering (render.cpp AllocRenderListEntry); DrawSw bucket-sorts them by kind
+// (CprplPartitionArpl, depth-sorting the blended kinds with the two qsort comparators), emits the frame and camera VU
+// constants, and walks the buckets calling each pass's begin/end hook (table D_002BDD88) around the entries' CALL
+// tags. BeginRpForeground is the begin hook of the foreground pass. TU 0x157A50..0x1585D8 (7 functions, address
+// order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_draw
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001585B8
 #include "vifs.h"
@@ -55,14 +59,8 @@ void func_001EA9F0(GAME *pgame, int n);
 
 typedef int (*PFNCMP)(const void *, const void *);
 
-/** @sly2-annot addr=0x157A50
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name NCmpPrplReverseZ__FPP3RPLT0 (EXISTING); TU draw
- * Confidence: name high [EXISTING ]; purpose not reviewed - evidence: pre-existing symbol in symbol_addrs.txt
- * See: docs/engine/rendering.md#12-source-files,
- *   docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8,
- *   docs/reference/tu-map.md#tu-map-address-range---source-file
- * @end-sly2-annot */
+// qsort comparator for RPL pointers: descending depth (farthest first, back-to-front for blended passes), ties broken
+// by entry address. Used for kinds 1, 2, 5, 6, 10 and 25.
 int NCmpPrplReverseZ(RPL **pprpl1, RPL **pprpl2)
 {
     RPL *plhs = *pprpl1;
@@ -74,12 +72,8 @@ int NCmpPrplReverseZ(RPL **pprpl1, RPL **pprpl2)
     return plhs - prhs;
 }
 
-/** @sly2-annot addr=0x157A98
- * Purpose: qsort comparator: RPLs by ascending z, ties by address (front-to-back order)
- * Info: proposed name NCmpPrplZ (T1); TU draw
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
- * @end-sly2-annot */
+// qsort comparator for RPL pointers: ascending depth (nearest first), ties broken by reverse entry address. Used for
+// kind 21 only.
 int NCmpPrplZ(RPL **pprpl1, RPL **pprpl2)
 {
     RPL *plhs = *pprpl1;
@@ -91,14 +85,9 @@ int NCmpPrplZ(RPL **pprpl1, RPL **pprpl2)
     return prhs - plhs;
 }
 
-/** @sly2-annot addr=0x157AE0
- * Purpose: Bucket-sorts the frame RPL array by kind (26 kinds, counting sort) into aprpl, z-sorts some
- *   buckets, returns end index
- * Info: proposed name CprplPartitionArpl (T1); TU draw
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8+verdicts_A1
- * See: docs/engine/rendering.md#3-drawsw-sort-prologue-and-pass-dispatch-srchandfunc_00157fa0c-cstatic,
- *   docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
- * @end-sly2-annot */
+// Counting-sorts the frame's RPL array by kind (26 kinds) into the pointer array aprpl, recording each kind's first
+// index (aiFirst) and end index (ac), then depth-sorts the blended kinds. Returns the total entry count (end of kind
+// 25).
 int CprplPartitionArpl(int c, RPL *arpl, RPL **aprpl, int *aiFirst, int *ac)
 {
     int ai[26];
@@ -128,15 +117,8 @@ int CprplPartitionArpl(int c, RPL *arpl, RPL **aprpl, int *aiFirst, int *ac)
     return ac[25];
 }
 
-/** @sly2-annot addr=0x157CF0
- * Purpose: Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010,
- *   re-upload camera/ambient VU globals, BASE/OFFSET 0x32/0x1E7, then BeginRpGlob
- * Info: proposed name BeginRpForeground (T1); TU draw
- * Notes: no usable identifier; purpose only
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8+rendering
- * See: docs/engine/rendering.md#4-the-26-kinds-and-12-passes-cstatic-tables-dumped-from-the-elf-roles-cstatic-unless-marked,
- *   docs/reference/functions/rendering.md#draw-0x157a50-0x1585d8
- * @end-sly2-annot */
+// Pass 10 begin (kind 22): re-CALL frame context (or stereo eye), DIRECT Z-only clear D_002DF010, re-upload
+// camera/ambient VU globals, BASE/OFFSET 0x32/0x1E7, then BeginRpGlob. (inferred)
 extern "C" void BeginRpForeground(VIFS *pvifs, void *a1, void *a2)
 {
     V4 akg[2];
@@ -186,15 +168,9 @@ extern "C" void BeginRpForeground(VIFS *pvifs, void *a1, void *a2)
 }
 
 // g_pfrmOpen: Sly 1 name of the current-frame pointer (frm.cpp defines it; config/symbol_addrs.txt names 0x2DEA4C so).
-/** @sly2-annot addr=0x157FA0
- * Purpose: Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL
- *   kind-change calls the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL
- *   tags; flushes VIFS/GIFS
- * Info: proposed name DrawSw (T1); class SW slot9; TU draw
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r3_1539A8
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/engine/overview.md#5-per-frame-update-and-render, docs/engine/overview.md#6-subsystem-map
- * @end-sly2-annot */
+// Builds the frame VIF1 chain: partitions RPLs, emits frame/camera VU constants, then for each RPL kind-change calls
+// the pass table begin/end hooks D_002BDD88[D_002BDD20[kind]] and emits the RPL DMA CALL tags; flushes VIFS/GIFS.
+// (inferred)
 extern "C" void DrawSw(GAME *pgame)
 {
     MATRIX4V mat0;

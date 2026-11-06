@@ -1,4 +1,8 @@
-// render.cpp -- world rendering entry points: screen rectangles, world-space labels, the relight list and RenderSw.
+// render.cpp -- world rendering entry points. RenderSw (SW vtable slot 8, called once per frame by the main loop)
+// prepares the lights, resubmits relighting when the world's illumination stamp changed, calls every visible object's
+// Render (LO vtable slot 19) and flushes the two DMA streams. Also: FillScreenRect (a flat GIF sprite in screen
+// space), DrawWorldLabel (a text label projected from a world position) and AllocRenderListEntry, the bump allocator
+// of the frame's render list (RPL entries that draw.cpp sorts by pass kind and depth).
 // TU 0x1CD5F0..0x1CDCD0 (7 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_render
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CDCB0
@@ -15,25 +19,25 @@ struct RGBA { unsigned char r, g, b, a; RGBA() {} RGBA(uint bits) { *(uint *)thi
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
 struct VTE { short delta; short pad; void *fn; };
 /* View of an LO: vtable (19 Render), flags word or pointer to it (+0x40), relight globset (+0x80), its stamp. */
-struct LO { char pad[0xC]; VTE *vt; char pad10[0x30]; int x40; char pad44[0x80 - 0x44]; char x80[0x4C]; int xCC; };
-typedef char assert_LO_xCC[(unsigned int)&((LO *)0)->xCC == 0xCC ? 1 : -1];
+struct LO { char pad[0xC]; VTE *vtable; char pad10[0x30]; int flagsOrPointer; char pad44[0x80 - 0x44]; char globset[0x4C]; int relightStamp; };
+typedef char assert_LO_relightStamp[(unsigned int)&((LO *)0)->relightStamp == 0xCC ? 1 : -1];
 /* An entry of the world's render list. */
-struct SWE { int grf; LO *plo; };
+struct SWE { int flags; LO *object; };
 /* View of the world (SW) fields used here. */
 struct SW
 {
     char pad[0x3D5C];
-    int x3D5C;          /* +0x3D5C relight stamp */
-    int x3D60;          /* +0x3D60 frame count */
-    int x3D64;          /* +0x3D64 relight stamp last submitted */
+    int relightStamp;           /* +0x3D5C bumped when the world's illumination changes */
+    int frameCount;             /* +0x3D60 */
+    int submittedRelightStamp;  /* +0x3D64 relight stamp last submitted */
     char p1[0x3F14 - 0x3D68];
-    int c;              /* +0x3F14 render list */
-    int x3F18;
-    int *pi;            /* +0x3F1C index of the entry being rendered */
-    SWE *ae;            /* +0x3F20 */
+    int numRenderEntries;       /* +0x3F14 render list */
+    int unknown3F18;
+    int *currentEntryIndex;     /* +0x3F1C index of the entry being rendered (null outside RenderSw) */
+    SWE *renderEntries;         /* +0x3F20 */
 };
-/* A relight record (PrplAllocRpl hands them out of the buffer at D_003B3980). */
-struct RPL { int a, b; int c[2]; };
+/* A render-list entry (AllocRenderListEntry hands them out of the buffer at D_003B3980). */
+struct RPL { int kind; float depth; int dmaCalls[2]; };   /* render-list entry (full view in draw.cpp) */
 
 extern RPL *D_003D4A50;
 extern char D_003B3980[];
@@ -47,25 +51,21 @@ void PrepareSwLights(SW *p);
 void func_001DAC58(void *p);
 }
 
-/** @sly2-annot addr=0x1CD5F0
- * Purpose: GIF sprite rectangle in screen space with RGBA (alpha-blended if a<0xFF)
- * Info: proposed name FillScreenRect (T1); TU render
- * Confidence: high [T1 0.80] - evidence: static analysis; sources: r5_1AE130+verdicts_A2
- * See: docs/engine/player.md#10-source-files, docs/engine/rendering.md#12-source-files,
- *   docs/engine/rendering.md#13-key-functions
- * @end-sly2-annot */
-extern "C" void FillScreenRect(RGBA *pc, GIFS *pgs, float x0, float y0, float x1, float y1)
+// Adds a flat-coloured sprite covering the screen rectangle (x0,y0)-(x1,y1) to a GIF stream; alpha-blended when the
+// colour's alpha is below 0xFF. Note it halves the caller's alpha in place (PS2 alpha 0x80 = opaque). Coordinates are
+// in the 640x492.8 virtual screen, converted to GS 12.4 fixed point around the (1792,1936) drawing offset.
+extern "C" void FillScreenRect(RGBA *color, GIFS *gifs, float x0, float y0, float x1, float y1)
 {
-    pgs->AddPrimPack( pc->a <= 0xFE ? 0x46 : 6, 5, 0x441EE);
-    pc->a = (pc->a + 1) >> 1;
-    pgs->PackAD( 0x47, 0x31001);
-    pgs->PackAD( 0x42, 0x44);
-    pgs->PackRGBA( *(int *)pc);
-    pgs->PackXYZF( (int)((x0 * 0.8f + 1792.0f) * 16.0f), (int)((y0 * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
-    pgs->PackXYZF( (int)((x1 * 0.8f + 1792.0f) * 16.0f), (int)((y1 * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
+    gifs->AddPrimPack( color->a <= 0xFE ? 0x46 : 6, 5, 0x441EE);
+    color->a = (color->a + 1) >> 1;
+    gifs->PackAD( 0x47, 0x31001);
+    gifs->PackAD( 0x42, 0x44);
+    gifs->PackRGBA( *(int *)color);
+    gifs->PackXYZF( (int)((x0 * 0.8f + 1792.0f) * 16.0f), (int)((y0 * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
+    gifs->PackXYZF( (int)((x1 * 0.8f + 1792.0f) * 16.0f), (int)((y1 * 0.45454547f + 1936.0f) * 16.0f), 0, 0);
 }
 
-// Project a world label, fit its rectangle, and render it in the supplied color.
+/* Views used by DrawWorldLabel: the camera, a limit, the rich-text object and the text box it is drawn in. */
 struct CM {char pad40[0x40];float sx,sy,unknown,nearDepth;char pad50[0x10];qword matrix[4];};
 struct LM {float low,high;};
 struct RT {const char *text;char *current;void *font,*baseFont,*alternateFont;RGBA color,baseColor,alternateColor;char pad20[0x20];qword color0,color1;int changed;float cameraX,cameraY,offsetX,offsetY,width,height,sx,sy,lineHeight,fontScale;int vAlign,hAlign,priority;};
@@ -89,18 +89,18 @@ extern "C" float GLimitLm__FP2LMf(LM *,float);
 extern "C" RT *CRichText_ctor(RT *,const char *,float);
 extern "C" void CRichText_GetExtents(RT *,float *,float *);
 extern "C" void func_002163B0(RT *,CONFIG *,int);
+// Keeps the height argument in $f20 (the register the original holds it in across calls).
 static inline float SavedHeight(float value){register float height __asm__("$f20");__asm__("mov.s %0,%1":"=f"(height):"f"(value));return height;}
+// x, y and z components of a quadword vector.
 static inline float X(qword q){float f;__asm__("mtc1 %1,%0":"=f"(f):"r"(q));return f;}
 static inline float Y(qword q){float f;__asm__("prot3w %0,%1":"=r"(f):"r"(q));return f;}
 static inline float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):"r"(q));return f;}
 
-/** @sly2-annot addr=0x1CD780
- * Purpose: project a world-space label, fit its rect and draw text in a color
- * Info: proposed name RenderWorldLabel (T2); TU render
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5_1AE130
- * See: docs/reference/functions/rendering.md#render-0x1cd5f0-0x1cdcd0
- * @end-sly2-annot */
-extern "C" void func_001CD780(qword position,const char *text,const RGBA *unusedColor,const RGBA *color,float inputHeight)
+// Draws a text label anchored at a world position: projects it to the screen (skipped when nearer than the near
+// plane), scales the text with distance (clamped to D_002C1F28 = 0.4..1.5), centres a padded box just above the point
+// and draws the text with the given colour. The first colour argument is unused. Used for debug/world labels
+// (inferred).
+extern "C" void DrawWorldLabel(qword position,const char *text,const RGBA *unusedColor,const RGBA *color,float inputHeight)
 {
     float height=SavedHeight(inputHeight);
     CM *camera=&D_002DDF40;
@@ -124,71 +124,56 @@ extern "C" void func_001CD780(qword position,const char *text,const RGBA *unused
     func_002163B0(&rt,&config,6);
 }
 
-/** @sly2-annot addr=0x1CD998
- * Purpose: Bump-allocate a 16-byte RPL from g_prplNext (zeroes pqwA/pqwB)
- * Info: proposed name PrplAllocRpl (T1); TU render
- * Notes: superseded: PvAllocRenderEntry (r5_1AE130)
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130+rendering
- * See: docs/engine/rendering.md#2-render-list-entries-rpl,
- *   docs/reference/functions/rendering.md#render-0x1cd5f0-0x1cdcd0
- * @end-sly2-annot */
-extern "C" RPL *PrplAllocRpl(void)
+// Hands out the next 16-byte render-list entry (RPL: pass kind, sort depth, two DMA CALL addresses) from the frame's
+// buffer D_003B3980 (cursor D_003D4A50, reset by RenderSw each frame), zeroing its two DMA addresses. DrawSw then
+// sorts the entries by kind and depth into the frame's VIF1 chain.
+extern "C" RPL *AllocRenderListEntry(void)
 {
-    func_002333B4(D_003D4A50->c, 0, 8); return D_003D4A50++;
+    func_002333B4(D_003D4A50->dmaCalls, 0, 8); return D_003D4A50++;
 }
 
-static inline int Flags(LO *plo)
+// Returns an object's flags word, following the +0x40 field when it holds a pointer.
+static inline int Flags(LO *object)
 {
-    int v = plo->x40;
-    if (FIsPtr(v)) v = *(int *)v;
-    return v;
+    int flags = object->flagsOrPointer;
+    if (FIsPtr(flags)) flags = *(int *)flags;
+    return flags;
 }
 
-/** @sly2-annot addr=0x1CD9E0
- * Purpose: On illumination change: FindSwObjects(0x105,0x30) and SubmitGlobsetRelight on each lit object's
- *   globset
- * Info: proposed name SubmitSwRelightAll (T1); TU render
- * Notes: superseded: RenderSwObjectsFound (r5_1AE130)
- * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130+rendering
- * See: docs/engine/rendering.md#1-frame-structure,
- *   docs/reference/functions/rendering.md#render-0x1cd5f0-0x1cdcd0
- * @end-sly2-annot */
-extern "C" void SubmitSwRelightAll(SW *p)
+// Resubmits relighting after the world's illumination changed: finds up to 1024 objects of class 0x30 (and its
+// derived classes) and, for each with flag bit 3 set whose relight stamp is stale, relights its globset (inferred).
+extern "C" void SubmitSwRelightAll(SW *world)
 {
-    LO *ap[0x400];
-    int n, i;
-    n = CploFindSwObjectsByClass(p, 0x105, 0x30, 0, 0x400, ap);
-    for (i = 0; i < n; i++) {
-        LO *plo = ap[i];
-        if ((Flags(plo) & 8) && plo->xCC != p->x3D5C) SubmitGlobsetRelight(plo->x80);
+    LO *objects[0x400];
+    int count, i;
+    count = CploFindSwObjectsByClass(world, 0x105, 0x30, 0, 0x400, objects);
+    for (i = 0; i < count; i++) {
+        LO *object = objects[i];
+        if ((Flags(object) & 8) && object->relightStamp != world->relightStamp) SubmitGlobsetRelight(object->globset);
     }
 }
 
-/** @sly2-annot addr=0x1CDA80
- * Purpose: SW vt8: per-frame world render entry (called from main loop)
- * Info: proposed name RenderSw (T1); class SW slot8; TU render
- * Notes: runtime: bumps frame counter SW+0x3D60 (== g_cframe delta)
- * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
- * See: docs/engine/overview.md#2-the-frame-loop-exact-order,
- *   docs/engine/overview.md#5-per-frame-update-and-render, docs/engine/rendering.md#1-frame-structure
- * @end-sly2-annot */
-extern "C" void RenderSw(SW *p)
+// Renders the world for one frame (SW vtable slot 8, called from the main loop): prepares lights, counts the frame,
+// resets the render-list cursor, resubmits relighting if the illumination stamp changed, then calls Render (vtable
+// slot 19) on every render-list entry whose flags have bit 3 set and bit 7 clear, and finally flushes the scene's
+// DMA streams. While rendering, currentEntryIndex points at the loop index (callees may read or advance it).
+extern "C" void RenderSw(SW *world)
 {
     int i;
-    PrepareSwLights(p);
-    p->x3D60++;
+    PrepareSwLights(world);
+    world->frameCount++;
     D_003D4A50 = (RPL *)D_003B3980;
-    if (p->x3D5C != p->x3D64) {
-        p->x3D64 = p->x3D5C;
-        SubmitSwRelightAll(p);
+    if (world->relightStamp != world->submittedRelightStamp) {
+        world->submittedRelightStamp = world->relightStamp;
+        SubmitSwRelightAll(world);
     }
-    p->pi = &i;
-    for (i = 0; i < p->c; i++) {
-        SWE *pe = &p->ae[i];
-        if ((pe->grf & 0x88) == 8)
-            ((void (*)(void *))pe->plo->vt[19].fn)((char *)pe->plo + pe->plo->vt[19].delta);
+    world->currentEntryIndex = &i;
+    for (i = 0; i < world->numRenderEntries; i++) {
+        SWE *entry = &world->renderEntries[i];
+        if ((entry->flags & 0x88) == 8)
+            ((void (*)(void *))entry->object->vtable[19].fn)((char *)entry->object + entry->object->vtable[19].delta);
     }
-    p->pi = 0;
+    world->currentEntryIndex = 0;
     func_001DAC58(D_003DA0F0);
     D_002DEA00.Flush();
     D_002DEA28.Flush();

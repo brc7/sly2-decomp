@@ -1,4 +1,5 @@
-// sky.cpp -- SKY, a solid object that follows the camera (keeps its height unless n150 is set).
+// sky.cpp -- SKY (cid 0x61), the sky dome: a solid object re-centred on the camera every frame so it always surrounds
+// the view (it keeps its own height unless followCameraZ is set). Entry points: SKY::VUnk14 (post-load), UpdateSky.
 // TU 0x1EF850..0x1EFA90 (4 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sky
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001EFA70
@@ -11,18 +12,18 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 #include "sly2/classes.h"
 union V { qword q; float f[4]; };
 /* g++ 2.95 vtable entry: this-adjust delta and the function. */
-struct VTE { short d; short pad; void (*pf)(void *, qword); };
+struct VTE { short delta; short pad; void (*function)(void *, qword); };
 
 /* SKY : SO (a view of the fields used here). */
 struct SKYV
 {
     char pad0[0xC];
-    VTE *vt;                /* +0xC */
+    VTE *vtable;            /* +0xC */
     char pad10[0x40 - 0x10];
-    int f40;                /* +0x40 */
+    int flagsOrPointer;     /* +0x40 a flags word, or (low bit clear) a pointer to one */
     char pad44[0x148 - 0x44];
-    unsigned long grf;      /* +0x148 SO flags; bit 35 is SO::fUnk35 */
-    int n150;               /* +0x150 */
+    unsigned long flags;    /* +0x148 SO flags; bit 35 is SO::fUnk35 */
+    int followCameraZ;      /* +0x150 nonzero: also follow the camera's height */
 };
 struct CMV { char pad[0x30]; qword pos; };
 
@@ -33,39 +34,30 @@ void UpdateSo(SKYV *pso);
 qword func_001A62E8(SKYV *pso);
 }
 
+// Returns the z component (word 2) of a quadword vector.
 static inline float GetZ(qword q) { float z; __asm__("pextuw %0, $0, %1" : "=r"(z) : "r"(q)); return z; }
 
-/** @sly2-annot addr=0x1EF850
- * Purpose: SKY (CID 0x61) vt15: PostSoLoad, busyk 1, grf|=2, clear +0x148 bit35 (never in sphere tree)
- * Info: proposed name PostSkyLoad (T1); class SKY slot15; TU sky
- * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r6_1D5150
- * See: docs/engine/gameplay-objects.md#gameplay-object-classes, docs/engine/guards-ai.md#8-source-files,
- *   docs/engine/rendering.md#12-source-files
- * @end-sly2-annot */
+// Post-load hook (vtable slot 15): SO post-load, busy level 1, sets flag bit 1 in the +0x40 flags (through the pointer
+// when it holds one) and clears SO flag bit 35, which keeps the sky out of the collision sphere tree (inferred).
 void SKY::VUnk14()
 {
-    SKYV *psky = (SKYV *)this;
-    int x;
-    PostSoLoad(psky);
-    SetLoBusyk(psky, 1);
-    x = psky->f40;
-    if ((x ^ 1) & 1) *(int *)x |= 2;
-    else psky->f40 = x | 2;
-    psky->grf &= ~(1UL << 35);
+    SKYV *sky = (SKYV *)this;
+    int flagsWord;
+    PostSoLoad(sky);
+    SetLoBusyk(sky, 1);
+    flagsWord = sky->flagsOrPointer;
+    if ((flagsWord ^ 1) & 1) *(int *)flagsWord |= 2;
+    else sky->flagsOrPointer = flagsWord | 2;
+    sky->flags &= ~(1UL << 35);
 }
 
-/** @sly2-annot addr=0x1EF8C8
- * Purpose: SKY vt16: UpdateSo, then TranslateToPos(camera pos (*(CMV *)&g_cm.mat), keeping own Z unless fFollowZ
- *   +0x150)
- * Info: proposed name UpdateSky (T1); class SKY slot16; TU sky
- * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
- * See: docs/engine/rendering.md#13-key-functions, docs/reference/functions/rendering.md#sky-0x1ef850-0x1efa90
- * @end-sly2-annot */
-extern "C" void UpdateSky(SKYV *psky)
+// Per-frame update (vtable slot 16): SO update, then moves the sky to the camera position (vtable slot 29, translate),
+// keeping its own height unless followCameraZ is set.
+extern "C" void UpdateSky(SKYV *sky)
 {
-    union V v;
-    UpdateSo(psky);
-    v.q = (*(CMV *)&g_cm.mat).pos;
-    if (!psky->n150) v.f[2] = GetZ(func_001A62E8(psky));
-    psky->vt[29].pf((char *)psky + psky->vt[29].d, v.q);
+    union V target;
+    UpdateSo(sky);
+    target.q = (*(CMV *)&g_cm.mat).pos;
+    if (!sky->followCameraZ) target.f[2] = GetZ(func_001A62E8(sky));
+    sky->vtable[29].function((char *)sky + sky->vtable[29].delta, target.q);
 }

@@ -3611,7 +3611,7 @@ StaticInit_mpeg,0x1B42D0,81,match,src/game/gameplay/cutscene/mpeg.cpp
 func_001B4418,0x1B4418,8,match,src/game/gameplay/cutscene/mpeg.cpp
 InitMs,0x1B4438,16,match,src/game/engine/graphics/pipeline/ms.cpp
 RenderMsGlobset,0x1B4478,24,match,src/game/engine/graphics/pipeline/ms.cpp
-func_001B44D8,0x1B44D8,62,match,src/game/engine/graphics/pipeline/ms.cpp
+CollectVisibleMsGlobs,0x1B44D8,62,match,src/game/engine/graphics/pipeline/ms.cpp
 StaticInit_ms,0x1B45D0,77,match,src/game/engine/graphics/pipeline/ms.cpp
 func_001B4708,0x1B4708,8,match,src/game/engine/graphics/pipeline/ms.cpp
 InitMurray,0x1B4728,88,match,src/game/gameplay/player/murray.cpp
@@ -4034,8 +4034,8 @@ func_001CD308,0x1CD308,100,match,src/game/gameplay/player/jthands.cpp
 StaticInit_jthands,0x1CD498,77,match,src/game/gameplay/player/jthands.cpp
 func_001CD5D0,0x1CD5D0,8,match,src/game/gameplay/player/jthands.cpp
 FillScreenRect,0x1CD5F0,100,match,src/game/engine/graphics/pipeline/render.cpp
-func_001CD780,0x1CD780,134,match,src/game/engine/graphics/pipeline/render.cpp
-PrplAllocRpl,0x1CD998,17,match,src/game/engine/graphics/pipeline/render.cpp
+DrawWorldLabel,0x1CD780,134,match,src/game/engine/graphics/pipeline/render.cpp
+AllocRenderListEntry,0x1CD998,17,match,src/game/engine/graphics/pipeline/render.cpp
 SubmitSwRelightAll,0x1CD9E0,40,match,src/game/engine/graphics/pipeline/render.cpp
 RenderSw,0x1CDA80,61,match,src/game/engine/graphics/pipeline/render.cpp
 StaticInit_render,0x1CDB78,77,match,src/game/engine/graphics/pipeline/render.cpp
@@ -5668,9 +5668,9 @@ AddVifGifs__4VIFSP4GIFS,0x2271C8,12,match,src/game/engine/graphics/backend/vifs.
 StaticInit_vifs,0x2271F8,77,match,src/game/engine/graphics/backend/vifs.cpp
 func_00227330,0x227330,8,match,src/game/engine/graphics/backend/vifs.cpp
 func_00227350,0x227350,11,match,src/game/engine/graphics/pipeline/vis.cpp
-func_00227380,0x227380,28,match,src/game/engine/graphics/pipeline/vis.cpp
-func_002273F0,0x2273F0,20,match,src/game/engine/graphics/pipeline/vis.cpp
-func_00227440,0x227440,8,match,src/game/engine/graphics/pipeline/vis.cpp
+LoadVisFromBrx,0x227380,28,match,src/game/engine/graphics/pipeline/vis.cpp
+UpdateVisInside,0x2273F0,20,match,src/game/engine/graphics/pipeline/vis.cpp
+SetVisInside,0x227440,8,match,src/game/engine/graphics/pipeline/vis.cpp
 StaticInit_vis,0x227460,77,match,src/game/engine/graphics/pipeline/vis.cpp
 func_00227598,0x227598,8,match,src/game/engine/graphics/pipeline/vis.cpp
 RgbaFromSpeakerCid,0x2275B8,91,match,src/game/engine/sound/tu_2275B8.cpp

@@ -138,7 +138,7 @@ EVENT *func_001F8240(LOV *plo);
 void SetSoAlpha(GUARDV *,float);
 void FadeSoIn(GUARDV *,float);
 void SetDetectorTargetStateById(DETV *pdet,LOV *plo,int k);
-void func_001B44D8(int *, void ***);
+void CollectVisibleMsGlobs(int *, void ***);
 float SMaxShape(LOV *);
 int func_001EA3B0(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
@@ -666,7 +666,7 @@ extern "C" SEL *func_00173F18(CID119V *pset, qwordV pos, qwordV *pposOut, M3 *pm
     SEL *pselBest;
     int fFlip = 0;
     STACKSCOPE_ctor(&frame);
-    func_001B44D8(&cplo, &aplo);
+    CollectVisibleMsGlobs(&cplo, &aplo);
     pselBest = 0;
     float sBest = D_002A53E0;
 

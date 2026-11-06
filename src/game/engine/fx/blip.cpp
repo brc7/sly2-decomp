@@ -875,7 +875,7 @@ qwordV func_001A62E8(LOV *plo);
 M3 *func_001A6318(LOV *plo);
 int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
 int FInsideCmMrd(CMV *pcm, qwordV d, float g, float *pg);
-DMA *PrplAllocRpl(void);
+DMA *AllocRenderListEntry(void);
 }
 static inline void *PvAllocStack(int cb) { return PvAllocSlot__FP8ALLOCREQ(AL(cb, 0x10)); }
 /* earlyclobber output (else branch: vsub vf3 distinct from its inputs); the 2nd "j"(b) is allocation-only */
@@ -972,7 +972,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
         return;
     }
     int c = 0;
-    DMA *pdma = PrplAllocRpl();
+    DMA *pdma = AllocRenderListEntry();
     pdma->x0 = 0xC;
     pdma->x4 = 0;
     int save = D_002DEA28.xC;

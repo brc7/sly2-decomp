@@ -684,7 +684,7 @@ extern "C" void EndRpRelight(VIFS *pvifs)
 namespace M_SubmitGlobsetRelight {
 // SubmitGlobsetRelight (Claude agent, T1651): builds one VIF packet per entry of a model's packet list: a DMA CNT tag, an UNPACK of
 // 6 qwords to VU address 0x301 (entry word + bounding sphere + model matrix), padding, and a DMA RET tag, then queues it
-// in a render-list entry (PrplAllocRpl) with the descriptor's chain. Stamps the game tick at the end.
+// in a render-list entry (AllocRenderListEntry) with the descriptor's chain. Stamps the game tick at the end.
 // From lanef9v1 (aligned 5) plus func_00169198's packet idioms (template UNPACK tag, CopyQws with the empty do-while).
 // STAND-IN (same trick as ApplySpriteKeyPoses / LoadOptionFromBrx): `if (fNever)` is dead code (gcse's last cprop folds it, jump
 // deletes it; the final code is unchanged). It only supplies the extra basic block the game had between the UNPACK tag and
@@ -783,7 +783,7 @@ void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void *func_0023320C(void *pvDst, const void *pvSrc, uint cb) __asm__("memcpy");
 M4 *__ml__FRC7MATRIX4T0(M4 *pmatDst, const M4 *pmatA, const M4 *pmatB);
 float func_0011CAB0(const M3 *pmat);
-RPL *PrplAllocRpl(void);
+RPL *AllocRenderListEntry(void);
 }
 static inline qword QwTransformPos(M4 *pmat, qword qwPos)
 {
@@ -889,7 +889,7 @@ extern "C" void SubmitGlobsetRelight(PACKETS *p)
         *(uint *)ptag |= ((D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
         *(ulong *)D_002DEA28.pb = 0x60000000;
         D_002DEA28.pb += 0x10;
-        RPL *prpl = PrplAllocRpl();
+        RPL *prpl = AllocRenderListEntry();
         prpl->pb = (uchar *)ptag;
         prpl->kind = 0;
         prpl->pad4 = 0;
@@ -1237,7 +1237,7 @@ float func_0011CAB0(const MATRIX4 *pmat);
 qword func_00167DA0(const MATRIX4 *pmat, qword qwPos, float *psRadius);
 int FInsideCmMrd(VIEW *pview, qword qwDpos, float sRange, float *pgVis);
 void UnpackSubglobBones(MODEL *pmodel, SUBDESC *pdesc, SUB *psub);
-RPL *PrplAllocRpl(void);
+RPL *AllocRenderListEntry(void);
 }
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
@@ -1593,7 +1593,7 @@ extern "C" void RenderSoGlobset(MODEL *pmodel, MATRIX4 *pmatWorld, float gFirst,
         *(uint *)ptag |= ((int)(D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
         *(ulong *)D_002DEA28.pb = 0x60000000;
         D_002DEA28.pb += 0x10;
-        RPL *prpl = PrplAllocRpl();
+        RPL *prpl = AllocRenderListEntry();
         switch (KindOf(psub))
         {
         case 3:
@@ -1760,7 +1760,7 @@ void CopyAb__FPvT0Ui(void *pvDst, const void *pvSrc, uint cb);
 void __ml__FRC7MATRIX4T0(MATRIX4 *pmatDst, const MATRIX4 *pmatA, const MATRIX4 *pmatB);
 void InvertMatrix4Rigid(MATRIX4 *pmatDst, const MATRIX4 *pmatSrc);
 qword func_001A62E8(ALO *palo);
-RPL *PrplAllocRpl(void);
+RPL *AllocRenderListEntry(void);
 }
 static inline MATRIX4 MulMat(const MATRIX4 &matA, const MATRIX4 &matB) return mat
 {
@@ -1973,7 +1973,7 @@ extern "C" void func_00169198(MODEL *pmodel, ALO *palo)
         *(uint *)ptag |= ((int)(D_002DEA28.pb - (uchar *)ptag) >> 4) - 1;
         *(ulong *)D_002DEA28.pb = 0x60000000;
         D_002DEA28.pb += 0x10;
-        RPL *prpl = PrplAllocRpl();
+        RPL *prpl = AllocRenderListEntry();
         prpl->kind = kind;
         if (psub->grf & 0x400)
             prpl->dist = pdesc->dist;
