@@ -1796,11 +1796,11 @@ typedef char assert_CID39_size[sizeof(CID39) == 0x110 ? 1 : -1];
 struct CID46 : XFM
 {
     char padE0[0x120 - 0xE0];
+    virtual void VUnk14() __asm__("PostReconTargetLoad");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid46ClassDesc");   /* slot 6 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleReconTargetMessage");   /* slot 5 */
     virtual void Init() __asm__("InitReconTarget");   /* slot 7 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadReconTargetFromBrx");   /* slot 14 */
-    virtual void VUnk14() __asm__("PostReconTargetLoad");   /* slot 15 */
 };
 typedef char assert_CID46_size[sizeof(CID46) == 0x120 ? 1 : -1];
 
