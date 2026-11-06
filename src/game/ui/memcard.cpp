@@ -2562,12 +2562,12 @@ extern SAVE D_002E65E0;
 #undef D_003D9EDC
 
 namespace M_func_001AD740 { extern "C" {
-struct E { int x0, x4; void *widget; int xc, x10; char *selectedIndex; int x18; };   /* a pause menu page */
+struct E { int unknown0, unknown4; void *widget; int unknownC, unknown10; char *selectedIndex; int unknown18; };   /* a pause menu page */
 struct G { int pad[9]; int topPage; };
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct G D_003D9ED0;
-struct S { int x0, x4; char *slotIndex; };   /* the menu item */
+struct S { int unknown0, unknown4; char *slotIndex; };   /* the menu item */
 void PopPauseMenuPage(struct G *g);
 int IsPauseMenuOnSavePage(struct G *g);
 void PlayWidgetAnim(void *a, char *b);
@@ -2692,7 +2692,7 @@ void FormatSaveCompletionText(char *buf)
 
 namespace M_func_001ADA20 { extern "C" {
 struct CRef { int m_tagk; float m_tag; };
-struct E { int x0, x4, widget, xC, x10; int selectedIndex; int x18; };   /* a pause menu page */
+struct E { int unknown0, unknown4, widget, unknownC, unknown10; int selectedIndex; int unknown18; };   /* a pause menu page */
 struct G { int pad[9]; int topPage; };
 struct GD { char pad[0x3B1C]; int saveVarIsUsed; };
 struct B { char data[0x5464]; };
