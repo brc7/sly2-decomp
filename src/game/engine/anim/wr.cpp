@@ -221,7 +221,7 @@ void WR::Init()
  * See: docs/reference/functions/animation.md#wr-0x22b720-0x22c818
  * @end-sly2-annot */
 // Attaches a warp group (WRBG: a set of mesh vertices) to a space warp: appends it to the warp's group list and points
-// the group back at the warp. Called while loading glob meshes (glob.cpp).
+// the group back at the warp. Called while loading glob meshes (glob.cpp). (inferred)
 extern "C" void AddWrWarpGroup(WRV *warp, WRBG *group)
 {
     func_0011A070(&warp->warpGroups, group);

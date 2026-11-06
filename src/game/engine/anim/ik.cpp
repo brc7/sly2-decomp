@@ -65,7 +65,7 @@ qwordV ConvertXfVec(void *space, void *p, qwordV v);
  *   docs/reference/functions/animation.md#ik-0x186610-0x187030
  * @end-sly2-annot */
 // Clones an IK action onto a transform (ACT slot 6): generic CloneAct, then takes over the IK record the transform's
-// +0xA8 points at.
+// +0xA8 points at. (inferred)
 extern "C" void CloneIkAct(ACTIKV *pact, void *a1, void *a2, void *a3)
 {
     CloneAct(pact, a1, a2, a3);
@@ -143,7 +143,7 @@ static inline N*Entry(SOIK*owner,int i){register E*entries asm("$2")=owner->entr
  * @end-sly2-annot */
 // For an SO with IK records (flag bit 36), re-measures every IK record's two bone lengths from the current transforms
 // (the parent-space point to the second bone, and the second bone to the first), so animation that scales bones keeps
-// the solver consistent. Hand-scheduled VU0 asm.
+// the solver consistent. Hand-scheduled VU0 asm. (inferred)
 extern "C" void UpdateSoIkBoneLengths(SOIK*so){
  if(!(so->flags&(1UL<<36)))return;
  for(int i=0;i<so->entryCount;i++)for(N*node=Entry(so,i);node;node=node->next)if(node->kind==7){
@@ -173,7 +173,7 @@ extern "C" void UpdateSoIkBoneLengths(SOIK*so){
  * @end-sly2-annot */
 // Measures a freshly loaded IK record: snapshots both bones' local matrices, computes the two bone lengths and the rest
 // angle between the bones (RadBetweenVectors, which also yields the bend axis), and stores the bend axis in the second
-// bone's parent space.
+// bone's parent space. (inferred)
 extern "C" void InitIkRecord(IKREC*ikRecord){
  register int bits asm("$2");
  qwordV*axis=&ikRecord->axis;

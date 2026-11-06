@@ -262,7 +262,7 @@ void ASEG::VUnk14()
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-// Returns the segment's label entry with the given id, or 0.
+// Returns the segment's label entry with the given id, or 0. (inferred)
 EA *FindAsegLabel(ASEG *segment, int n)
 {
     int i;
@@ -405,7 +405,7 @@ void ApplyAsegCore(ASEG *pt, ALO *x, int grf, float g0, float g1, ASEGA **pp)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-// Records that the segment should start by itself after loading, with the given flags, start time and speed.
+// Records that the segment should start by itself after loading, with the given flags, start time and speed. (inferred)
 extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float svt)
 {
     AREQV req;
@@ -428,7 +428,7 @@ extern "C" void SetAsegAutoStart(ASEG *segment, int applyFlags, float t, float s
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
 // Resolves the object a channel animates: finds the OID under the root (or in the world), then asks that object for the
-// channel's sub-target (transform or value) through its vtable.
+// channel's sub-target (transform or value) through its vtable. (inferred)
 void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
 {
     if (b)
@@ -455,7 +455,7 @@ void ResolveAsegChannelTarget(ASEG *a, ALO *b, CHN *pk, LO **ppo, void **pn)
  *   docs/reference/functions/player.md#pipe_jt-0x19de10-0x19f0a8
  * @end-sly2-annot */
 // Finds the segment's channel that animates the given object and transform component; optionally only channels with the
-// "check" bit; skips disabled channels.
+// "check" bit; skips disabled channels. (inferred)
 extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
 {
     int i;
@@ -482,7 +482,7 @@ extern "C" CHN *FindAsegChannel(ASEG *t, LO *po, void *pv, int fCheck)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r1_116918+verdicts_tu_r1r2
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-// Resolves the object an override (OVR) refers to, relative to the root or in the world.
+// Resolves the object an override (OVR) refers to, relative to the root or in the world. (inferred)
 void ResolveAsegOverrideTarget(ASEG *p, ALO *q, OVR *pa, LO **ppo, int *pn) {
     if (q) *ppo = PloFindSwObject(&D_003DD490, 1, (OID)pa->oid, (LO *)q);
     else *ppo = PloFindSwObject(&D_003DD490, 4, (OID)pa->oid, p);
@@ -510,7 +510,7 @@ static inline M4 AddM4(const M4 &a, const M4 &b) return m
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
 // Predicts the world transform the segment would give an object at a given time (evaluating its channels along the
-// transform chain from pyFirst to pyLast) without playing it; used to line up moves before they start.
+// transform chain from pyFirst to pyLast) without playing it; used to line up moves before they start. (inferred)
 extern "C" void PredictAsegTransform(ASEG *px, ALO *p, XFV *pyFirst, XFV *pyLast, float f, float g, M4 *pm1, M4 *pm2)
 {
     M4 mA;
@@ -675,7 +675,7 @@ void ReleaseAsega(ASEGA **pp) {
  * Confidence: low (draft) [T2 0.45] - evidence: static naming pass; sources: r1_116918
  * See: docs/reference/functions/animation.md#aseg-0x12f248-0x1308a8
  * @end-sly2-annot */
-// Drops the slot's reference to its player without stopping it, and clears the slot.
+// Drops the slot's reference to its player without stopping it, and clears the slot. (inferred)
 extern "C" void DropAsegaRef(ASEGA **pp) {
     ASEGA *p = *pp;
     if (p) { VTE *vt = PVT(p); ((void (*)(void *))vt[2].pfn)((char *)p + vt[2].d); *pp = 0; }

@@ -78,7 +78,7 @@ void CID43::Init()
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
 // Loads an ambient emitter (slot 14): allocates room for up to 8 sounds and 8 linked sounds, loads the XFM part (whose
-// options fill the lists), then shrinks both allocations to the counts actually used.
+// options fill the lists), then shrinks both allocations to the counts actually used. (inferred)
 extern "C" void LoadAmbFromBrx(AMB *amb, void *stream)
 {
     STACKSCOPE obj;
@@ -136,7 +136,7 @@ extern "C" void PostAmbLoad(AMB *amb)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
 // Called when the emitter enters the world (slot 23): starts every one of its sounds as a looping positional sound on the
-// emitter with its distance range, volume and pitch, keeping a reference-counted handle to each.
+// emitter with its distance range, volume and pitch, keeping a reference-counted handle to each. (inferred)
 extern "C" void OnAmbAdd(AMB *amb)
 {
     int i;
@@ -162,6 +162,7 @@ extern "C" void OnAmbAdd(AMB *amb)
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
 // Called when the emitter leaves the world (slot 22): stops every playing sound immediately and releases its handle.
+// (inferred)
 extern "C" void OnAmbRemove(AMB *amb)
 {
     int i;
@@ -182,7 +183,7 @@ extern "C" void OnAmbRemove(AMB *amb)
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
 // Option-table accessor: returns the sound the emitter's option setters edit, adding a default one first (no sound id,
-// range 300..3000, full volume, unchanged pitch) if there is none yet.
+// range 300..3000, full volume, unchanged pitch) if there is none yet. (inferred)
 extern "C" AMBSND *EnsureCurrentAmbSound(AMB *amb)
 {
     if (!amb->currentSound) {
@@ -198,7 +199,7 @@ extern "C" AMBSND *EnsureCurrentAmbSound(AMB *amb)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0
  * @end-sly2-annot */
-// Adds a sound (id, min/max audible distance, volume, pitch) to the emitter; at most 8, extras are ignored.
+// Adds a sound (id, min/max audible distance, volume, pitch) to the emitter; at most 8, extras are ignored. (inferred)
 extern "C" void AddAmbSound(AMB *amb, int soundId, int minDistance, int maxDistance, float volume, float pitch)
 {
     if (amb->soundCount < 8) {

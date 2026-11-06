@@ -418,7 +418,7 @@ void HandleAsegaEventsFF(ASEGA *player)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-// The object events of this player act on: its root object if bound, otherwise the segment itself.
+// The object events of this player act on: its root object if bound, otherwise the segment itself. (inferred)
 LO *GetAsegaEventTarget(ASEGA *player) { if (player->paloRoot) return (LO *)player->paloRoot; return player->paseg; }
 
 struct MSG { ASEGA *p; float g; int n; };
@@ -563,7 +563,7 @@ struct GVOL { ASEGA *po; };
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
 // The player's message handler (slot 4): holds a reference while it forwards the message to its root object and to the
-// LO base handler.
+// LO base handler. (inferred)
 extern "C" void SendAsegaMessage(ASEGA *player, int message, ASEGA *argument) {
     GVOL volatile g;
     g.po = player;
@@ -735,7 +735,7 @@ extern "C" void SetAsegaChannelWeight(ASEGA *player, float weight) {
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-// Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform.
+// Finds the action with the given id on a transform, disables it (priority -1) and refreshes the transform. (inferred)
 void DetachXfActById(void *pvId, SO *pso, XF *pxf) {
     ACTV *pn = pxf->pactFirst;
     for (;;) {
@@ -754,6 +754,7 @@ struct OIDXFK { int oid; int xfk; };
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
 // For each transform of an SO matching any (OID, component) filter pair (-1 = any), detaches the action with the given id.
+// (inferred)
 extern "C" void DetachSoActsMatching(void *pv, SO *p, int cp, OIDXFK *ap) {
     int i, j;
     for (i = 0; i < p->cxf; i++) {
@@ -795,7 +796,7 @@ void ACTSEG::VSlot1() {
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r1_116918
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
-// Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach.
+// Detaches a segment channel action (slot 2): clears the rotation-curve binding, or runs the base detach. (inferred)
 extern "C" void DetachActseg(ACTSEGV *p) {
     if (p->pacRot != 0) {
         p->pxf->pxfRef->nD0 = 0;
@@ -812,7 +813,7 @@ extern "C" void DetachActseg(ACTSEGV *p) {
  * See: docs/reference/functions/animation.md#asega-0x1308a8-0x131f70
  * @end-sly2-annot */
 // Per-frame channel update (slot 4): a curve channel points the transform at the player's time and speed and lets the
-// curve drive it; a channel without a curve resets the transform's phase and refreshes it.
+// curve drive it; a channel without a curve resets the transform's phase and refreshes it. (inferred)
 extern "C" void UpdateActseg(ACTSEGV *p) {
     if (p->pac) {
         ACV *pc;
@@ -891,7 +892,7 @@ static inline void Release4(R4 *r)
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4
  * @end-sly2-annot */
 // Counted-pointer assignment for sidebags (inline template copy): takes a reference to the new sidebag, releases the
-// old one (freeing it at zero).
+// old one (freeing it at zero). (inferred)
 inline void AssignSidebagRef(R4 **pp, R4 *p)
 {
     if (p)

@@ -39,7 +39,7 @@ void ClearSubtitle(void *p);                                   /* InitSpeakerLab
  *   docs/reference/functions/hud-ui.md#letterbox-0x1a3020-0x1a3260
  * @end-sly2-annot */
 // Binds the letterbox to the level's letterbox timer object (OID 0x373, class 0x405) and sets its timer mode to 1
-// (SetWidgetRequest). A level without that object has no letterbox.
+// (SetWidgetRequest). A level without that object has no letterbox. (inferred)
 extern "C" void InitLetterbox(LETTERBOX *letterbox)
 {
       TIMER *timer = (TIMER *)PloFindSwObject(&D_003DD490, 0x405, (OID)0x373, 0);

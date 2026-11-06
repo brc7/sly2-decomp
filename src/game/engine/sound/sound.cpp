@@ -608,7 +608,7 @@ struct S { int a[3]; struct VTE *vt; char pad[0x30]; int x40; char pad2[0xE]; sh
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Async callback when a looping bank sound started: stores its voice handle, clears "starting", drops the callback's
-// reference.
+// reference. (inferred)
 void OnBankSoundStarted(int x, long l) { struct S *p = (struct S *)(int)l; p->x40 = x; p->x52 = 0; p->vt[2].pfn((char *)p + p->vt[2].d); }
 } } // namespace M_func_001FBAF8
 
@@ -624,7 +624,7 @@ void SetSndFlags(struct A *p, int a, int b);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Async "is it still playing" callback: a finished sound is stopped, a playing one gets its next status query armed;
-// drops the callback's reference.
+// drops the callback's reference. (inferred)
 void OnBankSoundStatus(int f, long l)
 {
     struct A *p = (struct A *)l;
@@ -864,7 +864,7 @@ void SetSndFlags(struct P *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Culling hook (slot 15): a sound that becomes audible again restarts; one that becomes silent is stopped (loopers keep
-// their parameters so they can restart).
+// their parameters so they can restart). (inferred)
 void SetBankSoundCulled(struct P *p, int f)
 {
     if (!f) ((void (*)(void *))p->vtable->a[7].pfn)((char *)p + p->vtable->a[7].d);
@@ -898,7 +898,7 @@ void FreeBanksnd(struct S *);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool.
+// Drops a reference to a bank sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
 void DecrefBanksnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); FreeBanksnd(p); } }
 } } // namespace M_DecrefBanksnd
 
@@ -1040,7 +1040,7 @@ static inline int Norm(int deg) { int n = deg % 360; return n > -1 ? n : n + 360
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Sets the pan of one of a stream's six sub-groups and marks it dirty.
+// Sets the pan of one of a stream's six sub-groups and marks it dirty. (inferred)
 void SetStreamGroupPan(struct P *p, unsigned int k, int deg)
 {
     if (k < 6) {
@@ -1067,7 +1067,7 @@ void SetSndFlags(struct P *, int, int);
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Adds a positional source (object, volume, range) to a stream sub-group (at most 8 per group); the loudest audible
-// source drives the group's volume and pan.
+// source drives the group's volume and pan. (inferred)
 void AddStreamGroupSource(struct P *p, unsigned int k, int n, struct R *pr, float g)
 {
     if (k < 6 && p->c[k] < 8) {
@@ -1090,7 +1090,7 @@ struct S { char pad[0x3B8]; int fl; };
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7_1F8DD8+verdicts_tu_r7r8
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Kind of a streamed sound (slot 8): 2 when looping, else 1.
+// Kind of a streamed sound (slot 8): 2 when looping, else 1. (inferred)
 int GetStreamSoundKind(struct S *p) { return (p->fl & 4) ? 2 : 1; }
 } } // namespace M_func_001FC4F8
 
@@ -1172,7 +1172,7 @@ void PlayStreamsnd(struct P *p)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 2 (stop) for the stream. */
-// Stops a streamed sound on the IOP (slot 10).
+// Stops a streamed sound on the IOP (slot 10). (inferred)
 extern "C" void StopStreamSound(SNDV *sound)
 {
     func_00233088(0x524B5553, 2, sound->voiceHandle, 0, 0, 0, 0);
@@ -1185,7 +1185,7 @@ extern "C" void StopStreamSound(SNDV *sound)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 3 (pause) for the stream. */
-// Pauses a streamed sound on the IOP (slot 11).
+// Pauses a streamed sound on the IOP (slot 11). (inferred)
 extern "C" void PauseStreamSound(SNDV *sound)
 {
     func_00233088(0x524B5553, 3, sound->voiceHandle, 0, 0, 0, 0);
@@ -1198,7 +1198,7 @@ extern "C" void PauseStreamSound(SNDV *sound)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND: RPC 'SUKR' (0x524B5553) command 4 (continue) for the stream. */
-// Resumes a streamed sound on the IOP (slot 12).
+// Resumes a streamed sound on the IOP (slot 12). (inferred)
 extern "C" void ResumeStreamSound(SNDV *sound)
 {
     func_00233088(0x524B5553, 4, sound->voiceHandle, 0, 0, 0, 0);
@@ -1259,6 +1259,7 @@ void SetSndFlags(struct P *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Queries a stream's play position and whether it is still playing (slot 14), with callbacks; accumulates paused time.
+// (inferred)
 void QueryStreamSoundStatus(struct P *p)
 {
     if (p->f50 & 0x1000) {
@@ -1284,7 +1285,7 @@ void QueryStreamSoundStatus(struct P *p)
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 /* STREAMSND slot 15: streams are not culled */
-// Culling hook (slot 15): nothing, streams are never culled.
+// Culling hook (slot 15): nothing, streams are never culled. (inferred)
 extern "C" void SetStreamSoundCulled()
 {
 }
@@ -1360,7 +1361,7 @@ void SetSndFlags(struct X *, int, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Async callback when a stream started: stores its stream handle, or stops the sound if starting failed; drops the
-// callback's reference.
+// callback's reference. (inferred)
 void OnStreamSoundStarted(int f, long l)
 {
     struct X *px = (struct X *)l;
@@ -1421,7 +1422,7 @@ void FreeStreamsnd(struct S *);
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Drops a reference to a streamed sound (slot 2); at zero it is destroyed and returned to its pool.
+// Drops a reference to a streamed sound (slot 2); at zero it is destroyed and returned to its pool. (inferred)
 void DecrefStreamsnd(struct S *p) { if (--p->c == 0 && p) { DestroyBasic(p, 0); FreeStreamsnd(p); } }
 } } // namespace M_DecrefStreamsnd
 
@@ -1553,7 +1554,7 @@ struct S { char pad[0x6C]; int a; int b; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Async callback: stores a query result in the manager and clears its busy flag.
+// Async callback: stores a query result in the manager and clears its busy flag. (inferred)
 void OnSoundManagerQueryResult(int x, long l) { struct S *p = (struct S *)(int)l; p->b = x; p->a = 0; }
 } } // namespace M_func_001FCF70
 
@@ -1565,7 +1566,7 @@ struct S { char pad[0xA0]; int a; int b; };
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Async callback of the manager's periodic status query: stores the result and clears the busy flag.
+// Async callback of the manager's periodic status query: stores the result and clears the busy flag. (inferred)
 void OnSoundManagerStatusResult(int x, long l) { struct S *p = (struct S *)(int)l; p->b = x; p->a = 0; }
 } } // namespace M_func_001FCF88
 
@@ -1587,7 +1588,7 @@ struct T *FindDialogStream(struct S *p, int n) { struct T *pt; for (pt = p->pt; 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Duration of a dialog line's stream by id (0 when unknown); subtitles use it to pace the typewriter effect.
+// Duration of a dialog line's stream by id (0 when unknown); subtitles use it to pace the typewriter effect. (inferred)
 extern "C" float GetDialogStreamDuration(int id)
 {
     STREAMREC *prec = FindDialogStream(id);
@@ -1664,7 +1665,7 @@ extern int D_002C3C40[];
  * See: docs/engine/sound.md#6-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// OID of the state machine that animates dialog speaker role n (n < 6), or -1.
+// OID of the state machine that animates dialog speaker role n (n < 6), or -1. (inferred)
 int GetDialogRoleSmOid(int a, unsigned int n) { if (n >= 6) return -1; return D_002C3C40[n]; }
 } } // namespace M_func_001FD0C0
 
@@ -2144,7 +2145,7 @@ void func_002330D0(int id, int n, int a, int b, int c, int d, int e, void (*pfn)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Issues the manager's periodic status query to the IOP, once at a time.
+// Issues the manager's periodic status query to the IOP, once at a time. (inferred)
 void PollSoundManagerStatus(struct A *p)
 {
     if (!p->f) {
@@ -2175,7 +2176,7 @@ static __inline__ float Sqrt(float f){float r;__asm__ __volatile__("sqrt.s %0,%1
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Picks the music layer (0, 1 or 2) from requests and the player's state (alert, hiding, actions) and cross-fades the
-// three layers of the current music stream toward it, keeping their total power constant.
+// three layers of the current music stream toward it, keeping their total power constant. (inferred)
 void UpdateMusicMix(struct P *input)
 {
     struct P *p=input;
@@ -2226,7 +2227,7 @@ norm:
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Empty per-frame hook in the release build.
+// Empty per-frame hook in the release build. (inferred)
 extern "C" void UpdateSoundManagerStub()
 {
 }
@@ -2247,7 +2248,7 @@ void ApplyDialogEvent(struct P *, struct Ent *);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Advances the current dialog: fires its lip-sync / animation events as the stream's play time passes them and stops the
-// dialog at its end.
+// dialog at its end. (inferred)
 void UpdateDialog(struct P *p)
 {
     struct X *x = p->r200;
@@ -2294,7 +2295,7 @@ void SetSmaGoal(void *, int);
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
 // Applies one dialog event: a gesture for role 3, otherwise sets the goal state of the speaker role's state machine
-// (lip sync).
+// (lip sync). (inferred)
 void ApplyDialogEvent(struct P *p, struct E *pe)
 {
     int k = pe->k;
@@ -2384,7 +2385,7 @@ extern "C" void AssignSoundRef(Ref *, void *);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Stops a music track by id if it is playing.
+// Stops a music track by id if it is playing. (inferred)
 extern "C" void StopMusic(P *p, int n)
 {
     Ref r;
@@ -2447,7 +2448,7 @@ extern "C" X *FindMusicStream(P *, int);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// A reference to the music stream on the stack with the given id (null when absent).
+// A reference to the music stream on the stack with the given id (null when absent). (inferred)
 extern "C" Ref FindMusic(P *p, int n)
 {
     X *v = FindMusicStream(p, n);
@@ -2471,7 +2472,7 @@ struct S { char pad[0x68]; int fl; };
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Sets or clears bits of the manager's flags.
+// Sets or clears bits of the manager's flags. (inferred)
 void SetSoundManagerFlags(struct S *p, int f, int fSet) { if (fSet) p->fl |= f; else p->fl &= ~f; }
 } } // namespace M_func_001FE5B8
 
@@ -2614,7 +2615,7 @@ static inline int PresentValue(void){register int r __asm__("$4");__asm__("addiu
  * See: docs/reference/functions/cutscenes.md#tu_1471c0-0x1471c0-0x147e20,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// True while a dialog (optionally the one with the given id) is playing.
+// True while a dialog (optionally the one with the given id) is playing. (inferred)
 int IsDialogPlaying(struct S *p, int n)
 {
     struct U *pu; int f;
@@ -2648,7 +2649,7 @@ static inline float T(struct X *px) { return (float)px->t * (1.0f / 294912000.0f
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Play time of the current dialog (the cached time while it is still starting).
+// Play time of the current dialog (the cached time while it is still starting). (inferred)
 float GetDialogTime(struct P *p)
 {
     if (!p->px) return 0.0f;
@@ -2671,7 +2672,7 @@ struct S { char pad[0x1D0]; int c; int a[1]; };
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#amb-0x12eb48-0x12f0f0,
  *   docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Index of an id in the manager's stream-group table, or -1 (used to attach ambient emitters to groups).
+// Index of an id in the manager's stream-group table, or -1 (used to attach ambient emitters to groups). (inferred)
 int FindStreamGroupIndex(struct S *p, int n) { int i; for (i = 0; i < p->c; i++) if (p->a[i] == n) return i; return -1; }
 } } // namespace M_func_001FE990
 
@@ -2828,7 +2829,7 @@ extern "C" void AddMusicLayer2Request(SNDMGRV *soundManager)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Removes a request for music layer 2.
+// Removes a request for music layer 2. (inferred)
 extern "C" void RemoveMusicLayer2Request(SNDMGRV *soundManager)
 {
     soundManager->musicLayer2Requests--;
@@ -2840,7 +2841,7 @@ extern "C" void RemoveMusicLayer2Request(SNDMGRV *soundManager)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Adds a request for music layer 0 (counted).
+// Adds a request for music layer 0 (counted). (inferred)
 extern "C" void AddMusicLayer0Request(SNDMGRV *soundManager)
 {
     soundManager->musicLayer0Requests++;
@@ -2852,7 +2853,7 @@ extern "C" void AddMusicLayer0Request(SNDMGRV *soundManager)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Removes a request for music layer 0.
+// Removes a request for music layer 0. (inferred)
 extern "C" void RemoveMusicLayer0Request(SNDMGRV *soundManager)
 {
     soundManager->musicLayer0Requests--;
@@ -2928,7 +2929,7 @@ void SetStreamGroupPan(void *, int, int);
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7_1F8DD8
  * See: docs/reference/functions/sound.md#sound-0x1faf70-0x1ff3b8
  * @end-sly2-annot */
-// Splice command: sets the volume and pan of the ambience sub-group selected by id.
+// Splice command: sets the volume and pan of the ambience sub-group selected by id. (inferred)
 void SetAmbienceGroupMix(int a, int b, int c, float g)
 {
     int r = FindStreamGroupIndex(&D_003DD040);

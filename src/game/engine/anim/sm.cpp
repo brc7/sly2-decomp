@@ -1226,6 +1226,7 @@ struct Lock {
  * See: docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 // The activation's message handler: forwards the message to its listener object (slot 5) and to the LO base handler.
+// (inferred)
 extern "C" void SendSmaMessage(P *p, int a, int b)
 {
     Lock l(p);

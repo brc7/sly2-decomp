@@ -86,6 +86,7 @@ extern "C" RGBA RgbaFromSpeakerCid(int speakerCid)
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
 // Sets the current subtitle: clears it, then stores the language-string id of the line and the colour of its speaker.
+// (inferred)
 extern "C" void SetSubtitle(SPEAKERLABEL *subtitle, int textId, int speakerCid)
 {
     ClearSubtitle(subtitle);
@@ -99,7 +100,7 @@ extern "C" void SetSubtitle(SPEAKERLABEL *subtitle, int textId, int speakerCid)
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r8_21BB88
  * See: docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
-// Clears a subtitle: no text (-1), default colour, no button glyphs.
+// Clears a subtitle: no text (-1), default colour, no button glyphs. (inferred)
 extern "C" void ClearSubtitle(SPEAKERLABEL *subtitle)
 {
     subtitle->textId = -1;
@@ -116,6 +117,7 @@ extern "C" void ClearSubtitle(SPEAKERLABEL *subtitle)
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
 // Copies the subtitle's text from the world's language strings into buffer (empty when there is no subtitle).
+// (inferred)
 extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
 {
     int textId = subtitle->textId;
@@ -134,6 +136,7 @@ extern "C" void GetSubtitleText(SPEAKERLABEL *subtitle, char *buffer)
  * @end-sly2-annot */
 // Typewriter effect: cuts the subtitle text to the fraction of the voice line played so far (playback position over the
 // line's duration minus half a second) and appends a "|" cursor; once the whole text shows, the cursor blinks at 2 Hz.
+// (inferred)
 extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *text)
 {
     void *soundSystem;
@@ -164,7 +167,7 @@ extern "C" void TrimSubtitleToVoiceProgress(SPEAKERLABEL *subtitle, CRichText *t
  *   docs/reference/functions/sound.md#tu_2275b8-0x2275b8-0x227bb8
  * @end-sly2-annot */
 // Appends one rich-text glyph per pad button set in the subtitle's button mask (table D_002A97F8: X, O, triangle,
-// square, d-pad, shoulders...), for subtitles that tell the player which button to press.
+// square, d-pad, shoulders...), for subtitles that tell the player which button to press. (inferred)
 extern "C" void FormatSubtitleButtonGlyphs(SPEAKERLABEL *subtitle, char *buffer)
 {
     FLAGCHTABLE glyphs = D_002A97F8;

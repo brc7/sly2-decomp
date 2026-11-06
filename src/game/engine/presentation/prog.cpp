@@ -380,7 +380,7 @@ extern "C" void LoadingScreenThread(void *)
  * See: docs/reference/functions/hud-ui.md#prog-0x1c8cc0-0x1c9940
  * @end-sly2-annot */
 // Adds the loading-screen logo to a GIF packet: its five triangle lists (each with its own colour, opacity scaled by
-// alpha) with every vertex put through the logo's 2x3 screen transform.
+// alpha) with every vertex put through the logo's 2x3 screen transform. (inferred)
 extern "C" void DrawLoadingScreenLogo(GIFS *gifs, M2 *transform, float alpha)
 {
     unsigned int i;

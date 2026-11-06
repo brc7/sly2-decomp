@@ -33,7 +33,7 @@ void AttachActBase(ACTCHAINV *pact);
  *   docs/engine/animation.md#6-source-files, docs/engine/particles-effects.md#5-source-files
  * @end-sly2-annot */
 // Clones a chain action onto a new transform (ACT slot 6): runs the generic CloneAct, then takes over the chain link
-// the target transform points at (+0xA8).
+// the target transform points at (+0xA8). (inferred)
 extern "C" void CloneChainAct(ACTCHAINV *pact, void *a1, void *a2, char *pxf)
 {
     CloneAct(pact, a1, a2, pxf);
