@@ -108,6 +108,17 @@ enum EMIT_VELOCITY {
    (classes.h is included) stay as aliases of the real types, so the mangled names do not change. */
 typedef EMITB EMITBV;
 typedef EMITTER EMITTERV;
+/* EXPLSO flags: which of the explode request's fields the caller set (Sly 1's GRFEXPLSO) */
+enum EXPLSO_FLAGS {
+    EXPLSO_HAS_REFERENCE = 0x01,
+    EXPLSO_HAS_VECTOR = 0x02,
+    EXPLSO_HAS_ORIGIN = 0x04,
+    EXPLSO_HAS_SCALE = 0x08,
+    EXPLSO_HAS_RIP_SCALE = 0x10,    /* rips: the scale is their fixed initial scale */
+    EXPLSO_HAS_TOUCH = 0x20,
+    EXPLSO_HAS_XF = 0x40,           /* a local transform for the origin */
+    EXPLSO_HAS_COUNT = 0x80,
+};
 /* EXPLG (an explosion group, : EXPL : XFM): its children. */
 struct EXPLGV : public XFM
 {
@@ -142,16 +153,16 @@ typedef struct M4 { qword aq[4]; } M4;
 typedef struct B7 { qword aq[7]; } B7;
 extern M4 D_002DE5B0;
 extern B7 D_002DE5F0;
-struct S { int a; int b; int pad[2]; M4 m; B7 b7; char pad2[0x100 - 0xC0]; };
+struct S { int cref; int particleKind; int pad[2]; M4 origin; B7 velocity; char particle[0x100 - 0xC0]; };   /* EMITB */
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Zeroes an EMITB and installs the default EMITO/EMITV objects (D_002DE5B0/D_002DE5F0)
 void InitEmitBlock(struct S *p)
 {
     func_002333B4(p, 0, sizeof(struct S));
-    p->a = 1;
-    p->b = -1;
-    p->m = D_002DE5B0;
-    p->b7 = D_002DE5F0;
+    p->cref = 1;
+    p->particleKind = -1;
+    p->origin = D_002DE5B0;
+    p->velocity = D_002DE5F0;
 }
 } } // namespace M_InitEmitBlock
 
@@ -201,7 +212,7 @@ typedef int qword __attribute__((mode(TI)));
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct CBinaryInputStream;
 struct TRI { int aipos[3]; float sArea; };
-struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; int pad18[2]; qword v20; };
+struct EMITMESH { int cpos; qword *apos; int ctri; TRI *atri; qword *anormal; float sArea; int pad18[2]; qword center; };
 extern "C" {
 int U16Read__18CBinaryInputStream(CBinaryInputStream *pbis);
 void ReadVector__18CBinaryInputStreamP6VECTOR(CBinaryInputStream *pbis, qword *pv);
@@ -273,7 +284,7 @@ extern "C" void LoadEmitmeshFromBrx__FP8EMITMESHP18CBinaryInputStream(EMITMESH *
             *pn = Add(*pn, normal);
         }
     }
-    ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->v20);
+    ReadVector__18CBinaryInputStreamP6VECTOR(pbis, &pemitmesh->center);
     for (i = 0; i < pemitmesh->cpos; i++)
         VNormalize(&pemitmesh->anormal[i], pemitmesh->anormal[i], D_002A2DC0);
 }
@@ -1835,28 +1846,30 @@ namespace M_EmitParticlesAt { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 typedef struct M4 { qword aq[4]; } M4;
 typedef struct B7 { qword aq[7]; } B7;
-struct X { int a; int b; int c; int pad; M4 m; B7 b7; M4 m2; };
-struct Y { int a; int b; int c; };
+/* EMITB: the origin record at +0x10 (+0x30 point position, +0x40 direction), velocity at +0x50, particle at +0xC0 */
+struct X { int cref; int particleKind; int refs; int pad; M4 origin; B7 velocity; M4 particle; };
+struct Y { int ppblipg; int ppripg; int subscriber; };   /* EMITG */
 void InitEmitBlock(struct X *px);
 void EmitParticles__FiP5EMITBP5EMITG(void *p, struct X *px, struct Y *py);
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
-// Builds a temporary EMITB (InitEmitb) from explicit position/velocity/matrix/params and calls EmitParticles.
-// (inferred)
-void EmitParticlesAt(qword q0, qword q1, void *p, M4 *pm, B7 *pb7, int n1, int n2, int n3)
+// Emits `count` rips from a temporary EMITB: the defaults (InitEmitBlock) with the given point origin and direction,
+// particle and velocity records (passed by value by the callers), resolved objects (`refs`, EMITB+0x08) and rip
+// group / subscriber.
+void EmitParticlesAt(qword pos, qword direction, void *count, M4 *particle, B7 *velocity, int refs, int ppripg, int subscriber)
 {
-    struct X x;
-    struct Y y;
-    InitEmitBlock(&x);
-    func_002333B4(&y, 0, sizeof(y));
-    x.m.aq[2] = q0;
-    x.m.aq[3] = q1;
-    x.b7 = *pb7;
-    x.c = n1;
-    y.b = n2;
-    y.c = n3;
-    x.b = 1;
-    x.m2 = *pm;
-    EmitParticles__FiP5EMITBP5EMITG(p, &x, &y);
+    struct X emitb;
+    struct Y emitg;
+    InitEmitBlock(&emitb);
+    func_002333B4(&emitg, 0, sizeof(emitg));
+    emitb.origin.aq[2] = pos;
+    emitb.origin.aq[3] = direction;
+    emitb.velocity = *velocity;
+    emitb.refs = refs;
+    emitg.ppripg = ppripg;
+    emitg.subscriber = subscriber;
+    emitb.particleKind = 1;     /* rips */
+    emitb.particle = *particle;
+    EmitParticles__FiP5EMITBP5EMITG(count, &emitb, &emitg);
 }
 } } // namespace M_EmitParticlesAt
 
@@ -1865,8 +1878,9 @@ SLY2_SCRAP("addiu $sp, $sp, 0x1b0");
 
 namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB { extern "C" {
 typedef int qword __attribute__((mode(TI)));
-struct S { char pad[0x58]; float g58; int pad5c; qword q60; qword v70; float g80; };
-struct O { qword q0; qword v10; float g20; float g24; };
+/* EMITB: EMITV's damping (+0x58), added velocity (+0x60), curl axis (+0x70) and curl rate (+0x80) */
+struct S { char pad[0x58]; float damping; int pad5c; qword addedVelocity; qword curlAxis; float curlRate; };
+struct O { qword addedVelocity; qword curlAxis; float curlRate; float damping; };   /* EMITDV: a particle's motion parameters */
 extern qword D_002A2DC0;
 static __inline__ qword VLen(qword c)
 {
@@ -1893,13 +1907,13 @@ static __inline__ void VNormalize(qword *pr, qword c, qword k)
     }
     *pr = t;
 }
-// Copies the drift/velocity parameters of an EMITB into an EMITDV. (inferred)
-void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *po, struct S *ps)
+// Copies an EMITB's particle motion parameters into an EMITDV (the curl axis normalized, +z if degenerate).
+void SetEmitdvEmitb__FP6EMITDVP5EMITB(struct O *emitdv, struct S *emitb)
 {
-    po->q0 = ps->q60;
-    VNormalize(&po->v10, ps->v70, D_002A2DC0);
-    po->g20 = ps->g80;
-    po->g24 = ps->g58;
+    emitdv->addedVelocity = emitb->addedVelocity;
+    VNormalize(&emitdv->curlAxis, emitb->curlAxis, D_002A2DC0);
+    emitdv->curlRate = emitb->curlRate;
+    emitdv->damping = emitb->damping;
 }
 } } // namespace M_SetEmitdvEmitb__FP6EMITDVP5EMITB
 
@@ -1910,7 +1924,7 @@ struct MATRIX3 { qword r[3]; };
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("" : "=r"(q) : "0"(*(int *)&f)); } };
 extern "C" { extern CLOCK D_002DDED0; }
 extern "C" { extern MATRIX4 D_002A2D30; }
-struct X { float x, y, z, w; qword axis; float gRot; float gScale; };
+struct X { float x, y, z, w; qword axis; float curlRate; float damping; };   /* EMITDV */
 extern "C" { void func_0011B500(MATRIX3 *pm, float g, qword axis); }
 MATRIX4 operator*(const MATRIX4 &a, const MATRIX4 &b) __asm__("__ml__FRC7MATRIX4T0");
 MATRIX4 operator*(const MATRIX4 &m, VU_FLOAT s) __asm__("__ml__FRC7MATRIX4G8VU_FLOAT");
@@ -1921,22 +1935,23 @@ static inline MATRIX4 operator+(const MATRIX4 &a, const MATRIX4 &b) return r
         r.r[i] = Add(a.r[i], b.r[i]);
 }
 extern "C" MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p);
-// Computes the drift/curl matrix of an EMITDV for time t. (inferred)
-MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *p)
+// Builds the matrix that advances a particle's velocity by one frame (dt): the curl rotation R (curlRate * dt about
+// the axis), plus R * (damping * v + addedVelocity) * dt, as a 4x4 acting on (v, 1).
+MATRIX4 CalculateEmitdvMatrix__FP6EMITDVfP7MATRIX4(X *emitdv)
 {
     MATRIX4 mScale = D_002A2D30;
     float *pf = (float *)&mScale;
-    pf[0] = p->gScale;
-    pf[5] = p->gScale;
-    pf[10] = p->gScale;
-    pf[12] = p->x;
-    pf[13] = p->y;
-    pf[14] = p->z;
+    pf[0] = emitdv->damping;
+    pf[5] = emitdv->damping;
+    pf[10] = emitdv->damping;
+    pf[12] = emitdv->x;
+    pf[13] = emitdv->y;
+    pf[14] = emitdv->z;
     MATRIX4 mRot = D_002A2D30;
     MATRIX4 *pmRot = &mRot;
-    if (p->gRot != 0.0f) {
+    if (emitdv->curlRate != 0.0f) {
         MATRIX3 m3;
-        func_0011B500(&m3, p->gRot * D_002DDED0.dt, p->axis);
+        func_0011B500(&m3, emitdv->curlRate * D_002DDED0.dt, emitdv->axis);
         *(MATRIX3 *)pmRot = m3;
     }
     MATRIX4 mD;
@@ -1949,7 +1964,7 @@ namespace M_ExplodeWithDefaults { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
-struct P { int a; int b; float f; float g; qword q; qword r; qword s; };
+struct P { int flags; int reference; float scale; float radius; qword vector; qword origin; qword rest; };   /* EXPLSO */
 void func_002333B4(void *pv, int b, int cb) __asm__("memset");
 // Explodes an EXPL with default (zero) parameters via its explode virtual (slot 51) (inferred)
 void ExplodeWithDefaults(struct O *o)
@@ -1966,19 +1981,19 @@ namespace M_ExplodeExplParams { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; };
-struct P { int a; int b; float f; float g; qword q; qword r; qword s; };
+struct P { int flags; int reference; float scale; float radius; qword vector; qword origin; qword rest; };   /* EXPLSO */
 // Explodes an EXPL with explicit flags/reference/vector/origin/scale/radius (packs an EXPLSO, calls slot 51)
 // (inferred)
-void ExplodeExplParams(struct O *o, int a, int b, float f, float g, qword q, qword r)
+void ExplodeExplParams(struct O *o, int flags, int reference, float scale, float radius, qword vector, qword origin)
 {
     struct P p;
     struct VTE *e;
-    p.a = a;
-    p.b = b;
-    p.f = f;
-    p.g = g;
-    p.q = q;
-    p.r = r;
+    p.flags = flags;
+    p.reference = reference;
+    p.scale = scale;
+    p.radius = radius;
+    p.vector = vector;
+    p.origin = origin;
     e = &o->vt[51];
     e->pfn((char *)o + e->d, &p);
 }
@@ -1997,14 +2012,15 @@ struct C { int a[4]; };
 struct VTE { short d; short pad; void (*pfn)(...); };
 struct O { int a[3]; struct VTE *vt; int pad[6]; unsigned long fl; };
 struct DA { int n0; int cMax; int c; struct O **a; };
-struct S { char pad[0xE0]; int c; struct O **apo; };
+struct S { char pad[0xE0]; int numChildren; struct O **children; };   /* EXPLG */
 void STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
 void LoadXfmFromBrx(struct S *p, void *q);
 void CLoadCollectorArray_ctor(struct DA *pda);
 void LoadXfmChildObjectsFromBrx(struct S *p, void *q, struct DA *pda);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
-// EXPLG::LoadFromBrx: XFM load, reads child explosion list into apo.
+// EXPLG::LoadFromBrx: XFM load, then its child objects; the explosions (CID 0x1E and derived) become the group's
+// children, anything else gets vtable slot 9 (inferred: removal). Every child is flagged (LO bit 57).
 void LoadExplgFromBrx(struct S *p, void *q)
 {
     struct C ctx;
@@ -2015,7 +2031,7 @@ void LoadExplgFromBrx(struct S *p, void *q)
     STACKSCOPE_ctor(&ctx);
     CLoadCollectorArray_ctor(&da);
     LoadXfmChildObjectsFromBrx(p, q, &da);
-    p->apo = (__typeof__(p->apo))PvAllocMsg(&msg, da.c * 4, 0x10);
+    p->children = (__typeof__(p->children))PvAllocMsg(&msg, da.c * 4, 0x10);
     for (i = 0; i < da.c; i++) {
         struct O *o = da.a[i];
         o->fl |= 0x200000000000000L;
@@ -2023,7 +2039,7 @@ void LoadExplgFromBrx(struct S *p, void *q)
             struct VTE *e = &o->vt[9];
             e->pfn((char *)o + e->d);
         } else {
-            p->apo[p->c++] = o;
+            p->children[p->numChildren++] = o;
         }
     }
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
@@ -2042,18 +2058,18 @@ namespace M_CloneExplg { extern "C" {
 typedef struct MSG { int cb; int nKind; } MSG;
 void *func_001AE238(MSG *pmsg, void *pv);
 static inline void *PvReallocMsg(MSG *pmsg, void *pv, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE238(pmsg, pv); }
-struct S { int pad[4]; void *p10; char pad2[0xE0 - 0x14]; int c; void **apv; };
+struct S { int pad[4]; void *psoParent; char pad2[0xE0 - 0x14]; int numChildren; void **children; };   /* EXPLG */
 void CloneXfm(struct S *p, void *pv);
 void *PloCloneLo__FP2LOP2SO(void *pv, void *p10);
-// EXPLG clone: XFM clone, realloc child array, clone each child (0x13E510) (inferred)
+// EXPLG clone: XFM clone, then a private copy of the child array with each child cloned under the same parent.
 void CloneExplg(struct S *p, void *pv)
 {
     MSG msg;
     int i;
     CloneXfm(p, pv);
-    p->apv = (__typeof__(p->apv))PvReallocMsg(&msg, p->apv, p->c * 4, 0x10);
-    for (i = 0; i < p->c; i++)
-        p->apv[i] = PloCloneLo__FP2LOP2SO(p->apv[i], p->p10);
+    p->children = (__typeof__(p->children))PvReallocMsg(&msg, p->children, p->numChildren * 4, 0x10);
+    for (i = 0; i < p->numChildren; i++)
+        p->children[i] = PloCloneLo__FP2LOP2SO(p->children[i], p->psoParent);
 }
 } } // namespace M_CloneExplg
 
@@ -2065,7 +2081,8 @@ struct MATRIX4 { qword r[4]; };
 struct MATRIX3 { qword r[3]; };
 struct VEC { int x, y, z, w; } __attribute__((aligned(16)));
 struct XF { qword pos; MATRIX3 mat; VEC v; VEC w; };
-struct P { int fl; void *pv; int a8, aC; qword q10, q20; int x30; XF *pxf; int x38, x3C; };
+/* EXPLSO: what to explode with (EXPLSO_* flags say which fields are set) */
+struct P { int fl; void *reference; float scale, radius; qword vector, origin; int touch; XF *pxf; int count, pad3C; };
 struct VTE { short d; short pad; void (*pfn)(void *, P *); };
 struct O { int pad[3]; VTE *vt; char pad1[0x60 - 0x10]; MATRIX4 mat; };
 struct S { char pad[0x60]; MATRIX4 mat; char pad1[0xE0 - 0xA0]; int c; O **apo; };
@@ -2100,26 +2117,27 @@ inline qword QwRotateVec(const MATRIX3 *pmat, qword qwVec)
     return qwResult;
 }
 extern "C" void ExplodeExplgExplso(S *p, P *pp);
-// EXPLG explode: transforms the explosion origin by its matrix and forwards the explode call to every child explosion
-// (vtable) (inferred)
-void ExplodeExplgExplso(S *p, P *pp)
+// EXPLG explode: explodes every child explosion (vtable slot 51) with a copy of the EXPLSO whose transform is the
+// child's placement relative to the group, composed with the caller's transform when it gave one; the group is the
+// reference object unless the caller set one.
+void ExplodeExplgExplso(S *group, P *explso)
 {
-    P loc = *pp;
+    P childExplso = *explso;
     XF xf;
-    loc.pxf = &xf;
-    loc.fl |= 0x40;
-    if (loc.fl & 1) {
+    childExplso.pxf = &xf;
+    childExplso.fl |= EXPLSO_HAS_XF;
+    if (childExplso.fl & EXPLSO_HAS_REFERENCE) {
     } else {
-        loc.pv = p;
-        loc.fl |= 1;
+        childExplso.reference = group;
+        childExplso.fl |= EXPLSO_HAS_REFERENCE;
     }
-    for (int i = 0; i < p->c; i++) {
-        O *po = p->apo[i];
+    for (int i = 0; i < group->c; i++) {
+        O *child = group->apo[i];
         MATRIX4 mRel;
-        mRel = InvertMatrix4Rigid(&p->mat) * po->mat;
+        mRel = InvertMatrix4Rigid(&group->mat) * child->mat;
         MATRIX3 &m3 = *(MATRIX3 *)&mRel;
-        if (pp->fl & 0x40) {
-            XF *px = pp->pxf;
+        if (explso->fl & EXPLSO_HAS_XF) {
+            XF *px = explso->pxf;
             xf.mat = px->mat * m3;
             xf.pos = Add(px->pos, QwRotateVec(&px->mat, mRel.r[3]));
             xf.v = px->v;
@@ -2130,15 +2148,15 @@ void ExplodeExplgExplso(S *p, P *pp)
             xf.v.x = xf.v.y = xf.v.z = 0;
             xf.w.x = xf.w.y = xf.w.z = 0;
         }
-        po->vt[51].pfn((char *)po + po->vt[51].d, &loc);
+        child->vt[51].pfn((char *)child + child->vt[51].d, &childExplso);
     }
 }
 } // namespace M_ExplodeExplgExplso
 
 namespace M_HandleExplsMessage { extern "C" {
-struct O { char pad[0x100]; void *p100; void *p104; };
+struct O { char pad[0x100]; void *pripg; void *pblipg; };   /* EXPLS: its particle groups (+0x100, +0x104) */
 void UnsubscribeLoObject(void *pv, void *po);
-// EXPLS::HandleMessage: on msg 1 (removed) forgets cached p100/p104 references. (inferred)
+// EXPLS::HandleMessage: on message 1 (an object is going away) forgets its rip or blip group if it is that object.
 } } // namespace M_HandleExplsMessage
 void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
 {
@@ -2146,12 +2164,12 @@ void EXPLS::HandleMessage(MSGID msgid_m, void *pv)
     M_HandleExplsMessage::O *o = (M_HandleExplsMessage::O *)this;
     int msgid = (int)msgid_m;
     if (msgid == 1) {
-        if (pv == o->p100) {
+        if (pv == o->pripg) {
             UnsubscribeLoObject(pv, o);
-            o->p100 = 0;
-        } else if (pv == o->p104) {
+            o->pripg = 0;
+        } else if (pv == o->pblipg) {
             UnsubscribeLoObject(pv, o);
-            o->p104 = 0;
+            o->pblipg = 0;
         }
     }
 }
@@ -2180,23 +2198,35 @@ extern "C" SFX *EnsureExplsSfx(SFXHOLDER *explosionSound)
 namespace M_FireExplsExplso { extern "C" {
 // (Claude agent) MATCH: g8 if/else reload form, max via local h=0.5f, pfrm transform split into mul asm + vadd asm with t loaded late.
 typedef int qword __attribute__((mode(TI)));
-typedef struct EMITP { int x0; int x4; int x8; int xC; int x10; } EMITP;
+typedef struct EMITP { int reference; int shape; int render; int nextRender; int touch; } EMITP;   /* EMITB+0x08: the resolved objects */
 typedef struct XF4 { qword v; } XF4;
-typedef struct X4 { char pad[0xF4]; XF4 *p; } X4;
+typedef struct X4 { char pad[0xF4]; XF4 *p; } X4;   /* the curve shape object: its centre at ->p->v (inferred) */
 typedef struct FRM { qword pos; qword m[3]; } FRM;
 typedef struct EMITBV {
-    int x0; int x4; EMITP *pemitp; int xC; int x10; int x14; int x18; FRM *pfrm; int pad20[4];
+    int cref; int particleKind; EMITP *pemitp; int padC;
+    int originKind;             /* +0x10 EMIT_ORIGIN */
+    int normalKind;             /* +0x14 */
+    int velocityKind;           /* +0x18 */
+    FRM *pfrm;                  /* +0x1C the origin's local transform */
+    int pad20[4];
+    /* +0x30 the origin data: point, box corners, or an EMITMESH (its centre at +0x20) */
     union { qword v; qword *pm; EMITP *pemitp; struct { char pad[0x20]; qword v; } *pq; } u30;
-    qword v40;
-    float g50, g54;
+    qword vector;               /* +0x40 */
+    float speedMin, speedMax;   /* +0x50 */
     char pad58[0xD8 - 0x58];
-    float gD8, gDC;
-    qword vE0[2];
+    float ripScaleMin, ripScaleMax;   /* +0xD8 */
+    qword blipScale[2];         /* +0xE0 (scaled with the explosion, at least half size) */
 } EMITBV;
-typedef struct SND { int id; float g4, g8, gC, g10; } SND;
-typedef struct EMITTERV { char pad[0xE4]; EMITBV *pemitb; int xE8, xEC; SND *psnd; float gF4, gF8; int xFC; int x100; int x104; } EMITTERV;
-typedef struct EMITO { int grf; int x4; float g8; float gC; qword v10; qword v20; int x30; int x34; int x38; } EMITO;
-typedef struct EMITR { int *p104; int *p100; EMITTERV *p; } EMITR;
+typedef struct SND { int id; float rangeMin, rangeMax, volume, pitch; } SND;   /* the EXPLS's SFX */
+/* EXPLS */
+typedef struct EMITTERV {
+    char pad[0xE4]; EMITBV *pemitb; int padE8, padEC; SND *psnd;
+    float countMin, countMax;   /* +0xF4 particles per explosion */
+    int keepsGroups;            /* +0xFC emit into the EXPLS's own rip / blip groups (and subscribe it) */
+    int pripg; int pblipg;      /* +0x100 */
+} EMITTERV;
+typedef struct EMITO { int grf; int reference; float scale; float radius; qword vector; qword origin; int touch; int pxf; int count; } EMITO;   /* EXPLSO */
+typedef struct EMITR { int *ppblipg; int *ppripg; EMITTERV *subscriber; } EMITR;   /* EMITG */
 
 extern char D_002BDEC0[];
 extern float GRandInRange__Fff(float lo, float hi);
@@ -2215,105 +2245,107 @@ extern void SetSndRange(void *p, float a, float b);
 extern void func_001FB1F8(void *p, float g);
 extern void SetSndPitch(void *p, float g);
 
-// EXPLS fire: builds a temporary emitter setup (EMITP/EMITB/EMITR copies) at the explosion position and emits
-// particles. (inferred)
-void FireExplsExplso(EMITTERV *p, EMITO *po)
+// EXPLS fire: emits one explosion's particles from a copy of the EXPLS's EMITB with the EXPLSO's overrides
+// (reference, direction, origin point or transform, touch object, count); a scaled explosion scales the count
+// (capped at half the maximum), speed and blip size. Then plays the EXPLS's sound at the origin's centre (by
+// origin kind, through the local transform, then into world space from the reference object).
+void FireExplsExplso(EMITTERV *expls, EMITO *explso)
 {
     EMITP emitp;
-    EMITBV b;
-    EMITR r;
-    EMITR *pr;
-    int c;
+    EMITBV emitb;
+    EMITR emitg;
+    EMITR *pemitg;
+    int count;
     V4 pos;
     V4 h;
 
-    emitp = *p->pemitb->pemitp;
-    b = *p->pemitb;
-    b.pemitp = &emitp;
-    if (po->grf & 0x80)
-        c = po->x38;
+    emitp = *expls->pemitb->pemitp;
+    emitb = *expls->pemitb;
+    emitb.pemitp = &emitp;
+    if (explso->grf & EXPLSO_HAS_COUNT)
+        count = explso->count;
     else
-        c = (int)GRandInRange__Fff(p->gF4, p->gF8);
-    if (po->grf & 1)
-        emitp.x0 = po->x4;
-    if (po->grf & 2)
-        b.v40 = po->v10;
-    if (po->grf & 4) {
-        b.u30.v = po->v20;
-        b.x10 = 0;
-    } else if (po->grf & 0x40) {
-        b.pfrm = (FRM *)po->x34;
+        count = (int)GRandInRange__Fff(expls->countMin, expls->countMax);
+    if (explso->grf & EXPLSO_HAS_REFERENCE)
+        emitp.reference = explso->reference;
+    if (explso->grf & EXPLSO_HAS_VECTOR)
+        emitb.vector = explso->vector;
+    if (explso->grf & EXPLSO_HAS_ORIGIN) {
+        emitb.u30.v = explso->origin;
+        emitb.originKind = EMIT_ORIGIN_POINT;
+    } else if (explso->grf & EXPLSO_HAS_XF) {
+        emitb.pfrm = (FRM *)explso->pxf;
     }
-    if ((po->grf & 8) && b.x4 == 0) {
-        float g;
-        float gs;
-        int n;
-        if (po->g8 == 0.0f)
-            g = po->gC * 0.01f;
+    if ((explso->grf & EXPLSO_HAS_SCALE) && emitb.particleKind == 0)   /* blips */ {
+        float scale;
+        float speedScale;
+        int maxCount;
+        if (explso->scale == 0.0f)
+            scale = explso->radius * 0.01f;
         else
-            g = po->g8;
-        if (g < 1.0f)
-            c = (int)(c * g);
+            scale = explso->scale;
+        if (scale < 1.0f)
+            count = (int)(count * scale);
         else
-            c = (int)(c / g);
-        n = (int)p->gF8 / 2;
-        if (!(n < c))
-            c = n;
-        gs = GLimitLm__FP2LMf(D_002BDEC0, g);
-        b.g50 *= gs;
-        b.g54 *= gs;
-        { float h = 0.5f; g = (h < g) ? g : h; }
-        VECTOR_opAssign(b.vE0, __ml__FG8VU_FLOATG9VU_VECTOR(func_00256CE8(g).q, __9VU_VECTORRC6VECTOR(b.vE0).q));
+            count = (int)(count / scale);
+        maxCount = (int)expls->countMax / 2;
+        if (!(maxCount < count))
+            count = maxCount;
+        speedScale = GLimitLm__FP2LMf(D_002BDEC0, scale);
+        emitb.speedMin *= speedScale;
+        emitb.speedMax *= speedScale;
+        { float h = 0.5f; scale = (h < scale) ? scale : h; }
+        VECTOR_opAssign(emitb.blipScale, __ml__FG8VU_FLOATG9VU_VECTOR(func_00256CE8(scale).q, __9VU_VECTORRC6VECTOR(emitb.blipScale).q));
     }
-    if (b.x4 == 1) {
-        if (po->grf & 0x10)
-            b.gDC = b.gD8 = po->g8;
-        if (po->grf & 0x20)
-            b.pemitp->x10 = po->x30;
+    if (emitb.particleKind == 1) {   /* rips */
+        if (explso->grf & EXPLSO_HAS_RIP_SCALE)
+            emitb.ripScaleMax = emitb.ripScaleMin = explso->scale;
+        if (explso->grf & EXPLSO_HAS_TOUCH)
+            emitb.pemitp->touch = explso->touch;
     }
-    if (p->xFC) {
-        r.p104 = &p->x104;
-        r.p100 = &p->x100;
-        r.p = p;
-        pr = &r;
+    if (expls->keepsGroups) {
+        emitg.ppblipg = &expls->pblipg;
+        emitg.ppripg = &expls->pripg;
+        emitg.subscriber = expls;
+        pemitg = &emitg;
     } else {
-        pr = 0;
+        pemitg = 0;
     }
-    if (emitp.x0 == 0 && b.x10 != 2 && !(po->grf & 0x48))
-        emitp.x0 = (int)p;
-    EmitParticles__FiP5EMITBP5EMITG(c, &b, pr);
-    if (p->psnd) {
-        void *ps;
-        switch (b.x10) {
-        case 0:
-            pos.q = b.u30.v;
+    if (emitp.reference == 0 && emitb.originKind != EMIT_ORIGIN_CURVE && !(explso->grf & (EXPLSO_HAS_SCALE | EXPLSO_HAS_XF)))
+        emitp.reference = (int)expls;
+    EmitParticles__FiP5EMITBP5EMITG(count, &emitb, pemitg);
+    if (expls->psnd) {
+        void *sound;
+        switch (emitb.originKind) {
+        case EMIT_ORIGIN_POINT:
+            pos.q = emitb.u30.v;
             break;
-        case 1: {
+        case EMIT_ORIGIN_BOX: {     /* the box centre */
             float half = 0.5f;
             {
                 register qword hv __asm__("vf1");
                 __asm__("qmtc2.ni %1, %0" : "=j"(hv) : "r"(half));
                 h.q = hv;
                 {
-                    qword *pm = b.u30.pm;
+                    qword *pm = emitb.u30.pm;
                     register qword m1 __asm__("vf2") = pm[1];
                     register qword m0 __asm__("vf3") = pm[0];
-                    register qword r __asm__("vf1");
-                    __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(m0), "j"(m1), "j"(hv));
-                    pos.q = r;
+                    register qword centre __asm__("vf1");
+                    __asm__("vmulax.xyzw $ACC, %1, %3x\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(centre) : "j"(m0), "j"(m1), "j"(hv));
+                    pos.q = centre;
                 }
             }
             break;
         }
-        case 2:
-            pos.q = ((X4 *)b.pemitp->x4)->p->v;
+        case EMIT_ORIGIN_CURVE:
+            pos.q = ((X4 *)emitb.pemitp->shape)->p->v;
             break;
-        case 3:
-            pos.q = b.u30.pq->v;
+        case EMIT_ORIGIN_MESH:
+            pos.q = emitb.u30.pq->v;
             break;
         }
-        if (b.pfrm) {
-            FRM *pf = b.pfrm;
+        if (emitb.pfrm) {
+            FRM *pf = emitb.pfrm;
             qword *pm = pf->m;
             register qword v __asm__("vf3") = pos.q;
             register qword m0 __asm__("vf4") = pm[0];
@@ -2327,13 +2359,13 @@ void FireExplsExplso(EMITTERV *p, EMITO *po)
             }
             pos.q = v;
         }
-        pos.q = ConvertAloPos(emitp.x0, 0, pos.q);
-        ps = PsndStartSound(p->psnd->id);
-        SetSndSourceLo(ps, 0);
-        SetSndSourcePos(ps, pos.q);
-        SetSndRange(ps, p->psnd->g4, p->psnd->g8);
-        func_001FB1F8(ps, p->psnd->gC);
-        SetSndPitch(ps, p->psnd->g10);
+        pos.q = ConvertAloPos(emitp.reference, 0, pos.q);
+        sound = PsndStartSound(expls->psnd->id);
+        SetSndSourceLo(sound, 0);
+        SetSndSourcePos(sound, pos.q);
+        SetSndRange(sound, expls->psnd->rangeMin, expls->psnd->rangeMax);
+        func_001FB1F8(sound, expls->psnd->volume);
+        SetSndPitch(sound, expls->psnd->pitch);
     }
 }
 } } // namespace M_FireExplsExplso
