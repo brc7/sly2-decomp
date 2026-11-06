@@ -5,7 +5,36 @@ What it takes to link the matched sources back into SCUS_973.16, and how far the
 round 3 and data phase 2 — branch data/phase-3, the guide counts the first data pass as phase 1 — 2026-11-05). A prototype link exists (tools/link.py, branch link/prototype; see "Prototype link" below). The symbol side is in
 [tu-merging.md, "Linkage of namespace-scoped declarations"](tu-merging.md#linkage-of-namespace-scoped-declarations).
 
-## Status (integrate/round7: data/order-2 + link/contiguous-tus, 2026-11-05)
+## Status (link/crt0-block on integrate/round7, 2026-11-05)
+
+Authoritative numbers for link/crt0-block (main f674c97e = integrate/round7 + tooling, plus this branch): the
+crt0_splicewrap TU as one object (src/game/app/class_registry.cpp includes the 373 generated wrappers and absorbs the
+31 splice_thunks files, tu-merging.md "The crt0_splicewrap TU (link/crt0-block)") and two source fixes the full link
+exposed (serialize's PpairSerializeIn case labels, func_001047A0's OTYP array). The link compares equal to the ELF
+in every section. The integrate/round7 values are given in brackets where they differ.
+
+| measure | value | tool |
+|---|---|---|
+| functions matching | 6,662 / 6,662 (100%; 857 sources [1,261], 329 SDK sources carried over, verified on the Mac; config/matched.csv unchanged by the run) | `tools/progress.py`, cache deleted first |
+| files link/crt0-block touched | class_registry.cpp 828 functions + D_002BAAE8, serialize.cpp 3 functions: all MATCH | `tools/matchtool.py check` |
+| nm symbol sets | class_registry's object: the union of the 405 objects it replaces (old class_registry, 373 wrappers, 31 thunks) except 4 references renamed to their config names (InitTag__4CRefi, `__as__4CRefPv`, `__as__4CRefb`, `__as__4CRefi` -> SetTag__4CRef4TAGK, CRef_SetBasic, CRef_SetBool, SetS32__4CRefi) and the `_GLOBAL_$I$` suffix; serialize unchanged | scratch nm comparison |
+| link objects | 528 [932] (404 sources fewer: the wrappers are `.inc` fragments, splice_thunks/ is gone) | `tools/link.py` |
+| undefined references not in config (210 merged objects) | 35 (unchanged) | scratch symcheck.py |
+| duplicate strong definitions | 0 | scratch symcheck.py |
+| relocations checked against the ELF | 29,603 [27,231] OK, 0 mismatched (more checked because the wrappers and thunks are now in a merged object) | scratch relverify.py with config/link_aliases.txt |
+| address names over the link objects | 303: 255 absolute, 48 aliases; 27 alias-table entries (unchanged) | `tools/linkaliases.py` |
+| ld.lld | 0 errors; 6,601 [6,760] sections placed, 6 unplaced (544 bytes); 2 [65] sections overlap another but repeat its ELF bytes | `tools/link.py` |
+| .text equal | 1,416,688 / 1,416,688 (100%) [1,416,576]; from objects 1,282,044 / 1,282,044 | `tools/link.py` |
+| .rodata equal | 304,356 / 304,356 [304,353]; from objects 28,184 / 28,184 [27,829 / 27,832] | `tools/link.py` |
+| .data equal | 199,088 / 199,088 (100%); from objects 37,936 / 37,936 | `tools/link.py` |
+| differing bytes | 0 [115: .text %hi/%lo to class_registry's literal pool 112, serialize's jump-table word 3] | `tools/link.py` |
+| config names at their config address | 7,402 / 7,402 | `tools/link.py` (list: build/link/wrongaddr.txt) |
+| TU check with `-ffunction-sections` | 489 objects one section, 0 in another order, 38 split by other objects' code (class_registry by its 3 linkonce constructors only, [24 runs]) | `tools/link.py` |
+| TU check without `-ffunction-sections` | 451 objects one run at their ELF address; 76 not: split 38, junk.csv dead code inside 33, gap/padding 4, unplaced section 1. class_registry: all its other 824 `.text` sections one run at 0x100218 (scratch check skipping STEPGUARD_ctor/JT_ctor/MURRAY_ctor, which link/linkonce-misc turns into inlines) | `tools/link.py` |
+| interior base+offset macros | 19 in 10 files (unchanged) | grep `(char *)base_D_` |
+| docs links | 0 broken | `tools/docs/linkcheck.py` |
+
+### Status (integrate/round7: data/order-2 + link/contiguous-tus, 2026-11-05; superseded above)
 
 Authoritative numbers for integrate/round7: integrate/round6 1d4d7c44 (round 5 + types/views-3 + data/bss-order:
 `-fno-rtti`, the registry classes and SW real, data order inside the objects) + data/order-2 (tu-merging.md, "Phase 6:
@@ -68,8 +97,8 @@ Segment 0 covers .text through .bss (file size 0x1DD230, memory size 0x352200); 
 | input | sources | functions | builds here | note |
 |---|---:|---:|---|---|
 | merged game TUs | 209 | 5,568 | yes | the objects the link check covers |
-| game per-function directories (air/, splice_thunks/, crt0/) | 76 | 76 | yes | not merged yet; 70 undefined references not in config (not analysed) |
-| generated Splice wrappers (src/generated/splicewrap) | 373 | 373 | yes | the option/property binding thunks the crt0-block records point at |
+| game per-function directories (air/, splice_thunks/, crt0/) | 76 | 76 | yes | superseded: air was merged, splice_thunks went into class_registry.cpp (link/crt0-block); crt0 is the row below |
+| generated Splice wrappers (src/generated/splicewrap) | 373 | 373 | yes, inside class_registry.cpp | the option/property binding thunks the crt0-block records point at; `.inc` fragments of the crt0_splicewrap TU since link/crt0-block |
 | SDK (src/sdk: libc, libgcc, libkernel, libcdvd, libgraph, libmc, libmpeg, 989snd, ...) | 646 | 646 | partly | 333 sources of the repo (SDK files that need GNU as for `SLY2_ASM: gnu-reorder` or the native ee-gcc 2.96, and asm files) do not build in the Linux workspace and are verified on the Mac |
 | crt0 | 1 | 1 (`_start`) | yes | src/game/platform/boot/crt0/_start.c; `func_00100000` before it is unmatched |
 | dead code | - | - | - | junk.csv ranges: emit the original bytes to keep addresses |
@@ -320,7 +349,8 @@ object's one `.text` with the ELF (same 76 failures).
   the counted-pointer stores and destructors, gc.cpp's sweeps, spliceutils' `GcShutdown<Pool>Pool`), the
   EMITTER/EXPLO set around sly2/emitter.h, small accessors next to eopid_linkonce's, and math/text-box inlines.
 - **The crt0 block: class_registry's other 21 runs** (plus its 3 constructors STEPGUARD_ctor, JT_ctor, MURRAY_ctor,
-  which are linkonce copies). The original TU crt0_splicewrap (0x100218..0x1147D8) is one source file whose
+  which are linkonce copies). Done on link/crt0-block: class_registry.cpp is now the whole TU and its `.text` one run
+  at 0x100218 apart from the three constructors (Status). The original TU crt0_splicewrap (0x100218..0x1147D8) is one source file whose
   functions our repo spreads over three places: class_registry.cpp (424), src/game/app/splice_thunks/ (31 C++
   files) and src/generated/splicewrap/ (373 generated C files). In 0x100218..0x110AB0 class_registry's 2 asm
   fragments and 33 option thunks alternate with thunks and wrappers in the original source order; the factories and
@@ -340,9 +370,9 @@ constructor/destructor (func_00192A28's) are code the ELF does not have. For a r
 **Fixes, in order:** (1) the linkonce copies back to templates/inline functions in headers (tu-merging.md "Inline
 functions and linkonce copies": a non-`inline` function template is emitted per instance as linkonce and never
 inlined into callers, which is why emitter.h's set kept matching; free inline functions would be inlined by callers
-that now call them), one family at a time, renaming to the mangled names; (2) the crt0 block as one object (the
-generator emitting the 373 wrappers into the same file as class_registry's functions and splice_thunks, in address
-order; C vs C++ codegen of the wrappers to be checked); (3) the junk scraps and the 16-byte alignments. None was
+that now call them), one family at a time, renaming to the mangled names; (2) the crt0 block as one object (done on
+link/crt0-block: the wrappers included as `.inc` fragments in address order, compiled as C++ with C linkage; their
+code is unchanged); (3) the junk scraps and the 16-byte alignments. None was
 done on this branch (timebox: diagnosis only).
 
 ### Data order (data/bss-order on integrate/round5 before types/views-2/-3, 2026-11-05; superseded by Status)
@@ -377,10 +407,11 @@ No source change was needed under `-fno-rtti`: the two data branches' code match
 
 1. ~~Decide `-fno-rtti` (class 2)~~: done (build/rtti-palettes).
 2. ~~Data order from source~~: done (data/bss-order and data/order-2, tu-merging.md "Phase 5" and "Phase 6";
-   `-fdata-sections` dropped, one link mode). Left: class_registry's literal pool (with item 3) and serialize's
-   jump-table word. The `D_` names nobody defines stay the work list for the real link.
-3. Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU, and turn the linkonce-area
-   copies back into inline/template instances, so `.text` can link without `-ffunction-sections` ("Code order
+   `-fdata-sections` dropped, one link mode). class_registry's literal pool and serialize's jump-table word: done
+   (link/crt0-block; the link now differs from the ELF in no byte). The `D_` names nobody defines stay the work
+   list for the real link.
+3. ~~Merge the crt0 block (class_registry + splice_thunks + splicewrap) into its one TU~~ (done, link/crt0-block),
+   and turn the linkonce-area copies back into inline/template instances (link/linkonce-pools, -misc), so `.text` can link without `-ffunction-sections` ("Code order
    (link/contiguous-tus)": 38 objects split, all by linkonce copies, class_registry also by the crt0 block; 38
    more by junk scraps and alignment).
 4. The SDK objects built on the Mac (118,224 blob bytes of .text today).
