@@ -1,5 +1,8 @@
-// geom.cpp -- collision geometry (GEOM): clone and transform, the VU0 point transform, world update with
-// inverse-transpose plane normals (VU0 microprograms + EE 128-bit asm), and edges around a point.
+// geom.cpp -- collision geometry (GEOM: points, surface planes, edges) shared by solid objects, volumes and shapes.
+// Role: copies geometry into the world heap, transforms a local GEOM into world space every time its owner moves
+// (points through a VU0 microprogram, plane normals through the inverse-transpose rotation), and finds the edges
+// that meet at a point for the contact code. Entry points: CloneGeom, UpdateGeomWorld, TransformPointsVu0,
+// CollectEdgesAtGeomPoint. VU0 microprograms + EE 128-bit asm.
 // TU 0x166270..0x166920 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_geom
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00166900
@@ -84,6 +87,9 @@ static inline qword Normalize(qword v) {
  * See: docs/engine/game-progression.md#7-source-files,
  *   docs/engine/physics-collision.md#4-geometry-and-queries, docs/engine/physics-collision.md#6-source-files
  * @end-sly2-annot */
+// Copies a GEOM's point and plane arrays into newly allocated slot-heap memory. When a transform is given, the
+// copied points are transformed by it and each plane normal is rotated, renormalised and its plane rebuilt through
+// one of the plane's points. Used when an object's geometry is cloned or instanced.
 void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
 {
  REQ req;
@@ -114,6 +120,8 @@ void CloneGeom(GEOM *src, MATRIX4 *transform, GEOM *dest)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
  * @end-sly2-annot */
+// Transforms count points by a 4x4 matrix with the VU0 microprograms at 0x120/0xF0, double-buffered so one point
+// is loaded while the previous one is transformed. The workhorse of UpdateGeomWorld.
 extern "C" void TransformPointsVu0(const MATRIX4 *matrix, unsigned int count,
                    const qword *in0, qword *output)
 {
@@ -192,6 +200,9 @@ static inline PLANE *FinalPlane(PLANE *base,int count){
  * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920,
  *   docs/reference/functions/physics-collision.md#so-0x1f2108-0x1f8dd8
  * @end-sly2-annot */
+// Brings a world GEOM up to date with its local GEOM and the owner's world matrix: points via TransformPointsVu0,
+// plane normals via the transposed inverse of the 3x3 rotation (VU0 microprogram 0x150), plane distances recomputed
+// from each plane's anchor point. Skipped when source and destination share their point array.
 extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  register const MATRIX4 *inverseSource asm("$16")=matrix;
  if(source->apos!=dest->apos){
@@ -231,6 +242,9 @@ extern "C" void UpdateGeomWorld(const MATRIX4*matrix,GEOM*source,GEOM*dest){
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r3_1539A8
  * See: docs/reference/functions/physics-collision.md#geom-0x166270-0x166920
  * @end-sly2-annot */
+// Fills out[] with up to max distinct edges that touch point index of the geometry, found by querying the
+// geometry's BSP with a unit sphere around the point and walking each hit surface's edge list. Returns the number
+// of edges written (0 if the query fails). Used by the contact builder for vertex contacts (inferred).
 extern "C" int CollectEdgesAtGeomPoint(GEOM*p,GEOMTREE*g,int index,int max,EDGE**out){
  FRAME frame;int capacity,limit,count,i;Entry*first,*end;
  STACKSCOPE_ctor(&frame);
