@@ -270,13 +270,13 @@ void SetSndSourceLo(void *p, int n);
 // On the hint button (mask 0x200) when allowed, dismisses/acknowledges the pending hint. (inferred)
 void AcknowledgeStepplayerHint(void)
 {
-    if (NWorldCur()) {
-        func_00161868(D_003DD490);
-        if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) func_001618B0(D_003DD490);
-        SetSndSourceLo(PsndStartSound(0x32), 0);
-        *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
-        D_002DDF40.n4A4++;
-    }
+    if (!NWorldCur())
+        return;
+    func_00161868(D_003DD490);
+    if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) func_001618B0(D_003DD490);
+    SetSndSourceLo(PsndStartSound(0x32), 0);
+    *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
+    D_002DDF40.n4A4++;
 }
 } } // namespace M_func_00140338
 
@@ -670,14 +670,14 @@ void StepplayerVirtual82(struct X *player, void *a, struct Y *b, qword v)
 extern "C" void SetStepplayerTnOverride(STEPPLAYER *player, TN *tn)
 {
     STEPPLAYER *pstepplayerHero = PpoHero(&D_003DD490);
-    if (pstepplayerHero == player) {
-        if (pstepplayerHero->ptnUnk1024 != 0) {
-            SetTnTnsOverride(pstepplayerHero->ptnUnk1024, 0);
-        }
-        pstepplayerHero->ptnUnk1024 = tn;
-        if (tn != 0) {
-            SetTnTnsOverride(tn, 1);
-        }
+    if (pstepplayerHero != player)
+        return;
+    if (pstepplayerHero->ptnUnk1024 != 0) {
+        SetTnTnsOverride(pstepplayerHero->ptnUnk1024, 0);
+    }
+    pstepplayerHero->ptnUnk1024 = tn;
+    if (tn != 0) {
+        SetTnTnsOverride(tn, 1);
     }
 }
 
@@ -1288,16 +1288,16 @@ void LaunchStepplayer(struct P *player, qword v, float g, float h)
     pos.f[2] += player->dz;
     r.q = func_001D6848(pos.q, v, g, player->pE8->q);
     player->vt[35].pfn((char *)player + player->vt[35].d, r.q);
-    if (player->xDF4 == -1) {
-        SetJtAirJump((char *)player + 0x2C0, 8, 0, 0);
-        player->k300 = 3;
-        player->v360.q = r.q;
-        player->v360.f[2] = 0.0f;
-        player->g2F4 = h;
-        if (h == player->v360.f[2]) {
-            player->f2E8 = 0;
-            player->f2EC = 0;
-        }
+    if (player->xDF4 != -1)
+        return;
+    SetJtAirJump((char *)player + 0x2C0, 8, 0, 0);
+    player->k300 = 3;
+    player->v360.q = r.q;
+    player->v360.f[2] = 0.0f;
+    player->g2F4 = h;
+    if (h == player->v360.f[2]) {
+        player->f2E8 = 0;
+        player->f2EC = 0;
     }
 }
 } } // namespace M_func_00141968
@@ -1391,23 +1391,23 @@ int STEPPLAYER::FCanUseGadget(int gadgetId)
 // Changes a gadget slot's state: leaving 1 stops the gadget (slot 102); stamps the time.
 extern "C" void SetGadgetSlotState(STEPPLAYER *player, GADGETSLOT *pslot, int state)
 {
-    if (pslot->nState != state) {
-        if (pslot->nState == 1) {
-            /* slot 101 (stepplayer.h's declaration order puts OnActive elsewhere): a hand-made vtable call */
-            VTESP *vtable = *(VTESP **)((char *)player + 0xC);
-            ((void (*)(void *, int))vtable[102].pfn)((char *)player + vtable[102].d, pslot->idGadget);
-        }
-        pslot->nState = state;
-        pslot->tState = D_002DDED0.t;
-        switch (state) {
-        case 2:
-            player->StartGadget(pslot->idGadget);  /* slot 99 */
-            pslot->nState = 0;
-            return;
-        case 1:
-            player->StartGadget(pslot->idGadget);
-            break;
-        }
+    if (pslot->nState == state)
+        return;
+    if (pslot->nState == 1) {
+        /* slot 101 (stepplayer.h's declaration order puts OnActive elsewhere): a hand-made vtable call */
+        VTESP *vtable = *(VTESP **)((char *)player + 0xC);
+        ((void (*)(void *, int))vtable[102].pfn)((char *)player + vtable[102].d, pslot->idGadget);
+    }
+    pslot->nState = state;
+    pslot->tState = D_002DDED0.t;
+    switch (state) {
+    case 2:
+        player->StartGadget(pslot->idGadget);  /* slot 99 */
+        pslot->nState = 0;
+        return;
+    case 1:
+        player->StartGadget(pslot->idGadget);
+        break;
     }
 }
 
@@ -1641,26 +1641,26 @@ extern "C" { CRef RefSetSaveVarV(const CRef &ref, void *o, const char *fmt, ...)
 // Assigns a gadget id to slot i: stops the old one, clears duplicates in other slots, writes the save variable.
 extern "C" void SetStepplayerGadget(P *player, unsigned int i, int id)
 {
-    if (i < 3) {
-        E *pe = &player->ae[i];
-        SetGadgetSlotState(player, pe, -1);
-        pe->id = id;
-        pe->a = 0;
-        pe->g = D_002DDED0.t;
-        for (int j = 0; j < 3; j++) {
-            char ach[16];
-            E *pe2 = &player->ae[j];
-            if (j != i && pe2->id == id) {
-                SetGadgetSlotState(player, pe2, -1);
-                pe2->id = -1;
-            }
-            sprintf(ach, D_002A4D50, j);
-            VTE *e = &player->vt[103];
-            RefSetSaveVarV(CRef(0x15, player->ae[j].id), e->pfn((char *)player + e->d), D_002A4D58, ach, 0);
+    if (!(i < 3))
+        return;
+    E *pe = &player->ae[i];
+    SetGadgetSlotState(player, pe, -1);
+    pe->id = id;
+    pe->a = 0;
+    pe->g = D_002DDED0.t;
+    for (int j = 0; j < 3; j++) {
+        char ach[16];
+        E *pe2 = &player->ae[j];
+        if (j != i && pe2->id == id) {
+            SetGadgetSlotState(player, pe2, -1);
+            pe2->id = -1;
         }
-        VTE *e = &player->vt[105];
-        ((void (*)(void *))e->pfn)((char *)player + e->d);
+        sprintf(ach, D_002A4D50, j);
+        VTE *e = &player->vt[103];
+        RefSetSaveVarV(CRef(0x15, player->ae[j].id), e->pfn((char *)player + e->d), D_002A4D58, ach, 0);
     }
+    VTE *e = &player->vt[105];
+    ((void (*)(void *))e->pfn)((char *)player + e->d);
 }
 } // namespace M_SetStepplayerGadget
 
@@ -1927,13 +1927,13 @@ void StartStepplayerFollow(char *player, int a, qword q)
     struct O *o;
     struct VTE *e;
     ClearBhvstk__FP6BHVSTK(player + 0x26C);
-    if (a) {
-        o = func_00205438(player, 0xC2);
-        o->n30 = a;
-        o->q40 = q;
-        e = &o->vt[8];
-        ((void (*)(void *))e->pfn)((char *)o + e->d);
-    }
+    if (!a)
+        return;
+    o = func_00205438(player, 0xC2);
+    o->n30 = a;
+    o->q40 = q;
+    e = &o->vt[8];
+    ((void (*)(void *))e->pfn)((char *)o + e->d);
 }
 } } // namespace M_StartStepplayerFollow
 
@@ -2022,19 +2022,19 @@ void AttachStepplayerToStartMarker(struct P *player, int x)
 {
     struct SO *so = PxfFindSo(player, x, 6);
     M3 m, a;
-    if (so) {
-        InvertMatrix3CofactorP(&a, &player->p60->mat);
-        {
-            M3 t;
-            M3 *pb = &so->mat;
-            t.r[0] = m.r[0] = MulV(&a, pb->r[0]);
-            t.r[1] = m.r[1] = MulV(&a, pb->r[1]);
-            m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
-            player->mat = t;
-        }
-        player->p10F4 = func_0012DC18(player, so, 3, 7, 2, func_0011BFF0(&player->mat));
-        func_0012D020(player->p10F4);
+    if (!so)
+        return;
+    InvertMatrix3CofactorP(&a, &player->p60->mat);
+    {
+        M3 t;
+        M3 *pb = &so->mat;
+        t.r[0] = m.r[0] = MulV(&a, pb->r[0]);
+        t.r[1] = m.r[1] = MulV(&a, pb->r[1]);
+        m.r[2] = t.r[2] = MulV(&a, pb->r[2]);
+        player->mat = t;
     }
+    player->p10F4 = func_0012DC18(player, so, 3, 7, 2, func_0011BFF0(&player->mat));
+    func_0012D020(player->p10F4);
 }
 } } // namespace M_func_001426E8
 
@@ -2048,15 +2048,15 @@ void AttachStepplayerToStartMarker(struct P *player, int x)
 // Sets the lean target object (+0x10F8) and lean kind (+0x10FC); restarts the idle timer on a new target.
 extern "C" void SetStepplayerLeanTarget(STEPPLAYER *player, int nLeanKind, LO *ploLean)
 {
-    if (ploLean != player->ploLean || nLeanKind != player->nLeanKind) {
-        player->nLeanKind = nLeanKind;
-        player->ploLean = ploLean;
-        if (ploLean != 0) {
-            if (player->tIdle != D_002A4D60) {
-                player->nIdleKind = 1;
-                UnlockStepplayerLeanTarget(player);
-            }
-        }
+    if (!(ploLean != player->ploLean || nLeanKind != player->nLeanKind))
+        return;
+    player->nLeanKind = nLeanKind;
+    player->ploLean = ploLean;
+    if (ploLean == 0)
+        return;
+    if (player->tIdle != D_002A4D60) {
+        player->nIdleKind = 1;
+        UnlockStepplayerLeanTarget(player);
     }
 }
 
@@ -2596,11 +2596,11 @@ int GetStepplayerLeanFlags(struct P *player)
 extern "C" void ReleaseInteractTargetMark(STEPPLAYER *player)
 {
     BHV *pbhv;
-    if (player->ploInteract != 0) {
-        pbhv = PbhvFindBhvstk((BHVSTK *)((char *)player->ploInteract + 0x26C), 0xB1);
-        if (pbhv != 0 && *(STEPPLAYER **)((char *)pbhv + 0x5C) == player) {
-            *(int *)((char *)pbhv + 0x60) = 0;
-        }
+    if (player->ploInteract == 0)
+        return;
+    pbhv = PbhvFindBhvstk((BHVSTK *)((char *)player->ploInteract + 0x26C), 0xB1);
+    if (pbhv != 0 && *(STEPPLAYER **)((char *)pbhv + 0x5C) == player) {
+        *(int *)((char *)pbhv + 0x60) = 0;
     }
 }
 
@@ -3129,13 +3129,13 @@ void SetStepplayerRide(struct P *player, struct LO *lo)
         }
     }
     player->plo = lo;
-    if (lo) {
-        lo->vt[1].pfn((char *)lo + lo->vt[1].d);
-        ClearBhvstk__FP6BHVSTK(player->m26C);
-        if (IsStepplayerInJtMode(player)) SetJtModeState__FP6JTMODEi(player->mF00, -1);
-        if (player->x11B4 != -1 && *player->plo->p40 != 0x1E)
-            player->vt[88].pfn((char *)player + player->vt[88].d, 0);
-    }
+    if (!lo)
+        return;
+    lo->vt[1].pfn((char *)lo + lo->vt[1].d);
+    ClearBhvstk__FP6BHVSTK(player->m26C);
+    if (IsStepplayerInJtMode(player)) SetJtModeState__FP6JTMODEi(player->mF00, -1);
+    if (player->x11B4 != -1 && *player->plo->p40 != 0x1E)
+        player->vt[88].pfn((char *)player + player->vt[88].d, 0);
 }
 } } // namespace M_func_00143DE8
 
@@ -3263,11 +3263,11 @@ void BindStepplayerHpMp(struct P *player, int f)
         struct VTE *e2 = &player->vt[103];
         player->pn12FC = PvSaveVarV(((void *(*)(void *))e2->pfn)((char *)player + e2->d), D_002A4E20, 0);
     }
-    if (*player->pnE00 == 0 || f) {
-        SetStepplayerHp(player, player->nDFC);
-        SetStepplayerMp(player, player->n1300);
-        player->n1308 = 0;
-    }
+    if (!(*player->pnE00 == 0 || f))
+        return;
+    SetStepplayerHp(player, player->nDFC);
+    SetStepplayerMp(player, player->n1300);
+    player->n1308 = 0;
 }
 } } // namespace M_BindStepplayerHpMp
 
@@ -3335,12 +3335,12 @@ void DrainStepplayerMp(struct P *player, float f)
     int n;
     player->g += f * D_002DDED0.dt;
     n = (int)player->g;
-    if (n) {
-        int x;
-        player->g -= (float)n;
-        x = GetStepplayerMp(player) - n;
-        SetStepplayerMp(player, x > -1 ? x : 0);
-    }
+    if (!n)
+        return;
+    int x;
+    player->g -= (float)n;
+    x = GetStepplayerMp(player) - n;
+    SetStepplayerMp(player, x > -1 ? x : 0);
 }
 } } // namespace M_DrainStepplayerMp
 
@@ -3380,11 +3380,11 @@ void SetJtModeState__FP6JTMODEi(void *p, int a);
 void StepplayerVirtual83(char *player, int a, int b)
 {
     func_00205478(player, a, b);
-    if (b) {
-        if (++*(int *)(player + 0x12F4) == 1) {
-            PlayStepplayerScriptAnim(player, 0x60B, 9, 5);
-            SetJtModeState__FP6JTMODEi(player + 0xF00, -1);
-        }
+    if (!b)
+        return;
+    if (++*(int *)(player + 0x12F4) == 1) {
+        PlayStepplayerScriptAnim(player, 0x60B, 9, 5);
+        SetJtModeState__FP6JTMODEi(player + 0xF00, -1);
     }
 }
 } } // namespace M_func_001442D0
