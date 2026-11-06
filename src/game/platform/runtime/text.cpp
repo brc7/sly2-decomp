@@ -104,9 +104,11 @@ int CchParsePchzInt(char *str, int *outValue)
 }
 
 // Parse one TFT specifier; all length modifiers advance to conversion.
-static inline int Abs(int n){return n<0?-n:n;}
-static inline int Upper(unsigned char c){return D_002AA6A1[c]&1;}
-static inline int Lower(unsigned char c){int r=c+0x20;if(!Upper(c))r=c;return r;}
+static inline int Abs(int n) { return n < 0 ? -n : n; }
+static inline int Upper(unsigned char c) { return D_002AA6A1[c] & 1; }
+static inline int Lower(unsigned char c) { int r = c + 0x20; if (!Upper(c)) r = c; return r; }
+/* CchParsePchzTft's parser states, in the order the parts of a specification appear. */
+enum { TFT_START, TFT_FLAGS, TFT_WIDTH, TFT_PRECISION, TFT_LENGTH, TFT_CONVERSION, TFT_DONE };
 /** @sly2-annot addr=0x21D6B0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -115,70 +117,119 @@ static inline int Lower(unsigned char c){int r=c+0x20;if(!Upper(c))r=c;return r;
 // Parses one conversion specification starting at '%' (flags, width or '*', '.precision' or '.*', length h/l/ll/
 // L/q, the m/M/v/V matrix-vector modifiers, conversion character) into *spec, taking '*' values from the argument
 // list. "%%" yields conversion '%'. Returns the length of the specification.
-int CchParsePchzTft(char *format,TFT *spec,char **args){
-    int state=0;
-    func_002333B4(spec,0,0x34);
-    unsigned char *p=(unsigned char *)format;
-    while(*p && state!=6){
-        int consumed=0;
-        int next=state;
-        switch(state){
-        case 0:
-            if(*p=='%'){
-                if(p[1]==*p){spec->conversion=p[1];next=6;consumed=2;}
-                else {next=1;consumed=1;}
-            }else next=6;
-            break;
-        case 1:
-            switch(*p){
-            case '-':spec->leftAlign=1;consumed=1;break;
-            case '+':spec->showPlus=1;consumed=1;break;
-            case ' ':spec->spaceForPlus=1;consumed=1;break;
-            case '#':spec->alternateForm=1;consumed=1;break;
-            case '0':spec->zeroPad=1;consumed=1;break;
-            default:next=2;break;
+int CchParsePchzTft(char *format, TFT *spec, char **args)
+{
+    int state = TFT_START;
+    func_002333B4(spec, 0, 0x34);
+    unsigned char *p = (unsigned char *)format;
+    while (*p && state != TFT_DONE) {
+        int consumed = 0;
+        int next = state;
+        switch (state) {
+        case TFT_START:
+            if (*p == '%') {
+                if (p[1] == *p) {   /* "%%" */
+                    spec->conversion = p[1];
+                    next = TFT_DONE;
+                    consumed = 2;
+                } else {
+                    next = TFT_FLAGS;
+                    consumed = 1;
+                }
+            } else {
+                next = TFT_DONE;
             }
             break;
-        case 2:
-            if(*p=='*'){
-                char *argSlot=*args;*args=argSlot+8;
-                spec->width=*(int *)argSlot;
-                if(spec->width<0){int width=Abs(spec->width);spec->leftAlign=1;spec->width=width;}
-                consumed=1;
-            }else consumed=CchParsePchzInt((char *)p,&spec->width);
-            if(p[consumed]=='.'){next=3;consumed++;}else next=4;
-            break;
-        case 3:
-            if(*p=='*'){
-                char *argSlot=*args;*args=argSlot+8;
-                spec->precision=Abs(*(int *)argSlot);consumed=1;
-            }else consumed=CchParsePchzInt((char *)p,&spec->precision);
-            spec->precisionIsZero=spec->precision==0;
-            next=4;
-            break;
-        case 4:
-            switch(*p){
-            case 'h':spec->lengthModifier=1;consumed=1;break;
-            case 'l':consumed=1;if(p[1]!='l'){spec->lengthModifier=2;break;}
-            case 'L':case 'q':spec->lengthModifier=2;consumed++;break;
-            case 'M':case 'm':case 'V':case 'v':
-                spec->columns=Upper(*p)?4:3;
-                spec->rows=Lower(*p)=='v'?1:spec->columns;
-                consumed=1;break;
-            default:break;
+        case TFT_FLAGS:
+            switch (*p) {
+            case '-': spec->leftAlign = 1; consumed = 1; break;
+            case '+': spec->showPlus = 1; consumed = 1; break;
+            case ' ': spec->spaceForPlus = 1; consumed = 1; break;
+            case '#': spec->alternateForm = 1; consumed = 1; break;
+            case '0': spec->zeroPad = 1; consumed = 1; break;
+            default: next = TFT_WIDTH; break;
             }
-            next=5;
             break;
-        case 5:
-            if(*p!='%'){spec->isUpperCase=Upper(*p);spec->conversion=Lower(*p);}
-            consumed=1;next=6;
+        case TFT_WIDTH:
+            if (*p == '*') {
+                char *argSlot = *args;   /* varargs slots are 8 bytes */
+                *args = argSlot + 8;
+                spec->width = *(int *)argSlot;
+                if (spec->width < 0) {
+                    int width = Abs(spec->width);
+                    spec->leftAlign = 1;
+                    spec->width = width;
+                }
+                consumed = 1;
+            } else {
+                consumed = CchParsePchzInt((char *)p, &spec->width);
+            }
+            if (p[consumed] == '.') {
+                next = TFT_PRECISION;
+                consumed++;
+            } else {
+                next = TFT_LENGTH;
+            }
             break;
-        default:goto done;
+        case TFT_PRECISION:
+            if (*p == '*') {
+                char *argSlot = *args;
+                *args = argSlot + 8;
+                spec->precision = Abs(*(int *)argSlot);
+                consumed = 1;
+            } else {
+                consumed = CchParsePchzInt((char *)p, &spec->precision);
+            }
+            spec->precisionIsZero = spec->precision == 0;
+            next = TFT_LENGTH;
+            break;
+        case TFT_LENGTH:
+            switch (*p) {
+            case 'h':
+                spec->lengthModifier = 1;
+                consumed = 1;
+                break;
+            case 'l':
+                consumed = 1;
+                if (p[1] != 'l') {
+                    spec->lengthModifier = 2;
+                    break;
+                }
+                /* "ll": fall through */
+            case 'L':
+            case 'q':
+                spec->lengthModifier = 2;
+                consumed++;
+                break;
+            case 'M':
+            case 'm':
+            case 'V':
+            case 'v':   /* matrix (4x4 / 3x3) and vector (4 / 3 components) modifiers */
+                spec->columns = Upper(*p) ? 4 : 3;
+                spec->rows = Lower(*p) == 'v' ? 1 : spec->columns;
+                consumed = 1;
+                break;
+            default:
+                break;
+            }
+            next = TFT_CONVERSION;
+            break;
+        case TFT_CONVERSION:
+            if (*p != '%') {
+                spec->isUpperCase = Upper(*p);
+                spec->conversion = Lower(*p);
+            }
+            consumed = 1;
+            next = TFT_DONE;
+            break;
+        default:
+            goto done;   /* leaves the loop from inside the switch */
         }
-        p+=consumed;state=next;
+        p += consumed;
+        state = next;
     }
- done:
-    return (char *)p-format;
+done:
+    return (char *)p - format;
 }
 
 static inline void WritePad(OSTRM *out, char padChar, int count)
