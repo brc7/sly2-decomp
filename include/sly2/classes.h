@@ -568,8 +568,8 @@ typedef char assert_BHV171_size[sizeof(BHV171) == 0xE0 ? 1 : -1];
 struct CID119 : LO
 {
     char pad50[0xB0 - 0x50];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid119ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("func_00173158");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid119ClassDesc");   /* slot 6 */
     virtual void RemoveHierarchy() __asm__("func_001746B8");   /* slot 12 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_001731B8");   /* slot 14 */
     virtual void VUnk14() __asm__("func_001733F8");   /* slot 15 */
