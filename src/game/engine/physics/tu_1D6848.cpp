@@ -1,5 +1,8 @@
-// tu_1D6848.cpp -- launchers: ballistic launch velocity toward a point, a straight-line launch velocity, the
-// launcher's init, and LaunchSoFromLauncher. VU0 macro-mode asm.
+// tu_1D6848.cpp -- launchers (CID 112, an LO): objects that throw another object toward a target point.
+// Role: computes launch velocities (a ballistic arc at a chosen elevation, or the velocity that covers a distance
+// in a given time under gravity) and launches an SO from a launcher with prediction, offset, class-specific
+// velocity and random spin. Entry points: CID112::Init, LaunchSoFromLauncher, CalculateBallisticLaunchVelocity,
+// CalculateVelocityToReachPos. VU0 macro-mode asm.
 // TU 0x1D6848..0x1D7238 (6 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_1D6848
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D7218
@@ -56,6 +59,9 @@ static inline qwordV Difference(qwordV end,const qwordV *start){qwordV result;re
  * See: docs/engine/physics-collision.md#6-source-files, docs/engine/rendering.md#12-source-files,
  *   docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
  * @end-sly2-annot */
+// Returns the launch velocity that carries an object from start to end on a ballistic arc under acceleration acc.
+// g (0..1) blends the elevation angle between the direct line to the target (0) and straight up (pi/2, 1); returns
+// zero when the target cannot be reached at that angle.
 extern "C" qwordV CalculateBallisticLaunchVelocity(float g, qwordV start, qwordV end, qwordV acc)
 {
     union U delta, vel, scalar;
@@ -104,6 +110,8 @@ static inline qwordV Bc(float g) {
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/physics-collision.md#tu_1d6848-0x1d6848-0x1d7238
  * @end-sly2-annot */
+// Returns the velocity that moves an object from a to b in dt seconds under the vertical acceleration acc: the
+// horizontal part is the straight-line distance over dt, the vertical part compensates for the fall.
 extern "C" qwordV CalculateVelocityToReachPos(qwordV a, qwordV b, qwordV acc, float dt)
 {
     float halfdt = dt * 0.5f;
@@ -220,6 +228,8 @@ extern XFV D_002C44F0;           // identity frame
 extern qwordV D_002A2DA0;        // default direction
 extern char D_003DD490[];
 extern "C" {
+// Slot 7 (Init) of the launcher: InitLo, then default offset (0,0,0), up axis (0,1,0), blend 0.5 and unlimited
+// (FLT_MAX) prediction and speed limits.
 qwordV func_001A62E8(SOV *);                                       // PosLoWorld
 MATRIX4V *__ml__FRC7MATRIX4T0(MATRIX4V *, MATRIX4V *, MATRIX4V *);
 void *func_002333B4(void *, int, int) __asm__("memset");                           // memset
@@ -334,6 +344,10 @@ static inline void LoadIdentity(MATRIX4V *pm) { func_002333B4(pm, 0, sizeof(*pm)
  *   docs/engine/minigames.md#4-mounted-turret-turret-0x45-turret-tu-0x2259d8-0x226550-conf-high-ccode,
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
+// Launches pso from the launcher: aims at the target point (optionally advanced by a predicted travel time and
+// offset along the aim direction), then by the object's class gives it a speed vector (0x52), a velocity toward the
+// point at its own launch speed with a matching orientation (0x51), or a ballistic velocity, adds a random spin,
+// and tells class 0x50 objects their target.
 extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
 {
     MATRIX4V matParent;
