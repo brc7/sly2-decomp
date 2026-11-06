@@ -416,7 +416,7 @@ extern "C" int func_00227D20(void *p, qword q, float g);
  * @end-sly2-annot */
 extern "C" CRef func_001047A0(void *p, int c, void *aref)
 {
-    int ak[2] = {2, 0x16};
+    int ak[2] = {2, 0x1};
     union { qword q; } u;
     float g;
     CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &u, &g);
