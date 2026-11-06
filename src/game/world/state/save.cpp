@@ -2,6 +2,8 @@
 // typed slot at an offset of the save blob), lookup by key (a list of symbol ids built from strings), typed get/set
 // as CRef values, the completion percentage, schema resets and applying the settings variables.
 // TU 0x1D7B88..0x1D93D8 (24 functions, address order).
+// Entry points: LoadSaveSchemaFromBrx (level load), RefGetSaveVarV / RefSetSaveVarV / GetSaveVarAddressV
+// (named access from game code), GetCompletionPercent, ApplyGsSettings.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_save
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001D93B8
 #include "sly2/cref.h"

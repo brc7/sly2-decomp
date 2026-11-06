@@ -8,6 +8,8 @@
 // PROXYSRC, PROXYSPARE, PROXYINIT, GRABSPOT, CELL... were identical and are declared once). Functions on those types
 // are written against them; the others keep the per-function views they were matched with, each in a namespace
 // named after it (as vec.cpp, mark.cpp, hurt.cpp and grab.cpp do).
+// Entry points: LoadProxyFromBrx (level load), InitSwProxySpares (after load), AcquireProxySpare /
+// ReleasePspare (run time), the proxy-id helpers (IdProxy, IsrcFromIdProxy...).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_proxy
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001CB8E8
 
@@ -362,7 +364,7 @@ int IdProxy(int isrc, int icopy);
 int FindProxysrc(SW *psw, int idSource);
 PXR *FindPxr(PXR *ppxrParent, int cid, int *aid) __asm__("FindProxyRefPath");
 void AddProxyCopy(SW *psw, int isrc, SO *psoParent, XF *pxfParent, OID oid, MATRIX4 *pmatProxy, CLoadCollector *pcollector) __asm__("AddProxyCopy");
-int CploFindSwObjects(SW *psw, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("FindSwObjectsWithNames");
+int CploFindSwObjects(SW *psw, GRFFSO grffso, OID oid, LO *ploContext, PXR *ppxr, int cploMax, LO **aplo) __asm__("FindSwObjectsInProxyScope");
 
 void *PvAllocSwImpl(SWALLOC *pswalloc) __asm__("func_001AE1D0");
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
@@ -1094,7 +1096,7 @@ void ReleasePspare__FP5PROXYP10PROXYSPARE(P *,NODE *);
 int IcopyFromPspare__FP5PROXYP10PROXYSPARE(P *,NODE *);
 int IdProxy__Fii(int,int);
 TREE *FindProxyRefPath(TREE *,int,int *);
-int FindSwObjectsWithNames(SW *,int,int,P *,void *,int,P **);
+int FindSwObjectsInProxyScope(SW *,int,int,P *,void *,int,P **);
 STREAM *func_00118480(STREAM *);
 void func_00118500(STREAM *,void *,void *,int);
 short S16Read__18CBinaryInputStream(STREAM *);
@@ -1136,7 +1138,7 @@ extern "C" NODE *AcquireProxySpare(P *p,int minimum){
   BIND *bind=&p->binds[i];
   if(bind->kind==5)continue;
   if(bind->kind==6){work.found=tree->owner;if(!work.found)continue;}
-  else if(FindSwObjectsWithNames(&D_003DD490,0xA05,bind->kind,0,tree,1,&work.found)!=1)continue;
+  else if(FindSwObjectsInProxyScope(&D_003DD490,0xA05,bind->kind,0,tree,1,&work.found)!=1)continue;
   bind->object=work.found;
   func_00118480(&stream);
   func_00118500(&stream,bind->begin,bind->end,0);

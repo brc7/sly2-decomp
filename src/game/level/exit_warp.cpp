@@ -23,7 +23,7 @@ struct LO;
 struct SW
 {
     char pad[0x3C84];
-    struct EXITV *pexitWarping;  /* +0x3C84 the exit being taken */
+    struct EXITV *exitBeingTaken;  /* +0x3C84 the exit being taken */
 };
 struct RSMG { int a[4]; };
 struct TASKSTATE { int a[2]; };
@@ -32,47 +32,47 @@ struct TASKSTATE { int a[2]; };
 struct EXITV
 {
     int pad0[3];
-    VT *pvt;                    /* +0x0C */
+    VT *vtable;                    /* +0x0C */
     char pad10[0x40 - 0x10];
-    unsigned int grf40;         /* +0x40 flag word, or (low bit clear) a pointer to it */
+    unsigned int flagWord;         /* +0x40 flag word, or (low bit clear) a pointer to it */
     char pad44[0xEC - 0x44];
-    void *pbsp;                 /* +0xEC VOL::bspc's tree (point-inside test) */
+    void *bspTree;                 /* +0xEC VOL::bspc's tree (point-inside test) */
     char padF0[0x130 - 0xF0];
-    int fDefault;               /* +0x130 the exit taken by default */
-    int fRedirect;              /* +0x134 taking it takes the default exit instead */
-    int fNoWipe;                /* +0x138 */
-    int exits;                  /* +0x13C 0 player inside, 1 left, 2 off, 3 armed, 4 warping */
-    float tExits;               /* +0x140 time of the last state change */
-    void *pvWorld;              /* +0x144 target world blob */
-    int cpvMovie;               /* +0x148 movies played before the wipe */
-    void **apvMovie;            /* +0x14C */
-    int x150;                   /* +0x150 (0x189) */
-    int x154;                   /* +0x154 (-1) */
-    float tWipe;                /* +0x158 */
-    float dtRearm;              /* +0x15C after leaving, re-armed once this has passed */
-    float dtWipe;               /* +0x160 delay from taking the exit to the wipe */
-    int ctaskstate;             /* +0x164 */
-    TASKSTATE ataskstate[4];    /* +0x168 */
+    int isDefault;               /* +0x130 the exit taken by default */
+    int redirectsToDefault;              /* +0x134 taking it takes the default exit instead */
+    int skipWipe;                /* +0x138 */
+    int state;                  /* +0x13C 0 player inside, 1 left, 2 off, 3 armed, 4 warping */
+    float stateTime;               /* +0x140 time of the last state change */
+    void *targetWorld;              /* +0x144 target world blob */
+    int movieCount;               /* +0x148 movies played before the wipe */
+    void **movies;            /* +0x14C */
+    int targetWarpOid;                   /* +0x150 (0x189) */
+    int wipeOid;                   /* +0x154 (-1) */
+    float wipeTime;                /* +0x158 */
+    float rearmDelay;              /* +0x15C after leaving, re-armed once this has passed */
+    float wipeDelay;               /* +0x160 delay from taking the exit to the wipe */
+    int taskStateCount;             /* +0x164 */
+    TASKSTATE taskStates[4];    /* +0x168 */
 };
 
-struct WARPPAIR { OID oidObject; OID oidTarget; };
+struct WARPPAIR { OID object; OID target; };
 
 /* WARPV : XFM (sizeof(XFM) == 0xE0). */
 struct WARPV
 {
     int pad0[3];
-    VT *pvt;                    /* +0x0C */
+    VT *vtable;                    /* +0x0C */
     char pad10[0x18 - 0x10];
     OID oid;                    /* +0x18 */
     char pad1C[0xE0 - 0x1C];
-    int crsmg;                  /* +0xE0 */
-    RSMG arsmg[4];              /* +0xE4 */
-    int ctaskstate;             /* +0x124 */
-    TASKSTATE ataskstate[4];    /* +0x128 */
-    unsigned int cpair;         /* +0x148 objects moved on trigger */
-    WARPPAIR apair[4];          /* +0x14C */
-    int coidAlias;              /* +0x16C other oids the warp answers to */
-    OID aoidAlias[4];           /* +0x170 */
+    int rsmgCount;                  /* +0xE0 */
+    RSMG rsmgs[4];              /* +0xE4 */
+    int taskStateCount;             /* +0x124 */
+    TASKSTATE taskStates[4];    /* +0x128 */
+    unsigned int pairCount;         /* +0x148 objects moved on trigger */
+    WARPPAIR pairs[4];          /* +0x14C */
+    int aliasCount;              /* +0x16C other oids the warp answers to */
+    OID aliases[4];           /* +0x170 */
 };
 typedef char assert_WARP_size[sizeof(WARPV) == 0x180 ? 1 : -1];
 
@@ -87,38 +87,38 @@ extern char D_002F66B0[];       /* the movie player */
 extern CLOCK D_002DDED0;        /* g_clock */
 
 struct CM;
-LO *PloFindSwObject(SW *psw, int grffso, OID oid, LO *ploContext);
-int FAddRsmg(SW *psw, RSMG *arsmg, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
+LO *PloFindSwObject(SW *world, int findFlags, OID oid, LO *context);
+int FAddRsmg(SW *world, RSMG *arsmg, int crsmgMax, int *pcrsmg, int d, OID e, OID f, OID g);
 void CutCm(CM *pcm);
 extern "C" {
-int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *ploContext, int cploMax, void *aplo);
-void LoadXfmFromBrx(WARPV *pwarp, CBinaryInputStream *pbis);
-void CBinaryInputStream_SkipStringSw(CBinaryInputStream *pbis);
-LO *PpoHero(SW *psw);
-void InitXfm(EXITV *pexit);
-void SetLoBusyk(EXITV *pexit, int busyk);
-void *func_001AE238(MEMREQ *pmemreq, WARPBLOB *pblob);
-void LoadVolFromBrx(EXITV *pexit, CBinaryInputStream *pbis);
-void *func_001AE1D0(MEMREQ *pmemreq);
-void IncrementSwHandsOff(SW *psw, int n);
-void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, void *plo);
+int CploFindSwObjectsByClass(SW *world, int findFlags, int cid, LO *context, int cploMax, void *aplo);
+void LoadXfmFromBrx(WARPV *warp, CBinaryInputStream *stream);
+void CBinaryInputStream_SkipStringSw(CBinaryInputStream *stream);
+LO *PpoHero(SW *world);
+void InitXfm(EXITV *exitVolume);
+void SetLoBusyk(EXITV *exitVolume, int busyk);
+void *func_001AE238(MEMREQ *request, WARPBLOB *pblob);
+void LoadVolFromBrx(EXITV *exitVolume, CBinaryInputStream *stream);
+void *func_001AE1D0(MEMREQ *request);
+void IncrementSwHandsOff(SW *world, int n);
+void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, void *object);
 void RevokeCmPolicy(void *pcm, int a, int b, void *pv, int c, int d);
 void AppendBoundedPair(void *p, TASKSTATE *ataskstate, int cMax, int *pc, int d, int e);
 void FindLevelIndexByFileRecord(void *pvWorld);
-void UpdateLo(EXITV *pexit, float dt);
+void UpdateLo(EXITV *exitVolume, float dt);
 void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
-void WipeToWorldWarp(SW *psw, void *pvWorld, int a, int b, int grf, int c);
-qwordV GetLoWorldPos(LO *plo);
-qwordV ConvertAloPos(int a, EXITV *pexit, qwordV pos);
+void WipeToWorldWarp(SW *world, void *pvWorld, int a, int b, int grf, int c);
+qwordV GetLoWorldPos(LO *object);
+qwordV ConvertAloPos(int a, EXITV *exitVolume, qwordV pos);
 int PbspPointInBspQuick(void *pbsp, int n, qwordV pos);
-void TriggerRsmg(SW *psw, int crsmg, RSMG *arsmg, WARPV *pwarp, int fOn);
+void TriggerRsmg(SW *world, int crsmg, RSMG *arsmg, WARPV *warp, int fOn);
 
-WARPV *FindWarpByOid(SW *psw, OID oid, OID oidContext);
-EXITV *FindDefaultExit(SW *psw);
-void LoadWarpBlobFromBrx(CBinaryInputStream *pbis, void **ppv);
-void SetExitExits(EXITV *pexit, int exits);
-void TakeExit(EXITV *pexit);
-void AddWarpOidAlias(WARPV *pwarp, OID oid);
+WARPV *FindWarpByOid(SW *world, OID oid, OID contextOid);
+EXITV *FindDefaultExit(SW *world);
+void LoadWarpBlobFromBrx(CBinaryInputStream *stream, void **blobOut);
+void SetExitExits(EXITV *exitVolume, int newState);
+void TakeExit(EXITV *exitVolume);
+void AddWarpOidAlias(WARPV *warp, OID oid);
 }
 
 /** @sly2-annot addr=0x227FE8
@@ -133,37 +133,37 @@ void AddWarpOidAlias(WARPV *pwarp, OID oid);
  *   docs/engine/world-sw.md#9-source-files
  * @end-sly2-annot */
 // Finds the WARP with the given oid, or else the WARP that lists oid among its aliases. (Sly 1: PwarpFromOid.)
-extern "C" WARPV *FindWarpByOid(SW *psw, OID oid, OID oidContext)
+extern "C" WARPV *FindWarpByOid(SW *world, OID oid, OID contextOid)
 {
-    WARPV *apwarp[32];
-    WARPV *pwarpRet;
-    LO *ploContext = 0;
+    WARPV *warpList[32];
+    WARPV *result;
+    LO *context = 0;
     int c, i;
-    int grffso = 5;
-    if (oidContext != -1)
+    int findFlags = 5;
+    if (contextOid != -1)
     {
-        ploContext = PloFindSwObject(psw, 5, oidContext, 0);
-        if (ploContext)
-            grffso = 1;
+        context = PloFindSwObject(world, 5, contextOid, 0);
+        if (context)
+            findFlags = 1;
     }
-    pwarpRet = 0;
-    c = CploFindSwObjectsByClass(psw, grffso, 0x2A, ploContext, 0x20, apwarp);
+    result = 0;
+    c = CploFindSwObjectsByClass(world, findFlags, 0x2A, context, 0x20, warpList);
     for (i = 0; i < c; i++)
     {
-        WARPV *pwarp = apwarp[i];
+        WARPV *warp = warpList[i];
         int j;
-        if (pwarp->oid == oid)
+        if (warp->oid == oid)
             goto found;
-        for (j = 0; j < pwarp->coidAlias; j++)
+        for (j = 0; j < warp->aliasCount; j++)
         {
-            if (pwarp->aoidAlias[j] == oid)
+            if (warp->aliases[j] == oid)
                 goto found;
         }
         continue;
     found:
-        pwarpRet = pwarp;
+        result = warp;
     }
-    return pwarpRet;
+    return result;
 }
 
 /** @sly2-annot addr=0x2280D0
@@ -177,16 +177,16 @@ extern "C" WARPV *FindWarpByOid(SW *psw, OID oid, OID oidContext)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Returns the last EXIT whose "default" flag is set, or null. (Sly 1: PexitDefault.)
-extern "C" EXITV *FindDefaultExit(SW *psw)
+extern "C" EXITV *FindDefaultExit(SW *world)
 {
-    EXITV *apexit[32];
-    EXITV *pexitRet = 0;
-    int c = CploFindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, apexit);
+    EXITV *exitList[32];
+    EXITV *result = 0;
+    int c = CploFindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, exitList);
     int i;
     for (i = 0; i < c; i++)
-        if (apexit[i]->fDefault)
-            pexitRet = apexit[i];
-    return pexitRet;
+        if (exitList[i]->isDefault)
+            result = exitList[i];
+    return result;
 }
 
 /** @sly2-annot addr=0x228140
@@ -200,11 +200,11 @@ extern "C" EXITV *FindDefaultExit(SW *psw)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Loads the in-level teleport destination (cid 41) from the BRX: the XFM part, then skips a string.
-void CID41::LoadFromBrx(CBinaryInputStream *pbis)
+void CID41::LoadFromBrx(CBinaryInputStream *stream)
 {
-    WARPV *pwarp = (WARPV *)this;
-    LoadXfmFromBrx(pwarp, pbis);
-    CBinaryInputStream_SkipStringSw(pbis);
+    WARPV *warp = (WARPV *)this;
+    LoadXfmFromBrx(warp, stream);
+    CBinaryInputStream_SkipStringSw(stream);
 }
 
 /** @sly2-annot addr=0x228170
@@ -222,14 +222,14 @@ void CID41::LoadFromBrx(CBinaryInputStream *pbis)
  * @end-sly2-annot */
 // Moves the hero onto this warp point (the hero's vtable slot 38) and sends the warp's Splice event 5. A Splice-callable
 // method; cutscene relays call it too.
-extern "C" void PutHeroAtWarp(WARPV *pwarp)
+extern "C" void PutHeroAtWarp(WARPV *warp)
 {
-    LO *ploHero = PpoHero(&D_003DD490);
-    if (ploHero)
+    LO *hero = PpoHero(&D_003DD490);
+    if (hero)
     {
-        VT *pvtHero = *(VT **)((char *)ploHero + 0xC);
-        ((void (*)(void *, WARPV *))pvtHero[38].pfn)((char *)ploHero + pvtHero[38].d, pwarp);
-        ((void (*)(void *, int, int, int, int, int))pwarp->pvt[3].pfn)((char *)pwarp + pwarp->pvt[3].d, 5, 0, 0, 0, 0);
+        VT *heroVtable = *(VT **)((char *)hero + 0xC);
+        ((void (*)(void *, WARPV *))heroVtable[38].pfn)((char *)hero + heroVtable[38].d, warp);
+        ((void (*)(void *, int, int, int, int, int))warp->vtable[3].pfn)((char *)warp + warp->vtable[3].d, 5, 0, 0, 0, 0);
     }
 }
 
@@ -246,17 +246,17 @@ extern "C" void PutHeroAtWarp(WARPV *pwarp)
 // EXIT initialization (vtable slot 7): XFM init, default target warp oid 0x189 and wipe oid -1, not busy.
 void EXIT::Init()
 {
-    EXITV *pexit = (EXITV *)this;
+    EXITV *exitVolume = (EXITV *)this;
     unsigned int grf;
-    InitXfm(pexit);
-    pexit->x150 = 0x189;
-    pexit->x154 = -1;
-    SetLoBusyk(pexit, 0);
-    grf = pexit->grf40;
+    InitXfm(exitVolume);
+    exitVolume->targetWarpOid = 0x189;
+    exitVolume->wipeOid = -1;
+    SetLoBusyk(exitVolume, 0);
+    grf = exitVolume->flagWord;
     if (!(grf & 1))
         *(int *)grf |= 2;
     else
-        pexit->grf40 = grf | 2;
+        exitVolume->flagWord = grf | 2;
 }
 
 /** @sly2-annot addr=0x228250
@@ -269,22 +269,22 @@ void EXIT::Init()
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Reads a 0x40-byte warp blob header from the BRX and allocates a copy when it is not empty (the exit's target world).
-extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *pbis, void **ppv)
+extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *stream, void **blobOut)
 {
     WARPBLOB blob;
     MEMREQ memreq;
-    pbis->Read(0x40, &blob);
+    stream->Read(0x40, &blob);
     if (blob.b != blob.c)
     {
         {
-            MEMREQ *pmemreq = &memreq;
-            pmemreq->cb = 0x40;
-            pmemreq->cbAlign = 0x10;
+            MEMREQ *request = &memreq;
+            request->cb = 0x40;
+            request->cbAlign = 0x10;
         }
-        *ppv = func_001AE238(&memreq, &blob);
+        *blobOut = func_001AE238(&memreq, &blob);
     }
     else
-        *ppv = 0;
+        *blobOut = 0;
 }
 
 /** @sly2-annot addr=0x2282B0
@@ -302,20 +302,20 @@ extern "C" void LoadWarpBlobFromBrx(CBinaryInputStream *pbis, void **ppv)
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
  * @end-sly2-annot */
 // Loads an EXIT from the BRX: the VOL part, its target-world blob and the list of movies played before the wipe.
-extern "C" void LoadExitFromBrx(EXITV *pexit, CBinaryInputStream *pbis)
+extern "C" void LoadExitFromBrx(EXITV *exitVolume, CBinaryInputStream *stream)
 {
     int i = 0;
     int c;
     MEMREQ memreq;
-    LoadVolFromBrx(pexit, pbis);
-    LoadWarpBlobFromBrx(pbis, &pexit->pvWorld);
-    c = pbis->U8Read();
+    LoadVolFromBrx(exitVolume, stream);
+    LoadWarpBlobFromBrx(stream, &exitVolume->targetWorld);
+    c = stream->U8Read();
     memreq.cbAlign = 0x10;
     memreq.cb = c * 4;
-    pexit->cpvMovie = c;
-    pexit->apvMovie = (void **)func_001AE1D0(&memreq);
-    for (; i < pexit->cpvMovie; i++)
-        LoadWarpBlobFromBrx(pbis, &pexit->apvMovie[i]);
+    exitVolume->movieCount = c;
+    exitVolume->movies = (void **)func_001AE1D0(&memreq);
+    for (; i < exitVolume->movieCount; i++)
+        LoadWarpBlobFromBrx(stream, &exitVolume->movies[i]);
 }
 
 /** @sly2-annot addr=0x228358
@@ -331,18 +331,18 @@ extern "C" void LoadExitFromBrx(EXITV *pexit, CBinaryInputStream *pbis)
  * @end-sly2-annot */
 // Changes the exit state (0 player inside, 1 left, 2 off, 3 armed, 4 warping) and stamps the time; entering state 4
 // takes control from the player (hands-off) and records the exit as the one being taken. (Sly 1: SetExitExits.)
-extern "C" void SetExitExits(EXITV *pexit, int exits)
+extern "C" void SetExitExits(EXITV *exitVolume, int newState)
 {
-    if (exits != pexit->exits)
+    if (newState != exitVolume->state)
     {
-        if (exits == 4)
+        if (newState == 4)
         {
-            SetLoBusyk(pexit, 1);
+            SetLoBusyk(exitVolume, 1);
             IncrementSwHandsOff(&D_003DD490, 3);
-            D_003DD490.pexitWarping = pexit;
+            D_003DD490.exitBeingTaken = exitVolume;
         }
-        pexit->exits = exits;
-        pexit->tExits = D_002DDED0.t;
+        exitVolume->state = newState;
+        exitVolume->stateTime = D_002DDED0.t;
     }
 }
 
@@ -356,25 +356,25 @@ extern "C" void SetExitExits(EXITV *pexit, int exits)
  * @end-sly2-annot */
 // Takes an armed exit: a redirecting exit hands over to the default exit; otherwise applies the exit's task states,
 // revokes two camera policies, switches to the warping state, schedules the wipe and sends Splice event 5.
-extern "C" void TakeExit(EXITV *pexit)
+extern "C" void TakeExit(EXITV *exitVolume)
 {
-    if (pexit->exits != 3)
+    if (exitVolume->state != 3)
         return;
-    if (pexit->fRedirect)
+    if (exitVolume->redirectsToDefault)
     {
-        EXITV *pexitDefault;
-        SetExitExits(pexit, 0);
-        pexitDefault = FindDefaultExit(&D_003DD490);
-        if (pexitDefault)
-            TakeExit(pexitDefault);
+        EXITV *defaultExit;
+        SetExitExits(exitVolume, 0);
+        defaultExit = FindDefaultExit(&D_003DD490);
+        if (defaultExit)
+            TakeExit(defaultExit);
         return;
     }
-    ApplyTaskStates(D_002DEB30, pexit->ctaskstate, pexit->ataskstate, pexit);
+    ApplyTaskStates(D_002DEB30, exitVolume->taskStateCount, exitVolume->taskStates, exitVolume);
     RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x450, 0, 0);
     RevokeCmPolicy(D_002DDF40, 2, -1, D_002DDF40 + 0x520, 0, 0);
-    SetExitExits(pexit, 4);
-    pexit->tWipe = D_002DDED0.t + pexit->dtWipe;
-    ((void (*)(void *, int, int, int, int, int))pexit->pvt[3].pfn)((char *)pexit + pexit->pvt[3].d, 5, 0, 0, 0, 0);
+    SetExitExits(exitVolume, 4);
+    exitVolume->wipeTime = D_002DDED0.t + exitVolume->wipeDelay;
+    ((void (*)(void *, int, int, int, int, int))exitVolume->vtable[3].pfn)((char *)exitVolume + exitVolume->vtable[3].d, 5, 0, 0, 0, 0);
 }
 
 /** @sly2-annot addr=0x2284E0
@@ -388,9 +388,9 @@ extern "C" void TakeExit(EXITV *pexit)
  * @end-sly2-annot */
 // Adds a task-state entry to the exit's four-entry list (applied when the exit is taken). Splice-callable; the name
 // was AddExitRsmg, but the list it fills is the task-state list.
-extern "C" void AddExitTaskState(EXITV *pexit, int d, int e)
+extern "C" void AddExitTaskState(EXITV *exitVolume, int d, int e)
 {
-    AppendBoundedPair(D_002DEB30, pexit->ataskstate, 4, &pexit->ctaskstate, d, e);
+    AppendBoundedPair(D_002DEB30, exitVolume->taskStates, 4, &exitVolume->taskStateCount, d, e);
 }
 
 /** @sly2-annot addr=0x228518
@@ -401,9 +401,9 @@ extern "C" void AddExitTaskState(EXITV *pexit, int d, int e)
  * Confidence: low (draft) [T2 0.20] - evidence: static naming pass; sources: r8_21BB88
  * @end-sly2-annot */
 // Returns the index of the exit's target level in the level table (IlevelFromRec on its world blob). (inferred)
-extern "C" void GetExitTargetLevelIndex(EXITV *pexit)
+extern "C" void GetExitTargetLevelIndex(EXITV *exitVolume)
 {
-    FindLevelIndexByFileRecord(pexit->pvWorld);
+    FindLevelIndexByFileRecord(exitVolume->targetWorld);
 }
 
 /** @sly2-annot addr=0x228538
@@ -419,47 +419,47 @@ extern "C" void GetExitTargetLevelIndex(EXITV *pexit)
 // Per-frame EXIT update: after the LO update, tests whether the hero is inside the exit volume and steps the state
 // machine (re-arms after the hero has been out for dtRearm, takes the exit when entered while armed); in the warping
 // state, queues the movies and wipes to the target world when the wipe time arrives.
-extern "C" void UpdateExit(EXITV *pexit, float dt)
+extern "C" void UpdateExit(EXITV *exitVolume, float dt)
 {
-    UpdateLo(pexit, dt);
-    switch (pexit->exits)
+    UpdateLo(exitVolume, dt);
+    switch (exitVolume->state)
     {
     case 4:
-        if (0.0f < pexit->tWipe && pexit->tWipe <= D_002DDED0.t)
+        if (0.0f < exitVolume->wipeTime && exitVolume->wipeTime <= D_002DDED0.t)
         {
             int i;
-            for (i = 0; i < pexit->cpvMovie; i++)
-                CMpeg_QueueMovie(D_002F66B0, pexit->apvMovie[i]);
-            WipeToWorldWarp(&D_003DD490, pexit->pvWorld, pexit->x150, -1, pexit->fNoWipe ? 0x20 : 0, pexit->x154);
-            pexit->tWipe = 0.0f;
+            for (i = 0; i < exitVolume->movieCount; i++)
+                CMpeg_QueueMovie(D_002F66B0, exitVolume->movies[i]);
+            WipeToWorldWarp(&D_003DD490, exitVolume->targetWorld, exitVolume->targetWarpOid, -1, exitVolume->skipWipe ? 0x20 : 0, exitVolume->wipeOid);
+            exitVolume->wipeTime = 0.0f;
         }
         break;
     case 0:
     case 1:
     case 3:
     {
-        LO *ploHero = PpoHero(&D_003DD490);
+        LO *hero = PpoHero(&D_003DD490);
         union { qwordV q; } u;
-        int fInside;
-        if (!ploHero)
+        int isInside;
+        if (!hero)
             return;
-        u.q = ConvertAloPos(0, pexit, GetLoWorldPos(ploHero));
-        fInside = PbspPointInBspQuick(pexit->pbsp, 0x7FFFFFFF, u.q) != 0;
-        switch (pexit->exits)
+        u.q = ConvertAloPos(0, exitVolume, GetLoWorldPos(hero));
+        isInside = PbspPointInBspQuick(exitVolume->bspTree, 0x7FFFFFFF, u.q) != 0;
+        switch (exitVolume->state)
         {
         case 3:
-            if (fInside)
-                TakeExit(pexit);
+            if (isInside)
+                TakeExit(exitVolume);
             break;
         case 1:
-            if (fInside)
-                SetExitExits(pexit, 0);
-            else if (D_002DDED0.t - pexit->tExits > pexit->dtRearm)
-                SetExitExits(pexit, 3);
+            if (isInside)
+                SetExitExits(exitVolume, 0);
+            else if (D_002DDED0.t - exitVolume->stateTime > exitVolume->rearmDelay)
+                SetExitExits(exitVolume, 3);
             break;
         case 0:
-            if (!fInside)
-                SetExitExits(pexit, 1);
+            if (!isInside)
+                SetExitExits(exitVolume, 1);
             break;
         }
         break;
@@ -480,11 +480,11 @@ extern "C" void UpdateExit(EXITV *pexit, float dt)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Loads a WARP from the BRX: the XFM part, then skips a string.
-void WARP::LoadFromBrx(CBinaryInputStream *pbis)
+void WARP::LoadFromBrx(CBinaryInputStream *stream)
 {
-    WARPV *pwarp = (WARPV *)this;
-    LoadXfmFromBrx(pwarp, pbis);
-    CBinaryInputStream_SkipStringSw(pbis);
+    WARPV *warp = (WARPV *)this;
+    LoadXfmFromBrx(warp, stream);
+    CBinaryInputStream_SkipStringSw(stream);
 }
 
 /** @sly2-annot addr=0x228750
@@ -501,33 +501,33 @@ void WARP::LoadFromBrx(CBinaryInputStream *pbis)
  * @end-sly2-annot */
 // Triggers a warp on arrival: moves each paired object to its target, triggers the warp's rsmgs, applies its task
 // states, re-arms every exit that is not off, cuts the camera and sends Splice event 5. (Sly 1: TriggerWarp.)
-extern "C" void TriggerWarp(WARPV *pwarp)
+extern "C" void TriggerWarp(WARPV *warp)
 {
-    EXITV *apexit[32];
+    EXITV *exitList[32];
     int i, j;
-    for (i = 0; i < (int)pwarp->cpair; i++)
+    for (i = 0; i < (int)warp->pairCount; i++)
     {
-        WARPPAIR *ppair = &pwarp->apair[i];
-        LO *plo = PloFindSwObject(&D_003DD490, 4, ppair->oidObject, (LO *)pwarp);
-        if (plo)
+        WARPPAIR *pair = &warp->pairs[i];
+        LO *object = PloFindSwObject(&D_003DD490, 4, pair->object, (LO *)warp);
+        if (object)
         {
-            LO *ploTarget = PloFindSwObject(&D_003DD490, 4, ppair->oidTarget, (LO *)pwarp);
-            if (ploTarget)
+            LO *target = PloFindSwObject(&D_003DD490, 4, pair->target, (LO *)warp);
+            if (target)
             {
-                VT *pvt = *(VT **)((char *)plo + 0xC);
-                ((void (*)(void *, LO *))pvt[38].pfn)((char *)plo + pvt[38].d, ploTarget);
+                VT *vtable = *(VT **)((char *)object + 0xC);
+                ((void (*)(void *, LO *))vtable[38].pfn)((char *)object + vtable[38].d, target);
             }
         }
     }
-    TriggerRsmg(&D_003DD490, pwarp->crsmg, pwarp->arsmg, pwarp, 1);
-    ApplyTaskStates(D_002DEB30, pwarp->ctaskstate, pwarp->ataskstate, pwarp);
-    for (j = CploFindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, apexit) - 1; j >= 0; j--)
+    TriggerRsmg(&D_003DD490, warp->rsmgCount, warp->rsmgs, warp, 1);
+    ApplyTaskStates(D_002DEB30, warp->taskStateCount, warp->taskStates, warp);
+    for (j = CploFindSwObjectsByClass(&D_003DD490, 5, 0x1A, 0, 0x20, exitList) - 1; j >= 0; j--)
     {
-        if (apexit[j]->exits != 2)
-            SetExitExits(apexit[j], 0);
+        if (exitList[j]->state != 2)
+            SetExitExits(exitList[j], 0);
     }
     CutCm((CM *)D_002DDF40);
-    ((void (*)(void *, int, int, int, int, int))pwarp->pvt[3].pfn)((char *)pwarp + pwarp->pvt[3].d, 5, 0, 0, 0, 0);
+    ((void (*)(void *, int, int, int, int, int))warp->vtable[3].pfn)((char *)warp + warp->vtable[3].d, 5, 0, 0, 0, 0);
 }
 
 /** @sly2-annot addr=0x2288D8
@@ -541,10 +541,10 @@ extern "C" void TriggerWarp(WARPV *pwarp)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Adds a rsmg (a message sent when the warp triggers) to the warp's four-entry list when the trigger kind is set.
-extern "C" void SetWarpRsmg(WARPV *pwarp, int d, OID e, OID f, OID g)
+extern "C" void SetWarpRsmg(WARPV *warp, int d, OID e, OID f, OID g)
 {
     if (d)
-        FAddRsmg(&D_003DD490, pwarp->arsmg, 4, &pwarp->crsmg, d, e, f, g);
+        FAddRsmg(&D_003DD490, warp->rsmgs, 4, &warp->rsmgCount, d, e, f, g);
 }
 
 /** @sly2-annot addr=0x228920
@@ -554,9 +554,9 @@ extern "C" void SetWarpRsmg(WARPV *pwarp, int d, OID e, OID f, OID g)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
 // Adds a task-state entry to the warp's four-entry list (applied when the warp triggers).
-extern "C" void AddWarpTaskState(WARPV *pwarp, int d, int e)
+extern "C" void AddWarpTaskState(WARPV *warp, int d, int e)
 {
-    AppendBoundedPair(D_002DEB30, pwarp->ataskstate, 4, &pwarp->ctaskstate, d, e);
+    AppendBoundedPair(D_002DEB30, warp->taskStates, 4, &warp->taskStateCount, d, e);
 }
 
 /** @sly2-annot addr=0x228958
@@ -570,16 +570,16 @@ extern "C" void AddWarpTaskState(WARPV *pwarp, int d, int e)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Adds an (object, target) pair to the warp: on trigger the object is moved to the target. At most four pairs.
-extern "C" void AddWarpOidPair(WARPV *pwarp, OID oidObject, OID oidTarget)
+extern "C" void AddWarpOidPair(WARPV *warp, OID objectOid, OID targetOid)
 {
-    unsigned int c = pwarp->cpair;
+    unsigned int c = warp->pairCount;
     if (c < 4)
     {
-        WARPPAIR *ppair;
-        pwarp->cpair = c + 1;
-        ppair = &pwarp->apair[c];
-        ppair->oidObject = oidObject;
-        ppair->oidTarget = oidTarget;
+        WARPPAIR *pair;
+        warp->pairCount = c + 1;
+        pair = &warp->pairs[c];
+        pair->object = objectOid;
+        pair->target = targetOid;
     }
 }
 
@@ -594,10 +594,10 @@ extern "C" void AddWarpOidPair(WARPV *pwarp, OID oidObject, OID oidTarget)
  *   docs/reference/functions/world-sw.md#exit_warp-0x227fe8-0x228b48
  * @end-sly2-annot */
 // Adds an alias oid the warp also answers to in FindWarpByOid. At most four.
-extern "C" void AddWarpOidAlias(WARPV *pwarp, OID oid)
+extern "C" void AddWarpOidAlias(WARPV *warp, OID oid)
 {
-    if ((unsigned int)pwarp->coidAlias < 4)
-        pwarp->aoidAlias[pwarp->coidAlias++] = oid;
+    if ((unsigned int)warp->aliasCount < 4)
+        warp->aliases[warp->aliasCount++] = oid;
 }
 
 /** @sly2-annot addr=0x2289B0
@@ -607,9 +607,9 @@ extern "C" void AddWarpOidAlias(WARPV *pwarp, OID oid)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
 // Makes the warp answer to oid 0x189, the default start warp (the oid EXITs target by default). (inferred)
-extern "C" void AddWarpAliasStart(WARPV *pwarp)
+extern "C" void AddWarpAliasStart(WARPV *warp)
 {
-    AddWarpOidAlias(pwarp, (OID)0x189);
+    AddWarpOidAlias(warp, (OID)0x189);
 }
 
 /** @sly2-annot addr=0x2289D0
@@ -619,7 +619,7 @@ extern "C" void AddWarpAliasStart(WARPV *pwarp)
  * Confidence: low (draft) [T2 0.25] - evidence: static analysis; sources: r8_21BB88
  * @end-sly2-annot */
 // Makes the warp answer to oid 0x18A, the second well-known warp oid (inferred: the "end" warp).
-extern "C" void AddWarpAliasEnd(WARPV *pwarp)
+extern "C" void AddWarpAliasEnd(WARPV *warp)
 {
-    AddWarpOidAlias(pwarp, (OID)0x18A);
+    AddWarpOidAlias(warp, (OID)0x18A);
 }

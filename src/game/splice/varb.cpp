@@ -1,6 +1,7 @@
 // varb.cpp -- CVarb, a Splice variable binding (a reference-counted list node of {symbol, value}).
 // TU 0x12B0E8..0x12B3B0 (3 functions, address order). Its counted store 0x257430 is CRefPtr<CVarb>::Attach
 // (sly2/basic.h, emitted by splice/gc.cpp).
+// Entry point: CVarb_CloneTo (frame and sidebag cloning).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_varb
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012B390
 #include "sly2/cref.h"
@@ -31,7 +32,7 @@ struct SPW
       CVarb *operator->() { return p; }
 };
 
-extern "C" SPW CVarb_CloneTo(CVarb *src, void *a, void *b);
+extern "C" SPW CVarb_CloneTo(CVarb *source, void *a, void *b);
 
 /** @sly2-annot addr=0x12B0E8
  * Purpose: Clones a binding (varb) chain: new binding (0x257340) per entry with RefClone
@@ -43,14 +44,14 @@ extern "C" SPW CVarb_CloneTo(CVarb *src, void *a, void *b);
  *   docs/reference/functions/splice-scripting.md#sidebag-0x12a980-0x12ae18
  * @end-sly2-annot */
 // Clones a binding chain: a new binding per entry with the same symbol and a deep-copied value (CRef_CloneTo).
-SPW CVarb_CloneTo(CVarb *src, void *a, void *b)
+SPW CVarb_CloneTo(CVarb *source, void *a, void *b)
 {
       SPW sp;
       sp.Set(PtNew__t6CGcObj1Z5CVarb());
-      sp->sym = src->sym;
-      sp->ref = CRef_CloneTo(&src->ref, a, b);
-      if (src->pnext.p)
-            sp->SetNext(CVarb_CloneTo(src->pnext.p, a, b).p);
+      sp->sym = source->sym;
+      sp->ref = CRef_CloneTo(&source->ref, a, b);
+      if (source->pnext.p)
+            sp->SetNext(CVarb_CloneTo(source->pnext.p, a, b).p);
       return SPW(sp.p);
 }
 

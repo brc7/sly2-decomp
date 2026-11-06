@@ -5,6 +5,8 @@
 // Types: sly2/lo.h's LO (real virtual calls for PmatWorld / TranslateToPos / RotateToMat), LOROOT and LORUN for the
 // m2c bodies. The hand-written per-function files keep their views in namespaces named after each function (as
 // jt.cpp does), their C++-named definitions as C-linkage definitions of their literal symbols there.
+// Entry points: the LO virtuals (InitLo, AddLo, RemoveLo, LO_SetParent, UpdateLo, CloneLo...), the
+// world-transform queries (GetLoWorldPos, GetLoWorldMatrix, ConvertAlo*), busy/visibility setters and deferred callbacks.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_lo
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001A74F8
 

@@ -7,6 +7,8 @@
 // D_003E0FA0 / D_003E0FA4 are those SW fields of g_sw) and TU-private JOB / TASK views over lo.h's LO. The
 // hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does),
 // their C++-named definitions as C-linkage definitions of their literal symbols there.
+// Entry points: StartupGame (boot), UpdateGameTimers (per tick), BroadcastGameEvent (the event bus),
+// the JOB / TASK virtuals, RequestTaskState / SetTaskStateCascade, GoToTask, FailJob.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_game
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00166250
 

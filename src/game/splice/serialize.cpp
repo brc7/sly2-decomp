@@ -1,5 +1,6 @@
 // serialize.cpp -- reads a compiled Splice expression tree (pair list) from the level stream.
 // TU 0x12A3D8..0x12A980 (3 functions, address order).
+// Entry point: PpairSerializeIn (from the level's Splice section loader).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_serialize
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012A960
 #include "sly2/slotheap.h"

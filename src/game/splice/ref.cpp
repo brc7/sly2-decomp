@@ -3,6 +3,7 @@
 // linkonce proc destructor homed here (0x257148), address order.
 // Several functions still have C names (CRef_ctor_*, CRef_Set*): they are CRef members whose symbols tools/rename.py
 // has not given yet, so they stay C-linkage functions taking the CRef as a pointer.
+// Entry points: the CRef constructors and setters (every Splice value), CRef_CloneTo, CRef::Decref.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_ref
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012A3B8
 #include "sly2/pair.h"

@@ -1,6 +1,8 @@
 // splicemap.cpp -- the world's Splice script chunks (SPLCS): loading them from the BRX and evaluating each entry once
 // in a fresh frame. TU 0x1FF7E8..0x1FFCF8 (8 functions, address order). The frame pool's GC members are
 // CGcObj<CFrame>'s (sly2/gc.h, emitted by splice/gc.cpp).
+// Entry points: LoadSwSpliceFromBrx (level load), GetSpliceFrame (object creation),
+// InitSwSpliceFrame / DeleteSwSplice (world construction and teardown).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_splicemap
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001FFCD8
 #include "sly2/sw.h"

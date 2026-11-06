@@ -1,5 +1,6 @@
 // proc.cpp -- CProc, a Splice procedure (closure). TU 0x128F70..0x1291A8 (3 functions, address order). Its counted
 // store 0x257038 is CRefPtr<CProc>::Attach (sly2/basic.h, emitted by splice/gc.cpp).
+// Entry point: CProc_CloneTo (from CRef_CloneTo).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_proc
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00129188
 #include "sly2/slotheap.h"
@@ -9,16 +10,16 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 
 struct X;
 struct Y;
-struct SPX { X *p; ~SPX(); SPX &operator=(X *px) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame"); };
+struct SPX { X *p; ~SPX(); SPX &operator=(X *frame) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame"); };
 struct SPY { Y *p; ~SPY(); SPY &operator=(Y *py) __asm__("__as__t7CRefPtr1Z5CPairP5CPair"); };
 struct CProc {
     int cref;
-    int x4;
-    SPX spx;
-    int xC;
-    int x10;
-    SPY spy14;
-    SPY spy18;
+    int gcLink;
+    SPX closureFrame;
+    int minArgCount;
+    int hasRest;
+    SPY params;
+    SPY body;
     ~CProc();
 };
 struct SPO {
@@ -32,7 +33,7 @@ struct SPO {
 };
 extern "C" {
 CProc *PtNew__t6CGcObj1Z5CProc();
-SPO CProc_CloneTo(CProc *pprocSrc, X *px);
+SPO CProc_CloneTo(CProc *source, X *frame);
 }
 /** @sly2-annot addr=0x128F70
  * Purpose: New proc (0x256F48) copying frame pointer and param/body lists
@@ -45,18 +46,18 @@ SPO CProc_CloneTo(CProc *pprocSrc, X *px);
  * @end-sly2-annot */
 // Clones a closure: a new proc with the given frame (or the source's frame when none is given) and the source's
 // parameter count, rest flag, parameter list and body. Returns an owning pointer.
-SPO CProc_CloneTo(CProc *pprocSrc, X *px)
+SPO CProc_CloneTo(CProc *source, X *frame)
 {
     SPO sp;
     sp.Set(PtNew__t6CGcObj1Z5CProc());
-    if (px)
-        sp->spx = px;
+    if (frame)
+        sp->closureFrame = frame;
     else
-        sp->spx = pprocSrc->spx.p;
-    sp->spy14 = pprocSrc->spy14.p;
-    sp->xC = pprocSrc->xC;
-    sp->x10 = pprocSrc->x10;
-    sp->spy18 = pprocSrc->spy18.p;
+        sp->closureFrame = source->closureFrame.p;
+    sp->params = source->params.p;
+    sp->minArgCount = source->minArgCount;
+    sp->hasRest = source->hasRest;
+    sp->body = source->body.p;
     return SPO(sp.p);
 }
 

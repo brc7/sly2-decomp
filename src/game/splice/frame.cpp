@@ -2,6 +2,7 @@
 // with lookup, binding and cloning. TU 0x127B18..0x128138 (10 functions, address order). The binding pool's GC
 // members are CGcObj<CVarb>'s (sly2/gc.h) and the counted-pointer copies CRefPtr<T>'s (sly2/basic.h), all emitted by
 // splice/gc.cpp.
+// Entry points: CFrame::PrefFindBinding / FFindBinding (symbol lookup), CFrame_RefAddBinding (define).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_frame
 // SLY2_ALIAS: _GLOBAL_$I$*=_GLOBAL_$I$g_gc
 #include "sly2/cref.h"
@@ -52,17 +53,17 @@ class CFrame
 {
 public:
     /* 0x00 */ int cref;
-    /* 0x04 */ int x4;          /* GC link word (CGcObj, sly2/gc.h) */
-    /* 0x08 */ int cframe;      /* parent count */
-    /* 0x0C */ SPZ apframe[4];  /* parents */
-    /* 0x1C */ CVarbPtr pbindingFirst;
-    /* 0x20 */ int fBusy;       /* set while a lookup is inside this frame (cycle guard) */
+    /* 0x04 */ int gcLink;          /* GC link word (CGcObj, sly2/gc.h) */
+    /* 0x08 */ int parentCount;      /* parent count */
+    /* 0x0C */ SPZ parents[4];  /* parents */
+    /* 0x1C */ CVarbPtr firstBinding;
+    /* 0x20 */ int isBusy;       /* set while a lookup is inside this frame (cycle guard) */
 
     ~CFrame();
     CRef RefSetBinding(unsigned int sym, CRef *pref);
     int FFindBinding(unsigned int sym, int recurse, CRef *pref);
     CRef *PrefFindBinding(unsigned int sym, int recurse);
-    void SetPbinding(CVarb *binding) { pbindingFirst = binding; }
+    void SetPbinding(CVarb *binding) { firstBinding = binding; }
 };
 
 /* Owning pointer to a frame (inline release). */
@@ -97,8 +98,8 @@ SPO CFrame_CloneTo(CFrame *source, void *a);
 // Makes parentFrame the only parent of frame (frame count 1, first slot assigned through the counted pointer).
 void CFrame_SetSingleParent(CFrame *frame, CFrame *parentFrame)
 {
-    frame->cframe = 1;
-    frame->apframe[0] = parentFrame;
+    frame->parentCount = 1;
+    frame->parents[0] = parentFrame;
 }
 
 /** @sly2-annot addr=0x127B40
@@ -112,8 +113,8 @@ void CFrame_AddParent(CFrame *frame, CFrame *parentFrame)
 {
     /* Spelled as (index*4 + frame) + 0xC: `apframe[cframe++] = ...` computes (frame + 0xC) + index*4 (12 of 13
        instructions differ), and the same holds in CFrame_CloneTo. HYPOTHESIS: an inline accessor of the original. */
-    int c = frame->cframe;
-    frame->cframe = c + 1;
+    int c = frame->parentCount;
+    frame->parentCount = c + 1;
     *(SPZ *)((int)(c * 4) + (int)frame + 0xC) = parentFrame;
 }
 
@@ -128,13 +129,13 @@ void CFrame_AddParent(CFrame *frame, CFrame *parentFrame)
 void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame)
 {
     int i;
-    for (i = 0; i < frame->cframe; i++)
+    for (i = 0; i < frame->parentCount; i++)
     {
-        if (frame->apframe[i].p == parentFrame)
+        if (frame->parents[i].p == parentFrame)
         {
-            frame->apframe[i] = 0;
-            frame->cframe--;
-            CopyAb__FPvT0Ui(frame->apframe[i].p, frame->apframe[i + 1].p, (frame->cframe - i) * 4);
+            frame->parents[i] = 0;
+            frame->parentCount--;
+            CopyAb__FPvT0Ui(frame->parents[i].p, frame->parents[i + 1].p, (frame->parentCount - i) * 4);
             return;
         }
     }
@@ -150,7 +151,7 @@ void CFrame_RemoveParent(CFrame *frame, CFrame *parentFrame)
 // Adds a new binding {sym, value} at the head of the frame's binding list; returns Void.
 CRef CFrame_RefAddBinding(CFrame *frame, int sym, CRef *pref)
 {
-    CVarbPtr *ppbFirst = &frame->pbindingFirst;
+    CVarbPtr *ppbFirst = &frame->firstBinding;
     SPW sp;
     sp.Set(PtNew__t6CGcObj1Z5CVarb());
     sp->sym = sym;
@@ -216,8 +217,8 @@ CRef *CFrame::PrefFindBinding(unsigned int sym, int recurse)
     CRef *pref = 0;
     CVarb *binding;
     int i;
-    fBusy = 1;
-    for (binding = pbindingFirst.p; binding; binding = binding->pnext.p)
+    isBusy = 1;
+    for (binding = firstBinding.p; binding; binding = binding->pnext.p)
     {
         if ((unsigned int)binding->sym == sym)
         {
@@ -227,10 +228,10 @@ CRef *CFrame::PrefFindBinding(unsigned int sym, int recurse)
     }
     if (!recurse)
         goto done;
-    for (i = 0; i < cframe; i++)
+    for (i = 0; i < parentCount; i++)
     {
-        CFrame *frame = apframe[i].p;
-        if (!frame->fBusy)
+        CFrame *frame = parents[i].p;
+        if (!frame->isBusy)
         {
             pref = frame->PrefFindBinding(sym, recurse);
             if (pref)
@@ -238,7 +239,7 @@ CRef *CFrame::PrefFindBinding(unsigned int sym, int recurse)
         }
     }
 done:
-    fBusy = 0;
+    isBusy = 0;
     return pref;
 }
 
@@ -255,11 +256,11 @@ SPO CFrame_CloneTo(CFrame *source, void *a)
     SPO sp;
     int i;
     sp.Set(PtNew__t6CGcObj1Z6CFrame());
-    sp->cframe = source->cframe;
-    for (i = 0; i < source->cframe; i++)
-        (*(SPZ *)((int)(i * 4) + (int)sp.p + 0xC)) = source->apframe[i].p;
-    if (source->pbindingFirst.p)
-        sp->SetPbinding(CVarb_CloneTo(source->pbindingFirst.p, sp.p, a).p);
+    sp->parentCount = source->parentCount;
+    for (i = 0; i < source->parentCount; i++)
+        (*(SPZ *)((int)(i * 4) + (int)sp.p + 0xC)) = source->parents[i].p;
+    if (source->firstBinding.p)
+        sp->SetPbinding(CVarb_CloneTo(source->firstBinding.p, sp.p, a).p);
     return SPO(sp.p);
 }
 

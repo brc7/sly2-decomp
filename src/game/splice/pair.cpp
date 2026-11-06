@@ -1,5 +1,6 @@
 // pair.cpp -- CPair, the Splice cons cell (a reference-counted list node). TU 0x128CB8..0x128F70 (3 functions,
 // address order).
+// Entry point: CPair_CloneTo (from CRef_CloneTo).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_pair
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00128F50
 #include "sly2/pair.h"
@@ -24,7 +25,7 @@ struct SPW
       CPair *operator->() { return p; }
 };
 
-extern "C" SPW CPair_CloneTo(CPair *src, void *a, void *b);
+extern "C" SPW CPair_CloneTo(CPair *source, void *a, void *b);
 
 /** @sly2-annot addr=0x128CB8
  * Purpose: Deep-copies a list: new nodes (0x256B48) with RefClone of each element
@@ -37,12 +38,12 @@ extern "C" SPW CPair_CloneTo(CPair *src, void *a, void *b);
  * @end-sly2-annot */
 // Deep-copies a list: a new pair per node, each element cloned with CRef_CloneTo and the tail cloned recursively.
 // Returns an owning pointer to the new head.
-SPW CPair_CloneTo(CPair *src, void *a, void *b)
+SPW CPair_CloneTo(CPair *source, void *a, void *b)
 {
       SPW sp;
       sp.Set(PtNew__t6CGcObj1Z5CPair());
-      sp->ref = CRef_CloneTo(&src->ref, a, b);
-      if (src->pnext.p)
-            sp->SetNext(CPair_CloneTo(src->pnext.p, a, b).p);
+      sp->ref = CRef_CloneTo(&source->ref, a, b);
+      if (source->pnext.p)
+            sp->SetNext(CPair_CloneTo(source->pnext.p, a, b).p);
       return SPW(sp.p);
 }

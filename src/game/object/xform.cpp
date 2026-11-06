@@ -2,6 +2,8 @@
 // and rotating it, its world matrix (cached by stamp against the parent XF), reparenting, and loading its child
 // objects. VU0 macro-mode and EE asm.
 // TU 0x231100..0x2319E8 (18 functions, address order).
+// Entry points: the XFM virtuals (InitXfm, LoadXfmFromBrx, CloneXfm, TranslateXfmToPos, RotateXfmToMat,
+// XFM_PmatWorld, SetXfmParent) and UpdateXfmMatWorld.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_xform
 // SLY2_ALIAS: _GLOBAL_$I$*=func_002319C8
 #include "sly2/basic.h"

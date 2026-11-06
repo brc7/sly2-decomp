@@ -2,6 +2,7 @@
 // frames, procs, sidebags and methods), and the global collector g_gc.
 // TU 0x128138..0x128B60 (7 functions, address order). It also emits the per-kind members of the GC node template
 // (sly2/gc.h, CGcObj<T>: 44 linkonce instances in 0x254F00..0x259DE4), instantiated at the end of the file.
+// Entry points: CGc::Collect (a full collection), CGc_UpdateRecyclable.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_gc
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00128B40
 #include "sly2/cref.h"
@@ -21,8 +22,8 @@ struct CVarb;
 /* Pair (pool 0). */
 struct CPair : CGcObj<CPair>
 {
-    CRef car;
-    CRefPtr<CPair> pnNext;
+    CRef value;
+    CRefPtr<CPair> next;
 };
 
 /* Binding (pool 1). */
@@ -30,7 +31,7 @@ struct CVarb : CGcObj<CVarb>
 {
     int sym;
     CRef ref;
-    CRefPtr<CVarb> pbNext;
+    CRefPtr<CVarb> next;
 };
 
 /* CRefPtr<T>::operator= (declared in sly2/basic.h): defined here, where its instances are emitted, so that the files
@@ -53,11 +54,11 @@ template void CRefPtr<CVarb>::operator=(CVarb *);    /* 0x257450 */
 class CFrame : public CGcObj<CFrame>
 {
 public:
-    int c;
-    CRefPtr<CFrame> apf[4];
-    CRefPtr<CVarb> pbFirst;
-    int fBusy;
-    int x24;
+    int parentCount;
+    CRefPtr<CFrame> parents[4];
+    CRefPtr<CVarb> firstBinding;
+    int isBusy;
+    int unknown24;
 };
 template CRefPtr<CFrame>::~CRefPtr();                /* 0x2572E0; its ~CFrame call is 0x257078 */
 template void CRefPtr<CFrame>::operator=(CFrame *);  /* 0x256EE0 */
@@ -65,25 +66,25 @@ template void CRefPtr<CFrame>::operator=(CFrame *);  /* 0x256EE0 */
 /* Proc / closure (pool 3): its frame, the parameter list and the body. */
 struct CProc : CGcObj<CProc>
 {
-    CRefPtr<CFrame> pf;
-    int xC;
-    int x10;
-    CRefPtr<CPair> pl;
-    CRefPtr<CPair> pn;
+    CRefPtr<CFrame> closureFrame;
+    int minArgCount;
+    int hasRest;
+    CRefPtr<CPair> params;
+    CRefPtr<CPair> body;
 };
 
 /* Sidebag (pool 4). */
 struct CSidebag : CGcObj<CSidebag>
 {
-    CRefPtr<CVarb> pbFirst;
+    CRefPtr<CVarb> firstBinding;
 };
 
 /* Method (pool 5; object/spliceobj.cpp's CMethod). */
 struct CMethod : CGcObj<CMethod>
 {
-    void *pbasic;
-    void *pfnthunk;
-    int crefReq;
+    void *object;
+    void *thunk;
+    int requiredRefCount;
 };
 
 typedef char assert_CPair_size[sizeof(CPair) == 0x14 ? 1 : -1];
@@ -96,11 +97,11 @@ typedef char assert_CMethod_size[sizeof(CMethod) == 0x14 ? 1 : -1];
 /* External root: a counted reference to a node. */
 struct ROOT
 {
-    int x0;
-    int x4;
-    CPair *pobj;
-    int xC;
-    ROOT *prNext;
+    int unknown0;
+    int unknown4;
+    CPair *object;
+    int unknownC;
+    ROOT *next;
 };
 
 /* 0x002DD598: g_gc (the stub's name, _GLOBAL_$I$g_gc, says the original file's first global was g_gc). */
@@ -205,16 +206,16 @@ void CGc::MarkLiveObjects()
         {
             CVarb *pb;
             int i;
-            for (pb = pf->pbFirst; pb; pb = pb->pbNext)
+            for (pb = pf->firstBinding; pb; pb = pb->next)
             {
                 CRef *pref;
                 pb->m_fMark = g_gc.fMark;
                 pref = &pb->ref;
                 MARKREF(pref, pcRef->m_fMark = g_gc.fMark)
             }
-            for (i = 0; i < pf->c; i++)
+            for (i = 0; i < pf->parentCount; i++)
             {
-                CFrame *pfChild = pf->apf[i];
+                CFrame *pfChild = pf->parents[i];
                 if (pfChild->m_fMark != g_gc.fMark)
                 {
                     pfChild->m_fMark = g_gc.fMark;
@@ -227,18 +228,18 @@ void CGc::MarkLiveObjects()
             pcRef = (pgc->cClo > 0) ? pgc->apClo[--pgc->cClo] : 0;
             if (pcRef)
             {
-                for (pn = pcRef->pl.m_p; pn; pn = pn->pnNext)
+                for (pn = pcRef->params.m_p; pn; pn = pn->next)
                 {
                     if (pn->m_fMark != g_gc.fMark)
                         pn->m_fMark = g_gc.fMark;
                 }
-                pn = pcRef->pn;
+                pn = pcRef->body;
                 if (pn->m_fMark != g_gc.fMark)
                 {
                     pn->m_fMark = g_gc.fMark;
                     PushNode(pgc, pn);
                 }
-                pf = pcRef->pf;
+                pf = pcRef->closureFrame;
                 if (pf->m_fMark != g_gc.fMark)
                 {
                     pf->m_fMark = g_gc.fMark;
@@ -252,8 +253,8 @@ void CGc::MarkLiveObjects()
             pn = (pgc->cNode > 0) ? pgc->apNode[--pgc->cNode] : 0;
             if (!pn)
                 return;
-            MARKREF(&pn->car, pn->car.u.pmethod->m_fMark = g_gc.fMark)
-            pnNext = pn->pnNext;
+            MARKREF(&pn->value, pn->value.u.pmethod->m_fMark = g_gc.fMark)
+            pnNext = pn->next;
             if (pnNext && pnNext->m_fMark != g_gc.fMark)
             {
                 pnNext->m_fMark = g_gc.fMark;
@@ -364,7 +365,7 @@ void CGc::Collect()
         CVarb *pb;
         if (penv->m_fMark != g_gc.fMark)
             penv->m_fMark = g_gc.fMark;
-        for (pb = penv->pbFirst; pb; pb = pb->pbNext)
+        for (pb = penv->firstBinding; pb; pb = pb->next)
         {
             pb->m_fMark = g_gc.fMark;
             CGc_MarkRootRef(this, &pb->ref);
@@ -374,9 +375,9 @@ void CGc::Collect()
             penv = penvNext;
         }
     }
-    for (pr = (*(ROOT * *)&g_sw.slEvent); pr; pr = pr->prNext)
+    for (pr = (*(ROOT * *)&g_sw.slEvent); pr; pr = pr->next)
     {
-        CPair *p = pr->pobj;
+        CPair *p = pr->object;
         if (p->m_fMark != g_gc.fMark)
         {
             p->m_fMark = g_gc.fMark;

@@ -10,6 +10,8 @@
 // The two dialogs D_002E6550 / D_002E65A0 are defined here with inline constructors (CMemcardDialog_ctor,
 // CMcStatus_ctor) and destructors (func_00258348, in-charge flag 2): g++ generates the 93-instruction
 // construct-and-destruct StaticInit_memcard and the _GLOBAL_$D$ stub func_001AE130 (cm.cpp's g_cm pattern).
+// Entry points: StartupMemcard (boot), UpdateSave__FP4SAVE (per frame), AutosaveGame, the dialog
+// widgets' Update (slot 7) and the save-page menu actions.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_memcard
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001AE110
 // SLY2_ALIAS: _GLOBAL_$D$*=func_001AE130

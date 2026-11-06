@@ -1,5 +1,6 @@
 // update.cpp -- the per-frame world update (UpdateSw and its object pass). TU 0x226550..0x2269B8 (4 functions,
 // address order).
+// Entry points: SW::Update (once per game frame, from the main loop) and UpdateSwObjects.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_update
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00226A98
 #include "sly2/slotheap.h"

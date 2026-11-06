@@ -2,6 +2,8 @@
 // callbacks and a widget pool with its open / close / scroll animations), the state machine (SetPauseMenuState /
 // UpdatePauseMenu), the option items (volumes, screen position, vibration, ...) and the top-level page builders. TU
 // 0x1AE928..0x1B0B78 (38 functions, address order).
+// Entry points: TryOpenPauseMenu (from the pad handler), UpdatePauseMenu (screen slot 7),
+// SetPauseMenuState, the OnPauseItem* item callbacks.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_menu
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001B0B58
 #include "sly2/slotheap.h"

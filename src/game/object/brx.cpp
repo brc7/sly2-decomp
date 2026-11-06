@@ -3,6 +3,8 @@
 // (LoadOptionsFromBrx, LoadOptionFromBrx, RefFromBrx), the post-load object-reference fixups, and the two load
 // collectors (an array of the loaded objects; a proxy collector that parents and tags them).
 // TU 0x13E368..0x13FF70 (16 functions, address order).
+// Entry points: LoadSwObjectsFromBrx (from the level loader), PloNew / PloCloneLo (object creation),
+// LoadOptionsFromBrx (from every class's LoadFromBrx).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_brx
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013FF50
 #include "sly2/basic.h"
@@ -161,13 +163,13 @@ void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *pswalloc);
 void SetLoParent(LO *plo, SO *psoParent, int grf);
 void SetLoTagHierarchy(LO *plo, int n);
 int IsCidDerivedFrom(CID cid, CID cidBase);
-LO *FindSwObjectWithNames(SW *psw, int grf, OID oid, LO *ploCtx, void *pchList);
+LO *FindSwObjectInProxyScope(SW *psw, int grf, OID oid, LO *ploCtx, void *pchList);
 int FindProxyRefPath(PXR *ppxr, int n, int *pid);
 }
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 /* The same function called with a fifth argument (the target loads a4 before the call; 0x15E938 passes 0 on to
-   FindSwObjectWithNames): an asm-labelled second form, as frm's PropagateSaisF. */
+   FindSwObjectInProxyScope): an asm-labelled second form, as frm's PropagateSaisF. */
 LO *PloFindSwObjectPch(SW *psw, int grf, OID oid, LO *ploCtx, void *pchList) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
@@ -945,7 +947,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
             }
             else
             {
-                if (FindSwObjectWithNames(psw, 0x805, (OID)oid, 0, (void *)r))
+                if (FindSwObjectInProxyScope(psw, 0x805, (OID)oid, 0, (void *)r))
                 {
                     goto skip;
                 }

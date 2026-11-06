@@ -1,5 +1,6 @@
 // spliceutils.cpp -- Splice VM startup/shutdown. TU 0x12AE18..0x12B0E8 (4 functions, address order). The six node-pool
 // shutdown helpers it calls (0x257E88..0x258008) are CGcObj<T>::Shutdown (sly2/gc.h, emitted by splice/gc.cpp).
+// Entry points: StartupSplice (boot) and ShutdownSplice (world teardown).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_spliceutils
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012B0C8
 #include "sly2/slotheap.h"

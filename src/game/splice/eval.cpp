@@ -38,11 +38,11 @@ class CFrame
 {
 public:
     /* 0x00 */ int cref;
-    /* 0x04 */ int x4;
-    /* 0x08 */ int cframe;
-    /* 0x0C */ SPZ apframe[4];
-    /* 0x1C */ CPair *pbindingFirst;
-    /* 0x20 */ int fBusy;
+    /* 0x04 */ int gcLink;
+    /* 0x08 */ int parentCount;
+    /* 0x0C */ SPZ parents[4];
+    /* 0x1C */ CPair *firstBinding;
+    /* 0x20 */ int isBusy;
 
     ~CFrame();
     CRef RefSetBinding(unsigned int sym, CRef *pref);
@@ -54,11 +54,11 @@ struct CProc
 {
     int cref;
     int x4;
-    SPZ spframe;             /* 0x08 closing frame */
-    int cargMin;             /* 0x0C required parameters */
-    int fRest;               /* 0x10 a rest parameter follows them */
-    CPairPtr sppairParams;        /* 0x14 parameter list */
-    CPairPtr sppairBody;          /* 0x18 body expressions */
+    SPZ closureFrame;             /* 0x08 closing frame */
+    int minArgCount;             /* 0x0C required parameters */
+    int hasRest;               /* 0x10 a rest parameter follows them */
+    CPairPtr params;        /* 0x14 parameter list */
+    CPairPtr body;          /* 0x18 body expressions */
     ~CProc();
 };
 
@@ -86,16 +86,16 @@ struct SPO
 /* Built-in procedure table entry (tag 0x19 indexes it) and native method (tag 0x22). */
 struct BIF
 {
-    CRef (*pfn)(int c, CRef *aref, CFrame *frame);
-    int cargMin;
-    int fRest;
+    CRef (*function)(int c, CRef *aref, CFrame *frame);
+    int minArgCount;
+    int hasRest;
 };
 struct METHOD
 {
-    int x0, x4;
+    int unknown0, unknown4;
     void *pv;
-    CRef (*pfn)(void *pv, int c, CRef *aref);
-    int cargMin;
+    CRef (*function)(void *pv, int c, CRef *aref);
+    int minArgCount;
 };
 extern BIF D_002BBB90[];
 
@@ -460,16 +460,16 @@ CRef RefEvalLambda(CPair *expr, CFrame *frame)
     CPair *args = PpairArgs(expr);
     CPair *ppairBody = args->pnext.p;
     SPO sp(PtNew__t6CGcObj1Z5CProc());
-    sp->spframe = frame;
+    sp->closureFrame = frame;
     if (args->ref.m_tagk == 0)
-        sp->sppairParams = 0;
+        sp->params = 0;
     else
-        sp->sppairParams = (CPair *)args->ref.u.pv;
-    sp->sppairBody = ppairBody;
+        sp->params = (CPair *)args->ref.u.pv;
+    sp->body = ppairBody;
     int f = 0;
     int c = 0;
     CPair *pparam;
-    for (pparam = sp->sppairParams.p; pparam;)
+    for (pparam = sp->params.p; pparam;)
     {
         if (pparam->ref.m_tagk == 0x14)
         {
@@ -482,8 +482,8 @@ CRef RefEvalLambda(CPair *expr, CFrame *frame)
             c++;
         }
     }
-    sp->cargMin = c;
-    sp->fRest = f;
+    sp->minArgCount = c;
+    sp->hasRest = f;
     return CRef(sp.p);
 }
 
@@ -498,7 +498,7 @@ CRef RefEvalLambda(CPair *expr, CFrame *frame)
 CRef RefEvalLambdaBody(CPair *expr, CFrame *frame)
 {
     CRef ref;
-    CPair *pbody = ((CProc *)expr)->sppairBody.p;
+    CPair *pbody = ((CProc *)expr)->body.p;
     do
     {
         ref = RefEval(pbody, frame);
@@ -571,20 +571,20 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
     if (refOp.m_tagk == 0x19)
     {
         pbif = &D_002BBB90[refOp.u.n];
-        cargMin = pbif->cargMin;
-        fRest = pbif->fRest;
+        cargMin = pbif->minArgCount;
+        fRest = pbif->hasRest;
     }
     else if (refOp.m_tagk == 0x22)
     {
         pmeth = (METHOD *)refOp.u.pv;
         fRest = 0;
-        cargMin = pmeth->cargMin;
+        cargMin = pmeth->minArgCount;
     }
     else
     {
         proc = (CProc *)refOp.u.pv;
-        cargMin = proc->cargMin;
-        fRest = proc->fRest;
+        cargMin = proc->minArgCount;
+        fRest = proc->hasRest;
     }
     int carg = cargMin + (fRest != 0);
     CRef aref[32];
@@ -627,14 +627,14 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
     switch (refOp.m_tagk)
     {
     case 0x19:
-        ref = pbif->pfn(c, aref, frame);
+        ref = pbif->function(c, aref, frame);
         break;
     case 0x20:
     {
         SPFRAME spf(PtNew__t6CGcObj1Z6CFrame());
         int dummy[2];   /* sizes the frame like the original (0x240) */
-        CFrame_SetSingleParent(spf.p, proc->spframe.p);
-        CPair *pparam = proc->sppairParams.p;
+        CFrame_SetSingleParent(spf.p, proc->closureFrame.p);
+        CPair *pparam = proc->params.p;
         for (i = 0; i < carg; i++)
         {
             if (pparam->ref.m_tagk == 0x14)
@@ -646,7 +646,7 @@ CRef RefEvalApply(CPair *expr, CFrame *frame)
         break;
     }
     case 0x22:
-        ref = pmeth->pfn(pmeth->pv, c, aref);
+        ref = pmeth->function(pmeth->pv, c, aref);
         break;
     }
     return ref;

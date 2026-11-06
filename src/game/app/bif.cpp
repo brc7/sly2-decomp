@@ -4016,7 +4016,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
 typedef struct G { char pad[0x3F0C]; void *pv; } G;
 extern G D_003DD490;
-void *FindSwObjectWithNames(G *pg, int k, int a, LO *b, void *c);
+void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
@@ -4043,7 +4043,7 @@ CRef *RefOpFindObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *aref)
         G *pg = &D_003DD490;
         int k = b ? 1 : 5;
         int a = aref[0].m_tag;
-        CRef_SetBasic(&ref, FindSwObjectWithNames(pg, k, a, b, plo ? plo->pv : pg->pv));
+        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, k, a, b, plo ? plo->pv : pg->pv));
     }
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
@@ -4068,7 +4068,7 @@ struct W { char pad[0xC]; Q *pq; };
 struct G { char pad[0x3F0C]; void *pv; };
 extern "C" { extern G D_003DD490; }
 extern "C" {
-int FindSwObjectsWithNames(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
+int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
 CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -4096,7 +4096,7 @@ CRef RefOpFindObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
         pv = pqT->pv;
     else
         pv = pg->pv;
-    int c = FindSwObjectsWithNames(pg, k, p0, pq, pv, 0x40, ap);
+    int c = FindSwObjectsInProxyScope(pg, k, p0, pq, pv, 0x40, ap);
     ref = RefPairFromAplo__FiPP2LO(c, ap);
     return ref;
 }
@@ -4124,7 +4124,7 @@ struct SW { char pad[0x3C]; int n3C; };
 struct OW { char pad[0xC]; SW *psw; };
 struct G { char pad[0x3F0C]; int n3F0C; };
 extern "C" { extern G D_003DD490; }
-extern "C" LO *FindSwObjectWithNames(G *pg, int kind, int n, void *pv, int n2);
+extern "C" LO *FindSwObjectInProxyScope(G *pg, int kind, int n, void *pv, int n2);
 extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref);
 /** @sly2-annot addr=0x1242B8
  * Purpose: Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as
@@ -4141,7 +4141,7 @@ CRef RefOpFindObjectsFromOids(void *pbasic, CRef *aref) { CRef res; if (aref[0].
  void *pv = aref[1].u.pv; SW *psw; if (aref[2].m_tagk != 0) psw = ((OW *)aref[2].u.pv)->psw; else psw = (SW *)pv;
  SPN spRes; CPair *pnR = PtNew__t6CGcObj1Z5CPair(); spRes.Set(pnR);
  CPair *pTail; CPair *pn = (CPair *)aref[0].u.pv; while (pn) { SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
-   int n = pn->ref.u.n; spNew->ref.SetBasic((BASIC *)FindSwObjectWithNames(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C));
+   int n = pn->ref.u.n; spNew->ref.SetBasic((BASIC *)FindSwObjectInProxyScope(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C));
    if (spRes->ref.m_tagk != 0x1F) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
    CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } int unused[4]; res = CRef((CPair *)spRes->ref.u.pv); return res; }
 } // namespace M_RefOpFindObjectsFromOids
@@ -4153,7 +4153,7 @@ typedef struct CRef { int m_tagk; int m_tag; } CRef;
 typedef struct LO { char pad[0xC]; struct LO *pc; char pad2[0x2C]; void *pv; } LO;
 typedef struct G { char pad[0x3F0C]; void *pv; } G;
 extern G D_003DD490;
-void *FindSwObjectWithNames(G *pg, int k, int a, LO *b, void *c);
+void *FindSwObjectInProxyScope(G *pg, int k, int a, LO *b, void *c);
 void CRef_SetBasic(CRef *pref, void *p);
 CRef *__4CRefRC4CRef(CRef *pref, CRef *prefSrc);
 void Decref__4CRef(CRef *pref);
@@ -4179,7 +4179,7 @@ CRef *RefOpFindNearestObject__FiP4CRefP6CFrame(CRef *ret, void *pbasic, CRef *ar
     {
         G *pg = &D_003DD490;
         int a = aref[0].m_tag;
-        CRef_SetBasic(&ref, FindSwObjectWithNames(pg, 4, a, b, plo ? plo->pv : pg->pv));
+        CRef_SetBasic(&ref, FindSwObjectInProxyScope(pg, 4, a, b, plo ? plo->pv : pg->pv));
     }
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
@@ -4204,7 +4204,7 @@ struct W { char pad[0xC]; Q *pq; };
 struct G { char pad[0x3F0C]; void *pv; };
 extern "C" { extern G D_003DD490; }
 extern "C" {
-int FindSwObjectsWithNames(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
+int FindSwObjectsInProxyScope(G *pg, int k, void *a, Q *b, void *c, int n, void **ap);
 CRef RefPairFromAplo__FiPP2LO(int c, void **ap);
 CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref);
 }
@@ -4232,7 +4232,7 @@ CRef RefOpFindNearestObjects__FiP4CRefP6CFrame(void *pbasic, CRef *aref)
         pv = pqT->pv;
     else
         pv = pg->pv;
-    int c = FindSwObjectsWithNames(pg, 4, p0, pq, pv, 0x40, ap);
+    int c = FindSwObjectsInProxyScope(pg, 4, p0, pq, pv, 0x40, ap);
     ref = RefPairFromAplo__FiPP2LO(c, ap);
     return ref;
 }

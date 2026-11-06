@@ -2,6 +2,8 @@
 // sidebag pool's GC members are CGcObj<CSidebag>'s (sly2/gc.h) and its counted-pointer copies CRefPtr<T>'s
 // (sly2/basic.h), all emitted by splice/gc.cpp.
 // TU 0x12A980..0x12AE18 (6 functions, address order).
+// Entry points: CSidebag_RefAddBinding / RefSetBinding / FFindBinding (object options outside the
+// built-in table), CSidebag_CloneTo.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_sidebag
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0012ADF8
 #include "sly2/cref.h"
@@ -55,12 +57,12 @@ class CSidebag
 {
 public:
     /* 0x00 */ int cref;
-    /* 0x04 */ int x4;              /* GC link word (GCHDR) */
-    /* 0x08 */ SPW pbindingFirst;   /* inline release: deleting a bag releases its bindings inline */
+    /* 0x04 */ int gcLink;              /* GC link word (GCHDR) */
+    /* 0x08 */ SPW firstBinding;   /* inline release: deleting a bag releases its bindings inline */
 
     CRef RefSetBinding(int sym, CRef *pref);
     int FFindBinding(int sym, CRef *pref);
-    void SetBinding(CVarb *binding) { pbindingFirst = binding; }
+    void SetBinding(CVarb *binding) { firstBinding = binding; }
     /* Sidebags live in the fifth engine slot pool (slot size 0xC == sizeof(CSidebag)). */
     void operator delete(void *pv) { Unlink__t6CGcObj1Z8CSidebag((GCHDR *)pv); func_0011CD98(&CSlotPool<0xC, 0xC8>::s_pool.slotheap, pv); }
 };
@@ -95,7 +97,7 @@ SPS CSidebag_CloneTo(CSidebag *source, void *q);
 // Adds a binding {sym, value} at the head of the object's sidebag; returns Void.
 extern "C" CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref)
 {
-    SPW *firstSlot = &sidebag->pbindingFirst;
+    SPW *firstSlot = &sidebag->firstBinding;
     SPW sp;
     sp.Set(PtNew__t6CGcObj1Z5CVarb());
     sp->sym = sym;
@@ -114,7 +116,7 @@ extern "C" CRef CSidebag_RefAddBinding(CSidebag *sidebag, int sym, CRef *pref)
 CRef CSidebag::RefSetBinding(int sym, CRef *pref)
 {
     CVarb *pb;
-    for (pb = pbindingFirst.p; pb; pb = pb->pnext.p) {
+    for (pb = firstBinding.p; pb; pb = pb->pnext.p) {
         if (pb->sym == sym) {
             CRef ref;
             pb->ref = *pref;
@@ -139,7 +141,7 @@ CRef CSidebag::RefSetBinding(int sym, CRef *pref)
 // Looks sym up in the sidebag and copies its value into *pref when pref is non-null; returns whether it was found.
 int CSidebag::FFindBinding(int sym, CRef *pref)
 {
-    for (CVarb *p = pbindingFirst.p; p; p = p->pnext.p) {
+    for (CVarb *p = firstBinding.p; p; p = p->pnext.p) {
         if (p->sym == sym) {
             if (pref)
                 func_00129658(pref, &p->ref);
@@ -161,8 +163,8 @@ extern "C" SPS CSidebag_CloneTo(CSidebag *source, void *q)
 {
     SPS sp;
     sp.Set(PtNew__t6CGcObj1Z8CSidebag());
-    if (source->pbindingFirst.p)
-        sp->SetBinding(CVarb_CloneTo(source->pbindingFirst.p, 0, q).p);
+    if (source->firstBinding.p)
+        sp->SetBinding(CVarb_CloneTo(source->firstBinding.p, 0, q).p);
     return SPS(sp.p);
 }
 

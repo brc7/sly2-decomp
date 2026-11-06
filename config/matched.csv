@@ -2297,9 +2297,9 @@ GetSwClassList,0x15E3A8,5,match,src/game/object/find.cpp
 GetSwProxyRefBucket,0x15E3C0,9,match,src/game/object/find.cpp
 MatchSwObject,0x15E3E8,154,match,src/game/object/find.cpp
 FindSwObjects,0x15E650,9,match,src/game/object/find.cpp
-FindSwObjectsWithNames,0x15E678,175,match,src/game/object/find.cpp
+FindSwObjectsInProxyScope,0x15E678,175,match,src/game/object/find.cpp
 PloFindSwObject__FP2SWi3OIDP2LO,0x15E938,7,match,src/game/object/find.cpp
-FindSwObjectWithNames,0x15E958,12,match,src/game/object/find.cpp
+FindSwObjectInProxyScope,0x15E958,12,match,src/game/object/find.cpp
 IsCidDerivedFrom,0x15E988,16,match,src/game/object/find.cpp
 CploFindSwObjectsByClass,0x15E9C8,235,match,src/game/object/find.cpp
 PloFindSwObjectByClass__FP2SWi3CIDP2LO,0x15ED78,12,match,src/game/object/find.cpp

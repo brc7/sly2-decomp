@@ -3,6 +3,8 @@
 // TU 0x132B00..0x1336F0 (28 functions, address order). The sidebag pool's GC members (PushFront 0x255C00, MakeRoot
 // 0x258178) are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp); the EMITTER class descriptor getter
 // 0x258F30 is emitter.cpp's (sly2/emitter.h).
+// Entry points: FIsBasicDerivedFrom (class tests everywhere), HandleBasicSpliceEvent (vtable slot 3),
+// SendLoMessage / SubscribeLoObject, ScheduleSwSpliceCallback, the EnsureLoSidebag* option setters.
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_basic
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001336D0
 #include "sly2/slotheap.h"

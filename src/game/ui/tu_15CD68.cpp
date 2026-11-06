@@ -1,6 +1,8 @@
 // tu_15CD68.cpp -- the episode-select menu widget (HYPOTHESIS from its calls: per-episode save variables, FMV replay,
 // world warps): state machine, joystick navigation and the percent / play-time labels.
 // TU 0x15CD68..0x15DC80 (12 functions, address order).
+// Entry points: the episode menu's Init / PostEpisodeMenuLoad / UpdateEpisodeMenu virtuals and its
+// text callbacks (FormatEpisodePercent, FormatEpisodePlayTime).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_tu_15CD68
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0015DC60
 #include "sly2/cref.h"
