@@ -2012,8 +2012,8 @@ typedef char assert_CID23_size[sizeof(CID23) == 0x140 ? 1 : -1];
 /* 41 CID41 (0xE0): in-level teleport destination (WARP_* strings); vtable 0x2DC890, 50 slots */
 struct CID41 : XFM
 {
-    virtual CLASSINFO *Pclassinfo() __asm__("GetCid41ClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("func_00228140");   /* slot 14 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetCid41ClassDesc");   /* slot 6 */
 };
 typedef char assert_CID41_size[sizeof(CID41) == 0xE0 ? 1 : -1];
 
@@ -2021,8 +2021,8 @@ typedef char assert_CID41_size[sizeof(CID41) == 0xE0 ? 1 : -1];
 struct EXIT : VOL
 {
     char pad130[0x190 - 0x130];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetExitClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitExit");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetExitClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadExitFromBrx");   /* slot 14 */
     virtual void VUnk15() __asm__("UpdateExit");   /* slot 16 */
 };
@@ -2032,8 +2032,8 @@ typedef char assert_EXIT_size[sizeof(EXIT) == 0x190 ? 1 : -1];
 struct WARP : XFM
 {
     char padE0[0x180 - 0xE0];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetWarpClassDesc");   /* slot 6 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadWarpFromBrx");   /* slot 14 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetWarpClassDesc");   /* slot 6 */
 };
 typedef char assert_WARP_size[sizeof(WARP) == 0x180 ? 1 : -1];
 

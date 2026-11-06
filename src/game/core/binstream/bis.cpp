@@ -4,6 +4,7 @@
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bis
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00118648
 #include "bis.h"
+#include "mat.h"
 #include "heap.h"
 #include "sly2/slotheap.h"
 
