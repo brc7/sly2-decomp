@@ -34,6 +34,7 @@ public:
 };
 typedef CRefPtr<CPair> CPairPtr;
 
+/* CPair: a Splice cons cell (one list element). */
 struct CPair
 {
       int cref;               /* 0x00 reference count */

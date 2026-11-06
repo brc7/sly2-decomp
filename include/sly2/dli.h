@@ -7,9 +7,11 @@
 #define SLY2_DLI_H
 #include "sly2/basic.h"     /* DL */
 
+/* DLI: an iterator over a DL that survives removal of the element it points at (live iterators are stacked in
+   g_pdliFirst). */
 struct DLI
 {
-      DL *m_pdl;
+      DL *m_pdl;   /* the list iterated */
       void **m_ppv;          /* the link field that holds the next element */
       int m_ibDle;           /* offset of the DLE inside an element */
       DLI *m_pdliNext;       /* next (older) live iterator */

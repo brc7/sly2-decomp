@@ -11,6 +11,8 @@ struct SLOT;
  * still define it privately. Define it here once those files are merged. */
 
 /* Layout CONFIRMED by match of every slotheap function (offsets 0x0..0x14); moved here unchanged from sw.h. */
+/* SLOTHEAP: a pool of fixed-size slots carved from one block, with a free list (records of one kind: contacts,
+   animation applications, Splice nodes...). */
 struct SLOTHEAP
 {
       int cb;              /* 0x00 slot size */
@@ -40,6 +42,7 @@ void func_0011CDD8(SLOTHEAP *pslotheap);                                    /* P
  * CONFIRMED by match (byte-identical StaticInit and stub in every merged TU).
  * HYPOTHESIS: the original spelling (template shape, pooled types, names). The pool objects are 0x28 apart in .bss
  * (0x4520A8..0x452170), so the real wrapper is larger than SLOTHEAP; data layout does not affect the code match. */
+/* CSlotPool<CB, C>: one engine-wide pool of C slots of CB bytes (a static SLOTHEAP). */
 template <int CB, int C>
 struct CSlotPool
 {
@@ -64,6 +67,7 @@ template <int CB, int C> CSlotPool<CB, C> CSlotPool<CB, C>::s_pool;
    SLY2_INSTANTIATE_SLOT_POOLS(), and its static initializer then grows from 77 to 133 instructions (CONFIRMED by
    match: spliceutils, ref; HYPOTHESIS: the template shape and name). Their objects are 0x18 apart
    (0x452188..0x4521E8), i.e. a bare SLOTHEAP. */
+/* CSpliceHeap<CB, C>: the slot heap of one Splice payload type. */
 template <int CB, int C>
 struct CSpliceHeap
 {

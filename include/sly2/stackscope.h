@@ -15,6 +15,7 @@
 #ifndef SLY2_STACKSCOPE_H
 #define SLY2_STACKSCOPE_H
 
+/* STACKSCOPE: frees all stack-heap allocations made during its lifetime (see above). */
 struct STACKSCOPE
 {
     STACKSCOPE() __asm__("STACKSCOPE_ctor");
