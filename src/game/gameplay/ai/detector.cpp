@@ -1,6 +1,9 @@
-// detector.cpp -- DETECTOR, a guard's vision detector (CID 0x10, an XFM): up to eight targets, each with a state
-// (0 unseen, 1 seen, 2 lost) computed every frame from its near/far volumes, line of sight through the world and the
-// target's own condition; state changes are sent to the detector (event 0x1C) and broadcast for the hero. VU0 asm.
+// detector.cpp -- DETECTOR, a guard's vision detector (cid 0x10, an XFM). It tracks up to eight targets, each with
+// a state (0 unseen, 1 seen, 2 lost) recomputed every frame from its near/far volumes, line of sight through the
+// world's occluders and objects, and the target's own condition (hidden, disguised, invisible). State changes are
+// sent to the detector (message 0x1C) and, when the hero becomes seen, broadcast as game event 0x13. Entry points:
+// InitDetector, UpdateDetectorTargets (per frame), Add/RemoveDetectorTarget, SetDetectorTargetState(ById),
+// GetDetectorTargetStateById, CalculateDetectorTargetState. VU0 asm.
 // TU 0x153D58..0x154A60 (19 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_detector
 // SLY2_ALIAS: _GLOBAL_$I$*=func_00154A40
@@ -19,58 +22,58 @@ typedef union { qword q; float f[4]; } U;
 struct VTE { short d; short pad; void (*pfn)(); };
 
 /* A detector target: the object, its state, when the state was last set and when it left 0. */
-struct DTE { void *plo; int k; float t; float tChange; };
+struct DTE { void *object; int state; float stateTime; float detectTime; };
 /* A child link of the object at +0xE4 (an SO's child list: +0x64 the first). */
-struct CHNL { int fSeen; CHNL *pNext; int x8; struct SOV *pso; };
-struct CHAIN { char pad[0x64]; CHNL *pl; };
+struct CHNL { int isSeen; CHNL *next; int unknown8; struct SOV *object; };
+struct CHAIN { char pad[0x64]; CHNL *firstChild; };
 /* The detector (sly2/guard.h has the same class with only the volume fields named). */
 struct DETECTORV
 {
     char pad0[0xC];
     VTE *vt;
-    void *psoParent;
-    int ploroot;          /* +0x14 */
+    void *parent;
+    int root;          /* +0x14 */
     char pad18[0x40 - 0x18];
-    unsigned int grfUnk40;
+    unsigned int objectFlags;
     char pad44[0xE0 - 0x44];
-    void *pso;            /* +0xE0 the eye: the owning guard (or an object over it) */
-    CHAIN *pchain;        /* +0xE4 */
-    void *pvolNear;       /* +0xE8 */
-    void *pvolFar;
-    int fForce;           /* +0xF0 every live target counts as seen */
-    int fDisabled;
-    int grf;              /* +0xF8 1: skip the facing test; 2: inside the near volume is enough; 4: other line filter; 8 */
-    int cdte;
-    DTE adte[8];          /* +0x100 */
+    void *eye;            /* +0xE0 the eye: the owning guard (or an object over it) */
+    CHAIN *eyeChildren;        /* +0xE4 */
+    void *nearVolume;       /* +0xE8 */
+    void *farVolume;
+    int isForced;           /* +0xF0 every live target counts as seen */
+    int isDisabled;
+    int options;              /* +0xF8 1: skip the facing test; 2: inside the near volume is enough; 4: other line filter; 8 */
+    int targetCount;
+    DTE targets[8];          /* +0x100 */
 };
 typedef char assert_DETECTOR_size[sizeof(DETECTORV) == 0x180 ? 1 : -1];
 /* A target object (an SO; +0x240 an offset added for CID 0x33, +0x4C8.. a hero's state, +0x11AC a flag). */
-struct ZV { char pad[0xE4]; int xE4; char pad1[0x194 - 0xE8]; int x194; };
+struct ZV { char pad[0xE4]; int unknownE4; char pad1[0x194 - 0xE8]; int unknown194; };
 struct SOV
 {
     char pad0[0xC];
     struct { short d; short pad; int (*pfn)(void *); } *vt;
     char pad10[0x240 - 0x10];
-    qword pos;
+    qword eyeOffset;
     char pad250[0x4C8 - 0x250];
-    int x4C8;
-    int x4CC;
+    int jtState;
+    int jtSubstate;
     int pad4D0;
-    ZV *x4D4;
+    ZV *attachedObject;
     char pad4D8[0x1040 - 0x4D8];
-    int x1040;
+    int unknown1040;
     char pad1044[0x11AC - 0x1044];
-    int x11AC;
+    int isHidden;
 };
-typedef char assert_SOV_x11AC[(unsigned int)&((SOV *)0)->x11AC == 0x11AC ? 1 : -1];
+typedef char assert_SOV_isHidden[(unsigned int)&((SOV *)0)->isHidden == 0x11AC ? 1 : -1];
 /* A world volume of the occluder list g_sw.dlCid23 (+0xEC its BSP, +0x130 next). */
-struct WVOL { char pad[0xEC]; void *xEC; char pad1[0x130 - 0xF0]; WVOL *pNext; };
+struct WVOL { char pad[0xEC]; void *bsp; char pad1[0x130 - 0xF0]; WVOL *next; };
 struct BUF { char a[0x180]; };
 /* Line-test callback arguments (FilterDetectorLineOfSightHit/FilterDetectorHitClass31). */
-struct EC { char pad[0x70]; unsigned long fl; };
-struct OV { int pad[4]; OV *pNext; int n14; char pad2[0xEC - 0x18]; EC *pec; };
-struct HITV { int pad; OV *po; int pad2[2]; unsigned long fl; };
-struct ARGS { DTE *pe; int *pn; int *pnNew; };
+struct EC { char pad[0x70]; unsigned long flags; };
+struct OV { int pad[4]; OV *parent; int root; char pad2[0xEC - 0x18]; EC *collisionEntry; };
+struct HITV { int pad; OV *object; int pad2[2]; unsigned long flags; };
+struct ARGS { DTE *entry; int *oldState; int *newState; };
 struct AL { int cb; int cbAlign; AL(int c, int a) { cb = c; cbAlign = a; } };
 struct VECTORQ { qword q; VECTORQ() {} VECTORQ(const VECTORQ &v) : q(v.q) {} };
 
@@ -80,403 +83,314 @@ extern qword D_002A2DC0;
 extern char D_003DD490[];
 extern "C" {
 qword D_002BDBF0[1] = {0};   /* detector's .data: the zero position (16 bytes) */
-void InitXfm(DETECTORV *p);
-void SetLoBusyk(DETECTORV *p, int n);
-void UpdateLo(DETECTORV *p);
-qword func_001A62E8(void *p);
-int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-void BroadcastGameEvent(void *p, int n, void *q);
+void InitXfm(DETECTORV *object);
+void SetLoBusyk(DETECTORV *object, int n);
+void UpdateLo(DETECTORV *object);
+qword func_001A62E8(void *object);
+int FIsBasicDerivedFrom__FP5BASIC3CID(void *object, int state);
+void BroadcastGameEvent(void *object, int n, void *q);
 void memmove(void *dst, void *src, int cb);
-SOV *PpoHero(void *p);
-int func_001A61A0(SOV *p);
-int func_0020F1B8(void *p);
+SOV *PpoHero(void *object);
+int func_001A61A0(SOV *object);
+int func_0020F1B8(void *object);
 qword ConvertAloPos(void *plo0, void *plo1, qword v);
-int func_00118668(void *p, int mask, qword a, qword b, int n, BUF *pbuf);
-int FCheckVolPoint(void *p, qword v);
-int func_0020FA10(void *pv, HITV *phit);
+int func_00118668(void *object, int mask, qword a, qword b, int n, BUF *pbuf);
+int FCheckVolPoint(void *object, qword v);
+int func_0020FA10(void *context, HITV *hit);
 int CidBasic(OV *po);
-void *PvAllocSlot__FP8ALLOCREQ(AL *pal);
+void *PvAllocSlot__FP8ALLOCREQ(AL *request);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *pfn, void *o, int *pi, int *pj);
-int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int k);
-VECTORQ *func_001A6318(SOV *p);
-void UpdateDetectorTargets(DETECTORV *p);
-qword GetDetectorEyePosition(DETECTORV *p);
-void AddDetectorTarget(DETECTORV *p, void *plo);
-void SetDetectorTargetState(DETECTORV *p, DTE *pe, int k);
-DTE *FindDetectorTarget(DETECTORV *p, void *plo);
-int CalculateDetectorTargetState(DETECTORV *p, SOV *pso, int k);
-int FilterDetectorHitClass31(void *pv, HITV *phit);
-int FilterDetectorLineOfSightHit(DETECTORV *p, HITV *phit);
-int IsDetectorLineBlocked(DETECTORV *p, SOV *pso);
-int IsDetectorTargetConcealed(DETECTORV *p, SOV *pso);
+int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, int state);
+VECTORQ *func_001A6318(SOV *object);
+void UpdateDetectorTargets(DETECTORV *object);
+qword GetDetectorEyePosition(DETECTORV *object);
+void AddDetectorTarget(DETECTORV *object, void *object);
+void SetDetectorTargetState(DETECTORV *object, DTE *entry, int state);
+DTE *FindDetectorTarget(DETECTORV *object, void *object);
+int CalculateDetectorTargetState(DETECTORV *object, SOV *target, int state);
+int FilterDetectorHitClass31(void *context, HITV *hit);
+int FilterDetectorLineOfSightHit(DETECTORV *object, HITV *hit);
+int IsDetectorLineBlocked(DETECTORV *object, SOV *target);
+int IsDetectorTargetConcealed(DETECTORV *object, SOV *target);
 }
 
-/** @sly2-annot addr=0x153D58
- * Purpose: XFM::Init (0x231100), registers for update (0x1A6CA8(p,1)), sets flag 2
- * Info: proposed name InitDetector (T1); class DETECTOR slot7; TU detector
- * Notes: verifier PLAUSIBLE: InitCid10 -> InitDetector ?
- * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/gameplay-objects.md#source-files, docs/engine/guards-ai.md#8-source-files,
- *   docs/engine/guards-ai.md#9-key-functions
- * @end-sly2-annot */
-extern "C" void InitDetector(DETECTORV *p)
+// 0x153D58: DETECTOR vtable slot 7 (Init): XFM Init, registered for updates (busy level 1), then sets object flag
+// 2.
+extern "C" void InitDetector(DETECTORV *detector)
 {
-    unsigned int v;
-    InitXfm(p);
-    SetLoBusyk(p, 1);
-    v = p->grfUnk40;
-    if ((v ^ 1) & 1) *(int *)v |= 2;
-    else p->grfUnk40 = v | 2;
+    unsigned int flags;
+    InitXfm(detector);
+    SetLoBusyk(detector, 1);
+    flags = detector->objectFlags;
+    if ((flags ^ 1) & 1) *(int *)flags |= 2;
+    else detector->objectFlags = flags | 2;
 }
 
-/** @sly2-annot addr=0x153DB0
- * Purpose: LO::Update (0x1A5E28) then class update 0x153DE0
- * Info: proposed name UpdateDetector (T1); class DETECTOR slot16; TU detector
- * Notes: Cid10->Detector (CID 0x10=16, vtable)
- * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
+// 0x153DB0: DETECTOR vtable slot 15 (Update): LO update, then re-evaluates the targets.
 void DETECTOR::VUnk15()
 {
-    DETECTORV *p = (DETECTORV *)this;
-    UpdateLo(p);
-    UpdateDetectorTargets(p);
+    DETECTORV *detector = (DETECTORV *)this;
+    UpdateLo(detector);
+    UpdateDetectorTargets(detector);
 }
 
-/** @sly2-annot addr=0x153DE0
- * Purpose: Re-evaluates every tracked target of a detector: new state = 0x1541D8(target, old state), applied
- *   via 0x154080
- * Info: proposed name UpdateDetectorTargets (T1); TU detector
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" void UpdateDetectorTargets(DETECTORV *p)
+// 0x153DE0: Re-evaluates every tracked target: its new state comes from CalculateDetectorTargetState(target, old
+// state) and is applied through SetDetectorTargetState (which notifies on change).
+extern "C" void UpdateDetectorTargets(DETECTORV *detector)
 {
     int i;
-    for (i = 0; i < p->cdte; i++) {
-        DTE *pe = &p->adte[i];
-        SetDetectorTargetState(p, pe, CalculateDetectorTargetState(p, (SOV *)pe->plo, pe->k));
+    for (i = 0; i < detector->targetCount; i++) {
+        DTE *entry = &detector->targets[i];
+        SetDetectorTargetState(detector, entry, CalculateDetectorTargetState(detector, (SOV *)entry->object, entry->state));
     }
 }
 
-/** @sly2-annot addr=0x153E60
- * Purpose: Returns the detector eye position: own position, or its parent position (+80 units up if the
- *   parent is a STEPGUARD-family object, cid test 0x38)
- * Info: proposed name PosDetectorEye (T2); TU detector
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" qword GetDetectorEyePosition(DETECTORV *p)
+// 0x153E60: Returns the detector's eye position: its own position when it has no eye object, else the eye object's
+// position, raised 80 units when that object is a guard (STEPGUARD family, cid 0x38).
+extern "C" qword GetDetectorEyePosition(DETECTORV *detector)
 {
-    if (!p->pso) return func_001A62E8(p);
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(p->pso, 0x38)) {
-        U g;
-        qword gq;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
-        qword r;
-        qword pos = func_001A62E8(p->pso);
-        float f = 80.0f;
-        gq = VuFromFloat<qword>(f);
-        g.q = gq;
-        __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(r) : "j"(pos), "j"(D_002A2DC0), "j"(g.q));
-        return r;
+    if (!detector->eye) return func_001A62E8(detector);
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(detector->eye, 0x38)) {
+        U height;
+        qword heightVector;   /* the asm writes a scalar, stored into the union after (see "asm output" in the merge guide) */
+        qword result;
+        qword eyeObjectPos = func_001A62E8(detector->eye);
+        float raise = 80.0f;
+        heightVector = VuFromFloat<qword>(raise);
+        height.q = heightVector;
+        __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %2, %3x" : "=j"(result) : "j"(eyeObjectPos), "j"(D_002A2DC0), "j"(height.q));
+        return result;
     }
-    return func_001A62E8(p->pso);
+    return func_001A62E8(detector->eye);
 }
 
-/** @sly2-annot addr=0x153EF8
- * Purpose: If the tracked object changed (a!=b) registers the new one as a detector target
- * Info: TU detector
- * Notes: names_v2 C proposed FReachedStepguardGoal__FP9STEPGUARD (0.200) | no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r3_1539A8
- * @end-sly2-annot */
-extern "C" void UpdateDetectorTrackedObject(DETECTORV *p, void *ploOld, void *plo)
+// 0x153EF8: When the tracked object changes (`oldObject` != `newObject`), adds the new one as a target (inferred
+// use: target hand-over).
+extern "C" void UpdateDetectorTrackedObject(DETECTORV *detector, void *oldObject, void *newObject)
 {
-    if (ploOld != plo) {
-        AddDetectorTarget(p, plo);
+    if (oldObject != newObject) {
+        AddDetectorTarget(detector, newObject);
     }
 }
 
-/** @sly2-annot addr=0x153F18
- * Purpose: Adds an object id to the detector target list (max 8, entries of 16 bytes at +0x100, count at
- *   +0xFC) with state 0
- * Info: proposed name AddDetectorTarget (T1); TU detector
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" void AddDetectorTarget(DETECTORV *p, void *plo)
+// 0x153F18: Adds an object to the target list (at most eight) in state 0, unless it is already tracked.
+extern "C" void AddDetectorTarget(DETECTORV *detector, void *object)
 {
-    if (FindDetectorTarget(p, plo) == 0) {
-        unsigned int c = p->cdte;
-        if (c < 8U) {
-            DTE *pe;
-            p->cdte = c + 1;
-            pe = &p->adte[c];
-            pe->plo = plo;
-            SetDetectorTargetState(p, pe, 0);
+    if (FindDetectorTarget(detector, object) == 0) {
+        unsigned int count = detector->targetCount;
+        if (count < 8U) {
+            DTE *entry;
+            detector->targetCount = count + 1;
+            entry = &detector->targets[count];
+            entry->object = object;
+            SetDetectorTargetState(detector, entry, 0);
         }
     }
 }
 
-/** @sly2-annot addr=0x153F80
- * Purpose: Removes a target from the detector list (state forced to 0 first, array compacted)
- * Info: proposed name RemoveDetectorTarget (T1); TU detector
- * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" void RemoveDetectorTarget(DETECTORV *p, void *plo)
+// 0x153F80: Removes an object from the target list: its state is forced to 0 first (so listeners see the change),
+// then the array is compacted.
+extern "C" void RemoveDetectorTarget(DETECTORV *detector, void *object)
 {
-    DTE *pe = FindDetectorTarget(p, plo);
-    if (pe) {
-        SetDetectorTargetState(p, pe, 0);
-        p->cdte--;
-        memmove(pe, pe + 1, (&p->adte[p->cdte] - pe) * sizeof(DTE));
+    DTE *entry = FindDetectorTarget(detector, object);
+    if (entry) {
+        SetDetectorTargetState(detector, entry, 0);
+        detector->targetCount--;
+        memmove(entry, entry + 1, (&detector->targets[detector->targetCount] - entry) * sizeof(DTE));
     }
 }
 
-/** @sly2-annot addr=0x153FF8
- * Purpose: Clears every target state to 0 and stamps the current clock time
- * Info: proposed name ResetDetectorTargets (T2); TU detector
- * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" void ResetDetectorTargets(DETECTORV *p)
+// 0x153FF8: Forgets every target's detection: all states become 0, stamped with the current time (no
+// notifications).
+extern "C" void ResetDetectorTargets(DETECTORV *detector)
 {
     int i;
-    for (i = 0; i < p->cdte; i++) {
-        p->adte[i].k = 0;
-        p->adte[i].t = D_002DDED0.t;
+    for (i = 0; i < detector->targetCount; i++) {
+        detector->targets[i].state = 0;
+        detector->targets[i].stateTime = D_002DDED0.t;
     }
 }
 
-/** @sly2-annot addr=0x154038
- * Purpose: Looks up a target by id and sets its detection state
- * Info: proposed name SetDetectorTargetStateById (T1); TU detector
- * Notes: names_v2 C proposed UseStepguardAnimation__FP9STEPGUARD3SGS3OID (0.168)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#tu_14a008-0x14a008-0x14b660,
- *   docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" void SetDetectorTargetStateById(DETECTORV *p, void *plo, int k)
+// 0x154038: Looks up a target by object and sets its detection state.
+extern "C" void SetDetectorTargetStateById(DETECTORV *detector, void *object, int state)
 {
-    DTE *pe = FindDetectorTarget(p, plo);
-    if (pe != 0) {
-        SetDetectorTargetState(p, pe, k);
+    DTE *entry = FindDetectorTarget(detector, object);
+    if (entry != 0) {
+        SetDetectorTargetState(detector, entry, state);
     }
 }
 
-/** @sly2-annot addr=0x154080
- * Purpose: Changes a target entry state: records times, notifies the detector through its HandleSpliceEvent
- *   (slot 3) virtual (msg 0x1C, args entry/old/new) and, when a player-class object becomes detected (state
- *   1), broadcasts game event 0x13
- * Info: proposed name SetDetectorTargetState (T1); TU detector
- * Notes: verifier: purpose partly wrong: Detector TU; entry {id,n,t,tC}: stamps times, sends msg 0x1C via vt3
- *   with (entry,&old,&new). On state 1 the STEP-class (cid 0x33) test is on the detector's own | names_v2 C
- *   proposed LoadStepguardAnimations__FP9STEPGUARD (0.200) | arbitration follow-up: the virtual it calls is
- *   slot 3 HandleSpliceEvent, not SendMessage
- * Confidence: high [T1 0.85] - evidence: arbitration; static naming pass; sources: r3_1539A8+verdicts_tu_r3r5
- * See: docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" void SetDetectorTargetState(DETECTORV *o, DTE *pe, int nNew)
+// 0x154080: Changes a target's state: records when it left state 0 and when it changed, notifies the detector
+// through vtable slot 3 (HandleSpliceEvent, message 0x1C with {entry, &old, &new}) and, when the detector's parent
+// is a player (cid 0x33) and the new state is 1 (seen), broadcasts game event 0x13.
+extern "C" void SetDetectorTargetState(DETECTORV *detector, DTE *entry, int newState)
 {
     ARGS args;
-    VTE *e;
-    if (!pe || nNew == pe->k)
+    VTE *vtableEntry;
+    if (!entry || newState == entry->state)
         return;
-    if (pe->k == 0)
-        pe->tChange = D_002DDED0.t;
-    args.pe = pe;
-    args.pn = &pe->k;
-    args.pnNew = &nNew;
-    e = &o->vt[3];
-    ((void (*)(...))e->pfn)((char *)o + e->d, 0x1C, 0, 3, &args, 0);
-    pe->k = nNew;
-    pe->t = D_002DDED0.t;
-    if (nNew == 1) {
-        void *q = o->psoParent;
-        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 0x33))
-            BroadcastGameEvent(D_002DEB30, 0x13, q);
+    if (entry->state == 0)
+        entry->detectTime = D_002DDED0.t;
+    args.entry = entry;
+    args.oldState = &entry->state;
+    args.newState = &newState;
+    vtableEntry = &detector->vt[3];
+    ((void (*)(...))vtableEntry->pfn)((char *)detector + vtableEntry->d, 0x1C, 0, 3, &args, 0);
+    entry->state = newState;
+    entry->stateTime = D_002DDED0.t;
+    if (newState == 1) {
+        void *parent = detector->parent;
+        if (parent && FIsBasicDerivedFrom__FP5BASIC3CID(parent, 0x33))
+            BroadcastGameEvent(D_002DEB30, 0x13, parent);
     }
 }
 
-/** @sly2-annot addr=0x154158
- * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
- * Info: proposed name GetDetectorTargetStateById (EXISTING); TU detector
- * Notes: RENAME proposed -> GetDetectorTargetStateById (existing_name_changes.csv)
- * Confidence: name high [EXISTING 0.75]; purpose not reviewed - evidence: arbitration; pre-existing symbol in
- *   symbol_addrs.txt
- * See: docs/engine/guards-ai.md#5-perception, docs/engine/guards-ai.md#9-key-functions,
- *   docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" int GetDetectorTargetStateById(DETECTORV *p, void *plo)
+// 0x154158: Returns the detection state of an object's target entry, or -1 if it is not tracked.
+extern "C" int GetDetectorTargetStateById(DETECTORV *detector, void *object)
 {
-    DTE *pe = FindDetectorTarget(p, plo);
-    if (pe)
-        return pe->k;
+    DTE *entry = FindDetectorTarget(detector, object);
+    if (entry)
+        return entry->state;
     return -1;
 }
 
-/** @sly2-annot addr=0x154180
- * Purpose: Finds the target entry with a given id in the detector list (NULL for id 0)
- * Info: proposed name FindDetectorTarget (T1); TU detector
- * Notes: names_v2 C proposed UseStepguardPhys__FP9STEPGUARD3SGS3OID (0.253)
- * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" DTE *FindDetectorTarget(DETECTORV *p, void *plo)
+// 0x154180: Finds the target entry for an object (NULL for a null object or an untracked one).
+extern "C" DTE *FindDetectorTarget(DETECTORV *detector, void *object)
 {
     int i;
-    if (!plo)
+    if (!object)
         return 0;
-    for (i = 0; i < p->cdte; i++) {
-        DTE *pe = &p->adte[i];
-        if (pe->plo == plo)
-            return pe;
+    for (i = 0; i < detector->targetCount; i++) {
+        DTE *entry = &detector->targets[i];
+        if (entry->object == object)
+            return entry;
     }
     return 0;
 }
 
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
-/** @sly2-annot addr=0x1541D8
- * Purpose: Computes the new detection state (0 none, 1 seen, 2 lost) of one target: rejects
- *   hidden/disguised/invisible targets, BSP line-of-sight through all world occluders, inner/outer volumes
- *   (0x227C90) and optional line test (0x1545F0)
- * Info: proposed name CalculateDetectorTargetState (T1); TU detector
- * Notes: names_v2 C proposed UpdateStepguardEffect__FP9STEPGUARD (0.438)
- * Confidence: mid (draft) [T1 0.50] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" int CalculateDetectorTargetState(DETECTORV *p, SOV *pso, int k)
+// 0x1541D8: Computes the new detection state (0 unseen, 1 seen, 2 lost) of one target from its current one: unseen
+// if the target is gone, dead, disguised against this hero, globally invisible, disabled or flagged hidden; seen if
+// the detector is forced; else blocked by any world occluder BSP on the eye line -> unseen; then by state: 0 ->
+// seen if inside the near volume (and far volume), not concealed and the line is clear; 1 -> lost when leaving the
+// near volume; 2 -> seen again when back in the near volume with a clear line. Flag 8 re-tests the line every
+// frame.
+extern "C" int CalculateDetectorTargetState(DETECTORV *detector, SOV *target, int state)
 {
-    BUF buf;
-    qword v;
-    WVOL *pw;
-    SOV *pme = PpoHero(D_003DD490);
-    if (!pso) { k = 0; goto done; }
-    if (!func_001A61A0(pso)) { k = 0; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x32) && pso->vt[77].pfn((char *)pso + pso->vt[77].d) == 2) { k = 0; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pme && FIsBasicDerivedFrom__FP5BASIC3CID(pme, 0x46)) { k = 0; goto done; }
-    if (func_0020F1B8(D_003DD490)) { k = 0; goto done; }
-    if (p->fDisabled) { k = 0; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x11AC) { k = 0; goto done; }
-    if (p->fForce) { k = 1; goto done; }
-    if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x33))
-        v = Add(func_001A62E8(pso), pso->pos);
+    BUF hitBuffer;
+    qword targetPos;
+    WVOL *occluder;
+    SOV *hero = PpoHero(D_003DD490);
+    if (!target) { state = 0; goto done; }
+    if (!func_001A61A0(target)) { state = 0; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x32) && target->vt[77].pfn((char *)target + target->vt[77].d) == 2) { state = 0; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x34) && hero && FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x46)) { state = 0; goto done; }
+    if (func_0020F1B8(D_003DD490)) { state = 0; goto done; }
+    if (detector->isDisabled) { state = 0; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x34) && target->isHidden) { state = 0; goto done; }
+    if (detector->isForced) { state = 1; goto done; }
+    if (FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x33))
+        targetPos = Add(func_001A62E8(target), target->eyeOffset);
     else
-        v = func_001A62E8(pso);
-    for (pw = *(WVOL **)&g_sw.dlCid23; pw; pw = pw->pNext) {
-        qword a = ConvertAloPos(0, pw, GetDetectorEyePosition(p));
-        qword b = ConvertAloPos(0, pw, v);
-        if (func_00118668(pw->xEC, 0x7FFFFFFF, a, b, 4, &buf) > 0) { k = 0; goto done; }
+        targetPos = func_001A62E8(target);
+    for (occluder = *(WVOL **)&g_sw.dlCid23; occluder; occluder = occluder->next) {
+        qword eyeLocal = ConvertAloPos(0, occluder, GetDetectorEyePosition(detector));
+        qword targetLocal = ConvertAloPos(0, occluder, targetPos);
+        if (func_00118668(occluder->bsp, 0x7FFFFFFF, eyeLocal, targetLocal, 4, &hitBuffer) > 0) { state = 0; goto done; }
     }
-    switch (k) {
+    switch (state) {
     case 0:
-        if (p->pchain) {
-            CHNL *pl;
-            for (pl = p->pchain->pl; pl; pl = pl->pNext) {
-                if (pl->pso == pso) {
-                    if (pl->fSeen) { k = 1; goto done; }
+        if (detector->eyeChildren) {
+            CHNL *child;
+            for (child = detector->eyeChildren->firstChild; child; child = child->next) {
+                if (child->object == target) {
+                    if (child->isSeen) { state = 1; goto done; }
                     break;
                 }
             }
         }
-        if (!FCheckVolPoint(p->pvolNear, v)) { k = 0; goto done; }
-        if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
-        if ((p->grf & 1) == 0 && IsDetectorTargetConcealed(p, pso)) { k = 0; goto done; }
-        if (p->grf & 2) { k = 1; goto done; }
-        { k = !IsDetectorLineBlocked(p, pso); goto done; }
+        if (!FCheckVolPoint(detector->nearVolume, targetPos)) { state = 0; goto done; }
+        if (detector->farVolume && !FCheckVolPoint(detector->farVolume, targetPos)) { state = 0; goto done; }
+        if ((detector->options & 1) == 0 && IsDetectorTargetConcealed(detector, target)) { state = 0; goto done; }
+        if (detector->options & 2) { state = 1; goto done; }
+        { state = !IsDetectorLineBlocked(detector, target); goto done; }
     case 1:
-        if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
-        if (!FCheckVolPoint(p->pvolNear, v)) { k = 2; goto done; }
+        if (detector->farVolume && !FCheckVolPoint(detector->farVolume, targetPos)) { state = 0; goto done; }
+        if (!FCheckVolPoint(detector->nearVolume, targetPos)) { state = 2; goto done; }
         break;
     case 2:
-        if (p->pvolFar && !FCheckVolPoint(p->pvolFar, v)) { k = 0; goto done; }
-        if (FCheckVolPoint(p->pvolNear, v)) {
-            if (p->grf & 2) { k = 1; goto done; }
-            if (IsDetectorLineBlocked(p, pso)) return k;
-            k = 1;
+        if (detector->farVolume && !FCheckVolPoint(detector->farVolume, targetPos)) { state = 0; goto done; }
+        if (FCheckVolPoint(detector->nearVolume, targetPos)) {
+            if (detector->options & 2) { state = 1; goto done; }
+            if (IsDetectorLineBlocked(detector, target)) return state;
+            state = 1;
             goto done;
         }
         break;
     default:
         goto done;
     }
-    if ((p->grf & 8) && IsDetectorLineBlocked(p, pso)) k = 0;
+    if ((detector->options & 8) && IsDetectorLineBlocked(detector, target)) state = 0;
 done:
-    return k;
+    return state;
 }
 
-/** @sly2-annot addr=0x154528
- * Purpose: Hit-test filter callback: accepts SOs passing 0x20FA10 whose class id is 0x31
- * Info: TU detector
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
- * @end-sly2-annot */
-extern "C" int FilterDetectorHitClass31(void *pv, HITV *phit)
+// 0x154528: Line-test object filter (detector flag 4): accepts only objects passing the default filter whose class
+// is cid 0x31.
+extern "C" int FilterDetectorHitClass31(void *context, HITV *hit)
 {
-    if (func_0020FA10(pv, phit) == 0) {
+    if (func_0020FA10(context, hit) == 0) {
         return 0;
     }
-    return CidBasic(phit->po) == 0x31;
+    return CidBasic(hit->object) == 0x31;
 }
 
-/** @sly2-annot addr=0x154568
- * Purpose: Hit-test filter callback: rejects flagged objects, same-group objects and anything under a cid
- *   0x33 ancestor
- * Info: TU detector
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
- * @end-sly2-annot */
-extern "C" int FilterDetectorLineOfSightHit(DETECTORV *a, HITV *b)
+// 0x154568: Line-test object filter (default): ignores hits flagged as non-blocking, objects whose collision entry
+// has bit 2, objects in the detector's own hierarchy, and anything below a player (cid 0x33) ancestor.
+extern "C" int FilterDetectorLineOfSightHit(DETECTORV *detector, HITV *hit)
 {
-    OV *po;
-    if (b->fl & 0x1000000000000L)
+    OV *object;
+    if (hit->flags & 0x1000000000000L)
         return 0;
-    po = b->po;
-    if (po->pec->fl & 4)
+    object = hit->object;
+    if (object->collisionEntry->flags & 4)
         return 0;
-    if (po->n14 == a->ploroot)
+    if (object->root == detector->root)
         return 0;
     {
-        OV *p = po;
-        while (p && !FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x33))
-            p = p->pNext;
-        return p == 0;
+        OV *ancestor = object;
+        while (ancestor && !FIsBasicDerivedFrom__FP5BASIC3CID(ancestor, 0x33))
+            ancestor = ancestor->parent;
+        return ancestor == 0;
     }
 }
 
-/** @sly2-annot addr=0x1545F0
- * Purpose: Tests whether the line from the detector eye to the target is blocked by objects
- *   (PsoHitTestLineObjects with the filter callbacks)
- * Info: proposed name FDetectorLineBlocked (T2); TU detector
- * Notes: names_v2 C proposed FCheckStepguardEnemyHidden__FP9STEPGUARD (0.438)
- * Confidence: low (draft) [T2 0.40] - evidence: static naming pass; sources: r3_1539A8
- * See: docs/reference/functions/guards-ai.md#detector-0x153d58-0x154a60
- * @end-sly2-annot */
-extern "C" int IsDetectorLineBlocked(DETECTORV *p, SOV *pso)
+// 0x1545F0: True if the line from the detector's eye to the target is blocked by a world object
+// (PsoHitTestLineObjects over the objects in the line's bounding box, using one of the filters above).
+extern "C" int IsDetectorLineBlocked(DETECTORV *detector, SOV *target)
 {
-    STACKSCOPE frame;
+    STACKSCOPE stackScope;
     int i;
-    qword *ppos = D_002BDBF0;
-    qword q = GetDetectorEyePosition(p);
-    AL al(0x10, 0x10);
-    qword *apos = (qword *)PvAllocSlot__FP8ALLOCREQ(&al);
-    int ii, jj;
-    qword vmax = q;
-    qword vmin = q;
+    qword *localPoints = D_002BDBF0;
+    qword eyePos = GetDetectorEyePosition(detector);
+    AL request(0x10, 0x10);
+    qword *points = (qword *)PvAllocSlot__FP8ALLOCREQ(&request);
+    int firstObject, objectCount;
+    qword boxMax = eyePos;
+    qword boxMin = eyePos;
     for (i = 0; i < 1; i++) {
-        qword t = ConvertAloPos(pso, 0, ppos[i]);
-        apos[i] = t;
-        __asm__("vmini.xyz %0, %0, %1" : "+j"(vmin) : "j"(t));
-        __asm__("vmax.xyz %0, %0, %1" : "+j"(vmax) : "j"(t));
+        qword point = ConvertAloPos(target, 0, localPoints[i]);
+        points[i] = point;
+        __asm__("vmini.xyz %0, %0, %1" : "+j"(boxMin) : "j"(point));
+        __asm__("vmax.xyz %0, %0, %1" : "+j"(boxMax) : "j"(point));
     }
-    void *pfn = (void *)FilterDetectorLineOfSightHit;
-    if (p->grf & 4) pfn = (void *)FilterDetectorHitClass31;
-    IntersectSwBoundingBox(D_003DD490, vmin, vmax, pfn, p, &ii, &jj);
-    bool f;
-    for (i = 0; (f = i < 1); i++)
-        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, q, apos[i], ii, jj, 0)) break;
-    return !f;
+    void *filter = (void *)FilterDetectorLineOfSightHit;
+    if (detector->options & 4) filter = (void *)FilterDetectorHitClass31;
+    IntersectSwBoundingBox(D_003DD490, boxMin, boxMax, filter, detector, &firstObject, &objectCount);
+    bool isClear;
+    for (i = 0; (isClear = i < 1); i++)
+        if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, eyePos, points[i], firstObject, objectCount, 0)) break;
+    return !isClear;
 }
 
 static inline float Dot(qword a, const VECTORQ &b)
@@ -486,41 +400,38 @@ static inline float Dot(qword a, const VECTORQ &b)
     g = VuToFloat(a);
     return g;
 }
-/** @sly2-annot addr=0x154770
- * Purpose: Additional per-target visibility test (darkness/cover) used when flag xF8&1 is clear
- * Info: TU detector
- * Notes: no usable identifier; purpose only
- * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r3_1539A8
- * @end-sly2-annot */
-extern "C" int IsDetectorTargetConcealed(DETECTORV *p, SOV *pso)
+// 0x154770: True if a player target (cid 0x34) is concealed by its current state: hiding in or behind cover objects
+// (cids 0xC and 0x22, facing away from the detector), and certain sneak/hang states (inferred: the state numbers
+// are JT states).
+extern "C" int IsDetectorTargetConcealed(DETECTORV *detector, SOV *target)
 {
-    if (!FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34)) return 0;
-    if (pso->x4CC == -1) return 0;
-    VECTORQ d; d.q = VuSub(func_001A62E8(pso), func_001A62E8(p));
-    switch (pso->x4C8) {
+    if (!FIsBasicDerivedFrom__FP5BASIC3CID(target, 0x34)) return 0;
+    if (target->jtSubstate == -1) return 0;
+    VECTORQ offset; offset.q = VuSub(func_001A62E8(target), func_001A62E8(detector));
+    switch (target->jtState) {
     case 0:
     case 13:
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso->x4D4, 0xC)) {
-            if (pso->x4D4->x194) return 0;
-        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(pso->x4D4, 0x22)) {
-            if (pso->x4D4->xE4) return 0;
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, 0xC)) {
+            if (target->attachedObject->unknown194) return 0;
+        } else if (FIsBasicDerivedFrom__FP5BASIC3CID(target->attachedObject, 0x22)) {
+            if (target->attachedObject->unknownE4) return 0;
         } else {
-            return !pso->x4D4->xE4;
+            return !target->attachedObject->unknownE4;
         }
         {
-            bool f = Dot(d.q, *func_001A6318(pso)) <= 0.0f;
-            bool g = false;
-            if (pso->x4C8 == 0) g = !pso->x1040;
-            if (f == g) break;
+            bool isFacingAway = Dot(offset.q, *func_001A6318(target)) <= 0.0f;
+            bool expectFacingAway = false;
+            if (target->jtState == 0) expectFacingAway = !target->unknown1040;
+            if (isFacingAway == expectFacingAway) break;
             return 1;
         }
     case 1:
-        if (pso->x4CC) break;
+        if (target->jtSubstate) break;
         return 1;
     case 2:
         return 1;
     case 8:
-        if (pso->x4CC == 9 || pso->x4CC == 10) return 1;
+        if (target->jtSubstate == 9 || target->jtSubstate == 10) return 1;
         break;
     }
     return 0;
