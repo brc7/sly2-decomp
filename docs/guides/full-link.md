@@ -357,7 +357,7 @@ each in its own `.gnu.linkonce.t.<symbol>` section, emitted by splice/gc.cpp (sp
 | TU check with `-ffunction-sections`: objects one section / split | 893 / 38 | 904 / 27 |
 | TU check without `-ffunction-sections`: one run / not | 855 / 76 | 864 / 67 |
 | of the 67: split by other objects' code / junk scraps inside / gap / unplaced | 38 / 33 / 4 / 1 | 27 / 35 / 4 / 1 |
-| sections placed (6 unplaced, 544 bytes, both) | 6,760 | 6,765 |
+| sections placed (6 unplaced, 544 bytes, both) | 6,760 | 6,760 |
 | differing bytes | 115 | 115 |
 
 Eleven objects no longer split: gc, spliceutils, eval, frame, sidebag, proc, varb, spliceobj, proxy, and splicemap and

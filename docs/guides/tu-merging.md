@@ -795,7 +795,7 @@ for the former `func_` names and the 30 static data members), callers' declarati
 and units.csv names; the alias-table lines that had bound the instance names (Unlink/Attach of CMethod,
 CRefPtr<CFrame>::operator=) went. D_002DD598 became g_gc first (tools/rename.py). Checked: every touched file and
 every file that names one of the renamed symbols MATCHes (matchtool), nm symbol sets differ only by the renames, the
-removed copies and the new weak instances (28 objects; scratch nm diff of the link objects), relverify 27,259 OK and
+removed copies and the new weak instances (28 objects; scratch nm diff of the link objects), relverify 27,230 OK and
 0 mismatched with the alias table, symcheck 0 duplicate strong definitions (unresolved 35 -> 41: the three template
 members of proxy/spliceobj now resolve, the 9 view-destructor references are the alias lines).
 
