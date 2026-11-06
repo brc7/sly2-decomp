@@ -1502,7 +1502,8 @@ Rules found:
   `T c_X[n] __asm__("D_X");`), sized by the gap to the next name; a common takes its type's alignment (int/char
   arrays 8, `qword` 16, `__attribute__((aligned))` is ignored), so 16-aligned starts with a 16-multiple size are
   `qword` arrays. matchtool checks COMMON placement and size. Open for a byte-matching real link: ld's common order
-  is not the original's (the real names were template/class statics; their mangled names are not known).
+  is not the original's (the real names were template/class statics; their mangled names are not known). Superseded
+  for the game's commons by phase 9: one file defines them all, in address order.
 - **Interiors (b).** `#define D_X (*(T *)((char *)base_<OBJ> + 0xOFF))   /* field */` replaces each declaration
   (arrays: `(*(T (*)[N])(...))`, so `&D_X`, indexing and decay keep working), with `extern "C" char base_<OBJ>[]
   __asm__("<OBJ>");` after the first includes and an `#undef` where a namespace-local declaration's scope ends (a
@@ -1869,6 +1870,49 @@ differing bytes after every step. What was done, by kind:
 
 Left: full-link.md, "Absolute symbols". Nothing was reverted for changing codegen (tu_1471C0's D_002BD39C as an
 element of its owner did change func_001477D8: the addend label replaced that attempt).
+
+### Phase 9: the commons file (branch data/commons-file, 2026-11-06)
+
+User decision: the commons link.py still bound to absolute addresses are defined in one source file rather than
+placed by a link.py ordering rule. The file is [src/game/app/commons.cpp](../../src/game/app/commons.cpp): app/
+because it is the composition root (L11, docs/architecture.md), the one layer that may name splice's, core's,
+platform's and presentation's objects; it is not an original TU (the original had no such file: its commons were
+allocated by ld), it has no functions, and tools/link.py lists it in `DATA_SOURCES` (it is in no config/matched.csv
+row). Commons as absolute symbols: 69 -> 15.
+
+How GNU ld allocated them, and how the file reproduces it:
+
+- **The rule.** g++ 2.95 emits COMMON for an uninitialized class or template static data member (and for the
+  `__sn...` sentry of a template static with a constructor) in every object that instantiates it; it does not for
+  plain globals (those go to the object's `.bss`). GNU ld allocates commons after all input `.bss`: 8 bytes or less
+  (its default `-G 8`) in `.sbss`, the rest at the end of `.bss`, in symbol hash-table order, which no placement of
+  objects reproduces. In this ELF that is the whole `.sbss` (0x2DD280..0x2DD31C, 39 words: the game is built `-G0`,
+  so only commons get there) and `.bss` 0x452098..0x452200 after collect2's.
+- **The spelling.** Ordinary definitions, so the commons the other objects keep emitting resolve to them (a strong
+  definition wins; link.py binds a common to an address only when no object defines it). `__attribute__((section
+  (".sbss")))` / `(".bss"))` puts each in its block (a definition with a section name is never COMMON; `-G0` would
+  put none in `.sbss`). g++ emits explicit instantiations of template statics after every other definition, which
+  breaks the interleaving of block tables and pools in `.bss`; explicit specializations with a zero initializer
+  (`template <> CPair *CGcObj<CPair>::s_aptPage[4] BSS = {0};`) are emitted in source order like the rest, and a
+  zero initializer in a NOBITS section stays NOBITS. So: one `.sbss` and one `.bss` block, each in address order.
+- **What is a proper member definition.** CGcObj<T>'s list words and block tables (sly2/gc.h) are template static
+  data member definitions (explicit specializations, as above). The slot pools and splice heaps are not: a
+  definition of `CSlotPool<>::s_pool` makes g++ generate its constructor call in this file (StaticInit code the
+  ELF does not have; every TU's StaticInit constructs them through the sentries), so they are a SLOTHEAP under the
+  mangled name, like the sentries (`int` under `__sn` + the mangled name) and prog's/hud's words (`D_002DD314`,
+  `D_002DD318`: class statics of classes not known). dl's two words (g_psliFirst/g_pdliFirst, `D_002DD2F8`/`FC`)
+  sit between the sentries in `.sbss`, so they were commons too; dl defined them as `.bss`, which split the block:
+  they moved here (dl's line numbers kept).
+- **Removed elsewhere**: the `COMMONS_<tu>` blocks of bif, frame, gc, splicemap, hud, sidebag, eval, ref, basic,
+  spliceobj and prog (the phase 3 rule above is superseded for these), and dl's two definitions. Each object's code,
+  data bytes and relocations are unchanged; every function and data symbol of the touched files MATCHes. config
+  names the 11 sentries and the 11 pool/heap statics (symbol_addrs.txt, with sizes), so matchtool checks the
+  definitions and the COMMON copies, and link.py checks their addresses.
+- **Not here**: the 15 commons of the SDK sources (989snd's buffers 0x443800..0x448500, libkernel's 0x44EF80). They
+  are not commons of the original link: they lie inside the SDK libraries' `.bss` (library order, phase 7), between
+  data of other SDK objects (`_sif_cmd_handler_id` 0x44EDD4, libgcc's `objects` 0x450278), so a game file defining
+  them would cover those objects' addresses; they are commons here only because the per-function SDK sources spell
+  them as C tentative definitions. Their owner is the SDK side (full-link.md, "Absolute symbols").
 
 ## Linkage of namespace-scoped declarations
 
