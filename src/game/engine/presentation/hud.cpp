@@ -5500,3 +5500,11 @@ qword b_00442520[4] __asm__("D_00442520");
 qword b_00442560[4] __asm__("D_00442560");
 qword b_004425A0[3] __asm__("D_004425A0");
 }
+
+// ---- hud's named constant in the first part of .rodata (0x2A3A10, after sw's world-name table; tu-merging.md
+// "Phase 6", .rodata.early as cd/menu/sw): the identity M23 {1, 0, 0, 1, 0, 0} (padded to 0x20) the widget and sprite
+// code start from. Under an asm label so that the declarations above (char[], M23) need not agree.
+namespace RO_EARLY_HUD {
+extern const float r_D_002A3A10[8] __asm__("D_002A3A10") __attribute__((section(".rodata.early"), aligned(16))) =
+    {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+}
