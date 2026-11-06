@@ -197,15 +197,30 @@ extern "C" void GetRailGrabPosition(RAILV *a, float g, P *p, VECTORV *pv)
 }
 
 union U {qword q;float f;};
-struct BOUND_PAGE {unsigned char unknown_0000[0x1ECC];float bound;};
-struct START {qword q;START(const U&source,float zero,float*lowOut,float*highOut){
- register BOUND_PAGE*page __asm__("$2");
- __asm__("lui %0,%%hi(%1)":"=r"(page):"i"(&D_002C1ECC));
- register qword point __asm__("$2");register float low __asm__("$f12"),high __asm__("$f13");
- __asm__("mov.s %1,%3\n\tlwc1 %2,%%lo(%4)(%6)\n\tlq %0,%5":"=r"(point),"=f"(low),"=f"(high):"f"(zero),"i"(&D_002C1ECC),"m"(source.q),"r"(page),"m"(page->bound));
- q=point;*lowOut=low;*highOut=high;
-}};struct M3 {qword a,b,c;};
-extern qword D_002A2DC0,D_002A2DA0;
+struct BOUND_PAGE {
+    unsigned char unknown_0000[0x1ECC];
+    float bound;
+};
+struct START {
+    qword q;
+    START(const U &source, float zero, float *lowOut, float *highOut)
+    {
+        register BOUND_PAGE *page __asm__("$2");
+        __asm__("lui %0,%%hi(%1)" : "=r"(page) : "i"(&D_002C1ECC));
+        register qword point __asm__("$2");
+        register float low __asm__("$f12"), high __asm__("$f13");
+        __asm__("mov.s %1,%3\n\tlwc1 %2,%%lo(%4)(%6)\n\tlq %0,%5"
+                : "=r"(point), "=f"(low), "=f"(high)
+                : "f"(zero), "i"(&D_002C1ECC), "m"(source.q), "r"(page), "m"(page->bound));
+        q = point;
+        *lowOut = low;
+        *highOut = high;
+    }
+};
+struct M3 {
+    qword a, b, c;
+};
+extern qword D_002A2DC0, D_002A2DA0;
 extern "C" {
 float SRandomShapeRange(RAILV*,float,float);
 float GRandInRange__Fff(float,float);qword SetVectorCylind(float,float,float);
