@@ -1,5 +1,8 @@
 // bq.cpp -- CByteQueue, a ring buffer of bytes filled from a CQueueInput and drained into a CQueueOutput.
-// TU 0x13D558..0x13DA18 (10 functions, address order).
+// Streaming code uses it to decouple a producer (memory or file reader) from a consumer (decoder/DMA writer).
+// Bytes move free -> filled (CbFill) -> drained (CbDrain) -> free again (FreeDrain, for outputs that hold on to the
+// bytes they were handed). Entry points: CByteQueue::Init, CbFill (from a CQueueInput or a memory block), CbDrain,
+// FreeDrain. TU 0x13D558..0x13DA18 (10 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_bq
 // SLY2_ALIAS: _GLOBAL_$I$*=func_0013D9F8
 #include "sly2/slotheap.h"
@@ -11,43 +14,43 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 typedef unsigned char byte;
 extern "C" void *memcpy(void *pvDst, const void *pvSrc, unsigned int cb);
 
-class CQueueInput { public: virtual int CbRead(int cb, void *pv); };
-class CQueueOutput { public: virtual int CbWrite(int cb, void *pv); virtual int FDrain(); };
+class CQueueInput { public: virtual int CbRead(int byteCount, void *dest); };
+class CQueueOutput { public: virtual int CbWrite(int byteCount, void *src); virtual int FDrain(); };
 
 class CQueueInputMemory : public CQueueInput
 {
 public:
-    byte *m_pb;     /* +0x4 (vptr at +0x0) */
-    int m_cb;       /* +0x8 */
-    int m_ib;       /* +0xC read position */
-    int m_cbLeft;   /* +0x10 */
-    CQueueInputMemory(byte *pb, int cb) { m_cbLeft = cb; m_pb = pb; m_cb = cb; m_ib = 0; }
-    int CbRead(int cb, void *pv);
+    byte *data;         /* +0x4 (vptr at +0x0) */
+    int size;           /* +0x8 */
+    int readOffset;     /* +0xC read position */
+    int bytesLeft;      /* +0x10 */
+    CQueueInputMemory(byte *block, int blockSize) { bytesLeft = blockSize; data = block; size = blockSize; readOffset = 0; }
+    int CbRead(int byteCount, void *dest);
 };
 
 class CQueueInputFile : public CQueueInput
 {
 public:
-    int CbRead(int cb, void *pv);
+    int CbRead(int byteCount, void *dest);
 };
 
 class CByteQueue
 {
 public:
-    byte *m_ab;     /* 0x00 */
-    int m_cb;       /* 0x04 */
-    int m_ibFree;   /* 0x08 */
-    int m_ibAlloc;  /* 0x0c */
-    int m_cbFree;   /* 0x10 */
-    int m_cbAlloc;  /* 0x14 */
-    int m_cbDrain;  /* 0x18 */
-    int m_cbTotal;  /* 0x1c */
-    void Init(int cb, void *pv);
+    byte *buffer;       /* 0x00 ring storage (caller-owned) */
+    int size;           /* 0x04 */
+    int writeOffset;    /* 0x08 where the next fill goes */
+    int readOffset;     /* 0x0c where the next drain starts */
+    int freeBytes;      /* 0x10 */
+    int filledBytes;    /* 0x14 filled, not yet drained */
+    int drainedBytes;   /* 0x18 drained but still held by the output (see FreeDrain) */
+    int totalFilled;    /* 0x1c bytes ever filled since Reset */
+    void Init(int bufferSize, void *bufferMemory);
     void Reset();
-    int CbFill(int cb, CQueueInput *pqi);
-    int CbDrain(int cb, CQueueOutput *pqo);
-    int CbFill(int cb, byte *pb);
-    void FreeDrain(int cb);
+    int CbFill(int byteCount, CQueueInput *input);
+    int CbDrain(int byteCount, CQueueOutput *output);
+    int CbFill(int byteCount, byte *data);
+    void FreeDrain(int byteCount);
 };
 typedef char assert_CByteQueue_size[sizeof(CByteQueue) == 0x20 ? 1 : -1];
 
@@ -59,10 +62,11 @@ typedef char assert_CByteQueue_size[sizeof(CByteQueue) == 0x20 ? 1 : -1];
  * See: docs/engine/core-library.md#2-containers, docs/engine/core-library.md#6-source-files,
  *   docs/engine/core-library.md#7-key-functions
  * @end-sly2-annot */
-void CByteQueue::Init(int cb, void *pv)
+// Attaches the queue to a caller-owned buffer of bufferSize bytes and empties it.
+void CByteQueue::Init(int bufferSize, void *bufferMemory)
 {
-    m_cb = cb;
-    m_ab = (byte *)pv;
+    size = bufferSize;
+    buffer = (byte *)bufferMemory;
     Reset();
 }
 
@@ -71,14 +75,15 @@ void CByteQueue::Init(int cb, void *pv)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
+// Empties the queue: the whole buffer becomes free and both ring offsets return to 0.
 void CByteQueue::Reset()
 {
-    m_cbFree = m_cb;
-    m_cbDrain = 0;
-    m_cbAlloc = 0;
-    m_ibAlloc = 0;
-    m_ibFree = 0;
-    m_cbTotal = 0;
+    freeBytes = size;
+    drainedBytes = 0;
+    filledBytes = 0;
+    readOffset = 0;
+    writeOffset = 0;
+    totalFilled = 0;
 }
 
 /** @sly2-annot addr=0x13D5A0
@@ -86,28 +91,31 @@ void CByteQueue::Reset()
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
-int CByteQueue::CbFill(int cb, CQueueInput *pqi)
+// Fills the queue from `input`, reading into the free part of the ring (wrapping at the end). byteCount <= 0
+// means "one read of whatever fits"; otherwise reads until byteCount bytes arrived, the queue is full or the input
+// returns 0. Returns the number of bytes added.
+int CByteQueue::CbFill(int byteCount, CQueueInput *input)
 {
-    int cbFill = 0;
-    int cbLeft = cb;
-    if (cbLeft <= 0 || cbLeft > m_cbFree)
-        cbLeft = m_cbFree;
-    while (cbLeft != 0) {
-        int ib = m_ibFree;
-        int cbT = pqi->CbRead(NMin(cbLeft, m_cb - ib), m_ab + ib);
-        if (cbT == 0)
+    int filled = 0;
+    int remaining = byteCount;
+    if (remaining <= 0 || remaining > freeBytes)
+        remaining = freeBytes;
+    while (remaining != 0) {
+        int offset = writeOffset;
+        int chunk = input->CbRead(NMin(remaining, size - offset), buffer + offset);
+        if (chunk == 0)
             break;
-        cbFill += cbT;
-        cbLeft -= cbT;
-        m_ibFree += cbT;
-        m_ibFree %= m_cb;
-        m_cbAlloc += cbT;
-        m_cbFree -= cbT;
-        m_cbTotal += cbT;
-        if (cb <= 0)
+        filled += chunk;
+        remaining -= chunk;
+        writeOffset += chunk;
+        writeOffset %= size;
+        filledBytes += chunk;
+        freeBytes -= chunk;
+        totalFilled += chunk;
+        if (byteCount <= 0)
             break;
     }
-    return cbFill;
+    return filled;
 }
 
 /** @sly2-annot addr=0x13D6A8
@@ -115,30 +123,33 @@ int CByteQueue::CbFill(int cb, CQueueInput *pqi)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
-int CByteQueue::CbDrain(int cb, CQueueOutput *pqo)
+// Drains up to byteCount filled bytes into `output` (byteCount <= 0: a single write). Bytes handed to an output
+// whose FDrain() is true stay reserved (drainedBytes) until FreeDrain releases them; otherwise they are free at once.
+// Returns the number of bytes written.
+int CByteQueue::CbDrain(int byteCount, CQueueOutput *output)
 {
-    int cbDrain = 0;
-    int cbLeft = cb;
-    if (cbLeft <= 0 || cbLeft > m_cbAlloc)
-        cbLeft = m_cbAlloc;
-    while (cbLeft != 0) {
-        int ib = m_ibAlloc;
-        int cbT = pqo->CbWrite(NMin(cbLeft, m_cb - ib), m_ab + ib);
-        if (cbT == 0)
+    int drained = 0;
+    int remaining = byteCount;
+    if (remaining <= 0 || remaining > filledBytes)
+        remaining = filledBytes;
+    while (remaining != 0) {
+        int offset = readOffset;
+        int chunk = output->CbWrite(NMin(remaining, size - offset), buffer + offset);
+        if (chunk == 0)
             break;
-        m_ibAlloc += cbT;
-        m_ibAlloc %= m_cb;
-        m_cbAlloc -= cbT;
-        if (pqo->FDrain())
-            m_cbDrain += cbT;
+        readOffset += chunk;
+        readOffset %= size;
+        filledBytes -= chunk;
+        if (output->FDrain())
+            drainedBytes += chunk;
         else
-            m_cbFree += cbT;
-        cbLeft -= cbT;
-        cbDrain += cbT;
-        if (cb <= 0)
+            freeBytes += chunk;
+        remaining -= chunk;
+        drained += chunk;
+        if (byteCount <= 0)
             break;
     }
-    return cbDrain;
+    return drained;
 }
 
 /** @sly2-annot addr=0x13D7D0
@@ -146,16 +157,17 @@ int CByteQueue::CbDrain(int cb, CQueueOutput *pqo)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
-int CByteQueue::CbFill(int cb, byte *pb)
+// Fills the queue from a memory block (wraps it in a temporary CQueueInputMemory). Returns the bytes added.
+int CByteQueue::CbFill(int byteCount, byte *data)
 {
-    int cbRet;
-    if (cb == 0) {
-        cbRet = 0;
+    int result;
+    if (byteCount == 0) {
+        result = 0;
     } else {
-        CQueueInputMemory qim(pb, cb);
-        cbRet = CbFill(cb, &qim);
+        CQueueInputMemory memoryInput(data, byteCount);
+        result = CbFill(byteCount, &memoryInput);
     }
-    return cbRet;
+    return result;
 }
 
 /** @sly2-annot addr=0x13D818
@@ -163,13 +175,14 @@ int CByteQueue::CbFill(int cb, byte *pb)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
-void CByteQueue::FreeDrain(int cb)
+// Releases byteCount drained bytes back to the free space (0: all of them).
+void CByteQueue::FreeDrain(int byteCount)
 {
-    if (cb == 0)
-        cb = m_cbDrain;
-    if (cb != 0) {
-        m_cbFree += cb;
-        m_cbDrain -= cb;
+    if (byteCount == 0)
+        byteCount = drainedBytes;
+    if (byteCount != 0) {
+        freeBytes += byteCount;
+        drainedBytes -= byteCount;
     }
 }
 
@@ -180,13 +193,14 @@ void CByteQueue::FreeDrain(int cb)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
-int CQueueInputMemory::CbRead(int cb, void *pv)
+// Memory input: copies up to byteCount bytes from the block into dest and advances. Returns the bytes copied.
+int CQueueInputMemory::CbRead(int byteCount, void *dest)
 {
-    int cbT = NMin(cb, m_cbLeft);
-    memcpy(pv, m_pb + m_ib, cbT);
-    m_ib += cbT;
-    m_cbLeft -= cbT;
-    return cbT;
+    int chunk = NMin(byteCount, bytesLeft);
+    memcpy(dest, data + readOffset, chunk);
+    readOffset += chunk;
+    bytesLeft -= chunk;
+    return chunk;
 }
 
 /** @sly2-annot addr=0x13D8B8
@@ -196,7 +210,8 @@ int CQueueInputMemory::CbRead(int cb, void *pv)
  * See: docs/engine/core-library.md#7-key-functions,
  *   docs/reference/functions/core-library.md#bq-0x13d558-0x13da18
  * @end-sly2-annot */
-int CQueueInputFile::CbRead(int cb, void *pv)
+// File input: compiled out in the retail build, always reports end of input (0 bytes).
+int CQueueInputFile::CbRead(int byteCount, void *dest)
 {
     return 0;
 }
