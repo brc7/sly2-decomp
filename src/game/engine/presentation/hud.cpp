@@ -1981,7 +1981,7 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned char r, g, b, a; };
 struct QQ { qword a, b; };
 struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { struct RGBA c0; struct RGBA c1; char pad8[8]; struct QQ q; struct Z *pz; char pad34[0x24]; int x58; char pad5c[0x14]; };
+struct Y { struct RGBA c0; struct RGBA c1; char pad8[8]; struct QQ q; struct Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
 struct H { int c; struct Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; struct H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; struct A *aa; };
@@ -2014,7 +2014,7 @@ int FindSpriteItemPose(struct S *p, int k, struct QQ *pq, struct RGBA *pc0, stru
             *pc1 = y->c1;
             return 1;
         }
-        if (FindSpriteItemPose(p, k, pq, pc0, pc1, p->aa[z->id].ah[y->x58].c, p->aa[z->id].ah[y->x58].ay))
+        if (FindSpriteItemPose(p, k, pq, pc0, pc1, p->aa[z->id].ah[y->spriteSlot].c, p->aa[z->id].ah[y->spriteSlot].ay))
             return 1;
     }
     return 0;
@@ -2027,7 +2027,7 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
 struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int x58; char pad5c[0xC]; int x68; int x6C; };
+struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[0xC]; int x68; int x6C; };
 struct H { int c; Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; A *aa; };
@@ -2058,12 +2058,12 @@ extern "C" int RestartNestedSprite(S *p, int k, int z, int c, Y *ay)
         pz = y->pz;
         if (!pz || pz->k != 4)
             continue;
-        int oldframe=y->x58;
+        int oldframe=y->spriteSlot;
         if (pz->id == k) {
             StopSpriteSlot(&p->aa[k], oldframe);
             ClearSle(&y->x68);
-            y->x58 = IFreeSpriteSlot(&p->aa[k]);
-            StartSpriteAnimAt(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+            y->spriteSlot = IFreeSpriteSlot(&p->aa[k]);
+            StartSpriteAnimAt(&p->aa[k], z, y->spriteSlot, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
@@ -2082,7 +2082,7 @@ typedef int qword __attribute__((mode(TI)));
 struct RGBA { unsigned int u; RGBA(unsigned int x) { u = x; } } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
 struct Z { int x0; int k; char pad8[8]; int id; };
-struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int x58; char pad5c[8]; int x64; int x68; int x6C; };
+struct Y { int c0; int c1; char pad8[8]; QQ q; Z *pz; char pad34[0x24]; int spriteSlot; char pad5c[8]; int x64; int x68; int x6C; };
 struct H { int c; Y *ay; char pad8[0x10]; };
 struct A { unsigned short c; unsigned short c2; void *ae; H *ah; char padc[0x24]; };
 struct S { char pad[0x84]; A *aa; };
@@ -2113,13 +2113,13 @@ extern "C" int RestartNestedSpriteWithArg(S *p, int k, int z, int x, int c, Y *a
         pz = y->pz;
         if (!pz || pz->k != 4)
             continue;
-        int oldframe=y->x58;
+        int oldframe=y->spriteSlot;
         if (pz->id == k) {
             if(x != y->x64) continue;
             StopSpriteSlot(&p->aa[k], oldframe);
             ClearSle(&y->x68);
-            y->x58 = IFreeSpriteSlot(&p->aa[k]);
-            StartSpriteAnimAt(&p->aa[k], z, y->x58, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
+            y->spriteSlot = IFreeSpriteSlot(&p->aa[k]);
+            StartSpriteAnimAt(&p->aa[k], z, y->spriteSlot, &y->q, 0.0f, RGBA(0x7F7F7F7F), RGBA(0xFFFFFFFF));
             return 1;
         }
         {
@@ -2618,7 +2618,7 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; L *pl; int xc; int i; void *x14; };
-struct T { char pad[0x30]; S *x30; char pad34[0x24]; int x58; };
+struct T { char pad[0x30]; S *x30; char pad34[0x24]; int spriteSlot; };
 extern "C" int IFreeSpriteSlot(void *p);
 extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
 extern "C" void *func_001BEED8(int);
@@ -2636,8 +2636,8 @@ extern "C" void SetSpriteItemSource(S *p, T *t, void *q, RGBA c0, RGBA c1)
     t->x30 = p;
     switch (p->k) {
     case 4:
-        t->x58 = IFreeSpriteSlot(p->pl->pb + p->i * 0x30);
-        StartSpriteAnimSlot(p->pl->pb + p->i * 0x30, 0x314, t->x58, q, c0, c1);
+        t->spriteSlot = IFreeSpriteSlot(p->pl->pb + p->i * 0x30);
+        StartSpriteAnimSlot(p->pl->pb + p->i * 0x30, 0x314, t->spriteSlot, q, c0, c1);
         break;
     case 6:
         if (p->i != -1) {
@@ -2660,7 +2660,7 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; L *pl; int xc; int i; };
-struct T { char pad[0x58]; int x58; };
+struct T { char pad[0x58]; int spriteSlot; };
 extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x215850
  * Purpose: forward frame update (time, M23, colours) to nested sprite
@@ -2673,7 +2673,7 @@ extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA
 extern "C" void UpdateSpriteItem(float g, S *p, T *t, void *b, RGBA c0, RGBA c1)
 {
     if (p->k == 4)
-        UpdateSpriteSlot(p->pl->pb + p->i * 0x30, t->x58, b, g, c0, c1);
+        UpdateSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot, b, g, c0, c1);
 }
 } // namespace M_func_00215850
 
@@ -2682,7 +2682,7 @@ namespace M_func_002158C0 { extern "C" {
 struct L { char pad[0x84]; char *pb; };
 struct Q { char pad[0x20]; void *x20; };
 struct S { int x0; int k; struct L *pl; int xc; int i; struct Q *x14; };
-struct T { char pad[0x58]; int x58; };
+struct T { char pad[0x58]; int spriteSlot; };
 void StopSpriteSlot(void *p, int a);
 void func_001BED18(void *p);
 void InitSpriteItem(struct T *t);
@@ -2697,7 +2697,7 @@ void ReleaseSpriteItem(struct S *p, struct T *t)
 {
     switch (p->k) {
     case 4:
-        StopSpriteSlot(p->pl->pb + p->i * 0x30, t->x58);
+        StopSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot);
         break;
     case 6:
         if (p->x14) {
@@ -2715,7 +2715,7 @@ void ReleaseSpriteItem(struct S *p, struct T *t)
 namespace M_func_00215960 { extern "C" {
 struct L { char pad[0x84]; char *pb; };
 struct S { int x0; int k; struct L *pl; int xc; int i; };
-struct T { char pad[0x58]; int x58; char pad5c[5]; unsigned char b61; };
+struct T { char pad[0x58]; int spriteSlot; char pad5c[5]; unsigned char drawFlags; };
 void DrawSpriteSlot(void *p, int a, int b);
 void PrependSlEntry(void *p, struct T *t);
 /** @sly2-annot addr=0x215960
@@ -2729,13 +2729,13 @@ void QueueSpriteItem(struct S *p, struct T *t, int b)
 {
     switch (p->k) {
     case 4:
-        DrawSpriteSlot(p->pl->pb + p->i * 0x30, t->x58, t->b61);
+        DrawSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot, t->drawFlags);
         break;
     case 1:
     case 3:
     case 6:
     case 7:
-        t->b61 = b;
+        t->drawFlags = b;
         PrependSlEntry((char *)p->pl + 0xFC, t);
         break;
     case 2:
