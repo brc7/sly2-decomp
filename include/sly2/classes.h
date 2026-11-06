@@ -228,8 +228,8 @@ typedef char assert_CID43_size[sizeof(CID43) == 0x100 ? 1 : -1];
 struct BARRIER : SO
 {
     char pad150[0x180 - 0x150];
-    virtual CLASSINFO *Pclassinfo() __asm__("GetBarrierClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitBarrier");   /* slot 7 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetBarrierClassDesc");   /* slot 6 */
     virtual void VUnk14() __asm__("PostBarrierLoad");   /* slot 15 */
     virtual void AdjustNewXp(XP *pxp, int ixpd) __asm__("NotifyBarrierImpact");   /* slot 55 */
     virtual int FIgnoreIntersection(SO *psoOther) __asm__("FIgnoreBarrierIntersection");   /* slot 61 */
