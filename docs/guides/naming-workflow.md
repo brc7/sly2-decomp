@@ -109,7 +109,8 @@ Needs the matchtool environment (`SLY2_M2C_INC` for m2c files). Exit 0 = all app
 Policies:
 - **Plain names when the signature is not confirmed**: an unmangled C-linkage identifier everywhere (`EvaluateBezierPos`), never a guessed or placeholder mangling. The linker
   symbol is a claim about the binary and matchtool cannot check references, so a wrong mangling would record something false. Upgrading later is another rename.
-- **Confident mangled names** are used verbatim as identifiers (C files and `extern "C"` blocks in hand .cpp); promoting files to natural C++ is a separate cleanup.
+- **Confident mangled names** for a `func_XXXXXXXX` are used verbatim as identifiers (C files and `extern "C"` blocks in hand .cpp); promoting files to natural C++ is a separate cleanup.
+  Renaming a function that already has a mangled name keeps C++ linkage (see "C++-linkage renames" below).
 - One rename changes, in one lexer pass per file: code identifiers, the name inside string literals (asm labels, inline asm), comments (to the plain name), the file name
   (`src/**/OLD.c` -> `<symbol>.c`), `symbol_addrs.txt`, `functions.csv` and `matched.csv`. It also sweeps the `func_XXXXXXXX` placeholder, which finishes upstream's partial
   renames (421 named symbols are still referenced as `func_` in 2,791 places). Data symbols get `// type:data` entries.
@@ -222,7 +223,8 @@ data symbol stays byte-identical (matchtool), and every file is re-checked after
 
 **Matching constraints** (what is not free)
 - Function and global names are linker symbols: rename them with `tools/rename.py` (config + all callers), never by hand.
-  `extern "C"` names are the symbol; C++ names mangle parameter TYPES (not parameter names).
+  `extern "C"` names are the symbol; C++ names mangle parameter TYPES (not parameter names). For a C++ function give the
+  new base name only (`tools/rename.py FCheckLm__FP2LMf IsWithinLimits`); the tool keeps the signature part (section 5).
 - Local/parameter/field names never reach the object file. Types (`int` vs `bool`, signedness, widths), control-flow
   shape and statement order can change codegen: a readability rewrite of logic must still match or be reverted.
 - Line numbers matter for a few functions (path-hash quirk: `#line` pins). Adding comment lines can shift them — re-check

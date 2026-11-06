@@ -11,6 +11,8 @@ Options:
   --on-fail stop       stop at the first verification failure and leave the tree as it is (exit 2)
   --no-verify          skip matchtool verification (unit tests / emergencies only)
   --allow-unverifiable apply renames that touch code in files this machine cannot build (marked in the log)
+  --plain              OLD mangled + NEW plain: make NEW a C-linkage name (pre-2026-11 behaviour) instead of keeping
+                       C++ linkage
   --allow-existing-uses accept that code already using the new name refers to this same function (otherwise refused;
                        a local alias bound with __asm__("OLD") is recognised and accepted automatically)
   --log FILE           machine-readable JSON log (default build/rename_log.json)
@@ -24,10 +26,17 @@ What one rename changes (see DESIGN.txt for the reasons):
   * every OLD in comments -> the plain name (OLD.c / OLD.cpp in comments -> the new file name);
   * src/**/OLD.c / OLD.cpp -> src/**/<symbol>.c / .cpp;
   * config/symbol_addrs.txt (entry added or renamed), config/functions.csv Name, config/matched.csv name/source.
+C++ linkage: when OLD's symbol is a gcc 2.95 mangled function name and NEW is a plain name (or the mangled name with
+the same signature), the function keeps C++ linkage: the symbol becomes NEW + OLD[split:] (FCheckLm__FP2LMf ->
+IsWithinLimits__FP2LMf), the mangled spelling is replaced everywhere, and the base name is renamed in code and comments
+(every token when no other function shares the base; for a member whose base is shared, only spellings that name
+this class plus the call sites the compiler reports; virtual members: the asm label only). --plain gives the old
+C-linkage behaviour. The compiled object is the ground truth: the defining file must define the new symbol.
 Identifiers that merely contain OLD (func_00117120_x) are never touched; they are listed in the log as near misses.
 Besides the current name, the address placeholder (func_XXXXXXXX / D_XXXXXXXX) is also swept, so re-running a rename
 for an already-named address finishes references left behind by earlier partial renames.
-Every file whose code changes is rebuilt with tools/matchtool.py before and after; per-address results must be equal.
+Every file whose code changes is rebuilt with tools/matchtool.py before and after; per-address results must be equal,
+and the object's symbol table (defined + undefined) must equal the old one with only the intended renames applied.
 For a function, the file that matches it (config/matched.csv source) is always rebuilt, and the rename is refused
 unless that file defines it under one of the swept names (a C++ member spelled AllocSw, not AllocSw__4DMASi, needs a
 hand edit). matchtool checks every function of a file, so a merged TU is verified whole.
@@ -1225,7 +1234,10 @@ def commit_message(renames):
     ap = [r for r in renames if r.status == 'applied']
     lines = [f'Rename {len(ap)} function{"s" if len(ap) != 1 else ""} (tools/rename.py; every touched file re-verified MATCH)', '']
     for r in ap:
-        lines.append(f'  0x{r.addr:06X} {r.old} -> {r.symbol}' + ('' if r.policy == 'mangled' else '  (plain C-linkage name; signature unconfirmed)' if r.kind == 'func' else '  (data)'))
+        note = ('' if r.policy == 'mangled' else
+                '  (C++ linkage, base name only' + (', asm label only: virtual slot name kept' if r.cxx.get('label_only') else '') + ')'
+                if r.policy == 'cxx' else '  (plain C-linkage name; signature unconfirmed)' if r.kind == 'func' else '  (data)')
+        lines.append(f'  0x{r.addr:06X} {r.old} -> {r.symbol}' + note)
     other = [r for r in renames if r.status not in ('applied', 'already-applied')]
     if other:
         lines += ['', 'Not applied:'] + [f'  {r.key} -> {r.symbol or r.new_name}: {r.status}: {r.reason}' for r in other]
