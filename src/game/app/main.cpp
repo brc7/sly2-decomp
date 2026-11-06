@@ -268,8 +268,8 @@ void StartupVU1()
 
 /* The startup progress bar (CProg, 0x70 bytes) and its colours. Its members are called under their linker names
    on a byte view, as the per-function file did (modelling CProg as a class is a separate step). */
-struct B { char data[0x70]; };
-struct C { int c; } __attribute__((aligned(16)));
+struct CPROGV { char data[0x70]; };
+struct RGBAV { int c; } __attribute__((aligned(16)));
 /* The start-up banner (.rodata) and its two arguments, the region and the build number, with the build date between
  * them (.data, address order; the date is named by no code). The ELF has the three strings far from main's other
  * data, after xf's .data (a build-stamp TU later in the link order, presumably), so they get a section of their own
@@ -280,11 +280,11 @@ char D_002C46C8[] __attribute__((section(".data.buildinfo"))) = "08/13/04 00:32"
 char D_002C46D8[] __attribute__((section(".data.buildinfo"))) = "0813.0032";
 extern void (*D_002BFCE0[])(void);      /* the 19 startup stages */
 extern "C" {
-struct B *__5CProgP4RGBAN31(struct B *b, struct C *c0, struct C *c1, struct C *c2, struct C *c3);
+struct CPROGV *__5CProgP4RGBAN31(struct CPROGV *b, struct RGBAV *c0, struct RGBAV *c1, struct RGBAV *c2, struct RGBAV *c3);
 int printf(const char *format, ...);
-void Begin__5CProg(struct B *b);
-void SetRemain__5CProgi(struct B *b, int n);
-void End__5CProg(struct B *b);
+void Begin__5CProg(struct CPROGV *b);
+void SetRemain__5CProgi(struct CPROGV *b, int n);
+void End__5CProg(struct CPROGV *b);
 void ClearPhase(int n);
 }
 
@@ -301,19 +301,21 @@ void ClearPhase(int n);
 // clock before each; prints the build banner ("P3: 0813.0032 america").
 void Startup()
 {
-    struct B progressBar;
-    struct C color0, color1, color2, color3;
+    struct CPROGV progressBar;
+    struct RGBAV color0, color1, color2, color3;
     unsigned int stage;
     int showProgress;
     {
-    register unsigned int a2 __asm__("$5")=0x80003F3F;
-    register unsigned int a3 __asm__("$6")=0x8000003F;
-    register unsigned int a0 __asm__("$3")=0x807F0000;
-    register unsigned int a1 __asm__("$2")=0x803F3F3F;
-    color2.c=a2;
-    color3.c=a3;
-    color0.c=a0;
-    color1.c=a1;
+        /* The bar's four RGBA colours (alpha 0x80). Pinned registers: plain constant stores load them in another
+           order (no match). */
+        register unsigned int rgba2 __asm__("$5") = 0x80003F3F;
+        register unsigned int rgba3 __asm__("$6") = 0x8000003F;
+        register unsigned int rgba0 __asm__("$3") = 0x807F0000;
+        register unsigned int rgba1 __asm__("$2") = 0x803F3F3F;
+        color2.c = rgba2;
+        color3.c = rgba3;
+        color0.c = rgba0;
+        color1.c = rgba1;
     }
     __5CProgP4RGBAN31(&progressBar, &color0, &color1, &color2, &color3);
     printf(D_002A6A58, D_002C46D8, D_002C46C0, 0x2B0);

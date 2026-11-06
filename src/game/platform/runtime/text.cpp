@@ -104,9 +104,11 @@ int CchParsePchzInt(char *str, int *outValue)
 }
 
 // Parse one TFT specifier; all length modifiers advance to conversion.
-static inline int Abs(int n){return n<0?-n:n;}
-static inline int Upper(unsigned char c){return D_002AA6A1[c]&1;}
-static inline int Lower(unsigned char c){int r=c+0x20;if(!Upper(c))r=c;return r;}
+static inline int Abs(int n) { return n < 0 ? -n : n; }
+static inline int Upper(unsigned char c) { return D_002AA6A1[c] & 1; }
+static inline int Lower(unsigned char c) { int r = c + 0x20; if (!Upper(c)) r = c; return r; }
+/* CchParsePchzTft's parser states, in the order the parts of a specification appear. */
+enum { TFT_START, TFT_FLAGS, TFT_WIDTH, TFT_PRECISION, TFT_LENGTH, TFT_CONVERSION, TFT_DONE };
 /** @sly2-annot addr=0x21D6B0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -115,70 +117,119 @@ static inline int Lower(unsigned char c){int r=c+0x20;if(!Upper(c))r=c;return r;
 // Parses one conversion specification starting at '%' (flags, width or '*', '.precision' or '.*', length h/l/ll/
 // L/q, the m/M/v/V matrix-vector modifiers, conversion character) into *spec, taking '*' values from the argument
 // list. "%%" yields conversion '%'. Returns the length of the specification.
-int CchParsePchzTft(char *format,TFT *spec,char **args){
-    int state=0;
-    func_002333B4(spec,0,0x34);
-    unsigned char *p=(unsigned char *)format;
-    while(*p && state!=6){
-        int consumed=0;
-        int next=state;
-        switch(state){
-        case 0:
-            if(*p=='%'){
-                if(p[1]==*p){spec->conversion=p[1];next=6;consumed=2;}
-                else {next=1;consumed=1;}
-            }else next=6;
-            break;
-        case 1:
-            switch(*p){
-            case '-':spec->leftAlign=1;consumed=1;break;
-            case '+':spec->showPlus=1;consumed=1;break;
-            case ' ':spec->spaceForPlus=1;consumed=1;break;
-            case '#':spec->alternateForm=1;consumed=1;break;
-            case '0':spec->zeroPad=1;consumed=1;break;
-            default:next=2;break;
+int CchParsePchzTft(char *format, TFT *spec, char **args)
+{
+    int state = TFT_START;
+    func_002333B4(spec, 0, 0x34);
+    unsigned char *p = (unsigned char *)format;
+    while (*p && state != TFT_DONE) {
+        int consumed = 0;
+        int next = state;
+        switch (state) {
+        case TFT_START:
+            if (*p == '%') {
+                if (p[1] == *p) {   /* "%%" */
+                    spec->conversion = p[1];
+                    next = TFT_DONE;
+                    consumed = 2;
+                } else {
+                    next = TFT_FLAGS;
+                    consumed = 1;
+                }
+            } else {
+                next = TFT_DONE;
             }
             break;
-        case 2:
-            if(*p=='*'){
-                char *argSlot=*args;*args=argSlot+8;
-                spec->width=*(int *)argSlot;
-                if(spec->width<0){int width=Abs(spec->width);spec->leftAlign=1;spec->width=width;}
-                consumed=1;
-            }else consumed=CchParsePchzInt((char *)p,&spec->width);
-            if(p[consumed]=='.'){next=3;consumed++;}else next=4;
-            break;
-        case 3:
-            if(*p=='*'){
-                char *argSlot=*args;*args=argSlot+8;
-                spec->precision=Abs(*(int *)argSlot);consumed=1;
-            }else consumed=CchParsePchzInt((char *)p,&spec->precision);
-            spec->precisionIsZero=spec->precision==0;
-            next=4;
-            break;
-        case 4:
-            switch(*p){
-            case 'h':spec->lengthModifier=1;consumed=1;break;
-            case 'l':consumed=1;if(p[1]!='l'){spec->lengthModifier=2;break;}
-            case 'L':case 'q':spec->lengthModifier=2;consumed++;break;
-            case 'M':case 'm':case 'V':case 'v':
-                spec->columns=Upper(*p)?4:3;
-                spec->rows=Lower(*p)=='v'?1:spec->columns;
-                consumed=1;break;
-            default:break;
+        case TFT_FLAGS:
+            switch (*p) {
+            case '-': spec->leftAlign = 1; consumed = 1; break;
+            case '+': spec->showPlus = 1; consumed = 1; break;
+            case ' ': spec->spaceForPlus = 1; consumed = 1; break;
+            case '#': spec->alternateForm = 1; consumed = 1; break;
+            case '0': spec->zeroPad = 1; consumed = 1; break;
+            default: next = TFT_WIDTH; break;
             }
-            next=5;
             break;
-        case 5:
-            if(*p!='%'){spec->isUpperCase=Upper(*p);spec->conversion=Lower(*p);}
-            consumed=1;next=6;
+        case TFT_WIDTH:
+            if (*p == '*') {
+                char *argSlot = *args;   /* varargs slots are 8 bytes */
+                *args = argSlot + 8;
+                spec->width = *(int *)argSlot;
+                if (spec->width < 0) {
+                    int width = Abs(spec->width);
+                    spec->leftAlign = 1;
+                    spec->width = width;
+                }
+                consumed = 1;
+            } else {
+                consumed = CchParsePchzInt((char *)p, &spec->width);
+            }
+            if (p[consumed] == '.') {
+                next = TFT_PRECISION;
+                consumed++;
+            } else {
+                next = TFT_LENGTH;
+            }
             break;
-        default:goto done;
+        case TFT_PRECISION:
+            if (*p == '*') {
+                char *argSlot = *args;
+                *args = argSlot + 8;
+                spec->precision = Abs(*(int *)argSlot);
+                consumed = 1;
+            } else {
+                consumed = CchParsePchzInt((char *)p, &spec->precision);
+            }
+            spec->precisionIsZero = spec->precision == 0;
+            next = TFT_LENGTH;
+            break;
+        case TFT_LENGTH:
+            switch (*p) {
+            case 'h':
+                spec->lengthModifier = 1;
+                consumed = 1;
+                break;
+            case 'l':
+                consumed = 1;
+                if (p[1] != 'l') {
+                    spec->lengthModifier = 2;
+                    break;
+                }
+                /* "ll": fall through */
+            case 'L':
+            case 'q':
+                spec->lengthModifier = 2;
+                consumed++;
+                break;
+            case 'M':
+            case 'm':
+            case 'V':
+            case 'v':   /* matrix (4x4 / 3x3) and vector (4 / 3 components) modifiers */
+                spec->columns = Upper(*p) ? 4 : 3;
+                spec->rows = Lower(*p) == 'v' ? 1 : spec->columns;
+                consumed = 1;
+                break;
+            default:
+                break;
+            }
+            next = TFT_CONVERSION;
+            break;
+        case TFT_CONVERSION:
+            if (*p != '%') {
+                spec->isUpperCase = Upper(*p);
+                spec->conversion = Lower(*p);
+            }
+            consumed = 1;
+            next = TFT_DONE;
+            break;
+        default:
+            goto done;   /* leaves the loop from inside the switch */
         }
-        p+=consumed;state=next;
+        p += consumed;
+        state = next;
     }
- done:
-    return (char *)p-format;
+done:
+    return (char *)p - format;
 }
 
 static inline void WritePad(OSTRM *out, char padChar, int count)
@@ -325,50 +376,72 @@ int CchAchFromUl(char *buffer, int capacity, unsigned long value, unsigned int r
  * @end-sly2-annot */
 // Writes an integer conversion: '-', '+' or ' ' for %d/%i, the "0b"/"0"/"0x" prefix with '#', precision as the
 // minimum digit count, then width padding (zeros with '0', or spaces left/right); %X/%B upper-case prefix and digits.
-void WriteTftUl(TFT *spec,OSTRM *out,unsigned long value){
+void WriteTftUl(TFT *spec, OSTRM *out, unsigned long value)
+{
     char digits[65];
     char prefix[3];
-    int cPrefix,cDigits,cZero;
-    if(spec->precisionIsZero || spec->precision)spec->zeroPad=0;
-    if(spec->precisionIsZero && value==0){
-        cPrefix=0;
-        cZero=0;
-        cDigits=0;
+    int prefixLength, digitCount, zeroCount;
+    if (spec->precisionIsZero || spec->precision)
+        spec->zeroPad = 0;
+    if (spec->precisionIsZero && value == 0) {
+        prefixLength = 0;
+        zeroCount = 0;
+        digitCount = 0;
     } else {
-        int negative=FNegTftUl(spec,(UL *)&value);
-        cZero=spec->precision;
-        prefix[0]=0;
-        switch(spec->conversion){
-        case 'd':case 'i':
-            if(negative)__builtin_memcpy(prefix,"-",2);
-            else if(spec->showPlus)__builtin_memcpy(prefix,"+",2);
-            else if(spec->spaceForPlus)__builtin_memcpy(prefix," ",2);
-            cZero-=strlen(prefix);
+        int negative = FNegTftUl(spec, (UL *)&value);
+        zeroCount = spec->precision;
+        prefix[0] = 0;
+        switch (spec->conversion) {
+        case 'd':
+        case 'i':
+            if (negative)
+                __builtin_memcpy(prefix, "-", 2);
+            else if (spec->showPlus)
+                __builtin_memcpy(prefix, "+", 2);
+            else if (spec->spaceForPlus)
+                __builtin_memcpy(prefix, " ", 2);
+            zeroCount -= strlen(prefix);
             break;
-        case 'b':if(spec->alternateForm)__builtin_memcpy(prefix,"0b",3);break;
-        case 'o':if(spec->alternateForm)__builtin_memcpy(prefix,"0",2);break;
-        case 'x':if(spec->alternateForm)__builtin_memcpy(prefix,"0x",3);break;
+        case 'b':
+            if (spec->alternateForm)
+                __builtin_memcpy(prefix, "0b", 3);
+            break;
+        case 'o':
+            if (spec->alternateForm)
+                __builtin_memcpy(prefix, "0", 2);
+            break;
+        case 'x':
+            if (spec->alternateForm)
+                __builtin_memcpy(prefix, "0x", 3);
+            break;
         }
-        cPrefix=strlen(prefix);
-        cDigits=CchAchFromUl(digits,0x40,value,UnRadixFromChConversion(spec->conversion));
-        cZero-=cDigits;
-        if(cZero<0)cZero=0;
+        prefixLength = strlen(prefix);
+        digitCount = CchAchFromUl(digits, 0x40, value, UnRadixFromChConversion(spec->conversion));
+        zeroCount -= digitCount;
+        if (zeroCount < 0)
+            zeroCount = 0;
     }
-    digits[cDigits]=0;
-    if(spec->isUpperCase){UpperizePchz(prefix);UpperizePchz(digits);}
-    int total=cPrefix+cZero+cDigits;
-    int left=0,right=0;
-    if(total<spec->width){
-        int padding=spec->width-total;
-        if(spec->leftAlign)right=padding;
-        else if(spec->zeroPad && cDigits)cZero+=padding;
-        else left=padding;
+    digits[digitCount] = 0;
+    if (spec->isUpperCase) {
+        UpperizePchz(prefix);
+        UpperizePchz(digits);
     }
-    WritePad(out,' ',left);
-    out->CbWrite(prefix,cPrefix);
-    WritePad(out,'0',cZero);
-    out->CbWrite(digits,cDigits);
-    WritePad(out,' ',right);
+    int total = prefixLength + zeroCount + digitCount;
+    int left = 0, right = 0;
+    if (total < spec->width) {
+        int padding = spec->width - total;
+        if (spec->leftAlign)
+            right = padding;
+        else if (spec->zeroPad && digitCount)
+            zeroCount += padding;
+        else
+            left = padding;
+    }
+    WritePad(out, ' ', left);
+    out->CbWrite(prefix, prefixLength);
+    WritePad(out, '0', zeroCount);
+    out->CbWrite(digits, digitCount);
+    WritePad(out, ' ', right);
 }
 
 /** @sly2-annot addr=0x21E048
@@ -403,8 +476,10 @@ int ExpFirstFromG(double g)
 // digits that start at `precision`.
 unsigned char ChDigitFromG(double g, int position, int precision)
 {
-int digit; double shifted;
-    if (position < precision || position - 15 >= precision) digit = 0;
+    int digit;
+    double shifted;
+    if (position < precision || position - 15 >= precision)
+        digit = 0;
     else {
         shifted = GTrunc(dpmul(g, pow(10.0, litodp(-precision))));
         digit = dptoli(dpsub(shifted, dpmul(GTrunc(dpmul(shifted, 0.1)), 10.0)));
@@ -412,7 +487,7 @@ int digit; double shifted;
     return D_002C40C8[digit];
 }
 
-extern "C" const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)";   /* .rodata order (see WriteTftPchz) */
+extern "C" const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)"; /* .rodata order (see WriteTftPchz) */
 /** @sly2-annot addr=0x21E1B0
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -420,48 +495,70 @@ extern "C" const char D_002A94F0[] = "(nan)", D_002A94F8[] = "(inf)";   /* .roda
  * @end-sly2-annot */
 // Formats `value` for %e/%f/%g into buffer (at most capacity characters) per the spec's precision and flags,
 // printing "(nan)" / "(inf)" for non-finite values. Returns the length.
-int CchAchFromDouble(char *buffer,int capacity,TFT *spec,double value){
-    union {double d;unsigned long u;} bits;
-    bits.d=value;
-    if((bits.u&0x7FF0000000000000UL)==0x7FF0000000000000UL){
-        strcpy(buffer,(bits.u&0xFFFFFFFFFFFFFUL)?D_002A94F0:D_002A94F8);
+int CchAchFromDouble(char *buffer, int capacity, TFT *spec, double value)
+{
+    union {
+        double d;
+        unsigned long u;
+    } bits;
+    bits.d = value;
+    if ((bits.u & 0x7FF0000000000000UL) == 0x7FF0000000000000UL) {
+        strcpy(buffer, (bits.u & 0xFFFFFFFFFFFFFUL) ? D_002A94F0 : D_002A94F8);
         return strlen(buffer);
     }
-    int exponent=ExpFirstFromG(value);
-    char *p=buffer;
-    int scientific=spec->conversion=='e';
-    if(spec->conversion=='g'){
-        if(exponent<-4 || exponent>=spec->precision){scientific=1;spec->precision--;}
-    }
-    int roundExponent=scientific?exponent:0;
-    double rounded=value+0.5*pow(10.0,(double)(roundExponent-spec->precision));
-    int roundedExponent=ExpFirstFromG(rounded);
-    if(exponent<ExpFirstFromG(rounded))exponent=roundedExponent;
-    int digit,count;
-    if(scientific){count=1;digit=exponent;}
-    else if(exponent>=0){count=exponent+1;digit=exponent;}
-    else {count=1;digit=0;}
-    while(count-- >0)*p++=ChDigitFromG(rounded,exponent,digit--);
-    if(!spec->precisionIsZero){
-        *p++='.';
-        count=spec->precision;
-        while(count-- >0)*p++=ChDigitFromG(rounded,exponent,digit--);
-        if(spec->conversion=='g'){
-            while(p>buffer && ((unsigned char *)p)[-1]=='0')--p;
-            if(p>buffer && ((unsigned char *)p)[-1]=='.')--p;
+    int exponent = ExpFirstFromG(value);
+    char *p = buffer;
+    int scientific = spec->conversion == 'e';
+    if (spec->conversion == 'g') {
+        if (exponent < -4 || exponent >= spec->precision) {
+            scientific = 1;
+            spec->precision--;
         }
     }
-    if(scientific){
-        *p++='e';
-        if(exponent<0){*p++='-';exponent=-exponent;}
-        else *p++='+';
-        int divisor=(int)pow(10.0,2.0);
-        for(int i=2;i>=0;--i){
-            *p++=D_002C40C8[exponent/divisor];
-            exponent=(exponent%divisor)*10;
+    int roundExponent = scientific ? exponent : 0;
+    double rounded = value + 0.5 * pow(10.0, (double)(roundExponent - spec->precision));
+    int roundedExponent = ExpFirstFromG(rounded);
+    if (exponent < ExpFirstFromG(rounded))
+        exponent = roundedExponent;
+    int digit, count;
+    if (scientific) {
+        count = 1;
+        digit = exponent;
+    } else if (exponent >= 0) {
+        count = exponent + 1;
+        digit = exponent;
+    } else {
+        count = 1;
+        digit = 0;
+    }
+    while (count-- > 0)
+        *p++ = ChDigitFromG(rounded, exponent, digit--);
+    if (!spec->precisionIsZero) {
+        *p++ = '.';
+        count = spec->precision;
+        while (count-- > 0)
+            *p++ = ChDigitFromG(rounded, exponent, digit--);
+        if (spec->conversion == 'g') {
+            while (p > buffer && ((unsigned char *)p)[-1] == '0')
+                --p;
+            if (p > buffer && ((unsigned char *)p)[-1] == '.')
+                --p;
         }
     }
-    return p-buffer;
+    if (scientific) {
+        *p++ = 'e';
+        if (exponent < 0) {
+            *p++ = '-';
+            exponent = -exponent;
+        } else
+            *p++ = '+';
+        int divisor = (int)pow(10.0, 2.0);
+        for (int i = 2; i >= 0; --i) {
+            *p++ = D_002C40C8[exponent / divisor];
+            exponent = (exponent % divisor) * 10;
+        }
+    }
+    return p - buffer;
 }
 
 /** @sly2-annot addr=0x21E4B8
@@ -470,43 +567,77 @@ int CchAchFromDouble(char *buffer,int capacity,TFT *spec,double value){
  * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
  * @end-sly2-annot */
 // Writes a floating-point conversion: formats with CchAchFromDouble, then applies sign, width and justification.
-void WriteTftDouble(TFT *spec,OSTRM *out,double value){
+void WriteTftDouble(TFT *spec, OSTRM *out, double value)
+{
     char digits[0x1B6];
     char prefix[0x10];
-    int zeroes=0;
-    if(!spec->precision && !spec->precisionIsZero)spec->precision=6;
-    else if(spec->precisionIsZero && spec->conversion=='g')spec->precision=1;
-    int negative=value<0.0;
-    if(negative)value=0.0-value;
-    prefix[0]=0;
-    if(negative)__builtin_memcpy(prefix,"-",2);
-    else if(spec->showPlus)__builtin_memcpy(prefix,"+",2);
-    else if(spec->spaceForPlus)__builtin_memcpy(prefix," ",2);
-    int cPrefix=strlen(prefix);
-    int cDigits=CchAchFromDouble(digits,0x1B5,spec,value);
-    digits[cDigits]=0;
-    if(spec->isUpperCase)UpperizePchz(digits);
-    int left=0,right=0;
-    int total=cPrefix+cDigits;
-    if(total<spec->width){
-        int padding=spec->width-total;
-        if(spec->leftAlign)right=padding;
-        else if(spec->zeroPad && cDigits)zeroes=padding;
-        else left=padding;
+    int zeroes = 0;
+    if (!spec->precision && !spec->precisionIsZero)
+        spec->precision = 6;
+    else if (spec->precisionIsZero && spec->conversion == 'g')
+        spec->precision = 1;
+    int negative = value < 0.0;
+    if (negative)
+        value = 0.0 - value;
+    prefix[0] = 0;
+    if (negative)
+        __builtin_memcpy(prefix, "-", 2);
+    else if (spec->showPlus)
+        __builtin_memcpy(prefix, "+", 2);
+    else if (spec->spaceForPlus)
+        __builtin_memcpy(prefix, " ", 2);
+    int cPrefix = strlen(prefix);
+    int cDigits = CchAchFromDouble(digits, 0x1B5, spec, value);
+    digits[cDigits] = 0;
+    if (spec->isUpperCase)
+        UpperizePchz(digits);
+    int left = 0, right = 0;
+    int total = cPrefix + cDigits;
+    if (total < spec->width) {
+        int padding = spec->width - total;
+        if (spec->leftAlign)
+            right = padding;
+        else if (spec->zeroPad && cDigits)
+            zeroes = padding;
+        else
+            left = padding;
     }
-    WritePad(out,' ',left);
-    out->CbWrite(prefix,cPrefix);
-    WritePad(out,'0',zeroes);
-    out->CbWrite(digits,cDigits);
-    WritePad(out,' ',right);
+    WritePad(out, ' ', left);
+    out->CbWrite(prefix, cPrefix);
+    WritePad(out, '0', zeroes);
+    out->CbWrite(digits, cDigits);
+    WritePad(out, ' ', right);
 }
 
 // Write one TFT conversion, including scalar and grouped matrix formats.
-static inline char *Next(char **args){char *p=*args;*args=p+8;return p;}
-static inline void WritePchz(OSTRM *out,char *s){out->CbWrite(s,strlen(s));}
-static inline char *LiteralAddress(char *text){char *value;asm("la %0,%1":"=r"(value):"i"(text));return value;}
-static inline int CountWord(const OSTRM *out){register int value asm("$2");asm("lw %0,%1":"=r"(value):"m"(out->totalWritten));return value;}
-static inline short *ShortDestination(const char *slot){register short *value asm("$4");asm("lw %0,%1":"=r"(value):"m"(*(short *const *)slot));return value;}
+static inline char *Next(char **args)
+{
+    char *p = *args;
+    *args = p + 8;
+    return p;
+}
+static inline void WritePchz(OSTRM *out, char *s)
+{
+    out->CbWrite(s, strlen(s));
+}
+static inline char *LiteralAddress(char *text)
+{
+    char *value;
+    asm("la %0,%1" : "=r"(value) : "i"(text));
+    return value;
+}
+static inline int CountWord(const OSTRM *out)
+{
+    register int value asm("$2");
+    asm("lw %0,%1" : "=r"(value) : "m"(out->totalWritten));
+    return value;
+}
+static inline short *ShortDestination(const char *slot)
+{
+    register short *value asm("$4");
+    asm("lw %0,%1" : "=r"(value) : "m"(*(short *const *)slot));
+    return value;
+}
 /** @sly2-annot addr=0x21E718
  * Purpose: not written up yet; only the symbol name (pre-existing / Sly 1-derived) describes it.
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
@@ -515,49 +646,80 @@ static inline short *ShortDestination(const char *slot){register short *value as
 // Writes one parsed conversion, consuming its argument: %c %s, integers (%p is %.8x), %e/%f/%g (with %m/%v: a
 // braced row-by-row dump of the floats the argument points to), %n stores the count written so far; anything else
 // is copied through literally.
-void WriteTft(TFT *spec,OSTRM *out,char **args,char *text,int count){
-    switch(spec->conversion){
-    case '%':out->CbWrite(&spec->conversion,1);break;
-    case 'c':{unsigned char c=*(unsigned char *)Next(args);out->CbWrite(&c,1);break;}
-    case 's':WriteTftPchz(spec,out,*(char **)Next(args));break;
-    case 'p':spec->precision=8;spec->conversion='x';spec->lengthModifier=0;
-    case 'b':case 'd':case 'i':case 'o':case 'u':case 'x':{
-        unsigned long n;
-        switch(spec->lengthModifier){
-        case 0:case 1:n=*(unsigned int *)Next(args);break;
-        case 2:n=*(unsigned long *)Next(args);break;
-        }
-        WriteTftUl(spec,out,n);break;
+void WriteTft(TFT *spec, OSTRM *out, char **args, char *text, int count)
+{
+    switch (spec->conversion) {
+    case '%': out->CbWrite(&spec->conversion, 1); break;
+    case 'c': {
+        unsigned char c = *(unsigned char *)Next(args);
+        out->CbWrite(&c, 1);
+        break;
     }
-    case 'e':case 'f':case 'g':
-        if(spec->columns){
-            float *p=*(float **)Next(args);
-            char *newline="\n";
-            char *rowSep=",\n",*rowOpen="{ ",*itemSep=", ",*rowClose=" }";
-            if(spec->rows>1)out->CbWrite(newline,strlen(LiteralAddress(newline)));
-            int i=0;
-            while(i<spec->rows){
-                if(i)WritePchz(out,rowSep);
-                int nextRow=i+1;
-                WritePchz(out,rowOpen);
-                for(i=0;i<spec->columns;++i){
-                    if(i)WritePchz(out,itemSep);
-                    WriteTftDouble(spec,out,(double)*p++);
+    case 's': WriteTftPchz(spec, out, *(char **)Next(args)); break;
+    case 'p':
+        spec->precision = 8;
+        spec->conversion = 'x';
+        spec->lengthModifier = 0;
+    case 'b':
+    case 'd':
+    case 'i':
+    case 'o':
+    case 'u':
+    case 'x': {
+        unsigned long n;
+        switch (spec->lengthModifier) {
+        case 0:
+        case 1: n = *(unsigned int *)Next(args); break;
+        case 2: n = *(unsigned long *)Next(args); break;
+        }
+        WriteTftUl(spec, out, n);
+        break;
+    }
+    case 'e':
+    case 'f':
+    case 'g':
+        if (spec->columns) {
+            float *p = *(float **)Next(args);
+            char *newline = "\n";
+            char *rowSep = ",\n", *rowOpen = "{ ", *itemSep = ", ", *rowClose = " }";
+            if (spec->rows > 1)
+                out->CbWrite(newline, strlen(LiteralAddress(newline)));
+            int i = 0;
+            while (i < spec->rows) {
+                if (i)
+                    WritePchz(out, rowSep);
+                int nextRow = i + 1;
+                WritePchz(out, rowOpen);
+                for (i = 0; i < spec->columns; ++i) {
+                    if (i)
+                        WritePchz(out, itemSep);
+                    WriteTftDouble(spec, out, (double)*p++);
                 }
-                i=nextRow;
-                WritePchz(out,rowClose);
+                i = nextRow;
+                WritePchz(out, rowClose);
             }
-            if(spec->rows>1)out->CbWrite(newline,strlen(LiteralAddress(newline)));
-        }else WriteTftDouble(spec,out,*(double *)Next(args));
+            if (spec->rows > 1)
+                out->CbWrite(newline, strlen(LiteralAddress(newline)));
+        } else
+            WriteTftDouble(spec, out, *(double *)Next(args));
         break;
     case 'n':
-        switch(spec->lengthModifier){
-        case 0:{int *destination=*(int **)Next(args);*destination=out->totalWritten;}break;
-        case 1:{short *destination=ShortDestination(Next(args));*destination=CountWord(out);}break;
-        case 2:{long *destination=*(long **)Next(args);*destination=out->totalWritten;}break;
+        switch (spec->lengthModifier) {
+        case 0: {
+            int *destination = *(int **)Next(args);
+            *destination = out->totalWritten;
+        } break;
+        case 1: {
+            short *destination = ShortDestination(Next(args));
+            *destination = CountWord(out);
+        } break;
+        case 2: {
+            long *destination = *(long **)Next(args);
+            *destination = out->totalWritten;
+        } break;
         }
         break;
-    default:out->CbWrite(text,count);break;
+    default: out->CbWrite(text, count); break;
     }
 }
 
@@ -571,24 +733,25 @@ void WriteTft(TFT *spec,OSTRM *out,char **args,char *text,int count){
 int CchOstrmPrintf(OSTRM *out, char *format, char *args)
 {
     TFT spec;
-    if (*(unsigned char *)format) do {
-        char *nextPercent = strchr(format, '%');
-        int literalLength = nextPercent - format;
-        if (!nextPercent) {
-            literalLength = strlen(format);
-            nextPercent = format + literalLength;
-        }
-        if (literalLength != 0) {
-            if (out->CbWrite(format, literalLength) < literalLength)
-                break;
-            format = nextPercent;
-        }
-        if (*(unsigned char *)format == '%') {
-            int specLength = CchParsePchzTft(format, &spec, &args);
-            WriteTft(&spec, out, &args, format, specLength);
-            format += specLength;
-        }
-    } while (*(unsigned char *)format);
+    if (*(unsigned char *)format)
+        do {
+            char *nextPercent = strchr(format, '%');
+            int literalLength = nextPercent - format;
+            if (!nextPercent) {
+                literalLength = strlen(format);
+                nextPercent = format + literalLength;
+            }
+            if (literalLength != 0) {
+                if (out->CbWrite(format, literalLength) < literalLength)
+                    break;
+                format = nextPercent;
+            }
+            if (*(unsigned char *)format == '%') {
+                int specLength = CchParsePchzTft(format, &spec, &args);
+                WriteTft(&spec, out, &args, format, specLength);
+                format += specLength;
+            }
+        } while (*(unsigned char *)format);
     return out->totalWritten;
 }
 
@@ -708,7 +871,14 @@ extern "C" char *strcpy1(char *dest, char *src)
  *   docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
  * @end-sly2-annot */
 // Returns the first occurrence of character ch in p (the terminating NUL counts), or null.
-extern "C" char *strchr(const char *p,int ch) { do { if(*(unsigned char*)p==ch) return (char*)p; } while(*p++); return 0; }
+extern "C" char *strchr(const char *p, int ch)
+{
+    do {
+        if (*(unsigned char *)p == ch)
+            return (char *)p;
+    } while (*p++);
+    return 0;
+}
 
 // 0x21EE28: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x30");

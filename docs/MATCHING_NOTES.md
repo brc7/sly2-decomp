@@ -520,3 +520,15 @@ Per-function notes are in `notes/190000-1F0000_lanes.md` (agents `w3lane1`..`w3l
 - **Measured gcse PRE hash:** `hash(plus (reg r) (const_int c)) = (13258 + r + c) mod S`, S = (insns/2)|1 (func_001A8B50 notes).
 - **Not accepted:** locals or empty objects that exist only to move a stack slot or a pseudo number (func_001AA1D8's `NOOP` objects,
   the earlier padded func_001A87F0).
+
+## 2026-11 readability pass 2 (core / platform / app): what the compiler does not let go
+- **Single-exit gotos often stay.** Replacing `goto done;` with an early `return` changed codegen in FInvertMatrix (the
+  return duplicates STACKSCOPE's cleanup), func_0011F198, OSTRM::CbWrite and RefOpFindBindingOrNoop (a second copy of the
+  return expression changes allocation/layout). A goto *back* to a loop head (FindBspLeafContainingPointFast) and a goto
+  *into* a case (RefOpMult's int/float multiply) did become a `for (;;)` and two plain cases.
+- **`*(*pp)++ = x` is not `T **slot = (*pp)++; *slot = x;`** (CollectBspSurfacesTouchingPolygon): the temp form fixes the
+  evaluation order the target has; keep it.
+- **Register-pinned constants** (Startup's colours) do not survive as plain stores.
+- Free: enum constants for magic numbers (Splice tags, parser states, buffer sizes), whitespace/layout (clang-format on a
+  function range), renaming locals/fields of TU-private views, and switching a type name of a view used only under C
+  linkage or by a global variable.

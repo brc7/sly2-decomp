@@ -25,7 +25,8 @@ public:
     int fd;                 /* +0x0C file target (-1: memory; < 0: debug output) */
     int totalWritten;       /* +0x10 bytes written */
     int bufferedBytes;      /* +0x14 bytes in buffer */
-    char buffer[0x400];     /* +0x18 staging buffer for file / debug output */
+    enum { BUFFER_SIZE = 0x400 };
+    char buffer[BUFFER_SIZE];   /* +0x18 staging buffer for file / debug output */
     OSTRM(int fileDescriptor);
     OSTRM(void *data, int size);
     ~OSTRM();
@@ -89,13 +90,14 @@ int OSTRM::CbWrite(void *data, int size)
         int available;
         if (size == 0) {
             written = 0;
-            goto fail;
+            goto nothing;   /* shares the tail below; a direct return here changes the layout */
         }
         available = memCapacity - memUsed;
-        if (available < size) size = available;
+        if (available < size)
+            size = available;   /* clip to the space left in the block */
     }
     if (size == 0) {
-fail:
+nothing:
         return 0;
     }
     if (memTarget) {
@@ -104,7 +106,7 @@ fail:
         memUsed += size;
     } else {
         while (written < size) {
-            int freeInBuffer = 0x400 - bufferedBytes;
+            int freeInBuffer = BUFFER_SIZE - bufferedBytes;
             int remaining = size - written;
             int chunk = freeInBuffer < remaining ? freeInBuffer : remaining;
             if (chunk) {
@@ -112,7 +114,7 @@ fail:
                 written += chunk;
                 bufferedBytes += chunk;
             }
-            if (bufferedBytes == 0x400)
+            if (bufferedBytes == BUFFER_SIZE)
                 Flush();
         }
     }

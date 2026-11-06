@@ -34,6 +34,7 @@ struct EDGE
 /* A surface: its plane first (normal, distance in w); grf +0x18 (bit 0x4000: collected by CollectBspSurfacesTouchingPolygon). Sly 1's
    SURF (normal, gDot, pedge, pedgeOther, grf) does not fit the +0x18 flag word; only the plane and grf are used here. */
 struct SURF { qword plane; int pad[2]; int grf; };
+enum { SURF_COLLECTED = 0x4000 };   /* SURF::grf: already collected by CollectBspSurfacesTouchingPolygon */
 /* A BSP node: the negative and positive children (nodes at or after the limit are leaves) and the surface. The
    per-function views read the surface as a SURF, as a bare plane or as a pointer to rebase; they keep their reads. */
 struct BSP
@@ -385,26 +386,26 @@ extern "C" int CollectBspSurfacesTouchingPolygon(BSP *node, BSP *nodeLimit, int 
             if (!node)
                 return 0;
         } else {
-            int nl, nr;
-            BSP *pl = PnodeCheck(node->pbspNeg, nodeLimit);
-            if (pl)
-                nl = CollectBspSurfacesTouchingPolygon(pl, nodeLimit, pointCount, points, outCount, outSurfaces);
+            int negResult, posResult;
+            BSP *negChild = PnodeCheck(node->pbspNeg, nodeLimit);
+            if (negChild)
+                negResult = CollectBspSurfacesTouchingPolygon(negChild, nodeLimit, pointCount, points, outCount, outSurfaces);
             else
-                nl = 0;
-            BSP *pr = PnodeCheck(node->pbspPos, nodeLimit);
-            if (pr)
-                nr = CollectBspSurfacesTouchingPolygon(pr, nodeLimit, pointCount, points, outCount, outSurfaces);
+                negResult = 0;
+            BSP *posChild = PnodeCheck(node->pbspPos, nodeLimit);
+            if (posChild)
+                posResult = CollectBspSurfacesTouchingPolygon(posChild, nodeLimit, pointCount, points, outCount, outSurfaces);
             else
-                nr = 1;
-            if (nl == nr && nl != 2)
-                return nl;
+                posResult = 1;
+            if (negResult == posResult && negResult != 2)
+                return negResult;
             if (*outCount <= 0)
                 return 1;
-            SURF *psurf = node->psurf;
-            if (!(psurf->grf & 0x4000)) {
-                SURF **pp = (*outSurfaces)++;
-                *pp = psurf;
-                psurf->grf |= 0x4000;
+            SURF *surf = node->psurf;
+            if (!(surf->grf & SURF_COLLECTED)) {
+                SURF **slot = (*outSurfaces)++;
+                *slot = surf;
+                surf->grf |= SURF_COLLECTED;
             }
             return 2;
         }
@@ -415,7 +416,7 @@ extern "C" int CollectBspSurfacesTouchingPolygon(BSP *node, BSP *nodeLimit, int 
 // 0x118FA8: dead-code scrap, a nop unit (sly2/scrap.h)
 SLY2_SCRAP("nop");
 
-// FindBspLeafContainingPointFast (Claude agent, lane A8, 2026-10-23): BSP-style plane walk. From v6: one asm doing qmfc2.ni + mtc1 (scratch "=&r"), and the left child clipped into a block-scoped `q = 0; if (p < pnodeMax) q = p;` (gives the target v1->v0 copy). oq pinned to vf2.
+// FindBspLeafContainingPointFast (Claude agent, lane A8, 2026-10-23): BSP-style plane walk. From v6: one asm doing qmfc2.ni + mtc1 (scratch "=&r"), and the negative child clipped into a separate `child = 0; if (negChild < nodeLimit) child = negChild;` (gives the target v1->v0 copy), the positive one straight into node. oq pinned to vf2.
 /** @sly2-annot addr=0x118FB0
  * Purpose: Point location in a BSP without on-plane handling (dist<1e-4 -> left/negative child), returns the
  *   leaf node
@@ -428,14 +429,12 @@ SLY2_SCRAP("nop");
 // Returns the BSP leaf containing pos; points within 1e-4 of a plane go to the negative child (fast version).
 extern "C" BSP *FindBspLeafContainingPointFast(BSP *node, BSP *nodeLimit, qword pos)
 {
-    BSP *p;
     VUFU d;
     VUFU one;
     if (!node)
         return 0;
     VUFU *pone = &one;
-loop:
-    {
+    for (;;) {
         qword plane;
         __asm__("lqc2 %0, %1" : "=j"(plane) : "m"(*node->pplane));
         qword dq;
@@ -449,21 +448,22 @@ loop:
         one.q = oq;
         d.q = dq;
         if (g < 1.0e-4f) {
-            p = node->pbspNeg;
-            {BSP *q = 0; if (p < nodeLimit) q = p;
-            if (!q)
+            BSP *negChild = node->pbspNeg;
+            BSP *child = 0;
+            if (negChild < nodeLimit)
+                child = negChild;
+            if (!child)
                 return node;
-            node = q;}
-            goto loop;
+            node = child;
         } else {
-            p = node->pbspPos;
+            BSP *posChild = node->pbspPos;
             node = 0;
-            if (p < nodeLimit)
-                node = p;
+            if (posChild < nodeLimit)
+                node = posChild;
+            if (!node)
+                return 0;
         }
     }
-    if (node) goto loop;
-    return 0;
 }
 
 // (Claude agent, lane A9, 2026-10-23) BSP point search. On the on-plane path ONE local p holds the checked right child, the
@@ -515,10 +515,10 @@ extern "C" BSP *FindBspLeafContainingPoint(BSP *node, BSP *nodeLimit, qword pos)
     return 0;
 }
 
-typedef struct MSG { int cb; int nKind; } MSG;
+typedef struct MSG { int size; int alignment; } MSG;   /* a world-heap request (bis.cpp's view) */
 typedef struct ITEM { char ab[0x20]; } ITEM;
-typedef struct OWNER { char pad[0xC]; ITEM *aitem; } OWNER;
-typedef struct TREE { int cnode; int n4; int n8; BSP *anode; } TREE;
+typedef struct OWNER { char pad[0xC]; ITEM *items; } OWNER;
+typedef struct TREE { int nodeCount; int unknown4; int unknown8; BSP *nodes; } TREE;   /* bis.cpp's names */
 extern "C" void *AllocFromWorldHeap(MSG *pmsg);
 extern char D_002BBAF0[];
 #define REBASE(p, baseSrc, baseDst) ((void *)((char *)(baseDst) + ((char *)(p) - (char *)(baseSrc))))
@@ -534,21 +534,21 @@ extern "C" void CloneBspc(TREE *srcTree, OWNER *srcOwner, TREE *dstTree, OWNER *
 {
     int i;
     MSG msg;
-    dstTree->cnode = srcTree->cnode;
-    dstTree->n4 = srcTree->n4;
-    msg.cb = srcTree->cnode * sizeof(BSP);
-    msg.nKind = 0x10;
-    dstTree->anode = (BSP *)AllocFromWorldHeap(&msg);
-    for (i = 0; i < dstTree->cnode; i++) {
-        BSP *pnodeSrc = &srcTree->anode[i];
-        BSP *pnodeDst = &dstTree->anode[i];
-        if (pnodeSrc->pv == D_002BBAF0) {
-            pnodeDst->pv = pnodeSrc->pv;
+    dstTree->nodeCount = srcTree->nodeCount;
+    dstTree->unknown4 = srcTree->unknown4;
+    msg.size = srcTree->nodeCount * sizeof(BSP);
+    msg.alignment = 0x10;
+    dstTree->nodes = (BSP *)AllocFromWorldHeap(&msg);
+    for (i = 0; i < dstTree->nodeCount; i++) {
+        BSP *srcNode = &srcTree->nodes[i];
+        BSP *dstNode = &dstTree->nodes[i];
+        if (srcNode->pv == D_002BBAF0) {
+            dstNode->pv = srcNode->pv;   /* the shared "outside" sentinel plane is not rebased */
         } else {
-            pnodeDst->pv = REBASE(pnodeSrc->pv, srcOwner->aitem, dstOwner->aitem);
+            dstNode->pv = REBASE(srcNode->pv, srcOwner->items, dstOwner->items);
         }
-        pnodeDst->pbspNeg = pnodeSrc->pbspNeg ? (BSP *)REBASE(pnodeSrc->pbspNeg, srcTree->anode, dstTree->anode) : 0;
-        pnodeDst->pbspPos = pnodeSrc->pbspPos ? (BSP *)REBASE(pnodeSrc->pbspPos, srcTree->anode, dstTree->anode) : 0;
+        dstNode->pbspNeg = srcNode->pbspNeg ? (BSP *)REBASE(srcNode->pbspNeg, srcTree->nodes, dstTree->nodes) : 0;
+        dstNode->pbspPos = srcNode->pbspPos ? (BSP *)REBASE(srcNode->pbspPos, srcTree->nodes, dstTree->nodes) : 0;
     }
 }
 #undef REBASE

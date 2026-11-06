@@ -1019,17 +1019,17 @@ static inline qword QF(float g) { U u; qword u_q; __asm__("mfc1 %0, %1" : "=r"(u
 // 1e-4.
 extern "C" qword func_0011F198(qword a, qword b)
 {
-    float g, lb;
-    g = Len(a);
-    if (g < 1.0e-4f) {
-        g = 0.0f;
+    float cosine, lengthB;
+    cosine = Len(a);   /* |a| until the division */
+    if (cosine < 1.0e-4f) {
+        cosine = 0.0f;
     } else {
-        lb = Len(b);
-        if (lb < 1.0e-4f)
-            goto zero;
-        { register float p __asm__("$f1") = g * lb; g = Dot(a, b) / p; }
+        lengthB = Len(b);
+        if (lengthB < 1.0e-4f)
+            goto zero;   /* a separate tail; `return QF(0.0f)` here changes the allocation */
+        { register float lengthProduct __asm__("$f1") = cosine * lengthB; cosine = Dot(a, b) / lengthProduct; }
     }
-    return QF(g);
+    return QF(cosine);
 zero:
     return QF(0.0f);
 }

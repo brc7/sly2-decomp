@@ -150,12 +150,12 @@ CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref);
  * @end-sly2-annot */
 // Splice binding for option 3 on BASIC (g_aeopid[2], thunkFn): unpacks the script's 1 argument (Cid) with
 // RefSetArgsFromSplice, calls FIsBasicDerivedFrom and returns a bool to the script.
-CRef RefThunkBasicDERIVED_FROMQ(void *p, int c, void *aref)
+CRef RefThunkBasicDERIVED_FROMQ(void *object, int argCount, void *args)
 {
-    int k = 7;
+    int argType = 7;
     int n;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &n);
-    ref = FIsBasicDerivedFrom__FP5BASIC3CID(p, n) != 0;
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &n);
+    ref = FIsBasicDerivedFrom__FP5BASIC3CID(object, n) != 0;
     return ref;
 }
 } // namespace T_RefThunkBasicDERIVED_FROMQ
@@ -183,15 +183,15 @@ extern "C" { void EnsureLoSidebagClq__FP2LO5OPTIDP3CLQ(void *p, int n, void *pu)
  * @end-sly2-annot */
 // Splice binding for option 7 on BASIC (g_aeopid[6], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
 // Clq) with RefSetArgsFromSplice, calls EnsureLoSidebagClq and returns nothing to the script.
-CRef RefThunkBasicCUSTOM_CLQ_PROPERTY(void *p, int c, void *aref)
+CRef RefThunkBasicCUSTOM_CLQ_PROPERTY(void *object, int argCount, void *args)
 {
-    int ak[2] = {0x15, 9};
+    int argTypes[2] = {0x15, 9};
     union { qword q; } u;
     int n;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    EnsureLoSidebagClq__FP2LO5OPTIDP3CLQ(p, n, &u);
+    EnsureLoSidebagClq__FP2LO5OPTIDP3CLQ(object, n, &u);
     return ref;
 }
 } // namespace T_RefThunkBasicCUSTOM_CLQ_PROPERTY
@@ -209,15 +209,15 @@ extern "C" { void EnsureLoSidebagLm__FP2LO5OPTIDP2LM(void *p, int n, void *pu); 
  * @end-sly2-annot */
 // Splice binding for option 8 on BASIC (g_aeopid[7], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
 // Lm) with RefSetArgsFromSplice, calls EnsureLoSidebagLm and returns nothing to the script.
-CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *p, int c, void *aref)
+CRef RefThunkBasicCUSTOM_LM_PROPERTY(void *object, int argCount, void *args)
 {
-    int ak[2] = {0x15, 0xA};
+    int argTypes[2] = {0x15, 0xA};
     union { qword q; } u;
     int n;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    EnsureLoSidebagLm__FP2LO5OPTIDP2LM(p, n, &u);
+    EnsureLoSidebagLm__FP2LO5OPTIDP2LM(object, n, &u);
     return ref;
 }
 } // namespace T_RefThunkBasicCUSTOM_LM_PROPERTY
@@ -240,15 +240,15 @@ extern "C" { void EnsureLoSidebagVector(void *p, int n, qword q); CRef RefThunkB
  * @end-sly2-annot */
 // Splice binding for option 10 on BASIC (g_aeopid[9], thunkFn/thunkUser): unpacks the script's 2 arguments (Basic?,
 // Vector) with RefSetArgsFromSplice, calls EnsureLoSidebagVector and returns nothing to the script.
-CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *p, int c, void *aref)
+CRef RefThunkBasicCUSTOM_VECTOR_PROPERTY(void *object, int argCount, void *args)
 {
-    int ak[2] = {0x15, 2};
+    int argTypes[2] = {0x15, 2};
     union { qword q; } u;
     int n;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    EnsureLoSidebagVector(p, n, u.q);
+    EnsureLoSidebagVector(object, n, u.q);
     return ref;
 }
 } // namespace T_RefThunkBasicCUSTOM_VECTOR_PROPERTY
@@ -300,13 +300,13 @@ extern "C" CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *p, int c, void *aref);
  * @end-sly2-annot */
 // Splice binding for option 108 on SO (g_aeopid[43], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls virtual and returns a bool to the script.
-CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *p, int c, void *aref)
+CRef RefThunkSoPOINT_IN_BSP_QUICK(LO *object, int argCount, void *args)
 {
     union { qword q; } u;
-    int k = 2;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &u);
-    VT *pvt = &p->pvt[73];
-    ref = ((int (*)(void *, qword))pvt->pfn)((char *)p + pvt->d, u.q) != 0;
+    int argType = 2;
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &u);
+    VT *pvt = &object->pvt[73];
+    ref = ((int (*)(void *, qword))pvt->pfn)((char *)object + pvt->d, u.q) != 0;
     return ref;
 }
 } // namespace T_RefThunkSoPOINT_IN_BSP_QUICK
@@ -453,15 +453,15 @@ extern "C" { void * ApplyAsegToObject(void *p, int, float, float, int); CRef Ref
  * @end-sly2-annot */
 // Splice binding for option 214 on ASEG (g_aeopid[106], thunkFn): unpacks the script's 4 arguments (0x2030, Float,
 // Float, 0x100B) with RefSetArgsFromSplice, calls PasegaApplyAseg and returns a value of type 0x2086 to the script.
-CRef RefThunkAsegAPPLY(void *p, int c, void *aref)
+CRef RefThunkAsegAPPLY(void *object, int argCount, void *args)
 {
-    int ak[4] = {0x2030, 0x1, 0x1, 0x100b};
+    int argTypes[4] = {0x2030, 0x1, 0x1, 0x100b};
     int v0;
     float v1;
     float v2;
     int v3;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, aref, ak, &v0, &v1, &v2, &v3);
-    ref = ApplyAsegToObject(p, v0, v1, v2, v3);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, args, argTypes, &v0, &v1, &v2, &v3);
+    ref = ApplyAsegToObject(object, v0, v1, v2, v3);
     return ref;
 }
 } // namespace T_RefThunkAsegAPPLY
@@ -485,16 +485,16 @@ extern "C" { void * PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(void *p, int, int, fl
 // Splice binding for option 216 on ASEG (g_aeopid[108], thunkFn): unpacks the script's 5 arguments (0x2030, 0x100C,
 // Float, Float, 0x100B) with RefSetArgsFromSplice, calls PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi and returns a value
 // of type 0x2086 to the script.
-CRef RefThunkAsegENSURE(void *p, int c, void *aref)
+CRef RefThunkAsegENSURE(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x2030, 0x100c, 0x1, 0x1, 0x100b};
+    int argTypes[5] = {0x2030, 0x100c, 0x1, 0x1, 0x100b};
     int v0;
     int v1;
     float v2;
     float v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
-    ref = PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(p, v0, v1, v2, v3, v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
+    ref = PasegaEnsureAseg__FP4ASEGP3ALO4SEEKffi(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunkAsegENSURE
@@ -540,12 +540,12 @@ extern "C" { void *StartDialog(void *p, int a, int b); CRef RefThunk_StartDialog
  * @end-sly2-annot */
 // Splice binding for option 264 on CID152 (g_aeopid[137], thunkFn): unpacks the script's 2 arguments (0x10, 0x105D)
 // with RefSetArgsFromSplice, calls StartDialog and returns a value of type 0x2097 to the script.
-CRef RefThunk_StartDialog(void *p, int c, void *aref)
+CRef RefThunk_StartDialog(void *object, int argCount, void *args)
 {
-    int ak[2] = {0x10, 0x105D};
+    int argTypes[2] = {0x10, 0x105D};
     int a, b;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &a, &b);
-    ref = StartDialog(p, a, b);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &a, &b);
+    ref = StartDialog(object, a, b);
     return ref;
 }
 } // namespace T_RefThunk_StartDialog
@@ -929,13 +929,13 @@ extern "C" { int CalculateDetectorTargetState(void *p, int, int); CRef RefThunk_
 // Splice binding for option 466 on DETECTOR (g_aeopid[347], thunkFn): unpacks the script's 2 arguments (0x2002,
 // 0x106B) with RefSetArgsFromSplice, calls KCalculateDetectorTarget and returns a value of type 0x106B to the
 // script.
-CRef RefThunk_KCalculateDetectorTarget(void *p, int c, void *aref)
+CRef RefThunk_KCalculateDetectorTarget(void *object, int argCount, void *args)
 {
-    int ak[2] = {0x2002, 0x106b};
+    int argTypes[2] = {0x2002, 0x106b};
     int v0;
     int v1;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &v0, &v1);
-    ref = CalculateDetectorTargetState(p, v0, v1);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &v0, &v1);
+    ref = CalculateDetectorTargetState(object, v0, v1);
     return ref;
 }
 } // namespace T_RefThunk_KCalculateDetectorTarget
@@ -1030,12 +1030,12 @@ CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref);
  * @end-sly2-annot */
 // Splice binding for option 108 on VOL (g_aeopid[366], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls FCheckVolPoint and returns a bool to the script.
-CRef RefThunkVolCHECK_POINT(void *p, int c, void *aref)
+CRef RefThunkVolCHECK_POINT(void *object, int argCount, void *args)
 {
-    int ak[1] = {2};
+    int argTypes[1] = {2};
     union { qword q; } u;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, ak, &u);
-    ref = IsPointInVol(p, u.q) != 0;
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, argTypes, &u);
+    ref = IsPointInVol(object, u.q) != 0;
     return ref;
 }
 } // namespace T_RefThunkVolCHECK_POINT
@@ -1075,12 +1075,12 @@ extern "C" { void *ApplySmToObject(void *p, int a, int b, int c); CRef RefThunkS
  * @end-sly2-annot */
 // Splice binding for option 214 on SM (g_aeopid[368], thunkFn): unpacks the script's 3 arguments (0x2030, Oid,
 // 0x100B) with RefSetArgsFromSplice, calls PsmaApplySm and returns a value of type 0x2088 to the script.
-CRef RefThunkSmAPPLY(void *p, int c, void *aref)
+CRef RefThunkSmAPPLY(void *object, int argCount, void *args)
 {
-    int ak[3] = {0x2030, 6, 0x100B};
+    int argTypes[3] = {0x2030, 6, 0x100B};
     int a, b, d;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &a, &b, &d);
-    ref = ApplySmToObject(p, a, b, d);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, args, argTypes, &a, &b, &d);
+    ref = ApplySmToObject(object, a, b, d);
     return ref;
 }
 } // namespace T_RefThunkSmAPPLY
@@ -1098,15 +1098,15 @@ extern "C" { void * PsmaApplySmEx(void *p, int, int, int, int); CRef RefThunk_Ps
  * @end-sly2-annot */
 // Splice binding for option 477 on SM (g_aeopid[369], thunkFn): unpacks the script's 4 arguments (0x2030, Oid,
 // 0x100B, 0x1054) with RefSetArgsFromSplice, calls PsmaApplySmEx and returns a value of type 0x2088 to the script.
-CRef RefThunk_PsmaApplySmEx(void *p, int c, void *aref)
+CRef RefThunk_PsmaApplySmEx(void *object, int argCount, void *args)
 {
-    int ak[4] = {0x2030, 0x6, 0x100b, 0x1054};
+    int argTypes[4] = {0x2030, 0x6, 0x100b, 0x1054};
     int v0;
     int v1;
     int v2;
     int v3;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, aref, ak, &v0, &v1, &v2, &v3);
-    ref = PsmaApplySmEx(p, v0, v1, v2, v3);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(4, args, argTypes, &v0, &v1, &v2, &v3);
+    ref = PsmaApplySmEx(object, v0, v1, v2, v3);
     return ref;
 }
 } // namespace T_RefThunk_PsmaApplySmEx
@@ -1155,16 +1155,16 @@ extern "C" { CRef RefThunk_FireMissile(LO *p, int c, void *aref); }
  * @end-sly2-annot */
 // Splice binding for option 508 on MISSILE (g_aeopid[405], thunkFn): unpacks the script's 2 arguments (0x2030,
 // Vector) with RefSetArgsFromSplice, calls virtual and returns nothing to the script.
-CRef RefThunk_FireMissile(LO *p, int c, void *aref)
+CRef RefThunk_FireMissile(LO *object, int argCount, void *args)
 {
-    int ak[2] = {0x2030, 2};
+    int argTypes[2] = {0x2030, 2};
     union { qword q; } u;
     int n;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    VTE *pvte = &p->pvt[78];
-    pvte->pfn((char *)p + pvte->d, n, &u);
+    VTE *pvte = &object->pvt[78];
+    pvte->pfn((char *)object + pvte->d, n, &u);
     return ref;
 }
 } // namespace T_RefThunk_FireMissile
@@ -1221,9 +1221,9 @@ extern "C" { void AddLasenBeam(void *p, int, float, float, float, int, int, floa
 // Splice binding for option 541 on CID85 (g_aeopid[455], thunkUser): unpacks the script's 10 arguments (Oid, Float,
 // Float, Float, 0x100B, Oid, Float, Float, Float, 0x100B) with RefSetArgsFromSplice, calls AddLasenBeam and returns
 // nothing to the script.
-CRef RefThunk_AddLasenBeam(void *p, int c, void *aref)
+CRef RefThunk_AddLasenBeam(void *object, int argCount, void *args)
 {
-    int ak[10] = {0x6, 0x1, 0x1, 0x1, 0x100b, 0x6, 0x1, 0x1, 0x1, 0x100b};
+    int argTypes[10] = {0x6, 0x1, 0x1, 0x1, 0x100b, 0x6, 0x1, 0x1, 0x1, 0x100b};
     int v0;
     float v1;
     float v2;
@@ -1234,10 +1234,10 @@ CRef RefThunk_AddLasenBeam(void *p, int c, void *aref)
     float v7;
     float v8;
     int v9;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(10, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(10, args, argTypes, &v0, &v1, &v2, &v3, &v4, &v5, &v6, &v7, &v8, &v9);
     ref.Decref();
     ref.InitTag(0x24);
-    AddLasenBeam(p, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9);
+    AddLasenBeam(object, v0, v1, v2, v3, v4, v5, v6, v7, v8, v9);
     return ref;
 }
 } // namespace T_RefThunk_AddLasenBeam
@@ -1282,19 +1282,19 @@ extern "C" { void ExplodeExplParams(void *p, int, int, qword, qword, float, floa
 // Splice binding for option 616 on EXPL (g_aeopid[535], thunkFn): unpacks the script's 6 arguments (0x1026, 0x2002,
 // Vector, Vector, Float, Float) with RefSetArgsFromSplice, calls ExplodeExplParams and returns nothing to the
 // script.
-CRef RefThunkExplEXPLODE_OVR(void *p, int c, void *aref)
+CRef RefThunkExplEXPLODE_OVR(void *object, int argCount, void *args)
 {
-    int ak[6] = {0x1026, 0x2002, 0x2, 0x2, 0x1, 0x1};
+    int argTypes[6] = {0x1026, 0x2002, 0x2, 0x2, 0x1, 0x1};
     union { qword q; } v2;
     union { qword q; } v3;
     int v0;
     int v1;
     float v4;
     float v5;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(6, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(6, args, argTypes, &v0, &v1, &v2, &v3, &v4, &v5);
     ref.Decref();
     ref.InitTag(0x24);
-    ExplodeExplParams(p, v0, v1, v2.q, v3.q, v4, v5);
+    ExplodeExplParams(object, v0, v1, v2.q, v3.q, v4, v5);
     return ref;
 }
 } // namespace T_RefThunkExplEXPLODE_OVR
@@ -1438,14 +1438,14 @@ extern "C" { void AddRelayWaitBlocks(void *p, CRef *pref); CRef RefThunk_AddRela
  * @end-sly2-annot */
 // Splice binding for option 651 on RELAY (g_aeopid[628], thunkFn/thunkUser): unpacks the script's 1 argument
 // (0x8006) with RefSetArgsFromSplice, calls AddRelayWaitBlocks and returns nothing to the script.
-CRef RefThunk_AddRelayWaitBlocks(void *p, int c, void *aref)
+CRef RefThunk_AddRelayWaitBlocks(void *object, int argCount, void *args)
 {
-    int k = 0x8006;
+    int argType = 0x8006;
     CRef r;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &r);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &r);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayWaitBlocks(p, &r);
+    AddRelayWaitBlocks(object, &r);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayWaitBlocks
@@ -1492,18 +1492,18 @@ extern "C" { void AddRelayApplySm(void *p, int, int, int, int, int); CRef RefThu
  * @end-sly2-annot */
 // Splice binding for option 526 on RELAY (g_aeopid[638], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Oid, Oid, Bool, Bool) with RefSetArgsFromSplice, calls AddRelayApplySm and returns nothing to the script.
-CRef RefThunkRelaySET_SM_GOAL(void *p, int c, void *aref)
+CRef RefThunkRelaySET_SM_GOAL(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x6, 0x6, 0x6, 0x0, 0x0};
+    int argTypes[5] = {0x6, 0x6, 0x6, 0x0, 0x0};
     int v0;
     int v1;
     int v2;
     int v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayApplySm(p, v0, v1, v2, v3, v4);
+    AddRelayApplySm(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunkRelaySET_SM_GOAL
@@ -1607,18 +1607,18 @@ extern "C" { void AddRelayStepCmd29(void *p, int, float, float, int, int); CRef 
  * @end-sly2-annot */
 // Splice binding for option 675 on RELAY (g_aeopid[667], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayStepCmd29 and returns nothing to the script.
-CRef RefThunk_AddRelayStepCmd29(void *p, int c, void *aref)
+CRef RefThunk_AddRelayStepCmd29(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
+    int argTypes[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
     int v0;
     float v1;
     float v2;
     int v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayStepCmd29(p, v0, v1, v2, v3, v4);
+    AddRelayStepCmd29(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayStepCmd29
@@ -1637,18 +1637,18 @@ extern "C" { void AddRelayRespawn(void *p, int, int, int, int, int); CRef RefThu
  * @end-sly2-annot */
 // Splice binding for option 628 on RELAY (g_aeopid[668], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // 0x102E, 0x102F, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayRespawn and returns nothing to the script.
-CRef RefThunk_AddRelayRespawn(void *p, int c, void *aref)
+CRef RefThunk_AddRelayRespawn(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x6, 0x102e, 0x102f, 0x0, 0x6};
+    int argTypes[5] = {0x6, 0x102e, 0x102f, 0x0, 0x6};
     int v0;
     int v1;
     int v2;
     int v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayRespawn(p, v0, v1, v2, v3, v4);
+    AddRelayRespawn(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayRespawn
@@ -1667,18 +1667,18 @@ extern "C" { void AddRelayLaunchTo(void *p, int, float, float, int, int); CRef R
  * @end-sly2-annot */
 // Splice binding for option 676 on RELAY (g_aeopid[669], thunkFn/thunkUser): unpacks the script's 5 arguments (Oid,
 // Float, Float, Bool, Oid) with RefSetArgsFromSplice, calls AddRelayLaunchTo and returns nothing to the script.
-CRef RefThunk_AddRelayLaunchTo(void *p, int c, void *aref)
+CRef RefThunk_AddRelayLaunchTo(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
+    int argTypes[5] = {0x6, 0x1, 0x1, 0x0, 0x6};
     int v0;
     float v1;
     float v2;
     int v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayLaunchTo(p, v0, v1, v2, v3, v4);
+    AddRelayLaunchTo(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayLaunchTo
@@ -1729,9 +1729,9 @@ extern "C" { void AddRelaySound(void *p, int, int, int, int, float, float, float
 // Splice binding for option 231 on RELAY (g_aeopid[680], thunkFn/thunkUser): unpacks the script's 7 arguments (0xE,
 // Oid, Int, Int, Float, Float, Float) with RefSetArgsFromSplice, calls AddRelaySound and returns nothing to the
 // script.
-CRef RefThunk_AddRelaySound(void *p, int c, void *aref)
+CRef RefThunk_AddRelaySound(void *object, int argCount, void *args)
 {
-    int ak[7] = {0xe, 0x6, 0x5, 0x5, 0x1, 0x1, 0x1};
+    int argTypes[7] = {0xe, 0x6, 0x5, 0x5, 0x1, 0x1, 0x1};
     int v0;
     int v1;
     int v2;
@@ -1739,10 +1739,10 @@ CRef RefThunk_AddRelaySound(void *p, int c, void *aref)
     float v4;
     float v5;
     float v6;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(7, aref, ak, &v0, &v1, &v2, &v3, &v4, &v5, &v6);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(7, args, argTypes, &v0, &v1, &v2, &v3, &v4, &v5, &v6);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelaySound(p, v0, v1, v2, v3, v4, v5, v6);
+    AddRelaySound(object, v0, v1, v2, v3, v4, v5, v6);
     return ref;
 }
 } // namespace T_RefThunk_AddRelaySound
@@ -1766,18 +1766,18 @@ extern "C" { void AddRelayCamBlendFrom(void *p, qword, qword, float, float, int)
 // Splice binding for option 677 on RELAY (g_aeopid[682], thunkFn/thunkUser): unpacks the script's 5 arguments
 // (Vector, Vector, Float, Float, 0x106D) with RefSetArgsFromSplice, calls AddRelayCamBlendFrom and returns nothing
 // to the script.
-CRef RefThunk_AddRelayCamBlendFrom(void *p, int c, void *aref)
+CRef RefThunk_AddRelayCamBlendFrom(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x2, 0x2, 0x1, 0x1, 0x106d};
+    int argTypes[5] = {0x2, 0x2, 0x1, 0x1, 0x106d};
     union { qword q; } v0;
     union { qword q; } v1;
     float v2;
     float v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayCamBlendFrom(p, v0.q, v1.q, v2, v3, v4);
+    AddRelayCamBlendFrom(object, v0.q, v1.q, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayCamBlendFrom
@@ -1797,18 +1797,18 @@ extern "C" { void AddRelayCamBlendTo(void *p, qword, qword, float, int, int); CR
 // Splice binding for option 678 on RELAY (g_aeopid[683], thunkFn/thunkUser): unpacks the script's 5 arguments
 // (Vector, Vector, Float, Bool, Bool) with RefSetArgsFromSplice, calls AddRelayCamBlendTo and returns nothing to the
 // script.
-CRef RefThunk_AddRelayCamBlendTo(void *p, int c, void *aref)
+CRef RefThunk_AddRelayCamBlendTo(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x2, 0x2, 0x1, 0x0, 0x0};
+    int argTypes[5] = {0x2, 0x2, 0x1, 0x0, 0x0};
     union { qword q; } v0;
     union { qword q; } v1;
     float v2;
     int v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayCamBlendTo(p, v0.q, v1.q, v2, v3, v4);
+    AddRelayCamBlendTo(object, v0.q, v1.q, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayCamBlendTo
@@ -1843,16 +1843,16 @@ extern "C" { void AddRelayTweenTarget(void *p, qword, qword, float); CRef RefThu
  * @end-sly2-annot */
 // Splice binding for option 684 on RELAY (g_aeopid[689], thunkFn/thunkUser): unpacks the script's 3 arguments
 // (Vector, Vector, Float) with RefSetArgsFromSplice, calls AddRelayTweenTarget and returns nothing to the script.
-CRef RefThunk_AddRelayTweenTarget(void *p, int c, void *aref)
+CRef RefThunk_AddRelayTweenTarget(void *object, int argCount, void *args)
 {
-    int ak[3] = {0x2, 0x2, 0x1};
+    int argTypes[3] = {0x2, 0x2, 0x1};
     union { qword q; } v0;
     union { qword q; } v1;
     float v2;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &v0, &v1, &v2);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, args, argTypes, &v0, &v1, &v2);
     ref.Decref();
     ref.InitTag(0x24);
-    AddRelayTweenTarget(p, v0.q, v1.q, v2);
+    AddRelayTweenTarget(object, v0.q, v1.q, v2);
     return ref;
 }
 } // namespace T_RefThunk_AddRelayTweenTarget
@@ -1988,15 +1988,15 @@ extern "C" { void StartStepplayerFollow(void *p, int n, qword q); CRef RefThunk_
  * @end-sly2-annot */
 // Splice binding for option 446 on STEPPLAYER (g_aeopid[733], thunkFn): unpacks the script's 2 arguments (0x2002,
 // Vector) with RefSetArgsFromSplice, calls StartStepplayerBhvC2 and returns nothing to the script.
-CRef RefThunk_StartStepplayerFollow(void *p, int c, void *aref)
+CRef RefThunk_StartStepplayerFollow(void *object, int argCount, void *args)
 {
-    int ak[2] = {0x2002, 2};
+    int argTypes[2] = {0x2002, 2};
     union { qword q; } u;
     int n;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, aref, ak, &n, &u);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(2, args, argTypes, &n, &u);
     ref.Decref();
     ref.InitTag(0x24);
-    StartStepplayerFollow(p, n, u.q);
+    StartStepplayerFollow(object, n, u.q);
     return ref;
 }
 } // namespace T_RefThunk_StartStepplayerFollow
@@ -2249,12 +2249,12 @@ CRef RefThunk_PpoClosestSw(void *p, int c, void *aref);
  * @end-sly2-annot */
 // Splice binding for option 847 on SW (g_aeopid[929], thunkFn): unpacks the script's 1 argument (Vector) with
 // RefSetArgsFromSplice, calls PpoClosestSw and returns a value of type 0x2032 to the script.
-CRef RefThunk_PpoClosestSw(void *p, int c, void *aref)
+CRef RefThunk_PpoClosestSw(void *object, int argCount, void *args)
 {
     union { qword q; } u;
-    int k = 2;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &u);
-    ref = FindClosestSwPo(p, u.q);
+    int argType = 2;
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &u);
+    ref = FindClosestSwPo(object, u.q);
     return ref;
 }
 } // namespace T_RefThunk_PpoClosestSw
@@ -2273,13 +2273,13 @@ extern "C" { void *EmitSwNoise(void *p, int a, qword q, int b); CRef RefThunk_Em
  * @end-sly2-annot */
 // Splice binding for option 850 on SW (g_aeopid[932], thunkFn): unpacks the script's 3 arguments (0x1046, Vector,
 // 0x2002) with RefSetArgsFromSplice, calls EmitSwNoise and returns a value of type 0x2093 to the script.
-CRef RefThunk_EmitSwNoise(void *p, int c, void *aref)
+CRef RefThunk_EmitSwNoise(void *object, int argCount, void *args)
 {
-    int ak[3] = {0x1046, 2, 0x2002};
+    int argTypes[3] = {0x1046, 2, 0x2002};
     union { qword q; } u;
     int a, b;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, aref, ak, &a, &u, &b);
-    ref = EmitSwNoise(p, a, u.q, b);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(3, args, argTypes, &a, &u, &b);
+    ref = EmitSwNoise(object, a, u.q, b);
     return ref;
 }
 } // namespace T_RefThunk_EmitSwNoise
@@ -2479,14 +2479,14 @@ extern "C" { void ShowWidgetArgsFromSplice(void *p, CRef *pref); CRef RefThunk_S
  * @end-sly2-annot */
 // Splice binding for option 984 on WIDGET (g_aeopid[1132], thunkFn): unpacks the script's 1 argument (0x8010) with
 // RefSetArgsFromSplice, calls ShowWidgetArgsFromSplice and returns nothing to the script.
-CRef RefThunk_ShowWidgetArgsFromSplice(void *p, int c, void *aref)
+CRef RefThunk_ShowWidgetArgsFromSplice(void *object, int argCount, void *args)
 {
-    int k = 0x8010;
+    int argType = 0x8010;
     CRef r;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &r);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &r);
     ref.Decref();
     ref.InitTag(0x24);
-    ShowWidgetArgsFromSplice(p, &r);
+    ShowWidgetArgsFromSplice(object, &r);
     return ref;
 }
 } // namespace T_RefThunk_ShowWidgetArgsFromSplice
@@ -2671,18 +2671,18 @@ extern "C" { void AddJobStateRsmg(void *p, int, int, int, int, int); CRef RefThu
  * @end-sly2-annot */
 // Splice binding for option 526 on JOB (g_aeopid[1256], thunkUser): unpacks the script's 5 arguments (0x1050, Oid,
 // Oid, Oid, 0xF) with RefSetArgsFromSplice, calls AddJobStateRsmg and returns nothing to the script.
-CRef RefThunkJobSET_SM_GOAL(void *p, int c, void *aref)
+CRef RefThunkJobSET_SM_GOAL(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x1050, 0x6, 0x6, 0x6, 0xf};
+    int argTypes[5] = {0x1050, 0x6, 0x6, 0x6, 0xf};
     int v0;
     int v1;
     int v2;
     int v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddJobStateRsmg(p, v0, v1, v2, v3, v4);
+    AddJobStateRsmg(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunkJobSET_SM_GOAL
@@ -2768,14 +2768,14 @@ extern "C" { void SetPoChoices(void *p, CRef *pref); CRef RefThunk_SetPoChoices(
  * @end-sly2-annot */
 // Splice binding for option 1154 on CID70 (g_aeopid[1339], thunkFn/thunkUser): unpacks the script's 1 argument
 // (0x8006) with RefSetArgsFromSplice, calls SetPoChoices and returns nothing to the script.
-CRef RefThunk_SetPoChoices(void *p, int c, void *aref)
+CRef RefThunk_SetPoChoices(void *object, int argCount, void *args)
 {
-    int k = 0x8006;
+    int argType = 0x8006;
     CRef r;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, aref, &k, &r);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(1, args, &argType, &r);
     ref.Decref();
     ref.InitTag(0x24);
-    SetPoChoices(p, &r);
+    SetPoChoices(object, &r);
     return ref;
 }
 } // namespace T_RefThunk_SetPoChoices
@@ -2819,18 +2819,18 @@ extern "C" { void AddDancerMove(void *p, int, int, int, int, int); CRef RefThunk
  * @end-sly2-annot */
 // Splice binding for option 1158 on CID68 (g_aeopid[1343], thunkUser): unpacks the script's 5 arguments (0x103C,
 // Oid, 0x100B, Oid, Oid) with RefSetArgsFromSplice, calls AddDancerMove and returns nothing to the script.
-CRef RefThunk_AddDancerMove(void *p, int c, void *aref)
+CRef RefThunk_AddDancerMove(void *object, int argCount, void *args)
 {
-    int ak[5] = {0x103c, 0x6, 0x100b, 0x6, 0x6};
+    int argTypes[5] = {0x103c, 0x6, 0x100b, 0x6, 0x6};
     int v0;
     int v1;
     int v2;
     int v3;
     int v4;
-    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, aref, ak, &v0, &v1, &v2, &v3, &v4);
+    CRef ref = RefSetArgsFromSplice__FiP4CRefP4OTYPe(5, args, argTypes, &v0, &v1, &v2, &v3, &v4);
     ref.Decref();
     ref.InitTag(0x24);
-    AddDancerMove(p, v0, v1, v2, v3, v4);
+    AddDancerMove(object, v0, v1, v2, v3, v4);
     return ref;
 }
 } // namespace T_RefThunk_AddDancerMove
