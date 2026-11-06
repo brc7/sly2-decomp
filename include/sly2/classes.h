@@ -1859,9 +1859,9 @@ typedef char assert_WIDGET128_size[sizeof(WIDGET128) == 0x110 ? 1 : -1];
 struct CID105 : SO
 {
     char pad150[0x1A0 - 0x150];
+    virtual void AddHierarchy() __asm__("func_0021BBD0");   /* slot 11 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetCid105ClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitTrail");   /* slot 7 */
-    virtual void AddHierarchy() __asm__("func_0021BBD0");   /* slot 11 */
     virtual void VUnk14() __asm__("PostTrailLoad");   /* slot 15 */
     virtual void VUnk15() __asm__("UpdateTrail");   /* slot 16 */
     virtual void VUnk16() __asm__("func_0021C1C8");   /* slot 17 */
