@@ -87,6 +87,27 @@ struct SND
       undefined4 unk_0x00[3];
 };
 
+/* SM before SMA: g++ emits a TU's vtables in the reverse order of their classes' definitions, and sm.cpp emits
+   _vt$3SMA before _vt$2SM in the ELF. */
+/* SM: from src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp */
+struct SM : public LO
+{
+      int csms;
+      SMS *asms;
+      int csmt;
+      SMT *asmt;
+      int csmrt;
+      SMRT *asmrt;
+      DL dlSma;
+      SMINIT *psminit;
+    virtual void VUnk14() __asm__("PostSmLoad__FP2SM");   /* slot 15 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSmClassDesc");   /* slot 6 */
+    virtual void Init() __asm__("InitSm");   /* slot 7 */
+    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSmFromBrx__FP2SMP18CBinaryInputStream");
+    undefined4 unk_0x78[2];   /* HYPOTHESIS: Lilly SM ends at 0x78 but the class descriptor says 0x80 */
+};
+typedef char assert_SM_size[sizeof(SM) == 0x80 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
+
 /* SMA: from src/game/gameplay/player/jt/RebuildJtXmg.cpp (3 copies in Lilly ports) */
 struct SMA : public BASIC
 {
@@ -146,24 +167,5 @@ typedef char assert_ASEGA_svt[SLY2_OFFSETOF(ASEGA, svt) == 0x40 ? 1 : -1];   /* 
 typedef char assert_ASEGA_svtMaster[SLY2_OFFSETOF(ASEGA, svtMaster) == 0x48 ? 1 : -1];   /* CONFIRMED runtime */
 typedef char assert_ASEG_svtMaster[SLY2_OFFSETOF(ASEG, svtMaster) == 0x78 ? 1 : -1];   /* ApplyAseg copies it (CONFIRMED code+runtime) */
 typedef char assert_ASEG_tMax[SLY2_OFFSETOF(ASEG, tMax) == 0x74 ? 1 : -1];   /* clip 0x11D tMax 0.833 (anim_lab, CONFIRMED parse) */
-
-/* SM: from src/game/engine/anim/sm/LoadSmFromBrx__FP2SMP18CBinaryInputStream.cpp */
-struct SM : public LO
-{
-      int csms;
-      SMS *asms;
-      int csmt;
-      SMT *asmt;
-      int csmrt;
-      SMRT *asmrt;
-      DL dlSma;
-      SMINIT *psminit;
-    virtual void VUnk14() __asm__("PostSmLoad__FP2SM");   /* slot 15 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetSmClassDesc");   /* slot 6 */
-    virtual void Init() __asm__("InitSm");   /* slot 7 */
-    virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSmFromBrx__FP2SMP18CBinaryInputStream");
-    undefined4 unk_0x78[2];   /* HYPOTHESIS: Lilly SM ends at 0x78 but the class descriptor says 0x80 */
-};
-typedef char assert_SM_size[sizeof(SM) == 0x80 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 
 #endif /* SLY2_ASEG_H */
