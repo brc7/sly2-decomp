@@ -1,5 +1,5 @@
 // text.cpp -- the game's printf: format specifier parsing (TFT, including the %m/%v matrix and vector
-// conversions), integer/double/string conversions written to an OSTRM, vprintf/kprintf/vsprintf/fiprintf, and the
+// conversions), integer/double/string conversions written to an OSTRM, vprintf/printf/vsprintf/sprintf, and the
 // small string routines (strlen, strcpy, strcat as strcpy1, strchr, upper-casing).
 // TU 0x21D638..0x21EFD0 (24 functions, address order).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_text
@@ -583,7 +583,7 @@ extern "C" int vprintf(char *fmt, char *ap)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
  * @end-sly2-annot */
-extern "C" int kprintf(char *fmt, ...)
+extern "C" int printf(char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);
@@ -611,7 +611,7 @@ extern "C" int s1_vsprintf(char *pchzDest, char *fmt, char *ap)
  * Confidence: mid (draft) - evidence: pre-existing symbol name only; behaviour not reviewed
  * See: docs/reference/functions/core-library.md#text-0x21d638-0x21efd0
  * @end-sly2-annot */
-extern "C" int fiprintf(void *f, char *fmt, ...)
+extern "C" int sprintf(void *f, char *fmt, ...)
 {
     va_list ap;
     va_start(ap, fmt);

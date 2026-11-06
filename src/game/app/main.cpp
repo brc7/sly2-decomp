@@ -267,7 +267,7 @@ char D_002C46D8[] __attribute__((section(".data.buildinfo"))) = "0813.0032";
 extern void (*D_002BFCE0[])(void);      /* the 19 startup stages */
 extern "C" {
 struct B *__5CProgP4RGBAN31(struct B *b, struct C *c0, struct C *c1, struct C *c2, struct C *c3);
-int kprintf(const char *format, ...);
+int printf(const char *format, ...);
 void Begin__5CProg(struct B *b);
 void SetRemain__5CProgi(struct B *b, int n);
 void End__5CProg(struct B *b);
@@ -300,7 +300,7 @@ void Startup()
     c1.c=a1;
     }
     __5CProgP4RGBAN31(&b, &c0, &c1, &c2, &c3);
-    kprintf(D_002A6A58, D_002C46D8, D_002C46C0, 0x2B0);
+    printf(D_002A6A58, D_002C46D8, D_002C46C0, 0x2B0);
     SetPhase(PHASE_1);
     Begin__5CProg(&b);
     f = 0;

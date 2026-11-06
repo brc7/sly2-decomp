@@ -5542,9 +5542,9 @@ WriteTftDouble__FP3TFTP5OSTRMd,0x21E4B8,151,match,src/game/platform/runtime/text
 WriteTft__FP3TFTP5OSTRMPPcPci,0x21E718,235,match,src/game/platform/runtime/text.cpp
 CchOstrmPrintf__FP5OSTRMPcT1,0x21EAC8,60,match,src/game/platform/runtime/text.cpp
 vprintf,0x21EBB8,23,match,src/game/platform/runtime/text.cpp
-kprintf,0x21EC18,18,match,src/game/platform/runtime/text.cpp
+printf,0x21EC18,18,match,src/game/platform/runtime/text.cpp
 s1_vsprintf,0x21EC60,29,match,src/game/platform/runtime/text.cpp
-fiprintf,0x21ECD8,17,match,src/game/platform/runtime/text.cpp
+sprintf,0x21ECD8,17,match,src/game/platform/runtime/text.cpp
 strlen,0x21ED28,12,match,src/game/platform/runtime/text.cpp
 strcpy,0x21ED58,18,match,src/game/platform/runtime/text.cpp
 strcpy1,0x21EDA0,22,match,src/game/platform/runtime/text.cpp

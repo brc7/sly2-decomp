@@ -101,7 +101,7 @@ extern char D_003D4A60[];
 extern char D_002A8AA0[];
 void RefGetGlobalSaveVar(struct CRef *r, int *p, void *q);
 void Decref__4CRef(struct CRef *r);
-void fiprintf(void *f, const char *fmt, ...);
+void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 // 0x210ED0: dead-code scrap (sly2/scrap.h)
 SLY2_SCRAP("addiu $sp, $sp, 0x10");
 
@@ -131,7 +131,7 @@ void BuildCoinCountText(void *f, int **pp)
 namespace M_BuildClueCountText { extern "C" {
 extern struct G { char pad[0x4764]; int a; int b; } D_003DD490;
 extern char D_002A8AA8[];
-void fiprintf(void *f, const char *fmt, ...);
+void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 /** @sly2-annot addr=0x210F50
  * Purpose: STRINGGEN id 0x2D0: sprintf("%d/%d", SW+0x4764, SW+0x4768) = clue bottles collected/total
  * Info: proposed name BuildClueCountText (T1); TU hud
@@ -151,7 +151,7 @@ void BuildClueCountText(void *f)
 namespace M_BuildTimerText { extern "C" {
 extern struct CLOCK { float t; float dt; } D_002DDED0;
 extern char D_002A8AB0[];
-void fiprintf(void *f, const char *fmt, ...);
+void fiprintf(void *f, const char *fmt, ...) __asm__("sprintf");
 /** @sly2-annot addr=0x210F80
  * Purpose: STRINGGEN id 0x2D1: countdown "%d:%02d" of max(0, SW+0x476C - g_clock.t)
  * Info: proposed name BuildTimerText (T1); TU hud
