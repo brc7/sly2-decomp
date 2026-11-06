@@ -1771,8 +1771,8 @@ extern "C" int IsJobComplete(JOBV *job)
 }
 
 namespace M_func_00163430 { extern "C" {
-struct X { char pad[0x54]; int n; };
-struct S { char pad[0x64]; struct X *a; struct X *b; };
+struct X { char pad[0x54]; int state; };   /* a task */
+struct S { char pad[0x64]; struct X *startTask; struct X *completeTask; };
 static inline int Max(int a, int b) { return a > b ? a : b; }
 /** @sly2-annot addr=0x163430
  * Purpose: Job state from its tasks: start-task state if <2, else max(end-task state,1)
@@ -1783,8 +1783,8 @@ static inline int Max(int a, int b) { return a > b ? a : b; }
 // Returns the job's state from its tasks: the start task's state while below 2, else max(end task state, 1).
 int GetJobState(struct S *job)
 {
-    int n = job->a->n;
-    return n < 2 ? n : Max(job->b->n, 1);
+    int state = job->startTask->state;
+    return state < 2 ? state : Max(job->completeTask->state, 1);
 }
 } } // namespace M_func_00163430
 
@@ -1800,7 +1800,7 @@ struct CRef{
  ~CRef(){Decref__4CRef(this);}
 };
 struct OPT{int kind,value;};
-struct S{char pad[0x7C];int n;char pad80[0x24];float g;char padA8[0x28];OPT a,b,c;};
+struct S{char pad[0x7C];int startCount;char pad80[0x24];float savedTime;char padA8[0x28];OPT startCountVar,completeVar,savedTimeVar;};
 extern "C" { extern char D_003D4A60[]; }
 extern "C" CRef RefSetGlobalSaveVar(OPT*,const CRef&,void*);
 extern "C" int IsJobComplete(S*);
@@ -1819,15 +1819,15 @@ static inline void SetBool(OPT*p,bool b,void*context=0){CRef r(b);SetPv(p,r,cont
  * @end-sly2-annot */
 // Writes the job's count, complete flag and elapsed time into its save variables.
 extern "C" void UpdateJobSaveVars(S*job){
- {OPT*opt=&job->a;if(opt->kind){SetInt(opt,job->n);}}
- {OPT*opt=&job->b;if(opt->kind){void*key=D_003D4A60;int f=IsJobComplete(job);{SetBool(opt,f!=0,key);}}}
- {OPT*opt=&job->c;if(opt->kind){CRef r(job->g);SetPv(opt,r);}}
+ {OPT*opt=&job->startCountVar;if(opt->kind){SetInt(opt,job->startCount);}}
+ {OPT*opt=&job->completeVar;if(opt->kind){void*key=D_003D4A60;int f=IsJobComplete(job);{SetBool(opt,f!=0,key);}}}
+ {OPT*opt=&job->savedTimeVar;if(opt->kind){CRef r(job->savedTime);SetPv(opt,r);}}
 }
 } // namespace M_UpdateJobSaveVars
 
 namespace M_InitTask { extern "C" {
-struct S { char pad[0x54]; int f54; int f58; int f5c; char p2[0xB8-0x60]; int fb8; int fbc; int fc0; char p3[0xF0-0xC4]; int ff0; int ff4; };
-struct G { char pad[0x3AFC]; int c; };
+struct S { char pad[0x54]; int state; int unknown58; int unknown5C; char p2[0xB8-0x60]; int nextTaskId; int unknownBC; int unknownC0; char p3[0xF0-0xC4]; int unknownF0; int unknownF4; };
+struct G { char pad[0x3AFC]; int numTasks; };
 extern struct G D_003DD490;
 void InitLo(struct S *p);
 /** @sly2-annot addr=0x1635A0
@@ -1842,14 +1842,14 @@ void InitLo(struct S *p);
 } } // namespace M_InitTask
 void TASK::Init() { using namespace M_InitTask; using M_InitTask::D_003DD490; M_InitTask::S *p = (M_InitTask::S *)this;
     InitLo(p);
-    p->f54 = -1;
-    p->ff0 = -1;
-    p->f5c = -1;
-    p->fb8 = -1;
-    p->fbc = -1;
-    p->fc0 = -1;
-    p->ff4 = 0;
-    D_003DD490.c++;
+    p->state = -1;
+    p->unknownF0 = -1;
+    p->unknown5C = -1;
+    p->nextTaskId = -1;
+    p->unknownBC = -1;
+    p->unknownC0 = -1;
+    p->unknownF4 = 0;
+    D_003DD490.numTasks++;
 }
 
 namespace M_LoadTaskFromBrx {
@@ -1859,7 +1859,7 @@ public:
     int U8Read() __asm__("U8Read__18CBinaryInputStream");
     int S32Read() __asm__("S32Read__18CBinaryInputStream");
 };
-struct S { char pad[0x90]; int *a90; int c94; void *a98; int *a9C; int cA0; void *aA4; int cA8; void *aAC; int cB0; void *aB4; };
+struct S { char pad[0x90]; int *prerequisiteOids; int numPrerequisites; void *prerequisites; int *followerOids; int numFollowers; void *followers; int numVisibility; void *visibility; int numRsmgs; void *rsmgs; };
 extern "C" void *PvAllocSlot__FP8ALLOCREQ(ALLOCREQ *preq);
 extern "C" void *func_001AE238(ALLOCREQ *preq, void *pv);
 extern "C" void *func_001AE2A0(ALLOCREQ *preq);
@@ -1907,27 +1907,27 @@ extern "C" void LoadTaskFromBrx(S *task, CBinaryInputStream *stream)
     int i = 0;
     STACKSCOPE fr;
     ALLOCREQ req;
-    task->aAC = PvAllocReq(&req, 0x200, 0x10);
-    task->aB4 = PvAllocReq(&req, 0x300, 0x10);
+    task->visibility = PvAllocReq(&req, 0x200, 0x10);
+    task->rsmgs = PvAllocReq(&req, 0x300, 0x10);
     LoadLoFromBrx(task, stream);
-    task->aAC = PvShrinkReq(&req, task->cA8 * 16, 0x10, task->aAC);
-    task->aB4 = PvShrinkReq(&req, task->cB0 * 0x18, 0x10, task->aB4);
-    task->c94 = stream->U8Read();
-    task->a98 = PvAllocA(&req, task->c94 * 4, 0x10);
-    task->a90 = (int *)PvAllocB(&req, task->c94 * 4, 0x10);
-    for (; i < task->c94; i++)
-        task->a90[i] = stream->S32Read();
-    task->cA0 = stream->U8Read();
-    task->aA4 = PvAllocA(&req, task->cA0 * 4, 0x10);
-    task->a9C = (int *)PvAllocB(&req, task->cA0 * 4, 0x10);
-    for (int j = 0; j < task->cA0; j++)
-        task->a9C[j] = stream->S32Read();
+    task->visibility = PvShrinkReq(&req, task->numVisibility * 16, 0x10, task->visibility);
+    task->rsmgs = PvShrinkReq(&req, task->numRsmgs * 0x18, 0x10, task->rsmgs);
+    task->numPrerequisites = stream->U8Read();
+    task->prerequisites = PvAllocA(&req, task->numPrerequisites * 4, 0x10);
+    task->prerequisiteOids = (int *)PvAllocB(&req, task->numPrerequisites * 4, 0x10);
+    for (; i < task->numPrerequisites; i++)
+        task->prerequisiteOids[i] = stream->S32Read();
+    task->numFollowers = stream->U8Read();
+    task->followers = PvAllocA(&req, task->numFollowers * 4, 0x10);
+    task->followerOids = (int *)PvAllocB(&req, task->numFollowers * 4, 0x10);
+    for (int j = 0; j < task->numFollowers; j++)
+        task->followerOids[j] = stream->S32Read();
     CBinaryInputStream_SkipStringSw(stream);
 }
 } // namespace M_LoadTaskFromBrx
 
 namespace M_FTaskLive { extern "C" {
-struct S { char pad[0x50]; int f50; char pad2[0xF4 - 0x54]; int n; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0xF4 - 0x54]; int mode; };
 extern char D_003DD490[];
 int IsSwTransitionBusy(void *p);
 /** @sly2-annot addr=0x1637E8
@@ -1939,15 +1939,15 @@ int IsSwTransitionBusy(void *p);
 // True when the task is enabled, not in mode 2/3 and no world transition is in progress.
 int IsTaskLive(struct S *task)
 {
-    if (task->f50 == 0 && task->n != 2 && task->n != 3)
+    if (task->isDisabled == 0 && task->mode != 2 && task->mode != 3)
         return IsSwTransitionBusy(D_003DD490) == 0;
     return 0;
 }
 } } // namespace M_FTaskLive
 
 namespace M_func_00163838 { extern "C" {
-struct E { int a, b, c, d; };
-struct S { char pad[0x50]; int f50; char pad2[0xA8 - 0x54]; int c; struct E *ae; };
+struct E { int object, context, stateMask, level; };
+struct S { char pad[0x50]; int isDisabled; char pad2[0xA8 - 0x54]; int numVisibility; struct E *visibility; };
 int GetStateMaskFromSplice(void *p);
 /** @sly2-annot addr=0x163838
  * Purpose: Splice: appends a visibility record (state mask from a Splice list) to the task
@@ -1956,21 +1956,21 @@ int GetStateMaskFromSplice(void *p);
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a visibility record (state mask from a Splice list) to the task.
-void AddTaskStateVisibility(struct S *task, int a, void *pv, int b, int d)
+void AddTaskStateVisibility(struct S *task, int object, void *states, int context, int level)
 {
-    if (task->f50 == 0 && task->c < 32) {
-        struct E *pe = &task->ae[task->c++];
-        pe->a = a;
-        pe->b = b;
-        pe->c = GetStateMaskFromSplice(pv);
-        pe->d = d;
+    if (task->isDisabled == 0 && task->numVisibility < 32) {
+        struct E *pe = &task->visibility[task->numVisibility++];
+        pe->object = object;
+        pe->context = context;
+        pe->stateMask = GetStateMaskFromSplice(states);
+        pe->level = level;
     }
 }
 } } // namespace M_func_00163838
 
 namespace M_func_001638A0 { extern "C" {
-struct E { int a, b, c, d, e, f; };
-struct S { char pad[0x50]; int f50; char pad2[0xB0 - 0x54]; int c; struct E *ae; };
+struct E { int state, oid, index, id, enabled, level; };   /* as PostTaskLoad's E24 */
+struct S { char pad[0x50]; int isDisabled; char pad2[0xB0 - 0x54]; int numRsmgs; struct E *rsmgs; };
 /** @sly2-annot addr=0x1638A0
  * Purpose: Splice: appends an RSMG record to the task
  * Info: proposed name AddTaskStateRsmg (T2); TU game
@@ -1978,11 +1978,11 @@ struct S { char pad[0x50]; int f50; char pad2[0xB0 - 0x54]; int c; struct E *ae;
  * See: docs/reference/functions/game-progression.md#game-0x1613a8-0x166270
  * @end-sly2-annot */
 // Splice: adds a state rsmg record to the task.
-void AddTaskStateRsmg(struct S *task, int a, int b, int c, int d, int e, int f)
+void AddTaskStateRsmg(struct S *task, int state, int oid, int index, int id, int enabled, int level)
 {
-    if (task->f50 == 0 && task->c < 32) {
-        struct E *pe = &task->ae[task->c++];
-        pe->a = a; pe->b = b; pe->c = c; pe->d = d; pe->e = e; pe->f = f;
+    if (task->isDisabled == 0 && task->numRsmgs < 32) {
+        struct E *pe = &task->rsmgs[task->numRsmgs++];
+        pe->state = state; pe->oid = oid; pe->index = index; pe->id = id; pe->enabled = enabled; pe->level = level;
     }
 }
 } } // namespace M_func_001638A0
