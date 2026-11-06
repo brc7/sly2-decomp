@@ -22,27 +22,27 @@ struct EPMENU
     char pad0[0xC];
     VTE *vt;            /* +0xC */
     char pad10[0x70 - 0x10];
-    int n70;            /* +0x70 */
-    int n74;            /* +0x74 */
-    int n78;            /* +0x78 */
+    int idAnimLoop;     /* +0x70 (WIDGET, hud.cpp) */
+    int idAnimShow;     /* +0x74 */
+    int idAnimHide;     /* +0x78 */
     char pad7C[0x110 - 0x7C];
-    int iep;            /* +0x110 selected episode */
-    int iepNext;        /* +0x114 episode being scrolled to */
-    int iepMax;         /* +0x118 last selectable episode */
-    int state;          /* +0x11C -1 none, 2 episode list, 8 chapter list, 10 entering, ... */
+    int episode;            /* +0x110 selected episode */
+    int nextEpisode;        /* +0x114 episode being scrolled to */
+    int lastEpisode;         /* +0x118 last selectable episode */
+    int state;          /* +0x11C EPMENU_* */
     int sub;            /* +0x120 */
-    float tState;       /* +0x124 */
-    int ichapter;       /* +0x128 */
-    int fPrompt;        /* +0x12C */
-    float tPrompt;      /* +0x130 */
+    float stateTime;       /* +0x124 */
+    int chapter;       /* +0x128 */
+    int promptState;        /* +0x12C */
+    float promptTime;      /* +0x130 */
 };
 
 /* g_sw seen through the per-episode save keys and the active menu. */
 struct SWV
 {
     char pad[0x3B58];
-    void *apkeyG[9];    /* +0x3B58 per-episode float save variable (0: not finished, HYPOTHESIS) */
-    void *apkeyN[9];    /* +0x3B7C per-episode percent */
+    void *episodePlayTimeVars[9];    /* +0x3B58 per-episode float save variable (0: not finished, HYPOTHESIS) */
+    void *episodePercentVars[9];    /* +0x3B7C per-episode percent */
     char pad2[0x4774 - 0x3BA0];
     EPMENU *pepmenu;    /* +0x4774 */
 };
@@ -59,7 +59,7 @@ extern int D_002BE248[];
 /* tu_15CD68's .data after its pointer tables (address order; the per-episode tables have 9 entries, the zero word
  * after each is alignment). The four pointer tables D_002BE080/D_002BE1B8/D_002BE200/D_002BE248 are defined with the
  * .data block at the end. */
-extern int D_002BE26C;
+extern int D_002BE26C;   /* the unlock-all cheat flag (cheat.cpp) */
 extern int D_002BE270;
 extern int D_002BE278[11];
 extern int D_002BE2A8[9];   /* exit oid per episode */
@@ -104,7 +104,23 @@ void *PloFindSwObject(struct SW *world, int grffso, int oid, struct LO *ploConte
 char *PchzFindSwLangstr(struct SW *world, int n);
 void StartJoySelection(struct JOY *pjoy);
 
-static inline float GFromP(void *pkey)
+/* Menu states (menu->state); the in-between states advance through D_002BE278 when their label finishes. */
+enum {
+    EPMENU_NONE = -1,
+    EPMENU_OPEN = 0,             /* -> 1 -> BROWSE; leaving it autosaves */
+    EPMENU_BROWSE = 2,           /* the episode list */
+    EPMENU_SCROLL_NEXT = 4,      /* -> 3 -> BROWSE */
+    EPMENU_SCROLL_PREV = 6,      /* -> 5 -> BROWSE */
+    EPMENU_TO_CHAPTERS = 7,      /* -> CHAPTERS */
+    EPMENU_CHAPTERS = 8,         /* the chapter list (sub: -1 episode prompt, 0 browse, 1 / 2 scrolling) */
+    EPMENU_FROM_CHAPTERS = 9,    /* -> BROWSE */
+    EPMENU_START = 10            /* plays the start label, then warps into the episode */
+};
+/* Pad buttons (GrfHandleJoyBtn) and menu sounds. */
+enum { BTN_TRIANGLE = 0x10, BTN_CROSS = 0x40, BTN_SQUARE = 0x80 };
+enum { SOUND_MENU_BUMP = 0x36, SOUND_MENU_CONFIRM = 0x34 };
+
+static inline float GetSaveFloat(void *pkey)
 {
     float g;
     {
@@ -113,7 +129,7 @@ static inline float GFromP(void *pkey)
     }
     return g;
 }
-static inline int NFromP(void *pkey)
+static inline int GetSaveInt(void *pkey)
 {
     int n;
     {
@@ -140,9 +156,9 @@ void WIDGET131::Init()
 {
     EPMENU *p = (EPMENU *)this;
     InitLo(p);
-    p->iep = -1;
-    p->iepNext = -1;
-    p->state = -1;
+    p->episode = -1;
+    p->nextEpisode = -1;
+    p->state = EPMENU_NONE;
     p->sub = -1;
     g_sw.pepmenu = p;
 }
@@ -159,38 +175,36 @@ void WIDGET131::Init()
 extern "C" void PostEpisodeMenuLoad(EPMENU *menu)
 {
     PostWidgetLoad(menu);
-    menu->iepMax = 8;
+    menu->lastEpisode = 8;
     if (!D_002BE26C) {
         do {
             int n;
             void *pkey;
-            if (GFromP(D_003DD490.apkeyG[menu->iepMax]) != 0.0f)
+            if (GetSaveFloat(D_003DD490.episodePlayTimeVars[menu->lastEpisode]) != 0.0f)
                 break;
-            pkey = D_003DD490.apkeyN[menu->iepMax - 1];
+            pkey = D_003DD490.episodePercentVars[menu->lastEpisode - 1];
             n = 0;
             if (pkey)
-                n = NFromP(pkey);
+                n = GetSaveInt(pkey);
             if (n >= 100)
                 break;
-            menu->iepMax--;
-            if (menu->iepMax < 2)
+            menu->lastEpisode--;
+            if (menu->lastEpisode < 2)
                 break;
         } while (!D_002BE26C);
     }
     if (D_002BE270 == -1) {
-        menu->iep = menu->iepMax;
-        SetEpisodeMenuMode(menu, 0, -1);
+        menu->episode = menu->lastEpisode;
+        SetEpisodeMenuMode(menu, EPMENU_OPEN, -1);
     } else {
-        menu->ichapter = D_002BE270;
-        menu->iep = 0;
+        menu->chapter = D_002BE270;
+        menu->episode = 0;
         D_002BE270 = -1;
-        SetEpisodeMenuMode(menu, 8, 0);
+        SetEpisodeMenuMode(menu, EPMENU_CHAPTERS, 0);
     }
     StartJoySelection((struct JOY *)D_002DFC00);
 }
 
-// (Claude agent) UpdateEpisodeMenu: UI menu state machine. FWidgetAnimPlaying takes (p, r) with r = GetEpisodeMenuLabelOid(p); the
-// fPrompt==0 flag uses a shared "setf: f = 1" block (reorg fills both beql/bnel slots from it).
 /** @sly2-annot addr=0x15CF30
  * Purpose: Per-frame update of the WIDGET131 HUD element
  * Info: proposed name UpdateWidget131 (T2); class WIDGET131 slot16; TU tu_15CD68
@@ -204,7 +218,7 @@ extern "C" void PostEpisodeMenuLoad(EPMENU *menu)
 // movie replay, warps).
 extern "C" void UpdateEpisodeMenu(EPMENU *menu)
 {
-    int r;
+    int labelOid;
     UpdateWidget(menu);
     if (FScreenShown(D_003D9ED0))
         return;
@@ -212,150 +226,144 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
         return;
     if (FScreenShown(D_003DA4F0))
         return;
-    r = GetEpisodeMenuLabelOid(menu);
+    labelOid = GetEpisodeMenuLabelOid(menu);
     switch (menu->state) {
-    case -1:
+    case EPMENU_NONE:
         return;
-    case 2: {
-        float g = DySelectionJoy(D_002DFC00);
-        if (g < 0.0f && menu->iep <= 0) {
-            PlaySound(0x36);
+    case EPMENU_BROWSE: {
+        float stick = DySelectionJoy(D_002DFC00);
+        if (stick < 0.0f && menu->episode <= 0) {
+            PlaySound(SOUND_MENU_BUMP);
             return;
         }
-        if (0.0f < g && menu->iep >= menu->iepMax) {
-            PlaySound(0x36);
+        if (0.0f < stick && menu->episode >= menu->lastEpisode) {
+            PlaySound(SOUND_MENU_BUMP);
             return;
         }
-        if (g != 0.0f) {
-            if (g < 0.0f)
-                menu->iepNext = menu->iep - 1;
+        if (stick != 0.0f) {
+            if (stick < 0.0f)
+                menu->nextEpisode = menu->episode - 1;
             else
-                menu->iepNext = menu->iep + 1;
-            SetEpisodeMenuMode(menu, 0.0f < g ? 4 : 6, -1);
+                menu->nextEpisode = menu->episode + 1;
+            SetEpisodeMenuMode(menu, 0.0f < stick ? EPMENU_SCROLL_NEXT : EPMENU_SCROLL_PREV, -1);
             return;
         }
-        if (GrfHandleJoyBtn(D_002DFC00, 0x40)) {
-            SetEpisodeMenuMode(menu, 7, -1);
+        if (GrfHandleJoyBtn(D_002DFC00, BTN_CROSS)) {
+            SetEpisodeMenuMode(menu, EPMENU_TO_CHAPTERS, -1);
             return;
         }
-        if (menu->iep && GrfHandleJoyBtn(D_002DFC00, 0x10)) {
-            menu->iepNext = 0;
-            SetEpisodeMenuMode(menu, 6, -1);
+        if (menu->episode && GrfHandleJoyBtn(D_002DFC00, BTN_TRIANGLE)) {   /* back to the top */
+            menu->nextEpisode = 0;
+            SetEpisodeMenuMode(menu, EPMENU_SCROLL_PREV, -1);
             return;
         }
-        switch (menu->fPrompt) {
+        switch (menu->promptState) {
         case 0: {
-            int c;
-            int f = 0;
-            int n = D_002BE248[menu->iep];
-            void *pkey = D_003DD490.apkeyN[menu->iep];
-            if (pkey) {
-                c = NFromP(pkey);
-                if (c >= 100)
-                    goto setf;
-            }
-            if (D_002BE26C) {
-            setf:
-                f = 1;
-            }
-            if (n && f && 10.0f < D_002DDED0.tReal - menu->tPrompt)
+            /* After 10 s on a finished episode that has a movie, prompt for the replay. */
+            int isFinished = 0;
+            int movieKey = D_002BE248[menu->episode];
+            void *pkey = D_003DD490.episodePercentVars[menu->episode];
+            if ((pkey && GetSaveInt(pkey) >= 100) || D_002BE26C)
+                isFinished = 1;
+            if (movieKey && isFinished && 10.0f < D_002DDED0.tReal - menu->promptTime)
                 SetEpisodeMenuHighlight(menu, 1);
             return;
         }
         case 1:
-            if (GrfHandleJoyBtn(D_002DFC00, 0x80)) {
-                CMpeg_QueueMovie(D_002F66B0, D_002BE248[menu->iep]);
+            if (GrfHandleJoyBtn(D_002DFC00, BTN_SQUARE)) {   /* replay the episode movie */
+                CMpeg_QueueMovie(D_002F66B0, D_002BE248[menu->episode]);
                 WipeToWorldWarp(&D_003DD490, 0, 0x189, -1, 0, -1);
-                PlaySound(0x34);
+                PlaySound(SOUND_MENU_CONFIRM);
                 return;
             }
-            if (2.0f < D_002DDED0.tReal - menu->tPrompt)
+            if (2.0f < D_002DDED0.tReal - menu->promptTime)
                 SetEpisodeMenuHighlight(menu, 0);
             return;
         }
         return;
     }
-    case 8:
+    case EPMENU_CHAPTERS:
         switch (menu->sub) {
         case -1:
-            if (GrfHandleJoyBtn(D_002DFC00, 0x40))
-                SetEpisodeMenuMode(menu, 10, -1);
-            else if (GrfHandleJoyBtn(D_002DFC00, 0x10))
-                SetEpisodeMenuMode(menu, 9, -1);
+            if (GrfHandleJoyBtn(D_002DFC00, BTN_CROSS))
+                SetEpisodeMenuMode(menu, EPMENU_START, -1);
+            else if (GrfHandleJoyBtn(D_002DFC00, BTN_TRIANGLE))
+                SetEpisodeMenuMode(menu, EPMENU_FROM_CHAPTERS, -1);
             return;
         case 0: {
-            float g;
-            if (GrfHandleJoyBtn(D_002DFC00, 0x40)) {
-                D_002BE270 = menu->ichapter;
-                CMpeg_QueueMovie(D_002F66B0, D_002BE200[menu->ichapter]);
+            float stick;
+            if (GrfHandleJoyBtn(D_002DFC00, BTN_CROSS)) {   /* play the chapter movie, back here afterwards */
+                D_002BE270 = menu->chapter;
+                CMpeg_QueueMovie(D_002F66B0, D_002BE200[menu->chapter]);
                 WipeToWorldWarp(&D_003DD490, 0, 0x189, -1, 0, -1);
-                PlaySound(0x34);
+                PlaySound(SOUND_MENU_CONFIRM);
                 return;
             }
-            if (GrfHandleJoyBtn(D_002DFC00, 0x10)) {
-                SetEpisodeMenuMode(menu, 9, -1);
+            if (GrfHandleJoyBtn(D_002DFC00, BTN_TRIANGLE)) {
+                SetEpisodeMenuMode(menu, EPMENU_FROM_CHAPTERS, -1);
                 return;
             }
-            g = DxSelectionJoy(D_002DFC00);
-            if (g < 0.0f && menu->ichapter <= 0) {
-                PlaySound(0x36);
+            stick = DxSelectionJoy(D_002DFC00);
+            if (stick < 0.0f && menu->chapter <= 0) {
+                PlaySound(SOUND_MENU_BUMP);
                 return;
             }
-            if (0.0f < g && menu->ichapter >= GetEpisodeMenuItemCount(menu)) {
-                PlaySound(0x36);
+            if (0.0f < stick && menu->chapter >= GetEpisodeMenuItemCount(menu)) {
+                PlaySound(SOUND_MENU_BUMP);
                 return;
             }
-            if (g != 0.0f) {
-                if (g < 0.0f)
-                    menu->ichapter = menu->ichapter - 1;
+            if (stick != 0.0f) {
+                if (stick < 0.0f)
+                    menu->chapter = menu->chapter - 1;
                 else
-                    menu->ichapter = menu->ichapter + 1;
-                SetEpisodeMenuMode(menu, 8, 0.0f < g ? 2 : 1);
+                    menu->chapter = menu->chapter + 1;
+                SetEpisodeMenuMode(menu, EPMENU_CHAPTERS, 0.0f < stick ? 2 : 1);
             }
             return;
         }
         case 1:
         case 2:
-            if (!FWidgetAnimPlaying(menu, r))
-                SetEpisodeMenuMode(menu, 8, 0);
+            if (!FWidgetAnimPlaying(menu, labelOid))
+                SetEpisodeMenuMode(menu, EPMENU_CHAPTERS, 0);
             return;
         }
         return;
-    case 10:
-        if (!FWidgetAnimPlaying(menu, r)) {
-            int f = 0;
-            void *pkey = D_003DD490.apkeyG[menu->iep];
+    case EPMENU_START:
+        if (!FWidgetAnimPlaying(menu, labelOid)) {
+            /* A never-played episode starts through its exit (the intro), otherwise by a warp into its world. */
+            int isNew = 0;
+            void *pkey = D_003DD490.episodePlayTimeVars[menu->episode];
             if (pkey) {
-                float g;
-                f = 1;
-                g = GFromP(pkey);
-                if (g != 0.0f)
-                    f = 0;
+                float playTime;
+                isNew = 1;
+                playTime = GetSaveFloat(pkey);
+                if (playTime != 0.0f)
+                    isNew = 0;
             }
-            if (f) {
-                void *pexit = PloFindSwObject((struct SW *)&D_003DD490, 5, D_002BE2A8[menu->iep], 0);
+            if (isNew) {
+                void *pexit = PloFindSwObject((struct SW *)&D_003DD490, 5, D_002BE2A8[menu->episode], 0);
                 if (pexit) {
                     SetExitExits(pexit, 3);
                     TakeExit(pexit);
                 } else
-                    f = 0;
+                    isNew = 0;
             }
-            if (!f) {
-                int s = PrecWorldEntry(menu->iep);
-                WipeToWorldWarp(&D_003DD490, s, 0x189, -1, 0, 0x30A);
+            if (!isNew) {
+                int worldEntry = PrecWorldEntry(menu->episode);
+                WipeToWorldWarp(&D_003DD490, worldEntry, 0x189, -1, 0, 0x30A);
             }
             SetEpisodeMenuMode(menu, -1, -1);
         }
         return;
     default:
-        if (!FWidgetAnimPlaying(menu, r)) {
-            int k = D_002BE278[menu->state];
-            int n = -1;
-            if (k == 8 && menu->iep == 0) {
-                menu->ichapter = 0;
-                n = 0;
+        if (!FWidgetAnimPlaying(menu, labelOid)) {
+            int nextState = D_002BE278[menu->state];
+            int sub = -1;
+            if (nextState == EPMENU_CHAPTERS && menu->episode == 0) {
+                menu->chapter = 0;
+                sub = 0;
             }
-            SetEpisodeMenuMode(menu, k, n);
+            SetEpisodeMenuMode(menu, nextState, sub);
         }
         return;
     }
@@ -370,12 +378,12 @@ extern "C" void UpdateEpisodeMenu(EPMENU *menu)
 // Returns the label oid of the current mode/sub-mode from the label tables, or -1.
 extern "C" int GetEpisodeMenuLabelOid(EPMENU *menu)
 {
-    int k = menu->state;
-    if (k == -1)
+    int state = menu->state;
+    if (state == EPMENU_NONE)
         return -1;
-    if (k == 8 && menu->sub != -1)
-        return D_002BE1B8[menu->ichapter][menu->sub];
-    return D_002BE080[menu->iep][menu->state];
+    if (state == EPMENU_CHAPTERS && menu->sub != -1)
+        return D_002BE1B8[menu->chapter][menu->sub];
+    return D_002BE080[menu->episode][menu->state];
 }
 
 /** @sly2-annot addr=0x15D648
@@ -391,35 +399,35 @@ extern "C" void SetEpisodeMenuMode(EPMENU *menu, int state, int sub)
 {
     if (menu->state != state || menu->sub != sub) {
         switch (menu->state) {
-        case 0:
+        case EPMENU_OPEN:
             AutosaveGame(D_002E65E0, 1);
             break;
-        case 4:
-        case 6: {
-            int iep = menu->iepNext;
-            menu->iepNext = -1;
-            menu->iep = iep;
+        case EPMENU_SCROLL_NEXT:
+        case EPMENU_SCROLL_PREV: {
+            int episode = menu->nextEpisode;
+            menu->nextEpisode = -1;
+            menu->episode = episode;
             break;
         }
-        case 2:
+        case EPMENU_BROWSE:
             SetEpisodeMenuHighlight(menu, 0);
             break;
         }
-        if (state == 2) {
+        if (state == EPMENU_BROWSE) {
             SetEpisodeMenuHighlight(menu, -1);
             SetEpisodeMenuHighlight(menu, 0);
         }
-        menu->n74 = -1;
-        menu->n70 = -1;
-        menu->n78 = -1;
+        menu->idAnimShow = -1;
+        menu->idAnimLoop = -1;
+        menu->idAnimHide = -1;
         SetWidgetRequest(menu, 1);
         SetWidgetState(menu, 1);
         menu->state = state;
         menu->sub = sub;
-        menu->tState = D_002DDED0.tReal;
-        int r = GetEpisodeMenuLabelOid(menu);
-        if (r != -1)
-            ((void (*)(void *, int))menu->vt[49].pfn)((char *)menu + menu->vt[49].d, r);
+        menu->stateTime = D_002DDED0.tReal;
+        int labelOid = GetEpisodeMenuLabelOid(menu);
+        if (labelOid != -1)   /* slot 49: show with the label */
+            ((void (*)(void *, int))menu->vt[49].pfn)((char *)menu + menu->vt[49].d, labelOid);
     }
 }
 
@@ -435,19 +443,19 @@ extern "C" void SetEpisodeMenuMode(EPMENU *menu, int state, int sub)
 // under 100%.
 extern "C" int GetEpisodeMenuItemCount(EPMENU *menu)
 {
-    void *pkeyG, *pkeyN;
+    void *playTimeVar, *percentVar;
     int n;
-    float g;
+    float playTime;
     if (D_002BE26C)
         return 0x10;
-    n = D_002BE2D0[menu->iepMax];
-    pkeyG = D_003DD490.apkeyG[menu->iepMax];
-    pkeyN = D_003DD490.apkeyN[menu->iepMax];
-    g = GFromP(pkeyG);
-    if (g == 0.0f) {
+    n = D_002BE2D0[menu->lastEpisode];
+    playTimeVar = D_003DD490.episodePlayTimeVars[menu->lastEpisode];
+    percentVar = D_003DD490.episodePercentVars[menu->lastEpisode];
+    playTime = GetSaveFloat(playTimeVar);
+    if (playTime == 0.0f) {
         n -= 2;
     } else {
-        int c = NFromP(pkeyN);
+        int c = GetSaveInt(percentVar);
         if (c <= 99)
             n--;
     }
@@ -462,17 +470,17 @@ extern "C" int GetEpisodeMenuItemCount(EPMENU *menu)
  * See: docs/reference/functions/hud-ui.md#tu_15cd68-0x15cd68-0x15dc80
  * @end-sly2-annot */
 // Plays label 0x5BD or 0x5BE when the highlight flag changes.
-extern "C" void SetEpisodeMenuHighlight(EPMENU *menu, int f)
+extern "C" void SetEpisodeMenuHighlight(EPMENU *menu, int promptState)
 {
-    if (menu->fPrompt != f) {
-        if (f != 0) {
-            if (f == 1)
+    if (menu->promptState != promptState) {
+        if (promptState != 0) {
+            if (promptState == 1)
                 PlayWidgetAnim(menu, 0x5BD);
         } else {
             PlayWidgetAnim(menu, 0x5BE);
         }
-        menu->fPrompt = f;
-        menu->tPrompt = D_002DDED0.tReal;
+        menu->promptState = promptState;
+        menu->promptTime = D_002DDED0.tReal;
     }
 }
 
@@ -490,10 +498,10 @@ extern "C" void FormatEpisodePercent(char *pch)
 {
     SWV *world = &D_003DD490;
     void *pkey;
-    if (world->pepmenu && (pkey = world->apkeyN[world->pepmenu->iep]) != 0) {
-        int n = NFromP(pkey);
+    if (world->pepmenu && (pkey = world->episodePercentVars[world->pepmenu->episode]) != 0) {
+        int n = GetSaveInt(pkey);
         n = n * 95 / 100;
-        if (FPowerupAcquired(D_002BE2F8[world->pepmenu->iep]))
+        if (FPowerupAcquired(D_002BE2F8[world->pepmenu->episode]))
             n += 5;
         sprintf(pch, D_002A5160, n);
     }
@@ -510,13 +518,13 @@ extern "C" void FormatEpisodePlayTime(char *pch)
 {
     SWV *world = &D_003DD490;
     void *pkey;
-    if (world->pepmenu && (pkey = world->apkeyG[world->pepmenu->iep]) != 0) {
-        float g;
-        int h, m;
-        g = GFromP(pkey);
-        h = (int)(g / 3600.0f);
-        m = (int)(fmodf(g, 3600.0f) / 60.0f);
-        sprintf(pch, D_002A5168, h, m);
+    if (world->pepmenu && (pkey = world->episodePlayTimeVars[world->pepmenu->episode]) != 0) {
+        float seconds;
+        int hours, minutes;
+        seconds = GetSaveFloat(pkey);
+        hours = (int)(seconds / 3600.0f);
+        minutes = (int)(fmodf(seconds, 3600.0f) / 60.0f);
+        sprintf(pch, D_002A5168, hours, minutes);
     }
 }
 
@@ -534,9 +542,9 @@ extern "C" void FormatEpisodeMenuPageText(char *pch, int f)
     if (!pepmenu)
         return;
     if (f)
-        k = pepmenu->ichapter - 1;
+        k = pepmenu->chapter - 1;
     else
-        k = pepmenu->ichapter;
+        k = pepmenu->chapter;
     switch (k) {
     case 1: case 3: case 5: case 7: case 9: case 11: case 13: case 15:
         strcpy(pch, PchzFindSwLangstr((struct SW *)&D_003DD490, 0x77));
