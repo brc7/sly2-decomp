@@ -1780,18 +1780,36 @@ extern "C" CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args);
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "append": concatenates list args (copies all but last).
-CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args) { if (args[0].m_tagk == 0) return args[0];
- SP spRes; CPair *pTail;
- for (CPair *pn = args[0].u.ppair; pn; pn = pn->pnext.p) {
-   if (pn->ref.m_tagk != TAGK_PAIR) continue;
-   SP spCopy;
-   if (pn->pnext.p) { SP t = CPair_CloneTo(pn->ref.u.ppair, 0, 0); spCopy = t.p; } else spCopy = pn->ref.u.ppair;
-   if (!spRes.p) { spRes = PtNew__t6CGcObj1Z5CPair(); spRes->ref = spCopy.p; } else pTail->pnext = spCopy.p;
-   pTail = spCopy.p;
-   while (pTail->pnext.p) pTail = pTail->pnext.p;
- }
- if (!spRes.p) return CRef(0);
- return CRef(spRes->ref.u.ppair); }
+CRef RefOpAppend__FiP4CRefP6CFrame(void *pbasic, CRef *args)
+{
+    if (args[0].m_tagk == 0)
+        return args[0];
+    SP result;
+    CPair *tail;
+    for (CPair *argPair = args[0].u.ppair; argPair; argPair = argPair->pnext.p) {
+        if (argPair->ref.m_tagk != TAGK_PAIR)
+            continue;
+        SP piece;   /* every list but the last is copied; the last is shared */
+        if (argPair->pnext.p) {
+            SP copy = CPair_CloneTo(argPair->ref.u.ppair, 0, 0);
+            piece = copy.p;
+        } else {
+            piece = argPair->ref.u.ppair;
+        }
+        if (!result.p) {
+            result = PtNew__t6CGcObj1Z5CPair();
+            result->ref = piece.p;
+        } else {
+            tail->pnext = piece.p;
+        }
+        tail = piece.p;
+        while (tail->pnext.p)
+            tail = tail->pnext.p;
+    }
+    if (!result.p)
+        return CRef(0);
+    return CRef(result->ref.u.ppair);
+}
 } // namespace M_RefOpAppend__FiP4CRefP6CFrame
 
 // 0x121578 func_00121578
@@ -1876,12 +1894,36 @@ extern "C" CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callA
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "map": builds (proc a b) via helper 0x121578, eval 0x127838 per elem, collects results.
-CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) { if (args[1].m_tagk == 0) return args[1];
- SPN spRes; spRes.Set(PtNew__t6CGcObj1Z5CPair());
- SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);
- *pa = args[0]; CPair *pTail; CPair *pn; pn = (CPair *)args[1].u.pv; while (pn) { *pb = pn->ref; SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew); spNew->ref = RefEval__FP5CPairP6CFrame(sp.p, callArgs);
-   if (spRes->ref.m_tagk != TAGK_PAIR) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
-   CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } return CRef((CPair *)spRes->ref.u.pv); }
+CRef RefOpMap__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
+{
+    if (args[1].m_tagk == 0)
+        return args[1];
+    SPN result;
+    result.Set(PtNew__t6CGcObj1Z5CPair());
+    SPN call;   /* (proc 'element) */
+    CRef *procSlot;
+    CRef *elementSlot;
+    func_00121578(&call, &procSlot, &elementSlot);
+    *procSlot = args[0];
+    CPair *tail;
+    CPair *element;
+    element = (CPair *)args[1].u.pv;
+    while (element) {
+        *elementSlot = element->ref;
+        SPN newPair;
+        CPair *pair = PtNew__t6CGcObj1Z5CPair();
+        newPair.Set(pair);
+        newPair->ref = RefEval__FP5CPairP6CFrame(call.p, callArgs);
+        if (result->ref.m_tagk != TAGK_PAIR)
+            result->ref = newPair.p;
+        else
+            tail->pnext = newPair.p;
+        CPair *appended = newPair.p;
+        element = element->pnext.p;
+        tail = appended;
+    }
+    return CRef((CPair *)result->ref.u.pv);
+}
 } // namespace M_RefOpMap__FiP4CRefP6CFrame
 
 // 0x121938 RefOpFilter__FiP4CRefP6CFrame
@@ -1920,23 +1962,42 @@ extern "C" CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *ca
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "filter": same, keeps elems where result true.
-CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs) { if (args[1].m_tagk == 0) return args[1];
- SPN sp; CRef *pa; CRef *pb; func_00121578(&sp, &pa, &pb);
- *pa = args[0];
- SP spRes; CPair *pTail; CPair *pn = args[1].u.ppair;
- while (pn) {
-   *pb = pn->ref;
-   CRef r = RefEval__FP5CPairP6CFrame(sp.p, callArgs);
-   if (r.m_tagk == TAGK_BOOL && r.u.n) {
-     SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
-     spNew->ref = pn->ref;
-     if (!spRes.p) { CPair *pnR = PtNew__t6CGcObj1Z5CPair(); spRes = pnR; spRes->ref = spNew.p; } else pTail->pnext = spNew.p;
-     CPair *p = spNew.p; pTail = p;
-   }
-   pn = pn->pnext.p;
- }
- if (!spRes.p) return CRef(0);
- return CRef(spRes->ref.u.ppair); }
+CRef RefOpFilter__FiP4CRefP6CFrame(void *pbasic, CRef *args, CRef *callArgs)
+{
+    if (args[1].m_tagk == 0)
+        return args[1];
+    SPN call;   /* (proc 'element) */
+    CRef *procSlot;
+    CRef *elementSlot;
+    func_00121578(&call, &procSlot, &elementSlot);
+    *procSlot = args[0];
+    SP result;
+    CPair *tail;
+    CPair *element = args[1].u.ppair;
+    while (element) {
+        *elementSlot = element->ref;
+        CRef keep = RefEval__FP5CPairP6CFrame(call.p, callArgs);
+        if (keep.m_tagk == TAGK_BOOL && keep.u.n) {
+            SPN newPair;
+            CPair *pair = PtNew__t6CGcObj1Z5CPair();
+            newPair.Set(pair);
+            newPair->ref = element->ref;
+            if (!result.p) {
+                CPair *head = PtNew__t6CGcObj1Z5CPair();
+                result = head;
+                result->ref = newPair.p;
+            } else {
+                tail->pnext = newPair.p;
+            }
+            CPair *appended = newPair.p;
+            tail = appended;
+        }
+        element = element->pnext.p;
+    }
+    if (!result.p)
+        return CRef(0);
+    return CRef(result->ref.u.ppair);
+}
 } // namespace M_RefOpFilter__FiP4CRefP6CFrame
 
 // 0x121C20 RefOpForEach__FiP4CRefP6CFrame
@@ -2753,7 +2814,17 @@ static inline float SDistSq(qword *pa, qword *pb)
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-distance-squared": squared distance.
-CRef RefOpVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args) { CRef ref; if (args[1].m_tagk == 0) ref = SDistSq((qword *)args[0].u.pv, &D_002A2DD0); else { register W *pw __asm__("$5") = (W *)args[1].u.pv; ref = SDistSq((qword *)args[0].u.pv, pw->pv);} return ref; }
+CRef RefOpVectorDistanceSquared__FiP4CRefP6CFrame(void *pbasic, CRef *args)
+{
+    CRef result;
+    if (args[1].m_tagk == 0) {
+        result = SDistSq((qword *)args[0].u.pv, &D_002A2DD0);   /* no second vector: distance to the origin */
+    } else {
+        register W *other __asm__("$5") = (W *)args[1].u.pv;
+        result = SDistSq((qword *)args[0].u.pv, other->pv);
+    }
+    return result;
+}
 } // namespace M_RefOpVectorDistanceSquared__FiP4CRefP6CFrame
 
 // 0x1229B8 RefOpVectorNormalize__FiP4CRefP6CFrame
@@ -2817,7 +2888,15 @@ static __inline__ void Normalize1(qword *pv, qword *pdef)
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Splice builtin "vector-normalize": normalize with 1e-4 guard/default.
-CRef RefOpVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args) { CRef ref((qword *)args[0].u.pv); if (args[1].m_tagk == 0) Normalize1(ref.u.pq, &D_002A2DD0); else Normalize(ref.u.pq, ((W *)args[1].u.pv)->pv); return ref; }
+CRef RefOpVectorNormalize__FiP4CRefP6CFrame(void *pbasic, CRef *args)
+{
+    CRef result((qword *)args[0].u.pv);
+    if (args[1].m_tagk == 0)
+        Normalize1(result.u.pq, &D_002A2DD0);   /* fallback for a zero-length vector: the default */
+    else
+        Normalize(result.u.pq, ((W *)args[1].u.pv)->pv);
+    return result;
+}
 } // namespace M_RefOpVectorNormalize__FiP4CRefP6CFrame
 
 // 0x122B08 RefOpVectorProjectNormal__FiP4CRefP6CFrame
@@ -4319,13 +4398,41 @@ extern "C" CRef RefOpFindObjectsFromOids(void *pbasic, CRef *args);
  * See: docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // Maps a list of OIDs to a list of objects via 0x15E958 (same root/optional-arg handling as find-object).
-CRef RefOpFindObjectsFromOids(void *pbasic, CRef *args) { CRef res; if (args[0].m_tagk == 0) return args[0];
- void *pv = args[1].u.pv; SW *psw; if (args[2].m_tagk != 0) psw = ((OW *)args[2].u.pv)->psw; else psw = (SW *)pv;
- SPN spRes; CPair *pnR = PtNew__t6CGcObj1Z5CPair(); spRes.Set(pnR);
- CPair *pTail; CPair *pn = (CPair *)args[0].u.pv; while (pn) { SPN spNew; CPair *pnNew = PtNew__t6CGcObj1Z5CPair(); spNew.Set(pnNew);
-   int n = pn->ref.u.n; spNew->ref.SetBasic((BASIC *)PloFindSwObject_15E958(&D_003DD490, pv ? 1 : 5, n, pv, psw ? psw->n3C : D_003DD490.n3F0C));
-   if (spRes->ref.m_tagk != TAGK_PAIR) spRes->ref = spNew.p; else pTail->pnext = spNew.p;
-   CPair *p = spNew.p; pn = pn->pnext.p; pTail = p; } int unused[4]; res = CRef((CPair *)spRes->ref.u.pv); return res; }
+CRef RefOpFindObjectsFromOids(void *pbasic, CRef *args)
+{
+    CRef result;
+    if (args[0].m_tagk == 0)
+        return args[0];
+    void *root = args[1].u.pv;
+    SW *context;
+    if (args[2].m_tagk != 0)
+        context = ((OW *)args[2].u.pv)->psw;
+    else
+        context = (SW *)root;
+    SPN list;
+    CPair *head = PtNew__t6CGcObj1Z5CPair();
+    list.Set(head);
+    CPair *tail;
+    CPair *oidPair = (CPair *)args[0].u.pv;
+    while (oidPair) {
+        SPN newPair;
+        CPair *pair = PtNew__t6CGcObj1Z5CPair();
+        newPair.Set(pair);
+        int oid = oidPair->ref.u.n;
+        newPair->ref.SetBasic((BASIC *)PloFindSwObject_15E958(&D_003DD490, root ? 1 : 5, oid, root,
+                                                              context ? context->n3C : D_003DD490.n3F0C));
+        if (list->ref.m_tagk != TAGK_PAIR)
+            list->ref = newPair.p;
+        else
+            tail->pnext = newPair.p;
+        CPair *appended = newPair.p;
+        oidPair = oidPair->pnext.p;
+        tail = appended;
+    }
+    int unused[4];   /* stack frame size (inferred: a dead local of the original) */
+    result = CRef((CPair *)list->ref.u.pv);
+    return result;
+}
 } // namespace M_RefOpFindObjectsFromOids
 
 // 0x1244E8 RefOpFindNearestObject__FiP4CRefP6CFrame
