@@ -2141,12 +2141,12 @@ int IsBhvguardModeSame(struct S *a, struct S *b) {
 // 0x177E80 InitBhvpath
 namespace M_InitBhvpath { extern "C" {
 struct S;
-struct S { char pad[0x34]; float g34; char pad2[0x10]; float g48; int n4C; char pad3[0x8]; int n58; char pad4[0x8]; float g64; float g68; float g6C; char pad5[0x30]; int nA0; };
+struct S { char pad[0x34]; float g34; char pad2[0x10]; float g48; int state; char pad3[0x8]; int n58; char pad4[0x8]; float g64; float g68; float g6C; char pad5[0x30]; int nA0; };
 extern float D_002BE624, D_002BE628, D_002BE62C;
 void InitBhv(struct S *p);
 } } // namespace M_InitBhvpath
 // 0x177E80: BHVPATH vtable slot 7 (OnPush): no path, default speeds and radii, state -1.
-void BHVPATH::OnPush() { using namespace M_InitBhvpath; M_InitBhvpath::S *p = (M_InitBhvpath::S *)this; InitBhv(p); p->g34 = p->g48 = -1.0f; p->g64 = D_002BE62C; p->g68 = D_002BE624; p->g6C = D_002BE628; p->n4C = -1; p->n58 = 0; p->nA0 = 1; }
+void BHVPATH::OnPush() { using namespace M_InitBhvpath; M_InitBhvpath::S *p = (M_InitBhvpath::S *)this; InitBhv(p); p->g34 = p->g48 = -1.0f; p->g64 = D_002BE62C; p->g68 = D_002BE624; p->g6C = D_002BE628; p->state = -1; p->n58 = 0; p->nA0 = 1; }
 
 // 0x177EF0 StartBhvpath
 namespace M_StartBhvpath { extern "C" {
@@ -2736,7 +2736,7 @@ struct A { char pad[0xE8]; struct X *pE8; };
 struct T { char pad[0x28]; unsigned long fl; char pad2[0x1D8 - 0x30]; int n1D8; };
 struct S {
     char pad[0xC]; struct VTE *vt; struct A *guard; char pad1[0x30 - 0x14];
-    void *p30; float stateTime; int n38; char pad2[4]; int n40; char pad3[8]; int n4C;
+    void *shape; float pathParam; int n38; char pad2[4]; int n40; char pad3[8]; int state;
     char pad4[4]; struct T *p54; int n58; float g5C; float g60; char pad5[4]; float g68; float g6C;
     char pad6[0x80 - 0x70]; qword v80;
 };
@@ -2771,7 +2771,7 @@ void UpdateBhvpath(struct S *behavior) {
     StepBhvpathAlongShape(behavior);
     pos = func_001A62E8(behavior->guard);
     do {
-        s = behavior->n4C;
+        s = behavior->state;
         switch (s) {
         case 0:
         case 2:
@@ -2779,7 +2779,7 @@ void UpdateBhvpath(struct S *behavior) {
             if (!behavior->n40) {
                 struct X *x = behavior->guard->pE8;
                 struct Y *y = x ? x->pDC : 0;
-                int n = func_001BD718(pos, y ? y->p10 : 0, x->pDC->a20, behavior->p30, behavior->n38 == 0, &behavior->p54, &behavior->g60, behavior->stateTime);
+                int n = func_001BD718(pos, y ? y->p10 : 0, x->pDC->a20, behavior->shape, behavior->n38 == 0, &behavior->p54, &behavior->g60, behavior->pathParam);
                 behavior->n58 = n;
                 switch (n) {
                 case 0:
@@ -2802,7 +2802,7 @@ void UpdateBhvpath(struct S *behavior) {
                 }
             }
             if (behavior->n58 == 0) {
-                float r = behavior->n4C == 0 ? behavior->g68 : behavior->g6C;
+                float r = behavior->state == 0 ? behavior->g68 : behavior->g6C;
                 int f = r < Dist(behavior->v80, pos);
                 if (f) Set(behavior, 0);
                 else Set(behavior, 2);
@@ -2815,14 +2815,14 @@ void UpdateBhvpath(struct S *behavior) {
             } else if (__builtin_fabsf(func_001E7B38(behavior->p54, behavior->g5C, behavior->g60)) < 80.0f) {
                 Set(behavior, 0);
             } else {
-                float r = behavior->n4C == 1 ? behavior->g68 : behavior->g6C;
+                float r = behavior->state == 1 ? behavior->g68 : behavior->g6C;
                 int f = r < Dist(behavior->v80, pos);
                 if (f) Set(behavior, 1);
                 else Set(behavior, 4);
             }
             break;
         }
-    } while (behavior->n4C != s);
+    } while (behavior->state != s);
 }
 } } // namespace M_UpdateBhvpath
 
@@ -2887,7 +2887,7 @@ typedef int qword __attribute__((mode(TI)));
 struct G;
 extern struct G D_003DD020;
 struct O { char pad[0xE4]; int nE4; };
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *po; float stateTime; int n38; int n3C; int pad3; float g44; float g48; char pad4[0xB0 - 0x4C]; char aB0[0x10]; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; struct O *po; float pathParam; int n38; int n3C; int pad3; float g44; float g48; char pad4[0xB0 - 0x4C]; char aB0[0x10]; };
 qword func_001A62E8(void *p);
 void FindShapeClosestPointFromS(struct O *po, float g, qword q, struct G *pg, void *pv, int b, int c, float *pf);
 void FindShapeClosestPoint(struct O *po, qword q, struct G *pg, void *pv, int b, int c, float *pf);
@@ -2900,10 +2900,10 @@ void SetBhvpathShape(struct S *behavior, struct O *po, int n) {
     behavior->n38 = n;
     behavior->po = po;
     if (behavior->g48 >= 0.0f) {
-        FindShapeClosestPointFromS(po, behavior->g48, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->stateTime);
+        FindShapeClosestPointFromS(po, behavior->g48, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
         behavior->g48 = -1.0f;
     } else {
-        FindShapeClosestPoint(po, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->stateTime);
+        FindShapeClosestPoint(po, func_001A62E8(behavior->guard), &D_003DD020, 0, 0, 0, &behavior->pathParam);
     }
     if (po->nE4) {
         behavior->n3C = 0;
@@ -3148,7 +3148,7 @@ typedef int qword __attribute__((mode(TI)));
 extern float D_002BE694;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x28]; int n38; int n3C; };
-struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x34]; int n4C; char pad3[0xC0 - 0x50]; int nC0; int pad4; int nC8; int pad5; qword qD0; float gE0; };
+struct S { char pad[0x10]; void *guard; int pad2; char childSlot[0x34]; int state; char pad3[0xC0 - 0x50]; int nC0; int pad4; int nC8; int pad5; qword qD0; float gE0; };
 void SetBhvpathState(struct S *p, int n);
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
@@ -3156,10 +3156,10 @@ qword func_001A62E8(void *p);
 // 0x1791C8: BHVWALKPATH state change: moving states push the walk animation (its flag, 8 when carrying an object),
 // stopped states push BHVIDLE.
 void SetBhvwalkpathState(struct S *behavior, int n) {
-    int old = behavior->n4C;
+    int old = behavior->state;
     if (n == old) return;
     SetBhvpathState(behavior, n);
-    switch (behavior->n4C) {
+    switch (behavior->state) {
     case 0: case 1:
         if ((unsigned)old < 2) return;
         PopBhv(behavior->childSlot);
@@ -3190,9 +3190,9 @@ void SetBhvwalkpathState(struct S *behavior, int n) {
 // 0x1792E8 IsBhvwalkpathStuck
 namespace M_FBhvwalkpathStuck { extern "C" {
 struct S;
-struct S { char pad[0x4C]; int n4C; char pad2[0x90]; float gE0; };
+struct S { char pad[0x4C]; int state; char pad2[0x90]; float gE0; };
 // 0x1792E8: True if the guard is walking and the stuck timer ran out.
-int IsBhvwalkpathStuck(struct S *behavior) { int f = 0; if (behavior->n4C < 2) { if (behavior->n4C >= 0) f = behavior->gE0 < 0.0f; } return f; }
+int IsBhvwalkpathStuck(struct S *behavior) { int f = 0; if (behavior->state < 2) { if (behavior->state >= 0) f = behavior->gE0 < 0.0f; } return f; }
 } } // namespace M_FBhvwalkpathStuck
 
 // 0x179328 StartBhvhit
@@ -3507,11 +3507,11 @@ void BHVKO::VSlot9()
 // 0x179A58 InitBhvpatrol
 namespace M_InitBhvpatrol { extern "C" {
 struct S;
-struct S { char pad[0x10]; void *guard; char pad2[0x1C]; float g30; float stateTime; int n38; };
+struct S { char pad[0x10]; void *guard; char pad2[0x1C]; float walkEndTime; float pauseEndTime; int state; };
 void InitBhv(struct S *p);
 void AddStepguardSgf(void *p, int n);
 // 0x179A58: BHVPATROL vtable slot 7 (OnPush): raises flag 0x1E (patrolling), timers off.
-void InitBhvpatrol(struct S *behavior) { InitBhv(behavior); behavior->n38 = -1; behavior->g30 = behavior->stateTime = 3.40282346638528859812e+38f; AddStepguardSgf(behavior->guard, 0x1E); }
+void InitBhvpatrol(struct S *behavior) { InitBhv(behavior); behavior->state = -1; behavior->walkEndTime = behavior->pauseEndTime = 3.40282346638528859812e+38f; AddStepguardSgf(behavior->guard, 0x1E); }
 } } // namespace M_InitBhvpatrol
 
 // 0x179AA0 StartBhvpatrol
@@ -3554,7 +3554,7 @@ namespace M_UpdateBhvpatrol { extern "C" {
 struct CLOCK; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; float f30; float f34; int n38; char pad4[4]; int n40; };
+struct S { char pad[0x10]; void *guard; int pad2; void *child; char pad3[0x14]; float f30; float f34; int state; char pad4[4]; int n40; };
 void UpdateBhv(struct S *p);
 int IsStepguardHandsOff(void *p);
 int IsBhvBusyAbove(struct S *p);
@@ -3567,7 +3567,7 @@ void UpdateBhvpatrol(struct S *behavior) {
     UpdateBhv(behavior);
     f = IsStepguardHandsOff(behavior->guard);
     while (!IsBhvBusyAbove(behavior)) {
-        s = behavior->n38;
+        s = behavior->state;
         switch (s) {
         case 1:
             if (f) SetBhvpatrolState(behavior, 3);
@@ -3588,7 +3588,7 @@ void UpdateBhvpatrol(struct S *behavior) {
             }
             break;
         }
-        if (behavior->n38 != s) continue;
+        if (behavior->state != s) continue;
         break;
     }
 }
@@ -3601,7 +3601,7 @@ struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
 struct VTE { short d; short pad; void (*pfn)(void *); };
 struct O { char pad[0xC]; struct VTE *vt; char pad2[0x2C]; int n3C; };
-struct S { char pad[0x10]; char *guard; int pad2; void *child; char pad3[0x14]; float g30; float stateTime; int n38; float g3C; void *p40; };
+struct S { char pad[0x10]; char *guard; int pad2; void *child; char pad3[0x14]; float walkEndTime; float pauseEndTime; int state; float g3C; void *p40; };
 void PopBhv(void *p);
 struct O *func_00205438(void *p, int n);
 void SaveBhvScriptResumeState(void *p, void *q);
@@ -3611,21 +3611,21 @@ void ArmBhvpatrolWalkTimer(struct S *p);
 // 0x179D30: BHVPATROL state switch: 0 runs the patrol script (BHV169, saving the resume point), 1/2 idle, 3
 // hands-off idle.
 void SetBhvpatrolState(struct S *behavior, int n) {
-    if (n == behavior->n38) return;
-    if (behavior->n38 == 0) SaveBhvScriptResumeState(behavior->child, behavior->guard + 0x2DC);
+    if (n == behavior->state) return;
+    if (behavior->state == 0) SaveBhvScriptResumeState(behavior->child, behavior->guard + 0x2DC);
     PopBhv(&behavior->child);
-    behavior->n38 = n;
+    behavior->state = n;
     behavior->g3C = D_002DDED0.t;
     switch (n) {
     case 1: case 2:
         { struct O *o = func_00205438(behavior->guard, 0x9E); struct VTE *entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
         ArmBhvpatrolPauseTimer(behavior);
-        behavior->g30 = 3.40282346638528859812e+38f;
+        behavior->walkEndTime = 3.40282346638528859812e+38f;
         break;
     case 0:
         { struct O *o = func_00205438(behavior->guard, 0xA9); struct VTE *entry; SetBhvScriptScript(o, behavior->p40, 0, behavior->guard + 0x2DC); entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
         ArmBhvpatrolWalkTimer(behavior);
-        behavior->stateTime = 3.40282346638528859812e+38f;
+        behavior->pauseEndTime = 3.40282346638528859812e+38f;
         break;
     case 3:
         { struct O *o = func_00205438(behavior->guard, 0x9E); struct VTE *entry; o->n3C = 1; entry = &o->vt[8]; entry->pfn((char *)o + entry->d); }
@@ -3639,14 +3639,14 @@ namespace M_ArmBhvpatrolWalkTimer { extern "C" {
 struct CLOCK; struct T; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-struct T { char pad[0x2CC]; float g2CC; float g2D0; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; float g30; };
+struct T { char pad[0x2CC]; float walkTimeMin; float walkTimeMax; };
+struct S { char pad[0x10]; struct T *guard; char pad2[0x1C]; float walkEndTime; };
 float GRandInRange__Fff(float a, float b);
 // 0x179E80: Arms the patrol walk timer from the guard's walk-time range (FLT_MAX = forever).
 void ArmBhvpatrolWalkTimer(struct S *behavior) {
-    if (behavior->g30 < 3.40282346638528859812e+38f) return;
-    if (behavior->guard->g2CC == 3.40282346638528859812e+38f) behavior->g30 = 3.40282346638528859812e+38f;
-    else { float t = D_002DDED0.t; behavior->g30 = t + GRandInRange__Fff(behavior->guard->g2CC, behavior->guard->g2D0); }
+    if (behavior->walkEndTime < 3.40282346638528859812e+38f) return;
+    if (behavior->guard->walkTimeMin == 3.40282346638528859812e+38f) behavior->walkEndTime = 3.40282346638528859812e+38f;
+    else { float t = D_002DDED0.t; behavior->walkEndTime = t + GRandInRange__Fff(behavior->guard->walkTimeMin, behavior->guard->walkTimeMax); }
 }
 } } // namespace M_ArmBhvpatrolWalkTimer
 
@@ -3655,14 +3655,14 @@ namespace M_ArmBhvpatrolPauseTimer { extern "C" {
 struct CLOCK; struct T; struct S;
 struct CLOCK { float t; float dt; };
 extern struct CLOCK D_002DDED0;
-struct T { char pad[0x2D4]; float g2D4; float g2D8; };
-struct S { char pad[0x10]; struct T *guard; char pad2[0x20]; float stateTime; };
+struct T { char pad[0x2D4]; float pauseTimeMin; float pauseTimeMax; };
+struct S { char pad[0x10]; struct T *guard; char pad2[0x20]; float pauseEndTime; };
 float GRandInRange__Fff(float a, float b);
 // 0x179EF8: Arms the patrol pause timer from the guard's pause-time range.
 void ArmBhvpatrolPauseTimer(struct S *behavior) {
-    if (behavior->stateTime < 3.40282346638528859812e+38f) return;
-    if (behavior->guard->g2D4 == 3.40282346638528859812e+38f) behavior->stateTime = 3.40282346638528859812e+38f;
-    else { float t = D_002DDED0.t; behavior->stateTime = t + GRandInRange__Fff(behavior->guard->g2D4, behavior->guard->g2D8); }
+    if (behavior->pauseEndTime < 3.40282346638528859812e+38f) return;
+    if (behavior->guard->pauseTimeMin == 3.40282346638528859812e+38f) behavior->pauseEndTime = 3.40282346638528859812e+38f;
+    else { float t = D_002DDED0.t; behavior->pauseEndTime = t + GRandInRange__Fff(behavior->guard->pauseTimeMin, behavior->guard->pauseTimeMax); }
 }
 } } // namespace M_ArmBhvpatrolPauseTimer
 
