@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 """Full link of SCUS_973.16 from the matched sources (docs/guides/full-link.md).
 
-usage: python3 tools/link.py [--no-compile] [--per-function] [--sdk] | --check-tools
+usage: python3 tools/link.py [--no-compile] [--per-function] | --sdk-only | --check-tools
 
   1. compile every source of config/matched.csv that builds here with matchtool's compile_src, as the original build
      did: one .text/.data/.rodata/.bss per object plus its .gnu.linkonce.* sections (build/link/obj-tu/).  An object
      whose .text is not yet one run at its ELF address (linkonce copies kept as plain functions, junk.csv scraps
      inside, padding) falls back to a -ffunction-sections build of the same source (build/link/obj/), each function
      placed on its own; the reason per object goes to build/link/tutext.txt.  --per-function builds every object that
-     way (the old prototype mode); --no-compile reuses the objects already there.
+     way (the old prototype mode); --no-compile reuses the objects already there.  The SDK sources that need i386
+     Linux binaries are linked as objects where --sdk-only has built them, else covered by blobs.
   2. place every object section at the address its symbols and relocations give it in the ELF, fill what no object
      covers with byte ranges cut from your disc/SCUS_973.16 (build/link/blobs.o, never committed), and write
      build/link/sly2.ld from tools/link.ld.in: sections in address order, an address assignment only where the
@@ -47,24 +48,20 @@ def llvm_tool(name):
 
 @functools.lru_cache(None)
 def matched():
-    """{function address: source} of config/matched.csv"""
-    return {int(r['addr'], 16): r['source'] for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'matched.csv')))}
+    """[(function address, source)] of config/matched.csv (two sources share 0x243500)"""
+    return [(int(r['addr'], 16), r['source']) for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'matched.csv')))]
 
 
-def sources(sdk=False):
-    """(buildable, unbuildable) source paths of config/matched.csv.  The SDK sources assembled by GNU as
-    (`SLY2_ASM: gnu-reorder*`) or compiled by the native ee-gcc 2.96 need i386 Linux binaries: unbuildable unless
-    --sdk asks for them (gnu_reorder runs GNU as through Docker on macOS; native Linux needs /lib/ld-linux.so.2)"""
-    srcs = sorted(set(matched().values()))
-    loader = os.path.exists('/lib/ld-linux.so.2')
-    ok, skip = [], []
-    for s in srcs:
+def sources():
+    """(buildable here, needing i386 Linux binaries) source paths of config/matched.csv: the SDK sources compiled by
+    the native ee-gcc 2.96 (`SLY2_CC:` with a Linux bin/ee-gcc) or assembled by GNU as (`SLY2_ASM: gnu-reorder*`)"""
+    ok, sdk = [], []
+    for s in sorted({src for a, src in matched()}):
         head = open(os.path.join(ROOT, s), errors='ignore').read(2000)
         cc = re.search(r'SLY2_CC:\s*(\S+)', head)
         native = cc and os.path.exists(os.path.join(ROOT, cc.group(1), 'bin', 'ee-gcc'))
-        gnu_as = re.search(r'SLY2_ASM:\s*gnu-reor', head)
-        (skip if (native and not (sdk and loader)) or (gnu_as and not sdk) else ok).append(s)
-    return ok, skip
+        (sdk if native or re.search(r'SLY2_ASM:\s*gnu-reor', head) else ok).append(s)
+    return ok, sdk
 
 
 def obj_path(src, per_function):
@@ -79,12 +76,10 @@ def compile_all(srcs, per_function):
     def one(s):
         o = obj_path(s, per_function)
         os.makedirs(os.path.dirname(o), exist_ok=True)
-        if os.path.exists(o):
-            os.remove(o)                               # no stale object if the compile fails
         try:
             shutil.move(matchtool.compile_src(s), o)   # relative path, as matchtool is run (the path-hash quirk)
-        except SystemExit:
-            print(f'FAILED: {s}', file=sys.stderr)
+        except (SystemExit, OSError):                  # compile error, or a compiler this host cannot run
+            print(f'FAILED: {s}' + (' (the previous object is kept)' if os.path.exists(o) else ''), file=sys.stderr)
     with ThreadPoolExecutor(os.cpu_count() or 2) as ex:
         for i, _ in enumerate(ex.map(one, srcs)):
             if i % 50 == 0:
@@ -283,7 +278,7 @@ def tu_verdict(o, img, owner, junk):
 
 def tu_check(objs, img):
     """{source: reason} for the objects that cannot link whole yet; writes build/link/tutext.txt"""
-    owner, junk = sorted(matched().items()), matchtool.load_junk()
+    owner, junk = sorted(matched()), matchtool.load_junk()
     bad = {o.src: why for o in objs for why in [tu_verdict(o, img, owner, junk)] if why}
     open(os.path.join(OUT, 'tutext.txt'), 'w').writelines(f'{s}: {w}\n' for s, w in sorted(bad.items()))
     return bad
@@ -311,8 +306,9 @@ def blob_reasons(img, unbuilt):
     """(start, end, reason) of what config says is at the addresses blobs may cover; narrower rows sort later"""
     out = [(s[3], s[3] + s[5], {'.vutext': 'VU microcode', '.irx': 'IOP modules (.irx)', '.text': 'text: padding / not '
             'in config'}.get(s[0], 'data no object defines')) for s in img.secs]
+    srcs = dict(matched())
     for r in csv.DictReader(open(os.path.join(ROOT, 'config', 'functions.csv'))):
-        src = matched().get(int(r['Start'], 16))
+        src = srcs.get(int(r['Start'], 16))
         out.append((int(r['Start'], 16), int(r['End'], 16), 'text: unmatched function' if src is None else
                     'text: SDK source that does not build here' if src in unbuilt else 'text: matched but not in an object'))
     out += [(a, e, 'text: dead code (junk.csv)') for a, e in matchtool.load_junk()]
@@ -532,18 +528,21 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     per_function = '--per-function' in sys.argv
     compile = '--no-compile' not in sys.argv
-    srcs, skip = sources('--sdk' in sys.argv)
+    srcs, sdk = sources()
+    if '--sdk-only' in sys.argv:             # the SDK sources only, where the i386 tools run (see full-link.md)
+        return compile_all(sdk, False)
     img = Image(ELF)
     if compile:
         compile_all(srcs, per_function)
     ok = [s for s in srcs if os.path.exists(obj_path(s, per_function))]
-    objs = [Obj(s, per_function) for s in ok]
+    ok += [s for s in sdk if os.path.exists(obj_path(s, False))]          # SDK objects built by --sdk-only
+    objs = [Obj(s, per_function and s in srcs) for s in ok]
     fallback = {} if per_function else tu_check(objs, img)
-    compile_all([s for s in fallback if compile or not os.path.exists(obj_path(s, True))], True)
-    objs = [Obj(o.src, True) if o.src in fallback else o for o in objs]
-    unbuilt = set(skip) | set(srcs) - set(ok)
-    print(f'{len(objs)} objects ({len(srcs) - len(ok)} failed to compile), {len(skip)} sources not buildable here',
-          file=sys.stderr)
+    compile_all([s for s in fallback if s in srcs and (compile or not os.path.exists(obj_path(s, True)))], True)
+    objs = [Obj(o.src, True) if o.src in fallback and os.path.exists(obj_path(o.src, True)) else o for o in objs]
+    unbuilt = set(srcs + sdk) - set(ok)
+    print(f'{len(objs)} objects ({len(set(srcs) - set(ok))} sources failed to compile, {len(set(sdk) - set(ok))} SDK '
+          f'sources without an object: --sdk-only builds them)', file=sys.stderr)
     base, conflicts, ext = place(objs, img)
     unplaced = [(objs[k].src, o.secs[i][0], o.secs[i][5]) for k, o in enumerate(objs) for i in o.alloc() if (k, i) not in base]
     syms, derived = symbols(objs, img, ext)

@@ -25,7 +25,7 @@ and falls back to per-function placement only for the objects that are not conti
 | blob bytes | 1,067,080 [same]: IOP modules 474,176; data no object defines 437,056; text of SDK sources that do not build here 118,224 (with 1,384 of padding between them); VU microcode 34,112; junk.csv 2,124; `func_00100000` 4 (link/crt0-block's accounting: 1,080,256) | `tools/link.py` |
 | config names at their config address | 7,402 / 7,402 | `tools/link.py` |
 | one object order for every section | the objects' `.data`/`.rodata`/`.bss` follow their `.text` order except 7 sections: the 3 `.rodata.early`, mpeg's and class_registry's `.rodata` (the first part of `.rodata`, tu-merging.md "Phase 5"), main's `.data.buildinfo`, tn's `.bss` (the bound overlap) | scratch order.py |
-| tools/link.py | 640 -> 587 lines (real-link mode, the TU classification and `--sdk` added; the per-function TU check, byte-repeat binding, alignment lowering and owner listing gone) | `wc -l` |
+| tools/link.py | 640 -> 586 lines (real-link mode, the TU classification and `--sdk-only` added; the per-function TU check, byte-repeat binding, alignment lowering and owner listing gone) | `wc -l` |
 | docs links | 0 broken | `tools/docs/linkcheck.py` |
 
 ### Status (link/crt0-block on integrate/round7, 2026-11-05; superseded above)
@@ -200,7 +200,7 @@ key-TU extras discarded.
 
 ## Real link (link/real-link, 2026-11-06)
 
-`python3 tools/link.py [--no-compile] [--per-function] [--sdk]`; tools/verify.sh runs it without options. Needs
+`python3 tools/link.py [--no-compile] [--per-function]` or `--sdk-only`; tools/verify.sh runs it without options. Needs
 the same tools as before (`ld.lld`, `llvm-objcopy`, disc/SCUS_973.16; "Prototype link" below says where they come
 from). A full run is about 5 min here (528 sources, 2 cores, plus the fallback objects); `--no-compile` about 5 s.
 
@@ -227,9 +227,11 @@ from). A full run is about 5 min here (528 sources, 2 cores, plus the fallback o
 4. **Compare** as before; build/link/sections.txt lists every section not simply linked at its address (disagreeing
    evidence, unplaced, bound, overlapping).
 
-`--sdk` also compiles the 329 SDK sources that need i386 Linux binaries (328 assembled by GNU as through
-tools/gnu_reorder.py, 1 compiled by the native ee-gcc 2.96: src/sdk/libmpeg/func_0024B8F8.c). In this workspace
-they fail (no `/lib/ld-linux.so.2`) and stay blobs; see "End state", SDK objects.
+The 329 SDK sources that need i386 Linux binaries (279 compiled by a native Linux ee-gcc: 2.9-991111 and its -01
+variant, 2.96 for src/sdk/libmpeg/func_0024B8F8.c; 49 compiled through wibo and assembled by GNU as, tools/gnu_reorder.py)
+are linked as objects when build/link/obj-tu/ has one, which `--sdk-only` builds (only those sources; a failed
+compile keeps the previous object); otherwise blobs cover them. Here every one fails (no `/lib/ld-linux.so.2`); see
+"End state", SDK objects.
 
 ## Prototype link (link/prototype, 2026-11-05)
 
@@ -522,14 +524,19 @@ of tools/linkaliases.py.
 
 ### 3. SDK objects instead of blobs
 
-118,224 `.text` bytes (and the SDK's share of `.rodata`, `.bss` above) come from 329 sources that need i386 Linux
-binaries. On the Mac, `python3 tools/link.py --sdk` compiles them as progress does: wibo-macos for `cc -S`, then
-GNU as through Docker (tools/gnu_reorder.py, `run_linux_tool`); their objects are single members of the SDK
-libraries, placed by address like every other object, so no archive (libkernl.a, ...) is needed. Not tried yet
-(no GNU as here). First Mac run: 0 ld errors, 0 differing bytes, "text: SDK source that does not build here" down to
-the one native-compiler source (src/sdk/libmpeg/func_0024B8F8.c, which needs `tools/dev.sh run` because wibo does
-not run in Docker on Apple Silicon: build that one object there into build/link/obj-tu/ and link with
-`--no-compile`). When that holds, make `--sdk` the default wherever the tools run.
+118,224 `.text` bytes (and the SDK's share of `.rodata`, `.bss` above) come from the 329 sources that need i386
+Linux binaries. The Mac builds them as progress does, in two places, and link.py links whatever objects exist:
+
+    tools/dev.sh run python3 tools/link.py --sdk-only   # Docker: the 279 native-compiler sources
+    python3 tools/link.py --sdk-only                    # natively: the 49 wibo + GNU as sources (as through Docker)
+    python3 tools/link.py                               # links them as objects instead of blobs
+
+(Each run reports the others as FAILED and keeps their objects; on an Intel Mac or a Linux machine with the i386
+loader the first command builds all 329.) Each SDK source is one member of a Sony library, placed by address like
+every other object, so no archive (libkernl.a, ...) is needed. Not tried yet (no i386 loader here). First Mac run
+to check: 0 ld errors, 0 differing bytes, "text: SDK source that does not build here" at 0 and the SDK `.rodata`
+and `.bss` gaps above gone or reduced. When that holds, tools/verify.sh can run the two `--sdk-only` steps before
+the link.
 
 ### What stays a blob, and the script's final form
 
