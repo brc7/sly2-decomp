@@ -24,23 +24,23 @@ struct VTE { short d; short pad; void (*pfn)(); };
 struct BHVB
 {
     char pad0[0xC];
-    VTE *pvt;               /* +0x0C */
-    STEPGUARD *pstepguard;  /* +0x10 */
+    VTE *vt;               /* +0x0C */
+    STEPGUARD *guard;  /* +0x10 */
 };
 /* The behaviours with a state machine at +0x30 (state, time it was entered). */
 struct BHVSTATE : public BHVB
 {
     char pad14[0x30 - 0x14];
-    int nState;             /* +0x30 */
-    float tState;           /* +0x34 */
+    int state;             /* +0x30 */
+    float stateTime;           /* +0x34 */
 };
 /* The walk-to-goal behaviour (a path behaviour): its goal and a speed factor. */
 struct BHVWALKGOALV : public BHVB
 {
     char pad14[0x80 - 0x14];
-    qword qwGoal;           /* +0x80 */
+    qword goal;           /* +0x80 */
     char pad90[0xD0 - 0x90];
-    float gD0;              /* +0xD0 */
+    float speedScale;              /* +0xD0 */
 };
 struct BHV144E20 : public BHVB
 {
@@ -57,8 +57,8 @@ struct BHVFOLLOWV : public BHVB
 };
 /* Guard words the behaviours touch that guard.h leaves unnamed: the walking goal (+0xFD0, a JTGOAL) and a flag
    word (+0x10E0). */
-#define PJTGOAL(pstepguard) ((JTGOAL *)((char *)(pstepguard) + 0xFD0))
-#define GRFSG(pstepguard) (*(int *)((char *)(pstepguard) + 0x10E0))
+#define PJTGOAL(guard) ((JTGOAL *)((char *)(guard) + 0xFD0))
+#define GRFSG(guard) (*(int *)((char *)(guard) + 0x10E0))
 
 extern CLOCK D_002DDED0;
 extern "C" {
@@ -71,11 +71,11 @@ void InitBhvpath(BHVB *pbhv);
 void StartBhvpath(BHVB *pbhv);
 void UpdateBhvpath(BHVB *pbhv);
 void SetJtgoal(JTGOAL *pjtgoal, qword pos);
-void SetBhvfollowState(BHVB *pbhv, int nState);
+void SetBhvfollowState(BHVB *pbhv, int state);
 int FIsBasicDerivedFrom__FP5BASIC3CID(SO *pso, int cid);
 CID17 *PpathzoneFromPos(qword pos, int n);
 qword func_001A62E8(SO *pso);
-void SetMurrayState(MURRAY *pmurray, int nState);
+void SetMurrayState(MURRAY *pmurray, int state);
 void func_001B8D30(MURRAY *pmurray, int n);
 }
 
@@ -84,21 +84,21 @@ void BHVWALKGOAL::OnPush()
 {
     BHVWALKGOALV *behavior = (BHVWALKGOALV *)this;
     InitBhvpath(behavior);
-    behavior->gD0 = 1.0f;
+    behavior->speedScale = 1.0f;
 }
 
 // 0x144B58: Walk-goal behaviour vtable slot 8 (Start): base, then sets the mover's jt-goal to the behaviour's goal.
 extern "C" void StartBhvwalkgoal(BHVWALKGOALV *behavior)
 {
     StartBhvpath(behavior);
-    SetJtgoal(PJTGOAL(behavior->pstepguard), behavior->qwGoal);
+    SetJtgoal(PJTGOAL(behavior->guard), behavior->goal);
 }
 
 // 0x144B90: Walk-goal behaviour vtable slot 10 (Update): path behaviour update, then refreshes the jt-goal.
 extern "C" void UpdateBhvwalkgoal(BHVWALKGOALV *behavior)
 {
     UpdateBhvpath(behavior);
-    SetJtgoal(PJTGOAL(behavior->pstepguard), behavior->qwGoal);
+    SetJtgoal(PJTGOAL(behavior->guard), behavior->goal);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -108,7 +108,7 @@ typedef int qword __attribute__((mode(TI)));
 struct Q { char pad[0x18]; float x18; float x1C; char pad2[0x30 - 0x20]; int x30; };
 struct O;
 struct VT { char pad[0x2C8]; short d; short pad2; int (*pfn)(struct O *); };
-struct O { char pad[0xC]; struct VT *pvt; char pad2[0x30 - 0x10]; int x30; char pad3[0x7C - 0x34]; struct O *x7C; };
+struct O { char pad[0xC]; struct VT *vt; char pad2[0x30 - 0x10]; int x30; char pad3[0x7C - 0x34]; struct O *x7C; };
 struct P {
     char pad[0x10]; void *p10; char pad1[0x4C - 0x14]; int x4C; float x50; char pad2[0x80 - 0x54];
     qword q80; char pad3[0xC0 - 0x90]; struct O *xC0; int xC4; float xC8; int xCC; float xD0;
@@ -199,7 +199,7 @@ void UpdateBhvwalkgoalPoctl(struct P *behavior, struct Q *q)
             if (FFar(a, b))
                 q->x30 |= 8;
             if (FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34))
-                f = po->pvt->pfn((struct O *)((char *)po + po->pvt->d)) != 0;
+                f = po->vt->pfn((struct O *)((char *)po + po->vt->d)) != 0;
             if (f) {
                 q->x30 |= behavior->xC0->x30 & behavior->xC4;
                 UpdatePoctlPressed(q);
@@ -224,7 +224,7 @@ void BHV193::OnPush()
 namespace M_func_00144E68 { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct VTE { short d; short pad; void (*pfn)(); };
-struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float gD0; };
+struct O { char pad[0xC]; struct VTE *vt; char pad2[0x40 - 0x10]; int n40; char pad3[0x64 - 0x44]; float g64; char pad4[0xCC - 0x68]; int nCC; float speedScale; };
 struct P { char pad[0x10]; void *o10; char pad2[0x30 - 0x14]; int n30; float g34; int n38; float g3C; qword q40; };
 void StartBhv(void *p);
 struct O *func_00205438(void *p, int n);
@@ -240,7 +240,7 @@ void StartBhvWalkTo(struct P *behavior)
     o->n40 = behavior->n30;
     o->g64 = behavior->g34;
     o->nCC = behavior->n38;
-    o->gD0 = behavior->g3C;
+    o->speedScale = behavior->g3C;
     SetBhvWalkToGoal(behavior, behavior->q40);
     entry = &o->vt[8];
     ((void (*)(void *))entry->pfn)((char *)o + entry->d);
@@ -588,7 +588,7 @@ struct B { char pad[0xE8]; int k; char pad2[0xF4 - 0xEC]; qword *pq; };
 struct A { char pad[0xE8]; C *pc; char pad2[0x294 - 0xEC]; B *pb; };
 struct O;
 struct VT { char pad[0x108]; short d; short pad2; qword (*pfn)(O *); };
-struct O { char pad[0xC]; VT *pvt; char pad2[0x190 - 0x10]; qword q190; char pad3[0x1A8 - 0x1A0]; float g1A8; };
+struct O { char pad[0xC]; VT *vt; char pad2[0x190 - 0x10]; qword q190; char pad3[0x1A8 - 0x1A0]; float g1A8; };
 struct P {
     char pad[0x10]; A *pa; char pad1[4]; void *p18; char pad2[0x30 - 0x1C]; O *po; char pad3[0x40 - 0x34];
     qword q40; qword q50; char pad4[0x68 - 0x60]; float g68;
@@ -655,7 +655,7 @@ void UpdateBhvfollowPosition(P *behavior)
         O *po;
         u.s.m = *func_001A6318(behavior->po);
         po = behavior->po;
-        u.s.pos = AddScaled(behavior->q50, VU_FLOATM(behavior->g68), po->pvt->pfn((O *)((char *)po + po->pvt->d)));
+        u.s.pos = AddScaled(behavior->q50, VU_FLOATM(behavior->g68), po->vt->pfn((O *)((char *)po + po->vt->d)));
     }
     u.s.pos = Add(u.s.pos, MulM3(u.s.m, behavior->q40));
     {
@@ -747,7 +747,7 @@ struct O { char pad[0xC]; struct VTE *vt; char pad1[0x38 - 0x10]; int x38; char 
 struct X30 { char pad[0x150]; int x150; };
 struct P {
     char pad[0x10]; void *p10; char pad1[4]; char m18[0x30 - 0x18]; struct X30 *p30; char pad2[0x60 - 0x34];
-    int state; float tState; char pad3[0x80 - 0x68]; qword v80; int x90;
+    int state; float stateTime; char pad3[0x80 - 0x68]; qword v80; int x90;
 };
 extern struct CLOCK D_002DDED0;
 void PopBhv(void *p);
@@ -770,7 +770,7 @@ void SetBhvfollowState(struct P *behavior, int state)
     if (state == behavior->state) return;
     PopBhv(behavior->m18);
     behavior->state = state;
-    behavior->tState = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 0: {
         struct O *po = func_00205438(behavior->p10, 0xA8);
@@ -834,13 +834,13 @@ void BHV195::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->pstepguard) &= ~1;
+    GRFSG(behavior->guard) &= ~1;
 }
 
 // 0x145DA0: True if the interact behaviour is idle (state -1).
 extern "C" int IsBhvInteractIdle(BHVSTATE *behavior)
 {
-    return ~behavior->nState == 0;
+    return ~behavior->state == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -971,17 +971,17 @@ void SteerBhvInteract(struct P *behavior, struct Q *q)
 
 // 0x146158: Interact behaviour state change; state 2 is busy.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
-extern "C" void SetBhvInteractState(BHVSTATE *behavior, int nState)
+extern "C" void SetBhvInteractState(BHVSTATE *behavior, int state)
 {
     int nStatePrev;
-    nStatePrev = behavior->nState;
-    if (nState != nStatePrev) {
+    nStatePrev = behavior->state;
+    if (state != nStatePrev) {
         if (nStatePrev == 2) {
             ClearBhvBusy(behavior);
         }
-        behavior->nState = nState;
-        behavior->tState = D_002DDED0.t;
-        if (nState == 2) {
+        behavior->state = state;
+        behavior->stateTime = D_002DDED0.t;
+        if (state == 2) {
             SetBhvBusy(behavior);
         }
     }
@@ -1023,13 +1023,13 @@ void BHV196::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->pstepguard) &= ~1;
+    GRFSG(behavior->guard) &= ~1;
 }
 
 // 0x146298: True if the second interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract2Idle(BHVSTATE *behavior)
 {
-    return ~behavior->nState == 0;
+    return ~behavior->state == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1159,17 +1159,17 @@ void SteerBhvInteract2(struct P *behavior, struct Q *q)
 
 // 0x146650: Second interact behaviour state change.
 /* Sets the behaviour's state (stamping the time); state 2 is the busy one. */
-extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int nState)
+extern "C" void SetBhvInteract2State(BHVSTATE *behavior, int state)
 {
     int nStatePrev;
-    nStatePrev = behavior->nState;
-    if (nState != nStatePrev) {
+    nStatePrev = behavior->state;
+    if (state != nStatePrev) {
         if (nStatePrev == 2) {
             ClearBhvBusy(behavior);
         }
-        behavior->nState = nState;
-        behavior->tState = D_002DDED0.t;
-        if (nState == 2) {
+        behavior->state = state;
+        behavior->stateTime = D_002DDED0.t;
+        if (state == 2) {
             SetBhvBusy(behavior);
         }
     }
@@ -1211,13 +1211,13 @@ void BHV197::VSlot9()
 {
     BHVB *behavior = (BHVB *)this;
     CloseBhv(behavior);
-    GRFSG(behavior->pstepguard) &= ~1;
+    GRFSG(behavior->guard) &= ~1;
 }
 
 // 0x146790: True if the third interact behaviour is idle (state -1).
 extern "C" int IsBhvInteract3Idle(BHVSTATE *behavior)
 {
-    return ~behavior->nState == 0;
+    return ~behavior->state == 0;
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
@@ -1455,7 +1455,7 @@ void SteerBhvInteract3(struct P *behavior, struct Q *q)
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_func_00146E18 { extern "C" {
 extern struct CLOCK D_002DDED0;
-struct P { char pad[0x30]; int state; float tState; };
+struct P { char pad[0x30]; int state; float stateTime; };
 void ClearBhvBusy(struct P *p);
 void SetBhvBusy(struct P *p);
 // 0x146E18: Third interact behaviour state change (busy in states 2..4).
@@ -1467,7 +1467,7 @@ void SetBhvInteract3State(struct P *behavior, int state)
         ClearBhvBusy(behavior);
     }
     behavior->state = state;
-    behavior->tState = D_002DDED0.t;
+    behavior->stateTime = D_002DDED0.t;
     switch (state) {
     case 2: case 3: case 4:
         SetBhvBusy(behavior);
@@ -1480,9 +1480,9 @@ void BHV198::Start()
 {
     BHVB *behavior = (BHVB *)this;
     StartBhv(behavior);
-    ((MURRAY *)behavior->pstepguard)->unk_0x1ac0 = 1;
-    SetMurrayState((MURRAY *)behavior->pstepguard, 0xC);
-    func_001B8D30((MURRAY *)behavior->pstepguard, 0);
+    ((MURRAY *)behavior->guard)->unk_0x1ac0 = 1;
+    SetMurrayState((MURRAY *)behavior->guard, 0xC);
+    func_001B8D30((MURRAY *)behavior->guard, 0);
 }
 
 // Keeps its per-function views in a namespace of its own (see the file header).
