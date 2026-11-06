@@ -209,7 +209,12 @@ void InitStepguard(struct S *guard)
         *(int *)v &= -3;
     else
         guard->detector->u40 = v & -3;
-    a = 0.785398245f; b = 1.30899704f; limit = D_002A8600; medium = 300.0f; high = 1200.0f; extent = 800.0f;
+    a = 0.785398245f;
+    b = 1.30899704f;
+    limit = D_002A8600;
+    medium = 300.0f;
+    high = 1200.0f;
+    extent = 800.0f;
     guard->fF50 = -a;
     guard->fF54 = a;
     guard->fF58 = -b;
@@ -1137,7 +1142,11 @@ struct S;
 struct S { char pad[0x298]; int a; char pad2[0x90]; int b; };
 int StepguardHasSgf(struct S *p, int n);
 // 0x207598: STEPGUARD vtable slot 76: true while invulnerable (+0x32C or +0x298 set, or flag 0x2A).
-int IsStepguardInvulnerable(struct S *guard) { if (guard->b || guard->a) return 1; return StepguardHasSgf(guard, 0x2A) != 0; }
+int IsStepguardInvulnerable(struct S *guard)
+{
+    if (guard->b || guard->a) return 1;
+    return StepguardHasSgf(guard, 0x2A) != 0;
+}
 } } // namespace M_FInvulnerableStepguard
 
 // 0x2075D0 HandleStepguardMessage
@@ -1301,7 +1310,12 @@ struct S { char pad[0xFF8]; float t; };
 void OnSoAdd(struct S *p);
 void AppendDlEntry__FP2DLPv(struct DL *pdl, void *pv);
 // 0x2079E0: STEPGUARD vtable slot 23 (OnAdd): base, links on the world's guard list, removal time FLT_MAX.
-void OnStepguardAdd(struct S *guard) { OnSoAdd(guard); AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard); guard->t = D_002A8868; }
+void OnStepguardAdd(struct S *guard)
+{
+    OnSoAdd(guard);
+    AppendDlEntry__FP2DLPv(&g_sw.dlStepguard, guard);
+    guard->t = D_002A8868;
+}
 } } // namespace M_OnStepguardAdd
 
 // 0x207A20 GetSgfMask
@@ -1818,7 +1832,10 @@ extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, in
             if (numGenerated > 0) {
                 // Full: drop the oldest generated entry (the last) and insert in front of the generated tail.
                 guard->generatedTargetCount = numGenerated - 1;
-                n = 8; n -= numGenerated; n *= 16; n += 0x100;
+                n = 8;
+                n -= numGenerated;
+                n *= 16;
+                n += 0x100;
                 entry = (struct E *)((char *)detector + n);
                 memmove(entry + 1, entry, (numGenerated - 1) * 16);
                 new(entry) E(object, D_002DDED0);
@@ -1832,7 +1849,9 @@ extern "C" int TryAddStepguardDetectTarget(struct S *guard, struct S *object, in
             entry = (struct E *)((char *)detector + offset);
         } else {
             int numGenerated = guard->generatedTargetCount;
-            n -= numGenerated; n *= 16; n += 0x100;
+            n -= numGenerated;
+            n *= 16;
+            n += 0x100;
             entry = (struct E *)((char *)detector + n);
             memmove(entry + 1, entry, numGenerated * 16);
         }
@@ -2211,7 +2230,11 @@ extern struct G D_003DD490;
 struct S { char pad[0xFC8]; int n; };
 int func_0020F1B8(struct G *p);
 // 0x209098: True while the guard is hands-off (+0xFC8) or world input is locked.
-int IsStepguardHandsOff(struct S *guard) { if (guard->n != 0) return 1; return func_0020F1B8(&D_003DD490); }
+int IsStepguardHandsOff(struct S *guard)
+{
+    if (guard->n != 0) return 1;
+    return func_0020F1B8(&D_003DD490);
+}
 } } // namespace M_func_00209098
 
 // 0x2090D0 ReleaseAnimBinding
@@ -2586,7 +2609,12 @@ extern "C" void CloneStepguardMover(GUARDMOVER *pmover, STEPGUARD *guard)
 // 0x209778 ClearStepguardMover
 namespace M_func_00209778 { extern "C" {
 // 0x209778: Clears the mover (driver, lock, third word).
-void ClearStepguardMover(int *p) { p[0] = 0; p[1] = 0; p[2] = 0; }
+void ClearStepguardMover(int *p)
+{
+    p[0] = 0;
+    p[1] = 0;
+    p[2] = 0;
+}
 } } // namespace M_func_00209778
 
 // 0x209788 SetStepguardMoverDriver
@@ -2959,7 +2987,11 @@ struct O { char pad[0x58]; int n; };
 int StepguardHasSgf(void *p, int n);
 struct O *FindStepBhv(void *p, int oid);
 // 0x20A010: Returns the juggled behaviour's +0x58 value while stunned (flag 0x17), else 0 (inferred).
-int GetStepguardJuggledValue(void *p) { if (StepguardHasSgf(p, SGF_JUGGLED)) return FindStepBhv(p, CID_BHVJUGGLED)->n; return 0; }
+int GetStepguardJuggledValue(void *p)
+{
+    if (StepguardHasSgf(p, SGF_JUGGLED)) return FindStepBhv(p, CID_BHVJUGGLED)->n;
+    return 0;
+}
 } } // namespace M_func_0020A010
 
 // 0x20A058 SetStepguardTargetLists
@@ -3378,7 +3410,11 @@ struct S;
 extern struct CLOCK D_002DDED0;
 struct S { int a; float t; int n; };
 // 0x20A9A8: Sets an engagement record's state and its time.
-void SetTargetRecordState(struct S *p, int n) { p->t = D_002DDED0.t; p->n = n; }
+void SetTargetRecordState(struct S *p, int n)
+{
+    p->t = D_002DDED0.t;
+    p->n = n;
+}
 } } // namespace M_func_0020A9A8
 
 // 0x20A9C0 GetStepguardDefaultAttack
@@ -3444,7 +3480,11 @@ void ResolveStepguardAttacks(struct S *guard)
 // 0x20AB58 ClearStepguardAttacks
 namespace M_func_0020AB58 { extern "C" {
 // 0x20AB58: Clears both attack lists.
-void ClearStepguardAttacks(char *p) { *(int *)(p + 0xED8) = 0; *(int *)(p + 0xEFC) = 0; }
+void ClearStepguardAttacks(char *p)
+{
+    *(int *)(p + 0xED8) = 0;
+    *(int *)(p + 0xEFC) = 0;
+}
 } } // namespace M_func_0020AB58
 
 // 0x20AB68 SetStepguardAttack
@@ -3620,7 +3660,12 @@ namespace M_func_0020AF28 { extern "C" {
 struct S;
 struct S { char pad[0x7C]; int a, b, c; };
 // 0x20AF28: Splice option: sets the attack's three oids.
-void SetGuardAttackOids(struct S *guard, int a, int b, int c) { guard->a = a; guard->b = b; guard->c = c; }
+void SetGuardAttackOids(struct S *guard, int a, int b, int c)
+{
+    guard->a = a;
+    guard->b = b;
+    guard->c = c;
+}
 } } // namespace M_func_0020AF28
 
 // 0x20AF38 SetGuardAttackBinding

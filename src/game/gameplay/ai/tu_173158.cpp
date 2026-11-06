@@ -116,8 +116,12 @@ extern qwordV D_002A2DD0;
 extern qwordV D_002A2DC0;
 /* tu_173158's .data (address order). */
 /* Spawner tuning (data symbols, so they keep their address names):
-   B8 test-radius scale; BC nearest camera depth; C0 / C4 screen rect (on screen / away from the edge);
-   C8 occlusion test point raise; CC how long an alert event (mode 1) gates spawning, s; D0 spawn check interval, s;
+   B8 test-radius scale;
+   BC nearest camera depth;
+   C0 / C4 screen rect (on screen / away from the edge);
+   C8 occlusion test point raise;
+   CC how long an alert event (mode 1) gates spawning, s;
+   D0 spawn check interval, s;
    D4 how far the player must move before a full spawner spawns again; D8 delay after a spawn, s;
    DC re-arm distance of a respawn-delayed slot; E0 a slot's guard is replaceable after this many s;
    E4 nearest spawn distance; E8 curve sample spacing; F0 ground probe {bottom, top} offsets. */

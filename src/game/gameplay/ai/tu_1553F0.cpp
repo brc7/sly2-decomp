@@ -368,7 +368,11 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
             lb = Dot(db);
             la = Sqrt(la);
             lb = Sqrt(lb);
-            { float ga = GFromQ(la); float gb = GFromQ(lb); g = GMin(ga, gb); }
+            {
+                float ga = GFromQ(la);
+                float gb = GFromQ(lb);
+                g = GMin(ga, gb);
+            }
             if (gBest < g) {
                 gBest = g;
                 peBest = route;

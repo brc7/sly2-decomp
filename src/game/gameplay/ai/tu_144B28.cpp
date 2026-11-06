@@ -1581,7 +1581,12 @@ void UpdateBhvMurray(struct P *behavior)
             g = atan2f(GetY(d), GetX(d));
             if (__builtin_fabsf(RadNormalize__Ff(g - behavior->g30)) < D_002BD374) {
                 gCur = RadStepHeading(behavior->px);
-                { float d = RadNormalize__Ff(g - gCur); float dt = D_002DDED0.dt; float k = D_002BD378; func_00204660(behavior->px, gCur + GLimitAbs__Fff(d, k * dt)); }
+                {
+                    float d = RadNormalize__Ff(g - gCur);
+                    float dt = D_002DDED0.dt;
+                    float k = D_002BD378;
+                    func_00204660(behavior->px, gCur + GLimitAbs__Fff(d, k * dt));
+                }
             }
         }
         break;

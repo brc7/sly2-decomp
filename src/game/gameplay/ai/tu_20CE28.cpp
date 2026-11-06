@@ -59,10 +59,20 @@ void SetHazardWatchState(VOLWATCH *watch, int state);
 }
 
 // 0x20CE28: Initializes a stuck watch for `guard`: idle (state -1), enabled.
-extern "C" void InitStuckWatch(STUCKWATCH *watch, GUARDV *guard) { watch->guard = guard; watch->state = -1; watch->isEnabled = 1; }
+extern "C" void InitStuckWatch(STUCKWATCH *watch, GUARDV *guard)
+{
+    watch->guard = guard;
+    watch->state = -1;
+    watch->isEnabled = 1;
+}
 
 // 0x20CE40: Resets a stuck watch: enabled, state 0 (watching).
-extern "C" void ResetStuckWatch(STUCKWATCH *watch) { watch->state = -1; watch->isEnabled = 1; SetStuckWatchState(watch, 0); }
+extern "C" void ResetStuckWatch(STUCKWATCH *watch)
+{
+    watch->state = -1;
+    watch->isEnabled = 1;
+    SetStuckWatchState(watch, 0);
+}
 
 // 0x20CE70: Per-frame stuck test: while the guard is on the ground and not attached, tracks how long it has been
 // stuck (IsGuardStuck); past the time limit, goes to state 2 (zap).
@@ -150,10 +160,20 @@ extern "C" void EnableStuckWatch(STUCKWATCH *watch)
 }
 
 // 0x20D1B0: Initializes a hazard watch for `guard`: idle (state -1), enabled.
-extern "C" void InitHazardWatch(VOLWATCH *watch, GUARDV *guard) { watch->guard = guard; watch->state = -1; watch->isEnabled = 1; }
+extern "C" void InitHazardWatch(VOLWATCH *watch, GUARDV *guard)
+{
+    watch->guard = guard;
+    watch->state = -1;
+    watch->isEnabled = 1;
+}
 
 // 0x20D1C8: Resets a hazard watch to state 0.
-extern "C" void ResetHazardWatch(VOLWATCH *watch) { watch->state = -1; watch->isEnabled = 1; SetHazardWatchState(watch, 0); }
+extern "C" void ResetHazardWatch(VOLWATCH *watch)
+{
+    watch->state = -1;
+    watch->isEnabled = 1;
+    SetHazardWatchState(watch, 0);
+}
 
 // 0x20D1F8: Per-frame hazard test: while the guard is inside the watched volume (its vtable slot 73) and falling,
 // counts time; past the limit, goes to state 2.
