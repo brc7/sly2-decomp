@@ -344,8 +344,8 @@ extern "C" void UpdateBhvNeelaChase(NBHV *behavior)
     }
     if (behavior->state == 0 && StepguardHasSgf(behavior->guard, 9)) {
         float d = Dist(func_001A62E8(behavior->guard), func_001A62E8(D_002E1E40));
-        NEELAV *po = behavior->guard;
-        float r = GClamp(GEval(&po->poly, d), po->poly.gMin, po->poly.gMax);
+        NEELAV *neela = behavior->guard;
+        float r = GClamp(GEval(&neela->poly, d), neela->poly.gMin, neela->poly.gMax);
         Q1 *q1 = (Q1 *)func_00205458(behavior->guard, 0xA7);
         Q2 *q2 = (Q2 *)func_00205458(behavior->guard, 0xB8);
         if (q1)

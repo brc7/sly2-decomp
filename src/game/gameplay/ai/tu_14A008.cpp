@@ -184,16 +184,16 @@ static inline void InitS(ALLOCREQ *ps, int a, int b)
 }
 // 0x14A008: ROUTE (cid 0x7B) vtable slot 14 (LoadFromBrx): loads into a 256-entry stack table filled by the
 // AddRoutePoint Splice option, then copies the used part to the heap.
-extern "C" void LoadRouteFromBrx(ROUTE *p, void *pbis)
+extern "C" void LoadRouteFromBrx(ROUTE *route, void *pbis)
 {
     SCOPE f;
     ALLOCREQ s;
     STACKSCOPE_ctor(&f);
     InitS(&s, 0x100, 0x10);
-    p->stations = func_001AE378(&s);
-    LoadLoFromBrx(p, pbis);
-    InitS(&s, p->stationCount, 0x10);
-    p->stations = func_001AE238(&s, p->stations);
+    route->stations = func_001AE378(&s);
+    LoadLoFromBrx(route, pbis);
+    InitS(&s, route->stationCount, 0x10);
+    route->stations = func_001AE238(&s, route->stations);
     STACKSCOPE_ctor_1AE4A0(&f, 2);
 }
 
@@ -201,32 +201,32 @@ extern "C" void LoadRouteFromBrx(ROUTE *p, void *pbis)
 // points.
 void CID123::VUnk14()
 {
-    ROUTE *p = (ROUTE *)this;
+    ROUTE *route = (ROUTE *)this;
     int i;
-    PostLoLoad(p);
-    p->shape = func_001E94B0(0x62C, p->stationCount);
-    p->shape->pointCount = p->stationCount;
-    for (i = 0; i < p->stationCount; i++) {
-        RTE *e = &p->stations[i];
-        void *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, p);
+    PostLoLoad(route);
+    route->shape = func_001E94B0(0x62C, route->stationCount);
+    route->shape->pointCount = route->stationCount;
+    for (i = 0; i < route->stationCount; i++) {
+        RTE *e = &route->stations[i];
+        void *o = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, e->oid, route);
         e->object = o;
         if (o) {
-            qword *pq = (qword *)((i << 4) + (int)p->shape->pointPositions);
+            qword *pq = (qword *)((i << 4) + (int)route->shape->pointPositions);
             *pq = func_001A62E8(o);
         }
     }
-    MeasureShape(p->shape);
+    MeasureShape(route->shape);
 }
 
 // 0x14A178: Splice option: appends a route point {oid, kind} (at most 256).
-extern "C" void AddRoutePoint(ROUTE *p, int k, int oid)
+extern "C" void AddRoutePoint(ROUTE *route, int k, int oid)
 {
-    int c = p->stationCount;
+    int c = route->stationCount;
     if (c < 0x100) {
-        RTE *prte = &p->stations[c];
+        RTE *prte = &route->stations[c];
         prte->k = k;
         prte->oid = oid;
-        p->stationCount = p->stationCount + 1;
+        route->stationCount = route->stationCount + 1;
     }
 }
 
@@ -391,23 +391,23 @@ static inline qword AddScaledNorm(qword a, qword v, VU_FLOAT s)
 extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
 {
     SW *pg = &D_003DD490;
-    HEROV *pso = PpoHero(pg);
-    qword posPlayer = func_001A62E8(pso);
+    HEROV *hero = PpoHero(pg);
+    qword posPlayer = func_001A62E8(hero);
     qword posMe = func_001A62E8(behavior->guard);
     qword d = VuSub(posPlayer, posMe);
     qword v;
     qword pos;
     {
-        VTE *entry = &pso->vt[33];
-        v = ((qword (*)(void *))entry->pfn)((char *)pso + entry->d);
+        VTE *entry = &hero->vt[33];
+        v = ((qword (*)(void *))entry->pfn)((char *)hero + entry->d);
     }
     if (FLess(D_002BD460, Len(v)))
         behavior->lastFastHeroTime = D_002DDED0.t;
     float dt = D_002DDED0.t - behavior->lastFastHeroTime;
     if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !FSwHandsOff(pg)) {
-        if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->state == 0x11) {
-            PATH *ppath = pso->path;
-            pos = func_001A62E8(pso);
+        if (FIsBasicDerivedFrom__FP5BASIC3CID(hero, 0x34) && hero->state == 0x11) {
+            PATH *ppath = hero->path;
+            pos = func_001A62E8(hero);
             int c = ppath->c;
             for (int i = 0; i < c; i++) {
                 if (GetZ(pos) < GetZ(ppath->av[i]))
@@ -415,19 +415,19 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
             }
             goto done;
         }
-        SetStepguardTarget(behavior->guard, pso);
+        SetStepguardTarget(behavior->guard, hero);
         return;
     }
-    for (SOV *ps = (*(SOV **)&g_sw.dlCid98); ps; ps = ps->next) {
-        if (!func_001BBE48(ps)) {
+    for (SOV *object = (*(SOV **)&g_sw.dlCid98); object; object = object->next) {
+        if (!func_001BBE48(object)) {
             SOV *apso[8];
-            qword posT = func_001A62E8(ps);
+            qword posT = func_001A62E8(object);
             float r = D_002BD478;
-            if (ps->hidingInfo) {
-                posT = ps->hidingInfo->pos;
-                r = ps->hidingInfo->radius;
+            if (object->hidingInfo) {
+                posT = object->hidingInfo->pos;
+                r = object->hidingInfo->radius;
             }
-            int c = CploFindSwObjectsByClass(&D_003DD490, 1, 0x12, ps, 8, apso);
+            int c = CploFindSwObjectsByClass(&D_003DD490, 1, 0x12, object, 8, apso);
             int k = 0;
             for (int i = 0; i < c; i++) {
                 if (apso[i]->flags & 0x17E)
@@ -460,7 +460,7 @@ extern "C" void UpdateBhvRouteChase(BHVRT *behavior)
     if (FLess(Len2(v), D_002BD460)) {
         qword entry = VuSub(posMe, posPlayer);
         float rad = atan2f(GetY(entry), GetX(entry));
-        qword pp = func_001A62E8(pso);
+        qword pp = func_001A62E8(hero);
         pos = Add(pp, SetVectorCylind(GRandInRange(rad - 1.5707964f, rad + 1.5707964f), D_002BD470, D_002BD474));
     } else {
         pos = AddScaledNorm(posPlayer, v, VU_FLOAT(-D_002BD470));
@@ -493,8 +493,8 @@ extern "C" int FindBhvRouteBestStation(BHVRT *behavior)
     for (; i < behavior->route->stationCount; i++) {
         float g, u1, u2, u3, s;
         U v;
-        RTE *pe = &behavior->route->stations[i];
-        if (!pe->object)
+        RTE *station = &behavior->route->stations[i];
+        if (!station->object)
             continue;
         g = ag[0] - behavior->route->shape->pointDistances[i];
         if (behavior->route->isReversed == 1)
@@ -705,7 +705,7 @@ namespace RO_ORDER { extern const float r_D_002A4EE8 __asm__("D_002A4EE8") = 3.4
 extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
 {
     LOV *poBest;
-    LOV *po;
+    LOV *object;
     float gBest;
     int kBest;
     qword pos;
@@ -713,9 +713,9 @@ extern "C" LOV *ChooseCarmelitaTarget(GUARDV *guard)
     if (StepguardHasSgf(guard, 0x24))
         return ChooseStepguardTarget(guard);
     poBest = 0;
-    po = guard->forcedTarget;
-    if (po && (uchar)po->isInWorld) {   /* (uchar): the bit extract of the target (see brx) */
-        poBest = po;
+    object = guard->forcedTarget;
+    if (object && (uchar)object->isInWorld) {   /* (uchar): the bit extract of the target (see brx) */
+        poBest = object;
     } else {
     gBest = D_002A4EE8;
     kBest = 999;

@@ -315,11 +315,11 @@ extern "C" void SetBhvSearchLookTimers(BHV171V *behavior) {
 
 // 0x1725E0: Replaces the watched stimulus (a refcounted object at +0x44, via its add/drop reference slots) and
 // flags a re-plan.
-extern "C" void SetBhvSearchWatched(BHV171V *behavior, WATCH *o) {
-    if (o == behavior->watched) return;
+extern "C" void SetBhvSearchWatched(BHV171V *behavior, WATCH *watched) {
+    if (watched == behavior->watched) return;
     if (behavior->watched) { VE *entry = &behavior->watched->vt[2]; entry->pfn((char *)behavior->watched + entry->d); }
-    behavior->watched = o;
-    if (o) { VE *entry = &o->vt[1]; entry->pfn((char *)o + entry->d); }
+    behavior->watched = watched;
+    if (watched) { VE *entry = &watched->vt[1]; entry->pfn((char *)watched + entry->d); }
     behavior->needsReplan = 1;
 }
 
@@ -353,21 +353,21 @@ extern "C" qword GetBhvSearchLastKnownPosition(BHV171V *behavior) { WATCH *t = b
 
 // 0x172798: Adds a candidate point to a 64-entry list if its pitch and distance from the guard are within limits,
 // recording its heading relative to the guard.
-extern "C" int TryAddSearchCandidate(QUERY *p) {
+extern "C" int TryAddSearchCandidate(QUERY *query) {
     float a, b, c;
     qword d;
-    ROW *pe;
+    ROW *row;
     float f;
-    d = VuSub(p->candidate.q, p->point.q);
+    d = VuSub(query->candidate.q, query->point.q);
     GetVectorSphere(d, &a, &b, &c);
     if (!FCheckLm((LMV *)&D_002A53C0, c)) return 0;
     if (!FCheckLm((LMV *)&D_002A53C8, b)) return 0;
-    if (p->count >= 0x40) return 0;
-    pe = &p->row[p->count++];
-    pe->point.q = p->candidate.q;
-    f = RadNormalize(a - p->heading);
-    pe->angle = f;
-    if (f < 0.0f) pe->angle = 6.28318530718f - f;
+    if (query->count >= 0x40) return 0;
+    row = &query->row[query->count++];
+    row->point.q = query->candidate.q;
+    f = RadNormalize(a - query->heading);
+    row->angle = f;
+    if (f < 0.0f) row->angle = 6.28318530718f - f;
     return 1;
 }
 

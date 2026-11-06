@@ -170,38 +170,38 @@ float RadNormalize(float rad);
 static inline void *PvAllocMsg(MSG *pmsg, int cb, int nKind) { pmsg->cb = cb; pmsg->nKind = nKind; return func_001AE2A0(pmsg); }
 // 0x1553F0: DIMITRI vtable slot 14 (LoadFromBrx): allocates room for the route records, STEPGUARD load, then sets
 // +0x1018 to INT_MAX.
-extern "C" void LoadDimitriFromBrx(DIMITRIV *p, void *pbis)
+extern "C" void LoadDimitriFromBrx(DIMITRIV *dimitri, void *pbis)
 {
     MSG msg;
-    p->routes = (ESC *)PvAllocMsg(&msg, 0x480, 0x10);
-    LoadStepFromBrx(p, pbis);
-    p->hitPointsAtLastEscape = 0x7FFFFFFF;
+    dimitri->routes = (ESC *)PvAllocMsg(&msg, 0x480, 0x10);
+    LoadStepFromBrx(dimitri, pbis);
+    dimitri->hitPointsAtLastEscape = 0x7FFFFFFF;
 }
 
 // 0x155450: DIMITRI vtable slot 15 (PostLoad): STEPGUARD post-load, then resolves the four oids of each route
 // record.
 void DIMITRI::VUnk14()
 {
-    DIMITRIV *p = (DIMITRIV *)this;
+    DIMITRIV *dimitri = (DIMITRIV *)this;
     int i;
-    PostStepguardLoad(p);
-    for (i = 0; i < p->routeCount; i++) {
-        ESC *pe = &p->routes[i];
-        pe->first = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidFirst, p);
-        pe->firstVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidFirstVolume, p);
-        pe->second = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidSecond, p);
-        pe->secondVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, pe->oidSecondVolume, p);
+    PostStepguardLoad(dimitri);
+    for (i = 0; i < dimitri->routeCount; i++) {
+        ESC *route = &dimitri->routes[i];
+        route->first = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidFirst, dimitri);
+        route->firstVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidFirstVolume, dimitri);
+        route->second = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidSecond, dimitri);
+        route->secondVolume = PloFindSwObject__FP2SWi3OIDP2LO(D_003DD490, 4, route->oidSecondVolume, dimitri);
     }
 }
 
 // 0x155530: Splice option: appends a route record of four oids.
-extern "C" void AddDimitriRoute(DIMITRIV *p, int a, int b, int c, int d)
+extern "C" void AddDimitriRoute(DIMITRIV *dimitri, int a, int b, int c, int d)
 {
-    ESC *pe = &p->routes[p->routeCount++];
-    pe->oidFirst = a;
-    pe->oidFirstVolume = b;
-    pe->oidSecond = c;
-    pe->oidSecondVolume = d;
+    ESC *route = &dimitri->routes[dimitri->routeCount++];
+    route->oidFirst = a;
+    route->oidFirstVolume = b;
+    route->oidSecond = c;
+    route->oidSecondVolume = d;
 }
 
 // 0x155560: Dimitri escape behaviour (BHV180) vtable slot 7 (OnPush): base, raises guard flag 0x22, state -1.
@@ -324,10 +324,10 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
     qwordV pos = func_001A62E8(behavior->target);
     float gBest = D_002A5130;
     for (i = 0; i < behavior->guard->routeCount; i++) {
-        ESC *pe = &behavior->guard->routes[i];
-        if (D_002BDC50 || !pe->isUsed) {
-            qwordV a = func_001A62E8(pe->first);
-            qwordV b = func_001A62E8(pe->second);
+        ESC *route = &behavior->guard->routes[i];
+        if (D_002BDC50 || !route->isUsed) {
+            qwordV a = func_001A62E8(route->first);
+            qwordV b = func_001A62E8(route->second);
             qwordV da, db, la, lb;
             float g;
             {
@@ -345,7 +345,7 @@ extern "C" ESC *FindDimitriFarthestRoute(BHVESC *behavior)
             { float ga = GFromQ(la); float gb = GFromQ(lb); g = GMin(ga, gb); }
             if (gBest < g) {
                 gBest = g;
-                peBest = pe;
+                peBest = route;
             }
         }
     }
@@ -493,14 +493,14 @@ extern "C" void UpdateBhvDimitriAttack(BHVATK *behavior)
         switch (s) {
         case 0:
             if (IsBhvanimDone(behavior->currentChild)) {
-                DIMITRIV *pso;
+                DIMITRIV *dimitri;
                 qwordV d = VuSub(func_001A62E8(behavior->goal), behavior->guard->pos);
-                pso = behavior->guard;
-                ((void (*)(void *, qwordV))pso->vt[29].pfn)((char *)pso + pso->vt[29].d, d);
-                pso = behavior->guard;
-                ((void (*)(void *, qwordV))pso->vt[35].pfn)((char *)pso + pso->vt[35].d, D_002A2DD0);
-                pso = behavior->guard;
-                ((void (*)(void *, qwordV))pso->vt[36].pfn)((char *)pso + pso->vt[36].d, D_002A2DD0);
+                dimitri = behavior->guard;
+                ((void (*)(void *, qwordV))dimitri->vt[29].pfn)((char *)dimitri + dimitri->vt[29].d, d);
+                dimitri = behavior->guard;
+                ((void (*)(void *, qwordV))dimitri->vt[35].pfn)((char *)dimitri + dimitri->vt[35].d, D_002A2DD0);
+                dimitri = behavior->guard;
+                ((void (*)(void *, qwordV))dimitri->vt[36].pfn)((char *)dimitri + dimitri->vt[36].d, D_002A2DD0);
                 behavior->arrivalTime = D_002DDED0.t;
                 SetBhvDimitriAttackState(behavior, 1);
             }
