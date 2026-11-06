@@ -104,8 +104,8 @@ struct SMA : public BASIC
       float svtLocal;
       int grfRoute;
     undefined4 unk_0x4c;      /* HYPOTHESIS: Lilly SMA ends at 0x4C but the class descriptor says 0x50 */
-    virtual CLASSINFO *Pclassinfo() __asm__("GetSmaClassDesc");   /* slot 6 */
     virtual void VUnk00() __asm__("IncrefSma");   /* slot 1 */
+    virtual CLASSINFO *Pclassinfo() __asm__("GetSmaClassDesc");   /* slot 6 */
     virtual void VUnk01() __asm__("DecrefSma");   /* slot 2 */
     virtual void SendMessage(MSGID msgid, void *pv) __asm__("func_001F0FD8");   /* slot 4 */
     virtual void HandleMessage(MSGID msgid, void *pv) __asm__("HandleSmaMessage");   /* slot 5 */
@@ -158,9 +158,9 @@ struct SM : public LO
       SMRT *asmrt;
       DL dlSma;
       SMINIT *psminit;
+    virtual void VUnk14() __asm__("PostSmLoad__FP2SM");   /* slot 15 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetSmClassDesc");   /* slot 6 */
     virtual void Init() __asm__("InitSm");   /* slot 7 */
-    virtual void VUnk14() __asm__("PostSmLoad__FP2SM");   /* slot 15 */
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadSmFromBrx__FP2SMP18CBinaryInputStream");
     undefined4 unk_0x78[2];   /* HYPOTHESIS: Lilly SM ends at 0x78 but the class descriptor says 0x80 */
 };

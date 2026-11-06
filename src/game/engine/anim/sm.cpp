@@ -366,8 +366,9 @@ void SM::LoadFromBrx(CBinaryInputStream *pbis)
  *   docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
 /* After load: with an init record, applies the machine to its root object in its initial state (func_001F0380). */
-void PostSmLoad(SM *psm)
+void SM::VUnk14()
 {
+    SM *psm = (SM *)this;
     PostLoLoad(psm);
     if (psm->psminit) {
         LO *plo = PloFindSwObject(&D_003DD490, 4, psm->psminit->oidRoot, psm);
@@ -603,8 +604,9 @@ int OidFromSmIsms(struct S *p, int n) { if (n < 0 || n >= p->c) return -1; retur
  * Confidence: high [T1 0.85] - evidence: semantic review; static naming pass; sources: semantic_tu_docs/sm
  * See: docs/engine/animation.md#7-key-functions, docs/reference/functions/animation.md#sm-0x1efa90-0x1f1768
  * @end-sly2-annot */
-extern "C" void IncrefSma(SMA *psma)
+void SMA::VUnk00()
 {
+    SMA *psma = (SMA *)this;
     psma->cref = psma->cref + 1;
 }
 
