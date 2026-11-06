@@ -465,7 +465,7 @@ extern char D_003DD490[],D_002BBB60[];
 extern struct CAMERA D_002DDF40;
 void *PpoCur(void*);
 qword GetLoWorldPos(void*);
-qword func_001A7348(const struct M3*,const struct M3*,qword);
+qword ConvertMatVec(const struct M3*,const struct M3*,qword);
 float GLimitLm__FP2LMf(void*,float);
 float atan2f(float,float);
 static inline qword Sub(qword a,qword b){register qword r __asm__("vf3");__asm__("vsub.xyzw %0,%1,%2":"=&j"(r):"j"(a),"j"(b));return r;}
@@ -506,7 +506,7 @@ void CalculateSndVolPan(void *unused,qword point,const struct RANGE*limits,float
    if(value>0.0f){
      qword direction;
      float angle;
-     direction=func_001A7348(0,&(*(struct M3 *)&g_cm.mat),Bits(difference));
+     direction=ConvertMatVec(0,&(*(struct M3 *)&g_cm.mat),Bits(difference));
      angle=atan2f(-Y(direction),X(direction));
      if(limits->high<limits->low)angle+=3.1415927f;
      Rounded(outAngle,angle*57.295776f);return;
@@ -1049,7 +1049,7 @@ struct P { char pad[0xC]; struct VTE *pvt; char pad1[0x14 - 0x10]; int n14; char
 struct M { int n0; int n4; int n8; int nC; int n10; int n14; };
 struct G { char pad[0x10]; int n10; };
 extern struct G D_003DD040;
-void func_00258248(struct K *);
+void InitFileKey(struct K *);
 int func_001FD080(struct G *, struct X *);
 void PauseSnd(struct P *);
 void SetSndFlags(struct P *, int, int);
@@ -1082,7 +1082,7 @@ void PlayStreamsnd(struct P *p)
     struct M m;
     int n;
     k.n8 = 2;
-    func_00258248(&k);
+    InitFileKey(&k);
     n = func_001FD080(&D_003DD040, p->p60);
     if (FSet(&k, p->p60)) {
         if (k.n8 != 2) {
@@ -1820,7 +1820,7 @@ namespace M_PostSoundLoad { extern "C" {
 struct K { int n0; int n4; int n8; char bC; char pad[0x110 - 0xD]; };
 struct X { int n0; int n4; char pad[0x34 - 8]; int n34; int n38; int n3C; };
 struct P { char pad[0xA8]; struct X xA8; char pad2[0xE8 - 0xA8 - sizeof(struct X)]; int pE8; char pad3[0xF8 - 0xEC]; int nF8; int *aFC; };
-void func_00258248(struct K *);
+void InitFileKey(struct K *);
 int snd_BankLoadByLoc(int, int);
 void snd_ResolveBankXREFS(void);
 int snd_IsSoundALooper(int, int);
@@ -1851,7 +1851,7 @@ void PostSoundLoad(struct P *p)
     if (!p->pE8) {
         struct K k;
         k.n8 = 2;
-        func_00258248(&k);
+        InitFileKey(&k);
         if (FSet(&k, &p->xA8) && k.n8 == 2) p->pE8 = snd_BankLoadByLoc(k.n0, 0);
         snd_ResolveBankXREFS();
     }

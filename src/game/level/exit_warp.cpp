@@ -103,8 +103,8 @@ void *func_001AE1D0(MEMREQ *pmemreq);
 void IncrementSwHandsOff(SW *psw, int n);
 void ApplyTaskStates(void *p, int c, TASKSTATE *ataskstate, void *plo);
 void RevokeCmPolicy(void *pcm, int a, int b, void *pv, int c, int d);
-void func_00161F10(void *p, TASKSTATE *ataskstate, int cMax, int *pc, int d, int e);
-void func_002109D0(void *pvWorld);
+void AppendBoundedPair(void *p, TASKSTATE *ataskstate, int cMax, int *pc, int d, int e);
+void FindLevelIndexByFileRecord(void *pvWorld);
 void UpdateLo(EXITV *pexit, float dt);
 void CMpeg_QueueMovie(void *pmpeg, void *pvMovie);
 void WipeToWorldWarp(SW *psw, void *pvWorld, int a, int b, int grf, int c);
@@ -390,7 +390,7 @@ extern "C" void TakeExit(EXITV *pexit)
 // was AddExitRsmg, but the list it fills is the task-state list.
 extern "C" void AddExitTaskState(EXITV *pexit, int d, int e)
 {
-    func_00161F10(D_002DEB30, pexit->ataskstate, 4, &pexit->ctaskstate, d, e);
+    AppendBoundedPair(D_002DEB30, pexit->ataskstate, 4, &pexit->ctaskstate, d, e);
 }
 
 /** @sly2-annot addr=0x228518
@@ -403,7 +403,7 @@ extern "C" void AddExitTaskState(EXITV *pexit, int d, int e)
 // Returns the index of the exit's target level in the level table (IlevelFromRec on its world blob). (inferred)
 extern "C" void GetExitTargetLevelIndex(EXITV *pexit)
 {
-    func_002109D0(pexit->pvWorld);
+    FindLevelIndexByFileRecord(pexit->pvWorld);
 }
 
 /** @sly2-annot addr=0x228538
@@ -556,7 +556,7 @@ extern "C" void SetWarpRsmg(WARPV *pwarp, int d, OID e, OID f, OID g)
 // Adds a task-state entry to the warp's four-entry list (applied when the warp triggers).
 extern "C" void AddWarpTaskState(WARPV *pwarp, int d, int e)
 {
-    func_00161F10(D_002DEB30, pwarp->ataskstate, 4, &pwarp->ctaskstate, d, e);
+    AppendBoundedPair(D_002DEB30, pwarp->ataskstate, 4, &pwarp->ctaskstate, d, e);
 }
 
 /** @sly2-annot addr=0x228958

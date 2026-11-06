@@ -468,7 +468,7 @@ void CPLCY_ctor(CMPART2 *p);
 void InitCplcy(CMPART2 *p);
 void ActivateCplcy(CMPART2 *p, void *pj, TN *pt);
 void DeactivateCplcy(CMPART2 *p);
-int FIsCidDerivedFrom(int a, int b);
+int IsCidDerivedFrom(int a, int b);
 void GetCmCpdefi(CM *pcm, void *pj, void *pq);
 void FindShapeClosestPoint(SHAPE *p, qword q, int a, qword *pq, int b, int c, float *pf);
 void FindShapeClosestPointFromS(SHAPE *p, qword q, float g, int a, int b, int c, int d, float *pg);
@@ -1008,7 +1008,7 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
         int i;
         for (i = 1; i < p->ptn->ccpd; i++) {
             CPD *peT = &p->ptn->acpd[i];
-            if (FIsBasicDerivedFrom__FP5BASIC3CID(pj, peT->cid) && FIsCidDerivedFrom(peT->cid, pe->cid))
+            if (FIsBasicDerivedFrom__FP5BASIC3CID(pj, peT->cid) && IsCidDerivedFrom(peT->cid, pe->cid))
                 pe = peT;
         }
         p->pcpd = pe;

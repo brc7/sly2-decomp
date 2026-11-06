@@ -43,8 +43,8 @@ struct VTE { short d; short pad; void (*pfn)(); };
 extern "C" {
 extern qword D_002A2DD0;    /* zero vector */
 extern char D_002A2D00[];   /* identity matrix */
-LO *PloAcquireProxy(LO *plo, int n);
-void SetLoParent_1A58D0(LO *plo, int n1, int n2);
+LO *AcquireProxyObject(LO *plo, int n);
+void SetLoParent(LO *plo, int n1, int n2);
 void FadeSoIn(LO *plo, float dt);
 LO *PloAcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand);
 LO *PloNew__F3CIDP2SO3OIDi(CID cid, SO *psoParent, OID oid, int n);
@@ -485,7 +485,7 @@ int FAsegaRetracted(ASEGA *);
 void SetJtGrabKind(CONTEXT *, int);                     // set the step
 void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *);                         // stack allocation in the current STACKSCOPE
 qword GetLoWorldPos(ACTOR *);                           // world position
-int FFilterSoPair(void *, SO *);
+int ShouldKeepSoPair(void *, SO *);
 void IntersectSwBoundingBox(SW *, qword, qword, int (*)(void *, SO *), void *, int *, SO ***);   // objects in a box
 int ClsgClipEdgeToObject(SO *, qword, qword, int, LSG *);      // line test against an object
 void UpdateSoPartGeom(SO *);
@@ -541,7 +541,7 @@ static inline void ProbeGround(CONTEXT *p)
     qword posEnd = QwAdd(posBase, QwScale(D_002A2DC0, VuFloat(&D_002BF5B0)));
     int cso;
     SO **apso;
-    IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, FFilterSoPair, p->pactor->pvFilter, &cso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, posEnd, posBase, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++) {
         int clsg = ClsgClipEdgeToObject(apso[i], posBase, posEnd, 8, alsg);
         LSG *plsg = alsg;
@@ -555,7 +555,7 @@ static inline void ProbeGround(CONTEXT *p)
     UpdateSoPartGeom(psoSelf);
     qword posMin = VecMinArray(pgeom->cpos, pgeom->apos);
     qword posMax = VecMaxArray(pgeom->cpos, pgeom->apos);
-    IntersectSwBoundingBox(&D_003DD490, posMin, posMax, FFilterSoPair, p->pactor->pvFilter, &cso, &apso);
+    IntersectSwBoundingBox(&D_003DD490, posMin, posMax, ShouldKeepSoPair, p->pactor->pvFilter, &cso, &apso);
     for (i = 0; i < cso; i++)
         if (cbspMax <= apso[i]->cbsp)
             cbspMax = apso[i]->cbsp;
@@ -2714,7 +2714,7 @@ extern "C" { extern SW D_003DD490; }
 
 
 
-PROXY *PproxyFromLo(LO *plo) __asm__("func_001CB658");
+PROXY *PproxyFromLo(LO *plo) __asm__("GetProxyCopyValue");
 static inline qword QwSub(qword qw0, qword qw1)
 {
     qword qw;
@@ -3244,7 +3244,7 @@ extern "C" void func_00195608(SW *psw, LO *plo)
 }
 
 /** @sly2-annot addr=0x1956D0
- * Purpose: Acquire proxy id (PloAcquireProxy), unparent, Remove, fade in 0.25 s, place at candidate pos with
+ * Purpose: Acquire proxy id (AcquireProxyObject), unparent, Remove, fade in 0.25 s, place at candidate pos with
  *   identity rotation and zero velocity
  * Info: proposed name PloAcquireJtGrabMarker (T1); TU grab
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4b_rest+verdicts_followups
@@ -3256,9 +3256,9 @@ extern "C" LO *PloAcquireJtGrabMarker(SW *psw, LO *plo, JTGRABCAND *pcand)
 {
     LO *ploMarker;
     if (!plo) return 0;
-    ploMarker = PloAcquireProxy(plo, 0);
+    ploMarker = AcquireProxyObject(plo, 0);
     if (ploMarker) {
-        SetLoParent_1A58D0(ploMarker, 0, 0);
+        SetLoParent(ploMarker, 0, 0);
         { VTE *pvte = &PVT(ploMarker)[9]; ((void (*)(void *))pvte->pfn)((char *)ploMarker + pvte->d); }
         FadeSoIn(ploMarker, 0.25f);
         { VTE *pvte = &PVT(ploMarker)[29]; ((void (*)(void *, qword))pvte->pfn)((char *)ploMarker + pvte->d, pcand->qwPos); }

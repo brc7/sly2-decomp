@@ -1,5 +1,5 @@
 #include "splicewrap.h"
-M2C_UNK func_00133340(s32);                         /* extern */
+M2C_UNK SendSpliceEvent5(s32);                         /* extern */
 
 CRef *func_001007E8(CRef *ret, void *pbasic, s32 cref, CRef *aref)
 {
@@ -7,7 +7,7 @@ CRef *func_001007E8(CRef *ret, void *pbasic, s32 cref, CRef *aref)
     RefSetArgsFromSplice__FiP4CRefP4OTYPe(&ref, 0, aref, NULL);
     Decref__4CRef(&ref);
     SetTag__4CRef4TAGK(&ref, 0x24);
-    func_00133340(pbasic);
+    SendSpliceEvent5(pbasic);
     __4CRefRC4CRef(ret, &ref);
     Decref__4CRef(&ref);
     return ret;

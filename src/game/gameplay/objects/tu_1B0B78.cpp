@@ -91,7 +91,7 @@ void InitSo(CID96V *p);
 void RemoveSoHierarchy(CID96V *p);
 void LoadSoFromBrx(CID96V *p, CBinaryInputStream *pbis);
 void PostSoLoad(CID96V *p);
-void func_001CB518(CID96V *p);
+void SO_ResetForProxy(CID96V *p);
 void UpdateSo(CID96V *p);
 void FadeSoOut(CID96V *p, float f);
 void HandleBasicMessage(CID96V *p, int msg, ASEGA *pm);
@@ -118,7 +118,7 @@ EFFECT *PsndStartSound(int);
 void SetSndSourceLo(EFFECT *, SOURCE *);
 void SetSndSourcePos(EFFECT *, qwordV);
 qwordV ConvertAloPos(CID96V *, CID96V *, qwordV);
-void func_00154E10(void *, qwordV, int, int, CID96V *);
+void SprayDifficultyPrizes(void *, qwordV, int, int, CID96V *);
 M3 func_0011B500(qwordV v, float g);
 float atan2f(float y, float x);
 E96 *func_0012FF10(LOV *plo, CID96V *p, int a, int b);
@@ -237,7 +237,7 @@ extern "C" void func_001B0D08(CID96V *p)
  * @end-sly2-annot */
 extern "C" void func_001B0D60(CID96V *p)
 {
-    func_001CB518(p);
+    SO_ResetForProxy(p);
     func_001B0D90(p);
 }
 
@@ -535,7 +535,7 @@ void func_001B1328(CID96V*p,int next){
  }
  case 5:{
   EFFECT*e=PsndStartSound(0x14);SetSndSourceLo(e,0);SetSndSourcePos(e,GetLoWorldPos(p));
-  func_00154E10(D_002DE578,ConvertAloPos(p,0,p->damageOffset.q),p->amount,-100,p);Call(p,9);break;
+  SprayDifficultyPrizes(D_002DE578,ConvertAloPos(p,0,p->damageOffset.q),p->amount,-100,p);Call(p,9);break;
  }
  }
  p->state=next;p->changed=D_002DDED0.t;

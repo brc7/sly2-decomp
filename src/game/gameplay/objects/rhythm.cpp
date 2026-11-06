@@ -127,7 +127,7 @@ void DecrementSwHandsOff(SW *psw, int n);
 void CopyAb__FPvT0Ui(void *dst, void *src, int cb);
 void *memmove(void *dst, void *src, int cb);
 int FFloatsNear__Ffff(float, float, float);
-float GGetDifficulty(void *p);
+float GetDifficulty(void *p);
 float GLimitLm__FP2LMf(LMV *plm, float g);
 
 void ApplyDancerAseg(DANCERV *p, void *paseg, int n);
@@ -884,7 +884,7 @@ void AddRhythmScore(RHYTHMMGR *p, float g)
 {
     float *pg;
     if (g < 0.0f) {
-        float t = GGetDifficulty(D_002DE578);
+        float t = GetDifficulty(D_002DE578);
         g *= GClamp(D_002BDBE0[0] + t * (D_002BDBE0[1] + t * D_002BDBE0[2]), D_002BBB60.gMin, D_002BBB60.gMax);
     }
     if (p->cScore == 16) {

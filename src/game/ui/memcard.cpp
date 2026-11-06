@@ -8,7 +8,7 @@
 // symbol (CompareSaves__FP4SAVET0) as a C-linkage definition: it compares two SAVEINFO records, not SAVEs.
 // The hand-written per-function files keep their views in namespaces named after each function (as jt.cpp does).
 // The two dialogs D_002E6550 / D_002E65A0 are defined here with inline constructors (CMemcardDialog_ctor,
-// func_001ADDF0) and destructors (func_00258348, in-charge flag 2): g++ generates the 93-instruction
+// CMcStatus_ctor) and destructors (func_00258348, in-charge flag 2): g++ generates the 93-instruction
 // construct-and-destruct StaticInit_memcard and the _GLOBAL_$D$ stub func_001AE130 (cm.cpp's g_cm pattern).
 // SLY2_ALIAS: __static_initialization_and_destruction_0=StaticInit_memcard
 // SLY2_ALIAS: _GLOBAL_$I$*=func_001AE110
@@ -27,7 +27,7 @@ struct MCDLGG;
 struct MCDLG;
 extern "C" {
 MCDLG *CMemcardDialog_ctor(MCDLG *pdlg);
-void *func_001ADDF0(void *pv);        /* CMcStatus constructor */
+void *CMcStatus_ctor(void *pv);        /* CMcStatus constructor */
 void func_00258348(MCDLGG *pv, int grfDelete);
 }
 struct MCDLGG
@@ -42,7 +42,7 @@ struct MCDLGG
 struct MCSTATUSG
 {
     char ab[0x40];
-    MCSTATUSG() { func_001ADDF0(this); }
+    MCSTATUSG() { CMcStatus_ctor(this); }
     ~MCSTATUSG() { func_00258348((MCDLGG *)this, 2); }
 };
 /* memcard's .bss, in the ELF's order: the thread stack, the sceMcGetDir table, the directory path, the dialog (0x50),
@@ -132,7 +132,7 @@ struct MCDLG
     char pad30[0x40 - 0x30];
     int nState;             /* +0x40 */
 };
-/* A file key (linkonce func_00258248). */
+/* A file key (linkonce InitFileKey). */
 struct FILEKEY { int an[2]; int n8; char bC; };
 
 extern SW D_003DD490;
@@ -148,10 +148,10 @@ extern void *D_002D3750[] __asm__("_vt$14CMemcardDialog");      /* CMemcardDialo
    here. Defined before CMcStatus (below), whose vtable comes out before it. MCDLG is the view the bodies read. */
 struct CMemcardDialog : SCREEN
 {
-    virtual void PostLoad() __asm__("func_001ACAE8");   /* slot 12; key function */
+    virtual void PostLoad() __asm__("CMemcardDialog_PostLoad");   /* slot 12; key function */
     virtual void Update() __asm__("CMemcardDialog_Update");   /* slot 7 */
-    virtual void VSlot13() __asm__("func_001ACB38");   /* slot 13 */
-    virtual void SetMode(int nMode) __asm__("func_001ACC18");   /* slot 14 */
+    virtual void VSlot13() __asm__("CMemcardDialog_Slot13");   /* slot 13 */
+    virtual void SetMode(int nMode) __asm__("CMemcardDialog_SetMode");   /* slot 14 */
 };
 extern char D_002A38E8[];   /* the icon file */
 void InitGame(void *pgame);
@@ -167,8 +167,8 @@ int sceMcOpen(int port, int slot, const char *pchz, int mode);
 int sceMcClose(int fd);
 int sceMcDelete(int port, int slot, const char *pchz);
 void SetSaveState(SAVE *psave, int nState);
-int func_001AC570(SAVE *psave, void *pslot);
-void func_001ACC38(void *pdlg, int n);
+int ResetSaveSlot(SAVE *psave, void *pslot);
+void SetMcDialogPhase(void *pdlg, int n);
 int McJobGetInfo(SAVE *psave);
 int WriteSaveSlotFile(SAVE *psave, int islot);
 void SetMcDialogState(void *pdlg, int nState);
@@ -180,7 +180,7 @@ int func_001DA7D0(MCDLG *pdlg);
 void func_001DA770(MCDLG *pdlg);
 void func_001DA7B0(MCDLG *pdlg);
 void func_001DA808(MCDLG *pdlg);
-int IdPauseTopPage(void *pmenu);
+int GetPauseMenuTopPageId(void *pmenu);
 }
 void InitSave(SAVE *psave, int n0, int n1);
 int SemaCreate(int cInit, int cMax);
@@ -278,7 +278,7 @@ namespace M_FUN_0018b910__Fi {
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Maps a sceMcSync state to the internal result: 0 -> 0x1D (done), positive -> 0x1E (busy), negative -> 0x1F (error).
-extern "C" int FUN_0018b910__Fi(int n)
+extern "C" int McResultFromSyncState(int n)
 {
     if (n != 0) return n <= 0 ? 0x1F : 0x1E;
     return 0x1D;
@@ -298,7 +298,7 @@ namespace M_FUN_0018b930__Fi {
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Maps a sceMcSync command result to the internal result: 0 -> 0x21, 1 -> 0x22, -1 -> 0x20, else 0x1F.
-extern "C" int FUN_0018b930__Fi(int n)
+extern "C" int McResultFromSyncCommand(int n)
 {
     switch (n) {
     case 0: return 0x21;
@@ -549,9 +549,9 @@ int FMemcardThreadValid(MEMCARD *pmemcard)
 }
 
 namespace M_McSyncResult { extern "C" {
-int func_001AAB48(void *p) __asm__("FUN_0018b910__Fi");
+int McResultFromSyncState(void *p) __asm__("McResultFromSyncState");
 int func_00244450(int n, int *a, int *b) __asm__("sceMcSync");
-int func_001AAB68(int n) __asm__("FUN_0018b930__Fi");
+int McResultFromSyncCommand(int n) __asm__("McResultFromSyncCommand");
 int MsgFromMcError(void *p, int n);
 /** @sly2-annot addr=0x1AB098
  * Purpose: Poll sceMcSync(0,&cmd,&res) and map to result; on error map through MsgFromMcError
@@ -568,10 +568,10 @@ int MsgFromMcError(void *p, int n);
 int McSyncResult(void *a0, void *a1, void *a2, int *a3)
 {
     int buf[2];
-    int r = func_001AAB48(a1);
+    int r = McResultFromSyncState(a1);
     if (r != 0x1D)
         return r;
-    r = func_001AAB68(func_00244450(0, &buf[0], &buf[1]));
+    r = McResultFromSyncCommand(func_00244450(0, &buf[0], &buf[1]));
     if (a3)
         *a3 = buf[1];
     if (r == 0x22)
@@ -629,13 +629,13 @@ struct S { int x0, x4; int x8; int xC; float x10; float x14; char pad[0xFD5C - 0
 extern char D_003DD490[], D_002F66B0[], D_003D9ED0[];
 extern int D_002DEB4C;
 extern struct H D_002E6550;
-int func_0020E040(void *g);
+int IsSwTransitionBusy(void *g);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
 void CreateMemcardThread(void *t, long pmf);
-void func_001AB630(struct S *s);
+void ReloadSaveSlots(struct S *s);
 void SetSaveState(struct S *s, int);
 int func_001B42C0(void *p);
-int func_001B01E8(void *p);
+int IsPauseMenuOnLoadPageB(void *p);
 void SetMcDialogState(struct H *h, int n);
 /** @sly2-annot addr=0x1AB1A0
  * Purpose: Per-frame save state machine: skip during transitions/when thread busy; poll card (job McJobGetInfo)
@@ -649,7 +649,7 @@ void SetMcDialogState(struct H *h, int n);
 // or advances the state, and triggers the autosave with a 0.3 s debounce.
 void UpdateSave__FP4SAVE(struct S *s)
 {
-    if (func_0020E040(D_003DD490))
+    if (IsSwTransitionBusy(D_003DD490))
         return;
     if (D_002DEB4C)
         return;
@@ -661,7 +661,7 @@ void UpdateSave__FP4SAVE(struct S *s)
         if (s->x14 <= g_clock.tReal)
             CreateMemcardThreadJob(s->xFD5C, &MCJOB::GetInfo);
         else
-            func_001AB630(s);
+            ReloadSaveSlots(s);
     } else {
         SetSaveState(s, s->xC);
     }
@@ -672,7 +672,7 @@ void UpdateSave__FP4SAVE(struct S *s)
     if (D_002E6550.x44 != 1)
         return;
     if (0.3f <= g_clock.tReal - s->x10) {
-    if (func_001B01E8(D_003D9ED0)) {
+    if (IsPauseMenuOnLoadPageB(D_003D9ED0)) {
         if (s->x8 != 6)
             SetMcDialogState(&D_002E6550, 0x2E);
         return;
@@ -750,12 +750,12 @@ extern G D_003DD490;
 extern CLOCK D_002DDED0;
 extern ST D_002E6550;
 extern char D_002E65A0[];
-void func_001ACC38(ST *, int);
-int func_001ADEA8(void *);
+void SetMcDialogPhase(ST *, int);
+int IsMcStatusVisible(void *);
 void SetMcDialogState(ST *, int);
 void HideMcDialogWidget(void *);
 int CompareSaves__FP4SAVET0(char *, char *);
-void func_001D8D80(SLOT *, int);
+void ResetSaveGs(SLOT *, int);
 void SetSaveState(MC *p, int state);
 }
 CRef Eval(int, SLOT *) __asm__("RefGetGlobalSaveVar");
@@ -781,8 +781,8 @@ void SetSaveState(MC *p, int state)
         if (p->xFD50) {
             ST *pst = &D_002E6550;
             if (pst->x44 == 1) {
-                func_001ACC38(pst, 3);
-                if (func_001ADEA8(D_002E65A0)) {
+                SetMcDialogPhase(pst, 3);
+                if (IsMcStatusVisible(D_002E65A0)) {
                     SetMcDialogState(pst, 0x23);
                     HideMcDialogWidget(D_002E65A0);
                 } else {
@@ -808,7 +808,7 @@ void SetSaveState(MC *p, int state)
                 if (CompareSaves__FP4SAVET0(p->pslotCur->x5408, pslot->x5408) < 0)
                     p->pslotCur = pslot;
             } else {
-                func_001D8D80(pslot, 0);
+                ResetSaveGs(pslot, 0);
             }
         }
         break;
@@ -827,7 +827,7 @@ void SetSaveState(MC *p, int state)
  * @end-sly2-annot */
 // Once the worker is idle in state 5 with save variables present, re-initializes the three slots and goes to state 6.
 /* Reloads the three slots once the worker is idle (state 5 and (*(int *)&g_sw.savevars) set). */
-extern "C" void func_001AB630(SAVE *psave)
+extern "C" void ReloadSaveSlots(SAVE *psave)
 {
     int i;
     char *pslot;
@@ -836,7 +836,7 @@ extern "C" void func_001AB630(SAVE *psave)
         i = 2;
         SetMemcardThreadHighPrio(&psave->memcard);
         do {
-            func_001AC570(psave, pslot);
+            ResetSaveSlot(psave, pslot);
             i--;
             pslot += 0x5464;
         } while (i >= 0);
@@ -859,7 +859,7 @@ extern "C" int McJobFormat(SAVE *psave)
     int nResult = McSyncResult(&psave->memcard, sceMcFormat(psave->port, psave->slot), 0x10, 0);
     if (nResult != 0) {
         psave->nStateNext = 2;
-        func_001ACC38(&D_002E6550, 3);
+        SetMcDialogPhase(&D_002E6550, 3);
     } else {
         psave->nStateNext = 3;
     }
@@ -872,10 +872,10 @@ SLY2_SCRAP("addiu $sp, $sp, 0x20");
 namespace M_FOpenSaveIconFile {
 struct S { int x0; int x4; char pad[0x2C]; int x34; int x38; int x3C; };
 struct K;
-extern "C" void func_00258248(K *k);
+extern "C" void InitFileKey(K *k);
 extern "C" int func_0014B670(K *k);
 struct K { int a; int b; int c; char pad[0x104];
-  K() { c = 2; func_00258248(this); }
+  K() { c = 2; InitFileKey(this); }
   bool FSet(S *p) { if (!p) return false; b = p->x4 ^ p->x3C; a = (p->x0 ^ p->x34) + 0xCA0; c = 2; return b != 0; }
 };
 /** @sly2-annot addr=0x1AB750
@@ -933,7 +933,7 @@ int CreateSaveDir(struct S *s);
 int WriteSaveSlotFileReset(struct S *s, struct B *b);
 void BuildSaveFilePath(struct S *s, struct B *b, char *name);
 void McDelete(struct S *s, char *name);
-void func_001ACC38(void *p, int n);
+void SetMcDialogPhase(void *p, int n);
 /** @sly2-annot addr=0x1AB868
  * Purpose: Thread job: check space (sceMcGetEntSpace), delete stale, CreateSaveDir, write slot files
  * Info: proposed name McJobCreateSave (T1); TU memcard
@@ -985,7 +985,7 @@ cleanup:
         }
     }
     if (r)
-        func_001ACC38(D_002E6550, 3);
+        SetMcDialogPhase(D_002E6550, 3);
 done:
     return r;
 }
@@ -996,8 +996,8 @@ struct B { char data[0x5464]; };
 struct S { int x0; int x4; int x8; int xC; int pad[5]; struct B a[3]; char pad2[0xFD5C - 0x24 - 3 * 0x5464]; char xFD5C[1]; };
 int sceMcGetDir(int a, int b, char *c, int d, int e, int f);
 int McSyncResult(void *p, int a, int b, int *c);
-int func_001AC6A0(struct S *s, int *out);
-int func_001AC4C8(struct S *s, struct B *b);
+int McGetInfoSync(struct S *s, int *out);
+int ReadSaveSlotHeaders(struct S *s, struct B *b);
 /** @sly2-annot addr=0x1ABA10
  * Purpose: Thread job: sceMcGetInfo + sceMcGetDir of save dir, read slot headers (0x1AC4C8)
  * Info: proposed name McJobGetDir (EXISTING); TU memcard
@@ -1018,13 +1018,13 @@ int McJobGetDir(struct S *s)
     int i;
     r = McSyncResult(p, sceMcGetDir(s->x0, s->x4, "/BASCUS-97316YAOTWTD!", 0, -1, 0), 0xD, &n[0]);
     if (n[0] <= 0) {
-        func_001AC6A0(s, &n[1]);
+        McGetInfoSync(s, &n[1]);
         if (n[1] <= 0x18FFF)
             s->xC = 4;
         return 0xE;
     }
     for (i = 0; r == 0 && i < 3; i++)
-        func_001AC4C8(s, &s->a[i]);
+        ReadSaveSlotHeaders(s, &s->a[i]);
     if (r == 0 && s->xC < 5)
         s->xC = 5;
     return r;
@@ -1055,7 +1055,7 @@ extern char D_002E6550[];
 void *McJobGetInfo(struct S *s);
 void *CreateSaveDir(struct S *s);
 void *WriteSaveSlotFile(struct S *s, void *x);
-void func_001ACC38(void *p, int n);
+void SetMcDialogPhase(void *p, int n);
 /** @sly2-annot addr=0x1ABB60
  * Purpose: Thread job: card info check, CreateSaveDir, write one slot file (0x1AC420)
  * Info: proposed name McJobSaveSlot (T1); TU memcard
@@ -1067,7 +1067,7 @@ void func_001ACC38(void *p, int n);
 // Worker job: checks the card, creates the save directory when needed and writes one slot file.
 void *McJobSaveSlot(struct S *s)
 {
-    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = WriteSaveSlotFile(s, s->x); if (p) func_001ACC38(D_002E6550, 3); return p;
+    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = WriteSaveSlotFile(s, s->x); if (p) SetMcDialogPhase(D_002E6550, 3); return p;
 }
 } } // namespace M_McJobSaveSlot
 
@@ -1082,11 +1082,11 @@ void *McJobSaveSlot(struct S *s)
 // Worker job of the autosave: checks the card and rewrites the current slot; on failure shows the dialog's error
 // state (0x23) and hides the status widget.
 /* Thread job: check the card, then write the current slot. */
-extern "C" int func_001ABBE0(SAVE *psave)
+extern "C" int McJobAutosave(SAVE *psave)
 {
     int nResult = McJobGetInfo(psave);
     if (nResult != 0 || (nResult = WriteSaveSlotFile(psave, psave->islotCur)) != 0) {
-        func_001ACC38(&D_002E6550, 3);
+        SetMcDialogPhase(&D_002E6550, 3);
         SetMcDialogState(&D_002E6550, 0x23);
         HideMcDialogWidget(&D_002E65A0);
     }
@@ -1099,7 +1099,7 @@ extern char D_002E6550[];
 void *McJobGetInfo(struct S *s);
 void *CreateSaveDir(struct S *s);
 void *WriteSaveSlotFileReset(struct S *s, void *x);
-void func_001ACC38(void *p, int n);
+void SetMcDialogPhase(void *p, int n);
 /** @sly2-annot addr=0x1ABC68
  * Purpose: Thread job: card check, CreateSaveDir, write via 0x1AC468 (with ResetGs)
  * Info: proposed name McJobWriteSave (T2); TU memcard
@@ -1109,9 +1109,9 @@ void func_001ACC38(void *p, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Worker job: like McJobSaveSlot, but the slot is written with a GS reset first (WriteSaveSlotFileReset).
-void *func_001ABC68(struct S *s)
+void *McJobSaveSlotResetGs(struct S *s)
 {
-    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = WriteSaveSlotFileReset(s, s->x); if (p) func_001ACC38(D_002E6550, 3); return p;
+    void *p = McJobGetInfo(s); if (!p) p = CreateSaveDir(s); if (!p) p = WriteSaveSlotFileReset(s, s->x); if (p) SetMcDialogPhase(D_002E6550, 3); return p;
 }
 } } // namespace M_func_001ABC68
 
@@ -1121,7 +1121,7 @@ struct K { int a, b; };
 extern const struct LONGU D_002A6C88;
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
-void func_001D84B0(void *p, int n);
+void BuildMemcardGsMask(void *p, int n);
 void CreateMemcardThread(void *p, long k);
 /** @sly2-annot addr=0x1ABCE8
  * Purpose: Build GS mask (BuildMemcardGsMask) and CreateMemcardThread for a save
@@ -1131,10 +1131,10 @@ void CreateMemcardThread(void *p, long k);
  * @end-sly2-annot */
 // Starts the autosave: resets the rumble save variable, stores the save variables into the current slot and queues
 // McJobAutosave.
-void func_001ABCE8(struct S *p)
+void StartAutosaveJob(struct S *p)
 {
     ResetRumbleSaveVar(p);
-    func_001D84B0((*(char (*)[])&g_sw.savevars), p->xfd50);
+    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), p->xfd50);
     CreateMemcardThread(p->xfd5c, D_002A6C88.l);
 }
 } } // namespace M_func_001ABCE8
@@ -1145,7 +1145,7 @@ struct K { int a, b; };
 extern const struct LONGU D_002A6C90;
 struct S { char pad[0xFD50]; int xfd50; int pad2[2]; char xfd5c[4]; };
 void ResetRumbleSaveVar(struct S *p);
-void func_001D84B0(void *p, int n);
+void BuildMemcardGsMask(void *p, int n);
 void CreateMemcardThread(void *p, long k);
 /** @sly2-annot addr=0x1ABD40
  * Purpose: Same as 0x1ABCE8 with other job
@@ -1154,10 +1154,10 @@ void CreateMemcardThread(void *p, long k);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Starts a save to the current slot: same preparation as the autosave, then queues McJobSaveSlot.
-void func_001ABD40(struct S *p)
+void StartSaveSlotJob(struct S *p)
 {
     ResetRumbleSaveVar(p);
-    func_001D84B0((*(char (*)[])&g_sw.savevars), p->xfd50);
+    BuildMemcardGsMask((*(char (*)[])&g_sw.savevars), p->xfd50);
     CreateMemcardThread(p->xfd5c, D_002A6C90.l);
 }
 } } // namespace M_func_001ABD40
@@ -1171,13 +1171,13 @@ extern struct G D_003DD490;
 extern struct H D_002E6550;
 extern int D_002DEB4C;
 extern char D_003D4A60[], D_002E65A0[];
-int func_0020E040(struct G *g);
+int IsSwTransitionBusy(struct G *g);
 int NWorldCur(void);
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
-void func_001ABCE8(struct S *s);
-void func_001ADE38(void *p);
+void StartAutosaveJob(struct S *s);
+void ShowMcDialogWidget(void *p);
 /** @sly2-annot addr=0x1ABD98
  * Purpose: If a slot is current and not in transition: eval Splice flag; if card missing show UI state 0x22
  *   else start save job
@@ -1189,7 +1189,7 @@ void func_001ADE38(void *p);
  * @end-sly2-annot */
 // Autosaves when a slot is current and no transition is running (Splice save flag unless forced): shows the "no card"
 // dialog (state 0x22) when the card is missing, else starts the autosave job.
-void func_001ABD98(struct S *s, int force)
+void AutosaveGame(struct S *s, int force)
 {
     struct G *g;
     struct CRef ref;
@@ -1197,7 +1197,7 @@ void func_001ABD98(struct S *s, int force)
     if (!s->xFD50)
         return;
     g = &D_003DD490;
-    if (func_0020E040(g))
+    if (IsSwTransitionBusy(g))
         return;
     if (D_002DEB4C)
         return;
@@ -1210,8 +1210,8 @@ void func_001ABD98(struct S *s, int force)
         D_002E6550.x4C = 3;
         SetMcDialogState(&D_002E6550, 0x22);
     } else {
-        func_001ABCE8(s);
-        func_001ADE38(D_002E65A0);
+        StartAutosaveJob(s);
+        ShowMcDialogWidget(D_002E65A0);
     }
 }
 } } // namespace M_func_001ABD98
@@ -1297,7 +1297,7 @@ SLY2_SCRAP("addiu $sp, $sp, 0x10");
 // them among the functions' literals, under asm labels. 0x2A6C80 "/%s/%s" is a literal no code in the ELF
 // references (a use the original compiled away); defined here under its address name to keep the layout.
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
-void p_func_001ABBE0() __asm__("func_001ABBE0");
+void p_func_001ABBE0() __asm__("McJobAutosave");
 void p_McJobSaveSlot() __asm__("McJobSaveSlot");
 extern const char r_D_002A6C80[] __asm__("D_002A6C80") = "/%s/%s";
 extern const unsigned int r_D_002A6C88[2] __asm__("D_002A6C88") = {0xFFFF0000, (unsigned int)p_func_001ABBE0};
@@ -1404,8 +1404,8 @@ typedef unsigned int uint;
 extern "C" void STACKSCOPE_ctor_1AE4A0(STACKSCOPE*,int) __asm__("_$_10STACKSCOPE");
 struct REQUEST {uint bytes,alignment;};
 struct X;
-extern "C" void func_00258248(X *px);
-struct X { uint x0; uint x4; int x8; char pad[0x110 - 0xC]; X() { x8 = 2; func_00258248(this); } };
+extern "C" void InitFileKey(X *px);
+struct X { uint x0; uint x4; int x8; char pad[0x110 - 0xC]; X() { x8 = 2; InitFileKey(this); } };
 struct Y;extern "C" void func_00184950(Y*,int) __asm__("_$_10CStreamBis");
 struct Y {int flags;unsigned char*cursor;int left,consumed;unsigned char*raw;int rawBytes,decompFlags,pending,word20;unsigned char*window;int word28,word2C;void*vt;int capacity;unsigned char*buffer;int handle3C,word40,word44;uint word48;int word4C,word50,word54,word58,word5C,word60;char tail64[0xC];Y(int cb,void*pv,int flags) __asm__("func_001848A8");~Y(){func_00184950(this,2);}};
 struct K {uint x0,x4;char pad[0x34-8];uint x34;int pad2;uint x3C;};
@@ -1555,7 +1555,7 @@ void WriteSaveSlotFile(void *a, void *b)
 
 namespace M_WriteSaveSlotFileReset { extern "C" {
 struct B { char pad[0x5408]; char x5408[0x44]; int x544C; int x5450; };
-void func_001D8D80(struct B *p, int n);
+void ResetSaveGs(struct B *p, int n);
 void BuildSaveFilePath(void *s, void *b, char *name);
 int McWriteFile(void *s, char *name, void *b, int n);
 /** @sly2-annot addr=0x1AC468
@@ -1573,7 +1573,7 @@ int McWriteFile(void *s, char *name, void *b, int n);
 int WriteSaveSlotFileReset(void *s, struct B *b)
 {
     char name[0x50];
-    func_001D8D80(b, 0);
+    ResetSaveGs(b, 0);
     BuildSaveFilePath(s, b, name);
     return McWriteFile(s, name, b, 0x5408);
 }
@@ -1594,7 +1594,7 @@ int McReadFile(void *s, char *name, void *b, int n);
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Reads each slot's directory entry and file header from the card.
-int func_001AC4C8(void *s, struct B *b)
+int ReadSaveSlotHeaders(void *s, struct B *b)
 {
     char name[0x50];
     int r;
@@ -1619,7 +1619,7 @@ int func_001AC4C8(void *s, struct B *b)
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Resets a slot when its schema changed (ResetGsIfSchemaChanged).
-extern "C" int func_001AC570(SAVE *psave, void *pslot)
+extern "C" int ResetSaveSlot(SAVE *psave, void *pslot)
 {
     ResetGsIfSchemaChanged(&(*(int *)&g_sw.savevars));
     return 0;
@@ -1682,7 +1682,7 @@ int McSyncResult(void *p, int a, int b, int c);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // sceMcGetInfo followed by McSyncResult; returns the result.
-int func_001AC6A0(struct S *s, int *out)
+int McGetInfoSync(struct S *s, int *out)
 {
     void *p = s->xFD5C;
     int h;
@@ -1901,7 +1901,7 @@ void CMemcardDialog::PostLoad()   /* key function: CMemcardDialog's vtable comes
  * @end-sly2-annot */
 // CMemcardDialog slot 13: forwards to the UI base (0x1DA7B0).
 /* CMemcardDialog slot 13. */
-extern "C" void func_001ACB38(MCDLG *pdlg)
+extern "C" void CMemcardDialog_Slot13(MCDLG *pdlg)
 {
     func_001DA7B0(pdlg);
 }
@@ -1957,7 +1957,7 @@ void ClearMcDialogState(struct O *p)
  * @end-sly2-annot */
 // CMemcardDialog slot 14: sets the mode, stamping the real time when it changes.
 /* slot 14: set the mode (stamping the real time). */
-extern "C" void func_001ACC18(MCDLG *pdlg, int nMode)
+extern "C" void CMemcardDialog_SetMode(MCDLG *pdlg, int nMode)
 {
     if (nMode != pdlg->nMode) {
         pdlg->nMode = nMode;
@@ -1982,7 +1982,7 @@ struct S { char pad[0x44]; int x44; float x48; };
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Sets the dialog phase and its start time; phases 2 and 3 clear the save request word.
-void func_001ACC38(struct S *p, int n)
+void SetMcDialogPhase(struct S *p, int n)
 {
     if (n == p->x44) return;
     switch (n) { case 2: case 3: D_002E65E0.x = 0; }
@@ -2001,7 +2001,7 @@ struct S { char pad[0x40]; int x40; };
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Returns the button layout of the dialog state: 1 one button, 2 two choices, 0 none.
-int func_001ACC80(struct S *p)
+int GetMcDialogButtonKind(struct S *p)
 {
     switch (p->x40) {
     case 0x11: case 0x14: case 0x17: case 0x18: case 0x1B: case 0x1D: case 0x22: case 0x23: case 0x24: case 0x2E:
@@ -2030,17 +2030,17 @@ extern char D_003DD490[];
 extern char D_003D9ED0[];
 extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
 extern const struct LONGU D_002A6D88;
-int func_0020E040(void *g);
-int func_001ACC80(struct S *s);
+int IsSwTransitionBusy(void *g);
+int GetMcDialogButtonKind(struct S *s);
 int GrfHandleJoyBtn(void *p, int n);
-void func_001AD168(struct S *s);
-void func_001ACFE0(struct S *s);
+void ConfirmMcDialog(struct S *s);
+void OnMcDialogChoice(struct S *s);
 int FMemcardThreadValid__FP7MEMCARD(void *p);
 void CreateMemcardThread(void *p, long pmf);
 void SetMcDialogState(struct S *s, int n);
 void ClearMcDialogState(struct S *s);
-void func_001660F8(void);
-void func_001AF660(void *p);
+void ResetGameSequence(void);
+void PopPauseMenuToRoot(void *p);
 /** @sly2-annot addr=0x1ACCC8
  * Purpose: vt7: when dialog fully shown >0.1s handle pad input (0x187D80) per KMcDialogButtons, start jobs
  *   (CreateMemcardThread), transition (0x1ACFE0)
@@ -2063,25 +2063,25 @@ void CMemcardDialog_Update(struct S *s)
     c = p->x64;
     if (c != 2)
         return;
-    if (func_0020E040(D_003DD490))
+    if (IsSwTransitionBusy(D_003DD490))
         return;
     if (D_002DDED0.t3c - s->x24->x5C <= 0.1f)
         return;
-    r = func_001ACC80(s);
+    r = GetMcDialogButtonKind(s);
     if (r != 1) {
         if (r == c) {
             if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
-                func_001AD168(s);
+                ConfirmMcDialog(s);
                 return;
             }
             if (s->x10 && GrfHandleJoyBtn(s->x10, 0x10)) {
-                func_001ACFE0(s);
+                OnMcDialogChoice(s);
                 return;
             }
         }
     } else {
         if (s->x10 && GrfHandleJoyBtn(s->x10, 0x80)) {
-            func_001ACFE0(s);
+            OnMcDialogChoice(s);
             return;
         }
     }
@@ -2126,10 +2126,10 @@ void CMemcardDialog_Update(struct S *s)
             ClearMcDialogState(s);
             switch (s->x4C) {
             case 1:
-                func_001660F8();
+                ResetGameSequence();
                 return;
             case 2:
-                func_001AF660(D_003D9ED0);
+                PopPauseMenuToRoot(D_003D9ED0);
                 return;
             }
             return;
@@ -2180,16 +2180,16 @@ extern char D_003DA530[], D_003D9ED0[], D_003D4A60[];
 extern char D_002E65E0[];
 
 int FScreenShown(void *p);
-int func_001B0160(void *p);
+int IsPauseMenuOnLoadPageA(void *p);
 void ClearMcDialogState(S *s);
-void func_001ACC38(S *s, int n);
-void func_001AF660(void *p);
+void SetMcDialogPhase(S *s, int n);
+void PopPauseMenuToRoot(void *p);
 void StartNewGame(void *p);
-int func_001B0108(void *p);
-void func_001AF608(void *p);
+int IsPauseMenuOnSavePage(void *p);
+void PopPauseMenuPage(void *p);
 void SetMcDialogState(S *s, int n);
-void func_001ABD40(void *p);
-void func_001ACFE0(S *s);
+void StartSaveSlotJob(void *p);
+void OnMcDialogChoice(S *s);
 CRef RefSetGlobalSaveVar(O *, const CRef &, void *);                   // O::Set(const CRef &, context), returns a CRef
 }
 static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef &ret = RefSetGlobalSaveVar(po, arg, D_003D4A60); }
@@ -2201,16 +2201,16 @@ static inline void SetPv(O *po, const CRef &r, void *) { CRef arg(r); const CRef
  *   docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Runs the follow-up of the dialog state the player answered (UI hooks, save jobs).
-void func_001ACFE0(S *s)
+void OnMcDialogChoice(S *s)
 {
     switch (s->x40) {
     case 17: case 18: case 21: case 24:
         {
             void *g = D_003DA530;
-            if (FScreenShown(g) && func_001B0160(D_003D9ED0)) {
+            if (FScreenShown(g) && IsPauseMenuOnLoadPageA(D_003D9ED0)) {
                 ClearMcDialogState(s);
-                func_001ACC38(s, 2);
-                func_001AF660(D_003D9ED0);
+                SetMcDialogPhase(s, 2);
+                PopPauseMenuToRoot(D_003D9ED0);
                 StartNewGame(g);
                 break;
             }
@@ -2218,9 +2218,9 @@ void func_001ACFE0(S *s)
         /* fallthrough */
     case 20: case 23: case 29: case 35: case 36: case 46:
         ClearMcDialogState(s);
-        func_001ACC38(s, 2);
-        if (func_001B0108(D_003D9ED0))
-            func_001AF608(D_003D9ED0);
+        SetMcDialogPhase(s, 2);
+        if (IsPauseMenuOnSavePage(D_003D9ED0))
+            PopPauseMenuPage(D_003D9ED0);
         break;
     case 27: case 28: case 32:
         ClearMcDialogState(s);
@@ -2234,7 +2234,7 @@ void func_001ACFE0(S *s)
         if (s->x4C < 4) {
             if (s->x4C > 0) {
                 SetMcDialogState(s, 0x1A);
-                func_001ABD40(D_002E65E0);
+                StartSaveSlotJob(D_002E65E0);
             }
         }
         break;
@@ -2249,7 +2249,7 @@ struct PMF { short delta; short pad; int (*pfn)(void *); };
 struct S { char pad[0x40]; int x40; };
 extern const struct LONGU D_002A6E88, D_002A6D88, D_002A6E90;
 extern char D_002F633C[] __asm__("D_002E65E0+0xFD5C");
-void func_001AD3E0(void);
+void SaveToCurrentSlot(void);
 void CreateMemcardThread(void *t, long pmf);
 void SetMcDialogState(struct S *s, int n);
 /** @sly2-annot addr=0x1AD168
@@ -2259,11 +2259,11 @@ void SetMcDialogState(struct S *s, int n);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Confirm path of the dialog: saves to the current slot or queues the pending job.
-void func_001AD168(struct S *s)
+void ConfirmMcDialog(struct S *s)
 {
     switch (s->x40) {
     case 0x1C:
-        func_001AD3E0();
+        SaveToCurrentSlot();
         break;
     case 0x12:
         CreateMemcardThread(D_002F633C, D_002A6E88.l);
@@ -2289,8 +2289,8 @@ struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
-void func_001D8D80(struct B *b, int n);
-void func_00165E38(struct B *b);
+void ResetSaveGs(struct B *b, int n);
+void StartGameFromSave(struct B *b);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x1AD250
@@ -2302,7 +2302,7 @@ void SetSndSourceLo(void *p, int n);
  * @end-sly2-annot */
 // Menu action for slot i on the new-game page: when the slot is empty, makes it current and starts a new game;
 // otherwise plays the error sound.
-void func_001AD250(struct S *s)
+void StartNewGameInSlot(struct S *s)
 {
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
@@ -2312,8 +2312,8 @@ void func_001AD250(struct S *s)
     Decref__4CRef(&ref);
     if (f == 0.0f) {
         D_002E65E0.xFD50 = p;
-        func_001D8D80(p, 1);
-        func_00165E38(D_002E65E0.xFD50);
+        ResetSaveGs(p, 1);
+        StartGameFromSave(D_002E65E0.xFD50);
     } else {
         SetSndSourceLo(PsndStartSound(0x36), 0);
         if (s)
@@ -2331,8 +2331,8 @@ struct S { int x0, x4, x8; char pad[0x10]; int x1C; };
 extern struct G D_002E65E0;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
-void func_001D8D80(struct B *b, int n);
-void func_00165E38(struct B *b);
+void ResetSaveGs(struct B *b, int n);
+void StartGameFromSave(struct B *b);
 /** @sly2-annot addr=0x1AD320
  * Purpose: Menu action slot i: make current, ResetGs, start (0x165E38)
  * Info: proposed name SelectSaveSlotLoad (T2); TU memcard
@@ -2340,7 +2340,7 @@ void func_00165E38(struct B *b);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Menu action for slot i on the load page: makes it current, resets the GS state and starts the game from it.
-void func_001AD320(struct S *s)
+void LoadGameFromSlot(struct S *s)
 {
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
@@ -2350,10 +2350,10 @@ void func_001AD320(struct S *s)
     Decref__4CRef(&ref);
     D_002E65E0.xFD50 = p;
     if (f == 0.0f) {
-        func_001D8D80(p, 1);
-        func_00165E38(D_002E65E0.xFD50);
+        ResetSaveGs(p, 1);
+        StartGameFromSave(D_002E65E0.xFD50);
     } else {
-        func_00165E38(p);
+        StartGameFromSave(p);
         if (s)
             s->x1C |= 2;
     }
@@ -2371,7 +2371,7 @@ extern char D_003D4A60[];
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
-void func_001ABD40(struct G *g);
+void StartSaveSlotJob(struct G *g);
 /** @sly2-annot addr=0x1AD3E0
  * Purpose: Eval slot, set dialog state, start save job (0x1ABD40)
  * Info: proposed name SaveToSlot (T2); TU memcard
@@ -2379,7 +2379,7 @@ void func_001ABD40(struct G *g);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Saves to the current slot: evaluates the slot, sets the dialog state and starts the save job.
-void func_001AD3E0(void)
+void SaveToCurrentSlot(void)
 {
     struct G *g = &D_002E65E0;
     struct H *h = &D_002E6550;
@@ -2394,7 +2394,7 @@ void func_001AD3E0(void)
         SetMcDialogState(h, 0x22);
     } else {
         SetMcDialogState(h, 0x1A);
-        func_001ABD40(g);
+        StartSaveSlotJob(g);
     }
 }
 } } // namespace M_func_001AD3E0
@@ -2411,7 +2411,7 @@ extern struct H D_002E6550;
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 void SetMcDialogState(struct H *h, int n);
-void func_001AD3E0(void);
+void SaveToCurrentSlot(void);
 /** @sly2-annot addr=0x1AD480
  * Purpose: Menu action slot i (group 3): confirm overwrite or SaveToSlot
  * Info: proposed name SelectSaveSlotSave (T2); TU memcard
@@ -2419,7 +2419,7 @@ void func_001AD3E0(void);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Menu action for slot i on the save page: asks to confirm an overwrite, or saves directly to an empty slot.
-void func_001AD480(struct S *s)
+void SelectSaveSlotToSave(struct S *s)
 {
     struct CRef ref;
     struct B *p = &D_002E65E0.a[s->x8];
@@ -2429,7 +2429,7 @@ void func_001AD480(struct S *s)
     Decref__4CRef(&ref);
     D_002E65E0.xFD58 = p;
     if (f == 0.0f)
-        func_001AD3E0();
+        SaveToCurrentSlot();
     else
         SetMcDialogState(&D_002E6550, 0x1C);
     if (s)
@@ -2455,8 +2455,8 @@ extern struct GD D_003DD490;
 extern struct H D_003D9ED0;
 #undef D_003D9EDC
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
-void func_001ACC38(void *p, int n);
-int IdPauseTopPage(void *g);
+void SetMcDialogPhase(void *p, int n);
+int GetPauseMenuTopPageId(void *g);
 }
 CRef Eval(int a, void *b) __asm__("RefGetGlobalSaveVar");
 static inline float F(int x, void *pb) { return Eval(x, pb).m_tag; }
@@ -2467,12 +2467,12 @@ static inline float F(int x, void *pb) { return Eval(x, pb).m_tag; }
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Menu hook: re-evaluates the three slots' Splice values and updates their entries.
-extern "C" void func_001AD538(void)
+extern "C" void UpdateSaveMenuSlots(void)
 {
     float a[3];
     struct E *pe;
     int i;
-    func_001ACC38(D_002E6550, 1);
+    SetMcDialogPhase(D_002E6550, 1);
     if (D_003D9ED0.x24 <= 0)
         return;
     pe = &D_003D9EDC[D_003D9ED0.x24];
@@ -2482,7 +2482,7 @@ extern "C" void func_001AD538(void)
             a[i] = F(D_003DD490.x3B1C, pb);
         }
     }
-    switch (IdPauseTopPage(&D_003D9ED0)) {
+    switch (GetPauseMenuTopPageId(&D_003D9ED0)) {
     case 0x1E:
         {
             int j;
@@ -2522,8 +2522,8 @@ struct G { int pad[9]; int x24; };
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct G D_003D9ED0;
 struct S { int x0, x4; char *x8; };
-void func_001AF608(struct G *g);
-int func_001B0108(struct G *g);
+void PopPauseMenuPage(struct G *g);
+int IsPauseMenuOnSavePage(struct G *g);
 void PlayWidgetAnim(void *a, char *b);
 /** @sly2-annot addr=0x1AD740
  * Purpose: Menu hook: set text id 0x5C8+i or 0x5C5+i for slot i
@@ -2532,14 +2532,14 @@ void PlayWidgetAnim(void *a, char *b);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Menu hook: sets slot i's label text (0x5C8+i for a used slot, 0x5C5+i for an empty one).
-void func_001AD740(struct S *s)
+void SetSaveSlotLabel(struct S *s)
 {
     struct E *e;
     if (::D_002E6550.nUnk44 != 1) {
-        func_001AF608(&D_003D9ED0);
+        PopPauseMenuPage(&D_003D9ED0);
         return;
     }
-    if (!func_001B0108(&D_003D9ED0))
+    if (!IsPauseMenuOnSavePage(&D_003D9ED0))
         return;
     e = &D_003D9EDC[D_003D9ED0.x24];
     if (e->x14 == s->x8)
@@ -2558,7 +2558,7 @@ void func_001AD740(struct S *s)
  * @end-sly2-annot */
 // Dynamic text (string 0x2F2): the memory card's name.
 /* Dynamic text: the card name. */
-extern "C" void func_001AD7E0(char *pch)
+extern "C" void FormatMcCardNameText(char *pch)
 {
     strcpy(pch, PchzFindSwLangstr(&D_003DD490, ::D_002E6550.idUnk40));
 }
@@ -2568,12 +2568,12 @@ void p_McJobFormat() __asm__("McJobFormat");
 extern const unsigned int r_D_002A6E88[2] __asm__("D_002A6E88") = {0xFFFF0000, (unsigned int)p_McJobFormat};
 }
 namespace RO_ORDER {   /* pointers through asm-labelled declarations */
-void p_func_001ABC68() __asm__("func_001ABC68");
+void p_func_001ABC68() __asm__("McJobSaveSlotResetGs");
 extern const unsigned int r_D_002A6E90[2] __asm__("D_002A6E90") = {0xFFFF0000, (unsigned int)p_func_001ABC68};
 }
 namespace M_func_001AD820 { extern "C" {
 extern char D_002E6550[], D_003DD490[];
-int func_001ACC80(void *p);
+int GetMcDialogButtonKind(void *p);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
 void strcpy1(char *a, const char *b);
 /** @sly2-annot addr=0x1AD820
@@ -2583,9 +2583,9 @@ void strcpy1(char *a, const char *b);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Dynamic text (string 0x2F3): the dialog's message for its state.
-void func_001AD820(char *buf)
+void FormatMcDialogText(char *buf)
 {
-    switch (func_001ACC80(D_002E6550)) {
+    switch (GetMcDialogButtonKind(D_002E6550)) {
     case 1:
         strcpy(buf, "&2S&.: ");
         strcpy1(buf, PchzFindSwLangstr__FP2SWi(D_003DD490, 0x38));
@@ -2608,9 +2608,9 @@ void func_001AD820(char *buf)
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Dynamic text (string 0x5CB) of the save page. (inferred: content not identified)
-extern "C" void func_001AD928(char *pch)
+extern "C" void FormatSavePageTextA(char *pch)
 {
-    strcpy(pch, PchzFindSwLangstr(&D_003DD490, IdPauseTopPage(D_003D9ED0)));
+    strcpy(pch, PchzFindSwLangstr(&D_003DD490, GetPauseMenuTopPageId(D_003D9ED0)));
 }
 
 namespace M_func_001AD980 { extern "C" {
@@ -2621,16 +2621,16 @@ int FScreenShown(void *p);
 void *NEpisodeBest(void);
 int IdsFromWorld(void *p);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
-char *NCompletionPercentGs(void *p, void *q);
+char *GetCompletionPercent(void *p, void *q);
 void sprintf(char *buf, char *fmt, ...);
 /** @sly2-annot addr=0x1AD980
- * Purpose: Text '%s : %d%%' with NCompletionPercentGs
+ * Purpose: Text '%s : %d%%' with GetCompletionPercent
  * Info: proposed name TextSaveCompletion (T2); TU memcard
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Dynamic text: "<label> : <n>%" with the game's completion percentage.
-void func_001AD980(char *buf)
+void FormatSaveCompletionText(char *buf)
 {
     char *a;
     struct G *g;
@@ -2640,7 +2640,7 @@ void func_001AD980(char *buf)
     fmt = "%s : %d%%";
     g = &D_003DD490;
     a = PchzFindSwLangstr__FP2SWi(g, IdsFromWorld(NEpisodeBest()));
-    sprintf(buf, fmt, a, NCompletionPercentGs(g->x3A18, D_003D4A60));
+    sprintf(buf, fmt, a, GetCompletionPercent(g->x3A18, D_003D4A60));
 }
 } } // namespace M_func_001AD980
 
@@ -2655,8 +2655,8 @@ extern struct G D_003D9ED0;
 #define D_003D9EDC (*(struct E (*)[])((char *)base_D_003D9ED0 + 0xC))   /* screen's object+0xC */
 extern struct GD D_003DD490;
 extern struct B D_002E6604[] __asm__("D_002E65E0+0x24");
-int func_001B0108(struct G *g);
-int IdPauseTopPage(struct G *g);
+int IsPauseMenuOnSavePage(struct G *g);
+int GetPauseMenuTopPageId(struct G *g);
 void RefGetGlobalSaveVar(struct CRef *ret, int a, void *b);
 void Decref__4CRef(struct CRef *);
 char *PchzFindSwLangstr__FP2SWi(void *p, int n);
@@ -2669,13 +2669,13 @@ char *strcpy1(char *d, const char *s);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Dynamic text (string 0x5CD) of the save page. (inferred: content not identified)
-void func_001ADA20(char *buf)
+void FormatSavePageTextB(char *buf)
 {
     struct G *g = &D_003D9ED0;
     struct GD *gd;
     struct CRef ref;
     float f;
-    if (!func_001B0108(g))
+    if (!IsPauseMenuOnSavePage(g))
         return;
     gd = &D_003DD490;
     {
@@ -2684,7 +2684,7 @@ void func_001ADA20(char *buf)
     }
     f = ref.m_tag;
     Decref__4CRef(&ref);
-    switch (IdPauseTopPage(g)) {
+    switch (GetPauseMenuTopPageId(g)) {
     case 0x1E:
         if (f != 0.0f)
             strcpy(buf, PchzFindSwLangstr__FP2SWi(gd, 0x25));
@@ -2711,7 +2711,7 @@ void func_001ADA20(char *buf)
 
 namespace M_func_001ADBB8 { extern "C" {
 extern char D_003D9ED0[], D_003DD490[];
-int IdPauseTopPage(void *p);
+int GetPauseMenuTopPageId(void *p);
 void *PchzFindSwLangstr__FP2SWi(void *p, int n);
 void strcpy(void *s, void *q);
 void strcpy1(void *s, void *q);
@@ -2722,9 +2722,9 @@ void strcpy1(void *s, void *q);
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Dynamic text (string 0x5CE): the play time, formatted " : &2T&.".
-void func_001ADBB8(void *s)
+void FormatSaveTimeText(void *s)
 {
-    switch (IdPauseTopPage(D_003D9ED0)) {
+    switch (GetPauseMenuTopPageId(D_003D9ED0)) {
     case 0x19:
     case 0x1E:
     case 0x1F:
@@ -2748,13 +2748,13 @@ extern "C" {
  void Decref__4CRef(REF*);
  void*STACKSCOPE_ctor(void*);
  void STACKSCOPE_ctor_1AE4A0(void*,int) __asm__("_$_10STACKSCOPE");
- void*PkeyAllocSaveKey(void*,...);
+ void*AllocSaveKey(void*,...);
  int IdsFromWorld(int);
  void*PchzFindSwLangstr__FP2SWi(void*,int);
- int NCompletionPercentGs(void*,void*);
+ int GetCompletionPercent(void*,void*);
  int sprintf(char*,const char*,...);
  char*strcpy(char*,const char*);
- int IdPauseTopPage(void*);
+ int GetPauseMenuTopPageId(void*);
 }
 static inline float GetG(REF&r,void*a,B*b){RefGetGlobalSaveVar(&r,a,b);float g=r.g;Decref__4CRef(&r);return g;}
 static inline int GetN(REF&r,void*a,B*b){RefGetGlobalSaveVar(&r,a,b);int n=r.n;Decref__4CRef(&r);return n;}
@@ -2765,19 +2765,19 @@ static inline int GetN(REF&r,void*a,B*b){RefGetGlobalSaveVar(&r,a,b);int n=r.n;D
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // Per-slot text (strings 0x5CF..0x5D1): the slot's episode and completion percentage.
-extern "C" void func_001ADC40(char*buf,int idx){
+extern "C" void FormatSaveSlotSummaryText(char*buf,int idx){
  REF ref;
  G*pg=&D_003DD490;
  B*pb=&D_002E6604[idx];
  if(GetG(ref,pg->primary,pb)!=0.0f){
   int frame[4];int*pf=frame;STACKSCOPE_ctor(pf);
-  void*value=PkeyAllocSaveKey((char *)"episodeBest",0);
+  void*value=AllocSaveKey((char *)"episodeBest",0);
   int tag;
   if(value)tag=GetN(ref,value,pb);else tag=GetN(ref,pg->fallback,pb);
-  sprintf(buf,"%s : %d%%",(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,IdsFromWorld(tag)),NCompletionPercentGs(D_003DD490.object,pb));
+  sprintf(buf,"%s : %d%%",(char*)PchzFindSwLangstr__FP2SWi(&D_003DD490,IdsFromWorld(tag)),GetCompletionPercent(D_003DD490.object,pb));
   STACKSCOPE_ctor_1AE4A0(frame,2);
  }else{
-  switch(IdPauseTopPage(D_003D9ED0)){
+  switch(GetPauseMenuTopPageId(D_003D9ED0)){
    case 0x1E:case 0x1F:strcpy(buf,(char*)PchzFindSwLangstr__FP2SWi(pg,0x44));break;
    case 0x19:strcpy(buf,(char*)PchzFindSwLangstr__FP2SWi(pg,0x45));break;
   }
@@ -2790,9 +2790,9 @@ extern "C" void func_001ADC40(char*buf,int idx){
 struct CMcStatus : SCREEN
 {
     char pad30[0x40 - 0x30];
-    CMcStatus() __asm__("func_001ADDF0");
-    virtual void SetMode(int nMode) __asm__("func_001ADF78");   /* slot 14 */
-    virtual void Update() __asm__("func_001ADEE8");   /* slot 7 */
+    CMcStatus() __asm__("CMcStatus_ctor");
+    virtual void SetMode(int nMode) __asm__("CMcStatus_SetMode");   /* slot 14 */
+    virtual void Update() __asm__("CMcStatus_Update");   /* slot 7 */
 };
 CMcStatus::CMcStatus()
 {
@@ -2811,7 +2811,7 @@ struct S { char pad[0x24]; struct O *po; };
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r4_17F090
  * @end-sly2-annot */
 // Shows the status widget's child (slot 49 with -1).
-void func_001ADE38(struct S *p) { struct O *o = p->po; if (o) { struct VTE *e = &o->vt[49]; e->pfn((char *)o + e->d, -1); } }
+void ShowMcDialogWidget(struct S *p) { struct O *o = p->po; if (o) { struct VTE *e = &o->vt[49]; e->pfn((char *)o + e->d, -1); } }
 } } // namespace M_func_001ADE38
 
 namespace M_HideMcDialogWidget { extern "C" {
@@ -2840,7 +2840,7 @@ struct S { char pad[0x24]; O *po; };
  * See: docs/reference/functions/save-memcard.md#memcard-0x1aa978-0x1ae150
  * @end-sly2-annot */
 // True when the status widget's child is shown or showing.
-extern "C" int func_001ADEA8(S *p)
+extern "C" int IsMcStatusVisible(S *p)
 {
     O *o = p->po;
     if (!o) return 0;
@@ -2857,7 +2857,7 @@ extern "C" int func_001ADEA8(S *p)
 // CMcStatus's per-frame update (slot 7): hides the status once it has been shown for over a second and the worker
 // is idle.
 /* CMcStatus slot 7: hide once shown for over a second and the worker is idle. */
-extern "C" void func_001ADEE8(MCDLG *pdlg)
+extern "C" void CMcStatus_Update(MCDLG *pdlg)
 {
     MCCHILD *pchild;
     func_001DA808(pdlg);
@@ -2899,7 +2899,7 @@ void CMcStatus::SetMode(int nMode)
  * @end-sly2-annot */
 // Clears a file key (zeroed, index -1). A linkonce inline homed here.
 /* linkonce copy (0x258248): clears a file key. */
-extern "C" inline void func_00258248(FILEKEY *pfk)
+extern "C" inline void InitFileKey(FILEKEY *pfk)
 {
     memset(pfk, 0, 8);
     pfk->bC = 0;

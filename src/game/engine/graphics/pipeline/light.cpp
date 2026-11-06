@@ -130,7 +130,7 @@ void OnLoRemove(LIGHTV *p);
 void OnLoAdd(LIGHTV *p);
 void TranslateXfmToPos(LIGHTV *p);
 void RotateXfmToMat(LIGHTV *p);
-void func_001A5E80(LIGHTV *p);
+void InheritLoFlag4(LIGHTV *p);
 void ConvertUserHsvToUserRgb__FP6VECTORT0(void *p, V3 *pv);
 void func_001ED2D8(V3 *pv);
 qword GetLoWorldPos(LIGHTV *p);
@@ -244,7 +244,7 @@ extern "C" void AddLightHierarchy(LIGHTV *p) {
 extern "C" void func_001A3460(LIGHTV *p) {
     int k;
     LIGHTO *po;
-    func_001A5E80(p);
+    InheritLoFlag4(p);
     po = p->po;
     k = 0;
     if (po != 0) {

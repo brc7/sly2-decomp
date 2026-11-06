@@ -446,13 +446,13 @@ float D_002C44D8 = 300.0f;
 extern "C" {
 void RenderSoSelf(WAYPTV *pwaypt);
 int FPowerupAcquired(int ipuk);
-int FJobComplete(void *pcond);
+int IsJobComplete(void *pcond);
 void func_0022A220(O *po);
 void FindClosestPointOnLineSegment(qwordV pos, qwordV p0, qwordV p1, qwordV *ppos, float *pt, float *pdist);
 MATRIX4V *GetLoWorldMatrix(SOV *pso);
 VECTORV *VECTOR_opAssign(VECTORV *pv, qwordV qw);
-void func_001A5EE8(SOV *pso, MATRIX4V *pmat, float a, float b);
-void func_001A5FB8(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
+void RenderLoAtMatrix(SOV *pso, MATRIX4V *pmat, float a, float b);
+void RenderLoAlongSegment(SOV *pso, qwordV pos0, qwordV pos1, float s, float a);
 char *PchzFindSwLangstr__FP2SWi(SW *psw, int id);
 void func_001CD780(qwordV pos, float s, char *pchz, const RGBAV *prgba0, const RGBAV *prgba1);
 }
@@ -533,7 +533,7 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
     case 2:
         if (D_003DD490.cUnk4764 < D_003DD490.cUnk4768 || D_003DD490.fUnk3B0C ||
             (pwaypt->ipukReq != -1 && FPowerupAcquired(pwaypt->ipukReq)) ||
-            (pwaypt->pcond && !FJobComplete(pwaypt->pcond)))
+            (pwaypt->pcond && !IsJobComplete(pwaypt->pcond)))
             uShow = uLabel = 0.0f;
         break;
     case 1:
@@ -564,10 +564,10 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
         mat.mat[1].w = 0.0f;
         mat.mat[0].w = 0.0f;
         pmat->pos.w = 1.0f;
-        func_001A5EE8(pwaypt->psoMarker, pmat, uShow, uShow);
+        RenderLoAtMatrix(pwaypt->psoMarker, pmat, uShow, uShow);
     }
     if (pwaypt->psoBeam)
-        func_001A5FB8(pwaypt->psoBeam, pos, posEnd, rScale, uShow);
+        RenderLoAlongSegment(pwaypt->psoBeam, pos, posEnd, rScale, uShow);
     if (pwaypt->psoBase)
     {
         MATRIX3V matScaled = *(MATRIX3V *)GetLoWorldMatrix(pwaypt->psoBase) * VuFloat(rScale);
@@ -578,7 +578,7 @@ extern "C" void RenderWaypt(WAYPTV *pwaypt)
         mat.mat[1].w = 0.0f;
         mat.mat[0].w = 0.0f;
         pmat->pos.w = 1.0f;
-        func_001A5EE8(pwaypt->psoBase, pmat, uShow, uShow);
+        RenderLoAtMatrix(pwaypt->psoBase, pmat, uShow, uShow);
     }
 
     if (0.0f < uLabel && pwaypt->pattach && pwaypt->pattach->ptask && pwaypt->pattach->ptask->idLabelName != -1)

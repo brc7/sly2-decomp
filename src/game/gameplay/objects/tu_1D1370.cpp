@@ -50,7 +50,7 @@ void OnPoActive(ROBOTTANKV *ptank, int fActive);
 void SetRobottankState(ROBOTTANKV *ptank, int nState);
 void UpdateRobottankHealthMeter(ROBOTTANKV *ptank);
 void SeekSma(SMA *psma, OID oidState);
-void func_001CB518(void *plo);
+void SO_ResetForProxy(void *plo);
 void SetRcPickupState(RCPICKUP *ppickup, int nState);
 void CopyAb__FPvT0Ui(void *pvDst, void *pvSrc, unsigned int cb);
 }
@@ -409,7 +409,7 @@ typedef char native_layout_58[(OFF(P,path)==0x5AC)?1:-1];
  * @end-sly2-annot */
 extern "C" void func_001D1910(ROBOTTANKV *ptank)
 {
-    func_001CB518(ptank);
+    SO_ResetForProxy(ptank);
     ResetRobottankHealth(ptank);
 }
 
@@ -2746,7 +2746,7 @@ void PostRcPickupLoad(struct S *p) {
  * @end-sly2-annot */
 extern "C" void func_001D4F10(RCPICKUP *ppickup)
 {
-    func_001CB518(ppickup);
+    SO_ResetForProxy(ppickup);
     SetRcPickupState(ppickup, -1);
     SetRcPickupState(ppickup, 0);
 }

@@ -39,7 +39,7 @@ int STEPPLAYER_FInvulnerable(STEPPLAYER *pstepplayer, int zpk);
 void func_001F80D0(STEPPLAYER *pstepplayer, float g);
 void OnStepplayerHeroDied(STEPPLAYER *pstepplayer);
 extern int D_002E1E00;
-int FSwHandsOff(SW *psw);
+int IsSwHandsOff(SW *psw);
 }
 extern SW D_003DD490;
 
@@ -680,7 +680,7 @@ extern "C"{
  union VQ{float f[4];qword q;};
  extern "C" VQ D_002BFB10;   // C symbol: this namespace has no extern "C" block
  int func_001A2358(C*,RECORD*);
- int func_00155228(void*,int);
+ int ScaleByDifficulty(void*,int);
  void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void*,P*,float,float,int,void**);
  int FIsBasicDerivedFrom__FP5BASIC3CID(P*,int);
  void func_00143380(P*);
@@ -688,7 +688,7 @@ extern "C"{
  void func_001A15B0(C*,ACTION);
  void func_001A16C8(C*);
  void SetJtHurtState(C*,int);
- int CidBasic(P*);
+ int GetBasicCid(P*);
  void*PsndStartSound(int);
  void SetSndSourceLo(void*,P*);
  qword GetLoWorldPos(P*);
@@ -765,7 +765,7 @@ extern "C" int FTakeJtDamage(C*p,RECORD*input){
  if(p->actor->mode==1)return Delegate(p->actor->delegate,input);
  if(p->actor->guard)delta=0;
  else if(p->mode==1)delta=0;
- else delta=func_00155228(D_002DE578,input->delta);
+ else delta=ScaleByDifficulty(D_002DE578,input->delta);
  if(input->flags==0x100000){
   if(Add32(*p->counter,delta)>0){
    if(p->mode!=1){p->mode=0;p->time=p->changed=D_002DDED0.time;}
@@ -795,7 +795,7 @@ notify:
    func_001A16C8(p);
    if(Z(Vector(p->actor,33))>400.0f){
     int effect=-1;
-    switch(CidBasic(p->actor)){case 0x35:effect=0x69;break;case 0x36:effect=0x84;break;case 0x37:effect=0x83;break;}
+    switch(GetBasicCid(p->actor)){case 0x35:effect=0x69;break;case 0x36:effect=0x84;break;case 0x37:effect=0x83;break;}
     P*actor=p->actor;void*created=PsndStartSound(effect);SetSndSourceLo(created,actor);
    }
    func_001A15B0(p,&C::Reaction);break;
@@ -1021,7 +1021,7 @@ extern "C" int func_001A2230(JTHURT *pjthurt, int zpk)
         return 1;
     if (D_002E1E00 & 1)
         return 1;
-    if (!FSwHandsOff(&D_003DD490))
+    if (!IsSwHandsOff(&D_003DD490))
         goto ret0;
 ret1:
     return 1;

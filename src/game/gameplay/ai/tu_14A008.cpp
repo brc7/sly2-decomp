@@ -138,7 +138,7 @@ int FBhvpathAtEnd(void *p);
 int FBhvanimDone(void *p);
 int FBhvattackDone(void *p);
 int func_00173610(qword *pq, int a, int b, float f, float g);
-int FSwHandsOff(SW *pg);
+int IsSwHandsOff(SW *pg);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 void SetStepguardTarget(GUARDV *pw, void *p);
 int func_001BBE48(SOV *p);
@@ -444,7 +444,7 @@ extern "C" void func_0014A4D0(BHVRT *p)
     if (FLess(D_002BD460, Len(v)))
         p->t48 = D_002DDED0.t;
     float dt = D_002DDED0.t - p->t48;
-    if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !FSwHandsOff(pg)) {
+    if (GRandInRange(D_002BD468[0], D_002BD468[1]) < dt && !IsSwHandsOff(pg)) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x34) && pso->x2DC == 0x11) {
             PATH *ppath = pso->ppath;
             pos = GetLoWorldPos(pso);

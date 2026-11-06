@@ -840,7 +840,7 @@ extern int D_002C0908[][5], D_002C0948[][5];
 extern float D_002C0900;
 struct P { char pad[0x150]; int x150; char pad1[0x1034 - 0x154]; int x1034; char pad2[0x1524 - 0x1038]; float f1524; float f1528; int x152C; int x1530; int x1534; };
 struct P *PpoHero(void *g);
-int FSwHandsOff(void *g);
+int IsSwHandsOff(void *g);
 int func_001F07E8(int a);
 int GetSmaGoal(int a);
 int GrfConsumePressed__5POCTLUif(int a, int b, float f);
@@ -857,7 +857,7 @@ void func_001B5820(struct P *p)
 {
     int a;
     if (PpoHero(D_003DD490) != p) return;
-    if (FSwHandsOff(D_003DD490)) return;
+    if (IsSwHandsOff(D_003DD490)) return;
     a = func_001F07E8(p->x1034);
     if (a != GetSmaGoal(p->x1034)) return;
     if (a >= 0x1D0) return;
@@ -2359,7 +2359,7 @@ struct P { char pad[0x13F0]; struct O *x13F0; int a13F4[4]; int x1404; int x1408
 void ReleaseAct(int *p);
 void func_002303A0(struct X *x, int a, int b);
 void func_001F6860(struct X *x, int a);
-void SetLoParent_1A58D0(struct X *x, int a, int b);
+void SetLoParent(struct X *x, int a, int b);
 void RecalcSwOxfFilterForObject(void *g, struct P *p);
 /** @sly2-annot addr=0x1B7D20
  * Purpose: Free the 12 grip constraints (0x12E460), notify object (vt3 msg 6), restore its XF roles,
@@ -2391,7 +2391,7 @@ void DetachMurrayCarried(struct P *p)
     func_002303A0(x, x->x58, p->x1404);
     func_002303A0(x, x->x5C, p->x1408);
     func_001F6860(x, 0);
-    SetLoParent_1A58D0(x, 0, 0xF);
+    SetLoParent(x, 0, 0xF);
     p->x1430 = x;
     p->f1434 = D_002DDED0.t;
     RecalcSwOxfFilterForObject(D_003DD490, p);
@@ -2670,7 +2670,7 @@ int func_001B83B8(struct P *p, int k)
 namespace M_MURRAY_FIgnoreIntersection { extern "C" {
 struct P { char pad[0x13D0]; int n13D0; char pad1[0x1430 - 0x13D4]; void *p1430; char pad2[0x1910 - 0x1434]; int a1910[1]; };
 int FIgnoreIntersection__10STEPPLAYERP2SO(struct P *p, void *pv);
-int FFindLoParent(void *pv, void *p1);
+int IsLoSelfOrDescendantOf(void *pv, void *p1);
 int func_00134310(int n, int k);
 int func_00220498(int *pn, void *pv, int n);
 /** @sly2-annot addr=0x1B8450
@@ -2686,7 +2686,7 @@ int func_00220498(int *pn, void *pv, int n);
 int MURRAY_FIgnoreIntersection(struct P *p, void *pv)
 {
     int n = FIgnoreIntersection__10STEPPLAYERP2SO(p, pv);
-    if (p->p1430 && FFindLoParent(pv, p->p1430))
+    if (p->p1430 && IsLoSelfOrDescendantOf(pv, p->p1430))
         n = func_00134310(n, 3);
     else if (p->n13D0 == 15)
         n = func_00220498(p->a1910, pv, n);
@@ -3490,7 +3490,7 @@ extern "C" M4 D_002A2D30;
 extern "C" float D_002C0A3C,D_002C0A40;
 extern "C" void ReleaseAct(MOTION**);
 extern "C" void SetSoCnstrForce(OWNER*,int);
-extern "C" void SetLoParent_1A58D0(OWNER*,int,int);
+extern "C" void SetLoParent(OWNER*,int,int);
 extern "C" void func_001F6860(OWNER*,int);
 extern "C" EVENT*func_0012F938(ASEG*,int);
 extern "C" void LoadIdentityMatrix4(void*,void*,M4*,M4*,float);
@@ -3531,7 +3531,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   SetSoCnstrForce(owner,0);
   p->oldLeft=owner->left->state;
   p->oldRight=owner->right->state;
-  SetLoParent_1A58D0(owner,0,15);
+  SetLoParent(owner,0,15);
   func_001F6860(owner,1);
   M4 predicted;
   float duration;
@@ -3562,7 +3562,7 @@ extern "C" void SetMurrayLiftSubstate(P*p,int state) {
   break;
  valid:
   ROOT*root=p->root;
-  SetLoParent_1A58D0(owner,(int)root,15);
+  SetLoParent(owner,(int)root,15);
   func_001F6860(owner,1);
   U position,rotation;
   M4 frame;

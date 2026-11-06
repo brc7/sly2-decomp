@@ -311,7 +311,7 @@ struct Q { char pad[0x4C]; int st; };
 struct S { char pad[0x17C]; struct Q *pq; };
 void func_001E8378(struct Q *q);
 void func_001E9090(struct Q *q);
-void func_001A5E80(struct S *p);
+void InheritLoFlag4(struct S *p);
 /** @sly2-annot addr=0x1E6340
  * Purpose: SHAPE vt17: if a chain is attached step its simulation (mode 0/3 -> 0x1E8378, 1/2 -> 0x1E9090)
  *   else LO vt17
@@ -335,7 +335,7 @@ void func_001E6340(struct S *p)
             break;
         }
     } else {
-        func_001A5E80(p);
+        InheritLoFlag4(p);
     }
 }
 } } // namespace M_func_001E6340

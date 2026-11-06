@@ -127,7 +127,7 @@ void *func_001AE238(AI *pa, void *pv);
 void *func_001AE2A0(AI *pa);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *g, int a, int b, int c);
 void func_00170C50(SCRIPTV *o, int a, int b, int c);
-int func_0020FA50(void);
+int ShouldKeepSoNotSelfSlot62(void);
 void IntersectSwBoundingBox(void *g, qwordV a, qwordV b, int (*fn)(void), int z, int *pa, int *pb);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qwordV a, qwordV b, int c, void *d, void *phit);
 qwordV ConvertCmWorldToScreen(CMV*,qwordV);
@@ -144,7 +144,7 @@ int func_001EA3B0(void *, float);
 void EvaluateShapeS(LOV *, qwordV *, qwordV *, float);
 float atan2f(float, float);
 M3 func_0011B500(float, qwordV);
-GUARDV *PloAcquireProxy(void *p, int n);
+GUARDV *AcquireProxyObject(void *p, int n);
 void *func_00205458(GUARDV *r, int n);
 void SetBhvguardMode(void *o, F *f);
 void func_001733C8(CID119V *p, qwordV q);
@@ -369,7 +369,7 @@ extern "C" int func_00173610(qwordV *pv, float a, float b, int k, int (*fn)(void
     STACKSCOPE_ctor(&x);
     va = MAdd(*pv, D_002A2DC0, a);
     vb = MAdd(*pv, D_002A2DC0, b);
-    if (!fn) fn = func_0020FA50;
+    if (!fn) fn = ShouldKeepSoNotSelfSlot62;
     {
     HITY y;
     IntersectSwBoundingBox(&D_003DD490, va, vb, fn, 0, &na, &nb);
@@ -789,7 +789,7 @@ extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int f
     int k;
     switch (m->kind) {
     case 0:
-        r = PloAcquireProxy(m->plo, 0);
+        r = AcquireProxyObject(m->plo, 0);
         break;
     case 1:
     case 2:
@@ -807,7 +807,7 @@ extern "C" GUARDV *func_00174490(CID119V *p, SEL *m, qwordV *pv, M3 *pmat, int f
             LOV *o = p->atmpl[idx[i]];
             { VTE *e = &o->vt[0x1D]; ((void (*)(void *, qwordV))e->pfn)((char *)o + e->d, *pv); }
             { VTE *e = &o->vt[0x1E]; ((void (*)(void *, M3 *))e->pfn)((char *)o + e->d, pmat); }
-            r = PloAcquireProxy(o, 0);
+            r = AcquireProxyObject(o, 0);
             if (r) break;
         }
       }

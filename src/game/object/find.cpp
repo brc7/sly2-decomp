@@ -48,14 +48,14 @@ struct CLASSDESC { CLASSDESC *pcdBase; int cid; int pad[3]; };
 extern CLASSDESC D_002BAAE8[];
 
 extern "C" {
-SLV *PdlFromSwOid(char *psw, int oid);
-SLV *PdlFromSwCid(char *psw, int cid);
-SLV *PdlFromSwPxrOid(char *psw, int oid);
+SLV *GetSwOidBucket(char *psw, int oid);
+SLV *GetSwClassList(char *psw, int cid);
+SLV *GetSwProxyRefBucket(char *psw, int oid);
 void MatchSwObject(void *pv, LO *plo, CH *pch, unsigned int grf, LO *ploCtx, CH *pchList, int cMax, int *pc, LO **aplo,
                    int *pips);
-int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cMax, LO **aplo);
-LO *PloFindSwObject_15E958(SW *psw, int grf, int oid, LO *ploCtx, void *pchList);
-int FIsCidDerivedFrom(int cid, int cidBase);
+int FindSwObjectsWithNames(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cMax, LO **aplo);
+LO *FindSwObjectWithNames(SW *psw, int grf, int oid, LO *ploCtx, void *pchList);
+int IsCidDerivedFrom(int cid, int cidBase);
 int CploFindSwObjectsByClass(void *psw, int grf, int cid, LO *ploCtx, int cMax, LO **aplo);
 }
 int IsrcFromIdProxy(int id);
@@ -63,21 +63,21 @@ int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
 
 /** @sly2-annot addr=0x15E380
  * Purpose: Returns the SW hash bucket DL for an oid: SW+0x38 table, index (oid*0x95675)&0x1FF
- * Info: proposed name PdlFromSwOid (T1); TU find
+ * Info: proposed name GetSwOidBucket (T1); TU find
  * Notes: runtime: oid hash SW+0x38, bucket (oid*0x95675)&0x1FF confirmed (8146 objects)
  * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources: r3_1539A8+runtime
  * See: docs/engine/gameplay-objects.md#source-files, docs/engine/object-model.md#8-source-files,
  *   docs/engine/object-model.md#9-key-functions
  * @end-sly2-annot */
 // Returns the world's hash bucket for an oid (512 buckets, hash (oid * 0x95675) & 0x1FF).
-extern "C" SLV *PdlFromSwOid(char *psw, int oid)
+extern "C" SLV *GetSwOidBucket(char *psw, int oid)
 {
     return &((SLV *)(psw + 0x38))[(oid * 0x95675) & 0x1FF];
 }
 
 /** @sly2-annot addr=0x15E3A8
  * Purpose: Returns the per-class object DL of the SW (SW+0x3038 + 8*cid)
- * Info: proposed name PdlFromSwCid (T1); TU find
+ * Info: proposed name GetSwClassList (T1); TU find
  * Notes: runtime: per-class SL at SW+0x3038 + 12*cid (stride 12, SL {first,last,ibNext}; NOT 8) | runtime:
  *   per-class list stride at SW+0x3038 is 12 bytes
  * Confidence: high [T1 0.85] - evidence: runtime (save-state RAM); sources:
@@ -86,21 +86,21 @@ extern "C" SLV *PdlFromSwOid(char *psw, int oid)
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
 // Returns the world's list of objects of a class.
-extern "C" SLV *PdlFromSwCid(char *psw, int cid)
+extern "C" SLV *GetSwClassList(char *psw, int cid)
 {
     return &((SLV *)(psw + 0x3038))[cid];
 }
 
 /** @sly2-annot addr=0x15E3C0
  * Purpose: Returns a bucket of a second oid-hashed DL table in the SW (SW+0x1838, same hash)
- * Info: proposed name PdlFromSwPxrOid (T1); TU find
- * Notes: verifier PLAUSIBLE: -> PdlFromSwPxrOid | names_v2 C proposed PdlFromSwOid__FP2SW3OID (0.438)
+ * Info: proposed name GetSwProxyRefBucket (T1); TU find
+ * Notes: verifier PLAUSIBLE: -> GetSwProxyRefBucket | names_v2 C proposed PdlFromSwOid__FP2SW3OID (0.438)
  * Confidence: mid (draft) [T1 0.60] - evidence: static naming pass; sources: r3_1539A8+verdicts_tu_r3r5
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
 // Returns the bucket for an oid in the world's second hash table (proxy references, same hash).
-extern "C" SLV *PdlFromSwPxrOid(char *psw, int oid)
+extern "C" SLV *GetSwProxyRefBucket(char *psw, int oid)
 {
     return &((SLV *)(psw + 0x1838))[(oid * 0x95675) & 0x1FF];
 }
@@ -192,17 +192,17 @@ extern "C" void MatchSwObject(void *pv, LO *plo, CH *pch, unsigned int grf, LO *
 /** @sly2-annot addr=0x15E650
  * Purpose: Finds up to cploMax LOs with an oid relative to a context object (6-arg form; forwards with extra
  *   arg 0)
- * Info: proposed name CploFindSwObjects_15E650 (T1); TU find
+ * Info: proposed name FindSwObjects (T1); TU find
  * Notes: COLLISION: CploFindSwObjects already used (same name proposed for 0x15E678); renamed to
- *   CploFindSwObjects_15E650
+ *   FindSwObjects
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r3_1539A8
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
 // Finds up to maxCount objects with an oid, relative to a context object; returns the count (no name list).
-extern "C" int CploFindSwObjects_15E650(void *psw, int grf, int oid, LO *ploCtx, int cMax, LO **aplo)
+extern "C" int FindSwObjects(void *psw, int grf, int oid, LO *ploCtx, int cMax, LO **aplo)
 {
-    return func_0015E678(psw, grf, oid, ploCtx, 0, cMax, aplo);
+    return FindSwObjectsWithNames(psw, grf, oid, ploCtx, 0, cMax, aplo);
 }
 
 /** @sly2-annot addr=0x15E678
@@ -215,7 +215,7 @@ extern "C" int CploFindSwObjects_15E650(void *psw, int grf, int oid, LO *ploCtx,
  * @end-sly2-annot */
 // The object search: walks the oid hash buckets (and the proxy-ref table) and matches each candidate (MatchSwObject)
 // with an optional name list (new in Sly 2). Returns the number found.
-extern "C" int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cMax, LO **aplo)
+extern "C" int FindSwObjectsWithNames(void *psw, int grf, int oid, LO *ploCtx, void *pchList, int cMax, LO **aplo)
 {
     volatile int unused; /* unreferenced stack slot at 0x10 in the original */
     int cplo;
@@ -247,13 +247,13 @@ extern "C" int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchL
         f = grf & 0x200;
         break;
     }
-    PdlFromSwOid((char *)psw, oid);
-    for (p = (LO *)PdlFromSwOid((char *)psw, oid)->head; p; p = p->pNextHash) {
+    GetSwOidBucket((char *)psw, oid);
+    for (p = (LO *)GetSwOidBucket((char *)psw, oid)->head; p; p = p->pNextHash) {
         if (p->oid == oid)
             MatchSwObject(psw, p, (CH *)p->pch, grf, ploCtx, (CH *)pchList, cMax, &cplo, aplo, &ips);
     }
-    PdlFromSwPxrOid((char *)psw, oid);
-    for (pe = (PXRENT *)PdlFromSwPxrOid((char *)psw, oid)->head; pe; pe = pe->pNext) {
+    GetSwProxyRefBucket((char *)psw, oid);
+    for (pe = (PXRENT *)GetSwProxyRefBucket((char *)psw, oid)->head; pe; pe = pe->pNext) {
         LO *ploE;
         if (pe->oid != oid)
             continue;
@@ -287,24 +287,24 @@ extern "C" int func_0015E678(void *psw, int grf, int oid, LO *ploCtx, void *pchL
 // Returns the first object matching the flags and oid relative to a context object, or null.
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx)
 {
-    return PloFindSwObject_15E958(psw, grf, oid, ploCtx, 0);
+    return FindSwObjectWithNames(psw, grf, oid, ploCtx, 0);
 }
 
 /** @sly2-annot addr=0x15E958
  * Purpose: PloFindSwObject overload with the extra Sly 2 parameter: CploFindSwObjects(grffso|0x200, ..., 1,
  *   &plo)
- * Info: proposed name PloFindSwObject_15E958 (T1); TU find
+ * Info: proposed name FindSwObjectWithNames (T1); TU find
  * Notes: names_v2 v1 proposed FUN_0015c188 (0.000) | COLLISION: PloFindSwObject already used (same name
- *   proposed for 0x15E938); renamed to PloFindSwObject_15E958
+ *   proposed for 0x15E938); renamed to FindSwObjectWithNames
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r3_1539A8
  * See: docs/reference/functions/object-model.md#find-0x15e380-0x15ef00,
  *   docs/reference/functions/splice-scripting.md#bif-0x11f440-0x1258f0
  * @end-sly2-annot */
 // FindSwObject with a name list: the first match, or null.
-extern "C" LO *PloFindSwObject_15E958(SW *psw, int grf, int oid, LO *ploCtx, void *pchList)
+extern "C" LO *FindSwObjectWithNames(SW *psw, int grf, int oid, LO *ploCtx, void *pchList)
 {
     LO *plo;
-    if (!func_0015E678(psw, grf | 0x200, oid, ploCtx, pchList, 1, &plo))
+    if (!FindSwObjectsWithNames(psw, grf | 0x200, oid, ploCtx, pchList, 1, &plo))
         return 0;
     return plo;
 }
@@ -312,14 +312,14 @@ extern "C" LO *PloFindSwObject_15E958(SW *psw, int grf, int oid, LO *ploCtx, voi
 /** @sly2-annot addr=0x15E988
  * Purpose: Walks the class-descriptor parent chain from cid (D_002BAAE8 records) and returns 1 if it reaches
  *   cidAncestor
- * Info: proposed name FIsCidDerivedFrom (T1); TU find
+ * Info: proposed name IsCidDerivedFrom (T1); TU find
  * Notes: names_v2 v1 proposed FUN_0015c1c0 (0.000)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r3_1539A8+verdicts_tu_r3r5
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#find-0x15e380-0x15ef00
  * @end-sly2-annot */
 // True when class cid is cidBase or derives from it (walks the class-descriptor parent chain).
-extern "C" int FIsCidDerivedFrom(int cid, int cidBase)
+extern "C" int IsCidDerivedFrom(int cid, int cidBase)
 {
     CLASSDESC *pcd;
     for (pcd = &D_002BAAE8[cid]; pcd; pcd = pcd->pcdBase)
@@ -378,9 +378,9 @@ extern "C" int CploFindSwObjectsByClass(void *psw, int grf, int cid, LO *ploCtx,
     case 5: {
         int k = cid;
         f = grf & 0x200;
-        for (; k < 199 && FIsCidDerivedFrom(k, cid); k++) {
-            PdlFromSwCid((char *)psw, k);
-            for (p = (LO *)PdlFromSwCid((char *)psw, k)->head; p; p = p->pNextClass) {
+        for (; k < 199 && IsCidDerivedFrom(k, cid); k++) {
+            GetSwClassList((char *)psw, k);
+            for (p = (LO *)GetSwClassList((char *)psw, k)->head; p; p = p->pNextClass) {
                 if ((grf & 0x100) && (int)p->f == 0)
                     continue;
                 if (cplo < cMax)
@@ -410,9 +410,9 @@ extern "C" int CploFindSwObjectsByClass(void *psw, int grf, int cid, LO *ploCtx,
             f = grf & 0x200;
             break;
         }
-        for (k = cid; k < 199 && FIsCidDerivedFrom(k, cid); k++) {
-            PdlFromSwCid((char *)psw, k);
-            for (p = (LO *)PdlFromSwCid((char *)psw, k)->head; p; p = p->pNextClass)
+        for (k = cid; k < 199 && IsCidDerivedFrom(k, cid); k++) {
+            GetSwClassList((char *)psw, k);
+            for (p = (LO *)GetSwClassList((char *)psw, k)->head; p; p = p->pNextClass)
                 MatchSwObject(psw, p, 0, grf | 0x400, ploCtx, 0, cMax, &cplo, aplo, &ips);
         }
         for (p = plo; p; p = p->pParent)

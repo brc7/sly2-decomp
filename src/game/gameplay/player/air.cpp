@@ -3699,7 +3699,7 @@ void MeasureJtJumpToTarget(JTAIR *pjtair, VU_VECTOR v, void *plo, VU_VECTOR pos,
 float GAdjustJtLandingScore(JTAIR *pjtair, void *plo, float g, float dg);
 int FFindJtObstruction(JTAIR *pjtair, void *pfnFilter, void *pvFilter, float t, qword pos, qword v, qword posEnd, qword vEnd,
                   VECTOR *ppos);
-void FFilterSoPair();
+void ShouldKeepSoPair();
 void func_0019B0A8();
 void FindShapeClosestPoint(CURVE *pcurve, qword pos, void *pv, VECTOR *ppos, VECTOR *pdir, float *pu, float *ps);
 void func_001E7410(CURVE *pcurve, PFNSCORE pfn, void *pv, int a, int b, float *pg, float *pgOut);
@@ -3784,7 +3784,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
                 g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8E4);
                 if (gBest <= g)
                     continue;
-                if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                                   posHit.q, vHit.q, 0))
                     continue;
             }
@@ -3825,7 +3825,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             MeasureJtJumpToTarget(pjtair, vLaunch, pcurve, posTarget, dpos, &t, 0, &posHit, &vHit);
             vHit.f[2] = vLaunch.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
             if (pcurve != ploForce &&
-                FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
+                FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, vLaunch.q,
                               posHit.q, vHit.q, 0))
                 continue;
             ploBest = pcurve;
@@ -3869,7 +3869,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
                 g = GAdjustJtLandingScore(pjtair, phook, g, D_002BF8EC);
                 if (gBest <= g)
                     continue;
-                if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
+                if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q,
                                   posHit.q, vHit.q, &posTarget))
                     continue;
             }
@@ -3906,7 +3906,7 @@ extern "C" void JtbsChooseJtLanding(JTAIR *pjtair, void *ploForce)
             func_00185D18(pmesh, pos.q, vLaunch.q, pjtair->pstepplayer->psophys->dvGravity.q, pjtair->pstepplayer->sRadius,
                           t, &triHit, &posHit, &vHit);
             if (pmesh != ploForce &&
-                FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+                FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
             nKind = 16;
@@ -3979,7 +3979,7 @@ LPartnerDone:
         MinimizeRange__FPFPvf_fPvffffPfT6(GMeasureJumpTargetTime, &ctx, 0.5f, 0.25f, 0.25f, 3.0f, &t, 0);
         MeasureJtJumpToTargetAtTime(ctx.pjtair, ctx.plo, ctx.v, 0, &posHit, &vHit, t);
         if (pcurve != ploForce &&
-            FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, &posTarget))
             continue;
         nKind = 15;
@@ -4020,7 +4020,7 @@ LPartnerDone:
         MeasureJtJumpToTarget(pjtair, v, pshape, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
         if (pshape != ploForce &&
-            FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         nKind = 12;
@@ -4058,7 +4058,7 @@ LPartnerDone:
         MeasureJtJumpToTarget(pjtair, v, pcurve, posPoint, D_002A2DD0, &t, 0, &posHit, &vHit);
         vHit.f[2] = v.f[2] + t * pjtair->pstepplayer->psophys->dvGravity.f[2];
         if (pcurve != ploForce &&
-            FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                           vHit.q, 0))
             continue;
         nKind = 11;
@@ -4084,7 +4084,7 @@ LPartnerDone:
             g = GAdjustJtLandingScore(pjtair, pshape, g, D_002BF8FC);
             if (gBest <= g)
                 continue;
-            if (FFindJtObstruction(pjtair, (void *)FFilterSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
+            if (FFindJtObstruction(pjtair, (void *)ShouldKeepSoPair, pjtair->pstepplayer->psoCollide, t, pos.q, v.q, posHit.q,
                               vHit.q, 0))
                 continue;
         }

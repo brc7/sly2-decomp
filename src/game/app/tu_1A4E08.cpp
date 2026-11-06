@@ -11,7 +11,7 @@ SLY2_INSTANTIATE_SLOT_POOLS()
 /* A level / movie reference checked by its two check words (+0x4 and +0x3C differ when it is set). */
 struct FILEREF { int x0; int x4; char pad[0x34]; int x3c; };
 
-/* One step. k: 0 movie, 1 movie (flagged), 2 warp, 3 func_001651D8, 4 nothing, 5 func_001ACC38 then next step. */
+/* One step. k: 0 movie, 1 movie (flagged), 2 warp, 3 StartTaskByOid, 4 nothing, 5 SetMcDialogPhase then next step. */
 struct STEPE
 {
     unsigned int k;     /* +0x0 */
@@ -53,8 +53,8 @@ extern "C" {
 void *func_002333B4(void *p, int c, int n) __asm__("memset");     /* memset */
 void CMpeg_QueueMovie(MPEGV *pmpeg, void *pv);
 void WipeToWorldWarp(void *psw, void *pfilerec, int a, int b, int grf, int oid);
-void func_001651D8(void *pv, int a, int b);
-void func_001ACC38(HV *ph, int n);
+void StartTaskByOid(void *pv, int a, int b);
+void SetMcDialogPhase(HV *ph, int n);
 int func_001A4E70(STEPQ *pq);
 void func_001A4E80(STEPQ *pq);
 STEPE *func_001A4FB0(STEPQ *pq, int k);
@@ -130,13 +130,13 @@ extern "C" void func_001A4E80(STEPQ *pq)
         WipeToWorldWarp(D_003DD490, pe->pfileref, pe->oid, -1, pe->grf, 0x30A);
         break;
     case 3:
-        func_001651D8(D_002DEB30, pe->a14, pe->a18);
+        StartTaskByOid(D_002DEB30, pe->a14, pe->a18);
         break;
     case 4:
         break;
     case 5:
         if (!D_002E6550.x44)
-            func_001ACC38(&D_002E6550, 1);
+            SetMcDialogPhase(&D_002E6550, 1);
         func_001A4E80(pq);
         break;
     }

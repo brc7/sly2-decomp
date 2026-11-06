@@ -265,7 +265,7 @@ struct LO {
 extern "C" {
 void func_002333B4(void *, int, int) __asm__("memset");
 void __ml__FRC7MATRIX4T0(struct MAT *, struct ALO *, struct MAT *);
-void func_001A5900(struct LO *, struct LO *, struct LO *, int);
+void LO_SetParent(struct LO *, struct LO *, struct LO *, int);
 void UpdateSoXfWorldMatrices(struct LO *);
 void ReleaseSoBoundsHierarchy(struct LO *);
 void EnsureSoBoundsHierarchy(struct LO *);
@@ -319,7 +319,7 @@ extern "C" void SetSoParent(struct LO *plo, struct LO *pa, struct LO *pb, int gr
         int d = pe->pe - aeBase;
         if (d >= 0 && d < c) pe->pe = pv;
     }
-    func_001A5900(plo, pa, pb, grf);
+    LO_SetParent(plo, pa, pb, grf);
     UpdateSoXfWorldMatrices(plo);
     if (grf & 1) VCALL(plo, 29, void (*)(void *, qword)), *(qword *)mat.m[3]);
     if (grf & 2) VCALL(plo, 30, void (*)(void *, struct MAT *)), &mat);
@@ -896,7 +896,7 @@ struct VTE; struct O;
 typedef unsigned long ulong;
 struct VTE { short d; short pad; void (*pfn)(void *, void *, void *); };
 struct O { char pad[0xC]; struct VTE *pvt; struct O *p10; char pad2[0x24 - 0x14]; struct O *pNext; ulong fl; char pad3[0x64 - 0x30]; struct O *pFirst; char pad4[0xE0 - 0x68]; int nE0; };
-void func_001A5B80(struct O *, struct O *, struct O *);
+void UpdateLoLoroot(struct O *, struct O *, struct O *);
 void RemoveSoParts(struct O *);
 void AddSoParts(struct O *);
 static inline struct O *Find(struct O *x)
@@ -916,7 +916,7 @@ void UpdateSoLoroot(struct O *p, struct O *pNew, struct O *pOld)
 {
     struct O *po;
     int unused[4];
-    func_001A5B80(p, pNew, pOld);
+    UpdateLoLoroot(p, pNew, pOld);
     for (po = p->pFirst; po; po = po->pNext)
         po->pvt[13].pfn((char *)po + po->pvt[13].d, pNew, pOld);
     if (!p->nE0) return;
@@ -994,7 +994,7 @@ struct G;
 extern "C" { extern G D_003DD490; }
 extern "C" void func_001D6310(L *);
 extern "C" void func_001D6378(L *);
-extern "C" void func_00147E88(G *, int);
+extern "C" void ResortSwBusyEntry(G *, int);
 /** @sly2-annot addr=0x1F3118
  * Purpose: SO vt42: store busy distance +0x38, refresh +0x140 registration (0x1D6310/0x1D6378), re-sort root
  *   in g_sw (0x147E88), push smaller value to children
@@ -1014,7 +1014,7 @@ extern "C" void func_001F3118(L *p, float t)
     }
     if (!p->parent) {
         bool f = p->b60;
-        if (f) func_00147E88(&D_003DD490, p->n14);
+        if (f) ResortSwBusyEntry(&D_003DD490, p->n14);
     }
     for (q = p->first; q; q = q->next) {
         if (t < q->g38) q->pvt->a[42].pfn((char *)q + q->pvt->a[42].d, t);
@@ -1059,7 +1059,7 @@ void AdjustSoMomint(P *,float);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(P *,void *);
 void EnsureSoBounds(P *);
 void LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(P *,void *,void *);
-void func_001A6D28(P *,int);
+void SetLoVisMask(P *,int);
 }
 static inline int Extra(P *p){VE *v=&p->vt[63];return ((int (*)(P *))v->fn)((P *)((char *)p+v->delta));}
 static inline void *Lookup(P *p,int id){VE *v=&p->vt[51];return ((void *(*)(P *,int))v->fn)((P *)((char *)p+v->delta),id);}
@@ -1121,7 +1121,7 @@ extern "C" void LoadSoFromBrx(P *p,void *stream)
     if(p->data.guard)SetActive(p);
     EnsureSoBounds(p);
     LoadSwObjectsFromBrx__FP2SOP18CBinaryInputStreamP14CLoadCollector(p,stream,0);
-    func_001A6D28(p,metadata);
+    SetLoVisMask(p,metadata);
 }
 } // namespace M_LoadSoFromBrx
 
@@ -1440,7 +1440,7 @@ struct P {
     ulong fl;
 };
 
-int func_001A61A0(struct P *);
+int IsLoInWorld(struct P *);
 void func_001D6378(struct P *);
 void func_001D6310(struct P *);
 
@@ -1478,7 +1478,7 @@ void func_001F3B28(struct P *p, int enabled)
                     __asm__("sw %1,%0" : "=m"(p->v40) : "r"(value));
                 }
             }
-            if ((p->fl & (1L << 35)) && func_001A61A0(p))
+            if ((p->fl & (1L << 35)) && IsLoInWorld(p))
                 func_001D6378(p);
         } else {
             if (!has8)
@@ -4308,7 +4308,7 @@ struct M { struct O *po; int n; struct K *pk; };
 struct M2 { struct O **ppo; int *pn; };
 struct M3 { struct K *pk; };
 extern float D_002DDED0;
-struct O *PsoFromLo(void *);
+struct O *GetSoFromLo(void *);
 int GrfzpdFromSoGrfzpk(struct O *, int);
 struct K *PvAllocSlotheapClear(void *);
 void ClearDle__FP3DLE(void *);
@@ -4335,7 +4335,7 @@ struct O *func_001F7598(struct K *pk)
     struct M m;
     struct M2 m2;
     struct O *po;
-    for (po = PsoFromLo(pk->p8); po; po = po->pNext) {
+    for (po = GetSoFromLo(pk->p8); po; po = po->pNext) {
         struct N *pn;
         for (pn = (*(struct N * *)&g_sw.dlZprHit); pn; pn = pn->pNext) {
             if (pn->n0 == (int)pk->p0 && pn->n4 == pk->n4 && pn->nC == pk->nC && pn->p48 == po) return 0;

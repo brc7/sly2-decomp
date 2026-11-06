@@ -66,7 +66,7 @@ float *func_0012F938(void *p, int n);
 void func_001300B8(void *p, NEELAV *ps, void *p1, SPACE *pspace, L *pl, int m, float a, float b);
 void SetSoMass(NEELAV *p, float g);
 void ResetStepguardToHome(NEELAV *p);
-int CidBasic(void *pv);
+int GetBasicCid(void *pv);
 void UpdateStepguard(NEELAV*);
 int FStepguardHasSgf(NEELAV*,int);
 qword GetLoWorldPos(void*);
@@ -193,7 +193,7 @@ extern "C" void func_001BA0B8(NEELAV *p)
  * @end-sly2-annot */
 extern "C" int func_001BA100(void *pv, ROW *prow)
 {
-    return CidBasic(prow->object) == 0x62;
+    return GetBasicCid(prow->object) == 0x62;
 }
 
 static inline qword Vector(qword r){qword v;__asm__("qmtc2.ni %1,%0":"=j"(v):"r"(r));return v;}

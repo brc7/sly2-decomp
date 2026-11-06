@@ -340,7 +340,7 @@ void ClearBhvBusy(struct S *p);
 struct O *func_00205458(struct A *a, int n);
 void *PpoHero(struct G *g);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
-int FFindLoParent(void *n, void *o);
+int IsLoSelfOrDescendantOf(void *n, void *o);
 void func_0014F750(void *p, int n);
 void func_001F7A68(struct A *a, int n);
 /** @sly2-annot addr=0x174BD0
@@ -409,7 +409,7 @@ int BHVANIM_FHandleMessage(struct S *p, int msg, struct M *pm) {
         {
             void *g = PpoHero(&D_003DD490);
             struct O *o = func_00205458(p->p10, 0xA0);
-            if (o && FFindLoParent(o->parent, g) && g == D_002F7900) {
+            if (o && IsLoSelfOrDescendantOf(o->parent, g) && g == D_002F7900) {
                 switch (pm->n8) {
                 case 0x35: func_0014F750(D_002DDF40, 0); break;
                 case 0x34: TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f); break;
@@ -1288,7 +1288,7 @@ qword *GetLoWorldMatrix(struct A *a);
 void CalculateVectorPanTilt(qword v, int n, float *pf);
 void STACKSCOPE_ctor(struct X *x);
 void STACKSCOPE_ctor_1AE4A0(struct X *x, int n) __asm__("_$_10STACKSCOPE");
-int func_0020FA10(void);
+int ShouldKeepSoNotSelf(void);
 void IntersectSwBoundingBox(struct G *g, qword a, qword b, int (*fn)(void), int z, int *pa, int *pb);
 struct R *PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int c, int d, struct Y *y);
 /** @sly2-annot addr=0x175D00
@@ -1362,7 +1362,7 @@ int FBhvcombatCanShoot(struct S *p) {
     {
         struct R *r;
         STACKSCOPE_ctor(&x);
-        IntersectSwBoundingBox(&D_003DD490, pa, pb, func_0020FA10, p->p10->nEC, &na, &nb);
+        IntersectSwBoundingBox(&D_003DD490, pa, pb, ShouldKeepSoNotSelf, p->p10->nEC, &na, &nb);
         r = PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pa, pb, na, nb, &y);
         if (r && r->p4->p14->p0 != p->p30) {
             STACKSCOPE_ctor_1AE4A0(&x, 2);
@@ -3571,7 +3571,7 @@ void func_0020AB68(struct A *a, int b, int c, qword v);
 void SetBhvBusy(struct S *p);
 void func_00156C80(struct G *g, int n, qword v, struct A *a, void *q);
 void *PpoHero(struct G *g);
-int FFindLoParent(int n, void *o);
+int IsLoSelfOrDescendantOf(int n, void *o);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *p, int n, float f);
 /** @sly2-annot addr=0x179328
  * Purpose: BHVHIT Start: BHVANIM Start, face away from the hit, knock-back leap, cancel attack, hold a pain
@@ -3619,7 +3619,7 @@ void StartBhvhit(struct S *p) {
     p->p10->nF04 = 0;
     if (p->p10->n334) {
         void *o = PpoHero(&D_003DD490);
-        if (o && FFindLoParent(p->n50, o) && (o == D_002F7900 || (p->n5C & 0x40000))) {
+        if (o && IsLoSelfOrDescendantOf(p->n50, o) && (o == D_002F7900 || (p->n5C & 0x40000))) {
             TriggerJoyRumbleRumk__FP3JOY4RUMKf(D_002DFC00, 3, 1.50000005960464477539e-01f);
             p->fB0 = D_002DDED0.t + 5.00000044703483581543e-02f;
         }
@@ -3828,7 +3828,7 @@ void StartBhvhit(struct S *p);
 void *PpoHero(struct G *g);
 void BroadcastGameEvent(void *a, int n, struct A *p);
 qword ConvertAloPos(struct A *source, void *target, qword v);
-void func_00154E10(void *a, qword v, int n, int m, struct A *p);
+void SprayDifficultyPrizes(void *a, qword v, int n, int m, struct A *p);
 void RecalcSwOxfFilterForObject(struct G *g, struct A *p);
 void func_00153FF8(void *p);
 static inline int Count(struct A *a) {
@@ -3875,7 +3875,7 @@ void StartBhvko(struct S *p) {
             /* Empty barrier: the target re-reads p->p10 for arg0 after loading q instead of reusing the register. */
             __asm__ __volatile__("" : : : "memory");
             v = ConvertAloPos(p->p10, 0, q);
-            func_00154E10(D_002DE578, v, n, p->p10->n3F0, p->p10);
+            SprayDifficultyPrizes(D_002DE578, v, n, p->p10->n3F0, p->p10);
         }
         RecalcSwOxfFilterForObject(&D_003DD490, p->p10);
         func_00153FF8(p->p10->pF64);

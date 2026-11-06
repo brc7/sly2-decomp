@@ -963,13 +963,13 @@ void StopAsegSoundEvent(SW *psw, int sfxid, ASEG *paseg, CRefPtr<SND> *ppsnd) __
 
 LO *FadeAsegObjectEvent(SW *psw, int fIn, OID oid, float dtFade, LO *ploRoot, ASEG *paseg) __asm__("ShowSwAsegObject");
 
-void SetAsegPartFlagEvent(SW *psw, int fClear, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("func_00210408");
+void SetAsegPartFlagEvent(SW *psw, int fClear, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("HandleSwAsegEvent13");
 
-void ShowAsegPartEvent(SW *psw, int fShow, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("func_002104A0");
+void ShowAsegPartEvent(SW *psw, int fShow, OID oidSo, OID oidPart, LO *paloRoot, LO *ploRoot, ASEG *paseg) __asm__("HandleSwAsegEvent15");
 
-void ExplodeAsegEvent(SW *psw, OID oidExpl, OID oidRef, OID oidUnk30, LO *ploRoot, ASEG *paseg, float gScale) __asm__("func_00210538");
+void ExplodeAsegEvent(SW *psw, OID oidExpl, OID oidRef, OID oidUnk30, LO *ploRoot, ASEG *paseg, float gScale) __asm__("SendSwAsegMessage");
 
-void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g) __asm__("func_00210678");
+void SetAsegEyesEvent(SW *psw, OID oidSo, OID oidEyes, LO *ploRoot, ASEG *paseg, float g) __asm__("HandleSwAsegEvent20");
 
 struct WIDGETV : public LO
 {
@@ -1038,9 +1038,9 @@ void PopJsgCamBlend(JSGV *pjsg, int n) __asm__("func_001E5A98");
 
 float DtJsgCommand(JSGV *pjsg, RELAYCMD *prelaycmd) __asm__("func_001E4530");
 
-extern "C" void func_0020FFF0(SW *psw, OID *aoid, LO *ploContext, int grf, JSGV *pjsg, SMA **ppsma);
+extern "C" void TriggerOneRsmg(SW *psw, OID *aoid, LO *ploContext, int grf, JSGV *pjsg, SMA **ppsma);
 
-extern "C" int func_00210B68();
+extern "C" int SwStubFalse();
 
 extern "C" void func_001DD820(void *pv);
 
@@ -1830,7 +1830,7 @@ namespace M_AddRelayWaitBlocks { extern "C" {
 struct CRef; struct CMD;
 struct CRef { int tagk; int tag; };
 struct CMD { char pad[0x10]; unsigned int c; int a[4]; };
-void func_002013D8(struct CRef *pref, void *x, int a, int b, unsigned int *pc, int *pa);
+void SetValuesFromSpliceList(struct CRef *pref, void *x, int a, int b, unsigned int *pc, int *pa);
 struct CMD *PrelaycmdAddRelay(void *pq, int kind, int b);
 void CopyAb__FPvT0Ui(void *pdst, void *psrc, int cb);
 void Decref__4CRef(struct CRef *pref);
@@ -1847,7 +1847,7 @@ void AddRelayWaitBlocks(void *pq, void *x)
     struct CRef ref;
     unsigned int c;
     struct CMD *p;
-    func_002013D8(&ref, x, 6, 8, &c, a);
+    SetValuesFromSpliceList(&ref, x, 6, 8, &c, a);
     p = PrelaycmdAddRelay(pq, 3, 0);
     if (c > 4) c = 4;
     {
@@ -3491,7 +3491,7 @@ typedef struct S { char pad[0x18]; int x18; } S;
 extern struct G D_003DD490;
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *g, int k, int id, int x);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int k);
-void *func_001CB2E0(void *p);
+void *GetProxyCurrentObject(void *p);
 /** @sly2-annot addr=0x1E1DB8
  * Purpose: Resolve an oid relative to the script context (ploContext +0x18); proxies (CID 6) resolve to their
  *   current object
@@ -3506,7 +3506,7 @@ void *func_001E1DB8(S *p, int id)
         q = 0;
     } else {
         q = PloFindSwObject__FP2SWi3OIDP2LO(&D_003DD490, 4, id, p->x18);
-        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = func_001CB2E0(q);
+        if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 6)) q = GetProxyCurrentObject(q);
     }
     return q;
 }
@@ -3865,7 +3865,7 @@ void NextJsgCommand(JSGV *pjsg)
         aoid[2] = prelaycmd->applySm.oidState;
         aoid[3] = OID_Nil;
         int grfSma = prelaycmd->applySm.fUnk7 ? 3 : 1;
-        func_0020FFF0(&D_003DD490, aoid, pjsg->ploContext, grfSma, pjsg, &pjsg->psmaCur);
+        TriggerOneRsmg(&D_003DD490, aoid, pjsg->ploContext, grfSma, pjsg, &pjsg->psmaCur);
         if (prelaycmd->fAsync)
         {
             ReleaseJsgSma(pjsg);
@@ -3935,7 +3935,7 @@ void NextJsgCommand(JSGV *pjsg)
     case RELAYCK_GotoLabel:
     case RELAYCK_GotoLabelIf:
     {
-        if (prelaycmd->relayck == RELAYCK_GotoLabelIf && func_00210B68() != prelaycmd->gotoLabelIf.nValue)
+        if (prelaycmd->relayck == RELAYCK_GotoLabelIf && SwStubFalse() != prelaycmd->gotoLabelIf.nValue)
         {
             break;
         }
@@ -4866,7 +4866,7 @@ static inline float GXOfQwAct(qword qw)
 extern "C" { extern SNDMGR D_003DD040; }
 extern "C" { extern char D_003DA530[]; }
 extern "C" BHV *PbhvFindStep(STEP *pstep, int cid) __asm__("func_00205458");
-extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("FMatchesLoName");
+extern "C" int FObjHasTarget(LO *plo, OID oid) __asm__("HasLoOid");
 extern "C" int func_002121C8(LO *plo);
 extern "C" void func_001E5468(JSGV *pjsg);
 extern "C" int GrfHandleJoyBtn(JOY *pjoy, uint grfbtn);
@@ -5465,7 +5465,7 @@ struct P { int kind; int x4; int pad[2]; union U u10; union U u14; int x18; };
 struct C { char pad[0x18]; int x18; };
 struct O { char pad[0x74]; float g74; float g78; char pad2[0x80 - 0x7C]; float a[3]; int pad3; float gMin; float gMax; };
 struct O *func_001E1DB8(struct C *pc, int n);
-float GGetDifficulty(struct G *pg);
+float GetDifficulty(struct G *pg);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *pg, int k, int a, int b);
 void *func_001F67E0(void *p, int n);
 float DtSmaToState(void *p, int n);
@@ -5487,7 +5487,7 @@ float func_001E4530(struct C *pc, struct P *p)
     case 0xA: {
         struct O *po = func_001E1DB8(pc, p->u10.n);
         if (po) {
-            float t = GGetDifficulty(&D_002DE578);
+            float t = GetDifficulty(&D_002DE578);
             float *pa = po->a; float s = pa[0] + t * (pa[1] + t * pa[2]); s = GClamp(s, po->gMin, po->gMax);
             g = po->g74 / (po->g78 * s);
         }
@@ -5965,9 +5965,9 @@ struct G { int a; };
 extern struct G D_003DD490;
 struct P { char pad[0x38]; int fOn; int id; };
 void DecrementSwHandsOff(struct G *pg, int id);
-void func_0020F0F0(struct G *pg);
+void DecrementSwNoPause(struct G *pg);
 void IncrementSwHandsOff(struct G *pg, int id);
-void func_0020F0C0(struct G *pg);
+void IncrementSwNoPause(struct G *pg);
 /** @sly2-annot addr=0x1E50E0
  * Purpose: Track fHandsOff/grfHandsOff (+0x38/+0x3C) and apply it to g_sw via Increment/DecrementSwHandsOff
  *   (0x20EFC0/0x20F030) + 0x20F0C0/0x20F0F0
@@ -5980,7 +5980,7 @@ void func_0020F0C0(struct G *pg);
  * @end-sly2-annot */
 void func_001E50E0(struct P *p, int fOn, int id)
 {
-if (!fOn) { if (!p->fOn) return; } else { if (p->fOn) { if (id == p->id) return; DecrementSwHandsOff(&D_003DD490, p->id); func_0020F0F0(&D_003DD490); } IncrementSwHandsOff(&D_003DD490, id); func_0020F0C0(&D_003DD490); p->fOn = fOn; p->id = id; return; } DecrementSwHandsOff(&D_003DD490, p->id); func_0020F0F0(&D_003DD490); p->fOn = fOn; p->id = id;
+if (!fOn) { if (!p->fOn) return; } else { if (p->fOn) { if (id == p->id) return; DecrementSwHandsOff(&D_003DD490, p->id); DecrementSwNoPause(&D_003DD490); } IncrementSwHandsOff(&D_003DD490, id); IncrementSwNoPause(&D_003DD490); p->fOn = fOn; p->id = id; return; } DecrementSwHandsOff(&D_003DD490, p->id); DecrementSwNoPause(&D_003DD490); p->fOn = fOn; p->id = id;
 }
 } } // namespace M_func_001E50E0
 

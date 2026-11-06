@@ -71,7 +71,7 @@ struct SWALLOC
 };
 void *PvAllocSwClearImpl(SWALLOC *pswalloc) __asm__("func_001AE2A0");
 void *PvAllocStackClearImpl(SWALLOC *pswalloc) __asm__("func_001AE378");
-CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv) __asm__("func_00200DA0");
+CRef RefSetArgListFromPvs(int cargs, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 struct OIDFIELD
 {
     OID oid;
@@ -84,8 +84,8 @@ struct OIDSETTER
 };
 void PostLoadOidField(LO *plo, void *pv);
 void PostLoadOidSetter(LO *plo, void *pv);
-CRef RefFromBrx(OTYP otyp, CBinaryInputStream *pbis) __asm__("func_0013E690");   /* defined below (C symbol) */
-void *func_00210120(SW *psw) __asm__("func_00210120");
+CRef RefFromBrx(OTYP otyp, CBinaryInputStream *pbis) __asm__("ReadOptionArgFromBrx");   /* defined below (C symbol) */
+void *AllocSwPostLoadRecord(SW *psw) __asm__("AllocSwPostLoadRecord");
 extern "C" void ColorCorrectRgba(RGBA *prgba);
 inline void *PvAllocSwClear(int cb, int cbAlign)
 {
@@ -128,7 +128,7 @@ struct CLoadCollectorProxy : CLoadCollector
     int idProxy;   /* -1, or set on each object with LO::SetIdProxy(idProxy, 1) */
 };
 
-/* Class descriptor table (D_002BAAE8, 0x14-byte records indexed by CID; FIsCidDerivedFrom walks it): +0x10 the factory. */
+/* Class descriptor table (D_002BAAE8, 0x14-byte records indexed by CID; IsCidDerivedFrom walks it): +0x10 the factory. */
 struct CLSNEW
 {
     int unk0[4];
@@ -149,25 +149,25 @@ extern const char D_002A4BE0[] = "";   /* the empty string (a zero-filled .rodat
 extern VE D_002CBE50[] __asm__("_vt$19CLoadCollectorArray");      /* CLoadCollectorArray vtable (emitted here) */
 extern "C" {
 void FramePtr_Assign(void *pspframe, void *pframe) __asm__("__as__t7CRefPtr1Z6CFrameP6CFrame");
-void *func_001FFA40(SW *psw, int isplice, LO *plo);
-DL *PdlFromSwOid(SW *psw, OID oid);
-DL *PdlFromSwCid(SW *psw, CID cid);
+void *GetSpliceFrame(SW *psw, int isplice, LO *plo);
+DL *GetSwOidBucket(SW *psw, OID oid);
+DL *GetSwClassList(SW *psw, CID cid);
 void func_0011A070(DL *pdl, LO *plo);
-int func_001A61A0(LO *plo);
+int IsLoInWorld(LO *plo);
 void CRef_ctor_CLQ(CRef *pref, float *ag);
 void CRef_ctor_LM(CRef *pref, float *ag);
 void CRef_ctor_VECTOR(CRef *pref, float *ag);
 void *PvAllocSlot__FP8ALLOCREQ(SWALLOC *pswalloc);
-void SetLoParent_1A58D0(LO *plo, SO *psoParent, int grf);
-void func_0013F990(LO *plo, int n);
-int FIsCidDerivedFrom(CID cid, CID cidBase);
-LO *PloFindSwObject_15E958(SW *psw, int grf, OID oid, LO *ploCtx, void *pchList);
-int func_001C99D8(PXR *ppxr, int n, int *pid);
+void SetLoParent(LO *plo, SO *psoParent, int grf);
+void SetLoTagHierarchy(LO *plo, int n);
+int IsCidDerivedFrom(CID cid, CID cidBase);
+LO *FindSwObjectWithNames(SW *psw, int grf, OID oid, LO *ploCtx, void *pchList);
+int FindProxyRefPath(PXR *ppxr, int n, int *pid);
 }
 LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice);
 LO *PloFindSwObject(SW *psw, int grf, OID oid, LO *ploCtx);
 /* The same function called with a fifth argument (the target loads a4 before the call; 0x15E938 passes 0 on to
-   PloFindSwObject_15E958): an asm-labelled second form, as frm's PropagateSaisF. */
+   FindSwObjectWithNames): an asm-labelled second form, as frm's PropagateSaisF. */
 LO *PloFindSwObjectPch(SW *psw, int grf, OID oid, LO *ploCtx, void *pchList) __asm__("PloFindSwObject__FP2SWi3OIDP2LO");
 void CopyAb(void *pvDst, void *pvSrc, uint cb);
 int FIsBasicDerivedFrom(BASIC *pbasic, CID cid);
@@ -229,13 +229,13 @@ LO *PloNew(CID cid, SO *psoParent, OID oid, int isplice)
     plo->psoParent = psoParent;
     plo->oid = oid;
     psw = &D_003DD490;
-    FramePtr_Assign(plo, func_001FFA40(psw, isplice, plo));
-    func_0011A070(PdlFromSwOid(psw, oid), plo);
-    func_0011A070(PdlFromSwCid(psw, cid), plo);
+    FramePtr_Assign(plo, GetSpliceFrame(psw, isplice, plo));
+    func_0011A070(GetSwOidBucket(psw, oid), plo);
+    func_0011A070(GetSwClassList(psw, cid), plo);
     plo->Init();
     if ((uchar)plo->fInWorld)   /* (uchar): extract the bit as the target does ((int) adds a sign extension) */
         plo->AddHierarchy();
-    if (func_001A61A0(plo))
+    if (IsLoInWorld(plo))
         plo->Unfreeze();
     if (psw->pploNew)
         *psw->pploNew++ = plo;
@@ -307,7 +307,7 @@ void PostLoadOidSetter(LO *plo, void *pv)
  * @end-sly2-annot */
 // Reads one typed option argument from the level stream into a CRef by object type (bool, float, ints, vectors, 2D
 // vectors, object ids, ...; unknown types give the null tag). (Sly 1: RefFromBrx.)
-extern "C" CRef *func_0013E690(CRef *pref, int otyp, CBinaryInputStream *pbis)
+extern "C" CRef *ReadOptionArgFromBrx(CRef *pref, int otyp, CBinaryInputStream *pbis)
 {
     float ag[3];
     switch (otyp)
@@ -382,11 +382,11 @@ extern "C" CRef *func_0013E690(CRef *pref, int otyp, CBinaryInputStream *pbis)
 // unchanged, 1022 instructions) that only supplies those insns. What the game really had there is unknown.
 // Reads the value of ONE option from a level file (or from a PROXYINIT record's bytes) and applies it to the object pvStruct through the
 // option's record peopid of g_aeopid (brx.h EOPID, 0x28 bytes). grfeopid is the record's flags MASKED by the caller: LoadOptionsFromBrx
-// (level files, 0x13F810) passes grf & 0x2580, PspareAcquire (0x1CAEC8, options of a copy's objects) grf & 0x2031. Four shapes:
+// (level files, 0x13F810) passes grf & 0x2580, AcquireProxySpare (0x1CAEC8, options of a copy's objects) grf & 0x2031. Four shapes:
 //  1. grf & 0x401 - a METHOD option (g_aeopid[26] = Remove, otyp 0x12, grf 0x4401): record +0x18 arguments are read (each: a u16 type, bit 0x8000 = a u8
 //     count of elements of type & 0x7fff -> a splice list by RefSetArgListFromPvs; else one RefFromBrx value) into 32 CRefs, then the record's
 //     splice thunk is called: +8 when grf has 0x400 (FILE options: SplLoRemoveDeferred 0x100B10 = DeferLoRemove), else +0x10 (the thunk scripts call:
-//     SplLoRemove 0x100B88 = LO::Remove NOW). So a level file's option 26 is a deferred Remove; PspareAcquire (mask 0x2031 has no 0x400) removes at once.
+//     SplLoRemove 0x100B88 = LO::Remove NOW). So a level file's option 26 is a deferred Remove; AcquireProxySpare (mask 0x2031 has no 0x400) removes at once.
 //  2. grf & 0x90 - the value is stored straight into a C member at pv + record +0x18 (pv = pmfObj(1) when grf & 0x2000), by type (the same type codes
 //     as RefFromPv / RefSetPeopid). An OBJECT REFERENCE (otyp & 0x7fff >> 12 == 2, e.g. 0x2006) holds an oid (s32): with grf 0x80 (file) it is queued
 //     on the object's run list as {oid, member offset} -> PostLoadOidField at PostLoad; else (0x10) stored at once with the offset at +0x10.
@@ -544,7 +544,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
                 if (grfeopid & 0x80)
                 {
                     int oid = pbis->S32Read();
-                    OIDFIELD *poidfield = (OIDFIELD *)func_00210120(&D_003DD490);
+                    OIDFIELD *poidfield = (OIDFIELD *)AllocSwPostLoadRecord(&D_003DD490);
                     poidfield->oid = (OID)oid;
                     poidfield->ib = pf - (char *)pvStruct;
                     LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
@@ -722,7 +722,7 @@ void LoadOptionFromBrx(void *const pvStruct, EOPID *peopid, GRFEOPID grfeopid, C
             if (grfeopid & 0x100)
             {
                 int oid = pbis->S32Read();
-                OIDSETTER *poidsetter = (OIDSETTER *)func_00210120(&D_003DD490);
+                OIDSETTER *poidsetter = (OIDSETTER *)AllocSwPostLoadRecord(&D_003DD490);
                 poidsetter->oid = (OID)oid;
                 poidsetter->setter = peopid->setFile;
                 LORUN *plorun = AddLoDeferredCallback((LO *)pvStruct);
@@ -817,14 +817,14 @@ void CLoadCollectorArray::Add(int cAdd, LO **aploAdd)
  * @end-sly2-annot */
 // Sets the 4-bit field at bits 48..51 of the object's flag word, and recursively on the children of an SO. Used by the
 // proxy collector. (inferred: the field's meaning is not known.)
-extern "C" void func_0013F990(LO *plo, int n)
+extern "C" void SetLoTagHierarchy(LO *plo, int n)
 {
     LO *ploChild;
     plo->nUnk48 = n;
     if (FIsBasicDerivedFrom(plo, (CID)0x30))
     {
         for (ploChild = (LO *)((SO *)plo)->dlChild.head; ploChild; ploChild = (LO *)ploChild->dleChild.next)
-            func_0013F990(ploChild, n);
+            SetLoTagHierarchy(ploChild, n);
     }
 }
 
@@ -844,8 +844,8 @@ void CLoadCollectorProxy::Add(int c, LO **aplo)   /* key function: CLoadCollecto
     for (i = 0; i < c; i++)
     {
         LO *plo = aplo[i];
-        SetLoParent_1A58D0(plo, 0, 0);
-        func_0013F990(plo, plcp->nUnk48);
+        SetLoParent(plo, 0, 0);
+        SetLoTagHierarchy(plo, plcp->nUnk48);
         if (plcp->idProxy != -1)
             plo->SetIdProxy(plcp->idProxy, 1);
     }
@@ -881,7 +881,7 @@ int FMatchLoadFilter(int c, short *aid)
    dead `li v1,0x84` the target has. */
 /** @sly2-annot addr=0x13FB40
  * Purpose: Reads an object list: S16 cobj x {S8 k; [filter]; S16 cid; S32 oid; S16 isplice; S32 cb; payload
- *   via vt14 LoadFromBrx}, proxies (FIsCidDerivedFrom(cid,6)) via LoadProxyFromBrx, filtered objects skipped
+ *   via vt14 LoadFromBrx}, proxies (IsCidDerivedFrom(cid,6)) via LoadProxyFromBrx, filtered objects skipped
  *   by cb
  * Info: proposed name LoadSwObjectsFromBrx (T1); TU brx
  * Notes: level_parser CONFIRMED-parse: payload layout followed by the parser, 100%% of bytes in 4 levels
@@ -934,7 +934,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
             SW *psw = &D_003DD490;
             int r;
             t = IdProxy(psw->isrcLoading, -1);
-            r = func_001C99D8(psw->ppxrRoot, 1, &t);
+            r = FindProxyRefPath(psw->ppxrRoot, 1, &t);
             if (k == -2)
             {
                 if (PloFindSwObjectPch(psw, 0x405, (OID)oid, 0, (void *)r))
@@ -945,7 +945,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
             }
             else
             {
-                if (PloFindSwObject_15E958(psw, 0x805, (OID)oid, 0, (void *)r))
+                if (FindSwObjectWithNames(psw, 0x805, (OID)oid, 0, (void *)r))
                 {
                     goto skip;
                 }
@@ -975,7 +975,7 @@ void LoadSwObjectsFromBrx(SO *psoParent, CBinaryInputStream *pbisArg, CLoadColle
             }
         }
     create:
-        if (FIsCidDerivedFrom((CID)cid, (CID)6))
+        if (IsCidDerivedFrom((CID)cid, (CID)6))
         {
             LoadProxyFromBrx(&D_003DD490, psoParent, (CID)cid, (OID)oid, n, pbis, plc);
         }

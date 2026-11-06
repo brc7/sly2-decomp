@@ -63,8 +63,8 @@ void PostSoLoad(SO *pso);
 void *func_001F7B98(SO *pso);
 void func_002303A0(SO *pso, XF *pxf, int n);
 void BindLoOidTable(LO *plo, int coid, OIDT *aoidt);
-int func_00161798(void *pv);
-void func_001617E0(void *pv, int n);
+int GetCollectibleCount(void *pv);
+void SetCollectibleCount(void *pv, int n);
 void func_001C7A08(LOOTV *ploot);
 void InitDprize(DPRIZEV *pdprize);
 XF *PxfFindSo(SO *pso, int oid, int n);
@@ -825,7 +825,7 @@ void RenderSoSelf(LO *plo);
 void RenderDprizeSelf(LO *p);
 }
 extern "C" { M4 LoadMatrixFromPosRotScale(qword q, void *pv, V *pvec); }
-extern "C" { void func_001A5EE8(LO *plo, M4 m, float a, float b); }
+extern "C" { void RenderLoAtMatrix(LO *plo, M4 m, float a, float b); }
 /** @sly2-annot addr=0x1C5FA0
  * Purpose: DPRIZE vt19 RenderSelf (bob/spin then SO render)
  * Info: proposed name RenderDprizeSelf (T1); class DPRIZE slot19; TU prize
@@ -848,7 +848,7 @@ void RenderDprizeSelf(LO *p)
             ((void (*)(void *, V *, int, float, float))pobj->vt[3].pf)((char *)pobj + pobj->vt[3].d, &v, 0, q->x1C, q->x40);
             M4 m;
             m = LoadMatrixFromPosRotScale(GetLoWorldPos(p), GetLoWorldMatrix(p), &v);
-            func_001A5EE8(p, m, p->x12C, p->x12C);
+            RenderLoAtMatrix(p, m, p->x12C, p->x12C);
         } else {
             RenderSoSelf(p);
         }
@@ -875,9 +875,9 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern qword D_002C0D60;
 extern float D_002A773C;
-void SetLoParent_1A58D0(struct S *p, int a, int b);
-struct LO *func_001CB658(struct S *p);
-void UnlockProxyPlo(struct LO *q, struct S *p);
+void SetLoParent(struct S *p, int a, int b);
+struct LO *GetProxyCopyValue(struct S *p);
+void UnlockProxyObject(struct LO *q, struct S *p);
 struct LO *func_001F0380(void *a, struct S *p, int anim, int z);
 void SkipSma(struct LO *q, float g);
 void SetSmaGoal(struct LO *q, int anim);
@@ -895,7 +895,7 @@ void SetDprizeDprizes(struct S *p, int n)
     struct LO *q;
     if (p->x150 == n) return;
     if (n != 0 && n != 5)
-        SetLoParent_1A58D0(p, 0, 0);
+        SetLoParent(p, 0, 0);
     if (p->x150 == -1 || p->x150 == 2) {
         struct O *o = p->x58;
         p->q170 = o->q30;
@@ -915,9 +915,9 @@ void SetDprizeDprizes(struct S *p, int n)
         p->x1CC = D_002A773C;
         ((void (*)(void *))p->vt[9].pf)((char *)p + p->vt[9].d);
         {
-            struct LO *r = func_001CB658(p);
+            struct LO *r = GetProxyCopyValue(p);
             if (r)
-                UnlockProxyPlo(r, p);
+                UnlockProxyObject(r, p);
         }
         break;
     case 5:
@@ -1116,7 +1116,7 @@ struct MAT *GetLoWorldMatrix(struct S *p);
 void func_001C67A0(struct S *p, int n);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
-void func_00161868(void *pg);
+void RestartHudWidget1(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
 /** @sly2-annot addr=0x1C65F8
@@ -1157,7 +1157,7 @@ void func_001C65F8(struct S *p, int n)
         }
         n = 2;
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
-        func_00161868(D_003DD490);
+        RestartHudWidget1(D_003DD490);
         BroadcastGameEvent(D_002DEB30, 0x12, p);
         break;
     }
@@ -1175,7 +1175,7 @@ void func_001C65F8(struct S *p, int n)
  * @end-sly2-annot */
 extern "C" void func_001C67A0()
 {
-    func_001617E0(D_002DEB30, func_00161798(D_002DEB30) + 1);
+    SetCollectibleCount(D_002DEB30, GetCollectibleCount(D_002DEB30) + 1);
 }
 
 namespace M_func_001C67D8 { extern "C" {
@@ -1256,7 +1256,7 @@ struct MAT *GetLoWorldMatrix(struct S *p);
 void OnMedicineSmackDone(struct S *p, int n);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
-void func_00161868(void *pg);
+void RestartHudWidget1(void *pg);
 void BroadcastGameEvent(void *p, int n, struct S *ps);
 void SetDprizeDprizes(struct S *p, int n);
 /** @sly2-annot addr=0x1C68F0
@@ -1391,7 +1391,7 @@ extern char D_002A2D00[];
 extern const float D_002A7758;
 struct S { char pad[0xC]; struct VTE *vt; char p1[0x58 - 0x10]; struct X *x58; struct X *x5C; char p2[0x160 - 0x60]; float x160;
     char p3[0x180 - 0x164]; qword x180; char p4[0x1C4 - 0x190]; int x1C4; int x1C8; float x1CC; };
-void SetLoParent_1A58D0(struct S *p, int a, int b);
+void SetLoParent(struct S *p, int a, int b);
 static inline void Zero(struct V3 *pv)
 {
     pv->z = 0.0f;
@@ -1412,7 +1412,7 @@ static inline void Zero(struct V3 *pv)
 void LaunchSprayedDprize(struct S *p, qword q1, qword q2, float f1, float f2)
 {
     ((void (*)(void *))VT(p, 8).pf)((char *)p + VT(p, 8).d);
-    SetLoParent_1A58D0(p, 0, 0);
+    SetLoParent(p, 0, 0);
     ((void (*)(void *, qword))VT(p, 29).pf)((char *)p + VT(p, 29).d, q1);
     ((void (*)(void *, void *))VT(p, 30).pf)((char *)p + VT(p, 30).d, D_002A2D00);
     Zero(&p->x58->v);
@@ -1430,10 +1430,10 @@ namespace M_PdprizeNewSpray { extern "C" {
 struct VTE { short d; short pad; void (*pf)(); };
 struct LO { char pad[0xC]; struct VTE *vt; };
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int a, int id, int b);
-struct LO *PloAcquireProxy(void *pg, int n);
-void LockProxyPlo(void *pg, struct LO *plo);
+struct LO *AcquireProxyObject(void *pg, int n);
+void LockProxyObject(void *pg, struct LO *plo);
 /** @sly2-annot addr=0x1C6CE8
- * Purpose: make one prize of kind 0x5B/0x5D from its proxy pool (PloAcquireProxy + LockProxyPlo)
+ * Purpose: make one prize of kind 0x5B/0x5D from its proxy pool (AcquireProxyObject + LockProxyObject)
  * Info: proposed name PdprizeNewSpray (T1); TU prize
  * Notes: runtime2: coin/medicine copies moved to break site
  * Confidence: mid (draft) [T1 0.50] - evidence: runtime (save-state RAM); sources: r5_1AE130+runtime
@@ -1456,11 +1456,11 @@ int PdprizeNewSpray(void *p, int kind, int n, struct LO **aplo)
     c = 0;
     for (i = 0; ; i++) {
         if (i >= n) break;
-        plo = PloAcquireProxy(pg, 0);
+        plo = AcquireProxyObject(pg, 0);
         if (!plo) break;
         ((void (*)(void *, int))plo->vt[76].pf)((char *)plo + plo->vt[76].d, 2);
         c++;
-        LockProxyPlo(pg, plo);
+        LockProxyObject(pg, plo);
         aplo[i] = plo;
     }
     return c;
@@ -2046,10 +2046,10 @@ struct X {char pad[8];struct HT table;};
 extern const char D_002A7768[],D_002A7788[];
 int IlevelCur__Fv(void);
 int sprintf(char *buf,const char *fmt,...);
-int NFindSaveSymbol(struct HT *pt,const char *s);
-struct A *func_002109B8(int h);
-struct A *PkeyConcatSaveKeys(struct A *p, struct A *pa);
-static inline int Find(struct X *px, const char *s) { return NFindSaveSymbol(&px->table,s); }
+int FindSaveSymbol(struct HT *pt,const char *s);
+struct A *GetLevelListEntry(int h);
+struct A *ConcatSaveKeys(struct A *p, struct A *pa);
+static inline int Find(struct X *px, const char *s) { return FindSaveSymbol(&px->table,s); }
 /** @sly2-annot addr=0x1C7B18
  * Purpose: query save data for bit n of 'afClue' for the current level
  * Info: proposed name FClueCollected (T1); TU prize
@@ -2070,7 +2070,7 @@ struct A *FClueCollected(int input)
     k.b = n;
     a.c = 2;
     a.pk = (short *)&k;
-    return PkeyConcatSaveKeys(func_002109B8(h), &a);
+    return ConcatSaveKeys(GetLevelListEntry(h), &a);
 }
 } } // namespace M_FClueCollected
 
@@ -2170,11 +2170,11 @@ extern struct G D_003DD490;
 extern char D_003D4A60[];
 extern char D_002A7788[];
 int IlevelCur__Fv(void);
-struct { int a; int b; } *func_002109B8(int n);
+struct { int a; int b; } *GetLevelListEntry(int n);
 void CopyAb__FPvT0Ui(struct K *pk, int a, int b);
-void *FFindSaveVar(void *a, void *b, struct T *pt);
-short NFindSaveSymbol(void *a, char *s);
-unsigned int *PvFromSaveVar(void *a, void *b, void *c);
+void *FindSaveVar(void *a, void *b, struct T *pt);
+short FindSaveSymbol(void *a, char *s);
+unsigned int *GetSaveVarAddress(void *a, void *b, void *c);
 /** @sly2-annot addr=0x1C7D08
  * Purpose: count collected clue bottles: popcount of afClue words over the level's entries
  * Info: proposed name CClueCollected (T1); TU prize
@@ -2195,16 +2195,16 @@ int CClueCollected(void)
     if (n == -1)
         return 0;
     c = 0;
-    CopyAb__FPvT0Ui(&k, func_002109B8(n)->b, 6);
+    CopyAb__FPvT0Ui(&k, GetLevelListEntry(n)->b, 6);
     s.pk = &k;
     s.k = 3;
-    FFindSaveVar(&D_003DD490.m, &s, &t);
+    FindSaveVar(&D_003DD490.m, &s, &t);
     s.k = 5;
-    k.d = NFindSaveSymbol(D_003DD490.m.m8, D_002A7788);
+    k.d = FindSaveSymbol(D_003DD490.m.m8, D_002A7788);
     for (i = t.px->h; i; i = pe->next) {
         pe = &D_003DD490.m.pe[i];
         k.c = pe->id;
-        v = *PvFromSaveVar(&D_003DD490.m, &s, D_003D4A60);
+        v = *GetSaveVarAddress(&D_003DD490.m, &s, D_003D4A60);
         while (v) { v &= v - 1; c++; }
     }
     return c;
@@ -2227,7 +2227,7 @@ void CLUE::Init()
 namespace M_func_001C7E68 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
-void func_001CB518(struct O *p);
+void SO_ResetForProxy(struct O *p);
 /** @sly2-annot addr=0x1C7E68
  * Purpose: CID 95 vt26: SO::VUnk26Proxy base + extra
  * Info: proposed name ClueVt26 (T2); class CLUE slot26; TU prize
@@ -2236,7 +2236,7 @@ void func_001CB518(struct O *p);
  * @end-sly2-annot */
 void func_001C7E68(struct O *p)
 {
-    func_001CB518(p);
+    SO_ResetForProxy(p);
     { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, 0); }
 }
 } } // namespace M_func_001C7E68
@@ -2244,7 +2244,7 @@ void func_001C7E68(struct O *p)
 namespace M_func_001C7EA8 { extern "C" {
 struct VTE { short d; short pad; void (*pfn)(void *, int); };
 struct O { int a[3]; struct VTE *vt; };
-void func_001CB5D0(struct O *p);
+void SO_Slot27(struct O *p);
 /** @sly2-annot addr=0x1C7EA8
  * Purpose: CID 95 vt27
  * Info: proposed name ClueVt27 (T2); class CLUE slot27; TU prize
@@ -2256,7 +2256,7 @@ void func_001CB5D0(struct O *p);
  * @end-sly2-annot */
 void func_001C7EA8(struct O *p)
 {
-    func_001CB5D0(p);
+    SO_Slot27(p);
     { struct VTE *e = &p->vt[76]; e->pfn((char *)p + e->d, -1); }
 }
 } } // namespace M_func_001C7EA8
@@ -2276,12 +2276,12 @@ void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
 qword GetLoWorldPos(struct S *p);
 void *EmitSwNoise(void *pg, int n, qword q, struct S *p);
-struct LO *func_001CB658(struct S *p);
+struct LO *GetProxyCopyValue(struct S *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct LO *p, int n);
 void func_001C7C30(int n, int f);
-void func_001618B0(void *pg);
+void RestartHudWidget2(void *pg);
 void SetDprizeDprizes(struct S *p, int n);
-static inline int FTest(struct S *p) { struct LO *q = func_001CB658(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
+static inline int FTest(struct S *p) { struct LO *q = GetProxyCopyValue(p); return q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7); }
 /** @sly2-annot addr=0x1C7EE8
  * Purpose: CID 95 setter: sound, proxy-copy value, mark clue collected
  * Info: proposed name SetClueDprizes (T1); class CLUE slot76; TU prize
@@ -2309,12 +2309,12 @@ void SetClueDprizes(struct S *p, int n)
         qv = GetLoWorldPos(p);
         EmitSwNoise(pg, 0, qv, p);
         ((void (*)(void *, int, int, int, int, int))p->vt[3].pf)((char *)p + p->vt[3].d, 5, 0, 0, 0, 0);
-        q = func_001CB658(p);
+        q = GetProxyCopyValue(p);
         if (q && FIsBasicDerivedFrom__FP5BASIC3CID(q, 7)) {
-            struct LO *plo = func_001CB658(p);
+            struct LO *plo = GetProxyCopyValue(p);
             func_001C7C30(plo->x100, 1);
             ((void (*)(void *))plo->vt[9].pf)((char *)plo + plo->vt[9].d);
-            func_001618B0(pg);
+            RestartHudWidget2(pg);
         }
     }
     SetDprizeDprizes(p, n);
@@ -2358,12 +2358,12 @@ extern "C" {
  }
 extern "C" {
 int IlevelCur__Fv(void);
-void *func_002109B8(int n);
-int PkeyConcatSaveKeys(void *p, X *px);
+void *GetLevelListEntry(int n);
+int ConcatSaveKeys(void *p, X *px);
 int FVaultOpened(void);
-short NFindSaveSymbol(int *p, char *s);
+short FindSaveSymbol(int *p, char *s);
 }
-inline short B::Find(char *s) { return NFindSaveSymbol(&c, s); }
+inline short B::Find(char *s) { return FindSaveSymbol(&c, s); }
 /** @sly2-annot addr=0x1C8090
  * Purpose: query save-data flag 'fVault' for the level
  * Info: proposed name FVaultOpened (T1); TU prize
@@ -2379,7 +2379,7 @@ int FVaultOpened(void)
     s = (*(B *)&g_sw.savevars).Find("fVault");
     x.c = 1;
     x.ps = &s;
-    return PkeyConcatSaveKeys(func_002109B8(n), &x);
+    return ConcatSaveKeys(GetLevelListEntry(n), &x);
 }
 } // namespace M_FVaultOpened
 
@@ -2417,7 +2417,7 @@ void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
 void Decref__4CRef(void *p);
 void *__4CRefRC4CRef(void *p, const void *q);
 void *FVaultOpened(void);
-void func_001ABD98(void *p, int n);
+void AutosaveGame(void *p, int n);
 }
 struct CRef {
     int m_tagk; int m_tag;
@@ -2450,7 +2450,7 @@ void func_001C8188(int f)
     if (!pv) return;
     if (f) {
         if (NFromPv(pv,ref) == 0)
-            func_001ABD98(D_002E65E0, 0);
+            AutosaveGame(D_002E65E0, 0);
     }
     { CRef r(f!=0);SetPv(pv,r); }
 }
@@ -2641,9 +2641,9 @@ void func_001C8918(struct S *p, int n);
 void ReleaseSwLetterbox(void *p);
 void SetPowerupAcquired(int n, int f);
 int StartDialog(void *p, void *q, int f);
-void func_0020F198(void *p);
+void IncrementSwInputLock(void *p);
 void AcquireSwLetterbox(void *p);
-void func_0020F1A8(void *p);
+void DecrementSwInputLock(void *p);
 void FireRelay(void *p, struct LO *q);
 /** @sly2-annot addr=0x1C8730
  * Purpose: state transition (camera/sound/hands-off)
@@ -2675,7 +2675,7 @@ void func_001C8730(struct S *p, int n)
         break;
     case 0:
         if (p->x190)
-            func_0020F198(D_003DD490);
+            IncrementSwInputLock(D_003DD490);
         break;
     }
     p->x180 = n;
@@ -2699,7 +2699,7 @@ void func_001C8730(struct S *p, int n)
         if (q) {
             ((void (*)(void *, int))q->vt[79].pf)((char *)q + q->vt[79].d, 1);
             p->x190 = 0;
-            func_0020F1A8(D_003DD490);
+            DecrementSwInputLock(D_003DD490);
         }
         break;
     }
@@ -2789,7 +2789,7 @@ struct H;
 extern struct H D_003DD040;
 struct S { char pad[0x190]; int n190; char pad2[0x64]; int n1f8; };
 void func_001C8730(struct S *p, int n);
-void func_001618B0(struct G *pg);
+void RestartHudWidget2(struct G *pg);
 void StartDialog(struct H *ph, int n, int m);
 /** @sly2-annot addr=0x1C8AF0
  * Purpose: calls SetVaultState
@@ -2804,7 +2804,7 @@ void func_001C8AF0(struct S *p, int n)
         p->n190 = n;
         func_001C8730(p, 1);
     } else {
-        func_001618B0(pg);
+        RestartHudWidget2(pg);
         if (p->n1f8 != -1) StartDialog(&D_003DD040, p->n1f8, 1);
     }
 }

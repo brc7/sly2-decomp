@@ -44,13 +44,13 @@ struct XFM : public LO
     virtual void LoadFromBrx(CBinaryInputStream *pbis) __asm__("LoadXfmFromBrx");   /* slot 14 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateXfmToPos");   /* slot 29 */
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateXfmToMat");   /* slot 30 */
-    virtual XF *PxfLocal(MATRIX4 *pmatLocal) __asm__("func_00231550");   /* slot 32 */
-    virtual qword GetVelocity() __asm__("func_00231468");   /* slot 33 */
-    virtual qword GetAngularVelocity() __asm__("func_002314D0");   /* slot 34 */
-    virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("func_00231598");   /* slot 37 */
+    virtual XF *PxfLocal(MATRIX4 *pmatLocal) __asm__("XFM_GetLocalTransform");   /* slot 32 */
+    virtual qword GetVelocity() __asm__("GetXfmVelocity");   /* slot 33 */
+    virtual qword GetAngularVelocity() __asm__("GetXfmAngularVelocity");   /* slot 34 */
+    virtual void ApplyProxy(MATRIX4 *pmatProxy) __asm__("XFM_ApplyTransform");   /* slot 37 */
     virtual void Clone(LO *ploBase) __asm__("CloneXfm");   /* slot 41 */
     virtual void VSlot49() __asm__("func_0022D750");   /* slot 49: not yet identified */
-    virtual void VSlot50() __asm__("func_00231220");   /* slot 50: not yet identified */
+    virtual void VSlot50() __asm__("XFM_RemapClonedXf");   /* slot 50: not yet identified */
 };
 typedef char assert_XFM_size[sizeof(XFM) == 0xE0 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */
 typedef char assert_XFM_matWorld[SLY2_OFFSETOF(XFM, matWorld) == 0xA0 ? 1 : -1];   /* translation at +0xD0 (CONFIRMED runtime) */
@@ -126,7 +126,7 @@ struct PROXY : public XFM
     virtual void Init() __asm__("InitProxy");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetProxyClassDesc");   /* slot 6 */
     virtual void Unfreeze() __asm__("OnProxyAdd");   /* slot 23 */
-    virtual void VUnk23() __asm__("func_001CB6D8");   /* slot 24 */
+    virtual void VUnk23() __asm__("PROXY_ReleaseSpares");   /* slot 24 */
     virtual void Clone(LO *ploBase) __asm__("CloneProxy");   /* slot 41 */
 };
 typedef char assert_PROXY_size[sizeof(PROXY) == 0x100 ? 1 : -1];   /* class descriptor cb (CONFIRMED runtime: types/cid_table.csv) */

@@ -53,7 +53,7 @@ void UpdateShaders(void);
 void UpdateSave__FP4SAVE(void *pv);
 void UpdateSndmgr(void *pv);
 void UpdateCmLast__FP2CM(void *pv);
-void func_0020F7E0(SWVIEW *p);
+void UpdateSwTimerHud(SWVIEW *p);
 void CGc_UpdateRecyclable(void *pv);
 }
 
@@ -110,7 +110,7 @@ void SW::Update()
     UpdateSndmgr(D_003DD040);
     if (0.0f < D_002DDED0.dtCm)
         UpdateCmLast__FP2CM(D_002DDF40);
-    func_0020F7E0(p);
+    UpdateSwTimerHud(p);
     CGc_UpdateRecyclable(g_gc);
 }
 

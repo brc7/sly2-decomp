@@ -129,15 +129,15 @@ CRef *CRef_SetLm(CRef *pref, const void *plm);
 CRef *CRef_SetSmp(CRef *pref, const void *psmp);
 
 void ResetGsIfSchemaChanged(SVSTORE *psvstore, SVSET *psvset);
-int FGsMatchesSchema(SVSTORE *psvstore, SVSET *psvset);
-int FFindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind);
-void *PvFromSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
+int DoesGsMatchSchema(SVSTORE *psvstore, SVSET *psvset);
+int FindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind);
+void *GetSaveVarAddress(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
 CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset);
 CRef RefSetSaveVar(SVSTORE *psvstore, SVKEY *pkey, const CRef &ref, SVSET *psvset);
 void InitSaveSymbolTable(SVSYMTAB *psymtab, int csym);
-unsigned int UHashPchzCi(const char *pchz);
+unsigned int HashStringCaseInsensitive(const char *pchz);
 void AddSaveSymbol(SVSYMTAB *psymtab, char *pchz, int symid);
-int NFindSaveSymbol(SVSYMTAB *psymtab, const char *pchz);
+int FindSaveSymbol(SVSYMTAB *psymtab, const char *pchz);
 void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey);
 }
 
@@ -153,7 +153,7 @@ static inline int SumAb(unsigned char *pb, unsigned int cb)
     return sum;
 }
 
-static inline int NFindSymbol(SVSTORE *psvstore, const char *pchz) { return NFindSaveSymbol(&psvstore->symtab, pchz); }
+static inline int NFindSymbol(SVSTORE *psvstore, const char *pchz) { return FindSaveSymbol(&psvstore->symtab, pchz); }
 
 /** @sly2-annot addr=0x1D7B88
  * Purpose: Load save-variable schema: U16 symbol count -> hash table of (U16 id, string) names; U16 entry
@@ -215,13 +215,13 @@ extern "C" void ResetGsIfSchemaChanged(SVSTORE *psvstore, SVSET *psvset)
 
 /** @sly2-annot addr=0x1D7D30
  * Purpose: True if GS stored version/checksum (+0x5400/+0x5404) equal schema's
- * Info: proposed name FGsMatchesSchema (T1); TU save
+ * Info: proposed name DoesGsMatchSchema (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // True when the save blob's stored schema version and checksum match the loaded schema.
-extern "C" int FGsMatchesSchema(SVSTORE *psvstore, SVSET *psvset)
+extern "C" int DoesGsMatchSchema(SVSTORE *psvstore, SVSET *psvset)
 {
     int sum = SumAb((unsigned char *)psvstore->aent, psvstore->cent * 10);
     return *(unsigned short *)((unsigned char *)psvstore->aent + psvstore->cent * 10 - 6) == psvset->nSchema &&
@@ -231,14 +231,14 @@ extern "C" int FGsMatchesSchema(SVSTORE *psvstore, SVSET *psvset)
 /** @sly2-annot addr=0x1D7DA0
  * Purpose: Walk the schema trie (10-byte ENT {short sym; s8 kind; u8 bits; u16 ib; u16 child; u16 sibling})
  *   along a key of symbol ids; outputs entry + array index
- * Info: proposed name FFindSaveVar (T1); TU save
+ * Info: proposed name FindSaveVar (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Walks the schema trie along a key (symbol ids, numbers as array indices) and returns the entry and array index;
 // false when the key does not name a variable.
-extern "C" int FFindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind)
+extern "C" int FindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind)
 {
     SVENT *aent = psvstore->aent;
     SVENT *pent;
@@ -281,16 +281,16 @@ extern "C" int FFindSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVFIND *pfind)
 
 /** @sly2-annot addr=0x1D7E80
  * Purpose: Address of a save var in a GS blob: pb + ib + index*size[kind]
- * Info: proposed name PvFromSaveVar (T1); TU save
+ * Info: proposed name GetSaveVarAddress (T1); TU save
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Returns the address of a save variable in a save blob (blob + offset + index * size of its kind).
-extern "C" void *PvFromSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
+extern "C" void *GetSaveVarAddress(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
 {
     SVFIND find;
-    FFindSaveVar(psvstore, pkey, &find);
+    FindSaveVar(psvstore, pkey, &find);
     return (char *)psvset + (find.pent->ib + find.i * D_002C2D90[find.pent->kind]);
 }
 
@@ -310,7 +310,7 @@ CRef RefGetSaveVar(SVSTORE *psvstore, SVKEY *pkey, SVSET *psvset)
     CRef ref;
     SVFIND find;
     SVENT *pent;
-    if (!FFindSaveVar(psvstore, pkey, &find) || (pent = find.pent)->kind == -1)
+    if (!FindSaveVar(psvstore, pkey, &find) || (pent = find.pent)->kind == -1)
         return ref;
     {
         unsigned char *pv = (unsigned char *)psvset + pent->ib;
@@ -373,7 +373,7 @@ CRef RefSetSaveVar(SVSTORE *psvstore, SVKEY *pkey, const CRef &refVal, SVSET *ps
     CRef ref(0x24);
     SVFIND find;
     SVENT *pent;
-    if (!FFindSaveVar(psvstore, pkey, &find) || (pent = find.pent)->kind == -1)
+    if (!FindSaveVar(psvstore, pkey, &find) || (pent = find.pent)->kind == -1)
         return ref;
     {
         unsigned char *pv = (unsigned char *)psvset + pent->ib;
@@ -439,7 +439,7 @@ static inline int NClamp(int n, int nMin, int nMax)
 /** @sly2-annot addr=0x1D82B8
  * Purpose: Game completion percent: weighted sum of 9 progress vars (weights D_002C2DC0) plus 0x1A per set
  *   'fVault' bool/bit; returns 0 / 100 / clamp(1..99)
- * Info: proposed name NCompletionPercentGs (T1); TU save
+ * Info: proposed name GetCompletionPercent (T1); TU save
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r6_1D5150+verdicts_tu_r4r6
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/main-loop-startup.md#cheat-0x14bea8-0x14c548,
@@ -447,7 +447,7 @@ static inline int NClamp(int n, int nMin, int nMax)
  * @end-sly2-annot */
 // The game completion percentage: a weighted sum of nine progress variables plus a bonus per vault flag; 0, 100 or
 // clamped to 1..99.
-extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
+extern "C" int GetCompletionPercent(SVSTORE *psvstore, SVSET *psvset)
 {
     int sum = 0;
     int total = 0;
@@ -461,7 +461,7 @@ extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
         if (pkey)
             sum += NGetSaveVar(pkey, psvset) * w;
     }
-    symid = NFindSaveSymbol(&psvstore->symtab, D_002A78F0);
+    symid = FindSaveSymbol(&psvstore->symtab, D_002A78F0);
     total += 0xD0;
     for (int ient = 0; ient < psvstore->cent; ient++)
     {
@@ -506,7 +506,7 @@ extern "C" int NCompletionPercentGs(SVSTORE *psvstore, SVSET *psvset)
  * @end-sly2-annot */
 // Builds the memory card mask: copies the save blob into a buffer, then flags the bytes of every entry tagged
 // "from_memcard". (inferred)
-extern "C" void func_001D84B0(SVSTORE *psvstore, SVSET *psvset)
+extern "C" void BuildMemcardGsMask(SVSTORE *psvstore, SVSET *psvset)
 {
     int symid;
     int i;
@@ -542,13 +542,13 @@ static inline int ChUpper(int ch) { return (D_002AA6A1[ch] & 2) ? ch - 0x20 : ch
 
 /** @sly2-annot addr=0x1D8640
  * Purpose: Case-insensitive string hash h=h*33+toupper(c)
- * Info: proposed name UHashPchzCi (T1); TU save
+ * Info: proposed name HashStringCaseInsensitive (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Case-insensitive string hash (h = h * 33 + toupper(c)).
-extern "C" unsigned int UHashPchzCi(const char *pchz)
+extern "C" unsigned int HashStringCaseInsensitive(const char *pchz)
 {
     const unsigned char *pch = (const unsigned char *)pchz;
     int hash = 0;
@@ -571,7 +571,7 @@ extern "C" unsigned int UHashPchzCi(const char *pchz)
 // Adds a (name, symbol id) pair to the 53-bucket save symbol hash table.
 extern "C" void AddSaveSymbol(SVSYMTAB *psymtab, char *pchz, int symid)
 {
-    unsigned int hash = UHashPchzCi(pchz);
+    unsigned int hash = HashStringCaseInsensitive(pchz);
     unsigned int ihash = hash % 0x35;
     SVSYM *psym = &psymtab->asym[psymtab->csym - 1];
     psymtab->csym--;
@@ -584,15 +584,15 @@ extern "C" void AddSaveSymbol(SVSYMTAB *psymtab, char *pchz, int symid)
 
 /** @sly2-annot addr=0x1D8720
  * Purpose: Lookup name -> symbol id in 53-bucket hash (strcmp-ish 0x2342D0), -1 if absent
- * Info: proposed name NFindSaveSymbol (T1); TU save
+ * Info: proposed name FindSaveSymbol (T1); TU save
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#5-key-functions,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Returns the symbol id of a name in the save symbol table, or -1.
-extern "C" int NFindSaveSymbol(SVSYMTAB *psymtab, const char *pchz)
+extern "C" int FindSaveSymbol(SVSYMTAB *psymtab, const char *pchz)
 {
-    unsigned int hash = UHashPchzCi(pchz);
+    unsigned int hash = HashStringCaseInsensitive(pchz);
     SVSYM *psym;
     for (psym = psymtab->apsym[hash % 0x35]; psym; psym = psym->psymNext)
     {
@@ -641,12 +641,12 @@ extern "C" void BuildSaveKeyV(const char *pchz, VA_LIST ap, SVKEY *pkey)
 /** @sly2-annot addr=0x1D88D0
  * Purpose: Varargs: allocate a key (8 B header) with 0x1AE1D0 allocator then move its id array via 0x1AE238
  *   (realloc-like)
- * Info: proposed name PkeyNewSaveKey (T1); TU save
+ * Info: proposed name NewSaveKey (T1); TU save
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Builds a key from a varargs list of strings on the heap.
-extern "C" SVKEY *PkeyNewSaveKey(const char *pchz, ...)
+extern "C" SVKEY *NewSaveKey(const char *pchz, ...)
 {
     STACKSCOPE stackscope;
     MEMREQ memreq;
@@ -669,12 +669,12 @@ extern "C" SVKEY *PkeyNewSaveKey(const char *pchz, ...)
 
 /** @sly2-annot addr=0x1D89A8
  * Purpose: Varargs: allocate a key in slot heap (PvAllocSlot) and fill via BuildSaveKeyV
- * Info: proposed name PkeyAllocSaveKey (T1); TU save
+ * Info: proposed name AllocSaveKey (T1); TU save
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Builds a key from a varargs list of strings in a slot-heap allocation.
-extern "C" SVKEY *PkeyAllocSaveKey(const char *pchz, ...)
+extern "C" SVKEY *AllocSaveKey(const char *pchz, ...)
 {
     MEMREQ memreq;
     VA_LIST ap;
@@ -740,13 +740,13 @@ extern "C" CRef RefSetSaveVarV(const CRef &refVal, const char *pchz, ...)
 
 /** @sly2-annot addr=0x1D8C10
  * Purpose: Varargs: address of a named save var inside g_gs
- * Info: proposed name PvSaveVarV (T1); TU save
+ * Info: proposed name GetSaveVarAddressV (T1); TU save
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
  * See: docs/engine/save-memcard.md#1-the-save-blob-g_gs-savecpp-0x1d7b88-0x1d93d8,
  *   docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Returns the address of the named save variable (varargs path) in the global save blob.
-extern "C" void *PvSaveVarV(const char *pchz, ...)
+extern "C" void *GetSaveVarAddressV(const char *pchz, ...)
 {
     CRef ref;
     STACKSCOPE stackscope;
@@ -754,17 +754,17 @@ extern "C" void *PvSaveVarV(const char *pchz, ...)
     VA_LIST ap;
     VA_START(ap, pchz);
     BuildSaveKeyV(pchz, ap, &key.key);
-    return PvFromSaveVar((SVSTORE *)&g_sw.savevars, &key.key, &D_003D4A60);
+    return GetSaveVarAddress((SVSTORE *)&g_sw.savevars, &key.key, &D_003D4A60);
 }
 
 /** @sly2-annot addr=0x1D8CC8
  * Purpose: Allocate a new key = concatenation of two keys' id arrays
- * Info: proposed name PkeyConcatSaveKeys (T1); TU save
+ * Info: proposed name ConcatSaveKeys (T1); TU save
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r6_1D5150
  * See: docs/reference/functions/save-memcard.md#save-0x1d7b88-0x1d93d8
  * @end-sly2-annot */
 // Returns a new key: the concatenation of two keys.
-extern "C" SVKEY *PkeyConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
+extern "C" SVKEY *ConcatSaveKeys(SVKEY *pkey1, SVKEY *pkey2)
 {
     MEMREQ memreq;
     SVKEY *pkey;
@@ -797,7 +797,7 @@ static inline CRef RefSetGlobal(SVKEY *pkey, CRef *pref, SVSET *psvset) { return
 // Clears the save blob and the rumble variable; when keepSettings is set and the blob matches the schema, the eleven
 // settings variables survive the clear.
 /* Reset the save blob, keeping the settings variables when the blob matches the schema. */
-extern "C" void func_001D8D80(SVSET *psvset, int fKeepSettings)
+extern "C" void ResetSaveGs(SVSET *psvset, int fKeepSettings)
 {
     STACKSCOPE stackscope;
     SVKEY *apkey[11] = { (SVKEY *)g_sw.psvpLang, (SVKEY *)g_sw.psvpNoVibration, (SVKEY *)g_sw.psvpAutosaveWarned,
@@ -806,7 +806,7 @@ extern "C" void func_001D8D80(SVSET *psvset, int fKeepSettings)
                          (SVKEY *)g_sw.psvpScreenCenterX, (SVKEY *)g_sw.psvpScreenCenterY };
     CRef aref[11];
     unsigned int i;
-    if (fKeepSettings && !FGsMatchesSchema((SVSTORE *)&g_sw.savevars, psvset))
+    if (fKeepSettings && !DoesGsMatchSchema((SVSTORE *)&g_sw.savevars, psvset))
         fKeepSettings = 0;
     if (fKeepSettings)
     {

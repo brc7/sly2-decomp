@@ -83,7 +83,7 @@ void func_001FE5B8(void *p, int a, int b);
 void func_0014D1D0(CLOCKV *p, int a, float g);
 void IncrementSwHandsOff(void *p, int a);
 void DecrementSwHandsOff(void *p, int a);
-int func_001A61A0(P *p);
+int IsLoInWorld(P *p);
 void AppendDlEntry__FP2DLPv(void *p, X14 *px);
 void SetAsegaMasterSpeed(ASEGA *p, float g);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *p, int k, int oid, void *q);
@@ -215,7 +215,7 @@ extern "C" void func_00147410(P *p, int state)
         func_0014D1D0(&D_002DDED0, 8, 0.0f);
         IncrementSwHandsOff(D_003DD490, 0);
         p->vt[8].pfn((char *)p + p->vt[8].d);
-        if (!func_001A61A0(p)) {
+        if (!IsLoInWorld(p)) {
             LOV *plo;
             AppendDlEntry__FP2DLPv(D_003DD490 + 0x2C, p->px14);
             plo = p->px14->plo;

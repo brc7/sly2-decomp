@@ -94,7 +94,7 @@ void func_001BE6F0(RT *prt, VIFS *pvifs);
 RT *func_001BEB28(RTCAM *pcam);
 void InitXfm(RTCAM *pcam);
 void LoadXfmFromBrx(RTCAM *pcam, void *pbis);
-int func_001A61A0(LOV *plo);
+int IsLoInWorld(LOV *plo);
 void func_00169198(void *pv, RTCAM *pcam);
 POV *PpoHero(SW *psw);
 }
@@ -360,7 +360,7 @@ extern "C" RT *func_001BEB28(RTCAM *p)
             if (((int)(o->x28 >> 60) & 1) == 0) {   /* `== 0`, not `!`: see the merge guide (C++ bool) */
                 p->af[j] = 1;
                 ((void (*)(void *))o->vt[8].pfn)((char *)o + o->vt[8].d);
-                if (!func_001A61A0(o)) {
+                if (!IsLoInWorld(o)) {
                     LOV *q;
                     AppendDlEntry(&g_sw.dlBusy, o->ploroot);
                     q = o->ploroot->plo;

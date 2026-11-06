@@ -148,7 +148,7 @@ extern const float D_002A513C;   /* defined below where the ELF has it (.rodata 
 HERO *PpoHero(void *p);
 extern char D_002DE578[];
 M3 *GetLoWorldMatrix(void *p);
-float GGetDifficulty(void *p);
+float GetDifficulty(void *p);
 VUV func_00256CE8(float g) __asm__("__8VU_FLOATf+0");   /* VU_FLOAT(float); +0: a plain label would make g++ emit this file's inline constructor under that name */
 VUV __9VU_VECTORRC6VECTOR(VECTORV *pv);
 qwordV VecComboQ(qwordV a, qwordV b, qwordV c, qwordV d) __asm__("VecCombo__FG8VU_FLOATG9VU_VECTORT0T1");   /* VecCombo below, called with plain quadwords */
@@ -658,7 +658,7 @@ extern "C" qwordV func_00155FB0(void *p, qwordV pos)
 {
     HERO *pso = PpoHero(D_003DD490);
     float dist = Len(VuSub(GetLoWorldPos(pso), pos));
-    float u = GGetDifficulty(D_002DE578);
+    float u = GetDifficulty(D_002DE578);
     qwordV posTarget = AddScaled(GetLoWorldPos(pso), g_normalZ, VU_FLOAT(50.0f));
     VUV off;
     VECTORV clq;

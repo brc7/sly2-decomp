@@ -503,8 +503,8 @@ struct WIDGET131 : WIDGET
     char pad110[0x140 - 0x110];
     virtual void Init() __asm__("func_0015CD68");   /* slot 7 */
     virtual CLASSINFO *Pclassinfo() __asm__("GetWidget131ClassDesc");   /* slot 6 */
-    virtual void VUnk14() __asm__("func_0015CDA8");   /* slot 15 */
-    virtual void VUnk15() __asm__("func_0015CF30");   /* slot 16 */
+    virtual void VUnk14() __asm__("PostEpisodeMenuLoad");   /* slot 15 */
+    virtual void VUnk15() __asm__("UpdateEpisodeMenu");   /* slot 16 */
 };
 typedef char assert_WIDGET131_size[sizeof(WIDGET131) == 0x140 ? 1 : -1];
 

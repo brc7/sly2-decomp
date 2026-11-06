@@ -6,14 +6,14 @@
  * descriptor table D_002BAAE8 (definition order is section order). Values from the ELF, written once by a converter
  * (docs/guides/tu-merging.md, "The crt0_splicewrap tables"); this file is the source now and is edited like any other.
  *
- * Layout (spliceobj.cpp's PeopidFind, brx.cpp's LoadOptionsFromBrx, sly2/eopid.h):
+ * Layout (spliceobj.cpp's FindOptionRecord, brx.cpp's LoadOptionsFromBrx, sly2/eopid.h):
  *  - g_aeopid D_002AC880[1449]: one EOPID per option binding (sly2/eopid.h: otyp, grfeopid, then four 8-byte words:
  *    get +0x8, set +0x10, file/argument count +0x18, object +0x20). A word is g++ 2.95's pointer to member function
  *    {short delta; short index; pfn or short delta2} (index -1: non-virtual, the word after is the function; else
  *    the vtable index and delta2), a Splice thunk (a function pointer, then 0), or a number (byte offset, count).
  *    EOPID's unions cannot be brace-initialized past their first member, so the table uses a row of the same
  *    layout with plain words (EOPIDROW, as D_002BAAE8 uses CLASSROW) and one macro per word kind below.
- *  - D_<addr>: the option array of one class, {option id, record} sorted by option id (PeopidFind's binary search),
+ *  - D_<addr>: the option array of one class, {option id, record} sorted by option id (FindOptionRecord's binary search),
  *    the class's own options merged with every base class's; 199 arrays in CID order.
  *  - g_mpcidarysplopt D_00279AD0[199]: {count, array} per CID.
  * The arrays are global (extern), not static: g++ emits file-static data at the end of the TU, which would put the
@@ -34,19 +34,19 @@ void AddDetectorTarget() __asm__("AddDetectorTarget");
 void AddSensorNoTriggerClass() __asm__("AddSensorNoTriggerClass");
 void AddSensorNoTriggerObject() __asm__("AddSensorNoTriggerObject");
 void AddVolbtnPushObject() __asm__("AddVolbtnPushObject");
-void CidBasic() __asm__("CidBasic");
+void GetBasicCid() __asm__("GetBasicCid");
 void FAsegaRetracted() __asm__("FAsegaRetracted");
-void FIsCurrentJob() __asm__("FIsCurrentJob");
-void FIsCurrentTask() __asm__("FIsCurrentTask");
+void IsCurrentJob() __asm__("IsCurrentJob");
+void IsCurrentTask() __asm__("IsCurrentTask");
 void FIsPoActive() __asm__("FIsPoActive");
 void FIsPoCur() __asm__("FIsPoCur");
-void FJobComplete() __asm__("FJobComplete");
+void IsJobComplete() __asm__("IsJobComplete");
 void FPausedEmitter__FP7EMITTER() __asm__("FPausedEmitter__FP7EMITTER");
 void FReconTargetDone() __asm__("FReconTargetDone");
 void FRelayFiring() __asm__("FRelayFiring");
 void FStepplayerInJtmode() __asm__("FStepplayerInJtmode");
-void FSwHandsOff() __asm__("FSwHandsOff");
-void FTaskComplete() __asm__("FTaskComplete");
+void IsSwHandsOff() __asm__("IsSwHandsOff");
+void IsTaskComplete() __asm__("IsTaskComplete");
 void GetCmRotDeg() __asm__("GetCmRotDeg");
 void GetPoCtlState() __asm__("GetPoCtlState");
 void GetSmaGoal() __asm__("GetSmaGoal");
@@ -58,8 +58,8 @@ void GetTnFocusX() __asm__("GetTnFocusX");
 void GetWrWavelength() __asm__("GetWrWavelength");
 void IdBootyCur() __asm__("IdBootyCur");
 void MpStepplayerCur() __asm__("MpStepplayerCur");
-void OidFromTaskState() __asm__("OidFromTaskState");
-void OidProxyLo() __asm__("OidProxyLo");
+void GetTaskStateGoalOid() __asm__("GetTaskStateGoalOid");
+void GetLoProxyOid() __asm__("GetLoProxyOid");
 void PdetectorGetStepguard() __asm__("PdetectorGetStepguard");
 void PemitterEnsureEmitter__FP7EMITTER4ENSK() __asm__("PemitterEnsureEmitter__FP7EMITTER4ENSK");
 void PpoCur() __asm__("PpoCur");
@@ -557,7 +557,7 @@ void func_00110838() __asm__("func_00110838");
 void func_001108E0() __asm__("func_001108E0");
 void func_00110998() __asm__("func_00110998");
 void func_0012EE78() __asm__("func_0012EE78");
-void func_00132ED0() __asm__("func_00132ED0");
+void GetBasicSelf() __asm__("GetBasicSelf");
 void func_0013BC60() __asm__("func_0013BC60");
 void func_0013C4D8() __asm__("func_0013C4D8");
 void func_00144068() __asm__("func_00144068");
@@ -569,7 +569,7 @@ void func_001497E0() __asm__("func_001497E0");
 void func_00149848() __asm__("func_00149848");
 void func_00156870() __asm__("func_00156870");
 void func_0015C650() __asm__("func_0015C650");
-void func_001628B0() __asm__("func_001628B0");
+void JobOptionNoOp() __asm__("JobOptionNoOp");
 void func_001732E0() __asm__("func_001732E0");
 void func_00173318() __asm__("func_00173318");
 void func_00173358() __asm__("func_00173358");
@@ -587,11 +587,11 @@ void func_001A3680() __asm__("func_001A3680");
 void func_001A36D8() __asm__("func_001A36D8");
 void GetLoWorldPos() __asm__("GetLoWorldPos");
 void GetLoWorldMatrix() __asm__("GetLoWorldMatrix");
-void func_001A6340() __asm__("func_001A6340");
-void func_001A63B0() __asm__("func_001A63B0");
+void GetLoEulerDegrees() __asm__("GetLoEulerDegrees");
+void SetLoEulerDegrees() __asm__("SetLoEulerDegrees");
 void GetLoBusyk() __asm__("GetLoBusyk");
-void func_001A6E38() __asm__("func_001A6E38");
-void func_001A6E70() __asm__("func_001A6E70");
+void SetLoOwnVisMask() __asm__("SetLoOwnVisMask");
+void HasLoOwnVisMask() __asm__("HasLoOwnVisMask");
 void func_001B1328() __asm__("func_001B1328");
 void func_001BBA60() __asm__("func_001BBA60");
 void func_001BBA90() __asm__("func_001BBA90");
@@ -607,9 +607,9 @@ void func_001C4A60() __asm__("func_001C4A60");
 void func_001C7A40() __asm__("func_001C7A40");
 void func_001C7A58() __asm__("func_001C7A58");
 void func_001C7B10() __asm__("func_001C7B10");
-void func_001CB2E0() __asm__("func_001CB2E0");
-void func_001CB360() __asm__("func_001CB360");
-void func_001CB658() __asm__("func_001CB658");
+void GetProxyCurrentObject() __asm__("GetProxyCurrentObject");
+void GetProxyCopyObjects() __asm__("GetProxyCopyObjects");
+void GetProxyCopyValue() __asm__("GetProxyCopyValue");
 void func_001E0128() __asm__("func_001E0128");
 void func_001E0158() __asm__("func_001E0158");
 void func_001E01C8() __asm__("func_001E01C8");
@@ -675,8 +675,8 @@ void func_0020A518() __asm__("func_0020A518");
 void func_0020A540() __asm__("func_0020A540");
 void func_0020A9C0() __asm__("func_0020A9C0");
 void func_0020AF08() __asm__("func_0020AF08");
-void func_0020F2B8() __asm__("func_0020F2B8");
-void func_00210978() __asm__("func_00210978");
+void SetSwIllumHsv() __asm__("SetSwIllumHsv");
+void SetSwUnknown3EA8() __asm__("SetSwUnknown3EA8");
 void func_00221818() __asm__("func_00221818");
 void func_00221948() __asm__("func_00221948");
 void func_00224610() __asm__("func_00224610");
@@ -730,8 +730,8 @@ typedef char assert_EOPIDROW_size[sizeof(EOPIDROW) == 0x28 ? 1 : -1];
 
 /* g_aeopid (.data). */
 EOPIDROW D_002AC880[1449] = {
-    {7, 4, EOPID_PMF(CidBasic), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [0] opt 1, BASIC (+198) */
-    {0x2000, 4, EOPID_PMF(func_00132ED0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1] opt 2, BASIC (+198) */
+    {7, 4, EOPID_PMF(GetBasicCid), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [0] opt 1, BASIC (+198) */
+    {0x2000, 4, EOPID_PMF(GetBasicSelf), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1] opt 2, BASIC (+198) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunkBasicDERIVED_FROMQ), EOPID_INT(1), EOPID_NONE}, /* [2] opt 3, BASIC (+198) */
     {0x12, 0x401, EOPID_FN(RefThunkBasicCUSTOM_BOOL_PROPERTY), EOPID_FN(RefThunkBasicCUSTOM_BOOL_PROPERTY), EOPID_INT(2), EOPID_NONE}, /* [3] opt 4, BASIC (+198) */
     {0x12, 0x401, EOPID_FN(RefThunkBasicCUSTOM_INT_PROPERTY), EOPID_FN(RefThunkBasicCUSTOM_INT_PROPERTY), EOPID_INT(2), EOPID_NONE}, /* [4] opt 5, BASIC (+198) */
@@ -746,14 +746,14 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x122, EOPID_INT(0x38), EOPID_VPMF(0x2B, 0xC), EOPID_VPMF(0x2B, 0xC), EOPID_NONE}, /* [13] opt 14, LO (+131) */
     {0x1008, 0x124, EOPID_PMF(GetLoBusyk), EOPID_PMF(SetLoBusyk), EOPID_PMF(SetLoBusyk), EOPID_NONE}, /* [14] opt 15, LO (+131) */
     {6, 2, EOPID_INT(0x18), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [15] opt 28, LO (+131) */
-    {6, 4, EOPID_PMF(OidProxyLo), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [16] opt 29, LO (+131) */
+    {6, 4, EOPID_PMF(GetLoProxyOid), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [16] opt 29, LO (+131) */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunkLoMATCHES_NAMEQ), EOPID_INT(1), EOPID_NONE}, /* [17] opt 30, LO (+131) */
-    {0x2006, 4, EOPID_PMF(func_001CB658), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [18] opt 31, LO (+131) */
+    {0x2006, 4, EOPID_PMF(GetProxyCopyValue), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [18] opt 31, LO (+131) */
     {0x2030, 2, EOPID_INT(0x10), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [19] opt 32, LO (+131) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_SetLoParent), EOPID_INT(2), EOPID_NONE}, /* [20] opt 33, LO (+131) */
     {2, 0x24, EOPID_PMF(GetLoWorldPos), EOPID_VPMF(0x1E, 0xC), EOPID_NONE, EOPID_NONE}, /* [21] opt 34, LO (+131) */
     {4, 0x24, EOPID_PMF(GetLoWorldMatrix), EOPID_VPMF(0x1F, 0xC), EOPID_NONE, EOPID_NONE}, /* [22] opt 35, LO (+131) */
-    {2, 0x24, EOPID_PMF(func_001A6340), EOPID_PMF(func_001A63B0), EOPID_NONE, EOPID_NONE}, /* [23] opt 36, LO (+131) */
+    {2, 0x24, EOPID_PMF(GetLoEulerDegrees), EOPID_PMF(SetLoEulerDegrees), EOPID_NONE, EOPID_NONE}, /* [23] opt 36, LO (+131) */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_00100A00), EOPID_INT(1), EOPID_NONE}, /* [24] opt 37, LO (+131) */
     {0x12, 0x4401, EOPID_FN(RefThunkLoADD), EOPID_FN(RefThunkLoADD), EOPID_NONE, EOPID_NONE}, /* [25] opt 39, LO (+131) */
     {0x12, 0x4401, EOPID_FN(RefThunkLoREMOVEFnUser), EOPID_FN(RefThunkLoREMOVEFn), EOPID_NONE, EOPID_NONE}, /* [26] opt 40, LO (+131) */
@@ -762,7 +762,7 @@ EOPIDROW D_002AC880[1449] = {
     {2, 0x124, EOPID_VPMF(0x22, 0xC), EOPID_VPMF(0x24, 0xC), EOPID_VPMF(0x24, 0xC), EOPID_NONE}, /* [29] opt 63, LO (+131) */
     {2, 0x124, EOPID_VPMF(0x23, 0xC), EOPID_VPMF(0x25, 0xC), EOPID_VPMF(0x25, 0xC), EOPID_NONE}, /* [30] opt 64, LO (+131) */
     {5, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [31] opt 65, LO (+131) */
-    {0, 0x104, EOPID_PMF(func_001A6E70), EOPID_NONE, EOPID_PMF(func_001A6E38), EOPID_NONE}, /* [32] opt 67, LO (+131) */
+    {0, 0x104, EOPID_PMF(HasLoOwnVisMask), EOPID_NONE, EOPID_PMF(SetLoOwnVisMask), EOPID_NONE}, /* [32] opt 67, LO (+131) */
     {0x1001, 0x120, EOPID_NONE, EOPID_PMF(SetSoCnstrForce), EOPID_PMF(SetSoCnstrForce), EOPID_NONE}, /* [33] opt 69, SO (+60) */
     {0x1001, 0x120, EOPID_NONE, EOPID_PMF(SetSoCnstrTorque), EOPID_PMF(SetSoCnstrTorque), EOPID_NONE}, /* [34] opt 70, SO (+60) */
     {2, 0x124, EOPID_PMF(GetSoDvGravity), EOPID_PMF(SetSoDvGravity), EOPID_PMF(SetSoDvGravity), EOPID_NONE}, /* [35] opt 71, SO (+60) */
@@ -1644,15 +1644,15 @@ EOPIDROW D_002AC880[1449] = {
     {6, 0x2002, EOPID_INT(4), EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001C7B10)}, /* [911] opt 832, LOOT */
     {0xA, 0x92, EOPID_INT(0x230), EOPID_INT(0x230), EOPID_INT(0x230), EOPID_NONE}, /* [912] opt 824, LOOT */
     {0xF, 0x92, EOPID_INT(0x3C80), EOPID_INT(0x3C80), EOPID_INT(0x3C80), EOPID_NONE}, /* [913] opt 771, SW */
-    {2, 0xA2, EOPID_INT(0x3E10), EOPID_PMF(func_0020F2B8), EOPID_INT(0x3E10), EOPID_NONE}, /* [914] opt 833, SW */
+    {2, 0xA2, EOPID_INT(0x3E10), EOPID_PMF(SetSwIllumHsv), EOPID_INT(0x3E10), EOPID_NONE}, /* [914] opt 833, SW */
     {1, 0xA2, EOPID_INT(0x3E24), EOPID_PMF(SetSwIllumShadow), EOPID_INT(0x3E24), EOPID_NONE}, /* [915] opt 834, SW */
     {1, 0xA2, EOPID_INT(0x3E20), EOPID_PMF(SetSwIllum), EOPID_INT(0x3E20), EOPID_NONE}, /* [916] opt 835, SW */
-    {2, 0x2092, EOPID_INT(0x3E70), EOPID_INT(0x3E70), EOPID_INT(0x3E70), EOPID_PMF(func_00210978)}, /* [917] opt 836, SW */
-    {1, 0x2092, EOPID_INT(0x3E64), EOPID_INT(0x3E64), EOPID_INT(0x3E64), EOPID_PMF(func_00210978)}, /* [918] opt 837, SW */
-    {2, 0x2092, EOPID_INT(0x3E80), EOPID_INT(0x3E80), EOPID_INT(0x3E80), EOPID_PMF(func_00210978)}, /* [919] opt 838, SW */
-    {1, 0x2092, EOPID_INT(0x3E68), EOPID_INT(0x3E68), EOPID_INT(0x3E68), EOPID_PMF(func_00210978)}, /* [920] opt 839, SW */
-    {2, 0x2092, EOPID_INT(0x3E90), EOPID_INT(0x3E90), EOPID_INT(0x3E90), EOPID_PMF(func_00210978)}, /* [921] opt 840, SW */
-    {1, 0x2092, EOPID_INT(0x3E6C), EOPID_INT(0x3E6C), EOPID_INT(0x3E6C), EOPID_PMF(func_00210978)}, /* [922] opt 841, SW */
+    {2, 0x2092, EOPID_INT(0x3E70), EOPID_INT(0x3E70), EOPID_INT(0x3E70), EOPID_PMF(SetSwUnknown3EA8)}, /* [917] opt 836, SW */
+    {1, 0x2092, EOPID_INT(0x3E64), EOPID_INT(0x3E64), EOPID_INT(0x3E64), EOPID_PMF(SetSwUnknown3EA8)}, /* [918] opt 837, SW */
+    {2, 0x2092, EOPID_INT(0x3E80), EOPID_INT(0x3E80), EOPID_INT(0x3E80), EOPID_PMF(SetSwUnknown3EA8)}, /* [919] opt 838, SW */
+    {1, 0x2092, EOPID_INT(0x3E68), EOPID_INT(0x3E68), EOPID_INT(0x3E68), EOPID_PMF(SetSwUnknown3EA8)}, /* [920] opt 839, SW */
+    {2, 0x2092, EOPID_INT(0x3E90), EOPID_INT(0x3E90), EOPID_INT(0x3E90), EOPID_PMF(SetSwUnknown3EA8)}, /* [921] opt 840, SW */
+    {1, 0x2092, EOPID_INT(0x3E6C), EOPID_INT(0x3E6C), EOPID_INT(0x3E6C), EOPID_PMF(SetSwUnknown3EA8)}, /* [922] opt 841, SW */
     {0xD, 0x92, EOPID_INT(0x3E00), EOPID_INT(0x3E00), EOPID_INT(0x3E00), EOPID_NONE}, /* [923] opt 842, SW */
     {0, 0x82, EOPID_INT(0x3E38), EOPID_NONE, EOPID_INT(0x3E38), EOPID_NONE}, /* [924] opt 768, SW */
     {0, 0x92, EOPID_INT(0x3E3C), EOPID_INT(0x3E3C), EOPID_INT(0x3E3C), EOPID_NONE}, /* [925] opt 843, SW */
@@ -1671,7 +1671,7 @@ EOPIDROW D_002AC880[1449] = {
     {6, 0x12, EOPID_INT(0x3C8C), EOPID_INT(0x3C8C), EOPID_NONE, EOPID_NONE}, /* [938] opt 856, SW */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSwHANDS_OFF), EOPID_INT(1), EOPID_NONE}, /* [939] opt 857, SW */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunkSwHANDS_ON), EOPID_INT(1), EOPID_NONE}, /* [940] opt 858, SW */
-    {0, 4, EOPID_PMF(FSwHandsOff), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [941] opt 859, SW */
+    {0, 4, EOPID_PMF(IsSwHandsOff), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [941] opt 859, SW */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010C2E8), EOPID_INT(1), EOPID_NONE}, /* [942] opt 861, SW */
     {5, 2, EOPID_INT(0x4768), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [943] opt 862, SW */
     {5, 2, EOPID_INT(0x4764), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [944] opt 863, SW */
@@ -1906,12 +1906,12 @@ EOPIDROW D_002AC880[1449] = {
     {1, 0x92, EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_INT(0x18C), EOPID_NONE}, /* [1173] opt 1016, CID37 */
     {0, 1, EOPID_NONE, EOPID_FN(RefThunk_FCanAcquireProxy), EOPID_NONE, EOPID_NONE}, /* [1174] opt 1017, PROXY (+1) */
     {0x2002, 1, EOPID_NONE, EOPID_FN(RefThunk_PloAcquireProxy), EOPID_NONE, EOPID_NONE}, /* [1175] opt 1019, PROXY (+1) */
-    {0x2002, 4, EOPID_PMF(func_001CB2E0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1176] opt 1020, PROXY (+1) */
+    {0x2002, 4, EOPID_PMF(GetProxyCurrentObject), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1176] opt 1020, PROXY (+1) */
     {0x2002, 1, EOPID_NONE, EOPID_FN(RefThunk_EnsureProxyCopy), EOPID_NONE, EOPID_NONE}, /* [1177] opt 1021, PROXY (+1) */
     {0, 0x92, EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_INT(0xE4), EOPID_NONE}, /* [1178] opt 1022, PROXY (+1) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_LockProxyPlo), EOPID_INT(1), EOPID_NONE}, /* [1179] opt 1023, PROXY (+1) */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_UnlockProxyPlo), EOPID_INT(1), EOPID_NONE}, /* [1180] opt 1024, PROXY (+1) */
-    {0xA002, 4, EOPID_PMF(func_001CB360), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1181] opt 1025, PROXY (+1) */
+    {0xA002, 4, EOPID_PMF(GetProxyCopyObjects), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1181] opt 1025, PROXY (+1) */
     {0x2003, 0x92, EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_INT(0x15C), EOPID_NONE}, /* [1182] opt 1026, CID27 */
     {0x200F, 0x2092, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_PMFI(func_00259A48)}, /* [1183] opt 776, CID27 */
     {0, 0x2092, EOPID_INT(4), EOPID_INT(4), EOPID_INT(4), EOPID_PMFI(func_00259A48)}, /* [1184] opt 777, CID27 */
@@ -1965,7 +1965,7 @@ EOPIDROW D_002AC880[1449] = {
     {0x1011, 0x24, EOPID_PMFI(func_00256350), EOPID_PMFI(func_00256328), EOPID_NONE, EOPID_NONE}, /* [1232] opt 122, CID150 */
     {5, 0x24, EOPID_PMFI(func_00256318), EOPID_PMFI(func_002562F0), EOPID_NONE, EOPID_NONE}, /* [1233] opt 123, CID150 */
     {1, 0x24, EOPID_PMFI(func_002562E0), EOPID_PMFI(func_002562B8), EOPID_NONE, EOPID_NONE}, /* [1234] opt 795, CID150 */
-    {0, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(func_001628B0), EOPID_NONE}, /* [1235] opt 1064, JOB */
+    {0, 0x100, EOPID_NONE, EOPID_NONE, EOPID_PMF(JobOptionNoOp), EOPID_NONE}, /* [1235] opt 1064, JOB */
     {0x12, 0x400, EOPID_FN(RefThunk_AddJobCompleteEvent), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1236] opt 1065, JOB */
     {0x12, 0x400, EOPID_FN(func_0010E998), EOPID_NONE, EOPID_INT(1), EOPID_NONE}, /* [1237] opt 1066, JOB */
     {0x12, 1, EOPID_NONE, EOPID_FN(func_0010EA20), EOPID_NONE, EOPID_NONE}, /* [1238] opt 1067, JOB */
@@ -1981,8 +1981,8 @@ EOPIDROW D_002AC880[1449] = {
     {0x12, 0, EOPID_NONE, EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1248] opt 1077, JOB */
     {5, 2, EOPID_INT(0x7C), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1249] opt 1078, JOB */
     {0x12, 1, EOPID_NONE, EOPID_FN(RefThunk_ResetJobTasks), EOPID_NONE, EOPID_NONE}, /* [1250] opt 1079, JOB */
-    {0, 4, EOPID_PMF(FJobComplete), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1251] opt 1080, JOB */
-    {0, 4, EOPID_PMF(FIsCurrentJob), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1252] opt 1081, JOB */
+    {0, 4, EOPID_PMF(IsJobComplete), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1251] opt 1080, JOB */
+    {0, 4, EOPID_PMF(IsCurrentJob), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1252] opt 1081, JOB */
     {0x1051, 2, EOPID_INT(0xF0), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1253] opt 1082, JOB */
     {0x2002, 2, EOPID_INT(0xF4), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1254] opt 1083, JOB */
     {0x12, 0x400, EOPID_FN(func_0010EC00), EOPID_NONE, EOPID_INT(4), EOPID_NONE}, /* [1255] opt 1084, JOB */
@@ -1998,9 +1998,9 @@ EOPIDROW D_002AC880[1449] = {
     {0x10, 0x92, EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_INT(0x5C), EOPID_NONE}, /* [1265] opt 1074, TASK */
     {0, 0x92, EOPID_INT(0x60), EOPID_INT(0x60), EOPID_INT(0x60), EOPID_NONE}, /* [1266] opt 1076, TASK */
     {5, 2, EOPID_INT(0x64), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1267] opt 1078, TASK */
-    {0, 4, EOPID_PMF(FTaskComplete), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1268] opt 1080, TASK */
-    {0, 4, EOPID_PMF(FIsCurrentTask), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1269] opt 1081, TASK */
-    {6, 4, EOPID_PMF(OidFromTaskState), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1270] opt 1094, TASK */
+    {0, 4, EOPID_PMF(IsTaskComplete), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1268] opt 1080, TASK */
+    {0, 4, EOPID_PMF(IsCurrentTask), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1269] opt 1081, TASK */
+    {6, 4, EOPID_PMF(GetTaskStateGoalOid), EOPID_NONE, EOPID_NONE, EOPID_NONE}, /* [1270] opt 1094, TASK */
     {0, 0x92, EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_INT(0x6C), EOPID_NONE}, /* [1271] opt 1095, TASK */
     {0, 0x92, EOPID_INT(0x70), EOPID_INT(0x70), EOPID_INT(0x70), EOPID_NONE}, /* [1272] opt 1096, TASK */
     {0, 0x92, EOPID_INT(0x74), EOPID_INT(0x74), EOPID_INT(0x74), EOPID_NONE}, /* [1273] opt 1097, TASK */

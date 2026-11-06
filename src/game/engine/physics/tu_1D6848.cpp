@@ -229,7 +229,7 @@ void func_0013BC60(SOV *, LAUNCH *);
 void RecalcSwOxfFilterForObject(void *, SOV *);
 void SetSoCnstrForce(SOV *, void *);
 void SetSoCnstrTorque(SOV *, void *);
-void SetLoParent_1A58D0(SOV *, int, int);
+void SetLoParent(SOV *, int, int);
 void func_001F4898(SOV *, qwordV);
 qwordV GetSoDvGravity(SOV *);
 qwordV func_001D6848(float, qwordV, qwordV, qwordV);                 // CalculateLaunchVelocity
@@ -374,7 +374,7 @@ extern "C" void LaunchSoFromLauncher(LAUNCH *plaunch, SOV *pso)
     pso->Add();
     SetSoCnstrForce(pso, 0);
     SetSoCnstrTorque(pso, 0);
-    SetLoParent_1A58D0(pso, 0, 3);
+    SetLoParent(pso, 0, 3);
     if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x52)) {
         func_001F4898(pso, VECTORV(pso->svLaunch, 0.0f, 0.0f).q);
     } else if (FIsBasicDerivedFrom__FP5BASIC3CID(pso, 0x51)) {

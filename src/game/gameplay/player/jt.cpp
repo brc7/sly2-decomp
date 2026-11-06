@@ -184,9 +184,9 @@ struct PROXYSPARE
       MATRIX4 mat;
 };
 
-PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("func_001CADE0");
+PROXYSPARE *PspareChoose(PROXY *pproxy, int rankMin) __asm__("ChooseProxySpare");
 
-int FCanAcquireProxy(PROXY *pproxy) __asm__("func_001CB2C0");
+int FCanAcquireProxy(PROXY *pproxy) __asm__("CanAcquireProxy");
 
 struct CID100 : public SO
 {
@@ -1652,7 +1652,7 @@ qword ConvertAloPos(void *p, void *q, qword v);
 void IntersectSwBoundingBox(void *pv, qword vMin, qword vMax, void *pfn, int n, int *pn0, int *pn1);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int n, qword a, qword b, int n0, int n1, HIT *phit);
 void func_0012DA30(void *p, qword v);
-void FFilterSoPair();
+void ShouldKeepSoPair();
 extern char D_003DD490[];
 extern qword D_002A2DC0;
 extern qword D_002A2DD0;
@@ -1678,7 +1678,7 @@ int FMatchJtXmg(O *p, M *pm, void *px)
         a = ConvertAloPos(p, 0, pm->v30);
         b = ConvertAloPos(p, 0, pm->v40);
         c = ConvertAloPos(p, 0, pm->v50);
-        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)FFilterSoPair, p->xEC, &n0, &n1);
+        IntersectSwBoundingBox(D_003DD490, VMin(a, VMin(b, c)), VMax(a, VMax(b, c)), (void *)ShouldKeepSoPair, p->xEC, &n0, &n1);
         if ((PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, a, b, n0, n1, &hit) || PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, b, c, n0, n1, &hit)) &&
             hit.g40 != 0.0f && 0.7f < hit.g28) {
             qword w;
@@ -4273,7 +4273,7 @@ extern void func_00195FB8(void *p, int a, int b);
 extern REC *PgadrecFromJtGadget(void *p, int n);
 extern void SetJtthrowState(void *p, int n);
 extern void SetJtGrabState(void *p, int a, int b, int c);
-extern OBJ *PloAcquireProxy(int oid, int n);
+extern OBJ *AcquireProxyObject(int oid, int n);
 extern int func_00224610(OBJ *p);
 extern void func_0018D698(void *p, REC *prec, OBJ *pobj);
 extern void GrfbtnGadget(void *p, int n);
@@ -4336,7 +4336,7 @@ void UseJtGadget(char *p, int n)
             SetJtGrabState(A(0x4C0), 0xB, prec->x8, 0);
             break;
         }
-        pobj = PloAcquireProxy(prec->x4, 0);
+        pobj = AcquireProxyObject(prec->x4, 0);
         if (!pobj)
             break;
         pobj->x15C = prec->x0;

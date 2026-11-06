@@ -38,7 +38,7 @@ extern "C" {
 extern char D_002DEB30[];       /* the game */
 extern CLOCK D_002DDED0;
 extern const float D_002A4D60;
-int FSwHandsOff(SW *psw);
+int IsSwHandsOff(SW *psw);
 STEPPLAYER *PpoHero(SW *psw);
 void SetTnTnsOverride(TN *ptn, int f);
 void func_00204768(STEPPLAYER *pstepplayer);
@@ -151,7 +151,7 @@ void func_001A1098(void *);
 void PostLoadJtMode(void *);
 void PostJtthrowLoad(void *);
 void PostJtLoadPipe(void *);
-int CploFindSwObjects_15E650(struct G *, int, int, struct P *, int, void **);
+int FindSwObjects(struct G *, int, int, struct P *, int, void **);
 void *func_001AE2A0(struct AREQ *);
 void LoadStepplayerGadgets(struct P *);
 void BindStepplayerHpMp(struct P *, int);
@@ -185,7 +185,7 @@ void PostLoadStepplayer(struct P *p)
     PostLoadJtMode((char *)p + 0xF00);
     PostJtthrowLoad((char *)p + 0x11B0);
     PostJtLoadPipe((char *)p + 0xF50);
-    c = CploFindSwObjects_15E650(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
+    c = FindSwObjects(&D_003DD490, 0x401, 0x2AB, p, 0x10, apv);
     if (c) {
         struct AREQ req;
         struct AREQ *preq = &req;
@@ -245,9 +245,9 @@ extern char D_003DD490[];
 struct G { char pad[0x4A4]; int n4A4; };
 extern struct G D_002DDF40;
 int NWorldCur(void);
-void func_00161868(void *p);
+void RestartHudWidget1(void *p);
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, int e);
-void func_001618B0(void *p);
+void RestartHudWidget2(void *p);
 void *PsndStartSound(int n);
 void SetSndSourceLo(void *p, int n);
 /** @sly2-annot addr=0x140338
@@ -260,8 +260,8 @@ void SetSndSourceLo(void *p, int n);
 void func_00140338(void)
 {
     if (NWorldCur()) {
-        func_00161868(D_003DD490);
-        if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) func_001618B0(D_003DD490);
+        RestartHudWidget1(D_003DD490);
+        if (CploFindSwObjectsByClass(D_003DD490, 0x605, 0x5F, 0, 0, 0)) RestartHudWidget2(D_003DD490);
         SetSndSourceLo(PsndStartSound(0x32), 0);
         *(float *)(D_003DD490 + 0x4754) = D_002DDED0.t;
         D_002DDF40.n4A4++;
@@ -507,7 +507,7 @@ void func_00140750(struct P *p)
 } } // namespace M_func_00140750
 
 /** @sly2-annot addr=0x1409B8
- * Purpose: vt98: returns 0 normally, -1 while the world is hands-off (FSwHandsOff g_sw)
+ * Purpose: vt98: returns 0 normally, -1 while the world is hands-off (IsSwHandsOff g_sw)
  * Info: proposed name STEPPLAYER_VUnk97 (T2); class STEPPLAYER slot98; TU stepplayer
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638,
@@ -516,7 +516,7 @@ void func_00140750(struct P *p)
  * @end-sly2-annot */
 extern "C" int func_001409B8()
 {
-    return (FSwHandsOff(&D_003DD490) != 0) ? 0 : -1;
+    return (IsSwHandsOff(&D_003DD490) != 0) ? 0 : -1;
 }
 
 namespace M_func_001409E8 { extern "C" {
@@ -849,8 +849,8 @@ void ChargeGadgetMp(void *p);
 void ApplyAsegCur__FP4ASEGP3ALOffiPP5ASEGA(void *pa, void *p, float g, int n, float h, void *pb);
 void func_0019F170(void *p, int n);
 void func_0019F220(void *p, int n);
-void *PloAcquireProxy(void *p, int n);
-void SetLoParent_1A58D0(void *p, int a, int b);
+void *AcquireProxyObject(void *p, int n);
+void SetLoParent(void *p, int a, int b);
 void func_00156780(void *p);
 void func_001CCC88(void *p, void *q);
 void SetAsegaSpeed__FP5ASEGAf(void *p, float g);
@@ -986,9 +986,9 @@ void HandleStepplayerMessage(void *p, int msg, void *pv)
                     case 0x17: {
                         DLI dli;
                         void *po2;
-                        void *pa = PloAcquireProxy(D_002E1E40->p2010, 0);
+                        void *pa = AcquireProxyObject(D_002E1E40->p2010, 0);
                         if (pa)
-                            SetLoParent_1A58D0(pa, 0, 3);
+                            SetLoParent(pa, 0, 3);
                         InitDli(&dli, (DL *)&g_sw.dlStimulus);
                         while ((po2 = PvNextDli(&dli)) != 0) {
                             if (F(int, po2, 0x54) == 4 && F(void *, po2, 0x44) == p)
@@ -2580,7 +2580,7 @@ void GetStepplayerStunHold(struct O *p, struct S *ps, float g)
 namespace M_func_001432E0 { extern "C" {
 int IdBootyCur(void *p);
 void func_00143380(void *p);
-void *PloAcquireProxy(void *p, int n);
+void *AcquireProxyObject(void *p, int n);
 void SelectBootyEntry(void *p, int n);
 void SetBootyState(void *p, int n);
 /** @sly2-annot addr=0x1432E0
@@ -2598,7 +2598,7 @@ void func_001432E0(char *p, int n)
     func_00143380(p);
     if (n == -1) return;
     if (!(*(void * *)&g_sw.ploUnk4638)) return;
-    o = (__typeof__(o))PloAcquireProxy((*(void * *)&g_sw.ploUnk4638), 1);
+    o = (__typeof__(o))AcquireProxyObject((*(void * *)&g_sw.ploUnk4638), 1);
     SelectBootyEntry(o, n);
     *(void **)(o + 0x160) = p;
     SetBootyState(o, 6);
@@ -2666,8 +2666,8 @@ extern char D_002A4D88[];
 extern char D_002A4D90[];
 extern char D_002A4D98[];
 extern char D_002A4DA0[];
-short NFindSaveSymbol(void *, char *);
-int FFindSaveVar(TRIE *, KEY *, OUT *);
+short FindSaveSymbol(void *, char *);
+int FindSaveVar(TRIE *, KEY *, OUT *);
 CRef RefGetSaveVar(TRIE *p, KEY *key, char *pb);
 void *PvAllocSlot__FP8ALLOCREQ(const AREQ &);
 void CopyAb__FPvT0Ui(void *, void *, int);
@@ -2694,18 +2694,18 @@ extern "C" KEY *PkeyFindBootySaveVar(int id)
     TRIE *pt = &D_003DD490.trie;
     key.c = 0;
     key.a = as;
-    as[0] = NFindSaveSymbol(pt->x8, D_002A4D88);
-    as[2] = NFindSaveSymbol(pt->x8, D_002A4D90);
-    as[4] = NFindSaveSymbol(pt->x8, D_002A4D98);
-    as[5] = NFindSaveSymbol(pt->x8, D_002A4DA0);
+    as[0] = FindSaveSymbol(pt->x8, D_002A4D88);
+    as[2] = FindSaveSymbol(pt->x8, D_002A4D90);
+    as[4] = FindSaveSymbol(pt->x8, D_002A4D98);
+    as[5] = FindSaveSymbol(pt->x8, D_002A4DA0);
     key.c = 1;
-    FFindSaveVar(pt, &key, &out);
+    FindSaveVar(pt, &key, &out);
     ENT *pe1;
     for (int n = out.pe->iChild; n != 0; n = pe1->iSibling) {
         pe1 = &D_003DD490.trie.ae[n];
         key.c = 3;
         as[1] = pe1->ch;
-        if (FFindSaveVar(&D_003DD490.trie, &key, &out2)) {
+        if (FindSaveVar(&D_003DD490.trie, &key, &out2)) {
             ENT *pe2;
             for (int n2 = out2.pe->iChild; n2 != 0; n2 = pe2->iSibling) {
                 pe2 = &D_003DD490.trie.ae[n2];
@@ -2764,7 +2764,7 @@ int IdBootyCur(void *p);
 void *func_0013D1A8(Q *p);
 S *func_00143AF0(LO *p, int n);
 int IlevelCur__Fv(void);
-BL *func_002109B8(int);
+BL *GetLevelListEntry(int);
 int func_00233178(const void *a, const void *b, int n) __asm__("memcmp");
 int CploFindSwObjectsByClass(void *p, int a, int b, int c, int d, SO **apso);
 int sprintf(char *, const char *, ...);
@@ -2833,7 +2833,7 @@ extern "C" void UpdateStepplayerBootySave(LO *p, int n, Q *q)
         S *ps = func_00143AF0(p, IdBootyCur(p->p11A8));
         int i = IlevelCur__Fv();
         if (ps && i != -1) {
-            BL *pb = func_002109B8(i);
+            BL *pb = GetLevelListEntry(i);
             int f = 0;
             if (pb->c >= 4 && func_00233178(ps->pk, pb->pv, 8) == 0) f = 1;
             if (f) {
@@ -3158,7 +3158,7 @@ struct VTE { short d; short pad; void (*pfn)(...); };
 struct P { char pad[0xC]; struct VTE *vt; char pad2[0xDFC - 0x10]; int nDFC; int *pnE00; char pad3[0x12FC - 0xE04]; int *pn12FC; int n1300; int pad4; int n1308; };
 extern char D_002A4E18[];
 extern char D_002A4E20[];
-int *PvSaveVarV(void *p, char *name, int n);
+int *GetSaveVarAddressV(void *p, char *name, int n);
 void SetStepplayerHp(struct P *p, int n);
 void SetStepplayerMp(struct P *p, int n);
 /** @sly2-annot addr=0x1440D0
@@ -3173,10 +3173,10 @@ void SetStepplayerMp(struct P *p, int n);
 void BindStepplayerHpMp(struct P *p, int f)
 {
     struct VTE *e = &p->vt[103];
-    p->pnE00 = PvSaveVarV(((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4E18, 0);
+    p->pnE00 = GetSaveVarAddressV(((void *(*)(void *))e->pfn)((char *)p + e->d), D_002A4E18, 0);
     {
         struct VTE *e2 = &p->vt[103];
-        p->pn12FC = PvSaveVarV(((void *(*)(void *))e2->pfn)((char *)p + e2->d), D_002A4E20, 0);
+        p->pn12FC = GetSaveVarAddressV(((void *(*)(void *))e2->pfn)((char *)p + e2->d), D_002A4E20, 0);
     }
     if (*p->pnE00 == 0 || f) {
         SetStepplayerHp(p, p->nDFC);

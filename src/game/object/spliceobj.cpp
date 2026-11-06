@@ -58,19 +58,19 @@ CRef *CRef_SetSmp(CRef *pref, const SMP *psmp);
 CRef *CRef_SetBasic(CRef *pref, BASIC *pbasic);
 CRef *CRef_SetMethod(CRef *pref, CMethod *pmethod);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");   /* memset */
-PVREC *PeopidFind(BASIC *pbasic, int opid);
+PVREC *FindOptionRecord(BASIC *pbasic, int opid);
 }
 /* CRef_RefCoerceS32/F32 (ref.cpp: C-named, the result by hidden pointer) as the by-value calls they are. */
 CRef RefCoerceS32(const CRef *pref) __asm__("CRef_RefCoerceS32");
 CRef RefCoerceF32(const CRef *pref) __asm__("CRef_RefCoerceF32");
 CRef RefGetPeopid(void *pv, PVREC *ppvrec) __asm__("RefGetPeopid");
 CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref) __asm__("RefSetPeopid");
-CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("func_00201110");
+CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__("SetValuesFromSplice");
 
 /** @sly2-annot addr=0x1FFCF8
  * Purpose: Binary-search the class option table (by class info vt6 index into D_00279AD0) for option id;
  *   return its record
- * Info: proposed name PeopidFind (T1); TU spliceobj
+ * Info: proposed name FindOptionRecord (T1); TU spliceobj
  * Notes: names_v2 B proposed RefGetObjectList__FP5BASIC4OTYPPFPv_v (0.885)
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources: r7_1F8DD8+verify_side
  * See: docs/engine/splice-scripting.md#1-layout-of-the-runtime,
@@ -78,7 +78,7 @@ CRef RefSetPvsFromSplice(int cref, CRef *aref, OTYP *aotyp, void **apv) __asm__(
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Finds the option record for option id opid in the object's class option table (binary search); null when absent.
-extern "C" PVREC *PeopidFind(BASIC *pbasic, int opid)
+extern "C" PVREC *FindOptionRecord(BASIC *pbasic, int opid)
 {
     CLASSINFO *pclassinfo = pbasic->Pclassinfo();
     SPLOPTS *psplopts = &D_00279AD0[pclassinfo->cid];
@@ -349,7 +349,7 @@ CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref)
 }
 
 /** @sly2-annot addr=0x200BA0
- * Purpose: Option id <=0x4D0: RefGetPeopid(PeopidFind); else sidebag binding
+ * Purpose: Option id <=0x4D0: RefGetPeopid(FindOptionRecord); else sidebag binding
  * Info: proposed name RefGetOption (T1); TU spliceobj
  * Confidence: high [T1 0.85] - evidence: static naming pass; sources:
  *   r7_1F8DD8+verdicts_A2+names_v2-signature(verified)
@@ -360,7 +360,7 @@ CRef RefSetPeopid(void *pv, PVREC *ppvrec, CRef *pref)
 CRef RefGetOption(BASIC *pbasic, int opid)
 {
     if (opid <= 0x4D0) {
-        return RefGetPeopid(pbasic, PeopidFind(pbasic, opid));
+        return RefGetPeopid(pbasic, FindOptionRecord(pbasic, opid));
     }
     CRef ref;
     pbasic->psidebag->FFindBinding(opid, &ref);
@@ -376,7 +376,7 @@ CRef RefGetOption(BASIC *pbasic, int opid)
 CRef RefSetOption(BASIC *pbasic, int opid, CRef *pref)
 {
     if (opid < 0x4D1)
-        return RefSetPeopid(pbasic, PeopidFind(pbasic, opid), pref);
+        return RefSetPeopid(pbasic, FindOptionRecord(pbasic, opid), pref);
     return pbasic->psidebag->RefSetBinding(opid, pref);
 }
 
@@ -443,7 +443,7 @@ inline SPPAIR::~SPPAIR()
     }
 }
 
-/* func_00200DA0 (RefSetArgListFromPvs): a Splice list of c values read directly (grfeopid 2) from apv[i] as type
+/* BuildSpliceListFromValues (RefSetArgListFromPvs): a Splice list of c values read directly (grfeopid 2) from apv[i] as type
    aotyp[i]; the void reference for none. */
 /** @sly2-annot addr=0x200DA0
  * Purpose: Build a Splice list CRef from c (otype, pv) pairs (empty -> void)
@@ -452,7 +452,7 @@ inline SPPAIR::~SPPAIR()
  * See: docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Builds a Splice list from count (type, pointer) pairs, converting each value by its type; Void when empty.
-CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv) __asm__("func_00200DA0");
+CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv) __asm__("BuildSpliceListFromValues");
 CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv)
 {
     if (c == 0) {
@@ -475,7 +475,7 @@ CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv)
     return CRef(list.p);
 }
 
-/* func_00200F58: the same for c consecutive words of one type at pv. */
+/* BuildSpliceListFromUniformValues: the same for c consecutive words of one type at pv. */
 /** @sly2-annot addr=0x200F58
  * Purpose: Same as RefSetArgListFromPvs with one otype for all values
  * Info: proposed name RefSetArgListFromPvsUniform (T2); TU spliceobj
@@ -484,7 +484,7 @@ CRef RefSetArgListFromPvs(int c, OTYP *aotyp, void **apv)
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Builds a Splice list from count values that all have the same type.
-CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv) __asm__("func_00200F58");
+CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv) __asm__("BuildSpliceListFromUniformValues");
 CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv)
 {
     if (c == 0) {
@@ -508,7 +508,7 @@ CRef RefSetArgListFromPv(int c, OTYP otyp, void *pv)
     return CRef(list.p);
 }
 
-/* func_00201110 (RefSetPvsFromSplice): store each of c values into apv[i] as type aotyp[i] (int and float coerced,
+/* SetValuesFromSplice (RefSetPvsFromSplice): store each of c values into apv[i] as type aotyp[i] (int and float coerced,
    the vector/matrix/clq/lm/smp payloads copied, a CRef assigned); returns the void reference. */
 struct M3Q { qword a[3]; };
 struct V2 { int a, b; };
@@ -617,7 +617,7 @@ struct SPLLIST { int c; CPair *ppairFirst; };
  *   docs/reference/functions/splice-scripting.md#spliceobj-0x1ffcf8-0x201620
  * @end-sly2-annot */
 // Converts each element of a Splice list into the destination array with one type; returns Void.
-CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv) __asm__("func_002013D8");
+CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv) __asm__("SetValuesFromSpliceList");
 CRef RefSetArgsFromSpliceList(SPLLIST *plist, OTYP otyp, int nUnused, int *pc, void **apv)
 {
     if (plist->c == 0) {

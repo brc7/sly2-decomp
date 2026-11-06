@@ -169,7 +169,7 @@ extern char D_0025AF90[];
 
 void func_0011CD98(SLOTHEAP *pslotheap, void *pv);
 void *func_002333B4(void *pv, int b, int cb) __asm__("memset");              /* memset */
-DLV *PdlFromSwCid(SW *psw, CIDV cid);
+DLV *GetSwClassList(SW *psw, CIDV cid);
 void func_0011A070(DLV *pdl, void *pv);
 void RemoveSlEntry(DLV *pdl, void *pv);
 void InitXfm(BLIPGV *p);
@@ -303,7 +303,7 @@ extern "C" BLIPGV *PblipgNew(SW *psw)
     i = 31;
     do ; while (--i != -1);   /* empty array-element ctor loop (31 elements) from inlined C++ ctor; the .c's
                                  `while (--i != -1) ;` loads 30 as C++ */
-    func_0011A070(PdlFromSwCid(psw, CID_1C), p);
+    func_0011A070(GetSwClassList(psw, CID_1C), p);
     p->pvt[7].pfn((char *)p + p->pvt[7].d);
     p->pvt[11].pfn((char *)p + p->pvt[11].d);
     p->pvt[15].pfn((char *)p + p->pvt[15].d);
@@ -364,7 +364,7 @@ void OnBlipgRemove(BLIPGV *p)
 void BLIPG::VUnk01()
 {
     BLIPGV *p = (BLIPGV *)this;
-    RemoveSlEntry(PdlFromSwCid(&D_003DD490, CID_1C), p);
+    RemoveSlEntry(GetSwClassList(&D_003DD490, CID_1C), p);
     func_0011CD98(&D_003DD490.slotheapBlipg, p);
 }
 
@@ -870,7 +870,7 @@ struct VU_FLOATR {
 struct DMA { int x0; int x4; int x8; int xC; };
 extern "C" {
 void *PvAllocSlot__FP8ALLOCREQ(const AL &al);
-int func_001A61A0(LOV *plo);
+int IsLoInWorld(LOV *plo);
 qwordV GetLoWorldPos(LOV *plo);
 M3 *GetLoWorldMatrix(LOV *plo);
 int FInsideCmFrustum(CMV *pcm, qwordV d, VU_FLOATR r);
@@ -911,7 +911,7 @@ extern "C" void RenderBlipgSelf(BLIPGV *p)
         if (!plo) goto done;
         pmId = &D_002A2D00;
     top:
-            if (!func_001A61A0(plo))
+            if (!IsLoInWorld(plo))
                 goto next;
             {
             LOV **pplo = plo->xE4->pplo;

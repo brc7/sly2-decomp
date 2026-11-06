@@ -27,9 +27,9 @@ void FreeLoroot(LO *plo);
 void GetLoChildDl(SO *psoParent, DL **ppdl, LO **pploFirst);
 LORUN *AddLoDeferredCallback(LO *plo);
 void DeferLoRemoveCallback(LO *plo, void *pv);
-void *func_00210100(SW *psw);
-void func_00210268(SW *psw, LO *plo);
-void func_00210140(SW *psw, LO *plo);
+void *AllocSwLoCallbackRecord(SW *psw);
+void RemoveLoFromSwUpdateList(SW *psw, LO *plo);
+void AddLoToSwUpdateList(SW *psw, LO *plo);
 void SetLoXfFromMat(LO *plo, MATRIX4 *pmat);
 }
 void RemoveDlEntry(DL *pdl, void *pv);
@@ -111,7 +111,7 @@ extern char D_003DD490[];
 struct S { char pad[0x14]; void *pv; };
 int FFindDlEntry__FP2DLPv(void *, void *);
 void RemoveDlEntry__FP2DLPv(void *, void *);
-void func_00147E20(void *, void *);
+void RemoveFromSwBusyList(void *, void *);
 void func_0011CD98(void *, void *);
 /** @sly2-annot addr=0x1A53E0
  * Purpose: Unlink plo->ploroot from g_sw+0x2C list and g_sw+0x20 busy list (0x147E20), free it to pool
@@ -127,7 +127,7 @@ void FreeLoroot(struct S *p)
     char *pdl = D_003DD490 + 0x2C;
     if (FFindDlEntry__FP2DLPv(pdl, p->pv))
         RemoveDlEntry__FP2DLPv(pdl, p->pv);
-    func_00147E20(D_003DD490, p->pv);
+    RemoveFromSwBusyList(D_003DD490, p->pv);
     func_0011CD98(D_003DD490 + 0x398C, p->pv);
     p->pv = 0;
 }
@@ -162,9 +162,9 @@ extern char D_003DD490[];
 void GetLoChildDl(struct S *p, void **a, struct S ***b);
 void RemoveDlEntry__FP2DLPv(void *a, struct S *s);
 void InsertDlEntryBefore__FP2DLPvT1(void *a, struct S *b, struct S *s);
-void func_00147E88(void *g, int n);
-int func_001A61A0(struct S *s);
-void func_00148300(void *g, struct S *s);
+void ResortSwBusyEntry(void *g, int n);
+int IsLoInWorld(struct S *s);
+void UpdateSoBusy(void *g, struct S *s);
 /** @sly2-annot addr=0x1A5478
  * Purpose: LO vt8 Add: if marked removed (bit56) clear it, move into in-world part of parent child DL, call
  *   vt11 AddHierarchy if parent in world, root not-busyk2 -> g_sw busy list, add children (vt8), then vt23 if
@@ -204,7 +204,7 @@ void AddLo(struct S *s)
     ((void (*)(void *))e->pfn)((char *)s + e->d);
 skip:
     if (!s->x10 && (int)s->x28.b.st != 2)
-        func_00147E88(D_003DD490, s->x14);
+        ResortSwBusyEntry(D_003DD490, s->x14);
     e = &s->vt[0xE0 / 8];
     n = ((int (*)(void *, struct S ***))e->pfn)((char *)s + e->d, &list);
     for (i = 0; i < n; i++) {
@@ -212,11 +212,11 @@ skip:
         struct VTE *g = &p->vt[0x40 / 8];
         ((void (*)(void *))g->pfn)((char *)p + g->d);
     }
-    if (func_001A61A0(s)) {
+    if (IsLoInWorld(s)) {
         e = &s->vt[0xB8 / 8];
         ((void (*)(void *))e->pfn)((char *)s + e->d);
     } else if (!s->x10) {
-        func_00148300(D_003DD490, s);
+        UpdateSoBusy(D_003DD490, s);
     }
 }
 } } // namespace M_AddLo
@@ -226,9 +226,9 @@ struct VTE { short d; short pad; void *pfn; };
 struct S { int x0, x4, x8; struct VTE *vt; void *x10; int x14; char pad[0x10]; unsigned long x28; };
 extern char D_003DD490[];
 
-int func_001A61A0(struct S *s);
+int IsLoInWorld(struct S *s);
 void RemoveDlEntry__FP2DLPv(void *a, void *b);
-void func_00147E20(void *a, int b);
+void RemoveFromSwBusyList(void *a, int b);
 void GetLoChildDl(void *p, void **a, struct S ***b);
 void AppendDlEntry__FP2DLPv(void *a, struct S *s);
 /** @sly2-annot addr=0x1A5630
@@ -253,14 +253,14 @@ void RemoveLo(struct S *s)
     int n, i;
     if (s->x28 & 0x0100000000000000UL)
         return;
-    if (func_001A61A0(s)) {
+    if (IsLoInWorld(s)) {
         e = &s->vt[0xB0 / 8];
         ((void (*)(void *))e->pfn)((char *)s + e->d);
         if (!s->x10)
             RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), (void *)s->x14);
     }
     if (!s->x10)
-        func_00147E20(D_003DD490, s->x14);
+        RemoveFromSwBusyList(D_003DD490, s->x14);
     f = (s->x28 >> 60) & 1;
     GetLoChildDl(s->x10, &a, &b);
     RemoveDlEntry__FP2DLPv(a, s);
@@ -354,15 +354,15 @@ struct VTE { short d; short pad; void (*pfn)(void *, int, int, int); };
 struct O { char pad[0xC]; struct VTE *vt; };
 /** @sly2-annot addr=0x1A58D0
  * Purpose: Non-virtual wrapper: vt10(paloParent, 0, b)
- * Info: proposed name SetLoParent_1A58D0 (T1); TU lo
- * Notes: COLLISION: SetLoParent already used (same name proposed for 0x1A5900); renamed to SetLoParent_1A58D0
+ * Info: proposed name SetLoParent (T1); TU lo
+ * Notes: COLLISION: SetLoParent already used (same name proposed for 0x1A5900); renamed to SetLoParent
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
  * See: docs/engine/game-progression.md#8-key-functions,
  *   docs/reference/functions/game-progression.md#prize-0x1c4e50-0x1c8cc0,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Reparents an object: calls its SetParent (vtable slot 10) with the new parent and flags.
-void SetLoParent_1A58D0(struct O *p, int a, int b) { struct VTE *e = &p->vt[10]; e->pfn((char *)p + e->d, a, 0, b); }
+void SetLoParent(struct O *p, int a, int b) { struct VTE *e = &p->vt[10]; e->pfn((char *)p + e->d, a, 0, b); }
 } } // namespace M_SetLoParent_1A58D0
 
 namespace M_func_001A5900 { extern "C" {
@@ -377,8 +377,8 @@ void GetLoChildDl(ALO *p, void **ppdl, ALO ***pppalo);
 void RemoveDlEntry__FP2DLPv(void *pdl, void *p);
 void AppendDlEntry__FP2DLPv(void *pdl, void *p);
 void InsertDlEntryBefore__FP2DLPvT1(void *pdl, void *pBefore, void *p);
-int func_001A61A0(ALO *p);
-void func_00148300(void *g, ALO *p);
+int IsLoInWorld(ALO *p);
+void UpdateSoBusy(void *g, ALO *p);
 /** @sly2-annot addr=0x1A5900
  * Purpose: LO vt10: move plo between old/new parent child DLs keeping in-world state, freeze if in world, set
  *   psoParent, vt13 UpdateLoroot, recurse to children (vt10), re-add/notify as needed
@@ -391,7 +391,7 @@ void func_00148300(void *g, ALO *p);
 // LO's SetParent (vtable slot 10): moves the object from the old to the new parent's child list keeping its in-world
 // state, freezes it while in the world, sets the parent pointer, updates the root record (slot 13) and the children,
 // and re-adds or notifies as needed.
-void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
+void LO_SetParent(ALO *palo, ALO *paloParent, int a, int b)
 {
     unsigned long fOld = palo->x28.u >> 60 & 1;
     unsigned long fNew = 0;
@@ -418,7 +418,7 @@ void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
         RemoveDlEntry__FP2DLPv(pdlOld, palo);
         InsertDlEntryBefore__FP2DLPvT1(pdlNew, *ppaloNew, palo);
     }
-    if (func_001A61A0(palo)) {
+    if (IsLoInWorld(palo)) {
         VFN(palo, 22, void (*)(ALO *))(VTHIS(palo, 22));
         if (*palo->x14 == palo)
             RemoveDlEntry__FP2DLPv((*(char (*)[])&g_sw.dlBusy), palo->x14);
@@ -437,10 +437,10 @@ void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
         else
             VFN(palo, 12, void (*)(ALO *))(VTHIS(palo, 12));
     }
-    if (func_001A61A0(palo))
+    if (IsLoInWorld(palo))
         VFN(palo, 23, void (*)(ALO *))(VTHIS(palo, 23));
     else if (!palo->x10 && fNew)
-        func_00148300(D_003DD490, palo);
+        UpdateSoBusy(D_003DD490, palo);
 }
 } } // namespace M_func_001A5900
 #undef VFN
@@ -457,7 +457,7 @@ void func_001A5900(ALO *palo, ALO *paloParent, int a, int b)
 // vtable slot 13: with a parent, shares the parent's root record (freeing its own if it had one); without a parent and
 // when makeRoot is set, makes its own root.
 /* LO slot UpdateLoroot: share the parent's root, or make one of its own. */
-extern "C" void func_001A5B80(LO *plo, LO *ploRoot, int fRoot)
+extern "C" void UpdateLoLoroot(LO *plo, LO *ploRoot, int fRoot)
 {
     if (plo->psoParent != 0) {
         if (ploRoot == plo && fRoot == 0) {
@@ -492,13 +492,13 @@ struct S { char pad[0x10]; struct S *x10; };
 int FIsBasicDerivedFrom__FP5BASIC3CID(struct S *p, int n);
 /** @sly2-annot addr=0x1A5BF0
  * Purpose: Return plo if it is an SO (FIsBasicDerivedFrom CID 0x30) else plo->psoParent
- * Info: proposed name PsoFromLo (T1); TU lo
+ * Info: proposed name GetSoFromLo (T1); TU lo
  * Notes: names_v2 v1 proposed SetLightSaturate_Old__FP5LIGHTP6VECTOR (0.000)
  * Confidence: mid (draft) [T1 0.55] - evidence: static naming pass; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Returns the object itself when it is an SO (cid 0x30), else its parent SO.
-struct S *PsoFromLo(struct S *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) return p; return p->x10; }
+struct S *GetSoFromLo(struct S *p) { if (FIsBasicDerivedFrom__FP5BASIC3CID(p, 0x30)) return p; return p->x10; }
 } } // namespace M_PsoFromLo
 
 /** @sly2-annot addr=0x1A5C28
@@ -596,7 +596,7 @@ extern "C" void DeferLoRemove(LO *plo)
 /* A new deferred callback record on the object's list. */
 extern "C" LORUN *AddLoDeferredCallback(LO *plo)
 {
-    LORUN *plorun = (LORUN *)func_00210100(&D_003DD490);
+    LORUN *plorun = (LORUN *)AllocSwLoCallbackRecord(&D_003DD490);
     plorun->plorunNext = plo->plorunFirst;
     plo->plorunFirst = plorun;
     return plorun;
@@ -668,7 +668,7 @@ static inline void ClearFlag(struct S *p, unsigned int fl)
  * @end-sly2-annot */
 // vtable slot 17: clears flag 4 unless the parent has flag 4 set (the flag is inherited from the parent; its meaning
 // is not known). (inferred)
-void func_001A5E80(struct S *p)
+void InheritLoFlag4(struct S *p)
 {
     if (!p->x10 || !(p->x10->x40->x0 & 4)) ClearFlag(p, 4);
 }
@@ -722,7 +722,7 @@ void __ml__FRC7MATRIX4T0(M4 *out, void *a, M4 *b);
  * @end-sly2-annot */
 // Draws an object hierarchy at an explicit world matrix: combines the matrix with the inverse of the object's world
 // matrix and calls RenderAll (slot 20) with it and two alpha factors.
-void func_001A5EE8(struct O *o, void *m, float a, float b)
+void RenderLoAtMatrix(struct O *o, void *m, float a, float b)
 {
     M4 t;
     M4 r;
@@ -745,7 +745,7 @@ struct M4 { U r[4]; };
 struct CAMERA { char pad[0x90]; qword pos; };
 extern struct CAMERA D_002DDF40;
 qword *VECTOR_opAssign(qword *p, qword v);
-void func_001A5EE8(void *p, struct M4 *m, float a, float b);
+void RenderLoAtMatrix(void *p, struct M4 *m, float a, float b);
 static inline qword Sub(qword a,qword b) { qword r; __asm__("vsub.xyzw %0,%1,%2" : "=j"(r) : "j"(a),"j"(b)); return r; }
 static inline qword Cross(qword a,qword b) { qword r; __asm__("vopmula.xyz ACC,%1,%2\n\tvopmsub.xyz %0,%2,%1" : "=j"(r) : "j"(a),"j"(b)); return r; }
 static inline qword LenV(qword v) { qword l,t; __asm__("vmul.xyz %0,%2,%2\n\tvaddw.x %1,$vf0,$vf0w\n\tvadday.x ACC,%0,%0y\n\tvmaddz.x %0,%1,%0z" : "=j"(l),"=&j"(t) : "j"(v)); __asm__("vsqrt Q,%1x\n\tvwaitq\n\tvaddq.x %0,$vf0,Q" : "=j"(l) : "0"(l));return l; }
@@ -763,7 +763,7 @@ static inline qword Scale(qword v,qword k) { qword r; __asm__("vmulx.xyzw %0,%1,
  * @end-sly2-annot */
 // Draws an object stretched along the segment start->end, facing the camera (width scaling, 0.01 epsilon), through
 // RenderLoAtMatrix. Used for beams and similar effects. (inferred)
-void func_001A5FB8(void *p,qword a,qword b,float width,float scale)
+void RenderLoAlongSegment(void *p,qword a,qword b,float width,float scale)
 {
  U x,y,z;
  struct M4 m; struct M4 *pm;
@@ -791,7 +791,7 @@ void func_001A5FB8(void *p,qword a,qword b,float width,float scale)
   pm->r[2].q=z.q;
   m.r[0].i[3]=m.r[1].i[3]=m.r[2].i[3]=0;
   pm->r[3].f[3]=1.0f;
-  func_001A5EE8(p,pm,scale,scale);
+  RenderLoAtMatrix(p,pm,scale,scale);
  }
 }
 } } // namespace M_func_001A5FB8
@@ -888,7 +888,7 @@ extern "C" void SetLoAngularVelocity()
 // LO's OnRemove (vtable slot 22): unregisters the object from the world's per-object update table.
 extern "C" void OnLoRemove(LO *plo)
 {
-    func_00210268(&D_003DD490, plo);
+    RemoveLoFromSwUpdateList(&D_003DD490, plo);
 }
 
 /** @sly2-annot addr=0x1A6178
@@ -905,7 +905,7 @@ extern "C" void OnLoRemove(LO *plo)
 // LO's OnAdd (vtable slot 23): registers the object in the world's per-object update table.
 extern "C" void OnLoAdd(LO *plo)
 {
-    func_00210140(&D_003DD490, plo);
+    AddLoToSwUpdateList(&D_003DD490, plo);
 }
 
 namespace M_func_001A61A0 { extern "C" {
@@ -922,7 +922,7 @@ struct S { char pad[0x14]; void *x14; char pad2[0x10]; ulong fl; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // True when the object's in-world bit is set and its root record is in the world's in-world list.
-int func_001A61A0(struct S *p)
+int IsLoInWorld(struct S *p)
 {
     int r = 0;
     if ((int)(p->fl >> 60) & 1) r = FFindDlEntry__FP2DLPv((DL *)&g_sw.dlBusy, p->x14) != 0;
@@ -979,12 +979,12 @@ struct Q { int x0; struct Q *next; int x8; int xc; void *x10; };
 struct S { char pad[0x3C]; struct Q *pq; };
 /** @sly2-annot addr=0x1A6260
  * Purpose: Walk ppxr list (x3C) while node owner==plo, return last oid or -1
- * Info: proposed name OidProxyLo (T1); TU lo
+ * Info: proposed name GetLoProxyOid (T1); TU lo
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Returns the oid of the proxy the object was cloned from (the last proxy-ref node owned by it), or -1.
-int OidProxyLo(struct S *p)
+int GetLoProxyOid(struct S *p)
 {
     int r = -1;
     struct Q *q = p->pq;
@@ -1002,13 +1002,13 @@ struct Q { int x0; struct Q *next; int x8; int xc; void *x10; };
 struct S { char pad[0x18]; int x18; char pad2[0x20]; struct Q *pq; };
 /** @sly2-annot addr=0x1A6290
  * Purpose: True if plo->oid==oid or any proxy-alias node owned by plo has that oid
- * Info: proposed name FMatchesLoName (T1); TU lo
+ * Info: proposed name HasLoOid (T1); TU lo
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r4_17F090+verdicts_tu_r4r6
  * See: docs/engine/object-model.md#9-key-functions,
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // True when the object's oid, or the oid of one of its proxy-alias nodes, equals oid.
-int FMatchesLoName(struct S *p, int b)
+int HasLoOid(struct S *p, int b)
 {
     struct Q *q;
     if (p->x18 == b) return 1;
@@ -1080,7 +1080,7 @@ extern qword func_0011BFF0(void *p);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Returns the object's world orientation as Euler angles in degrees.
-qword func_001A6340(void)
+qword GetLoEulerDegrees(void)
 {
     union { qword q; float f; } r;
     qword v = func_0011BFF0(GetLoWorldMatrix());
@@ -1117,7 +1117,7 @@ void LoadRotateMatrixEuler(M3 *pm, qword v);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Sets the object's orientation from Euler angles in degrees (through RotateToMat, slot 30).
-void func_001A63B0(struct LO *p, qword v)
+void SetLoEulerDegrees(struct LO *p, qword v)
 {
     M3 c;
     union { qword q; float f; } r;
@@ -1140,7 +1140,7 @@ struct O { int x0, x4, x8; struct VTE *vt; };
  * @end-sly2-annot */
 // LO's ApplyTransform (vtable slot 37: premultiply by a matrix; XFM_ApplyTransform is the XFM version): a plain LO
 // has no transform of its own, so it forwards the matrix to every child returned by slot 28. (inferred)
-void func_001A6450(struct O *o, void *arg)
+void LO_ApplyTransform(struct O *o, void *arg)
 {
     struct O **list;
     int n, i;
@@ -1242,7 +1242,7 @@ struct S { char pad[0x40]; unsigned int x40; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 47: sets bits in the object's flag word.
-void func_001A66C8(struct S *p, unsigned int fl)
+void SetLoFlags(struct S *p, unsigned int fl)
 {
     unsigned int v = p->x40;
     if ((v ^ 1) & 1) *(unsigned int *)v |= fl;
@@ -1260,7 +1260,7 @@ struct S { char pad[0x40]; unsigned int x40; };
  *   docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 48: clears bits in the object's flag word.
-void func_001A66F8(struct S *p, unsigned int fl)
+void ClearLoFlags(struct S *p, unsigned int fl)
 {
     unsigned int v = p->x40;
     if ((v ^ 1) & 1) *(unsigned int *)v &= ~fl;
@@ -1341,7 +1341,7 @@ void*func_001AE238(REQUEST*,void*);
 void ClearSle(int*);
 void ClearSl(void*);
 void func_0011A070(void*,NODE*);
-void*PdlFromSwPxrOid(G*,int);
+void*GetSwProxyRefBucket(G*,int);
 void CopyAb__FPvT0Ui(void*,const void*,uint) __asm__("CopyAb__FPvT0Ui");
 }
 struct RF{FIELD*p;RF(){}RF(const RF&r):p(r.p){if(p)++p->refs;}~RF(){FIELD*f=p;if(f&&!--f->refs){BINDING*b=f->binding;if(b&&!--b->refs){func_00257250(&b->next,2);Decref__4CRef(b->cref);Unlink__t6CGcObj1Z5CVarb(b);func_0011CD98(D_004520D0,b);}Unlink__t6CGcObj1Z8CSidebag(f);func_0011CD98(D_00452148,f);}}};
@@ -1390,7 +1390,7 @@ extern "C" void CloneLo(P*p,const P*source){
             ClearSle(&copy->link);
             ClearSl(copy->list);
             func_0011A070(copy->next->list,copy);
-            void*list=PdlFromSwPxrOid(&D_003DD490,copy->key);
+            void*list=GetSwProxyRefBucket(&D_003DD490,copy->key);
             func_0011A070(list,copy);
         }
     }
@@ -1418,12 +1418,12 @@ namespace M_FFindLoParent { extern "C" {
 struct O { char pad[0x10]; struct O *x10; };
 /** @sly2-annot addr=0x1A6AF8
  * Purpose: True if b is plo or one of its ancestors (walk psoParent)
- * Info: proposed name FFindLoParent (T1); TU lo
+ * Info: proposed name IsLoSelfOrDescendantOf (T1); TU lo
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r4_17F090
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // True when other is the object itself or one of its ancestors.
-int FFindLoParent(struct O *a, struct O *b)
+int IsLoSelfOrDescendantOf(struct O *a, struct O *b)
 {
     while (a) {
         if (a == b) break;
@@ -1444,7 +1444,7 @@ void func_002333B4(void *p, int c, int n) __asm__("memset");
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // LO's local transform (vtable slot 32): writes the identity into *matrix when given and returns a static identity.
-struct M *func_001A6B30(void *unused, struct M *pm)
+struct M *LO_GetLocalTransform(void *unused, struct M *pm)
 {
     if (pm) {
         func_002333B4(pm, 0, 0x40);
@@ -1496,7 +1496,7 @@ namespace M_func_001A6C48 { extern "C" {
 typedef unsigned long ulong;
 struct G;
 extern struct G D_003DD490;
-void func_00147E88(struct G *g, void *p);
+void ResortSwBusyEntry(struct G *g, void *p);
 struct S { char pad[0x10]; int x10; void *x14; char pad2[0x10]; ulong fl; int pad3[2]; float x38; };
 /** @sly2-annot addr=0x1A6C48
  * Purpose: LO vt42: store float x38 (init 1e10) and re-sort root in g_sw busy list
@@ -1505,10 +1505,10 @@ struct S { char pad[0x10]; int x10; void *x14; char pad2[0x10]; ulong fl; int pa
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 42: sets the busy distance (default 1e10) and re-sorts the root in the world's busy list.
-void func_001A6C48(struct S *p, float g)
+void SetLoBusyDistance(struct S *p, float g)
 {
     p->x38 = g;
-    if (!p->x10 && ((int)(p->fl >> 60) & 1)) func_00147E88(&D_003DD490, p->x14);
+    if (!p->x10 && ((int)(p->fl >> 60) & 1)) ResortSwBusyEntry(&D_003DD490, p->x14);
 }
 } } // namespace M_func_001A6C48
 
@@ -1536,7 +1536,7 @@ struct O {
     unsigned int f60 : 1;
 };
 extern char D_003DD490[];
-void func_00147E88(void *, void *);
+void ResortSwBusyEntry(void *, void *);
 /** @sly2-annot addr=0x1A6CA8
  * Purpose: Set the LO busy kind (LO+0x28 bits 52-55: 0 busy within sBusy of the camera, 1 always busy, 2
  *   never busy, 3 busy within sBusy of the hero) and re-sort the root in the SW busy list if it is in the
@@ -1556,7 +1556,7 @@ void SetLoBusyk(struct O *p, int n)
     if (n != p->n52) {
         p->n52 = n;
         if (!p->pParent && (unsigned char)p->f60 != 0)
-            func_00147E88(D_003DD490, p->pv14);
+            ResortSwBusyEntry(D_003DD490, p->pv14);
     }
 }
 } } // namespace M_SetLoBusyk
@@ -1580,7 +1580,7 @@ struct O {
     unsigned char b2D;
 };
 extern char D_003DD490[];
-void func_00147E88(void *, void *);
+void ResortSwBusyEntry(void *, void *);
 /** @sly2-annot addr=0x1A6D28
  * Purpose: Re-sort root, vt46(b) on plo, then OR b into grfvis(x2D) of following siblings
  * Info: proposed name SetLoVisMaskHierarchy (T2); TU lo
@@ -1589,11 +1589,11 @@ void func_00147E88(void *, void *);
  *   docs/reference/functions/world-sw.md#sw-0x20d9d0-0x210eb0
  * @end-sly2-annot */
 // Sets the visibility mask: re-sorts the root, sets the mask through slot 46 and ORs it into the following siblings.
-void func_001A6D28(struct O *p, int b)
+void SetLoVisMask(struct O *p, int b)
 {
     struct O *q;
     if ((unsigned char)p->psw->palo->f60)
-        func_00147E88(D_003DD490, p->psw);
+        ResortSwBusyEntry(D_003DD490, p->psw);
     {
         struct VTE *e = &p->vt[46];
         ((void (*)(void *, int))e->pfn)((char *)p + e->d, b);
@@ -1619,7 +1619,7 @@ extern "C" void LO_SetVisMask(LO *plo, uchar grfvis)
 namespace M_SetSoVisMask { extern "C" {
 typedef unsigned long ulong;
 struct O { char pad[0x24]; struct O *pNext; ulong grf; char pad2[0x34]; struct O *pFirst; };
-void func_001A6D28(struct O *, int);
+void SetLoVisMask(struct O *, int);
 /** @sly2-annot addr=0x1A6DC8
  * Purpose: SO vt46: grfvis=b and propagate to children without bit58
  * Info: proposed name SetSoVisMask (T1); class SO slot46; TU lo
@@ -1633,7 +1633,7 @@ void SetSoVisMask(struct O *p, int b)
     *((unsigned char *)p + 0x2D) = b;
     for (q = p->pFirst; q; q = q->pNext) {
         if (!(q->grf & (1UL << 58)))
-            func_001A6D28(q, b);
+            SetLoVisMask(q, b);
     }
 }
 } } // namespace M_SetSoVisMask
@@ -1648,7 +1648,7 @@ struct S { char pad[0x28]; ulong fl; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Sets or clears the "keeps its own visibility mask" bit (a parent's SetVisMask then skips it).
-void func_001A6E38(struct S *p, int f) { p->fl = (p->fl & ~((ulong)1 << 58)) | ((ulong)(f & 1) << 58); }
+void SetLoOwnVisMask(struct S *p, int f) { p->fl = (p->fl & ~((ulong)1 << 58)) | ((ulong)(f & 1) << 58); }
 } } // namespace M_func_001A6E38
 
 namespace M_func_001A6E70 { extern "C" {
@@ -1661,7 +1661,7 @@ struct S { char pad[0x28]; ulong fl; };
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // True when the object keeps its own visibility mask.
-int func_001A6E70(struct S *p) { return (int)(p->fl >> 58) & 1; }
+int HasLoOwnVisMask(struct S *p) { return (int)(p->fl >> 58) & 1; }
 } } // namespace M_func_001A6E70
 
 namespace M_func_001A6E80 { extern "C" {
@@ -1685,7 +1685,7 @@ static inline void ClearFlag(struct S *p, unsigned int fl)
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // vtable slot 21: sets or clears flag 8 of the flag word (meaning not known). (inferred)
-void func_001A6E80(struct S *p, int f)
+void SetLoFlag8(struct S *p, int f)
 {
     if (f) SetFlag(p, 8);
     else ClearFlag(p, 8);
@@ -1877,7 +1877,7 @@ void InvertMatrix4Rigid(M4 *pm);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a point through an explicit matrix, or through its inverse when inverse is set. (inferred)
-qword func_001A72D0(M4 *pm, int f, qword v)
+qword ConvertMatPos(M4 *pm, int f, qword v)
 {
     if (pm) {
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddaz.xyz $ACC, %4, %1z\n\tvmaddw.xyz %0, %5, $vf0w"
@@ -1904,7 +1904,7 @@ void InvertMatrix3Cofactor(M3 *pm);
  * See: docs/reference/functions/object-model.md#lo-0x1a5270-0x1a7518
  * @end-sly2-annot */
 // Converts a direction vector through an explicit 3x3 matrix or its inverse. (inferred)
-qword func_001A7348(M3 *pm, int f, qword v)
+qword ConvertMatVec(M3 *pm, int f, qword v)
 {
     if (pm) {
         __asm__("vmulax.xyz $ACC, %2, %1x\n\tvmadday.xyz $ACC, %3, %1y\n\tvmaddz.xyz %0, %4, %1z"

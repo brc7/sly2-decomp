@@ -68,7 +68,7 @@ void InitXfm(XFM *pxfm);
 void InitSo(SO *pso);
 void InitGrabspot(void *pgrabspot);
 void func_001F7918(SO *pso, int grf, int n);
-void func_001CB518(SO *pso);
+void SO_ResetForProxy(SO *pso);
 int FIgnoreSoIntersection(SO *pso, LO *plo);
 int func_00134310(int grf, int f);
 void func_00183F50(GRABSPOT35 *p);
@@ -800,7 +800,7 @@ extern "C" void InitBarrel(BARRELV *pbarrel)
 /* BARREL slot 26. */
 extern "C" void func_00183970(BARRELV *pbarrel)
 {
-    func_001CB518(pbarrel);
+    SO_ResetForProxy(pbarrel);
     pbarrel->nState = 0;
 }
 
@@ -925,7 +925,7 @@ extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
 extern qword D_002BE8F0;
 extern char D_003DD490[];
-void SetLoParent_1A58D0(struct O *p, int a, int b);
+void SetLoParent(struct O *p, int a, int b);
 void func_002303A0(struct O *p, struct X *px, int n);
 void SetSoCnstrForce(struct O *p, int n);
 void SetSoCnstrTorque(struct O *p, int n);
@@ -957,7 +957,7 @@ void func_00183B80(struct O *p, int n)
         return;
     if (p->n17C == 2) {
         if (p->n18C != 0) {
-            SetLoParent_1A58D0(p, 0, 0xF);
+            SetLoParent(p, 0, 0xF);
             func_002303A0(p, p->p58, 1);
             p->p58->n9A = 0;
             func_002303A0(p, p->p5C, 1);
@@ -1172,7 +1172,7 @@ void func_001840B8(struct S *p, int y, int z, int w)
 namespace M_func_001840F8 { extern "C" {
 struct S { char pad[0x15C]; int a; int b; };
 extern char D_002DEB30[];
-void func_00161F10(void *g, void *pb, int n, void *pa, int x, int y);
+void AppendBoundedPair(void *g, void *pb, int n, void *pa, int x, int y);
 /** @sly2-annot addr=0x1840F8
  * Purpose: FAddPair(D_002DEB30, ...)
  * Info: proposed name AddCid35Pair (T2); class CID35; TU grabspot
@@ -1181,7 +1181,7 @@ void func_00161F10(void *g, void *pb, int n, void *pa, int x, int y);
  * @end-sly2-annot */
 void func_001840F8(struct S *p, int x, int y)
 {
-    func_00161F10(D_002DEB30, &p->b, 4, &p->a, x, y);
+    AppendBoundedPair(D_002DEB30, &p->b, 4, &p->a, x, y);
 }
 } } // namespace M_func_001840F8
 
@@ -1308,12 +1308,12 @@ extern "C" void func_00184330(GRABSPOT36 *p, LO *plo)
 namespace M_func_00184380 { extern "C" {
 struct T { char pad[0xF4]; int n; };
 struct S { char pad[0x180]; int x; char pad2[0x18]; int n; };
-int FFindLoParent(struct T *q, int x);
+int IsLoSelfOrDescendantOf(struct T *q, int x);
 /** @sly2-annot addr=0x184380
- * Purpose: 1 if ids differ else FFindLoParent
+ * Purpose: 1 if ids differ else IsLoSelfOrDescendantOf
  * Info: proposed name FCid35NotTarget (T2); class CID35; TU grabspot
  * Notes: names_v2 C proposed OnHbskAdd__FP4HBSK (0.638) | verifier PLAUSIBLE: Returns 1 if q+0xF4 != p+0x198,
- *   else FFindLoParent(q, p+0x180); used by ChooseMurrayThrowTarget. Body matches purpose, but 'NotTarget'
+ *   else IsLoSelfOrDescendantOf(q, p+0x180); used by ChooseMurrayThrowTarget. Body matches purpose, but 'NotTarget'
  *   does not describe the parent test; class placeholder. | T2 forced: verifier: role word not supported by
  *   the code
  * Confidence: low (draft) [T2 0.25] - evidence: static naming pass; sources: r4b_rest+verdicts_followups
@@ -1322,7 +1322,7 @@ int FFindLoParent(struct T *q, int x);
 int func_00184380(struct S *p, struct T *q)
 {
     if (q->n != p->n) return 1;
-    return FFindLoParent(q, p->x);
+    return IsLoSelfOrDescendantOf(q, p->x);
 }
 } } // namespace M_func_00184380
 

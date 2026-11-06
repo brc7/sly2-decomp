@@ -37,7 +37,7 @@ void GetStepplayerCpdefi(STEPPLAYER *pstepplayer, CPDEFI *pcpdefi);
 void func_0019EA00(JTPIPE *pjtpipe, CPDEFI *pcpdefi);
 int func_00224610(LO *plo);
 void func_0018D698(BENTLEY *pbentley, JTPOCKET *ppocket, LO *plo);
-void UnlockProxyPlo(PROXY *pproxy, LO *plo);
+void UnlockProxyObject(PROXY *pproxy, LO *plo);
 void func_00136F48(BTBLENDS *pbtblends, int n);
 void func_00141E70(STEPPLAYER *pstepplayer);
 int FIsPoCur(PO *ppo);
@@ -782,7 +782,7 @@ extern char D_003DD490[];
 ti128 ConvertCmScreenToWorld(void *, ti128);
 struct C *STACKSCOPE_ctor(struct C *);
 void STACKSCOPE_ctor_1AE4A0(struct C *, int) __asm__("_$_10STACKSCOPE");
-void func_0020FA10();
+void ShouldKeepSoNotSelf();
 void IntersectSwBoundingBox(void *, ti128, ti128, void (*)(), int, int *, int *);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int, ti128, ti128, int, int, struct LSG *);
 /** @sly2-annot addr=0x1356E8
@@ -801,7 +801,7 @@ void func_001356E8(struct S *p) {
     ti128 v1 = ConvertCmScreenToWorld(D_002DDF40, D_002BC970.q);
     ti128 v2 = ConvertCmScreenToWorld(D_002DDF40, D_002BC980.q);
     STACKSCOPE_ctor(&ctx);
-    IntersectSwBoundingBox(D_003DD490, v1, v2, func_0020FA10, p->fec, &cso, &aso);
+    IntersectSwBoundingBox(D_003DD490, v1, v2, ShouldKeepSoNotSelf, p->fec, &cso, &aso);
     if (PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(1, v1, v2, cso, aso, &lsg)) p->v16f0 = lsg.pos;
     else p->v16f0 = v2;
     STACKSCOPE_ctor_1AE4A0(&ctx, 2);
@@ -819,7 +819,7 @@ struct S { char pad[0x16d8]; int f16d8; void *f16dc; void *f16e0; struct Q *pq; 
 extern ti128 D_002A2DD0;
 extern float D_002DDED0;
 void func_001356E8(struct S *);
-struct O *PloAcquireProxy(void *, int);
+struct O *AcquireProxyObject(void *, int);
 void LaunchSoFromLauncher(struct Q *, struct O *);
 void PrimeBomb__FP4BOMBf(struct O *, float);
 void func_001362F8(struct S *, int);
@@ -845,7 +845,7 @@ void FireBentleyDart(struct S *p, int a) {
     default: return;
     }
     if (!pv) return;
-    po = PloAcquireProxy(pv, 0);
+    po = AcquireProxyObject(pv, 0);
     if (!po) return;
     po->pe->f18 = a;
     pq = p->pq;
@@ -972,8 +972,8 @@ struct E { int x0; int x4; struct M *pm; };
 struct P { char pad[0x1030]; int x1030; char pad1[0x16B4 - 0x1034]; struct Q *pq; char pad2[0x16CC - 0x16B8]; int x16CC;
     char pad3[0x1710 - 0x16D0]; char a1710[0x1824 - 0x1710]; struct E ae[6]; char pad4[0x186C - 0x186C]; struct O *po; };
 void HandleStepplayerMessage(struct P *p, int k, struct M *pm);
-struct O *PloAcquireProxy(void *pv, int n);
-void LockProxyPlo(void *pv, struct O *po);
+struct O *AcquireProxyObject(void *pv, int n);
+void LockProxyObject(void *pv, struct O *po);
 void FireBentleyDart(struct P *p, int n);
 void func_00136ED0(void *pv, int k, struct M *pm);
 void func_0018D698(struct P *p, struct E *pe, int n);
@@ -992,8 +992,8 @@ void HandleBentleyMessage(struct P *p, int k, struct M *pm)
         if (pm->x0 == p->x1030) {
             if (pm->x8 == 0x216) {
                 struct O *po;
-                p->po = PloAcquireProxy(p->pq->p4, 0);
-                LockProxyPlo(p->pq->p4, p->po);
+                p->po = AcquireProxyObject(p->pq->p4, 0);
+                LockProxyObject(p->pq->p4, p->po);
                 p->po->x15C = p->pq->x0;
                 po = p->po;
                 ((void (*)(void *, int))po->pvt[76].pfn)((char *)po + po->pvt[76].d, 0);
@@ -1324,7 +1324,7 @@ extern "C" void func_00136298(BENTLEY *pbentley)
         *(BENTLEY **)((char *)PLO186C(pbentley) + 0x16C) = pbentley;
         func_0018D698(pbentley, pbentley->ppocketCur, PLO186C(pbentley));
     }
-    UnlockProxyPlo(pbentley->ppocketCur->pproxy, PLO186C(pbentley));
+    UnlockProxyObject(pbentley->ppocketCur->pproxy, PLO186C(pbentley));
     PLO186C(pbentley) = 0;
     pbentley->ppocketCur = 0;
 }
@@ -1432,7 +1432,7 @@ struct P {
 extern struct G *D_002F7900;
 extern struct CLOCK D_002DDED0;
 extern qword D_002A2DD0;
-void SetLoParent_1A58D0(struct P *, int, int);
+void SetLoParent(struct P *, int, int);
 void ReleaseAct(void *);
 void func_002303A0(struct P *, struct O *, int);
 float RadStepHeading(struct P *);
@@ -1459,7 +1459,7 @@ void func_00136530(struct P *p, int k)
     switch (p->k1800) {
     case 0: {
         int save = p->x9E4;
-        SetLoParent_1A58D0(p, 0, 0xF);
+        SetLoParent(p, 0, 0xF);
         p->x9E4 = save;
         ReleaseAct(&p->pv1810);
         ReleaseAct(&p->pv1814);
@@ -1544,7 +1544,7 @@ void func_001367D8(struct S *p) {
 // Keeps its per-function views in a namespace of its own (see the file header).
 namespace M_BENTLEY_FCanUseGadget { extern "C" {
 /* MATCH (Claude agent laneB13, 2026-10-23), from v4 (4). One register pin (f in v1) plus commented empty asms that emulate the original toolchain's reorg/cross-jump state: case 12 has its own `return 0` (with an empty asm so it isn't merged with the shared fail), the shared fail has one too, the 1CADE0 path ends in `return 0`, and an empty asm using pe in the pv != 0 block keeps v0 live so reorg annuls the beql slot. */
-/* v4 (Claude agent laneB12, 2026-10-23): aligned 10 -> 4. f pinned to v1 (one commented pin) and used for case 12's x15C and the func_001CADE0 result; cases 2/3/13 test their call results directly; an empty volatile asm "+r"(f) after the 1CADE0 call keeps the target's `daddu v1,v0; bnez v1` (cse otherwise tests v0). Left: reorg fill choices: case 12 beq slot (target steals li v0,1 from `one`, ours takes li v0,0 from the fallthrough; `if (f != k) goto fail` flips the layout: 4), and the pv == 0 test (target beql, ours beqz). */
+/* v4 (Claude agent laneB12, 2026-10-23): aligned 10 -> 4. f pinned to v1 (one commented pin) and used for case 12's x15C and the ChooseProxySpare result; cases 2/3/13 test their call results directly; an empty volatile asm "+r"(f) after the 1CADE0 call keeps the target's `daddu v1,v0; bnez v1` (cse otherwise tests v0). Left: reorg fill choices: case 12 beq slot (target steals li v0,1 from `one`, ours takes li v0,0 from the fallthrough; `if (f != k) goto fail` flips the layout: 4), and the pv == 0 test (target beql, ours beqz). */
 /* v3 (Claude agent, 2026-10-17): aligned 10. Shared function-scope `void *pv` for case 12 pa11C0 and pe->p4 puts pa in a0 like the target. Left: target loads x15C into v1 and copies the 1CADE0 result to v1 (daddu v1,v0; bnez v1). */
 struct A { char pad[0x15C]; int x15C; };
 struct E { int x0; void *p4; void *p8; };
@@ -1558,7 +1558,7 @@ int func_00194558(void *pv, int k);
 int func_0019EEF0(void *pv, int k);
 struct E *PgadgetBentleyFromId(struct P *p, int k);
 int func_00224590(void *pv);
-int func_001CADE0(void *pv, int n);
+int ChooseProxySpare(void *pv, int n);
 int FActiveCplcy__FP5CPLCY(void *pv);
 /** @sly2-annot addr=0x136870
  * Purpose: BENTLEY vt99: per-state checks and per-gadget record (0x136A28) availability
@@ -1568,7 +1568,7 @@ int FActiveCplcy__FP5CPLCY(void *pv);
  * @end-sly2-annot */
 int BENTLEY_FCanUseGadget(struct P *p, int k)
 {
-    register int f __asm__("$3");  /* register pin: target keeps x15C and the func_001CADE0 result in v1 */
+    register int f __asm__("$3");  /* register pin: target keeps x15C and the ChooseProxySpare result in v1 */
     void *pv;
     if (p->x1818 != 0)
         goto fail;
@@ -1615,7 +1615,7 @@ int BENTLEY_FCanUseGadget(struct P *p, int k)
             }
             if ((pv = pe->p4)) {
                 __asm__ __volatile__("" : : "r"(pe));  /* keeps pe (v0) live into this block, so reorg annuls the beql slot */
-                f = func_001CADE0(pv, 2);
+                f = ChooseProxySpare(pv, 2);
                 __asm__ __volatile__("" : "+r"(f));  /* keeps the copy in v1 that the target tests */
                 if (f)
                     goto one;
@@ -1677,7 +1677,7 @@ void BroadcastGameEvent(struct G *pg, int n, struct P *p);
 struct E *PgadgetBentleyFromId(struct P *p, int k);
 void SetJtthrowState(void *pv, int n);
 void SetJtGrabState(void *pv, int n, void *pv2, int m);
-struct O *PloAcquireProxy(void *pv, int n);
+struct O *AcquireProxyObject(void *pv, int n);
 int func_00224610(struct O *po);
 void func_0018D698(struct P *p, struct E *pe, struct O *po);
 void GrfbtnGadget(struct P *p, int k);
@@ -1709,7 +1709,7 @@ void StartBentleyGadget(struct P *p, int k)
         }
         p->pe16B4 = pe;
         if (k == 7 || k == 11) {
-            struct O *po = PloAcquireProxy(pe->p4, 0);
+            struct O *po = AcquireProxyObject(pe->p4, 0);
             if (!po)
                 return;
             po->x15C = pe->x0;

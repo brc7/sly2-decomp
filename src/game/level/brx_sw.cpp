@@ -41,7 +41,7 @@ int U16Read__18CBinaryInputStream(BIS *pbis);
 void ReadVector4__18CBinaryInputStreamP7VECTOR4(BIS *pbis, void *pvec);
 void CBinaryInputStream_ReadStringSw(BIS *pbis, int *pn, void *pv, int n);
 void CBinaryInputStream_SkipStringSw(BIS *pbis);
-void func_00210BE0(void *pv);
+void LocalizeSwStringTable(void *pv);
 void BeginLoadingScreen(void *p);
 void func_001C9090(void *p, const void *pv);
 void EndLoadingScreen(void *p);
@@ -52,7 +52,7 @@ void LoadLevelTableFromBrx(void *psw, BIS *pbis);
 void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbis);
 void LoadSwCellsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS *pbis);
 void LoadOptionsFromBrx__FPvP18CBinaryInputStream(void *p, BIS *pbis);
-void func_001FF7E8(void *psw);
+void InitSwSpliceFrame(void *psw);
 void ResolveSwSaveVars__FP2SW(void *psw);
 void UpdateSwIllum(void *psw);
 void BuildClearGifs__FP2QWG4RGBAi(void *p, void *pv, int c);
@@ -60,7 +60,7 @@ void func_001703F8(void *pzpr, int a, int b) __asm__("InitZpr__FP3ZPR3ZPKP2LO");
 void func_001ED3A8(void);
 void func_001ED448(void);
 void func_001EA9F0(void *psw, void *pzpr);
-void func_00258248(void *p);
+void InitFileKey(void *p);
 void *func_0014B690(void *p);
 void func_001848A8(void *p, int k, void *pv, int n);
 void func_00184950(void *p, int n);
@@ -160,7 +160,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_003DD490, pbis);
     LoadOptionsFromBrx__FPvP18CBinaryInputStream(D_002DDF40, pbis);
     Align__18CBinaryInputStreami(pbis, 0x10);
-    func_001FF7E8(psw);
+    InitSwSpliceFrame(psw);
     ResolveSwSaveVars__FP2SW(psw);
     UpdateSwIllum(psw);
     if (psw->x3E38)
@@ -184,7 +184,7 @@ extern "C" void LoadSwFromBrx__FP2SWP18CBinaryInputStream(SW *psw, BIS *pbis)
         int iNext = i + 1;
         ODD odd;
         char ab[0x4040];
-        func_00258248(&odd);
+        InitFileKey(&odd);
         func_001C9090(&h, func_0014B690(pwe->ab1C));
         psw->iwe = pwe->x5C ? -1 : i;
         CStreamBis obj(0x403F, ab, 0);
@@ -275,7 +275,7 @@ extern "C" void LoadSwLangstrsFromBrx__FP2SWP18CBinaryInputStream(void *psw, BIS
                 CBinaryInputStream_SkipStringSw(pbs);
         }
     }
-    func_00210BE0(D_003E1C20);
+    LocalizeSwStringTable(D_003E1C20);
 }
 
 /* Cells as LoadSwCellsFromBrx sees the SW (offsets only). */

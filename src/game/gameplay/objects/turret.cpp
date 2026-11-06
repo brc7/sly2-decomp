@@ -46,7 +46,7 @@ struct TURRETV
     LMV pitchRange;      /* +0x1A4 */
     LMV range;           /* +0x1AC zoom range */
     float blend, velocity, strength;  /* +0x1B4 */
-    PROXYSRC *pproxy;   /* +0x1C0 what it fires (PloAcquireProxy) */
+    PROXYSRC *pproxy;   /* +0x1C0 what it fires (AcquireProxyObject) */
     void *plauncher;    /* +0x1C4 */
     void *plaunched;    /* +0x1C8 last object fired */
     int output;         /* +0x1CC the rotation act is running */
@@ -90,7 +90,7 @@ CRef RefGetGlobalSaveVar(int,void *);
 void LoadIdentityMatrix4(void *,void *,M4 *,M4 *,float);
 float atanf(float);
 int POCTL_FConsumePressed(CONTROL *x, int a);
-void *PloAcquireProxy(PROXYSRC *y, int a);
+void *AcquireProxyObject(PROXYSRC *y, int a);
 void LaunchSoFromLauncher(void *z, void *v);
 void *FIgnoreSoIntersection(TURRETV *p);
 void *func_00134310(void *v, int a);
@@ -317,7 +317,7 @@ extern "C" void func_00226250(TURRETV *p)
 {
     if (p->control && POCTL_FConsumePressed(p->control, 0xFF)) {
         if (p->pproxy) {
-            void *v = PloAcquireProxy(p->pproxy, 0);
+            void *v = AcquireProxyObject(p->pproxy, 0);
             if (!v) return;
             p->plaunched = v;
             if (p->plauncher) LaunchSoFromLauncher(p->plauncher, v);

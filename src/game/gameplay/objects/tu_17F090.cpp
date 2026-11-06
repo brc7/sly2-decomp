@@ -88,7 +88,7 @@ extern CLOCK D_002DDED0;        /* g_clock */
 extern float D_002BE870[3], D_002BE87C, D_002BE884;
 extern char D_002DEB30[];       /* the game (event broadcaster) */
 void RemoveSoHierarchy(SO *pso);
-void func_001CB518(SO *pso, int n);
+void SO_ResetForProxy(SO *pso, int n);
 void func_001F4FB0(SO *pso, XP *pxp);
 void func_0017F090(HACKV *phack);
 void func_0017F3E0(HACKV *phack, int c, HACKE *ahacke);
@@ -185,7 +185,7 @@ void func_0017F138(struct S *p) { struct VTE *e; PostSoLoad(p); e = &p->vt[0x53]
 extern "C" int func_0017F170(HACKV *phack, int n)
 {
     int c;
-    func_001CB518(phack, n);
+    SO_ResetForProxy(phack, n);
     c = phack->cHealthMax;
     phack->cHealth = c;
     return c;
@@ -646,7 +646,7 @@ extern struct G D_003DD490;
 extern int D_002E1E00;
 extern char D_002DEB30[];
 struct S { char pad[0x184]; int n184; char pad2[0x38]; int n1C0; };
-int FSwHandsOff(struct G *g);
+int IsSwHandsOff(struct G *g);
 int func_0017F1D0(struct S *p, int *pn);
 void UpdateHackshipHealthBar(struct S *p);
 void BroadcastGameEvent(void *g, int n, int m);
@@ -663,7 +663,7 @@ void func_0017FD08(struct S *p, int n);
  * @end-sly2-annot */
 int HACKSHIP_TakeDamage(struct S *p, int *pn) {
     if (p->n1C0 < 5) { if (p->n1C0 >= 2) return 0; }
-    if (FSwHandsOff(&D_003DD490)) return 0;
+    if (IsSwHandsOff(&D_003DD490)) return 0;
     if (D_002E1E00 & 1) return 0;
     if (!func_0017F1D0(p, pn)) return 0;
     UpdateHackshipHealthBar(p);
@@ -719,7 +719,7 @@ void RcPtr_Assign(void **pp, void *q);
 void PauseSnd(void *p);
 void ReleaseAct(int *p);
 void func_002303A0(struct S *p, struct N *n, int k);
-void SetLoParent_1A58D0(struct S *p, int a, int b);
+void SetLoParent(struct S *p, int a, int b);
 void SetSoCnstrForce(struct S *p, int n);
 void SetSoCnstrTorque(struct S *p, int n);
 void func_001F68A8(struct S *p, int n);
@@ -766,7 +766,7 @@ void func_0017FD08(struct S *p, int n) {
         ReleaseAct(&p->n29C);
         func_002303A0(p, p->p58, 2);
         func_002303A0(p, p->p5C, 2);
-        SetLoParent_1A58D0(p, 0, 0xF);
+        SetLoParent(p, 0, 0xF);
         SetSoCnstrForce(p, 5);
         SetSoCnstrTorque(p, 4);
         func_001F68A8(p, 0);
@@ -1164,7 +1164,7 @@ int FCheckLm__FP2LMf(LM*,float);
 void func_001C02D0(void*,qword,qword,void*);
 void FindShapeClosestPointFromS(void*,qword,void*,qword*,float,qword*,float*,float*);
 float SMaxShape(void*);
-float GGetDifficulty(void*);
+float GetDifficulty(void*);
 int CploFindSwObjectsByClass(void*,int,int,void*,int,NODE**);
 qword LimitVectorLength(qword,float);
 }
@@ -1282,7 +1282,7 @@ dispatch:
   }
   float remaining=SMaxShape(p->curve)-p->progress;
   float turn=Heading(ConvertAloVec(0,p,unit.q));
-  float response=GGetDifficulty(D_002DE578);
+  float response=GetDifficulty(D_002DE578);
   float speed=Limit(Evaluate(&p->remaining,remaining),&D_002BBB60)*Limit(Evaluate(&p->angle,turn),&D_002BBB60)*Limit(Evaluate(&D_002BE830,response),&D_002BBB60)*p->scale;
   qword force=QwScaleX(unit.q,VuFloat(speed));
   NODE*objects[64];
@@ -2262,7 +2262,7 @@ extern "C" void RenderSoSelf(P*);
 extern "C" M3 BuildOrthonormalMatrixZ(qword,qword);
 extern "C" M3 func_0011B500(qword,float);
 extern "C" qword*VECTOR_opAssign(qword*,qword);
-extern "C" void func_001A5EE8(void*,M4*,float,float);
+extern "C" void RenderLoAtMatrix(void*,M4*,float,float);
 static inline qword Load(const qword*p){return *p;}
 static inline qword Cross(qword a,qword b){qword up=a,dir=b;__asm__("vopmula.xyz ACC,%0,%1\n\tvopmsub.xyz %0,%1,%0":"+j"(up):"j"(dir));return up;}
 static inline qword AddLateral(qword a,N*n,float f){qword k;U u;__asm__("qmtc2.ni %1,%0":"=j"(k):"r"(f));u.q=k;qword b=Cross(D_002A2DC0,n->dir);__asm__("vadda.xyzw ACC,%0,$vf0\n\tvmaddx.xyzw %0,%1,%2x":"+j"(a):"j"(b),"j"(k));return a;}
@@ -2304,7 +2304,7 @@ extern "C" void func_001821C0(P*p){
    pm->r[0].q=m.r[0];pm->r[1].q=m.r[1];pm->r[2].q=m.r[2];
    mm.r[0].i[3]=mm.r[1].i[3]=mm.r[2].i[3]=0;
    pm->r[3].f[3]=1.0f;
-   func_001A5EE8(p->model,pm,1.0f,1.0f);
+   RenderLoAtMatrix(p->model,pm,1.0f,1.0f);
    n=n->next;
   }
  }

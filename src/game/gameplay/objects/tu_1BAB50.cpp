@@ -90,9 +90,9 @@ void EmitSwNoise(SW *psw, int z, qword q, void *x);
 void BroadcastGameEvent(void *g, int k, TRIG *p);
 void func_0014F750(void *g, int v);
 void TriggerJoyRumbleRumk__FP3JOY4RUMKf(void *g, int v, float f);
-void func_00154E10(void *g, qword q, int v, int a, TRIG *p);
+void SprayDifficultyPrizes(void *g, qword q, int v, int a, TRIG *p);
 void ApplyTaskStates(void *g, int k, int v, TRIG *p);
-void func_001CB518(TRIG *p);
+void SO_ResetForProxy(TRIG *p);
 void SetSoCnstrForce(TRIG *p, int n);
 void SetSoCnstrTorque(TRIG *p, int n);
 
@@ -498,7 +498,7 @@ void func_001BB648(TRIG *p, E *pe)
                 qword q;
                 if (psPrev) q = GetLoWorldPos(psPrev);
                 else q = GetLoWorldPos(p);
-                func_00154E10(D_002DE578, q, pi->b, -100, p);
+                SprayDifficultyPrizes(D_002DE578, q, pi->b, -100, p);
             }
             break;
         case 11: {
@@ -805,7 +805,7 @@ E *func_001BBE68(TRIG *p) {
  * @end-sly2-annot */
 extern "C" void func_001BBEA8(TRIG *p)
 {
-    func_001CB518(p);
+    SO_ResetForProxy(p);
     func_001BAF18(p, 0x609);
     if (p->fCnstr) {
         SetSoCnstrForce(p, 1);

@@ -140,7 +140,7 @@ void HandleBasicMessage(RECONTGT *p, int msg, void *pm);
 PLAYER *PpoHero(SW *psw);
 void RequestTaskState(LINK *plink, int n, RECONTGT *p);
 void func_0019D948(void *pv);
-int FTaskComplete(LINK *plink);
+int IsTaskComplete(LINK *plink);
 
 void func_00201E88(RECONSEL *p);
 void func_00201F00(RECONSEL *p);
@@ -915,7 +915,7 @@ void func_002036E8(RECONTGT *p, int n)
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/player.md#tu_201d78-0x201d78-0x203948
  * @end-sly2-annot */
-int FReconTargetDone(RECONTGT *p) { if (p->link) return FTaskComplete(p->link); return p->fDone; }
+int FReconTargetDone(RECONTGT *p) { if (p->link) return IsTaskComplete(p->link); return p->fDone; }
 
 /** @sly2-annot addr=0x203790
  * Purpose: visible and task state 1

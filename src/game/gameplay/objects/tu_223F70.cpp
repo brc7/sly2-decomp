@@ -126,7 +126,7 @@ void UpdateSo(CID100V *p);
 qwordV GetLoWorldPos(void *p);
 M4 *GetLoWorldMatrix(void *p);
 void HandleBasicMessage(CID100V *p, int k, struct MSG100 *q);
-void SetLoParent_1A58D0(CID100V *p, void *q, int a);
+void SetLoParent(CID100V *p, void *q, int a);
 int FIgnoreSoIntersection(CID100V *p, BASIC *q);
 int func_00134310(int v, int a);
 void func_001F4FB0(CID100V *p, XP *pxp, int i);
@@ -146,7 +146,7 @@ qwordV func_001FAA48(SOV *, qwordV, qwordV);
 struct STACKSCOPEMK { int a[4]; };
 STACKSCOPEMK *STACKSCOPE_ctor(STACKSCOPEMK *pm);
 void STACKSCOPE_ctor_1AE4A0(STACKSCOPEMK *pm, int n) __asm__("_$_10STACKSCOPE");
-void func_0020FA10();
+void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(SW *pg, qwordV pos, void (*pfn)(), void *pv, float r, int *pc, COLL ***papa);
 qwordV SetVectorSphere(float a, float b, float c);
 qwordV LimitVectorLength(qwordV v, float r);
@@ -331,7 +331,7 @@ void func_00224258(CID100V *p, SOV *q)
     int k = p->kind;
     if (k == 0x1A || k == 0x29) VCALL(p, 76), 3);
     else {
-        SetLoParent_1A58D0(p, q->oid == 1 ? 0 : q, 3);
+        SetLoParent(p, q->oid == 1 ? 0 : q, 3);
         VCALL(p, 76), 2);
     }
 }
@@ -652,7 +652,7 @@ void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
     int cx;
     int i, j, k, m;
     STACKSCOPE_ctor(&mark);
-    IntersectSwBoundingSphere(&D_003DD490, pos, func_0020FA10, p->ptree, r, &c, &apa);
+    IntersectSwBoundingSphere(&D_003DD490, pos, ShouldKeepSoNotSelf, p->ptree, r, &c, &apa);
     cx = 0;
     for (i = 0; i < sizeof(D_002C4368) / sizeof(D_002C4368[0]); i++) {
         for (j = 0; j < D_002C4368[i]; j++) {
@@ -678,7 +678,7 @@ void func_00224BF8(CID100V *p, int a, int b, qwordV pos, float r)
  * @end-sly2-annot */
 extern "C" void func_00224E70(CID100V *p, float f)
 {
-    SetLoParent_1A58D0(p, 0, 1);
+    SetLoParent(p, 0, 1);
     func_00224BF8(p, p->n174, p->n178, GetLoWorldPos(p), f);
 }
 
@@ -760,7 +760,7 @@ void func_00224EC8(CID100V *p,int state){
   break;
  }
  case 1:{
-  SetLoParent_1A58D0(p,0,15);SetSoCnstrForce(p,0);
+  SetLoParent(p,0,15);SetSoCnstrForce(p,0);
   if(p->kind!=0x29){SetSoCnstrTorque(p,0);break;}
   SetSoCnstrTorque(p,1);
   SOV *objects[32];

@@ -52,7 +52,7 @@ extern "C" {
 void InitSo(BARRIERV *pso);
 void PostSoLoad(BARRIERV *pso);
 void RecalcSwOxfFilterForObject(void *psw, BARRIERV *pso);
-int FMatchesLoName(void *plo, int oid);
+int HasLoOid(void *plo, int oid);
 int FIgnoreSoIntersection(BARRIERV *pso, void *psoOther);
 void func_001F4FB0(BARRIERV *pso);
 void EnsureSwCallback(void *psw, void *pv, long k, int n);
@@ -105,7 +105,7 @@ extern "C" int FIgnoreBarrierIntersection(BARRIERV *pbarrier, void *pso)
     i = 0;
     f = 0;
     for (; i < pbarrier->coid; i++) {
-        if (FMatchesLoName(pso, pbarrier->aoid[i])) f = 1;
+        if (HasLoOid(pso, pbarrier->aoid[i])) f = 1;
     }
     for (j = 0; j < pbarrier->ccid; j++) {
         if (FIsBasicDerivedFrom((struct BASIC *)pso, pbarrier->acid[j])) f = 1;

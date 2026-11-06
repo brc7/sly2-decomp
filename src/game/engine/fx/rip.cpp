@@ -163,7 +163,7 @@ extern struct VTE D_002D77D8[] __asm__("_vt$4RIPG");
 void *PvAllocSlotheapClear(void *pool);
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 void *ConstructGlobset(void *pglobset) __asm__("__7GLOBSET");   /* GLOBSET::GLOBSET() (sly2/so.h), on an untyped member */
-void *PdlFromSwCid(struct G *p, int n);
+void *GetSwClassList(struct G *p, int n);
 void func_0011A070(void *pl, void *pv);
 #define VCALL0(o, n) ((void (*)(void *))(o)->vt[n].pf)((char *)(o) + (o)->vt[n].d)
 /** @sly2-annot addr=0x1CDCD0
@@ -187,7 +187,7 @@ struct O *PripgNew(struct G *p, int a)
     ConstructGlobset(po->x80);
     po->x150 = a;
     po->vt = D_002D77D8;
-    func_0011A070(PdlFromSwCid(p, 0x57), po);
+    func_0011A070(GetSwClassList(p, 0x57), po);
     VCALL0(po, 7);
     VCALL0(po, 11);
     VCALL0(po, 15);
@@ -257,7 +257,7 @@ void RemoveRip__FP3RIP(RIP *prip);
 void RemoveSoHierarchy(RIPGV *p);
 void RemoveSwAaobrObject(SW *psw, void *pv);
 void SnipLo(RIPGV *p);
-void *PdlFromSwCid(SW *psw, int n);
+void *GetSwClassList(SW *psw, int n);
 void RemoveSlEntry(void *pl, RIPGV *p);
 void FreeLoroot(RIPGV *p);
 void func_0011CD98(void *pool, void *pv);
@@ -297,7 +297,7 @@ extern "C" void OnRipgRemove__FP4RIPG(RIPGV *pripg)
         pripg->xEC = 0;
     }
     SnipLo(pripg);
-    RemoveSlEntry(PdlFromSwCid(psw, 0x57), pripg);
+    RemoveSlEntry(GetSwClassList(psw, 0x57), pripg);
     if (!pripg->x10) FreeLoroot(pripg);
     func_0011CD98(psw->pool, pripg);
     D_002DD2FC = dli.m_pdliNext;
@@ -426,7 +426,7 @@ struct RIP { char pad[0x14]; float tStart; char p1[0xEC - 0x18]; struct VTE *vt;
 struct RIPGV { char pad[0xC]; struct VTE *vt; char p1[0x15C - 0x10]; DL dl; };
 void AddRipRef__FP3RIP(struct RIP *prip);
 void ReleaseRip__FP3RIP(struct RIP *prip);
-int func_001A61A0(struct RIPGV *p);
+int IsLoInWorld(struct RIPGV *p);
 int FIsDlEmpty__FP2DL(DL *pdl);
 void BounceRipgRips__FP4RIPG(struct RIPGV *p);
 static inline void InitDli(DLI *pdli, DL *pdl)
@@ -466,7 +466,7 @@ void UpdateRipg(struct RIPGV *pripg)
         ((void (*)(void *))prip->vt[5].pf)((char *)prip + prip->vt[5].d);
         ReleaseRip__FP3RIP(prip);
     }
-    if (!func_001A61A0(pripg) || FIsDlEmpty__FP2DL(&pripg->dl))
+    if (!IsLoInWorld(pripg) || FIsDlEmpty__FP2DL(&pripg->dl))
         ((void (*)(void *))pripg->vt[9].pf)((char *)pripg + pripg->vt[9].d);
     else
         BounceRipgRips__FP4RIPG(pripg);
@@ -1399,7 +1399,7 @@ extern "C" {
 int FInsideCmFrustum(G*,qword,qword);
 int FInsideCmMrd(G*,qword,float,float*);
 M4 LoadMatrixFromPosRotScalar(qword,const M3&,float);
-void func_001A5EE8(LO*,const M4&,float,float);
+void RenderLoAtMatrix(LO*,const M4&,float,float);
 int FRenderRipPosMat(S*,qword,const M3&);
 }
 static inline float Poly(POLY *p,float t){return p->a+t*(p->b+t*p->c);}
@@ -1430,7 +1430,7 @@ int FRenderRipPosMat(S*p,qword pos,const M3&mat)
     M4 m;
     M4 tmp=LoadMatrixFromPosRotScalar(pos,mat,size);
     m=tmp;
-    func_001A5EE8(p->lo,m,alpha*proj,1.0f);
+    RenderLoAtMatrix(p->lo,m,alpha*proj,1.0f);
     return 1;
 }
 } // namespace M_FRenderRipPosMat
@@ -2111,7 +2111,7 @@ int FInsideCmFrustum(CAMERA *,qword,qword);
 M3 BuildOrthonormalMatrixZ(qword,qword);
 M3 func_0011B500(qword,float);
 M4 LoadMatrixFromPosRotScalar(qword,const M3 &,float);
-void func_001A5EE8(void *,const M4 &,float,float);
+void RenderLoAtMatrix(void *,const M4 &,float,float);
 }
 struct VU_FLOAT { qword q; VU_FLOAT(float f) { __asm__("qmtc2.ni %1, %0" : "=j"(q) : "r"(f)); } };
 static inline qword Subtract(qword a,qword b){qword r;__asm__("vsub.xyzw %0,%1,%2":"=j"(r):"j"(a),"j"(b));return r;}
@@ -2158,7 +2158,7 @@ extern "C" void RenderGlint(RIP *p)
     rotation=func_0011B500(D_002A2DA0,Evaluate(D_002C1FF0,time));
     product=Multiply(basis,rotation);
     transform=LoadMatrixFromPosRotScalar(p->position,product,size);
-    func_001A5EE8(p->material,transform,opacity,1.0f);
+    RenderLoAtMatrix(p->material,transform,opacity,1.0f);
 }
 } // namespace M_RenderGlint
 

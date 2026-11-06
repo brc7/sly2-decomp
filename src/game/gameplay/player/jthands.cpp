@@ -97,7 +97,7 @@ void func_001384C0(ASEGBL *pasegbl);
 void SetStepRadTargetVec(LO *plo, qword vec);
 void FixStepAngularVelocity(LO *plo);
 void ReleaseAct(ACT **ppact);
-SO *PsoFromLo(LO *plo);
+SO *GetSoFromLo(LO *plo);
 int func_00134310(int grf, int n);   /* NMaxIgnore */
 int CploFindSwObjectsByClass(SW *psw, int grffso, int cid, LO *plo, int cploMax, LO **aplo);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *plo, int cid);
@@ -108,7 +108,7 @@ void EnsureSwCallback(SW *psw, SO *pso, long pmf, JTHANDS *phands);
 float func_0012F990(ASEG *paseg, int n);
 void func_001300B8(ASEG *paseg, float t, float g, LO *plo, XF *pxfA, XF *pxfB, M4 *pmatA, M4 *pmatB);
 qword *VECTOR_opAssign(qword *pdst, qword src);
-void SetLoParent_1A58D0(LO *plo, int a, int b);
+void SetLoParent(LO *plo, int a, int b);
 float func_00196928(qword dpos, qword vel, float a, float b, float c, float d);
 void SetAsegaSpeed__FP5ASEGAf(ASEGA *pasega, float svt);
 void func_001F6860(LO *plo, int n);
@@ -446,7 +446,7 @@ void InitJtHands(JTHANDS *phands, SO *pso, ASEGA **ppasega)
 extern "C" int func_001CC9A8(JTHANDS *phands, SO *pso, int grf)
 {
     if (phands->nMode == 1) {
-        SO *psoTarget = PsoFromLo(phands->ploTarget);
+        SO *psoTarget = GetSoFromLo(phands->ploTarget);
         if (psoTarget && psoTarget->ptree && pso->ptree == psoTarget->ptree)
             grf = func_00134310(grf, 3);
     }
@@ -622,7 +622,7 @@ extern "C" void func_001CCC88(JTHANDS *input, SO *other){
    :"=&r"(row0),"=&r"(row1),"=&r"(row2),"=&r"(row3),"=m"(work.final):"m"(work.views.matrices.product.r[0]),"m"(work.views.matrices.product.r[1]),"m"(work.views.matrices.product.r[2]),"m"(work.views.matrices.product.r[3]));
   }
  }
- SetLoParent_1A58D0(object,0,15);
+ SetLoParent(object,0,15);
  const qword*velocityAddress=object->psophys?(const qword *)&object->psophys->dvGravity:&D_002C1EE0.q;register float unit __asm__("$f20");register SO*initialOwner __asm__("$4");{register qword initialVelocity __asm__("$2");
  __asm__("lq %0,%4\n\tdaddu %1,%5,$zero\n\t.set noat\n\tlui $at,0x3F80\n\tmtc1 $at,%2\n\t.set at\n\tsq %0,%3":"=r"(initialVelocity),"=r"(initialOwner),"=f"(unit),"=m"(work.velocity):"m"(*velocityAddress),"r"(object):"$1");}
  {register qword destination __asm__("$2");__asm__("lq %0,%1":"=r"(destination):"m"(work.final.r[3]));work.destination=destination;}
@@ -750,7 +750,7 @@ extern "C" void func_001CD308(JTHANDS *p, SO *po)
         XF *pxf = po->PxfLocal((MATRIX4 *)&mat);
         p->psoHeld->SetParent(po->psoParent, pxf, 0xF);
     } else {
-        SetLoParent_1A58D0(p->psoHeld, 0, 0xF);
+        SetLoParent(p->psoHeld, 0, 0xF);
     }
     XF *pxfAct = p->psoHeld->pxfUnk58;
     p->pactPos = func_0012DE58Q(p->psoHeld, pxfAct, 5, func_0022FC48(0, pxfAct->pxfParent, GetLoWorldPos(po)), D_002A2DD0, D_002DDED0.t + D_002C1EF4);

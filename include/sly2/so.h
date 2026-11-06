@@ -201,8 +201,8 @@ struct SO : public LO
     virtual void Freeze() __asm__("OnSoRemove");   /* slot 22 */
     virtual void Unfreeze() __asm__("OnSoAdd");   /* slot 23 */
     virtual void SetIdProxy(int idProxy, int fChildren) __asm__("SetSoIdProxy");   /* slot 25 */
-    virtual void VUnk25(LO *plo) __asm__("func_001CB518");   /* slot 26 */
-    virtual void VUnk26(LO *plo) __asm__("func_001CB5D0");   /* slot 27 */
+    virtual void VUnk25(LO *plo) __asm__("SO_ResetForProxy");   /* slot 26 */
+    virtual void VUnk26(LO *plo) __asm__("SO_Slot27");   /* slot 27 */
     virtual void TranslateToPos(qword qwPos) __asm__("TranslateSoToPos");   /* slot 29 */
     virtual void RotateToMat(MATRIX4 *pmatWorld) __asm__("RotateSoToMat");   /* slot 30 */
     virtual XF *PxfLocal(MATRIX4 *pmatLocal) __asm__("func_001F3FB0");   /* slot 32 */

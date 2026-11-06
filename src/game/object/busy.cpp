@@ -41,9 +41,9 @@ extern DLI *D_002DD2FC;     /* g_pdliFirst */
 extern "C" {
 void *PpoHero(void);
 qword GetLoWorldPos(void *p);
-void func_00147EC8(SWBUSY *p, void *pv);
-void func_00147EE8(SWBUSY *p, void *pv);
-void func_00147E20(SWBUSY *p, ITEM *pitem);
+void UnlinkSwBusyEntry(SWBUSY *p, void *pv);
+void MoveSwBusyEntryToEnd(SWBUSY *p, void *pv);
+void RemoveFromSwBusyList(SWBUSY *p, ITEM *pitem);
 }
 int FFindDlEntry(DL *pdl, void *pv);                        /* FFindDlEntry__FP2DLPv */
 void AppendDlEntry(DL *pdl, void *pv);                      /* AppendDlEntry__FP2DLPv */
@@ -59,7 +59,7 @@ void InsertDlEntryBefore(DL *pdl, void *pvBefore, void *pv);  /* InsertDlEntryBe
  *   docs/engine/object-model.md#9-key-functions
  * @end-sly2-annot */
 // Removes a root record from the world's busy list, moving the incremental-pass cursor past it first.
-extern "C" void func_00147E20(SWBUSY *p, ITEM *pitem)
+extern "C" void RemoveFromSwBusyList(SWBUSY *p, ITEM *pitem)
 {
     if (FFindDlEntry(&p->dl, pitem)) {
         if (p->pitemStop == pitem)
@@ -78,9 +78,9 @@ extern "C" void func_00147E20(SWBUSY *p, ITEM *pitem)
  * @end-sly2-annot */
 // Re-sorts a root record: removes it and inserts it just before the incremental-pass cursor, so the next pass checks
 // it soon.
-extern "C" void func_00147E88(SWBUSY *p, ITEM *pitem)
+extern "C" void ResortSwBusyEntry(SWBUSY *p, ITEM *pitem)
 {
-    func_00147E20(p, pitem);
+    RemoveFromSwBusyList(p, pitem);
     InsertDlEntryBefore(&p->dl, p->pitemStop, pitem);
 }
 
@@ -91,7 +91,7 @@ extern "C" void func_00147E88(SWBUSY *p, ITEM *pitem)
  * See: docs/reference/functions/object-model.md#busy-0x147e20-0x148620
  * @end-sly2-annot */
 // Unlinks an entry from the world's busy list without touching the cursor.
-extern "C" void func_00147EC8(SWBUSY *p, void *pv)
+extern "C" void UnlinkSwBusyEntry(SWBUSY *p, void *pv)
 {
     RemoveDlEntry(&p->dl, pv);
 }
@@ -103,7 +103,7 @@ extern "C" void func_00147EC8(SWBUSY *p, void *pv)
  * See: docs/reference/functions/object-model.md#busy-0x147e20-0x148620
  * @end-sly2-annot */
 // Moves an entry to the end of the busy list (it becomes the cursor when the cursor is unset).
-extern "C" void func_00147EE8(SWBUSY *p, void *pv)
+extern "C" void MoveSwBusyEntryToEnd(SWBUSY *p, void *pv)
 {
     RemoveDlEntry(&p->dl, pv);
     if (p->pitemStop == 0) p->pitemStop = (ITEM *)pv;
@@ -178,11 +178,11 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
         switch ((int)((pso->grf << 8) >> 60)) {
         case 2:
             fIn = 0;
-            func_00147EC8(p, pv);
+            UnlinkSwBusyEntry(p, pv);
             break;
         case 1:
             fIn = 1;
-            func_00147EC8(p, pv);
+            UnlinkSwBusyEntry(p, pv);
             break;
         case 0:
             if (!(n & ((unsigned char *)pso)[0x2D])) {
@@ -194,7 +194,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
                 fIn = d < 0.0f;
                 if (D_002BD450 < __builtin_fabsf(d) - gA) {
                 leave:
-                    func_00147EE8(p, pv);
+                    MoveSwBusyEntryToEnd(p, pv);
                 }
             }
             break;
@@ -206,7 +206,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
                 d = GDist(GetLoWorldPos(pso), posB) - pso->g38;
                 fIn = d < 0.0f;
                 if (D_002BD450 < __builtin_fabsf(d) - gB)
-                    func_00147EE8(p, pv);
+                    MoveSwBusyEntryToEnd(p, pv);
             }
             break;
         }
@@ -223,7 +223,7 @@ extern "C" void UpdateSwBusyList(SWBUSY *p)
     D_002DD2FC = dli.m_pdliNext;
 }
 
-/* func_00148300 (Claude agent): case 2 before case 0, and a block-local r per case (so the g38 load ties to f20). */
+/* UpdateSoBusy (Claude agent): case 2 before case 0, and a block-local r per case (so the g38 load ties to f20). */
 static __inline__ float GDistSq(qword a, qword b)
 {
     qword d;
@@ -245,7 +245,7 @@ static __inline__ float GDistSq(qword a, qword b)
 // Decides whether one object is in its activity zone (busy kind: always, never, within its busy distance of the camera
 // or of the hero, gated by the camera's zone mask) and sends the enter (slot 23) or leave (slot 22) notification
 // when that changed.
-extern "C" void func_00148300(SWBUSY *p, SO *pso)
+extern "C" void UpdateSoBusy(SWBUSY *p, SO *pso)
 {
     int grf;
     qword posA, posB;

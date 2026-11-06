@@ -61,14 +61,14 @@ void SetThiefnetTab(void *pv, int n);
 void FireRelay(SAFEHOUSEV *prelay, int n);
 void SetPoCtlState(SAFEHOUSEV *ppo, int n);
 void ReplaceSma(SMV *psm, SAFEHOUSEV *plo, int isms, int n, SMA **ppsma);
-void func_00162E38(SUBV *p);
+void FailJob(SUBV *p);
 int CploFindSwObjectsByClass(GS *psw, int grffso, int cid, int n, int cploMax, SOV **aplo);
 void func_001433C8(SOV *pso);
 void BindStepplayerHpMp(SOV *pso, int n);
 CRef RefGetSaveVarV(const char *pchz, ...);
 int OidFromSmIsms(SMV *psm, int isms);
 void StartJoySelection__FP3JOY(void *pjoy);
-CRef func_002013D8(void *pv, int a, int b, int *pc, void **apv);
+CRef SetValuesFromSpliceList(void *pv, int a, int b, int *pc, void **apv);
 int func_001F0438(SMV *psm, void *pv);
 void SetSmaGoal(SMA *psma, void *pv);
 void func_001D7480(SAFEHOUSEV *psh, int state);
@@ -211,7 +211,7 @@ extern "C" void func_001D7480(SAFEHOUSEV *psh, int state)
         int n;
         int idx;
         if (D_003DD490.x3B0C && !D_003DD490.x3B0C->x74)
-            func_00162E38(D_003DD490.x3B0C);
+            FailJob(D_003DD490.x3B0C);
         n = CploFindSwObjectsByClass(&D_003DD490, 5, 0x34, 0, 3, aso0);
         for (int i0 = 0; i0 < n; i0++) {
             SOV *pso = aso0[i0];
@@ -268,7 +268,7 @@ extern "C" void AddSafehouseEntry(SAFEHOUSEV *psh, void *pvState, int grfBtn, in
  * @end-sly2-annot */
 extern "C" void SetPoChoices(SAFEHOUSEV *psh, void *pv)
 {
-    func_002013D8(pv, 6, 6, &psh->cchoice, psh->achoice);
+    SetValuesFromSpliceList(pv, 6, 6, &psh->cchoice, psh->achoice);
     func_001D77D0(psh, 0);
 }
 

@@ -493,7 +493,7 @@ struct S {
     int flFE8; struct O *pFEC;
 };
 extern int D_002E1E40, D_002F7900, D_002DD5BC, D_002DD648;
-void func_001CB518(struct S *p);
+void SO_ResetForProxy(struct S *p);
 void ClearBhvstk__FP6BHVSTK(void *p);
 void func_00209778(void *p);
 void SetStepguardGrfsgf(struct S *p, int n);
@@ -509,7 +509,7 @@ void func_00153EF8(struct F64 *pf, struct S *p, int n);
 void GenerateStepguardLoot(struct S *p);
 void StageStepguardLoot(struct S *p);
 struct O *func_00205438(struct S *p, int n);
-void SetLoParent_1A58D0(struct F64 *pf, struct S *p, int n);
+void SetLoParent(struct F64 *pf, struct S *p, int n);
 
 /** @sly2-annot addr=0x206518
  * Purpose: STEPGUARD vt26: proxy/spawn reset: copy max values to current (HP etc.), clear BHVs, mover and
@@ -525,7 +525,7 @@ void ResetStepguardToHome(struct S *p)
 {
     struct O *o;
     qword *pq;
-    func_001CB518(p);
+    SO_ResetForProxy(p);
     pq = &p->q300;
     p->n33C = p->n338;
     p->nE88 = p->nE84;
@@ -564,7 +564,7 @@ void ResetStepguardToHome(struct S *p)
         p->pFEC->vt[9].pf((char *)p->pFEC + p->pFEC->vt[9].d);
     o = func_00205438(p, 0x9C);
     o->vt[8].pf((char *)o + o->vt[8].d);
-    SetLoParent_1A58D0(p->pF64, p, 0xF);
+    SetLoParent(p->pF64, p, 0xF);
     p->pF64->pE0 = p;
     p->pF64->pE4 = p->pEC;
 }
@@ -583,7 +583,7 @@ struct S {
     char p9[0xFA8 - 0xF98]; int nFA8; char p10[0xFC8 - 0xFAC]; int nFC8, nFCC; char p11[0xFF4 - 0xFD0]; float fFF4;
     char p12[0x1000 - 0xFF8]; int n1000;
 };
-void func_001CB5D0(struct S *p);
+void SO_Slot27(struct S *p);
 void func_0020B210(struct S *p);
 void *func_002333B4(void *p, int c, int n) __asm__("memset");
 void SetStepguardTarget(struct S *p, int n);
@@ -601,7 +601,7 @@ void SetStepguardSpecial(struct S *p, int n);
 void ClearStepguardState(struct S *p)
 {
     int one;
-    func_001CB5D0(p);
+    SO_Slot27(p);
     func_0020B210(p);
     p->n2E8 = 0;
     func_002333B4(p->a2DC, 0, 0xC);
@@ -1427,7 +1427,7 @@ int CsgfFromGrf(unsigned long m, int *a) { int c = 0; int i; for (i = 0x2E; i >=
 namespace M_func_00207B10 { extern "C" {
 struct CRef;
 struct CRef { int tagk; int tag; };
-void func_002013D8(struct CRef *pref, void *p, int a, int b, int *pn, int *an);
+void SetValuesFromSpliceList(struct CRef *pref, void *p, int a, int b, int *pn, int *an);
 unsigned long GrfFromSgfArray(int c, int *a);
 void Decref__4CRef(struct CRef *pref);
 /** @sly2-annot addr=0x207B10
@@ -1436,7 +1436,7 @@ void Decref__4CRef(struct CRef *pref);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-unsigned long func_00207B10(void *p) { int an[16]; struct CRef ref; int c; unsigned long m; func_002013D8(&ref, p, 0x1010, 0x10, &c, an); m = GrfFromSgfArray(c, an); Decref__4CRef(&ref); return m; }
+unsigned long func_00207B10(void *p) { int an[16]; struct CRef ref; int c; unsigned long m; SetValuesFromSpliceList(&ref, p, 0x1010, 0x10, &c, an); m = GrfFromSgfArray(c, an); Decref__4CRef(&ref); return m; }
 } } // namespace M_func_00207B10
 
 // 0x207B70 func_00207B70
@@ -2305,7 +2305,7 @@ int func_00156918(O *o, qword q);
 int FCheckVolPoint(L *pl, qword q);
 void IntersectSwBoundingBox(void *g, qword a, qword b, void *p1, void *p2, int *pi, int *pj);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, void *phit);
-void func_0020FA10();
+void ShouldKeepSoNotSelf();
 extern char D_003DD490[];
 int FStepguardSenseStimulus(S2 *p, O *o);
 }
@@ -2351,7 +2351,7 @@ int FStepguardSenseStimulus(S2 *p, O *o)
         {
             STACKSCOPE frame;
             int i, j;
-            IntersectSwBoundingBox(D_003DD490, pos, tpos, (void *)func_0020FA10, p->pEC, &i, &j);
+            IntersectSwBoundingBox(D_003DD490, pos, tpos, (void *)ShouldKeepSoNotSelf, p->pEC, &i, &j);
             if (!PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(0, pos, tpos, i, j, 0))
                 return 1;
             return 0;
@@ -2470,7 +2470,7 @@ struct S;
 struct G;
 extern struct G D_003DD490;
 struct S { char pad[0xFC8]; int n; };
-int func_0020F1B8(struct G *p);
+int IsSwInputLocked(struct G *p);
 /** @sly2-annot addr=0x209098
  * Purpose: +0xFC8 or FSwInputLock(g_sw)
  * Info: proposed name FStepguardHandsOff (T2); TU stepguard
@@ -2478,7 +2478,7 @@ int func_0020F1B8(struct G *p);
  * See: docs/reference/functions/guards-ai.md#tu_171f58-0x171f58-0x173158,
  *   docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-int func_00209098(struct S *p) { if (p->n != 0) return 1; return func_0020F1B8(&D_003DD490); }
+int func_00209098(struct S *p) { if (p->n != 0) return 1; return IsSwInputLocked(&D_003DD490); }
 } } // namespace M_func_00209098
 
 // 0x2090D0 ReleaseAnimBinding
@@ -2525,7 +2525,7 @@ extern char D_003DD490[];
 void func_0020BD88(struct H *, void *);
 void func_0020C7E0(struct DIRECTION_STATE *, void *);
 void *PloFindSwObject__FP2SWi3OIDP2LO(void *, int, int, void *);
-int CidBasic(void *);
+int GetBasicCid(void *);
 struct MARKER *func_0012F938(void *, int);
 struct H *func_0020C010(int);
 void func_0020BD78(struct H *);
@@ -2556,7 +2556,7 @@ void ResolveAnimBinding(struct E *e, void *context)
         e->kind = -1;
         return;
     }
-    switch (CidBasic(resource)) {
+    switch (GetBasicCid(resource)) {
     case 0x6D:
         if (func_0012F938(resource, 0x22)) {
             e->kind = 2;
@@ -3148,14 +3148,14 @@ struct CRef; struct S;
 struct CRef { int tagk; int tag; };
 struct S { char pad[0x2C0]; long n; };
 void *CsgfFromGrf(long n, char *ab);
-void func_00200F58(struct CRef *ret, void *p, int n, char *ab);
+void BuildSpliceListFromUniformValues(struct CRef *ret, void *p, int n, char *ab);
 /** @sly2-annot addr=0x209A88
  * Purpose: Splice getter: list of set flags
  * Info: proposed name RefGetStepguardSgfs (T2); TU stepguard
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#stepguard-0x205e70-0x20b840
  * @end-sly2-annot */
-struct CRef *func_00209A88(struct CRef *ret, struct S *p) { char ab[0xC0]; func_00200F58(ret, CsgfFromGrf(p->n, ab), 0x1010, ab); return ret; }
+struct CRef *func_00209A88(struct CRef *ret, struct S *p) { char ab[0xC0]; BuildSpliceListFromUniformValues(ret, CsgfFromGrf(p->n, ab), 0x1010, ab); return ret; }
 } } // namespace M_func_00209A88
 
 // 0x209AD0 PanimbindBest
@@ -3413,7 +3413,7 @@ int func_0020A010(void *p) { if (FStepguardHasSgf(p, 0x17)) return func_00205458
 namespace M_func_0020A058 { extern "C" {
 struct S;
 typedef struct { int tagk; int tag; } CRef;
-void func_002013D8(CRef *pr, int a, int b, int c, void *d, void *e);
+void SetValuesFromSpliceList(CRef *pr, int a, int b, int c, void *d, void *e);
 void func_00129658(CRef *pd, CRef *ps) __asm__("__as__4CRefRC4CRef");
 void Decref__4CRef(CRef *pr);
 struct S { char pad[0xF94]; int a; int b; char pad2[0xFA8 - 0xF9C]; int c; int d; };
@@ -3428,10 +3428,10 @@ void func_0020A058(struct S *p, int x, int y)
     CRef r;
     CRef t;
     r.tagk = -1;
-    func_002013D8(&t, x, 0x2002, 4, &p->a, &p->b);
+    SetValuesFromSpliceList(&t, x, 0x2002, 4, &p->a, &p->b);
     func_00129658(&r, &t);
     Decref__4CRef(&t);
-    func_002013D8(&t, y, 0x2002, 4, &p->c, &p->d);
+    SetValuesFromSpliceList(&t, y, 0x2002, 4, &p->c, &p->d);
     func_00129658(&r, &t);
     Decref__4CRef(&t);
     Decref__4CRef(&r);

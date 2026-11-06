@@ -535,7 +535,7 @@ struct SO *func_001450E0(struct P *p);
 int func_001459C0(struct P *p);
 int FCheckLm__FP2LMf(struct LM *plm, float g);
 void SetBhvfollowState(struct P *p, int n);
-int CidBasic(void *p);
+int GetBasicCid(void *p);
 int func_00145DA0(struct X *px);
 int func_00146298(struct X *px);
 int func_00146790(struct X *px);
@@ -620,7 +620,7 @@ void UpdateBhvfollow(struct P *p)
             else if (!FCheckLm__FP2LMf(&D_002BD338, g))
                 SetBhvfollowState(p, 0);
             else {
-                switch (CidBasic(p->p10)) {
+                switch (GetBasicCid(p->p10)) {
                 case 0x36:
                     if (func_00145DA0(p->p18))
                         SetBhvfollowState(p, 0);
@@ -861,7 +861,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 float GRandInRange__Fff(float a, float b);
 void func_001457A8(struct P *p);
 void func_0019F540(void *p, qword v);
-int CidBasic(void *p);
+int GetBasicCid(void *p);
 static __inline__ void Activate(struct P *p, int oid)
 {
     struct O *po = func_00205438(p->p10, oid);
@@ -900,7 +900,7 @@ void SetBhvfollowState(struct P *p, int state)
         func_0019F540(p->p10, p->v80);
         break;
     case 2:
-        switch (CidBasic(p->p10)) {
+        switch (GetBasicCid(p->p10)) {
         case 0x36: Activate(p, 0xC3); break;
         case 0x37: Activate(p, 0xC4); break;
         case 0x35: Activate(p, 0xC5); break;
@@ -992,7 +992,7 @@ struct Q { char pad[0x330]; int x330; };
 struct R { char pad[0xDF4]; int xDF4; char pad2[0x1810 - 0xDF8]; int x1810; };
 struct P { char pad[0x10]; struct R *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct Q *p38; };
 void UpdateBhv(struct P *);
-int func_001A61A0(struct Q *);
+int IsLoInWorld(struct Q *);
 qword GetLoWorldPos(void *);
 qword *GetLoWorldMatrix(void *);
 void func_00146158(struct P *, int);
@@ -1011,7 +1011,7 @@ void func_00145DB0(struct P *p)
     UpdateBhv(p);
     if (p->x30 == -1)
         return;
-    if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {
+    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
         func_00146158(p, -1);
         return;
     }
@@ -1218,7 +1218,7 @@ struct Q { char pad[0x330]; int x330; };
 struct R { char pad[0xDF4]; int xDF4; char pad2[0x1714 - 0xDF8]; int x1714; };
 struct P { char pad[0x10]; struct R *p10; char pad2[0x30 - 0x14]; int x30; float x34; struct Q *p38; };
 void UpdateBhv(struct P *);
-int func_001A61A0(struct Q *);
+int IsLoInWorld(struct Q *);
 qword GetLoWorldPos(void *);
 qword *GetLoWorldMatrix(void *);
 void func_00146650(struct P *, int);
@@ -1237,7 +1237,7 @@ void func_001462A8(struct P *p)
     UpdateBhv(p);
     if (p->x30 == -1)
         return;
-    if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {
+    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
         func_00146650(p, -1);
         return;
     }
@@ -1446,7 +1446,7 @@ float D_002BD368 __attribute__((aligned(8))) = 400.0f;
 float D_002BD36C = 550.0f;
 float D_002BD370 = 0.2f;
 void UpdateBhv(struct P *p);
-int func_001A61A0(struct T *p);
+int IsLoInWorld(struct T *p);
 qword GetLoWorldPos(void *p);
 struct M3 *GetLoWorldMatrix(void *p);
 void func_00146E18(struct P *p, int n);
@@ -1497,7 +1497,7 @@ void func_001467A0(struct P *p)
     UpdateBhv(p);
     if (p->x30 == -1)
         return;
-    if (p->p10->xDF4 != -1 || !func_001A61A0(p->p38) || p->p38->x330) {
+    if (p->p10->xDF4 != -1 || !IsLoInWorld(p->p38) || p->p38->x330) {
         func_00146E18(p, -1);
         return;
     }

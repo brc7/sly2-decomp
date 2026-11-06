@@ -1,4 +1,4 @@
-// basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, CidBasic), the sidebag and its
+// basic.cpp -- BASIC, the root of the object classes: class test (FIsBasicDerivedFrom, GetBasicCid), the sidebag and its
 // option setters (EnsureLoSidebag*), Splice events and the deferred Splice callbacks, LO subscriptions and messages.
 // TU 0x132B00..0x1336F0 (28 functions, address order). The sidebag pool's GC members (PushFront 0x255C00, MakeRoot
 // 0x258178) are CGcObj<CSidebag>'s (sly2/gc.h, emitted by splice/gc.cpp); the EMITTER class descriptor getter
@@ -71,11 +71,11 @@ void __as__4CRefRC4CRef(CREFV *pref, CREFV *prefFrom);
 void InsertSlEntryAfter(DLV *, SWCB *, SWCB *);
 void RemoveSlEntry(DLV *, SWCB *);
 int PrefFindBinding__6CFrameUii(CFrame *p, int k, int n);
-CREFV *func_00200DA0(CREFV *ret, int x, int *pn, int y);
+CREFV *BuildSpliceListFromValues(CREFV *ret, int x, int *pn, int y);
 
 void EvalSpliceEventCallback(BASICV *p, CPAIR *ppair, CFrame *pframe, CREFV *pref);
 SWCB *ScheduleSwSpliceCallback(SW *psw, BASICV *p, CPAIR *ppair, float t);
-SPAIR *func_00132ED8(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *pbasic, int k, CREFV *pref);
 }
 int FIsBasicDerivedFrom(BASICV *pbasic, CIDV cid) __asm__("FIsBasicDerivedFrom__FP5BASIC3CID");
 void EnsureBasicSidebag(BASICV *p) __asm__("EnsureBasicSidebag__FP5BASIC");
@@ -98,7 +98,7 @@ void BASIC::VUnk00() {
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // BASIC's default for vtable slot 2 (empty). Its role is not known.
-extern "C" void func_00132B08(void) {
+extern "C" void BASIC_Slot2Default(void) {
 }
 
 /** @sly2-annot addr=0x132B10
@@ -270,7 +270,7 @@ extern "C" void EnsureLoSidebagVector(LO *plo, int optid, qword v)
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Sets an object-reference sidebag option to null unless already set.
-extern "C" void func_00132E40(LO *plo, int optid)
+extern "C" void EnsureLoSidebagBasic(LO *plo, int optid)
 {
     CREFFR fr;
     CRef_ctor_BASIC(&fr.ref, 0);
@@ -281,12 +281,12 @@ extern "C" void func_00132E40(LO *plo, int optid)
 
 /** @sly2-annot addr=0x132EA0
  * Purpose: Returns Pclassinfo()->cid (vt6)
- * Info: proposed name CidBasic (T1); TU basic
+ * Info: proposed name GetBasicCid (T1); TU basic
  * Confidence: mid (draft) [T1 0.70] - evidence: static analysis; sources: r2b_rest
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Returns the object's class id (from its class info, vtable slot 6).
-extern "C" int CidBasic(BASICV *p)
+extern "C" int GetBasicCid(BASICV *p)
 {
     VTE *pvt = p->pvt;
     short d = pvt[6].d;
@@ -301,7 +301,7 @@ extern "C" int CidBasic(BASICV *p)
  * @end-sly2-annot */
 // Getter of BASIC option 2 (object type 0x2000): returns the object itself, so Splice can ask an object for "self".
 // (inferred)
-extern "C" int func_00132ED0(int n)
+extern "C" int GetBasicSelf(int n)
 {
     return n;
 }
@@ -314,7 +314,7 @@ extern "C" int func_00132ED0(int n)
  * @end-sly2-annot */
 // Builds the Splice call expression for an event: (handler-symbol self args...), where args is the event's
 // argument list. Returns an owning pointer to the list.
-SPAIR *func_00132ED8(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
+SPAIR *BuildSpliceEventCall(SPAIR *ret, BASICV *a1, int a2, CREFV *px)
 {
     SPAIR sp;
     CPAIR *p;
@@ -443,8 +443,8 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
     if (p->pframe && PrefFindBinding__6CFrameUii(p->pframe, k, 1)) {
         CREFV ref;
         SPAIR sp;
-        func_00200DA0(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
-        func_00132ED8(&sp, p, k, &ref);
+        BuildSpliceListFromValues(&ref, x, &D_0027A108[1 + D_0027A1D8[k]], y);
+        BuildSpliceEventCall(&sp, p, k, &ref);
         if (f)
             ScheduleSwSpliceCallback(&g_sw, p, sp.p, D_002DDED0.t);
         else
@@ -470,7 +470,7 @@ extern "C" void HandleBasicSpliceEvent(BASICV *p, int k, int f, int x, int y, CR
  * @end-sly2-annot */
 // Sends Splice event 5 to the object (vtable slot 3, not posted). BASIC option 12; exits and warps send the same event
 // when they trigger. (inferred: the event's name is not known.)
-extern "C" void func_00133340(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
+extern "C" void SendSpliceEvent5(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 5, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x133380
  * Purpose: vt3 HandleSpliceEvent(6) on the object
@@ -480,7 +480,7 @@ extern "C" void func_00133340(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, 
  * See: docs/reference/functions/object-model.md#basic-0x132b00-0x1336f0
  * @end-sly2-annot */
 // Sends Splice event 6 to the object (vtable slot 3, not posted). BASIC option 13. (inferred)
-extern "C" void func_00133380(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
+extern "C" void SendSpliceEvent6(BASICV *p) { VTE *vt = p->pvt; ((void (*)(void *, int, int, int, int, int))vt[3].pfn)((char *)p + vt[3].d, 6, 0, 0, 0, 0); }
 
 /** @sly2-annot addr=0x1333C0
  * Purpose: Add ploTarget to the object's subscriber list (BASIC+0x8), refcounted

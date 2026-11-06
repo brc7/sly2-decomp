@@ -82,12 +82,12 @@ void SetStepRadTargetVec(JT *p, qword q);
 void CutCm__FP2CM(D *d);
 void func_00195A00(void *p, int a, int b, int c);
 int FIsBasicDerivedFrom__FP5BASIC3CID(LO *a, int b);
-void func_00148300(G *g, LO *a);
+void UpdateSoBusy(G *g, LO *a);
 void JtbsChooseJtLanding(void *p, LO *a);
 void func_0015E1D8(int a);
 void IntersectSwBoundingSphere(void *g, qword pos, void *pfn, void *x, int *pi, int *pj, float r);
 int PsoHitTestLineObjects__FiP6VECTORT1iPP2SOP3LSG(int z, qword a, qword b, int i, int j, HIT *phit);
-void FFilterSoPair(void);
+void ShouldKeepSoPair(void);
 /* VQ: a 16-byte vector that can be initialized (floats first), read as a qword (.q). */
 union VQ { float af[4]; qword q; };
 float D_002BF944 = 500.0f;          /* the nearby-objects sphere radius */
@@ -201,7 +201,7 @@ extern "C" void ReturnJtToSafePlace(JT *p, PLACE *q)
                     if (FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x13) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xB) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xD) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x27) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0xC) || FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x22) ||
                         FIsBasicDerivedFrom__FP5BASIC3CID(e.plo, 0x26)) {
-                        func_00148300(&D_003DD490, e.plo);
+                        UpdateSoBusy(&D_003DD490, e.plo);
                         JtbsChooseJtLanding(p->x2c0, e.plo);
                     }
                 }
@@ -231,7 +231,7 @@ extern "C" float func_0019F7D0(JTPLACES *p, PLACE *q, int n, LO2 **apo)
         U a, b;
         HIT hit;
         int i0, i1;
-        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)FFilterSoPair, p->pjt->pvFilter, &i0, &i1, D_002BF944);
+        IntersectSwBoundingSphere(&D_003DD490, pos, (void *)ShouldKeepSoPair, p->pjt->pvFilter, &i0, &i1, D_002BF944);
         a.q = pos;
         b.q = pos;
         a.f[2] += 125.0f;

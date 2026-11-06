@@ -106,12 +106,12 @@ void CloneSo(POV *p);
 void HandleBasicMessage(POV *p, int n);
 void StopSnd(void *p, float g);
 void RcPtr_Assign(void **pp, int n);
-int FSwHandsOff(SWP *p);
+int IsSwHandsOff(SWP *p);
 void *func_001AE4F8(int cb) __asm__("__builtin_new");
 void SetTnTnsOverride(void *p, int f);
 void SetCmPolicy(CMV *pg, int n, void *pv, void *p, int m);
 void RevokeCmPolicy(CMV *pg, int a, int b, void *c, void *d, int e);
-void SetLoParent_1A58D0(void *p, int n, int m);
+void SetLoParent(void *p, int n, int m);
 void func_0011A070(SL *psl, void *pv);
 void CalculateSinCos__FfPfT1(float g, float *ps, float *pc);
 float atan2f(float y, float x);
@@ -209,13 +209,13 @@ extern "C" void HandlePoMessage(POV *p, int n)
 
 /** @sly2-annot addr=0x1C3E90
  * Purpose: PO virtual slot 76: true if invulnerability cheat bit (D_002E1E00&1) or world hands-off
- *   (FSwHandsOff(&g_sw))
+ *   (IsSwHandsOff(&g_sw))
  * Info: proposed name FInvulnerablePo (T1); class PO slot76; TU po
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r5_1AE130
  * See: docs/engine/player.md#2-po-and-poctl-pocpp-0x1c3d70,
  *   docs/reference/functions/player.md#po-0x1c3d70-0x1c4e50
  * @end-sly2-annot */
-extern "C" int FInvulnerablePo(void) { /*B*/if ((D_002E1E00 & 1) || FSwHandsOff(&D_003DD490)) return 1; return 0;/*E*/ }
+extern "C" int FInvulnerablePo(void) { /*B*/if ((D_002E1E00 & 1) || IsSwHandsOff(&D_003DD490)) return 1; return 0;/*E*/ }
 
 /** @sly2-annot addr=0x1C3ED0
  * Purpose: PO virtual slot 77: returns 0 (JTHS_Normal)
@@ -351,7 +351,7 @@ extern "C" void SetPoTnCam(POV *p, TNV *ptn) {
         p->ptn = ptn;
         if (ptn != 0) {
             ptn->nPriority = -1;
-            SetLoParent_1A58D0(p->ptn, 0, 0);
+            SetLoParent(p->ptn, 0, 0);
             if (PpoCur(&D_003DD490) == p) {
                 SetTnTnsOverride(p->ptn, 1);
             }
@@ -697,7 +697,7 @@ void func_001C48C0(SWP *p)
     for (i = 0; i < p->ic; i++) {
         EMITX *pb = p->aemit[i];
         *pb->pemitb->pn = (int)p->ppoHero;
-        SetLoParent_1A58D0(pb, (int)p->ppoHero, 0);
+        SetLoParent(pb, (int)p->ppoHero, 0);
     }
 }
 

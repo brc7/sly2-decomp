@@ -1319,7 +1319,7 @@ namespace M_func_00204F78 { extern "C" {
 struct G;
 extern struct G D_003DD490;
 struct O { char pad[0x10]; struct O *pParent; char p2[0xEC - 0x14]; void *pvEC; };
-void *PsoFromLo(void *pv);
+void *GetSoFromLo(void *pv);
 void UpdateSwPox(struct G *pg, void *a, void *b, int n);
 void func_001F4BF8(struct O *p);
 /** @sly2-annot addr=0x204F78
@@ -1331,7 +1331,7 @@ void func_001F4BF8(struct O *p);
  * @end-sly2-annot */
 void func_00204F78(struct O *p, void *pv, int f)
 {
-    struct O *o = (struct O *)PsoFromLo(pv);
+    struct O *o = (struct O *)GetSoFromLo(pv);
     while (o && !o->pvEC) o = o->pParent;
     if (p->pvEC && o && o->pvEC) UpdateSwPox(&D_003DD490, p->pvEC, o->pvEC, f ? 1 : 2);
     func_001F4BF8(p);
@@ -1356,7 +1356,7 @@ struct SO { char pad0[0x10]; SO *psoParent; char pad14[0xEC - 0x14]; ATT *patt; 
 extern "C" { extern char D_003DD490[]; }  // g_sw
 extern "C" { extern qword D_002A2DC0; }   // g_normalZ
 extern "C" {
-SO *PsoFromLo(LO *);                 // PsoZapTarget
+SO *GetSoFromLo(LO *);                 // PsoZapTarget
 M3 BuildOrthonormalMatrixZ(qword, qword);          // BuildOrthonormalMatrixZ
 void PxpAdd(void *, SOPART *, SOPART *, qword, qword, float, int, void *, void *, XP **);  // PxpAdd
 }
@@ -1388,7 +1388,7 @@ extern "C" void AddStepAxisXps(SO *pso, int grf, LO *plo, qword posOther, qword 
 {
     XP **ppxpFirst, **ppxpOut;
     SOPART *psopartOther;
-    SO *psoTarget = PsoFromLo(plo);
+    SO *psoTarget = GetSoFromLo(plo);
     ATT *patt, *pattThis;
     if (psoTarget) {
         patt = psoTarget->patt;
@@ -1719,7 +1719,7 @@ namespace M_func_00205910 {
  * re/symbols: the 3-probe floor follower of the vent crawl, called from UpdateJtGrab case 8).  MATCH, no register pins.
  * What it does: the actor's orientation is turned about the up axis (D_002A2DC0) by its heading (p+0x1A8) into a position+rotation
  * matrix matCur (copied to matOrig); the largest probe radius (length of the local probe points, start -FLT_MAX D_002A85F8) is the
- * sphere for the nearby-objects query (IntersectSwBoundingSphere, filter func_0020FA50 with p+0xEC as context).  Then D_002C3CE4 passes: every
+ * sphere for the nearby-objects query (IntersectSwBoundingSphere, filter ShouldKeepSoNotSelfSlot62 with p+0xEC as context).  Then D_002C3CE4 passes: every
  * probe point is placed with matCur and snapped to the floor by the line test func_00173610 (height->max / height->min); a probe
  * that finds no floor is dropped by D_002C3CE0 along matCur's up row.  The plane through the three probes gives a normal (cross of
  * the two edges, D_002A2DC0 if shorter than 0.0001), BuildRotateVectorsMatrix builds the rotation from matOrig's up row to it, DecomposeRotateMatrixRad
@@ -1766,7 +1766,7 @@ qword *VECTOR_opAssign(qword *,qword);
 FRAME *STACKSCOPE_ctor(FRAME *);
 void STACKSCOPE_ctor_1AE4A0(FRAME *,int) __asm__("_$_10STACKSCOPE");
 void IntersectSwBoundingSphere(GAME *,qword,float,int (*)(void *,void *),void *,int *,void ***);
-int func_0020FA50(void *,void *);
+int ShouldKeepSoNotSelfSlot62(void *,void *);
 int func_00173610(qword *,float,float,int,void *);
 void DecomposeRotateMatrixRad__FP7MATRIX3PfP6VECTOR(MATRIX3 *,float *,qword *);
 }
@@ -1829,7 +1829,7 @@ extern "C" void func_00205910(P *p,HEIGHT *height,int pointCount,const qword *lo
     FRAME *frame=&storage;
     STACKSCOPE_ctor(frame);
     int nearbyCount;void **nearby;
-    IntersectSwBoundingSphere(&D_003DD490,*(qword *)matCur.mat[3],radius,func_0020FA50,p->attachment,&nearbyCount,&nearby);
+    IntersectSwBoundingSphere(&D_003DD490,*(qword *)matCur.mat[3],radius,ShouldKeepSoNotSelfSlot62,p->attachment,&nearbyCount,&nearby);
     U points[3];
     U point;
     for(int pass=0;pass<D_002C3CE4;pass++){

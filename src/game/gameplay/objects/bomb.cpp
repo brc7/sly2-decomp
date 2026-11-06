@@ -125,7 +125,7 @@ void func_001F4F10(BOMBV *p);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *p, int n);
 int func_001C4098(BOMBV *p);
 void PostSwCallback(G *pg, BOMBV *p, long k, void *x);
-void SetLoParent_1A58D0(BOMBV *, Q18 *, int);
+void SetLoParent(BOMBV *, Q18 *, int);
 void func_001F4898(BOMBV *, qword);
 void func_001F4930(BOMBV *, qword);
 void SetSoCnstrForce(BOMBV *, int);
@@ -134,7 +134,7 @@ int func_001F7588(BOMBV *p, WKR *pm);
 M3 *GetLoWorldMatrix(BOMBV *);
 void BuildOrthonormalMatrixZ(M3 *, qword, qword);
 void BuildRotateVectorsMatrix__FP6VECTORT0P7MATRIX3(M3 *, qword, qword);
-void func_0020FA10();
+void ShouldKeepSoNotSelf();
 void IntersectSwBoundingSphere(G *pg, qword q, void (*pfn)(), XEC *px, float g, int *pc, XAV ***paps);
 void *PvAllocSlot__FP8ALLOCREQ(AREQV *preq);
 int CsbiIntersectSphereBsp(qword q, XAV *ps, int n, int a, int b, int c, float g, HIT48 *phit);
@@ -144,7 +144,7 @@ int func_001F7598(MSG *pmsg);
 int *func_00156698(int n, qword pos, void *pv);
 void *FrameInit(FRAME *) __asm__("STACKSCOPE_ctor");
 void FrameFree(FRAME *, int) __asm__("_$_10STACKSCOPE");
-void func_001CB518(BOMBV *);
+void SO_ResetForProxy(BOMBV *);
 void func_001F6860(BOMBV *, int);
 int FIgnoreSoIntersection(BOMBV *pbomb, SOV *pso);
 int func_00134310(int r, int n);
@@ -530,7 +530,7 @@ extern "C" int func_0013B1C8(BOMBV *p, SOV *pn) {
  * @end-sly2-annot */
 extern "C" void ApplyBombThrow(BOMBV *p, Q18 *q) {
     p->pq1E8 = q;
-    SetLoParent_1A58D0(p, q->f18 != 1 ? q : 0, 3);
+    SetLoParent(p, q->f18 != 1 ? q : 0, 3);
     func_001F4898(p, D_002A2DD0);
     func_001F4930(p, D_002A2DD0);
     SetSoCnstrForce(p, 1);
@@ -692,7 +692,7 @@ extern "C" void func_0013B5E8(BOMBV *p, int *pc, SOV ***papo)
     int n;
     SOV **apo;
     int i;
-    { float a = p->sRadius; float b = p->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, p->posDetonate, func_0020FA10, p->pxp, b >= a ? b : a, &c, &aps); }
+    { float a = p->sRadius; float b = p->sRadiusHero; IntersectSwBoundingSphere(&D_003DD490, p->posDetonate, ShouldKeepSoNotSelf, p->pxp, b >= a ? b : a, &c, &aps); }
     if (c == 0) {
         *pc = 0;
         *papo = 0;
@@ -846,7 +846,7 @@ namespace RO_ORDER { extern const float r_D_002A4B20 __asm__("D_002A4B20") = 3.4
  * See: docs/reference/functions/gameplay-objects.md#bomb-0x13a9e8-0x13bdf0
  * @end-sly2-annot */
 extern "C" void ResetBomb(BOMBV *p) {
-    func_001CB518(p);
+    SO_ResetForProxy(p);
     p->x174 = 0;
     p->tDetonate = D_002A4B20;
     func_0013BC60(p, p);
@@ -854,7 +854,7 @@ extern "C" void ResetBomb(BOMBV *p) {
     SetSoCnstrTorque(p, 0);
     func_001F6860(p, 0);
     p->x1E8 = 0;
-    SetLoParent_1A58D0(p, 0, 0xf);
+    SetLoParent(p, 0, 0xf);
 }
 
 /** @sly2-annot addr=0x13BBF8

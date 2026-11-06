@@ -159,12 +159,12 @@ extern const char D_002A7AA8[], D_002A7AB8[];   /* a glyph suffix; "%d%%" */
 extern char D_003D4A60[];
 
 void PostHudMeterLoad(void *pscreen);
-void func_001AE928(void *pmenu);
+void InitPauseMenu(void *pmenu);
 void func_001A3020(void *pletterbox);
 void func_001DA770(SCREENV *pscreen);
 void PostNoticeLoad(SCREENV *pscreen);
 void PostJobListLoad(SCREENV *pscreen);
-void func_001ACAE8(void *pdlg);
+void CMemcardDialog_PostLoad(void *pdlg);
 void func_001DD690(SCREENV *pscreen);
 void func_001D9878(void *pscreen);
 void func_001D95B8(DL *pdl);
@@ -182,12 +182,12 @@ void ClearThiefnet(SCREENV *pscreen);
 void ClearJobList(SCREENV *pscreen);
 int IdsFromWorld(int nWorld);
 int NWorldCur();
-int NCompletionPercentGs(void *pgs, void *psave);
+int GetCompletionPercent(void *pgs, void *psave);
 int sprintf(char *pch, const char *pchzFormat, ...);
 void strcpy1(char *pchDst, const char *pchSrc);
 }
 /* strcpy as a call: the m2c bodies' sources are not constants, and g++'s builtin strcpy schedules differently
-   (memcard.cpp func_001ADA20). */
+   (memcard.cpp FormatSavePageTextB). */
 char *StrcpyCall(char *pchDst, const char *pchSrc) __asm__("strcpy");
 void InitDl(DL *pdl, int ibDle);
 int FFindDlEntry(DL *pdl, void *pv);
@@ -221,13 +221,13 @@ typedef struct { char pad[0xC]; VT *vt; } LO;
 extern char D_003D9E80[], D_003D9ED0[], D_002E1E60[], D_003DA0F0[], D_003DA150[], D_003DA0C0[], D_003DA3C0[];
 extern char D_002E6550[], D_002E65A0[], D_003DA4F0[], D_003DA530[];
 void ResetHudMeter(void *);
-void func_001AE970(void *);
+void ResetPauseMenu(void *);
 void func_001A3070(void *);
 void ResetGadgetMenu(void *);
 void ResetThiefnet(void *);
 void ResetNotice(void *);
 void ResetJobList(void *);
-void func_001ACB38(void *);
+void CMemcardDialog_Slot13(void *);
 void func_001DA7B0(void *);
 static inline void InitDli(DLI *pdli, DL *pdl)
 {
@@ -259,13 +259,13 @@ void func_001D9408(DL *pdl)
         plo->vt->a[11].pfn((char *)plo + plo->vt->a[11].d);
     D_002DD318 = 0;
     ResetHudMeter(D_003D9E80);
-    func_001AE970(D_003D9ED0);
+    ResetPauseMenu(D_003D9ED0);
     func_001A3070(D_002E1E60);
     ResetGadgetMenu(D_003DA0F0);
     ResetThiefnet(D_003DA150);
     ResetNotice(D_003DA0C0);
     ResetJobList(D_003DA3C0);
-    func_001ACB38(D_002E6550);
+    CMemcardDialog_Slot13(D_002E6550);
     func_001DA7B0(D_002E65A0);
     func_001DA7B0(D_003DA4F0);
     func_001DA7B0(D_003DA530);
@@ -284,13 +284,13 @@ void func_001D9408(DL *pdl)
 extern "C" void func_001D9520()
 {
     PostHudMeterLoad(&D_003D9E80);
-    func_001AE928(&D_003D9ED0);
+    InitPauseMenu(&D_003D9ED0);
     func_001A3020(D_002E1E60);
     func_001DA770((SCREENV *)&D_003DA0F0);
     func_001DA770((SCREENV *)&D_003DA150);
     PostNoticeLoad((SCREENV *)&D_003DA0C0);
     PostJobListLoad((SCREENV *)&D_003DA3C0);
-    func_001ACAE8(D_002E6550);
+    CMemcardDialog_PostLoad(D_002E6550);
     func_001DA770((SCREENV *)D_002E65A0);
     func_001DD690((SCREENV *)&D_003DA4F0);
     func_001DA770((SCREENV *)&D_003DA530);
@@ -342,7 +342,7 @@ extern char D_003DA0C0[], D_003DA3C0[], D_002E6550[], D_002E65A0[], D_003DA4F0[]
 void RemoveGrfusr__Fi(int);
 int GrfHandleJoyBtn(PAD *, int);
 void func_00187E08(PAD *, int);
-int func_001B0290(int);
+int TryOpenPauseMenu(int);
 int FIsDlEmpty__FP2DL(void *);
 void UpdatePauseMenu(void *);
 void UpdateThiefnet(void *);
@@ -353,7 +353,7 @@ void UpdateHudMeter(void *);
 void UpdateNotice(void *);
 void UpdateJobList(void *);
 void CMemcardDialog_Update(void *);
-void func_001ADEE8(void *);
+void CMcStatus_Update(void *);
 void func_001DA808(void *);
 void UpdateTitleScreen(void *);
 /** @sly2-annot addr=0x1D9648
@@ -376,7 +376,7 @@ void func_001D9648(void *pdl)
     else
         pad = &D_002E0D00;
     if (GrfHandleJoyBtn(pad, 0x800)) {
-        if (!func_001B0290(0))
+        if (!TryOpenPauseMenu(0))
             func_00187E08(pad, 0x800);
     } else if (D_002DFBC0 & 2) {
         int r = FIsDlEmpty__FP2DL(pdl);
@@ -384,7 +384,7 @@ void func_001D9648(void *pdl)
         if (pad->x100C == 1 && 5.0f <= D_002DDED0.t)
             f = 1;
         if (r && f)
-            func_001B0290(0);
+            TryOpenPauseMenu(0);
     }
     UpdatePauseMenu(D_003D9ED0);
     UpdateThiefnet(D_003DA150);
@@ -395,7 +395,7 @@ void func_001D9648(void *pdl)
     UpdateNotice(D_003DA0C0);
     UpdateJobList(D_003DA3C0);
     CMemcardDialog_Update(D_002E6550);
-    func_001ADEE8(D_002E65A0);
+    CMcStatus_Update(D_002E65A0);
     func_001DA808(D_003DA4F0);
     UpdateTitleScreen(D_003DA530);
 }
@@ -1994,8 +1994,8 @@ extern char D_002A79A0[], D_002A79D0[], D_002A79D8[];
 void func_001DA808(OBJ *);
 int GrfHandleJoyBtn(void *, int);
 void SetThiefnetTab(OBJ *, int);
-int func_00161798(void *);
-void func_001617E0(void *, int);
+int GetCollectibleCount(void *);
+void SetCollectibleCount(void *, int);
 void func_001DA950(OBJ *, int, int);
 void SetPowerupAcquired(int, int);
 void RefreshThiefnetItems(OBJ *);
@@ -2034,10 +2034,10 @@ extern "C" void UpdateThiefnet(OBJ *p)
         if (GrfHandleJoyBtn(p->x10, 0x40)) {
             if (p->x254 != -1) {
                 int cost = D_002BCD00[p->x254].x8;
-                int have = func_00161798(D_002DEB30);
+                int have = GetCollectibleCount(D_002DEB30);
                 if (!p->x30) {
                     func_001DA950(p, -1, -1);
-                    func_001617E0(D_002DEB30, have - cost);
+                    SetCollectibleCount(D_002DEB30, have - cost);
                     SetPowerupAcquired(p->x254, 1);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
@@ -2063,7 +2063,7 @@ extern "C" void UpdateThiefnet(OBJ *p)
                 r = RefGetSaveVarV(D_002A79D0, D_002A79D8, buf, 0);
                 if (r.m_tag > 0) {
                     RefSetSaveVarV(CRef(r.m_tag - 1), D_002A79D0, D_002A79D8, buf, 0);
-                    func_001617E0(D_002DEB30, func_00161798(D_002DEB30) + D_002C3288[p->x258].x0);
+                    SetCollectibleCount(D_002DEB30, GetCollectibleCount(D_002DEB30) + D_002C3288[p->x258].x0);
                     RefreshThiefnetItems(p);
                     SetSndSourceLo(PsndStartSound(0x29), 0);
                 }
@@ -2768,7 +2768,7 @@ extern REC2 D_002C3288[];
 extern struct G D_003DD490;
 extern char D_002DEB30[],D_002A7A38[];
 char *PchzFindSwLangstr__FP2SWi(struct G *,int);
-int func_00161798(void *);
+int GetCollectibleCount(void *);
 int sprintf(char *,const char *,...);
 char *strcpy(char *,const char *);
 static inline void CopyId(char *p,int id)
@@ -2796,7 +2796,7 @@ void BuildThiefnetInfoText(char *pch)
             if(i<0x2B) {
                 if(D_002BCD00[i].ids2!=pt->x30) {
                     int *pc=&D_002BCD00[i].cost;
-                    int count=func_00161798(D_002DEB30);
+                    int count=GetCollectibleCount(D_002DEB30);
                     int idsT=count<*pc?0xD9:0xDA;
                     struct G *pg=&D_003DD490;
                     char *fmt=D_002A7A38;
@@ -3020,8 +3020,8 @@ void StopWidgetAnim(void *, int);
 void func_002333B4(void *, int, unsigned int) __asm__("memset");
 void SortTasksTopologically(int *, SO ***);
 void qsort(void *, int, int, int (*)(const void *, const void *));
-int func_00165C28(const void *, const void *);
-int func_00163430(SO *);
+int CompareTasks(const void *, const void *);
+int GetJobState(SO *);
 void memmove(void *, void *, unsigned int);
 void SelectJobListItem(OBJ *, int);
 }
@@ -3052,7 +3052,7 @@ extern "C" void RefreshJobListEntries(OBJ *p)
     int c;
     SO **aso;
     SortTasksTopologically(&c, &aso);
-    qsort(aso, c, 4, func_00165C28);
+    qsort(aso, c, 4, CompareTasks);
     switch (p->x40) {
     case 0: {
         SO *last = 0;
@@ -3060,7 +3060,7 @@ extern "C" void RefreshJobListEntries(OBJ *p)
             SO *so = aso[i]->x7C;
             if (so && last != so) {
                 last = so;
-                if (func_00163430(so) > 0 && so->x6C != -1) {
+                if (GetJobState(so) > 0 && so->x6C != -1) {
                     E *e = &p->ae[p->n++];
                     e->o = so;
                     e->b = -1;
@@ -3119,11 +3119,11 @@ typedef struct {
     int sel;
 } OBJ;
 void SwitchWidgetAnim(W *, int, int *);
-int FJobComplete(void *);
-int FTaskComplete(void *);
+int IsJobComplete(void *);
+int IsTaskComplete(void *);
 /** @sly2-annot addr=0x1DD1F8
  * Purpose: Row highlight anims (0x4FD+i selected / 0x4E9+i) and completed checkmarks (0x507+i) via
- *   FJobComplete/FTaskComplete
+ *   IsJobComplete/IsTaskComplete
  * Info: proposed name UpdateJobListWidgets (T1); TU screen
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r9_bhv_screen
  * See: docs/reference/functions/hud-ui.md#screen-0x1d93d8-0x1de2a0
@@ -3140,10 +3140,10 @@ void UpdateJobListWidgets(OBJ *p)
         f = 0;
         switch (p->kind) {
         case 0:
-            f = FJobComplete(pe->p);
+            f = IsJobComplete(pe->p);
             break;
         case 1:
-            f = FTaskComplete(pe->p);
+            f = IsTaskComplete(pe->p);
             break;
         }
         SwitchWidgetAnim(p->pw, f ? i + 0x507 : -1, &pe->b);
@@ -3555,15 +3555,15 @@ void func_001DA808(OBJ *);
 int GrfHandleJoyBtn(PAD *, int);
 int GrfJoyPressed(PAD *, int);
 void SetJoyBtnHandled(PAD *, int);
-void func_001B04E0(int);
-void func_001ACC38(void *, int);
-void func_00165E38(void *);
+void OpenPauseOptionsPage(int);
+void SetMcDialogPhase(void *, int);
+void StartGameFromSave(void *);
 void StartNewGame(OBJ *);
 int CLanguagesRegion(void);
 void *PloFindSwObject__FP2SWi3OIDP2LO(struct G *, int, int, int);
 void GetRegionLanguages(int *, int **);
 void *func_002333B4(void *, int, int) __asm__("memset");
-void func_001AF4D8(void *, int, ITEM *, void *, void *);
+void PushPauseMenuPage(void *, int, ITEM *, void *, void *);
 /** @sly2-annot addr=0x1DD920
  * Purpose: Title screen per-frame: START continues the memcard save (SetMcUiPhase, PlayGameFromGs) or starts
  *   a new game; SELECT opens options; X opens the language list when the region has several languages
@@ -3584,8 +3584,8 @@ void UpdateTitleScreen(OBJ *p)
         return;
     if (GrfHandleJoyBtn(p->pad10, 0x800)) {
         if ((D_002E65E0.xFD50 = D_002E65E0.xFD54) != 0) {
-            func_001ACC38(D_002E6550, 1);
-            func_00165E38(D_002E65E0.xFD50);
+            SetMcDialogPhase(D_002E6550, 1);
+            StartGameFromSave(D_002E65E0.xFD50);
         } else {
             StartNewGame(p);
         }
@@ -3593,7 +3593,7 @@ void UpdateTitleScreen(OBJ *p)
     }
     if (GrfJoyPressed(p->pad10, 0x100) && (p->pad10->fl & 0x108) == 0x100) {
         SetJoyBtnHandled(p->pad10, 0x100);
-        func_001B04E0(0);
+        OpenPauseOptionsPage(0);
         return;
     }
     if (CLanguagesRegion() < 2)
@@ -3612,7 +3612,7 @@ void UpdateTitleScreen(OBJ *p)
         pi->ids = D_002C35B8[k];
         pi->pfn = SelectLanguageItem;
     }
-    func_001AF4D8(D_003D9ED0, c, D_003DA578, pv, D_002C35F0);
+    PushPauseMenuPage(D_003D9ED0, c, D_003DA578, pv, D_002C35F0);
 }
 } } // namespace M_UpdateTitleScreen
 
@@ -3636,7 +3636,7 @@ extern "C" { extern void *D_002F7900; }
 extern "C" {
 CRef RefSetGlobalSaveVar(void *, const CRef &, G *);
 void BindStepplayerHpMp(void *, int);
-void func_00165E38(G *);
+void StartGameFromSave(G *);
 }
 /* The unused third parameter is deliberate: it is the same SetPv form as func_0013D328 / func_00143AF0,
    and the dummy makes gcc keep the %hi/%lo of D_003D4A60 in s0 across the whole function. */
@@ -3659,7 +3659,7 @@ extern "C" void StartNewGame(void)
         BindStepplayerHpMp(D_002DD5BC, 1);
     if (D_002F7900)
         BindStepplayerHpMp(D_002F7900, 1);
-    func_00165E38(&D_003D4A60);
+    StartGameFromSave(&D_003D4A60);
 }
 } // namespace M_StartNewGame
 
@@ -3858,7 +3858,7 @@ extern "C" void func_001DDF60(char *pch)
  * @end-sly2-annot */
 extern "C" void BuildTitleCompletionText(char *pch)
 {
-    sprintf(pch, D_002A7AB8, NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60));
+    sprintf(pch, D_002A7AB8, GetCompletionPercent((*(char (*)[])&g_sw.savevars), D_003D4A60));
 }
 
 

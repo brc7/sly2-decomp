@@ -249,7 +249,7 @@ typedef void (LASENV::*PFNLASEN)(int);
 
 extern "C" {
 void InitSo(SOV *pso);
-int FMatchesLoName(SOV *pso, OID oid);
+int HasLoOid(SOV *pso, OID oid);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *pbasic, CID cid);
 int func_00134310(int n, int nMax);   /* NMaxIgnore */
 void *func_001AE378(ALLOCREQ *preq);
@@ -308,7 +308,7 @@ void SENSOR::Init()   /* key function: SENSOR's vtable comes out here */
 
 /** @sly2-annot addr=0x1DE2D8
  * Purpose: SENSOR vt61 (SO FIgnoreSoIntersection override): ignore objects matching the no-trigger oid list
- *   (+0x150, max 7, FMatchesLoName) or class list (+0x170, FIsBasicDerivedFrom); result combined with
+ *   (+0x150, max 7, HasLoOid) or class list (+0x170, FIsBasicDerivedFrom); result combined with
  *   NMaxIgnore
  * Info: proposed name FIgnoreSensorIntersection (T1); class SENSOR slot61; TU sensor
  * Confidence: mid (draft) [T1 0.55] - evidence: static analysis; sources: r6b_rest
@@ -319,7 +319,7 @@ extern "C" int FIgnoreSensorIntersection(SENSORV *psensor, SOV *pso)
     int i, j;
     int r = 1;
     for (i = 0; i < psensor->coidNoTrigger; i++) {
-        if (FMatchesLoName(pso, psensor->aoidNoTrigger[i]))
+        if (HasLoOid(pso, psensor->aoidNoTrigger[i]))
             r = func_00134310(r, 2);
     }
     for (j = 0; j < psensor->ccidNoTrigger; j++) {
@@ -954,11 +954,11 @@ struct VU_FLOAT {
 };
 extern "C" {
 int FInsideCmFrustum(CAMERA *pcm, qword pos, VU_FLOAT sRadius);
-void func_001A5FB8(ALO *palo, qword posA, qword posB, float a, float b);
+void RenderLoAlongSegment(ALO *palo, qword posA, qword posB, float a, float b);
 M3 BuildOrthonormalMatrixZ(qword dir, qword up);
 M4 LoadMatrixFromPosRotScale(qword pos, const M3 *pmat, const U *pscale);
 qword *VECTOR_opAssign(qword *pdst, qword src);
-void func_001A5EE8(ALO *palo, const M4 *pmat, float a, float b);
+void RenderLoAtMatrix(ALO *palo, const M4 *pmat, float a, float b);
 }
 static inline qword Subtract(qword a, qword b)
 {
@@ -1021,7 +1021,7 @@ extern "C" void RenderLasenSelf(LASENV *p)
             float ratio = beam->sVisible / dist;
             points[1].q = Add(Scale(points[0].q, VU_FLOAT(1.0f - ratio)), Scale(points[1].q, VU_FLOAT(ratio)));
         }
-        if (p->paloLine) func_001A5FB8(p->paloLine, points[0].q, points[1].q, 1.0f, 1.0f);
+        if (p->paloLine) RenderLoAlongSegment(p->paloLine, points[0].q, points[1].q, 1.0f, 1.0f);
         qword dir;
         if (p->paloStretch || p->acap[0].palo || p->acap[1].palo) {
             dir = Subtract(points[1].q, points[0].q);
@@ -1036,7 +1036,7 @@ extern "C" void RenderLasenSelf(LASENV *p)
                 scale.f[2] = 1.0f;
                 M4 render;
                 render = LoadMatrixFromPosRotScale(points[0].q, &basis, &scale);
-                func_001A5EE8(p->paloStretch, &render, 1.0f, 1.0f);
+                RenderLoAtMatrix(p->paloStretch, &render, 1.0f, 1.0f);
             }
         }
         int next = i + 1;
@@ -1057,7 +1057,7 @@ extern "C" void RenderLasenSelf(LASENV *p)
                     matrix.rows[0].bits[3] = matrix.rows[1].bits[3] = matrix.rows[2].bits[3] = 0;
                     pm->rows[3].f[3] = 1.0f;
                 }
-                func_001A5EE8(cap->palo, &matrix, 1.0f, 1.0f);
+                RenderLoAtMatrix(cap->palo, &matrix, 1.0f, 1.0f);
             }
         }
         i = next;

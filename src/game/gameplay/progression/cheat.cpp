@@ -73,7 +73,7 @@ void SetSndSourceLo(void *psnd, int n);
 void SetSndmgrMasterVolume(void *psndmgr, float g);
 void WipeToWorldWarp(void *psw, void *prec, int a, int b, void *c, int d);
 void *PrecWorldEntry(void *p);
-int NCompletionPercentGs(void *pgs, void *psvset);
+int GetCompletionPercent(void *pgs, void *psvset);
 void SetPowerupAcquired(int n, int f);
 int IGadgetSlotFromId(void *pstepplayer, int id);
 void SetStepplayerGadget(void *pstepplayer, int islot, int id);
@@ -232,7 +232,7 @@ extern "C" void CheatSetFlag(int *pf) { *pf = 1; }
  * @end-sly2-annot */
 extern "C" void func_0014C200(void)
 {
-    if (NCompletionPercentGs((*(char (*)[])&g_sw.savevars), D_003D4A60) >= 100) {
+    if (GetCompletionPercent((*(char (*)[])&g_sw.savevars), D_003D4A60) >= 100) {
         SetPowerupAcquired(0x1F, 1);
         return;
     }

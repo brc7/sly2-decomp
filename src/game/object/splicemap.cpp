@@ -113,7 +113,7 @@ extern "C" CRef RefEval__FP5CPairP6CFrame(PAIRV *ppair, FRAMEV *pframe);
  *   docs/engine/world-sw.md#loadswfrombrx-0x13da18-matched-hand-file
  * @end-sly2-annot */
 // Creates the world's root Splice frame and keeps a reference to it. Called when a level body is loaded.
-extern "C" void func_001FF7E8(SW *psw)
+extern "C" void InitSwSpliceFrame(SW *psw)
 {
     psw->fUnk3a14 = 1;
     FramePtr_Assign(psw, PtNew__t6CGcObj1Z6CFrame());
@@ -127,7 +127,7 @@ extern "C" void func_001FF7E8(SW *psw)
  * See: docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
 // Clears the world's Splice table pointer before a level load. (inferred)
-extern "C" void func_001FF828(SW *psw)
+extern "C" void ClearSwSpliceTable(SW *psw)
 {
     psw->fUnk3a14 = 0;
 }
@@ -140,7 +140,7 @@ extern "C" void func_001FF828(SW *psw)
  *   docs/reference/functions/splice-scripting.md#splicemap-0x1ff7e8-0x1ffcf8
  * @end-sly2-annot */
 // Releases the world's root Splice frame and shuts the Splice VM down. Called when the world is deleted.
-extern "C" void func_001FF830(SW *psw)
+extern "C" void DeleteSwSplice(SW *psw)
 {
     FramePtr_Assign(psw, 0);
     ShutdownSplice();
@@ -208,7 +208,7 @@ extern "C" void LoadSwSpliceFromBrx(SW *psw, int a, void *pbis)
  *   docs/formats/world-file.md#4-per-world-entry-data-after-the-head
  * @end-sly2-annot */
 // Returns the Splice frame of table entry index (null for -1); objects get their frame from it at creation.
-extern "C" FRAMEV *func_001FFA40(SW *psw, int i)
+extern "C" FRAMEV *GetSpliceFrame(SW *psw, int i)
 {
     if (i == -1) return 0;
     return psw->psplcs->ae[i].pframe;

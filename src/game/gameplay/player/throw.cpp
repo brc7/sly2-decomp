@@ -110,7 +110,7 @@ int FIsBasicDerivedFrom__FP5BASIC3CID(void *,int);
 int GrfConsumePressed__5POCTLUif(CONTROL *,int,float);
 void func_00136530(O *,int);
 TRACKREF *func_0012FF10(ASEG *,O *,void *,int);
-int FFilterSoPair(void *a, SOPAIR *b);
+int ShouldKeepSoPair(void *a, SOPAIR *b);
 qword ConvertAloPos(void *,void *,qword);
 qword func_001D6848(qword,qword,qword,float); // CalculateLaunchVelocity
 void IntersectSwBoundingBox(SW *,qword,qword,int (*)(void *,SOPAIR *),void *,int *,SO ***); // FindSwObjectsInBox
@@ -126,7 +126,7 @@ void func_001CD2C0(CTRLSEL *);
 void RecalcSwOxfFilterForObject(SW *,O *);
 void func_00204660(O *,float);
 void SetStepRadTargetVec(O *,qword);
-void SetLoParent_1A58D0(O *,int,int);
+void SetLoParent(O *,int,int);
 void FadeSoOut(O *,float);
 void ChargeGadgetMp(O *,int);
 void ReleaseSma(HANDLE *);
@@ -405,7 +405,7 @@ extern "C" int func_0021FB18(void *a, SOPAIR *b)
 {
     if (FIsBasicDerivedFrom__FP5BASIC3CID(b->p, 0x59))
         return 1;
-    return FFilterSoPair(a, b);
+    return ShouldKeepSoPair(a, b);
 }
 
 // UpdateJtThrowArc = UpdateJtThrowArc (Lilly's Sly2Port name, 0x21FB70): while the hero holds an object (JTTHROW, jts 23)
@@ -695,7 +695,7 @@ extern "C" void func_002205A8(JTTHROW *p)
         if (p->selected->mode != 8) goto tail;
         func_00136530(p->selected, 1);
     } else {
-        SetLoParent_1A58D0(p->selected, 0, 3);
+        SetLoParent(p->selected, 0, 3);
         SetSoCnstrForce(p->selected, 0);
         SetSoCnstrTorque(p->selected, 0);
     }
@@ -832,7 +832,7 @@ extern "C" void SetJtthrowState(JTTHROW *s,int state){
   }
   else if(s->selected->id==s->peer->id){
    if(FIsBasicDerivedFrom__FP5BASIC3CID(s->selected,0x64))IntCall(s->selected,76,4);
-   else{SetLoParent_1A58D0(s->selected,0,0xF);FadeSoOut(s->selected,0.25f);}
+   else{SetLoParent(s->selected,0,0xF);FadeSoOut(s->selected,0.25f);}
   }
   func_001CD2C0(&s->owner->controller);
   if(s->effect)EffectCall(s->effect,9);

@@ -96,8 +96,8 @@ extern "C" {
 extern const float D_002A514C;    /* "indefinitely": a time far in the future */
 extern CLOCK D_002DDED0;    /* g_clock */
 void func_001C4848(SW *psw, EMITTERV *pemitter);
-void SetLoParent_1A58D0(LO *plo, SO *psoParent, int n);
-SO *PsoFromLo(int oid);
+void SetLoParent(LO *plo, SO *psoParent, int n);
+SO *GetSoFromLo(int oid);
 void SetBlipgEmitb(BLIPG *pblipg, EMITBV *pemitb);
 SFX *NewSfx();
 void CloneXfm(XFM *pxfm, XFM *pxfmBase);
@@ -410,7 +410,7 @@ void PostEmitterLoad__FP7EMITTER(struct EMITTERV *pemitter)
  * @end-sly2-annot */
 extern "C" void func_00159968(EMITTERV *pemitter)
 {
-    SetLoParent_1A58D0(pemitter, PsoFromLo((int)*pemitter->pemitb->aploRef), 0);
+    SetLoParent(pemitter, GetSoFromLo((int)*pemitter->pemitb->aploRef), 0);
 }
 
 namespace M_HandleEmitterMessage__FP7EMITTER5MSGIDPv {
@@ -539,7 +539,7 @@ struct EMITX { PRG **ppprg; RIPG **ppripg; EMITTERV *pemitter; };
 extern "C" {
 void UpdateLo(EMITTERV *p);
 int FIsDlEmpty__FP2DL(int *pdl);
-int func_001A61A0(EMITTERV *p);
+int IsLoInWorld(EMITTERV *p);
 qword GetLoWorldPos(void *p);
 float GRandInRange__Fff(float gMin, float gMax);
 int CPvDl__FP2DL(int *pdl);
@@ -579,7 +579,7 @@ extern "C" void UpdateEmitter__FP7EMITTERf(EMITTERV *p, float dt)
     if (!FIsDlEmpty__FP2DL(&p->dl11C)) {
         EMITTERV *pe;
         for (pe = (EMITTERV *)p->dl11C; pe; pe = pe->pNext) {
-            if (!func_001A61A0(pe))
+            if (!IsLoInWorld(pe))
                 continue;
             if (!pe->x10)
                 goto LActive;
@@ -1229,8 +1229,8 @@ struct SO { char pad[0xC]; struct VTE *vt; };
 struct Y { int x0, x4, k; };
 struct E { int x0, x4; struct SO **ppso; int xC; struct Y y; };
 void __ml__FRC7MATRIX4T0(struct M4 *pm, struct M4 *pa, struct BUF *pb);
-qword func_001A72D0(struct M4 *pm, int z, qword v);
-qword func_001A7348(struct M4 *pm, int z, qword v);
+qword ConvertMatPos(struct M4 *pm, int z, qword v);
+qword ConvertMatVec(struct M4 *pm, int z, qword v);
 qword GetXfVelocity(struct R *r, int z, qword v);
 static inline qword Add(qword a, qword b) { qword d; __asm__("vadd.xyzw %0, %1, %2" : "=j"(d) : "j"(a), "j"(b)); return d; }
 
@@ -1253,9 +1253,9 @@ void ConvertEmitoPosVec__FP5EMITOP6VECTORT1(struct E *p, qword *pv, qword *pw)
     if (!pso) return;
     r = pso->vt[32].pfn((char *)pso + pso->vt[32].d, &buf);
     __ml__FRC7MATRIX4T0(&m, &r->m, &buf);
-    *pv = func_001A72D0(&m, 0, *pv);
+    *pv = ConvertMatPos(&m, 0, *pv);
     if (py->k != 3) {
-        *pw = func_001A7348(&m, 0, *pw);
+        *pw = ConvertMatVec(&m, 0, *pw);
         if (py->k != 2)
             *pw = Add(*pw, GetXfVelocity(r, 0, py->k == 1 ? *pv : r->m.r[3]));
     }

@@ -41,7 +41,7 @@ extern "C" {
 int func_0020D020(STUCKWATCH *p);
 void func_0020D108(STUCKWATCH *p, int n);
 int FIsBasicDerivedFrom__FP5BASIC3CID(void *o, int n);
-int func_0020FA50(void *pv, FPAIR *p);
+int ShouldKeepSoNotSelfSlot62(void *pv, FPAIR *p);
 int func_0020CFC0(void *pv, FPAIR *p);
 int FStepguardHasSgf(GUARDV *o, int n);
 qword ConvertAloPos(GUARDV *o, int a, qword v);
@@ -109,7 +109,7 @@ extern "C" void func_0020CE70(STUCKWATCH *p)
  * Confidence: low (draft) [T2 0.30] - evidence: static naming pass; sources: r7c_hud
  * See: docs/reference/functions/guards-ai.md#tu_20ce28-0x20ce28-0x20d5d0
  * @end-sly2-annot */
-extern "C" int func_0020CFC0(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(p->o, 0x59)) return 1; return func_0020FA50(pv, p); }
+extern "C" int func_0020CFC0(void *pv, FPAIR *p) { if ((p->fl & 0x1000000000000L) && FIsBasicDerivedFrom__FP5BASIC3CID(p->o, 0x59)) return 1; return ShouldKeepSoNotSelfSlot62(pv, p); }
 
 /** @sly2-annot addr=0x20D020
  * Purpose: 5 probe offsets D_002C3E00 around guard all blocked
