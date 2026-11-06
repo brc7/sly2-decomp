@@ -628,7 +628,11 @@ struct VU_FLOATM { qword q; VU_FLOATM(const float &f) { __asm__("lw %0, %1" : "=
 static inline qword AddScaled(VU_VECTOR a, VU_FLOATM s, VU_VECTOR b)
 {
     qword r;
-    __asm__("vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %3, %2x" : "=j"(r) : "j"(a.q), "j"(s.q), "j"(b.q), "j"(s.q)); /* repeated "j"(s.q): allocation-only operand, keeps the lw value VF-class so it is spilled to 0x80 across the call */
+    __asm__(
+        "vadda.xyzw $ACC, %1, $vf0\n\tvmaddx.xyzw %0, %3, %2x"
+        : "=j"(r)
+        : "j"(a.q), "j"(s.q), "j"(b.q),
+          "j"(s.q)); /* repeated "j"(s.q): allocation-only operand, keeps the lw value VF-class so it is spilled to 0x80 across the call */
     return r;
 }
 
