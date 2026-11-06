@@ -240,7 +240,7 @@ struct CPD
 {
       CID cid;
       float dsOffset;
-      undefined4 unk_0x08[(0x10 - 0x08) / 4];
+      undefined4 unknown08[(0x10 - 0x08) / 4];
       CLQ aclqOffset[3];
       LM almOffset[3];
       float uFrameX;
@@ -248,9 +248,9 @@ struct CPD
       float gWeight;
       float uTunnel;
       float gTurn;
-      undefined4 unk_0x6c;
+      undefined4 pad6C;
       float agRate[3];
-      undefined4 unk_0x7c;
+      undefined4 pad7C;
       float kDist;
       float cDist;
       LM lmTilt;
@@ -410,7 +410,7 @@ union U { qword q; float f[4]; int i[4]; };
 union UF { qword q; float f; };
 struct VTE { short d; short pad; int (*pfn)(...); };
 #define PVT(p) (*(VTE **)((char *)(p) + 0xC))
-struct POX { char pad[0x2DC]; int x2DC; };        /* the current player as UpdateTnCallback reads it */
+struct POX { char pad[0x2DC]; int unknown2DC; };   /* the current player as UpdateTnCallback reads it */
 struct PLANEREC { int a[4]; qword plane; };      /* a camera hull plane (GetPlaneDistance) */
 extern SW D_003DD490;
 extern "C" {
@@ -677,7 +677,7 @@ void UpdateTnCallback(TN *p)
     int sentinel=AutomaticSentinel();
     if(initial==sentinel) f=PbspPointInBspQuick(p->bspc.absp, 0x7FFFFFFF, ConvertAloPos(0, p, func_001A62E8(po))) != 0;
     else f=initial;
-    if (!p->nUnk124 && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34) && po->x2DC != -1 && !D_002DE240
+    if (!p->nUnk124 && FIsBasicDerivedFrom__FP5BASIC3CID(po, 0x34) && po->unknown2DC != -1 && !D_002DE240
         && p->tnsWant == -1)
         return;
     SetTnTns(p, f);
@@ -864,9 +864,9 @@ static __inline__ qword VSub(qword a, qword b) { qword r; __asm__("vsub.xyzw %0,
 // Base 0x14FCC8; initial focus/angles (0x220D40, 0x220DD8, 0x221CE8) (inferred)
 extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
 {
-    struct { qword a[5]; } q0;
-    qword q50;
-    qword q60;
+    struct { qword a[5]; } cpdefi;
+    qword focusPos;
+    qword closestPoint;
     qword a;
     ActivateCplcy(p, pj, pt);
     p->ptn = pt;
@@ -884,17 +884,17 @@ extern "C" void ActivateCptn(CMPART2 *p, void *pj, TN *pt)
     }
     p->fEntered = 1;
     InitTnDefaultAngles(p->pcpd);
-    GetCmCpdefi(&D_002DDF40, pj, &q0);
-    BlendTnFocusPos(p->pcpd, (CPDEFI *)&q0, &q50, 0);
+    GetCmCpdefi(&D_002DDF40, pj, &cpdefi);
+    BlendTnFocusPos(p->pcpd, (CPDEFI *)&cpdefi, &focusPos, 0);
     if (p->ptn) {
         TN *ptT = p->ptn;
         if (ptT->pshape)
-            FindShapeClosestPoint(ptT->pshape, q50, 0, &q60, 0, 0, &ptT->uProgress);
+            FindShapeClosestPoint(ptT->pshape, focusPos, 0, &closestPoint, 0, 0, &ptT->uProgress);
         else if (ptT->fCircle)
-            UpdateCptnTarget(p, (CPDEFI *)&q0);
-        BlendTnFocusPos(p->pcpd, (CPDEFI *)&q0, &q50, p->ptn);
+            UpdateCptnTarget(p, (CPDEFI *)&cpdefi);
+        BlendTnFocusPos(p->pcpd, (CPDEFI *)&cpdefi, &focusPos, p->ptn);
     }
-    { qword *pq = &D_002DDF40.dposFocus; a = VAdd(q50, *pq);
+    { qword *pq = &D_002DDF40.dposFocus; a = VAdd(focusPos, *pq);
     GetVectorSphere(VSub(pq[-0x25], a), &p->radPan, &p->radTilt, &p->sDist); }
     p->sDist = p->sDist - D_002DDF40.sNearClip;
     p->posEye = VAdd(a, SetVectorSphere(p->radPan, p->radTilt, p->sDist));
@@ -1760,8 +1760,8 @@ float D_002C4114 = 2.0f;
 int D_002C4118 = 0;
 /* The default CPD (D_002C4120; the declaration above has the CPD type). Its last field, lmTilt, is D_002C41A8,
  * which InitCptn writes by that name, so the record is defined without it, immediately followed by that LM. */
-struct CPD_HEAD { int cid; float dsOffset; int unk08[2]; float aclqOffset[3][4]; float almOffset[3][2]; float uFrameX, uFrameY,
-    gWeight, uTunnel, gTurn; int unk6c; float agRate[3]; int unk7c; float kDist, cDist; };
+struct CPD_HEAD { int cid; float dsOffset; int unknown08[2]; float aclqOffset[3][4]; float almOffset[3][2]; float uFrameX, uFrameY,
+    gWeight, uTunnel, gTurn; int pad6C; float agRate[3]; int pad7C; float kDist, cDist; };
 namespace TN_DATA { extern CPD_HEAD r_D_002C4120 __asm__("D_002C4120") __attribute__((aligned(16))); }
 CPD_HEAD TN_DATA::r_D_002C4120 = {0x30, -450.0f, {0, 0}, {{0.0f, 1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f}, {125.0f, 1.0f, 0.0f, 0.0f}},
     {{-3.40282347e+38f, 3.40282347e+38f}, {-3.40282347e+38f, 3.40282347e+38f}, {-3.40282347e+38f, 3.40282347e+38f}},
