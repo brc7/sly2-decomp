@@ -614,7 +614,7 @@ static inline float PlaneDist(VU_VECTOR4 plane, qword pos)
  * See: docs/reference/functions/physics-collision.md#mark-0x1a7c18-0x1aa978
  * @end-sly2-annot */
 // Ranks the surfaces near embedded vertices (largest minimum depth above a threshold) and emits vertex/face
-// contacts for them through AddXp.
+// contacts for them through AddXp. (inferred)
 extern "C" void AddEmbeddedVertexXps(W *w, A *a, B *b, int count, int *indices, NODE **heads, XP **out)
 {
     float d;
@@ -1606,6 +1606,7 @@ static inline int IxpsOther(XP *pxp, SOPART *ppart) { int one = 1; int fNe = pxp
    apart: each one whose other side's object passes FindZapResponder for those kinds is copied onto ptreeOther's zap list,
    then the list goes to *ppxpFirst. so.h declares slot 59's third argument int; it is the BSP here. */
 // Asks the zap responder of the other object (FindZapResponder, slot 0x3C) for its contacts and appends them.
+// (inferred)
 extern "C" void AddZapResponderXps(SW *psw, SOTREE *ptree, SOTREE *ptreeOther, SOPART *ppart, int cbsp, BSP *absp, BSP *pbsp,
                               XP **ppxpFirst)
 {
