@@ -59,17 +59,19 @@ struct WIDGETV : public LO
     char pad80[0x28];
     int isNonExclusive;                /* +0xA8 clear: kept on the exclusive list D_003E1060 */
 };
-/* A sprite group as DrawSprite..GetSpriteMainState read it: 0x18-byte items at +4, 0x18-byte entries at +8 (the
-   entry's linked item index at +8), a count at +0x28. */
-struct SPRITEITEM { char pad0[0x18]; };
-struct SPRITEENTRY { char pad0[0x8]; short itemIndex; char padA[0x6]; int n10; int n14; };
+/* A sprite group (0x30 bytes) as DrawSprite..GetSpriteMainState read it: the 0x18-byte animations at +4, the
+   0x18-byte playback slots at +8 (slot 0 plays the group's main track), an enable flag at +0x28. */
+struct SPRITEITEM { char pad0[0x18]; };   /* an animation */
+/* a playback slot: the animation playing (-1 none), the key, the time, whether it finished (or holds a seeked
+   time), its sound */
+struct SPRITEENTRY { char pad0[0x8]; short animIndex; short keyIndex; float time; int isFinished; void *sound; };
 struct SPRITEGRP
 {
-    int n0;
-    SPRITEITEM *spriteItems;      /* +0x04 */
-    SPRITEENTRY *spriteEntries;    /* +0x08 */
+    unsigned short numAnims, numSlots;
+    SPRITEITEM *anims;      /* +0x04 */
+    SPRITEENTRY *slots;     /* +0x08 */
     char padC[0x1C];
-    int n28;                /* +0x28 */
+    int isEnabled;          /* +0x28 */
 };
 
 extern SW D_003DD490;           /* g_sw */
@@ -93,7 +95,7 @@ void FormatSubtitleButtonGlyphs(char *pchz, int n);
 void SetWidgetRequest(WIDGETV *widget, int request);
 void SetWidgetStateW(WIDGETV *widget, int state) __asm__("SetWidgetState");
 int FWidgetObscured(WIDGETV *widget);
-void DrawSpriteItems(SPRITEITEM *pitem, int i, int n);
+void DrawSpriteItems(SPRITEITEM *anim, int slot, int drawFlags);
 void StopSpriteSlot(SPRITEGRP *spriteGroup, int i);
 /* DrawSprite returns what DrawSpriteSlot leaves in v0 (its own body is void) */
 int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot");
@@ -1521,8 +1523,8 @@ void UpdateWidget(struct S *widget)
 // 0x212E40 SetWidgetAnimPhase
 namespace M_SetWidgetAnimPhase { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short index; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct H *reuse; char padc[0x24]; };
+struct H { char pad[8]; short animIndex; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct H *slots; char padc[0x24]; };
 struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
 void SetSpriteDefaultPhase(struct A *pa, float phase);
 void SetSpriteAnimPhase(struct A *pa, int animIndex, float g, int z);
@@ -1545,14 +1547,14 @@ void SetWidgetAnimPhase(struct S *widget, int animId, float phase)
         struct A *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
             struct E *anim = &group->anims[animIndex];
-            int reuseIndex = -1;
+            int slotIndex = -1;
             if (animId == anim->id) {
                 int i;
-                for (i = 0; i < group->numReuse; i++)
-                    if (group->reuse[i].index != -1)
-                        reuseIndex = i;
-                if (reuseIndex >= 0)
-                    SetSpriteAnimPhase(group, reuseIndex, phase, 0);
+                for (i = 0; i < group->numSlots; i++)
+                    if (group->slots[i].animIndex != -1)
+                        slotIndex = i;
+                if (slotIndex >= 0)
+                    SetSpriteAnimPhase(group, slotIndex, phase, 0);
             }
         }
     }
@@ -1562,8 +1564,8 @@ void SetWidgetAnimPhase(struct S *widget, int animId, float phase)
 // 0x212F80 SetWidgetAnimTime
 namespace M_func_00212F80 { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct H { char pad[8]; short index; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct H *reuse; char padc[0x24]; };
+struct H { char pad[8]; short animIndex; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct H *slots; char padc[0x24]; };
 struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
 void SetSpriteDefaultTime(struct A *pa, float phase);
 void SetSpriteAnimTime(struct A *pa, int animIndex, float g, int z);
@@ -1588,14 +1590,14 @@ void SetWidgetAnimTime(struct S *widget, int animId, float phase)
         struct A *group = &widget->spriteGroups[groupIndex];
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
             struct E *anim = &group->anims[animIndex];
-            int reuseIndex = -1;
+            int slotIndex = -1;
             if (animId == anim->id) {
                 int i;
-                for (i = 0; i < group->numReuse; i++)
-                    if (group->reuse[i].index != -1)
-                        reuseIndex = i;
-                if (reuseIndex >= 0)
-                    SetSpriteAnimTime(group, reuseIndex, phase, 0);
+                for (i = 0; i < group->numSlots; i++)
+                    if (group->slots[i].animIndex != -1)
+                        slotIndex = i;
+                if (slotIndex >= 0)
+                    SetSpriteAnimTime(group, slotIndex, phase, 0);
             }
         }
     }
@@ -1821,8 +1823,8 @@ void S::StopMainAnim()
 // 0x213928 StopWidgetAnim
 namespace M_StopWidgetAnim { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short index; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct C *reuse; char padc[0x14]; int currentAnim; char pad24[0xC]; };
+struct C { char pad[8]; short animIndex; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct C *slots; char padc[0x14]; int currentAnim; char pad24[0xC]; };
 struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
 void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
 /** @sly2-annot addr=0x213928
@@ -1840,12 +1842,12 @@ void StopWidgetAnim(struct S *widget, int animId)
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
             struct E *anim = &group->anims[animIndex];
             if (animId == anim->id) {
-                int hasReuse = 0;
-                for (i = 0; i < group->numReuse; i++) {
-                    if (group->reuse[i].index != -1)
-                        hasReuse = 1;
+                int isAnySlotPlaying = 0;
+                for (i = 0; i < group->numSlots; i++) {
+                    if (group->slots[i].animIndex != -1)
+                        isAnySlotPlaying = 1;
                 }
-                if (hasReuse)
+                if (isAnySlotPlaying)
                     RestartNestedSprite(widget, groupIndex, 0, 0, 0);
                 else
                     group->currentAnim = -1;
@@ -1887,8 +1889,8 @@ void PlayWidgetAnimsWithArg(struct S *widget, int animId, int arg)
 // 0x213B00 PlayWidgetAnim
 namespace M_PlayWidgetAnim { extern "C" {
 struct E { char pad[0x14]; int id; };
-struct C { char pad[8]; short index; char pada[0xE]; };
-struct A { unsigned short numAnims; unsigned short numReuse; struct E *anims; struct C *reuse; char padc[0x14]; int currentAnim; char pad24[0xC]; };
+struct C { char pad[8]; short animIndex; char pada[0xE]; };
+struct A { unsigned short numAnims; unsigned short numSlots; struct E *anims; struct C *slots; char padc[0x14]; int currentAnim; char pad24[0xC]; };
 struct S { char pad[0x80]; unsigned short numSpriteGroups; short pad82; struct A *spriteGroups; };
 void RestartNestedSprite(struct S *widget, int groupIndex, int animIndex, int y, int z);
 /** @sly2-annot addr=0x213B00
@@ -1909,12 +1911,12 @@ void PlayWidgetAnim(struct S *widget, int animId)
         for (animIndex = 0; animIndex < group->numAnims; animIndex++) {
             struct E *anim = &group->anims[animIndex];
             if (animId == anim->id) {
-                int hasReuse = 0;
-                for (i = 0; i < group->numReuse; i++) {
-                    if (group->reuse[i].index != -1)
-                        hasReuse = 1;
+                int isAnySlotPlaying = 0;
+                for (i = 0; i < group->numSlots; i++) {
+                    if (group->slots[i].animIndex != -1)
+                        isAnySlotPlaying = 1;
                 }
-                if (hasReuse)
+                if (isAnySlotPlaying)
                     RestartNestedSprite(widget, groupIndex, animIndex, 0, 0);
                 else
                     group->currentAnim = animIndex;
@@ -2043,7 +2045,7 @@ struct QQ { qword a, b; };
 struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
 struct Y { struct RGBA color0; struct RGBA color1; char pad8[8]; struct QQ matrix; struct Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0x14]; };
 struct H { int numItems; struct Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numReuse; void *anims; struct H *reuse; char padc[0x24]; };
+struct A { unsigned short numAnims; unsigned short numSlots; void *anims; struct H *slots; char padc[0x24]; };
 struct S { char pad[0x84]; struct A *spriteGroups; };
 /** @sly2-annot addr=0x213E20
  * Purpose: recursive search of nested sprite k: return its M23 and colours
@@ -2058,9 +2060,9 @@ int FindSpriteItemPose(struct S *widget, int groupIndex, struct QQ *matrix, stru
     int i;
     struct Y *item;
     if (!items) {
-        struct H *reuse = widget->spriteGroups->reuse;
-        numItems = reuse->numItems;
-        items = reuse->items;
+        struct H *slot = widget->spriteGroups->slots;
+        numItems = slot->numItems;
+        items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
         struct Z *descriptor;
@@ -2074,7 +2076,7 @@ int FindSpriteItemPose(struct S *widget, int groupIndex, struct QQ *matrix, stru
             *color1 = item->color1;
             return 1;
         }
-        if (FindSpriteItemPose(widget, groupIndex, matrix, color0, color1, widget->spriteGroups[descriptor->groupIndex].reuse[item->spriteSlot].numItems, widget->spriteGroups[descriptor->groupIndex].reuse[item->spriteSlot].items))
+        if (FindSpriteItemPose(widget, groupIndex, matrix, color0, color1, widget->spriteGroups[descriptor->groupIndex].slots[item->spriteSlot].numItems, widget->spriteGroups[descriptor->groupIndex].slots[item->spriteSlot].items))
             return 1;
     }
     return 0;
@@ -2089,7 +2091,7 @@ struct QQ { qword a, b; };
 struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
 struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[0xC]; int link; int unknown6C; };
 struct H { int numItems; Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numReuse; void *anims; H *reuse; char padc[0x24]; };
+struct A { unsigned short numAnims; unsigned short numSlots; void *anims; H *slots; char padc[0x24]; };
 struct S { char pad[0x84]; A *spriteGroups; };
 extern "C" void StopSpriteSlot(A *pa, int i);
 extern "C" void ClearSle(int *p);
@@ -2108,9 +2110,9 @@ extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int
     int i;
     Y *item;
     if (!items) {
-        H *reuse = widget->spriteGroups->reuse;
-        numItems = reuse->numItems;
-        items = reuse->items;
+        H *slot = widget->spriteGroups->slots;
+        numItems = slot->numItems;
+        items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
         Z *descriptor;
@@ -2127,9 +2129,9 @@ extern "C" int RestartNestedSprite(S *widget, int groupIndex, int animIndex, int
             return 1;
         }
         {
-            /* &spriteGroups[...].reuse[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
-            H *reuse = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].reuse);
-            if (RestartNestedSprite(widget, groupIndex, animIndex, reuse->numItems, reuse->items))
+            /* &spriteGroups[...].slots[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
+            H *slot = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].slots);
+            if (RestartNestedSprite(widget, groupIndex, animIndex, slot->numItems, slot->items))
                 return 1;
         }
     }
@@ -2145,7 +2147,7 @@ struct QQ { qword a, b; };
 struct Z { int unknown0; int kind; char pad8[8]; int groupIndex; };   /* an item descriptor; kind 4 = a nested sprite group */
 struct Y { int color0; int color1; char pad8[8]; QQ matrix; Z *descriptor; char pad34[0x24]; int spriteSlot; char pad5c[8]; int arg; int link; int unknown6C; };
 struct H { int numItems; Y *items; char pad8[0x10]; };
-struct A { unsigned short numAnims; unsigned short numReuse; void *anims; H *reuse; char padc[0x24]; };
+struct A { unsigned short numAnims; unsigned short numSlots; void *anims; H *slots; char padc[0x24]; };
 struct S { char pad[0x84]; A *spriteGroups; };
 extern "C" void StopSpriteSlot(A *pa, int i);
 extern "C" void ClearSle(int *p);
@@ -2164,9 +2166,9 @@ extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animInd
     int i;
     Y *item;
     if (!items) {
-        H *reuse = widget->spriteGroups->reuse;
-        numItems = reuse->numItems;
-        items = reuse->items;
+        H *slot = widget->spriteGroups->slots;
+        numItems = slot->numItems;
+        items = slot->items;
     }
     for (i = 0; i < numItems; i++) {
         Z *descriptor;
@@ -2185,9 +2187,9 @@ extern "C" int RestartNestedSpriteWithArg(S *widget, int groupIndex, int animInd
             return 1;
         }
         {
-            /* &spriteGroups[...].reuse[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
-            H *reuse = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].reuse);
-            if (RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, reuse->numItems, reuse->items))
+            /* &spriteGroups[...].slots[oldSlot], spelled as byte arithmetic: the indexed form schedules differently */
+            H *slot = (H *)(oldSlot * sizeof(H) + (int)widget->spriteGroups[descriptor->groupIndex].slots);
+            if (RestartNestedSpriteWithArg(widget, groupIndex, animIndex, arg, slot->numItems, slot->items))
                 return 1;
         }
     }
@@ -4038,7 +4040,7 @@ struct RGBA {
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct E { char pad[8]; short animIndex; short keyIndex; float time; int isSeeking; void *unknown14; };
+struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; void *unknown14; };
 struct F { char pad[0x18]; };
 struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
 static inline M23 Mul(const M23 &q, const M23 &n)
@@ -4067,7 +4069,7 @@ extern "C" void StartSpriteAnimAt(S *group, int animIndex, int slot, M23 *matrix
     E *state = &group->slots[slot];
     M23 m;
     state->animIndex = animIndex;
-    state->isSeeking = 0;
+    state->isFinished = 0;
     state->time = t;
     state->keyIndex = 0;
     M23 *pmUse;
@@ -4203,7 +4205,7 @@ struct RGBA {
 } __attribute__((aligned(16)));
 struct QQ { qword a, b; };
 struct Y { RGBA2 color0; RGBA2 color1; char pad8[8]; QQ matrix; };   /* a frame item */
-struct E { int count;void *items;short animIndex;short keyIndex;float time;int isSeeking;void *unknown14; };
+struct E { int count;void *items;short animIndex;short keyIndex;float time;int isFinished;void *unknown14; };
 struct F { char pad[8]; float duration; char padc[0xC]; };
 struct S;
 struct A { int counts; F *anims; E *slots; char padc[0x18]; S *owner; char pad28[8]; };   /* a sprite group */
@@ -4240,14 +4242,14 @@ extern "C" void SetSpriteAnimTime(A *group, int slot, Y *item, float time)
     ResetSpriteSlotItems(group, slot);
     group->slots[slot].time = 0.0f;
     group->slots[slot].keyIndex = 0;
-    group->slots[slot].isSeeking = 0;
+    group->slots[slot].isFinished = 0;
     // The primary argument object is copied again for the second call.
     RGBA argument0(c0),argument1(c1);
     UpdateSpriteSlot(0.0f, group, slot, &q, &argument0, &argument1);
-    group->slots[slot].isSeeking = 0;
+    group->slots[slot].isFinished = 0;
     argument0=c0;RGBA argument2(c1);
     UpdateSpriteSlot(time, group, slot, &q, &argument0, &argument2);
-    group->slots[slot].isSeeking = 1;
+    group->slots[slot].isFinished = 1;
 }
 } // namespace M_func_00218060
 
@@ -4307,9 +4309,9 @@ struct RGBA {
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
 struct M23 { float a[6]; } __attribute__((aligned(16)));
-struct E { char pad[8]; short h8; short hA; float fC; int x10; int x14; };
+struct E { char pad[8]; short animIndex; short keyIndex; float time; int isFinished; int sound; };
 struct F {char pad[8];float duration;char padC[0xC];};
-struct S { int x0; F *af; E *ae; char padc[0x20]; M23 *pm; };
+struct S { int counts; F *anims; E *slots; char padc[0x20]; M23 *xform; };
 static inline M23 Mul(const M23 &q, const M23 &n)
 {
     float m0 = q.a[0], m1 = q.a[1], m2 = q.a[2], m3 = q.a[3], m4 = q.a[4], m5 = q.a[5];
@@ -4331,24 +4333,24 @@ extern "C" void AdvanceSpriteAnim(float,F *,int,M23 *,RGBA,RGBA);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Forwards a sprite slot's update to the reusable or the full animation path. (inferred)
-extern "C" void UpdateSpriteSlot(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
-    E *e=&p->ae[i];
-    int h=e->h8;
-    if(h<0)return;
+extern "C" void UpdateSpriteSlot(S *group,int slot,M23 *matrix,float dt,RGBA c0,RGBA c1) {
+    E *state=&group->slots[slot];
+    int animIndex=state->animIndex;
+    if(animIndex<0)return;
     M23 m;
     M23 *pmUse;
-    if(p->pm) {
-        m=Mul(*pm,*p->pm);
+    if(group->xform) {
+        m=Mul(*matrix,*group->xform);
         pmUse=&m;
-    } else pmUse=pm;
-    if(e->x10) {
-        InterpolateSpriteSlot(dt,&p->af[h],i,pmUse,c0,c1);
+    } else pmUse=matrix;
+    if(state->isFinished) {   /* held: redraw at the stored time */
+        InterpolateSpriteSlot(dt,&group->anims[animIndex],slot,pmUse,c0,c1);
     } else {
-        if(p->af[h].duration <= e->fC) {
-            e->fC=0.0f;
-            e->hA=0;
-        } else e->fC+=dt;
-        AdvanceSpriteAnim(dt,&p->af[h],i,pmUse,c0,c1);
+        if(group->anims[animIndex].duration <= state->time) {
+            state->time=0.0f;   /* loop */
+            state->keyIndex=0;
+        } else state->time+=dt;
+        AdvanceSpriteAnim(dt,&group->anims[animIndex],slot,pmUse,c0,c1);
     }
 }
 } // namespace M_func_002183E8
@@ -4363,12 +4365,10 @@ extern "C" void UpdateSpriteSlot(S *p,int i,M23 *pm,float dt,RGBA c0,RGBA c1) {
 // Draws a sprite group (slot 0). (inferred)
 extern "C" int DrawSprite(SPRITEGRP *spriteGroup)
 {
-    int n;
-    n = spriteGroup->n28;
-    if (n != 0) {
-        n = func_002185F8I(spriteGroup, 0, 0);
-    }
-    return n;
+    int result = spriteGroup->isEnabled;
+    if (result)
+        result = func_002185F8I(spriteGroup, 0, 0);
+    return result;
 }
 
 // 0x2185F8 DrawSpriteSlot
@@ -4378,15 +4378,12 @@ extern "C" int DrawSprite(SPRITEGRP *spriteGroup)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7c_hud
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
-/* Starts entry i's linked item (index at +8 of the 0x18-byte entry; negative for none). */
-// Draws the items of a sprite slot. (inferred)
-extern "C" void DrawSpriteSlot(SPRITEGRP *spriteGroup, int i, int n)
+// Draws the items of a sprite slot's current animation, if it plays one. (inferred)
+extern "C" void DrawSpriteSlot(SPRITEGRP *spriteGroup, int slot, int drawFlags)
 {
-    short itemIndex;
-    itemIndex = spriteGroup->spriteEntries[i].itemIndex;
-    if (itemIndex >= 0) {
-        DrawSpriteItems(&spriteGroup->spriteItems[itemIndex], i, n);
-    }
+    short animIndex = spriteGroup->slots[slot].animIndex;
+    if (animIndex >= 0)
+        DrawSpriteItems(&spriteGroup->anims[animIndex], slot, drawFlags);
 }
 
 // 0x218638 StopSprite
@@ -4399,15 +4396,14 @@ extern "C" void DrawSpriteSlot(SPRITEGRP *spriteGroup, int i, int n)
 // Stops a sprite group (slot 0). (inferred)
 extern "C" void StopSprite(SPRITEGRP *spriteGroup)
 {
-    if (spriteGroup->n28 != 0) {
+    if (spriteGroup->isEnabled)
         StopSpriteSlot(spriteGroup, 0);
-    }
 }
 
 // 0x218660 StopSpriteSlot
 namespace M_func_00218660 { extern "C" {
-struct E { char pad[8]; short h8; short pad2; float fC; int x10; void *x14; };
-struct S { char pad[8]; struct E *ae; char padc[4]; unsigned long ul10; float f18; int x1C; int x20; };
+struct E { char pad[8]; short animIndex; short pad2; float time; int isFinished; void *sound; };
+struct S { char pad[8]; struct E *slots; char padc[4]; unsigned long lastStartFrame; float lastStartTime; int lastStartAnim; int pendingAnim; };
 struct CLOCK { unsigned long ticks; };
 void StopSnd(void *p, float f);
 void RcPtr_Assign(void **pp, void *next);
@@ -4426,27 +4422,28 @@ static inline void Release(void **pp)
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Stops a sprite slot's sounds and resets its items. (inferred)
-void StopSpriteSlot(struct S *p, int i)
+void StopSpriteSlot(struct S *group, int slot)
 {
-    struct E *e = (struct E*)(i*sizeof(struct E)+(int)p->ae);
-    if (e->h8 >= 0) {
-        float t=e->fC;
-        p->x1C = e->h8;
-        p->f18 = t;
-        p->ul10 = (*(struct CLOCK *)&g_clock.tickFrame).ticks;
-        p->x20 = -1;
-        e->h8 = -1;
-        e->x10 = 0;
-        Release(&e->x14);
+    struct E *state = (struct E*)(slot*sizeof(struct E)+(int)group->slots);   /* &group->slots[slot] */
+    if (state->animIndex >= 0) {
+        /* remember where it stopped, so a main-track restart this frame resumes it (StartSpriteAnimSlot) */
+        float t=state->time;
+        group->lastStartAnim = state->animIndex;
+        group->lastStartTime = t;
+        group->lastStartFrame = (*(struct CLOCK *)&g_clock.tickFrame).ticks;
+        group->pendingAnim = -1;
+        state->animIndex = -1;
+        state->isFinished = 0;
+        Release(&state->sound);
     }
-    ResetSpriteSlotItems(p, i);
+    ResetSpriteSlotItems(group, slot);
 }
 } } // namespace M_func_00218660
 
 // 0x218710 FSpriteAnimActive
 namespace M_FSpriteAnimActive { extern "C" {
-struct B { char pad[8]; short h; char pad2[6]; int p; };
-struct S { char pad[8]; struct B *pb; };
+struct B { char pad[8]; short animIndex; char pad2[6]; int isFinished; };
+struct S { char pad[8]; struct B *slots; };
 /** @sly2-annot addr=0x218710
  * Purpose: h!=0 && !done
  * Info: proposed name FSpriteAnimActive (T1); TU hud
@@ -4454,10 +4451,10 @@ struct S { char pad[8]; struct B *pb; };
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // True while the sprite animation is running.
-int FSpriteAnimActive(struct S *p)
+int FSpriteAnimActive(struct S *group)
 {
-    struct B *b = p->pb;
-    if (b->h != 0 && b->p == 0)
+    struct B *mainSlot = group->slots;
+    if (mainSlot->animIndex != 0 && mainSlot->isFinished == 0)
         return 1;
     return 0;
 }
@@ -4473,15 +4470,15 @@ int FSpriteAnimActive(struct S *p)
 // State of the sprite group's main animation. (inferred)
 extern "C" int GetSpriteMainState(SPRITEGRP *spriteGroup)
 {
-    return spriteGroup->spriteEntries->n10;
+    return spriteGroup->slots->isFinished;
 }
 
 // 0x218748 FinishSpriteSoundEvent
 namespace M_func_00218748 { extern "C" {
-struct E { char pad[0x10]; int f; void *p; };
-struct S { char pad[8]; struct E *ae; };
+struct E { char pad[0x10]; int isFinished; void *sound; };   /* a playback slot */
+struct S { char pad[8]; struct E *slots; };
 void PauseSnd(void *p);
-static inline struct E *Entries(const struct S *p){struct E *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->ae));return value;}
+static inline struct E *Entries(const struct S *p){struct E *value;__asm__("lw %0,8(%1)":"=r"(value):"0"(p),"m"(p->slots));return value;}
 static inline void *SoundRead(void *const *slot){register void *value __asm__("$3");__asm__("lw %0,%1":"=r"(value):"m"(*slot));return value;}
 static inline struct E *EntryAt(struct E *entries,int index){register struct E *value asm("$2");register int bytes asm("$5")=index*sizeof(struct E);asm("addu %0,%1,%2":"=r"(value):"r"(bytes),"r"(entries));return value;}
 /** @sly2-annot addr=0x218748
@@ -4491,13 +4488,13 @@ static inline struct E *EntryAt(struct E *entries,int index){register struct E *
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Marks a sprite sound event done and stops or pauses its sound. (inferred)
-void FinishSpriteSoundEvent(struct S *p, int i)
+void FinishSpriteSoundEvent(struct S *p, int slot)
 {
-    void *q;
-    p->ae[i].f = 1;
-    q=SoundRead(&EntryAt(Entries(p),i)->p);
-    if (q)
-        PauseSnd(q);
+    void *sound;
+    p->slots[slot].isFinished = 1;
+    sound=SoundRead(&EntryAt(Entries(p),slot)->sound);
+    if (sound)
+        PauseSnd(sound);
 }
 } } // namespace M_func_00218748
 
@@ -4603,8 +4600,8 @@ extern "C" void InterpolateSpriteSlot(float duration,ANIM *animation,int index,M
 
 // 0x2190F8 FinishSpriteSoundEvents
 namespace M_func_002190F8 { extern "C" {
-struct E { char pad[7]; unsigned char c; unsigned char *pb; char padc[0x14]; };
-struct S { int x0; struct E *ae; char pad8[8]; void *x10; };
+struct E { char pad[7]; unsigned char numActions; unsigned char *actions; char padc[0x14]; };   /* an animation key */
+struct S { int numKeys; struct E *keys; char pad8[8]; void *group; };   /* an animation */
 void FinishSpriteSoundEvent(void *p, int k);
 /** @sly2-annot addr=0x2190F8
  * Purpose: for action bytes ==7 call 0x218748
@@ -4613,13 +4610,13 @@ void FinishSpriteSoundEvent(void *p, int k);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Finishes every sound event (action 7) of a sprite key. (inferred)
-void FinishSpriteSoundEvents(struct S *p, int i, int k)
+void FinishSpriteSoundEvents(struct S *anim, int key, int slot)
 {
-    struct E *e = &p->ae[i];
+    struct E *keyData = &anim->keys[key];
     int j;
-    for (j = 0; j < e->c; j++) {
-        if (e->pb[j] == 7)
-            FinishSpriteSoundEvent(p->x10, k);
+    for (j = 0; j < keyData->numActions; j++) {
+        if (keyData->actions[j] == 7)   /* a sound action */
+            FinishSpriteSoundEvent(anim->group, slot);
     }
 }
 } } // namespace M_func_002190F8
@@ -4690,11 +4687,11 @@ extern "C" void HandleSpriteKeyEvents(struct S *p,int fi,int i) {
 
 // 0x219348 ResetSpriteKeyItems
 namespace M_ResetSpriteKeyItems { extern "C" {
-struct Y { char pad[0x30]; void *x30; char pad2[0x3C]; };
-struct F { int x0; struct Y *ay; char pad[0x10]; };
-struct Q { char pad[8]; struct F *af; };
-struct E { char pad[6]; unsigned char c; char pad7[0xD]; unsigned short *pi; char pad18[8]; };
-struct S { int x0; struct E *ae; char pad8[8]; struct Q *pq; };
+struct Y { char pad[0x30]; void *descriptor; char pad2[0x3C]; };   /* a frame item */
+struct F { int numItems; struct Y *items; char pad[0x10]; };   /* a playback slot */
+struct Q { char pad[8]; struct F *slots; };   /* the group */
+struct E { char pad[6]; unsigned char numItemRefs; char pad7[0xD]; unsigned short *itemRefs; char pad18[8]; };   /* an animation key */
+struct S { int numKeys; struct E *keys; char pad8[8]; struct Q *group; };   /* an animation */
 void ReleaseSpriteItem(void *p, struct Y *y);
 void InitSpriteItem(struct Y *y);
 /** @sly2-annot addr=0x219348
@@ -4704,17 +4701,17 @@ void InitSpriteItem(struct Y *y);
  * See: docs/engine/hud-ui.md#5-key-functions, docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Resets the items a sprite key refers to.
-void ResetSpriteKeyItems(struct S *p, int i, int j)
+void ResetSpriteKeyItems(struct S *anim, int key, int slot)
 {
-    struct E *e = &p->ae[i];
-    struct Y *ay = p->pq->af[j].ay;
+    struct E *keyData = &anim->keys[key];
+    struct Y *items = anim->group->slots[slot].items;
     int k;
-    for (k = 0; k < e->c; k++) {
-        struct Y *y = &ay[e->pi[k]];
-        if (y->x30)
-            ReleaseSpriteItem(y->x30, y);
+    for (k = 0; k < keyData->numItemRefs; k++) {
+        struct Y *item = &items[keyData->itemRefs[k]];
+        if (item->descriptor)
+            ReleaseSpriteItem(item->descriptor, item);
         else
-            InitSpriteItem(y);
+            InitSpriteItem(item);
     }
 }
 } } // namespace M_ResetSpriteKeyItems
