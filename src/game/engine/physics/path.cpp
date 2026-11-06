@@ -1188,6 +1188,7 @@ void *MergeSegmentLists(void *p, int d, void *r, struct S *ps, int c, int d2, in
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
 // Clips a segment to the zone, then against its obstacles; returns the blocking obstacle (or 0) and the clipped end.
+// (inferred)
 void *FindPathzoneSegmentBlocker(void *zone, qword from, qword to, int c, int d)
 {
     void *ap[0x80];
@@ -1996,7 +1997,7 @@ qword GetPathlinkEndpointPos(void *p, qword q);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
-// Returns 1 when an object is within radius of an endpoint (always for class 0x40 objects).
+// Returns 1 when an object is within radius of an endpoint (always for class 0x40 objects). (inferred)
 int IsNearPathlinkEndpoint(void *endpoint, struct LO *object, float radius)
 {
     qword a, b, d;
@@ -2327,7 +2328,7 @@ struct G { char pad[0xE94]; int c; int a[84]; int xFE8; };
  * Confidence: low (draft) [T2 0.35] - evidence: static naming pass; sources: r5b_rest
  * See: docs/reference/functions/physics-collision.md#path-0x1bf110-0x1c2920
  * @end-sly2-annot */
-// Returns 1 when the actor may traverse the path link.
+// Returns 1 when the actor may traverse the path link. (inferred)
 int CanUsePathlink(void *pathlink, struct LO *actor, struct G *g)
 {
     int m, i, f1, f2, c;
