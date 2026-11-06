@@ -100,8 +100,19 @@ int func_002185F8I(SPRITEGRP *spriteGroup, int i, int n) __asm__("DrawSpriteSlot
 void StaticInit_hud(int fInitialize, int nPriority);
 }
 
-/* Sprite item descriptor kinds. */
-enum { SPRITE_KIND_NESTED = 4 };   /* the item shows another sprite group */
+/* Sprite descriptor kinds (LoadSpriteDescriptor; the payload union is in its namespace). */
+enum SPRITE_KIND
+{
+    SPRITE_KIND_NONE = 0,
+    SPRITE_KIND_GEOMETRY = 1,   /* VU1 line / strip records */
+    SPRITE_KIND_POLYGON = 2,
+    SPRITE_KIND_TEXT = 3,       /* drawn by RenderSpriteText */
+    SPRITE_KIND_NESTED = 4,     /* shows another sprite group */
+    SPRITE_KIND_UNUSED5 = 5,
+    SPRITE_KIND_EFFECT = 6,     /* a textured quad from a texture resource */
+    SPRITE_KIND_PICTURE = 7,    /* a textured quad from a texture id */
+    SPRITE_KIND_TABLE = 8,      /* a nested sprite table with word / float parameters */
+};
 
 /* Class ids tested by the text getters (docs/reference/class-tree.md). */
 enum HUD_CID
@@ -2459,9 +2470,9 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
  int id=U16Read__18CBinaryInputStream(stream);SPRITE *sprite=&sprites[id];sprite->root=root;sprite->id=id;
  sprite->kind=U32Read__18CBinaryInputStream(stream);
  switch(sprite->kind){
- case 0:case 5:default:break;
- case 4:sprite->data.index=U16Read__18CBinaryInputStream(stream);break;
- case 8:
+ case SPRITE_KIND_NONE:case SPRITE_KIND_UNUSED5:default:break;
+ case SPRITE_KIND_NESTED:sprite->data.index=U16Read__18CBinaryInputStream(stream);break;
+ case SPRITE_KIND_TABLE:
   D_002C40A4=1;
   LoadSpriteTable(owner,stream,root,&sprite->data.nested.count,&sprite->data.nested.children);
   sprite->data.nested.wordCount=U32Read__18CBinaryInputStream(stream);
@@ -2473,7 +2484,7 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   sprite->data.nested.floats=(float *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.nested.floatCount*4,0x13);
   for(j=0;j<sprite->data.nested.floatCount;j++)sprite->data.nested.floats[j]=F32Read__18CBinaryInputStream(stream);
   D_002C40A4=0;break;
- case 3:{
+ case SPRITE_KIND_TEXT:{
   sprite->data.shader.tag=U32Read__18CBinaryInputStream(stream);sprite->data.shader.slot=U32Read__18CBinaryInputStream(stream);
   sprite->data.shader.size=F32Read__18CBinaryInputStream(stream);sprite->data.shader.scale=F32Read__18CBinaryInputStream(stream);sprite->data.shader.value=F32Read__18CBinaryInputStream(stream);
   sprite->data.shader.flag=S8Read__18CBinaryInputStream(stream);sprite->data.shader.mode=S8Read__18CBinaryInputStream(stream);
@@ -2482,22 +2493,22 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   else sprite->data.shader.special=0;
   break;
  }
- case 2:{
+ case SPRITE_KIND_POLYGON:{
   ReadMatrix__18CBinaryInputStreamP7MATRIX3(stream,&raw);M3 matrix=raw;CopyXY(sprite->data.polygon.matrix,matrix);
   sprite->data.polygon.count=U16Read__18CBinaryInputStream(stream);
   sprite->data.polygon.vertices=(VERTEX *)PvAllocClear__FP4HEAPii(owner->heap,sprite->data.polygon.count*sizeof(VERTEX),0x14);
   Read__18CBinaryInputStreamiPv(stream,sprite->data.polygon.count*sizeof(VERTEX),sprite->data.polygon.vertices);break;
  }
- case 6:case 7:{
+ case SPRITE_KIND_EFFECT:case SPRITE_KIND_PICTURE:{
   PAIR first,second;
   first.x=S16Read__18CBinaryInputStream(stream);first.y=S16Read__18CBinaryInputStream(stream);second.x=S16Read__18CBinaryInputStream(stream);second.y=S16Read__18CBinaryInputStream(stream);
   int texture=S32Read__18CBinaryInputStream(stream);
   STACKSCOPE inner;GIFS gif;
   gif.AllocSw(16);gif.AddPrimPack(0,1,0xE);
-  if(sprite->kind==6){sprite->data.effect.id=texture;sprite->data.effect.handle=0;gif.PackAD(0x47,0x5000F);gif.PackAD(0x42,0x80000000A8L);}
+  if(sprite->kind==SPRITE_KIND_EFFECT){sprite->data.effect.id=texture;sprite->data.effect.handle=0;gif.PackAD(0x47,0x5000F);gif.PackAD(0x42,0x80000000A8L);}
   else{sprite->data.picture.id=texture;gif.PackAD(0x42,0x44);gif.PackAD(0x47,0x50000);}
   gif.AddPrimPack(0x54,9,0x525252521L);gif.PackRGBA(0x80808080);
-  if(sprite->kind==6){
+  if(sprite->kind==SPRITE_KIND_EFFECT){
    gif.PackSTQ(0.0f,0.0f,0.0f);gif.PackXYZ(first.x,first.y,0);
    gif.PackSTQ(1.0f,0.0f,0.0f);gif.PackXYZ(second.x,first.y,0);
    gif.PackSTQ(0.0f,1.0f,0.0f);gif.PackXYZ(first.x,second.y,0);
@@ -2514,11 +2525,11 @@ extern "C" void LoadSpriteDescriptor(OWNER *const owner,BIS *stream,ROOT *root,i
   VIFS vif;vif.AllocSw(20);vif.AddDmaCnt();
   vif.AddVifUnpack(UPK_V4_32,((uint)gif.m_pb-(uint)gif.m_ab)>>4,gif.m_ab,7);
   vif.AddVifMscal(D_00000650);vif.EndDmaCnt();vif.AddDmaRet();
-  if(sprite->kind==6)vif.DetachCopySw(owner->heap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
+  if(sprite->kind==SPRITE_KIND_EFFECT)vif.DetachCopySw(owner->heap,&sprite->data.effect.count,0,&sprite->data.effect.packet);
   else{vif.DetachCopySw(owner->heap,&sprite->data.picture.count,0,&sprite->data.picture.packet);PostSwCallback(&D_003DD490,owner,D_002A8B08,sprite);}
   break;
  }
- case 1:{
+ case SPRITE_KIND_GEOMETRY:{
   sprite->data.geometry.count=U16Read__18CBinaryInputStream(stream);
   RECORD *records;GROUP *groups;int i;
   { ALLOCREQ request;
@@ -2584,7 +2595,7 @@ namespace M_func_002155C0 {
 extern "C" {
 void STACKSCOPE_ctor(void *p);
 void STACKSCOPE_ctor_1AE4A0(void *p, int n) __asm__("_$_10STACKSCOPE");
-struct X { char pad[0x14]; unsigned long *px14; };
+struct X { char pad[0x14]; unsigned long *tex0; };   /* a texture: its GS TEX0 register value */
 X *func_001EC880(int);
 void __4GIFS(void *);
 void AllocSw__4DMASi(void *, int);
@@ -2594,8 +2605,9 @@ void AddPrimEnd__4GIFS(void *);
 void DetachCopySw__4DMASPiPP2QWT2i(void *, int, int *, int, int *) __asm__("DetachCopySw__4DMASP4HEAPPiPP2QWT3");   /* DMAS::DetachCopySw(HEAP *, ...) (dmas.cpp) */
 }
 struct BUF { int a[12]; };
-struct P { char pad[0xC4]; int xC4; };
-struct Q { int x0; int x4; char pad8[8]; int x10; char pad14[8]; int x1C; int x20; };
+struct P { char pad[0xC4]; int spriteHeap; };
+/* a picture sprite descriptor: kind, texture id, then the TEX packet built here */
+struct Q { int id; int kind; char pad8[8]; int textureId; char pad14[8]; int texPacketCount; int texPacket; };
 extern "C" void BuildSpritePictureTexPacket(P *p, Q *q);
 /** @sly2-annot addr=0x2155C0
  * Purpose: kind-7 picture callback: GIF TEX0/TEXA packet for the texture of q->x10
@@ -2604,23 +2616,23 @@ extern "C" void BuildSpritePictureTexPacket(P *p, Q *q);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Picture-sprite callback: the GIF packet that selects its texture. (inferred)
-void BuildSpritePictureTexPacket(P *p, Q *q)
+void BuildSpritePictureTexPacket(P *owner, Q *sprite)
 {
     STACKSCOPE frame;
-    if (q->x4 == 7) {
-        q->x1C = 0;
-        q->x20 = 0;
-        X *x = func_001EC880(q->x10);
-        if (x) {
-            BUF b;
-            __4GIFS(&b);
-            AllocSw__4DMASi(&b, 0x10);
-            AddPrimPack__4GIFSiiUl(&b, 0, 1, 0xE);
-            PackAD__4GIFSll(&b, 6, *x->px14);
-            PackAD__4GIFSll(&b, 0x14, 0x60);
-            PackAD__4GIFSll(&b, 8, 5);
-            AddPrimEnd__4GIFS(&b);
-            DetachCopySw__4DMASPiPP2QWT2i(&b, p->xC4, &q->x1C, 0, &q->x20);
+    if (sprite->kind == SPRITE_KIND_PICTURE) {
+        sprite->texPacketCount = 0;
+        sprite->texPacket = 0;
+        X *texture = func_001EC880(sprite->textureId);
+        if (texture) {
+            BUF gifs;
+            __4GIFS(&gifs);
+            AllocSw__4DMASi(&gifs, 0x10);
+            AddPrimPack__4GIFSiiUl(&gifs, 0, 1, 0xE);
+            PackAD__4GIFSll(&gifs, 6, *texture->tex0);   /* TEX0_1 */
+            PackAD__4GIFSll(&gifs, 0x14, 0x60);          /* TEX1_1 */
+            PackAD__4GIFSll(&gifs, 8, 5);                /* CLAMP_1 */
+            AddPrimEnd__4GIFS(&gifs);
+            DetachCopySw__4DMASPiPP2QWT2i(&gifs, owner->spriteHeap, &sprite->texPacketCount, 0, &sprite->texPacket);
         }
     }
 }
@@ -2630,7 +2642,9 @@ void BuildSpritePictureTexPacket(P *p, Q *q)
 namespace M_InitSpriteItem {
 struct RGBA { unsigned int u; RGBA() {} RGBA(unsigned int x) { u = x; } };
 struct CP { RGBA c0, c1; };
-struct S { CP x0; char pad[0x28]; int x30, x34, x38; CP x3c; void *x44; int x48; CP x4c; int x54, x58, x5c; int pad2; int x64; char x68[4]; };
+/* A sprite frame item (0x70 bytes): three colour pairs, its descriptor, its slot in a nested group, an argument,
+   a list link. */
+struct S { CP colors; char pad[0x28]; int descriptor, unknown34, unknown38; CP colorsB; void *matrix; int unknown48; CP colorsC; int unknown54, spriteSlot, unknown5C; int pad2; int arg; char link[4]; };
 extern "C" char D_002A3A10[];
 extern "C" void ClearSle(void *p);
 /** @sly2-annot addr=0x2156B8
@@ -2640,21 +2654,22 @@ extern "C" void ClearSle(void *p);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Sets a sprite item's defaults: neutral colours, identity transform, no ids.
-extern "C" void InitSpriteItem(S *p)
+extern "C" void InitSpriteItem(S *item)
 {
-    p->x44 = D_002A3A10;
-    p->x30 = 0;
-    p->x54 = 0;
-    p->x0.c0 = RGBA(0x7F7F7F7F); p->x0.c1 = RGBA(0xFFFFFFFF);
-    p->x3c.c0 = RGBA(0x7F7F7F7F); p->x3c.c1 = RGBA(0xFFFFFFFF);
-    p->x4c.c0 = RGBA(0x7F7F7F7F); p->x4c.c1 = RGBA(0xFFFFFFFF);
-    p->x64 = -1;
-    p->x58 = 0;
-    p->x34 = 0;
-    p->x5c = 0;
-    p->x38 = 0;
-    p->x48 = 0;
-    ClearSle(p->x68);
+    item->matrix = D_002A3A10;   /* the identity 2x3 matrix (inferred) */
+    item->descriptor = 0;
+    item->unknown54 = 0;
+    /* colour pairs: offset 0x7F (neutral), scale 0xFF (full) per channel */
+    item->colors.c0 = RGBA(0x7F7F7F7F); item->colors.c1 = RGBA(0xFFFFFFFF);
+    item->colorsB.c0 = RGBA(0x7F7F7F7F); item->colorsB.c1 = RGBA(0xFFFFFFFF);
+    item->colorsC.c0 = RGBA(0x7F7F7F7F); item->colorsC.c1 = RGBA(0xFFFFFFFF);
+    item->arg = -1;
+    item->spriteSlot = 0;
+    item->unknown34 = 0;
+    item->unknown5C = 0;
+    item->unknown38 = 0;
+    item->unknown48 = 0;
+    ClearSle(item->link);
 }
 } // namespace M_InitSpriteItem
 
@@ -2665,9 +2680,10 @@ struct RGBA {
     unsigned char r, g, b, a;
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct L { char pad[0x84]; char *pb; };
-struct S { int x0; int k; L *pl; int xc; int i; void *x14; };
-struct T { char pad[0x30]; S *x30; char pad34[0x24]; int spriteSlot; };
+struct L { char pad[0x84]; char *spriteGroups; };   /* the owning widget */
+/* a sprite descriptor: index is the nested group (NESTED) or the texture resource id (EFFECT) */
+struct S { int id; int kind; L *owner; int unknownC; int index; void *texture; };
+struct T { char pad[0x30]; S *descriptor; char pad34[0x24]; int spriteSlot; };   /* a frame item */
 extern "C" int IFreeSpriteSlot(void *p);
 extern "C" void StartSpriteAnimSlot(void *p, int k, int z, void *q, RGBA c0, RGBA c1);
 extern "C" void *func_001BEED8(int);
@@ -2680,19 +2696,19 @@ extern "C" void *func_001BEB28(void *);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Binds a sprite item to its payload by kind (a nested sprite starts its main animation). (inferred)
-extern "C" void SetSpriteItemSource(S *p, T *t, void *q, RGBA c0, RGBA c1)
+extern "C" void SetSpriteItemSource(S *sprite, T *item, void *matrix, RGBA c0, RGBA c1)
 {
-    t->x30 = p;
-    switch (p->k) {
-    case 4:
-        t->spriteSlot = IFreeSpriteSlot(p->pl->pb + p->i * 0x30);
-        StartSpriteAnimSlot(p->pl->pb + p->i * 0x30, 0x314, t->spriteSlot, q, c0, c1);
+    item->descriptor = sprite;
+    switch (sprite->kind) {
+    case SPRITE_KIND_NESTED:   /* groups are 0x30 bytes */
+        item->spriteSlot = IFreeSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30);
+        StartSpriteAnimSlot(sprite->owner->spriteGroups + sprite->index * 0x30, 0x314, item->spriteSlot, matrix, c0, c1);
         break;
-    case 6:
-        if (p->i != -1) {
-            void *pv = func_001BEED8(p->i);
-            if (pv)
-                p->x14 = func_001BEB28(pv);
+    case SPRITE_KIND_EFFECT:
+        if (sprite->index != -1) {
+            void *resource = func_001BEED8(sprite->index);
+            if (resource)
+                sprite->texture = func_001BEB28(resource);
         }
         break;
     }
@@ -2707,8 +2723,8 @@ struct RGBA {
     unsigned char r, g, b, a;
     RGBA(const RGBA &c) { *(RGBA2 *)this = *(const RGBA2 *)&c; }
 } __attribute__((aligned(16)));
-struct L { char pad[0x84]; char *pb; };
-struct S { int x0; int k; L *pl; int xc; int i; };
+struct L { char pad[0x84]; char *spriteGroups; };
+struct S { int id; int kind; L *owner; int unknownC; int index; };
 struct T { char pad[0x58]; int spriteSlot; };
 extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA c1);
 /** @sly2-annot addr=0x215850
@@ -2719,18 +2735,18 @@ extern "C" void UpdateSpriteSlot(void *p, int a, void *b, float g, RGBA c0, RGBA
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Forwards a frame update (time, transform, colours) to a nested sprite item. (inferred)
-extern "C" void UpdateSpriteItem(float g, S *p, T *t, void *b, RGBA c0, RGBA c1)
+extern "C" void UpdateSpriteItem(float time, S *sprite, T *item, void *matrix, RGBA c0, RGBA c1)
 {
-    if (p->k == 4)
-        UpdateSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot, b, g, c0, c1);
+    if (sprite->kind == SPRITE_KIND_NESTED)
+        UpdateSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot, matrix, time, c0, c1);
 }
 } // namespace M_func_00215850
 
 // 0x2158C0 ReleaseSpriteItem
 namespace M_func_002158C0 { extern "C" {
-struct L { char pad[0x84]; char *pb; };
-struct Q { char pad[0x20]; void *x20; };
-struct S { int x0; int k; struct L *pl; int xc; int i; struct Q *x14; };
+struct L { char pad[0x84]; char *spriteGroups; };
+struct Q { char pad[0x20]; void *resource; };   /* a texture reference */
+struct S { int id; int kind; struct L *owner; int unknownC; int index; struct Q *texture; };
 struct T { char pad[0x58]; int spriteSlot; };
 void StopSpriteSlot(void *p, int a);
 void func_001BED18(void *p);
@@ -2742,28 +2758,28 @@ void InitSpriteItem(struct T *t);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Releases a sprite item's payload (stops a nested sprite, drops a texture reference) and resets it. (inferred)
-void ReleaseSpriteItem(struct S *p, struct T *t)
+void ReleaseSpriteItem(struct S *sprite, struct T *item)
 {
-    switch (p->k) {
-    case 4:
-        StopSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot);
+    switch (sprite->kind) {
+    case SPRITE_KIND_NESTED:
+        StopSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot);
         break;
-    case 6:
-        if (p->x14) {
-            if (p->x14->x20)
-                func_001BED18(p->x14->x20);
-            p->x14 = 0;
+    case SPRITE_KIND_EFFECT:
+        if (sprite->texture) {
+            if (sprite->texture->resource)
+                func_001BED18(sprite->texture->resource);
+            sprite->texture = 0;
         }
         break;
     }
-    InitSpriteItem(t);
+    InitSpriteItem(item);
 }
 } } // namespace M_func_002158C0
 
 // 0x215960 QueueSpriteItem
 namespace M_func_00215960 { extern "C" {
-struct L { char pad[0x84]; char *pb; };
-struct S { int x0; int k; struct L *pl; int xc; int i; };
+struct L { char pad[0x84]; char *spriteGroups; };
+struct S { int id; int kind; struct L *owner; int unknownC; int index; };
 struct T { char pad[0x58]; int spriteSlot; char pad5c[5]; unsigned char drawFlags; };
 void DrawSpriteSlot(void *p, int a, int b);
 void PrependSlEntry(void *p, struct T *t);
@@ -2774,21 +2790,21 @@ void PrependSlEntry(void *p, struct T *t);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Queues a sprite item for drawing (nested sprites draw recursively). (inferred)
-void QueueSpriteItem(struct S *p, struct T *t, int b)
+void QueueSpriteItem(struct S *sprite, struct T *item, int drawFlags)
 {
-    switch (p->k) {
-    case 4:
-        DrawSpriteSlot(p->pl->pb + p->i * 0x30, t->spriteSlot, t->drawFlags);
+    switch (sprite->kind) {
+    case SPRITE_KIND_NESTED:
+        DrawSpriteSlot(sprite->owner->spriteGroups + sprite->index * 0x30, item->spriteSlot, item->drawFlags);
         break;
-    case 1:
-    case 3:
-    case 6:
-    case 7:
-        t->drawFlags = b;
-        PrependSlEntry((char *)p->pl + 0xFC, t);
+    case SPRITE_KIND_GEOMETRY:
+    case SPRITE_KIND_TEXT:
+    case SPRITE_KIND_EFFECT:
+    case SPRITE_KIND_PICTURE:
+        item->drawFlags = drawFlags;
+        PrependSlEntry((char *)sprite->owner + 0xFC, item);   /* the widget's render queue (+0xFC) */
         break;
-    case 2:
-    case 5:
+    case SPRITE_KIND_POLYGON:
+    case SPRITE_KIND_UNUSED5:
         break;
     }
 }
@@ -2796,7 +2812,7 @@ void QueueSpriteItem(struct S *p, struct T *t, int b)
 
 // 0x2159E0 RenderSpritePayload
 namespace M_func_002159E0 { extern "C" {
-struct S { int a; int k; };
+struct S { int id; int kind; };
 void RenderSpriteText(struct S *p, int a, int b, int c);
 void RenderSpriteGeometry(struct S *p, int a, int b, int c);
 void RenderSpritePicture(struct S *p, int a, int b, int c);
@@ -2807,23 +2823,23 @@ void RenderSpritePicture(struct S *p, int a, int b, int c);
  * See: docs/reference/functions/hud-ui.md#hud-0x210eb0-0x21bb88
  * @end-sly2-annot */
 // Renders a queued sprite payload by kind: text, geometry or picture. (inferred)
-void RenderSpritePayload(struct S *p, int a, int b, int c)
+void RenderSpritePayload(struct S *sprite, int matrix, int params, int channel)
 {
-    switch (p->k) {
-    case 3:
-        RenderSpriteText(p, a, b, c);
+    switch (sprite->kind) {
+    case SPRITE_KIND_TEXT:
+        RenderSpriteText(sprite, matrix, params, channel);
         break;
-    case 1:
-        RenderSpriteGeometry(p, a, b, c);
+    case SPRITE_KIND_GEOMETRY:
+        RenderSpriteGeometry(sprite, matrix, params, channel);
         break;
-    case 6:
-    case 7:
-        RenderSpritePicture(p, a, b, c);
+    case SPRITE_KIND_EFFECT:
+    case SPRITE_KIND_PICTURE:
+        RenderSpritePicture(sprite, matrix, params, channel);
         break;
-    case 2:
-    case 4:
-    case 5:
-    case 8:
+    case SPRITE_KIND_POLYGON:
+    case SPRITE_KIND_NESTED:
+    case SPRITE_KIND_UNUSED5:
+    case SPRITE_KIND_TABLE:
         break;
     }
 }
