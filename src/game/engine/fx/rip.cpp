@@ -51,15 +51,15 @@ struct RIP
     int refCount;               /* +0x04 */
     RIPGV *ripGroup;            /* +0x08 */
     char padC[0x18 - 0xC];
-    float g18;              /* +0x18 */
+    float duration;            /* +0x18 */
     char pad1C[0x20 - 0x1C];
-    qword q20;              /* +0x20 */
-    qword q30;              /* +0x30 */
+    qword scale;            /* +0x20 */
+    qword alpha;            /* +0x30 */
     char pad40[0x70 - 0x40];
     qword currentPosition;           /* +0x70 */
     qword previousPosition;          /* +0x80 */
     char pad90[0xA0 - 0x90];
-    qword qA0;              /* +0xA0 */
+    qword acceleration;          /* +0xA0 */
     char padB0[0xE8 - 0xB0];
     RIPSUB *firstSubscription;      /* +0xE8 */
     virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
@@ -78,7 +78,7 @@ typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
 struct RIPF : RIP
 {
     LO *followObject;          /* +0xF0 */
-    int nF4;                /* +0xF4 */
+    int spawnCount;             /* +0xF4 */
 };
 struct FLYING : RIP   /* RIPT 3 */
 {
@@ -693,7 +693,7 @@ struct R *PripNewRipg(struct G *p, void *a, struct Q *q)
 namespace M_InitRip { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 struct M3 { qword a, b, c; };
-struct RIP { char pad[0x14]; float t14; float g18; int x1c; float g20; char pad2[0xC]; qword q30; struct M3 m; qword q70; qword q80; char pad3[0x50]; int ne0; };
+struct RIP { char pad[0x14]; float startTime; float duration; int followObject1C; float scale; char pad2[0xC]; qword alpha; struct M3 m; qword currentPosition; qword previousPosition; char pad3[0x50]; int unknownE0; };
 extern float D_002DDED0;
 extern qword D_002C1F50;
 extern struct M3 D_002A2D00;
@@ -703,13 +703,13 @@ void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes 
 {
     using namespace M_InitRip;
     M_InitRip::RIP *p = (M_InitRip::RIP *)this;
-    /*B*/p->ne0 = n;
-    p->g18 = 1.0f;
-    p->t14 = D_002DDED0;
-    p->g20 = g;
-    p->q30 = D_002C1F50;
-    p->q80 = pos;
-    p->q70 = pos;
+    /*B*/p->unknownE0 = n;
+    p->duration = 1.0f;
+    p->startTime = D_002DDED0;
+    p->scale = g;
+    p->alpha = D_002C1F50;
+    p->previousPosition = pos;
+    p->currentPosition = pos;
     p->m = D_002A2D00;/*E*/
 }
 
@@ -764,16 +764,16 @@ void TouchRip(RIP *prip, int fRemove)
 }
 
 namespace M_ForceRipFade__FP3RIPf {
-struct RIP { char pad[0x14]; float t14; float g18; };
+struct RIP { char pad[0x14]; float startTime; float duration; };
 extern "C" { extern CLOCK D_002DDED0; }
 // Start fade.
 extern "C" void ForceRipFade__FP3RIPf(RIP *prip, float dt)
 {
-    float t = prip->g18 - (D_002DDED0.t - prip->t14);
+    float t = prip->duration - (D_002DDED0.t - prip->startTime);
     if (dt < t) {
-        float u = t / prip->g18;
-        prip->g18 = dt / u;
-        prip->t14 = D_002DDED0.t - (1.0f - u) * prip->g18;
+        float u = t / prip->duration;
+        prip->duration = dt / u;
+        prip->startTime = D_002DDED0.t - (1.0f - u) * prip->duration;
     }
 }
 } // namespace M_ForceRipFade__FP3RIPf
@@ -1200,25 +1200,25 @@ struct VTE { short d; short pad; void (*pf)(); };
 extern struct CLOCK D_002DDED0;
 struct LO { char pad[0xC]; struct VTE *vt; char p1[0x28 - 0x10]; unsigned long x28; char p2[0xE8 - 0x30]; int xE8; };
 struct G { char pad[0x150]; int x150; };
-struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float x14; float x18; char p1[0x70 - 0x1C]; qword x70;
-    char p2[0xE0 - 0x80]; struct LO *xE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
+struct S { char pad[0x8]; struct G *pg; char p0[0x14 - 0xC]; float startTime; float duration; char p1[0x70 - 0x1C]; qword currentPosition;
+    char p2[0xE0 - 0x80]; struct LO *unknownE0; char p3[0xEC - 0xE4]; struct VTE *vt; };
 void RemoveRip__FP3RIP(struct S *p);
 // RIP default Update (vt entry 5): fade/age and RemoveRip when expired. (inferred)
 void UpdateRip(struct S *p)
 {
     struct LO *plo;
     int f;
-    if (D_002DDED0.t - p->x14 > p->x18) {
+    if (D_002DDED0.t - p->startTime > p->duration) {
         RemoveRip__FP3RIP(p);
         return;
     }
     if (p->pg->x150 == 1) return;
-    plo = p->xE0;
+    plo = p->unknownE0;
     if (!plo) return;
     if (!plo->xE8) return;
     f = 0;
     if ((int)(plo->x28 >> 60) & 1)
-        if (((int (*)(void *, qword))plo->vt[73].pf)((char *)plo + plo->vt[73].d, p->x70)) f = 1;
+        if (((int (*)(void *, qword))plo->vt[73].pf)((char *)plo + plo->vt[73].d, p->currentPosition)) f = 1;
     ((void (*)(void *, int))p->vt[7].pf)((char *)p + p->vt[7].d, f);
 }
 } } // namespace M_UpdateRip
@@ -1774,9 +1774,9 @@ void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable co
 {
     RIP *prip = this;
     InitRip(prip);
-    prip->g18 = 0.5f;
-    prip->q30 = D_002C1F90;
-    prip->q20 = D_002C1FA0;
+    prip->duration = 0.5f;
+    prip->alpha = D_002C1F90;
+    prip->scale = D_002C1FA0;
 }
 
 // RIPT 4 Project: snap position to followed LO (PosLoWorld) (inferred)
@@ -2194,8 +2194,8 @@ void RIPT1::Init(qword pos, int n, float g)   /* key function: RIPT1's vtable co
 {
     RIP *prip = this;
     InitRip(prip);
-    prip->g18 = 5.0f;
-    prip->qA0 = D_002C1F40;
+    prip->duration = 5.0f;
+    prip->acceleration = D_002C1F40;
 }
 
 // RIPT 1 PostEmit. (inferred)
@@ -2205,7 +2205,7 @@ extern "C" void *PostRipt1Emit(RIPF *prip, void *pv)
     void *pvEmit;
     PostRipEmit(prip, pv);
     pvEmit = *(void **)((char *)pv + 8);
-    prip->nF4 = *(int *)((char *)pvEmit + 0xC);
+    prip->spawnCount = *(int *)((char *)pvEmit + 0xC);
     return pvEmit;
 }
 
@@ -2267,8 +2267,8 @@ namespace M_InitBublet { extern "C" {
 typedef int qword __attribute__((mode(TI)));
 union U { qword q; float a[4]; };
 struct S {
-    char pad[0x20]; float f20;
-    char pad2[0xA0 - 0x24]; qword qA0;
+    char pad[0x20]; float scale;
+    char pad2[0xA0 - 0x24]; qword acceleration;
     char pad3[0xC4 - 0xB0]; float fC4;
 };
 extern qword D_002C1F40;
@@ -2280,11 +2280,11 @@ void InitBublet(struct S *p)
     union U u;
     qword k, r;
     InitRip(p);
-    p->f20 = 0.33f;
+    p->scale = 0.33f;
     __asm__("qmtc2.ni %1, %0" : "=j"(k) : "r"(-0.2f));
     u.q = k;
     __asm__("vmulx.xyzw %0, %1, %2x" : "=j"(r) : "j"(D_002C1F40), "j"(k));
-    p->qA0 = r;
+    p->acceleration = r;
     p->fC4 = -8.0f;
 }
 } } // namespace M_InitBublet
