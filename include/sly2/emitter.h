@@ -131,8 +131,10 @@ extern EMITV3 D_002BDE60;
 extern EMITV D_002BDE70;
 extern char D_002DE720[];
 extern char D_002DE750[];
-extern char D_002CE4A0[];   /* EMITTER's empty reference block (five null pointers) */
-extern char D_002CE4B8[];   /* EXPLO's */
+/* the empty reference block of EMITTER and of EXPLO (five null pointers each, 0x2CE4A0 / 0x2CE4B8 in the linkonce data
+   area, emitted by emitter.cpp before its vtables): a static data member of a class template, one instance per class
+   (DRAFT names; the original's spelling is not known) */
+template <class T> struct EMITBREFS { static void *s_apvNull[5]; };
 
 /* an allocation request for the level heap (TU-private copies of the same struct exist in several merged files) */
 #ifndef SLY2_STRUCT_AREQ
@@ -170,8 +172,8 @@ extern "C" char base_D_002BAAE8[] __asm__("D_002BAAE8");   /* the class descript
 inline CLASSINFO *PclassinfoEmitb(EMITTER *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x244); }
 inline CLASSINFO *PclassinfoEmitb(EXPLO *) { return (CLASSINFO *)(base_D_002BAAE8 + 0x280); }
 /* the empty reference block of each, for func_002586D8 */
-inline void *PvEmitbRefsNull(EMITTER *) { return D_002CE4A0; }
-inline void *PvEmitbRefsNull(EXPLO *) { return D_002CE4B8; }
+inline void *PvEmitbRefsNull(EMITTER *) { return EMITBREFS<EMITTER>::s_apvNull; }
+inline void *PvEmitbRefsNull(EXPLO *) { return EMITBREFS<EXPLO>::s_apvNull; }
 
 /* copy on write: before a write (ENSK_Set), mark the object dirty and give it its own copy of a shared block */
 template <class T> EMITB *PemitbEnsure(T *p, ENSK ensk)

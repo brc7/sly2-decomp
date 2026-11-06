@@ -2403,6 +2403,10 @@ void FireExplsExplso(EMITTERV *p, EMITO *po)
 /* The linkonce copies 0x2584A8..0x2599C8: the EMITTER and EXPLO instances of sly2/emitter.h's member templates
    (each pair is one template; the accessors between them are instantiated by g_aeopid, class_registry). An explicit
    instantiation emits each in its own .gnu.linkonce.t.<symbol>, as the original's implicit ones were. */
+/* sly2/emitter.h's empty reference blocks: EMITTER's (0x2CE4A0), then EXPLO's (0x2CE4B8), weak in .gnu.linkonce.d. */
+template <class T> void *EMITBREFS<T>::s_apvNull[5] = {0, 0, 0, 0, 0};
+template void *EMITBREFS<EMITTER>::s_apvNull[5];
+template void *EMITBREFS<EXPLO>::s_apvNull[5];
 template void LoadEmitblipColorsFromBrx(EMITTER *, CBinaryInputStream *);   /* 0x2584A8 */
 template void LoadEmitterFromBrx(EMITTER *, CBinaryInputStream *);          /* 0x258598, EMITTER slot 14 */
 template void CloneEmitter(EMITTER *, LO *);                                /* 0x258620, slot 41 */
