@@ -42,7 +42,9 @@ struct RIPSUB
     int pad4;
     RIPSUB *pnext;          /* +0x08 */
 };
-/* RIP: share count, owning group, start time and the per-kind fields used by the m2c bodies. */
+/* RIP: share count, owning group, start time and the per-kind fields used by the m2c bodies; the vtable pointer
+   follows the fields (+0xEC). Sly 2's RIP kinds (RIPT, PvtripFromRipt) are real classes with the eight slots of Sly 1's
+   VTRIP table; rip.cpp is their key TU (docs/engine/particles-effects.md). */
 struct RIP
 {
     int kind;
@@ -60,9 +62,83 @@ struct RIP
     qword qA0;              /* +0xA0 */
     char padB0[0xE8 - 0xB0];
     RIPSUB *psubFirst;      /* +0xE8 */
-    void *pvt;              /* +0xEC hand-made vtable (per kind) */
+    virtual void Init(qword pos, int n, float g) __asm__("InitRip");   /* slot 1; key function */
+    virtual void PostEmit(void *pv) __asm__("PostRipEmit");   /* slot 2 */
+    virtual void OnRemove() __asm__("OnRipRemove");   /* slot 3 */
+    virtual void Project() __asm__("ProjectRipTransform");   /* slot 4 */
+    virtual void Update(float dt) __asm__("UpdateRip");   /* slot 5 */
+    virtual void Render(CM *pcm) __asm__("RenderRip");   /* slot 6 */
+    virtual void Touch(int fRemove) __asm__("TouchRip__FP3RIPi");   /* slot 7 */
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceRip");   /* slot 8 */
+};
+typedef char assert_RIP_size[sizeof(RIP) == 0xF0 ? 1 : -1];
+/* The kinds, in the reverse of their emission order (vtables 0x2D7738 .. 0x2D7468; RIP's 0x2D7788 last). DRAFT
+   names: FLYING, STUCK, GLINT, SMACK, LEAF, REMIT after their functions, RIPT0/RIPT1 after their kind numbers; MATCH and
+   SHRAPNEL are the Sly 1 symbols' class names. Fields: only the two words a GLINT/RIPT1 body reads (RIPF). */
+struct RIPF : RIP
+{
     LO *ploFollow;          /* +0xF0 */
     int nF4;                /* +0xF4 */
+};
+struct FLYING : RIP   /* RIPT 3 */
+{
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceLeaf");   /* key function */
+    virtual void PostEmit(void *pv) __asm__("PostFlyingEmit");
+    virtual void Render(CM *pcm) __asm__("RenderFlying");
+};
+struct STUCK : RIP   /* RIPT 10 */
+{
+    virtual void Update(float dt) __asm__("UpdateStuck");   /* key function */
+    virtual void Render(CM *pcm) __asm__("RenderStuck");
+};
+struct SHRAPNEL : RIP   /* RIPT 8 */
+{
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("FBounceShrapnel");   /* key function */
+    virtual void PostEmit(void *pv) __asm__("PostShrapnelEmit__FP8SHRAPNELP5EMITB");
+    virtual void Render(CM *pcm) __asm__("RenderShrapnel__FP8SHRAPNELP2CM");
+};
+struct MATCH : RIP   /* RIPT 6 */
+{
+    virtual void Update(float dt) __asm__("UpdateMatch");   /* key function */
+    virtual void Init(qword pos, int n, float g) __asm__("InitMatch__FP5MATCHP6VECTORfP2SO");
+    virtual void Project() __asm__("ProjectMatchTransform");
+    virtual void Render(CM *pcm) __asm__("RenderMatch");
+};
+struct GLINT : RIP   /* RIPT 4 */
+{
+    virtual void Init(qword pos, int n, float g) __asm__("func_001D0108");   /* key function */
+    virtual void Project() __asm__("func_001D0158");
+    virtual void Render(CM *pcm) __asm__("RenderGlint");
+};
+struct SMACK : RIP   /* RIPT 9 */
+{
+    virtual void Update(float dt) __asm__("UpdateSmack");   /* key function */
+    virtual void Init(qword pos, int n, float g) __asm__("InitSmack");
+    virtual void Project() __asm__("ProjectSmackTransform");
+    virtual void Render(CM *pcm) __asm__("RenderSmack");
+};
+struct RIPT1 : RIP   /* RIPT 1 */
+{
+    virtual void Init(qword pos, int n, float g) __asm__("func_001D0CA8");   /* key function */
+    virtual void PostEmit(void *pv) __asm__("func_001D0CE8");
+    virtual void Touch(int fRemove) __asm__("func_001D0D28");
+};
+struct RIPT0 : RIP   /* RIPT 0 */
+{
+    virtual void Touch(int fRemove) __asm__("func_001D10E8");   /* key function */
+    virtual void Init(qword pos, int n, float g) __asm__("func_001D0E48");
+    virtual void Project() __asm__("func_001D0EB8");
+};
+struct LEAF : RIP   /* RIPT 5 */
+{
+    virtual void PostEmit(void *pv) __asm__("PostLeafEmit");   /* key function */
+    virtual void Project() __asm__("ProjectLeafTransform");
+    virtual int FBounce(void *pa, qword q0, qword q1) __asm__("func_001D0BF8");
+};
+struct REMIT : RIP   /* RIPT 2 */
+{
+    virtual void Update(float dt) __asm__("UpdateRemit");   /* key function */
+    virtual void PostEmit(void *pv) __asm__("PostRemitEmit");
 };
 extern "C" {
 extern qword D_002C1F90, D_002C1FA0, D_002C1F40;
@@ -573,17 +649,17 @@ namespace RO_ORDER { extern const float r_D_002A77D0 __asm__("D_002A77D0") = 3.4
 namespace RO_ORDER { extern const float r_D_002A77D4 __asm__("D_002A77D4") = -3.40282347e+38f; }
 namespace M_PvtripFromRipt { extern "C" {
 struct X { int k; char pad[0xEC - 4]; void *vt; };
-extern char D_002D7738[];
-extern char D_002D76E8[];
-extern char D_002D7698[];
-extern char D_002D7648[];
-extern char D_002D75F8[];
-extern char D_002D75A8[];
-extern char D_002D74B8[];
-extern char D_002D7558[];
-extern char D_002D7508[];
-extern char D_002D7788[];
-extern char D_002D7468[];
+extern char D_002D7738[] __asm__("_vt$6FLYING");
+extern char D_002D76E8[] __asm__("_vt$5STUCK");
+extern char D_002D7698[] __asm__("_vt$8SHRAPNEL");
+extern char D_002D7648[] __asm__("_vt$5MATCH");
+extern char D_002D75F8[] __asm__("_vt$5GLINT");
+extern char D_002D75A8[] __asm__("_vt$5SMACK");
+extern char D_002D74B8[] __asm__("_vt$4LEAF");
+extern char D_002D7558[] __asm__("_vt$5RIPT1");
+extern char D_002D7508[] __asm__("_vt$5RIPT0");
+extern char D_002D7788[] __asm__("_vt$3RIP");
+extern char D_002D7468[] __asm__("_vt$5REMIT");
 void *func_002333B4(void *p, int c, int cb) __asm__("memset");
 /** @sly2-annot addr=0x1CE6D0
  * Purpose: Placement-construct a RIP of type ript: memset to type size (0xF0/0x100/0x110) and set the type's
@@ -711,8 +787,11 @@ extern struct M3 D_002A2D00;
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-void InitRip(struct RIP *p, qword pos, int n, float g)
+} } // namespace M_InitRip
+void RIP::Init(qword pos, int n, float g)   /* key function: RIP's vtable comes out here (the namespace's views) */
 {
+    using namespace M_InitRip;
+    M_InitRip::RIP *p = (M_InitRip::RIP *)this;
     /*B*/p->ne0 = n;
     p->g18 = 1.0f;
     p->t14 = D_002DDED0;
@@ -722,7 +801,6 @@ void InitRip(struct RIP *p, qword pos, int n, float g)
     p->q70 = pos;
     p->m = D_002A2D00;/*E*/
 }
-} } // namespace M_InitRip
 
 /** @sly2-annot addr=0x1CE980
  * Purpose: unlink from RIPG dl + ReleaseRip
@@ -1570,8 +1648,12 @@ void RemoveRip__FP3RIP(struct S *p);
  *   docs/open-questions.md#names-and-classes-cross-cutting,
  *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-int FBounceLeaf(struct S *p, struct A *pa, qword q0, qword q1)
+} } // namespace M_FBounceLeaf
+int FLYING::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
+    using namespace M_FBounceLeaf;
+    M_FBounceLeaf::S *p = (M_FBounceLeaf::S *)this;
+    M_FBounceLeaf::A *pa = (M_FBounceLeaf::A *)pa_m;
     unsigned int i;
     for (i = 0; i < sizeof(D_002C1F70) / sizeof(D_002C1F70[0]); i++) {
         if (FIsBasicDerivedFrom__FP5BASIC3CID(pa->x4, D_002C1F70[i])) return 0;
@@ -1580,7 +1662,6 @@ int FBounceLeaf(struct S *p, struct A *pa, qword q0, qword q1)
     RemoveRip__FP3RIP(p);
     return 1;
 }
-} } // namespace M_FBounceLeaf
 
 /** @sly2-annot addr=0x1CFA20
  * Purpose: STUCK (RIPT 10) Update: base UpdateRip
@@ -1589,8 +1670,9 @@ int FBounceLeaf(struct S *p, struct A *pa, qword q0, qword q1)
  * Confidence: mid (draft) [T1 0.65] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-extern "C" void UpdateStuck(RIP *prip, float dt)
+void STUCK::Update(float dt)   /* key function: STUCK's vtable comes out here */
 {
+    RIP *prip = this;
     UpdateRip(prip, dt);
 }
 
@@ -1697,8 +1779,12 @@ void RemoveRip__FP3RIP(void *p);
  * Confidence: mid (draft) [T1 0.75] - evidence: static naming pass; sources: r5_1AE130
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-int FBounceShrapnel(void *p, struct A *pa, qword q0, qword q1)
+} } // namespace M_FBounceShrapnel
+int SHRAPNEL::FBounce(void *pa_m, qword q0, qword q1)   /* key function (the namespace's views) */
 {
+    using namespace M_FBounceShrapnel;
+    void *p = this;
+    M_FBounceShrapnel::A *pa = (M_FBounceShrapnel::A *)pa_m;
     void *plo = pa->pb->pc->p60;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x32)) return 0;
     if (FIsBasicDerivedFrom__FP5BASIC3CID(plo, 0x59)) {
@@ -1707,7 +1793,6 @@ int FBounceShrapnel(void *p, struct A *pa, qword q0, qword q1)
     }
     return FBounceRip(p, pa, q0, q1);
 }
-} } // namespace M_FBounceShrapnel
 
 namespace M_RenderShrapnel__FP8SHRAPNELP2CM {
 // Render the particle with its scalar depth offset along the global axis.
@@ -1935,7 +2020,11 @@ void RemoveRip__FP3RIP(struct S *p);
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-void UpdateMatch(struct S *p) {
+} } // namespace M_UpdateMatch
+void MATCH::Update(float dt)   /* key function (the namespace's views) */
+{
+    using namespace M_UpdateMatch;
+    M_UpdateMatch::S *p = (M_UpdateMatch::S *)this;
     if (D_002DDED0.t >= p->g14 && p->f104) LaunchMatch__FP5MATCH(p);
     if (D_002DDED0.t - p->g14 > p->g18) {
         struct O *po = p->po;
@@ -1944,7 +2033,6 @@ void UpdateMatch(struct S *p) {
         RemoveRip__FP3RIP(p);
     }
 }
-} } // namespace M_UpdateMatch
 
 namespace M_RenderMatch { extern "C" {
 extern struct CLOCK { float t; } D_002DDED0;
@@ -1970,8 +2058,9 @@ void RenderMatch(struct S *p) {
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
 /* RIPT 4 (glint) Init. */
-extern "C" void func_001D0108(RIP *prip)
+void GLINT::Init(qword pos, int n, float g)   /* key function: GLINT's vtable comes out here */
 {
+    RIP *prip = this;
     InitRip(prip);
     prip->g18 = 0.5f;
     prip->q30 = D_002C1F90;
@@ -1985,7 +2074,7 @@ extern "C" void func_001D0108(RIP *prip)
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
 /* RIPT 4 (glint) Project: follow the object. */
-extern "C" void func_001D0158(RIP *prip)
+extern "C" void func_001D0158(RIPF *prip)
 {
     prip->posPrev = prip->posCur;
     prip->posCur = func_001A62E8(prip->ploFollow);
@@ -2234,15 +2323,17 @@ extern "C" void RemoveRip__FP3RIP(OBJ *);
  * See: docs/engine/particles-effects.md#6-key-functions,
  *   docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-extern "C" void UpdateSmack(OBJ *p)
+} // namespace M_UpdateSmack
+void SMACK::Update(float dt)   /* key function (the namespace's views) */
 {
+    using namespace M_UpdateSmack;
+    M_UpdateSmack::OBJ *p = (M_UpdateSmack::OBJ *)this;
     if (p->x18 < D_002DDED0.t - p->x14) {
         PMF pmf = p->xF0->pmf;
         (p->xF4->*pmf)(p->xF8);
         RemoveRip__FP3RIP(p);
     }
 }
-} // namespace M_UpdateSmack
 
 namespace M_PostLeafEmit {
 // Initialize orientation from three random direction components.
@@ -2263,9 +2354,12 @@ static inline MATRIX3 MakeBasis(qword vector) return r {LoadLookAtMatrix(&r,vect
  * Confidence: mid (draft) [T1 0.65] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-extern "C" void PostLeafEmit(OBJ *p)
+} // namespace M_PostLeafEmit
+void LEAF::PostEmit(void *pv)   /* key function (the namespace's views) */
 {
-    VECTOR v;
+    using namespace M_PostLeafEmit;
+    M_PostLeafEmit::OBJ *p = (M_PostLeafEmit::OBJ *)this;
+    M_PostLeafEmit::VECTOR v;
     float x, y, z;
     register float lo __asm__("$f20")=-1.0f;
     PostRipEmit(p);
@@ -2276,9 +2370,8 @@ extern "C" void PostLeafEmit(OBJ *p)
     v.x = x;
     v.y = y;
     v.z = z + 0.1f;
-    p->x40 = MakeBasis(*(qword *)&v);
+    p->x40 = MakeBasis(*(M_PostLeafEmit::qword *)&v);
 }
-} // namespace M_PostLeafEmit
 
 namespace M_ProjectLeafTransform {
 /* ProjectLeafTransform (Claude agent, wave-3 lane 6): particle turning + axis-dependent damping (P: basis rows at 0x40, velocity at 0x90, drag at 0xC4).
@@ -2446,8 +2539,9 @@ int func_001D0BF8(OBJ *p, S *s, qword a, qword b)
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
 /* RIPT 1 Init. */
-extern "C" void func_001D0CA8(RIP *prip)
+void RIPT1::Init(qword pos, int n, float g)   /* key function: RIPT1's vtable comes out here */
 {
+    RIP *prip = this;
     InitRip(prip);
     prip->g18 = 5.0f;
     prip->qA0 = D_002C1F40;
@@ -2461,7 +2555,7 @@ extern "C" void func_001D0CA8(RIP *prip)
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
 /* RIPT 1 PostEmit. */
-extern "C" void *func_001D0CE8(RIP *prip, void *pv)
+extern "C" void *func_001D0CE8(RIPF *prip, void *pv)
 {
     void *pvEmit;
     PostRipEmit(prip, pv);
@@ -2696,8 +2790,9 @@ typedef char layout_clock_time[(MIX_OFF(struct CLOCK,time)==0)?1:-1];
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
 /* RIPT 0 (bublet) Touch. */
-extern "C" void func_001D10E8(RIP *prip, int f)
+void RIPT0::Touch(int f)   /* key function: RIPT0's vtable comes out here */
 {
+    RIP *prip = this;
     TouchRip(prip, f == 0);
 }
 
@@ -2741,8 +2836,11 @@ void UpdateRip(OBJ *);
  * Confidence: mid (draft) [T1 0.60] - evidence: static analysis; sources: r5_1AE130
  * See: docs/reference/functions/particles-effects.md#rip-0x1cdcd0-0x1d1370
  * @end-sly2-annot */
-void UpdateRemit(OBJ *p)
+} } // namespace M_UpdateRemit
+void REMIT::Update(float dt)   /* key function (the namespace's views) */
 {
+    using namespace M_UpdateRemit;
+    M_UpdateRemit::OBJ *p = (M_UpdateRemit::OBJ *)this;
     UpdateRip(p);
     if (p->xF0) {
         p->xF8 += D_002DDED0.dt * p->xF4;
@@ -2757,7 +2855,6 @@ void UpdateRemit(OBJ *p)
         }
     }
 }
-} } // namespace M_UpdateRemit
 
 // ---- Data owned by this TU, in address order (docs/guides/tu-merging.md "Data"). Defined after the functions
 // so no function sees a definition (keeps the code as matched); the namespaced declarations above refer to these.

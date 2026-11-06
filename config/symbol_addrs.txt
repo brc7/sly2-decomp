@@ -4345,3 +4345,15 @@ _vt$6SCREEN = 0x2D85E8; // type:data size:0x80
 _vt$8HUDMETER = 0x2D8668; // type:data size:0x68
 _vt$10SCREENBASE = 0x2D86D0; // type:data size:0x68
 _vt$14CMemcardDialog = 0x2D3750; // type:data size:0x80
+// the RIP kinds (rip.cpp; DRAFT names but MATCH and SHRAPNEL, see rip.cpp)
+_vt$5REMIT = 0x2D7468; // type:data size:0x50
+_vt$4LEAF = 0x2D74B8; // type:data size:0x50
+_vt$5RIPT0 = 0x2D7508; // type:data size:0x50
+_vt$5RIPT1 = 0x2D7558; // type:data size:0x50
+_vt$5SMACK = 0x2D75A8; // type:data size:0x50
+_vt$5GLINT = 0x2D75F8; // type:data size:0x50
+_vt$5MATCH = 0x2D7648; // type:data size:0x50
+_vt$8SHRAPNEL = 0x2D7698; // type:data size:0x50
+_vt$5STUCK = 0x2D76E8; // type:data size:0x50
+_vt$6FLYING = 0x2D7738; // type:data size:0x50
+_vt$3RIP = 0x2D7788; // type:data size:0x50
