@@ -1,6 +1,10 @@
-// step.cpp -- STEP (step.h, a PO that walks: guards and players derive from it): init/load/clone, physics part
-// binding (SetStepPhys/UpdateStepPhys), acceleration presets, contact adjustment (floor contact, custom and axis
-// contacts), heading and facing, the behaviour stack accessors and transform matching.
+// step.cpp -- STEP (a PO that walks on legs: the guards and the player characters derive from it).
+// Role: the walking body's physics on top of SO/PO: a "phys" collision part that the body part smoothly follows,
+// steering toward a target heading, a cached floor contact (base) found by a ground probe, contact adjustments
+// (friction and closing speed on the floor), terrain fitting with a two-triangle footprint, the behaviour stack
+// (BHVSTK) accessors and transform matching. Entry points: STEP::Init, LoadStepFromBrx, PostStepLoad, UpdateStep
+// (slot 16), PresetStepAccel (slot 70), the contact slots 54-60, SetStepTargetHeading / FaceStepToward,
+// PushStepBehavior / FindStepBehavior.
 // TU 0x203948..0x205E70 (45 functions, address order); the linkonce setter 0x259D18 is an inline function in
 // sly2/step.h.
 //
@@ -58,6 +62,8 @@ void InitBhvstk(void *pv, struct S *p);
  *   docs/engine/player.md#11-key-functions
  * @end-sly2-annot */
 } } // namespace M_InitStep
+// Slot 7 (Init): InitPo, then walking defaults: gravity ratio 1, spin ratio 1 (ScaleStepSpinSpeed), target heading
+// 0, base radius 30, step-down height -50, and the behaviour stack.
 void STEP::Init()
 {
     using namespace M_InitStep;
@@ -81,6 +87,8 @@ void STEP::Init()
  * See: docs/engine/guards-ai.md#9-key-functions, docs/engine/player.md#11-key-functions,
  *   docs/formats/level-objects.md#5-per-class-payloads-vtable-slot-14
  * @end-sly2-annot */
+// Slot 14 (LoadFromBrx): LoadPoFromBrx, caches the base position in parent space (+0x240) and ensures the physics
+// region record.
 extern "C" void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis)
 {
     LoadPoFromBrx(pstep, pbis);
@@ -94,6 +102,7 @@ extern "C" void LoadStepFromBrx(STEP *pstep, CBinaryInputStream *pbis)
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 41 (Clone): ClonePo, then points the behaviour stack's owner at the clone.
 extern "C" void CloneStep(STEP *pstep, STEP *pstepBase)
 {
     ClonePo(pstep, pstepBase);
@@ -120,6 +129,8 @@ void PostBhvstkLoad(void *pv);
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 15 (PostLoad): PostSoLoad, allocates the step's runtime block, attaches its two child objects by oid and
+// builds the collision ("phys") part from the mesh part named by oid +0x264 (BuildStepPhysPart).
 void PostStepLoad(struct O *p)
 {
     PostSoLoad(p);
@@ -143,6 +154,7 @@ void PostStepLoad(struct O *p)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 19 (RenderSelf): just RenderSoSelf.
 extern "C" void RenderStepSelf(STEP *pstep, void *pcm, void *pro)
 {
     RenderSoSelf(pstep, pcm, pro);
@@ -184,6 +196,8 @@ void UpdateGeomWorld(void *a, void *b, void *c);
  * Confidence: low (draft) [T2 0.45] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Builds the step's collision part from a mesh part: appends a new SOPART, copies the geometry, records the lowest
+// point as the base height (+0x210) and adds two helper points.
 void BuildStepPhysPart(struct S *p, struct M *m)
 {
     int n, fl, i, c;
@@ -237,6 +251,7 @@ void BuildStepPhysPart(struct S *p, struct M *m)
  * Confidence: low (draft) [T2 0.35] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Looks up a part by oid and makes it the current phys shape (SetStepPhys).
 extern "C" void SetStepPhysByOid(STEP *pstep, OID oid, int n)
 {
     SOPART *ppart;
@@ -269,6 +284,8 @@ void func_001F4BF8(struct S *p);
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Sets the current phys part (+0x25C). With fForceSnap the body part (+0x258) takes its points at once (in the body
+// part's frame) and the per-point velocities are cleared.
 void SetStepPhys(struct S *p, struct M *pm, int f)
 {
     p->pm1 = pm;
@@ -334,6 +351,8 @@ static __inline__ void CopyMatrix(M4 *destination,const M4 *source) {
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Per frame: moves each body-part point toward the phys part's point with GSmooth and stores the point's velocity
+// ((new - old) / dt), so shape changes (crouch, stand) blend instead of popping.
 void UpdateStepPhys(struct S *input)
 {
     void *context=input;
@@ -412,6 +431,7 @@ void UpdateStepPhys(struct S *input)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Sets the "no base" option (+0x204); turning it on drops the cached floor contact (+0x208).
 extern "C" void SetStepNoBase(STEP *pstep, int n)
 {
     if (pstep->nUnk204 != n) {
@@ -450,6 +470,8 @@ float RadNormalize__Ff(float a);
  *   docs/reference/functions/gameplay-objects.md#rhythm-0x1520c8-0x1539a8,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 16 (Update): UpdateSo, UpdateStepPhys, then the turn-rate speed factor (+0x180) from how far the heading is
+// from the target heading.
 void UpdateStep(struct S *p)
 {
     UpdateSo(p);
@@ -489,6 +511,7 @@ void UpdateStep(struct S *p)
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 85: ground-probe flags for AddStepCustomXps: 0 with the no-base option, else 7 (probe, use top point, ...).
 extern "C" int GetStepGroundProbeFlags(STEP *pstep)
 {
     return (pstep->nUnk204 != 0) ? 0 : 7;
@@ -523,6 +546,8 @@ static inline void InitScalar(U *value,int bits) {
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540,
  *   docs/reference/functions/player.md#murray-0x1b4728-0x1b9f80
  * @end-sly2-annot */
+// Slot 70: PresetSoAccel, then steering: mode 0 accelerates the rotation toward the target heading matrix with the
+// spin smoothing (AccelSoTowardMatBounded); mode 1 fixes the angular velocity directly (FixStepAngularVelocity).
 void PresetStepAccel(struct S *p)
 {
     func_001F9B20(p);
@@ -565,6 +590,7 @@ void PresetStepAccel(struct S *p)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
+// Slot 29: TranslateSoToPos, then refreshes the world base position (+0x230) from the local one (+0x240).
 extern "C" void TranslateStepToPos(STEP *pstep, qword pos)
 {
     TranslateSoToPos(pstep, pos);
@@ -578,6 +604,7 @@ extern "C" void TranslateStepToPos(STEP *pstep, qword pos)
  * Confidence: mid (draft) [T1 0.75] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 30: RotateSoToMat, then takes the new heading as target heading and stores it in the controller.
 extern "C" void RotateStepToMat(STEP *pstep, MATRIX3 *pmat)
 {
     POCTL *pctl;
@@ -595,6 +622,7 @@ extern "C" void RotateStepToMat(STEP *pstep, MATRIX3 *pmat)
  * Confidence: low (draft) [T2 0.20] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 63: a STEP answers 1 where the SO default (QuerySoSlot63) answers 0; meaning unknown (inferred).
 extern "C" int QueryStepSlot63()
 {
     return 1;
@@ -676,6 +704,8 @@ static inline qword AddScaled(const qword *pa, qword b, float g)
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Slot 55: sets up a new contact: resets friction and response; a floor contact (kind 14) with an upward normal
+// (z > 0.7) gets the step's floor friction and a force limit from its weight.
 void AdjustStepNewXp(struct P *p, struct XP *x, int side)
 {
     U dir, diff, point;
@@ -848,6 +878,8 @@ static inline qword QwAddScaled2(qword v, qword a, qword sa, qword b, qword sb)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Slot 57: for floor contacts (kind 14) smooths the closing speed with GSmooth, limited to dt * 9000, so the step
+// settles onto the floor without bouncing.
 extern "C" void AdjustStepXpVelocity(struct STEP *pstep, struct XP *pxp, int ixpd)
 {
     func_001F4FC0(pstep, pxp, ixpd);
@@ -900,6 +932,7 @@ struct S { char pad[0x1A8]; float g; int pad2; MATRIX3 m; };
  * See: docs/reference/functions/core-library.md#game_linkonce-0x254f00-0x259de4,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Sets the target heading (radians, +0x1A8) and rebuilds the target rotation matrix (+0x1B0) about Z.
 void SetStepTargetHeading(struct S *p, float g) { p->g = g; p->m = func_0011B500(D_002A2DC0, g); }
 } } // namespace M_func_00204660
 
@@ -916,6 +949,7 @@ static __inline__ float GetY(qword q) { float y; __asm__("prot3w %0, %1" : "=r"(
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Sets the target heading toward a direction vector (atan2 of its y and x).
 void SetStepTargetHeadingFromVector(void *p, qword v) { SetStepTargetHeading(p, atan2f(GetY(v), GetX(v))); }
 } } // namespace M_SetStepRadTargetVec
 
@@ -932,6 +966,7 @@ void SetStepTargetHeadingFromVector(void *p, qword v);
  *   docs/reference/functions/player.md#bentley-0x134648-0x1378d8,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Turns the target heading toward another object's world position.
 void FaceStepToward(void *p, void *q)
 {
     qword a, b, d;
@@ -949,6 +984,7 @@ void FaceStepToward(void *p, void *q)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
 /* The heading of the step's root transform (atan2 of its world x axis). */
+// Returns the current heading: atan2 of the rotation matrix's first row (y, x).
 extern "C" float GetStepHeading(STEP *pstep)
 {
     XF *pxf = pstep->pxfRoot;
@@ -980,6 +1016,8 @@ static inline struct P *Other(struct N*n,struct P*p){unsigned different=(unsigne
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
+// Slot 58: base AdjustSoXps, then keeps only the best floor contact (kind 14, lowest distance) as the cached base
+// contact (+0x208) with its stamp (+0x20C) and position (+0x230).
 void AdjustStepXps(struct P *p)
 {
     struct N *best;
@@ -1041,6 +1079,8 @@ static __inline__ float Z(qword q){float f;__asm__("pextuw %0,$zero,%1":"=r"(f):
  * Confidence: low (draft) [T2 0.40] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Returns 1 when, starting from a hit mesh polygon, a breadth-first walk over adjacent polygons (max 32) reaches
+// one whose height is inside the step-height window: there is floor nearby to step onto.
 int HasStepFloorNearby(struct P *p,qword position,struct GEOM *g,struct POLY *first)
 {
     struct POLY *queue[32];
@@ -1108,6 +1148,8 @@ void PxpAdd(void *g, void *p, struct X *x, qword a, qword b, int k, int c, int d
  * Confidence: mid (draft) [T1 0.50] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 60: if the ground-probe flags allow it, casts a ray down from the base point (ClipEdgeToObjectPruned) and
+// adds a floor contact (kind 14) at the hit.
 void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
 {
     unsigned int fl;
@@ -1151,6 +1193,7 @@ void AddStepCustomXps(struct S *p, struct X *x, int a2, int a3, int a4, int a5)
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 54: a contact is being freed; drops the cached floor contact if it is that one.
 extern "C" void OnStepSoContactFreed(STEP *pstep, SO *pso)
 {
     XP *pxp;
@@ -1176,6 +1219,8 @@ void RadSmooth__FfffP3SMPPf(float a, float b, float c, int *p, float *pf);
  * Confidence: high [T1 0.80] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Smooths the heading toward the target heading (RadSmooth with the spin parameters) and sets the resulting
+// angular velocity about Z.
 void FixStepAngularVelocity(struct S *p)
 {
     U v;
@@ -1201,6 +1246,7 @@ struct S { char pad[0x1F0]; float g; VECTOR v; };
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Scales the spin smoothing: fast/slow speeds times r, fast time divided by sqrt(r); stores r (+0x1F0).
 void ScaleStepSpinSpeed(struct S *p, float g)
 {
     p->v = D_002C3CB8;
@@ -1226,6 +1272,8 @@ extern "C" void SetSoMass(struct STEP *pso, float m);   /* SetSoMass */
  * Confidence: high [T1 0.90] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Sets the gravity ratio (clamped to >= 0.1): rescales the mass and the gravity vector by the ratio change and
+// stores it (+0x260).
 extern "C" void SetStepGravityRatio(struct STEP *pstep, float rGravity)
 {
     float r = 0.1f;
@@ -1269,6 +1317,7 @@ struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
  * Confidence: low (draft) [T2 0.50] - evidence: semantic review; sources: r7b_guard+top50_round
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// If the step's animation (ASEGA) is live, evaluates its translation channel for this object; else zero.
 qword GetStepAsegaTranslation(void *p, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
@@ -1300,6 +1349,7 @@ struct X *func_0012FF10(struct TABLE *table, void *owner, int kind, int check);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Same as GetStepAsegaTranslation for the rotation channel.
 qword GetStepAsegaRotation(void *p, struct Q *q, float g)
 {
     qword r = D_002A2DD0;
@@ -1329,6 +1379,8 @@ void func_001F4BF8(struct O *p);
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Finds the SO up plo's parent chain that has an attachment record and links (f=1) or unlinks the step's
+// attachment pair through UpdateSwPox.
 void LinkStepAttachment(struct O *p, void *pv, int f)
 {
     struct O *o = (struct O *)PsoFromLo(pv);
@@ -1384,6 +1436,8 @@ static inline float Z(qword q) { float f; __asm__("pextuw %0,$zero,%1" : "=r"(f)
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
+// Slot 82: adds up to three contacts at a point along the axes of an orthonormal frame built around dir, one per
+// grf bit.
 extern "C" void AddStepAxisXps(SO *pso, int grf, LO *plo, qword posOther, qword direction, qword pos)
 {
     XP **ppxpFirst, **ppxpOut;
@@ -1457,6 +1511,8 @@ static inline qword MulX(qword v,qword s){register qword r __asm__("vf2");__asm_
  * Confidence: high [T1 0.85] - evidence: static analysis; sources: r7b_guard+verdicts_followups
  * See: docs/engine/guards-ai.md#9-key-functions, docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 38: copies another object's pose (its world matrix, including the base offset +0x240) and resets the
+// velocities; non-STEP sources fall back to MatchSoXf.
 extern void MatchStepXf(P *p, B *other)
 {
     if (!other) return;
@@ -1524,6 +1580,7 @@ typedef char layout_adjusted[((unsigned)&((P*)0)->adjusted==0x1060)?1:-1];
  * See: docs/engine/player.md#3-step-stepcpp-0x203948, docs/engine/player.md#11-key-functions,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Pushes a new behaviour of class cid on the step's behaviour stack (+0x26C) and initialises it.
 extern "C" BHV *PushStepBehavior(STEP *pstep)
 {
     return PbhvPushBhvstk(&pstep->bhvstk);
@@ -1536,6 +1593,7 @@ extern "C" BHV *PushStepBehavior(STEP *pstep)
  * See: docs/engine/player.md#3-step-stepcpp-0x203948,
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Returns the behaviour of class cid on the step's behaviour stack, or 0.
 extern "C" BHV *FindStepBehavior(STEP *pstep, CID cid)
 {
     return PbhvFindBhvstk(&pstep->bhvstk, cid);
@@ -1558,6 +1616,8 @@ void PsmaApplySmOut(void *x, struct S *ps, int a, int b, void **ppv);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
+// Slot 83: for each set bit (< 6) of the mask increments that dialog role's refcount (+0x2A0); the first reference
+// ensures a state-machine instance (SMA) of the role's dialog SM.
 void AddStepDialogSmRefs(struct S *p, int mask)
 {
     int i;
@@ -1596,6 +1656,7 @@ void func_001F0598(void *y);
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#stepplayer-0x13ff70-0x144638
  * @end-sly2-annot */
+// Slot 84: the inverse of AddStepDialogSmRefs; at refcount 0 the role's SMA is retracted.
 void RemoveStepDialogSmRefs(struct S *p, int mask)
 {
     int i;
@@ -1645,6 +1706,8 @@ __asm__("mtc1 %1,%0":"=f"(r):"r"(one));return r;}
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// When the step has a floor contact, intersects the segment from->to with its two footprint triangles; returns 1
+// and the hit point on a hit.
 int IntersectStepFootprint(struct P*p,qword from,qword to,qword*output)
 {
  V tri[6],d,k;
@@ -1691,6 +1754,8 @@ static inline qword LoadVf(qword *p) { qword r; __asm__("lqc2 %0, %1" : "=j"(r) 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Builds the two footprint triangles: a diamond of radius +0x220 around the base point (+0x218), oriented by the
+// world matrix.
 extern "C" void BuildStepFootprint(S *p, qword out[2][3])
 {
     qword point[5];
@@ -1818,6 +1883,8 @@ static inline void InitMat(MATRIX4 *pm,const MATRIX3 &rot,qword pos)
  * See: docs/engine/bosses.md#33-the-contessa-m5_heist-boss-tasks-l17-castle-exterior,
  *   docs/engine/bosses.md#6-open-questions, docs/reference/functions/guards-ai.md#tu_14fac8-0x14fac8-0x14fca8
  * @end-sly2-annot */
+// Fits the step's orientation to the floor under three probe points (bounding-sphere query and line tests), with
+// the tilt limited to a maximum angle.
 extern "C" void FitStepToTerrain(P *p,HEIGHT *height,int pointCount,const qword *localPoints)
 {
     MATRIX4 matCur,matOrig;
@@ -1880,6 +1947,7 @@ extern "C" void FitStepToTerrain(P *p,HEIGHT *height,int pointCount,const qword 
  * Confidence: low (draft) [T2 0.30] - evidence: static analysis; sources: r7b_guard
  * See: docs/reference/functions/guards-ai.md#step-0x203948-0x205e70
  * @end-sly2-annot */
+// Slot 86: the base answer 0; STEPGUARD's override tests whether the current zap is lethal (inferred).
 extern "C" int IsStepHitByLethalZap()
 {
     return 0;
@@ -1893,6 +1961,7 @@ extern "C" int IsStepHitByLethalZap()
  *   docs/reference/functions/guards-ai.md#step-0x203948-0x205e70,
  *   docs/reference/functions/player.md#jt-0x188488-0x18e540
  * @end-sly2-annot */
+// Slot 87: empty in the base class.
 extern "C" void IgnoreStepSlot87()
 {
 }
